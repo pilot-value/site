@@ -17,14 +17,27 @@
 --   ★2026-10-11 から、**その区分に何人いるかも返さない**（オーナー判断）。
 --     隠すのではなく、最初から渡さない。画面に渡すのは信頼度の3段（cohort.trust）だけ。
 --
--- ★2026-10-11、このファイルに関数を1つ足した。
+-- ★2026-10-11、このファイルに関数を2つ足した。
 --     pv_deep_step      … 見出しの数字を刻みに寄せる小さな道具（2-b 章・誰にも開かない）
+--     pv_deep_missing   … その1行で、まだ答えていない項目を返す（2-c 章・誰にも開かない）
+--                         ＝「見る資格」の線。pv_deep_pay の門がこれを読む（約束①）。
 --
 -- ════════════════════════════════════════════════════════════════════════
 -- 守っている約束（db/pay-rows.sql の①〜⑦をこの画面の形に写したもの）
 --
---   ① Give → Get   鍵（access_until）と、本人が内訳を出していること（detailed）の
+--   ① Give → Get   鍵（access_until）と、本人が**答えきっていること**（ready）の
 --                  両方が要る。REAL PAY より深い画面が、より弱い鍵で開いてはいけない。
+--                  ★2026-10-11（オーナー判断）、本人の側の条件を上げた。
+--                    前 … 内訳が1つでもある（pv_my_give の detailed）
+--                    今 … 自分に当てはまる項目を**ぜんぶ**答えた月が、直近24か月に
+--                         1つ以上ある（pv_deep_missing が空を返す行。2-c 章）
+--                    給与フォームは1文字も変えていない。線を引くのはこの画面の側だけで、
+--                    材料は保存されている行だけ。足りない人には、残っている項目を返して
+--                    今のフォームへ送る（gate.todo）。
+--                    まだ誰もこの画面を使っていないので、経過措置は無い。
+--                  ⚠️ 上がったのは**見る**側だけ。**数えられる**側（区分の頭数）は
+--                     今までどおり「内訳を書いた人」（3章の det）。
+--                     見る線のほうが、数えられる線より高い。そろえないこと。
 --   ② 割合で返す    内訳は**割合**が主。金額は「画面に出ている丸めた年収 × 割合」でしか
 --                  作れない形にする。1人ずつの実額を組み立てられないようにするため。
 --   ③ 丸めて返す    1円まで合う数字は個票の証拠になる。**丸める前の中央値は1つも返さない。**
@@ -56,6 +69,10 @@
 --   ⑥ 準識別子ゼロ  投稿月・作成日時・proof_hash・自由入力の社名・年代・在籍年数は
 --                  返さない。返すのは会社・役職・機材（＝選んだ本人が渡した値、
 --                  または呼んだ本人が既に知っている自分の値）だけ。
+--                  ★2026-10-11 から、1つだけ月を返す所がある ── gate.todo の
+--                    year / month。**呼んだ本人自身の**直近1行の対象月で、
+--                    「どの月の、どの項目が残っているか」を本人に言うためのもの。
+--                    他人の月は今も1つも返さない（集計の側はどこも月を持たない）。
 --   ⑦ 常識の幅      年 $10,000〜$700,000 の外は数えない。
 --
 -- ════════════════════════════════════════════════════════════════════════
@@ -248,6 +265,183 @@ comment on function public.pv_deep_step(numeric, numeric) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 2-c. pv_deep_missing — その1行で、まだ答えていない項目を返す（2026-10-11）
+--
+-- ★オーナー判断（2026-10-11）──
+--   「DEEP PAY は、自分に当てはまる項目を**ぜんぶ**答えた人にだけ開く」。
+--   ★給与フォームは変えていない（必須を1つも増やしていない）。線はこの画面の側だけ。
+--   ★材料は**保存されている行**だけ。画面の状態も、送られてきた payload も見ない。
+--   ★まだ誰も DEEP PAY を使っていないので、経過措置は無い。
+--
+-- 返り値  未回答の項目コードの配列。**並びは固定**（下の表の順）。空配列＝答えきった行。
+--          金額も日付も返さない。分かるのは「どの欄が空か」だけ。
+--
+--   コード       答えたと数える条件（列 ／ pay_items の鍵）
+--   ─────────────────────────────────────────────────────────
+--   base        base_pay が入っている ／ pay_items.fixed_none = true
+--   guarantee   guarantee_pay が入っている ／ pay_items.guarantee_none = true
+--   variable    pay_items.variable_none = true ／ pay_items.variable が1行以上あって、
+--               **どの行にも** amount（金額）と basis（何に連動する支給か）が在る
+--   command     command_pay が入っている
+--   perdiem     per_diem が入っている
+--   housing     housing_type が入っている。allowance（住宅手当・現金）のときは
+--               housing_amount も入っている
+--   bonus       bonus_annual が入っている
+--   profit      profit_share_annual が入っている
+--   block       block_hours が入っている
+--   duty_h      duty_hours が入っている
+--   duty_days   duty_days が入っている
+--   stay        stay_nights が入っている
+--   roles       job_roles が1つ以上（複数を持たない古い行は job_role の単数で見る）
+--   instructor / examiner / union / management / nonline
+--               **その役割に印を付けた行だけ**（line にはモジュールが無い）。
+--               pay_items.<役割>.extra（別に支給されているか、の問い）に答えが在る。
+--               「別に支給されている」と答えた行は、その役割の金額の列も入っている
+--               （union は extra = yes・union_pay。ほかの4つは extra = separate と
+--                 instructor_pay / examiner_pay / management_pay / nonline_pay）。
+--               union は、支給されているとき支給元（pay_items.union.source）も。
+--
+-- ★**0 は答え。空欄（null）だけが未回答。** 保存の道（submit_pay_report）は
+--   '' を null に、0 を 0 のまま入れる（総支給だけは 0 も null に倒すが、総支給は
+--   この線に入っていない）。「職位手当は無い」は 0 と書けば答えになる。
+-- ★**「わからない」も答え**（変動給の basis = unknown・役割の extra = unknown）。
+--   フォームが逃げ道として用意している選択肢を、あとから「未回答」と読み替えない。
+--   役割の extra は included（通常の給与に含まれる）・none・unknown・
+--   with_instructor（審査だけ。教官の手当とまとめて支給）のどれでも答え。
+-- ★変動給は **flight_variable_pay だけでは答えにしない。** あの列は行の合計の写しで、
+--   「何に連動する支給か」を持っていない（この画面の④がそれを集計している）。
+--   ⚠️ pv_my_give の full（REAL PAY の内訳の鍵）は flight_variable_pay でも通す。
+--      **あちらとは別の線。そろえない**（あちらは1バイトも変えていない）。
+-- ★basis は**許可リストで見ない**（pv_deep_pay の vraw は許可リストで見る）。
+--   ここが見るのは「答えたか」だけ。許可リストにすると、フォームに選択肢を1つ
+--   足した日に、それを選んだ人だけがこの画面から閉め出される（誰も赤くならない）。
+-- ★役割モジュールの中身（担当・会社での呼び名・支給単位・回数・日数）は線に入れない。
+--   フォームがどれも必須にしていない（CLAUDE.md「絶対に破らない7つ」の6）。
+-- ⚠️ 「別に支給されている」の見分けは**値の字**（separate / yes）で、住宅も allowance の
+--    字で見ている。どれも pay-report.html の option の値の**写し**。フォームが値を
+--    変えるか足すと、その答えは「金額の要らない答え」と読まれて、線が黙って緩む。
+--    役職・区分の箱が増えたときも同じ（その役割の問いが線に入らない）。
+--    db/test-deep-pay.mjs の ▼2-b「写しの見張り」が、日英のフォームの選択肢と
+--    突き合わせている。あちらが落ちたら、ここを直してから通す。
+-- ★明細から読んだ行（verify_level が1以上）も**同じ線**で見る。特別扱いしない。
+--   読み取りが埋めない欄（賞与・勤務・役割など）は、本人がフォームで足して出し直す。
+--
+-- ⚠️ **その他の現金手当（other_allowance ／ pay_items.other）と交通費（transport）は、
+--    わざと見ていない。「抜けている」と思って足さないこと。**
+--    今のフォームは、この2つに「無い」を保存できない ── 「該当なし」の印が無く、
+--    交通費は画面から欄ごと消えていて明細の読み取りだけが書く。だから空の値は
+--    「まだ答えていない」と「その手当が無い」の見分けが付かない。線に入れると、
+--    手当の無い会社の人が**何を出しても一生開かない**（画面は普通に動いたまま）。
+--    足すなら、先にフォームへ「該当なし」を作る（オーナー判断）。
+-- ⚠️ pay_items の読み方は**例外を投げない形**にしてある（真偽は jsonb のまま比べ、
+--    配列でない variable は空として読む）。ここで落ちると、形の崩れた1行を持つ人の
+--    pv_deep_pay が丸ごとエラーになる。::boolean や jsonb_array_elements を素で使わない。
+--
+-- ★誰にも grant しない。pv_deep_pay（security definer）の中からだけ呼ぶ。
+--   この関数は**渡された1行しか読まない**（表を引かない・auth.uid() も見ない）。
+--   だから開けても他人の行は読めないが、開ける理由が無い。本人の行を選ぶのは
+--   呼ぶ側（pv_deep_pay の v_own）の仕事で、ここに「誰の行か」を持ち込まない。
+--   ⚠️ 引数が**表の行そのもの**の関数は、API（PostgREST）からは「その表の計算列」の
+--      形に見える。pay_reports は誰にも select が無く、この関数も3ロールとも revoke
+--      してあるので外からは届かない。**あとから grant を足さないこと。**
+-- ════════════════════════════════════════════════════════════════
+drop function if exists public.pv_deep_missing(public.pay_reports);
+
+create or replace function public.pv_deep_missing(r public.pay_reports)
+returns text[]
+language sql
+immutable
+as $fn$
+  select array_remove(array[
+    -- ── 月々の現金 ──────────────────────────────────────────
+    case when not (r.base_pay is not null
+                   or coalesce((x.it -> 'fixed_none') = 'true'::jsonb, false))
+         then 'base' end,
+    case when not (r.guarantee_pay is not null
+                   or coalesce((x.it -> 'guarantee_none') = 'true'::jsonb, false))
+         then 'guarantee' end,
+    /* 変動給。「該当なし」か、行が1本以上あって**全部の行**に金額と連動先が在ること。
+       ★金額は数（0 も数）。項目名だけ書いて金額が空の行が1本でもあれば未回答
+         （画面が pay_items.partial を立てる形。jsonb_strip_nulls が amount の鍵ごと落とす）。 */
+    case when not (coalesce((x.it -> 'variable_none') = 'true'::jsonb, false)
+                   or (jsonb_array_length(x.va) > 0
+                       and not exists (
+                         select 1 from jsonb_array_elements(x.va) e
+                          where jsonb_typeof(e) is distinct from 'object'
+                             or not (coalesce(jsonb_typeof(e -> 'amount') = 'number', false)
+                                     or coalesce((e ->> 'amount') ~ '^-?[0-9]+(\.[0-9]+)?$', false))
+                             or nullif(btrim(e ->> 'basis'), '') is null)))
+         then 'variable' end,
+    case when r.command_pay is null then 'command' end,
+    case when r.per_diem    is null then 'perdiem' end,
+    case when not (r.housing_type is not null
+                   and (r.housing_type <> 'allowance' or r.housing_amount is not null))
+         then 'housing' end,
+    -- ── 年額 ────────────────────────────────────────────────
+    case when r.bonus_annual        is null then 'bonus'  end,
+    case when r.profit_share_annual is null then 'profit' end,
+    -- ── 働き方 ──────────────────────────────────────────────
+    case when r.block_hours is null then 'block'     end,
+    case when r.duty_hours  is null then 'duty_h'    end,
+    case when r.duty_days   is null then 'duty_days' end,
+    case when r.stay_nights is null then 'stay'      end,
+    -- ── 役割 ────────────────────────────────────────────────
+    case when cardinality(x.roles) = 0 then 'roles' end,
+    /* 役割ごとの手当。印を付けた役割だけを見る。
+       ★金額は**列**で見る（pay_items の amount ではない）。画面は 0 を列には 0 で送るが、
+         pay_items の側には入れない（0 より大きいときだけ書く）。 */
+    case when 'instructor' = any(x.roles)
+          and not (x.ex_i is not null
+                   and (x.ex_i <> 'separate' or r.instructor_pay is not null))
+         then 'instructor' end,
+    case when 'examiner' = any(x.roles)
+          and not (x.ex_e is not null
+                   and (x.ex_e <> 'separate' or r.examiner_pay is not null))
+         then 'examiner' end,
+    case when 'union' = any(x.roles)
+          and not (x.ex_u is not null
+                   and (x.ex_u <> 'yes'
+                        or (r.union_pay is not null and x.src_u is not null)))
+         then 'union' end,
+    case when 'management' = any(x.roles)
+          and not (x.ex_m is not null
+                   and (x.ex_m <> 'separate' or r.management_pay is not null))
+         then 'management' end,
+    case when 'nonline' = any(x.roles)
+          and not (x.ex_n is not null
+                   and (x.ex_n <> 'separate' or r.nonline_pay is not null))
+         then 'nonline' end
+  ]::text[], null)
+  from (
+    select y.it,
+           case when jsonb_typeof(y.it -> 'variable') = 'array'
+                then y.it -> 'variable' else '[]'::jsonb end              as va,
+           -- 役割：複数（job_roles）が正。2026-08-26 より前の行は単数（job_role）だけ
+           coalesce(r.job_roles, '{}'::text[])
+           || case when nullif(btrim(r.job_role), '') is null then '{}'::text[]
+                   else array[btrim(r.job_role)] end                      as roles,
+           nullif(btrim(y.it -> 'instructor' ->> 'extra'), '')            as ex_i,
+           nullif(btrim(y.it -> 'examiner'   ->> 'extra'), '')            as ex_e,
+           nullif(btrim(y.it -> 'union'      ->> 'extra'), '')            as ex_u,
+           nullif(btrim(y.it -> 'union'      ->> 'source'), '')           as src_u,
+           nullif(btrim(y.it -> 'management' ->> 'extra'), '')            as ex_m,
+           nullif(btrim(y.it -> 'nonline'    ->> 'extra'), '')            as ex_n
+      from (select case when jsonb_typeof(r.pay_items) = 'object'
+                        then r.pay_items end as it) y
+  ) x;
+$fn$;
+
+revoke all on function public.pv_deep_missing(public.pay_reports) from public, anon, authenticated;
+
+comment on function public.pv_deep_missing(public.pay_reports) is
+  '給与レポートの1行について、まだ答えていない項目のコードを固定の並びで返す（空配列＝答えきった行）。'
+  'DEEP PAY の「見る資格」の線（2026-10-11 オーナー判断）。0 と「該当なし」と「わからない」は答え、空欄だけが未回答。'
+  '役割ごとの手当は、その役割に印を付けた行だけを見る。'
+  '★その他の現金手当と交通費は、わざと見ていない（今のフォームが「無い」を保存できないため）。'
+  '★金額も日付も返さない。誰にも grant しない。pv_deep_pay() の中からだけ呼ぶ。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 3. pv_deep_pay — 画面がこれ1つだけを呼ぶ
 --
 -- 引数ゼロ（約束⑤）。区分は**呼んだ本人の最新の1行**からサーバが決める。
@@ -305,6 +499,31 @@ comment on function public.pv_deep_step(numeric, numeric) is
 -- この画面は「給与の中身」の画面なので、総支給しか書いていない人は
 -- 区分（coh）に入れない。入れると全員が未分類100%になり、
 -- ドーナツが灰色一色になる。人数表示（stats）とは別の数であることに注意。
+--
+-- ── 見る資格と、数えられる資格は別の線（2026-10-11・オーナー判断）──
+--   数えられる … 内訳を書いた月を持つ人（下の det。上の段落のとおりで、**動かしていない**）
+--   見る       … 自分に当てはまる項目を**ぜんぶ**答えた月を、直近24か月に1つ以上持つ人
+--                （v_rdy。線の中身は 2-c 章の pv_deep_missing）
+-- ★見る線のほうが高い。だから「内訳は書いたが、まだ答えきっていない人」は、
+--   **区分の頭数には入っているのに、自分ではこの画面を見られない**。これは意図どおり ──
+--   その人の数字を捨てると、線を上げた日に区分がいっせいに壁を割って画面ごと空になる。
+-- ⚠️ det を pv_deep_missing に差し替えないこと（「そろえる」と、頭数が黙って減る）。
+--    逆に、見る側を det に戻さないこと（それが 2026-10-11 より前の線）。
+-- ★見る資格は**月をまたいで拾い集めない**。同じ1行の中で答えきっていること
+--   （pv_my_give の full と同じ考え方）。ただし答えきった月が1つあれば足りる ──
+--   あとから出した月が途中までしか書けていなくても、鍵は閉め直さない
+--   （毎月ぜんぶ書き直させる門にすると、続けて出す人ほど閉め出される）。
+-- ★窓は区分の本棚（sane）と**同じ直近24か月**（v_from 〜 v_to の1か所）。
+--   窓の外の月しか答えきっていない人は、その月が区分にも入らない＝いまの数字に
+--   何も出していないのと同じなので、見る資格にも数えない。
+--   ⚠️ 常識の幅（約束⑦・年 $10,000〜$700,000）は、見る資格には掛けていない。
+--      あれは「集計に入れてよい額か」で、「本人が答えきったか」とは別の問い。
+--      （オーナーが決めたのは「窓の中の、答えきった自分の行」まで。幅を掛けないのは
+--        その字面どおりの実装。掛けることにした日は db/test-deep-pay.mjs の
+--        「見る資格の1行」── わざと幅の下に置いてある ── も作り直す。）
+-- ★足りない人には gate.todo を返す ── 窓の中でいちばん新しい自分の1行の、
+--   対象の年・月と、残っている項目のコードだけ。その行のほかの中身は何も返さない。
+--   答えきっている人と、窓の中に行が1つも無い人には null。
 -- ════════════════════════════════════════════════════════════════
 drop function if exists public.pv_deep_pay();          -- 引数ゼロだった頃のもの
 drop function if exists public.pv_deep_pay(jsonb);
@@ -321,8 +540,21 @@ declare
   v_until timestamptz;
   v_give  jsonb;
   v_key   boolean;
-  v_det   boolean;
+  -- ★見る資格（2026-10-11）。前はここに「内訳が1つでもあるか」の変数が居た。
+  --   名前ごと消してある（残すと、門へ配線し直す入口になる。自己点検 26 が見ている）。
+  v_own   boolean;   -- 窓の中に、答えきった**自分の**行が1つ以上あるか
+  v_rdy   boolean;   -- 門が読む答え ＝ v_own か、運営
+  v_todo  jsonb;     -- 足りない人に返す「残っている項目」（足りている人には null）
   v_open  boolean;
+  /* ★直近24か月の窓。**ここが唯一の場所**（2026-10-11 に変数へ出した）。
+       読むのは2か所 ── 区分の本棚（sane＝数える側）と、見る資格（下の v_own）。
+       前は sane の中に式が直に書いてあった。見る資格にも同じ窓が要るようになり、
+       式を写して持つと「数える窓と見る窓が1か月ずれる」が黙って起きるので、
+       2つとも同じ変数を読む形にした。**式そのものは1文字も変えていない。**
+     当月を含めて暦の24か月ちょうど（2026-09 なら 2024-10〜2026-09）。
+     なぜ投稿日ではなく対象月で見るのかは、sane の where の注を読む。 */
+  v_from  constant date := (date_trunc('month', now()) - interval '23 months')::date;
+  v_to    constant date := date_trunc('month', now())::date;
   v_air   text := nullif(btrim(coalesce(p ->> 'airline',  '')), '');
   v_pos   text := nullif(btrim(coalesce(p ->> 'position', '')), '');
   v_flt   text := nullif(btrim(coalesce(p ->> 'fleet',    '')), '');
@@ -353,9 +585,11 @@ begin
 
   -- ★門は3つとも要る（約束①）。
   --   access_until … REAL PAY と同じ90日の鍵。
-  --   detailed     … 本人が内訳まで出していること。pv-gates.js に条件として
-  --                  書いてあるが、今まで JS にしかなかった＝devtools で素通しできた。
-  --                  ここが唯一の実装場所。
+  --   答えきったか … 本人が、自分に当てはまる項目をぜんぶ答えた月を持っていること
+  --                  （v_rdy。2026-10-11 オーナー判断）。**ここが唯一の実装場所。**
+  --                  前は「内訳が1つでもある」（pv_my_give の内訳の真偽）を読んでいた。
+  --                  その線は門から外した ── 今も give の中で画面へ返してはいるが、
+  --                  **この関数はもう読んでいない**（自己点検 26）。
   --   100人        … 「給与を出したパイロットが100人に達したら開く」という
   --                  プロダクトの約束（2026-09-01）。今までは画面に札を出すだけで
   --                  **どこも強制していなかった**（JS にも無い）。ここが唯一の実装場所。
@@ -365,9 +599,46 @@ begin
   -- ★ここで raise しない。投げると画面がエラーになり、
   --   「1枚出せば開く」という肝心の伝え方ができなくなる（pv_pay_rows と同じ）。
   -- ★運営（pv_admins）は鍵が無くても開く（2026-09-03。REAL PAY 側と同じ理由）。
-  --   内訳の側（v_det）は pv_my_give が既に運営を通しているので、この1行で両方そろう。
+  --   答えきったかの側（v_rdy）も、下で同じ pv_is_operator を足して通す。
+  --   （2026-10-11 より前は pv_my_give が運営を通していたので1行で足りた。
+  --     門がそれを読まなくなったので、こちらにも要る。）
   v_key  := (v_until is not null and v_until > now()) or public.pv_is_operator();
-  v_det  := coalesce((v_give ->> 'detailed')::boolean, false);
+
+  /* ★★見る資格（2026-10-11・オーナー判断）★★
+       「DEEP PAY は、自分に当てはまる項目をぜんぶ答えた人にだけ開く」。
+       線の中身（どの欄を・どう読むか）は pv_deep_missing の1か所（2-c 章）。
+       ここが決めているのは3つだけ ──
+         ① 見るのは**呼んだ本人の行**だけ（鍵の作り方は下の me と同じ pv_my_keys）。
+            他人が答えきっていても、自分の資格にはならない。
+         ② 対象月が**直近24か月の窓の中**の行だけ（sane と同じ v_from 〜 v_to）。
+         ③ その中に、未回答が空の行が**1つでも**あれば足りる（bool_or）。
+            月をまたいで拾い集めない／あとから出した書きかけの月で閉め直さない。
+     ★足りない人のために、窓の中で**いちばん新しい自分の1行**の残りを持って出る
+       （対象月の新しい順・同じ月なら出した時刻の新しい順）。
+       返すのは年・月・残っている項目のコードだけ。金額も会社もその行の他の値も出さない。
+     ⚠️ 並べ替えに使う列を、返り値の鍵にしないこと（約束⑥。年と月は本人の値なので
+        返すが、出した時刻は返さない）。
+     ⚠️ ここで raise しない（下の門と同じ。投げると「何を出せば開くか」を言えない）。 */
+  select coalesce(bool_or(cardinality(m.miss) = 0), false),
+         (array_agg(jsonb_build_object('year',  m.py,
+                                       'month', m.pm,
+                                       'items', to_jsonb(m.miss))
+                    order by m.py desc, m.pm desc, m.ca desc))[1]
+    into v_own, v_todo
+    from (select r.period_year  as py,
+                 r.period_month as pm,
+                 r.created_at   as ca,
+                 public.pv_deep_missing(r) as miss
+            from public.pay_reports r
+           where r.proof_hash in (select h from public.pv_my_keys() h)
+             and make_date(r.period_year, r.period_month, 1) between v_from and v_to) m;
+  /* ★運営は自分で出さなくても通す（鍵と同じ理由 ── 門が効いているかを目で確かめるため。
+       偽の給与を1件出して開ける手は取らない。db/pay-rows.sql の pv_is_operator）。
+     ★足りている人には todo を返さない。「残りは無い」を空の配列で言わせない ──
+       画面が「todo が在る＝まだ足りない」の1つだけで分けられるようにする。 */
+  v_rdy  := v_own or public.pv_is_operator();
+  if v_rdy then v_todo := null; end if;
+
   v_ctb  := public.pv_deep_contributors();
 
   /* ★試験だけの抜け道（オーナー確定 2026-09-01）
@@ -397,14 +668,15 @@ begin
      ⚠️ gate.contributors は今の実数を出し続ける（99 と出たまま開いているのが正しい）。 */
   v_lch  := exists (select 1 from public.pv_deep_launch);
   /* ★「みんなの側」の条件を1つの値にまとめ、gate.crowd としても返す（2026-10-11）。
-       閉じている理由は3つある（鍵が無い／本人の内訳が無い／まだ100人に届かない）。
+       閉じている理由は3つある（鍵が無い／本人が答えきっていない／まだ100人に届かない）。
        前は3つめを、画面が contributors と goal を比べて自分で判定していた。
        それだと手動フラグで開けたあと（99人のまま開いている日）にも、鍵の無い人へ
        「100人に届いたら開く」の行が出る ── その人を止めているのは人数ではないのに。
        **門と同じ式の答え**をそのまま渡し、本当にそれが理由のときだけ出せるようにする。
      ⚠️ 式を2か所に書かない。v_open が読むのも、返すのも、この v_crd の1つ。 */
   v_crd  := (v_lch or v_ctb >= v_goal or v_byp);
-  v_open := v_key and v_det and v_crd;
+  -- ★3つとも and。まんなかは 2026-10-11 に「内訳が1つでもある」から「答えきった」へ替えた。
+  v_open := v_key and v_rdy and v_crd;
 
   -- ★選べるのは語彙に在るものだけ（約束⑤a）。
   --   'other'（自由入力の社名）は選ばせない。別々の会社が other という1社に
@@ -454,6 +726,10 @@ begin
               使い道は「うち明細あり◯人」という**人数**を返すことだけで、
               人数を返すのをやめたので読む場所が無くなった。 */
            -- 内訳を書いたか。pv_my_give の detailed と**同じ条件**にそろえる
+           /* ★これは**数えられる**側の線（区分の頭数に入るか）。2026-10-11 に
+                上がったのは**見る**側だけ（上の v_rdy）で、ここは動かしていない。
+              ⚠️ 「見る線にそろえる」つもりで、ここへ答えきったかの判定を持ち込まない。
+                 頭数が黙って減り、区分がいっせいに壁を割る（自己点検 28）。 */
            (r.base_pay is not null or r.guarantee_pay is not null
             or r.command_pay is not null or r.pay_items is not null) as det,
            /* ★内訳のうち、金額を書いていない行がある月（2026-09-12）。
@@ -462,8 +738,12 @@ begin
               **全額が揃った内訳**として割合の母集団に入り、固定給の割合が
               実際より高く出る。det と同じ考え方で、観測していないものを
               0% と読まないための印。
-              ⚠️ これは**閲覧の資格ではない**（pv_my_give の門はこれを読まない）。
-                 その人の REAL PAY / DEEP PAY は今までどおり開く。 */
+              ⚠️ この印そのものは**閲覧の資格ではない**（pv_my_give も、上の見る資格も
+                 この印を読まない）。その人の REAL PAY は今までどおり開く。
+              ★DEEP PAY の見る資格は、2026-10-11 から行ごとに別の線で見ている
+                （2-c 章）。金額の無い変動給の行が残っている月は、そちらの線で
+                「変動給が未回答」になる ＝ **その月では**開かない。答えきった月が
+                ほかに1つあれば開く。印を立てたから閉じる、という道は今も無い。 */
            coalesce((r.pay_items->>'partial')::boolean, false)          as part,
            /* ── その月の現金（賞与ぬき）──────────────────────
               総支給がある人はそこから当月賞与を引く。無い人は
@@ -572,10 +852,11 @@ begin
           消える」と書いてあり、コードだけが食い違っていた。
           当月を含めて暦の24か月ちょうど（2026-09 なら 2024-10〜2026-09）。
           上限は保険 ── 未来の月は投稿時に既に弾いている
-          （pv_validate_pay_payload の「未来の月は投稿できません」）。 */
-       and make_date(r.period_year, r.period_month, 1)
-             between (date_trunc('month', now()) - interval '23 months')::date
-                 and  date_trunc('month', now())::date
+          （pv_validate_pay_payload の「未来の月は投稿できません」）。
+          ★2026-10-11、窓の両端を関数の頭の変数（v_from / v_to）へ出した。
+            式は同じ。見る資格（v_own）が**同じ2つ**を読むので、数える窓と
+            見る窓がずれない（自己点検 29）。ここへ式を直に書き戻さないこと。 */
+       and make_date(r.period_year, r.period_month, 1) between v_from and v_to
   ),
 
   /* ── ここから下の並びを2026-09-01に組み替えた ────────────────
@@ -1116,10 +1397,20 @@ begin
                   false のときだけ、画面は「100人に届いたら開く」の行を出してよい。
                   ⚠️ 画面が contributors と goal を比べて自分で決めないこと
                      （手動フラグで開けた日に食い違う。上の v_crd の注を読む）。
-         contributors / goal は**サイト全体**の数。区分の人数ではない。 */
+         contributors / goal は**サイト全体**の数。区分の人数ではない。
+       ★ready / todo（2026-10-11）── 本人の側の門。前はここに「内訳が1つでもあるか」の
+         真偽を1つ返していた。その鍵は**名前ごと外した**（古い画面が読みに来ても
+         値が無い＝開いている側には倒れない）。
+         ready … 門が読んでいるのと**同じ値**（v_rdy）。
+         todo  … 足りない人にだけ { year, month, items:[コード…] }。
+                  窓の中でいちばん新しい自分の1行の、残っている項目。
+                  ready のとき・窓の中に自分の行が無いときは null。
+                  ⚠️ 画面は items のコードを自分の言葉に直して出す。ここに日本語を持たない。
+                  ⚠️ この塊に鍵を足さない（金額・会社・その行のほかの値は返さない）。 */
     'gate',  jsonb_build_object(
                'key',          v_key,
-               'detailed',     v_det,
+               'ready',        v_rdy,
+               'todo',         v_todo,
                'crowd',        v_crd,
                'contributors', (select contributors from st),
                'goal',         v_goal),
@@ -1211,8 +1502,12 @@ comment on function public.pv_deep_pay(jsonb) is
   '金額は丸めて返す ── 見出しの2つだけ刻み（年収の中央値＝$50・Pay / Block Hour＝$0.5。'
   '円でおよそ ¥8,000・¥80）、それ以外の金額は有効数字2桁。丸める前の中央値は返さない。'
   '内訳は割合で返す。'
-  '鍵（access_until）と本人の内訳（pv_my_give の detailed）の両方が要る。'
+  '鍵（access_until）と、本人が答えきっていること（gate.ready）の両方が要る。'
+  '答えきった ＝ 自分に当てはまる項目をぜんぶ答えた自分の行が、直近24か月に1つ以上ある'
+  '（2026-10-11 オーナー判断。線の中身は pv_deep_missing。前は「内訳が1つでもある」だった）。'
+  '区分の頭数に数えられる条件は今までどおり「内訳を書いた人」で、見る条件のほうが高い。'
   '足りないときは例外にせず state = locked を返す（画面が「何を出せば開くか」を出せるように）。'
+  '足りない人には gate.todo（窓の中でいちばん新しい自分の1行の、年・月・残っている項目のコード）を返す。'
   'gate.crowd は「100人以上 or 正式公開フラグ」が満たされているか（門と同じ式の答え）。';
 
 
@@ -1254,8 +1549,12 @@ select * from (
                then '✅' else '❌' end
   union all select  7, '鍵（access_until）を見ている',
           case when (select s from d) like '%access_until%' then '✅' else '❌' end
-  union all select  8, '本人が内訳を出したかを見ている',
-          case when (select s from d) like '%pv_my_give%' then '✅' else '❌' end
+  union all select  8, '本人の Give の状態（pv_my_give）を、そのまま give として返している',
+          -- ★2026-10-11 から、門はこれを読まない（門の側は 26 番が見ている）。
+          --   画面へ返すのは今までどおりなので、呼んでいること・返していることを見る。
+          case when (select s from d) like '%v_give := public.pv_my_give();%'
+                and (select s from d) ~ '''give'',\s+v_give,'
+               then '✅' else '❌' end
   union all select  9, '人数の壁は定数 v_min（＝2人）の1か所だけで、本文に人数の直書きが無い',
           -- 静かに壊れる。1か所だけ数字のまま残ると、その列だけ別の壁で出る
           -- （「選べるのに選ぶと空」か、壁に届かない列の実額が出るか）。見るのは3つ。
@@ -1269,10 +1568,14 @@ select * from (
                 and (select s from d) like '%< v_min as x%'
                 and (select s from d) !~ '(>=|<=|<|>) *[23]\M'
                then '✅' else '❌' end
-  union all select 10, '投稿月・作成日時を返していない（約束⑥）',
+  union all select 10, '他人の投稿月・作成日時・ハッシュを返していない（約束⑥。月を返すのは gate.todo ＝ 本人の1行だけ）',
+          -- ★2026-10-11 から、足りない本人にだけ「どの月の行か」を返す（gate.todo）。
+          --   年の鍵が出てくるのはそこ1か所だけであること＝集計の側へ月が漏れていないこと。
           case when (select s from d) not like '%''period_month''%'
                 and (select s from d) not like '%''created_at''%'
                 and (select s from d) not like '%''proof_hash''%'
+                and (length((select s from d))
+                     - length(replace((select s from d), '''year''', ''))) / 6 = 1
                then '✅' else '❌' end
   union all select 11, '自由入力の社名を返していない（約束⑥）',
           case when (select s from d) not like '%''airline_other''%' then '✅' else '❌' end
@@ -1349,6 +1652,58 @@ select * from (
           case when (select s from d) ~ '''trust'',\s+\(select t from trust\)'
                 and (select s from d) ~ '''crowd'',\s+v_crd,'
                 and (select s from d) like '%v_crd  := (v_lch or v_ctb >= v_goal or v_byp);%'
-                and (select s from d) like '%v_open := v_key and v_det and v_crd;%'
+                and (select s from d) like '%v_open := v_key and v_rdy and v_crd;%'
+               then '✅' else '❌' end
+  -- ── 2026-10-11 に足した5つ（見る資格 ── オーナー判断「ぜんぶ答えた人にだけ開く」）──
+  union all select 25, '★答えきったかの判定（pv_deep_missing）が在って、誰にも開いていない',
+          case when to_regprocedure('public.pv_deep_missing(public.pay_reports)') is not null
+                and not has_function_privilege('authenticated', 'public.pv_deep_missing(public.pay_reports)', 'execute')
+                and not has_function_privilege('anon', 'public.pv_deep_missing(public.pay_reports)', 'execute')
+               then '✅' else '❌' end
+  union all select 26, '★門は「答えきったか」を読んでいる（「内訳が1つでもある」は、もう門ではない）',
+          -- 静かに戻る。前の線へ配線し直しても画面は普通に開くので、どこも赤くならない。
+          -- 見るのは4つ。
+          --   ① 門の式が 鍵・答えきったか・みんなの側 の3つの and
+          --   ② 答えきったか（v_rdy）は「本人の行の答え or 運営」だけで出来ている
+          --   ③ 本人の行の答えは、未回答が空の行が1つでもあるか（月をまたいで集めない）
+          --   ④ 前の線の変数も、前の鍵の名前も、関数のどこにも残っていない
+          case when (select s from d) like '%v_open := v_key and v_rdy and v_crd;%'
+                and (select s from d) like '%v_rdy  := v_own or public.pv_is_operator();%'
+                and (select s from d) like '%coalesce(bool_or(cardinality(m.miss) = 0), false)%'
+                and (select s from d) like '%public.pv_deep_missing(r) as miss%'
+                and (select s from d) not like '%v_det%'
+                and (select s from d) not like '%''detailed''%'
+               then '✅' else '❌' end
+  union all select 27, '★門の答えを ready / todo で返している（todo は年・月・残っている項目のコードだけ）',
+          -- ready は門と**同じ値**（v_rdy）。足りている人には todo を必ず null で返す。
+          case when (select s from d) ~ '''ready'',\s+v_rdy,'
+                and (select s from d) ~ '''todo'',\s+v_todo,'
+                and (select s from d) like '%jsonb_build_object(''year'',  m.py,%'
+                and (select s from d) like '%''items'', to_jsonb(m.miss))%'
+                and (select s from d) like '%if v_rdy then v_todo := null; end if;%'
+               then '✅' else '❌' end
+  union all select 28, '★区分の頭数に数える条件（内訳を書いた人）は動かしていない ── 見る線を持ち込んでいない',
+          -- 静かに壊れる。数える側へ「答えきったか」を持ち込むと頭数が減り、区分が
+          -- いっせいに壁を割る（画面は「まだ出せません」と出るだけで、誰も気づけない）。
+          --   ① 答えきったかの判定を呼ぶのは、見る資格の1か所だけ
+          --   ② 「内訳を書いたか」（det）の式が字面どおり
+          --   ③ 頭数は今も det で数えている（人に潰す側の having・選択肢の側の where）
+          case when (length((select s from d))
+                     - length(replace((select s from d), 'pv_deep_missing(', ''))) / 16 = 1
+                and (select s from d) ~ '\(r\.base_pay is not null or r\.guarantee_pay is not null\s+or r\.command_pay is not null or r\.pay_items is not null\) as det,'
+                and (select s from d) like '%having bool_or(det)%'
+                and (select s from d) like '%where o.det%'
+               then '✅' else '❌' end
+  union all select 29, '★見る側と数える側が、同じ直近24か月の窓を読んでいる（式の写しが無い）',
+          -- 静かにずれる。片方だけ式を書き換えると、区分には入っている月で資格が
+          -- 付かない（またはその逆）が、境目の1か月でだけ起きる。
+          --   ① 窓の式は関数の頭の1か所（月数の式は1回しか出てこない）
+          --   ② その2つの変数を読んでいるのは2か所（区分の本棚と、見る資格）
+          case when (select s from d) like '%v_from  constant date := (date_trunc(''month'', now()) - interval ''23 months'')::date;%'
+                and (select s from d) like '%v_to    constant date := date_trunc(''month'', now())::date;%'
+                and (length((select s from d))
+                     - length(replace((select s from d), 'interval ''23 months''', ''))) / 20 = 1
+                and (length((select s from d))
+                     - length(replace((select s from d), 'between v_from and v_to', ''))) / 23 = 2
                then '✅' else '❌' end
 ) t order by "#";

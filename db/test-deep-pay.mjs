@@ -19,7 +19,7 @@
        ・返り値の文字列に準識別子が1語も無いこと
        ・pv_pay_comp が20引数のまま、誰にも開いていないこと
 
-   ★2026-10-11（オーナー判断）── この日から3つ変わった。検査の書き方もそれに合わせてある。
+   ★2026-10-11（オーナー判断）── この日から4つ変わった。検査の書き方もそれに合わせてある。
        ① 人数の壁は 3人 → **2人**（db/deep-pay.sql の定数 v_min）。
           「1人では出ない／2人そろえば出る」で見る。
        ② **その区分に何人いるかを、関数は返さない。** だからこのファイルも人数では見ない。
@@ -30,6 +30,16 @@
              （見本の倍額を出す X2 がその役）。
        ③ 見出しの2つ（年収の中央値・Pay / Block Hour）は刻み（$50・$0.5）。
           給与構成の月額は今までどおり有効数字2桁。
+       ④ **見る資格が上がった。** DEEP PAY は「自分に当てはまる項目をぜんぶ答えた月」を
+          直近24か月に持つ人にだけ開く（db/deep-pay.sql の v_rdy。線は pv_deep_missing）。
+          門が返す鍵も detailed → ready / todo に替わった。
+          ・**数えられる側（区分の頭数）は動いていない** ── 今も「内訳を書いた人」。
+            だから見本（DET）は内訳だけのまま残し、**画面を見る役の人**にだけ
+            答えきった1行（FULL）を別に持たせている（下の ready()）。
+          ・線そのものの検査は ▼2-b（項目ごと・保存の道を通す）・▼2-c（どの行で決まるか ──
+            どの月でも・窓の中・本人の行・運営）・▼23（見る線と数える線は別）。
+          ⚠️ 検査を通すために DET を答えきった形にしないこと。勤務の列が全員に入り、
+             ▼8 の「1人しか書いていない列は出さない」が測れなくなる。
 
    ★db/pay-rows.sql 側の検査（db/test-pay-rows.mjs）に deep-pay.sql を足さないこと。
      足すと DEEP PAY のバグで REAL PAY の検査が赤くなり、どちらが壊れたのか
@@ -199,6 +209,75 @@ const openKey = (n) => db.query(
      on conflict (id) do update set access_until = excluded.access_until`,
   [uid(n), `p${n}@example.com`]);
 
+/* ── 見る資格の1行（2026-10-11・オーナー判断）────────────────────
+   DEEP PAY は「自分に当てはまる項目をぜんぶ答えた月」を直近24か月に持つ人にだけ開く。
+   見本の DET は内訳を書いただけで、答えきってはいない（保証手当・変動給の行・賞与・
+   勤務・役職が空）。だから**画面を見る役の人**には、答えきった1行を別に持たせる。
+
+   ★この1行は**わざと常識の幅（約束⑦・年 $10,000〜）の下**に置いてある（年 $6,120）。
+     幅の外の行はどの区分の集計にも入らない ＝ 見る役の人に足しても、中央値・割合・
+     列ごとの壁・選べる組み合わせが**1つも動かない**（区分の検査を弱めない）。
+     見る資格は幅を見ない（db/deep-pay.sql 3章「見る資格と、数えられる資格は別の線」）。
+     ⚠️ 見る資格が幅も見るように変わった日は、このファイルの「open」が全部 locked に
+        なる。そのときは ▼2-b の最初の1本（出発点）が先に名指しで落ちる。
+   ★形はフォームが送るもの（pay-report.html の buildPayload / pdSync）に合わせてある ──
+     役職・区分は job_roles、変動給は pay_items.variable の行（金額＋何に連動する支給か）、
+     other_allowance は「変動給＋その他」の合計。
+     保存は必ず submit_pay_report を通す ＝ pay_items の白リストも毎回通る。
+   ★対象月は去年の1月。このファイルの見本はどれも2月以降なので、
+     「呼び手の最新の1行」（＝ pv_deep_pay が区分を決める行）は入れ替わらない。 */
+const FULL = {
+  base_pay: 300, guarantee_pay: 50, command_pay: 20, per_diem: 10,
+  housing_type: 'allowance', housing_amount: 30,
+  flight_variable_pay: 100, other_allowance: 100,
+  bonus_annual: 0, profit_share_annual: 0,
+  block_hours: 70, duty_hours: 120, duty_days: 16, stay_nights: 6,
+  job_roles: ['line'], job_role: 'line',
+  pay_items: { v: 2, fixed_none: false, guarantee_none: false, variable_none: false,
+               variable: [{ amount: 100, label: 'Flight Pay', basis: 'block' }],
+               other: [] },
+};
+/* n 番の人を「答えきった人」にする。会社・役職・機材は、その人のいちばん新しい行と同じ
+   （pv_deep_pay の me と同じ並べ方で引く）。呼んだあと、いまの利用者は n のまま。 */
+const ready = async (n) => {
+  await asUser(n);
+  const m = await one(
+    `select airline, airline_other, "position" as pos, fleet from pay_reports
+      where proof_hash in (select pv_my_keys())
+      order by period_year desc, period_month desc, created_at desc limit 1`);
+  if (!m) throw new Error(`ready(${n}): この人はまだ1行も出していない`);
+  await submit({ ...BASE, airline: m.airline, airline_other: m.airline_other,
+                 position: m.pos, fleet: m.fleet,
+                 period_year: YEAR, period_month: 1, ...FULL });
+};
+/* 門の答えを2つの形で見る。
+     lacks … 閉じていて、残っている項目がちょうど want（並びも見る）
+     opens … 開いていて、残りを返していない（todo は null） */
+const lacks = async (label, want) => {
+  const d = await deep();
+  const got = d.gate.todo ? d.gate.todo.items : null;
+  ok(d.state === 'locked' && d.gate.ready === false
+     && JSON.stringify(got) === JSON.stringify(want),
+     label, `${d.state} / ${JSON.stringify(d.gate)}`);
+};
+const opens = async (label) => {
+  const d = await deep();
+  ok(d.state === 'open' && d.gate.ready === true && d.gate.todo === null,
+     label, `${d.state} / ${JSON.stringify(d.gate)}`);
+};
+/* gate.todo の形。入っている鍵は年・月・残っている項目の**3つだけ**
+   （その行のほかの値 ── 金額・会社・出した時刻 ── は1つも返さない）。 */
+const todoIs = (t, y, m, items) =>
+  !!t && Object.keys(t).sort().join(',') === 'items,month,year'
+  && Number(t.year) === y && Number(t.month) === m
+  && JSON.stringify(t.items) === JSON.stringify(items);
+// 「いまから k か月前」を Postgres 自身に数えさせる（時差でずれないように）
+const ago = async (k) => await one(
+  `select extract(year  from d)::int y,
+          extract(month from d)::int m
+     from (select (date_trunc('month', now()) - make_interval(months => $1))::date d) z`,
+  [k]);
+
 const VOCAB = await rows(
   `select code from pv_airlines where code <> 'other' and active order by code limit 23`);
 const AIR = VOCAB.map(r => r.code);
@@ -220,7 +299,8 @@ ok(!(await one(`select has_function_privilege('anon','public.pv_deep_pay(jsonb)'
 ok((await one(`select has_function_privilege('authenticated','public.pv_deep_pay(jsonb)','execute') b`)).b,
    'ログインした人には execute が渡っている');
 for (const f of ['public.pv_my_keys()', 'public.pv_deep_pct(numeric[])',
-                 'public.pv_deep_step(numeric,numeric)']) {
+                 'public.pv_deep_step(numeric,numeric)',
+                 'public.pv_deep_missing(public.pay_reports)']) {
   const r = await one(
     `select has_function_privilege('anon',$1,'execute') a,
             has_function_privilege('authenticated',$1,'execute') u`, [f]);
@@ -241,40 +321,61 @@ ok(Number((await one(`select count(*) n from pg_proc where proname='pv_deep_pay'
    '★pv_deep_pay は1本だけ（引数ゼロの旧版が残っていない）');
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 2. 門（鍵と、本人が内訳を出したか）');
+console.log('\n▼ 2. 門（鍵と、本人が答えきったか）');
 // ════════════════════════════════════════════════════════════
-// (a) 1枚も出していない人：鍵も内訳も無い
+/* ★2026-10-11（オーナー判断）── 本人の側の門が「内訳を出したか」から
+     「自分に当てはまる項目をぜんぶ答えたか」に上がった。門が返す鍵も
+     gate.detailed → gate.ready / gate.todo に替わっている。
+   ここは門の3つの立ち位置だけを見る。線の中身（どの項目を・どう読むか）は ▼2-b。 */
+// (a) 1枚も出していない人：鍵も、答えきった行も無い
 await asUser(9501);
 {
   const d = await deep();
   ok(d.state === 'locked', '一度も出していない人は locked');
   ok(d.cohort === null && d.head === null && d.comp === null && d.work === null && d.var === null,
      '★locked のときは中身のキーが全部 null（隠すのではなく渡さない）');
-  ok(d.gate && d.gate.key === false && d.gate.detailed === false,
+  ok(d.gate && d.gate.key === false && d.gate.ready === false,
      'どちらの門が閉じているかは返す（画面が「何を出せば開くか」を言える）');
+  ok(d.gate.todo === null,
+     '★1枚も出していない人に「残っている項目」は無い（todo は null。空の配列でも返さない）',
+     JSON.stringify(d.gate.todo));
+  ok(!('detailed' in d.gate),
+     '★前の鍵（gate.detailed）は名前ごと無い（2026-10-11）', Object.keys(d.gate).join(','));
   ok(typeof d.stats.contributors === 'number',
      '人数だけは鍵が無くても返す（Give の誘いに使う）');
 }
 
-// (b) 内訳は出したが鍵が切れている
+// (b) 答えきったが鍵が切れている
 //     ★出した瞬間は鍵が付く（db/pay-reports.sql:1114 が access_until を伸ばす＝
 //       Give → Get の本体）。だから「鍵が無い」のは 90日たって切れた人だけ。
 //       ここで手で切らすのは、その日の状態を先に見ておくため。
 const uNoKey = await person(A_FILL1, 'cap', 'b777', [{ month: 2 }]);
 {
-  ok((await give()).detailed === true, '内訳を出したので detailed は true');
-  ok((await deep()).gate.key === true, '出した瞬間に鍵が付く（Give → Get）');
+  ok((await give()).detailed === true, '内訳を出したので detailed は true（pv_my_give は変えていない）');
+  {
+    /* ★ここが 2026-10-11 に変わった所。前はこの時点で開いていた。 */
+    const d = await deep();
+    ok(d.gate.key === true, '出した瞬間に鍵が付く（Give → Get）');
+    ok(d.state === 'locked' && d.gate.ready === false && d.give.detailed === true,
+       '★★内訳を書いただけでは開かない（鍵は在る・内訳も在る・でも答えきっていない）',
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+  }
+  await ready(uNoKey);
+  await opens('★答えきった月を1つ持てば開く');
   await db.query(`update profiles set access_until = now() - interval '1 day' where id = $1`,
                  [uid(uNoKey)]);
   const d = await deep();
-  ok(d.state === 'locked' && d.gate.detailed === true && d.gate.key === false,
-     '★90日たって鍵が切れたら、内訳を出した人でも locked',
+  ok(d.state === 'locked' && d.gate.ready === true && d.gate.key === false,
+     '★90日たって鍵が切れたら、答えきった人でも locked',
      JSON.stringify(d.gate) + ' ' + d.state);
+  ok(d.gate.todo === null,
+     '　止めているのは鍵だけなので、残っている項目は返さない（todo は null）',
+     JSON.stringify(d.gate.todo));
   ok(d.cohort === null && d.comp === null,
      '★鍵が切れた人には中身を渡さない（前に見えていたものも残さない）');
 }
 
-// (c) 鍵はあるが内訳が無い（かんたん入力だけ）
+// (c) 鍵はあるが、総支給しか出していない（かんたん入力だけ）
 const uNoDet = ++seat;
 await asUser(uNoDet);
 await submit({ ...BASE, airline: A_FILL2, position: 'cap', fleet: 'b777',
@@ -283,20 +384,447 @@ await openKey(uNoDet);
 await asUser(uNoDet);
 {
   const d = await deep();
-  ok(d.gate.key === true && d.gate.detailed === false && d.state === 'locked',
-     '★鍵があっても内訳を出していなければ locked（JS だけの門を SQL に降ろした）');
+  ok(d.gate.key === true && d.gate.ready === false && d.state === 'locked',
+     '★鍵があっても、総支給しか出していなければ locked（門は SQL の側に在る）');
+  /* ★残っている項目は**決まった並び**で返る。画面はこの順のまま出せばフォームの順になる。
+       役割ごとの5つ（教官…兼務）が無いのは、どの役割にも印を付けていないから
+       ── そもそも役職・区分（roles）が未回答。 */
+  ok(todoIs(d.gate.todo, YEAR, 2,
+            ['base', 'guarantee', 'variable', 'command', 'perdiem', 'housing',
+             'bonus', 'profit', 'block', 'duty_h', 'duty_days', 'stay', 'roles']),
+     '★総支給だけの行は13項目ぜんぶが残り（並びは固定）、どの月の行かも返る',
+     JSON.stringify(d.gate.todo));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 2-b. 見る資格の線 ── 項目ごと（1つ欠ければ閉じ、戻せば開く）');
+// ════════════════════════════════════════════════════════════
+/* db/deep-pay.sql の pv_deep_missing（2-c 章）── オーナー判断 2026-10-11。
+   「自分に当てはまる項目をぜんぶ答えた人にだけ開く」。給与フォームは変えず、
+   **保存されている行**だけで判定する。
+
+   ★どの1本も submit_pay_report を通して入れ直す（同じ会社・同じ月＝上書き）。
+     線が読む列と pay_items の鍵は、保存の道（'' → null・0 は 0 のまま・pay_items の
+     白リスト・jsonb_strip_nulls）を通ったあとの形でなければ意味が無い。
+     保存の道が鍵を1つ落とせば（白リストへの書き忘れ・鍵の付け替え）、ここが名指しで落ちる。
+   ★見るのは門そのもの（pv_deep_pay の state / gate.ready / gate.todo）。
+     「欠ければ閉じる」と「戻せば開く」を必ず対で見る ── 閉じる側だけ見ていると、
+     何を出しても開かない線になっていても緑のまま。
+   ★この節の行はどれも常識の幅の下（年 $1万未満）＝どの区分の集計にも入らない。
+     うしろの節の「壁に届いている／いない」を1つも動かさない。 */
+{
+  const CELL = { airline: A_FILL2, position: 'cap', fleet: 'b777' };
+  const uQ = ++seat;
+  await asUser(uQ);
+  /* 答えきった1行（FULL）から、列を patch で・pay_items の鍵を items で上書きして出し直す。
+     items に null を渡すと pay_items そのものを送らない（内訳の行を持たない古い形）。 */
+  const put = async (patch = {}, items = {}) => {
+    const p = { ...BASE, ...CELL, period_year: YEAR, period_month: 1, ...FULL, ...patch };
+    p.pay_items = items === null ? null : { ...FULL.pay_items, ...items };
+    await submit(p);
+  };
+  // 保存されたこの人の1行（同じ月を上書きし続けるので、いつも1行）
+  const row = async (expr) => (await one(
+    `select ${expr} as v from pay_reports r
+      where r.proof_hash in (select pv_my_keys())`)).v;
+
+  await put();
+  await opens('（出発点）答えきった1行で open ── 残っている項目は無い（todo は null）');
+  ok(Number(await row('count(*)')) === 1 && Number(await row('max(r.annual_total_usd)')) < 10000,
+     '（前提）この人の行は1つだけで、常識の幅の下（年 $1万未満）＝区分の集計には入らない',
+     String(await row('max(r.annual_total_usd)')));
+  {
+    const m = (await one(`select pv_deep_missing(r) m from pay_reports r
+                           where r.proof_hash in (select pv_my_keys())`)).m;
+    ok(Array.isArray(m) && m.length === 0,
+       '★pv_deep_missing は、答えきった行に**空の配列**を返す（null ではない）', JSON.stringify(m));
+  }
+  ok(await row(`bool_and(r.transport is null
+                         and jsonb_array_length(r.pay_items -> 'other') = 0)`) === true,
+     '★その他の現金手当と交通費は空のまま開いている（今のフォームが「無い」を保存できないので、わざと線に入れていない）');
+
+  /* ── 1つだけ空にする → 閉じる・残りはその1つだけ ／ 戻す → 開く ──────────
+     変動給は「行が無い」形で空にする。合計の列（flight_variable_pay）は 100 のまま
+     残っている ＝ **合計の列だけでは答えにならない**ことも一緒に見ている。 */
+  const BLANK = [
+    ['base',      { base_pay: null }],
+    ['guarantee', { guarantee_pay: null }],
+    ['variable',  {}, { variable: [] }],
+    ['command',   { command_pay: null }],
+    ['perdiem',   { per_diem: null }],
+    ['housing',   { housing_type: null, housing_amount: null }],
+    ['bonus',     { bonus_annual: null }],
+    ['profit',    { profit_share_annual: null }],
+    ['block',     { block_hours: null }],
+    ['duty_h',    { duty_hours: null }],
+    ['duty_days', { duty_days: null }],
+    ['stay',      { stay_nights: null }],
+    ['roles',     { job_roles: [], job_role: '' }],
+  ];
+  for (const [code, patch, items] of BLANK) {
+    await put(patch, items || {});
+    await lacks(`★${code} だけ空 → locked・残っているのは ${code} の1つだけ`, [code]);
+    await put();
+    await opens(`　${code} を戻す → open`);
+  }
+
+  /* ── 0 は答え。空欄だけが未回答 ─────────────────────────────
+     上の表は全部「空（null）」で閉じた。同じ欄に 0 を入れると閉じない。
+     （賞与・利益分配は FULL が最初から 0。基本給と保証手当を両方 0 にすると
+       「報酬額が入力されていません」で保存そのものが弾かれるので、総支給を足す。） */
+  await put({ gross_monthly: 500, base_pay: 0, guarantee_pay: 0, command_pay: 0, per_diem: 0,
+              housing_type: 'allowance', housing_amount: 0,
+              flight_variable_pay: 0, other_allowance: 0,
+              block_hours: 0, duty_hours: 0, duty_days: 0, stay_nights: 0 },
+            { variable: [{ amount: 0, label: 'Flight Pay', basis: 'block' }] });
+  await opens('★0 は答え（基本給・保証手当・職位手当・パーディアム・住宅手当の額・賞与・利益分配・勤務の4つ・変動給の行の金額）');
+
+  /* ── 「該当なし」も答え（pay_items の3つの印）─────────────────── */
+  const NONE3 = { gross_monthly: 500, base_pay: null, guarantee_pay: null,
+                  flight_variable_pay: null, other_allowance: null };
+  const none3 = { fixed_none: true, guarantee_none: true, variable_none: true, variable: [] };
+  await put(NONE3, none3);
+  await opens('★「該当なし」3つ（基本給・保証手当・変動給）は、金額が空でも答え');
+  // 印を1つ外すと、その1つだけが残る（保存の白リストが3つとも運んでいることも分かる）
+  for (const [flag, code] of [['fixed_none', 'base'], ['guarantee_none', 'guarantee'],
+                              ['variable_none', 'variable']]) {
+    await put(NONE3, { ...none3, [flag]: false });
+    await lacks(`　${flag} を外す → 残っているのは ${code} だけ`, [code]);
+  }
+
+  /* ── 変動給の行 ── **どの行にも**「金額」と「何に連動する支給か」が要る ──── */
+  await put({}, { variable: [{ amount: 100, label: 'Flight Pay', basis: 'unknown' }] });
+  await opens('★「わからない」（basis = unknown）も答え（フォームが用意している逃げ道）');
+  await put({}, null);
+  ok(Number(await row('max(r.flight_variable_pay)')) === 100
+     && await row('bool_and(r.pay_items is null)') === true,
+     '（前提）変動給の合計の列は 100・内訳の行（pay_items）は無い ＝ 古い形の行');
+  await lacks('★★変動給の合計の列（flight_variable_pay）だけでは答えにならない', ['variable']);
+  await put({}, { variable: [{ amount: null, label: 'Flight Pay', basis: 'block' }] });
+  await lacks('★金額の無い行（項目名と連動先だけ）は未回答', ['variable']);
+  await put({}, { variable: [{ amount: 100, label: 'Flight Pay', basis: null }] });
+  await lacks('★「何に連動する支給か」の無い行は未回答', ['variable']);
+  await put({}, { partial: true, variable: [
+    { amount: 100, label: 'Flight Pay', basis: 'block' },
+    { amount: null, label: 'Night', basis: 'night' }] });
+  await lacks('★2行のうち1行でも金額が空なら未回答（先頭の行だけ見ていない）', ['variable']);
+  await put({}, { variable: [
+    { amount: 60, label: 'Flight Pay', basis: 'block' },
+    { amount: 40, label: 'Night', basis: 'night' }] });
+  await opens('　2行とも書けば open');
+
+  /* ── 住宅 ── 住宅手当（現金）を選んだときだけ、額も要る ──────────── */
+  await put({ housing_type: 'allowance', housing_amount: null });
+  await lacks('★住宅手当（現金）を選んで額が空 → 残っているのは housing', ['housing']);
+  await put({ housing_type: 'provided', housing_amount: null });
+  await opens('　社宅（現物）は額が無くても答え');
+  await put({ housing_type: 'none', housing_amount: null });
+  await opens('　「なし」も答え');
+
+  /* ── 役職・区分 ── 複数（job_roles）が正。古い行は単数（job_role）で見る ── */
+  await put({ job_roles: undefined, job_role: 'line' });
+  ok(await row(`bool_and(r.job_roles is null and r.job_role = 'line')`) === true,
+     '（前提）job_roles が無く job_role だけの行（2026-08-26 より前の形）');
+  await opens('★複数を持たない古い行は、単数の役職で「答えた」と数える');
+
+  /* ── 役割ごとの手当 ── 印を付けた役割だけ。line にはモジュールが無い ────
+     extra は「別に支給されているか」の問い（pay-report.html の f-*-extra）。
+       separate（組合は yes）… 別に支給されている → その役割の金額の列も要る
+       それ以外               … 含まれている・無い・わからない → それだけで答え
+     ★金額は**列**で見る。画面は 0 を列には 0 で送るが、pay_items の amount には入れない。 */
+  const MODS = [
+    // [コード, 金額の列, 「別に支給されている」の値, 金額の要らない答え]
+    ['instructor', 'instructor_pay', 'separate', ['included', 'none', 'unknown']],
+    ['examiner',   'examiner_pay',   'separate', ['with_instructor', 'included', 'none', 'unknown']],
+    ['union',      'union_pay',      'yes',      ['none', 'unknown']],
+    ['management', 'management_pay', 'separate', ['included', 'none', 'unknown']],
+    ['nonline',    'nonline_pay',    'separate', ['included', 'none', 'unknown']],
+  ];
+  for (const [code, col, paid, soft] of MODS) {
+    const on  = { job_roles: ['line', code], job_role: 'line' };
+    const src = code === 'union' ? { source: 'airline' } : {};   // 組合は支給元も要る（下で別に見る）
+    await put({}, { [code]: { extra: paid } });
+    await opens(`★${code}：印を付けていない役割は見ない（書きかけの中身が残っていても）`);
+    await put(on);
+    await lacks(`★${code}：印を付けて未回答 → 残っているのは ${code} だけ`, [code]);
+    await put(on, { [code]: { days: 2 } });
+    await lacks(`　${code}：中身（日数）だけ書いても、支給の有無に答えていなければ未回答`, [code]);
+    for (const v of soft) {
+      await put(on, { [code]: { extra: v } });
+      await opens(`★${code}：extra = ${v} は答え（金額は要らない）`);
+    }
+    await put(on, { [code]: { extra: paid, ...src } });
+    await lacks(`★${code}：「別に支給」（${paid}）と答えて金額が空 → 未回答`, [code]);
+    await put({ ...on, [col]: 0 }, { [code]: { extra: paid, ...src } });
+    await opens(`　${code}：金額が 0 でも答え（列で見る。pay_items の amount は見ない）`);
+    await put({ ...on, [col]: 10 }, { [code]: { extra: paid, amount: 10, ...src } });
+    await opens(`　${code}：金額を書けば open`);
+  }
+  // 組合だけ：支給されているなら、支給元（会社／組合／両方／その他）も要る
+  {
+    const on = { job_roles: ['line', 'union'], job_role: 'line', union_pay: 10 };
+    await put(on, { union: { extra: 'yes', amount: 10 } });
+    await lacks('★union：支給あり・金額あり・**支給元が空** → 未回答', ['union']);
+    for (const s of ['airline', 'union', 'both', 'other']) {
+      await put(on, { union: { extra: 'yes', amount: 10, source: s } });
+      await opens(`　union：支給元 = ${s} を選べば open`);
+    }
+  }
+  /* 並び。役割5つに印を付けて、どれも未回答。
+     ★保存の道は job_roles を ABC 順に並べ直す（examiner → instructor → …）。
+       返ってくる並びはそれでも、印を付けた順でもなく、**線が決めた順**。 */
+  await put({ job_roles: ['nonline', 'union', 'management', 'examiner', 'instructor', 'line'],
+              job_role: 'line' });
+  await lacks('★役割5つがどれも未回答 → 5つとも残る（並びは固定：教官・審査・組合・管理・兼務）',
+              ['instructor', 'examiner', 'union', 'management', 'nonline']);
+  await put({ job_roles: undefined, job_role: 'instructor' });
+  await lacks('★古い行（単数の役職＝教官）でも、教官の手当の問いは要る', ['instructor']);
+
+  /* ── フォームの選択肢と、線が読む値が同じ集合か（写しの見張り）──────────
+     pv_deep_missing は「別に支給されている」を**値の字**で見分けている
+     （組合は yes・ほかの4つは separate。住宅は allowance のときだけ額を見る）。
+     フォームが選択肢の値を1つ変えるか足すと、その答えは「金額の要らない答え」と読まれ、
+     **線が黙って緩む**（画面も保存も普通に動いたまま）。役職の箱が1つ増えた日も同じ ──
+     その役割の問いは、線に入らないまま「答えきった」になる。
+     だから日英のフォームから option を読み、上の表（MODS）と**同じ集合**かを見る。
+     ⚠️ 落ちたら数を合わせて通さない。足された値を pv_deep_missing がどう読むか
+        （金額が要る答えか・要らない答えか）を決めてから、SQL と MODS の両方に足す。 */
+  {
+    const optionsOf = (html, id) => {
+      const m = html.match(new RegExp('<select[^>]*id="' + id + '"[\\s\\S]*?</select>'));
+      return m ? Array.from(m[0].matchAll(/<option value="([^"]*)"/g))
+                   .map(x => x[1]).filter(Boolean).sort().join(',') : '（欄が無い）';
+    };
+    const SEL = { instructor: 'f-instr-extra', examiner: 'f-exam-extra', union: 'f-union-extra',
+                  management: 'f-mgmt-extra', nonline: 'f-nonline-extra' };
+    for (const f of ['pay-report.html', 'en/pay-report.html']) {
+      const html = read(f);
+      for (const [code, , paid, soft] of MODS) {
+        const got = optionsOf(html, SEL[code]);
+        ok(got === [paid, ...soft].sort().join(','),
+           `★${f}: ${code} の「別に支給されているか」の選択肢が、線の読む値と同じ集合`, got);
+      }
+      ok(optionsOf(html, 'f-union-src') === 'airline,both,other,union',
+         `${f}: 組合の支給元の選択肢は4つ（どれを選んでも「答えた」）`, optionsOf(html, 'f-union-src'));
+      ok(optionsOf(html, 'f-housing') === 'allowance,none,provided',
+         `${f}: 住宅の選択肢は3つ（額が要るのは allowance だけ）`, optionsOf(html, 'f-housing'));
+      const boxes = Array.from(html.matchAll(/<input type="checkbox" name="f-jobrole" value="([^"]*)"/g))
+                      .map(x => x[1]).sort().join(',');
+      ok(boxes === ['line', ...MODS.map(m => m[0])].sort().join(','),
+         `★${f}: 役職・区分の箱は line ＋ 線が見る5つ（箱が増えたら、その役割の問いを線に足す）`, boxes);
+      const tpl = (html.match(/<template id="tpl-pd-var">[\s\S]*?<\/template>/) || [''])[0];
+      ok(/<option value="unknown">/.test(tpl) && /class="[^"]*\bpd-basis\b/.test(tpl),
+         `${f}: 変動給の行に「何に連動する支給か」の欄と、逃げ道の unknown が在る`);
+    }
+  }
+
+  /* ── 明細から読んだ行も同じ線（特別扱いしない）────────────────
+     verify_level は submit_pay_report が触らない列なので、直に立てる
+     （本番では parse-payslip が立てる）。 */
+  await put({ block_hours: null });
+  await db.query(`update pay_reports set verify_level = 1
+                   where proof_hash in (select pv_my_keys())`);
+  await lacks('★明細の裏付けがある行（verify_level = 1）でも、空の欄は空として数える', ['block']);
+  await put();
+  ok(Number(await row('max(r.verify_level)')) === 1, '（前提）出し直しても verify_level は 1 のまま');
+  await opens('　その行を答えきれば open');
+
+  /* ── フォームが実際に送る形そのまま（pay-report.html の buildPayload）────
+     ・金額の欄は val() が**文字列**で送る。空の欄は null。
+     ・pay_items の中の金額は数。役割モジュールは instrRead / examRead / unionRead /
+       mgmtRead / nonlineRead が組む形（答えていない欄は null で入っている）。
+     ・役割は5つとも印あり。教官＝別に支給／審査＝教官とまとめて／組合＝支給あり・会社から／
+       管理＝通常の給与に含まれる／兼務＝わからない。
+     ここが落ちたら、線のほうではなく**保存の道が何かを落とした**ことを先に疑う。 */
+  const FORM = {
+    airline: CELL.airline, airline_other: null, position: CELL.position, fleet: CELL.fleet,
+    job_roles: ['line', 'instructor', 'examiner', 'union', 'management', 'nonline'],
+    job_role: 'line', age_bucket: null, base_iata: null,
+    period_year: String(YEAR), period_month: '1', currency: 'USD',
+    gross_monthly: '520', base_pay: '300', guarantee_pay: '0',
+    hourly_rate: null, guaranteed_hours: null,
+    block_hours: '70.5', duty_days: '16', stay_nights: '6', per_diem: '10',
+    housing_type: 'allowance', housing_amount: '30', transport: null, command_pay: '0',
+    instructor_pay: '10', examiner_pay: null, union_pay: '10',
+    management_pay: null, nonline_pay: null,
+    other_allowance: '100', bonus_annual: '0', profit_share_annual: '0', pension_pct: null,
+    contract_type: null, tax_country: null, tax_rate_pct: '0',
+    seniority_years: '5', rank_years: '3',
+    net_pay_actual: null, ytd_taxable: null, flight_variable_pay: '100', deduction_total: null,
+    duty_hours: '120', night_hours: null, credit_hours: null,
+    payslip_detail: null,
+    pay_items: {
+      v: 2, fixed_none: false, guarantee_none: false, variable_none: false,
+      variable: [{ amount: 60, label: 'Flight Pay', basis: 'block' },
+                 { amount: 40, label: null, basis: 'unknown' }],
+      other: [],
+      instructor: { trainings: ['line_training'], label: null, extra: 'separate',
+                    method: 'monthly', amount: 10, qty: null },
+      examiner:   { checks: [], label: null, extra: 'with_instructor',
+                    method: null, method_label: null, amount: null, qty: null },
+      union:      { days: 2, extra: 'yes', source: 'airline', amount: 10 },
+      management: { days: null, extra: 'included', method: null, amount: null },
+      nonline:    { areas: [], days: null, extra: 'unknown', amount: null },
+    },
+    source: 'web', lang: 'en',
+  };
+  await submit(FORM);
+  await opens('★★フォームが送る形（金額は文字列・役割5つ）を保存の道に通すと、答えきった行になる');
+  {
+    const s = await one(
+      `select r.job_roles, r.base_pay, r.guarantee_pay, r.command_pay, r.block_hours,
+              r.instructor_pay, r.examiner_pay, r.union_pay, r.pay_items
+         from pay_reports r where r.proof_hash in (select pv_my_keys())`);
+    ok(JSON.stringify(s.job_roles) ===
+         JSON.stringify(['examiner', 'instructor', 'line', 'management', 'nonline', 'union']),
+       '　保存された役職・区分は6つ（保存の道が ABC 順に並べ直す）', JSON.stringify(s.job_roles));
+    ok(Number(s.guarantee_pay) === 0 && Number(s.command_pay) === 0
+       && s.guarantee_pay !== null && s.command_pay !== null && s.examiner_pay === null,
+       '　文字列の "0" は 0 として残り（null にならない）、空の欄は null のまま',
+       JSON.stringify({ g: s.guarantee_pay, c: s.command_pay, e: s.examiner_pay }));
+    const pi = s.pay_items;
+    ok(pi.instructor.extra === 'separate' && pi.examiner.extra === 'with_instructor'
+       && pi.union.extra === 'yes' && pi.union.source === 'airline'
+       && pi.management.extra === 'included' && pi.nonline.extra === 'unknown'
+       && pi.variable.length === 2 && pi.variable.every(v => 'amount' in v && v.basis),
+       '★保存の白リストを通ったあとも、線が読む鍵（役割の extra・組合の source・変動給の行の amount / basis）が残っている',
+       JSON.stringify(pi));
+  }
+  // 同じ形で、フォームの「支給元」だけ選んでいない（unionRead は source を null で送る）
+  await submit({ ...FORM, pay_items: { ...FORM.pay_items,
+                   union: { ...FORM.pay_items.union, source: null } } });
+  await lacks('　同じ形で、組合の支給元だけ選んでいない → 残っているのは union だけ', ['union']);
+  await submit(FORM);
+  await opens('　選び直せば open');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 2-c. 見る資格 ── どの行で決まるか（どの月でも・窓の中・本人の行・運営）');
+// ════════════════════════════════════════════════════════════
+/* 線の中身は ▼2-b。ここは「どの行を見て決めるか」（db/deep-pay.sql の v_own / v_todo）。
+     ① 答えきった月が窓の中に**1つでも**あれば足りる（あとの書きかけの月で閉め直さない）
+     ② 見るのは**本人の行**だけ（他人が答えきっていても関係ない）
+     ③ 窓は区分の本棚と同じ直近24か月（対象月で見る。25か月前は外・24か月前は中）
+     ④ 足りない人に返す todo は、窓の中で**いちばん新しい自分の1行**の残り
+     ⑤ 運営は1行も出していなくても通る（鍵と同じ特例）
+   ★ここの行も常識の幅の下に置いてある（区分の検査を動かさない）。 */
+{
+  const CELL = { airline: A_FILL2, position: 'cap', fleet: 'b777' };
+  const THIN = { gross_monthly: 500 };             // 総支給だけ ＝ 13項目ぜんぶが残る
+  const ALL13 = ['base', 'guarantee', 'variable', 'command', 'perdiem', 'housing',
+                 'bonus', 'profit', 'block', 'duty_h', 'duty_days', 'stay', 'roles'];
+  const at = (y, m, body, cell = CELL) =>
+    submit({ ...BASE, ...cell, period_year: y, period_month: m, ...body });
+
+  // ① 答えきった月が1つあれば足りる
+  const u1 = ++seat; await asUser(u1);
+  await at(YEAR, 1, FULL);
+  await opens('答えきった月が1つ → open');
+  await at(YEAR, 5, THIN);
+  await opens('★★あとから出した書きかけの月があっても閉め直さない（答えきった月が窓の中に1つあれば足りる）');
+
+  // ② 他人の答えきった行は、自分の資格にならない（u1 と同じ会社・役職・機材・同じ月）
+  const u2 = ++seat; await asUser(u2);
+  await at(YEAR, 1, THIN);
+  await lacks('★★同じ会社・同じ月に他人が答えきっていても、自分の資格にはならない（残りは自分の行のもの）',
+              ALL13);
+
+  // ③ 窓 ── 25か月前は外・24か月前（いちばん古い月）は中
+  const out = await ago(24), old = await ago(23);
+  const u3 = ++seat; await asUser(u3);
+  await at(out.y, out.m, FULL);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.ready === false,
+       `★★窓の外（${out.y}年${out.m}月＝25か月前）で答えきっていても、見る資格にはならない`,
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+    ok(d.gate.todo === null,
+       '★窓の中に自分の行が1つも無い人には、残っている項目を返さない（todo は null）',
+       JSON.stringify(d.gate.todo));
+  }
+  await at(YEAR, 3, THIN);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && todoIs(d.gate.todo, YEAR, 3, ALL13),
+       '★窓の中に書きかけの行が出来ると、todo はその行を指す（窓の外の行は指さない）',
+       JSON.stringify(d.gate.todo));
+  }
+  await at(old.y, old.m, FULL);
+  await opens(`★窓のいちばん古い月（${old.y}年${old.m}月＝24か月前）で答えきっていれば数える（区分の本棚と同じ境目）`);
+
+  // ④ todo は、窓の中でいちばん新しい自分の1行
+  const u4 = ++seat; await asUser(u4);
+  const LATE = { ...FULL, bonus_annual: null, stay_nights: null };
+  await at(YEAR, 3, { ...FULL, block_hours: null });
+  await at(YEAR, 7, LATE);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && todoIs(d.gate.todo, YEAR, 7, ['bonus', 'stay']),
+       '★todo は対象月がいちばん新しい行の残り（古い月の残りを混ぜない・年と月と項目の3つだけ）',
+       JSON.stringify(d.gate.todo));
+  }
+  // 同じ月に2社ぶん → あとから出したほう
+  await at(YEAR, 7, { ...FULL, command_pay: null },
+           { airline: A_FILL1, position: 'cap', fleet: 'b777' });
+  {
+    const d = await deep();
+    ok(todoIs(d.gate.todo, YEAR, 7, ['command']),
+       '★同じ月の行が2つ（2社）あるときは、あとから出したほう', JSON.stringify(d.gate.todo));
+  }
+  await at(YEAR, 7, LATE);          // 1社目を出し直す ＝ こちらが「あと」になる
+  {
+    const d = await deep();
+    ok(todoIs(d.gate.todo, YEAR, 7, ['bonus', 'stay']),
+       '　出し直せば、出し直したほうへ移る', JSON.stringify(d.gate.todo));
+  }
+  await at(YEAR, 3, FULL);          // 古いほうの月を答えきる
+  await opens('★古い月のほうを答えきっても開く（どの月でもよい）。開いたら todo は消える');
+
+  // ⑤ 運営は1行も出していなくても通る
+  const uOp = ++seat; await asUser(uOp);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.key === false && d.gate.ready === false,
+       '（前提）名簿に載る前は、1枚も出していないふつうの人');
+  }
+  await db.exec(`create table if not exists public.pv_admins (user_id uuid primary key)`);
+  await db.query(`insert into public.pv_admins(user_id) values($1) on conflict do nothing`,
+                 [uid(uOp)]);
+  {
+    const d = await deep();
+    const mine = Number((await one(`select count(*) n from pay_reports
+                                     where proof_hash in (select pv_my_keys())`)).n);
+    ok(mine === 0 && d.state === 'open' && d.gate.key === true
+       && d.gate.ready === true && d.gate.todo === null,
+       '★★運営（pv_admins）は1行も出していなくても開く（偽の給与を出して開ける手を取らせない）',
+       `${mine}行 / ${d.state} / ${JSON.stringify(d.gate)}`);
+  }
+  await asUser(u2);
+  await lacks('　通るのは名簿に載っている本人だけ。ほかの人の門は動かない', ALL13);
+  await db.exec(`drop table if exists public.pv_admins`);
+  await asUser(uOp);
+  ok((await deep()).state === 'locked', '　名簿が無くなれば、元どおり閉じる');
 }
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 3. 区分のはしご');
 // ════════════════════════════════════════════════════════════
-// 呼び手は A_HOME / fo / a320。このファイルの間ずっとこの1行だけを持つ。
+// 呼び手は A_HOME / fo / a320。区分に入る行は、このファイルの間ずっとこの1行だけ
+// （ほかに「見る資格の1行」を持つが、あれは常識の幅の下＝どの区分にも入らない）。
 await asUser(V);
 await submit({ ...BASE, airline: A_HOME, position: 'fo', fleet: 'a320',
                period_year: YEAR, period_month: 6, ...DET });
 await openKey(V);
 await asUser(V);
-ok((await deep()).state === 'open', '鍵と内訳がそろえば open');
+{
+  /* ★2026-10-11 より前は、ここで開いていた（鍵と内訳がそろえば open）。 */
+  const d = await deep();
+  ok(d.state === 'locked' && d.gate.key === true && d.gate.ready === false,
+     '★鍵があって内訳を書いていても、答えきっていなければ locked',
+     `${d.state} / ${JSON.stringify(d.gate)}`);
+}
+await ready(V);
+ok((await deep()).state === 'open', '鍵があって、答えきった月が1つあれば open');
 
 // 全体の頭数を壁（2人）以上にしておく（段5が成立する状態）
 await person(A_FILL3, 'cap', 'b787', [{ month: 3 }]);
@@ -557,7 +1085,7 @@ console.log('\n▼ 6. 二重計上（変動給とその他手当）');
     base_pay: 10000, flight_variable_pay: 5000, other_allowance: 5000,
     command_pay: null, per_diem: null, housing_type: null, housing_amount: null,
     pay_items: { v: 1, variable: [{ amount: 5000, basis: 'block', label: 'Flight' }] } });
-  await openKey(uD); await asUser(uD);
+  await ready(uD); await openKey(uD); await asUser(uD);
   const d = await deep();
   ok(d.cohort.level === 'airline_pos_fleet' && shown(d),
      '二重計上の検査用の区分が出ている（段1）', JSON.stringify(d.cohort));
@@ -580,7 +1108,7 @@ console.log('\n▼ 7. 未分類（総支給に届かない分を吸う）');
   const uR = ++seat; await asUser(uR); await submit(mk(2));
   const u2 = ++seat; await asUser(u2); await submit(mk(3));
   const u3 = ++seat; await asUser(u3); await submit(mk(4));
-  await openKey(uR); await asUser(uR);
+  await ready(uR); await openKey(uR); await asUser(uR);
   const d = await deep();
   const f = d.comp.segs.find(s => s.k === 'base');
   const rest = d.comp.segs.find(s => s.k === 'rest');
@@ -611,7 +1139,7 @@ console.log('\n▼ 7-b. ★組合が総支給の外で払われている行（20
   const uU = ++seat; await asUser(uU); await submit(mk(2));
   const u2 = ++seat; await asUser(u2); await submit(mk(3));
   const u3 = ++seat; await asUser(u3); await submit(mk(4));
-  await openKey(uU); await asUser(uU);
+  await ready(uU); await openKey(uU); await asUser(uU);
   const d = await deep();
   /* ★段1（会社・職位・機材）に残ること。落ちると段が下りて
      よその会社の数字にすり替わる ── 画面は普通に出るので気づけない。
@@ -651,7 +1179,7 @@ console.log('\n▼ 7-b2. ★不就労減額のあった月（2026-09-12）');
   const uA = ++seat; await asUser(uA); await submit(mk(2));
   const a2 = ++seat; await asUser(a2); await submit(mk(3));
   const a3 = ++seat; await asUser(a3); await submit(mk(4));
-  await openKey(uA); await asUser(uA);
+  await ready(uA); await openKey(uA); await asUser(uA);
   const d = await deep();
   ok(d.cohort.level === 'airline_pos_fleet' && shown(d),
      '★減額のあった行が関所で落ちない（落ちると段が下りて別の集団の数字になる）',
@@ -665,8 +1193,10 @@ console.log('\n▼ 7-b2. ★不就労減額のあった月（2026-09-12）');
      '★分母は総支給＋減額（6,010）。基本給は60%', String(seg('base')?.pct));
   /* ★年収は印字の総支給のまま（5,830 × 12 ＝ 69,960）。分母へ足し戻したぶんを
      年収に持ち込まない ── 持ち込むと、休んだ月がある人の年収だけ高く出る。 */
+  // （1月は呼び手の「見る資格の1行」。減額のあった見本は2〜4月）
   const ann = await one(
-    `select round(annual_total_usd) a from pay_reports where airline = $1 limit 1`,
+    `select round(annual_total_usd) a from pay_reports
+      where airline = $1 and period_month <> 1 limit 1`,
     [A_ABS]);
   ok(Number(ann.a) === 69960,
      '★年収には1円も足し戻さない（5,830 × 12 のまま）', String(ann.a));
@@ -679,7 +1209,11 @@ console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12
    その月の金額は**入力済み分の合計**でしかないのに、そのまま割合へ混ぜると
    変動給が実際より低く、未分類が実際より高く出る（画面は普通に動いたまま）。
    det（内訳を1つも書いていない月）と同じ理由 ── 観測していないものを 0% と読まない。
-   ⚠️ これは**閲覧の資格ではない**。この人の鍵は今までどおり開く（最後の1本）。 */
+   ⚠️ partial の印そのものは**閲覧の資格ではない**。pv_my_give の内訳の鍵は今までどおり
+      開く（最後から2本目）。
+   ★DEEP PAY の見る資格は、2026-10-11 から別の線（▼2-b）で行ごとに見ている。
+     金額の無い変動給の行が残っている月は、そちらで「変動給が未回答」になる（最後の1本）。
+     印を読んで閉じているのではない ── 行そのものを読んでいる。 */
 {
   const full = (m) => ({ ...BASE, airline: A_PART, position: 'fo', fleet: 'b737',
                          period_year: YEAR, period_month: m,
@@ -704,7 +1238,7 @@ console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12
     await submit(full(2)); await submit(part(3));
     seats.push(u);
   }
-  await openKey(seats[0]); await asUser(seats[0]);
+  await ready(seats[0]); await openKey(seats[0]); await asUser(seats[0]);
   const d = await deep();
   ok(d.cohort.level === 'airline_pos_fleet' && shown(d),
      '一部未回答の月があっても2人そろう（人を落としていない）', JSON.stringify(d.cohort));
@@ -725,6 +1259,13 @@ console.log('\n▼ 7-c. ★内訳が一部未回答の月（partial・2026-09-12
   await submit(part(4));
   ok((await give()).detailed === true,
      '★partial だけを理由に内訳の鍵を閉めない（閲覧の資格と、集計に使える完全性は別物）');
+  {
+    const d = await deep();
+    const left = (d.gate.todo && d.gate.todo.items) || [];
+    ok(d.state === 'locked' && d.gate.ready === false && left.includes('variable'),
+       '★金額の無い変動給の行が残る月は、DEEP PAY の見る資格では「変動給が未回答」（別の線）',
+       JSON.stringify(d.gate));
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -738,7 +1279,7 @@ console.log('\n▼ 8. 働き方（列ごとに人数の壁）');
   const uW = ++seat; await asUser(uW); await submit(mk(2, { duty_days: 18 }));
   const w2 = ++seat; await asUser(w2); await submit(mk(3, { stay_nights: 6 }));
   const w3 = ++seat; await asUser(w3); await submit(mk(4, { stay_nights: 8 }));
-  await openKey(uW); await asUser(uW);
+  await ready(uW); await openKey(uW); await asUser(uW);
   const d = await deep();
   ok(d.work.block_h !== null && Number(d.work.block_h) === 70,
      '★3人が書いた Block Hours は出る', String(d.work.block_h));
@@ -757,7 +1298,7 @@ console.log('\n▼ 8. 働き方（列ごとに人数の壁）');
                               period_year: YEAR, period_month: m, ...DET, ...extra });
   const u1 = ++seat; await asUser(u1); await submit(mk(2, { block_hours: 80 }));
   const u2 = ++seat; await asUser(u2); await submit(mk(2, {}));
-  await openKey(u1); await asUser(u1);
+  await ready(u1); await openKey(u1); await asUser(u1);
   const d1 = await deep();
   ok(shown(d1) && d1.head.per_block_usd === null && d1.work.block_h === null,
      '★乗務時間を書いたのが1人なら Pay / Block Hour は null（区分は2人で出ていても、その1人の実数になるため）',
@@ -787,7 +1328,7 @@ console.log('\n▼ 9. 変動給の中身（区分ごとに人数の壁・まと�
   const uN = ++seat; await asUser(uN);
   await submit(mk(2, { add: 500, rows: [{ amount: 500, basis: 'weekend', label: 'Weekend' }] }));
   const n2 = ++seat; await asUser(n2); await submit(mk(3, {}));
-  await openKey(uN); await asUser(uN);
+  await ready(uN); await openKey(uN); await asUser(uN);
   const d = await deep();
   const ks = d.var.map(x => x.k);
   ok(ks.includes('block') && ks.includes('night'),
@@ -814,7 +1355,7 @@ console.log('\n▼ 9. 変動給の中身（区分ごとに人数の壁・まと�
   const uB = ++seat; await asUser(uB); await submit(mk(2));
   const b2 = ++seat; await asUser(b2); await submit(mk(3));
   const b3 = ++seat; await asUser(b3); await submit(mk(4));
-  await openKey(uB); await asUser(uB);
+  await ready(uB); await openKey(uB); await asUser(uB);
   const d = await deep();
   const ks = d.var.map(x => x.k);
   ok(!ks.includes('zzz') && !ks.includes('other'),
@@ -841,15 +1382,17 @@ console.log('\n▼ 10. 丸め（見出しは刻み・月額は有効数字2桁�
   const uS = ++seat; await asUser(uS); await submit(mk(2, 12345));
   const s2 = ++seat; await asUser(s2); await submit(mk(3, 12345));
   const s3 = ++seat; await asUser(s3); await submit(mk(4, 12345));
-  await openKey(uS); await asUser(uS);
+  await ready(uS); await openKey(uS); await asUser(uS);
   const d = await deep();
   // 12345 × 12 = 148140 → $50 刻み = 148150（有効数字2桁なら 150000）
   ok(Number(d.head.annual_usd) === 148150,
      '★年収は $50 刻み（148,140 → 148,150。有効数字2桁の 150,000 ではない）',
      String(d.head.annual_usd));
   // 148140 ÷ 12 ÷ 70 = 176.357… → 保存時に 176.36 → $0.5 刻み = 176.5
+  // （1月は呼び手の「見る資格の1行」。丸めの見本は2〜4月）
   const rawP = await one(
-    `select usd_per_block_hour p from pay_reports where airline = $1 limit 1`, [A_SIG]);
+    `select usd_per_block_hour p from pay_reports
+      where airline = $1 and period_month <> 1 limit 1`, [A_SIG]);
   ok(Number(rawP.p) === 176.36, '（前提）保存してある時間あたりは 176.36', String(rawP.p));
   ok(Number(d.head.per_block_usd) === 176.5,
      '★Pay / Block Hour は $0.5 刻み（176.36 → 176.5。有効数字2桁の 180 ではない）',
@@ -883,7 +1426,7 @@ console.log('\n▼ 10. 丸め（見出しは刻み・月額は有効数字2桁�
   const uL = ++seat; await asUser(uL); await submit(mk(2, 20000));   // 年 240,000 → 入る
   const l2 = ++seat; await asUser(l2); await submit(mk(3, 400));     // 年   4,800 → 落ちる
   const l3 = ++seat; await asUser(l3); await submit(mk(4, 70000));   // 年 840,000 → 落ちる
-  await openKey(uL); await asUser(uL);
+  await ready(uL); await openKey(uL); await asUser(uL);
   const d = await deep();
   ok(d.cohort.level !== 'airline_pos_fleet',
      '★幅の外の2人は数えないので、この機材では壁（2人）に届かない', d.cohort.level);
@@ -912,8 +1455,12 @@ await asUser(V);
      '見出しに入っているキーは3つだけ（人数の2つは無い）', Object.keys(d.head).join(','));
   ok(Object.keys(d.comp).sort().join(',') === 'bonus,segs,total_kind',
      '給与構成に入っているキーは3つだけ（人数は無い）', Object.keys(d.comp).join(','));
-  ok(Object.keys(d.gate).sort().join(',') === 'contributors,crowd,detailed,goal,key',
-     '門に入っているキーは5つ（crowd が増えた）', Object.keys(d.gate).join(','));
+  ok(Object.keys(d.gate).sort().join(',') === 'contributors,crowd,goal,key,ready,todo',
+     '門に入っているキーは6つ（2026-10-11：detailed が無くなり、ready と todo が入った）',
+     Object.keys(d.gate).join(','));
+  ok(d.gate.ready === true && d.gate.todo === null,
+     '　答えきっている呼び手には、残っている項目も、どの月の行かも返っていない',
+     JSON.stringify(d.gate));
 }
 
 /* ★人数のキーが、返り値の奥まで探しても1つも無い（2026-10-11・オーナー判断）。
@@ -944,7 +1491,7 @@ await asUser(V);
   const uP = ++seat; await asUser(uP);
   await submit({ ...BASE, airline: A_PEER, position: 'cap', fleet: 'b747',
                  period_year: YEAR, period_month: 6, ...DET });
-  await openKey(uP); await asUser(uP);
+  await ready(uP); await openKey(uP); await asUser(uP);
   const dp = await deep();
   await asUser(V);
   const dv = await deep();
@@ -1006,7 +1553,8 @@ console.log('\n▼ 13. pv_my_keys は pv_my_give と同じ人を拾う');
   await asUser(V);
   const nv = await one(`select count(*) c from pay_reports
                          where proof_hash in (select pv_my_keys())`);
-  ok(Number(nv.c) === 1, '呼び手の行も1件だけ拾う', String(nv.c));
+  ok(Number(nv.c) === 2,
+     '呼び手の行も自分のぶんだけ拾う（区分に入る1行＋見る資格の1行＝2件）', String(nv.c));
   const other = await one(`select count(*) c from pay_reports
                             where proof_hash not in (select pv_my_keys())`);
   ok(Number(other.c) > 0, '他人の行は拾わない', String(other.c));
@@ -1085,7 +1633,7 @@ console.log('\n▼ 16. 賞与はドーナツの外');
   const uB = ++seat; await asUser(uB); await submit(mk(2));
   const b2 = ++seat; await asUser(b2); await submit(mk(3));
   const b3 = ++seat; await asUser(b3); await submit(mk(4));
-  await openKey(uB); await asUser(uB);
+  await ready(uB); await openKey(uB); await asUser(uB);
   const d = await deep();
   ok(!d.comp.segs.some(s => /bonus/i.test(s.k)),
      '★賞与はドーナツの区分に入っていない', JSON.stringify(d.comp.segs.map(s => s.k)));
@@ -1135,14 +1683,16 @@ console.log('\n▼ 19. 画面の数字どうしが矛盾しないか（同じ区
   let uSame;
   for (let i = 0; i < 4; i++)
     uSame = await person(A_SPARE, 'cap', 'b787', [{ month: 2 }], IDENT);
+  await ready(uSame);
   await openKey(uSame);
   await asUser(uSame);
   const d = await deep();
 
   // 保存した生の値（画面に出る前）。年収と Pay/BH は投稿した瞬間に列へ確定する。
+  // （1月は呼び手の「見る資格の1行」。まったく同じ4人の見本は2月）
   const raw = await one(
     `select annual_total_usd a, usd_per_block_hour p from pay_reports
-      where airline = $1 and position = 'cap' limit 1`, [A_SPARE]);
+      where airline = $1 and position = 'cap' and period_month <> 1 limit 1`, [A_SPARE]);
   /* ★見出しの2つは 2026-10-11 から刻み（年収＝$50・Pay / Block Hour＝$0.5）。
        この見本は 228,000 と 237.5 で、どちらも最初から刻みの倍数 ＝ 丸めても動かない。
        だから「保存した値そのもの」と「＝」で結べる（丸めで動く例は ▼10 に在る）。 */
@@ -1217,12 +1767,8 @@ const EX = (await rows(
     order by code limit 14`, [AIR.join(',')])).map(r => r.code);
 ok(EX.length >= 13, '境界テスト用の会社が足りている', String(EX.length));
 
-// 「いまから k か月前」を Postgres 自身に数えさせる（時差でずれないように）
-const ago = async (k) => await one(
-  `select extract(year  from d)::int y,
-          extract(month from d)::int m
-     from (select (date_trunc('month', now()) - make_interval(months => $1))::date d) z`,
-  [k]);
+// ★「いまから k か月前」を数える ago() は、道具の節（ファイルの頭）へ移した
+//   （2026-10-11。▼2-b の見る資格の窓も同じ道具で測るため。定義は1つのまま）。
 
 // ── (a) 昇進しても、FO だったころの給与は FO の統計に残る ──────
 {
@@ -1416,8 +1962,8 @@ let HUNDREDTH = null;
   {
     const d = await deep();
     ok(d.state === 'locked', '★抜け道を外すと、100人に届くまで locked');
-    ok(d.gate.crowd === false && d.gate.key === true && d.gate.detailed === true,
-       '★★鍵も内訳も在る人を止めているのは人数だけ ＝ crowd が false で返る',
+    ok(d.gate.crowd === false && d.gate.key === true && d.gate.ready === true,
+       '★★鍵が在って答えきってもいる人を止めているのは人数だけ ＝ crowd が false で返る',
        JSON.stringify(d.gate));
   }
 
@@ -1578,7 +2124,7 @@ ok(EX2.length >= 7, '▼21 用の会社が足りている', String(EX2.length));
     await asUser(uLk);                       // 1枚も出していない人
     const dl = await deep();
     ok(dl.state === 'locked' && dl.gate.crowd === true
-       && dl.gate.key === false && dl.gate.detailed === false,
+       && dl.gate.key === false && dl.gate.ready === false,
        '★★鍵の無い人にも crowd は true で返る（「人数待ち」と言わせない）',
        JSON.stringify(dl.gate));
     await asUser(V);
@@ -1936,13 +2482,16 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
                    手で選んだ区分は、選んだ軸の数（3つ＝3 ／ 2つ＝2 ／ 1つ＝1）
      低いほうを採って 3＝high ／ 2＝mid ／ 1＝low。壁に届かない区分は null。
    ★境目（4人→5人・9人→10人）を、人を1人ずつ足して両側から踏む。
-   ★この時点で正式公開フラグが立っているので、鍵と内訳が在れば開く。 */
+   ★この時点で正式公開フラグが立っているので、鍵が在って答えきっていれば開く。
+     この節は呼び手が何度も入れ替わる（me・c2〜c5）。**呼ぶ人ごとに ready() が要る** ──
+     足しているのは幅の下の1行なので、区分の人数（＝段）は1人ぶんも動かない。 */
 {
   const [TR, TR2] = EX3;
   const sel3 = { airline: TR, position: 'cap', fleet: 'b777' };   // 軸3つ
   const sel2 = { airline: TR, position: 'cap' };                  // 軸2つ
   const sel1 = { airline: TR };                                   // 軸1つ
   const me = await person(TR, 'cap', 'b777', [{ month: 6 }]);     // 呼び手（この区分の1人目）
+  await ready(me);
   let have = 1;
   const grow = async (to) => {
     for (; have < to; have++) await person(TR, 'cap', 'b777', [{ month: 6 }]);
@@ -1990,6 +2539,7 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
   // ── はしごが落ちた段ごとの上限（呼び手の区分から自動で落ちるとき）──
   // 段2：同じ会社・役職・機材区分（B787 も広胴）に落ちる → 上限3 ＝ high
   const c2 = await person(TR, 'cap', 'b787', [{ month: 6 }]);
+  await ready(c2);
   {
     const d = await deep();
     ok(d.cohort.level === 'airline_pos_cat' && d.cohort.trust === 'high',
@@ -1997,6 +2547,7 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
   }
   // 段3：機材区分も合わない（A320 は狭胴）→ 会社×役職 → 上限2 ＝ mid
   const c3 = await person(TR, 'cap', 'a320', [{ month: 6 }]);
+  await ready(c3);
   {
     const d = await deep();
     ok(d.cohort.level === 'airline_pos' && d.cohort.trust === 'mid',
@@ -2004,6 +2555,7 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
   }
   // 段4：会社に自分しか居ない → 役職のみ（全社の機長）→ 上限1 ＝ low
   const c4 = await person(TR2, 'cap', 'a320', [{ month: 6 }]);
+  await ready(c4);
   {
     const d = await deep();
     ok(d.cohort.level === 'pos' && d.cohort.trust === 'low',
@@ -2013,6 +2565,9 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
      選択肢から外した職位（訓練生）の行は本番に実在する（過去の投稿は残してある）。
      フォームからはもう出せないので、ここでは保存済みの行の職位を直に書き換えて作る。 */
   const c5 = await person(TR2, 'cap', 'b737', [{ month: 6 }]);
+  // ★見る資格の1行は、職位を書き換える**前**に出す（訓練生はもうフォームから出せない）。
+  //   下の update はこの人の行ぜんぶ（2行とも）を訓練生にする。
+  await ready(c5);
   await db.query(`update pay_reports set "position" = 'cadet'
                    where proof_hash in (select pv_my_keys())`);
   {
@@ -2024,8 +2579,69 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 23. 見る線と数える線は別（内訳だけの人は、数えられるが、自分では見られない）');
+// ════════════════════════════════════════════════════════════
+/* 2026-10-11（オーナー判断）で上がったのは**見る**側だけ。**数えられる**側（区分の頭数）は
+   今までどおり「内訳を書いた月を持つ人」（db/deep-pay.sql の det）。
+   ★見る線を数える側へ持ち込むと、内訳だけの人が頭数から消え、区分がいっせいに壁を割る
+     （画面は「まだ出せません」と出るだけ）。逆に、見る側を内訳だけに戻すと、線を上げた
+     意味が無くなる。**両側を同じ2人で見る。**
+   ★この節は区分に入る行（常識の幅の中）を足すので、最後に置く。
+     入口の状態は「正式公開フラグが立っている・抜け道は外れている」。 */
+const EX4 = (await rows(
+  `select code from pv_airlines
+    where code <> 'other' and active
+      and code <> all(string_to_array($1, ','))
+    order by code limit 7`, [AIR.concat(EX, EX2).join(',')])).map(r => r.code).slice(6);
+ok(EX4.length >= 1, '▼23 用の会社が足りている', String(EX4.length));
+{
+  const G = EX4[0];
+  const sel = { airline: G, position: 'cap', fleet: 'b777' };
+  /* DET ＝ 内訳だけ（基本給・職位手当・パーディアム・住宅手当）。残りはこの9つ。 */
+  const LEFT = ['guarantee', 'variable', 'bonus', 'profit',
+                'block', 'duty_h', 'duty_days', 'stay', 'roles'];
+  const g1 = await person(G, 'cap', 'b777', [{ month: 6 }]);
+  {
+    const d = await deep();
+    ok(d.state === 'locked' && d.gate.key === true && d.gate.ready === false
+       && d.give.detailed === true && todoIs(d.gate.todo, YEAR, 6, LEFT),
+       '★内訳を書いただけの人は locked（鍵は在る・内訳も在る）。残りは9項目で、どの月の行かも返る',
+       `${d.state} / ${JSON.stringify(d.gate)}`);
+    ok(d.cohort === null && d.head === null && d.picks === null,
+       '　中身は1つも渡していない');
+  }
+  await asUser(V);
+  ok(hidden(await deep(sel)), '（前提）その会社・役職・機材に居るのは、まだ1人（壁の下）');
+
+  const g2 = await person(G, 'cap', 'b777', [{ month: 6 }], DET2);   // 見本の倍額・同じく内訳だけ
+  ok((await deep()).state === 'locked', '　2人目も内訳だけなので、自分では見られない');
+  await asUser(V);
+  {
+    const d = await deep(sel);
+    ok(shown(d) && Number(d.head.annual_usd) === 306000,
+       '★★自分では見られない2人が、区分の頭数には入っている（2人そろって出る・中央値は2人の 306,000）',
+       JSON.stringify({ cohort: d.cohort, head: d.head }));
+    ok(d.picks.air.includes(G), '　選べる会社の一覧にも出ている（選べる ＝ 数字が返る、のまま）');
+  }
+  await asUser(g1);
+  ok((await deep()).state === 'locked',
+     '★区分に数えられていても、本人の門は閉じたまま（数えられること ≠ 見られること）');
+
+  // 答えきった1行を足す → 開く。足したのは幅の下の行なので、区分の数字は動かない
+  await ready(g1);
+  {
+    const d = await deep();
+    ok(d.state === 'open' && d.gate.ready === true && d.gate.todo === null
+       && d.cohort.level === 'airline_pos_fleet' && Number(d.head.annual_usd) === 306000,
+       '★答えきれば開き、見えるのは同じ2人の数字（見る資格の1行は区分に入っていない）',
+       JSON.stringify({ gate: d.gate, cohort: d.cohort, head: d.head }));
+  }
+  await asUser(V);
+}
+
+// ════════════════════════════════════════════════════════════
 /* ★ここが一番効く。deep-pay.sql の末尾には、貼れたかどうかをオーナーが
-     自分で確かめるための24行の表が付いている。**あの表自体が間違っている**と、
+     自分で確かめるための29行の表が付いている。**あの表自体が間違っている**と、
      オーナーは正しく貼れているのに ❌ を見て貼り直す（実際に13番の署名を
      1つ写し間違えていた）。手元で同じ表を出して、全部 ✅ を確かめる。 */
 {
@@ -2038,12 +2654,13 @@ console.log('\n▼ 22. 信頼度の段（cohort.trust）── 人数のかわ�
   await db.exec(`create table if not exists auth.users (id uuid primary key)`);
   const sql = src.slice(cut);
   const r = await rows(sql);
-  /* ★行数は固定で見る（2026-10-11 に 21 → 24）。「以上」で見ると、union all を
-       1行消しても緑のまま ── 消えた1行が、いちばん守りたい約束かもしれない。 */
-  ok(r.length === 24, `自己点検は ${r.length} 行ある（24行）`, String(r.length));
+  /* ★行数は固定で見る（2026-10-11 に 21 → 24、同じ日に見る資格の5行で 24 → 29）。
+       「以上」で見ると、union all を1行消しても緑のまま ── 消えた1行が、
+       いちばん守りたい約束かもしれない。 */
+  ok(r.length === 29, `自己点検は ${r.length} 行ある（29行）`, String(r.length));
   ok(r.map(x => Number(x['#'])).join(',') ===
-       Array.from({ length: 24 }, (_, i) => i + 1).join(','),
-     '番号は 1〜24 が1つずつ（重複も欠番も無い）', r.map(x => x['#']).join(','));
+       Array.from({ length: 29 }, (_, i) => i + 1).join(','),
+     '番号は 1〜29 が1つずつ（重複も欠番も無い）', r.map(x => x['#']).join(','));
   for (const x of r)
     ok(x['答え'] === '✅', `${x['#']}. ${x['見るもの']}`, x['答え']);
 }
