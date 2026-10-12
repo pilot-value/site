@@ -106,16 +106,18 @@ const asOwner = async () => { await db.exec(`reset role`); await db.query(`selec
 const call = async (who, sql, params = []) => {
   await as(who);
   try { return { v: (await db.query(sql, params)).rows[0] }; }
-  catch (e) { return { err: String(e.message || e) }; }
+  catch (e) { return { err: String(e.message || e), code: e.code || null }; }
   finally { await asOwner(); }
 };
 const no = (r) => !!(r.err && /permission denied/i.test(r.err));
 
 /* 外へ返った JSON は全部ためておく（最後の節で「出てはいけないもの」を1つ残らず見る）。 */
 const seen = [];
+/* 検査のあいだに、鍵の表に在った「回線の印」（9 でためて、11 でどの返事にも無いことを見る）。 */
+const MARKS = [];
 const rpc = async (who, fn, p) => {
   const r = await call(who, `select public.${fn}($1::jsonb) as v`, [p === undefined ? null : J(p)]);
-  if (r.err) return { __err: r.err };
+  if (r.err) return { __err: r.err, __code: r.code };
   seen.push({ fn, who: who === ANON ? 'anon' : 'member', json: J(r.v.v) });
   return r.v.v;
 };
@@ -184,6 +186,7 @@ console.log('\n▼ 1. 権限（誰が何をできるか）');
     }
     ok(no(await call(who, `select public.pv_contrib_key_live($1)`, ['a'.repeat(48)])), `${name}は鍵を確かめる関数を直接呼べない`);
     ok(no(await call(who, `select public.pv_contrib_key_hash($1)`, ['a'.repeat(48)])), `${name}は鍵を表の形にする関数を直接呼べない`);
+    ok(no(await call(who, `select public.pv_contrib_mark_sweep()`)), `${name}は回線の印を片付ける関数を直接呼べない`);
   }
   ok(denied(await claim(ANON, 'a'.repeat(48))), '★未ログインは引き継ぎを呼べない（実行権が無い）');
   ok(bad(await claim(DEAD, 'a'.repeat(48)), /ログインが必要/), 'ログインが死んでいる会員も引き継げない');
@@ -380,7 +383,7 @@ console.log('\n▼ 6. ログインして引き継ぐ');
   const g0 = await give(three[0]);
 
   const r = await claim(three[0], wallKeys[0]);
-  ok(r.ok && r.known === true && r.moved === 2 && r.kept === 0 && r.dropped === 0 && r.left === 0 && keys(r) === 'dropped,kept,known,left,moved,ok',
+  ok(r.ok && r.known === true && r.moved === 2 && r.kept === 0 && r.dropped === 0 && r.stale === 0 && r.left === 0 && keys(r) === 'dropped,kept,known,left,moved,ok,stale',
     '★鍵を出すと、預けた2件が会員の回答になる', J(r));
   const w = (await mineW(three[0], { airline: A_WALL })).rows;
   ok(w.length === 1 && w[0].block_hours === 70 && w[0].days_off === null && w[0].note === '預かりのひとこと',
@@ -599,13 +602,898 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
   ok(r.saved === 0 && r.rejected[0]?.reason === 'parent_missing', '   「ない」に直したあとは、額だけ送っても預からない', J(r));
   ok((await mineA(b.key, A_CLAIM)).answers.length === 3,
     '   預かりの行は消していない（数えない・出さないは画面の役目 ＝ assert-contrib.mjs が見る）');
+  /* n1 ここは前、dropped 2 と決めていた。画面は dropped を「いまの形式では受け取れず、引き継げませんでした」と
+     伝えるので、自分で「ない」に直しただけの人に、2件を失ったと告げていた（どの答えの形も悪くない・何も失っていない）。
+     本人が上の質問を答え直して、もう聞かれなくなった古い答えは stale に数える（画面は何も言わない）。 */
   c = await claim(P2, b.key);
-  ok(c.moved === 1 && c.dropped === 2 && c.left === 0,
+  ok(c.moved === 1 && c.dropped === 0 && c.stale === 2 && c.left === 0,
     '★引き継ぐとき、「ない」に直した人の古い額と数え方は、会員の回答にしない（捨てる）', J(c));
+  ok(c.moved + c.kept + c.dropped + c.stale + c.left === 3,
+    '   n4 引き継ぎの5つの数（moved・kept・dropped・stale・left）を足すと、預けていた3件になる', J(c));
   const mine2 = (await mineC(P2, { airline: A_CLAIM })).answers;
   ok(mine2.length === 1 && mine2[0].question_id === 'landing_pay' && mine2[0].code === 'no',
     '   会員の回答に入ったのは「ない」の1件だけ', J(mine2.map((x) => x.question_id)));
   ok(await cnt(`public.pv_contrib_pending where airline = $1`, [A_CLAIM]) === 0, '   預かりは空になった');
+}
+
+/* 8-2 の続き（2026-10-11）。ここから下は、上のどの節も回答を入れていない会社でやる。 */
+const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
+  `select code from public.pv_airlines
+    where code <> 'other' and active and code <> all($1::text[]) order by code limit 7`, [AIR])).map((r) => r.code);
+
+/* ── 補足の決まりを、2段の筋・答えを複数選べる親でも歩く ──
+   上の検査が歩いているのは着陸手当だけ（1段・答えを1つ選ぶ親）。決まりが「複数選べる親を見ない」
+   「すぐ上の親しか見ない」「着陸手当の下しか見ない」に変わっても、1本も赤くならなかった。
+   歩く筋: 通勤の送迎（commuting_transport）→ その手段（commuting_transport_method ＝ 複数選べる）
+           → タクシー代の上限（commuting_taxi_cap ＝ ここに「見せます」の補足）
+   毎回見るのは、**書いた人ではない会員**が pv_contrib_notes から受け取るもの。
+   ⚠️ 下の文は検査のための作りもの。どの会社の決まりでもない。 */
+{
+  const [W, MEM] = await crew(2);
+  const NOTE = '月の上限まで会社が出す';
+  const TOP = (code) => ({ airline: A_WALK, answers: [{ question_id: 'commuting_transport', code }] });
+  const MID = (codes) => ({ airline: A_WALK, answers: [{ question_id: 'commuting_transport_method', codes }] });
+  /* 別の会員が受け取った一覧。「見える」は、その1件だけが・他人のものとして入っていること */
+  const seen1 = (n) => n.state === 'member' && n.notes.length === 1 && n.notes[0].q === 'commuting_taxi_cap'
+    && n.notes[0].text === NOTE && n.notes[0].mine === false && n.notes[0].topic === 'benefits';
+  const gone = (n) => n.state === 'member' && n.notes.length === 0;
+  /* 書いた人の行（上限の答えと、印の付いた補足）は、どの段でも残っている ＝ 出ないのは決まりのせい */
+  const kept = () => cnt(`public.airline_conditions
+     where proof_hash = public.pv_condition_hash($1::uuid, $2, null) and question_id = 'commuting_taxi_cap'
+       and answer_code = 'per_ride' and answer_text = $3 and text_shared`, [W, A_WALK, NOTE]);
+  const mid = async () => J((await one(`select answer_codes c from public.airline_conditions
+     where proof_hash = public.pv_condition_hash($1::uuid, $2, null)
+       and question_id = 'commuting_transport_method'`, [W, A_WALK]))?.c);
+
+  ok(W !== MEM && A_WALK && gone(await notes(MEM, A_WALK)),
+    '   （下ごしらえ）読むのは書く人とは別の会員。この会社には、まだ補足が1つも無い');
+
+  let r = await condM(W, { airline: A_WALK, answers: [
+    { question_id: 'commuting_transport', code: 'always' },
+    { question_id: 'commuting_transport_method', codes: ['company_taxi'] },
+    { question_id: 'commuting_taxi_cap', code: 'per_ride', text: NOTE, share: true }] });
+  let n = await notes(MEM, A_WALK);
+  ok(r.saved === 3 && r.rejected.length === 0 && seen1(n),
+    '★歩き1 送迎「いつも」・手段［会社のタクシー］・上限に「見せます」の補足 → ほかの会員に見える（複数選べる親でも筋が通る）', J(n));
+  const own = await notes(W, A_WALK);
+  ok(own.notes.length === 1 && own.notes[0].mine === true,
+    '   書いた本人が読むと「自分のもの」の印が付く ＝ 上で読んだのは、確かに本人ではない', J(own));
+
+  r = await condM(W, MID(['crew_bus']));
+  n = await notes(MEM, A_WALK);
+  ok(r.saved === 1 && await mid() === '["crew_bus"]' && await kept() === 1 && gone(n),
+    '★歩き2 手段を［乗員バス］だけに答え直す → 上限への補足は、ほかの会員に見えなくなる（行は残っている）', `${J(n)} ｜ 手段 ${await mid()} ｜ 行 ${await kept()}`);
+
+  r = await condM(W, MID(['company_taxi', 'crew_bus']));
+  n = await notes(MEM, A_WALK);
+  ok(r.saved === 1 && seen1(n),
+    '★歩き3 手段を［会社のタクシー・乗員バス］に答え直す → また見える（選んだうちの1つが合えばよい）', J(n));
+
+  r = await condM(W, TOP('no'));
+  n = await notes(MEM, A_WALK);
+  ok(r.saved === 1 && await mid() === '["company_taxi","crew_bus"]' && await kept() === 1 && gone(n),
+    '★歩き4 いちばん上の送迎を「ない」に答え直す → 見えなくなる（すぐ上の手段は合ったまま ＝ 2段上まで見ている）', `${J(n)} ｜ 手段 ${await mid()} ｜ 行 ${await kept()}`);
+
+  r = await condM(W, TOP('conditional'));
+  n = await notes(MEM, A_WALK);
+  ok(r.saved === 1 && seen1(n), '★歩き5 送迎を「条件つき」に答え直す → また見える', J(n));
+}
+
+/* ── 対になる額を、未ログインの入口が預かるとき ──
+   「低いほう 300・高いほう 200」「低いほう USD・高いほう EUR」が、そのまま預かりに入っていた
+   （1件ぶんの検品は、1問ずつしか見ない）。入口は、額を預かる前に対の相手と比べる。
+   相手 ＝ **この呼び出しが終わったあとに、この鍵の・この会社の預かりに残る**相手の額。
+   会員の入口の同じ決まりは db/test-conditions.mjs の ㉑ が見ている。比べる所は1つ
+   （db/airline-conditions.sql の 4d）で、ここが見るのは「未ログインの入口が、そこへ正しい相手を渡すか」。
+   ⚠️ 下の額は検査のための作りもの。どの会社の着陸手当でもない。 */
+{
+  const HI = 'landing_pay_to';
+  const LO = (await one(`select public.pv_condition_range_other($1::text) r`, [HI])).r;
+  const pr = Object.fromEntries((await many(
+    `select id, priority from public.pv_condition_questions where id = any($1::text[])`, [[LO, HI]])).map((x) => [x.id, x.priority]));
+  ok(LO === 'landing_pay_from' && pr[LO] < pr[HI],
+    '   （下ごしらえ）対は 低いほうの額・高いほうの額。入口は低いほうを先に見る（priority が小さい）', J({ LO, pr }));
+
+  const VAR = { question_id: 'landing_pay', code: 'variable' };
+  const low = (num, currency = 'USD') => ({ question_id: LO, num, currency });
+  const high = (num, currency = 'USD') => ({ question_id: HI, num, currency });
+  const whyOf = (res) => (res.rejected || []).map((x) => `${x.question_id}:${x.reason}`).sort().join(' ');
+  const BOTH_ORDER = `${LO}:range_order ${HI}:range_order`, BOTH_CUR = `${LO}:range_currency ${HI}:range_currency`;
+  const sayEnd = (y) => (!y ? '行なし' : (y.num === null ? (y.code || '答えなし') : `${y.num} ${y.currency}`));
+  /* この鍵が、この会社でいま預けている2つ。「100 USD／200 USD」の形 */
+  const heldNow = async (key, airline = A_PAIR) => {
+    const a = Object.fromEntries((await mineA(key, airline)).answers.map((x) => [x.question_id, x]));
+    return `${sayEnd(a[LO])}／${sayEnd(a[HI])}`;
+  };
+  const send = (key, answers, airline = A_PAIR) => putC(key, { airline, answers });
+  /* 新しい端末が「一定額ではない」と答える。stored なら、低いほう 100 USD・高いほう 200 USD も先に預けておく */
+  const device = async (stored = true, airline = A_PAIR) =>
+    (await send(null, [VAR, ...(stored ? [low(100), high(200)] : [])], airline)).key;
+  const nKeys = () => cnt(`public.pv_contrib_keys`);
+  let r, k, now2;
+
+  /* 先に、別の端末 X が同じ会社に 500／600 USD を預けておく。下の a1〜a5 は、X が居るまま通す */
+  const X = await device(false);
+  r = await send(X, [low(500), high(600)]);
+  ok(r.saved === 2 && (await heldNow(X)) === '500 USD／600 USD',
+    '   （下ごしらえ）別の端末 X が、同じ会社に 低いほう 500 USD・高いほう 600 USD を預けている', `${whyOf(r)} ｜ ${await heldNow(X)}`);
+
+  k = await device(false);
+  r = await send(k, [low(300), high(200)]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === BOTH_ORDER && r.saved === 0 && !('key' in r) && now2 === '行なし／行なし',
+    '★a1 1回の呼び出しで 低いほう 300 USD・高いほう 200 USD → 2つとも断る（range_order）。どちらも預からない', `${whyOf(r)} ｜ ${now2}`);
+  let n0 = await nKeys();
+  r = await send(null, [VAR, low(300), high(200)]);
+  now2 = await heldNow(r.key);
+  ok(whyOf(r) === BOTH_ORDER && r.saved === 1 && KEY.test(r.key || '') && now2 === '行なし／行なし'
+     && (await mineA(r.key, A_PAIR)).answers.length === 1 && await nKeys() === n0 + 1,
+    '   a1 初めての端末が、上の質問と一緒に送っても同じ（預かるのは上の質問の1件だけ・鍵はその1件のために1本）', `${whyOf(r)} ｜ ${now2}`);
+  n0 = await nKeys();
+  r = await send(null, [low(300), high(200)]);
+  ok(r.saved === 0 && !('key' in r) && await nKeys() === n0
+     && whyOf(r) === `${LO}:parent_missing ${HI}:parent_missing`,
+    '   a1 初めての端末が、断られる答えだけを送った → 何も残らない（鍵も作らない。理由は「上の質問が無い」）', J(r));
+
+  k = await device(false);
+  r = await send(k, [low(100, 'USD'), high(200, 'EUR')]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === BOTH_CUR && r.saved === 0 && now2 === '行なし／行なし',
+    '★a2 1回の呼び出しで 100 USD・200 EUR（大小は合っている）→ 2つとも断る（range_currency）', `${whyOf(r)} ｜ ${now2}`);
+  k = await device(false);
+  r = await send(k, [low(300, 'USD'), high(200, 'EUR')]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === BOTH_CUR && now2 === '行なし／行なし',
+    '   a2 300 USD・200 EUR（通貨も大小も悪い）→ 言うのは通貨（range_currency）', `${whyOf(r)} ｜ ${now2}`);
+  ok(!/[0-9]/.test(r.rejected.map((x) => x.reason).join('')) && r.rejected.every((x) => keys(x) === 'question_id,reason'),
+    '   断った理由は、今までと同じ形（質問の id と短い語だけ）。額は入っていない', J(r.rejected));
+
+  k = await device();
+  r = await send(k, [low(300), high(400)]);
+  now2 = await heldNow(k);
+  ok(r.rejected.length === 0 && r.saved === 2 && now2 === '300 USD／400 USD',
+    '★a3 100／200 USD を預けた端末が、1回の呼び出しで 300／400 に直す → 2つとも預かる（300 を、前の 200 と比べない）', `${whyOf(r)} ｜ ${now2}`);
+
+  k = await device();
+  r = await send(k, [low(250)]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === `${LO}:range_order` && r.saved === 0 && now2 === '100 USD／200 USD',
+    '★a4 100／200 USD を預けた端末が、低いほうだけ 250 に直す → 断る（range_order）。低いほうは 100 のまま', `${whyOf(r)} ｜ ${now2}`);
+
+  k = await device(false);
+  r = await send(k, [low(200), high(200)]);
+  const k5 = await device(false), k5b = await device(false);
+  const r5 = await send(k5, [low(100)]), r5b = await send(k5b, [high(200)]);
+  ok(r.saved === 2 && r.rejected.length === 0 && (await heldNow(k)) === '200 USD／200 USD'
+     && r5.saved === 1 && (await heldNow(k5)) === '100 USD／行なし'
+     && r5b.saved === 1 && (await heldNow(k5b)) === '行なし／200 USD',
+    '   a5 対照: 同じ額（200・200）は預かる。片方だけ（低いほうだけ／高いほうだけ）も預かる',
+    `${whyOf(r)} ｜ ${await heldNow(k)} ｜ ${await heldNow(k5)} ｜ ${await heldNow(k5b)}`);
+
+  /* a6 相手の額は、この鍵の・この会社の預かりからだけ読む。
+     この会社では、ここまでにほかの端末が預けた低いほうは、どれも 100 以上（X の 500 を含む）。
+     高いほうを 50 で送ると、ほかの端末の行を1つでも読んだ時点で断ることになる。 */
+  k = await device(false);
+  r = await send(k, [high(50)]);
+  now2 = await heldNow(k);
+  ok(r.saved === 1 && r.rejected.length === 0 && now2 === '行なし／50 USD' && (await heldNow(X)) === '500 USD／600 USD',
+    '★a6 ほかの端末が同じ会社に預けている額とは比べない（低いほうをまだ預けていない端末の、高いほう 50 → 預かる）', `${whyOf(r)} ｜ ${now2}`);
+  const Z = await device(false, A_PAIR2);
+  await send(Z, [low(500)], A_PAIR2);
+  r = await send(Z, [VAR, high(50)]);
+  now2 = await heldNow(Z);
+  ok(r.saved === 2 && r.rejected.length === 0 && now2 === '行なし／50 USD' && (await heldNow(Z, A_PAIR2)) === '500 USD／行なし',
+    '★a6 同じ端末がほかの会社に預けている額とも比べない（ほかの会社に低いほう 500 → この会社で高いほう 50 → 預かる）',
+    `${whyOf(r)} ｜ ${now2} ｜ ほかの会社 ${await heldNow(Z, A_PAIR2)}`);
+  const [PM] = await crew(1);
+  await condM(PM, { airline: A_PAIR, answers: [VAR, low(500), high(600)] });
+  r = await putC(null, { airline: A_PAIR, answers: [VAR, high(50)] }, PM);
+  now2 = await heldNow(r.key);
+  ok(r.saved === 2 && r.rejected.length === 0 && now2 === '行なし／50 USD',
+    '★a6 会員の回答とも比べない（会員として 500／600 USD を持つ人が、ログインしたままこの入口で高いほう 50 → 預かる）', `${whyOf(r)} ｜ ${now2}`);
+
+  /* a8 この入口は、スキップを必ず断る ＝ 預かりを変えない。だから相手は、預かっている額のまま */
+  k = await device();
+  r = await send(k, [{ question_id: LO, skip: true }, high(50)]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === `${LO}:skip_needs_login ${HI}:range_order` && r.saved === 0 && now2 === '100 USD／200 USD',
+    '★a8 100／200 USD を預けた端末が、1回の呼び出しで 低いほうをスキップ・高いほうを 50 → スキップは今までどおり断り、高いほうも断る（range_order）。どちらも元のまま',
+    `${whyOf(r)} ｜ ${now2}`);
+  k = await device();
+  r = await send(k, [{ question_id: LO, skip: true, num: 10, currency: 'USD' }, high(50)]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === `${LO}:skip_needs_login ${HI}:range_order` && now2 === '100 USD／200 USD',
+    '★a8 スキップに額（10）を添えた呼び出しでも同じ（預からない 10 を、相手の額として使わない）', `${whyOf(r)} ｜ ${now2}`);
+
+  /* 同じ呼び出しに入っている相手が「わからない」／検品で落ちる */
+  k = await device();
+  r = await send(k, [{ question_id: LO, code: 'unknown' }, high(50)]);
+  now2 = await heldNow(k);
+  ok(r.rejected.length === 0 && r.saved === 2 && now2 === 'unknown／50 USD',
+    '★a9 同じ呼び出しで 低いほうを「わからない」・高いほうを 50 → 2つとも預かる（低いほうに、もう額が無い）', `${whyOf(r)} ｜ ${now2}`);
+  k = await device();
+  r = await send(k, [{ question_id: HI, code: 'unknown' }, low(300)]);
+  now2 = await heldNow(k);
+  ok(r.rejected.length === 0 && r.saved === 2 && now2 === '300 USD／unknown',
+    '★a9 同じ呼び出しで 高いほうを「わからない」・低いほうを 300 → 2つとも預かる（300 を、これから消える 200 と比べない）', `${whyOf(r)} ｜ ${now2}`);
+  k = await device();
+  r = await send(k, [low(300), high(400, 'XXX')]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === `${LO}:range_order ${HI}:bad_currency` && now2 === '100 USD／200 USD',
+    '★a10 同じ呼び出しの相手が検品で落ちる（語彙に無い通貨の 400）→ 相手は預からないので、300 は預けてある 200 と比べて断る',
+    `${whyOf(r)} ｜ ${now2}`);
+
+  /* 同じ端を2回入れた呼び出し（画面は送らない。手で作った呼び出し）。同じ呼び出しの相手と比べてよいのは、
+     その質問の最後の答えだけ。これが無いと、250 が「同じ呼び出しの 300」と比べて通り、その 300 は 900 と
+     食い違って断られ、低いほう 250・高いほう 200 が残る。 */
+  k = await device();
+  r = await send(k, [low(250), low(900), high(300)]);
+  let a = Object.fromEntries((await mineA(k, A_PAIR)).answers.map((x) => [x.question_id, x]));
+  ok(a[LO] && a[HI] && a[LO].num <= a[HI].num && a[LO].currency === a[HI].currency,
+    '★a11 同じ端を2回入れた呼び出し（低いほう 250・低いほう 900・高いほう 300）でも、食い違う2つは残らない',
+    `${whyOf(r)} ｜ ${await heldNow(k)}`);
+  k = await device();
+  r = await send(k, [low(300), low(350), high(400)]);
+  now2 = await heldNow(k);
+  ok(now2 === '350 USD／400 USD' && whyOf(r) === `${LO}:range_order`,
+    '   a11 対照: 最後の答えどうし（350・400）は、同じ呼び出しの相手と比べて預かる（先の 300 は、預けてある 200 と比べて断る）',
+    `${whyOf(r)} ｜ ${now2}`);
+  /* 同じ端のあとにスキップが続く呼び出し。スキップは答えではないので、その前の答えが「最後の答え」。
+     スキップを答えに数えると、50 EUR は「先の答え」として預けてある 200 USD と比べて断られ、
+     高いほうの 60 EUR だけが入って、低いほう 100 USD・高いほう 60 EUR が残る。 */
+  k = await device();
+  r = await send(k, [low(50, 'EUR'), { question_id: LO, skip: true }, high(60, 'EUR')]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === `${LO}:skip_needs_login` && r.saved === 2 && now2 === '50 EUR／60 EUR',
+    '★a11 同じ端のあとにスキップが続く呼び出し（低いほう 50 EUR・低いほうのスキップ・高いほう 60 EUR）→ スキップは答えに数えない。50 と 60 を比べて、2つとも預かる',
+    `${whyOf(r)} ｜ ${now2}`);
+  /* 両方の端を2回ずつ入れた呼び出し。同じ呼び出しの相手は、その質問の**最後の**答え（先の答えではない）。
+     先の答えと比べると、500 は 600 と・60 は 50 と比べて通り、低いほう 500・高いほう 60 が残る。 */
+  k = await device();
+  r = await send(k, [low(50), low(500), high(600), high(60)]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === `${LO}:range_order ${HI}:range_order` && r.saved === 2 && now2 === '50 USD／600 USD',
+    '★a11 両方の端を2回ずつ入れた呼び出し（低いほう 50・500／高いほう 600・60）→ 最後の答えどうし（500・60）は2つとも断る。残るのは先の 50／600',
+    `${whyOf(r)} ｜ ${now2}`);
+
+  /* 上の質問を「ない」に直しても、預かりの行は消さない（上の検査）。「一定額ではない」へ戻せば、
+     残っていた額はまた生きる（引き継げば会員の回答になる）＝ 戻したあとは、相手として比べる。 */
+  k = await device();
+  await send(k, [{ question_id: 'landing_pay', code: 'no' }]);
+  r = await send(k, [high(50)]);
+  const rBack = await send(k, [VAR, high(50)]);
+  now2 = await heldNow(k);
+  ok(whyOf(r) === `${HI}:parent_missing` && whyOf(rBack) === `${HI}:range_order` && rBack.saved === 1 && now2 === '100 USD／200 USD',
+    '★a12 上の質問を「ない」に直してから戻した端末: 残っていた 低いほう 100 が、戻した呼び出しの中でも相手として効く（高いほう 50 → 断る）',
+    `ない のあいだ ${whyOf(r)} ｜ 戻した呼び出し ${whyOf(rBack)} ｜ ${now2}`);
+
+  /* ★1日の上限（1本の鍵で80件）が、対の2つのあいだで切れるとき（2026-10-11）。
+     前は、先に回る低いほうだけを預かり（同じ呼び出しの高いほうと比べて通る）、高いほうは上限で断って、
+     「低いほう 300・高いほう 200」が預かりに残った。会員の入口と同じ決まりにした ── 同じ呼び出しの2つの端は
+     「1組」で、**2つとも預かるか、2つとも預からない**（額の無い「わからない」の端も、組に入る）。
+     上限に2件ぶんの空きが無ければ、2つとも rate_limited で返る（新しい理由は作らない）。
+     会員の入口の同じ行は db/test-conditions.mjs の ㉑（d1〜d6）。
+     どの回も新しい端末で、この節だけの会社（A_DAY）でやる（上の a1〜a12 が見ている預かりを動かさない）。 */
+  const BOTH_LIM = `${LO}:rate_limited ${HI}:rate_limited`;
+  const VARIES = (code) => ({ question_id: 'landing_pay_varies_by', code });
+  const dunno = (q) => ({ question_id: q, code: 'unknown' });
+  const setSaves = (key, n) => db.query(
+    `update public.pv_contrib_keys set saves_day = current_date, saves_today = $2
+      where key_hash = public.pv_contrib_key_hash($1)`, [key, n]);
+  const savesOf = async (key) => (await one(
+    `select saves_today n from public.pv_contrib_keys where key_hash = public.pv_contrib_key_hash($1)`, [key]))?.n;
+  const rowsOf = (key) => cnt(`public.pv_contrib_pending where key_hash = public.pv_contrib_key_hash($1)`, [key]);
+  const heldMap = async (key) => Object.fromEntries((await mineA(key, A_DAY)).answers.map((x) => [x.question_id, x]));
+  let dayN;
+
+  k = await device(true, A_DAY);
+  await setSaves(k, 79);
+  r = await send(k, [low(300), high(400)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  ok(whyOf(r) === BOTH_LIM && r.saved === 0 && !('key' in r) && now2 === '100 USD／200 USD' && dayN === 79,
+    '★e1 100／200 USD を預けた端末が、残り1件の日に、1回の呼び出しで 300／400 に直す → 2つとも断る（rate_limited）。'
+    + '預かりは変わらない（低いほうだけ預かって 300／200 にしない）・1日の数も増えない',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+  r = await send(k, [low(150)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  ok(r.rejected.length === 0 && r.saved === 1 && now2 === '150 USD／200 USD' && dayN === 80,
+    '   e1 のつづき: 同じ端末が、低いほうだけ 150 を送る → 預かる（1件だけの答えは、今までどおり、残りの1件で入る）',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+
+  k = await device(true, A_DAY);
+  await setSaves(k, 79);
+  r = await send(k, [high(400), low(300)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  ok(whyOf(r) === BOTH_LIM && r.saved === 0 && !('key' in r) && now2 === '100 USD／200 USD' && dayN === 79,
+    '★e1b 高いほうを先に並べた呼び出しでも同じ（2つとも rate_limited・100／200 のまま・数も増えない）',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+
+  k = await device(true, A_DAY);
+  await setSaves(k, 78);
+  r = await send(k, [low(300), high(400)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  ok(r.rejected.length === 0 && r.saved === 2 && now2 === '300 USD／400 USD' && dayN === 80,
+    '   e2 対照: 残り2件の日なら、300／400 は2つとも預かる（1日の数は 80 ちょうど）',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+
+  k = await device(true, A_DAY);
+  await setSaves(k, 79);
+  r = await send(k, [low(300), dunno(HI)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD',
+    '★e3 残り1件の日に、低いほう 300・高いほう「わからない」→ 2つとも断る（額の無い端も、組に入る）。100／200 のまま',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2}`);
+  k = await device(true, A_DAY);
+  await setSaves(k, 79);
+  r = await send(k, [dunno(LO), high(50)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD',
+    '★e3\' 残り1件の日に、低いほう「わからない」・高いほう 50 → 2つとも断る。100／200 のまま',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2}`);
+
+  k = await device(true, A_DAY);
+  await setSaves(k, 78);
+  r = await send(k, [low(300), high(350), high(400)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  ok(whyOf(r) === `${HI}:rate_limited` && r.saved === 2 && now2 === '300 USD／400 USD' && dayN === 80,
+    '★e4 残り2件の日に、低いほう 300・高いほう 350・高いほう 400 → 断るのは、先の高いほう（350）だけ。300／400 を預かり、'
+    + '1日の数は 80（最後の高いほうのために取っておいた1件ぶんを、先の高いほうに使わせない）',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+
+  /* e5 預かりの数の上限（1本の鍵で200件）は、この決まりに入れない。その理由で断る端には、まだ行が無い ＝
+     残るのは片方だけで、食い違いは残らない。見るのは2つ:
+       ・取っておいた端がそこで断られたら、取っておいた1件ぶんは返す（返さないと、そのあとの答えが、
+         誰も使わない1件ぶんのせいで「1日の上限」で断られる）
+       ・そこで断る理由は、1日の上限の理由（rate_limited）ではない。画面は rate_limited を「1日に送れる件数の
+         上限に達しました。明日また続きをどうぞ。」と伝える。預かりの数の上限は1日の上限ではなく、明日に
+         なっても空かない ＝ その文は本当でない。入口は、この上限だけの理由（pending_full）で返す。
+     端末は「一定額ではない」・低いほう 100・「何で変わるか」の3件を預けている（高いほうは、まだ無い）。
+     ほかの会社の行で、この鍵の預かりを200件ちょうどにしてから送る。 */
+  k = await device(false, A_DAY);
+  r = await send(k, [low(100), VARIES('airport')], A_DAY);
+  await db.query(
+    `insert into public.pv_contrib_pending (key_hash, kind, airline, item_key, payload)
+     select public.pv_contrib_key_hash($1), 'work', $2, 'x-' || g, '{}'::jsonb from generate_series(1, 197) g`, [k, A_PAIR2]);
+  const full5 = r.saved === 2 && await rowsOf(k) === 200;
+  await setSaves(k, 78);
+  r = await send(k, [low(300), high(400), VARIES('aircraft')], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  a = await heldMap(k);
+  ok(full5 && whyOf(r) === `${HI}:pending_full` && r.saved === 2 && now2 === '300 USD／行なし'
+     && a.landing_pay_varies_by?.code === 'aircraft' && dayN === 80 && await rowsOf(k) === 200,
+    '★e5 預かりが200件の端末が、残り2件の日に、低いほう 300（直す）・高いほう 400（新しい行が要る）・「何で変わるか」を送る → '
+    + '断るのは高いほうだけ。理由は1日の上限ではない（pending_full）。低いほうと「何で変わるか」は預かり、1日の数は 80'
+    + '（高いほうのために取っておいた1件ぶんは返して、あとの答えに使う）',
+    `下ごしらえ ${full5} ｜ ${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 何で変わるか ${a.landing_pay_varies_by?.code} ｜ 数 ${dayN} ｜ 行 ${await rowsOf(k)}`);
+  await db.query(
+    `delete from public.pv_contrib_pending
+      where key_hash = public.pv_contrib_key_hash($1) and item_key like 'x-%'`, [k]);
+
+  k = await device(true, A_DAY);
+  await setSaves(k, 77);
+  r = await send(k, [low(300), high(400), VARIES('aircraft')], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  ok(r.rejected.length === 0 && r.saved === 3 && now2 === '300 USD／400 USD' && dayN === 80,
+    '★e6 残り3件の日に、300／400 と「何で変わるか」→ 3件とも預かる（取っておいた1件ぶんは、高いほうを預かったら使い終わり）',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+
+  k = await device(false, A_DAY);
+  await setSaves(k, 78);
+  r = await send(k, [VAR, low(300), high(400)], A_DAY);
+  now2 = await heldNow(k, A_DAY);
+  dayN = await savesOf(k);
+  a = await heldMap(k);
+  ok(whyOf(r) === BOTH_LIM && r.saved === 1 && a.landing_pay?.code === 'variable' && now2 === '行なし／行なし' && dayN === 79,
+    '★e7 対をまだ預けていない端末が、残り2件の日に「一定額ではない」・300・400 → 上の質問だけ預かり直し、2つの端は2つとも断る'
+    + '（上の質問で1件使ったあとの空きは1件。どちらの行もできない・1日の数は 79）',
+    `${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+
+  /* 上の行は、決めた形だけ。こちらは「性質」を見る ── 上限の近く（75〜80件め）で、対の2問に何をどう
+     並べて送っても、(1) 額を持つ2つが食い違って預かりに残らない・(2) 1日の数が 80 を超えない。
+     呼び出しは、決まった種から作る（Math.random を使わない ＝ 毎回同じ 400 回）。1回に1〜4件、中身は
+     低いほう／高いほうの額（6つの額 × USD が多め・ときどき EUR）・「わからない」・スキップ（この入口は必ず断る）。
+     ⚠️ 数だけで緑にしない: 「2つとも上限で断った回」と「2件以上預かった回」が1回も無い並びでは、
+        何も試していない。どちらかが 0 になったら、決まりではなく種を替える。 */
+  {
+    let seed = 20261011;
+    const rnd = () => {               // 決まった並びを返す（mulberry32）
+      seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const int = (n) => Math.floor(rnd() * n);
+    const pick = (xs) => xs[int(xs.length)];
+    const AMTS = [50, 100, 150, 200, 300, 400], CURS = ['USD', 'USD', 'USD', 'EUR'];
+    const draw = () => {
+      const j = int(8);
+      if (j < 3) return low(pick(AMTS), pick(CURS));
+      if (j < 6) return high(pick(AMTS), pick(CURS));
+      return j === 6 ? dunno(pick([LO, HI])) : { question_id: pick([LO, HI]), skip: true };
+    };
+    const said = (y) => `${y.question_id === LO ? '低' : '高'}${y.skip ? 'スキップ' : y.code ? '?' : `${y.num}${y.currency}`}`;
+    let calls = 0, broken = 0, over80 = 0, cut = 0, both = 0, first = '';
+    for (let dev = 1; dev <= 4; dev++) {
+      const key = await device(true, A_DAY);
+      for (let i = 0; i < 100; i++) {
+        const start = 75 + int(6);
+        const answers = Array.from({ length: 1 + int(4) }, draw);
+        await setSaves(key, start);
+        const res = await send(key, answers, A_DAY);
+        const y = await heldMap(key);
+        const end = await savesOf(key);
+        const why = whyOf(res);
+        calls++;
+        const clash = !!(y[LO] && y[HI] && y[LO].num !== null && y[HI].num !== null
+          && (y[LO].currency !== y[HI].currency || Number(y[LO].num) > Number(y[HI].num)));
+        if (clash) broken++;
+        if (end > 80) over80++;
+        if (start < 80 && why.includes(`${LO}:rate_limited`) && why.includes(`${HI}:rate_limited`)) cut++;
+        if (res.saved >= 2) both++;
+        if ((clash || end > 80) && !first) {
+          first = `端末 ${dev}・${i + 1}回め: 数 ${start} → ${end} ｜ ${answers.map(said).join('・')} ｜ ${why || '断りなし'} ｜ ${sayEnd(y[LO])}／${sayEnd(y[HI])}`;
+        }
+      }
+    }
+    ok(broken === 0 && over80 === 0 && cut > 0 && both > 0,
+      '★上限の近く（75〜80件め）で、対の2問に何を並べて送っても、食い違う2つは預かりに残らない・1日の数は 80 を超えない'
+      + `（決まった並びの ${calls} 回: 食い違い ${broken}・80超え ${over80} ｜ 2つとも上限で断った回 ${cut}・2件以上預かった回 ${both}）`,
+      first);
+  }
+
+  /* a7 職位・機種・基地・契約は、4つで1組。4つを1つも運ばない呼び出しで答えを直しても、
+     預けてある行の組は消えない。1つでも運べば、組は丸ごと入れ替わる（1つずつ混ぜない）。 */
+  const CTX = { position: 'cap', fleet: 'b787', base_iata: 'HND', contract_type: 'direct' };
+  const heldRow = async (key, q) => (await one(
+    `select c.payload p from public.pv_contrib_pending c
+      where c.key_hash = public.pv_contrib_key_hash($1) and c.kind = 'cond' and c.airline = $2 and c.item_key = $3`,
+    [key, A_CTX, q]))?.p;
+  const setOf = (p) => (p ? [p.position, p.fleet, p.base_iata, p.contract_type].map((x) => x ?? '空').join('・') : '行なし');
+  const TOPQ = 'landing_pay';
+  r = await putC(null, { airline: A_CTX, ...CTX, lang: 'ja', answers: [{ question_id: TOPQ, code: 'fixed', text: '月で変わる', share: true }] });
+  const K7 = r.key;
+  let p7 = await heldRow(K7, TOPQ);
+  ok(r.saved === 1 && setOf(p7) === 'cap・b787・HND・direct' && p7.text === '月で変わる' && p7.share === true,
+    '   （下ごしらえ）機長・B787・HND・直接雇用 を添えて、着陸手当を預けた', setOf(p7));
+  r = await putC(K7, { airline: A_CTX, lang: 'en', answers: [{ question_id: TOPQ, code: 'variable' }] });
+  p7 = await heldRow(K7, TOPQ);
+  ok(r.saved === 1 && setOf(p7) === 'cap・b787・HND・direct' && p7.code === 'variable',
+    '★a7 4つを1つも運ばない呼び出しで答えだけ直す → 預けてある職位・機種・基地・契約は、そのまま残る', `${setOf(p7)} ｜ ${p7.code}`);
+  ok(p7.text === null && p7.share === false && p7.lang === 'en',
+    '   a7 前の行から残すのは、その4つだけ（消した補足は消える・lang はこの呼び出しのもの）', J(p7));
+  r = await putC(K7, { airline: A_CTX, position: 'no-such-rank', answers: [{ question_id: TOPQ, code: 'variable' }] });
+  p7 = await heldRow(K7, TOPQ);
+  ok(r.saved === 1 && setOf(p7) === 'cap・b787・HND・direct',
+    '   a7 語彙に無い職位だけを添えた呼び出しは、運んでいないのと同じ（預けてある組を、空で上書きしない）', setOf(p7));
+  r = await putC(K7, { airline: A_CTX, answers: [low(100)] });
+  ok(r.saved === 1 && setOf(await heldRow(K7, LO)) === '空・空・空・空',
+    '   a7 初めて預ける下の質問は、運んできたまま（空なら空。親の組を受け取るのは、引き継ぐとき）', setOf(await heldRow(K7, LO)));
+  const [P7] = await crew(1);
+  const c7 = await claim(P7, K7);
+  const got7 = Object.fromEntries((await many(
+    `select question_id q, "position" as pos, fleet, base_iata, contract_type
+       from public.airline_conditions
+      where proof_hash = public.pv_condition_hash($1::uuid, $2, null)`, [P7, A_CTX])).map((x) => [x.q, setOf({ ...x, position: x.pos })]));
+  ok(c7.moved === 2 && c7.dropped === 0 && got7[TOPQ] === 'cap・b787・HND・direct' && got7[LO] === 'cap・b787・HND・direct',
+    '★a7 ログインして引き継ぐと、会員の行は2つとも 機長・B787・HND・直接雇用（直した答えにも、あとから足した額にも付く）', J({ c7, got7 }));
+
+  r = await putC(null, { airline: A_CTX, ...CTX, answers: [{ question_id: TOPQ, code: 'fixed' }] });
+  const K7b = r.key;
+  r = await putC(K7b, { airline: A_CTX, position: 'fo', answers: [{ question_id: TOPQ, code: 'fixed' }] });
+  p7 = await heldRow(K7b, TOPQ);
+  ok(r.saved === 1 && setOf(p7) === 'fo・空・空・空',
+    '★a7 1つでも運んできたら、組は丸ごと入れ替わる（副操縦士だけを添えて直す → 前の機種・基地・契約は付いてこない）', setOf(p7));
+}
+
+/* ── 引き継ぐとき ── 本人が答え直して要らなくなった古い答え／対になる額（2026-10-11）──
+   claim_contrib は、預かりを1件ずつ会員の入口へ出し、断られたものを全部 dropped に数えていた。
+   画面は dropped を「いまの形式では受け取れず、引き継げませんでした」と伝える。本当でないことが2つ起きた。
+     n … 上の質問を自分で答え直した人の、もう聞かれない古い答えまで「引き継げませんでした」と告げていた。
+         → その答えは stale に数える（会員の回答にしない・画面は何も言わない）。
+           stale は「本人が、上の質問を別の答えにしている」ときだけ。上の質問が受け取れなかった・
+           上の質問に答えが無い、のせいで落ちる答えは、今までどおり dropped（失ったものは告げる）。
+     h … 低いほう・高いほうを1件ずつ出すので、100／200 を持つ会員が 300／400 を引き継ぐと、低いほうの 300 が
+         前の 200 と比べて断られ、会員の額は 100／400 になっていた（入れた 300 が消える）。
+         → 文脈（年月・職位・機種・基地・契約・lang）が同じ2件は、1回の呼び出しで出す。
+   どの回も、5つの数（moved・kept・dropped・stale・left）を足すと、引き継ぐ前に預けていた件数になる（n4）。
+   ⚠️ 下の額は検査のための作りもの。どの会社の着陸手当でも、通勤の決まりでもない。 */
+{
+  const LO = 'landing_pay_from', HI = 'landing_pay_to';
+  const VAR = { question_id: 'landing_pay', code: 'variable' };
+  const FIX = { question_id: 'landing_pay', code: 'fixed' };
+  const NONE = { question_id: 'landing_pay', code: 'no' };
+  const AMT = { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' };
+  const low = (num, currency = 'USD') => ({ question_id: LO, num, currency });
+  const high = (num, currency = 'USD') => ({ question_id: HI, num, currency });
+  const CTX = { position: 'fo', fleet: 'a320', lang: 'ja' };
+  const say = (c) => (c && !c.__err ? `moved ${c.moved}・kept ${c.kept}・dropped ${c.dropped}・stale ${c.stale}・left ${c.left}` : J(c));
+  const is = (c, moved, kept, dropped, stale, left) =>
+    !!c && c.moved === moved && c.kept === kept && c.dropped === dropped && c.stale === stale && c.left === left;
+  const prep = [];   // 下ごしらえが思ったとおりに入らなかった所（最後に1行で見る）
+
+  /* 未ログインで預ける。key を渡すと、同じ端末の続きとして預ける */
+  const hold = async (answers, airline = A_HAND, ctx = CTX, key = null) => {
+    const r = await putC(key, { airline, ...ctx, answers });
+    if (r.saved !== answers.length) prep.push('預ける: ' + J(r));
+    return key || r.key;
+  };
+  /* 預かりの行を、入口を通さずに直す・消す（昔の決まりで預かった行や、壊れた行の代わり） */
+  const patch = (key, q, obj) => db.query(
+    `update public.pv_contrib_pending set payload = payload || $3::jsonb
+      where key_hash = public.pv_contrib_key_hash($1) and kind = 'cond' and item_key = $2`, [key, q, J(obj)]);
+  const unhold = (key, q) => db.query(
+    `delete from public.pv_contrib_pending
+      where key_hash = public.pv_contrib_key_hash($1) and kind = 'cond' and item_key = $2`, [key, q]);
+  const heldN = (key) => cnt(`public.pv_contrib_pending where key_hash = public.pv_contrib_key_hash($1)`, [key]);
+  const keyLives = async (key) => (await cnt(`public.pv_contrib_keys where key_hash = public.pv_contrib_key_hash($1)`, [key])) === 1;
+  /* 「どちらが新しいか」を決めるために、時刻を前へずらす */
+  const ageHeld = (key, hours) => db.query(
+    `update public.pv_contrib_pending set updated_at = now() - make_interval(hours => $2::int)
+      where key_hash = public.pv_contrib_key_hash($1)`, [key, hours]);
+  const ageMine = (who, hours, airline = A_HAND) => db.query(
+    `update public.airline_conditions set updated_at = now() - make_interval(hours => $3::int)
+      where proof_hash = public.pv_condition_hash($1::uuid, $2, null)`, [who, airline, hours]);
+
+  /* 会員の行（この会員の・この会社のものだけ） */
+  const mineOf = async (who, airline = A_HAND) => Object.fromEntries((await many(
+    `select question_id q, answer_code c, answer_num::float8 n, answer_currency cur, fleet, skipped_at is not null as skip
+       from public.airline_conditions
+      where proof_hash = public.pv_condition_hash($1::uuid, $2, null)`, [who, airline])).map((x) => [x.q, x]));
+  const sayEnd = (x) => (!x ? '行なし' : (x.n === null ? (x.c || '答えなし') : `${x.n} ${x.cur}`));
+  const pairOf = async (who, airline = A_HAND) => { const m = await mineOf(who, airline); return `${sayEnd(m[LO])}／${sayEnd(m[HI])}`; };
+  /* 前から「一定額ではない」・低いほう・高いほう を持っている会員（どの行も、預かりより古い） */
+  const memberWith = async (lo, hi, airlines = [A_HAND]) => {
+    const [P] = await crew(1);
+    for (const airline of airlines) {
+      const r = await condM(P, { airline, position: 'cap', fleet: 'b787', answers: [VAR, low(lo), high(hi)] });
+      if (r.saved !== 3) prep.push('会員の回答: ' + J(r));
+      await ageMine(P, 4, airline);
+    }
+    return P;
+  };
+
+  /* 引き継ぐ。n ＝ 引き継ぐ前に、この鍵が預けていた件数 */
+  const hand = async (who, key) => { const n = await heldN(key); const c = await claim(who, key); return { c, n }; };
+  const sumOk = (x, tag) => ok(!x.c.__err && x.c.moved + x.c.kept + x.c.dropped + x.c.stale + x.c.left === x.n,
+    `   n4 ${tag}: 5つの数を足すと、預けていた ${x.n} 件になる`, say(x.c));
+
+  ok(A_HAND && A_HAND2 && A_HAND !== A_HAND2
+     && await cnt(`public.airline_conditions where airline = any($1::text[])`, [[A_HAND, A_HAND2]]) === 0
+     && await cnt(`public.pv_contrib_pending where airline = any($1::text[])`, [[A_HAND, A_HAND2]]) === 0,
+    '   （下ごしらえ）ここで使う2社には、まだ会員の回答も預かりも1件も無い', J([A_HAND, A_HAND2]));
+
+  let x, k, P, m;
+
+  // ── n 本人が答え直して要らなくなった答え と、本当に受け取れなかった答え ──
+  [P] = await crew(1);
+  k = await hold([FIX, AMT]);
+  await patch(k, 'landing_pay', { code: 'no-such-code' });
+  x = await hand(P, k);
+  ok(x.n === 2 && is(x.c, 0, 0, 2, 0, 0) && Object.keys(await mineOf(P)).length === 0,
+    '★n2 上の質問が、受け取れない形（質問の表に無い答え）で預かっていた → 上の質問も、その下の額も dropped（stale にしない ＝ 失ったものは告げる）', say(x.c));
+  sumOk(x, 'n2');
+
+  [P] = await crew(1);
+  await condM(P, { airline: A_HAND, answers: [NONE] });
+  await ageMine(P, 4);
+  k = await hold([FIX, AMT]);
+  await patch(k, 'landing_pay', { code: 'no-such-code' });
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 2 && is(x.c, 0, 0, 2, 0, 0) && Object.keys(m).length === 1 && m.landing_pay.c === 'no',
+    '★n2 前から「ない」と答えている会員でも同じ → 2件とも dropped（額が落ちたのは、あとから預けた上の質問が受け取れなかったせい。本人が答え直したせいではない）', say(x.c));
+  sumOk(x, 'n2（前から「ない」の会員）');
+
+  [P] = await crew(1);
+  k = await hold([
+    { question_id: 'commuting_transport', code: 'always' },
+    { question_id: 'commuting_transport_method', codes: ['company_taxi'] },
+    { question_id: 'commuting_taxi_cap', code: 'per_ride' }]);
+  await hold([{ question_id: 'commuting_transport', code: 'no' }], A_HAND, CTX, k);
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 3 && is(x.c, 1, 0, 0, 2, 0) && Object.keys(m).length === 1 && m.commuting_transport.c === 'no',
+    '★n3 3段の筋（送迎 → 手段 → タクシー代の上限）で、いちばん上を「ない」に直した人 → 下の2件は stale（2段下も。すぐ上の「手段」が会員の行に無くても dropped にしない）', say(x.c));
+  sumOk(x, 'n3');
+
+  [P] = await crew(1);
+  k = await hold([FIX, AMT]);
+  await unhold(k, 'landing_pay');
+  x = await hand(P, k);
+  ok(x.n === 1 && is(x.c, 0, 0, 1, 0, 0) && Object.keys(await mineOf(P)).length === 0,
+    '★n5 上の質問の預かりが無く、会員も上の質問に答えていない → 下の額は dropped（本人が答え直したのではない。stale にして黙って消さない）', say(x.c));
+  sumOk(x, 'n5');
+
+  [P] = await crew(1);
+  k = await hold([FIX, AMT]);
+  await ageHeld(k, 2);
+  await condM(P, { airline: A_HAND, answers: [NONE] });
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 2 && is(x.c, 0, 1, 0, 1, 0) && Object.keys(m).length === 1 && m.landing_pay.c === 'no',
+    '★n6 預けたあとで、会員として上の質問を「ない」と答えた人 → 上の質問は kept・下の額は stale（どちらも、本人の新しい答えのため）', say(x.c));
+  sumOk(x, 'n6');
+
+  /* n7 会員の入口は、1日の上限（60件）を、親の筋より先に見る。上の質問を「ない」に直した人の引き継ぎで、
+     その「ない」がちょうど60件目になると、下の古い額は parent_missing ではなく rate_limited で返ってくる。
+     それを left に数えて残すと、画面は「まだ引き継げていません。次に…続きを引き継ぎます」と告げ、次の回には
+     黙って stale にすることになる（引き継がれることは無い答え）。行き先がもう決まっている答えは、その場で数える。
+     対照は、上の質問を直していない人（下の額は、上限が明けたら本当に入る ＝ 残す）。 */
+  const dayAt = (who, n) => db.query(
+    `update public.profiles set cond_answers_day = current_date, cond_answers_today = $2 where id = $1`, [who, n]);
+  [P] = await crew(1);
+  k = await hold([FIX, AMT]);
+  await hold([NONE], A_HAND, CTX, k);
+  await dayAt(P, 59);
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 2 && is(x.c, 1, 0, 0, 1, 0) && !(await keyLives(k)) && Object.keys(m).length === 1 && m.landing_pay.c === 'no',
+    '★n7 上の質問を「ない」に直した人の引き継ぎで、その「ない」が1日の上限のちょうど最後の1件になる → 下の古い額は、その場で stale（残して「次に続きを引き継ぎます」と告げない）。鍵は消える。会員の回答は「ない」だけ',
+    `${say(x.c)} ｜ 鍵 ${(await keyLives(k)) ? '残っている' : '消えた'} ｜ ${J(Object.keys(m))}`);
+  sumOk(x, 'n7');
+
+  [P] = await crew(1);
+  k = await hold([FIX, AMT]);
+  await dayAt(P, 59);
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 2 && is(x.c, 1, 0, 0, 0, 1) && await keyLives(k) && Object.keys(m).length === 1 && m.landing_pay.c === 'fixed',
+    '   n7 対照: 上の質問を直していない人の、下の額が上限で断られた → left（残す。上の質問は、いまもこの額を聞いている）。鍵は残る。会員の回答は上の質問だけ',
+    `${say(x.c)} ｜ 鍵 ${(await keyLives(k)) ? '残っている' : '消えた'} ｜ ${J(Object.keys(m))}`);
+  sumOk(x, 'n7（対照）');
+  await db.query(`update public.profiles set cond_answers_day = current_date - 1 where id = $1`, [P]);
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 1 && is(x.c, 1, 0, 0, 0, 0) && !(await keyLives(k))
+     && m.landing_pay_amount && m.landing_pay_amount.n === 1500 && m.landing_pay_amount.cur === 'JPY',
+    '   n7 対照: 日が変わってから、もう一度引き継ぐ → 残っていた額が moved（1500 JPY）。鍵はここで消える',
+    `${say(x.c)} ｜ 鍵 ${(await keyLives(k)) ? '残っている' : '消えた'} ｜ ${J(m.landing_pay_amount || null)}`);
+  sumOk(x, 'n7（対照・2回目）');
+
+  /* n8 上限で断られた答えを「その場で数える」ときの分け方も、n2 と同じ（2026-10-11）。
+     上の質問の預かりが、この引き継ぎの中で受け取られなかった（dropped）なら、下の額は、前から「ない」と
+     答えている会員でも dropped（失ったものは告げる）。「上限で断られた・会員の答えは『ない』」だけを見て
+     stale にすると、上が受け取れなかったせいで落ちた額が、黙って消える（n7 は、上の質問が入った回しか見ていない）。
+     上の質問は、1日の上限より先に断られる形にしてある（年が、会員の入口の受け取る範囲の外）。
+     会員の1日の数は、もう上限 ＝ 下の額は rate_limited で返る。 */
+  [P] = await crew(1);
+  await condM(P, { airline: A_HAND, answers: [NONE] });
+  await ageMine(P, 4);
+  k = await hold([FIX, AMT]);
+  await patch(k, 'landing_pay', { year: 1900 });
+  await dayAt(P, 60);
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 2 && is(x.c, 0, 0, 2, 0, 0) && !(await keyLives(k)) && Object.keys(m).length === 1 && m.landing_pay.c === 'no',
+    '★n8 上の質問の預かりが受け取られず（dropped）、下の額は1日の上限で断られた → 下の額も dropped（前から「ない」の会員でも stale にしない・残して「次に続きを引き継ぎます」とも告げない）。鍵は消える',
+    `${say(x.c)} ｜ 鍵 ${(await keyLives(k)) ? '残っている' : '消えた'} ｜ ${J(Object.keys(m))}`);
+  sumOk(x, 'n8');
+
+  // ── h 対になる額（低いほう・高いほう）──
+  /* 別の端末 X が、同じ会社に・同じ文脈で 10／20 USD を預けている。下の回は X が居るまま通す
+     （相手を探すのは、引き継いでいる鍵の預かりからだけ）。 */
+  const X = await hold([VAR, low(10), high(20)]);
+
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(300), high(400)]);
+  x = await hand(P, k);
+  m = await mineOf(P);
+  ok(x.n === 3 && is(x.c, 3, 0, 0, 0, 0) && (await pairOf(P)) === '300 USD／400 USD' && m[LO].fleet === 'a320' && m[HI].fleet === 'a320',
+    '★h1 100／200 USD を持つ会員が、預けていた 300／400 USD（同じ文脈）を引き継ぐ → 3件とも moved。会員の額は 300／400（低いほうの 300 を、前の 200 と比べて落とさない）',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h1');
+  ok(!(await keyLives(k)) && await heldN(X) === 3, '   h1 残りが無いので、鍵は消えている。別の端末 X の預かり3件は、そのまま');
+
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(100), high(200)]);
+  await patch(k, LO, { num: 300 });
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 1, 0, 2, 0, 0) && (await pairOf(P)) === '100 USD／200 USD',
+    '★h2 預かりの中で食い違っている2件（低いほう 300・高いほう 200。手で作った古い行）→ 2件とも dropped（stale ではない ＝ 告げる）。会員の 100／200 は変わらない',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h2');
+
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(100), high(200)]);
+  await patch(k, HI, { currency: 'EUR' });
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 1, 0, 2, 0, 0) && (await pairOf(P)) === '100 USD／200 USD',
+    '   h2 通貨が食い違っている2件（100 USD・200 EUR）でも同じ → 2件とも dropped。会員の 100／200 USD は変わらない',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h2（通貨）');
+
+  /* h3 ここは「分かっている端の場合」を、今の形のまま固定する検査。2件の文脈が違う預かりは、1回の呼び出しに
+     まとめない（呼び出しが運べる文脈は1組。片方の答えに、もう片方の機種を付けない）。1件ずつ出すので、
+     低いほうが会員の前の高いほうと比べて断られることがある。その1件は、本当に引き継げていない ＝ 告げる。 */
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(300)], A_HAND, { position: 'fo', fleet: 'a320', lang: 'ja' });
+  await hold([high(400)], A_HAND, { position: 'fo', fleet: 'b787', lang: 'ja' }, k);
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 2, 0, 1, 0, 0) && (await pairOf(P)) === '100 USD／400 USD',
+    '★h3 2件の機種が違う預かり（低いほう 300 は A320・高いほう 400 は B787）→ 1件ずつ出す。低いほうは前の 200 と比べて dropped・高いほうは moved。会員は 100／400',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h3');
+
+  P = await memberWith(100, 900);
+  k = await hold([VAR, low(300), high(400)]);
+  await ageHeld(k, 2);
+  let r = await condM(P, { airline: A_HAND, answers: [low(450)] });
+  x = await hand(P, k);
+  ok(r.saved === 1 && x.n === 3 && is(x.c, 1, 1, 1, 0, 0) && (await pairOf(P)) === '450 USD／900 USD',
+    '★h4 預けたあとで、会員として低いほうを 450 に直した人（高いほうは前から 900）→ 低いほうは kept。預かりの高いほう 400 は1件で出て、会員の 450 と比べて dropped（会員の新しい 450 を、預かりの 300 で置き換えない）',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h4');
+
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(300), high(400)]);
+  await ageHeld(k, 2);
+  r = await condM(P, { airline: A_HAND, answers: [high(500)] });
+  x = await hand(P, k);
+  ok(r.saved === 1 && x.n === 3 && is(x.c, 2, 1, 0, 0, 0) && (await pairOf(P)) === '300 USD／500 USD',
+    '★h4 預けたあとで、会員として高いほうを 500 に直した人 → 預かりの低いほう 300 は1件で出て moved（会員の 500 と比べる）・高いほうは kept。会員は 300／500（会員の新しい 500 を、預かりの 400 で置き換えない）',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h4（高いほうが新しい）');
+
+  /* h5 会員の入口の1日の上限（60件）に、対の2件ぶんの空きが無い（上の質問で1件使うと、残り1件）。
+     会員の入口は、同じ呼び出しの2つの端を「1組」として、2つとも rate_limited で断る
+     （db/airline-conditions.sql の「★1組」）＝ 引き継ぎは、2件とも残して止まる。
+     入口が片方だけ入れて返す形（低いほうは同じ呼び出しの高いほう 400 と比べて入り、高いほうは上限で断られる ＝
+     会員の額が 300／200 になる）は、いまの入口からは返らない。それでも返ったら、2件まとめた呼び出しを丸ごと
+     取り消して、2件とも残す（claim_contrib の PVC01。入口の決まりが外れたときの、2つ目の網）。 */
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(300), high(400)]);
+  await db.query(`update public.profiles set cond_answers_day = current_date, cond_answers_today = 58 where id = $1`, [P]);
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 1, 0, 0, 0, 2) && (await pairOf(P)) === '100 USD／200 USD' && await keyLives(k),
+    '★h5 1日の上限に、対の2件ぶんの空きが無い会員 → 会員の入口が2件とも断り、2件とも left（片方だけ入れて、会員の額を 300／200 にしない）。残りが在るので、鍵は残る',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h5');
+  await db.query(`update public.profiles set cond_answers_day = current_date - 1 where id = $1`, [P]);
+  x = await hand(P, k);
+  ok(x.n === 2 && is(x.c, 2, 0, 0, 0, 0) && (await pairOf(P)) === '300 USD／400 USD' && !(await keyLives(k)),
+    '   h5 日が変わってから、もう一度引き継ぐ → 残っていた2件が moved。会員は 300／400。鍵はここで消える',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h5（2回目）');
+
+  P = await memberWith(100, 200, [A_HAND, A_HAND2]);
+  k = await hold([VAR, low(300)]);
+  await hold([VAR, high(400)], A_HAND2, CTX, k);
+  x = await hand(P, k);
+  ok(x.n === 4 && is(x.c, 3, 0, 1, 0, 0) && (await pairOf(P)) === '100 USD／200 USD' && (await pairOf(P, A_HAND2)) === '100 USD／400 USD',
+    '★h6 同じ鍵が、会社Aに低いほう 300・会社Bに高いほう 400 を預けている → 会社をまたいで2件を組にしない（Aの 300 は Aの 200 と比べて dropped・Bの 400 は moved）',
+    `${say(x.c)} ｜ A ${await pairOf(P)} ｜ B ${await pairOf(P, A_HAND2)}`);
+  sumOk(x, 'h6');
+
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(300), high(400)]);
+  await patch(k, LO, { year: 1900 });
+  await patch(k, HI, { year: 1900 });
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 1, 0, 2, 0, 0) && (await pairOf(P)) === '100 USD／200 USD',
+    '★h7 2件まとめた呼び出しを、会員の入口が丸ごと断る形（年が範囲の外。手で作った行）→ 今までどおり1件ずつ出して、2件とも dropped。引き継ぎそのものは止まらない',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h7');
+
+  /* h8 2件まとめた呼び出しの返事は、質問ごとに読む（断った理由に名前が無いほうは、保存された）。
+     返事が「2件ぶん」になっていないとき（保存した数 ＋ 断った数 が 2 でない）は、そう読めない ＝
+     まとめた呼び出しを取り消して、今までどおり1件ずつ出す。入口は、スキップの印が付いた答えを
+     「保存した」にも「断った」にも数えないので、手で印を付けた行でその形を作る（預かる入口は、スキップを預からない）。 */
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(150), high(400)]);
+  await patch(k, LO, { skip: true });
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 2, 0, 1, 0, 0) && (await pairOf(P)) === '100 USD／400 USD',
+    '★h8 2件まとめた返事が「2件ぶん」に読めない形（スキップの印が付いた、手で作った行）→ 1件ずつ出し直す。保存されていない低いほうを moved に数えない（会員の低いほうは 100 のまま）',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h8');
+
+  /* h10 2件を組にするのは、2件とも「行の質問と、中身が名乗る質問が同じ」ときだけ。預かる入口は必ず同じにして
+     書くので、外れるのは手で作った行だけ。外れた行を組にすると、入口には同じ質問が2回届く。返事の「断った数」は
+     2 になるが、2つの端のことではない ＝ 名前の出なかった端（何も書かれていない）を、保存されたと読んでしまう。
+       h10  … 相手の行（高いほう）が、低いほうの質問を名乗っている（ループが先に着くのは、まともな低いほうの行）
+       h10' … ループが先に着く行（低いほう）が、高いほうの質問を名乗っている */
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(300), high(400)]);
+  await patch(k, HI, { question_id: LO });
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 1, 0, 2, 0, 0) && (await pairOf(P)) === '100 USD／200 USD',
+    '★h10 高いほうの行の中身が、低いほうの質問を名乗っている（手で作った行）→ 組にしない。1件ずつ出して2件とも dropped（何も書かれていない行を moved に数えない）。会員の 100／200 は変わらない',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h10');
+
+  P = await memberWith(100, 200);
+  k = await hold([VAR, low(50), high(60)]);
+  await patch(k, LO, { question_id: HI });
+  x = await hand(P, k);
+  ok(x.n === 3 && is(x.c, 1, 0, 2, 0, 0) && (await pairOf(P)) === '100 USD／200 USD',
+    '★h10 低いほうの行の中身が、高いほうの質問を名乗っている（ループが先に着く行のほうが外れている）→ 同じ。2件とも dropped。会員の 100／200 は変わらない',
+    `${say(x.c)} ｜ ${await pairOf(P)}`);
+  sumOk(x, 'h10（先に着く行が外れている）');
+
+  /* h9 相手を探すのは、引き継いでいる鍵の預かりからだけ。この鍵は低いほうしか預けていない ＝ 同じ会社・同じ文脈で
+     高いほうを預けているのは、別の端末 X（20 USD）だけ。X の行を相手にすると、300 と 20 が食い違って2件とも断られ、
+     X の預かりが1件消える。 */
+  P = await memberWith(100, 400);
+  k = await hold([VAR, low(300)]);
+  x = await hand(P, k);
+  ok(x.n === 2 && is(x.c, 2, 0, 0, 0, 0) && (await pairOf(P)) === '300 USD／400 USD' && await heldN(X) === 3,
+    '★h9 高いほうを預けているのが別の端末だけのとき → その行を相手にしない。低いほう 300 は1件で出て moved（会員は 300／400）。別の端末の預かりは3件のまま',
+    `${say(x.c)} ｜ ${await pairOf(P)} ｜ X ${await heldN(X)} 件`);
+  sumOk(x, 'h9');
+
+  /* 上の h の行は、決めた形だけ。こちらは「性質」を見る ── 会員の1日の数が上限の近く（56〜60件め）に在るとき、
+     端末が対の2問をどう預けていても、引き継いだあと (1) 会員の2つの額が食い違わない・(2) 5つの数を足すと
+     預けていた件数になる・(3) 会員の1日の数が 60 を超えない。
+     1回ごとに、新しい端末が「一定額ではない」・300／400 USD を預け、決まった種から作った呼び出しを0〜3回足す
+     （文脈は hold と同じ ＝ 2つの端は組にできるまま。足す呼び出しは断られてもよい）。引き継ぐのは、
+     前から 100／200 USD を持つ新しい会員。
+     ⚠️ 端末の初めの額は、会員の 100／200 ではなく 300／400。片方だけ入った形が食い違いになるのは、預かりの
+        低いほうが、会員の高いほう（200）に収まらないときだけ（100／200 どうしでは、片方だけ入っても 100／200）。
+     ⚠️ 数だけで緑にしない: 残した回・2つの端とも moved の回・「切れ目の回」（会員の数が 58 ＝ 上の質問で1件
+        使うと残り1件 で、預かりの低いほうが 200 を超えるか USD でない）が1回も無い並びでは、何も試していない。
+        0 になったら、決まりではなく種を替える。 */
+  {
+    let seed = 20261011;
+    const rnd = () => {               // 決まった並びを返す（mulberry32）
+      seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const int = (n) => Math.floor(rnd() * n);
+    const pick = (xs) => xs[int(xs.length)];
+    const AMTS = [50, 100, 150, 200, 300, 400], CURS = ['USD', 'USD', 'USD', 'EUR'];
+    const draw = () => {
+      const j = int(7);
+      if (j < 3) return low(pick(AMTS), pick(CURS));
+      if (j < 6) return high(pick(AMTS), pick(CURS));
+      return { question_id: pick([LO, HI]), code: 'unknown' };
+    };
+    const heldOf = async (key) => Object.fromEntries((await many(
+      `select item_key q, payload p from public.pv_contrib_pending
+        where key_hash = public.pv_contrib_key_hash($1) and kind = 'cond' and airline = $2`, [key, A_DAY])).map((y) => [y.q, y.p]));
+    const sayHeld = (p) => (!p ? '行なし' : (p.num == null ? (p.code || '答えなし') : `${p.num} ${p.currency}`));
+    let rounds = 0, handBroken = 0, handSumBad = 0, handOver = 0, handLeft = 0, handMovedPair = 0, handCut = 0, first = '';
+    for (let i = 0; i < 16; i++) {
+      const key = await hold([VAR, low(300), high(400)], A_DAY);
+      for (let j = int(4); j > 0; j--) {
+        await putC(key, { airline: A_DAY, ...CTX, answers: Array.from({ length: 1 + int(2) }, draw) });
+      }
+      const who = await memberWith(100, 200, [A_DAY]);
+      const start = 56 + int(5);
+      await dayAt(who, start);
+      const h = await heldOf(key);
+      const y = await hand(who, key);
+      const mm = await mineOf(who, A_DAY);
+      const end = (await one(`select cond_answers_today n from public.profiles where id = $1`, [who])).n;
+      rounds++;
+      const clash = !!(mm[LO] && mm[HI] && mm[LO].n !== null && mm[HI].n !== null
+        && (mm[LO].cur !== mm[HI].cur || mm[LO].n > mm[HI].n));
+      const sumBad = !!y.c.__err || y.c.moved + y.c.kept + y.c.dropped + y.c.stale + y.c.left !== y.n;
+      if (clash) handBroken++;
+      if (sumBad) handSumBad++;
+      if (end > 60) handOver++;
+      if (!y.c.__err && y.c.left > 0) handLeft++;
+      if (!y.c.__err && h[LO] && h[HI] && y.c.moved === y.n) handMovedPair++;
+      if (start === 58 && h[LO] && h[HI] && h[LO].num != null && (Number(h[LO].num) > 200 || h[LO].currency !== 'USD')) handCut++;
+      if ((clash || sumBad || end > 60) && !first) {
+        first = `${i + 1}回め: 会員の数 ${start} → ${end} ｜ 預かり ${sayHeld(h[LO])}／${sayHeld(h[HI])} ｜ ${say(y.c)}（預けていた ${y.n} 件）｜ 会員 ${await pairOf(who, A_DAY)}`;
+      }
+    }
+    ok(handBroken === 0 && handSumBad === 0 && handOver === 0 && handLeft > 0 && handMovedPair > 0 && handCut > 0,
+      '★会員の1日の数が上限の近く（56〜60件め）でも、引き継いだあと、会員の2つの額は食い違わない・5つの数は預けていた件数になる・1日の数は 60 を超えない'
+      + `（決まった並びの ${rounds} 回: 食い違い ${handBroken}・数が合わない ${handSumBad}・60超え ${handOver} ｜ 残した回 ${handLeft}・2つの端とも moved の回 ${handMovedPair}・切れ目の回 ${handCut}）`,
+      first);
+  }
+
+  ok(prep.length === 0 && await heldN(X) === 3, '   （下ごしらえ）どの回も、預ける・会員の回答を置く、が思ったとおりに入っていた。別の端末 X の預かりは最後まで3件', J(prep.slice(0, 3)));
 }
 
 
@@ -658,6 +1546,104 @@ console.log('\n▼ 9. 期限と上限');
   await db.query(`select set_config('request.headers', $1, false)`, [J({ 'x-forwarded-for': '203.0.113.8' })]);
   ok(KEY.test((await putW(null, { airline: A_LIM, position: 'fo', ...M, duty_days: 12 })).key || ''), '   別の回線は巻き込まれない');
   ok(!J(await many(`select * from public.pv_contrib_keys`)).includes('203.0.113'), '★表に IP そのものは残っていない');
+
+  /* ── 回線の印は、1日だけ（2026-10-12）────────────────────────
+     鍵の行の「回線の印」を読むのは、すぐ上の「1日に20本まで」の数えだけで、数えるのは作って1日以内の行だけ。
+     なのに印は、鍵が消えるまで（最後の保存から90日）行に残っていた。中身は「IP と日付」の sha256 で、
+     秘密の値は混ぜていない ＝ 残っているあいだ、預かった回答が、回線へたどれる値とつながったままになる。
+     いまは、作って1日たった行の印を、未ログインの保存と引き継ぎの**どの呼び出しも**空にする。
+     ⚠️ a の「ほかの端末」は新しい鍵を作らない保存・c の2本目は何も引き継がない呼び出しにしてある。
+        新しい鍵を作る回・引き継げた回だけで消す形にすると、そういう呼び出ししか来ない日は印が残る。
+     ⚠️ b を外さない。消す側の条件が広がると、上の「1日に20本まで」が数える行の印まで消える（上限が黙って外れる）。 */
+  const hdr      = (ip) => db.query(`select set_config('request.headers', $1, false)`, [J({ 'x-forwarded-for': ip })]);
+  const keyRow   = async (key) => one(`select * from public.pv_contrib_keys where key_hash = $1`, [await kh(key)]);
+  const heldOf   = async (key) => J(await many(
+    `select kind, airline, item_key, payload from public.pv_contrib_pending where key_hash = $1 order by id`, [await kh(key)]));
+  const backBy   = async (key, hours) => db.query(
+    `update public.pv_contrib_keys set created_at = now() - make_interval(hours => $2::int) where key_hash = $1`, [await kh(key), hours]);
+  const isMark   = (m) => /^[0-9a-f]{64}$/.test(m || '');
+  const markSay  = (row) => (!row ? '行が無い' : row.ip_day_hash === null ? '印は空' : '印が在る');
+  const restSame = (x, y) => !!x && !!y && J({ ...x, ip_day_hash: null }) === J({ ...y, ip_day_hash: null });   // 印のほかの欄
+  const noteMarks = async () => {
+    for (const k of await many(`select distinct ip_day_hash as m from public.pv_contrib_keys where ip_day_hash is not null`))
+      if (!MARKS.includes(k.m)) MARKS.push(k.m);
+  };
+  const W = (k, more) => ({ airline: A_LIM, position: 'fo', ...ago(k), ...more });
+  await noteMarks();
+
+  // a. 作って25時間たった鍵 → ほかの端末の保存で、印が消える。鍵と預かりはそのまま
+  await hdr('203.0.113.21');
+  const o = await putW(null, W(1, { duty_days: 12 }));
+  await putC(o.key, { airline: A_LIM, answers: [{ question_id: 'landing_pay', code: 'fixed' }] });
+  await hdr('203.0.113.22');
+  const d2 = await putW(null, W(1, { duty_days: 11 }));          // ほかの端末。先に鍵を持たせておく
+  await noteMarks();
+  await backBy(o.key, 25);
+  const o0 = await keyRow(o.key), oHeld0 = await heldOf(o.key);
+  const s2 = await putW(d2.key, W(1, { duty_days: 10 }));         // 鍵を持った端末の保存 ＝ 新しい鍵を作らない回
+  const o1 = await keyRow(o.key), oHeld1 = await heldOf(o.key);
+  ok(isMark(o0?.ip_day_hash) && s2.ok === true && s2.replaced === true && !('key' in s2) && !!o1 && o1.ip_day_hash === null,
+    '★a 作って25時間たった鍵の「回線の印」は、ほかの端末が未ログインで保存した時に消える（その端末が新しい鍵を作らない回でも）',
+    `前: ${markSay(o0)} ｜ ほかの端末の保存: ${s2.__err || `replaced ${s2.replaced}・鍵は${'key' in s2 ? '返った' : '返らない'}`} ｜ 後: ${markSay(o1)}`);
+  // a'. 自分の鍵が古い回 ── 片付けは「自分の鍵の行を掴んだあと」に走る。掴んでいるのが自分なら、その行も飛ばさずに空にする
+  await backBy(d2.key, 25);
+  const dOwn0 = await keyRow(d2.key);
+  const sOwn = await putW(d2.key, W(1, { duty_days: 8 }));
+  const dOwn1 = await keyRow(d2.key);
+  ok(isMark(dOwn0?.ip_day_hash) && sOwn.ok === true && !!dOwn1 && dOwn1.ip_day_hash === null,
+    "★a' 自分の鍵が作って25時間たっている回は、その保存で自分の行の印も消える（自分で掴んでいる行は飛ばさない）",
+    `前: ${markSay(dOwn0)} ｜ 保存: ${sOwn.__err || 'ok'} ｜ 後: ${markSay(dOwn1)}`);
+  const o2 = await putW(o.key, W(2, { duty_days: 9 }));
+  const oMine = await mineA(o.key, A_LIM);
+  ok(restSame(o0, o1) && oHeld1 === oHeld0 && JSON.parse(oHeld0).length === 2
+     && o2.ok === true && o2.replaced === false && !('key' in o2)
+     && oMine.known === true && oMine.rows.length === 2 && oMine.answers.length === 1,
+    '   a その鍵は生きたまま: 預かりの2件は数も中身も同じ・印のほかの欄は動かない・その鍵で続きを保存できる（新しい鍵は返らない）',
+    `印のほかの欄 ${restSame(o0, o1) ? '同じ' : '動いた'} ｜ 預かり ${JSON.parse(oHeld0).length}件 → ${JSON.parse(oHeld1).length}件（中身 ${oHeld1 === oHeld0 ? '同じ' : '違う'}）｜ 続きの保存: ${o2.__err || `replaced ${o2.replaced}・鍵は${'key' in o2 ? '返った' : '返らない'}`} ｜ 読み直し: known ${oMine.known}・月 ${oMine.rows?.length}・答え ${oMine.answers?.length}`);
+
+  // b. 作って23時間の鍵 → 印は残り、数えも今までどおり
+  await hdr('203.0.113.23');
+  const yKh = [];
+  for (let i = 0; i < 20; i++) yKh.push(await kh((await putW(null, W(1, { duty_days: 12 }))).key));
+  await noteMarks();
+  await db.query(`update public.pv_contrib_keys set created_at = now() - interval '23 hours' where key_hash = any($1::text[])`, [yKh]);
+  const yMarks = async () => (await many(
+    `select ip_day_hash as m from public.pv_contrib_keys where key_hash = any($1::text[]) order by key_hash`, [yKh])).map((k) => k.m);
+  const y0 = await yMarks();
+  await hdr('203.0.113.22');
+  const s3 = await putW(d2.key, W(1, { duty_days: 9 }));          // ほかの端末の保存（印を消す1文を通る）
+  const h3 = await claim(P, r.key);                               // ほかの人の引き継ぎの呼び出し（同じ1文を通る。鍵は切れている）
+  const y1 = await yMarks();
+  ok(y0.length === 20 && y0.every(isMark) && new Set(y0).size === 1 && s3.ok === true && h3.known === false && J(y1) === J(y0),
+    '★b 作って23時間の鍵の印は、ほかの端末が保存しても、ほかの人が引き継ぎを呼んでも残る（20本とも）',
+    `前: 印が在る ${y0.filter(isMark).length}/${y0.length} ｜ ほかの端末の保存: ${s3.__err || 'ok'} ｜ 引き継ぎの呼び出し: ${h3.__err || `known ${h3.known}`} ｜ 後: 印が在る ${y1.filter(isMark).length}/${y1.length}`);
+  await hdr('203.0.113.23');
+  const y21 = await putW(null, W(1, { duty_days: 12 }));
+  ok(bad(y21, /しばらくしてからもう一度お試しください/) && y21.__code === '54000' && (await yMarks()).filter(isMark).length === 20,
+    '★b その20本は今までどおり数える: 同じ回線の21本目は「しばらくしてからもう一度お試しください」（54000）で断る',
+    y21.__err ? `${y21.__err} ｜ ${y21.__code}` : `21本目が作れてしまった（鍵は${'key' in y21 ? '返った' : '返らない'}）`);
+
+  // c. 引き継ぎでも消える
+  await hdr('203.0.113.24');
+  const x = await putW(null, W(1, { duty_days: 12 }));            // 別の端末
+  const own = await putW(null, W(1, { duty_days: 7 }));           // これから会員になる人の端末
+  await noteMarks();
+  await backBy(x.key, 25);
+  const x0 = await keyRow(x.key), xHeld0 = await heldOf(x.key);
+  const [Pc] = await crew(1);
+  const c1 = await claim(Pc, own.key);
+  const x1 = await keyRow(x.key), xHeld1 = await heldOf(x.key);
+  ok(isMark(x0?.ip_day_hash) && c1.known === true && c1.moved === 1 && c1.left === 0
+     && !!x1 && x1.ip_day_hash === null && restSame(x0, x1) && xHeld1 === xHeld0 && JSON.parse(xHeld0).length === 1
+     && (await mineA(x.key, A_LIM)).known === true,
+    '★c 引き継ぎでも消える: ある会員の引き継ぎが、別の端末の25時間たった鍵の印を消す（その鍵と預かりはそのまま）',
+    `前: ${markSay(x0)} ｜ 引き継ぎ: ${c1.__err || `known ${c1.known}・moved ${c1.moved}・left ${c1.left}`} ｜ 後: ${markSay(x1)} ｜ 印のほかの欄 ${restSame(x0, x1) ? '同じ' : '動いた'} ｜ 預かり ${xHeld1 === xHeld0 ? '同じ' : '違う'}`);
+  await db.query(`update public.pv_contrib_keys set ip_day_hash = $2 where key_hash = $1`, [await kh(x.key), x0?.ip_day_hash ?? null]);
+  const c2 = await claim(Pc, own.key);                            // 使い終わった鍵 ＝ 何も引き継がない呼び出し
+  const x2 = await keyRow(x.key);
+  ok(isMark(x0?.ip_day_hash) && c2.known === false && !!x2 && x2.ip_day_hash === null,
+    '   c 何も引き継がない呼び出し（使い終わった鍵を出した）でも消える',
+    `引き継ぎ: ${c2.__err || `known ${c2.known}`} ｜ 後: ${markSay(x2)}`);
   await db.query(`select set_config('request.headers', '', false)`);
 }
 
@@ -704,6 +1690,13 @@ console.log('\n▼ 11. 外へ出てはいけないものが、どの返事にも
   const all = seen.map((s) => s.json).join('\n');
   ok(!/[0-9a-f]{64}/.test(all), '★64文字の16進（表に置く形・人の印）が、どの返事にも無い');
   ok(!/proof_hash|key_hash|ip_day|"user_id"|"email"/.test(all), '人の印・鍵の表の列・IP・メールの名前が、どの返事にも無い');
+  /* 回線の印と IP は、値そのものでも見る（上の2本は「64文字そろった16進」と「欄の名前」しか見ていない ＝
+     IP そのものや、切り詰めた印が別の名前で返っても通る）。印は 9 で表に在った値。頭と末尾の16文字ずつで探す。 */
+  const leak = seen.filter((s) => s.json.includes('203.0.113')
+    || MARKS.some((m) => s.json.includes(m.slice(0, 16)) || s.json.includes(m.slice(-16))));
+  ok(MARKS.length >= 6 && MARKS.every((m) => /^[0-9a-f]{64}$/.test(m)) && leak.length === 0,
+    '★d 回線の印（検査のあいだに表に在った値）も IP も、どの返事にも入っていない（預ける・読む・引き継ぐ・補足・会員の入口の全部）',
+    `見た印 ${MARKS.length}種 ｜ 入っていた返事: ${J([...new Set(leak.map((s) => s.fn))])}`);
   const withKey = seen.filter((s) => /"key":/.test(s.json));
   ok(withKey.length > 0 && withKey.every((s) => s.fn === 'submit_contrib_anon'), '★鍵が入っている返事は、預けた時の返事だけ',
     J([...new Set(withKey.map((s) => s.fn))]));
@@ -727,6 +1720,46 @@ console.log('\n▼ 12. 前提が無い DB では、日本語の案内で止ま�
   const none = (await bare.query(`select to_regclass('public.pv_contrib_pending') is null as n`)).rows[0].n;
   ok(none === true, '止まったときは表を作っていない');
   await bare.close();
+
+  /* 対になる額の2つ（pv_condition_range_other / pv_condition_range_bad）も、前のファイルに在るものを呼ぶ（2026-10-11）。
+     plpgsql は、呼んでいる関数が在るかを、作るときには見ない ＝ 2つが無い DB にもこのファイルは貼れてしまい、
+     そのあとは、未ログインの保存も引き継ぎも、動かしたときに初めて落ちる。貼るときに止める。
+     ここの DB は空で、冒頭の案内がこれまで探していた3つの関数の「代役」だけを置く（名前と引数の型だけが本物）。
+     対の2つは、頼まれたものだけ置く。本物のファイルを順に貼って通ることは、いちばん上の「▼ SQL の適用」が見ている。 */
+  const guardRun = async (withOther, withBad) => {
+    const b = new PGlite({ extensions: { pgcrypto } });
+    await b.waitReady;
+    await b.exec(`
+      create schema if not exists extensions;
+      create function public.pv_work_month_clean(jsonb) returns jsonb language sql as $$ select null::jsonb $$;
+      create function public.pv_work_level() returns text language sql as $$ select null::text $$;
+      create function public.pv_condition_clean(text, jsonb) returns jsonb language sql as $$ select null::jsonb $$;
+    `);
+    if (withOther) await b.exec(
+      `create function public.pv_condition_range_other(text) returns text language sql as $$ select null::text $$;`);
+    if (withBad) await b.exec(
+      `create function public.pv_condition_range_bad(text, numeric, text, numeric, text) returns text language sql as $$ select null::text $$;`);
+    let err = null;
+    try { await b.exec(CONTRIB_SQL); } catch (x) { err = String(x.message || x); }
+    const table = (await b.query(`select to_regclass('public.pv_contrib_pending') is not null as t`)).rows[0].t;
+    await b.close();
+    return { err, table };
+  };
+  const named = (g) => g.err !== null && (g.err.includes('pv_condition_range_other') || g.err.includes('pv_condition_range_bad'));
+  const stopsHere = (g) => g.err !== null && g.err.includes('db/airline-conditions.sql')
+    && g.err.includes('pv_condition_range_other') && g.err.includes('pv_condition_range_bad')
+    && /[ぁ-ん]/.test(g.err) && g.table === false;
+  const told = (g) => (g.err === null ? '止まらずに流れた' : g.err.split('\n')[0]) + (g.table ? ' ｜ 表ができている' : '');
+
+  let g = await guardRun(false, false);
+  ok(stopsHere(g), '★12a 対になる額の2つ（pv_condition_range_other / pv_condition_range_bad）がどちらも無い → 「先に db/airline-conditions.sql」と2つの名前を出して止まる。表は作っていない', told(g));
+  g = await guardRun(true, false);
+  ok(stopsHere(g), '   12b pv_condition_range_other だけ在る（pv_condition_range_bad が無い）→ 同じ案内で止まる。表は作っていない', told(g));
+  g = await guardRun(false, true);
+  ok(stopsHere(g), '   12c pv_condition_range_bad だけ在る（pv_condition_range_other が無い）→ 同じ案内で止まる。表は作っていない', told(g));
+  g = await guardRun(true, true);
+  ok(!named(g) && !(g.err || '').includes('db/airline-conditions.sql'),
+    `   12d 対照: 2つとも在れば、この案内では止まらない（代役の引数の型は、案内が探している型と同じ）。その先: ${g.err === null ? '最後まで流れた' : g.err.split('\n')[0].slice(0, 90)}`, told(g));
 }
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed\n`);

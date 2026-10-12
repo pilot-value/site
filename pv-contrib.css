@@ -144,6 +144,22 @@
 .pvc-root .pvc-label{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0 0 8px;padding:0;
   font-size:15px;line-height:1.45;font-weight:700;color:var(--pv-ink)}
 .pvc-root .pvc-tip{margin:-2px 0 10px;padding:0;font-size:12.5px;line-height:1.65;color:var(--pv-ink-3)}
+/* 質問の名前と説明の、最後の3文字（pv-contrib.js の endKept が包む）。折り返しで離さない
+   ＝「…入れてくださ／い。」のように1〜2文字だけが次の行に残らない。どのブラウザでも、この1行で最後の行は3文字以上になる。
+   ★上の2つに text-wrap:pretty を戻さない（2026-10-12）。併せて使うと、塊よりもう1文字多く次の行へ送られ、
+     「…払われる手／当です。」と語の途中で折れた（外すと「…手当／です。」）。 */
+.pvc-root .pvc-tail{white-space:nowrap}
+/* 上の質問の答えで出てくる「続きの質問」（pv-contrib.js が .pvc-kid を付ける）。左に線を1本・1段下げる
+   ＝ 色だけでなく形でも「上の質問の続き」と分かる。続きの続きも同じ1段（狭い画面で下げ幅を重ねない）。
+   線の色は --pv-accent（面の地に対して、明るい表示で 3.7:1・暗い表示で 4.5:1）。薄い --pv-accent-line は
+   1.3:1・1.7:1 しか無く、細い線1本では見えにくい（あちらは色を敷いた箱の縁に使う色）。 */
+.pvc-root .pvc-kid{position:relative;padding-left:12px}
+.pvc-root .pvc-kid::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;border-radius:1px;
+  background:var(--pv-accent)}
+/* 畳んである質問（通勤・タクシーの「上限」）は枠ごと1段下げ、線は枠の外・ほかの続きの質問と同じ位置に引く
+   （-13px・-1px ＝ 下げ幅 12px と、枠の縁 1px のぶん。線の位置は縁の内がわから測るため）。 */
+.pvc-root .pvc-fold.pvc-kid{margin-left:12px;padding-left:0}
+.pvc-root .pvc-fold.pvc-kid::before{left:-13px;top:-1px;bottom:-1px}
 
 .pvc-root .pvc-input,
 .pvc-root .pvc-select,
@@ -223,7 +239,15 @@
 /* 数字で答える質問 ── 数字・単位・「わからない」を1行に（狭い画面では折れる） */
 .pvc-root .pvc-numrow{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:0;padding:0}
 .pvc-root .pvc-numrow .pvc-input{flex:1 1 120px;width:auto;min-width:0;max-width:220px}
-.pvc-root .pvc-numrow .pvc-selw{flex:1 1 170px;min-width:150px;max-width:240px}
+/* 通貨の欄は1行ぶん使う（ほかの選ぶ欄と同じ、行いっぱいの幅）＝ 選んだ通貨の名前が切れない。
+   額の欄と並べていた頃は、「AED（UAEディ…」のように名前の途中で切れていた（いちばん長い名前は 230px 要る）。 */
+.pvc-root .pvc-numrow .pvc-selw{flex:1 1 100%}
+/* 通貨の欄が在る行の、額と単位の組（pv-contrib.js の fieldFor が包む）。組の中では折れない
+   ＝ 単位だけが次の行へ落ちて「わからない」の前に並ぶことが無い。幅が足りない時に縮むのは額の欄で、単位は縮まない。
+   行が折れるのは 通貨｜額＋単位｜わからない のあいだだけ。通貨の無い行は上の3行のまま（組にしていない）。 */
+.pvc-root .pvc-numrow .pvc-amt{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:10px;flex:0 1 auto;
+  min-width:0;max-width:100%}
+.pvc-root .pvc-numrow .pvc-amt .pvc-input{flex:0 1 220px;width:220px}
 .pvc-root .pvc-unit{flex:none;font-size:14px;line-height:1.4;color:var(--pv-ink-2);white-space:nowrap}
 
 /* 「補足を足す（任意）」── どの質問にも付く。押すと欄が出る */
@@ -352,12 +376,34 @@
   .pvc-root .pvc-saved{padding:26px;border-radius:20px}
 }
 
-/* ── いちばん狭い画面（幅340pxまで）：保存できた面だけ、すき間を詰める ─────────
+/* ── いちばん狭い画面（幅340pxまで）：保存できた面のすき間を詰める（＋ 終わりの2つ：紙片の向き・通貨の欄） ─────────
    ログインなしで保存すると「ログインなしで保存しました。」の箱が入り、幅320×高さ568 では
    「もう1項目を答える」の下が画面の外へ切れていた（月が2けたの回は行が1つ増えて、さらに下がる）。
    字の大きさ・ボタンの高さは変えない。詰めるのは箱と箱のあいだ・箱の内側の余白だけ。
    一覧の同じ箱はそのまま（こちらは保存できた面の中だけ）。 */
 @media (max-width:340px){
+  .pvc-root .pvc-saved-s{gap:4px 10px;margin-top:6px}
+  .pvc-root .pvc-saved .pvc-held{margin-top:10px;padding:10px 14px}
+  .pvc-root .pvc-saved .pvc-held-d{margin-top:2px}
+  .pvc-root .pvc-saved .pvc-held .pvc-ghost{margin-top:8px}
+  .pvc-root .pvc-saved-a{gap:8px;margin-top:14px}
+  /* ここから下の2つは幅だけの話（下の「背の低い画面」には写さない）。
+     紙片：この幅では、散る場所が見出しの字（「情報を追加しました」）の終わりのすぐ右に来る。左へ飛ぶ3枚は
+     字の上を横切るので、右上へ飛ばす（4〜6枚目と同じ向き）。これより広い画面は今までどおり。 */
+  .pvc-root .pvc-pop-i:nth-child(1){--pvc-x:40px}
+  .pvc-root .pvc-pop-i:nth-child(2){--pvc-x:20px}
+  .pvc-root .pvc-pop-i:nth-child(3){--pvc-x:54px}
+  /* 通貨の欄：続きの質問は1段下がっているぶん狭い。矢印の側の余白を詰めて、いちばん長い通貨の名前まで切らない */
+  .pvc-root .pvc-numrow .pvc-select{padding-right:26px}
+}
+
+/* ── 背の低い画面（高さ600px未満・下から出る面）：保存できた面だけ、同じだけすき間を詰める ─────────
+   上の詰め方は幅だけで決まるので、幅が341px以上で背の低い画面（幅375×高さ548 ＝ ブラウザのバーを引いた
+   小さい iPhone・幅360×高さ540 など）は広いすき間のままになり、ログインなしで保存した直後に
+   「もう1項目を答える」の下が画面の外へ切れていた（375×548 で 2px・360×540 で 10px・341×540 で 31px）。
+   詰める中身は上と同じ（字の大きさ・ボタンの高さは変えない・何も隠さない）。上を変えたら、ここも変える。
+   高さ600px以上と、右から出る面（幅768px以上。そちらは余りが 100px ある）には当てない。 */
+@media (max-height:599px) and (max-width:767px){
   .pvc-root .pvc-saved-s{gap:4px 10px;margin-top:6px}
   .pvc-root .pvc-saved .pvc-held{margin-top:10px;padding:10px 14px}
   .pvc-root .pvc-saved .pvc-held-d{margin-top:2px}

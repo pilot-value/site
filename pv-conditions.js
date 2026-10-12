@@ -116,6 +116,10 @@
       fullCur: '通貨',
       fullCurPick: '通貨を選ぶ',
       fullCurNeed: '通貨を選んでください。',
+      /* 低いほう・高いほうの対（質問の一覧の rangeLow）。送る前に止めた時も、サーバが断った時も、この2つの文で言う
+         （会社ページの面 pv-contrib.js の WHY.range_order / WHY.range_currency と同じ文） */
+      fullRangeOrder: '低いほうの額が、高いほうの額より大きくなっています。',
+      fullRangeCur: '低いほうと高いほうは、同じ通貨で入れてください。',
       /* 読み込みそのものに失敗したとき。★骨組みのまま黙って止めない
          （2026-08-19、詳細ページが本番で真っ白のまま誰も気づけなかった） */
       fullDeadTitle: '質問を読み込めませんでした',
@@ -160,6 +164,8 @@
       fullCur: 'Currency',
       fullCurPick: 'Choose currency',
       fullCurNeed: 'Please choose a currency.',
+      fullRangeOrder: 'The lowest amount is larger than the highest amount.',
+      fullRangeCur: 'Use the same currency for the lowest and the highest amount.',
       fullDeadTitle: 'Could not load the questions',
       fullDead: ['This happens when the connection is unstable,', 'or when loading was interrupted.'],
       fullRetry: 'Reload',
@@ -182,6 +188,36 @@
     return [].concat(parts).map(function (t) {
       return '<span class="pvc-nb">' + esc(t) + '</span>';
     }).join(L === 'en' ? ' ' : '');
+  };
+
+  /* 文の最後の3文字を、折り返さない1つの塊（.pvcf-tail）にした HTML（2026-10-12）。一覧の、質問の名前と説明に使う。
+     「…ありますか？」が、狭い画面で「か？」だけ次の行へ残っていた。text-wrap を知らないブラウザでも残らない。
+     字は足さない・並びも変えない ＝ 画面の字（textContent）は渡した文と1文字も違わない。読み上げにも何も足さない。
+     塊の手前で折ってよいかは、ブラウザの禁則がそのまま決める（塊は nowrap。inline-block にしない）。
+     数えるのは文字（サロゲートの対を割らない）。3文字以下の文はそのまま。日英で同じ道を通る
+     （英語は語の途中で折れないので、何も変わらない）。同じ決まりが pv-contrib.js の endKept にも在る。 */
+  var endKept = function (s) {
+    var ch = String(s == null ? '' : s).match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]/g) || [];
+    if (ch.length <= 3) return esc(ch.join(''));
+    return esc(ch.slice(0, -3).join('')) + '<span class="pvcf-tail">' + esc(ch.slice(-3).join('')) + '</span>';
+  };
+
+  /* 選択肢の字を「・」の後ろで分け、2つめからの分を1つずつ折り返しの単位（.pvc-nb ＝ 上の lines と同じ箱）にした
+     HTML（2026-10-12）。一覧の選択肢に使う。狭い画面で「いくつかの条件で変わる・そ／の他」と、語の途中で折れていた。
+     字は足さない・並びも変えない（「・」は前の分の最後に残る）＝ 画面の字は渡した字と1文字も違わない。
+     箱は自分の字の幅までしか広がらず、1行に入らない箱の中の字は今までどおり折り返す ＝ はみ出さない。
+     ★最初の分は箱に入れない。行の頭から始まるので、箱にしなくても、途中で折れるのは1行に入らないときだけ。
+       箱にすると、選んだ印（✓ と、そのあとの空き）のすぐ後ろが字でなく箱になり、空きの幅が 3px ほど変わる
+       ＝「・」の在る選択肢と無い選択肢で、✓ と字のあいだが違って見える（実測）。
+     「・」の無い字（英語は全部）は、今までと1文字も違わない HTML。
+     ⚠️ 選択肢を探すのは data-code。字や子の並びで探さない（箱が入るので、子は字1つとは限らない）。 */
+  var dotParts = function (s) {
+    var t = String(s == null ? '' : s), parts = [], at = 0, i;
+    for (i = 0; i < t.length - 1; i++) {
+      if (t.charAt(i) === '・') { parts.push(t.slice(at, i + 1)); at = i + 1; }
+    }
+    parts.push(t.slice(at));
+    return parts.map(function (p, k) { return k ? '<span class="pvc-nb">' + esc(p) + '</span>' : esc(p); }).join('');
   };
 
   /* ── 見た目 ──────────────────────────────────────────────────
@@ -226,6 +262,11 @@
     /* 選んだ印は色だけに頼らない（✓ を足す） */
     '.pvc-opt.is-picked{opacity:1;color:#34d399;border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.12)}',
     '.pvc-opt.is-picked::before{content:"\\2713\\a0"}',
+    /* 選んだ選択肢に置いたとき（2026-10-12）。選んだ選択肢も押せる（一覧では、複数選ぶ質問で外せる）のに、
+       置いても見た目が動かなかった ── 上の :hover は、同じ強さで後ろに在る .is-picked に負ける。
+       枠は選んだ字の色・地は1段濃く。押せないあいだ（1問だけ聞くカードで、保存の返事を待つあいだ）は動かさない。
+       置ける端末だけ（hover:hover）＝ 指で触る端末で、押したばかりの選択肢だけが濃いまま残らない。 */
+    '@media (hover:hover){.pvc-opt.is-picked:not([disabled]):hover{border-color:#34d399;background:rgba(52,211,153,.18)}}',
     '.pvc-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;',
       'padding-top:4px;border-top:1px solid rgba(255,255,255,.06)}',
     '.pvc-step{font-size:.72rem;font-weight:700;letter-spacing:.08em;color:#6b7d93}',
@@ -278,6 +319,8 @@
     '[data-theme="light"] .pvc-opt{color:#0f172a;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.14)}',
     '[data-theme="light"] .pvc-opt:hover{border-color:rgba(13,138,99,.45);background:rgba(13,138,99,.07)}',
     '[data-theme="light"] .pvc-opt.is-picked{color:#0d8a63;border-color:rgba(13,138,99,.5);background:rgba(13,138,99,.1)}',
+    '@media (hover:hover){[data-theme="light"] .pvc-opt.is-picked:not([disabled]):hover{',
+      'border-color:#0d8a63;background:rgba(13,138,99,.16)}}',
     '[data-theme="light"] .pvc-more,[data-theme="light"] .pvc-warn{color:#a97e00}',
     /* ── 詳細ページ（airline-conditions.html）──────────────────
        モーダルと同じ部品を使うが、こちらは全部の質問を一度に並べる。
@@ -313,6 +356,10 @@
       'border-radius:12px;background:var(--pv-green-soft);border:1px solid var(--pv-green-line);pointer-events:none}',
     '.pvcf-lab{font-size:.92rem;font-weight:700;line-height:1.7;color:#e8edf2}',
     '.pvcf-help{font-size:.78rem;line-height:1.7;color:#6b7d93;margin-top:6px}',
+    /* 質問の名前と説明の、最後の3文字（上の endKept が包む）。折り返しで離さない
+       ＝ 最後の行に1〜2文字だけが残らない。どのブラウザでも同じ。
+       ★上の2つに text-wrap:pretty を戻さない（2026-10-12）。併せて使うと「…払われる手／当です。」と語の途中で折れた。 */
+    '.pvcf-tail{white-space:nowrap}',
     '.pvcf-row{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:12px}',
     '.pvcf-row[hidden]{display:none}',
     '.pvcf-num{min-height:44px;width:120px;padding:11px 12px;border-radius:12px;',
@@ -323,9 +370,25 @@
        狭い画面（日本語は幅343未満）で右の端と矢印が節の枠に切られていた（2026-10-09）。 */
     '.pvcf-sel{min-height:44px;max-width:100%;padding:11px 12px;border-radius:12px;',
       'font-family:inherit;font-size:.85rem;font-weight:700;',
-      'color:#e8edf2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14)}',
+      'color:#e8edf2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);',
+      'transition:border-color .2s,background .2s}',
     '.pvcf-sel:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}',
+    /* 置いたとき・押したときの見た目（2026-10-12）。額の欄と通貨の欄（会社を選ぶ画面の欄も同じ部品）には、
+       フォーカスの輪しか無かった。色は、選択肢の :hover（置いたとき）と、選んだ選択肢（押したとき）のものをそのまま使う。
+       動かすのは枠と地の色だけ ＝ 大きさは変えない。
+       ★置いたときの見た目は、置ける端末だけ（hover:hover）。指で触る端末は、触ったあとも「置いた」ままになるので、
+         触り終わった欄が、触っていない欄と違う見た目のまま残る。
+       ★下の aria-invalid の規則より前に置く ＝ 断りの元になった欄は、置いても押しても、枠が断りの色のまま。 */
+    '@media (hover:hover){.pvcf-num:hover,.pvcf-sel:hover{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.08)}}',
+    '.pvcf-num:active,.pvcf-sel:active{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.12)}',
+    /* 断りの元になった欄（pv-conditions.js の say が aria-invalid を付ける）は、枠を断りの文と同じ色にする */
+    '.pvcf-num[aria-invalid="true"],.pvcf-sel[aria-invalid="true"]{border-color:#f5c842}',
     '.pvcf-unit{font-size:.8rem;font-weight:700;color:#6b7d93}',
+    /* 額の欄と単位は1つの塊。行が折り返しても、あいだでは折り返さない ＝ 単位が額から離れて次の行へ落ちない。
+       狭いときは額の欄が縮む。単位は縮めない・折り返さない。 */
+    '.pvcf-amt{display:inline-flex;align-items:center;gap:9px;min-width:0;max-width:100%}',
+    '.pvcf-amt .pvcf-num{flex:0 1 120px;min-width:0}',
+    '.pvcf-amt .pvcf-unit{flex:none;white-space:nowrap}',
     '.pvcf-note{width:100%;min-height:76px;margin-top:10px;padding:12px 14px;border-radius:12px;',
       'font:inherit;font-size:.85rem;line-height:1.7;color:#e8edf2;background:rgba(255,255,255,.04);',
       'border:1px solid rgba(255,255,255,.14);resize:vertical}',
@@ -350,7 +413,20 @@
       '[data-theme="light"] .pvcf-unit,[data-theme="light"] .pvcf-notelab,',
       '[data-theme="light"] .pvcf-voices-s{color:#64748b}',
     '[data-theme="light"] .pvcf-air,[data-theme="light"] .pvcf-state{color:#0d8a63}',
-    '[data-theme="light"] .pvcf-state.is-bad{color:#a97e00}',
+    /* 置いたとき・押したとき（明るいテーマ）。この下の aria-invalid の規則より前に置く（暗いほうと同じ理由）。 */
+    '@media (hover:hover){[data-theme="light"] .pvcf-num:hover,[data-theme="light"] .pvcf-sel:hover{',
+      'border-color:rgba(13,138,99,.45);background:rgba(13,138,99,.07)}}',
+    '[data-theme="light"] .pvcf-num:active,[data-theme="light"] .pvcf-sel:active{',
+      'border-color:rgba(13,138,99,.5);background:rgba(13,138,99,.1)}',
+    /* 断りの文は小さい字（約12px）なので、白い地に対して 4.5:1 以上の色にする（#a97e00 は 3.7:1 だった）。
+       #8a6e00 ＝ サイトの金のインク（pv-tokens.css の --pv-gold-ink）。断りの元になった欄の枠も同じ色。 */
+    '[data-theme="light"] .pvcf-state.is-bad{color:#8a6e00}',
+    '[data-theme="light"] .pvcf-num[aria-invalid="true"],[data-theme="light"] .pvcf-sel[aria-invalid="true"]{border-color:#8a6e00}',
+    /* フォーカスの輪。暗い地のための淡い金（rgba(245,200,66,.6)）は、白い地の上では 1.3:1 でほとんど見えない。
+       明るいテーマでは、この明るいほうの見た目がもう使っている金のインクにする（白い地に対して 3:1 以上）。
+       額の欄・通貨の欄（会社を選ぶ画面の欄も同じ部品）と、一覧の行の中の選択肢だけ。 */
+    '[data-theme="light"] .pvcf-num:focus-visible,[data-theme="light"] .pvcf-sel:focus-visible,',
+      '[data-theme="light"] .pvcf-q .pvc-opt:focus-visible{outline-color:#a97e00}',
     '[data-theme="light"] .pvcf-sec{border-color:rgba(15,23,42,.1);background:#fff}',
     '[data-theme="light"] .pvcf-sec[open] .pvcf-sum{border-bottom-color:rgba(15,23,42,.08)}',
     '[data-theme="light"] .pvcf-q{border-bottom-color:rgba(15,23,42,.07)}',
@@ -600,8 +676,11 @@
 
   Modal.prototype.finish = function () {
     var self = this;
+    /* ★「…の待遇情報が更新されました」と言うのは、保存できた答えが1つでも在るときだけ。
+         全部スキップした人にも出していた（1問も足していないのに、足したと言っていた）。
+         そのときは1行目（お礼）だけを出す。板を出す長さも閉じ方も変えない。 */
     this.body.innerHTML =
-      '<div class="pvc-done">' + lines(T.thanks(this.ctx.airlineName)) + '</div>' +
+      '<div class="pvc-done">' + lines(T.thanks(this.ctx.airlineName).slice(0, this.answered ? undefined : 1)) + '</div>' +
       moreLink(this.ctx);
     var more = this.body.querySelector('[data-pvc-more]');
     if (more) more.addEventListener('click', function () { self.evt('condition_detail_clicked'); });
@@ -943,6 +1022,10 @@
       needCur ? loadVocab() : Promise.resolve({})
     ]).then(function (r) {
       var res = r[0];
+      /* ★読めなかったときは描かない。描くと「あなたが答えた項目：0／全問数」と出て、前の答えが在る人にも
+           全部が「まだ答えていない」形で並ぶ（読めなかった ≠ 0）。本当に1つも答えていない人には、
+           サーバが空の一覧（answers: []）を返す ＝ それは読めているので、今までどおり 0 で描く。 */
+      if (!res || res.error || !res.data || !Array.isArray(res.data.answers)) { showDead(el); return; }
       if (res && !res.error && res.data && res.data.answers) {
         res.data.answers.forEach(function (a) {
           state[a.question_id] = {
@@ -1017,6 +1100,87 @@
       catch (e) { try { row.scrollIntoView(); } catch (e2) {} }
     }
 
+    /* ── 対になる額（低いほう・高いほう）──────────────────────────
+       どの2問が対かは、質問の一覧（pv-conditions.json）の rangeLow の1か所 ── 高いほうの質問が、低いほうの鍵を持つ。
+       2つは別々の質問・別々の行だが、2つで1つの幅。食い違う2つ（低いほうが大きい・通貨が違う）は保存しない。
+       サーバも同じ決め方で断る（db/airline-conditions.sql の 4d）。ここは、送る前に本人へ言うための写し。 */
+    var pairs = {};     // question_id → { low: 低いほうの鍵, high: 高いほうの鍵 }
+    (bank.raw.questions || []).forEach(function (q) {
+      if (!q.rangeLow || !byId[q.rangeLow]) return;
+      pairs[q.id] = pairs[q.rangeLow] = { low: q.rangeLow, high: q.id };
+    });
+    function mateOf(q) {
+      var p = pairs[q.id];
+      return p ? byId[p.low === q.id ? p.high : p.low] : null;
+    }
+    /* 額1つぶん { num, cur, raw }。額が無いとき（空・「わからない」・数として読めない）は null。
+       ★無い額を 0 と読まない（Number(null) も Number('') も 0 になる）。 */
+    function amount(num, cur) {
+      if (num == null || num === '') return null;
+      var n = Number(num);
+      return isFinite(n) ? { num: n, cur: cur || '', raw: String(num) } : null;
+    }
+    /* その質問について保存してある額（この人の答えとして、このページが読んだもの・保存できたもの） */
+    function storedOf(q) {
+      var v = state[q.id] || {};
+      return amount(v.num, v.currency);
+    }
+    /* その質問の行に、いま入っている額。額と通貨がそろっているときだけ返す */
+    function typedOf(q) {
+      var row = el.querySelector('[data-qid="' + q.id + '"]');
+      var n = row && row.querySelector('.pvcf-num'), c = row && row.querySelector('[data-cur]');
+      if (!n || (q.currency && !(c && c.value))) return null;
+      return amount(n.value.trim(), c ? c.value : '');
+    }
+    /* 食い違いの理由（'' ＝ 食い違っていない）。名前はサーバの理由と同じ。
+       ★どちらかの額が無ければ比べない（片方だけは、いつでもよい）。
+       ★通貨が先・大小があと（通貨の違う額どうしの大小は、意味を持たない）。同じ額はよい。
+       ★数として比べる（字のまま比べると、200 は 1000 より大きい）。 */
+    function judge(low, high) {
+      if (!low || !high) return '';
+      if (low.cur && high.cur && low.cur !== high.cur) return 'range_currency';
+      return low.num > high.num ? 'range_order' : '';
+    }
+    /* この質問の額 a と、相手の額 b を、低いほう・高いほうの順に直して比べる */
+    function clash(q, a, b) {
+      return pairs[q.id].low === q.id ? judge(a, b) : judge(b, a);
+    }
+    /* 理由 → その行に出す文。対の2つの理由のほかは ''（＝ 今までどおりの「保存できませんでした」） */
+    function whyText(reason) {
+      return reason === 'range_order' ? T.fullRangeOrder : reason === 'range_currency' ? T.fullRangeCur : '';
+    }
+    /* 理由 → 直す欄（'num' ＝ 額の欄／'cur' ＝ 通貨の欄）。対の2つの理由のほかは ''（どの欄とも言えない） */
+    function whyAt(reason) {
+      return reason === 'range_order' ? 'num' : reason === 'range_currency' ? 'cur' : '';
+    }
+    var inPair = {};    // 2問ぶんを1回で送って、返事を待っている質問
+    /* 対の相手の通貨を借りる（高いほうの行が、低いほうで保存した通貨から始まる。逆も同じ）。
+       借りるのは、この質問にまだ通貨が無いあいだだけ ── 保存した通貨が在る・本人が通貨を選んだ、のどちらかなら触らない。
+       借りた通貨は選んだ形になっているだけで、「入力する」を押すまで何も保存しない。 */
+    var lent = {};      // question_id → その行の通貨の欄に出ているのは、相手から借りた通貨（本人は選んでいない）
+    function lendable(q) {
+      var m = mateOf(q);
+      return m ? ((state[m.id] || {}).currency || '') : '';
+    }
+    /* 相手が保存できたあとで呼ぶ。この質問にまだ通貨が無ければ、相手の通貨に合わせる。
+         通貨の欄が空                 … 相手の通貨を入れる
+         借りた通貨が出ている         … 相手の通貨に付いていく。ただし、もう額を打ってあるなら動かさない
+                                        （打った額の横の通貨を黙って変えると、額の意味が変わる）
+         本人が選んだ通貨が出ている   … 触らない */
+    function lend(q) {
+      var cur = lendable(q);
+      if (!cur || !q.currency || (state[q.id] || {}).currency) return;
+      var row = el.querySelector('[data-qid="' + q.id + '"]');
+      var sel = row && row.querySelector('[data-cur]'), num = row && row.querySelector('.pvcf-num');
+      if (!sel) return;
+      if (sel.value !== '') {
+        if (!lent[q.id]) return;
+        if (num && num.value.trim() !== '') return;
+      }
+      sel.value = cur;
+      lent[q.id] = sel.value === cur;
+    }
+
     /* ★先頭は空の選択肢（「通貨を選ぶ」）。これが無いと、何も選んでいない人の額に
          一覧のいちばん上の通貨が黙って付いて保存される（2026-10-09 まで、そうなっていた）。 */
     function curOptions(sel) {
@@ -1040,7 +1204,7 @@
           var on = picked.indexOf(c.code) >= 0;
           return '<button type="button" class="pvc-opt' + (on ? ' is-picked' : '') + '"' +
                  ' data-code="' + esc(c.code) + '"' +
-                 ' aria-pressed="' + (on ? 'true' : 'false') + '">' + esc(c[L]) + '</button>';
+                 ' aria-pressed="' + (on ? 'true' : 'false') + '">' + dotParts(c[L]) + '</button>';
         }).join('');
         if (q.kind === 'multi') {
           var unk = v.code === UNKNOWN;
@@ -1051,16 +1215,25 @@
         body += '</div>';
       } else if (q.kind === 'num') {
         var n = q.num || {};
+        /* 並びは、会社ページの上の面と同じ ── 通貨 → 額 → 単位（通貨の無い質問は、額 → 単位）。
+           額の欄と単位は1つの塊（.pvcf-amt）で、あいだでは折り返さない。
+           ★対になる額で、この質問にまだ通貨が無い（保存していない）ときは、相手の保存した通貨を選んだ形で出す。
+             選んだ形にするだけで、「入力する」を押すまで何も保存しない（lent ＝ 本人が選んだ通貨ではない印）。 */
+        var mine = v.currency || '';
+        var from = (!mine && q.currency) ? lendable(q) : '';
+        lent[q.id] = !!from;
         body += '<div class="pvcf-row">' +
-          '<input class="pvcf-num" type="number" inputmode="decimal"' +
-            ' min="' + esc(n.min) + '" max="' + esc(n.max) + '" step="' + esc(n.step || 1) + '"' +
-            ' value="' + esc(v.num == null ? '' : v.num) + '"' +
-            ' aria-label="' + esc(q[L].label) + '"/>' +
           (q.currency
             ? '<select class="pvcf-sel" data-cur aria-label="' + esc(T.fullCur) + '">' +
-                curOptions(v.currency) + '</select>'
+                curOptions(mine || from) + '</select>'
             : '') +
-          (n[L] ? '<span class="pvcf-unit">' + esc(n[L]) + '</span>' : '') +
+          '<span class="pvcf-amt">' +
+            '<input class="pvcf-num" type="number" inputmode="decimal"' +
+              ' min="' + esc(n.min) + '" max="' + esc(n.max) + '" step="' + esc(n.step || 1) + '"' +
+              ' value="' + esc(v.num == null ? '' : v.num) + '"' +
+              ' aria-label="' + esc(q[L].label) + '"/>' +
+            (n[L] ? '<span class="pvcf-unit">' + esc(n[L]) + '</span>' : '') +
+          '</span>' +
           '<button type="button" class="pvc-opt" data-num>' + esc(T.fullNum) + '</button>' +
           '<button type="button" class="pvc-opt' + (v.code === UNKNOWN ? ' is-picked' : '') + '"' +
             ' data-code="' + UNKNOWN + '">' + esc(T.dunno) + '</button>' +
@@ -1074,8 +1247,8 @@
       }
       return '<div class="pvcf-q' + (q.parent ? ' is-child' : '') + '" data-qid="' + esc(q.id) + '"' +
              (visible(q) ? '' : ' hidden') + '>' +
-        '<div class="pvcf-lab">' + esc(q[L].label) + '</div>' +
-        (q[L].help ? '<div class="pvcf-help">' + esc(q[L].help) + '</div>' : '') +
+        '<div class="pvcf-lab">' + endKept(q[L].label) + '</div>' +
+        (q[L].help ? '<div class="pvcf-help">' + endKept(q[L].help) + '</div>' : '') +
         body +
         '<div class="pvcf-state" aria-live="polite"></div>' +
       '</div>';
@@ -1115,14 +1288,41 @@
     }
 
     /* 保存できたら、その行の中だけを描き直す。
-       画面全体を作り直すと、入力中の欄からフォーカスが飛び、開いた節も閉じる。 */
+       画面全体を作り直すと、入力中の欄からフォーカスが飛び、開いた節も閉じる。
+       ★行を作り直すと、フォーカスが在った部品もいっしょに消え、フォーカスがページへ落ちる
+         （キーボードの人は行の頭からやり直し・読み上げは場所を見失う）。
+         作り直す前に「どの部品か」を覚え、作り直した行の同じ部品へ戻す。画面は動かさない。
+         覚え方 ── 選択肢と「わからない」は鍵（data-code）で、額の欄・通貨・「入力する」・補足は種類で。
+         同じ部品が無くなっていたら、その行の最初の部品へ。
+       ★フォーカスがこの行の中に無いときは何もしない
+         （保存の返事を待つあいだに次の行へ進んだ人から、フォーカスを奪わない）。 */
     function redrawRow(q) {
       var row = el.querySelector('[data-qid="' + q.id + '"]');
       if (!row) return;
+      var KINDS = ['.pvc-opt[data-code]', '.pvcf-num', '[data-cur]', '[data-num]', '[data-note]'];
+      var had = d.activeElement;
+      var inside = !!(had && had !== row && row.contains(had));
+      var kind = -1, i;
+      for (i = 0; inside && i < KINDS.length && kind < 0; i++) if (had.matches(KINDS[i])) kind = i;
+      var code = kind === 0 ? had.getAttribute('data-code') : null;
+
       var tmp = d.createElement('div');
       tmp.innerHTML = qHtml(q);
-      row.parentNode.replaceChild(tmp.firstChild, row);
+      var fresh = tmp.firstChild;
+      row.parentNode.replaceChild(fresh, row);
       bindRow(q);
+
+      if (!inside) return;
+      var to = null;
+      if (kind === 0) {
+        Array.prototype.forEach.call(fresh.querySelectorAll(KINDS[0]), function (b) {
+          if (!to && b.getAttribute('data-code') === code) to = b;
+        });
+      } else if (kind > 0) {
+        to = fresh.querySelector(KINDS[kind]);
+      }
+      if (!to) to = fresh.querySelector('button,input,select,textarea');
+      if (to) { try { to.focus({ preventScroll: true }); } catch (e) {} }
     }
 
     function refreshCounts() {
@@ -1144,37 +1344,85 @@
       mark(false);
     }
 
-    /* msg … 決まった2つの文（保存しました／保存できませんでした）の代わりに出す文。無ければ今までどおり。 */
-    function say(q, ok, msg) {
+    /* その行の状態の1行と、断りの元になった欄の印（aria-invalid）は、ここだけが書く。
+       ok  … true ＝ 保存できた／false ＝ 断り／null ＝ 片づける（文も印も消す）
+       msg … 決まった2つの文（保存しました／保存できませんでした）の代わりに出す文。無ければ今までどおり。
+       at  … 断りの元になった欄（'num' ＝ 額の欄／'cur' ＝ 通貨の欄）。その欄に aria-invalid を付ける
+             （見た目は枠の色。読み上げは「入力が正しくない」と伝える）。渡さない断りは、どの欄にも印を付けない。
+             印は、この行に次の何か（保存しました・別の断り・片づけ）を書くときに外れる。 */
+    function say(q, ok, msg, at) {
       var row = el.querySelector('[data-qid="' + q.id + '"]');
       if (!row) return;
       var s = row.querySelector('.pvcf-state');
       if (!s) return;
-      s.textContent = msg || (ok ? T.fullSaved : T.fullFail);
-      s.className = 'pvcf-state' + (ok ? '' : ' is-bad');
+      s.textContent = ok === null ? '' : (msg || (ok ? T.fullSaved : T.fullFail));
+      s.className = 'pvcf-state' + (ok === false ? ' is-bad' : '');
+      var bad = ok === false ? (at === 'cur' ? '[data-cur]' : at === 'num' ? '.pvcf-num' : '') : '';
+      Array.prototype.forEach.call(row.querySelectorAll('.pvcf-num,[data-cur]'), function (c) {
+        if (bad && c.matches(bad)) c.setAttribute('aria-invalid', 'true');
+        else c.removeAttribute('aria-invalid');
+      });
     }
 
-    /* 1問ぶんを送る。まとめて送らない＝途中で閉じても答えたぶんは残る。 */
-    function save(q, ans, keep) {
+    /* 対の断り（「低いほうの額が…」「…同じ通貨で…」）が出ていたら消す。
+       相手の額が保存し直されたら、その文はもう、いま保存してある2つの額の話ではない。ほかの文には触らない。 */
+    function unsay(q) {
+      var row = el.querySelector('[data-qid="' + q.id + '"]');
+      var s = row && row.querySelector('.pvcf-state');
+      if (!s || (s.textContent !== T.fullRangeOrder && s.textContent !== T.fullRangeCur)) return;
+      say(q, null);
+    }
+
+    /* 1問ぶんを送る。まとめて送らない＝途中で閉じても答えたぶんは残る。
+       ★対になる額の2つを直すときだけ、相手の行に入っている額（also）もいっしょに、2問ぶんを1回で送る。
+         1問ずつ送ると、先に送った側が「相手の前の額」と食い違って必ず断られる（100／200 を 300／400 に直せない）。
+       ★返事は1問ずつ読む。サーバが保存した答えは、その行を描き直して「保存しました」。
+         サーバが断った答え（返事の rejected に、質問と理由が1件ずつ入る）は、その行に理由を書く。打った字は残す。
+         保存できた答えを失敗と出さない・断られた答えを保存したと出さない。
+         数が合わない返事（保存した数 ≠ 送った数 − 断った数）は、どれが保存されたか分からない ＝ 保存したと言わない。 */
+    function save(q, ans, keep, also) {
       ans.question_id = q.id;
-      return sb.rpc('submit_airline_conditions', { p: payload(ctx, [ans]) })
+      var sent = [{ q: q, ans: ans, keep: keep }];
+      if (also) {
+        also.ans.question_id = also.q.id;
+        sent.push(also);
+        inPair[q.id] = inPair[also.q.id] = true;
+      }
+      var free = function () { if (also) inPair[q.id] = inPair[also.q.id] = false; };
+      return sb.rpc('submit_airline_conditions', { p: payload(ctx, sent.map(function (s) { return s.ans; })) })
         .then(function (res) {
-          if (res.error || !res.data || res.data.saved !== 1) throw new Error('not saved');
-          state[q.id] = {
-            code: ans.code || null, codes: ans.codes || null,
-            num: ans.num == null ? null : Number(ans.num),
-            currency: ans.currency || null,
-            text: ans.text != null ? ans.text : (state[q.id] && state[q.id].text) || null
-          };
-          track('condition_answered', {
-            trigger: 'detail_page', question_id: q.id, airline_code: ctx.airline
+          free();
+          if (res.error || !res.data) throw new Error('not saved');
+          var no = {};
+          (Array.isArray(res.data.rejected) ? res.data.rejected : []).forEach(function (r) {
+            if (r && r.question_id) no[r.question_id] = r.reason || 'refused';
           });
-          if (q.id === want) want = '';
-          if (!keep) redrawRow(q);
-          say(q, true);
+          var kept = sent.filter(function (s) { return !no[s.q.id]; });
+          var sure = res.data.saved === kept.length;
+          sent.forEach(function (s) {
+            if (no[s.q.id] || !sure) { say(s.q, false, whyText(no[s.q.id]), whyAt(no[s.q.id])); return; }
+            var a = s.ans, old = state[s.q.id];
+            state[s.q.id] = {
+              code: a.code || null, codes: a.codes || null,
+              num: a.num == null ? null : Number(a.num),
+              currency: a.currency || null,
+              text: a.text != null ? a.text : (old && old.text) || null
+            };
+            track('condition_answered', {
+              trigger: 'detail_page', question_id: s.q.id, airline_code: ctx.airline
+            });
+            if (s.q.id === want) want = '';
+            if (!s.keep) redrawRow(s.q);
+            say(s.q, true);
+          });
+          if (!sure || !kept.length) return;
+          /* 保存できた額の、相手の行 ── 前の額との食い違いの文が残っていたら消す（unsay）。
+             まだ通貨の無い相手の行には、いま保存できた通貨を選んだ形で出しておく（lend）。
+             相手もいま保存できた回（2問ぶん）は、どちらも何もしない。 */
+          kept.forEach(function (s) { var m = mateOf(s.q); if (m) { unsay(m); lend(m); } });
           refreshCounts();
         })
-        .catch(function () { say(q, false); });
+        .catch(function () { free(); sent.forEach(function (s) { say(s.q, false); }); });
     }
 
     function bindRow(q) {
@@ -1215,12 +1463,49 @@
           /* 通貨を選んでいない額は送らない（サーバも bad_currency で受け取らない）。
              何が足りないかをその行に書いて、通貨の欄へ運ぶ。 */
           if (cur) {
-            if (!cur.value) { say(q, false, T.fullCurNeed); cur.focus(); return; }
+            if (!cur.value) { say(q, false, T.fullCurNeed, 'cur'); cur.focus(); return; }
             a.currency = cur.value;
           }
-          save(q, a);
+          /* 対になる額（低いほう・高いほう）。相手と食い違う額は送らない（サーバも受け取らない）。
+               相手に保存した額が無い（まだ答えていない・「わからない」）… 比べない。今までどおり1問ぶん
+               相手の保存した額と合っている                              … 今までどおり1問ぶん
+               食い違っている … 相手の行を見る。保存した額とは違う額と通貨が入っていて、それとなら合っている
+                                 ＝ 2つとも直している途中 → 2問ぶんを1回で送る（save の also）。
+                                 そうでなければ、何が食い違っているかをこの行に書いて、直す欄へ運ぶ。何も送らない。
+             ★比べる相手は、まず「保存した額」。相手の行に打ってあるだけの額は、送るまでは答えではない。
+             ★2問ぶんを送って返事を待っているあいだは、その2行からは送らない（返事が来ると2行とも描き直す。
+               そのあいだに打ち直した額へ、前の送信の返事を重ねない）。 */
+          var mate = mateOf(q), also = null;
+          if (mate) {
+            if (inPair[q.id]) return;
+            var mine = amount(v, a.currency), was = storedOf(mate);
+            var why = clash(q, mine, was);
+            if (why) {
+              var now = typedOf(mate);
+              if (now && (now.num !== was.num || now.cur !== was.cur)) why = clash(q, mine, now);
+              else now = null;
+              if (why) {
+                say(q, false, whyText(why), whyAt(why));
+                (whyAt(why) === 'cur' ? cur : num).focus();
+                return;
+              }
+              also = { q: mate, ans: { num: now.raw } };
+              if (now.cur) also.ans.currency = now.cur;
+            }
+          }
+          save(q, a, false, also);
         };
         go.addEventListener('click', send);
+        /* 断りの元になった欄の値を変えたら、その断りを片づける（文も欄の印も。その文は、変える前の値の話）。
+           通貨の欄を本人が触ったら、相手から借りた通貨ではなくなる。 */
+        var cur0 = row.querySelector('[data-cur]');
+        num.addEventListener('input', function () {
+          if (num.getAttribute('aria-invalid') === 'true') say(q, null);
+        });
+        if (cur0) cur0.addEventListener('change', function () {
+          lent[q.id] = false;
+          if (cur0.getAttribute('aria-invalid') === 'true') say(q, null);
+        });
         /* Enter でも送れるようにする（数値欄で毎回ボタンへ手を伸ばさせない） */
         num.addEventListener('keydown', function (e) {
           if (e.key === 'Enter') { e.preventDefault(); send(); }

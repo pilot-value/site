@@ -76,9 +76,11 @@ const IC = {
   swap: svg('M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4', 'pvg-ic pvg-ic-s'),
   prev: svg('M15 6l-6 6 6 6', 'pvg-ic pvg-ic-s'),
   find: svg('M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'),
-  taxi: svg('M10 5V3.5h4V5M5 11l1.6-4.6A2 2 0 0 1 8.5 5h7a2 2 0 0 1 1.9 1.4L19 11M4 11h16v6H4zM7 17v2M17 17v2M8 14h.01M16 14h.01'),
-  ticket: svg('M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2zM13 5v2M13 11v2M13 17v2'),
-  steps: svg('M3 20h4.5v-5H12v-5h4.5V5H21'),
+  /* 下の4つは「情報を追加」の面（pv-contrib.js の ICONS）の絵の写し ── 札を押して開く面と同じ絵。同じままかは assert-airline-glance.mjs が面のファイルを読んで突き合わせる。 */
+  sheetRoster: svg('M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z M4 10h16 M8 3v4 M16 3v4'),
+  sheetTaxi: svg('M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z M12 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'),
+  sheetStaffTravel: svg('M21 3 3 10.5l6.5 2.5L12 20l9-17z M9.5 13 21 3'),
+  sheetUpgrade: svg('M2.5 9.5 12 5l9.5 4.5L12 14 2.5 9.5z M6.5 11.5V16c1.5 1.4 3.4 2 5.5 2s4-.6 5.5-2v-4.5'),
 };
 
 /* ── タブ（見本の6つ・左から）───────────────────────────────
@@ -341,12 +343,16 @@ const WORK_ASK = [['days_off_request', '希望休を指定できるか'], ['rost
   ['reserve_duty', 'スタンバイ勤務があるか'], ['roster_changes', '確定後の変更は多いか']];
 const BEN_ASK = [['annual_leave_days', '年間の有給休暇の日数'], ['sick_leave', '病気休暇を使えるか'], ['staff_travel', '社員向け航空券があるか']];
 const LIVE_ASK = [['commuting_transport', '通勤の足を会社が用意するか'], ['commuting_taxi_when', 'タクシーを使えるとき'], ['commuting_bus_when', 'クルーバスを使えるとき']];
+/* 待遇の板の「パイロットの回答」の欄が、上の3問のほかに出す質問（聞く行は足さない ＝ 出すだけ）。
+   着陸手当の、選ぶ形の3問。答える入口は「情報を追加」に在り、3人そろえば会社ページに出る、と書いてある
+   ── どの欄も指していないと、何人答えても出ない。額の3問は入れない（すぐ下の決まり）。 */
+const BEN_SHOW = ['landing_pay', 'landing_pay_unit', 'landing_pay_varies_by'];
 /* ★額の質問（通貨つき）を、上の3つの箱へ入れない。箱は career-live.js が「数字＋単位」で出す
    ＝ 通貨が付かない。円の人とドルの人の額が、通貨なしの1つの数字として会社ページに出てしまう
    （公開集計も、通貨つきの質問では中央値を返さない ＝ 入れても空のまま）。 */
 {
   const money = new Set(QUESTIONS.filter(q => q.currency).map(q => q.id));
-  const hit = [...WORK_ASK, ...BEN_ASK, ...LIVE_ASK].map(a => a[0]).filter(id => money.has(id));
+  const hit = [...WORK_ASK, ...BEN_ASK, ...LIVE_ASK].map(a => a[0]).concat(BEN_SHOW).filter(id => money.has(id));
   if (hit.length) throw new Error('会社ページの箱に、額の質問（通貨つき）は入れられない ── 箱は通貨なしで数字だけを出す（' + hit.join('・') + '）');
 }
 
@@ -380,8 +386,9 @@ ${body}
 const workLive = v => `<div class="pvg-ans"><p class="pvg-askh">月の勤務<small>直近12か月・3人そろった項目だけ</small></p>${live('work', { airline: v.slug, keys: NOTE_KEYS.work.join(','), notes: '1', work: '1' })}</div>`;
 /* 会員の補足（待遇／通勤）。読めるものが在るときだけ、欄が見出しごと出る */
 const notesLive = (v, id) => live('notes', { airline: v.slug, keys: NOTE_KEYS[id].join(',') });
-function factCell(v, id, title, icon, items, askList, emptyText) {
-  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: askList.map(a => a[0]).join(',') })}</div>${id === 'work' ? workLive(v) : notesLive(v, id)}`;
+/* showAlso ＝ 欄が、聞いている質問（askList）のほかに出す質問。聞く行（asks）には足さない。 */
+function factCell(v, id, title, icon, items, askList, emptyText, showAlso = []) {
+  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: [...askList.map(a => a[0]), ...showAlso].join(',') })}</div>${id === 'work' ? workLive(v) : notesLive(v, id)}`;
   const lead = items.find(f => f.lead) || items[0];
   if (!lead) {
     /* 載せる事実が無い欄は、数字を作らず、中身の分かる入口にする */
@@ -755,7 +762,7 @@ const ASK_FIRST = 4;                               // 広い箱で、話題ご�
 /* 話題の札 ── 絵（色に頼らない目印）→ 話題の名前 → 小さい字（補足・質問の数）。
    「質問 N問」は、この話題で答えられる質問の数（＝ 下に並ぶ行の数）。集まった回答の数ではない。
    回答の数は札に書かない（話題ごとの数はサーバーに無い。在るのは「集まった回答」の欄の、3人そろった項目だけ）。 */
-const TOPIC_IC = { work: IC.work, taxi: IC.taxi, 'staff-travel': IC.ticket, upgrade: IC.steps };
+const TOPIC_IC = { work: IC.sheetRoster, taxi: IC.sheetTaxi, 'staff-travel': IC.sheetStaffTravel, upgrade: IC.sheetUpgrade };
 const TOPIC_NAME = { taxi: ['通勤・タクシー'], 'staff-travel': ['Staff Travel', '社員向け航空券'] };
 const topicHead = (icon, name, meta) => `<span class="pvg-ico" aria-hidden="true">${icon}</span><span class="pvg-tp"><span class="pvg-tp-n">${esc(name)}</span><span class="pvg-tp-m">${meta}</span></span>`;
 function askCard(v) {
@@ -768,8 +775,10 @@ function askCard(v) {
   const keys = [...new Set(groups.flatMap(([, , , list]) => list.map(a => a[0])))];
   /* タブを持つページ：見出しの横から項目の一覧（「情報を追加」の面）を開ける。通勤・タクシーの質問はその面の中で答える。 */
   const add = tabbed(v.slug) ? `<button type="button" class="pvg-link" data-pvc-open="list">項目の一覧から足す${IC.go}</button>` : '';
+  /* 見出しは2つのかたまり（「…のこと、」｜「ひとつ教えて。」）。狭い画面で折れるのは、そのあいだだけ（pv-glance.css）。
+     あいだに字も空白も改行も置かない ── 置くと、見出しの字が変わる。 */
   return `<article class="pvg-card pvg-askc"${pane(v.slug, 'overview')}>
-${head(IC.ask, `${esc(v.name)}のこと、ひとつ教えて。`, add)}
+${head(IC.ask, `<span>${esc(v.name)}のこと、</span><span>ひとつ教えて。</span>`, add)}
 <p class="pvg-quiet">1問だけでも保存できます。匿名で、3人そろった項目から会社ページに出ます。</p>
 <div class="pvg-got"><p class="pvg-askh">集まった回答</p>${live('fact', { airline: v.slug, keys: keys.join(',') })}</div>
 <div class="pvg-topics">
@@ -810,7 +819,7 @@ ${jobsCard(v)}
 <div class="pvg-top"${pane(v.slug, 'overview pay work life')}>
 <div class="pvg-trio">
 ${factCell(v, 'work', '勤務', IC.work, v.work, WORK_ASK, '会社が公表している勤務の条件を確認できていません')}
-${factCell(v, 'benefits', '待遇', IC.benefits, v.benefits, BEN_ASK, '会社が公表している待遇を確認できていません')}
+${factCell(v, 'benefits', '待遇', IC.benefits, v.benefits, BEN_ASK, '会社が公表している待遇を確認できていません', BEN_SHOW)}
 ${livingCell(v)}
 </div>
 </div>

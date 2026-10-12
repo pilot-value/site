@@ -362,6 +362,91 @@ $$;
 revoke all on function public.pv_condition_clean(text, jsonb) from public, anon, authenticated;
 
 
+-- ════════════════════════════════════════════════════════════════
+-- 4d. 対になる額（低いほう・高いほう）── 相手を引く・比べるのは、サーバではここだけ（2026-10-11）
+-- ════════════════════════════════════════════════════════════════
+-- 着陸手当の「低いほうの額」と「高いほうの額」は、別々の質問・別々の行だが、2つで1つの幅。
+-- どの2問が対かは、質問マスタの spec に入っている（高いほうの行の range_low ＝ 低いほうの id。
+-- 生成元は pv-conditions.mjs の rangeLow の1か所で、gen-conditions.mjs が運ぶ）。
+--   pv_condition_range_other(質問)
+--       対の相手の id。どちらの端を渡してもよい。
+--       対でない質問・知らない質問・使っていない質問は null
+--   pv_condition_range_bad(質問, その額, その通貨, 相手の額, 相手の通貨)
+--       null             … どちらかの額が無い（片方だけは、いつでもよい）／対でない質問／悪くない
+--       'range_currency' … 2つの通貨がどちらも在って、違う（★大小より先に見る）
+--       'range_order'    … 低いほうが高いほうより大きい（同じ額はよい）
+-- ★どちらが低いほうかは、渡された質問の spec からここで決める。呼ぶ側は「この質問の額」と
+--   「相手の額」を渡すだけなので、上下を取り違えようがない。
+-- ★2問とも使っている（active）ときだけ対。片方を使わなくなったら、残った片方を
+--   「もう答え直せない相手の古い答え」と比べない。
+-- ★質問マスタを読むだけで、**何も書き込まない**。誰の回答かも見ない（相手の額を探すのは呼ぶ側）。
+-- ★サーバの中に、大小や通貨を比べる所をもう1つ書かない（保存の入口が対を見るときは、ここへ聞く）。
+-- ★pv_condition_clean と同じく、API からは呼べない（public・anon・authenticated の3つとも外す）。
+create or replace function public.pv_condition_range_other(v_qid text)
+returns text
+language sql
+stable
+set search_path = public, extensions
+as $$
+  select coalesce(
+    -- 渡されたのが高いほう … 自分の spec に書いてある低いほう
+    (select lo.id
+       from public.pv_condition_questions hi
+       join public.pv_condition_questions lo
+         on lo.id = hi.spec->>'range_low' and lo.active
+      where hi.id = v_qid and hi.active),
+    -- 渡されたのが低いほう … 自分を指している高いほう
+    (select hi.id
+       from public.pv_condition_questions lo
+       join public.pv_condition_questions hi
+         on hi.spec->>'range_low' = lo.id and hi.active
+      where lo.id = v_qid and lo.active
+      order by hi.priority, hi.id
+      limit 1))
+$$;
+revoke all on function public.pv_condition_range_other(text) from public, anon, authenticated;
+
+create or replace function public.pv_condition_range_bad(
+  v_qid text, v_num numeric, v_cur text, v_other_num numeric, v_other_cur text)
+returns text
+language plpgsql
+stable
+set search_path = public, extensions
+as $$
+declare
+  v_other text := public.pv_condition_range_other(v_qid);
+  v_high  boolean;
+  v_lo    numeric;
+  v_hi    numeric;
+  v_a     text := upper(nullif(btrim(v_cur), ''));
+  v_b     text := upper(nullif(btrim(v_other_cur), ''));
+begin
+  if v_other is null then
+    return null;   -- 対でない質問には、何も言わない
+  end if;
+
+  -- 自分の spec が相手を指していれば、自分が高いほう
+  select (q.spec->>'range_low') is not distinct from v_other into v_high
+    from public.pv_condition_questions q
+   where q.id = v_qid;
+  if v_high then v_lo := v_other_num; v_hi := v_num;
+  else           v_lo := v_num;       v_hi := v_other_num;
+  end if;
+
+  if v_lo is null or v_hi is null then
+    return null;   -- 片方だけは、いつでもよい
+  end if;
+
+  -- 通貨が先・大小があと（通貨の違う額どうしの大小は、意味を持たない）
+  return case
+    when v_a is not null and v_b is not null and v_a <> v_b then 'range_currency'
+    when v_lo > v_hi then 'range_order'
+  end;
+end;
+$$;
+revoke all on function public.pv_condition_range_bad(text, numeric, text, numeric, text) from public, anon, authenticated;
+
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 5. 回答を保存する
@@ -403,6 +488,23 @@ declare
   v_skipped int := 0;
   v_one   jsonb;
   v_share boolean;
+  -- 職位・機種・基地・契約（4つで1組）
+  v_no_ctx  boolean;   -- この送信が、4つを1つも運んでいない
+  v_ipos    text;      -- 行に書く組（送信の組か、すぐ上の親の行の組）
+  v_ifleet  text;
+  v_ibase   text;
+  v_ictype  text;
+  -- 対になる額（4d）
+  v_pair    text;      -- 対の相手の質問
+  v_plast   boolean;   -- この答えが、この送信の中で、その質問の最後の答えか
+  v_pans    jsonb;     -- 同じ送信に入っている相手の答え
+  v_pone    jsonb;     -- それを検品した形
+  v_pnum    numeric;   -- この送信が終わったあとに残る、相手の額と通貨
+  v_pcur    text;
+  v_why     text;
+  v_pord    bigint;                -- 同じ送信に入っている相手の答えの、送信の中での位置
+  v_punit   boolean;               -- この答えと、同じ送信の相手とで「1組」になっている
+  v_held    bigint[] := '{}';      -- 1組の、あとから回ってくる端のために取っておいた1件ぶん（その答えの位置）
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -426,6 +528,19 @@ begin
   if v_ctype is not null and not exists (select 1 from public.pv_contract_types where code = v_ctype) then v_ctype := null; end if;
   if v_base  is not null and v_base !~ '^[A-Z]{3}$' then v_base := null; end if;
 
+  /* ★職位・機種・基地・契約は、4つで「1組」（2026-10-11）。行に書く組の決め方は3つ。
+       1. 送信が1つでも運んでいれば … その送信の組をそのまま（欠けた分は空）
+       2. 1つも運んでいなくて、行にもう答えが在る … 行の組を動かさない（下の on conflict）
+       3. 1つも運んでいなくて、まだ答えが無い（行が無い／スキップの印だけ）
+            … 親を持つ質問なら、すぐ上の親の行の組（ループの中）。親が無ければ空
+     前は、運んできたもので毎回上書きしていた。4つを運ばない画面（一覧のページ）で答えだけ直すと
+     行から職位も機種も消え、親を先に答えて続きの質問をあとの保存で足すと、足した行だけ空になった。
+     ⚠️ 1列ずつ coalesce しない。新しい職位に、前の機種がくっ付く（どの時点の組でもなくなる）。
+     ⚠️ 「運んでいない」は、ここの変数で見る（excluded.* で見ない）。3 で親の組を入れたあとは
+        excluded.* が空でなくなり、2 より 3 が先に効いて、行の組を親の組で上書きする。
+     ⚠️ 適用時期（年月）と lang は、この組に入れない。年月は「答えた月」で、今までどおり毎回書く。 */
+  v_no_ctx := v_pos is null and v_fleet is null and v_base is null and v_ctype is null;
+
   -- ── レート制限 ────────────────────────────────────────
   select * into v_prof from public.profiles where id = v_uid for update;
   if not found then
@@ -447,7 +562,7 @@ begin
   -- ★ priority の昇順で回す。親は必ず子より priority が小さい（生成側が昇順を検査している）
   --   ので、同じ送信に入っている親は、子を見るときには既に保存済みになる。
   for v_a in
-    select e.v as ans,
+    select e.v as ans, e.ord,
            q.id, q.version, q.kind, q.choice_codes, q.num_min, q.num_max,
            q.has_currency, q.has_note, q.parent, q.parent_when
       from jsonb_array_elements(p->'answers') with ordinality as e(v, ord)
@@ -461,7 +576,13 @@ begin
       continue;
     end if;
 
-    if v_prof.cond_answers_today + v_saved >= 60 then
+    /* 1日の上限（60件）。
+       ★v_held … 対になる額の「あとから回ってくる端」のために取っておいた1件ぶん（下の「★1組」）。
+         ・取っておいた端そのものは、ここを通す（その1件ぶんは、先の端を書くときに空きを確かめてある）。
+         ・ほかの答えは、取っておいた分を使えない（あいだに入ったスキップや重ねた答えに使わせると、
+           取っておいた端が上限で落ちて、先の端だけが残る）。 */
+    if not (v_a.ord = any(v_held))
+       and v_prof.cond_answers_today + v_saved + cardinality(v_held) >= 60 then
       v_rej := v_rej || jsonb_build_array(jsonb_build_object(
         'question_id', v_a.id, 'reason', 'rate_limited'));
       continue;
@@ -517,6 +638,100 @@ begin
     v_json  := case when jsonb_typeof(v_one->'json') in ('array', 'object') then v_one->'json' end;
     v_share := coalesce((v_one->>'share')::boolean, false);
 
+    /* ★対になる額（低いほう・高いほう）。相手と食い違う額は受け取らない（2026-10-11）。
+         どの2問が対か・大小と通貨の比べ方は 4d の2つの関数。ここは「相手の額」を探して渡すだけ。
+       相手の額 ＝ **この送信が終わったあとに残る**額。
+         ・同じ送信に相手の答えが入っている（スキップは答えではない。複数あれば最後のもの）
+              額が在る             … その額と通貨
+              額が無い（わからない）… 相手は無い（比べない）
+              検品で落ちる         … その答えは保存されないので、いま保存されている額
+         ・入っていない／スキップだけ … いま保存されている額
+       こうしておくと、1回の送信で 100／200 を 300／400 に直せる（低いほうが先に回るので、300 を
+       前の 200 と比べたら通らない）。2つが互いに食い違う送信は、2つとも断る（どちらも保存しない）。
+       ⚠️ いま保存されている額を読むとき、skipped_at を見ない。スキップは前の額を消さない
+          （上の ⚠️）ので、印の付いた行にも額は残っている。同じ送信のスキップを「相手は無い」とも
+          読まない。どちらを外しても「低いほう 100 を持つ人が、高いほう 50」を通してしまう。
+       ⚠️ 同じ送信の相手と比べてよいのは、**その質問の最後の答え**だけ。同じ質問を2回入れてきた
+          送信（画面は送らない）の先の答えは、あとの答えに上書きされる側なので、その時点で保存されて
+          いる相手と比べる。同じ送信の相手と比べると、その相手があとで断られたときに、先の答えだけが
+          残って食い違う（100／200 の人に「低い 250・低い 900・高い 300」→ 250／200 が残る）。
+       ⚠️ 断った答えは v_saved に数えない（保存した数にも、1日の上限にも入れない）。
+       ★1組 ── 同じ送信に、互いに「その質問の最後の答え」で、検品を通る相手が居る2件は、1組（2026-10-11）。
+         1組の2件は、**2つとも書くか、2つとも書かない**（額の無い「わからない」の端も、組に入る）。
+         上の決まりは「相手も書かれる」ことを当てにして比べている。相手があとで書かれなければ、先に書いた
+         端だけが残って食い違う（100／200 の人が、残り1件の日に 300／400 を送る → 300／200）。
+         ・先に回ってきた端で、2件ぶんの空きを見る。無ければ、この端を rate_limited で断る（何も取っておかない）。
+           あとから回ってくる相手も、同じ所で同じ理由で断られる（数は増えるだけなので、答えは変わらない）。
+         ・空きが在れば、相手の1件ぶんを取っておいて（v_held）、この端を書く。
+         ・取っておいた相手は、1日の上限を通す。その先で断られることは無い ── 親の筋は2つの端で同じ
+           （生成側が、親と parentWhen の違う2問を対にさせない）・検品は同じ関数・対の比べ方は、どちらの
+           端から見ても同じ答え。 */
+    v_pair := public.pv_condition_range_other(v_a.id);
+    if v_pair is not null then
+      v_pone := null;
+      v_pord := null;
+      v_plast := not exists (
+        select 1 from jsonb_array_elements(p->'answers') with ordinality as e(v, ord)
+         where e.v->>'question_id' = v_a.id and e.ord > v_a.ord
+           and not coalesce((e.v->>'skip')::boolean, false));
+      if v_plast then
+        select e.v, e.ord into v_pans, v_pord
+          from jsonb_array_elements(p->'answers') with ordinality as e(v, ord)
+         where e.v->>'question_id' = v_pair
+           and not coalesce((e.v->>'skip')::boolean, false)
+         order by e.ord desc
+         limit 1;
+        if found then
+          v_pone := public.pv_condition_clean(v_pair, v_pans);
+        end if;
+      end if;
+      -- 同じ送信に、保存される形の相手が居る ＝ この2件は1組
+      v_punit := coalesce((v_pone->>'ok')::boolean, false);
+
+      if v_num is not null then
+        if v_punit then
+          v_pnum := (v_pone->>'num')::numeric;
+          v_pcur := v_pone->>'currency';
+        else
+          v_pnum := null;
+          v_pcur := null;
+          select c.answer_num, c.answer_currency into v_pnum, v_pcur
+            from public.airline_conditions c
+           where c.proof_hash = v_hash and c.question_id = v_pair;
+        end if;
+        v_why := public.pv_condition_range_bad(v_a.id, v_num, v_cur, v_pnum, v_pcur);
+        if v_why is not null then
+          v_rej := v_rej || jsonb_build_array(jsonb_build_object(
+            'question_id', v_a.id, 'reason', v_why));
+          continue;
+        end if;
+      end if;
+
+      -- ★1組の先の端。2件ぶんの空きが無ければ、この端を書かない（相手も、あとで同じ所で断られる）
+      if v_punit and not (v_a.ord = any(v_held)) then
+        if v_prof.cond_answers_today + v_saved + cardinality(v_held) + 2 > 60 then
+          v_rej := v_rej || jsonb_build_array(jsonb_build_object(
+            'question_id', v_a.id, 'reason', 'rate_limited'));
+          continue;
+        end if;
+        v_held := v_held || v_pord;
+      end if;
+    end if;
+
+    -- 行に書く、職位・機種・基地・契約の組（決め方は、上の「4つで1組」の 1 と 3）
+    if v_no_ctx and v_a.parent is not null then
+      /* 3. すぐ上の親の、この人の行の組。親の筋は上で確かめてある（その行は在り、この質問を開く
+            答えを持っている）。スキップの印が付いていても、答えは答え ── ここでも印は見ない。
+            proof_hash はこの人のこの会社だけのもの ＝ ほかの会社の行・ほかの人の行は読まない。 */
+      v_ipos := null; v_ifleet := null; v_ibase := null; v_ictype := null;
+      select c."position", c.fleet, c.base_iata, c.contract_type
+        into v_ipos, v_ifleet, v_ibase, v_ictype
+        from public.airline_conditions c
+       where c.proof_hash = v_hash and c.question_id = v_a.parent;
+    else
+      v_ipos := v_pos; v_ifleet := v_fleet; v_ibase := v_base; v_ictype := v_ctype;
+    end if;
+
     insert into public.airline_conditions (
       proof_hash, airline, airline_other, question_id, question_version,
       answer_code, answer_codes, answer_num, answer_currency, answer_text, text_shared, answer_json,
@@ -524,7 +739,7 @@ begin
     values (
       v_hash, v_airline, v_other, v_a.id, v_a.version,
       v_code, v_codes, v_num, v_cur, v_text, v_share, v_json,
-      v_year, v_month, v_pos, v_fleet, v_base, v_ctype, v_lang)
+      v_year, v_month, v_ipos, v_ifleet, v_ibase, v_ictype, v_lang)
     on conflict (proof_hash, question_id) do update set
       question_version = excluded.question_version,
       answer_code      = excluded.answer_code,
@@ -536,16 +751,32 @@ begin
       answer_json      = excluded.answer_json,
       effective_year   = excluded.effective_year,
       effective_month  = excluded.effective_month,
-      "position"       = excluded."position",
-      fleet            = excluded.fleet,
-      base_iata        = excluded.base_iata,
-      contract_type    = excluded.contract_type,
+      -- 2. 4つを1つも運ばない送信は、もう答えの在る行の組を動かさない（4列とも同じ条件 ＝ 1組）。
+      --    答えの無い行（スキップの印だけ）は、excluded の組（送信の組か、親の組）を受け取る。
+      --    右辺の airline_conditions.* は、この上書きの前の行。
+      "position"       = case when v_no_ctx and num_nonnulls(airline_conditions.answer_code,
+                                     airline_conditions.answer_codes, airline_conditions.answer_num,
+                                     airline_conditions.answer_text, airline_conditions.answer_json) > 0
+                              then airline_conditions."position" else excluded."position" end,
+      fleet            = case when v_no_ctx and num_nonnulls(airline_conditions.answer_code,
+                                     airline_conditions.answer_codes, airline_conditions.answer_num,
+                                     airline_conditions.answer_text, airline_conditions.answer_json) > 0
+                              then airline_conditions.fleet else excluded.fleet end,
+      base_iata        = case when v_no_ctx and num_nonnulls(airline_conditions.answer_code,
+                                     airline_conditions.answer_codes, airline_conditions.answer_num,
+                                     airline_conditions.answer_text, airline_conditions.answer_json) > 0
+                              then airline_conditions.base_iata else excluded.base_iata end,
+      contract_type    = case when v_no_ctx and num_nonnulls(airline_conditions.answer_code,
+                                     airline_conditions.answer_codes, airline_conditions.answer_num,
+                                     airline_conditions.answer_text, airline_conditions.answer_json) > 0
+                              then airline_conditions.contract_type else excluded.contract_type end,
       lang             = excluded.lang,
       -- ★スキップしていた質問に、あとから本当に答えた。行は増やさず印だけ消す
       skipped_at       = null,
       updated_at       = now();
 
     v_saved := v_saved + 1;
+    v_held := array_remove(v_held, v_a.ord);   -- 取っておいた端なら、その1件ぶんはここで使い終わり
   end loop;
 
   update public.profiles set

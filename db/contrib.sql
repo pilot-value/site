@@ -9,12 +9,16 @@
 -- ■ 貼る順（必ずこの順）
 --     db/pay-rows.sql → db/conditions.generated.sql → db/airline-conditions.sql
 --     → db/work-months.sql → **このファイル**
---   検品（pv_work_month_clean / pv_condition_clean）と、見ている人の立場（pv_work_level）は
+--   検品（pv_work_month_clean / pv_condition_clean）と、対になる額の2つ（pv_condition_range_other /
+--   pv_condition_range_bad）と、見ている人の立場（pv_work_level）は
 --   前のファイルに在るものを**呼ぶ**。ここに写しを作らない。
 --
 -- ■ このファイルの約束
 --   1. **預かった回答は、鍵を持っている端末にしか返さない。**
 --      鍵はサーバが作る（192ビットの乱数）。表に残すのはその sha256 だけ ＝ 表を覗いても鍵は分からない。
+--      鍵の行には、鍵を作った回線の印も置く（「IP と日付」の sha256。秘密の値は混ぜていない）。
+--      使うのは1日だけ（同じ回線から新しく作られた鍵を数えるため）。鍵を作って1日たったら消す
+--      ── そのあと、誰かが未ログインで保存するか、引き継ぐ時に空にする。
 --      社名・自己申告・公開 URL は本人の証拠にしない。画面が作った鍵も受け付けない
 --      （表に無い鍵は「知らない鍵」＝ 新しい鍵を作って返す）。
 --   2. **預かっているあいだは、集計にも、他人の画面にも出さない。**
@@ -48,6 +52,10 @@ begin
   if to_regprocedure('public.pv_condition_clean(text, jsonb)') is null then
     raise exception '先に db/airline-conditions.sql を実行してください（pv_condition_clean が無い）';
   end if;
+  if to_regprocedure('public.pv_condition_range_other(text)') is null
+     or to_regprocedure('public.pv_condition_range_bad(text, numeric, text, numeric, text)') is null then
+    raise exception '先に db/airline-conditions.sql を実行してください（pv_condition_range_other / pv_condition_range_bad が無い）';
+  end if;
 end $$;
 
 
@@ -60,7 +68,9 @@ create table if not exists public.pv_contrib_keys (
   created_at  timestamptz not null default now(),
   -- 最後に保存した時刻。ここから 90日（pv_contrib_ttl）で預かりごと消える
   last_at     timestamptz not null default now(),
-  -- 鍵を作った回線の、その日だけの印（鍵の作りすぎを数えるためだけ。IP そのものは持たない）
+  -- 鍵を作った回線の印。使うのは1日だけ（同じ回線から新しく作られた鍵を数えるためだけ）。
+  --   鍵を作って1日たったら消す ── そのあと、誰かが未ログインで保存するか、引き継ぐ時に空にする。
+  --   中身は「IP と日付」の sha256 で、秘密の値は混ぜていない。
   ip_day_hash text,
   -- 連投の数え（1本の鍵で1日に保存できる件数）
   saves_day   date,
@@ -99,7 +109,7 @@ create unique index if not exists pv_contrib_pending_item_idx
   on public.pv_contrib_pending (key_hash, kind, airline, item_key);
 
 comment on table public.pv_contrib_keys is
-  '未ログインの回答を預かる鍵（sha256 だけ）。誰にも読ませない。入口は db/contrib.sql の関数だけ。';
+  '未ログインの回答を預かる鍵（鍵は sha256 だけ）。回線の印は、鍵を作って1日たったあと、次の未ログインの保存か引き継ぎの時に消す。誰にも読ませない。入口は db/contrib.sql の関数だけ。';
 comment on table public.pv_contrib_pending is
   '未ログインの回答の預かり。集計にも他人の画面にも出さない。ログイン後に claim_contrib で会員の行になる。';
 
@@ -151,6 +161,32 @@ as $$
 $$;
 revoke all on function public.pv_contrib_key_live(text) from public, anon, authenticated;
 
+-- 3-d. 回線の印の片付け。★鍵を作って1日たった行の印を空にする文は、この1か所だけ。
+--   印を読むのは「同じ回線から1日に作れる鍵は20本まで」の数えだけで、数えるのは作って1日以内の行だけ
+--   ＝ ここで空にする行は、もう数えの外に在る（上限は今までどおり）。
+--   ほかの呼び出しが掴んでいる行は、待たずに飛ばす（飛ばした行は、次の呼び出しが空にする）。
+--   ⚠️ このあと自分の鍵の行を待つ呼び出しは、**その行を掴んだあと**に呼ぶ（鍵の行を待たずに終わる呼び出しは、
+--      いつ呼んでもよい）。掴む前に呼ぶと、同時に来た2つの呼び出しが
+--      互いの鍵の行を先に掴み合い、片方が1秒ほどで断られることがある（保存は消えないが、送り直しになる）。
+--      先に自分の行を掴んでおけば、相手はその行を飛ばすので、掴み合いにならない。
+create or replace function public.pv_contrib_mark_sweep()
+returns void
+language sql
+security definer
+set search_path = public, extensions
+as $$
+  update public.pv_contrib_keys k
+     set ip_day_hash = null
+   where k.key_hash in (
+           select x.key_hash
+             from public.pv_contrib_keys x
+            where x.ip_day_hash is not null
+              and x.created_at <= now() - interval '1 day'
+            order by x.key_hash
+              for update skip locked)
+$$;
+revoke all on function public.pv_contrib_mark_sweep() from public, anon, authenticated;
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 4. 預かる（未ログインのまま保存する）
@@ -197,6 +233,19 @@ declare
   v_month   int;
   v_a       record;
   v_one     jsonb;
+  -- cond：職位・機種・基地・契約（4つで1組）
+  v_no_ctx  boolean;   -- この呼び出しが、4つを1つも運んでいない
+  -- cond：対になる額（db/airline-conditions.sql の 4d）
+  v_pair    text;      -- 対の相手の質問
+  v_plast   boolean;   -- この答えが、この呼び出しの中で、その質問の最後の答えか
+  v_pans    jsonb;     -- 同じ呼び出しに入っている相手の答え
+  v_pone    jsonb;     -- それを検品した形
+  v_pnum    numeric;   -- この呼び出しが終わったあとに、この鍵の預かりに残る相手の額と通貨
+  v_pcur    text;
+  v_why     text;
+  v_pord    bigint;                -- 同じ呼び出しに入っている相手の答えの、呼び出しの中での位置
+  v_punit   boolean;               -- この答えと、同じ呼び出しの相手とで「1組」になっている
+  v_held    bigint[] := '{}';      -- 1組の、あとから回ってくる端のために取っておいた1件ぶん（その答えの位置）
   v_saved   int := 0;
   v_rej     jsonb := '[]'::jsonb;
   v_out     jsonb;
@@ -255,6 +304,17 @@ begin
     if v_fleet is not null and not exists (select 1 from public.pv_fleets         where code = v_fleet) then v_fleet := null; end if;
     if v_ctype is not null and not exists (select 1 from public.pv_contract_types where code = v_ctype) then v_ctype := null; end if;
     if v_base  is not null and v_base !~ '^[A-Z]{3}$' then v_base := null; end if;
+
+    /* ★職位・機種・基地・契約は、4つで「1組」（会員の入口と同じ決まり。2026-10-11）。
+         この呼び出しが1つでも運んでいれば … 預かりの行の組を、この呼び出しの組に丸ごと替える（欠けた分は空）
+         1つも運んでいなければ           … もう預けてある行の組は動かさない（下の on conflict）
+       前は、直すたびに行を丸ごと入れ替えていた。4つを運ばない画面で答えだけ直すと、預かりの行から
+       職位も機種も消え、ログインして引き継いだ会員の行も空になった。
+       ⚠️ 1つずつ残さない。新しい職位に、前の機種がくっ付く（どの時点の組でもなくなる）。
+       ⚠️ 初めて預ける行は、運んできたまま（空なら空）。親の行の組を写すのは、引き継ぐときの
+          会員の入口の役目（同じ決まりを、ここにもう1つ書かない）。
+       ⚠️ 年月と lang は、この組に入れない（今までどおり、直すたびにこの呼び出しのものを書く）。 */
+    v_no_ctx := v_pos is null and v_fleet is null and v_base is null and v_ctype is null;
   end if;
 
   -- ── 鍵（生きていればそれ・無ければ作る）────────────────────
@@ -291,6 +351,12 @@ begin
 
   -- ── 連投（1本の鍵で1日80件）と、預かれる数（1本の鍵で200件）────────
   select * into v_krow from public.pv_contrib_keys where key_hash = v_kh for update;
+
+  -- ── 回線の印は、1日だけ ──────────────────────────────
+  -- ★鍵を作って1日たった行の「回線の印」を、ここで空にする（3-d）。鍵が生きている呼び出しも、新しい鍵を
+  --   作った呼び出しも、**どちらもここを通る**。自分の鍵の行を掴んだ「あと」に置く（理由は 3-d）。
+  --   このあと断って終わった呼び出しの分は、保存と一緒に取り消される ＝ 次の呼び出しが空にする。
+  perform public.pv_contrib_mark_sweep();
   if v_krow.saves_day is distinct from current_date then
     v_krow.saves_day   := current_date;
     v_krow.saves_today := 0;
@@ -323,7 +389,7 @@ begin
   else
     -- ★priority の昇順で回す（親は必ず子より前。会員の入口と同じ）
     for v_a in
-      select e.v as ans, q.id, q.version
+      select e.v as ans, e.ord, q.id, q.version
         from jsonb_array_elements(v_data->'answers') with ordinality as e(v, ord)
         left join public.pv_condition_questions q
                on q.id = e.v->>'question_id' and q.active
@@ -334,7 +400,11 @@ begin
           'question_id', v_a.ans->>'question_id', 'reason', 'unknown_question'));
         continue;
       end if;
-      if v_krow.saves_today + v_saved >= 80 then
+      /* 1日の上限（1本の鍵で80件）。
+         ★v_held … 対になる額の「あとから回ってくる端」のために取っておいた1件ぶん（下の「★1組」）。
+           取っておいた端そのものは、ここを通す。ほかの答えは、取っておいた分を使えない。 */
+      if not (v_a.ord = any(v_held))
+         and v_krow.saves_today + v_saved + cardinality(v_held) >= 80 then
         v_rej := v_rej || jsonb_build_array(jsonb_build_object(
           'question_id', v_a.id, 'reason', 'rate_limited'));
         continue;
@@ -371,12 +441,107 @@ begin
         continue;
       end if;
 
+      /* ★対になる額（低いほう・高いほう）。相手と食い違う額は預からない（2026-10-11）。
+           どの2問が対か・大小と通貨の比べ方は、会員の入口と同じ2つの関数
+           （db/airline-conditions.sql の 4d）。ここは「相手の額」を探して渡すだけ。
+         相手の額 ＝ **この呼び出しが終わったあとに、この鍵の預かりに残る**額。
+           ・同じ呼び出しに相手の答えが入っている（複数あれば最後のもの）
+                額が在る              … その額と通貨
+                額が無い（わからない） … 相手は無い（比べない）
+                検品で落ちる          … その答えは預からないので、いま預かっている額
+           ・入っていない … いま預かっている額
+         こうしておくと、1回の呼び出しで 100／200 を 300／400 に直せる（低いほうが先に回るので、
+         300 を前の 200 と比べたら通らない）。2つが互いに食い違う呼び出しは、2つとも断る。
+         ⚠️ いま預かっている額は、**この鍵の・この会社の**行からだけ読む。ほかの鍵の預かり・
+            同じ鍵のほかの会社・会員の行とは比べない。
+         ⚠️ スキップは、この入口では必ず断る（上の skip_needs_login）＝ 預かりを1文字も変えない。
+            だから、同じ呼び出しのスキップは相手の答えに数えない（数えると、スキップに額を添えた
+            呼び出しで、預からないその額と比べてしまう）。相手は、いま預かっている額のまま。
+            会員の入口と違い、預かりの行にスキップの印は無い（印の扱いは、ここには要らない）。
+         ⚠️ 同じ呼び出しの相手と比べてよいのは、**その質問の最後の答え**だけ。同じ質問を2回入れて
+            きた呼び出し（画面は送らない）の先の答えは、あとの答えに上書きされる側なので、その時点で
+            預かっている相手と比べる（会員の入口と同じ理由）。
+         ⚠️ 断った答えは v_saved に数えない（預かった数にも、1日の上限にも入れない）。預かりの行を
+            作らない・直さない。断った答えしか無かった新しい鍵は、下の「1件も預からなかった
+            新しい鍵は残さない」で消える。
+         ★1組 ── 同じ呼び出しに、互いに「その質問の最後の答え」で、検品を通る相手が居る2件は、1組（2026-10-11）。
+           1組の2件は、1日の上限（80件）に対しては、**2つとも預かるか、2つとも預からない**
+           （額の無い「わからない」の端も、組に入る）。会員の入口と同じ決まり（db/airline-conditions.sql の「★1組」）。
+           相手があとで上限に当たって預からなければ、先に預かった端だけが残って食い違う
+           （100／200 を預けた端末が、残り1件の日に 300／400 を送る → 300／200）。
+           ・先に回ってきた端で、2件ぶんの空きを見る。無ければ、この端を rate_limited で断る（何も取っておかない）。
+             あとから回ってくる相手も、同じ所で同じ理由で断られる（数は増えるだけなので、答えは変わらない）。
+           ・空きが在れば、相手の1件ぶんを取っておいて（v_held）、この端を預かる。取っておいた相手は、
+             1日の上限を通す（親の筋・検品・対の比べ方は、2つの端で同じ答え）。
+           ⚠️ 預かりの数の上限（200件）は、この決まりに入れない。その理由で断る端には、まだ行が無い ＝
+              残るのは片方だけで、食い違いは残らない（今までどおり。すぐ下の検査）。取っておいた端が
+              そこで断られたら、取っておいた1件ぶんは返す（そのあとの答えを、使われない1件ぶんのせいで断らない）。 */
+      v_pair := public.pv_condition_range_other(v_a.id);
+      if v_pair is not null then
+        v_pone := null;
+        v_pord := null;
+        v_plast := not exists (
+          select 1 from jsonb_array_elements(v_data->'answers') with ordinality as e(v, ord)
+           where e.v->>'question_id' = v_a.id and e.ord > v_a.ord
+             and coalesce(e.v->>'skip', '') <> 'true');
+        if v_plast then
+          select e.v, e.ord into v_pans, v_pord
+            from jsonb_array_elements(v_data->'answers') with ordinality as e(v, ord)
+           where e.v->>'question_id' = v_pair
+             and coalesce(e.v->>'skip', '') <> 'true'
+           order by e.ord desc
+           limit 1;
+          if found then
+            v_pone := public.pv_condition_clean(v_pair, v_pans);
+          end if;
+        end if;
+        -- 同じ呼び出しに、預かる形の相手が居る ＝ この2件は1組
+        v_punit := coalesce((v_pone->>'ok')::boolean, false);
+
+        if (v_one->>'num') is not null then
+          if v_punit then
+            v_pnum := (v_pone->>'num')::numeric;
+            v_pcur := v_pone->>'currency';
+          else
+            v_pnum := null;
+            v_pcur := null;
+            select (c.payload->>'num')::numeric, c.payload->>'currency' into v_pnum, v_pcur
+              from public.pv_contrib_pending c
+             where c.key_hash = v_kh and c.kind = 'cond'
+               and c.airline = v_airline and c.item_key = v_pair;
+          end if;
+          v_why := public.pv_condition_range_bad(
+            v_a.id, (v_one->>'num')::numeric, v_one->>'currency', v_pnum, v_pcur);
+          if v_why is not null then
+            v_rej := v_rej || jsonb_build_array(jsonb_build_object(
+              'question_id', v_a.id, 'reason', v_why));
+            continue;
+          end if;
+        end if;
+
+        -- ★1組の先の端。1日の上限に2件ぶんの空きが無ければ、この端を預からない（相手も、あとで同じ所で断られる）
+        if v_punit and not (v_a.ord = any(v_held)) then
+          if v_krow.saves_today + v_saved + cardinality(v_held) + 2 > 80 then
+            v_rej := v_rej || jsonb_build_array(jsonb_build_object(
+              'question_id', v_a.id, 'reason', 'rate_limited'));
+            continue;
+          end if;
+          v_held := v_held || v_pord;
+        end if;
+      end if;
+
+      /* 預かりの数の上限（1本の鍵で200件）。断るのは、新しい行が要る答えだけ（もう預けてある質問を直すのは通す）。
+         ★理由は pending_full。1日の上限と同じ rate_limited で返さない（2026-10-11）── 画面（pv-contrib.js）は
+           rate_limited を「1日に送れる件数の上限に達しました。明日また続きをどうぞ。」と伝える。この上限は
+           1日の数ではなく、明日になっても空かない ＝ その文は本当でない。画面は、自分の表に無い理由を
+           「保存できませんでした。」とだけ伝える。 */
       if v_left <= 0 and not exists (
            select 1 from public.pv_contrib_pending
             where key_hash = v_kh and kind = 'cond'
               and airline = v_airline and item_key = v_a.id) then
+        v_held := array_remove(v_held, v_a.ord);   -- 取っておいた端がここで断られたら、その1件ぶんを返す
         v_rej := v_rej || jsonb_build_array(jsonb_build_object(
-          'question_id', v_a.id, 'reason', 'rate_limited'));
+          'question_id', v_a.id, 'reason', 'pending_full'));
         continue;
       end if;
 
@@ -388,8 +553,19 @@ begin
                 'position', v_pos, 'fleet', v_fleet, 'base_iata', v_base,
                 'contract_type', v_ctype, 'lang', v_lang))
       on conflict (key_hash, kind, airline, item_key) do update set
-        payload = excluded.payload, updated_at = now();
+        -- 4つを1つも運ばない呼び出しは、預けてある行の組を動かさない（4つとも同じ条件 ＝ 1組）。
+        -- 前の行から残すのは、この4つだけ。答え・補足・年月・lang は、この呼び出しのもの。
+        -- 右辺の pv_contrib_pending.payload は、この上書きの前の行。
+        payload = case when v_no_ctx
+                       then excluded.payload || jsonb_build_object(
+                              'position',      pv_contrib_pending.payload->'position',
+                              'fleet',         pv_contrib_pending.payload->'fleet',
+                              'base_iata',     pv_contrib_pending.payload->'base_iata',
+                              'contract_type', pv_contrib_pending.payload->'contract_type')
+                       else excluded.payload end,
+        updated_at = now();
       v_saved := v_saved + 1;
+      v_held := array_remove(v_held, v_a.ord);   -- 取っておいた端なら、その1件ぶんはここで使い終わり
       select 200 - count(*) into v_left from public.pv_contrib_pending where key_hash = v_kh;
     end loop;
 
@@ -511,14 +687,48 @@ comment on function public.my_contrib_anon(jsonb) is
 -- 6. 引き継ぐ（ログインした本人が、鍵を出して行う）
 -- ════════════════════════════════════════════════════════════════
 -- 受け取る形: { key: '…' }
--- 返す形:     { ok, known, moved, kept, dropped, left }
+-- 返す形:     { ok, known, moved, kept, dropped, stale, left }
 --   moved   … 会員の行になった件数（ここで初めて集計に入る）
 --   kept    … 会員の側に、もっと新しい同じ回答が在ったので、預かりを捨てた件数
 --   dropped … 会員の入口が受け取らなかったので捨てた件数（質問が無くなった、など）
+--   stale   … 親の答えを本人が直したため、もう聞かれない質問の古い答え。会員の回答にしない・「引き継げなかった」とも数えない
 --   left    … 連投の制限に当たって、預かりに残した件数（あとでもう一度呼べば続きが入る）
+--             ★制限で断られた答えでも、行き先がもう決まっているもの（下の「★stale と dropped の分け方」）は残さない
+--   5つを足すと、引き継ぐ前に預かっていた件数になる（1件を2回数えない・どこにも数えない件を作らない）。
 -- ★入れるのは会員の入口（submit_work_month / submit_airline_conditions）だけ。
 --   ここで表へ直接書かない ＝ 検品・連投の制限・親の条件を二重に持たない。
 -- ★残りが0になったら鍵ごと消す（同じ鍵を、別の会員がもう一度使えない）。
+-- ★stale と dropped の分け方（2026-10-11）。画面は dropped を「引き継げませんでした」と伝える。
+--   会員の入口が「親の条件が続いていない」（parent_missing）と断った答えのうち、
+--     ・その質問より上の質問のどれかに、**この会員が、下を開かない答えをしている** … stale
+--       （「あり」と答えて額を預けたあとで「ない」に直した人。預かりの「ない」は先に引き継がれて、
+--         会員の行になっている。会員としてあとから「ない」と答えた人も同じ）
+--     ・上の質問が、この引き継ぎの中で dropped になった／上の質問に、この会員の答えが無い … dropped
+--       （本人が直したのではなく、上が受け取れなかったせいで落ちる答え。黙って消さない）
+--   1日の上限（rate_limited）で断られた答えも、上の質問のどれかに、この会員が下を開かない答えをしていれば、
+--   同じ分け方で、その場で数える（預かりに残さない）。会員の入口は、上限を親の筋より先に見る。残すと、
+--   「まだ引き継げていません。次に続きを引き継ぎます」と告げたあと、次の回に黙って stale にすることになる。
+--   ほかの理由（検品で落ちる・対の相手と食い違う、など）で断られた答えは、今までどおり dropped。
+-- ★対になる額（低いほう・高いほう）は、**2件を1回の呼び出しで**会員の入口へ出す（2026-10-11）。
+--   1件ずつ出すと、100／200 を持つ会員が 300／400 を引き継ぐとき、低いほうの 300 が前の 200 と
+--   比べて断られ、高いほうだけが入って 100／400 になる（入れた額が半分消える）。
+--   どの2問が対かは、会員の入口と同じ pv_condition_range_other（db/airline-conditions.sql の 4d）に聞く。
+--   一緒に出すのは、次の全部が成り立つときだけ。1つでも外れたら、今までどおり1件ずつ。
+--     ・相手が、**この鍵の・同じ会社の**預かりに在る（ほかの鍵・ほかの会社の行と組にしない）
+--     ・相手の側に、会員のもっと新しい答えが無い（在れば、相手は kept になる行）
+--     ・2件の 年・月・職位・機種・基地・契約・lang が同じ（1回の呼び出しが運べる文脈は1組。
+--       片方の答えに、もう片方の文脈を付けない）
+--     ・2件とも、預かりの行の質問と、中身が名乗る質問が同じ（預かる入口は必ず同じにして書く。手で作った行だけが外れる）
+--   まとめた呼び出しの返事は、質問ごとに読む（rejected に名前の在るほうはその理由・無いほうは保存された）。
+--   ⚠️ そう読めるのは、返事が2件ぶんのとき（saved ＋ 2件のうち断られた数 ＝ 2）だけ。合わなければ、
+--      まとめた呼び出しを取り消して1件ずつ出し直す（保存されていない答えを moved に数えない）。
+--   ⚠️ 1日の上限に2件ぶんの空きが無いとき、会員の入口は、対の2件を**2つとも** rate_limited で断る
+--      （db/airline-conditions.sql の「★1組」。2026-10-11）。ここは2件とも残して止まる（left）。
+--      入口が片方だけ入れて返す形（低いほうは入り、高いほうは rate_limited）は、いまの入口からは返らない。
+--      それでもその形が返ったら、まとめた呼び出しを取り消して2件とも残す（下の PVC01）。片方だけ入れると
+--      会員の額が食い違う（300／前の 200）ので、入口の決まりが外れたときの2つ目の網として残してある。
+--   分かっている端の場合: 2件の文脈が違う預かり（別の月に答えた・片方だけ機種を変えて答え直した）は
+--   1件ずつ出す。片方が、会員の前の額と比べて断られることがある。その1件は dropped（告げる）。
 create or replace function public.claim_contrib(p jsonb)
 returns jsonb
 language plpgsql
@@ -533,10 +743,24 @@ declare
   v_moved   int := 0;
   v_kept    int := 0;
   v_dropped int := 0;
+  v_stale   int := 0;
   v_left    int := 0;
   v_stop    boolean := false;
   v_newer   boolean;
   v_why     text;
+  -- 待遇・働き方の質問を引き継ぐときの作業用
+  v_hash    text;                 -- この会員の、その会社の印（会員の行を読むのに使う）
+  v_mid     bigint;               -- 対になる額の相手の預かり（一緒に出すときだけ入る）
+  v_mkey    text;
+  v_mpay    jsonb;
+  v_joint   boolean;              -- この回は、相手と1回の呼び出しで出した
+  v_nrej    int;                  -- まとめた呼び出しで、2件のうち断られた数
+  v_nlim    int;                  -- そのうち、1日の上限で断られた数
+  v_done    bigint[] := '{}';     -- 相手として、もう扱った預かり（ループがそこへ来たら飛ばす）
+  v_lost    text[]   := '{}';     -- この引き継ぎで dropped に数えた質問（[会社, 質問] の形）
+  v_e       record;               -- いま結果を数えている1件
+  v_ok      boolean;              -- その1件は、会員の行になった
+  v_shut    boolean;              -- この1件より上の質問のどれかに、この会員が「下を開かない答え」をしている
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -547,11 +771,16 @@ begin
 
   v_kh := public.pv_contrib_key_live(nullif(btrim(p->>'key'), ''));
   if v_kh is null then
+    -- ★回線の印は、1日だけ（3-d）。何も引き継がない呼び出しも、ここで空にしてから返る
+    --   （この呼び出しは、このあと鍵の行を1つも待たずに終わるので、掴み合いにならない）。
+    perform public.pv_contrib_mark_sweep();
     return jsonb_build_object('ok', true, 'known', false,
-                              'moved', 0, 'kept', 0, 'dropped', 0, 'left', 0);
+                              'moved', 0, 'kept', 0, 'dropped', 0, 'stale', 0, 'left', 0);
   end if;
   -- 同じ鍵を2つの画面から同時に引き継がせない
   perform 1 from public.pv_contrib_keys where key_hash = v_kh for update;
+  -- ★回線の印は、1日だけ（3-d）。自分の鍵の行を掴んだ「あと」に空にする。
+  perform public.pv_contrib_mark_sweep();
 
   -- ── 月の勤務（古い月から）──────────────────────────────
   for v_r in
@@ -595,6 +824,9 @@ begin
      order by c.airline, coalesce(q.priority, 32767), c.id
   loop
     exit when v_stop;
+    -- 対の相手として、先に来たほうと一緒にもう扱った行（2回数えない・kept にも数えない）
+    continue when v_r.id = any(v_done);
+    v_hash := public.pv_condition_hash(v_uid, v_r.airline, null);
     v_newer := exists (
       select 1 from public.airline_conditions a
        where a.proof_hash = public.pv_condition_hash(v_uid, v_r.airline, null)
@@ -607,34 +839,143 @@ begin
       v_kept := v_kept + 1;
       continue;
     end if;
-    begin
-      v_res := public.submit_airline_conditions(jsonb_build_object(
-        'airline',       v_r.airline,
-        'year',          v_r.payload->'year',
-        'month',         v_r.payload->'month',
-        'position',      v_r.payload->'position',
-        'fleet',         v_r.payload->'fleet',
-        'base_iata',     v_r.payload->'base_iata',
-        'contract_type', v_r.payload->'contract_type',
-        'lang',          v_r.payload->'lang',
-        'answers',       jsonb_build_array(v_r.payload)));
-    exception
-      when sqlstate '22023' then
-        v_res := jsonb_build_object('saved', 0, 'rejected',
-                   jsonb_build_array(jsonb_build_object('reason', 'bad_request')));
-    end;
-    if coalesce((v_res->>'saved')::int, 0) > 0 then
-      delete from public.pv_contrib_pending where id = v_r.id;
-      v_moved := v_moved + 1;
-    else
-      v_why := v_res->'rejected'->0->>'reason';
-      if v_why = 'rate_limited' then
-        v_stop := true;
-      else
-        delete from public.pv_contrib_pending where id = v_r.id;
-        v_dropped := v_dropped + 1;
-      end if;
+
+    -- 対になる額の相手（一緒に出せるのは、上の「★対になる額」の4つが全部成り立つときだけ）。
+    -- 対でない質問は、相手の名前が null ＝ 1行も当たらない。
+    v_mid := null; v_mkey := null; v_mpay := null;
+    select c.id, c.item_key, c.payload into v_mid, v_mkey, v_mpay
+      from public.pv_contrib_pending c
+     where c.key_hash = v_kh and c.kind = 'cond'
+       and c.airline = v_r.airline
+       and c.item_key = public.pv_condition_range_other(v_r.item_key)
+       -- 2件とも、行の質問（item_key）と、中身が名乗る質問が同じ（預かる入口は、必ず同じにして書く）。
+       -- 手で作った行だけが外れる。外れた行を組にすると、入口には同じ質問が2回届き、返事の「断った数」が
+       -- 2 でも、2つの端のことではなくなる（名前の出なかった端を、保存されたと読んでしまう）。
+       and c.payload->>'question_id' = c.item_key
+       and v_r.payload->>'question_id' = v_r.item_key
+       and c.id <> all(v_done)
+       and not exists (
+         select 1 from public.airline_conditions a
+          where a.proof_hash = v_hash
+            and a.question_id = c.item_key
+            and a.updated_at >= c.updated_at
+            and num_nonnulls(a.answer_code, a.answer_codes, a.answer_num,
+                             a.answer_text, a.answer_json) > 0)
+       and jsonb_build_array(c.payload->'year', c.payload->'month', c.payload->'position',
+                             c.payload->'fleet', c.payload->'base_iata',
+                             c.payload->'contract_type', c.payload->'lang')
+         = jsonb_build_array(v_r.payload->'year', v_r.payload->'month', v_r.payload->'position',
+                             v_r.payload->'fleet', v_r.payload->'base_iata',
+                             v_r.payload->'contract_type', v_r.payload->'lang');
+    v_joint := v_mid is not null;
+
+    if v_joint then
+      begin
+        v_res := public.submit_airline_conditions(jsonb_build_object(
+          'airline',       v_r.airline,
+          'year',          v_r.payload->'year',
+          'month',         v_r.payload->'month',
+          'position',      v_r.payload->'position',
+          'fleet',         v_r.payload->'fleet',
+          'base_iata',     v_r.payload->'base_iata',
+          'contract_type', v_r.payload->'contract_type',
+          'lang',          v_r.payload->'lang',
+          'answers',       jsonb_build_array(v_r.payload, v_mpay)));
+        select count(*), count(*) filter (where e->>'reason' = 'rate_limited')
+          into v_nrej, v_nlim
+          from jsonb_array_elements(v_res->'rejected') e
+         where e->>'question_id' in (v_r.item_key, v_mkey);
+        if coalesce((v_res->>'saved')::int, 0) + v_nrej <> 2 then
+          raise exception sqlstate 'PVC02';    -- 返事が2件ぶんに読めない
+        end if;
+        if v_nlim = 1 then
+          raise exception sqlstate 'PVC01';    -- 1日の上限が、ちょうど2件のあいだで切れた
+        end if;
+        v_done := v_done || v_mid;
+      exception
+        -- ここへ来た時点で、まとめた呼び出しが書いたものは全部取り消されている
+        when sqlstate '22023' or sqlstate 'PVC02' then
+          v_joint := false;                    -- 今までどおり1件ずつ（相手は、ループがそこへ来た時に）
+        when sqlstate 'PVC01' then
+          v_stop := true;                      -- 2件とも残す。残りは次の回に
+      end;
+      exit when v_stop;
     end if;
+
+    if not v_joint then
+      v_mid := null; v_mkey := null;
+      begin
+        v_res := public.submit_airline_conditions(jsonb_build_object(
+          'airline',       v_r.airline,
+          'year',          v_r.payload->'year',
+          'month',         v_r.payload->'month',
+          'position',      v_r.payload->'position',
+          'fleet',         v_r.payload->'fleet',
+          'base_iata',     v_r.payload->'base_iata',
+          'contract_type', v_r.payload->'contract_type',
+          'lang',          v_r.payload->'lang',
+          'answers',       jsonb_build_array(v_r.payload)));
+      exception
+        when sqlstate '22023' then
+          v_res := jsonb_build_object('saved', 0, 'rejected',
+                     jsonb_build_array(jsonb_build_object('reason', 'bad_request')));
+      end;
+    end if;
+
+    -- この1件（まとめて出した回は2件）が、それぞれどうなったか
+    for v_e in
+      select x.id, x.qid
+        from unnest(array[v_r.id, v_mid], array[v_r.item_key, v_mkey]) as x(id, qid)
+       where x.id is not null
+    loop
+      if v_joint then
+        select e->>'reason' into v_why
+          from jsonb_array_elements(v_res->'rejected') e
+         where e->>'question_id' = v_e.qid
+         limit 1;
+        v_ok := not found;
+      else
+        v_ok  := coalesce((v_res->>'saved')::int, 0) > 0;
+        v_why := v_res->'rejected'->0->>'reason';
+      end if;
+
+      if v_ok then
+        delete from public.pv_contrib_pending where id = v_e.id;
+        v_moved := v_moved + 1;
+      else
+        -- 上の質問のどれかに、この会員が、下を開かない答えをしている
+        -- （＝ 会員の入口は、この答えをいつ出しても parent_missing で断る。会員が上の質問を答え直すまで変わらない）
+        v_shut := exists (
+          select 1
+            from public.pv_condition_links k
+            join public.airline_conditions a
+              on a.proof_hash = v_hash and a.question_id = k.parent
+           where k.question_id = v_e.qid
+             and num_nonnulls(a.answer_code, a.answer_codes) > 0
+             and (a.answer_code = any(k.parent_when)
+                  or a.answer_codes && k.parent_when) is not true);
+        if v_why = 'rate_limited' and not v_shut then
+          v_stop := true;                      -- 残す。次の回に続きを出す
+        else
+          /* 行き先が決まった答え。1日の上限で断られた答えも、v_shut ならここへ来る ──
+             入口は上限を親の筋より先に見るので rate_limited と返すが、上限が無くても parent_missing で
+             断られる答え。残して「次に続きを引き継ぎます」と告げると、次の回に黙って消えることになる。 */
+          delete from public.pv_contrib_pending where id = v_e.id;
+          if (v_why = 'parent_missing' or v_why = 'rate_limited')
+             and v_shut
+             -- 上の質問が、この引き継ぎの中で dropped になったのではない
+             and not exists (
+               select 1 from public.pv_condition_links k
+                where k.question_id = v_e.qid
+                  and jsonb_build_array(v_r.airline, k.parent)::text = any(v_lost)) then
+            v_stale := v_stale + 1;
+          else
+            v_dropped := v_dropped + 1;
+            v_lost := v_lost || jsonb_build_array(v_r.airline, v_e.qid)::text;
+          end if;
+        end if;
+      end if;
+    end loop;
   end loop;
 
   select count(*) into v_left from public.pv_contrib_pending where key_hash = v_kh;
@@ -644,7 +985,7 @@ begin
 
   return jsonb_build_object(
     'ok', true, 'known', true,
-    'moved', v_moved, 'kept', v_kept, 'dropped', v_dropped, 'left', v_left);
+    'moved', v_moved, 'kept', v_kept, 'dropped', v_dropped, 'stale', v_stale, 'left', v_left);
 end;
 $$;
 

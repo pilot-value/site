@@ -400,16 +400,50 @@ async function buildCondition(id: string): Promise<Mail | null> {
   // 選択肢に自由記述が添えられている場合も、付いている事実だけは伝える
   if (r.answer_text != null && !ans.startsWith('自由記述')) ans += '（自由記述あり）';
 
-  // この人の累計。skipped_at が null ＝ 答えた行（ac_answer_any_ck と、
-  // 答え直しで skipped_at を null に戻す実装が保証している）。
+  // この人の累計 ＝ 会員の一覧ページ「あなたが答えた項目：n／N」と同じ数え方の写し
+  // （pv-conditions.js の answered / visible / counted）。ずれを見張るのは
+  // assert-admin-notify.mjs の『累計は、会員の一覧ページと同じ数え方』。
+  //   分母 … 一覧に出る質問（有効で、話題の入口からだけ出す質問ではないもの）
+  //   分子 … その質問への答えのうち、いちばん上の親まで条件が続いているもの。
+  //          親を答え直して外れた続きの質問は、行が残っていても数えない。
+  // ★ 「答えた行」＝ 答えの列のどれかが入っている行。skipped_at では決めない。
+  //   スキップは印を付けるだけで答えを消さない ＝ 答えのある行に印だけが付くことがあり、
+  //   会員のページはそれを数える（印だけの行は答えの列が全部 null なので、ここで外れる）。
+  // ★ 質問は topic_only で絞らずに引く。話題の入口の質問も、親としてはたどる。
+  // ★ 引くのは質問の鍵と選んだコードだけ。金額（answer_num）と自由記述（answer_text）は
+  //   数えるためにも取り寄せない。
   // ★ 数え上げに失敗しても通知そのものは落とさない。この通知の値打ちは
-  //   「どの質問にどう答えたか」で、累計はおまけ。数えられなければ黙って省く。
+  //   「どの質問にどう答えたか」で、累計はおまけ。数えられなければ黙って省く（0 とは出さない）。
   let total = '';
   try {
-    const done = await sbList('airline_conditions',
-      `proof_hash=eq.${encodeURIComponent(r.proof_hash)}&skipped_at=is.null`, 'id');
-    const all = await sbList('pv_condition_questions', 'active=eq.true', 'id');
-    if (all.length) total = `${done.length} / ${all.length}問`;
+    type Q = { id: string; parent: string | null; parent_when: string[] | null; topic_only: boolean };
+    type A = { question_id: string; answer_code: string | null; answer_codes: string[] | null };
+    const qs: Q[] = await sbList('pv_condition_questions', 'active=eq.true',
+      'id,parent,parent_when,topic_only');
+    const mine: A[] = await sbList('airline_conditions',
+      `proof_hash=eq.${encodeURIComponent(r.proof_hash)}`
+      + '&or=(answer_code.not.is.null,answer_codes.not.is.null,answer_num.not.is.null,answer_text.not.is.null)',
+      'question_id,answer_code,answer_codes');
+    const qById = new Map<string, Q>(qs.map((x) => [x.id, x]));
+    const aById = new Map<string, A>(mine.map((x) => [x.question_id, x]));
+    // 親 → 親の親 → … と上がり、どの段でも「親の答えが parent_when に入っている」ときだけ true。
+    // 複数選択の親は、選んだコードのどれか1つが入っていればよい。
+    const shown = (q: Q): boolean => {
+      let x = q;
+      for (let hop = 0; x.parent; hop++) {
+        const up = qById.get(x.parent);
+        const a = aById.get(x.parent);
+        if (!up || !a || hop > qs.length) return false;   // hop: マスタに輪は無いはず。在っても止まる
+        const have = a.answer_codes && a.answer_codes.length
+          ? a.answer_codes : (a.answer_code ? [a.answer_code] : []);
+        if (!(x.parent_when ?? []).some((c) => have.includes(c))) return false;
+        x = up;
+      }
+      return true;
+    };
+    const listed = qs.filter((x) => !x.topic_only);
+    const done = listed.filter((x) => aById.has(x.id) && shown(x));
+    if (listed.length) total = `${done.length} / ${listed.length}問`;
   } catch (e) {
     console.error('待遇の累計を数えられませんでした', String(e));
   }

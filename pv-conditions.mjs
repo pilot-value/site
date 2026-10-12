@@ -200,6 +200,11 @@ export const SETTINGS = {
                  画面もサーバも同じ決め方をする（冒頭の 2026-10-04 の注記）。
    note      … 選択肢に加えて自由記述欄を出す。★自由記述は公開集計に一切出さない。
    currency  … 金額。通貨コードも一緒に保存する。
+   rangeLow  … 対になる額（低いほう・高いほう）の、低いほうの質問の id。★高いほうの質問にだけ書く
+               （低いほうには何も書かない）。2問は数値で、同じ親・同じ parentWhen・同じ currency の有無
+               （gen-conditions.mjs が検査する）。pv-conditions.json には rangeLow、質問マスタの spec には
+               range_low として運ばれる。サーバ側で対の相手を引くのは pv_condition_range_other、
+               対として悪いかを言うのは pv_condition_range_bad（どちらも db/airline-conditions.sql）。
    topic     … 話題の入口の印（'taxi' / 'staff_travel' / 'upgrade'）。会社の概要の画面には
                話題ごとの入口があり、そこから来た人には同じ topic の質問をまとめて出す。
                ★付いているだけでは、一覧と1問枠での出方は1つも変わらない。
@@ -663,8 +668,9 @@ export const QUESTIONS = [
     ],
   },
   {
-    /* ★低いほう・高いほうは**どちらも任意**で、片方だけでもよい。別々の行として保存する
-         （2つを1つの数字にまとめない。通貨が違っていても、こちらで直さない）。 */
+    /* ★低いほう・高いほうは**どちらも任意**で、片方だけでもよい。
+         別々の行として保存する（2つを1つの数字にまとめない）。低いほうが高いほうより大きい組・通貨が違う組は、
+         保存のときに断る（フォームとサーバの両方。対は、高いほうの rangeLow で結ぶ）。 */
     id: 'landing_pay_from', version: 1, section: 'benefits', kind: 'num',
     tier: 'C', micro: false, priority: 53,
     parent: 'landing_pay', parentWhen: ['variable'],
@@ -680,6 +686,7 @@ export const QUESTIONS = [
     tier: 'C', micro: false, priority: 54,
     parent: 'landing_pay', parentWhen: ['variable'],
     currency: true,
+    rangeLow: 'landing_pay_from',
     num: { min: 1, max: 10000000, step: 0.01, ja: '（1回あたり）', en: '(each time)' },
     ja: { label: '着陸手当の高いほうの額',
           help: '任意です。片方だけでもかまいません。' },

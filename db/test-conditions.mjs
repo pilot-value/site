@@ -1045,7 +1045,7 @@ ok(r.saved === 3 && r.rejected.length === 0,
 let lp = await lpRows(231);
 ok(lp.length === 3 && lp.every((x) => x.position === LC.position && x.fleet === LC.fleet
      && x.effective_year === LC.year && x.effective_month === LC.month),
-  '㉑ ★3行とも同じ職位・機種・適用時期を持つ（親に付けた条件を、額と数え方が引き継ぐ）', JSON.stringify(lp));
+  '㉑ ★1回の保存で送った3行は、同じ職位・機種・適用時期を持つ', JSON.stringify(lp));
 m = await mineOf(231, LC.airline);
 ok(Number(m.landing_pay_amount?.num) === 1500 && m.landing_pay_amount?.currency === 'JPY'
    && m.landing_pay_unit?.code === 'per_landing',
@@ -1125,6 +1125,634 @@ ok((await factLp('landing_pay_amount')) === null,
   '㉑ ★「一定額」から「一定額ではない」に答え直した人の、古い額も数えない（枝をまたいで残さない）');
 await submit({ ...LC, answers: [{ question_id: LP.id, code: 'fixed' }] });
 ok((await factLp('landing_pay_amount'))?.n === 3, '   元に戻すと、また3人に戻る');
+
+
+/* ㉑ の続き ── 対になる額（低いほう・高いほう）の決まりの置き場（2026-10-11）。
+   着陸手当の「低いほうの額」と「高いほうの額」は別々の質問・別々の行だが、2つで1つの幅。
+   どの2問が対かは、質問バンクの高いほうの rangeLow の1か所で決まり、画面が読む
+   pv-conditions.json（rangeLow）と質問マスタの spec（range_low）へ運ばれる。
+   サーバで対の相手を引くのは pv_condition_range_other、対として悪いかを言うのは pv_condition_range_bad
+   （db/airline-conditions.sql の 4d）。ここで見るのは、その置き場そのもの。
+   ⚠️ 下の額（100・200・300）は検査のための作りもの。どの会社の着陸手当でもない。 */
+console.log('\n▼ ㉑ 対になる額（低いほう・高いほう）── 決まりの置き場');
+const LO = 'landing_pay_from', HI = 'landing_pay_to';
+const PAIRS = QUESTIONS.filter((q) => q.rangeLow).map((q) => `${q.id} > ${q.rangeLow}`);
+const dbPairs = async () => (await rows(
+  `select id, spec->>'range_low' as low from pv_condition_questions
+    where active and spec->>'range_low' is not null order by priority`)).map((x) => `${x.id} > ${x.low}`);
+v = await dbPairs();
+ok(v.length === 1 && v[0] === `${HI} > ${LO}`,
+  '㉑ ★質問マスタで対になっているのは、着陸手当の「高いほう → 低いほう」の1組だけ（決まりが、ほかの質問に広がっていない）',
+  JSON.stringify(v));
+ok(same(v, PAIRS), '   生成元（pv-conditions.mjs の rangeLow）と同じ組', JSON.stringify([PAIRS, v]));
+v = JSON.parse(read('pv-conditions.json')).questions.filter((q) => q.rangeLow).map((q) => `${q.id} > ${q.rangeLow}`);
+ok(v.length === 1 && v[0] === `${HI} > ${LO}`,
+  '   画面が読む pv-conditions.json にも、同じ1組が入っている（画面とサーバが別々の対を読まない）', JSON.stringify(v));
+
+const pairOf = async (id) => (await one(`select public.pv_condition_range_other($1::text) r`, [id])).r;
+const pairBad = async (id, num, cur, onum, ocur) => (await one(
+  `select public.pv_condition_range_bad($1::text, $2::numeric, $3::text, $4::numeric, $5::text) r`,
+  [id, num, cur, onum, ocur])).r;
+
+ok((await pairOf(HI)) === LO, '㉑ 高いほうから見た相手は、低いほう');
+ok((await pairOf(LO)) === HI, '㉑ ★低いほうから見た相手は、高いほう（どちらの端を渡しても、対が分かる）');
+ok((await pairOf('landing_pay_amount')) === null && (await pairOf(LP.id)) === null,
+  '   対でない質問（一定額のときの額・親の質問）には、相手が無い');
+ok((await pairOf('no_such_question')) === null && (await pairOf(null)) === null,
+  '   知らない質問・空の id にも、相手が無い');
+/* 使わなくなった質問（active = false）。片方でも使わなくなったら、対そのものが無い。 */
+for (const [off, other, word] of [[LO, HI, '低いほう'], [HI, LO, '高いほう']]) {
+  await db.query(`update pv_condition_questions set active = false where id = $1`, [off]);
+  const got = { self: await pairOf(off), other: await pairOf(other),
+    bad: [await pairBad(LO, 300, 'USD', 200, 'USD'), await pairBad(HI, 100, 'USD', 200, 'USD')] };
+  await db.query(`update pv_condition_questions set active = true where id = $1`, [off]);
+  ok(got.self === null, `㉑ ★使わなくなった質問（${word}）を渡しても、相手は返らない`, JSON.stringify(got));
+  ok(got.other === null,
+    `㉑ ★${word}を使わなくなったら、残った片方にも相手が無い（もう答え直せない相手と比べない）`, JSON.stringify(got));
+  ok(got.bad.every((x) => x === null), '   そのあいだは、大小が逆の2つを渡しても何も言わない', JSON.stringify(got));
+}
+ok((await pairOf(LO)) === HI && (await pairOf(HI)) === LO, '   2問とも使っている状態に戻せば、また対になる');
+
+const PAIR_CASES = [
+  // [渡す質問, その額, その通貨, 相手の額, 相手の通貨, 期待, 何を見ているか]
+  [LO, 100, 'USD', 200, 'USD', null, '低い 100・高い 200（低いほうを渡す）'],
+  [HI, 200, 'USD', 100, 'USD', null, '低い 100・高い 200（高いほうを渡す）'],
+  [LO, 300, 'USD', 200, 'USD', 'range_order', '★低い 300・高い 200（低いほうを渡す）'],
+  [HI, 100, 'USD', 200, 'USD', 'range_order', '★低い 200・高い 100（高いほうを渡す）'],
+  [LO, 200, 'USD', 200, 'USD', null, '★同じ額はよい（低いほうを渡す）'],
+  [HI, 200, 'USD', 200, 'USD', null, '★同じ額はよい（高いほうを渡す）'],
+  [LO, 100, 'USD', 200, 'EUR', 'range_currency', '★大小は合っていても、通貨が違う（低いほうを渡す）'],
+  [HI, 200, 'USD', 100, 'EUR', 'range_currency', '★大小は合っていても、通貨が違う（高いほうを渡す）'],
+  [LO, 300, 'USD', 200, 'EUR', 'range_currency', '★通貨も大小も悪いときは、通貨を先に言う（低いほうを渡す）'],
+  [HI, 100, 'USD', 200, 'EUR', 'range_currency', '★通貨も大小も悪いときは、通貨を先に言う（高いほうを渡す）'],
+  [LO, 100, 'USD', null, null, null, '★片方だけ ── 低いほうだけ在る（低いほうを渡す）'],
+  [LO, null, null, 200, 'USD', null, '★片方だけ ── 高いほうだけ在る（低いほうを渡す）'],
+  [HI, 200, 'USD', null, null, null, '★片方だけ ── 高いほうだけ在る（高いほうを渡す）'],
+  [HI, null, null, 100, 'USD', null, '★片方だけ ── 低いほうだけ在る（高いほうを渡す）'],
+  [LO, 100, 'usd', 200, ' USD ', null, '通貨の書き方の揺れ（小文字・前後の空白）は、同じ通貨'],
+  [LO, 300, null, 200, 'USD', 'range_order', '片方の通貨が空でも、大小は見る（通貨が違うとは言わない）'],
+  [HI, 200, 'USD', 100, null, null, '片方の通貨が空で、大小が合っていれば通す'],
+  ['landing_pay_amount', 300, 'USD', 200, 'EUR', null, '対でない質問には、何も言わない'],
+  ['no_such_question', 300, 'USD', 200, 'EUR', null, '知らない質問にも、何も言わない'],
+];
+for (const [id, num, cur, onum, ocur, want, word] of PAIR_CASES) {
+  const got = await pairBad(id, num, cur, onum, ocur);
+  ok(got === want, `㉑ 対の検品: ${word} → ${want || '通す'}`, `（返ったのは ${got}）`);
+}
+
+/* 貼る先の質問マスタには、対の印が無いまま2問がもう入っていることがある（spec は刻みだけ）。
+   その形へ戻してから、生成した SQL をもう一度流す ＝ 上書きの側（on conflict … do update）を通す。
+   ★update set から spec を落としても、空の DB に流したここまでの行は全部緑のまま。貼った先では
+     対がどこにも無く、上の2つの関数は何を渡されても「対でない」と答える。 */
+await db.query(`update pv_condition_questions set spec = spec - 'range_low' where id = $1`, [HI]);
+v = await dbPairs();
+ok(v.length === 0 && (await pairOf(HI)) === null && (await pairOf(LO)) === null,
+  '   （下ごしらえ）対の印を消した ＝ 印が無かった頃の質問マスタ（対はどこにも無い）', JSON.stringify(v));
+upErr = await regen();
+v = upErr ? [] : await dbPairs();
+ok(upErr === null && v.length === 1 && v[0] === `${HI} > ${LO}` && (await pairOf(LO)) === HI,
+  '㉑ ★対の印が無い質問マスタに流し直すと、印が付く（上書きの側でも運ばれる）', upErr || JSON.stringify(v));
+
+/* 2つとも、API からは呼べない（1件ぶんの検品 pv_condition_clean と同じ扱い）。
+   本番（Supabase）は、public に作った関数の実行を anon・authenticated へも既定で渡す。この器には
+   その既定が無いので、作ったままの姿だと「public からだけ外した」形でも、下は緑になる。
+   そこで、3つとも渡した状態を作ってから、このファイルをもう一度流す ＝ 貼る先と同じ出発点。 */
+const RANGE_FNS = ['pv_condition_clean(text, jsonb)', 'pv_condition_range_other(text)',
+  'pv_condition_range_bad(text, numeric, text, numeric, text)'];
+for (const fn of RANGE_FNS) await db.exec(`grant execute on function public.${fn} to public, anon, authenticated`);
+let reErr = null;
+try { await db.exec(read('db/airline-conditions.sql')); } catch (e) { reErr = String(e.message || e); }
+ok(reErr === null,
+  '   （下ごしらえ）3つの関数の実行を public・anon・authenticated に渡してから、db/airline-conditions.sql を流し直した',
+  String(reErr));
+for (const [role, word] of [['anon', 'ログインしていない人'], ['authenticated', '会員']]) {
+  await db.exec(`set role ${role}`);
+  const e0 = await boom(`select public.pv_condition_clean('landing_pay_from', '{"num":100,"currency":"USD"}'::jsonb)`);
+  const e1 = await boom(`select public.pv_condition_range_other('landing_pay_to')`);
+  const e2 = await boom(`select public.pv_condition_range_bad('landing_pay_from', 300, 'USD', 200, 'USD')`);
+  await db.exec('reset role');
+  ok(/permission denied for function pv_condition_range_other/.test(e1 || ''),
+    `㉑ ★${word}は「対の相手」を直接は呼べない`, String(e1));
+  ok(/permission denied for function pv_condition_range_bad/.test(e2 || ''),
+    `㉑ ★${word}は「対の検品」を直接は呼べない`, String(e2));
+  ok(/permission denied for function pv_condition_clean/.test(e0 || ''),
+    `   対照: ${word}は「1件ぶんの検品」も直接は呼べない（3つとも同じ扱い）`, String(e0));
+}
+
+/* ㉑ の続き ── 職位・機種・基地・契約は「1組」（2026-10-11）。
+   回答の行には、答えたときの職位・機種・基地・契約が付いている。会員の保存の入口は、この4つを
+   送信が運んできたもので毎回そのまま上書きしていたので、
+     ・一覧のページで答えだけ直す（あの画面は4つを運ばない）と、行から職位も機種も消えた
+     ・親（着陸手当）を先に答えて、額と数え方をあとの保存で足すと、足した行だけ4つが空だった
+   決まりは3つ（db/airline-conditions.sql の submit_airline_conditions）。
+     1. 送信が4つのうち1つでも運んでいれば、その送信の組をそのまま使う（欠けた分は空）
+     2. 1つも運んでいなくて、行にもう答えが在れば、行の組を動かさない
+     3. 1つも運んでいなくて、まだ答えが無い（行が無い／スキップの印だけ）なら、すぐ上の親の行の組
+   ★4つを1列ずつ別々に決めない（新しい職位に、前の機種がくっ付く）。
+   ★適用時期（年月）は写さない。あとから足した行の年月は、足した月。
+   ★上の「1回の保存で送った3行は…」は、1回の送信が1つの組を持つことしか見ていない
+     （親と続きを別々の保存で送ったときに何が起きても緑）。別々の保存を見るのは下の t1〜t5。 */
+console.log('\n▼ ㉑ 職位・機種・基地・契約は1組 ── 直しても消えない・混ざらない／あとから足した続きの質問は親の組を持つ');
+const XC = { airline: 'fda', lang: 'ja' };   // ここまでのどの検査も回答を入れていない会社
+const SET_A = { position: 'cap', fleet: 'b787', base_iata: 'HND', contract_type: 'direct' };
+const SET_B = { position: 'fo', fleet: 'a320', base_iata: 'NRT', contract_type: 'contract' };
+const A_SET = 'cap/b787/HND/direct', B_SET = 'fo/a320/NRT/contract', NO_SET = '—/—/—/—';
+const AUG = { year: 2025, month: 8 };        // 先に答えた月（今日より前の、今日とは違う月）
+const today = await one(`select extract(year from current_date)::int y, extract(month from current_date)::int m`);
+/* その人の、その会社の行をそのまま読む（自分の回答の一覧は、4つもスキップの印も返さない） */
+const rowsOf = async (n, airline, ids) => Object.fromEntries((await rows(
+  `select question_id, answer_code, answer_num, answer_currency,
+          "position", fleet, base_iata, contract_type, effective_year, effective_month,
+          skipped_at is not null as skipped,
+          num_nonnulls(answer_code, answer_codes, answer_num, answer_text, answer_json) > 0 as answered
+     from airline_conditions
+    where proof_hash = pv_condition_hash($1::uuid, $2, null) and question_id = any($3)`,
+  [uid(n), airline, ids])).map((x) => [x.question_id, x]));
+const setOf = (x) => (x ? [x.position, x.fleet, x.base_iata, x.contract_type].map((s) => s ?? '—').join('/') : '行なし');
+const monthOf = (x) => (x ? `${x.effective_year}-${x.effective_month}` : '行なし');
+
+// 直す（親の無い質問で見る ＝ 下の「親の組」の決まりが混ざらない）
+const RD = QBY.reserve_duty;
+const [RD_1, RD_2] = RD.choices.map((c) => c.code).filter((c) => c !== UNKNOWN);
+const storeRd = async (n) => {
+  await asUser(n);
+  return submit({ ...XC, ...AUG, ...SET_A, answers: [{ question_id: RD.id, code: RD_1 }] });
+};
+const fixRd = async (n, ctx) => {
+  const res = await submit({ ...XC, ...ctx, answers: [{ question_id: RD.id, code: RD_2 }] });
+  return { res, row: (await rowsOf(n, XC.airline, [RD.id]))[RD.id] };
+};
+await storeRd(301);
+let cx = (await rowsOf(301, XC.airline, [RD.id]))[RD.id];
+ok(cx?.answer_code === RD_1 && setOf(cx) === A_SET && monthOf(cx) === '2025-8',
+  '   （下ごしらえ）機長・B787・基地・契約を付けて1問を保存した', JSON.stringify(cx));
+let fx = await fixRd(301, {});
+ok(fx.res.saved === 1 && fx.row?.answer_code === RD_2 && setOf(fx.row) === A_SET,
+  '㉑ ★c1 職位・機種・基地・契約を1つも運ばない保存で答えを直しても、行の4つは消えない（答えは新しくなる）',
+  JSON.stringify(fx.row));
+await storeRd(302);
+fx = await fixRd(302, SET_B);
+ok(fx.res.saved === 1 && fx.row?.answer_code === RD_2 && setOf(fx.row) === B_SET,
+  '㉑ ★c2 別の組（副操縦士・A320・別の基地・別の契約）を運ぶ保存で直すと、行は新しい組になる', JSON.stringify(fx.row));
+await storeRd(303);
+fx = await fixRd(303, { position: 'fo' });
+ok(fx.res.saved === 1 && fx.row?.answer_code === RD_2 && setOf(fx.row) === 'fo/—/—/—',
+  '㉑ ★c3 職位だけを運ぶ保存で直すと、職位は新しく、機種・基地・契約は空（新しい職位に、前の機種をくっ付けない）',
+  JSON.stringify(fx.row));
+await storeRd(304);
+fx = await fixRd(304, { base_iata: 'KIX' });
+await storeRd(305);
+const fx5 = await fixRd(305, { contract_type: 'agency' });
+ok(setOf(fx.row) === '—/—/KIX/—' && setOf(fx5.row) === '—/—/—/agency',
+  '   基地だけ・契約だけを運ぶ保存も「その送信の組」（残りの3つは空）', JSON.stringify([fx.row, fx5.row]));
+
+// あとから足す（親を先に答えて、続きの質問を別の保存で送る）
+const AMT = { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' };
+const UNIT = { question_id: 'landing_pay_unit', code: 'per_landing' };
+const LP3 = [LP.id, AMT.question_id, UNIT.question_id];
+const storeLpParent = async (n, airline = XC.airline, set = SET_A) => {
+  await asUser(n);
+  return submit({ ...XC, airline, ...AUG, ...set, answers: [{ question_id: LP.id, code: 'fixed' }] });
+};
+await storeLpParent(311);
+r = await submit({ ...XC, answers: [AMT, UNIT] });   // 年月も4つも運ばない（会社ページのシートが、月の勤務の無い人について送る形）
+cx = await rowsOf(311, XC.airline, LP3);
+ok(r.saved === 2 && setOf(cx[AMT.question_id]) === A_SET && setOf(cx[UNIT.question_id]) === A_SET,
+  '㉑ ★t1 親（着陸手当）を先に答え、額と数え方をあとの保存で足しても、2行とも親と同じ職位・機種・基地・契約を持つ',
+  JSON.stringify(cx));
+ok([AMT, UNIT].every((a) => monthOf(cx[a.question_id]) === `${today.y}-${today.m}`)
+   && monthOf(cx[LP.id]) === '2025-8' && setOf(cx[LP.id]) === A_SET,
+  '   適用時期は答えた月（足した2行は足した月・親の行は先に答えた月のまま）', JSON.stringify(cx));
+await storeLpParent(312);
+r = await submit({ ...XC, position: 'fo', fleet: 'a320', answers: [AMT, UNIT] });
+cx = await rowsOf(312, XC.airline, LP3);
+ok(r.saved === 2 && setOf(cx[AMT.question_id]) === 'fo/a320/—/—' && setOf(cx[UNIT.question_id]) === 'fo/a320/—/—'
+   && setOf(cx[LP.id]) === A_SET,
+  '㉑ ★t2 あとの保存が自分の組（副操縦士・A320）を運んでいれば、足した2行はその組（親の組で上書きしない）',
+  JSON.stringify(cx));
+r = await submit({ ...XC, answers: [{ ...AMT, num: 1600 }] });
+cx = await rowsOf(312, XC.airline, LP3);
+ok(r.saved === 1 && Number(cx[AMT.question_id]?.answer_num) === 1600 && setOf(cx[AMT.question_id]) === 'fo/a320/—/—'
+   && setOf(cx[LP.id]) === A_SET,
+  '㉑ ★t3 自分の組を持つ続きの行を、何も運ばない保存で直しても、その行の組のまま（親の組に替わらない）',
+  JSON.stringify(cx));
+await asUser(313);
+await submit({ ...XC, ...AUG, ...SET_A, answers: [{ question_id: CT.id, code: CT_IN }] });
+await submit({ ...XC, answers: [{ question_id: METHOD.id, codes: ['company_taxi'] }] });
+r = await submit({ ...XC, answers: [{ question_id: CAP, code: 'per_ride' }] });
+cx = await rowsOf(313, XC.airline, [CT.id, METHOD.id, CAP]);
+ok(r.saved === 1 && [CT.id, METHOD.id, CAP].every((id) => setOf(cx[id]) === A_SET),
+  '㉑ ★t4 3段（通勤の移動 → 手段 → タクシー代の上限）を1回に1段ずつ足しても、いちばん上の組が3段目まで届く',
+  JSON.stringify(cx));
+await asUser(314);
+await submit({ ...XC, ...AUG, ...SET_A, answers: [{ question_id: ST.id, code: ST_IN }] });
+r = await submit({ ...XC, answers: [{ question_id: BOOK.id, skip: true }] });
+cx = (await rowsOf(314, XC.airline, [BOOK.id]))[BOOK.id];
+ok(r.skipped === 1 && cx && cx.skipped && !cx.answered && setOf(cx) === NO_SET,
+  '   （下ごしらえ）続きの質問を先にスキップした ＝ 答えの無い、スキップの印だけの行が在る', JSON.stringify(cx));
+r = await submit({ ...XC, answers: [{ question_id: BOOK.id, code: 'standby' }] });
+cx = (await rowsOf(314, XC.airline, [BOOK.id]))[BOOK.id];
+ok(r.saved === 1 && cx?.answer_code === 'standby' && !cx.skipped && setOf(cx) === A_SET,
+  '㉑ ★t5 先にスキップしていた続きの質問にあとから答えても、親の組を持つ（スキップの印は消える）', JSON.stringify(cx));
+await storeLpParent(315);
+r = await submit({ ...XC, answers: [{ question_id: LP.id, skip: true }] });
+cx = await rowsOf(315, XC.airline, LP3);
+const parentMarked = cx[LP.id]?.skipped && cx[LP.id]?.answered;
+r = await submit({ ...XC, answers: [AMT] });
+cx = await rowsOf(315, XC.airline, LP3);
+ok(parentMarked && r.saved === 1 && setOf(cx[AMT.question_id]) === A_SET,
+  '   親の行がスキップの印も持っていても、答えは答え（続きの質問を受け取り、親の組を渡す）', JSON.stringify(cx));
+await asUser(316);
+await submit({ ...XC, ...AUG, answers: [{ question_id: LP.id, code: 'fixed' }] });   // この会社の親は、4つとも空
+await storeLpParent(316, 'starlux', SET_B);                                          // 同じ人の、ほかの会社の親
+await storeLpParent(317, XC.airline, SET_B);                                         // ほかの人の、同じ会社の親
+await asUser(316);
+r = await submit({ ...XC, answers: [AMT] });
+cx = await rowsOf(316, XC.airline, LP3);
+ok(r.saved === 1 && setOf(cx[AMT.question_id]) === NO_SET && setOf(cx[LP.id]) === NO_SET,
+  '   親の行に組が無ければ、足した行も空のまま（同じ人のほかの会社の行・ほかの人の行からは取らない）',
+  JSON.stringify(cx));
+
+/* ㉑ の続き ── 対になる額を、会員の保存の入口が受け取るとき（2026-10-11）。
+   「低いほう 300・高いほう 200」「低いほう USD・高いほう EUR」が、そのまま保存されていた
+   （1件ぶんの検品は、1問ずつしか見ない）。入口は、額を保存する前に対の相手と比べる。
+   相手 ＝ **この送信が終わったあとに残る**相手の額。
+     ・同じ送信に相手の答えが入っている … その額（「わからない」なら相手は無い。検品で落ちる答えは
+       保存されないので、いま保存されている額）
+     ・入っていない／スキップだけ … いま保存されている額。★スキップの印が付いていても額は残っている
+   大小と通貨を比べるのは pv_condition_range_bad の1か所（上の「決まりの置き場」）。
+   ⚠️ 下の額は検査のための作りもの。どの会社の着陸手当でもない。 */
+console.log('\n▼ ㉑ 対になる額 ── 会員の保存の入口は、食い違う2つを受け取らない');
+const PC = { airline: 'asiana', lang: 'ja' };   // ここまでのどの検査も回答を入れていない会社
+const VAR = { question_id: LP.id, code: 'variable' };
+const low = (num, currency = 'USD') => ({ question_id: LO, num, currency });
+const high = (num, currency = 'USD') => ({ question_id: HI, num, currency });
+const dunno = (id) => ({ question_id: id, code: UNKNOWN });
+const skipOf = (id) => ({ question_id: id, skip: true });
+/* 新しい会員が「一定額ではない」と答える。stored なら、低いほう 100 USD・高いほう 200 USD も先に保存しておく */
+const pairUser = async (n, stored = true) => {
+  await asUser(n);
+  return submit({ ...PC, answers: [VAR, ...(stored ? [low(100), high(200)] : [])] });
+};
+/* いま保存されている2つ。「100 USD／200 USD」の形（額の無い答えはその答え・スキップの印が在れば末尾に「*」） */
+const pairRows = async (n) => rowsOf(n, PC.airline, [LO, HI]);
+const sayEnd = (y) => (!y ? '行なし'
+  : (y.answer_num === null ? (y.answer_code || '答えなし') : `${Number(y.answer_num)} ${y.answer_currency}`)
+    + (y.skipped ? '*' : ''));
+const pairNow = async (n) => { const x = await pairRows(n); return `${sayEnd(x[LO])}／${sayEnd(x[HI])}`; };
+const whyOf = (res) => res.rejected.map((x) => `${x.question_id}:${x.reason}`).sort().join(' ');
+const BOTH_ORDER = `${LO}:range_order ${HI}:range_order`, BOTH_CUR = `${LO}:range_currency ${HI}:range_currency`;
+const day = async (n) => Number((await one(`select cond_answers_today n from profiles where id = $1`, [uid(n)])).n);
+let now2;
+
+r = await pairUser(401);
+ok(r.saved === 3 && (await pairNow(401)) === '100 USD／200 USD',
+  '   （下ごしらえ）「一定額ではない」と、低いほう 100 USD・高いほう 200 USD を保存できる', JSON.stringify(r.rejected));
+
+await pairUser(402, false);
+r = await submit({ ...PC, answers: [low(300), high(200)] });
+now2 = await pairNow(402);
+m = await mineOf(402, PC.airline);
+ok(whyOf(r) === BOTH_ORDER && now2 === '行なし／行なし' && !m[LO] && !m[HI],
+  '㉑ ★p1 1回の送信で 低いほう 300 USD・高いほう 200 USD → 2つとも断る（range_order）。どちらの行もできない',
+  `${whyOf(r)} ｜ ${now2}`);
+await pairUser(403, false);
+r = await submit({ ...PC, answers: [low(100, 'USD'), high(200, 'EUR')] });
+now2 = await pairNow(403);
+ok(whyOf(r) === BOTH_CUR && now2 === '行なし／行なし',
+  '㉑ ★p2 1回の送信で 100 USD・200 EUR（大小は合っている）→ 2つとも断る（range_currency）', `${whyOf(r)} ｜ ${now2}`);
+await pairUser(404, false);
+r = await submit({ ...PC, answers: [low(300, 'USD'), high(200, 'EUR')] });
+now2 = await pairNow(404);
+ok(whyOf(r) === BOTH_CUR && now2 === '行なし／行なし',
+  '㉑ ★p3 1回の送信で 300 USD・200 EUR（通貨も大小も悪い）→ 言うのは通貨（range_currency）', `${whyOf(r)} ｜ ${now2}`);
+await pairUser(405, false);
+r = await submit({ ...PC, answers: [low(200), high(200)] });
+now2 = await pairNow(405);
+ok(r.rejected.length === 0 && r.saved === 2 && now2 === '200 USD／200 USD',
+  '㉑ p4 対照: 同じ額（200 USD・200 USD）は保存できる', `${whyOf(r)} ｜ ${now2}`);
+await pairUser(406, false);
+r = await submit({ ...PC, answers: [low(100)] });
+now2 = await pairNow(406);
+await pairUser(407, false);
+const r5 = await submit({ ...PC, answers: [high(200)] });
+ok(r.saved === 1 && now2 === '100 USD／行なし' && r5.saved === 1 && (await pairNow(407)) === '行なし／200 USD',
+  '㉑ p5 対照: 片方だけ（低いほうだけ／高いほうだけ）は保存できる',
+  `${whyOf(r)} ｜ ${now2} ｜ ${whyOf(r5)} ｜ ${await pairNow(407)}`);
+
+await pairUser(408);
+r = await submit({ ...PC, answers: [low(250)] });
+now2 = await pairNow(408);
+ok(whyOf(r) === `${LO}:range_order` && now2 === '100 USD／200 USD',
+  '㉑ ★p6 100／200 USD を持つ人が、低いほうだけ 250 に直す → 断る（range_order）。低いほうは 100 のまま',
+  `${whyOf(r)} ｜ ${now2}`);
+await pairUser(409);
+r = await submit({ ...PC, answers: [low(300), high(400)] });
+now2 = await pairNow(409);
+ok(r.rejected.length === 0 && r.saved === 2 && now2 === '300 USD／400 USD',
+  '㉑ ★p7 100／200 USD を持つ人が、1回の送信で 300／400 に直す → 2つとも保存（300 を、前の 200 と比べない）',
+  `${whyOf(r)} ｜ ${now2}`);
+await pairUser(410);
+r = await submit({ ...PC, answers: [high(150, 'EUR')] });
+now2 = await pairNow(410);
+ok(whyOf(r) === `${HI}:range_currency` && now2 === '100 USD／200 USD',
+  '㉑ ★p8 100／200 USD を持つ人が、高いほうだけ 150 EUR で送る → 断る（range_currency）。何も変わらない',
+  `${whyOf(r)} ｜ ${now2}`);
+await pairUser(411);
+r = await submit({ ...PC, answers: [skipOf(LO), high(50)] });
+now2 = await pairNow(411);
+ok(whyOf(r) === `${HI}:range_order` && r.skipped === 1 && now2 === '100 USD*／200 USD',
+  '㉑ ★p9 100／200 USD を持つ人が、1回の送信で 低いほうをスキップ・高いほうを 50 → 高いほうを断る（range_order）。'
+  + 'スキップは額を消さない（低いほうは 100 のまま・印だけ付く）', `${whyOf(r)} ｜ ${now2}`);
+await pairUser(412);
+r = await submit({ ...PC, answers: [dunno(LO), high(50)] });
+now2 = await pairNow(412);
+ok(r.rejected.length === 0 && r.saved === 2 && now2 === `${UNKNOWN}／50 USD`,
+  '㉑ ★p10a 100／200 USD を持つ人が、1回の送信で 低いほうを「わからない」・高いほうを 50 → 2つとも保存（低いほうに、もう額が無い）',
+  `${whyOf(r)} ｜ ${now2}`);
+await pairUser(413);
+r = await submit({ ...PC, answers: [dunno(HI), low(300)] });
+now2 = await pairNow(413);
+ok(r.rejected.length === 0 && r.saved === 2 && now2 === `300 USD／${UNKNOWN}`,
+  '㉑ ★p10b 100／200 USD を持つ人が、1回の送信で 高いほうを「わからない」・低いほうを 300 → 2つとも保存',
+  `${whyOf(r)} ｜ ${now2}`);
+await pairUser(414, false);
+r = await submit({ ...PC, answers: [high(200), low(300)] });
+now2 = await pairNow(414);
+await pairUser(415);
+const r11 = await submit({ ...PC, answers: [high(400), low(300)] });
+ok(whyOf(r) === BOTH_ORDER && now2 === '行なし／行なし'
+   && r11.rejected.length === 0 && (await pairNow(415)) === '300 USD／400 USD',
+  '㉑ ★p11 高いほうを先に並べた送信でも同じ（300・200 は2つとも断る／100・200 から 300・400 へは2つとも保存）',
+  `${whyOf(r)} ｜ ${now2} ｜ ${whyOf(r11)} ｜ ${await pairNow(415)}`);
+await pairUser(416);
+const day0 = await day(416);
+r = await submit({ ...PC, answers: [low(250)] });
+const day1 = await day(416);
+const r12 = await submit({ ...PC, answers: [low(150)] });
+ok(day0 === 3 && whyOf(r) === `${LO}:range_order` && r.saved === 0 && day1 === day0
+   && r12.saved === 1 && (await day(416)) === day0 + 1,
+  '㉑ ★p12 断った答えは、保存した数にも、1日の上限の数にも入らない（受け取った答えは、今までどおり1つ数える）',
+  JSON.stringify({ day0, day1, saved: r.saved, why: whyOf(r), next: r12.saved }));
+await pairUser(417, false);
+await submit({ ...PC, answers: [low(100)] });
+r = await submit({ ...PC, answers: [skipOf(LO)] });
+now2 = await pairNow(417);
+ok(r.skipped === 1 && now2 === '100 USD*／行なし',
+  '   （下ごしらえ）低いほう 100 USD を入れた人が、あとの送信でそれをスキップした ＝ 額は 100 のまま、印が付いている', now2);
+r = await submit({ ...PC, answers: [high(50)] });
+now2 = await pairNow(417);
+ok(whyOf(r) === `${HI}:range_order` && now2 === '100 USD*／行なし',
+  '㉑ ★p13 スキップの印が付いた 100 USD を持つ人が、高いほうを 50 で送る → 断る（range_order）。印の付いた額とも比べる',
+  `${whyOf(r)} ｜ ${now2}`);
+await pairUser(418);
+r = await submit({ ...PC, answers: [low(300), high(400, 'XXX')] });
+now2 = await pairNow(418);
+ok(whyOf(r) === `${LO}:range_order ${HI}:bad_currency` && now2 === '100 USD／200 USD',
+  '㉑ ★p14 同じ送信の相手が検品で落ちる（語彙に無い通貨の 400）→ 相手は保存されないので、300 は前の 200 と比べて断る',
+  `${whyOf(r)} ｜ ${now2}`);
+/* 同じ端を2回入れた送信（画面は送らない。手で作った送信）。同じ送信の相手と比べてよいのは、
+   その質問の最後の答えだけ（あとの答えに上書きされる答えは、その時点で保存されている相手と比べる）。
+   これが無いと、250 が「同じ送信の 300」と比べて通り、その 300 は 900 と食い違って断られ、
+   低いほう 250・高いほう 200 が残る。 */
+await pairUser(419);
+r = await submit({ ...PC, answers: [low(250), low(900), high(300)] });
+cx = await pairRows(419);
+ok(cx[LO] && cx[HI] && Number(cx[LO].answer_num) <= Number(cx[HI].answer_num)
+   && cx[LO].answer_currency === cx[HI].answer_currency,
+  '㉑ ★同じ端を2回入れた送信（低いほう 250・低いほう 900・高いほう 300）でも、食い違う2つは残らない',
+  `${whyOf(r)} ｜ ${await pairNow(419)}`);
+await pairUser(420);
+r = await submit({ ...PC, answers: [low(300), low(350), high(400)] });
+now2 = await pairNow(420);
+ok(now2 === '350 USD／400 USD' && whyOf(r) === `${LO}:range_order`,
+  '   対照: 最後の答えどうし（350・400）は、同じ送信の相手と比べて保存する（先の 300 は、前の 200 と比べて断る）',
+  `${whyOf(r)} ｜ ${now2}`);
+/* 上の決まりの2行は、ここまでのどの検査でも赤くできなかった（2026-10-11。どちらも、手で作った送信）。
+     c1 「その質問の最後の答え」を決めるとき、あとに在るスキップは答えに数えない。数えると、低いほう 50 EUR が
+        「最後ではない」になり、前の 200 USD と比べて断られ、100 USD／60 EUR が残る。
+     c2 同じ送信に相手の答えが2つ在るとき、比べるのは最後のもの。最初のものと比べると、500 が 600 と・60 が 50 と
+        比べて通り、500 USD／60 USD が残る。 */
+await pairUser(422);
+r = await submit({ ...PC, answers: [low(50, 'EUR'), skipOf(LO), high(60, 'EUR')] });
+now2 = await pairNow(422);
+ok(r.rejected.length === 0 && r.saved === 2 && r.skipped === 1 && now2 === '50 EUR*／60 EUR',
+  '㉑ ★c1 100／200 USD を持つ人が、1回の送信で 低いほう 50 EUR・低いほうをスキップ・高いほう 60 EUR → 2つとも保存'
+  + '（あとに在るスキップは答えではない ＝ 50 EUR は「最後の答え」のまま、同じ送信の 60 EUR と比べる）', `${whyOf(r)} ｜ ${now2}`);
+await pairUser(423);
+r = await submit({ ...PC, answers: [low(50), low(500), high(600), high(60)] });
+now2 = await pairNow(423);
+ok(whyOf(r) === BOTH_ORDER && r.saved === 2 && now2 === '50 USD／600 USD',
+  '㉑ ★c2 両方の端を2回ずつ入れた送信（低い 50・低い 500・高い 600・高い 60）→ 最後の答えどうし（500・60）を比べて2つとも断る。'
+  + '先の 50 と 600 が残る（相手の「最初の」答えと比べて、500／60 を通さない）', `${whyOf(r)} ｜ ${now2}`);
+
+/* ★1日の上限（60件）が、対の2つのあいだで切れるとき（2026-10-11）。
+   前は、先に回る低いほうだけが入り（同じ送信の高いほうと比べて通る）、高いほうは上限で断られて、
+   「低いほう 300・高いほう 200」が残った。食い違う2つを受け取らない、という決まりの、最後の抜け道。
+   同じ送信の2つの端は「1組」── **2つとも書くか、2つとも書かない**（額の無い「わからない」の端も、組に入る）。
+   上限に2件ぶんの空きが無ければ、2つとも rate_limited で返る（新しい理由は作らない）。
+   ⚠️ submit は、最後に asUser した会員として送る（pairUser も asUser を呼ぶ）。数を置く setDay と、
+      読むだけの pairRows・pairNow・day は、会員を切り替えない。 */
+const BOTH_LIM = `${LO}:rate_limited ${HI}:rate_limited`;
+const setDay = (n, k) => db.query(
+  `update profiles set cond_answers_day = current_date, cond_answers_today = $2 where id = $1`, [uid(n), k]);
+let dayN;
+
+await pairUser(431);
+await setDay(431, 59);
+r = await submit({ ...PC, answers: [low(300), high(400)] });
+now2 = await pairNow(431);
+dayN = await day(431);
+ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD' && dayN === 59,
+  '㉑ ★d1 100／200 USD を持つ人が、残り1件の日に、1回の送信で 300／400 に直す → 2つとも断る（rate_limited）。'
+  + '何も変わらない（低いほうだけ入って 300／200 にならない）・1日の数も増えない', `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+r = await submit({ ...PC, answers: [low(150)] });
+now2 = await pairNow(431);
+dayN = await day(431);
+ok(r.rejected.length === 0 && r.saved === 1 && now2 === '150 USD／200 USD' && dayN === 60,
+  '   d1 のつづき: 同じ人が、低いほうだけ 150 を送る → 保存（1件だけの答えは、今までどおり、残りの1件で入る）',
+  `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+await pairUser(432);
+await setDay(432, 59);
+r = await submit({ ...PC, answers: [high(400), low(300)] });
+now2 = await pairNow(432);
+dayN = await day(432);
+ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD' && dayN === 59,
+  '㉑ ★d1b 高いほうを先に並べた送信でも同じ（2つとも rate_limited・100／200 のまま・数も増えない）',
+  `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+await pairUser(433);
+await setDay(433, 58);
+r = await submit({ ...PC, answers: [low(300), high(400)] });
+now2 = await pairNow(433);
+dayN = await day(433);
+ok(r.rejected.length === 0 && r.saved === 2 && now2 === '300 USD／400 USD' && dayN === 60,
+  '㉑ d2 対照: 残り2件の日なら、300／400 は2つとも保存（1日の数は 60 ちょうど）',
+  `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+await pairUser(434);
+await setDay(434, 59);
+r = await submit({ ...PC, answers: [low(300), dunno(HI)] });
+now2 = await pairNow(434);
+ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD',
+  '㉑ ★d3 残り1件の日に、低いほう 300・高いほう「わからない」→ 2つとも断る（額の無い端も、組に入る）。100／200 のまま',
+  `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2}`);
+await pairUser(435);
+await setDay(435, 59);
+r = await submit({ ...PC, answers: [dunno(LO), high(50)] });
+now2 = await pairNow(435);
+ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD',
+  '㉑ ★d3\' 残り1件の日に、低いほう「わからない」・高いほう 50 → 2つとも断る。100／200 のまま',
+  `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2}`);
+await pairUser(436);
+await setDay(436, 58);
+r = await submit({ ...PC, answers: [low(300), skipOf(LO), high(400)] });
+now2 = await pairNow(436);
+dayN = await day(436);
+ok(whyOf(r) === `${LO}:rate_limited` && r.saved === 2 && r.skipped === 0 && now2 === '300 USD／400 USD' && dayN === 60,
+  '㉑ ★d4 残り2件の日に、低いほう 300・低いほうをスキップ・高いほう 400 → 断るのは、あいだのスキップだけ。'
+  + '300／400 が入り、スキップの印は付かない・1日の数は 60（高いほうのために取っておいた1件ぶんを、スキップに使わせない）',
+  `${whyOf(r)} ｜ 保存 ${r.saved}・スキップ ${r.skipped} ｜ ${now2} ｜ 数 ${dayN}`);
+await pairUser(437);
+await setDay(437, 57);
+r = await submit({ ...PC, answers: [low(300), high(400), { question_id: 'landing_pay_varies_by', code: 'aircraft' }] });
+now2 = await pairNow(437);
+dayN = await day(437);
+ok(r.rejected.length === 0 && r.saved === 3 && now2 === '300 USD／400 USD' && dayN === 60,
+  '㉑ ★d5 残り3件の日に、300／400 と「何で変わるか」→ 3件とも保存（取っておいた1件ぶんは、高いほうを書いたら使い終わり）',
+  `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+await asUser(438);
+await setDay(438, 58);
+r = await submit({ ...PC, answers: [VAR, low(300), high(400)] });
+now2 = await pairNow(438);
+dayN = await day(438);
+m = await mineOf(438, PC.airline);
+ok(whyOf(r) === BOTH_LIM && r.saved === 1 && m[LP.id]?.code === 'variable' && now2 === '行なし／行なし' && dayN === 59,
+  '㉑ ★d6 対をまだ持たない人が、残り2件の日に「一定額ではない」・300・400 → 親だけ保存し、2つの端は2つとも断る'
+  + '（親で1件使ったあとの空きは1件。どちらの行もできない・1日の数は 59）',
+  `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+
+/* 上の8行は、決めた形だけ。こちらは「性質」を見る ── 上限の近く（55〜60件め）で、対の2問に何をどう
+   並べて送っても、(1) 額を持つ2つが食い違って残らない・(2) 1日の数が 60 を超えない。
+   送信は、決まった種から作る（Math.random を使わない ＝ 毎回同じ 400 回）。1回に1〜4件、中身は
+   低いほう／高いほうの額（6つの額 × USD が多め・ときどき EUR）・「わからない」・スキップ。
+   ⚠️ 数だけで緑にしない: 「2つとも上限で断った回」と「2件以上保存した回」が1回も無い並びでは、
+      何も試していない。どちらかが 0 になったら、決まりではなく種を替える。 */
+{
+  let seed = 20261011;
+  const rnd = () => {               // 決まった並びを返す（mulberry32）
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const int = (k) => Math.floor(rnd() * k);
+  const pick = (xs) => xs[int(xs.length)];
+  const AMTS = [50, 100, 150, 200, 300, 400], CURS = ['USD', 'USD', 'USD', 'EUR'];
+  const draw = () => {
+    const k = int(8);
+    if (k < 3) return low(pick(AMTS), pick(CURS));
+    if (k < 6) return high(pick(AMTS), pick(CURS));
+    return k === 6 ? dunno(pick([LO, HI])) : skipOf(pick([LO, HI]));
+  };
+  const said = (a) => `${a.question_id === LO ? '低' : '高'}${a.skip ? 'スキップ' : a.code ? '?' : `${a.num}${a.currency}`}`;
+  let calls = 0, broken = 0, over60 = 0, cut = 0, both = 0, first = '';
+  for (const n of [441, 442, 443, 444]) {
+    await pairUser(n);
+    for (let i = 0; i < 100; i++) {
+      const start = 55 + int(6);
+      const answers = Array.from({ length: 1 + int(4) }, draw);
+      await setDay(n, start);
+      const res = await submit({ ...PC, answers });
+      const x = await pairRows(n);
+      const end = await day(n);
+      const why = whyOf(res);
+      calls++;
+      const clash = !!(x[LO] && x[HI] && x[LO].answer_num !== null && x[HI].answer_num !== null
+        && (x[LO].answer_currency !== x[HI].answer_currency || Number(x[LO].answer_num) > Number(x[HI].answer_num)));
+      if (clash) broken++;
+      if (end > 60) over60++;
+      if (start < 60 && why.includes(`${LO}:rate_limited`) && why.includes(`${HI}:rate_limited`)) cut++;
+      if (res.saved >= 2) both++;
+      if ((clash || end > 60) && !first) {
+        first = `会員 ${n}・${i + 1}回め: 数 ${start} → ${end} ｜ ${answers.map(said).join('・')} ｜ ${why || '断りなし'} ｜ ${sayEnd(x[LO])}／${sayEnd(x[HI])}`;
+      }
+    }
+  }
+  ok(broken === 0 && over60 === 0 && cut > 0 && both > 0,
+    '㉑ ★上限の近く（55〜60件め）で、対の2問に何を並べて送っても、食い違う2つは残らない・1日の数は 60 を超えない'
+    + `（決まった並びの ${calls} 回: 食い違い ${broken}・60超え ${over60} ｜ 2つとも上限で断った回 ${cut}・2件以上保存した回 ${both}）`,
+    first);
+}
+/* 相手の額は、この人の・この会社の行からだけ読む。同じ人がほかの会社で持っている額とは比べない
+   （ほかの人の額と比べないことは、下の公開集計の3人が見ている ── 混ざると、あちらが通貨の違いで断られる）。 */
+const PC2 = { airline: 'thai-airways', lang: 'ja' };   // ここまでのどの検査も回答を入れていない会社
+await pairUser(421);                                   // PC の会社に、低いほう 100 USD・高いほう 200 USD
+r = await submit({ ...PC2, answers: [VAR, low(300)] });
+cx = await rowsOf(421, PC2.airline, [LO, HI]);
+now2 = await pairNow(421);
+ok(r.rejected.length === 0 && r.saved === 2 && sayEnd(cx[LO]) === '300 USD' && !cx[HI] && now2 === '100 USD／200 USD',
+  '   同じ人がほかの会社で持っている額とは比べない（ほかの会社に 100／200 USD を持つ人が、この会社で低いほうを 300 → 保存）',
+  `${whyOf(r)} ｜ ${sayEnd(cx[LO])}／${sayEnd(cx[HI])} ｜ ほかの会社 ${now2}`);
+
+/* 公開集計 ── 通貨つきの質問は、**どれも**中央値を出さない（2026-10-11）。
+   上の「通貨の違う額の真ん中を…」の1行は着陸手当の額（一定額）しか見ていないので、決まりが
+   その1問だけに狭まっても緑のままだった。
+   通貨つきの質問は質問マスタから引く（公開集計が見ているのと同じ印）。質問を足せば、ここも
+   自動でその質問を見る。1問ずつ、別々の3人が円・ドル・ユーロで答える。
+   ★1人が入れるのは、その1問だけ（同じ人に、低いほうと高いほうを別々の通貨で持たせない）。
+   ⚠️ 額（下限 +1・+2・+3）は検査のための作りもの。 */
+console.log('\n▼ ㉑ 公開集計 ── 通貨つきの質問は、どれも中央値を出さない');
+const CURQ = (await rows(`select id from pv_condition_questions where active and has_currency order by priority`))
+  .map((x) => x.id);
+console.log(`   通貨つきの質問（質問マスタから）: ${CURQ.join('・')}`);
+ok(['training_bond_amount', 'landing_pay_amount', 'landing_pay_from', 'landing_pay_to'].every((id) => CURQ.includes(id)),
+  '㉑ 通貨つきの質問に、Bond の額と、着陸手当の額の3問（一定額・低いほう・高いほう）が入っている（空の一覧のまま通さない）',
+  JSON.stringify(CURQ));
+ok(same(CURQ, QUESTIONS.filter((q) => q.currency).map((q) => q.id)),
+  '   質問マスタの通貨の印は、生成元と同じ質問に付いている', JSON.stringify(CURQ));
+
+const MC = { ...LC, airline: 'korean-air' };   // ここまでのどの検査も回答を入れていない会社
+let seat = 9001;                                // ここから先の会員番号は、まだ誰も使っていない
+/* いちばん上の親から順に、その質問が開く答えを並べる（親の筋を通す） */
+const chainOf = (id) => {
+  const out = [];
+  for (let q = QBY[id]; q.parent; q = QBY[q.parent]) {
+    const p = QBY[q.parent];
+    out.unshift(p.kind === 'multi' ? { question_id: p.id, codes: [q.parentWhen[0]] }
+                                   : { question_id: p.id, code: q.parentWhen[0] });
+  }
+  return out;
+};
+/* 新しい3人が、親の筋を通して、その1問だけに答える。保存できなかった答えがあれば、それを返す */
+const three = async (id, curs) => {
+  const lost = [];
+  for (let i = 0; i < 3; i++) {
+    await asUser(seat++);
+    const a = { question_id: id, num: QBY[id].num.min + i + 1 };
+    if (curs) a.currency = curs[i];
+    lost.push(...(await submit({ ...MC, answers: [...chainOf(id), a] })).rejected);
+  }
+  return lost;
+};
+const factOf = async (id) => (await rows(
+  `select n, median_num from airline_condition_facts where airline = $1 and question_id = $2`,
+  [MC.airline, id]))[0] || null;
+
+for (const id of CURQ) {
+  const lost = await three(id, ['JPY', 'USD', 'EUR']);
+  f = await factOf(id);
+  ok(lost.length === 0 && f && f.n === 3,
+    `㉑ ${id}: 別々の3人が円・ドル・ユーロで答えたら、公開集計に出る（出るのは人数）`, JSON.stringify([lost, f]));
+  ok(f && f.median_num === null,
+    `㉑ ★${id}: 通貨の違う額の真ん中を、1つの数字として出さない（中央値は空）`, JSON.stringify(f));
+}
+/* 対照 ── 同じ形（新しい3人・親の筋を通す）で、通貨の無い数値質問には中央値が出る。
+   これが無いと、「どの質問にも中央値を出さない」壊れ方でも、上が全部緑になる。 */
+const CTL = QUESTIONS.find((q) => q.kind === 'num' && !q.currency && !q.topicOnly);
+const ctlLost = await three(CTL.id, null);
+f = await factOf(CTL.id);
+ok(ctlLost.length === 0 && f && f.n === 3 && f.median_num !== null && Number(f.median_num) === CTL.num.min + 2,
+  `   対照: 通貨の無い数値質問（${CTL.id}）は、同じ3人の形で中央値が出る → ${f?.median_num}`,
+  JSON.stringify([ctlLost, f]));
 
 
 /* オーナーが SQL Editor で見る検算表そのものを、ここで先に回しておく。

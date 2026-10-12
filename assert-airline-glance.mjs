@@ -253,6 +253,12 @@ const askCardOf = g => one(g, /<article class="pvg-card pvg-askc"[^>]*>([\s\S]*?
 const topicsOf = g => [...askCardOf(g).matchAll(/<details class="pvg-topic" data-topic="([a-z-]+)">\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/g)].map(m => ({ id: m[1], sum: m[2], body: m[3] }));
 /* 話題の並びと名前（オーナーの指定：勤務／通勤・タクシー／Staff Travel／機長昇格）。 */
 const ASK_TOPICS = [['work', '勤務'], ['taxi', '通勤・タクシー'], ['staff-travel', 'Staff Travel'], ['upgrade', '機長昇格']];
+/* 「情報を追加」の面の絵（pv-contrib.js の ICONS）。面のファイルの字から切り出して読む ── ここに写しを持たない
+   （写しを持つと、面の絵が変わっても、この検査は古い写しと比べて緑のまま）。読めなければ空 ＝ 下の突き合わせが落ちる。 */
+const SHEET_ICONS = (() => {
+  const t = read('pv-contrib.js'), a = t.indexOf('var ICONS = {'), b = a < 0 ? -1 : t.indexOf('};', a);
+  try { return b > a ? new Function(`return ${t.slice(a + 'var ICONS = '.length, b + 1)};`)() : {}; } catch { return {}; }
+})();
 
 const PAGES = Object.fromEntries(FIVE.map(s => [s, read(pageOf(s))]));
 const PART = {};
@@ -539,6 +545,70 @@ const ASKABLE = QUESTIONS.filter(askable).map(q => q.id);
   ok(same([...ks].sort(), [...ASK_GROUPS].sort()), '「情報を追加」の面が持っている話題は、通勤・Staff Travel・昇格・勤務スケジュール・訓練・休暇と手当の6つ', ks.join(' '));
   ok(/var PAY_SECTIONS = \{ roster: 1, career: 1 \};/.test(src), '補足を給与提出者だけに見せる区分（勤務スケジュール・キャリア）の写しが、面に在る');
 }
+/* 待遇の公開集計（airline_condition_facts）が持つ列。db/airline-conditions.sql の、ビューのいちばん外の select から読む
+   （ここへ書き写さない ＝ ビューの列が変われば、この一覧も一緒に変わる）。使う所は2つ ──
+   すぐ下の「ページが頼む列は、ビューに在る列だけ」と、ブラウザの検査の偽のサーバー（factReply）。 */
+const FACT_VIEW_COLS = (() => {
+  const sql = read('db/airline-conditions.sql');
+  const a = sql.lastIndexOf('select a.airline,'), b = a < 0 ? -1 : sql.indexOf('from agg a', a);
+  if (a < 0 || b < 0) return [];
+  const list = sql.slice(a + 'select'.length, b).split('\n').filter(l => !/^\s*--/.test(l)).join('\n');
+  const parts = []; let depth = 0, cur = '';
+  for (const ch of list) {
+    if (ch === '(') depth++; else if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) { parts.push(cur); cur = ''; } else cur += ch;
+  }
+  parts.push(cur);
+  return parts.map(p => { const t = p.trim().replace(/\s+/g, ' '), i = t.toLowerCase().lastIndexOf(' as '); return (i >= 0 ? t.slice(i + 4) : t.slice(t.lastIndexOf('.') + 1)).trim(); });
+})();
+{
+  /* 無い列を1つでも頼むと、本物のサーバーは 400 を返す ＝ 会社ページの集計の欄がぜんぶ「いま読み出せません」になる。 */
+  const asked = (one(noJsCmt(read('career-live.js')), /var FACT_COLS = '([^']*)';/) || '').split(',').map(c => c.trim()).filter(Boolean);
+  const lost = asked.filter(c => !FACT_VIEW_COLS.includes(c));
+  ok(FACT_VIEW_COLS.length > 0 && FACT_VIEW_COLS.every(c => /^[a-z_]+$/.test(c)) && asked.length > 0 && !lost.length,
+     '集計の欄が頼む列（career-live.js の FACT_COLS）は、公開ビュー（db/airline-conditions.sql）に在る列だけ', `ビューの列 ${FACT_VIEW_COLS.length}・頼む列 ${asked.length}・ビューに無い列「${lost.join(' ')}」`);
+  /* s-multi 選べるだけ選ぶ質問で、いちばん多い答えが並んだ時（2026-10-12）。
+       3人が別々の1つずつを選んだ行が「本人、配偶者・パートナー、子｜最多」と出ていた ＝ 全員一致と同じ形で、分かれているのに一致に見える。
+       並んだ答えを「最多」と並べるのは、どれも答えた人の半分より多くが選んだ時だけ。規則は career-live.js の answer() の1か所。
+       ここは関数の本体をそのまま切り出して評価する（写しを持たない）。 */
+  {
+    const src = read('career-live.js');
+    const cut = (from, to) => { const a = src.indexOf(from), b = src.indexOf(to, a); return (a >= 0 && b > a) ? src.slice(a, b) : ''; };
+    const one1 = (re) => { const m = src.match(re); return m ? m[0] : ''; };
+    const helpers = one1(/^  function isArr\(v\) \{.*\}$/m) + '\n' + one1(/^  function isNum\(v\) \{.*\}$/m) + '\n';   // 写しを持たない：本体をそのまま
+    const body = helpers + cut('  function optName(voc, code) {', '  function answerNode(ans) {');
+    let ans = null;
+    try {
+      if (!/function isArr/.test(helpers) || !/function isNum/.test(helpers)) throw new Error('helpers');
+      ans = new Function('T', 'numText', 'ym', body + '\n return answer;')(
+        { top: 'TOP', split: 'SPLIT', median: 'MED' }, v => String(v), () => '');
+    } catch { ans = null; }
+    const voc = { kind: 'multi', options: { self: '本人', partner: '配偶者', children: '子' } };
+    const run = (n, dist, where) => { try {
+      const r = ans({ kind: where === 'voc' ? 'choice' : 'multi', n, answer_dist: dist }, where === 'row' ? { ...voc, kind: 'choice' } : voc);
+      return r ? (r.split ? 'SPLIT' : r.text + '|' + r.how) : 'none'; } catch (e) { return 'throw'; } };
+    const got = !ans ? ['関数を切り出せない'] : [
+      run(3, { self: 1, partner: 1, children: 1 }),      // 3人が別々 → 分かれている
+      run(4, { self: 2, partner: 2 }),                   // ちょうど半分ずつ → 分かれている
+      run(3, { self: 3, partner: 3, children: 2 }),      // どちらも全員 → 並べて最多
+      run(3, { self: 2, partner: 2, children: 1 }),      // どちらも半分より多い → 並べて最多
+      run(null, { self: 2, partner: 2 }),                // 人数が読めない → 分かれている側
+      run(5, { self: 2, partner: 1, children: 1 }),      // いちばん多い答えが1つ → その名前に最多（今までどおり）
+      run(2, { self: 3, partner: 3 }),                   // 人数より多い数（本物のビューは返さない形）→ 分かれている側
+      run(3, { self: 3, partner: 3 }, 'row'),            // 「選べるだけ選ぶ」の印が行にだけ在る → 同じ規則
+      run(3, { self: 3, partner: 3 }, 'voc'),            // 印が台帳にだけ在る → 同じ規則
+    ];
+    const want = ['SPLIT', 'SPLIT', '本人、配偶者|TOP', '本人、配偶者|TOP', 'SPLIT', '本人|TOP', 'SPLIT', '本人、配偶者|TOP', '本人、配偶者|TOP'];
+    ok(got.length === want.length && got.every((g, k) => g === want[k]),
+       's-multi 選べるだけ選ぶ質問: 並んだ答えを「最多」と並べるのは、どれも答えた人の半分より多くが選んだ時だけ（3人が別々の1つずつ・ちょうど半分ずつ・人数が読めない時は「回答が分かれています」）',
+       got.join(' ／ '));
+  }
+}
+/* 額の質問（通貨つき）。集計の欄は通貨を付けずに「数字＋単位」で出すので、どの欄にも入れない。 */
+const MONEY_Q = QUESTIONS.filter(q => q.currency).map(q => q.id);
+/* 待遇の板の集計の欄が、聞いている質問のほかに持つ3問（着陸手当の、選ぶ形の質問）。
+   どの入口からも答えられる質問で、3人そろえば会社ページに出る、と札に書いてある ── 出す欄が無ければ、その文が嘘になる。 */
+const BEN_SHOWN = ['landing_pay', 'landing_pay_unit', 'landing_pay_varies_by'];
 const linkedTopicOnly = new Set();
 for (const s of FIVE) {
   const P = PART[s], both = P.hero + P.glance;
@@ -585,6 +655,16 @@ for (const s of FIVE) {
     ok(!bad.length, `${s}: 回答の集計を出す欄が指すのは、在る質問だけ`, bad.join(', '));
   }
   {
+    const keysOf = m => (one(m[1], / data-keys="([^"]*)"/) || '').split(',').filter(Boolean);
+    const facts = boxes.filter(m => m[1].includes(' data-live="fact"'));
+    const iB = both.indexOf('<div class="pvg-card pvg-panel" id="pvg-p-benefits"'), iE = iB < 0 ? -1 : both.indexOf('<article class="pvg-card pvg-cell" data-cell="living"', iB);
+    const inBen = facts.filter(m => m.index > iB && m.index < iE);
+    const lost = inBen.length === 1 ? BEN_SHOWN.filter(k => !keysOf(inBen[0]).includes(k)) : BEN_SHOWN;
+    ok(iB >= 0 && iE > iB && inBen.length === 1 && !lost.length, `${s}: 待遇の板の集計の欄は、着陸手当の選ぶ質問3つ（有無・数え方・何で変わるか）も指している`, `欄 ${inBen.length}つ・指していない質問「${lost.join(' ')}」`);
+    const money = facts.flatMap(keysOf).filter(k => MONEY_Q.includes(k));
+    ok(facts.length > 0 && MONEY_Q.length > 0 && !money.length, `${s}: 集計の欄は、額の質問（通貨つき）を1つも指していない（欄は通貨を付けずに数字だけを出す）`, money.join(' '));
+  }
+  {
     /* 「ひとつ教えて」のカード：話題の札 ── 絵 → 話題の名前 → 小さい字（補足・「質問 N問」）。
        札に書く数は「質問の数」だけ（下に並ぶ行を数えて突き合わせる）。回答の数は、上の「集まった回答」の欄にだけ出る。
        札の単位は「問」・集まった回答の単位は「人」── 2つを同じ所に同じ書き方で置かない（質問の数が、回答の数に読めてしまう）。
@@ -598,6 +678,29 @@ for (const s of FIVE) {
     const icoOf = h => one(h, /^<span class="pvg-ico" aria-hidden="true"><svg\b[^>]*><path d="([^"]+)"\/><\/svg><\/span>/) || '';
     const pics = [...tps.map(t => icoOf(t.sum)), icoOf(one(card, /<a class="pvg-topic pvg-topic-a" href="#pvg-stay">([\s\S]*?)<\/a>/) || '')];
     ok(pics.length === 5 && pics.every(Boolean) && new Set(pics).size === 5, `${s}: 話題の札の絵は4つとも違い、ホテル・レストランの絵とも違う（色だけで見分けさせない）`, pics.map(d => d.slice(0, 14)).join(' ／ '));
+    {
+      /* 札の絵は、その札の質問が開く面（「情報を追加」）の、同じ話題の絵と同じ ── 札を押した先で、別の絵に変わらない。
+         どの面を開くかは、札の下の質問の行（data-pvc-open）を読む。行が無い札・面が2つの札・面に絵が無い話題は、飛ばさずに落とす。 */
+      const bad = [];
+      for (const t of tps) {
+        const views = [...new Set([...t.body.matchAll(/ data-pvc-open="([^"]*)"/g)].map(m => m[1]))];
+        const draw = views.length === 1 && Object.hasOwn(SHEET_ICONS, views[0]) ? SHEET_ICONS[views[0]] : null;
+        if (views.length !== 1) bad.push(`${t.id}: 質問の行が開く面が ${views.length}つ（${views.join(' ')}）`);
+        else if (!(Array.isArray(draw) && draw.length && draw.every(d => typeof d === 'string' && d))) bad.push(`${t.id}: 面に「${views[0]}」の絵が無い（pv-contrib.js の ICONS）`);
+        else if (icoOf(t.sum) !== draw.join(' ')) {
+          const a = icoOf(t.sum), b = draw.join(' ');
+          let i = 0; while (i < a.length && a[i] === b[i]) i++;
+          bad.push(`${t.id}: 面の「${views[0]}」の絵と ${i + 1}字めから違う（札「${a.slice(Math.max(0, i - 10), i + 10)}」／面「${b.slice(Math.max(0, i - 10), i + 10)}」）`);
+        }
+      }
+      ok(tps.length === 4 && !bad.length, `${s}: 話題の札の絵は、その札の質問が開く面（「情報を追加」）の、同じ話題の絵と同じ`, bad.join(' ／ '));
+    }
+    {
+      /* 見出し「◯◯のこと、ひとつ教えて。」── 字はこのまま、2つのかたまり（狭い画面で折れるのは、そのあいだだけ）。
+         かたまりの外にも、あいだにも、字や空白を置かない（置くと、見出しの字が変わる）。 */
+      const h2 = one(card, /<h2 class="pvg-eyebrow">([\s\S]*?)<\/h2>/), m = /^<span>([^<]+)のこと、<\/span><span>ひとつ教えて。<\/span>$/.exec(h2 || '');
+      ok(!!m && unesc(m[1]) === nameOf(s), `${s}: カードの見出しは「${nameOf(s)}のこと、」「ひとつ教えて。」の2つのかたまりだけ（外にも、あいだにも、字や空白が無い）`, h2 === null ? '見出しが無い' : h2);
+    }
     {
       const bad = [];
       for (const t of tps) {
@@ -1168,7 +1271,7 @@ const { default: puppeteer } = await import('puppeteer');
 
 /* 外へは1本も出さない。実データの欄が呼ぶ6つにだけ、決まった返事を返す。
      mode 'empty' … 0件（鍵は掛かったまま）
-     mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）＋「集まった回答」の欄に、検査用の集計3行
+     mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）＋待遇の集計に、検査用の行（FACT_ROWS と BEN_ROWS）
      mode 'rated' … 鍵の無い人に返る、点数の付いた口コミ3件（本文は無い。在るのは書かれた欄の名前と先頭の抜粋だけ）
      mode 'rated404' … 口コミは 'rated' と同じ・要約の口だけ 404（＝ いまの本番の形。要約の欄は出ず、下の欄の錠前の1行が見える）
      mode 'off'   … 全部 500 ＝「読めない時」
@@ -1180,16 +1283,89 @@ const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
 /* ホテルの欄だけ、場面ごとに返事を差し替えられる（seen.stay）。運営の公開・却下は、送られた中身を控える（seen.mod）。
    ふだんは下の STUB のまま ＝ 鍵の1行。差し替えるのは「開いた時の画面」を見る1場面だけ。 */
 const STAY_RE = /\/rest\/v1\/rpc\/pv_stays$/, STAY_MOD_RE = /\/rest\/v1\/rpc\/pv_stay_moderate$/;
-/* 待遇の集計（airline_condition_facts）。ふだんは0件。'rows' の時だけ、下の3行を返す ＝ 回答が在る時の画面を見る。
+/* 待遇の集計（airline_condition_facts）。ふだんは0件。'rows' の時だけ、下の行を返す ＝ 回答が在る時の画面を見る。
    ⚠️ 検査のために作った行で、本物の集計ではない（人数も答えも、この検査のファイルの中にしか無い）。
-   3つとも「ひとつ教えて」のカードだけが持つ質問にしてある ＝ ほかの欄（勤務・待遇・暮らしの板）は今までどおり0件のまま。
-   答えの名前（top_code）は質問の台帳の選択肢から選んだ。台帳から消えると、その行は画面に出ない（下の「回答が在る時」が落ちる）。 */
+   FACT_ROWS の9行は「ひとつ教えて」のカードだけが持つ質問・BEN_ROWS の3行は待遇の板だけが持ちうる質問
+   ＝ 勤務と暮らしの板は今までどおり0件のまま。
+   行の形は公開ビュー（db/airline-conditions.sql）のとおり ──
+     n ＝「わからない」のほかの答えを入れた人の数・answer_dist ＝ 答えごとの人数（選べるだけ選ぶ質問では、足すと n を超える）・
+     top_code ＝ いちばん多い答えのうち、名前がアルファベット順で先のもの（＝ 並んだ時は、ただ先に来ただけの1つ）。
+     数の質問には top_code も answer_dist も無い。
+   want ＝ その行から画面に出るはずの形。検査の中だけの鍵で、返事には載せない（ビューの列ではない）。
+     lead   … その答えの名前＋「最多」（2つ在るのは、選べるだけ選ぶ質問でいちばん多い答えが2つ並び、どちらも答えた人の半分より多くが選んだ時）
+     split  … いちばん多い答えが2つ以上並んだ ＝ 答えの名前を出さず「回答が分かれています」
+     median … 数の中央値＋単位＋「中央値」
+     none   … 行を出さない（9行め：answer_dist が無いのに top_code だけ在る。top_code だけを頼りに答えを出さない。
+              着陸手当の額：通貨つきの質問で、どの欄も指していない。本物のビューは通貨つきの中央値を返さないが、
+              ここではわざと数字を入れてある ＝ 届いても画面に出ないことを見る）
+   答えの名前は、質問の台帳（pv-conditions.json）から引く。台帳から消えると、その行は画面に出ない（下の「回答が在る時」が落ちる）。 */
 const FACT_RE = /\/rest\/v1\/airline_condition_facts$/;
 const FACT_ROWS = [
-  { question_id: 'commuting_taxi_cost', kind: 'choice', n: 3, top_code: 'company_full', median_num: null, last_confirmed_at: '2026-08-15T00:00:00Z' },
-  { question_id: 'staff_travel_cabin', kind: 'choice', n: 6, top_code: 'if_available', median_num: null, last_confirmed_at: '2026-09-20T00:00:00Z' },
-  { question_id: 'upgrade_years', kind: 'num', n: 11, top_code: null, median_num: 9.5, last_confirmed_at: '2026-09-02T00:00:00Z' },
+  { question_id: 'commuting_taxi_cost', kind: 'choice', n: 3, top_code: 'company_full', answer_dist: { company_full: 2, partial: 1 }, median_num: null, last_confirmed_at: '2026-08-15T00:00:00Z', want: { lead: ['company_full'] } },
+  { question_id: 'staff_travel_cabin', kind: 'choice', n: 6, top_code: 'if_available', answer_dist: { if_available: 4, by_rank: 2 }, median_num: null, last_confirmed_at: '2026-09-20T00:00:00Z', want: { lead: ['if_available'] } },
+  { question_id: 'upgrade_years', kind: 'num', n: 11, top_code: null, answer_dist: null, median_num: 9.5, last_confirmed_at: '2026-09-02T00:00:00Z', want: { median: 9.5 } },
+  { question_id: 'commuting_taxi_where', kind: 'choice', n: 3, top_code: 'door_to_door', answer_dist: { door_to_door: 1, within_area: 1, to_set_point: 1 }, median_num: null, last_confirmed_at: '2026-10-01T00:00:00Z', want: { split: true } },
+  { question_id: 'staff_travel_booking', kind: 'choice', n: 4, top_code: 'both', answer_dist: { standby: 2, both: 2 }, median_num: null, last_confirmed_at: '2026-09-11T00:00:00Z', want: { split: true } },
+  { question_id: 'upgrade_order', kind: 'choice', n: 3, top_code: 'seniority', answer_dist: { seniority: 3 }, median_num: null, last_confirmed_at: '2026-07-30T00:00:00Z', want: { lead: ['seniority'] } },
+  { question_id: 'staff_travel_standby_family', kind: 'multi', n: 3, top_code: 'partner', answer_dist: { self: 3, partner: 3, children: 2 }, median_num: null, last_confirmed_at: '2026-09-05T00:00:00Z', want: { lead: ['self', 'partner'] } },
+  { question_id: 'staff_travel_confirmed_family', kind: 'multi', n: 3, top_code: 'self', answer_dist: { self: 3, partner: 2, children: 2 }, median_num: null, last_confirmed_at: '2026-09-06T00:00:00Z', want: { lead: ['self'] } },
+  { question_id: 'commuting_taxi_cap', kind: 'choice', n: 3, top_code: 'no_cap', median_num: null, last_confirmed_at: '2026-08-21T00:00:00Z', want: { none: true } },
 ];
+const BEN_ROWS = [
+  { question_id: 'landing_pay', kind: 'choice', n: 3, top_code: 'fixed', answer_dist: { fixed: 2, variable: 1 }, median_num: null, last_confirmed_at: '2026-10-03T00:00:00Z', want: { lead: ['fixed'] } },
+  { question_id: 'landing_pay_unit', kind: 'choice', n: 4, top_code: 'per_landing', answer_dist: { per_landing: 2, per_leg: 2 }, median_num: null, last_confirmed_at: '2026-10-04T00:00:00Z', want: { split: true } },
+  { question_id: 'landing_pay_amount', kind: 'num', n: 3, top_code: null, answer_dist: null, median_num: 1500, last_confirmed_at: '2026-10-05T00:00:00Z', want: { none: true } },
+];
+/* 本物のサーバーと同じ返し方（手元のサーバーで確かめた形）：頼まれた列（select=）だけを返す・ビューに無い列を頼まれたら 400。
+   行が持っていない列は null（本物も、列は必ず返す）。列の一覧は FACT_VIEW_COLS ＝ SQL から読んだもの。 */
+const factReply = (u, rows) => {
+  const sel = u.searchParams.get('select');
+  const cols = !sel || sel === '*' ? FACT_VIEW_COLS : sel.split(',').map(c => c.trim()).filter(Boolean);
+  const lost = cols.filter(c => !FACT_VIEW_COLS.includes(c));
+  if (lost.length) return { status: 400, body: JSON.stringify({ code: '42703', details: null, hint: null, message: `column "${lost[0]}" does not exist` }) };
+  const air = (/^eq\.(.*)$/.exec(u.searchParams.get('airline') || '') || [])[1] ?? null;
+  return { status: 200, body: JSON.stringify(rows.map(r => Object.fromEntries(cols.map(c => [c, c === 'airline' ? air : (c in r ? r[c] : null)])))) };
+};
+/* 画面の1行が、検査用の1行（f）から出るはずの形か。答えの名前・質問の字・単位は台帳から引く（ここへ書き写さない）。
+   印（r2〜r8）は、落ちた時にどの約束が破れたかを読むためのもの。
+     r2 最多の行：答えの名前＋「最多」          r3 分かれた行：「回答が分かれています」・「最多」も「中央値」も、答えの名前も無い
+     r4 最多が2つ並んだ行（選べるだけ選ぶ質問）：台帳の並びで「、」でつなぐ＋「最多」      r5 数の行：数字＋単位＋「中央値」
+     r7 人数は「回答 N人」の1つだけ（N はその質問に答えた人の数。「その答えを選んだ人の数」と読める素の「N人」にしない）
+     r8 小さい字は［最多か中央値］・回答 N人・年月 だけ。行のどこにも、字にも属性にも、答えごとの人数を置かない */
+const SPLIT_TEXT = '回答が分かれています';
+const factRowBad = (r, f, at) => {
+  const q = QBY.get(f.question_id), W = f.want, bad = [], say = (id, t) => bad.push(`${id} ${at}: ${t}`);
+  const people = `回答 ${f.n}人`, d = /^(\d{4})-(\d{2})/.exec(f.last_confirmed_at), month = `${d[1]}年${Number(d[2])}月`;
+  const names = (q.choices || []).map(c => c.ja);
+  const how = W.split ? null : W.median != null ? '中央値' : '最多';
+  const v = W.split ? SPLIT_TEXT : W.median != null ? `${W.median}${q.num.ja}` : q.choices.filter(c => W.lead.includes(c.code)).map(c => c.ja).join('、');
+  const id = W.split ? 'r3' : W.median != null ? 'r5' : W.lead.length > 1 ? 'r4' : 'r2';
+  if (!r.on) say(id, '見えていない');
+  if (r.v !== v) say(id, `答えの字「${r.v}」（あるべき「${v}」）`);
+  if (how && !same(r.how, [how])) say(id, `「${how}」の字が無い（${r.how.join('・') || '無し'}）`);
+  if (W.split) {
+    if (r.how.length || /最多|中央値/.test(r.ans)) say(id, `分かれた行に「最多」「中央値」が在る（${r.ans}）`);
+    const hit = names.filter(n => r.ans.includes(n));
+    if (hit.length) say(id, `分かれた行に、答えの名前が在る（${hit.join('・')}）`);
+  }
+  const ppl = r.m.filter(x => /人/.test(x));
+  if (ppl.length !== 1 || ppl[0] !== people) say('r7', `人数の字「${ppl.join('・')}」（あるべき「${people}」の1つだけ）`);
+  const items = [...(how ? [how] : []), people, month];
+  if (!same(r.m, items)) say('r8', `小さい字「${r.m.join('｜')}」（あるべき「${items.join('｜')}」）`);
+  if (squash(r.text) !== squash(q.ja.label + v + items.join(''))) say('r8', `行に、質問・答え・小さい字のほかの字が在る「${r.text}」`);
+  const attrs = r.attrs.filter(([n, val]) => n !== 'class' || /\d/.test(val));
+  if (attrs.length) say('r8', `行に、class のほかの属性・数字の入った属性が在る（${attrs.map(a => a.join('=')).join(' ')}）`);
+  return bad;
+};
+/* ページの中で、集計の欄（sel）の行を読む。attrs ＝ 行とその中の要素が持つ属性ぜんぶ（字に出なくても、属性に数が入っていれば分かる）。 */
+const factRowsOf = (p, sel) => p.evaluate(sel => {
+  const vis = el => !!el && el.getClientRects().length > 0, tx = el => (el ? el.textContent : '').trim();
+  return [...document.querySelectorAll(sel + ' .crl-fact')].map(r => ({
+    on: vis(r), k: tx(r.querySelector('.crl-fact-k')), v: tx(r.querySelector('.crl-ans-v')), ans: tx(r.querySelector('.crl-ans')), text: tx(r),
+    m: [...r.querySelectorAll('.crl-ans-m > span')].map(tx), how: [...r.querySelectorAll('.crl-how')].map(tx),
+    attrs: [r, ...r.querySelectorAll('*')].flatMap(e => [...e.attributes].map(a => [a.name, a.value])),
+  }));
+}, sel);
 const STUB = [
   [/\/rest\/v1\/rpc\/pv_reviews$/, '{"unlocked":false,"rows":[]}'],
   [PAY_RE, '{"ok":true,"state":"locked","rows":[]}'],
@@ -1276,7 +1452,11 @@ async function open(browser, slug, w, h, mode, pre) {
       }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
-        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug) : seen.mode === 'rows' && hit[0] === FACT_RE ? JSON.stringify(FACT_ROWS)
+        if (hit[0] === FACT_RE) {
+          const f = factReply(u, seen.mode === 'rows' ? [...FACT_ROWS, ...BEN_ROWS] : []);
+          return r.respond({ status: f.status, contentType: 'application/json', headers: cors, body: f.body });
+        }
+        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug)
                    : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body });
       }
@@ -1614,6 +1794,9 @@ function LIB() {
     pr.style.cssText = 'position:fixed;left:-99px;top:0;color:var(--pv-accent-ink);background:var(--pv-ink-2)';
     c.closest('.pvg').appendChild(pr);
     const tok = { name: getComputedStyle(pr).color, meta: getComputedStyle(pr).backgroundColor };
+    /* 札の地と枠のトークンも、同じ見本に塗って読む（色の値をここに書かない）。暗い画面の値は半透明 ＝ 札と同じ属性で読んで、字のまま比べる。 */
+    pr.style.cssText = 'position:fixed;left:-99px;top:0;background:var(--pv-accent-soft);border-top:1px solid var(--pv-accent-line)';
+    tok.soft = getComputedStyle(pr).backgroundColor; tok.line = getComputedStyle(pr).borderTopColor;
     pr.remove();
     const tile = c.querySelector('a.pvg-topic-a'), tchip = tile && tile.querySelector('.pvg-ico');
     return {
@@ -1767,7 +1950,9 @@ function scoreBad(s, sc, slots, rows, sum) {
 }
 /* 話題の札（「ひとつ教えて」のカード）── 測ったものを、約束ごとに突き合わせる。
    rank ＝ 話題の名前が質問より先に読める（名前のほうが大きく、太い・濃い緑）。
-   face ＝ 色だけで見分けさせない（地の色・枠・絵が在って、見えている）。
+   face ＝ 色だけで見分けさせない（地の色・枠・絵が在って、見えている）。色は「違って見える」だけでは通さない ──
+          地は淡い緑（--pv-accent-soft）・枠は緑の線（--pv-accent-line）・絵は濃い緑（--pv-accent-ink）。ページが解いた値と突き合わせる
+          （「カードと違う色」だけを見ていた頃は、札を白や灰色に塗り替えても緑のままだった）。
    row  ＝ 同じ行の札は高さも、その下の質問の頭もそろう・行は端から端まで札で埋まる・「ホテル・レストラン」は1行ぜんぶ。
    fit  ＝ 札は押せる高さ・名前が札からはみ出さない。
    tile ＝ 「ホテル・レストラン」の矢印は右端・左の絵は箱のまんなか。
@@ -1785,15 +1970,18 @@ function plateBad(pl, kind) {
     if (!(t.name.fs >= t.q.fs + 2 && t.name.fw >= 700 && t.q.fw <= 500)) B.rank.push(`${at}: 名前（${t.name.fs}px・太さ ${t.name.fw}）と質問（${t.q.fs}px・太さ ${t.q.fw}）`);
     if (t.name.ink !== pl.tok.name) B.rank.push(`${at}: 名前の色 ${t.name.ink}（濃い緑は ${pl.tok.name}）`);
     if (!(alpha(t.bg) > 0 && t.bg !== pl.card)) B.face.push(`${at}: 地の色が無い（札 ${t.bg}・カード ${pl.card}）`);
+    else if (t.bg !== pl.tok.soft) B.face.push(`${at}: 地が淡い緑でない（札 ${t.bg}・淡い緑は ${pl.tok.soft}）`);
     /* 枠と絵は「在る」だけでなく「見える」まで測る（透明な枠・地と同じ色の枠・透けた絵・地と同じ色の線は、在っても見えない）。
        絵の下の地 ＝ 絵の小さい箱の色。箱が透明なら、その下の札の地。 */
     if (t.edge < 1) B.face.push(`${at}: 枠が無い`);
     else if (!(alpha(t.edgeInk) > 0 && t.edgeInk !== t.bg)) B.face.push(`${at}: 枠が見えない（枠 ${t.edgeInk}・札の地 ${t.bg}）`);
+    else if (t.edgeInk !== pl.tok.line) B.face.push(`${at}: 枠が緑の線でない（枠 ${t.edgeInk}・緑の線は ${pl.tok.line}）`);
     const k = t.pic, under = k && alpha(k.under) > 0 ? k.under : t.bg;
     if (!(t.chip && t.chip.w >= 20 && t.chip.h >= 20)) B.face.push(`${at}: 絵が見えていない`);
     else if (!(k && k.w >= 14 && k.h >= 14)) B.face.push(`${at}: 絵が小さすぎる（${k ? `${Math.round(k.w)}×${Math.round(k.h)}px` : '線画が無い'}）`);
     else if (!(k.op > 0 && k.vis === 'visible')) B.face.push(`${at}: 絵が透けていて見えない（透け具合 ${k.op}・${k.vis}）`);
     else if (!(/^rgba?\(/.test(k.ink) && alpha(k.ink) > 0 && k.ink !== under)) B.face.push(`${at}: 絵の線が見えない（線 ${k.ink}・その下の地 ${under}）`);
+    else if (k.ink !== pl.tok.name) B.face.push(`${at}: 絵の線が濃い緑でない（線 ${k.ink}・濃い緑は ${pl.tok.name}）`);
     if (t.sum.h < 44) B.fit.push(`${at}: 高さ ${Math.round(t.sum.h)}px`);
     if (t.name.sw > t.name.cw + 1) B.fit.push(`${at}: 名前がはみ出す（字 ${t.name.sw}px・入れ物 ${t.name.cw}px）`);
   }
@@ -2001,8 +2189,9 @@ async function runView(browser, s, [w, h, kind]) {
             if (t.ink !== hv.tok.meta) dark.push(`触れた時の小さい字の色 ${t.ink}（灰色は ${hv.tok.meta}）`);
           }
         } else {
-          /* 広い画面では札は押せず、触れるのは「ほか◯問」。ここも同じ話 ── 触れた時の色を言い直し忘れると、
-             暗い画面で作り直していない緑（地とのコントラストが約3:1）に替わって読みにくくなる。
+          /* 広い画面では札は押せず、触れるのは「ほか◯問」。ここも同じ話 ── 触れた時の色が、暗い画面で作り直していない緑
+             （地とのコントラストが約3:1）に替わると読みにくくなる。「ほか◯問」は文字リンク（.pvg-link）の1つで、
+             触れた時の色は文字リンクぜんぶの決まり（pv-glance.css の .pvg .pvg-link:hover）が決める ＝ ここが見ているのは、その決まり。
              「ほか◯問」が1つも無い時は測らない（在るべき束に無ければ、下の「質問の束」が落ちる）。 */
           const more = await p.evaluateHandle(() => [...document.querySelectorAll('.pvg-askc [data-pvg-askmore]')].find(b => b.getClientRects().length) || null);
           const btn = more.asElement();
@@ -2024,7 +2213,7 @@ async function runView(browser, s, [w, h, kind]) {
         await ev(w0 => { const r = document.documentElement; if (w0 === null) r.removeAttribute('data-theme'); else r.setAttribute('data-theme', w0); }, was);
       }
       ok(!B.rank.length, `${tag}: 話題の名前が、質問より先に読める ── 名前は濃い緑で、質問より 2px 以上大きく、太い`, B.rank.slice(0, 4).join(' ／ '));
-      ok(!B.face.length, `${tag}: 話題の札は、色だけで見分けさせない ── 地の色・枠・絵が在って、見えている`, B.face.slice(0, 4).join(' ／ '));
+      ok(!B.face.length, `${tag}: 話題の札は、色だけで見分けさせない ── 淡い緑の地・緑の枠・濃い緑の絵が在って、見えている`, B.face.slice(0, 4).join(' ／ '));
       ok(!B.row.length, `${tag}: 話題の札の並び ── 同じ行の札は高さも質問の頭もそろう・行は端から端まで札で埋まる・「ホテル・レストラン」は1行ぜんぶの幅`, B.row.slice(0, 4).join(' ／ '));
       ok(!B.fit.length, `${tag}: 話題の札は 44px 以上の高さで、名前が札からはみ出さない`, B.fit.slice(0, 4).join(' ／ '));
       ok(!B.tile.length, `${tag}: 「ホテル・レストラン」の入口 ── 矢印は右端・左の絵は箱のまんなか`, B.tile.slice(0, 4).join(' ／ '));
@@ -2210,8 +2399,9 @@ async function runRows(browser, s, [w, h, kind]) {
   try {
     ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
     await plateWords(p, s, tag);
-    /* 回答が在る時（検査用の集計3行）── 2つの数え方が同じ画面に並んだ時に、混ざらないこと。
-       人数（◯人）は「集まった回答」の欄にだけ出る。話題の札は「質問 N問」のまま ＝ 札に人数・件数・「回答」の字が入らない。
+    /* 回答が在る時（検査用の集計 FACT_ROWS）── 2つの数え方が同じ画面に並んだ時に、混ざらないこと。
+       「ひとつ教えて」のカードの中で、人数（回答 ◯人）が出るのは「集まった回答」の欄だけ。
+       話題の札は「質問 N問」のまま ＝ 札に人数・件数・「回答」の字が入らない。
        逆も見る：「集まった回答」の欄に「◯問」と書かない（質問の数を、回答の数のように見せない）。
        ほかの場面は回答が0件で欄が空なので、2つが並ぶのを見られるのはここだけ。 */
     {
@@ -2220,22 +2410,15 @@ async function runRows(browser, s, [w, h, kind]) {
         const vis = el => !!el && el.getClientRects().length > 0, tx = el => (el ? el.textContent : '').trim();
         return {
           state: slot ? slot.dataset.state : null, keys: slot ? (slot.getAttribute('data-keys') || '').split(',') : [], text: tx(box),
-          rows: [...c.querySelectorAll('.pvg-got .crl-fact')].map(r => ({ on: vis(r), k: tx(r.querySelector('.crl-fact-k')), v: tx(r.querySelector('.crl-ans-v')), m: [...r.querySelectorAll('.crl-ans-m > span')].map(tx) })),
           stray: [...c.querySelectorAll('.crl-fact')].filter(r => !r.closest('.pvg-got')).length,
           plates: [...c.querySelectorAll('details.pvg-topic > summary')].map(x => ({ on: vis(x), text: tx(x) })),
         };
       });
+      const rows = await factRowsOf(p, '.pvg-askc .pvg-got');
       const want = FACT_ROWS.filter(f => got.keys.includes(f.question_id)).sort((a, b) => got.keys.indexOf(a.question_id) - got.keys.indexOf(b.question_id));
       const bad = [];
       if (got.state !== 'open') bad.push(`回答の欄が ${got.state}（回答が出た形のはず）`);
       if (want.length !== FACT_ROWS.length) bad.push(`検査用の ${FACT_ROWS.length}行のうち、欄が持つ質問は ${want.length}行`);
-      if (got.rows.length !== want.length) bad.push(`回答の行 ${got.rows.length}（あるべき ${want.length}）`);
-      else for (const [i, f] of want.entries()) {
-        const r = got.rows[i], at = `${i + 1}行め`;
-        if (!r.on) bad.push(`${at}: 見えていない`);
-        if (!r.k || !r.v) bad.push(`${at}: 質問か答えの字が無い`);
-        if (r.m.filter(x => /人/.test(x)).join('｜') !== `${f.n}人`) bad.push(`${at}: 人数の字「${r.m.join('・')}」（あるべき ${f.n}人）`);
-      }
       if (/\d\s*問/.test(got.text)) bad.push('「集まった回答」の欄に「◯問」と書いてある');
       if (got.stray) bad.push(`回答の行が、欄の外に ${got.stray}つ`);
       if (got.plates.length !== 4) bad.push(`話題の札 ${got.plates.length}枚`);
@@ -2244,7 +2427,23 @@ async function runRows(browser, s, [w, h, kind]) {
         if (/回答|\d\s*[人件]/.test(t.text)) bad.push(`札に回答の数が入っている「${t.text}」`);
         if (!/質問 \d+問/.test(t.text)) bad.push(`札に「質問 N問」が無い「${t.text}」`);
       }
-      ok(!bad.length, `${tag}: 回答が在る時 ── 人数（◯人）は「集まった回答」の欄にだけ出る・話題の札は「質問 N問」のまま（2つの数え方を混ぜない）`, bad.slice(0, 4).join(' ／ '));
+      ok(!bad.length, `${tag}: 回答が在る時 ── カードの中で人数（回答 ◯人）が出るのは「集まった回答」の欄だけ・話題の札は「質問 N問」のまま（2つの数え方を混ぜない）`, bad.slice(0, 4).join(' ／ '));
+      /* 行の中身。出す行は、検査用の行のうち「出さない」（want.none）のほか全部・欄が持つ質問の並びのまま。
+         r1 行の数（いちばん多い答えが並んだ行も、消さずに「回答が分かれています」で出す）・r6 出さない行の質問の字が、どの行にも無い。
+         r2〜r8 は factRowBad。 */
+      const shown = want.filter(f => !f.want.none), rb = [];
+      if (rows.length !== shown.length) rb.push(`r1 回答の行 ${rows.length}（あるべき ${shown.length}）：${rows.map(r => r.k.slice(0, 10)).join('｜')}`);
+      for (const f of want.filter(f => f.want.none)) if (rows.some(r => r.k === QBY.get(f.question_id).ja.label)) rb.push(`r6 出さないはずの行が在る「${QBY.get(f.question_id).ja.label}」`);
+      for (const [i, f] of shown.entries()) {
+        const r = rows.find(x => x.k === QBY.get(f.question_id).ja.label);
+        if (!r) rb.push(`r1 ${i + 1}行め: 「${QBY.get(f.question_id).ja.label}」の行が無い`);
+        else rb.push(...factRowBad(r, f, `${i + 1}行め`));
+      }
+      if (rows.length === shown.length && !same(rows.map(r => r.k), shown.map(f => QBY.get(f.question_id).ja.label))) rb.push('r1 行の並びが、欄が持つ質問の並びと違う');
+      const of = (...ids) => rb.filter(b => ids.some(id => b.startsWith(id + ' ')));
+      ok(!of('r1', 'r2', 'r3', 'r4', 'r5', 'r6').length, `${tag}: 集まった回答の行 ── いちばん多い答えが1つの時だけ、その名前に「最多」（選べるだけ選ぶ質問で並んだ時は、並んだ答えぜんぶ）・並んだ時は「${SPLIT_TEXT}」・数の質問は「中央値」・読めない行は出さない`, of('r1', 'r2', 'r3', 'r4', 'r5', 'r6').join(' ／ '));
+      ok(!of('r7').length, `${tag}: 集まった回答の人数は、どの行も「回答 N人」の1つだけ（N ＝ その質問に答えた人の数）`, of('r7').join(' ／ '));
+      ok(!of('r8').length, `${tag}: 集まった回答の行に在るのは 質問・答え・［最多か中央値］・回答 N人・年月 だけ ── 答えごとの人数は、字にも属性にも無い`, of('r8').join(' ／ '));
     }
     await ev(() => window.__pvg.top());
     const sh = await ev(() => window.__pvg.shape());
@@ -2317,6 +2516,28 @@ async function runRows(browser, s, [w, h, kind]) {
       ok(!bad.length, `${tag}: 給与・待遇のタブでは ${top}行とも出る ── どの行も 出典と投稿時期 だけ（板の幅は全行で同じ）`, bad.slice(0, 5).join(' ／ '));
       const geo3 = await ev(() => window.__pvg.geom(true));
       ok(!geo3.length, `${tag}: 給与・待遇のタブでも、切れ・はみ出し・重なりが無い`, geo3.slice(0, 8).join('\n      '));
+    }
+    /* 待遇の板の集計の欄（給与・待遇のタブでは、タブが板を開いた形で出す ＝ ここでは押さずに読める）。
+       検査用の BEN_ROWS のうち、欄が持つ質問の行だけが出る：着陸手当の有無 ＝ 答えの名前＋「最多」・
+       数え方 ＝ いちばん多い答えが並んだ ＝「回答が分かれています」。
+       額の質問は、返事に数字が入っていても行を出さない（どの欄も指していない。額は通貨が無いと出せない）。 */
+    {
+      const up = await p.waitForFunction(() => {
+        const pn = document.getElementById('pvg-p-benefits'), b = pn && pn.querySelector('.pvg-ans .crl[data-live="fact"]');
+        return !!b && !pn.hidden && b.getClientRects().length > 0 && !/^(idle|loading)$/.test(b.dataset.state);
+      }, { timeout: 15000 }).then(() => true, () => false);
+      const rows = up ? await factRowsOf(p, '#pvg-p-benefits .pvg-ans') : [], all = up ? await factRowsOf(p, '.pvg') : [];
+      const shown = BEN_ROWS.filter(f => !f.want.none), bad = [];
+      if (!up) bad.push('待遇の板の集計の欄が、出てこない／落ち着かない');
+      else {
+        if (!same(rows.map(r => r.k), shown.map(f => QBY.get(f.question_id).ja.label))) bad.push(`行「${rows.map(r => r.k).join('｜')}」（あるべき ${shown.length}行：${shown.map(f => f.question_id).join('・')}）`);
+        else for (const [i, f] of shown.entries()) bad.push(...factRowBad(rows[i], f, `${i + 1}行め`));
+        for (const f of BEN_ROWS.filter(f => f.want.none)) {
+          if (all.some(r => r.k === QBY.get(f.question_id).ja.label)) bad.push(`出さないはずの行が在る「${QBY.get(f.question_id).ja.label}」`);
+          if (f.median_num != null && all.some(r => r.text.includes(String(f.median_num)))) bad.push(`額の数字 ${f.median_num} が、行に出ている`);
+        }
+      }
+      ok(!bad.length, `${tag}: 待遇の板の集計 ── 着陸手当の選ぶ質問は、3人そろえば出る（最多／${SPLIT_TEXT}／回答 N人）・額の質問は、数字が届いても出さない`, bad.join(' ／ '));
     }
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
@@ -3365,6 +3586,7 @@ async function openOld(browser, lang, w, h, { block = '', stale = false } = {}) 
       if (REV_RE.test(u.pathname)) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: ratedBody(OLD_SAMPLE) });
       if (r.method() === 'HEAD' && OLD_COUNT_RE.test(u.pathname)) return r.respond({ status: 200, headers: { ...cors, 'access-control-expose-headers': 'content-range', 'content-range': '*/0' } });
       const hit = STUB.find(([re]) => re.test(u.pathname));
+      if (hit && hit[0] === FACT_RE) { const f = factReply(u, []); return r.respond({ status: f.status, contentType: 'application/json', headers: cors, body: f.body }); }
       if (hit) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: hit[1] });
       seen.unknown.add(`${r.method()} ${u.pathname}`);
       return r.respond({ status: 500, contentType: 'application/json', headers: cors, body: '{"message":"stub"}' });

@@ -41,7 +41,10 @@
     'turkish-airlines': 'turkish'
   };
   var SCORES = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
-  var FACT_COLS = 'question_id,kind,n,top_code,median_num,last_confirmed_at';   // answer_dist は取らない
+  /* answer_dist（答えごとの人数）は、いちばん多い答えを決めるためと、並んだ答えが「答えた人の半分より多く」に
+     選ばれているかを見るためだけに取る。
+     分布は描かない。答えごとの人数は、画面にも、ページの中（属性など）にも置かない。 */
+  var FACT_COLS = 'question_id,kind,n,top_code,answer_dist,median_num,last_confirmed_at';
   var TAIL = /[（(][^）)]*[）)]\s*$/;
 
   var T = {
@@ -51,7 +54,6 @@
     off: '準備中',
     none: '未取得',
     dash: '〜',
-    people: function (n) { return n + '人'; },
 
     annual: '年収',
     vfYes: '明細で確認済み',
@@ -105,7 +107,9 @@
     factEmpty: 'まだ集計がありません',
     factNone: '集計なし',
     top: '最多',
-    median: '中央値'
+    median: '中央値',
+    split: '回答が分かれています',
+    answered: function (n) { return '回答 ' + n + '人'; }
   };
 
   /* ── 小さな道具 ─────────────────────────────────────────── */
@@ -1029,25 +1033,68 @@
     return s.split(',').map(function (k) { return k.trim(); }).filter(Boolean);
   }
   function numText(v) { return String(Math.round(Number(v) * 10) / 10); }
-  /* 出すのは「いちばん多い答えの名前」か「数の中央値」だけ。名前が引けない答えは出さない。 */
+  /* 出す形は3つだけ。
+       数の質問 … 中央値。
+       選ぶ質問 … いちばん多い答えが1つなら、その名前に「最多」。
+                  2つ以上並んだら、答えの名前は出さずに「回答が分かれています」
+                  （サーバーの top_code は、並んだ時は名前の順で先の1つを返すだけ ＝ 描く答えを決めるのには使わない）。
+                  選べるだけ選ぶ質問で並んだ時は、並んだ答えのどれも「答えた人の半分より多く」が選んでいれば、
+                  どれも最多 ＝ 台帳の並びで全部出す。半分以下なら、やはり「回答が分かれています」。
+     名前が引けない答え・答えごとの人数が読めない行は出さない（top_code だけを頼りに「最多」と書かない）。
+     人数（n）は、その質問に答えた人の数。答えごとの人数は、ここから先へ渡さない。 */
+  function optName(voc, code) {
+    var o = voc.options;
+    return (o && Object.prototype.hasOwnProperty.call(o, code) && o[code]) ? String(o[code]) : '';
+  }
+  /* いちばん多い答え（並んでいれば全部）。数えるのは、0 より大きい数の入った答えだけ。 */
+  function leaders(dist) {
+    var top = 0, out = [];
+    if (!dist || typeof dist !== 'object' || isArr(dist)) return out;
+    Object.keys(dist).forEach(function (code) {
+      var c = dist[code];
+      if (!isNum(c) || c <= 0) return;
+      if (c > top) { top = c; out = [code]; }
+      else if (c === top) out.push(code);
+    });
+    return out;
+  }
   function answer(row, voc) {
     if (!row || !voc) return null;
-    var text = '', how = '';
+    var text = '', how = '', split = false;
     if ((voc.kind === 'num' || row.kind === 'num') && row.median_num != null && isFinite(Number(row.median_num))) {
       text = numText(row.median_num) + (voc.unit || ''); how = T.median;
-    } else if (row.top_code != null && voc.options && voc.options[row.top_code]) {
-      text = String(voc.options[row.top_code]); how = T.top;
+    } else {
+      var lead = leaders(row.answer_dist);
+      if (!lead.length) return null;
+      if (lead.length === 1) {
+        text = optName(voc, lead[0]); how = T.top;
+      } else if (voc.kind === 'multi' || row.kind === 'multi') {
+        if (lead.some(function (c) { return !optName(voc, c); })) return null;
+        /* 並んだ答えを「最多」として並べるのは、どれも、答えた人の半分より多くが選んでいる時だけ。
+           3人が別々の1つずつを選んだ時も「並んだ」になるが、それは一致ではなく、分かれている。
+           人数（n）が読めない行・人数より多い数の入った行は、分かれている側へ倒す（一致しているように見せない）。 */
+        var halfOver = isNum(row.n) && row.n > 0 && row.answer_dist[lead[0]] * 2 > row.n && row.answer_dist[lead[0]] <= row.n;
+        if (halfOver) {
+          text = Object.keys(voc.options).filter(function (c) { return lead.indexOf(c) >= 0; })
+            .map(function (c) { return optName(voc, c); }).join('、');
+          how = T.top;
+        } else {
+          text = T.split; split = true;
+        }
+      } else {
+        text = T.split; split = true;
+      }
     }
     if (!text) return null;
-    return { text: text, how: how, n: (isNum(row.n) && row.n > 0) ? row.n : null, when: ym(row.last_confirmed_at) };
+    return { text: text, how: how, split: split, n: (isNum(row.n) && row.n > 0) ? row.n : null, when: ym(row.last_confirmed_at) };
   }
   function answerNode(ans) {
     if (!ans) return el('span', 'crl-none', T.factNone);
     var w0 = el('div', 'crl-ans');
     w0.appendChild(el('b', 'crl-ans-v', ans.text));
     var m = el('span', 'crl-ans-m');
-    m.appendChild(el('span', 'crl-how', ans.how));
-    if (ans.n) m.appendChild(el('span', '', T.people(ans.n)));
+    if (!ans.split) m.appendChild(el('span', 'crl-how', ans.how));
+    if (ans.n) m.appendChild(el('span', '', T.answered(ans.n)));
     if (ans.when) m.appendChild(el('span', '', ans.when));
     w0.appendChild(m);
     return w0;

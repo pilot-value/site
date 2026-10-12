@@ -27,6 +27,37 @@
      ⑩ 本番へ1本も投げない。
      ⑪ 一覧の7つの話題は全部この面の中で開く（質問の分け方は会社ページの入口と同じ）。
         会社ページの質問の名前を押すと、その質問を開いた状態で出る（ほかの画面へ行かない）。
+     ⑫ 面を開いたまま読む人が替わったら（別の会員・ログアウト・期限切れ・ほかのタブ）、前の人が保存したものを
+        出さない・数えない・送らない。打って、まだ送っていない入力は残す。自分の一覧が読めている時（12-b）も、
+        読めない時（12）も。読む人が替わっていない時は、何も消さない。
+     ⑬ 開いている面と「いま読んでいる人」の残り（12-c）。ログイン前の回答を引き継いだ知らせ
+        （「…あなたの投稿として引き継ぎました」）は、引き継ぎを始めた人にだけ出す ── 返事が届く前に読む人が
+        もう一度替わった時も、面を閉じたまま引き継いだあとで別の人が面を開いた時も。
+        ログインは保存されているのに会員の id が読めないあいだは、保存したものを誰のものとしても扱わない
+        ── 読まない・数えない・入力に入れない・保存後のカードを出さない・預かりを引き継がない
+        （面は「読み込めませんでした」の形。打った内容は残り、そのまま送れる）。
+        自分の一覧を読みに行く前の待ち（預けた回答の引き継ぎ）のあいだに、同じタブのまま読む人が替わっても、
+        前の人が入れた確認のチェックを残さない。同じタブのまま誰も触らないうちにログインが切れても、
+        面の時計（ログインの部品と同じ間隔）が気づいて、前の人の答えを消す。
+        読む人が替わったあとで打ち始めた入力に今の人の一覧が届いたら、今の人が前に保存した値を、打っていない欄に
+        だけ入れる（打った欄には書かない。月の勤務は1か月が1行 ＝ 入れないまま送ると、保存してあった欄が空で
+        置き換わる）。送っている最中に読む人が替わって送れなかった時、端末に残す1件に前の人の保存した値を入れない。
+     ⑭ 保存後のカード（14）。「自分の回答を見る」は、いま保存した質問の所まで送る（長い項目では、保存した答えが
+        最初の1画面の下に在る。畳んである質問は開けて見せる。指した質問は1回送ったら忘れる）。
+        返事だけが届かなかった回を「もう一度送る」で送り直した見出しは、会員・ログインなし・月の勤務のどれでも
+        「保存しました」（前の送信が届いていたかは分からない ＝ 増えたとも直したとも言い切らない）。失敗の無い回・
+        破棄したあとの回・ほかの項目やほかの月の1件が残っているだけの回は、今までどおり。
+        サイトの通貨をほかの通貨にしていても、カードは打った額と補足を打ったとおりに出す。
+        背の低い画面（360×540・375×548・341×540）でも、スクロールせずに2つのボタンに届く。
+     ⑮ 質問の入力が断る時（15）。低いほう・高いほうの対（台帳の rangeLow）は、食い違う対を送る前に止める
+        （低いほうが大きい・通貨が違う。比べるのは「この送信のあと」に並ぶ2つの額 ＝ 触っていない端は、保存してある額）。
+        断った欄は面の見えている所へ送り（畳んである質問なら、畳みを開けて）、その欄に値が入ったら断りを消す
+        （あとから出た別の断りは消さない）。
+        返事だけが届かなかった回を、読み直してから送り直して「同じです」になったら、端末の控えも消す
+        （入力が違う時は消さない）。親を前に保存した人が続きの質問だけをあとから送ると、職位と機種は親の行のもの。
+     ⑰ 待遇の一覧のページ（airline-conditions.html ＝ pv-conditions.js。17）。画面が読んだあとで相手の額がほかの所で
+        変わっていた対を、本物のサーバが断り、画面がその理由の文をその行に出す（「保存できませんでした」ではない）。
+        保存先は動かない。画面の中の確かめ（送る前）は、assert-conditions.mjs が偽物のサーバで見ている。
 
    実行: node assert-contrib.mjs
    ⚠️ 自分で手元の保存先（serve-local.mjs）を空いているポートで起こし、終わったら丸ごと捨てる。
@@ -52,6 +83,10 @@ const SIZES = {
   phone:  { w: 390,  h: 680, touch: true },
   tablet: { w: 768,  h: 950, touch: true },
   desk:   { w: 1440, h: 820, touch: false },
+  /* 質問の入力の見た目（16）だけが使う幅。折り返しは幅で決まるので、スマホの幅を4つ（320・360・390・430）測る */
+  w360:   { w: 360,  h: 640, touch: true },
+  w430:   { w: 430,  h: 800, touch: true },
+  w1280:  { w: 1280, h: 800, touch: false },
 };
 const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.tailwindcss\.com)$/;
 const NONE = '未回答';
@@ -191,6 +226,8 @@ async function main() {
       const m = u.pathname.match(/^\/rest\/v1\/rpc\/([a-z0-9_]+)$/);
       if (m) {
         st.calls.push(m[1]);
+        /* 止めておく通信（st.hold）。流すのは場面の側（release）。返事が遅れて届く回を作るのに使う */
+        if (st.hold && st.hold.name === m[1]) { st.hold.reqs.push(req); return; }
         if (st.fake && st.fake.name === m[1]) {
           const f = st.fake; st.fake = null;
           return req.respond({ status: f.status || 200, contentType: 'application/json', body: JSON.stringify(f.body) });
@@ -413,6 +450,10 @@ async function main() {
     return { mark: c ? c.getAttribute('data-pvc-cue') : null, pop: !!(r && r.querySelector('.pvc-pop')) };
   });
   const POP = ['pop', 'pop:10'];                         // 保存1回ぶんの合図（印が付く → 紙片10枚の層が足される）
+  /* 紙片10枚の散る向き（横・縦・回り）。幅341px から上の画面の見た目 ＝ ここを変えるのは、見た目を変えると決めた時だけ。
+     頭の3枚は左（負の横）へ飛ぶ ── いちばん狭い画面では見出しの字を横切るので、そこだけ右へ向け直してある。 */
+  const POP_PATH = ['-54px -22px -160deg', '-32px -25px 120deg', '-10px -23px -90deg', '10px -26px 200deg', '30px -20px -40deg',
+    '50px -12px 150deg', '56px 4px 80deg', '40px 16px -210deg', '20px 18px 110deg', '4px 14px -130deg'];
   /* 紙片が片づくのを待つ（片づかなくても先へ進み、そこで赤くする ＝ 場面ごと止めない）。
      返すのは ms ＝ 層が足されてから自分で片づくまでの時間（ミリ秒）と、late ＝ ページの中の POP_MAX の時計が
      鳴った時に層がまだ在ったか（どちらも open が仕掛けた、ページの中の時計。検査の側の待ち時間は混ざらない）。
@@ -435,7 +476,11 @@ async function main() {
      （見る側の支度だけ。製品の動きは変えていない）。
      card・sheet … カードの外・面の外へ出た紙片。
      over … 散り終わりの位置で、見出しの字・チェックの印・2つのボタンのどれかに重なった紙片
-            （カードの中に収まっていても、字やボタンの上に止まるなら「収まっている」とは言えない）。 */
+            （カードの中に収まっていても、字やボタンの上に止まるなら「収まっている」とは言えない）。
+     cross … 飛んでいる途中で、見出しの字に重なった紙片と時刻（over は散り終わりだけ ＝ 字の上を横切って
+            飛んでいく紙片は見えない）。動きを 20ms 刻みで終わりまで送って測る ＝ 時間を待たない
+            （動きの時刻を書き換えるだけ。測り終えたら元の時刻へ戻して続きを走らせる）。steps はその刻みの数。
+     path … 紙片ごとの散る向き（--pvc-x・--pvc-y・--pvc-r の、その画面での値）。 */
   const farWatch = (p) => p.page.evaluate(() => {
     window.__pvcFar = null;
     const mo = new MutationObserver(() => {
@@ -471,6 +516,22 @@ async function main() {
           if (r.left < b.right - 0.5 && r.right > b.left + 0.5 && r.top < b.bottom - 0.5 && r.bottom > b.top + 0.5) out.over.push(`${at} が ${name} の上`);
         }
       });
+      const kids = [...pop.children], ans = kids.map((n) => n.getAnimations()[0] || null), word = parts.find((x) => x[0] === '見出しの字');
+      out.cross = []; out.steps = 0;
+      if (word && ans.every(Boolean)) {
+        const at0 = ans.map((an) => an.currentTime), end = Math.max(...ans.map((an) => an.effect.getComputedTiming().endTime)), b = word[1];
+        ans.forEach((an) => an.pause());
+        for (let t = 0; t <= end; t += 20) {
+          out.steps++;
+          ans.forEach((an) => { an.currentTime = t; });
+          kids.forEach((n, i) => {
+            const r = n.getBoundingClientRect();
+            if (r.left < b.right - 0.5 && r.right > b.left + 0.5 && r.top < b.bottom - 0.5 && r.bottom > b.top + 0.5) out.cross.push(`${i + 1}枚目 ${t}ms`);
+          });
+        }
+        ans.forEach((an, i) => { an.currentTime = at0[i]; an.play(); });
+      }
+      out.path = kids.map((n) => { const s = getComputedStyle(n); return ['--pvc-x', '--pvc-y', '--pvc-r'].map((k) => s.getPropertyValue(k).trim()).join(' '); });
       out.w = Math.round(card.width); out.h = Math.round(card.height);
       window.__pvcFar = out;
     });
@@ -1300,6 +1361,10 @@ async function main() {
       '紙片の層はカードの形で切り、押せず、読み上げにも出ない（下の見出しとボタンにそのまま触れる）', J(far));
     ok(!!far && far.n === 10 && far.still === 0 && far.parts === 4 && far.over.length === 0,
       '★紙片は10枚とも、散り終わりの位置で見出しの字・チェックの印・2つのボタンのどれにも重ならない（390×680）', J(far && { parts: far.parts, over: far.over }));
+    /* いちばん狭い画面（幅340pxまで）では、左へ飛ぶ3枚を右上へ向け直してある（下の 13 が見る）。
+       その直しは狭い画面だけのもの ＝ これより広い画面の散り方は、今までの向きのまま。 */
+    ok(!!far && J(far.path) === J(POP_PATH) && far.path.filter((x) => /^-/.test(x)).length === 3,
+      '★390×680 では、紙片10枚の散る向きは今までのまま（いちばん狭い画面だけの向きの直しが、広い画面へ漏れていない）', J(far && far.path));
     /* 2つのボタンは、保存した内容（10行）より先。スクロールしなくても最初の1画面で両方に届く */
     const reach = await reachOf(b);
     ok(reached(reach),
@@ -1597,10 +1662,12 @@ async function main() {
     });
     return sent;
   };
-  const landRows = async (slug) => (await q(
-    `select question_id as q, "position" as pos, fleet, answer_num::float8 as num, answer_currency as cur,
+  /* y・m ＝ 適用時期（答えた月）。who を渡すと、その会員の行だけ（渡さなければ、その会社の全員の行）。 */
+  const landRows = async (slug, who = null) => (await q(
+    `select question_id as q, "position" as pos, fleet, effective_year as y, effective_month as m, answer_num::float8 as num, answer_currency as cur,
             answer_code as c, answer_text as t, text_shared as sh
-       from public.airline_conditions where airline = $1 and question_id like 'landing_pay%' order by question_id`, [slug])).rows;
+       from public.airline_conditions where airline = $1::text and question_id like 'landing_pay%'
+        and ($2::uuid is null or proof_hash = public.pv_condition_hash($2::uuid, $1::text, null)) order by question_id`, [slug, who ? who.id : null])).rows;
   const benefitsCount = async (p, urlPath) => {
     await go(p, urlPath + '?add=list');
     await waitView(p, 'counted');
@@ -1700,10 +1767,15 @@ async function main() {
     ok(sent.length === 1 && J(ids(p1)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit']) && amt.num === 1500 && amt.currency === 'JPY',
       '★着陸手当・額（通貨つき）・数え方の3つを、1回の送信でまとめて送る', J(p1.answers));
     ok(p1.airline === 'ana' && p1.position === 'fo' && p1.fleet === FLEET,
-      '★その送信に、月の勤務で出した職位と機種が付いている（額と数え方が、親と同じ条件を引き継ぐ）', J({ airline: p1.airline, position: p1.position, fleet: p1.fleet }));
-    ok(db.length === 3 && db.every((r) => r.pos === 'fo' && r.fleet === FLEET) && db.find((r) => r.q === 'landing_pay_amount').num === 1500
+      '★1回の送信に、月の勤務で出した職位と機種が付いている', J({ airline: p1.airline, position: p1.position, fleet: p1.fleet }));
+    /* 1回の送信は、その送信の条件を全部の行に書く ＝ ここで言えるのは「1回で送った3行は同じ」まで。
+       親を前に保存した人が続きだけをあとから送る回（親の条件を引き継ぐか）は、下の 15 の場面が見る。 */
+    ok(db.length === 3 && db.every((r) => r.pos === 'fo' && r.fleet === FLEET) && Number.isInteger(db[0].y) && Number.isInteger(db[0].m)
+      && db.every((r) => r.y === db[0].y && r.m === db[0].m),
+      '★1回の送信で保存した3行は、同じ職位・機種・適用時期を持つ', J(db.map((r) => [r.q, r.pos, r.fleet, r.y, r.m])));
+    ok(db.length === 3 && db.find((r) => r.q === 'landing_pay_amount').num === 1500
       && db.find((r) => r.q === 'landing_pay_amount').cur === 'JPY' && db.find((r) => r.q === 'landing_pay_unit').c === 'per_landing',
-      '★保存先でも3行とも同じ職位・機種。額と通貨と数え方が、画面で入れたとおり', J(db));
+      '   保存先の額と通貨と数え方が、画面で入れたとおり', J(db.map((r) => [r.q, r.num, r.cur, r.c])));
     ok(sm.head === '情報を追加しました' && J(famRows(sm)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit'])
       && sm.rows.landing_pay_amount.v === 'JPY 1,500（1回あたり）' && sm.rows.landing_pay_unit.v === '着陸1回ごと',
       '★保存後の画面に、自分の答えが通貨つきで出る（JPY 1,500（1回あたり）・着陸1回ごと）', J(sm.rows));
@@ -1842,7 +1914,8 @@ async function main() {
       await p.page.$eval('.pvc-root [data-q="landing_pay_amount"]', (n) => n.scrollIntoView({ block: 'center' }));
       const row = await p.page.evaluate(() => {
         const f = document.querySelector('.pvc-root [data-q="landing_pay_amount"]'), fr = f.getBoundingClientRect();
-        const parts = [...f.querySelectorAll('.pvc-numrow > *')].map((n) => n.getBoundingClientRect());
+        /* 額と単位は1つの組に入っている（行の直下ではない）＝ 4つの部品を、行の中から名前で拾う */
+        const parts = [...f.querySelectorAll('.pvc-numrow .pvc-selw, .pvc-numrow .pvc-input, .pvc-numrow .pvc-unit, .pvc-numrow .pvc-chip')].map((n) => n.getBoundingClientRect());
         return { n: parts.length, inside: parts.every((r) => r.width > 0 && r.left >= fr.left - 0.5 && r.right <= fr.right + 0.5) };
       });
       ok(row.n === 4 && row.inside, `390×680（${tone}）：通貨・額・「（1回あたり）」・「わからない」が、額の質問の枠の中に収まっている`, J(row));
@@ -1905,6 +1978,79 @@ async function main() {
     ok(J(famRows(sm)) === J(['landing_pay']) && sm.rows.landing_pay.v === 'ない' && !/1,500|HKD/.test(sm.text),
       '★「ない」に直したあとの保存後の画面に、古い額と数え方が出ない（ログインなしでも同じ）', J(sm.rows));
     ok((await benefitsCount(n, CX)) === 'あなたの投稿 1件', '★「あなたの投稿」は1件 ── 預かりに残っている古い額を数えない', '');
+    await n.st.ctx.close();
+  });
+
+  /* 上の場面と同じ道を、ログインまで歩く（2026-10-11）。
+     「あり・1回あたり一定額」＋額＋数え方を預けたあとで「ない」に直した人がログインすると、引き継ぎの知らせに
+     「2件は、いまの形式では受け取れず、引き継げませんでした。」と出ていた。どの答えの形も悪くない・本人は何も
+     失っていない（自分で「ない」に直しただけ）。知らせるのは、引き継いだ1件だけ。
+     件数を決めるのはサーバ（db/contrib.sql の claim_contrib。数え方は db/test-contrib.mjs の 8-2 が見ている）。
+     ここが見るのは、その件数が、本人の画面でどの言葉になるか。 */
+  await scene('着陸手当 ── ログインなしで預けて「ない」に直した人が、ログインして引き継ぐ（直して要らなくなった額を「引き継げませんでした」と言わない）', async () => {
+    const n = await open('phone');
+    await go(n, CX + '?add=benefits');
+    await waitView(n, 'benefits');
+    await pick(n, 'landing_pay', 'fixed');
+    await fill(n, 'landing_pay_amount', '1500');
+    await pick(n, 'landing_pay_amount_cur', 'HKD');
+    await pick(n, 'landing_pay_unit', 'per_leg');
+    await tick(n);
+    await send(n);
+    await waitView(n, 'saved');
+    await go(n, CX + '?add=benefits');
+    await waitView(n, 'benefits');
+    await n.page.waitForFunction(() => { const x = document.querySelector('.pvc-root [name="landing_pay_amount"]'); return !!x && x.value === '1500'; });
+    await pick(n, 'landing_pay', 'no');
+    await tick(n);
+    await send(n);
+    await waitView(n, 'saved');
+
+    const key = await n.page.evaluate(() => localStorage.getItem('pv_contrib_key') || '');
+    const heldNow = async () => (await q(
+      `select item_key as k, payload->>'code' as c from public.pv_contrib_pending
+        where key_hash = public.pv_contrib_key_hash($1) order by item_key`, [key])).rows;
+    const h0 = await heldNow();
+    ok(!!key && J(h0.map((x) => x.k)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit']) && h0[0].c === 'no'
+      && (await landRows('cathay-pacific')).length === 0,
+      '（ここまでが前提）預かりは3件 ── 「ない」に直した着陸手当と、残っている古い額・数え方。会員の行は、この会社にまだ1件も無い', J(h0));
+
+    /* ── 同じ端末でログインして、同じ会社ページを開き直す（下の 12 の loginAs と同じやり方。あちらは、この場面より
+          あとで定義される。開き直すので、open が入れるのと同じ印もそろえる）。
+          ログインを書く前に、会社ページを離れる ── この人はログインの画面へ行って戻ってくるので、ログインが保存される時に
+          面の開いたページは無い。開いたまま書くと、保存のあとの読み直しが遅れて届いた回に、去っていくページが引き継ぎを
+          始めてしまい、開き直したページは知らせを言えない（保存後のカードが待っているのは保存の返事だけ）。 ── */
+    await go(n, '/pv-vocab.json');
+    await n.page.waitForFunction(() => location.pathname === '/pv-vocab.json' && !window.PVContrib);
+    const s = await (await fetch(`${base}/__local/login?member=b`)).json();
+    await n.page.evaluate((x) => {
+      const now = String(Date.now());
+      localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session));
+      localStorage.setItem('pv_user', JSON.stringify(x.pv_user));
+      localStorage.setItem('pv_last_active', now);
+      localStorage.setItem('pv_session_start', now);
+      const at = Date.parse((x.session.user || {}).last_sign_in_at || '');
+      localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
+    }, s);
+    if (hits(n, 'claim_contrib') !== 0) throw new Error('前提が崩れた（開き直す前に、引き継ぎが始まっている）');
+    await go(n, CX + '?add=list');
+    await waitView(n, 'counted');
+    await waitMsg(n, 'claim');
+    const said = await n.page.evaluate(() => {
+      const b = document.querySelector('.pvc-root .pvc-msg[data-pvc-msg="claim"]');
+      const c = document.querySelector('.pvc-root [data-pvc-count="benefits"]');
+      return { text: b.innerText.replace(/\s+/g, ' '), lines: [...b.querySelectorAll('.pvc-msg-l li')].map((x) => x.textContent),
+        count: c && !c.hidden ? c.textContent : null, key: localStorage.getItem('pv_contrib_key') };
+    });
+    ok(hits(n, 'claim_contrib') >= 1 && said.lines.includes('1件を、あなたの投稿として引き継ぎました。'),
+      '★ログインすると、「ない」の1件が引き継がれ、知らせは「1件を、あなたの投稿として引き継ぎました。」と言う', J(said.lines));
+    ok(!/引き継げませんでした/.test(said.text) && said.lines.length === 1,
+      '★自分で「ない」に直して要らなくなった額と数え方を、「引き継げませんでした」と言わない（知らせは、引き継いだ1件の1行だけ）', said.text);
+    const rows = await landRows('cathay-pacific');
+    ok(rows.length === 1 && rows[0].q === 'landing_pay' && rows[0].c === 'no',
+      '★会員の回答になったのは「ない」の1件だけ（古い額と数え方は、会員の回答にしていない）', J(rows.map((x) => [x.q, x.c, x.num])));
+    ok((await heldNow()).length === 0 && said.key === null && said.count === 'あなたの投稿 1件',
+      '引き継いだあと、預かりにも端末にも何も残らない。「休暇・手当」は「あなたの投稿 1件」', J({ held: (await heldNow()).length, key: said.key, count: said.count }));
     await n.st.ctx.close();
   });
 
@@ -2318,7 +2464,7 @@ async function main() {
       await settle(u);
       const v3 = await vals(u), f3 = await formFace(u);
       ok(v3.position === '' && v3.block_hours === '' && v3.duty_hours === '' && v3.stay_nights === '' && f3.tag === false && f3.btn === '匿名で追加する',
-        '★読む人が替わったら（同じページのまま別の会員のログインに替わる）、前の人が送った内容を入力に出さない（そのまま送れば、その人の投稿になってしまう）',
+        '★自分の一覧が読めない時の控えでも、読む人が替わったら（同じページのまま別の会員のログインに替わる）、前の人が送った内容を入力に出さない（そのまま送れば、その人の投稿になってしまう。読めている一覧は 12-b）',
         J({ position: v3.position, block_hours: v3.block_hours, duty_hours: v3.duty_hours, stay_nights: v3.stay_nights, f3 }));
     } finally {
       await failOff();
@@ -2402,7 +2548,7 @@ async function main() {
       await settled(u);
       const a3 = await face(u), m3 = await months(), h3 = await heldRows();
       ok(!a3.saved && a3.position === '' && a3.duty_hours === '' && a3.errs.length === 1 && /^position：/.test(a3.errs[0]) && J(m3) === J(m2) && h3.length === h0.length,
-        '★読む人が替わったあと、何も触らずに送っても、前の人の内容は今の人の投稿として保存されない（入力を作り直し、空の職位に「職位を選んでください」と出す。保存先は1行も変わらない）', J({ a3, m3, held: h3.length - h0.length }));
+        '★自分の一覧が読めない時の控えでも、読む人が替わったあと、何も触らずに送っても、前の人の内容は今の人の投稿として保存されない（入力を作り直し、空の職位に「職位を選んでください」と出す。保存先は1行も変わらない。読めている一覧は 12-b）', J({ a3, m3, held: h3.length - h0.length }));
 
       /* ③ 欄に入るのが先：会員（運営）の入力が出ているまま、ログアウトする（ログインが切れる）→ 欄に入って打つ */
       await pick(u, 'position', 'cap');
@@ -2513,9 +2659,1864 @@ async function main() {
       await settle(u);
       const v4 = await vals(u), f4 = await formFace(u);
       ok(v4.commuting_transport === '' && !v4.commuting_transport_method && f4.mine === 0 && f4.btn === '匿名で追加する',
-        '★ログアウトしたあと（ログインが切れたあと）は、同じページのままでも、前に送った答えを入力に出さない', J({ transport: v4.commuting_transport, method: v4.commuting_transport_method, f4 }));
+        '★自分の一覧が読めない時の控えでも、ログアウトしたあと（ログインが切れたあと）は、同じページのままでも、前に送った答えを入力に出さない（読めている一覧は 12-b）', J({ transport: v4.commuting_transport, method: v4.commuting_transport_method, f4 }));
     } finally {
       await failOff();
+      await u.st.ctx.close();
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 12-b. 自分の一覧が読めている会員 ── 面を開いたまま、読む人が替わる（全日本空輸・390×680）
+  // ═════════════════════════════════════════════════════════════
+  /* 上の3つの場面は、自分の一覧を読む口を落としてある ＝ 読めない時だけ使う「控え」の道だけを見ている。
+     ここは、一覧が普通に読めている、ふつうの会員の状態（前の人の一覧を読む口は、1つも落とさない）。
+     面を開いたまま読む人が替わる ── 別の会員が入る・ログアウトする・ログインが切れる・ほかのタブで替わる。
+     このページは読み直されないので、何もしなければ、前の人が保存した答えが、次の人の画面に出て・数えられて・送られる。
+     決まり：前の人が保存したもの・前の人について読んだものは、全部手放す（一覧・件数・保存した値から入った入力・
+             保存後のカード・確認のチェック・知らせ）。打って、まだ送っていない入力は残す。
+     どの場面も、画面と、手元の保存先の両方を見る。前の人＝給与提出者・今の人＝会員B。
+     （この会社へは、ほかの場面でどちらも1件も送っていない。念のため、場面の頭で2人の行を消してから、前の人の投稿を置く。） */
+  const PREV = memberOf('pay'), NEXT = memberOf('b');
+  const FLEET = JSON.parse(read('pv-vocab.json')).fleets.find((x) => !x.retired).code;
+  const LAST = (() => { const n = new Date(); let y = n.getFullYear(), m = n.getMonth(); if (m === 0) { y -= 1; m = 12; } return { y, m }; })();
+  const NOTE_W = '試験：前の人の月のメモ', NOTE_Q = '試験：前の人だけの補足';
+  const rpcAs = async (key, fn, p) => {
+    const s = await (await fetch(`${base}/__local/login?member=${key}`)).json();
+    return (await fetch(`${base}/rest/v1/rpc/${fn}`, {
+      method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${s.session.access_token}` }, body: JSON.stringify({ p }),
+    })).json();
+  };
+  /* その会員の、この会社の行（保存先から直接。行に会員の id は無いので、サーバと同じ式の印で引く） */
+  const mineOf = async (id) => ({
+    work: (await q(
+      `select period_year as y, period_month as m, "position" as pos, fleet, block_hours::float8 as block, duty_hours::float8 as duty, stay_nights as stay, note
+         from public.pv_work_months where airline = 'ana' and proof_hash = public.pv_work_hash($1::uuid, 'ana', null) order by 1, 2`, [id])).rows,
+    cond: (await q(
+      `select question_id as q, answer_code as c, answer_codes as cs, answer_text as t, "position" as pos, fleet
+         from public.airline_conditions where airline = 'ana' and proof_hash = public.pv_condition_hash($1::uuid, 'ana', null) order by 1`, [id])).rows,
+  });
+  const heldAna = async () => (await q(`select kind, item_key as k, payload from public.pv_contrib_pending where airline = 'ana' order by id`)).rows;
+  /* 2人の行と預かりを消して、前の人の投稿を置く：月の勤務1か月（機長・機種・乗務時間・ステイ・メモ）と、
+     通勤・タクシーの3問（1問目には補足つき）。置くのは会員の入口から（画面は通さない）。 */
+  const seedPrev = async () => {
+    await q(`delete from public.pv_work_months where airline = 'ana' and proof_hash in (public.pv_work_hash($1::uuid, 'ana', null), public.pv_work_hash($2::uuid, 'ana', null))`, [PREV.id, NEXT.id]);
+    await q(`delete from public.airline_conditions where airline = 'ana' and proof_hash in (public.pv_condition_hash($1::uuid, 'ana', null), public.pv_condition_hash($2::uuid, 'ana', null))`, [PREV.id, NEXT.id]);
+    await q(`delete from public.pv_contrib_pending where airline = 'ana'`);
+    /* 1日に送れる件数の数えも戻す（場面を重ねると、置くだけで上限に届く。上限そのものは db/test-*.mjs が見ている） */
+    await q(`update public.profiles set cond_answers_today = 0, work_months_today = 0 where id in ($1::uuid, $2::uuid)`, [PREV.id, NEXT.id]);
+    const w = await rpcAs('pay', 'submit_work_month', { airline: 'ana', year: LAST.y, month: LAST.m, position: 'cap', fleet: FLEET, block_hours: 61.5, stay_nights: 7, note: NOTE_W, lang: 'ja' });
+    const c = await rpcAs('pay', 'submit_airline_conditions', { airline: 'ana', lang: 'ja', position: 'cap', fleet: FLEET, answers: [
+      { question_id: 'commuting_transport', code: 'conditional', text: NOTE_Q, share: true },
+      { question_id: 'commuting_transport_method', codes: ['company_taxi'] },
+      { question_id: 'commuting_taxi_cost', code: 'company_full' },
+    ] });
+    if (!w || !w.ok || !c || !c.ok || (c.rejected || []).length) throw new Error('前提が崩れた（前の人の投稿を置けない）: ' + J({ w, c }));
+  };
+  const COUNTS0 = ['work：あなたの投稿 1件', 'taxi：あなたの投稿 3件'];
+  /* 通勤・タクシーの入力に、いま出ているもの */
+  const qFace = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), f = r.querySelector('form[data-pvc-form="taxi"]'), a = document.activeElement;
+    if (!f) return { form: false, saved: !!r.querySelector('[data-pvc-saved]'), list: !!r.querySelector('.pvc-tiles') };
+    const v = (n) => { const x = f.querySelector('[name="' + n + '"]'); return x ? x.value : null; };
+    const b = f.querySelector('.pvc-send[type="submit"]');
+    return { form: true, transport: v('commuting_transport'), note: v('commuting_transport_note'), cost: v('commuting_taxi_cost'),
+      method: [...f.querySelectorAll('[name="commuting_transport_method"]')].filter((x) => x.checked).map((x) => x.value),
+      own: f.querySelector('[name="own"]').checked, mine: f.querySelectorAll('.pvc-mine').length, btn: b.textContent, dis: b.disabled,
+      off: f.querySelector('fieldset.pvc-set').disabled,
+      at: a && f.contains(a) ? a.getAttribute('name') || a.tagName.toLowerCase() : '',
+      msg: [...f.querySelectorAll('.pvc-msg')].map((n) => n.getAttribute('data-pvc-msg')) };
+  });
+  /* 月の勤務の入力に、いま出ているもの */
+  const wFace = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), f = r.querySelector('form[data-pvc-form="work"]');
+    if (!f) return { form: false, saved: !!r.querySelector('[data-pvc-saved]'), list: !!r.querySelector('.pvc-tiles') };
+    const v = (n) => { const x = f.querySelector('[name="' + n + '"]'); return x ? x.value : null; };
+    const b = f.querySelector('.pvc-send[type="submit"]');
+    return { form: true, position: v('position'), fleet: v('fleet'), block_hours: v('block_hours'), duty_hours: v('duty_hours'), stay_nights: v('stay_nights'), note: v('note'),
+      own: f.querySelector('[name="own"]').checked, tag: !f.querySelector('[data-pvc-own-row]').hidden, btn: b.textContent, dis: b.disabled,
+      errs: [...f.querySelectorAll('.pvc-err')].filter((n) => !n.hidden && n.textContent.trim()).map((n) => n.id.replace('pvc-e-', '')),
+      msg: [...f.querySelectorAll('.pvc-msg')].map((n) => n.getAttribute('data-pvc-msg')) };
+  });
+  const emptyQ = (x) => x.form && x.transport === '' && x.note === '' && x.cost === '' && x.method.length === 0 && x.mine === 0 && x.btn === '匿名で追加する';
+  const emptyW = (x) => x.form && x.position === '' && x.fleet === '' && x.block_hours === '' && x.duty_hours === '' && x.stay_nights === '' && x.note === ''
+    && x.tag === false && x.btn === '匿名で追加する';
+  const fullQ = (x, cost) => x.form && x.transport === 'conditional' && x.note === NOTE_Q && x.cost === cost && J(x.method) === J(['company_taxi']) && x.mine === 3 && x.btn === '匿名で更新する';
+  const fullW = (x) => x.form && x.position === 'cap' && x.fleet === FLEET && x.block_hours === '61.5' && x.stay_nights === '7' && x.note === NOTE_W && x.tag === true && x.btn === '匿名で更新する';
+  /* 画面の上の条件が満たされるまで待つ（満たされないまま時間が来たら false。時間で待つのではない） */
+  const seen = (p, fn, arg) => p.page.waitForFunction(fn, { timeout: 8000, polling: 100 }, arg).then(() => true, () => false);
+  const taxiCleared = () => {
+    const f = document.querySelector('.pvc-root form[data-pvc-form="taxi"]');
+    return !!f && f.querySelector('[name="commuting_transport_note"]').value === '' && f.querySelectorAll('.pvc-mine').length === 0;
+  };
+  /* 検査の側の条件が満たされるまで待つ（止めた通信が届いたか、など） */
+  const until = async (fn) => { const t0 = Date.now(); while (!fn()) { if (Date.now() - t0 > 8000) return false; await new Promise((r) => setTimeout(r, 20)); } return true; };
+  /* 送るボタンを、ほかの何にも触れずに押す（焦点も動かさない ＝ 止められるのは、送る所の確かめだけ） */
+  const pressSend = (p) => p.page.evaluate(() => document.querySelector('.pvc-root form .pvc-send[type="submit"]').click());
+  /* 同じブラウザの、もう1枚のタブ（保存領域は同じ。こちらで書くと、最初のタブに「書かれた」という合図が届く） */
+  const otherTab = async (p) => {
+    const t = await p.st.ctx.newPage();
+    await t.setRequestInterception(true);
+    t.on('request', (req) => gate(req, { calls: [], fake: null }));
+    await t.goto(base + '/pv-vocab.json', { waitUntil: 'domcontentloaded' });
+    await p.page.bringToFront();                       // 最初のタブを前へ戻す（裏のタブでは、描画に合わせた待ちが進まない）
+    return t;
+  };
+  const loginIn = async (tab, key) => {
+    const s = await (await fetch(`${base}/__local/login?member=${key}`)).json();
+    await tab.evaluate((x) => { localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session)); localStorage.setItem('pv_user', JSON.stringify(x.pv_user)); }, s);
+  };
+  const subs = (p, from) => p.st.calls.slice(from).filter((c) => /^(submit_|claim_)/.test(c));
+  /* 止めておいた通信を流す */
+  const release = (p) => { const h = p.st.hold; p.st.hold = null; for (const r of (h ? h.reqs : [])) r.continue(); };
+  /* 止めておいた通信を、届かなかったことにする（送っている最中に通信が切れた回を作る） */
+  const cutHeld = (p) => { const h = p.st.hold; p.st.hold = null; for (const r of (h ? h.reqs : [])) r.abort(); };
+  /* ── 12-c で使う ──
+     この会社のページに1件も持っていない会員にする（その会員の行と、この会社の預かりを消す。1日の数えも戻す）。
+     12-c の場面は、頭と終わりの両方で呼ぶ ＝ あとの場面が見るこの会社のページは、12-b が残した形のまま。 */
+  const noRows = async (...ms) => {
+    for (const m of ms) {
+      await q(`delete from public.pv_work_months where airline = 'ana' and proof_hash = public.pv_work_hash($1::uuid, 'ana', null)`, [m.id]);
+      await q(`delete from public.airline_conditions where airline = 'ana' and proof_hash = public.pv_condition_hash($1::uuid, 'ana', null)`, [m.id]);
+      await q(`update public.profiles set cond_answers_today = 0, work_months_today = 0 where id = $1::uuid`, [m.id]);
+    }
+    await q(`delete from public.pv_contrib_pending where airline = 'ana'`);
+  };
+  /* 会社ページを離れてから、ログインを書く（ログインの画面へ行って戻ってくる人と同じ ＝ ログインが保存される時に、
+     面の開いたページは無い）。このあとページを開き直すので、open が入れるのと同じ印もそろえる。 */
+  const loginAway = async (p, key) => {
+    const s = await (await fetch(`${base}/__local/login?member=${key}`)).json();
+    await go(p, '/pv-vocab.json');
+    await p.page.waitForFunction(() => location.pathname === '/pv-vocab.json' && !window.PVContrib);
+    await p.page.evaluate((x) => {
+      const now = String(Date.now());
+      localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session));
+      localStorage.setItem('pv_user', JSON.stringify(x.pv_user));
+      localStorage.setItem('pv_last_active', now);
+      localStorage.setItem('pv_session_start', now);
+      const at = Date.parse((x.session.user || {}).last_sign_in_at || '');
+      localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
+    }, s);
+  };
+  /* ほかのタブで書いたログインが、このタブからも読めるようになるまで待つ（タブの間の保存領域は、少し遅れて届く） */
+  const readsAs = (p, m) => seen(p, (id) => {
+    try { return JSON.parse(localStorage.getItem('sb-local-auth-token')).user.id === id; } catch (e) { return false; }
+  }, m.id);
+  /* 会員の id が読めないログイン（ログインは保存されていて使えるが、面からは会員の id が読めない）を作る。
+     面が id を読む口は PVSession.readStoredSession の1つだけ（pv-contrib.js の uid()。ほかの台本は、この口を呼ばない）。
+     そこに1枚かぶせ、スイッチが入っているあいだだけ、本物が返した中身から user.id を抜いて返す。
+     保存されているログインそのものには触らない ＝ ログインの部品が id を書き戻さない・会員はサーバで読めて保存できる
+     （保存領域のほうを id なしにする形は、部品が書き戻すので保てなかった）。hasToken() は本物のまま。
+     ページの台本が1本も動く前に仕掛ける（open のあと・最初の go の前に呼ぶ）。スイッチは、このタブの sessionStorage に置く
+     ＝ 同じタブで開き直しても残る・場面の途中で入れ替えられる（noId）。
+     あわせて、ページを開いて少しあとの引き継ぎ（1500ミリ秒の時計）の中身を控える。時計は今までどおり自分でも鳴る（ran）。
+     場面は、時計を待たずにその中身を呼ぶ（bootClaim）。
+     面が「いま読む人」を自分で聞き直す時計（pv-contrib.js が仕掛ける setInterval。ログインの部品 pv-session.js も
+     同じ長さの時計を持つので、仕掛けた台本で見分ける）も、中身と間隔を控える（__pvcTick。場面は tickFire で呼ぶ。こちらも待たない）。 */
+  const idless = (p, on) => p.page.evaluateOnNewDocument((origin, on0) => {
+    if (location.origin !== origin) return;
+    try { if (sessionStorage.getItem('__pvc_noid') === null) sessionStorage.setItem('__pvc_noid', on0 ? '1' : '0'); } catch (e) { /* 置けなければ、場面の頭の確かめが止める */ }
+    const isOn = () => { try { return sessionStorage.getItem('__pvc_noid') === '1'; } catch (e) { return false; } };
+    let real;
+    Object.defineProperty(window, 'PVSession', {
+      configurable: true,
+      get: () => real,
+      set: (o) => {
+        if (o && typeof o.readStoredSession === 'function') {
+          const read = o.readStoredSession;
+          o.readStoredSession = function () {
+            const s = read.apply(this, arguments);
+            if (!isOn() || !s || !s.user) return s;
+            const user = Object.assign({}, s.user);
+            delete user.id;
+            return Object.assign({}, s, { user });
+          };
+        }
+        real = o;
+      },
+    });
+    const timer = window.setTimeout;
+    window.__pvcBoot = { fn: null, ran: false };
+    window.setTimeout = function (fn, ms) {
+      if (ms !== 1500 || typeof fn !== 'function' || window.__pvcBoot.fn || !/claim\(\)/.test(String(fn))) return timer.apply(window, arguments);
+      const args = Array.prototype.slice.call(arguments);
+      window.__pvcBoot.fn = fn;
+      args[0] = function () { window.__pvcBoot.ran = true; return fn.apply(this, arguments); };
+      return timer.apply(window, args);
+    };
+    const every = window.setInterval;
+    window.__pvcTick = { fn: null, ms: null };
+    window.setInterval = function (fn, ms) {
+      if (typeof fn === 'function' && !window.__pvcTick.fn && /\/pv-contrib\.js/.test(String(new Error().stack))) { window.__pvcTick.fn = fn; window.__pvcTick.ms = ms; }
+      return every.apply(window, arguments);
+    };
+  }, base, on);
+  const noId = (p, on) => p.page.evaluate((v) => { sessionStorage.setItem('__pvc_noid', v ? '1' : '0'); }, on);
+  /* ［ログインが保存されている, 会員の id が読める］ */
+  const whoState = (p) => p.page.evaluate(() => [window.PVSession.hasToken(), !!((window.PVSession.readStoredSession() || {}).user || {}).id]);
+  const mustBeIdless = async (p, at) => {
+    const s = await whoState(p);
+    if (J(s) !== J([true, false])) throw new Error(`前提が崩れた（${at}：ログインは保存されていて、会員の id が読めない形になっていない）: ` + J(s));
+  };
+  const bootClaim = async (p) => {
+    if (!(await seen(p, () => !!(window.__pvcBoot && window.__pvcBoot.fn)))) return false;
+    await p.page.evaluate(() => { window.__pvcBoot.fn(); });
+    return true;
+  };
+  const bootRan = (p) => seen(p, () => !!(window.__pvcBoot && window.__pvcBoot.ran));
+  /* 面の時計の中身を呼ぶ（時計は待たない）。返すのは、その時計の間隔（ミリ秒）。時計が無ければ null。 */
+  const tickFire = (p) => p.page.evaluate(() => { const t = window.__pvcTick; if (!t || typeof t.fn !== 'function') return null; t.fn(); return t.ms; });
+  /* ページが1往復の通信を終えるまで待つ（「出ていかなかった」を見る前に。時間では待たない） */
+  const roundTrip = (p) => p.page.evaluate(() => fetch('/pv-vocab.json', { cache: 'no-store' }).then((r) => r.text()).then((t) => t.length > 0, () => false));
+  /* 自分の投稿を読みに行く通信・引き継ぎの通信 */
+  const reads = (p, from) => p.st.calls.slice(from).filter((c) => /^(my_work_months|my_airline_conditions|my_contrib_anon|claim_contrib)$/.test(c));
+  /* 面に見えている字。all を付けると、入力欄に入っている値も足す */
+  const sheetText = (p, all) => p.page.evaluate((a) => {
+    const s = document.querySelector('.pvc-root .pvc-sheet');
+    return s.innerText + (a ? '\n' + [...s.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]),textarea')].map((n) => n.value).join('\n') : '');
+  }, !!all);
+  /* 「保存しました」の知らせ（入力の中）。in ＝ 面の見えている範囲に、全部入っている */
+  const savedSaid = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), m = r.querySelector('.pvc-main').getBoundingClientRect();
+    return [...r.querySelectorAll('form .pvc-msg[data-pvc-msg="saved"]')].map((n) => {
+      const b = n.getBoundingClientRect(), t = n.querySelector('.pvc-msg-t');
+      return { title: t ? t.textContent : '', text: n.innerText.trim(), in: b.height > 0 && b.top >= m.top - 0.5 && b.bottom <= Math.min(m.bottom, window.innerHeight) + 0.5 };
+    });
+  });
+  /* 送ったあと、保存後のカードか、入力の中の知らせが出るまで待つ */
+  const afterSend = (p) => seen(p, () => { const r = document.querySelector('.pvc-root'); return !!r.querySelector('[data-pvc-saved]') || !!r.querySelector('form .pvc-msg'); });
+  const NOREAD_L = 'あなたの投稿の件数を取得できませんでした。';
+  const NOREAD_W = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ月の投稿があれば、今回の内容に置き換わります）。';
+  const NOREAD_Q = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ質問の答えがあれば、今回の内容に置き換わります）。';
+
+  /* B1：前の人が1問を保存し、保存後のカードが出ているまま、読む人が替わる。あとは本物のクリックだけ。 */
+  const LEAVE = {
+    member: { t: '別の会員がログインする', state: 'ok ok', text: /まだありません/, go: (u) => loginAs(u, 'b') },
+    logout: { t: 'ログアウトする', state: 'anon anon', text: /^$/, go: (u) => u.page.evaluate(() => { window.PVSession.wipe(); }) },
+    expire: { t: 'ログインの期限が切れる', state: 'anon anon', text: /^$/, go: async (u) => {
+      const r = await u.page.evaluate(() => { localStorage.setItem('pv_last_active', String(Date.now() - 8 * 24 * 60 * 60 * 1000)); return [window.PVSession.check(), window.PVSession.hasToken()]; });
+      if (J(r) !== J([true, false])) throw new Error('前提が崩れた（ログインの期限切れを作れていない）: ' + J(r));
+    } },
+  };
+  for (const kind of ['member', 'logout', 'expire']) {
+    const L = LEAVE[kind];
+    await scene(`読めている一覧のまま、読む人が替わる ── ${L.t}（一覧へ戻る → 同じ項目を開く）`, async () => {
+      await seedPrev();
+      const u = await open('phone', { who: 'pay' });
+      try {
+        await go(u, ANA);
+        await api(u, 'list');
+        await waitView(u, 'counted');
+        const l0 = await listFace(u);
+        await u.page.click('.pvc-root [data-pvc-tile="work"]');
+        await waitView(u, 'work');
+        await settle(u);
+        const w0 = await wFace(u);
+        await tick(u);                                   // 前の人の確認のチェック（送らない）
+        await u.page.click('.pvc-root .pvc-prev');
+        await waitView(u, 'list');
+        await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+        await waitView(u, 'taxi');
+        await settle(u);
+        const q0 = await qFace(u);
+        await pick(u, 'commuting_taxi_cost', 'partial');
+        await tick(u);
+        await send(u);
+        await waitView(u, 'saved');
+        const s0 = await summary(u);
+        if (l0.state !== 'ok ok' || J(l0.counts) !== J(COUNTS0) || !fullW(w0) || !fullQ(q0, 'company_full') || s0.head !== '情報を更新しました' || !s0.rows.commuting_transport_note) {
+          throw new Error('前提が崩れた（前の人の一覧が読めていて、1問を保存した直後のカードが出ている形になっていない）: ' + J({ l0, w0, q0, head: s0.head }));
+        }
+        const before = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+        const n0 = u.st.calls.length;
+
+        await L.go(u);
+        await u.page.click('.pvc-root .pvc-saved [data-pvc-act="more"]');
+        await waitView(u, 'list');
+        await waitView(u, 'counted');
+        const l1 = await listFace(u);
+        ok(l1.counts.length === 0 && l1.state === L.state && L.text.test(l1.text),
+          `★${L.t}：一覧へ戻ると、前の人の「あなたの投稿 N件」は1つも出ない（読めている一覧でも）`, J(l1));
+
+        await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+        await waitView(u, 'taxi');
+        await settle(u);
+        const q1 = await qFace(u);
+        ok(emptyQ(q1) && !q1.own,
+          `★${L.t}：同じ項目を開くと、前の人の答えも補足も入っていない（「あなたの投稿」の札なし・ボタンは「匿名で追加する」・保存後のカードも出ない）`, J(q1));
+
+        await u.page.click('.pvc-root .pvc-prev');
+        await waitView(u, 'list');
+        await u.page.click('.pvc-root [data-pvc-tile="work"]');
+        await waitView(u, 'work');
+        await settle(u);
+        const w1 = await wFace(u);
+        ok(emptyW(w1), `★${L.t}：月の勤務を開くと、前の人の職位・機種・乗務時間・ステイ・メモが入っていない`, J(w1));
+        ok(w1.own === false, `★${L.t}：前の人が入れた確認のチェック（本人が直接経験した内容です）は外れている`, J({ own: w1.own }));
+
+        const after = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+        const calls = u.st.calls.slice(n0);
+        ok(subs(u, n0).length === 0 && J(after) === J(before) && (kind === 'member' || calls.length === 0),
+          `${L.t}：ここまでで、送る通信は1本も出ていない。保存先は2人とも1行も変わらない${kind === 'member' ? '' : '（ログインなしの人は、読みにも行かない）'}`, J({ calls, same: J(after) === J(before) }));
+
+        /* 前の人が、同じページのままログインし直す → 一覧へ戻ると、その人の件数が戻る（ログインなしの人から会員への入れ替わりにも気づく） */
+        await loginAs(u, 'pay');
+        await u.page.click('.pvc-root .pvc-prev');
+        await waitView(u, 'list');
+        await waitView(u, 'counted');
+        const l2 = await listFace(u);
+        ok(l2.state === 'ok ok' && J(l2.counts) === J(COUNTS0),
+          `${L.t}：そのあと前の人がログインし直すと、一覧にその人の件数が戻る`, J(l2));
+      } finally {
+        await u.st.ctx.close();
+      }
+    });
+  }
+
+  /* B2：送るボタンだけが押される。前の人が1つ打って、確認のチェックも入れてある入力のまま、読む人が替わる。 */
+  await scene('読めている一覧のまま、読む人が替わる ── ほかに何も触れずに送るボタンが押される（質問の項目）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    const sentQ = tap(u, 'submit_airline_conditions');
+    try {
+      await go(u, ANA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await tick(u);
+      const p0 = await qFace(u);
+      if (!fullQ(p0, 'company_full') || !p0.own) throw new Error('前提が崩れた（前の人の保存した答えが入り、チェックだけを入れた入力になっていない）: ' + J(p0));
+      const before = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+
+      /* ① 何も打っていない */
+      await loginAs(u, 'b');
+      let n0 = u.st.calls.length;
+      await pressSend(u);
+      await seen(u, () => { const r = document.querySelector('.pvc-root'); return !r.querySelector('form .pvc-mine') || !!r.querySelector('form .pvc-msg') || !!r.querySelector('[data-pvc-saved]'); });
+      const q1 = await qFace(u);
+      ok(subs(u, n0).length === 0 && emptyQ(q1) && !q1.own && q1.msg.length === 0,
+        '★読む人が替わったあと、ほかに何も触れずに送るボタンが押されても、その1回では何も送らない（入力を作り直すだけ。前の人の答え・補足・チェックは消える）', J({ sent: subs(u, n0), q1 }));
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await tick(u);
+      await send(u);
+      await waitMsg(u, 'said');
+      ok(/1つ以上答えてください/.test(await msg(u, 'said')) && subs(u, n0).length === 0 && J(await mineOf(NEXT.id)) === J(before.next),
+        '★何も打っていない今の人がチェックを入れて送っても、何も保存されない（「1つ以上答えてください」。前の人の答えが今の人の投稿にならない）', J({ sent: subs(u, n0), said: await msg(u, 'said') }));
+
+      /* ② 前の人が1つだけ打ってある */
+      await loginAs(u, 'pay');
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const p2 = await qFace(u);
+      if (!fullQ(p2, 'company_full')) throw new Error('前提が崩れた（②：前の人に戻して、保存した答えが入った入力になっていない）: ' + J(p2));
+      await pick(u, 'commuting_transport', 'always');     // 打った1つ
+      await tick(u);
+      await loginAs(u, 'b');
+      n0 = u.st.calls.length;
+      const sent0 = sentQ.length;
+      await pressSend(u);
+      await seen(u, () => { const r = document.querySelector('.pvc-root'); return !r.querySelector('form .pvc-mine') || !!r.querySelector('form .pvc-msg') || !!r.querySelector('[data-pvc-saved]'); });
+      const q3 = await qFace(u);
+      ok(subs(u, n0).length === 0 && q3.form && q3.transport === 'always' && q3.note === '' && q3.method.length === 0 && q3.mine === 0 && !q3.own && q3.msg.length === 0,
+        '★1つ打ってあった入力でも、その1回では何も送らない。打った1つは残り、前の人の補足・ほかの答え・チェックは消える', J({ sent: subs(u, n0), q3 }));
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s4 = await summary(u);
+      const pl = sentQ[sentQ.length - 1] || {};
+      const after = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+      ok(sentQ.length === sent0 + 1 && J(pl.answers) === J([{ question_id: 'commuting_transport', code: 'always' }]) && !('position' in pl) && !('fleet' in pl),
+        '★今の人がチェックを入れて押し直すと、出ていくのは打った1つだけ（前の人の補足・職位・機種が入らない）', J(pl));
+      ok(J(after.next.cond) === J([{ q: 'commuting_transport', c: 'always', cs: null, t: null, pos: null, fleet: null }]) && after.next.work.length === 0 && J(after.prev) === J(before.prev),
+        '★保存先：今の人の行はその1つだけ（補足・職位・機種は空）。前の人の行は1つも変わらない', J(after.next));
+      ok(s4.head === '情報を追加しました' && J(Object.keys(s4.rows)) === J(['commuting_transport']),
+        '★保存後のカードは「情報を追加しました」で、出るのはその1つだけ', J({ head: s4.head, rows: Object.keys(s4.rows) }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  await scene('読めている一覧のまま、読む人が替わる ── ほかに何も触れずに送るボタンが押される（月の勤務）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    const sentW = tap(u, 'submit_work_month');
+    try {
+      await go(u, ANA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const w0 = await wFace(u);
+      if (!fullW(w0)) throw new Error('前提が崩れた（前の人の保存した月が入った入力になっていない）: ' + J(w0));
+      /* 前の人が打ったのは、職位と勤務時間の2つ（送れる形がそろっている ＝ 止めるのは、送る所の確かめだけ） */
+      await pick(u, 'position', 'fo');
+      await fill(u, 'duty_hours', '120');
+      await tick(u);
+      const before = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+      await loginAs(u, 'b');
+      const n0 = u.st.calls.length;
+      await pressSend(u);
+      await seen(u, () => { const r = document.querySelector('.pvc-root'), f = r.querySelector('form[data-pvc-form="work"]'); return !f || f.querySelector('[name="block_hours"]').value === '' || !!r.querySelector('[data-pvc-saved]'); });
+      const w1 = await wFace(u);
+      ok(subs(u, n0).length === 0 && w1.form && w1.position === 'fo' && w1.duty_hours === '120' && w1.fleet === '' && w1.block_hours === '' && w1.stay_nights === '' && w1.note === ''
+        && !w1.own && w1.tag === false && w1.errs.length === 0,
+        '★月の勤務でも、その1回では何も送らない。打った欄（職位・勤務時間）だけが残り、前の人の機種・乗務時間・ステイ・メモ・チェックは消える', J({ sent: subs(u, n0), w1 }));
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s2 = await summary(u);
+      const pl = sentW[sentW.length - 1] || {};
+      const after = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+      ok(sentW.length === 1 && pl.position === 'fo' && pl.duty_hours === 120 && pl.fleet === null && pl.base_iata === null && pl.block_hours === null && pl.stay_nights === null && pl.note === null,
+        '★今の人がチェックを入れて押し直すと、出ていくのは打った欄だけ（前の人の機種・拠点・乗務時間・ステイ・メモが入らない）', J(pl));
+      ok(J(after.next.work) === J([{ y: LAST.y, m: LAST.m, pos: 'fo', fleet: null, block: null, duty: 120, stay: null, note: null }]) && J(after.prev) === J(before.prev) && s2.head === '情報を追加しました',
+        '★保存先：今の人の月は打った欄だけ。前の人の月は変わらない。見出しは「情報を追加しました」', J({ next: after.next.work, head: s2.head }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  /* B3：ほかのタブで替わる。最初のタブには触らない。 */
+  await scene('読めている一覧のまま、読む人が替わる ── ほかのタブで別の会員がログインする（こちらには触らない）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      const tab = await otherTab(u);
+      await go(u, ANA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await pick(u, 'commuting_transport', 'always');     // 打った1つ
+      await tick(u);
+      const p0 = await qFace(u);
+      if (p0.transport !== 'always' || p0.note !== NOTE_Q || !p0.own || p0.mine < 1) throw new Error('前提が崩れた（前の人の保存した補足が出ていて、1つだけ打ってある入力になっていない）: ' + J(p0));
+      let n0 = u.st.calls.length;
+      await loginIn(tab, 'b');
+      const got = await seen(u, taxiCleared);
+      const q1 = await qFace(u);
+      ok(got && q1.transport === 'always' && q1.note === '' && q1.method.length === 0 && q1.mine === 0 && !q1.own && subs(u, n0).length === 0,
+        '★ほかのタブで別の会員がログインしたら、こちらのタブには触らなくても、前の人の補足・答え・チェックが消える（打った1つは残る・何も送らない）', J({ got, q1 }));
+
+      /* 保存後のカードが出ているまま、ほかのタブで替わる */
+      await loginIn(tab, 'pay');
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await pick(u, 'commuting_taxi_cost', 'partial');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s2 = await summary(u);
+      if (!/^情報を(更新|追加)しました$/.test(s2.head) || !s2.rows.commuting_taxi_cost) throw new Error('前提が崩れた（前の人の保存後のカードが出ていない）: ' + J({ head: s2.head, rows: Object.keys(s2.rows) }));
+      n0 = u.st.calls.length;
+      await loginIn(tab, 'b');
+      const gone = await seen(u, () => { const r = document.querySelector('.pvc-root'); return !r.querySelector('[data-pvc-saved]') && !!r.querySelector('.pvc-tiles'); });
+      if (gone) await waitView(u, 'counted');
+      const l2 = gone ? await listFace(u) : null;
+      const shown2 = await u.page.evaluate(() => document.querySelector('.pvc-root .pvc-main').innerText);
+      ok(gone && l2.counts.length === 0 && l2.state === 'ok ok' && !shown2.includes('試験：') && subs(u, n0).length === 0,
+        '★保存後のカードが出ているまま、ほかのタブで読む人が替わったら、カードは消えて一覧に戻る（前の人が保存した内容を「あなたの投稿」として出したままにしない）', J({ gone, l2 }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  await scene('ログインなしで預けた回答が出ているまま、控えの鍵が外から替わる（ほかのタブ）', async () => {
+    await seedPrev();
+    const v = await open('phone');
+    try {
+      const tab = await otherTab(v);
+      await go(v, ANA);
+      await api(v, 'taxi');
+      await waitView(v, 'taxi');
+      await settle(v);
+      await pick(v, 'commuting_transport', 'no');
+      await tick(v);
+      await send(v);
+      await waitView(v, 'saved');
+      await v.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(v, 'taxi');
+      await settle(v);
+      const p0 = await qFace(v);
+      const k0 = await v.page.evaluate(() => localStorage.getItem('pv_contrib_key'));
+      if (p0.transport !== 'no' || p0.mine !== 1 || !/^[0-9a-f]{48}$/.test(k0 || '')) throw new Error('前提が崩れた（ログインなしで預けた答えが、入力に入って出ていない）: ' + J({ p0, key: !!k0 }));
+      await tab.evaluate(() => localStorage.setItem('pv_contrib_key', 'f'.repeat(48)));
+      const got = await seen(v, () => { const f = document.querySelector('.pvc-root form[data-pvc-form="taxi"]'); return !!f && f.querySelector('[name="commuting_transport"]').value === '' && f.querySelectorAll('.pvc-mine').length === 0; });
+      const q1 = await qFace(v);
+      ok(got && emptyQ(q1),
+        '★ログインなしで預けた回答が出ているまま、控えの鍵が外から替わったら、その回答を入力に出したままにしない（預かりは、鍵を持つ人のもの）', J({ got, q1 }));
+    } finally {
+      await v.st.ctx.close();
+    }
+  });
+
+  /* B4：同じページのまま替わったあと、質問の欄に入る。 */
+  await scene('読めている一覧のまま、読む人が替わる ── 質問の欄に入った時（前の人の補足が入っていた欄）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      /* 前の人が、何も変えずに送ってある（「保存済みの内容と同じです」の知らせと、確認のチェックが出たまま）。そのあとで1つ打つ */
+      await tick(u);
+      await send(u);
+      await waitMsg(u, 'same');
+      await pick(u, 'commuting_transport', 'always');     // 打った1つ
+      const p0 = await qFace(u);
+      if (p0.transport !== 'always' || p0.note !== NOTE_Q || p0.mine < 1 || !p0.own || J(p0.msg) !== J(['same'])) throw new Error('前提が崩れた（前の人の保存した補足・知らせ・チェックが出ていて、1つだけ打ってある入力になっていない）: ' + J(p0));
+      await loginAs(u, 'b');
+      const n0 = u.st.calls.length;
+      await fill(u, 'commuting_transport_note', '今の人の補足');
+      const q1 = await qFace(u);
+      ok(q1.form && q1.transport === 'always' && q1.method.length === 0 && q1.mine === 0 && subs(u, n0).length === 0,
+        '★読む人が替わったあと、質問の欄に入った時に入力を作り直す（前の人の答えと「あなたの投稿」の札が消え、打ってあった1つは残る）', J(q1));
+      ok(!q1.own && q1.msg.length === 0,
+        '★前の人の送信についての知らせ（保存済みの内容と同じです）と、前の人の確認のチェックも消える', J({ own: q1.own, msg: q1.msg }));
+      ok(q1.note === '今の人の補足' && q1.at === 'commuting_transport_note',
+        '★入ろうとした補足の欄は、前の人の補足だけが消えて、そのまま打てる（空になって畳まれた欄を開け直して渡す。前の人の字に続けて打たせない）', J({ note: q1.note, at: q1.at }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  /* B5：読む人が替わっていない時は、上のどの確かめも何も消さない。 */
+  await scene('読む人が替わっていない会員 ── 保存 → 一覧 → 開き直す（何も消えない）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      const tab = await otherTab(u);
+      await go(u, ANA);
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await pick(u, 'commuting_taxi_cost', 'partial');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const s1 = await summary(u);
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="more"]');
+      await waitView(u, 'list');
+      await waitView(u, 'counted');
+      const l1 = await listFace(u);
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q1 = await qFace(u);
+      ok(s1.head === '情報を更新しました' && J(Object.keys(s1.rows).sort()) === J(['commuting_taxi_cost', 'commuting_transport', 'commuting_transport_method', 'commuting_transport_note'])
+        && J(l1.counts) === J(COUNTS0) && l1.state === 'ok ok' && fullQ(q1, 'partial'),
+        '★読む人が替わっていなければ、保存後のカードに保存した内容が出て、一覧に「あなたの投稿 N件」が出て、開き直すと答えと補足が入っている', J({ head: s1.head, l1, q1 }));
+      /* 上の確かめが通る所を、ひととおり踏む：ほかのタブの関係の無い書き込み・タブへ戻った合図・欄に入る・チェック・何も変えずに送る */
+      await tab.evaluate(() => { localStorage.setItem('pv_test_other', '1'); localStorage.setItem('pv_last_active', String(Date.now())); });
+      await u.page.evaluate(() => { document.dispatchEvent(new Event('visibilitychange')); });
+      await u.page.focus('.pvc-root [name="commuting_transport_note"]');
+      await tick(u);
+      await send(u);
+      await waitMsg(u, 'same');
+      const q2 = await qFace(u);
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const w2 = await wFace(u);
+      ok(fullQ(q2, 'partial') && q2.own && J(q2.msg) === J(['same']) && fullW(w2),
+        '★同じ人のままなら、ほかのタブの書き込み・タブへ戻る・欄に入る・チェック・送る のどれでも、入力は消えない（何も変えずに送ると「保存済みの内容と同じです」）', J({ q2, w2 }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  await scene('読む人が替わっていない、ログインなしの人 ── はじめての保存で控えの鍵が付く → 見る → もう1度保存', async () => {
+    await seedPrev();
+    const v = await open('phone');
+    try {
+      await go(v, ANA);
+      const k0 = await v.page.evaluate(() => localStorage.getItem('pv_contrib_key'));
+      if (k0) throw new Error('前提が崩れた（控えの鍵をまだ持っていない端末になっていない）');
+      await api(v, 'taxi');
+      await waitView(v, 'taxi');
+      await settle(v);
+      await pick(v, 'commuting_transport', 'no');
+      await tick(v);
+      await send(v);
+      await waitView(v, 'saved');
+      const s1 = await summary(v);
+      const k1 = await v.page.evaluate(() => localStorage.getItem('pv_contrib_key'));
+      ok(s1.head === '情報を追加しました' && J(Object.keys(s1.rows)) === J(['commuting_transport']) && /^[0-9a-f]{48}$/.test(k1 || ''),
+        '★ログインなしの人のはじめての保存（控えの鍵がここで付く）のあと、保存後のカードがそのまま出て、保存した答えが載っている（鍵が付いたことを「読む人が替わった」と取り違えない）', J({ head: s1.head, rows: Object.keys(s1.rows), key: !!k1 }));
+      await v.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(v, 'taxi');
+      await settle(v);
+      const q1 = await qFace(v);
+      await pick(v, 'commuting_transport', 'unknown');
+      await tick(v);
+      await send(v);
+      await waitView(v, 'saved');
+      const s2 = await summary(v);
+      await v.page.click('.pvc-root .pvc-saved [data-pvc-act="more"]');
+      await waitView(v, 'list');
+      await waitView(v, 'counted');
+      const l2 = await listFace(v);
+      const held = (await heldAna()).map((x) => [x.kind, x.k, x.payload.code]);
+      ok(q1.transport === 'no' && q1.mine === 1 && q1.btn === '匿名で更新する' && s2.head === '情報を更新しました'
+        && J(l2.counts) === J(['taxi：あなたの投稿 1件']) && J(held) === J([['cond', 'commuting_transport', 'unknown']]),
+        '★そのまま「自分の回答を見る」に答えが入っていて、同じ面からもう1度保存できる（一覧は「あなたの投稿 1件」・預かりは1件で、直した答えになっている）', J({ q1, head: s2.head, l2, held }));
+    } finally {
+      await v.st.ctx.close();
+    }
+  });
+
+  /* 会員なのに、引き継げなかった控えの鍵が端末に残っていることがある（引き継ぎの口が落ちていた回・残りが在る回）。
+     会員は会員の id で同じ人 ＝ 鍵が在っても「読む人が替わった」と取り違えない。取り違えると、確かめるたびに
+     自分の一覧を手放して読み直し、保存した答えがいつまでも入力に出ない。
+     鍵を残すために、この場面だけ、引き継ぎの口を落とす（自分の一覧を読む口は落とさない）。 */
+  await scene('読む人が替わっていない会員 ── 引き継げなかった控えの鍵が端末に残っている（何も消えない）', async () => {
+    await seedPrev();
+    await failNext('claim_contrib', null, 99);
+    const u = await open('phone', { who: 'pay' });
+    try {
+      const tab = await otherTab(u);
+      await go(u, ANA);
+      await u.page.evaluate(() => localStorage.setItem('pv_contrib_key', 'e'.repeat(48)));
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q0 = await qFace(u);
+      const key = await u.page.evaluate(() => localStorage.getItem('pv_contrib_key'));
+      if (key !== 'e'.repeat(48) || hits(u, 'claim_contrib') < 1) throw new Error('前提が崩れた（引き継ぎを試みて、控えの鍵が残った会員になっていない）: ' + J({ key: !!key, claims: hits(u, 'claim_contrib') }));
+      ok(fullQ(q0, 'company_full'),
+        '★控えの鍵が端末に残っている会員でも、自分が保存した答えと補足が入力に入って出る（鍵が在ることを「読む人が替わった」と取り違えない）', J(q0));
+      /* 確かめが通る所を、ひととおり踏む：チェック・ほかのタブの書き込み・タブへ戻った合図・欄に入る・何も変えずに送る */
+      await tick(u);
+      await tab.evaluate(() => { localStorage.setItem('pv_last_active', String(Date.now())); });
+      await u.page.evaluate(() => { document.dispatchEvent(new Event('visibilitychange')); });
+      await u.page.focus('.pvc-root [name="commuting_transport_note"]');
+      await send(u);
+      await waitMsg(u, 'same');
+      const q1 = await qFace(u);
+      ok(fullQ(q1, 'company_full') && q1.own && J(q1.msg) === J(['same']),
+        '★そのまま チェック・ほかのタブの書き込み・タブへ戻る・欄に入る・送る を踏んでも、入力もチェックも消えない（何も変えずに送ると「保存済みの内容と同じです」）', J(q1));
+    } finally {
+      await failOff();
+      await u.st.ctx.close();
+    }
+  });
+
+  /* 読んでいる・送っている最中に、読む人が替わる（返事は、前の人のものが遅れて届く）。 */
+  await scene('自分の投稿を読み直している最中に、ログインが切れる ── 遅れて届いた前の人の一覧を出さない', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      const l0 = await listFace(u);
+      await u.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(u);
+      u.st.hold = { name: 'my_airline_conditions', reqs: [] };
+      await api(u, 'list');
+      await waitView(u, 'list');
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      if (J(l0.counts) !== J(COUNTS0) || !held) throw new Error('前提が崩れた（前の人の件数が出ていて、読み直しの返事を止めた形になっていない）: ' + J({ l0, held }));
+      await u.page.evaluate(() => { window.PVSession.wipe(); });
+      release(u);
+      const got = await seen(u, () => { const r = document.querySelector('.pvc-root'), st = r.querySelector('[data-pvc-state]'); return !!st && st.getAttribute('data-pvc-state') === 'anon anon'; });
+      const l1 = await listFace(u);
+      ok(got && l1.counts.length === 0 && l1.text === '',
+        '★読み直しの返事が届く前にログインが切れたら、届いた一覧（前の人のもの）を件数に出さない', J({ got, l1 }));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+    }
+  });
+
+  for (const topic of ['taxi', 'work']) {
+    const fn = topic === 'taxi' ? 'submit_airline_conditions' : 'submit_work_month';
+    await scene(`送っている最中に、ほかのタブで読む人が替わる（${topic === 'taxi' ? '質問の項目' : '月の勤務'}）── 遅れて届いた返事で、前の人の内容をカードに出さない`, async () => {
+      await seedPrev();
+      const u = await open('phone', { who: 'pay' });
+      try {
+        const tab = await otherTab(u);
+        await go(u, ANA);
+        await api(u, topic);
+        await waitView(u, topic);
+        await settle(u);
+        if (topic === 'taxi') await pick(u, 'commuting_taxi_cost', 'partial'); else await fill(u, 'duty_hours', '120');
+        await tick(u);
+        u.st.hold = { name: fn, reqs: [] };
+        await send(u);
+        const held = await until(() => u.st.hold.reqs.length === 1);
+        await loginIn(tab, 'b');
+        /* こちらのタブが気づいて、今の人の分を読み終わるまで待つ（送っている最中の印が出たまま、前の人の値が消える） */
+        const turned = await seen(u, (t) => {
+          const f = document.querySelector('.pvc-root form[data-pvc-form="' + t + '"]');
+          return !!f && (t === 'taxi' ? f.querySelectorAll('.pvc-mine').length === 0 : f.querySelector('[name="block_hours"]').value === '');
+        }, topic);
+        if (!held || !turned) throw new Error('前提が崩れた（送る通信を止めたまま、ほかのタブの切り替えに気づいた形になっていない）: ' + J({ held, turned }));
+        release(u);
+        const back = await seen(u, () => { const r = document.querySelector('.pvc-root'); return !!r.querySelector('.pvc-tiles') || !!r.querySelector('[data-pvc-saved]'); });
+        const card = await u.page.evaluate(() => !!document.querySelector('.pvc-root [data-pvc-saved]'));
+        if (!card) await waitView(u, 'counted');
+        const l1 = card ? null : await listFace(u);
+        const cues = await cueLog(u);
+        const after = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+        ok(back && !card && !!l1 && l1.counts.length === 0 && cues.length === 0,
+          '★送っている最中に読む人が替わったら、遅れて届いた返事で、前の人が保存した内容を今の人のカードに出さない（一覧へ戻る。保存できた合図も出さない）', J({ back, card, l1, cues }));
+        const kept = topic === 'taxi' ? (after.prev.cond.find((x) => x.q === 'commuting_taxi_cost') || {}).c === 'partial' : (after.prev.work[0] || {}).duty === 120;
+        ok(kept && after.next.work.length === 0 && after.next.cond.length === 0,
+          '保存そのものは、送った人（前の人）の行に入っている。今の人の行は1つも増えない', J(after));
+      } finally {
+        release(u);
+        await u.st.ctx.close();
+      }
+    });
+  }
+
+  await scene('面を閉じているあいだに読む人が替わり、開き直す', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      await tick(u);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await tick(u);
+      const w0 = await u.page.evaluate(() => document.querySelector('.pvc-root [name="own"]').checked);
+      await u.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(u);
+      await loginAs(u, 'b');
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const w1 = await wFace(u);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q1 = await qFace(u);
+      ok(w0 && emptyW(w1) && !w1.own && emptyQ(q1) && !q1.own,
+        '★面を閉じているあいだに読む人が替わって開き直した時も、前の人の値・確認のチェックが入っていない（月の勤務・質問の項目）', J({ w1, q1 }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  await scene('ログインが切れていたタブへ戻ってくる ── 触らなくても、前の人の答えが消える', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const p0 = await qFace(u);
+      if (!fullQ(p0, 'company_full')) throw new Error('前提が崩れた（前の人の保存した答えが入った入力になっていない）: ' + J(p0));
+      /* 7日より長く触っていなかったことにして、「タブが見える状態に戻った」合図を流す（pv-session.js がここで切れたログインを片づける） */
+      const vis = await u.page.evaluate(() => {
+        localStorage.setItem('pv_last_active', String(Date.now() - 8 * 24 * 60 * 60 * 1000));
+        document.dispatchEvent(new Event('visibilitychange'));
+        return [document.visibilityState, window.PVSession.hasToken()];
+      });
+      const got = await seen(u, taxiCleared);
+      const q1 = await qFace(u);
+      ok(J(vis) === J(['visible', false]) && got && emptyQ(q1) && !q1.own,
+        '★ログインが切れていたタブへ戻ってきた時は、どこにも触らなくても、前の人の答え・補足が消える', J({ vis, got, q1 }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  /* その場で作り直した入力は、今の人の分を読み直しているあいだも止めない（今の人は、もう欄に入っている）。
+     読み直しが届いて入力が作り直されても、居た欄に居たまま。読み直しの返事を止めて、そのあいだを見る。 */
+  await scene('読む人が替わったあと欄に入り、まだ何も打たないうちに今の人の一覧が届く ── 入力は止まらず、居た欄に居たまま', async () => {
+    await seedPrev();
+    /* 今の人にも、この項目の答えを1つ置いておく（届いたら入力に入る ＝ 作り直しが起きる） */
+    const c = await rpcAs('b', 'submit_airline_conditions', { airline: 'ana', lang: 'ja', answers: [{ question_id: 'commuting_transport', code: 'no' }] });
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const p0 = await qFace(u);
+      await loginAs(u, 'b');
+      u.st.hold = { name: 'my_airline_conditions', reqs: [] };
+      await u.page.focus('.pvc-root [name="commuting_transport"]');     // 欄に入る（まだ打たない）
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      if (!c || !c.ok || !fullQ(p0, 'company_full') || !held) throw new Error('前提が崩れた（前の人の答えが入った入力のまま、今の人の読み直しを止めた形になっていない）: ' + J({ c, p0, held }));
+      const q1 = await qFace(u);
+      await u.page.evaluate(() => document.querySelector('.pvc-root form[data-pvc-form="taxi"]').setAttribute('data-test-old', '1'));
+      release(u);
+      const redrawn = await seen(u, () => { const f = document.querySelector('.pvc-root form[data-pvc-form="taxi"]'); return !!f && !f.hasAttribute('data-test-old'); });
+      const q2 = await qFace(u);
+      ok(emptyQ(q1) && q1.off === false && q1.at === 'commuting_transport',
+        '★欄に入った時に作り直した入力は、今の人の分を読み直しているあいだも止まらない（前の人の答えは無く、入力でき、入った欄に居る）', J(q1));
+      ok(redrawn && q2.transport === 'no' && q2.mine === 1 && q2.btn === '匿名で更新する' && q2.at === 'commuting_transport',
+        '★今の人の一覧が届いて入力が作り直されても、居た欄に居たまま（今の人が前に保存した答えが入る）', J({ redrawn, q2 }));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+    }
+  });
+
+  /* 今の人の一覧が空のまま（まだ何も出していない・読めなかった）届いた時は、その場で作り直した入力を、もう一度は作り直さない。
+     作り直すと、欄に入って打ち始めた人の足元で、入力がもう1回入れ替わる。知らせの字だけを直す。
+     届いたことを画面で知るために、この場面だけ、今の人の勤務の一覧を読む口を落とす（入力の下に断りの字が出る）。 */
+  await scene('読む人が替わったあと欄に入り、今の人の一覧が空のまま届く ── 入力をもう一度は作り直さない', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const w0 = await wFace(u);
+      await loginAs(u, 'b');
+      await failNext('my_work_months', null, 99);
+      u.st.hold = { name: 'my_airline_conditions', reqs: [] };
+      await u.page.focus('.pvc-root [name="block_hours"]');     // 欄に入る（まだ打たない）
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      if (!fullW(w0) || !held) throw new Error('前提が崩れた（前の人の月が入った入力のまま、今の人の読み直しを止めた形になっていない）: ' + J({ w0, held }));
+      await u.page.evaluate(() => document.querySelector('.pvc-root form[data-pvc-form="work"]').setAttribute('data-test-old', '1'));
+      release(u);
+      const arrived = await seen(u, () => { const n = document.querySelector('.pvc-root [data-pvc-wait]'); return !!n && !n.hidden && /読み込めませんでした/.test(n.textContent); });
+      const kept = await u.page.evaluate(() => { const f = document.querySelector('.pvc-root form[data-pvc-form="work"]'), a = document.activeElement; return [f.hasAttribute('data-test-old'), a ? a.getAttribute('name') : '']; });
+      const w1 = await wFace(u);
+      ok(arrived && J(kept) === J([true, 'block_hours']) && emptyW(w1),
+        '★今の人の一覧が空のまま届いた時は、その場で作り直した入力を、もう一度は作り直さない（同じ入力のまま・入った欄に居たまま。断りの字だけが出る）', J({ arrived, kept, w1 }));
+    } finally {
+      release(u);
+      await failOff();
+      await u.st.ctx.close();
+    }
+  });
+
+  await scene('ログイン前の回答を引き継いだ知らせが出ているまま、ほかのタブで読む人が替わる', async () => {
+    await seedPrev();
+    const v = await open('phone');
+    try {
+      const tab = await otherTab(v);
+      await go(v, ANA);
+      await api(v, 'taxi');
+      await waitView(v, 'taxi');
+      await settle(v);
+      await pick(v, 'commuting_transport', 'no');
+      await tick(v);
+      await send(v);
+      await waitView(v, 'saved');
+      /* 保存のあとの読み直しが届き終わるまで待つ（一覧の印が「読めた・読めた」になる）。届く前にログインを入れると、
+         遅れて届いた返事で「読む人が替わった」と気づいたこのページが、開き直す前に引き継ぎを始める（それは正しい動き）。 */
+      await v.page.click('.pvc-root .pvc-saved [data-pvc-act="more"]');
+      await waitView(v, 'list');
+      await v.page.waitForFunction(() => { const st = document.querySelector('.pvc-root [data-pvc-state]'); return !!st && st.getAttribute('data-pvc-state') === 'ok ok'; });
+      /* 同じ端末で会員Bがログインして、同じページを開き直す（預けた1件が引き継がれ、知らせが出る） */
+      const s = await (await fetch(`${base}/__local/login?member=b`)).json();
+      await v.page.evaluate((x) => {
+        const now = String(Date.now());
+        localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session));
+        localStorage.setItem('pv_user', JSON.stringify(x.pv_user));
+        localStorage.setItem('pv_last_active', now);
+        localStorage.setItem('pv_session_start', now);
+        const at = Date.parse((x.session.user || {}).last_sign_in_at || '');
+        localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
+      }, s);
+      /* ページを離れる時にも「見え方が変わった」合図は流れる（隠れる側）。そこでは読み直さない ── 去っていくページが
+         引き継ぎを始めると、次に開いたページは「引き継ぎました」を言えない。隠れる側の合図を作って、一覧がそのままなのを見る
+         （読み直しを始めると、その場で一覧の印が「確認しています」に変わる） */
+      const stays = await v.page.evaluate(() => {
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+        document.dispatchEvent(new Event('visibilitychange'));
+        delete document.visibilityState;
+        return [document.visibilityState, document.querySelector('.pvc-root [data-pvc-state]').getAttribute('data-pvc-state')];
+      });
+      ok(J(stays) === J(['visible', 'ok ok']) && hits(v, 'claim_contrib') === 0,
+        '★ページが隠れる側の合図（ページを離れる時にも流れる）では、読み直さない・引き継ぎを始めない', J({ stays, claims: hits(v, 'claim_contrib') }));
+      await go(v, ANA + '?add=list');
+      await waitView(v, 'counted');
+      await waitMsg(v, 'claim');
+      const c0 = await msg(v, 'claim');
+      const l0 = await listFace(v);
+      if (!/引き継ぎました/.test(c0 || '') || J(l0.counts) !== J(['taxi：あなたの投稿 1件'])) throw new Error('前提が崩れた（引き継ぎの知らせが出ている形になっていない）: ' + J({ c0, l0 }));
+      await loginIn(tab, 'pay');
+      const got = await seen(v, () => {
+        const r = document.querySelector('.pvc-root'), st = r.querySelector('[data-pvc-state]');
+        return !r.querySelector('.pvc-msg[data-pvc-msg="claim"]') && !!st && st.getAttribute('data-pvc-state') === 'ok ok' && [...r.querySelectorAll('[data-pvc-count]')].filter((n) => !n.hidden).length === 2;
+      });
+      const l1 = await listFace(v);
+      ok(got && J(l1.counts) === J(COUNTS0) && (await msg(v, 'claim')) === null,
+        '★引き継ぎの知らせは、引き継いだ人のもの。ほかのタブで読む人が替わったら、知らせは消え、件数は今の人のものになる', J({ got, l1 }));
+    } finally {
+      await v.st.ctx.close();
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 12-c. 開いている面と「いま読んでいる人」── 12-b の残り（全日本空輸・390×680）
+  // ═════════════════════════════════════════════════════════════
+  /* 引き継ぎの知らせ「ログイン前の回答を引き継ぎました／N件を、あなたの投稿として引き継ぎました。」は、引き継ぎを始めた人のもの。
+     12-b の確かめは「一覧を読み始めた時の印」で動く。その印がまだ無い時に書かれた知らせは、すり抜けて次の人に出ていた：
+       ・引き継ぎの返事を待っているあいだに、読む人がもう一度替わる（返事が届いた時に読んでいるのは、別の会員）
+       ・面を閉じたまま、ページを開いて少しあとの引き継ぎが済み、そのあとで別の人が面を開く
+     どちらも、知らせを描く所で「引き継ぎを始めた人 ＝ いま読む人」を確かめて止める（確かめるのは、その1か所だけ）。
+     ここの会員は、この会社のページに1件も持っていない2人（会員A・運営）。前の人の投稿を置く seedPrev は使わない
+     （給与提出者には、同じ質問の答えを置いてしまう）。 */
+  const M1 = memberOf('a'), M2 = memberOf('op');
+  const claimSaid = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root');
+    return { box: !!r.querySelector('.pvc-msg[data-pvc-msg="claim"]'), said: /引き継ぎました/.test(r.querySelector('.pvc-sheet').innerText),
+      key: localStorage.getItem('pv_contrib_key') };
+  });
+
+  await scene('ログイン前の回答の引き継ぎが届く前に、読む人がもう一度替わる ── 引き継いでいない人に「引き継ぎました」と言わない', async () => {
+    await noRows(M1, M2);
+    const v = await open('phone');
+    try {
+      const tab = await otherTab(v);
+      await go(v, ANA);
+      await api(v, 'taxi');
+      await waitView(v, 'taxi');
+      await settle(v);
+      await pick(v, 'commuting_transport', 'no');
+      await tick(v);
+      await send(v);
+      await waitView(v, 'saved');
+      /* 保存のあとの読み直しが届き終わるまで待つ（月の勤務の印は、はじめての保存の前は「ログインなし」。届くと「読めた」になる） */
+      await v.page.click('.pvc-root .pvc-saved [data-pvc-act="more"]');
+      await waitView(v, 'list');
+      await v.page.waitForFunction(() => { const st = document.querySelector('.pvc-root [data-pvc-state]'); return !!st && st.getAttribute('data-pvc-state') === 'ok ok'; });
+      /* ほかのタブで1人目がログインする ＝ このタブが気づいて、預けた1件の引き継ぎを始める。その返事を止めておく。 */
+      v.st.hold = { name: 'claim_contrib', reqs: [] };
+      await loginIn(tab, 'a');
+      const held = await until(() => v.st.hold.reqs.length === 1);
+      /* 返事が届く前に、同じタブで2人目がログインする。このタブから2人目のログインが読めるようになってから、返事を流す。 */
+      await loginIn(tab, 'op');
+      const second = await readsAs(v, M2);
+      const before = (await listFace(v)).state;
+      if (!held || !second || before === 'ok ok') throw new Error('前提が崩れた（引き継ぎの返事を止めたまま、読む人がもう一度替わった形になっていない）: ' + J({ held, second, before }));
+      release(v);
+      const arrived = await seen(v, () => { const st = document.querySelector('.pvc-root [data-pvc-state]'); return !!st && st.getAttribute('data-pvc-state') === 'ok ok'; });
+      const c1 = await claimSaid(v), l1 = await listFace(v);
+      const m1 = await mineOf(M1.id), m2 = await mineOf(M2.id), h1 = await heldAna();
+      if (hits(v, 'claim_contrib') !== 1) throw new Error('前提が崩れた（このページから出ていった引き継ぎは、ちょうど1本のはず）: ' + J(hits(v, 'claim_contrib')));
+      ok(arrived && !c1.box && !c1.said && l1.state === 'ok ok' && l1.counts.length === 0,
+        '★引き継ぎの返事が届く前に読む人がもう一度替わったら、今の人に「引き継ぎました」と言わない（知らせを出さない・件数も出さない）', J({ arrived, c1, l1 }));
+      ok(m1.cond.length === 1 && m1.cond[0].q === 'commuting_transport' && m1.cond[0].c === 'no' && m1.work.length === 0
+        && m2.cond.length === 0 && m2.work.length === 0 && h1.length === 0 && c1.key === null,
+        '引き継いだ1件は、引き継ぎを始めた会員のもの。今の人の行は1件も無い。預かりにも端末にも何も残らない', J({ m1, m2, held: h1.length, key: c1.key }));
+    } finally {
+      release(v);
+      await v.st.ctx.close();
+      await noRows(M1, M2);
+    }
+  });
+
+  await scene('面を閉じたまま引き継いだ知らせを、あとから来た別の人に出さない', async () => {
+    await noRows(M1, M2);
+    const v = await open('phone');
+    try {
+      await go(v, ANA);
+      await api(v, 'taxi');
+      await waitView(v, 'taxi');
+      await settle(v);
+      await pick(v, 'commuting_transport', 'no');
+      await tick(v);
+      await send(v);
+      await waitView(v, 'saved');
+      /* 1人目がログインして、同じ会社ページを開き直す。面は開かない ＝ 引き継ぐのは、ページを開いて少しあとの引き継ぎ（面は閉じたまま）。
+         待つのは時間ではなく、引き継ぎが出ていったことと、済んだ合図（知らせは、その合図の直前に書かれる）。 */
+      await loginAway(v, 'a');
+      if (hits(v, 'claim_contrib') !== 0) throw new Error('前提が崩れた（開き直す前に、引き継ぎが始まっている）');
+      await go(v, ANA);
+      const left = await until(() => hits(v, 'claim_contrib') >= 1);
+      const done = await seen(v, () => (window.__pvcSaved || []).some((x) => x && x.topic === 'claim'));
+      const m0 = await mineOf(M1.id), h0 = await heldAna();
+      const shut = await v.page.evaluate(() => !document.querySelector('.pvc-root'));
+      if (!left || !done || m0.cond.length !== 1 || m0.cond[0].c !== 'no' || h0.length !== 0 || !shut) {
+        throw new Error('前提が崩れた（面を1度も開かないまま、1人目が預けた1件を引き継いだ形になっていない）: ' + J({ left, done, m0, held: h0.length, shut }));
+      }
+      /* ほかのタブで2人目がログインする（面が閉じているあいだ、このタブは何もしない）。そのあと、このタブで面を開く。 */
+      const tab = await otherTab(v);
+      await loginIn(tab, 'op');
+      if (!(await readsAs(v, M2))) throw new Error('前提が崩れた（ほかのタブで入れた2人目のログインが、このタブから読めない）');
+      await api(v, 'list');
+      await waitView(v, 'counted');
+      const c1 = await claimSaid(v), l1 = await listFace(v);
+      const m1 = await mineOf(M1.id), m2 = await mineOf(M2.id);
+      ok(!c1.box && !c1.said && l1.state === 'ok ok' && l1.counts.length === 0
+        && m1.cond.length === 1 && m1.cond[0].c === 'no' && m2.cond.length === 0 && m2.work.length === 0,
+        '★面を閉じたまま引き継いだあとで、ほかのタブで別の会員が入り、その人が面を開いても、「引き継ぎました」と言わない（知らせを出さない・件数も出さない。引き継いだ1件は、引き継いだ会員のもののまま）', J({ c1, l1, m1, m2 }));
+    } finally {
+      await v.st.ctx.close();
+      await noRows(M1, M2);
+    }
+  });
+
+  /* ── ログインは保存されているのに、会員の id が読めない ──
+     12-b の確かめは「会員の id」で人を見分ける。id が読めないあいだは、どの会員も同じ印になり、別の会員に替わっても
+     気づけなかった ＝ 前の人の答え・補足・「あなたの投稿 N件」が、次の人に出ていた。
+     決まり：このあいだは、保存したものを誰のものとしても扱わない ── 読まない・数えない・入力に入れない・
+             保存後のカードを出さない・預かりを引き継がない。面は「読み込めませんでした」の形。打った内容は残り、送れる。
+     その形は idless（上）で作る。割れた控えの場面だけは、本物の読み口のまま（保存領域を割る）。
+     どの場面も、頭と終わりで「ログインは保存されていて、id は読めない」ことを確かめる（崩れていたら、場面ごと赤くする）。 */
+  await scene('会員の id が読めないログイン ── 前の人の投稿を、読まない・数えない・入力に入れない（別の会員に替わっても）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    await idless(u, true);
+    try {
+      await go(u, ANA);
+      await mustBeIdless(u, '場面の頭');
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      const l1 = await listFace(u), r1 = reads(u, 0);
+      ok(l1.counts.length === 0 && l1.state === 'fail fail' && l1.text === NOREAD_L && r1.length === 0,
+        '★会員の id が読めないあいだ、一覧に「あなたの投稿 N件」は出ない（「件数を取得できませんでした」）。自分の投稿を読む通信も、引き継ぎの通信も、1本も出ていかない', J({ l1, r1 }));
+
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q1 = await qFace(u), fq1 = await formFace(u), t1 = await sheetText(u, true);
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const w1 = await wFace(u), fw1 = await formFace(u), t1w = await sheetText(u, true);
+      ok(emptyQ(q1) && fq1.wait === NOREAD_Q && emptyW(w1) && fw1.wait === NOREAD_W && !/試験：/.test(t1 + t1w),
+        '★質問の項目も月の勤務も、空の入力で出る（保存してある答え・補足・月の値は入らない）。送るボタンの下は「これまでの投稿を読み込めませんでした。このまま送れます…」', J({ q1, wait: fq1.wait, w1, waitW: fw1.wait }));
+
+      /* 同じページのまま、別の会員のログインに替わる（その人の id も読めない）。欄に入り、一覧へ戻り、同じ項目を開く。 */
+      await loginAs(u, 'b');
+      await mustBeIdless(u, '別の会員に替わったあと');
+      const n3 = u.st.calls.length;
+      await u.page.focus('.pvc-root [name="block_hours"]');
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      await waitView(u, 'counted');
+      const l3 = await listFace(u);
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q3 = await qFace(u), t3 = await sheetText(u, true);
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const w3 = await wFace(u), t3w = await sheetText(u, true);
+      await mustBeIdless(u, 'id が読めるようになる前');
+      ok(l3.counts.length === 0 && l3.state === 'fail fail' && emptyQ(q3) && emptyW(w3) && !/試験：/.test(t3 + t3w) && u.st.calls.slice(n3).length === 0,
+        '★id が読めないまま別の会員に替わっても、前の人の件数・答え・補足・月の値は、どこにも出ない（読みにも行かない）', J({ l3, q3, w3, calls: u.st.calls.slice(n3) }));
+
+      /* 前の人がログインし直し、id も読めるようになる → 一覧へ戻ると、その人の件数が戻る（この形から出たことに気づく） */
+      await loginAs(u, 'pay');
+      await noId(u, false);
+      const s4 = await whoState(u);
+      if (J(s4) !== J([true, true])) throw new Error('前提が崩れた（id が読めるログインに戻っていない）: ' + J(s4));
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      const back = await seen(u, () => { const st = document.querySelector('.pvc-root [data-pvc-state]'); return !!st && st.getAttribute('data-pvc-state') === 'ok ok'; });
+      const l4 = await listFace(u);
+      ok(back && J(l4.counts) === J(COUNTS0),
+        'id が読めるログインに戻ると、一覧にその人の件数が戻る（読めない形から出たことに気づいて、読み直す）', J({ back, l4 }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  await scene('会員の id が読めないログイン ── 送ると打った答えだけが保存され、保存後のカードは出ない', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'b' });
+    await idless(u, true);
+    const sentW = tap(u, 'submit_work_month'), sentQ = tap(u, 'submit_airline_conditions');
+    try {
+      await go(u, ANA);
+      await mustBeIdless(u, '場面の頭');
+      const prev0 = await mineOf(PREV.id);
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      /* 先に月の勤務（職位と数字1つ）。あとの質問の送信に、この月の職位・機種が付いていかないことまで見る。 */
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      await pick(u, 'position', 'fo');
+      await fill(u, 'block_hours', '70');
+      await tick(u);
+      await send(u);
+      const backW = await afterSend(u);
+      const w1 = await wFace(u), nW = await savedSaid(u), tW = await sheetText(u);
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      await u.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(u, 'taxi');
+      await settle(u);
+      await pick(u, 'commuting_transport', 'no');
+      await tick(u);
+      await send(u);
+      const backQ = await afterSend(u);
+      const q1 = await qFace(u), nQ = await savedSaid(u), tQ = await sheetText(u);
+      const cues = await cueLog(u);
+      const mine = await mineOf(NEXT.id), prev1 = await mineOf(PREV.id);
+      const pw = sentW[0] || {}, pq = sentQ[0] || {};
+      ok(sentW.length === 1 && pw.position === 'fo' && pw.block_hours === 70 && pw.fleet === null && pw.stay_nights === null && pw.note === null
+        && sentQ.length === 1 && J(pq.answers) === J([{ question_id: 'commuting_transport', code: 'no' }]) && !('position' in pq) && !('fleet' in pq)
+        && mine.work.length === 1 && mine.work[0].y === LAST.y && mine.work[0].m === LAST.m && mine.work[0].pos === 'fo' && mine.work[0].block === 70 && mine.work[0].fleet === null && mine.work[0].note === null
+        && mine.cond.length === 1 && mine.cond[0].q === 'commuting_transport' && mine.cond[0].c === 'no' && mine.cond[0].pos === null && mine.cond[0].fleet === null
+        && J(prev1) === J(prev0),
+        '★会員の id が読めないあいだに送ると、打った内容だけが出ていき、その会員の行として保存される（質問の送信に、月の勤務の職位・機種を付けない。前の人の行は1つも変わらない）', J({ pw, pq, mine, same: J(prev1) === J(prev0) }));
+      ok(backW && emptyW(w1) && !w1.own && nW.length === 1 && nW[0].title === '保存しました' && nW[0].text === '保存しました' && !/あなたの投稿/.test(tW)
+        && backQ && emptyQ(q1) && !q1.own && nQ.length === 1 && nQ[0].title === '保存しました' && nQ[0].text === '保存しました' && !/あなたの投稿/.test(tQ)
+        && cues.length === 0,
+        '★送ったあと、保存後のカードは出ない。同じ項目の入力が空で出て、「保存しました」とだけ知らせる（「あなたの投稿」の札なし・ボタンは「匿名で追加する」・確認のチェックは外れている・保存できた合図も出さない）', J({ w1, nW, q1, nQ, cues }));
+      ok(nW.length === 1 && nW[0].in,
+        '★月の勤務（長い入力）で送ったあとの「保存しました」は、面の見えている範囲に入っている（390×680）', J(nW));
+      await u.page.click('.pvc-root .pvc-prev');
+      await waitView(u, 'list');
+      await waitView(u, 'counted');
+      const l2 = await listFace(u), box = await u.page.evaluate(() => !!document.querySelector('.pvc-root [data-pvc-held]'));
+      await mustBeIdless(u, '場面の終わり');
+      ok(l2.counts.length === 0 && l2.state === 'fail fail' && l2.text === NOREAD_L && !box && reads(u, 0).length === 0,
+        '★一覧へ戻っても、いま保存した分を「あなたの投稿 N件」に数えない（読めていないものは数にしない。「ログインなしで保存した回答があります。」の箱も出ない）', J({ l2, box, reads: reads(u, 0) }));
+    } finally {
+      await u.st.ctx.close();
+      await noRows(NEXT);
+    }
+  });
+
+  await scene('ログインの控えが割れている（id を読めない）── 本物の読み口のまま、自分の投稿を読みに行かない', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    const split = () => u.page.evaluate(() => [window.PVSession.hasToken(), window.PVSession.readStoredSession()]);
+    try {
+      await go(u, ANA);
+      /* 保存されているログインを、割れた形（….0）だけにする。ログインの部品は「まだ在る」と数え、読み口は見つけられない。 */
+      await u.page.evaluate(() => {
+        const v = localStorage.getItem('sb-local-auth-token');
+        localStorage.setItem('sb-local-auth-token.0', v);
+        localStorage.removeItem('sb-local-auth-token');
+      });
+      const s0 = await split();
+      if (J(s0) !== J([true, null])) throw new Error('前提が崩れた（場面の頭：ログインは「在る」と数えられ、読み口からは読めない形になっていない）: ' + J(s0));
+      const n0 = u.st.calls.length;
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      const l1 = await listFace(u);
+      await roundTrip(u);
+      const r1 = reads(u, n0), s1 = await split();
+      if (J(s1) !== J([true, null])) throw new Error('前提が崩れた（場面の終わり：割れた控えの形が保たれていない）: ' + J(s1));
+      ok(l1.state === 'fail fail' && l1.counts.length === 0 && l1.text === NOREAD_L && r1.length === 0,
+        '★ログインの控えが割れていて id を読めない時（本物の読み口のまま）、一覧は「件数を取得できませんでした」。自分の投稿を読む通信も、引き継ぎの通信も出ていかない', J({ l1, r1 }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  for (const topic of ['work', 'taxi']) {
+    const fn = topic === 'taxi' ? 'submit_airline_conditions' : 'submit_work_month', tn = topic === 'taxi' ? '質問の項目' : '月の勤務';
+    await scene(`会員の id が読めないログイン ── 会員の入口に断られて預かりへ入った保存も、自分の投稿として戻さない（${tn}）`, async () => {
+      await seedPrev();
+      const u = await open('phone', { who: 'b' });
+      await idless(u, true);
+      try {
+        await go(u, ANA);
+        await mustBeIdless(u, '場面の頭');
+        await api(u, 'list');
+        await waitView(u, 'counted');
+        await u.page.click(`.pvc-root [data-pvc-tile="${topic}"]`);
+        await waitView(u, topic);
+        await settle(u);
+        if (topic === 'taxi') await pick(u, 'commuting_transport', 'no');
+        else { await pick(u, 'position', 'fo'); await fill(u, 'block_hours', '70'); }
+        await tick(u);
+        /* 会員の入口が、この1回だけ「ログインが要る」と断る ＝ 同じ内容が、ログインなしの預かりへ入る */
+        u.st.fake = { name: fn, status: 401, body: { code: 'PGRST301', message: 'JWT expired', details: null, hint: null } };
+        await send(u);
+        const back = await afterSend(u);
+        const h1 = await heldAna();
+        if (hits(u, 'submit_contrib_anon') !== 1 || h1.length !== 1) {
+          throw new Error('前提が崩れた（会員の入口に断られて、預かりへ1件入った形になっていない）: ' + J({ anon: hits(u, 'submit_contrib_anon'), held: h1.length }));
+        }
+        const f1 = topic === 'taxi' ? await qFace(u) : await wFace(u), n1 = await savedSaid(u), t1 = await sheetText(u);
+        await u.page.click('.pvc-root .pvc-prev');
+        await waitView(u, 'list');
+        await waitView(u, 'counted');
+        const l1 = await listFace(u), box = await u.page.evaluate(() => !!document.querySelector('.pvc-root [data-pvc-held]'));
+        await mustBeIdless(u, '場面の終わり');
+        ok(back && (topic === 'taxi' ? emptyQ(f1) : emptyW(f1)) && !f1.own && n1.length === 1 && n1[0].title === '保存しました' && !/あなたの投稿/.test(t1)
+          && l1.counts.length === 0 && l1.state === 'fail fail' && !box && hits(u, 'my_contrib_anon') === 0,
+          `★${tn}：預かりへ入った保存も、カードにせず、入力にも一覧にも戻さない（空の入力に「保存しました」。「あなたの投稿」の札なし・ボタンは「匿名で追加する」・件数なし・「ログインなしで保存した回答があります。」の箱なし・預かりを読みにも行かない）`, J({ back, f1, n1, l1, box, anonReads: hits(u, 'my_contrib_anon') }));
+      } finally {
+        u.st.fake = null;
+        await u.st.ctx.close();
+        await noRows(NEXT);
+      }
+    });
+  }
+
+  /* ログインなしの人が、通勤・タクシーの1問を保存する（控えの鍵が付き、預かりに1件入る） */
+  const lodge = async (p) => {
+    await go(p, ANA);
+    await api(p, 'taxi');
+    await waitView(p, 'taxi');
+    await settle(p);
+    await pick(p, 'commuting_transport', 'no');
+    await tick(p);
+    await send(p);
+    await waitView(p, 'saved');
+  };
+
+  await scene('会員の id が読めないログイン ── ページを開いただけでは、預けた回答の引き継ぎを始めない', async () => {
+    await noRows(M1);
+    const c = await open('phone');
+    await idless(c, false);
+    let v = null;
+    try {
+      /* 比べる相手（id が読める会員）。ページを開いて少しあとの時計は、ログインが無いうちに自分で鳴らせておく（何も始めない）。
+         そのあとで会員がログインし、控えておいた時計の中身を呼ぶ ＝ 出ていった引き継ぎは、呼んだ1回のもの。 */
+      await lodge(c);
+      await go(c, ANA);
+      const ran0 = await bootRan(c);
+      if (!ran0 || hits(c, 'claim_contrib') !== 0) throw new Error('前提が崩れた（ログインが無いうちに時計が鳴り、何も始めなかった形になっていない）: ' + J({ ran0, claims: hits(c, 'claim_contrib') }));
+      await loginAs(c, 'a');
+      const s0 = await whoState(c), shut0 = await c.page.evaluate(() => !document.querySelector('.pvc-root'));
+      if (J(s0) !== J([true, true]) || !shut0) throw new Error('前提が崩れた（面を閉じたまま、id が読める会員が入った形になっていない）: ' + J({ s0, shut0 }));
+      const fired0 = await bootClaim(c);
+      const left0 = await until(() => hits(c, 'claim_contrib') >= 1);
+      /* 引き継ぎが済むまで待ってから閉じる（済む前に閉じて行を消すと、あとから届いた引き継ぎが行を作る） */
+      const done0 = await seen(c, () => (window.__pvcSaved || []).some((x) => x && x.topic === 'claim'));
+      ok(fired0 && left0 && done0 && hits(c, 'claim_contrib') === 1,
+        '（比べる相手）id が読める会員なら、ページを開いて少しあとの引き継ぎは始まる（控えた時計の中身を呼ぶと、引き継ぎの通信が1本出ていく）', J({ fired0, left0, done0, claims: hits(c, 'claim_contrib') }));
+      await c.st.ctx.close();
+      await noRows(M1);
+
+      /* id が読めない会員：預けたあと、ログインして会社ページを開き直す（面は開かない）。時計の中身を呼び、時計が自分でも鳴るのを待つ。 */
+      v = await open('phone');
+      await idless(v, true);
+      await lodge(v);
+      await loginAway(v, 'a');
+      if (hits(v, 'claim_contrib') !== 0) throw new Error('前提が崩れた（開き直す前に、引き継ぎが始まっている）');
+      await go(v, ANA);
+      await mustBeIdless(v, '場面の頭');
+      const fired = await bootClaim(v), ran = await bootRan(v), trip = await roundTrip(v);
+      const key = await v.page.evaluate(() => localStorage.getItem('pv_contrib_key')), h1 = await heldAna(), m1 = await mineOf(M1.id);
+      const shut = await v.page.evaluate(() => !document.querySelector('.pvc-root'));
+      await mustBeIdless(v, '場面の終わり');
+      if (!fired || !ran || !trip || !shut) throw new Error('前提が崩れた（面を閉じたまま、時計の中身を呼び、時計も自分で鳴った形になっていない）: ' + J({ fired, ran, trip, shut }));
+      ok(hits(v, 'claim_contrib') === 0 && /^[0-9a-f]{48}$/.test(key || '') && h1.length === 1 && m1.cond.length === 0,
+        '★会員の id が読めないあいだは、ページを開いただけでは引き継ぎを始めない（引き継ぎの通信は出ていかない・控えの鍵は端末に残る・預けた1件は預かりのまま）', J({ claims: hits(v, 'claim_contrib'), key: !!key, held: h1.length, mine: m1.cond.length }));
+    } finally {
+      await c.st.ctx.close().catch(() => {});
+      if (v) await v.st.ctx.close();
+      await noRows(M1);
+    }
+  });
+
+  await scene('読めている一覧のまま、ログインの控えから id が読めなくなる ── 打った答えは残り、保存してあった答えは消える', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    await idless(u, false);
+    try {
+      await go(u, ANA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q0 = await qFace(u);
+      await pick(u, 'commuting_taxi_cost', 'partial');
+      await tick(u);
+      const p0 = await qFace(u);
+      if (!fullQ(q0, 'company_full') || p0.cost !== 'partial' || !p0.own) throw new Error('前提が崩れた（保存した答えが入った入力に、1つ打ってチェックを入れた形になっていない）: ' + J({ q0, p0 }));
+      const n0 = u.st.calls.length;
+      await noId(u, true);
+      await mustBeIdless(u, '場面の頭（id が読めなくなった直後）');
+      await u.page.focus('.pvc-root [name="commuting_transport_note"]');
+      const gone = await seen(u, taxiCleared);
+      const q1 = await qFace(u), f1 = await formFace(u);
+      await roundTrip(u);
+      const calls = u.st.calls.slice(n0);
+      await mustBeIdless(u, '場面の終わり');
+      ok(gone && q1.form && q1.transport === '' && q1.note === '' && q1.method.length === 0 && q1.mine === 0 && q1.cost === 'partial' && !q1.own && f1.wait === NOREAD_Q && calls.length === 0,
+        '★読めていた一覧のまま id が読めなくなったら、欄に入った時に、保存してあった答え・補足・札・確認のチェックは消え、打った答えは残る（送るボタンの下は「これまでの投稿を読み込めませんでした…」。通信は1本も出ていかない）', J({ gone, q1, wait: f1.wait, calls }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  await scene('引き継ぎの返事を待っているあいだに、ログインの控えから id が読めなくなる ── 届いた一覧を、出さない・数えない', async () => {
+    await noRows(M1);
+    const v = await open('phone');
+    await idless(v, false);
+    try {
+      await lodge(v);
+      await loginAway(v, 'a');
+      if (hits(v, 'claim_contrib') !== 0) throw new Error('前提が崩れた（開き直す前に、引き継ぎが始まっている）');
+      /* 質問の入力を開いた形で開き直す。面は、預けた1件の引き継ぎを始めて、その返事を待つ（返事は止めておく）。
+         質問の欄は読み込み中で止まっているが、確認のチェックはその外に在る ＝ 押せる。 */
+      v.st.hold = { name: 'claim_contrib', reqs: [] };
+      await go(v, ANA + '?add=taxi');
+      const held = await until(() => v.st.hold.reqs.length === 1);
+      await v.page.waitForFunction(() => {
+        const r = document.querySelector('.pvc-root');
+        if (!r || r.hidden || !r.classList.contains('is-in')) return false;
+        const s = r.querySelector('.pvc-sheet').getBoundingClientRect();
+        if (Math.abs(s.right - document.documentElement.clientWidth) > 1 || Math.abs(s.bottom - window.innerHeight) > 1) return false;
+        return !!r.querySelector('form[data-pvc-form="taxi"] input[name="own"]');
+      });
+      await v.page.click('.pvc-root label.pvc-own');
+      const ticked = await v.page.$eval('.pvc-root input[name="own"]', (n) => n.checked);
+      const s0 = await whoState(v);
+      await noId(v, true);
+      await mustBeIdless(v, '場面の頭（id が読めなくなった直後）');
+      if (!held || !ticked || J(s0) !== J([true, true]) || hits(v, 'claim_contrib') !== 1 || !v.st.hold || v.st.hold.reqs.length !== 1) {
+        throw new Error('前提が崩れた（引き継ぎの返事を止め、チェックを入れてから、id が読めなくなった形になっていない）: ' + J({ held, ticked, s0, claims: hits(v, 'claim_contrib') }));
+      }
+      /* 返事を流す。待つのは、そのあとに出ていく2本の読み取りの返事そのものと、ページの1往復（入力が使えるようになった、では足りない） */
+      const n0 = v.st.calls.length;
+      const got = (name) => v.page.waitForResponse((r) => r.url().endsWith('/rest/v1/rpc/' + name), { timeout: 8000 }).then(() => true, () => false);
+      const gotC = got('my_airline_conditions'), gotW = got('my_work_months');
+      release(v);
+      const arrived = [await gotC, await gotW], trip = await roundTrip(v);
+      if (!arrived[0] || !arrived[1] || !trip || hits(v, 'claim_contrib') !== 1) {
+        throw new Error('前提が崩れた（引き継ぎの返事のあとに、2本の読み取りが出ていって戻った形になっていない）: ' + J({ arrived, trip, calls: v.st.calls.slice(n0) }));
+      }
+      const q1 = await qFace(v), f1 = await formFace(v), c1 = await claimSaid(v);
+      ok(emptyQ(q1) && !q1.off && !q1.own && f1.wait === NOREAD_Q && !c1.box && !c1.said,
+        '★引き継ぎの返事を待つあいだに id が読めなくなったら、届いた一覧を入力に出さない（空の入力・「あなたの投稿」の札なし・「匿名で追加する」・「これまでの投稿を読み込めませんでした…」・前に入れた確認のチェックは外れる・「引き継ぎました」も言わない）', J({ q1, wait: f1.wait, c1 }));
+      await api(v, 'list');
+      await waitView(v, 'counted');
+      const l1 = await listFace(v);
+      await mustBeIdless(v, '場面の終わり');
+      ok(l1.state === 'fail fail' && l1.counts.length === 0 && l1.text === NOREAD_L,
+        '★一覧でも数えない（「あなたの投稿 N件」なし・「件数を取得できませんでした」）', J(l1));
+    } finally {
+      release(v);
+      await v.st.ctx.close();
+      await noRows(M1);
+    }
+  });
+
+  /* ── 自分の一覧を読みに行く前の待ち（預けた回答の引き継ぎ）のあいだに、同じタブのまま読む人が替わる ──
+     控えの鍵を持った会員は、一覧を読む前に引き継ぎの返事を待つ。待っているあいだは、まだ何も読んでいない ＝ 印が無い。
+     そこで読む人が替わると（同じタブのまま、ログインが切れる・入れ替わる。このタブに合図は来ない）、続く読み取りは
+     今の人の印で始まるので、12-b の確かめ（読み始めた時の印 ≠ 今の人）には掛からなかった
+     ＝ 前の人が入れた確認のチェックが、今の人の答えが入った入力に残っていた（押すだけで送れる）。
+     決まり：読み始める時に「誰の分を読み始めたか」を控えて、一覧が届いた所で今の人と比べる。違えば、前の人の分を手放して
+             読み直す。会員の id が読めなくなった時（上の場面）も、この同じ1行が止める。
+     1人目＝この会社に1件も無い会員A（預けた1件を引き継ぐ）。2人目＝給与提出者（seedPrev の投稿を持っている）。 */
+  const tickShown = (p) => p.page.waitForFunction(() => {
+    const r = document.querySelector('.pvc-root');
+    if (!r || r.hidden || !r.classList.contains('is-in')) return false;
+    const s = r.querySelector('.pvc-sheet').getBoundingClientRect();
+    if (Math.abs(s.right - document.documentElement.clientWidth) > 1 || Math.abs(s.bottom - window.innerHeight) > 1) return false;
+    return !!r.querySelector('form[data-pvc-form="taxi"] input[name="own"]');
+  });
+
+  await scene('引き継ぎの返事を待っているあいだに、同じタブのまま別の会員に替わる ── 前の人が入れた確認のチェックを残さない', async () => {
+    await seedPrev();
+    await noRows(M1);
+    const pay0 = JSON.stringify(await mineOf(PREV.id));
+    const v = await open('phone');
+    try {
+      await lodge(v);
+      await loginAway(v, 'a');
+      if (hits(v, 'claim_contrib') !== 0) throw new Error('前提が崩れた（開き直す前に、引き継ぎが始まっている）');
+      /* 質問の入力を開いた形で開き直す。面は、預けた1件の引き継ぎを始めて、その返事を待つ（返事は止めておく）。
+         1人目が、読み込み中の入力の外に在る確認のチェックを入れる。 */
+      v.st.hold = { name: 'claim_contrib', reqs: [] };
+      await go(v, ANA + '?add=taxi');
+      const held = await until(() => v.st.hold.reqs.length === 1);
+      await tickShown(v);
+      await v.page.click('.pvc-root label.pvc-own');
+      const ticked = await v.page.$eval('.pvc-root input[name="own"]', (n) => n.checked);
+      /* 同じページのまま、ログインだけを2人目のものに入れ替える（このタブには合図が届かない。どこにも触らない） */
+      await loginAs(v, 'pay');
+      const now = await v.page.evaluate(() => String(((window.PVSession.readStoredSession() || {}).user || {}).id || ''));
+      if (!held || !ticked || now !== PREV.id || hits(v, 'claim_contrib') !== 1 || !v.st.hold || v.st.hold.reqs.length !== 1) {
+        throw new Error('前提が崩れた（引き継ぎの返事を止め、1人目がチェックを入れてから、同じタブのまま2人目に替わった形になっていない）: ' + J({ held, ticked, now: now === PREV.id, claims: hits(v, 'claim_contrib') }));
+      }
+      /* 返事を流す。待つのは、2人目の保存した答えが入力に入ること（直す前も直したあとも、最後はこの形になる）と、ページの1往復 */
+      const n0 = v.st.calls.length;
+      release(v);
+      const arrived = await seen(v, () => {
+        const f = document.querySelector('.pvc-root form[data-pvc-form="taxi"]'), set = f && f.querySelector('fieldset.pvc-set');
+        return !!set && !set.disabled && f.querySelectorAll('.pvc-mine').length === 3;
+      });
+      const trip = await roundTrip(v);
+      if (!arrived || !trip || hits(v, 'claim_contrib') !== 1) {
+        throw new Error('前提が崩れた（引き継ぎの返事のあと、2人目の答えが入力に入った形になっていない）: ' + J({ arrived, trip, calls: v.st.calls.slice(n0) }));
+      }
+      const q1 = await qFace(v), c1 = await claimSaid(v);
+      ok(!q1.own && fullQ(q1, 'company_full') && !q1.off && !c1.box && !c1.said,
+        '★引き継ぎの返事を待つあいだに同じタブのまま別の会員に替わったら、前の人が入れた確認のチェックは外れる（入力に入るのは今の人が保存した答え。押すだけでは送れない。「引き継ぎました」も言わない）', J({ own: q1.own, dis: q1.dis, c1, q1 }));
+      await api(v, 'list');
+      await waitView(v, 'counted');
+      const l1 = await listFace(v);
+      const m1 = await mineOf(M1.id), pay1 = JSON.stringify(await mineOf(PREV.id)), h1 = await heldAna();
+      ok(l1.state === 'ok ok' && J(l1.counts) === J(COUNTS0)
+        && m1.cond.length === 1 && m1.cond[0].q === 'commuting_transport' && m1.cond[0].c === 'no' && m1.work.length === 0
+        && pay1 === pay0 && h1.length === 0 && c1.key === null && subs(v, n0).length === 0,
+        '一覧の件数は今の人のもの。引き継いだ1件は、引き継ぎを始めた会員のもの。今の人の行は1つも変わらず、何も送られていない', J({ l1, m1, same: pay1 === pay0, held: h1.length, key: c1.key, sent: subs(v, n0) }));
+    } finally {
+      release(v);
+      await v.st.ctx.close();
+      await noRows(M1);
+    }
+  });
+
+  /* ── 同じタブのまま、誰も触らないうちにログインが切れる ──
+     ログインの部品（pv-session.js）は、開きっぱなしのタブを自分の時計で見張り、切れたログインを片づける。合図は出さない。
+     面が確かめていたのは、ほかのタブからの合図・タブへ戻った時・面の中を触った時だけ ＝ 誰も触らなければ、
+     前の人の答えが出たままだった。面も、同じ長さの時計で「いま読む人」を聞き直す
+     （面が閉じている時・読む人が同じ時は、何もしない ＝ 通信は1本も出ない）。
+     場面は時計を待たない：控えておいた時計の中身を呼ぶ（idless が控える。tickFire）。 */
+  const TICK = (() => {
+    const m = /var TICK_MS\s*=\s*([\d\s*]+);/.exec(read('pv-session.js'));
+    return m ? m[1].split('*').reduce((a, x) => a * Number(x.trim()), 1) : NaN;
+  })();
+
+  await scene('同じタブのまま、誰も触らないうちにログインが切れる ── 面の時計が気づいて、前の人の答えを消す（打った答えは残る）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    await idless(u, false);
+    try {
+      await go(u, ANA);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q0 = await qFace(u);
+      /* 打つのは、いちばん上の質問（続きの質問は、上の答えが消えると畳まれて見えなくなる ＝ 「打った答えが見えたまま残る」を見るには上の質問で） */
+      await pick(u, 'commuting_transport', 'always');
+      await tick(u);
+      const p0 = await qFace(u);
+      if (!fullQ(q0, 'company_full') || p0.transport !== 'always' || p0.note !== NOTE_Q || p0.cost !== 'company_full' || !p0.own) {
+        throw new Error('前提が崩れた（保存した答えが入った入力で、いちばん上の質問を打ち直してチェックを入れた形になっていない）: ' + J({ q0, p0 }));
+      }
+      /* 読む人が同じあいだ：時計の中身を呼んでも、入力は作り直されない・通信は1本も出ていかない */
+      await u.page.evaluate(() => { document.querySelector('.pvc-root form[data-pvc-form="taxi"]').setAttribute('data-test-old', '1'); });
+      const n0 = u.st.calls.length;
+      const ms0 = await tickFire(u), trip0 = await roundTrip(u);
+      const s1 = await qFace(u), kept = await u.page.evaluate(() => !!document.querySelector('.pvc-root form[data-pvc-form="taxi"][data-test-old]'));
+      ok(ms0 === TICK && trip0 && kept && JSON.stringify(s1) === JSON.stringify(p0) && u.st.calls.length === n0,
+        '面の時計は、ログインの部品が自分のログインを確かめる時計と同じ長さ。読む人が同じあいだは、鳴っても何もしない（入力を作り直さない・通信は1本も出ていかない）', J({ ms0, TICK, kept, calls: u.st.calls.slice(n0), s1 }));
+      /* 同じタブのまま、ログインが片づく（このタブに合図は来ない）。どこにも触らない ＝ この時点では、前の人の答えが出たまま。 */
+      const out = await u.page.evaluate(() => { window.PVSession.wipe(); return window.PVSession.hasToken(); });
+      const q1 = await qFace(u);
+      if (out !== false || q1.transport !== 'always' || q1.note !== NOTE_Q || q1.cost !== 'company_full' || q1.mine === 0 || !q1.own) {
+        throw new Error('前提が崩れた（ログインが片づいた直後で、まだ誰も気づいていない形になっていない）: ' + J({ out, q1 }));
+      }
+      const ms = await tickFire(u);
+      const gone = await seen(u, taxiCleared);
+      const q2 = await qFace(u);
+      const shown = await u.page.evaluate(() => { const x = document.querySelector('.pvc-root form [name="commuting_transport"]'); return !!x && x.getClientRects().length > 0; });
+      ok(ms !== null && gone && q2.form && q2.transport === 'always' && shown && q2.note === '' && q2.method.length === 0 && !q2.cost && q2.mine === 0 && !q2.own,
+        '★同じタブのままログインが切れたら、どこにも触らなくても、面の時計が鳴った時に、前の人の答え・補足・札・確認のチェックが消える（打った答えは、見えたまま残る）', J({ ms, gone, shown, q2 }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  /* ── 読む人が替わったあとで打ち始めた入力に、今の人の一覧が届く ──
+     12-b の決まり（打って、まだ送っていない入力は残す・その場で作り直した入力は、読み直しを待つあいだも止めない）の続き。
+     打っている入力は、今の人の一覧が届いても作り直していなかった ＝
+       質問の項目 … 今の人が前に保存した答えが出ないまま、ボタンも「匿名で追加する」のまま（送る中身は正しい）。
+       月の勤務   … 札とボタンだけが「あなたの投稿／匿名で更新する」に替わり、打っていない欄は空のまま。
+                    月は1か月が1行で、保存は全部の欄を入れ替える ＝ そのまま送ると、今の人が保存していた
+                    その月の職位・機種・時間・メモが、空で置き換わる。入力を開き直しても直らない（打ちかけの月の写しが残る）。
+     決まり：今の人の保存した値が分かった時点で、打っていない欄にだけ入れる。打った欄には書かない。
+             質問の項目は、今の人にこの項目の答えが在る時だけ、その場で1回描き直す（無ければ、同じ入力のまま）。
+     前の人＝給与提出者・今の人＝会員B。今の人の行は場面ごとに置き、終わりに消す（12-c のあとの形を変えない）。 */
+  const NOTE_N = '試験：今の人の月のメモ';
+  /* 今の人にも、前の人と同じ月の勤務を置く（副操縦士・機種・乗務時間・ステイ・メモ。勤務・拘束時間は入れない） */
+  const seedNextMonth = () => rpcAs('b', 'submit_work_month', { airline: 'ana', year: LAST.y, month: LAST.m, position: 'fo', fleet: FLEET, block_hours: 40, stay_nights: 3, note: NOTE_N, lang: 'ja' });
+  const nextW = (x, duty) => x.form && x.position === 'fo' && x.fleet === FLEET && x.block_hours === '40' && x.stay_nights === '3' && x.note === NOTE_N
+    && x.duty_hours === duty && x.tag === true && x.btn === '匿名で更新する';
+  const atName = (p) => p.page.evaluate(() => { const a = document.activeElement; return a ? a.getAttribute('name') || '' : ''; });
+  /* 休暇・手当の入力に、いま出ているもの（上から、病気休暇・Peer Support の2問を見る） */
+  const bFace = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), f = r.querySelector('form[data-pvc-form="benefits"]'), a = document.activeElement;
+    if (!f) return { form: false };
+    const v = (n) => { const x = f.querySelector('[name="' + n + '"]'); return x ? x.value : null; };
+    return { form: true, old: f.hasAttribute('data-test-old'), sick: v('sick_leave'), peer: v('peer_support'),
+      peerTag: !!f.querySelector('[data-q="peer_support"] .pvc-label .pvc-mine'), mine: f.querySelectorAll('.pvc-mine').length,
+      btn: f.querySelector('.pvc-send[type="submit"]').textContent, own: f.querySelector('[name="own"]').checked,
+      off: f.querySelector('fieldset.pvc-set').disabled, at: a && f.contains(a) ? a.getAttribute('name') || a.tagName.toLowerCase() : '' };
+  });
+  const markOld = (p, topic) => p.page.evaluate((t) => { document.querySelector('.pvc-root form[data-pvc-form="' + t + '"]').setAttribute('data-test-old', '1'); }, topic);
+
+  await scene('読む人が替わったあと打ち始めた質問の入力に、今の人の一覧が届く ── 前に保存した答えが入り、打った答えは残る', async () => {
+    await seedPrev();
+    /* 今の人は、この項目（休暇・手当）に答えを1つだけ持っている */
+    const c = await rpcAs('b', 'submit_airline_conditions', { airline: 'ana', lang: 'ja', answers: [{ question_id: 'peer_support', code: 'internal' }] });
+    const u = await open('phone', { who: 'pay' });
+    const sent = tap(u, 'submit_airline_conditions');
+    try {
+      await go(u, ANA);
+      await api(u, 'benefits');
+      await waitView(u, 'benefits');
+      await settle(u);
+      const f0 = await bFace(u);
+      const before = JSON.stringify(await mineOf(PREV.id));
+      await loginAs(u, 'b');
+      u.st.hold = { name: 'my_airline_conditions', reqs: [] };
+      await u.page.focus('.pvc-root [name="sick_leave"]');     // 欄に入る ＝ 読む人が替わったと気づいて、入力がその場で作り直される
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      await pick(u, 'sick_leave', 'unlimited');                // 今の人が保存していない、別の質問に答える
+      const f1 = await bFace(u);
+      if (!c || !c.ok || (c.rejected || []).length || !f0.form || f0.mine !== 0 || f0.btn !== '匿名で追加する' || !held
+        || f1.sick !== 'unlimited' || f1.peer !== '' || f1.mine !== 0 || f1.off || f1.at !== 'sick_leave') {
+        throw new Error('前提が崩れた（前の人には答えの無い項目で、読む人が替わったあと1問を打ち、今の人の読み直しを止めた形になっていない）: ' + J({ c, f0, held, f1 }));
+      }
+      await markOld(u, 'benefits');
+      release(u);
+      const shown = await seen(u, () => { const f = document.querySelector('.pvc-root form[data-pvc-form="benefits"]'); return !!f && f.querySelectorAll('.pvc-mine').length > 0; });
+      const f2 = await bFace(u);
+      ok(shown && f2.peer === 'internal' && f2.peerTag && f2.mine === 1 && f2.btn === '匿名で更新する' && f2.sick === 'unlimited' && f2.at === 'sick_leave' && !f2.off,
+        '★打っている質問の入力に今の人の一覧が届いたら、今の人が前に保存した答えが、札「あなたの投稿」つきで入る（ボタンは「匿名で更新する」。打った答えは残り、居た欄に居たまま）', J({ shown, f2 }));
+      await tick(u);
+      await send(u);
+      const done = await afterSend(u);
+      const pl = sent[sent.length - 1] || {}, got = (await mineOf(NEXT.id)).cond.map((x) => x.q + '=' + x.c), after = JSON.stringify(await mineOf(PREV.id));
+      ok(done && sent.length === 1 && J(ids(pl)) === J(['sick_leave']) && pl.answers[0].code === 'unlimited'
+        && J(got) === J(['peer_support=internal', 'sick_leave=unlimited']) && after === before,
+        '送ると、出ていくのは打った答えだけ。保存先には、今の人の前の答えと打った答えの両方が在り、前の人の行は変わらない', J({ ids: ids(pl), got, same: after === before, n: sent.length }));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+      await noRows(NEXT);
+    }
+  });
+
+  await scene('読む人が替わったあと打ち始めた質問の入力に、今の人の一覧が届く ── 今の人に、この項目の答えが無い ── 打っている入力は作り直さない', async () => {
+    await seedPrev();
+    /* 今の人が持っているのは、月の勤務と、ほかの項目（通勤・タクシー）の答えだけ ＝ 届く一覧は空ではない */
+    const sw = await seedNextMonth();
+    const c = await rpcAs('b', 'submit_airline_conditions', { airline: 'ana', lang: 'ja', answers: [{ question_id: 'commuting_transport', code: 'no' }] });
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'benefits');
+      await waitView(u, 'benefits');
+      await settle(u);
+      await loginAs(u, 'b');
+      u.st.hold = { name: 'my_airline_conditions', reqs: [] };
+      await u.page.focus('.pvc-root [name="sick_leave"]');
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      await pick(u, 'sick_leave', 'unlimited');
+      const f1 = await bFace(u);
+      if (!sw || !sw.ok || !c || !c.ok || (c.rejected || []).length || !held || f1.sick !== 'unlimited' || f1.mine !== 0 || f1.off || f1.at !== 'sick_leave') {
+        throw new Error('前提が崩れた（読む人が替わったあと1問を打ち、今の人の読み直しを止めた形になっていない）: ' + J({ sw, c, held, f1 }));
+      }
+      await markOld(u, 'benefits');
+      /* ここでは、一覧が届いても画面は何も変わらない ＝ 届いたことそのもの（止めていた返事）と、ページの1往復を待つ */
+      const got = u.page.waitForResponse((r) => r.url().endsWith('/rest/v1/rpc/my_airline_conditions'), { timeout: 8000 }).then(() => true, () => false);
+      release(u);
+      const arrived = await got, trip = await roundTrip(u);
+      const f2 = await bFace(u);
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      const l2 = await listFace(u);
+      if (!arrived || !trip || l2.state !== 'ok ok' || J(l2.counts) !== J(['work：あなたの投稿 1件', 'taxi：あなたの投稿 1件'])) {
+        throw new Error('前提が崩れた（今の人の、空でない一覧が届いた形になっていない）: ' + J({ arrived, trip, l2 }));
+      }
+      ok(f2.form && f2.old && f2.sick === 'unlimited' && f2.at === 'sick_leave' && f2.mine === 0 && f2.btn === '匿名で追加する',
+        '★今の人にこの項目の答えが無ければ、一覧が届いても、打っている入力は作り直さない（同じ入力のまま・打った答えと居た欄はそのまま・札は出ない）', J(f2));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+      await noRows(NEXT);
+    }
+  });
+
+  /* 上の作り直しは、読む人が替わったあとの入力に限る。読む人が替わっていない時の読み直し（面を開き直すたびに読む）では、
+     打っている入力を今までどおり作り直さない ── ほかのタブ・ほかの端末で自分の答えが増えていても、同じ入力のまま
+     （こちらの読み直しは、居た欄と位置を戻す仕掛けを通らない ＝ 作り直すと、打っている欄から焦点が外れる）。 */
+  await scene('読む人が替わっていない会員 ── 打っている質問の入力に、読み直した一覧が届く（自分の答えが増えていても、入力は作り直さない）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'benefits');
+      await waitView(u, 'benefits');
+      await settle(u);
+      const f0 = await bFace(u);
+      await u.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(u);
+      /* 面を閉じているあいだに、同じ会員の、この項目の答えが1つ増える（画面は通さない ＝ ほかの所で保存した） */
+      const c = await rpcAs('pay', 'submit_airline_conditions', { airline: 'ana', lang: 'ja', answers: [{ question_id: 'peer_support', code: 'internal' }] });
+      /* 開き直す。読めていた一覧はそのまま使われ（入力はすぐ使える）、裏で読み直しが走る。その返事を止めて、1問を打つ */
+      u.st.hold = { name: 'my_airline_conditions', reqs: [] };
+      await api(u, 'benefits');
+      await waitView(u, 'benefits');
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      await u.page.focus('.pvc-root [name="sick_leave"]');
+      await pick(u, 'sick_leave', 'unlimited');
+      const f1 = await bFace(u);
+      if (!c || !c.ok || (c.rejected || []).length || !f0.form || f0.mine !== 0 || !held || f1.sick !== 'unlimited' || f1.mine !== 0 || f1.off || f1.at !== 'sick_leave') {
+        throw new Error('前提が崩れた（読む人は同じまま、開き直した入力で1問を打ち、読み直しの返事を止めた形になっていない）: ' + J({ c, f0, held, f1 }));
+      }
+      await markOld(u, 'benefits');
+      const got = u.page.waitForResponse((r) => r.url().endsWith('/rest/v1/rpc/my_airline_conditions'), { timeout: 8000 }).then(() => true, () => false);
+      release(u);
+      const arrived = await got, trip = await roundTrip(u);
+      const f2 = await bFace(u);
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      const l2 = await listFace(u);
+      if (!arrived || !trip || l2.state !== 'ok ok' || J(l2.counts) !== J([...COUNTS0, 'benefits：あなたの投稿 1件'])) {
+        throw new Error('前提が崩れた（読み直した一覧に、増えた答えが入って届いた形になっていない）: ' + J({ arrived, trip, l2 }));
+      }
+      ok(f2.form && f2.old && f2.sick === 'unlimited' && f2.at === 'sick_leave' && f2.mine === 0 && f2.btn === '匿名で追加する',
+        '★読む人が替わっていない時の読み直しでは、この項目の答えが増えて届いても、打っている入力は作り直さない（同じ入力のまま・打った答えと居た欄はそのまま）', J(f2));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+      await q(`delete from public.airline_conditions where airline = 'ana' and question_id = 'peer_support' and proof_hash = public.pv_condition_hash($1::uuid, 'ana', null)`, [PREV.id]);
+    }
+  });
+
+  await scene('読む人が替わったあと打ち始めた月の勤務に、今の人の同じ月が届く ── 打っていない欄に保存した値が入る', async () => {
+    await seedPrev();
+    const sw = await seedNextMonth();
+    const u = await open('phone', { who: 'pay' });
+    const sentW = tap(u, 'submit_work_month');
+    try {
+      await go(u, ANA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const w0 = await wFace(u);
+      const before = JSON.stringify(await mineOf(PREV.id));
+      await loginAs(u, 'b');
+      u.st.hold = { name: 'my_work_months', reqs: [] };
+      await u.page.focus('.pvc-root [name="duty_hours"]');     // 欄に入る ＝ 入力がその場で作り直される（前の人の月は消える）
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      await u.page.keyboard.type('12');                         // 鍵盤で打つ（fill は欄を選び直すので、描き直しをまたいで同じ欄に居るかを見られない）
+      const w1 = await wFace(u), at1 = await atName(u);
+      if (!sw || !sw.ok || !fullW(w0) || !held || !w1.form || w1.duty_hours !== '12' || w1.position !== '' || w1.fleet !== '' || w1.block_hours !== '' || w1.stay_nights !== ''
+        || w1.note !== '' || w1.tag !== false || at1 !== 'duty_hours') {
+        throw new Error('前提が崩れた（前の人の月が消えた入力に 12 と打ち、今の人の読み直しを止めた形になっていない）: ' + J({ sw, held, at1, w1 }));
+      }
+      release(u);
+      /* 待つのは「あなたの投稿」の札（直す前も、札とボタンだけは替わっていた ＝ 直す前もここは通る）。そのあと、同じ欄に続きを打つ */
+      const tagged = await seen(u, () => { const t = document.querySelector('.pvc-root form[data-pvc-form="work"] [data-pvc-own-row]'); return !!t && !t.hidden; });
+      await u.page.keyboard.type('0');
+      const w2 = await wFace(u), at2 = await atName(u);
+      ok(tagged && nextW(w2, '120') && at2 === 'duty_hours',
+        '★打っている月の勤務に今の人の同じ月が届いたら、打っていない欄（職位・機種・乗務時間・ステイ・メモ）に今の人の保存した値が入る（打った欄は 12 のあとに 0 が続いて 120 ＝ 同じ欄に居たまま。前の人の値は無い）', J({ tagged, at2, w2 }));
+      await tick(u);
+      await send(u);
+      const done = await afterSend(u);
+      const s2 = await summary(u), next = (await mineOf(NEXT.id)).work, after = JSON.stringify(await mineOf(PREV.id));
+      ok(done && sentW.length === 1 && s2.head === '情報を更新しました'
+        && J(next) === J([{ y: LAST.y, m: LAST.m, pos: 'fo', fleet: FLEET, block: 40, duty: 120, stay: 3, note: NOTE_N }]) && after === before,
+        '★送ると、今の人のその月は、前に保存した値と打った 120 の両方を持つ（保存してあった欄が空で置き換わらない）。前の人の月は変わらない。見出しは「情報を更新しました」', J({ head: s2.head, n: sentW.length, next, same: after === before }));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+      await noRows(NEXT);
+    }
+  });
+
+  /* 今の人の同じ月が、最初の読み直しには無く、あとの読み直し（面を開き直した時）で届く。
+     「今の人の月を知らないまま」の印は、その月の行が分かるまで残る。こちらの読み直しは、読む人が替わった時の
+     「居た欄と位置を戻す」仕掛けを通らないので、描き直す所が自分で戻す。 */
+  await scene('読む人が替わったあと打ち始めた月の勤務に、今の人の同じ月が、あとの読み直しで届く ── 打っていない欄に入り、居た欄に居たまま', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const w0 = await wFace(u);
+      await loginAs(u, 'b');
+      /* 欄に入る ＝ 入力がその場で作り直され、今の人の一覧（まだ空）が読まれる。その2本の返事と、ページの1往復を待つ */
+      const got = (name) => u.page.waitForResponse((r) => r.url().endsWith('/rest/v1/rpc/' + name), { timeout: 8000 }).then(() => true, () => false);
+      const gotW = got('my_work_months'), gotC = got('my_airline_conditions');
+      await u.page.focus('.pvc-root [name="duty_hours"]');
+      const first = [await gotW, await gotC], trip = await roundTrip(u);
+      await u.page.keyboard.type('12');
+      await u.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(u);
+      /* 面を閉じているあいだに、今の人の同じ月が保存される（画面は通さない ＝ ほかの所で保存した） */
+      const sw = await seedNextMonth();
+      /* 開き直す。読めていた（空の）一覧のまま入力はすぐ使え、裏で読み直しが走る。その返事を止めて、同じ欄に入る */
+      u.st.hold = { name: 'my_work_months', reqs: [] };
+      await api(u, 'work');
+      await waitView(u, 'work');
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      await u.page.focus('.pvc-root [name="duty_hours"]');
+      const w1 = await wFace(u), at1 = await atName(u);
+      if (!fullW(w0) || !first[0] || !first[1] || !trip || !sw || !sw.ok || !held || !w1.form || w1.duty_hours !== '12' || w1.position !== '' || w1.block_hours !== '' || w1.note !== ''
+        || w1.tag !== false || at1 !== 'duty_hours') {
+        throw new Error('前提が崩れた（読む人が替わったあと 12 と打ち、面を開き直して、今の人の同じ月が入った読み直しを止めた形になっていない）: ' + J({ first, trip, sw, held, at1, w1 }));
+      }
+      release(u);
+      const tagged = await seen(u, () => { const t = document.querySelector('.pvc-root form[data-pvc-form="work"] [data-pvc-own-row]'); return !!t && !t.hidden; });
+      await u.page.keyboard.type('0');
+      const w2 = await wFace(u), at2 = await atName(u);
+      ok(tagged && nextW(w2, '120') && at2 === 'duty_hours',
+        '★今の人の同じ月が、あとの読み直しで届いた時も、打っていない欄に保存した値が入る（打った欄は 12 のあとに 0 が続いて 120 ＝ 同じ欄に居たまま）', J({ tagged, at2, w2 }));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+      await noRows(NEXT);
+    }
+  });
+
+  /* 上の描き直しは、「今の人の月を知らないまま」の印が付いた写しに限る。読む人が替わっていない時の読み直しでは、
+     その月の保存した値がほかの所で替わって届いても、打っている月の勤務を今までどおり作り直さない（札とボタンの字だけ直す）。
+     印を見ずに描き直すと、打っている最中の入力が、読み直しのたびに作り直される（変換の途中の字・欄の中の位置が切れる）。 */
+  await scene('読む人が替わっていない会員 ── 打っている月の勤務に、読み直した一覧が届く（その月の保存した値が替わっていても、入力は作り直さない）', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const w0 = await wFace(u);
+      await u.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(u);
+      /* 面を閉じているあいだに、同じ会員の同じ月の値が1つ替わる（画面は通さない ＝ ほかの所で保存し直した。ステイ 7 → 9） */
+      const c = await rpcAs('pay', 'submit_work_month', { airline: 'ana', year: LAST.y, month: LAST.m, position: 'cap', fleet: FLEET, block_hours: 61.5, stay_nights: 9, note: NOTE_W, lang: 'ja' });
+      /* 開き直す。読めていた一覧のまま入力はすぐ使え、裏で読み直しが走る。その返事を止めて、1つ打つ */
+      u.st.hold = { name: 'my_work_months', reqs: [] };
+      await api(u, 'work');
+      await waitView(u, 'work');
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      await u.page.focus('.pvc-root [name="duty_hours"]');
+      await u.page.keyboard.type('12');
+      const w1 = await wFace(u), at1 = await atName(u);
+      if (!c || !c.ok || !fullW(w0) || !held || !fullW(w1) || w1.duty_hours !== '12' || at1 !== 'duty_hours') {
+        throw new Error('前提が崩れた（読む人は同じまま、開き直した月の勤務に 12 と打ち、読み直しの返事を止めた形になっていない）: ' + J({ c, held, at1, w1 }));
+      }
+      await markOld(u, 'work');
+      /* 待つのは、止めていた読み直しの返事そのもの（中身に、替わったステイ 9 が入っている）と、ページの1往復 */
+      const got = u.page.waitForResponse((r) => r.url().endsWith('/rest/v1/rpc/my_work_months'), { timeout: 8000 }).then((r) => r.text(), () => '');
+      release(u);
+      const body = await got, trip = await roundTrip(u);
+      if (!/"stay_nights":\s*9\b/.test(body) || !trip) {
+        throw new Error('前提が崩れた（読み直した一覧に、替わった値が入って届いた形になっていない）: ' + J({ body: body.slice(0, 200), trip }));
+      }
+      const old = await u.page.evaluate(() => document.querySelector('.pvc-root form[data-pvc-form="work"]').hasAttribute('data-test-old'));
+      await u.page.keyboard.type('0');
+      const w2 = await wFace(u), at2 = await atName(u);
+      ok(old && fullW(w2) && w2.duty_hours === '120' && at2 === 'duty_hours',
+        '★読む人が替わっていない時の読み直しでは、その月の保存した値が替わって届いても、打っている月の勤務は作り直さない（同じ入力のまま・打った 12 に 0 が続いて 120・居た欄はそのまま）', J({ old, at2, w2 }));
+    } finally {
+      release(u);
+      await u.st.ctx.close();
+      await seedPrev();
+    }
+  });
+
+  await scene('打ちかけの月を残したまま読む人が替わり、あとで月の勤務を開く ── その月の保存した値が入る', async () => {
+    await seedPrev();
+    const sw = await seedNextMonth();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'list');
+      await waitView(u, 'counted');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const w0 = await wFace(u);
+      await fill(u, 'duty_hours', '120');                       // 前の人が、保存した値の入った月に 120 と打つ
+      await u.page.click('.pvc-root .pvc-prev');                // 一覧へ（本物のクリック）
+      await waitView(u, 'list');
+      await waitView(u, 'counted');
+      if (!sw || !sw.ok || !fullW(w0)) throw new Error('前提が崩れた（前の人の保存した月が入った入力に打ってから、一覧へ戻った形になっていない）: ' + J({ sw, w0 }));
+      await loginAs(u, 'b');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      /* 待つのは、入力が使えるようになって札が出ること（今の人の一覧が届いた。直す前も、札とボタンだけは出ていた） */
+      const ready = await seen(u, () => {
+        const f = document.querySelector('.pvc-root form[data-pvc-form="work"]'), set = f && f.querySelector('fieldset.pvc-set'), t = f && f.querySelector('[data-pvc-own-row]');
+        return !!set && !set.disabled && !!t && !t.hidden;
+      });
+      const w1 = await wFace(u);
+      ok(ready && nextW(w1, '120') && !w1.own,
+        '★打ちかけの月を残したまま読む人が替わり、あとで月の勤務を開いた時も、打った 120 はそのまま、ほかの欄には今の人がその月に保存した値が入る（前の人の値は無い。確認のチェックは外れている）', J({ ready, w1 }));
+    } finally {
+      await u.st.ctx.close();
+      await noRows(NEXT);
+    }
+  });
+
+  /* ── 送っている最中に読む人が替わり、その送信が届かない ──
+     送れなかった入力は、端末に1件残す（次に開いた時に続きを出す）。残す1件には、いまの人の印が付く。
+     ここで、前の人が保存していた値まで残すと、それが次の会員の「送れていない回答」として出て、送ればその人の投稿になる。
+     決まり：返事を受けた所でも、まず読む人を確かめる（前の人の分を手放す）── 残すのは、そのあと。
+             残るのは、打って、まだ送っていない入力だけ（読む人が替わっても残す、と決めてあるもの）。 */
+  await scene('送っている最中に読む人が替わり、その送信が届かない ── 端末に残す1件に、前の人が保存していた値を入れない', async () => {
+    await seedPrev();
+    const u = await open('phone', { who: 'pay' });
+    try {
+      await go(u, ANA);
+      await api(u, 'work');
+      await waitView(u, 'work');
+      await settle(u);
+      const w0 = await wFace(u);
+      await fill(u, 'duty_hours', '120');
+      await tick(u);
+      const before = JSON.stringify({ prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) });
+      u.st.hold = { name: 'submit_work_month', reqs: [] };
+      await send(u);
+      const held = await until(() => u.st.hold.reqs.length === 1);
+      await loginAs(u, 'b');                                    // 同じページのまま（このタブに合図は届かない）
+      if (!fullW(w0) || !held) throw new Error('前提が崩れた（前の人の月に 120 と打って送り、その通信を止めた形になっていない）: ' + J({ w0, held }));
+      cutHeld(u);
+      await waitMsg(u, 'fail');
+      /* 残した1件の、月の写しの欄（印の類は除く）。値が入っている欄の名前だけを並べる */
+      const kept = (raw) => {
+        let o = null;
+        try { o = JSON.parse(raw); } catch (e) { /* 読めなければ空 */ }
+        const dr = (o && o.draft) || {}, months = Object.keys(dr.bufs || {}), m = (dr.bufs || {})[months[0]] || {};
+        return { uid: o ? o.uid : null, topic: o ? o.topic : null, own: dr.own, months: months.length,
+          set: Object.keys(m).filter((k) => !['dirty', 'by', 'bare'].includes(k) && m[k] !== '' && m[k] != null).map((k) => k + '=' + m[k]) };
+      };
+      const ob = kept(await outboxOf(u)), w1 = await wFace(u), said = (await msg(u, 'fail')) || '';
+      const after = JSON.stringify({ prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) });
+      ok(ob.uid === NEXT.id && ob.topic === 'work' && ob.months === 1 && J(ob.set) === J(['duty_hours=120']) && ob.own === false
+        && /送れていません/.test(said) && w1.duty_hours === '120' && w1.position === '' && w1.fleet === '' && w1.block_hours === '' && w1.stay_nights === '' && w1.note === '' && !w1.own
+        && after === before,
+        '★送っている最中に読む人が替わって送れなかった時、端末に残す1件は今の人のもので、入っているのは打った 120 だけ（前の人が保存していた職位・機種・乗務時間・ステイ・メモは無い。確認のチェックも外れる）。画面も同じ。保存先は誰の行も変わらない', J({ ob, said: said.slice(0, 12), same: after === before, w1 }));
+      await go(u, ANA + '?add=list');
+      await waitView(u, 'list');
+      await waitMsg(u, 'unsent');
+      const un = (await msg(u, 'unsent')) || '';
+      await u.page.click('.pvc-root [data-pvc-act="resume"]');
+      await waitView(u, 'work');
+      await waitMsg(u, 'fail');
+      const w2 = await wFace(u);
+      ok(/送れていない回答があります/.test(un) && w2.duty_hours === '120' && w2.position === '' && w2.fleet === '' && w2.block_hours === '' && w2.stay_nights === '' && w2.note === '' && w2.tag === false,
+        '今の人が開き直すと「送れていない回答があります」と出て、「続きを開く」の先に在るのは 120 だけ（前の人の値は無い）', J({ un: un.slice(0, 16), w2 }));
+    } finally {
+      cutHeld(u);
       await u.st.ctx.close();
     }
   });
@@ -2553,8 +4554,1333 @@ async function main() {
         '★320×568 でも、ログインなしで保存した直後（断りの箱が在る回）に、スクロールしなくても「自分の回答を見る」「もう1項目を答える」の両方に届く', J({ ym: wide || '（既定の月）', reach }));
       ok(!!far && far.n === 10 && far.still === 0 && far.card.length === 0 && far.sheet.length === 0 && far.parts === 4 && far.over.length === 0,
         '★320×568 でも、紙片は10枚ともカードの中に収まり、散り終わりの位置で見出しの字・チェックの印・2つのボタンのどれにも重ならない', J(far));
+      /* この幅では、散る場所が見出しの字の終わりのすぐ右に来る。左へ飛ぶ紙片は「した」の上を横切っていた
+         （散り終わりの位置だけを見る上の行では見えない ＝ 飛んでいる途中を、時刻を送って測る）。 */
+      ok(!!far && far.steps >= 40 && far.cross.length === 0 && far.path.every((x) => !/^-/.test(x)),
+        '★320×568 では、紙片は飛んでいる途中も、見出しの字（「情報を追加しました」）に1枚も重ならない（動きを 20ms 刻みで終わりまで送って測る）',
+        J(far && { steps: far.steps, cross: far.cross.slice(0, 8), path: far.path }));
     } finally {
       await s.st.ctx.close();
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 14. 保存後のカード（「自分の回答を見る」の行き先・送り直したあとの見出し・通貨の切替・背の低い画面）
+  // ═════════════════════════════════════════════════════════════
+  const CARD = memberOf('c');
+  /* この会社のページに、この会員が1件も持っていない形にする（1日の数えも戻す）
+     ＝ 場面を単独で流しても、通しで流しても、同じ出発点になる。 */
+  const bare = async (slug, m) => {
+    await q(`delete from public.pv_work_months where airline = $2::text and proof_hash = public.pv_work_hash($1::uuid, $2::text, null)`, [m.id, slug]);
+    await q(`delete from public.airline_conditions where airline = $2::text and proof_hash = public.pv_condition_hash($1::uuid, $2::text, null)`, [m.id, slug]);
+    await q(`update public.profiles set cond_answers_today = 0, work_months_today = 0 where id = $1::uuid`, [m.id]);
+  };
+  /* その会員の、この会社の行（保存先から直接。サーバと同じ式の印で引く） */
+  const ownConds = async (slug, m) => (await q(
+    `select question_id as q, answer_code as c from public.airline_conditions
+      where airline = $2::text and proof_hash = public.pv_condition_hash($1::uuid, $2::text, null) order by 1`, [m.id, slug])).rows;
+  const ownMonths = async (slug, m) => (await q(
+    `select period_year::text || '-' || lpad(period_month::text, 2, '0') as ym, block_hours::float8 as block from public.pv_work_months
+      where airline = $2::text and proof_hash = public.pv_work_hash($1::uuid, $2::text, null) order by 1`, [m.id, slug])).rows;
+  /* 面の中で、その質問（畳んである質問は、畳みごと）が見えている所に在るか（ページの中で動かす）。
+     見えている ＝ 頭が面の見えている範囲に在り、下まで入っている（入りきらない高さのものは、頭が上端のすぐ下に在る）。 */
+  const inView = (id) => {
+    const r = document.querySelector('.pvc-root'), main = r && r.querySelector('.pvc-main');
+    const n = r && (r.querySelector('[data-q-fold="' + id + '"]') || r.querySelector('form[data-pvc-form] [data-q="' + id + '"]'));
+    if (!main || !n) return false;
+    const m = main.getBoundingClientRect(), b = n.getBoundingClientRect();
+    return b.height > 0 && b.top >= m.top - 1 && (b.bottom <= m.bottom + 1 || b.top - m.top <= 13);
+  };
+  /* その質問の、いまの位置と中身（scroll ＝ 面の中の送り・h ＝ 見えている高さ・top ＝ 見えている範囲の上端からの距離） */
+  const spot = (p, id) => p.page.evaluate((qid) => {
+    const r = document.querySelector('.pvc-root'), main = r.querySelector('.pvc-main'), m = main.getBoundingClientRect();
+    const f = r.querySelector('form[data-pvc-form]');
+    const fold = r.querySelector('[data-q-fold="' + qid + '"]'), n = fold || r.querySelector('form[data-pvc-form] [data-q="' + qid + '"]');
+    const b = n ? n.getBoundingClientRect() : null, c = r.querySelector('form[data-pvc-form] [name="' + qid + '"]');
+    return { form: f ? f.getAttribute('data-pvc-form') : '', scroll: Math.round(main.scrollTop), h: Math.round(m.height),
+      top: b && b.height ? Math.round(b.top - m.top) : null, val: c ? c.value : null, mine: !!(n && n.querySelector('.pvc-mine')),
+      open: fold ? fold.querySelector('.pvc-fold-b').getAttribute('aria-expanded') === 'true' && !fold.querySelector('.pvc-fold-p').hidden : null };
+  }, id);
+  /* その面から送った質問の名前を、送信1回ごとに控える（「続きの質問だけを送った」ことを確かめるのに使う。見るだけで、通信には触らない） */
+  const sentLog = (p) => {
+    const log = [];
+    p.page.on('request', (req) => {
+      let u;
+      try { u = new URL(req.url()); } catch { return; }
+      if (!/^\/rest\/v1\/rpc\/submit_(contrib_anon|airline_conditions)$/.test(u.pathname)) return;
+      log.push([...String(req.postData() || '').matchAll(/"question_id":"([a-z0-9_]+)"/g)].map((m) => m[1]));
+    });
+    return log;
+  };
+  /* 返事だけが届かなかった回を作る：ページの送信を止め、同じ中身を検査の側からサーバへ届け（＝ 保存される）、
+     ページの側の通信は切る（＝ 返事は届かない）。返すのは、サーバがその送信に返した答え（ページは知らない）。
+     ⚠️ failNext の drop は、サーバが読む前に切る ＝ 保存されない。こちらは「保存されたのに、返事だけが無い」回。 */
+  const lostReply = async (p, name) => {
+    p.st.hold = { name, reqs: [] };
+    await send(p);
+    if (!(await until(() => p.st.hold.reqs.length === 1))) { cutHeld(p); return null; }
+    const req = p.st.hold.reqs[0], hs = req.headers(), keep = {};
+    for (const k of ['content-type', 'authorization', 'apikey', 'accept', 'content-profile', 'accept-profile', 'prefer', 'x-client-info']) if (hs[k]) keep[k] = hs[k];
+    let body = null;
+    try { body = await (await fetch(req.url(), { method: 'POST', headers: keep, body: req.postData() })).json(); } catch (e) { body = null; }
+    cutHeld(p);
+    return body;
+  };
+  const headOf = async (p) => (await summary(p)).head;
+  const seeMine = async (p, topic) => { await p.page.click('.pvc-root [data-pvc-act="edit"]'); await waitView(p, topic); };
+
+  /* ── 「自分の回答を見る」の行き先 ──
+     長い項目（休暇・手当）では、保存した答えが最初の1画面より下に在る。頭から出すと、未回答の質問だけが見えて、
+     保存した答えが消えたように見える（390×680 で、着陸手当の質問は面の見えている高さ 596px に対して 679px 下）。
+     決まり：その回に送った最初の質問の所まで送る（畳んである質問は、畳みを開けて）。指した質問は、1回送ったら忘れる。 */
+  await scene('保存後のカード ──「自分の回答を見る」は、いま保存した質問の所まで送る（390×680・ログインなし）', async () => {
+    const p = await open('phone');
+    const sent = sentLog(p);
+    try {
+      await go(p, CX);
+      await api(p, 'list');
+      await waitView(p, 'list');
+      await p.page.click('.pvc-root [data-pvc-tile="benefits"]');
+      await waitView(p, 'benefits');
+      await settle(p);
+      const s0 = await spot(p, 'landing_pay');
+      if (s0.scroll !== 0 || s0.top === null || s0.top < s0.h) throw new Error('前提が崩れた（着陸手当の質問が、開いた時の最初の1画面より下に無い）: ' + J(s0));
+      await pick(p, 'landing_pay', 'fixed');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      await seeMine(p, 'benefits');
+      const got1 = await seen(p, inView, 'landing_pay');
+      const s1 = await spot(p, 'landing_pay');
+      ok(got1 && s1.val === 'fixed' && s1.mine && J(sent) === J([['landing_pay']]),
+        '★長い項目の下のほうの質問を1つ保存して「自分の回答を見る」を押すと、その質問が面の見えている所に出る（保存した答えと「あなたの投稿」の札が付いている）', J({ before: s0, after: s1, sent }));
+
+      /* 比べる相手：一覧へ戻って同じ項目を開き直した時は、頭から（指した質問を覚えたままにしない） */
+      await p.page.click('.pvc-root .pvc-prev');
+      await waitView(p, 'list');
+      await p.page.click('.pvc-root [data-pvc-tile="benefits"]');
+      await waitView(p, 'benefits');
+      await settle(p);
+      const s3 = await spot(p, 'landing_pay');
+      ok(s3.scroll === 0 && !(await p.page.evaluate(inView, 'landing_pay')) && s3.val === 'fixed',
+        '★そのあと一覧から同じ項目を開き直すと、頭から出る（指した質問を覚えたままにしない）', J(s3));
+
+      /* 続きの質問だけを、あとから答える（上の質問は前に保存済み ＝ 送るのは続きの1問だけ） */
+      await pick(p, 'landing_pay_unit', 'per_landing');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      await seeMine(p, 'benefits');
+      const got2 = await seen(p, inView, 'landing_pay_unit');
+      const s2 = await spot(p, 'landing_pay_unit');
+      ok(got2 && s2.val === 'per_landing' && s2.mine && J(sent[1]) === J(['landing_pay_unit']),
+        '★続きの質問だけをあとから保存した回も、その続きの質問の所へ出る（送ったのは続きの1問だけ）', J({ s2, sent: sent[1] }));
+
+      /* 畳んである質問（通勤・タクシーの「回数・金額の上限」）。上の2問を先に保存し、上限だけをあとから答える。
+         答えたあとで畳みを閉じてから送る ＝ 「自分の回答を見る」が、畳みを開けて見せるかを見る。 */
+      await p.page.click('.pvc-root .pvc-prev');
+      await waitView(p, 'list');
+      await p.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(p, 'taxi');
+      await settle(p);
+      await pick(p, 'commuting_transport', 'always');
+      await chip(p, 'commuting_transport_method', 'company_taxi');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      await seeMine(p, 'taxi');
+      const gotT = await seen(p, (id) => {
+        const r = document.querySelector('.pvc-root'), n = r && r.querySelector('form[data-pvc-form="taxi"] [data-q="' + id + '"]');
+        const d = n ? n.getBoundingClientRect().top - r.querySelector('.pvc-main').getBoundingClientRect().top : -99;
+        return d >= -1 && d <= 13;
+      }, 'commuting_transport');
+      const t1 = await spot(p, 'commuting_transport');
+      ok(gotT && t1.val === 'always' && t1.mine && J(sent[2]) === J(['commuting_transport', 'commuting_transport_method']),
+        '★2問を1回で送った回は、送った最初の質問を面の上端へ出す（続きの質問は、そのすぐ下に続く）', J({ t1, sent: sent[2] }));
+      const FOLD = '.pvc-root [data-q-fold="commuting_taxi_cap"] .pvc-fold-b';
+      const f0 = await spot(p, 'commuting_taxi_cap');
+      await p.page.click(FOLD);
+      await pick(p, 'commuting_taxi_cap', 'per_month');
+      await p.page.click(FOLD);
+      const f1 = await spot(p, 'commuting_taxi_cap');
+      if (f0.open !== false || f1.open !== false || f0.top === null || f0.top + f0.scroll < f0.h) {
+        throw new Error('前提が崩れた（上限の畳みが、閉じたまま、頭から出した時の最初の1画面より下に在る形になっていない）: ' + J({ f0, f1 }));
+      }
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      await seeMine(p, 'taxi');
+      const got3 = await seen(p, inView, 'commuting_taxi_cap');
+      const f2 = await spot(p, 'commuting_taxi_cap');
+      ok(got3 && f2.open === true && f2.val === 'per_month' && f2.mine && J(sent[3]) === J(['commuting_taxi_cap']),
+        '★畳んである質問だけを保存した回は、畳みを開けて、その所へ出る', J({ f0, f2, sent: sent[3] }));
+    } finally {
+      await p.st.ctx.close();
+    }
+  });
+
+  /* ── 送り直したあとの見出し ──
+     見出しは、増えた＝「情報を追加しました」／直した＝「情報を更新しました」／分からない＝「保存しました」。
+     サーバには保存されたのに返事だけが届かなかった回を「もう一度送る」で送り直すと、2回目は置き換えになる。
+     直す前は、会員の質問は「追加しました」・月の勤務は「更新しました」（はじめての月なのに）・ログインなしは「追加しました」
+     と、同じ出来事に道ごとの違う見出しが出ていた。前の送信が届いていたかは、画面からは分からない。
+     決まり：送れなかった回の送り直し（端末に残した1件が、その項目・その月のもの）の見出しは、どの道でも「保存しました」。
+             失敗の無い回・破棄したあとの回・ほかの項目（ほかの月）の1件が残っているだけの回は、今までどおり。 */
+  await scene('返事が届かなかった回を送り直す（会員・質問の項目）── 見出しは「保存しました」', async () => {
+    await bare('cathay-pacific', CARD);
+    const p = await open('phone', { who: 'c' });
+    try {
+      await go(p, CX);
+      await api(p, 'benefits');
+      await waitView(p, 'benefits');
+      await settle(p);
+      /* 比べる相手：失敗の無い、はじめての保存と、その直し */
+      await pick(p, 'peer_support', 'internal');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h1 = await headOf(p);
+      await seeMine(p, 'benefits');
+      await pick(p, 'peer_support', 'external');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h2 = await headOf(p);
+      ok(h1 === '情報を追加しました' && h2 === '情報を更新しました',
+        '（比べる相手）失敗の無い回は今までどおり ── はじめての答えは「情報を追加しました」・直した回は「情報を更新しました」', J({ h1, h2 }));
+      /* 返事だけが届かない → 「送れていません」→「もう一度送る」 */
+      await seeMine(p, 'benefits');
+      await pick(p, 'landing_pay', 'no');
+      await tick(p);
+      const lost = await lostReply(p, 'submit_airline_conditions');
+      await waitMsg(p, 'fail');
+      const said = (await msg(p, 'fail')) || '', db1 = (await ownConds('cathay-pacific', CARD)).filter((x) => x.q === 'landing_pay');
+      if (!lost || !lost.ok || (lost.rejected || []).length || !/送れていません/.test(said) || !(await outboxOf(p)) || J(db1) !== J([{ q: 'landing_pay', c: 'no' }])) {
+        throw new Error('前提が崩れた（サーバには保存されたのに、ページには「送れていません」と出ている形になっていない）: ' + J({ lost, said: said.slice(0, 12), db1 }));
+      }
+      await p.page.click('.pvc-root [data-pvc-act="retry"]');
+      await waitView(p, 'saved');
+      const sm = await summary(p), db2 = (await ownConds('cathay-pacific', CARD)).filter((x) => x.q === 'landing_pay');
+      ok(sm.head === '保存しました' && J(db2) === J([{ q: 'landing_pay', c: 'no' }]) && (await outboxOf(p)) === null && !!sm.rows.landing_pay && sm.rows.landing_pay.v === 'ない',
+        '★返事だけが届かなかった回を「もう一度送る」で送り直すと、見出しは「保存しました」（増えたとも直したとも言い切らない）。保存先はその答えが1行・端末の控えは消える', J({ head: sm.head, db2 }));
+    } finally {
+      cutHeld(p);
+      await p.st.ctx.close();
+    }
+  });
+
+  await scene('返事が届かなかった回を送り直す（ログインなし）── 見出しは「保存しました」', async () => {
+    const p = await open('phone');
+    try {
+      await go(p, CX);
+      await api(p, 'benefits');
+      await waitView(p, 'benefits');
+      await settle(p);
+      await pick(p, 'landing_pay', 'no');
+      await tick(p);
+      const lost = await lostReply(p, 'submit_contrib_anon');
+      await waitMsg(p, 'fail');
+      const said = (await msg(p, 'fail')) || '', key0 = await p.page.evaluate(() => localStorage.getItem('pv_contrib_key'));
+      if (!lost || !lost.ok || !lost.key || key0 || !/送れていません/.test(said) || !(await outboxOf(p))) {
+        throw new Error('前提が崩れた（サーバは預かって鍵まで返したのに、ページには届いていない形になっていない）: ' + J({ ok: lost && lost.ok, key: !!(lost && lost.key), key0, said: said.slice(0, 12) }));
+      }
+      await p.page.click('.pvc-root [data-pvc-act="retry"]');
+      await waitView(p, 'saved');
+      const h0 = await headOf(p);
+      ok(h0 === '保存しました' && (await outboxOf(p)) === null,
+        '★ログインなしでも、返事だけが届かなかった回を送り直した見出しは「保存しました」（会員と同じ言い方）', J({ h0 }));
+      /* 比べる相手：そのあとの、失敗の無い回は今までどおり（「分からない」が次の回に残らない） */
+      await seeMine(p, 'benefits');
+      await pick(p, 'peer_support', 'internal');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h1 = await headOf(p);
+      await seeMine(p, 'benefits');
+      await pick(p, 'peer_support', 'external');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h2 = await headOf(p);
+      ok(h1 === '情報を追加しました' && h2 === '情報を更新しました',
+        '（比べる相手）送り直したあとの、失敗の無い回は今までどおり ── 新しい答えは「情報を追加しました」・直した回は「情報を更新しました」', J({ h1, h2 }));
+    } finally {
+      cutHeld(p);
+      await p.st.ctx.close();
+    }
+  });
+
+  await scene('返事が届かなかった回を送り直す（月の勤務）── 見出しは「保存しました」', async () => {
+    await bare('cathay-pacific', CARD);
+    const p = await open('phone', { who: 'c' });
+    try {
+      await go(p, CX);
+      await api(p, 'work');
+      await waitView(p, 'work');
+      await settle(p);
+      const months = await p.page.$$eval('.pvc-root select[name="ym"] option', (os) => os.map((o) => o.value).filter((v) => /^\d{4}-\d{2}$/.test(v)));
+      const mA = await p.page.$eval('.pvc-root select[name="ym"]', (n) => n.value), [mB, mC] = months.filter((m) => m !== mA);
+      if (!mA || !mB || !mC) throw new Error('前提が崩れた（選べる月が3つ無い）: ' + J(months));
+      await pick(p, 'position', 'fo');
+      await fill(p, 'block_hours', '61');
+      await tick(p);
+      const lost = await lostReply(p, 'submit_work_month');
+      await waitMsg(p, 'fail');
+      const said = (await msg(p, 'fail')) || '', db1 = await ownMonths('cathay-pacific', CARD);
+      if (!lost || !lost.ok || lost.replaced !== false || !/送れていません/.test(said) || !(await outboxOf(p)) || J(db1) !== J([{ ym: mA, block: 61 }])) {
+        throw new Error('前提が崩れた（はじめての月がサーバには保存されたのに、ページには「送れていません」と出ている形になっていない）: ' + J({ lost, said: said.slice(0, 12), db1 }));
+      }
+      await p.page.click('.pvc-root [data-pvc-act="retry"]');
+      await waitView(p, 'saved');
+      const h0 = await headOf(p), db2 = await ownMonths('cathay-pacific', CARD);
+      ok(h0 === '保存しました' && J(db2) === J([{ ym: mA, block: 61 }]) && (await outboxOf(p)) === null,
+        '★月の勤務でも、返事だけが届かなかった回を送り直した見出しは「保存しました」（はじめての月を「更新しました」と言わない）。保存先はその月が1行', J({ h0, db2 }));
+      /* 比べる相手：そのあとの、失敗の無い回は今までどおり */
+      await seeMine(p, 'work');
+      await fill(p, 'block_hours', '62');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h1 = await headOf(p);
+      await seeMine(p, 'work');
+      await pick(p, 'ym', mB);
+      await waitView(p, 'work');
+      await settle(p);
+      await pick(p, 'position', 'fo');
+      await fill(p, 'block_hours', '50');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h2 = await headOf(p);
+      ok(h1 === '情報を更新しました' && h2 === '情報を追加しました',
+        '（比べる相手）送り直したあとの、失敗の無い回は今までどおり ── 同じ月を直した回は「情報を更新しました」・ほかの月のはじめての保存は「情報を追加しました」', J({ h1, h2 }));
+      /* ほかの月の送れなかった1件が端末に残っているだけの回（その月は送り直していない）── 見出しは、サーバの答えのまま */
+      await seeMine(p, 'work');
+      await fill(p, 'block_hours', '51');
+      await tick(p);
+      await failNext('submit_work_month', 'drop', 9);
+      await send(p);
+      await waitMsg(p, 'fail');
+      await failOff();
+      const ob = JSON.parse((await outboxOf(p)) || 'null');
+      await pick(p, 'ym', mC);
+      await waitView(p, 'work');
+      await settle(p);
+      await pick(p, 'position', 'fo');
+      await fill(p, 'block_hours', '40');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h3 = await headOf(p), db3 = await ownMonths('cathay-pacific', CARD);
+      if (!ob || ob.topic !== 'work' || !ob.draft || ob.draft.ym !== mB) throw new Error('前提が崩れた（ほかの月の送れなかった1件が、端末に残っている形になっていない）: ' + J(ob).slice(0, 160));
+      ok(h3 === '情報を追加しました' && db3.some((x) => x.ym === mC && x.block === 40) && db3.some((x) => x.ym === mB && x.block === 50),
+        '★ほかの月の送れなかった1件が残っているだけの回は、見出しを変えない ── はじめての月は「情報を追加しました」（送れなかった月は、保存先では元のまま）', J({ h3, db3 }));
+    } finally {
+      await failOff();
+      cutHeld(p);
+      await p.st.ctx.close();
+    }
+  });
+
+  await scene('送れなかった1件を破棄したあと・ほかの項目の1件が残っている時 ── 見出しは今までどおり', async () => {
+    await bare('cathay-pacific', CARD);
+    const p = await open('phone', { who: 'c' });
+    try {
+      await go(p, CX);
+      await api(p, 'list');
+      await waitView(p, 'list');
+      await p.page.click('.pvc-root [data-pvc-tile="benefits"]');
+      await waitView(p, 'benefits');
+      await settle(p);
+      /* 送れない（サーバへ届く前に切れる ＝ 保存されていない）→「破棄する」→ あらためて送る */
+      await pick(p, 'sick_leave', 'unlimited');
+      await tick(p);
+      await failNext('submit_airline_conditions', 'drop', 9);
+      await send(p);
+      await waitMsg(p, 'fail');
+      await failOff();
+      await p.page.click('.pvc-root .pvc-msg[data-pvc-msg="fail"] [data-pvc-act="drop"]');
+      await p.page.waitForFunction(() => !document.querySelector('.pvc-root .pvc-msg[data-pvc-msg="fail"]'));
+      await waitView(p, 'benefits');
+      const ob0 = await outboxOf(p);
+      await pick(p, 'sick_leave', 'none');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h1 = await headOf(p);
+      ok(ob0 === null && h1 === '情報を追加しました',
+        '★送れなかった1件を「破棄する」で捨てたあとの回は、送り直しではない ── はじめての答えは「情報を追加しました」', J({ ob0, h1 }));
+      /* この項目で送れなかった1件を残したまま、ほかの項目を送る */
+      await seeMine(p, 'benefits');
+      await pick(p, 'peer_support', 'both');
+      await tick(p);
+      await failNext('submit_airline_conditions', 'drop', 9);
+      await send(p);
+      await waitMsg(p, 'fail');
+      await failOff();
+      await p.page.click('.pvc-root .pvc-prev');
+      await waitView(p, 'list');
+      await waitMsg(p, 'unsent');
+      await p.page.click('.pvc-root [data-pvc-tile="taxi"]');
+      await waitView(p, 'taxi');
+      await settle(p);
+      await pick(p, 'commuting_transport', 'no');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const h2 = await headOf(p), ob2 = JSON.parse((await outboxOf(p)) || 'null');
+      ok(h2 === '情報を追加しました' && !!ob2 && ob2.topic === 'benefits',
+        '★ほかの項目の送れなかった1件が残っているだけの回は、見出しを変えない（残っている1件も消さない）', J({ h2, left: ob2 && ob2.topic }));
+    } finally {
+      await failOff();
+      await p.st.ctx.close();
+    }
+  });
+
+  /* ── 通貨の切替 ──
+     サイトの通貨をほかの通貨にしている人には、ページの円の額が書き換わる（currency.js が文字を走査する）。
+     保存後のカードは「あなたが保存した内容」＝ 打ったとおりに出す。直す前は、補足に書いた「¥1,500」が「$9」になり、
+     すぐ上の額の行は「JPY 1,500」のまま ＝ 自分の答えが、打った字と違う通貨で返ってきていた。
+     通貨は、サイト自身の切替（PVCurrency.set）で選ぶ ＝ 保存先の鍵をこちらで決め打ちしない。
+     面の外に円の1行を置いて、それが書き換わるのを待ってからカードを読む（＝ カードを置いたあとに走査が1回は走った）。 */
+  const NOTE_YEN = '着陸1回 ¥1,500・月に2万円ほど', WORK_YEN = '深夜の手当は1回 ¥1,500';
+  const SYMBOL = { USD: '$', EUR: '€' };
+  const withCurrency = async (p, urlPath, cur) => {
+    await go(p, urlPath);
+    await p.page.waitForFunction(() => !!(window.PVCurrency && window.PVCurrency.set));
+    await p.page.evaluate((c) => window.PVCurrency.set(c), cur);
+    await go(p, urlPath);                                    // 開き直す（保存された選択が、開いた時から効いている形にする）
+    await p.page.waitForFunction(() => !!(window.PVCurrency && window.PVCurrency.get));
+  };
+  /* 面の外に置いた円の1行が、走査されるまで待つ。返すのは、その1行の字・ページのほかの額で書き換わっている数・カードの中で書き換えの印が付いた数 */
+  const scanned = async (p) => {
+    await p.page.evaluate(() => {
+      const n = document.createElement('p');
+      n.setAttribute('data-test-yen', ''); n.textContent = '¥1,500';
+      n.style.cssText = 'position:fixed;left:0;top:0;opacity:0;pointer-events:none';
+      document.body.appendChild(n);
+    });
+    const done = await seen(p, () => !!document.querySelector('[data-test-yen] .pv-cur'));
+    return p.page.evaluate((d) => ({
+      done: d, now: window.PVCurrency.get(), probe: document.querySelector('[data-test-yen]').textContent,
+      page: [...document.querySelectorAll('span.pv-cur[data-cur-on]')].filter((n) => !n.closest('.pvc-root') && !n.closest('[data-test-yen]')).length,
+      card: document.querySelectorAll('.pvc-root .pvc-saved .pv-cur').length,
+    }), done);
+  };
+  for (const cur of ['USD', 'EUR']) {
+    await scene(`保存後のカード ── サイトの通貨が ${cur} でも、打った額と補足をそのまま出す`, async () => {
+      const p = await open('phone');
+      try {
+        await withCurrency(p, CX, cur);
+        await api(p, 'benefits');
+        await waitView(p, 'benefits');
+        await settle(p);
+        await pick(p, 'landing_pay', 'fixed');
+        await pick(p, 'landing_pay_amount_cur', 'JPY');
+        await fill(p, 'landing_pay_amount', '1500');
+        await p.page.click('.pvc-root [data-q-more="landing_pay_amount"]');
+        await fill(p, 'landing_pay_amount_note', NOTE_YEN);
+        await tick(p);
+        await send(p);
+        await waitView(p, 'saved');
+        const sc = await scanned(p), sm = await summary(p);
+        ok(sc.done && sc.now === cur && sc.probe !== '¥1,500' && sc.probe.includes(SYMBOL[cur]) && sc.page > 0,
+          `（比べる相手）${cur} を選んでいる時、面の外の円の額は書き換わっている（切替が本当に効いている）`, J(sc));
+        ok(!!sm.rows.landing_pay_amount && sm.rows.landing_pay_amount.v === 'JPY 1,500（1回あたり）'
+          && !!sm.rows.landing_pay_amount_note && sm.rows.landing_pay_amount_note.v === NOTE_YEN && sc.card === 0,
+          `★${cur} を選んでいても、保存後のカードは、打った額（JPY 1,500）と補足（「¥1,500」「2万円」）を打ったとおりに出す（書き換えの印が1つも付かない）`,
+          J({ amount: sm.rows.landing_pay_amount, note: sm.rows.landing_pay_amount_note, card: sc.card }));
+        if (cur !== 'USD') return;
+        /* 月の勤務のカードも同じ行の作り ── 「ほかに伝えたいこと」に書いた円の額 */
+        await p.page.click('.pvc-root [data-pvc-act="more"]');
+        await waitView(p, 'list');
+        await p.page.click('.pvc-root [data-pvc-tile="work"]');
+        await waitView(p, 'work');
+        await settle(p);
+        await pick(p, 'position', 'fo');
+        await fill(p, 'block_hours', '61');
+        await fill(p, 'note', WORK_YEN);
+        await tick(p);
+        await send(p);
+        await waitView(p, 'saved');
+        await p.page.evaluate(() => { const n = document.querySelector('[data-test-yen]'); if (n) n.remove(); });
+        const sc2 = await scanned(p), sm2 = await summary(p);
+        ok(sc2.done && sc2.probe !== '¥1,500' && !!sm2.rows.note && sm2.rows.note.v === WORK_YEN && sc2.card === 0,
+          `★月の勤務のカードも同じ ── 「ほかに伝えたいこと」に書いた「¥1,500」を、${cur} を選んでいても打ったとおりに出す`, J({ note: sm2.rows.note, sc2 }));
+      } finally {
+        await p.st.ctx.close();
+      }
+    });
+  }
+
+  /* ── 背の低い画面 ──
+     保存後のカードのすき間を詰める規則は、幅（340pxまで）だけで決まっていた。幅が341px以上で背の低い画面
+     （幅375×高さ548 ＝ ブラウザのバーを引いた小さい iPhone・幅360×高さ540）は広いすき間のままで、ログインなしで
+     保存した直後（断りの箱が在る、いちばん高いカード）に、2つ目のボタンの下が最初の1画面の外へ切れていた
+     （375×548 で 2px・360×540 で 10px・341×540 で 31px）。
+     決まり：高さ600px未満の、下から出る面では、幅340pxまでと同じだけ詰める。高さ600px以上と、右から出る面
+             （幅768px以上）は今までどおり。字の大きさ・ボタンの高さは変えない・何も隠さない。 */
+  const openAt = async (w, h, o) => {
+    const p = await open('small', o);
+    await p.page.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+    return p;
+  };
+  /* エバー航空の月の勤務を1か月保存して、保存後のカードを出す（月が2けたの回 ＝ 会社名と月の行が折り返して、いちばん高い） */
+  const saveMonth = async (s, block) => {
+    await go(s, EVA);
+    await api(s, 'work');
+    await waitView(s, 'work');
+    await settle(s);
+    const wide = await s.page.$eval('.pvc-root select[name="ym"]', (n) => ([...n.options].find((x) => /-1[0-2]$/.test(x.value)) || {}).value || '');
+    if (wide) { await pick(s, 'ym', wide); await waitView(s, 'work'); await settle(s); }
+    await pick(s, 'position', 'fo');
+    await fill(s, 'block_hours', String(block));
+    await tick(s);
+    await send(s);
+    await waitView(s, 'saved');
+    return wide || '（既定の月）';
+  };
+  /* カードの中の、詰める対象のすき間（会社と月の行の上・断りの箱の上と内側・箱の中の行とボタンの上・2つのボタンの上とあいだ） */
+  const gapsOf = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), cs = (sel, k) => { const n = r.querySelector(sel); return n ? getComputedStyle(n)[k] : '無い'; };
+    return [cs('.pvc-saved-s', 'marginTop'), cs('.pvc-saved-s', 'rowGap'), cs('.pvc-saved .pvc-held', 'marginTop'), cs('.pvc-saved .pvc-held', 'paddingTop'),
+      cs('.pvc-saved .pvc-held-d', 'marginTop'), cs('.pvc-saved .pvc-held .pvc-ghost', 'marginTop'), cs('.pvc-saved-a', 'marginTop'), cs('.pvc-saved-a', 'rowGap')].join(' ');
+  });
+  const sizeTo = async (p, w, h) => {
+    await p.page.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+    await p.page.waitForFunction((a, b) => window.innerWidth === a && window.innerHeight === b, {}, w, h);
+    return gapsOf(p);
+  };
+  await scene('保存後のカード ── 背の低い画面（360×540・375×548・341×540）でも、2つのボタンに届く', async () => {
+    await bare('eva-air', CARD);
+    let n = 0;
+    for (const [w, h] of [[360, 540], [375, 548], [341, 540]]) {
+      for (const who of [null, 'c']) {
+        const s = await openAt(w, h, who ? { who } : {});
+        try {
+          const ym = await saveMonth(s, 61 + (n++));
+          const head = await headOf(s), reach = await reachOf(s);
+          const vp = await s.page.evaluate(() => [window.innerWidth, window.innerHeight]);
+          if (J(vp) !== J([w, h]) || !/^情報を(追加|更新)しました$/.test(head) || !!reach.held !== !who) {
+            throw new Error('前提が崩れた（その大きさで保存でき、ログインなしの回にだけ断りの箱が出た形になっていない）: ' + J({ vp, head, held: reach.held }));
+          }
+          ok(reached(reach),
+            `★${w}×${h}・${who ? '会員' : 'ログインなしで保存した直後（断りの箱が在る回）'}：スクロールしなくても「自分の回答を見る」「もう1項目を答える」の両方に届く（どちらも高さ 44px 以上）`, J({ ym, reach }));
+        } finally {
+          await s.st.ctx.close();
+        }
+      }
+    }
+    /* どこまで詰めるか（同じ1枚のカードで、画面の大きさだけを変えて、すき間を読む） */
+    const s = await openAt(375, 599);
+    try {
+      await saveMonth(s, 70);
+      const at599 = await gapsOf(s);
+      /* narrow は 320×640 で読む ＝ 高さ600px以上なので、幅340pxまでの規則だけが当たる。
+         320×568 で読むと背の低い画面の規則も当たって後勝ちになり、新しい規則を新しい規則と比べるだけになる
+         （2つの規則の中身がずれても緑のまま）。 */
+      const narrow = await sizeTo(s, 320, 640), normal = await sizeTo(s, 390, 844), at600 = await sizeTo(s, 375, 600);
+      const wideShort = await sizeTo(s, 768, 560), wideTall = await sizeTo(s, 768, 950);
+      if (narrow === normal || /無い/.test(narrow + normal)) throw new Error('前提が崩れた（幅340pxまでの詰めたすき間と、ふつうのすき間を読み分けられていない）: ' + J({ narrow, normal }));
+      ok(at599 === narrow, '★高さ599pxの画面（幅375px）のすき間は、幅340pxまでの画面と同じだけ詰まっている', J({ at599, narrow }));
+      ok(at600 === normal, '★高さ600px以上の画面は、今までどおりのすき間（375×600 が 390×844 と同じ）', J({ at600, normal }));
+      ok(wideShort === wideTall && wideShort === normal, '★右から出る面（幅768px以上）は、背が低くても今までどおりのすき間（768×560 が 768×950 と同じ）', J({ wideShort, wideTall, normal }));
+    } finally {
+      await s.st.ctx.close();
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 15. 質問の入力が断る時（低いほう・高いほうの対／断った欄を見せる／送れなかった1件の片づけ／親の条件を引き継ぐ）
+  // ═════════════════════════════════════════════════════════════
+  /* ⚠️ ここで入れる額は検査のための作りもの。どの会社の着陸手当でもない。 */
+  const ORDER = '低いほうの額が、高いほうの額より大きくなっています。', CURR = '低いほうと高いほうは、同じ通貨で入れてください。';
+  const ETI = '/airlines/etihad.html';
+  /* 送るボタンを押したあと、結果が出るまで待つ：保存後のカードか、入力の知らせ（送っている最中は待つ）。
+     断りは押した一息の中で出るので、すぐ返る。出なかった時は、そのまま先へ進んで下の行を赤くする。 */
+  const sentOut = (p) => seen(p, () => {
+    const r = document.querySelector('.pvc-root'), f = r && r.querySelector('form[data-pvc-form]');
+    if (r && r.querySelector('[data-pvc-saved]')) return true;
+    const b = f && f.querySelector('.pvc-send[type="submit"]');
+    return !!b && !/送っています/.test(b.textContent) && !!f.querySelector('.pvc-msg');
+  });
+  /* いま出ている結果：保存後のカードか・どの知らせか・焦点の在る欄の名前 */
+  const faceOf = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), f = r.querySelector('form[data-pvc-form]'), a = document.activeElement;
+    const m = (k) => { const n = r.querySelector('.pvc-msg[data-pvc-msg="' + k + '"]'); return n ? n.innerText : ''; };
+    return { saved: !!r.querySelector('[data-pvc-saved]'), said: m('said'), rej: m('rej'), same: m('same'), fail: m('fail'),
+      at: (a && f && f.contains(a) && a.getAttribute('name')) || '' };
+  });
+  const pressOut = async (p) => { await send(p); await sentOut(p); return faceOf(p); };
+  /* 数の質問の「わからない」を、入れる（on）・外す（off）。もうその形なら押さない */
+  const unkOf = async (p, id, on) => {
+    const h = await p.page.$(`.pvc-root input[name="${id}_unk"]`);
+    if ((await h.evaluate((n) => n.checked)) === on) return;
+    const lab = await h.evaluateHandle((n) => n.closest('label'));
+    await lab.click();
+  };
+  /* 低いほう・高いほうの、保存先の行（会員 ＝ 本人の印で引く／ログインなし ＝ その会社の預かり） */
+  const pairOf = async (slug, m) => (await q(
+    `select question_id as q, answer_num::float8 as num, answer_currency as cur, answer_code as c from public.airline_conditions
+      where airline = $2::text and proof_hash = public.pv_condition_hash($1::uuid, $2::text, null)
+        and question_id in ('landing_pay_from', 'landing_pay_to') order by 1`, [m.id, slug])).rows;
+  const pairHeld = async (slug) => (await q(
+    `select item_key as q, (payload->>'num')::float8 as num, payload->>'currency' as cur, payload->>'code' as c from public.pv_contrib_pending
+      where airline = $1 and item_key in ('landing_pay_from', 'landing_pay_to') order by item_key`, [slug])).rows;
+  const openForm = async (p, urlPath, topic) => { await go(p, urlPath + '?add=' + topic); await waitView(p, topic); await settle(p); };
+
+  /* ── 低いほう・高いほうの対 ──
+     「あり・一定額ではない」の2つの額は、対（台帳の rangeLow）。低いほうが高いほうより大きい対・通貨の違う対は、
+     保存する前に入力が止める（サーバも同じ決まりで断る ＝ 止めたのが入力かどうかは「通信が出ていない」ことでしか分からない）。
+     比べるのは、2つの端が「この送信のあと」に持つ額 ── 触っていない端は、保存してある額。 */
+  for (const who of ['c', null]) {
+    await scene(`低いほう・高いほうの対 ── 食い違う対は、送る前に止める（${who ? '会員' : 'ログインなし'}）`, async () => {
+      if (who) await bare('etihad', CARD);
+      const fn = who ? 'submit_airline_conditions' : 'submit_contrib_anon';
+      const held0 = who ? 0 : (await pairHeld('etihad')).length;
+      const stored = async () => (who ? pairOf('etihad', CARD) : (await pairHeld('etihad')).slice(held0));
+      const p = await open('phone', who ? { who } : {});
+      try {
+        await openForm(p, ETI, 'benefits');
+        /* s1：低い 300・高い 200（同じ通貨） */
+        await pick(p, 'landing_pay', 'variable');
+        await fill(p, 'landing_pay_from', '300');
+        await pick(p, 'landing_pay_from_cur', 'USD');
+        await fill(p, 'landing_pay_to', '200');
+        await tick(p);
+        let h0 = hits(p, fn);
+        let f1 = await pressOut(p);
+        ok(f1.said.includes(ORDER) && /保存できませんでした/.test(f1.said) && f1.at === 'landing_pay_to',
+          '★s1 低いほう 300・高いほう 200 を送ると、「低いほうの額が、高いほうの額より大きくなっています。」と断り、高いほうの額の欄へ移る', J(f1));
+        ok(hits(p, fn) === h0 && (await stored()).length === 0, '★s1 その回は、サーバへ1本も投げていない（どちらの端も保存されていない）', J({ sent: hits(p, fn) - h0, rows: await stored() }));
+        /* s2：低い 100 USD・高い 200 EUR */
+        await fill(p, 'landing_pay_from', '100');
+        await pick(p, 'landing_pay_to_cur', 'EUR');
+        h0 = hits(p, fn);
+        f1 = await pressOut(p);
+        ok(f1.said.includes(CURR) && !f1.said.includes(ORDER) && f1.at === 'landing_pay_to_cur',
+          '★s2 低いほう USD・高いほう EUR を送ると、「低いほうと高いほうは、同じ通貨で入れてください。」と断り、高いほうの通貨の欄へ移る', J(f1));
+        ok(hits(p, fn) === h0 && (await stored()).length === 0, '★s2 その回も、サーバへ1本も投げていない', J({ sent: hits(p, fn) - h0, rows: await stored() }));
+        /* s2 の続き：通貨も大小も食い違う対（300 USD・200 EUR）は、通貨の文で断る（通貨が先） */
+        await fill(p, 'landing_pay_from', '300');
+        h0 = hits(p, fn);
+        f1 = await pressOut(p);
+        ok(f1.said.includes(CURR) && !f1.said.includes(ORDER) && f1.at === 'landing_pay_to_cur' && hits(p, fn) === h0,
+          '★s2 通貨も大小も食い違う対（300 USD・200 EUR）は、通貨の文で断る（通貨を先に見る）', J(f1));
+        /* s3：直す（100・200 USD） */
+        await fill(p, 'landing_pay_from', '100');
+        await pick(p, 'landing_pay_to_cur', 'USD');
+        h0 = hits(p, fn);
+        f1 = await pressOut(p);
+        let rows = await stored();
+        ok(f1.saved && hits(p, fn) === h0 + 1 && J(rows) === J([{ q: 'landing_pay_from', num: 100, cur: 'USD', c: null }, { q: 'landing_pay_to', num: 200, cur: 'USD', c: null }]),
+          '★s3 100・200（どちらも USD）に直して送ると、2つとも保存される', J({ f1, rows }));
+        if (!who) return;
+
+        /* s4：保存してある 100／200 のまま、低いほうだけを 250 に（高いほうには触らない） */
+        await openForm(p, ETI, 'benefits');
+        let v = await vals(p);
+        if (v.landing_pay_from !== '100' || v.landing_pay_to !== '200') throw new Error('前提が崩れた（開き直した入力に、保存した 100／200 が入っていない）: ' + J(v));
+        await fill(p, 'landing_pay_from', '250');
+        await tick(p);
+        h0 = hits(p, fn);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.said.includes(ORDER) && f1.at === 'landing_pay_to', '★s4 保存してある 100／200 の、低いほうだけを 250 に直して送ると、同じ文で断る（触っていない高いほうは、保存してある 200）', J(f1));
+        ok(hits(p, fn) === h0 && rows[0].num === 100 && rows[1].num === 200, '★s4 その回は、サーバへ1本も投げていない（保存先の低いほうは 100 のまま）', J({ sent: hits(p, fn) - h0, rows }));
+        /* 断りは、対のどちらの端を直しても消える（高いほうへ焦点を移したが、直すのは打ち間違えた低いほうのことが多い） */
+        await fill(p, 'landing_pay_from', '150');
+        const f1b = await faceOf(p);
+        ok(f1.said.includes(ORDER) && f1b.said === '' && f1b.rej === '', '★その断りは、対のもう一方の端（低いほう）を直しても消える', J({ before: f1.said, after: f1b }));
+        /* s4b：高いほうだけを 50 に（低いほうには触らない） */
+        await openForm(p, ETI, 'benefits');
+        await fill(p, 'landing_pay_to', '50');
+        await tick(p);
+        h0 = hits(p, fn);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.said.includes(ORDER) && f1.at === 'landing_pay_to' && hits(p, fn) === h0 && rows[0].num === 100 && rows[1].num === 200,
+          '★s4b 高いほうだけを 50 に直して送っても、同じ文で断る（サーバへ1本も投げていない・保存先は 100／200 のまま）', J({ f1, sent: hits(p, fn) - h0, rows }));
+        /* s5：2つとも打ち直す（300／400）── 比べる相手は、保存してある端ではなく、いま打った端 */
+        await openForm(p, ETI, 'benefits');
+        await fill(p, 'landing_pay_from', '300');
+        await fill(p, 'landing_pay_to', '400');
+        await tick(p);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.saved && rows[0].num === 300 && rows[1].num === 400, '★s5 保存してある 100／200 を 300／400 に打ち直すと、2つとも保存される（打った低いほうを、保存してある高いほうと比べない）', J({ f1, rows }));
+        /* s7：200／1000（字で比べると "200" のほうが大きい） */
+        await openForm(p, ETI, 'benefits');
+        await fill(p, 'landing_pay_from', '200');
+        await fill(p, 'landing_pay_to', '1000');
+        await tick(p);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.saved && rows[0].num === 200 && rows[1].num === 1000, '★s7 200／1000 は保存される（数として比べている。字で比べると "200" のほうが大きい）', J({ f1, rows }));
+        /* 同じ額は通す（断るのは、低いほうが「より大きい」時だけ） */
+        await openForm(p, ETI, 'benefits');
+        await fill(p, 'landing_pay_from', '1000');
+        await tick(p);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.saved && rows[0].num === 1000 && rows[1].num === 1000, '★同じ額（1000／1000）は保存される', J({ f1, rows }));
+        /* s6：片方が「わからない」── 低いほうが「わからない」・高いほう 200 */
+        await openForm(p, ETI, 'benefits');
+        await unkOf(p, 'landing_pay_from', true);
+        await fill(p, 'landing_pay_to', '200');
+        await tick(p);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.saved && rows[0].c === 'unknown' && rows[0].num === null && rows[1].num === 200, '★s6 低いほうが「わからない」・高いほうが 200 は、保存される', J({ f1, rows }));
+        /* s6：低いほう 300・高いほうが「わからない」（「わからない」を 0 と読むと、300 > 0 で断ってしまう） */
+        await openForm(p, ETI, 'benefits');
+        await unkOf(p, 'landing_pay_from', false);
+        await fill(p, 'landing_pay_from', '300');
+        await pick(p, 'landing_pay_from_cur', 'USD');
+        await unkOf(p, 'landing_pay_to', true);
+        await tick(p);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.saved && rows[0].num === 300 && rows[1].c === 'unknown' && rows[1].num === null, '★s6 低いほうが 300・高いほうが「わからない」も、保存される（「わからない」は 0 ではない）', J({ f1, rows }));
+
+        /* s8：入力の確かめは通るが、サーバが断る回（入力を描いたあとで、保存先の高いほうが替わっていた）。
+           サーバの理由（range_order）が、同じ文で本人に届く。 */
+        await openForm(p, ETI, 'benefits');
+        await unkOf(p, 'landing_pay_to', false);
+        await fill(p, 'landing_pay_from', '100');
+        await fill(p, 'landing_pay_to', '200');
+        await pick(p, 'landing_pay_to_cur', 'USD');
+        await tick(p);
+        f1 = await pressOut(p);
+        rows = await stored();
+        if (!f1.saved || rows[0].num !== 100 || rows[1].num !== 200 || rows[0].cur !== 'USD' || rows[1].cur !== 'USD') throw new Error('前提が崩れた（100／200 USD を保存できていない）: ' + J({ f1, rows }));
+        await openForm(p, ETI, 'benefits');
+        await q(`update public.airline_conditions set answer_num = 120 where airline = 'etihad' and question_id = 'landing_pay_to'
+                  and proof_hash = public.pv_condition_hash($1::uuid, 'etihad', null)`, [CARD.id]);
+        await fill(p, 'landing_pay_from', '150');
+        await tick(p);
+        h0 = hits(p, fn);
+        f1 = await pressOut(p);
+        rows = await stored();
+        const lowName = JSON.parse(read('pv-conditions.json')).questions.find((x) => x.id === 'landing_pay_from').ja.label;
+        ok(hits(p, fn) === h0 + 1 && !f1.saved && f1.rej.includes('「' + lowName + '」：' + ORDER) && !/保存できませんでした。/.test(f1.rej) && rows[0].num === 100,
+          '★s8 入力の確かめを通ってサーバが断った回も、同じ文で伝える（「保存できませんでした。」だけにしない。保存先の低いほうは 100 のまま）', J({ sent: hits(p, fn) - h0, f1, rows }));
+
+        /* 出ていない端は比べない：上の質問を「一定額」に答え直すと、低いほう・高いほうは出なくなる。
+           打ちかけの額（500 ＝ 保存してある高いほう 120 より大きい）が残っていても、上の質問の答えは保存される。 */
+        await openForm(p, ETI, 'benefits');
+        await fill(p, 'landing_pay_from', '500');
+        await pick(p, 'landing_pay', 'fixed');
+        await tick(p);
+        h0 = hits(p, fn);
+        f1 = await pressOut(p);
+        rows = await stored();
+        ok(f1.saved && hits(p, fn) === h0 + 1 && rows[0].num === 100 && rows[1].num === 120,
+          '★上の質問を答え直して出なくなった対は、比べない（打ちかけの額が残っていても、上の答えは保存される。対の行は動かない）', J({ f1, sent: hits(p, fn) - h0, rows }));
+      } finally {
+        await p.st.ctx.close();
+      }
+    });
+  }
+
+  /* ── 断った欄を見せる・直したら断りを消す（390×680）──
+     断りの知らせは入力のいちばん下に出る。名指しした欄は、長い項目ではずっと上 ＝ 焦点だけ移しても画面の外。
+     決まり：名指しした欄を、面の見えている高さのまんなかへ送る（動かすのは面の中だけ）。その欄に値が入ったら、断りを消す
+             （消すのは、その断りだけ。あとから出た別の断りは消さない）。 */
+  /* その欄と知らせが、面の見えている範囲に在るか（mid ＝ 欄のまんなかと、見えている高さのまんなかの差） */
+  const fieldSpot = (p, name) => p.page.evaluate((nm) => {
+    const r = document.querySelector('.pvc-root'), main = r.querySelector('.pvc-main'), m = main.getBoundingClientRect();
+    const c = r.querySelector('form[data-pvc-form] [name="' + nm + '"]'), b = c.getBoundingClientRect();
+    const n = r.querySelector('form[data-pvc-form] .pvc-msg'), nb = n ? n.getBoundingClientRect() : null;
+    const inside = (x) => !!x && x.height > 0 && x.top >= m.top - 0.5 && x.bottom <= m.bottom + 0.5;
+    return { field: inside(b), mid: Math.round((b.top + b.height / 2) - (m.top + m.height / 2)), note: inside(nb),
+      noteTop: nb ? Math.round(nb.top - m.top) : null, h: Math.round(m.height), scroll: Math.round(main.scrollTop), pageY: Math.round(window.scrollY) };
+  }, name);
+  await scene('断った欄を見せる ── 欄は面の見えている所へ・値を入れたら断りが消える（390×680・ログインなし）', async () => {
+    const p = await open('phone');
+    const where = (name) => fieldSpot(p, name);
+    try {
+      /* 一覧から開く（あとで、一覧へ戻ってもう一度開く） */
+      await go(p, EVA + '?add=list');
+      await waitView(p, 'list');
+      await p.page.click('.pvc-root [data-pvc-tile="benefits"]');
+      await waitView(p, 'benefits');
+      await settle(p);
+      const y0 = await p.page.evaluate(() => Math.round(window.scrollY));
+      /* 断りを2つ仕込む：額に通貨が無い（上のほうの質問）・補足だけ書いて答えを選んでいない（いちばん下の質問） */
+      await pick(p, 'landing_pay', 'fixed');
+      await fill(p, 'landing_pay_amount', '1500');
+      await fill(p, 'ground_duty_pay_note', '試験：補足だけ');          // この質問の補足の欄は、はじめから開いている
+      await tick(p);
+      const h0 = hits(p, 'submit_contrib_anon');
+      let f1 = await pressOut(p);
+      const w1 = await where('landing_pay_amount_cur');
+      if (!/通貨を選んでください/.test(f1.said) || f1.at !== 'landing_pay_amount_cur' || w1.noteTop === null) throw new Error('前提が崩れた（通貨の無い額を、通貨の欄を名指しして断っていない）: ' + J({ f1, w1 }));
+      ok(w1.field && Math.abs(w1.mid) <= 2 && w1.pageY === y0,
+        '★v1 断った欄（通貨）が、面の見えている高さのまんなかに出る（うしろのページは動かない）', J(w1));
+      /* v2：値を入れるまでは残る・入れたら消える */
+      await fill(p, 'annual_leave_days', '20');
+      const before = (await faceOf(p)).said;
+      await pick(p, 'landing_pay_amount_cur', 'JPY');
+      const after = (await faceOf(p)).said;
+      ok(/通貨を選んでください/.test(before) && after === '', '★v2 ほかの欄を触っても断りは残り、断った欄に値を入れると消える', J({ before, after }));
+      /* v4：続けて別の欄の断り。前の欄をもう一度変えても、新しい断りは消えない */
+      f1 = await pressOut(p);
+      const w2 = await where('ground_duty_pay');
+      const saidY = f1.said;
+      await pick(p, 'landing_pay_amount_cur', 'USD');
+      const still = (await faceOf(p)).said;
+      ok(/補足を残すには/.test(saidY) && f1.at === 'ground_duty_pay' && w2.field && hits(p, 'submit_contrib_anon') === h0,
+        '★v4 直して送り直すと、次の断り（別の欄）が出て、その欄が見えている所に出る（まだ1本も投げていない）', J({ saidY, at: f1.at, w2 }));
+      ok(/補足を残すには/.test(still), '★v4 前に断られた欄をもう一度変えても、新しい断りは消えない', J({ still }));
+      /* 項目を出て戻ると、入力は描き直される（欄は新しい部品になる）。断りは残っていて、戻ったあとに値を入れても消える */
+      await p.page.click('.pvc-root .pvc-prev');
+      await waitView(p, 'list');
+      await p.page.click('.pvc-root [data-pvc-tile="benefits"]');
+      await waitView(p, 'benefits');
+      await settle(p);
+      const back1 = (await faceOf(p)).said, val1 = (await vals(p)).ground_duty_pay;
+      await pick(p, 'ground_duty_pay', await p.page.$eval('.pvc-root select[name="ground_duty_pay"]', (n) => [...n.options].map((o) => o.value).filter(Boolean)[0]));
+      const gone = (await faceOf(p)).said;
+      ok(/補足を残すには/.test(back1) && val1 === '' && gone === '',
+        '★v4 項目を出て戻ってきたあと（入力は描き直されている）でも、新しく断られた欄に値を入れると、その断りが消える', J({ back1, val1, gone }));
+      /* v3：そのあと送ると保存できる。保存後のカードは、そのまま出ている */
+      f1 = await pressOut(p);
+      const pop = await popGone(p);
+      const sm = await summary(p);
+      ok(f1.saved && hits(p, 'submit_contrib_anon') === h0 + 1 && pop.late !== true && /^情報を(追加|更新)しました$/.test(sm.head) && !!sm.rows.landing_pay_amount && !!sm.rows.ground_duty_pay,
+        '★v3 断りを直したあとの送信は保存され、保存後のカードがそのまま出ている', J({ f1, head: sm.head, rows: Object.keys(sm.rows) }));
+    } finally {
+      await p.st.ctx.close();
+    }
+  });
+
+  /* 畳んである質問（通勤・タクシーの「回数・金額の上限」）。補足だけ書いて畳みを閉じ、答えを選ばずに送ると、
+     断りが名指しする欄は畳みの中 ＝ 閉じたままでは、焦点も移せず、見える所へも送れない。 */
+  await scene('断った欄が畳みの中に在る時 ── 畳みを開けて、その欄へ移る（390×680・ログインなし）', async () => {
+    const p = await open('phone');
+    const FOLD = '.pvc-root [data-q-fold="commuting_taxi_cap"] .pvc-fold-b';
+    const foldOpen = () => p.page.evaluate(() => {
+      const f = document.querySelector('.pvc-root [data-q-fold="commuting_taxi_cap"]');
+      return f.querySelector('.pvc-fold-b').getAttribute('aria-expanded') === 'true' && !f.querySelector('.pvc-fold-p').hidden;
+    });
+    try {
+      await openForm(p, EVA, 'taxi');
+      await pick(p, 'commuting_transport', 'always');
+      await chip(p, 'commuting_transport_method', 'company_taxi');
+      await p.page.click(FOLD);
+      await fill(p, 'commuting_taxi_cap_note', '試験：上限の補足だけ');
+      await p.page.click(FOLD);
+      const closed = !(await foldOpen());
+      await tick(p);
+      const h0 = hits(p, 'submit_contrib_anon');
+      const f1 = await pressOut(p);
+      if (!closed || !/補足を残すには/.test(f1.said)) throw new Error('前提が崩れた（畳みを閉じたまま、畳みの中の質問を名指しして断った形になっていない）: ' + J({ closed, f1 }));
+      const w = await fieldSpot(p, 'commuting_taxi_cap');
+      ok((await foldOpen()) && f1.at === 'commuting_taxi_cap' && w.field && hits(p, 'submit_contrib_anon') === h0,
+        '★畳んである質問の欄を名指しして断った時は、畳みを開けて、その欄を見えている所に出す（焦点もその欄。何も送っていない）', J({ f1, w }));
+    } finally {
+      await p.st.ctx.close();
+    }
+  });
+
+  /* 断りに付けた聞き手が、使われないまま残ることがある（名指しした欄には触らず、ほかの道で通した回）。
+     そのあとに出た別の知らせ ── ここでは「送れていません」と「もう一度送る」── を、前に名指しした欄に値が入っただけで消さない。
+     聞き手が消してよいのは、付けた時の断りだけ（上の v4 は、聞き手が1度使われて外れたあとを見ている ＝ この見分けは通らない）。 */
+  await scene('断った欄に値を入れても、あとから出た別の知らせは消えない ── 「送れていません」は残る（390×680・ログインなし）', async () => {
+    const p = await open('phone');
+    try {
+      await openForm(p, EVA, 'benefits');
+      await pick(p, 'landing_pay', 'fixed');
+      await fill(p, 'landing_pay_amount', '1500');
+      await tick(p);
+      const f0 = await pressOut(p);
+      if (!/通貨を選んでください/.test(f0.said) || f0.at !== 'landing_pay_amount_cur') throw new Error('前提が崩れた（通貨の欄を名指しして断っていない）: ' + J(f0));
+      /* 名指しされた通貨の欄には触らず、額を「わからない」にして送る → 届かない ＝ 知らせが「送れていません」に替わる */
+      await unkOf(p, 'landing_pay_amount', true);
+      await failNext('submit_contrib_anon', 'drop', 9);
+      await send(p);
+      await waitMsg(p, 'fail');
+      await failOff();
+      const before = await faceOf(p);
+      await pick(p, 'landing_pay_amount_cur', 'JPY');
+      const after = await faceOf(p);
+      const retry = !!(await p.page.$('.pvc-root .pvc-msg[data-pvc-msg="fail"] [data-pvc-act="retry"]'));
+      ok(/送れていません/.test(before.fail) && before.said === '' && /送れていません/.test(after.fail) && retry,
+        '★前に断られた欄（通貨）に値を入れても、あとから出た「送れていません」と「もう一度送る」は消えない', J({ before: before.fail, after: after.fail, retry }));
+    } finally {
+      await failOff();
+      await p.st.ctx.close();
+    }
+  });
+
+  /* ── 送れなかった1件の片づけ ──
+     返事だけが届かなかった回は、サーバには保存されている。読み直したあとで「もう一度送る」を押すと、
+     「保存済みの内容と同じです」になる（送るものが無い）。直す前は、端末の控えが残ったまま ＝ 一覧が
+     「送れていない回答があります」と言い続けた（件数には、もう入っているのに）。
+     決まり：端末に残した1件が、いま送ろうとした入力そのものなら、その1件を消す。
+             入力が違うなら消さない（ほかのタブで開いていた入力から「同じです」になっても、送れていない1件は残る）。 */
+  for (const who of ['c', null]) {
+    const fn = who ? 'submit_airline_conditions' : 'submit_contrib_anon', tag = who ? '会員' : 'ログインなし';
+    const unsent = (p) => msg(p, 'unsent');
+    const countOf = (p) => p.page.evaluate(() => { const n = document.querySelector('.pvc-root [data-pvc-count="benefits"]'); return !n || n.hidden ? null : n.textContent; });
+    /* この人の、この会社の「休暇・手当」の行（会員 ＝ 本人の印／ログインなし ＝ この端末の控えの鍵） */
+    const mine = async (p) => {
+      if (who) return ownConds('cathay-pacific', CARD);
+      const key = await p.page.evaluate(() => localStorage.getItem('pv_contrib_key') || '');
+      return (await q(`select item_key as q, payload->>'code' as c from public.pv_contrib_pending
+                        where key_hash = public.pv_contrib_key_hash($1) and airline = 'cathay-pacific' order by item_key`, [key])).rows;
+    };
+    /* はじめに1件、ふつうに保存する（ログインなしの人は、ここで控えの鍵が付く ＝ 読み直したあとも自分の分を読める） */
+    const first = async (p) => {
+      await openForm(p, CX, 'benefits');
+      await pick(p, 'peer_support', 'internal');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+    };
+
+    await scene(`返事が届かなかった回を、読み直してから送り直す ── 「同じです」になったら、端末の控えも消える（${tag}）`, async () => {
+      if (who) await bare('cathay-pacific', CARD);
+      const p = await open('phone', who ? { who } : {});
+      try {
+        await first(p);
+        await seeMine(p, 'benefits');
+        await pick(p, 'sick_leave', 'unlimited');
+        await tick(p);
+        const lost = await lostReply(p, fn);
+        await waitMsg(p, 'fail');
+        const db1 = await mine(p);
+        if (!lost || !lost.ok || (lost.rejected || []).length || !(await outboxOf(p)) || J(db1) !== J([{ q: 'peer_support', c: 'internal' }, { q: 'sick_leave', c: 'unlimited' }])) {
+          throw new Error('前提が崩れた（サーバには保存されたのに、ページには「送れていません」と出ている形になっていない）: ' + J({ lost, db1 }));
+        }
+        /* 読み直す ＝ 自分の一覧に、届いていた答えが入る */
+        await go(p, CX + '?add=list');
+        await waitView(p, 'counted');
+        const l1 = { unsent: await unsent(p), count: await countOf(p) };
+        if (!/送れていない回答があります/.test(l1.unsent || '') || l1.count !== 'あなたの投稿 2件') throw new Error('前提が崩れた（一覧が「送れていない回答があります」と「あなたの投稿 2件」を並べていない）: ' + J(l1));
+        await p.page.click('.pvc-root .pvc-msg[data-pvc-msg="unsent"] [data-pvc-act="resume"]');
+        await waitView(p, 'benefits');
+        await settle(p);
+        /* 入力の中身ではないもの（補足の欄を開く）を1つ変えてから送り直す ── それでも「同じ入力」 */
+        await p.page.click('.pvc-root [data-q-more="peer_support"]');
+        const h0 = hits(p, fn);
+        await p.page.click('.pvc-root .pvc-msg[data-pvc-msg="fail"] [data-pvc-act="retry"]');
+        await waitMsg(p, 'same');
+        const f2 = await faceOf(p);
+        await p.page.click('.pvc-root .pvc-prev');
+        await waitView(p, 'counted');
+        const l2 = { unsent: await unsent(p), count: await countOf(p), outbox: await outboxOf(p) }, db2 = await mine(p);
+        ok(/保存済みの内容と同じです/.test(f2.same) && f2.fail === '' && hits(p, fn) === h0,
+          '★u1 読み直してから「もう一度送る」を押すと、「保存済みの内容と同じです」に替わる（「送れていません」は消える・何も送らない）', J(f2));
+        ok(l2.unsent === null && l2.outbox === null && l2.count === 'あなたの投稿 2件' && J(db2) === J(db1),
+          '★u1 一覧に戻ると「送れていない回答があります」が消えている（件数は 2件のまま・保存先は答えごとに1行）', J({ l2, db2 }));
+      } finally {
+        cutHeld(p);
+        await p.st.ctx.close();
+      }
+    });
+
+    await scene(`本当に届かなかった1件が残っているとき、ほかのタブの入力から「同じです」になっても、その1件は消えない（${tag}）`, async () => {
+      if (who) await bare('cathay-pacific', CARD);
+      const p = await open('phone', who ? { who } : {});
+      try {
+        /* 1枚目：ふつうに保存して、同じ項目を開いておく（何も変えていない入力） */
+        await first(p);
+        await seeMine(p, 'benefits');
+        await settle(p);
+        /* 2枚目（同じブラウザ）：同じ項目で1つ答えを足して送る → 届かない ＝ 端末に1件残る */
+        const t2 = await p.st.ctx.newPage();
+        const p2 = { page: t2, st: { calls: [], fake: null } };
+        t2.setDefaultTimeout(20000);
+        await t2.setViewport({ width: 390, height: 680, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+        await t2.setRequestInterception(true);
+        t2.on('request', (req) => gate(req, p2.st));
+        await t2.bringToFront();
+        await openForm(p2, CX, 'benefits');
+        await pick(p2, 'sick_leave', 'unlimited');
+        await tick(p2);
+        await failNext(fn, 'drop', 9);
+        await send(p2);
+        await waitMsg(p2, 'fail');
+        await failOff();
+        const db1 = await mine(p);
+        const ob1 = JSON.parse((await outboxOf(p2)) || 'null');
+        if (!ob1 || ob1.topic !== 'benefits' || ob1.draft.vals.sick_leave !== 'unlimited' || J(db1) !== J([{ q: 'peer_support', c: 'internal' }])) {
+          throw new Error('前提が崩れた（2枚目の送信が届かず、端末に1件残った形になっていない）: ' + J({ ob1, db1 }));
+        }
+        /* 1枚目へ戻り、何も変えずに送る */
+        await p.page.bringToFront();
+        await tick(p);
+        await send(p);
+        await waitMsg(p, 'same');
+        const ob2 = JSON.parse((await outboxOf(p)) || 'null');
+        ok(!!ob2 && ob2.topic === 'benefits' && ob2.draft.vals.sick_leave === 'unlimited',
+          '★u2 何も変えていない入力から「保存済みの内容と同じです」になっても、端末に残っている別の1件は消えない', J(ob2 && ob2.draft && ob2.draft.vals));
+        /* 読み直すと、一覧はまだ知らせていて、「続きを開く」で送れなかった入力が戻る */
+        await go(p, CX + '?add=list');
+        await waitView(p, 'counted');
+        const l3 = await msg(p, 'unsent');
+        await p.page.click('.pvc-root .pvc-msg[data-pvc-msg="unsent"] [data-pvc-act="resume"]').catch(() => null);
+        const back = await seen(p, () => {
+          const f = document.querySelector('.pvc-root form[data-pvc-form="benefits"]'), x = f && f.querySelector('[name="sick_leave"]');
+          return !!x && x.value === 'unlimited' && !!f.querySelector('.pvc-msg[data-pvc-msg="fail"] [data-pvc-act="retry"]');
+        });
+        ok(/送れていない回答があります/.test(l3 || '') && back,
+          '★u2 読み直した一覧は「送れていない回答があります」と言い、「続きを開く」で送れなかった入力（と「もう一度送る」）が戻る', J({ l3, back }));
+      } finally {
+        await failOff();
+        await p.st.ctx.close();
+      }
+    });
+  }
+
+  /* ── 親の条件を引き継ぐ（2回の送信）──
+     上の「着陸手当」の場面は、親と続きの質問を1回で送る ＝ 3行が同じ職位・機種になるのは当たり前。
+     ここは、親を前に（別の月に・職位と機種つきで）保存してある人が、続きの質問だけをあとから送る回。
+     月の勤務を1件も出していない会員なので、面は職位も機種も送らない ＝ 続きの行の職位・機種は、サーバが親の行から取る。
+     適用時期は「答えた月」＝ 親の月ではなく、この送信の月。 */
+  await scene('親を前に保存した人が、続きの質問だけをあとから送る ── 職位と機種は親の行のもの・時期はこの送信の月', async () => {
+    await bare('eva-air', CARD);
+    const now = (await q(`select extract(year from current_date)::int as y, extract(month from current_date)::int as m`)).rows[0];
+    const prev = now.m === 1 ? { y: now.y - 1, m: 12 } : { y: now.y, m: now.m - 1 };
+    const seeded = await rpcAs('c', 'submit_airline_conditions', { airline: 'eva-air', lang: 'ja', position: 'cap', fleet: FLEET, year: prev.y, month: prev.m,
+      answers: [{ question_id: 'landing_pay', code: 'fixed' }] });
+    const p = await open('phone', { who: 'c' });
+    const sent = tap(p, 'submit_airline_conditions');
+    try {
+      await openForm(p, EVA, 'benefits');
+      const v0 = await vals(p), line = await p.page.$eval('.pvc-root .pvc-ctx-line', (n) => n.textContent);
+      const row0 = await landRows('eva-air', CARD);
+      if (!seeded || !seeded.ok || (seeded.rejected || []).length || v0.landing_pay !== 'fixed' || /機長|副操縦士/.test(line) || (await ownMonths('eva-air', CARD)).length
+        || J(row0.map((r) => [r.q, r.pos, r.fleet, r.y, r.m])) !== J([['landing_pay', 'cap', FLEET, prev.y, prev.m]])) {
+        throw new Error('前提が崩れた（月の勤務が無く、親だけが前の月に職位・機種つきで保存されている形になっていない）: ' + J({ seeded, v0: v0.landing_pay, line, row0 }));
+      }
+      await fill(p, 'landing_pay_amount', '1500');
+      await pick(p, 'landing_pay_amount_cur', 'JPY');
+      await pick(p, 'landing_pay_unit', 'per_landing');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const p1 = sent[0] || {}, rows = await landRows('eva-air', CARD);
+      const par = rows.find((r) => r.q === 'landing_pay'), kids = rows.filter((r) => r.q !== 'landing_pay');
+      ok(sent.length === 1 && J(ids(p1)) === J(['landing_pay_amount', 'landing_pay_unit']) && !('position' in p1) && !('fleet' in p1) && !('year' in p1) && !('month' in p1),
+        '★続きの質問だけを送る（親は送り直さない）。その送信は、職位も機種も時期も運んでいない', J(p1));
+      ok(kids.length === 2 && kids.every((r) => r.pos === 'cap' && r.fleet === FLEET),
+        '★保存先の続きの2行は、親の行の職位と機種を持つ（空で保存しない）', J(kids));
+      ok(kids.length === 2 && kids.every((r) => r.y === now.y && r.m === now.m) && !!par && par.y === prev.y && par.m === prev.m && par.pos === 'cap' && par.fleet === FLEET,
+        '★続きの2行の適用時期は、この送信の月（親の行は、前の月・職位・機種のまま動かない）', J({ now, rows }));
+    } finally {
+      await p.st.ctx.close();
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 16. 質問の入力の見た目（日本航空・ログインなし・幅 320／360／390／430／768／1280）
+  // ═════════════════════════════════════════════════════════════
+  /* 着陸手当の続きの質問を足して、面の見た目に4つの粗が出た（どれも画面は普通に動いたまま）：
+       ・スマホの幅で、単位の「（1回あたり）」だけが次の行へ落ち、「わからない」の前に並んでいた
+       ・続きの質問が上の質問と同じ見た目で並び、どの質問の続きなのかが形で分からなかった
+       ・選んだ通貨の名前が「AED（UAEディ…」と途中で切れていた（欄の内側が、名前より狭い）
+       ・質問の名前や説明の最後の1〜2文字だけが、次の行に残っていた（「…そのまま入れてくださ／い。」）
+     ここは、ブラウザが実際に描いた箱と行を測る（クラスの名前が付いているかどうかは見ない）。
+     どれが「続きの質問」かは、質問表（pv-conditions.json）の parent から決める ＝ 製品の付けた印を当てにしない。
+     保存はしない（選ぶだけ・打つだけ）。 */
+  const BANK = JSON.parse(read('pv-conditions.json')).questions;
+  const bankOf = (id) => BANK.find((x) => x.id === id) || {};
+  const LANDING = ['landing_pay', ...LAND];
+  const V_CUR = JSON.parse(read('pv-vocab.json')).currencies.length;
+  /* 数字の行：単位は額と同じ行・額のすぐ右に在るか（行の中に収まっているか・額の欄がつぶれていないか） */
+  const numLook = (p) => p.page.evaluate(() => [...document.querySelectorAll('.pvc-root form [data-q]')]
+    .filter((f) => !f.closest('[hidden]') && f.querySelector('.pvc-numrow')).map((f) => {
+      const row = f.querySelector('.pvc-numrow'), i = row.querySelector('input[type="text"]'), u = row.querySelector('.pvc-unit');
+      const rr = row.getBoundingClientRect(), ir = i.getBoundingClientRect(), ur = u ? u.getBoundingClientRect() : null;
+      const mid = ur ? (ur.top + ur.bottom) / 2 : 0;
+      return { q: f.getAttribute('data-q'), cur: !!row.querySelector('select'), unit: u ? u.textContent : '', inW: Math.round(ir.width),
+        same: !!ur && mid > ir.top && mid < ir.bottom, gap: ur ? Math.round((ur.left - ir.right) * 10) / 10 : null,
+        inside: !!ur && ir.left >= rr.left - 0.5 && ur.right <= rr.right + 0.5 && ur.width > 0 };
+    }));
+  const numBad = (rows) => rows.filter((x) => x.unit && !(x.same && x.gap >= 0 && x.gap <= 12 && x.inside && x.inW >= 120));
+  /* 質問の枠（入力の格子の直下）：左の線と字下げ。線は擬似要素なので、計算済みの値から位置と大きさを取る */
+  const kidLook = (p) => p.page.evaluate(() => {
+    const grid = document.querySelector('.pvc-root form .pvc-grid'), gl = grid.getBoundingClientRect().left;
+    return {
+      sheet: getComputedStyle(document.querySelector('.pvc-root .pvc-sheet')).backgroundColor, gw: Math.round(grid.getBoundingClientRect().width),
+      rows: [...grid.children].filter((n) => !n.hidden).map((n) => {
+        const fold = n.matches('.pvc-fold'), r = n.getBoundingClientRect(), bf = getComputedStyle(n, '::before');
+        const on = bf.content !== 'none' && bf.content !== 'normal' && bf.display !== 'none';
+        const body = fold ? r : n.querySelector('.pvc-label').getBoundingClientRect();
+        /* 線の左端：擬似要素の left は枠の内側（縁の内がわ）から測った値 */
+        const x = on ? r.left + parseFloat(getComputedStyle(n).borderLeftWidth) + parseFloat(bf.left) - gl : null;
+        /* room ＝ 字下げのあとに残る、中身の幅（続きの続きで下げ幅を重ねると、狭い画面でここが足りなくなる） */
+        return { id: n.getAttribute('data-q') || n.getAttribute('data-q-fold'), fold, line: on, x: on ? Math.round(x * 10) / 10 : null,
+          w: on ? parseFloat(bf.width) : 0, tall: on ? parseFloat(bf.height) >= r.height - 1 : false, color: on ? bf.backgroundColor : '',
+          indent: Math.round((body.left - gl) * 10) / 10, room: Math.round(r.right - body.left) };
+      }),
+    };
+  });
+  /* その項目の中に上の質問が在る質問だけが「続き」（質問表から決める）。
+     続き ＝ 枠の左端に幅2pxの線が枠の高さいっぱいに在り、中身が1段（10〜16px）下がっている。下げ幅はどの続きも同じ。
+     上の質問 ＝ 線も字下げも無い。 */
+  const kidBad = (k) => {
+    const ids = k.rows.map((x) => x.id), step = k.rows.filter((x) => ids.includes(bankOf(x.id).parent)).map((x) => x.indent);
+    return k.rows.filter((x) => (ids.includes(bankOf(x.id).parent)
+      ? !(x.line && x.w === 2 && Math.abs(x.x) <= 0.5 && x.tall && x.indent >= 10 && x.indent <= 16 && x.indent === step[0] && x.room >= k.gw - 16)
+      : !(!x.line && x.indent === 0 && x.room === k.gw)));
+  };
+  /* 色の明るさの比（線が、面の地に対して見えるか）。'rgb(r, g, b)' / 'rgba(…)' を読む */
+  const ratio = (fg, bg) => {
+    const rgb = (s) => (String(s).match(/[\d.]+/g) || []).map(Number);
+    const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+    const b = rgb(bg), a = rgb(fg), al = a.length > 3 ? a[3] : 1, mix = [0, 1, 2].map((k) => a[k] * al + b[k] * (1 - al));
+    if (a.length < 3 || b.length < 3 || (b.length > 3 && b[3] < 1)) return 0;
+    const [hi, lo] = [lum(mix), lum(b)].sort((x, y) => y - x);
+    return Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100;
+  };
+  /* 通貨の欄：一覧の名前を1つずつ選び、その字の幅（同じ書体で測る）と、欄の内側の幅を比べる。
+     名前は欄から取る（ここに書かない）。選んだ印は元に戻す（change は流れない ＝ 入力の中身は動かない）。 */
+  const curLook = (p) => p.page.evaluate(() => {
+    const root = document.querySelector('.pvc-root'), probe = document.createElement('span'), out = [];
+    probe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;margin:0;padding:0;border:0';
+    root.appendChild(probe);
+    for (const s of root.querySelectorAll('form .pvc-numrow select')) {
+      if (s.closest('[hidden]')) continue;
+      const cs = getComputedStyle(s), keep = s.selectedIndex, o = { name: s.name, n: 0, cut: [], spare: null, widest: 0 };
+      for (const k of ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontStretch', 'fontKerning', 'fontFeatureSettings', 'fontVariant', 'letterSpacing', 'textTransform']) probe.style[k] = cs[k];
+      for (let i = 0; i < s.options.length; i++) {
+        s.selectedIndex = i;
+        probe.textContent = s.options[i].textContent;
+        const c = getComputedStyle(s), inner = s.clientWidth - parseFloat(c.paddingLeft) - parseFloat(c.paddingRight), w = probe.getBoundingClientRect().width;
+        o.n++; o.widest = Math.max(o.widest, Math.round(w * 10) / 10);
+        o.spare = o.spare === null ? inner - w : Math.min(o.spare, inner - w);
+        if (w > inner) o.cut.push(`${s.options[i].textContent} ${Math.round(w)}>${Math.round(inner)}`);
+      }
+      s.selectedIndex = keep;
+      o.spare = Math.round(o.spare * 10) / 10;
+      out.push(o);
+    }
+    probe.remove();
+    return out;
+  });
+  /* 質問の名前と説明：最後の行に何文字あるか（ブラウザが実際に描いた行で数える）と、入っている字 */
+  const endLook = (p) => p.page.evaluate(() => {
+    const read = (n) => {
+      const w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT), tops = [];
+      let t, text = '';
+      while ((t = w.nextNode())) {
+        let i = 0;
+        for (const ch of Array.from(t.nodeValue)) {
+          const r = document.createRange(); r.setStart(t, i); r.setEnd(t, i + ch.length); i += ch.length;
+          const b = r.getClientRects()[0];
+          if (b && ch.trim()) { tops.push(Math.round(b.top)); text += ch; }
+        }
+      }
+      const lines = [...new Set(tops)].sort((x, y) => x - y), n1 = tops.filter((x) => x === lines[lines.length - 1]).length;
+      const tails = [...n.querySelectorAll('.pvc-tail')];
+      return { text: n.textContent, lines: lines.length, last: n1, end: Array.from(text).slice(-n1).join('').slice(-6),
+        kids: [...n.childNodes].map((c) => (c.nodeType === 3 ? 't' : c.className)).join('+'), tail: tails.length === 1 ? tails[0].textContent : null,
+        style: getComputedStyle(n).textWrapStyle || getComputedStyle(n).textWrap || '' };
+    };
+    const out = [];
+    for (const f of document.querySelectorAll('.pvc-root form [data-q]')) {
+      if (f.closest('[hidden]')) continue;
+      const q = f.getAttribute('data-q'), lb = f.querySelector('.pvc-label > span:not(.pvc-mine)');
+      if (lb) out.push({ q, k: 'label', ...read(lb) });
+      f.querySelectorAll('.pvc-tip').forEach((n, i) => out.push({ q, k: 'help' + (i ? i + 1 : ''), ...read(n) }));
+    }
+    return out;
+  });
+  const endShort = (list) => list.filter((x) => x.lines > 1 && x.last < 3).map((x) => `${x.q} ${x.k}「…${x.end}」（最後の行 ${x.last}文字）`);
+  /* 入っている字が質問表と1文字も違わないか・最後の3文字だけが1つの塊になっているか */
+  const endWrong = (list) => list.filter((x) => {
+    const bank = x.k === 'label' ? bankOf(x.q).ja.label : (x.k === 'help' && bankOf(x.q).ja.help ? bankOf(x.q).ja.help : null);
+    if (bank === null) return false;                       // 「当てはまるものをすべて…」は面の決まった文（質問表の字ではない）
+    const ch = Array.from(bank);
+    return x.text !== bank || (ch.length > 3 ? (x.kids !== 't+pvc-tail' || x.tail !== ch.slice(-3).join('')) : x.kids !== 't');
+  }).map((x) => `${x.q} ${x.k}「${x.text.slice(-8)}」[${x.kids}｜${x.tail}]`);
+  const wide = (m) => m.over.length === 0 && m.mainX <= 0 && m.sheetX <= 0 && m.docX <= 0 && m.small.length === 0 && m.font.length === 0;
+  const landingSet = async (p, v) => { await pick(p, 'landing_pay', v); return shown(p); };
+  /* 開いている面のまま、ほかの項目へ（?add= で直接開いた面には「戻る」が無いので、面の入口を呼ぶ） */
+  const toTopic = async (p, topic) => { await api(p, topic); await waitView(p, topic); await settle(p); };
+
+  for (const sizeKey of ['small', 'w360', 'phone', 'w430', 'tablet', 'w1280']) {
+    const size = SIZES[sizeKey], tag = `幅${size.w}`, narrow = size.w < 768;
+    await scene(`質問の入力の見た目（${tag}）── 単位は額のすぐ右・続きの質問の線と字下げ・通貨の名前が切れない${narrow ? '・最後の行に1〜2文字だけ残らない' : ''}`, async () => {
+      const p = await open(sizeKey);
+      try {
+        await openForm(p, JAL, 'benefits');
+        await p.page.evaluate(() => document.fonts.ready);
+        const nums = [], kids = [], curs = [], sizes = [], ends = [], endsOff = [], seen = new Set();
+        let offStyle = '';
+        for (const v of ['fixed', 'variable']) {
+          const sh = await landingSet(p, v);
+          LANDING.filter((k) => sh[k]).forEach((k) => seen.add(k));
+          nums.push(...await numLook(p));
+          kids.push(await kidLook(p));
+          curs.push(...await curLook(p));
+          sizes.push(await measure(p));
+          const on = await endLook(p);
+          ends.push(...on);
+          if (narrow) {
+            /* 同じ測りを、text-wrap を切った状態でもう一度（text-wrap:pretty を知らないブラウザの見え方）。
+               切るのは2つのクラスだけ ＝ 最後の3文字の塊（その子）の nowrap には触れない。 */
+            const tagEl = await p.page.addStyleTag({ content: '.pvc-root .pvc-label,.pvc-root .pvc-tip{text-wrap:wrap !important}' });
+            const off = await endLook(p);
+            endsOff.push(...off);
+            offStyle = [...new Set(off.map((x) => x.style))].join('|');
+            await tagEl.evaluate((n) => n.remove());
+          }
+        }
+        if (LANDING.some((k) => !seen.has(k))) throw new Error('前提が崩れた（着陸手当の6問が出そろっていない）: ' + J([...seen]));
+
+        /* ── ほかの項目：訓練・キャリア（通貨つきの額と、通貨の無い年数）／ 通勤・タクシー（続きの続き・畳んだ質問） ── */
+        await toTopic(p, 'career');
+        await pick(p, 'training_bond', 'yes');
+        const career = await numLook(p);
+        nums.push(...career);
+        kids.push(await kidLook(p));
+        curs.push(...await curLook(p));
+        sizes.push(await measure(p));
+        await toTopic(p, 'taxi');
+        await pick(p, 'commuting_transport', 'always');
+        await chip(p, 'commuting_transport_method', 'company_taxi');
+        await chip(p, 'commuting_transport_method', 'crew_bus');
+        await p.page.click('.pvc-root .pvc-fold-b');
+        await p.page.waitForFunction(() => !document.querySelector('.pvc-root .pvc-fold-p').hidden);
+        const taxi = await kidLook(p);
+        kids.push(taxi);
+        sizes.push(await measure(p));
+
+        const land = nums.filter((x) => /^landing_pay/.test(x.q)), money = career.filter((x) => x.cur), bad = numBad(nums);
+        ok(land.length === 3 && land.every((x) => x.cur && x.unit === '（1回あたり）') && money.length === 1 && nums.some((x) => !x.cur && x.unit) && bad.length === 0,
+          `★${tag}：単位は、額と同じ行・額のすぐ右に在る（着陸手当の額3つ・訓練費用の額・通貨の無い数字の質問。「わからない」の前へ落ちない）`,
+          J(bad.length ? bad : nums.map((x) => [x.q, x.inW, x.gap])));
+        const kb = kids.flatMap((k) => kidBad(k)), all = kids.flatMap((k) => k.rows), ids = all.map((x) => x.id);
+        const deep = taxi.rows.filter((x) => bankOf(bankOf(x.id).parent).parent);
+        ok(LANDING.every((k) => ids.includes(k)) && TAXI.every((k) => taxi.rows.some((x) => x.id === k)) && deep.length === 6 && deep.some((x) => x.fold) && kb.length === 0,
+          `★${tag}：続きの質問には左に線が1本あり、1段下がっている。上の質問には線も字下げも無い（着陸手当の6問・訓練費用・通勤の続きの続きも同じ1段）`,
+          J(kb.length ? kb : { step: [...new Set(all.filter((x) => x.line).map((x) => x.indent))], lines: all.filter((x) => x.line).length, tops: all.filter((x) => !x.line).length }));
+        const cut = curs.filter((x) => x.cut.length);
+        ok(curs.length === 4 && curs.every((x) => x.n === V_CUR + 1 && x.widest > 150) && cut.length === 0,
+          `★${tag}：通貨の名前は、どれを選んでも途中で切れない（一覧の ${V_CUR} 通貨を1つずつ選び、字の幅と欄の内側の幅を比べる）`,
+          J(cut.length ? cut.map((x) => [x.name, x.cut.length, x.cut.slice(0, 3)]) : curs.map((x) => [x.name, x.widest, x.spare])));
+        ok(sizes.length === 4 && sizes.every(wide),
+          `${tag}：どの状態でも面が横に溢れず、押せる所は 44px 以上・入力欄の字は 16px 以上（着陸手当の2つの枝・訓練・キャリア・通勤の上限を開いた状態）`,
+          J(sizes.filter((m) => !wide(m)).map((m) => ({ over: m.over.slice(0, 4), mainX: m.mainX, small: m.small.slice(0, 4), font: m.font.slice(0, 4) }))));
+        const wrong = endWrong(ends);
+        ok(ends.length >= 20 && wrong.length === 0,
+          `${tag}：質問の名前と説明の字は、質問表と1文字も違わない（最後の3文字だけが、折り返しで離れない1つの塊）`, J(wrong.slice(0, 5)));
+        if (narrow) {
+          const s1 = endShort(ends), s2 = endShort(endsOff);
+          ok(ends.some((x) => x.lines > 1) && s1.length === 0 && ends.every((x) => !/pretty|balance/.test(x.style)),
+            `★${tag}：質問の名前と説明の最後の行に、1〜2文字だけが残っていない（休暇・手当の全部の質問。着陸手当の6問を含む）`, J(s1));
+          ok(endsOff.length === ends.length && !/pretty|balance/.test(offStyle) && s2.length === 0,
+            `★${tag}：text-wrap を切っても同じ（text-wrap:pretty を知らないブラウザでも、最後の行は3文字以上）`, J({ style: offStyle, short: s2 }));
+        }
+        if (sizeKey === 'phone') {
+          /* 線の色：面の地に対して 3:1 以上（細い線1本なので、薄い色だと見えない）。キーボードの順は 通貨 → 額 → わからない */
+          const line = taxi.rows.find((x) => x.line) || {}, r = ratio(line.color, taxi.sheet);
+          ok(r >= 3, '★続きの質問の線は、面の地に対して 3:1 以上の濃さ（明るい表示）', J({ line: line.color, sheet: taxi.sheet, ratio: r }));
+          await toTopic(p, 'benefits');
+          await landingSet(p, 'fixed');
+          await p.page.focus('.pvc-root select[name="landing_pay_amount_cur"]');
+          const order = [];
+          for (let i = 0; i < 2; i++) { await p.page.keyboard.press('Tab'); order.push(await p.page.evaluate(() => document.activeElement && document.activeElement.name)); }
+          ok(J(order) === J(['landing_pay_amount', 'landing_pay_amount_unk']), '額の行のキーボードの順は、通貨 → 額 → 「わからない」のまま', J(order));
+        }
+      } finally {
+        await p.st.ctx.close();
+      }
+    });
+  }
+
+  await scene('質問の入力の見た目（暗い表示・390×680）── 続きの質問の線が見える', async () => {
+    const p = await open('phone', { theme: 'dark' });
+    try {
+      await openForm(p, JAL, 'benefits');
+      await landingSet(p, 'variable');
+      const k = await kidLook(p), line = k.rows.find((x) => x.line) || {}, r = ratio(line.color, k.sheet);
+      const dark = await p.page.$eval('.pvc-root', (n) => n.classList.contains('is-dark'));
+      ok(dark && kidBad(k).length === 0 && r >= 3, '★続きの質問の線は、暗い表示でも面の地に対して 3:1 以上の濃さ', J({ dark, line: line.color, sheet: k.sheet, ratio: r, bad: kidBad(k) }));
+      const cut = (await curLook(p)).filter((x) => x.cut.length);
+      ok(cut.length === 0 && wide(await measure(p)), '暗い表示でも、通貨の名前は切れず、面は横に溢れない', J(cut));
+    } finally {
+      await p.st.ctx.close();
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 17. 待遇の一覧のページ（airline-conditions.html）── 本物のサーバが断った対を、その行に、その理由で言う
+  // ═════════════════════════════════════════════════════════════
+  /* 一覧のページを描くのは pv-conditions.js（この検査のほかの場面は、会社ページの上の面 ＝ pv-contrib.js）。
+     一覧のページは、送る前に「保存してある相手の額」と比べて止める ── そこは assert-conditions.mjs が偽物のサーバで見ている。
+     ここは、その確かめを通り抜けた送信を見る：画面が読んだあとで、相手の額がほかの所で変わっていた
+     （別のタブ・別の端末・会社ページの面）。画面は前の額のつもりで送り、**本物のサーバ**が断る。
+     そのとき画面は「保存できませんでした」ではなく、断られた理由の文を、その行に出す。保存先は動かない。
+     ⚠️ 相手の額は、この検査の手元の保存先を直に書き換えて変える。入れる額は検査のための作りもので、どの会社の額でもない。
+     ⚠️ この場面だけは偽物のサーバに置き換えない（置き換えると、サーバが本当にこの理由を返すことを誰も見なくなる）。 */
+  await scene('待遇の一覧のページ ── 画面が読んだあとで相手の額が変わっていた対を、本物のサーバが断る', async () => {
+    const SLUG = 'emirates', M = memberOf('c');
+    const token = (await (await fetch(`${base}/__local/login?member=c`)).json()).session.access_token;
+    const seed = async () => (await fetch(`${base}/rest/v1/rpc/submit_airline_conditions`, {
+      method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify({ p: { airline: SLUG, answers: [{ question_id: 'landing_pay', code: 'variable' },
+        { question_id: 'landing_pay_from', num: 100, currency: 'USD' }, { question_id: 'landing_pay_to', num: 200, currency: 'USD' }] } }),
+    })).json();
+    const LOW = '[data-qid="landing_pay_from"]', HIGH = '[data-qid="landing_pay_to"]';
+    for (const [lang, file, sentence, general] of [
+      ['ja', '/airline-conditions.html', ORDER, '保存できませんでした'],
+      ['en', '/en/airline-conditions.html', 'The lowest amount is larger than the highest amount.', 'Could not save']]) {
+      const s0 = await seed();
+      const p = await open('desk', { who: 'c' });
+      try {
+        const sent = tap(p, 'submit_airline_conditions'), replies = [];
+        p.page.on('response', (res) => {
+          if (res.url().endsWith('/rest/v1/rpc/submit_airline_conditions')) res.json().then((j) => replies.push(j), () => replies.push(null));
+        });
+        await p.page.goto(`${base}${file}?airline=${SLUG}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        await p.page.waitForFunction((sel) => !!document.querySelector(sel + ' .pvcf-num'), { timeout: 30000 }, LOW);
+        await p.page.evaluate((sel) => { document.querySelector(sel).closest('details').open = true; }, LOW);
+        const drawn = await p.page.evaluate((lo, hi) => ({
+          path: location.pathname, lang: document.documentElement.lang,
+          lo: document.querySelector(lo + ' .pvcf-num').value + ' ' + document.querySelector(lo + ' [data-cur]').value,
+          hi: document.querySelector(hi + ' .pvcf-num').value + ' ' + document.querySelector(hi + ' [data-cur]').value,
+        }), LOW, HIGH);
+        ok(s0 && s0.saved === 3 && !(s0.rejected || []).length && drawn.path === file && drawn.lang === lang && drawn.lo === '100 USD' && drawn.hi === '200 USD',
+          `${lang}：下ごしらえ ── 低いほう 100 USD／高いほう 200 USD を保存してある会員が、一覧のページを開いた`, J({ s0, drawn }));
+
+        /* 画面が描かれたあとで、保存先の高いほうを 50 に変える（画面は 200 のまま） */
+        await q(`update public.airline_conditions set answer_num = 50
+                  where airline = $2::text and question_id = 'landing_pay_to' and proof_hash = public.pv_condition_hash($1::uuid, $2::text, null)`, [M.id, SLUG]);
+        const moved = await pairOf(SLUG, M);
+        await p.page.focus(LOW + ' .pvcf-num');
+        await p.page.evaluate((sel) => document.querySelector(sel + ' .pvcf-num').select(), LOW);
+        await p.page.keyboard.type('150');
+        /* 押す前に、ボタンを画面のまんなかへ送る（上に貼り付いたヘッダーの下に入ったボタンを押すと、ヘッダーの部品を押してしまう） */
+        await p.page.$eval(LOW + ' [data-num]', (b) => b.scrollIntoView({ block: 'center' }));
+        await p.page.click(LOW + ' [data-num]');
+        await p.page.waitForFunction((sel) => document.querySelector(sel + ' .pvcf-state').textContent !== '', { timeout: 20000 }, LOW);
+        /* 返事の本文は、画面の文が出たあとで検査の側へ届く。届くまで、画面のコマを送りながら待つ（時間では待たない） */
+        for (let i = 0; i < 600 && !replies.length; i++) await p.page.evaluate(() => new Promise((go) => requestAnimationFrame(go)));
+        const shown = await p.page.evaluate((lo, hi) => {
+          const s = document.querySelector(lo + ' .pvcf-state');
+          return { said: s.textContent, bad: s.classList.contains('is-bad'), typed: document.querySelector(lo + ' .pvcf-num').value,
+            hi: document.querySelector(hi + ' .pvcf-num').value, hiSaid: document.querySelector(hi + ' .pvcf-state').textContent };
+        }, LOW, HIGH);
+        const a = (sent[0] && sent[0].answers) || [], r = replies[0] || {};
+        ok(J(moved) === J([{ q: 'landing_pay_from', num: 100, cur: 'USD', c: null }, { q: 'landing_pay_to', num: 50, cur: 'USD', c: null }])
+          && shown.hi === '200' && sent.length === 1 && a.length === 1 && a[0].question_id === 'landing_pay_from' && Number(a[0].num) === 150 && a[0].currency === 'USD',
+          `${lang}：保存先の高いほうを 50 に変えたあと、画面（高いほう 200 のまま）で低いほうを 150 にして押す → 画面の確かめは通り、1問ぶんを送る`,
+          J({ moved, hi: shown.hi, sent: a }));
+        const rej = Array.isArray(r.rejected) ? r.rejected : [];
+        ok(replies.length === 1 && r.saved === 0 && rej.length === 1 && rej[0].question_id === 'landing_pay_from' && rej[0].reason === 'range_order',
+          `★${lang}：本物のサーバが、その答えを range_order で断る（保存した数は 0）`, J(r));
+        ok(shown.said === sentence && shown.said !== general && shown.bad && shown.typed === '150' && shown.hiSaid === '',
+          `★${lang}：低いほうの行に「${sentence}」（「${general}」ではない）。打った 150 は残る。高いほうの行には何も書かない`, J(shown));
+        ok(J(await pairOf(SLUG, M)) === J(moved), `★${lang}：保存先は動いていない（低いほうは 100 のまま）`, J(await pairOf(SLUG, M)));
+      } finally {
+        await p.st.ctx.close();
+      }
     }
   });
 

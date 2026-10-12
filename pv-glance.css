@@ -701,9 +701,16 @@
   display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;border:0;background:none;cursor:pointer;
   font:600 12.5px/1.4 'Noto Sans JP',Inter,sans-serif;color:var(--pv-accent-ink);text-decoration:none;
 }
-.pvg .pvg-link:hover{color:var(--pv-accent-dark);text-decoration:underline;text-underline-offset:3px}
+.pvg .pvg-link:hover{color:var(--pv-accent-ink);text-decoration:underline;text-underline-offset:3px}
 .pvg .pvg-link:active{opacity:.7}
 .pvg .pvg-link:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:6px}
+/* 「◯◯のこと、ひとつ教えて。」の見出しの行 ── 見出しと「項目の一覧から足す」が横に入らない箱では、入口が下の行へ下りる（右寄せのまま）。
+   見出しが折れるのは「…のこと、」と「ひとつ教えて。」のあいだだけ（2つの span が、それぞれ1かたまり）。
+   16em ＝ 見出しがこれより狭くなる前に入口を下ろす幅（5社でいちばん長い前半「キャセイパシフィックのこと、」が1行に入る）。
+   ⚠️ これを小さくすると、入口が横に残ったまま見出しが社名の途中で折れる（12em で、幅 414・430 の画面の3社がそうなった）。 */
+.pvg-askc > .pvg-hd{flex-wrap:wrap;row-gap:0}
+.pvg-askc > .pvg-hd .pvg-eyebrow{flex:1 1 16em}
+.pvg-askc > .pvg-hd .pvg-eyebrow > span{display:inline-block;max-width:100%}
 .pvg-topics{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:12px}
 /* 集まった回答は、話題の上の1つの欄にまとめる（話題ごとに置くと、回答のある列だけ質問が下がる）。
    ⚠️ この欄を display:none で隠さない。career-live.js は「見えている箱」だけを取りに行くので、消すと永遠に読み込まれない。 */
@@ -719,9 +726,6 @@
 .pvg-askc .pvg-ask a{padding:6px 8px 6px 12px;border-color:transparent;background:none;font-weight:500;color:var(--pv-ink-2)}
 .pvg-askc .pvg-ask a:hover{border-color:var(--pv-accent-line);background:var(--pv-accent-soft);color:var(--pv-ink)}
 .pvg-askc .pvg-askmore{padding-left:13px}
-/* ⚠️ 「ほか◯問」に触れた時の字の色は、ここで言い直す。言い直さないと上の .pvg-link:hover の色になり、
-   あの色は暗い画面で作り直していない ＝ 暗い地の上で読みにくい緑に替わる（明るい画面では同じ緑なので、暗い画面でしか分からない）。 */
-.pvg-askc .pvg-askmore:hover{color:var(--pv-accent-ink)}
 /* 「ほか◯問」は、質問を最初の4つに絞っている広い箱でだけ出す */
 .pvg .pvg-askmore{display:none}
 /* 話題の札 ── 淡い緑の面＋枠＋絵＋濃い緑の名前。色だけで見分けさせない（絵と枠と字の大きさが在る）。

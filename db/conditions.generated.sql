@@ -30,7 +30,9 @@ create table if not exists public.pv_condition_sections (
 --   topic_only  話題の入口から来た人にだけ出す。提出直後の1問枠にも一覧にも出さず、
 --               「あなたが答えた項目：N／48」の分母にも分子にも数えない
 --               （出さない・数えないは db/airline-conditions.sql。保存と公開集計は他の質問と同じ）
---   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）
+--   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）。
+--               range_low は、対になる額（低いほう・高いほう）の低いほうの id。高いほうの質問だけが持つ
+--               （読むのは db/airline-conditions.sql の pv_condition_range_other）
 create table if not exists public.pv_condition_questions (
   id text primary key,
   version smallint not null default 1,
@@ -135,7 +137,7 @@ insert into public.pv_condition_questions
   ('landing_pay_amount', 1, 'benefits', 'num', 'C', false, 51, 0, false, 'landing_pay', array['fixed'], null, false, null, 1, 10000000, true, false, '{"step":0.01}', '着陸手当はいくらですか？', 'How much is the landing allowance?'),
   ('landing_pay_unit', 1, 'benefits', 'choice', 'C', false, 52, 0, false, 'landing_pay', array['fixed'], null, false, array['per_landing', 'per_leg', 'unknown'], null, null, false, false, '{}', '着陸手当は何を1回と数えますか？', 'Landing allowance: paid per landing or per sector?'),
   ('landing_pay_from', 1, 'benefits', 'num', 'C', false, 53, 0, false, 'landing_pay', array['variable'], null, false, null, 1, 10000000, true, false, '{"step":0.01}', '着陸手当の低いほうの額', 'Landing allowance: lowest amount'),
-  ('landing_pay_to', 1, 'benefits', 'num', 'C', false, 54, 0, false, 'landing_pay', array['variable'], null, false, null, 1, 10000000, true, false, '{"step":0.01}', '着陸手当の高いほうの額', 'Landing allowance: highest amount'),
+  ('landing_pay_to', 1, 'benefits', 'num', 'C', false, 54, 0, false, 'landing_pay', array['variable'], null, false, null, 1, 10000000, true, false, '{"step":0.01,"range_low":"landing_pay_from"}', '着陸手当の高いほうの額', 'Landing allowance: highest amount'),
   ('landing_pay_varies_by', 1, 'benefits', 'choice', 'C', false, 55, 0, false, 'landing_pay', array['variable'], null, false, array['aircraft', 'airport', 'rank', 'count', 'mixed', 'unknown'], null, null, false, true, '{}', '着陸手当の額は何で変わりますか？', 'What does the landing allowance vary by?'),
   ('ground_duty_pay', 1, 'benefits', 'choice', 'C', false, 56, 0, false, null, null, null, false, array['yes', 'case_by_case', 'no', 'unknown'], null, null, false, true, '{}', '乗務以外の会社業務に、手当や勤務時間上の補償がありますか？', 'Is non-flying company work compensated, in pay or in duty credit?'),
   ('staff_travel', 1, 'benefits', 'choice', 'A', true, 57, 0, false, null, null, 'staff_travel', false, array['yes', 'some_pilots', 'no', 'unknown'], null, null, false, false, '{}', '自社便に割引や無料で乗れる社員向けの航空券制度がありますか？', 'Is there a staff travel scheme — free or reduced-fare tickets on your own airline?'),

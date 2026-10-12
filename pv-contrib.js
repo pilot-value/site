@@ -76,6 +76,18 @@
     return n;
   }
   function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  /* 文を入れる。最後の3文字だけは、折り返しで離れない1つの塊にする
+     （「…入れてくださ／い。」のように、1〜2文字だけが次の行へ残らない。text-wrap を知らないブラウザでも同じ）。
+     字は足さない・並びも変えない ＝ n.textContent は渡した文と1文字も違わない。読み上げにも何も足さない。
+     塊の手前で折ってよいかは、ブラウザの禁則がそのまま決める（塊は nowrap。inline-block にしない）。
+     数えるのは文字（サロゲートの対を割らない）。3文字以下の文はそのまま入れる。 */
+  function endKept(n, text) {
+    var ch = Array.from(str(text));
+    if (ch.length <= 3) { n.textContent = ch.join(''); return n; }
+    n.appendChild(d.createTextNode(ch.slice(0, -3).join('')));
+    n.appendChild(el('span', 'pvc-tail', ch.slice(-3).join('')));
+    return n;
+  }
   function str(v) { return v == null ? '' : String(v); }
   function trim(v) { return str(v).replace(/^\s+|\s+$/g, ''); }
   function enc(v) { return encodeURIComponent(v); }
@@ -140,6 +152,12 @@
       return s && s.user && s.user.id ? String(s.user.id) : '';
     } catch (e) { return ''; }
   }
+  /* ログインは保存されているのに、会員の id が読めない（ログインの控えが割れている・壊れている・id が入っていない）。
+     この面には、いま誰が読んでいるのかが分からない ＝ 別の会員に替わっても気づけない。
+     このあいだは、保存したものを誰のものとしても扱わない：読まない・数えない・入力に入れない・
+     保存後のカードを出さない・預かりを引き継がない（面は「これまでの投稿を読み込めませんでした」の形になる）。
+     打った内容は残り、そのまま送れる。ログインしていない人と、id が読める会員は、ここに入らない。 */
+  function noWho() { return hasToken() && uid() === ''; }
 
   /* ── サーバ ─────────────────────────────────────────────── */
   function client() {
@@ -224,9 +242,13 @@
             本人の一覧を読めていないあいだ（k が ok でないあいだ）だけ、rowFor / savedMap がここから出す。
             無いと、保存はできたのに「自分の回答を見る」が空の入力を開き、そこから送るといま保存した行を空で置き換える。
             ★件数には使わない（「あなたの投稿 N件」は、サーバから読めた一覧だけで数える）。
-            ★持ち主の印（who）を付けて持つ。読む人が替わったら使わずに捨てる（下の keptNow / keep）。 */
-  var M = { seq: 0, p: null, held: false, work: { k: 'idle', rows: [] }, cond: { k: 'idle', answers: [] }, kept: { who: null, held: false, rows: {}, ans: {} } };
-  var W = { ym: '', bufs: {}, own: false, notice: null, err: null, last: null, busy: false, els: {} };
+            ★持ち主の印（who）を付けて持つ。読む人が替わったら使わずに捨てる（下の keptNow / keep）。
+     who  ＝ 一覧（work・cond）を読んだ人の印。控えの印と同じ式（keptWho）で作る。読む人が替わったら、
+            前の人が保存したもの・前の人について読んだものを全部手放す（下の「読む人が替わったら」）。
+     soft ＝ 読む人が替わったと気づいて、その場で面を作り直した直後。今の人の分を読み直しているあいだも入力は止めない。 */
+  var M = { seq: 0, p: null, held: false, work: { k: 'idle', rows: [] }, cond: { k: 'idle', answers: [] }, kept: { who: null, held: false, rows: {}, ans: {} }, who: null, soft: false };
+  /* by ＝ いま送っている分を、誰が送ったか（setBusy が書く。返事が来た時に、読む人が替わっていないかを見る） */
+  var W = { ym: '', bufs: {}, own: false, notice: null, err: null, last: null, busy: false, by: '', els: {} };
 
   /* 質問のまとまり。k は ?add= と data-pvc-open にそのまま出る名前
      （英小文字と _ だけ。- を入れない ── 保存後の面を「<k>-saved」と呼んでいる）。 */
@@ -247,7 +269,7 @@
   /* まとまりごとの入力の状態。vals＝選んだ答え／curs＝通貨／notes＝補足（どれも「触った質問だけ」） */
   var G = {};
   function newG() {
-    return { vals: {}, dirty: {}, curs: {}, notes: {}, noteDirty: {}, noteOpen: {}, fold: false, own: false, notice: null, last: null, busy: false, els: {} };
+    return { vals: {}, dirty: {}, curs: {}, notes: {}, noteDirty: {}, noteOpen: {}, fold: false, own: false, notice: null, last: null, busy: false, by: '', els: {} };
   }
   function gs(topic) { return G[topic] || (G[topic] = newG()); }
   function groupDirty(t) { return Object.keys(t.dirty).length > 0 || Object.keys(t.noteDirty).length > 0 || Object.keys(t.curs).length > 0; }
@@ -311,8 +333,10 @@
   var C = { p: null, note: null };
   function claim() {
     var k = devKey();
-    if (!k || !hasToken()) return Promise.resolve(null);
+    /* 会員の id が読めないあいだは始めない（鍵は残す ＝ id が読めるログインでページを開いた時に引き継ぐ） */
+    if (!k || !hasToken() || noWho()) return Promise.resolve(null);
     if (C.p) return C.p;
+    var who = keptWho(false);                // 引き継ぎを始めた人（会員の id）。知らせに付けて持つ
     var p = rpc('claim_contrib', { key: k }, 12000).then(function (r) {
       C.p = null;
       if (r.kind !== 'ok' || !r.data.ok) return null;
@@ -323,7 +347,7 @@
       if (dropped) list.push(dropped + '件は、いまの形式では受け取れず、引き継げませんでした。');
       if (left) list.push(left + '件は、まだ引き継げていません。次にこのページを開いたときに続きを引き継ぎます。');
       if (list.length) {
-        C.note = { kind: 'claim', tone: 'calm', title: moved ? 'ログイン前の回答を引き継ぎました' : 'ログイン前の回答を確認しました', list: list };
+        C.note = { kind: 'claim', tone: 'calm', title: moved ? 'ログイン前の回答を引き継ぎました' : 'ログイン前の回答を確認しました', list: list, who: who };
       }
       if (moved) {
         try { d.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'claim', slug: slug() } })); } catch (e) { /* 古いブラウザ */ }
@@ -337,6 +361,10 @@
     if (!S.open || !S.main) return;
     var old = S.main.querySelector('[data-pvc-msg="claim"]');
     if (old && old.parentNode) old.parentNode.removeChild(old);
+    /* 知らせは、引き継ぎを始めた人のもの。いま読む人が別の人なら、出さずに捨てる
+       （返事が届く前に読む人がもう一度替わった／面を閉じたまま引き継いだあとで、別の人が面を開いた）。
+       確かめるのは、描くこの1か所だけ ── 返事が届いた所で確かめても、面を閉じたまま引き継いだ回は見えない。 */
+    if (C.note && C.note.who !== keptWho(false)) C.note = null;
     if (!C.note || /-saved$/.test(S.view)) return;
     S.main.insertBefore(note(C.note), S.main.firstChild);
   }
@@ -367,6 +395,14 @@
   function dropOutbox(topic) {
     var o = outbox();
     if (o && (!topic || o.topic === topic)) ldel(OUTBOX);
+  }
+  /* 端末に残した1件が、この項目の、いま出ている入力そのものか（質問の項目）。
+     比べるのは、答え・通貨・補足（下書きの vals / dirty / curs / notes / noteDirty）。開いた補足・畳み・確認のチェックは
+     入力の中身ではないので見ない。鍵の順も見ない（同じ内容を、別の順に触っただけで「違う」と言わない）。 */
+  function unsentIs(topic) {
+    var o = outbox(), now = draftOf(topic);
+    function flat(v) { v = obj(v); return JSON.stringify(Object.keys(v).sort().map(function (k) { return [k, v[k]]; })); }
+    return !!o && o.topic === topic && ['vals', 'dirty', 'curs', 'notes', 'noteDirty'].every(function (k) { return flat(o.draft[k]) === flat(now[k]); });
   }
   /* 読み直し・ログインのあとに、入れていた内容を1回だけ戻す */
   function restore(topic) {
@@ -434,8 +470,12 @@
     return (Array.isArray(v) ? v : []).filter(function (x) { return x && x.question_id && (!x.airline || x.airline === s); });
   }
   function noMine(k) { M.held = false; M.work = { k: k, rows: [] }; M.cond = { k: k, answers: [] }; }
+  /* 会員の id が読めない時の形：読みかけの返事は捨てる・一覧は2つとも「読めなかった」・印はいまの人のもの
+     （id が読めるようになった時・ログアウトした時に、替わったと分かる）。 */
+  function noWhoMine() { M.seq++; M.p = null; noMine('fail'); M.who = keptWho(false); }
   function readMember(seq, s) {
     var login = false;
+    M.who = keptWho(false);                  // 読み始めた時の読む人（会員は id だけで決まる。控えの鍵は見ない）
     function bad(r) { if (r.kind === 'login') login = true; return r.kind === 'login' ? 'anon' : (r.kind === 'off' ? 'off' : 'fail'); }
     var a = rpc('my_work_months', { airline: s }, 9000).then(function (r) {
       if (seq !== M.seq) return;
@@ -452,6 +492,7 @@
   }
   function readHeld(seq, s) {
     var key = devKey();
+    M.who = keptWho(true);                   // 読み始めた時の読む人（預かりは、控えの鍵まで含めて決まる）
     if (!key) { if (seq === M.seq) noMine('anon'); return Promise.resolve(); }
     return rpc('my_contrib_anon', { key: key, airline: s }, 9000).then(function (r) {
       if (seq !== M.seq) return;
@@ -467,14 +508,22 @@
     });
   }
   function loadMine(force) {
+    /* 読み始める前に確かめる。読む人が替わっていたら、前の人の分を先に手放す
+       （手放さずに読むと、新しい印の下に、前の人の入力の写し・チェック・保存後のカードが残る）。 */
+    if (!readerSame()) readerReset();
+    M.soft = false;
+    /* 会員の id が読めないあいだは、サーバへ1本も投げない（誰の分を読むのかが分からない）。引き継ぎも始めない。 */
+    if (noWho()) { noWhoMine(); return Promise.resolve(); }
     var key = devKey(), logged = hasToken();
     if (!logged && !key) {
       M.seq++; M.p = null;
       noMine('anon');
+      M.who = keptWho(false);                // 読むものが無い人にも印は付ける（このあとログインしたら、替わったと分かる）
       return Promise.resolve();
     }
     if (M.p && !force) return M.p;
     var seq = ++M.seq, s = slug(), was = { work: M.work, cond: M.cond, held: M.held };
+    var who = keptWho(false);                // 誰の分を読み始めたか（会員は id。控えの鍵は見ない）。一覧が届いた所で、今の人と比べる
     if (M.work.k !== 'ok') M.work = { k: 'loading', rows: [] };
     if (M.cond.k !== 'ok') M.cond = { k: 'loading', answers: [] };
     var mine = (logged && key ? claim() : Promise.resolve(null)).then(function () {
@@ -486,26 +535,62 @@
     });
     var p = Promise.all([mine, conds().then(null, function () { return null; })]).then(function () {
       if (seq !== M.seq) return;
+      /* 読んでいるあいだに読む人が替わった ＝ 届いたのは前の人の一覧。出さずに手放して、今の人の分を読み直す。 */
+      if (readerTurn()) return redraw();
+      /* 読みに行く前の待ち（預けた回答の引き継ぎ／会員の入口に断られたあとの預かり）のあいだに、同じタブのまま読む人が替わった。
+         印は、待ちのあとで読み始める時に今の人のものへ付け直されるので、上の確かめには掛からない。
+         読み始めた時に控えた人（who）と比べる：違えば、前の人の分（入れてあった確認のチェック・打っていない欄の値）を手放して、
+         今の人の分を読み直し、その場で描き直す。
+         会員の id が読めなくなった時も、ここで止まる（読み直しは loadMine の頭で止まり、読めなかった時の形になる ＝ 届いた一覧は出さない）。 */
+      if (who !== keptWho(false)) { readerReset(); loadMine(true); return redraw(); }
+      /* その場で作り直した入力（M.soft）は、空の一覧から描いてある。
+         届いた一覧も空（今の人はまだ何も出していない・読めなかった）なら、もう一度は描き直さない ── 知らせの字だけ直す。
+         中身が在れば描き直すが、居た欄と位置は変えない。 */
+      var soft = M.soft && S.open && (S.view === 'work' || isGroup(S.view)), st = soft ? (S.view === 'work' ? W : gs(S.view)) : null, back = null;
+      M.soft = false;
+      if (soft && !M.work.rows.length && !M.cond.answers.length) {
+        paintClaim();
+        if (st.els.sync) st.els.sync();
+        return;
+      }
+      if (soft) back = place();
       var changed = !(was.work.k === 'ok' && was.cond.k === 'ok' && was.held === M.held && same(was.work, M.work) && same(was.cond, M.cond));
-      onMine(changed);
+      onMine(changed, soft);
+      if (back) back();
     });
     M.p = p;
     return p;
   }
-  function onMine(changed) {
+  /* soft ＝ この一覧は、読む人が替わってその場で作り直した入力へ届いた（loadMine が、居た欄と位置を戻す） */
+  function onMine(changed, soft) {
     if (!S.open) return;
     if (S.view === 'list') { paintCounts(); paintClaim(); return; }
     paintClaim();
     if (!changed) return;
     /* 打っている最中の面は作り直さない（作り直すと、入力している欄から焦点が外れる）。
-       読み込みを待って止めてあった面だけは、必ず作り直して入力できるようにする。 */
+       読み込みを待って止めてあった面だけは、必ず作り直して入力できるようにする。
+       例外は、読む人が替わったあとで打ち始めた入力に、今の人が前に保存したものが届いた時だけ。
+       その時は1回だけ、その場で描き直す（居た欄と位置は戻す。打った欄・打った答えには書かない）
+       ── 描き直さないと、今の人の保存した値が見えないまま送ることになる。 */
     if (S.view === 'work') {
-      if (!W.els.loading && W.bufs[W.ym] && W.bufs[W.ym].dirty) { if (W.els.sync) W.els.sync(); return; }
+      var wb = W.bufs[W.ym], back;
+      if (!W.els.loading && wb && wb.dirty) {
+        /* 月の勤務：出している月の写しが、今の人のその月を知らないまま（bare）で、その月の行が届いた */
+        if (wb.bare && rowFor(W.ym)) { back = place(); renderWork(); back(); return; }
+        if (W.els.sync) W.els.sync();
+        return;
+      }
       Object.keys(W.bufs).forEach(function (k) { if (!W.bufs[k].dirty) delete W.bufs[k]; });
       renderWork();
     } else if (isGroup(S.view)) {
-      var t = gs(S.view);
-      if (!t.els.loading && groupDirty(t)) return;
+      var t = gs(S.view), sm;
+      if (!t.els.loading && groupDirty(t)) {
+        /* 質問の項目：読む人が替わったあとの入力で、今の人がこの項目の質問に保存した答えを持っている時だけ
+           （答えが無ければ同じ入力のまま。読む人が替わっていない時の読み直しでも、今までどおり作り直さない） */
+        if (!soft) return;
+        sm = savedMap();
+        if (!groupQs(S.view).some(function (q) { return hasValue(sm[q.id]); })) return;
+      }
       renderGroup(S.view);
     }
   }
@@ -516,8 +601,9 @@
   function keptWho(held) { return (hasToken() ? 'm:' + uid() : 'a:') + '|' + (held ? devKey() : ''); }
   /* 捨てるときは、控えから起こしてまだ手を付けていない月の入力の写し（W.bufs）も一緒に捨てる。
      打ちかけの入力は、いま画面の前に居る人のものなので残す。 */
+  function bufsDrop() { Object.keys(W.bufs).forEach(function (k) { if (!W.bufs[k].dirty) delete W.bufs[k]; }); }
   function keptDrop() {
-    if (M.kept.who !== null) Object.keys(W.bufs).forEach(function (k) { if (!W.bufs[k].dirty) delete W.bufs[k]; });
+    if (M.kept.who !== null) bufsDrop();
     M.kept = { who: null, held: false, rows: {}, ans: {} };
     return M.kept;
   }
@@ -525,10 +611,96 @@
   function keptNow() { return M.kept.who === keptWho(M.kept.held) ? M.kept : keptDrop(); }
   /* 書く側。持ち主が同じなら足し、違えば前の控えを捨ててから置く。 */
   function keep(held) {
+    /* 会員の id が読めないあいだは控えない（誰の控えかが分からない）。呼んだ側には、捨てる入れ物を渡す。 */
+    if (noWho()) return { rows: {}, ans: {} };
     var c = keptNow(), who = keptWho(held);
     if (c.who !== who || c.held !== !!held) { c = keptDrop(); c.who = who; c.held = !!held; }
     return c;
   }
+
+  /* ── 読む人が替わったら ─────────────────────────────────── */
+  /* 面を開いたまま、読む人が替わることがある ── ほかのタブでログアウトした／ログインが切れた／同じブラウザで別の会員が入った。
+     このページは読み直されないので、何もしなければ、前の人が保存した答えが、次の人の画面に出て・数えられて・送られる。
+     一覧（M.work・M.cond）にも、控えと同じ持ち主の印を付ける（M.who。式は keptWho の1つだけ）。
+       付ける時 … 読み始めた時（readMember / readHeld）。
+       同じ人   … 会員は、会員の id が同じなら同じ（控えの鍵は見ない）。
+                  ログインしていない人は、預かりを読んだ・預けたあとは、控えの鍵が同じなら同じ。
+                  はじめて預けて鍵がいま付いた人は、同じ人（鍵の無かった時の印は、鍵を見ない）。
+                  鍵が外から替わった（ほかのタブでログインして引き継いだ 等）は、替わった。
+       まだ何も読んでいない（印が無い）あいだは、手放すものが無いので「同じ」。 */
+  function readerSame() { return M.who === null || M.who === keptWho(false) || M.who === keptWho(true); }
+  /* 手放すもの ＝ 前の人が保存した・前の人について読んだもの全部。
+     残すもの   ＝ 打って、まだ送っていない入力（打ちかけの入力は、いま画面の前に居る人のものなので残す）。
+       M … 一覧2つ・控え・印を空にする。読みかけの返事は seq で捨てる。
+       W … 保存した月から起こして手を付けていない入力の写しは捨てる（bufsDrop）。手を付けた写しは、打った欄（by）だけ残す
+           ── 打っていない欄に入っているのは、前の人が保存した値か、そこから引き継いだ職位・機種・拠点。
+           確認のチェック・知らせ・欄の断り・保存後のカードの記録は消す。選んでいる月（ym）は残す。
+       G … 触った質問の答え・通貨・補足（vals / dirty / curs / notes / noteDirty）と、開いた補足・畳み（noteOpen / fold）は残す。
+           確認のチェック・知らせ・保存後のカードの記録は消す。
+       C … 引き継ぎの知らせは消す。
+       S … 面の開閉・履歴・どの面か・下書きを戻したかどうかは、読む人と関係が無いので触らない。
+     送っている最中の印（busy・by）は触らない（返事が来た時に下ろす）。 */
+  function readerReset() {
+    M.seq++; M.p = null; M.who = null;
+    noMine('idle');
+    keptDrop();
+    bufsDrop();
+    Object.keys(W.bufs).forEach(function (k) {
+      var b = W.bufs[k], by = b.by || {};
+      Object.keys(b).forEach(function (f) { if (f !== 'dirty' && f !== 'by' && !by[f]) b[f] = ''; });
+      b.bare = true;                         // 今の人の保存した月を知らないままの写し（分かった時に、打っていない欄へ入れる：mend）
+    });
+    W.own = false; W.notice = null; W.err = null; W.last = null;
+    Object.keys(G).forEach(function (k) { G[k].own = false; G[k].notice = null; G[k].last = null; });
+    C.note = null;
+  }
+  /* 読む人が替わっていたら、前の人の分を手放して（loadMine の頭）、今の人の分を読み直す。替わっていなければ何もしない。 */
+  function readerTurn() {
+    if (readerSame()) return false;
+    loadMine(true);
+    return true;
+  }
+  /* 保存の返事が来た時に呼ぶ。送ったあとで読む人が替わっていたら、印を「送った人」に戻す
+     ＝ すぐあとの show が気づいて、前の人が保存した内容をカードに出さずに、一覧へ戻す
+     （ほかのタブでの切り替えに先に気づいて、今の人の一覧をもう読み始めていた回に要る）。
+     同じ人のままなら、印には触らない（はじめて預けて控えの鍵がいま付いた人も、同じ人）。 */
+  function savedBy(st) { if (st.by !== keptWho(false)) M.who = st.by; }
+  /* いま居る欄と、面の中の位置を覚える。描き直したあとに呼ぶと、同じ欄・同じ位置へ戻す。 */
+  function place() {
+    var a = d.activeElement, y = S.main.scrollTop, nm = '', val = '';
+    if (a && S.main.contains(a)) { nm = str(a.getAttribute('name')); val = a.type === 'checkbox' ? str(a.value) : ''; }
+    function find(attr, want) {
+      var hit = null;
+      Array.prototype.forEach.call(S.main.querySelectorAll('[' + attr + ']'), function (x) {
+        if (!hit && x.getAttribute(attr) === want && (attr !== 'name' || !val || x.value === val)) hit = x;
+      });
+      return hit;
+    }
+    return function () {
+      S.main.scrollTop = y;
+      var n = nm ? find('name', nm) : null, more;
+      if (!n || d.activeElement === n) return;
+      /* 補足の欄は、前の人の補足が入っていたから開いていた。空になって畳まれた欄へ入ろうとしていた人には、開けて渡す。 */
+      more = n.closest('[hidden]') && /_note$/.test(nm) ? find('data-q-more', nm.slice(0, -5)) : null;
+      if (more) { more.click(); S.main.scrollTop = y; return; }
+      try { n.focus({ preventScroll: true }); } catch (e) { /* 古いブラウザ */ }
+    };
+  }
+  /* 開いている面を、その場で描き直す（面の中の位置と、いま居る欄はそのまま）。読む人が替わったと気づいた時に使う。
+     今の人がもう欄に入っているので、読み直しを待つあいだも入力は止めない（M.soft）。
+     保存後のカードは show へ ── 記録が消えていれば、一覧になる。 */
+  function redraw() {
+    if (!S.open || !S.view) return;
+    if (/-saved$/.test(S.view)) { show(S.view); return; }
+    var back = place();
+    M.soft = true;
+    if (S.view === 'list') renderList();
+    else if (S.view === 'work') renderWork();
+    else renderGroup(S.view);
+    paintClaim();
+    back();
+  }
+  function onReader() { if (S.open && readerTurn()) redraw(); }
   /* 一覧を読めていないあいだは、このページでいま保存できた分だけを控え（M.kept）から出す。
      読めた一覧が在るときは、必ずそちらが正（控えは見ない）。 */
   function rowFor(ym) {
@@ -575,6 +747,14 @@
     try { history.replaceState({ pvc: 1, t: topic }, '', location.href); } catch (e) { /* 履歴に触れなくても面は動く */ }
   }
   function show(view) {
+    /* 読む人が替わっていたら、前の人の分を手放してから描く。 */
+    readerTurn();
+    /* 会員の id が読めないあいだは、保存後のカードを出さない（「あなたの投稿」と言えない）。
+       記録を捨てて、同じ項目の入力へ戻し、「保存しました」とだけ知らせる。 */
+    var lost = /-saved$/.test(view) && noWho() ? (view === 'work-saved' ? W : gs(view.slice(0, -6))) : null;
+    if (lost && lost.last) { lost.last = null; lost.notice = { kind: 'saved', tone: 'calm', title: savedTitle(null) }; view = view.slice(0, -6); }
+    /* 保存後のカードは、その記録が在るあいだだけ（読む人が替わると記録ごと消える ＝ 一覧へ）。 */
+    if (/-saved$/.test(view) && !(view === 'work-saved' ? W.last : gs(view.slice(0, -6)).last)) view = 'list';
     if (view !== 'list' && S.view === 'list') S.viaList = true;
     S.view = view;
     S.main.scrollTop = 0;
@@ -617,9 +797,10 @@
   }
   /* ログインから戻った回と、送れなかった回答を開き直した回は、知らせと送るボタンが長いフォームのいちばん下
      ＝画面の外になる（スマホでは必ず）。描き終わったら、その知らせを見えている高さのまんなかへ送る。
-     動かすのは面の中だけ（ページは動かさない）。ほかの知らせは、出した側が自分で見える所へ送っている。 */
+     動かすのは面の中だけ（ページは動かさない）。ほかの知らせは、出した側が自分で見える所へ送っている。
+     会員の id が読めないあいだの「保存しました」（saved）も同じ ── 保存後のカードの代わりに、入力を頭から描き直して出す。 */
   function revealNotice(box, o) {
-    var n = o && (o.kind === 'back' || o.kind === 'fail') && box ? box.firstChild : null;
+    var n = o && (o.kind === 'back' || o.kind === 'fail' || o.kind === 'saved') && box ? box.firstChild : null;
     if (!n || !S.main || !n.getBoundingClientRect) return;
     var m = S.main.getBoundingClientRect(), r = n.getBoundingClientRect();
     if (!m.height || !r.height) return;
@@ -654,7 +835,12 @@
     own.appendChild(cb);
     own.appendChild(el('span', 'pvc-own-f', '本人が直接経験した内容です'));
     var send = el('button', 'pvc-send', label, { type: 'submit' });
-    cb.addEventListener('change', function () { st.own = cb.checked; onSend(); });
+    cb.addEventListener('change', function () {
+      /* 読む人が替わっていたら、前の人のチェックは消える。いま入れたチェックは今の人のもの ＝ 手放したあとで置く。 */
+      var on = cb.checked, turned = readerTurn();
+      st.own = on;
+      if (turned) redraw(); else onSend();
+    });
     act.appendChild(own); act.appendChild(send);
     return { act: act, cb: cb, send: send };
   }
@@ -863,6 +1049,14 @@
     if (/^\d{1,6}(\.\d{1,4})?$/.test(t)) return Number(t);
     return t;
   }
+  /* 保存した月の行を、入力の写しの欄へ写す（行 → 欄の対応は、この1か所だけ）。
+     typed に名前の在る欄には書かない（打った欄を残す。新しい写しを作る時は渡さない ＝ 全部の欄に書く）。 */
+  function rowInto(b, row, typed) {
+    function put(f, v) { if (!typed || !typed[f]) b[f] = v; }
+    put('position', str(row.position)); put('fleet', str(row.fleet)); put('base_iata', str(row.base_iata));
+    NUMS.forEach(function (n) { put(n.k, row[n.k] == null ? '' : String(row[n.k])); });
+    put('duty_hours_basis', str(row.duty_hours_basis)); put('commute_included', str(row.commute_included)); put('note', str(row.note));
+  }
   function workBuf(ym) {
     var b = W.bufs[ym];
     if (b) return b;
@@ -870,18 +1064,28 @@
     var cur = W.bufs[W.ym] && W.ym !== ym ? W.bufs[W.ym] : null;
     b = { dirty: false };
     if (row) {
-      b.position = str(row.position); b.fleet = str(row.fleet); b.base_iata = str(row.base_iata);
-      NUMS.forEach(function (n) { b[n.k] = row[n.k] == null ? '' : String(row[n.k]); });
-      b.duty_hours_basis = str(row.duty_hours_basis); b.commute_included = str(row.commute_included); b.note = str(row.note);
+      rowInto(b, row, null);
     } else {
       b.position = cur ? cur.position : (last ? str(last.position) : '');
       b.fleet = cur ? cur.fleet : (last ? str(last.fleet) : '');
       b.base_iata = cur ? str(cur.base_iata) : (last ? str(last.base_iata) : '');
       NUMS.forEach(function (n) { b[n.k] = ''; });
       b.duty_hours_basis = ''; b.commute_included = ''; b.note = '';
+      /* 読む人が替わって、今の人の分を読み直しているあいだ（M.soft）に作った写しは、今の人の保存した月をまだ知らない */
+      if (M.soft) b.bare = true;
     }
     W.bufs[ym] = b;
     return b;
+  }
+  /* 今の人の保存した月を知らないまま出来た写し（bare）に、その月の行が分かった時点で、打っていない欄へ保存した値を入れる。
+     打った欄（by）には書かない。入れないままだと、打った欄だけの写しが「あなたの投稿／匿名で更新する」の下に出て、
+     送ると、保存してあったその月の職位・機種・時間・メモが空で置き換わる（月は1か月が1行。保存は全部の欄を入れ替える）。
+     行がまだ分からなければ、何もしない（印は残る）。入るのは、いま読む人の行だけ（rowFor）。 */
+  function mend(ym) {
+    var row = W.bufs[ym] && W.bufs[ym].bare ? rowFor(ym) : null, b = W.bufs[ym];
+    if (!row || !b) return;
+    rowInto(b, row, b.by || {});
+    delete b.bare;
   }
   function workPayload() {
     var b = workBuf(W.ym), p = W.ym.split('-');
@@ -906,7 +1110,8 @@
     if (!W.ym) W.ym = lastYm();
     var logged = hasToken();
     /* 読み込み中かどうかは、ログインでは決めない（ログインしていない人も、控えの鍵で自分の分を読む） */
-    var loading = M.work.k === 'loading' || M.work.k === 'idle';
+    var loading = (M.work.k === 'loading' || M.work.k === 'idle') && !M.soft;
+    mend(W.ym);                              // 今の人の保存した月が分かっていれば、打っていない欄に入れてから描く
     /* 先に rowFor（読む人が替わっていたら、ここで控えと手を付けていない写しが捨てられる）→ それから入力の写し */
     var row = rowFor(W.ym), b = workBuf(W.ym), E = W.els = {};
     clear(S.main);
@@ -943,7 +1148,8 @@
     var set = el('fieldset', 'pvc-set');
     set.disabled = loading;
     var g = el('div', 'pvc-grid');
-    function touch() { b.dirty = true; }
+    /* k ＝ 打った欄。読む人が替わった時に、打った欄だけを残すために控える（readerReset） */
+    function touch(k) { b.dirty = true; (b.by = b.by || {})[k] = 1; }
     function line() {
       var parts = [coName()], pl = posLabel(b.position);
       if (pl) parts.push(pl);
@@ -963,7 +1169,7 @@
     var fd = el('div', 'pvc-field');
     fd.appendChild(el('label', 'pvc-label', 'その月に乗務した機種は？', { 'for': 'pvc-f-fleet' }));
     var fl = select('fleet', fo, b.fleet);
-    fl.sel.addEventListener('change', function () { b.fleet = fl.sel.value; touch(); });
+    fl.sel.addEventListener('change', function () { b.fleet = fl.sel.value; touch('fleet'); });
     fd.appendChild(fl.wrap); g.appendChild(fd);
 
     var po = [['', '選択してください']];
@@ -971,7 +1177,7 @@
     var pd = el('div', 'pvc-field');
     pd.appendChild(el('label', 'pvc-label', 'その月の職位は？', { 'for': 'pvc-f-position' }));
     var ps = select('position', po, b.position);
-    ps.sel.addEventListener('change', function () { b.position = ps.sel.value; touch(); line(); clearErr('position'); });
+    ps.sel.addEventListener('change', function () { b.position = ps.sel.value; touch('position'); line(); clearErr('position'); });
     pd.appendChild(ps.wrap); E.ctl.position = ps.sel; E.err.position = errBox(pd, 'position'); g.appendChild(pd);
 
     NUMS.forEach(function (n) {
@@ -982,20 +1188,20 @@
         placeholder: row && row[n.k] == null ? NONE : n.ph, maxlength: '12'
       });
       i.value = str(b[n.k]);
-      i.addEventListener('input', function () { b[n.k] = i.value; touch(); clearErr(n.k); });
+      i.addEventListener('input', function () { b[n.k] = i.value; touch(n.k); clearErr(n.k); });
       d1.appendChild(i); E.ctl[n.k] = i; E.err[n.k] = errBox(d1, n.k); g.appendChild(d1);
     });
 
     var bd = el('div', 'pvc-field pvc-wide');
     bd.appendChild(el('label', 'pvc-label', '勤務・拘束時間をどう数えましたか？（任意）', { 'for': 'pvc-f-duty_hours_basis' }));
     var bs = select('duty_hours_basis', BASIS, b.duty_hours_basis);
-    bs.sel.addEventListener('change', function () { b.duty_hours_basis = bs.sel.value; touch(); });
+    bs.sel.addEventListener('change', function () { b.duty_hours_basis = bs.sel.value; touch('duty_hours_basis'); });
     bd.appendChild(bs.wrap); g.appendChild(bd);
 
     var cd = el('div', 'pvc-field pvc-wide');
     cd.appendChild(el('label', 'pvc-label', '通勤時間は含めていますか？（任意）', { 'for': 'pvc-f-commute_included' }));
     var cs = select('commute_included', COMMUTE, b.commute_included);
-    cs.sel.addEventListener('change', function () { b.commute_included = cs.sel.value; touch(); });
+    cs.sel.addEventListener('change', function () { b.commute_included = cs.sel.value; touch('commute_included'); });
     cd.appendChild(cs.wrap); g.appendChild(cd);
 
     var nd = el('div', 'pvc-field pvc-wide');
@@ -1007,7 +1213,7 @@
       placeholder: '具体的な条件以外に、伝えたいことがあれば'
     });
     ta.value = str(b.note);
-    ta.addEventListener('input', function () { b.note = ta.value; touch(); clearErr('note'); });
+    ta.addEventListener('input', function () { b.note = ta.value; touch('note'); clearErr('note'); });
     nd.appendChild(ta); E.ctl.note = ta; E.err.note = errBox(nd, 'note'); g.appendChild(nd);
 
     set.appendChild(g);
@@ -1022,6 +1228,8 @@
     S.main.appendChild(f);
 
     function sync() {
+      /* 読む人が替わっていたら（一覧が読めている・いないに関わらず）、前の人の分を手放して、その場で作り直す */
+      if (readerTurn()) return redraw();
       var mine = rowFor(W.ym);
       /* rowFor は、読む人が替わったと気づくと、控えと、控えから起こして手を付けていない入力の写しを捨てる（keptDrop）。
          捨てられたのがいま出している月の写しなら、入力ごと作り直す ── 前の人が保存した値を画面に残さない。
@@ -1083,9 +1291,12 @@
     if (msg.indexOf('ひとこと') === 0) return 'note';
     return '';
   }
-  function setBusy(st, on) { st.busy = on; if (st.els && st.els.sync) st.els.sync(); }
+  function setBusy(st, on) { st.busy = on; if (on) st.by = keptWho(false); if (st.els && st.els.sync) st.els.sync(); }
   function sendWork() {
     if (W.busy || S.view !== 'work') return;
+    /* 読む人が替わっていたら、前の人の分を手放して入力を作り直し、この1回の押下では何も送らない（下の turned）。 */
+    var turned = readerTurn();
+    if (turned) redraw();
     /* 送る前にも確かめる。読む人が替わっていたら、ここで入力が作り直される
        ＝ 前の人が保存した値を、手を付けないまま今の人の投稿として送らない。 */
     if (W.els.sync) W.els.sync();
@@ -1094,6 +1305,8 @@
     if (!NUMS.some(function (n) { return pl[n.k] !== null; })) {
       return workSay({ kind: 'said', title: '保存できませんでした', text: '勤務の項目を1つ以上入れてください（分かるものだけで大丈夫です）。' }, NUMS[0].k);
     }
+    /* 残った入力（打ちかけの分）だけで送れる形でも、ここでは送らない ── 今の人は、まだ確認のチェックを入れていない。 */
+    if (turned) return;
     W.notice = null; W.err = null; paintWorkNotice();
     setBusy(W, true);
     send('work', pl).then(function (r) {
@@ -1107,6 +1320,7 @@
     });
   }
   function workSaved(pl, data, held) {
+    savedBy(W);
     var ym = W.ym, row = {
       year: pl.year, month: pl.month, position: pl.position, fleet: pl.fleet, base_iata: pl.base_iata,
       duty_hours_basis: pl.duty_hours_basis, commute_included: pl.commute_included, note: pl.note
@@ -1114,7 +1328,7 @@
     NUMS.forEach(function (n) { row[n.k] = pl[n.k]; });
     /* サーバが「保存した」と返した1行を、手元の一覧にも入れる（このあと取り直して確かめる）。
        はじめて預けた人は、まだ一覧を1度も読めていない（読む鍵がいま届いた）ので、ここで作る。 */
-    if (M.work.k === 'ok' || held) {
+    if ((M.work.k === 'ok' || held) && !noWho()) {
       var rows = (M.work.k === 'ok' ? M.work.rows : []).filter(function (r) { return !(+r.year === row.year && +r.month === row.month); });
       rows.push(row);
       rows.sort(function (a, b2) { return (b2.year - a.year) || (b2.month - a.month); });
@@ -1123,8 +1337,11 @@
     }
     /* 一覧を読めなかった人・このあとの取り直しに失敗した人にも、いま保存した月を見せられるように控える */
     keep(held).rows[ym] = row;
-    /* 増えたのか・置き換えたのかは、サーバの答え（replaced）だけで決める。返ってこなければ「分からない」のまま。 */
-    W.last = { ym: ym, row: row, added: data.replaced === false ? true : data.replaced === true ? false : null, held: !!held };
+    /* 増えたのか・置き換えたのかは、サーバの答え（replaced）だけで決める。返ってこなければ「分からない」のまま。
+       送れなかった回の送り直し（端末に残した1件が、この月のもの）も「分からない」── 前の送信がサーバに届いていたかを、
+       こちらは知らない（届いていれば、はじめての月でも「置き換えた」と返ってくる）。残した1件は、下の行で消す。 */
+    var ob = outbox(), again = !!(ob && ob.topic === 'work' && ob.draft.ym === ym);
+    W.last = { ym: ym, row: row, added: again ? null : (data.replaced === false ? true : data.replaced === true ? false : null), held: !!held };
     delete W.bufs[ym];
     W.own = false; W.notice = null; W.err = null;
     dropDraft('work'); dropOutbox('work');
@@ -1137,7 +1354,10 @@
     var r = el('div', 'pvc-sum-r' + (long ? ' is-long' : ''), null, { 'data-k': key });
     r.appendChild(el('dt', 'pvc-sum-k', k));
     var none = v == null || v === '';
-    r.appendChild(el('dd', 'pvc-sum-v' + (none ? ' is-none' : ''), none ? NONE : v));
+    /* 値は、本人が保存したとおりに出す。pv-no-cur ＝ 通貨の切替（currency.js）が走査から外す印。
+       付けないと、ほかの通貨を選んでいる人には、補足に書いた「¥1,500」が「$9」に書き換わって出る
+       （すぐ上の額の行は「JPY 1,500」のまま ＝ 自分の答えが、打った字と違う通貨で返ってくる）。 */
+    r.appendChild(el('dd', 'pvc-sum-v pv-no-cur' + (none ? ' is-none' : ''), none ? NONE : v));
     dl.appendChild(r);
   }
   /* 見出しは、本当に起きたことだけを言う。
@@ -1233,6 +1453,9 @@
     bad_number: '数字を入れ直してください。',
     out_of_range: '入れられる範囲の外です。数字を確かめてください。',
     bad_currency: '通貨を選び直してください。',
+    /* 低いほう・高いほうの対（台帳の rangeLow）。送る前の確かめ（sendGroup）も、サーバが断った時も、この2つの文で言う */
+    range_order: '低いほうの額が、高いほうの額より大きくなっています。',
+    range_currency: '低いほうと高いほうは、同じ通貨で入れてください。',
     skip_needs_login: 'この操作はログインしてからできます。',
     too_long: '補足が長すぎます。短くして送り直してください。',
     text_too_long: '補足が長すぎます。短くして送り直してください。'
@@ -1399,7 +1622,7 @@
     restore(topic);
     var t = gs(topic), logged = hasToken();
     /* 読み込み中かどうかは、ログインでは決めない（ログインしていない人も、控えの鍵で自分の分を読む） */
-    var loading = M.cond.k === 'loading' || M.cond.k === 'idle';
+    var loading = (M.cond.k === 'loading' || M.cond.k === 'idle') && !M.soft;
     var sm = savedMap(), qs = groupQs(topic), E = t.els = { f: {}, ctl: {}, loading: loading };
     var max = (V.conds.limits && V.conds.limits.textMax) || 300;
     var unk = unkCode();
@@ -1407,6 +1630,9 @@
 
     var f = el('form', 'pvc-form', null, { novalidate: '', autocomplete: 'off', 'data-pvc-form': topic });
     f.addEventListener('submit', function (e) { e.preventDefault(); sendGroup(topic); });
+    /* 欄に入った時にも確かめる（下の sync）。読む人が替わっていたら、打ち始める前に入力を作り直す（月の勤務と同じ）。
+       確認のチェックと送るボタンは除く ── どちらも、押したあとに自分で確かめる（チェックは ownRow・送るボタンは sendGroup）。 */
+    f.addEventListener('focusin', function (e) { if (e.target !== E.cb && e.target !== E.send) sync(); });
 
     var ctx = el('div', 'pvc-ctx');
     var n = new Date(), parts = [coName()];
@@ -1426,10 +1652,10 @@
     function tips(q, fd, folded) {
       if (topic === 'taxi') {
         if (q.kind === 'multi') fd.appendChild(el('p', 'pvc-tip', '当てはまるものをすべて選んでください。'));
-        else if ((!q.parent || folded) && q.ja.help) fd.appendChild(el('p', 'pvc-tip', q.ja.help));
+        else if ((!q.parent || folded) && q.ja.help) fd.appendChild(endKept(el('p', 'pvc-tip'), q.ja.help));
         return;
       }
-      if (q.ja.help) fd.appendChild(el('p', 'pvc-tip', q.ja.help));
+      if (q.ja.help) fd.appendChild(endKept(el('p', 'pvc-tip'), q.ja.help));
       if (q.kind === 'multi' && str(q.ja.help).indexOf('すべて') < 0) fd.appendChild(el('p', 'pvc-tip', '当てはまるものをすべて選んでください。'));
     }
     function fieldFor(q, folded) {
@@ -1437,7 +1663,7 @@
       var lid = 'pvc-l-' + q.id;
       var lb = el(q.kind === 'multi' ? 'div' : 'label', 'pvc-label', null, { id: lid });
       if (q.kind !== 'multi') lb.setAttribute('for', 'pvc-f-' + q.id);
-      lb.appendChild(el('span', '', q.ja.label));
+      lb.appendChild(endKept(el('span', ''), q.ja.label));
       if (hasValue(a)) lb.appendChild(el('span', 'pvc-mine', 'あなたの投稿'));
       fd.appendChild(lb);
       tips(q, fd, folded);
@@ -1492,9 +1718,13 @@
         inp.value = isUnk ? '' : v;
         inp.disabled = isUnk;
         inp.addEventListener('input', function () { change(q, inp.value); });
-        row.appendChild(inp);
-        var u = unitText(q);
-        if (u) row.appendChild(el('span', 'pvc-unit', u));
+        /* 通貨の欄が在る行では、額と単位を1つの組に入れる ＝ 行が折れても、単位だけが額から離れて
+           「わからない」の前へ落ちない（折れるのは 通貨｜額＋単位｜わからない のあいだだけ）。
+           通貨の無い行は今までの並びのまま（額のすぐ右に、単位が必ず入る幅が在る）。 */
+        var u = unitText(q), amt = row;
+        if (q.currency && u) { amt = el('span', 'pvc-amt'); row.appendChild(amt); }
+        amt.appendChild(inp);
+        if (u) amt.appendChild(el('span', 'pvc-unit', u));
         var ul = el('label', 'pvc-chip');
         var ub = el('input', '', null, { type: 'checkbox', name: q.id + '_unk', value: unk });
         ub.checked = isUnk;
@@ -1553,14 +1783,18 @@
     }
 
     qs.forEach(function (q) {
+      /* 上の質問の答えで出てくる「続きの質問」には印を付ける（pv-contrib.css の .pvc-kid ＝ 左に線・1段下げる）。
+         続きの続きも同じ1段（下げ幅を重ねない）。上の質問がこの項目に無い質問は、いちばん上として出るので付けない。 */
+      var kid = !!q.parent && qs.some(function (o) { return o.id === q.parent; });
       if (!(topic === 'taxi' && q.note)) {
         var fd = fieldFor(q, false);
+        if (kid) fd.className += ' pvc-kid';
         moreFor(q, fd);
         g.appendChild(fd);
         return;
       }
       /* 通勤・タクシーの「上限」だけは、見本どおり畳んで出す（補足の欄はその中） */
-      var fold = el('div', 'pvc-fold pvc-wide', null, { 'data-q-fold': q.id });
+      var fold = el('div', 'pvc-fold pvc-wide' + (kid ? ' pvc-kid' : ''), null, { 'data-q-fold': q.id });
       var a = sm[q.id];
       var bt = el('button', 'pvc-fold-b', null, { type: 'button', 'aria-expanded': t.fold ? 'true' : 'false', 'aria-controls': 'pvc-fold-p' });
       bt.appendChild(el('span', '', '回数・金額の上限を追加'));
@@ -1597,13 +1831,15 @@
     E.msg = el('div'); f.appendChild(E.msg);
     if (t.notice) E.msg.appendChild(note(t.notice));
     var o = ownRow(t, '匿名で追加する', sync);
-    E.send = o.send;
+    E.send = o.send; E.cb = o.cb;
     f.appendChild(o.act);
     E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
     f.appendChild(E.wait);
     S.main.appendChild(f);
 
     function sync() {
+      /* 読む人が替わっていたら、前の人の分を手放して、その場で作り直す（触った質問の答えと補足は残る） */
+      if (readerTurn()) return redraw();
       qs.forEach(function (q) {
         var on = visible(t, q, sm);
         if (E.fold && E.foldQ === q) E.fold.hidden = !on;
@@ -1654,11 +1890,43 @@
       if (E.msg.scrollIntoView) { try { E.msg.scrollIntoView({ block: 'center' }); } catch (e) { E.msg.scrollIntoView(); } }
     }
   }
+  /* 欄を、面の見えている高さのまんなかへ送る。動かすのは面の中だけ（うしろのページは動かさない・なめらかには送らない）。 */
+  function midOf(n) {
+    if (!n || !S.main || !n.getBoundingClientRect) return;
+    var m = S.main.getBoundingClientRect(), r = n.getBoundingClientRect();
+    if (!m.height || !r.height) return;
+    S.main.scrollTop += (r.top + r.height / 2) - (m.top + m.height / 2);
+  }
+  /* 断りの知らせは、名指しした欄に値が入ったら消す（直したあとも残っていると、もう一度断られたように読める）。
+     ・聞くのは面の中身（S.main）の1か所で、欄は name で見分ける ── 入力はその場で描き直されることがあり
+       （読む人が替わった時 等）、欄そのものに付けた聞き手は、描き直しで欄ごと消える。
+     ・消すのは、付けた時の断りだけ（そのあとに出た別の知らせは消さない）。1度使ったら外す。
+     ・新しい断りが出たら、前の聞き手は外す（重ねない）。 */
+  var haltOff = null;
+  function haltWatch(topic, names, o) {
+    if (haltOff) haltOff();
+    function off() {
+      S.main.removeEventListener('change', on); S.main.removeEventListener('input', on);
+      if (haltOff === off) haltOff = null;
+    }
+    function on(e) {
+      var n = e.target;
+      if (!n || !n.getAttribute || names.indexOf(n.getAttribute('name')) < 0) return;
+      if (n.type === 'checkbox' ? !n.checked : trim(n.value) === '') return;
+      off();
+      if (gs(topic).notice === o) groupSay(topic, null);
+    }
+    S.main.addEventListener('change', on); S.main.addEventListener('input', on);
+    haltOff = off;
+  }
   function sendGroup(topic) {
     var t = gs(topic);
     if (t.busy || S.view !== topic) return;
+    /* 読む人が替わっていたら、前の人の分を手放して入力を作り直し、この1回の押下では何も送らない */
+    if (readerTurn()) return redraw();
     var sm = savedMap(), qs = groupQs(topic), known = M.cond.k === 'ok', unk = unkCode();
     var answers = [], had = 0, stop = '', stopQ = '';
+    var stopToo = '';                        // 断りが対の2つの欄についてのとき、もう一方の欄（どちらを直しても、断りを消す）
     qs.forEach(function (q) {
       if (stop || !visible(t, q, sm)) return;
       var v = cur(t, q, sm), a = sm[q.id], one = null, tx = trim(curNote(t, q, sm)), cc = '', nm = '「' + q.ja.label + '」';
@@ -1690,13 +1958,43 @@
       }
       if (!known || !sameAnswer(q, v, cc, a, tx)) answers.push(one);
     });
+    /* ★低いほう・高いほうの対（台帳の rangeLow）は、2つの端が「この送信のあと」に持つ額で比べる。
+       ・端の額と通貨は、上のループと同じ読み方（cur → qNum・curCur）。触っていない端からは、保存してある額が出てくる
+         ── その端は送り直さないが、送ったあとに並ぶ相手はそれ。これから送る answers からは読まない
+         （変えていない端は入っていない ＝ 片方だけ直した人の食い違いを見落とす）。
+       ・額の無い端（「わからない」・空・いまは出ていない）が在れば、比べない。「わからない」を 0 と読まない。
+       ・通貨が先・大小が後（サーバの pv_condition_range_bad と同じ順）。同じ額は通す。数として比べる（字で比べない）。
+       ・一覧を読めなかった人が前に保存した端は、ここには無い ＝ そのときに断るのはサーバ（同じ文が rejected で届く）。 */
+    function endOf(q) {
+      if (!q || q.kind !== 'num' || !visible(t, q, sm)) return null;
+      var v = cur(t, q, sm), n = v === unk ? null : qNum(v);
+      return n === null ? null : { num: n, cur: q.currency ? curCur(t, q, sm) : '' };
+    }
+    if (!stop) qs.forEach(function (hi) {
+      var lo = !stop && hi.rangeLow ? qById(hi.rangeLow) : null, a = endOf(lo), b = a ? endOf(hi) : null;
+      if (!a || !b) return;
+      if (a.cur && b.cur && a.cur !== b.cur) { stop = WHY.range_currency; stopQ = hi.id + '_cur'; stopToo = lo.id + '_cur'; }
+      else if (a.num > b.num) { stop = WHY.range_order; stopQ = hi.id; stopToo = lo.id; }
+    });
     if (stop) {
-      groupSay(topic, { kind: 'said', title: '保存できませんでした', text: stop });
+      var said = { kind: 'said', title: '保存できませんでした', text: stop };
+      groupSay(topic, said);
       var c = t.els.ctl && t.els.ctl[stopQ];
+      /* 畳んである質問（通勤・タクシーの「上限」）の欄を名指しした時は、先に畳みを開ける（閉じたままでは、その欄へ移れない） */
+      if (c && t.els.fold && t.els.foldQ && t.els.foldQ.id === stopQ && !t.fold) {
+        t.fold = true; t.els.foldBtn.setAttribute('aria-expanded', 'true'); t.els.foldPanel.hidden = false;
+      }
       if (c && !c.disabled) { try { c.focus({ preventScroll: true }); } catch (e) { /* 古いブラウザ */ } }
+      /* 名指しした欄を見える所へ送り、その欄に値が入ったら断りを消す（どの断りでも同じ） */
+      if (c) { midOf(c); haltWatch(topic, stopToo ? [stopQ, stopToo] : [stopQ], said); }
       return;
     }
     if (!had) return groupSay(topic, { kind: 'said', title: '保存できませんでした', text: '1つ以上答えてください（分かるものだけで大丈夫です）。' });
+    /* 端末に残した「送れなかった1件」が、いま送ろうとした入力そのものなら、その1件はもう保存されている
+       （返事だけが届かなかった回）＝ 控えを消す。消さないと、一覧が「送れていない回答があります」と言い続ける。
+       ⚠️ 入力が同じ時だけ。ほかのタブで開いていた入力や、戻したあとで直した入力から「同じです」になった回に、
+          まだ送れていない別の1件を捨てない。 */
+    if (!answers.length && unsentIs(topic)) dropOutbox(topic);
     if (!answers.length) return groupSay(topic, { kind: 'same', tone: 'calm', title: '保存済みの内容と同じです', text: '変えたい項目を選び直してから送ってください。' });
 
     var pl = { airline: slug(), lang: 'ja', answers: answers };
@@ -1717,6 +2015,7 @@
   }
   function groupSaved(topic, sent, data, held) {
     var t = gs(topic), rej = Array.isArray(data.rejected) ? data.rejected : [], bad = {}, kept = 0;
+    savedBy(t);
     rej.forEach(function (x) { if (x && x.question_id) bad[x.question_id] = str(x.reason); });
     /* サーバが受けた答えを、手元の一覧にも入れる（このあと取り直して確かめる）。
        はじめて預けた人は、まだ一覧を1度も読めていない（読む鍵がいま届いた）ので、ここで作る。 */
@@ -1741,10 +2040,12 @@
       delete t.dirty[a.question_id]; delete t.vals[a.question_id]; delete t.curs[a.question_id];
       delete t.noteDirty[a.question_id]; delete t.notes[a.question_id];
     });
-    if (kept && (M.cond.k === 'ok' || held)) {
+    if (kept && (M.cond.k === 'ok' || held) && !noWho()) {
       M.cond = { k: 'ok', answers: list };
       if (held) M.held = true;
     }
+    /* 送れなかった回の送り直しか（端末に残した1件が、この項目のもの）。すぐ下で消すので、その前に見ておく。 */
+    var ob = outbox(), again = !!(ob && ob.topic === topic);
     dropDraft(topic); dropOutbox(topic);
     if (kept) {
       track('contrib_saved', topic);
@@ -1764,9 +2065,13 @@
       loadMine(true);
       return;
     }
-    /* 一覧を読めていないログインなしの回は、サーバがいま鍵を作って返したとき（＝はじめての保存）だけ「増えた」。 */
+    /* 一覧を読めていないログインなしの回は、サーバがいま鍵を作って返したとき（＝はじめての保存）だけ「増えた」。
+       送れなかった回の送り直し（again）は「分からない」── 前の送信がサーバに届いていたかを、こちらは知らない
+       （会員でも・ログインなしでも・月の勤務でも、同じ見出し「保存しました」になる）。
+       q ＝ この回に送った最初の質問（「自分の回答を見る」が、その質問の所まで送る）。 */
     t.own = false; t.notice = null;
-    t.last = { n: kept, held: !!held, added: wasOk ? fresh > 0 : (held && okKey(data.key) ? true : null) };
+    t.last = { n: kept, q: sent.length ? str(sent[0].question_id) : '', held: !!held,
+      added: again ? null : (wasOk ? fresh > 0 : (held && okKey(data.key) ? true : null)) };
     show(topic + '-saved'); cue();
     loadMine(true);
   }
@@ -1782,7 +2087,14 @@
         sumRow(dl, q.id, q.ja.label, answerText(q, a), true);
         if (trim(a.text)) sumRow(dl, q.id + '_note', topic === 'taxi' && q.note ? '上限についての補足' : '補足', trim(a.text), true);
       });
-    }, function () { show(topic); }, t.last.held);
+    }, function () {
+      /* 「自分の回答を見る」は、いま保存した質問の所まで送る（長い項目では、保存した答えが最初の1画面の下に在り、
+         頭から出すと未回答の質問だけが見えて、保存した答えが消えたように見える）。
+         送るのは focusQuestion ── 会社ページの「この質問から答える」と同じ道（指した質問は、1回送ったら忘れる）。 */
+      var q = t.last ? t.last.q : '';
+      if (q) { S.focusQ = q; S.focusT = topic; }
+      show(topic);
+    }, t.last.held);
   }
 
   /* ── ログインへ ─────────────────────────────────────────── */
@@ -1935,6 +2247,16 @@
     w.addEventListener('popstate', onPop, false);
     w.addEventListener('keydown', onKey, true);
     d.addEventListener('focusin', onFocusIn, true);
+    /* ほかのタブでログイン・ログアウトした／控えの鍵が替わった（storage）、タブへ戻った時にログインが切れていた（visibilitychange）：
+       面が開いていれば、その場で作り直す。pv-session.js が同じ合図を先に受けて、切れたログインを片づけている。
+       ⚠️ visibilitychange は、ページを離れる時（隠れる側）にも流れる。そこで読み直すと、去っていくページが
+          預かりの引き継ぎを始めてしまい、次に開いたページは「引き継ぎました」を言えなくなる ＝ 見える側に戻った時だけ受ける。 */
+    w.addEventListener('storage', onReader, false);
+    d.addEventListener('visibilitychange', function () { if (d.visibilityState === 'visible') onReader(); }, false);
+    /* 同じタブのまま、誰も触らないうちにログインが切れた時：pv-session.js は自分の時計で片づけるが、合図は出さない。
+       こちらも同じ長さの時計で聞く（pv-session.js の `var TICK_MS  = 60 * 1000;` と同じ）。
+       面が閉じている時・読む人が同じ時は、何もしない ＝ 通信は1本も出ない。 */
+    setInterval(onReader, 60 * 1000);
     function go() { var a = takeAdd(); COMING = false; if (a) openSheet(a); }
     var st = null;
     try { st = history.state; } catch (e) { st = null; }

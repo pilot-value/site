@@ -11,6 +11,10 @@
 //   3) 待遇アンケートは「スキップした」だけの行も本物の行として保存される
 //      （db/airline-conditions.sql の ac_answer_any_ck）。それで通知すると
 //      質問を飛ばすたびに中身の無いメールが飛ぶ。
+//   4) 待遇アンケートの通知に出る「この人の累計」は、会員の一覧ページの
+//      「あなたが答えた項目：n／N」の写し。数え方が2つに割れると、同じ人について
+//      運営のメールと本人の画面が違う数を言う（直す前は、同じ人にメールが 3 / 52問・
+//      ページが 1／48 と言っていた）。ページの関数を本体ごと切り出して、同じ行で突き合わせる。
 //
 // 本体（TypeScript）をそのまま import する。Node 24 は .ts を直接読めるので
 // 型注釈を剥がす必要はない。Deno.env / Deno.serve と fetch だけ差し替える。
@@ -155,30 +159,246 @@ ROWS = {
 };
 console.log('\n── 待遇アンケート ───────────────────────');
 
-// 累計の数え上げと質問マスタで同じテーブルを何度も引くので、引き方で返し分ける
-globalThis.fetch = async (url) => {
-  const u = String(url);
-  const t = u.match(/\/rest\/v1\/([a-z_]+)/)?.[1];
-  if (t === 'airline_conditions') {
-    // id=eq.<id> は1行、proof_hash=eq.<h> は「これまでに答えた行」
-    return { ok: true, json: async () => (u.includes('proof_hash=eq.')
-      ? [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }, { id: 'e' }, { id: 'f' }, { id: 'g' }]
-      : [ROWS.airline_conditions]) };
-  }
-  if (t === 'pv_condition_questions') {
-    return { ok: true, json: async () => (u.includes('active=eq.true')
-      ? Array.from({ length: 48 }, (_, i) => ({ id: `q${i}` }))
-      : QUESTIONS.filter((q) => u.includes(encodeURIComponent(q.id)) || u.includes(q.id))) };
-  }
-  throw new Error(`テストが用意していないテーブルを引いた: ${t}`);
+/* 「この人の累計」は、会員の一覧ページの「あなたが答えた項目：n／N」と同じ数でなければならない。
+   ★以前のこの検査は、active=eq.true を含む宛先なら何を引かれても作り物の48行を返し、
+     「7 / 48問」という字を探していた。本体は全部の有効な質問（52）で割り、親を答え直して
+     外れた続きの質問も数えていたのに、通っていた（会員のページは 1／48・メールは 3 / 52問）。
+   いまは、
+     ・質問は本物の台帳（pv-conditions.json）から作る
+     ・偽の Supabase は**引かれたとおりに**答える（絞り込みは宛先から読む・select の列だけ返す・
+       読めない絞り込みは落とす ＝ 間違った引き方が黙って通らない）
+     ・期待する数は、下の表と台帳からこの検査の中で数え直す（本体の関数は借りない） */
+const BANK = JSON.parse(read('./pv-conditions.json')).questions;
+const BANK_BY = Object.fromEntries(BANK.map((q) => [q.id, q]));
+const LISTED = BANK.filter((q) => !q.topicOnly);          // 一覧に出る質問 ＝ 分母
+const RETIRED = 'zz_retired_question';                    // 台帳から外した質問（マスタには active=false で残る）
+const REAL_MASTER = [
+  ...BANK.map((q) => ({ id: q.id, parent: q.parent ?? null, parent_when: q.parentWhen ?? null,
+                        topic_only: q.topicOnly === true, active: true })),
+  { id: RETIRED, parent: null, parent_when: null, topic_only: false, active: false },
+];
+
+/* 1人の会員が、1つの会社について持っている行。
+     q … 質問／a … 入っている列／want … 会員のページが数えるか／why … この行で確かめること
+   金額と自由記述には「メールに出たら即アウト」の値を入れてある（数えるために取り寄せてもいけない）。 */
+const ME = COND.proof_hash, ELSEWHERE = 'cafe0001';
+const SKIP = '2026-08-20T09:00:00+00:00';
+const FIX = [
+  { q: 'days_off_request',       a: { answer_code: 'yes' },              want: true,  why: 'ふつうの答え' },
+  { q: 'schedule_bidding',       a: { answer_code: 'no' },               want: true,  why: 'ふつうの答え' },
+  { q: 'annual_leave_days',      a: { answer_num: 20 },                  want: true,  why: '数字だけの答え（コードなし）' },
+  { q: 'days_off_request_limit', a: { answer_num: 3 },                   want: true,  why: '数字だけの続きの質問。親は yes のまま' },
+  { q: 'cadet_program',          a: { answer_text: SECRET['待遇の自由記述'] }, want: true, why: '文字だけが入っている行（ページは文字も答えに数える）' },
+  // 指摘の例: 着陸手当を「一定額」→ 額 → 数え方 と答えたあとで、親を「ない」に直した
+  { q: 'landing_pay',            a: { answer_code: 'no' },               want: true,  why: '答え直した親' },
+  { q: 'landing_pay_amount',     a: { answer_num: Number(SECRET['待遇の金額回答']) }, want: false, why: '親を直して外れた額' },
+  { q: 'landing_pay_unit',       a: { answer_code: 'per_landing' },      want: false, why: '親を直して外れた数え方' },
+  // 親が複数選択（2段）。タクシーを外して選び直した ＝ あいだの親を答え直した
+  { q: 'commuting_transport',        a: { answer_code: 'always' },             want: true,  why: 'いちばん上の親' },
+  { q: 'commuting_transport_method', a: { answer_codes: ['hotel', 'crew_bus'] }, want: true, why: '複数選択の親' },
+  { q: 'commuting_bus_when',         a: { answer_codes: ['any_time'] },        want: true,  why: '親が選んだ2つ目のコードで、まだ聞かれている' },
+  { q: 'commuting_taxi_cost',        a: { answer_code: 'company_full' },       want: false, why: '親がタクシーを選んでいない' },
+  // 2段の鎖で、いちばん上を「ない」に直した。あいだの親の古い答えは条件を満たしたまま残っている
+  { q: 'staff_travel',               a: { answer_code: 'no' },                 want: true,  why: '答え直したいちばん上の親' },
+  { q: 'staff_travel_booking',       a: { answer_code: 'both' },               want: false, why: 'あいだの親（上が外れた）' },
+  { q: 'staff_travel_standby_trips', a: { answer_code: 'limit_5_12' },         want: false, why: 'すぐ上の親だけ見ると数えてしまう行' },
+  // 一覧に出ない質問・もう無い質問
+  { q: 'upgrade_order',          a: { answer_code: 'seniority' },        want: false, why: '話題の入口からだけ出る質問' },
+  { q: RETIRED,                  a: { answer_code: 'yes' },              want: false, why: 'もう有効でない質問' },
+  // 答えのある行に、あとからスキップの印だけが付いた（答えは残る ＝ ページは数える）
+  { q: 'reserve_duty',           a: { answer_code: 'no', skipped_at: SKIP },  want: true, why: '答え＋スキップの印' },
+  { q: 'training_bond',          a: { answer_code: 'yes', skipped_at: SKIP }, want: true, why: '答え＋スキップの印（親）' },
+  { q: 'training_bond_years',    a: { answer_num: 3 },                   want: true,  why: 'その親の答えで、まだ聞かれている' },
+  // スキップの印だけの行（答えの列は全部空 ＝ ページには届かない）
+  { q: 'peer_support',           a: { skipped_at: SKIP },                want: false, why: 'スキップの印だけ' },
+  { q: 'sick_leave',             a: { skipped_at: SKIP },                want: false, why: 'スキップの印だけ（親）' },
+  { q: 'sick_leave_days',        a: { answer_num: 10 },                  want: false, why: '親に答えが無い' },
+  // 同じ人が別の会社について答えた行（鍵が別）。会社ごとに数える
+  { q: 'roster_changes',         a: { answer_code: 'yes' }, hash: ELSEWHERE, want: false, why: '別の会社の行' },
+  { q: 'fo_development',         a: { answer_code: 'yes' }, hash: ELSEWHERE, want: false, why: '別の会社の行' },
+];
+const toRows = (fix) => fix.map((f, i) => ({
+  id: `row-${i}`, proof_hash: f.hash ?? ME, question_id: f.q,
+  answer_code: null, answer_codes: null, answer_num: null, answer_text: null, skipped_at: null, ...f.a }));
+
+/* 偽の Supabase。id で1行を引く読み方（通知のきっかけの行・質問の文言）は今までどおり。
+   それ以外 ＝ 数えるための読み方は、宛先に書かれた絞り込みと select のとおりに答える。 */
+let MASTER = REAL_MASTER;
+let PERSON = toRows(FIX);
+const ASKED = [];        // 数えるために引かれた宛先
+const STUB_ERR = [];     // 偽の Supabase が読めなかった引き方（本体は握りつぶすので、ここに残す）
+const only = (row, select) => {
+  if (select == null) return row;                     // select が無ければ全部の列（本物と同じ）
+  return Object.fromEntries(select.split(',').map((c) => {
+    if (!(c in row)) throw new Error(`テストの行に無い列を引いた: ${c}`);
+    return [c, row[c]];
+  }));
 };
+globalThis.fetch = async (url) => {
+  const u = new URL(String(url), 'http://stub.invalid');
+  const t = u.pathname.match(/\/rest\/v1\/([a-z_]+)/)?.[1];
+  const select = u.searchParams.get('select');
+  const filters = [...u.searchParams].filter(([k]) => k !== 'select');
+  if (t !== 'airline_conditions' && t !== 'pv_condition_questions')
+    throw new Error(`テストが用意していないテーブルを引いた: ${t}`);
+  if (u.searchParams.has('id')) {
+    return { ok: true, json: async () => (t === 'airline_conditions'
+      ? [ROWS.airline_conditions]
+      : QUESTIONS.filter((q) => u.searchParams.get('id') === `eq.${q.id}`)) };
+  }
+  ASKED.push({ table: t, select, filters, raw: u.search });
+  try {
+    let rows = t === 'airline_conditions' ? PERSON : MASTER;
+    for (const [k, v] of filters) {
+      if (t === 'airline_conditions' && k === 'proof_hash' && v.startsWith('eq.')) {
+        rows = rows.filter((r) => r.proof_hash === v.slice(3));
+      } else if (t === 'airline_conditions' && k === 'skipped_at' && v === 'is.null') {
+        rows = rows.filter((r) => r.skipped_at == null);
+      } else if (t === 'airline_conditions' && k === 'or') {
+        // or=(列.not.is.null,…) ＝ 並べた列のどれかが入っている行
+        const cols = (v.match(/^\((.+)\)$/)?.[1] ?? '').split(',').map((s) =>
+          s.match(/^(answer_code|answer_codes|answer_num|answer_text)\.not\.is\.null$/)?.[1]);
+        if (cols.some((c) => !c)) throw new Error(`読めない or: ${v}`);
+        rows = rows.filter((r) => cols.some((c) => r[c] != null));
+      } else if (t === 'pv_condition_questions' && (k === 'active' || k === 'topic_only')
+                 && /^eq\.(true|false)$/.test(v)) {
+        rows = rows.filter((r) => String(r[k]) === v.slice(3));
+      } else throw new Error(`読めない絞り込み: ${t} ${k}=${v}`);
+    }
+    const out = rows.map((r) => only(r, select));
+    return { ok: true, json: async () => out };
+  } catch (e) { STUB_ERR.push(String(e.message)); throw e; }
+};
+
+/* 期待する数。会員の一覧ページ（pv-conditions.js）の決め方を、この検査の言葉で書き直したもの:
+     答えた   … 答えの列（コード・複数のコード・数字・文字）のどれかが入っている
+     出ている … 親が無い。または親が出ていて、親が選んだコードのどれかが parentWhen に入っている
+     数える   … 一覧に出る質問（話題の入口だけの質問ではない）で、答えていて、出ている */
+const holds = (r) => r.answer_code != null || r.answer_codes != null
+  || r.answer_num != null || r.answer_text != null;
+const pageRule = (rows) => {
+  const mine = Object.fromEntries(rows.filter((r) => r.proof_hash === ME && holds(r))
+    .map((r) => [r.question_id, r]));
+  const asked = (q) => {
+    if (!q.parent) return true;
+    const up = BANK_BY[q.parent], a = mine[q.parent];
+    if (!up || !a || !asked(up)) return false;
+    const have = a.answer_codes ?? (a.answer_code != null ? [a.answer_code] : []);
+    return q.parentWhen.some((c) => have.includes(c));
+  };
+  return (id) => !!BANK_BY[id] && !BANK_BY[id].topicOnly && !!mine[id] && asked(BANK_BY[id]);
+};
+const totalCell = (mail) =>
+  mail?.html.match(/この人の累計<\/th>\s*<td[^>]*>([^<]*)<\/td>/)?.[1] ?? '（累計の行なし）';
+const labels = (mail) => [...(mail?.html ?? '').matchAll(/<th[^>]*>([^<]*)<\/th>/g)].map((m) => m[1]);
 
 const c1 = await nx.buildCondition('ac-1');
 ck('メールができる', !!c1);
 ck('件名で「待遇アンケート」とわかる', c1.subject.includes('待遇アンケート'), c1.subject);
 ck('質問文が出る', c1.html.includes('希望する休日の日付を指定できますか'));
 ck('選んだコードがそのまま出る', c1.html.includes('yes'));
-ck('累計が n / 48問 で出る', c1.html.includes('7 / 48問'));
+
+{
+  const counts = pageRule(PERSON);
+  const off = FIX.filter((f) => ((f.hash ?? ME) === ME && counts(f.q)) !== f.want);
+  const N = LISTED.filter((q) => counts(q.id)).length;
+  ck('★上の表の「数える／数えない」が、台帳から数え直した答えと合っている',
+     off.length === 0 && N === FIX.filter((f) => f.want).length,
+     off.map((f) => `${f.q}（${f.why}）`).join(' / ') || `表 ${FIX.filter((f) => f.want).length} ・数え直し ${N}`);
+  ck('★累計は、会員の一覧ページと同じ数え方（直して外れた質問・一覧に出ない質問を数えない）',
+     totalCell(c1) === `${N} / ${LISTED.length}問`,
+     `メール: ${totalCell(c1)} ／ 会員のページ: ${N} / ${LISTED.length}問`
+     + (STUB_ERR.length ? ` ／ 偽の Supabase: ${STUB_ERR.join(' ・ ')}` : ''));
+  /* 分母は「一覧に出る質問」の数。台帳に話題の入口だけの質問が無いと、有効な質問の数と
+     同じになってしまい、この違いを試せない。 */
+  ck('★分母は一覧に出る質問の数（有効な質問ぜんぶの数ではない）',
+     Number(totalCell(c1).match(/\/ (\d+)問$/)?.[1]) === LISTED.length
+     && BANK.length > LISTED.length && !totalCell(c1).endsWith(`/ ${BANK.length}問`),
+     `メール: ${totalCell(c1)} ／ 一覧に出る ${LISTED.length} ・台帳ぜんぶ ${BANK.length}`);
+  /* 数えるための読み方。金額と自由記述は、数えるためにも取り寄せない */
+  const reads = ASKED.filter((a) => a.table === 'airline_conditions');
+  ck('★数えるために、金額も自由記述も取り寄せない',
+     reads.length > 0 && reads.every((a) => a.select != null
+       && !a.select.split(',').some((c) => c === '*' || c === 'answer_num' || c === 'answer_text')),
+     reads.map((a) => a.select ?? '（select なし ＝ 全部の列）').join(' ・ ') || '読んでいない');
+  ck('★数えるために引いた行の金額・文字がメールに出ない', leaks(c1).length === 0,
+     `漏れた: ${leaks(c1).join(' / ')}`);
+  ck('★メールの項目は6つのまま（数え方を直しても項目を足していない）',
+     labels(c1).join('|') === '航空会社|質問|答え|この人の累計|職位 / 機種|言語', labels(c1).join('|'));
+}
+
+/* 指摘そのものの形: 着陸手当を 一定額 → 額 → 数え方 と答えたあと、親を「ない」に直した人。
+   行は3つ残っているが、会員のページは 1 と数える（直す前のメールは 3 / 52問 だった）。 */
+{
+  PERSON = toRows(FIX.filter((f) => f.q.startsWith('landing_pay')));
+  const m = await nx.buildCondition('ac-1');
+  ck('★着陸手当を「ない」に直した人は 1（前に入れた額と数え方を数えない）',
+     PERSON.length === 3 && totalCell(m) === `1 / ${LISTED.length}問`, totalCell(m));
+  PERSON = toRows(FIX);
+}
+
+/* いまの台帳には無い形: 話題の入口だけの質問が、一覧に出る質問の親になっている。
+   会員のページは、数えはしないが親としてはたどる。本体が質問を topic_only=false で絞って引くと
+   親が見つからず、その下の質問を数え落とす。この形だけは作り物の3問で確かめる。 */
+{
+  MASTER = [
+    { id: 'zz_top',  parent: null,     parent_when: null,    topic_only: false, active: true },
+    { id: 'zz_mid',  parent: 'zz_top', parent_when: ['yes'], topic_only: true,  active: true },
+    { id: 'zz_leaf', parent: 'zz_mid', parent_when: ['a'],   topic_only: false, active: true },
+  ];
+  PERSON = toRows([{ q: 'zz_top', a: { answer_code: 'yes' } }, { q: 'zz_mid', a: { answer_code: 'a' } },
+                   { q: 'zz_leaf', a: { answer_num: 1 } }]);
+  const m = await nx.buildCondition('ac-1');
+  ck('★話題の入口だけの質問は数えないが、親としてはたどる（作り物の3問）',
+     totalCell(m) === '2 / 2問', totalCell(m));
+  MASTER = REAL_MASTER; PERSON = toRows(FIX);
+}
+
+/* 質問マスタに輪ができていても（生成側が止めているので入らないはず）、数え上げが止まらない。
+   止まらなくなると、累計どころか通知そのものが届かなくなる。輪の中の質問は数えない。 */
+{
+  MASTER = [
+    { id: 'zz_plain',  parent: null,        parent_when: null,    topic_only: false, active: true },
+    { id: 'zz_loop_a', parent: 'zz_loop_b', parent_when: ['yes'], topic_only: false, active: true },
+    { id: 'zz_loop_b', parent: 'zz_loop_a', parent_when: ['yes'], topic_only: false, active: true },
+  ];
+  PERSON = toRows(MASTER.map((q) => ({ q: q.id, a: { answer_code: 'yes' } })));
+  const m = await nx.buildCondition('ac-1');
+  ck('★質問マスタに輪があっても数え上げが止まり、輪の中の質問は数えない（作り物の3問）',
+     totalCell(m) === '1 / 3問', totalCell(m));
+  MASTER = REAL_MASTER; PERSON = toRows(FIX);
+}
+
+/* 会員の一覧ページの本物の関数（pv-conditions.js の answered / visible / counted）を
+   本体ごと切り出して、同じ行で動かす。上の数え直しがページとずれたら（＝ページの数え方を
+   変えたら）ここが赤くなる。そのときはメールの側（notify-admin）も直してデプロイする。 */
+{
+  const page = read('./pv-conditions.js');
+  const cut = (name) => {
+    const at = page.indexOf(`function ${name}(`);
+    if (at < 0 || page.indexOf(`function ${name}(`, at + 1) >= 0) return null;
+    for (let i = page.indexOf('{', at), depth = 0; i >= 0 && i < page.length; i++) {
+      if (page[i] === '{') depth++;
+      else if (page[i] === '}' && --depth === 0) return page.slice(at, i + 1);
+    }
+    return null;
+  };
+  const parts = ['answered', 'visible', 'counted'].map(cut);
+  ck('会員のページの数え方（answered / visible / counted）を切り出せる', parts.every(Boolean),
+     'pv-conditions.js に function answered( / visible( / counted( がちょうど1つずつ在ること。'
+     + '名前や置き場所を変えたなら、ここの切り出しも直す');
+  if (parts.every(Boolean)) {
+    // ページは、サーバが返した自分の行（答えの入っている行）を state に入れてから数える
+    const state = Object.fromEntries(PERSON.filter((r) => r.proof_hash === ME && holds(r)).map((r) =>
+      [r.question_id, { code: r.answer_code, codes: r.answer_codes, num: r.answer_num, currency: null, text: r.answer_text }]));
+    const counted = new Function('state', 'byId', `${parts.join('\n')}\nreturn counted;`)(state, BANK_BY);
+    const counts = pageRule(PERSON);
+    const off = LISTED.filter((q) => counted(q) !== counts(q.id)).map((q) => q.id);
+    ck('★会員のページの本物の関数を同じ行で動かしても、同じ質問を数える',
+       off.length === 0 && LISTED.filter(counted).length === FIX.filter((f) => f.want).length,
+       off.join(' / ') || `ページ ${LISTED.filter(counted).length} ・表 ${FIX.filter((f) => f.want).length}`);
+  }
+}
 
 // スキップの行では送らない
 ROWS.airline_conditions = { ...COND, answer_code: null, skipped_at: '2026-08-22T13:05:00+00:00' };
@@ -221,6 +441,19 @@ ROWS.airline_conditions = { ...COND };
 const cNoCount = await nx.buildCondition('ac-1');
 ck('累計を数えられなくてもメールは届く', !!cNoCount && cNoCount.html.includes('希望する休日'));
 ck('数えられないときは累計の行を出さない', !!cNoCount && !cNoCount.html.includes('累計'), cNoCount?.html);
+
+/* 2つの読み方の片方だけが落ちたときも同じ。読めなかった側を 0 と数えて「0 / 48問」と出さない
+   （読めなかったのであって、答えが0件なのではない）。 */
+for (const [what, hit] of [['質問の一覧', 'active=eq.true'], ['その人の行', 'proof_hash=eq.']]) {
+  globalThis.fetch = async (url) => {
+    if (String(url).includes(hit)) throw new Error(`${what}を読めない`);
+    return fetchOK(url);
+  };
+  const m = await nx.buildCondition('ac-1');
+  ck(`★${what}だけ読めなくてもメールは届き、累計の行は出ない`,
+     !!m && m.html.includes('希望する休日') && !m.html.includes('累計'), m ? totalCell(m) : 'メールが無い');
+  ck(`★${what}だけ読めないときに「0 / 」と出さない`, !!m && !m.html.includes('0 / '), m ? totalCell(m) : '');
+}
 
 // 質問マスタが空で返ってきた場合も同じ（「0 / 0問」を出さない）
 globalThis.fetch = async (url) => {

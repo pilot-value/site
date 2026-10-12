@@ -63,6 +63,7 @@ const CODE_RE = /^[a-z][a-z0-9_]{0,39}$/;  // 選択肢コード（'no' 'fo' の
 const seen = new Map();   // id → 定義（親の参照チェックに使う。★先に出た質問しか親にできない）
 const usedPriority = new Map();
 const usedBoost = new Map();   // boost → id（回答ゼロの人に出す順。同点だと順が決まらない）
+const usedRangeLow = new Map();   // 低いほうの id → それを指した高いほうの id（1つの低いほうに、高いほうは1つ）
 let lastPriority = -1;
 
 for (const q of QUESTIONS) {
@@ -177,6 +178,45 @@ for (const q of QUESTIONS) {
     throw new Error(`${at}: parent が無いのに parentWhen がある`);
   }
 
+  // ── 対になる額（低いほう・高いほう） ──
+  /* ★対を結ぶのは、高いほうの rangeLow の1か所だけ（低いほうには何も書かない）。
+       ここから pv-conditions.json（rangeLow）と質問マスタの spec（range_low）へ運ぶ。
+       画面とサーバは、同じ対をそこから読む。
+     ★2問は、同じ親・同じ開く条件・同じ通貨の有無でなければならない
+       （片方だけ開く対・片方だけ通貨を持つ対は、比べようがない）。
+     ★1つの質問が入る対は1つだけ（1つの低いほうを2つの高いほうが指す／高いほうが
+       別の対の低いほうにもなる、を作らない。「対の相手」が1つに決まらなくなる）。
+     ★間違った対は、流したあとの画面では気づけないので、何も書き出す前にここで止める。
+     ★生成元での名前は rangeLow（range_low は、質問マスタの spec に入ったあとの名前）。
+       生成元に range_low と書くと、何も言われないまま「対が無い」ことになるので、それも止める。 */
+  if ('range_low' in q) {
+    throw new Error(`${at}: range_low ではなく rangeLow と書く（range_low は、質問マスタの spec に入ったあとの名前）`);
+  }
+  if (q.rangeLow != null) {
+    const lo = seen.get(q.rangeLow);
+    const whenOf = (x) => JSON.stringify([...(x.parentWhen || [])].sort());
+    if (q.kind !== 'num') throw new Error(`${at}: rangeLow は数値質問だけ（kind=${q.kind}）`);
+    if (q.rangeLow === q.id) throw new Error(`${at}: rangeLow に自分自身を書かない`);
+    if (!lo) throw new Error(`${at}: rangeLow '${q.rangeLow}' が先に定義されていない（低いほうを先に置く）`);
+    if (lo.kind !== 'num') throw new Error(`${at}: rangeLow '${q.rangeLow}' が数値質問でない（kind=${lo.kind}）`);
+    if ((lo.parent || null) !== (q.parent || null)) {
+      throw new Error(`${at}: rangeLow '${q.rangeLow}' と親が違う → 低いほう ${lo.parent || 'なし'}／高いほう ${q.parent || 'なし'}`);
+    }
+    if (whenOf(lo) !== whenOf(q)) {
+      throw new Error(`${at}: rangeLow '${q.rangeLow}' と parentWhen が違う（同じときに開く2問だけを対にする）`);
+    }
+    if (!!lo.currency !== !!q.currency) {
+      throw new Error(`${at}: rangeLow '${q.rangeLow}' と currency の有無が違う`);
+    }
+    if (lo.rangeLow != null) {
+      throw new Error(`${at}: rangeLow '${q.rangeLow}' は、すでに別の対の高いほう（対をつなげない）`);
+    }
+    if (usedRangeLow.has(q.rangeLow)) {
+      throw new Error(`${at}: rangeLow '${q.rangeLow}' は ${usedRangeLow.get(q.rangeLow)} がすでに指している（1つの低いほうに高いほうは1つ）`);
+    }
+    usedRangeLow.set(q.rangeLow, q.id);
+  }
+
   // ── 提出直後の1問に出してよい形か ──
   /* ★ここが「10秒で終わる」という約束の実体。数値入力・複数選択・自由記述を
      1問カードに出すと、約束が嘘になる。
@@ -238,6 +278,9 @@ if (!micros.length) throw new Error('micro の質問が1つも無い（提出直
       if (q.num) o.num = { min: q.num.min, max: q.num.max, step: q.num.step, ja: q.num.ja, en: q.num.en };
       if (q.line) o.line = q.line;
       if (q.currency) o.currency = true;
+      /* 対になる額の相手（低いほうの id）。持つのは高いほうの質問だけ。
+         ★質問マスタの spec には range_low という名前で入る（下の spec）。同じ対を、画面とサーバが読む。 */
+      if (q.rangeLow) o.rangeLow = q.rangeLow;
       if (q.note) o.note = true;
       /* 話題の入口。★topicOnly が立っている質問は、画面が一覧と1問枠に出さない
          （出さない・数えないを決めているのは DB。ここは運ぶだけ）。 */
@@ -263,6 +306,7 @@ if (!micros.length) throw new Error('micro の質問が1つも無い（提出直
   const spec = (x) => {
     const o = {};
     if (x.num) o.step = x.num.step;
+    if (x.rangeLow) o.range_low = x.rangeLow;   // 対になる額の相手（低いほうの id）。読むのは pv_condition_range_other
     if (x.line) {
       o.freq = x.line.freq.map((c) => c.code);
       o.category = x.line.category.map((c) => c.code);
@@ -306,7 +350,9 @@ create table if not exists public.pv_condition_sections (
 --   topic_only  話題の入口から来た人にだけ出す。提出直後の1問枠にも一覧にも出さず、
 --               「あなたが答えた項目：N／${listed.length}」の分母にも分子にも数えない
 --               （出さない・数えないは db/airline-conditions.sql。保存と公開集計は他の質問と同じ）
---   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）
+--   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）。
+--               range_low は、対になる額（低いほう・高いほう）の低いほうの id。高いほうの質問だけが持つ
+--               （読むのは db/airline-conditions.sql の pv_condition_range_other）
 create table if not exists public.pv_condition_questions (
   id text primary key,
   version smallint not null default 1,
