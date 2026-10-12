@@ -167,8 +167,59 @@ const KEY  = /^[0-9a-f]{48}$/;
 const SIX  = ['block_hours', 'duty_hours', 'work_days', 'duty_days', 'days_off', 'stay_nights'];
 
 const AIR = (await many(
-  `select code from public.pv_airlines where code <> 'other' and active order by code limit 10`)).map((r) => r.code);
-const [A_ONE, A_TWO, A_WALL, A_CLAIM, A_NEW, A_NOTE, A_LIM, A_EXP, A_FLOW, A_BARE] = AIR;
+  `select code from public.pv_airlines where code <> 'other' and active order by code limit 12`)).map((r) => r.code);
+const [A_ONE, A_TWO, A_WALL, A_CLAIM, A_NEW, A_NOTE, A_LIM, A_EXP, A_FLOW, A_BARE, A_HOME, A_OTH] = AIR;
+
+/* ── 「誰に見せるか」の節（8-0）で使う道具 ────────────────────────
+   他人の回答を読める人は、ここの paid で作る ＝ 本物の submit_pay_report を通す。
+   上の unlock（access_until を手で書く）で立てた鍵には給与の行が無いので、決める所は 'locked' と答える
+   （＝ 鍵の無い会員と同じ返事）。「開いた読み手」を unlock で作らない。 */
+// 準備の確かめ。通れば何も数えない。崩れたら ❌ を1行出して数える（黙って先へ進まない）
+const must = (c, l, e = '') => { if (!c) ok(false, '（準備が崩れた）' + l, e); return !!c; };
+// 給与を1件出す。db/test-work-months.mjs の FLEET / PAY / pay の写し（1日の件数は毎回戻す）
+const FLEET = (await one(`select code from public.pv_fleets where active order by code limit 1`)).code;
+const PAY = { currency: 'USD', lang: 'en', tax_rate_pct: 0, position: 'cap', fleet: FLEET,
+              base_pay: 9000, flight_variable_pay: 4000, other_allowance: 4400,
+              command_pay: 2000, per_diem: 1000, housing_type: 'allowance', housing_amount: 600 };
+const pay = async (who, p) => {
+  await db.query(`select set_config('pv.uid', $1, false)`, [who]);
+  try { return (await db.query(`select public.submit_pay_report($1::jsonb) as v`, [J({ ...PAY, ...p })])).rows[0].v; }
+  catch (e) { return { __err: String(e.message || e) }; }
+  finally { await asOwner(); await db.exec(`update public.profiles set pay_reports_today = 0`); }
+};
+// その会社で、先月ぶんの給与を出す（月は DB の時計から取る。打ち込まない・未来の月にしない）
+const paid = async (who, airline, x = {}) => {
+  const r = await pay(who, { airline, period_year: ago(1).year, period_month: ago(1).month, ...x });
+  must(!r.__err && r.access_until != null, `給与を出せなかった（${airline}）`, J(r));
+  return r;
+};
+// 答えに使う質問6つ。質問の表から読む（打ち込まない）── 親の無い「選ぶ」質問を、聞く順に。答えは「わからない」でない最初の選択肢
+const FIVE = (await many(
+  `select id, choice_codes from public.pv_condition_questions
+    where active and parent is null and kind = 'choice' order by priority, id`))
+  .slice(0, 6).map((q) => ({ question_id: q.id, code: q.choice_codes.find((c) => c !== 'unknown') }));
+// その会社について、FIVE の頭から n 問に答える
+const five = async (who, airline, n = 5) => {
+  const r = await condM(who, { airline, answers: FIVE.slice(0, n) });
+  must(r.saved === n, `${n}問を保存できなかった（${airline}）`, J(r));
+  return r;
+};
+// 自分の会社（A_HOME）に給与を出して、5つ答えた人 ＝ ほかの会社も開く人
+const qualify = async (who) => { await paid(who, A_HOME); await five(who, A_HOME); };
+/* 決める所（pv_contrib_sees）を、その人として読む。外からは呼べない関数なので、持ち主の役のまま、読む人だけを差し替える
+   （上の give が pv_my_give を読むのと同じやり方）。ANON と DEAD は「読む人なし」（as と同じ扱い）。 */
+const sees = async (who, airline) => {
+  await db.query(`select set_config('pv.uid', $1, false)`, [typeof who === 'string' ? who : '']);
+  try { return (await db.query(`select public.pv_contrib_sees($1) as s`, [airline])).rows[0].s; }
+  finally { await asOwner(); }
+};
+// その人の「自分の会社」のうち code の会社について、答えた質問の数。自分の会社でなければ null
+const haveOf = async (who, code) => {
+  const o = (await many(`select * from public.pv_contrib_own($1)`, [who])).find((x) => x.o_code === code);
+  return o ? Number(o.o_have) : null;
+};
+// カードの材料（外から呼べる口）を、その人として読む
+const giveOf = (who) => rpc(who, 'pv_contrib_give');
 
 const READER = await member();
 await unlock(READER);
@@ -451,6 +502,396 @@ console.log('\n▼ 7. 引き継ぎで、新しいほうが残る');
   ok(c.moved === 1 && c.kept === 0, '★預かりの側が新しければ、それで直る', J(c));
   const rows = (await mineW(P2, { airline: A_NEW })).rows;
   ok(rows.length === 1 && rows[0].work_days === 11, '   同じ月は1行のまま（増えない）', J(rows));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 8-0. 誰に見せるか（自分の会社・5つ）');
+// ════════════════════════════════════════════════════════════
+/* ★2026-10-11 オーナー指定:
+     「他の人が出した情報は、給与提出後に見れる形。」
+     「給与を提出していて、やっぱり5つにしよう。さらに自分の会社に5つ以上答えた人（両方）」
+   決める所は db/contrib.sql の pv_contrib_sees の1か所。返すのは login / locked / give / open の1語。
+   ここで見るのは、その1語と、カードの材料（pv_contrib_give）だけ。
+   ⚠️ 会社（A_HOME / A_OTH）と質問（FIVE）は表から読む。答えの中身は検査のための作りもの。
+   ⚠️ 落とし方（わざと壊して赤を見る）は、db/contrib.sql の 6-b の側を壊す。ここの期待を緩めない。 */
+{
+  const [MEM, HAND, P1] = await crew(3);
+  const LOCKED = '{"ok":true,"state":"locked"}', OPEN = '{"ok":true,"state":"open"}';
+  // 在る会社・知らない会社・会社なし の3つを続けて聞く
+  const three = async (who) => [await sees(who, A_HOME), await sees(who, 'no-such-airline'), await sees(who, null)].join(' ');
+
+  // ── TM1 外から呼べる関数ではない ──
+  for (const [who, name] of [[ANON, '未ログイン'], [MEM, '会員']]) {
+    const r = [await call(who, `select public.pv_contrib_sees($1)`, [A_HOME]),
+               await call(who, `select count(*) from public.pv_contrib_own($1)`, [MEM]),
+               await call(who, `select public.pv_contrib_need()`)];
+    ok(r.every(no), `★TM1 ${name}は、決める所（pv_contrib_sees）・自分の会社の一覧（pv_contrib_own）・数（pv_contrib_need）を直接呼べない`,
+      r.map((x, i) => `${['sees', 'own', 'need'][i]}: ${x.err ? x.err.split('\n')[0] : '呼べた ' + J(x.v)}`).join(' ｜ '));
+  }
+  const vol = await many(
+    `select proname, provolatile from pg_proc
+      where pronamespace = 'public'::regnamespace
+        and proname in ('pv_contrib_sees', 'pv_contrib_own', 'pv_contrib_give', 'pv_contrib_need')
+      order by proname`);
+  ok(vol.map((x) => `${x.proname}:${x.provolatile}`).join(' ')
+       === 'pv_contrib_give:s pv_contrib_need:i pv_contrib_own:s pv_contrib_sees:s',
+    '   TM1 決める所・自分の会社・カードの材料は stable（何も書かない）／数は immutable', J(vol));
+
+  // ── TM2 立場が先 ──
+  const anon3 = await three(ANON), dead3 = await three(DEAD), mem3 = await three(MEM);
+  ok(anon3 === 'login login login' && dead3 === 'login login login',
+    '★TM2 立場が先 ── 未ログイン・ログインが死んでいる人には、在る会社・知らない会社・会社なし のどれを聞いても login', J({ anon3, dead3 }));
+  ok(mem3 === 'locked locked locked', '★TM2 ログインしただけの会員（給与の鍵が無い）には、どれを聞いても locked', mem3);
+
+  // ── TM3 手で立てた鍵（給与の行が1つも無い）──
+  await unlock(HAND);
+  const hand3 = await three(HAND), handOth = await sees(HAND, A_OTH);
+  ok(hand3 === 'locked locked locked' && handOth === 'locked',
+    '★TM3 給与の鍵だけを手で立てた人（給与の行が1つも無い）には、どの会社を聞いても locked ＝ 鍵の無い会員と同じ', J({ hand3, handOth }));
+  const handGive = J(await giveOf(HAND));
+  ok(handGive === LOCKED, '   TM3 その人のカードの材料も {ok, state:locked} だけ（1文字も違わない）', handGive);
+
+  // ── TM4 自分の会社は、給与の鍵だけで開く ──
+  await paid(P1, A_HOME);
+  const own4 = await sees(P1, A_HOME);
+  const oth4 = [await sees(P1, A_OTH), await sees(P1, 'no-such-airline'), await sees(P1, null)].join(' ');
+  ok(own4 === 'open', '★TM4 自分の会社（給与を出した会社）は、給与の鍵だけで open（まだ1つも答えていない）', own4);
+  ok(oth4 === 'give give give', '★TM4 ほかの会社・知らない会社・会社なし は give（自分の会社に5つ答えるまで）', oth4);
+
+  // ── TM5 4つ → 5つ ──
+  await five(P1, A_HOME, 4);
+  const s4 = await sees(P1, A_OTH), g4 = await giveOf(P1);
+  ok(s4 === 'give' && g4.state === 'give' && g4.airline === A_HOME && g4.have === 4 && g4.need === 5,
+    '★TM5 自分の会社に4つ答えた人 ── ほかの会社は give のまま。カードの材料は 自分の会社・have 4・need 5', J({ sees: s4, give: g4 }));
+  const r5 = await condM(P1, { airline: A_HOME, answers: [FIVE[4]] });
+  const s5 = await sees(P1, A_OTH), g5 = J(await giveOf(P1));
+  ok(r5.saved === 1 && s5 === 'open' && g5 === OPEN,
+    '★TM5 5つ目を答えたら、ほかの会社が open。カードの材料は {ok, state:open} だけ', J({ saved: r5.saved, sees: s5, give: g5 }));
+
+  /* ── ここから TM6〜TM20：数え間違える道を1つずつ塞ぐ ──
+     どの人も、まず自分の会社（A_HOME）に給与を出す（paid）。そのうえで「5つ」に届く・届かないを見る。
+     質問・選択肢・親子の組・社名は、どれも表から読む（下の Q / PAIR / nameOf）。 */
+  const LOGIN = '{"ok":true,"state":"login"}';
+  const Q = Object.fromEntries((await many(
+    `select id, kind, parent, priority, choice_codes, num_min from public.pv_condition_questions where active`)).map((q) => [q.id, q]));
+  const codesOf = (id) => (Q[id].choice_codes || []).filter((c) => c !== 'unknown');
+  const ans = (who, airline, answers, more = {}) => condM(who, { airline, ...more, answers });
+  const nameOf = async (code) => (await one(`select name_ja from public.pv_airlines where code = $1`, [code])).name_ja;
+  const state = async (who, airline) => `${await haveOf(who, A_HOME)} ${await sees(who, airline)}`;   // 「自分の会社の数 ほかの会社の1語」
+  const HOME_NAME = await nameOf(A_HOME), OTH_NAME = await nameOf(A_OTH);
+
+  // ── TM6 同じ質問を何度答え直しても、1つ ──（壊して見る相手は無い：1人1問1行は表の決まり。別の数え方に替わったときの見張り）
+  {
+    const [P] = await crew(1);
+    await paid(P, A_HOME);
+    const q0 = FIVE[0].question_id, cs = codesOf(q0);
+    must(cs.length >= 2, `TM6 ${q0} に「わからない」以外の選択肢が2つ以上要る`, J(cs));
+    await ans(P, A_HOME, [FIVE[0]]);
+    const first = await state(P, A_OTH);
+    let saves = 0;
+    for (let i = 1; i <= 5; i++) saves += (await ans(P, A_HOME, [{ question_id: q0, code: cs[i % cs.length] }])).saved || 0;
+    const rows = await cnt(`public.airline_conditions where proof_hash = public.pv_condition_hash($1, $2, null) and question_id = $3`, [P, A_HOME, q0]);
+    ok(first === '1 give' && saves === 5 && rows === 1 && await state(P, A_OTH) === '1 give',
+      '★TM6 同じ質問を、答えを替えて5回答え直しても、数は1のまま（ほかの会社は give のまま）', J({ first, saves, rows, after: await state(P, A_OTH) }));
+  }
+
+  // ── TM7 スキップは答えではない・「ない」は答え ──
+  {
+    const [P] = await crew(1);
+    await paid(P, A_HOME);
+    await five(P, A_HOME, 4);
+    const used = FIVE.slice(0, 4).map((x) => x.question_id);
+    const noQ = Object.values(Q).filter((q) => q.kind === 'choice' && q.parent === null && q.choice_codes.includes('no') && !used.includes(q.id))
+      .sort((a, b) => a.priority - b.priority || (a.id < b.id ? -1 : 1))[0];
+    must(!!noQ, 'TM7 「ない」（no）を選べる、親の無い質問が要る');
+    const sk = await ans(P, A_HOME, [{ question_id: noQ.id, skip: true }]);
+    const skipped = await state(P, A_OTH);
+    ok(sk.skipped === 1 && sk.saved === 0 && skipped === '4 give',
+      '★TM7 4つ答えた人が5つ目をスキップしても、数は4のまま（スキップは答えではない）', J({ skipped: sk.skipped, saved: sk.saved, state: skipped }));
+    const no5 = await ans(P, A_HOME, [{ question_id: noQ.id, code: 'no' }]);
+    const answered = await state(P, A_OTH);
+    ok(no5.saved === 1 && answered === '5 open', '★TM7 同じ質問に「ない」と答えたら5つ目に数える（「ない」は答え）→ ほかの会社が open', J({ saved: no5.saved, state: answered }));
+  }
+
+  // ── TM8 「わからない」は数えない ──
+  {
+    const [P] = await crew(1);
+    await paid(P, A_HOME);
+    await five(P, A_HOME, 4);
+    const u = await ans(P, A_HOME, [{ question_id: FIVE[4].question_id, code: 'unknown' }]);
+    const st = await state(P, A_OTH);
+    ok(u.saved === 1 && st === '4 give', '★TM8 5つ目を「わからない」と答えても、数は4のまま', J({ saved: u.saved, state: st }));
+  }
+
+  // ── TM9 0 は答え ──
+  {
+    const [P] = await crew(1);
+    const zq = Q.annual_leave_days;
+    must(!!zq && zq.kind === 'num' && zq.parent === null && Number(zq.num_min) === 0, 'TM9 annual_leave_days は、親の無い、下限 0 の数字の質問であること', J(zq || null));
+    await paid(P, A_HOME);
+    await five(P, A_HOME, 4);
+    const z = await ans(P, A_HOME, [{ question_id: 'annual_leave_days', num: 0 }]);
+    const st = await state(P, A_OTH);
+    ok(z.saved === 1 && st === '5 open', '★TM9 5つ目に数字の 0 を答えたら、5つ目に数える（0 は答え）', J({ saved: z.saved, state: st }));
+  }
+
+  // ── TM10 上の質問を答え直すと、外れた下の質問は数えない（消してはいないので、戻せば戻る）──
+  {
+    const [P] = await crew(1);
+    // 親子の組は表（pv_condition_links）から：親は親の無い「選ぶ」質問・「はい」（yes）で子が開く・子も「選ぶ」質問
+    const PAIR = (await many(
+      `select k.question_id as child, k.parent, k.parent_when
+         from public.pv_condition_links k
+         join public.pv_condition_questions c on c.id = k.question_id and c.active and c.kind = 'choice'
+         join public.pv_condition_questions p on p.id = k.parent and p.active and p.kind = 'choice' and p.parent is null
+        where 'yes' = any(k.parent_when)
+          and (select count(*) from public.pv_condition_links z where z.question_id = k.question_id) = 1
+        order by c.priority, c.id limit 1`))[0];
+    const out = PAIR ? codesOf(PAIR.parent).find((c) => !PAIR.parent_when.includes(c)) : null;   // 子が外れる親の答え（「わからない」ではない）
+    const plain = FIVE.filter((x) => PAIR && x.question_id !== PAIR.parent).slice(0, 3);
+    must(!!PAIR && !!out && plain.length === 3 && codesOf(PAIR.child).length >= 1, 'TM10 親子の組と、子が外れる親の答えが、質問の表から取れること', J({ PAIR, out }));
+    await paid(P, A_HOME);
+    const r = await ans(P, A_HOME, [...plain, { question_id: PAIR.parent, code: 'yes' }, { question_id: PAIR.child, code: codesOf(PAIR.child)[0] }]);
+    const full = await state(P, A_OTH);
+    const re = await ans(P, A_HOME, [{ question_id: PAIR.parent, code: out }]);
+    const cut = await state(P, A_OTH);
+    const kept = await cnt(`public.airline_conditions where proof_hash = public.pv_condition_hash($1, $2, null) and question_id = $3 and answer_code is not null`, [P, A_HOME, PAIR.child]);
+    ok(r.saved === 5 && full === '5 open' && re.saved === 1 && cut === '4 give' && kept === 1,
+      '★TM10 親＋子で5つの人が、親を「子が開かない答え」に答え直すと、子は数えない（4・give。子の行は消していない）', J({ saved: r.saved, full, cut, kept, pair: PAIR, out }));
+    const back = await ans(P, A_HOME, [{ question_id: PAIR.parent, code: 'yes' }]);
+    const again = await state(P, A_OTH);
+    ok(back.saved === 1 && again === '5 open', '   TM10 親を元の答えに戻すと、また5つ（open）', J({ saved: back.saved, again }));
+  }
+
+  /* ── TM10b 使わなくなった質問（active = false）への答えは数えない ──
+     点検で足した見張り：「答えた」の決まりのうち「使っている質問」だけ、落ちる検査が無かった
+     （pv_contrib_own の join から `and q.active` を外しても、この節は全部緑のままだった）。
+     質問の表を一時的に書き換えるので、必ず元に戻す（db/test-conditions.mjs の「使わなくなった質問」と同じやり方）。 */
+  {
+    const [P] = await crew(1);
+    await paid(P, A_HOME);
+    await five(P, A_HOME);
+    const q5 = FIVE[4].question_id;
+    const on = await state(P, A_OTH);
+    let off = null;
+    await db.query(`update public.pv_condition_questions set active = false where id = $1`, [q5]);
+    try { off = await state(P, A_OTH); }
+    finally { await db.query(`update public.pv_condition_questions set active = true where id = $1`, [q5]); }
+    const back = await state(P, A_OTH);
+    ok(on === '5 open' && off === '4 give' && back === '5 open',
+      '★TM10b 5つ答えた質問の1つが使われなくなったら、その答えは数えない（4・give）。質問が戻れば、また5つ（open）', J({ on, off, back, q: q5 }));
+  }
+
+  // ── TM11 自分の会社ではない会社についての回答は数えない ──
+  {
+    const [P] = await crew(1);
+    await paid(P, A_HOME);
+    await five(P, A_OTH);
+    const st = [await haveOf(P, A_HOME), await haveOf(P, A_OTH), await sees(P, A_OTH), await sees(P, A_FLOW)];
+    ok(J(st) === J([0, null, 'give', 'give']),
+      '★TM11 給与を出していない会社について5つ答えても、数えない（自分の会社の数は 0・その会社も、ほかの会社も give）', J(st));
+  }
+
+  // ── TM12 ほかの会員の回答は数えない ──
+  {
+    const [X, P] = await crew(2);
+    await five(X, A_HOME);                      // X は給与を出していない会員。A_HOME について5つ答える
+    await paid(P, A_HOME);                      // P は A_HOME に給与を出しただけ（1つも答えていない）
+    const st = await state(P, A_OTH), x = await sees(X, A_HOME);
+    ok(st === '0 give' && x === 'locked', '★TM12 同じ会社についてほかの会員が5つ答えていても、自分の数は 0（give）。答えただけの会員は locked のまま', J({ st, x }));
+  }
+
+  // ── TM13 ログインせずに預けた回答は、引き継いでから数える ──
+  {
+    const [P] = await crew(1);
+    const k = await putC(null, { airline: A_HOME, answers: FIVE.slice(0, 5) });
+    must(KEY.test(k.key || '') && k.saved === 5, 'TM13 未ログインで5つ預けられること', J(k));
+    await paid(P, A_HOME);
+    const before = await state(P, A_OTH);
+    ok(before === '0 give', '★TM13 預けただけの5つは、まだ数えない（引き継ぐ前は 0・give）', before);
+    const c = await claim(P, k.key);
+    const after = await state(P, A_OTH);
+    ok(c.moved === 5 && after === '5 open', '★TM13 ログインして引き継いだら、5つとも数える（open）', J({ moved: c.moved, left: c.left, after }));
+  }
+
+  // ── TM14 罠：自分で書き換えられる字（プロフィールの在籍企業）で、会社を「自分の会社」にできない ──
+  {
+    const [P, Pb] = await crew(2);
+    const fold = (await one(`select public.pv_airline_resolve($1) as c`, [OTH_NAME])).c;
+    must(fold === A_OTH, 'TM14 ほかの会社の社名が、その会社の code に当たること（当たらないと、罠を試したことにならない）', J({ OTH_NAME, fold }));
+    const rewrite = (id) => db.query(`update public.profiles set company = $2, name = $2, country = 'JP' where id = $1`, [id, OTH_NAME]);
+    await paid(P, A_HOME);
+    // (a) 会員が自分で書ける字を、ぜんぶ「ほかの会社」に書き換える
+    await rewrite(P);
+    const a = [await sees(P, A_OTH), (await giveOf(P)).airline];
+    ok(J(a) === J(['give', A_HOME]), '★TM14a プロフィールの在籍企業・名前を「ほかの会社」に書き換えても、その会社は give のまま。カードが聞くのも、給与を出した会社のまま', J(a));
+    // (b) その会社について5つ答える（給与は出していない）
+    await five(P, A_OTH);
+    const b = [await sees(P, A_OTH), await haveOf(P, A_HOME)];
+    ok(J(b) === J(['give', 0]), '★TM14b そのうえで、その会社について5つ答えても give のまま（給与を出していない会社の回答は数えない）', J(b));
+    // (c) 通る道は1つ ＝ その会社に、本物の給与をもう1件出す
+    const n0 = (await one(`select pay_report_count as n from public.profiles where id = $1`, [P])).n;
+    await paid(P, A_OTH);
+    const n1 = (await one(`select pay_report_count as n from public.profiles where id = $1`, [P])).n;
+    const c = [await sees(P, A_OTH), await sees(P, A_FLOW), await haveOf(P, A_OTH), n1 - n0];
+    ok(J(c) === J(['open', 'open', 5, 1]),
+      '★TM14c その会社に給与を出せば自分の会社になる（open）。(b) の5つも数に入り、ほかの会社も open。給与の件数は1つ増えている（給与の入口を通った）', J(c));
+    await paid(Pb, A_HOME); await rewrite(Pb); await paid(Pb, A_OTH);
+    const cb = [await sees(Pb, A_OTH), await sees(Pb, A_FLOW)];
+    ok(J(cb) === J(['open', 'give']), '   TM14c 5つ答えていない人が同じことをしても、開くのは給与を出した会社だけ（ほかの会社は give）', J(cb));
+    /* (d) 点検で足した見張り：「5つ」は1社について数える。自分の会社が2つある人の、会社をまたいだ合計ではない
+       （pv_contrib_sees の `bool_or(o.o_have >= …)` を `sum(o.o_have) >= …` に替えても、この節は全部緑のままだった）。 */
+    await five(Pb, A_HOME, 3);
+    const r2 = await ans(Pb, A_OTH, FIVE.slice(3, 5));
+    const d = [r2.saved, await haveOf(Pb, A_HOME), await haveOf(Pb, A_OTH), await sees(Pb, A_FLOW), (await giveOf(Pb)).state];
+    ok(J(d) === J([2, 3, 2, 'give', 'give']),
+      '★TM14d 自分の会社が2つある人が、片方に3つ・もう片方に2つ答えても、ほかの会社は give のまま（5つは1社について数える。会社をまたいで足さない）', J(d));
+  }
+
+  // ── TM15 鍵が切れたら閉じる・給与を出し直せば、答え直さずに開く ──
+  {
+    const live = [await sees(P1, A_HOME), await sees(P1, A_OTH)].join(' ');
+    await db.query(`update public.profiles set access_until = now() - interval '1 minute' where id = $1`, [P1]);
+    const dead = [await sees(P1, A_HOME), await sees(P1, A_OTH), await sees(P1, null)].join(' ');
+    const deadGive = J(await giveOf(P1));
+    ok(live === 'open open' && dead === 'locked locked locked' && deadGive === LOCKED,
+      '★TM15 給与の鍵が切れたら、自分の会社も、ほかの会社も locked（5つ答えていても）。カードの材料も {ok, state:locked} だけ', J({ live, dead, deadGive }));
+    await paid(P1, A_HOME);                     // 同じ会社・同じ月を出し直す ＝ 行は増えず、鍵が今から90日になる
+    const renewed = [await sees(P1, A_HOME), await sees(P1, A_OTH), await haveOf(P1, A_HOME)];
+    ok(J(renewed) === J(['open', 'open', 5]), '★TM15 給与を出し直したら、その場で open に戻る（回答は残っている ＝ 答え直さない）', J(renewed));
+  }
+
+  // ── TM16 運営 ──
+  if (await cnt(`information_schema.tables where table_schema = 'public' and table_name = 'pv_admins'`) === 1) {
+    const [OP] = await crew(1);
+    await db.query(`insert into public.pv_admins (user_id, note) values ($1, 'test') on conflict do nothing`, [OP]);
+    const op = [await sees(OP, A_HOME), await sees(OP, A_OTH), await sees(OP, 'no-such-airline'), await sees(OP, null)].join(' ');
+    const opGive = J(await giveOf(OP));
+    await db.query(`delete from public.pv_admins where user_id = $1`, [OP]);
+    const off = await sees(OP, A_HOME);
+    ok(op === 'open open open open' && opGive === OPEN && off === 'locked',
+      '★TM16 運営は、給与も回答も無しで、どの会社も open。カードの材料は {ok, state:open} だけ（名簿から外れたら locked）', J({ op, opGive, off }));
+  } else {
+    console.log('  （この器に運営の名簿 pv_admins が無い ＝ TM16 は見ていない）');
+  }
+
+  // ── TM17 一覧に無い会社（打ち込んだ社名）も、自分の会社 ──
+  {
+    const [P] = await crew(1);
+    await paid(P, 'other', { airline_other: 'Test Charter Gamma' });
+    const s0 = await sees(P, A_HOME), g0 = await giveOf(P);
+    ok(s0 === 'give' && g0.state === 'give' && g0.airline === 'other' && g0.name === 'Test Charter Gamma' && J(g0.ask) === '[]' && g0.have === 0,
+      '★TM17 一覧に無い会社に給与を出した人 ── 一覧の会社は give。カードの材料は 会社 other・打ち込んだ社名・ask は空', J({ sees: s0, give: g0 }));
+    const r = await ans(P, 'other', FIVE.slice(0, 5), { airline_other: 'test charter GAMMA' });   // 大文字小文字の違う綴り
+    const st = [r.saved, await haveOf(P, 'other'), await sees(P, A_HOME)];
+    ok(J(st) === J([5, 5, 'open']), '★TM17 その社名（綴りの大文字小文字が違っても）で5つ答えたら、一覧の会社が open', J(st));
+  }
+
+  // ── TM18 カードの材料（pv_contrib_give）──
+  {
+    const [R, Pc] = await crew(2);
+    await paid(R, A_HOME);
+    // その会社で、その質問に答えた人の数（持ち主の数え。「わからない」と、答えの無い行は数えない）
+    const countAll = async () => Object.fromEntries((await many(
+      `select q.id,
+              (select count(distinct c.proof_hash)::int from public.airline_conditions c
+                where c.airline = $1 and c.airline_other is null and c.question_id = q.id
+                  and c.answer_code is distinct from 'unknown'
+                  and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num, c.answer_text, c.answer_json) > 0) as n
+         from public.pv_condition_questions q where q.active`, [A_HOME])).map((x) => [x.id, x.n]));
+    /* R は1つも答えていない ＝ 候補は、親の無い質問の全部。誰も答えていない候補が8つ以上あると、ask は「0人」が8つ並ぶだけで、
+       「少ない順」を何も試さない。そこで R が、誰も答えていない候補を2つだけ残してスキップする（触った質問は ask から外れる）。
+       残るのは、その2つ（0人）と、ほかの人が答えた質問 ＝ 並びに人数の違いが出る。R 自身の数は 0 のまま。 */
+    const c0 = await countAll();
+    const roots = Object.values(Q).filter((q) => q.parent === null).sort((a, b) => a.priority - b.priority || (a.id < b.id ? -1 : 1)).map((q) => q.id);
+    const nobody = roots.filter((id) => c0[id] === 0), somebody = roots.filter((id) => c0[id] > 0);
+    must(nobody.length >= 2 && somebody.length >= 1, 'TM18 誰も答えていない質問が2つ以上・誰かが答えた質問が1つ以上あること', J({ nobody: nobody.length, somebody: somebody.length }));
+    const skips = nobody.slice(2);
+    if (skips.length) {
+      const sk = await ans(R, A_HOME, skips.map((id) => ({ question_id: id, skip: true })));
+      must(sk.skipped === skips.length, 'TM18 誰も答えていない質問をスキップできること', J(sk));
+    }
+    const C = await countAll();
+    const g = await giveOf(R), text = J(g), text2 = J(await giveOf(R));
+    const ask = Array.isArray(g.ask) ? g.ask : [];
+    const mineRows = (await many(
+      `select question_id from public.airline_conditions where proof_hash = public.pv_condition_hash($1, $2, null)`, [R, A_HOME])).map((x) => x.question_id);
+    const shut = ask.every((id) => typeof id === 'string') ? await cnt(
+      `unnest($1::text[]) x(id)
+        where exists (select 1 from public.pv_condition_links k
+                       where k.question_id = x.id
+                         and not exists (select 1 from public.airline_conditions m
+                                          where m.proof_hash = public.pv_condition_hash($2, $3, null) and m.question_id = k.parent
+                                            and (m.answer_code = any(k.parent_when) or m.answer_codes && k.parent_when)))`, [ask, R, A_HOME]) : -1;
+    const ns = ask.map((id) => C[id]);
+    const want = Math.min(8, roots.length - skips.length);
+    const digitFree = (s) => !/\d/.test(s);
+    must(digitFree(A_HOME + HOME_NAME + A_OTH + OTH_NAME) && Object.keys(Q).every(digitFree), 'TM18 会社の code・社名・質問の id に数字が無いこと（在ると「数が入っていない」を字で見られない）');
+
+    ok(keys(g) === 'airline,ask,have,name,need,ok,state' && g.state === 'give' && g.airline === A_HOME && g.name === HOME_NAME && g.have === 0 && g.need === 5,
+      '★TM18 give の人のカードの材料は ok・state・airline・name・have・need・ask の7つだけ（会社は自分の会社・have は本人の数）', text);
+    ok(J(await giveOf(ANON)) === LOGIN && J(await giveOf(DEAD)) === LOGIN && J(await giveOf(MEM)) === LOCKED,
+      '   TM18 未ログイン・ログインが死んでいる人には {ok, state:login} だけ／鍵の無い会員には {ok, state:locked} だけ');
+    ok(ask.length === want && ask.length <= 8 && new Set(ask).size === ask.length && ask.every((id) => typeof id === 'string' && !!Q[id])
+       && !ask.some((id) => mineRows.includes(id)) && shut === 0,
+      '★TM18 ask は8件まで・どれも使っている質問・本人が触った質問（答えた・スキップした）は無い・上の質問が開いていない下の質問も無い',
+      J({ ask, want, touched: mineRows.length, shut }));
+    ok(ns.length >= 2 && ns.every((n, i) => Number.isInteger(n) && (i === 0 || ns[i - 1] <= n)) && new Set(ns).size >= 2,
+      '★TM18 ask の並びは、その会社で答えた人が少ない質問が先（持ち主の数えと突き合わせる。人数の違う質問が2種類以上並んでいる）', J(ns));
+    ok(digitFree(text.replace(/"(have|need)":\d+/g, '')),
+      '★TM18 返事に入っている数は have と need の2つだけ（ほかの人の回答の数は、1つも入っていない）', text);
+    ok(text === text2, '   TM18 続けて2回読んでも、1文字も違わない（並びが動かない）', text2);
+
+    await paid(Pc, A_HOME, { period_year: ago(2).year, period_month: ago(2).month });
+    await paid(Pc, A_OTH);
+    const gc = await giveOf(Pc);
+    ok(gc.state === 'give' && gc.airline === A_OTH && gc.name === OTH_NAME && gc.have === 0,
+      '★TM18 給与を2社に出した人のカードが聞くのは、対象月がいちばん新しい給与の会社（社名は会社の表の名前）', J(gc));
+  }
+
+  // ── TM19 読むだけでは、資格は1つも付かない ──（「決める所」と「カードの材料」を、開いている人・鍵の無い会員・give の人として読む、その前後を比べる）
+  {
+    const [G] = await crew(1);
+    await paid(G, A_HOME);                      // give の人（カードの材料が最後の行まで走る）
+    // 確認済みの印の列（verify_level）は、在る器でだけ見る（▼ 8 と同じ見方。この節の中で確かめ直す）
+    const vlCol = await cnt(`information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name = 'verify_level'`) === 1;
+    const snap = async (who) => J({
+      give: await give(who), gate: await gate(who),
+      prof: await one(`select access_until${vlCol ? ', verify_level' : ''}, pay_report_count, badge from public.profiles where id = $1`, [who]) });
+    const who3 = [P1, MEM, G];
+    const words = [];
+    const before = []; for (const w of who3) before.push(await snap(w));
+    for (const w of who3) {
+      for (let i = 0; i < 2; i++) {
+        words.push(await sees(w, A_HOME), await sees(w, A_OTH), await sees(w, null), (await giveOf(w)).state);
+      }
+    }
+    const after = []; for (const w of who3) after.push(await snap(w));
+    ok(words.join(' ') === ['open open open open', 'open open open open', 'locked locked locked locked', 'locked locked locked locked', 'open give give give', 'open give give give'].join(' ')
+       && J(before) === J(after),
+      `★TM19 決める所・カードの材料を何度読んでも、給与の門（pv_my_give）・給与の一覧・給与の鍵の期限${vlCol ? '・確認済みの印' : ''}は1文字も変わらない（開いている人・鍵の無い会員・give の人）`,
+      J({ words: words.join(' '), same: before.map((b, i) => b === after[i]) }));
+  }
+
+  // ── TM20 打ち込んだ社名が一覧の会社に当たるとき：打ち込んだ社名のままの回答も、code での回答も数える（同じ質問は1つ）──
+  {
+    const [P] = await crew(1);
+    await paid(P, 'other', { airline_other: OTH_NAME });
+    const folded = [await sees(P, A_OTH), await haveOf(P, A_OTH), await haveOf(P, 'other')];
+    const r4 = await ans(P, 'other', FIVE.slice(0, 4), { airline_other: OTH_NAME });
+    if (must(r4.saved === 4, 'TM20 打ち込んだ社名のままの回答を、サーバが4つ受け取ること（受け取らないなら、この先は見ていない）', J(r4))) {
+      const typed = [await haveOf(P, A_OTH), await sees(P, A_FLOW)];
+      ok(J(folded) === J(['open', 0, null]) && J(typed) === J([4, 'give']),
+        '★TM20 一覧の会社の社名を打ち込んで給与を出した人 ── その会社が自分の会社（open）。打ち込んだ社名のまま答えた4つを数える（4・give）', J({ folded, typed }));
+      const dup = await ans(P, A_OTH, [FIVE[0]]);                 // 同じ質問を、こんどは code で
+      const twice = [dup.saved, await haveOf(P, A_OTH), await sees(P, A_FLOW)];
+      ok(J(twice) === J([1, 4, 'give']), '★TM20 そのうち1つを code でも答えても、4のまま（同じ質問は、印が2つあっても1つ）', J(twice));
+      const fifth = await ans(P, A_OTH, [FIVE[4]]);               // 別の質問を code で
+      const done = [fifth.saved, await haveOf(P, A_OTH), await sees(P, A_FLOW)];
+      ok(J(done) === J([1, 5, 'open']), '★TM20 別の質問を code で答えたら5つ（ほかの会社が open）', J(done));
+    }
+  }
 }
 
 

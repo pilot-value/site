@@ -5,6 +5,9 @@
 --   「情報を追加」は未ログインでも回答・保存できる。
 --   本人は自分の回答・補足を確認／修正できる。
 --   他人の勤務回答・補足は、ログイン＋給与提出資格が要る。一般の追加結果はログイン後。
+-- 2026-10-11 オーナー指定（上の「一般の追加結果はログイン後」を置き換える）:
+--   「他の人が出した情報は、給与提出後に見れる形。」
+--   「給与を提出していて、やっぱり5つにしよう。さらに自分の会社に5つ以上答えた人（両方）」
 --
 -- ■ 貼る順（必ずこの順）
 --     db/pay-rows.sql → db/conditions.generated.sql → db/airline-conditions.sql
@@ -55,6 +58,16 @@ begin
   if to_regprocedure('public.pv_condition_range_other(text)') is null
      or to_regprocedure('public.pv_condition_range_bad(text, numeric, text, numeric, text)') is null then
     raise exception '先に db/airline-conditions.sql を実行してください（pv_condition_range_other / pv_condition_range_bad が無い）';
+  end if;
+  if to_regclass('public.pay_reports') is null then
+    raise exception '先に db/pay-reports.sql を実行してください（pay_reports が無い）';
+  end if;
+  if to_regprocedure('public.pv_airline_resolve(text)') is null
+     or to_regprocedure('public.pv_is_operator()') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pv_airline_resolve / pv_is_operator が無い）';
+  end if;
+  if to_regprocedure('public.pv_work_hash(uuid, text, text)') is null then
+    raise exception '先に db/work-months.sql を実行してください（pv_work_hash が無い）';
   end if;
 end $$;
 
@@ -994,6 +1007,245 @@ grant execute on function public.claim_contrib(jsonb) to authenticated;
 
 comment on function public.claim_contrib(jsonb) is
   '預けた回答を、ログインした本人が鍵を出して引き継ぐ。入れるのは会員の入口だけ。資格は何も付けない。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 6-b. 誰に見せるか（補足も、集計も、月の勤務も、ここ1か所）
+-- ════════════════════════════════════════════════════════════════
+-- 2026-10-11 オーナー指定:
+--   「他の人が出した情報は、給与提出後に見れる形。」
+--   「給与を提出していて、やっぱり5つにしよう。さらに自分の会社に5つ以上答えた人（両方）」
+--
+--   未ログイン                              … 'login'   何も返さない
+--   ログインしただけ（給与の鍵が無い・切れた） … 'locked'  何も返さない
+--   給与の鍵が生きている
+--     自分の会社                            … 'open'
+--     ほかの会社 ＋ 自分の会社に5つ答えた      … 'open'
+--     ほかの会社 ＋ まだ5つに届かない          … 'give'    何も返さない
+--   運営                                    … 'open'
+-- ★「自分の会社」＝ 自分が給与を出した会社（pay_reports の行。サーバが作り直せる印でしか引けない）。
+--   プロフィールの「在籍企業」は読まない ── 本人がいつでも書き換えられる字なので、会社を1つずつ
+--   「自分の会社」に書き換えれば、5つ答えずに全社を読めてしまう。
+-- ★「答えた」＝ 3人の集計が、その人の1件として数えるのと同じ決め方の行（db/airline-conditions.sql の 9）。
+--   「ない」も 0 も答え。「わからない」・スキップ・上の質問を答え直して外れた答えは数えない。
+--   ログインせずに預けた回答は、引き継いで会員の行になってから数える。
+-- ★何も書き込まない・何も覚えない（stable）。読むたびに数え直す ＝ 資格を1つも付けない。
+-- ⚠️ 決まりを動かすときは、ここの関数だけを直す。読む口（このファイルの pv_contrib_facts / pv_contrib_notes ／
+--    db/work-months.sql の pv_work_view / pv_work_month_stats ／ db/airline-conditions.sql の
+--    next_condition_questions）と、カードの材料（pv_contrib_give）は、pv_contrib_sees を**呼ぶ**。
+--    立場や会社や数の条件を、そちらに書き足さない（片方だけ開く）。
+
+-- 6-b-1. 自分の会社に答える数。★「5」はこの1か所だけ。
+create or replace function public.pv_contrib_need()
+returns int
+language sql
+immutable
+as $$ select 5 $$;
+revoke all on function public.pv_contrib_need() from public, anon, authenticated;
+
+-- 6-b-2. 自分の会社（＝ 自分が給与を出した会社）と、その会社について答えた質問の数。1社＝1行。
+--   o_code  … 会社の code。打ち込んだ社名が一覧の会社に当たれば、その code。当たらなければ 'other'
+--   o_name  … 一覧に無い会社のときだけ、打ち込んだ社名（小文字。回答の印を作る材料）
+--   o_label … 一覧に無い会社のときだけ、打ち込んだままの社名（本人の画面に字として出すだけ）
+--   o_ym    … その会社でいちばん新しい給与の対象月（YYYYMM）／ o_at … その行を出した時刻
+--   o_have  … その会社について答えた、別々の質問の数
+--   o_hs    … その会社についての、その人の回答の印（外へは出さない。数えるのと、カードの並びに使うだけ）
+--             一覧の会社 … code の印 ＋ 社名を打ち込んで給与を出したことがあれば、その社名の印
+--             （一覧に載る前に、打ち込んだ社名のまま答えた分を、載ったあとも数えるため）
+--             一覧に無い会社 … 打ち込んだ社名の印
+-- ★誰にも渡さない。p_uid は呼ぶ側が auth.uid() を渡す（外から人を名指しして呼ぶ口は無い）。
+create or replace function public.pv_contrib_own(p_uid uuid)
+returns table (o_code text, o_name text, o_label text, o_ym int, o_at timestamptz, o_have int, o_hs text[])
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  with mine as (
+    -- 一覧から選んだ会社：code は有限なので、総当たりで印を作れる（pv_my_give と同じ引き方）
+    select a.code as code, null::text as nm,
+           public.pv_work_hash(p_uid, a.code, null) as h
+      from public.pv_airlines a
+     where a.code <> 'other'
+    union all
+    -- 打ち込んだ社名：実在する社名だけを候補にして作り直す。使うのは印の材料としてだけ
+    select public.pv_airline_resolve(o.nm), o.nm,
+           public.pv_work_hash(p_uid, 'other', o.nm)
+      from (select distinct lower(r.airline_other) as nm
+              from public.pay_reports r
+             where r.airline = 'other' and r.airline_other is not null) o
+  ),
+  paid as (
+    select m.code                                                   as code,
+           case when m.code = 'other' then m.nm end                 as nm,
+           max(case when m.code = 'other' then r.airline_other end) as label,
+           max(r.period_year * 100 + r.period_month)::int           as ym,
+           max(r.created_at)                                        as last_at,
+           coalesce(array_agg(distinct public.pv_condition_hash(p_uid, 'other', m.nm))
+                      filter (where m.nm is not null), '{}'::text[])
+             || case when m.code <> 'other'
+                     then array[public.pv_condition_hash(p_uid, m.code, null)]
+                     else '{}'::text[] end                          as hs
+      from mine m
+      join public.pay_reports r on r.proof_hash = m.h
+     where p_uid is not null
+     group by m.code, case when m.code = 'other' then m.nm end
+  )
+  select p.code, p.nm, p.label, p.ym, p.last_at,
+         (select count(distinct c.question_id)::int
+            from public.airline_conditions c
+            join public.pv_condition_questions q on q.id = c.question_id and q.active
+           where c.proof_hash = any(p.hs)
+             and c.answer_code is distinct from 'unknown'
+             and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num,
+                              c.answer_text, c.answer_json) > 0
+             and not exists (
+                   select 1 from public.pv_condition_links k
+                    where k.question_id = c.question_id
+                      and not exists (
+                        select 1 from public.airline_conditions u
+                         where u.proof_hash = c.proof_hash and u.question_id = k.parent
+                           and (u.answer_code = any(k.parent_when)
+                                or u.answer_codes && k.parent_when)))),
+         p.hs
+    from paid p
+$fn$;
+revoke all on function public.pv_contrib_own(uuid) from public, anon, authenticated;
+
+-- 6-b-3. 決める所。返すのは 'login' / 'locked' / 'give' / 'open' の1語。
+-- ★立場が先。未ログインと、給与の鍵が無い人には、聞かれた会社を見ずに返す
+--   ＝ 在る会社・無い会社・引数なしで、返事が1文字も違わない。
+-- ★'give' を決めるときに読むのは、読む人自身の行だけ（聞かれた会社の回答は1行も読まない
+--   ＝ 回答が在る会社と無い会社で、返事も、かかる時間も変わらない）。
+-- ★給与の鍵は生きているのに、給与の行が1つも無い人（鍵を手で立てた場合だけ）は 'locked'
+--   ＝ 鍵の無い会員と同じ返事。会社は給与の提出で決まる。
+-- ★会社を指さずに呼ぶ（null）と、「どこかの会社が開くか」ではなく「ほかの会社が開くか」を答える
+--   （自分の会社の枝は null に当たらない）。pv_contrib_give はこの形で呼ぶ。
+-- ★誰にも渡さない。security definer の関数の中からだけ呼ぶ。
+create or replace function public.pv_contrib_sees(p_airline text)
+returns text
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+declare
+  v_level text := public.pv_work_level();
+  v_n     int;
+  v_ok    boolean;
+begin
+  if v_level is distinct from 'pay' then
+    return case when v_level = 'member' then 'locked' else 'login' end;
+  end if;
+  if public.pv_is_operator() then
+    return 'open';
+  end if;
+  select count(*),
+         coalesce(bool_or(o.o_have >= public.pv_contrib_need()
+                          or (o.o_code <> 'other' and o.o_code = p_airline)), false)
+    into v_n, v_ok
+    from public.pv_contrib_own(auth.uid()) o;
+  if v_n = 0 then
+    return 'locked';
+  end if;
+  return case when v_ok then 'open' else 'give' end;
+end;
+$fn$;
+revoke all on function public.pv_contrib_sees(text) from public, anon, authenticated;
+
+comment on function public.pv_contrib_sees(text) is
+  '他人の補足・集計・月の勤務を、いま読んでいる人に、その会社について見せてよいか。決まりはここ1か所。外からは呼べない。';
+
+-- 6-b-4. 読む人自身のいまの数と、次に答える質問（「見るためのカード」の材料）。何も決めない。
+-- 受け取る形: {}（引数は読まない）
+-- 返す形:
+--   未ログイン                     … { ok, state:'login' }
+--   鍵が無い／給与の行が無い        … { ok, state:'locked' }
+--   もう足りている・運営            … { ok, state:'open' }
+--   まだ足りない                   … { ok, state:'give', airline, name, have, need, ask:[id…] }
+--     airline … カードが聞く会社 ＝ いちばん新しい給与の会社（code。一覧に無い会社は 'other'）
+--     name    … その社名（一覧の会社は pv_airlines の名前。一覧に無い会社は、本人が打ち込んだ字）
+--     have    … その会社について、その人が答えた別々の質問の数 ／ need … pv_contrib_need()
+--     ask     … 次に答える質問の id（8件まで）。その会社で答えた人が少ない質問が先。
+-- ★状態の1語は pv_contrib_sees(null) の答えをそのまま返す。ここで立場・運営・数を見直さない
+--   （見直すと、決まりの写しが2つになる）。
+-- ★返す数字は have と need の2つだけ ＝ どちらも本人の数。ほかの人の回答の数は、並べる順にだけ使い、
+--   数としては1つも返さない。
+-- ★一覧に無い会社は ask が空（会社ページも集計も無い。答える場所は質問の画面）。
+create or replace function public.pv_contrib_give(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+declare
+  v_sees  text := public.pv_contrib_sees(null);
+  v_uid   uuid := auth.uid();
+  v_own   record;
+  v_ask   jsonb := '[]'::jsonb;
+begin
+  if v_sees is distinct from 'give' then
+    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'));
+  end if;
+
+  -- カードが聞く会社 ＝ いちばん新しい給与の会社
+  select o.* into v_own
+    from public.pv_contrib_own(v_uid) o
+   order by o.o_ym desc, o.o_at desc, o.o_code
+   limit 1;
+  if not found then                              -- 起きない（上と同じ時点の表を読む）。起きたら閉じる側へ
+    return jsonb_build_object('ok', true, 'state', 'locked');
+  end if;
+
+  if v_own.o_code <> 'other' then
+    select coalesce(jsonb_agg(z.id order by z.rn), '[]'::jsonb)
+      into v_ask
+      from (
+        select y.id, row_number() over (order by y.n asc, y.priority asc, y.id asc) as rn
+          from (
+            select q.id, q.priority,
+                   (select count(distinct c.proof_hash)
+                      from public.airline_conditions c
+                     where c.airline = v_own.o_code and c.airline_other is null
+                       and c.question_id = q.id
+                       and c.answer_code is distinct from 'unknown'
+                       and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num,
+                                        c.answer_text, c.answer_json) > 0) as n
+              from public.pv_condition_questions q
+             where q.active
+               and q.kind <> 'lines'
+               -- まだ1度も触っていない質問だけ（答えた・わからない・スキップした質問は出さない）
+               and not exists (select 1 from public.airline_conditions m
+                                where m.proof_hash = any(v_own.o_hs) and m.question_id = q.id)
+               -- 親の条件が、その人自身の答えで、いちばん上まで続いている質問だけ
+               and not exists (
+                     select 1 from public.pv_condition_links k
+                      where k.question_id = q.id
+                        and not exists (select 1 from public.airline_conditions m
+                                         where m.proof_hash = any(v_own.o_hs) and m.question_id = k.parent
+                                           and (m.answer_code = any(k.parent_when)
+                                                or m.answer_codes && k.parent_when)))
+          ) y
+      ) z
+     where z.rn <= 8;
+  end if;
+
+  return jsonb_build_object(
+    'ok', true, 'state', 'give',
+    'airline', v_own.o_code,
+    'name', case when v_own.o_code = 'other' then v_own.o_label
+                 else (select a.name_ja from public.pv_airlines a where a.code = v_own.o_code) end,
+    'have', v_own.o_have,
+    'need', public.pv_contrib_need(),
+    'ask', v_ask);
+end;
+$fn$;
+revoke all on function public.pv_contrib_give(jsonb) from public;
+grant execute on function public.pv_contrib_give(jsonb) to anon, authenticated;
+
+comment on function public.pv_contrib_give(jsonb) is
+  '読む人自身の、自分の会社への回答の数（have／need）と、次に答える質問の並び。状態は pv_contrib_sees の答え。ほかの人の回答は数としては返さない。何も書かない。';
 
 
 -- ════════════════════════════════════════════════════════════════
