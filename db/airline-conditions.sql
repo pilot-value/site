@@ -1099,8 +1099,8 @@ revoke all on function public.pv_contributor_stats() from public, anon, authenti
 --  ・answer_text / answer_json は1列も出さない
 --  ・通貨つきの質問は median_num を出さない（通貨の違う額を1つの数字にまとめない）
 --  ・airline_other がある行は除外（自由入力の社名そのものが識別子）
---  ・answer_dist を出すのは、回答が割れたときに多数決で事実にしないため。
---    画面は「8名中7名が『あり』」のように、割れていることが見える形で出す
+--  ・answer_dist（答えごとの人数）を持つのは、並んだ答えの片方を「最多」と書かないため。この列は外へ出さない ──
+--    db/contrib.sql の pv_contrib_facts が、answer_dist・n・kind から「最多」と書いてよい答え（lead）だけを決めて返す
 drop view if exists public.airline_condition_facts;
 create view public.airline_condition_facts as
 with ans as (

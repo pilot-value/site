@@ -39,9 +39,12 @@
 --     直接は1行も読めない・書けない。出入口は security definer の関数だけ。
 --  7. 外へ出す数字は幅（25%点〜75%点）だけ。口は2つ ── 月を指して読む pv_work_month_stats と、
 --     会社ページが読む pv_work_view（直近12か月をまとめた幅）。
---       ・★読めるのは**給与の鍵が生きている人だけ**（2026-10-07 オーナー指定
---         「他人の勤務回答はログイン＋給与提出資格」）。ほかの人へは数字を1つも返さない
---         （ぼかして隠すのではなく、送らない）。立場を決めるのは pv_work_level の1か所。
+--       ・★読めるのは、db/contrib.sql の pv_contrib_sees が「開いている」と答えた人だけ
+--         （2026-10-11 オーナー指定。それまでは 2026-10-07 の「給与の鍵が生きている人」）。
+--         ほかの人へは数字を1つも返さない（ぼかして隠すのではなく、送らない）。
+--         見てよいかを決めるのは pv_contrib_sees の1か所。決まりの中身はあちらに在る（ここに写さない）。
+--         ⚠️ あのファイルは、このファイルより後に貼る。まだ無い DB では、2つの口は
+--            「関数が無い」と言って止まる（閉じる側に倒れる・開く側には倒れない）。
 --       ・項目ごとに、答えた人が3人以上のときだけ。届かない項目は null。
 --       ・平均も中央値も人数も返さない。時間は5刻み・日数と泊数は1刻みに丸める。
 --       ・3人に届かない月は、誰も出していない月と**同じ返事**になる（在る／無いも出さない）。
@@ -132,8 +135,9 @@ create table if not exists public.pv_work_months (
   -- 通勤・移動を含めたか  'yes' ／ 'no' ／ 'unknown'
   commute_included text,
   -- ひとこと（任意・500字まで）。集計には使わない。
-  -- ★2026-10-07 から、本人のほかに**給与の鍵が生きている会員**にも返す
-  --   （オーナー指定「他人の勤務回答・補足はログイン＋給与提出資格」）。
+  -- ★2026-10-07 から、本人のほかに、見てよい人にも返す
+  --   （見てよいかは、2026-10-11 から db/contrib.sql の pv_contrib_sees が決める。
+  --     それまでは「給与の鍵が生きている会員」だった）。
   --   返すのは db/contrib.sql の pv_contrib_notes だけで、文そのものしか返さない
   --   （対象月・職位・機種・数字は付けない）。入力する画面に「誰に見えるか」を書いてある。
   note          text,
@@ -228,7 +232,7 @@ comment on column public.pv_work_months.duty_hours_basis is
 comment on column public.pv_work_months.commute_included is
   '通勤・移動を含めたか（本人の申告）。yes / no / unknown。';
 comment on column public.pv_work_months.note is
-  'ひとこと。本人（my_work_months）と、給与の鍵が生きている会員（pv_contrib_notes・文だけ）に返す。集計には使わない。';
+  'ひとこと。本人（my_work_months）と、見てよい人（pv_contrib_notes・文だけ。見てよいかは pv_contrib_sees が決める）に返す。集計には使わない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -861,13 +865,16 @@ $fn$;
 -- ★誰にも渡さない。pv_work_month_stats の中からだけ呼ぶ。
 revoke all on function public.pv_work_month_cells(text, text) from public, anon, authenticated;
 
--- 8-c-0. 見ている人の立場（勤務の幅と、他人の補足を返してよいかを決める1か所）。
+-- 8-c-0. 見ている人の立場（ログインしているか・給与の鍵が生きているか）。
+-- ★勤務の幅や他人の補足を「返してよいか」は、2026-10-11 から、ここでは決めない。
+--   決めるのは db/contrib.sql の pv_contrib_sees の1か所で、あちらがこの関数を呼ぶ
+--   （下の2つの口は、この関数ではなく pv_contrib_sees に聞く）。
 --   'anon'   … ログインしていない
 --   'member' … ログインしている（給与の鍵は無い）
 --   'pay'    … ログインしていて、給与の鍵が生きている（運営を含む）
 -- ★「給与の鍵」は REAL PAY の一覧が開く条件と**同じ**（期限つきの鍵か、運営）。
 --   条件をここで作り直さない ── 勤務・口コミ・補足を出しただけの人は 'member' のまま。
--- ★誰にも渡さない。security definer の中からだけ呼ぶ（db/contrib.sql も同じものを呼ぶ）。
+-- ★誰にも渡さない。security definer の中からだけ呼ぶ（呼ぶのは db/contrib.sql の pv_contrib_sees）。
 create or replace function public.pv_work_level()
 returns text
 language sql
@@ -890,8 +897,9 @@ revoke all on function public.pv_work_level() from public, anon, authenticated;
 -- 8-c. 外から呼ぶ口（月を指して読む）。
 -- 受け取る形: { airline, position, year?, month? }
 -- 返す形:
---   資格が無い … { ok:true, state:'login' }（未ログイン）／{ ok:true, state:'locked' }（給与の鍵が無い）
---                **数字は1つも入らない**（月の一覧も返さない）。
+--   資格が無い … { ok:true, state:'login' }（未ログイン）／{ ok:true, state:'locked' }（給与の鍵が無い）／
+--                { ok:true, state:'give' }（給与の鍵は在るが、この会社はまだ開いていない）
+--                **数字は1つも入らない**（月の一覧も返さない）。どの会社を聞いても同じ字。
 --   年月あり … { ok:true, state:'open', airline, position, year, month,
 --                items:{ block_hours, duty_hours, work_days, duty_days, days_off, stay_nights } }
 --              各項目は { lo, hi } か null（3人に届かない）
@@ -899,7 +907,7 @@ revoke all on function public.pv_work_level() from public, anon, authenticated;
 --              どれか1項目でも幅が出る月だけ・新しい月が先・24件まで
 -- ★個票は返さない。人数も返さない（幅が出ていること＝3人以上、としか分からない）。
 -- ★3人に届かない月と、誰も出していない月は、**同じ返事**になる。
--- ★呼ぶこと自体は誰でもできる（資格は中で pv_work_level が決める）。
+-- ★呼ぶこと自体は誰でもできる（見てよいかは、中で db/contrib.sql の pv_contrib_sees に聞く）。
 --   実行権で閉じると、資格の無い人には「エラー」と「まだ無い」の区別が付かなくなる。
 create or replace function public.pv_work_month_stats(p jsonb default '{}'::jsonb)
 returns jsonb
@@ -916,12 +924,11 @@ declare
   v_year    int;
   v_month   int;
   v_items   jsonb;
-  v_level   text := public.pv_work_level();
+  v_sees    text := public.pv_contrib_sees(v_airline);   -- db/contrib.sql（あとのファイル）。無ければここで止まる
 begin
   -- 資格が先。無い人には、会社や月が正しいかどうかも答えない
-  if v_level <> 'pay' then
-    return jsonb_build_object(
-      'ok', true, 'state', case when v_level = 'anon' then 'login' else 'locked' end);
+  if v_sees is distinct from 'open' then
+    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'));
   end if;
 
   if v_airline is null
@@ -980,12 +987,12 @@ grant execute on function public.pv_work_month_stats(jsonb) to anon, authenticat
 comment on function public.pv_work_month_stats(jsonb) is
   '月の勤務の幅（会社×職位×月）。項目ごとに3人以上が答えたときだけ { lo, hi }（25%点〜75%点）。'
   '平均・中央値・人数・個票は返さない。年月を省くと、幅が出る月の一覧（新しい順・24件まで）。'
-  '★給与の鍵が生きている人にだけ返す（ほかの人には state だけ）。';
+  '★見てよい人（db/contrib.sql の pv_contrib_sees が決める）にだけ返す（ほかの人には state だけ）。';
 
 -- 8-d. 会社ページと比較が読む口（直近12か月をまとめた幅）。
 -- 受け取る形: { airline }
 -- 返す形:
---   資格が無い … { ok:true, state:'login' | 'locked' }（数字は1つも入らない）
+--   資格が無い … { ok:true, state:'login' | 'locked' | 'give' }（数字は1つも入らない）
 --   資格あり   … { ok:true, state:'open', airline, months:12,
 --                  by:{ cap:{ block_hours, duty_hours, work_days, duty_days, days_off, stay_nights },
 --                       fo:{ … } } }
@@ -1006,16 +1013,15 @@ set search_path = public, extensions
 as $$
 declare
   v_airline text := nullif(btrim(p->>'airline'), '');
-  v_level   text := public.pv_work_level();
+  v_sees    text := public.pv_contrib_sees(v_airline);   -- db/contrib.sql（あとのファイル）。無ければここで止まる
   v_from    int  := extract(year from current_date)::int * 12
                     + extract(month from current_date)::int - 12;
   v_by      jsonb := '{}'::jsonb;
   v_pos     text;
   v_one     jsonb;
 begin
-  if v_level <> 'pay' then
-    return jsonb_build_object(
-      'ok', true, 'state', case when v_level = 'anon' then 'login' else 'locked' end);
+  if v_sees is distinct from 'open' then
+    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'));
   end if;
   if v_airline is null or v_airline = 'other'
      or not exists (select 1 from public.pv_airlines where code = v_airline) then
@@ -1062,7 +1068,7 @@ grant execute on function public.pv_work_view(jsonb) to anon, authenticated;
 
 comment on function public.pv_work_view(jsonb) is
   '会社ページ用：直近12か月の月の勤務の幅（職位ごと）。1人につき1つの値にまとめてから、'
-  '項目ごとに3人以上のときだけ { lo, hi }。★給与の鍵が生きている人にだけ返す。';
+  '項目ごとに3人以上のときだけ { lo, hi }。★見てよい人（db/contrib.sql の pv_contrib_sees が決める）にだけ返す。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1078,8 +1084,8 @@ select (select count(*) from pg_policies
          where oid = 'public.pv_work_months'::regclass)                           as 表は閉じている,
        not has_function_privilege('anon', 'public.submit_work_month(jsonb)', 'execute')
                                                                                   as 未ログインは出せない,
-       pg_get_functiondef('public.pv_work_month_stats(jsonb)'::regprocedure) like '%pv_work_level()%'
-         and pg_get_functiondef('public.pv_work_view(jsonb)'::regprocedure) like '%pv_work_level()%'
+       pg_get_functiondef('public.pv_work_month_stats(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.pv_work_view(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
          and not has_function_privilege('authenticated', 'public.pv_work_month_cells(text, text)', 'execute')
          and not has_function_privilege('authenticated', 'public.pv_work_month_people(text, text)', 'execute')
                                                                                   as 幅は資格を見てから返す,

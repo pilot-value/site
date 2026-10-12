@@ -175,7 +175,7 @@ console.log('\n════ ソース ════');
     'submit_airline_conditions', 'submit_contrib_anon', 'submit_work_month']),
     '呼ぶ関数は7つだけ（会員の「出す」「読む」×2・未ログインの「預ける」「読む」・ログイン後の「引き継ぐ」）', J(rpcs));
   ok(J(rpcDyn) === J(['MEMBER_FN[kind]', 'name']), '名前を表から引いて呼ぶのは、会員の「出す」の1か所だけ（ほかに見えない呼び出しが無い）', J(rpcDyn));
-  ok(!/pv_work_view|pv_contrib_notes|pv_pay_rows|pv_reviews/.test(code), '「情報を追加」の面は、ほかの人の回答・給与・口コミを読む口を1つも呼ばない');
+  ok(!/pv_work_view|pv_contrib_notes|pv_pay_rows|pv_reviews|pv_contrib_facts|airline_condition_facts|pv_contrib_give|pv_contrib_sees/.test(code), '「情報を追加」の面は、ほかの人の回答・給与・口コミを読む口を1つも呼ばない');
 
   /* サーバの決まりを写している値（預かりの日数）が、正本と同じか。
      「消える日」を決めているのはサーバで、ここが違っていても

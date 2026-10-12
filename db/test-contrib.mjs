@@ -247,8 +247,8 @@ console.log('\n▼ 1. 権限（誰が何をできるか）');
 
   const chk = (await db.query(CONTRIB_SQL.slice(CONTRIB_SQL.lastIndexOf('\nselect (select count(*) from pg_policies')))).rows[0];
   const vals = Object.entries(chk);
-  ok(vals.length === 7 && Number(vals[0][1]) === 0 && vals.slice(1).every(([, v]) => v === true),
-    '末尾の検算：ポリシー数 0・残り6つが全部 true', J(chk));
+  ok(vals.length === 10 && Number(vals[0][1]) === 0 && vals.slice(1).every(([, v]) => v === true),
+    '末尾の検算：ポリシー数 0・残り9つが全部 true', J(chk));
 }
 
 
@@ -420,7 +420,7 @@ const wallKeys = [];
   ok(wallKeys.every((k) => KEY.test(k || '')) && new Set(wallKeys).size === 3, '3台それぞれに別の鍵');
   const v = await view(READER, { airline: A_WALL });
   ok(v.state === 'open' && v.by.cap.block_hours === null, '★未ログインの3人ぶんでは、勤務の幅は出ない（3人の壁を鍵3本で破れない）', J(v.by?.cap));
-  ok(await cnt(`public.airline_condition_facts where airline = $1`, [A_WALL]) === 0, '★公開の集計にも入っていない');
+  ok(await cnt(`public.airline_condition_facts where airline = $1`, [A_WALL]) === 0, '★集計にも入っていない');
   const n = await notes(READER, A_WALL);
   ok(n.state === 'open' && n.notes.length === 0, '★預かりの補足・ひとことは、資格者にも出ない', J(n));
 }
@@ -475,7 +475,7 @@ console.log('\n▼ 6. ログインして引き継ぐ');
   ok(v.by.cap.block_hours && v.by.cap.block_hours.lo === 75 && v.by.cap.block_hours.hi === 85,
     '★3人が引き継いで、はじめて勤務の幅が出る（投稿が集計へ届く）', J(v.by.cap));
   ok(await cnt(`public.airline_condition_facts where airline = $1 and question_id = 'peer_support'`, [A_WALL]) >= 1,
-    '★公開の集計にも入る');
+    '★集計にも入る');
   ok(await cnt(`public.pv_contrib_pending where airline = $1`, [A_WALL]) === 0, '預かりは空になった');
 }
 
@@ -1130,7 +1130,7 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
    そのかわり、**出す側が毎回「上の質問まで条件が続いているか」を見る**。ここで見るのは2つ ──
      ・他人の補足（pv_contrib_notes）…… 続いていない人の補足を見せ続けない
      ・預かりの引き継ぎ（claim_contrib）…… 続いていない額を、会員の回答にしない
-   公開の集計の側は db/test-conditions.mjs の ㉑ が見ている。
+   集計の側は db/test-conditions.mjs の ㉑ が見ている。
    ⚠️ 下の額と文は検査のための作りもの。どの会社の着陸手当でもない。 */
 {
   const [W, MEM, P1, P2] = await crew(4);
@@ -1155,7 +1155,7 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
   await condM(W, LP('no'));
   n = await notes(MEM, A_CLAIM);
   ok(none(n), '★着陸手当を「ない」に答え直した人の、下の質問への古い補足を、他人に見せ続けない', J(n));
-  ok(none(await notes(W, A_CLAIM)), '   書いた本人の一覧からも外れる（公開の集計と同じ決め方）');
+  ok(none(await notes(W, A_CLAIM)), '   書いた本人の一覧からも外れる（集計と同じ決め方）');
   ok(await cnt(`public.airline_conditions where airline = $1 and question_id = 'landing_pay_varies_by'
                  and answer_text = '空港によって違う' and text_shared`, [A_CLAIM]) === 1,
     '   行そのものは消していない（答え直せば戻せる）');

@@ -25,7 +25,7 @@
 --      社名・自己申告・公開 URL は本人の証拠にしない。画面が作った鍵も受け付けない
 --      （表に無い鍵は「知らない鍵」＝ 新しい鍵を作って返す）。
 --   2. **預かっているあいだは、集計にも、他人の画面にも出さない。**
---      集計（3人以上で幅を出す・公開の集計ビュー）が数えるのは会員の行だけ。
+--      集計（3人以上で幅を出す・集計のビュー）が数えるのは会員の行だけ。
 --      未ログインの回答を数えると、1人が鍵を3つ作るだけで「3人の壁」を破れる。
 --      ログインして引き継いだ時に、はじめて会員の行になり、集計に入る。
 --   3. **預かる時の検品は、会員の入口と同じ関数。** 預かった時に通ったものが、
@@ -43,6 +43,9 @@
 --        給与の鍵が生きている ＋ ほかの会社          … 自分の会社に5つ答えた人にだけ、全部
 --      決めるのは 6-b の pv_contrib_sees の1か所。
 --      「見せます」と書いた画面から送られた補足（text_shared）だけ。昔の補足は本人だけのまま。
+--   7. **他人の回答の集計も、同じ決まりで返す。** 集計のビュー（airline_condition_facts）は
+--      誰にも直接読ませない。読む口は pv_contrib_facts の1つで、「誰に何を見せるか」は
+--      補足と同じ pv_contrib_sees の1か所。3人の壁はその上に乗ったまま（代わりにはしない）。
 --
 -- ■ 何度流しても同じ結果になる（冪等）。
 
@@ -70,6 +73,9 @@ begin
   end if;
   if to_regprocedure('public.pv_work_hash(uuid, text, text)') is null then
     raise exception '先に db/work-months.sql を実行してください（pv_work_hash が無い）';
+  end if;
+  if to_regclass('public.airline_condition_facts') is null then
+    raise exception '先に db/airline-conditions.sql を実行してください（airline_condition_facts が無い）';
   end if;
 end $$;
 
@@ -1343,6 +1349,113 @@ comment on function public.pv_contrib_notes(jsonb) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 7-b. 他人の回答の集計（立場をサーバが見てから返す）
+-- ════════════════════════════════════════════════════════════════
+-- 受け取る形: { airline: 'jal', keys: ['reserve_duty', 'staff_travel', …] }   keys は 1〜120
+-- 返す形:
+--   開いていない人 … { ok, state:'login' | 'locked' | 'give' }   ← 状態の1語だけ。facts は鍵ごと無い
+--   開いている人   … { ok, state:'open', facts:[…] }
+--   facts の1件 … { question_id, kind, n, lead, median_num, ym }
+--     lead … 「最多」と書いてよい答えの符号の並び（決め方は、関数の中の説明の1か所）。null ＝ 数の質問など／空 ＝ 回答が分かれている
+--     ym … 最後に確かめられた月（'YYYY-MM'）。日時は返さない（「さっき出した人」が分かる）
+-- ★見せてよいかは pv_contrib_sees が決める。ここは、その1語を聞いてから先へ進むだけ。
+-- ★開いていない人には、会社が在るか・質問の指定が正しいかにも答えない・止めない
+--   ＝ 在る会社・無い会社・引数なしで、返事が1文字も違わない。
+-- ★3人そろっていない質問は、開いている人にも返さない（行が無い ＝ 誰も答えていないのと同じ返事）。
+--   3人の壁・親の条件・通貨つきの額の扱いは、ビュー（db/airline-conditions.sql の 9）が決めたまま。
+--   ここは回答の表を直接読まない。
+-- ★返さないもの ── 答えごとの人数（分布）・割合・top_code・「わからない」の数・節・日時。
+-- ★読むだけ（stable）。資格は1つも付けない・1つも書かない。
+create or replace function public.pv_contrib_facts(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $$
+declare
+  v_airline text := nullif(btrim(p->>'airline'), '');
+  v_sees    text := public.pv_contrib_sees(v_airline);
+  v_keys_ok boolean;
+  v_keys    text[] := '{}'::text[];
+  v_facts   jsonb;
+begin
+  -- 開いていない人には、ここまで（会社が在るか・質問の指定が正しいかにも答えない・止めない）
+  if v_sees is distinct from 'open' then
+    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'));
+  end if;
+
+  v_keys_ok := case when jsonb_typeof(p->'keys') = 'array'
+                    then jsonb_array_length(p->'keys') between 1 and 120
+                    else false end;
+  if not v_keys_ok then
+    raise exception '質問の指定が正しくありません' using errcode = '22023';
+  end if;
+  select coalesce(array_agg(distinct k.v), '{}'::text[])
+    into v_keys
+    from jsonb_array_elements_text(p->'keys') as k(v)
+   where k.v ~ '^[a-z0-9_]{1,64}$';
+  if v_airline is null or v_airline = 'other'
+     or not exists (select 1 from public.pv_airlines where code = v_airline) then
+    raise exception '航空会社が正しくありません' using errcode = '22023';
+  end if;
+
+  -- ★lead ＝ 画面が「最多」と書いてよい答え（符号の並び）。決めるのは、ここ1か所（画面は数えない・決めない）。
+  --   もとにするのは、ビューが数えたもの（answer_dist と n）だけ ＝「わからない」・スキップだけの行・
+  --   親の条件から外れた回答・社名を打った行は、ここでも数に入らない。
+  --     いちばん多い答えが1つ                         → その1つ
+  --     2つ以上並んだ                                 → 空の並び（画面は「回答が分かれています」）
+  --     ただし「選べるだけ選ぶ」質問で並んだ時は、先に台帳を見る ──
+  --       並んだ答えに台帳に無い符号が混じる（半分より多くても、少なくても） → null（画面は名前の引けない答えを出さない）
+  --       どれも、答えた人の半分より多く（かつ人数以下）が選んだ             → 並んだ答えぜんぶ
+  --     数の質問・数えた答えが1つも無い行             → null（数の質問は median_num）
+  --   並びは符号の順（collate "C"）＝ 同じ集計からは、いつも同じ字の返事。画面は台帳の順で出す（この順に頼らない）。
+  --   ⚠️ 答えごとの人数・割合・top_code は返さない。返すのは、決めた結果だけ。
+  select coalesce(jsonb_agg(jsonb_build_object(
+                    'question_id', f.question_id,
+                    'kind',        f.kind,
+                    'n',           f.n,
+                    'lead',        l.lead,
+                    'median_num',  f.median_num,
+                    'ym',          to_char(f.last_confirmed_at at time zone 'utc', 'YYYY-MM'))
+                  order by f.question_id), '[]'::jsonb)
+    into v_facts
+    from public.airline_condition_facts f
+    join public.pv_condition_questions q on q.id = f.question_id and q.active
+    left join lateral (
+      select case
+               when count(*) = 0 then null
+               when count(*) = 1 then jsonb_agg(t.code)
+               when f.kind <> 'multi' then '[]'::jsonb
+               when not bool_and(t.code = any(q.choice_codes)) then null
+               when max(t.c) * 2 > f.n and max(t.c) <= f.n
+                 then jsonb_agg(t.code order by t.code collate "C")
+               else '[]'::jsonb
+             end as lead
+        from (select e.key as code, e.value::int as c,
+                     max(e.value::int) over () as top
+                from jsonb_each_text(f.answer_dist) as e) t
+       where t.c = t.top
+    ) l on true
+   where f.airline = v_airline
+     and f.question_id = any(v_keys);
+
+  return jsonb_build_object('ok', true, 'state', 'open', 'facts', v_facts);
+end;
+$$;
+
+revoke all on function public.pv_contrib_facts(jsonb) from public;
+grant execute on function public.pv_contrib_facts(jsonb) to anon, authenticated;
+
+comment on function public.pv_contrib_facts(jsonb) is
+  '他人の回答の集計。見せてよいかは pv_contrib_sees が決める（開いていない人には状態の1語だけ）。3人そろった質問だけ。';
+
+-- ★集計のビューは、誰にも直接読ませない（db/airline-conditions.sql でも閉じている。
+--   あちらを古い版で貼り直した直後でも、このファイルを貼れば閉じる）。
+revoke all on public.airline_condition_facts from public, anon, authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 8. 検算（貼ったあとに出る1行。ポリシー数は 0・それ以外は全部 true が正しい）
 -- ════════════════════════════════════════════════════════════════
 -- ★「資格に触らない」は、関数の中身を文字で見ている。預かる・返す・引き継ぐ関数の**中に**、
@@ -1368,4 +1481,24 @@ select (select count(*) from pg_policies
           || pg_get_functiondef('public.my_contrib_anon(jsonb)'::regprocedure)
           || pg_get_functiondef('public.claim_contrib(jsonb)'::regprocedure))
          !~ '(access_until|pay_report|pay_streak|last_pay|badge|verify_level|founding|review_unlock)'
-                                                                                  as 資格に触らない;
+                                                                                  as 資格に触らない,
+       not has_table_privilege('anon', 'public.airline_condition_facts', 'select')
+         and not has_table_privilege('authenticated', 'public.airline_condition_facts', 'select')
+                                                                                  as 集計は誰も直接読めない,
+       pg_get_functiondef('public.pv_contrib_facts(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.pv_contrib_notes(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.pv_contrib_give(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.pv_work_view(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.pv_work_month_stats(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.next_condition_questions(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.pv_contrib_sees(text)'::regprocedure) like '%pv_work_level()%'
+                                                                                  as 集計と補足は同じ決まりで返す,
+       not has_function_privilege('anon', 'public.pv_contrib_sees(text)', 'execute')
+         and not has_function_privilege('authenticated', 'public.pv_contrib_sees(text)', 'execute')
+         and not has_function_privilege('authenticated', 'public.pv_contrib_own(uuid)', 'execute')
+         and (select bool_and(provolatile = 's') from pg_proc
+               where oid in ('public.pv_contrib_facts(jsonb)'::regprocedure,
+                             'public.pv_contrib_give(jsonb)'::regprocedure,
+                             'public.pv_contrib_sees(text)'::regprocedure,
+                             'public.pv_contrib_own(uuid)'::regprocedure))
+                                                                                  as 集計の口は読むだけ;

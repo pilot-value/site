@@ -158,12 +158,6 @@ const member = async () => {
 };
 const crew = async (n) => { const a = []; for (let i = 0; i < n; i++) a.push(await member()); return a; };
 
-/* 幅を読める人 ＝ 給与の鍵が生きている会員（2026-10-07 オーナー指定：他人の勤務はログイン＋給与提出資格）。
-   幅の中身を見る検査は、この人として読む。未ログインと、鍵の無い会員に何が返るかは 1. の節が見る。
-   ★鍵は検査の準備として持ち主が直接立てる（会員が自分で立てる道は無い）。 */
-const unlock = (id) => db.query(`update public.profiles set access_until = now() + interval '30 days' where id = $1`, [id]);
-const READER = await member();
-await unlock(READER);
 const view = (who, p) => rpc(who, 'pv_work_view', p);
 const ago = (k) => { const t = NOW.y * 12 + (NOW.m - 1) - k; return { year: Math.floor(t / 12), month: (t % 12) + 1 }; };
 
@@ -179,8 +173,8 @@ const rg = (v, lo, hi) => !!v && typeof v === 'object' && keys(v) === 'hi,lo' &&
 
 // 会社は語彙から機械的に取る（節ごとに別の会社を使い、互いの人数に混ざらないようにする）
 const AIR = (await many(
-  `select code from public.pv_airlines where code <> 'other' and active order by code limit 12`)).map((r) => r.code);
-const [A_ONE, A_ZERO, A_FIX, A_PRIV, A_CHK, A_GATE, A_WALL, A_BOTH, A_HID, A_LIST, A_CAP, A_VIEW] = AIR;
+  `select code from public.pv_airlines where code <> 'other' and active order by code limit 13`)).map((r) => r.code);
+const [A_ONE, A_ZERO, A_FIX, A_PRIV, A_CHK, A_GATE, A_WALL, A_BOTH, A_HID, A_LIST, A_CAP, A_VIEW, A_HOME] = AIR;
 const FLEET = (await one(`select code from public.pv_fleets where active order by code limit 1`)).code;
 
 /* 給与を1件出す（対照と、給与の行を材料にする節で使う）。
@@ -195,6 +189,37 @@ const pay = async (who, p) => {
   catch (e) { return { __err: String(e.message || e) }; }
   finally { await asOwner(); await db.exec(`update public.profiles set pay_reports_today = 0`); }
 };
+/* 幅を読める人 ＝ どの会社の幅も開いている人（2026-10-11 オーナー指定：他人の回答は、給与を出していて、
+   自分の会社に5つ答えた人に見せる。決めるのは db/contrib.sql の pv_contrib_sees の1か所）。
+   幅の中身を見る検査は、この人として読む。未ログインと、鍵の無い会員に何が返るかは 1. の節が、
+   自分の会社・ほかの会社・答えた数で返事がどう変わるかは 12-c. の節が見る。
+   ★開いている人は、会員が通る道だけで作る ＝ 本物の submit_pay_report で自分の会社（A_HOME）に先月ぶんの給与を出し、
+     本物の submit_airline_conditions でその会社に5つ答える。月は DB の時計から取る（打ち込まない・未来の月にしない）。
+     access_until を手で書いただけの鍵には給与の行が無いので、決める所は 'locked' と答える（12-c. の TW5）。
+   ★ここで出す給与に、勤務の数字は入れない（PAY に無い）＝ どの会社の幅も動かない。給与の行が増えるのは A_HOME だけ。
+   ★期限を過去にした鍵は、もう一度これを呼ぶと生き返る（同じ月の給与は行ごと置き換わり、鍵は今から先へ延びる）。 */
+// 答えに使う質問5つ。質問の表から読む（打ち込まない）── 親の無い「選ぶ」質問を、聞く順に。答えは「わからない」でない最初の選択肢
+const FIVE = (await many(
+  `select id, choice_codes from public.pv_condition_questions
+    where active and parent is null and kind = 'choice' order by priority, id`))
+  .slice(0, 5).map((q) => ({ question_id: q.id, code: q.choice_codes.find((c) => c !== 'unknown') }));
+// 準備の確かめ。通れば何も数えない。崩れたら ❌ を1行出して数える（黙って先へ進まない）
+const must = (c, l, e = '') => { if (!c) ok(false, '（準備が崩れた）' + l, e); return !!c; };
+// その会社で、先月ぶんの給与を出す
+const paid = async (who, airline) => {
+  const r = await pay(who, { airline, period_year: ago(1).year, period_month: ago(1).month });
+  must(!r.__err && r.access_until != null, `給与を出せなかった（${airline}）`, J(r));
+  return r;
+};
+// その会社について、FIVE の頭から n 問に答える
+const answer = async (who, airline, n) => {
+  const r = await rpc(who, 'submit_airline_conditions', { airline, answers: FIVE.slice(0, n) });
+  must(r.saved === n, `${n}問を保存できなかった（${airline}）`, J(r));
+  return r;
+};
+const unlock = async (id) => { await paid(id, A_HOME); await answer(id, A_HOME, 5); };
+const READER = await member();
+await unlock(READER);
 // 給与の門を、その人として見る
 const give = async (who) => {
   await db.query(`select set_config('pv.uid', $1, false)`, [who]);
@@ -831,6 +856,78 @@ console.log('\n▼ 12-b. 直近12か月の幅（会社ページと比較が読�
 
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-c. 幅は「見てよい人」の決まりを通る（自分の会社は給与の鍵だけ・ほかの会社は5つ答えてから）');
+// ════════════════════════════════════════════════════════════
+{
+  /* 決めるのは db/contrib.sql の pv_contrib_sees の1か所。ここで見るのは、幅の2つの口が**それに聞いている**こと
+     （立場だけで決めていた頃は、給与の鍵さえ生きていれば、どの会社の幅も返っていた）。
+     決まりそのもの（自分の会社とは何か・何を1つと数えるか）の検査は db/test-contrib.mjs の 8-0。
+     TW1 ＝ この検査の読む人（READER）が、新しい unlock（本物の給与＋5つ）を通って今までどおり全部読めること。
+           専用の行は無い ── 上の節の検査が、1行も直さずに緑のままであることが、その証明。 */
+  const GIVE = '{"ok":true,"state":"give"}', LOCKED = '{"ok":true,"state":"locked"}';
+  const [G, HAND, PLAIN] = await crew(3);
+  const MOUTHS = [
+    { name: '月ごとの幅', fn: 'pv_work_month_stats', q: (airline) => ({ airline, position: 'cap' }), full: A_WALL,
+      rich: (v) => Array.isArray(v.months) && v.months.length > 0,
+      odd: [WALL_Q, { airline: 'no-such-airline', position: 'cap' }, { airline: 'other', position: 'cap' }, { position: 'cap' }, undefined,
+            { airline: A_WALL, position: 'chief' }, { airline: A_WALL }, { ...WALL_Q, month: 13 }] },
+    { name: '直近の幅', fn: 'pv_work_view', q: (airline) => ({ airline }), full: A_VIEW,
+      rich: (v) => /"lo"/.test(J(v)),
+      odd: [{ airline: 'no-such-airline' }, { airline: 'other' }, {}, undefined] },
+  ];
+  const ask = (who, m, p) => rpc(who, m.fn, p);
+
+  // G ＝ A_ONE に給与を出した人（＝ A_ONE が自分の会社）。まだ1つも答えていない
+  await paid(G, A_ONE);
+  const bare = (await one(`select count(*)::int as n from public.pv_work_months where airline = $1`, [A_HOME])).n;
+  for (const m of MOUTHS) {
+    const own = await ask(G, m, m.q(A_ONE));
+    ok(own.ok === true && own.state === 'open' && J(own) === J(await ask(READER, m, m.q(A_ONE))),
+       `★TW2 自分の会社（給与を出した会社）の${m.name}は、1つも答えていなくても読める（どの会社も開いている人と同じ返事）`, J(own));
+    const oth = J(await ask(G, m, m.q(A_ZERO)));
+    ok(oth === GIVE, `★TW2 その人に、ほかの会社の${m.name}は返らない ＝ 返事は { ok, state:'give' } だけ`, oth);
+
+    // 幅が出ている会社・勤務の行が1つも無い会社・知らない会社・自由入力・会社なし・引数なし・正しくない職位や月
+    const full = await ask(READER, m, m.q(m.full));
+    const got = [];
+    for (const p of [m.q(m.full), m.q(A_HOME), ...m.odd]) got.push(J(await ask(G, m, p)));
+    ok(m.rich(full) && bare === 0 && got.every((s) => s === GIVE),
+       `★TW3 開いていない会社の${m.name}は、何をどう聞いても同じ字（幅が在る・無い、会社が在る・無いの手がかりを返さない・断りもしない）`,
+       `幅が在る会社を読める人が読むと ${J(full).slice(0, 120)} ｜ 行の無い会社の行数 ${bare} ｜ ${[...new Set(got)].join(' ｜ ')}`);
+  }
+
+  // 自分の会社に4つ：まだ開かない。5つめで、ほかの会社が開く
+  await answer(G, A_ONE, 4);
+  for (const m of MOUTHS) {
+    const four = [J(await ask(G, m, m.q(A_ZERO))), J(await ask(G, m, m.q(m.full)))];
+    ok(four.every((s) => s === GIVE), `★TW4 自分の会社に4つ答えた人には、ほかの会社の${m.name}はまだ返らない`, four.join(' ｜ '));
+  }
+  await answer(G, A_ONE, 5);
+  for (const m of MOUTHS) {
+    const z = await ask(G, m, m.q(A_ZERO)), f = await ask(G, m, m.q(m.full));
+    ok(z.state === 'open' && J(z) === J(await ask(READER, m, m.q(A_ZERO))) && m.rich(f) && J(f) === J(await ask(READER, m, m.q(m.full))),
+       `★TW4 5つめを答えると、ほかの会社の${m.name}が開く（どの会社も開いている人と同じ返事）`, `${J(z).slice(0, 160)} ｜ ${J(f).slice(0, 160)}`);
+  }
+
+  // 手で立てただけの鍵（給与の行が無い）は、鍵の無い会員と同じ返事
+  await db.query(`update public.profiles set access_until = now() + interval '30 days' where id = $1`, [HAND]);
+  for (const m of MOUTHS) {
+    const h = J(await ask(HAND, m, m.q(m.full))), p = J(await ask(PLAIN, m, m.q(m.full)));
+    ok(h === LOCKED && p === LOCKED, `★TW5 給与の行が無いのに鍵だけ生きている人への${m.name}の返事は、鍵の無い会員と同じ { ok, state:'locked' }`, `${h} ｜ ${p}`);
+  }
+
+  // 末尾の検算の列と、関数の中身（立場だけで決める書き方に戻っていない）
+  const res = await db.exec(WORK_SQL);
+  const chk = res[res.length - 1].rows[0] || {};
+  const defs = [];
+  for (const m of MOUTHS) defs.push((await one(`select pg_get_functiondef($1::regprocedure) as d`, [`public.${m.fn}(jsonb)`])).d);
+  ok(chk['幅は資格を見てから返す'] === true && defs.every((d) => d.includes('pv_contrib_sees(') && !d.includes('pv_work_level()')),
+     'TW6 幅の2つの口は、見てよいかを pv_contrib_sees に聞いている（立場だけで決めていない）・末尾の検算「幅は資格を見てから返す」が true',
+     J({ 検算: chk['幅は資格を見てから返す'], 聞いている: defs.map((d) => d.includes('pv_contrib_sees(')), 立場を直接読む: defs.map((d) => d.includes('pv_work_level()')) }));
+}
+
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 13. 返った JSON に、出てはいけないものが無い（この検査が受け取った返事ぜんぶ）');
 // ════════════════════════════════════════════════════════════
 {
@@ -844,7 +941,7 @@ console.log('\n▼ 13. 返った JSON に、出てはいけないものが無い
   const int = (v) => Number.isInteger(v);
   const shape = (v) => {
     if (v.ok !== true) return false;
-    if (v.state !== 'open') return keys(v) === 'ok,state' && (v.state === 'login' || v.state === 'locked');
+    if (v.state !== 'open') return keys(v) === 'ok,state' && (v.state === 'login' || v.state === 'locked' || v.state === 'give');
     if ('months' in v) {
       return keys(v) === 'airline,months,ok,position,state'
         && Array.isArray(v.months) && v.months.every((m) => keys(m) === 'month,year' && int(m.year) && int(m.month));
