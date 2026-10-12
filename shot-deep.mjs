@@ -20,10 +20,23 @@
 
    実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [cmp] [open]
      scene: full  … 全部そろった状態（モックと同じ配置。既定）
+                    ★2026-10-12 から、賞与の目印（head.bonus_est）が立った姿 ── 年収と
+                      Pay / Block Hour のカードに札「平均賞与を使った推計」・KPI の下に注記が1行。
             day1  … 現実の初日。KPI は3枚中1枚・給与構成は出ない・
                     働き方は1行しか無いので節ごと消える・変動給も出ない
+                    ★賞与の平均を作れなかった姿（head.bonus_gap）── 札は出ず、注記
+                      「賞与未回答で平均も出せない回答は…」の1行だけが出る。
             fold  … 人数の壁に満たない項目が「その他・未分類」に畳まれた状態
                     （灰色の意味が変わるので but 書きが1行増える）
+                    ★変動給の中身にも、畳んだ分（rest）の行が出る（灰色の棒・「その他・未分類」）。
+                    ★賞与の目印が2つとも立った姿（札2つ＋注記が2行増える ＝ いちばん場所を取る）。
+            nocomp… 年収は出ているが、給与構成が無い区分（2026-10-12）。総支給だけの人が
+                    集まった区分 ── サーバは comp・var・head.fixed_pct を null で返す。
+                    KPI は2枚（年収・Pay / Block Hour。札つき）・給与構成は「まだ出せません」の
+                    板・働き方はそのまま・変動給の中身は出ない。★壊れた答えではない。
+            two   … 給与構成が2行だけの区分（2026-10-12）。基本給 60% ＋「その他・未分類」40%
+                    （ほかの項目は持つ人が足りず、サーバが未分類へ畳んだ形）。
+                    ★前の画面はこれを「3項目に満たない」と自分で隠していた。いまは来たとおり描く。
             ask   … 開いた直後。まだ何も選んでいない（★これが入口の見た目）
             pos   … 役職だけ選んで会社を選ばなかった状態
             pick  … 自分の区分ではない区分を手で選んだ状態（JAL / 機長 / B787）
@@ -133,6 +146,9 @@ const PICK = {
   pos:  { position: 'cap' },
   pick: { airline: 'jal', position: 'cap', fleet: 'b787' },
   thin: { airline: 'sas' },
+  /* nocomp / two は full と同じ区分（3つとも選ぶ ＝ 信頼度の札が「高」で出る）。 */
+  nocomp: { airline: 'ana', position: 'cap', fleet: 'b787' },
+  two:    { airline: 'ana', position: 'cap', fleet: 'b787' },
   /* party は full と同じ区分を選ぶ（数字の出ている画面の上で鳴らす）。 */
   party: { airline: 'ana', position: 'cap', fleet: 'b787' }
   /* lock / det / det0 / goal は錠前の板。**何も選ばない**（鍵が閉じている画面では
@@ -170,7 +186,15 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
        ・gate.crowd ＝「みんなの側」の門（100人以上 or 手動の公開フラグ）。
          37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。
        ・見出しの2つは刻み（annual_usd は $50・per_block_usd は $0.5）。
-         給与構成の med_usd は有効数字2桁のまま。
+         給与構成の月額（avg_usd）と月換算（month_usd）は有効数字2桁。
+       ・★2026-10-12 の形（オーナー判断で、誰を数えるかと賞与の扱いが変わった）──
+           head … { annual_usd, per_block_usd, month_usd, fixed_pct, bonus_est, bonus_gap }
+                  month_usd ＝ 月換算（賞与ぬき）。画面はこれをそのまま出す（年収から作らない）。
+                  bonus_est / bonus_gap ＝ 賞与の目印（真偽）。額も人数も来ない。
+           comp … 内訳を書いた人の**平均**。金額の鍵は avg_usd（前は項目ごとの中央値で、鍵の名前も別だった）。
+                  未分類（rest）にも金額が来る。年収が出ていて comp が null の区分も在る。
+                  comp.bonus（年収に対する賞与の割合）は今も来るが、画面はもう読まない。
+           var  … null（給与構成が無い）・空の配列・割合の配列。鍵に rest が来ることがある。
        ・gate は { key, ready, todo, crowd, contributors, goal }。ready ＝本人が、自分に
          当てはまる項目をぜんぶ答えた月を持っているか。todo ＝足りない人にだけ
          { year, month, items:[コード…] }。**前の鍵 detailed は gate に無い**
@@ -184,17 +208,20 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
     give: { detailed: true },
     stats: STATS,
     cohort: { level: 'airline_pos_fleet', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'high' },
-    head: { annual_usd: 119700, per_block_usd: 102.5, fixed_pct: 62 },
+    /* ★bonus_est: true ── 札と注記が出た姿を、既定の絵にしてある（2026-10-12）。 */
+    head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 62,
+            bonus_est: true, bonus_gap: false },
     comp: {
       total_kind: 'monthly_cash',
       segs: [
-        { k: 'base',     pct: 52, med_usd: 4800 },
-        { k: 'variable', pct: 24, med_usd: 2200 },
-        { k: 'command',  pct: 8,  med_usd: 730 },
-        { k: 'perdiem',  pct: 7,  med_usd: 640 },
-        { k: 'housing',  pct: 5,  med_usd: 460 },
-        { k: 'other',    pct: 4,  med_usd: 370 }
+        { k: 'base',     pct: 52, avg_usd: 4800 },
+        { k: 'variable', pct: 24, avg_usd: 2200 },
+        { k: 'command',  pct: 8,  avg_usd: 730 },
+        { k: 'perdiem',  pct: 7,  avg_usd: 640 },
+        { k: 'housing',  pct: 5,  avg_usd: 460 },
+        { k: 'other',    pct: 4,  avg_usd: 370 }
       ],
+      /* 来ても画面は読まない（「賞与・利益分配 ◯%」の行は 2026-10-12 に外した）。 */
       bonus: { pct_of_annual: 5 }
     },
     work: { block_h: 74.0, duty_h: 141.0, duty_days: 18, stay_nights: 9 },
@@ -210,28 +237,61 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
      ★ここで「出ない」ことが正しい出力。0 を並べた画面と見比べるために撮る。 */
   const DAY1 = Object.assign({}, FULL, {
     cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'low' },
-    head: { annual_usd: 119700, per_block_usd: null, fixed_pct: null },
+    /* ★賞与の平均を作れなかった形（bonus_gap）。申告した人が壁に届かない区分の回答が
+         数に入っている ＝ 札は出ず、注記が1行だけ出る。給与構成が無いので var も null。 */
+    head: { annual_usd: 119700, per_block_usd: null, month_usd: 9500, fixed_pct: null,
+            bonus_est: false, bonus_gap: true },
     comp: null,
     work: { block_h: 74.0, duty_h: null, duty_days: null, stay_nights: null },
-    var: []
+    var: null
   });
 
   // 人数の壁に満たない項目が未分類に畳まれた状態（灰色の意味が変わる）
   const FOLD = Object.assign({}, FULL, {
     cohort: { level: 'airline_pos_cat', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'mid' },
-    head: { annual_usd: 96050, per_block_usd: 78.5, fixed_pct: 58 },
+    head: { annual_usd: 96050, per_block_usd: 78.5, month_usd: 7500, fixed_pct: 58,
+            bonus_est: true, bonus_gap: true },
     comp: {
       total_kind: 'monthly_cash',
       segs: [
-        { k: 'base',     pct: 58, med_usd: 2900 },
-        { k: 'variable', pct: 26, med_usd: 1300 },
-        { k: 'perdiem',  pct: 7,  med_usd: 350 },
-        { k: 'rest',     pct: 9,  med_usd: null }
+        { k: 'base',     pct: 58, avg_usd: 2900 },
+        { k: 'variable', pct: 26, avg_usd: 1300 },
+        { k: 'perdiem',  pct: 7,  avg_usd: 350 },
+        /* ★未分類にも月額が来る（2026-10-12。割合と同じ平均の額から作るので桁が合う）。 */
+        { k: 'rest',     pct: 9,  avg_usd: 450 }
       ],
       bonus: null
     },
     work: { block_h: 68.5, duty_h: 128.0, duty_days: null, stay_nights: 7 },
-    var: [{ k: 'block', pct: 62 }, { k: 'duty', pct: 38 }]
+    /* ★壁に届かない連動先は rest へ畳まれて来る（落とさない ＝ 合計は100のまま）。 */
+    var: [{ k: 'block', pct: 62 }, { k: 'duty', pct: 30 }, { k: 'rest', pct: 8 }]
+  });
+
+  /* 年収は出ているが、給与構成が無い区分（2026-10-12）。年収の母集団（有効な年収を出した人
+     ぜんぶ）は壁を越え、給与構成の母集団（内訳を書いた人）は届かない ── 本物も comp・var・
+     head.fixed_pct を null で返す。賞与の目印は年収の側の話なので、立ったまま。 */
+  const NOCOMP = Object.assign({}, FULL, {
+    head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: null,
+            bonus_est: true, bonus_gap: false },
+    comp: null,
+    var: null
+  });
+
+  /* 給与構成が2行だけの区分（2026-10-12）。db/test-deep-pay.mjs の「7. 未分類」が作る答えと
+     同じ形 ── 基本給 60%（$6,000）＋ 未分類 40%（$4,000）。固定・保証給比率は基本給の 60
+     （未分類は固定に数えない）。変動給の中身も、名前の在る1つ＋畳んだ分の2行。 */
+  const TWO = Object.assign({}, FULL, {
+    head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 60,
+            bonus_est: false, bonus_gap: false },
+    comp: {
+      total_kind: 'monthly_cash',
+      segs: [
+        { k: 'base', pct: 60, avg_usd: 6000 },
+        { k: 'rest', pct: 40, avg_usd: 4000 }
+      ],
+      bonus: null
+    },
+    var: [{ k: 'block', pct: 80 }, { k: 'rest', pct: 20 }]
   });
 
   const POS = Object.assign({}, FULL, {
@@ -267,7 +327,8 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
   const PICK = Object.assign({}, FULL, {
     cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787',
               trust: 'mid' },
-    head: { annual_usd: 211350, per_block_usd: 180.5, fixed_pct: 71 }
+    head: { annual_usd: 211350, per_block_usd: 180.5, month_usd: 17000, fixed_pct: 71,
+            bonus_est: true, bonus_gap: false }
   });
   /* 選んだ区分が人数の壁に届かなかった状態。★広い区分に登らないので、出るものが何も無い。
      「あと1人」とも、壁が何人かとも書かない（書くと人数が1人単位で読める）。
@@ -285,6 +346,7 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
     cohort: null, head: null, comp: null, work: null, var: [] };
 
   const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS,
+                   nocomp: NOCOMP, two: TWO,
                    pick: PICK, thin: THIN, lock: LOCK, det: DET, det0: DET0,
                    goal: GOAL, nolist: NOLIST };
   const DEEP = SCENES[scene] || FULL;
@@ -345,17 +407,27 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
   /* 金額と時間だけ動かす。★割合（pct）は掛けない ── 合計 100 が崩れる。
      ★null は null のまま返す（day1 の「まだ出せない」欄を潰さないため）。 */
   function scale(src, k) {
-    const r1 = (v) => (v == null ? v : Math.round(v * k));
     const r2 = (v) => (v == null ? v : Math.round(v * k * 10) / 10);
     /* ★見出しの2つは本物と同じ刻みで返す（db/deep-pay.sql の pv_deep_step）──
          年収 $50・Pay / Block Hour $0.5。丸い数で返すと、画面が刻みで出していることが
          絵から分からない。 */
     const st = (v, p) => (v == null ? v : Math.round(v * k / p) * p);
+    /* ★月換算（month_usd）と給与構成の月額（avg_usd）は、本物と同じ有効数字2桁で返す
+         （db/deep-pay.sql の pv_sig2）。null は null のまま。 */
+    const sg = (v) => {
+      if (v == null) return v;
+      const x = v * k;
+      if (!(x > 0)) return x;
+      const p = Math.pow(10, Math.floor(Math.log10(x)) - 1);
+      return Math.round(x / p) * p;
+    };
     const o = Object.assign({}, src);
+    /* ★賞与の目印（bonus_est / bonus_gap）は scene のまま運ぶ（src.head を写している）。 */
     if (src.head) o.head = Object.assign({}, src.head, {
-      annual_usd: st(src.head.annual_usd, 50), per_block_usd: st(src.head.per_block_usd, 0.5) });
+      annual_usd: st(src.head.annual_usd, 50), per_block_usd: st(src.head.per_block_usd, 0.5),
+      month_usd: sg(src.head.month_usd) });
     if (src.comp) o.comp = Object.assign({}, src.comp, {
-      segs: src.comp.segs.map((g) => Object.assign({}, g, { med_usd: r1(g.med_usd) })) });
+      segs: src.comp.segs.map((g) => Object.assign({}, g, { avg_usd: sg(g.avg_usd) })) });
     if (src.work) o.work = { block_h: r2(src.work.block_h), duty_h: r2(src.work.duty_h),
                              duty_days: src.work.duty_days, stay_nights: src.work.stay_nights };
     return o;
@@ -629,9 +701,23 @@ console.log(over.doc > over.view + 1
    「頼んだ通貨」と「実際の通貨」が違えばここで分かる。 */
 const said = await page.evaluate(() => ({
   cur: (window.PVCurrency && window.PVCurrency.get) ? window.PVCurrency.get() : '',
-  kpi: [...document.querySelectorAll('#dp-kpi .dp-kpi')].map((e) =>
-    ((e.querySelector('.dp-kpi-k') || {}).textContent || '') + ' ' +
-    ((e.querySelector('.dp-kpi-v') || {}).textContent || '')),
+  /* ★見出しの字と札は分けて出す（2026-10-12。札「平均賞与を使った推計」は見出しの行の中に在る
+       ── textContent をそのまま読むと、見出しと札がつながって読めない）。 */
+  kpi: [...document.querySelectorAll('#dp-kpi .dp-kpi')].map((e) => {
+    const k = e.querySelector('.dp-kpi-k');
+    const head = k ? [...k.childNodes].filter((x) => x.nodeType === 3).map((x) => x.textContent).join('').trim() : '';
+    const tag = [...e.querySelectorAll('.dp-kpi-tag')].map((t) => '［' + t.textContent + '］').join('');
+    return head + tag + ' ' + ((e.querySelector('.dp-kpi-v') || {}).textContent || '');
+  }),
+  /* 添え字（月換算 など）と、KPI の下の注記（賞与の目印が立つと行が増える）。 */
+  sub: [...document.querySelectorAll('#dp-kpi .dp-kpi-n')].map((e) => e.textContent),
+  foot: [...document.querySelectorAll('#dp-kpi .dp-foot')].map((e) => e.textContent),
+  /* 給与構成の表（行ごとの名前・割合・月額）と、変動給の中身の行。 */
+  comp: [...document.querySelectorAll('#dp-comp .pt-leg:not(.dp-th)')].map((e) =>
+    ['.nm', '.pct', '.amt'].map((c) => ((e.querySelector(c) || {}).textContent || '')).join(' ')),
+  compNone: ((document.querySelector('#dp-comp .pt-empty') || {}).textContent || ''),
+  vari: [...document.querySelectorAll('#dp-var .dp-li')].map((e) =>
+    ((e.querySelector('.dp-li-t') || {}).textContent || '') + ' ' + ((e.querySelector('.dp-li-v') || {}).textContent || '')),
   cond: ((document.querySelector('#dp-hd .dp-cond') || {}).innerText || '').replace(/\n/g, ' '),
   /* 板の行（1行ずつ <p>。2026-10-11 から）。 */
   lock: [...document.querySelectorAll('#dp-kpi .dp-msg--lock .dp-msg-s')]
@@ -653,6 +739,11 @@ console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだ�
 }
 if (said.cond) console.log('条件バー: ' + said.cond);
 if (said.kpi.length) console.log('見出し: ' + said.kpi.join(' ｜ '));
+if (said.sub.length) console.log('添え字: ' + said.sub.join(' ｜ '));
+if (said.foot.length) console.log(`注記（${said.foot.length} 行）: ` + said.foot.map((t) => t.slice(0, 34) + (t.length > 34 ? '…' : '')).join(' ｜ '));
+if (said.comp.length) console.log(`給与構成（${said.comp.length} 行）: ` + said.comp.join(' ｜ '));
+if (said.compNone) console.log('給与構成: ' + said.compNone);
+if (said.vari.length) console.log(`変動給の中身（${said.vari.length} 行）: ` + said.vari.join(' ｜ '));
 if (said.lock.length) console.log('板の行: ' + said.lock.join(' ／ '));   // 錠前の板と「まだ出せません」の板は同じ器
 if (said.todoH) console.log('板の一覧: ' + said.todoH + ' ── ' + said.todo.join(' ｜ '));
 if (said.warn) console.log('板の断り: ' + said.warn);

@@ -27,6 +27,12 @@
                    ★JAL 側が年収も Block Hours も上回るので**トレードオフが出る**
             thin … 片側が人数の壁に届かなかった状態（右だけ「まだ出せません」・左は普通に出る）
             drop … 片側にパーディアムが無い状態（★その行だけ表から消える。0 と書かない）
+            nocomp … 片側（右）が、年収は出ているが給与構成が無い区分（2026-10-12。総支給だけの
+                   人が集まった区分 ── サーバは comp・var・head.fixed_pct を null で返す）。
+                   ★年収・Pay / Block Hour・Block Hours・ステイの行は並ぶ。固定・変動・手当・賞与の
+                     行は表から消え、右の棒は「まだ出せません」。壊れた答えではない。
+            two  … 片側（右）の給与構成が2行だけ（2026-10-12。基本給 60% ＋「その他・未分類」40%
+                   ── ほかの項目は持つ人が足りず、サーバが未分類へ畳んだ形）。
             same … サーバの値は違うのに、円では同じ字になる行が在る状態
                    （★年収・Pay / Block Hour・固定・保証給比率の3行に差が付かない。
                      通貨を変えると、刻みの境目をまたぐ行だけ差が出る）
@@ -113,6 +119,9 @@ const PICK = {
   full: { a: 'ana', b: 'jal', pos: 'cap', fltA: 'b787', fltB: 'b777' },
   thin: { a: 'ana', b: 'sas' },
   drop: { a: 'ana', b: 'lufthansa' },
+  /* nocomp / two は、右（JAL）の答えだけを scene に合わせて差し替える（下の pv_deep_pay）。 */
+  nocomp: { a: 'ana', b: 'jal' },
+  two:    { a: 'ana', b: 'jal' },
   same: { a: 'ana', b: 'emirates' },
   dup:  { a: 'ana', b: 'ana' }
 }[scene] || null;
@@ -148,19 +157,26 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
        ・区分の人数は**入れない**（cohort.n / head.detailed_n / head.verified_n /
          comp.n / comp.bonus.n はサーバが返さなくなった）。代わりは信頼度の段（trust）。
        ・見出しの2つは刻み（annual_usd は $50・per_block_usd は $0.5）。
-         給与構成の med_usd は有効数字2桁のまま。 */
+         給与構成の月額（avg_usd）と月換算（month_usd）は有効数字2桁。
+       ・★2026-10-12 の形 ── head は { annual_usd, per_block_usd, month_usd, fixed_pct,
+         bonus_est, bonus_gap }。給与構成は内訳を書いた人の**平均**で、金額の鍵は avg_usd
+         （未分類にも金額が来る）。年収が出ていて comp が null の区分も在る。
+         ⚠️ この画面（会社比較）は、足された month_usd と賞与の目印を**まだ読まない**
+            （閉じている。deep-pay-compare.js の MET の bonus の注）。見本に入れてあるのは、
+            本物と同じ形の答えで描いても何も崩れないことを見るため。 */
   const AIR = {
     ana: {
       trust: 'high',
-      head: { annual_usd: 119700, per_block_usd: 103.5, fixed_pct: 62 },
+      head: { annual_usd: 119700, per_block_usd: 103.5, month_usd: 9500, fixed_pct: 62,
+              bonus_est: true, bonus_gap: false },
       comp: { total_kind: 'monthly_cash', bonus: { pct_of_annual: 5 },
         segs: [
-          { k: 'base',     pct: 52, med_usd: 4800 },
-          { k: 'variable', pct: 24, med_usd: 2200 },
-          { k: 'command',  pct: 8,  med_usd: 730 },
-          { k: 'perdiem',  pct: 7,  med_usd: 640 },
-          { k: 'housing',  pct: 5,  med_usd: 460 },
-          { k: 'other',    pct: 4,  med_usd: 370 }
+          { k: 'base',     pct: 52, avg_usd: 4800 },
+          { k: 'variable', pct: 24, avg_usd: 2200 },
+          { k: 'command',  pct: 8,  avg_usd: 730 },
+          { k: 'perdiem',  pct: 7,  avg_usd: 640 },
+          { k: 'housing',  pct: 5,  avg_usd: 460 },
+          { k: 'other',    pct: 4,  avg_usd: 370 }
         ] },
       work: { block_h: 74.0, duty_h: 141.0, duty_days: 18, stay_nights: 9 }
     },
@@ -168,15 +184,16 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
        「たくさん飛んでたくさんもらう」がひと目で分かる形にしてある。 */
     jal: {
       trust: 'mid',
-      head: { annual_usd: 127950, per_block_usd: 105.5, fixed_pct: 55 },
+      head: { annual_usd: 127950, per_block_usd: 105.5, month_usd: 9800, fixed_pct: 55,
+              bonus_est: true, bonus_gap: false },
       comp: { total_kind: 'monthly_cash', bonus: { pct_of_annual: 8 },
         segs: [
-          { k: 'base',     pct: 46, med_usd: 4900 },
-          { k: 'variable', pct: 31, med_usd: 3300 },
-          { k: 'command',  pct: 9,  med_usd: 950 },
-          { k: 'perdiem',  pct: 6,  med_usd: 640 },
-          { k: 'housing',  pct: 4,  med_usd: 420 },
-          { k: 'rest',     pct: 4,  med_usd: null }
+          { k: 'base',     pct: 46, avg_usd: 4900 },
+          { k: 'variable', pct: 31, avg_usd: 3300 },
+          { k: 'command',  pct: 9,  avg_usd: 950 },
+          { k: 'perdiem',  pct: 6,  avg_usd: 640 },
+          { k: 'housing',  pct: 4,  avg_usd: 420 },
+          { k: 'rest',     pct: 4,  avg_usd: 430 }
         ] },
       work: { block_h: 79.5, duty_h: 152.0, duty_days: 19, stay_nights: 12 }
     },
@@ -184,13 +201,14 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
        **まるごと消える**ことを見るための見本。0% と書いたら負け。 */
     lufthansa: {
       trust: 'mid',
-      head: { annual_usd: 96050, per_block_usd: 84.5, fixed_pct: 71 },
+      head: { annual_usd: 96050, per_block_usd: 84.5, month_usd: 7500, fixed_pct: 71,
+              bonus_est: false, bonus_gap: true },
       comp: { total_kind: 'monthly_cash', bonus: null,
         segs: [
-          { k: 'base',     pct: 68, med_usd: 5100 },
-          { k: 'variable', pct: 19, med_usd: 1400 },
-          { k: 'housing',  pct: 8,  med_usd: 600 },
-          { k: 'other',    pct: 5,  med_usd: 380 }
+          { k: 'base',     pct: 68, avg_usd: 5100 },
+          { k: 'variable', pct: 19, avg_usd: 1400 },
+          { k: 'housing',  pct: 8,  avg_usd: 600 },
+          { k: 'other',    pct: 5,  avg_usd: 380 }
         ] },
       work: { block_h: 66.0, duty_h: 124.0, duty_days: 16, stay_nights: 6 }
     },
@@ -202,14 +220,15 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
          それで正しい ── どの通貨でも、画面の2つの字と差は辻褄が合っている。 */
     emirates: {
       trust: 'low',
-      head: { annual_usd: 119750, per_block_usd: 104, fixed_pct: 62 },
+      head: { annual_usd: 119750, per_block_usd: 104, month_usd: 9500, fixed_pct: 62,
+              bonus_est: false, bonus_gap: false },
       comp: { total_kind: 'monthly_cash', bonus: { pct_of_annual: 5 },
         segs: [
-          { k: 'base',     pct: 49, med_usd: 5200 },
-          { k: 'variable', pct: 21, med_usd: 2200 },
-          { k: 'perdiem',  pct: 12, med_usd: 1250 },
-          { k: 'housing',  pct: 14, med_usd: 1480 },
-          { k: 'other',    pct: 4,  med_usd: 420 }
+          { k: 'base',     pct: 49, avg_usd: 5200 },
+          { k: 'variable', pct: 21, avg_usd: 2200 },
+          { k: 'perdiem',  pct: 12, avg_usd: 1250 },
+          { k: 'housing',  pct: 14, avg_usd: 1480 },
+          { k: 'other',    pct: 4,  avg_usd: 420 }
         ] },
       work: { block_h: 74.2, duty_h: 138.0, duty_days: 17, stay_nights: 13 }
     }
@@ -327,18 +346,38 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
       const src = AIR[q.airline] || AIR[WIDE[q.airline]];
       if (!src) return thin(q.airline, q);
       const k = (POSK[q.position] || 1) * (FLTK[q.fleet] || 1);
-      const r1 = (v) => (v == null ? v : Math.round(v * k));
       const r2 = (v) => (v == null ? v : Math.round(v * k * 10) / 10);
       /* ★見出しの2つは本物と同じ刻みで返す（db/deep-pay.sql の pv_deep_step）──
            年収 $50・Pay / Block Hour $0.5。丸い数で返すと、画面が刻みで出していることが
            絵から分からない。 */
       const st = (v, p) => (v == null ? v : Math.round(v * k / p) * p);
+      /* ★月換算（month_usd）と給与構成の月額（avg_usd）は、本物と同じ有効数字2桁で返す
+           （db/deep-pay.sql の pv_sig2）。null は null のまま。 */
+      const sg = (v) => {
+        if (v == null) return v;
+        const x = v * k;
+        if (!(x > 0)) return x;
+        const p = Math.pow(10, Math.floor(Math.log10(x)) - 1);
+        return Math.round(x / p) * p;
+      };
       /* ★区分の人数は返さない。返すのは信頼度の段だけ（会社ごとの見本の trust）。
          本物は人数と区分の広さの低いほうで段を決める（db/deep-pay.sql の trust）。
          ここは絞っても段を動かさない ── 左右の札が違う絵を撮るための作り物。 */
       /* ★割合（pct）は係数を掛けない ── 合計 100 が崩れる。動かすのは金額と時間だけ。 */
-      const comp = src.comp && Object.assign({}, src.comp, {
-        segs: src.comp.segs.map((g) => Object.assign({}, g, { med_usd: r1(g.med_usd) })) });
+      let comp = src.comp && Object.assign({}, src.comp, {
+        segs: src.comp.segs.map((g) => Object.assign({}, g, { avg_usd: sg(g.avg_usd) })) });
+      let fixed = src.head.fixed_pct, vari = [];
+      /* ★nocomp / two（2026-10-12）── 右（JAL）の答えだけを差し替える。
+           nocomp … 給与構成の母集団（内訳を書いた人）が壁に届かない形。本物と同じく
+                    comp・var・head.fixed_pct が null（年収・Pay / Block Hour・働き方は出たまま）
+           two    … 給与構成が2行だけ（基本給 60% ＋ 未分類 40%。固定・保証給比率は基本給の 60） */
+      if (scene === 'nocomp' && q.airline === 'jal') { comp = null; fixed = null; vari = null; }
+      if (scene === 'two' && q.airline === 'jal') {
+        comp = { total_kind: 'monthly_cash', bonus: null,
+                 segs: [{ k: 'base', pct: 60, avg_usd: sg(6000) }, { k: 'rest', pct: 40, avg_usd: sg(4000) }] };
+        fixed = 60;
+        vari = [{ k: 'block', pct: 80 }, { k: 'rest', pct: 20 }];
+      }
       const work = src.work && { block_h: r2(src.work.block_h), duty_h: r2(src.work.duty_h),
                                  duty_days: src.work.duty_days, stay_nights: src.work.stay_nights };
       return { ok: true, state: 'open', stats: STATS, give: { detailed: true },
@@ -346,8 +385,11 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur) => {
         cohort: { level: 'selected', manual: true, airline: q.airline,
                   pos: q.position || null, fleet: q.fleet || null, trust: src.trust },
         head: Object.assign({}, src.head, { annual_usd: st(src.head.annual_usd, 50),
-                                            per_block_usd: st(src.head.per_block_usd, 0.5) }),
-        comp: comp, work: work, var: [] };
+                                            per_block_usd: st(src.head.per_block_usd, 0.5),
+                                            month_usd: sg(src.head.month_usd), fixed_pct: fixed }),
+        /* ★var は、この画面では描かない（変動給の中身は DEEP PAY の側）。形だけ本物に合わせる ──
+             null（給与構成が無い）か配列（鍵に rest が来ることがある）。 */
+        comp: comp, work: work, var: vari };
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: true } }),
