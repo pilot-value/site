@@ -119,25 +119,27 @@ ok((await boom(`insert into airline_conditions(proof_hash,airline,question_id,ef
   'anon は直接書き込めない');
 ok((await boom(`select submit_airline_conditions('{}'::jsonb)`)) !== null,
   'anon は保存 RPC を叩けない');
-ok((await boom(`select * from airline_condition_facts limit 1`)) === null,
-  'anon でも公開集計は読める');
+ok((await boom(`select * from airline_condition_facts limit 1`)) !== null,
+  'anon は集計を直接読めない（読む口は pv_contrib_facts だけ）');
 await db.exec('reset role');
 
 await db.exec('set role authenticated');
 ok((await boom(`select * from airline_conditions limit 1`)) !== null,
   'ログイン済みでも個票は直接読めない（RPC 経由のみ）');
+ok((await boom(`select * from airline_condition_facts limit 1`)) !== null,
+  'ログイン済みでも集計は直接読めない');
 ok((await boom(`select pv_condition_hash('00000000-0000-4000-8000-000000000001'::uuid,'zipair',null)`)) !== null,
   'proof_hash の作り方は誰にも渡していない');
 ok((await boom(`select * from pv_contributor_stats()`)) !== null,
   '貢献者集計はオーナーだけ');
 await db.exec('reset role');
 
-// ⑥ 公開集計に出してはいけない列が無いこと
+// ⑥ 集計に出してはいけない列が無いこと
 const leak = await rows(`select column_name from information_schema.columns
   where table_schema='public' and table_name='airline_condition_facts'
     and column_name in ('answer_text','answer_json','proof_hash','airline_other',
                         'position','fleet','base_iata','contract_type')`);
-ok(leak.length === 0, '公開集計に自由記述・準識別子が1列も無い',
+ok(leak.length === 0, '集計に自由記述・準識別子が1列も無い',
   JSON.stringify(leak.map((r) => r.column_name)));
 
 // ── 投稿 ─────────────────────────────────────────────────────
@@ -187,6 +189,7 @@ r = await submit({ ...CTX, answers: [{ question_id: 'reserve_location', code: 'h
 ok(r.saved === 0 && r.rejected[0]?.reason === 'parent_missing',
   '親（Reserve の有無）に答えていない人の子の回答は受けない');
 let nx = await next({ airline: 'zipair', limit: 30 });
+ok(nx.questions.length > 0 && nx.questions.every((q) => !('n' in q)), '次の質問の返事に、答えた人数が入っていない');
 ok(!nx.questions.some((q) => q.id === 'reserve_location'),
   '⑨ 親に答えていない人に、子の質問を出さない');
 
@@ -220,7 +223,7 @@ ok(Number(after.n) === Number(before.n), `答え直しても行が増えない�
 ok(after.moved === true, '答え直すと updated_at だけ動く（＝最終確認日）');
 
 // ② k≧3 の閾値
-console.log('\n▼ 公開集計（k≧3）');
+console.log('\n▼ 集計（k≧3）');
 const askJal = async (n, code) => {
   await asUser(n);
   await submit({ airline: 'jal', year: 2026, month: 8,
@@ -228,7 +231,7 @@ const askJal = async (n, code) => {
 };
 await askJal(11, 'rare'); await askJal(12, 'rare');
 let v = await rows(`select * from airline_condition_facts where airline='jal'`);
-ok(v.length === 0, '② 2人では公開集計に出ない');
+ok(v.length === 0, '② 2人では集計に出ない');
 await askJal(13, 'sometimes');
 v = await rows(`select * from airline_condition_facts where airline='jal' and question_id='roster_changes'`);
 ok(v.length === 1 && Number(v[0].n) === 3, `② 3人で出る → n=${v[0]?.n}`);
@@ -245,7 +248,7 @@ const askAnz = async (n) => {
 };
 await askAnz(21); await askAnz(22); await askAnz(23);
 v = await rows(`select * from airline_condition_facts where airline='air-new-zealand'`);
-ok(v.length === 0, '③「わからない」だけ3人では公開集計に出ない');
+ok(v.length === 0, '③「わからない」だけ3人では集計に出ない');
 const stored = await one(`select count(*) n from airline_conditions
   where airline='air-new-zealand' and answer_code='unknown'`);
 ok(Number(stored.n) === 3, '   ただし行としては保存する（翌月また同じことを聞かないため）');
@@ -273,14 +276,14 @@ v = await rows(`select * from airline_condition_facts
 ok(Number(v[0]?.median_num) === 28, `数値質問は中央値を出す → ${v[0]?.median_num}`);
 ok(v[0]?.top_code === null && v[0]?.answer_dist === null, '数値質問に選択肢の分布は出ない');
 
-// 「その他（自由入力の社名）」は公開集計に出さない
+// 「その他（自由入力の社名）」は集計に出さない
 for (const n of [51, 52, 53]) {
   await asUser(n);
   await submit({ airline: 'other', airline_other: 'Testair', year: 2026, month: 8,
     answers: [{ question_id: 'cadet_program', code: 'none' }] });
 }
 v = await rows(`select * from airline_condition_facts where airline='other'`);
-ok(v.length === 0, '自由入力の社名（その他）は公開集計に出さない');
+ok(v.length === 0, '自由入力の社名（その他）は集計に出さない');
 
 // ⑩ Tier A が埋まるまで Tier B を出さない
 console.log('\n▼ 聞く順番');
@@ -423,14 +426,14 @@ ok(nq.questions.find((q) => q.id === 'reserve_duty')?.mine_code === null,
 const unk = nq.questions.find((q) => q.id === 'schedule_bidding');
 ok(unk?.mine_code === UNKNOWN, '   「わからない」だった質問にも前回の答えが付く');
 
-// ⑬ スキップだけの行は、公開集計にも自分の回答にも出ない
+// ⑬ スキップだけの行は、集計にも自分の回答にも出ない
 for (const n of [81, 82, 83]) {
   await asUser(n);
   await submit({ airline: 'peach', year: 2026, month: 8,
     answers: [{ question_id: 'landing_pay', skip: true }] });
 }
 v = await rows(`select * from airline_condition_facts where airline='peach'`);
-ok(v.length === 0, '⑬ スキップだけ3人では公開集計に出ない（n にも n_unknown にも入らない）');
+ok(v.length === 0, '⑬ スキップだけ3人では集計に出ない（n にも n_unknown にも入らない）');
 await asUser(81);
 ok((await mine({ airline: 'peach' })).answered_total === 0,
   '   自分の回答一覧にも出ない（詳細ページに空欄が並ばない）');
@@ -592,7 +595,7 @@ ok(r.saved === 1, '   手段が「わからない」も保存できる');
 r = await submit({ ...CM, answers: send5([...TAXI, ...BUS]) });
 ok(allMissing(r, [...TAXI, ...BUS]), '   手段が「わからない」の人から5問を受け取らない', JSON.stringify(r.rejected));
 
-// 公開集計 ── 手段を選んだ人のぶんだけを数える
+// 集計 ── 手段を選んだ人のぶんだけを数える
 await asUser(205);
 await submit({ ...CM, answers: [{ question_id: CT.id, code: CT_IN },
   { question_id: METHOD.id, codes: ['crew_bus', 'other'] },
@@ -603,7 +606,7 @@ const factN = async (airline, qid) => {
   return f.length ? f[0] : null;
 };
 let f = await factN(CM.airline, 'commuting_bus_cost');
-ok(f && f.n === 3 && f.answer_dist.company_full === 3, '⑱ バスの費用に3人が答えたら公開集計に出る（3人とも会社が全額）',
+ok(f && f.n === 3 && f.answer_dist.company_full === 3, '⑱ バスの費用に3人が答えたら集計に出る（3人とも会社が全額）',
   JSON.stringify(f));
 ok((await factN(CM.airline, 'commuting_taxi_cost')) === null,
   '   タクシーの費用は1人だけ ＝ 出ない（バスの答えがタクシーの欄に混ざらない）');
@@ -689,7 +692,7 @@ ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_code', '   選択肢に無い
 
 /* ⑳ 話題の入口からだけ出す4問（2026-10-04・オーナー判断「4問を足し、その話題の入口から来た人にだけ出す」）。
    通勤のタクシー代の上限と、機長昇格の3問。提出直後の1問枠にも一覧にも出さず、
-   「答えた項目：N／M」の分母にも分子にも数えない。保存・自分の回答・公開集計は他の質問と同じ。
+   「答えた項目：N／M」の分母にも分子にも数えない。保存・自分の回答・集計は他の質問と同じ。
    ★ここが壊れても画面は普通に動く（1問枠に昇格の条件が混ざる・N が M を超える・
      話題の入口で先に1問答えた人に最初の3問が出なくなる）ので、ここでしか気づけない。 */
 console.log('\n▼ ⑳ 話題の入口からだけ出す4問 ── 1問枠にも「答えた項目」の数にも混ぜない');
@@ -923,7 +926,7 @@ await submit({ ...TP, answers: [{ question_id: CT.id, code: CT_IN },
 r = await submit({ ...TP, answers: [{ question_id: CAP, code: 'no_cap' }] });
 ok(allMissing(r, [CAP]), '⑳ クルーバスだけの人から、タクシー代の上限を受け取らない', JSON.stringify(r.rejected));
 
-// 公開集計（k≧3）は、ほかの質問と同じに働く
+// 集計（k≧3）は、ほかの質問と同じに働く
 const TF = { airline: 'solaseed', year: 2026, month: 8 };
 const ask4 = async (n, order, methods, cap) => {
   await asUser(n);
@@ -937,7 +940,7 @@ await ask4(223, 'seniority', ['company_taxi'], 'per_ride');
 r = await ask4(224, 'seniority', ['reimburse'], 'per_ride');
 ok(r.saved === 4, '   立て替えて精算を選んだ人も、上限の質問に答えられる', JSON.stringify(r.rejected));
 ok((await factN(TF.airline, 'upgrade_order')) === null && (await factN(TF.airline, CAP)) === null,
-  '⑳ 2人では公開集計に出ない（昇格の順番・タクシー代の上限）');
+  '⑳ 2人では集計に出ない（昇格の順番・タクシー代の上限）');
 await ask4(225, 'selection', ['company_taxi', 'crew_bus'], 'no_cap');
 f = await factN(TF.airline, 'upgrade_order');
 ok(f && f.n === 3 && JSON.stringify(f.answer_dist) === JSON.stringify({ selection: 1, seniority: 2 }),
@@ -953,7 +956,7 @@ ok(v.length === 1 && v[0].n === 3 && v[0].n_unknown === 1,
   `   「わからない」は n に数えない → n=${v[0]?.n} / n_unknown=${v[0]?.n_unknown}`);
 v = await rows(`select column_name from information_schema.columns
   where table_schema='public' and table_name='airline_condition_facts' and column_name in ('answer_text','topic','topic_only')`);
-ok(v.length === 0, '   任意の補足は公開集計に出ない（列そのものが無い）');
+ok(v.length === 0, '   任意の補足は集計に出ない（列そのものが無い）');
 await asUser(225);
 await submit({ ...TF, answers: [{ question_id: METHOD.id, codes: ['crew_bus'] }] });
 ok((await factN(TF.airline, CAP)) === null,
@@ -1091,14 +1094,14 @@ r = await submit({ ...LC, answers: sendLp(LP_FIXED) });
 ok(o.uncut && o.ids.includes('landing_pay_to') && LP_FIXED.every((id) => !o.ids.includes(id)) && allMissing(r, LP_FIXED),
   '㉑ ★一定額ではない人には、額と数え方（もう一方の枝）は出ない・送っても受け取らない', JSON.stringify(r.rejected));
 
-// 公開集計 ── 通貨の違う額を、1つの数字にまとめない
+// 集計 ── 通貨の違う額を、1つの数字にまとめない
 const askLp = async (n, num, currency) => {
   await asUser(n);
   return submit({ ...LC, answers: [{ question_id: LP.id, code: 'fixed' },
     { question_id: 'landing_pay_amount', num, currency }] });
 };
 await askLp(235, 10, 'USD');
-ok((await factLp('landing_pay_amount')) === null, '㉑ 額に答えたのが2人では公開集計に出ない');
+ok((await factLp('landing_pay_amount')) === null, '㉑ 額に答えたのが2人では集計に出ない');
 await askLp(236, 9, 'EUR');
 f = await factLp('landing_pay_amount');
 ok(f && f.n === 3, '㉑ 3人で出る（出るのは人数）', JSON.stringify(f));
@@ -1683,7 +1686,7 @@ ok(whyOf(r) === BOTH_LIM && r.saved === 1 && m[LP.id]?.code === 'variable' && no
     first);
 }
 /* 相手の額は、この人の・この会社の行からだけ読む。同じ人がほかの会社で持っている額とは比べない
-   （ほかの人の額と比べないことは、下の公開集計の3人が見ている ── 混ざると、あちらが通貨の違いで断られる）。 */
+   （ほかの人の額と比べないことは、下の集計の3人が見ている ── 混ざると、あちらが通貨の違いで断られる）。 */
 const PC2 = { airline: 'thai-airways', lang: 'ja' };   // ここまでのどの検査も回答を入れていない会社
 await pairUser(421);                                   // PC の会社に、低いほう 100 USD・高いほう 200 USD
 r = await submit({ ...PC2, answers: [VAR, low(300)] });
@@ -1693,14 +1696,14 @@ ok(r.rejected.length === 0 && r.saved === 2 && sayEnd(cx[LO]) === '300 USD' && !
   '   同じ人がほかの会社で持っている額とは比べない（ほかの会社に 100／200 USD を持つ人が、この会社で低いほうを 300 → 保存）',
   `${whyOf(r)} ｜ ${sayEnd(cx[LO])}／${sayEnd(cx[HI])} ｜ ほかの会社 ${now2}`);
 
-/* 公開集計 ── 通貨つきの質問は、**どれも**中央値を出さない（2026-10-11）。
+/* 集計 ── 通貨つきの質問は、**どれも**中央値を出さない（2026-10-11）。
    上の「通貨の違う額の真ん中を…」の1行は着陸手当の額（一定額）しか見ていないので、決まりが
    その1問だけに狭まっても緑のままだった。
-   通貨つきの質問は質問マスタから引く（公開集計が見ているのと同じ印）。質問を足せば、ここも
+   通貨つきの質問は質問マスタから引く（集計が見ているのと同じ印）。質問を足せば、ここも
    自動でその質問を見る。1問ずつ、別々の3人が円・ドル・ユーロで答える。
    ★1人が入れるのは、その1問だけ（同じ人に、低いほうと高いほうを別々の通貨で持たせない）。
    ⚠️ 額（下限 +1・+2・+3）は検査のための作りもの。 */
-console.log('\n▼ ㉑ 公開集計 ── 通貨つきの質問は、どれも中央値を出さない');
+console.log('\n▼ ㉑ 集計 ── 通貨つきの質問は、どれも中央値を出さない');
 const CURQ = (await rows(`select id from pv_condition_questions where active and has_currency order by priority`))
   .map((x) => x.id);
 console.log(`   通貨つきの質問（質問マスタから）: ${CURQ.join('・')}`);
@@ -1741,7 +1744,7 @@ for (const id of CURQ) {
   const lost = await three(id, ['JPY', 'USD', 'EUR']);
   f = await factOf(id);
   ok(lost.length === 0 && f && f.n === 3,
-    `㉑ ${id}: 別々の3人が円・ドル・ユーロで答えたら、公開集計に出る（出るのは人数）`, JSON.stringify([lost, f]));
+    `㉑ ${id}: 別々の3人が円・ドル・ユーロで答えたら、集計に出る（出るのは人数）`, JSON.stringify([lost, f]));
   ok(f && f.median_num === null,
     `㉑ ★${id}: 通貨の違う額の真ん中を、1つの数字として出さない（中央値は空）`, JSON.stringify(f));
 }

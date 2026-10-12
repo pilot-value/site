@@ -22,7 +22,7 @@ with c as (
     (select count(*) from pg_class cl join pg_namespace n on n.oid = cl.relnamespace
       where n.nspname = 'public' and cl.relname = 'airline_conditions'
         and cl.relrowsecurity)                                                 as c3,
-    -- anon/authenticated に直接権限が無いこと（読み書きは RPC と集計ビューだけ）
+    -- anon/authenticated に直接権限が無いこと（読み書きは RPC だけ）
     (select count(*) from information_schema.role_table_grants
       where table_schema = 'public' and table_name = 'airline_conditions'
         and grantee in ('anon', 'authenticated'))                              as c4,
@@ -30,15 +30,15 @@ with c as (
     (select count(*) from pg_class cl join pg_namespace n on n.oid = cl.relnamespace
       where n.nspname = 'public' and cl.relname = 'airline_condition_facts'
         and coalesce(array_to_string(cl.reloptions, ','), '') like '%security_invoker%') as c5,
-    -- 公開集計に個票・準識別子が1列も出ていないこと
+    -- 集計に個票・準識別子が1列も出ていないこと
     (select count(*) from information_schema.columns
       where table_schema = 'public' and table_name = 'airline_condition_facts'
         and column_name in ('answer_text', 'answer_json', 'proof_hash', 'airline_other',
                             'position', 'fleet', 'base_iata', 'contract_type')) as c6,
-    -- 公開集計を anon が読めること
+    -- 集計を anon / authenticated が直接読めないこと（読む口は pv_contrib_facts だけ）
     (select count(*) from information_schema.role_table_grants
       where table_schema = 'public' and table_name = 'airline_condition_facts'
-        and grantee = 'anon' and privilege_type = 'SELECT')                    as c7,
+        and grantee in ('anon', 'authenticated'))                              as c7,
     -- ログイン済みが叩ける RPC は3本だけ
     (select count(distinct routine_name) from information_schema.routine_privileges
       where routine_schema = 'public' and grantee = 'authenticated'
@@ -81,10 +81,10 @@ select * from (
          case when c4 = 0 then '✅' else '❌' end from c
   union all select  5, '集計ビューが所有者権限で走る',            c5::text, '0',
          case when c5 = 0 then '✅' else '❌' end from c
-  union all select  6, '公開集計に個票・準識別子が無い',          c6::text, '0',
+  union all select  6, '集計に個票・準識別子が無い',              c6::text, '0',
          case when c6 = 0 then '✅' else '❌' end from c
-  union all select  7, '公開集計を anon が読める',               c7::text, '1',
-         case when c7 = 1 then '✅' else '❌' end from c
+  union all select  7, '集計は誰も直接読めない',                 c7::text, '0',
+         case when c7 = 0 then '✅' else '❌' end from c
   union all select  8, 'ログイン済みが叩ける RPC は3本',          c8::text, '3',
          case when c8 = 3 then '✅' else '❌' end from c
   union all select  9, 'hash 生成と貢献者集計は誰にも渡さない',   c9::text, '0',

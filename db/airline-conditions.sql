@@ -144,7 +144,7 @@ create index if not exists airline_conditions_updated_idx
   on public.airline_conditions (updated_at desc);
 
 comment on table public.airline_conditions is
-  '待遇・働き方の回答。1回答＝1行。個票は非公開。公開は airline_condition_facts（k≧3）のみ。';
+  '待遇・働き方の回答。1回答＝1行。個票は非公開。集計は airline_condition_facts（k≧3）で、読む口は pv_contrib_facts だけ。';
 comment on column public.airline_conditions.skipped_at is
   '「今回はスキップ」を押した時刻。答えが1つも無い行はこれが立っている。公開・自分の回答一覧のどちらにも出さない。';
 comment on column public.airline_conditions.answer_code is
@@ -217,7 +217,7 @@ revoke all on function public.pv_condition_hash(uuid, text, text) from public, a
 -- ★すぐ上の親だけを見ていた頃（親が1段しか無かった）は、いちばん上を「ない」に
 --   答え直しても、あいだの親の古い答えが残っているので、その下の質問が通った。
 --   回答は消さない（答え直したら元どおり出す・数える）。なので**読むたびにたどる**。
---   使う所は3つ ── 5. 保存／6. 次に聞く質問／9. 公開集計。3つとも同じ形で読む。
+--   使う所は3つ ── 5. 保存／6. 次に聞く質問／9. 集計。3つとも同じ形で読む。
 -- ★中身は質問マスタだけで、個票は1行も含まない。それでも API には出さない。
 -- ★union（all なし）＝ 万一マスタに輪ができても止まる。生成側（gen-conditions.mjs）が
 --   「親は自分より前に定義」を検査しているので、輪は入らないはず。
@@ -936,9 +936,11 @@ begin
      -- まだ一度も触っていない（mine_due が null）か、聞いてよい時刻を過ぎたもの
      where mine_due is null or mine_due <= now()
   )
+  -- ★答えた人数（n）は返さない（2026-10-10）。並べる順にだけ使う。
+  --   他人の回答の数は、3人の壁も立場も通らないまま会員へ出ていた。読む画面は無い。
   select coalesce(jsonb_agg(jsonb_build_object(
            'id', id, 'section', section, 'tier', tier, 'kind', kind,
-           'micro', micro, 'priority', priority, 'n', n,
+           'micro', micro, 'priority', priority,
            'mine_code', mine_code) order by rn), '[]'::jsonb)
     into v_rows
     from pick where rn <= v_limit;
@@ -1074,10 +1076,10 @@ revoke all on function public.pv_contributor_stats() from public, anon, authenti
 
 
 -- ════════════════════════════════════════════════════════════════
--- 9. 公開集計ビュー（k ≧ 3）
+-- 9. 集計ビュー（k ≧ 3・直接は読ませない）
 -- ════════════════════════════════════════════════════════════════
--- security_invoker を立てない＝所有者権限で走る。だから anon が
--- airline_conditions を1行も読めないまま、この集計だけを読める。
+-- security_invoker を立てない＝所有者権限で走る。読むのは db/contrib.sql の
+-- pv_contrib_facts だけ（立場を見てから返す）。anon / authenticated には select を渡さない。
 --
 --  ・粒度は 会社 × 質問 だけ。position / fleet / base_iata / contract_type は
 --    列にも group by にも入れない（準識別子。年収ビューが base_iata を外したのと同じ判断）
@@ -1170,7 +1172,12 @@ select a.airline,
   left join dist d on d.airline = a.airline and d.question_id = a.question_id
  where a.n >= 3;
 
-grant select on public.airline_condition_facts to anon, authenticated;
+-- ★直接は誰にも読ませない（2026-10-10）。読む口は db/contrib.sql の pv_contrib_facts だけ
+--   ＝ 見ている人の立場をサーバが見てから返す。3人の壁は「誰に見せるか」の代わりにならない。
+--   ⚠️ この revoke を create view から離さない。Supabase は public に作った表・ビューへ
+--      anon / authenticated の全権限を自動で付ける（default privileges）ので、
+--      ビューを作り直すたびに開く。ここで閉じ直さないと、このファイルだけ貼り直した回に公開へ戻る。
+revoke all on public.airline_condition_facts from public, anon, authenticated;
 
 comment on view public.airline_condition_facts is
-  '待遇の公開集計。会社×質問の粒度、3人以上が答えた項目だけ。「わからない」は n に数えない。個票・自由記述は出さない。';
+  '待遇の集計。会社×質問の粒度、3人以上が答えた項目だけ。直接は誰にも読ませない（読む口は pv_contrib_facts）。「わからない」は n に数えない。個票・自由記述は出さない。';
