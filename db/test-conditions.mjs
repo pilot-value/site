@@ -316,6 +316,29 @@ const leftA = (await next({ airline: 'skymark', limit: 30 })).questions.filter((
 ok(leftA.length === 0, '   このとき候補に Tier A は1問も残っていない',
   JSON.stringify(leftA.map((q) => q.id)));
 
+/* ★TQ5 ほかの人の回答の数を並びに使ってよい相手は、db/contrib.sql の pv_contrib_sees が決める（2026-10-11）。
+   あのファイルは db/airline-conditions.sql より後に貼る ＝ この器には無い（上の FILES に入っていない）。
+   そのあいだも、次の質問は止まらずに返る。数は誰の並びにも使わない（閉じる側に倒す）。
+   「使わない」の見方 ── まだ1問も答えていない人には、回答の集まり方が違う2社（zipair / skymark）で同じ並びが返る ＝ 質問の表の順。
+   ⚠️ 落とし方は db/airline-conditions.sql の側を壊す（関数が在るかを見る if を外す／v_open の初めの値を true にする）。 */
+{
+  const FRESH = 8860;                                     // この節でだけ使う、まだ誰も使っていない会員番号
+  const unused = Number((await one(`select count(*)::int n from profiles where id = $1`, [uid(FRESH)])).n) === 0;
+  const noRule = (await one(`select to_regprocedure('public.pv_contrib_sees(text)') is null as none`)).none === true;
+  const safe = async (payload) => { try { return await next(payload); } catch (e) { return { __err: String(e.message || e) }; } };
+  const idsOf = (x) => JSON.stringify(((x && x.questions) || []).map((q) => q.id));
+  const fine = (x) => !x.__err && x.ok === true && x.questions.length > 0 && x.questions.every((q) => q.n == null);
+  const answered = await safe({ airline: 'skymark', limit: 30 });                 // 答えた人（会員60。上で Tier A を出し切った）
+  await asUser(FRESH);
+  const fa = await safe({ airline: 'zipair', limit: 30 }), fb = await safe({ airline: 'skymark', limit: 30 });
+  await asUser(60);                                       // この下は会員60の続き
+  ok(unused && noRule && fine(answered) && answered.mine_count > 0
+     && fine(fa) && fine(fb) && fa.mine_count === 0 && fb.mine_count === 0 && idsOf(fa) === idsOf(fb),
+    '見せる決まりがまだ無い DB でも、次の質問は返る（人数は使わない）',
+    JSON.stringify({ unused, noRule, err: [answered, fa, fb].map((x) => x.__err || null),
+                     got: [answered, fa, fb].map((x) => (x.questions || []).length), same: idsOf(fa) === idsOf(fb) }));
+}
+
 // 通貨つきの金額（Bond）
 r = await submit({ airline: 'skymark', year: 2026, month: 8, answers: [
   { question_id: 'training_bond_amount', num: 5000000 }] });

@@ -818,6 +818,7 @@ grant execute on function public.submit_airline_conditions(jsonb) to authenticat
 -- ════════════════════════════════════════════════════════════════
 -- 並べる順： ① boost（★まだ1問も答えていない人だけ・大きいほど先）
 --            → ② Tier（A→B→C） → ③ その会社での回答者が少ない順
+--              （③ は、その会社の回答を見てよい人にだけ効く ＝ pv_contrib_sees が 'open' の人。ほかの人には数を使わない）
 --            → ④ 最終確認が古い順 → ⑤ priority
 -- ★ 親を持つ質問は、その人自身の親への答えが parent_when に入るときだけ候補にする。
 --   親の親があるときは、いちばん上まで条件が続いているときだけ（4b）。
@@ -862,6 +863,7 @@ declare
   v_ans_d   int := public.pv_condition_setting('answer_reask_days',  365);
   v_unk_d   int := public.pv_condition_setting('unknown_reask_days', 180);
   v_skip_d  int := public.pv_condition_setting('skip_reask_days',     90);
+  v_open    boolean := false;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -873,6 +875,14 @@ begin
   if v_airline <> 'other' then v_other := null; end if;
 
   v_hash := public.pv_condition_hash(v_uid, v_airline, v_other);
+
+  -- ★ほかの人の回答の数（下の n）を、並びにも返事にも使ってよい相手かどうか（2026-10-11）。
+  --   決めるのは db/contrib.sql の pv_contrib_sees の1か所。そこが「開いている」と言った人にだけ使う。
+  --   あのファイルは、このファイルより後に貼る。まだ無い DB では、誰にも使わない（閉じる側に倒す・止めない）。
+  --   ⚠️ 2つの文に分けてある。1つの式（a and b）にまとめると、関数が無い DB で式ごと止まる。
+  if to_regprocedure('public.pv_contrib_sees(text)') is not null then
+    v_open := coalesce(public.pv_contrib_sees(v_airline) = 'open', false);
+  end if;
 
   -- その会社でこの人が実際に答えた数（スキップだけの行と、話題の入口からだけ出す質問は数えない）
   select count(*) into v_count
@@ -929,7 +939,7 @@ begin
            row_number() over (
              order by boost desc,
                       case tier when 'A' then 0 when 'B' then 1 else 2 end,
-                      n asc,
+                      case when v_open then n else 0 end asc,
                       mine_at asc nulls first,
                       priority asc) as rn
       from cand

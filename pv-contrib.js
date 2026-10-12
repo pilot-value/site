@@ -1440,9 +1440,6 @@
   var TAXI_ORDER = ['commuting_transport', 'commuting_transport_method', 'commuting_taxi_when', 'commuting_bus_when',
     'commuting_taxi_where', 'commuting_taxi_cap', 'commuting_taxi_cost', 'commuting_bus_cost'];
   var UNK = 'unknown';
-  /* ★補足を「給与を提出した会員」にだけ見せる質問の区分。正本はサーバの pv_contrib_notes()（写し）。
-     ここを変えても見える範囲は変わらない（決めるのはサーバ）。変わるのは、書く前に見せる断りの文だけ。 */
-  var PAY_SECTIONS = { roster: 1, career: 1 };
   var WHY = {
     unknown_question: 'この質問はいま受け付けていません。',
     rate_limited: '1日に送れる件数の上限に達しました。明日また続きをどうぞ。',
@@ -1604,11 +1601,7 @@
     return trim(a.text) === text;
   }
   function shareLine(qs) {
-    var pay = 0;
-    qs.forEach(function (q) { if (has(PAY_SECTIONS, q.section)) pay++; });
-    var who = pay === qs.length ? '給与を提出した会員'
-      : (pay === 0 ? 'ログインした会員' : 'ログインした会員（勤務・訓練の質問は給与を提出した会員）');
-    return '補足を書いた場合は、質問の名前と一緒に、' + who + 'に表示されます（名前は出ません）。';
+    return '補足を書いた場合は、質問の名前と一緒に、給与を提出した会員に表示されます（名前は出ません）。';
   }
 
   function renderGroup(topic) {

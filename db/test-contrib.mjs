@@ -896,6 +896,109 @@ console.log('\n▼ 8-0. 誰に見せるか（自分の会社・5つ）');
 
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 8-0b. 次に聞く質問（ほかの人の回答の数を、並びにも返事にも使わない）');
+// ════════════════════════════════════════════════════════════
+/* 「次に聞く質問」（db/airline-conditions.sql の next_condition_questions）は、その会社で答えた人が少ない質問を先に出す。
+   その数は、ほかの人の回答の数。返事に入れなくても、並びの段差が「ここは何人か答えている」の手がかりになる。
+   そこで、数を並びに使う相手を、決める所（pv_contrib_sees）がその会社について open と言った人だけにした（2026-10-11）。
+   ほかの人には、質問の表の順で出す ＝ 回答が在る会社と無い会社で、並び（質問の id の列）が1文字も違わない。
+   ⚠️ 会社（A_QA / A_QB）も質問（X）も表から読む。会社は、どの節も回答を入れていない2社を、一覧の**末尾**から取る
+      （頭から取ると、下の 8-2 の続きが使う会社に当たる。あちらは「上のどの節も回答を入れていない」が前提）。
+   ⚠️ 落とし方（わざと壊して赤を見る）は、db/airline-conditions.sql の v_open の行を壊す。ここの期待を緩めない。 */
+{
+  const nextQ = (who, airline) => rpc(who, 'next_condition_questions', { airline, limit: 30 });
+  const list  = (r) => ((r && r.questions) || []).map((q) => q.id);
+  const ids   = (r) => J(list(r));
+  const noN   = (r) => list(r).length > 0 && r.questions.every((q) => q.n == null);     // 人数の欄が無い（在っても空）
+  const [A_QA, A_QB] = (await many(
+    `select code from public.pv_airlines
+      where code <> 'other' and active and code <> all($1::text[]) order by code desc limit 2`, [AIR])).map((r) => r.code);
+  const dirty = A_QA && A_QB ? await cnt(`public.airline_conditions where airline = any($1::text[])`, [[A_QA, A_QB]]) : -1;
+
+  if (must(!!A_QA && !!A_QB && A_QA !== A_QB && dirty === 0,
+        '8-0b どの節も回答を入れていない会社が2つ要る（一覧の末尾から2つ。回答が1行でも在れば、この節は見ていない）', J({ A_QA, A_QB, rows: dirty }))) {
+    const [QUAL, MEM, GIVE4, S1, S2, S3] = await crew(6);
+    await qualify(QUAL);                                           // ほかの会社も開いている人
+    await paid(GIVE4, A_HOME); await five(GIVE4, A_HOME, 4);       // give の人（自分の会社に4つ）
+    const words = [await sees(QUAL, A_QA), await sees(QUAL, A_QB), await sees(MEM, A_QA), await sees(MEM, A_QB),
+                   await sees(GIVE4, A_QA), await sees(GIVE4, A_QB)].join(' ');
+    must(words === 'open open locked locked give give', '8-0b 読む3人の立場（開いている人・鍵の無い会員・give の人）', words);
+
+    // 確認済みの印の列（verify_level）は、在る器でだけ見る
+    const vl = await cnt(`information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name = 'verify_level'`) === 1;
+    const snap = async () => J(await many(
+      `select id, access_until${vl ? ', verify_level' : ''} from public.profiles where id = any($1::uuid[]) order by id`, [[QUAL, MEM, GIVE4]]));
+    const before = await snap();
+
+    /* X ＝ 誰も答えていない会社（A_QB）で、開いている人に返る並びの中の1問。
+       最初の3問（boost）に入っていない・親の無い・答えを1つ選ぶ質問で、すぐ後ろに同じ Tier の質問が続くもの
+       （後ろに同じ Tier が居ないと、人数で後ろへ回っても場所が変わらない）。 */
+    const LEDGER = Object.fromEntries((await many(
+      `select id, kind, parent, boost, choice_codes from public.pv_condition_questions where active`)).map((q) => [q.id, q]));
+    const openB = await nextQ(QUAL, A_QB);
+    const qb = openB.questions || [];
+    const posB = qb.findIndex((q, i) => {
+      const L = LEDGER[q.id];
+      return !!L && Number(L.boost || 0) === 0 && L.kind === 'choice' && L.parent === null && !!qb[i + 1] && qb[i + 1].tier === q.tier;
+    });
+    if (must(posB >= 0, '8-0b 後ろに同じ Tier の質問が続く、親の無い「選ぶ」質問が要る（X。無ければ、この節は見ていない）', ids(openB))) {
+      const X = qb[posB].id;
+      const code = LEDGER[X].choice_codes.find((c) => c !== 'unknown');
+      // ほかの3人が、A_QA について X に答える（A_QB には誰も答えない）
+      let seeded = 0;
+      for (const s of [S1, S2, S3]) seeded += (await condM(s, { airline: A_QA, answers: [{ question_id: X, code }] })).saved || 0;
+      must(seeded === 3, '8-0b 3人が A_QA について X に答えられること', J({ X, code, seeded }));
+
+      // ── TQ1 給与の鍵が無い会員 ──
+      const mA = await nextQ(MEM, A_QA), mB = await nextQ(MEM, A_QB);
+      ok(ids(mA) === ids(mB) && noN(mA) && noN(mB),
+        '★TQ1 給与の鍵が無い会員 ── 3人が答えた質問が在る会社でも、誰も答えていない会社でも、次の質問の並びは同じ。返事に人数は無い',
+        J({ X, withAnswers: list(mA).indexOf(X), without: list(mB).indexOf(X) }));
+
+      // ── TQ2 give の人（給与は出した・自分の会社にまだ4つ）──
+      const gA = await nextQ(GIVE4, A_QA), gB = await nextQ(GIVE4, A_QB);
+      ok(ids(gA) === ids(gB) && noN(gA) && noN(gB),
+        '★TQ2 give の人（ほかの会社がまだ開いていない）── 同じく、並びは同じ。返事に人数は無い',
+        J({ X, withAnswers: list(gA).indexOf(X), without: list(gB).indexOf(X) }));
+
+      // ── TQ3 開いている人には、今までどおり（答えた人が少ない質問が先）──
+      const openA = await nextQ(QUAL, A_QA);
+      const posA = list(openA).indexOf(X);
+      const rest = (r) => list(r).filter((id) => id !== X);
+      const m = Math.min(rest(openA).length, rest(openB).length);
+      ok((posA > posB || (posA === -1 && list(openA).length === 30)) && m > 0 && J(rest(openA).slice(0, m)) === J(rest(openB).slice(0, m)),
+        '★TQ3 ほかの会社も開いている人には、今までどおり ── 3人が答えた質問は、その会社では後ろへ回る（ほかの質問の順は動かない）',
+        J({ X, without: posB, withAnswers: posA, of: list(openA).length }));
+
+      // ── TQ4 ほかは何も動いていない ──
+      ok(keys(mA) === 'airline,mine_count,ok,questions' && mA.airline === A_QA && mB.airline === A_QB
+         && J({ ...mA, airline: '' }) === J({ ...mB, airline: '' }),
+        '   TQ4 鍵の無い会員への2社の返事は、会社の欄（airline）だけが違う', J({ a: keys(mA), b: keys(mB) }));
+      ok(denied(await nextQ(ANON, A_QA)), '   TQ4 未ログインは、今までどおり呼べない（permission denied）');
+      const after = await snap();
+      ok(before === after, `   TQ4 次の質問を何度読んでも、給与の鍵の期限${vl ? '・確認済みの印' : ''}は1文字も変わらない（3人とも）`, J({ before, after }));
+
+      /* ── TQ3b 自分の会社は、5つ答える前でも開いている（点検で足した）──
+         給与を出した直後に出る「もう1問」は、ここを通る ＝ 自分の会社について・まだ1問も答えていない人。
+         上の TQ3 の人は、5つ答え終えて全社が開いた人。その人だけを見ていると、呼び出しが会社を渡さなくなっても
+         （pv_contrib_sees(null) ＝ カードの材料が使う「ほかの会社が開くか」の聞き方）緑のまま、いちばん使われる道だけが
+         質問の表の順に変わる。
+         ⚠️ 落とし方は、db/airline-conditions.sql の呼び出しの引数（v_airline）を null にする。ここの期待を緩めない。 */
+      const OWN = await member();
+      await paid(OWN, A_QA);                                         // A_QA が「自分の会社」。回答は1つも無い
+      const ownWords = `${await sees(OWN, A_QA)} ${await sees(OWN, A_QB)}`;
+      const oA = await nextQ(OWN, A_QA), oB = await nextQ(OWN, A_QB);
+      const ownA = list(oA).indexOf(X), ownB = list(oB).indexOf(X);
+      ok(ownWords === 'open give' && ids(oA) === ids(openA) && ids(oB) === ids(mB)
+         && (ownA > ownB || (ownA === -1 && list(oA).length === 30)) && noN(oA) && noN(oB),
+        '★TQ3b 自分の会社は、5つ答える前でも今までどおり ── 給与を出した会社では、3人が答えた質問が後ろへ回る（全社が開いた人と同じ並び）',
+        J({ X, sees: ownWords, own: ownA, other: ownB, sameAsOpen: ids(oA) === ids(openA) }));
+    }
+  }
+}
+
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 8. 他人の補足（立場ごとに何が返るか）');
 // ════════════════════════════════════════════════════════════
 {

@@ -177,16 +177,19 @@ console.log('\n════ ソース ════');
   ok(J(rpcDyn) === J(['MEMBER_FN[kind]', 'name']), '名前を表から引いて呼ぶのは、会員の「出す」の1か所だけ（ほかに見えない呼び出しが無い）', J(rpcDyn));
   ok(!/pv_work_view|pv_contrib_notes|pv_pay_rows|pv_reviews/.test(code), '「情報を追加」の面は、ほかの人の回答・給与・口コミを読む口を1つも呼ばない');
 
-  /* サーバの決まりを写している2つの値が、正本と同じか。
-     どちらも「見える範囲」や「消える日」を決めているのはサーバで、ここが違っていても
+  /* サーバの決まりを写している値（預かりの日数）が、正本と同じか。
+     「消える日」を決めているのはサーバで、ここが違っていても
      動きは変わらない ── 変わるのは、書く前に画面が言う断りの文だけ（＝嘘の約束になる）。 */
   const sqlC = read('db/contrib.sql');
   const held = +((code.match(/var HELD_DAYS = (\d+);/) || [])[1] || 0);
   const ttl = +((sqlC.match(/function public\.pv_contrib_ttl\(\)[\s\S]{0,160}?interval '(\d+) days'/) || [])[1] || 0);
   ok(held > 0 && held === ttl, `預かりの日数が、画面の文とサーバで同じ（${held}日 ⇄ ${ttl}日）`);
-  const paySecJs = [...((code.match(/var PAY_SECTIONS = \{([^}]*)\}/) || [])[1] || '').matchAll(/([a-z_]+)\s*:/g)].map((m) => m[1]).sort();
-  const paySecSql = [...((sqlC.match(/q\.section not in \(([^)]*)\)/) || [])[1] || '').matchAll(/'([a-z_]+)'/g)].map((m) => m[1]).sort();
-  ok(paySecJs.length > 0 && J(paySecJs) === J(paySecSql), '補足が「給与を提出した会員」にだけ見える区分が、画面の文とサーバで同じ', J({ js: paySecJs, sql: paySecSql }));
+  /* 補足を誰に見せるかは、サーバの1か所（pv_contrib_sees）が決める。面は区分の写しを持たず、断りの文は1つだけ
+     （2026-10-11：ほかの人の回答を見られるのは、給与を提出した会員だけ）。
+     見るのは shareLine の中身（コメントを除いた字）── 文がちょうど1回・ほかの相手の名前が無い・区分の表を引いていない。 */
+  const SHARE_TEXT = '補足を書いた場合は、質問の名前と一緒に、給与を提出した会員に表示されます（名前は出ません）。';
+  const oneAudience = (src) => { const fn = (src.match(/function shareLine\(qs\) \{[\s\S]*?\n  \}/) || [''])[0]; return fn.split(SHARE_TEXT).length === 2 && !/ログインした会員/.test(fn) && !/PAY_SECTIONS/.test(fn); };
+  ok(oneAudience(code), '補足を誰に見せると書くかは1つだけ ── 給与を提出した会員', (code.match(/function shareLine\(qs\) \{[\s\S]*?\n  \}/) || ['shareLine が見つからない'])[0].replace(/\s+/g, ' ').slice(0, 300));
   ok(!/REAL PAY|解放|アンロック|unlock/i.test(code.replace(DUTY_TERM, '')), 'JS は「REAL PAY が開く」と1文字も言わない',
     J((code.replace(DUTY_TERM, '').match(/.{0,16}(?:REAL PAY|解放|アンロック|unlock).{0,16}/gi) || []).slice(0, 3)));
   ok(!/機内弁当|住まい・家族/.test(code), '保存先の無い項目（機内弁当・食事／住まい・家族）のタイルを置いていない');

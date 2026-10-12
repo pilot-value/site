@@ -543,7 +543,7 @@ const ASKABLE = QUESTIONS.filter(askable).map(q => q.id);
   const blk = one(src, /var GROUPS = \[([\s\S]*?)\];/) || '';
   const ks = [...blk.matchAll(/\{ k: '([a-z_]+)'/g)].map(m => m[1]);
   ok(same([...ks].sort(), [...ASK_GROUPS].sort()), '「情報を追加」の面が持っている話題は、通勤・Staff Travel・昇格・勤務スケジュール・訓練・休暇と手当の6つ', ks.join(' '));
-  ok(/var PAY_SECTIONS = \{ roster: 1, career: 1 \};/.test(src), '補足を給与提出者だけに見せる区分（勤務スケジュール・キャリア）の写しが、面に在る');
+  ok(!/PAY_SECTIONS/.test(src), '補足を見せる区分の写しを、面に持っていない（誰に見せるかを決めるのはサーバの1か所）');
 }
 /* 待遇の公開集計（airline_condition_facts）が持つ列。db/airline-conditions.sql の、ビューのいちばん外の select から読む
    （ここへ書き写さない ＝ ビューの列が変われば、この一覧も一緒に変わる）。使う所は2つ ──
