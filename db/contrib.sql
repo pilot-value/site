@@ -37,9 +37,11 @@
 --      勤務や補足を出しただけの人は、今までどおり何も開かない。
 --   6. **他人の補足は、立場をサーバが見てから返す。** 返すのは文と質問の名前だけ
 --      （いつ・誰が・職位・機種・選んだ答えは返さない ＝ 3人の壁の外へ個票を出さない）。
---        未ログイン          … 1文字も返さない
---        ログインしただけ     … 勤務・訓練（roster / career）と月の勤務**以外**の補足
---        給与の鍵が生きている … 全部
+--        未ログイン                               … 1文字も返さない
+--        ログインしただけ（給与の鍵が無い・切れた）  … 1文字も返さない
+--        給与の鍵が生きている ＋ 自分の会社          … 全部
+--        給与の鍵が生きている ＋ ほかの会社          … 自分の会社に5つ答えた人にだけ、全部
+--      決めるのは 6-b の pv_contrib_sees の1か所。
 --      「見せます」と書いた画面から送られた補足（text_shared）だけ。昔の補足は本人だけのまま。
 --
 -- ■ 何度流しても同じ結果になる（冪等）。
@@ -1253,9 +1255,8 @@ comment on function public.pv_contrib_give(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 -- 受け取る形: { airline: 'jal' }
 -- 返す形:
---   未ログイン          … { ok, state:'login' }                       ← 1文字も返さない
---   ログインしただけ     … { ok, state:'member', notes:[…] }           ← 勤務・訓練と月の勤務は入っていない
---   給与の鍵が生きている … { ok, state:'open',   notes:[…] }
+--   開いていない人 … { ok, state:'login' | 'locked' | 'give' }     ← 状態の1語だけ。1文字も返さない
+--   開いている人   … { ok, state:'open', notes:[…] }
 --   notes の1件 … { topic, q, text, mine }
 --     topic … 話題（'work'＝月の勤務／それ以外は質問の節: roster / career / time_off / benefits）
 --     q     … 質問の id（月の勤務のひとことは null）。名前は画面が質問の表から引く
@@ -1272,15 +1273,16 @@ stable
 set search_path = public, extensions
 as $$
 declare
-  v_level   text := public.pv_work_level();
   v_uid     uuid := auth.uid();
   v_airline text := nullif(btrim(p->>'airline'), '');
+  v_sees    text := public.pv_contrib_sees(v_airline);
   v_ch      text;
   v_wh      text;
   v_notes   jsonb;
 begin
-  if v_level = 'anon' then
-    return jsonb_build_object('ok', true, 'state', 'login');
+  -- 開いていない人には、ここまで（会社が在るかどうかにも答えない）
+  if v_sees is distinct from 'open' then
+    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'));
   end if;
   if v_airline is null or v_airline = 'other'
      or not exists (select 1 from public.pv_airlines where code = v_airline) then
@@ -1301,7 +1303,6 @@ begin
        and c.airline_other is null
        and c.text_shared
        and c.answer_text is not null
-       and (v_level = 'pay' or q.section not in ('roster', 'career'))
        -- ★親の条件が、いちばん上まで続いている回答の補足だけを見せる（2026-10-09）。
        --   上の質問を「ない」に答え直した人の、その下の質問への古い補足を見せ続けない
        --   （公開集計と同じ決め方 ＝ db/airline-conditions.sql の 9）。行は消していないので、
@@ -1315,13 +1316,12 @@ begin
                      and (p.answer_code = any(k.parent_when)
                           or p.answer_codes && k.parent_when)))
     union all
-    -- 月の勤務のひとこと（給与の鍵が生きている人にだけ）
+    -- 月の勤務のひとこと
     select 'work', null, w.note,
            (w.proof_hash = v_wh),
            md5(w.proof_hash || '::' || w.period_year || '-' || w.period_month)
       from public.pv_work_months w
-     where v_level = 'pay'
-       and w.airline = v_airline
+     where w.airline = v_airline
        and w.airline_other is null
        and w.note is not null
   )
@@ -1331,10 +1331,7 @@ begin
     into v_notes
     from (select * from pool order by mine desc, ord limit 40) z;
 
-  return jsonb_build_object(
-    'ok', true,
-    'state', case when v_level = 'pay' then 'open' else 'member' end,
-    'notes', v_notes);
+  return jsonb_build_object('ok', true, 'state', 'open', 'notes', v_notes);
 end;
 $$;
 
@@ -1342,7 +1339,7 @@ revoke all on function public.pv_contrib_notes(jsonb) from public;
 grant execute on function public.pv_contrib_notes(jsonb) to anon, authenticated;
 
 comment on function public.pv_contrib_notes(jsonb) is
-  '他人の補足。未ログインには返さない／会員には勤務・訓練以外／給与の鍵が生きている人には全部。返すのは文と質問の id だけ。';
+  '他人の補足。見せてよいかは pv_contrib_sees が決める（開いていない人には状態の1語だけ）。返すのは文と質問の id だけ。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1365,7 +1362,7 @@ select (select count(*) from pg_policies
                                                                                   as 未ログインで預けて読める,
        not has_function_privilege('anon', 'public.claim_contrib(jsonb)', 'execute')
                                                                                   as 引き継ぎはログインが要る,
-       pg_get_functiondef('public.pv_contrib_notes(jsonb)'::regprocedure) like '%pv_work_level()%'
+       pg_get_functiondef('public.pv_contrib_notes(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
                                                                                   as 補足は立場を見てから返す,
        (pg_get_functiondef('public.submit_contrib_anon(jsonb)'::regprocedure)
           || pg_get_functiondef('public.my_contrib_anon(jsonb)'::regprocedure)

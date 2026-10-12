@@ -18,8 +18,8 @@
        会員の側にもっと新しい同じ回答が在れば、そちらが残る。
      ★ 預けても・引き継いでも、資格は1つも付かない。
        pv_my_give() は basic:false のまま・給与の一覧は閉じたまま・勤務の幅も閉じたまま。
-     ★ 他人の補足は、立場をサーバが見てから返す。未ログインには1文字も返らない。
-       会員には勤務・訓練と月の勤務**以外**。給与の鍵が生きている人には全部。
+     ★ 他人の補足は、立場をサーバが見てから返す。未ログインにも、給与の鍵が無い会員にも、1文字も返らない。
+       給与の鍵が生きている人には、自分の会社は全部。ほかの会社は、自分の会社に5つ答えてから。
        「見せます」の印が無い補足は、誰にも返らない。
 
    ⚠️ set_config の第3引数は **false**（＝セッション全体）でなければならない。
@@ -220,9 +220,12 @@ const haveOf = async (who, code) => {
 };
 // カードの材料（外から呼べる口）を、その人として読む
 const giveOf = (who) => rpc(who, 'pv_contrib_give');
+/* 開いていない人への、補足の読み口の返事。字として、この3つのどれか（一覧も、会社の名前も、数も入らない）。 */
+const L0 = '{"ok":true,"state":"login"}', L1 = '{"ok":true,"state":"locked"}', L2 = '{"ok":true,"state":"give"}';
 
+/* 読む人（どの会社も開いている人）。開くのは 5 の頭の qualify から ＝ 本物の給与 ＋ 自分の会社（A_HOME）に5つ。
+   ここで開かないのは、4 が会員の回答の表を1度まるごと空にするため（先に答えた5つが消える）。 */
 const READER = await member();
-await unlock(READER);
 
 
 // ════════════════════════════════════════════════════════════
@@ -403,6 +406,7 @@ let K2;
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 5. 預かっているあいだは、集計にも他人の画面にも出ない');
 // ════════════════════════════════════════════════════════════
+await qualify(READER);
 const WALL_M = ago(1);
 const wallKeys = [];
 {
@@ -458,7 +462,7 @@ console.log('\n▼ 6. ログインして引き継ぐ');
   const pr = await gate(three[0]);
   ok(pr.__err || pr.unlocked !== true, '★給与の一覧は閉じたまま', J(pr).slice(0, 120));
   ok(J(await view(three[0], { airline: A_WALL })) === '{"ok":true,"state":"locked"}', '★勤務の幅も閉じたまま（出しただけでは読めない）');
-  ok((await notes(three[0], A_WALL)).state === 'member', '   補足の読み口も「会員」のまま');
+  ok(J(await notes(three[0], A_WALL)) === L1, '   TN2 補足の読み口も閉じたまま（自分が引き継いだ補足が在る会社でも、1文字も返らない）');
 
   // 3人が引き継いで、はじめて幅が出る
   let v = await view(READER, { airline: A_WALL });
@@ -1001,8 +1005,14 @@ console.log('\n▼ 8-0b. 次に聞く質問（ほかの人の回答の数を、�
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 8. 他人の補足（立場ごとに何が返るか）');
 // ════════════════════════════════════════════════════════════
+/* ★2026-10-11 から、補足を見せてよいかは pv_contrib_sees が決める（db/contrib.sql の 6-b）。
+   読む人:  PAYER … この会社（A_NOTE）に給与を出しただけ。1つも答えていない ＝ 自分の会社なので開く
+           GIVER … ほかの会社（A_HOME）に給与を出して、そこに4つ答えた ＝ あと1つ（give）
+           READER … どの会社も開いている人（5 の頭で qualify）
+           MEM / REV / PIL … 給与の鍵が無い会員 ／ W1 … 書いた本人
+   開いていない人への返事は L0 / L1 / L2 の字そのもの（一覧も、会社の名前も、数も入らない）。 */
 {
-  const [W1, W2, MEM, REV, PIL, PAYER] = await crew(6);
+  const [W1, W2, MEM, REV, PIL, PAYER, GIVER] = await crew(7);
   const M = ago(1);
   // W1 が「見せます」で書く：勤務（roster）・訓練（career）・福利（benefits）＋月の勤務のひとこと
   await condM(W1, { airline: A_NOTE, position: 'cap', fleet: 'b787', answers: [
@@ -1018,56 +1028,97 @@ console.log('\n▼ 8. 他人の補足（立場ごとに何が返るか）');
   await db.query(`insert into public.reviews_v2 (proof_hash, airline) values ($1, $2)`, ['r'.repeat(40), A_NOTE]);   // 口コミを書いた人（鍵は別物）
   const hasVL = await cnt(`information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name = 'verify_level'`) === 1;
   if (hasVL) await db.query(`update public.profiles set verify_level = 1 where id = $1`, [PIL]);
-  await unlock(PAYER);
-
-  const EXACT = '{"ok":true,"state":"login"}';
-  ok(J(await notes(ANON, A_NOTE)) === EXACT, '★未ログインには、1文字も返らない', J(await notes(ANON, A_NOTE)));
-  ok(J(await notes(ANON, 'no-such-airline')) === EXACT && J(await rpc(ANON, 'pv_contrib_notes')) === EXACT,
-    '   知らない会社を聞いても同じ返事（在る・無いの手がかりを返さない）');
+  await paid(PAYER, A_NOTE);                                   // この会社に給与を出しただけ（1つも答えていない）
+  await paid(GIVER, A_HOME); await five(GIVER, A_HOME, 4);     // ほかの会社に給与を出して、そこに4つ答えた
+  must(await sees(PAYER, A_NOTE) === 'open' && await sees(GIVER, A_NOTE) === 'give' && await haveOf(PAYER, A_NOTE) === 0
+       && await sees(READER, A_NOTE) === 'open' && await sees(MEM, A_NOTE) === 'locked',
+    '8 の読む人が、決める所でそれぞれの1語になっていること');
 
   const texts = (r) => (r.notes || []).map((x) => x.text).sort().join('|');
-  const mem = await notes(MEM, A_NOTE);
-  ok(mem.state === 'member' && texts(mem) === '社内に窓口', '★ログインしただけの会員には、勤務・訓練と月の勤務**以外**の補足だけ', J(mem));
-  const rev = await notes(REV, A_NOTE);
-  ok(rev.state === 'member' && texts(rev) === '社内に窓口', '★口コミの資格では、勤務の補足は開かない（会員と同じ）', J(rev));
-  const pil = await notes(PIL, A_NOTE);
-  ok(pil.state === 'member' && texts(pil) === '社内に窓口', `★確認済みパイロットの印でも開かない（給与の鍵とは別物${hasVL ? '' : '・この器に印の列は無い'}）`, J(pil));
+  const list  = (r) => (Array.isArray(r.notes) ? r.notes : []);
+  const ALL   = ['3年で消える', '冬は少なめ', '月に3日ほど', '社内に窓口'].sort().join('|');
+
+  // TN1 未ログイン
+  ok(J(await notes(ANON, A_NOTE)) === L0, '★未ログインには、1文字も返らない', J(await notes(ANON, A_NOTE)));
+  ok(J(await notes(ANON, 'no-such-airline')) === L0 && J(await rpc(ANON, 'pv_contrib_notes')) === L0,
+    '   知らない会社を聞いても同じ返事（在る・無いの手がかりを返さない）');
+
+  // TN2 給与の鍵が無い会員（口コミを書いた人・確認済みの印の人も同じ）
+  const mem = J(await notes(MEM, A_NOTE));
+  ok(mem === L1, '★TN2 ログインしただけの会員には、1文字も返らない（補足の一覧そのものが、返事に無い）', mem);
+  const rev = J(await notes(REV, A_NOTE));
+  ok(rev === L1, '★TN2 口コミの資格では開かない（会員と同じ返事）', rev);
+  const pil = J(await notes(PIL, A_NOTE));
+  ok(pil === L1, `★TN2 確認済みパイロットの印でも開かない（給与の鍵とは別物${hasVL ? '' : '・この器に印の列は無い'}）`, pil);
+  const memBad = [J(await notes(MEM, 'no-such-airline')), J(await notes(MEM, 'other')), J(await rpc(MEM, 'pv_contrib_notes'))];
+  ok(memBad.every((x) => x === L1),
+    '   TN2 鍵の無い会員が、知らない会社・自由入力の会社を聞いても、会社を指さなくても、同じ返事（断りもしない）', memBad.join(' ｜ '));
+
+  // TN3 この会社に給与を出した人（自分の会社は、鍵だけで開く）
   const payr = await notes(PAYER, A_NOTE);
-  ok(payr.state === 'open' && texts(payr) === ['3年で消える', '冬は少なめ', '月に3日ほど', '社内に窓口'].sort().join('|'),
-    '★給与の鍵が生きている会員には、勤務・訓練・月の勤務のひとことまで返る', J(payr));
-  ok(!J(payr).includes('印を付けていない補足') && !J(mem).includes('印を付けていない補足'),
+  ok(payr.state === 'open' && texts(payr) === ALL && keys(payr) === 'notes,ok,state',
+    '★TN3 この会社に給与を出した人には（1つも答えていなくても）、勤務・訓練・月の勤務のひとことまで返る', J(payr));
+  ok(!J(payr).includes('印を付けていない補足')
+     && await cnt(`public.airline_conditions where airline = $1 and answer_text = '印を付けていない補足' and not text_shared`, [A_NOTE]) === 1,
     '★「見せます」の印が無い補足は、誰にも返らない（今までの補足は本人だけのまま）');
-  ok(payr.notes.every((x) => keys(x) === 'mine,q,text,topic'), '★1件の中身は 話題・質問・文・自分のものか の4つだけ', J(payr.notes[0]));
-  const by = Object.fromEntries(payr.notes.map((x) => [x.text, x]));
-  ok(by['月に3日ほど'].topic === 'roster' && by['月に3日ほど'].q === 'reserve_duty' && by['3年で消える'].topic === 'career'
-     && by['社内に窓口'].topic === 'benefits' && by['冬は少なめ'].topic === 'work' && by['冬は少なめ'].q === null,
+  ok(list(payr).length === 4 && list(payr).every((x) => keys(x) === 'mine,q,text,topic'), '★1件の中身は 話題・質問・文・自分のものか の4つだけ', J(list(payr)[0]));
+  const by = Object.fromEntries(list(payr).map((x) => [x.text, x]));
+  ok(by['月に3日ほど']?.topic === 'roster' && by['月に3日ほど']?.q === 'reserve_duty' && by['3年で消える']?.topic === 'career'
+     && by['社内に窓口']?.topic === 'benefits' && by['冬は少なめ']?.topic === 'work' && by['冬は少なめ']?.q === null,
     '   話題と質問の id が合っている（月の勤務のひとことは質問なし）');
-  ok(payr.notes.every((x) => x.mine === false), '   他人が読むと、どれも「自分のもの」ではない');
-  ok(!/"(yes|internal|fixed|cap|b787)"/.test(J(payr)) && !J(payr).includes(String(M.year)),
+  ok(list(payr).length === 4 && list(payr).every((x) => x.mine === false), '   他人が読むと、どれも「自分のもの」ではない');
+  ok(payr.state === 'open' && !/"(yes|internal|fixed|cap|b787)"/.test(J(payr)) && !J(payr).includes(String(M.year)),
     '★選んだ答え・職位・機種・対象月は入っていない', J(payr));
 
-  // 書いた本人が読む
+  // TN4 ほかの会社に給与を出して、そこにまだ4つの人
+  const g4 = [J(await notes(GIVER, A_NOTE)), J(await notes(GIVER, A_BARE)), J(await notes(GIVER, 'no-such-airline')), J(await notes(GIVER, 'other'))];
+  ok(g4.every((x) => x === L2),
+    '★TN4 自分の会社にまだ4つの人には、ほかの会社の補足は1文字も返らない（補足が在る会社・無い会社・知らない会社で、同じ返事）', g4.join(' ｜ '));
+  const r5 = await condM(GIVER, { airline: A_HOME, answers: [FIVE[4]] });
+  const g5 = await notes(GIVER, A_NOTE);
+  ok(r5.saved === 1 && g5.state === 'open' && texts(g5) === ALL && list(g5).every((x) => x.mine === false),
+    '★TN4 5つ目を答えると、ほかの会社の補足が開く（4つとも返る）', J(g5));
+
+  // TN5 書いた本人が読む
   const own = await notes(W1, A_NOTE);
-  ok(own.state === 'member' && own.notes.length === 1 && own.notes[0].mine === true, '書いた本人には「自分のもの」の印が付く（鍵が無ければ範囲は会員と同じ）', J(own));
-  await unlock(W1);
+  const kept = (await mineC(W1, { airline: A_NOTE })).answers.filter((x) => x.shared === true).map((x) => x.text).sort().join('|');
+  ok(J(own) === L1 && kept === ['3年で消える', '月に3日ほど', '社内に窓口'].sort().join('|'),
+    '★TN5 書いた本人でも、給与の鍵が無ければ1文字も返らない（自分の補足は「自分の回答」の読み口に、印ごと残っている）', J(own) + ' ｜ ' + kept);
+  await paid(W1, A_NOTE);
   const own2 = await notes(W1, A_NOTE);
   ok(own2.state === 'open' && own2.notes.length === 4 && own2.notes.every((x) => x.mine === true), '給与の鍵が生きれば全部読める（全部自分のもの）', J(own2));
 
-  // 鍵が切れた・運営
+  // TN6 鍵が切れた ／ TN7 運営
   await db.query(`update public.profiles set access_until = now() - interval '1 minute' where id = $1`, [PAYER]);
-  ok((await notes(PAYER, A_NOTE)).state === 'member' && texts(await notes(PAYER, A_NOTE)) === '社内に窓口', '★給与の鍵が切れたら、会員の範囲へ戻る');
+  const expired = J(await notes(PAYER, A_NOTE));
+  ok(expired === L1, '★TN6 給与の鍵が切れたら、1文字も返らない（鍵の無い会員と同じ返事）', expired);
   if (await cnt(`information_schema.tables where table_schema = 'public' and table_name = 'pv_admins'`) === 1) {
     await db.query(`insert into public.pv_admins (user_id, note) values ($1, 'test') on conflict do nothing`, [MEM]);
-    ok((await notes(MEM, A_NOTE)).state === 'open', '運営は全部読める（運営の名簿に居る人だけ）');
+    const op = await notes(MEM, A_NOTE);
     await db.query(`delete from public.pv_admins where user_id = $1`, [MEM]);
+    const off = J(await notes(MEM, A_NOTE));
+    ok(op.state === 'open' && texts(op) === ALL && off === L1, '運営は全部読める（運営の名簿に居る人だけ）', J(op) + ' ｜ 名簿から外したあと ' + off);
   }
-  ok(bad(await notes(MEM, 'no-such-airline'), /航空会社が正しくありません/) && bad(await notes(MEM, 'other'), /航空会社が正しくありません/),
-    '会員が知らない会社・自由入力の会社を聞いたら断る');
-  ok((await notes(MEM, A_BARE)).notes.length === 0, '補足の無い会社は空の一覧');
 
-  // 補足を消したら出なくなる
+  // TN10 / TN11 開いている人（READER）
+  ok(bad(await notes(READER, 'no-such-airline'), /航空会社が正しくありません/) && bad(await notes(READER, 'other'), /航空会社が正しくありません/),
+    'TN10 開いている人が、知らない会社・自由入力の会社を聞いたら断る');
+  const bare = await notes(READER, A_BARE);
+  ok(bare.state === 'open' && Array.isArray(bare.notes) && bare.notes.length === 0, '補足の無い会社は空の一覧', J(bare));
+
+  // TN12 補足を消したら出なくなる
+  const was = await notes(READER, A_NOTE);
   await condM(W1, { airline: A_NOTE, answers: [{ question_id: 'peer_support', code: 'internal' }] });
-  ok((await notes(MEM, A_NOTE)).notes.length === 0, '★本人が補足を消したら、他人の画面からも消える');
+  const now = await notes(READER, A_NOTE);
+  ok(was.state === 'open' && texts(was) === ALL && list(was).every((x) => x.mine === false)
+     && now.state === 'open' && texts(now) === ['3年で消える', '冬は少なめ', '月に3日ほど'].sort().join('|'),
+    '★本人が補足を消したら、他人の画面からも消える', J(was) + ' → ' + J(now));
+
+  // TN9b 見せる区分の決まりを、SQL の字として持っていない（db/contrib.sql の字をそのまま読む）
+  const fnAt = CONTRIB_SQL.indexOf('create or replace function public.pv_contrib_notes(');
+  const fnNotes = fnAt < 0 ? '' : CONTRIB_SQL.slice(fnAt, CONTRIB_SQL.indexOf('\n$$;', fnAt));
+  ok(!/q\.section (not )?in \(|p_section/.test(CONTRIB_SQL) && fnNotes.includes('pv_contrib_sees(') && !fnNotes.includes('pv_work_level()'),
+    '補足を見せる区分の決まりを、SQL に書き戻していない（決めるのは pv_contrib_sees だけ）');
 }
 
 
@@ -1083,7 +1134,11 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
    ⚠️ 下の額と文は検査のための作りもの。どの会社の着陸手当でもない。 */
 {
   const [W, MEM, P1, P2] = await crew(4);
+  /* TN8 補足を読む2人（MEM と、書く本人の W）は、この会社に給与を出した人 ＝ この会社の補足が開いている人。
+     「出ない」は、開いている人に空の一覧が返ること（none）。開いていない人への1語を「出ない」に数えない。 */
+  await paid(MEM, A_CLAIM); await paid(W, A_CLAIM);
   const texts = (r) => (r.notes || []).map((x) => x.text).sort().join('|');
+  const none = (n) => n.state === 'open' && Array.isArray(n.notes) && n.notes.length === 0;
   const LP = (code) => ({ airline: A_CLAIM, answers: [{ question_id: 'landing_pay', code }] });
 
   // ── 補足 ── W が「一定額ではない」を選び、「何で変わるか」に「見せます」の補足を付ける
@@ -1093,20 +1148,20 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
     { question_id: 'landing_pay_varies_by', code: 'airport', text: '空港によって違う', share: true }] });
   ok(r.saved === 3 && r.rejected.length === 0, '着陸手当（一定額ではない）・低いほうの額・何で変わるか を1回で保存できる', J(r));
   let n = await notes(MEM, A_CLAIM);
-  ok(n.state === 'member' && texts(n) === '空港によって違う'
+  ok(n.state === 'open' && texts(n) === '空港によって違う'
      && n.notes[0].topic === 'benefits' && n.notes[0].q === 'landing_pay_varies_by',
     '★「何で変わるか」に付けた補足は、ほかの会員に見える', J(n));
 
   await condM(W, LP('no'));
   n = await notes(MEM, A_CLAIM);
-  ok(n.notes.length === 0, '★着陸手当を「ない」に答え直した人の、下の質問への古い補足を、他人に見せ続けない', J(n));
-  ok((await notes(W, A_CLAIM)).notes.length === 0, '   書いた本人の一覧からも外れる（公開の集計と同じ決め方）');
+  ok(none(n), '★着陸手当を「ない」に答え直した人の、下の質問への古い補足を、他人に見せ続けない', J(n));
+  ok(none(await notes(W, A_CLAIM)), '   書いた本人の一覧からも外れる（公開の集計と同じ決め方）');
   ok(await cnt(`public.airline_conditions where airline = $1 and question_id = 'landing_pay_varies_by'
                  and answer_text = '空港によって違う' and text_shared`, [A_CLAIM]) === 1,
     '   行そのものは消していない（答え直せば戻せる）');
 
   await condM(W, LP('fixed'));
-  ok((await notes(MEM, A_CLAIM)).notes.length === 0,
+  ok(none(await notes(MEM, A_CLAIM)),
     '★「一定額」に答え直しても出ない（その補足は「一定額ではない」の下の質問のもの）');
   await condM(W, LP('variable'));
   n = await notes(MEM, A_CLAIM);
@@ -1174,13 +1229,14 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
    ⚠️ 下の文は検査のための作りもの。どの会社の決まりでもない。 */
 {
   const [W, MEM] = await crew(2);
+  await paid(MEM, A_WALK); await paid(W, A_WALK);        // TN8 読む2人は、この会社に給与を出した人（この会社の補足が開いている）
   const NOTE = '月の上限まで会社が出す';
   const TOP = (code) => ({ airline: A_WALK, answers: [{ question_id: 'commuting_transport', code }] });
   const MID = (codes) => ({ airline: A_WALK, answers: [{ question_id: 'commuting_transport_method', codes }] });
   /* 別の会員が受け取った一覧。「見える」は、その1件だけが・他人のものとして入っていること */
-  const seen1 = (n) => n.state === 'member' && n.notes.length === 1 && n.notes[0].q === 'commuting_taxi_cap'
+  const seen1 = (n) => n.state === 'open' && n.notes.length === 1 && n.notes[0].q === 'commuting_taxi_cap'
     && n.notes[0].text === NOTE && n.notes[0].mine === false && n.notes[0].topic === 'benefits';
-  const gone = (n) => n.state === 'member' && n.notes.length === 0;
+  const gone = (n) => n.state === 'open' && n.notes.length === 0;
   /* 書いた人の行（上限の答えと、印の付いた補足）は、どの段でも残っている ＝ 出ないのは決まりのせい */
   const kept = () => cnt(`public.airline_conditions
      where proof_hash = public.pv_condition_hash($1::uuid, $2, null) and question_id = 'commuting_taxi_cap'
@@ -1200,7 +1256,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
   ok(r.saved === 3 && r.rejected.length === 0 && seen1(n),
     '★歩き1 送迎「いつも」・手段［会社のタクシー］・上限に「見せます」の補足 → ほかの会員に見える（複数選べる親でも筋が通る）', J(n));
   const own = await notes(W, A_WALK);
-  ok(own.notes.length === 1 && own.notes[0].mine === true,
+  ok(own.state === 'open' && own.notes.length === 1 && own.notes[0].mine === true,
     '   書いた本人が読むと「自分のもの」の印が付く ＝ 上で読んだのは、確かに本人ではない', J(own));
 
   r = await condM(W, MID(['crew_bus']));
