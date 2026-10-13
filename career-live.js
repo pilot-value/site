@@ -41,10 +41,6 @@
     'turkish-airlines': 'turkish'
   };
   var SCORES = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
-  /* answer_dist（答えごとの人数）は、いちばん多い答えを決めるためと、並んだ答えが「答えた人の半分より多く」に
-     選ばれているかを見るためだけに取る。
-     分布は描かない。答えごとの人数は、画面にも、ページの中（属性など）にも置かない。 */
-  var FACT_COLS = 'question_id,kind,n,top_code,answer_dist,median_num,last_confirmed_at';
   var TAIL = /[（(][^）)]*[）)]\s*$/;
 
   var T = {
@@ -73,6 +69,8 @@
     payTerms: '閲覧条件',
     payAll: 'REAL PAY で全部見る',
     login: 'ログイン',
+    loginLock: 'ログインが必要です',            // 口コミの要約の欄だけが使う（集計の欄は使わない）
+    loginPayLock: 'ログインと給与の提出で開きます',
 
     /* 月の勤務の6項目。鍵と並びは db/work-months.sql の pv_work_view が返す形のまま */
     work: [
@@ -309,8 +307,8 @@
     if (uid === undefined) { uid = v; return; }
     if (uid === v) return;
     uid = v;
-    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:');
-    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars']);
+    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:');
+    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts']);
     later();
   }
   function watchAuth(sb) {
@@ -354,20 +352,25 @@
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
-        if (x.state !== 'open') return { state: x.state === 'login' ? 'login' : 'locked', by: {} };
+        if (x.state !== 'open') {
+          /* 開いていない時の語は3つ。知らない語は、鍵とも0件とも読まない */
+          if (x.state !== 'login' && x.state !== 'locked' && x.state !== 'give') throw fail('error');
+          return { state: x.state, by: {} };
+        }
         return { state: 'open', by: (x.by && typeof x.by === 'object') ? x.by : {} };
       });
     });
   }
-  /* 会員が書いた補足。誰にどこまで返すかはサーバーが決める（未ログインには1文字も返らない）。 */
+  /* 会員が書いた補足。誰に返すかはサーバーが決める（開いていない人には1文字も返らない）。
+     開いた答えに付いてきた補足だけを持つ。 */
   function notesOf(slug) {
     return once('note:' + slug, function () {
       return client().then(function (sb) { return sb.rpc('pv_contrib_notes', { p: { airline: slug } }); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
-        return { state: x.state === 'open' ? 'open' : x.state === 'member' ? 'member' : 'login',
-                 notes: (x.state !== 'login' && isArr(x.notes)) ? x.notes : [] };
+        return { state: x.state === 'open' ? 'open' : 'locked',
+                 notes: (x.state === 'open' && isArr(x.notes)) ? x.notes : [] };
       });
     });
   }
@@ -394,18 +397,37 @@
     });
   }
 
-  /* 待遇の集計（公開ビュー・3人以上そろった項目だけが載る）。 */
+  /* 待遇の集計。誰に返すかはサーバーが決める（db/contrib.sql の pv_contrib_facts）。
+     開いていない人に返るのは、状態の1語だけ（集計は1件も来ない）。集計のビューは直接読まない（読めない）。
+     1社につき1回だけ聞く ── 聞く質問は、このページの集計の欄ぜんぶの分。 */
+  function pageKeys() {
+    var seen = {}, out = [];
+    var all = root.querySelectorAll('.crl[data-live="fact"][data-keys]');
+    for (var i = 0; i < all.length; i++) {
+      keysOf(all[i]).forEach(function (k) { if (!seen[k]) { seen[k] = 1; out.push(k); } });
+    }
+    return out.sort();
+  }
   function facts(slug) {
     return once('fact:' + slug, function () {
+      var keys = pageKeys(), asked = {};
+      keys.forEach(function (k) { asked[k] = 1; });
       return client().then(function (sb) {
-        return sb.from('airline_condition_facts').select(FACT_COLS).eq('airline', slug);
+        return sb.rpc('pv_contrib_facts', { p: { airline: slug, keys: keys } });
       }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
+        var x = res.data;
+        if (!x || x.ok === false) throw fail('error');
+        /* 状態の語は4つ。知らない語は、開いているとも0件とも読まない */
+        if (x.state !== 'login' && x.state !== 'locked' && x.state !== 'give' && x.state !== 'open') throw fail('error');
+        /* 行を持つのは、開いている時の、聞いた質問の分だけ（ほかの状態に行が付いてきても捨てる） */
         var m = {};
-        (isArr(res.data) ? res.data : []).forEach(function (r) {
-          if (r && r.question_id) m[r.question_id] = r;
-        });
-        return m;
+        if (x.state === 'open') {
+          (isArr(x.facts) ? x.facts : []).forEach(function (r) {
+            if (r && typeof r.question_id === 'string' && asked[r.question_id] === 1) m[r.question_id] = r;
+          });
+        }
+        return { state: x.state, map: m, asked: asked };
       });
     });
   }
@@ -548,6 +570,47 @@
     if (GL) return UP + 'login.html?redirect=' + enc(location.pathname.replace(/^.*\/airlines\//, 'airlines/'));
     return 'login.html?redirect=' + enc('career.html' + location.search);
   }
+  /* 同じタブへ戻るログインの入口。#work のようなタブの名前だけを通す（ほかの形の # は付けない）。 */
+  function backHash() {
+    var h = String(location.hash || '');
+    return /^#[A-Za-z0-9_-]{1,40}$/.test(h) ? h : '';
+  }
+  function loginLink() {
+    var a = link(T.login, loginHref() + enc(backHash()));
+    a.setAttribute('data-crl-login', '1');
+    /* 押す時にもう一度決める（描いたあとでタブを移っていても、押した時のタブへ戻す） */
+    a.addEventListener('click', function () { a.href = loginHref() + enc(backHash()); }, true);
+    return a;
+  }
+  function payEntry(slug) {
+    return link(T.payGive, UP + 'pay-report.html' + (slug ? '?airline=' + enc(slug) : ''), 'cta');
+  }
+  var NONE = { getAttribute: function () { return '0'; } }, GIVE_ONLY = { getAttribute: function () { return 'give'; } };
+  /* 欄がその入口を自分で出してよいか。data-entry が無ければ、状態が要る入口を出す。
+     在れば、そこに書いてある語の入口だけ（"0" ＝ どれも出さない。同じ面にもう在る）。 */
+  function carries(box, what) {
+    var v = box.getAttribute('data-entry');
+    return v === null || (' ' + v + ' ').indexOf(' ' + what + ' ') >= 0;
+  }
+  /* ほかの人の回答が開いていない時の1行。言い方はここ1か所（集計の欄・比較・月の勤務が同じ字になる）。
+     who … サーバーが返した状態の1語：'login' ／ 'locked' ／ 'give'
+     入口は1つだけ ── 'login' は「ログイン」、'locked' は「匿名で給与を提出する」、'give' は答えるカード。 */
+  function lockView(who, slug, box, lead) {
+    if (who === 'give') return giveView(lead ? [lead] : [], box);
+    var nodes = lead ? [lead] : [];
+    nodes.push(lockLine(who === 'login' ? T.loginPayLock : T.payLock));
+    if (carries(box, who === 'login' ? 'login' : 'pay')) nodes.push(foot([who === 'login' ? loginLink() : payEntry(slug)]));
+    return view('locked', nodes);
+  }
+  function giveView() { throw fail('error'); }      /* WP 6b がカードに置き換える（それまでは「いま読み出せません」） */
+  /* 2社を並べる欄で、開いていない側の語。ログイン → 給与の提出 → 答える の順で先のもの。両方開いていれば空。 */
+  function shut(a, b) {
+    var order = ['login', 'locked', 'give'];
+    for (var i = 0; i < order.length; i++) {
+      if (a === order[i] || b === order[i]) return order[i];
+    }
+    return '';
+  }
   function ofCo(rows, slug) {
     return rows.filter(function (r) { return r && r.airline === slug; });
   }
@@ -629,14 +692,8 @@
     });
     return dl;
   }
-  /* 開いていないとき。会社ページと比較には出す入口を添える（1社の概要は、欄のすぐ下に入口が在る） */
-  function workLocked(W, slug, bare) {
-    if (bare) return view('locked', [lockLine(T.payLock)]);
-    return view('locked', [lockLine(T.payLock), foot([
-      link(T.payGive, UP + 'pay-report.html' + (slug ? '?airline=' + enc(slug) : ''), 'cta'),
-      W.state === 'login' ? link(T.login, loginHref()) : null
-    ])]);
-  }
+  /* 開いていないとき。1行と入口は lockView の1か所（どの入口を自分で出すかは、欄の data-entry が決める） */
+  function workLocked(W, slug, box) { return lockView(W.state, slug, box, null); }
 
   /* 会員の補足（文はそのまま字として入れる。HTML として読ませない） */
   function noteHead() { return el('p', 'crl-note-h', T.noteHead); }
@@ -668,7 +725,8 @@
   KIND.work = function (box, ids) {
     var slug = ids[0];
     return workView(slug).then(function (W) {
-      if (W.state !== 'open') return workLocked(W, slug, !GL);
+      /* 1社の概要（career.html）では、ログインと給与の入口は欄のすぐ下に在る ＝ ここは1行だけ（答えるカードだけは自分で出す） */
+      if (W.state !== 'open') return workLocked(W, slug, GL ? box : GIVE_ONLY);
       return (box.hasAttribute('data-notes') ? notesFor(box, slug) : Promise.resolve(null)).then(function (ul) {
         var any = workAny(W.by), nodes = [];
         if (any) {
@@ -720,7 +778,9 @@
   KIND['cmp-work'] = function (box, ids) {
     return Promise.all([workView(ids[0]), workView(ids[1])]).then(function (a) {
       var A = a[0], B = a[1];
-      if (A.state !== 'open' || B.state !== 'open') return workLocked(A.state !== 'open' ? A : B, '', false);
+      /* どちらかが開いていなければ、欄に1行だけ（どちらの会社の値も出さない） */
+      var who = shut(A.state, B.state);
+      if (who) return lockView(who, '', box, null);
       /* 片方がそろっていなくても、もう片方は普通に出す */
       if (!workAny(A.by) && !workAny(B.by)) return view('empty', [msg(T.workEmpty)]);
       var g = cmpGrid(ids);
@@ -1035,28 +1095,16 @@
   function numText(v) { return String(Math.round(Number(v) * 10) / 10); }
   /* 出す形は3つだけ。
        数の質問 … 中央値。
-       選ぶ質問 … いちばん多い答えが1つなら、その名前に「最多」。
-                  2つ以上並んだら、答えの名前は出さずに「回答が分かれています」
-                  （サーバーの top_code は、並んだ時は名前の順で先の1つを返すだけ ＝ 描く答えを決めるのには使わない）。
-                  選べるだけ選ぶ質問で並んだ時は、並んだ答えのどれも「答えた人の半分より多く」が選んでいれば、
-                  どれも最多 ＝ 台帳の並びで全部出す。半分以下なら、やはり「回答が分かれています」。
-     名前が引けない答え・答えごとの人数が読めない行は出さない（top_code だけを頼りに「最多」と書かない）。
-     人数（n）は、その質問に答えた人の数。答えごとの人数は、ここから先へ渡さない。 */
+       選ぶ質問 … 「最多」と書く答えは、サーバーが決めて返す（行の lead。決め方は db/contrib.sql の pv_contrib_facts の1か所）。
+                  lead が1つなら、その名前に「最多」。
+                  lead が空なら（いちばん多い答えが並んだ）、答えの名前は出さずに「回答が分かれています」。
+                  選べるだけ選ぶ質問で lead が2つ以上なら、どれも最多 ＝ 台帳の並びで全部出す（届いた並びではない）。
+     lead の無い行・並びでない行・名前が引けない答えの入った行は出さない。
+     ここでは数えない・決めない（答えごとの人数は届かない。ほかの鍵が付いてきても、そこから答えを作らない）。
+     人数（n）は、その質問に答えた人の数。 */
   function optName(voc, code) {
     var o = voc.options;
     return (o && Object.prototype.hasOwnProperty.call(o, code) && o[code]) ? String(o[code]) : '';
-  }
-  /* いちばん多い答え（並んでいれば全部）。数えるのは、0 より大きい数の入った答えだけ。 */
-  function leaders(dist) {
-    var top = 0, out = [];
-    if (!dist || typeof dist !== 'object' || isArr(dist)) return out;
-    Object.keys(dist).forEach(function (code) {
-      var c = dist[code];
-      if (!isNum(c) || c <= 0) return;
-      if (c > top) { top = c; out = [code]; }
-      else if (c === top) out.push(code);
-    });
-    return out;
   }
   function answer(row, voc) {
     if (!row || !voc) return null;
@@ -1064,29 +1112,20 @@
     if ((voc.kind === 'num' || row.kind === 'num') && row.median_num != null && isFinite(Number(row.median_num))) {
       text = numText(row.median_num) + (voc.unit || ''); how = T.median;
     } else {
-      var lead = leaders(row.answer_dist);
-      if (!lead.length) return null;
-      if (lead.length === 1) {
-        text = optName(voc, lead[0]); how = T.top;
-      } else if (voc.kind === 'multi' || row.kind === 'multi') {
-        if (lead.some(function (c) { return !optName(voc, c); })) return null;
-        /* 並んだ答えを「最多」として並べるのは、どれも、答えた人の半分より多くが選んでいる時だけ。
-           3人が別々の1つずつを選んだ時も「並んだ」になるが、それは一致ではなく、分かれている。
-           人数（n）が読めない行・人数より多い数の入った行は、分かれている側へ倒す（一致しているように見せない）。 */
-        var halfOver = isNum(row.n) && row.n > 0 && row.answer_dist[lead[0]] * 2 > row.n && row.answer_dist[lead[0]] <= row.n;
-        if (halfOver) {
-          text = Object.keys(voc.options).filter(function (c) { return lead.indexOf(c) >= 0; })
-            .map(function (c) { return optName(voc, c); }).join('、');
-          how = T.top;
-        } else {
-          text = T.split; split = true;
-        }
-      } else {
+      var lead = row.lead;
+      if (!isArr(lead)) return null;
+      if (!lead.length) {
         text = T.split; split = true;
+      } else {
+        if (lead.length > 1 && voc.kind !== 'multi' && row.kind !== 'multi') return null;
+        if (lead.some(function (c) { return !optName(voc, c); })) return null;
+        text = Object.keys(voc.options).filter(function (c) { return lead.indexOf(c) >= 0; })
+          .map(function (c) { return optName(voc, c); }).join('、');
+        how = T.top;
       }
     }
     if (!text) return null;
-    return { text: text, how: how, split: split, n: (isNum(row.n) && row.n > 0) ? row.n : null, when: ym(row.last_confirmed_at) };
+    return { text: text, how: how, split: split, n: (isNum(row.n) && row.n > 0) ? row.n : null, when: ym(row.ym) };
   }
   function answerNode(ans) {
     if (!ans) return el('span', 'crl-none', T.factNone);
@@ -1101,11 +1140,15 @@
   }
 
   KIND.fact = function (box, ids) {
-    var keys = keysOf(box);
-    return Promise.all([facts(ids[0]), vocab()]).then(function (a) {
+    var keys = keysOf(box), slug = ids[0];
+    if (!keys.length) return Promise.reject(fail('error'));
+    return Promise.all([facts(slug), vocab()]).then(function (a) {
       var F = a[0], V = a[1], list = el('div', 'crl-facts'), n = 0;
+      /* この欄の質問を聞いていない答えでは描かない（0件とも鍵とも言えない） */
+      if (keys.some(function (k) { return F.asked[k] !== 1; })) throw fail('error');
+      if (F.state !== 'open') return lockView(F.state, slug, box, null);
       keys.forEach(function (k) {
-        var ans = answer(F[k], V[k]);
+        var ans = answer(F.map[k], V[k]);
         if (!ans) return;
         var r = el('div', 'crl-fact');
         r.appendChild(el('span', 'crl-fact-k', V[k].ja || ''));
@@ -1131,10 +1174,17 @@
 
   KIND['cmp-facts'] = function (box, ids) {
     var keys = cmpKeys(box);
+    if (!keys.length) return Promise.reject(fail('error'));
     return Promise.all([facts(ids[0]), facts(ids[1]), vocab()]).then(function (a) {
-      var V = a[2], g = cmpGrid(ids), n = 0;
+      var FA = a[0], FB = a[1], V = a[2];
+      /* 並べる質問を聞いていない答えでは描かない（0件とも鍵とも言えない） */
+      if (keys.some(function (k) { return FA.asked[k] !== 1 || FB.asked[k] !== 1; })) throw fail('error');
+      /* どちらかが開いていなければ、欄に1行だけ（どちらの会社の値も出さない）。入口はここに置かない（上の欄が持つ） */
+      var who = shut(FA.state, FB.state);
+      if (who) return lockView(who, '', NONE, null);
+      var g = cmpGrid(ids), n = 0;
       keys.forEach(function (k) {
-        var A = answer(a[0][k], V[k]), B = answer(a[1][k], V[k]);
+        var A = answer(FA.map[k], V[k]), B = answer(FB.map[k], V[k]);
         if (!A && !B) return;
         cmpRow(g, el('span', '', V[k].ja || ''), answerNode(A), answerNode(B));
         n++;

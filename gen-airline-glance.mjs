@@ -388,7 +388,7 @@ const workLive = v => `<div class="pvg-ans"><p class="pvg-askh">月の勤務<sma
 const notesLive = (v, id) => live('notes', { airline: v.slug, keys: NOTE_KEYS[id].join(',') });
 /* showAlso ＝ 欄が、聞いている質問（askList）のほかに出す質問。聞く行（asks）には足さない。 */
 function factCell(v, id, title, icon, items, askList, emptyText, showAlso = []) {
-  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: [...askList.map(a => a[0]), ...showAlso].join(',') })}</div>${id === 'work' ? workLive(v) : notesLive(v, id)}`;
+  const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: [...askList.map(a => a[0]), ...showAlso].join(','), ...(id === 'work' ? { entry: '0' } : {}) })}</div>${id === 'work' ? workLive(v) : notesLive(v, id)}`;
   const lead = items.find(f => f.lead) || items[0];
   if (!lead) {
     /* 載せる事実が無い欄は、数字を作らず、中身の分かる入口にする */
@@ -780,7 +780,7 @@ function askCard(v) {
   return `<article class="pvg-card pvg-askc"${pane(v.slug, 'overview')}>
 ${head(IC.ask, `<span>${esc(v.name)}のこと、</span><span>ひとつ教えて。</span>`, add)}
 <p class="pvg-quiet">1問だけでも保存できます。匿名で、3人そろった項目から会社ページに出ます。</p>
-<div class="pvg-got"><p class="pvg-askh">集まった回答</p>${live('fact', { airline: v.slug, keys: keys.join(',') })}</div>
+<div class="pvg-got"><p class="pvg-askh">集まった回答</p>${live('fact', { airline: v.slug, keys: keys.join(','), entry: 'give' })}</div>
 <div class="pvg-topics">
 ${groups.map(([id, name, gloss, list]) => `<details class="pvg-topic" data-topic="${id}">
 <summary>${topicHead(TOPIC_IC[id], name, `${gloss ? `<span class="pvg-tp-g">${esc(gloss)}</span>` : ''}<span class="pvg-tp-q">質問 ${list.length}問</span>`)}${IC.down}</summary>
