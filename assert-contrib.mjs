@@ -203,6 +203,25 @@ console.log('\n════ ソース ════');
   ok(cueUse === 3 && savedShows === 2 && savedCued === 2,
     '保存できた合図を出すのは、保存後の画面を出した直後の2か所だけ（ほかのどこからも呼んでいない）', J({ cue: cueUse, shows: savedShows, cued: savedCued }));
   ok(!/['"](?:修正する|別の項目を追加)['"]/.test(code), '保存後のボタンに、前の言い方（「修正する」「別の項目を追加」）が残っていない');
+
+  /* ── ほかの会社について開く（PVContrib.openFor）── ここは字を読むだけ。動きは、いちばん下の場面「別の会社について開く」が見る。
+     このページの会社ではなく、読む人自身の会社（＝ 勤め先。本人のこと）について開く入口なので、
+     片方の会社について打った・保存したものが、もう片方へ渡らないこと・勤め先がこの面の外へ出ないことを、字の上でも押さえる。
+     どの式も、面のファイルの字（コメントを除いたもの）を1つ受け取る形 ＝ 1か所だけ変えた字に当てて、偽になることを確かめられる。 */
+  const cnt = (src, s) => src.split('\n').filter((l) => l.includes(s)).length;
+  const fnOf = (src, name) => (src.match(new RegExp('\\n  function ' + name + '\\([^)]*\\) \\{[\\s\\S]*?\\n  \\}')) || [''])[0];
+  const coOne = (src) => { const os = fnOf(src, 'openSheet'), at = os.indexOf('setCo(o);'); return cnt(src, 'function setCo(') === 1 && at > 0 && at < os.indexOf('build();') && cnt(src, "getAttribute('data-airline')") === 1 && /\n  function pageSlug\(\) \{ return trim\(d\.body && d\.body\.getAttribute\('data-airline'\)\); \}\n/.test(src) && /^\n  function readerTurn\(\) \{\n    if \(CO && CO\.u !== uid\(\)\) \{ coEnd\(\); return true; \}\n/.test(fnOf(src, 'readerTurn')); };
+  const coGuard = (src) => { const L = src.split('\n'), isSend = (l) => /^\s*send\('[a-z]+', pl\)\.then\(function \(r\) \{$/.test(l || ''), at = L.map((l, i) => (l.includes('if (was !== coTurn) return;') ? i : -1)).filter((i) => i >= 0); return cnt(src, 'coTurn++') === 1 && fnOf(src, 'setCo').includes('coTurn++;') && L.filter(isSend).length === 2 && at.length === 2 && at.every((i) => isSend(L[i - 1]) && /^\s*var was = coTurn;$/.test(L[i - 2] || '')); };
+  const coTrack = (src) => cnt(src, 'gtag(') === 1 && cnt(src, 'airline_code') === 1 && cnt(src, "w.gtag('event', name, { topic: topic, airline_code: CO ? '' : slug() });") === 1;
+  const coOutbox = (src) => cnt(src, 'lset(OUTBOX,') === 1 && /\n  function keepOutbox\(topic\) \{\n    if \(CO\) return;\n    lset\(OUTBOX,/.test(src) && cnt(src, '入力した内容はこの端末に残しています。') === 1 && cnt(src, "(CO ? '' : '入力した内容はこの端末に残しています。')") === 1;
+  const coSend = (src) => /\n  function send\(kind, data\) \{\n    if \(CO\) return rpc\(MEMBER_FN\[kind\], data\);\n/.test(src) && cnt(src, 'keepDraft(') === 4 && cnt(src, "if (!noDraft && !CO) keepDraft(topic, 'login');") === 1;
+  ok(coOne(code), '★別の会社について開く：面がこのページの会社を読むのは1か所だけ（pageSlug）。どの会社について開くかは、開く時の頭の1か所（setCo）で決め直し、読む人が替わっていたら最初にそれを終える（readerTurn の頭）',
+    J({ setCo: cnt(code, 'function setCo('), page: cnt(code, "getAttribute('data-airline')"), turn: fnOf(code, 'readerTurn').split('\n').slice(1, 3).join(' ').trim().slice(0, 120) }));
+  ok(coGuard(code), '★別の会社について開く：送ったあとで会社が替わっていたら、届いた返事では何もしない（月の勤務・質問の2つの送信のどちらも、返事の頭で確かめる）',
+    J({ turn: cnt(code, 'coTurn++'), guard: cnt(code, 'if (was !== coTurn) return;') }));
+  ok(coTrack(code), '★別の会社について開く：そのあいだは、計測に会社の符号を送らない（符号を送る所は、この1か所だけ）', J({ gtag: cnt(code, 'gtag('), code: cnt(code, 'airline_code') }));
+  ok(coOutbox(code), '★別の会社について開く：そのあいだは、送れなかった1件を端末に残さない（残していないものを「この端末に残しています」と言わない）', J({ write: cnt(code, 'lset(OUTBOX,') }));
+  ok(coSend(code), '★別の会社について開く：そのあいだは、ログインなしの預かりへ送らない。ログインへ送り出す時にも、下書きを残さない', J({ drafts: cnt(code, 'keepDraft(') }));
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2931,6 +2950,10 @@ async function main() {
           throw new Error('前提が崩れた（前の人の一覧が読めていて、1問を保存した直後のカードが出ている形になっていない）: ' + J({ l0, w0, q0, head: s0.head }));
         }
         const before = { prev: await mineOf(PREV.id), next: await mineOf(NEXT.id) };
+        /* 保存のあと、ページの側（career-live.js）が自分の集計を1回読み直す（pvc:saved）。その1本が出てから数え始める
+           ── 出る前に数え始めると、面とは関係のないその1本が「読む人が替わったあとの通信」に数えられる。時間では待たない。 */
+        const sentAt = u.st.calls.lastIndexOf('submit_airline_conditions');
+        if (!(await until(() => u.st.calls.indexOf('pv_contrib_facts', sentAt) > sentAt))) throw new Error('前提が崩れた（保存のあと、ページが集計を読み直していない）');
         const n0 = u.st.calls.length;
 
         await L.go(u);
@@ -5884,6 +5907,259 @@ async function main() {
       } finally {
         await p.st.ctx.close();
       }
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 18. 別の会社について開く（PVContrib.openFor）
+  //     このページの会社ではなく、読む人自身の会社（＝ 勤め先。本人のこと）について、同じ面を開く入口。
+  //     ページはキャセイ・開く相手は JAL・会員A。
+  // ═════════════════════════════════════════════════════════════
+  /* 面が開いているか・どの会社の名前を出しているか */
+  const coFace = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), f = r && r.querySelector('form[data-pvc-form]'), l = r && r.querySelector('.pvc-ctx-line');
+    return { open: window.PVContrib.isOpen(), up: !!(r && !r.hidden && r.classList.contains('is-in')),
+      title: r ? r.querySelector('.pvc-title').textContent : '', text: r ? r.querySelector('.pvc-main').innerText : '',
+      line: l ? l.textContent : '', form: f ? f.getAttribute('data-pvc-form') : '', els: r ? r.querySelectorAll('img, [onerror]').length : 0 };
+  });
+  /* 質問の台帳（面が開く前に読むもの）が届き、そのあと画面が2コマ進むまで待つ ＝「何も開かなかった」と言ってよい所まで（時間では待たない） */
+  const coIdle = (p) => p.page.evaluate(() => fetch('/pv-conditions.json').then((r) => r.text()).then(() => new Promise((go) => requestAnimationFrame(() => requestAnimationFrame(go)))));
+  /* 面が自分で出す通信（自分の一覧を読む・送る・引き継ぐ）。ページの側の集計の読み出しは数えない */
+  const coCalls = (p, from) => p.st.calls.slice(from).filter((c) => /^(my_work_months|my_airline_conditions|my_contrib_anon|submit_|claim_)/.test(c));
+
+  await scene('別の会社について開く ── 入口に渡された字を、そのまま信じない', async () => {
+    const u = await open('phone', { who: 'a' });
+    try {
+      await go(u, CX);
+      const cx = await nameOf(u), errs0 = pageErrs.length, n0 = u.st.calls.length;
+      const BAD = ['JAL!', '', 'j'.repeat(200), 'other'], got = [];
+      for (const x of BAD) got.push(await u.page.evaluate((v) => window.PVContrib.openFor({ airline: v, name: 'JAL', ask: ['reserve_duty'] }), x));
+      got.push(await u.page.evaluate(() => window.PVContrib.openFor()));
+      await coIdle(u);
+      const f0 = await coFace(u);
+      ok(got.length === 5 && got.every((v) => v === false) && !f0.open && !f0.up && coCalls(u, n0).length === 0,
+        '★会社の符号の形をしていない字（「JAL!」・空・200字・「other」・何も渡さない）には false を返す。何も開かない・自分の一覧も読みに行かない',
+        J({ got, open: f0.open, up: f0.up, calls: coCalls(u, n0) }));
+
+      const NAME = '<img src=x onerror=1>';
+      const r1 = await u.page.evaluate((n) => window.PVContrib.openFor({ airline: 'jal', name: n, ask: [] }), NAME);
+      await waitView(u, 'list');
+      const f1 = await coFace(u);
+      ok(r1 === true && f1.title === NAME + 'に情報を追加' && f1.text.includes(NAME + 'のこと、') && !f1.title.includes(cx) && f1.els === 0 && pageErrs.length === errs0,
+        '★渡された名前は、字としてしか入らない（「<img src=x onerror=1>」が、そのままの字で見出しに出る。要素は1つも出来ない・ページのエラーも出ない）',
+        J({ r1, title: f1.title, els: f1.els, errs: pageErrs.slice(errs0) }));
+      ok(/ひとつ教えて。/.test(f1.text) && !/ログインは要りません/.test(f1.text),
+        '★別の会社について開いた一覧には「ログインは要りません」と書かない（その面は、ログインしている会員にしか開かない ＝ 当てはまらないことを言わない）', J(f1.text.slice(-80)));
+      await u.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(u);
+
+      await u.page.evaluate(() => { window.PVSession.wipe(); });
+      const n1 = u.st.calls.length;
+      const r2 = await u.page.evaluate(() => window.PVContrib.openFor({ airline: 'jal', name: 'JAL', ask: ['reserve_duty'] }));
+      await coIdle(u);
+      const f2 = await coFace(u);
+      ok(r2 === false && !f2.open && !f2.up && coCalls(u, n1).length === 0,
+        '★ログインしていない人には false を返す。何も開かない（別の会社について開くのは、ログインしている会員だけ）', J({ r2, open: f2.open, up: f2.up, calls: coCalls(u, n1) }));
+    } finally {
+      await u.st.ctx.close();
+    }
+  });
+
+  /* ── JAL について開く（会員A・キャセイのページ）── */
+  const FOR_JAL = { airline: 'jal', name: 'JAL', ask: ['reserve_duty'] };
+  const callFor = (p) => p.page.evaluate((o) => window.PVContrib.openFor(o), FOR_JAL);
+  /* このタブに残っている下書きの鍵（pv_contrib_draft:<会社の符号>:<項目>） */
+  const draftKeys = (p) => p.page.evaluate(() => Object.keys(sessionStorage).filter((k) => k.startsWith('pv_contrib_draft:')).sort());
+  const histOf = (p) => p.page.evaluate(() => history.state);
+  /* 面を閉じて、積んだ1段を降り終わるまで待つ */
+  const shut = async (p) => { await p.page.evaluate(() => window.PVContrib.close()); await waitClosed(p); };
+  /* このページに在る、ふつうの入口（その質問の名前）を押す ＝ このページの会社について、同じ項目・同じ質問で開く */
+  const pageEntry = async (p) => {
+    const hit = await p.page.evaluate(() => { const n = document.querySelector('.pvg a[data-pvc-open="roster"][data-pvc-q="reserve_duty"]'); if (n) n.click(); return !!n; });
+    if (!hit) throw new Error('前提が崩れた（このページに、その質問の入口が無い）');
+  };
+  const codes = (pl) => ((pl && pl.answers) || []).map((x) => [x.question_id, x.code]);
+
+  await scene('別の会社について開く ── 自分の会社の回答を、ほかの会社のページから', async () => {
+    await bare('jal', A); await bare('cathay-pacific', A);
+    const u = await open('phone', { who: 'a' });
+    try {
+      const sent = tap(u, 'submit_airline_conditions');
+      await go(u, CX);
+      const cx = await nameOf(u);
+      const behind = () => u.page.evaluate(() => ({ at: location.pathname + location.search + location.hash, slug: document.body.getAttribute('data-airline'),
+        h1: document.querySelector('.hero-airline h1').textContent.trim(), title: document.title }));
+      const b0 = await behind();
+      if (!cx || cx.includes('JAL') || b0.slug !== 'cathay-pacific') throw new Error('前提が崩れた（キャセイのページを開けていない）: ' + J({ cx, b0 }));
+      const both = async () => ({ duty: await spot(u, 'reserve_duty'), off: await spot(u, 'days_off_request') });
+
+      /* D1：その質問の項目が、その質問の所で開く。出る会社の名前は JAL だけ */
+      const r1 = await callFor(u);
+      await waitView(u, 'roster');
+      await settle(u);
+      const at1 = await seen(u, inView, 'reserve_duty');
+      const f1 = await coFace(u), s1 = await spot(u, 'reserve_duty'), b1 = await behind();
+      ok(r1 === true && f1.form === 'roster' && at1 && s1.scroll > 0 && f1.line.startsWith('JAL · ') && !f1.text.includes(cx) && !f1.title.includes(cx) && J(b1) === J(b0),
+        '★JAL について開くと、その質問の項目が、その質問の所で開く。面に出る会社の名前は JAL だけ（このページの会社の名前は出ない）。うしろのページは変わらない',
+        J({ r1, form: f1.form, at1, scroll: s1.scroll, top: s1.top, line: f1.line, behind: J(b1) === J(b0) }));
+
+      /* D2・D3：送る中身・保存先・保存できた合図が、どれも JAL */
+      await pick(u, 'reserve_duty', 'yes');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const sm = await summary(u), ev = await u.page.evaluate(() => window.__pvcSaved.slice());
+      const jal1 = await ownConds('jal', A), cx1 = await ownConds('cathay-pacific', A);
+      ok(sent.length === 1 && sent[0].airline === 'jal' && J(codes(sent[0])) === J([['reserve_duty', 'yes']]) && J(jal1) === J([{ q: 'reserve_duty', c: 'yes' }]) && cx1.length === 0
+        && sm.text.includes('JAL') && !sm.text.includes(cx),
+        '★答えて送ると、送る中身の会社は jal。保存先には JAL の答えとして入り、このページの会社には1行も入らない（保存後のカードの会社名も JAL）',
+        J({ sent: sent.map((x) => [x.airline, codes(x)]), jal1, cx1 }));
+      ok(ev.length === 1 && ev[0].topic === 'roster' && ev[0].slug === 'jal', '★保存できた合図（pvc:saved）は1回で、会社は jal', J(ev));
+
+      /* D4：閉じて、このページの入口から同じ項目を開く。JAL に保存した答えも、JAL について打って送らなかった答えも、持ち越さない。
+         自分の一覧の返事は止めておく ── 届く前の入力に、前の会社の答えが出ていないことを見る（届いたあとは、どのみち入れ替わる）。 */
+      await u.page.click('.pvc-root .pvc-saved [data-pvc-act="edit"]');
+      await waitView(u, 'roster');
+      await settle(u);
+      await pick(u, 'days_off_request', 'partial');                // JAL について打って、送らない
+      const j2 = await both();
+      if (j2.duty.val !== 'yes' || !j2.duty.mine || j2.off.val !== 'partial') throw new Error('前提が崩れた（JAL に保存した答えと、打って送っていない答えが、入力に出ていない）: ' + J(j2));
+      await shut(u);
+      u.st.hold = { name: 'my_airline_conditions', reqs: [] };
+      await pageEntry(u);
+      await u.page.waitForFunction(() => { const r = document.querySelector('.pvc-root'); return !!r && r.classList.contains('is-in') && !!r.querySelector('form[data-pvc-form="roster"]'); });
+      if (!(await until(() => u.st.hold.reqs.length === 1))) throw new Error('前提が崩れた（このページの会社の、自分の一覧を読みに行っていない）');
+      const keys = await draftKeys(u);
+      ok(!keys.some((k) => k.startsWith('pv_contrib_draft:jal')), '★JAL について打って送らなかった入力は、このタブに下書きとして残らない（JAL の符号の付いた鍵が1つも無い）', J(keys));
+      const f3 = await coFace(u), h3 = await both();
+      ok(f3.line.startsWith(cx + ' · ') && !f3.text.includes('JAL') && h3.duty.val === '' && !h3.duty.mine && h3.off.val === '',
+        '★閉じて、このページの入口から同じ項目を開く：面の会社はこのページの会社。JAL に保存した答えも、JAL について打った答えも、入力に入っていない', J({ line: f3.line, h3 }));
+      release(u);
+      await waitView(u, 'roster');
+      await settle(u);
+      const h4 = await both();
+      await pick(u, 'reserve_duty', 'no');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const jal2 = await ownConds('jal', A), cx2 = await ownConds('cathay-pacific', A);
+      ok(h4.duty.val === '' && !h4.duty.mine && h4.off.val === '' && sent.length === 2 && sent[1].airline === 'cathay-pacific' && J(codes(sent[1])) === J([['reserve_duty', 'no']])
+        && J(jal2) === J(jal1) && J(cx2) === J([{ q: 'reserve_duty', c: 'no' }]),
+        '★自分の一覧が届いたあとも空のまま。選んで送ると、送る中身の会社は cathay-pacific で、入っているのはいま選んだ1問だけ（JAL の行は動かない）',
+        J({ h4, sent: sent.map((x) => [x.airline, codes(x)]), jal2, cx2 }));
+
+      /* D5：同じ会員の「戻る」→「進む」は、もう一度 JAL について開く */
+      await shut(u);
+      await callFor(u);
+      await waitView(u, 'roster');
+      await settle(u);
+      const hs0 = await histOf(u);
+      await u.page.goBack().catch(() => {});
+      await waitClosed(u);
+      await u.page.goForward().catch(() => {});
+      await waitView(u, 'roster');
+      await settle(u);
+      const f5 = await coFace(u), hs1 = await histOf(u), d5 = await spot(u, 'reserve_duty');
+      ok(hs0 && hs0.a === 'jal' && hs1 && hs1.a === 'jal' && f5.line.startsWith('JAL · ') && !f5.text.includes(cx) && d5.val === 'yes' && d5.mine,
+        '★「戻る」で閉じて「進む」で戻ると、同じ会員には、もう一度 JAL について開く（JAL に保存した答えが入っている）', J({ hs0, hs1, line: f5.line, d5 }));
+
+      /* D8：このページの会社について打って送らなかった入力は、JAL について開いて閉じたあとも戻る */
+      await shut(u);
+      await pageEntry(u);
+      await waitView(u, 'roster');
+      await settle(u);
+      await pick(u, 'days_off_request', 'no');                     // このページの会社について打って、送らない
+      await tick(u);
+      await shut(u);
+      await callFor(u);
+      await waitView(u, 'roster');
+      await settle(u);
+      const j8 = { off: (await spot(u, 'days_off_request')).val, own: (await vals(u)).own, line: (await coFace(u)).line };
+      await shut(u);
+      await pageEntry(u);
+      await waitView(u, 'roster');
+      await settle(u);
+      const c8 = { ...(await both()), own: (await vals(u)).own, line: (await coFace(u)).line };
+      ok(j8.line.startsWith('JAL · ') && j8.off === '' && j8.own === false && c8.line.startsWith(cx + ' · ') && c8.off.val === 'no' && c8.duty.val === 'no' && c8.duty.mine && c8.own === false,
+        '★このページの会社について打って送らなかった入力は、JAL について開いて閉じたあとも戻る（JAL の入力には出ない）。確認のチェックは戻さない ＝ 入れ直してから送る',
+        J({ j8, c8: { off: c8.off.val, duty: c8.duty.val, mine: c8.duty.mine, own: c8.own, line: c8.line } }));
+
+      /* D8b：開いたままの面を、JAL について開き直す（閉じない）。JAL の自分の一覧を読み直して、入力できるようになる */
+      const n8 = u.st.calls.length;
+      const r8 = await callFor(u);
+      const ready = await seen(u, () => {
+        const f = document.querySelector('.pvc-root form[data-pvc-form="roster"]'), set = f && f.querySelector('fieldset.pvc-set'), l = f && f.querySelector('.pvc-ctx-line');
+        return !!set && !set.disabled && !!l && l.textContent.indexOf('JAL · ') === 0;
+      });
+      const f8 = await coFace(u), d8 = await spot(u, 'reserve_duty');
+      ok(r8 === true && ready && !f8.text.includes(cx) && d8.val === 'yes' && d8.mine && subs(u, n8).length === 0,
+        '開いたままの面を JAL について開き直すと、面の会社は JAL に替わり、JAL の自分の一覧を読み直して、入力できるようになる（何も送らない）',
+        J({ r8, ready, line: f8.line, d8: { val: d8.val, mine: d8.mine }, sent: subs(u, n8) }));
+    } finally {
+      await u.st.ctx.close();
+      await bare('jal', A); await bare('cathay-pacific', A);
+    }
+  });
+
+  await scene('別の会社について開いたまま、読む人が替わる', async () => {
+    for (const m of [A, B]) { await bare('jal', m); await bare('cathay-pacific', m); }
+    const u = await open('phone', { who: 'a' });
+    try {
+      const sent = tap(u, 'submit_airline_conditions');
+      await go(u, CX);
+      const cx = await nameOf(u);
+      await callFor(u);
+      await waitView(u, 'roster');
+      await settle(u);
+      await pick(u, 'reserve_duty', 'yes');                        // 会員A が JAL について打って、送らない
+      const f0 = await coFace(u), h0 = await histOf(u), d0 = await spot(u, 'reserve_duty');
+      if (!f0.line.startsWith('JAL · ') || d0.val !== 'yes' || !h0 || h0.a !== 'jal' || h0.u !== A.id) {
+        throw new Error('前提が崩れた（会員A が JAL について開いて、1つ打った形になっていない）: ' + J({ line: f0.line, val: d0.val, h0 }));
+      }
+      const n0 = u.st.calls.length;
+
+      /* (a) ほかのタブで会員B がログインする。このタブには触らない */
+      const tab = await otherTab(u);
+      await loginIn(tab, 'b');
+      const closed = await seen(u, () => {
+        const r = document.querySelector('.pvc-root');
+        return !window.PVContrib.isOpen() && !!r && !r.classList.contains('is-in') && !(history.state && history.state.pvc);
+      });
+      const a1 = await u.page.evaluate(() => { const r = document.querySelector('.pvc-root'); return { text: r.textContent, fields: r.querySelectorAll('form, select, input, textarea').length }; });
+      const keys = await draftKeys(u);
+      ok(closed && !a1.text.includes('JAL') && a1.fields === 0 && !keys.some((k) => k.startsWith('pv_contrib_draft:jal')) && coCalls(u, n0).length === 0,
+        '★ほかのタブで別の会員がログインすると、このタブに触らなくても面が閉じる。面の中に、JAL の名前も打ちかけの入力も残らない（JAL の符号の付いた下書きも無い・何も送らない）',
+        J({ closed, jal: a1.text.includes('JAL'), fields: a1.fields, keys, calls: coCalls(u, n0) }));
+
+      /* (b)「進む」で面の段へ戻っても、前の人の会社については開かない */
+      await u.page.goForward().catch(() => {});
+      /* 面が出て、一覧か入力のどちらかが描かれるまで待つ（どちらが出たかは、下の行が見る ＝ 違うものが出た回も、その行で赤くなる） */
+      const up2 = await seen(u, () => {
+        const r = document.querySelector('.pvc-root');
+        return !!r && !r.hidden && r.classList.contains('is-in') && !!(r.querySelector('.pvc-tiles') || r.querySelector('form[data-pvc-form]'));
+      });
+      const f2 = await coFace(u), h2 = await histOf(u);
+      ok(up2 && f2.title === cx + 'に情報を追加' && !f2.text.includes('JAL') && !!h2 && h2.pvc === 1 && h2.t === 'list' && !('a' in h2) && !('n' in h2) && !('u' in h2),
+        '★「進む」で戻っても、前の人の会社（JAL）については開かない：このページの会社の一覧が開き、履歴の段からも、JAL と前の人の印が消える', J({ title: f2.title, h2 }));
+
+      /* (c) 次の人が選んで送る（一覧が滑り込み終わってから押す） */
+      await waitView(u, 'list');
+      await u.page.click('.pvc-root [data-pvc-tile="roster"]');
+      await waitView(u, 'roster');
+      await settle(u);
+      const d3 = await spot(u, 'reserve_duty'), l3 = (await coFace(u)).line;
+      await pick(u, 'reserve_duty', 'no');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const db = { aJal: await ownConds('jal', A), bJal: await ownConds('jal', B), aCx: await ownConds('cathay-pacific', A), bCx: await ownConds('cathay-pacific', B) };
+      ok(l3.startsWith(cx + ' · ') && d3.val === '' && !d3.mine && sent.length === 1 && sent[0].airline === 'cathay-pacific' && J(codes(sent[0])) === J([['reserve_duty', 'no']])
+        && db.aJal.length === 0 && db.bJal.length === 0 && db.aCx.length === 0 && J(db.bCx) === J([{ q: 'reserve_duty', c: 'no' }]),
+        '★次の人が選んで送ると、送る中身の会社は cathay-pacific。前の人が JAL について打った答えは入力に無く、JAL へは誰の分も1行も入らない',
+        J({ line: l3, d3: { val: d3.val, mine: d3.mine }, sent: sent.map((x) => [x.airline, codes(x)]), db }));
+    } finally {
+      await u.st.ctx.close();
+      for (const m of [A, B]) { await bare('jal', m); await bare('cathay-pacific', m); }
     }
   });
 

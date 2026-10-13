@@ -9,6 +9,8 @@
        topic ＝ ''／'list'（項目の一覧）・'work'（月の勤務）・質問のまとまり
                （'taxi' 'staff_travel' 'upgrade' 'roster' 'career' 'benefits'）
        q     ＝ そのまとまりの中で、最初に見せたい質問の id（無くてよい）
+     window.PVContrib.openFor({ airline, name, ask, from }) ── このページの会社ではなく、読む人自身の会社について開く
+       （ログインしている会員だけ。開かなかった時は false を返す ＝ 呼んだ側が、自分のリンクへそのまま進ませる）。
      data-pvc-open="<topic>"（＋ data-pvc-q="<質問の id>"）を持つ要素を押すと開く。
      住所に ?add=<topic>（＋ &aq=<質問の id>）が付いていたら、それを開いて住所から外す。
      会社は <body data-airline> と data-pvc-name（無ければ .hero-airline h1）から読む。
@@ -127,13 +129,26 @@
   function lset(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
   function ldel(k) { try { localStorage.removeItem(k); } catch (e) { /* 無くても困らない */ } }
 
+  /* ほかの会社について開いているあいだ（CO）は、会社の符号を送らない ── その会社は、読む人自身の勤め先。
+     出来事そのものは数える（符号の欄を空にするだけ）。 */
   function track(name, topic) {
-    try { if (typeof w.gtag === 'function') w.gtag('event', name, { topic: topic, airline_code: slug() }); } catch (e) { /* 計測は落ちても黙る */ }
+    try { if (typeof w.gtag === 'function') w.gtag('event', name, { topic: topic, airline_code: CO ? '' : slug() }); } catch (e) { /* 計測は落ちても黙る */ }
   }
 
   /* ── 会社とログイン ─────────────────────────────────────── */
-  function slug() { return trim(d.body && d.body.getAttribute('data-airline')); }
+  /* CO ＝ このページの会社ではなく、読む人自身の会社について開いているあいだだけ入っている（PVContrib.openFor）。
+          { s: その会社の符号, n: 名前, u: 開いた会員の id }。ふつうに開いた時は null ＝ このページの会社。
+          入っているあいだは、送る内容・自分の一覧の読み出し・保存できた合図（pvc:saved）が、全部その会社の符号になる。
+          ★持ち主は、開いた会員（u）。読む人が替わったら、その場で終える（下の readerTurn → coEnd）
+            ── 残すと、次の人が前の人の勤め先の画面の前に立ち、打った答えがその会社に保存される。
+     coTurn ＝ 会社か、CO の持ち主が替わって、面の状態を作り直した回数（setCo だけが足す）。
+          送ったあとで替わっていたら、届いた返事では何もしない（sendWork・sendGroup）。 */
+  var CO = null;
+  var coTurn = 0;
+  function pageSlug() { return trim(d.body && d.body.getAttribute('data-airline')); }
+  function slug() { return CO ? CO.s : pageSlug(); }
   function coName() {
+    if (CO) return CO.n;
     var n = trim(d.body && d.body.getAttribute('data-pvc-name'));
     if (n) return n;
     var h = d.querySelector('.hero-airline h1');
@@ -248,7 +263,8 @@
      soft ＝ 読む人が替わったと気づいて、その場で面を作り直した直後。今の人の分を読み直しているあいだも入力は止めない。 */
   var M = { seq: 0, p: null, held: false, work: { k: 'idle', rows: [] }, cond: { k: 'idle', answers: [] }, kept: { who: null, held: false, rows: {}, ans: {} }, who: null, soft: false };
   /* by ＝ いま送っている分を、誰が送ったか（setBusy が書く。返事が来た時に、読む人が替わっていないかを見る） */
-  var W = { ym: '', bufs: {}, own: false, notice: null, err: null, last: null, busy: false, by: '', els: {} };
+  function newW() { return { ym: '', bufs: {}, own: false, notice: null, err: null, last: null, busy: false, by: '', els: {} }; }
+  var W = newW();
 
   /* 質問のまとまり。k は ?add= と data-pvc-open にそのまま出る名前
      （英小文字と _ だけ。- を入れない ── 保存後の面を「<k>-saved」と呼んでいる）。 */
@@ -310,7 +326,10 @@
     });
   }
   var MEMBER_FN = { work: 'submit_work_month', cond: 'submit_airline_conditions' };
+  /* ほかの会社について開いているあいだ（CO）は、預かり（ログインなしの道）へは送らない ── 預けた回答は、この端末で
+     次にログインした人へ引き継がれる。会員の入口に断られたら、その返事をそのまま返す（受けた側がログインへ送る）。 */
   function send(kind, data) {
+    if (CO) return rpc(MEMBER_FN[kind], data);
     if (!hasToken()) return anonSend(kind, data);
     return rpc(MEMBER_FN[kind], data).then(function (r) {
       /* ログインが切れていた人は、ログインしていない人と同じ道へ（入れた内容を捨てさせない） */
@@ -389,7 +408,10 @@
     if (str(j.uid) && str(j.uid) !== uid()) return null;
     return j;
   }
+  /* ほかの会社について開いているあいだ（CO）は、端末に残さない ── 残す1件には会社の符号が入り、ログアウトしたあとも
+     端末に残る（その会社は、読む人自身の勤め先）。打った内容は、開いている入力にそのまま在る。 */
   function keepOutbox(topic) {
+    if (CO) return;
     lset(OUTBOX, JSON.stringify({ v: 1, slug: slug(), topic: topic, uid: uid(), at: Date.now(), draft: draftOf(topic) }));
   }
   function dropOutbox(topic) {
@@ -445,7 +467,8 @@
   function failNote(topic) {
     return {
       kind: 'fail', title: '送れていません',
-      text: '通信の状態を確かめて、もう一度送ってください。入力した内容はこの端末に残しています。',
+      /* ほかの会社について開いているあいだ（CO）は、端末に残していない（keepOutbox）ので、「残しています」とは言わない */
+      text: '通信の状態を確かめて、もう一度送ってください。' + (CO ? '' : '入力した内容はこの端末に残しています。'),
       actions: [
         { id: 'retry', label: 'もう一度送る', on: function () { if (topic === 'work') sendWork(); else sendGroup(topic); } },
         { id: 'drop', label: '破棄する', on: function () { discard(topic); } }
@@ -654,8 +677,56 @@
     Object.keys(G).forEach(function (k) { G[k].own = false; G[k].notice = null; G[k].last = null; });
     C.note = null;
   }
-  /* 読む人が替わっていたら、前の人の分を手放して（loadMine の頭）、今の人の分を読み直す。替わっていなければ何もしない。 */
+  /* ── ほかの会社について開く（PVContrib.openFor） ─────────── */
+  /* 入口に渡された会社の符号を、そのまま信じない。受け取るのは、符号の形をした字だけ（英小文字・数字・ハイフン。40字まで）。
+     'other'（一覧に無い会社）は受け取らない ＝ 開かずに false を返し、呼んだ側が自分のリンクへ進ませる。
+     確かめるのは、この1か所（setCo と openFor の両方が、ここを通す）。 */
+  function coCode(v) {
+    var a = str(v);
+    return /^[a-z0-9][a-z0-9-]{0,39}$/.test(a) && a !== 'other' ? a : '';
+  }
+  /* どの会社について開くのかを、開くたびに決め直す（openSheet の頭）。
+     o.airline が、このページの会社とは別の会社の符号で、会員がログインしている時だけ CO を置く。
+     ふつうの開き方（o.airline なし）は、このページの会社へ戻す。
+     会社か、CO の持ち主（開いた会員）が替わる時は、前の会社について読んだ・保存した・打ったものを、全部手放してから替える
+     ── 手放さないと、片方の会社について保存した・打った答えが、もう片方の入力に出て、そのまま送れる。
+     返すのは、手放したか（＝ 面の状態を作り直したか）。同じ会社・同じ持ち主のままなら、名前だけ新しくして false。 */
+  function setCo(o) {
+    var a = coCode(o && o.airline), me = uid(), want = null;
+    if (a && a !== pageSlug() && hasToken() && me) want = { s: a, n: trim(o.name).slice(0, 60) || a, u: me };
+    var stale = !!CO && CO.u !== me;
+    if (!stale && (want ? !!CO && CO.s === want.s : !CO)) { if (want) CO.n = want.n; return false; }
+    /* 前の会社について読んだ・保存したもの（一覧・控え・印・保存した値から起こした欄・確認のチェック・知らせ・
+       保存後のカードの記録）を手放す。残るのは、打ってまだ送っていない欄だけ ＝ 読む人が替わった時と同じ（readerReset）。
+       引き継ぎの知らせ（C.note）は会社のものではないので、そのまま持っておく。 */
+    var cn = C.note;
+    readerReset();
+    C.note = cn;
+    /* 残った「打ってまだ送っていない入力」は、このページの会社から離れる時だけ、その会社の下書きに置く
+       （戻ってきたら restore が戻す）。ほかの会社（＝ 読む人自身の勤め先）から離れる時は、何も置かない
+       ── その会社の符号の付いた鍵と入力を、このタブに残さない。持ち主が替わっていた時も CO が入っているので、置かない。 */
+    if (!CO) {
+      if (Object.keys(W.bufs).length) keepDraft('work', 'kept');
+      Object.keys(G).forEach(function (k) { if (groupDirty(G[k])) keepDraft(k, 'kept'); });
+    }
+    CO = want;
+    coTurn++;
+    G = {}; W = newW(); S.taken = {}; S.focusQ = ''; S.focusT = '';
+    return true;
+  }
+  /* ほかの会社について開くのを終える（読む人が替わった時）。このページの会社へ戻して、面を閉じる。
+     下書きは残さない（持ち主の替わった CO からは、setCo が何も置かない）。閉じた面の中身も消す
+     ── 画面には出なくても、前の人の勤め先の名前と打ちかけの入力が、ページの中に残る。 */
+  function coEnd() {
+    var open = S.open;
+    setCo(null);
+    if (S.main) { clear(S.main); S.title.textContent = ''; }
+    if (open) close(false);
+  }
+  /* 読む人が替わっていたら、前の人の分を手放して（loadMine の頭）、今の人の分を読み直す。替わっていなければ何もしない。
+     ほかの会社について開いているあいだに替わっていたら、開くのを終えて面を閉じる（その会社は、開いた人の勤め先）。 */
   function readerTurn() {
+    if (CO && CO.u !== uid()) { coEnd(); return true; }
     if (readerSame()) return false;
     loadMine(true);
     return true;
@@ -742,13 +813,21 @@
     S.title.textContent = text;
     S.prev.hidden = !(S.view !== 'list' && S.viaList);
   }
+  /* 面のために積んだ1段に書く印。ほかの会社について開いているあいだ（CO）は、その会社（a・n）と、開いた会員（u）も書く
+     ──「進む」で戻ってきた時に、同じ会員にだけ、同じ会社について開き直す（onPop）。ふつうに開いた段は、今までどおりの形。 */
+  function stateOf(topic) {
+    var st = { pvc: 1, t: topic };
+    if (CO) { st.a = CO.s; st.n = CO.n; st.u = CO.u; }
+    return st;
+  }
   function mark(topic) {
     if (!S.pushed) return;
-    try { history.replaceState({ pvc: 1, t: topic }, '', location.href); } catch (e) { /* 履歴に触れなくても面は動く */ }
+    try { history.replaceState(stateOf(topic), '', location.href); } catch (e) { /* 履歴に触れなくても面は動く */ }
   }
   function show(view) {
-    /* 読む人が替わっていたら、前の人の分を手放してから描く。 */
-    readerTurn();
+    /* 読む人が替わっていたら、前の人の分を手放してから描く。
+       ほかの会社について開いていた面は、そこで閉じられる（coEnd）＝ 閉じた面には何も描かない・焦点も移さない。 */
+    if (readerTurn() && !S.open) return;
     /* 会員の id が読めないあいだは、保存後のカードを出さない（「あなたの投稿」と言えない）。
        記録を捨てて、同じ項目の入力へ戻し、「保存しました」とだけ知らせる。 */
     var lost = /-saved$/.test(view) && noWho() ? (view === 'work-saved' ? W : gs(view.slice(0, -6))) : null;
@@ -856,9 +935,10 @@
     { k: 'benefits', t: '休暇・手当', q: '年休、病欠、着陸・地上勤務の手当は？', view: 'benefits' },
     { k: 'stay', t: 'ホテル・ステイ', q: 'パイロット限定', tab: 'stay', href: 'career.html?airline={s}&tab=life' }
   ];
-  /* このページが「ステイ先」のタブを持っているか（持っていれば、ほかの画面へ送り出さない） */
+  /* このページが「ステイ先」のタブを持っているか（持っていれば、ほかの画面へ送り出さない）。
+     ほかの会社について開いているあいだ（CO）は、持っていないことにする ── このページのタブは、このページの会社のもの。 */
   function ownTab(tab) {
-    return !!(tab && w.PVGlance && typeof w.PVGlance.go === 'function' && d.getElementById('pvg-' + tab));
+    return !CO && !!(tab && w.PVGlance && typeof w.PVGlance.go === 'function' && d.getElementById('pvg-' + tab));
   }
   /* ログインせずに預けた回答があるときに出す1枚。ここからログインすると、開いたときに引き継がれる。 */
   function heldBox(title, lines) {
@@ -937,7 +1017,9 @@
     S.main.appendChild(card);
     var held = el('div', '', null, { 'data-pvc-heldslot': '' }); held.hidden = true;
     S.main.appendChild(held);
-    S.main.appendChild(el('p', 'pvc-under', 'ひとつの項目から追加できます。ログインは要りません。'));
+    /* ほかの会社について開いているあいだ（CO）は、この1行を出さない ── その面は、ログインしている会員にしか開かず、
+       ログインが要ると断られた回答を預かりへは送らない（send）。当てはまらない「ログインは要りません」を言わない。 */
+    if (!CO) S.main.appendChild(el('p', 'pvc-under', 'ひとつの項目から追加できます。ログインは要りません。'));
     paintCounts();
   }
   /* 件数は、サーバが返した本人の行だけから作る。取れていないものは数にしない。 */
@@ -1296,6 +1378,7 @@
     if (W.busy || S.view !== 'work') return;
     /* 読む人が替わっていたら、前の人の分を手放して入力を作り直し、この1回の押下では何も送らない（下の turned）。 */
     var turned = readerTurn();
+    if (turned && !S.open) return;           // ほかの会社について開いていた面は、ここで閉じられた（coEnd）。送るものは無い
     if (turned) redraw();
     /* 送る前にも確かめる。読む人が替わっていたら、ここで入力が作り直される
        ＝ 前の人が保存した値を、手を付けないまま今の人の投稿として送らない。 */
@@ -1309,7 +1392,11 @@
     if (turned) return;
     W.notice = null; W.err = null; paintWorkNotice();
     setBusy(W, true);
+    /* 送ったあとで会社（か、ほかの会社について開いた持ち主）が替わっていたら、届いた返事では何もしない（coTurn）
+       ── W はもう替わったあとの会社のもの。そこへ「保存した」を書くと、片方の会社の月が、もう片方の一覧とカードに出る。 */
+    var was = coTurn;
     send('work', pl).then(function (r) {
+      if (was !== coTurn) return;
       setBusy(W, false);
       if (r.kind === 'ok' && r.data.ok) return workSaved(pl, r.data, !!r.held);
       if (needLogin(r)) return toLogin('work');
@@ -1996,7 +2083,10 @@
     if (lastRow && lastRow.fleet) pl.fleet = lastRow.fleet;
     groupSay(topic, null);
     setBusy(t, true);
+    /* 月の勤務と同じ：送ったあとで会社（か持ち主）が替わっていたら、届いた返事では何もしない（coTurn） */
+    var was = coTurn;
     send('cond', pl).then(function (r) {
+      if (was !== coTurn) return;
       setBusy(t, false);
       if (r.kind === 'ok' && r.data.ok) return groupSaved(topic, answers, r.data, !!r.held);
       if (needLogin(r)) return toLogin(topic);
@@ -2095,10 +2185,13 @@
      いま居るのは面のために積んだ1段なので、置き換えて行く（戻ったときに面の殻だけが残らない）。
      noDraft … 一覧から「ログインして引き継ぐ」で行くとき（残す入力が無い）。 */
   function toLogin(topic, noDraft) {
-    if (!noDraft) keepDraft(topic, 'login');
+    /* ほかの会社について開いているあいだ（CO）は、下書きを残さない・戻り先に ?add= も付けない
+       （戻ってきた時に ?add= で開くのは、このページの会社の面。そこへ、ほかの会社について打った入力を持ち込まない）。 */
+    if (!noDraft && !CO) keepDraft(topic, 'login');
     var q = null, search;
     try { q = new URLSearchParams(location.search); } catch (e) { q = null; }
-    if (q) { q.set('add', topic); search = '?' + q.toString(); } else search = '?add=' + topic;
+    if (CO) search = location.search;
+    else if (q) { q.set('add', topic); search = '?' + q.toString(); } else search = '?add=' + topic;
     var url = ROOT + 'login.html?return=' + enc(location.pathname + search);
     try { location.replace(url); } catch (e) { location.href = url; }
   }
@@ -2125,12 +2218,16 @@
     var t = topicOf(o && o.topic), fq = trim(o && o.q);
     if (!slug() || !d.body) return false;
     if (S.skipPop) { S.queue = function () { openSheet(o); }; return true; }
+    /* どの会社について開くのかを、ここで決め直す（ふつうの開き方は、このページの会社）。会社が替わった回は turned */
+    var turned = setCo(o);
     build();
     /* 街の詳細から開かれた回は、その街の名前を持って入る（字として見せるだけ。答えには勝手に書き足さない） */
     S.ctx = trim(o && o.ctx).slice(0, 40);
     /* 「この質問から答える」で開かれた回は、その質問の所まで送る（show が別の話題へ移るときに忘れる） */
     if (isGroup(t) && QID.test(fq)) { S.focusQ = fq; S.focusT = t; }
-    if (S.open) { show(t); return true; }
+    /* 開いたままの面が、別の会社について開き直された回は、その会社の自分の一覧を読み直してから描く
+       （読まないと、誰も頼んでいない一覧を待ったまま、入力が止まる） */
+    if (S.open) { if (turned) loadMine(true); show(t); return true; }
     S.open = true; S.viaList = t === 'list'; S.view = '';
     var a = d.activeElement;
     S.from = (o && o.from) || (a && a !== d.body ? a : null);
@@ -2142,7 +2239,7 @@
     else {
       /* 開く前の位置を、いまの段に書き留めてから積む（面からほかのタブへ行ったあと「戻る」で同じ所へ帰る） */
       if (w.PVGlance && typeof w.PVGlance.mark === 'function') w.PVGlance.mark();
-      try { history.pushState({ pvc: 1, t: t }, '', location.href); S.pushed = true; } catch (e) { S.pushed = false; }
+      try { history.pushState(stateOf(t), '', location.href); S.pushed = true; } catch (e) { S.pushed = false; }
     }
     loadMine(true);
     show(t);
@@ -2188,7 +2285,15 @@
     var st = null;
     try { st = history.state; } catch (e) { st = null; }
     if (S.open) { if (!(st && st.pvc)) close(true); return; }
-    if (st && st.pvc) openSheet({ topic: st.t, adopt: true });     // 「進む」で面の段へ戻ってきた
+    if (!(st && st.pvc)) return;
+    /* 「進む」で面の段へ戻ってきた。ほかの会社について開いていた段（a）は、開いた会員（u）がいまの読む人の時だけ、
+       同じ会社について開き直す。別の人なら、段をふつうの一覧の段に書き直して、このページの会社の一覧を開く
+       （前の人の勤め先を、次の人の前に開かない・履歴にも残さない）。 */
+    if (st.a && st.u === uid()) openSheet({ topic: st.t, adopt: true, airline: st.a, name: st.n });
+    else if (st.a) {
+      try { history.replaceState({ pvc: 1, t: 'list' }, '', location.href); } catch (e) { /* 履歴に触れなくても面は動く */ }
+      openSheet({ topic: 'list', adopt: true });
+    } else openSheet({ topic: st.t, adopt: true });
   }
   function tabbables() {
     var out = [];
@@ -2263,6 +2368,27 @@
 
   w.PVContrib = {
     open: function (o) { return openSheet({ topic: o && o.topic, q: o && o.q }); },
+    /* このページの会社ではなく、読む人自身の会社（airline・name）について開く。ask ＝ 最初に見せたい質問の id の並び
+       （台帳に在って、この面で答えられる最初の1つの所へ開く。無ければ項目の一覧）。from ＝ 閉じた時に焦点を返す要素。
+       渡された字は、そのまま信じない：会社の符号は形を確かめ（coCode）、質問の id も形と台帳を確かめる。名前は字としてしか入れない。
+       開かない時は false（符号の形でない・会員がログインしていない）＝ 呼んだ側が、自分のリンクへそのまま進ませる。 */
+    openFor: function (o) {
+      var a = coCode(o && o.airline), me = uid();
+      if (!a || !hasToken() || !me) return false;
+      var ask = Array.isArray(o.ask) ? o.ask.slice(0, 40) : [], name = o.name, from = o.from && o.from.nodeType === 1 ? o.from : null;
+      function go() {
+        var i, q;
+        /* 質問の台帳を待つあいだに読む人が替わっていたら、開かない（開くのは、押した会員のため） */
+        if (!hasToken() || uid() !== me) return;
+        for (i = 0; i < ask.length; i++) {
+          q = QID.test(str(ask[i])) ? qById(str(ask[i])) : null;
+          if (q && usable(q)) { openSheet({ topic: groupOfQ(q), q: q.id, airline: a, name: name, from: from }); return; }
+        }
+        openSheet({ topic: 'list', airline: a, name: name, from: from });
+      }
+      conds().then(go, go);
+      return true;
+    },
     close: function () { close(); },
     /* 開いている・これから開く（?add= で来た）。全ページ共通の案内の板が、入力の上に被らないために聞く。 */
     isOpen: function () { return !!(S.open || S.skipPop || S.queue || COMING); }
