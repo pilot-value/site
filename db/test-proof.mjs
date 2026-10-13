@@ -362,7 +362,6 @@ console.log('\n▼ 6. 会員が画像を出す');
   await db.query(`update public.pv_proof set tries = 10 where user_id = $1`, [A]);
   const t = await give(A, IMG1);
   ok(t.v?.ok === false && t.v.status === 'too_many', '10回を超えると受け取らない', JSON.stringify(t));
-  await db.query(`update public.pv_proof set tries = 2 where user_id = $1`, [A]);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -394,6 +393,8 @@ console.log('\n▼ 8. ① 出し直しを求めると、画像はその場で消
   const s = await state(A);
   ok(s.v?.state === 'required' && s.v.again === true, '会員の板は「出し直し」を言う（again）', JSON.stringify(s));
   ok((await rows(A)).v?.state === 'locked', '会員は止まったまま');
+  const retry = await own(`select tries from public.pv_proof where user_id = $1`, [A]);
+  ok(retry.tries === 0, '★10回の上限でも、運営が出し直しを求めたら回数が戻る');
   const r2 = await adm(ADMIN, 'admin_proof_reject', A);
   ok(r2.v?.ok === false && r2.v.status === 'none', '確認待ちでない会員には押せない', JSON.stringify(r2));
   ok((await adm(ADMIN, 'admin_proof_image', A)).v?.status === 'none', '運営にも、もう画像は返らない');

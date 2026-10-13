@@ -383,6 +383,7 @@ grant execute on function public.admin_proof_approve(uuid) to authenticated;
 
 -- 4-e. 出し直しを求める（画像では確認できなかったとき）。
 --   会員は止まったまま。出してあった画像は消え、板は「別の画像を」と言う。
+--   運営が求め直したので提出回数も 0 に戻す（10回目の画像でも出し直せる）。
 create or replace function public.admin_proof_reject(p_user uuid)
 returns jsonb
 language plpgsql
@@ -400,7 +401,7 @@ begin
 
   update public.pv_proof b
      set state = 'required', rejected_at = now(), submitted_at = null,
-         decided_at = now()
+         decided_at = now(), tries = 0
    where b.user_id = p_user and b.state = 'submitted';
   if not found then
     return jsonb_build_object('ok', false, 'status', 'none');
