@@ -148,6 +148,18 @@
 -- 引き方は my_pay_reports()（db/pay-reports.sql 5-b）と同じ。**式を変えないこと。**
 -- ★誰にも grant しない。security definer の中からだけ呼ぶ。
 -- ════════════════════════════════════════════════════════════════
+-- ── 0. 前提（2026-10-13）─────────────────────────────────────────
+--   下の pv_deep_pay の門が pv_proof_blocked（db/pay-rows.sql 1-e2）を呼ぶ。
+--   古い pay-rows.sql の上にこのファイルだけ貼ると、**貼れたまま**
+--   DEEP PAY が開いた人全員にエラーを返すようになる。ここで先に止める。
+do $guard$
+begin
+  if to_regprocedure('public.pv_proof_blocked()') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pv_proof_blocked が無い）';
+  end if;
+end
+$guard$;
+
 drop function if exists public.pv_my_keys();
 
 create or replace function public.pv_my_keys()
@@ -790,7 +802,11 @@ begin
   --   答えきったかの側（v_rdy）も、下で同じ pv_is_operator を足して通す。
   --   （2026-10-11 より前は pv_my_give が運営を通していたので1行で足りた。
   --     門がそれを読まなくなったので、こちらにも要る。）
-  v_key  := (v_until is not null and v_until > now()) or public.pv_is_operator();
+  -- ★パイロットであることの確認待ちで止まっている会員は、鍵を持っていても閉じる
+  --   （2026-10-13・db/pay-rows.sql 1-e2。REAL PAY・口コミ本文と同じ1つの関数）。
+  --   鍵そのものは書き換えない＝承認した瞬間に元どおり開く。
+  v_key  := ((v_until is not null and v_until > now()) or public.pv_is_operator())
+            and not public.pv_proof_blocked();
 
   /* ★★見る資格（2026-10-11・オーナー判断）★★
        「DEEP PAY は、自分に当てはまる項目をぜんぶ答えた人にだけ開く」。

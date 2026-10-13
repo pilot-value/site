@@ -1215,6 +1215,132 @@ comment on table public.pay_hidden is
   'RLS 有効・ポリシー無し・grant 無し＝security definer の中からしか読めない。';
 
 
+-- ═══════════════════════════════════════════════════════════════════
+-- 1-e2. pv_proof — パイロットであることの確認を求めている会員（2026-10-13）
+--
+-- オーナー指示 ──「パイロットではない会員のアカウントを止める。パイロットである
+--   ことを示す画像を出すまで、サイトの詳細は見せない。REAL PAY には注意の印を付ける」。
+--
+-- ★ここに在るのは「誰に確認を求めているか」の表と、それを読む関数2つだけ。
+--   画像・会員の入口・運営の入口は db/pilot-proof.sql（**このファイルの後**に貼る）。
+--   表と関数をこちらに置くのは、3つの門（下の pv_pay_rows・db/deep-pay.sql の
+--   pv_deep_pay・db/reviews-gate.sql の pv_has_review_key）がこの関数を呼ぶから。
+--   ＝ **このファイルさえ貼ってあれば、3つの門は必ず動く**（あちらの2本には
+--      「先にこのファイルを貼る」の関所を置いてある）。
+-- ★止まるのは state が 'required'（未提出・出し直し）と 'submitted'（確認待ち）のあいだ。
+--   'approved' になった瞬間に元どおり。行は残す（運営が確認した、という控え）。
+-- ★止まっている会員には、3つの門がそれぞれ**鍵を持っていない人と同じ答え**を返す。
+--   鍵そのもの（access_until・口コミ）は1つも書き換えない ── だから承認した瞬間に
+--   元どおり開き、止めていたあいだに出した給与の鍵もそのまま効く。
+-- ★その会員が出した行は一覧から**消さない・数字も書き換えない**。印（hold）を付けるだけ。
+--   集計（DEEP PAY・人数・件数）からも外さない。外すかどうかは別の判断（far と同じ）。
+-- ⚠️ **会員を名指しで書かない**（公開リポジトリ）。入れるのは admin.html のボタン
+--    （admin_proof_require）で、このファイルにも他のどこにも uid・氏名・メールを書かない。
+-- ⚠️ 運営（pv_admins）は止められない（admin_proof_require が断る）。
+-- ⚠️ profiles に列を足さない。あの表は本人が自分の行を読めるうえ
+--    （profiles_select_self）、admin_list_profiles が行を丸ごと返す。
+-- ⚠️ 相手は profiles（auth.users ではない）。手元の検査には auth.users が無い回がある。
+--    会員を消せばこの行も、ぶら下がる画像（pv_proof_images）も一緒に消える。
+-- ═══════════════════════════════════════════════════════════════════
+create table if not exists public.pv_proof (
+  user_id      uuid primary key references public.profiles(id) on delete cascade,
+  state        text not null default 'required',
+  required_at  timestamptz not null default now(),
+  submitted_at timestamptz,
+  -- 「出し直してください」と返した時刻。入っているあいだ、会員の板はその文を出す。
+  rejected_at  timestamptz,
+  decided_at   timestamptz,
+  -- 画像を出した回数（置き場を埋める連投を止めるためだけ。db/pilot-proof.sql が数える）
+  tries        integer not null default 0
+);
+
+alter table public.pv_proof drop constraint if exists pv_proof_state_ck;
+alter table public.pv_proof add constraint pv_proof_state_ck check (
+  state in ('required', 'submitted', 'approved'));
+
+alter table public.pv_proof enable row level security;
+revoke all on table public.pv_proof from public, anon, authenticated;
+
+comment on table public.pv_proof is
+  'パイロットであることの確認を求めている会員。required / submitted のあいだ、'
+  'REAL PAY・DEEP PAY・口コミ本文の3つの門が「鍵が無い人」と同じ答えを返す。'
+  '★会員を名指しで書かない。入れるのは admin.html のボタンだけ。'
+  'RLS 有効・ポリシー無し・grant 無し＝security definer の中からしか読めない。';
+
+
+-- 呼んだ本人が止まっているか。3つの門がこれ1つを呼ぶ。
+-- ★誰にも grant しない。security definer の中からだけ呼ぶ。
+-- ★未ログインは必ず false（止める相手が居ない。門は元から閉じている）。
+create or replace function public.pv_proof_blocked()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  select exists (select 1 from public.pv_proof b
+                  where b.user_id = auth.uid()
+                    and b.state in ('required', 'submitted'));
+$fn$;
+
+revoke all on function public.pv_proof_blocked() from public, anon, authenticated;
+
+comment on function public.pv_proof_blocked() is
+  '呼んだ本人が、パイロットであることの確認待ちで止まっているかを真偽で返す。'
+  '誰にも grant しない。';
+
+
+-- 止まっている会員の「人の鍵」（一覧の pkey と同じ形 ＝ r: ＋ ハッシュ）。
+-- pv_pay_rows が印（hold）を付けるのに使う。
+-- ★式は pv_pay_person_map（1-g）と同じ3本を、止まっている会員だけに絞ったもの。
+--   **写しが4つ目**（pv_my_keys / pv_my_give / pv_pay_person_map / ここ）。
+--   1つ直したら4つとも直す。ここのズレは db/test-proof.mjs が見ている
+--   （一覧から選んだ会社の行と、打ち込んだ社名の行の両方に印が付くこと）。
+-- ★対応表は**持たない**。呼ばれるたびに作り直し、どこにも書かない
+--   （「誰がどの行を出したか」を DB に残さない、は今までどおり）。
+-- ★止まっている会員が居なければ0行で、sha256 は1回も回らない。
+-- ★預かり（p: で始まる鍵）には当てられない。あれは会員に結び付いていない。
+-- ★誰にも grant しない。security definer の中からだけ呼ぶ。
+create or replace function public.pv_proof_held_keys()
+returns setof text
+language sql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+  select 'r:' || encode(extensions.digest(
+           b.user_id::text || '::pv_pay::' || a.code, 'sha256'), 'hex')
+    from public.pv_proof b
+    cross join (select distinct airline as code
+                  from public.pay_reports
+                 where airline <> 'other'
+                union
+                select distinct airline
+                  from public.reviews_v2
+                 where airline is not null and airline <> 'other') a
+   where b.state in ('required', 'submitted')
+  union
+  select 'r:' || encode(extensions.digest(
+           b.user_id::text || '::pv_pay::other::' || o.nm, 'sha256'), 'hex')
+    from public.pv_proof b
+    cross join (select distinct lower(airline_other) as nm
+                  from public.pay_reports
+                 where airline = 'other' and airline_other is not null) o
+   where b.state in ('required', 'submitted')
+  union
+  select 'r:' || encode(extensions.digest(
+           b.user_id::text || '::pv_pay::other', 'sha256'), 'hex')
+    from public.pv_proof b
+   where b.state in ('required', 'submitted');
+$fn$;
+
+revoke all on function public.pv_proof_held_keys() from public, anon, authenticated;
+
+comment on function public.pv_proof_held_keys() is
+  'パイロットであることの確認待ちで止まっている会員の、一覧の人の鍵（r:＋ハッシュ）。'
+  '呼ばれるたびに作り直す（対応表を持たない）。誰にも grant しない。';
+
+
 create or replace function public.pv_my_give()
 returns jsonb
 language sql
@@ -1645,9 +1771,15 @@ alter table public.pv_airlines add column if not exists fo_hi  integer;
 --     far     … 公開年収から大きく外れた本人申告の人だけ true（2026-09-19）。
 --               それ以外はキーごと無い。決め方は本体の fence の1か所だけ
 --               （ファイル冒頭「★公開年収から大きく外れた行の印」）。
+--     hold    … 投稿した会員がパイロットであることを確認中の行だけ true（2026-10-13）。
+--               それ以外はキーごと無い。決め方は 1-e2 の pv_proof_held_keys の1か所だけ。
+--               ★準識別子ではない（会社・職位・機材・年数のどれも細かくしない）。
+--                 分かるのは「この行は確認中の会員が出した」ことだけで、誰かは出ない。
+--               ★運営が承認した瞬間に消える。数字は書き換えない・集計にも入ったまま。
 --   鍵の無い人の行は、この中から airline / verified / age の3つだけ（2026-09-21
 --   オーナー指示で pos も外した）。
 --   far は入れない（金額を渡していないので、印だけが残ると意味が変わる）。
+--   hold も入れない（同じ理由。伏せた一覧は held を読まない）。
 --
 -- 材料は3つ。本棚（会員が出したぶん）、まだ移っていない預かり、
 -- そして昔の口コミに書かれた給与。
@@ -1705,7 +1837,11 @@ begin
   --   一覧にも DEEP PAY の集計にも混ざり、一次データが嘘で薄まる。
   -- ⚠️ 足すのはこの1行の中だけ。分岐を増やさない（自己点検36 が旗の出現数を
   --    きっかり4と数えている＝宣言・ここ・state・rows）。
-  v_open := (v_until is not null and v_until > now()) or public.pv_is_operator();
+  -- ★パイロットであることの確認待ちで止まっている会員は、鍵を持っていても閉じる
+  --   （2026-10-13・1-e2）。鍵そのものは書き換えない＝承認した瞬間に元どおり開く。
+  --   閉じた人に返るのは、鍵の無い人・未ログインの人と同じ伏せた一覧。
+  v_open := ((v_until is not null and v_until > now()) or public.pv_is_operator())
+            and not public.pv_proof_blocked();
 
   /* ★本人の依頼で下ろした行（pay_hidden）は、運営にだけ今までどおり出す。
      効いているかを目で確かめられないと、下ろせたかどうかが分からない。 */
@@ -1997,6 +2133,15 @@ begin
        and p.pos in ('cap', 'fo')
        and (b.man > b.hi * 1.5 or b.man < b.lo * 0.5)
   ),
+  held as (
+    /* ── パイロットであることを確認中の会員が出した行（2026-10-13 オーナー指示）──
+       ★**印を付けるだけ。** 数字は1つも書き換えない・行も消さない（fence と同じ）。
+       ★決め方は 1-e2 の pv_proof_held_keys の1か所だけ。画面は何も判定しない。
+       ★持つのは真偽1つだけ。本物の一覧（listed）がそれを hold として返す。
+         伏せた一覧（mask）は読まない ── 印も返さない。
+       ★鍵は「人」だけ（会社・職位を見ない）。その会員の行は全部に付く。 */
+    select k as hkey, true as hold from public.pv_proof_held_keys() k
+  ),
   pick as (
     /* ── どの月の内訳と勤務を見せるか（2026-09-03）─────────────
        金額は person で中央値に畳んでいるので、内訳と勤務も
@@ -2108,6 +2253,9 @@ begin
              /* 公開年収から大きく外れた本人申告の人だけ true（2026-09-19）。
                 それ以外は null ＝ キーごと消える。決め方は上の fence の1か所だけ。 */
              'far',        fe.far,
+             /* 投稿した会員がパイロットであることを確認中の行だけ true（2026-10-13）。
+                それ以外は null ＝ キーごと消える。決め方は上の held の1か所だけ。 */
+             'hold',       hd.hold,
              -- ── ここから4つが2026-09-03に足したもの。どれも段か帯だけ ──
              --   機材は語彙のコード1つ（全行。人数の門は掛けない＝オーナー確定）。
              --   ★機材の区分（狭胴・中型・広胴）のほうは返さない。2粒度が
@@ -2210,6 +2358,7 @@ begin
                          and wk.pos  = p.pos
       left join fence  fe on fe.pkey = p.pkey and fe.airline = p.airline
                          and fe.pos  = p.pos
+      left join held   hd on hd.hkey = p.pkey
   ),
   mask as (
     -- pv-mask-begin  ★この2つの印は自己点検65 が範囲を切り出すのに使う。消さない。

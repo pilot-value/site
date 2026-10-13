@@ -49,6 +49,11 @@ begin
   if to_regproc('public.pv_is_operator') is null then
     raise exception '先に db/pay-rows.sql を実行してください（pv_is_operator が無い）';
   end if;
+  -- 2026-10-13。下の pv_has_review_key が呼ぶ。古い pay-rows.sql の上に貼ると、
+  -- 貼れたまま口コミの一覧が全員にエラーを返すようになるので、ここで先に止める。
+  if to_regproc('public.pv_proof_blocked') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pv_proof_blocked が無い）';
+  end if;
 end
 $guard$;
 
@@ -118,6 +123,10 @@ declare
 begin
   if v_uid is null then return false; end if;
   if public.pv_is_operator() then return true; end if;
+  /* ★パイロットであることの確認待ちで止まっている会員は、口コミを出していても閉じる
+     （2026-10-13・db/pay-rows.sql 1-e2。REAL PAY・DEEP PAY と同じ1つの関数）。
+     口コミそのものは触らない＝承認した瞬間に元どおり開く。 */
+  if public.pv_proof_blocked() then return false; end if;
   return exists (
     select 1
       from public.reviews_v2 r
