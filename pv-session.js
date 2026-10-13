@@ -426,7 +426,8 @@
        ここと pv-proof.js は「なぜ見られないのか・何を出せばよいのか」を伝えるだけで、
        この板を消しても中身は1つも出てこない。
      ★止まっているかどうかはサーバにしか分からないので、ここだけは聞きに行く。
-       ただし聞くのは**ログインしている会員だけ**・**同じログインのまま6時間に1回**まで。
+       ただし聞くのは**ログインしている会員だけ**・**各ページで1回**。
+       「止まっていない」という古い答えで省略しない（運営が後から確認を求めるため）。
        未ログインの人（＝ほとんどの訪問者）は最初の1行で終わり、通信は1本も増えない。
        聞くのも板を出すのも pv-proof.js（ここは「読むかどうか」を決めるだけ）。
      ★答えは localStorage に写しを持つ（K_PROOF）。止まっている会員には、次のページから
@@ -435,7 +436,6 @@
        引き継がない。
      ⚠️ **会員を名指しで書かない**（公開リポジトリ）。止める相手は admin.html で決める。 */
   var K_PROOF    = 'pv_proof';            // {s:'ok'|'required'|'submitted', a:出し直し, t:聞いた時刻, l:ログインの印}
-  var PROOF_COOL = 6 * 60 * 60 * 1000;    // 止まっていない会員に聞き直すまで
 
   /* 出さない画面。
        ログインの途中 … login / signup / auth-callback
@@ -470,7 +470,6 @@
     if (PROOF_SKIP.test(location.pathname)) return '';
     var r = proofRead();
     if (r.s === 'required' || r.s === 'submitted') return 'show';
-    if (r.s === 'ok' && Date.now() - Number(r.t || 0) < PROOF_COOL) return '';
     return 'ask';
   }
 
