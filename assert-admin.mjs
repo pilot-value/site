@@ -146,7 +146,10 @@ for (const lang of ['ja', 'en']) {
       const RPC = {
         pv_is_admin: () => cfg.admin,
         admin_list_profiles: () => ROWS,
-        admin_list_reviews: () => []
+        admin_list_reviews: () => [],
+        /* 資格確認（2026-10-13）。ここでは「入口を1つ足しただけで、表は触っていない」
+           ことだけを見る。止める・承認する・画像を消す、は assert-proof.mjs と db/test-proof.mjs */
+        admin_list_proofs: () => []
       };
       function q(t) {
         const o = { data: [], error: null,
@@ -221,7 +224,7 @@ for (const lang of ['ja', 'en']) {
     if (c.key === 'admin') {
       ok(!seen.gate && seen.dash, '中身が出る');
       ok(seen.rows === 1, '一覧が出ている', '行数 ' + seen.rows);
-      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews',
+      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs',
          'サーバーの入口だけを使っている', seen.rpc.join(','));
       ok(seen.from.length === 0, '管理者でもテーブルは直接触らない', seen.from.join(','));
     }

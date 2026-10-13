@@ -5496,6 +5496,66 @@ for (const lang of ['ja', 'en']) {
       ok(errs.length === 0, `${lang}/${name}: ページのエラーが1件も出ない`, errs.join(' | '));
     }
   }
+
+  /* ── R-3 投稿した会員がパイロットであることを確認中の行（2026-10-13 オーナー指示）──
+     サーバは、確認を求めている会員が出した行にだけ hold: true を付ける
+     （db/pay-rows.sql の held。付き方・消え方は db/test-proof.mjs）。
+     画面は far と同じ ⚠ を置き、文だけが違う。両方に当たる行でも ⚠ は1つ。
+       HOLD_AT    … hold だけの行
+       FAR_AT[0]  … far と hold の両方
+     ⚠️ 1文は actual-pay.js の T を読まずにここで別に書く（FAR_TXT と同じ流儀）。 */
+  const HOLD_AT = ROWS.findIndex((r, i) => !FAR_AT.includes(i));
+  const HOLD_TXT = {
+    ja: '投稿者がパイロットであることを確認中の記録です。',
+    en: 'We are still confirming that the person who posted this record is a pilot.'
+  };
+  const OPEN_HOLD = Object.assign({}, OPEN_FAR, { rows: OPEN_FAR.rows.map((r, i) =>
+    ((i === HOLD_AT || i === FAR_AT[0]) ? Object.assign({}, r, { hold: true }) : r)) });
+  const holdAll = (p) => Object.assign({}, p, { rows: p.rows.map((r) => Object.assign({}, r, { hold: true })) });
+
+  for (const lang of ['ja', 'en']) {
+    console.log(`\n════ ${lang} / R-3 開いた一覧の ⚠（確認中の会員が出した行）════`);
+    const { page, errs } = await open(lang, OPEN_HOLD);
+    const v = await page.evaluate(FARS);
+    const marked = [...new Set([...FAR_AT, HOLD_AT])];
+    ok(v.rows.every((r) => r.n === (marked.includes(r.i) ? 1 : 0)),
+       `${lang}: ★★⚠ は far か hold の行だけに、1行に1つだけ出る（両方に当たる行でも1つ）`,
+       v.rows.map((r) => `${r.i}:${r.n}`).join(' '));
+    const aria = await page.evaluate(() => Array.prototype.map.call(
+      document.querySelectorAll('#ap-rows tbody tr[data-ap-row]'), (tr) => {
+        const m = tr.querySelector('.ap-far');
+        return [Number(tr.getAttribute('data-ap-row')), m ? m.getAttribute('aria-label') : null]; }));
+    const label = (i) => (aria.find((x) => x[0] === i) || [])[1];
+    ok(label(HOLD_AT) === HOLD_TXT[lang], `${lang}: ★hold だけの行の ⚠ は「確認中」の1文を読む`, label(HOLD_AT));
+    ok(label(FAR_AT[0]) === FAR_TXT[lang] + ' ' + HOLD_TXT[lang],
+       `${lang}: ★両方に当たる行の ⚠ は2つの文を続けて読む`, label(FAR_AT[0]));
+    ok(label(FAR_AT[1]) === FAR_TXT[lang], `${lang}: ★far だけの行は今までと1文字も違わない`, label(FAR_AT[1]));
+    ok(!v.body.includes(HOLD_TXT[lang]), `${lang}: ★一覧の本文には1文を書かない（記号だけ）`);
+
+    ok(await tapR(page, HOLD_AT), `${lang}: hold の行の詳細が開く`);
+    {
+      const d = await page.evaluate(FARS);
+      ok(d.dwFar.length === 1 && d.dwFar[0].t === WARN + HOLD_TXT[lang] && d.dwFar[0].underAmt
+         && d.dwFar[0].c === d.gold,
+         `${lang}: ★★面の金額の下に「確認中」の1文が1つだけ出る（色は --pv-gold-ink）`, JSON.stringify(d.dwFar));
+    }
+    ok(await shut(page), `${lang}: 戻る操作で詳細だけ閉じる（hold）`);
+    ok(await tapR(page, FAR_AT[0]), `${lang}: 両方に当たる行の詳細が開く`);
+    {
+      const d = await page.evaluate(FARS);
+      ok(d.dwFar.length === 2 && d.dwFar[0].t === WARN + FAR_TXT[lang] && d.dwFar[1].t === WARN + HOLD_TXT[lang],
+         `${lang}: ★両方に当たる行の面には、文が2つ並ぶ`, JSON.stringify(d.dwFar.map((x) => x.t)));
+    }
+    ok(await shut(page), `${lang}: 戻る操作で詳細だけ閉じる（両方）`);
+    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+
+    /* 鍵の無い一覧 ── わざと全部の行に hold を混ぜても ⚠ は1つも出ない */
+    const m = await open(lang, holdAll(MASKED));
+    const w = await m.page.evaluate(FARS);
+    ok(w.rows.length > 0 && w.marks.length === 0 && !w.body.includes(HOLD_TXT[lang]),
+       `${lang}: ★★サーバが hold を混ぜても、伏せた一覧に ⚠ も1文も出ない`,
+       `${w.rows.length}行 / ⚠${w.marks.length}`);
+  }
 }
 
 // ════════════════════════════════════════════════════════════════

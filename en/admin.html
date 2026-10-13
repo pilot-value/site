@@ -77,6 +77,31 @@
     .tab-btn{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.4);font-size:.85rem;font-weight:600;cursor:pointer;transition:color .2s,border-color .2s;font-family:inherit}
     .tab-btn.active{color:#f5c842;border-bottom-color:#f5c842}
     .tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:20px}
+    /* ── 資格確認（パイロットであることの確認・2026-10-13）── */
+    .tab-n{display:inline-block;min-width:18px;margin-left:6px;padding:1px 6px;border-radius:999px;background:#f97316;color:#000;font-size:.68rem;font-weight:800;line-height:1.5;text-align:center}
+    .tab-n:empty{display:none}
+    .pf-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700;white-space:nowrap}
+    .pf-req{background:rgba(249,115,22,.12);color:#fb923c}
+    .pf-sub{background:rgba(245,200,66,.16);color:#f5c842}
+    .pf-ok{background:rgba(72,199,142,.1);color:#48c78e}
+    .pf-btn{display:inline-flex;align-items:center;padding:6px 12px;background:rgba(255,255,255,.06);color:#cbd5e1;border:1px solid rgba(255,255,255,.12);border-radius:8px;font-weight:600;font-size:.74rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background-color .2s,color .2s,transform .15s}
+    .pf-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+    .pf-btn:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+    .pf-btn:active{transform:scale(.97)}
+    .pf-btn[disabled]{opacity:.5;cursor:default}
+    .pf-btn.is-go{background:rgba(72,199,142,.12);color:#48c78e;border-color:rgba(72,199,142,.3)}
+    .pf-btn.is-go:hover{background:rgba(72,199,142,.2);color:#6ee7b7}
+    .pf-btn.is-warn{background:rgba(249,115,22,.1);color:#fb923c;border-color:rgba(249,115,22,.28)}
+    .pf-btn.is-warn:hover{background:rgba(249,115,22,.18);color:#fdba74}
+    .pf-acts{display:flex;gap:6px;flex-wrap:wrap}
+    #pf-view{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(4,6,10,.88)}
+    #pf-view.is-on{display:flex}
+    .pf-sheet{width:100%;max-width:760px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;background:#111620;border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 2px 4px rgba(0,0,0,.4),0 30px 80px -20px rgba(0,0,0,.8);overflow:hidden}
+    .pf-sheet-h{padding:14px 18px;font-size:.86rem;font-weight:700;border-bottom:1px solid rgba(255,255,255,.07)}
+    .pf-sheet-h small{display:block;margin-top:2px;font-size:.74rem;font-weight:500;color:#6b7d93}
+    .pf-sheet-b{flex:1;min-height:120px;overflow:auto;display:flex;align-items:center;justify-content:center;background:#0a0c0f}
+    .pf-sheet-b img{display:block;max-width:100%;height:auto}
+    .pf-sheet-f{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding:12px 18px;border-top:1px solid rgba(255,255,255,.07)}
   </style>
 <!-- Google tag (gtag.js) -->
 <script>
@@ -150,6 +175,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('users',this)">Users</button>
     <button class="tab-btn" onclick="switchTab('reviews',this)">Reviews</button>
+    <button class="tab-btn" onclick="switchTab('proofs',this)">Pilot check<span class="tab-n" id="proof-n"></span></button>
   </div>
 
   <!-- Users tab -->
@@ -172,10 +198,10 @@
           <tr>
             <th>#</th><th>Name</th><th>Email</th><th>Gender</th>
             <th>Date of birth</th><th>Country of residence</th><th>Employer</th><th>Position</th>
-            <th>Registered on</th><th>Reviews</th>
+            <th>Registered on</th><th>Reviews</th><th>Pilot check</th>
           </tr>
         </thead>
-        <tbody id="users-tbody"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
+        <tbody id="users-tbody"><tr><td colspan="11" class="loading">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -201,6 +227,32 @@
       </table>
     </div>
   </div>
+
+  <!-- Proofs tab（パイロットであることの確認・2026-10-13）
+       ★止める・見る・承認する・出し直しを求める、はどれもサーバーの入口
+         （db/pilot-proof.sql の admin_proof_*）が名簿を見てから実行する。 -->
+  <div id="tab-proofs" style="display:none">
+    <div class="notice"><strong>Pilot check</strong> — A member you press “Ask for proof” on in the Users tab cannot see REAL PAY, DEEP PAY or review text until you approve them, and gets a panel after login asking for an image. Their rows in REAL PAY carry a ⚠. <strong>Approving discards the submitted image on the spot.</strong></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Email</th><th>Status</th><th>Asked on</th><th>Submitted on</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="proofs-tbody"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 提出された画像を見る面。閉じたら画像を画面に残さない（proofClose） -->
+  <div id="pf-view" role="dialog" aria-modal="true" aria-labelledby="pf-view-h">
+    <div class="pf-sheet">
+      <div class="pf-sheet-h" id="pf-view-h"></div>
+      <div class="pf-sheet-b" id="pf-view-b"></div>
+      <div class="pf-sheet-f" id="pf-view-f"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -214,6 +266,8 @@
 
   let allUsers   = [];
   let allReviews = [];
+  let allProofs  = [];
+  let proofReady = false;   // 資格確認の入口（db/pilot-proof.sql）がサーバーに在るか
   let currentTab = 'users';
 
   /* ★No password lives in this page. Anything written here is public,
@@ -262,9 +316,10 @@
 
   async function loadData() {
     /* Never read the tables directly — the entry point decides who may read. */
-    const [usersRes, reviewsRes] = await Promise.all([
+    const [usersRes, reviewsRes, proofsRes] = await Promise.all([
       sb.rpc('admin_list_profiles'),
-      sb.rpc('admin_list_reviews')
+      sb.rpc('admin_list_reviews'),
+      sb.rpc('admin_list_proofs')
     ]);
     if (usersRes.error || reviewsRes.error) {
       document.getElementById('dashboard').style.display = 'none';
@@ -278,9 +333,14 @@
     // Normalize reviews_v2 into the common shape, newest first (the legacy reviews table has been dropped)
     allReviews = (v2 || []).map(r => normReview(r, 'v2'))
       .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+    /* ★資格確認の入口をまだ流していない環境でも、上の2つの表は今までどおり出す
+         （ここを usersRes と同じ扱いにすると、SQL を貼る前の管理画面が丸ごと閉じる）。 */
+    proofReady = !proofsRes.error;
+    allProofs  = proofReady ? (proofsRes.data || []) : [];
     renderStats();
     renderUsersTable();
     renderReviewsTable();
+    renderProofsTable();
   }
 
   function _avgScores(r){
@@ -328,7 +388,7 @@
       !q || (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)
     );
     const tbody = document.getElementById('users-tbody');
-    if (!list.length) { tbody.innerHTML=`<tr><td colspan="10" class="loading">${q?'No results':'No users'}</td></tr>`; return; }
+    if (!list.length) { tbody.innerHTML=`<tr><td colspan="11" class="loading">${q?'No results':'No users'}</td></tr>`; return; }
     const reviewCount = id => allReviews.filter(r=>r.user_id===id).length;
     tbody.innerHTML = list.map((u,i) => `<tr>
       <td style="color:#6b7d93;font-size:.75rem">${i+1}</td>
@@ -341,8 +401,136 @@
       <td>${u.position?`<span class="pos-tag ${POS_CLASS[u.position]||''}">${POS_LABEL[u.position]||u.position}</span>`:'—'}</td>
       <td style="white-space:nowrap;font-size:.76rem;color:#6b7d93">${u.created_at?new Date(u.created_at).toLocaleDateString('ja-JP'):'—'}</td>
       <td style="text-align:center">${reviewCount(u.id)>0?`<span style="color:#f5c842;font-weight:700">${reviewCount(u.id)}</span>`:'<span style="color:#6b7d93">0</span>'}</td>
+      <td>${proofCell(u)}</td>
     </tr>`).join('');
   }
+
+  /* ── 資格確認（パイロットであることの確認・2026-10-13）──────────────
+     ★守っているのはここではない。止める・画像を見る・承認する・出し直しを求める、の
+       4つとも、サーバーの入口（db/pilot-proof.sql の admin_proof_*）が名簿（pv_admins）を
+       見てから実行する。この画面を書き換えても、通るのは管理者だけ。
+     ★承認すると、提出された画像はサーバー側で**同じ取引の中で**消える。
+       「破棄しました」と言うのは、サーバーが discarded を返したときだけ。
+     ★会員の id は data-u に入れて運ぶ。氏名やメールを属性に入れない
+       （esc は引用符を直さないので、属性に入れると崩れる）。 */
+  const PF_LBL = {required:'Suspended (nothing submitted)', submitted:'Awaiting review', approved:'Confirmed'};
+  const PF_CLS = {required:'pf-req', submitted:'pf-sub', approved:'pf-ok'};
+  const isUuid  = s => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s||''));
+  const proofOf = id => allProofs.find(p => p.user_id === id) || null;
+  const userOf  = id => allUsers.find(u => u.id === id) || null;
+  const pfName  = id => { const u = userOf(id) || {}; return u.name || u.email || 'this member'; };
+  const pfDate  = t => t ? new Date(t).toLocaleString('en-GB', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '—';
+  const pfTag   = st => `<span class="pf-tag ${PF_CLS[st]||''}">${PF_LBL[st]||esc(st)}</span>`;
+  const pfBtn   = (act, id, label, cls) => `<button type="button" class="pf-btn${cls?' '+cls:''}" data-pf="${act}" data-u="${id}">${label}</button>`;
+
+  /* ユーザー一覧の右端の欄。止まっている会員には状態、それ以外には「証明を求める」。 */
+  function proofCell(u) {
+    if (!proofReady || !isUuid(u.id)) return '—';
+    const p = proofOf(u.id);
+    if (p && p.state !== 'approved') return pfTag(p.state);
+    return (p ? pfTag('approved') + ' ' : '') + pfBtn('require', u.id, 'Ask for proof');
+  }
+
+  function renderProofsTable() {
+    const waiting = allProofs.filter(p => p.state === 'submitted').length;
+    document.getElementById('proof-n').textContent = waiting ? String(waiting) : '';
+    const tbody = document.getElementById('proofs-tbody');
+    if (!proofReady) { tbody.innerHTML = '<tr><td colspan="6" class="loading">Not available yet (db/pilot-proof.sql has not been run).</td></tr>'; return; }
+    if (!allProofs.length) { tbody.innerHTML = '<tr><td colspan="6" class="loading">No member is being asked for proof.</td></tr>'; return; }
+    tbody.innerHTML = allProofs.filter(p => isUuid(p.user_id)).map(p => {
+      const u = userOf(p.user_id) || {};
+      const acts = [];
+      if (p.has_image)             acts.push(pfBtn('view', p.user_id, 'View image'));
+      if (p.state === 'submitted') acts.push(pfBtn('approve', p.user_id, 'Approve and discard image', 'is-go'),
+                                             pfBtn('reject', p.user_id, 'Ask for another image', 'is-warn'));
+      if (p.state === 'required')  acts.push(pfBtn('approve', p.user_id, 'Lift suspension'));
+      if (p.state === 'approved')  acts.push(pfBtn('require', p.user_id, 'Ask again'));
+      return `<tr>
+      <td style="font-weight:600">${esc(u.name||'—')}</td>
+      <td style="color:#9ca3af;font-size:.8rem">${esc(u.email||'—')}</td>
+      <td>${pfTag(p.state)}</td>
+      <td style="white-space:nowrap;font-size:.76rem;color:#6b7d93">${pfDate(p.required_at)}</td>
+      <td style="white-space:nowrap;font-size:.76rem;color:#6b7d93">${pfDate(p.submitted_at)}</td>
+      <td><div class="pf-acts">${acts.join('')}</div></td>
+    </tr>`;
+    }).join('');
+  }
+
+  async function proofCall(fn, id, btn) {
+    if (btn) btn.disabled = true;
+    const { data, error } = await sb.rpc(fn, { p_user: id });
+    if (btn) btn.disabled = false;
+    if (error) { alert('That did not work: ' + (error.message || error)); return null; }
+    return data;
+  }
+
+  async function proofRequire(id, btn) {
+    if (!confirm(`Ask “${pfName(id)}” for proof that they are a pilot?\n\nUntil you approve them, this member cannot see REAL PAY, DEEP PAY or review text, and gets a panel after login asking for an image.`)) return;
+    const v = await proofCall('admin_proof_require', id, btn);
+    if (!v) return;
+    if (!v.ok) { alert(v.status === 'is_admin' ? 'An operator account cannot be suspended.' : 'This member was not found.'); return; }
+    await loadData();
+  }
+
+  async function proofApprove(id, btn) {
+    const p = proofOf(id) || {};
+    if (!confirm(p.has_image ? `Approve “${pfName(id)}”?\n\nThe submitted image is discarded on the spot and cannot be recovered.\nThis member can use the site again straight away.` : `“${pfName(id)}” has not submitted an image.\n\nLift the suspension anyway?`)) return;
+    const v = await proofCall('admin_proof_approve', id, btn);
+    if (!v) return;
+    proofClose();
+    /* ★「破棄しました」は、サーバーが実際に消した枚数を返したときだけ言う。 */
+    if (v.ok) alert(v.discarded > 0 ? 'Approved. The submitted image has been discarded.' : 'Suspension lifted.');
+    await loadData();
+  }
+
+  async function proofReject(id, btn) {
+    if (!confirm(`Ask “${pfName(id)}” for another image?\n\nThe submitted image is discarded on the spot and the member stays suspended.`)) return;
+    const v = await proofCall('admin_proof_reject', id, btn);
+    if (!v) return;
+    proofClose();
+    if (v.ok) alert('Asked for another image. The submitted image has been discarded.');
+    await loadData();
+  }
+
+  async function proofView(id, btn) {
+    const v = await proofCall('admin_proof_image', id, btn);
+    if (!v) return;
+    if (!v.ok || !v.b64) { alert('There is no image.'); await loadData(); return; }
+    const p = proofOf(id) || {}, u = userOf(id) || {};
+    document.getElementById('pf-view-h').innerHTML =
+      `${esc(pfName(id))}<small>${esc(u.email||'')} · Submitted ${pfDate(p.submitted_at)}</small>`;
+    const img = new Image();
+    img.alt = 'Submitted image';
+    img.src = 'data:image/jpeg;base64,' + String(v.b64).replace(/[^A-Za-z0-9+/=]/g, '');
+    const body = document.getElementById('pf-view-b');
+    body.textContent = '';
+    body.appendChild(img);
+    document.getElementById('pf-view-f').innerHTML =
+      (p.state === 'submitted'
+        ? pfBtn('reject', id, 'Ask for another image', 'is-warn') + pfBtn('approve', id, 'Approve and discard image', 'is-go') : '')
+      + pfBtn('close', id, 'Close');
+    document.getElementById('pf-view').classList.add('is-on');
+  }
+
+  /* 閉じたら画像を画面に残さない。 */
+  function proofClose() {
+    document.getElementById('pf-view').classList.remove('is-on');
+    document.getElementById('pf-view-b').textContent = '';
+    document.getElementById('pf-view-f').textContent = '';
+  }
+
+  document.addEventListener('click', e => {
+    const b = e.target && e.target.closest ? e.target.closest('[data-pf]') : null;
+    if (!b || b.disabled) return;
+    const act = b.getAttribute('data-pf'), id = b.getAttribute('data-u');
+    if (act === 'close') { proofClose(); return; }
+    if (!isUuid(id)) return;
+    const run = { require: proofRequire, view: proofView, approve: proofApprove, reject: proofReject }[act];
+    if (run) run(id, b);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('pf-view').classList.contains('is-on')) proofClose();
+  });
 
   function renderReviewsTable() {
     const q    = (document.getElementById('rev-search').value||'').toLowerCase();
@@ -377,6 +565,7 @@
     currentTab = tab;
     document.getElementById('tab-users').style.display   = tab==='users'   ? 'block' : 'none';
     document.getElementById('tab-reviews').style.display = tab==='reviews' ? 'block' : 'none';
+    document.getElementById('tab-proofs').style.display  = tab==='proofs'  ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
   }
 
