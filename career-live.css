@@ -47,6 +47,11 @@
 .crl-lock{display:flex;align-items:center;gap:8px;margin:0;padding:10px 12px;border-radius:var(--pv-r-sm);background:var(--pv-surface-soft);border:1px solid var(--pv-line);font-size:13px;font-weight:700;color:var(--pv-ink-2)}
 .crl-lock .crl-ic{color:var(--pv-ink-3)}
 .crl-rows + .crl-lock,.crl-revs + .crl-lock,.crl-facts + .crl-lock,.crl-cmp + .crl-lock{margin-top:10px}
+/* 答えるカード（自分の会社への回答が足りない人）。鍵の1行のすぐ下。入口は、今までの黒い丸いボタンのまま（押せる形を新しく足さない） */
+.crl-lock + .crl-give{margin-top:10px}
+.crl-give{display:grid;gap:6px}
+.crl-give-h{margin:0;font-size:14px;line-height:1.5;font-weight:700;color:var(--pv-ink)}
+.crl-give-n{margin:0;font-size:12px;line-height:1.6;font-variant-numeric:tabular-nums;color:var(--pv-ink-3)}
 
 /* 未取得 ＝ その項目を運ぶ道が無い／その側に無い */
 .crl-none{display:inline-flex;align-items:center;align-self:flex-start;min-height:24px;padding:0 8px;border:1px dashed var(--pv-line);border-radius:6px;font-size:12px;color:var(--pv-ink-3);white-space:nowrap}

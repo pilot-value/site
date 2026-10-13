@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
@@ -1297,6 +1297,7 @@ const { default: puppeteer } = await import('puppeteer');
      mode 'rated404' … 口コミは 'rated' と同じ・要約の口だけ 404（＝ いまの本番の形。要約の欄は出ず、下の欄の錠前の1行が見える）
      mode 'off'   … 全部 500 ＝「読めない時」
      mode 'facts404' … 集計の口（pv_contrib_facts）だけ 404 ＝ 口がまだ無い時（ほかは 'empty' と同じ）
+     mode 'give'  … ログインも給与の提出も済んでいて、自分の会社への回答が足りない人：集計・月の勤務・補足の口は状態の1語だけ・答えるカードの口が、カードの中身を返す
    口コミの要約の口（pv_review_summary）は、本番にまだ無い（2026-10-07）。無い時に本物のサーバーが返すのは 404 なので、
    'empty'・'rows'・'rated404' では 404 を返す ＝ 画面は要約の欄に何も出さない（作った文で埋めない）。
    'rated' の時だけ「鍵の無い人への返事」を返す。わざと要約の文を混ぜる（画面が1文字も出さないことを見る）。 */
@@ -1347,8 +1348,11 @@ const LEAK_ROW = { question_id: 'zz_not_asked', kind: 'num', n: 99, lead: null, 
    bogus に名指しした鍵だけは、本物が返さなくても、わざと載せる。 */
 const wire = f => Object.fromEntries([...FACT_KEYS.filter(k => k in f), ...(f.bogus || [])].map(k => [k, f[k]]));
 const SENT = [...FACT_ROWS, ...BEN_ROWS, LEAK_ROW];
+/* 状態の1語だけの返事（開いていない人に、本物の口が返す形）。語は、書かずに組み立てる。 */
+const stateBody = word => JSON.stringify({ ok: true, state: word });
 const factBody = mode => (mode === 'rows'
   ? JSON.stringify({ ok: true, state: 'locked', facts: SENT.map(wire) })   // 鍵の無い会員。行が付いてきても、画面は1行も出さない
+  : mode === 'give' ? stateBody('give')                                    // 自分の会社への回答が足りない人（状態の1語だけ）
   : JSON.stringify({ ok: true, state: 'login' }));                         // 未ログイン
 /* 返事に付けた行から作る「出てはいけない字」（行を直せば一緒に変わる）。
    LEAK_PAGE … ページの字（innerText）にも欄にも無いこと／LEAK_SLOT … 欄（.crl）の字に無いこと（「3人」はページの地の文に在る）。 */
@@ -1438,16 +1442,30 @@ async function benRowsOk(p, tag) {
   }
   ok(!bad.length, `${tag}: 待遇の板の集計 ── 着陸手当の選ぶ質問は、3人そろえば出る（最多／${SPLIT_TEXT}／回答 N人）・額の質問は、数字が届いても出さない`, bad.join(' ／ '));
 }
+/* 答えるカードの読み出し（pv_contrib_give）。'give' の場面でだけ、カードの中身を返す：聞く会社は ANA（ANA のページでは JAL）
+   ── カードが聞くのは読む人自身の会社で、開いているページの会社ではない。ほかの場面では、未ログインへの返事（状態の1語）。
+   over ＝ その場面だけ差し替える欄（要る数を変える、など）。1回の返事ごと差し替える時は、場面が seen.give に { status, body } を置く。
+   ⚠️ 検査のために作った中身で、本物の回答の数ではない（答えた数 3・要る数 5 は、この検査のファイルの中にしか無い）。 */
+const GIVE_RE = /\/rest\/v1\/rpc\/pv_contrib_give$/;
+const GIVE_ASK = ['reserve_duty', 'sick_leave'];
+const giveOf = slug => (slug === 'ana' ? { airline: 'jal', name: 'JAL' } : { airline: 'ana', name: 'ANA' });
+const giveBody = (mode, slug, over) => (mode === 'give'
+  ? JSON.stringify({ ok: true, state: 'give', ...giveOf(slug), have: 3, need: 5, ask: GIVE_ASK, ...(over || {}) })
+  : stateBody('login'));
 const STUB = [
   [/\/rest\/v1\/rpc\/pv_reviews$/, '{"unlocked":false,"rows":[]}'],
   [PAY_RE, '{"ok":true,"state":"locked","rows":[]}'],
   [FACT_RE, ''],
+  [GIVE_RE, ''],
   /* 月の勤務の集計と会員の補足：未ログインに本物のサーバーが返すのは、状態の1語だけ（db/work-months.sql・db/contrib.sql）。 */
   [/\/rest\/v1\/rpc\/pv_work_view$/, '{"ok":true,"state":"login"}'],
   [/\/rest\/v1\/rpc\/pv_contrib_notes$/, '{"ok":true,"state":"login"}'],
   /* ホテル：確認済みのパイロットでない人に本物のサーバーが返すのは、状態の1語だけ（db/stays.sql）。都市を選んだ時にだけ呼ぶ。 */
   [/\/rest\/v1\/rpc\/pv_stays$/, '{"ok":true,"state":"locked"}'],
 ];
+/* 集計の口と同じ1語を返す、横の2つの口（月の勤務・会員の補足）。上の表の、未ログインへの1語を返す行から拾う（名前をもう一度書かない）。 */
+const SIDE = STUB.filter(([, body]) => body === stateBody('login')).map(([re]) => re);
+if (SIDE.length !== 2) throw new Error('検査の前提が崩れた（月の勤務と補足の口を、上の表から2つ拾えない）');
 /* 未ログインの画面で、欄が落ち着く先。月の勤務と回答の集計は鍵（ログインと給与の提出で開く）・補足は欄ごと出さない・ほかは「まだありません」。 */
 const CALM = x => (x.kind === 'work' || x.kind === 'fact' ? x.on && x.state === 'locked' : x.kind === 'notes' ? !x.on && x.state === 'empty' : x.on && x.state === 'empty');
 /* 鍵の無い人に本物のサーバーが返すのは、会社・出典・投稿時期の3つだけ（db/pay-rows.sql の mask）。
@@ -1492,6 +1510,9 @@ async function open(browser, slug, w, h, mode, pre) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
   const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [] };
+  /* 答えるカードの口：give ＝ その場面だけ差し替える返事（{ status, body }。置かなければ giveBody）・giveCalls ＝ 呼ばれた回数。
+     nav ＝ 並びを置いた場面でだけ、ページが移ろうとした行き先を控えて止める（カードのリンクが進む先を見る時）。 */
+  seen.give = null; seen.giveCalls = 0; seen.nav = null;
   p.setDefaultTimeout(30000);
   p.on('pageerror', e => trouble.push(`${slug} ${w}: ${String(e.message).slice(0, 140)}`));
   p.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) trouble.push(`${r.status()} ${r.url()}`); });
@@ -1504,6 +1525,8 @@ async function open(browser, slug, w, h, mode, pre) {
   p.on('request', r => {
     let u; try { u = new URL(r.url()); } catch { return r.continue(); }
     if (['data:', 'blob:', 'about:'].includes(u.protocol)) return r.continue();
+    /* 204 で返す ＝ ブラウザは、いまのページに居たままになる（abort だと、エラーのページへ移ってしまう） */
+    if (seen.nav && r.isNavigationRequest() && r.frame() === p.mainFrame()) { seen.nav.push(u.pathname + u.search); return r.respond({ status: 204 }); }
     if (u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
     if (/\.supabase\.co$/.test(u.hostname)) {
       const cors = { 'access-control-allow-origin': '*' };
@@ -1526,11 +1549,20 @@ async function open(browser, slug, w, h, mode, pre) {
       if (seen.mode === 'facts404' && FACT_RE.test(u.pathname)) {
         return r.respond({ status: 404, contentType: 'application/json', headers: cors, body: '{"code":"PGRST202","message":"stub"}' });
       }
+      /* 'give' の場面：月の勤務と会員の補足の口も、集計の口と同じ1語だけを返す（本物のサーバーは、3つの口で同じ1語を返す）。 */
+      if (/^give/.test(seen.mode) && SIDE.some(re => re.test(u.pathname))) {
+        return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: stateBody('give') });
+      }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
         if (hit[0] === FACT_RE) {
           seen.factCalls.push(r.postData() || '');
           return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: factBody(seen.mode) });
+        }
+        if (hit[0] === GIVE_RE) {
+          seen.giveCalls++;
+          const g = seen.give || {};
+          return r.respond({ status: g.status || 200, contentType: 'application/json', headers: cors, body: g.body || giveBody(seen.mode, slug) });
         }
         const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug)
                    : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
@@ -2403,7 +2435,7 @@ async function runView(browser, s, [w, h, kind]) {
         `${tag}: 募集の1枚の入口は「会社の募集ページ」── 台帳のいちばん上の資料を新しいタブで開く・カードからはみ出さない`, JSON.stringify(j));
       ok(j.old === 0, `${tag}: 「募集要項を開く」（タブを切り替えるボタン）が残っていない`, String(j.old));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -2571,7 +2603,7 @@ async function runRows(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 一覧の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
     /* 給与・待遇のタブでは、欄が持つ3行がそのまま出る（概要で減らしたのは「何行めまで見せるか」だけ）。 */
     {
       await ev(() => document.querySelector('.pvg-tabs [data-pvg-tab="pay"]').click());
@@ -2636,7 +2668,7 @@ async function runRated(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-score'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
     {
       /* 口コミの一覧（口コミのタブ）のカード。届いた2件が描かれるまで待つ ── 字として出たか、タグとして働いたかのどちらか。 */
@@ -2686,7 +2718,7 @@ async function runRated404(browser, s, [w, h]) {
     ok(!bad.length, `${tag}: 要約の欄は場所を取らない・星と図は点数どおり・錠前の1行「口コミの投稿で開きます」が見えている`, bad.join(' ／ '));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている7つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -3928,6 +3960,114 @@ async function runRatedStale(browser, s, [w, h]) {
   }
 }
 
+/* 「自分の会社への回答が足りない人」：ログインも給与の提出も済んでいて、このページの会社は自分の会社ではなく、
+   自分の会社への回答がまだ足りない人。本物のサーバーがこの人に返す状態は 'give'。
+   偽のサーバーは、集計・月の勤務・補足の口で 'give' の1語だけを返し、答えるカードの口で、カードの中身を返す
+   （聞く会社は ANA〔ANA のページでは JAL〕・答えた数 3・要る数 5・聞く質問2つ）。
+   見るのは「ひとつ教えて」のカードの「集まった回答」の欄（答えるカードを、自分で出す欄）。
+   ⚠️ 絵の検査。誰が 'give' になるか・数え方が正しいかは、本物の SQL を通す側（db/test-contrib.mjs）が見る。
+   下の字は、画面に出るはずの字を検査が自分で持つもの（career-live.js から読み込まない ＝ あちらを変えたら、ここで赤くなる）。 */
+const GIVE_W = [390, 768, 1440];
+const GIVE_LINE = need => `自分の会社に${need}つ答えると開きます`, GIVE_HEAD = name => `${name}の待遇情報を、足りない情報から埋める`;
+const GIVE_COUNT = (have, need) => `あなたが答えた項目：${have}／${need}`, GIVE_GO = '匿名で答える';
+async function runGive(browser, s, [w, h]) {
+  const tag = `${s} ${w}（自分の会社への回答が足りない人）`;
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, 'give');
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  const G = giveOf(s), SEL = '.pvg-askc .pvg-got';
+  /* 「集まった回答」の欄に、いま出ているもの */
+  const slotOf = () => ev(sel => {
+    const box = document.querySelector(sel), slot = box && box.querySelector('.crl[data-live="fact"]');
+    if (!slot) return null;
+    const vis = el => !!el && el.getClientRects().length > 0, tx = el => (el ? el.textContent : '').trim();
+    const cards = [...slot.querySelectorAll('.crl-give')], card = cards[0] || null;
+    return {
+      on: vis(slot), state: slot.dataset.state, text: tx(slot), lock: [...slot.querySelectorAll('.crl-lock')].map(tx),
+      cards: cards.length, cardOn: vis(card), head: card ? [...card.querySelectorAll('.crl-give-h')].map(tx) : [], count: card ? [...card.querySelectorAll('.crl-give-n')].map(tx) : [],
+      links: [...slot.querySelectorAll('a')].map(a => ({ text: tx(a), href: a.getAttribute('href') || '', cls: a.className, give: a.getAttribute('data-crl-give'), inCard: !!card && card.contains(a), on: vis(a) })),
+      facts: slot.querySelectorAll('.crl-fact').length,
+    };
+  }, SEL);
+  /* 欄が「1行＋答えるカード1枚」になっているか。have・need ＝ 偽のサーバーが返した数（画面は、その数のまま出す） */
+  const cardBad = (g, have, need) => {
+    if (!g) return ['「集まった回答」の欄が無い'];
+    const bad = [];
+    if (!g.on) bad.push('欄が見えていない');
+    if (g.state !== 'locked') bad.push(`欄が ${g.state}（鍵の形のはず）`);
+    if (!same(g.lock, [GIVE_LINE(need)])) bad.push(`1行「${g.lock.join('｜')}」（あるべき「${GIVE_LINE(need)}」）`);
+    if (g.cards !== 1 || !g.cardOn) bad.push(`答えるカードが ${g.cards}つ${g.cards && !g.cardOn ? '（見えていない）' : ''}`);
+    if (!same(g.head, [GIVE_HEAD(G.name)])) bad.push(`見出し「${g.head.join('｜')}」（あるべき「${GIVE_HEAD(G.name)}」）`);
+    if (!same(g.count, [GIVE_COUNT(have, need)])) bad.push(`答えた数「${g.count.join('｜')}」（あるべき「${GIVE_COUNT(have, need)}」）`);
+    if (g.links.length !== 1) bad.push(`欄の中のリンクが ${g.links.length}つ（${g.links.map(a => a.text).join('｜')}）`);
+    for (const a of g.links.slice(0, 1)) {
+      if (!(a.text === GIVE_GO && a.inCard && a.on && a.cls === 'crl-cta' && a.give === '1')) bad.push(`入口「${a.text}」（class ${a.cls}・カードの中 ${a.inCard}・見えている ${a.on}）`);
+      if (!a.href.endsWith(`airline-conditions.html?airline=${G.airline}&q=${GIVE_ASK[0]}`)) bad.push(`入口の行き先 ${a.href}`);
+    }
+    if (/ログイン|匿名で給与を提出する/.test(g.text)) bad.push(`欄に、ログインか給与の提出の入口の字が在る「${g.text.slice(0, 80)}」`);
+    if (g.facts) bad.push(`回答の行が ${g.facts}つ出ている`);
+    return bad;
+  };
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await ev(() => window.__pvg.top());
+    const live = (await ev(() => window.__pvg.live())).filter(x => x.on);
+    /* GM1 「集まった回答」は、1行と、答えるカード1枚。入口は「匿名で答える」の1つだけ（ログイン・給与の提出の入口は、この欄には出ない）。
+           見えている集計と月の勤務の欄は、どれも鍵の形で落ち着いている（読み出せない・準備中になっていない）。 */
+    {
+      const bad = cardBad(await slotOf(), 3, 5);
+      for (const x of live.filter(x => /^(fact|work)$/.test(x.kind) && x.state !== 'locked')) bad.push(`見えている欄（${x.kind}）が ${x.state}`);
+      ok(!bad.length, `${tag}: 「集まった回答」は「${GIVE_LINE(5)}」の1行と、答えるカード1枚 ──「${GIVE_HEAD(G.name)}」「${GIVE_COUNT(3, 5)}」・入口は「${GIVE_GO}」の1つだけ（聞く会社は、このページの会社ではない）`, bad.slice(0, 5).join(' ／ '));
+    }
+    const geo = await ev(() => window.__pvg.geom(true));
+    ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
+    /* GM2 要る数（◯つ）と答えた数は、サーバーが返した数のまま（画面の側に 5 と書いていない）。同じページを、6／7 の返事で開き直す。 */
+    {
+      seen.give = { body: giveBody('give', s, { have: 6, need: 7 }) };
+      await p.reload({ waitUntil: 'load', timeout: 60000 });
+      const again = await p.waitForFunction(SETTLED).then(() => true, () => false);
+      await ev(LIB);
+      const bad = again ? cardBad(await slotOf(), 6, 7) : ['開き直したページが落ち着かない'];
+      ok(!bad.length, `${tag}: 要る数と答えた数は、サーバーが返した数のまま出る（返事が 6／7 なら「${GIVE_LINE(7)}」「${GIVE_COUNT(6, 7)}」）`, bad.slice(0, 5).join(' ／ '));
+    }
+    /* GM3 入口を押すと、このページの「情報を追加」の面を、読む人自身の会社について開く（PVContrib.openFor へ、会社・名前・聞く質問を渡す）。
+           面が開いた時（true が返った時）だけ、リンクを止める ＝ ページは移らない。
+           面が開かなかった時（false が返った時 ＝ ログインが切れていた、など）と、面の入口が無い時（古い部品・面の無いページ）は、
+           同じ押下が、リンクのまま質問の画面へ進む（行き先を控えて、中身の無い返事で止める ＝ 検査のページは移らない）。
+           面の入口は、押す前に記録係に差し替える：'opens' ＝ true を返す・'refuses' ＝ false を返す・'none' ＝ 入口そのものを外す。 */
+    {
+      seen.nav = [];
+      const press = how => ev((sel, how) => {
+        const a = document.querySelector(sel + ' a[data-crl-give]'), C = window.PVContrib, calls = [];
+        if (!a || !C) return null;
+        const had = typeof C.openFor;
+        if (how === 'none') delete C.openFor;
+        else C.openFor = o => { calls.push({ airline: o && o.airline, name: o && o.name, ask: o && o.ask, from: !!o && o.from === a }); return how === 'opens'; };
+        a.click();
+        return { calls, had, now: typeof C.openFor };
+      }, SEL, how);
+      const navs = async n => { for (const t0 = Date.now(); seen.nav.length < n && Date.now() - t0 < 8000;) await new Promise(go => setTimeout(go, 20)); };
+      const href0 = await ev(() => location.href);
+      const a1 = await press('opens');
+      await ev(() => new Promise(go => requestAnimationFrame(() => requestAnimationFrame(go))));
+      const stay = { href: (await ev(() => location.href)) === href0, nav: seen.nav.length };
+      const a2 = await press('refuses');
+      await navs(1);
+      const a3 = await press('none');
+      await navs(2);
+      const want = [{ airline: G.airline, name: G.name, ask: GIVE_ASK, from: true }], to = `/airline-conditions.html?airline=${G.airline}&q=${GIVE_ASK[0]}`;
+      ok(!!a1 && a1.had === 'function' && same(a1.calls, want) && stay.href && stay.nav === 0 && !!a2 && same(a2.calls, want) && !!a3 && a3.now === 'undefined' && same(seen.nav, [to, to]),
+         `${tag}: 「${GIVE_GO}」を押すと、読む人自身の会社（${G.name}）について「情報を追加」の面を開く ── 会社・名前・聞く質問を1回渡し、面が開けばページは移らない。面が開かなかった時と、面の入口が無い時は、リンクのまま質問の画面（${to}）へ進む`,
+         JSON.stringify({ opens: a1, stay, refuses: a2 && a2.calls.length, none: a3 && a3.now, nav: seen.nav }).slice(0, 320));
+      seen.nav = null;
+    }
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
@@ -3940,6 +4080,7 @@ try {
   if (wantS('tabs')) for (const s of ONLY) for (const v of [...VIEWS.filter(x => TABS_W.includes(x[0])), ...TABS_EXTRA]) work.push(() => runTabs(browser, s, v));
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
+  if (wantS('give')) for (const s of ONLY) for (const v of VIEWS.filter(x => GIVE_W.includes(x[0]))) work.push(() => runGive(browser, s, v));
   if (wantS('ggold') && (WANT_S || !argOf('--only'))) for (const lang of ['ja', 'en']) {
     const vs = VIEWS.filter(x => GG_W.includes(x[0]));
     for (const v of vs) work.push(() => runGGOld(browser, lang, v));

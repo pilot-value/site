@@ -5922,6 +5922,20 @@ async function main() {
       title: r ? r.querySelector('.pvc-title').textContent : '', text: r ? r.querySelector('.pvc-main').innerText : '',
       line: l ? l.textContent : '', form: f ? f.getAttribute('data-pvc-form') : '', els: r ? r.querySelectorAll('img, [onerror]').length : 0 };
   });
+  /* 面の動かない頭に出ている、会社の名前の行（.pvc-whose。ほかの会社について開いているあいだだけ在る）。
+     n ＝ 頭の中の、その行の数／fixed ＝ 送られる所（.pvc-main）の外に在る／
+     seen ＝ 最初の画面の中に、隠れずに出ている（その行のまんなかの、いちばん手前に在るのが、その行）／
+     head ＝ 頭に出ている字の全部／topic ＝ そのうち、題そのものの字（会社の名前の行を除く） */
+  const whoseOf = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), h = r && r.querySelector('.pvc-head'), all = h ? [...h.querySelectorAll('.pvc-whose')] : [], n = all[0] || null;
+    const b = n ? n.getBoundingClientRect() : null, hit = b ? document.elementFromPoint((b.left + b.right) / 2, (b.top + b.bottom) / 2) : null;
+    const t = r && r.querySelector('.pvc-title');
+    return { n: all.length, name: n ? n.textContent : '', head: h ? h.textContent : '',
+      topic: t ? [...t.childNodes].filter((x) => x.nodeType === 3).map((x) => x.textContent).join('') : '',
+      fixed: !!n && !r.querySelector('.pvc-main').contains(n),
+      seen: !!b && b.width > 0 && b.height > 0 && b.left >= 0 && b.top >= 0 && b.right <= innerWidth && b.bottom <= innerHeight && !!hit && (hit === n || n.contains(hit)),
+      at: innerWidth + 'x' + innerHeight };
+  });
   /* 質問の台帳（面が開く前に読むもの）が届き、そのあと画面が2コマ進むまで待つ ＝「何も開かなかった」と言ってよい所まで（時間では待たない） */
   const coIdle = (p) => p.page.evaluate(() => fetch('/pv-conditions.json').then((r) => r.text()).then(() => new Promise((go) => requestAnimationFrame(() => requestAnimationFrame(go)))));
   /* 面が自分で出す通信（自分の一覧を読む・送る・引き継ぐ）。ページの側の集計の読み出しは数えない */
@@ -6002,6 +6016,33 @@ async function main() {
       ok(r1 === true && f1.form === 'roster' && at1 && s1.scroll > 0 && f1.line.startsWith('JAL · ') && !f1.text.includes(cx) && !f1.title.includes(cx) && J(b1) === J(b0),
         '★JAL について開くと、その質問の項目が、その質問の所で開く。面に出る会社の名前は JAL だけ（このページの会社の名前は出ない）。うしろのページは変わらない',
         J({ r1, form: f1.form, at1, scroll: s1.scroll, top: s1.top, line: f1.line, behind: J(b1) === J(b0) }));
+
+      /* 面の動かない頭（題の上）が、その会社の名前を出している。質問の所まで送って開いた回は、入力の頭の会社の行が
+         画面の外へ出ている（上の scroll > 0）＝ 頭に無ければ、どの会社について答えるのかが、最初の画面のどこにも出ない。
+         390×680（この面）と 1440×820（もう1枚開く）の両方で見る。このページの会社について開いた頭には、その行そのものが無い
+         （JAL について開いて閉じたあとの、同じ面で見る ＝ 前の行が残っていない）。 */
+      const w1 = await whoseOf(u);
+      let w2 = null, w3 = null;
+      const v = await open('desk', { who: 'a' });
+      try {
+        await go(v, CX);
+        await callFor(v);
+        await waitView(v, 'roster');
+        await settle(v);
+        if (!(await seen(v, inView, 'reserve_duty'))) throw new Error('前提が崩れた（1440×820 で、その質問の所で開いていない）');
+        w2 = await whoseOf(v);
+        await shut(v);
+        await pageEntry(v);
+        await waitView(v, 'roster');
+        await settle(v);
+        w3 = await whoseOf(v);
+      } finally {
+        await v.st.ctx.close();
+      }
+      const named = (x, at) => x.n === 1 && x.name === 'JAL' && !!x.topic && x.head === 'JAL' + x.topic && x.fixed && x.seen && x.at === at;
+      ok(named(w1, '390x680') && named(w2, '1440x820') && w3.n === 0 && w3.topic === w2.topic && w3.head === w3.topic && w3.at === '1440x820',
+        '★JAL について開いているあいだ、面の動かない頭（題の上）に「JAL」と出ている：質問の所まで送って開いても、最初の画面の中に在る（390×680・1440×820）。このページの会社について開いた頭には、その行そのものが無い（頭の字は題だけ）',
+        J({ w1, w2, w3 }));
 
       /* D2・D3：送る中身・保存先・保存できた合図が、どれも JAL */
       await pick(u, 'reserve_duty', 'yes');
@@ -6160,6 +6201,39 @@ async function main() {
     } finally {
       await u.st.ctx.close();
       for (const m of [A, B]) { await bare('jal', m); await bare('cathay-pacific', m); }
+    }
+  });
+
+  /* 月の勤務は、別の会社について開いた一覧の「月の勤務」から入る。1回だけ、保存後のカードまで歩く
+     （入口は質問の入力と同じ関数を通る。ここは、その道が月の勤務でも最後まで通ることを見る）。 */
+  await scene('別の会社について開く ── 月の勤務も、その会社の月として保存される', async () => {
+    await bare('jal', A); await bare('cathay-pacific', A);
+    const u = await open('phone', { who: 'a' });
+    try {
+      const sent = tap(u, 'submit_work_month');
+      await go(u, CX);
+      const cx = await nameOf(u), errs0 = pageErrs.length;
+      const r1 = await u.page.evaluate(() => window.PVContrib.openFor({ airline: 'jal', name: 'JAL', ask: [] }));
+      await waitView(u, 'list');
+      await u.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(u, 'work');
+      await settle(u);
+      const f1 = await coFace(u), w1 = await whoseOf(u);
+      await pick(u, 'position', 'fo');
+      await fill(u, 'block_hours', '61.5');
+      await tick(u);
+      await send(u);
+      await waitView(u, 'saved');
+      const sm = await summary(u), ev = await u.page.evaluate(() => window.__pvcSaved.slice());
+      const jal = await ownMonths('jal', A), cxm = await ownMonths('cathay-pacific', A);
+      ok(r1 === true && f1.form === 'work' && f1.line.startsWith('JAL · ') && !f1.text.includes(cx) && w1.n === 1 && w1.name === 'JAL' && w1.fixed && w1.seen
+        && sent.length === 1 && sent[0].airline === 'jal' && jal.length === 1 && jal[0].block === 61.5 && cxm.length === 0
+        && sm.text.includes('JAL') && !sm.text.includes(cx) && ev.length === 1 && ev[0].topic === 'work' && ev[0].slug === 'jal' && pageErrs.length === errs0,
+        '月の勤務も、JAL について開ける（一覧の「月の勤務」から）：頭と入力の会社は JAL。送ると JAL の月として保存され、このページの会社には1行も入らない（保存後のカードの会社名も JAL・ページのエラーは出ない）',
+        J({ r1, form: f1.form, line: f1.line, whose: w1.name, sent: sent.map((x) => x.airline), jal, cxm, ev, errs: pageErrs.slice(errs0) }));
+    } finally {
+      await u.st.ctx.close();
+      await bare('jal', A); await bare('cathay-pacific', A);
     }
   });
 

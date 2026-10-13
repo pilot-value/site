@@ -71,6 +71,12 @@
     login: 'ログイン',
     loginLock: 'ログインが必要です',            // 口コミの要約の欄だけが使う（集計の欄は使わない）
     loginPayLock: 'ログインと給与の提出で開きます',
+    /* ログインも給与の提出も済んでいて、自分の会社への回答がまだ足りない人の1行と、答えるカード。
+       要る数（need）と答えた数（have）は、サーバーが返した数（ここには書かない）。 */
+    giveLock: function (need) { return '自分の会社に' + need + 'つ答えると開きます'; },
+    giveHead: function (name) { return name + 'の待遇情報を、足りない情報から埋める'; },
+    giveCount: function (have, need) { return 'あなたが答えた項目：' + have + '／' + need; },
+    giveGo: '匿名で答える',
 
     /* 月の勤務の6項目。鍵と並びは db/work-months.sql の pv_work_view が返す形のまま */
     work: [
@@ -307,7 +313,7 @@
     if (uid === undefined) { uid = v; return; }
     if (uid === v) return;
     uid = v;
-    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:');
+    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:'); drop('give');
     reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts']);
     later();
   }
@@ -602,7 +608,62 @@
     if (carries(box, who === 'login' ? 'login' : 'pay')) nodes.push(foot([who === 'login' ? loginLink() : payEntry(slug)]));
     return view('locked', nodes);
   }
-  function giveView() { throw fail('error'); }      /* WP 6b がカードに置き換える（それまでは「いま読み出せません」） */
+  /* 答えるカードの中身 ── 読む人自身の会社（符号と名前）・その会社について答えた数・要る数・次に聞く質問の並び。
+     返すのはサーバー（db/contrib.sql の pv_contrib_give）。ほかの人の回答の数は、1つも来ない。
+     カードを埋められる答えだけを受け取る：状態が 'give'・会社の符号（一覧に無い会社は 'other'）・名前・0 以上で要る数より小さい、答えた数。
+     それ以外（たとえば、別のタブで足りる数まで答えた直後の 'open'）では描かない ＝ 埋められないカードを出さない・要る数をここで決めない。 */
+  var ASK_ID = /^[a-z0-9_]{1,64}$/;
+  function isInt(v) { return isNum(v) && Math.floor(v) === v; }
+  function giveInfo() {
+    return once('give', function () {
+      return client().then(function (sb) { return sb.rpc('pv_contrib_give', { p: {} }); }).then(function (res) {
+        if (!res || res.error) throw sbErr(res);
+        var x = res.data;
+        if (!x || x.ok === false || x.state !== 'give') throw fail('error');
+        var name = typeof x.name === 'string' ? x.name.replace(/^\s+|\s+$/g, '') : '';
+        if (!okSlug(x.airline) || !name) throw fail('error');
+        if (!isInt(x.have) || !isInt(x.need) || x.have < 0 || x.have >= x.need) throw fail('error');
+        return {
+          airline: x.airline, name: name, have: x.have, need: x.need,
+          ask: (isArr(x.ask) ? x.ask : []).filter(function (q) { return typeof q === 'string' && ASK_ID.test(q); })
+        };
+      });
+    });
+  }
+  /* カードの入口の行き先（リンクとして）。一覧に在る会社は、質問の画面の、その会社・最初に聞く質問の所。
+     一覧に無い会社（'other'）は、質問の画面そのもの（あちらが、いちばん新しい給与の会社について開く）。 */
+  function giveHref(g) {
+    if (g.airline === 'other') return UP + 'airline-conditions.html';
+    return UP + 'airline-conditions.html?airline=' + enc(g.airline) + (g.ask.length ? '&q=' + enc(g.ask[0]) : '');
+  }
+  /* 答えるカード。字はどれも textContent（サーバーが返した社名も、字としてしか入れない）。入口は1つ。
+     押した時：このページに「情報を追加」の面が在り（PVContrib.openFor）、一覧に在る会社なら、読む人自身の会社について面を開く。
+     面が開いた時（true が返った時）だけ、リンクを止める。開かなかった時（ログインしていない・符号の形でない）・面が無いページ・
+     一覧に無い会社・別のタブで開く押し方（修飾キー・左のほかのボタン）では、リンクのまま進む。 */
+  function giveCard(g) {
+    var c = el('div', 'crl-give');
+    c.appendChild(el('p', 'crl-give-h', T.giveHead(g.name)));
+    c.appendChild(el('p', 'crl-give-n', T.giveCount(g.have, g.need)));
+    var a = link(T.giveGo, giveHref(g), 'cta');
+    a.setAttribute('data-crl-give', '1');
+    a.addEventListener('click', function (e) {
+      var C = w.PVContrib;
+      if (g.airline === 'other' || !C || typeof C.openFor !== 'function') return;
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (C.openFor({ airline: g.airline, name: g.name, ask: g.ask, from: a }) === true) e.preventDefault();
+    });
+    c.appendChild(foot([a]));
+    return c;
+  }
+  /* 'give' の欄：1行（要る数はサーバーの数）と、欄の data-entry が許す時だけ、答えるカード。
+     カードの中身が読めなければ、この欄は「いま読み出せません」（口がまだ無ければ「準備中」）── 行だけを先に出さない。 */
+  function giveView(nodes, box) {
+    return giveInfo().then(function (g) {
+      nodes.push(lockLine(T.giveLock(g.need)));
+      if (carries(box, 'give')) nodes.push(giveCard(g));
+      return view('locked', nodes);
+    });
+  }
   /* 2社を並べる欄で、開いていない側の語。ログイン → 給与の提出 → 答える の順で先のもの。両方開いていれば空。 */
   function shut(a, b) {
     var order = ['login', 'locked', 'give'];
@@ -1324,7 +1385,7 @@
   }
   /* 「情報を追加」で保存できたら、その会社の集計と補足を取り直す（古い答えを持ち越さない）。 */
   d.addEventListener('pvc:saved', function () {
-    drop('wkv:'); drop('note:'); drop('fact:');
+    drop('wkv:'); drop('note:'); drop('fact:'); drop('give');
     reset(['work', 'cmp-work', 'notes', 'fact', 'cmp-facts']);
     later();
   });

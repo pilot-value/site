@@ -809,8 +809,14 @@
     d.body.appendChild(root);
     S.root = root; S.sheet = sheet; S.title = title; S.prev = prev; S.main = main;
   }
+  /* ほかの会社について開いているあいだ（CO）は、題の上に、その会社の名前を1行で出す（.pvc-whose。字としてだけ入れる）。
+     題は、面の動かない頭に在る ── 質問の所まで送って開いた回は、入力の頭の会社の行が画面の外に出ていて、
+     どの会社について答えるのかが、最初の画面のどこにも出ていなかった。
+     一覧の題は、もうその会社の名前で始まっている（◯◯に情報を追加）ので、重ねない。
+     このページの会社について開いた時は、何も足さない（空の要素も置かない ＝ 頭は今までどおり）。 */
   function setHead(text) {
     S.title.textContent = text;
+    if (CO && S.view !== 'list') S.title.insertBefore(el('span', 'pvc-whose', CO.n), S.title.firstChild);
     S.prev.hidden = !(S.view !== 'list' && S.viaList);
   }
   /* 面のために積んだ1段に書く印。ほかの会社について開いているあいだ（CO）は、その会社（a・n）と、開いた会員（u）も書く
