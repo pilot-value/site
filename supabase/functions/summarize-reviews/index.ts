@@ -599,7 +599,7 @@ async function attempt(c: Ctx, airline: string, lang: string, mayNeedCall: boole
     return { airline, lang, state: 'model_failed', why };
   }
 
-  const s = settle(reply, { lang, n: inp.n });
+  const s = settle(reply, { lang, n: inp.n, reviews: inp.reviews });
   const w = await rpc(c, 'pv_review_summary_set_auto',
                       { airline, lang, basis: t.basis, n: inp.n, good: s.good, concern: s.concern });
 

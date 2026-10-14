@@ -268,6 +268,7 @@ async function main(argv) {
   if (!rows) { console.error('❌ 口コミの束として読めません（行の配列か、pv_reviews の返り値を渡してください）'); process.exit(1); }
 
   const inp = buildInput(rows, { airline, lang });
+  if (inp.reviews.some((r) => !r.id)) { console.error('材料の束に口コミの id がありません。pv_reviews() の出力をそのまま使ってください（id の無い束からは預けられません）'); process.exit(1); }
   if (inp.seen > 0 && inp.n === 0) {
     console.error('❌ この会社の行は在りますが、本文が1件も入っていません（鍵の無い立場で書き出した束かもしれません）');
     process.exit(1);
@@ -302,7 +303,7 @@ async function main(argv) {
   } else {
     const key = loadKey();
     const reply = await callModel(requestBody(lang, inp.reviews), key);
-    settled = settle(reply, { lang, n: inp.n });
+    settled = settle(reply, { lang, n: inp.n, reviews: inp.reviews });
   }
   for (const d of settled.dropped) console.error(`  落とした点 [${d.side}] ${d.why}: ${d.text}`);
   /* 手元で見比べるための控え。標準出力（＝預ける JSON）には載せない。 */

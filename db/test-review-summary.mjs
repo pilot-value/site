@@ -11,7 +11,8 @@
        ・要約が無いときの返事が、鍵の有無で変わらない
        ・3件に満たない会社／1件にしか支えられていない点／4つ以上／長すぎる文は入らない
        ・元の口コミが消えたら出さない（削除依頼で消した中身が要約に残らない）
-       ・どの口コミが材料か（id）も、何件が支えたか（k）も、外へ出ない
+       ・何件が支えたか（k）も書いた人も、外へ出ない。点のもとの口コミ（ids）は、本文を読める人への
+         open の返事の中にだけ出る（その id は、本当にその会社の・その分類に本文の在る口コミ）
        ・書けるのは運営と、サーバの鍵を持つ自動の道だけ・表は直に読めない
        ・自動の道（14〜）は、変わっていなければ材料を渡さない／同じ集合に二度払わせない／
          古い集合から作った要約で、新しい集合の要約を上書きさせない
@@ -207,14 +208,21 @@ await post(KEYED, 'skymark', { culture_comment: '落ち着いた職場です。'
 // peach … 2件だけ（3件に満たない）
 await post(6, 'peach', { culture_comment: '若い人が多い。', __at: '2026-03-01T00:00:00Z' });
 await post(7, 'peach', { culture_comment: '風通しが良い。', __at: '2026-03-02T00:00:00Z' });
+/* peach の口コミの id（古い順）── ほかの会社の口コミを引いた点を作るため。 */
+await asOwner();
+const [P1] = (await rows(`select id::text from public.reviews_v2 where airline = 'peach' order by created_at`)).map((r) => r.id);
 // キャセイ … 古い短いコードに2件・いまのコードに1件（合わせて3件）
 await post(11, 'cathay', { ops_comment: '運航の支援が手厚い。', __at: '2026-03-01T00:00:00Z' });
 await post(12, 'cathay', { ops_comment: '支援の体制が心強い。', __at: '2026-03-02T00:00:00Z' });
 await post(13, 'cathay-pacific', { culture_comment: '多国籍で話しやすい。', __at: '2026-03-03T00:00:00Z' });
 
 const NEWEST_ANA = '2026-03-03T00:00:00Z';
-const G = (k = 2) => ({ text: '訓練の教え方が丁寧だという声が複数ある', cat: 'training', k });
-const C = (k = 2) => ({ text: '勤務の変更が直前に来るという声が複数ある', cat: 'wlb', k });
+/* 点は、その分類に本文の在る ana の口コミの id を持つ（訓練＝1と2・勤務＝2と3。ana で裏付けの在る点はこの2つだけ）。
+   ids の数は k に合わせない ── weak_point / bad_k を見る行は、ids の検査（いちばん最後）より先に止まる。 */
+const G = (k = 2) => ({ text: '訓練の教え方が丁寧だという声が複数ある', cat: 'training', k, ids: [R1, R2] });
+const C = (k = 2) => ({ text: '勤務の変更が直前に来るという声が複数ある', cat: 'wlb', k, ids: [R2, R3] });
+/* 返事の ids は集合で比べる（並びは約束していない）。 */
+const sameSet = (a, b) => Array.isArray(a) && Array.isArray(b) && J([...a].sort()) === J([...b].sort());
 const anaPayload = (over = {}) => ({ airline: 'ana', lang: 'ja', n: 3, newest: NEWEST_ANA, good: [G()], concern: [C()], ...over });
 /* 数・金額の入った文（SQL の has_figure と、作る側の検品の両方で落ちる）。4 と 11 が同じこれを使う。
    NOT_FIGURE は「円」の字があっても金額ではない文 ── どちらも通す。 */
@@ -253,9 +261,9 @@ console.log('\n▼ 1. 写しの突き合わせ（SQL ⇄ 画面 ⇄ gen-review-s
   ok(J((await one(`select public.pv_review_summary_codes('ana') a`)).a) === J(['ana']), '古いコードの無い会社は、いまのコード1つだけ');
   ok(J((await one(`select public.pv_review_summary_codes('cathay') a`)).a) === J(['cathay']), '古いコードから逆には引かない');
 
-  /* 字数の境目を SQL に直接聞く。 */
+  /* 字数の境目を SQL に直接聞く（ids は形だけ合わせる ── ここでは id が本当に口コミかは見ない）。 */
   const bad = async (text, lang) =>
-    (await one(`select public.pv_review_summary_bad($1::jsonb, $2, 3) e`, [J([{ text, cat: 'wlb', k: 2 }]), lang])).e;
+    (await one(`select public.pv_review_summary_bad($1::jsonb, $2, 3) e`, [J([{ text, cat: 'wlb', k: 2, ids: [R2, R3] }]), lang])).e;
   let lim = true;
   for (const lang of ['ja', 'en']) {
     const { min, max } = LIMITS[lang];
@@ -322,7 +330,7 @@ console.log('\n▼ 3. 預けられるのは運営だけ');
 console.log('\n▼ 4. 預けるときの検査（運営が呼んでも、線を越えたものは入らない）');
 // ════════════════════════════════════════════════════════════
 {
-  const T = (text) => ({ text, cat: 'wlb', k: 2 });
+  const T = (text) => ({ text, cat: 'wlb', k: 2, ids: [R2, R3] });
   const cases = [
     ['口コミの件数が3に満たない（n:2）',          anaPayload({ n: 2 }),                                   'too_few_reviews'],
     ['1件にしか支えられていない点（k:1）',         anaPayload({ good: [G(1)] }),                            'weak_point'],
@@ -344,7 +352,17 @@ console.log('\n▼ 4. 預けるときの検査（運営が呼んでも、線を�
     ['前に空白のある文',                           anaPayload({ good: [T(' 勤務の変更が直前に来るという声が複数ある')] }), 'not_plain_text'],
     ...FIGURES.map((f) => [`数・金額の入った文（${f}）`, anaPayload({ good: [T(f)] }), 'has_figure']),
     ['口コミの番号を付けたままの点（reviews）',    anaPayload({ good: [{ ...G(), reviews: [1, 2] }] }),     'bad_point'],
-    ['口コミの id を付けたままの点（ids）',        anaPayload({ good: [{ ...G(), ids: [uid(1)] }] }),       'bad_point'],
+    ['ids が無い点',                               anaPayload({ good: [{ text: G().text, cat: 'training', k: 2 }] }), 'bad_ids'],
+    ['ids が配列でない',                           anaPayload({ good: [{ ...G(), ids: R1 }] }),             'bad_ids'],
+    ['k が2なのに ids が1つ',                      anaPayload({ good: [{ ...G(), ids: [R1] }] }),           'bad_ids'],
+    ['同じ id が2回',                              anaPayload({ good: [{ ...G(), ids: [R1, R1] }] }),       'bad_ids'],
+    ['ids が文字でない（数）',                     anaPayload({ good: [{ ...G(), ids: [1, 2] }] }),         'bad_ids'],
+    ['口コミでない id（会員の id）',               anaPayload({ good: [{ ...G(), ids: [R1, uid(1)] }] }),   'bad_ids'],
+    ['ほかの会社（peach）の口コミの id',           anaPayload({ good: [{ text: '同僚に相談しやすいという声が複数ある', cat: 'culture', k: 2, ids: [R1, P1] }] }), 'bad_ids'],
+    ['その分類に本文の無い口コミ（訓練の点に3件目）', anaPayload({ good: [{ ...G(), ids: [R1, R3] }] }),     'bad_ids'],
+    ['気になる点のほうだけ、裏付けの無い id',      anaPayload({ concern: [{ ...C(), ids: [R1, R3] }] }),    'bad_ids'],
+    ['件数を盛った（n:4）＋形の合わない ids → 形が先（bad_ids）', anaPayload({ n: 4, good: [{ ...G(), ids: [R1] }] }), 'bad_ids'],
+    ['件数を盛った（n:4）＋形は合うが裏付けの無い ids → 件数が先（stale_input）', anaPayload({ n: 4, good: [{ ...G(), ids: [R1, R3] }] }), 'stale_input'],
     ['点が文字列',                                 anaPayload({ good: ['訓練の教え方が丁寧だという声が複数ある'] }), 'bad_point'],
     ['text が数',                                  anaPayload({ good: [{ text: 12345678, cat: 'wlb', k: 2 }] }), 'bad_point'],
     ['good が配列でない',                          anaPayload({ good: { 0: G() } }),                        'bad_shape'],
@@ -371,9 +389,20 @@ console.log('\n▼ 4. 預けるときの検査（運営が呼んでも、線を�
     const r = await putAs(OP, p);
     ok(J(r) === J({ ok: false, error: want }), `${label} → ${want}`, J(r));
   }
+  /* newest より後に出た口コミを引いた点 ── 件数（newest までに3件）は合うので、ids の確かめまで届く。
+     begin … rollback の中で1件足す（ana の口コミは、あとの節もそのまま使う）。 */
+  await asOwner(); await db.exec(`begin`);
+  await post(32, 'ana', { training_comment: '訓練の資料が分かりやすい。', __at: '2026-03-10T00:00:00Z' });
+  const late = (await one(`select id::text from public.reviews_v2 where airline = 'ana' and created_at = '2026-03-10T00:00:00Z'`)).id;
+  const rl = await putAs(OP, anaPayload({ good: [{ ...G(), ids: [R1, late] }] }));
+  await db.exec(`rollback`); await asOwner();
+  ok(J(rl) === J({ ok: false, error: 'bad_ids' }), 'newest より後に出た口コミを引いた点 → bad_ids', J(rl));
+
   await asOwner();
   const nf = (await one(`select public.pv_review_summary_bad($1::jsonb, 'ja', 3) e`, [J([T(NOT_FIGURE)])])).e;
   ok(nf === null, `「円」の字があっても金額でない文（${NOT_FIGURE}）は通る`, nf);
+  const k3 = (await one(`select public.pv_review_summary_bad($1::jsonb, 'ja', 3) e`, [J([{ text: C().text, cat: 'wlb', k: 3, ids: [R1, R2, R3] }])])).e;
+  ok(k3 === null, 'k が件数と同じ3（ids も3つ）なら通る', k3);
   const c = (await one(`select count(*)::int c from public.pv_review_summaries`)).c;
   ok(c === 0, '断られたものは1行も入っていない', `→ ${c}行`);
 }
@@ -397,8 +426,13 @@ let today;
   ok(open.state === 'open' && open.ok === true, '口コミを出した会員には中身が返る', J(open));
   ok(J(Object.keys(open).sort()) === J(['as_of', 'concern', 'good', 'n', 'ok', 'state']), '返る鍵は ok・state・n・as_of・good・concern の6つだけ', J(Object.keys(open)));
   ok(open.n === 3 && open.as_of === today, 'n は預けたときの件数・as_of は預けた日', `${open.n} / ${open.as_of}`);
-  ok(J(open.good) === J([{ text: G().text, cat: 'training' }]) && J(open.concern) === J([{ text: C().text, cat: 'wlb' }]),
-     '点は text と cat の2つだけ（k は返らない）', J(open));
+  const pts = [...(open.good || []), ...(open.concern || [])];
+  ok(pts.length === 2 && pts.every((p) => Object.keys(p).sort().join() === 'cat,ids,text')
+     && J((open.good || []).map((p) => [p.text, p.cat])) === J([[G().text, 'training']])
+     && J((open.concern || []).map((p) => [p.text, p.cat])) === J([[C().text, 'wlb']]),
+     'open の点は text・cat・ids の3つ（k は無い）', J(open));
+  ok(sameSet(open.good?.[0]?.ids, G().ids) && sameSet(open.concern?.[0]?.ids, C().ids),
+     'open の ids は、預けた ids と同じ', J(open));
   ok(J(await getAs(OP, 'ana')) === J(open), '運営にも同じものが返る');
   ok(J(await getAs(1, 'ana')) === J(open), 'その会社に口コミを出した本人にも同じものが返る');
   ok(J(await getAs(KEYED, 'ana', 'en')) === J({ ok: true, state: 'none' }), '言語ごとに別 ── 日本語を預けても英語は「無い」');
@@ -424,14 +458,14 @@ let today;
      '読む関数は鍵の判定を呼んでいる（写していない）');
 
   console.log('  ── 片方だけ・入れ直し ──');
-  const r2 = await putAs(OP, anaPayload({ good: [G(3), { text: '同僚に相談しやすいという声が複数ある', cat: 'culture', k: 2 }, { text: 'あ'.repeat(90), cat: 'ops', k: 2 }], concern: [] }));
+  const r2 = await putAs(OP, anaPayload({ good: [G(), { text: '同僚に相談しやすいという声が複数ある', cat: 'wlb', k: 2, ids: [R2, R3] }, { text: 'あ'.repeat(90), cat: 'training', k: 2, ids: [R1, R2] }], concern: [] }));
   ok(r2.ok === true && r2.state === 'saved', '良い点だけ（3つ・90字ちょうどを含む）でも預けられる', J(r2));
   ok(await stored('ana') === 1, '同じ会社・同じ言語は上書き（行は1つのまま）');
   const o2 = await getAs(KEYED, 'ana');
   /* ★返事に good が無い（open でない）ときも落ちずに ❌ を出す ── そのあとの検査まで走らせるため。 */
   ok(o2.good?.length === 3 && J(o2.concern) === '[]' && o2.good?.[0]?.cat === 'training' && o2.good?.[2]?.text?.length === 90, '預けた順のまま返る・気になる点は空の配列', J(o2));
-  const r3 = await putAs(OP, anaPayload({ good: [], concern: [{ text: 'あ'.repeat(8), cat: 'salary', k: 3 }] }));
-  ok(r3.state === 'saved' && (await getAs(KEYED, 'ana')).good?.length === 0, '気になる点だけ（8字ちょうど・k は件数と同じ3）でも預けられる', J(r3));
+  const r3 = await putAs(OP, anaPayload({ good: [], concern: [{ text: 'あ'.repeat(8), cat: 'training', k: 2, ids: [R1, R2] }] }));
+  ok(r3.state === 'saved' && (await getAs(KEYED, 'ana')).good?.length === 0, '気になる点だけ（8字ちょうど）でも預けられる', J(r3));
   await putAs(OP, anaPayload());
 }
 
@@ -466,7 +500,8 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   ok(await stored('ana') === 1, '行は残っている（読む側が出さないだけ ── 預け直せば戻る）');
 
   // いまの3件で作り直して預け直す
-  const again = await putAs(OP, anaPayload({ newest: '2026-03-20T00:00:00Z' }));
+  /* 残っているのは 2（訓練・勤務）・3（勤務）・足した1件（手当）── 裏付けの在る点は勤務の 2 と 3 だけ。 */
+  const again = await putAs(OP, anaPayload({ newest: '2026-03-20T00:00:00Z', good: [], concern: [C()] }));
   ok(again.state === 'saved' && (await getAs(KEYED, 'ana')).state === 'open', 'いまの口コミで預け直せば、また出る', J(again));
 
   // 3件を切った
@@ -500,20 +535,23 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   await db.query(`delete from public.reviews_v2 where airline = 'ana' and created_at = '2026-03-02T06:00:00Z'`);
   ok((await getAs(KEYED, 'ana')).state === 'open', '材料の3件に戻れば、また出る');
   const sig = await one(`select sig, public.pv_review_summary_sig(array['ana'], newest_at, 'ja') now_sig from public.pv_review_summaries where airline = 'ana' and lang = 'ja'`);
-  ok(/^[0-9a-f]{32}$/.test(sig.sig) && sig.sig === sig.now_sig, '預かっているのは指紋1つ（md5 の32字）── id そのものは表に無い', J(sig));
+  /* ★行が無い（預けられなかった）ときも落ちずに ❌ を出す。 */
+  ok(!!sig && /^[0-9a-f]{32}$/.test(sig.sig) && sig.sig === sig.now_sig, '預かっている指紋は1つ（md5 の32字）', J(sig));
 
   // 「経営陣への提案」だけの口コミは件数に入らない
   await post(8, 'ana', { mgmt_comment: '提案だけを書いた口コミ。', __at: '2026-03-02T12:00:00Z' });
   ok((await getAs(KEYED, 'ana')).n === 3 && (await getAs(KEYED, 'ana')).state === 'open', '提案だけの口コミは数えない（チップから辿れない欄）');
-  ok(J(await putAs(OP, anaPayload({ n: 4, good: [G(4)] }))) === J({ ok: false, error: 'stale_input' }), '提案だけの1件を足して n:4 とは預けられない');
+  ok(J(await putAs(OP, anaPayload({ n: 4 }))) === J({ ok: false, error: 'stale_input' }), '提案だけの1件を足して n:4 とは預けられない');
 
   // 預けた中身が今の検査を通らなくなった行（規則をあとで厳しくした場合の代わり）
   await asOwner();
   await db.exec(`alter table public.pv_review_summaries drop constraint pv_review_summaries_points_chk`);
   await db.query(`update public.pv_review_summaries set good = $1::jsonb where airline = 'ana'`, [J([{ text: G().text, cat: 'training', k: 1 }])]);
   ok(J(await getAs(KEYED, 'ana')) === none, '検査を通らない行（k:1）は、表に在っても出さない');
-  await db.query(`update public.pv_review_summaries set good = $1::jsonb where airline = 'ana'`, [J([{ text: G().text, cat: 'training', k: 2, ids: [uid(1)] }])]);
-  ok(J(await getAs(KEYED, 'ana')) === none, '余計な鍵（ids）の付いた行も出さない');
+  await db.query(`update public.pv_review_summaries set good = $1::jsonb where airline = 'ana'`, [J([{ ...G(), reviews: [1, 2] }])]);
+  ok(J(await getAs(KEYED, 'ana')) === none, '余計な鍵（reviews）の付いた行も出さない');
+  await db.query(`update public.pv_review_summaries set good = $1::jsonb where airline = 'ana'`, [J([{ ...G(), ids: [R1] }])]);
+  ok(J(await getAs(KEYED, 'ana')) === none, 'ids の数が k と合わない行も出さない');
   await db.query(`update public.pv_review_summaries set good = '[]'::jsonb, concern = '[]'::jsonb where airline = 'ana'`);
   ok(J(await getAs(KEYED, 'ana')) === none, '両方とも空の行は「無い」（空の要約を open で返さない）');
   await db.exec(read('db/review-summary.sql'));
@@ -556,9 +594,28 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   ok(nd === 'stale', 'd) 要約の言語の訳が入ったら、作り直しが要る（stale）', nd);
   await db.exec(`rollback`); await asOwner();
 
+  /* e) 点が引いた口コミの、その分類の本文だけを消す（その口コミは文化の欄が残るので、件数は3のまま）。 */
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set training_comment = '' where id = $1`, [R1]);
+  rd = await getAs(KEYED, 'ana'); nd = await needAna();
+  const cnt = (await one(`select public.pv_review_summary_count(array['ana'], null) c`)).c;
+  const re = await putAs(OP, anaPayload());
+  ok(J(rd) === none && nd === 'stale' && cnt === 3, 'e) 点が引いた口コミのその分類の本文が消えたら出さない（件数は3のまま）', J({ rd, nd, cnt }));
+  ok(J(re) === J({ ok: false, error: 'bad_ids' }), 'e) その状態で同じ点を預け直そうとしても bad_ids（本文の無い口コミを裏付けにできない）', J(re));
+  await db.exec(`rollback`); await asOwner();
+
+  /* f) 表を手で書き換えて、点にほかの会社の口コミを引かせる（ids の形は正しい・預ける関数を通らない）。 */
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.pv_review_summaries set good = $1::jsonb where airline = 'ana' and lang = 'ja'`,
+    [J([{ text: '同僚に相談しやすいという声が複数ある', cat: 'culture', k: 2, ids: [R1, P1] }])]);
+  rd = await getAs(KEYED, 'ana'); nd = await needAna();
+  ok(J(rd) === none, 'f) 表を手で書き換えても、裏付けの無い点は出ない', J(rd));
+  ok(nd !== 'fresh', 'f) 裏付けの無い点の入った行は「作り直さなくてよい」と言わない', nd);
+  await db.exec(`rollback`); await asOwner();
+
   rd = await getAs(KEYED, 'ana'); nd = await needAna();
   ok(rd.state === 'open' && nd === 'fresh',
-     '（a〜d のあと: ana は鍵のある人に open・作り直しは要らない（fresh）── どの段も何も残していない）', J({ rd, nd }));
+     '（a〜f のあと: ana は鍵のある人に open・作り直しは要らない（fresh）── どの段も何も残していない）', J({ rd, nd }));
 }
 
 
@@ -599,6 +656,7 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
                      `pv_review_summary_count(array['ana'], null)`,
                      `pv_review_summary_sig(array['ana'], null, 'ja')`,
                      `pv_review_summary_marks(array['ana'], null, 'ja')`,
+                     `pv_review_summary_backed('[]'::jsonb, array['ana'], null)`,
                      `pv_review_summary_bad('[]'::jsonb, 'ja', 3)`, `pv_review_summary_out('[]'::jsonb)`,
                      `pv_review_summary_put('{}'::jsonb)`, `pv_review_summary_need('ana', 'ja')`]) {
       const e = await boom(`select public.${f}`);
@@ -649,8 +707,11 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
 console.log('\n▼ 9. 古い短い会社コードの口コミも数える（会社ページと同じ引き方）');
 // ════════════════════════════════════════════════════════════
 {
+  /* 点は、古い短いコード（cathay）の2件 ── どちらも運航の欄に本文がある ── を引く。 */
+  await asOwner();
+  const cx = (await rows(`select id::text from public.reviews_v2 where airline = 'cathay' order by created_at`)).map((r) => r.id);
   const p = { airline: 'cathay-pacific', lang: 'ja', n: 3, newest: '2026-03-03T00:00:00Z',
-              good: [{ text: '運航の支援が手厚いという声が複数ある', cat: 'ops', k: 2 }], concern: [] };
+              good: [{ text: '運航の支援が手厚いという声が複数ある', cat: 'ops', k: 2, ids: cx }], concern: [] };
   const r = await putAs(OP, p);
   ok(r.ok === true && r.state === 'saved' && r.n === 3, '古いコード2件＋いまのコード1件 ＝ 3件として預けられる', J(r));
   await as(KEYED);
@@ -666,11 +727,12 @@ console.log('\n▼ 9. 古い短い会社コードの口コミも数える（会�
 console.log('\n▼ 10. 英語');
 // ════════════════════════════════════════════════════════════
 {
-  const en = { text: 'Several pilots mention that rosters change at short notice.', cat: 'wlb', k: 2 };
+  const en = { text: 'Several pilots mention that rosters change at short notice.', cat: 'wlb', k: 2, ids: [R2, R3] };
   const r = await putAs(OP, { airline: 'ana', lang: 'en', n: 3, newest: NEWEST_ANA, good: [], concern: [en] });
   ok(r.state === 'saved' && r.lang === 'en', '英語の要約は日本語とは別に預かる', J(r));
   const o = await getAs(KEYED, 'ana', 'en');
-  ok(o.state === 'open' && J(o.concern) === J([{ text: en.text, cat: 'wlb' }]) && J(o.good) === '[]', '英語で読める', J(o));
+  ok(o.state === 'open' && J((o.concern || []).map((p) => [p.text, p.cat])) === J([[en.text, 'wlb']])
+     && sameSet(o.concern?.[0]?.ids, en.ids) && J(o.good) === '[]', '英語で読める（点のもとの口コミも同じ）', J(o));
 
   /* ★指紋は言語ごと（決めごと L4）。読む側も預ける側も、その要約の言語で指紋を取る。
      日本語で書かれた口コミに英語の訳が入ると、英語の指紋だけが変わる。begin … rollback の中で動かす。 */
@@ -688,7 +750,8 @@ console.log('\n▼ 10. 英語');
   const oe2 = await getAs(KEYED, 'ana', 'en'), ne2 = await needEn();
   ok(oe2.state === 'open' && ne2 === 'fresh', '（訳を戻したあと: 英語の要約は open・作り直しは要らない（fresh））', J({ oe2, ne2 }));
 
-  ok((await getAs(KEYED, 'ana', 'ja')).good[0].text === G().text, '日本語のほうはそのまま');
+  /* ★返事に good が無い（open でない）ときも落ちずに ❌ を出す ── そのあとの検査まで走らせるため。 */
+  ok((await getAs(KEYED, 'ana', 'ja')).good?.[0]?.text === G().text, '日本語のほうはそのまま');
   ok(J(await getAs('anon', 'ana', 'en')) === J({ ok: true, state: 'login' }), '英語も、未ログインには login だけ');
   ok(J(await putAs(OP, { airline: 'ana', lang: 'en', n: 3, newest: NEWEST_ANA, good: [{ ...en, text: 'x'.repeat(181) }], concern: [] })) === J({ ok: false, error: 'text_too_long' }), '英語は181字で断る');
 }
@@ -723,7 +786,7 @@ console.log('\n▼ 11. gen-review-summary.mjs の出力が、そのまま預け�
     ],
     concern: [{ text: '勤務表が出るのが遅いという声が複数ある', cat: 'wlb', reviews: idxOf(/勤務表/) }],
   };
-  const settled = settle(reply, { lang: 'ja', n: inp.n });
+  const settled = settle(reply, { lang: 'ja', n: inp.n, reviews: inp.reviews });
   const payload = payloadOf({ airline: 'jal', lang: 'ja', n: inp.n, newest: inp.newest }, settled);
   ok(payload.good.length === 2 && payload.concern.length === 1 && payload.good.every((p) => p.k === 2), '検品を通った点だけが残る（1件だけの点は落ちる）', J(payload));
   /* 4 で SQL が has_figure で断る文は、作る側の検品でも同じ語で落ちる（FIGURES は同じ1つ）。 */
@@ -753,17 +816,29 @@ console.log('\n▼ 11. gen-review-summary.mjs の出力が、そのまま預け�
 
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 12. どの返り値にも、口コミの id・書いた人・k が1つも出ていない');
+console.log('\n▼ 12. どの返り値にも、書いた人・k が1つも出ていない／口コミの id は、読む関数の open の返事の点（ids）の中にしか無い');
 // ════════════════════════════════════════════════════════════
 {
   await asOwner();
-  const ids = (await rows(`select id::text, proof_hash from public.reviews_v2`)).flatMap((r) => [r.id, r.proof_hash]);
+  const own = await rows(`select id::text, proof_hash from public.reviews_v2`);
+  const reviewIds = own.map((r) => r.id), hashes = own.map((r) => r.proof_hash).filter(Boolean);
   const all = RETURNS.map((x) => J(x.r));
-  ok(RETURNS.length > 100, `集めた返り値は ${RETURNS.length} 個`);
+  /* ids を返してよいのは、読む関数の open の返事だけ（＝ 本文を読める人への返事）。 */
+  const isOpen = (x) => x.fn === 'pv_review_summary' && x.r && x.r.ok === true && x.r.state === 'open';
+  const shut = RETURNS.filter((x) => !isOpen(x)).map((x) => J(x.r));
+  const opens = RETURNS.filter(isOpen);
+  /* open の返事から点の ids を抜いた残り ── ここには id も uuid の形の字も残ってはいけない。 */
+  const openRest = opens.map((x) => J({ ...x.r, good: (x.r.good || []).map(({ ids, ...p }) => p), concern: (x.r.concern || []).map(({ ids, ...p }) => p) }));
+  const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
+  ok(RETURNS.length > 100 && opens.length > 0 && shut.length > 0, `集めた返り値は ${RETURNS.length} 個（open ${opens.length}・それ以外 ${shut.length}）`);
   ok(!all.some((s) => /"k"\s*:/.test(s)), 'k という鍵がどこにも無い');
-  ok(!all.some((s) => ids.some((v) => s.includes(v))), '口コミの id も proof_hash もどこにも無い');
-  ok(!all.some((s) => /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/.test(s)), 'uuid の形の字がどこにも無い');
-  ok(!all.some((s) => /"(newest|newest_at|reviews|ids|id|sig|proof_hash|made_at|user_id)"\s*:/.test(s)), '材料の時刻・番号・指紋・書いた人に当たる鍵がどこにも無い');
+  ok(hashes.length > 0 && !all.some((s) => hashes.some((v) => s.includes(v))), 'proof_hash（書いた人）の値は、どの返り値にも無い');
+  ok(reviewIds.length > 0 && !shut.some((s) => reviewIds.some((v) => s.includes(v))) && !openRest.some((s) => reviewIds.some((v) => s.includes(v))),
+     '口コミの id が出るのは、読む関数の open の返事の点（ids）の中だけ');
+  ok(!shut.some((s) => UUID_RE.test(s)) && !openRest.some((s) => UUID_RE.test(s)), 'uuid の形の字は、open の返事の点（ids）の中のほかには無い');
+  ok(!shut.some((s) => /"(newest|newest_at|reviews|ids|id|sig|proof_hash|made_at|user_id)"\s*:/.test(s))
+     && !all.some((s) => /"(newest|newest_at|reviews|id|sig|proof_hash|made_at|user_id)"\s*:/.test(s)),
+     '材料の時刻・番号・指紋・書いた人に当たる鍵がどこにも無い（ids の鍵は open の返事の点にだけ）');
   ok(!all.some((s) => /[0-9a-f]{32}/.test(s)), '指紋（md5 の32字）の形の字がどこにも無い');
   const keys = new Set();
   for (const x of RETURNS) for (const k of Object.keys(x.r || {})) keys.add(k);
@@ -954,21 +1029,33 @@ console.log('\n▼ 15. 作り直しが要るかは DB が決める（変わっ�
   const inp = buildInput(t1.rows, { airline: A, lang: 'ja' });
   ok(inp.n === t1.n, '道具が数えた件数と、サーバが数えた件数が同じ', `${inp.n} / ${t1.n}`);
   const idxOf = (input, re) => input.reviews.filter((r) => re.test(Object.values(r.cats).join(' '))).map((r) => r.i);
+  /* 3つ目の良い点は、訓練の点に3件目（訓練の欄に本文が無い）を引く ── 検品がその番号を数えず、1件になって落ちる。 */
+  const CITES3 = '訓練の日程に余裕があるという声が複数ある';
   const replyOf = (input) => ({
     good: [{ text: '訓練で細かく見てもらえるという声が複数ある', cat: 'training', reviews: idxOf(input, /細かく見て/) },
-           { text: '提案を聞いてもらえるという声がある', cat: 'culture', reviews: [1] }],
+           { text: '提案を聞いてもらえるという声がある', cat: 'culture', reviews: [1] },
+           { text: CITES3, cat: 'training', reviews: [1, 3] }],
     concern: [{ text: '休みの希望が通りにくいという声が複数ある', cat: 'wlb', reviews: idxOf(input, /通りにくい/) }],
   });
   const autoPayload = (t, input) => {
-    const s = settle(replyOf(input), { lang: 'ja', n: input.n });
+    const s = settle(replyOf(input), { lang: 'ja', n: input.n, reviews: input.reviews });
     return { airline: A, lang: 'ja', basis: t.basis, n: input.n, good: s.good, concern: s.concern };
   };
+  const s1 = settle(replyOf(inp), { lang: 'ja', n: inp.n, reviews: inp.reviews });
+  ok(!inp.reviews[2].cats.training && s1.dropped.some((d) => d.side === 'good' && d.text === CITES3 && d.why === 'weak_point'),
+     '訓練の点に、訓練の欄に本文の無い3件目を引いた返事は weak_point で落ちる', J(s1.dropped));
   const p1 = autoPayload(t1, inp);
   ok(p1.good.length === 1 && p1.concern.length === 1, '（検品を通るのは、2件以上がそろった点だけ）', J(p1));
   const w1 = await svc('pv_review_summary_set_auto', p1);
   ok(w1.ok === true && w1.state === 'saved' && w1.n === 3 && w1.airline === A, '検品を通った点を、指紋と一緒に預けられる（時刻は渡していない）', J(w1));
   const o1 = await getAs(KEYED, A);
-  ok(o1.state === 'open' && o1.n === 3 && o1.good.length === 1 && o1.concern.length === 1 && !/"k"/.test(J(o1)), '自動で預けたものが、会社ページの読む関数から読める', J(o1));
+  ok(o1.state === 'open' && o1.n === 3 && o1.good?.length === 1 && o1.concern?.length === 1 && !/"k"/.test(J(o1)), '自動で預けたものが、会社ページの読む関数から読める', J(o1));
+  /* 点の ids は、その分類に本文の在るこの会社の口コミ（番号 1・2 が訓練、2・3 が勤務）。 */
+  const byNo = (ns) => ns.map((n) => inp.reviews[n - 1].id);
+  ok(sameSet(o1.good?.[0]?.ids, byNo([1, 2])) && sameSet(o1.concern?.[0]?.ids, byNo([2, 3]))
+     && [...(o1.good || []), ...(o1.concern || [])].every((p) => p.ids.every((v) => mine.has(v))),
+     '自動で預けた点の ids は、本物のこの会社の口コミの id（引いた番号の口コミ）', J(o1));
+  ok(!J(o1).includes(CITES3), '落ちた点は表に届いていない', J(o1));
   ok(J(await getAs('anon', A)) === J({ ok: true, state: 'login' }), '自動で預けたものも、未ログインには login だけ');
   ok((await run(A)).state === 'saved', '控えは「預けた」に変わった');
 
@@ -1394,10 +1481,16 @@ try {
      'モデルを呼ぶのは言語の数だけ', J({ ...e1.j, real: e1.calls }));
   ok(got(e1.j.results) === perLang((lang) => ({ airline: X, lang, state: 'saved', n: 3, good: 1, concern: 1, dropped: 1 })),
      '古いコードの知らせでも、いまの会社コードで預かる／件数はサーバと関数で同じ（空白だけの1件は数えない）／1件にしか支えられていない点は落ちる', J(e1.j.results));
+  /* 材料の番号 1〜3 ＝ この会社（いまのコードと古いコード）の、本文の在る口コミの古い順。 */
+  await asOwner();
+  const xIds = (await rows(`select id::text from public.reviews_v2 where airline in ($1, $2) and created_at < '2026-05-04T00:00:00Z' order by created_at`, [X, OLD])).map((r) => r.id);
   for (const lang of LANGS) {
     const o = await getAs(KEYED, X, lang);
-    ok(o.state === 'open' && o.n === 3 && J(o.good) === J([{ text: TEXT[lang].good, cat: 'training' }]) && J(o.concern) === J([{ text: TEXT[lang].concern, cat: 'wlb' }]),
+    ok(o.state === 'open' && o.n === 3 && J((o.good || []).map((p) => [p.text, p.cat])) === J([[TEXT[lang].good, 'training']])
+       && J((o.concern || []).map((p) => [p.text, p.cat])) === J([[TEXT[lang].concern, 'wlb']]),
        `[${lang}] 会社ページが読む関数から、検品を通った点だけが読める`, J(o));
+    ok(xIds.length === 3 && sameSet(o.good?.[0]?.ids, [xIds[0], xIds[1]]) && sameSet(o.concern?.[0]?.ids, [xIds[1], xIds[2]]),
+       `[${lang}] 読み戻した点の ids は、モデルが引いた番号の本物の口コミ（訓練 1・2／勤務 2・3）`, J(o));
     ok((await run(X, lang)).state === 'saved', `[${lang}] 控えは「預けた」`);
   }
   ok(J(await getAs('anon', X)) === J({ ok: true, state: 'login' }), '未ログインには login だけ');

@@ -120,7 +120,7 @@ function makeWorld() {
   };
   w.drop = (a, count = 1) => { w.rows.set(a, rowsOf(a).slice(0, Math.max(0, rowsOf(a).length - count))); };
   /* いまの集合で「預かっている」ことにする（＝新しい状態）。 */
-  w.store = (a, l = 'ja') => { w.stored.set(key(a, l), { sig: w.sig(a, l), n: rowsOf(a).length, good: [{ text: 'ヨウヤク 前から預かっている点。', cat: 'culture', k: 2 }], concern: [] }); };
+  w.store = (a, l = 'ja') => { w.stored.set(key(a, l), { sig: w.sig(a, l), n: rowsOf(a).length, good: [{ text: 'ヨウヤク 前から預かっている点。', cat: 'culture', k: 2, ids: rowsOf(a).slice(0, 2).map((r) => r.id) }], concern: [] }); };
   /* SQL の pv_review_summary_need と同じ語を返す（判定の本体は SQL。ここは形だけ）。 */
   w.need = (a, l) => {
     const n = rowsOf(a).length, st = w.stored.get(key(a, l)), run = w.runs.get(key(a, l));
@@ -168,6 +168,11 @@ function makeWorld() {
       }
       if (p.n !== rowsOf(p.airline).length) return { ok: false, error: 'bad_n' };
       if (pts.some((x) => !(x.k >= SR.MIN_SUPPORT))) return { ok: false, error: 'weak_point' };
+      /* SQL と同じく、点の ids は「k 個・重複なし・この会社の行で、その分類に本文が在る」でないと預からない。 */
+      const body = (r, c) => typeof r[c + '_comment'] === 'string' && r[c + '_comment'].trim() !== '';
+      const backed = (x) => Array.isArray(x.ids) && x.ids.length === x.k && new Set(x.ids).size === x.k
+        && x.ids.every((id) => typeof id === 'string' && rowsOf(p.airline).some((r) => r.id === id && body(r, x.cat)));
+      if (!pts.every(backed)) return { ok: false, error: 'bad_ids' };
       w.stored.set(k, { sig: p.basis, n: p.n, good: p.good, concern: p.concern });
       w.runs.set(k, { sig: p.basis, state: 'done', tries: 0 });
       return { ok: true, state: 'saved', airline: p.airline, lang: p.lang, n: p.n, as_of: '2026-05-31' };
@@ -370,9 +375,10 @@ await section(async () => {
      && !sent.includes('ROWMARK') && ![...w.rows.values()].flat().some((r) => sent.includes(r.id)) && !/proof_hash|created_at|orig_lang|position|fleet/.test(sent), user.slice(0, 80));
 
   const sets = rpcs(w, 'pv_review_summary_set_auto');
-  ck('預けたのは、検品を通った2点だけ（番号は付けない・k は数え直した数）', sets.map((s) => s.p),
+  const sid = w.rows.get('starflyer').map((x) => x.id);
+  ck('預けたのは、検品を通った2点だけ（モデルの番号は付けない・k は数え直した数・ids はその番号の口コミ）', sets.map((s) => s.p),
      [{ airline: 'starflyer', lang: 'ja', basis: w.sig('starflyer'), n: 4,
-        good: [{ text: G_TEXT, cat: 'culture', k: 3 }], concern: [{ text: C_TEXT, cat: 'wlb', k: 2 }] }]);
+        good: [{ text: G_TEXT, cat: 'culture', k: 3, ids: [sid[0], sid[1], sid[2]] }], concern: [{ text: C_TEXT, cat: 'wlb', k: 2, ids: [sid[2], sid[3]] }] }]);
   ck('DB に預かった形', [w.stored.get('starflyer|ja').n, w.stored.get('starflyer|ja').good.length, w.need('starflyer', 'ja')], [4, 1, 'fresh']);
 
   /* DB の呼び方：サーバの鍵で、4つの関数だけ。運営の道・表の直読みは使わない。 */

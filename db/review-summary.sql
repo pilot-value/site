@@ -40,11 +40,13 @@
 --     ★件数だけで比べない。口コミは画面から表へ直に入る（submit-review.html）ので、
 --       日付を古く書いた1件を足せば「1件消えて1件増えた」が件数では見えなくなる。
 --       指紋は集合と中身を比べるので、その形でも出さなくなる。
---  5. **どの口コミが材料かを外へ出さない。** 点ごとに覚えるのは件数 k だけで、
---     点と口コミの対応（どの id がどの点を支えたか）は**預からない**。
---     指紋は材料ぜんぶの id を混ぜた md5 1つで、そこから id へは戻れない。
---     k も指紋も読む側には返さない（返すのは text と cat の2つ）。
---     k を返すと「この点は2件」＝ 3件しか無い会社では誰が言ったかの手がかりになる。
+--  5. **点ごとに、もとの口コミを覚える（辿れるようにするため）。** 点は {text, cat, k, ids} で、
+--     ids はその点を支えた口コミの id（k 件・その分類に本文が在るものだけ）。
+--     預かるとき（5-a）と読むとき（4）の両方で、id が本当にその会社の・その分類に本文の在る
+--     口コミかを確かめる（pv_review_summary_backed）。確かめられない点は預からない・出さない。
+--     ids を返すのは open のとき＝口コミの本文を読める人にだけ。その人は本文そのものを読めるので、
+--     ids が新しく教えるのは「どのカードがこの文のもとか」だけ。k と指紋は今までどおり返さない。
+--     書いた人（proof_hash）は、この表にも返事にも1つも入らない。
 --  6. **書けるのは運営と、サーバの鍵（service_role）を持つ自動の道だけ。**
 --       ・運営が手で預ける … pv_review_summary_set()（管理者の名簿に居る人だけ）
 --       ・自動で預ける     … pv_review_summary_set_auto()（service_role にだけ配る。
@@ -113,7 +115,7 @@ $guard$;
 -- ════════════════════════════════════════════════════════════════
 -- 1. 表（1社 × 1言語 に1行）
 --
--- good / concern は [{text, cat, k}] の配列。それ以外の鍵は入らない（3 の検査）。
+-- good / concern は [{text, cat, k, ids}] の配列。それ以外の鍵は入らない（3 の検査）。
 -- n         … 要約を作ったときに読めた口コミの件数（画面の「n件の口コミから」）
 -- newest_at … 材料にしたいちばん新しい口コミの時刻（古くなったかの判定に使う）
 -- sig       … その時刻までの口コミの集合と中身の指紋（pv_review_summary_sig(codes, upto, lang)。サーバが作る）
@@ -288,13 +290,13 @@ comment on function public.pv_review_summary_sig(text[], timestamptz, text) is
 -- ════════════════════════════════════════════════════════════════
 -- 3. 点の検査（書く側・表の制約・読む側の3か所が同じこれを呼ぶ）
 --
--- 引数: p_list = [{text, cat, k}, …]／p_lang = 'ja' | 'en'／p_n = 口コミの件数
+-- 引数: p_list = [{text, cat, k, ids}, …]／p_lang = 'ja' | 'en'／p_n = 口コミの件数
 -- 返り値: 問題なければ null。あれば理由の語（そのまま {ok:false, error} に載る）
 --   bad_lang        言語が ja でも en でもない
 --   bad_shape       配列ではない
 --   too_many        4つ以上ある
---   bad_point       点が {text, cat, k} の形でない（★ほかの鍵が1つでも在れば弾く
---                   ＝ 口コミの番号や id を付けたまま預けられない）
+--   bad_point       点が {text, cat, k, ids} の形でない（★ほかの鍵が1つでも在れば弾く
+--                   ＝ モデルの番号（reviews）などを付けたまま預けられない）
 --   not_plain_text  改行・タブなどの制御文字、< >、前後の空白がある
 --   has_figure      数字（全角・漢数字＋円を含む）・通貨記号が在る（数は口コミから数えたものしか出さない）
 --   text_too_short  短すぎる（日本語 8字未満・英語 16字未満）
@@ -302,6 +304,8 @@ comment on function public.pv_review_summary_sig(text[], timestamptz, text) is
 --   bad_cat         分類の鍵が6つのどれでもない
 --   weak_point      1件の口コミにしか支えられていない（k < 2）
 --   bad_k           k が整数でない・口コミの件数より多い
+--   bad_ids         ids が配列でない・k と同じ数でない・文字列でない・重複がある（★いちばん最後に見る）
+--                   ＊ id が本当にその会社の口コミかは、ここでは見ない（表を読むので 3-c の仕事）。
 -- ★ 空の配列は通る（良い点だけ・気になる点だけ、がありうる）。
 --   両方とも空は「消す」の合図で、書く側が先に受け取る。
 -- ════════════════════════════════════════════════════════════════
@@ -339,7 +343,7 @@ begin
        or jsonb_typeof(v_el -> 'cat')  is distinct from 'string'
        or not (v_el ? 'k')
        or exists (select 1 from jsonb_object_keys(v_el) key
-                   where key not in ('text', 'cat', 'k')) then
+                   where key not in ('text', 'cat', 'k', 'ids')) then
       return 'bad_point';
     end if;
 
@@ -371,6 +375,15 @@ begin
     if p_n is null or v_k > p_n then
       return 'bad_k';
     end if;
+    if jsonb_typeof(v_el -> 'ids') is distinct from 'array' then
+      return 'bad_ids';
+    end if;
+    if jsonb_array_length(v_el -> 'ids') <> v_k
+       or exists (select 1 from jsonb_array_elements(v_el -> 'ids') as x(v)
+                   where jsonb_typeof(x.v) <> 'string')
+       or (select count(distinct x.v) from jsonb_array_elements_text(v_el -> 'ids') as x(v)) <> v_k then
+      return 'bad_ids';
+    end if;
   end loop;
 
   return null;
@@ -384,7 +397,8 @@ comment on function public.pv_review_summary_bad(jsonb, text, integer) is
 
 
 -- ★ 表にも同じ検査を掛ける（2本目の錠）。SQL Editor から手で insert しても、
---   3件未満・k が1・4つ以上・長すぎる文・余計な鍵は入らない。
+--   3件未満・k が1・4つ以上・長すぎる文・余計な鍵・数字・ids の形が合わない点は入らない。
+--   （id が本当に口コミかは表の制約では見られない ── 預かる時と読む時に pv_review_summary_backed が見る）
 -- ⚠️ not valid ＝ 前から在る行は見直さない（冒頭の罠）。新しく入る行には効く。
 alter table public.pv_review_summaries drop constraint if exists pv_review_summaries_lang_chk;
 alter table public.pv_review_summaries add  constraint pv_review_summaries_lang_chk
@@ -401,7 +415,7 @@ alter table public.pv_review_summaries add  constraint pv_review_summaries_point
      and (good || concern) <> '[]'::jsonb) not valid;
 
 
--- 3-b. 外へ返す形に直す。text と cat の2つだけ ── k は落とす（約束 5）。
+-- 3-b. 外へ返す形に直す。text・cat・ids の3つだけ ── k は落とす（約束 5）。open のときにしか呼ばない。
 create or replace function public.pv_review_summary_out(p_list jsonb)
 returns jsonb
 language sql
@@ -409,7 +423,8 @@ immutable
 set search_path = public, extensions
 as $fn$
   select coalesce(jsonb_agg(jsonb_build_object('text', e.v ->> 'text',
-                                               'cat',  e.v ->> 'cat')
+                                               'cat',  e.v ->> 'cat',
+                                               'ids',  coalesce(e.v -> 'ids', '[]'::jsonb))
                             order by e.i), '[]'::jsonb)
     from jsonb_array_elements(p_list) with ordinality e(v, i);
 $fn$;
@@ -417,7 +432,40 @@ $fn$;
 revoke all on function public.pv_review_summary_out(jsonb) from public, anon, authenticated;
 
 comment on function public.pv_review_summary_out(jsonb) is
-  '預かった点の並びを、外へ返す {text, cat} だけの形に直す（k を落とす）。誰にも grant しない。';
+  '預かった点の並びを、外へ返す {text, cat, ids} の形に直す（k を落とす）。誰にも grant しない。';
+
+-- 3-c. 点の ids が、本当に「その会社の・その時刻までの・その分類に本文の在る」口コミか。
+--   1つでも違えば false。ids の無い点・空の ids も false。預かる時（5-a）と読む時（4）と
+--   作り直しの判定（6-b）が同じこれを呼ぶ。
+create or replace function public.pv_review_summary_backed(p_list jsonb, p_codes text[], p_upto timestamptz)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  select not exists (
+    select 1
+      from jsonb_array_elements(case when jsonb_typeof(p_list) = 'array' then p_list else '[]'::jsonb end) as pt(v)
+     cross join lateral jsonb_array_elements_text(
+            case when jsonb_typeof(pt.v -> 'ids') = 'array' and jsonb_array_length(pt.v -> 'ids') > 0
+                 then pt.v -> 'ids' else '[null]'::jsonb end) as i(id)
+     where i.id is null
+        or not ((pt.v ->> 'cat') = any (public.pv_review_summary_cats()))
+        or not exists (
+             select 1
+               from public.reviews_v2 r
+              where r.id::text = i.id
+                and r.airline = any (p_codes)
+                and (p_upto is null
+                     or coalesce(r.created_at, '-infinity'::timestamptz) <= p_upto)
+                and btrim(coalesce(to_jsonb(r) ->> ((pt.v ->> 'cat') || '_comment'), '')) <> ''));
+$fn$;
+
+revoke all on function public.pv_review_summary_backed(jsonb, text[], timestamptz) from public, anon, authenticated;
+
+comment on function public.pv_review_summary_backed(jsonb, text[], timestamptz) is
+  '点の ids が、その会社の・その時刻までの・その分類に本文の在る口コミだけかを確かめる。誰にも grant しない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -431,11 +479,11 @@ comment on function public.pv_review_summary_out(jsonb) is
 --   {ok:true,  state:'login'}    要約は在るが、呼んだ人はログインしていない
 --   {ok:true,  state:'locked'}   要約は在るが、呼んだ人は口コミの本文を読めない（ログイン済み）
 --   {ok:true,  state:'open', n, as_of:'YYYY-MM-DD',
---              good:[{text, cat}], concern:[{text, cat}]}
+--              good:[{text, cat, ids}], concern:[{text, cat, ids}]}
 -- ★ 未ログイン（anon）にも配ってある。配らないと画面は「権限エラー」と
 --   「鍵が掛かっている」を見分けられない（pv_stays と同じ作法）。
 -- ★ few と none は鍵を見る**前**に返す（冒頭の罠）。鍵の有無で few / none の出方は変わらない。
--- ★ open で返すのは text と cat だけ。k・口コミの id・書いた人は1つも入らない。
+-- ★ few・none・login・locked は {ok, state} の2つだけ。open で返すのは text・cat・ids。k・書いた人は1つも入らない。
 create or replace function public.pv_review_summary(p jsonb)
 returns jsonb
 language plpgsql
@@ -475,7 +523,9 @@ begin
   if public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig
      or public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is not null
      or public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is not null
-     or (v_row.good || v_row.concern) = '[]'::jsonb then
+     or (v_row.good || v_row.concern) = '[]'::jsonb
+     or not public.pv_review_summary_backed(v_row.good,    v_codes, v_row.newest_at)
+     or not public.pv_review_summary_backed(v_row.concern, v_codes, v_row.newest_at) then
     return jsonb_build_object('ok', true, 'state', 'none');
   end if;
 
@@ -504,13 +554,13 @@ grant execute on function public.pv_review_summary(jsonb) to anon, authenticated
 
 comment on function public.pv_review_summary(jsonb) is
   '口コミの要約を返す。本文を読める人（pv_has_review_key）にだけ中身が返り、ほかは login / locked の1語。'
-  '要約が無い・元の口コミが減ったときは none（鍵を見る前に返す）。k と口コミの id は返さない。';
+  '3件未満は few・要約が無い／元の口コミが変わったときは none（どちらも鍵を見る前に返す）。k は返さない。ids は open のときだけ。';
 
 
 -- ════════════════════════════════════════════════════════════════
 -- 5. 預ける／消す（運営の道。自動の道は 6）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {airline, lang, n, newest, good:[{text, cat, k}], concern:[{text, cat, k}]}
+-- 引数: p = {airline, lang, n, newest, good:[{text, cat, k, ids}], concern:[{text, cat, k, ids}]}
 --   n      … 要約の材料にした口コミの件数
 --   newest … 材料にしたいちばん新しい口コミの created_at（pv_reviews が返す字のまま渡す）
 --   ★ good と concern が**両方とも空の配列**なら、その会社×言語の行を消す（n・newest は読まない）。
@@ -525,6 +575,7 @@ comment on function public.pv_review_summary(jsonb) is
 --     too_few_reviews          n が3未満、または**いま**読める口コミが3件に満たない
 --     stale_input              newest までの口コミの件数が n と合わない
 --                              （書き出したあとで口コミが消えた・別の会社の束を渡した）
+--     bad_ids                  点の ids が、その会社の・その時刻までの・その分類に本文の在る口コミでない
 --     そのほか                 3 の検査が返す語（too_many / weak_point / text_too_long …）
 -- ★ 運営でない人が呼ぶと 42501（管理者ページのほかの関数と同じ）。何も調べずに返す。
 --   名簿は db/admin.sql の pv_admins（pv_is_admin と同じ1つ）。判定は
@@ -604,6 +655,12 @@ begin
   end if;
   if public.pv_review_summary_count(v_codes, v_newest) <> v_n then
     return jsonb_build_object('ok', false, 'error', 'stale_input');
+  end if;
+
+  /* ★点のもとの口コミを確かめる（約束 5）。渡された ids は信じない。 */
+  if not public.pv_review_summary_backed(v_good, v_codes, v_newest)
+     or not public.pv_review_summary_backed(v_con, v_codes, v_newest) then
+    return jsonb_build_object('ok', false, 'error', 'bad_ids');
   end if;
 
   /* ★指紋もここで取る（渡された値は使わない）。 */
@@ -768,7 +825,9 @@ begin
      and v_row.sig = v_sig
      and public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is null
      and public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is null
-     and (v_row.good || v_row.concern) <> '[]'::jsonb then
+     and (v_row.good || v_row.concern) <> '[]'::jsonb
+     and public.pv_review_summary_backed(v_row.good,    v_codes, null)
+     and public.pv_review_summary_backed(v_row.concern, v_codes, null) then
     return 'fresh';
   end if;
 
@@ -985,7 +1044,7 @@ comment on function public.pv_review_summary_take(jsonb) is
 
 
 -- 6-e. 自動の道で預ける／消す。
--- 引数: p = {airline, lang, basis, n, good:[{text, cat, k}], concern:[{text, cat, k}]}
+-- 引数: p = {airline, lang, basis, n, good:[{text, cat, k, ids}], concern:[{text, cat, k, ids}]}
 --   basis … take が返した指紋をそのまま。
 --   ★ good と concern が両方とも空なら消す（3件に満たない／点が1つも残らなかった）。
 --   ★ newest は受け取らない。いまの集合のいちばん新しい時刻を**サーバが引く**
@@ -1198,6 +1257,7 @@ select '中の部品は誰にも配っていない',
              and not has_function_privilege('authenticated', 'public.pv_review_summary_count(text[], timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_sig(text[], timestamptz, text)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_marks(text[], timestamptz, text)', 'execute')
+             and not has_function_privilege('authenticated', 'public.pv_review_summary_backed(jsonb, text[], timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_codes(text)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_cats()', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_out(jsonb)', 'execute')
