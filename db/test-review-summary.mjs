@@ -1,7 +1,7 @@
 /* db/test-review-summary.mjs — 口コミの要約（db/review-summary.sql）が約束どおりに
    預かり・確かめ・返しているかを、本物の Postgres（PGlite）で実際に呼んで確かめる。
 
-   実行: node db/test-review-summary.mjs   （または node check.mjs sql）
+   実行: node db/test-review-summary.mjs   （手で流す。check.mjs の一覧には入っていない）
    ネットワーク不要・本番に一切触らない・Anthropic も呼ばない。
 
    なぜ要るか
@@ -199,6 +199,9 @@ await db.query(`insert into public.pv_admins(user_id) values($1)`, [uid(OP)]);
 await post(1, 'ana', { culture_comment: '相談しやすい雰囲気です。', training_comment: '教官が丁寧に教えてくれます。', __at: '2026-03-01T00:00:00Z' });
 await post(2, 'ana', { training_comment: '訓練は丁寧で質問しやすい。', wlb_comment: '勤務の変更が直前に来ることがある。', __at: '2026-03-02T00:00:00Z' });
 await post(3, 'ana', { wlb_comment: '直前の勤務変更が多い。', mgmt_comment: '経営陣への提案です。', __at: '2026-03-03T00:00:00Z' });
+/* ana の3件の口コミの id（古い順）。uid(n) は会員の id で、口コミの id ではない。 */
+await asOwner();
+const [R1, R2, R3] = (await rows(`select id::text from public.reviews_v2 where airline = 'ana' order by created_at`)).map((r) => r.id);
 // 別の会社に1件 ＝ 鍵を持つ会員
 await post(KEYED, 'skymark', { culture_comment: '落ち着いた職場です。', __at: '2026-03-01T00:00:00Z' });
 // peach … 2件だけ（3件に満たない）
@@ -478,7 +481,7 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
     [saved.id, saved.proof_hash, saved.airline, saved.culture_comment, saved.training_comment, saved.created_at]);
   await db.query(`delete from public.reviews_v2 where airline = 'ana' and created_at = '2026-03-02T06:00:00Z'`);
   ok((await getAs(KEYED, 'ana')).state === 'open', '材料の3件に戻れば、また出る');
-  const sig = await one(`select sig, public.pv_review_summary_sig(array['ana'], newest_at) now_sig from public.pv_review_summaries where airline = 'ana' and lang = 'ja'`);
+  const sig = await one(`select sig, public.pv_review_summary_sig(array['ana'], newest_at, 'ja') now_sig from public.pv_review_summaries where airline = 'ana' and lang = 'ja'`);
   ok(/^[0-9a-f]{32}$/.test(sig.sig) && sig.sig === sig.now_sig, '預かっているのは指紋1つ（md5 の32字）── id そのものは表に無い', J(sig));
 
   // 「経営陣への提案」だけの口コミは件数に入らない
@@ -498,6 +501,46 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   await db.exec(read('db/review-summary.sql'));
   ok(true, '（検査に通らない行が残っていても、SQL はもう一度そのまま流れる）');
   ok((await putAs(OP, anaPayload())).state === 'saved', '預け直して元に戻す');
+
+  /* ★指紋は id の集合だけでなく中身も見る（同じ id のまま本文が書き換わったら、その要約は出さない）。
+     1段ずつ begin … rollback の中で動かす ── ana の口コミと預けた要約は、あとの節もそのまま使う。
+     （rollback は中で切り替えた役も戻すので、そのあとにもう一度 asOwner を呼ぶ） */
+  console.log('  ── 指紋は本文と、要約の言語の訳を見る（点数・ほかの言語の訳は見ない）──');
+  const needAna = async () => { await asOwner(); return (await rows(`select public.pv_review_summary_need('ana', 'ja') as v`))[0].v; };
+  let rd, nd;
+
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set training_comment = training_comment || '（追記）' where id = $1`, [R1]);
+  rd = await getAs(KEYED, 'ana'); nd = await needAna();
+  ok(J(rd) === none, 'a) 材料の1件の本文を書き換えたら（id は同じまま）出さない', J(rd));
+  ok(nd === 'stale', 'a) 本文を書き換えたら、作り直しが要る（stale）', nd);
+  await db.exec(`rollback`); await asOwner();
+
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set wlb_score = 1 where id = $1`, [R2]);
+  rd = await getAs(KEYED, 'ana'); nd = await needAna();
+  ok(rd.state === 'open', 'b) 点数だけ変わっても、預けた要約をそのまま返す', J(rd));
+  ok(nd === 'fresh', 'b) 点数だけなら、作り直さない（fresh ＝ モデルを呼ばない）', nd);
+  await db.exec(`rollback`); await asOwner();
+
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set translations = '{"en":{"wlb":"x"}}'::jsonb where id = $1`, [R2]);
+  rd = await getAs(KEYED, 'ana'); nd = await needAna();
+  ok(rd.state === 'open', 'c) 日本語の口コミにほかの言語（en）の訳が入っても、日本語の要約はそのまま返す', J(rd));
+  ok(nd === 'fresh', 'c) ほかの言語の訳だけなら、日本語の要約は作り直さない（fresh）', nd);
+  await db.exec(`rollback`); await asOwner();
+
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set orig_lang = 'en' where id = $1`, [R2]);
+  await db.query(`update public.reviews_v2 set translations = '{"ja":{"wlb":"訳"}}'::jsonb where id = $1`, [R2]);
+  rd = await getAs(KEYED, 'ana'); nd = await needAna();
+  ok(J(rd) === none, 'd) ほかの言語で書かれた材料に、要約の言語（ja）の訳が入ったら出さない', J(rd));
+  ok(nd === 'stale', 'd) 要約の言語の訳が入ったら、作り直しが要る（stale）', nd);
+  await db.exec(`rollback`); await asOwner();
+
+  rd = await getAs(KEYED, 'ana'); nd = await needAna();
+  ok(rd.state === 'open' && nd === 'fresh',
+     '（a〜d のあと: ana は鍵のある人に open・作り直しは要らない（fresh）── どの段も何も残していない）', J({ rd, nd }));
 }
 
 
@@ -536,7 +579,8 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
     for (const f of [`pv_review_summary_cats()`, `pv_review_summary_codes('ana')`,
                      `pv_review_summary_ids(array['ana'], null)`,
                      `pv_review_summary_count(array['ana'], null)`,
-                     `pv_review_summary_sig(array['ana'], null)`,
+                     `pv_review_summary_sig(array['ana'], null, 'ja')`,
+                     `pv_review_summary_marks(array['ana'], null, 'ja')`,
                      `pv_review_summary_bad('[]'::jsonb, 'ja', 3)`, `pv_review_summary_out('[]'::jsonb)`,
                      `pv_review_summary_put('{}'::jsonb)`, `pv_review_summary_need('ana', 'ja')`]) {
       const e = await boom(`select public.${f}`);
@@ -1282,9 +1326,12 @@ try {
        && m.user.includes('勤務の変更は直前に来ることが多い。') && !/captain|A350|singapore|2026-05|row-id|読まれない/.test(m.user)),
      'モデルに渡ったのは、番号を振った本文3件だけ（会社コードも職位も機種も時刻も、知らせに付いてきた行の中身も無い）');
 
-  console.log('  ── 同じ行がすぐ書き換わる（翻訳が入る）→ 何もしない ──');
+  console.log('  ── 中身の変わらない UPDATE → 何もしない ──');
+  /* 本当に1行を書き換える（点数だけ）。知らせだけ送っても「書き換えたのに払わない」は確かめられない。 */
+  await asOwner();
+  const u2 = await db.query(`update public.reviews_v2 set wlb_score = 2 where airline = $1 and created_at = '2026-05-02T00:00:00.000202Z'`, [X]);
   const e2 = await call(ev('UPDATE', X));
-  ok(e2.j.ok === true && e2.calls === 0 && e2.j.calls === 0 && J(e2.j.results) === '[]', '集合が同じなら、モデルは呼ばれない（課金なし）', J(e2.j));
+  ok(u2.affectedRows === 1 && e2.j.ok === true && e2.calls === 0 && e2.j.calls === 0 && J(e2.j.results) === '[]', '集合も中身も同じなら、モデルは呼ばれない（課金なし）', J({ ...e2.j, updated: u2.affectedRows }));
 
   console.log('  ── モデルが落ちた → 控えに残し、すぐには呼び直さない ──');
   await post(45, X, { training_comment: '訓練の進め方が丁寧だった。', __at: '2026-05-05T00:00:00.000505Z' });

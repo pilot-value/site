@@ -75,8 +75,9 @@
 --     代わりに読む側が毎回同じ検査を通し、通らない行は {state:'none'} になる。
 --  ⚠️ as_of は「要約を預けた日」（UTC）。いちばん新しい口コミの日ではない。
 --
---  ⚠️ 指紋は口コミの **id の集合**。本文を書き換えた・訳があとから入った、では
---     変わらない＝ 自動の道はそれを「変わった」と数えない（作り直さない）。
+--  ⚠️ 指紋は口コミの **id と中身**（6分類の本文＋その言語の訳）。点数だけの UPDATE・ほかの言語の訳では
+--     変わらない。本文を書き換えた・この言語の訳が入った、では変わる（＝ 作り直す）。
+--     ⚠️ translate-review は、訳が1つでも在る行を訳し直さない。運営が原文を直したら translations も空にする。
 --  ⚠️ service_role への grant は「その役が在るときだけ」出す（6 の末尾の do ブロック）。
 --     手元の検査用の DB には役が無いことがあり、素の grant だとファイルごと止まる。
 --
@@ -113,7 +114,7 @@ $guard$;
 -- good / concern は [{text, cat, k}] の配列。それ以外の鍵は入らない（3 の検査）。
 -- n         … 要約を作ったときに読めた口コミの件数（画面の「n件の口コミから」）
 -- newest_at … 材料にしたいちばん新しい口コミの時刻（古くなったかの判定に使う）
--- sig       … その時刻までの口コミの集合の指紋（pv_review_summary_sig。サーバが作る）
+-- sig       … その時刻までの口コミの集合と中身の指紋（pv_review_summary_sig(codes, upto, lang)。サーバが作る）
 -- made_at   … 預けた時刻（as_of の出どころ）
 -- ════════════════════════════════════════════════════════════════
 create table if not exists public.pv_review_summaries (
@@ -190,7 +191,7 @@ comment on function public.pv_review_summary_codes(text) is
 --   p_upto を渡すと、その時刻までに出された行だけ（null なら全部）。
 -- ★ 本文の列名を並べない。分類の鍵から「<鍵>_comment」を引く
 --   ── db/reviews-gate.sql が7つの case を1か所にしか書かせないのと同じ理由。
--- ★ 件数（2-d）と指紋（2-e）は必ずこれを通す。条件を2か所に書くと、
+-- ★ 件数（2-d）と印（2-e）・指紋（2-f）は必ずこれを通す。条件を2か所に書くと、
 --   数え方と指紋の取り方が黙ってずれる。
 create or replace function public.pv_review_summary_ids(p_codes text[], p_upto timestamptz)
 returns setof text
@@ -233,24 +234,53 @@ comment on function public.pv_review_summary_count(text[], timestamptz) is
   '読める口コミの件数（pv_review_summary_ids の行数）。誰にも grant しない。';
 
 
--- 2-e. 材料の集合の指紋。その時刻までの口コミの id を並べて md5 にしたもの。
---   1件でも消える・入れ替わる・古い日付で足されると変わる。
---   あとから（その時刻より後に）増えただけでは変わらない。
-create or replace function public.pv_review_summary_sig(p_codes text[], p_upto timestamptz)
+-- 2-e. 口コミ1件ごとの印。作る側（summarize-reviews の buildInput）がその言語で読むもの
+--   ── 6分類の原文と、原文がほかの言語のときのその言語の訳 ── を混ぜた md5。
+--   数える行を決めるのは 2-c の1か所（ここは写さずに呼ぶ）。点数・職位・ほかの言語の訳は入れない。
+create or replace function public.pv_review_summary_marks(p_codes text[], p_upto timestamptz, p_lang text)
+returns table (id text, mark text)
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  select r.id::text,
+         md5((select jsonb_agg(jsonb_build_array(
+                       coalesce(to_jsonb(r) ->> (u.c || '_comment'), ''),
+                       case when coalesce(nullif(r.orig_lang, ''), 'ja') <> p_lang
+                            then coalesce(r.translations -> p_lang ->> u.c, '')
+                            else '' end)
+                     order by u.o)
+                from unnest(public.pv_review_summary_cats()) with ordinality u(c, o))::text)
+    from public.reviews_v2 r
+   where r.id::text in (select public.pv_review_summary_ids(p_codes, p_upto));
+$fn$;
+
+revoke all on function public.pv_review_summary_marks(text[], timestamptz, text) from public, anon, authenticated;
+
+comment on function public.pv_review_summary_marks(text[], timestamptz, text) is
+  '口コミ1件ごとの印（6分類の原文と、その言語の訳を混ぜた md5）。本文は返さない。誰にも grant しない。';
+
+-- 2-f. 材料の集合と中身の指紋。id と印を並べて md5 にしたもの。
+--   1件でも消える・入れ替わる・古い日付で足される・本文が書き換わる・その言語の訳が入る、で変わる。
+--   あとから（その時刻より後に）増えただけ・点数だけ変わった・ほかの言語の訳が入った、では変わらない。
+drop function if exists public.pv_review_summary_sig(text[], timestamptz);
+
+create or replace function public.pv_review_summary_sig(p_codes text[], p_upto timestamptz, p_lang text)
 returns text
 language sql
 stable
 security definer
 set search_path = public, extensions
 as $fn$
-  select md5(coalesce(string_agg(i, ',' order by i), ''))
-    from public.pv_review_summary_ids(p_codes, p_upto) i;
+  select md5(coalesce(string_agg(m.id || ':' || m.mark, ',' order by m.id), ''))
+    from public.pv_review_summary_marks(p_codes, p_upto, p_lang) m;
 $fn$;
 
-revoke all on function public.pv_review_summary_sig(text[], timestamptz) from public, anon, authenticated;
+revoke all on function public.pv_review_summary_sig(text[], timestamptz, text) from public, anon, authenticated;
 
-comment on function public.pv_review_summary_sig(text[], timestamptz) is
-  '材料にした口コミの集合の指紋（id を並べた md5）。元の口コミが消えた・入れ替わったことに気づくため。外へは返さない。誰にも grant しない。';
+comment on function public.pv_review_summary_sig(text[], timestamptz, text) is
+  '材料にした口コミの集合と中身の指紋（id と印を並べた md5）。消えた・入れ替わった・書き換わったことに気づくため。外へは返さない。誰にも grant しない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -433,7 +463,7 @@ begin
      のどれかで「無い」と同じ顔にする。 */
   v_codes := public.pv_review_summary_codes(v_air);
   if public.pv_review_summary_count(v_codes, null) < 3
-     or public.pv_review_summary_sig(v_codes, v_row.newest_at) is distinct from v_row.sig
+     or public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig
      or public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is not null
      or public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is not null
      or (v_row.good || v_row.concern) = '[]'::jsonb then
@@ -565,7 +595,7 @@ begin
   insert into public.pv_review_summaries as s
          (airline, lang, n, newest_at, sig, good, concern, made_at)
   values (v_air, v_lang, v_n, v_newest,
-          public.pv_review_summary_sig(v_codes, v_newest), v_good, v_con, now())
+          public.pv_review_summary_sig(v_codes, v_newest, v_lang), v_good, v_con, now())
   on conflict (airline, lang) do update
      set n = excluded.n, newest_at = excluded.newest_at, sig = excluded.sig,
          good = excluded.good, concern = excluded.concern, made_at = excluded.made_at
@@ -654,7 +684,7 @@ comment on function public.pv_review_summary_set(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 
 -- 6-a. 控え（1社 × 1言語 に1行）。「この集合に、もう払ったか」を覚えるだけ。
---   sig    … そのとき読めた口コミ全部の指紋（pv_review_summary_sig(codes, null)）
+--   sig    … そのとき読めた口コミ全部の指紋（pv_review_summary_sig(codes, null, lang)）
 --   state  … running（作っている）／saved（預けた）／empty（点が残らなかった）／failed
 --   tries  … 同じ sig で番を取った回数（sig が変われば 1 に戻る）
 --   ran_at … state を書いた時刻（番の期限・失敗のあとの待ち時間を測る）
@@ -718,7 +748,7 @@ begin
 
   /* ★読む側（4）は「預けた時刻までの集合」を比べるが、ここは**いまの全部**と比べる。
      あとから1件増えただけでも指紋は変わる ＝ 作り直す。 */
-  v_sig := public.pv_review_summary_sig(v_codes, null);
+  v_sig := public.pv_review_summary_sig(v_codes, null, p_lang);
   if v_has
      and v_row.sig = v_sig
      and public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is null
@@ -883,7 +913,7 @@ begin
 
   /* ★件数・指紋・材料を**1文で**読む（同じ瞬間の集合）。 */
   select public.pv_review_summary_count(v_codes, null),
-         public.pv_review_summary_sig(v_codes, null),
+         public.pv_review_summary_sig(v_codes, null, v_lang),
          coalesce((
            select jsonb_agg(x.j order by x.ts, x.id)
              from (
@@ -986,7 +1016,7 @@ begin
 
   v_codes := public.pv_review_summary_codes(v_air);
   select public.pv_review_summary_count(v_codes, null),
-         public.pv_review_summary_sig(v_codes, null),
+         public.pv_review_summary_sig(v_codes, null, v_lang),
          (select max(r.created_at)
             from public.reviews_v2 r
            where r.id::text in (select public.pv_review_summary_ids(v_codes, null)))
@@ -1149,7 +1179,8 @@ select '中の部品は誰にも配っていない',
        case when not has_function_privilege('authenticated', 'public.pv_review_summary_bad(jsonb, text, integer)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_ids(text[], timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_count(text[], timestamptz)', 'execute')
-             and not has_function_privilege('authenticated', 'public.pv_review_summary_sig(text[], timestamptz)', 'execute')
+             and not has_function_privilege('authenticated', 'public.pv_review_summary_sig(text[], timestamptz, text)', 'execute')
+             and not has_function_privilege('authenticated', 'public.pv_review_summary_marks(text[], timestamptz, text)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_codes(text)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_cats()', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_out(jsonb)', 'execute')
