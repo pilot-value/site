@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
@@ -1559,6 +1559,8 @@ const STAY_RE = /\/rest\/v1\/rpc\/pv_stays$/, STAY_MOD_RE = /\/rest\/v1\/rpc\/pv
 /* 待遇の集計（pv_contrib_facts）。ふだんは未ログインへの返事（状態の1語）。'rows' の時だけ、鍵の無い会員への返事
    ＝ 状態は 'locked'。わざと下の行を付けて返す（サーバーが間違えて送ってきても、画面が1行も出さないことを見る）。
    'give'（自分の会社への回答が足りない人）でも、同じ行を付けて返す。'giveOpen'（開いている人）は、開いた返事に同じ行。
+   'work'・'work0'（開いている人。「勤務・訓練」のタブの場面）は、開いた返事に FACT_ROWS と子だけに行がある1行／行なし
+   （補足の口は、どちらも未ログインへの1語のまま）。
    ★これは絵の検査。立場ごとに何が返るか・「最多」の決め方（lead）が正しいかは、本物の SQL を通す側
      （db/test-contrib.mjs・assert-contrib.mjs）が見る。
    ⚠️ 検査のために作った行で、本物の集計ではない（人数も答えも、この検査のファイルの中にしか無い）。
@@ -1601,7 +1603,10 @@ const wire = f => Object.fromEntries([...FACT_KEYS.filter(k => k in f), ...(f.bo
 const SENT = [...FACT_ROWS, ...BEN_ROWS, LEAK_ROW];
 /* 状態の1語だけの返事（開いていない人に、本物の口が返す形）。語は、書かずに組み立てる。 */
 const stateBody = word => JSON.stringify({ ok: true, state: word });
-const factBody = mode => (mode === 'rows'
+const factBody = mode => (mode === 'work' || mode === 'work0'
+  /* 〔検査用の見本〕開いている人（自分の会社の人・5つ答えた人）への返事。子だけに行がある質問（reserve_days）を1つ混ぜる */
+  ? JSON.stringify({ ok: true, state: 'open', facts: mode === 'work0' ? [] : [...FACT_ROWS, { question_id: 'reserve_days', kind: 'num', n: 4, lead: null, median_num: 6, ym: '2026-09' }].map(wire) })
+  : mode === 'rows'
   ? JSON.stringify({ ok: true, state: 'locked', facts: SENT.map(wire) })   // 鍵の無い会員。行が付いてきても、画面は1行も出さない
   : mode === 'give' ? JSON.stringify({ ok: true, state: 'give', facts: SENT.map(wire) })      // 自分の会社への回答が足りない人。行が付いてきても、画面は1行も出さない
   : mode === 'giveOpen' ? JSON.stringify({ ok: true, state: 'open', facts: SENT.map(wire) })  // 開いている人。欄が聞いた質問の行だけを出す
@@ -1758,6 +1763,7 @@ const CALM = x => (x.kind === 'work' ? x.on && x.state === 'locked' : x.kind ===
 const LOGIN_LINE = 'ログインと給与の提出で開きます', LOGIN_GO = 'ログイン';
 /* いま見えている実データの欄（.crl）を、欄ごとに読む。ページの中で動く（外の変数を1つも使わない）。判定は外でする。
    見えている ＝ SETTLED と同じ決め方（箱を持っている）。at ＝ 欄の居場所（板の名前。「集まった回答」は got）。
+   sf ＝ 欄が入っている面の名前（ページに書いてある字。「勤務・訓練」の板の欄だけ。落ちた時の文に、どの面の欄かを書くためだけに使う）。
    cards ＝ 欄の中の、見えている答えるカードの数・retry ＝ 見えている「やり直す」の数。 */
 function slotsSee() {
   const vis = e => !!e && e.getClientRects().length > 0, tx = e => (e ? e.textContent : '').replace(/\s+/g, '');
@@ -1765,6 +1771,7 @@ function slotsSee() {
     live: e.getAttribute('data-live'), state: e.getAttribute('data-state'), entry: e.getAttribute('data-entry'),
     keys: (e.getAttribute('data-keys') || '').split(',').filter(Boolean).length,
     at: e.closest('.pvg-got') ? 'got' : (e.closest('.pvg-panel') || {}).id || '',
+    sf: (t => (t ? t.textContent.trim() : ''))(e.closest('.pvg-sf') && e.closest('.pvg-sf').querySelector('.pvg-sf-t')),
     text: tx(e), lock: [...e.querySelectorAll('.crl-lock')].map(tx), rows: e.querySelectorAll('.crl-fact').length,
     cards: [...e.querySelectorAll('.crl-give')].filter(vis).length, retry: [...e.querySelectorAll('.crl-retry')].filter(vis).length,
     links: [...e.querySelectorAll('a')].map(a => ({ text: tx(a), href: a.getAttribute('href') || '', cta: a.classList.contains('crl-cta'), login: a.hasAttribute('data-crl-login'), on: vis(a) })),
@@ -1784,8 +1791,9 @@ const quietBad = q => [
 ];
 /* 欄の印（data-entry）が「入口は自分では出さない」（"0"）か「答えるカードだけ」（"give"）＝ ログインも給与の提出の入口も、この欄には出ない。 */
 const STAMPED = x => x.entry === '0' || x.entry === 'give';
-const SLOT_AT = { got: '集まった回答', 'pvg-p-work': '勤務', 'pvg-p-benefits': '待遇', 'pvg-p-living': '暮らし' };
-const slotName = x => (x.live === 'work' ? '月の勤務' : `${SLOT_AT[x.at] || x.at || '?'}の集計`);
+/* 落ちた時の文に書く、欄の名前。「勤務・訓練」の板の集計の欄は、面の名前で呼ぶ（板に4つ在る）。暮らし・家族の板には、もう集計の欄が無い。 */
+const SLOT_AT = { got: '集まった回答', 'pvg-p-work': '勤務・訓練', 'pvg-p-benefits': '待遇' };
+const slotName = x => (x.live === 'work' ? '月の勤務' : `${x.sf || SLOT_AT[x.at] || x.at || '?'}の集計`);
 /* M1 未ログインの人に見えている、集計の欄（fact）と月の勤務の欄（work）。slots ＝ slotsSee() の答え・hash ＝ 住所の # に在るタブの名前（概要は ''）。
      ・どの欄も鍵の形・回答の行は無い・1行は LOGIN_LINE だけ（欄が持つ質問が何であっても、同じ1行）
      ・印の付いた集計の欄は、リンクを1つも持たない。そのかわり、同じ面の見えているどれかの欄に、ログインへのリンクが在る
@@ -3204,6 +3212,245 @@ async function runFacts404(browser, s, [w, h]) {
   }
 }
 
+/* 「勤務・訓練」のタブを、読む人の立場ごとに開いて見る（場面 work・work0）。偽のサーバーの場面を1つずつ、ページを1回ずつ開く：
+     未ログイン（''）・鍵の無い会員（'rows'）・開いている人（'work'）・自分の会社への回答が足りない人（'give'）・
+     読めない時（'off'）・集計の口が無い時（'facts404'）。work0 ＝ 開いている人で、集めたものが何も無い時（'work0'）。
+   見るのは板の5つの面の欄：月の勤務・勤務予定・休日（黙る欄）・通勤・Staff Travel・昇格・訓練（黙る欄）。
+   開いていない人には、見えている欄ごとに鍵の1行と、その人の入口（未ログイン ＝ 欄ごとの「ログイン」3つ・鍵の無い会員 ＝ 月の勤務の
+   「匿名で給与を提出する」1つ・回答が足りない人 ＝ 月の勤務の答えるカード1枚）だけ。その奥（回答の行・人数・値）は何も無い。
+   「見えない」は2つの約束：計算された display が none・字が1つも無い（欄が何も受け取っていない）。
+   人数（「3人」）や値（「9.5」）は、欄（.crl）の字でだけ探す（板の地の文と、概要のカードが「3人そろった」と言う）。
+   ⚠️ 絵の検査（MOCK）。誰にどの状態が返るかは、本物の SQL を通す側（db/test-contrib.mjs・assert-contrib.mjs）が見る。 */
+async function runWork(browser, s, [w, h], only) {
+  const SCOPE = '勤務予定・休日、昇格・訓練の回答も、同じ条件で開きます。', ASKH = 'パイロットの回答';
+  const SF = { roster: '勤務予定・休日', commute: '通勤', travel: 'Staff Travel', career: '昇格・訓練' };
+  const QUIET = ['roster', 'career'], LOUD = ['commute', 'travel'], FOUR = ['roster', 'commute', 'travel', 'career'];
+  /* 板の欄と、板・ページの数を、1回だけ読む。ページの中で動く（外の変数を1つも使わない）。判定は外でする。 */
+  const see = payGo => {
+    const vis = e => !!e && e.getClientRects().length > 0, sq = e => (e ? e.textContent : '').replace(/\s+/g, ''), tr = e => (e ? e.textContent : '').trim();
+    const P = document.getElementById('pvg-p-work'), WB = ['.crl-wb', '.crl-wb-c', '.crl-wb-tr', '.crl-wb-cap'];
+    if (!P) return null;
+    const slots = [...P.querySelectorAll('.crl[data-live]')].map(e => ({
+      live: e.getAttribute('data-live'), sf: e.getAttribute('data-sf') || '', quiet: e.getAttribute('data-quiet') === '1',
+      state: e.getAttribute('data-state'), on: vis(e), display: getComputedStyle(e).display, text: sq(e),
+      lock: [...e.querySelectorAll('.crl-lock')].map(sq), retry: [...e.querySelectorAll('.crl-retry')].filter(vis).length,
+      links: [...e.querySelectorAll('a')].map(a => ({ text: sq(a), on: vis(a), login: a.hasAttribute('data-crl-login'), cta: a.classList.contains('crl-cta'), give: a.getAttribute('data-crl-give') === '1' })),
+      cards: [...e.querySelectorAll('.crl-give')].map(c => ({ on: vis(c), head: [...c.querySelectorAll('.crl-give-h')].map(tr), count: [...c.querySelectorAll('.crl-give-n')].map(tr) })),
+      rows: [...e.querySelectorAll('.crl-fact')].map(r => ({ ctx: r.classList.contains('is-ctx'), k: tr(r.querySelector('.crl-fact-k')), ans: !!r.querySelector('.crl-ans'), text: sq(r) })),
+    }));
+    const head = {};
+    for (const f of P.querySelectorAll('.pvg-sf')) { const hd = f.querySelector('.pvg-sf-got > .pvg-askh'); if (hd) head[f.getAttribute('data-sf')] = { on: vis(hd), text: tr(hd) }; }
+    const sc = P.querySelector('.pvg-sf-scope'), seen = [...document.querySelectorAll('a')].filter(vis);
+    return {
+      slots, head, scope: sc ? { on: vis(sc), text: tr(sc) } : null,
+      panel: {
+        pay: [...P.querySelectorAll('a')].filter(a => sq(a) === payGo).map(a => ({ on: vis(a), month: !!a.closest('.crl[data-live="work"]') })),
+        login: P.querySelectorAll('a[data-crl-login]').length, loginOn: [...P.querySelectorAll('a[data-crl-login]')].filter(vis).length,
+        give: P.querySelectorAll('.crl-give').length, wb: WB.reduce((n, c) => n + P.querySelectorAll(c).length, 0),
+      },
+      page: {
+        crl: [...document.querySelectorAll('.crl')].map(e => e.textContent).join('\n'), facts: document.querySelectorAll('.crl-fact').length,
+        give: [...document.querySelectorAll('.crl-give')].filter(vis).length, login: [...document.querySelectorAll('a[data-crl-login]')].filter(vis).length,
+        pay: seen.filter(a => sq(a) === payGo).length, wb: WB.reduce((n, c) => n + document.querySelectorAll(c).length, 0),
+      },
+    };
+  };
+  /* 1つの場面でページを開き、「勤務・訓練」のタブへ移り、見えている欄が落ち着くまで待ってから（時間では待たない）1回だけ読む。 */
+  const load = async (mode, who) => {
+    const { ctx, p, ready } = await open(browser, s, w, h, mode);
+    try {
+      if (!ready) return { lost: `${who}: 「読み込み中」のまま固まる` };
+      await p.evaluate(() => document.querySelector('.pvg-tabs [data-pvg-tab="work"]').click());
+      const at = await p.waitForFunction(() => !!window.PVGlance && window.PVGlance.at() === 'work' && document.body.classList.contains('pvg-at-work'), { timeout: 15000 }).then(() => true, () => false);
+      /* 欄は見えた時に読みに行く（career-live.js）。見えていない欄が読み終わったかは、待たずに約束の側で見る（鍵の形・字なし）。 */
+      const calm = at && (await p.waitForFunction(SETTLED, { timeout: 15000 }).then(() => true, () => false));
+      if (!calm) return { lost: `${who}: 「勤務・訓練」へ移れない・欄が落ち着かない` };
+      return (await p.evaluate(see, PAY_GO)) || { lost: `${who}: 「勤務・訓練」の板が無い` };
+    } finally {
+      await ctx.close().catch(() => {});
+    }
+  };
+  const pick = (R, live, sf) => { const a = R.slots.filter(x => x.live === live && (live === 'work' || x.sf === sf)); return a.length === 1 ? a[0] : null; };
+  const nm = sf => (sf ? `${SF[sf]}の集計` : '月の勤務');
+  const say = (tag, label, R, judge) => { const bad = R.lost ? [R.lost] : judge(R); ok(!bad.length, `${tag}: ${label}`, [...new Set(bad)].slice(0, 6).join(' ／ ')); };
+  /* 黙る2つの欄（勤務予定・休日、昇格・訓練）：鍵の形のまま見えない（display none）／字が無い／面の「パイロットの回答」も見えない。 */
+  const quietShown = R => QUIET.flatMap(sf => {
+    const x = pick(R, 'fact', sf);
+    if (!x) return [`${nm(sf)}が無い`];
+    if (!x.quiet) return [`${nm(sf)}に黙る印が無い（${x.state}・display ${x.display}）`];
+    return x.state !== 'locked' || x.display !== 'none' || x.on ? [`${nm(sf)}が ${x.state}・display ${x.display}${x.on ? '・見えている' : ''}（あるべき 鍵の形・display none）`] : [];
+  });
+  const quietText = R => QUIET.flatMap(sf => { const x = pick(R, 'fact', sf); return !x ? [`${nm(sf)}が無い`] : x.text ? [`${nm(sf)}に字が在る「${x.text.slice(0, 40)}」`] : []; });
+  const quietHead = R => QUIET.flatMap(sf => (!R.head[sf] ? [`${SF[sf]}の面に「${ASKH}」の見出しが無い`] : R.head[sf].on ? [`${SF[sf]}の面の「${R.head[sf].text}」が見えている`] : []));
+  const scopeOn = R => (!R.scope ? ['添え書きが無い'] : !R.scope.on || R.scope.text !== SCOPE ? [`添え書き ${R.scope.on ? '見えている' : '見えない'}「${R.scope.text}」（あるべき 見えている「${SCOPE}」）`] : []);
+  const QUIET_LABEL = ['黙る2つの集計の欄（勤務予定・休日、昇格・訓練）は、鍵の形のまま見えない（display none）', '黙る2つの集計の欄は、字を1つも持たない（何も受け取っていない）', `黙る2つの面の「${ASKH}」の見出しは見えない`];
+  const SCOPE_LABEL = `板の添え書き「${SCOPE}」が見えている`;
+  try {
+    if (only === 'work0') {
+      /* B4' 開いている人・集めたものが何も無い：「まだ集計がありません」と言う（隠さない・0 と書かない）。月の勤務に棒も目盛も無い。 */
+      const tag = `${s} ${w}（勤務・訓練・開いている人・集計なし）`, Z = await load('work0', '集計なし');
+      say(tag, `月の勤務は「${FACT_NONE}」だけ ── 棒・目盛・帯・添え書き（.crl-wb）が無い・数字が無い`, Z, R => {
+        const x = pick(R, 'work');
+        return [
+          ...(R.panel.wb ? [`月の勤務の棒の部品が ${R.panel.wb}つ`] : []),
+          ...(!x ? ['月の勤務の欄が無い'] : !x.on || x.text !== FACT_NONE ? [`月の勤務が ${x.state}${x.on ? '' : '・見えていない'}「${x.text.slice(0, 40)}」（あるべき「${FACT_NONE}」だけ）`] : []),
+          ...(x && NO_NUM.test(x.text) ? ['月の勤務に数字が在る'] : []),
+        ];
+      });
+      say(tag, `4つの集計の欄は、どれも見えている「${ASKH}」の下に「${FACT_NONE}」`, Z, R => FOUR.flatMap(sf => {
+        const x = pick(R, 'fact', sf), hd = R.head[sf];
+        return [
+          ...(!hd || !hd.on || hd.text !== ASKH ? [`${SF[sf]}の面の「${ASKH}」が見えていない`] : []),
+          ...(!x ? [`${nm(sf)}が無い`] : !x.on || x.text !== FACT_NONE ? [`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}「${x.text.slice(0, 40)}」`] : []),
+        ];
+      }));
+      return;
+    }
+    /* B1 未ログイン：月の勤務と、通勤・Staff Travel の集計に「ログインと給与の提出で開きます」＋「ログイン」（1行が3つ・入口が3つ・どれも同じ1行）。 */
+    {
+      const tag = `${s} ${w}（勤務・訓練・未ログイン）`, L = await load('', '未ログイン');
+      say(tag, `月の勤務と、通勤・Staff Travel の集計の欄は「${LOGIN_LINE}」の1行と入口「${LOGIN_GO}」の1つ（板に1行が3つ・入口が3つ）`, L, R => [
+        ...[null, ...LOUD].flatMap(sf => {
+          const x = pick(R, sf ? 'fact' : 'work', sf), lg = x ? x.links.filter(a => a.login) : [];
+          if (!x) return [`${nm(sf)}が無い`];
+          const b = [];
+          if (x.state !== 'locked' || !x.on) b.push(`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}`);
+          if (!same(x.lock, [LOGIN_LINE])) b.push(`${nm(sf)}の1行「${x.lock.join('｜')}」`);
+          if (x.links.length !== 1 || lg.length !== 1 || !lg[0].on || lg[0].text !== LOGIN_GO) b.push(`${nm(sf)}の入口「${x.links.map(a => a.text + (a.login ? '' : '〔ログインの入口でない〕')).join('｜') || '無し'}」`);
+          if (x.text !== LOGIN_LINE + LOGIN_GO) b.push(`${nm(sf)}に、1行と入口のほかの字が在る「${x.text.slice(0, 50)}」`);
+          return b;
+        }),
+        ...(R.panel.loginOn !== 3 || R.panel.login !== 3 ? [`板の「${LOGIN_GO}」が ${R.panel.loginOn}つ見えている（在るのは ${R.panel.login}つ・あるべき 3つ）`] : []),
+      ]);
+      say(tag, QUIET_LABEL[0], L, quietShown);
+      say(tag, QUIET_LABEL[1], L, quietText);
+      say(tag, QUIET_LABEL[2], L, quietHead);
+      say(tag, SCOPE_LABEL, L, scopeOn);
+      say(tag, `板の欄に数字が無い・「${PAY_GO}」も答えるカードも、月の勤務の棒も無い`, L, R => [
+        ...R.slots.filter(x => NO_NUM.test(x.text)).map(x => `${x.live === 'work' ? '月の勤務' : `${SF[x.sf] || x.sf}の${x.live === 'notes' ? '補足' : '集計'}`}に数字「${x.text.slice(0, 40)}」`),
+        ...(R.panel.pay.length ? [`「${PAY_GO}」が ${R.panel.pay.length}つ`] : []),
+        ...(R.panel.give ? [`答えるカードが ${R.panel.give}枚`] : []),
+        ...(R.panel.wb ? [`月の勤務の棒の部品が ${R.panel.wb}つ`] : []),
+      ]);
+    }
+    /* B2 鍵の無い会員（偽のサーバーは、鍵の掛かった返事に、わざと行を付けて返す）：見えている「匿名で給与を提出する」は月の勤務の欄の中の1つだけ・
+       通勤と Staff Travel の集計は「給与の提出で開きます」の1行だけ・回答の行は、ページのどの欄にも無い（概要の「集まった回答」も ＝ 1つの返事、1つの状態）。 */
+    {
+      const tag = `${s} ${w}（勤務・訓練・鍵の無い会員）`, M = await load('rows', '鍵の無い会員');
+      say(tag, `月の勤務は「${PAY_LINE}」・板に見えている「${PAY_GO}」は、月の勤務の欄の中の1つだけ`, M, R => {
+        const x = pick(R, 'work'), on = R.panel.pay.filter(a => a.on);
+        return [
+          ...(!x ? ['月の勤務の欄が無い'] : x.state !== 'locked' || !x.on || !same(x.lock, [PAY_LINE]) ? [`月の勤務が ${x.state}${x.on ? '' : '・見えていない'}「${x.lock.join('｜')}」`] : []),
+          ...(on.length !== 1 || !on[0].month ? [`見えている「${PAY_GO}」が ${on.length}つ（月の勤務の欄の中 ${on.filter(a => a.month).length}つ）`] : []),
+        ];
+      });
+      say(tag, QUIET_LABEL[0], M, quietShown);
+      say(tag, QUIET_LABEL[1], M, quietText);
+      say(tag, SCOPE_LABEL, M, scopeOn);
+      say(tag, `通勤・Staff Travel の集計の欄は「${PAY_LINE}」の1行だけ ── リンクも、回答の行も、親の質問の行も無い`, M, R => LOUD.flatMap(sf => {
+        const x = pick(R, 'fact', sf);
+        if (!x) return [`${nm(sf)}が無い`];
+        const b = [], c = x.rows.filter(r => r.ctx).length;
+        if (x.state !== 'locked' || !x.on || !same(x.lock, [PAY_LINE])) b.push(`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}「${x.lock.join('｜')}」`);
+        if (x.links.length) b.push(`${nm(sf)}にリンクが ${x.links.length}つ（${x.links.map(a => a.text).join('｜')}）`);
+        if (x.rows.length - c) b.push(`${nm(sf)}に回答の行が ${x.rows.length - c}つ`);
+        if (c) b.push(`${nm(sf)}に親の質問の行が ${c}つ`);
+        if (x.text !== PAY_LINE + x.links.map(a => a.text).join('')) b.push(`${nm(sf)}に、1行のほかの字が在る「${x.text.slice(0, 50)}」`);
+        return b;
+      }));
+      say(tag, `板に「${LOGIN_GO}」も答えるカードも無い・返事に付いてきた人数も中央値も、ページのどの欄（.crl）の字にも無い・回答の行は、ページのどの欄にも無い（概要の「集まった回答」も）`, M, R => [
+        ...(R.panel.login ? [`板に「${LOGIN_GO}」が ${R.panel.login}つ`] : []),
+        ...(R.panel.give ? [`板に答えるカードが ${R.panel.give}枚`] : []),
+        ...LEAK_SLOT.filter(t => R.page.crl.includes(t)).map(t => `欄の字に「${t}」`),
+        ...(R.page.facts ? [`回答の行が、ページの欄に ${R.page.facts}つ`] : []),
+      ]);
+    }
+    /* B3r 開いている人：子の質問の行は、値の無い親の質問の行の下に立つ（親の行が出ていない時だけ、親の質問の字を上に置く）。
+       通勤 ＝ タクシーの費用（回答 3人）の上に、出社・帰宅の移動 → どの形で提供されるか の2行・Staff Travel ＝ 上位クラス（回答 6人）の上に1行。 */
+    {
+      const tag = `${s} ${w}（勤務・訓練・開いている人）`, O = await load('work', '開いている人');
+      const label = id => QBY.get(id).ja.label, people = id => `${FACT_ROWS.find(f => f.question_id === id).n}人`;
+      const under = (sf, row, ctxs) => R => {
+        const x = pick(R, 'fact', sf);
+        if (!x) return [`${nm(sf)}が無い`];
+        const b = [], i = x.rows.findIndex(r => !r.ctx && r.k === label(row)), c = x.rows.map((r, j) => [r, j]).filter(([r]) => r.ctx);
+        if (x.state !== 'open' || !x.on) b.push(`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}`);
+        if (i < 0) b.push(`「${label(row)}」の行が無い`);
+        else if (!x.rows[i].text.includes(people(row))) b.push(`「${label(row)}」の行に「${people(row)}」が無い「${x.rows[i].text.slice(0, 60)}」`);
+        if (!same(c.map(([r]) => r.k), ctxs.map(label))) b.push(`親の質問の行「${c.map(([r]) => r.k).join('｜') || '無し'}」（あるべき「${ctxs.map(label).join('｜')}」の順）`);
+        if (i >= 0 && c.some(([, j]) => j > i)) b.push(`親の質問の行が「${label(row)}」の行より下に在る`);
+        for (const [r] of c) if (r.ans || NO_NUM.test(r.text) || r.text !== squash(r.k)) b.push(`親の質問の行「${r.k}」に、答えか数字が在る「${r.text.slice(0, 50)}」`);
+        return b;
+      };
+      say(tag, '通勤の面：「タクシーでの出社・帰宅の費用」の行（回答 3人）は、値の無い親の質問の行2つ（出社・帰宅の移動 → どの形で提供されるか）の下に立つ', O, under('commute', 'commuting_taxi_cost', ['commuting_transport', 'commuting_transport_method']));
+      say(tag, 'Staff Travel の面：「上位クラスに乗れるか」の行（回答 6人）は、値の無い親の質問の行1つ（社員向けの航空券制度）の下に立つ', O, under('travel', 'staff_travel_cabin', ['staff_travel']));
+    }
+    /* B8 自分の会社への回答が足りない人（給与の鍵は生きている・ほかの会社のページ）：集計・補足・月の勤務の口は、どれも 'give'。
+       月の勤務の欄にだけ、1行と答えるカード1枚。通勤と Staff Travel は同じ1行だけ。字は、偽のサーバーの返事（giveBody）から作る。 */
+    {
+      const tag = `${s} ${w}（勤務・訓練・自分の会社への回答が足りない人）`, V = await load('give', '回答が足りない人');
+      const g = JSON.parse(giveBody('give', s)), gLine = GIVE_LINE(g.need), gHead = GIVE_HEAD(g.name), gCount = GIVE_COUNT(g.have, g.need);
+      say(tag, `月の勤務の欄は「${gLine}」の1行と、答えるカード1枚（「${gHead}」「${gCount}」・入口は「${GIVE_GO}」の1つ）`, V, R => {
+        const x = pick(R, 'work');
+        if (!x) return ['月の勤務の欄が無い'];
+        const b = [], c = x.cards[0];
+        if (x.state !== 'locked' || !x.on) b.push(`月の勤務が ${x.state}${x.on ? '' : '・見えていない'}`);
+        if (!same(x.lock, [gLine])) b.push(`1行「${x.lock.join('｜')}」（あるべき「${gLine}」）`);
+        if (x.cards.length !== 1 || !c.on) b.push(`答えるカードが ${x.cards.length}枚${c && !c.on ? '（見えていない）' : ''}`);
+        if (c && (!same(c.head, [gHead]) || !same(c.count, [gCount]))) b.push(`カードの字「${[...c.head, ...c.count].join('｜')}」`);
+        if (x.links.length !== 1 || !(x.links[0].on && x.links[0].cta && x.links[0].give && x.links[0].text === GIVE_GO)) b.push(`入口「${x.links.map(a => a.text).join('｜') || '無し'}」`);
+        if (x.text !== squash(gLine + gHead + gCount + GIVE_GO)) b.push(`1行とカードのほかの字が在る「${x.text.slice(0, 80)}」`);
+        return b;
+      });
+      say(tag, `通勤・Staff Travel の集計の欄は「${gLine}」の1行だけ（答えるカードも、リンクも、回答の行も無い）`, V, R => LOUD.flatMap(sf => {
+        const x = pick(R, 'fact', sf);
+        if (!x) return [`${nm(sf)}が無い`];
+        return x.state !== 'locked' || !x.on || !same(x.lock, [gLine]) || x.text !== squash(gLine) || x.cards.length || x.links.length || x.rows.length
+          ? [`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}「${x.text.slice(0, 50)}」（カード ${x.cards.length}・リンク ${x.links.map(a => a.text).join('｜') || '0'}・行 ${x.rows.length}）`] : [];
+      }));
+      say(tag, QUIET_LABEL[0], V, quietShown);
+      say(tag, QUIET_LABEL[1], V, quietText);
+      say(tag, QUIET_LABEL[2], V, quietHead);
+      say(tag, SCOPE_LABEL, V, scopeOn);
+      say(tag, `タブに見えている答えるカードは1枚だけ ── 「${LOGIN_GO}」も「${PAY_GO}」も見えていない・回答の行も月の勤務の棒も、ページに無い`, V, R => [
+        ...(R.page.give !== 1 ? [`見えている答えるカードが ${R.page.give}枚`] : []),
+        ...(R.page.login ? [`見えている「${LOGIN_GO}」が ${R.page.login}つ`] : []),
+        ...(R.page.pay ? [`見えている「${PAY_GO}」が ${R.page.pay}つ`] : []),
+        ...(R.page.facts ? [`回答の行が ${R.page.facts}つ`] : []),
+        ...(R.page.wb ? [`月の勤務の棒の部品が ${R.page.wb}つ`] : []),
+      ]);
+    }
+    /* B5 読めない時（どの口も 500）：月の勤務と4つの集計の欄は「いま読み出せません」＋「やり直す」（黙る2つの欄も、鍵の形でないので見えている）。
+       集計の口が無い時（集計の口だけ 404）：4つの集計の欄は見えていて「準備中」だけ・添え書きは出さない（開くものがまだ無い）。 */
+    {
+      const tag = `${s} ${w}（勤務・訓練・読めない時）`, E = await load('off', '読めない時');
+      say(tag, `月の勤務と4つの集計の欄は、どれも見えていて「${GIVE_ERR}」と「${GIVE_RETRY}」（黙る2つの欄も）`, E, R => [null, ...FOUR].flatMap(sf => {
+        const x = pick(R, sf ? 'fact' : 'work', sf);
+        return !x ? [`${nm(sf)}が無い`] : !x.on || x.state !== 'error' || x.text !== squash(GIVE_ERR + GIVE_RETRY) || x.retry !== 1 ? [`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}「${x.text.slice(0, 40)}」`] : [];
+      }));
+    }
+    {
+      const tag = `${s} ${w}（勤務・訓練・集計の口が無い時）`, F = await load('facts404', '集計の口が無い時');
+      say(tag, `4つの集計の欄は、どれも見えていて「${FACT_OFF}」だけ（黙る2つも）──「${FACT_NONE}」と書かない・数字もリンクも無い`, F, R => FOUR.flatMap(sf => {
+        const x = pick(R, 'fact', sf);
+        if (!x) return [`${nm(sf)}が無い`];
+        const b = [];
+        if (!x.on) b.push(`${nm(sf)}が見えていない（${x.state}）`);
+        if (x.text !== FACT_OFF) b.push(`${nm(sf)}の字「${x.text.slice(0, 40)}」（あるべき「${FACT_OFF}」だけ）`);
+        if (x.text.includes(FACT_NONE)) b.push(`${nm(sf)}に「${FACT_NONE}」`);
+        if (NO_NUM.test(x.text)) b.push(`${nm(sf)}に数字`);
+        if (x.links.length) b.push(`${nm(sf)}にリンクが ${x.links.length}つ`);
+        return b;
+      }));
+      say(tag, `板の添え書き「${SCOPE}」は見えていない（つながっていない回答を「同じ条件で開きます」と言わない）`, F, R => (!R.scope ? ['添え書きが無い'] : R.scope.on ? [`添え書きが見えている「${R.scope.text}」`] : []));
+    }
+  } catch (e) {
+    ok(false, `${s} ${w}（勤務・訓練）: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  }
+}
+/* 開いている人で、集めたものが何も無い時（場面 work0）。中身は runWork の1か所。 */
+async function runWork0(browser, s, v) { return runWork(browser, s, v, 'work0'); }
+
 /* 「6つのタブと、情報を追加」：実際に押して歩く。
    タブごとに 出ているべき箱（on）と 隠れているべき箱（off）。そのページに無い箱（会社によって無いものが在る）は数えない。 */
 const TAB_IDS = TABS.map(t => t[0]), TAB_NAME = Object.fromEntries(TABS);
@@ -3718,6 +3965,45 @@ async function runTabs(browser, s, [w, h]) {
       r = await see();
       if (!(shut && r.at === 'life')) bad.push(`戻るで閉じたあと「暮らし・家族」に居ない（${r.at}）`);
       ok(!bad.length, `${tag}: タブの中の入口 → 月の勤務／通勤・タクシーの入力へ直接・閉じても同じタブに居る`, bad.join(' ／ '));
+    }
+    /* ── 5b) T7「勤務・訓練」の6つの入口 ── どれも、読む人に見えている字のとおりの話題を開く。
+       入口は字で探す（ページが書いている data-pvc-open では探さない ＝「通勤の条件を追加」が Staff Travel を開いても気づける）。
+       字と話題の対は、ここに書いた表（設計の「入口」の表のとおり）。押す → その話題の入力が開く → 会社を選び直させない →
+       希望休は、その質問の所から開く → × で閉じる → 「勤務・訓練」に居たまま。 */
+    {
+      const WANT = [['勤務時間を追加', 'work', ''], ['希望休の条件を追加', 'roster', 'days_off_request'], ['通勤の条件を追加', 'taxi', ''],
+        ['Staff Travel の条件を追加', 'staff_travel', ''], ['昇格の条件を追加', 'upgrade', ''], ['訓練・キャリアの条件を追加', 'career', '']];
+      const bad = [];
+      if (!((await tap('.pvg-tabs [data-pvg-tab="work"]')) && (await atTab('work')))) bad.push('「勤務・訓練」へ移れない');
+      else for (const [label, topic, q] of WANT) {
+        /* 字が同じ入口を、板の入口の行から全部拾う。押すための住所は、見つけた入口そのものから作る（面の名前と、行の中の何番め）。 */
+        const hit = await p.evaluate(label => [...document.querySelectorAll('#pvg-p-work .pvg-sf-add a')].filter(a => a.textContent.trim() === label).map(a => {
+          const sf = a.closest('.pvg-sf'), sel = `#pvg-p-work .pvg-sf[data-sf="${sf ? sf.getAttribute('data-sf') : ''}"] .pvg-sf-add > a:nth-child(${[...a.parentElement.children].indexOf(a) + 1})`;
+          return { open: a.getAttribute('data-pvc-open') || '', q: a.getAttribute('data-pvc-q') || '', sel: document.querySelector(sel) === a ? sel : '' };
+        }), label);
+        if (hit.length !== 1 || !hit[0].sel) { bad.push(`「${label}」の入口が ${hit.length}つ`); continue; }
+        const a = hit[0];
+        if (a.open !== topic) bad.push(`「${label}」の入口が開く話題「${a.open}」（あるべき「${topic}」）`);
+        if (a.q !== q) bad.push(`「${label}」の入口が指す質問「${a.q}」（あるべき「${q}」）`);
+        if (!((await tap(a.sel)) && (await sheetIs(topic)))) bad.push(`「${label}」を押しても「${topic}」の入力が開かない`);
+        else {
+          const r = await see();
+          if (!r.sheet || r.sheet.pick) bad.push(`「${label}」の入力で、会社を選び直させている`);
+          if (q) {
+            const at = await p.evaluate(q => {
+              const box = document.querySelector(`.pvc-root form [data-q="${q}"]`), mn = document.querySelector('.pvc-root .pvc-main');
+              if (!box || !mn) return false;
+              const r = box.getBoundingClientRect(), m = mn.getBoundingClientRect();
+              return box.getClientRects().length > 0 && r.top < m.bottom && r.bottom > m.top;
+            }, q);
+            if (!at) bad.push(`「${label}」で開いた入力に、質問 ${q} が見えていない`);
+          }
+        }
+        if ((await see()).sheet && !((await tap('.pvc-root .pvc-close')) && (await sheetIs('closed')))) bad.push(`「${label}」で開いた入力が × で閉じない`);
+        const r = await see();
+        if (r.at !== 'work') bad.push(`「${label}」の入力を閉じたあと「勤務・訓練」に居ない（${r.at}）`);
+      }
+      ok(!bad.length, `${tag}: 「勤務・訓練」の6つの入口は、どれも字のとおりの話題の入力を開く（字で探す・会社を選び直させない・希望休はその質問の所から）・閉じても「勤務・訓練」に居る`, bad.join(' ／ '));
     }
     /* ── 6) 住所の印（?add=）で直接開く ── */
     {
@@ -4934,6 +5220,8 @@ try {
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
   if (wantS('give')) for (const s of ONLY) for (const v of VIEWS.filter(x => GIVE_W.includes(x[0]))) work.push(() => runGive(browser, s, v), () => runGiveOpen(browser, s, v));
+  if (wantS('work')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runWork(browser, s, v));
+  if (wantS('work0')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runWork0(browser, s, v));
   if (wantS('ggold') && (WANT_S || !argOf('--only'))) for (const lang of ['ja', 'en']) {
     const vs = VIEWS.filter(x => GG_W.includes(x[0]));
     for (const v of vs) work.push(() => runGGOld(browser, lang, v));
