@@ -216,6 +216,10 @@ const NEWEST_ANA = '2026-03-03T00:00:00Z';
 const G = (k = 2) => ({ text: '訓練の教え方が丁寧だという声が複数ある', cat: 'training', k });
 const C = (k = 2) => ({ text: '勤務の変更が直前に来るという声が複数ある', cat: 'wlb', k });
 const anaPayload = (over = {}) => ({ airline: 'ana', lang: 'ja', n: 3, newest: NEWEST_ANA, good: [G()], concern: [C()], ...over });
+/* 数・金額の入った文（SQL の has_figure と、作る側の検品の両方で落ちる）。4 と 11 が同じこれを使う。
+   NOT_FIGURE は「円」の字があっても金額ではない文 ── どちらも通す。 */
+const FIGURES = ['年収が高いという声が2件ある', '年収が高いという声が２件ある', '手当が$出るという声が複数ある', '手当が三千万円あるという声が複数ある'];
+const NOT_FIGURE = '円滑に進むという声が複数ある';
 
 
 // ════════════════════════════════════════════════════════════
@@ -267,14 +271,20 @@ console.log('\n▼ 1. 写しの突き合わせ（SQL ⇄ 画面 ⇄ gen-review-s
 
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 2. 預かった要約が無いとき ── 誰が呼んでも同じ「無い」');
+console.log('\n▼ 2. 預かった要約が無いとき ── 3件以上なら誰が呼んでも同じ「無い」／3件に満たない会社は誰が呼んでも同じ「少ない」');
 // ════════════════════════════════════════════════════════════
 {
   const want = J({ ok: true, state: 'none' });
   const a = [await getAs('anon', 'ana'), await getAs(NOKEY, 'ana'), await getAs(KEYED, 'ana'), await getAs(OP, 'ana')];
   ok(a.every((r) => J(r) === want), '未ログイン・鍵なし・鍵あり・運営の4人とも {ok:true, state:"none"}', J(a));
   const z = [await getAs('anon', 'etihad'), await getAs(KEYED, 'etihad'), await getAs('anon', 'eva-air'), await getAs(KEYED, 'eva-air', 'en')];
-  ok(z.every((r) => J(r) === want), '口コミが0件の会社（エティハド・エバー）は「無い」── 0点でも空の要約でもない', J(z));
+  ok(z.every((r) => J(r) === J({ ok: true, state: 'few' })), '口コミが0件の会社（エティハド・エバー）は「少ない」（few）── 0点でも空の要約でもない', J(z));
+  /* skymark は1件・peach は2件（どちらも3件に満たない）、ana は3件で預かった行が無い。 */
+  const fz = [];
+  for (const air of ['skymark', 'peach']) for (const who of ['anon', NOKEY, KEYED]) fz.push(await getAs(who, air));
+  const nz = [await getAs('anon', 'ana'), await getAs(NOKEY, 'ana'), await getAs(KEYED, 'ana')];
+  ok(fz.length === 6 && fz.every((r) => J(r) === J({ ok: true, state: 'few' })) && nz.every((r) => J(r) === want),
+     'few と none は、鍵のある人・無い人・未ログインで同じ', J({ fz, nz }));
 
   console.log('  ── 引数が変なとき ──');
   await asAnon();
@@ -332,6 +342,7 @@ console.log('\n▼ 4. 預けるときの検査（運営が呼んでも、線を�
     ['改行の入った文',                             anaPayload({ good: [T('勤務の変更が\n直前に来るという声が複数ある')] }), 'not_plain_text'],
     ['タグの入った文',                             anaPayload({ good: [T('<b>勤務の変更</b>が直前に来るという声が複数')] }), 'not_plain_text'],
     ['前に空白のある文',                           anaPayload({ good: [T(' 勤務の変更が直前に来るという声が複数ある')] }), 'not_plain_text'],
+    ...FIGURES.map((f) => [`数・金額の入った文（${f}）`, anaPayload({ good: [T(f)] }), 'has_figure']),
     ['口コミの番号を付けたままの点（reviews）',    anaPayload({ good: [{ ...G(), reviews: [1, 2] }] }),     'bad_point'],
     ['口コミの id を付けたままの点（ids）',        anaPayload({ good: [{ ...G(), ids: [uid(1)] }] }),       'bad_point'],
     ['点が文字列',                                 anaPayload({ good: ['訓練の教え方が丁寧だという声が複数ある'] }), 'bad_point'],
@@ -361,6 +372,8 @@ console.log('\n▼ 4. 預けるときの検査（運営が呼んでも、線を�
     ok(J(r) === J({ ok: false, error: want }), `${label} → ${want}`, J(r));
   }
   await asOwner();
+  const nf = (await one(`select public.pv_review_summary_bad($1::jsonb, 'ja', 3) e`, [J([T(NOT_FIGURE)])])).e;
+  ok(nf === null, `「円」の字があっても金額でない文（${NOT_FIGURE}）は通る`, nf);
   const c = (await one(`select count(*)::int c from public.pv_review_summaries`)).c;
   ok(c === 0, '断られたものは1行も入っていない', `→ ${c}行`);
 }
@@ -377,7 +390,7 @@ let today;
   ok(await stored('ana') === 1, '1行入った');
 
   const locked = J({ ok: true, state: 'locked' });
-  ok(J(await getAs('anon', 'ana')) === locked, '未ログインには {ok:true, state:"locked"} だけ');
+  ok(J(await getAs('anon', 'ana')) === J({ ok: true, state: 'login' }), '未ログインには {ok:true, state:"login"} だけ');
   ok(J(await getAs(NOKEY, 'ana')) === locked, '登録だけの会員（口コミを出していない）にも locked だけ');
 
   const open = await getAs(KEYED, 'ana');
@@ -389,6 +402,10 @@ let today;
   ok(J(await getAs(OP, 'ana')) === J(open), '運営にも同じものが返る');
   ok(J(await getAs(1, 'ana')) === J(open), 'その会社に口コミを出した本人にも同じものが返る');
   ok(J(await getAs(KEYED, 'ana', 'en')) === J({ ok: true, state: 'none' }), '言語ごとに別 ── 日本語を預けても英語は「無い」');
+  const four = [['login', await getAs('anon', 'ana')], ['locked', await getAs(NOKEY, 'ana')],
+                ['few', await getAs(KEYED, 'etihad')], ['none', await getAs(KEYED, 'ana', 'en')]];
+  ok(four.every(([st, x]) => Object.keys(x).sort().join() === 'ok,state' && x.ok === true && x.state === st),
+     'login・locked・few・none の返事は {ok, state} の2つだけ（点も件数も id も無い）', J(four));
 
   /* 鍵の判定が本文と同じ関数であること ── 本文の読め方と1人ずつ突き合わせる。 */
   let same = true;
@@ -403,7 +420,7 @@ let today;
   const sqlText = read('db/review-summary.sql');
   const readerSrc = sqlText.slice(sqlText.indexOf('create or replace function public.pv_review_summary(p jsonb)'),
                                   sqlText.indexOf('revoke all on function public.pv_review_summary(jsonb)'));
-  ok(/public\.pv_has_review_key\(\)/.test(readerSrc) && !/proof_hash|pv_review_hash|auth\.uid/.test(readerSrc),
+  ok(/public\.pv_has_review_key\(\)/.test(readerSrc) && !/proof_hash|pv_review_hash/.test(readerSrc) && (readerSrc.match(/auth\.uid\(\)/g) || []).length === 1 && /auth\.uid\(\) is null/.test(readerSrc),
      '読む関数は鍵の判定を呼んでいる（写していない）');
 
   console.log('  ── 片方だけ・入れ直し ──');
@@ -411,9 +428,10 @@ let today;
   ok(r2.ok === true && r2.state === 'saved', '良い点だけ（3つ・90字ちょうどを含む）でも預けられる', J(r2));
   ok(await stored('ana') === 1, '同じ会社・同じ言語は上書き（行は1つのまま）');
   const o2 = await getAs(KEYED, 'ana');
-  ok(o2.good.length === 3 && J(o2.concern) === '[]' && o2.good[0].cat === 'training' && o2.good[2].text.length === 90, '預けた順のまま返る・気になる点は空の配列', J(o2));
+  /* ★返事に good が無い（open でない）ときも落ちずに ❌ を出す ── そのあとの検査まで走らせるため。 */
+  ok(o2.good?.length === 3 && J(o2.concern) === '[]' && o2.good?.[0]?.cat === 'training' && o2.good?.[2]?.text?.length === 90, '預けた順のまま返る・気になる点は空の配列', J(o2));
   const r3 = await putAs(OP, anaPayload({ good: [], concern: [{ text: 'あ'.repeat(8), cat: 'salary', k: 3 }] }));
-  ok(r3.state === 'saved' && (await getAs(KEYED, 'ana')).good.length === 0, '気になる点だけ（8字ちょうど・k は件数と同じ3）でも預けられる', J(r3));
+  ok(r3.state === 'saved' && (await getAs(KEYED, 'ana')).good?.length === 0, '気になる点だけ（8字ちょうど・k は件数と同じ3）でも預けられる', J(r3));
   await putAs(OP, anaPayload());
 }
 
@@ -435,7 +453,7 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   await post(8, 'ana', { salary_comment: '手当の説明が分かりにくい。', __at: '2026-03-20T00:00:00Z' });
   const o1 = await getAs(KEYED, 'ana');
   ok(o1.state === 'open' && o1.n === 3 && o1.as_of === '2026-04-01', '口コミが増えただけなら、預けた要約をそのまま返す（n も日付も動かない）', J(o1));
-  ok(J(await getAs('anon', 'ana')) === J({ ok: true, state: 'locked' }), '（未ログインには今までどおり locked）');
+  ok(J(await getAs('anon', 'ana')) === J({ ok: true, state: 'login' }), '（未ログインには今までどおり login）');
 
   // 材料にした1件が消えた（代わりに新しい1件が在るので、合計は3件のまま）
   await asOwner();
@@ -454,7 +472,7 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   // 3件を切った
   await asOwner();
   await db.query(`delete from public.reviews_v2 where airline = 'ana' and created_at = '2026-03-20T00:00:00Z'`);
-  ok(J(await getAs(KEYED, 'ana')) === none, '口コミが3件を切ったら出さない');
+  ok(J(await getAs(KEYED, 'ana')) === J({ ok: true, state: 'few' }), '口コミが3件を切ったら出さない（few）');
   ok(J(await putAs(OP, anaPayload({ n: 3 }))) === J({ ok: false, error: 'too_few_reviews' }), '3件を切った会社には預け直せない');
 
   // 元に戻す（消した1件を同じ時刻で入れ直す）→ また3件・その時刻までに3件
@@ -467,7 +485,7 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   // 本文を空にした（＝読める口コミではなくなった）
   await asOwner();
   await db.query(`update public.reviews_v2 set culture_comment = '  ', training_comment = null where id = $1`, [saved.id]);
-  ok(J(await getAs(KEYED, 'ana')) === none, '材料の1件の本文が空になったら出さない（6分類のどれにも本文が無い行は数えない）');
+  ok(J(await getAs(KEYED, 'ana')) === J({ ok: true, state: 'few' }), '材料の1件の本文が空になったら出さない（6分類のどれにも本文が無い行は数えない）（few）');
   await db.query(`update public.reviews_v2 set culture_comment = $2, training_comment = $3 where id = $1`, [saved.id, saved.culture_comment, saved.training_comment]);
   ok((await getAs(KEYED, 'ana')).state === 'open', '本文が戻れば、また出る');
 
@@ -607,14 +625,23 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
   ok(/pv_review_summaries_points_chk/.test(await ins(3, [G(), G(), G(), G()]) || ''), '手で入れても4つは入らない');
   ok(/pv_review_summaries_points_chk/.test(await ins(3, []) || ''), '手で入れても、両方とも空の行は入らない');
   /* 手で入れた行は指紋が合わない ＝ 線の内側の中身でも、読む側が出さない。 */
-  ok(await ins(3, [G()]) === null && J(await getAs(KEYED, 'jal')) === J({ ok: true, state: 'none' }),
-     '手で入れられた行（指紋がでたらめ）は、表に在っても出さない');
+  ok(await ins(3, [G()]) === null && J(await getAs(KEYED, 'jal')) === J({ ok: true, state: 'few' }),
+     '手で入れられた行（指紋がでたらめ）は、表に在っても出さない（口コミの無い会社は few）');
   await db.exec(`delete from public.pv_review_summaries where airline = 'jal'`);
   ok(/pv_review_summaries_lang_chk/.test(await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('jal','fr',3,now(),'x',$1::jsonb)`, [J([G()])]) || ''), '手で入れても知らない言語は入らない');
   ok(/foreign key|pv_review_summaries_airline_fkey/.test(await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('no-such-air','ja',3,now(),'x',$1::jsonb)`, [J([G()])]) || ''), '手で入れても名簿に無い会社は入らない');
 
   const chk = await rows(read('db/review-summary.sql').slice(read('db/review-summary.sql').lastIndexOf("select '表は anon")));
   ok(chk.length === 6 && chk.every((r) => r['結果'] === '✅'), 'ファイル末尾の検算が6行とも ✅', J(chk));
+}
+{
+  await asOwner();
+  const e = await boom(
+    `insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('cathay-pacific','ja',3,now(),'x',$1::jsonb)`, [J([G()])]);
+  const z = [await getAs('anon', 'cathay-pacific'), await getAs(NOKEY, 'cathay-pacific'), await getAs(KEYED, 'cathay-pacific')];
+  ok(e === null && z.every((r) => J(r) === J({ ok: true, state: 'none' })),
+    '3件以上あって預かった行の指紋が合わない会社は、未ログイン・鍵なし・鍵ありの3人とも {ok:true, state:"none"}', J(z));
+  await db.exec(`delete from public.pv_review_summaries where airline = 'cathay-pacific'`);
 }
 
 
@@ -631,7 +658,7 @@ console.log('\n▼ 9. 古い短い会社コードの口コミも数える（会�
   await asOwner();
   ok(page.rows.length === 3 && (await getAs(KEYED, 'cathay-pacific')).n === 3, '会社ページが引く件数（3）と要約の n（3）が同じ');
   await db.query(`delete from public.reviews_v2 where airline = 'cathay' and created_at = '2026-03-01T00:00:00Z'`);
-  ok(J(await getAs(KEYED, 'cathay-pacific')) === J({ ok: true, state: 'none' }), '古いコードの1件が消えても出さなくなる');
+  ok(J(await getAs(KEYED, 'cathay-pacific')) === J({ ok: true, state: 'few' }), '古いコードの1件が消えても出さなくなる（few）');
 }
 
 
@@ -644,8 +671,25 @@ console.log('\n▼ 10. 英語');
   ok(r.state === 'saved' && r.lang === 'en', '英語の要約は日本語とは別に預かる', J(r));
   const o = await getAs(KEYED, 'ana', 'en');
   ok(o.state === 'open' && J(o.concern) === J([{ text: en.text, cat: 'wlb' }]) && J(o.good) === '[]', '英語で読める', J(o));
+
+  /* ★指紋は言語ごと（決めごと L4）。読む側も預ける側も、その要約の言語で指紋を取る。
+     日本語で書かれた口コミに英語の訳が入ると、英語の指紋だけが変わる。begin … rollback の中で動かす。 */
+  const needEn = async () => { await asOwner(); return (await rows(`select public.pv_review_summary_need('ana', 'en') as v`))[0].v; };
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set translations = '{"en":{"training":"x"}}'::jsonb where id = $1`, [R1]);
+  const oe = await getAs(KEYED, 'ana', 'en'), ne = await needEn();
+  ok(J(oe) === J({ ok: true, state: 'none' }), '材料（日本語）に英語の訳が入ったら、英語の要約は出さない（英語の指紋で比べる）', J(oe));
+  ok(ne === 'stale', '英語の訳が入ったら、英語の要約は作り直しが要る（stale）', ne);
+  const rj = await putAs(OP, anaPayload());
+  const oj = await getAs(KEYED, 'ana', 'ja');
+  ok(rj.state === 'saved' && oj.state === 'open',
+     '英語の訳が在るまま日本語の要約を預け直しても、日本語の要約は出る（日本語の指紋で預ける）', J({ rj, oj }));
+  await db.exec(`rollback`); await asOwner();
+  const oe2 = await getAs(KEYED, 'ana', 'en'), ne2 = await needEn();
+  ok(oe2.state === 'open' && ne2 === 'fresh', '（訳を戻したあと: 英語の要約は open・作り直しは要らない（fresh））', J({ oe2, ne2 }));
+
   ok((await getAs(KEYED, 'ana', 'ja')).good[0].text === G().text, '日本語のほうはそのまま');
-  ok(J(await getAs('anon', 'ana', 'en')) === J({ ok: true, state: 'locked' }), '英語も、鍵の無い人には locked だけ');
+  ok(J(await getAs('anon', 'ana', 'en')) === J({ ok: true, state: 'login' }), '英語も、未ログインには login だけ');
   ok(J(await putAs(OP, { airline: 'ana', lang: 'en', n: 3, newest: NEWEST_ANA, good: [{ ...en, text: 'x'.repeat(181) }], concern: [] })) === J({ ok: false, error: 'text_too_long' }), '英語は181字で断る');
 }
 
@@ -682,6 +726,12 @@ console.log('\n▼ 11. gen-review-summary.mjs の出力が、そのまま預け�
   const settled = settle(reply, { lang: 'ja', n: inp.n });
   const payload = payloadOf({ airline: 'jal', lang: 'ja', n: inp.n, newest: inp.newest }, settled);
   ok(payload.good.length === 2 && payload.concern.length === 1 && payload.good.every((p) => p.k === 2), '検品を通った点だけが残る（1件だけの点は落ちる）', J(payload));
+  /* 4 で SQL が has_figure で断る文は、作る側の検品でも同じ語で落ちる（FIGURES は同じ1つ）。 */
+  const figs = FIGURES.map((text) => settle({ good: [{ text, cat: 'wlb', reviews: [1, 2] }], concern: [] }, { lang: 'ja', n: 3 }));
+  ok(figs.every((s) => s.good.length === 0 && s.dropped.length === 1 && s.dropped[0].why === 'has_figure'),
+     `数・金額の入った${FIGURES.length}つの文は、作る側の検品でも has_figure で落ちる`, J(figs.map((s) => s.dropped)));
+  const plain = settle({ good: [{ text: NOT_FIGURE, cat: 'wlb', reviews: [1, 2] }], concern: [] }, { lang: 'ja', n: 3 });
+  ok(plain.good.length === 1 && plain.dropped.length === 0, `「円」の字があっても金額でない文（${NOT_FIGURE}）は、作る側の検品も通る`, J(plain));
   const r = await putAs(OP, payload);
   ok(r.ok === true && r.state === 'saved' && r.n === 4, '道具の出力を1文字も直さずに預けられる（件数と時刻がサーバの数え直しと合う）', J(r));
   const o = await getAs(KEYED, 'jal');
@@ -720,7 +770,7 @@ console.log('\n▼ 12. どの返り値にも、口コミの id・書いた人・
   ok(J([...keys].sort()) === J(['airline', 'as_of', 'concern', 'error', 'good', 'lang', 'n', 'ok', 'state']),
      '2つの関数が返す鍵は全部で9種類だけ', J([...keys].sort()));
   const states = new Set(RETURNS.filter((x) => x.fn === 'pv_review_summary' && x.r.ok).map((x) => x.r.state));
-  ok(J([...states].sort()) === J(['locked', 'none', 'open']), '読む関数の state は locked・none・open の3つだけ', J([...states]));
+  ok(J([...states].sort()) === J(['few', 'locked', 'login', 'none', 'open']), '読む関数の state は few・locked・login・none・open の5つだけ', J([...states]));
 }
 
 
@@ -740,7 +790,7 @@ console.log('\n▼ 13. 冪等性（行が入った状態で、もう一度その
   const e = await boom(`select * from public.pv_review_summaries`);
   await asOwner();
   ok(e !== null, '流し直したあとも、表は直に読めない');
-  ok((await getAs(KEYED, 'jal')).state === 'open' && J(await getAs('anon', 'jal')) === J({ ok: true, state: 'locked' }), '流し直したあとも、読める人・読めない人は同じ');
+  ok((await getAs(KEYED, 'jal')).state === 'open' && J(await getAs('anon', 'jal')) === J({ ok: true, state: 'login' }), '流し直したあとも、読める人・読めない人は同じ');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -894,7 +944,7 @@ console.log('\n▼ 15. 作り直しが要るかは DB が決める（変わっ�
   ok(w1.ok === true && w1.state === 'saved' && w1.n === 3 && w1.airline === A, '検品を通った点を、指紋と一緒に預けられる（時刻は渡していない）', J(w1));
   const o1 = await getAs(KEYED, A);
   ok(o1.state === 'open' && o1.n === 3 && o1.good.length === 1 && o1.concern.length === 1 && !/"k"/.test(J(o1)), '自動で預けたものが、会社ページの読む関数から読める', J(o1));
-  ok(J(await getAs('anon', A)) === J({ ok: true, state: 'locked' }), '自動で預けたものも、鍵の無い人には locked だけ');
+  ok(J(await getAs('anon', A)) === J({ ok: true, state: 'login' }), '自動で預けたものも、未ログインには login だけ');
   ok((await run(A)).state === 'saved', '控えは「預けた」に変わった');
 
   console.log('  ── 変わっていなければ、何もしない ──');
@@ -1320,7 +1370,8 @@ try {
        `[${lang}] 会社ページが読む関数から、検品を通った点だけが読める`, J(o));
     ok((await run(X, lang)).state === 'saved', `[${lang}] 控えは「預けた」`);
   }
-  ok(J(await getAs('anon', X)) === J({ ok: true, state: 'locked' }), '鍵の無い人には locked だけ');
+  ok(J(await getAs('anon', X)) === J({ ok: true, state: 'login' }), '未ログインには login だけ');
+  ok(J(await getAs(NOKEY, X)) === J({ ok: true, state: 'locked' }), '関数が預けたものも、登録だけの会員には locked だけ');
   const m1 = net.model.slice(-LANGS.length);
   ok(m1.length === LANGS.length && m1.every((m) => m.key && LANGS.includes(m.lang) && m.user.startsWith('Reviews: 3\n')
        && m.user.includes('勤務の変更は直前に来ることが多い。') && !/captain|A350|singapore|2026-05|row-id|読まれない/.test(m.user)),
@@ -1381,8 +1432,8 @@ try {
   await db.query(`delete from public.reviews_v2 where airline in ($1, $2) and created_at > '2026-05-02T12:00:00Z'`, [X, OLD]);
   const e10 = await call(ev('DELETE', X));
   ok(e10.calls === 0 && got(e10.j.results) === perLang((lang) => ({ airline: X, lang, state: 'cleared', n: 2 })), 'モデルを呼ばずに消す', J(e10.j));
-  ok(await everyLang(async (l) => (await stored(X, l)) === 0 && (await run(X, l)) === null && J(await getAs(KEYED, X, l)) === J({ ok: true, state: 'none' })),
-     '要約の行も控えも残っていない／読む関数は「無い」');
+  ok(await everyLang(async (l) => (await stored(X, l)) === 0 && (await run(X, l)) === null && J(await getAs(KEYED, X, l)) === J({ ok: true, state: 'few' })),
+     '要約の行も控えも残っていない／読む関数は「少ない」');
   const e11 = await call(ev('DELETE', X));
   ok(e11.calls === 0 && J(e11.j.results) === '[]', 'もう一度知らせが来ても、することは無い', J(e11.j));
 

@@ -18,7 +18,8 @@
 -- ── 守っている約束 ─────────────────────────────────────────────
 --  1. **読める人は口コミの本文と同じ。** 判定は db/reviews-gate.sql の
 --     pv_has_review_key() を**呼ぶ**（写さない）。本文の門を動かせば要約の門も動く。
---     鍵の無い人へ返るのは {state:'locked'} の1語だけで、要約は1文字も返らない。
+--     鍵の無い人へ返るのは1語だけ（未ログイン＝{state:'login'}／ログイン済みで鍵なし＝{state:'locked'}）で、
+--     要約は1文字も返らない。点の数も、もとの口コミの id も返らない。
 --  2. **少数の感想を会社全体の事実にしない。**
 --       ・口コミが3件に満たない会社には要約を預けられない（n >= 3）。
 --       ・1つの点は、2件以上の口コミが同じことを言っているときだけ（k >= 2）。
@@ -26,18 +27,19 @@
 --     どれも**サーバ側で**弾く。作る側のスクリプトが間違えても入らない。
 --  3. **数えるのは reviews_v2 に在る行だけ。** 見本の口コミ（airlines/airline-reviews-data.js）と
 --     海外評判のカード（overseas-rep/*.json）は DB に無いので、数えようがない。
---     0件の会社は「要約なし」であって、0点でも空の要約でもない（state:'none'）。
+--     3件に満たない会社（0件を含む）は「少ない」であって、0点でも空の要約でもない（state:'few'）。
 --  4. **元の口コミが変わったら出さない。** 預けたときの件数 n・材料にした
 --     いちばん新しい口コミの時刻・**材料の集合の指紋**を覚えておき、
---       ・いま読める口コミが3件を切った
---       ・その時刻までの口コミの集合が、預けたときと違う（＝材料の1件が消えた）
---     のどちらかで {state:'none'} を返す。削除依頼で消した口コミの中身が、
+--       ・いま読める口コミが3件を切った（→ {state:'few'}）
+--       ・その時刻までの口コミの集合か中身が、預けたときと違う
+--         （材料の1件が消えた・本文が書き換わった・この言語の訳があとから入った → {state:'none'}）
+--     を返す。削除依頼で消した口コミの中身が、
 --     要約の中に残って出続けることを止めるため。
 --     あとから口コミが**増えた**だけなら、預けた要約をそのまま返す
 --     （画面は「n件の口コミから・as_of」と出す ── 新しい分は入っていないと読める）。
 --     ★件数だけで比べない。口コミは画面から表へ直に入る（submit-review.html）ので、
 --       日付を古く書いた1件を足せば「1件消えて1件増えた」が件数では見えなくなる。
---       指紋は集合そのものを比べるので、その形でも出さなくなる。
+--       指紋は集合と中身を比べるので、その形でも出さなくなる。
 --  5. **どの口コミが材料かを外へ出さない。** 点ごとに覚えるのは件数 k だけで、
 --     点と口コミの対応（どの id がどの点を支えたか）は**預からない**。
 --     指紋は材料ぜんぶの id を混ぜた md5 1つで、そこから id へは戻れない。
@@ -57,7 +59,7 @@
 --
 -- ── 罠 ─────────────────────────────────────────────────────────
 --  ⚠️ 「要約が無い」と「鍵が無い」を取り違えない。順番は
---       入力の検査 → 預かった要約が在って今も有効か → 鍵
+--       入力の検査 → 3件あるか（few）→ 預かった要約が在って今も有効か（none）→ ログイン（login）→ 鍵（locked）
 --     で、**要約が無いときは鍵を見ない**。鍵の有無で none の出方が変わると、
 --     鍵の無い人の画面にだけ「鍵を開けると要約が読めます」と出て、開けたら何も無い。
 --  ⚠️ 会社コードは2通り在る。古い投稿は 'cathay' のような短いコードで入っている
@@ -81,7 +83,7 @@
 --  ⚠️ service_role への grant は「その役が在るときだけ」出す（6 の末尾の do ブロック）。
 --     手元の検査用の DB には役が無いことがあり、素の grant だとファイルごと止まる。
 --
--- ★ このファイルを貼っただけでは、画面には何も出ない（預かった要約が0件だから）。
+-- ★ このファイルを貼っただけでは、要約は1つも出ない（預かった要約が0件だから）。画面には「少ない／まだ無い」の1行が出る。
 --   要約が入るのは次のどちらかのときだけ。
 --     ・オーナーが gen-review-summary.mjs の出力を見て pv_review_summary_set() に渡した
 --     ・Edge Function の summarize-reviews をデプロイし、db/review-summary-webhook.sql を
@@ -294,6 +296,7 @@ comment on function public.pv_review_summary_sig(text[], timestamptz, text) is
 --   bad_point       点が {text, cat, k} の形でない（★ほかの鍵が1つでも在れば弾く
 --                   ＝ 口コミの番号や id を付けたまま預けられない）
 --   not_plain_text  改行・タブなどの制御文字、< >、前後の空白がある
+--   has_figure      数字（全角・漢数字＋円を含む）・通貨記号が在る（数は口コミから数えたものしか出さない）
 --   text_too_short  短すぎる（日本語 8字未満・英語 16字未満）
 --   text_too_long   長すぎる（日本語 90字超・英語 180字超）
 --   bad_cat         分類の鍵が6つのどれでもない
@@ -343,6 +346,9 @@ begin
     v_txt := v_el ->> 'text';
     if v_txt ~ '[[:cntrl:]]' or v_txt ~ '[<>]' or v_txt <> btrim(v_txt) then
       return 'not_plain_text';
+    end if;
+    if v_txt ~ '[0-9０-９]' or v_txt ~ '[$¥￥€£₩₹₽฿₫₱₪]' or v_txt ~ '[一二三四五六七八九十百千万億]+円' then
+      return 'has_figure';
     end if;
     if char_length(v_txt) < v_lo then
       return 'text_too_short';
@@ -420,13 +426,15 @@ comment on function public.pv_review_summary_out(jsonb) is
 -- 引数: p = {airline:'<会社コード>', lang:'ja'|'en'}
 -- 返り値:
 --   {ok:false, error:'bad_airline'|'bad_lang'}   引数が変（名簿に無い会社など）
---   {ok:true,  state:'none'}     預かった要約が無い／元の口コミが減って出せなくなった
---   {ok:true,  state:'locked'}   要約は在るが、呼んだ人は口コミの本文を読めない
+--   {ok:true,  state:'few'}      いま読める口コミが3件に満たない（0件を含む）
+--   {ok:true,  state:'none'}     3件以上あるが、預かった要約が無い／元の口コミが変わって出せなくなった
+--   {ok:true,  state:'login'}    要約は在るが、呼んだ人はログインしていない
+--   {ok:true,  state:'locked'}   要約は在るが、呼んだ人は口コミの本文を読めない（ログイン済み）
 --   {ok:true,  state:'open', n, as_of:'YYYY-MM-DD',
 --              good:[{text, cat}], concern:[{text, cat}]}
 -- ★ 未ログイン（anon）にも配ってある。配らないと画面は「権限エラー」と
 --   「鍵が掛かっている」を見分けられない（pv_stays と同じ作法）。
--- ★ none は鍵を見る**前**に返す（冒頭の罠）。鍵の有無で none の出方は変わらない。
+-- ★ few と none は鍵を見る**前**に返す（冒頭の罠）。鍵の有無で few / none の出方は変わらない。
 -- ★ open で返すのは text と cat だけ。k・口コミの id・書いた人は1つも入らない。
 create or replace function public.pv_review_summary(p jsonb)
 returns jsonb
@@ -449,6 +457,12 @@ begin
     return jsonb_build_object('ok', false, 'error', 'bad_lang');
   end if;
 
+  /* ★3件あるかを最初に見る（約束 3）。鍵より前・預かった行より前。 */
+  v_codes := public.pv_review_summary_codes(v_air);
+  if public.pv_review_summary_count(v_codes, null) < 3 then
+    return jsonb_build_object('ok', true, 'state', 'few');
+  end if;
+
   select * into v_row
     from public.pv_review_summaries s
    where s.airline = v_air and s.lang = v_lang;
@@ -456,18 +470,19 @@ begin
     return jsonb_build_object('ok', true, 'state', 'none');
   end if;
 
-  /* いまも出してよいか（約束 4）。
-       ・読める口コミが3件を切った
-       ・材料にした時刻までの口コミの集合が、預けたときと違う（指紋が合わない）
-       ・預けた中身が、いまの検査を通らない
-     のどれかで「無い」と同じ顔にする。 */
-  v_codes := public.pv_review_summary_codes(v_air);
-  if public.pv_review_summary_count(v_codes, null) < 3
-     or public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig
+  /* いまも出してよいか（約束 4・5）。集合か中身が変わった・形が合わない・
+     点のもとの口コミが確かめられない、のどれかで出さない。 */
+  if public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig
      or public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is not null
      or public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is not null
      or (v_row.good || v_row.concern) = '[]'::jsonb then
     return jsonb_build_object('ok', true, 'state', 'none');
+  end if;
+
+  /* ★ここから下は「要約が在る」と分かっている人への返事。未ログインと鍵なしを分ける。
+     分けるのは言葉だけで、どちらにも要約は1文字も返さない。 */
+  if auth.uid() is null then
+    return jsonb_build_object('ok', true, 'state', 'login');
   end if;
 
   /* ★本文と同じ門（約束 1）。写さずに呼ぶ。 */
@@ -488,7 +503,7 @@ revoke all on function public.pv_review_summary(jsonb) from public;
 grant execute on function public.pv_review_summary(jsonb) to anon, authenticated;
 
 comment on function public.pv_review_summary(jsonb) is
-  '口コミの要約を返す。本文を読める人（pv_has_review_key）にだけ中身が返り、ほかは locked の1語。'
+  '口コミの要約を返す。本文を読める人（pv_has_review_key）にだけ中身が返り、ほかは login / locked の1語。'
   '要約が無い・元の口コミが減ったときは none（鍵を見る前に返す）。k と口コミの id は返さない。';
 
 
