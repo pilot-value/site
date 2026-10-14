@@ -65,6 +65,12 @@
       deferred が 0 になるまで繰り返す
    5. db/review-summary-webhook.sql を SQL Editor に貼る（これ以降は自動）
 
+   ── すでに古い版が動いているとき（入れ替え）──
+   A. この関数を先に貼り直して Deploy（古い DB には id が無いので、作り直しは why:'no_ids' でやめる ＝ 課金も削除も無い）
+   B. db/review-summary.sql を貼る
+   C. 止まっていた控えを消す: delete from public.pv_review_summary_runs where state = 'failed' or (state = 'running' and ran_at < now() - interval '10 minutes');
+   D. {} を1回 POST（全社を見直す）
+
    必要な secret（Edge Functions → Secrets。プロジェクト単位なので、口コミの翻訳
    translate-review が動いていれば**足すものは無い**）:
      ANTHROPIC_API_KEY … 必須。
@@ -117,8 +123,8 @@ export const LEGACY_OF: Record<string, string> = {
 export const codesOf = (slug: string): string[] => (LEGACY_OF[slug] ? [slug, LEGACY_OF[slug]] : [slug]);
 
 type Row = Record<string, any>;
-type Review = { i: number; cats: Record<string, string> };
-type Point = { text: string; cat: string; k: number };
+type Review = { i: number; id?: string; cats: Record<string, string> };
+type Point = { text: string; cat: string; k: number; ids?: string[] };
 type Dropped = { side: string; why: string; text: string };
 type FetchLike = (url: string, init?: any) => Promise<any>;
 type Usage = { input_tokens: number; output_tokens: number };
@@ -141,10 +147,10 @@ function tsKey(s: unknown): [number, number] | null {
 const tsAfter = (a: [number, number], b: [number, number]): boolean => a[0] > b[0] || (a[0] === b[0] && a[1] > b[1]);
 
 /* 束から、その会社の「読める口コミ」だけを取り出す。
-   返り値: { n, newest, reviews:[{ i, cats:{culture:'…', …} }], seen }
+   返り値: { n, newest, reviews:[{ i, id, cats:{culture:'…', …} }], seen }
      n      … 6分類のどれかに本文がある行の数（サーバの pv_review_summary_count と同じ）
      newest … いちばん新しい行の created_at（渡された字のまま）
-   ★モデルに渡すのは本文だけ。職位・機種・在籍年数・時刻は reviews に入れない。 */
+   ★モデルに渡すのは番号と本文だけ。口コミの id・職位・機種・在籍年数・時刻はモデルへ渡さない（id は reviews に持つが userMessage は読まない）。 */
 export function buildInput(rows: Row[] | null | undefined, { airline, lang }: { airline: string; lang: string }) {
   const codes = codesOf(airline);
   const mine = (rows || []).filter((r) => r && codes.includes(String(r.airline)));
@@ -163,7 +169,7 @@ export function buildInput(rows: Row[] | null | undefined, { airline, lang }: { 
       const t = tr && typeof tr[c] === 'string' ? tr[c].trim() : '';
       if (o) cats[c] = t || o;
     }
-    reviews.push({ i: reviews.length + 1, cats });
+    reviews.push({ i: reviews.length + 1, id: typeof r.id === 'string' && UUID.test(r.id) ? r.id : undefined, cats });
 
     const k = tsKey(r.created_at);
     if (k && (!newestKey || tsAfter(k, newestKey))) { newestKey = k; newest = r.created_at; }
@@ -191,7 +197,7 @@ export function systemPrompt(lang: string): string {
     '   Do not write "the airline is …" / 「〜な会社」.',
     '5. Nothing that could identify who wrote a review: no names of people, no dates or years, no amounts of money, no figures at all (do not use digits), and no base, aircraft type, rank, length of service, route or incident that only one or two people would know. If a point cannot be made without such a detail, leave the point out.',
     '6. Do not quote. Say it in plain words of your own; do not carry over a distinctive phrase from a review.',
-    `7. Give each point exactly one category key — one of: ${CATS.join(', ')} — the category in which the supporting reviews mostly said it.`,
+    `7. Give each point exactly one category key — one of: ${CATS.join(', ')}. In "reviews", list only reviews that say it under that same category; a review that says it under another category does not count for this point.`,
     `8. One sentence per point, plain text only (no markdown, no line breaks). Length: ${L.min} to ${L.max} characters.`,
     '9. Do not balance artificially. If the reviews share nothing negative, "concern" is empty; the same goes for "good".',
     `10. If there are fewer than ${MIN_REVIEWS} reviews, or nothing is said by ${MIN_SUPPORT} or more reviews, return empty arrays for both.`,
@@ -296,8 +302,9 @@ export async function callModel(body: unknown, key: string, fetchImpl: FetchLike
 /* 数字と金額。半角・全角の数字（\p{Nd}）、通貨記号（\p{Sc}）、「三千万円」の形。
    「円滑」は当たらない（円の前に漢数字が無い）。 */
 const HAS_FIGURE = /\p{Nd}|\p{Sc}|[一二三四五六七八九十百千万億]+円/u;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-function settleSide(list: unknown, lang: string, n: number, side: string, dropped: Dropped[]) {
+function settleSide(list: unknown, lang: string, n: number, side: string, dropped: Dropped[], reviews?: Review[]) {
   const L = LIMITS[lang];
   const kept: (Point & { _idx: number[] })[] = [];
   const seen = new Set<string>();
@@ -315,8 +322,9 @@ function settleSide(list: unknown, lang: string, n: number, side: string, droppe
     if (len > L.max) { drop('text_too_long', text); continue; }
     if (!CATS.includes(p.cat)) { drop('bad_cat', text); continue; }
 
-    /* ★支えている口コミを数え直す。同じ番号の重複・範囲の外は数えない。 */
-    const idx: number[] = [...new Set<number>(p.reviews.filter((x: unknown) => Number.isInteger(x) && (x as number) >= 1 && (x as number) <= n))];
+    /* ★支えている口コミを数え直す。同じ番号の重複・範囲の外・その分類に本文の無い口コミは数えない
+        （DB の pv_review_summary_backed と同じ線。ここで落とすのは、DB で丸ごと弾かれないため）。 */
+    const idx: number[] = [...new Set<number>(p.reviews.filter((x: unknown) => Number.isInteger(x) && (x as number) >= 1 && (x as number) <= n && (!reviews || (!!reviews[(x as number) - 1] && !!reviews[(x as number) - 1].id && !!reviews[(x as number) - 1].cats[p.cat]))))];
     if (idx.length < MIN_SUPPORT) { drop('weak_point', text); continue; }
 
     if (seen.has(text)) { drop('duplicate', text); continue; }
@@ -327,16 +335,16 @@ function settleSide(list: unknown, lang: string, n: number, side: string, droppe
   return kept;
 }
 
-/* 返り値: { good:[{text,cat,k}], concern:[…], dropped:[{side,why,text}], trace:[{side,text,reviews}] }
-   ★good / concern に口コミの番号は入らない。trace と dropped は手元で見比べるためだけのもの
+/* 返り値: { good:[{text,cat,k,ids?}], concern:[…], dropped:[{side,why,text}], trace:[{side,text,reviews}] }
+   ★good / concern にモデルの番号は入らない（入るのは、数え直した k と、その番号の口コミの id ＝ ids）。trace と dropped は手元で見比べるためだけのもの
      （預ける JSON には載せない。**自動の道ではログにも出さない** ── 文が入っている）。 */
-export function settle(reply: any, { lang, n }: { lang: string; n: number }) {
+export function settle(reply: any, { lang, n, reviews }: { lang: string; n: number; reviews?: Review[] }) {
   const dropped: Dropped[] = [];
   if (!LIMITS[lang]) throw new Error(`lang は ja か en: ${lang}`);
   if (!(n >= MIN_REVIEWS)) return { good: [] as Point[], concern: [] as Point[], dropped, trace: [] as { side: string; text: string; reviews: number[] }[] };
-  const g = settleSide(reply && reply.good, lang, n, 'good', dropped);
-  const c = settleSide(reply && reply.concern, lang, n, 'concern', dropped);
-  const strip = ({ text, cat, k }: Point): Point => ({ text, cat, k });
+  const g = settleSide(reply && reply.good, lang, n, 'good', dropped, reviews);
+  const c = settleSide(reply && reply.concern, lang, n, 'concern', dropped, reviews);
+  const strip = ({ text, cat, k, _idx }: Point & { _idx: number[] }): Point => reviews ? { text, cat, k, ids: _idx.map((i) => reviews[i - 1].id as string) } : { text, cat, k };
   const trace = [...g.map((p) => ({ side: 'good', text: p.text, reviews: p._idx })),
                  ...c.map((p) => ({ side: 'concern', text: p.text, reviews: p._idx }))];
   return { good: g.map(strip), concern: c.map(strip), dropped, trace };
@@ -547,10 +555,12 @@ async function attempt(c: Ctx, airline: string, lang: string, mayNeedCall: boole
   if (!canStartCall(c)) { await done('released'); return { airline, lang, state: 'deferred' }; }
 
   const inp = buildInput(Array.isArray(t.rows) ? t.rows : [], { airline, lang });
-  if (inp.n !== t.n || inp.n < MIN_REVIEWS) {
-    /* こちらの数え方と DB の数え方が食い違った。払わずにやめる。 */
+  const noIds = inp.reviews.some((r) => !r.id);
+  if (inp.n !== t.n || inp.n < MIN_REVIEWS || noIds) {
+    /* こちらの数え方と DB の数え方が食い違った／id が来ていない（＝ DB が古い版）。払わずにやめる
+        （id の無いまま進めて空で預けると、いま在る要約が消える）。 */
     await done('released');
-    return { airline, lang, state: 'error', why: 'count_mismatch', n: Number(t.n) || 0 };
+    return { airline, lang, state: 'error', why: noIds ? 'no_ids' : 'count_mismatch', n: Number(t.n) || 0 };
   }
 
   let reply: any;

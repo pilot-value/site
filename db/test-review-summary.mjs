@@ -911,12 +911,37 @@ console.log('\n▼ 15. 作り直しが要るかは DB が決める（変わっ�
   ok(t1.ok === true && t1.state === 'go' && t1.why === 'missing' && t1.n === 3 && /^[0-9a-f]{32}$/.test(t1.basis) && t1.rows.length === 3,
      '番を取ると、材料3件と集合の指紋が返る', J({ ...t1, rows: (t1.rows || []).length }));
   const rowKeys = J([...new Set(t1.rows.flatMap((r) => Object.keys(r)))].sort());
-  ok(rowKeys === J(['airline', 'created_at', 'orig_lang', 'translations', ...CATS.map((c) => c + '_comment')].sort()),
-     '材料の1行は、会社コード・時刻・言語を選ぶ2欄・6分類の本文だけ', rowKeys);
-  const ids = (await rows(`select id::text, proof_hash from public.reviews_v2`)).flatMap((r) => [r.id, r.proof_hash]);
+  ok(rowKeys === J(['id', 'airline', 'created_at', 'orig_lang', 'translations', ...CATS.map((c) => c + '_comment')].sort()),
+     '材料の1行は、口コミの id・会社コード・時刻・言語を選ぶ2欄・6分類の本文だけ', rowKeys);
+  /* id は「その会社の口コミの id」だけ（持ち主として表から読む）。proof_hash は値も鍵も入らない。 */
+  const own = await rows(`select id::text as id, airline, proof_hash from public.reviews_v2`);
+  const mine = new Set(own.filter((r) => r.airline === A).map((r) => r.id));
+  const others = own.filter((r) => r.airline !== A).map((r) => r.id);
+  const hashes = own.map((r) => r.proof_hash).filter(Boolean);
   const t1s = J(t1);
-  ok(!ids.some((v) => t1s.includes(v)) && !UUID.test(t1s), '材料に口コミの id も proof_hash も入っていない');
+  const rowIds = t1.rows.map((r) => r.id);
+  ok(rowIds.length === 3 && new Set(rowIds).size === 3
+     && rowIds.every((v) => typeof v === 'string' && UUID.test(v) && mine.has(v))
+     && !others.some((v) => t1s.includes(v))
+     && hashes.length > 0 && !hashes.some((v) => t1s.includes(v)) && !/proof_hash/.test(t1s),
+     '材料の id は、その会社の口コミの id。proof_hash は入っていない', J(rowIds));
   ok(!/captain|A320|10-15|経営陣への提案/.test(t1s) && /細かく見てもらえる/.test(t1s), '材料に職位・機種・在籍年数・提案の欄が入っていない（本文は入っている）');
+
+  /* N8: 数える口コミは pv_review_summary_ids の1か所で決まる ── 印（marks）も、関数が番号を振る口コミも同じ集合。
+     ana の要約と控えを消して番を取る（begin … rollback の中 ＝ ana の要約はあとの節もそのまま使う）。 */
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`delete from public.pv_review_summaries where airline = 'ana' and lang = 'ja'`);
+  await db.query(`delete from public.pv_review_summary_runs where airline = 'ana' and lang = 'ja'`);
+  const tAna = await take('ana');
+  await asOwner();
+  const idsOfMarks = (await rows(`select id from public.pv_review_summary_marks(array['ana'], null, 'ja')`)).map((r) => r.id).sort();
+  const idsOfIds = (await rows(`select public.pv_review_summary_ids(array['ana'], null) as id`)).map((r) => r.id).sort();
+  const idsNumbered = tAna.state === 'go' ? buildInput(tAna.rows, { airline: 'ana', lang: 'ja' }).reviews.map((r) => r.id).sort() : [];
+  await db.exec(`rollback`); await asOwner();
+  ok(tAna.state === 'go' && idsOfIds.length >= 3 && J(idsOfMarks) === J(idsOfIds) && J(idsNumbered) === J(idsOfIds),
+     '印の id ＝ 数える口コミの id ＝ 関数が番号を振った口コミの id（数える口コミは1か所で決まる）',
+     J({ state: tAna.state, marks: idsOfMarks.length, ids: idsOfIds.length, numbered: idsNumbered.length }));
+
   const r1 = await run(A);
   ok(r1 && r1.state === 'running' && r1.sig === t1.basis && r1.n === 3 && r1.tries === 1, '控えに「いま作っている」と書かれた', J(r1));
 
@@ -1292,6 +1317,7 @@ try {
   const net = { model: [], rpc: [], other: [], logs: [], results: [] };
   let modelStatus = 200;      // モデルの返事（200 以外なら落とす）
   let duringModel = null;     // モデルが考えているあいだに起きること（1回だけ）
+  let dropIds = false;        // true の1回だけ、take の材料から口コミの id を抜いて関数に返す（古い版の DB の代わり）
   const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
   const fetch18 = async (url, init) => {
     const u = String(url);
@@ -1301,12 +1327,16 @@ try {
       net.rpc.push({ fn, keys: J(Object.keys(body)),
                      auth: init.method === 'POST' && init.headers.apikey === SKEY && init.headers.Authorization === 'Bearer ' + SKEY });
       if (!SVC.includes(fn)) return reply(404, {});
-      return reply(200, await svc(fn, body.p));           // ← 本物の SQL
+      const out = await svc(fn, body.p);                  // ← 本物の SQL
+      if (dropIds && fn === 'pv_review_summary_take' && out && Array.isArray(out.rows)) {
+        out.rows = out.rows.map(({ id, ...rest }) => rest);
+      }
+      return reply(200, out);
     }
     if (u === 'https://api.anthropic.com/v1/messages') {
       const b = JSON.parse(init.body);
       const lang = LANGS.find((l) => SR.systemPrompt(l) === b.system) || '';
-      net.model.push({ lang, user: b.messages[0].content, key: init.headers['x-api-key'] === AKEY });
+      net.model.push({ lang, user: b.messages[0].content, raw: String(init.body), key: init.headers['x-api-key'] === AKEY });
       if (duringModel) { const f = duringModel; duringModel = null; await f(); }
       if (modelStatus !== 200) {
         return reply(modelStatus, { type: 'error', error: { type: modelStatus === 401 ? 'authentication_error' : 'api_error', message: 'x' } });
@@ -1376,6 +1406,10 @@ try {
   ok(m1.length === LANGS.length && m1.every((m) => m.key && LANGS.includes(m.lang) && m.user.startsWith('Reviews: 3\n')
        && m.user.includes('勤務の変更は直前に来ることが多い。') && !/captain|A350|singapore|2026-05|row-id|読まれない/.test(m.user)),
      'モデルに渡ったのは、番号を振った本文3件だけ（会社コードも職位も機種も時刻も、知らせに付いてきた行の中身も無い）');
+  await asOwner();
+  const reviewIds = (await rows(`select id::text from public.reviews_v2`)).map((r) => r.id);
+  ok(reviewIds.length > 0 && net.model.length > 0 && net.model.every((m) => !reviewIds.some((id) => m.raw.includes(id)) && !UUID.test(m.raw)),
+     'モデルに渡る文に口コミの id が無い');
 
   console.log('  ── 中身の変わらない UPDATE → 何もしない ──');
   /* 本当に1行を書き換える（点数だけ）。知らせだけ送っても「書き換えたのに払わない」は確かめられない。 */
@@ -1426,6 +1460,26 @@ try {
   ok(got(e9.j.results) === perLang((lang) => ({ airline: X, lang, state: 'saved', n: 8, good: 1, concern: 1, dropped: 1 })),
      '関数の数え方とサーバの数え方が同じ（食い違うと count_mismatch で止まる）', J(e9.j.results));
   ok(net.model.slice(-1)[0].user.startsWith('Reviews: 8\n') && net.model.slice(-1)[0].user.includes('(no text)'), '（本文の無い1件は、番号だけで渡る）');
+
+  console.log('  ── 材料に口コミの id が来ない（古い版の DB）→ 払わず・預けず・消さない ──');
+  /* この1回は error が正しい答え。call を通さない ＝ 終わりの「食い違いは1回も出ていない」には入れない。 */
+  await post(53, X, { culture_comment: '話しやすい雰囲気だと思う。', __at: '2026-05-10T00:00:00.001010Z' });
+  await asOwner();
+  const keptOf = async () => { await asOwner(); return J(await rows(`select * from public.pv_review_summaries where airline = $1 order by lang`, [X])); };
+  const kept0 = await keptOf();
+  const model0 = net.model.length, sets0 = net.rpc.filter((r) => r.fn === 'pv_review_summary_set_auto').length;
+  dropIds = true;
+  let ni;
+  try {
+    const res = await SR.handle(new Request('https://fn.example.test/summarize-reviews', { method: 'POST', body: JSON.stringify(ev('INSERT', X)) }), deps);
+    ni = { status: res.status, j: await res.json() };
+  } finally { dropIds = false; }
+  const kept1 = await keptOf();
+  ok(ni.status === 200 && got(ni.j.results) === perLang((lang) => ({ airline: X, lang, state: 'error', why: 'no_ids', n: 9 }))
+     && net.model.length === model0 && net.rpc.filter((r) => r.fn === 'pv_review_summary_set_auto').length === sets0,
+     '材料に口コミの id が無ければ no_ids でやめる（モデルも、預ける関数も呼ばない）', J(ni.j));
+  ok(JSON.parse(kept0).length === LANGS.length && JSON.parse(kept0).every((s) => s.n === 8) && kept1 === kept0,
+     '材料に id が無かった回のあとも、預かっている要約はそのまま（消していない）', J({ before: JSON.parse(kept0).length, same: kept1 === kept0 }));
 
   console.log('  ── 口コミが消えて3件を切った → 預かっている要約も消す ──');
   await asOwner();

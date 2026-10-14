@@ -684,8 +684,8 @@ comment on function public.pv_review_summary_set(jsonb) is
 --  d. **古い集合の要約で、新しい集合の要約を上書きしない。** set_auto は basis を
 --     いまの集合の指紋と比べ、違えば stale_input で断る（約束 7）。
 --     ＝ 預かるのは必ず「いま読める口コミ全部」から作った要約。
---  e. 材料として渡すのは、読める口コミの本文と、言語を選ぶための2欄だけ。
---     id・書いた人・職位・機種・在籍年数・提案の欄は渡さない。
+--  e. 材料として渡すのは、口コミの id・読める本文と、言語を選ぶための2欄だけ。
+--     書いた人・職位・機種・在籍年数・提案の欄は渡さない（id はモデルへは渡らない）。
 --
 -- ⚠️ b は「番を取ってから」の話。番を取る瞬間の順番は pg_advisory_xact_lock が守る
 --    （同じ会社×言語の take と set_auto は1つずつしか通らない）。
@@ -887,8 +887,9 @@ comment on function public.pv_review_summary_due(jsonb) is
 --        3件に満たないのに要約が在る。モデルは呼ばず、空で預ければ消える（番は取らない）。
 --   {ok:true, state:'none'|'fresh'|'busy'|'settled'|'parked'|'cooling'|'bad_newest'}
 --        何もしない（材料も basis も返さない ＝ この先へ進めない）。
--- ★ rows の1行は {airline, created_at, orig_lang, translations:{<lang>:{…}}, <分類>_comment ×6}。
---   口コミの id・proof_hash・職位・機種・在籍年数・年収・提案の欄（mgmt）は**入れない**。
+-- ★ rows の1行は {id, airline, created_at, orig_lang, translations:{<lang>:{…}}, <分類>_comment ×6}。
+--   proof_hash・職位・機種・在籍年数・年収・提案の欄（mgmt）は**入れない**。
+--   id は、点のもとの口コミを預けるためだけに渡す（summarize-reviews はモデルへ id を渡さない）。
 --   translations は、頼まれた言語の・6分類の訳だけ。
 -- ★ basis を先に読み、そのあと rows を読む（同じ1文の中）。逆にすると、間に1件
 --   入ったとき「新しい指紋・古い材料」になり、古い集合の要約が通ってしまう。
@@ -934,6 +935,7 @@ begin
              from (
                select r.created_at as ts, r.id::text as id,
                       jsonb_build_object(
+                        'id',           r.id::text,
                         'airline',      r.airline,
                         'created_at',   r.created_at,
                         'orig_lang',    r.orig_lang,
@@ -979,7 +981,7 @@ revoke all on function public.pv_review_summary_take(jsonb) from public, anon, a
 
 comment on function public.pv_review_summary_take(jsonb) is
   '口コミの要約を作り直す番を取り、材料（読める口コミの本文）と集合の指紋を返す。作り直しが要らないときは語だけ返す。'
-  '口コミの id・書いた人・職位・機種は返さない。service_role だけ。';
+  '書いた人・職位・機種は返さない（id は返す ── 点のもとを預けるため）。service_role だけ。';
 
 
 -- 6-e. 自動の道で預ける／消す。

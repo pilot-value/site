@@ -104,13 +104,14 @@ function makeWorld() {
   const key = (a, l) => `${a}|${l}`;
   const canon = (a) => Object.keys(SR.LEGACY_OF).find((k) => SR.LEGACY_OF[k] === a) || a;
   const rowsOf = (a) => w.rows.get(a) || [];
-  w.sig = (a) => createHash('md5').update(rowsOf(a).map((r) => r.id).sort().join(',')).digest('hex');
+  /* 指紋は SQL と同じく「id ＋ 6分類の本文 ＋（原文が別の言語のときは）その言語の訳」に付いてくる。 */
+  w.sig = (a, l = 'ja') => createHash('md5').update(rowsOf(a).map((r) => r.id + ':' + SR.CATS.map((c) => (r[c + '_comment'] || '') + '|' + ((r.orig_lang || 'ja') !== l && r.translations && r.translations[l] && r.translations[l][c] || '')).join('/')).sort().join(',')).digest('hex');
   w.add = (a, count = 1) => {
     if (!w.rows.has(a)) w.rows.set(a, []);
     for (let i = 0; i < count; i++) {
       const s = ++w.seq;
       w.rows.get(a).push({
-        id: `id-${String(s).padStart(4, '0')}`, airline: a, created_at: `2026-05-${String((s % 27) + 1).padStart(2, '0')}T00:00:00.000${String(100 + s)}Z`,
+        id: `00000000-0000-4000-8000-${String(s).padStart(12, '0')}`, airline: a, created_at: `2026-05-${String((s % 27) + 1).padStart(2, '0')}T00:00:00.000${String(100 + s)}Z`,
         orig_lang: 'ja', translations: null, position: 'ROWMARK機長', fleet: 'ROWMARK-B787', proof_hash: 'ROWMARK-hash',
         culture_comment: `ホンブン 風通しがよいと感じる（${s}）`, wlb_comment: `ホンブン 勤務の変更が直前に入る（${s}）`,
         salary_comment: null, benefits_comment: null, ops_comment: null, training_comment: null,
@@ -119,12 +120,12 @@ function makeWorld() {
   };
   w.drop = (a, count = 1) => { w.rows.set(a, rowsOf(a).slice(0, Math.max(0, rowsOf(a).length - count))); };
   /* いまの集合で「預かっている」ことにする（＝新しい状態）。 */
-  w.store = (a, l = 'ja') => { w.stored.set(key(a, l), { sig: w.sig(a), n: rowsOf(a).length, good: [{ text: 'ヨウヤク 前から預かっている点。', cat: 'culture', k: 2 }], concern: [] }); };
+  w.store = (a, l = 'ja') => { w.stored.set(key(a, l), { sig: w.sig(a, l), n: rowsOf(a).length, good: [{ text: 'ヨウヤク 前から預かっている点。', cat: 'culture', k: 2 }], concern: [] }); };
   /* SQL の pv_review_summary_need と同じ語を返す（判定の本体は SQL。ここは形だけ）。 */
   w.need = (a, l) => {
     const n = rowsOf(a).length, st = w.stored.get(key(a, l)), run = w.runs.get(key(a, l));
     if (n < SR.MIN_REVIEWS) return st ? 'too_few' : 'none';
-    const sig = w.sig(a);
+    const sig = w.sig(a, l);
     if (st && st.sig === sig) return 'fresh';
     if (run && run.sig === sig) return run.state === 'running' ? 'busy' : run.state === 'done' ? 'settled' : run.tries >= 3 ? 'parked' : 'cooling';
     return st ? 'stale' : 'missing';
@@ -141,13 +142,13 @@ function makeWorld() {
       return { ok: true, checked: all.length * langs.length, due };
     },
     pv_review_summary_take: (p) => {
-      const why = w.need(p.airline, p.lang), n = rowsOf(p.airline).length, basis = w.sig(p.airline);
+      const why = w.need(p.airline, p.lang), n = rowsOf(p.airline).length, basis = w.sig(p.airline, p.lang);
       if (why === 'too_few') return { ok: true, state: 'too_few', n, basis };
       if (why !== 'stale' && why !== 'missing') return { ok: true, state: why };
       w.runs.set(key(p.airline, p.lang), { sig: basis, state: 'running', tries: 0 });
-      /* 本物と同じく、渡すのは会社コード・時刻・原文の言語・訳・6分類の本文だけ（id や職位は渡さない）。 */
+      /* 本物と同じく、渡すのは id・会社コード・時刻・原文の言語・訳・6分類の本文だけ（職位などは渡さない）。 */
       const rows = rowsOf(p.airline).map((r) => ({
-        airline: r.airline, created_at: r.created_at, orig_lang: r.orig_lang, translations: r.translations,
+        id: r.id, airline: r.airline, created_at: r.created_at, orig_lang: r.orig_lang, translations: r.translations,
         culture_comment: r.culture_comment, salary_comment: r.salary_comment, benefits_comment: r.benefits_comment,
         wlb_comment: r.wlb_comment, ops_comment: r.ops_comment, training_comment: r.training_comment,
       }));
@@ -155,7 +156,7 @@ function makeWorld() {
     },
     pv_review_summary_set_auto: (p) => {
       const k = key(p.airline, p.lang), run = w.runs.get(k);
-      if (p.basis !== w.sig(p.airline)) {
+      if (p.basis !== w.sig(p.airline, p.lang)) {
         if (run && run.sig === p.basis && run.state === 'running') w.runs.delete(k);
         return { ok: false, error: 'stale_input' };
       }
@@ -366,7 +367,7 @@ await section(async () => {
   const user = m.req.messages[0].content;
   ok('モデルに渡るのは番号と本文だけ（会社コード・時刻・id・職位・機種は渡らない）',
      m.req.messages.length === 1 && user.startsWith('Reviews: 4\n\n[1]\nculture: ホンブン') && !sent.includes('starflyer') && !sent.includes('2026-05')
-     && !sent.includes('ROWMARK') && !sent.includes('id-0') && !/proof_hash|created_at|orig_lang|position|fleet/.test(sent), user.slice(0, 80));
+     && !sent.includes('ROWMARK') && ![...w.rows.values()].flat().some((r) => sent.includes(r.id)) && !/proof_hash|created_at|orig_lang|position|fleet/.test(sent), user.slice(0, 80));
 
   const sets = rpcs(w, 'pv_review_summary_set_auto');
   ck('預けたのは、検品を通った2点だけ（番号は付けない・k は数え直した数）', sets.map((s) => s.p),
@@ -401,6 +402,29 @@ await section(async () => {
   const c = await call(w, event('INSERT', 'cathay'));
   ck('古い短いコードの知らせ → いまの会社コードで預ける', [rpcs(w, 'pv_review_summary_due').at(-1).p.airline, c.body.results[0].airline, c.body.results[0].state],
      ['cathay', 'cathay-pacific', 'saved']);
+
+  /* 同じ口コミの本文が書き直された UPDATE は、集合が同じでも中身が違う ＝ もう1回だけ呼ぶ。 */
+  const before = w.modelCalls.length;
+  w.rows.get('starflyer')[0].culture_comment += '（追記）';
+  const edited = await call(w, event('UPDATE', 'starflyer'));
+  ck('同じ口コミの本文が書き直された知らせでは、もう1回だけ呼ぶ', [edited.body.calls, w.modelCalls.length - before], [1, 1]);
+});
+
+/* 材料に口コミの id が来ない（DB が古い版）── 払わず・預けず・消さない。 */
+await section(async () => {
+  const w = world();
+  w.add('starflyer', 3); w.store('starflyer'); w.add('starflyer', 1);          // 4件・古い要約あり（stale）
+  const kept = JSON.stringify(w.stored.get('starflyer|ja'));
+  const noIds = (name, p, ww) => {
+    if (name !== 'pv_review_summary_take') return undefined;
+    const t = ww.rpc.pv_review_summary_take(p);
+    return { raw: { ...t, rows: (t.rows || []).map(({ id, ...rest }) => rest) } };
+  };
+  const r = await call(w, event('INSERT', 'starflyer'), { rpc: noIds });
+  ck('材料に口コミの id が無ければ no_ids でやめる（モデルも、預ける関数も呼ばない）',
+     [r.body, w.modelCalls.length, rpcs(w, 'pv_review_summary_set_auto').length],
+     [{ ok: true, mode: 'event', checked: 1, calls: 0, deferred: 0, results: [{ airline: 'starflyer', lang: 'ja', state: 'error', why: 'no_ids', n: 4 }] }, 0, 0]);
+  ck('預かっている要約はそのまま・番は返した', [JSON.stringify(w.stored.get('starflyer|ja')) === kept, w.runs.has('starflyer|ja')], [true, false]);
 });
 
 

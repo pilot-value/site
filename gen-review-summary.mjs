@@ -135,10 +135,31 @@ export async function selftest(log = console.log) {
   ok(s.concern[0] && s.concern[0].text === '月の半ばに勤務が変わる ことがあるという声が複数ある', '前後の空白と改行は1つの空白にそろえる', JSON.stringify(s.concern[0]));
 
   const all = [...s.good, ...s.concern];
-  ok(all.every((p) => JSON.stringify(Object.keys(p)) === '["text","cat","k"]'), '出力の点は text・cat・k の3つだけ（口コミの番号は付かない）');
+  ok(all.every((p) => JSON.stringify(Object.keys(p)) === '["text","cat","k"]'), '材料に id の無い呼び方では、点は text・cat・k の3つだけ（口コミの番号は付かない）');
   const payload = payloadOf({ airline: 'sample-air', lang: 'ja', n: 6, newest: '2026-01-01T00:00:00+00:00' }, s);
   ok(!/reviews|_idx|trace|dropped/.test(JSON.stringify(payload)), '預ける JSON に番号・検品の記録が混ざらない');
   ok(JSON.stringify(Object.keys(payload)) === '["airline","lang","n","newest","good","concern"]', '預ける JSON の鍵は6つ');
+
+  /* 材料に id が在る呼び方（自動の道）。番号 i の口コミは mats[i - 1]。5件目はどの点も挙げない。 */
+  const ID = (j) => `00000000-0000-4000-8000-${String(j).padStart(12, '0')}`;
+  const mats = [
+    { culture: 'x', training: 'x' }, { culture: 'x', wlb: 'x' }, { training: 'x', wlb: 'x' }, { culture: 'x' }, { culture: 'x' },
+  ].map((cats, j) => ({ i: j + 1, id: ID(j + 1), cats }));
+  const withIds = settle({
+    good: [
+      { text: '同僚に相談しやすい雰囲気だという声が複数ある', cat: 'culture', reviews: [4, 1, 2] },
+      { text: '訓練の教え方が丁寧だという声が複数ある', cat: 'training', reviews: [1, 2] },         // 2 に訓練の本文が無い → 1件
+      { text: '訓練の進め方に無理が無いという声が複数ある', cat: 'training', reviews: [3, 2, 1] },   // 2 は数えない → 2件
+    ],
+    concern: [{ text: '勤務の変更が直前に来るという声が複数ある', cat: 'wlb', reviews: [2, 3] }],
+  }, { lang: 'ja', n: mats.length, reviews: mats });
+  const pts = [...withIds.good, ...withIds.concern];
+  ok(pts.length === 3 && pts.every((p) => JSON.stringify(Object.keys(p)) === '["text","cat","k","ids"]' && p.ids.length === p.k)
+     && JSON.stringify(pts.map((p) => p.ids)) === JSON.stringify([[ID(1), ID(2), ID(4)], [ID(1), ID(3)], [ID(2), ID(3)]]),
+     '材料に id が在れば、点は text・cat・k・ids の4つ（ids は k と同じ数・番号どおりの口コミの id）', JSON.stringify(pts));
+  ok(JSON.stringify(withIds.good.map((p) => [p.cat, p.k])) === '[["culture",3],["training",2]]'
+     && JSON.stringify(withIds.dropped.map((d) => [d.side, d.why])) === '[["good","weak_point"]]',
+     'その分類に本文の無い口コミの番号は数えない（2件を切れば weak_point で落ちる）', JSON.stringify(withIds.dropped));
 
   ok(settle({ good: [{ text: '円滑に連絡が取れるという声が複数ある', cat: 'culture', reviews: [1, 2] }], concern: [] }, { lang: 'ja', n: 3 }).good.length === 1,
      '「円滑」は金額として落とさない');
@@ -166,9 +187,9 @@ export async function selftest(log = console.log) {
   const inp = buildInput(rows, { airline: 'cathay-pacific', lang: 'ja' });
   ok(inp.n === 3, '数えるのは6分類のどれかに本文がある行だけ（提案だけ・空白だけ・別の会社は数えない）', `→ ${inp.n}`);
   ok(inp.newest === '2026-03-01T00:00:00.000900+00:00', 'いちばん新しい時刻はマイクロ秒まで比べ、渡された字のまま返す', String(inp.newest));
-  ok(inp.reviews[2].cats.training === '教官が辛抱強い', '原文が別の言語なら、その言語の訳を材料にする');
-  ok(buildInput(rows, { airline: 'cathay-pacific', lang: 'en' }).reviews[2].cats.training === 'Instructors are patient.', '原文と同じ言語なら原文のまま');
-  ok(buildInput(rows, { airline: 'cathay-pacific', lang: 'en' }).reviews[0].cats.culture === '相談しやすい', '訳が無い欄は原文で渡す');
+  ok(inp.reviews[2]?.cats.training === '教官が辛抱強い', '原文が別の言語なら、その言語の訳を材料にする');
+  ok(buildInput(rows, { airline: 'cathay-pacific', lang: 'en' }).reviews[2]?.cats.training === 'Instructors are patient.', '原文と同じ言語なら原文のまま');
+  ok(buildInput(rows, { airline: 'cathay-pacific', lang: 'en' }).reviews[0]?.cats.culture === '相談しやすい', '訳が無い欄は原文で渡す');
   const msg = userMessage(inp.reviews);
   ok(!/captain|B777|2026|cathay/.test(msg), 'モデルへ渡す文面に職位・機種・時刻・会社コードが入らない');
   ok(/^\[1\]$/m.test(msg) && /^\[3\]$/m.test(msg) && !/^\[4\]$/m.test(msg), '口コミに 1 からの番号を振る');
