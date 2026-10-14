@@ -211,9 +211,20 @@
       var t = setTimeout(function () { fin({ kind: 'fail' }); }, ms || 15000);
       function fin(r) { if (done) return; done = true; clearTimeout(t); resolve(r); }
       client().then(function (sb) {
+        hear(sb);
         return Promise.resolve(sb.rpc(name, { p: p }));
       }).then(function (res) { fin(sort(res)); }, function () { fin({ kind: 'fail' }); });
     });
+  }
+  /* ログインの部品の知らせ（その場でログアウトした・ログインが替わった）も聞く ＝ ページの欄（career-live.js）が聞いているのと同じ知らせ。
+     その場でのログアウトは、このタブには storage の合図が来ない。聞かないと、面の時計（60秒）が鳴るまで、閉じた面に前の人の字が残る。
+     聞き始めるのは、面が通信の部品をはじめて受け取った時に1回だけ（面のために部品を作らない・通信も足さない）。
+     受けるのは、閉じている面だけ（shutGone）── 開いている面は、今までどおり storage・visibilitychange・時計で気づく。 */
+  var heard = false;
+  function hear(sb) {
+    if (heard || !sb || !sb.auth || typeof sb.auth.onAuthStateChange !== 'function') return;
+    heard = true;
+    try { sb.auth.onAuthStateChange(function () { shutGone(); }); } catch (e) { heard = false; }
   }
   function getJson(file) {
     return fetch(ROOT + file, { credentials: 'same-origin' }).then(function (r) {
@@ -771,7 +782,18 @@
     paintClaim();
     back();
   }
-  function onReader() { if (S.open && readerTurn()) redraw(); }
+  /* 面が閉じているあいだに、読む人が替わった時。閉じた面に描いてあった字（題・頭の会社の名前の行・本文）を、その場で消す
+     ── 画面には出なくても、前の人の勤め先の名前と保存した答えが、開き直すまでページの中に残る。
+     ほかの会社について開いていた面は、そこで終える（coEnd ＝ 開き直した時にすることを、先にする）。
+     このページの会社の面は、描いた字だけを消す ── 打ってまだ送っていない入力・一覧・印には触らない
+     （今までどおり、開き直した時に readerReset が手放すものを手放し、残すものを残す）。読み直さない ＝ 通信は1本も出ない。
+     開いている面には、何もしない（そちらは readerTurn と redraw）。 */
+  function shutGone() {
+    if (S.open || !S.main) return;
+    if (CO && CO.u !== uid()) coEnd();
+    else if (!readerSame()) { clear(S.main); S.title.textContent = ''; }
+  }
+  function onReader() { if (S.open) { if (readerTurn()) redraw(); } else shutGone(); }
   /* 一覧を読めていないあいだは、このページでいま保存できた分だけを控え（M.kept）から出す。
      読めた一覧が在るときは、必ずそちらが正（控えは見ない）。 */
   function rowFor(ym) {
@@ -2352,14 +2374,15 @@
     w.addEventListener('keydown', onKey, true);
     d.addEventListener('focusin', onFocusIn, true);
     /* ほかのタブでログイン・ログアウトした／控えの鍵が替わった（storage）、タブへ戻った時にログインが切れていた（visibilitychange）：
-       面が開いていれば、その場で作り直す。pv-session.js が同じ合図を先に受けて、切れたログインを片づけている。
+       面が開いていれば、その場で作り直す。閉じていれば、前の人について描いてあった字を消す（shutGone）。
+       pv-session.js が同じ合図を先に受けて、切れたログインを片づけている。
        ⚠️ visibilitychange は、ページを離れる時（隠れる側）にも流れる。そこで読み直すと、去っていくページが
           預かりの引き継ぎを始めてしまい、次に開いたページは「引き継ぎました」を言えなくなる ＝ 見える側に戻った時だけ受ける。 */
     w.addEventListener('storage', onReader, false);
     d.addEventListener('visibilitychange', function () { if (d.visibilityState === 'visible') onReader(); }, false);
     /* 同じタブのまま、誰も触らないうちにログインが切れた時：pv-session.js は自分の時計で片づけるが、合図は出さない。
        こちらも同じ長さの時計で聞く（pv-session.js の `var TICK_MS  = 60 * 1000;` と同じ）。
-       面が閉じている時・読む人が同じ時は、何もしない ＝ 通信は1本も出ない。 */
+       読む人が同じ時は、何もしない。面が閉じている時は、描いてあった字を消すだけ ＝ どちらも、通信は1本も出ない。 */
     setInterval(onReader, 60 * 1000);
     function go() { var a = takeAdd(); COMING = false; if (a) openSheet(a); }
     var st = null;

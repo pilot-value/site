@@ -2774,6 +2774,26 @@ async function main() {
     const f = document.querySelector('.pvc-root form[data-pvc-form="taxi"]');
     return !!f && f.querySelector('[name="commuting_transport_note"]').value === '' && f.querySelectorAll('.pvc-mine').length === 0;
   };
+  /* 閉じている「情報を追加」の面の中（画面には出ていない所）に、いま在るもの。
+     open・up ＝ 面が開いている・出ている（どちらも false のはず）／text ＝ 面の中の字ぜんぶ（題・頭の会社の名前の行・本文）／
+     kids ＝ 題と本文の中に在るものの数／ctl ＝ 入力欄の数／vals ＝ 入力欄に入っている値／mine ＝「あなたの投稿」の印の数／
+     saved ＝ 保存後のカードが在る／whose ＝ 頭の会社の名前の行の字／html ＝ 面の中身そのもの（字でない所も） */
+  const shutSheet = (p) => p.page.evaluate(() => {
+    const r = document.querySelector('.pvc-root'), t = r && r.querySelector('.pvc-title'), m = r && r.querySelector('.pvc-main');
+    if (!r || !t || !m) return null;
+    const ctl = [...m.querySelectorAll('input, select, textarea')];
+    return { open: window.PVContrib.isOpen(), up: r.classList.contains('is-in'), text: r.textContent, kids: t.childNodes.length + m.childNodes.length,
+      ctl: ctl.length, vals: ctl.filter((n) => n.type !== 'checkbox' && n.type !== 'radio').map((n) => n.value).filter(Boolean),
+      mine: m.querySelectorAll('.pvc-mine').length, saved: !!m.querySelector('[data-pvc-saved]'),
+      whose: [...t.querySelectorAll('.pvc-whose')].map((n) => n.textContent).join('｜'), html: r.outerHTML };
+  });
+  /* 閉じた面の題にも本文にも、何も入っていない（seen に渡して、そうなるまで待つ） */
+  const sheetBare = () => {
+    const r = document.querySelector('.pvc-root'), t = r && r.querySelector('.pvc-title'), m = r && r.querySelector('.pvc-main');
+    return !!t && !!m && t.childNodes.length === 0 && m.childNodes.length === 0;
+  };
+  /* 閉じたままの面が、空になっている：字が1つも無い・入力欄も印も無い。面は開いていない */
+  const shutBare = (x) => !!x && !x.open && !x.up && x.text === '' && x.kids === 0 && x.ctl === 0 && x.mine === 0 && !x.saved && x.whose === '';
   /* 検査の側の条件が満たされるまで待つ（止めた通信が届いたか、など） */
   const until = async (fn) => { const t0 = Date.now(); while (!fn()) { if (Date.now() - t0 > 8000) return false; await new Promise((r) => setTimeout(r, 20)); } return true; };
   /* 送るボタンを、ほかの何にも触れずに押す（焦点も動かさない ＝ 止められるのは、送る所の確かめだけ） */
@@ -3439,7 +3459,14 @@ async function main() {
       const w0 = await u.page.evaluate(() => document.querySelector('.pvc-root [name="own"]').checked);
       await u.page.evaluate(() => window.PVContrib.close());
       await waitClosed(u);
+      /* 面は閉じたまま（まだ開き直さない）。読む人を入れ替えて、タブが見える側へ戻った合図だけを流す ＝ 面が、読む人が替わったと気づく所 */
+      const s0 = await shutSheet(u);
       await loginAs(u, 'b');
+      await u.page.evaluate(() => { document.dispatchEvent(new Event('visibilitychange')); });
+      const bare = await seen(u, sheetBare), s1 = await shutSheet(u);
+      ok(!!s0 && !s0.open && !s0.up && s0.mine === 3 && s0.vals.includes(NOTE_Q) && bare && shutBare(s1),
+        '★面を閉じているあいだに読む人が替わると、開き直さなくても、閉じた面の中から、前の人の答え・補足・「あなたの投稿」の印が消える（字が1つも無い・入力欄も無い。替わる前には、面の中に在った）',
+        J({ before: s0 && [s0.open, s0.up, s0.mine, s0.ctl, s0.vals.slice(0, 3)], bare, after: s1 && [s1.open, s1.up, s1.kids, s1.ctl, s1.mine, s1.text.slice(0, 80)] }));
       await api(u, 'work');
       await waitView(u, 'work');
       await settle(u);
@@ -3450,6 +3477,22 @@ async function main() {
       const q1 = await qFace(u);
       ok(w0 && emptyW(w1) && !w1.own && emptyQ(q1) && !q1.own,
         '★面を閉じているあいだに読む人が替わって開き直した時も、前の人の値・確認のチェックが入っていない（月の勤務・質問の項目）', J({ w1, q1 }));
+      /* 続けて、その場でログアウトする（ページ自身のログインの部品で）。開いているタブは、この1枚だけ ＝ ほかのタブからの合図は来ない。
+         面には、今の人が打って、まだ送っていない答えが1つ入っている。面は閉じてある（開き直すのは、消えたのを見たあと）。 */
+      await pick(u, 'commuting_transport', 'always');
+      await u.page.evaluate(() => window.PVContrib.close());
+      await waitClosed(u);
+      const t0 = await shutSheet(u), tabs = (await u.st.ctx.pages()).length;
+      const outErr = await u.page.evaluate(() => window.PVCareer.client().then((sb) => sb.auth.signOut()).then((r) => (r && r.error ? String(r.error.message || r.error) : '')));
+      const bare2 = await seen(u, sheetBare), t1 = await shutSheet(u);
+      await api(u, 'taxi');
+      await waitView(u, 'taxi');
+      await settle(u);
+      const q2 = await qFace(u);
+      ok(tabs === 1 && outErr === '' && !!t0 && !t0.open && !t0.up && t0.ctl > 0 && t0.vals.includes('always') && bare2 && shutBare(t1)
+        && q2.form && q2.transport === 'always' && q2.mine === 0 && !q2.own,
+        '★開いているタブがこの1枚だけの時に、その場でログアウトすると、開き直さなくても、閉じた面の中の字が消える（字が1つも無い・入力欄も無い）。打って、まだ送っていない答えは、開き直すと残っている',
+        J({ tabs, outErr, before: t0 && [t0.open, t0.up, t0.ctl, t0.vals.slice(0, 3)], bare2, after: t1 && [t1.open, t1.up, t1.kids, t1.ctl, t1.text.slice(0, 80)], q2 }));
     } finally {
       await u.st.ctx.close();
     }
@@ -4119,7 +4162,7 @@ async function main() {
      ログインの部品（pv-session.js）は、開きっぱなしのタブを自分の時計で見張り、切れたログインを片づける。合図は出さない。
      面が確かめていたのは、ほかのタブからの合図・タブへ戻った時・面の中を触った時だけ ＝ 誰も触らなければ、
      前の人の答えが出たままだった。面も、同じ長さの時計で「いま読む人」を聞き直す
-     （面が閉じている時・読む人が同じ時は、何もしない ＝ 通信は1本も出ない）。
+     （読む人が同じ時は、何もしない。面が閉じている時は、描いてあった字を消すだけ ＝ どちらも、通信は1本も出ない）。
      場面は時計を待たない：控えておいた時計の中身を呼ぶ（idless が控える。tickFire）。 */
   const TICK = (() => {
     const m = /var TICK_MS\s*=\s*([\d\s*]+);/.exec(read('pv-session.js'));
@@ -6956,12 +6999,12 @@ async function main() {
         if (r.id !== m.id) throw new Error(`前提が崩れた（もう1枚のタブで、${m.ja}としてログインできていない）: ` + J(r));
       };
 
-      let wk = null;                 // 通しの1枚 ＝ { p, ear, sent, tab, origin, fileN }
+      let wk = null;                 // 通しの1枚 ＝ { p, ear, sent, tab, origin, fileN, first }（first ＝ CM2 が画面から答えた、5つ目の質問）
       try {
         /* ── CM1：最後の1問の手前（要る数に1つ足りない人が、ほかの会社のページを開く）── */
         await part('CM1', async () => {
           const p = await open('phone', { who: 'pay', pre: recordStore });
-          wk = { p, ear: listen(p), sent: tap(p, 'submit_airline_conditions'), tab: null, origin: null, fileN: null };
+          wk = { p, ear: listen(p), sent: tap(p, 'submit_airline_conditions'), tab: null, origin: null, fileN: null, first: null };
           await p.page.evaluateOnNewDocument(watchSlots);
           await go(p, JAL);
           /* 配られたページそのものに、自分の会社の名前が何回書いてあるか（誰が開いても同じ数。カードが足したぶんと分けるのに使う） */
@@ -7043,6 +7086,7 @@ async function main() {
           const canAsk = (x) => !!x && (((x.kind === 'choice' || x.kind === 'multi') && Array.isArray(x.choices) && x.choices.some((c) => c.code !== 'unknown')) || (x.kind === 'num' && !!x.num && x.num.min != null));
           const first = lastGive ? lastGive.body.ask.map(asked).find(canAsk) : null;
           if (!first) throw new Error('前提が崩れた（カードが、この面で答えられる質問を1つも挙げていない）: ' + J(lastGive && lastGive.body.ask));
+          wk.first = first;
           await p.page.click('.pvg-got .crl[data-live="fact"] a[data-crl-give]');
           const up = await seen(p, () => { const r = document.querySelector('.pvc-root'); return !!r && !r.hidden && r.classList.contains('is-in') && !!r.querySelector('form[data-pvc-form]'); });
           if (!up) throw new Error('前提が崩れた（カードの入口を押しても、質問の入力の面が開かない）');
@@ -7108,11 +7152,14 @@ async function main() {
           await ear.all();
           let r0 = ear.replies.length;
           await markSlots(p, 'CM4-out');
+          /* 閉じている「情報を追加」の面：5つ目の答えを保存したあとのカード（自分の会社の名前と、保存した答え）が、中に残っている */
+          const sh0 = await shutSheet(p);
           const outErr = await p.page.evaluate(() => window.PVCareer.client().then((sb) => sb.auth.signOut()).then((r) => (r && r.error ? String(r.error.message || r.error) : '')));
           if (outErr) throw new Error('前提が崩れた（その場でログアウトできていない）: ' + outErr);
           const outSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && e.getAttribute('data-state') === 'locked' && e.textContent.trim() === line; }, LOGIN_LINE);
           await ear.all();
           const g1 = await gotOf(p), rows1 = await p.page.evaluate(() => document.querySelectorAll('.crl-fact').length), outReplies = ear.replies.slice(r0), logA = await sinceMark(p, 'CM4-out');
+          const bareOut = await seen(p, sheetBare), sh1 = await shutSheet(p);
           ok(outSeen && !!g1 && J(g1.lock) === J([LOGIN_LINE]) && g1.text === LOGIN_LINE && g1.links.length === 0 && rows1 === 0
             && outReplies.length >= 1 && outReplies.every((r) => only(r, '{"ok":true,"state":"login"}')),
             `★CM4 開いた形が出ているまま、その場でログアウトすると、読み直さなくても、「集まった回答」は「${LOGIN_LINE}」の1行だけになる。回答の行は、ページのどこにも（隠れているタブにも）残らない。聞き直した返事は {"ok":true,"state":"login"} だけ`,
@@ -7120,6 +7167,10 @@ async function main() {
           ok(!!logA && logA.before.some((x) => x.rows > 0) && logA.after.some((x) => x.s === 'idle') && !logA.after.some(noisy),
             '★CM4 ログアウトのあと、集計の欄にも月の勤務の欄にも、回答の行も数字も、いっときも出ていない（前の人の行を、もう一度描いていない）',
             J(logA && { after: logA.after.filter(noisy).slice(0, 3).map((x) => [x.at, x.s, x.t.slice(0, 50)]), idle: logA.after.some((x) => x.s === 'idle'), n: logA.after.length }));
+          const heldOut = !!sh0 && !sh0.open && !sh0.up && sh0.saved && sh0.mine >= 1 && sh0.text.includes(OWN_NAME) && !!wk.first && sh0.text.includes(wk.first.ja.label);
+          ok(heldOut && bareOut && shutBare(sh1) && !sh1.html.includes(OWN_NAME),
+            `★CM4 その場でログアウトすると、閉じている「情報を追加」の面の中にも、前の人のものが残らない（開き直さなくても、その場で）：自分の会社の名前（${OWN_NAME}）も、保存した答えも無い ＝ 字が1つも無い・入力欄も無い。ログアウトの前には、どちらも面の中に在った`,
+            J({ before: sh0 && [sh0.open, sh0.up, sh0.saved, sh0.mine, sh0.text.slice(0, 60)], bareOut, after: sh1 && [sh1.open, sh1.up, sh1.kids, sh1.ctl, sh1.mine, sh1.html.includes(OWN_NAME), sh1.text.slice(0, 80)] }));
           /* (b) もう1枚のタブで、別の会員（給与の鍵なし）がログインする */
           await ear.all();
           r0 = ear.replies.length;
@@ -7145,6 +7196,25 @@ async function main() {
           ok(legs.sawSession && legs.direct.length === 0,
             '★CM4 そのあいだに、新しく出来た・値が替わった保存領域の鍵のうち、career-live.js がじかに書いたものは1つも無い',
             J(legs.direct.length ? legs.direct.map((x) => [x.key, x.top]) : legs.wrote.map((x) => x.key)));
+          /* (d) 閉じている「情報を追加」の面と、もう1枚のタブでのログイン。
+             給与提出者が、もう1枚のタブでログインし直す → 自分の会社について面を開く（5つ目の質問の所。保存した答えが入っている）→ 閉じる
+             → もう1枚のタブで、別の会員（会員B）がログインする。こちらのタブには触らない・面は開き直さない。 */
+          await signInTab(tab, 'pay');
+          const payBack = await seen(p, (id) => { try { return window.PVSession.hasToken() && window.PVSession.readStoredSession().user.id === id; } catch (e) { return false; } }, PAYER.id);
+          const asked2 = payBack && !!wk.first && await p.page.evaluate((o) => window.PVContrib.openFor(o), { airline: OWN, name: OWN_NAME, ask: [wk.first.id] });
+          const up2 = asked2 && await seen(p, () => { const r = document.querySelector('.pvc-root'); return !!r && !r.hidden && r.classList.contains('is-in') && !!r.querySelector('form[data-pvc-form]'); });
+          if (!up2) throw new Error('前提が崩れた（給与提出者がログインし直しても、自分の会社についての面が開かない）: ' + J({ payBack, asked2, up2 }));
+          await waitView(p, await p.page.evaluate(() => document.querySelector('.pvc-root form[data-pvc-form]').getAttribute('data-pvc-form')));
+          await settle(p);
+          const mineIn = await seen(p, () => document.querySelectorAll('.pvc-root form .pvc-mine').length > 0);
+          await shut(p);
+          const sh2 = await shutSheet(p);
+          await signInTab(tab, 'b');
+          const bareIn = await seen(p, sheetBare), sh3 = await shutSheet(p);
+          const heldIn = mineIn && !!sh2 && !sh2.open && !sh2.up && sh2.whose === OWN_NAME && sh2.mine >= 1 && sh2.ctl >= 1 && sh2.text.includes(OWN_NAME) && sh2.text.includes(wk.first.ja.label);
+          ok(heldIn && bareIn && shutBare(sh3) && !sh3.html.includes(OWN_NAME) && (await sameLoad(p)).mark === WALK,
+            `★CM4 自分の会社について開いた面を閉じたあと、もう1枚のタブで別の会員（会員B）がログインすると、開き直さなくても、閉じた面の中に、前の人のものが残らない：自分の会社の名前（${OWN_NAME}）も、保存した答えも無い ＝ 字が1つも無い・入力欄も無い。替わる前には、どちらも面の中に在った（読み直さない）`,
+            J({ before: sh2 && [sh2.open, sh2.up, sh2.whose, sh2.mine, sh2.ctl, sh2.text.slice(0, 60)], mineIn, bareIn, after: sh3 && [sh3.open, sh3.up, sh3.kids, sh3.ctl, sh3.mine, sh3.html.includes(OWN_NAME), sh3.text.slice(0, 80)] }));
         });
       } finally {
         if (wk) { wk.ear.off(); await wk.p.st.ctx.close(); }
