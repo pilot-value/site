@@ -80,15 +80,21 @@
 
     /* 月の勤務の6項目。鍵と並びは db/work-months.sql の pv_work_view が返す形のまま */
     work: [
-      { k: 'block_hours', name: '乗務時間', unit: '時間 / 月' },
-      { k: 'duty_hours', name: '拘束時間', unit: '時間 / 月' },
-      { k: 'work_days', name: '勤務日数', unit: '日 / 月' },
-      { k: 'duty_days', name: '乗務日数', unit: '日 / 月' },
-      { k: 'days_off', name: '公休日数', unit: '日 / 月' },
-      { k: 'stay_nights', name: 'ステイ泊数', unit: '泊 / 月' }
+      { k: 'block_hours', name: '乗務時間', unit: '時間 / 月', u: '時間', fam: 'h' },
+      { k: 'duty_hours', name: '勤務・拘束時間', unit: '時間 / 月', u: '時間', fam: 'h' },
+      { k: 'work_days', name: '勤務日数', unit: '日 / 月', u: '日', fam: 'd' },
+      { k: 'duty_days', name: '乗務日数', unit: '日 / 月', u: '日', fam: 'd' },
+      { k: 'days_off', name: '公休日数', unit: '日 / 月', u: '日', fam: 'd' },
+      { k: 'stay_nights', name: 'ステイ泊数', unit: '泊 / 月', u: '泊', fam: 'd' }
     ],
     workPos: [['cap', '機長'], ['fo', '副操縦士']],
     workEmpty: 'まだ集計がありません',
+    /* 帯の軸の右端（目盛の基準）。時間 ＝ 240（1日8時間 × 30日 という物差し）。日・泊 ＝ 31（月の日数の最大）。会社の決まりを表す数字ではない。
+       ★集まった値に合わせて伸び縮みさせない（会社どうしで帯の長さが比べられなくなる）。 */
+    workMax: { h: 240, d: 31 },
+    workCap: '帯と数字は、回答のまんなか半分の幅',
+    workAxis: ['目盛は、時間が 0', '、日と泊が 0'],
+    workOver: '目盛の外',
     noteHead: '会員の補足',
     noteWork: '月の勤務',
     noteMine: 'あなたの投稿',
@@ -753,6 +759,54 @@
     });
     return dl;
   }
+  /* ── 月の勤務を帯で（会社ページの面だけ：data-bars="1"）──
+     軸は単位ごとに固定（T.workMax）で 0 から。集まった値で軸を動かさない。
+     軸を超えた幅は右端で切って印を付ける。数字は切らずにそのまま書く。そろっていない側には帯を描かない（0 で埋めない）。 */
+  function workScale(it, v) {
+    var max = T.workMax[it.fam];
+    function at(x) { return Math.max(0, Math.min(x, max)) / max * 100; }
+    return { max: max, from: at(v.lo), to: at(v.hi), over: v.hi > max, out: v.lo > max };
+  }
+  /* 1つの職位の1行：職位の名前｜細い軸と帯｜数字｜単位。そろっていない側は「未取得」で、軸そのものを描かない（0 で埋めない） */
+  function barRow(it, p, v) {
+    var r = el('div', 'crl-wb-r'), t = rangeOf(v);
+    r.setAttribute('data-pos', p[0]);
+    r.appendChild(el('span', 'crl-wb-p', p[1]));
+    if (!t) { r.appendChild(el('span', 'crl-none', T.none)); return r; }
+    var s = workScale(it, v), tr = el('span', 'crl-wb-tr' + (s.over ? ' is-over' : ''));
+    tr.setAttribute('aria-hidden', 'true');
+    if (!s.out) {
+      var b = el('i', 'crl-wb-b');
+      b.style.setProperty('--f', s.from + '%');
+      b.style.setProperty('--w', (s.to - s.from) + '%');
+      tr.appendChild(b);
+    }
+    r.appendChild(tr);
+    r.appendChild(el('b', 'crl-wb-n', t));
+    r.appendChild(el('span', 'crl-wb-u', it.u));
+    if (s.over) r.appendChild(el('small', 'crl-wb-o', T.workOver));
+    return r;
+  }
+  /* 6つの項目の枠（見本の並び ＝ T.work の順）。枠の中に、職位ごとの1行。軸の両端は枠ごとに書かない（面の下の1行が1回だけ言う） */
+  function workBars(by) {
+    var w = el('div', 'crl-wb');
+    T.work.forEach(function (it) {
+      var c = el('div', 'crl-wb-c');
+      c.setAttribute('data-k', it.k);
+      c.setAttribute('data-fam', it.fam);
+      c.appendChild(workName(it));
+      T.workPos.forEach(function (p) { c.appendChild(barRow(it, p, by && by[p[0]] && by[p[0]][it.k])); });
+      w.appendChild(c);
+    });
+    return w;
+  }
+  /* 面の下の1行：帯の読み方と、軸の両端（数字は T.workMax から。ここ以外に書かない） */
+  function workCapLine() {
+    var p = el('p', 'crl-wb-cap'), m = T.workMax;
+    p.appendChild(el('span', '', T.workCap));
+    p.appendChild(el('span', 'crl-wb-sc', T.workAxis[0] + T.dash + m.h + T.workAxis[1] + T.dash + m.d));
+    return p;
+  }
   /* 開いていないとき。1行と入口は lockView の1か所（どの入口を自分で出すかは、欄の data-entry が決める） */
   function workLocked(W, slug, box) { return lockView(W.state, slug, box, null); }
 
@@ -790,7 +844,10 @@
       if (W.state !== 'open') return workLocked(W, slug, GL ? box : GIVE_ONLY);
       return (box.hasAttribute('data-notes') ? notesFor(box, slug) : Promise.resolve(null)).then(function (ul) {
         var any = workAny(W.by), nodes = [];
-        if (any) {
+        if (any && box.getAttribute('data-bars') === '1') {
+          nodes.push(workBars(W.by));
+          nodes.push(workCapLine());
+        } else if (any) {
           var g = el('div', 'crl-work');
           T.work.forEach(function (it) {
             var c = el('div', 'crl-wk');
@@ -1204,18 +1261,37 @@
     var keys = keysOf(box), slug = ids[0];
     if (!keys.length) return Promise.reject(fail('error'));
     return Promise.all([facts(slug), vocab()]).then(function (a) {
-      var F = a[0], V = a[1], list = el('div', 'crl-facts'), n = 0;
+      var F = a[0], V = a[1], list = el('div', 'crl-facts'), n = 0, sub = {}, shown = {};
+      (box.getAttribute('data-sub') || '').split(',').forEach(function (s) {
+        var c = s.split(':');
+        if (c.length === 2 && c[0] && c[1]) sub[c[0]] = c[1];
+      });
+      /* 親の行が出ていない子には、親の質問の字だけを上に置く（値は書かない。子の字だけでは何の話か分からない） */
+      function ctx(k) {
+        var p = sub[k];
+        if (!p || shown[p] === 1 || !V[p] || !V[p].ja) return;
+        ctx(p);
+        var c = el('div', sub[p] ? 'crl-fact is-sub is-ctx' : 'crl-fact is-ctx');
+        c.appendChild(el('span', 'crl-fact-k', V[p].ja));
+        list.appendChild(c);
+        shown[p] = 1;
+      }
       /* この欄の質問を聞いていない答えでは描かない（0件とも鍵とも言えない） */
       if (keys.some(function (k) { return F.asked[k] !== 1; })) throw fail('error');
+      /* 鍵の文を繰り返さない欄（data-quiet）。開いていないとサーバーが言ったとき（未ログイン・給与の鍵が無い・
+         自分の会社への回答がまだ足りない）は、何も描かない。同じ文は、同じ板の月の勤務の欄が1回だけ言う
+         （入口もカードもそこに1つ）。読めない・準備中の時はここを通らない */
+      if (F.state !== 'open' && box.getAttribute('data-quiet') === '1') return view('locked', []);
       if (F.state !== 'open') return lockView(F.state, slug, box, null);
       keys.forEach(function (k) {
         var ans = answer(F.map[k], V[k]);
         if (!ans) return;
-        var r = el('div', 'crl-fact');
+        ctx(k);
+        var r = el('div', sub[k] ? 'crl-fact is-sub' : 'crl-fact');
         r.appendChild(el('span', 'crl-fact-k', V[k].ja || ''));
         r.appendChild(answerNode(ans));
         list.appendChild(r);
-        n++;
+        shown[k] = 1; n++;
       });
       return n ? view('open', [list]) : view('empty', [msg(T.factEmpty)]);
     });

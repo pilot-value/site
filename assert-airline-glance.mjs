@@ -1284,6 +1284,39 @@ head('集計の欄が聞く質問（出荷した HTML の data-keys）');
   }
 }
 
+head('月の勤務を枠と帯で描く部品（career-live.js / career-live.css）');
+{
+  /* S8a 月の勤務の6項目は、項目ごとの枠の中に、職位ごとの帯と数字で描く（会社ページの面だけ：欄に data-bars="1"）。
+       ・帯の軸の右端は T.workMax の1か所（時間 240・日と泊 31）。集まった値に合わせて伸び縮みさせない（会社どうしで帯の長さが比べられなくなる）
+       ・帯を2つの全幅の束に並べる形（見本と違う形）の部品を持ち込まない
+       ・240 は物差しで、会社の決まりではない。軸を説明する字（注記の「帯の軸の右端」から workOver まで）に、上限・規定・法定・制限を書かない
+       ・枠の CSS の注記に、いちばん短い帯（96px）と枠のいちばん狭い幅（304px）を書いておく。.crl-wb の決まりは動きを持たない
+     数の合計（transition が何か所か）はここに書かない（ほかの直しで動く数を、ここで縛らない）。 */
+  const LJS = read('career-live.js'), LCSS = read('career-live.css');
+  const want = ['workMax: { h: 240, d: 31 }', 'function workScale(', 'function barRow(', 'function workBars(', 'function workCapLine(', 'T.workMax[it.fam]'];
+  const miss = want.filter(w => !LJS.includes(w));
+  ok(!miss.length, '月の勤務の帯：軸の右端は T.workMax（時間 240・日と泊 31）の1か所で、帯を描く部品（workScale・barRow・workBars・workCapLine）が在る', `無い：${miss.join(' ／ ')}`);
+  const gone = ['crl-wb-g', 'crl-wb-it', 'crl-wb-ax'].flatMap(w => [['career-live.js', LJS], ['career-live.css', LCSS]].filter(([, t]) => t.includes(w)).map(([f]) => `${f}: ${w}`));
+  ok(!gone.length, '月の勤務は項目ごとの枠（見本の形）。帯を全幅の束に並べる部品を持たない', gone.join(' ／ '));
+  /* 切り出す範囲は「帯の軸の右端」の行から workOver: の行まで。どちらかが無い・2つ在る時は落とす（何も読まずに通さない） */
+  const L = LJS.split('\n');
+  const rows = s => L.reduce((a, l, i) => (l.includes(s) ? [...a, i] : a), []);
+  const from = rows('帯の軸の右端'), to = rows('workOver:');
+  const span = from.length === 1 && to.length === 1 && to[0] > from[0] ? L.slice(from[0], to[0] + 1) : [];
+  const words = span.filter(l => /上限|規定|法定|制限/.test(l)).map(l => l.trim().slice(0, 80));
+  ok(span.length > 0 && ['workMax:', 'workCap:', 'workAxis:'].every(k => span.some(l => l.includes(k))) && !words.length,
+     '軸の数を説明する字（「帯の軸の右端」の注記から workOver まで）に、上限・規定・法定・制限が無い（240 は物差しで、会社の決まりではない）',
+     span.length ? words.join(' ／ ') : `切り出せない（「帯の軸の右端」${from.length}行・workOver: ${to.length}行）`);
+  const C = noCssCmt(LCSS);
+  const note = (LCSS.match(/\/\*[\s\S]*?\*\//g) || []).find(c => c.includes('月の勤務を枠で')) || '';
+  let flat = C, prev;
+  do { prev = flat; flat = flat.replace(/@[^{};]+\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, inner) => inner); } while (flat !== prev);
+  const moving = [...flat.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(m => m[1].includes('.crl-wb') && /transition/.test(m[2])).map(m => m[1].trim());
+  ok(/\b96px\b/.test(note) && /\b304px\b/.test(note) && C.includes('.crl-wb-c{') && !moving.length,
+     '枠の CSS：注記に帯のいちばん短い長さ（96px）と枠のいちばん狭い幅（304px）が書いてあり、.crl-wb-c の決まりが在り、.crl-wb の決まりに transition が無い',
+     `注記 ${note ? '在る' : '無い'}・96px ${/\b96px\b/.test(note)}・304px ${/\b304px\b/.test(note)}・.crl-wb-c ${C.includes('.crl-wb-c{')}・動く決まり ${moving.join(' ／ ')}`);
+}
+
 if (STATIC_ONLY) {
   console.log(`\n══ ${pass} pass / ${fail} fail ══（ブラウザを使う検査は流していない）`);
   process.exit(fail ? 1 : 0);

@@ -117,6 +117,42 @@
 .crl-wk-r dt{flex:none;font-size:12px;color:var(--pv-ink-3)}
 .crl-wk-r dd{margin:0;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--pv-ink)}
 .crl-wk-r dd.crl-none{align-self:center;font-weight:400}
+/* ── 月の勤務を枠で（会社ページの面だけ：data-bars="1"）──
+   6つの項目の枠。枠の中は 職位｜帯｜数字｜単位 の1行ずつ。
+   ★帯の軸のいちばん短い長さは 96px（日・泊の軸は 31 目盛 × 3px ＝ 93 を切り上げ。時間の軸は 5 時間が 2px）。
+     枠のいちばん狭い幅 304px ＝ 96 ＋ 職位 56 ＋ 数字 72 ＋ 単位 30 ＋ すき間 8×3 ＋ 内側の余白 12×2 ＋ 罫線 1×2。
+     列の幅（56 / 72 / 30）を変えたら、304（下の @container の境も同じ数）と 618 を計算し直す。
+   ★数字と単位の列の幅を auto に戻さない（行ごと・枠ごとに軸の長さが変わり、同じ単位の帯を見比べられなくなる）。
+   2列まで（見本の並び：時間どうし・日数どうしが横に並ぶ）。入れ物が 618px（304×2＋すき間10）より狭ければ1列。
+   入れ物が 304px より狭いとき（スマホ）は、帯を数字の下の段へ移す ＝ 帯は 96px より短くならない。 */
+.crl-wb{container:crlwb / inline-size;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,max(304px,calc(50% - 5px))),1fr));gap:10px}
+.crl-wb-c{display:grid;align-content:start;gap:6px;min-width:0;padding:12px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface)}
+.crl-wb-r{display:grid;grid-template-columns:56px minmax(0,1fr) 72px 30px;align-items:center;gap:0 8px;min-height:24px}
+.crl-wb-p{font-size:12px;color:var(--pv-ink-3);white-space:nowrap}
+.crl-wb-tr{position:relative;display:block;height:10px;border-radius:5px;background:var(--pv-line);overflow:hidden}
+.crl-wb-b{position:absolute;top:0;bottom:0;left:min(var(--f),calc(100% - 4px));width:max(var(--w),4px);border-radius:5px;background:var(--pv-accent)}
+.crl-wb-tr.is-over::after{content:"";position:absolute;top:0;bottom:0;right:0;width:10px;background:repeating-linear-gradient(135deg,var(--pv-ink) 0 2px,var(--pv-surface) 2px 4px)}
+.crl-wb-n{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;color:var(--pv-ink)}
+.crl-wb-u{font-size:12px;white-space:nowrap;color:var(--pv-ink-3)}
+.crl-wb-o{grid-column:2 / -1;justify-self:end;font-size:12px;line-height:1.4;color:var(--pv-ink-3)}
+.crl-wb-r > .crl-none{grid-column:2 / -1;justify-self:end;font-size:13px;color:var(--pv-ink-3)}
+.crl-wb-cap{display:flex;flex-wrap:wrap;gap:0 12px;margin:10px 0 0;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
+.crl-wb-sc{font-variant-numeric:tabular-nums}
+@container crlwb (width < 304px){
+  .crl-wb-r{grid-template-columns:56px minmax(0,1fr) 30px;gap:4px 8px}
+  .crl-wb-p{grid-area:1 / 1}
+  .crl-wb-n{grid-area:1 / 2}
+  .crl-wb-u{grid-area:1 / 3}
+  .crl-wb-tr{grid-area:2 / 1 / auto / -1}
+  .crl-wb-o{grid-area:3 / 1 / auto / -1}
+  .crl-wb-r > .crl-none{grid-area:1 / 2 / auto / -1}
+}
+@media (forced-colors:active){
+  .crl-wb-tr{border:1px solid CanvasText}
+  .crl-wb-b{background:Highlight;forced-color-adjust:none}
+}
+/* 鍵の文を繰り返さない欄：開いていないときは欄ごと出さない（同じ板の月の勤務の欄が言う） */
+.crl[data-quiet="1"][data-state="locked"]{display:none}
 /* 比較の中では、職位の名前を値のすぐ左へ寄せる（列の幅いっぱいに離さない） */
 .crl-cmp-c .crl-wk-r{justify-content:flex-start;gap:10px}
 .crl-cmp-c .crl-wk-r dt{min-width:4.5em}
@@ -208,6 +244,8 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-facts{display:grid;border-top:1px solid var(--pv-line)}
 .crl-fact{display:grid;gap:2px;padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
 .crl-fact-k{font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
+.crl-fact.is-sub{margin-left:12px;padding-left:10px;border-left:2px solid var(--pv-line-soft)}
+.crl-fact.is-ctx{padding-bottom:4px;border-bottom:0}
 .crl-ans{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;min-width:0}
 .crl-ans-v{font-size:15px;font-weight:700;color:var(--pv-ink);overflow-wrap:anywhere}
 .crl-ans-m{display:inline-flex;flex-wrap:wrap;gap:0 8px;font-size:12px;color:var(--pv-ink-3)}
