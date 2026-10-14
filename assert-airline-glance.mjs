@@ -1382,6 +1382,120 @@ head('月の勤務を枠と帯で描く部品（career-live.js / career-live.css
      `注記 ${note ? '在る' : '無い'}・96px ${/\b96px\b/.test(note)}・304px ${/\b304px\b/.test(note)}・.crl-wb-c ${C.includes('.crl-wb-c{')}・動く決まり ${moving.join(' ／ ')}`);
 }
 
+/* 概要のカードに出る行。面を作り直しても、ここから1行も減らさない（ボタンの件数だけが変わった） */
+const CARD_LINES = {
+  jal: { work: ['休日', ['勤務時間の決め方', '訓練の場所'], 1, 'ほか5件と出典'], benefits: ['賞与', ['社宅・寮', '社員の航空券'], 1, 'ほか3件と出どころ'] },
+  ana: { work: ['休日', ['勤務時間の決め方', '乗務のパターン'], 1, 'ほか4件と出典'], benefits: ['賞与', ['寮・社宅', '諸手当'], 1, 'ほか5件と出どころ'] },
+  'cathay-pacific': { work: ['年次休暇（First Officer）', ['年次休暇（Second Officer）', '昇格の決まり方'], 1, 'ほか4件と出典'], benefits: ['社員の航空券', ['住宅手当', '月々の手当（First Officer）'], 1, 'ほか6件と出どころ'] },
+  etihad: { work: ['年次休暇', [], 3, 'ほか1件と出典'], benefits: ['教育手当（初等）', ['教育手当（中等）', '住宅'], 1, 'ほか7件と出どころ'] },
+  'eva-air': { work: ['休日', ['年次休暇', '有給の病気休暇'], 1, 'ほか3件と出典'], benefits: ['住まい', ['賞与', '社員の航空券'], 1, 'ほか2件と出どころ'] },
+};
+head('「勤務・訓練」の板の印・同じ項目は1か所・概要のカード・出典（S4〜S7）');
+{
+  /* S4 黙る印（data-quiet）と入口の印（data-entry="login"）は、面の表（SURFACES）が名指しした面にだけ付く。
+       ・誰に見せるかを決めるのはサーバーの1か所。印はその写しではなく「同じ文・同じ入口を何度も出さない」ための印 ＝ どの面に付くかを名前で見る
+       ・月の勤務の欄の下の1行は、黙る面（ページの印から読む）の名前をそのまま並べる
+       ・生成側は、区分の一覧を決まりとして持たない
+     S5 会社の公表の項目は、勤務・訓練と待遇の2つの板で1か所にだけ出る。待遇のカードに出る項目が勤務・訓練へ移っていれば、待遇の板の頭の1行が名指しする。
+     S6 概要のカードの行は CARD_LINES のまま（ボタンの件数だけが変わった）。ボタンの件数＋1（カードの頭の項目が板に在るとき）＝ 開く板の項目の数。
+     S7 「勤務・訓練」の板の資料は、どれも「出典」の畳みの中。資料は、そこに出ている項目の台帳の資料と同じ並び（移した項目の資料を落としていない）。 */
+  const cutOf = (h, a, b) => { const i = h.indexOf(a), j = i < 0 ? -1 : h.indexOf(b, i); return i >= 0 && j > i ? h.slice(i, j) : ''; };
+  const dtsOf = h => [...h.matchAll(/<dl class="pvg-dl">([\s\S]*?)<\/dl>/g)].flatMap(m => [...m[1].matchAll(/<dt>([\s\S]*?)<\/dt>/g)].map(d => text(without(d[1], 'pvg-tag'))));
+  const srcUrls = h => [...new Set([...h.matchAll(/<a class="pvg-src" href="([^"]*)"/g)].map(m => unesc(m[1])))];
+  const h4Of = h => text(one(h, /<h4 class="pvg-sf-t"[^>]*>([\s\S]*?)<\/h4>/) || '');
+  const GEN = read('gen-airline-glance.mjs');
+  for (const s of FIVE) {
+    const both = PART[s].hero + PART[s].glance;
+    const W = cutOf(both, '<div class="pvg-card pvg-panel" id="pvg-p-work"', '<article class="pvg-card pvg-cell" data-cell="benefits"');
+    const B = cutOf(both, '<div class="pvg-card pvg-panel" id="pvg-p-benefits"', '<article class="pvg-card pvg-cell" data-cell="living"');
+    const sfs = [...W.matchAll(/<section class="pvg-sf" data-sf="([a-z]+)"[^>]*>([\s\S]*?)<\/section>/g)].map(m => ({ id: m[1], h: m[2] }));
+    const slots = [...W.matchAll(/<div class="crl"([^>]*)>/g)].map(m => m[1]).map(a => ({ live: one(a, / data-live="([^"]*)"/), sf: one(a, / data-sf="([^"]*)"/), quiet: one(a, / data-quiet="([^"]*)"/), entry: one(a, / data-entry="([^"]*)"/) }));
+    /* S4 (a) */
+    const quietAt = slots.filter(x => x.quiet != null).map(x => `${x.live}:${x.sf}:${x.quiet}`);
+    ok(sfs.length === 5 && W.split('data-quiet=').length - 1 === quietAt.length && same(quietAt, ['fact:roster:1', 'fact:career:1']),
+       `${s}: 「勤務・訓練」の板で黙る印（data-quiet="1"）を持つのは、勤務予定・休日と昇格・訓練の集計の欄だけ`, quietAt.join(' ／ ') || '印なし');
+    /* S4 (b) 黙る2つの欄は、ページの印で見つける */
+    const entryAt = slots.filter(x => x.entry != null).map(x => `${x.live}:${x.sf}:${x.entry}`);
+    const noEntry = slots.filter(x => x.sf === 'month' || x.quiet === '1').filter(x => x.entry != null).map(x => `${x.live}:${x.sf}`);
+    ok(sfs.length === 5 && W.split('data-entry=').length - 1 === entryAt.length && same(entryAt, ['fact:commute:login', 'fact:travel:login'])
+       && slots.some(x => x.sf === 'month' && x.live === 'work') && !noEntry.length && !W.includes('data-entry="0"'),
+       `${s}: 入口の印（data-entry="login"）を持つのは、通勤と Staff Travel の集計の欄だけ ── 月の勤務の欄と黙る2つの欄は入口の印を持たない・data-entry="0" が無い`,
+       `入口の印 ${entryAt.join(' ／ ') || 'なし'}・持ってはいけない欄 ${noEntry.join(' ／ ') || 'なし'}・data-entry="0" ${W.includes('data-entry="0"')}`);
+    /* S4 (c) 黙る面は、ページの印から読む（どの面かは (a) が名前で見ている） */
+    const quietNames = sfs.filter(x => [...x.h.matchAll(/<div class="crl"([^>]*)>/g)].some(m => / data-quiet="1"/.test(m[1]))).map(x => h4Of(x.h));
+    const scope = [...W.matchAll(/<p class="[^"]*\bpvg-sf-scope\b[^"]*">([\s\S]*?)<\/p>/g)].map(m => text(m[1]));
+    const SCOPE = `${quietNames.join('、')}の回答も、同じ条件で開きます。`;
+    ok(quietNames.length > 0 && scope.length === 1 && scope[0] === SCOPE,
+       `${s}: 月の勤務の欄の下の1行は、黙る面の名前を「、」で並べて「の回答も、同じ条件で開きます。」`, `ページ「${scope.join(' ／ ')}」・あるべき「${SCOPE}」`);
+    /* S5 */
+    const inW = sfs.flatMap(x => dtsOf(x.h)), inB = dtsOf(B), every = [...inW, ...inB];
+    const twice = every.filter((l, i) => every.indexOf(l) !== i);
+    ok(inW.length > 0 && inB.length > 0 && dtsOf(W).length === inW.length && !twice.length,
+       `${s}: 会社の公表の項目は、勤務・訓練の面と待遇の板のどこか1か所にだけ出る`, twice.join(' ／ '));
+    const cardOf = id => {
+      const c = one(both, new RegExp(`<article class="pvg-card pvg-cell" data-cell="${id}"[^>]*>([\\s\\S]*?)</article>`)) || '';
+      const k = one(c, /<p class="pvg-k">([\s\S]*?)<\/p>/) || '';
+      return {
+        k: text(k), label: text(without(k, 'pvg-tag')),
+        also: [...(one(c, /<ul class="pvg-also">([\s\S]*?)<\/ul>/) || '').matchAll(/<li><span>([\s\S]*?)<\/span>/g)].map(m => text(m[1])),
+        qs: (one(c, /<div class="pvg-qs">([\s\S]*?)<\/div>/) || '').split('<li>').length - 1,
+        more: text(one(c, /<button type="button" class="pvg-more"[^>]*>([\s\S]*?)<\/button>/) || ''),
+      };
+    };
+    const ben = cardOf('benefits'), printed = [ben.label, ...ben.also].filter(l => inW.includes(l));
+    const moved = one(B.slice(B.indexOf('</header>') + '</header>'.length).trimStart(), /^<p class="pvg-quiet pvg-moved">([\s\S]*?)<\/p>/);
+    ok(B.length > 0 && (!printed.length || (moved != null && printed.every(l => text(moved).includes(l)) && moved.includes('<a class="pvg-link" href="#work">'))),
+       `${s}: 待遇のカードに出る項目が勤務・訓練の板に在れば、待遇の板は頭の1行でそれを名指しし、勤務・訓練へ案内する（href="#work"）`,
+       `勤務・訓練へ移った項目 ${printed.join('・') || 'なし'}・頭の1行 ${moved == null ? '無い' : `「${text(moved)}」`}`);
+    /* S6 */
+    for (const id of ['work', 'benefits']) {
+      const [lead, also, quick, more] = CARD_LINES[s][id], c = cardOf(id), panel = id === 'work' ? W : B;
+      const n = dtsOf(panel).length, num = Number(one(c.more, /^ほか(\d+)件/) || NaN);
+      ok(c.k.startsWith(lead) && same(c.also, also) && c.qs === quick && c.more === more && num + (dtsOf(panel).includes(lead) ? 1 : 0) === n,
+         `${s}: 概要の${id === 'work' ? '勤務' : '待遇'}のカードの行は CARD_LINES のまま（${lead}／${also.join('・') || '小さな行なし'}／匿名で答える ${quick}つ／「${more}」）・件数＋頭の項目 ＝ 開く板の項目の数`,
+         `${c.k}／${c.also.join('・') || '小さな行なし'}／匿名で答える ${c.qs}つ／「${c.more}」・開く板の項目 ${n}`);
+    }
+    /* S7 */
+    const sums = [...W.matchAll(/<details class="[^"]*\bpvg-srcd\b[^"]*"[^>]*>\s*<summary>([\s\S]*?)<\/summary>/g)].map(m => text(m[1]));
+    const loose = W.replace(/<details class="[^"]*\bpvg-srcd\b[^"]*"[^>]*>[\s\S]*?<\/details>/g, '').includes('pvg-srcs');
+    ok(sums.length > 0 && sums.every(t => t.startsWith('出典')) && !W.includes('出どころ') && !loose,
+       `${s}: 「勤務・訓練」の板の資料は、どれも「出典」の畳みの中（「出どころ」の字も、畳まずに並べた資料の行も無い）`, `${sums.join(' ／ ')}・畳まない行 ${loose}`);
+    const LED = s === 'etihad' ? EY_FACTS.etihad.benefits : [...CO_FACTS[s].work, ...CO_FACTS[s].benefits];
+    const byLabel = new Map(), srcBad = [];
+    for (const x of LED) { if (byLabel.has(x.ja)) srcBad.push(`台帳に同じ名前が2つ：${x.ja}`); byLabel.set(x.ja, x); }
+    for (const [where, h] of [...sfs.filter(x => x.id !== 'month').map(x => [x.id, x.h]), ['待遇の板', B]]) {
+      const shown = dtsOf(h), unknown = shown.filter(l => !byLabel.has(l));
+      if (unknown.length) { srcBad.push(`${where}: 台帳に無い項目 ${unknown.join('・')}`); continue; }
+      const want = [...new Set(shown.map(l => byLabel.get(l).src && byLabel.get(l).src.url).filter(Boolean))];
+      if (!same(srcUrls(h), want)) srcBad.push(`${where}: 資料 ${srcUrls(h).length}件（台帳 ${want.length}件・並びも見る）`);
+    }
+    /* エティハドの台帳は、会社ページに出さない行（税・機長昇格・教官の手当）も持つ ＝ 出ている項目の数は S6 が見る */
+    if (s !== 'etihad') { const on = new Set(every), gone = LED.filter(x => !on.has(x.ja)).map(x => x.ja); if (gone.length) srcBad.push(`板から消えた項目 ${gone.join('・')}`); }
+    ok(sfs.length === 5 && !srcBad.length, `${s}: 勤務・訓練の面と待遇の板の資料は、そこに出ている項目の台帳の資料と同じ並び（勤務・訓練へ移した項目の資料も落としていない）`, srcBad.join(' ／ '));
+  }
+  /* S4 (d) */
+  const lists = ['PAY_SECTIONS', 'p_section', 'section in (', 'section not in ('].filter(w => GEN.includes(w));
+  ok(!lists.length, '生成側（gen-airline-glance.mjs）は、区分の一覧を決まりとして持たない（2つの印は、面の表の名指しだけ）', lists.join(' ／ '));
+}
+head('生成側と CSS の止め・読む人が替わった時の月の勤務（S8b・N8）');
+{
+  /* S8b 生成側の5つの止めが在る。板の下の入口の行（pvg-addrow）を持ち帰っていない。面と頭の1行の決まりは動きを持たない（数の合計は書かない） */
+  const GEN = read('gen-airline-glance.mjs'), GCSS = read('pv-glance.css'), GL = GEN.split('\n');
+  const THROWS = ['同じ名前の入口か', '入口の質問', '同じ話題を2つの面が', 'どの面に出すか決めていない', '出典が会社の公表ではない'];
+  const lost = THROWS.filter(w => !GL.some(l => l.includes(w) && l.includes('throw new Error(')));
+  ok(!lost.length, '生成側の5つの止め（同じ入口・入口の質問・同じ話題・置き場の無い公表・会社の公表ではない出典）が在る', `無い：${lost.join(' ／ ')}`);
+  ok(!GEN.includes('pvg-addrow') && !GCSS.includes('pvg-addrow'), '板の下の入口の行（pvg-addrow）を、生成側にも pv-glance.css にも持っていない');
+  let flat = noCssCmt(GCSS), prev;
+  do { prev = flat; flat = flat.replace(/@[^{};]+\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, inner) => inner); } while (flat !== prev);
+  const moving = [...flat.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(m => /\.pvg-sf|\.pvg-moved/.test(m[1]) && /transition/.test(m[2])).map(m => m[1].trim());
+  ok(!moving.length, '面（.pvg-sf…）と待遇の板の頭の1行（.pvg-moved）の決まりは、動きを持たない（transition が無い）', moving.join(' ／ '));
+  /* N8 読む人が替わったら、前の人の月の勤務と補足を残さない（setUid が wkv: と note: を捨て、work / notes の欄を描き直す） */
+  const LJ = noJsCmt(read('career-live.js'));
+  const body = (LJ.match(/\n  function setUid\([^)]*\) \{\n([\s\S]*?)\n  \}\n/) || [])[1] || '';
+  ok(/drop\('wkv:'\)/.test(body) && /drop\('note:'\)/.test(body) && /reset\(\[[^\]]*'work'[^\]]*\]\)/.test(body) && /reset\(\[[^\]]*'notes'[^\]]*\]\)/.test(body),
+    '読む人が替わったら、月の勤務と補足も聞き直す（setUid が wkv: と note: を捨て、work / notes を描き直す）');
+}
+
 if (STATIC_ONLY) {
   console.log(`\n══ ${pass} pass / ${fail} fail ══（ブラウザを使う検査は流していない）`);
   process.exit(fail ? 1 : 0);
