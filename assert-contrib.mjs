@@ -268,8 +268,10 @@ async function main() {
   const POP_MIN = 900, POP_MAX = 2500;
 
   /* 1枚開く。who を渡すと手元の会員として入った状態で始める。
-     calm は「動きを減らす」設定の人として開く（保存できた合図が静かな形になるかを見る）。 */
-  async function open(sizeKey, { who = null, theme = null, calm = false } = {}) {
+     calm は「動きを減らす」設定の人として開く（保存できた合図が静かな形になるかを見る）。
+     pre は、ページのどの部品よりも（下の、この検査の差し込みよりも）先に走らせる関数
+     （欄に出た字を最初から見張る・保存領域への書き込みを控える）。時計を動かすのには使わない。 */
+  async function open(sizeKey, { who = null, theme = null, calm = false, pre = null } = {}) {
     const size = SIZES[sizeKey];
     const ctx = await browser.createBrowserContext();
     const page = await ctx.newPage();
@@ -285,6 +287,7 @@ async function main() {
       seed = await (await fetch(`${base}/__local/login?member=${who}`)).json();
       if (!seed || !seed.session) throw new Error(`手元の会員 ${who} で入れない`);
     }
+    if (pre) await page.evaluateOnNewDocument(pre);
     await page.evaluateOnNewDocument((origin, s, th, popMax) => {
       if (location.origin !== origin) return;
       try {
@@ -6234,6 +6237,591 @@ async function main() {
     } finally {
       await u.st.ctx.close();
       await bare('jal', A); await bare('cathay-pacific', A);
+    }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 19. ほかの人の回答の集計を、誰が読めるか（本物の手元のサーバー・キャセイのページ）
+  //     見せてよいかを決めるのはサーバー（db/contrib.sql の pv_contrib_sees の1か所）。
+  //     ここは、通信の上の返事と、画面に出た字を見るだけ（ページの部品には手を入れない）。
+  //     読む人 ── 未ログイン／会員（給与の鍵なし）／このページの会社に給与を出した会員（鍵が生きている時・切れた時）。
+  //     読み口が落ちた時・まだ無い時だけは、その1本を偽の返事にして見る（ほかの通信は本物のまま）。
+  //     月の勤務の欄は、ページの上の箱（data-live="work"）で指す（読み口の名前では指さない）。
+  // ═════════════════════════════════════════════════════════════
+  await scene('他人の回答の集計 ── 未ログイン・会員・給与の鍵・期限切れ・読めない時', async () => {
+    const SLUG = 'cathay-pacific', PAYER = memberOf('pay');
+    const LEDGER = JSON.parse(read('pv-conditions.json')).questions;
+    const asked = (id) => LEDGER.find((x) => x.id === id);
+    /* 置く回答：2問とも、台帳のいちばん上の選択肢（符号は台帳から読む。打ち込まない） */
+    const SEED = ['reserve_duty', 'staff_travel'].map((id) => ({ question_id: id, code: asked(id).choices[0].code }));
+    const DUTY = asked('reserve_duty').ja.label, TRAVEL = asked('staff_travel').ja.label;
+    /* 画面に出るはずの字。検査が自分で持つ（career-live.js から読み込まない ＝ あちらを変えたら、ここで赤くなる） */
+    const LOGIN_LINE = 'ログインと給与の提出で開きます', LOGIN_GO = 'ログイン', PAY_LINE = '給与の提出で開きます', PAY_GO = '匿名で給与を提出する';
+    const TABS = ['work', 'pay', 'life', 'overview'];          // 集計の欄か月の勤務の欄を持つタブ（歩く順）
+    const TAB_NAME = { work: '勤務・訓練', pay: '給与・待遇', life: '暮らし・家族', overview: '概要' };
+    const SLOT_AT = { got: '集まった回答', 'pvg-p-work': '勤務の集計', 'pvg-p-benefits': '待遇の集計', 'pvg-p-living': '通勤の集計' };
+    const GATED = (x) => x.live === 'fact' || x.live === 'work';
+    const slotName = (x) => (x.live === 'work' ? '月の勤務' : (SLOT_AT[x.at] || x.at || '?'));
+    const ALL_SLOTS = ['月の勤務', ...Object.values(SLOT_AT)].sort();
+
+    /* 集計が数えた人数（運営の読み口で、ビューから直接）。画面の人数は、必ずこれと比べる（数字を打ち込まない） */
+    const nOf = async (id) => {
+      const r = (await q('select n from public.airline_condition_facts where airline = $1 and question_id = $2', [SLUG, id])).rows[0];
+      return r ? Number(r.n) : undefined;
+    };
+    /* 返事を、鍵の順をそろえた全文の字にする。返事どうしは、いつも全文で比べる（J は 300字で切るので、比べるのには使わない） */
+    const full = (v) => JSON.stringify(v, (k, x) => ((x && typeof x === 'object' && !Array.isArray(x))
+      ? Object.keys(x).sort().reduce((o, key) => { o[key] = x[key]; return o; }, {}) : x));
+    /* 通信の上の返事が、その字だけか（読めた形の全文と、空白を除いた生の字の両方） */
+    const only = (r, text) => !!r && r.status === 200 && full(r.body) === text && String(r.text).replace(/\s+/g, '') === text;
+    /* この場面の1区切り。途中で止まっても、あとの区切りは見る（止まった区切りは、その名前で赤くなる） */
+    const part = async (name, fn) => {
+      try { await fn(); } catch (e) { ok(false, `${name} が最後まで進んだ`, String(e && e.message || e).split('\n')[0].slice(0, 220)); }
+    };
+
+    /* この場面が自分で付ける耳（開いた1枚ごと・ページへ移る前に付けて、最後に外す）：
+       集計の読み口の返事（生の字と、読めた形）と、出ていった通信の行き先ぜんぶ。 */
+    const listen = (p) => {
+      const ear = { replies: [], urls: [], waits: [] };
+      const onRes = (res) => {
+        if (!res.url().endsWith('/rest/v1/rpc/pv_contrib_facts')) return;
+        const status = res.status();
+        ear.waits.push(res.text().then((text) => {
+          let body = null;
+          try { body = JSON.parse(text); } catch (e) { body = null; }
+          ear.replies.push({ status, text, body });
+        }, () => { ear.replies.push({ status, text: null, body: null }); }));
+      };
+      const onReq = (req) => { ear.urls.push(req.url()); };
+      p.page.on('response', onRes);
+      p.page.on('request', onReq);
+      ear.all = async () => { await Promise.all(ear.waits); return ear.replies; };
+      ear.off = () => { p.page.off('response', onRes); p.page.off('request', onReq); };
+      return ear;
+    };
+    /* ページのどの部品よりも先に入れる見張り（open の pre）：鍵の掛かる欄（回答の集計・月の勤務）に「ログイン」の字が出た瞬間を書き留める。
+       ログインしている人の欄に、いっときでも未ログインの1行と入口が出ていないかを見る（あとから画面を読んでも、消えた字は見えない）。 */
+    const watchLogin = () => {
+      window.__pvFactSaw = [];
+      new MutationObserver(() => {
+        if (window.__pvFactSaw.length >= 20) return;
+        for (const n of document.querySelectorAll('.crl[data-live="fact"], .crl[data-live="work"]')) {
+          const t = n.textContent || '';
+          if (t.indexOf('ログイン') >= 0) window.__pvFactSaw.push(n.getAttribute('data-live') + '：' + t.trim().slice(0, 40));
+        }
+      }).observe(document, { subtree: true, childList: true, characterData: true });
+    };
+    const sawLogin = (p) => p.page.evaluate(() => (window.__pvFactSaw || ['見張りが入っていない']).slice());
+    /* 見えている生きた欄（.crl[data-live]）を、欄ごとに読む（ページの中で動く・外の変数を使わない）。
+       at ＝ 欄の居場所（「集まった回答」は got・板の中の欄は板の id）。字は詰めない（「回答 3人」の空白を残す）。 */
+    const slotsNow = () => {
+      const vis = (e) => !!e && e.getClientRects().length > 0, tx = (e) => (e ? e.textContent : '').trim();
+      return [...document.querySelectorAll('.crl[data-live]')].filter(vis).map((e) => ({
+        live: e.getAttribute('data-live'), state: e.getAttribute('data-state'), entry: e.getAttribute('data-entry'),
+        at: e.closest('.pvg-got') ? 'got' : ((e.closest('.pvg-panel') || {}).id || ''),
+        text: tx(e), lock: [...e.querySelectorAll('.crl-lock')].map(tx),
+        rows: [...e.querySelectorAll('.crl-fact')].map((r) => ({ k: tx(r.querySelector('.crl-fact-k')), meta: [...r.querySelectorAll('.crl-ans-m > span')].map(tx) })),
+        links: [...e.querySelectorAll('a')].filter(vis).map((a) => ({ text: tx(a), href: a.getAttribute('href') || '', login: a.hasAttribute('data-crl-login') })),
+        retry: [...e.querySelectorAll('.crl-retry')].filter(vis).map(tx),
+      }));
+    };
+    /* いま見えている、鍵の掛かる欄が、どれも落ち着く（手つかずでも読み込み中でもなくなる）まで待つ。時間では待たない */
+    const slotsCalm = (p) => seen(p, () => {
+      const all = [...document.querySelectorAll('.crl[data-live="fact"], .crl[data-live="work"]')].filter((e) => e.getClientRects().length > 0);
+      return all.length > 0 && all.every((e) => !/^(idle|loading)$/.test(e.getAttribute('data-state') || 'idle'));
+    });
+    const toTab = async (p, id) => {
+      await p.page.evaluate((t) => document.querySelector('.pvg-tabs [data-pvg-tab="' + t + '"]').click(), id);
+      return (await seen(p, (t) => document.body.classList.contains('pvg-at-' + t), id)) && (await slotsCalm(p));
+    };
+    /* 4つのタブを歩いて、タブごとに欄を読む。移れなかった・欄が落ち着かなかったタブは lost に入る（下の行で赤くなる） */
+    const walk = async (p) => {
+      const out = { lost: [] };
+      for (const id of TABS) {
+        if (await toTab(p, id)) out[id] = await p.page.evaluate(slotsNow);
+        else { out[id] = []; out.lost.push(id); }
+      }
+      return out;
+    };
+    /* 開いていない人の画面：どのタブでも、見えている集計の欄と月の勤務の欄は、鍵の形で、その1行と（欄が自分で出す）入口だけ。
+       回答の行も数字も無い。返すのは、破れている所の文（空なら守れている）と、見た欄の名前（1つも見ずに緑、を防ぐ）。 */
+    const lockedBad = (w, line) => {
+      const bad = w.lost.map((id) => `${TAB_NAME[id]}：タブへ移れない・欄が落ち着かない`), saw = new Set();
+      for (const id of TABS) for (const x of w[id].filter(GATED)) {
+        const at = `${TAB_NAME[id]}・${slotName(x)}`;
+        saw.add(slotName(x));
+        if (x.state !== 'locked') bad.push(`${at}：欄が ${x.state}（鍵の形のはず）`);
+        if (x.lock.length !== 1 || x.lock[0] !== line) bad.push(`${at}：1行「${x.lock.join('｜')}」（あるべき「${line}」）`);
+        if (x.rows.length) bad.push(`${at}：回答の行が ${x.rows.length}つ`);
+        if (x.text !== line + x.links.map((a) => a.text).join('')) bad.push(`${at}：1行と入口のほかの字が在る「${x.text.slice(0, 50)}」`);
+        if (/[0-9０-９]/.test(x.text)) bad.push(`${at}：数字が在る「${x.text.slice(0, 50)}」`);
+      }
+      return { bad, saw: [...saw].sort() };
+    };
+    const factRows = (w) => TABS.flatMap((id) => w[id].flatMap((x) => x.rows.map((r) => `${TAB_NAME[id]}・${slotName(x)}・${r.k}`)));
+    /* 読み直したページが、タブを押せる形になるまで待つ（go が待つのと同じ条件） */
+    const ready = (p) => p.page.waitForFunction(() => !!window.PVContrib
+      && [...document.styleSheets].some((s) => s.href && s.href.includes('pv-contrib.css')), { timeout: 30000 });
+    /* open の pre：端末の保存領域（localStorage・sessionStorage）の、ページが始まる時の中身を写し（s0）、setItem の呼び出しを
+       [置き場・鍵・値・呼んだ所] で、全部控える。ページのどの部品よりも、この検査の差し込みよりも、先に入る。 */
+    const recordStore = () => {
+      const snap = () => {
+        const o = { local: {}, session: {} };
+        try {
+          for (const [at, st] of [['local', window.localStorage], ['session', window.sessionStorage]]) {
+            for (let i = 0; i < st.length; i++) { const k = st.key(i); o[at][k] = st.getItem(k); }
+          }
+        } catch (e) { /* 保存領域に触れない画面は、空のまま */ }
+        return o;
+      };
+      const rec = window.__pvStore = { s0: snap(), log: [], snap };
+      const real = Storage.prototype.setItem;
+      Storage.prototype.setItem = function pvRecSet(k, v) {
+        try { rec.log.push([this === window.sessionStorage ? 'session' : 'local', String(k), String(v), String(new Error().stack || '')]); } catch (e) { /* 控えられなくても、書き込みは通す */ }
+        return real.apply(this, arguments);
+      };
+    };
+    /* いまの中身（s1）と、ページが始まった時の中身（s0）と、控えた書き込み */
+    const storeNow = (p) => p.page.evaluate(() => { const R = window.__pvStore; return R ? { s0: R.s0, s1: R.snap(), log: R.log.slice() } : null; });
+    /* 控えた「呼んだ所」から、じかに書いた部品（控えの関数のすぐ外の段）を取り出す。deep ＝ じかに書いたのは別の部品で、その奥に career-live.js が居る。
+       ページの部品でない段（この検査が open で差し込んだもの）は「検査の差し込み」。 */
+    const writerOf = (stack) => {
+      const frames = String(stack).split('\n').slice(1).filter((l) => !l.includes('pvRecSet'));
+      const fileOf = (l) => {
+        const m = /(https?:\/\/[^\s()]+)/.exec(l || '');
+        if (!m) return '';
+        try { return new URL(m[1]).pathname.replace(/:\d+(:\d+)?$/, '').replace(/^\//, ''); } catch (e) { return ''; }
+      };
+      const by = fileOf(frames[0]) || '検査の差し込み';
+      return { by, deep: by !== 'career-live.js' && frames.slice(1).some((l) => fileOf(l) === 'career-live.js'), top: frames.slice(0, 3).map((l) => l.trim()).join(' ← ') };
+    };
+
+    /* 証拠の絵（頼まれた時だけ）。PV_FACT_SHOTS=S1,S2 のように状態の名前を渡すと、その状態の欄を撮って ./temporary screenshots/ に置く。
+       渡さなければ何もしない（1枚も開かない・1枚も書かない）。合否には使わない（撮れなくても、検査の行は1つも増えない・減らない）。
+       撮るのは、集計の欄か月の勤務の欄を持つカード（タブごとに1枚）。ファイルの名前は 状態・色・会社・タブ・幅。 */
+    const SHOTS = String(process.env.PV_FACT_SHOTS || '').split(',').map((s) => s.trim()).filter(Boolean);
+    /* S5 と書けば、S5a と S5b の両方 */
+    const wants = (state) => SHOTS.includes(state) || SHOTS.includes(state.replace(/[ab]$/, ''));
+    const SHOT_DIR = path.join(ROOT, 'temporary screenshots');
+    const shotName = (state, theme, tab, w, more = '') => path.join(SHOT_DIR, `fact-${state}-${theme || 'light'}-${SLUG}-${tab}-${w}${more}.png`);
+    /* カードの場所は、ページをいちばん上へ戻してから測る ＝ 画面の上に貼り付くヘッダーとタブの帯が、カードの上に重ならない */
+    const cardBox = (p) => p.page.evaluate(() => {
+      const e = [...document.querySelectorAll('.crl[data-live="fact"], .crl[data-live="work"]')].find((n) => n.getClientRects().length > 0);
+      const c = e ? e.closest('.pvg-card') : null;
+      if (!c) return null;
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      const r = c.getBoundingClientRect();
+      return { x: Math.max(0, Math.floor(r.left)), y: Math.max(0, Math.floor(r.top + window.scrollY)), width: Math.ceil(r.width), height: Math.ceil(r.height) };
+    });
+    const shootCard = async (p, file) => {
+      const clip = await cardBox(p);
+      if (clip) { await p.page.screenshot({ path: file, clip, captureBeyondViewport: true }); console.log('  （絵）' + path.basename(file)); }
+    };
+    /* state ＝ 状態の名前（S1 …）・who ＝ 読む人・theme ＝ 色・sizes ＝ 大きさ・before ＝ ページへ移る前にすること（そのページの st を受け取る）
+       ・focus ＝ Tab で焦点を当てる入口の字（勤務・訓練のタブで1枚）・career ＝ 2社の比較（career.html）も1枚（1440 だけ） */
+    const shoot = async (state, { who = null, theme = null, sizes = ['desk', 'tablet', 'phone'], tabs = TABS, before = null, focus = null, career = false } = {}) => {
+      if (!wants(state)) return;
+      try {
+        fs.mkdirSync(SHOT_DIR, { recursive: true });
+        for (const size of sizes) {
+          const p = await open(size, { who, theme });
+          try {
+            if (before) await before(p.st);
+            await go(p, CX);
+            for (const id of tabs) {
+              if (await toTab(p, id)) await shootCard(p, shotName(state, theme, id, p.size.w));
+            }
+            if (focus && size === 'desk' && (await toTab(p, 'work'))) {
+              /* 入口へは Tab キーで着く（輪が出る形）：キーボードの操作にしてから、1つ手前へ戻って Tab を1回 */
+              await p.page.keyboard.press('Tab');
+              const hit = await p.page.evaluate((t) => {
+                const a = [...document.querySelectorAll('.crl[data-live] a')].find((n) => n.getClientRects().length > 0 && n.textContent.trim() === t);
+                if (a) { a.setAttribute('data-shot-focus', '1'); a.focus(); }
+                return !!a;
+              }, focus);
+              if (hit) {
+                await p.page.keyboard.down('Shift'); await p.page.keyboard.press('Tab'); await p.page.keyboard.up('Shift');
+                await p.page.keyboard.press('Tab');
+                const on = await p.page.evaluate(() => !!document.activeElement && document.activeElement.hasAttribute('data-shot-focus'));
+                await shootCard(p, shotName(state, theme, 'work', p.size.w, on ? '-focus' : '-focus-miss'));
+              }
+            }
+            if (career && size === 'desk') {
+              await go(p, `/career.html?view=compare&a=${SLUG}&b=jal`);
+              await seen(p, () => {
+                const all = [...document.querySelectorAll('.crl[data-live="cmp-facts"], .crl[data-live="cmp-work"]')].filter((e) => e.getClientRects().length > 0);
+                return all.length > 0 && all.every((e) => !/^(idle|loading)$/.test(e.getAttribute('data-state') || 'idle'));
+              });
+              const file = shotName(state, theme, 'career-compare', p.size.w);
+              await p.page.screenshot({ path: file, fullPage: true });
+              console.log('  （絵）' + path.basename(file));
+            }
+          } finally {
+            await p.st.ctx.close();
+          }
+        }
+      } catch (e) {
+        console.log(`  （絵 ${state} は撮れなかった：${String(e && e.message || e).split('\n')[0].slice(0, 160)}）`);
+      }
+    };
+    /* S4 ＝ 3人そろっていない欄（開いている人にも「まだ集計がありません」）。撮る直前に、その欄のどの質問も3人未満であることを、
+       集計そのものから確かめる。そういう欄がこのページに無ければ、いちばん少ない欄を撮って、その名前と数を書き出す。 */
+    const shootThin = async () => {
+      if (!wants('S4')) return;
+      try {
+        fs.mkdirSync(SHOT_DIR, { recursive: true });
+        for (const size of ['desk', 'tablet', 'phone']) {
+          const p = await open(size, { who: 'pay' });
+          try {
+            await go(p, CX);
+            let best = null;
+            for (const id of TABS) {
+              if (!(await toTab(p, id))) continue;
+              const keys = await p.page.evaluate(() => {
+                const e = [...document.querySelectorAll('.crl[data-live="fact"]')].find((n) => n.getClientRects().length > 0);
+                return e ? (e.getAttribute('data-keys') || '').split(',').map((k) => k.trim()).filter(Boolean) : [];
+              });
+              if (!keys.length) continue;
+              const have = (await q('select count(*)::int as c from public.airline_condition_facts where airline = $1 and question_id = any($2::text[])', [SLUG, keys])).rows[0].c;
+              if (!best || have < best.have) best = { id, have, keys: keys.length };
+            }
+            if (!best || !(await toTab(p, best.id))) continue;
+            console.log(`  （絵 S4：${TAB_NAME[best.id]}の集計の欄。${best.keys}問のうち、3人そろっている質問は ${best.have}問${best.have ? ' ＝ 3人未満だけの欄は、このページに無い' : ''}）`);
+            await shootCard(p, shotName('S4', null, best.id, p.size.w));
+          } finally {
+            await p.st.ctx.close();
+          }
+        }
+      } catch (e) {
+        console.log(`  （絵 S4 は撮れなかった：${String(e && e.message || e).split('\n')[0].slice(0, 160)}）`);
+      }
+    };
+    /* S5b ＝ 開いたまま切れて、読み直す：前（鍵が生きている）と、後（鍵が切れて、読み直したあと）の、勤務の集計のカード。
+       大きさごとに、鍵を生き返らせて（arm）から撮り、切って（cut）読み直して、もう1枚。撮れても撮れなくても、鍵は切れた形で終える。 */
+    const shootTurn = async (arm, cut) => {
+      if (!wants('S5b')) return;
+      try {
+        fs.mkdirSync(SHOT_DIR, { recursive: true });
+        for (const size of ['desk', 'tablet', 'phone']) {
+          await arm();
+          const p = await open(size, { who: 'pay' });
+          try {
+            await go(p, CX + '#work');
+            if (await toTab(p, 'work')) await shootCard(p, shotName('S5b', null, 'work', p.size.w, '-before'));
+            await cut();
+            await p.page.reload({ waitUntil: 'domcontentloaded', timeout: 45000 });
+            await ready(p);
+            if (await toTab(p, 'work')) await shootCard(p, shotName('S5b', null, 'work', p.size.w, '-after'));
+          } finally {
+            await p.st.ctx.close();
+          }
+        }
+      } catch (e) {
+        console.log(`  （絵 S5b は撮れなかった：${String(e && e.message || e).split('\n')[0].slice(0, 160)}）`);
+      } finally {
+        await cut();
+      }
+    };
+    /* 読めない時の、偽の返事（1回ぶん。gate が、その名前の通信を1本だけ、これで返す） */
+    const FAILED = () => ({ name: 'pv_contrib_facts', status: 500, body: { message: 'x' } });
+    const MISSING_FN = () => ({ name: 'pv_contrib_facts', status: 404, body: { code: 'PGRST202', message: 'x', details: null, hint: null } });
+    /* C2（未ログイン）と C3（会員）で歩いた4つのタブの読み。C9 が、同じ読みで入口の数と置き場を見る */
+    let outWalk = null, pilotWalk = null;
+
+    try {
+      /* ── 準備：会員A・B・C が、本物の口で2問に答える。給与提出者が、本物の口で、このページの会社に先月ぶんの給与を出す ── */
+      const seeded = [];
+      for (const k of ['a', 'b', 'c']) seeded.push([k, await rpcAs(k, 'submit_airline_conditions', { airline: SLUG, answers: SEED })]);
+      const saved = seeded.every(([, r]) => !!r && r.ok === true && r.saved === SEED.length && Array.isArray(r.rejected) && r.rejected.length === 0);
+      ok(saved, '準備：会員A・B・C が、キャセイについて2問（スタンバイ勤務・社員の航空券）に答えた（3人とも2問とも保存・1日の上限に当たっていない）',
+        J(seeded.map(([k, r]) => [k, r && r.saved, r && r.rejected, r && r.message])));
+      if (!saved) throw new Error('前提が崩れた（3人の回答を置けていない）');
+      const n1 = await nOf('reserve_duty'), n2 = await nOf('staff_travel');
+      ok(n1 >= 3, `準備：集計が数えた「スタンバイ勤務」の人数は3人以上（読めた数 ${n1}）`);
+      ok(n2 >= 3, `準備：集計が数えた「社員の航空券」の人数は3人以上（読めた数 ${n2}）`);
+      if (!(n1 >= 3 && n2 >= 3)) throw new Error('前提が崩れた（集計に3人そろっていない）');
+      /* 先月 ＝ 保存先の時計の今月の、1つ前（この Mac の時計は使わない・月を打ち込まない・未来の月にしない） */
+      const NOW = (await q('select extract(year from current_date)::int as y, extract(month from current_date)::int as m')).rows[0];
+      const MONTH = (() => { const t = NOW.y * 12 + (NOW.m - 1) - 1; return { y: Math.floor(t / 12), m: (t % 12) + 1 }; })();
+      /* 給与の中身は db/test-work-months.mjs の PAY と同じ（勤務の数字は入れない）。機材は、このファイルの FLEET */
+      const fileReport = () => rpcAs('pay', 'submit_pay_report', {
+        currency: 'USD', lang: 'en', tax_rate_pct: 0, position: 'cap', fleet: FLEET,
+        base_pay: 9000, flight_variable_pay: 4000, other_allowance: 4400, command_pay: 2000, per_diem: 1000, housing_type: 'allowance', housing_amount: 600,
+        airline: SLUG, period_year: MONTH.y, period_month: MONTH.m,
+      });
+      const filed = await fileReport();
+      const armed = !!filed && filed.ok === true && filed.access_until != null;
+      ok(armed, `準備：給与提出者が、キャセイに先月（${MONTH.y}年${MONTH.m}月）ぶんの給与を、本物の口で出した（返事に給与の鍵の期限が入っている）`,
+        J({ ok: filed && filed.ok, until: filed && filed.access_until, message: filed && filed.message }));
+      if (!armed) throw new Error('前提が崩れた（給与を出せていない）');
+
+      /* ── C1：集計のビューは、通信の上で閉じている ── */
+      await part('C1', async () => {
+        const url = `${base}/rest/v1/airline_condition_facts?select=question_id&airline=eq.${SLUG}`;
+        const tok = (await (await fetch(`${base}/__local/login?member=c`)).json()).session.access_token;
+        const anon = await fetch(url), anonText = await anon.text();
+        const mem = await fetch(url, { headers: { authorization: `Bearer ${tok}` } }), memText = await mem.text();
+        const rowsIn = (t) => { try { const v = JSON.parse(t); return Array.isArray(v) ? v.length : 0; } catch (e) { return 0; } };
+        ok(anon.status === 401 && mem.status === 403 && [anonText, memText].every((t) => !t.includes('reserve_duty') && rowsIn(t) === 0),
+          '★C1 集計のビュー（airline_condition_facts）は、直接は読めない：鍵なしは 401・会員の鍵でも 403。どちらの返事にも、行も「reserve_duty」も無い',
+          J({ anon: anon.status, member: mem.status, anonText: anonText.slice(0, 90), memText: memText.slice(0, 90) }));
+      });
+
+      /* ── C2：未ログイン（390×680・勤務・訓練のタブから）── */
+      await part('C2', async () => {
+        const p = await open('phone', { pre: watchLogin });
+        const ear = listen(p);
+        try {
+          await go(p, CX + '#work');
+          const w = await walk(p), replies = await ear.all(), L = lockedBad(w, LOGIN_LINE), sawOut = await sawLogin(p);
+          outWalk = w;
+          ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
+            `★C2 未ログイン：どのタブでも、集計の欄（4つ）と月の勤務の欄は、鍵の形で「${LOGIN_LINE}」の1行だけ（回答の行も数字も無い）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
+          const got = w.overview.filter((x) => x.at === 'got');
+          ok(got.length === 1 && got[0].lock.length === 1 && got[0].lock[0] === LOGIN_LINE && got[0].links.length === 0,
+            '★C2 未ログイン：概要の「集まった回答」も同じ1行で、リンクを1つも持たない', J(got.map((x) => ({ lock: x.lock, links: x.links }))));
+          ok(replies.length >= 1 && replies.every((r) => only(r, '{"ok":true,"state":"login"}')),
+            '★C2 未ログイン：集計の読み口の返事は、字として {"ok":true,"state":"login"} だけ（ほかの鍵も、行も、数字も付いていない）', J(replies.map((r) => [r.status, r.text])));
+          ok(ear.urls.length > 0 && !ear.urls.some((u) => u.includes('airline_condition_facts')),
+            '★C2 未ログイン：集計のビューへは、1本も聞きに行っていない（出ていった通信の行き先に airline_condition_facts が無い）', J(ear.urls.filter((u) => u.includes('airline_condition_facts')).slice(0, 3)));
+          /* 押すのは最後（ここから先はログインの画面）。ほかは全部、押す前に読んである */
+          const logins = w.work.flatMap((x) => x.links).filter((a) => a.login);
+          let landed = null;
+          if ((await toTab(p, 'work')) && logins.length === 1) {
+            await Promise.all([
+              p.page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 20000 }),
+              p.page.evaluate(() => { [...document.querySelectorAll('.crl[data-live] a[data-crl-login]')].find((n) => n.getClientRects().length > 0).click(); }),
+            ]);
+            landed = await p.page.evaluate(() => ({ path: location.pathname, redirect: new URLSearchParams(location.search).get('redirect') }));
+          }
+          ok(logins.length === 1 && logins[0].text === LOGIN_GO && logins[0].href.endsWith('%23work') && !!landed && landed.path === '/login.html' && landed.redirect === 'airlines/cathay-pacific.html#work',
+            '★C2 未ログイン：勤務・訓練のタブに見えている「ログイン」は1つで、行き先の終わりは %23work。押すとログインの画面に着き、戻り先は airlines/cathay-pacific.html#work（同じタブ）',
+            J({ logins, landed }));
+          /* 見張りの確かめ（上の行を全部判定してから見る）：未ログインの欄の「ログイン」の字を、見張りが1度は見ているはず。
+             見ていなければ、C3・C4 の「いっときも出ていない」は、見張りが働かないまま緑になる */
+          if (!sawOut.length) throw new Error('前提が崩れた（見張りが、未ログインの欄の「ログイン」の字を1度も見ていない ＝ 見張りが働いていない）');
+        } finally {
+          ear.off();
+          await p.st.ctx.close();
+        }
+      });
+      await shoot('S1', { focus: LOGIN_GO, career: true });
+      await shoot('S1', { theme: 'dark' });
+
+      /* ── C3：会員（確認済みパイロット・給与の鍵なし・1440×820）── */
+      let pilotText = null;        // 会員が受け取った返事の、生の字（期限の切れた人の返事と、全文で比べるのに使う）
+      await part('C3', async () => {
+        const p = await open('desk', { who: 'pilot', pre: watchLogin });
+        const ear = listen(p);
+        try {
+          await go(p, CX + '#work');
+          const w = await walk(p), replies = await ear.all(), L = lockedBad(w, PAY_LINE), saw = await sawLogin(p);
+          pilotWalk = w;
+          pilotText = replies.length ? replies[0].text : null;
+          ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
+            `★C3 会員（給与の鍵なし）：どのタブでも、集計の欄（4つ）と月の勤務の欄は、鍵の形で「${PAY_LINE}」の1行だけ（回答の行も数字も無い）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
+          const goes = TABS.map((id) => [id, w[id].flatMap((x) => x.links).filter((a) => a.text === PAY_GO)]);
+          ok(goes.every(([id, a]) => (id === 'overview' ? a.length <= 1 : a.length === 1) && a.every((x) => x.href.endsWith('pay-report.html?airline=' + SLUG))),
+            `★C3 会員：見えている「${PAY_GO}」は、勤務・訓練／給与・待遇／暮らし・家族 のどのタブでも1つだけ（概要では多くて1つ）。行き先は、このページの会社の給与の提出`,
+            J(goes.map(([id, a]) => [id, a.map((x) => x.href)])));
+          const got = w.overview.filter((x) => x.at === 'got'), rows = factRows(w);
+          const named = TABS.flatMap((id) => w[id].filter((x) => x.text.includes(DUTY) || x.text.includes(TRAVEL)).map((x) => `${TAB_NAME[id]}・${slotName(x)}`));
+          ok(got.length === 1 && got[0].rows.length === 0 && rows.length === 0 && named.length === 0,
+            '★C3 会員：「集まった回答」に回答の行が無い。どのタブのどの欄にも、回答の行が1つも無い（スタンバイ勤務・社員の航空券の質問の名前も出ない）', J({ rows: rows.slice(0, 4), named }));
+          ok(replies.length >= 1 && replies.every((r) => only(r, '{"ok":true,"state":"locked"}')),
+            '★C3 会員：集計の読み口の返事は、字として {"ok":true,"state":"locked"} だけ（ほかの鍵も、行も、数字も付いていない）', J(replies.map((r) => [r.status, r.text])));
+          ok(saw.length === 0, '★C3 会員：集計の欄にも月の勤務の欄にも、「ログイン」の字が、いっときも出ていない（未ログインの1行を、先に出していない）', J(saw.slice(0, 3)));
+        } finally {
+          ear.off();
+          await p.st.ctx.close();
+        }
+      });
+      await shoot('S2', { who: 'pilot', focus: PAY_GO, career: true });
+      await shoot('S2', { who: 'pilot', theme: 'dark' });
+
+      /* ── C4：このページの会社に給与を出した会員（自分の会社のページ・自分では1問も答えていない・1440×820）── */
+      await part('C4', async () => {
+        const p = await open('desk', { who: 'pay', pre: watchLogin });
+        const ear = listen(p);
+        try {
+          await go(p, CX + '#work');
+          const w = await walk(p), replies = await ear.all(), saw = await sawLogin(p), n = await nOf('reserve_duty');
+          /* 「スタンバイ勤務」を持つ欄は2つ（勤務・訓練のタブの集計・概要の「集まった回答」）。その行を、欄ごとに取り出す */
+          const holders = [...w.work.filter((x) => x.at === 'pvg-p-work' && x.live === 'fact'), ...w.overview.filter((x) => x.at === 'got')];
+          const duty = holders.map((x) => x.rows.filter((r) => r.k === DUTY));
+          ok(replies.length >= 1 && replies.every((r) => r.status === 200 && !!r.body && r.body.state === 'open') && holders.length === 2
+            && holders.every((x) => x.state === 'open') && duty.every((rs) => rs.length === 1),
+            '★C4 給与を出した会員が、自分の会社のページを開く：返事は open。「スタンバイ勤務」の行が、その質問を持つ2つの欄（勤務の集計・集まった回答）に1つずつ出る',
+            J({ states: replies.map((r) => r.body && r.body.state), holders: holders.map((x) => [slotName(x), x.state, x.rows.map((r) => r.k)]) }));
+          ok(duty.length === 2 && duty.every((rs) => rs.length === 1 && rs[0].meta.filter((t) => t === `回答 ${n}人`).length === 1 && rs[0].meta.filter((t) => /人/.test(t)).length === 1),
+            `★C4 その行の人数は「回答 ${n}人」── 集計が数えた人数そのまま（行に1つだけ）`, J(duty.map((rs) => rs.map((r) => r.meta))));
+          ok(duty.length === 2 && duty.every((rs) => rs.length === 1 && rs[0].meta.filter((t) => /^\d{4}年\d{1,2}月$/.test(t)).length === 1),
+            '★C4 その行に、最後に確かめられた月（YYYY年M月）が出ている', J(duty.map((rs) => rs.map((r) => r.meta))));
+          const shut = TABS.flatMap((id) => w[id].filter(GATED).filter((x) => x.lock.length || !/^(open|empty)$/.test(x.state)).map((x) => `${TAB_NAME[id]}・${slotName(x)}（${x.state}）`));
+          const sawSlots = [...new Set(TABS.flatMap((id) => w[id].filter(GATED).map(slotName)))].sort();
+          ok(shut.length === 0 && w.lost.length === 0 && J(sawSlots) === J(ALL_SLOTS),
+            '★C4 どのタブの集計の欄にも月の勤務の欄にも、鍵の1行が無い（開いた形か「まだ集計がありません」）', J({ shut, lost: w.lost, saw: sawSlots }));
+          ok(saw.length === 0, '★C4 集計の欄にも月の勤務の欄にも、「ログイン」の字が、いっときも出ていない', J(saw.slice(0, 3)));
+        } finally {
+          ear.off();
+          await p.st.ctx.close();
+        }
+      });
+      await shoot('S3', { who: 'pay' });
+      await shootThin();
+      /* ここまで、給与提出者の鍵は生きたまま */
+
+      /* 給与の鍵の期限を、過去にする（保存先の時計で。ページの時計は動かさない） */
+      const expire = () => q("update public.profiles set access_until = now() - interval '1 minute' where id = $1", [PAYER.id]);
+      /* 期限の切れた人の、返事と画面（C5a と、C5b の読み直しのあとで、同じ3つを見る） */
+      const expiredFace = (tag, w, replies) => {
+        const L = lockedBad(w, PAY_LINE), rows = factRows(w);
+        const named = TABS.flatMap((id) => w[id].filter((x) => x.text.includes(DUTY)).map((x) => `${TAB_NAME[id]}・${slotName(x)}`));
+        ok(pilotText !== null && replies.length >= 1 && replies.every((r) => r.text === pilotText && only(r, '{"ok":true,"state":"locked"}')),
+          `★${tag}：集計の読み口の返事は、会員（給与の鍵なし）が受け取った返事と、全文で同じ字（{"ok":true,"state":"locked"}）`,
+          J({ pilot: pilotText, got: replies.map((r) => [r.status, r.text]) }));
+        ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
+          `★${tag}：どのタブでも、集計の欄（4つ）と月の勤務の欄は、鍵の形で「${PAY_LINE}」の1行だけ（数字が無い）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
+        ok(w.lost.length === 0 && rows.length === 0 && named.length === 0,
+          `★${tag}：「スタンバイ勤務」の行は、どのタブのどの欄にも無い（回答の行が1つも無い）`, J({ rows: rows.slice(0, 4), named, lost: w.lost }));
+      };
+
+      /* ── C5a：期限の切れた人が開く（390×680）── */
+      await part('C5a', async () => {
+        await expire();
+        const p = await open('phone', { who: 'pay' });
+        const ear = listen(p);
+        try {
+          await go(p, CX + '#work');
+          const w = await walk(p);
+          expiredFace('C5a 期限の切れた人が開く', w, await ear.all());
+        } finally {
+          ear.off();
+          await p.st.ctx.close();
+        }
+      });
+      await shoot('S5a', { who: 'pay' });
+
+      /* ── C5b：開いたまま切れて、読み直す（1440×820）。保存領域は、開いた形が出ている1回の読み込みの中で見る ── */
+      await part('C5b', async () => {
+        /* 鍵を生き返らせる：同じ会社・同じ月の給与を、本物の口でもう一度出す（行は置き換わり、鍵は今から先へ延びる） */
+        const again = await fileReport();
+        const live = (await q('select access_until > now() as live from public.profiles where id = $1', [PAYER.id])).rows[0];
+        if (!(again && again.ok === true && again.access_until != null && live && live.live === true)) {
+          throw new Error('前提が崩れた（給与を出し直しても、給与の鍵が生き返っていない）: ' + J({ ok: again && again.ok, until: again && again.access_until, live }));
+        }
+        const p = await open('desk', { who: 'pay', pre: recordStore });
+        const ear = listen(p);
+        try {
+          await go(p, CX + '#work');
+          const n = await nOf('reserve_duty');
+          const drawn = await seen(p, (a) => [...document.querySelectorAll('.crl[data-live="fact"] .crl-fact')].some((r) => r.getClientRects().length > 0
+            && (r.querySelector('.crl-fact-k') || {}).textContent === a.k && [...r.querySelectorAll('.crl-ans-m > span')].some((s) => s.textContent === a.n)), { k: DUTY, n: `回答 ${n}人` });
+          if (!drawn) throw new Error('前提が崩れた（鍵が生きている人に、開いた形が描かれていない）');
+          const S = await storeNow(p);
+          if (!S) throw new Error('前提が崩れた（保存領域の控えが入っていない）');
+          /* (i) 値を見る：いまの中身と、控えた書き込みの、どの鍵にも値にも、集計を写した字が無い */
+          const WORDS = ['pv_contrib_facts', '"median_num"', '"lead"', 'fact:'];
+          const held = [...['local', 'session'].flatMap((at) => Object.entries(S.s1[at]).map(([k, v]) => [at, k, v])), ...S.log.map((x) => [x[0] + '（控え）', x[1], x[2]])];
+          const hits = [...new Set(held.filter(([, k, v]) => WORDS.some((t) => String(k).includes(t) || String(v).includes(t))).map(([at, k]) => `${at}:${k}`))];
+          ok(held.length > 0 && hits.length === 0,
+            '★C5b 開いた形が出ているあいだ、端末の保存領域（localStorage・sessionStorage・控えた書き込み）のどの鍵にも値にも、集計を写した字（pv_contrib_facts・"median_num"・"lead"・fact:）が無い',
+            J(hits.slice(0, 6)));
+          /* (ii) 前と後：ページが始まった時から、開いた形が出た時までに、新しく出来た・値が替わった鍵。じかに書いたのが career-live.js のものは無い */
+          const moved = ['local', 'session'].flatMap((at) => Object.keys(S.s1[at]).filter((k) => S.s0[at][k] !== S.s1[at][k]).map((k) => [at, k]));
+          const wrote = moved.map(([at, k]) => {
+            const ws = S.log.filter((x) => x[0] === at && x[1] === k).map((x) => writerOf(x[3]));
+            return { key: `${at}:${k}`, by: [...new Set(ws.map((x) => x.by))], deep: ws.some((x) => x.deep), top: (ws.find((x) => x.by === 'career-live.js') || {}).top };
+          });
+          const direct = wrote.filter((x) => x.by.includes('career-live.js'));
+          ok(wrote.some((x) => x.key === 'local:sb-local-auth-token' && x.by.length > 0) && direct.length === 0,
+            '★C5b ページが始まってから開いた形が出るまでに、新しく出来た・値が替わった保存領域の鍵のうち、career-live.js がじかに書いたものは1つも無い',
+            J(direct.length ? direct.map((x) => [x.key, x.top]) : wrote.map((x) => x.key)));
+          /* 鍵の名前と、じかに書いた部品（値は出さない）。合否には使わない */
+          console.log('    （C5b：そのあいだに出来た・替わった鍵 ← じかに書いた部品 ── ' + wrote.map((x) => `${x.key} ← ${x.by.join('・') || '控えに無い（setItem を通らない書き方）'}${x.deep ? '（奥に career-live.js）' : ''}`).join('／') + '）');
+
+          /* 鍵を切って、読み直す */
+          const before = (await ear.all()).length;
+          await expire();
+          await p.page.reload({ waitUntil: 'domcontentloaded', timeout: 45000 });
+          await ready(p);
+          const w = await walk(p);
+          expiredFace('C5b 開いたまま切れて、読み直す', w, (await ear.all()).slice(before));
+        } finally {
+          ear.off();
+          await p.st.ctx.close();
+        }
+      });
+      await shootTurn(fileReport, expire);
+      /* ここから先、給与提出者の鍵は切れたまま */
+
+      /* ── C6：集計の読み口が落ちた時（会員・390×680・概要の「集まった回答」）── */
+      const gotNow = async (p) => (await p.page.evaluate(slotsNow)).filter((x) => x.at === 'got');
+      await part('C6', async () => {
+        const p = await open('phone', { who: 'pilot' });
+        try {
+          p.st.fake = FAILED();
+          await go(p, CX);
+          const calm = await slotsCalm(p), g0 = await gotNow(p);
+          ok(calm && g0.length === 1 && g0[0].state === 'error' && g0[0].text === 'いま読み出せません' + 'やり直す' && J(g0[0].retry) === J(['やり直す']) && g0[0].rows.length === 0 && g0[0].lock.length === 0,
+            '★C6 集計の読み口が落ちた時（500）：「集まった回答」は「いま読み出せません」と「やり直す」だけ（「まだ集計がありません」とも、鍵とも言わない）', J(g0.map((x) => [x.state, x.text, x.retry])));
+          const pressed = await p.page.evaluate(() => { const b = document.querySelector('.pvg-got .crl-retry'); if (b) b.click(); return !!b; });
+          const back = pressed && (await seen(p, () => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && e.getAttribute('data-state') === 'locked'; }));
+          const g1 = await gotNow(p);
+          ok(back && g1.length === 1 && J(g1[0].lock) === J([PAY_LINE]) && g1[0].retry.length === 0 && g1[0].text === PAY_LINE,
+            `★C6 「やり直す」を押すと、本物の返事が描かれる（会員には「${PAY_LINE}」の1行）`, J({ pressed, got: g1.map((x) => [x.state, x.text]) }));
+        } finally {
+          await p.st.ctx.close();
+        }
+      });
+      await shoot('S6', { who: 'pilot', tabs: ['overview'], before: (st) => { st.fake = FAILED(); } });
+
+      /* ── C7：集計の読み口が、まだ無い時（会員・390×680・概要の「集まった回答」）── */
+      await part('C7', async () => {
+        const p = await open('phone', { who: 'pilot' });
+        try {
+          p.st.fake = MISSING_FN();
+          await go(p, CX);
+          const calm = await slotsCalm(p), g = await gotNow(p);
+          ok(calm && g.length === 1 && g[0].state === 'off' && g[0].text === '準備中' && g[0].retry.length === 0 && g[0].rows.length === 0 && g[0].lock.length === 0,
+            '★C7 集計の読み口がまだ無い時（404）：「集まった回答」は「準備中」だけ（「まだ集計がありません」とも言わない・数字も無い）', J(g.map((x) => [x.state, x.text, x.retry])));
+        } finally {
+          await p.st.ctx.close();
+        }
+      });
+      await shoot('S7', { who: 'pilot', before: (st) => { st.fake = MISSING_FN(); } });
+
+      /* ── C9：入口の数と置き場（未ログイン・会員）。C2 と C3 で歩いた4つのタブの読みを、そのまま使う（開き直さない）──
+         a「匿名で給与を提出する」は、1つのタブに見えているものが、多くて1つ
+         b 入口を自分では出さない欄（印 data-entry が "0" か "give"）が鍵の1行を出しているタブには、
+           見えている欄のどれかに、その人の入口が在る（未ログイン ＝ ログインの画面へ／会員 ＝ このページの会社の、給与の提出へ） */
+      const entryBad = (w, who) => {
+        if (!w) return { bad: ['4つのタブを歩いた読みが無い'], stamped: [] };
+        const bad = [], stamped = [];
+        for (const id of TABS) {
+          const on = w[id].flatMap((x) => x.links), goes = on.filter((a) => a.text === PAY_GO);
+          if (goes.length > 1) bad.push(`${TAB_NAME[id]}：「${PAY_GO}」が ${goes.length}つ見えている`);
+          const has = on.some((a) => a.href.includes(who === 'login' ? 'login.html' : 'pay-report.html?airline=' + SLUG));
+          for (const x of w[id].filter((s) => (s.entry === '0' || s.entry === 'give') && s.lock.length)) {
+            stamped.push(slotName(x));
+            if (!has) bad.push(`${TAB_NAME[id]}：${slotName(x)}（印 ${x.entry}）が鍵の1行を出しているのに、同じタブの見えている欄に、${who === 'login' ? 'ログイン' : '給与の提出'}の入口が無い`);
+          }
+        }
+        return { bad, stamped: stamped.sort() };
+      };
+      const STAMPED = ['勤務の集計', '集まった回答'].sort();
+      const eOut = entryBad(outWalk, 'login'), eIn = entryBad(pilotWalk, 'locked');
+      ok(eOut.bad.length === 0 && J(eOut.stamped) === J(STAMPED),
+        `C9 未ログイン：どのタブでも、見えている「${PAY_GO}」は多くて1つ。入口を自分では出さない欄（勤務の集計・集まった回答）が鍵の1行を出しているタブには、見えている欄のどれかに、ログインの入口が在る`,
+        J(eOut));
+      ok(eIn.bad.length === 0 && J(eIn.stamped) === J(STAMPED),
+        `C9 会員：どのタブでも、見えている「${PAY_GO}」は多くて1つ。入口を自分では出さない欄（勤務の集計・集まった回答）が鍵の1行を出しているタブには、見えている欄のどれかに、このページの会社の給与の提出の入口が在る`,
+        J(eIn));
+    } finally {
+      /* 後始末：給与の鍵を、無い形へ戻す（出した給与の行は、この回かぎりの保存先に残る） */
+      await q('update public.profiles set access_until = null where id = $1', [PAYER.id]);
+      const left = (await q('select access_until from public.profiles where id = $1', [PAYER.id])).rows[0];
+      ok(!!left && left.access_until === null, '後始末：給与提出者の給与の鍵を、無い形へ戻してある（ほかの場面へ、鍵を持ち越さない）', J(left));
     }
   });
 
