@@ -47,6 +47,7 @@
       gateDesc: '匿名の口コミを1件投稿するだけで<br>全社の口コミがまるごと読めます。',
       gateBtn: '匿名で口コミを投稿して解放する',
       gateLogin: 'ログイン（投稿済みの方）',
+      sumSrcTag: '要約のもと',
       gateFine: '完全匿名 · 名前不要',
       catFallback: '口コミ',
       pilot: 'パイロット',
@@ -105,6 +106,7 @@
       gateDesc: 'Post one anonymous review and every airline&rsquo;s<br>reviews open up.',
       gateBtn: 'Post a review anonymously to unlock',
       gateLogin: 'Log in (already posted)',
+      sumSrcTag: 'Used in the summary',
       gateFine: 'Completely anonymous · No name required',
       catFallback: 'Review',
       pilot: 'Pilot',
@@ -574,13 +576,20 @@
      何が待っているのか分からないまま投稿を求めることになる（＝投稿されない）。
      いまは本文の先頭1/8だけ素で読ませ、残りをカード内のぼかし帯にする。 */
   function reviewCardHTML(r, locked, idx) {
-    return '<div class="rv-card-wrap">' + reviewCardInnerHTML(r, locked, idx) + '</div>';
+    var src = !locked && !!r && !!r.id && pvReviewMarks[r.id] === 1;
+    return '<div class="rv-card-wrap' + (src ? ' rv-sum-src' : '') + '">' +
+      (src ? '<span class="rv-sum-tag">' + L.sumSrcTag + '</span>' : '') +
+      reviewCardInnerHTML(r, locked, idx) + '</div>';
   }
 
   // ── Review Category Filter ───────────────────────
   var pvReviewCatFilter = 'all';
-  w.pvSetReviewCat = function (cat) {
+  var pvReviewMarks = {};      // 要約の点から来たときだけ：もとの口コミの id → 1（分類を選び直すと空に戻る）
+  var RV_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  w.pvSetReviewCat = function (cat, ids) {
     pvReviewCatFilter = cat;
+    pvReviewMarks = {};
+    (Array.isArray(ids) ? ids : []).forEach(function (s) { if (typeof s === 'string' && RV_UUID.test(s)) pvReviewMarks[s] = 1; });
     switchTab('reviews');
     if (!isTabbed()) renderReviews();
     else paint();
@@ -683,7 +692,7 @@
      文言・押した先（投稿の画面）・開く条件は今までと同じ。ほかの会社と英語版は、上の今までの形を1文字も変えない。
      ⚠️ うしろの幕の色だけは上の style に置いたまま（pv-glance.css には色の直書きを置かない決まり）。 */
   function readMoreGateTabbed() {
-    var login = '../login.html?return=' + encodeURIComponent(location.pathname + location.search);
+    var login = '../login.html?return=' + encodeURIComponent(location.pathname + location.search + (isTabbed() ? '#reviews' : ''));
     return '<div class="pvg-rmg-box" role="dialog" aria-modal="true" aria-labelledby="pvg-rmg-t">' +
       '<button type="button" class="pvg-rmg-x" aria-label="閉じる" onclick="document.getElementById(\'pv-readmore-gate\').style.display=\'none\'">✕</button>' +
       '<div class="pvg-rmg-ic" aria-hidden="true">🔒</div>' +
@@ -781,6 +790,7 @@
     var body = w.PVReviewI18n ? PVReviewI18n.pick(r) : { text: '', cats: [], translated: false, origText: '', from: 'ja' };
     var mainCat = (body.cats[0] || {}).k || '';
     return {
+      id: (typeof r.id === 'string' && RV_UUID.test(r.id)) ? r.id : '',
       pos: r.position, years: r.tenure_bucket || '—', join: '',
       avgRating: avgRating,
       comment: body.text, en: body.text,
@@ -950,7 +960,7 @@
     var shown = filtered.length + overseasShownKeys().length;
     var emptyMsg = shown === 0
       ? '<div style="text-align:center;padding:32px 0;color:#6b7d93;font-size:.85rem">' + L.empty + '</div>' : '';
-    var loginHref = '../login.html?return=' + encodeURIComponent(location.pathname + location.search);
+    var loginHref = '../login.html?return=' + encodeURIComponent(location.pathname + location.search + (isTabbed() ? '#reviews' : ''));
     /* ★2026-10-09 手元の鍵の控え（pv_unlock_expiry）が生きていても、サーバが本文を伏せて返した口コミが在れば、下の入口を出す。
        控えは下げる向きには直らない（別の会員でログインした・自分の口コミが消えた・ログインが切れた）。
        カード1枚ごとのボタンを外したので、ここを出さないと、伏せたカードが並ぶのに一覧の中の入口が見出しの投稿ボタンだけになる。 */
@@ -1099,15 +1109,14 @@
   }
 
   // ── Review Category Grid ─────────────────────────
-  var CAT_ICONS = [
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.68 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.17h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.27a16 16 0 0 0 5.82 5.82l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  ];
+  var CAT_ICONS = {
+    salary: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    benefits: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+    wlb: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    culture: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    ops: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
+    training: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  };
   var CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
 
   function isGlance() { return !!d.body && d.body.getAttribute('data-pv-glance') === '1'; }
@@ -1207,7 +1216,7 @@
 
     var cardsHTML = REVIEW_CATS.map(function (c, i) {
       return '\n    <button class="rcg-card" onclick="pvSetReviewCat(\'' + c.key + '\')">\n' +
-        '      <span class="rcg-icon">' + CAT_ICONS[i] + '</span>\n' +
+        '      <span class="rcg-icon">' + (CAT_ICONS[c.key] || '') + '</span>\n' +
         '      <span class="rcg-label">' + catLabel(c.label) + '</span>\n' +
         '      <span class="rcg-count">' + L.catCount(catCounts[c.key] || 0) + '</span>\n' +
         '      <span class="rcg-chevron">' + CHEVRON + '</span>\n' +

@@ -509,7 +509,15 @@
     var tab = t.closest('[data-pvg-tab]');
     if (tab) { if (toTab(tab.getAttribute('data-pvg-tab'))) e.preventDefault(); return; }
     var rev = t.closest('a[href="#reviews"]');
-    if (rev && rev.closest('.pvg,.pvg-hero')) { if (toTab('reviews')) e.preventDefault(); }
+    if (rev && rev.closest('.pvg,.pvg-hero')) {
+      var cat = rev.getAttribute('data-pvg-cat') || '';
+      var plain = !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey);
+      if (plain && /^[a-z]{2,12}$/.test(cat) && typeof w.pvSetReviewCat === 'function') {
+        /* 要約の点：その分類で口コミを開き、もとの口コミに札を付ける（タブを替えるのは向こうの1回だけ）。 */
+        e.preventDefault();
+        w.pvSetReviewCat(cat, (rev.getAttribute('data-pvg-ids') || '').split(',').filter(Boolean));
+      } else if (toTab('reviews')) e.preventDefault();
+    }
   });
   d.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape' || OPEN[at]) return;

@@ -1539,7 +1539,7 @@ const { default: puppeteer } = await import('puppeteer');
      mode 'empty' … 0件（鍵は掛かったまま）
      mode 'rows'  … 鍵の無い人に返る、伏せた行（この会社に7件・ほかの会社に2件）＋待遇の集計に、検査用の行（FACT_ROWS と BEN_ROWS）
      mode 'rated' … 鍵の無い人に返る、点数の付いた口コミ3件（本文は無い。在るのは書かれた欄の名前と先頭の抜粋だけ）
-     mode 'rated404' … 口コミは 'rated' と同じ・要約の口だけ 404（＝ いまの本番の形。要約の欄は出ず、下の欄の錠前の1行が見える）
+     mode 'rated404' … 口コミは 'rated' と同じ・要約の口だけ 404（＝ いまの本番の形。要約の欄は未接続の1行を出し、下の欄の錠前の1行が見える）
      mode 'off'   … 全部 500 ＝「読めない時」
      mode 'facts404' … 集計の口（pv_contrib_facts）だけ 404 ＝ 口がまだ無い時（ほかは 'empty' と同じ）
      mode 'work'  … 月の勤務の口が、開いている人への返事に、検査用の幅（WORK_FIX）を付けて返す
@@ -1550,8 +1550,8 @@ const { default: puppeteer } = await import('puppeteer');
      mode 'giveOpen' … 同じ人が、要る数まで答えたあと ＝ ほかの人の回答が開いている人：集計の口は、開いた返事に検査用の行を付けて返す・
                     月の勤務は数字なし・補足は0件・答えるカードの口は 'open' の1語（開いている人に、カードの中身は返らない）
    口コミの要約の口（pv_review_summary）は、本番にまだ無い（2026-10-07）。無い時に本物のサーバーが返すのは 404 なので、
-   'empty'・'rows'・'rated404' では 404 を返す ＝ 画面は要約の欄に何も出さない（作った文で埋めない）。
-   'rated' の時だけ「鍵の無い人への返事」を返す。わざと要約の文を混ぜる（画面が1文字も出さないことを見る）。 */
+   SUM_BY_MODE に無い場面では 404 を返す ＝ 要約の欄は未接続の1行（評価が0件のページでは畳む）。作った文で埋めない。
+   場面ごとの返事は SUM_BY_MODE（rated ＝ ログイン済みで鍵なし／ratedLogin ＝ 未ログイン／ratedFew／ratedNone／ratedOpen）。わざと要約の文を混ぜる（画面が1文字も出さないことを見る）。 */
 const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.tailwindcss\.com)$/;
 const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
 /* ホテルの欄だけ、場面ごとに返事を差し替えられる（seen.stay）。運営の公開・却下は、送られた中身を控える（seen.mod）。
@@ -1892,6 +1892,34 @@ const SUM_LEAK = '検査用の要約です。鍵の無い人の画面に出て�
 const SUM_LOCKED = JSON.stringify({ ok: true, state: 'locked', n: 3, as_of: '2026-09-30', good: [{ text: SUM_LEAK, cat: 'culture' }], concern: [{ text: SUM_LEAK, cat: 'wlb' }] });
 const SUM_404 = '{"code":"PGRST202","details":null,"hint":null,"message":"Could not find the function public.pv_review_summary(p) in the schema cache"}';
 const SUM_LOCK_TEXT = '要約は口コミの投稿で開きます';
+const SUM_LOGIN = JSON.stringify({ ok: true, state: 'login', n: 3, as_of: '2026-09-30', good: [{ text: SUM_LEAK, cat: 'culture', ids: [] }], concern: [] });   // わざと中身を付けた返事（画面は読まないはず）
+const SUM_FEW = '{"ok":true,"state":"few"}';
+const SUM_NONE = '{"ok":true,"state":"none"}';
+const SUM_500 = '{"code":"XX000","details":null,"hint":null,"message":"検査用の失敗"}';
+const SUM_SRC = [1, 2, 3].map(i => `00000000-0000-4000-8000-00000000000${i}`);      // ratedRows の id と同じ3つ
+const SUM_G = '検査用の良い点という声が複数ある';
+const SUM_C = '検査用の気になる点という声が複数ある';
+const SUM_OPEN = JSON.stringify({ ok: true, state: 'open', n: 3, as_of: '2026-09-30',
+  good: [{ text: SUM_G, cat: 'culture', ids: SUM_SRC.slice(0, 2) }],
+  concern: [{ text: SUM_C, cat: 'wlb', ids: SUM_SRC.slice(1, 3) }] });
+const SUM_LONG = c => ('検査用の長い点' + c).padEnd(90, 'あ');                          // 日本語の上限いっぱい（90字）
+const SUM_OPEN_MAX = JSON.stringify({ ok: true, state: 'open', n: 3, as_of: '2026-09-30',
+  good: ['ア', 'イ', 'ウ'].map(c => ({ text: SUM_LONG('良' + c), cat: 'culture', ids: SUM_SRC.slice(0, 2) })),
+  concern: ['ア', 'イ', 'ウ'].map(c => ({ text: SUM_LONG('気' + c), cat: 'wlb', ids: SUM_SRC.slice(1, 3) })) });
+const SUM_LOGIN_TEXT = 'ログインが必要です';
+const SUM_FEW_TEXT = '口コミがまだ少ないため、要約はありません';
+const SUM_NONE_TEXT = '口コミの要約は、まだありません';
+const SUM_OFF_TEXT = '準備中';
+const SUM_BY_MODE = { rated: SUM_LOCKED, ratedLogin: SUM_LOGIN, ratedFew: SUM_FEW, ratedNone: SUM_NONE, ratedOpen: SUM_OPEN, ratedOpenMax: SUM_OPEN_MAX };
+/* 鍵を持つ人に pv_reviews() が返す形（本文の6列が付く）。3件とも社風と勤務に本文が在り、字は1件ずつ違う
+   ＝ 「要約のもと」の札が付いたカードを、本文の字で見分けられる（id は画面に出ない）。 */
+const SUM_BODY = ['あ', 'い', 'う'];
+const ratedOpenBody = slug => JSON.stringify({ unlocked: true, rows: ratedRows(slug).map((r, i) => ({ ...r, translations: {},
+  culture_comment: `検査用の本文・社風・${SUM_BODY[i]}`, wlb_comment: `検査用の本文・勤務・${SUM_BODY[i]}`,
+  salary_comment: '', benefits_comment: '', ops_comment: '', training_comment: '' })) });
+const revBodyOf = (mode, slug) => /^ratedOpen/.test(mode) ? ratedOpenBody(slug) : ratedBody(slug);
+/* 要約の欄の形の移り変わりを、ページが始まる前から控える（data-state と、その時の高さ）。要約の場面が pre として渡すための部品。 */
+const SUM_WATCH = () => { window.__sumSeq = []; new MutationObserver(ms => ms.forEach(m => { const t = m.target; if (t.getAttribute && t.getAttribute('data-live') === 'summary') window.__sumSeq.push([t.getAttribute('data-state'), Math.round(t.getBoundingClientRect().height)]); })).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-state'] }); };
 const trouble = [];
 /* 実データの欄が落ち着く（見えている欄が「まだ」「読み込み中」でなくなる）まで待つ。時間では待たない。 */
 const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
@@ -1928,8 +1956,9 @@ async function open(browser, slug, w, h, mode, pre) {
       }
       seen.asked++;
       if (seen.mode !== 'off' && SUM_RE.test(u.pathname)) {
-        return seen.mode === 'rated' ? r.respond({ status: 200, contentType: 'application/json', headers: cors, body: SUM_LOCKED })
-                                     : r.respond({ status: 404, contentType: 'application/json', headers: cors, body: SUM_404 });
+        return SUM_BY_MODE[seen.mode] ? r.respond({ status: 200, contentType: 'application/json', headers: cors, body: SUM_BY_MODE[seen.mode] })
+          : seen.mode === 'ratedErr' ? r.respond({ status: 500, contentType: 'application/json', headers: cors, body: SUM_500 })
+          : r.respond({ status: 404, contentType: 'application/json', headers: cors, body: SUM_404 });
       }
       if (STAY_RE.test(u.pathname)) seen.stays++;
       if (seen.stay && STAY_RE.test(u.pathname)) { seen.stayAsked++; return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: seen.stay }); }
@@ -1964,7 +1993,7 @@ async function open(browser, slug, w, h, mode, pre) {
           return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: workBody(seen.mode) });
         }
         const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug)
-                   : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? ratedBody(slug) : hit[1];
+                   : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? revBodyOf(seen.mode, slug) : hit[1];
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body });
       }
       if (seen.mode !== 'off') seen.unknown.add(`${r.method()} ${u.pathname}`);
@@ -2022,7 +2051,16 @@ function LIB() {
         }),
         /* 口コミの要約の欄：どの形か・場所を取っている高さ・出ている字・要約の項目の数 */
         sum: (() => { const e = c.querySelector('.crl[data-live="summary"]'); return !e ? null : {
-          state: e.dataset.state, h: e.getBoundingClientRect().height, text: e.textContent.replace(/\s+/g, ' ').trim(), items: $$('.crl-sum-li, .crl-sum-h, .crl-sum-title', e).length }; })(),
+          state: e.dataset.state, h: e.getBoundingClientRect().height, text: e.textContent.replace(/\s+/g, ' ').trim(), items: $$('.crl-sum-li, .crl-sum-h, .crl-sum-title', e).length,
+          why: (e.firstElementChild && e.firstElementChild.getAttribute('data-why')) || null,
+          links: $$('a, button', e).filter(on).length,
+          login: $$('a', e).filter(on).map(a => a.getAttribute('href')),
+          ai: $$('.crl-sum-ai', e).filter(on).length,
+          pts: ['good', 'concern'].map(k => $$('.crl-sum-col[data-kind="' + k + '"] .crl-sum-li', e).length),
+          by: (() => { const x = e.querySelector('.crl-sum-by'); return x ? x.textContent : null; })(),
+          box: (() => { const b = e.getBoundingClientRect(); return { x: b.left, y: b.top + scrollY, w: b.width, h: b.height }; })(),
+          arrows: $$('a.crl-sum-a', e).map(a => { const b = a.getBoundingClientRect(); return { href: a.getAttribute('href'), cat: a.getAttribute('data-pvg-cat'), ids: a.getAttribute('data-pvg-ids'), label: a.getAttribute('aria-label'), w: b.width, h: b.height }; }),
+          seq: (window.__sumSeq || []).slice() }; })(),
         /* 口コミの欄：見えている件数・本文の字・錠前の1行 */
         revs: (() => { const e = c.querySelector('.crl[data-live="reviews"]'); return !e ? null : {
           state: e.dataset.state, h: e.getBoundingClientRect().height, items: $$('.crl-rev', e).filter(on).length,
@@ -2040,7 +2078,9 @@ function LIB() {
           return $$('.crl-radar-dot', c).map(e => { const q = e.getBoundingClientRect(); return Math.hypot(q.left + q.width / 2 - cx, q.top + q.height / 2 - cy) / R; });
         })(),
         h: (() => { const e = c.querySelector('.crl[data-live="score"]'); return e ? e.getBoundingClientRect().height : 0; })(),
+        scoreBox: (() => { const e = c.querySelector('.crl[data-live="score"]'); const b = e.getBoundingClientRect(); return { x: b.left, y: b.top + scrollY, w: b.width, h: b.height }; })(),
         give: $$('.crl[data-live="reviews"] a', c).filter(on).length,
+        logins: $$('[data-crl-login]', c).filter(on).length,
         y: c.getBoundingClientRect().top + scrollY, next: (() => { const n = c.nextElementSibling; return n ? n.getBoundingClientRect().top + scrollY : null; })(),
         /* 給与の1枚と同じ段の、すぐ次に在る */
         row: c.parentElement.classList.contains('pvg-payrow') && !!c.previousElementSibling && c.previousElementSibling.classList.contains('pvg-pay'),
