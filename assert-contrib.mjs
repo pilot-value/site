@@ -6477,6 +6477,28 @@ async function main() {
       return { bad, saw: [...saw].sort() };
     };
     const factRows = (w) => TABS.flatMap((id) => w[id].flatMap((x) => x.rows.map((r) => `${TAB_NAME[id]}・${slotName(x)}・${r.k}`)));
+    /* ── work-pane（X1-X4・X6）：勤務・訓練の板を、面（data-sf）ごとに読む。字は画面に見えている字（innerText）だけ。
+       見出し「パイロットの回答」（黙る面では、開いていない人に見せない）・範囲の1文（月の勤務の欄が鍵の形の時だけ見せる）・
+       面の欄の中の、見えている入口。月の勤務の帯（.crl-wb）は、ページのどこに在っても数える。字は検査が自分で持つ ── */
+    const ASKH = 'パイロットの回答', SCOPE = '勤務予定・休日、昇格・訓練の回答も、同じ条件で開きます。';
+    const sfNow = () => {
+      const vis = (e) => !!e && e.getClientRects().length > 0, tx = (e) => (e ? e.textContent : '').trim();
+      const pn = document.getElementById('pvg-p-work'), sc = pn ? pn.querySelector('.pvg-sf-scope') : null, sf = {};
+      for (const s of pn ? pn.querySelectorAll('.pvg-sf') : []) sf[s.getAttribute('data-sf')] = { text: s.innerText || '', links: [...s.querySelectorAll('.crl a')].filter(vis).map(tx) };
+      return { on: vis(pn), sf, scope: sc ? { on: vis(sc), text: tx(sc) } : null, wb: document.querySelectorAll('.crl-wb').length,
+        links: [...(pn ? pn.querySelectorAll('a') : [])].filter(vis).map((a) => ({ text: tx(a), login: a.hasAttribute('data-crl-login') })) };
+    };
+    /* 勤務・訓練のタブへ移って（欄が落ち着くまで待つ）、板を読む。移れなければ null */
+    const atWork = async (p) => ((await toTab(p, 'work')) ? p.page.evaluate(sfNow) : null);
+    /* 黙る2つの面（勤務予定・休日・昇格・訓練）に、見出し「パイロットの回答」が見えていない（面そのものは見えていて、字を持つ） */
+    const askhHidden = (x) => QUIET_SF.every((s) => !!x.sf[s] && x.sf[s].text.length > 0 && !x.sf[s].text.includes(ASKH));
+    /* X4：期限の切れた人の、勤務・訓練の板（C5a と、C5b の読み直しのあとで、同じ3つを見る。黙る2つの欄・月の勤務の1行・数字は expiredFace が見る） */
+    const x4Face = async (tag, p) => {
+      const x = await atWork(p), goes = x ? x.links.filter((a) => a.text === PAY_GO).length : -1;
+      ok(!!x && x.on && !!x.scope && x.scope.on && x.scope.text === SCOPE && goes === 1 && !!x.sf.month && J(x.sf.month.links) === J([PAY_GO]) && x.wb === 0,
+        `★X4 ${tag}：勤務・訓練の板に「${SCOPE}」が見えている。見えている「${PAY_GO}」は板に1つだけ（月の勤務の欄の）。月の勤務の帯（.crl-wb）は、ページのどこにも無い`,
+        J(x && { scope: x.scope, goes, month: x.sf.month && x.sf.month.links, wb: x.wb }));
+    };
     /* 読み直したページが、タブを押せる形になるまで待つ（go が待つのと同じ条件） */
     const ready = (p) => p.page.waitForFunction(() => !!window.PVContrib
       && [...document.styleSheets].some((s) => s.href && s.href.includes('pv-contrib.css')), { timeout: 30000 });
@@ -6718,6 +6740,11 @@ async function main() {
             '★C2 未ログイン：集計の読み口の返事は、字として {"ok":true,"state":"login"} だけ（ほかの鍵も、行も、数字も付いていない）', J(replies.map((r) => [r.status, r.text])));
           ok(ear.urls.length > 0 && !ear.urls.some((u) => u.includes('airline_condition_facts')),
             '★C2 未ログイン：集計のビューへは、1本も聞きに行っていない（出ていった通信の行き先に airline_condition_facts が無い）', J(ear.urls.filter((u) => u.includes('airline_condition_facts')).slice(0, 3)));
+          /* X1（work-pane）：黙る2つの欄が鍵の形で隠れ字が無いこと・通勤／Staff Travel の1行と「ログイン」1つずつは、上の C2 の行が見ている */
+          const x1 = await atWork(p);
+          ok(!!x1 && x1.on && askhHidden(x1) && !!x1.scope && x1.scope.on && x1.scope.text === SCOPE,
+            `★X1 未ログイン：勤務・訓練の板の、黙る2つの面（勤務予定・休日・昇格・訓練）に、見出し「${ASKH}」が見えていない。月の勤務の欄の下に「${SCOPE}」が、その字のまま見えている`,
+            J(x1 && { scope: x1.scope, askh: QUIET_SF.map((s) => [s, !!x1.sf[s] && x1.sf[s].text.includes(ASKH)]) }));
           /* 押すのは最後（ここから先はログインの画面）。ほかは全部、押す前に読んである */
           const logins = w.work.flatMap((x) => x.links).filter((a) => a.login);
           const loginAt = w.work.filter((x) => x.links.some((a) => a.login)).map((x) => [slotName(x), x.links.filter((a) => a.login).length]);
@@ -6768,6 +6795,12 @@ async function main() {
           ok(replies.length >= 1 && replies.every((r) => only(r, '{"ok":true,"state":"locked"}')),
             '★C3 会員：集計の読み口の返事は、字として {"ok":true,"state":"locked"} だけ（ほかの鍵も、行も、数字も付いていない）', J(replies.map((r) => [r.status, r.text])));
           ok(saw.length === 0, '★C3 会員：集計の欄にも月の勤務の欄にも、「ログイン」の字が、いっときも出ていない（未ログインの1行を、先に出していない）', J(saw.slice(0, 3)));
+          /* X2（work-pane）：黙る2つの欄・3つの1行・回答の行と人数が無いことは、上の C3 の行が見ている */
+          const x2 = await atWork(p), x2go = x2 ? Object.keys(x2.sf).sort().map((s) => [s, x2.sf[s].links]) : null;
+          ok(!!x2 && x2.on && !!x2.scope && x2.scope.on && x2.scope.text === SCOPE && !x2.links.some((a) => a.login)
+            && J(x2go) === J([['career', []], ['commute', []], ['month', [PAY_GO]], ['roster', []], ['travel', []]]),
+            `★X2 会員（給与の鍵なし）：勤務・訓練の板に「${SCOPE}」が見えている。欄の中の入口は、月の勤務の欄の「${PAY_GO}」1つだけ（通勤・Staff Travel の欄にも、黙る2つの欄にも、入口が無い・「ログイン」も無い）`,
+            J(x2 && { scope: x2.scope, links: x2go, login: x2.links.filter((a) => a.login).length }));
         } finally {
           ear.off();
           await p.st.ctx.close();
@@ -6806,6 +6839,11 @@ async function main() {
           ok(shut.length === 0 && w.lost.length === 0 && J(sawSlots) === J(OPEN_SLOTS),
             '★C4 どのタブの集計の欄にも月の勤務の欄にも、鍵の1行が無い（開いた形か「まだ集計がありません」）── 黙る2つの欄も、開いている人には見えて開いている', J({ shut, lost: w.lost, saw: sawSlots }));
           ok(saw.length === 0, '★C4 集計の欄にも月の勤務の欄にも、「ログイン」の字が、いっときも出ていない', J(saw.slice(0, 3)));
+          /* X3（work-pane）：月の勤務の欄が開いた形か「まだ集計がありません」で鍵の1行を持たないことは、上の C4 の行が見ている */
+          const x3 = await atWork(p);
+          ok(!!x3 && x3.on && !!x3.scope && !x3.scope.on && !!x3.sf.roster && x3.sf.roster.text.includes(ASKH) && x3.sf.roster.text.includes(DUTY),
+            `★X3 給与を出した会員が、自分の会社のページを開く：「${SCOPE}」は見えていない（開いている人に「同じ条件で開きます」と言わない）。勤務予定・休日の面に、見出し「${ASKH}」と「${DUTY}」の行が見えている`,
+            J(x3 && { scope: x3.scope, roster: x3.sf.roster && x3.sf.roster.text.replace(/\s+/g, ' ').slice(0, 160) }));
         } finally {
           ear.off();
           await p.st.ctx.close();
@@ -6813,6 +6851,125 @@ async function main() {
       });
       await shoot('S3', { who: 'pay' });
       await shootThin();
+
+      /* ── X5'（work-pane）：本物の口で置いた月の勤務が、本物の月の勤務の読み口を通って、ruling E の枠（項目ごとのセル・中に帯）として描かれる（1440×820）。
+         画面は、通信の上の返事（その本文）とだけ比べる（数字を打ち込まない）。読む人は給与提出者（このページの会社に給与を出している ＝ 鍵は生きている） ── */
+      const X5_POS = { cap: '機長', fo: '副操縦士' }, X5_NONE = '未取得';
+      /* 項目ごとの名前・単位の札・単位・目盛の右端（時間 240・日と泊 31）。字と数は検査が自分で持つ（career-live.js から読み込まない） */
+      const X5_ITEM = {
+        block_hours: ['乗務時間', '時間 / 月', '時間', 240], duty_hours: ['勤務・拘束時間', '時間 / 月', '時間', 240], work_days: ['勤務日数', '日 / 月', '日', 31],
+        duty_days: ['乗務日数', '日 / 月', '日', 31], days_off: ['公休日数', '日 / 月', '日', 31], stay_nights: ['ステイ泊数', '泊 / 月', '泊', 31],
+      };
+      await part("X5'", async () => {
+        /* 〔検査用の値。実データではない〕 会員A・B・C が、同じ職位（機長）で1か月ずつ出す。会員C は乗務日数を空けておく（未回答は 0 ではない）。
+           副操縦士は誰も出さない（3人そろわない職位）。月は、保存先の時計の先月（直近12か月の中。打ち込まない） */
+        const SEEDW = {
+          a: { block_hours: 70, duty_hours: 150, work_days: 18, duty_days: 14, days_off: 10, stay_nights: 6 },
+          b: { block_hours: 80, duty_hours: 165, work_days: 19, duty_days: 15, days_off: 9, stay_nights: 8 },
+          c: { block_hours: 92, duty_hours: 182, work_days: 21, days_off: 8, stay_nights: 10 },
+        };
+        const POS = 'cap', THIN = 'fo', GAP = 'duty_days';
+        /* 置く前に、この会社の直近12か月に、月の勤務を出した人が1人もいない（いれば、そろう・そろわないが、置いた値だけで決まらない。行は消さない） */
+        const peopleIn = async (pos) => Number((await q(`select count(distinct o_person)::int as n from public.pv_work_month_people($1, $2)
+          where o_py * 12 + o_pm > extract(year from current_date)::int * 12 + extract(month from current_date)::int - 12`, [SLUG, pos])).rows[0].n);
+        const was = { cap: await peopleIn('cap'), fo: await peopleIn('fo') };
+        if (was.cap !== 0 || was.fo !== 0) throw new Error('前提が崩れた（置く前から、この会社の直近12か月に月の勤務を出した人がいる）: ' + J(was));
+        const sentW = [];
+        for (const k of ['a', 'b', 'c']) sentW.push([k, await rpcAs(k, 'submit_work_month', { airline: SLUG, position: POS, year: MONTH.y, month: MONTH.m, ...SEEDW[k] })]);
+        const savedW = sentW.every(([, r]) => !!r && r.ok === true && r.saved === true && r.year === MONTH.y && r.month === MONTH.m);
+        ok(savedW, `準備（X5'）：会員A・B・C が、キャセイの先月（${MONTH.y}年${MONTH.m}月）の月の勤務を、本物の口で1か月ずつ出した（3人とも保存。1日の上限にも月の決まりにも当たっていない）`,
+          J(sentW.map(([k, r]) => [k, r && r.saved, r && r.message])));
+        if (!savedW) throw new Error('前提が崩れた（月の勤務を置けていない）: ' + J(sentW.map(([k, r]) => [k, r && r.message])));
+        /* 自分の耳（ページへ移る前）：月の勤務の読み口の返事を、生の字と読めた形で */
+        const wv = [], wvWaits = [];
+        const onWv = (res) => {
+          if (!/\/rest\/v1\/rpc\/pv_work_view$/.test(res.url())) return;
+          const status = res.status();
+          wvWaits.push(res.text().then((text) => {
+            let body = null;
+            try { body = JSON.parse(text); } catch (e) { body = null; }
+            wv.push({ status, text, body });
+          }, () => { wv.push({ status, text: null, body: null }); }));
+        };
+        const p = await open('desk', { who: 'pay' });
+        p.page.on('response', onWv);
+        try {
+          await go(p, CX + '#work');
+          const calm = await toTab(p, 'work');
+          await until(() => wv.length > 0);
+          await Promise.all(wvWaits);
+          /* その本文。読み込みが1回より多くても、どれも全文で同じ字のはず */
+          const body = wv.length && wv.every((r) => r.status === 200 && full(r.body) === full(wv[0].body)) ? wv[0].body : null;
+          const cellOf = (pos, k) => (body && body.by && body.by[pos] ? body.by[pos][k] : undefined);
+          const isLH = (v) => !!v && typeof v === 'object' && Number.isFinite(v.lo) && Number.isFinite(v.hi);
+          const all = Object.keys(X5_POS).flatMap((pos) => NUM_KEYS.map((k) => cellOf(pos, k)));
+          /* 空振りでない：幅が在り・null も在る。3人そろわない職位は6項目とも null・1人が空けた項目も null・そのほかは幅 */
+          ok(calm && !!body && body.ok === true && body.state === 'open' && all.some(isLH) && all.some((v) => v === null)
+            && NUM_KEYS.every((k) => cellOf(THIN, k) === null) && cellOf(POS, GAP) === null && NUM_KEYS.filter((k) => k !== GAP).every((k) => isLH(cellOf(POS, k))),
+            `★X5' 通信の上の、月の勤務の読み口の返事（開いた形）は、空振りでない：幅 {lo, hi} が在り、null も在る。3人そろわない職位（${X5_POS[THIN]}）は6項目とも null・1人が空けた項目（${X5_ITEM[GAP][0]}）も null・${X5_POS[POS]}のほかの5項目は幅`,
+            J({ calm, n: wv.length, body }));
+          /* 画面：月の勤務の欄の、6つの枠と、枠の中の職位ごとの1行 */
+          const drawn = await p.page.evaluate(() => {
+            const box = document.querySelector('#pvg-p-work .crl[data-live="work"]'), tx = (e) => (e ? e.textContent : '').trim();
+            if (!box) return null;
+            return { state: box.getAttribute('data-state'), cells: [...box.querySelectorAll('.crl-wb-c')].map((c) => ({
+              k: c.getAttribute('data-k'), name: tx(c.querySelector('.crl-wk-k')),
+              rows: [...c.querySelectorAll('.crl-wb-r')].map((r) => {
+                const tr = r.querySelector('.crl-wb-tr'), b = r.querySelector('.crl-wb-b'), R = tr ? tr.getBoundingClientRect() : null, B = b ? b.getBoundingClientRect() : null;
+                return { pos: r.getAttribute('data-pos'), p: tx(r.querySelector('.crl-wb-p')), n: tx(r.querySelector('.crl-wb-n')), u: tx(r.querySelector('.crl-wb-u')),
+                  none: tx(r.querySelector('.crl-none')), track: !!tr, tw: R ? R.width : null, dx: R && B ? B.left - R.left : null, text: tx(r) };
+              }),
+            })) };
+          });
+          /* 本文から作った、あるべき字（幅 ＝「lo〜hi」か、同じなら「lo」と単位と軸・null ＝「未取得」だけで、軸も数字も無い） */
+          const want = NUM_KEYS.map((k) => ({ k, name: X5_ITEM[k][0] + X5_ITEM[k][1], rows: Object.keys(X5_POS).map((pos) => {
+            const v = cellOf(pos, k);
+            return isLH(v) ? { pos, p: X5_POS[pos], n: v.lo === v.hi ? String(v.lo) : `${v.lo}〜${v.hi}`, u: X5_ITEM[k][2], none: '', track: true }
+              : { pos, p: X5_POS[pos], n: '', u: '', none: X5_NONE, track: false };
+          }) }));
+          const seenW = drawn ? drawn.cells.map((c) => ({ k: c.k, name: c.name, rows: c.rows.map(({ pos, p: pn, n, u, none, track }) => ({ pos, p: pn, n, u, none, track })) })) : null;
+          const noneRows = drawn ? drawn.cells.flatMap((c) => c.rows.filter((r) => !r.track).map((r) => [c.k, r.pos, r.text])) : [];
+          ok(!!body && !!drawn && drawn.state === 'open' && full(seenW) === full(want) && noneRows.length === all.filter((v) => v === null).length && noneRows.every(([, , t]) => !/[0-9０-９]/.test(t)),
+            `★X5' 月の勤務の6つの枠の、職位ごとの1行は、通信の上の返事の本文と同じ：幅は「lo〜hi」（同じなら lo）と単位と軸。null は「${X5_NONE}」だけ（軸も数字も無い ── 0 で埋めない）`,
+            J({ state: drawn && drawn.state, diff: seenW && want.flatMap((w, i) => (full(w) === full(seenW[i]) ? [] : [[w.k, seenW[i]]])).slice(0, 3), none: noneRows.length }));
+          /* 帯の左端 ＝ lo ÷ 目盛の右端 × 軸の長さ（±4px） */
+          const bands = drawn ? drawn.cells.flatMap((c) => c.rows.filter((r) => r.track).map((r) => {
+            const v = cellOf(r.pos, c.k), at = isLH(v) ? v.lo / X5_ITEM[c.k][3] * r.tw : null;
+            return { k: c.k, pos: r.pos, dx: r.dx, at, off: r.dx === null || at === null ? null : Math.abs(r.dx - at) };
+          })) : [];
+          ok(bands.length === all.filter(isLH).length && bands.length > 0 && bands.every((x) => x.off !== null && x.off <= 4),
+            `★X5' 帯の左端は、返事の lo ÷ 目盛の右端（時間 240・日と泊 31）× 軸の長さ（±4px）`,
+            J(bands.map((x) => [x.k, x.pos, x.dx === null ? null : Math.round(x.dx * 10) / 10, x.at === null ? null : Math.round(x.at * 10) / 10])));
+        } finally {
+          p.page.off('response', onWv);
+          await p.st.ctx.close();
+        }
+      });
+      /* 証拠の絵 W1（頼まれた時だけ・合否には使わない）：給与提出者の、勤務・訓練のタブの、月の勤務の面。大きさは 1440 / 768 / 390 */
+      if (wants('W1')) {
+        try {
+          fs.mkdirSync(SHOT_DIR, { recursive: true });
+          for (const size of ['desk', 'tablet', 'phone']) {
+            const p = await open(size, { who: 'pay' });
+            try {
+              await go(p, CX + '#work');
+              if (!(await toTab(p, 'work'))) continue;
+              const clip = await p.page.evaluate(() => {
+                const s = document.querySelector('#pvg-p-work .pvg-sf[data-sf="month"]');
+                if (!s) return null;
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                const r = s.getBoundingClientRect();
+                return { x: Math.max(0, Math.floor(r.left)), y: Math.max(0, Math.floor(r.top + window.scrollY)), width: Math.ceil(r.width), height: Math.ceil(r.height) };
+              });
+              if (clip) { const file = shotName('W1', null, 'work', p.size.w); await p.page.screenshot({ path: file, clip, captureBeyondViewport: true }); console.log('  （絵）' + path.basename(file)); }
+            } finally {
+              await p.st.ctx.close();
+            }
+          }
+        } catch (e) {
+          console.log(`  （絵 W1 は撮れなかった：${String(e && e.message || e).split('\n')[0].slice(0, 160)}）`);
+        }
+      }
       /* ここまで、給与提出者の鍵は生きたまま */
 
       /* 給与の鍵の期限を、過去にする（保存先の時計で。ページの時計は動かさない） */
@@ -6839,6 +6996,7 @@ async function main() {
           await go(p, CX + '#work');
           const w = await walk(p);
           expiredFace('C5a 期限の切れた人が開く', w, await ear.all());
+          await x4Face('C5a 期限の切れた人が開く', p);
         } finally {
           ear.off();
           await p.st.ctx.close();
@@ -6883,6 +7041,7 @@ async function main() {
           await ready(p);
           const w = await walk(p);
           expiredFace('C5b 開いたまま切れて、読み直す', w, (await ear.all()).slice(before));
+          await x4Face('C5b 開いたまま切れて、読み直す', p);
         } finally {
           ear.off();
           await p.st.ctx.close();
@@ -7293,6 +7452,78 @@ async function main() {
             J({ quiet, got: got.map((r) => [r.status, r.text]) }));
         }
       });
+
+      /* ── X6（work-pane）：給与の鍵は生きているが、自分の会社（ANA）への答えが要る数に届いていない会員B が、ほかの会社（キャセイ）の
+         勤務・訓練のタブを開く（1440×820）。3つの読み口の返事は、どれも字として {"ok":true,"state":"give"} だけ。月の勤務の欄は1行と答えるカード、
+         通勤・Staff Travel の欄は1行だけ。キャセイの回答（行・人数・帯）は、1つもページに来ない。
+         要る数・答えた数・会社の名前は、保存先から読む（打ち込まない）。会員B の鍵は、この場面の finally が無い形へ戻す（ここでは戻さない） ── */
+      await part('X6', async () => {
+        /* (a) 会員B が、ANA に先月ぶんの給与を、本物の口で出す（同じ会社・同じ月の行は置き換わる ＝ 前の区切りの順に寄りかからない） */
+        const bX = await reportAs('b', B_OWN);
+        if (!(bX && bX.ok === true && bX.access_until != null && (await liveOf(BEE)))) throw new Error('前提が崩れた（会員B が、ANA に給与を出せていない）: ' + J({ ok: bX && bX.ok, until: bX && bX.access_until, message: bX && bX.message }));
+        /* (b) 読む人のことは、何も打ち込まない */
+        const need = Number((await q('select public.pv_contrib_need() as n')).rows[0].n), have = await haveOf(BEE, B_OWN), name = await nameIn(B_OWN);
+        if (!(have !== null && have < need && !!name)) throw new Error(`前提が崩れた（会員B が、自分の会社（ANA）について答えた数 ${have}・要る数 ${need}・名前「${name}」。答えた数は要る数より少ないはず。行は消さない）`);
+        const nDuty = await nOf('reserve_duty'), nTravel = await nOf('staff_travel');
+        /* (c) 自分の耳（ページへ移る前）：3つの読み口（名前は、この1行の正規表現から取る）と、答えるカードの材料 */
+        const X6_RE = /\/rest\/v1\/rpc\/(pv_contrib_facts|pv_contrib_notes|pv_work_view)$/, X6_READS = X6_RE.source.match(/\(([^)]*)\)/)[1].split('|');
+        const got = Object.fromEntries(X6_READS.map((n) => [n, []])), gives = [], waits = [];
+        const onRes = (res) => {
+          const m = X6_RE.exec(res.url()), into = m ? got[m[1]] : (res.url().endsWith('/rest/v1/rpc/pv_contrib_give') ? gives : null);
+          if (!into) return;
+          const status = res.status();
+          waits.push(res.text().then((text) => {
+            let body = null;
+            try { body = JSON.parse(text); } catch (e) { body = null; }
+            into.push({ status, text, body });
+          }, () => { into.push({ status, text: null, body: null }); }));
+        };
+        const p = await open('desk', { who: 'b' });
+        p.page.on('response', onRes);
+        try {
+          await go(p, CX + '#work');
+          const calm = await toTab(p, 'work');
+          /* 3つの読み口と、カードの材料の返事が、どれも1本は届くまで待つ（時間では待たない。届かなかった口は、下の行が名指しする） */
+          await until(() => X6_READS.every((n) => got[n].length > 0) && gives.length > 0);
+          await Promise.all(waits);
+          const x = await p.page.evaluate(sfNow), slots = await p.page.evaluate(slotsNow), quiet = await p.page.evaluate(quietNow);
+          const dom = await p.page.evaluate((ns) => ({
+            facts: document.querySelectorAll('.crl-fact').length, wb: document.querySelectorAll('.crl-wb').length,
+            counts: [...document.querySelectorAll('.crl')].filter((e) => ns.some((t) => (e.textContent || '').includes(t))).length,
+          }), [`${nDuty}人`, `${nTravel}人`]);
+          /* 通信の上：どの読み口も1本は来ていて、どれも字として {"ok":true,"state":"give"} だけ */
+          const missing = X6_READS.filter((n) => !got[n].length), off = X6_READS.flatMap((n) => got[n].filter((r) => !only(r, GIVE_TEXT)).map((r) => [n, r.status, r.text]));
+          ok(missing.length === 0 && off.length === 0,
+            `★X6 開いていない会員（給与の鍵は生きている・自分の会社への答えが要る数に届いていない）がキャセイの勤務・訓練のタブを開く：${X6_READS.join('・')} の返事が、どれも1本以上来ていて、どれも字として {"ok":true,"state":"give"} だけ`,
+            J({ missing, off: off.slice(0, 4), n: X6_READS.map((n) => [n, got[n].length]) }));
+          ok(gives.length >= 1 && gives.every((g) => g.status === 200 && !!g.body && g.body.state === 'give' && g.body.airline === B_OWN && g.body.have === have && g.body.need === need && g.body.name === name),
+            `★X6 答えるカードの材料の返事は、読む人自身の会社のことだけ：会社は ${B_OWN}・名前「${name}」・答えた数 ${have}・要る数 ${need}（保存先から読んだ数）`,
+            J(gives.map((g) => [g.status, g.text])));
+          /* 画面：月の勤務の欄は、1行と答えるカード1つだけ */
+          const month = slots.filter((s) => s.live === 'work' && s.at === 'pvg-p-work');
+          const mOk = month.length === 1 && month[0].state === 'locked' && J(month[0].lock) === J([GIVE_LINE(need)]) && month[0].rows.length === 0 && month[0].give.length === 1
+            && month[0].give[0].h === GIVE_HEAD(name) && month[0].give[0].n === GIVE_COUNT(have, need) && J(month[0].give[0].go) === J([GIVE_GO]) && J(month[0].links.map((a) => a.text)) === J([GIVE_GO])
+            && month[0].text === GIVE_LINE(need) + GIVE_HEAD(name) + GIVE_COUNT(have, need) + GIVE_GO;
+          ok(calm && mOk,
+            `★X6 月の勤務の欄は、鍵の形で、1行「${GIVE_LINE(need)}」と、答えるカード1つ（「${GIVE_HEAD(name)}」・「${GIVE_COUNT(have, need)}」・入口「${GIVE_GO}」が1つ）だけ（数字は、要る数と答えた数のほかに無い）`,
+            J({ calm, month: month.map((s) => ({ state: s.state, lock: s.lock, give: s.give, links: s.links.map((a) => a.text), text: s.text.slice(0, 90) })) }));
+          /* 通勤・Staff Travel の欄は、同じ1行だけ。黙る2つの欄は隠れて字が無い。範囲の1文は見えている。「ログイン」も「匿名で給与を提出する」も無い */
+          const two = slots.filter((s) => s.live === 'fact' && s.at === 'pvg-p-work'), twoSf = two.map((s) => s.sf).sort();
+          const twoOk = J(twoSf) === J(['commute', 'travel']) && two.every((s) => s.state === 'locked' && J(s.lock) === J([GIVE_LINE(need)]) && s.text === GIVE_LINE(need) && s.give.length === 0 && s.links.length === 0 && s.rows.length === 0);
+          const quietOk = J(quiet.map((s) => s.sf).sort()) === J(QUIET_SF) && quiet.every((s) => s.state === 'locked' && !s.on && s.text === '');
+          ok(twoOk && quietOk && x.on && !!x.scope && x.scope.on && x.scope.text === SCOPE && !x.links.some((a) => a.login || a.text === PAY_GO),
+            `★X6 通勤・Staff Travel の欄は、同じ1行「${GIVE_LINE(need)}」だけ（カードも入口も行も無い）。黙る2つの欄は鍵の形で隠れ、字が無い。「${SCOPE}」が見えている。板に「ログイン」も「${PAY_GO}」も無い`,
+            J({ two: two.map((s) => [s.sf, s.state, s.text.slice(0, 40), s.links.length]), quiet, scope: x.scope, links: x.links.filter((a) => a.login || a.text === PAY_GO) }));
+          /* キャセイのものは、何もページに来ていない */
+          ok(dom.facts === 0 && dom.wb === 0 && dom.counts === 0,
+            `★X6 キャセイの回答は、ページのどこにも無い：回答の行（.crl-fact）も、月の勤務の帯（.crl-wb）も無い。集計が数えた人数（「${nDuty}人」「${nTravel}人」）の字は、どの欄にも無い`,
+            J(dom));
+        } finally {
+          p.page.off('response', onRes);
+          await p.st.ctx.close();
+        }
+      });
+      await shoot('W2', { who: 'b', tabs: ['work'] });
     } finally {
       /* 後始末：給与の鍵を、無い形へ戻す（出した給与の行は、この回かぎりの保存先に残る）。会員B も、この場面の終わりで給与を出している */
       await q('update public.profiles set access_until = null where id = $1', [PAYER.id]);
