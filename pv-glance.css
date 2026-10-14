@@ -487,22 +487,30 @@
 /* 投稿が0件の時、書く入口は下のボタン1つだけ（欄が自分で出す「匿名で口コミを書く」と二重にしない）。
    欄そのものは消さない ── 消すと career-live.js が二度と取りに行かない */
 .pvg-rv-in > .crl[data-live="score"][data-state="empty"] .crl-foot{display:none}
-/* 口コミの要約（良い点／気になる点）：読めた時（開いた／鍵が掛かっている）だけ場所を取る。
-   要約がまだ無い会社・サーバーに口がまだ無い環境では、高さ 0 のまま（空の見出しも、作った文も置かない）。
-   ⚠️ display:none にしない（career-live.js は見えている箱だけを取りに行く）
-   読めない時も場所を取らない（余白と罫線ごと畳む）── すぐ上の評価スコアの欄が、同じ知らせとやり直すボタンを出している */
-.pvg-rv-in > .crl[data-live="summary"]:not([data-state="open"]):not([data-state="locked"]){height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
-.pvg-rv-in > .crl[data-live="summary"][data-state="open"],
-.pvg-rv-in > .crl[data-live="summary"][data-state="locked"]{height:auto;margin-top:14px;overflow:visible}
+/* 口コミの要約：答えを待つあいだ（idle・loading）も、1行ぶんの高さ（44px）を取っておく ＝ 答えが来ても下が動かない。
+   1行で済む状態（ログイン／鍵／少ない／まだ無い／未接続）はどれも同じ 44px。伸びるのは「開いている」ときだけ。
+   44px は、いちばん高い1行（ログインの入口 44px）を測った数。欄は content-box ＝ 44px は上の余白と罫線の内側
+   （ページ全体は border-box なので、戻すと狭い箱で答えが来た時に余白と罫線のぶん 15px 動く）。
+   畳むのは2つの時だけ ── 上の評価が「まだありません」の時（0件のページに、同じ意味の文を2つ並べない）と、
+   上の評価も要約も読めなかった時（同じ知らせと「やり直す」を2つ重ねない。上の欄が出している）。
+   ⚠️ display:none や visibility:hidden で欄そのものを消さない（career-live.js は見えている箱だけを取りに行く）。 */
+.pvg-rv-in > .crl[data-live="summary"]{min-height:44px;box-sizing:content-box}
+.pvg-rv-in > .crl[data-live="summary"][data-state="empty"] > .crl-msg{min-height:44px}
+.pvg-rv-in > .crl[data-live="summary"][data-state="locked"] > .crl-lock{min-height:44px;box-sizing:border-box}
+.pvg-rv-in > .crl[data-live="score"][data-state="empty"] ~ .crl[data-live="summary"]:not([data-state="open"]):not([data-state="locked"]),
+.pvg-rv-in > .crl[data-live="score"][data-state="error"] ~ .crl[data-live="summary"][data-state="error"]{height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.pvg-rv-in > .crl[data-live="score"][data-state="empty"] ~ .crl[data-live="summary"]:not([data-state="open"]):not([data-state="locked"]) > *,
+.pvg-rv-in > .crl[data-live="score"][data-state="error"] ~ .crl[data-live="summary"][data-state="error"] > *{display:none}
 .pvg-rv-in > .crl[data-live="reviews"]{display:flex;flex-direction:column;margin-top:14px}
 .pvg-rv-in > .crl[data-live="reviews"] > .crl-revs{margin-top:0}
 /* 抜粋は「いつ・どの区分・先頭の文」まで。ほかに触れている区分の札は、口コミのタブの一覧に在る */
 .pvg-rv-in .crl-rev > .crl-chips{display:none}
 .pvg-rv-in .crl-lock{width:fit-content;max-width:100%}
 /* ★概要の抜粋は新しい1件だけ（一覧は口コミのタブ）。要約の欄がすでに「口コミの投稿で開きます」と言っている時は、
-   同じ意味の錠前の1行をもう1つ重ねない（2026-10-08）。要約の欄が無い会社では、下の1行が残る */
+   同じ意味の錠前の1行をもう1つ重ねない（2026-10-08）。要約の欄が鍵・ログインの1行を出していない時（少ない／まだ無い／未接続）は、下の1行が残る */
 .pvg-rv-in .crl-revs > .crl-rev:nth-child(n+2){display:none}
 .pvg-rv-in > .crl[data-live="summary"][data-state="locked"] ~ .crl[data-live="reviews"] .crl-lock{display:none}
+.pvg-rv-in > .crl[data-live="summary"][data-state="locked"] ~ .crl[data-live="reviews"] [data-crl-login]{display:none}
 /* ⚠️ 口コミが無い時、下の欄は高さを 0 にするだけ。display:none にすると career-live.js が二度と取りに行かない。 */
 .pvg-rv-in > .crl[data-live="reviews"][data-state="empty"]{flex:none;height:0;min-height:0;margin:0;overflow:hidden}
 /* 書く入口は箱の底（横に並ぶ給与の1枚のほうが高い時も、底でそろう） */
@@ -539,20 +547,22 @@
 .pvg .crl-radar-l[data-i="5"]{grid-column:1;grid-row:2;align-items:flex-end;text-align:right}
 .pvg .crl-radar-l[data-i="4"]{grid-column:1;grid-row:3;align-items:flex-end;text-align:right}
 /* 広い箱：左に 総合点と図（幅は決め打ち ＝ 読み込みの前後で右の欄が動かない）、右に 要約 → 口コミの抜粋 → 書く入口。
-   右の列は上から順に詰め、余った丈はいちばん下の段（空）が受ける ＝ 入口が抜粋のすぐ下に来る */
+   右の3つはひとかたまりで、図より短ければ図の高さのまんなかに・長ければ上から並ぶ（上下の 1fr が余りを半分ずつ受ける）。
+   ⚠️ .pvg-rv-in の子は5つ（score・summary・reviews・入口2つ）。6つめを足すなら grid-row を決める（決めないと上の 1fr の段に入る）。 */
 @container pvgrv (min-width:600px){
-  .pvg-rv-in{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto 1fr;align-items:start;column-gap:32px}
-  .pvg-rv-in > .crl[data-live="score"]{grid-column:1;grid-row:1 / span 4;width:272px}
+  .pvg-rv-in{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:1fr auto auto auto 1fr;align-items:start;column-gap:32px}
+  .pvg-rv-in:has(> .crl[data-live="score"][data-state="empty"]){grid-template-rows:auto auto auto auto}
+  .pvg-rv-in > .crl[data-live="score"]{grid-column:1;grid-row:1 / -1;width:272px}
   .pvg-rv-in > .crl[data-live="score"] ~ *{grid-column:2}
   /* 投稿が無いとき：左の列を畳まず、案内を横いっぱいに1行で出す（幅 0 にすると字が1文字ずつ縦に並ぶ） */
-  .pvg-rv-in > .crl[data-live="score"][data-state="empty"]{grid-column:1 / -1;grid-row:auto;width:auto}
+  .pvg-rv-in > .crl[data-live="score"][data-state="empty"]{grid-column:1 / -1;grid-row:1;width:auto}
   .pvg-rv-in > .crl[data-live="score"][data-state="empty"] ~ *{grid-column:1 / -1}
-  .pvg-rv-in > .crl[data-live="summary"][data-state="open"],
-  .pvg-rv-in > .crl[data-live="summary"][data-state="locked"]{margin:0 0 14px}
-  .pvg-rv-in > .crl[data-live="reviews"]{margin-top:0}
+  .pvg-rv-in > .crl[data-live="summary"]{grid-row:2;margin:0 0 14px}
+  .pvg-rv-in > .crl[data-live="summary"]:not([data-state="error"]){padding-top:0;border-top:0}
+  .pvg-rv-in > .crl[data-live="reviews"]{grid-row:3;margin-top:0}
   .pvg-rv-in > .crl[data-live="reviews"]:not([data-state="empty"]){margin-bottom:14px}
   .pvg-rv-in > .crl[data-live="reviews"] > .crl-revs{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-  .pvg-rv-in > .pvg-rv-cta{margin-top:0;padding-top:0}
+  .pvg-rv-in > .pvg-rv-cta{grid-row:4;margin-top:0;padding-top:0}
   .pvg-rv-in > .crl[data-live="score"][data-state="empty"] ~ .pvg-rv-cta{padding-top:12px}
 }
 /* 会社概要：見出し → 紹介の本文 → 小さな写真｜最初の4つの値 → 写真のクレジット

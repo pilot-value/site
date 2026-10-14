@@ -2460,8 +2460,20 @@ function ratedWant(rows) {
   }
   return per.length ? { n: per.length, avg: mean(per), ratings: cat.every(c => c.length) ? cat.map(mean) : null } : null;
 }
+/* 口コミの要約の欄のあるべき形（名前で引く）。hidden ＝ 0件のページ（上の評価が「まだありません」）では畳む／
+   off ＝ 口が無い（未接続）／few ＝ 口コミが少ない／none ＝ 要約がまだ無い／login ＝ ログインの1行と入口1つ／locked ＝ 鍵の無い人の1行／
+   error ＝ 読めなかった（「やり直す」1つ）。どの形も要約の項目を持たず、入口は login と error の1つだけ。 */
+const SUM_WANT = {
+  hidden: x => x.h === 0 && !x.items && x.links === 0,
+  off:    x => x.state === 'empty'  && x.why === 'off'   && x.text === SUM_OFF_TEXT  && !x.items && x.links === 0,
+  few:    x => x.state === 'empty'  && x.why === 'few'   && x.text === SUM_FEW_TEXT  && !x.items && x.links === 0,
+  none:   x => x.state === 'empty'  && x.why === 'none'  && x.text === SUM_NONE_TEXT && !x.items && x.links === 0,
+  login:  x => x.state === 'locked' && x.why === 'login' && x.text.startsWith(SUM_LOGIN_TEXT) && !x.items && x.links === 1 && x.login.length === 1 && /login\.html/.test(x.login[0]),
+  locked: x => x.state === 'locked' && x.why === 'key'   && x.text === SUM_LOCK_TEXT && !x.items && x.links === 0,
+  error:  x => x.state === 'error'  && !x.items && x.links === 1,
+};
 /* 評価スコア：社名の行とカードが同じ答えを出しているか。rows ＝ 偽のサーバーが返した口コミ（0件なら []）。
-   sum ＝ 口コミの要約の欄のあるべき形（'empty' ＝ 口が無い・要約が無い → 何も出さない／'locked' ＝ 鍵の無い人 → 錠前の1行だけ）。 */
+   sum ＝ 口コミの要約の欄のあるべき形の名前（SUM_WANT の hidden | off | few | none | login | locked | error）。 */
 function scoreBad(s, sc, slots, rows, sum) {
   const bad = [], c = sc.card, W = ratedWant(rows), one = v => Number(v).toFixed(1), state = W ? 'open' : 'empty';
   if (!(slots.length === 2 && slots.every(x => x.on && x.state === state))) bad.push(`欄が ${slots.map(x => `${x.kind}:${x.state}`).join(' ')}（あるべき ${state}）`);
@@ -2489,11 +2501,8 @@ function scoreBad(s, sc, slots, rows, sum) {
   }
   if (!c.row) bad.push('給与の1枚と同じ段に無い');
   if (!c.sum) bad.push('口コミの要約の欄が無い');
-  else if (sum === 'locked') {
-    if (!(c.sum.state === 'locked' && c.sum.text === SUM_LOCK_TEXT && !c.sum.items)) bad.push(`鍵の無い人なのに、要約の欄が錠前の1行だけでない（${c.sum.state}・「${c.sum.text.slice(0, 40)}」・項目 ${c.sum.items}）`);
-  } else if (!(c.sum.state === 'empty' && c.sum.h === 0 && c.sum.text === '' && !c.sum.items)) {
-    bad.push(`要約が無いのに、要約の欄が場所を取っている・字を出している（${c.sum.state}・高さ ${c.sum.h}・「${c.sum.text.slice(0, 40)}」）`);
-  }
+  else if (!SUM_WANT[sum](c.sum)) bad.push(`要約の欄が「${sum}」の形でない（${c.sum.state}・${c.sum.why}・高さ ${Math.round(c.sum.h)}・「${c.sum.text.slice(0, 40)}」・項目 ${c.sum.items}・入口 ${c.sum.links}）`);
+  if (c.sum && sum !== 'hidden' && sum !== 'error' && !(c.sum.h >= 40)) bad.push(`要約の1行が低い（${c.sum.h}px）`);
   return bad;
 }
 /* 話題の札（「ひとつ教えて」のカード）── 測ったものを、約束ごとに突き合わせる。
@@ -2616,7 +2625,7 @@ async function runView(browser, s, [w, h, kind]) {
     if (!m1Saw.size) m1.push('開いた直後に、集計の欄が1つも見えていない');
     {
       const sc = await ev(() => window.__pvg.score());
-      const bad = scoreBad(s, sc, live.filter(IS_SCORE), [], 'empty');
+      const bad = scoreBad(s, sc, live.filter(IS_SCORE), [], 'hidden');
       ok(!bad.length, `${tag}: 評価スコア（0件の時）── 社名の行は「評価未取得」・カードは「会員からの投稿はまだありません」・見本の点数も作った要約も出さない・書く入口は2行のボタン「${GG}／${RV_GIVE.overview}」1つ`, bad.join(' ／ '));
     }
     ok(live.filter(x => !x.on).every(x => x.state === 'idle'), `${tag}: 閉じている板の中の欄は、開くまで読みに行かない`);
@@ -3206,7 +3215,7 @@ async function runRated404(browser, s, [w, h]) {
     const rows = ratedRows(s);
     const live = (await ev(() => window.__pvg.live())).filter(x => x.on);
     const sc = await ev(() => window.__pvg.score());
-    const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, 'empty');
+    const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, 'off');
     const r = sc.card && sc.card.revs;
     if (!r) bad.push('口コミの欄が無い');
     else {
@@ -3215,7 +3224,7 @@ async function runRated404(browser, s, [w, h]) {
       if (r.full) bad.push(`伏せていない本文が ${r.full}つ出ている`);
       if (!same(r.locks, ['口コミの投稿で開きます'])) bad.push(`見えている錠前の行が ${r.locks.length}つ（${r.locks.join('｜')}）── あるべきは「口コミの投稿で開きます」の1つ`);
     }
-    ok(!bad.length, `${tag}: 要約の欄は場所を取らない・星と図は点数どおり・錠前の1行「口コミの投稿で開きます」が見えている`, bad.join(' ／ '));
+    ok(!bad.length, `${tag}: 要約の欄は未接続の1行「${SUM_OFF_TEXT}」（件数も作った文も無い）・星と図は点数どおり・錠前の1行「口コミの投稿で開きます」が見えている`, bad.join(' ／ '));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));

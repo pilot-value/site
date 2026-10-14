@@ -107,9 +107,14 @@
     sumHead: '口コミの要約',
     sumGood: '良い点',
     sumConcern: '気になる点',
-    sumBy: function (n, when) { return '会員の口コミ ' + n + '件をもとに AI が要約' + (when ? '（' + when + '）' : ''); },
     sumLock: '要約は口コミの投稿で開きます',
-    sumSee: 'この分類の口コミを見る',
+    sumAi: 'AI 要約',
+    sumFrom: function (n) { return '会員の口コミ ' + n + '件から'; },
+    sumWhen: function (d) { return d + ' 更新'; },
+    sumFew: '口コミがまだ少ないため、要約はありません',
+    sumNone: '口コミの要約は、まだありません',
+    sumOff: '準備中',
+    sumSrc: 'この要約のもとになった口コミを見る',
     revLock: '口コミの投稿で開きます',
     revGive: '匿名で口コミを書く',
     revAll: 'この会社の口コミを全部見る',
@@ -1087,21 +1092,27 @@
 
   /* ── 口コミの要約（会社ページ）────────────────────────────
      良い点・気になる点を、会員の口コミから AI がまとめたもの。中身はサーバーが持っていて、
-     ★ 本文を読める人にだけ返る（鍵の判定は本文と同じ関数）。鍵の無い人には「在る」の1語しか来ない。
-     ★ 要約がまだ無い会社・口がまだ無い環境では、欄ごと何も出さない（空の見出しも、作った文も置かない）。
-     ★ 文は textContent で入れる。分類を押すと、同じページの口コミがその分類で開く（元の口コミへ辿る道）。 */
+     ★ 本文を読める人にだけ返る（鍵の判定は本文と同じ関数）。ほかの人には状態の1語しか来ない。
+     ★ 状態は7つで、言葉を混ぜない ── ログイン／鍵／口コミが少ない／まだ無い／未接続（口が無い）／取得失敗／開いている。
+        未接続は PGRST202（関数が無い）のときだけ。ほかの失敗は「やり直す」の出る失敗の形。
+     ★ 文は textContent で入れる。点の矢印は data-pvg-cat（分類）と data-pvg-ids（もとの口コミ）を持ち、
+        押すと同じページの口コミがその分類で開き、もとの口コミに札が付く（pv-glance.js → airline-reviews-ui.js）。 */
   function summary(slug) {
     return once('sum:' + slug, function () {
       return client().then(function (sb) {
         return sb.rpc('pv_review_summary', { p: { airline: slug, lang: 'ja' } });
       }).then(function (res) {
-        if (!res || res.error) throw sbErr(res);
+        if (!res || res.error) {
+          var code = String((res && res.error && res.error.code) || '');
+          throw fail(code === 'PGRST202' ? 'off' : 'error');     // 未接続は「関数が無い」のときだけ
+        }
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
         return x;
       });
     });
   }
+  var SUM_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
   function sumList(title, kind, items) {
     var wrap = el('div', 'crl-sum-col');
     wrap.setAttribute('data-kind', kind);
@@ -1117,7 +1128,9 @@
         var a = el('a', 'crl-sum-a');
         a.setAttribute('href', '#reviews');
         a.setAttribute('data-pvg-cat', cat);
-        a.setAttribute('aria-label', T.sumSee);
+        a.setAttribute('aria-label', T.sumSrc);
+        var src = (it && isArr(it.ids) ? it.ids : []).filter(function (s) { return typeof s === 'string' && SUM_ID.test(s); });
+        if (src.length) a.setAttribute('data-pvg-ids', src.join(','));
         a.appendChild(icon('arrow', 14));
         li.appendChild(a);
       }
@@ -1126,22 +1139,35 @@
     wrap.appendChild(ul);
     return ul.childNodes.length ? wrap : null;
   }
+  function sumNote(text, why) { var p = msg(text); p.setAttribute('data-why', why); return p; }
   KIND.summary = function (box, ids) {
     return summary(ids[0]).then(function (x) {
-      if (x.state === 'locked') return view('locked', [lockLine(T.sumLock)]);
-      if (x.state !== 'open') return view('empty', []);
+      if (x.state === 'login') {
+        var need = lockLine(T.loginLock);
+        need.setAttribute('data-why', 'login');
+        return view('locked', [need, loginLink()]);
+      }
+      if (x.state === 'locked') {
+        var key = lockLine(T.sumLock);
+        key.setAttribute('data-why', 'key');
+        return view('locked', [key]);                         // 入口はカードの投稿ボタン1つ（ここに足さない）
+      }
+      if (x.state === 'few') return view('empty', [sumNote(T.sumFew, 'few')]);
+      if (x.state !== 'open') return view('empty', [sumNote(T.sumNone, 'none')]);
       var good = sumList(T.sumGood, 'good', isArr(x.good) ? x.good : []);
       var bad = sumList(T.sumConcern, 'concern', isArr(x.concern) ? x.concern : []);
-      if (!good && !bad) return view('empty', []);
+      if (!good && !bad) return view('empty', [sumNote(T.sumNone, 'none')]);
       var grid = el('div', 'crl-sum');
       if (good) grid.appendChild(good);
       if (bad) grid.appendChild(bad);
+      var by = el('p', 'crl-sum-by');
+      by.appendChild(el('span', 'crl-sum-ai', T.sumAi));
       var n = Number(x.n);
-      var when = (typeof x.as_of === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.as_of)) ? x.as_of : '';
-      var by = (isFinite(n) && n > 0) ? el('p', 'crl-sum-by', T.sumBy(n, when)) : null;   // 件数が読めなければ書かない
+      if (isFinite(n) && n > 0) by.appendChild(el('span', 'crl-sum-n', T.sumFrom(n)));     // 件数が読めなければ書かない
+      if (typeof x.as_of === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.as_of)) by.appendChild(el('span', 'crl-sum-d', T.sumWhen(x.as_of)));
       return view('open', [el('h3', 'crl-sum-title', T.sumHead), grid, by]);
     }, function (e) {
-      if (e && e.crl === 'off') return view('empty', []);     // 口がまだ無い ＝ 要約なしと同じ（「準備中」と書かない）
+      if (e && e.crl === 'off') return view('empty', [sumNote(T.sumOff, 'off')]);   // 口がまだ無い ＝ 未接続（件数も文も作らない）
       throw e;
     });
   };
