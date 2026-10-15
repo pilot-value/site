@@ -22,6 +22,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { GLANCE, RANKS, AXIS, viewOf, width, yen, rentCell } from './pv-airline-view.mjs';
+import { barGroup } from './pv-bars.mjs';
 import { fxNote } from './salary-basis.mjs';
 import { TOPICS, askGroup } from './gen-career.mjs';
 import { QUESTIONS } from './pv-conditions.mjs';
@@ -589,6 +590,39 @@ ${row('移動', list(moves))}
 ${row('参考', list([...refs, ...extra]))}
 </dl></details>`;
 }
+/* 棒の行の、名前の列の幅（em）。字の長さで決める ＝ どの間取りの組でも・どの通貨でも、棒の土台の長さが同じになる。 */
+const emLen = s => [...String(s)].reduce((n, ch) => n + (/[\x20-\x7e]/.test(ch) ? 0.58 : 1), 0);
+const RB_V = 9;                       // 額の列の幅（em・12.5px の字で）。どの通貨の額も入る長さ
+/* 家賃の棒（都市に1組）。0 から・全部の間取りで同じ目盛・同じ長さの土台・額の無い行に棒を出さない。並びは台帳の順（並べ替えない）。
+   行は、団地ごとの家賃（estates）が在れば団地（名前の下に街の名前・額の横に件数）、無ければ額を持つ街（額の無い街は棒の組に行を持たない）。
+   どの行にも data-town（その行の街の鍵）を付ける ── 選んだ街の行に印を付けるのは pv-glance.js。 */
+function rentBars(L) {
+  if (!L.hasBars) return '';
+  const endText = L.cur === 'JPY'
+    ? `${Number.isInteger(L.axis / 10000) ? L.axis / 10000 : (L.axis / 10000).toFixed(1)}万円`
+    : `<span class="pv-no-cur">${esc(rentCell(L.cur, L.axis).orig)}</span>${approx(L.cur, rentCell(L.cur, L.axis).yen)}`;
+  const townOf = k => L.rents.find(r => r.key === k);
+  const rows = (L.estates.length ? L.estates : L.rents.filter(r => Object.keys(r.value).length)).map(x => (x.town
+    ? { x, town: x.town, label: x.name, sub: townName(townOf(x.town)).main }
+    : { x, town: x.key, label: townName(x).main, sub: x.area }));
+  const nameEm = Math.min(9, Math.ceil((Math.max(...rows.map(o => Math.max(emLen(o.label), emLen(o.sub) * 0.96))) + 0.4) * 2) / 2);
+  const groups = L.bars.map(k => barGroup({
+    prefix: 'pvg-rb', attrs: ` data-size-panel="${esc(k)}"`, caption: esc(L.words[k]), end: L.axis, endText,
+    rows: rows.map(({ x, town, label, sub }) => ({ id: esc(x.key), attrs: ` data-town="${esc(town)}"`, label: esc(label), sub: sub ? esc(sub) : '',
+      value: typeof x.value[k] === 'number' ? x.value[k] : null,
+      text: x.value[k] == null ? '' : rentText(L, x, k) + (x.n && x.n[k] != null ? `<small class="pvg-rb-c">${x.n[k]}件</small>` : ''),
+      none: '<span class="pvg-none">—</span>' })),
+  })).join('\n');
+  const lead = L.rents.find(r => r.lead);
+  return `<div class="pvg-rb" data-pvg-rent style="--rb-n:${nameEm}em;--rb-v:${RB_V}em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>${esc(L.measure)}・1か月あたり</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+${L.bars.map(k => `<button type="button" class="pvg-rb-b" data-pvg-size="${esc(k)}" aria-pressed="${k === L.leadCol ? 'true' : 'false'}">${esc(L.words[k])}</button>`).join('\n')}
+</div></div>
+${groups}
+<p class="pvg-rb-s pv-no-cur">${esc(L.siteName)}${L.beside ? `<span>${esc(L.beside)}</span>` : ''}<span>${esc(lead.when)}</span></p>
+</div>`;
+}
 function livingCell(v) {
   const L = v.living;
   const other = `<p class="pvg-quiet pvg-liv-more">ここに無い街に住んでいる方は、「勤務・訓練」の通勤から条件を追加できます。<a class="pvg-link" href="#work">勤務・訓練の通勤を見る${IC.go}</a></p>`;
@@ -605,10 +639,10 @@ ${livingHead(v, L)}
 <ul class="pvg-tgrid" data-n="${L.rents.length}" style="--tg-a:${t.a};--tg-b:${t.b};--tg-c:${t.c};--tg-d:${t.d}">
 ${L.rents.map(r => townCard(L, r, sizes)).join('\n')}
 </ul>
-<div class="pvg-liv-2">
+<div class="pvg-liv-2${L.hasBars ? ' has-rb' : ''}">
 <div class="pvg-tds">
 ${L.rents.map(r => townDetail(v, L, r)).join('\n')}
-</div>
+</div>${L.hasBars ? `\n${rentBars(L)}` : ''}
 </div>
 ${cityEvidence(v, L)}
 </section>`;

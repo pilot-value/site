@@ -81,7 +81,8 @@ import { FACTS as CO_FACTS } from './airline-facts.mjs';
 import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
 import { primary as placePhoto, needsCredit as placeCredit, src as placeSrc, HELD as PLACE_HELD } from './place-photos.mjs';
-import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES } from './living-facts.mjs';
+import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS, whenText as livWhen } from './living-facts.mjs';
+import { readBars, checkBars } from './pv-bars.mjs';
 import { primary, needsCredit } from './airline-photos.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -1514,13 +1515,15 @@ head('暮らし（街・家賃・空港までの移動）');
   const EY_COLS = [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']];
   const perM = v => Object.fromEntries(Object.entries(v || {}).map(([k, n]) => [k, Array.isArray(n) ? n.map(x => Math.round(x / 12)) : Math.round(n / 12)]));
   const LED = s => (s === 'etihad'
-    ? { c: ABUDHABI, cols: EY_COLS, lead: 'bed1', refs: [],
+    ? { c: ABUDHABI, cols: EY_COLS, lead: 'bed1', refs: [], estates: [],
         towns: EY_FACTS.etihad.living.rents.map((r, i) => ({ key: r.key, ja: r.ja, sub: r.en || '', area: '', iata: r.iata || '', lead: i === 0, month: perM(r.value),
-          urls: [r.src && r.src.url, r.pick_src && r.pick_src.url] })) }
+          when: livWhen(r), urls: [r.src && r.src.url, r.pick_src && r.pick_src.url] })) }
     : (c => ({ c, cols: c.cols, lead: c.lead_col, refs: c.refs || [],
+        estates: c.rents.flatMap(r => (r.estates || []).map(e => ({ key: e.key, town: r.key, month: e.value || {}, n: e.n || {} }))),
         towns: c.rents.map(r => {
           const e = r.estates ? r.estates.find(x => x.key === r.rent_from) || null : null;
           return { key: r.key, ja: r.ja, sub: r.sub_ja || r.en || '', area: e ? e.ja : (r.rent_area_ja || ''), iata: r.iata || '', lead: !!r.lead, month: (e ? e.value : r.value) || {},
+            when: e ? livWhen(e) : r.value ? livWhen(r) : '',
             urls: [r.src && r.src.url, r.pick_src && r.pick_src.url, ...(r.estates || []).map(x => x.src && x.src.url)] };
         }) }))(LIVING[CITY_OF[s]]));
   /* この検査の道具（読み口の計算は借りない） */
@@ -1659,6 +1662,76 @@ head('暮らし（街・家賃・空港までの移動）');
     }
     if (need.length ? one(fold, /<summary>写真の出典<small>(\d+)枚<\/small>/) !== String(need.length) : fold !== '') crBad.push(`枚数「${one(fold, /<small>(\d+)枚/)}」（台帳 ${need.length}）`);
     ok(panel && !crBad.length, `${s}: 街の写真のクレジット（示すことが条件の写真は、作者名とライセンスのリンクつき）`, crBad.join(' ／ '));
+
+    /* SB1〜SB5 家賃の棒（都市に1組）。棒の行は台帳から：団地ごとの家賃（estates）が在れば団地、無ければ額を持つ街。
+       棒にできる数字の種類は台帳の BAR_STATS（ここに2つめの一覧を書かない）。 */
+    const BR = D.estates.length ? D.estates.map(e => ({ id: e.key, town: e.town, month: e.month, n: e.n }))
+      : T.filter(t => Object.keys(t.month).length).map(t => ({ id: t.key, town: t.key, month: t.month, n: null }));
+    const valOf = (x, k) => (x && typeof x.month[k] === 'number' ? x.month[k] : null);
+    const barCity = c.site != null && BAR_STATS.includes(c.stat) && BR.some(x => c.bars.some(k => valOf(x, k) !== null));
+    const rbN = sec.split('<div class="pvg-rb" data-pvg-rent').length - 1, rb = cutAt(sec, '<div class="pvg-rb" data-pvg-rent', 'div');
+    const groups = readBars(rb, 'pvg-rb'), sizeOf = g => one(g.attrs, /data-size-panel="([^"]*)"/);
+    const live = barCity && rbN === 1 && groups.length > 0;
+    /* SB1 */
+    const btns = [...rb.matchAll(/<button type="button" class="pvg-rb-b" data-pvg-size="([^"]*)" aria-pressed="(true|false)">([^<]*)<\/button>/g)].map(m => ({ k: m[1], on: m[2] === 'true', w: unesc(m[3]) }));
+    const sLine = one(rb, /<p class="pvg-rb-s pv-no-cur">([\s\S]*?)<\/p>/) || '';
+    const sHead = unesc(one(sLine, /^([^<]*)/) || ''), sSpans = [...sLine.matchAll(/<span>([^<]*)<\/span>/g)].map(m => unesc(m[1]));
+    const LT0 = T.find(t => t.lead) || T[0];
+    const sb1 = rbN === (barCity ? 1 : 0) ? [] : [`棒の組 ${rbN}つ（台帳 ${barCity ? 1 : 0}）`];
+    if (barCity && rbN === 1) {
+      const words = c.bars.map(k => c.words[k]), sWant = [...(c.beside_ja ? [c.beside_ja] : []), LT0 ? LT0.when : ''];
+      if (!same(groups.map(sizeOf), c.bars) || !same(groups.map(g => unesc(g.caption)), words)) sb1.push(`組 ${groups.map(g => `${sizeOf(g)}:${unesc(g.caption)}`).join('・')}（台帳 ${c.bars.map(k => `${k}:${c.words[k]}`).join('・')}）`);
+      if (!same(btns.map(b => b.k), c.bars) || !same(btns.map(b => b.w), words)) sb1.push(`ボタン ${btns.map(b => `${b.k}:${b.w}`).join('・') || '無し'}（台帳 ${c.bars.map(k => `${k}:${c.words[k]}`).join('・')}）`);
+      const on = btns.filter(b => b.on).map(b => b.k);
+      if (!same(on, [D.lead])) sb1.push(`押してある間取り ${on.join('・') || '無し'}（台帳 ${D.lead}）`);
+      if (sHead !== SITES[c.site].name || !same(sSpans, sWant)) sb1.push(`下の行「${sHead}｜${sSpans.join('｜')}」（台帳 ${SITES[c.site].name}｜${sWant.join('｜')}）`);
+    }
+    ok(sec && !sb1.length, `${s}: 家賃の棒の組は、台帳に棒にできる数字が在る都市にだけ在る（間取りのボタン＝出どころの呼び名）`, sb1.join(' ／ '));
+    /* SB2 行の並び・額の無い行・行の街（data-town）。比例は SB3 */
+    const cbL = live ? checkBars(groups, c.bars.map(k => BR.map(x => ({ id: x.id, value: valOf(x, k) })))) : { bad: [], end: null };
+    const sb2 = cbL.bad.filter(b => !/比例していない|100% を超えている/.test(b));
+    for (const m of rb.matchAll(/<li class="pvg-rb-row(?: is-none)?" data-bar="([^"]*)"(?: data-town="([^"]*)")?>/g)) {
+      const x = BR.find(y => y.id === m[1]);
+      if (!x || m[2] !== x.town) sb2.push(`${m[1]}: data-town「${m[2] || '無し'}」（台帳 ${x ? x.town : '台帳に無い行'}）`);
+    }
+    ok(!barCity || (live && !sb2.length), `${s}: 棒の行は、どの間取りでも台帳の街の順（並べ替えていない）・額の無い行に棒が無い`, sb2.slice(0, 6).join(' ／ '));
+    /* SB3 比例・0 から・1つの目盛（並びはページのまま突き合わせる ＝ 並べ替えは SB2 だけが赤） */
+    const cbP = live ? checkBars(groups, groups.map(g => g.rows.map(r => ({ id: r.id, value: valOf(BR.find(x => x.id === r.id), sizeOf(g)) })))) : { bad: [], end: null };
+    const widths = groups.flatMap(g => g.rows.map(r => parseFloat(r.width))).filter(Number.isFinite), top = widths.length ? Math.max(...widths) : NaN;
+    const zeros = [...rb.matchAll(/<span class="pvg-rb-ax"><i>([\s\S]*?)<\/i>/g)].map(m => m[1]);
+    const sb3 = cbP.bad.filter(b => /比例していない|100% を超えている/.test(b));
+    if (live && !(top >= 66 && top <= 100)) sb3.push(`いちばん長い棒 ${top}%`);
+    if (live && !(zeros.length === groups.length && zeros.every(z => z === '0'))) sb3.push(`目盛の左端 ${zeros.join('・')}`);
+    ok(!barCity || (live && !sb3.length), `${s}: 棒の長さは額に比例・0 から・全部の間取りで1つの目盛（いちばん長い棒は 66%〜100%）`, sb3.slice(0, 6).join(' ／ '));
+    /* SB4 目盛の右端の字・棒の横の額（団地の行は件数も）・列の長さ（em） */
+    const ends = [...rb.matchAll(/<span class="pvg-rb-ax"><i>[\s\S]*?<\/i><i>([\s\S]*?)<\/i><\/span>/g)].map(m => m[1]), endN = ends.length ? amountsOf(ends[0]) : [];
+    const sb4 = [];
+    if (live) {
+      if (!(ends.length === groups.length && ends.every(e => e === ends[0]))) sb4.push(`右端の字 ${ends.map(e => text(e)).join('・')}`);
+      if (!(endN.length === 1 && cbP.end > 0 && Math.abs(endN[0] - cbP.end) <= cbP.end * 0.001)) sb4.push(`右端 ${endN.join('・')}（棒から ${cbP.end}）`);
+      const st = one(rb, /^<div class="pvg-rb" data-pvg-rent style="([^"]*)">/) || '';
+      if (!/^--rb-n:\d+(?:\.\d+)?em;--rb-v:\d+(?:\.\d+)?em$/.test(st)) sb4.push(`列の長さ「${st}」`);
+      for (const { m: gm, h: gh } of cutsOf(rb, /<div class="pvg-rb-g" data-size-panel="([^"]*)">/g, 'div'))
+        for (const { m: rm, h: rh } of cutsOf(gh, /<li class="pvg-rb-row" data-bar="([^"]*)"[^>]*>/g, 'li')) {
+          const x = BR.find(y => y.id === rm[1]), v = cutAt(rh, '<span class="pvg-rb-v">', 'span');
+          const cnt = one(v, /<small class="pvg-rb-c">([^<]*)<\/small>/), amt = amountsOf(v.replace(/<small class="pvg-rb-c">[\s\S]*?<\/small>/g, ''));
+          const wantC = x && x.n && x.n[gm[1]] != null ? `${x.n[gm[1]]}件` : null;
+          if (!same(amt, [valOf(x, gm[1])])) sb4.push(`${gm[1]}/${rm[1]}: 額 ${amt.join('・')}（台帳 ${valOf(x, gm[1])}）`);
+          if ((cnt || null) !== wantC) sb4.push(`${gm[1]}/${rm[1]}: 件数「${cnt || '無し'}」（台帳 ${wantC || '無し'}）`);
+        }
+    }
+    ok(!barCity || (live && !sb4.length), `${s}: 目盛の右端の字は、棒から逆算した額と同じ・どの間取りでも同じ字。棒の横の額は台帳の額`, sb4.slice(0, 6).join(' ／ '));
+    /* SB5（A15 の向け直し）額の無い街：カードに家賃の行が無い・棒の組に行が無い・詳細に「家賃の資料を確認できていません」が1つ。
+       出どころの無い拠点：棒の組も、家賃の行も表も無い。 */
+    const sb5 = [];
+    for (const t of T.filter(t => !Object.keys(t.month).length)) {
+      const x = card(t.key), d = (details.find(y => y.m[2] === t.key) || {}).h || '', k = d.split('家賃の資料を確認できていません').length - 1;
+      if (x && x.rent) sb5.push(`${t.key}: カードに家賃の行`);
+      if (rb.includes(` data-town="${t.key}"`)) sb5.push(`${t.key}: 棒の組に行`);
+      if (k !== 1) sb5.push(`${t.key}: 詳細の「家賃の資料を確認できていません」${k}つ`);
+    }
+    if (c.site == null && (rbN || sec.includes('<span class="pvg-town-r">') || sec.includes('<dl class="pvg-kv">'))) sb5.push('出どころの無い拠点に、家賃の棒・行・表');
+    ok(sec && !sb5.length, `${s}: 家賃の出どころが無い拠点・額の無い街には、家賃の行も棒も無い`, sb5.join(' ／ '));
   }
 }
 

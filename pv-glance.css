@@ -348,6 +348,53 @@
 .pvg-evl .pvg-notes li > span[data-way-warn],.pvg-evl .pvg-notes li > span[data-ref-basis]{display:block;margin-right:0}
 .pvg-refl{display:grid;gap:2px;margin-top:4px}
 .pvg-refl > li{display:flex;flex-wrap:wrap;gap:0 10px}
+/* 家賃の棒（都市に1組・選んだ街の詳細のとなり）。3つの列（名前・棒・額）は長さで決める（max-content にしない）
+   ＝ どの間取りの組でも・どの通貨でも、棒の土台が同じ長さ。名前と額の列の長さは生成側が --rb-n・--rb-v に書く。
+   スクリプトが動かなければ（data-js が無い）、全部の間取りの組が縦に並び、切り替えのボタンは出さない。 */
+.pvg-rb{min-width:0;padding:14px 14px 10px;font-size:12.5px;background:var(--pv-surface-2);border:1px solid var(--pv-line);border-radius:var(--pv-r)}
+.pvg-rb-hd{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}
+.pvg-rb .pvg-askh{margin:0!important}
+/* 暮らしの見出し（「家賃」＋物差しの小さな字）。小さな字が1行に入らないときは次の行へ送る
+   （送らないと「家賃」の2字が縦に割れる。物差しの名前が長い都市で、狭い列・狭い画面のとき） */
+[data-pvg-towns] .pvg-askh{flex-wrap:wrap;row-gap:2px}
+.pvg-rb-sw{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft)}
+.pvg-rb:not([data-js]) .pvg-rb-sw{display:none}
+.pvg .pvg-rb-b{position:relative;min-width:44px;min-height:32px;margin:0;padding:0 12px;border:0;border-radius:999px;background:none;cursor:pointer;
+  font:700 12.5px/1 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-2);-webkit-tap-highlight-color:transparent;transition:transform .2s var(--pv-ease)}
+.pvg-rb-b::after{content:"";position:absolute;inset:-6px 0}                      /* 見える丈は 32px・押せる範囲は 44px */
+.pvg .pvg-rb-b:hover{color:var(--pv-ink)}
+.pvg .pvg-rb-b:active{transform:scale(.96)}
+.pvg .pvg-rb-b:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvg .pvg-rb-b[aria-pressed="true"]{background:var(--pv-surface);color:var(--pv-accent-ink);box-shadow:var(--pv-shadow)}
+.pvg-rb-g{margin-top:10px}
+.pvg-rb-g[hidden]{display:none}
+.pvg-rb-t{font-size:12px;font-weight:700;color:var(--pv-ink-2)}
+.pvg-rb[data-js] .pvg-rb-t{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.pvg-rb-rows{margin:0;padding:0;list-style:none}
+.pvg-rb-row,.pvg-rb-axis{display:grid;grid-template-columns:var(--rb-n,8em) minmax(0,1fr) var(--rb-v,9em);column-gap:10px;align-items:center}
+.pvg-rb-row{padding:8px 0;border-top:1px solid var(--pv-line-soft)}
+.pvg-rb-n{min-width:0;font-weight:600;line-height:1.4;color:var(--pv-ink-2);overflow-wrap:anywhere}
+.pvg-rb-n > small{display:block;font-size:12px;font-weight:500;color:var(--pv-ink-3)}
+.pvg-rb-row[data-on] .pvg-rb-n{font-weight:800;color:var(--pv-ink)}
+.pvg-rb-track{display:block;height:10px;border-radius:999px;background:var(--pv-bg-sub);overflow:hidden}
+.pvg-rb-fill{display:block;height:100%;min-width:4px;border-radius:999px;background:var(--pv-accent)}
+.pvg-rb-v{min-width:0;font-size:13.5px;font-weight:700;line-height:1.4;text-align:right;font-variant-numeric:tabular-nums;color:var(--pv-ink);white-space:nowrap}
+.pvg-rb-v .pvg-yen{display:block;margin-left:0}
+/* 団地ごとの家賃の、額の下の件数（「58件」） */
+.pvg-rb-c{display:block;font-size:12px;font-weight:500;line-height:1.4;color:var(--pv-ink-3)}
+.pvg-rb-x{grid-column:2/-1;justify-self:end;font-size:13.5px}
+.pvg-rb-axis{padding-top:2px}
+.pvg-rb-ax{grid-column:2;display:flex;justify-content:space-between;gap:8px;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+.pvg-rb-ax > i{font-style:normal;text-align:right}
+.pvg-rb-ax .pvg-yen{display:block;margin-left:0}
+.pvg-rb-s{display:flex;flex-wrap:wrap;gap:0 10px;margin-top:8px!important;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
+@container pvg (max-width:479.98px){
+  .pvg-rb-row,.pvg-rb-axis{grid-template-columns:minmax(0,1fr) var(--rb-v,9em)}
+  .pvg-rb-n{grid-column:1/-1}
+  .pvg-rb-x{grid-column:1/-1;justify-self:start}
+  .pvg-rb-ax{grid-column:1}
+}
+@container pvg (min-width:1040px){ .pvg-liv-2.has-rb{grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:start} }
 .pvg-tgrid{display:grid;grid-template-columns:repeat(var(--tg-a,2),minmax(0,1fr));gap:10px}
 .pvg-tgrid > li{display:flex;min-width:0}
 .pvg .pvg-town{

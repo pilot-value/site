@@ -34,8 +34,9 @@ import { BASIS, figures, man } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { FACTS as CO, valueText, whenText, introText as coIntro } from './airline-facts.mjs';
 import { FACTS as EYF, introText as eyIntro } from './career-facts.mjs';
-import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES } from './living-facts.mjs';
+import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS } from './living-facts.mjs';
 import { primary } from './airline-photos.mjs';
+import { axisEnd } from './pv-bars.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -272,6 +273,13 @@ function gate(slug, L, quotes, said = L.words) {
   for (const k of L.bars) if (!L.words[k] || !said[k] || !quotes.some(q => q.includes(said[k]))) bad(`棒の列（${k}）の、出どころの呼び名（${said[k] || L.words[k]}）が、どの引用にも無い`);
   for (const k of L.bars) for (const r of priced) if (r.value[k] != null && typeof r.value[k] !== 'number') bad(`${r.key} の棒の列（${k}）に、幅の数字が在る（幅は棒にしない）`);
   for (const c of L.commute) if (c.town && !L.rents.some(r => r.key === c.town)) bad(`移動の行 ${c.key} の街（${c.town}）が無い`);
+  /* 家賃の棒の組（都市に1組）。棒にできる数字の種類は台帳の BAR_STATS の1か所。行は、団地ごとの家賃が在れば団地、無ければ街。
+     目盛の右端は、全部の間取りの全部の行で1つ（いちばん大きい額から）。 */
+  const rows = L.estates.length ? L.estates : L.rents;
+  const nums = rows.flatMap(r => L.bars.map(k => r.value[k]).filter(v => typeof v === 'number'));
+  L.hasBars = BAR_STATS.includes(L.stat) && nums.length > 0;
+  L.axis = L.hasBars ? axisEnd(Math.max(...nums)) : null;
+  if (L.hasBars && L.rents.find(r => r.lead).value[L.leadCol] == null) bad('先頭の街に、先頭の列の額が無い');
   return L;
 }
 
