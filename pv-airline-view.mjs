@@ -296,7 +296,7 @@ function others(slug) {
     profile: facts(F.profile), scale: facts(F.scale), fleet: facts(F.fleet),
     jobs: facts(F.jobs),
     living: gate(slug, {
-      /* 東京（SUUMO）は台帳に単位の字が無い（per が空）。日本の賃料の相場は月額なので、画面では「月」と出す。 */
+      /* 東京の出どころ（アットホーム・区の SUUMO）は、表に単位の字が無い（per が空）。日本の賃料の相場は月額なので、画面では「月」と出す。 */
       cityKey: CITY_OF[slug], city: L.city_ja, cur, per: r0 ? (r0.per || (cur === 'JPY' ? 'month' : '')) : 'month',
       measure: L.measure_ja || '', site: L.site, siteName: L.site ? SITES[L.site].name : '', stat: L.stat,
       cols: L.cols, bars: L.bars, words: L.words, leadCol: L.lead_col || '', beside: L.beside_ja || '',

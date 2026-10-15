@@ -15,31 +15,35 @@
  *
  * ── 家賃（rents）──
  * ⚠️ **3つとも「募集」の側の数字で、成約した家賃ではない。しかも街ごとに物差しが違う。**
- *   東京 … SUUMO の「家賃相場」（登録物件の賃料から SUUMO が独自に集計。間取りの組ごと）
+ *   東京 … アットホームの駅ごとの「家賃相場」（1LDK・2LDK・3LDK それぞれ。しぼり込みは、ページを開いたままの表示（先頭の「すべて」））。
+ *          区の SUUMO の数字は refs（「出典」の中だけ）
+ *          アットホームの3行の quote は、2026年10月11日に2人が読んで書き取った記録（ページを開き直さない決まり）。ページの字の並びそのものではない
  *   香港 … 28Hse に載っている募集の額の**幅**（1つの団地・寝室の数ごと・その日の掲載分）
  *   台北 … 591租屋網の募集家賃の**中央値**（直近3か月・部屋の型ごと）
  *   アブダビ（別の台帳）… Bayut の募集家賃の**平均**・**年額**
  *   → 街どうしを同じ表の同じ列に並べない。出すときは、何の額かと時点を必ず一緒に出す。
  * ・value は列ごとの額。列（cols）は街ごとに違う（出どころの区分のまま）。
  *   幅は [下, 上]。**検査は、額がその行の引用に字のまま在ることを見る**（打ち間違いを通さない）。
- * ・per は額の単位。東京の SUUMO は表に期間の字が無いので null（画面で「月」と書き足さない。
- *   「家賃相場」とだけ言う）。
+ * ・per は額の単位。東京の出どころ（アットホーム・区の SUUMO）は表に期間の字が無いので null。
+ *   日本の賃料の相場は月額なので、画面では「月」と出す（読み口 pv-airline-view.mjs）。
  * ・**地区を選んだのは、こちら。** pick_ja がその理由（空港がある区・市／都心の区の例）。
  *   出どころは空港にも乗員にも触れていない。**乗員がそこに住んでいる、とは言っていない。**
  *   pick_ja の無い行は検査で落ちる（理由を書かずに地区を足せない）。
+ *   新しい行の pick_ja は、確かめられる事実を1つ（出どころ・引用・確かめた日つき）。
  * ・lead: true は、最初の1画面に出す1行（街に1つ）。lead_col はそのとき出す列。
  * ・台北の「更新至9/28」には年が書いていない。開いた日（2026-10-04）から 2026年と読んだ。
  * ・香港の Caribbean Coast と Queen's Terrace は、28Hse の地区ごとの団地一覧で
  *   いちばん上に出る団地（並びは 28Hse の既定「Popular Estate」）。地区の統計ではない。
  *
  * ── 空港までの足（commute）──
- * ・運営会社か政府のページに書いてある運賃と所要時間だけ。乗り換え検索の結果は入れない。
- * ・**駅から駅まで。** 家からの時間でも、乗務の出頭までの時間でもない。
+ * ・時間は Google マップが表示した目安（via: 'gmaps'。出発地・着く場所・手段・「すぐに出発」・見た日時・経路の住所・表示の字つき）。
+ *   運賃は、運営会社のページに書いてある額だけ。運営会社の時間は2つめの出どころ（「出典」）で、Google の数字と足さない・混ぜない
+ * ・出発地と着く場所は行の名前のとおり（駅・街の代表の地点・ターミナルの建物・駅）。家の玄関からの時間ではない
  * ・運賃と特急料金が別建てのもの（スカイライナー）は、足さずに2つのまま持つ（合計はページに無い）。
  *
  * 書いていないもの（確かめられなかった・入れなかった）:
  *   成約した家賃／管理費を含むかどうか／広さ／JR（成田エクスプレス）の運賃と時間（ページが開けない）／
- *   京急の運賃（乗り換え検索の結果しか無い）／学費・物価（調べは在るが、この欄では出さない）／
+ *   学費・物価（調べは在るが、この欄では出さない）／
  *   乗員がどこに住んでいるか。
  *
  * 見るもの: node living-facts.mjs --check
@@ -56,6 +60,7 @@ export const SRC_KINDS = {
   portal:   '不動産ポータルの公表',
   gov:      '政府の公表',
   operator: '鉄道・空港の運営会社の公表',
+  maps: 'Google マップの経路の表示',
 };
 
 /* 種類ごとの、出どころの置き場。ここに無い URL は検査で落ちる。 */
@@ -64,6 +69,7 @@ const HOSTS = {
     /^https:\/\/suumo\.jp\//,
     /^https:\/\/www\.28hse\.com\//,
     /^https:\/\/rent\.591\.com\.tw\//,
+    /^https:\/\/www\.athome\.co\.jp\//,
   ],
   gov: [
     /^https:\/\/www\.tlb\.gov\.hk\//,
@@ -76,7 +82,10 @@ const HOSTS = {
     /^https:\/\/www\.keisei\.co\.jp\//,
     /^https:\/\/www\.mtr\.com\.hk\//,
     /^https:\/\/www\.tymetro\.com\.tw\//,
+    /^https:\/\/www\.limousinebus\.co\.jp\//,
+    /^https:\/\/www\.keikyu\.co\.jp\//,
   ],
+  maps: [/^https:\/\/www\.google\.com\/maps\/dir\//],
 };
 
 /** どの会社がどの街か（エティハドは career-facts.mjs）。 */
@@ -100,16 +109,19 @@ export const SITES = {
   hse:   { name: '28Hse',     host: /^https:\/\/www\.28hse\.com\//,                    stat: 'range' },
   r591:  { name: '591租屋網', host: /^https:\/\/rent\.591\.com\.tw\/market\//,         stat: 'median' },
   bayut: { name: 'Bayut',     host: /^https:\/\/www\.bayut\.com\//,                    stat: 'mean' },
+  athome: { name: 'アットホーム', host: /^https:\/\/www\.athome\.co\.jp\/chintai\/souba\//, stat: 'mean' },
 };
 export const BAR_STATS = ['mean', 'median', 'index', 'calc_mean'];
 /* 引用に名前の無い、今までの行（名前の検査を足す前に読んだもの）。行が台帳から出たら、ここからも消す（残っていたら落ちる）。 */
 const LEGACY_NAME = new Set(['caribbean_coast', 'queens_terrace', 'taoyuan', 'dayuan', 'luzhu', 'taipei', 'daan']);
 /* 選んだ理由に出どころの無い、今までの行。同じ決まり。 */
-const LEGACY_PICK = new Set(['ota', 'minato', 'narita', 'caribbean_coast', 'queens_terrace', 'taoyuan', 'dayuan', 'luzhu', 'taipei', 'daan']);
+const LEGACY_PICK = new Set(['caribbean_coast', 'queens_terrace', 'taoyuan', 'dayuan', 'luzhu', 'taipei', 'daan']);
 
 const D4 = '2026-10-04';
 const D5 = '2026-10-05';
 const OPENED = '2026年10月に開いた時点の表示';
+/* 東京の街を選んだ理由の出どころ（京急・東京空港交通）と、運営会社の運賃表を開いて読んだ日。アットホームの日（D_ATHOME）とは別。 */
+const D_PICK = '2026-10-15';
 
 const S = {
   /* 東京 */
@@ -127,6 +139,18 @@ const S = {
     url: 'https://www.keisei.co.jp/keisei/tetudou/skyliner/jp/skyliner/ticket.php' },
   skyliner: { name: '京成電鉄「スカイライナーとは」', kind: 'operator',
     url: 'https://www.keisei.co.jp/keisei/tetudou/skyliner/jp/skyliner/' },
+  athomeShinagawa: { name: 'アットホーム「品川駅の家賃相場」', kind: 'portal',
+    url: 'https://www.athome.co.jp/chintai/souba/tokyo/shinagawa-st/' },
+  athomeToyosu: { name: 'アットホーム「豊洲駅の家賃相場」', kind: 'portal',
+    url: 'https://www.athome.co.jp/chintai/souba/tokyo/toyosu-st/' },
+  athomeYokohama: { name: 'アットホーム「横浜駅の家賃相場」', kind: 'portal',
+    url: 'https://www.athome.co.jp/chintai/souba/kanagawa/yokohama-st/' },
+  limousineOdaiba: { name: '東京空港交通「お台場・有明エリア ⇔ 羽田空港」', kind: 'operator',
+    url: 'https://www.limousinebus.co.jp/ja/line/detail/Haneda-AriakeDaibaBigSight/' },
+  keikyuFareShinagawa: { name: '京急電鉄「発駅 品川 から」', kind: 'operator',
+    url: 'https://www.keikyu.co.jp/ride/kakueki/pdf/KK01.pdf' },
+  keikyuFareYokohama: { name: '京急電鉄「発駅 横浜 から」', kind: 'operator',
+    url: 'https://www.keikyu.co.jp/ride/kakueki/pdf/KK37.pdf' },
 
   /* 香港 */
   hseCaribbean: { name: '28Hse の団地のページ「Caribbean Coast」', kind: 'portal',
@@ -164,6 +188,18 @@ const suumo = (key, ja, pick_ja, src, v, quote, more = {}) => ({
   cur: 'JPY', per: null, ...SUUMO_AT, as_of: D4, src, cond_ja: SUUMO_COND, quote, ...more,
 });
 
+/* アットホームの駅の家賃相場（2026年10月11日に2人が読んだ記録。ページは開き直さない）。 */
+const D_ATHOME = '2026-10-11';
+const ATHOME_AT = { at: D_ATHOME.slice(0, 7), at_ja: '2026年10月11日に開いた時点の表示' };     // ページに日付が無い
+const ATHOME_COND = 'アットホームに載った直近3か月の物件の平均家賃をもとにした、相場の目安。成約した家賃ではない。物件種別・駅からの徒歩・築年数は、ページを開いたままの表示（先頭の「すべて」）。管理費を含むか・広さ・更新の日付は、ページに書いていない';
+const man4 = s => Math.round(parseFloat(s) * 10000);
+/** p = ページに書いてある万円の字を、1LDK・2LDK・3LDK の順に（'22.02'）。ページに額の無い間取り（「-」）は null。 */
+const athome = (key, ja, src, p, quote, more = {}) => {
+  const seen = ['ldk1', 'ldk2', 'ldk3'].map((k, i) => [k, p[i]]).filter(([, s]) => s != null);
+  return { key, ja, value: Object.fromEntries(seen.map(([k, s]) => [k, man4(s)])), print: Object.fromEntries(seen),
+    cur: 'JPY', per: null, ...ATHOME_AT, as_of: D_ATHOME, src, cond_ja: ATHOME_COND, quote, ...more };
+};
+
 const HSE_AT = { at: D5, at_ja: '2026年10月5日に開いた時点の掲載分' };
 const HSE_COND = '募集の額で、成約した額ではない。1つの団地だけ・平均ではなく幅・月額。管理費や差餉（レーツ）を含むかはページに書いていない。掲載は日々変わる';
 const hse = (key, ja, pick_ja, src, value, quote, more = {}) => ({
@@ -178,48 +214,245 @@ const r591 = (key, ja, pick_ja, src, v, quote, more = {}) => ({
   cur: 'TWD', per: 'month', ...R591_AT, as_of: D4, src, cond_ja: R591_COND, quote, ...more,
 });
 
+/* Google マップの経路の行。調べた人が 2026-10-11 に見た表示を、渡された記録のとおりに写す（開き直さない）。 */
+const GM_COND = 'Google マップが表示した目安の時間（「すぐに出発」で調べた時点の表示）。出発地と着く場所は行の名前のとおりで、家の玄関からの時間ではない。「徒歩込み」は、歩く区間を含むことを画面で確かめた合計。「経路の合計」は、経路の合計として表示された時間で、歩く区間を含むかは表示から確かめられていない。車は運転の時間で、降りたあとは含まない。時間帯・交通の状況・運行の時刻で変わる';
+/** 見た日時の字。'2026-10-11T15:31' → 「2026年10月11日 15:31 に見た表示」／日だけなら 「2026年10月11日に見た表示」。
+    tz = 'jst' ＝ 日本の外の街（時刻は日本時間で記録してある）→ 「2026年10月11日 15:31（日本時間）に見た表示」／'day' ＝ 日だけ。 */
+const seenJa = (s, tz = '') => s.replace(/^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?$/, (m, y, mo, d, h, mi) =>
+  `${y}年${+mo}月${+d}日${h && tz !== 'day' ? ` ${h}:${mi}${tz === 'jst' ? '（日本時間）' : ' '}` : ''}に見た表示`);
+/** Google マップの経路の1行。modes ＝ 乗りものを順に（1つめが mode）。o = { from_ja, to_ja, line?, value: { walk_total | shown_total | drive: 分 },
+    ride?, legs?, warn?, seen: 'YYYY-MM-DD' か 'YYYY-MM-DDTHH:MM'（日本時間）, url, quote } */
+const gm = (town, end, modes, o, tz = '') => ({
+  key: `gm_${town}_${end}_${modes[0]}`, town, end, iata: end.slice(0, 3).toUpperCase(), mode: modes[0], modes, via: 'gmaps',
+  ja: `${o.line ? o.line + '：' : ''}${o.from_ja} → ${o.to_ja}`, from_ja: o.from_ja, to_ja: o.to_ja, line: o.line || '',
+  value: o.value, ...(o.ride != null ? { ride: o.ride } : {}), ...(o.legs ? { legs: o.legs } : {}), ...(o.warn ? { warn: o.warn } : {}),
+  unit: '分', depart: 'now', seen: o.seen, at: o.seen.slice(0, 10), as_of: o.seen.slice(0, 10), at_ja: seenJa(o.seen, tz),
+  src: { name: 'Google マップの経路の表示', kind: 'maps', url: o.url }, cond_ja: GM_COND, quote: o.quote,
+});
+
 export const LIVING = {
 
   /* ════════ 東京（JAL・ANA）════════ */
   tokyo: {
     city_ja: '東京', country_ja: '日本',
     measure_ja: '家賃相場',
-    cols: [['oneroom', 'ワンルーム'], ['k1', '1K・1DK'], ['ldk1', '1LDK・2K・2DK'], ['ldk2', '2LDK・3K・3DK'], ['ldk3', '3LDK・4K〜']],
+    cols: [['ldk1', '1LDK'], ['ldk2', '2LDK'], ['ldk3', '3LDK']],
     lead_col: 'ldk1',
-    airports: [['HND', '羽田空港'], ['NRT', '成田空港']], ends: {}, site: 'suumo', stat: 'index',
-    bars: ['ldk1', 'ldk2', 'ldk3'], words: { ldk1: '1LDK/2K/2DK', ldk2: '2LDK/3K/3DK', ldk3: '3LDK/4K～' }, refs: [],
+    airports: [['HND', '羽田空港'], ['NRT', '成田空港']],
+    /* 経路が着く場所（Google マップがその場所に決めたとおり。駅は駅、建物は建物）。 */
+    ends: {
+      hnd_t1: { iata: 'HND', ja: '羽田空港 第1ターミナル', kind: 'terminal' },
+      hnd_t2: { iata: 'HND', ja: '羽田空港 第2ターミナル', kind: 'terminal' },
+      hnd_t3: { iata: 'HND', ja: '羽田空港 第3ターミナル', kind: 'terminal' },
+      hnd_t12s: { iata: 'HND', ja: '羽田空港第1・第2ターミナル駅', kind: 'station' },
+      hnd_t2s: { iata: 'HND', ja: '羽田空港第2ターミナル駅', kind: 'station' },
+    },
+    site: 'athome', stat: 'mean', beside_ja: '条件をしぼっていない（物件種別・駅徒歩・築年数は「すべて」）', by_town: true, card_family: 'transit',
+    bars: ['ldk1', 'ldk2', 'ldk3'], words: { ldk1: '1LDK', ldk2: '2LDK', ldk3: '3LDK' },
+    /* 街の家賃（アットホームの駅のページ）。quote は 2026年10月11日に2人が読んで書き取った記録の行（quote_kind: 'record'）。 */
     rents: [
-      suumo('ota', '大田区', '羽田空港がある区', S.suumoTokyo, [72000, 85000, 125000, 172000, 209000],
-        '大田区 7.2万円 8.5万円 12.5万円 17.2万円 20.9万円', { lead: true, iata: 'HND' }),
-      suumo('minato', '港区', '都心の区の例', S.suumoTokyo, [118000, 119000, 234000, 371000, 593000],
-        '港区 11.8万円 11.9万円 23.4万円 37.1万円 59.3万円'),
-      suumo('narita', '成田市（千葉県）', '成田空港がある市', S.suumoChiba, [57000, 64000, 73000, 80000, 89000],
-        '成田市 5.7万円 6.4万円 7.3万円 8.0万円 8.9万円', { iata: 'NRT' }),
+      athome('shinagawa', '品川', S.athomeShinagawa, ['22.02', '34.43', '41.93'], '品川 すべて 19.53 1LDK 22.02 2LDK 34.43 3LDK 41.93',
+        { lead: true, sub_ja: '東京都港区', name_quote: '品川駅の家賃相場・賃料相場を調べる', quote_kind: 'record',
+          pick_ja: '京急が羽田空港までの所要時間を案内している駅', pick_src: S.keikyu, pick_quote: 'Shinagawa Station 11 minutes 14 minutes', pick_as_of: D_PICK }),
+      athome('toyosu', '豊洲', S.athomeToyosu, ['19.24', '25.87', '29.06'], '豊洲 すべて 22.02 1LDK 19.24 2LDK 25.87 3LDK 29.06',
+        { sub_ja: '東京都江東区', quote_kind: 'record',
+          pick_ja: '羽田空港行きのリムジンバスが停まる駅', pick_src: S.limousineOdaiba, pick_quote: '豊洲駅 この停留所の詳しい情報を見る', pick_as_of: D_PICK }),
+      athome('yokohama', '横浜', S.athomeYokohama, ['13.57', '18.26', '21.7'], '横浜 すべて 9.17 1LDK 13.57 2LDK 18.26 3LDK 21.7',
+        { sub_ja: '神奈川県横浜市西区', quote_kind: 'record',
+          pick_ja: '京急が羽田空港までの所要時間を案内している駅', pick_src: S.keikyu, pick_quote: 'Yokohama Station 23 minutes 28 minutes', pick_as_of: D_PICK }),
     ],
     rent_basis: [
       { key: 'what', ja: '何の額か',
-        value: 'SUUMO に登録されている賃貸物件の賃料をもとに、SUUMO が独自の集計で出した相場',
-        ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
-        quote: 'このデータは「SUUMO」に登録されている賃貸物件の賃料を元に独自の集計ロジックによって算出しています。' },
+        value: 'アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安',
+        ...ATHOME_AT, as_of: D_ATHOME, src: S.athomeShinagawa,
+        quote: '掲載物件の平均家賃から、品川駅での相場の目安がわかる！' },
+      { key: 'period', ja: 'いつの・どの数字か', value: '直近3か月に掲載された物件',
+        ...ATHOME_AT, as_of: D_ATHOME, src: S.athomeShinagawa,
+        quote: '※当サイトに掲載した直近3ヶ月の物件情報をもとに相場を算出しています' },
       { key: 'caveat', ja: '出どころの断り',
-        value: '載っている物件の平均とは違うことがあり、正確さは保証しない',
-        ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
-        quote: '掲載中物件の平均金額とは異なる場合があり、その正確性について保証するものではありません。' },
-      { key: 'cols', ja: '列の分け方', value: 'マンションの間取りの組（ワンルーム／1K・1DK／1LDK・2K・2DK／2LDK・3K・3DK／3LDK・4K〜）',
-        ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
-        quote: 'ワンルーム 1K/1DK 1LDK/2K/2DK 2LDK/3K/3DK 3LDK/4K～' },
+        value: '物件が少ないときは相場を出せないことがあり、相場のしぼり込み条件は物件の検索条件と一致しないことがある',
+        ...ATHOME_AT, as_of: D_ATHOME, src: S.athomeShinagawa,
+        quote: '※物件数が少ないときは、相場の算出ができない場合があります ※相場の絞り込み条件は、物件の検索条件と一致しない場合があります' },
+      { key: 'cols', ja: '列の分け方', value: '1LDK・2LDK・3LDK をそれぞれ単独で。物件種別・駅徒歩・築年数は「すべて」',
+        ...ATHOME_AT, as_of: D_ATHOME, src: S.athomeShinagawa, quote_kind: 'record',
+        quote: '物件種別 すべて / マンション / アパート / 一戸建て | 駅徒歩 すべて / 〜3分 / 3〜5分 / 5〜7分 / 7〜10分 / 10〜15分 / 15〜20分 / 20分〜 | 築年数 すべて / 新築（築1年未満） / 1〜3年 / 3〜5年 / 5〜10年 / 10〜15年 / 15〜20年 / 20年〜' },
     ],
+    /* 区・市の SUUMO の家賃相場（もとの3行。値と日付はそのまま）。「出典」の中の「参考」にだけ出る。 */
+    refs: [{ key: 'suumo_wards', ja: '区・市ごとの家賃相場', site: 'suumo', measure_ja: '家賃相場',
+      cols: [['oneroom', 'ワンルーム'], ['k1', '1K・1DK'], ['ldk1', '1LDK・2K・2DK'], ['ldk2', '2LDK・3K・3DK'], ['ldk3', '3LDK・4K〜']],
+      rows: [
+        suumo('ota', '大田区', '羽田空港がある区', S.suumoTokyo, [72000, 85000, 125000, 172000, 209000],
+          '大田区 7.2万円 8.5万円 12.5万円 17.2万円 20.9万円'),
+        suumo('minato', '港区', '都心の区の例', S.suumoTokyo, [118000, 119000, 234000, 371000, 593000],
+          '港区 11.8万円 11.9万円 23.4万円 37.1万円 59.3万円'),
+        suumo('narita', '成田市（千葉県）', '成田空港がある市', S.suumoChiba, [57000, 64000, 73000, 80000, 89000],
+          '成田市 5.7万円 6.4万円 7.3万円 8.0万円 8.9万円'),
+      ],
+      rent_basis: [
+        { key: 'what', ja: '何の額か',
+          value: 'SUUMO に登録されている賃貸物件の賃料をもとに、SUUMO が独自の集計で出した相場',
+          ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
+          quote: 'このデータは「SUUMO」に登録されている賃貸物件の賃料を元に独自の集計ロジックによって算出しています。' },
+        { key: 'caveat', ja: '出どころの断り',
+          value: '載っている物件の平均とは違うことがあり、正確さは保証しない',
+          ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
+          quote: '掲載中物件の平均金額とは異なる場合があり、その正確性について保証するものではありません。' },
+        { key: 'cols', ja: '列の分け方', value: 'マンションの間取りの組（ワンルーム／1K・1DK／1LDK・2K・2DK／2LDK・3K・3DK／3LDK・4K〜）',
+          ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
+          quote: 'ワンルーム 1K/1DK 1LDK/2K/2DK 2LDK/3K/3DK 3LDK/4K～' },
+      ],
+    }],
     commute: [
-      { key: 'hnd_to_stations', iata: 'HND', mode: 'train', ja: '羽田空港から主な駅まで（電車・モノレール）',
-        value: '品川駅 約15分・浜松町駅 約20分・東京駅 約30分',
-        at: '2026-10', at_ja: OPENED, as_of: D4, src: S.hndTerminal, lead: true,
-        cond_ja: '目安の時間。どのターミナルから・どの路線か・乗り換えの時間を含むかは表に書いていない',
-        quote: '東京駅 約30分 浜松町駅 約20分 品川駅 約15分' },
-      { key: 'hnd_keikyu_shinagawa', iata: 'HND', mode: 'train', ja: '京急：品川駅 ⇄ 羽田空港',
+      /* Google マップの表示（2026-10-11 に調べた人が見たもの・取り直していない）。街ごと・着く場所ごと・手段ごとに1行。 */
+      gm('shinagawa', 'hnd_t1', ['train'], { from_ja: '品川駅',
+        to_ja: '羽田空港 第1ターミナル',
+        line: '京急',
+        value: { walk_total: 26 },
+        legs: [10, 12],
+        seen: '2026-10-11T15:31',
+        url: 'https://www.google.com/maps/dir/品川駅、〒108-0074+東京都港区高輪３丁目２６−２７/羽田空港第1ターミナル、〒144-0041+東京都大田区３丁目/@35.5967596,139.6734108,12z/am=t/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60188a5a6e148775:0x9a45c347f706db70!2m2!1d139.7387597!2d35.6284713!1m5!1m1!1s0x601863f7525776fb:0x41debdc74bd24ad8!2m2!1d139.784319!2d35.5495351!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '15:34 - 16:00 （26 分） ; 10 分（3 駅乗車） ; 12 分（6 駅乗車）' }),
+      gm('shinagawa', 'hnd_t1', ['car'], { from_ja: '品川駅',
+        to_ja: '羽田空港 第1ターミナル',
+        value: { drive: 19 },
+        seen: '2026-10-11T15:28',
+        url: 'https://www.google.com/maps/dir/品川駅、〒108-0074+東京都港区高輪３丁目２６−２７/羽田空港第1ターミナル、〒144-0041+東京都大田区３丁目/@35.5967596,139.6734108,12z/am=t/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60188a5a6e148775:0x9a45c347f706db70!2m2!1d139.7387597!2d35.6284713!1m5!1m1!1s0x601863f7525776fb:0x41debdc74bd24ad8!2m2!1d139.784319!2d35.5495351!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 19 分' }),
+      gm('shinagawa', 'hnd_t2s', ['train'], { from_ja: '品川駅',
+        to_ja: '羽田空港第2ターミナル駅',
+        line: '京急',
+        value: { walk_total: 25 },
+        seen: '2026-10-11T15:51',
+        url: 'https://www.google.com/maps/dir/品川駅、〒108-0074+東京都港区高輪３丁目２６−２７/羽田空港第2ターミナル駅、〒144-0041+東京都大田区羽田空港３丁目４−２/@35.5967596,139.6736964,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60188a5a6e148775:0x9a45c347f706db70!2m2!1d139.7387597!2d35.6284713!1m5!1m1!1s0x601863f69cf14f7b:0x4ec695ea34e14d41!2m2!1d139.7879961!2d35.5507002!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '公共交通機関 25 分 15:54 - 16:19 ; 徒歩 3 分' }),
+      gm('shinagawa', 'hnd_t2s', ['car'], { from_ja: '品川駅',
+        to_ja: '羽田空港第2ターミナル駅',
+        value: { drive: 17 },
+        seen: '2026-10-11T15:51',
+        url: 'https://www.google.com/maps/dir/品川駅、〒108-0074+東京都港区高輪３丁目２６−２７/羽田空港第2ターミナル駅、〒144-0041+東京都大田区羽田空港３丁目４−２/@35.5967596,139.6736964,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60188a5a6e148775:0x9a45c347f706db70!2m2!1d139.7387597!2d35.6284713!1m5!1m1!1s0x601863f69cf14f7b:0x4ec695ea34e14d41!2m2!1d139.7879961!2d35.5507002!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 17 分' }),
+      gm('shinagawa', 'hnd_t3', ['train'], { from_ja: '品川駅',
+        to_ja: '羽田空港 第3ターミナル',
+        line: '京急',
+        value: { shown_total: 19 },
+        seen: '2026-10-11T15:56',
+        url: 'https://www.google.com/maps/dir/品川駅、〒108-0074+東京都港区高輪３丁目２６−２７/〒144-0041+東京都大田区羽田空港２丁目６−５+第3ターミナル/@35.5867819,139.7050744,13z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60188a5a6e148775:0x9a45c347f706db70!2m2!1d139.7387597!2d35.6284713!1m5!1m1!1s0x601861543aa93813:0x72022ae3c2d4eddf!2m2!1d139.7687222!2d35.5454613!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '公共交通機関 19 分 15:54 - 16:13' }),
+      gm('shinagawa', 'hnd_t3', ['car'], { from_ja: '品川駅',
+        to_ja: '羽田空港 第3ターミナル',
+        value: { drive: 24 },
+        seen: '2026-10-11T15:56',
+        url: 'https://www.google.com/maps/dir/品川駅、〒108-0074+東京都港区高輪３丁目２６−２７/〒144-0041+東京都大田区羽田空港２丁目６−５+第3ターミナル/@35.5867819,139.7050744,13z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60188a5a6e148775:0x9a45c347f706db70!2m2!1d139.7387597!2d35.6284713!1m5!1m1!1s0x601861543aa93813:0x72022ae3c2d4eddf!2m2!1d139.7687222!2d35.5454613!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 24 分' }),
+      gm('toyosu', 'hnd_t1', ['bus'], { from_ja: '豊洲駅',
+        to_ja: '羽田空港 第1ターミナル',
+        line: 'リムジンバス',
+        value: { walk_total: 32 },
+        seen: '2026-10-11T15:58',
+        url: 'https://www.google.com/maps/dir/豊洲駅、〒135-0061+東京都江東区豊洲２丁目２/羽田空港第1ターミナル、〒144-0041+東京都大田区３丁目/@35.6069539,139.6776488,12z/data=!4m14!4m13!1m5!1m1!1s0x601889a3ae75de69:0x6dd78cf9446d8774!2m2!1d139.7954412!2d35.6537595!1m5!1m1!1s0x601863f7525776fb:0x41debdc74bd24ad8!2m2!1d139.784319!2d35.5495351!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '公共交通機関 32 分 16:11 - 16:43 ; 徒歩 7 分' }),
+      gm('toyosu', 'hnd_t1', ['car'], { from_ja: '豊洲駅',
+        to_ja: '羽田空港 第1ターミナル',
+        value: { drive: 17 },
+        seen: '2026-10-11T15:58',
+        url: 'https://www.google.com/maps/dir/豊洲駅、〒135-0061+東京都江東区豊洲２丁目２/羽田空港第1ターミナル、〒144-0041+東京都大田区３丁目/@35.6069539,139.6776488,12z/data=!4m14!4m13!1m5!1m1!1s0x601889a3ae75de69:0x6dd78cf9446d8774!2m2!1d139.7954412!2d35.6537595!1m5!1m1!1s0x601863f7525776fb:0x41debdc74bd24ad8!2m2!1d139.784319!2d35.5495351!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 17 分' }),
+      gm('toyosu', 'hnd_t2', ['train', 'bus'], { from_ja: '豊洲駅',
+        to_ja: '羽田空港 第2ターミナル',
+        line: 'ゆりかもめ → リムジンバス羽田空港線',
+        value: { walk_total: 31 },
+        seen: '2026-10-11T16:13',
+        url: 'https://www.google.com/maps/dir/%E8%B1%8A%E6%B4%B2%E9%A7%85%E3%80%81%E3%80%92135-0061+%E6%9D%B1%E4%BA%AC%E9%83%BD%E6%B1%9F%E6%9D%B1%E5%8C%BA%E8%B1%8A%E6%B4%B2%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%92/%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%93%E4%B8%81%E7%9B%AE%EF%BC%94%E2%88%92%EF%BC%92+%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF+%E7%AC%AC2%E6%97%85%E5%AE%A2%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/@35.6069539,139.6776488,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x601889a3ae75de69:0x6dd78cf9446d8774!2m2!1d139.7954412!2d35.6537595!1m5!1m1!1s0x601863f448b65a53:0xc07c9fbbc99f5109!2m2!1d139.7885688!2d35.5508616!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '公共交通機関 31 分 ; 16:14 - 16:45 ; ゆりかもめ ; リムジンバス羽田空港線 ; 徒歩 5 分' }),
+      gm('toyosu', 'hnd_t2', ['car'], { from_ja: '豊洲駅',
+        to_ja: '羽田空港 第2ターミナル',
+        value: { drive: 16 },
+        seen: '2026-10-11T16:13',
+        url: 'https://www.google.com/maps/dir/%E8%B1%8A%E6%B4%B2%E9%A7%85%E3%80%81%E3%80%92135-0061+%E6%9D%B1%E4%BA%AC%E9%83%BD%E6%B1%9F%E6%9D%B1%E5%8C%BA%E8%B1%8A%E6%B4%B2%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%92/%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%93%E4%B8%81%E7%9B%AE%EF%BC%94%E2%88%92%EF%BC%92+%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF+%E7%AC%AC2%E6%97%85%E5%AE%A2%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/@35.6069539,139.6776488,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x601889a3ae75de69:0x6dd78cf9446d8774!2m2!1d139.7954412!2d35.6537595!1m5!1m1!1s0x601863f448b65a53:0xc07c9fbbc99f5109!2m2!1d139.7885688!2d35.5508616!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 16 分' }),
+      gm('toyosu', 'hnd_t3', ['train', 'bus'], { from_ja: '豊洲駅',
+        to_ja: '羽田空港 第3ターミナル',
+        line: 'ゆりかもめ → リムジンバス羽田空港線',
+        value: { walk_total: 45 },
+        seen: '2026-10-11T16:15',
+        url: 'https://www.google.com/maps/dir/%E8%B1%8A%E6%B4%B2%E9%A7%85%E3%80%81%E3%80%92135-0061+%E6%9D%B1%E4%BA%AC%E9%83%BD%E6%B1%9F%E6%9D%B1%E5%8C%BA%E8%B1%8A%E6%B4%B2%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%92/%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%96%E2%88%92%EF%BC%95+%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/@35.609764,139.6776488,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x601889a3ae75de69:0x6dd78cf9446d8774!2m2!1d139.7954412!2d35.6537595!1m5!1m1!1s0x601861543aa93813:0x72022ae3c2d4eddf!2m2!1d139.7687222!2d35.5454613!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '公共交通機関 45 分 ; 16:30 - 17:15 ; ゆりかもめ ; リムジンバス羽田空港線 ; 徒歩 4 分' }),
+      gm('toyosu', 'hnd_t3', ['car'], { from_ja: '豊洲駅',
+        to_ja: '羽田空港 第3ターミナル',
+        value: { drive: 23 },
+        seen: '2026-10-11T16:15',
+        url: 'https://www.google.com/maps/dir/%E8%B1%8A%E6%B4%B2%E9%A7%85%E3%80%81%E3%80%92135-0061+%E6%9D%B1%E4%BA%AC%E9%83%BD%E6%B1%9F%E6%9D%B1%E5%8C%BA%E8%B1%8A%E6%B4%B2%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%92/%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%96%E2%88%92%EF%BC%95+%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/@35.609764,139.6776488,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x601889a3ae75de69:0x6dd78cf9446d8774!2m2!1d139.7954412!2d35.6537595!1m5!1m1!1s0x601861543aa93813:0x72022ae3c2d4eddf!2m2!1d139.7687222!2d35.5454613!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 23 分' }),
+      gm('yokohama', 'hnd_t12s', ['train'], { from_ja: '横浜駅',
+        to_ja: '羽田空港第1・第2ターミナル駅',
+        line: '京急',
+        value: { shown_total: 28 },
+        legs: [15, 12],
+        seen: '2026-10-11T15:32',
+        url: 'https://www.google.com/maps/dir/%E6%A8%AA%E6%B5%9C%E9%A7%85%E3%80%81%E3%80%92220-0011+%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E6%A8%AA%E6%B5%9C%E5%B8%82%E8%A5%BF%E5%8C%BA%E9%AB%98%E5%B3%B6%EF%BC%92%E4%B8%81%E7%9B%AE/%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%E7%AC%AC%EF%BC%91%E3%83%BB%E7%AC%AC%EF%BC%92%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB%E9%A7%85%E3%80%81%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%93%E4%B8%81%E7%9B%AE%EF%BC%93%E2%88%92%EF%BC%94/@35.5467452,139.5395112,11z/am=t/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60185c0df6cfd2f1:0xbbbca6f36b5235f5!2m2!1d139.622062!2d35.4659811!1m5!1m1!1s0x601863f6ef952c63:0x2b7266cf7b50f5b!2m2!1d139.786427!2d35.5499709!3e3?hl=ja&entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '15:38 - 16:06 （28 分） ; 15 分（5 駅乗車） ; 直通 ; 12 分（6 駅乗車）' }),
+      gm('yokohama', 'hnd_t3', ['train'], { from_ja: '横浜駅',
+        to_ja: '羽田空港 第3ターミナル',
+        line: '京急本線',
+        value: { shown_total: 24 },
+        seen: '2026-10-11T15:53',
+        url: 'https://www.google.com/maps/dir/%E6%A8%AA%E6%B5%9C%E9%A7%85%E3%80%81%E3%80%92220-0011+%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E6%A8%AA%E6%B5%9C%E5%B8%82%E8%A5%BF%E5%8C%BA%E9%AB%98%E5%B3%B6%EF%BC%92%E4%B8%81%E7%9B%AE/%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%96%E2%88%92%EF%BC%95+%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/@35.5139032,139.612991,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60185c0df6cfd2f1:0xbbbca6f36b5235f5!2m2!1d139.622062!2d35.4659811!1m5!1m1!1s0x601861543aa93813:0x72022ae3c2d4eddf!2m2!1d139.7687222!2d35.5454613!3e3?hl=ja&entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '24 分 ; 15:58 - 16:22 ; 京急本線' }),
+      gm('yokohama', 'hnd_t1', ['car'], { from_ja: '横浜駅',
+        to_ja: '羽田空港 第1ターミナル',
+        value: { drive: 22 },
+        seen: '2026-10-11T15:58',
+        url: 'https://www.google.com/maps/dir/%E6%A8%AA%E6%B5%9C%E9%A7%85%E3%80%81%E3%80%92220-0011+%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E6%A8%AA%E6%B5%9C%E5%B8%82%E8%A5%BF%E5%8C%BA%E9%AB%98%E5%B3%B6%EF%BC%92%E4%B8%81%E7%9B%AE/%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%E7%AC%AC1%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB%E3%80%81%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%EF%BC%93%E4%B8%81%E7%9B%AE/@35.4933951,139.5407795,11z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60185c0df6cfd2f1:0xbbbca6f36b5235f5!2m2!1d139.622062!2d35.4659811!1m5!1m1!1s0x601863f7525776fb:0x41debdc74bd24ad8!2m2!1d139.784319!2d35.5495351!3e0?hl=ja&entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '22 分 ; 25.5 km ; 最速ルート（通常の交通量）' }),
+      gm('yokohama', 'hnd_t2', ['car'], { from_ja: '横浜駅',
+        to_ja: '羽田空港 第2ターミナル',
+        value: { drive: 24 },
+        seen: '2026-10-11T16:01',
+        url: 'https://www.google.com/maps/dir/%E6%A8%AA%E6%B5%9C%E9%A7%85%E3%80%81%E3%80%92220-0011+%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E6%A8%AA%E6%B5%9C%E5%B8%82%E8%A5%BF%E5%8C%BA%E9%AB%98%E5%B3%B6%EF%BC%92%E4%B8%81%E7%9B%AE/%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%93%E4%B8%81%E7%9B%AE%EF%BC%94%E2%88%92%EF%BC%92+%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF+%E7%AC%AC2%E6%97%85%E5%AE%A2%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/@35.4964756,139.5407795,11z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60185c0df6cfd2f1:0xbbbca6f36b5235f5!2m2!1d139.622062!2d35.4659811!1m5!1m1!1s0x601863f448b65a53:0xc07c9fbbc99f5109!2m2!1d139.7885688!2d35.5508616!3e0?hl=ja&entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '24 分 ; 26.9 km ; 最速ルート（通常の交通量）' }),
+      gm('yokohama', 'hnd_t3', ['car'], { from_ja: '横浜駅',
+        to_ja: '羽田空港 第3ターミナル',
+        value: { drive: 28 },
+        seen: '2026-10-11T16:03',
+        url: 'https://www.google.com/maps/dir/%E6%A8%AA%E6%B5%9C%E9%A7%85%E3%80%81%E3%80%92220-0011+%E7%A5%9E%E5%A5%88%E5%B7%9D%E7%9C%8C%E6%A8%AA%E6%B5%9C%E5%B8%82%E8%A5%BF%E5%8C%BA%E9%AB%98%E5%B3%B6%EF%BC%92%E4%B8%81%E7%9B%AE/%E3%80%92144-0041+%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%A4%A7%E7%94%B0%E5%8C%BA%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%EF%BC%92%E4%B8%81%E7%9B%AE%EF%BC%96%E2%88%92%EF%BC%95+%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/@35.494533,139.5407795,11z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x60185c0df6cfd2f1:0xbbbca6f36b5235f5!2m2!1d139.622062!2d35.4659811!1m5!1m1!1s0x601861543aa93813:0x72022ae3c2d4eddf!2m2!1d139.7687222!2d35.5454613!3e0?hl=ja&entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '28 分 ; 27.7 km ; 現時点の最速ルート（首都高速神奈川1号横羽線上、事故を回避）' }),
+      /* 運営会社の運賃（2026-10-15 に運賃表を開いて読んだ）。行の名前は、運賃表のとおり駅まで。 */
+      { key: 'hnd_keikyu_fare_shinagawa_t12', town: 'shinagawa', iata: 'HND', mode: 'train', ja: '京急：品川駅 → 羽田空港第1・第2ターミナル駅',
+        value: 330, cur: 'JPY',
+        at: '2026-10', at_ja: OPENED, as_of: D_PICK, src: S.keikyuFareShinagawa,
+        cond_ja: 'おとな・片道・きっぷの運賃（IC カードは¥327）',
+        quote: '羽田空港第1・ 第2ターミナル 14.5 330 327 12,790 36,460 69,080 4,040 11,520 21,820' },
+      { key: 'hnd_keikyu_fare_shinagawa_t3', town: 'shinagawa', iata: 'HND', mode: 'train', ja: '京急：品川駅 → 羽田空港第3ターミナル駅',
+        value: 330, cur: 'JPY',
+        at: '2026-10', at_ja: OPENED, as_of: D_PICK, src: S.keikyuFareShinagawa,
+        cond_ja: 'おとな・片道・きっぷの運賃（IC カードは¥327）',
+        quote: '羽田空港 第3ターミナル 12.5 330 327 12,110 34,520 65,410 3,810 10,860 20,580' },
+      { key: 'hnd_limousine_fare_toyosu', town: 'toyosu', iata: 'HND', mode: 'bus', ja: 'リムジンバス：豊洲駅 → 羽田空港',
+        value: 1000, cur: 'JPY',
+        at: '2026-10', at_ja: OPENED, as_of: D_PICK, src: S.limousineOdaiba,
+        cond_ja: 'おとな・片道・1人。豊洲駅から羽田空港までの直通バスの運賃で、ゆりかもめと乗り継ぐ経路の合計ではない',
+        quote: '運賃（1名） 大人 1,000円' },
+      { key: 'hnd_keikyu_fare_yokohama_t12', town: 'yokohama', iata: 'HND', mode: 'train', ja: '京急：横浜駅 → 羽田空港第1・第2ターミナル駅',
+        value: 400, cur: 'JPY',
+        at: '2026-10', at_ja: OPENED, as_of: D_PICK, src: S.keikyuFareYokohama,
+        cond_ja: 'おとな・片道・きっぷの運賃（IC カードは¥397）',
+        quote: '羽田空港第1・ 第2ターミナル 20.7 400 397 14,680 41,850 79,280 4,620 13,170 24,950' },
+      { key: 'hnd_keikyu_fare_yokohama_t3', town: 'yokohama', iata: 'HND', mode: 'train', ja: '京急：横浜駅 → 羽田空港第3ターミナル駅',
+        value: 370, cur: 'JPY',
+        at: '2026-10', at_ja: OPENED, as_of: D_PICK, src: S.keikyuFareYokohama,
+        cond_ja: 'おとな・片道・きっぷの運賃（IC カードは¥363）',
+        quote: '羽田空港 第3ターミナル 18.7 370 363 14,060 40,080 75,940 4,440 12,660 23,980' },
+      /* 運営会社が案内している時間（品川は Google の行が在るので「出典」だけ）と、街の鍵の無い行（「出典」だけ）。 */
+      { key: 'hnd_keikyu_shinagawa', town: 'shinagawa', iata: 'HND', mode: 'train', ja: '京急：品川駅 ⇄ 羽田空港',
         value: { t3: 11, t12: 14 }, unit: '分',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.keikyu,
         cond_ja: '京急が示す目安。1つ目が第3ターミナル駅・2つ目が第1・第2ターミナル駅。列車の種別と時間帯は書いていない',
         quote: 'Shinagawa Station 11 minutes 14 minutes' },
+      { key: 'hnd_to_stations', iata: 'HND', mode: 'train', ja: '羽田空港から主な駅まで（電車・モノレール）',
+        value: '品川駅 約15分・浜松町駅 約20分・東京駅 約30分',
+        at: '2026-10', at_ja: OPENED, as_of: D4, src: S.hndTerminal,
+        cond_ja: '目安の時間。どのターミナルから・どの路線か・乗り換えの時間を含むかは表に書いていない',
+        quote: '東京駅 約30分 浜松町駅 約20分 品川駅 約15分' },
       { key: 'hnd_monorail_fare', iata: 'HND', mode: 'train', ja: '東京モノレール：浜松町駅 → 羽田空港の各ターミナル駅',
         value: 520, cur: 'JPY',
         at: '2026-10', at_ja: OPENED, as_of: D4, src: S.monorail,
@@ -367,6 +600,7 @@ const minInQuote = (q, n) => { const s = q.replace(/\s+/g, ''); return s.include
 const inQuote = (x, v) => {
   const q = x.quote;
   if (x.via === 'gmaps') return minInQuote(q, v);            // 分の数字は、表示の字のまま引用に在る
+  if (x.print) return Object.values(x.print).some(s => man4(s) === v && q.includes(s));     // 額は、ページの字のまま引用に在る
   if (x.cur === 'JPY' && x.src.kind === 'portal') return q.includes((v / 10000).toFixed(1) + '万円');
   return q.includes(v.toLocaleString('en-US')) || q.includes(String(v));
 };

@@ -519,7 +519,8 @@ export const PHOTOS = {
    *  確かめ方は上と同じ（Commons の API で作者・ライセンス・札を1枚ずつ。元は 960px 版）。
    *  ⚠️ subject は写っているものをそのまま書く。**地区の名前が付いた建物の写真ではないものが在る**
    *  （queens_terrace は団地ではなく、同じ上環の通り／taoyuan は桃園市のうち中壢区の中心部／
-   *    taipei は台北市のうち文山区の景美）。「この地区の代表の景色」とは言っていない。 */
+   *    taipei は台北市のうち文山区の景美）。「この地区の代表の景色」とは言っていない。
+   *  2026-10 から、鍵は街の鍵（品川＝shinagawa …）。 */
   ota: [
     { file: 'town-ota', orig: 'town-ota.jpg', subject: '大田区大森の国道15号と沿道のマンション', w: 960, h: 720,
       author: 'Aimaimyi', ...BY_SA_3, changes: CHANGES,
@@ -569,6 +570,46 @@ export const PHOTOS = {
     { file: 'town-daan', orig: 'town-daan.jpg', subject: '大安森林公園の園路と周りのビル', w: 960, h: 640,
       author: '玄史生', ...CC0,
       source: 'https://commons.wikimedia.org/wiki/File:Daan_Park_20240224.jpg' },
+  ],
+  shinagawa: [
+    { file: 'town-shinagawa', orig: 'town-shinagawa.jpg', subject: '品川駅の高輪口の駅前と、駅の向こうの高層ビル群（駅前の歩道橋から）', w: 960, h: 567,
+      author: 'Nesnad', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Shinagawa_Station_-_outside_-_May_25_2019_340pm.jpeg' },
+  ],
+  toyosu: [
+    { file: 'town-toyosu', orig: 'town-toyosu.jpg', subject: '豊洲の水辺に架かる赤いアーチの橋と、奥の高層ビル', w: 960, h: 720,
+      author: 'Guilhem Vellut from Annecy, France', ...BY_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Bridge_@_Toyosu_(9654163316).jpg' },
+  ],
+  yokohama: [
+    { file: 'town-yokohama', orig: 'town-yokohama.jpg', subject: 'みなとみらいの高層ビル群と運河・観覧車（横浜）', w: 960, h: 540,
+      author: 'Matthide127', ...CC0,
+      source: 'https://commons.wikimedia.org/wiki/File:20250105_Minato_Mirai_21_(Landmark_Tower,_Queen%27s_Square_Yokohama,_Cosmo_Clock_21)_080219.jpg' },
+  ],
+  tung_chung: [
+    { file: 'town-tung-chung', orig: 'town-tung_chung.jpg', subject: 'ロープウェイ（昂坪360）から見下ろした東涌の高層住宅の並びと山・湾', w: 960, h: 720,
+      author: 'LN9267', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Tung_Chung_22-06-2020.jpg' },
+  ],
+  discovery_bay: [
+    { file: 'town-discovery-bay', orig: 'town-discovery_bay.jpg', subject: '山の上（老虎頭）から見下ろした愉景灣の街と海・砂浜', w: 960, h: 720,
+      author: 'Underwaterbuffalo', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Discovery_Bay_14.jpg' },
+  ],
+  tsing_yi: [
+    { file: 'town-tsing-yi', orig: 'town-tsing_yi.jpg', subject: '荃灣から海越しに見た青衣の高層住宅の並び', w: 960, h: 720,
+      author: 'y-yoshiike', ...BY_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Tsing_Yi_view_from_Tsuen_Wan_-_panoramio.jpg' },
+  ],
+  qingpu: [
+    { file: 'town-qingpu', orig: 'town-qingpu.jpg', subject: '高い所から見た青埔の高層住宅と高鐵桃園駅のあたり', w: 960, h: 482,
+      author: 'Foxy1219', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Qingpu,_Taoyuan_City_Skyline_2024.jpg' },
+  ],
+  linkou: [
+    { file: 'town-linkou', orig: 'town-linkou.jpg', subject: '高速道路の高架から見た林口の高層住宅の並び', w: 960, h: 540,
+      author: '毛貓大少爺', ...BY_SA_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Linkou,_New_Taipei_Skyline_20201220.jpg' },
   ],
 };
 
