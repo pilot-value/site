@@ -34,7 +34,7 @@ import { BASIS, figures, man } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { FACTS as CO, valueText, whenText, introText as coIntro } from './airline-facts.mjs';
 import { FACTS as EYF, introText as eyIntro } from './career-facts.mjs';
-import { LIVING, CITY_OF } from './living-facts.mjs';
+import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES } from './living-facts.mjs';
 import { primary } from './airline-photos.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -70,6 +70,11 @@ export function yenOf(cur, amount) {
 }
 const money = (cur, n) => (cur !== 'JPY' ? `${cur} ${n.toLocaleString('en-US')}`
   : n < 10000 ? `¥${n.toLocaleString('en-US')}` : yenOf('JPY', n).replace(/^約/, ''));
+/** 円の家賃の字。出どころが万円の小数2けたまで書く額（22.02万円）は、そのけたまで出す。1けたで足りる額は今までどおり（12.5万円）。 */
+const rentYen = n => { const c = Math.round(n / 100); return n < 10000 ? money('JPY', n) : `${c % 10 ? (c / 100).toFixed(2) : (c / 100).toFixed(1)}万円`; };
+/** 分の字。60分からは、Google マップの表示と同じ形（1時間15分）。 */
+export const minsText = n => (n < 60 ? `${n}分` : `${Math.floor(n / 60)}時間${n % 60}分`);
+const dayJa = iso => String(iso || '').replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
 
 /* ── 年収 ───────────────────────────────────────────────────────── */
 /* 金額に付ける短い前提。台帳の注（BASIS[slug].notes）の言い換えなので、
@@ -171,16 +176,25 @@ function etihad() {
     /* ★ 家賃は1か月あたりで出す（2026-10-06 オーナーのご指示「年間じゃなくて月間の家賃」）。
        出どころ（Bayut）の表は1年あたりなので、12で割って1の位で丸める。台帳（career-facts.mjs）は年額のまま持つ。
        割ったことは、説明の中で1回だけ言う（basis の per_month）。 */
-    living: {
-      city: E.living.city_ja, cur: 'AED', per: 'month', measure: '募集家賃の平均',
-      cols: [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']], leadCol: 'bed1',
-      rents: E.living.rents.map((r, i) => ({ key: r.key, name: r.ja, en: r.en || '', iata: '', pick: '', value: perMonth(r), when: whenText(r), src: r.src, cond: '', lead: i === 0 })),
+    living: (rows => gate('etihad', {
+      cityKey: 'abudhabi', city: E.living.city_ja, cur: 'AED', per: 'month', measure: '募集家賃の平均',
+      site: ABUDHABI.site, siteName: SITES[ABUDHABI.site].name, stat: ABUDHABI.stat,
+      cols: COLS_EY, bars: ABUDHABI.bars, words: ABUDHABI.words, leadCol: 'bed1', beside: '',
+      byTown: !!ABUDHABI.by_town, cardFamily: ABUDHABI.card_family || '',
+      airports: ABUDHABI.airports.map(([iata, to]) => ({ iata, to })), ends: endsOf(ABUDHABI),
+      /* 額は、この欄の列（COLS_EY）の分だけ渡す（台帳の bed3 は、列が足されるまで画面に出ない＝今日の画面と同じ） */
+      rents: withWays(ABUDHABI, E.living.rents.map((r, i) => ({ ...townRow({ ...r, sub_ja: r.en }, only(COLS_EY, perMonth(r))), when: whenText(r), cond: '', pick: '', lead: i === 0 })), rows),
+      estates: [],
       basis: [...E.living.rent_basis.filter(b => b.key !== 'per').map(b => ({ key: b.key, value: b.value })),
               { key: 'per_month', value: '出どころの表は1年あたりの額。ここでは12で割って、1か月あたりにしている' }],
-      commute: [],
-    },
+      refs: [], commute: rows,
+    }, [...E.living.rents, ...E.living.rent_basis].map(x => x.quote || '')))(ways(ABUDHABI)),
   };
 }
+/* エティハドの家賃の欄の列（1つの定数。列を足すときはここだけ）。 */
+const COLS_EY = [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']];
+/* 値を、その欄の列だけにする（列に無い鍵は渡さない）。 */
+const only = (cols, v) => Object.fromEntries(Object.entries(v).filter(([k]) => cols.some(c => c[0] === k)));
 
 /* 1年あたりで載っている家賃を、1か月あたりにする（12で割って1の位で丸める）。年額と書いていない行が来たら止める。 */
 function perMonth(r) {
@@ -189,24 +203,102 @@ function perMonth(r) {
   return Object.fromEntries(Object.entries(r.value).map(([k, n]) => [k, Array.isArray(n) ? n.map(m) : m(n)]));
 }
 
+/* 街の行（台帳 → 画面）。area ＝ 家賃の数字が指す地域（街の名前より広いときだけ）。label ＝ 家賃の額のそばに書く名前。 */
+const townRow = (r, value = r.value) => ({
+  key: r.key, name: r.ja, sub: r.sub_ja || r.en || '', en: r.en || r.sub_ja || '', area: r.rent_area_ja || '',
+  label: r.rent_area_ja ? `${r.ja}（${r.rent_area_ja}）` : r.ja, iata: r.iata || '', pick: r.pick_ja || '',
+  pickSrc: r.pick_src ? { name: r.pick_src.name, url: r.pick_src.url, kind: r.pick_src.kind } : null,
+  value: value || {}, when: r.value ? whenText(r) : '', src: r.src || null, cond: r.cond_ja || '', quote: r.quote || '', lead: !!r.lead, way: null,
+});
+/* 団地ごとの家賃を持つ街の行は、カードに出す団地（rent_from）の額・出どころ・時点で読む（街の行そのものは額を持たない）。
+   rent_area_ja ＝ その団地の名前（カードと career.html は「東涌（映灣園）」と読む）。団地を持たない街はそのまま。 */
+const resolve = r => {
+  if (!r.estates) return r;
+  const e = r.estates.find(x => x.key === r.rent_from);
+  return { ...r, value: e.value, cur: e.cur, per: e.per, at: e.at, at_ja: e.at_ja, as_of: e.as_of, src: e.src, cond_ja: e.cond_ja, quote: e.quote, rent_area_ja: e.ja };
+};
+/* 団地ごとの家賃の行（団地を持たない都市は []）。town ＝ 団地が在る街の鍵。 */
+const estatesOf = L => (L.rents || []).flatMap(r => (r.estates || []).map(e => ({
+  key: e.key, town: r.key, townName: r.ja, name: e.ja, sub: e.sub_ja || '', value: e.value, n: e.n || {}, when: whenText(e),
+  src: { name: e.src.name, url: e.src.url, kind: e.src.kind }, cond: e.cond_ja || '', quote: e.quote || '',
+})));
+/* 空港までの移動の行。c ＝ 都市の台帳（LIVING[…] か ABUDHABI）。
+   card ＝ その街のカードの1行に入る行（Google の行・注意の付いていない行・都市の手段の組・拠点の空港に着く行）。
+   ★ legs（区間ごとの乗車の表示）は渡さない ＝ 画面に出さない・足さない。 */
+function ways(c) {
+  const base = c.airports[0][0], ends = c.ends || {};
+  return (c.commute || []).map(x => {
+    const g = x.via === 'gmaps', kind = g ? Object.keys(x.value)[0] : null, e = g ? ends[x.end] : null;
+    if (g && !e) throw new Error(`${x.key}: 着く場所（${x.end}）が ends に無い`);
+    return { ...fact(x), key: x.key, town: x.town || '', iata: x.iata, end: g ? x.end : '', mode: x.mode, modes: x.modes || [x.mode],
+      via: g ? 'gmaps' : 'operator', line: x.line || '', from: x.from_ja || '', to: g ? e.ja : '',
+      kind, mins: g ? x.value[kind] : null, ride: g && x.ride != null ? x.ride : null, warn: (g && x.warn) || '',
+      value: g ? minsText(x.value[kind]) : commuteText(x), fare: !g && !!x.cur, day: g ? `${dayJa(x.as_of)}に見た表示` : '',
+      card: g && !x.warn && !!c.by_town && FAMILY[x.mode] === c.card_family && e.iata === base,
+      lead: !c.by_town && !!x.lead };
+  });
+}
+/* その街のカードに出す移動の1行。着く場所ごとの数字がそろえば1つ、違えば「いちばん短い〜いちばん長い」（平均しない・足さない）。 */
+function cardWay(c, rows, key) {
+  const m = rows.filter(x => x.town === key && x.card);
+  if (!m.length) return null;
+  const lo = Math.min(...m.map(x => x.mins)), hi = Math.max(...m.map(x => x.mins)), one = new Set(m.map(x => x.end)).size === 1;
+  return { keys: m.map(x => x.key), modes: MODES.filter(k => m.some(x => x.modes.includes(k))), lo, hi,
+    text: lo === hi ? minsText(lo) : hi < 60 ? `${lo}〜${hi}分` : `${minsText(lo)}〜${minsText(hi)}`,
+    from: m[0].from, to: one ? m[0].to : c.airports[0][1], day: `${dayJa(m.map(x => x.checked).sort().pop())}に見た表示` };
+}
+const withWays = (c, rents, rows) => rents.map(r => ({ ...r, way: cardWay(c, rows, r.key) }));
+const endsOf = c => Object.entries(c.ends || {}).map(([key, e]) => ({ key, iata: e.iata, name: e.ja, kind: e.kind }));
+const refsOf = L => (L.refs || []).map(g => ({ key: g.key, name: g.ja, measure: g.measure_ja, cols: g.cols,
+  cur: g.rows[0].cur, per: g.rows[0].per || (g.rows[0].cur === 'JPY' ? 'month' : ''), when: whenText(g.rows[0]), cond: g.rows[0].cond_ja || '',
+  src: [...new Map(g.rows.map(r => [r.src.url, { name: r.src.name, url: r.src.url }])).values()],
+  basis: (g.rent_basis || []).map(b => ({ key: b.key, value: b.value })),          // その出どころ自身の断り（落とさない）
+  rows: g.rows.map(r => ({ key: r.key, name: r.ja, value: r.value })) }));
+
+/* 5社とも通る関所：棒の1組に、出どころ・時点の違う行や、cols に無い列・幅の数字を入れさせない（アブダビは台帳が別なので、ここでも見る）。
+   団地ごとの家賃（estates）も同じ1組として見る。said ＝ 棒の列の、出どころの呼び名を引用の中で探すときの字（words_src が在ればそれ）。 */
+function gate(slug, L, quotes, said = L.words) {
+  const bad = m => { throw new Error(`${slug}: 暮らしの台帳 ── ${m}`); };
+  const keys = new Set(L.cols.map(c => c[0]));
+  if (!L.airports.length) bad('airports が空');
+  for (const k of L.bars) if (!keys.has(k)) bad(`棒の列（${k}）が cols に無い`);
+  if (L.leadCol && !keys.has(L.leadCol)) bad(`先頭の列（${L.leadCol}）が cols に無い`);
+  if (L.rents.filter(r => r.lead).length !== 1) bad('先頭の街が1つに決まらない');
+  const priced = [...L.rents.filter(r => Object.keys(r.value).length), ...L.estates];
+  for (const r of priced) for (const k of Object.keys(r.value)) if (!keys.has(k)) bad(`${r.key} の列（${k}）が cols に無い`);
+  const host = u => new URL(u).host;
+  if (new Set(priced.map(r => host(r.src.url))).size > 1 || new Set(priced.map(r => r.when)).size > 1) bad('棒の1組に、出どころか時点の違う行が混ざっている');
+  if (!L.site && priced.length) bad('出どころの無い街に、家賃の額が在る');
+  for (const k of L.bars) if (!L.words[k] || !said[k] || !quotes.some(q => q.includes(said[k]))) bad(`棒の列（${k}）の、出どころの呼び名（${said[k] || L.words[k]}）が、どの引用にも無い`);
+  for (const k of L.bars) for (const r of priced) if (r.value[k] != null && typeof r.value[k] !== 'number') bad(`${r.key} の棒の列（${k}）に、幅の数字が在る（幅は棒にしない）`);
+  for (const c of L.commute) if (c.town && !L.rents.some(r => r.key === c.town)) bad(`移動の行 ${c.key} の街（${c.town}）が無い`);
+  return L;
+}
+
 function others(slug) {
   const F = CO[slug], L = LIVING[CITY_OF[slug]];
   if (!F || !L) throw new Error(`${slug}: 台帳に無い`);
+  const rents = L.rents.map(resolve);
   const lead1st = list => facts(list).map((x, i) => ({ ...x, lead: !!list[i].lead })).sort((a, b) => b.lead - a.lead);
-  const cur = L.rents[0].cur;
+  const r0 = rents.find(r => r.value), cur = r0 ? r0.cur : '';
+  const rows = ways(L);
   return {
     base: F.base,
     work: lead1st(F.work), benefits: lead1st(F.benefits),
     profile: facts(F.profile), scale: facts(F.scale), fleet: facts(F.fleet),
     jobs: facts(F.jobs),
-    living: {
+    living: gate(slug, {
       /* 東京（SUUMO）は台帳に単位の字が無い（per が空）。日本の賃料の相場は月額なので、画面では「月」と出す。 */
-      city: L.city_ja, cur, per: L.rents[0].per || (cur === 'JPY' ? 'month' : ''), measure: L.measure_ja,
-      cols: L.cols, leadCol: L.lead_col,
-      rents: L.rents.map(r => ({ key: r.key, name: r.ja, en: r.en || '', iata: r.iata || '', pick: r.pick_ja || '', value: r.value, when: whenText(r), src: r.src, cond: r.cond_ja || '', lead: !!r.lead })),
+      cityKey: CITY_OF[slug], city: L.city_ja, cur, per: r0 ? (r0.per || (cur === 'JPY' ? 'month' : '')) : 'month',
+      measure: L.measure_ja || '', site: L.site, siteName: L.site ? SITES[L.site].name : '', stat: L.stat,
+      cols: L.cols, bars: L.bars, words: L.words, leadCol: L.lead_col || '', beside: L.beside_ja || '',
+      byTown: !!L.by_town, cardFamily: L.card_family || '',
+      airports: L.airports.map(([iata, to]) => ({ iata, to })), ends: endsOf(L),
+      rents: withWays(L, rents.map(r => townRow(r)), rows),
+      estates: estatesOf(L),
       basis: (L.rent_basis || []).map(b => ({ key: b.key, value: b.value })),
-      commute: (L.commute || []).map(x => ({ ...fact(x), lead: !!x.lead, value: commuteText(x), iata: x.iata, mode: x.mode })),
-    },
+      refs: refsOf(L), commute: rows,
+    }, [...L.rents, ...L.rents.flatMap(r => r.estates || []), ...(L.rent_basis || [])].map(x => x.quote || ''), L.words_src || L.words),
   };
 }
 /* 値が {t1:35, t2:39}（ターミナルごとの時間）や {fare:1280, liner:1300}（運賃と料金）の形で入っている行。
@@ -229,7 +321,7 @@ function commuteText(x) {
 export function rentCell(cur, v) {
   const lo = Array.isArray(v) ? v[0] : v, hi = Array.isArray(v) ? v[1] : null;
   if (typeof lo !== 'number') return null;
-  if (cur === 'JPY') return { orig: '', yen: hi ? `${money('JPY', lo)}〜${money('JPY', hi)}` : money('JPY', lo) };
+  if (cur === 'JPY') return { orig: '', yen: hi ? `${rentYen(lo)}〜${rentYen(hi)}` : rentYen(lo) };
   const n = x => x.toLocaleString('en-US');
   return {
     orig: hi ? `${cur} ${n(lo)}〜${n(hi)}` : `${cur} ${n(lo)}`,
@@ -272,7 +364,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   for (const s of GLANCE) {
     const v = viewOf(s);
     const lead = l => { const x = l.find(z => z.lead) || l[0]; return x ? `${x.label}＝${x.value}` : '（公表なし）'; };
-    const r = v.living.rents.find(x => x.lead), c = rentCell(v.living.cur, r.value[v.living.leadCol]);
+    const r = v.living.rents.find(x => x.lead), c = v.living.leadCol ? rentCell(v.living.cur, r.value[v.living.leadCol]) : null;
     console.log(`\n${v.name}（${v.code}・${v.base.city} ${v.base.iata.join('・')}）`);
     for (const [k, l] of RANKS) {
       const p = v.pay[k];
@@ -280,6 +372,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       for (const f of [...p.cap, ...p.company]) console.log(`      ${f.kind}  ${f.text}（${f.orig}）`);
     }
     for (const c2 of v.pay.crew) console.log(`  乗員全体  ${c2.yen}（${c2.scope}・${c2.when}）`);
-    console.log(`  勤務  ${lead(v.work)}\n  待遇  ${lead(v.benefits)}\n  暮らし ${r.name} ${c.orig} ${c.yen}`);
+    console.log(`  勤務  ${lead(v.work)}\n  待遇  ${lead(v.benefits)}\n  暮らし ${r.name} ${c ? `${c.orig} ${c.yen}` : '（家賃の資料なし）'}${r.way ? ` ／ ${r.way.text}` : ''}`);
   }
 }

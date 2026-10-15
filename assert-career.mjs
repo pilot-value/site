@@ -1176,8 +1176,8 @@ try {
       ok(exp.length > 0 && same(x.rows.map(o => ({ k: o.k, v: o.v })), exp), `${name(s)}: 家賃の額は台帳の月額どおり（${r.name}・${exp.length}行）`,
         `${JSON.stringify(x.rows.map(o => [o.k, ...o.v]))} ≠ ${JSON.stringify(exp.map(o => [o.k, ...o.v]))}`);
       ok(x.rows.every(o => same(o.keep, L.cur === 'JPY' ? [false] : [true, false])), `${name(s)}: ${L.cur === 'JPY' ? '円の額は通貨の切り替えが読める' : '原貨の額は切り替えで動かない・円の額は切り替えが読める'}`, JSON.stringify(x.rows.map(o => o.keep)));
-      ok(x.city === norm(L.city) && x.measure === norm(L.measure) && x.k.includes(norm(r.name)) && (!r.pick || x.pick === norm(r.pick)),
-        `${name(s)}: 箱に その街（${L.city}）・物差し（${L.measure}）・地域（${r.name}） が書いてある`, `「${x.city}」「${x.measure}」「${x.k}」`);
+      ok(x.city === norm(L.city) && x.measure === norm(L.measure) && x.k.includes(norm(r.label)) && (!r.pick || x.pick === norm(r.pick)),
+        `${name(s)}: 箱に その街（${L.city}）・物差し（${L.measure}）・地域（${r.label}） が書いてある`, `「${x.city}」「${x.measure}」「${x.k}」`);
       ok(x.src.includes(norm(r.src.name)) && x.when === norm(r.when) && x.links.includes(r.src.url) && x.more === '前提と出どころ',
         `${name(s)}: 箱に 出どころ と 時点（${r.when}） が書いてあり、出どころへ行ける`, `「${x.src}」 ${x.links.join(' ')}`);
     }

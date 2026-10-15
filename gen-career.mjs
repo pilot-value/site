@@ -564,7 +564,7 @@ function living(slug) {
   if (!L?.rents?.length) throw new Error(`${slug}: 家賃が台帳に無い（pv-airline-view.mjs）`);
   if (L.per !== 'month') throw new Error(`${slug}: 家賃が1か月あたりではない（${L.per}）`);
   if (!L.measure || !L.city) throw new Error(`${slug}: 家賃の物差し・街の名前が無い`);
-  for (const r of L.rents) if (!r.name || !r.when || !r.src?.url || !r.src?.name) throw new Error(`${slug}: 家賃 ${r.key} に名前・時点・出どころのどれかが無い`);
+  for (const r of L.rents) if (!r.name || (Object.keys(r.value).length && (!r.when || !r.src?.url || !r.src?.name))) throw new Error(`${slug}: 家賃 ${r.key} に名前・時点・出どころのどれかが無い`);
   return L;
 }
 /* 家賃の1マス。元の通貨（円の街は無い）と、円の額。 */
@@ -631,7 +631,7 @@ function rentBox(slug, shown) {
   if (!rows.length) throw new Error(`${slug}: 先頭の地域に家賃が1つも無い`);
   return `<article class="cr-rentb" data-airline="${slug}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}>
 <h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}<span>${esc(L.city)}</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">${esc(L.measure)}</span> ${esc(r.name)}${r.pick ? `<small>${esc(r.pick)}</small>` : ''}</p>
+<p class="cr-rentb-k"><span class="cr-tag">${esc(L.measure)}</span> ${esc(r.label)}${r.pick ? `<small>${esc(r.pick)}</small>` : ''}</p>
 <dl class="cr-rent cr-rentb-l">
 ${rows.join('\n')}
 </dl>
