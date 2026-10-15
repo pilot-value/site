@@ -74,6 +74,7 @@
     hours:      function (n) { return 'ステイ 約' + n + '時間'; },
     pending:    '確認待ち',
     rejected:   '見送り',
+    mine:       'あなたの投稿',
     map:        'Google マップ',
     others:     '同じ空港で他社が使うホテル',
     entHotel:   'ホテルを追加',
@@ -190,6 +191,15 @@
   function arr(v) { return Array.isArray(v) ? v : []; }
   function bad(v) { return !v || v.__err || v.ok !== true; }
 
+  // ══ この端末の控え（保存領域。どれも try／catch。使えない端末でも欄は出す）════════════
+  var KEY = 'pv_stay_key';          // ログインせずに足した人の控えの鍵（この端末だけ・サーバーが作った英数48字）
+  function lget(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lset(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+  function lrem(k) { try { localStorage.removeItem(k); } catch (e) { /* 消せなくても先へ */ } }
+  function devKey() { var k = lget(KEY); return /^[0-9a-f]{48}$/.test(k || '') ? k : ''; }
+  /* 誰が足したかで答えが変わる口（読む・足す・直す・消す）にだけ、控えの鍵を添える。写真と運営の口には添えない。 */
+  function withKey(o) { var k = devKey(); if (k) o.key = k; return o; }
+
   // ══ 通信（PVCareer.client() だけを使う）════════════════════
   function hasClient() {
     var P = w.PVCareer;
@@ -252,9 +262,11 @@
     try {
       c.auth.onAuthStateChange(function (ev, sess) {
         var uid = (sess && sess.user && sess.user.id) || null;
-        if (UID === undefined && ev === 'INITIAL_SESSION') { UID = uid; return; }
+        if (UID === undefined && ev === 'INITIAL_SESSION') { UID = uid; settleDrafts(); LIVE.slice().forEach(restoreDraft); return; }
         if (UID !== undefined && uid === UID) return;
+        var was = UID;
         UID = uid;
+        if (typeof was === 'string') { closeAdds(); dropDrafts(); }   /* ログアウト・人の入れ替わり：前の人が打った字を次の人に渡さない。ログインでは残す */
         CACHE = {};
         PHOTO_LOCK = false;
         vqReset();                   // 申し込みの状態も、ログインごとに読み直す
@@ -319,17 +331,25 @@
   /* 開いた答えを持ったまま、この端末のログインの鍵が消えていたら、持っている答えを捨てる。
      ふつうは onAuthStateChange が先に来る（watchAuth）。届かない消え方 ── ほかの画面が鍵だけを
      消した・期限が切れた ── でも、開いていたときのホテル名と写真を画面に残さないための2つ目の網。
+     ログインして読んだ「自分が足したもの」も同じ（鍵の1行の下の札）。
      ⚠️ 鍵が「在る」ことは何の資格にもしない。見てよいかどうかを決めるのは、いつもサーバーの答えだけ。 */
   function keyGone() {
     try { return !!(w.PVSession && typeof w.PVSession.hasToken === 'function' && !w.PVSession.hasToken()); }
     catch (e) { return false; }
   }
+  /* 持っている答えのうち、ログインが消えたら捨てるもの：開いた一覧と、ログインして読んだ「自分が足したもの」。
+     ログインせずに（控えの鍵で）読んだ自分の分は数えない ── 鍵の無い人の画面が、1分ごとに読み直しに行かないように。
+     ログインしているあいだに開いた追加の面が、まだ開いていることも数える（書きかけを次の人に渡さない）。 */
   function holdsOpen() {
-    for (var k in CACHE) if (CACHE[k] && CACHE[k].state === 'open') return true;
-    return false;
+    for (var k in CACHE) {
+      var c = CACHE[k];
+      if (c && (c.state === 'open' || (c.__in === true && arr(c.own).length))) return true;
+    }
+    return FORM_IN;
   }
   function forgetIfGone() {
     if (!holdsOpen() || !keyGone()) return false;
+    closeAdds(); dropDrafts();
     CACHE = {};
     vqReset();
     LIVE.slice().forEach(drop);
@@ -355,6 +375,18 @@
       if (!/\|[A-Z]{3}$/.test(key)) { if (st) drop(s); return; }   /* 空港がまだ決まっていない */
       if (!st || st.key !== key) load(s, {});
     });
+  }
+
+  var HANDED = null;               // ログインした人が、この端末の控えの鍵を引き取っている途中（その約束）
+  /* ログインの鍵と控えの鍵の両方が在るときだけ、1回だけ引き取りを頼む。頼めなくても先へ進む（控えの鍵は残る）。 */
+  function handOver() {
+    var k = devKey();
+    if (!k || !loggedIn()) return Promise.resolve();
+    if (!HANDED) HANDED = rpc('pv_stay_claim', { key: k }).then(function (v) {
+      if (v && v.ok === true) lrem(KEY);      /* 引き取れた：控えの鍵は役目を終えた */
+      HANDED = null;
+    });
+    return HANDED;
   }
 
   function load(slot, opt) {
@@ -386,7 +418,9 @@
     var k = st.key.split('|');
     /* 返事が STAY_WAIT のうちに来なければ、読めなかったことにする（待ちの絵のまま止まらない）。やり直しは「もう一度」だけ。 */
     var ctl = {};
-    within(rpc('pv_stays', { airline: k[0], iata: k[1] }, ctl), STAY_WAIT, function () { if (ctl.abort) ctl.abort(); }).then(function (v) {
+    /* 待つ上限は、引き取り（handOver）も含めて1つ。 */
+    within(handOver().then(function () { return rpc('pv_stays', withKey({ airline: k[0], iata: k[1] }), ctl); }), STAY_WAIT,
+           function () { if (ctl.abort) ctl.abort(); }).then(function (v) {
       /* 「見られない」と返ってきたら、ほかの都市で持っていた開いた答えを全部捨てる
          （見てよいかはサーバーの最新の答えだけが決める。前に開いていた都市を描き直さない）。
          ⚠️ 捨てるのは開いた答えだけ。「見られない」の答えまで捨てると、鍵の無い人（＝ほとんどの人）が
@@ -409,7 +443,8 @@
         v = { ok: true, state: 'off' };
       }
       else if (bad(v) || (v.state !== 'locked' && v.state !== 'open')) { paintError(slot); return; }
-      if (v.state !== 'off') CACHE[st.key] = v;      /* 「準備中」は覚えない（都市を開き直した時に聞き直す） */
+      /* 「準備中」は覚えない（都市を開き直した時に聞き直す）。覚える答えには、ログインの鍵が在るときに読んだかを添える（holdsOpen）。 */
+      if (v.state !== 'off') { v.__in = loggedIn(); CACHE[st.key] = v; }
       paint(slot, st, v, opt);
     });
   }
@@ -563,6 +598,8 @@
     var id = str(it.id), name = str(it.name);
     var top = el('div', 'crs-top');
     top.appendChild(el('p', 'crs-name', name));
+    /* 自分が足したもの（★サーバーが返した mine）。開いた一覧でも、欄の外の自分の分でも同じ札。 */
+    if (it.mine === true) top.appendChild(el('span', 'crs-badge crs-badge-me', T.mine));
     if (it.state === 'pending') top.appendChild(el('span', 'crs-badge', T.pending));
     else if (it.state === 'rejected') top.appendChild(el('span', 'crs-badge crs-badge-no', T.rejected));
     li.appendChild(top);
@@ -572,7 +609,9 @@
     if (hrs >= 1 && hrs <= 240) li.appendChild(el('p', 'crs-hours', T.hours(hrs)));
     if (str(it.note)) li.appendChild(el('p', 'crs-note', str(it.note)));
 
-    var phs = arr(it.photos).filter(function (p) { return p && str(p.id); });
+    /* ★欄の外の自分の分（見てよい人ではない人）は、返事に何が入っていても写真を描かない・聞かない
+       （聞けば「見られない」が返り、一覧を読み直し、また聞く ── 回り続ける）。 */
+    var phs = o.own ? [] : arr(it.photos).filter(function (p) { return p && str(p.id); });
     if (phs.length) {
       var row = el('div', 'crs-photos');
       phs.forEach(function (p) {
@@ -613,7 +652,7 @@
       acts.appendChild(lb);
     }
     /* 直せるのは書いた本人だけ（★サーバーが返した mine）。見送られたものは直せない。 */
-    if (o.canAdd && it.mine === true && it.state !== 'rejected') {
+    if ((o.canAdd || o.own) && it.mine === true && it.state !== 'rejected') {
       var eb = btn('crs-act', T.edit, 'edit');
       eb.setAttribute('aria-expanded', 'false');
       eb.__crsItem = it;
@@ -908,14 +947,26 @@
     var z = zoneIf(slot);
     return z ? z.querySelector('.crs-formbox > .crs-form') : null;
   }
-  /* 欄の状態が変わるたびに呼ぶ（put）。都市が変わったら、開いていた追加の面を閉じ、一言を消す。 */
+  /* 欄の状態が変わるたびに呼ぶ（put）。都市が変わったら、開いていた追加の面を閉じ（打った字は下書きに在る）、一言を消す。
+     自分が足したもの（見てよい人ではない人への返事の own）は、欄の外の列にだけ描く（欄の中は鍵の1行のまま）。 */
   function paintZone(slot, st, v) {
     var z = zoneOf(slot);
-    if (z.getAttribute('data-for') === st.key) return;
-    z.setAttribute('data-for', st.key);
-    var f = zoneForm(slot);
-    if (f) closeForm(slot, st, f, true);
-    zsay(slot, '');
+    if (z.getAttribute('data-for') !== st.key) {
+      z.setAttribute('data-for', st.key);
+      var f = zoneForm(slot);
+      if (f) closeForm(slot, st, f, true);
+      zsay(slot, '');
+    }
+    var own = v && v.state === 'locked' ? arr(v.own) : [];
+    var ul = z.querySelector('.crs-own');
+    if (ul) {
+      while (ul.firstChild) ul.removeChild(ul.firstChild);
+      own.forEach(function (it) {
+        if (it && typeof it === 'object') ul.appendChild(card(slot, st, it, { city: cityOf(slot), canAdd: false, isOp: false, own: true }));
+      });
+      ul.hidden = !ul.firstChild;
+    }
+    restoreDraft(slot);
   }
   /* 入口を押した。つながっていない・この会社に足せない時は一言だけ（面は開かない ＝ 保存できないものを打たせない）。 */
   function pressEnt(slot, st, b) {
@@ -1057,6 +1108,7 @@
       opener.hidden = true;
       say(slot, '');
     } else {
+      if (loggedIn()) FORM_IN = true;
       /* 追加の面が開いているあいだ、入口の列は隠す（閉じると戻る）。 */
       zone.querySelector('.crs-ents').hidden = true;
       if (opener) opener.setAttribute('aria-expanded', 'true');
@@ -1084,6 +1136,7 @@
     var opener = form.__opener || (zone ? zone.querySelector('.crs-ent') : null);
     host.removeChild(form);
     if (zone) {
+      FORM_IN = false;
       var row = zone.querySelector('.crs-ents');
       row.hidden = false;
       [].forEach.call(row.querySelectorAll('.crs-ent'), function (b) { b.setAttribute('aria-expanded', 'false'); });
@@ -1148,11 +1201,11 @@
 
     if (form.__edit) {
       /* 直す。会社と空港は送らない（＝変わらない）。直したら確認待ちへ戻る。 */
-      rpc('pv_stay_update', {
+      rpc('pv_stay_update', withKey({
         id: form.__edit, kind: kind, name: name,
         address: val('address') || null, maps_url: url || null, note: val('note') || null,
         stay_hours: hours
-      }).then(function (v) {
+      })).then(function (v) {
         if (ST.get(slot) !== st) return;
         if (bad(v)) {
           if (v && v.status === 'locked') { load(slot, { fresh: true }); return; }
@@ -1165,11 +1218,11 @@
       return;
     }
 
-    rpc('pv_stay_add', {
+    rpc('pv_stay_add', withKey({
       airline: k[0], iata: k[1], kind: kind, name: name,
       address: val('address') || null, maps_url: url || null, note: val('note') || null,
       city: cityOf(slot), stay_hours: hours
-    }).then(function (v) {
+    })).then(function (v) {
       if (ST.get(slot) !== st) return;
       if (bad(v)) {
         /* 面は欄の外に在って描き直されないので、「送信中…」のまま残さない。 */
@@ -1179,8 +1232,11 @@
         return;
       }
       var id = v.item && str(v.item.id);
-      /* 面は欄の外に在るので、読み直しでは消えない。閉じて、押した入口へ焦点を戻す（pic は字のまま持っている）。 */
+      /* ログインせずに足した人には、サーバーが控えの鍵を返す（この端末だけに置く。自分の分を見る・直す・消すのに使う）。 */
+      if (typeof v.key === 'string' && /^[0-9a-f]{48}$/.test(v.key)) lset(KEY, v.key);
+      /* 面は欄の外に在るので、読み直しでは消えない。閉じて、押した入口へ焦点を戻す（pic は字のまま持っている）。下書きはもう要らない。 */
       busy(slot, st, false);
+      dropDraft(st.key);
       closeForm(slot, st, form);
       if (!pic || !id) { load(slot, { fresh: true, say: T.added }); return; }
       return sendPhoto(id, pic).then(function (pv) {
@@ -1232,7 +1288,7 @@
     if ((target !== 'place' && target !== 'photo') || !id) return;
     busy(slot, st, true);
     var q = act === 'del'
-      ? rpc('pv_stay_delete', { target: target, id: id })
+      ? rpc('pv_stay_delete', withKey({ target: target, id: id }))
       : rpc('pv_stay_moderate', modArgs(target, id, act, b.getAttribute('data-rev')));
     q.then(function (v) {
       if (ST.get(slot) !== st) return;
@@ -1263,6 +1319,90 @@
     if (b && b.getAttribute) { b.removeAttribute('data-sure'); b.textContent = T.del; b.focus(); }
   }
 
+  // ══ 書きかけ（このタブだけ）══════════════════════════════════
+  /* ログインの往復（「ログイン」→ 戻る）でも、打った字が消えない。★書きかけは打った人のもの：
+     打った人の印（u。ログインしていなければ ''）を一緒に置き、いまの相手と違う印のものは戻さずに消す
+     （ログアウトしたあと・別の人がログインしたあとに、前の人の字を出さない）。ログインせずに打った字は、
+     ログインした人のものになる（その印を付け直す ＝ その次の人へは渡らない）。 */
+  var DRAFT = 'pv_stay_draft:';     // 書きかけ（このタブだけ。打った字と、打った人の印だけ。サーバーの答えは置かない）
+  var FORM_IN = false;              // ログインの鍵が在るあいだに開いた追加の面が、まだ開いている
+  var DRAFT_MAX = { name: 80, address: 200, maps_url: 500, stay_hours: 3, note: 500 };   // 欄の maxlength と同じ数
+  function sget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function sset(k, v) { try { sessionStorage.setItem(k, v); return true; } catch (e) { return false; } }
+  function sdel(k) { try { sessionStorage.removeItem(k); } catch (e) { /* 消せなくても先へ */ } }
+  /* いまの相手。'' ＝ ログインしていない／文字列 ＝ その人／undefined ＝ まだ分からない（鍵は在るが、相手の知らせがまだ）。
+     覚えている相手が居ても、この端末にログインの鍵がもう無ければ ''（知らせの届かないログアウト・戻るで戻ってきた画面）。 */
+  function me() {
+    if (typeof UID === 'string') return loggedIn() ? UID : '';
+    return (UID === null || !loggedIn()) ? '' : undefined;
+  }
+  function eachDraft(fn) {
+    var keys = [];
+    try { for (var i = 0; i < sessionStorage.length; i++) { var k = sessionStorage.key(i); if (k && k.indexOf(DRAFT) === 0) keys.push(k); } }
+    catch (e) { return; }
+    keys.forEach(function (k) {
+      var o = null;
+      try { o = JSON.parse(sget(k)); } catch (e) { o = null; }
+      if (!o || typeof o !== 'object' || Array.isArray(o)) { sdel(k); return; }
+      fn(k, o);
+    });
+  }
+  /* いまの相手に合わせる。相手がまだ分からなければ何もしない（false）。 */
+  function settleDrafts() {
+    var cur = me();
+    if (cur === undefined) return false;
+    eachDraft(function (k, o) {
+      var u = typeof o.u === 'string' ? o.u : '';
+      if (u && u !== cur) sdel(k);                                    /* ★ほかの人が打った字（ログアウトした前の人のものも） */
+      else if (!u && cur) { o.u = cur; sset(k, JSON.stringify(o)); }  /* ★ログインせずに打った字は、ログインした人のものになる */
+    });
+    return true;
+  }
+  function saveDraft(key, form) {
+    function val(k) { var i = form.querySelector('[data-k="' + k + '"]'); return i ? String(i.value || '').slice(0, DRAFT_MAX[k]) : ''; }
+    var kr = form.querySelector('input[type="radio"]:checked');
+    sset(DRAFT + key, JSON.stringify({ v: 1, u: typeof UID === 'string' ? UID : '', kind: kr ? String(kr.value) : '',
+      name: val('name'), address: val('address'), maps_url: val('maps_url'), stay_hours: val('stay_hours'), note: val('note') }));
+  }
+  /* 置いてある字（字だけ）。無い・字が1つも無ければ null。 */
+  function readDraft(key) {
+    var o = null;
+    try { o = JSON.parse(sget(DRAFT + key)); } catch (e) { o = null; }
+    if (!o || typeof o !== 'object') return null;
+    var d0 = {}, any = false;
+    Object.keys(DRAFT_MAX).forEach(function (k) {
+      var s = typeof o[k] === 'string' ? o[k].slice(0, DRAFT_MAX[k]) : '';
+      d0[k] = s;
+      if (/\S/.test(s)) any = true;
+    });
+    if (!any) return null;
+    if (KINDS.some(function (k) { return k[0] === o.kind; })) d0.kind = o.kind;
+    return d0;
+  }
+  function dropDraft(key) { sdel(DRAFT + key); }
+  function dropDrafts() { eachDraft(function (k) { sdel(k); }); }
+  /* 開いている追加の面を全部閉じる（打った字も画面から消える）。 */
+  function closeAdds() {
+    slots().forEach(function (s) {
+      var f = zoneForm(s);
+      if (f) closeForm(s, ST.get(s) || { pick: null }, f, true);
+    });
+    FORM_IN = false;
+  }
+  /* その都市の書きかけを、追加の面に戻す（焦点は取らない）。都市の答えが決まってから ── 待っているあいだ・
+     つながっていない・この会社には足せない時は戻さない（入口を押した時と同じく、保存できないものを打たせない）。 */
+  function restoreDraft(slot) {
+    var st = ST.get(slot), z = zoneIf(slot);
+    if (!st || !z || zoneForm(slot)) return;
+    var s = slot.getAttribute('data-state');
+    if (s === 'off' || s === 'loading' || s === 'idle') return;
+    var c = CACHE[st.key];
+    if (c && c.state === 'open' && c.can_add !== true) return;
+    if (!settleDrafts()) return;
+    var d0 = readDraft(st.key);
+    if (d0) openForm(slot, st, null, null, d0);
+  }
+
   // ══ 押されたとき（欄と、欄の外の面に、1回ずつだけ結ぶ）═══════════
   function bindOn(node, slot) {
     if (node.__crsBound) return;
@@ -1276,7 +1416,11 @@
       else if (act === 'ent')    pressEnt(slot, st, b);
       else if (act === 'ask')    ask(slot, b);
       else if (act === 'edit')   { if (b.__crsItem) openForm(slot, st, b, b.__crsItem); }
-      else if (act === 'unform') closeForm(slot, st, b.closest('.crs-form'));
+      else if (act === 'unform') {
+        var uf = b.closest('.crs-form');
+        if (uf && !uf.__edit) dropDraft(st.key);   /* 追加の面の「やめる」＝ 書きかけも捨てる */
+        closeForm(slot, st, uf);
+      }
       else if (act === 'unpick') unpick(st, b.closest('.crs-form'));
       else if (act === 'zoom')   zoom(slot, st, b);
       else if (act === 'unzoom') shut(st.zoom);
@@ -1296,6 +1440,16 @@
       e.preventDefault();
       if (st && e.target && e.target.classList.contains('crs-form')) submit(slot, st, e.target);
     });
+    /* 欄の外の面だけ：追加の面に打つたびに、書きかけを置く（修正の面は置かない・写真は置かない）。 */
+    if (node.classList && node.classList.contains('crs-zone')) {
+      var keep = function (e) {
+        var t = e.target, f = t && t.closest ? t.closest('.crs-formbox > .crs-form') : null, st = ST.get(slot);
+        if (!f || f.__edit || !st || t.type === 'file' || node.getAttribute('data-for') !== st.key) return;
+        saveDraft(st.key, f);
+      };
+      node.addEventListener('input', keep);
+      node.addEventListener('change', keep);
+    }
   }
 
   // ══ 始める ═════════════════════════════════════════════════

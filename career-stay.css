@@ -73,6 +73,8 @@
            background:var(--pv-gold-soft);border:1px solid var(--pv-gold-line);color:var(--pv-gold-ink);
            font-size:12px;font-weight:700;line-height:1.5}
 .crs-badge-no{background:var(--pv-bg-sub);border-color:var(--pv-line);color:var(--pv-ink-3)}
+/* 自分が足したもの（あなたの投稿）。状態の札（確認待ち・見送り）と並べて右端に寄せる（広い画面で行のまんなかに浮かせない）。 */
+.crs-badge-me{margin-left:auto;background:var(--pv-accent-soft);border-color:var(--pv-accent-line);color:var(--pv-accent-ink)}
 
 /* ── 写真 ───────────────────────────────────────────────────────── */
 .crs-photos{display:flex;gap:8px;margin-top:4px;padding-bottom:2px;overflow-x:auto;

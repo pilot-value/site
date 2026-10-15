@@ -1061,7 +1061,7 @@ head('career-stay.js（ホテルの欄の言葉・ログインの入口の行き
 {
   /* career-stay.js は career-live.js の言葉と関数を読めない（書き出していない）ので、写しを持つ。写しが1文字でもずれたら落とす。
      ・ログインの入口の行き先を作る2つの関数（loginHref・backHash）は、本体が1文字も違わない。
-     ・「準備中」と「ログイン」は、career-live.js の T.off・T.login と同じ字。
+     ・「準備中」と「ログイン」は、career-live.js の T.off・T.login と同じ字。「あなたの投稿」（T.mine）は T.noteMine と同じ字。
      ★ホテルを見てよいのはオーナーと、オーナーが承認した人だけ（db/stays.sql）。給与の提出では開かないので、
        給与の提出で開く欄の言葉（T.loginPayLock・T.payLock・T.payGive）は career-stay.js のどこにも書かない（説明の中にも）。 */
   const CS = read('career-stay.js'), CL = read('career-live.js');
@@ -1071,9 +1071,10 @@ head('career-stay.js（ホテルの欄の言葉・ログインの入口の行き
     const a = fnOf(CS, f), b = fnOf(CL, f);
     ok(!!a && !!b && a === b, `ホテルの欄のログインの入口：function ${f} の本体が career-live.js と1文字も違わない`, `${a === null ? 'career-stay.js に無い' : ''}${b === null ? 'career-live.js に無い' : ''}${a && b && a !== b ? `career-stay.js「${a.slice(0, 120)}」` : ''}`);
   }
-  for (const k of ['off', 'login']) {
-    const a = wordOf(CS, k), b = wordOf(CL, k);
-    ok(!!a && a === b, `ホテルの欄の「${b}」は career-live.js の T.${k} と同じ字`, `career-stay.js「${a}」／career-live.js「${b}」`);
+  /* 自分が足したものの札（T.mine）は、提出された一覧の札（career-live.js の T.noteMine）と同じ字。 */
+  for (const [k, kl] of [['off', 'off'], ['login', 'login'], ['mine', 'noteMine']]) {
+    const a = wordOf(CS, k), b = wordOf(CL, kl);
+    ok(!!a && a === b, `ホテルの欄の「${b}」は career-live.js の T.${kl} と同じ字`, `career-stay.js「${a}」／career-live.js「${b}」`);
   }
   const pay = ['loginPayLock', 'payLock', 'payGive'].map(k => [k, wordOf(CL, k)]);
   const held = pay.filter(([, t]) => t && CS.includes(t));
@@ -1840,7 +1841,8 @@ const PAY_RE = /\/rest\/v1\/rpc\/pv_pay_rows$/;
 /* ホテルの欄だけ、場面ごとに返事を差し替えられる（seen.stay）。運営の公開・却下は、送られた中身を控える（seen.mod）。
    ふだんは下の STUB のまま ＝ 鍵の1行。差し替えるのは「開いた時の画面」を見る1場面だけ。 */
 const STAY_RE = /\/rest\/v1\/rpc\/pv_stays$/, STAY_MOD_RE = /\/rest\/v1\/rpc\/pv_stay_moderate$/, STAY_ADD_RE = /\/rest\/v1\/rpc\/pv_stay_add$/,
-  STAY_VREQ_RE = /\/rest\/v1\/rpc\/pv_stay_viewer_request$/;
+  STAY_VREQ_RE = /\/rest\/v1\/rpc\/pv_stay_viewer_request$/,
+  STAY_UPD_RE = /\/rest\/v1\/rpc\/pv_stay_update$/, STAY_DEL_RE = /\/rest\/v1\/rpc\/pv_stay_delete$/, STAY_CLAIM_RE = /\/rest\/v1\/rpc\/pv_stay_claim$/;
 /* 待遇の集計（pv_contrib_facts）。ふだんは未ログインへの返事（状態の1語）。'rows' の時だけ、鍵の無い会員への返事
    ＝ 状態は 'locked'。わざと下の行を付けて返す（サーバーが間違えて送ってきても、画面が1行も出さないことを見る）。
    'give'（自分の会社への回答が足りない人）でも、同じ行を付けて返す。'giveOpen'（開いている人）は、開いた返事に同じ行。
@@ -2212,7 +2214,7 @@ const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
 async function open(browser, slug, w, h, mode, pre) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
-  const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [], stayStatus: 200, stayStall: false, add: null, added: [], vreq: null, vreqd: [] };
+  const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [], stayStatus: 200, stayStall: false, add: null, added: [], vreq: null, vreqd: [], edit: null, edited: [], del: null, deleted: [], claim: '{"ok":true}', claimed: [] };
   /* 答えるカードの口：give ＝ その場面だけ差し替える返事（{ status, body }。置かなければ giveBody）・giveCalls ＝ 呼ばれた回数。
      nav ＝ 並びを置いた場面でだけ、ページが移ろうとした行き先を控えて止める（カードのリンクが進む先を見る時）。 */
   seen.give = null; seen.giveCalls = 0; seen.nav = null;
@@ -2258,6 +2260,20 @@ async function open(browser, slug, w, h, mode, pre) {
         let sent = null; try { sent = JSON.parse(r.postData() || 'null'); } catch { /* 読めない中身は null のまま控える */ }
         seen.added.push(sent);
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: seen.add });
+      }
+      /* 直す口・消す口（pv_stay_update・pv_stay_delete）：場面が返事を置いた時だけ答え、送られた中身を控える（seen.edited・seen.deleted）。 */
+      if (seen.stay && ((seen.edit && STAY_UPD_RE.test(u.pathname)) || (seen.del && STAY_DEL_RE.test(u.pathname)))) {
+        let sent = null; try { sent = JSON.parse(r.postData() || 'null'); } catch { /* 読めない中身は null のまま控える */ }
+        const del = STAY_DEL_RE.test(u.pathname);
+        (del ? seen.deleted : seen.edited).push(sent);
+        return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: del ? seen.del : seen.edit });
+      }
+      /* 引き取りの口（pv_stay_claim）：ふだんは {"ok":true}。場面が { status, body } を置くと、その形で答える。送られた中身を控える（seen.claimed）。 */
+      if (seen.stay && seen.claim && STAY_CLAIM_RE.test(u.pathname)) {
+        let sent = null; try { sent = JSON.parse(r.postData() || 'null'); } catch { /* 読めない中身は null のまま控える */ }
+        seen.claimed.push(sent);
+        const c = typeof seen.claim === 'string' ? { status: 200, body: seen.claim } : seen.claim;
+        return r.respond({ status: c.status, contentType: 'application/json', headers: cors, body: c.body });
       }
       /* 見てよい人の申し込みの口（pv_stay_viewer_request）：呼ばれた中身は、どの場面でも控える（seen.vreqd）。
          答えるのは、場面が返事を置いた時だけ（seen.vreq）。置かなければ、知らない口として 500。 */
@@ -5260,6 +5276,268 @@ async function runStay(browser, s, [w, h]) {
       }
       ok(!sent.length, `${tag}: 見てよい人の申し込みの口に送るもの ── ログインしていない人は呼ばない／会員は鍵の1行が出た時に自分の状態を1回だけ読む（{ask:false}）／押した時だけ {ask:true} の1本（一覧も読まない）`, sent.join(' ／ '));
       ok(!bad.length, `${tag}: 見てよい人の申し込み ── まだなら鍵の1行の下に「確認を申し込む」→ 押すと「確認待ち」／見送りは鍵の1行だけ／承認済みなら一覧を読み直す`, bad.join(' ／ '));
+    }
+    /* ── 端末の控えの鍵・自分の投稿・引き取り・書きかけ（S-d〜S-h）──
+       ★ログインせずに足した人は、この端末の控えの鍵（pv_stay_key）で、自分が足したものだけを見る・直す・消す。
+         欄の中は鍵の1行のまま、自分の分は欄の外の列にだけ出る（写真は描かない・聞かない）。
+       ★ログインの鍵が消えたら、ログインして読んだ自分の分も画面に残さない（控えの鍵だけの人の画面は、読み直しに行かない）。
+       ★ログインしている端末に控えの鍵が在れば、読む前に1回だけ引き取りを頼み、引き取れたら控えの鍵を捨てる。
+       ★書きかけはこのタブだけ・打った字と打った人の印だけ（サーバーの答えは置かない）。ほかの人の印のものは戻さずに消す。
+       ログインの鍵は、どれもページが開いたあとに置く（登録だけの会員に出す板を呼ばない）。
+       鍵・控え・書きかけは、どの場面の後にも残さない（各場面の finally）。⚠️ ホテルは架空（検査の中だけ・どこにも保存しない）。 */
+    {
+      const AUTH = 'sb-check-auth-token', DEV = 'pv_stay_key', DEVK = '0123456789abcdef'.repeat(3), DR = `pv_stay_draft:${s}|`;
+      const NAME = '検査用の架空のホテル（自分の投稿）', PID = '00000000-0000-4000-8000-0000000000b4';
+      const ITEM = { id: PID, kind: 'hotel', name: NAME, address: '架空の住所 7-8-9', state: 'pending', mine: true, photos: [] };
+      const OWN = (it = ITEM) => JSON.stringify({ ok: true, state: 'locked', own: [it] });
+      const SEND = `${STAY_ZONE} .crs-form button[type="submit"]`, ADDED = '追加しました。確認のあと公開されます。';
+      /* ページが投げた rpc の名前と中身（順番つき）。読むだけ（答えるのは上の偽のサーバー）。 */
+      const calls = [];
+      const spy = r => {
+        let m = null; try { m = /\/rest\/v1\/rpc\/([a-z_]+)$/.exec(new URL(r.url()).pathname); } catch { /* 住所の読めない要求は数えない */ }
+        if (!m || r.method() !== 'POST') return;
+        let b = null; try { b = JSON.parse(r.postData() || 'null'); } catch { /* 読めない中身は null */ }
+        calls.push({ fn: m[1], p: (b && b.p) || null });
+      };
+      const since = (i, fn) => calls.slice(i).filter(c => c.fn === fn);
+      const store = o => p.evaluate(o => { for (const [k, v] of Object.entries(o)) { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } }, o);
+      const devHeld = () => p.evaluate(k => localStorage.getItem(k), DEV);
+      const draftOf = code => p.evaluate(k => sessionStorage.getItem(k), DR + code);
+      /* ログインの鍵・控えの鍵・書きかけを全部片づける（ページがサイトに居る時だけ読める）。 */
+      const clean = () => p.evaluate((a, d) => {
+        localStorage.removeItem(a); localStorage.removeItem(d);
+        for (const k of Object.keys(sessionStorage)) if (k.indexOf('pv_stay_draft:') === 0) sessionStorage.removeItem(k);
+      }, AUTH, DEV).catch(() => {});
+      const formIs = want => K.until((sel, want) => { const s = document.querySelector(sel), z = s && s.nextElementSibling; return !!z && !!z.querySelector('.crs-formbox > .crs-form') === want; }, 8000, STAY_SLOT, want);
+      /* 欄の外の自分の分：カードごとの名前・札・ボタン・写真の数。 */
+      const ownRead = () => p.evaluate(sel => {
+        const s = document.querySelector(sel), z = s && s.nextElementSibling, ul = z && z.querySelector('.crs-own');
+        const tx = e => e.textContent.replace(/\s+/g, ' ').trim();
+        return { hidden: !ul || ul.hidden, cards: ul ? [...ul.querySelectorAll('.crs-card')].map(c => ({ name: tx(c.querySelector('.crs-name') || c),
+          badges: [...c.querySelectorAll('.crs-top .crs-badge')].map(tx), acts: [...c.querySelectorAll('button[data-act]')].map(b => `${b.getAttribute('data-act')}:${tx(b)}`),
+          photos: c.querySelectorAll('.crs-photos, .crs-ph, img').length })) : [] };
+      }, STAY_SLOT);
+      const ownIs = n => K.until((sel, n) => { const s = document.querySelector(sel), z = s && s.nextElementSibling, ul = z && z.querySelector('.crs-own'); return !!ul && ul.querySelectorAll('.crs-card').length === n && (n === 0 || !ul.hidden); }, 8000, STAY_SLOT, n);
+      /* 保存領域（localStorage・sessionStorage）の、値にホテル名を含む鍵の名前。 */
+      const sweep = n => p.evaluate(n => [...Object.entries(localStorage), ...Object.entries(sessionStorage)].filter(([, v]) => String(v).includes(n)).map(([k]) => k), n);
+      /* ほかの画面から戻ってきた知らせ（3c と同じ形。前面を取られていても「見えている」に固定してから）。 */
+      const backToPage = () => p.evaluate(() => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' }); document.dispatchEvent(new Event('visibilitychange')); });
+      const idle = async (ms, moved) => { for (let t = 0; t < ms; t += 100) { if (moved()) return true; await new Promise(res => setTimeout(res, 100)); } return moved(); };
+      p.on('request', spy);
+      try {
+        /* S-d 端末の控えの鍵と、自分の投稿（ログインしていない人）：足した返事の鍵を置く → 次の読み出しが鍵を送る →
+           欄の外に「あなたの投稿」「確認待ち」・修正・削除のカード1枚（欄は鍵の1行のまま）→ 削除（2回）は鍵を送る。保存領域にホテル名が無い。 */
+        {
+          const key = [], bad = [];
+          try {
+            await clean();
+            if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
+            seen.stay = STAY_LOCKED;
+            if (!(await K.city(A, 'locked'))) bad.push(`${A}：鍵の1行にならない`);
+            else if (!((await K.tap(`${STAY_ZONE} .crs-ent[data-kind="hotel"]`)) && (await formIs(true)))) bad.push(`${A}：「ホテルを追加」で追加の面が開かない`);
+            else {
+              await p.type(`${STAY_ZONE} [data-k="name"]`, NAME);
+              seen.add = JSON.stringify({ ok: true, item: ITEM, key: DEVK });
+              seen.stay = OWN();
+              const c0 = calls.length;
+              await K.tap(SEND);
+              if (!((await K.zsayIs(ADDED)) && (await ownIs(1)))) bad.push(`${A}：足したあと、欄の外に自分の分が出ない（${JSON.stringify(await ownRead())}）`);
+              const held = await devHeld(), rd = since(c0, 'pv_stays');
+              if (held !== DEVK) key.push(`足した返事の鍵を pv_stay_key に置かない（${held}）`);
+              if (!(rd.length === 1 && rd[0].p && rd[0].p.key === DEVK)) key.push(`足したあとの読み出しが、控えの鍵を送らない（${JSON.stringify(rd.map(c => c.p))}）`);
+              const o = await ownRead(), r = await K.look(), c = o.cards[0] || {};
+              if (!(o.cards.length === 1 && !o.hidden && c.name === NAME && c.badges.join('／') === 'あなたの投稿／確認待ち' && c.acts.join('／') === 'edit:修正／del:削除' && !c.photos))
+                bad.push(`欄の外の自分の分が、「あなたの投稿」「確認待ち」・修正・削除のカード1枚でない（${JSON.stringify(o).slice(0, 300)}）`);
+              if (!(r.state === 'locked' && r.extra === 0 && r.entry === 1 && !r.text.includes(NAME))) bad.push(`欄が鍵の1行のままでない（${r.state}・部品 ${r.extra}・入口 ${r.entry}・「${r.text.slice(0, 60)}」）`);
+              const left = await sweep(NAME);
+              if (left.length) bad.push(`保存領域の値にホテル名が残る（${left.join('・')}）`);
+              /* 削除は2回押す。消す口は控えの鍵を送る。消したあとの読み直しには、自分の分が無い。 */
+              seen.del = '{"ok":true}';
+              if (!(await K.tap(`${STAY_ZONE} .crs-own [data-act="del"]`))) bad.push('自分の分の「削除」を押せない');
+              else {
+                seen.stay = STAY_LOCKED;
+                if (!(await K.tap(`${STAY_ZONE} .crs-own [data-act="del"][data-sure]`))) bad.push('「削除する」を押せない');
+                else if (!((await K.zsayIs('削除しました。')) && (await ownIs(0)))) bad.push(`消したあと、一言が「削除しました。」でない・自分の分が残る（「${(await K.zone()).say}」）`);
+              }
+              const dl = seen.deleted.map(x => (x && x.p) || {});
+              if (!(dl.length === 1 && dl[0].target === 'place' && dl[0].id === PID && dl[0].key === DEVK)) key.push(`削除が、控えの鍵を添えた1本でない（${JSON.stringify(dl)}）`);
+            }
+          } finally {
+            await clean();
+            seen.stay = null; seen.add = null; seen.del = null; seen.deleted = [];
+          }
+          ok(!key.length, `${tag}: 端末の控えの鍵 ── ログインせずに足した返事の鍵を pv_stay_key に置く・次の読み出しと削除が、その鍵を送る`, key.join(' ／ '));
+          ok(!bad.length, `${tag}: 自分の投稿 ── 欄の外に「あなたの投稿」「確認待ち」・修正・削除のカード1枚（欄は鍵の1行のまま・部品なし）／削除のあとは消える／保存領域の値にホテル名が無い`, bad.join(' ／ '));
+        }
+        /* S-e 返事の自分の分に写真が入っていても、写真の列を描かない・写真を聞かない・読み直しに行かない（2秒待つ）。 */
+        {
+          const bad = [];
+          try {
+            await clean();
+            if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
+            seen.stay = OWN({ ...ITEM, photos: [{ id: '00000000-0000-4000-8000-0000000000b5', mine: true, state: 'public' }] });
+            const c0 = calls.length;
+            if (!((await K.city(B, 'locked')) && (await ownIs(1)))) bad.push(`${B}：欄の外に自分の分が出ない`);
+            else {
+              const n0 = seen.stays;
+              await new Promise(res => setTimeout(res, 2000));
+              const o = await ownRead(), ph = since(c0, 'pv_stay_photo').length;
+              if ((o.cards[0] || {}).photos || ph || seen.stays !== n0) bad.push(`写真の部品 ${(o.cards[0] || {}).photos}・写真を聞いた ${ph}回・読み直し ${seen.stays - n0}回（どれも 0 のはず）`);
+            }
+          } finally {
+            await clean();
+            seen.stay = null;
+          }
+          ok(!bad.length, `${tag}: 自分の投稿の写真 ── 返事に写真が入っていても、写真の列を描かない・写真を聞かない・読み直しに行かない`, bad.join(' ／ '));
+        }
+        /* S-f ログインの鍵が消えたら、ログインして読んだ自分の分を残さない／控えの鍵だけの人は、同じ知らせで読み直しに行かない。 */
+        {
+          const gone = [], quiet = [];
+          try {
+            await clean();
+            if (!(await K.fresh())) gone.push('ステイ先のタブが一覧で開かない');
+            await store({ [AUTH]: '{}' });
+            seen.stay = OWN(); seen.vreq = '{"ok":true,"state":"denied"}';
+            if (!((await K.city(C, 'locked')) && (await ownIs(1)))) gone.push(`${C}：ログインの鍵が在る人の自分の分が出ない`);
+            else {
+              await store({ [AUTH]: null });
+              seen.stay = STAY_LOCKED;
+              await backToPage();
+              const off = await ownIs(0), left = await p.evaluate(n => document.documentElement.innerHTML.includes(n), NAME);
+              if (!off || left) gone.push(`ログインの鍵が消えて戻ってきたのに、自分の分のカードかホテル名が残る（カード ${!off}・ホテル名 ${left}）`);
+            }
+            await clean();
+            if (!(await K.fresh())) quiet.push('ステイ先のタブが一覧で開かない');
+            await store({ [DEV]: DEVK });
+            seen.stay = OWN();
+            if (!((await K.city(D, 'locked')) && (await ownIs(1)))) quiet.push(`${D}：控えの鍵だけの人の自分の分が出ない`);
+            else {
+              const n0 = seen.stays;
+              await backToPage();
+              const moved = await idle(1500, () => seen.stays !== n0);
+              if (moved || (await ownRead()).cards.length !== 1) quiet.push(`控えの鍵だけの人が戻ってきただけで読み直す・カードが消える（読み直し ${seen.stays - n0}回）`);
+            }
+          } finally {
+            await clean();
+            seen.stay = null; seen.vreq = null;
+          }
+          ok(!gone.length, `${tag}: 自分の投稿 ── ログインの鍵が消えて戻ってきたら、ログインして読んだ自分の分のカードもホテル名も残さない`, gone.join(' ／ '));
+          ok(!quiet.length, `${tag}: 自分の投稿 ── 控えの鍵だけの人（ログインしていない）は、戻ってきただけでは読み直しに行かない（カードはそのまま）`, quiet.join(' ／ '));
+        }
+        /* S-g 引き取り：ログインの鍵と控えの鍵が在る → 読む前に pv_stay_claim を1回 → 引き取れたら控えの鍵を捨て、読み出しは鍵を送らない／
+           引き取りの口が無い（404）→ 控えの鍵は残り、読み出しがそれを送る／ログインの鍵が無い → 引き取りを頼まない。 */
+        {
+          const bad = [];
+          const tryCity = async (code, want) => {
+            seen.claimed = [];
+            const c0 = calls.length;
+            if (!(await K.city(code, 'locked'))) { bad.push(`${code}：鍵の1行にならない`); return; }
+            const order = calls.slice(c0).map(c => c.fn).filter(f => f === 'pv_stay_claim' || f === 'pv_stays').join(' ');
+            const rd = since(c0, 'pv_stays'), held = await devHeld(), cl = seen.claimed.map(x => (x && x.p) || {});
+            const got = { order, claimKeys: cl.map(x => x.key === DEVK), held: held === DEVK, readKey: rd.length === 1 && rd[0].p ? rd[0].p.key === DEVK : null };
+            if (JSON.stringify(got) !== JSON.stringify(want)) bad.push(`${code}：${JSON.stringify(got)}（${JSON.stringify(want)} のはず）`);
+          };
+          try {
+            seen.stay = STAY_LOCKED; seen.vreq = '{"ok":true,"state":"denied"}';
+            await clean();
+            if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
+            await store({ [AUTH]: '{}', [DEV]: DEVK });
+            await tryCity(E, { order: 'pv_stay_claim pv_stays', claimKeys: [true], held: false, readKey: false });
+            await clean();
+            if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
+            await store({ [AUTH]: '{}', [DEV]: DEVK });
+            seen.claim = { status: 404, body: '{"code":"PGRST202","message":"stub"}' };
+            await tryCity(F, { order: 'pv_stay_claim pv_stays', claimKeys: [true], held: true, readKey: true });
+            seen.claim = '{"ok":true}';
+            await clean();
+            if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
+            await store({ [DEV]: DEVK });
+            await tryCity(A, { order: 'pv_stays', claimKeys: [], held: true, readKey: true });
+          } finally {
+            await clean();
+            seen.stay = null; seen.vreq = null; seen.claim = '{"ok":true}'; seen.claimed = [];
+          }
+          ok(!bad.length, `${tag}: 引き取り ── ログインしている端末に控えの鍵が在れば、読む前に1回だけ頼む（引き取れたら鍵を捨て、読み出しは鍵を送らない）／頼めなければ鍵は残り読み出しに添える／ログインしていなければ頼まない`, bad.join(' ／ '));
+        }
+        /* S-h 書きかけ（ログインしていない人）：打つと pv_stay_draft:<会社>|<空港> に、決まった8つの鍵だけ・u は ''。
+           読み直すと面が戻る（種類と字・焦点は取らない）／ログインの入口は、この都市へ戻る住所／「やめる」と送って通ったあとは消える／
+           ほかの都市には面が無い／手で置いたほかの人の印（u = 'someone-else'）の書きかけは、戻さずに消す。 */
+        {
+          const shape = [], other = [], flow = [];
+          const TXT = '検査用の架空の書きかけ', NOTE = '架空のひとこと', WANT = 'v,u,kind,name,address,maps_url,stay_hours,note';
+          const url = `${BASE}/airlines/${s}.html`;
+          const reopen = async code => { await p.goto('about:blank'); await p.goto(`${url}#stay-${code}`, { waitUntil: 'load', timeout: 60000 }); return K.slotIs(code, 'locked'); };
+          try {
+            await clean();
+            if (!(await K.fresh())) flow.push('ステイ先のタブが一覧で開かない');
+            seen.stay = STAY_LOCKED;
+            if (!((await K.city(A, 'locked')) && (await K.tap(`${STAY_ZONE} .crs-ent[data-kind="spot"]`)) && (await formIs(true)))) flow.push(`${A}：「場所を追加」で追加の面が開かない`);
+            else {
+              await p.type(`${STAY_ZONE} [data-k="name"]`, TXT);
+              await p.type(`${STAY_ZONE} [data-k="note"]`, NOTE);
+              const raw = await draftOf(A);
+              let o = null; try { o = JSON.parse(raw); } catch { /* 読めない形は下で落ちる */ }
+              if (!(o && Object.keys(o).join(',') === WANT && o.v === 1 && o.u === '' && o.kind === 'spot' && o.name === TXT && o.note === NOTE)) shape.push(`書きかけの形が違う（${String(raw).slice(0, 300)}）`);
+              /* その時のログインの入口の行き先（押した時に決め直す。押しても移らないようにして読む）。 */
+              const href = await p.evaluate(sel => {
+                const a = document.querySelector(sel + ' a[data-crs-entry]');
+                if (!a) return '';
+                a.addEventListener('click', e => e.preventDefault(), { once: true });
+                a.click();
+                return a.getAttribute('href') || '';
+              }, STAY_SLOT);
+              if (!href.endsWith(`%23stay-${A}`)) flow.push(`ログインの入口が、この都市へ戻る住所でない（${href}）`);
+              /* 読み直す（#stay-<空港>）→ 面が戻る */
+              if (!((await reopen(A)) && (await formIs(true)))) flow.push(`#stay-${A} を読み直すと、書きかけの面が戻らない`);
+              else {
+                const z = await K.zone(), note = await p.evaluate(sel => ((document.querySelector(sel).nextElementSibling.querySelector('.crs-formbox > .crs-form [data-k="note"]')) || {}).value || '', STAY_SLOT);
+                if (!(z.kind === 'spot' && z.name === TXT && note === NOTE && z.focus === '' && !z.row)) flow.push(`戻った面が違う（種類 ${z.kind}・名前「${z.name}」・ひとこと「${note}」・焦点 ${z.focus || 'なし'}・入口の列 ${z.row}）`);
+                /* 「やめる」→ 書きかけも消える */
+                await K.tap(`${STAY_ZONE} .crs-form [data-act="unform"]`);
+                if (!((await formIs(false)) && (await draftOf(A)) === null)) flow.push('「やめる」のあとも、面か書きかけが残る');
+                /* 打ち直して送り、通る → 書きかけは消える */
+                if (!((await K.tap(`${STAY_ZONE} .crs-ent[data-kind="hotel"]`)) && (await formIs(true)))) flow.push('「ホテルを追加」で面が開き直さない');
+                else {
+                  await p.type(`${STAY_ZONE} [data-k="name"]`, TXT);
+                  const typed = (await draftOf(A)) !== null;
+                  seen.add = JSON.stringify({ ok: true, item: { id: '00000000-0000-4000-8000-0000000000b6', kind: 'hotel', name: TXT, state: 'pending', mine: true, photos: [] } });
+                  await K.tap(SEND);
+                  if (!(typed && (await formIs(false)) && (await K.zsayIs(ADDED)) && (await draftOf(A)) === null)) flow.push(`送って通ったあとも書きかけが残る（打った時に置いた ${typed}）`);
+                }
+                /* ほかの都市には面が無い */
+                if (!((await K.back()) && (await K.city(B, 'locked')))) flow.push(`${B}：鍵の1行にならない`);
+                else if ((await K.zone()).form) flow.push(`${B}：ほかの都市に追加の面が出る`);
+              }
+            }
+            /* ほかの人の印の書きかけ（手で置いた）→ 同じページのまま都市を開く → 面は出ない・書きかけは消える。
+               ★読み直すと、読む人の知らせ（INITIAL_SESSION）の片づけが先に消すので、都市を開いた時の片づけ（restoreDraft）は
+                 ページを替えないこちらでしか見えない（知らせの届かないログアウトのあと、次の人が都市を開く時の網）。 */
+            const OTHER = JSON.stringify({ v: 1, u: 'someone-else', kind: 'hotel', name: '検査用の架空のほかの人の字', address: '', maps_url: '', stay_hours: '', note: '' });
+            await p.evaluate((k, v) => sessionStorage.setItem(k, v), DR + D, OTHER);
+            if (!(((await K.back()) || (await K.fresh())) && (await K.city(D, 'locked')))) other.push(`${D}：鍵の1行にならない`);
+            else {
+              const f = (await K.zone()).form, left = await draftOf(D);
+              if (f || left !== null) other.push(`同じページのまま開いた都市で、ほかの人の印の書きかけが戻る・残る（面 ${f}・書きかけ ${left !== null}）`);
+            }
+            /* 読み直す → 面は出ない・書きかけは消える */
+            await p.evaluate((k, v) => sessionStorage.setItem(k, v), DR + C, OTHER);
+            if (!(await reopen(C))) other.push(`#stay-${C} が鍵の1行で開かない`);
+            else {
+              const f = (await K.zone()).form, left = await draftOf(C);
+              if (f || left !== null) other.push(`ほかの人の印の書きかけが戻る・残る（面 ${f}・書きかけ ${left !== null}）`);
+            }
+          } finally {
+            await clean();
+            seen.stay = null; seen.add = null;
+          }
+          ok(!shape.length, `${tag}: 書きかけ ── 打つと pv_stay_draft:<会社>|<空港> に、決まった8つの鍵（${WANT}）だけを置く・ログインしていなければ u は ''（サーバーの答えは置かない）`, shape.join(' ／ '));
+          ok(!other.length, `${tag}: 書きかけ ── ほかの人の印（u = 'someone-else'）の書きかけは、同じページで都市を開いても・読み直しても、戻さずに消す`, other.join(' ／ '));
+          ok(!flow.length, `${tag}: 書きかけ ── 読み直すと面が戻る（種類と字・焦点は取らない）／ログインの入口はこの都市へ戻る住所／「やめる」と送って通ったあとは消える／ほかの都市には面が無い`, flow.join(' ／ '));
+        }
+      } finally {
+        p.off('request', spy);
+        await clean();
+      }
     }
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
