@@ -875,7 +875,7 @@ try {
   const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`])];
   /* 押せるものの種類。ここに無い形のものが増えたら落とす（hover / active を付け忘れる）。 */
   const MAIN = '.cr-tile, .cr-back, .cr-btn, .cr-swap, .cr-sel, summary, .cr-link, .cr-card-n, '
-    + '.cr-tab, a.cr-bar, a.cr-row, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crc-opt, .crc-sel, .crc-th, .crc-btn';
+    + '.cr-tab, a.cr-bar, a.cr-row, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn';
   const INLINE = '.cr-credits a, .cr-srcs a';
   for (const [w, h] of [[320, 568], [390, 680], [768, 1024], [1280, 800]]) {
     const { page: p, close: c } = await open('', w, h);

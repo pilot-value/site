@@ -4,8 +4,11 @@
  *   画面でプロフィール・給与の鍵・ブラウザの保存領域を見て開けない。
  * ・鍵の1行に「ログイン」の入口を添えるかどうかだけは、この端末にログインの鍵が在るかで決める
  *   （鍵が無い人にだけ添える。会員には入口を出さない）。開ける・開けないには使わない。
+ *   会員の鍵の1行には、オーナーへの確認の申し込み（自分の状態だけを読み、押した時だけ申し込む）の1つだけを添える。
  * ・見てよいのは、オーナーと、オーナーが承認した人だけ（db/stays.sql）。給与の提出・ログイン・プロフィールでは開かない
  *   ＝ 鍵の1行の横に、給与の提出への入口を置かない。
+ * ・3つの入口（ホテル・レストラン・場所を追加）と追加の面は、欄のすぐ後ろの兄弟（.crs-zone）に置く。
+ *   欄の中には、サーバーがこの人に見せてよいものだけを描く。入口は読み出しを始めた時から、どの状態でも在る。
  * ・Supabase の入口は PVCareer.client()（career-live.js が作る）。ここで createClient しない。
  *   まだ無ければ欄に触らず、cr:show のたびに見直す。ページを読み終えても無ければ「読み込めませんでした」にする。
  * ・一覧の読み出しは STAY_WAIT まで待つ（来なければ「読み込めませんでした」＋「もう一度」。自動のやり直しはしない）。
@@ -62,6 +65,7 @@
     off:        '準備中',
     locked:     '確認済みのパイロットだけが見られます',
     login:      'ログイン',
+    ask:        '確認を申し込む',
     err:        '読み込めませんでした',
     retry:      'もう一度',
     none:       'まだ登録がありません',
@@ -72,7 +76,9 @@
     rejected:   '見送り',
     map:        'Google マップ',
     others:     '同じ空港で他社が使うホテル',
-    addOpen:    'ホテル・店・場所を追加',
+    entHotel:   'ホテルを追加',
+    entFood:    'レストランを追加',
+    entSpot:    '場所を追加',
     fKind:      '種類',
     fName:      '名前',
     fAddr:      '住所',
@@ -122,7 +128,8 @@
     too_fast:     '続けて追加するときは、少し時間をあけてください。',
     rate_limited: '追加できる数の上限に達しました。24時間たってからお試しください。',
     duplicate:    '同じ名前を、もう追加しています。',
-    exists:       '同じ名前が、もう登録されています。'
+    exists:       '同じ名前が、もう登録されています。',
+    queue_full:   'この就航地には、いま追加できません。'
   };
   /* 直す口（pv_stay_update）だけが返すもの。ほかは足す口と同じ言葉。 */
   var SAY_EDIT = {
@@ -143,11 +150,14 @@
     own_post:  '自分が出したものは、別の運営が確認します。',
     final:     '見送ったものは公開に戻せません。',
     not_found: 'もう表示できないものです。',
-    changed:   '出した人が内容を直していました。いまの内容を読み直したので、確認してからもう一度押してください。'
+    changed:   '出した人が内容を直していました。いまの内容を読み直したので、確認してからもう一度押してください。',
+    exists:    '同じ名前が、もう登録されています。'
   };
   var SAY_FAIL = 'うまくいきませんでした。もう一度お試しください。';
 
   var KINDS = [['hotel', 'ホテル'], ['food', 'レストラン'], ['spot', '場所']];
+  /* 欄の外に並べる3つの入口（押した種類を選んだまま、追加の面が開く）。 */
+  var ENTS = [['hotel', T.entHotel], ['food', T.entFood], ['spot', T.entSpot]];
 
   var IC = {
     lock: '<svg class="crs-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>',
@@ -247,6 +257,7 @@
         UID = uid;
         CACHE = {};
         PHOTO_LOCK = false;
+        vqReset();                   // 申し込みの状態も、ログインごとに読み直す
         LIVE.slice().forEach(drop);
         scan();
       });
@@ -285,6 +296,8 @@
     slot.setAttribute('data-state', state);
     if (state === 'loading') slot.setAttribute('aria-busy', 'true');
     else slot.removeAttribute('aria-busy');
+    /* 欄の外の面（入口）は、読み出しを始めた時（loading）から、どの状態でも描く。 */
+    if (state !== 'idle') { var zst = ST.get(slot); if (zst) paintZone(slot, zst, state === 'loading' ? null : (CACHE[zst.key] || null)); }
   }
   /* 画面から外れた欄は、出荷時の形（—）に戻す。 */
   function drop(slot) {
@@ -293,6 +306,14 @@
     var i = LIVE.indexOf(slot);
     if (i >= 0) LIVE.splice(i, 1);
     put(slot, 'idle', el('span', 'crl-ph', '—'));
+    /* 欄の外の面：自分の投稿の列と一言は空にする（開いている追加の面は、読む人か都市が変わるまで残す）。 */
+    var z = zoneIf(slot);
+    if (z) {
+      var own = z.querySelector('.crs-own');
+      if (own) { while (own.firstChild) own.removeChild(own.firstChild); own.hidden = true; }
+      var zs = z.querySelector('.crs-zone-say');
+      if (zs) zs.textContent = '';
+    }
   }
 
   /* 開いた答えを持ったまま、この端末のログインの鍵が消えていたら、持っている答えを捨てる。
@@ -310,6 +331,7 @@
   function forgetIfGone() {
     if (!holdsOpen() || !keyGone()) return false;
     CACHE = {};
+    vqReset();
     LIVE.slice().forEach(drop);
     /* 鍵が消えたことは onAuthStateChange には届いていない。覚えている相手も一緒に忘れる
        （忘れないと、同じ人がほかのタブでログインし直したとき「相手は変わっていない」と読んで取り直さない）。 */
@@ -336,10 +358,20 @@
   }
 
   function load(slot, opt) {
-    bind(slot);
+    bindOn(slot, slot);
     revoke(ST.get(slot));
+    /* 欄の外で開いたままの追加の面：選んであった写真は、いま手放した（revoke）。見本の絵と選んだ口も外す。 */
+    var zf = zoneForm(slot);
+    if (zf) {
+      var zpv = zf.querySelector('.crs-pv'), zfi = zf.querySelector('[data-pick]');
+      if (zpv) zpv.parentNode.removeChild(zpv);
+      if (zfi) zfi.value = '';
+    }
     var st = { key: keyOf(slot), urls: [], zoom: null, pick: null, busy: false };
     ST.set(slot, st);
+    /* 送っている途中の印は、前の読み出しのもの（その返事は、もう使わない）。欄の外の面に残すと、入口が押せないままになる。 */
+    var zb = zoneIf(slot);
+    if (zb) zb.removeAttribute('data-busy');
     if (LIVE.indexOf(slot) < 0) LIVE.push(slot);
 
     /* 取り直すと決めた回は、前の答えを先に捨てる（取り直しに失敗したあと、出入りで古い答えを描き直さない） */
@@ -384,7 +416,7 @@
 
   // ══ 描く ═══════════════════════════════════════════════════
   function paint(slot, st, v, opt) {
-    if (v.state === 'off') { put(slot, 'off', el('p', 'crs-line', T.off)); return; }
+    if (v.state === 'off') { put(slot, 'off', el('p', 'crs-line', T.off)); if (opt && opt.say) zsay(slot, opt.say); return; }
     if (v.state === 'locked') {
       /* ★鍵の印と1行。入口は、ログインの鍵が無い人にだけ「ログイン」の1つ（会員には何も添えない）。
          ほかの人の名前・件数・写真は、そもそも届いていない。 */
@@ -395,6 +427,10 @@
       if (who === 'login') lk.appendChild(entry());
       put(slot, 'locked', lk);
       slot.setAttribute('data-who', who);
+      /* ログインしている人だけ：自分の申し込みの状態に合わせて、鍵の1行に1つだけ添える（viewer）。 */
+      if (who === 'member') viewer(slot);
+      /* 欄の中に一言の置き場は無い（鍵の1行だけ）。足したあとの一言は、欄の外の面に出す。 */
+      if (opt && opt.say) zsay(slot, opt.say);
       return;
     }
     paintOpen(slot, st, v, opt);
@@ -405,6 +441,54 @@
     box.appendChild(el('span', '', T.err));
     box.appendChild(btn('crs-act', T.retry, 'retry'));
     put(slot, 'error', box);
+  }
+
+  // ══ 見てよい人になる申し込み（ログインしている人の鍵の1行）══════════════
+  /* ★読むのも申し込むのも、自分の状態だけ（pv_stay_viewer_request）。ホテルの字は1つも返らない。
+     開けるかどうかは、いつも pv_stays の答え（ここでは開けない）。承認するのはオーナーだけ（申し込んだ人だけを承認できる）。
+     状態はログインごとに1回だけ読む（{ask:false}）。申し込む（{ask:true}）のは、押した時だけ。ログインしていない人は呼ばない。
+       none → 鍵の1行の下に「確認を申し込む」／pending → 鍵の1行の横に「確認待ち」
+       denied・revoked・owner・読めなかった → 鍵の1行だけ（読めなかったのを「まだ申し込んでいない」にしない）
+       approved → 一覧を1回だけ読み直す（それでも鍵なら鍵の1行だけ。同じ理由で回り続けない）。 */
+  var VQ = null, VQ_TRIED = false, VQ_SEQ = 0;
+  function vqReset() { VQ = null; VQ_TRIED = false; VQ_SEQ++; }
+  function vqOf(v) {
+    var s = bad(v) ? '' : String(v.state || '');
+    return /^(none|pending|approved|denied|revoked|owner)$/.test(s) ? s : 'fail';
+  }
+  function viewer(slot) {
+    if (VQ !== null) { vqFace(slot); return; }
+    var seq = VQ_SEQ;
+    VQ = 'wait';
+    rpc('pv_stay_viewer_request', { ask: false }).then(function (v) {
+      if (seq !== VQ_SEQ) return;                 /* 待つあいだにログインが変わった */
+      VQ = vqOf(v);
+      LIVE.slice().forEach(vqFace);
+    });
+  }
+  /* 鍵の1行（会員）に、いまの状態の1つを描き直す。 */
+  function vqFace(slot) {
+    if (slot.getAttribute('data-state') !== 'locked' || slot.getAttribute('data-who') !== 'member') return;
+    [].forEach.call(slot.querySelectorAll('.crs-vq'), function (n) { n.parentNode.removeChild(n); });
+    var lk = slot.querySelector('.crs-lock');
+    if (!lk) return;
+    if (VQ === 'none') slot.appendChild(btn('crs-act crs-vq', T.ask, 'ask'));
+    else if (VQ === 'pending') lk.appendChild(el('span', 'crs-badge crs-vq', T.pending));
+    else if (VQ === 'approved' && !VQ_TRIED) { VQ_TRIED = true; load(slot, { fresh: true }); }
+  }
+  /* 押した：申し込みの1本だけを送る（ほかは何も読まない・送らない）。 */
+  function ask(slot, b) {
+    if (b.disabled) return;
+    b.disabled = true;
+    zsay(slot, '');
+    var seq = VQ_SEQ;
+    rpc('pv_stay_viewer_request', { ask: true }).then(function (v) {
+      if (seq !== VQ_SEQ) return;
+      var s = vqOf(v);
+      if (s === 'fail') { b.disabled = false; zsay(slot, SAY_FAIL); return; }
+      VQ = s;
+      LIVE.slice().forEach(vqFace);
+    });
   }
 
   function paintOpen(slot, st, v, opt) {
@@ -448,16 +532,6 @@
     say.setAttribute('aria-live', 'polite');
     if (opt && opt.say) say.textContent = opt.say;
     box.appendChild(say);
-
-    if (canAdd) {
-      var add = el('div', 'crs-add');
-      var ab = btn('crs-btn crs-add-btn', null, 'form');
-      ab.appendChild(icon('plus'));
-      ab.appendChild(el('span', '', T.addOpen));
-      ab.setAttribute('aria-expanded', 'false');
-      add.appendChild(ab);
-      (empty || box).appendChild(add);
-    }
 
     if (others.some(function (o) { return o && arr(o.places).length; })) {
       var os = el('div', 'crs-others');
@@ -573,9 +647,11 @@
     if (it.mine === true || isOp) add(T.del, 'del', 'crs-act-no');
   }
 
+  /* 欄の中に一言の置き場があればそこへ（欄の外の一言は消す）。無ければ（鍵・準備中）欄の外の面へ。 */
   function say(slot, text) {
-    var p = slot.querySelector('.crs-say');
-    if (p) p.textContent = text || '';
+    var p = slot.querySelector('.crs-say'), z = zoneIf(slot), zs = z ? z.querySelector('.crs-zone-say') : null;
+    if (p) { p.textContent = text || ''; if (zs) zs.textContent = ''; }
+    else if (zs) zs.textContent = text || '';
   }
   function fsay(form, text) {
     var p = form.querySelector('.crs-form-say');
@@ -789,6 +865,67 @@
     return rpc('pv_stay_photo_add', { place: place, b64: pic.b64, w: pic.w, h: pic.h });
   }
 
+  // ══ 欄の外の面 ═════════════════════════════════════════════
+  /* 欄（.crl）は「サーバーがこの人に見せてよいもの」だけ。入口・一言・追加の面は、欄のすぐ後ろの兄弟（.crs-zone）に置く。
+     読み出しを始めた時（待ちの絵と同時）に作るので、入口はどの状態でも最初からそこに在る（返事のあとで下に湧かない）。
+     欄を描き直しても、開いている追加の面は消えない。 */
+  function zoneIf(slot) {
+    var z = slot.nextElementSibling;
+    return z && z.classList.contains('crs-zone') ? z : null;
+  }
+  function zoneOf(slot) {
+    var z = zoneIf(slot);
+    if (z) return z;
+    z = el('div', 'crs-zone');
+    var own = el('ul', 'crs-list crs-own');
+    own.hidden = true;
+    z.appendChild(own);
+    var ents = el('div', 'crs-ents');
+    ENTS.forEach(function (k, i) {
+      var b = btn((i === 0 ? 'crs-btn' : 'crs-act') + ' crs-ent', null, 'ent');
+      b.setAttribute('data-kind', k[0]);
+      b.setAttribute('aria-expanded', 'false');
+      b.appendChild(icon('plus'));
+      b.appendChild(el('span', '', k[1]));
+      ents.appendChild(b);
+    });
+    z.appendChild(ents);
+    var zs = el('p', 'crs-say crs-zone-say');
+    zs.setAttribute('role', 'status');
+    zs.setAttribute('aria-live', 'polite');
+    z.appendChild(zs);
+    z.appendChild(el('div', 'crs-formbox'));
+    slot.parentNode.insertBefore(z, slot.nextSibling);
+    bindOn(z, slot);
+    return z;
+  }
+  function zsay(slot, text) {
+    var zs = zoneOf(slot).querySelector('.crs-zone-say');
+    if (zs) zs.textContent = text || '';
+  }
+  /* 欄の外で開いている追加の面（無ければ null）。 */
+  function zoneForm(slot) {
+    var z = zoneIf(slot);
+    return z ? z.querySelector('.crs-formbox > .crs-form') : null;
+  }
+  /* 欄の状態が変わるたびに呼ぶ（put）。都市が変わったら、開いていた追加の面を閉じ、一言を消す。 */
+  function paintZone(slot, st, v) {
+    var z = zoneOf(slot);
+    if (z.getAttribute('data-for') === st.key) return;
+    z.setAttribute('data-for', st.key);
+    var f = zoneForm(slot);
+    if (f) closeForm(slot, st, f, true);
+    zsay(slot, '');
+  }
+  /* 入口を押した。つながっていない・この会社に足せない時は一言だけ（面は開かない ＝ 保存できないものを打たせない）。 */
+  function pressEnt(slot, st, b) {
+    var c = CACHE[st.key];
+    if (slot.getAttribute('data-state') === 'off') { zsay(slot, T.off); return; }                   /* つながっていない：面は開かない */
+    if (c && c.state === 'open' && c.can_add !== true) { zsay(slot, SAY_ADD.bad_airline); return; }   /* この会社には、いま足せない */
+    zsay(slot, '');
+    openForm(slot, st, b, null, { kind: b.getAttribute('data-kind') });
+  }
+
   // ══ 追加の面 ═══════════════════════════════════════════════
   var SEQ = 0;
   function field(label, node, id) {
@@ -817,24 +954,36 @@
     if (hf) hf.hidden = !(kr && kr.value === 'hotel');
   }
 
-  /* it を渡すと「修正」の面（★本人のものだけ。今の中身を入れて開く。写真はここでは足さない）。 */
-  function openForm(slot, st, opener, it) {
-    var host = it ? opener.closest('.crs-card') : opener.parentNode;
+  /* it を渡すと「修正」の面（★本人のものだけ。今の中身を入れて開く。写真はここでは足さない）。
+     it が無ければ追加の面（欄の外の面の中に開く）。pre ＝ 選んでおく種類（kind）と、入れておく字（name・address・maps_url・stay_hours・note）。 */
+  function openForm(slot, st, opener, it, pre) {
+    var zone = it ? null : zoneOf(slot), host = it ? opener.closest('.crs-card') : zone.querySelector('.crs-formbox');
     if (!host || host.querySelector('.crs-form')) return;
-    var n = ++SEQ, pre = 'crs-f' + n + '-';
+    var n = ++SEQ, idp = 'crs-f' + n + '-';
     var form = el('form', 'crs-form');
     form.noValidate = true;
     form.__opener = opener;
     if (it) form.__edit = str(it.id);
 
+    /* 追加の面の頭：どの会社・どの都市・どの空港に足すのか（ここでは選び直させない）。 */
+    if (!it) {
+      var code = st.key.split('|')[0];
+      var cx = el('p', 'crs-ctx'), cn = el('span', '', code);
+      airlineName(code).then(function (nm) { cn.textContent = nm; });
+      cx.appendChild(cn);
+      cx.appendChild(el('span', '', cityOf(slot)));
+      cx.appendChild(el('span', 'crs-ctx-code', st.key.split('|')[1]));
+      form.appendChild(cx);
+    }
+
     var fs = el('fieldset', 'crs-f crs-kinds');
     fs.appendChild(el('legend', 'crs-lb', T.fKind));
     var seg = el('div', 'crs-seg');
-    KINDS.forEach(function (k, i) {
+    KINDS.forEach(function (k) {
       var lb = el('label', 'crs-seg-i');
       var r = d.createElement('input');
-      r.type = 'radio'; r.name = pre + 'kind'; r.value = k[0];
-      if (it ? k[0] === it.kind : i === 0) r.checked = true;
+      r.type = 'radio'; r.name = idp + 'kind'; r.value = k[0];
+      if (it ? k[0] === it.kind : k[0] === ((pre && pre.kind) || 'hotel')) r.checked = true;
       lb.appendChild(r);
       lb.appendChild(el('span', '', k[1]));
       seg.appendChild(lb);
@@ -842,24 +991,25 @@
     fs.appendChild(seg);
     form.appendChild(fs);
 
-    form.appendChild(field(T.fName, input('text', 80, { 'data-k': 'name', required: '' }), pre + 'name'));
-    form.appendChild(field(T.fAddr, input('text', 200, { 'data-k': 'address' }), pre + 'addr'));
+    form.appendChild(field(T.fName, input('text', 80, { 'data-k': 'name', required: '' }), idp + 'name'));
+    form.appendChild(field(T.fAddr, input('text', 200, { 'data-k': 'address' }), idp + 'addr'));
     form.appendChild(field(T.fMap, input('url', 500,
-      { 'data-k': 'maps_url', inputmode: 'url', placeholder: 'https://maps.app.goo.gl/…' }), pre + 'map'));
+      { 'data-k': 'maps_url', inputmode: 'url', placeholder: 'https://maps.app.goo.gl/…' }), idp + 'map'));
     var hf = field(T.fHours, input('text', 3,
-      { 'data-k': 'stay_hours', inputmode: 'numeric', pattern: '[0-9]*', 'aria-describedby': pre + 'hours-u' }), pre + 'hours');
+      { 'data-k': 'stay_hours', inputmode: 'numeric', pattern: '[0-9]*', 'aria-describedby': idp + 'hours-u' }), idp + 'hours');
     hf.className += ' crs-hf';
     var hu = el('span', 'crs-unit', T.fHoursU);
-    hu.id = pre + 'hours-u';
+    hu.id = idp + 'hours-u';
     var hrow = el('div', 'crs-hrow');
     hrow.appendChild(hf.lastChild);
     hrow.appendChild(hu);
     hf.appendChild(hrow);
     form.appendChild(hf);
-    form.appendChild(field(T.fNote, input('area', 500, { 'data-k': 'note', rows: '3' }), pre + 'note'));
+    form.appendChild(field(T.fNote, input('area', 500, { 'data-k': 'note', rows: '3' }), idp + 'note'));
 
+    var put1 = function (k, v) { var i = form.querySelector('[data-k="' + k + '"]'); if (i) i.value = str(v); };
+    var c0 = CACHE[st.key];
     if (it) {
-      var put1 = function (k, v) { var i = form.querySelector('[data-k="' + k + '"]'); if (i) i.value = str(v); };
       put1('name', it.name);
       put1('address', it.address);
       put1('maps_url', mapsOk(it.maps_url));
@@ -867,6 +1017,13 @@
       var h0 = it.kind === 'hotel' ? int(it.stay_hours) : 0;
       put1('stay_hours', h0 >= 1 && h0 <= 240 ? String(h0) : '');
     } else {
+      /* 入れておく字（字だけ。ほかの形のものは入れない）。 */
+      if (pre) ['name', 'address', 'maps_url', 'stay_hours', 'note'].forEach(function (k) {
+        if (typeof pre[k] === 'string') { var i = form.querySelector('[data-k="' + k + '"]'); if (i) i.value = pre[k]; }
+      });
+    }
+    /* 写真を足せるのは、見てよい人（オーナーと、オーナーが承認した人）だけ ＝ 一覧が開いていて、足せる会社の時だけ欄を作る。 */
+    if (!it && c0 && c0.state === 'open' && c0.can_add === true) {
       var pf = el('div', 'crs-f crs-pf');
       pf.appendChild(el('span', 'crs-lb', T.fPhoto));
       var prow = el('div', 'crs-prow');
@@ -895,11 +1052,19 @@
     form.appendChild(end);
 
     host.appendChild(form);
-    opener.setAttribute('aria-expanded', 'true');
-    opener.hidden = true;
-    say(slot, '');
+    if (it) {
+      opener.setAttribute('aria-expanded', 'true');
+      opener.hidden = true;
+      say(slot, '');
+    } else {
+      /* 追加の面が開いているあいだ、入口の列は隠す（閉じると戻る）。 */
+      zone.querySelector('.crs-ents').hidden = true;
+      if (opener) opener.setAttribute('aria-expanded', 'true');
+      zsay(slot, '');
+    }
+    /* 押して開いた時だけ、名前の欄へ移る（下書きから戻した面は、焦点を取らない）。 */
     var first = form.querySelector('[data-k="name"]');
-    if (first) first.focus();
+    if (first && opener) first.focus();
   }
 
   function unpick(st, form) {
@@ -911,12 +1076,19 @@
     var fi = form.querySelector('[data-pick]');
     if (fi) fi.value = '';
   }
-  function closeForm(slot, st, form) {
+  /* quiet ＝ 焦点を入口へ戻さない（都市が変わって閉じる時）。 */
+  function closeForm(slot, st, form, quiet) {
     /* 選んだ写真を持っているのは追加の面だけ。修正の面を閉じても、開いたままの追加の面の写真は手放さない。 */
     if (form.querySelector('[data-pick]')) unpick(st, form);
-    var host = form.parentNode, opener = form.__opener || host.querySelector('[data-act="form"]');
+    var host = form.parentNode, zone = host.classList.contains('crs-formbox') ? host.parentNode : null;
+    var opener = form.__opener || (zone ? zone.querySelector('.crs-ent') : null);
     host.removeChild(form);
-    if (opener) { opener.hidden = false; opener.setAttribute('aria-expanded', 'false'); opener.focus(); }
+    if (zone) {
+      var row = zone.querySelector('.crs-ents');
+      row.hidden = false;
+      [].forEach.call(row.querySelectorAll('.crs-ent'), function (b) { b.setAttribute('aria-expanded', 'false'); });
+    } else if (opener) { opener.hidden = false; opener.setAttribute('aria-expanded', 'false'); }
+    if (opener && !quiet) opener.focus();
   }
 
   /* 追加の面で写真を選んだ。描き直したものを見せる（＝送られるのはこの絵）。 */
@@ -948,6 +1120,8 @@
     st.busy = on;
     var box = slot.querySelector('.crs');
     if (box) { if (on) box.setAttribute('data-busy', '1'); else box.removeAttribute('data-busy'); }
+    var z = zoneIf(slot);
+    if (z) { if (on) z.setAttribute('data-busy', '1'); else z.removeAttribute('data-busy'); }
   }
 
   function submit(slot, st, form) {
@@ -994,16 +1168,20 @@
     rpc('pv_stay_add', {
       airline: k[0], iata: k[1], kind: kind, name: name,
       address: val('address') || null, maps_url: url || null, note: val('note') || null,
-      stay_hours: hours
+      city: cityOf(slot), stay_hours: hours
     }).then(function (v) {
       if (ST.get(slot) !== st) return;
       if (bad(v)) {
-        if (v && v.status === 'locked') { load(slot, { fresh: true }); return; }   /* 資格が変わった */
+        /* 面は欄の外に在って描き直されないので、「送信中…」のまま残さない。 */
+        if (v && v.status === 'locked') { busy(slot, st, false); fsay(form, SAY_FAIL); load(slot, { fresh: true }); return; }   /* 資格が変わった */
         busy(slot, st, false);
         fsay(form, (v && SAY_ADD[v.status]) || SAY_FAIL);
         return;
       }
       var id = v.item && str(v.item.id);
+      /* 面は欄の外に在るので、読み直しでは消えない。閉じて、押した入口へ焦点を戻す（pic は字のまま持っている）。 */
+      busy(slot, st, false);
+      closeForm(slot, st, form);
       if (!pic || !id) { load(slot, { fresh: true, say: T.added }); return; }
       return sendPhoto(id, pic).then(function (pv) {
         if (ST.get(slot) !== st) return;
@@ -1085,17 +1263,18 @@
     if (b && b.getAttribute) { b.removeAttribute('data-sure'); b.textContent = T.del; b.focus(); }
   }
 
-  // ══ 押されたとき（欄ごとに1回だけ結ぶ）═════════════════════
-  function bind(slot) {
-    if (slot.__crsBound) return;
-    slot.__crsBound = true;
-    slot.addEventListener('click', function (e) {
+  // ══ 押されたとき（欄と、欄の外の面に、1回ずつだけ結ぶ）═══════════
+  function bindOn(node, slot) {
+    if (node.__crsBound) return;
+    node.__crsBound = true;
+    node.addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('[data-act]') : null;
       var st = ST.get(slot);
-      if (!b || !st || !slot.contains(b)) return;
+      if (!b || !st || !node.contains(b)) return;
       var act = b.getAttribute('data-act');
       if (act === 'retry')       { delete CACHE[st.key]; load(slot, { fresh: true }); }
-      else if (act === 'form')   openForm(slot, st, b);
+      else if (act === 'ent')    pressEnt(slot, st, b);
+      else if (act === 'ask')    ask(slot, b);
       else if (act === 'edit')   { if (b.__crsItem) openForm(slot, st, b, b.__crsItem); }
       else if (act === 'unform') closeForm(slot, st, b.closest('.crs-form'));
       else if (act === 'unpick') unpick(st, b.closest('.crs-form'));
@@ -1105,14 +1284,14 @@
       else if (act === 'del')    { if (b.getAttribute('data-sure')) moderate(slot, st, b, 'del'); else arm(b); }
       else if (act === 'pub' || act === 'rej') moderate(slot, st, b, act);
     });
-    slot.addEventListener('change', function (e) {
+    node.addEventListener('change', function (e) {
       var fi = e.target, st = ST.get(slot);
       if (fi && fi.type === 'radio' && fi.closest('.crs-form')) { syncKind(fi.closest('.crs-form')); return; }
       if (!st || !fi || fi.type !== 'file') return;
       if (fi.getAttribute('data-pick')) picked(slot, st, fi);
       else if (fi.getAttribute('data-place')) addPhoto(slot, st, fi);
     });
-    slot.addEventListener('submit', function (e) {
+    node.addEventListener('submit', function (e) {
       var st = ST.get(slot);
       e.preventDefault();
       if (st && e.target && e.target.classList.contains('crs-form')) submit(slot, st, e.target);
@@ -1131,7 +1310,7 @@
   /* 戻る・進むで、手放したあとの画面がそのまま戻ってきたとき（写真の URL はもう無い）。
      離れているあいだにログインが変わっているかもしれないので、持っている答えも使い回さない。 */
   w.addEventListener('pageshow', function (e) {
-    if (e.persisted) { CACHE = {}; LIVE.slice().forEach(drop); scan(); }
+    if (e.persisted) { CACHE = {}; vqReset(); LIVE.slice().forEach(drop); scan(); }
   });
   /* ほかの画面から戻ってきたとき、鍵が消えていたら取り直す（消えていなければ何もしない＝通信もしない）。 */
   d.addEventListener('visibilitychange', function () {

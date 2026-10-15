@@ -90,7 +90,7 @@
 
   /* ── DOM から読む（字だけ。数を作らない） ─────────────────────────────── */
   function txt(el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; }
-  function inLive(el) { return !!(el && el.closest && el.closest('.crl')); }
+  function inLive(el) { return !!(el && el.closest && el.closest('.crl, .crs-zone')); }
   function pick(scope, attr, role) {
     var list = scope.querySelectorAll('[' + attr + '="' + role + '"]');
     for (var i = 0; i < list.length; i++) if (!inLive(list[i])) return list[i];

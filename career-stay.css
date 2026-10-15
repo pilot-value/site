@@ -21,16 +21,26 @@
    入らない幅では下の行へ回る。 */
 .crs-lock > span:not(.crs-icw){flex:1 1 12em;min-width:0}
 .crs-lock > a{margin-left:auto}
+/* 会員の鍵の1行：申し込み中は「確認待ち」を右に添える（字の幅だけ）。まだなら「確認を申し込む」を1行の下に置く（形は .crs-act）。 */
+.crs-lock > span.crs-vq{flex:none;margin-left:auto}
+.crs-lock + .crs-vq{margin-top:8px}
 .crs-err{justify-content:space-between;flex-wrap:wrap}
 /* この板は career.html の外（会社ページ）でも使う。hidden を display の指定に負けさせない。 */
 .crs [hidden]{display:none !important}
+/* 欄の外の面（.crs-zone）にも同じ決まり。追加の面は .crs の外に出たので、ここが無いと「ステイ時間」の欄や入口の列が隠れない。 */
+.crs-zone [hidden]{display:none !important}
+.crs-zone{display:grid;gap:12px;min-width:0;margin-top:12px}
+.crs-zone[data-busy]{pointer-events:none;opacity:.6}
+.crs-ents{display:flex;flex-wrap:wrap;gap:8px}
+.crs-ctx{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:13px;font-weight:700;color:var(--pv-ink-2)}
+.crs-ctx-code{padding:1px 8px;border:1px solid var(--pv-line);border-radius:999px;font:700 12px/1.5 Inter,sans-serif;letter-spacing:.04em}
+.crs-formbox:empty{display:none}
 
 /* 0件で、追加できる人。破線の枠に「ここから足せる」を置く（追加の入口はこの中）。 */
 .crs-empty{display:grid;justify-items:start;gap:6px;padding:18px 16px;
            border:1.5px dashed var(--pv-line);border-radius:var(--pv-r);background:var(--pv-bg-sub)}
 .crs-empty-t{font-size:15px;font-weight:700;line-height:1.5;letter-spacing:-.01em;color:var(--pv-ink)}
 .crs-empty-s{font-size:13px;line-height:1.7;color:var(--pv-ink-2)}
-.crs-empty .crs-add{width:100%;margin-top:8px}
 
 /* 読み込み中の骨組み。 */
 .crs-skel{display:grid;gap:10px;padding:16px;border:1px solid var(--pv-line);border-radius:var(--pv-r);
@@ -117,7 +127,6 @@
 .crs-say:empty{display:none}
 
 /* ── 追加の面 ───────────────────────────────────────────────────── */
-.crs-add{display:grid;justify-items:start;gap:0}
 .crs-form{display:grid;gap:14px;width:100%;max-width:560px;padding:16px;
           border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-bg-sub);
           animation:crs-in .3s var(--pv-ease) both}
