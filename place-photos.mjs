@@ -556,7 +556,7 @@ export const PHOTOS = {
       author: 'Wing1990hk', ...BY_3, changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Dayuan_District_201506.jpg' },
   ],
-  luzhu: [
+  nankan: [
     { file: 'town-luzhu', orig: 'town-luzhu.jpg', subject: '蘆竹区南崁の大通りと高層マンション', w: 960, h: 720,
       author: 'Foxy1219', ...BY_SA_4, changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Nankan_Luzhu_2018.jpg' },

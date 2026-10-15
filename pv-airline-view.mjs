@@ -193,7 +193,7 @@ function etihad() {
   };
 }
 /* エティハドの家賃の欄の列（1つの定数。列を足すときはここだけ）。 */
-const COLS_EY = [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']];
+const COLS_EY = [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室'], ['bed3', '3寝室']];
 /* 値を、その欄の列だけにする（列に無い鍵は渡さない）。 */
 const only = (cols, v) => Object.fromEntries(Object.entries(v).filter(([k]) => cols.some(c => c[0] === k)));
 

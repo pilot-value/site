@@ -31,7 +31,7 @@
  *   pick_ja の無い行は検査で落ちる（理由を書かずに地区を足せない）。
  *   新しい行の pick_ja は、確かめられる事実を1つ（出どころ・引用・確かめた日つき）。
  * ・lead: true は、最初の1画面に出す1行（街に1つ）。lead_col はそのとき出す列。
- * ・台北の「更新至9/28」には年が書いていない。開いた日（2026-10-04）から 2026年と読んだ。
+ * ・台北の「更新至10/8」には年が書いていない。開いた日（2026-10-15）から 2026年と読んだ。
  * ・香港の Caribbean Coast と Queen's Terrace は、28Hse の地区ごとの団地一覧で
  *   いちばん上に出る団地（並びは 28Hse の既定「Popular Estate」）。地区の統計ではない。
  *
@@ -55,12 +55,13 @@ import { fileURLToPath } from 'node:url';
 import { man } from './salary-basis.mjs';
 import { squash, atText, FACTS as EYF } from './career-facts.mjs';
 
-/** 出どころの種類。会社の台帳の「会社の公表」は航空会社のことなので、ここには無い。報道も無い。 */
+/** 出どころの種類。航空会社の公表（company）は、街を選んだ理由（エバー航空の事業所がある南崁）のためだけ。報道は無い。 */
 export const SRC_KINDS = {
   portal:   '不動産ポータルの公表',
   gov:      '政府の公表',
   operator: '鉄道・空港の運営会社の公表',
   maps: 'Google マップの経路の表示',
+  company: '航空会社の公表',
 };
 
 /* 種類ごとの、出どころの置き場。ここに無い URL は検査で落ちる。 */
@@ -86,6 +87,7 @@ const HOSTS = {
     /^https:\/\/www\.keikyu\.co\.jp\//,
   ],
   maps: [/^https:\/\/www\.google\.com\/maps\/dir\//],
+  company: [/^https:\/\/www\.evaair\.com\//],
 };
 
 /** どの会社がどの街か（エティハドは career-facts.mjs）。 */
@@ -113,15 +115,17 @@ export const SITES = {
 };
 export const BAR_STATS = ['mean', 'median', 'index', 'calc_mean'];
 /* 引用に名前の無い、今までの行（名前の検査を足す前に読んだもの）。行が台帳から出たら、ここからも消す（残っていたら落ちる）。 */
-const LEGACY_NAME = new Set(['caribbean_coast', 'queens_terrace', 'taoyuan', 'dayuan', 'luzhu', 'taipei', 'daan']);
+const LEGACY_NAME = new Set(['caribbean_coast', 'queens_terrace']);
 /* 選んだ理由に出どころの無い、今までの行。同じ決まり。 */
-const LEGACY_PICK = new Set(['caribbean_coast', 'queens_terrace', 'taoyuan', 'dayuan', 'luzhu', 'taipei', 'daan']);
+const LEGACY_PICK = new Set(['caribbean_coast', 'queens_terrace']);
 
 const D4 = '2026-10-04';
 const D5 = '2026-10-05';
 const OPENED = '2026年10月に開いた時点の表示';
 /* 東京の街を選んだ理由の出どころ（京急・東京空港交通）と、運営会社の運賃表を開いて読んだ日。アットホームの日（D_ATHOME）とは別。 */
 const D_PICK = '2026-10-15';
+/* 台北・桃園の街を選んだ理由の出どころ（エバー航空・桃園メトロの票價表）と、591 の4つのページ（3つの街と桃園市）・運賃表を開いて読んだ日。 */
+const D_TPE = '2026-10-15';
 
 const S = {
   /* 東京 */
@@ -165,16 +169,18 @@ const S = {
   /* 台北・桃園 */
   r591Taoyuan: { name: '591租屋網「租金行情」桃園市', kind: 'portal',
     url: 'https://rent.591.com.tw/market/region?region_id=6&shape=0' },
-  r591Dayuan: { name: '591租屋網「租金行情」桃園市・大園區', kind: 'portal',
-    url: 'https://rent.591.com.tw/market/region?region_id=6&section_id=78&shape=0' },
   r591Luzhu: { name: '591租屋網「租金行情」桃園市・蘆竹區', kind: 'portal',
     url: 'https://rent.591.com.tw/market/region?region_id=6&section_id=79&shape=0' },
-  r591Taipei: { name: '591租屋網「租金行情」台北市', kind: 'portal',
-    url: 'https://rent.591.com.tw/market/region?region_id=1&shape=0' },
-  r591Daan: { name: '591租屋網「租金行情」台北市・大安區', kind: 'portal',
-    url: 'https://rent.591.com.tw/market/region?region_id=1&section_id=5&shape=0' },
+  r591Qingpu: { name: '591租屋網「租金行情」青埔-A18桃園高鐵（生活圈）', kind: 'portal',
+    url: 'https://rent.591.com.tw/market/region?region_id=6&section_id=78&living_circle_id=498&shape=0' },
+  r591Linkou: { name: '591租屋網「租金行情」新北市・林口區', kind: 'portal',
+    url: 'https://rent.591.com.tw/market/region?region_id=3&section_id=46&shape=0' },
   tymFare: { name: '桃園メトロ「Fares」運賃表', kind: 'operator', published: '2024-10-16',
     url: 'https://www.tymetro.com.tw/tymetro-new/en/_images/document/travel-guide/price.pdf' },
+  tymPrice: { name: '桃園メトロ「票價表」', kind: 'operator',
+    url: 'https://www.tymetro.com.tw/tymetro-new/tw/_images/document/travel-guide/price.pdf' },
+  evaOffice: { name: 'エバー航空「飛航人員福利」', kind: 'company',
+    url: 'https://www.evaair.com/zh-tw/about-eva-air/careers/benefits/pilots/' },
   tycgMrt: { name: '桃園市政府の観光案内「Taoyuan Airport MRT」', kind: 'gov',
     url: 'https://travel.tycg.gov.tw/en/traffic/airportmrt' },
 };
@@ -206,12 +212,13 @@ const hse = (key, ja, pick_ja, src, value, quote, more = {}) => ({
   key, ja, pick_ja, value, cur: 'HKD', per: 'month', ...HSE_AT, as_of: D5, src, cond_ja: HSE_COND, quote, ...more,
 });
 
-const R591_AT = { at: '2026-09-28', at_ja: '2026年9月28日更新（直近3か月）' };
+const R591_AT = { at: '2026-10-08', at_ja: '2026年10月8日更新（直近3か月）' };
 const R591_COND = '募集家賃で、成約した家賃ではない。591 に載った物件の直近3か月の中央値・月額。集計は 591 独自で「僅供參考（参考まで）」。広さと管理費の扱いは書いていない';
+/** v = 獨立套房・1房・2房・3房 の額の順。ページが「數據不足」の間取りは null（value に入れない）。 */
 const r591 = (key, ja, pick_ja, src, v, quote, more = {}) => ({
   key, ja, pick_ja,
-  value: { suite: v[0], bed1: v[1], bed2: v[2], bed3: v[3] },
-  cur: 'TWD', per: 'month', ...R591_AT, as_of: D4, src, cond_ja: R591_COND, quote, ...more,
+  value: Object.fromEntries([['suite', v[0]], ['bed1', v[1]], ['bed2', v[2]], ['bed3', v[3]]].filter(([, n]) => n != null)),
+  cur: 'TWD', per: 'month', ...R591_AT, as_of: D_TPE, src, cond_ja: R591_COND, quote, ...more,
 });
 
 /* Google マップの経路の行。調べた人が 2026-10-11 に見た表示を、渡された記録のとおりに写す（開き直さない）。 */
@@ -513,33 +520,95 @@ export const LIVING = {
     measure_ja: '募集の家賃の中央値',
     cols: [['suite', '独立した1室（獨立套房）'], ['bed1', '1部屋（1房）'], ['bed2', '2部屋（2房）'], ['bed3', '3部屋（3房）']],
     lead_col: 'bed2',
-    airports: [['TPE', '桃園国際空港']], ends: {}, site: 'r591', stat: 'median',
+    airports: [['TPE', '桃園国際空港']],
+    /* 経路が着く場所（Google マップがその場所に決めたとおり。駅は駅、建物は建物）。 */
+    ends: {
+      tpe_t2: { iata: 'TPE', ja: '桃園国際空港 第2ターミナル', kind: 'terminal' },
+      tpe_a13: { iata: 'TPE', ja: '機場第二航廈站（A13）', kind: 'station' },
+    },
+    site: 'r591', stat: 'median', by_town: true, card_family: 'transit',
     bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1房', bed2: '2房', bed3: '3房' }, refs: [],
+    /* 街の家賃（591 の「租金行情」）。2026年10月15日に3つのページを開いて読んだ（どれも「更新至10/8」）。 */
     rents: [
-      r591('taoyuan', '桃園市', '桃園国際空港がある市', S.r591Taoyuan, [9500, 16000, 22000, 25000],
-        '獨立套房 9,500 元/月 比去年 +5.6% 1房 16,000 元/月 比去年 +4.2% 2房 22,000 元/月 比去年 持平 3房 25,000 元/月 比去年 持平', { lead: true, iata: 'TPE' }),
-      r591('dayuan', '桃園市 大園區', '空港の駅（A12 機場第一航廈）の住所がある区', S.r591Dayuan, [9000, 18250, 22500, 24800],
-        '獨立套房 9,000 元/月 比去年 -5.3% 1房 18,250 元/月 比去年 +7.4% 2房 22,500 元/月 比去年 +12.5% 3房 24,800 元/月 比去年 -0.8%', { iata: 'TPE' }),
-      r591('luzhu', '桃園市 蘆竹區', 'エバー航空の本社の住所がある区', S.r591Luzhu, [10000, 15750, 23000, 26950],
-        '獨立套房 10,000 元/月 比去年 -9.1% 1房 15,750 元/月 比去年 -1.6% 2房 23,000 元/月 比去年 +4.5% 3房 26,950 元/月 比去年 +6.9%'),
-      r591('taipei', '台北市', '台北の市全体', S.r591Taipei, [15900, 30000, 35000, 44999],
-        '獨立套房 15,900 元/月 比去年 +2.6% 1房 30,000 元/月 比去年 +7.1% 2房 35,000 元/月 比去年 +7.7% 3房 44,999 元/月 比去年 +7.1%'),
-      r591('daan', '台北市 大安區', '都心の区の例', S.r591Daan, [17650, 35000, 40998, 53000],
-        '獨立套房 17,650 元/月 比去年 +0.9% 1房 35,000 元/月 比去年 持平 2房 40,998 元/月 比去年 +2.5% 3房 53,000 元/月 比去年 +1.9%'),
+      r591('nankan', '南崁', 'エバー航空の事業所がある', S.r591Luzhu, [10000, 15750, 23000, 26950],
+        '獨立套房 10,000 元/月 比去年 -9.1% 1房 15,750 元/月 比去年 -1.6% 2房 23,000 元/月 比去年 +4.5% 3房 26,950 元/月 比去年 +6.9%',
+        { lead: true, rent_area_ja: '蘆竹區', name_quote: '蘆竹區租金行情',
+          pick_src: S.evaOffice, pick_quote: '本公司位於南崁的辦公園區', pick_as_of: D_TPE }),
+      r591('qingpu', '青埔', '桃園機場捷運 A18（高鐵桃園站）がある', S.r591Qingpu, [19000, 23000, 26000, 32000],
+        '獨立套房 19,000 元/月 比去年 持平 1房 23,000 元/月 比去年 持平 2房 26,000 元/月 比去年 +4% 3房 32,000 元/月 比去年 +6.7%',
+        { sub_ja: '高鐵桃園站 A18', name_quote: '青埔-A18桃園高鐵租金行情',
+          pick_src: S.tymPrice, pick_quote: 'A18 高鐵桃園站', pick_as_of: D_TPE }),
+      r591('linkou', '林口', '桃園機場捷運 A9（林口站）がある', S.r591Linkou, [14250, 25000, 29000, 35000],
+        '獨立套房 14,250 元/月 比去年 +14% 1房 25,000 元/月 比去年 +4.2% 2房 29,000 元/月 比去年 +3.6% 3房 35,000 元/月 比去年 +6.1%',
+        { rent_area_ja: '林口區', sub_ja: 'A9 林口站', name_quote: '林口區租金行情',
+          pick_src: S.tymPrice, pick_quote: 'A9 林口站', pick_as_of: D_TPE }),
     ],
     rent_basis: [
       { key: 'what', ja: '何の額か',
         value: '591 に載った物件の家賃から、591 が独自の集計で出した額',
-        ...R591_AT, as_of: D4, src: S.r591Taoyuan,
+        ...R591_AT, as_of: D_TPE, src: S.r591Taoyuan,
         quote: '數據來源：根據591網站刊登的物件租金，使用專有的聚合邏輯計算得出' },
-      { key: 'period', ja: 'いつの・どの数字か', value: '直近3か月の中央値（9月28日更新）。参考まで',
-        ...R591_AT, as_of: D4, src: S.r591Taoyuan,
-        quote: '近3個月 中位數，更新至9/28，僅供參考' },
+      { key: 'period', ja: 'いつの・どの数字か', value: '直近3か月の中央値（10月8日更新）。参考まで',
+        ...R591_AT, as_of: D_TPE, src: S.r591Taoyuan,
+        quote: '近3個月 中位數，更新至10/8，僅供參考' },
     ],
     commute: [
+      /* Google マップの表示（2026-10-11 に調べた人が見たもの・取り直していない。時刻は日本時間で記録してある）。街ごと・着く場所ごと・手段ごとに1行。 */
+      gm('nankan', 'tpe_t2', ['bus'], { from_ja: '南崁（南崁路）',
+        to_ja: '桃園国際空港 第2ターミナル',
+        line: '1841',
+        value: { walk_total: 28 },
+        ride: 25,
+        seen: '2026-10-11T15:06',
+        url: 'https://www.google.com/maps/dir/Nankan+Rd,+Luzhu+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+338/Terminal+2,+Dayuan+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+337/@25.0689332,121.2215301,13z/am=t/data=!4m14!4m13!1m5!1m1!1s0x34681fd8483f9d1f:0x3c564263123381cb!2m2!1d121.2939292!2d25.0474072!1m5!1m1!1s0x34429fc42410536d:0x7bfbe88240f6c391!2m2!1d121.2321808!2d25.0774948!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '14:08 - 14:36 （28 分） ; 1841 Via Nankan ; 25 分（16 駅乗車）' }, 'jst'),
+      gm('nankan', 'tpe_t2', ['car'], { from_ja: '南崁（南崁路）',
+        to_ja: '桃園国際空港 第2ターミナル',
+        value: { drive: 18 },
+        seen: '2026-10-11T16:06',
+        url: 'https://www.google.com/maps/dir/Nankan+Rd,+Luzhu+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+338/Terminal+2,+Dayuan+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+337/@25.0559997,121.1747877,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x34681fd8483f9d1f:0x3c564263123381cb!2m2!1d121.2939292!2d25.0474072!1m5!1m1!1s0x34429fc42410536d:0x7bfbe88240f6c391!2m2!1d121.2321808!2d25.0774948!3e0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 18 分 15.2 km 國道2號 経由' }, 'jst'),
+      gm('qingpu', 'tpe_a13', ['train'], { from_ja: '高鐵桃園站（A18）',
+        to_ja: '機場第二航廈站（A13）',
+        line: '桃園機場捷運',
+        value: { shown_total: 16 },
+        seen: '2026-10-11T16:04',
+        url: 'https://www.google.com/maps/dir/%E6%A1%83%E5%9C%92%E6%A9%9F%E5%A0%B4%E6%8D%B7%E9%81%8B+A18%E9%AB%98%E9%89%84%E6%A1%83%E5%9C%92%E7%AB%99,+32056+%E5%8F%B0%E6%B9%BE+Taoyuan+City,+Zhongli+District,+Qingpu+Village,+Section+1,+Gaotie+N+Rd,+5%E8%99%9F/Airport+Terminal+2,+B2No.+9-1%E8%99%9F,+Hangzhan+S+Rd,+Sanshi+Village,+Dayuan+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+337/@25.0452859,121.1796384,13z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x34682107ccd0899f:0xe2b48ace5968d6ef!2m2!1d121.2140636!2d25.01374!1m5!1m1!1s0x34429fc4308db401:0x9927b1cc12246782!2m2!1d121.2315742!2d25.0767884!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '公共交通機関 16 分 15:12 - 15:28' }, 'jst'),
+      gm('qingpu', 'tpe_a13', ['car'], { from_ja: '高鐵桃園站（A18）',
+        to_ja: '機場第二航廈站（A13）',
+        value: { drive: 20 },
+        seen: '2026-10-11T16:04',
+        url: 'https://www.google.com/maps/dir/%E6%A1%83%E5%9C%92%E6%A9%9F%E5%A0%B4%E6%8D%B7%E9%81%8B+A18%E9%AB%98%E9%89%84%E6%A1%83%E5%9C%92%E7%AB%99,+32056+%E5%8F%B0%E6%B9%BE+Taoyuan+City,+Zhongli+District,+Qingpu+Village,+Section+1,+Gaotie+N+Rd,+5%E8%99%9F/Airport+Terminal+2,+B2No.+9-1%E8%99%9F,+Hangzhan+S+Rd,+Sanshi+Village,+Dayuan+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+337/@25.0452859,121.1796384,13z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x34682107ccd0899f:0xe2b48ace5968d6ef!2m2!1d121.2140636!2d25.01374!1m5!1m1!1s0x34429fc4308db401:0x9927b1cc12246782!2m2!1d121.2315742!2d25.0767884!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 20 分' }, 'jst'),
+      gm('linkou', 'tpe_a13', ['train'], { from_ja: '林口站（A9）',
+        to_ja: '機場第二航廈站（A13）',
+        line: '桃園機場捷運',
+        value: { shown_total: 19 },
+        seen: '2026-10-11T15:58',
+        url: 'https://www.google.com/maps/dir/%E6%9E%97%E5%8F%A3%E9%A7%85+244+%E5%8F%B0%E6%B9%BE+New+Taipei+City,+Linkou+District,+Bade+Rd,+24453290+%E8%99%9F/Airport+Terminal+2,+B2No.+9-1%E8%99%9F,+Hangzhan+S+Rd,+Sanshi+Village,+Dayuan+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+337/@25.0780499,121.2140122,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3442a72e5f75a141:0xcf1f6425ac95319c!2m2!1d121.3613465!2d25.0658036!1m5!1m1!1s0x34429fc4308db401:0x9927b1cc12246782!2m2!1d121.2315742!2d25.0767884!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '公共交通機関 19 分 15:11 - 15:30' }, 'jst'),
+      gm('linkou', 'tpe_a13', ['car'], { from_ja: '林口站（A9）',
+        to_ja: '機場第二航廈站（A13）',
+        value: { drive: 21 },
+        seen: '2026-10-11T15:58',
+        url: 'https://www.google.com/maps/dir/%E6%9E%97%E5%8F%A3%E9%A7%85+244+%E5%8F%B0%E6%B9%BE+New+Taipei+City,+Linkou+District,+Bade+Rd,+24453290+%E8%99%9F/Airport+Terminal+2,+B2No.+9-1%E8%99%9F,+Hangzhan+S+Rd,+Sanshi+Village,+Dayuan+District,+Taoyuan+City,+%E5%8F%B0%E6%B9%BE+337/@25.0780499,121.2140122,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3442a72e5f75a141:0xcf1f6425ac95319c!2m2!1d121.3613465!2d25.0658036!1m5!1m1!1s0x34429fc4308db401:0x9927b1cc12246782!2m2!1d121.2315742!2d25.0767884!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 21 分' }, 'jst'),
+      /* 運営会社の運賃（2026-10-15 に桃園メトロの票價表を開いて読んだ）。quote は、その額のますが在る表の行（駅の名前は表の絵の字で、字の層には無い）。 */
+      { key: 'tpe_mrt_a18_fare', town: 'qingpu', iata: 'TPE', mode: 'train', ja: '桃園機場捷運：高鐵桃園站（A18）→ 機場第二航廈站（A13）',
+        value: 35, cur: 'TWD',
+        at: '2026-10', at_ja: OPENED, as_of: D_TPE, src: S.tymPrice,
+        cond_ja: '片道・1人（全票・單程票）',
+        quote: '155 155 145 145 145 110 90 90 90 55 45 35 35 35 25 25 25' },
+      { key: 'tpe_mrt_a9_fare', town: 'linkou', iata: 'TPE', mode: 'train', ja: '桃園機場捷運：林口站（A9）→ 機場第二航廈站（A13）',
+        value: 60, cur: 'TWD',
+        at: '2026-10', at_ja: OPENED, as_of: D_TPE, src: S.tymPrice,
+        cond_ja: '片道・1人（全票・單程票）',
+        quote: '160 140 115 115 115 80 60 60 60 25 25 25' },
+      /* 台北車站からの行（街の鍵が無い ＝「出典」の中だけ）。 */
       { key: 'tpe_mrt_express_time', iata: 'TPE', mode: 'train', ja: '桃園機場捷運（直達車）：台北車站 → 空港',
         value: { t1: 35, t2: 39 }, unit: '分',
-        at: '2026-10', at_ja: OPENED, as_of: D4, src: S.tycgMrt, lead: true,
+        at: '2026-10', at_ja: OPENED, as_of: D4, src: S.tycgMrt,
         cond_ja: '直達車の、駅から駅までの時間。1つ目が第1ターミナル駅・2つ目が第2ターミナル駅。待ち時間は含まない',
         quote: 'From Taipei Main Station to Taiwan Taoyuan International Airport Terminal 1 Station, it only takes 35 minutes by Express Train, and takes 39 minutes to Terminal 2 Station.' },
       { key: 'tpe_mrt_commuter_time', iata: 'TPE', mode: 'train', ja: '桃園機場捷運（普通車）：台北車站 → 空港 第1ターミナル駅',
@@ -558,8 +627,71 @@ export const LIVING = {
 
 /* アブダビ。家賃の行は career-facts.mjs のまま（ここへ写さない）。ここに在るのは、空港までの移動と、棒にする間取りだけ。
    街の鍵は career-facts.mjs の rents の key。bars・words は読み口（pv-airline-view.mjs）がここから読む。 */
-export const ABUDHABI = { airports: [['AUH', 'ザーイド国際空港']], ends: {}, site: 'bayut', stat: 'mean',
-  bars: ['bed1', 'bed2'], words: { bed1: '1-Bed', bed2: '2-Bed' }, commute: [] };
+export const ABUDHABI = { airports: [['AUH', 'ザーイド国際空港']],
+  /* 経路が着く場所（Google マップがその場所に決めたとおり。空港の代表の地点は、ターミナルとは言わない）。 */
+  ends: {
+    auh_ta: { iata: 'AUH', ja: 'ザーイド国際空港 ターミナルA', kind: 'terminal' },
+    auh: { iata: 'AUH', ja: 'ザーイド国際空港', kind: 'airport' },
+  },
+  site: 'bayut', stat: 'mean', by_town: true, card_family: 'car',
+  bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1-Bed', bed2: '2-Bed', bed3: '3-Bed' },
+  commute: [
+    /* Google マップの表示（2026-10-11 に調べた人が見たもの・取り直していない。時刻は日本時間で記録してある。アル・リーム島の2行は、
+       記録に時刻が無い ＝ 日だけ）。街ごと・着く場所ごと・手段ごとに1行。並びは career-facts.mjs の街の順。
+       運賃の行は無い（運営会社は運賃の仕組みだけで、区間の額を出していない）。 */
+    gm('khalifa', 'auh_ta', ['car'], { from_ja: 'ハリファ・シティ',
+      to_ja: 'ザーイド国際空港 ターミナルA',
+      value: { drive: 12 },
+      seen: '2026-10-11T15:08',
+      url: 'https://www.google.com/maps/dir/%E3%82%AB%E3%83%AA%E3%83%BC%E3%83%95%E3%82%A1%E3%83%BB%E3%82%B7%E3%83%86%E3%82%A3,+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6+%E3%82%A2%E3%83%96%E3%83%BB%E3%83%80%E3%83%93%E3%83%BC/Zayed+International+Airport,+Terminal+A+-+Al+Matar+-+Zayed+International+Airport+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/@24.4325727,54.5488926,13z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3e5e4665e784b025:0x18856a84d3a5d8bf!2m2!1d54.5688016!2d24.4139634!1m5!1m1!1s0x3e5e48de900c71ef:0x9b379979236d755e!2m2!1d54.6421225!2d24.4514258!3e0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+      quote: '運転 12 分' }, 'jst'),
+    gm('khalifa', 'auh_ta', ['bus'], { from_ja: 'ハリファ・シティ',
+      to_ja: 'ザーイド国際空港 ターミナルA',
+      line: 'K4',
+      value: { walk_total: 44 },
+      seen: '2026-10-11T15:08',
+      url: 'https://www.google.com/maps/dir/%E3%82%AB%E3%83%AA%E3%83%BC%E3%83%95%E3%82%A1%E3%83%BB%E3%82%B7%E3%83%86%E3%82%A3,+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6+%E3%82%A2%E3%83%96%E3%83%BB%E3%83%80%E3%83%93%E3%83%BC/Zayed+International+Airport,+Terminal+A+-+Al+Matar+-+Zayed+International+Airport+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/@24.4266187,54.3487994,11z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3e5e4665e784b025:0x18856a84d3a5d8bf!2m2!1d54.5688016!2d24.4139634!1m5!1m1!1s0x3e5e48de900c71ef:0x9b379979236d755e!2m2!1d54.6421225!2d24.4514258!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+      quote: '公共交通機関 44 分 10:44 - 11:28 ; K4' }, 'jst'),
+    gm('reem', 'auh', ['car'], { from_ja: 'アル・リーム島',
+      to_ja: 'ザーイド国際空港',
+      value: { drive: 23 },
+      seen: '2026-10-11',
+      url: 'https://www.google.com/maps/dir/?api=1&origin=Al+Reem+Island,+Abu+Dhabi&destination=Zayed+International+Airport&travelmode=driving',
+      quote: '運転 23 分' }, 'jst'),
+    gm('reem', 'auh_ta', ['bus'], { from_ja: 'アル・リーム島',
+      to_ja: 'ザーイド国際空港 ターミナルA',
+      line: '71 → A2',
+      value: { walk_total: 75 },
+      seen: '2026-10-11',
+      url: 'https://www.google.com/maps/dir/Al+Reem+Island,+%E3%82%A2%E3%83%96%E3%83%BB%E3%83%80%E3%83%93%E3%83%BC+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/Zayed+International+Airport,+Terminal+A+-+Al+Matar+-+Zayed+International+Airport+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/@24.4854371,54.358673,11z/am=t/data=!4m14!4m13!1m5!1m1!1s0x3e5e67beb8d7d2c5:0xecf8ddfdb1515855!2m2!1d54.4096855!2d24.4961946!1m5!1m1!1s0x3e5e48de900c71ef:0x9b379979236d755e!2m2!1d54.6421225!2d24.4514258!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+      quote: '10:11 - 11:26 （1 時間 15 分） ; 71 ; A2' }, 'jst'),
+    gm('alraha', 'auh_ta', ['car'], { from_ja: 'アル・ラハ・ビーチ（Al Raha Blvd）',
+      to_ja: 'ザーイド国際空港 ターミナルA',
+      value: { drive: 7 },
+      seen: '2026-10-11T15:07',
+      url: 'https://www.google.com/maps/dir/Al+raha+beach,+CJX3%2B84C+-+Al+Raha+Blvd+-+Al+Rahah+-+RBW3+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/Zayed+International+Airport,+Terminal+A+-+Al+Matar+-+Zayed+International+Airport+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/@24.4486513,54.6007703,14z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3e5e45000ab13055:0xb91e98fff655c3cc!2m2!1d54.6027608!2d24.448317!1m5!1m1!1s0x3e5e48de900c71ef:0x9b379979236d755e!2m2!1d54.6421225!2d24.4514258!3e0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+      quote: '運転 7 分' }, 'jst'),
+    gm('alraha', 'auh_ta', ['bus'], { from_ja: 'アル・ラハ・ビーチ（Al Raha Blvd）',
+      to_ja: 'ザーイド国際空港 ターミナルA',
+      line: 'A2',
+      value: { walk_total: 36 },
+      seen: '2026-10-11T15:07',
+      url: 'https://www.google.com/maps/dir/Al+raha+beach,+CJX3%2B84C+-+Al+Raha+Blvd+-+Al+Rahah+-+RBW3+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/Zayed+International+Airport,+Terminal+A+-+Al+Matar+-+Zayed+International+Airport+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/@24.448785,54.599172,14z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3e5e45000ab13055:0xb91e98fff655c3cc!2m2!1d54.6027608!2d24.448317!1m5!1m1!1s0x3e5e48de900c71ef:0x9b379979236d755e!2m2!1d54.6421225!2d24.4514258!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+      quote: '公共交通機関 36 分 10:20 - 10:56 ; A2' }, 'jst'),
+    gm('yas', 'auh_ta', ['car'], { from_ja: 'ヤス島',
+      to_ja: 'ザーイド国際空港 ターミナルA',
+      value: { drive: 11 },
+      seen: '2026-10-11T15:08',
+      url: 'https://www.google.com/maps/dir/%E3%83%A4%E3%82%B9%E5%B3%B6,+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6+%E3%82%A2%E3%83%96%E3%83%BB%E3%83%80%E3%83%93%E3%83%BC/Zayed+International+Airport,+Terminal+A+-+Al+Matar+-+Zayed+International+Airport+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/@24.4747842,54.5756701,13z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3e5e457d9c174315:0xbea25f33cf37e48e!2m2!1d54.6040121!2d24.4958385!1m5!1m1!1s0x3e5e48de900c71ef:0x9b379979236d755e!2m2!1d54.6421225!2d24.4514258!3e0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+      quote: '運転 11 分' }, 'jst'),
+    gm('yas', 'auh_ta', ['bus'], { from_ja: 'ヤス島',
+      to_ja: 'ザーイド国際空港 ターミナルA',
+      line: '216 → A1',
+      value: { walk_total: 46 },
+      seen: '2026-10-11T15:08',
+      url: 'https://www.google.com/maps/dir/%E3%83%A4%E3%82%B9%E5%B3%B6,+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6+%E3%82%A2%E3%83%96%E3%83%BB%E3%83%80%E3%83%93%E3%83%BC/Zayed+International+Airport,+Terminal+A+-+Al+Matar+-+Zayed+International+Airport+-+Abu+Dhabi+-+%E3%82%A2%E3%83%A9%E3%83%96%E9%A6%96%E9%95%B7%E5%9B%BD%E9%80%A3%E9%82%A6/@24.485629,54.3493802,11z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3e5e457d9c174315:0xbea25f33cf37e48e!2m2!1d54.6040121!2d24.4958385!1m5!1m1!1s0x3e5e48de900c71ef:0x9b379979236d755e!2m2!1d54.6421225!2d24.4514258!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+      quote: '公共交通機関 46 分 10:55 - 11:41 ; 216 ; A1' }, 'jst'),
+  ] };
 
 /* ════════════ 読むための関数 ════════════ */
 
