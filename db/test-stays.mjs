@@ -14,8 +14,9 @@
      ★ 資格の無い人には1文字も返らない。
        「名前が無い」だけでなく、返った JSON が決まった数種類の定型文の
        **どれかと完全に同じ**であることまで見る（最後の「全部の返事」の節）。
-     ★ 通れるのは profiles.verify_level >= 1 の人と運営だけ。
-       給与の鍵・バッジ・プロフィールの会社と職位では通れない。
+     ★ 読めるのはオーナーと、オーナーが承認した人だけ（2026-10-15 オーナーの訂正）。
+       確認の印・給与の鍵・バッジ・プロフィールの会社と職位・運営であること・JWT の中身では読めない。
+       運営は確認待ちを見て公開する（待ち行列・公開の口・確認待ちの写真）。
      ★ author_hash が画面へ1回も出ないこと。A さんの実際のハッシュ値が
        JSON のどこにも無いことまで見る。
      ★ 写真の撮影情報は、**画面を通さずに関数を直接呼んでも**残らない。
@@ -51,21 +52,40 @@ const J = (v) => JSON.stringify(v);
 const keys = (o) => Object.keys(o || {}).sort().join(',');
 
 const ANON  = Symbol('anon');                               // 未ログイン
-const V1    = '00000000-0000-4000-8000-0000000000a1';       // 確認の印あり（1）
-const V2    = '00000000-0000-4000-8000-0000000000a2';       // 確認の印あり（2）
-const V3    = '00000000-0000-4000-8000-0000000000a3';       // 印を付けたあとで外される人
+/* ★ 2026-10-15 オーナーの訂正: 読めるのはオーナー（OP）と、オーナーが承認した人だけ。
+     cross-area R3 の名前との対応 ── R3 の OWNER ＝ OP（オーナーの行で決める）／R3 の APP（承認された人）＝ V1・V2
+     （このファイルが中の人として使ってきた名前のまま。2人とも確認の印は持たない）／R3 の V1・V2（印だけの人。
+     verify_level 1・2）＝ MK1・MK2／R3 の OP2 ＝ OP2（運営だが、オーナーでも承認された人でもない）。 */
+const V1    = '00000000-0000-4000-8000-0000000000a1';       // オーナーが承認した人（1）
+const V2    = '00000000-0000-4000-8000-0000000000a2';       // オーナーが承認した人（2）
+const V3    = '00000000-0000-4000-8000-0000000000a3';       // 承認されたあとで取り消される人
 const U     = '00000000-0000-4000-8000-0000000000b1';       // 登録しただけ
 const PAY   = '00000000-0000-4000-8000-0000000000b2';       // 給与を出した（鍵が生きている）
 const PROF  = '00000000-0000-4000-8000-0000000000b3';       // プロフィールに会社と職位を書いた
 const BADGE = '00000000-0000-4000-8000-0000000000b4';       // バッジと鍵だけ持っている（印は無い）
 const GHOST = '00000000-0000-4000-8000-0000000000b5';       // ログインはあるが profiles の行が無い
 const REV   = '00000000-0000-4000-8000-0000000000b6';       // 口コミを出した（口コミの鍵を持つ）
-const OP    = '00000000-0000-4000-8000-00000000ad11';       // 運営その1
-const OP2   = '00000000-0000-4000-8000-00000000ad22';       // 運営その2
+const MK1   = '00000000-0000-4000-8000-0000000000c1';       // 確認の印だけ（verify_level 1・承認なし）
+const MK2   = '00000000-0000-4000-8000-0000000000c2';       // 確認の印だけ（verify_level 2・承認なし）
+const SELF  = '00000000-0000-4000-8000-0000000000c3';       // 自分で自分を承認した行を入れようとする人
+const PEND  = '00000000-0000-4000-8000-0000000000c4';       // 承認の行が 'pending'（申し込んだだけ）
+const DEN   = '00000000-0000-4000-8000-0000000000c5';       // 承認の行が 'denied'（見送られた）
+const RVK   = '00000000-0000-4000-8000-0000000000c6';       // 承認の行が 'revoked'（取り消された）
+const OLDO  = '00000000-0000-4000-8000-0000000000c7';       // 前のオーナーが承認した人
+const FORMER = '00000000-0000-4000-8000-0000000000c8';      // 前のオーナー（いまはオーナーではない会員）
+const OP    = '00000000-0000-4000-8000-00000000ad11';       // 運営その1（＝オーナー。オーナーの行で決める）
+const OP2   = '00000000-0000-4000-8000-00000000ad22';       // 運営その2（オーナーでも承認された人でもない）
 const NAMES = new Map([[V1, 'V1'], [V2, 'V2'], [V3, 'V3'], [U, 'U'], [PAY, 'PAY'], [PROF, 'PROF'],
-                       [BADGE, 'BADGE'], [GHOST, 'GHOST'], [REV, 'REV'], [OP, 'OP'], [OP2, 'OP2'], [ANON, 'ANON']]);
-/* 資格の無い人たち（未ログインを含む）。この人たちへの返事は最後にまとめて見る。 */
-const OUTSIDERS = [ANON, U, PAY, PROF, BADGE, GHOST, REV];
+                       [BADGE, 'BADGE'], [GHOST, 'GHOST'], [REV, 'REV'], [OP, 'OP'], [OP2, 'OP2'], [ANON, 'ANON'],
+                       [MK1, 'MK1'], [MK2, 'MK2'], [SELF, 'SELF'], [PEND, 'PEND'], [DEN, 'DEN'], [RVK, 'RVK'],
+                       [OLDO, 'OLDO'], [FORMER, 'FORMER']]);
+/* 資格の無い人たち（未ログインを含む）。この人たちへの返事は最後にまとめて見る。
+   ★ 2026-10-15 から、確認の印だけの人（MK1・MK2）と、承認の行が効かない人（SELF・PEND・DEN・RVK・OLDO）もここ。 */
+const OUTSIDERS = [ANON, U, PAY, PROF, BADGE, GHOST, REV, MK1, MK2, SELF, PEND, DEN, RVK, OLDO];
+/* 一覧（pv_stays）を開けない人 ＝ 資格の無い人たち ＋ 承認の無い運営（OP2）。
+   OP2 は確認待ちを見て公開する人なので、待ち行列・公開の口の返事は「資格の無い人」と同じにならない。
+   一覧と公開済みの写真だけを、資格の無い人と同じ答え（locked／not_found）で見る。 */
+const READ_OUT = [...OUTSIDERS, OP2];
 
 /* サーバと同じ式を手元で作る（返事にハッシュが混ざっていないかを見るため） */
 const hashOf = (uid, sep = '::pv_hotel::') => createHash('sha256').update(uid + sep).digest('hex');
@@ -87,6 +107,10 @@ await db.exec(`
   create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb);
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('pv.uid', true), '')::uuid $$;
+  /* JWT の中身（Supabase と同じ読み方）。門がこれを読んでいないことを、偽の中身で確かめる（V7） */
+  create function auth.jwt() returns jsonb language sql stable as $$
+    select coalesce(nullif(current_setting('request.jwt.claim', true), ''),
+                    nullif(current_setting('request.jwt.claims', true), ''))::jsonb $$;
   /* 口コミの表（db/pay-rows.sql が触る列まで含めた最小形）。
      ★db/test-requests.mjs から写した。あちらを増やしたらここも増やす。 */
   create table public.reviews_v2 (
@@ -339,6 +363,9 @@ console.log('\n▼ 人を作る');
 for (const [uid, mail] of [[V1, 'v1@example.com'], [V2, 'v2@example.com'], [V3, 'v3@example.com'],
                            [U, 'u@example.com'], [PAY, 'pay@example.com'], [PROF, 'prof@example.com'],
                            [BADGE, 'badge@example.com'], [REV, 'rev@example.com'],
+                           [MK1, 'mk1@example.com'], [MK2, 'mk2@example.com'], [SELF, 'self@example.com'],
+                           [PEND, 'pend@example.com'], [DEN, 'den@example.com'], [RVK, 'rvk@example.com'],
+                           [OLDO, 'oldo@example.com'], [FORMER, 'former@example.com'],
                            [OP, 'ops@example.com'], [OP2, 'ops2@example.com']]) {
   await db.query(`insert into auth.users(id,email) values($1,$2)`, [uid, mail]);
   await db.query(`insert into public.profiles(id,email) values($1,$2)
@@ -350,9 +377,36 @@ for (const uid of [OP, OP2]) {
   await db.query(`insert into public.pv_admins(user_id, note) values($1,'テスト')
                   on conflict (user_id) do nothing`, [uid]);
 }
-/* 確認の印はサーバー（＝ここではオーナー）だけが付ける */
-await db.query(`update public.profiles set verify_level = 1, verified_at = now() where id = $1`, [V1]);
-await db.query(`update public.profiles set verify_level = 2, verified_at = now() where id = $1`, [V2]);
+/* 確認の印はサーバー（＝ここでは DB の持ち主）だけが付ける。
+   ★ 2026-10-15 から、印は何も開かない。印を持つのは「印だけの人」MK1・MK2 だけにしてある
+     （中の人 V1・V2 は印を持たない ＝ 開くのは承認だけ、をそのまま見られる）。 */
+await db.query(`update public.profiles set verify_level = 1, verified_at = now() where id = $1`, [MK1]);
+await db.query(`update public.profiles set verify_level = 2, verified_at = now() where id = $1`, [MK2]);
+
+/* 承認の行（cross-area R3 V3: DB の持ち主として入れる。オーナーの承認の口は WP-stays-1b）。
+   V1・V2 はオーナー（OP）が承認した人。PEND は申し込んだだけ・DEN は見送り・RVK は取り消し・
+   OLDO は前のオーナー（FORMER）が承認した人。この時点ではオーナーの行はまだ無い。 */
+{
+  const put = (uid, state, by) => db.query(
+    `insert into public.pv_stay_viewers (user_id, state, asked_at, decided_by, decided_at)
+     values ($1, $2, now() - interval '3 days', $3::uuid, case when $3::uuid is null then null else now() - interval '2 days' end)`,
+    [uid, state, by]);
+  for (const [uid, state, by] of [[V1, 'approved', OP], [V2, 'approved', OP], [PEND, 'pending', null],
+                                  [DEN, 'denied', OP], [RVK, 'revoked', OP], [OLDO, 'approved', FORMER]]) await put(uid, state, by);
+  const rows = (await db.query(`select state, count(*)::int as n from public.pv_stay_viewers group by 1 order by 1`)).rows;
+  ok(J(rows) === J([{ state: 'approved', n: 3 }, { state: 'denied', n: 1 }, { state: 'pending', n: 1 }, { state: 'revoked', n: 1 }]),
+     '（承認の行を入れた: 承認3〈V1・V2・前のオーナーが承認した OLDO〉・申し込み1・見送り1・取り消し1）', J(rows));
+  /* ★自分で自分を承認した行は、表が受け付けない（DB の持ち主が入れても） */
+  let e = '';
+  try { await put(SELF, 'approved', SELF); } catch (err) { e = String(err.message); }
+  ok(/pv_stay_viewers_self_ck/.test(e)
+     && (await one(`select count(*)::int as n from public.pv_stay_viewers where user_id = $1`, [SELF])).n === 0,
+     '★自分で自分を承認した行は入らない（pv_stay_viewers_self_ck）', e);
+  /* ★決めた人と時刻の無い「承認」も入らない */
+  let e2 = '';
+  try { await db.query(`insert into public.pv_stay_viewers (user_id, state) values ($1, 'approved')`, [SELF]); } catch (err) { e2 = String(err.message); }
+  ok(/pv_stay_viewers_decided_ck/.test(e2), '★決めた人と時刻の無い「承認」は入らない（pv_stay_viewers_decided_ck）', e2);
+}
 
 { /* 給与を出した人 ── 本物の口（submit_pay_report）を通して、鍵が生きている状態にする */
   const YEAR = new Date().getFullYear() - 1;   // 今年だと「未来の月」で落ちる月が出る
@@ -370,7 +424,8 @@ await db.query(`update public.profiles set verify_level = 2, verified_at = now()
   const p = await one(`select company, "position", verify_level from public.profiles where id = $1`, [PROF]);
   ok(!a.err && !b.err && p.company === 'etihad' && p.position === 'cap' && Number(p.verify_level) === 0,
      'プロフィールを書いた人: 会社と職位は自分で書けた（印は 0 のまま）', J({ a, b, p }));
-  /* ★ここが門の土台。会員が確認の印を自分で書けたら、あとの検査は全部意味が無い */
+  /* 会員が確認の印を自分で書けないこと（db/admin.sql の土台。db/stays.sql の「0. 前提」もこれを見て止まる）。
+     ★ 2026-10-15 から印はステイ情報を何も開かない（印だけの人 MK1・MK2 は locked。下で見る） */
   const c = await call(PROF, `update public.profiles set verify_level = 2 where id = $1 returning id`, [PROF]);
   const d = await call(PROF, `update public.profiles set verify_level = 2, name = 'x' where id = $1 returning id`, [PROF]);
   const p2 = await one(`select verify_level from public.profiles where id = $1`, [PROF]);
@@ -410,12 +465,44 @@ for (const t of ['pv_stay_places', 'pv_stay_photos']) {
     `select count(*)::int as n from pg_class c, aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
       where c.oid = ('public.' || $1)::regclass and a.grantee = 0`, [t]);
   ok(pub.n === 0, `${t}: PUBLIC にも権限が無い`);
-  /* 確認の印を持つ人でも、表は直接読めない（出入りは関数だけ） */
+  /* 承認された人でも、表は直接読めない（出入りは関数だけ） */
   const s = await call(V1, `select count(*) from public.${t}`);
   const i = await call(V1, `delete from public.${t}`);
   const a = await call(ANON, `select count(*) from public.${t}`);
   ok(/permission denied/i.test(s.err || '') && /permission denied/i.test(i.err || '') && /permission denied/i.test(a.err || ''),
-     `${t}: 印を持つ人も未ログインも、直接は読めない・消せない`, J({ s, i, a }));
+     `${t}: 承認された人も未ログインも、直接は読めない・消せない`, J({ s, i, a }));
+}
+/* ★ V6（2026-10-15）: 見てよい人の名簿の2表も、完全に閉じている。
+     会員が自分の承認の行を書けたら（オーナーの行を書けたら）、門は無いのと同じ。 */
+for (const t of ['pv_stay_owner', 'pv_stay_viewers']) {
+  const c = await one(`select relrowsecurity as rls from pg_class where oid = ('public.' || $1)::regclass`, [t]);
+  const pol = await one(`select count(*)::int as n from pg_policies where schemaname='public' and tablename=$1`, [t]);
+  ok(c.rls === true && pol.n === 0, `★${t}: RLS が有効で、ポリシーは 0 本`, J({ c, pol }));
+  const privs = (await db.query(
+    `select r, p, has_table_privilege(r, ('public.' || $1)::regclass, p) as has
+       from unnest(array['anon','authenticated']) r,
+            unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) p`, [t])).rows;
+  const cols = (await db.query(
+    `select r, p from unnest(array['anon','authenticated']) r, unnest(array['SELECT','INSERT','UPDATE','REFERENCES']) p
+      where has_any_column_privilege(r, ('public.' || $1)::regclass, p)`, [t])).rows;
+  ok(privs.length === 14 && privs.every((x) => x.has === false) && cols.length === 0,
+     `★${t}: anon にも authenticated にも権限が1つも無い（列の単位でも）`, J([privs.filter((x) => x.has), cols]));
+  const pub = await one(
+    `select count(*)::int as n from pg_class c, aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
+      where c.oid = ('public.' || $1)::regclass and a.grantee = 0`, [t]);
+  ok(pub.n === 0, `${t}: PUBLIC にも権限が無い`);
+  const tries = [];
+  for (const who of [V1, U, OP2, ANON]) {
+    tries.push(await call(who, `select count(*) from public.${t}`));
+    tries.push(await call(who, `delete from public.${t}`));
+    tries.push(await call(who, `update public.${t} set user_id = $1`, [who === ANON ? U : who]));
+  }
+  tries.push(await call(U, t === 'pv_stay_owner'
+    ? `insert into public.pv_stay_owner (user_id) values ($1)`
+    : `insert into public.pv_stay_viewers (user_id, state, decided_by, decided_at) values ($1, 'approved', $2, now())`,
+    t === 'pv_stay_owner' ? [U] : [U, OP]));
+  ok(tries.length === 13 && tries.every((r) => /permission denied/i.test(r.err || '')),
+     `★${t}: 承認された人・会員・承認の無い運営・未ログインのどれも、直接は読めない・書けない・消せない`, J(tries.filter((r) => !r.err)));
 }
 {
   const cols = (await db.query(
@@ -435,7 +522,9 @@ const GRANTS = {
   pv_stays: 'anon,auth',
   pv_stay_add: 'auth', pv_stay_update: 'auth', pv_stay_photo_add: 'auth', pv_stay_photo: 'auth',
   pv_stay_moderate: 'auth', pv_stay_delete: 'auth', pv_stay_queue: 'auth',
-  pv_stay_hash: '', pv_is_verified_pilot: '', pv_stay_role: '', pv_stay_visible: '',
+  pv_stay_hash: '', pv_stay_role: '', pv_stay_visible: '',
+  /* 見てよい人の決め方（2026-10-15）。オーナーの id と、見てよい人か。誰にも配らない */
+  pv_stay_owner_id: '', pv_stay_sees: '',
   pv_stay_age: '', pv_stay_uuid: '', pv_stay_maps_url: '', pv_stay_place_json: '',
   /* 場所の中身の検品と、同じ名前の判定（足す口と直す口が同じものを呼ぶ。誰にも配らない） */
   pv_stay_clean: '', pv_stay_clash: '',
@@ -452,30 +541,34 @@ const grantsNow = async () => (await db.query(
                    where a.grantee = 0) as pub
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
-      and (p.proname like 'pv\\_stay%' or p.proname like 'pv\\_jpeg%' or p.proname = 'pv_is_verified_pilot')
+      and (p.proname like 'pv\\_stay%' or p.proname like 'pv\\_jpeg%')
     order by p.proname, p.oid`)).rows;
 const checkGrants = async (label) => {
   const rows = await grantsNow();
-  ok(rows.length === 23 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
-     `${label}関数は23本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
+  ok(rows.length === 24 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
+     `${label}関数は24本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
+  /* ★確認の印で開けていた頃の判定は、DB から消えている（残っていると、いつか誰かがまた門に呼ぶ） */
+  ok((await one(`select to_regprocedure('public.pv_is_verified_pilot()') is null as gone`)).gone === true,
+     `${label}★前の判定 pv_is_verified_pilot は DB に残っていない`);
   const wrong = rows.filter((r) => [r.anon && 'anon', r.auth && 'auth'].filter(Boolean).join(',') !== GRANTS[r.name]);
   ok(wrong.length === 0, `${label}呼べる人が期待どおり（未ログインは pv_stays だけ・部品は誰も呼べない）`, J(wrong));
   ok(rows.every((r) => r.pub === false), `${label}PUBLIC に実行権が残っていない`, J(rows.filter((r) => r.pub)));
   ok(rows.every((r) => /search_path=/.test(r.cfg)), `${label}どの関数にも search_path が付いている`,
      J(rows.filter((r) => !/search_path=/.test(r.cfg)).map((r) => r.name)));
   const needDef = ['pv_stays', 'pv_stay_add', 'pv_stay_update', 'pv_stay_photo_add', 'pv_stay_photo', 'pv_stay_moderate',
-                   'pv_stay_delete', 'pv_stay_queue', 'pv_is_verified_pilot', 'pv_stay_role'];
+                   'pv_stay_delete', 'pv_stay_queue', 'pv_stay_role'];
   ok(rows.filter((r) => r.def).map((r) => r.name).sort().join(',') === needDef.sort().join(','),
-     `${label}security definer は表を読む10本だけ`, rows.filter((r) => r.def).map((r) => r.name).join(','));
+     `${label}security definer は表を読む9本だけ（見てよい人の決め方の2本は definer にしない）`, rows.filter((r) => r.def).map((r) => r.name).join(','));
 };
 await checkGrants('');
 {
-  /* 部品は、確認の印を持つ人からも呼べない */
+  /* 部品は、承認された人からも呼べない */
   const tries = [
     [`select public.pv_stay_hash($1::uuid) as v`, [V1]],
-    [`select public.pv_is_verified_pilot() as v`, []],
+    [`select public.pv_stay_owner_id() as v`, []],
+    [`select public.pv_stay_sees() as v`, []],
     [`select public.pv_stay_role() as v`, []],
-    [`select public.pv_stay_visible('pending', 'a', 'b', true) as v`, []],
+    [`select public.pv_stay_visible('pending', 'a', array['b'], true, true) as v`, []],
     [`select public.pv_stay_age(now()) as v`, []],
     [`select public.pv_stay_uuid($1) as v`, [V1]],
     [`select public.pv_stay_maps_url('https://www.google.com/maps') as v`, []],
@@ -491,10 +584,60 @@ await checkGrants('');
   for (const who of [V1, U, ANON]) {
     const res = [];
     for (const [sql, params] of tries) res.push(await call(who, sql, params));
-    ok(res.length === 15 && res.every((r) => /permission denied/i.test(r.err || '')),
-       `${NAMES.get(who)}: 中の部品（ハッシュ・印の判定・門・見える判定・中身の検品…）を直接は呼べない`,
+    ok(res.length === 16 && res.every((r) => /permission denied/i.test(r.err || '')),
+       `${NAMES.get(who)}: 中の部品（ハッシュ・見てよい人の判定・門・見える判定・中身の検品…）を直接は呼べない`,
        J(res.map((r) => r.err || r.v)));
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+console.log('\n▼ オーナーの行が無いあいだは、誰にも開かない（V1。ファイルのオーナーの行は誰にも当たらない）');
+/* 貼った時点の検算の1行（ファイルの「11. 検算」をそのまま流す） */
+const CHECK11 = STAYS_SQL.slice(STAYS_SQL.indexOf('-- 11. 検算（貼ったあとに出る1行）'));
+const check11 = async () => { const r = (await db.query(CHECK11)).rows[0]; return J(Object.fromEntries(Object.entries(r).map(([k, v]) => [k, Number(v)]))); };
+/* ファイルのオーナーの行（「10-b」の1文）。テストでは、置き換えるメールアドレスだけを差し替えて流す（本番と同じ道） */
+const OWNER_PLACEHOLDER = 'ここにオーナーのログイン用メールアドレスを入れる';
+const OWNER_LINE = (() => {
+  const at = STAYS_SQL.indexOf('insert into public.pv_stay_owner (user_id)');
+  return at < 0 ? '' : STAYS_SQL.slice(at, STAYS_SQL.indexOf(';', at) + 1);
+})();
+const ownerNow = async () => (await db.query(`select user_id from public.pv_stay_owner`)).rows.map((r) => r.user_id);
+{
+  ok(STAYS_SQL.split(OWNER_PLACEHOLDER).length === 2 && OWNER_LINE.includes(`'${OWNER_PLACEHOLDER}'`)
+     && /on conflict \(one\) do update set user_id = excluded\.user_id, set_at = now\(\);$/.test(OWNER_LINE),
+     '（オーナーの行はファイルに1か所だけ。誰にも当たらない文字のまま）', OWNER_LINE);
+  ok(J(await ownerNow()) === '[]', '★ファイルを2回そのまま流しても、オーナーの行は入っていない（誰にも当たらない）');
+  /* 会員が居る今、オーナーの行をそのまま（置き換えずに）流しても、やはり誰にも当たらない */
+  let e0 = '';
+  try { await db.exec(OWNER_LINE); } catch (err) { e0 = String(err.message); }
+  ok(e0 === '' && J(await ownerNow()) === '[]',
+     '★会員が何人居ても、オーナーの行を置き換えずに流せば、オーナーは誰にもならない（閉じたまま）', e0);
+  ok((await check11()) === J({ ポリシー数: 0, オーナー: 0, 承認した人: 0, 運営: 2 }),
+     '検算の1行: ポリシー 0・オーナー 0・承認した人 0・運営 2', await check11());
+  /* ★オーナーが決まっていないあいだは、運営・承認の行を持つ人・給与の鍵・印だけの人・未ログインの誰にも開かない */
+  const who = [OP, OP2, V1, V2, PAY, MK1, MK2, U, ANON];
+  const lists = [];
+  for (const w of who) lists.push([NAMES.get(w), J(await stays(w)), J(await stays(w, 'jal', 'KIX'))]);
+  ok(lists.every(([, a, b]) => a === LOCKED_READ && b === LOCKED_READ),
+     '★オーナーの行が無い: 運営（OP・OP2）・承認の行がある人（V1・V2）・PAY・MK1・MK2・U・ANON の一覧は、全部 {ok:true, state:\'locked\'} の1行', J(lists.filter(([, a, b]) => a !== LOCKED_READ || b !== LOCKED_READ)));
+  const ph = [];
+  for (const w of [OP, OP2, V1, V2, PAY, MK1, MK2, U]) ph.push(J(await photo(w, '11111111-1111-4111-8111-111111111111')), J(await photoAdd(w, '11111111-1111-4111-8111-111111111111', JPEG)));
+  ok(ph.every((x) => x === LOCKED) && denied(await photo(ANON, '11111111-1111-4111-8111-111111111111')),
+     '★オーナーの行が無い: 写真を読む・足す の返事も、運営を含めて全員 locked（未ログインは口そのものを呼べない）', J(ph));
+}
+{ /* オーナーを決める ── 本番でオーナーがすることと同じ（ファイルの1行の、メールアドレスだけを置き換えて流す） */
+  await db.exec(OWNER_LINE.split(OWNER_PLACEHOLDER).join('ops@example.com'));
+  ok(J(await ownerNow()) === J([OP]), 'オーナーの行に OP のメールアドレスを入れて流すと、オーナーは OP の1人', J(await ownerNow()));
+  await db.exec(OWNER_LINE);
+  ok(J(await ownerNow()) === J([OP]), '★置き換えないまま流し直しても、入っているオーナーはそのまま（消えない・替わらない）');
+  ok((await check11()) === J({ ポリシー数: 0, オーナー: 1, 承認した人: 2, 運営: 2 }),
+     '検算の1行: オーナー 1・承認した人 2（V1・V2。前のオーナーが承認した OLDO と、申し込み・見送り・取り消しは数えない）', await check11());
+  let e = '';
+  try { await db.query(`insert into public.pv_stay_owner (one, user_id) values (true, $1)`, [OP2]); } catch (err) { e = String(err.message); }
+  let e2 = '';
+  try { await db.query(`insert into public.pv_stay_owner (one, user_id) values (false, $1)`, [OP2]); } catch (err) { e2 = String(err.message); }
+  ok(/duplicate key|pv_stay_owner_pkey/.test(e) && /pv_stay_owner_one_ck/.test(e2) && J(await ownerNow()) === J([OP]),
+     '★オーナーの行は1行だけ（2行目は表が受け付けない）', e + ' / ' + e2);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -503,10 +646,10 @@ console.log('\n▼ 資格の無い人には何も返らない（まだ1件も無
   const v = await stays(V1);
   ok(keys(v) === 'can_add,is_operator,ok,others,places,state' && v.ok === true && v.state === 'open'
      && v.can_add === true && v.is_operator === false && J(v.places) === '[]' && J(v.others) === '[]',
-     '確認の印を持つ人: 開いていて空（欄は ok・state・can_add・is_operator・places・others の6つ）', J(v));
+     '承認された人: 開いていて空（欄は ok・state・can_add・is_operator・places・others の6つ）', J(v));
   const o = await stays(OP);
-  ok(o.state === 'open' && o.is_operator === true && o.can_add === true, '運営: 開いている（is_operator が true）', J(o));
-  for (const who of OUTSIDERS) {
+  ok(o.state === 'open' && o.is_operator === true && o.can_add === true, '運営（＝オーナー）: 開いている（is_operator が true）', J(o));
+  for (const who of READ_OUT) {
     const r = await stays(who);
     ok(J(r) === LOCKED_READ, `${NAMES.get(who)}: 返るのは {ok:true, state:'locked'} だけ`, J(r));
   }
@@ -522,7 +665,7 @@ let A;   // 場所A（V1 が書いたホテル・あとで公開）
   A = r.item && r.item.id;
   ok(r.ok === true && keys(r) === 'item,ok'
      && keys(r.item) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state,stay_hours',
-     '印を持つ人は足せる（返る欄は12個ちょうど）', J(r));
+     '承認された人は足せる（返る欄は12個ちょうど）', J(r));
   ok(r.item.state === 'pending' && r.item.mine === true && r.item.name === 'テスト用ホテルA'
      && r.item.kind === 'hotel' && r.item.age === 0 && J(r.item.photos) === '[]'
      && r.item.maps_url === 'https://www.google.com/maps/place/Test+Hotel+A'
@@ -536,9 +679,10 @@ let A;   // 場所A（V1 が書いたホテル・あとで公開）
   const mine = find(await stays(V1), A);
   ok(mine && mine.mine === true && mine.state === 'pending', '書いた本人には自分の確認前が見える（mine:true）', J(mine));
   const other = await stays(V2);
-  ok(other.state === 'open' && J(other.places) === '[]', '★別の印を持つ人には、他人の確認前は見えない（空のまま）', J(other));
+  ok(other.state === 'open' && J(other.places) === '[]', '★別の承認された人には、他人の確認前は見えない（空のまま。V3）', J(other));
   const op = find(await stays(OP), A);
-  ok(op && op.mine === false && op.state === 'pending', '運営には見える（mine:false・pending）', J(op));
+  ok(op && op.mine === false && op.state === 'pending', '運営（＝オーナー）には見える（mine:false・pending。V2）', J(op));
+  ok(J(await stays(OP2)) === LOCKED_READ, '★承認の無い運営（OP2）の一覧は locked の1行（確認待ちは待ち行列で見る）');
 
   /* 運営でない人は公開できない */
   for (const who of [V1, V2, U, PAY, PROF, BADGE, GHOST]) {
@@ -568,7 +712,7 @@ let A;   // 場所A（V1 が書いたホテル・あとで公開）
   const seenBy2 = find(await stays(V2), A);
   ok(seenBy2 && seenBy2.mine === false && seenBy2.state === 'public'
      && keys(seenBy2) === 'address,age,city,id,kind,maps_url,mine,name,note,photos,state,stay_hours',
-     '公開されると、別の印を持つ人に見える（mine:false・欄は12個）', J(seenBy2));
+     '公開されると、別の承認された人に見える（mine:false・欄は12個）', J(seenBy2));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -606,6 +750,10 @@ for (const who of OUTSIDERS) {
   ok(J(d) === FORBIDDEN && J(e) === FORBIDDEN, `${n}: 待ち行列・公開／見送り は forbidden だけ`, J([d, e]));
   ok(J(f) === NOT_FOUND && J(g) === NOT_FOUND && J(h) === BAD_TARGET, `${n}: 他人のものは消せない（在っても not_found）`, J([f, g, h]));
 }
+{ /* ★承認の無い運営（OP2）: 一覧は locked の1行だけ（会社・空港・変な引数のどれでも同じ。公開済みの名前も出ない） */
+  const r = [await stays(OP2), await stays(OP2, 'jal', 'KIX'), await stays(OP2, 'nope', 'X'), await rpc(OP2, 'pv_stays', undefined)];
+  ok(r.every((x) => J(x) === LOCKED_READ), 'OP2: 一覧は {ok:true, state:\'locked\'} だけ（公開済みの1件が在っても）', J(r));
+}
 {
   const n = await one(`select count(*)::int as n, min(state) as s, min(name) as nm,
                               count(updated_at)::int as u, sum(edit_n)::int as e from public.pv_stay_places`);
@@ -641,7 +789,7 @@ let F1, D, E;
   const r = await photoAdd(V1, A, JPEG, 1200, 900);
   F1 = r.photo && r.photo.id;
   ok(r.ok === true && keys(r) === 'ok,photo' && J(r.photo) === J({ id: F1, mine: true, state: 'pending' }),
-     '印を持つ人は写真を足せる（pending で入る・返るのは id・mine・state）', J(r));
+     '承認された人は写真を足せる（pending で入る・返るのは id・mine・state）', J(r));
   const row = await one(`select author_hash, byte_len, w, h, state, mime from public.pv_stay_photos where id = $1`, [F1]);
   ok(row.author_hash === hashOf(V1) && row.byte_len === jpegBuf.length && row.w === 1 && row.h === 1
      && row.state === 'pending' && row.mime === 'image/jpeg',
@@ -656,6 +804,9 @@ let F1, D, E;
   ok(own.ok === true && keys(own) === 'b64,h,mime,ok,state,w' && own.b64 === JPEG && own.mime === 'image/jpeg'
      && own.w === 1 && own.h === 1 && own.state === 'pending', '本人は取り出せる（base64 は改行なしで元と同じ・縦横は写真から読んだ値）', J(own).slice(0, 120));
   ok((await photo(OP, F1)).b64 === JPEG, '運営は取り出せる');
+  /* ★V5: 承認の無い運営（OP2）は、確認待ちの写真だけを取り出せる（待ち行列から開いて見る口）。写真は足せない */
+  ok((await photo(OP2, F1)).b64 === JPEG && J(await photoAdd(OP2, A, jpegN(7))) === LOCKED,
+     '★承認の無い運営（OP2）: 確認待ちの写真は取り出せる（見て決めるため）・写真を足すのは locked');
   ok(J(await photo(V1, 'abc')) === NOT_FOUND && J(await photo(V1, '11111111-1111-4111-8111-111111111111')) === NOT_FOUND,
      '無い写真・uuid でない id は not_found');
 
@@ -663,6 +814,8 @@ let F1, D, E;
   ok((await moderate(OP, 'photo', F1, 'public')).ok === true, '運営が写真を公開する');
   ok(J(find(await stays(V2), A).photos) === J([{ id: F1, mine: false, state: 'public' }]), '公開されると別の人の一覧に出る');
   ok((await photo(V2, F1)).b64 === JPEG, '公開されると別の人も取り出せる');
+  ok(J(await photo(OP2, F1)) === NOT_FOUND,
+     '★V5: 公開された写真は、承認の無い運営（OP2）には取り出せない（not_found。運営であることだけでは読めない）');
 
   /* 運営の自分の写真 */
   const o = await photoAdd(OP, A, jpegN(1));
@@ -714,6 +867,104 @@ let F1, D, E;
   const rank = { hotel: 0, food: 1, spot: 2 };
   ok(order.length >= 3 && order.every((k, i) => i === 0 || rank[order[i - 1]] <= rank[k]),
      '並びは ホテル → 食べる所 → 行く所（時刻で並べない）', order.join(','));
+}
+
+// ════════════════════════════════════════════════════════════════
+console.log('\n▼ 見てよいのはオーナーとオーナーが承認した人だけ（2026-10-15 オーナーの訂正。V1〜V5・V7）');
+{
+  /* 確認待ちの場所をもう1つ（V1 が書いた・別の空港 CDG）と、その確認待ちの写真 */
+  const w = await addFresh(V1, P('etihad', 'CDG', 'hotel', 'テスト用ホテルW', { address: 'テスト用の住所 W-1', note: 'テスト用のメモW' }));
+  const W = w.item && w.item.id;
+  const wp = await photoAdd(V1, W, jpegN(31));
+  const WP = wp.photo && wp.photo.id;
+  ok(w.ok === true && wp.ok === true, '（確認待ちの場所 W と、その確認待ちの写真を置いた）', J([w, wp]));
+
+  /* ★V2: オーナーは、ほかの人の確認待ちも読める */
+  const byOwner = await stays(OP, 'etihad', 'CDG');
+  const wo = find(byOwner, W);
+  ok(byOwner.state === 'open' && byOwner.is_operator === true && wo && wo.state === 'pending' && wo.mine === false
+     && wo.name === 'テスト用ホテルW' && J(wo.photos) === J([{ id: WP, mine: false, state: 'pending' }]) && (await photo(OP, WP)).b64 === jpegN(31),
+     '★V2: オーナー（OP）は、ほかの人の確認待ちも読める（場所・写真とも）', J(byOwner).slice(0, 200));
+
+  /* ★V3: 承認された人は、公開済みと自分のものだけ（ほかの人の確認待ちは見えない） */
+  const byV2 = await stays(V2, 'etihad', 'CDG');
+  ok(byV2.state === 'open' && byV2.is_operator === false && J(byV2.places) === '[]' && J(await photo(V2, WP)) === NOT_FOUND,
+     '★V3: 承認された別の人（V2）には、ほかの人の確認待ちは見えない（場所も写真も。在ることも出ない）', J(byV2));
+  const byV1 = find(await stays(V1, 'etihad', 'CDG'), W);
+  ok(byV1 && byV1.mine === true && byV1.state === 'pending' && J(byV1.photos) === J([{ id: WP, mine: true, state: 'pending' }]),
+     'V3: 書いた本人（V1）には、自分の確認待ちが写真ごと見える', J(byV1));
+  const pubA = find(await stays(V2), A);
+  ok(pubA && pubA.state === 'public' && pubA.photos.some((f) => f.id === F1 && f.state === 'public') && (await photo(V2, F1)).b64 === JPEG,
+     'V3: 承認された人には、公開済みの場所と写真が見える', J(pubA));
+
+  /* ★V4: 次のどれも、読む理由にならない ── 返事は locked の1行（写真は locked）だけ */
+  const NEG = [ANON, U, PAY, MK1, MK2, PROF, BADGE, GHOST, REV, OP2, SELF, PEND, DEN, RVK, OLDO];
+  const texts = [];
+  for (const who of NEG) {
+    const r = [await stays(who), await stays(who, 'etihad', 'CDG'), await stays(who, 'jal', 'NRT')];
+    const ph = who === ANON ? [] : [await photo(who, F1), await photo(who, '11111111-1111-4111-8111-111111111111')];
+    const phWant = who === OP2 ? NOT_FOUND : LOCKED;   // OP2 は運営なので口は通るが、公開済みの写真は出ない
+    ok(r.every((x) => J(x) === LOCKED_READ) && ph.every((x) => J(x) === phWant) && (who !== ANON || denied(await photo(ANON, F1))),
+       `★V4: ${NAMES.get(who)}: 一覧は {ok:true, state:'locked'} の1行・公開済みの写真も出ない（公開済み・確認待ちが在っても）`,
+       J([r, ph]).slice(0, 240));
+    texts.push(...r.map(J), ...ph.map(J));
+  }
+  ok(texts.length === 15 * 3 + 14 * 2 && texts.every((t) => !/テスト用|W-1|メモW|b64/.test(t) && ![A, W, F1, WP].some((id) => t.includes(id))),
+     '★V4: ↑ のどの返事にも、名前・住所・メモ・写真も、場所や写真の id も1つも無い', String(texts.length));
+
+  /* ★V5: 承認の無い運営（OP2）も、確認待ちを見て決める仕事はそのまま */
+  const q2 = await queue(OP2);
+  const qw = (q2.places || []).find((x) => x.id === W);
+  ok(q2.ok === true && qw && qw.name === 'テスト用ホテルW' && q2.photos.some((f) => f.id === WP) && (await photo(OP2, WP)).b64 === jpegN(31),
+     '★V5: OP2 も、待ち行列で確認待ちの場所と写真を見られる（写真も取り出せる）', J(qw));
+  ok((await moderate(OP2, 'place', W, 'public', qw && qw.rev)).ok === true && (await moderate(OP2, 'photo', WP, 'public')).ok === true,
+     '★V5: OP2 は公開できる（見た版の印を添えて）');
+  ok(J(await stays(OP2, 'etihad', 'CDG')) === LOCKED_READ && J(await photo(OP2, WP)) === NOT_FOUND,
+     '★V5: 公開したあとは、OP2 にも一覧は locked・その写真も取り出せない（公開済みを読めるのは見てよい人だけ）');
+  const nowV2 = find(await stays(V2, 'etihad', 'CDG'), W);
+  ok(nowV2 && nowV2.state === 'public' && (await photo(V2, WP)).b64 === jpegN(31), 'V5: 公開されると、承認された人（V2）に場所と写真が見える', J(nowV2));
+
+  /* ★V7: JWT の中身を偽っても何も開かない（門は表だけを読む） */
+  const forged = async (who, claims, fn, p) => {
+    await as(who);
+    await db.query(`select set_config('request.jwt.claims', $1, false)`, [J(claims)]);
+    try {
+      const v = (await db.query(`select public.${fn}($1::jsonb) as v`, [J(p)])).rows[0].v;
+      seen.push({ who, fn, json: J(v) });
+      return J(v);
+    } catch (e) { return 'ERR ' + String(e.message || e); }
+    finally { await db.query(`select set_config('request.jwt.claims', '', false)`); await asOwner(); }
+  };
+  await db.query(`select set_config('request.jwt.claims', $1, false)`, [J({ role: 'service_role', pv_viewer: true })]);
+  const jw = await one(`select auth.jwt() ->> 'role' as r, auth.jwt() ->> 'pv_viewer' as v`);
+  await db.query(`select set_config('request.jwt.claims', '', false)`);
+  ok(jw.r === 'service_role' && jw.v === 'true', '（偽の中身は auth.jwt() からそのまま読める状態にしてある ＝ 読めば開いてしまう）', J(jw));
+  const CLAIMS = [{ role: 'service_role' }, { pv_viewer: true }, { role: 'service_role', pv_viewer: true, user_role: 'owner', app_metadata: { pv_viewer: true } }];
+  const got7 = [];
+  for (const c of CLAIMS) {
+    for (const who of [U, MK1, PAY, OP2]) {
+      got7.push([NAMES.get(who), await forged(who, { sub: who, ...c }, 'pv_stays', { airline: 'etihad', iata: 'NRT' }), LOCKED_READ]);
+      got7.push([NAMES.get(who), await forged(who, { sub: who, ...c }, 'pv_stay_photo', { id: F1 }), who === OP2 ? NOT_FOUND : LOCKED]);
+      got7.push([NAMES.get(who), await forged(who, { sub: who, ...c }, 'pv_stay_photo_add', { place: A, b64: jpegN(32) }), LOCKED]);
+    }
+    got7.push(['ANON', await forged(ANON, c, 'pv_stays', { airline: 'etihad', iata: 'NRT' }), LOCKED_READ]);
+  }
+  ok(got7.length === 39 && got7.every(([, g, want]) => g === want),
+     '★V7: JWT の中身を偽っても（role=service_role・pv_viewer=true など）、一覧も写真も何も開かない', J(got7.filter(([, g, want]) => g !== want).slice(0, 3)));
+
+  /* ★V1（データが在るとき）: オーナーの行が消えたら、その場で誰にも開かない（運営の確認待ちの写真の口も） */
+  const wp2 = await photoAdd(V2, W, jpegN(34));
+  const WP2 = wp2.photo && wp2.photo.id;
+  const saved = (await db.query(`select user_id, set_at from public.pv_stay_owner`)).rows[0];
+  await db.query(`delete from public.pv_stay_owner`);
+  const r1 = [await stays(OP), await stays(V1), await stays(V2), await stays(OP2), await stays(OP, 'etihad', 'CDG'), await stays(V1, 'etihad', 'CDG')];
+  const p1 = [await photo(OP, F1), await photo(V1, F1), await photo(V2, WP2), await photo(OP, WP2), await photo(OP2, WP2), await photoAdd(V1, A, jpegN(33))];
+  await db.query(`insert into public.pv_stay_owner (user_id, set_at) values ($1, $2)`, [saved.user_id, saved.set_at]);
+  ok(wp2.ok === true && r1.every((x) => J(x) === LOCKED_READ) && p1.every((x) => J(x) === LOCKED),
+     '★V1: オーナーの行が消えると、その場でオーナー・承認された人・運営の誰にも開かない（一覧・写真・写真を足す・確認待ちの写真）',
+     J([r1, p1]).slice(0, 240));
+  ok(J(await ownerNow()) === J([OP]) && find(await stays(V2, 'etihad', 'CDG'), W) && (await photo(OP2, WP2)).b64 === jpegN(34),
+     '（オーナーの行を戻すと、元どおり開く・OP2 も確認待ちの写真をまた見られる）');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1028,10 +1279,10 @@ let S;
     await db.query(`delete from public.pv_stay_photos where id = $1`, [r.photo && r.photo.id]);
   }
 
-  /* 確認前: 別の「確認の印を持つ人」にも出ない */
+  /* 確認前: 別の「承認された人」にも出ない */
   const gBy1 = find(await stays(V1, 'etihad', 'AUH'), G);
   ok(J(await photo(V1, GP)) === NOT_FOUND && gBy1 && J(gBy1.photos) === '[]',
-     '★確認前の写真は、別の「確認の印を持つ人」にも出ない（取り出せない・一覧にも在ることが出ない）', J(gBy1));
+     '★確認前の写真は、別の「承認された人」にも出ない（取り出せない・一覧にも在ることが出ない）', J(gBy1));
 
   /* 資格の無い人: 返事は locked の1種類だけ。写真・幅・高さ・件数の欄そのものが無い。表も直接は読めない */
   const goneId = (await one(`select id from public.pv_stay_photos where state = 'rejected' limit 1`)).id;
@@ -1063,11 +1314,18 @@ let S;
     ok((await photoRows()) === n0, `${label}資格の無い人が送った写真は1行も入っていない`);
   };
   await lockedOut('確認前 ── ');
+  { /* ★V5: 承認の無い運営（OP2）── 一覧は locked・確認待ちの写真だけは取り出せる（見て決めるため） */
+    const g = await readBack(OP2);
+    ok(J(await stays(OP2, 'etihad', 'AUH')) === LOCKED_READ && g.fine,
+       '確認前 ── OP2: 一覧は locked だけ・確認待ちの写真は、作り直したもの（場所・日時・機種なし）を取り出せる', J(g.r).slice(0, 120));
+  }
   ok((await moderate(OP, 'photo', GP, 'public')).ok === true, '運営が写真を公開する');
   const pubBack = await readBack(V1);
   ok(pubBack.fine && J(find(await stays(V1, 'etihad', 'AUH'), G).photos) === J([{ id: GP, mine: false, state: 'public' }]),
-     '★公開後、別の「確認の印を持つ人」が取り出しても、場所・日時・機種は1つも無い（一覧に出るのは id・mine・state だけ）', J(pubBack.r).slice(0, 160));
+     '★公開後、別の「承認された人」が取り出しても、場所・日時・機種は1つも無い（一覧に出るのは id・mine・state だけ）', J(pubBack.r).slice(0, 160));
   await lockedOut('公開後 ── ');
+  ok(J(await stays(OP2, 'etihad', 'AUH')) === LOCKED_READ && J(await photo(OP2, GP)) === NOT_FOUND,
+     '★公開後 ── OP2: 一覧は locked・公開された写真はもう取り出せない（not_found）');
 
   /* ── 関数を通らない道（表の持ち主が直接入れる・あとから別の SQL が行を足す）は、表の CHECK が止める ── */
   {
@@ -1384,8 +1642,13 @@ console.log('\n▼ 地図のリンク ── https で Google マップのホス
      （表の制約はホストしか見ないので、古い形の行はそのまま残っている、を作る） */
   await db.query(`update public.pv_stay_places set maps_url = 'https://maps.google.com/url?q=https://evil.example' where id = $1`, [a.item.id]);
   const before = await one(`select count(*)::int as n from public.pv_stay_places`);
+  const people = async () => J([(await db.query(`select one, user_id, set_at from public.pv_stay_owner`)).rows,
+                                (await db.query(`select * from public.pv_stay_viewers order by user_id`)).rows]);
+  const people0 = await people();
   let e2 = '';
   try { await db.exec(STAYS_SQL); } catch (err) { e2 = String(err.message); }
+  ok(e2 === '' && (await people()) === people0,
+     '★貼り直しても、オーナーの行と承認の行は1文字も変わらない（貼り直しで承認が消えない・増えない）');
   const old = await one(`select maps_url, name from public.pv_stay_places where id = $1`, [a.item.id]);
   const good = await one(`select maps_url from public.pv_stay_places where id = $1`, [c.item.id]);
   const after = await one(`select count(*)::int as n from public.pv_stay_places`);
@@ -1419,7 +1682,7 @@ let N1;
      && jal.others.some((o) => o.airline === 'etihad') && flat.every((p) => p.kind === 'hotel')
      && flat.some((p) => p.id === A) && !flat.some((p) => p.id === C || p.id === D || p.id === E || p.id === N1),
      '見ている会社は others に入らない・others はホテルだけ・見送り／他人の確認前は入らない', J(jal));
-  for (const who of OUTSIDERS) ok(J(await stays(who)) === LOCKED_READ, `${NAMES.get(who)}: others が在っても locked だけ`);
+  for (const who of READ_OUT) ok(J(await stays(who)) === LOCKED_READ, `${NAMES.get(who)}: others が在っても locked だけ`);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1436,58 +1699,75 @@ console.log('\n▼ 運営の待ち行列');
   const q0 = await call(OP, `select public.pv_stay_queue() as v`);
   ok(q0.v && q0.v.v.ok === true, '引数なしでも呼べる');
   seen.push({ who: OP, fn: 'pv_stay_queue', json: J(q0.v.v) });
-  for (const who of [V1, V2]) ok(J(await queue(who)) === FORBIDDEN, `${NAMES.get(who)}: 印を持っていても待ち行列は見えない（forbidden）`);
+  for (const who of [V1, V2]) ok(J(await queue(who)) === FORBIDDEN, `${NAMES.get(who)}: 承認されていても待ち行列は見えない（forbidden）`);
+  /* ★V5: 承認の無い運営（OP2）も、確認待ちを見て決める口はそのまま（読む口だけが閉じている） */
+  const q2 = await queue(OP2);
+  ok(q2.ok === true && keys(q2) === 'ok,photos,places' && J(q2.places.map((p) => p.id)) === J(q.places.map((p) => p.id))
+     && J(q2.photos.map((f) => f.id)) === J(q.photos.map((f) => f.id)),
+     '★承認の無い運営（OP2）にも、待ち行列は運営その1と同じ中身で返る（確認待ちを見て決める口は閉じない）', J(keys(q2)));
 }
 
 // ════════════════════════════════════════════════════════════════
-console.log('\n▼ 確認の印の列がもし会員に書ける状態へ戻ったら、門は閉じる');
+console.log('\n▼ 見てよい人の名簿（pv_stay_viewers・pv_stay_owner）がもし会員に書ける状態になったら、門は閉じる');
 {
-  /* db/stays.sql は貼るときに「会員が印を書けない」ことを確かめて止まるが、それは貼った瞬間の話。
-     あとから別の SQL が profiles の書き込みを配り直すと、登録しただけの人が自分に印を付けて
+  /* db/stays.sql は名簿の2表を完全に閉じて貼る（上の V6）が、それは貼った瞬間の話。
+     あとから別の SQL が名簿の書き込みを配り直すと、登録しただけの人が自分の承認の行（やオーナーの行）を書いて
      ホテルの名前を読めてしまう。なので門そのものが、呼ばれるたびにその権限を見る。
-     ⚠️ ここでは列の単位でだけ配る・取り上げる。表の単位で revoke すると、
-        db/admin.sql が返した10列ぶんの書き込みまで一緒に消える。 */
+     承認の表なら承認した人は全員 locked（オーナーは通る）。オーナーの表なら誰にも開かない（運営の待ち行列は生きている）。
+     ⚠️ 2表とも、もとから誰にも何も配っていない。ここで配ったものは、同じ回の中で全部取り上げる。 */
   const isOpen = async (who) => { const v = await stays(who); return v.state === 'open' && !!find(v, A); };
-  ok(await isOpen(V1) && await isOpen(V2), '（いまは、印を持つ人に開いている）');
+  ok(await isOpen(V1) && await isOpen(V2) && await isOpen(OP), '（いまは、承認された人とオーナーに開いている）');
   const base = (await one(`select count(*)::int as n from public.pv_stay_places`)).n
              + (await one(`select count(*)::int as n from public.pv_stay_photos`)).n;
 
-  for (const [role, priv] of [['authenticated', 'update'], ['authenticated', 'insert'], ['anon', 'update'], ['anon', 'insert']]) {
-    await db.exec(`grant ${priv} (verify_level) on public.profiles to ${role};`);
-    const r = [J(await stays(V1)), J(await stays(V2)), J(await photo(V1, F1)),
-               J(await add(V1, P('etihad', 'NRT', 'hotel', 'テスト用ホテルG'))), J(await photoAdd(V2, A, jpegN(90))),
-               J(await upd(V1, { id: A, name: 'テスト用ホテルG' }))];
-    const op = await stays(OP);
-    const out = [J(await stays(U)), J(await stays(ANON))];
-    await db.exec(`revoke ${priv} (verify_level) on public.profiles from ${role};`);
-    ok(r[0] === LOCKED_READ && r[1] === LOCKED_READ && r[2] === LOCKED && r[3] === LOCKED && r[4] === LOCKED && r[5] === LOCKED,
-       `★${role} が verify_level を ${priv} できる間は、印を持つ人にも locked（読む・足す・写真・直す）`, J(r));
-    ok(op.state === 'open' && op.is_operator === true && !!find(op, A) && out.every((x) => x === LOCKED_READ),
-       '↑ その間も運営は見える（直すための画面は生きている）・資格の無い人は locked のまま', J([op.state, out]));
+  for (const t of ['pv_stay_viewers', 'pv_stay_owner']) {
+    for (const [role, priv] of [['authenticated', 'update'], ['authenticated', 'insert'], ['anon', 'update'], ['anon', 'insert']]) {
+      await db.exec(`grant ${priv} on public.${t} to ${role};`);
+      const r = [J(await stays(V1)), J(await stays(V2)), J(await photo(V1, F1)),
+                 J(await add(V1, P('etihad', 'NRT', 'hotel', 'テスト用ホテルG'))), J(await photoAdd(V2, A, jpegN(90))),
+                 J(await upd(V1, { id: A, name: 'テスト用ホテルG' }))];
+      const op = await stays(OP);
+      const oq = await queue(OP);
+      const out = [J(await stays(U)), J(await stays(ANON)), J(await stays(OP2))];
+      await db.exec(`revoke ${priv} on public.${t} from ${role};`);
+      ok(r[0] === LOCKED_READ && r[1] === LOCKED_READ && r[2] === LOCKED && r[3] === LOCKED && r[4] === LOCKED && r[5] === LOCKED,
+         `★${role} が ${t} を ${priv} できる間は、承認された人にも locked（読む・足す・写真・直す）`, J(r));
+      if (t === 'pv_stay_viewers') {
+        ok(op.state === 'open' && op.is_operator === true && !!find(op, A) && out.every((x) => x === LOCKED_READ),
+           '↑ その間もオーナーは見える（オーナーの行は信じてよい）・資格の無い人と承認の無い運営は locked のまま', J([op.state, out]));
+      } else {
+        ok(J(op) === LOCKED_READ && oq.ok === true && out.every((x) => x === LOCKED_READ),
+           '★↑ オーナーの表のときは、オーナーにも locked（誰がオーナーかを信じない）。運営の待ち行列は生きている', J([op, out]));
+      }
+    }
   }
   const now = (await one(`select count(*)::int as n from public.pv_stay_places`)).n
             + (await one(`select count(*)::int as n from public.pv_stay_photos`)).n;
   ok(now === base, '閉じていた間に、行は1つも増えていない', `${base} → ${now}`);
-  ok(await isOpen(V1) && await isOpen(V2), '権限を取り上げたら、元どおり開く');
+  ok(await isOpen(V1) && await isOpen(V2) && await isOpen(OP), '権限を取り上げたら、元どおり開く');
 
-  /* 実際の攻め方 ── 権限が配り直された間に、印の無い会員が自分で印を書く */
-  await db.exec(`grant update (verify_level) on public.profiles to authenticated;`);
-  const w = await call(U, `update public.profiles set verify_level = 2 where id = $1 returning id`, [U]);
-  const lv = await one(`select verify_level from public.profiles where id = $1`, [U]);
-  ok(!w.err && Number(lv.verify_level) === 2, '（権限が配られると、会員は自分の印を書けてしまう ── これが塞ぐ相手）', J({ w, lv }));
+  /* 実際の攻め方 ── 書き込みとポリシーが配り直された間に、承認の無い会員が自分の承認の行を書く */
+  await db.exec(`grant insert on public.pv_stay_viewers to authenticated;
+                 create policy pv_test_self_approve on public.pv_stay_viewers for insert to authenticated with check (true);`);
+  const w = await call(U, `insert into public.pv_stay_viewers (user_id, state, asked_at, decided_by, decided_at)
+                           values ($1, 'approved', now(), $2, now())`, [U, OP]);
+  const lv = await one(`select state, decided_by from public.pv_stay_viewers where user_id = $1`, [U]);
+  ok(!w.err && lv && lv.state === 'approved' && lv.decided_by === OP,
+     '（書き込みとポリシーが配られると、会員は自分の承認の行を書けてしまう ── これが塞ぐ相手）', J({ w, lv }));
   const got = [J(await stays(U)), J(await stays(U, 'jal', 'NRT')), J(await add(U, P('etihad', 'NRT', 'hotel', 'テスト用ホテルG2'))),
                J(await photo(U, F1)), J(await photoAdd(U, A, JPEG)), J(await queue(U)), J(await moderate(U, 'place', A, 'rejected')),
                J(await upd(U, { id: A, name: 'テスト用ホテルG2' }))];
   ok(got[0] === LOCKED_READ && got[1] === LOCKED_READ && got[2] === LOCKED && got[3] === LOCKED && got[4] === LOCKED
      && got[5] === FORBIDDEN && got[6] === FORBIDDEN && got[7] === LOCKED,
-     '★自分で印を書いた会員には、ホテル名も写真も1つも返らない（locked だけ）', J(got));
-  /* 片付け。⚠️ 権限を取り上げても、その間に書かれた印は列に残る。印も戻す
-     （本番でこうなったら、db/admin.sql を貼り直したあとに印の付いている人を見直す） */
-  await db.exec(`revoke update (verify_level) on public.profiles from authenticated;`);
-  await db.query(`update public.profiles set verify_level = 0 where id = $1`, [U]);
-  const back = await call(U, `update public.profiles set verify_level = 2 where id = $1 returning id`, [U]);
+     '★自分で承認の行を書いた会員には、ホテル名も写真も1つも返らない（locked だけ）', J(got));
+  /* 片付け。⚠️ 権限を取り上げても、その間に書かれた行は表に残る。行も消す
+     （本番でこうなったら、このファイルを貼り直したあとに、承認の行を1行ずつ見直す） */
+  await db.exec(`drop policy pv_test_self_approve on public.pv_stay_viewers;
+                 revoke insert on public.pv_stay_viewers from authenticated;`);
+  await db.query(`delete from public.pv_stay_viewers where user_id = $1`, [U]);
+  const back = await call(U, `insert into public.pv_stay_viewers (user_id, state, decided_by, decided_at) values ($1, 'approved', $2, now())`, [U, OP]);
   ok(/permission denied/i.test(back.err || '') && J(await stays(U)) === LOCKED_READ && await isOpen(V1),
-     '片付けたあと: 会員は印を書けない・印の無い人は locked・印を持つ人には開く', J(back));
+     '片付けたあと: 会員は承認の行を書けない・承認の無い人は locked・承認された人には開く', J(back));
   ok((await one(`select state from public.pv_stay_places where id = $1`, [A])).state === 'public', '（場所は公開のまま。見送られていない）');
 }
 
@@ -1540,7 +1820,7 @@ console.log('\n▼ 時刻は返さない（返すのは0〜4の段だけ）');
 console.log('\n▼ 消す ── 本人か運営だけ');
 {
   ok(J(await del(V2, 'place', A)) === NOT_FOUND && J(await del(V2, 'photo', F1)) === NOT_FOUND,
-     '★印を持つ別の人は、他人の場所も写真も消せない（not_found）');
+     '★承認された別の人は、他人の場所も写真も消せない（not_found）');
   ok((await one(`select count(*)::int as n from public.pv_stay_places where id = $1`, [A])).n === 1
      && (await one(`select count(*)::int as n from public.pv_stay_photos where id = $1`, [F1])).n === 1, '↑ のあとも残っている');
   ok(J(await del(V1, 'x', A)) === BAD_TARGET && J(await del(V1, 'place', 'abc')) === NOT_FOUND
@@ -1560,17 +1840,19 @@ console.log('\n▼ 消す ── 本人か運営だけ');
      && !find(await stays(V2), A), '場所を消すと、付いていた写真も一緒に消える');
   ok((await del(OP2, 'place', C)).ok === true, '運営は他人の場所を消せる');
 
-  /* 印を外された人 ── もう見えないが、自分が出したものは消せる */
-  await db.query(`update public.profiles set verify_level = 1 where id = $1`, [V3]);
+  /* 承認を取り消された人 ── もう見えないが、自分が出したものは消せる
+     （承認・取り消しは DB の持ち主として書く。オーナーの口は WP-stays-1b） */
+  await db.query(`insert into public.pv_stay_viewers (user_id, state, asked_at, decided_by, decided_at)
+                  values ($1, 'approved', now(), $2, now())`, [V3, OP]);
   const mine = await addFresh(V3, P('etihad', 'BKK', 'hotel', 'テスト用ホテルV3'));
-  ok(mine.ok === true && (await stays(V3, 'etihad', 'BKK')).places.length === 1, '（印を付けた直後は足せる・見える）');
-  await db.query(`update public.profiles set verify_level = 0 where id = $1`, [V3]);
-  ok(J(await stays(V3, 'etihad', 'BKK')) === LOCKED_READ, '★印を外されたら、その場で locked に戻る（自分が書いたものも見えない）');
+  ok(mine.ok === true && (await stays(V3, 'etihad', 'BKK')).places.length === 1, '（承認された直後は足せる・見える）');
+  await db.query(`update public.pv_stay_viewers set state = 'revoked', decided_by = $2, decided_at = now() where user_id = $1`, [V3, OP]);
+  ok(J(await stays(V3, 'etihad', 'BKK')) === LOCKED_READ, '★承認を取り消されたら、その場で locked に戻る（自分が書いたものも見えない）');
   ok(J(await add(V3, P('etihad', 'BKK', 'hotel', 'テスト用ホテルV3b'))) === LOCKED
-     && J(await photoAdd(V3, mine.item.id, JPEG)) === LOCKED && J(await photo(V3, F1)) === LOCKED, '印を外されたら、足す・写真 も locked');
+     && J(await photoAdd(V3, mine.item.id, JPEG)) === LOCKED && J(await photo(V3, F1)) === LOCKED, '承認を取り消されたら、足す・写真 も locked');
   ok((await del(V3, 'place', mine.item.id)).ok === true
      && (await one(`select count(*)::int as n from public.pv_stay_places where id = $1`, [mine.item.id])).n === 0,
-     '印を外されたあとでも、自分が出したものは自分で消せる');
+     '承認を取り消されたあとでも、自分が出したものは自分で消せる');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1598,7 +1880,7 @@ console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待�
   await moderate(OP, 'photo', FH, 'public');
   const pub0 = find(await hel(V2), H);
   ok(pub0 && pub0.state === 'public' && pub0.mine === false && pub0.city === 'テスト市' && pub0.photos.length === 1
-     && (await photo(V2, FH)).b64 === jpegN(2001), '（公開済み: 別の印を持つ人に、都市と写真つきで見えている）', J(pub0));
+     && (await photo(V2, FH)).b64 === jpegN(2001), '（公開済み: 別の承認された人に、都市と写真つきで見えている）', J(pub0));
   const r0 = await rowOf(H);
 
   /* 何も変えない送り直し ── 状態を戻さない */
@@ -1620,13 +1902,14 @@ console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待�
                 await upd(V1, { ...no, id: '11111111-1111-4111-8111-111111111111' }),
                 await upd(V1, { ...no, id: 'abc' }), await upd(V1, { name: no.name })];
   ok(deny.length === 6 && deny.every((r) => J(r) === NOT_FOUND),
-     '★他人は直せない（別の印を持つ人も・運営も not_found）／無い id・変な id・id なし も同じ答え', J(deny));
+     '★他人は直せない（別の承認された人も・運営も not_found）／無い id・変な id・id なし も同じ答え', J(deny));
   ok(J(await upd(U, no)) === LOCKED && J(await upd(PAY, no)) === LOCKED && J(await upd(BADGE, no)) === LOCKED
      && denied(await upd(ANON, no)), '資格の無い会員は locked・未ログインは口そのものを呼べない');
-  await db.query(`update public.profiles set verify_level = 0 where id = $1`, [V1]);
+  /* 承認をいったん取り消して直させてみる → 戻す（DB の持ち主として） */
+  await db.query(`update public.pv_stay_viewers set state = 'revoked', decided_at = now() where user_id = $1`, [V1]);
   const off = await upd(V1, no);
-  await db.query(`update public.profiles set verify_level = 1 where id = $1`, [V1]);
-  ok(J(off) === LOCKED, '★印を外された人は、自分が書いたものでも直せない（locked。資格の判定は門のまま）', J(off));
+  await db.query(`update public.pv_stay_viewers set state = 'approved', decided_at = now() where user_id = $1`, [V1]);
+  ok(J(off) === LOCKED, '★承認を取り消された人は、自分が書いたものでも直せない（locked。資格の判定は門のまま）', J(off));
   ok(J(await rowOf(H)) === J(r0), '↑ どれのあとも、表の行は1文字も変わっていない');
 
   /* 本人が直す → 確認待ちへ戻る */
@@ -1740,8 +2023,8 @@ console.log('\n▼ 直す ── 書いた本人だけ・直したら確認待�
   ok(oe.changed === true && oe.item.state === 'pending' && oe.item.mine === true,
      '運営が自分で書いたものは、書いた本人として直せる（同じく確認待ちへ戻る）', J(oe));
   ok(status(await moderate(OP, 'place', o1.item.id, 'public')) === 'own_post'
-     && (await moderate(OP2, 'place', o1.item.id, 'public', find(await hel(OP2), o1.item.id).rev)).ok === true,
-     '★直したあとも、運営は自分のものを自分で公開へ戻せない（own_post）。別の運営なら通せる');
+     && (await moderate(OP2, 'place', o1.item.id, 'public', ((await queue(OP2)).places.find((x) => x.id === o1.item.id) || {}).rev)).ok === true,
+     '★直したあとも、運営は自分のものを自分で公開へ戻せない（own_post）。別の運営なら（待ち行列で見た版の印で）通せる');
 
   /* 24時間に20回 ── 回数の箱（edit_from・edit_n）を直接置いてから呼ぶ */
   const setBox = (id, n, ago) => db.query(
@@ -1790,7 +2073,7 @@ console.log('\n▼ ステイ時間（stay_hours）── ホテルだけ・1〜2
   const v2o = (await stays(V2, 'jal', 'OSL')).others.flatMap((o) => o.places).find((x) => x.id === S1);
   ok(v2a && v2a.stay_hours === 24 && v2a.mine === false && v2a.state === 'public' && keys(v2a) === H12
      && v2o && v2o.stay_hours === 24,
-     '★公開されると、別の印を持つ人にも 24 で見える（一覧でも・「同じ空港で他社が使うホテル」の側でも）', J([v2a, v2o]));
+     '★公開されると、別の承認された人にも 24 で見える（一覧でも・「同じ空港で他社が使うホテル」の側でも）', J([v2a, v2o]));
 
   /* 1〜240 の整数でないもの ── 弾く。丸めて通さない */
   const n0 = await total();
@@ -1915,6 +2198,11 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
      `★資格の無い人への返事 ${out.length} 本が、全部 定型文と1文字も違わない（名前も件数も id も無い）`,
      J(odd.slice(0, 3).map((s) => [NAMES.get(s.who), s.fn, s.json.slice(0, 200)])));
   ok(out.every((s) => !/テスト用|photos|places|others|can_add/.test(s.json)), '↑ ホテル名・欄の名前すら入っていない');
+  /* ★承認の無い運営（OP2）: 一覧の返事は全部 locked の1行・写真の返事に公開済みの写真の中身が無い
+       （確認待ちを見る口 ── 待ち行列・公開・確認待ちの写真 ── の返事は、運営の仕事なので数えない） */
+  const op2 = seen.filter((s) => s.who === OP2 && s.fn === 'pv_stays');
+  ok(op2.length >= 10 && op2.every((s) => s.json === LOCKED_READ),
+     `★承認の無い運営（OP2）への一覧の返事 ${op2.length} 本が、全部 {ok:true, state:'locked'} の1行`, J(op2.filter((s) => s.json !== LOCKED_READ).slice(0, 2)));
 
   /* 2) ハッシュ・生の uid・時刻が、誰への返事にも無い */
   const all = seen.map((s) => s.json).join('\n');
@@ -1924,7 +2212,8 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
   ok(inDb.length >= 3 && inDb.every((h) => hashes.includes(h)), '（表に在るハッシュは、手元で作った式と同じ値）', J(inDb));
   ok(hashes.every((h) => !all.includes(h)) && inDb.every((h) => !all.includes(h)),
      `★実際のハッシュ値が、${seen.length} 本の返事のどこにも無い`);
-  ok([V1, V2, V3, U, PAY, PROF, BADGE, GHOST, REV, OP, OP2].every((u) => !all.includes(u)), '生の uid がどこにも無い');
+  ok([V1, V2, V3, U, PAY, PROF, BADGE, GHOST, REV, OP, OP2, MK1, MK2, SELF, PEND, DEN, RVK, OLDO, FORMER].every((u) => !all.includes(u)),
+     '生の uid がどこにも無い');
   ok(!/author_hash|created_at|moderated_at|byte_len|updated_at|edit_from|edit_n/.test(all), '表の列の名前（author_hash・created_at・updated_at…）がどこにも無い');
   ok(!/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(all), '日付と時刻の形をした文字列がどこにも無い');
 
@@ -1978,15 +2267,29 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   const banned = code.split(POS_FF).join('').match(/access_until|pv_my_give|badge|founding|pay_reports|verified_airline|\bsource\b|company|"position"|\bposition\b/gi);
   ok(!banned, '★給与の鍵・バッジ・プロフィールの会社と職位・FOUNDING を、コードが1度も読んでいない', J(banned));
   ok(!/reviews_v2|pv_has_review_key|pv_review_hash|proof_hash/i.test(code), '★口コミの鍵（reviews_v2・pv_has_review_key）も、コードが1度も読んでいない');
-  ok((code.match(/verify_level/g) || []).length >= 1 && /coalesce\(p\.verify_level, 0\) >= 1/.test(code), '印の判定は verify_level >= 1 の1か所');
+  /* ★2026-10-15 から確認の印は何も開かない ＝ 印を見る所は「0. 前提」（db/admin.sql が当たっているかの確かめ）だけ */
+  const guard0 = code.slice(0, code.indexOf('create table if not exists public.pv_stay_places'));
+  const vl = (s) => (s.match(/verify_level/g) || []).length;
+  ok(vl(guard0) >= 1 && vl(code) === vl(guard0) && !/coalesce\(p\.verify_level/.test(code),
+     '★確認の印（verify_level）は「0. 前提」の確かめのほかに1度も出てこない（門は印を読まない）', `${vl(code)} / ${vl(guard0)}`);
+  ok(STAYS_SQL.split('pv_is_verified_pilot').length === 2 && /^drop function if exists public\.pv_is_verified_pilot\(\);$/m.test(STAYS_SQL),
+     '★前の判定 pv_is_verified_pilot は、消す1行のほかに1度も出てこない');
   const fns = code.split(/create or replace function/).slice(1);
-  ok(fns.length === 23 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
-     '23本の関数すべてに set search_path = public, extensions', String(fns.length));
+  ok(fns.length === 24 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
+     '24本の関数すべてに set search_path = public, extensions', String(fns.length));
   const fn = (name) => fns.find((f) => f.trimStart().startsWith('public.' + name + '(')) || '';
-  /* 印の判定は、毎回「会員がその列を書けない」ことも見ている（4通り全部） */
-  const gate = fn('pv_is_verified_pilot');
-  ok((gate.match(/not has_column_privilege\('(authenticated|anon)', 'public\.profiles', 'verify_level', '(UPDATE|INSERT)'\)/g) || []).length === 4,
-     '★印の判定の中で、会員と未ログインが verify_level を書けないことを毎回確かめている（4通り）');
+  /* 見てよい人の決め方は、毎回「会員と未ログインが名簿の2表を書けない」ことも見ている（2表 × 4通り） */
+  const ownF = fn('pv_stay_owner_id'), seesF = fn('pv_stay_sees');
+  const privN = (f, t) => (f.match(new RegExp(`not has_any_column_privilege\\('(authenticated|anon)', 'public\\.${t}', '(UPDATE|INSERT)'\\)`, 'g')) || []).length;
+  ok(privN(ownF, 'pv_stay_owner') === 4 && privN(seesF, 'pv_stay_viewers') === 4,
+     '★見てよい人の決め方の中で、会員と未ログインがオーナーの表・承認の表を書けないことを毎回確かめている（2表 × 4通り）');
+  /* ★V7・約束 1: 見てよい人の決め方が読むのは名簿の2表だけ */
+  ok(ownF !== '' && seesF !== ''
+     && ![ownF, seesF].some((f) => /auth\.jwt|request\.jwt|current_setting|profiles|verify_level|pv_admins|pv_is_operator|access_until/i.test(f))
+     && /auth\.uid\(\) = public\.pv_stay_owner_id\(\)/.test(seesF) && /v\.state = 'approved'/.test(seesF)
+     && /v\.decided_by = public\.pv_stay_owner_id\(\)/.test(seesF),
+     '★見てよい人の決め方（pv_stay_owner_id・pv_stay_sees）が読むのは名簿の2表だけ（JWT・設定値・プロフィール・確認の印・運営の名簿を読まない）');
+  ok(!/auth\.jwt|request\.jwt|current_setting\s*\(/i.test(code), '★どの関数も JWT の中身・設定値を読まない（門の根拠にしない）');
   /* 段を「書いた時刻からの長さ」で切っていない（切ると、段が変わる瞬間から書いた時刻が分かる） */
   const age = fn('pv_stay_age');
   ok(age !== '' && !/interval/i.test(age) && /at time zone 'utc'/.test(age), '★段は暦の月（UTC）で切っている（interval との比較で切っていない）');
@@ -1995,7 +2298,7 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   ok(pj !== '' && !/created_at/.test(pj.replace(/public\.pv_stay_age\(s\.created_at\)/, '')) && /order by f\.id\)/.test(pj),
      '★1件を返す形の中で、時刻を使うのは段（age）の1か所だけ・写真の並びは id の順');
   ok(!/updated_at|edit_from|edit_n|moderated_at/.test(pj) && /'city',\s+s\.city,\s+'stay_hours',\s+s\.stay_hours,/.test(pj)
-     && /'mine',\s+coalesce\(s\.author_hash = p_me, false\)/.test(pj),
+     && /'mine',\s+coalesce\(s\.author_hash = any\(p_me\), false\)/.test(pj),
      '★1件を返す形に、直した時刻・直した回数が入っていない／都市とステイ時間は入っている／mine は「自分のか」の真偽だけ');
   /* 直す口 ── 資格は門をそのまま呼ぶ・検品の式を写していない・会社と空港に触れない・直したら確認待ち */
   const ad = fn('pv_stay_add'), up = fn('pv_stay_update'), cl = fn('pv_stay_clean'), cs = fn('pv_stay_clash');
@@ -2059,6 +2362,9 @@ console.log('\n▼ 冪等性（データが入った状態でもう一度流す�
                                from public.pv_stay_places order by id`)).rows,
     photos: (await db.query(`select id, place_id, author_hash, md5(bytes) as m, byte_len, w, h, state, created_at
                                from public.pv_stay_photos order by id`)).rows,
+    /* ★貼り直しても、オーナーと承認の行は1文字も変わらない（オーナーの行は置き換えないまま流れる） */
+    owner: (await db.query(`select one, user_id, set_at from public.pv_stay_owner`)).rows,
+    viewers: (await db.query(`select user_id, state, asked_at, decided_by, decided_at from public.pv_stay_viewers order by user_id`)).rows,
   });
   const view = async () => J([await stays(V1), await stays(V2), await stays(OP), await stays(V2, 'etihad', 'SIN'),
                               await stays(U), await stays(ANON), await queue(OP)]);
@@ -2071,6 +2377,9 @@ console.log('\n▼ 冪等性（データが入った状態でもう一度流す�
   await checkGrants('流し直したあと: ');
   const pol = await one(`select count(*)::int as n from pg_policies where schemaname='public' and tablename in ('pv_stay_places','pv_stay_photos')`);
   ok(pol.n === 0, '流し直したあと: ポリシーは 0 本のまま');
+  const pol2 = await one(`select count(*)::int as n from pg_policies where schemaname='public' and tablename in ('pv_stay_owner','pv_stay_viewers')`);
+  ok(pol2.n === 0 && JSON.parse(s0).owner.length === 1 && JSON.parse(s0).viewers.length >= 6,
+     '流し直したあと: 名簿の2表のポリシーも 0 本・オーナーの行と承認の行はそのまま（上の「1文字も変わっていない」に入っている）', J(pol2));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2086,6 +2395,8 @@ console.log('\n▼ 前提が無ければ日本語で止まる（別の空の DB 
     grant usage on schema public, extensions to anon, authenticated;
     alter default privileges in schema public grant all on tables to anon, authenticated;
     create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
+    -- Supabase に最初から在る（見てよい人の名簿の2表が参照する）
+    create table auth.users (id uuid primary key, email text);
   `);
   const stop = async (label, want) => {
     let e = null;

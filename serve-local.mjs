@@ -114,7 +114,7 @@ export const MEMBERS = [
   { key: 'c',     id: '00000000-0000-4000-8000-0000000000c3', email: 'member-c@example.com', ja: '会員C' },
   { key: 'pay',   id: '00000000-0000-4000-8000-0000000000d4', email: 'pay@example.com',      ja: '給与提出者' },
   { key: 'pilot', id: '00000000-0000-4000-8000-0000000000e5', email: 'pilot@example.com',    ja: '確認済みパイロット（模擬）', verified: true },
-  { key: 'op',    id: '00000000-0000-4000-8000-0000000000f6', email: 'operator@example.com', ja: '運営', operator: true },
+  { key: 'op',    id: '00000000-0000-4000-8000-0000000000f6', email: 'operator@example.com', ja: '運営', operator: true, owner: true },
 ];
 
 export const OTP = '000000';                 // 手元のログインで使うメールのコード
@@ -323,6 +323,21 @@ export async function start(opt = {}) {
        on conflict (id) do nothing`, [m.id, m.email, JSON.stringify({ name: m.ja })]);
     if (m.verified) await db.query(`update public.profiles set verify_level = 1 where id = $1 and verify_level is distinct from 1`, [m.id]);
     if (m.operator) await db.query(`insert into public.pv_admins (user_id, note) values ($1, '運営（手元）') on conflict (user_id) do nothing`, [m.id]);
+  }
+  /* ステイ情報（db/stays.sql の約束 1）を見てよい人。★手元だけの模擬:
+     owner: true の会員（'op'）＝ オーナー、verified: true の会員（'pilot'）＝ そのオーナーが承認した人。
+     本番のオーナーの行は、オーナーが SQL Editor で自分のメールアドレスを入れたときだけ入る（このファイルは本番に触らない）。 */
+  if ((await db.query(`select to_regclass('public.pv_stay_owner') as r`)).rows[0].r) {
+    const owner = MEMBERS.find((m) => m.owner);
+    await db.query(
+      `insert into public.pv_stay_owner (user_id) values ($1)
+       on conflict (one) do update set user_id = excluded.user_id, set_at = now()
+        where public.pv_stay_owner.user_id is distinct from excluded.user_id`, [owner.id]);
+    for (const m of MEMBERS.filter((x) => x.verified)) {
+      await db.query(
+        `insert into public.pv_stay_viewers (user_id, state, asked_at, decided_by, decided_at)
+         values ($1, 'approved', now(), $2, now()) on conflict (user_id) do nothing`, [m.id, owner.id]);
+    }
   }
   say(`  保存先 ${path.relative(ROOT, dir) || dir}（${fresh ? '新しく作った' : '前回の続き'}・${Date.now() - t0}ms）`);
 

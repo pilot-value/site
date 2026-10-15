@@ -12,25 +12,33 @@
 -- 冪等（何度流しても安全）。
 --
 -- ── この設計が守っている約束 ────────────────────────────────
---  1. 見てよい人は2種類だけ。
---       a) サーバーだけが付ける確認の印を持つ人（profiles.verify_level >= 1）
---       b) 運営（pv_admins に居る人。判定は db/pay-rows.sql の pv_is_operator）
---     判定は pv_stay_role() の1か所だけ。どの関数も、表を読む前にここを通る。
+--  1. ほかの人が足したもの（ホテル・食べる所・行く所の名前・住所・メモ・写真・地図のリンク、
+--     「同じ空港で他社が使うホテル」）を見てよい人は2種類だけ（2026-10-15 オーナーの訂正）。
+--       a) オーナー ── pv_stay_owner の1行に入っている1人。SQL Editor で手で入れる（下の 10-b）
+--       b) オーナーが承認した人 ── pv_stay_viewers の行が 'approved' で、承認したのが**いまの**
+--          オーナー（decided_by ＝ いまのオーナー。本人が自分を承認した行は表が受け付けない）
+--     判定は pv_stay_sees() の1か所だけ。**呼ばれるたびに**表を読み直す（覚えておかない）。
+--     ★ オーナーの行が無い（1行でない）あいだは、**誰にも見えない**。承認も1つも数えない。
+--       このファイルのオーナーの行は、誰にも当たらない文字のままにしてある
+--       ＝ 貼っただけでは誰にも開かない。オーナーが自分のメールアドレスを入れて流したときだけ開く。
+--     ★ 運営（pv_admins に居る人。判定は db/pay-rows.sql の pv_is_operator）は、確認待ちを見て
+--       公開する／見送る（待ち行列・公開の口・確認待ちの写真を1枚読む口）。
+--       運営であることだけでは、公開済みのものは読めない・写真も足せない。
 --     ★ 次のものは根拠に**しない**。どれも本人の申告か、別の約束の鍵だから。
---         access_until（給与を出せば誰でも付く90日の鍵）／pv_my_give の basic・detailed・full／
---         badge／profiles の会社・職位（本人が書き換えられる列）／
---         pay_reports.source（明細と名乗っただけ）／FOUNDING の番号／ブラウザの保存領域
---     ⚠️ 2026-10-04 の時点で、verify_level を 1 以上にする処理はリポジトリのどこにも無い
---        （設計は VERIFIED-PILOT.md に書いてあるだけ）。
---        ＝ このファイルを貼っても、**いま通れる会員は0人・見えるのは運営だけ**。
---        印を付ける道を作らないまま、ここの条件をゆるめて穴を開けない。
---     ★ 印が「サーバーだけが付けたもの」であることは、**呼ばれるたびに**確かめ直す
---       （pv_is_verified_pilot）。あとから別の SQL が profiles の書き込みを会員へ配り直したら、
---       印はもう信用できないので会員は全員 locked に戻る（運営は名簿で通る）。
---       直し方は db/admin.sql を貼り直すこと。
+--         ログインしているだけ／確認の印（profiles.verify_level）／
+--         access_until（給与を出せば誰でも付く90日の鍵）・給与を出したこと／
+--         pv_my_give の basic・detailed・full／badge／profiles の会社・職位（本人が書き換えられる列）／
+--         pay_reports.source（明細と名乗っただけ）／口コミの鍵／FOUNDING の番号／待遇の質問に答えたこと／
+--         ホテルを足したこと／運営であること／本人が自分で書いた行／
+--         'pending'・'denied'・'revoked' の行／前のオーナーが承認した行／JWT の中身／ブラウザの保存領域
+--     ★ 名簿の2表（pv_stay_owner・pv_stay_viewers）を会員か未ログインが書ける状態なら、
+--       その表は**信じない**（呼ばれるたびに確かめる）。オーナーの表なら誰にも開かない・
+--       承認の表なら承認した人は全員 locked に戻る。直し方はこのファイルを貼り直すこと。
 --  2. 資格の無い人には何も返さない。pv_stays は {ok:true, state:'locked'} **だけ**。
 --     名前も、件数も、「在る／無い」も返さない（表を1行も読まずに返している）。
 --  3. user_id を持たない。author_hash だけ（区切りは '::pv_hotel::'）。
+--     （投稿の表＝場所と写真の話。見てよい人の名簿 pv_stay_owner・pv_stay_viewers だけは user_id を
+--       持つ ── その人に見せてよいかの印で、投稿とは1度も突き合わせない。投稿は author_hash のまま。）
 --     ★ 要望（'::pv_req::'）・給与・待遇のハッシュと区切りを変えてある
 --       ＝ 表どうしを突き合わせて「同じ人」を束ねられない。
 --     ★ author_hash を画面へ返す関数を1つも作らない。返すのは「自分のか」（mine）だけ。
@@ -93,8 +101,9 @@ begin
   if to_regclass('public.pv_admins') is null then
     raise exception '先に db/admin.sql を実行してください（pv_admins の表が無い）';
   end if;
-  -- ★確認の印を会員が自分で書けるなら、この門は無いのと同じ。
-  --   db/admin.sql が profiles の書き込みを10列に絞っている。それが効いていることを確かめる。
+  -- ★確認の印を会員が自分で書ける状態なら、db/admin.sql が当たっていない。
+  --   （2026-10-15 から印はステイ情報を何も開かない。それでも db/admin.sql が profiles の書き込みを
+  --   10列に絞っていることの確かめとして、ここで止める。）
   if has_column_privilege('authenticated', 'public.profiles', 'verify_level', 'UPDATE')
      or has_column_privilege('authenticated', 'public.profiles', 'verify_level', 'INSERT')
      or has_column_privilege('anon', 'public.profiles', 'verify_level', 'UPDATE')
@@ -260,7 +269,7 @@ create index if not exists pv_stay_photos_author_idx
   on public.pv_stay_photos (author_hash, created_at desc);
 
 comment on table public.pv_stay_places is
-  '就航地のステイ情報（ホテル・食べる所・行く所）。user_id は持たず author_hash だけ。個票の直読みは不可。見てよいのは確認の印（profiles.verify_level >= 1）を持つ人と運営だけ。';
+  '就航地のステイ情報（ホテル・食べる所・行く所）。user_id は持たず author_hash だけ。個票の直読みは不可。見てよいのはオーナーとオーナーが承認した人だけ（決め方は pv_stay_sees の1か所）。運営は確認待ちを見て公開する／見送る。';
 comment on column public.pv_stay_places.author_hash is
   '★ どの関数の返り値にも入れないこと。外へ出た瞬間に安定した仮名 ID になり、同じ人の投稿を束ねられる。';
 comment on column public.pv_stay_places.state is
@@ -305,6 +314,67 @@ end $$;
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 2-b. 見てよい人の名簿（オーナー1人と、オーナーが承認した人）── 約束 1
+-- ════════════════════════════════════════════════════════════════
+-- pv_stay_owner   オーナーの1行だけ（主キーは true の1つしか取れない ＝ 2行目は入らない）。
+--                 入れるのは SQL Editor の手だけ（下の 10-b）。画面からも関数からも書かない。
+-- pv_stay_viewers 承認の行（1人1行）。'pending'（申し込み）→ 'approved' ／ 'denied'、
+--                 'approved' → 'revoked'。'pending' でない行は、決めた人と時刻を必ず持つ。
+--                 ★ 本人が自分を決めた行は表が受け付けない（decided_by ≠ user_id）。
+-- ★ この2表は user_id を持つ（その人に見せてよいかの印だから）。投稿の表（場所・写真）とは
+--   1度も突き合わせない（投稿は author_hash だけ。約束 3）。
+-- ★ 表は完全に閉じる（約束 4 と同じ）。ポリシーを作らない・anon にも authenticated にも配らない。
+create table if not exists public.pv_stay_owner (
+  one      boolean primary key default true,
+  user_id  uuid not null references auth.users(id) on delete cascade,
+  set_at   timestamptz not null default now()
+);
+
+create table if not exists public.pv_stay_viewers (
+  user_id     uuid primary key references auth.users(id) on delete cascade,
+  state       text not null,
+  asked_at    timestamptz,
+  decided_by  uuid references auth.users(id),
+  decided_at  timestamptz
+);
+
+alter table public.pv_stay_owner   drop constraint if exists pv_stay_owner_one_ck;
+alter table public.pv_stay_viewers drop constraint if exists pv_stay_viewers_state_ck;
+alter table public.pv_stay_viewers drop constraint if exists pv_stay_viewers_decided_ck;
+alter table public.pv_stay_viewers drop constraint if exists pv_stay_viewers_self_ck;
+
+alter table public.pv_stay_owner add constraint pv_stay_owner_one_ck check (one);
+alter table public.pv_stay_viewers add constraint pv_stay_viewers_state_ck check (
+  state in ('pending', 'approved', 'denied', 'revoked'));
+alter table public.pv_stay_viewers add constraint pv_stay_viewers_decided_ck check (
+  state = 'pending' or (decided_by is not null and decided_at is not null));
+alter table public.pv_stay_viewers add constraint pv_stay_viewers_self_ck check (
+  decided_by is distinct from user_id);
+
+alter table public.pv_stay_owner   enable row level security;
+alter table public.pv_stay_viewers enable row level security;
+
+revoke all on public.pv_stay_owner   from public, anon, authenticated;
+revoke all on public.pv_stay_viewers from public, anon, authenticated;
+
+-- 既に作ってしまったポリシーがあれば落とす（冪等・事故防止）
+do $$
+declare p record;
+begin
+  for p in select policyname, tablename from pg_policies
+            where schemaname = 'public'
+              and tablename in ('pv_stay_owner', 'pv_stay_viewers') loop
+    execute format('drop policy %I on public.%I', p.policyname, p.tablename);
+  end loop;
+end $$;
+
+comment on table public.pv_stay_owner is
+  'ステイ情報のオーナー（1行だけ）。この人と、この人が承認した人だけが、ほかの人が足したステイ情報を読める。SQL Editor の手でだけ入れる。行が無いあいだは誰も読めない。';
+comment on table public.pv_stay_viewers is
+  'ステイ情報を見てよい人の承認（1人1行）。approved で、承認したのがいまのオーナーの行だけが効く。pending・denied・revoked・前のオーナーが承認した行は何も開かない。投稿の表とは突き合わせない。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 3. 中でだけ使う部品（★どれも画面から呼べない）
 -- ════════════════════════════════════════════════════════════════
 
@@ -323,43 +393,77 @@ $fn$;
 revoke all on function public.pv_stay_hash(uuid) from public, anon, authenticated;
 
 
--- 3-b. 確認の印（★サーバーだけが付ける。会員は書けない列）
--- ここが見るのは profiles.verify_level の1列だけ。
--- ★ access_until・badge・会社・職位を「ついでに」見ない。それを始めた日に、
---   給与を1件出しただけの人・プロフィールを書いただけの人が通るようになる。
--- ★ 土台の確かめ直し（毎回）。会員が verify_level を自分で書ける状態なら、その印はもう
---   「サーバーだけが付けた」ものではない ＝ **誰の印も信じない**（全員 false。運営は名簿で通る）。
---   冒頭の「0. 前提」は貼った瞬間しか見ない。あとから別の SQL が profiles の書き込みを
---   配り直すと、登録しただけの人が自分に印を付けてホテルの名前を読めてしまう
---   （2026-10-04 に手元で実際に通ることを確かめた）。直し方は db/admin.sql を貼り直すこと。
-create or replace function public.pv_is_verified_pilot()
+-- 3-b. オーナー（★見てよい人の決め方の土台。オーナーの行は SQL Editor の手でだけ入る）
+-- 返すのは、オーナーの表にちょうど1行あるときの、その人の user_id。それ以外は null（＝誰にも開かない）。
+-- ★ 土台の確かめ直し（毎回）。会員か未ログインがオーナーの表を書ける状態なら、その行はもう
+--   「オーナーが手で入れた」ものではない ＝ **信じない**（null。誰にも開かない）。
+--   冒頭の「0. 前提」は貼った瞬間しか見ない。あとから別の SQL が書き込みを配り直したときのため。
+-- ★ 表を読むが security definer にしない。呼ぶのは security definer の関数の中からだけ
+--   （誰にも配らない ＝ 画面からは呼べない）。
+create or replace function public.pv_stay_owner_id()
+returns uuid
+language sql
+stable
+set search_path = public, extensions
+as $fn$
+  select case
+           when not has_any_column_privilege('authenticated', 'public.pv_stay_owner', 'INSERT')
+            and not has_any_column_privilege('authenticated', 'public.pv_stay_owner', 'UPDATE')
+            and not has_any_column_privilege('anon', 'public.pv_stay_owner', 'INSERT')
+            and not has_any_column_privilege('anon', 'public.pv_stay_owner', 'UPDATE')
+            and (select count(*) from public.pv_stay_owner) = 1
+           then (select o.user_id from public.pv_stay_owner o)
+         end;
+$fn$;
+
+revoke all on function public.pv_stay_owner_id() from public, anon, authenticated;
+
+comment on function public.pv_stay_owner_id() is
+  'ステイ情報のオーナーの user_id（オーナーの表にちょうど1行あるときだけ。無ければ null ＝ 誰も読めない）。会員か未ログインがその表を書ける状態なら null。security definer の関数の中でだけ使う。';
+
+
+-- 3-b2. 見てよい人か（★約束 1 の判定はここ1か所だけ）
+-- true になるのは2つだけ:
+--   a) 呼んだ人がオーナー
+--   b) 呼んだ人の承認の行が 'approved' で、承認したのが**いまの**オーナー
+--      （前のオーナーが承認した行・本人が自分を決めた行は数えない）
+-- ★ 呼ばれるたびに表を読む。JWT の中身・ブラウザの値・前に読んだ答えを使わない。
+-- ★ 承認の表を会員か未ログインが書ける状態なら、承認の行は信じない（通れるのはオーナーだけ）。
+-- ★ 確認の印・給与の鍵・バッジ・プロフィール・運営の名簿は見ない（約束 1 の「根拠にしない」）。
+-- ★ 表を読むが security definer にしない。呼ぶのは security definer の関数の中からだけ。
+create or replace function public.pv_stay_sees()
 returns boolean
 language sql
 stable
-security definer
 set search_path = public, extensions
 as $fn$
-  select auth.uid() is not null
-     and not has_column_privilege('authenticated', 'public.profiles', 'verify_level', 'UPDATE')
-     and not has_column_privilege('authenticated', 'public.profiles', 'verify_level', 'INSERT')
-     and not has_column_privilege('anon', 'public.profiles', 'verify_level', 'UPDATE')
-     and not has_column_privilege('anon', 'public.profiles', 'verify_level', 'INSERT')
-     and exists (select 1 from public.profiles p
-                  where p.id = auth.uid()
-                    and coalesce(p.verify_level, 0) >= 1);
+  select coalesce(
+    auth.uid() is not null
+    and public.pv_stay_owner_id() is not null
+    and (auth.uid() = public.pv_stay_owner_id()
+         or (not has_any_column_privilege('authenticated', 'public.pv_stay_viewers', 'INSERT')
+             and not has_any_column_privilege('authenticated', 'public.pv_stay_viewers', 'UPDATE')
+             and not has_any_column_privilege('anon', 'public.pv_stay_viewers', 'INSERT')
+             and not has_any_column_privilege('anon', 'public.pv_stay_viewers', 'UPDATE')
+             and exists (select 1 from public.pv_stay_viewers v
+                          where v.user_id = auth.uid()
+                            and v.state = 'approved'
+                            and v.decided_by = public.pv_stay_owner_id()
+                            and v.decided_by <> v.user_id))),
+    false);
 $fn$;
 
--- ★ 誰にも配らない。security definer の関数の中からだけ呼ぶ（pv_is_operator と同じ作法）。
---   画面から呼べると「自分は確認済みか」をブラウザが覚えはじめ、それが門の代わりに使われる。
-revoke all on function public.pv_is_verified_pilot() from public, anon, authenticated;
+revoke all on function public.pv_stay_sees() from public, anon, authenticated;
 
-comment on function public.pv_is_verified_pilot() is
-  'サーバーだけが付ける確認の印（profiles.verify_level >= 1）を、呼んだ本人が持っているか。security definer の中でだけ使う。';
+comment on function public.pv_stay_sees() is
+  'ほかの人が足したステイ情報を見てよい人か。オーナーと、いまのオーナーが承認した人だけ。呼ばれるたびに表を読む（JWT・ブラウザの値は見ない）。決め方はこの関数の1か所。security definer の関数の中でだけ使う。';
 
 
 -- 3-c. 門（★見てよいかの判定はここ1か所だけ）
--- 返すのは 'operator'（運営）／'pilot'（確認の印を持つ人）／null（どちらでもない）。
+-- 返すのは 'operator'（運営）／'reader'（見てよい人 ＝ オーナーかオーナーが承認した人）／null（どちらでもない）。
 -- どの関数も最初にこれを呼び、null なら表を1行も読まずに返る。
+-- ★ 'operator' は確認待ちを見て公開する人であって、読む人ではない。読む口（一覧・写真）は
+--   これとは別に pv_stay_sees() を見る（運営でも、見てよい人でなければ locked）。
 create or replace function public.pv_stay_role()
 returns text
 language plpgsql
@@ -374,8 +478,8 @@ begin
   if coalesce(public.pv_is_operator(), false) then
     return 'operator';
   end if;
-  if coalesce(public.pv_is_verified_pilot(), false) then
-    return 'pilot';
+  if coalesce(public.pv_stay_sees(), false) then
+    return 'reader';
   end if;
   return null;
 end;
@@ -384,29 +488,36 @@ $fn$;
 revoke all on function public.pv_stay_role() from public, anon, authenticated;
 
 comment on function public.pv_stay_role() is
-  'ステイ情報を見てよい人か。''operator''／''pilot''／null。★判定はここ1か所。給与の鍵・バッジ・プロフィールは見ない。';
+  'ステイ情報の役。''operator''（運営：確認待ちを見て公開する）／''reader''（見てよい人：オーナーかオーナーが承認した人）／null。★見てよい人の決め方は pv_stay_sees の1か所。給与の鍵・バッジ・プロフィール・確認の印は見ない。';
+
+-- 3-c2. 前の部品を消す（確認の印で開けていた頃の判定。2026-10-15 から、印は何も開かない）
+drop function if exists public.pv_is_verified_pilot();
 
 
 -- 3-d. 見えるかどうか（★この判定はここ1か所だけ。場所にも写真にも使う）
--- 運営は全部／自分のものは必ず／それ以外は 'public' だけ。
+-- p_me は「呼んだ人の手」の並び（ログインの印・端末の鍵の印）。p_sees は、公開のものを見てよい人か。
+-- 運営は全部／自分のもの（p_me のどれか）は必ず／それ以外は、見てよい人（p_sees）に 'public' だけ。
 -- ★ どの引数が null でも null を返さない（「if not null」は素通りする＝見えてしまう）。
+drop function if exists public.pv_stay_place_json(public.pv_stay_places, text, boolean);
+drop function if exists public.pv_stay_visible(text, text, text, boolean);
+
 create or replace function public.pv_stay_visible(
-  p_state text, p_author text, p_me text, p_op boolean)
+  p_state text, p_author text, p_me text[], p_op boolean, p_sees boolean)
 returns boolean
 language sql
 immutable
 set search_path = public, extensions
 as $fn$
   select coalesce(p_op, false)
-      or coalesce(p_author = p_me, false)
-      or coalesce(p_state = 'public', false);
+      or coalesce(p_author = any(p_me), false)
+      or (coalesce(p_sees, false) and coalesce(p_state = 'public', false));
 $fn$;
 
-revoke all on function public.pv_stay_visible(text, text, text, boolean)
+revoke all on function public.pv_stay_visible(text, text, text[], boolean, boolean)
   from public, anon, authenticated;
 
-comment on function public.pv_stay_visible(text, text, text, boolean) is
-  '場所・写真が自分に見えるか。運営は全部／自分のものは必ず／それ以外は public だけ。';
+comment on function public.pv_stay_visible(text, text, text[], boolean, boolean) is
+  '場所・写真が自分に見えるか。運営は全部／自分のもの（p_me のどれか）は必ず／それ以外は、見てよい人（p_sees）に public だけ。';
 
 
 -- 3-e. 投稿の時期（0〜4の段）
@@ -554,8 +665,10 @@ update public.pv_stay_places
 --    「いつからいつの間に足されたか」が分かる（約束 7。2026-10-04 に手元で確かめた）。
 -- 返す欄は12個（2026-10-08 に stay_hours を足した）。stay_hours はホテルだけが持つステイ時間で、
 -- 食べる所・行く所と、書いていないホテルは null のまま返す（欄そのものは必ず在る ＝ 形は種別で変わらない）。
+-- ★ 写真は、見てよい人（p_sees）と運営にだけ並べる。見てよい人でない人には、自分が足した写真も並べない
+--   （写真を読む口 7 が、その人には何も返さないから。並べると、画面が読みに行っては断られる）。
 create or replace function public.pv_stay_place_json(
-  s public.pv_stay_places, p_me text, p_op boolean)
+  s public.pv_stay_places, p_me text[], p_op boolean, p_sees boolean)
 returns jsonb
 language sql
 stable
@@ -571,21 +684,21 @@ as $fn$
     'city',     s.city,
     'stay_hours', s.stay_hours,
     'age',      public.pv_stay_age(s.created_at),
-    'mine',     coalesce(s.author_hash = p_me, false),
+    'mine',     coalesce(s.author_hash = any(p_me), false),
     'state',    s.state,
-    'photos',   coalesce((
+    'photos',   case when coalesce(p_op, false) or coalesce(p_sees, false) then coalesce((
       select jsonb_agg(jsonb_build_object(
                'id',    f.id,
-               'mine',  coalesce(f.author_hash = p_me, false),
+               'mine',  coalesce(f.author_hash = any(p_me), false),
                'state', f.state)
              order by f.id)
         from public.pv_stay_photos f
        where f.place_id = s.id
-         and public.pv_stay_visible(f.state, f.author_hash, p_me, p_op)
-    ), '[]'::jsonb));
+         and public.pv_stay_visible(f.state, f.author_hash, p_me, p_op, p_sees)
+    ), '[]'::jsonb) else '[]'::jsonb end);
 $fn$;
 
-revoke all on function public.pv_stay_place_json(public.pv_stay_places, text, boolean)
+revoke all on function public.pv_stay_place_json(public.pv_stay_places, text[], boolean, boolean)
   from public, anon, authenticated;
 
 
@@ -1360,7 +1473,7 @@ comment on function public.pv_stay_rev(public.pv_stay_places) is
 -- others は「同じ空港で他社が使うホテル」。kind='hotel' だけ。食べる所・行く所は出さない。
 -- can_add は、その会社がいまも名簿で有効なとき true。
 -- stay_hours はステイ時間（時間の整数）。ホテルだけが持ち、ほかの種別と、書いていないホテルは null。
--- ★ 運営として読んだときだけ、places と others の1件ずつに rev（中身の印。3-m）が付く。
+-- ★ 運営として読んだときだけ（運営で、見てよい人でもあるとき。約束 1）、places と others の1件ずつに rev（中身の印。3-m）が付く。
 --   公開するときに、見た行の rev をそのまま 8 へ送り返す。会員が読む行は12個の欄のまま。
 -- ★ 並びは 種類 → 名前。時刻で並べない（約束 7）。
 -- ★ 未ログイン（anon）にも配ってある。返るのは locked の1行だけで、
@@ -1374,7 +1487,8 @@ set search_path = public, extensions
 as $fn$
 declare
   v_role   text;
-  v_op     boolean;
+  v_sees   boolean;
+  v_all    boolean;
   v_me     text;
   v_air    text;
   v_iata   text;
@@ -1386,7 +1500,13 @@ begin
   if v_role is null then
     return jsonb_build_object('ok', true, 'state', 'locked');
   end if;
-  v_op := (v_role = 'operator');
+  -- ★ 開くのは見てよい人（オーナーかオーナーが承認した人。約束 1）だけ。運営であることだけでは開かない
+  v_sees := public.pv_stay_sees();
+  if not v_sees then
+    return jsonb_build_object('ok', true, 'state', 'locked');
+  end if;
+  -- 全部（ほかの人の確認待ちも）見えるのは、見てよい人でもある運営だけ
+  v_all := (v_role = 'operator' and v_sees);
   v_me := public.pv_stay_hash(auth.uid());
 
   v_air := lower(btrim(coalesce(p->>'airline', '')));
@@ -1405,14 +1525,14 @@ begin
   select coalesce(jsonb_agg(z.j order by z.k, z.n, z.id), '[]'::jsonb)
     into v_places
     from (
-      select public.pv_stay_place_json(s, v_me, v_op)
-               || case when v_op then jsonb_build_object('rev', public.pv_stay_rev(s))
+      select public.pv_stay_place_json(s, array[v_me], v_all, v_sees)
+               || case when v_all then jsonb_build_object('rev', public.pv_stay_rev(s))
                        else '{}'::jsonb end as j,
              case s.kind when 'hotel' then 0 when 'food' then 1 else 2 end as k,
              lower(s.name) as n, s.id
         from public.pv_stay_places s
        where s.airline = v_air and s.iata = v_iata
-         and public.pv_stay_visible(s.state, s.author_hash, v_me, v_op)
+         and public.pv_stay_visible(s.state, s.author_hash, array[v_me], v_all, v_sees)
        order by 2, 3, 4
        limit 200
     ) z;
@@ -1424,13 +1544,13 @@ begin
       select z.airline, jsonb_agg(z.j order by z.n, z.id) as places
         from (
           select s.airline,
-                 public.pv_stay_place_json(s, v_me, v_op)
-                   || case when v_op then jsonb_build_object('rev', public.pv_stay_rev(s))
+                 public.pv_stay_place_json(s, array[v_me], v_all, v_sees)
+                   || case when v_all then jsonb_build_object('rev', public.pv_stay_rev(s))
                            else '{}'::jsonb end as j,
                  lower(s.name) as n, s.id
             from public.pv_stay_places s
            where s.iata = v_iata and s.airline <> v_air and s.kind = 'hotel'
-             and public.pv_stay_visible(s.state, s.author_hash, v_me, v_op)
+             and public.pv_stay_visible(s.state, s.author_hash, array[v_me], v_all, v_sees)
            order by 1, 3, 4
            limit 200
         ) z
@@ -1440,7 +1560,7 @@ begin
   return jsonb_build_object(
     'ok', true, 'state', 'open',
     'can_add', coalesce(v_active, false),
-    'is_operator', v_op,
+    'is_operator', v_all,
     'places', v_places,
     'others', v_others);
 end;
@@ -1450,7 +1570,7 @@ revoke all on function public.pv_stays(jsonb) from public;
 grant execute on function public.pv_stays(jsonb) to anon, authenticated;
 
 comment on function public.pv_stays(jsonb) is
-  '会社 × 空港のステイ情報。確認の印（profiles.verify_level >= 1）を持つ人と運営にだけ中身を返す。それ以外には {ok:true, state:''locked''} だけ（名前も件数も返さない）。author_hash と時刻は返さない。';
+  '会社 × 空港のステイ情報。オーナーとオーナーが承認した人にだけ中身を返す（運営であることだけでは開かない）。それ以外には {ok:true, state:''locked''} だけ（名前も件数も返さない）。author_hash と時刻は返さない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1488,6 +1608,8 @@ set search_path = public, extensions
 as $fn$
 declare
   v_role text;
+  v_sees boolean;
+  v_all  boolean;
   v_me   text;
   v_air  text;
   v_iata text;
@@ -1506,6 +1628,9 @@ begin
   if v_role is null then
     return jsonb_build_object('ok', false, 'status', 'locked');
   end if;
+  -- 返す1件の形を、読む口と同じ「見てよい人か」で作る（足した直後の行には写真がまだ無い）
+  v_sees := public.pv_stay_sees();
+  v_all := (v_role = 'operator' and v_sees);
   v_me := public.pv_stay_hash(auth.uid());
 
   v_air := lower(btrim(coalesce(p->>'airline', '')));
@@ -1556,7 +1681,7 @@ begin
   returning * into v_row;
 
   return jsonb_build_object('ok', true, 'item',
-    public.pv_stay_place_json(v_row, v_me, v_role = 'operator'));
+    public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees));
 end;
 $fn$;
 
@@ -1564,7 +1689,7 @@ revoke all on function public.pv_stay_add(jsonb) from public, anon;
 grant execute on function public.pv_stay_add(jsonb) to authenticated;
 
 comment on function public.pv_stay_add(jsonb) is
-  'ステイ情報を1件足す。確認の印を持つ人と運営だけ。pending で入る（運営が見るまで他人に出ない）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・30秒/20件24時間。地図のリンクは Google マップ以外なら捨てる。';
+  'ステイ情報を1件足す。見てよい人（オーナーとオーナーが承認した人）と運営だけ。pending で入る（運営が見るまで他人に出ない）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・30秒/20件24時間。地図のリンクは Google マップ以外なら捨てる。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1609,6 +1734,8 @@ set search_path = public, extensions
 as $fn$
 declare
   v_role text;
+  v_sees boolean;
+  v_all  boolean;
   v_me   text;
   v_id   uuid;
   v_row  public.pv_stay_places%rowtype;
@@ -1627,6 +1754,9 @@ begin
   if v_role is null then
     return jsonb_build_object('ok', false, 'status', 'locked');
   end if;
+  -- 返す1件の形（写真の並び）は、読む口と同じ「見てよい人か」で作る
+  v_sees := public.pv_stay_sees();
+  v_all := (v_role = 'operator' and v_sees);
   v_me := public.pv_stay_hash(auth.uid());
 
   v_id := public.pv_stay_uuid(p->>'id');
@@ -1669,7 +1799,7 @@ begin
      and v_city is not distinct from v_row.city
      and v_hours is not distinct from v_row.stay_hours then
     return jsonb_build_object('ok', true, 'changed', false, 'item',
-      public.pv_stay_place_json(v_row, v_me, v_role = 'operator'));
+      public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees));
   end if;
 
   -- 同じ人の同時の2本を1列に並べる（回数の数え方をすり抜けさせない）
@@ -1709,7 +1839,7 @@ begin
   returning * into v_row;
 
   return jsonb_build_object('ok', true, 'changed', true, 'item',
-    public.pv_stay_place_json(v_row, v_me, v_role = 'operator'));
+    public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees));
 end;
 $fn$;
 
@@ -1755,7 +1885,8 @@ set search_path = public, extensions
 as $fn$
 declare
   v_role  text;
-  v_op    boolean;
+  v_sees  boolean;
+  v_all   boolean;
   v_me    text;
   v_pid   uuid;
   v_place public.pv_stay_places%rowtype;
@@ -1771,7 +1902,12 @@ begin
   if v_role is null then
     return jsonb_build_object('ok', false, 'status', 'locked');
   end if;
-  v_op := (v_role = 'operator');
+  -- ★ 写真を足せるのは、見てよい人（オーナーかオーナーが承認した人。約束 1）だけ。運営であることだけでは足せない
+  v_sees := public.pv_stay_sees();
+  if not v_sees then
+    return jsonb_build_object('ok', false, 'status', 'locked');
+  end if;
+  v_all := (v_role = 'operator' and v_sees);
   v_me := public.pv_stay_hash(auth.uid());
 
   v_pid := public.pv_stay_uuid(p->>'place');
@@ -1782,7 +1918,7 @@ begin
   -- 見えない場所・見送られた場所には付けられない。在るかどうかも答えない
   if not found
      or v_place.state = 'rejected'
-     or not public.pv_stay_visible(v_place.state, v_place.author_hash, v_me, v_op) then
+     or not public.pv_stay_visible(v_place.state, v_place.author_hash, array[v_me], v_all, v_sees) then
     return jsonb_build_object('ok', false, 'status', 'not_found');
   end if;
 
@@ -1854,7 +1990,7 @@ revoke all on function public.pv_stay_photo_add(jsonb) from public, anon;
 grant execute on function public.pv_stay_photo_add(jsonb) to authenticated;
 
 comment on function public.pv_stay_photo_add(jsonb) is
-  'ステイ情報に写真を1枚足す。確認の印を持つ人と運営だけ。JPEG・50万バイトまで・pending で入る。届いた JPEG はサーバーで作り直し（撮影情報・付帯情報を全部落とす）、作り直したものだけを保存する。幅と高さは写真から読む（送られた w・h は読まない）。1つの場所に自分の写真は4枚まで・24時間に30枚。';
+  'ステイ情報に写真を1枚足す。見てよい人（オーナーとオーナーが承認した人）だけ（運営であることだけでは足せない）。JPEG・50万バイトまで・pending で入る。届いた JPEG はサーバーで作り直し（撮影情報・付帯情報を全部落とす）、作り直したものだけを保存する。幅と高さは写真から読む（送られた w・h は読まない）。1つの場所に自分の写真は4枚まで・24時間に30枚。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1865,6 +2001,10 @@ comment on function public.pv_stay_photo_add(jsonb) is
 -- 返り値: {ok:true, mime:'image/jpeg', w, h, state, b64}。画面が data: URL にして貼る。
 -- ★ 門は3つ全部。資格がある／場所が自分に見える／写真が自分に見える
 --   （公開済みか、自分のか、運営か）。
+--   資格 ＝ 見てよい人（オーナーかオーナーが承認した人。約束 1）。
+--   もう1つだけ口がある: 運営は、写真か場所が**確認待ち**のあいだだけ、その写真を読める
+--   （待ち行列から開いて見るため）。公開済みのものは、見てよい人でなければ運営でも読めない。
+--   この口も、オーナーが決まるまでは開かない（オーナーの行が無いあいだは、誰も読めない）。
 -- ★ 無い・見えない・画素を消した、は全部同じ not_found。在るかどうかを答えない。
 -- ★ 返すのは表に保存してあるバイト列だけ ＝ サーバーで作り直したもの（3-i）。
 --   表の CHECK（3-j）が「作り直した形そのもの」しか入れないので、ここでは作り直さない。
@@ -1878,7 +2018,9 @@ set search_path = public, extensions
 as $fn$
 declare
   v_role  text;
-  v_op    boolean;
+  v_sees  boolean;
+  v_all   boolean;
+  v_mod   boolean;
   v_me    text;
   v_id    uuid;
   v_f     public.pv_stay_photos%rowtype;
@@ -1888,7 +2030,13 @@ begin
   if v_role is null then
     return jsonb_build_object('ok', false, 'status', 'locked');
   end if;
-  v_op := (v_role = 'operator');
+  v_sees := public.pv_stay_sees();
+  v_all := (v_role = 'operator' and v_sees);
+  -- 運営の「確認待ちを1枚見る」口（オーナーが決まっていないあいだは開かない）
+  v_mod := (v_role = 'operator' and public.pv_stay_owner_id() is not null);
+  if not v_sees and not v_mod then
+    return jsonb_build_object('ok', false, 'status', 'locked');
+  end if;
   v_me := public.pv_stay_hash(auth.uid());
 
   v_id := public.pv_stay_uuid(p->>'id');
@@ -1902,8 +2050,9 @@ begin
   end if;
   select * into v_place from public.pv_stay_places where id = v_f.place_id;
   if not found
-     or not public.pv_stay_visible(v_place.state, v_place.author_hash, v_me, v_op)
-     or not public.pv_stay_visible(v_f.state, v_f.author_hash, v_me, v_op) then
+     or not ((public.pv_stay_visible(v_place.state, v_place.author_hash, array[v_me], v_all, v_sees)
+              and public.pv_stay_visible(v_f.state, v_f.author_hash, array[v_me], v_all, v_sees))
+             or (v_mod and (v_f.state = 'pending' or v_place.state = 'pending'))) then
     return jsonb_build_object('ok', false, 'status', 'not_found');
   end if;
 
@@ -1918,7 +2067,7 @@ revoke all on function public.pv_stay_photo(jsonb) from public, anon;
 grant execute on function public.pv_stay_photo(jsonb) to authenticated;
 
 comment on function public.pv_stay_photo(jsonb) is
-  'ステイ情報の写真を1枚 base64 で返す。確認の印を持つ人と運営にだけ。公開済み・自分の写真・運営のときだけ。author_hash は返さない。';
+  'ステイ情報の写真を1枚 base64 で返す。見てよい人（オーナーとオーナーが承認した人）には公開済みと自分の写真、見てよい人でもある運営には全部。運営は、写真か場所が確認待ちのあいだだけ読める（オーナーが決まっていなければ読めない）。author_hash は返さない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2158,7 +2307,7 @@ begin
   select coalesce(jsonb_agg(z.j order by z.t, z.id), '[]'::jsonb)
     into v_places
     from (
-      select public.pv_stay_place_json(s, v_me, true)
+      select public.pv_stay_place_json(s, array[v_me], true, true)
                || jsonb_build_object('airline', s.airline, 'iata', s.iata, 'rev', public.pv_stay_rev(s)) as j,
              s.created_at as t, s.id
         from public.pv_stay_places s
@@ -2197,12 +2346,33 @@ comment on function public.pv_stay_queue(jsonb) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 10-b. オーナーを1人だけ決める（★ここだけ手で直す）── 約束 1
+-- ════════════════════════════════════════════════════════════════
+--     下の1行のメールアドレスを、オーナーがログインするアカウントのものに置き換えてから流す。
+--     （Authentication → Users に出ている address のこと）
+--     ★ 置き換えないまま流しても、誰にも当たらない ＝ オーナーの行は入らない ＝ 誰にも開かない。
+--       置き換えて1度流したあとは、置き換えないまま貼り直しても、入っているオーナーはそのまま。
+--     ★ オーナーを替えると、前のオーナーが承認した人は全員 locked に戻る（承認は人ごとにやり直す）。
+insert into public.pv_stay_owner (user_id)
+select id from auth.users
+ where email = 'ここにオーナーのログイン用メールアドレスを入れる'
+on conflict (one) do update set user_id = excluded.user_id, set_at = now();
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 11. 検算（貼ったあとに出る1行）
 -- ════════════════════════════════════════════════════════════════
--- ポリシー数は 0 が正しい。
--- 「確認の印を持つ会員」が 0 のあいだは、見えるのは運営だけ（約束 1 の ⚠️）。
+-- ポリシー数は 0 が正しい（場所・写真の表と、見てよい人の名簿の2表の合計）。
+-- オーナーは 1 が正しい。0 のあいだは誰にも見えない（上の 10-b の1行を、メールアドレスを入れて流す）。
+-- 承認した人は、いまのオーナーが承認した人の数（オーナー自身は数えない。申し込み・見送り・取り消しは数えない）。
 select (select count(*) from pg_policies
          where schemaname = 'public'
-           and tablename in ('pv_stay_places', 'pv_stay_photos'))      as ポリシー数,
-       (select count(*) from public.profiles where verify_level >= 1)  as 確認の印を持つ会員,
+           and tablename in ('pv_stay_places', 'pv_stay_photos'))
+     + (select count(*) from pg_policies
+         where schemaname = 'public'
+           and tablename in ('pv_stay_owner', 'pv_stay_viewers'))      as ポリシー数,
+       (select count(*) from public.pv_stay_owner)                     as オーナー,
+       (select count(*) from public.pv_stay_viewers v
+         where v.state = 'approved'
+           and v.decided_by = (select o.user_id from public.pv_stay_owner o)) as 承認した人,
        (select count(*) from public.pv_admins)                         as 運営;
