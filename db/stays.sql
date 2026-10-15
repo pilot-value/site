@@ -22,7 +22,7 @@
 --       このファイルのオーナーの行は、誰にも当たらない文字のままにしてある
 --       ＝ 貼っただけでは誰にも開かない。オーナーが自分のメールアドレスを入れて流したときだけ開く。
 --     ★ 運営（pv_admins に居る人。判定は db/pay-rows.sql の pv_is_operator）は、確認待ちを見て
---       公開する／見送る（待ち行列・公開の口・確認待ちの写真を1枚読む口）。
+--       公開する／見送る（待ち行列・公開の口・確認待ちの写真を1枚読む口・管理ページの「追加」＝ 足す口の publish:true）。
 --       運営であることだけでは、公開済みのものは読めない・写真も足せない。
 --     ★ 次のものは根拠に**しない**。どれも本人の申告か、別の約束の鍵だから。
 --         ログインしているだけ／確認の印（profiles.verify_level）／
@@ -34,9 +34,14 @@
 --     ★ 名簿の2表（pv_stay_owner・pv_stay_viewers）を会員か未ログインが書ける状態なら、
 --       その表は**信じない**（呼ばれるたびに確かめる）。オーナーの表なら誰にも開かない・
 --       承認の表なら承認した人は全員 locked に戻る。直し方はこのファイルを貼り直すこと。
---  2. 資格の無い人には何も返さない。pv_stays は {ok:true, state:'locked'} **だけ**。
---     名前も、件数も、「在る／無い」も返さない（表を1行も読まずに返している）。
+--  2. 見てよい人でなければ、ほかの人が足したものは何も返さない。pv_stays は {ok:true, state:'locked'} **だけ**。
+--     名前も、件数も、「在る／無い」も返さない（足す口・直す口の exists も、見てよい人にしか答えない。
+--     ただ1つ、運営が管理ページの「追加」（足す口の publish:true）で足すときは、公開の行に同じ名前を2つ作らないために答える）。
+--     ★ 自分が足したものだけは、足した本人に返す（own。写真は並べない）。「本人」の証拠は、ログイン（その人の印）か、
+--       ログインせずに足したときにサーバーが作って返した端末の鍵（pv_stay_keys に sha256 だけを置く）。
+--     ★ ログインしていない人と、ログインしただけの人を、返事で見分けない（同じ字。言い方は画面が決める）。
 --  3. user_id を持たない。author_hash だけ（区切りは '::pv_hotel::'）。
+--     ★ ログインせずに足した行の印は、端末の鍵の印（区切りは '::pv_hotel_key::'）。ログインした人が引き取ると、その人の印に替わる。
 --     （投稿の表＝場所と写真の話。見てよい人の名簿 pv_stay_owner・pv_stay_viewers だけは user_id を
 --       持つ ── その人に見せてよいかの印で、投稿とは1度も突き合わせない。投稿は author_hash のまま。）
 --     ★ 要望（'::pv_req::'）・給与・待遇のハッシュと区切りを変えてある
@@ -45,6 +50,7 @@
 --  4. 表は完全に閉じる。ポリシーを1つも作らない＝ anon も authenticated も
 --     直接は1行も読めない・書けない。出入口は security definer の関数だけ。
 --  5. 場所も写真も 'pending' で入る。運営が見るまで、書いた本人と運営にしか出ない。
+--     ★ 足すのは誰でもできる（ログインも要らない。2026-10-11 オーナー決定）。決め方は pv_stay_may_add() の1行。
 --     ★ 写真は端末で焼き直してから届く約束だが、**それを当てにしない**（約束 11 と同じ理由）。
 --       届いた JPEG を、サーバーで**節に分けて決まった形に作り直してから**保存する
 --       （3-i の pv_jpeg_read。頭は毎回同じ JFIF・APPn とコメントは全部落とす・終わりの印より
@@ -56,6 +62,7 @@
 --       それでも、画素に写り込んだ顔・社員証・部屋番号・乗務の書類は落ちない。
 --       符号データや表の数字の中に**わざと作り込んだもの**も、復号しない限り分からない。人が1回見る。
 --     ★ 運営でも、**自分が出したものを自分で公開できない**（別の運営が見る）。
+--       ただ1つの例外：運営が管理ページの「追加」から足したもの（足す口に publish:true を添えたとき）は、その場で公開で入る。
 --     ★ 運営の口（pv_stay_moderate）から 'pending' へ戻す道は無い。見送った写真は画素ごと消す。
 --     ★ 'pending' へ戻るのは、**書いた本人が場所の中身を直したときだけ**（5-b の pv_stay_update）。
 --       公開済みでも、直した瞬間にほかの人から見えなくなり、運営がもう一度見る
@@ -65,6 +72,8 @@
 --       添えないと公開できない（8 の changed）。運営が見てから押すまでの間に本人が直していたら、
 --       通さずに「変わった」と返す。id だけで通すと、その間に直された中身が誰の目も通らずに出る。
 --  6. 「見えるかどうか」の判定は pv_stay_visible() ただ1つ。場所にも写真にも同じ式を使う。
+--     ★ 見てよい人でない人へ自分の行（own）を返すときは「書いた人の印が、呼んだ人の手のどれかと同じ」だけで選ぶ
+--       （pv_stay_visible に p_op・p_sees を false で渡したのと同じ答え。4 の一覧）。
 --  7. 時刻を返さない。返すのは0〜4の段（age）だけ。並びも時刻で決めない。
 --     ★ ステイ先は乗務の記録と突き合わせやすい。「何日の何時に書いたか」が出ると、
 --       その日にその空港に居た人まで絞れてしまう。
@@ -174,6 +183,20 @@ create table if not exists public.pv_stay_photos (
   created_at   timestamptz not null default now(),
   moderated_at timestamptz
 );
+
+-- 端末の鍵。ログインせずに足した人が「自分が足したもの」を見る・直す・消すための、ただ1つの証拠。
+-- 鍵そのものは持たない（sha256 だけ）。場所の author_hash には、この key_hash がそのまま入る。
+-- ★ ログインした人が引き取ったら、この行は消える（5-c の pv_stay_claim）。足したものが1つも無い鍵も、1日たてば消す。
+create table if not exists public.pv_stay_keys (
+  key_hash    text primary key,
+  created_at  timestamptz not null default now(),
+  -- 鍵を作った回線の、その日だけの印（同じ回線が1日に作れる鍵を数えるためだけ。IP そのものは持たない）。
+  -- ★ 1日たったら null にする（数えるのはその日だけ。残しておくと「どの回線が・どの日に足したか」が表に残る）
+  ip_day_hash text
+);
+alter table public.pv_stay_keys drop constraint if exists pv_stay_keys_hash_ck;
+alter table public.pv_stay_keys add constraint pv_stay_keys_hash_ck check (key_hash ~ '^[0-9a-f]{64}$');
+create index if not exists pv_stay_keys_ip_idx on public.pv_stay_keys (ip_day_hash, created_at desc);
 
 -- check は毎回 drop してから付け直す（条件を変えて流し直したとき古い定義を残さない）
 alter table public.pv_stay_places drop constraint if exists pv_stay_places_hash_ck;
@@ -297,9 +320,11 @@ comment on column public.pv_stay_photos.author_hash is
 -- ＝ anon も authenticated も直接は1行も読めない・書けない。
 alter table public.pv_stay_places enable row level security;
 alter table public.pv_stay_photos enable row level security;
+alter table public.pv_stay_keys   enable row level security;
 
 revoke all on public.pv_stay_places from public, anon, authenticated;
 revoke all on public.pv_stay_photos from public, anon, authenticated;
+revoke all on public.pv_stay_keys   from public, anon, authenticated;
 
 -- 既に作ってしまったポリシーがあれば落とす（冪等・事故防止）
 do $$
@@ -307,7 +332,7 @@ declare p record;
 begin
   for p in select policyname, tablename from pg_policies
             where schemaname = 'public'
-              and tablename in ('pv_stay_places', 'pv_stay_photos') loop
+              and tablename in ('pv_stay_places', 'pv_stay_photos', 'pv_stay_keys') loop
     execute format('drop policy %I on public.%I', p.policyname, p.tablename);
   end loop;
 end $$;
@@ -391,6 +416,36 @@ as $fn$
 $fn$;
 
 revoke all on function public.pv_stay_hash(uuid) from public, anon, authenticated;
+
+-- 3-a2. 端末の鍵 → 表に置く形。サーバーが作った形（英数48字）でなければ null。
+create or replace function public.pv_stay_key_hash(v_key text)
+returns text
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select case when v_key ~ '^[0-9a-f]{48}$'
+              then encode(extensions.digest(v_key || '::pv_hotel_key::', 'sha256'), 'hex') end;
+$fn$;
+
+revoke all on function public.pv_stay_key_hash(text) from public, anon, authenticated;
+
+-- 3-a3. 呼んだ人の「手」（書いた人の印の並び）。ログインしていればその人の印、端末の鍵が届いていればその印。
+-- どちらも無ければ空。★表を読まない（届いた鍵が本物かどうかは、足す口 5 と引き取る口 5-c が表で確かめる。
+--   読む・直す・消すでは、表に無い鍵の印は「誰の行とも合わない印」でしかない ＝ 何も返らない・何も変わらない）。
+create or replace function public.pv_stay_me(p jsonb)
+returns text[]
+language sql
+stable
+set search_path = public, extensions
+as $fn$
+  select array_remove(array[
+           case when auth.uid() is not null then public.pv_stay_hash(auth.uid()) end,
+           case when jsonb_typeof(p) = 'object' then public.pv_stay_key_hash(p->>'key') end
+         ], null);
+$fn$;
+
+revoke all on function public.pv_stay_me(jsonb) from public, anon, authenticated;
 
 
 -- 3-b. オーナー（★見てよい人の決め方の土台。オーナーの行は SQL Editor の手でだけ入る）
@@ -492,6 +547,35 @@ comment on function public.pv_stay_role() is
 
 -- 3-c2. 前の部品を消す（確認の印で開けていた頃の判定。2026-10-15 から、印は何も開かない）
 drop function if exists public.pv_is_verified_pilot();
+
+-- 3-c3. 「足してよい人」の決め方（★ここ1行だけ）
+-- いま: 誰でも（2026-10-11 オーナー決定「ログインも要らない（誰でも追加できる）」）。
+-- 見てよい人（オーナーとオーナーが承認した人）と運営だけへ戻すとき: 下の select の1行を、次の1行に替える。
+--     select coalesce(public.pv_is_operator(), false) or coalesce(public.pv_stay_sees(), false);
+-- ★ 足せることは何も開かない。読めるかどうかは、今までどおり pv_stay_sees() だけが決める。
+create or replace function public.pv_stay_may_add()
+returns boolean
+language sql
+stable
+set search_path = public, extensions
+as $fn$
+  select true as anyone;
+$fn$;
+
+revoke all on function public.pv_stay_may_add() from public, anon, authenticated;
+
+-- 3-c4. 1日に足せる数・直せる回数。ログインしている人は 20。端末の鍵だけの人は 5
+--   （同じ回線が1日に作れる鍵は20本 ＝ 1つの回線から1日に 100件まで。サイト全体の待ちの上限 200 に、1つの回線では届かない）。
+create or replace function public.pv_stay_cap(p_device boolean)
+returns integer
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select case when coalesce(p_device, false) then 5 else 20 end;
+$fn$;
+
+revoke all on function public.pv_stay_cap(boolean) from public, anon, authenticated;
 
 
 -- 3-d. 見えるかどうか（★この判定はここ1か所だけ。場所にも写真にも使う）
@@ -1401,8 +1485,13 @@ comment on function public.pv_stay_clean(jsonb) is
 -- ★ 自分の重ね出しは、見送られたものを数えない（＝出し直せる）。
 -- ★ exists は公開済みの行だけを見る。他人の確認前の行と比べない
 --   （比べると「誰かがそのホテルを出したところだ」が分かってしまう）。
+-- ★ exists は、見てよい人（p_sees）にだけ答える。見てよい人でない人に答えると、名前を1つずつ足してみるだけで
+--   「そのホテルが載っているか」が分かる（載っている名前は、見てよい人にしか返さない約束 2）。
+--   見てよい人でない人が足した同じ名前は、確認待ちとして受け取り、運営が通すとき（8）に exists で止める。
+drop function if exists public.pv_stay_clash(text, text, text, text, text, uuid);
+
 create or replace function public.pv_stay_clash(
-  p_me text, p_air text, p_iata text, p_kind text, p_name text, p_skip uuid)
+  p_me text, p_air text, p_iata text, p_kind text, p_name text, p_skip uuid, p_sees boolean)
 returns text
 language sql
 stable
@@ -1414,7 +1503,7 @@ as $fn$
                     and kind = p_kind and lower(name) = lower(p_name)
                     and state <> 'rejected'
                     and id is distinct from p_skip) then 'duplicate'
-    when exists (select 1 from public.pv_stay_places
+    when coalesce(p_sees, false) and exists (select 1 from public.pv_stay_places
                   where airline = p_air and iata = p_iata
                     and kind = p_kind and lower(name) = lower(p_name)
                     and state = 'public'
@@ -1422,11 +1511,11 @@ as $fn$
     else null end;
 $fn$;
 
-revoke all on function public.pv_stay_clash(text, text, text, text, text, uuid)
+revoke all on function public.pv_stay_clash(text, text, text, text, text, uuid, boolean)
   from public, anon, authenticated;
 
-comment on function public.pv_stay_clash(text, text, text, text, text, uuid) is
-  '同じ会社・空港・種別に同じ名前が在るか。''duplicate''（自分のもの）／''exists''（公開済み）／null。他人の確認前の行とは比べない。';
+comment on function public.pv_stay_clash(text, text, text, text, text, uuid, boolean) is
+  '同じ会社・空港・種別に同じ名前が在るか。''duplicate''（自分のもの）／''exists''（公開済み。見てよい人にだけ答える）／null。他人の確認前の行とは比べない。';
 
 
 -- 3-m. 中身の印（★運営が「見たもの」と「通すもの」を同じにするための16字）
@@ -1462,9 +1551,12 @@ comment on function public.pv_stay_rev(public.pv_stay_places) is
 -- ════════════════════════════════════════════════════════════════
 -- 4. 読む（会社 × 空港の一覧）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {airline:'etihad', iata:'NRT'}
+-- 引数: p = {airline:'etihad', iata:'NRT', key}（key は任意。ログインせずに足した端末の控え）
 -- 返り値:
---   資格なし → {ok:true, state:'locked'}            ★これだけ。表を読む前に返す
+--   資格なし → {ok:true, state:'locked'}            ★これだけ。手（ログインか端末の鍵）が無ければ表を読む前に返す
+--   資格なし・自分が足したものが在る → {ok:true, state:'locked', own:[{…12個の欄。photos は必ず []…}]}
+--     ★ own に入るのは、書いた人の印が呼んだ人の手のどれかと同じ行**だけ**（この会社 × 空港の。50件まで）。
+--       引数が変でも、その会社 × 空港に自分のものが無ければ locked の1行（「変だ」とすら答えない）。
 --   資格あり → {ok:true, state:'open', can_add, is_operator,
 --               places:[{id, kind, name, address, maps_url, note, city, stay_hours, age, mine, state,
 --                        photos:[{id, mine, state}]}],
@@ -1476,7 +1568,7 @@ comment on function public.pv_stay_rev(public.pv_stay_places) is
 -- ★ 運営として読んだときだけ（運営で、見てよい人でもあるとき。約束 1）、places と others の1件ずつに rev（中身の印。3-m）が付く。
 --   公開するときに、見た行の rev をそのまま 8 へ送り返す。会員が読む行は12個の欄のまま。
 -- ★ 並びは 種類 → 名前。時刻で並べない（約束 7）。
--- ★ 未ログイン（anon）にも配ってある。返るのは locked の1行だけで、
+-- ★ 未ログイン（anon）にも配ってある。返るのは locked の1行だけ（端末の鍵で足したものが在れば、その own だけ）で、
 --   配らないと画面は「権限エラー」と「鍵が掛かっている」を見分けられない。
 create or replace function public.pv_stays(p jsonb)
 returns jsonb
@@ -1489,25 +1581,47 @@ declare
   v_role   text;
   v_sees   boolean;
   v_all    boolean;
-  v_me     text;
+  v_mine   text[];
   v_air    text;
   v_iata   text;
   v_active boolean;
   v_places jsonb;
   v_others jsonb;
+  v_own    jsonb;
 begin
   v_role := public.pv_stay_role();
-  if v_role is null then
-    return jsonb_build_object('ok', true, 'state', 'locked');
-  end if;
   -- ★ 開くのは見てよい人（オーナーかオーナーが承認した人。約束 1）だけ。運営であることだけでは開かない
-  v_sees := public.pv_stay_sees();
+  v_sees := coalesce(public.pv_stay_sees(), false);
+  v_mine := public.pv_stay_me(p);
+
   if not v_sees then
-    return jsonb_build_object('ok', true, 'state', 'locked');
+    -- ★見てよい人ではない。返すのは locked の1行だけ（引数が変でも同じ）。
+    --   自分が足したものがこの会社 × 空港に在るときだけ、それ**だけ**を own に付ける。
+    --   探すのは「書いた人の印が、呼んだ人の手のどれかと同じ行」だけ。写真は並べない（3-h）。
+    if cardinality(v_mine) = 0 then
+      return jsonb_build_object('ok', true, 'state', 'locked');
+    end if;
+    v_air  := lower(btrim(coalesce(p->>'airline', '')));
+    v_iata := upper(btrim(coalesce(p->>'iata', '')));
+    select jsonb_agg(z.j order by z.k, z.n, z.id)
+      into v_own
+      from (
+        select public.pv_stay_place_json(s, v_mine, false, false) as j,
+               case s.kind when 'hotel' then 0 when 'food' then 1 else 2 end as k,
+               lower(s.name) as n, s.id
+          from public.pv_stay_places s
+         where s.airline = v_air and s.iata = v_iata
+           and s.author_hash = any(v_mine)
+         order by 2, 3, 4
+         limit 50
+      ) z;
+    if v_own is null then
+      return jsonb_build_object('ok', true, 'state', 'locked');
+    end if;
+    return jsonb_build_object('ok', true, 'state', 'locked', 'own', v_own);
   end if;
   -- 全部（ほかの人の確認待ちも）見えるのは、見てよい人でもある運営だけ
   v_all := (v_role = 'operator' and v_sees);
-  v_me := public.pv_stay_hash(auth.uid());
 
   v_air := lower(btrim(coalesce(p->>'airline', '')));
   select a.active into v_active from public.pv_airlines a
@@ -1525,14 +1639,14 @@ begin
   select coalesce(jsonb_agg(z.j order by z.k, z.n, z.id), '[]'::jsonb)
     into v_places
     from (
-      select public.pv_stay_place_json(s, array[v_me], v_all, v_sees)
+      select public.pv_stay_place_json(s, v_mine, v_all, v_sees)
                || case when v_all then jsonb_build_object('rev', public.pv_stay_rev(s))
                        else '{}'::jsonb end as j,
              case s.kind when 'hotel' then 0 when 'food' then 1 else 2 end as k,
              lower(s.name) as n, s.id
         from public.pv_stay_places s
        where s.airline = v_air and s.iata = v_iata
-         and public.pv_stay_visible(s.state, s.author_hash, array[v_me], v_all, v_sees)
+         and public.pv_stay_visible(s.state, s.author_hash, v_mine, v_all, v_sees)
        order by 2, 3, 4
        limit 200
     ) z;
@@ -1544,13 +1658,13 @@ begin
       select z.airline, jsonb_agg(z.j order by z.n, z.id) as places
         from (
           select s.airline,
-                 public.pv_stay_place_json(s, array[v_me], v_all, v_sees)
+                 public.pv_stay_place_json(s, v_mine, v_all, v_sees)
                    || case when v_all then jsonb_build_object('rev', public.pv_stay_rev(s))
                            else '{}'::jsonb end as j,
                  lower(s.name) as n, s.id
             from public.pv_stay_places s
            where s.iata = v_iata and s.airline <> v_air and s.kind = 'hotel'
-             and public.pv_stay_visible(s.state, s.author_hash, array[v_me], v_all, v_sees)
+             and public.pv_stay_visible(s.state, s.author_hash, v_mine, v_all, v_sees)
            order by 1, 3, 4
            limit 200
         ) z
@@ -1570,19 +1684,23 @@ revoke all on function public.pv_stays(jsonb) from public;
 grant execute on function public.pv_stays(jsonb) to anon, authenticated;
 
 comment on function public.pv_stays(jsonb) is
-  '会社 × 空港のステイ情報。オーナーとオーナーが承認した人にだけ中身を返す（運営であることだけでは開かない）。それ以外には {ok:true, state:''locked''} だけ（名前も件数も返さない）。author_hash と時刻は返さない。';
+  '会社 × 空港のステイ情報。オーナーとオーナーが承認した人にだけ中身を返す（運営であることだけでは開かない）。それ以外には {ok:true, state:''locked''} だけ（ほかの人の名前も件数も返さない）。自分が足したものだけは own で本人に返す（ログインか端末の鍵。写真は並べない）。author_hash と時刻は返さない。';
 
 
 -- ════════════════════════════════════════════════════════════════
 -- 5. 足す（場所）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {airline, iata, kind:'hotel'|'food'|'spot', name, address, maps_url, note, city, stay_hours}
+-- 引数: p = {airline, iata, kind:'hotel'|'food'|'spot', name, address, maps_url, note, city, stay_hours, publish}
+--   publish:true は運営だけが使える（運営でなければ読まない）。その行は確認待ちを通さずに 'public' で入る。
+--     （管理ページの「追加」。同じ名前がもう公開されていれば exists で止まる ── 公開の行に同じ名前を2つ作らない）
 --   city は都市の名前（任意。空港の3レターとは別に、人が読む名前として持つ）。
 --   stay_hours はステイ時間（任意・ホテルだけ。そのホテルでのステイがおよそ何時間か。1〜240 の整数）。
 --     ホテル以外に付けて送っても弾かない。保存せずに捨てる（item.stay_hours は null で返る）。
--- 返り値: {ok:true, item:{…一覧と同じ形…}}。入った時点では state:'pending'。
+--   key は任意。ログインせずに前に足したとき返した端末の控え（ログインしている人の行は、いつもログインの印で入る）。
+-- 返り値: {ok:true, item:{…一覧と同じ形…}}。入った時点では state:'pending'（運営の「追加」＝ publish:true だけは 'public'）。
+--   key（ログインせずに初めて足したときだけ。端末の控え。★返すのはこの1回だけ・表には sha256 しか置かない）
 -- 弾いたときは例外ではなく {ok:false, status:…} を返す（画面は理由ごとに違う一言を出す）。
---   locked        資格が無い（★何も調べずに返す）
+--   locked        いまは誰も足せない設定になっている（pv_stay_may_add。★何も調べずに返す）
 --   bad_airline   名簿に無い・無効・'other'
 --   bad_iata      英字3字でない
 --   bad_kind      白リストの外
@@ -1591,9 +1709,14 @@ comment on function public.pv_stays(jsonb) is
 --   bad_city      都市の名前が60字を超える
 --   bad_hours     ステイ時間が 1〜240 の整数でない（ホテルのときだけ）
 --   too_fast      30秒以内の連投
---   rate_limited  24時間に20件
+--   rate_limited  24時間の上限（ログインしている人 20件・端末の鍵だけの人 5件）／同じ回線が1日に作れる端末の鍵は20本
+--   queue_full    ログインせずに足されたものが、運営の確認を 200件 待っている（運営が見れば、また足せる）
 --   duplicate     自分が同じ名前を既に出している
---   exists        同じ名前が既に**公開済み**
+--   exists        同じ名前が既に**公開済み**（★見てよい人と、運営の「追加」（publish:true）にだけ返す。3-l）
+-- ★ 足すのは誰でもできる（ログインも要らない）。足せることは何も開かない（読めるかは pv_stay_sees だけが決める）。
+--   見てよい人でない人に返すのは、足した1件（自分のもの・写真は並べない）か、上の status の1語だけ。
+-- ★ ログインしていない人の「手」は、サーバーが作って返した端末の鍵だけ（画面が作った鍵は受け付けない）。
+--   届いた鍵が表に無ければ、新しい鍵を作る（作るのは、断る理由を全部見たあと ＝ 断った呼び出しは鍵を作らない）。
 -- ★ exists は公開済みの行だけを見る。他人の確認前の行と比べない
 --   （比べると「誰かがそのホテルを出したところだ」が分かってしまう）。
 -- ★ 地図のリンクが通らなくても投稿は通す（リンクだけ捨てる）。
@@ -1607,31 +1730,36 @@ security definer
 set search_path = public, extensions
 as $fn$
 declare
-  v_role text;
-  v_sees boolean;
-  v_all  boolean;
-  v_me   text;
-  v_air  text;
-  v_iata text;
-  v_bad  text;
-  v_kind text;
-  v_name text;
-  v_addr text;
-  v_note text;
-  v_url  text;
-  v_city text;
+  v_uid   uuid := auth.uid();
+  v_role  text;
+  v_sees  boolean;
+  v_all   boolean;
+  v_me    text;
+  v_air   text;
+  v_iata  text;
+  v_bad   text;
+  v_kind  text;
+  v_name  text;
+  v_addr  text;
+  v_note  text;
+  v_url   text;
+  v_city  text;
   v_hours int;
-  v_n    int;
-  v_row  public.pv_stay_places%rowtype;
+  v_n     int;
+  v_key   text;        -- この呼び出しで新しく作った端末の鍵（作らなければ null）
+  v_ip    text;
+  v_iph   text;
+  v_pub   boolean;
+  v_row   public.pv_stay_places%rowtype;
 begin
-  v_role := public.pv_stay_role();
-  if v_role is null then
+  if not coalesce(public.pv_stay_may_add(), false) then
     return jsonb_build_object('ok', false, 'status', 'locked');
   end if;
-  -- 返す1件の形を、読む口と同じ「見てよい人か」で作る（足した直後の行には写真がまだ無い）
-  v_sees := public.pv_stay_sees();
+  v_role := public.pv_stay_role();
+  -- 見てよい人か（オーナーかオーナーが承認した人。約束 1）。返す1件の形と exists を答えるかだけに使う
+  -- （足せるかどうかは決めない。足した直後の行には写真がまだ無い）
+  v_sees := coalesce(public.pv_stay_sees(), false);
   v_all := (v_role = 'operator' and v_sees);
-  v_me := public.pv_stay_hash(auth.uid());
 
   v_air := lower(btrim(coalesce(p->>'airline', '')));
   if v_air = 'other' or not exists (
@@ -1653,6 +1781,62 @@ begin
     return jsonb_build_object('ok', false, 'status', v_bad);
   end if;
 
+  if v_uid is not null then
+    v_me := public.pv_stay_hash(v_uid);
+  else
+    -- ログインしていない人。表に在る端末の鍵ならその手、そうでなければ新しい鍵を作る（画面が作った鍵は受け付けない）
+    -- 片づけ：回線の印は1日だけ／足したものが1つも無い鍵は1日で消す（ログインせずに足すたびに、毎回流す）。
+    --   ほかの呼び出しが掴んでいる行は、待たずに飛ばす（飛ばした行は、次の呼び出しが片づける。db/contrib.sql と同じ形）
+    update public.pv_stay_keys k
+       set ip_day_hash = null
+     where k.key_hash in (
+             select x.key_hash from public.pv_stay_keys x
+              where x.ip_day_hash is not null
+                and x.created_at <= now() - interval '1 day'
+              order by x.key_hash
+                for update skip locked);
+    delete from public.pv_stay_keys k
+     where k.key_hash in (
+             select x.key_hash from public.pv_stay_keys x
+              where x.created_at <= now() - interval '1 day'
+                and not exists (select 1 from public.pv_stay_places s where s.author_hash = x.key_hash)
+              order by x.key_hash
+                for update skip locked);
+    v_me := public.pv_stay_key_hash(p->>'key');
+    if v_me is not null and not exists (select 1 from public.pv_stay_keys k where k.key_hash = v_me) then
+      v_me := null;
+    end if;
+    -- サイト全体：ログインせずに足されて、まだ運営が見ていないものは 200件まで（運営の待ち行列が1度に出す数）。
+    -- ★ 数えるのは「待っている行」。運営が通すか見送れば、また足せる（24時間の件数で数えると、1人が毎日ふさげる）
+    select count(*) into v_n from public.pv_stay_places s
+     where s.state = 'pending'
+       and exists (select 1 from public.pv_stay_keys k where k.key_hash = s.author_hash);
+    if v_n >= 200 then
+      return jsonb_build_object('ok', false, 'status', 'queue_full');
+    end if;
+    if v_me is null then
+      -- 同じ回線から1日に作れる鍵は20本まで（db/contrib.sql の預かりと同じ数）。回線が分からない所では数えない
+      begin
+        v_ip := split_part(
+          coalesce(current_setting('request.headers', true)::jsonb ->> 'x-forwarded-for', ''), ',', 1);
+      exception when others then
+        v_ip := '';
+      end;
+      v_ip := btrim(v_ip);
+      if v_ip <> '' then
+        v_iph := encode(extensions.digest(v_ip || '::pv_hotel_ip::' || current_date::text, 'sha256'), 'hex');
+        select count(*) into v_n from public.pv_stay_keys
+         where ip_day_hash = v_iph and created_at > now() - interval '1 day';
+        if v_n >= 20 then
+          return jsonb_build_object('ok', false, 'status', 'rate_limited');
+        end if;
+      end if;
+      v_key := encode(extensions.gen_random_bytes(24), 'hex');
+      v_me  := public.pv_stay_key_hash(v_key);
+      insert into public.pv_stay_keys (key_hash, ip_day_hash) values (v_me, v_iph);
+    end if;
+  end if;
+
   -- 同じ人の同時の2本を1列に並べる（連投の数え方をすり抜けさせない）
   perform pg_advisory_xact_lock(hashtextextended('pv_stay:' || v_me, 0));
 
@@ -1662,40 +1846,47 @@ begin
     return jsonb_build_object('ok', false, 'status', 'too_fast');
   end if;
 
-  -- 1日の上限（1つの街でホテル1つ＋店をいくつか、を数回ぶん）
+  -- 1日の上限（ログインしている人 20・端末の鍵だけの人 5。数は 3-c4 の1か所）
   select count(*) into v_n from public.pv_stay_places
    where author_hash = v_me and created_at > now() - interval '24 hours';
-  if v_n >= 20 then
+  if v_n >= public.pv_stay_cap(v_uid is null) then
     return jsonb_build_object('ok', false, 'status', 'rate_limited');
   end if;
 
-  -- 自分の重ね出し（duplicate）／既に公開されている同じ名前（exists）。判定は 3-l の1か所
-  v_bad := public.pv_stay_clash(v_me, v_air, v_iata, v_kind, v_name, null);
+  -- 運営が管理ページから直接足すときだけ、確認待ちを通さずに出す（2026-10-11 オーナー「承認と追加のボタン」）
+  v_pub := coalesce(v_role = 'operator', false) and coalesce(p->'publish' = 'true'::jsonb, false);
+
+  -- 自分の重ね出し（duplicate）／既に公開されている同じ名前（exists。★見てよい人と、運営の「追加」にだけ答える）。判定は 3-l の1か所
+  -- （運営の「追加」は公開で入るので、ここで止めないと公開の行に同じ名前が2つできる）
+  v_bad := public.pv_stay_clash(v_me, v_air, v_iata, v_kind, v_name, null, v_sees or v_pub);
   if v_bad is not null then
     return jsonb_build_object('ok', false, 'status', v_bad);
   end if;
 
   insert into public.pv_stay_places
-    (author_hash, airline, iata, kind, name, address, maps_url, note, city, stay_hours)
-  values (v_me, v_air, v_iata, v_kind, v_name, v_addr, v_url, v_note, v_city, v_hours)
+    (author_hash, airline, iata, kind, name, address, maps_url, note, city, stay_hours, state, moderated_at)
+  values (v_me, v_air, v_iata, v_kind, v_name, v_addr, v_url, v_note, v_city, v_hours,
+          case when v_pub then 'public' else 'pending' end, case when v_pub then now() end)
   returning * into v_row;
 
   return jsonb_build_object('ok', true, 'item',
-    public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees));
+           public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees))
+         || case when v_key is not null then jsonb_build_object('key', v_key) else '{}'::jsonb end;
 end;
 $fn$;
 
-revoke all on function public.pv_stay_add(jsonb) from public, anon;
-grant execute on function public.pv_stay_add(jsonb) to authenticated;
+revoke all on function public.pv_stay_add(jsonb) from public;
+grant execute on function public.pv_stay_add(jsonb) to anon, authenticated;
 
 comment on function public.pv_stay_add(jsonb) is
-  'ステイ情報を1件足す。見てよい人（オーナーとオーナーが承認した人）と運営だけ。pending で入る（運営が見るまで他人に出ない）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・30秒/20件24時間。地図のリンクは Google マップ以外なら捨てる。';
+  'ステイ情報を1件足す。誰でも足せる（ログインも要らない。決め方は pv_stay_may_add の1行）。足せることは何も開かない（読めるのはオーナーとオーナーが承認した人だけ）。pending で入る（運営が見るまで、足した本人と運営にしか出ない。運営が publish:true を添えたときだけ、その場で public）。ログインせずに初めて足したときだけ端末の鍵を1回返す（表には sha256 だけ）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・30秒・24時間にログインしている人20件／端末の鍵だけの人5件・同じ回線が1日に作れる鍵は20本・ログインせずに足して運営の確認を待つものは200件まで。exists は見てよい人と運営の「追加」にだけ答える。地図のリンクは Google マップ以外なら捨てる。';
 
 
 -- ════════════════════════════════════════════════════════════════
 -- 5-b. 直す（場所。★書いた本人だけ）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {id:<場所の id>, kind, name, address, maps_url, note, city, stay_hours}
+-- 引数: p = {id:<場所の id>, kind, name, address, maps_url, note, city, stay_hours, key}
+--   key は任意。ログインせずに足したときの端末の控え（その鍵で書いた行を直すとき）。
 --   ★ 直すのは**送ってきた欄だけ**。送らなかった欄は今のまま残る。
 --     欄を消したいときは null か空を送る（名前と種別は消せない＝検品で弾く）。
 --   ★ ステイ時間（stay_hours）はホテルだけの欄。種別をホテルからほかへ直すと、送らなくても消える
@@ -1706,22 +1897,25 @@ comment on function public.pv_stay_add(jsonb) is
 -- 返り値:
 --   直した        → {ok:true, changed:true,  item:{…一覧と同じ形…}}   item.state は 'pending'
 --   何も変わらない → {ok:true, changed:false, item:{…}}                状態も回数もそのまま
---   locked        資格が無い（★何も調べずに返す）
+--   locked        誰の手か分からない（ログインしておらず、端末の鍵も無い）／いまは誰も直せない設定
 --   not_found     その場所が無い・自分のものではない・id の形が違う（★同じ答え。消す口と同じ）
 --   final         見送られたものは直せない（出し直してもらう。公開へ戻す道が無いので、直しても出ない）
 --   bad_kind／bad_name／too_long／bad_city／bad_hours   足す口と同じ検品（3-k）
---   rate_limited  24時間に20回
---   duplicate／exists   名前か種別を変えた先に、同じ名前がもう在る（3-l。足す口と同じ決まり）
+--   rate_limited  24時間の上限（足す口と同じ数。ログインの印で書いた行は20回・端末の鍵で書いた行は5回）
+--   duplicate／exists   名前か種別を変えた先に、同じ名前がもう在る（3-l。足す口と同じ決まり）。exists は見てよい人にだけ返す
 -- ★ 直したら必ず 'pending' へ戻す（2026-10-05 オーナー決定「修正した投稿は運営の確認待ちへ戻す」）。
 --   公開済みでも、その瞬間からほかの人には出なくなる（3-d の決まりのまま）。本人には出続ける。
 --   運営が見た時刻（moderated_at）も消す ＝ 待ち行列の「まだ見ていないもの」と同じ姿に戻す。
 --   直された場所を運営が通すには、見たときの中身の印（rev）が要る（8 の changed）。
 -- ★ 付いている写真の状態は触らない。場所が確認待ちの間は、公開済みの写真もほかの人には
 --   出ない（7 の読む口が場所の見える・見えないも通している）。運営が場所を通せばまた出る。
--- ★ 直せるのは書いた本人だけ。運営でも他人のものは not_found（運営の道は 8 の公開する／見送る
+-- ★ 直せるのは書いた本人だけ（ログインの印か、端末の鍵）。運営でも他人のものは not_found（運営の道は 8 の公開する／見送る
 --   と 9 の消す。中身を書き換える力を運営に持たせると、誰の言葉か分からなくなる）。
 --   運営が自分で書いたものは、書いた本人として直せる。確認待ちへ戻り、自分では公開できない
 --   （8 の own_post が今までどおり効く）。
+-- ★ 直せるかどうかは「見てよい人か」で決めない（決めるのは pv_stay_may_add の1行と、書いた人の印）。
+--   見てよい人でない人（承認を取り消された人・ログインせずに足した人）も、自分が書いたものは直せる
+--   （確認待ちへ戻るだけで、何も開かない。返す1件の形と exists だけは「見てよい人か」で決める）。
 -- ★ 何も変わらない送り直しは、状態を戻さない（保存ボタンを押し直しただけで公開が外れない）。
 -- ★ 30秒の決まりは入れていない（続けて直すのは普通の使い方。変わらなければ何も起きない）。
 -- ★ 錠の順番は「場所の行 → 人ごとの錠」。6 の写真を足す口と同じ向き（逆にすると噛み合って止まる）。
@@ -1736,6 +1930,8 @@ declare
   v_role text;
   v_sees boolean;
   v_all  boolean;
+  v_mine text[];
+  v_dev  boolean;
   v_me   text;
   v_id   uuid;
   v_row  public.pv_stay_places%rowtype;
@@ -1750,14 +1946,17 @@ declare
   v_hours int;
   v_n    int;
 begin
-  v_role := public.pv_stay_role();
-  if v_role is null then
+  if not coalesce(public.pv_stay_may_add(), false) then
     return jsonb_build_object('ok', false, 'status', 'locked');
   end if;
-  -- 返す1件の形（写真の並び）は、読む口と同じ「見てよい人か」で作る
-  v_sees := public.pv_stay_sees();
+  v_mine := public.pv_stay_me(p);
+  if cardinality(v_mine) = 0 then
+    return jsonb_build_object('ok', false, 'status', 'locked');
+  end if;
+  v_role := public.pv_stay_role();      -- 返す形と exists を答えるかだけに使う（直せるかどうかは決めない）
+  -- 返す1件の形（写真の並び）と exists は、読む口と同じ「見てよい人か」で決める
+  v_sees := coalesce(public.pv_stay_sees(), false);
   v_all := (v_role = 'operator' and v_sees);
-  v_me := public.pv_stay_hash(auth.uid());
 
   v_id := public.pv_stay_uuid(p->>'id');
   if v_id is null then
@@ -1766,11 +1965,13 @@ begin
 
   -- ★ 自分のものだけを探す。他人のもの・無い id は、どちらも「見つからない」
   select * into v_row from public.pv_stay_places
-   where id = v_id and author_hash = v_me
+   where id = v_id and author_hash = any(v_mine)
      for update;
   if not found then
     return jsonb_build_object('ok', false, 'status', 'not_found');
   end if;
+  v_me  := v_row.author_hash;           -- 回数と錠は、その行を書いた手で数える
+  v_dev := exists (select 1 from public.pv_stay_keys k where k.key_hash = v_me);
 
   if v_row.state = 'rejected' then
     return jsonb_build_object('ok', false, 'status', 'final');
@@ -1799,22 +2000,22 @@ begin
      and v_city is not distinct from v_row.city
      and v_hours is not distinct from v_row.stay_hours then
     return jsonb_build_object('ok', true, 'changed', false, 'item',
-      public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees));
+      public.pv_stay_place_json(v_row, v_mine, v_all, v_sees));
   end if;
 
   -- 同じ人の同時の2本を1列に並べる（回数の数え方をすり抜けさせない）
   perform pg_advisory_xact_lock(hashtextextended('pv_stay:' || v_me, 0));
 
-  -- 1日の上限（足す口と同じ 20。直すたびに運営の待ち行列へ戻るので、際限なく戻させない）
+  -- 1日の上限（足す口と同じ数。ログインしている人 20・端末の鍵だけの人 5。直すたびに運営の待ち行列へ戻るので、際限なく戻させない）
   select coalesce(sum(edit_n), 0) into v_n from public.pv_stay_places
    where author_hash = v_me and edit_from > now() - interval '24 hours';
-  if v_n >= 20 then
+  if v_n >= public.pv_stay_cap(v_dev) then
     return jsonb_build_object('ok', false, 'status', 'rate_limited');
   end if;
 
   -- 名前か種別を変えたときだけ、変えた先に同じ名前が在るかを見る（自分自身は数えない）
   if v_kind <> v_row.kind or lower(v_name) <> lower(v_row.name) then
-    v_bad := public.pv_stay_clash(v_me, v_row.airline, v_row.iata, v_kind, v_name, v_id);
+    v_bad := public.pv_stay_clash(v_me, v_row.airline, v_row.iata, v_kind, v_name, v_id, v_sees);
     if v_bad is not null then
       return jsonb_build_object('ok', false, 'status', v_bad);
     end if;
@@ -1839,15 +2040,61 @@ begin
   returning * into v_row;
 
   return jsonb_build_object('ok', true, 'changed', true, 'item',
-    public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees));
+    public.pv_stay_place_json(v_row, v_mine, v_all, v_sees));
 end;
 $fn$;
 
-revoke all on function public.pv_stay_update(jsonb) from public, anon;
-grant execute on function public.pv_stay_update(jsonb) to authenticated;
+revoke all on function public.pv_stay_update(jsonb) from public;
+grant execute on function public.pv_stay_update(jsonb) to anon, authenticated;
 
 comment on function public.pv_stay_update(jsonb) is
-  '自分が足した場所の中身（名前・種別・住所・地図のリンク・メモ・都市・ステイ時間）を直す。書いた本人だけ。直したら pending へ戻る（運営が見るまで他人に出ない）。会社と空港は変えられない。何も変わらなければ状態を戻さない。24時間に20回まで。';
+  '自分が足した場所の中身（名前・種別・住所・地図のリンク・メモ・都市・ステイ時間）を直す。書いた本人だけ（ログインの印か、ログインせずに足したときの端末の鍵）。直したら pending へ戻る（運営が見るまで他人に出ない）。会社と空港は変えられない。何も変わらなければ状態を戻さない。24時間にログインの印で書いた行は20回・端末の鍵で書いた行は5回まで。exists は見てよい人にだけ答える。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 5-c. 引き取る（ログインした人が、ログインする前にこの端末から足したものを自分のものにする）
+-- ════════════════════════════════════════════════════════════════
+-- 引数: p = {key:<端末の鍵>}
+-- 返り値: {ok:true}   ★これだけ。何件移したかを返さない（約束 10）。鍵が無い・形が違う・表に無い、でも同じ字
+--   locked   ログインしていない
+-- ★ 表に在る鍵（サーバーが作って返したもの）だけを引き取る。その鍵の行の「書いた人の印」を、ログインした人の印に
+--   書き換え、鍵の行を消す ＝ その端末の鍵は、もう誰の行とも合わない。
+-- ★ 引き取ったあとは、その人のログインだけが証拠になる（別の端末でも見える・ログアウトした画面には残らない）。
+-- ★ これで開くものは無い。見てよい人かどうかは、今までどおり pv_stay_sees() が決める。
+create or replace function public.pv_stay_claim(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid uuid := auth.uid();
+  v_kh  text;
+begin
+  if v_uid is null then
+    return jsonb_build_object('ok', false, 'status', 'locked');
+  end if;
+  v_kh := case when jsonb_typeof(p) = 'object' then public.pv_stay_key_hash(p->>'key') end;
+  if v_kh is not null then
+    -- 同じ鍵の2本を1列に並べる（足す口と同じ錠。半分だけ移った形を作らない）
+    perform pg_advisory_xact_lock(hashtextextended('pv_stay:' || v_kh, 0));
+    delete from public.pv_stay_keys where key_hash = v_kh;
+    if found then
+      update public.pv_stay_places
+         set author_hash = public.pv_stay_hash(v_uid)
+       where author_hash = v_kh;
+    end if;
+  end if;
+  return jsonb_build_object('ok', true);
+end;
+$fn$;
+
+revoke all on function public.pv_stay_claim(jsonb) from public, anon;
+grant execute on function public.pv_stay_claim(jsonb) to authenticated;
+
+comment on function public.pv_stay_claim(jsonb) is
+  'ログインせずに足したステイ情報を、ログインした人が引き取る。表に在る端末の鍵だけ。返すのは {ok:true} だけ（件数を返さない）。何も開かない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2085,6 +2332,7 @@ comment on function public.pv_stay_photo(jsonb) is
 --   own_post    自分が出したものを自分で公開しようとした
 --   final       見送ったものは公開へ戻せない（出し直してもらう）
 --   changed     運営が見たあとで中身が直されている（★何も変えずに返す。読み直してから通す）
+--   exists      同じ会社・空港・種別に、同じ名前がもう公開されている（★何も変えずに返す）
 -- ★ own_post が要。運営が自分で書いて自分で通せると、「人が1回見る」が
 --   「書いた本人が見た」になる。見送る側は自分のものでもできる（害が無い）。
 -- ★ changed も同じ約束の続き。場所を公開するとき、
@@ -2159,6 +2407,16 @@ begin
        and v_rev is distinct from public.pv_stay_rev(v_place) then
       return jsonb_build_object('ok', false, 'status', 'changed');
     end if;
+    -- ★ 同じ名前がもう公開されていれば、通さない（公開の行に同じ名前を2つ作らない）。
+    --   足す口・直す口は exists を見てよい人にしか答えない（3-l）。見てよい人でない人が足した同じ名前は
+    --   確認待ちとして届くので、ここで運営に知らせる。行は待ちのまま（見送るかどうかは運営が決める）。
+    if v_state = 'public'
+       and exists (select 1 from public.pv_stay_places o
+                    where o.airline = v_place.airline and o.iata = v_place.iata
+                      and o.kind = v_place.kind and lower(o.name) = lower(v_place.name)
+                      and o.state = 'public' and o.id <> v_place.id) then
+      return jsonb_build_object('ok', false, 'status', 'exists');
+    end if;
 
     update public.pv_stay_places
        set state = v_state, moderated_at = now()
@@ -2209,18 +2467,18 @@ revoke all on function public.pv_stay_moderate(jsonb) from public, anon;
 grant execute on function public.pv_stay_moderate(jsonb) to authenticated;
 
 comment on function public.pv_stay_moderate(jsonb) is
-  'ステイ情報の場所・写真を公開する／見送る。運営だけ（守っているのは grant ではなく関数の中の判定）。自分が出したものは自分で公開できない。見送った写真は画素を消す。pending へは戻せない。';
+  'ステイ情報の場所・写真を公開する／見送る。運営だけ（守っているのは grant ではなく関数の中の判定）。自分が出したものは自分で公開できない。同じ会社・空港・種別に同じ名前がもう公開されていれば exists で止める。見送った写真は画素を消す。pending へは戻せない。';
 
 
 -- ════════════════════════════════════════════════════════════════
 -- 9. 消す（本人か運営）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {target:'place'|'photo', id}
+-- 引数: p = {target:'place'|'photo', id, key}（key は任意。ログインせずに足したときの端末の控え）
 -- 返り値: {ok:true, target, id}
---   locked      ログインしていない
+--   locked      誰の手か分からない（ログインしておらず、端末の鍵も無い）
 --   bad_target  'place' と 'photo' 以外
 --   not_found   その id が無い・自分のものではない（★同じ答え。在るかどうかを答えない）
--- ★ ここだけは確認の印を見ない。印を外されたあとでも、自分が出したものは自分で消せる。
+-- ★ ここだけは「見てよい人か」も「足してよい設定か」も見ない。鍵が切れたあとでも、設定を戻したあとでも、自分が出したものは自分で消せる。
 --   他人のものは、在っても無くても同じ not_found なので、何も漏れない。
 -- ★ 場所を消すと、付いていた写真も一緒に消える（ほかの人が足した写真も）。
 create or replace function public.pv_stay_delete(p jsonb)
@@ -2231,17 +2489,16 @@ security definer
 set search_path = public, extensions
 as $fn$
 declare
-  v_uid    uuid := auth.uid();
-  v_me     text;
+  v_mine   text[];
   v_op     boolean;
   v_target text;
   v_id     uuid;
   v_n      int;
 begin
-  if v_uid is null then
+  v_mine := public.pv_stay_me(p);
+  if cardinality(v_mine) = 0 then
     return jsonb_build_object('ok', false, 'status', 'locked');
   end if;
-  v_me := public.pv_stay_hash(v_uid);
   v_op := (public.pv_stay_role() is not distinct from 'operator');
 
   v_target := coalesce(p->>'target', 'place');
@@ -2255,10 +2512,10 @@ begin
 
   if v_target = 'place' then
     delete from public.pv_stay_places
-     where id = v_id and (author_hash = v_me or v_op);
+     where id = v_id and (author_hash = any(v_mine) or v_op);
   else
     delete from public.pv_stay_photos
-     where id = v_id and (author_hash = v_me or v_op);
+     where id = v_id and (author_hash = any(v_mine) or v_op);
   end if;
   get diagnostics v_n = row_count;
   if v_n = 0 then
@@ -2269,11 +2526,11 @@ begin
 end;
 $fn$;
 
-revoke all on function public.pv_stay_delete(jsonb) from public, anon;
-grant execute on function public.pv_stay_delete(jsonb) to authenticated;
+revoke all on function public.pv_stay_delete(jsonb) from public;
+grant execute on function public.pv_stay_delete(jsonb) to anon, authenticated;
 
 comment on function public.pv_stay_delete(jsonb) is
-  'ステイ情報の場所・写真を消す。書いた本人か運営だけ。他人のものは在っても無くても not_found。';
+  'ステイ情報の場所・写真を消す。書いた本人（ログインの印か、ログインせずに足したときの端末の鍵）か運営だけ。他人のものは在っても無くても not_found。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2566,12 +2823,13 @@ on conflict (one) do update set user_id = excluded.user_id, set_at = now();
 -- ════════════════════════════════════════════════════════════════
 -- 11. 検算（貼ったあとに出る1行）
 -- ════════════════════════════════════════════════════════════════
--- ポリシー数は 0 が正しい（場所・写真の表と、見てよい人の名簿の2表の合計）。
+-- ポリシー数は 0 が正しい（場所・写真・端末の鍵の表と、見てよい人の名簿の2表の合計）。
 -- オーナーは 1 が正しい。0 のあいだは誰にも見えない（上の 10-b の1行を、メールアドレスを入れて流す）。
 -- 承認した人は、いまのオーナーが承認した人の数（オーナー自身は数えない。申し込み・見送り・取り消しは数えない）。
+-- 端末の鍵は、ログインせずに足した端末の数（ログインして引き取られると消える・足したものが無い鍵は1日で消える）。
 select (select count(*) from pg_policies
          where schemaname = 'public'
-           and tablename in ('pv_stay_places', 'pv_stay_photos'))
+           and tablename in ('pv_stay_places', 'pv_stay_photos', 'pv_stay_keys'))
      + (select count(*) from pg_policies
          where schemaname = 'public'
            and tablename in ('pv_stay_owner', 'pv_stay_viewers'))      as ポリシー数,
@@ -2579,4 +2837,5 @@ select (select count(*) from pg_policies
        (select count(*) from public.pv_stay_viewers v
          where v.state = 'approved'
            and v.decided_by = (select o.user_id from public.pv_stay_owner o)) as 承認した人,
+       (select count(*) from public.pv_stay_keys)                      as 端末の鍵,
        (select count(*) from public.pv_admins)                         as 運営;
