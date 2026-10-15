@@ -325,14 +325,30 @@
 }
 
 /* ── 暮らし：街の写真カード（写真 → 街の名前 → 家賃 → 空港 → 詳細）──
-   ・段の数は箱の幅で決まる（狭い箱で2段・広い箱で5段）。
+   ・段の数はカードの数に合わせる（箱の幅が許すのは 2／3／4／5 段まで。数は生成側が --tg-a〜d に書く）。
    ・カードは押すところ（button）。選んだ街の詳細だけが下に出る
      （切り替えるのは pv-glance.js。動かなければ、どの街の詳細も縦に並んだまま）。
-   ・写真は 4:3 に切って置く（台帳の縦横がどうであっても、箱の形は変わらない）。
+   ・写真は 2:1・高さ 96〜168px に切って置く（台帳の縦横がどうであっても、箱の形は変わらない）。
    ・写真の上に重ねる色もトークンから作る（色を直に書かない）。 */
 .pvg h4{margin:0;padding:0}
 .pvg-liv{min-width:0}
-.pvg-tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+/* 街の写真は、高さで決める（カードの数で段が変わっても、行の高さが今より高くならない）。就航地のカード（.pvg-cgrid）は今までどおり 4:3 */
+.pvg-tgrid .pvg-town-ph{aspect-ratio:2/1;min-height:96px;max-height:168px}
+.pvg-liv-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px}
+.pvg-liv-2{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:12px}
+.pvg-liv-2 > .pvg-tds{margin-top:0}
+.pvg-liv > .pvg-ev{margin-top:10px}
+.pvg-way-fs{display:flex;flex-wrap:wrap;gap:4px 18px}
+.pvg-way-f{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px}
+.pvg-way-f > b{font-size:14px;font-weight:700;line-height:1.5;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.pvg-way-f > small{font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+.pvg-evl .pvg-notes li > span{margin-right:8px}
+/* 移動の記録：行の名前（字のまま）と数字のあいだを空ける（「…ターミナル駅¥520」と続けて読ませない） */
+[data-pvg-towns] .pvg-evl li[data-way-src] > span:first-of-type{margin-left:8px}
+.pvg-evl .pvg-notes li > span[data-way-warn],.pvg-evl .pvg-notes li > span[data-ref-basis]{display:block;margin-right:0}
+.pvg-refl{display:grid;gap:2px;margin-top:4px}
+.pvg-refl > li{display:flex;flex-wrap:wrap;gap:0 10px}
+.pvg-tgrid{display:grid;grid-template-columns:repeat(var(--tg-a,2),minmax(0,1fr));gap:10px}
 .pvg-tgrid > li{display:flex;min-width:0}
 .pvg .pvg-town{
   position:relative;display:flex;flex-direction:column;width:100%;min-width:0;margin:0;padding:0;overflow:hidden;
@@ -405,17 +421,17 @@
 .pvg-phl li > b{font-weight:600;color:var(--pv-ink-2)}
 .pvg-phl li > span{min-width:0;overflow-wrap:anywhere}
 @container pvg (min-width:560px){
-  .pvg-tgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .pvg-tgrid{grid-template-columns:repeat(var(--tg-b,3),minmax(0,1fr));gap:12px}
 }
 @container pvg (min-width:720px){
   .pvg-td{padding:18px 20px 6px}
-  .pvg-td-g{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+  .pvg-td-g:not(.is-one){grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
 }
 @container pvg (min-width:860px){
-  .pvg-tgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pvg-tgrid{grid-template-columns:repeat(var(--tg-c,4),minmax(0,1fr))}
 }
 @container pvg (min-width:1040px){
-  .pvg-tgrid{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .pvg-tgrid{grid-template-columns:repeat(var(--tg-d,5),minmax(0,1fr))}
 }
 
 /* 匿名で答える入口（質問の名前を見せる） */

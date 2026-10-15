@@ -81,6 +81,7 @@ import { FACTS as CO_FACTS } from './airline-facts.mjs';
 import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
 import { primary as placePhoto, needsCredit as placeCredit, src as placeSrc, HELD as PLACE_HELD } from './place-photos.mjs';
+import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES } from './living-facts.mjs';
 import { primary, needsCredit } from './airline-photos.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -1504,6 +1505,161 @@ head('口コミの一覧の部品の持ち越し（区分の絵・「要約の�
   ok(!ui.includes('CAT_ICONS[i]'), '口コミの一覧の部品は、区分のタイルの絵を並び順で選ばない（CAT_ICONS[i] が無い）');
   const TAG_JA = "sumSrcTag: '要約のもと',", TAG_EN = "sumSrcTag: 'Used in the summary',";
   ok(n(TAG_JA) === 1 && n(TAG_EN) === 1, '「要約のもと」の札の字は、日本語「要約のもと」と英語「Used in the summary」の1行ずつ', `日本語 ${n(TAG_JA)}行・英語 ${n(TAG_EN)}行`);
+}
+head('暮らし（街・家賃・空港までの移動）');
+{
+  /* 期待する値は台帳から作る（viewOf も生成側も通さない）。エティハドの家賃は career-facts.mjs（1年あたり → 12で割って1の位で丸める）、
+     棒の間取り・空港・移動は living-facts.mjs の ABUDHABI。エティハドの列の名前だけは台帳に無い（読み口の COLS_EY）＝ 同じ字をここに持つ（字が変われば赤）。
+     団地ごとの家賃（estates）を持つ街は、rent_from の団地の額と名前で読む（カードの小さな字は「団地の名前・間取り」）。 */
+  const EY_COLS = [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']];
+  const perM = v => Object.fromEntries(Object.entries(v || {}).map(([k, n]) => [k, Array.isArray(n) ? n.map(x => Math.round(x / 12)) : Math.round(n / 12)]));
+  const LED = s => (s === 'etihad'
+    ? { c: ABUDHABI, cols: EY_COLS, lead: 'bed1', refs: [],
+        towns: EY_FACTS.etihad.living.rents.map((r, i) => ({ key: r.key, ja: r.ja, sub: r.en || '', area: '', iata: r.iata || '', lead: i === 0, month: perM(r.value),
+          urls: [r.src && r.src.url, r.pick_src && r.pick_src.url] })) }
+    : (c => ({ c, cols: c.cols, lead: c.lead_col, refs: c.refs || [],
+        towns: c.rents.map(r => {
+          const e = r.estates ? r.estates.find(x => x.key === r.rent_from) || null : null;
+          return { key: r.key, ja: r.ja, sub: r.sub_ja || r.en || '', area: e ? e.ja : (r.rent_area_ja || ''), iata: r.iata || '', lead: !!r.lead, month: (e ? e.value : r.value) || {},
+            urls: [r.src && r.src.url, r.pick_src && r.pick_src.url, ...(r.estates || []).map(x => x.src && x.src.url)] };
+        }) }))(LIVING[CITY_OF[s]]));
+  /* この検査の道具（読み口の計算は借りない） */
+  const tagEnd = (h, i, tag) => {
+    const re = new RegExp(`<(/?)${tag}\\b[^>]*>`, 'g');
+    re.lastIndex = i;
+    for (let d = 0, m; (m = re.exec(h));) { d += m[1] ? -1 : 1; if (!d) return re.lastIndex; }
+    return -1;
+  };
+  const cutAt = (h, start, tag) => { const i = h.indexOf(start); const j = i < 0 ? -1 : tagEnd(h, i, tag); return i < 0 || j < 0 ? '' : h.slice(i, j); };
+  const cutsOf = (h, re, tag) => [...h.matchAll(re)].map(m => ({ m, h: h.slice(m.index, tagEnd(h, m.index, tag)) }));
+  const livOf = s => cutAt(PART[s].glance, '<section class="pvg-liv"', 'section');
+  const panelOf = s => cutAt(PART[s].glance, '<div class="pvg-card pvg-panel" id="pvg-p-living"', 'div');
+  /* 額の字の数（円の目安 small.pvg-yen は外す）。「万円」なら円に直す */
+  const amountsOf = h => { const t = text(h.replace(/<small class="pvg-yen"[^>]*>[\s\S]*?<\/small>/g, '')); const n = [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => +m[0].replace(/,/g, ''));
+    return t.includes('万円') ? n.map(x => Math.round(x * 10000)) : n; };
+  const want = v => (Array.isArray(v) ? v : [v]);
+  const mm = n => (n < 60 ? `${n}分` : `${Math.floor(n / 60)}時間${n % 60}分`);
+  const minOf = x => Object.values(x.value)[0];
+  const cardRows = (c, key) => (c.by_town ? (c.commute || []).filter(x => x.via === 'gmaps' && x.town === key && !x.warn && FAMILY[x.mode] === c.card_family
+    && (c.ends[x.end] || {}).iata === c.airports[0][0]) : []);
+  const MODE_W = { train: '電車', taxi: 'タクシー', bus: 'バス', car: '車' };
+  const KIND_W = { walk_total: '徒歩込み', shown_total: '経路の合計' };
+  const chipsOf = rows => MODES.filter(m => rows.some(x => (x.modes || [x.mode]).includes(m))).map(m => MODE_W[m]);
+  const spanOf = rows => { const v = rows.map(minOf), lo = Math.min(...v), hi = Math.max(...v); return lo === hi ? mm(lo) : hi < 60 ? `${lo}〜${hi}分` : `${mm(lo)}〜${mm(hi)}`; };
+  const mainOf = ja => ja.replace(/（[^（）]+）$/, ''), tailOf = ja => (/（([^（）]+)）$/.exec(ja) || [])[1] || '';
+  const amp = u => String(u).replace(/&/g, '&amp;');
+  for (const s of FIVE) {
+    const D = LED(s), c = D.c, T = D.towns, sec = livOf(s), panel = panelOf(s);
+    const cards = cutsOf(sec, /<li><button type="button" class="pvg-town" data-town="([^"]*)"/g, 'li').map(({ m, h }) => ({
+      key: m[1], h, n: unesc(one(h, /<b class="pvg-town-n">([^<]*)<\/b>/) || ''), sub: unesc(one(h, /<span class="pvg-town-s"[^>]*>([^<]*)<\/span>/) || ''),
+      rent: cutAt(h, '<span class="pvg-town-r">', 'span'), way: cutAt(h, '<span class="pvg-town-a">', 'span') }));
+    const card = k => cards.find(x => x.key === k);
+    /* SL1 */
+    ok(sec && cards.length === T.length && same(cards.map(x => [x.key, x.n, x.sub]), T.map(t => [t.key, mainOf(t.ja), t.sub || tailOf(t.ja)])),
+       `${s}: 暮らしのカードは、台帳の街と同じ数・同じ順・同じ名前`, `${cards.map(x => `${x.key}:${x.n}/${x.sub}`).join(' ')} ／ 台帳 ${T.map(t => `${t.key}:${mainOf(t.ja)}`).join(' ')}`);
+    /* SL2 */
+    const barsOn = sec.includes(' data-pvg-rent'), label = Object.fromEntries(D.cols);
+    const colOf = t => (t.month[D.lead] != null ? D.lead : (D.cols.find(([k]) => t.month[k] != null) || [])[0]);
+    const rentBad = T.flatMap(t => {
+      const x = card(t.key), col = colOf(t);
+      if (!x) return [`${t.key}: カードが無い`];
+      if (!col) return x.rent ? [`${t.key}: 家賃の無い街に家賃の行`] : [];
+      const word = (barsOn && c.bars.includes(col) && c.words[col]) || String(label[col] || '').replace(/（[^）]*）/g, '');
+      const lab = unesc(one(x.rent, /^<span class="pvg-town-r"><small>([^<]*)<\/small>/) || ''), got = amountsOf(x.rent.replace(/^<span class="pvg-town-r"><small>[^<]*<\/small>/, ''));
+      const bad = [];
+      if (lab !== (t.area ? `${t.area}・` : '') + word) bad.push(`${t.key}: 字「${lab}」`);
+      if (!same(got, want(t.month[col]))) bad.push(`${t.key}: 額 ${got.join('〜')}（台帳 ${want(t.month[col]).join('〜')}）`);
+      return bad;
+    });
+    ok(cards.length && !rentBad.length, `${s}: カードの家賃は、その街の・先頭の間取りの・台帳の額（家賃の無い街には家賃の行が無い）`, rentBad.join(' ／ '));
+    /* SL3 */
+    const wayBad = T.flatMap(t => {
+      const x = card(t.key), rows = cardRows(c, t.key);
+      if (!x) return [];
+      if (!rows.length) return x.way ? [`${t.key}: 行の無い街に移動の字`] : [];
+      if (!x.way) return [`${t.key}: 移動の字が無い`];
+      const chips = [...x.way.matchAll(/<i class="pvg-mode">([^<]*)<\/i>/g)].map(m => m[1]), code = one(x.way, /<i class="pvg-code3">([^<]*)<\/i>/), tx = one(x.way, /<span>([^<]*)<\/span><\/span>$/);
+      return same(chips, chipsOf(rows)) && code === c.airports[0][0] && tx === spanOf(rows) ? [] : [`${t.key}: ${chips.join('・')} ${code} ${tx}（台帳 ${chipsOf(rows).join('・')} ${c.airports[0][0]} ${spanOf(rows)}）`];
+    });
+    ok(cards.length && !wayBad.length, `${s}: カードの移動は、その街の Google マップの行から（手段・空港・分、着く場所で違えば幅）。行の無い街には出さない`, wayBad.join(' ／ '));
+    /* SL4 */
+    const details = cutsOf(sec, /<section class="pvg-td" id="pvg-town-([^"]*)" data-town-detail="([^"]*)"/g, 'section');
+    const detBad = details.length === T.length ? [] : [`詳細 ${details.length}つ（台帳 ${T.length}）`];
+    for (const t of T) {
+      const d = (details.find(x => x.m[2] === t.key) || {}).h || '';
+      if (!d) { detBad.push(`${t.key}: 詳細が無い`); continue; }
+      const keys = [...d.matchAll(/ data-way="([^"]*)"/g)].map(m => m[1]), list = c.commute || [];
+      let wantKeys;
+      if (c.by_town) {
+        const mine = list.filter(x => x.town === t.key), gm = mine.filter(x => x.via === 'gmaps'), g = gm.filter(x => !x.warn);
+        wantKeys = [...g.map(x => x.key), ...mine.filter(x => x.via !== 'gmaps' && (x.cur || !gm.length)).map(x => x.key)];
+        const ends = [...new Set(g.map(x => x.end))], lis = cutsOf(d, /<li data-end="([^"]*)">/g, 'li');
+        if (!same(lis.map(x => x.m[1]), ends)) detBad.push(`${t.key}: 着く場所 ${lis.map(x => x.m[1]).join('・')}（台帳 ${ends.join('・')}）`);
+        for (const { m, h } of lis) {
+          const figs = g.filter(x => x.end === m[1]).sort((a, b) => (a.mode === 'car') - (b.mode === 'car'));
+          if (!figs.length) continue;
+          const lab = unesc(one(h, /<span class="pvg-way-l">([^<]*)<\/span>/) || ''), wl = `${figs[0].from_ja} → ${c.ends[m[1]].ja}`;
+          if (lab !== wl) detBad.push(`${t.key}: 札「${lab}」（台帳「${wl}」）`);
+          const got = [...h.matchAll(/<span class="pvg-way-f" data-way="([^"]*)">([\s\S]*?)<\/span>/g)].map(f => [f[1], unesc(one(f[2], /<b>([^<]*)<\/b>/) || ''), [...f[2].matchAll(/<small>([^<]*)<\/small>/g)].map(y => y[1])]);
+          const exp = figs.map(x => { const k = Object.keys(x.value)[0]; return [x.key, mm(x.value[k]), [...(KIND_W[k] ? [KIND_W[k]] : []), ...(x.ride != null ? [`乗車${x.ride}分`] : [])]]; });
+          if (!same(got, exp)) detBad.push(`${t.key}/${m[1]}: ${JSON.stringify(got)}（台帳 ${JSON.stringify(exp)}）`);
+        }
+      } else wantKeys = (t.iata ? list.filter(x => x.iata === t.iata) : list).map(x => x.key);
+      if (!same([...keys].sort(), [...wantKeys].sort())) detBad.push(`${t.key}: 行 ${keys.join('・') || '無し'}（台帳 ${wantKeys.join('・') || '無し'}）`);
+      const opens = [...d.matchAll(/ data-pvc-open="[^"]*"([^>]*)>/g)].map(m => unesc(one(m[1], /data-pvc-ctx="([^"]*)"/) || ''));
+      if (!(opens.length === 1 && opens[0] === mainOf(t.ja))) detBad.push(`${t.key}: 入口 ${opens.length}つ（街 ${opens.join('・')}）`);
+    }
+    ok(cards.length && !detBad.length, `${s}: 街の詳細に在る移動の行は、その街の行だけ（着く場所ごと・ほかの街の行も、注意の付いた行も混ざっていない）`, detBad.slice(0, 6).join(' ／ '));
+    /* SL5 */
+    const evs = sec.split('class="pvg-dt pvg-srcd pvg-ev"').length - 1, ev = cutAt(sec, '<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev>', 'details');
+    const evBad = evs === 1 && ev ? [] : [`出典の畳み ${evs}つ`];
+    const urls = [...T.flatMap(t => t.urls), ...D.refs.flatMap(g => g.rows.map(r => r.src && r.src.url)), ...(c.commute || []).map(x => x.src && x.src.url)].filter(Boolean);
+    for (const u of new Set(urls)) if (!ev.includes(`href="${amp(u)}"`)) evBad.push(`出典に無い ${u}`);
+    const srcRows = cutsOf(ev, /<li data-way-src="([^"]*)">/g, 'li');
+    if (!same(srcRows.map(x => x.m[1]).sort(), (c.commute || []).map(x => x.key).sort())) evBad.push(`移動の記録 ${srcRows.map(x => x.m[1]).join('・') || '無し'}（台帳 ${(c.commute || []).map(x => x.key).join('・') || '無し'}）`);
+    for (const x of c.commute || []) {
+      const h = (srcRows.find(y => y.m[1] === x.key) || {}).h || '', w = h.split(' data-way-warn>').length - 1, wt = unesc(one(h, /<span class="pv-no-cur" data-way-warn>([^<]*)<\/span>/) || '');
+      if (x.warn ? !(w === 1 && wt === x.warn) : w !== 0) evBad.push(`${x.key}: 注意 ${w}つ「${wt}」（台帳「${x.warn || ''}」）`);
+      if (c.by_town && !x.town && sec.includes(` data-way="${x.key}"`)) evBad.push(`${x.key}: 街の鍵の無い行が、詳細に在る`);
+    }
+    for (const g of D.refs) {
+      const li = cutAt(ev, `<li data-ref="${g.key}">`, 'li'), got = [...li.matchAll(/<span class="pv-no-cur" data-ref-basis="[^"]*">([^<]*)<\/span>/g)].map(m => unesc(m[1]));
+      if (!li || !same(got, (g.rent_basis || []).map(b => b.value))) evBad.push(`参考 ${g.key}: 断り ${got.length}つ（台帳 ${(g.rent_basis || []).length}）`);
+    }
+    ok(sec && !evBad.length, `${s}: 「出典」は都市に1つ。台帳の出どころは全部その中に在り、街の鍵の無い移動の行はそこにだけ在る`, evBad.slice(0, 6).join(' ／ '));
+    /* SL6 */
+    const rank = (text(panel).match(/人気|ランキング|おすすめ|安い|高い|割安|割高|お得|[\d.]\s*倍/g) || []);
+    ok(panel && !rank.length, `${s}: 暮らしの板に、人気・順位・安い・高い の語が無い`, rank.join('・'));
+    /* SL8 */
+    const cellH = one(PART[s].glance, /<article class="pvg-card pvg-cell" data-cell="living"[^>]*>([\s\S]*?)\n<\/article>/) || '';
+    const k = text(one(cellH, /<p class="pvg-k">([\s\S]*?)<\/p>/) || ''), vH = one(cellH, /<p class="pvg-v[^"]*">([\s\S]*?)<\/p>/) || '', note = text(one(cellH, /<p class="pvg-note">([\s\S]*?)<\/p>/) || '');
+    const more = one(cellH, /<button type="button" class="pvg-more"[^>]*><span>([^<]*)<\/span>/) || '', also = [...cellH.matchAll(/<ul class="pvg-also"><li><span>[^<]*<\/span><b>([\s\S]*?)<\/b><\/li><\/ul>/g)].map(m => text(m[1]));
+    const LT = T.find(t => t.lead) || T[0], lr = LT ? cardRows(c, LT.key) : [], site = c.site ? SITES[c.site].name : '';
+    const cellBad = [];
+    if (!cellH || !LT) cellBad.push('暮らしの欄か台帳の先頭の街が無い');
+    else if (LT.month[D.lead] != null) {
+      if (!k.startsWith(`${LT.ja}${LT.area ? `（${LT.area}）` : ''}・`)) cellBad.push(`名前「${k}」`);
+      if (!same(amountsOf(vH), want(LT.month[D.lead]))) cellBad.push(`額 ${amountsOf(vH).join('〜')}（台帳 ${want(LT.month[D.lead]).join('〜')}）`);
+      if (!(site && (note === site || note.startsWith(`${site}・`)))) cellBad.push(`出どころ「${note}」（台帳 ${site}）`);
+    } else if (lr.length) {
+      if (k !== `${LT.ja}・空港までの移動`) cellBad.push(`名前「${k}」`);
+      if (text(vH) !== `${chipsOf(lr).join('・')} ${spanOf(lr)}`) cellBad.push(`移動「${text(vH)}」`);
+      if (more !== '出どころを見る') cellBad.push(`ボタン「${more}」`);
+    } else if (!(k === '拠点の街' && note === '家賃の資料を確認できていません')) cellBad.push(`家賃も移動も無い街の字「${k}」「${note}」`);
+    if (LT && lr.length && !(also.length === 1 && also[0].endsWith(spanOf(lr)))) cellBad.push(`移動の1行「${also.join('／')}」`);
+    ok(!cellBad.length, `${s}: 概要の暮らしの欄は、台帳の先頭の街（家賃の額と出どころの名前、無ければ空港までの分）`, cellBad.join(' ／ '));
+    /* SL9 */
+    const fold = cutAt(panel, '<details class="pvg-dt pvg-srcd pvg-phc">', 'details'), need = T.filter(t => { const p = placePhoto(t.key); return p && placeCredit(p); });
+    const crs = [...fold.matchAll(/<li data-cr="([^"]*)"><b>([^<]*)<\/b><span>([\s\S]*?)<\/span><\/li>/g)].map(m => ({ key: m[1], name: unesc(m[2]), h: m[3] }));
+    const crBad = [];
+    if (!same(crs.map(x => x.key).sort(), need.map(t => t.key).sort())) crBad.push(`行 ${crs.map(x => x.key).join('・') || '無し'}（台帳 ${need.map(t => t.key).join('・') || '無し'}）`);
+    for (const t of need) {
+      const p = placePhoto(t.key), x = crs.find(y => y.key === t.key);
+      if (x && !(x.name === mainOf(t.ja) && text(x.h).includes(p.author) && x.h.includes(`href="${amp(p.source)}"`) && x.h.includes(`href="${amp(p.licence_url)}"`) && text(x.h).includes(p.licence))) crBad.push(`${t.key}: 作者・出所・ライセンスが台帳と違う`);
+    }
+    if (need.length ? one(fold, /<summary>写真の出典<small>(\d+)枚<\/small>/) !== String(need.length) : fold !== '') crBad.push(`枚数「${one(fold, /<small>(\d+)枚/)}」（台帳 ${need.length}）`);
+    ok(panel && !crBad.length, `${s}: 街の写真のクレジット（示すことが条件の写真は、作者名とライセンスのリンクつき）`, crBad.join(' ／ '));
+  }
 }
 
 if (STATIC_ONLY) {
