@@ -520,7 +520,7 @@ export const PHOTOS = {
    *  ⚠️ subject は写っているものをそのまま書く。**地区の名前が付いた建物の写真ではないものが在る**
    *  （queens_terrace は団地ではなく、同じ上環の通り／taoyuan は桃園市のうち中壢区の中心部／
    *    taipei は台北市のうち文山区の景美）。「この地区の代表の景色」とは言っていない。
-   *  2026-10 から、鍵は街の鍵（品川＝shinagawa …）。 */
+   *  2026-10 から、鍵は街の鍵（品川＝shinagawa …）。区・団地・市のころの9枚（ota ほか）は台帳に残してある（いまはどのカードも使っていない）。 */
   ota: [
     { file: 'town-ota', orig: 'town-ota.jpg', subject: '大田区大森の国道15号と沿道のマンション', w: 960, h: 720,
       author: 'Aimaimyi', ...BY_SA_3, changes: CHANGES,

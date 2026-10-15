@@ -14,11 +14,11 @@
  * ・金額は**元の通貨と額**（cur と value）。円は画面を作る側が出す。ここに換算の率を持たない。
  *
  * ── 家賃（rents）──
- * ⚠️ **3つとも「募集」の側の数字で、成約した家賃ではない。しかも街ごとに物差しが違う。**
+ * ⚠️ **東京・台北・アブダビは「募集」の側の数字（成約した家賃ではない）。香港だけは、28Hse に載った成約の行から当サイトが計算した団地ごとの平均。しかも街ごとに物差しが違う。**
  *   東京 … アットホームの駅ごとの「家賃相場」（1LDK・2LDK・3LDK それぞれ。しぼり込みは、ページを開いたままの表示（先頭の「すべて」））。
  *          区の SUUMO の数字は refs（「出典」の中だけ）
  *          アットホームの3行の quote は、2026年10月11日に2人が読んで書き取った記録（ページを開き直さない決まり）。ページの字の並びそのものではない
- *   香港 … 28Hse に載っている募集の額の**幅**（1つの団地・寝室の数ごと・その日の掲載分）
+ *   香港 … 28Hse に載った成約（租務成交）の行（2026年7〜9月）から当サイトが計算した、団地ごと・部屋の数ごとの**平均**（5件から・件数つき。計算した額なので、引用の中は探さない）
  *   台北 … 591租屋網の募集家賃の**中央値**（直近3か月・部屋の型ごと）
  *   アブダビ（別の台帳）… Bayut の募集家賃の**平均**・**年額**
  *   → 街どうしを同じ表の同じ列に並べない。出すときは、何の額かと時点を必ず一緒に出す。
@@ -26,14 +26,12 @@
  *   幅は [下, 上]。**検査は、額がその行の引用に字のまま在ることを見る**（打ち間違いを通さない）。
  * ・per は額の単位。東京の出どころ（アットホーム・区の SUUMO）は表に期間の字が無いので null。
  *   日本の賃料の相場は月額なので、画面では「月」と出す（読み口 pv-airline-view.mjs）。
- * ・**地区を選んだのは、こちら。** pick_ja がその理由（空港がある区・市／都心の区の例）。
+ * ・**地区を選んだのは、こちら。** pick_ja がその理由（確かめられる事実を1つ。出どころ・引用・確かめた日つき）。
  *   出どころは空港にも乗員にも触れていない。**乗員がそこに住んでいる、とは言っていない。**
  *   pick_ja の無い行は検査で落ちる（理由を書かずに地区を足せない）。
  *   新しい行の pick_ja は、確かめられる事実を1つ（出どころ・引用・確かめた日つき）。
  * ・lead: true は、最初の1画面に出す1行（街に1つ）。lead_col はそのとき出す列。
  * ・台北の「更新至10/8」には年が書いていない。開いた日（2026-10-15）から 2026年と読んだ。
- * ・香港の Caribbean Coast と Queen's Terrace は、28Hse の地区ごとの団地一覧で
- *   いちばん上に出る団地（並びは 28Hse の既定「Popular Estate」）。地区の統計ではない。
  *
  * ── 空港までの足（commute）──
  * ・時間は Google マップが表示した目安（via: 'gmaps'。出発地・着く場所・手段・「すぐに出発」・見た日時・経路の住所・表示の字つき）。
@@ -42,7 +40,7 @@
  * ・運賃と特急料金が別建てのもの（スカイライナー）は、足さずに2つのまま持つ（合計はページに無い）。
  *
  * 書いていないもの（確かめられなかった・入れなかった）:
- *   成約した家賃／管理費を含むかどうか／広さ／JR（成田エクスプレス）の運賃と時間（ページが開けない）／
+ *   成約した家賃（香港のほか）／管理費を含むかどうか／広さ／JR（成田エクスプレス）の運賃と時間（ページが開けない）／
  *   学費・物価（調べは在るが、この欄では出さない）／
  *   乗員がどこに住んでいるか。
  *
@@ -77,6 +75,8 @@ const HOSTS = {
     /^https:\/\/travel\.tycg\.gov\.tw\//,
   ],
   operator: [
+    /^https:\/\/mobile\.citybus\.com\.hk\//,
+    /^https:\/\/www\.visitdiscoverybay\.com\//,
     /^https:\/\/www\.tokyo-monorail\.co\.jp\//,
     /^https:\/\/tokyo-haneda\.com\//,
     /^https:\/\/www\.haneda-tokyo-access\.com\//,
@@ -108,16 +108,12 @@ export const TIME_KINDS = ['walk_total', 'shown_total', 'drive'];
    別の出どころの数字は refs（「出典」の中だけに出る）へ置く。stat ＝ その出どころの数字の種類。棒にできるのは BAR_STATS だけ。 */
 export const SITES = {
   suumo: { name: 'SUUMO',     host: /^https:\/\/suumo\.jp\/chintai\/soba\//,           stat: 'index' },
-  hse:   { name: '28Hse',     host: /^https:\/\/www\.28hse\.com\//,                    stat: 'range' },
+  hse:   { name: '28Hse',     host: /^https:\/\/www\.28hse\.com\/(?:en\/)?estate\/detail\/[a-z0-9-]+\/transaction\/rent$/, stat: 'calc_mean' },
   r591:  { name: '591租屋網', host: /^https:\/\/rent\.591\.com\.tw\/market\//,         stat: 'median' },
   bayut: { name: 'Bayut',     host: /^https:\/\/www\.bayut\.com\//,                    stat: 'mean' },
   athome: { name: 'アットホーム', host: /^https:\/\/www\.athome\.co\.jp\/chintai\/souba\//, stat: 'mean' },
 };
 export const BAR_STATS = ['mean', 'median', 'index', 'calc_mean'];
-/* 引用に名前の無い、今までの行（名前の検査を足す前に読んだもの）。行が台帳から出たら、ここからも消す（残っていたら落ちる）。 */
-const LEGACY_NAME = new Set(['caribbean_coast', 'queens_terrace']);
-/* 選んだ理由に出どころの無い、今までの行。同じ決まり。 */
-const LEGACY_PICK = new Set(['caribbean_coast', 'queens_terrace']);
 
 const D4 = '2026-10-04';
 const D5 = '2026-10-05';
@@ -126,6 +122,8 @@ const OPENED = '2026年10月に開いた時点の表示';
 const D_PICK = '2026-10-15';
 /* 台北・桃園の街を選んだ理由の出どころ（エバー航空・桃園メトロの票價表）と、591 の4つのページ（3つの街と桃園市）・運賃表を開いて読んだ日。 */
 const D_TPE = '2026-10-15';
+/* 香港の街を選んだ理由の出どころと運賃（Citybus の路線一覧・愉景灣の DB02R の表・MTR の運賃表）を開いて読んだ日。28Hse の日（2026-10-11）とは別。 */
+const D_HKG = '2026-10-15';
 
 const S = {
   /* 東京 */
@@ -157,10 +155,10 @@ const S = {
     url: 'https://www.keikyu.co.jp/ride/kakueki/pdf/KK37.pdf' },
 
   /* 香港 */
-  hseCaribbean: { name: '28Hse の団地のページ「Caribbean Coast」', kind: 'portal',
-    url: 'https://www.28hse.com/en/estate/detail/caribbean-coast-4710' },
-  hseQueens: { name: "28Hse の団地のページ「Queen's Terrace」", kind: 'portal',
-    url: 'https://www.28hse.com/en/estate/detail/queen-s-terrace-552' },
+  citybus: { name: 'Citybus「All Service- 691 Routes」', kind: 'operator',
+    url: 'https://mobile.citybus.com.hk/nwp3/printout1.php?code=X&l=1' },
+  dbTransit: { name: 'Discovery Bay Transit「DB02R」', kind: 'operator',
+    url: 'https://www.visitdiscoverybay.com/assets/documents/transportation_bus_ext_db02r.pdf' },
   tlbRail: { name: '香港政府 運輸及物流局「Hong Kong: The Facts — Railway Network」', kind: 'gov', published: '2025-09',
     url: 'https://www.tlb.gov.hk/eng/publications/transport/publications/railwaynetworkSep2025.html' },
   mtrFare: { name: 'MTR「Tickets and Fares」', kind: 'operator',
@@ -206,11 +204,15 @@ const athome = (key, ja, src, p, quote, more = {}) => {
     cur: 'JPY', per: null, ...ATHOME_AT, as_of: D_ATHOME, src, cond_ja: ATHOME_COND, quote, ...more };
 };
 
-const HSE_AT = { at: D5, at_ja: '2026年10月5日に開いた時点の掲載分' };
-const HSE_COND = '募集の額で、成約した額ではない。1つの団地だけ・平均ではなく幅・月額。管理費や差餉（レーツ）を含むかはページに書いていない。掲載は日々変わる';
-const hse = (key, ja, pick_ja, src, value, quote, more = {}) => ({
-  key, ja, pick_ja, value, cur: 'HKD', per: 'month', ...HSE_AT, as_of: D5, src, cond_ja: HSE_COND, quote, ...more,
-});
+/* 香港の団地ごとの家賃（28Hse の「租務成交」の行から当サイトが計算した平均。2026年10月11日に2人が読んだ記録。ページは開き直さない）。 */
+const HSE_LEASED = { at: '2026-09', at_ja: '2026年7〜9月の成約（10月11日に開いた時点の掲載分）', as_of: '2026-10-11' };
+const HSE_COND = '28Hse が団地ごとに載せている「租務成交」（成約）の行のうち、日付が2026年7月1日〜9月30日の行から当サイトが計算した平均。一戸建て・メゾネットの行は除き、全部の欄が同じ2行は1つと数える。5件以上そろった間取りだけを出し、100香港ドル単位に丸めた。載っているのは成約の一部で、行の出どころは書いていない（28Hse 自身の90日の件数はもっと多い）。ページに期間の字は無く、1か月の家賃と読んだ。管理費・差餉を含むかは書いていない。28Hse の利用規約は読めていない';
+/** 団地の1行。value ＝ 間取りごとの平均（100香港ドル単位）、n ＝ その平均の元になった件数（同じ列に、5以上）。 */
+const hseL = (key, ja, en, slug, value, n) => ({ key, ja, sub_ja: en, value, n, cur: 'HKD', per: 'month', ...HSE_LEASED,
+  src: { name: `28Hse「${ja} 租務成交」`, kind: 'portal', url: `https://www.28hse.com/estate/detail/${slug}/transaction/rent` },
+  cond_ja: HSE_COND, quote: `${ja} 租務成交` });
+/** 自分の額を持たない街の行（団地ごとの家賃を持つ街・額の無い街）。 */
+const town = (key, ja, more = {}) => ({ key, ja, ...more });
 
 const R591_AT = { at: '2026-10-08', at_ja: '2026年10月8日更新（直近3か月）' };
 const R591_COND = '募集家賃で、成約した家賃ではない。591 に載った物件の直近3か月の中央値・月額。集計は 591 独自で「僅供參考（参考まで）」。広さと管理費の扱いは書いていない';
@@ -481,29 +483,104 @@ export const LIVING = {
   /* ════════ 香港（キャセイパシフィック）════════ */
   hongkong: {
     city_ja: '香港', country_ja: '中国・香港',
-    measure_ja: '募集の家賃の幅',
-    cols: [['bed1', '1寝室'], ['bed2', '2寝室'], ['bed3', '3寝室']],
+    measure_ja: '成約の家賃の平均（当サイトが計算）',
+    cols: [['bed1', '1部屋（1房）'], ['bed2', '2部屋（2房）'], ['bed3', '3部屋（3房）']],
     lead_col: 'bed2',
-    airports: [['HKG', '香港国際空港']], ends: {}, site: 'hse', stat: 'range',
-    bars: [], words: {}, refs: [],
+    airports: [['HKG', '香港国際空港']],
+    /* 経路が着く場所（Google マップがその場所に決めたとおり。3つの街とも、空港の代表の地点に着いた ＝ ターミナルは言えない）。 */
+    ends: {
+      hkg: { iata: 'HKG', ja: '香港国際空港', kind: 'airport' },
+    },
+    site: 'hse', stat: 'calc_mean', by_town: true, card_family: 'transit',
+    bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1房', bed2: '2房', bed3: '3房' },
+    words_src: { bed1: '1 Room', bed2: '2 Rooms', bed3: '3 Rooms' }, refs: [],
+    /* 街の家賃は団地ごと（28Hse の「租務成交」の行から当サイトが計算した平均・件数つき）。愉景灣は5件にそろう間取りが無い ＝ 額を持たない。
+       団地の並びとカードに出す団地は、28Hse の団地一覧で賃貸の掲載数が多い順（2026年10月11日に読んだ並び）。額で選んでいない */
     rents: [
-      hse('caribbean_coast', '東涌（Caribbean Coast）', '空港のとなりの新市街（東涌）。28Hse の東涌の団地一覧でいちばん上に出る団地',
-        S.hseCaribbean, { bed2: [15800, 18500], bed3: [18000, 28000] },
-        '2 Bedrooms ( 51 ) $15,800 - $18,500/month 3 Bedrooms ( 61 ) $18,000 - $28,000/month', { lead: true, iata: 'HKG' }),
-      hse('queens_terrace', "上環（Queen's Terrace）", '都心の例。28Hse の「Central, Sheung Wan」の団地一覧でいちばん上に出る団地',
-        S.hseQueens, { bed1: [22000, 23500], bed2: [22300, 30000], bed3: [32800, 33000] },
-        '1 Bedroom ( 7 ) $22,000 - $23,500/month 2 Bedrooms ( 9 ) $22,300 - $30,000/month 3 Bedrooms ( 5 ) $32,800 - $33,000/month'),
+      town('tung_chung', '東涌', { sub_ja: 'Tung Chung', lead: true, pick_ja: '空港行きの路線バス（S1）が出る駅がある',
+        pick_src: S.citybus, pick_quote: 'S1 Tung Chung Station - Airport (Passenger Terminal 1 / AsiaWorld-Expo)', pick_as_of: D_HKG,
+        rent_from: 'est_caribbean_coast', estates: [
+          hseL('est_caribbean_coast', '映灣園', 'Caribbean Coast', 'caribbean-coast-4710', { bed2: 16200, bed3: 22500 }, { bed2: 58, bed3: 67 }),
+          hseL('est_century_link', '東環', 'Century Link', 'century-link-8549', { bed1: 14200, bed2: 16500, bed3: 20200 }, { bed1: 19, bed2: 46, bed3: 22 }),
+          hseL('est_visionary', '昇薈', 'The Visionary', 'the-visionary-8256', { bed1: 17000, bed2: 21200, bed3: 32000 }, { bed1: 7, bed2: 21, bed3: 17 }) ] }),
+      town('discovery_bay', '愉景灣', { sub_ja: 'Discovery Bay', pick_ja: '空港行きのバス（DB02R）が出ている',
+        pick_src: S.dbTransit, pick_quote: "all passengers must alight at HK Int'l Airport (Terminal 2)", pick_as_of: D_HKG }),
+      town('tsing_yi', '青衣', { sub_ja: 'Tsing Yi', pick_ja: 'エアポート・エクスプレスの駅がある',
+        pick_src: S.mtrFare, pick_quote: 'entry and exit at Airport Express Hong Kong, Kowloon or Tsing Yi Station', pick_as_of: D_HKG,
+        rent_from: 'est_tierra_verde', estates: [
+          hseL('est_tierra_verde', '盈翠半島', 'Tierra Verde', 'tierra-verde-4650', { bed2: 23400, bed3: 33000 }, { bed2: 16, bed3: 6 }),
+          hseL('est_greenfield_garden', '翠怡花園', 'Greenfield Garden', 'greenfield-garden-4656', { bed2: 15800 }, { bed2: 29 }) ] }),
     ],
+    /* quote_kind 'record' ＝ 2人が読んで書き取った字（題・見出し・記録のページの欄の名前・行の札。1つのページの字の並びではない）。 */
     rent_basis: [
-      { key: 'currency', ja: '通貨', value: 'HKD',
-        cond_ja: '寝室の数ごとの札には「$」とだけ書いてある。同じページの団地全体の行が「HKD$」と書いている',
-        ...HSE_AT, as_of: D5, src: S.hseCaribbean,
-        quote: 'Rental Price HKD$15,800 - HKD$60,000 128units' },
+      { key: 'what', ja: '何の額か', value: HSE_COND, ...HSE_LEASED,
+        src: { name: '28Hse「映灣園 租務成交」', kind: 'portal', url: 'https://www.28hse.com/estate/detail/caribbean-coast-4710/transaction/rent' },
+        quote_kind: 'record', quote: '最新租務成交 租務成交 成交租金: 成租日期: 市場成交' },
+      { key: 'cols', ja: '列の分け方', value: '28Hse の記録の欄「房間數量」の数（画面には出さない）', ...HSE_LEASED,
+        src: { name: '28Hse「映灣園 租務成交」', kind: 'portal', url: 'https://www.28hse.com/estate/detail/caribbean-coast-4710/transaction/rent' },
+        quote_kind: 'record', quote: '"1 Room" "2 Rooms" "3 Rooms" 「3房」' },
     ],
     commute: [
+      /* Google マップの表示（2026-10-11 に調べた人が見たもの・取り直していない。時刻は日本時間で記録してある）。街ごと・着く場所ごと・手段ごとに1行。
+         3つの街とも、空港の指定は空港の代表の地点に着いた。東涌のバスの行は、見た時刻の記録が無い（日だけ）。 */
+      gm('tung_chung', 'hkg', ['bus'], { from_ja: '東涌',
+        to_ja: '香港国際空港',
+        line: 'S1',
+        value: { walk_total: 16 },
+        ride: 14,
+        seen: '2026-10-11',
+        url: 'https://www.google.com/maps/dir/Tung+Chung,+New+Territories,+%E9%A6%99%E6%B8%AF/%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%9A%9B%E7%A9%BA%E6%B8%AF,+%E9%A6%99%E6%B8%AF+New+Territories,+Chek+Lap+Kok,+Sky+Plaza+Rd,+1%E8%99%9F/@22.3006582,113.9070345,14z/am=t/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3403e2baac43ddfd:0x172cb0e36ab168e4!2m2!1d113.9414358!2d22.289255!1m5!1m1!1s0x3403e2f3cc46c69d:0xf9f590821892369e!2m2!1d113.9137283!2d22.3134736!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '14:08 - 14:24 （16 分） ; S1 ; 14 分（3 駅乗車）' }, 'jst'),
+      gm('tung_chung', 'hkg', ['car'], { from_ja: '東涌',
+        to_ja: '香港国際空港',
+        value: { drive: 7 },
+        seen: '2026-10-11T15:58',
+        url: 'https://www.google.com/maps/dir/%E6%9D%B1%E6%B6%8C,+%E9%A6%99%E6%B8%AF+%E6%96%B0%E7%95%8C/%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%9A%9B%E7%A9%BA%E6%B8%AF,+%E9%A6%99%E6%B8%AF+New+Territories,+Chek+Lap+Kok,+Sky+Plaza+Rd,+1%E8%99%9F/@22.300074,113.9075188,14z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3403e2adec4694d1:0xc7290ee490944c42!2m2!1d113.9425086!2d22.2873743!1m5!1m1!1s0x3403e2f3cc46c69d:0xf9f590821892369e!2m2!1d113.9137283!2d22.3134736!3e0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 7 分 3.6 km ; Shun Tung Rd 経由 ; 最速ルート（通常の交通量）' }, 'jst'),
+      gm('discovery_bay', 'hkg', ['bus'], { from_ja: '愉景灣（DB Plaza）',
+        to_ja: '香港国際空港',
+        line: 'DB02R',
+        value: { walk_total: 48 },
+        ride: 43,
+        seen: '2026-10-11T15:04',
+        url: 'https://www.google.com/maps/dir/DB+Plaza,+1+Discovery+Bay+Rd,+Discovery+Bay,+Hong+Kong+Island,+%E9%A6%99%E6%B8%AF/%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%9A%9B%E7%A9%BA%E6%B8%AF,+%E9%A6%99%E6%B8%AF+New+Territories,+Chek+Lap+Kok,+Sky+Plaza+Rd,+1%E8%99%9F/@22.3215193,113.8735825,11z/am=t/data=!3m1!4b1!4m15!4m14!1m5!1m1!1s0x3403fdbb9837f137:0x53a9ca06cdc4fcfc!2m2!1d114.01658!2d22.2958676!1m5!1m1!1s0x3403e2f3cc46c69d:0xf9f590821892369e!2m2!1d113.9137283!2d22.3134736!3e3!5i3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '14:55 - 15:43 （48 分） ; DB02R ; 43 分（13 駅乗車）' }, 'jst'),
+      gm('discovery_bay', 'hkg', ['car'], { from_ja: '愉景灣（DB Plaza）',
+        to_ja: '香港国際空港',
+        value: { drive: 20 },
+        warn: 'このルートには制限のある道路または私道を通る箇所があります。',
+        seen: '2026-10-11T16:01',
+        url: 'https://www.google.com/maps/dir/DB+Plaza,+1+Discovery+Bay+Rd,+Discovery+Bay,+Hong+Kong+Island,+%E9%A6%99%E6%B8%AF/%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%9A%9B%E7%A9%BA%E6%B8%AF,+%E9%A6%99%E6%B8%AF+New+Territories,+Chek+Lap+Kok,+Sky+Plaza+Rd,+1%E8%99%9F/@22.3091825,113.8948736,12z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3403fdbb9837f137:0x53a9ca06cdc4fcfc!2m2!1d114.01658!2d22.2958676!1m5!1m1!1s0x3403e2f3cc46c69d:0xf9f590821892369e!2m2!1d113.9137283!2d22.3134736!3e0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 20 分 13.5 km ; Cheung Tung Rd 経由 ; このルートには制限のある道路または私道を通る箇所があります。' }, 'jst'),
+      gm('tsing_yi', 'hkg', ['train'], { from_ja: '青衣站',
+        to_ja: '香港国際空港',
+        line: 'Airport Express',
+        value: { shown_total: 17 },
+        seen: '2026-10-11T15:52',
+        url: 'https://www.google.com/maps/dir/Tsing+Yi,+New+Territories,+%E9%A6%99%E6%B8%AF/%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%9A%9B%E7%A9%BA%E6%B8%AF,+%E9%A6%99%E6%B8%AF+New+Territories,+Chek+Lap+Kok,+Sky+Plaza+Rd,+1%E8%99%9F/@22.3241217,113.8458885,11z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3403f8dca4c1fae1:0xc9f362e7416bd1d0!2m2!1d114.107672!2d22.3584978!1m5!1m1!1s0x3403e2f3cc46c69d:0xf9f590821892369e!2m2!1d113.9137283!2d22.3134736!3e3?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '17 分 ; 14:55 - 15:12 ; Airport Express ; Tsing Yiから 14:55' }, 'jst'),
+      gm('tsing_yi', 'hkg', ['car'], { from_ja: '青衣站',
+        to_ja: '香港国際空港',
+        value: { drive: 15 },
+        seen: '2026-10-11T15:53',
+        url: 'https://www.google.com/maps/dir/Tsing+Yi,+New+Territories,+%E9%A6%99%E6%B8%AF/%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%9A%9B%E7%A9%BA%E6%B8%AF,+%E9%A6%99%E6%B8%AF+New+Territories,+Chek+Lap+Kok,+Sky+Plaza+Rd,+1%E8%99%9F/@22.3249175,113.8458885,11z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x3403f8dca4c1fae1:0xc9f362e7416bd1d0!2m2!1d114.107672!2d22.3584978!1m5!1m1!1s0x3403e2f3cc46c69d:0xf9f590821892369e!2m2!1d113.9137283!2d22.3134736!3e0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D',
+        quote: '運転 15 分 22.3 km ; ルート 8 経由 ; 最速ルート（通常の交通量）' }, 'jst'),
+      /* 運営会社の運賃（2026-10-15 に Citybus の路線一覧・DB02R の表・MTR の運賃表を開いて読んだ）。quote は、その額が在る行・表の字。 */
+      /* S1 の運賃（HKD 3.7）は、いまは載せない ── 通貨を切り替えると換算の額が「約€0」「約£0」になる（currency.js が1単位未満を0と出す）。1単位未満を正しく出せるようになったら戻す。 */
+      { key: 'hkg_db02r_fare', town: 'discovery_bay', iata: 'HKG', mode: 'bus', ja: 'DB02R：愉景灣 → 空港',
+        value: 59.1, cur: 'HKD',
+        at: '2026-10', at_ja: OPENED, as_of: D_HKG, src: S.dbTransit,
+        cond_ja: '訪問者の運賃・1回。登録した住民のオクトパスでは HK$50.0（2026年6月22日から）',
+        quote: '收費表 Faretable 大小同價 Fixed Fare for Adult, Child and Senior 訪客車費 Visitor Fare $59.1 3 歲或以上小童必須繳付車資。 Children aged 3 or above must pay bus fare. 詳情請參閱「乘客須知」。 Please refer to “Notice to Passengers” for details. 上車付款，必須以八達通支付 (請預留充足車資)。 Please pay with Octopus Card while boarding (please reserve sufficient value for fare). 愉景灣居⺠車費 DB Resident Fare $ 50.0' },
+      { key: 'hkg_ael_tsingyi_fare', town: 'tsing_yi', iata: 'HKG', mode: 'train', ja: 'エアポート・エクスプレス：青衣站 ⇄ 空港',
+        value: 73, cur: 'HKD',
+        at: '2026-10', at_ja: OPENED, as_of: D_HKG, src: S.mtrFare,
+        cond_ja: 'おとな・片道。オクトパスなどで払う額で、スマートチケットは HK$80',
+        quote: 'Fares to／from the Airport (in HK$) Adult (aged 12 or above) To／From Single Journey／Same Day Return Round Trip Octopus / Contactless Bank Card^ / QR Code Smart Ticket Smart Ticket Hong Kong $120 $130 $215 Kowloon $105 $115 $195 Tsing Yi $73 $80 $130' },
+      /* 香港駅からの行（街の鍵が無い ＝「出典」の中だけ）。 */
       { key: 'hkg_ael_time', iata: 'HKG', mode: 'train', ja: 'エアポート・エクスプレス：空港駅 ⇄ 香港駅',
         value: 24, unit: '分',
-        at: '2025-09', as_of: D5, src: S.tlbRail, lead: true,
+        at: '2025-09', as_of: D5, src: S.tlbRail,
         cond_ja: '平均でおよその時間。駅から駅まで',
         quote: 'An average journey between the Airport Station and the Hong Kong Station takes about 24 minutes.' },
       { key: 'hkg_ael_fare', iata: 'HKG', mode: 'train', ja: 'エアポート・エクスプレス：香港駅 ⇄ 空港',
@@ -752,11 +829,6 @@ export function check() {
   for (const [slug, city] of Object.entries(CITY_OF)) if (!LIVING[city]) fail(`CITY_OF.${slug}`, `街が無い（${city}）`);
   if ('etihad' in CITY_OF) fail('CITY_OF', 'エティハドは career-facts.mjs（ここに足さない）');
 
-  /* R7: LEGACY_… の鍵は、まだ街の行（rents）か refs の行に在るものだけ（行が出たら、ここからも消す）。 */
-  const carried = new Set(Object.values(LIVING).flatMap(c => [...(c.rents || []), ...(c.refs || []).flatMap(g => g.rows || [])]).map(x => x.key));
-  for (const [name, set] of [['LEGACY_NAME', LEGACY_NAME], ['LEGACY_PICK', LEGACY_PICK]])
-    for (const k of set) if (!carried.has(k)) fail(name, `LEGACY_… に、台帳に無い鍵が残っている（${k}）`);
-
   /* own ＝ 家賃の行をこの台帳が持つ街。アブダビ（家賃は career-facts.mjs）は、家賃の街の決まり（R2〜R11・R15・R18）と
      「lead が1つ・前提の行が在る」を飛ばし、R1 と R12〜R14 と項目ごとの決まりを、空港までの移動の行に当てる。 */
   const CITIES = [...Object.entries(LIVING).map(([k, c]) => [k, c, (c.rents || []).map(r => r.key), true]),
@@ -901,10 +973,9 @@ export function check() {
       if (seen[bucket].has(x.key)) fail(where, `key が重なっている（${x.key}）`);
       seen[bucket].add(x.key);
     };
-    /* 名前が引用に在る（R7）。LEGACY_NAME の鍵は飛ばす。name_quote は同じページの2つめの字（見出し）。継ぎはぎの引用は書かない。 */
+    /* 名前が引用に在る（R7）。name_quote は同じページの2つめの字（見出し）。継ぎはぎの引用は書かない。 */
     const named = (where, x) => {
       if (x.name_quote !== undefined && (!x.name_quote || x.name_quote !== squash(x.name_quote))) fail(where, '見出しの引用（name_quote）が空・空白がそろっていない');
-      if (LEGACY_NAME.has(x.key)) return;
       const name = nameOf(x);
       if (!name || !(String(x.quote || '').includes(name) || String(x.name_quote || '').includes(name)))
         fail(where, `街の名前（${name}）が引用に無い（別の地域の数字に、名前だけ付けていないか）`);
@@ -914,10 +985,9 @@ export function check() {
       if (!/^[a-z_]+$/.test(String(x.key || ''))) fail(where, `街の鍵（${x.key}）は英小文字と _ だけ`);
       if (townJa.has(x.ja)) fail(where, '街の名前が重なっている');
       townJa.add(x.ja);
-      /* 名前に（…）を許すのは、今までの街の行（LEGACY_PICK）だけ。 */
-      if (!LEGACY_PICK.has(x.key) && /（[^（）]*）/.test(String(x.ja || ''))) fail(where, '街の名前に（…）を付けない');
+      if (/（[^（）]*）/.test(String(x.ja || ''))) fail(where, '街の名前に（…）を付けない');
       if (!String(x.pick_ja || '').trim()) fail(where, 'その地区を選んだ理由（pick_ja）が無い');
-      else if (!LEGACY_PICK.has(x.key)) {
+      else {
         const p = x.pick_src;
         if (!p || !p.name || !SRC_KINDS[p.kind] || !HOSTS[p.kind].some(re => re.test(String(p.url || '')))
             || !x.pick_quote || x.pick_quote !== squash(x.pick_quote) || !ISO.test(String(x.pick_as_of || '')))
