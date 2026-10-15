@@ -2346,6 +2346,210 @@ comment on function public.pv_stay_queue(jsonb) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 10-a. 見てよい人の申し込みと、オーナーの承認（★決めるのはオーナーだけ）── 約束 1
+-- ════════════════════════════════════════════════════════════════
+-- オーナーが承認するのは**人**（ホテルではない）。承認できるのは、申し込んだ人だけ
+-- （申し込みの行が無い人は not_found ＝ 承認は申し込んだ人のアカウントに結び付く）。
+-- 3本とも authenticated にだけ配る（未ログインには配らない）。
+-- ★ 一覧の口と決める口は、オーナーでなければ**何も読まずに** forbidden を返す。
+--   オーナーかどうかは pv_stay_owner_id()（3-b）の1か所で決める。運営であること（pv_admins）・
+--   承認された人であること・確認の印・JWT の中身は、どれもオーナーの代わりにならない。
+-- ★ 状態は「いまのオーナーにとっての状態」で返す。前のオーナーが決めた行は、いまのオーナーが
+--   決め直すまで 'pending'（申し込んだまま、返事を待っている）として扱う
+--   ＝ 前のオーナーの承認を 'approved' と言わない（その行では何も開かない。3-b2 の pv_stay_sees）。
+--   オーナーを替えると（10-b）、前のオーナーの承認は全部効かなくなり、新しいオーナーが決め直す。
+-- ★ 時刻は返さない（約束 7）。申し込んだ時期・決めた時期は 0〜4 の段（3-e）だけ。
+-- ★ 名簿の行には user_id が入っている（2-b）。それを返すのはオーナーの一覧だけ。
+--   投稿の表とは突き合わせない・author_hash は返さない（約束 3）。
+
+-- 10-a-1. 申し込む／自分の状態を読む（会員）
+-- 引数: p = {ask:true|false}（ask が JSON の true のときだけ申し込む。それ以外は読むだけ）
+--   ★ ほかの欄（state・user_id など）は読まない。自分の状態を自分で決める道・人の分を申し込む道を作らない。
+-- 返り値:
+--   ログインしていない → {ok:false, status:'login'}
+--   オーナー           → {ok:true, state:'owner'}（申し込まない・行を書かない）
+--   それ以外           → {ok:true, state:'none'|'pending'|'approved'|'denied'|'revoked'}
+--     ★ 呼んだ本人の状態だけ。ほかの人の状態も、ホテルの欄も1つも返さない。
+--   ask:true は、本人の行が無いときだけ 'pending' の行を入れる（申し込んだ時刻は now()）。
+--   行が在れば（申し込み中・承認・見送り・取り消し）、そのまま残して今の状態を返す。
+create or replace function public.pv_stay_viewer_request(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_caller uuid;
+  v_owner  uuid;
+  v_row    public.pv_stay_viewers%rowtype;
+begin
+  v_caller := auth.uid();
+  if v_caller is null then
+    return jsonb_build_object('ok', false, 'status', 'login');
+  end if;
+  v_owner := public.pv_stay_owner_id();
+  if v_caller = v_owner then
+    return jsonb_build_object('ok', true, 'state', 'owner');
+  end if;
+
+  if coalesce(p -> 'ask' = 'true'::jsonb, false) then
+    insert into public.pv_stay_viewers (user_id, state, asked_at)
+    values (v_caller, 'pending', now())
+    on conflict (user_id) do nothing;
+  end if;
+
+  select * into v_row from public.pv_stay_viewers v where v.user_id = v_caller;
+  if not found then
+    return jsonb_build_object('ok', true, 'state', 'none');
+  end if;
+  return jsonb_build_object('ok', true, 'state',
+    case when v_row.state = 'pending' or v_row.decided_by is distinct from v_owner then 'pending'
+         else v_row.state end);
+end;
+$fn$;
+
+revoke all on function public.pv_stay_viewer_request(jsonb) from public, anon;
+grant execute on function public.pv_stay_viewer_request(jsonb) to authenticated;
+
+comment on function public.pv_stay_viewer_request(jsonb) is
+  'ステイ情報を見てよい人への申し込み（会員）。ask:true で、行が無いときだけ pending を入れる。返すのは呼んだ本人の状態だけ（none・pending・approved・denied・revoked。オーナーには owner）。前のオーナーが決めた行は pending と答える。ほかの欄は読まない。';
+
+-- 10-a-2. 申し込んだ人の一覧（オーナーだけ）
+-- 引数: なし
+-- 返り値:
+--   オーナーでない（未ログイン・会員・承認された人・運営）→ {ok:false, status:'forbidden'}（★何も読まずに返す）
+--   オーナー → {ok:true, rows:[{id, email, name, company, position, state, asked, decided}]}
+--     id       その人の user_id（決める口へそのまま送り返す）
+--     email    その人がログインに使っているメールアドレス（auth.users）
+--     name・company・position  その人がプロフィールに自分で書いた言葉（無ければ null）。
+--              ★ 見せるだけ。確かめた値ではなく、何も開かない（約束 1 の「根拠にしない」）。
+--     state    'pending'|'approved'|'denied'|'revoked'（いまのオーナーにとっての状態。上の ★）
+--     asked    申し込んだ時期の段（0〜4。3-e。入っていなければ null）
+--     decided  いまのオーナーが決めた時期の段（まだ決めていなければ null）
+--   ★ 並びは 申し込み中 → 承認 → 見送り → 取り消し、その中は申し込んだ順。200人まで。
+--   ★ オーナー自身の行は出さない（オーナーは承認なしで読める。自分は決めない）。
+create or replace function public.pv_stay_viewer_queue()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_owner uuid;
+  v_rows  jsonb;
+begin
+  v_owner := public.pv_stay_owner_id();
+  if auth.uid() is null or v_owner is null or auth.uid() <> v_owner then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+
+  select coalesce(jsonb_agg(z.j order by z.k, z.t, z.id), '[]'::jsonb)
+    into v_rows
+    from (
+      select jsonb_build_object(
+               'id', x.user_id,
+               'email', u.email,
+               'name', pf.name,
+               'company', pf.company,
+               'position', pf."position",
+               'state', x.st,
+               'asked', case when x.asked_at is null then null else public.pv_stay_age(x.asked_at) end,
+               'decided', case when x.st = 'pending' then null else public.pv_stay_age(x.decided_at) end) as j,
+             case x.st when 'pending' then 0 when 'approved' then 1 when 'denied' then 2 else 3 end as k,
+             x.asked_at as t, x.user_id as id
+        from (select v.user_id, v.asked_at, v.decided_at,
+                     case when v.state = 'pending' or v.decided_by is distinct from v_owner then 'pending'
+                          else v.state end as st
+                from public.pv_stay_viewers v
+               where v.user_id <> v_owner) x
+        left join auth.users u on u.id = x.user_id
+        left join public.profiles pf on pf.id = x.user_id
+       order by k, t nulls last, id limit 200
+    ) z;
+
+  return jsonb_build_object('ok', true, 'rows', v_rows);
+end;
+$fn$;
+
+revoke all on function public.pv_stay_viewer_queue() from public, anon;
+grant execute on function public.pv_stay_viewer_queue() to authenticated;
+
+comment on function public.pv_stay_viewer_queue() is
+  'ステイ情報を見てよい人の申し込みの一覧。オーナーだけ（運営でも、オーナーでなければ forbidden）。id・メールアドレス・プロフィールに本人が書いた言葉・いまのオーナーにとっての状態・時期の段（0〜4）。時刻は返さない。';
+
+-- 10-a-3. 決める（オーナーだけ）
+-- 引数: p = {id:<その人の user_id>, state:'approved'|'denied'|'revoked'}
+-- 返り値:
+--   オーナーでない → {ok:false, status:'forbidden'}（★何も読まず・何も書かずに返す）
+--   id がオーナー自身 → {ok:false, status:'self'}（オーナーは自分を決めない。何も書かない）
+--   id の形が違う・申し込みの行が無い → {ok:false, status:'not_found'}（申し込んだ人しか承認できない）
+--   state が上の3つでない・いまの状態からは動かせない → {ok:false, status:'bad_state'}（何も書かない）
+--   決めた → {ok:true, state}（決めた人 decided_by ＝ オーナー・決めた時刻 decided_at ＝ now()）
+-- 動かせるのは（「いまの状態」は、いまのオーナーにとっての状態。前のオーナーが決めた行は 'pending'）:
+--   'pending' → 'approved' か 'denied'／'approved' → 'revoked'／'denied'・'revoked' → 'approved'
+--   ★ いまと同じ状態を指定したら、何も書かずに {ok:true, state} を返す（2回押しても壊れない）。
+-- ★ 承認を取り消すと、その人は次に呼んだ瞬間から locked（pv_stay_sees は呼ばれるたびに表を読む）。
+create or replace function public.pv_stay_viewer_decide(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_owner uuid;
+  v_id    uuid;
+  v_to    text;
+  v_from  text;
+  v_row   public.pv_stay_viewers%rowtype;
+begin
+  v_owner := public.pv_stay_owner_id();
+  if auth.uid() is null or v_owner is null or auth.uid() <> v_owner then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+
+  v_id := public.pv_stay_uuid(p->>'id');
+  if v_id = v_owner then
+    return jsonb_build_object('ok', false, 'status', 'self');
+  end if;
+
+  select * into v_row from public.pv_stay_viewers v where v.user_id = v_id for update;
+  if not found then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+
+  v_to := coalesce(p->>'state', '');
+  if v_to not in ('approved', 'denied', 'revoked') then
+    return jsonb_build_object('ok', false, 'status', 'bad_state');
+  end if;
+  v_from := case when v_row.state = 'pending' or v_row.decided_by is distinct from v_owner then 'pending'
+                 else v_row.state end;
+  if v_to = v_from then
+    return jsonb_build_object('ok', true, 'state', v_to);
+  end if;
+  if not ((v_from = 'pending' and v_to in ('approved', 'denied'))
+          or (v_from = 'approved' and v_to = 'revoked')
+          or (v_from in ('denied', 'revoked') and v_to = 'approved')) then
+    return jsonb_build_object('ok', false, 'status', 'bad_state');
+  end if;
+
+  update public.pv_stay_viewers
+     set state = v_to, decided_by = auth.uid(), decided_at = now()
+   where user_id = v_id;
+  return jsonb_build_object('ok', true, 'state', v_to);
+end;
+$fn$;
+
+revoke all on function public.pv_stay_viewer_decide(jsonb) from public, anon;
+grant execute on function public.pv_stay_viewer_decide(jsonb) to authenticated;
+
+comment on function public.pv_stay_viewer_decide(jsonb) is
+  'ステイ情報を見てよい人を決める（承認・見送り・取り消し）。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申し込んだ人だけ（行が無ければ not_found）。オーナー自身は self。決めた人と時刻を必ず書く。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 10-b. オーナーを1人だけ決める（★ここだけ手で直す）── 約束 1
 -- ════════════════════════════════════════════════════════════════
 --     下の1行のメールアドレスを、オーナーがログインするアカウントのものに置き換えてから流す。

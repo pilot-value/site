@@ -73,12 +73,14 @@ const DEN   = '00000000-0000-4000-8000-0000000000c5';       // 承認の行が '
 const RVK   = '00000000-0000-4000-8000-0000000000c6';       // 承認の行が 'revoked'（取り消された）
 const OLDO  = '00000000-0000-4000-8000-0000000000c7';       // 前のオーナーが承認した人
 const FORMER = '00000000-0000-4000-8000-0000000000c8';      // 前のオーナー（いまはオーナーではない会員）
+const APP2  = '00000000-0000-4000-8000-0000000000d1';       // 申し込みの口から申し込み、オーナーに承認される人（WP-stays-1b）
+const APP3  = '00000000-0000-4000-8000-0000000000d2';       // 申し込みの口から申し込み、見送られる人（WP-stays-1b）
 const OP    = '00000000-0000-4000-8000-00000000ad11';       // 運営その1（＝オーナー。オーナーの行で決める）
 const OP2   = '00000000-0000-4000-8000-00000000ad22';       // 運営その2（オーナーでも承認された人でもない）
 const NAMES = new Map([[V1, 'V1'], [V2, 'V2'], [V3, 'V3'], [U, 'U'], [PAY, 'PAY'], [PROF, 'PROF'],
                        [BADGE, 'BADGE'], [GHOST, 'GHOST'], [REV, 'REV'], [OP, 'OP'], [OP2, 'OP2'], [ANON, 'ANON'],
                        [MK1, 'MK1'], [MK2, 'MK2'], [SELF, 'SELF'], [PEND, 'PEND'], [DEN, 'DEN'], [RVK, 'RVK'],
-                       [OLDO, 'OLDO'], [FORMER, 'FORMER']]);
+                       [OLDO, 'OLDO'], [FORMER, 'FORMER'], [APP2, 'APP2'], [APP3, 'APP3']]);
 /* 資格の無い人たち（未ログインを含む）。この人たちへの返事は最後にまとめて見る。
    ★ 2026-10-15 から、確認の印だけの人（MK1・MK2）と、承認の行が効かない人（SELF・PEND・DEN・RVK・OLDO）もここ。 */
 const OUTSIDERS = [ANON, U, PAY, PROF, BADGE, GHOST, REV, MK1, MK2, SELF, PEND, DEN, RVK, OLDO];
@@ -517,11 +519,13 @@ for (const t of ['pv_stay_owner', 'pv_stay_viewers']) {
 
 // ════════════════════════════════════════════════════════════════
 console.log('\n▼ 関数の配り方');
-/* 期待: 画面から呼べるのは8本だけ。未ログインに配るのは pv_stays の1本だけ。 */
+/* 期待: 画面から呼べるのは11本だけ。未ログインに配るのは pv_stays の1本だけ。 */
 const GRANTS = {
   pv_stays: 'anon,auth',
   pv_stay_add: 'auth', pv_stay_update: 'auth', pv_stay_photo_add: 'auth', pv_stay_photo: 'auth',
   pv_stay_moderate: 'auth', pv_stay_delete: 'auth', pv_stay_queue: 'auth',
+  /* 見てよい人の申し込み・オーナーの一覧・オーナーが決める口（WP-stays-1b）。ログインした人にだけ配る（未ログインには配らない） */
+  pv_stay_viewer_request: 'auth', pv_stay_viewer_queue: 'auth', pv_stay_viewer_decide: 'auth',
   pv_stay_hash: '', pv_stay_role: '', pv_stay_visible: '',
   /* 見てよい人の決め方（2026-10-15）。オーナーの id と、見てよい人か。誰にも配らない */
   pv_stay_owner_id: '', pv_stay_sees: '',
@@ -545,8 +549,8 @@ const grantsNow = async () => (await db.query(
     order by p.proname, p.oid`)).rows;
 const checkGrants = async (label) => {
   const rows = await grantsNow();
-  ok(rows.length === 24 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
-     `${label}関数は24本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
+  ok(rows.length === 27 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
+     `${label}関数は27本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
   /* ★確認の印で開けていた頃の判定は、DB から消えている（残っていると、いつか誰かがまた門に呼ぶ） */
   ok((await one(`select to_regprocedure('public.pv_is_verified_pilot()') is null as gone`)).gone === true,
      `${label}★前の判定 pv_is_verified_pilot は DB に残っていない`);
@@ -556,9 +560,10 @@ const checkGrants = async (label) => {
   ok(rows.every((r) => /search_path=/.test(r.cfg)), `${label}どの関数にも search_path が付いている`,
      J(rows.filter((r) => !/search_path=/.test(r.cfg)).map((r) => r.name)));
   const needDef = ['pv_stays', 'pv_stay_add', 'pv_stay_update', 'pv_stay_photo_add', 'pv_stay_photo', 'pv_stay_moderate',
-                   'pv_stay_delete', 'pv_stay_queue', 'pv_stay_role'];
+                   'pv_stay_delete', 'pv_stay_queue', 'pv_stay_role',
+                   'pv_stay_viewer_request', 'pv_stay_viewer_queue', 'pv_stay_viewer_decide'];
   ok(rows.filter((r) => r.def).map((r) => r.name).sort().join(',') === needDef.sort().join(','),
-     `${label}security definer は表を読む9本だけ（見てよい人の決め方の2本は definer にしない）`, rows.filter((r) => r.def).map((r) => r.name).join(','));
+     `${label}security definer は表を読む12本だけ（見てよい人の決め方の2本は definer にしない）`, rows.filter((r) => r.def).map((r) => r.name).join(','));
 };
 await checkGrants('');
 {
@@ -1772,6 +1777,235 @@ console.log('\n▼ 見てよい人の名簿（pv_stay_viewers・pv_stay_owner）
 }
 
 // ════════════════════════════════════════════════════════════════
+console.log('\n▼ オーナーの承認の口（WP-stays-1b。V8〜V12）── 申し込む・オーナーだけが決める・オーナーが替わると前の承認は効かない');
+/* 3本の口。返った JSON は、呼んだ時点でその人がオーナーだったかの印（owner）を付けてためる
+   （最後の「全部の返事」の節で、オーナーの一覧のほかに id・メールアドレスが出ていないかを見る）。 */
+const VFN = ['pv_stay_viewer_request', 'pv_stay_viewer_queue', 'pv_stay_viewer_decide'];
+const vSql = (fn) => fn === 'pv_stay_viewer_queue' ? `select public.${fn}() as v` : `select public.${fn}($1::jsonb) as v`;
+const vArgs = (fn, p) => fn === 'pv_stay_viewer_queue' ? [] : [p === undefined ? null : J(p)];
+const vcall = async (who, fn, p) => {
+  const owner = who !== ANON && (await ownerNow()).includes(who);
+  const r = await call(who, vSql(fn), vArgs(fn, p));
+  if (r.err) return { __err: r.err };
+  seen.push({ who, fn, json: J(r.v.v), owner });
+  return r.v.v;
+};
+const vreq = (who, p) => vcall(who, 'pv_stay_viewer_request', p);
+const vq   = (who) => vcall(who, 'pv_stay_viewer_queue');
+const vdec = (who, id, state) => vcall(who, 'pv_stay_viewer_decide', state === undefined ? { id } : { id, state });
+/* ログインの印（uid）が無いまま authenticated で呼ぶ（切れたログイン。未ログインの anon とは別の道） */
+const noUid = async (fn, p) => {
+  await db.exec(`set role authenticated`);
+  await db.query(`select set_config('pv.uid', '', false)`);
+  try {
+    const v = (await db.query(vSql(fn), vArgs(fn, p))).rows[0].v;
+    seen.push({ who: ANON, fn, json: J(v), owner: false });
+    return J(v);
+  } catch (e) { return 'ERR ' + String(e.message || e); }
+  finally { await asOwner(); }
+};
+const REQ = (s) => J({ ok: true, state: s });
+const LOGIN_R = '{"ok":false,"status":"login"}';
+const SELF_R  = '{"ok":false,"status":"self"}';
+const BAD_ST  = '{"ok":false,"status":"bad_state"}';
+/* 申し込みの口がオーナーでない人に返してよいのは、本人の状態の定型文だけ */
+const REQ_OUT = new Set(['none', 'pending', 'approved', 'denied', 'revoked'].map(REQ).concat([LOGIN_R]));
+const vsnap = async () => J((await db.query(`select user_id, state, asked_at, decided_by, decided_at
+                                               from public.pv_stay_viewers order by user_id`)).rows);
+const vrowOf = async (uid) => (await db.query(`select state, asked_at, decided_by, decided_at
+                                                from public.pv_stay_viewers where user_id = $1`, [uid])).rows[0] || null;
+{
+  for (const [uid, mail, name, company, pos] of [[APP2, 'app2@example.com', 'テスト用の名前2', 'etihad', 'cap'],
+                                                 [APP3, 'app3@example.com', null, null, null]]) {
+    await db.query(`insert into auth.users(id,email) values($1,$2)`, [uid, mail]);
+    await db.query(`insert into public.profiles(id, email, name, company, "position") values($1,$2,$3,$4,$5)
+                    on conflict (id) do update set email = excluded.email, name = excluded.name,
+                                                   company = excluded.company, "position" = excluded."position"`, [uid, mail, name, company, pos]);
+  }
+  const isOpen = async (who) => { const v = await stays(who); return v.state === 'open' && !!find(v, A); };
+  ok(J(await ownerNow()) === J([OP]) && await isOpen(V1) && !(await vrowOf(APP2)) && !(await vrowOf(APP3)) && !(await vrowOf(U)),
+     '（いまのオーナーは OP・V1 には開いている・APP2・APP3・U は名簿に行が無い）');
+
+  /* ★V11（未ログイン）: 3本とも未ログインには配っていない。uid の無い呼び出しは login／forbidden で、何も書かない */
+  const s11 = await vsnap();
+  const an = [await vreq(ANON, { ask: true }), await vq(ANON), await vdec(ANON, APP2, 'approved')];
+  ok(an.length === 3 && an.every(denied), '★V11: 未ログイン（anon）は、申し込み・一覧・決める のどの口も呼べない（配っていない）', J(an));
+  const nu = [await noUid('pv_stay_viewer_request', { ask: true }), await noUid('pv_stay_viewer_request', { ask: false }),
+              await noUid('pv_stay_viewer_queue'), await noUid('pv_stay_viewer_decide', { id: V1, state: 'revoked' })];
+  ok(J(nu) === J([LOGIN_R, LOGIN_R, FORBIDDEN, FORBIDDEN]) && (await vsnap()) === s11,
+     '★V11: ログインの印の無い呼び出しは、申し込みが {ok:false, status:\'login\'}・一覧と決めるは forbidden（名簿は1文字も変わらない）', J(nu));
+
+  /* ★V10: 申し込む → 確認待ち（何も開かない）→ オーナーが承認 → 読める → 取り消し → 次の呼び出しから locked */
+  const s10 = await vsnap();
+  ok(J(await vreq(APP2, { ask: false })) === REQ('none') && J(await vreq(APP2)) === REQ('none') && J(await vreq(APP2, {})) === REQ('none')
+     && J(await vreq(APP2, { ask: 'true' })) === REQ('none') && J(await vreq(APP2, { ask: 1 })) === REQ('none')
+     && (await vsnap()) === s10 && J(await stays(APP2)) === LOCKED_READ,
+     'V10: 申し込む前は none（読むだけ・ask が JSON の true でなければ行を書かない。一覧は locked）');
+  const r1 = await vreq(APP2, { ask: true });
+  const row1 = await vrowOf(APP2);
+  ok(J(r1) === REQ('pending') && row1 && row1.state === 'pending' && row1.asked_at !== null && row1.decided_by === null && row1.decided_at === null,
+     '★V10: 申し込むと、本人の pending の行が1つ入る（申し込んだ時刻つき・決めた人と時刻は空）。返事は本人の状態だけ', J([r1, row1]));
+  const r1b = await vreq(APP2, { ask: true });
+  ok(J(r1b) === REQ('pending') && J(await vrowOf(APP2)) === J(row1)
+     && (await one(`select count(*)::int as n from public.pv_stay_viewers where user_id = $1`, [APP2])).n === 1,
+     '申し込みを2回押しても、行は1つのまま（申し込んだ時刻も変わらない）');
+  ok(J(await stays(APP2)) === LOCKED_READ && J(await stays(APP2, 'etihad', 'CDG')) === LOCKED_READ
+     && J(await photo(APP2, F1)) === LOCKED && J(await photoAdd(APP2, A, jpegN(41))) === LOCKED,
+     '★V10: 申し込んだだけでは何も開かない（一覧・写真・写真を足す は locked）');
+
+  /* ★V11（欄）: 申し込みの口は state・user_id を読まない（自分を approved にできない・人の分を申し込めない） */
+  const r11 = await vreq(APP3, { ask: true, state: 'approved', user_id: U, id: U, decided_by: OP, decided_at: '2026-01-01' });
+  const row11 = await vrowOf(APP3);
+  ok(J(r11) === REQ('pending') && row11 && row11.state === 'pending' && row11.decided_by === null && !(await vrowOf(U))
+     && J(await vreq(U, { state: 'approved' })) === REQ('none') && !(await vrowOf(U)) && J(await stays(APP3)) === LOCKED_READ,
+     '★V11: 申し込みに state:\'approved\'・ほかの人の user_id を添えても、入るのは本人の pending だけ（U の行はできない・U が state だけ送っても none）', J([r11, row11]));
+
+  /* ★申し込みの口が返すのは、呼んだ本人の状態だけ（読むだけでは何も書かない） */
+  const s10b = await vsnap();
+  const own = [];
+  for (const [who, want] of [[PEND, 'pending'], [DEN, 'denied'], [RVK, 'revoked'], [OLDO, 'pending'], [V1, 'approved'],
+                             [MK1, 'none'], [PAY, 'none'], [OP2, 'none']]) own.push([NAMES.get(who), J(await vreq(who, { ask: false })), REQ(want)]);
+  ok(own.every(([, g, w]) => g === w) && (await vsnap()) === s10b,
+     '★申し込みの口は本人の状態だけを返す（PEND pending・DEN denied・RVK revoked・前のオーナーが承認した OLDO は approved ではなく pending・V1 approved・印だけ・給与の鍵・承認の無い運営は none）',
+     J(own.filter(([, g, w]) => g !== w)));
+
+  /* オーナーの一覧 ── 申し込んだ人が pending で出る */
+  const RANK = { pending: 0, approved: 1, denied: 2, revoked: 3 };
+  const q1 = await vq(OP);
+  const q1r = (q1 && q1.rows) || [];
+  const a2 = q1r.find((x) => x.id === APP2);
+  const a3 = q1r.find((x) => x.id === APP3);
+  ok(q1.ok === true && keys(q1) === 'ok,rows' && a2 && keys(a2) === 'asked,company,decided,email,id,name,position,state'
+     && a2.email === 'app2@example.com' && a2.name === 'テスト用の名前2' && a2.company === 'etihad' && a2.position === 'cap'
+     && a2.state === 'pending' && a2.asked === 0 && a2.decided === null
+     && a3 && a3.email === 'app3@example.com' && a3.name === null && a3.company === null && a3.position === null,
+     '★V10: オーナー（OP）の一覧に、申し込んだ人が pending で出る（id・ログインのメールアドレス・本人がプロフィールに書いた名前と会社と職位・時期の段。書いていなければ null）', J([a2, a3]));
+  const want1 = { [V1]: 'approved', [V2]: 'approved', [PEND]: 'pending', [DEN]: 'denied', [RVK]: 'revoked', [OLDO]: 'pending',
+                  [APP2]: 'pending', [APP3]: 'pending' };
+  ok(q1r.length === 8 && q1r.every((x) => want1[x.id] === x.state)
+     && q1r.every((x, i, a) => i === 0 || RANK[a[i - 1].state] <= RANK[x.state])
+     && (q1r.find((x) => x.id === OLDO) || {}).decided === null && typeof (q1r.find((x) => x.id === V1) || {}).decided === 'number'
+     && !/\d{4}-\d{2}-\d{2}|_at"/.test(J(q1)),
+     '★オーナーの一覧: 名簿の8人が、いまのオーナーにとっての状態で並ぶ（申し込み中が先・前のオーナーが承認した OLDO は pending で決めた時期は空・時刻は無い）', J(q1r.map((x) => [NAMES.get(x.id), x.state, x.asked, x.decided])));
+
+  /* 承認する */
+  const d1 = await vdec(OP, APP2, 'approved');
+  const row2 = (await vrowOf(APP2)) || {};
+  ok(J(d1) === REQ('approved') && row2.state === 'approved' && row2.decided_by === OP && row2.decided_at !== null
+     && J(row2.asked_at) === J(row1.asked_at),
+     '★V10: オーナーが承認すると approved（決めた人 decided_by ＝ OP・決めた時刻 decided_at つき。申し込んだ時刻はそのまま）', J([d1, row2]));
+  ok(await isOpen(APP2) && (await photo(APP2, F1)).b64 === JPEG && J(await vreq(APP2, { ask: true })) === REQ('approved')
+     && J(await vrowOf(APP2)) === J(row2),
+     '★V10: 承認された人は、次の呼び出しから読める（公開済みの場所と写真）・申し込みの口は approved（押し直しても行は変わらない）');
+  const qa = ((await vq(OP)).rows || []).find((x) => x.id === APP2);
+  ok(qa && qa.state === 'approved' && qa.asked === 0 && qa.decided === 0, 'V10: オーナーの一覧でも approved（決めた時期の段 0）', J(qa));
+  const sA = await vsnap();
+  ok(J(await vdec(OP, APP2, 'approved')) === REQ('approved') && (await vsnap()) === sA,
+     '同じ状態をもう一度指定しても {ok:true}・何も書かない（決めた時刻も変わらない）');
+  const badA = [await vdec(OP, APP2, 'denied'), await vdec(OP, APP2, 'pending'), await vdec(OP, APP2, 'weird'), await vdec(OP, APP2)];
+  ok(badA.every((x) => J(x) === BAD_ST) && (await vsnap()) === sA && await isOpen(APP2),
+     '承認から動かせるのは取り消しだけ（見送り・pending・知らない状態・状態なし は bad_state。何も書かない）', J(badA));
+
+  /* 申し込んでいない人・変な id は承認できない（承認は申し込んだ人のアカウントに結び付く） */
+  const nf = [await vdec(OP, U, 'approved'), await vdec(OP, 'abc', 'approved'), await vdec(OP, undefined, 'approved'),
+              await vdec(OP, '11111111-1111-4111-8111-111111111111', 'approved'), await vdec(OP, GHOST, 'approved')];
+  ok(nf.every((x) => J(x) === NOT_FOUND) && (await vsnap()) === sA && !(await vrowOf(U)) && J(await stays(U)) === LOCKED_READ,
+     '★申し込んでいない人（U・GHOST）・uuid でない id・無い id は not_found（行は作らない・U は locked のまま）', J(nf));
+
+  /* 取り消す → 次の呼び出しから locked */
+  const d2 = await vdec(OP, APP2, 'revoked');
+  const row3 = (await vrowOf(APP2)) || {};
+  ok(J(d2) === REQ('revoked') && row3.state === 'revoked' && row3.decided_by === OP && row3.decided_at !== null
+     && J(await stays(APP2)) === LOCKED_READ && J(await photo(APP2, F1)) === LOCKED && J(await photoAdd(APP2, A, jpegN(43))) === LOCKED
+     && J(await vreq(APP2, { ask: true })) === REQ('revoked') && J(await vrowOf(APP2)) === J(row3),
+     '★V10: 取り消すと、次の呼び出しから locked（一覧・写真・写真を足す）・申し込みの口は revoked（押し直しても行はそのまま）', J([d2, row3]));
+  ok(J(await vdec(OP, APP2, 'denied')) === BAD_ST && J(await vrowOf(APP2)) === J(row3), '取り消しから見送りへは動かせない（bad_state）');
+  ok(J(await vdec(OP, APP2, 'approved')) === REQ('approved') && await isOpen(APP2) && ((await vrowOf(APP2)) || {}).decided_by === OP,
+     '取り消した人も、もう一度承認できる（また読める）');
+
+  /* 見送る */
+  ok(J(await vdec(OP, APP3, 'revoked')) === BAD_ST && ((await vrowOf(APP3)) || {}).state === 'pending', '申し込み中から取り消しへは動かせない（bad_state）');
+  const d3 = await vdec(OP, APP3, 'denied');
+  const row4 = (await vrowOf(APP3)) || {};
+  ok(J(d3) === REQ('denied') && row4.state === 'denied' && row4.decided_by === OP && row4.decided_at !== null
+     && J(await stays(APP3)) === LOCKED_READ && J(await photo(APP3, F1)) === LOCKED
+     && J(await vreq(APP3, { ask: true })) === REQ('denied') && J(await vrowOf(APP3)) === J(row4),
+     '★V10: 見送ると denied（決めた人と時刻つき）・locked のまま・申し込み直しても行はそのまま（denied）', J([d3, row4]));
+  ok(J(await vdec(OP, APP3, 'revoked')) === BAD_ST && J(await vdec(OP, APP3, 'denied')) === REQ('denied') && J(await vrowOf(APP3)) === J(row4),
+     '見送りから取り消しへは動かせない・同じ見送りをもう一度は {ok:true}（何も書かない）');
+  ok(J(await vdec(OP, APP3, 'approved')) === REQ('approved') && await isOpen(APP3)
+     && J(await vdec(OP, APP3, 'revoked')) === REQ('revoked') && J(await stays(APP3)) === LOCKED_READ,
+     '見送った人もあとから承認できる（読める）→ 取り消すとまた locked');
+
+  /* ★V8: 自分で自分を決めることはできない（何も書かない） */
+  const s8 = await vsnap();
+  const m8 = [await vdec(APP2, APP2, 'approved'), await vdec(APP2, APP2, 'revoked'), await vdec(APP3, APP3, 'approved'),
+              await vdec(SELF, SELF, 'approved'), await vdec(PEND, PEND, 'approved')];
+  ok(m8.every((x) => J(x) === FORBIDDEN) && (await vsnap()) === s8,
+     '★V8: 会員が自分を決めようとしても forbidden（承認された人・取り消された人・行の無い人・申し込み中の人。名簿は1文字も変わらない）', J(m8));
+  const o8 = [J(await vdec(OP, OP, 'approved')), J(await vdec(OP, OP, 'revoked')), J(await vdec(OP, OP.toUpperCase(), 'denied')),
+              J(await vreq(OP, { ask: true }))];
+  ok(J(o8) === J([SELF_R, SELF_R, SELF_R, REQ('owner')])
+     && (await vsnap()) === s8 && !(await vrowOf(OP)) && await isOpen(OP),
+     '★V8: オーナーが自分を決めようとしたら self（大文字の id でも同じ）・申し込みの口は owner。何も書かない（オーナーは名簿に入らない・読める）', J(o8));
+
+  /* ★V9: オーナーでない人は、一覧も決める口も forbidden（表を読む前に返す ＝ 行の在る／無いも、変な指定も、同じ答え） */
+  const s9 = await vsnap();
+  const v9 = [];
+  for (const who of [OP2, U, V1, APP2, PAY, MK1, PROF, BADGE]) {
+    v9.push([NAMES.get(who), J(await vq(who)), J(await vdec(who, APP3, 'approved')), J(await vdec(who, V1, 'revoked')),
+             J(await vdec(who, 'abc', 'weird')), J(await vdec(who, '11111111-1111-4111-8111-111111111111', 'approved'))]);
+  }
+  ok(v9.length === 8 && v9.every(([, ...r]) => r.length === 5 && r.every((x) => x === FORBIDDEN)) && (await vsnap()) === s9
+     && await isOpen(V1) && J(await stays(APP3)) === LOCKED_READ,
+     '★V9: 承認の無い運営（OP2）・会員・承認された人・給与の鍵・印だけ・プロフィール・バッジ は、一覧も決める口も forbidden の1行だけ（名簿は1文字も変わらない）',
+     J(v9.filter(([, ...r]) => r.some((x) => x !== FORBIDDEN))));
+
+  /* ★V12: オーナーが替わると（10-b の1行を別のメールアドレスで流す ＝ DB の持ち主がオーナーの行を置き換える）、前のオーナーの承認は全部効かない */
+  await db.exec(`create temp table pv_keep_owner as select * from public.pv_stay_owner;
+                 create temp table pv_keep_viewers as select * from public.pv_stay_viewers;`);
+  const k0 = await vsnap();
+  await db.exec(OWNER_LINE.split(OWNER_PLACEHOLDER).join('v2@example.com'));
+  ok(J(await ownerNow()) === J([V2]), '（オーナーの行を V2 に置き換えた ＝ 本番でオーナーがメールアドレスを替えて流すのと同じ道）', J(await ownerNow()));
+  const g12 = [J(await stays(V1)), J(await stays(APP2)), J(await stays(V1, 'etihad', 'CDG')), J(await photo(V1, F1)), J(await photoAdd(APP2, A, jpegN(44)))];
+  ok(J(g12) === J([LOCKED_READ, LOCKED_READ, LOCKED_READ, LOCKED, LOCKED]),
+     '★V12: 前のオーナー（OP）が承認した人（V1・APP2）は、その場で locked（一覧・写真・写真を足す）', J(g12));
+  ok(await isOpen(V2) && J(await vreq(V2, { ask: true })) === REQ('owner') && J(await stays(OP)) === LOCKED_READ
+     && J(await vq(OP)) === FORBIDDEN && J(await vdec(OP, V1, 'approved')) === FORBIDDEN && J(await vreq(OP)) === REQ('none'),
+     '★V12: 新しいオーナー（V2）は承認の行が無くても読める（申し込みの口は owner）・前のオーナー（OP・運営のまま）は読めず、一覧も決める口も forbidden');
+  ok(J(await vreq(V1)) === REQ('pending') && J(await vreq(APP2, { ask: true })) === REQ('pending') && (await vsnap()) === k0,
+     '★V12: 前のオーナーが承認した人には approved と答えない（pending ＝ いまのオーナーの返事待ち。名簿は書き換えない）');
+  const q12 = await vq(V2);
+  ok(q12.ok === true && (q12.rows || []).length === 7 && !q12.rows.some((x) => x.id === V2)
+     && q12.rows.every((x) => x.state === 'pending' && x.decided === null),
+     '★V12: 新しいオーナーの一覧では、前のオーナーが決めた人は全員 pending（決めた時期は空）・オーナー自身の行は出ない',
+     J(q12.rows && q12.rows.map((x) => [NAMES.get(x.id), x.state, x.decided])));
+  ok(J(await vdec(V2, V1, 'approved')) === REQ('approved') && await isOpen(V1) && J(await stays(APP2)) === LOCKED_READ
+     && ((await vrowOf(V1)) || {}).decided_by === V2,
+     'V12: 新しいオーナーが決め直すと、その人（V1）だけが開く（APP2 は locked のまま）');
+  await db.exec(OWNER_LINE.split(OWNER_PLACEHOLDER).join('ops@example.com'));
+  ok(J(await ownerNow()) === J([OP]) && J(await stays(V1)) === LOCKED_READ && await isOpen(APP2) && await isOpen(V2)
+     && J(await vreq(V1)) === REQ('pending') && J(await vq(V2)) === FORBIDDEN,
+     '★V12: オーナーを OP に戻すと、V2 が決めた V1 は locked（pending）・OP が決めた APP2 と V2 はまた開く・V2 の一覧は forbidden（承認は決めたオーナーにだけ結び付く）');
+  await db.exec(`delete from public.pv_stay_viewers; insert into public.pv_stay_viewers select * from pv_keep_viewers;
+                 delete from public.pv_stay_owner;   insert into public.pv_stay_owner select * from pv_keep_owner;
+                 drop table pv_keep_owner; drop table pv_keep_viewers;`);
+  ok((await vsnap()) === k0 && J(await ownerNow()) === J([OP]) && await isOpen(V1) && await isOpen(APP2),
+     '（片付け: 名簿の2表を、オーナーを替える前の行に戻した）');
+
+  /* ★V9（返事）: オーナーでない人への3本の返事に、ほかの人の id・メールアドレス・状態が1つも無い */
+  const UIDS = [V1, V2, V3, U, PAY, PROF, BADGE, GHOST, REV, OP, OP2, MK1, MK2, SELF, PEND, DEN, RVK, OLDO, FORMER, APP2, APP3];
+  const vOut = seen.filter((s) => VFN.includes(s.fn) && !s.owner);
+  ok(vOut.length >= 60 && vOut.every((s) => (s.fn === 'pv_stay_viewer_request' ? REQ_OUT.has(s.json) : s.json === FORBIDDEN)
+       && !UIDS.some((u) => s.json.includes(u)) && !/@|"(rows|id|email|name|company|position|asked|decided)"/.test(s.json)),
+     `★V9: オーナーでない人への3本の返事 ${vOut.length} 本が、全部 定型文（申し込みは本人の状態だけ・一覧と決めるは forbidden の1行）。ほかの人の id・メールアドレス・状態が無い`,
+     J(vOut.filter((s) => !(s.fn === 'pv_stay_viewer_request' ? REQ_OUT.has(s.json) : s.json === FORBIDDEN)).slice(0, 3)));
+  const vOwn = seen.filter((s) => VFN.includes(s.fn) && s.owner);
+  ok(vOwn.length >= 20 && vOwn.every((s) => !/[0-9a-f]{64}/.test(s.json) && !/\d{4}-\d{2}-\d{2}/.test(s.json)),
+     `オーナーへの返事 ${vOwn.length} 本にも、ハッシュと時刻は無い`);
+}
+
+// ════════════════════════════════════════════════════════════════
 console.log('\n▼ 時刻は返さない（返すのは0〜4の段だけ）');
 {
   /* 段は暦の月（UTC）で切る。「書いた時刻からちょうど1か月」で切ると、段が変わる瞬間を
@@ -2193,7 +2427,10 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
   /* 1) 資格の無い人へ返ったものは、決まった定型文のどれかと完全に同じ */
   const fixed = new Set([LOCKED_READ, LOCKED, FORBIDDEN, NOT_FOUND, BAD_TARGET]);
   const out = seen.filter((s) => OUTSIDERS.includes(s.who));
-  const odd = out.filter((s) => !fixed.has(s.json));
+  /* ★ 申し込みの口（WP-stays-1b）の返事だけは、本人の状態の定型文のどれかと1文字も違わないこと（資格の無い人には
+       approved も owner も返らない）。ほかの口の返事は今までどおり上の5つのどれか（申し込みの口の定型文は、ほかの口では通さない）。 */
+  const reqOut = new Set([...REQ_OUT].filter((x) => x !== REQ('approved')));
+  const odd = out.filter((s) => !(s.fn === 'pv_stay_viewer_request' ? reqOut : fixed).has(s.json));
   ok(out.length >= 60 && odd.length === 0,
      `★資格の無い人への返事 ${out.length} 本が、全部 定型文と1文字も違わない（名前も件数も id も無い）`,
      J(odd.slice(0, 3).map((s) => [NAMES.get(s.who), s.fn, s.json.slice(0, 200)])));
@@ -2212,8 +2449,15 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
   ok(inDb.length >= 3 && inDb.every((h) => hashes.includes(h)), '（表に在るハッシュは、手元で作った式と同じ値）', J(inDb));
   ok(hashes.every((h) => !all.includes(h)) && inDb.every((h) => !all.includes(h)),
      `★実際のハッシュ値が、${seen.length} 本の返事のどこにも無い`);
-  ok([V1, V2, V3, U, PAY, PROF, BADGE, GHOST, REV, OP, OP2, MK1, MK2, SELF, PEND, DEN, RVK, OLDO, FORMER].every((u) => !all.includes(u)),
-     '生の uid がどこにも無い');
+  /* ★ 生の uid とメールアドレスを返してよいのは、オーナーへのオーナーの一覧（pv_stay_viewer_queue）だけ（WP-stays-1b）。
+       それ以外の返事は全部、今までどおり1つも持たない。 */
+  const ownerQ = (s) => s.fn === 'pv_stay_viewer_queue' && s.owner === true;
+  const allButOwnerQ = seen.filter((s) => !ownerQ(s)).map((s) => s.json).join('\n');
+  ok(seen.filter(ownerQ).length >= 3 && seen.filter(ownerQ).some((s) => s.json.includes(APP2)),
+     '（オーナーの一覧の返事は、ここで外して見ている ── 実際に id を返している）', String(seen.filter(ownerQ).length));
+  ok([V1, V2, V3, U, PAY, PROF, BADGE, GHOST, REV, OP, OP2, MK1, MK2, SELF, PEND, DEN, RVK, OLDO, FORMER, APP2, APP3].every((u) => !allButOwnerQ.includes(u))
+     && !/@example\.com/.test(allButOwnerQ),
+     '生の uid がどこにも無い（メールアドレスも。オーナーへのオーナーの一覧のほか）');
   ok(!/author_hash|created_at|moderated_at|byte_len|updated_at|edit_from|edit_n/.test(all), '表の列の名前（author_hash・created_at・updated_at…）がどこにも無い');
   ok(!/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(all), '日付と時刻の形をした文字列がどこにも無い');
 
@@ -2223,10 +2467,17 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
     'mime', 'w', 'h', 'b64', 'target', 'place', 'place_state', 'changed', 'rev']);
   const used = new Set();
   const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') for (const k of Object.keys(v)) { used.add(k); walk(v[k]); } };
-  for (const s of seen) walk(JSON.parse(s.json));
+  /* ★ オーナーへのオーナーの一覧（WP-stays-1b）だけは、ここでは数えず、すぐ下の1行で欄の形ちょうどを見る */
+  for (const s of seen) if (!ownerQ(s)) walk(JSON.parse(s.json));
   const extra = [...used].filter((k) => !ALLOWED.has(k));
   ok(extra.length === 0 && ![...used].some((k) => /count|total|hash|uid|user|_at$/.test(k)),
      '返事に出る欄は決めた31個の中だけ（件数・ハッシュ・時刻の欄が無い）', J(extra));
+  /* ★ オーナーの一覧（WP-stays-1b）の欄は、決めた形ちょうど（{ok, rows:[{id, email, name, company, position, state, asked, decided}]}） */
+  const oq = seen.filter(ownerQ).map((s) => JSON.parse(s.json));
+  ok(oq.length >= 3 && oq.every((v) => keys(v) === 'ok,rows' && Array.isArray(v.rows) && v.rows.length > 0
+       && v.rows.every((x) => keys(x) === 'asked,company,decided,email,id,name,position,state')),
+     '★オーナーの一覧の欄は {ok, rows} と、1人ずつ id・email・name・company・position・state・asked・decided の8つちょうど（件数・時刻の欄が無い）',
+     J(oq.map((v) => [keys(v), (v.rows || []).map(keys).filter((k) => k !== 'asked,company,decided,email,id,name,position,state')])));
   ok(ALLOWED.size === 31 && used.has('city') && used.has('stay_hours') && used.has('changed'),
      '（都市・ステイ時間・「変わったか」の欄は、実際に返っている）', String(ALLOWED.size));
   ok(used.has('rev') && seen.filter((s) => /"rev"/.test(s.json)).every((s) => s.who === OP || s.who === OP2),
@@ -2264,8 +2515,19 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
        その形のまま名指しで外してから見る。ほかの position は今までどおり全部引っかかる。 */
   const POS_FF = `position('\\xff'::bytea in `;
   ok(code.split(POS_FF).length === 2, '（バイト列を探す position(…) は、写真を作り直す部品の1か所だけ）', String(code.split(POS_FF).length - 1));
-  const banned = code.split(POS_FF).join('').match(/access_until|pv_my_give|badge|founding|pay_reports|verified_airline|\bsource\b|company|"position"|\bposition\b/gi);
-  ok(!banned, '★給与の鍵・バッジ・プロフィールの会社と職位・FOUNDING を、コードが1度も読んでいない', J(banned));
+  /* ★ 2026-10-15（WP-stays-1b）: オーナーの一覧（pv_stay_viewer_queue）だけは、申し込んだ人がプロフィールに書いた
+       会社と職位を「見せる」（cross-area R2。何も開かない）。その2つの書き方を、その形のまま・その関数の中の1か所ずつだけ
+       名指しで外してから見る。ほかの所（門・見てよい人の決め方・ほかの関数、その関数の中のほかの所）の company・position は
+       今までどおり全部引っかかる。 */
+  const PROF_WORDS = [`'company', pf.company,`, `'position', pf."position",`];
+  /* 関数の本文だけ（$fn$; まで。後ろの revoke・grant・comment・次の節は入れない） */
+  const bodyOf = (f) => f.slice(0, Math.max(0, f.indexOf('$fn$;')));
+  const vqF = bodyOf(code.split(/create or replace function/).slice(1).find((f) => f.trimStart().startsWith('public.pv_stay_viewer_queue(')) || '');
+  ok(PROF_WORDS.every((w) => code.split(w).length === 2 && vqF.split(w).length === 2),
+     '（プロフィールの会社と職位を名指しするのは、オーナーの一覧の中の1か所ずつだけ）', J(PROF_WORDS.map((w) => [code.split(w).length - 1, vqF.split(w).length - 1])));
+  const banned = PROF_WORDS.reduce((c, w) => c.split(w).join(''), code.split(POS_FF).join(''))
+    .match(/access_until|pv_my_give|badge|founding|pay_reports|verified_airline|\bsource\b|company|"position"|\bposition\b/gi);
+  ok(!banned, '★給与の鍵・バッジ・プロフィールの会社と職位・FOUNDING を、コードが1度も読んでいない（オーナーの一覧が見せる2つのほか）', J(banned));
   ok(!/reviews_v2|pv_has_review_key|pv_review_hash|proof_hash/i.test(code), '★口コミの鍵（reviews_v2・pv_has_review_key）も、コードが1度も読んでいない');
   /* ★2026-10-15 から確認の印は何も開かない ＝ 印を見る所は「0. 前提」（db/admin.sql が当たっているかの確かめ）だけ */
   const guard0 = code.slice(0, code.indexOf('create table if not exists public.pv_stay_places'));
@@ -2275,8 +2537,8 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   ok(STAYS_SQL.split('pv_is_verified_pilot').length === 2 && /^drop function if exists public\.pv_is_verified_pilot\(\);$/m.test(STAYS_SQL),
      '★前の判定 pv_is_verified_pilot は、消す1行のほかに1度も出てこない');
   const fns = code.split(/create or replace function/).slice(1);
-  ok(fns.length === 24 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
-     '24本の関数すべてに set search_path = public, extensions', String(fns.length));
+  ok(fns.length === 27 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
+     '27本の関数すべてに set search_path = public, extensions', String(fns.length));
   const fn = (name) => fns.find((f) => f.trimStart().startsWith('public.' + name + '(')) || '';
   /* 見てよい人の決め方は、毎回「会員と未ログインが名簿の2表を書けない」ことも見ている（2表 × 4通り） */
   const ownF = fn('pv_stay_owner_id'), seesF = fn('pv_stay_sees');
@@ -2323,6 +2585,27 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   /* 会員が読む関数（一覧・1件・写真）の並びに時刻を使っていない。使うのは運営の待ち行列だけ */
   const byTime = fns.filter((f) => /order by[^;]*created_at/.test(f)).map((f) => f.trimStart().split('(')[0]);
   ok(byTime.join(',') === 'public.pv_stay_queue', '時刻で並べるのは運営の待ち行列だけ', byTime.join(','));
+  /* ★ オーナーの承認の口（WP-stays-1b）── 読んで確かめる */
+  const vrF = bodyOf(fn('pv_stay_viewer_request')), vdF = bodyOf(fn('pv_stay_viewer_decide'));
+  const OWNER_GATE = /v_owner := public\.pv_stay_owner_id\(\);\s+if auth\.uid\(\) is null or v_owner is null or auth\.uid\(\) <> v_owner then\s+return jsonb_build_object\('ok', false, 'status', 'forbidden'\);/;
+  ok([vqF, vdF].every((f) => f !== '' && OWNER_GATE.test(f)
+       && f.indexOf("'forbidden'") < f.search(/from public\.pv_stay_viewers|auth\.users|public\.profiles/)
+       && !/pv_is_operator|pv_stay_role|pv_admins|pv_stay_sees/.test(f)),
+     '★一覧の口と決める口は、オーナーでなければ表を1行も読まずに forbidden（オーナーかは pv_stay_owner_id だけで決める。運営の判定・門・見てよい人の判定を使わない）');
+  const EFF = /case when (v_row|v)\.state = 'pending' or \1\.decided_by is distinct from v_owner then 'pending'\s+else \1\.state end/;
+  ok([vrF, vqF, vdF].every((f) => EFF.test(f)),
+     '★3本とも、状態は「いまのオーナーにとっての状態」で読む（前のオーナーが決めた行は pending ＝ approved と言わない）');
+  ok(vrF !== '' && vrF.indexOf("'login'") > 0 && vrF.indexOf("'login'") < vrF.indexOf('from public.pv_stay_viewers')
+     && vrF.indexOf("'owner'") < vrF.indexOf('insert into public.pv_stay_viewers')
+     && !/p\s*->>?\s*'(?!ask')|#>|jsonb_(populate|to)_record|jsonb_extract_path|jsonb_each|\bp\s*\[/.test(vrF)
+     && /values \(v_caller, 'pending', now\(\)\)\s+on conflict \(user_id\) do nothing;/.test(vrF),
+     '★申し込みの口が読む欄は ask だけ（state・user_id を読まない）・入れるのは本人の pending の1行だけ・行が在れば触らない');
+  ok(/set state = v_to, decided_by = auth\.uid\(\), decided_at = now\(\)\s+where user_id = v_id;/.test(vdF)
+     && (code.match(/update public\.pv_stay_viewers/g) || []).length === 1 && (code.match(/insert into public\.pv_stay_viewers/g) || []).length === 1
+     && /update public\.pv_stay_viewers/.test(vdF) && /insert into public\.pv_stay_viewers/.test(vrF),
+     '★承認の行を書き換えるのは決める口の1か所だけで、決めた人（オーナー）と時刻を必ず書く／行を入れるのは申し込みの口の1か所だけ');
+  ok(vdF.indexOf("'self'") > 0 && vdF.indexOf("'self'") < vdF.indexOf('from public.pv_stay_viewers'),
+     '★オーナーが自分を決めようとしたら、行を読む前に self');
   /* 写真を足すとき、場所の行を錠つきで読んでいる（読んでから入れるまでの間に見送られても画素が残らない） */
   ok(/from public\.pv_stay_places where id = v_pid for share;/.test(fn('pv_stay_photo_add')),
      '写真を足すとき、場所の行を for share で読んでいる');
