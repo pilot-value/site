@@ -69,11 +69,27 @@
       p.hidden = !on;
       if (on) hit = p;
     });
+    /* 棒の行の印は、行の data-town で付ける（団地ごとの行も、その街の行は全部） */
+    if (rentBox) [].forEach.call(rentBox.querySelectorAll('[data-bar]'), function (li) {
+      if (li.getAttribute('data-town') === key) li.setAttribute('data-on', ''); else li.removeAttribute('data-on');
+    });
     if (!hit || !move) return;
     /* 詳細が画面の下へはみ出すなら、頭が帯の下に隠れない所まで寄せる */
     var r = hit.getBoundingClientRect(), top = HEAD + 68, over = r.bottom - w.innerHeight + 16;
     if (over > 0) glide(Math.min(over, r.top - top));
     else if (r.top < top) glide(r.top - top);
+  }
+  /* ── 1.3) 暮らし：家賃の間取りを切り替える（見せる・隠すだけ。額は HTML に在る。履歴も保存もしない）──
+     動かなければ、どの間取りの棒も縦に並んだまま（切り替えのボタンは CSS が隠す）。 */
+  var rentBox = root.querySelector('[data-pvg-rent]');
+  var sizeBtns = rentBox ? [].slice.call(rentBox.querySelectorAll('[data-pvg-size]')) : [];
+  function pickSize(key) {
+    sizeBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-pvg-size') === key ? 'true' : 'false'); });
+    [].forEach.call(rentBox.querySelectorAll('[data-size-panel]'), function (g) { g.hidden = g.getAttribute('data-size-panel') !== key; });
+  }
+  if (sizeBtns.length) {
+    rentBox.setAttribute('data-js', '');
+    pickSize((sizeBtns.filter(function (b) { return b.getAttribute('aria-pressed') === 'true'; })[0] || sizeBtns[0]).getAttribute('data-pvg-size'));
   }
   if (townBtns.length) pickTown(townBtns[0].getAttribute('data-town'), false);
 
@@ -474,6 +490,8 @@
       }
       return;
     }
+    var sz = t.closest('[data-pvg-size]');
+    if (sz && rentBox && rentBox.contains(sz)) { pickSize(sz.getAttribute('data-pvg-size')); return; }
     var tw = t.closest('.pvg-town[data-town]');
     if (tw && root.contains(tw)) { pickTown(tw.getAttribute('data-town'), true); return; }
     /* 就航地のカード（別のタブで開く押し方は、ブラウザに任せる ＝ #stay-NRT がそのまま開く） */

@@ -389,6 +389,10 @@
 .pvg-rb-ax .pvg-yen{display:block;margin-left:0}
 .pvg-rb-s{display:flex;flex-wrap:wrap;gap:0 10px;margin-top:8px!important;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
 @container pvg (max-width:479.98px){
+  /* 間取りの切り替えは、3つの語（東京の 1LDK/2K/2DK・2LDK/3K/3DK・3LDK/4K～）が電話の幅の箱に1行で入らない ── 箱からはみ出さずに折り返す。
+     行の間の 12px は、押せる範囲（上下 6px ずつ）が次の行のボタンと重ならないため。 */
+  .pvg-rb-sw{display:flex;flex-wrap:wrap;row-gap:12px;border-radius:18px}
+  .pvg .pvg-rb-b{flex:1 1 auto}
   .pvg-rb-row,.pvg-rb-axis{grid-template-columns:minmax(0,1fr) var(--rb-v,9em)}
   .pvg-rb-n{grid-column:1/-1}
   .pvg-rb-x{grid-column:1/-1;justify-self:start}

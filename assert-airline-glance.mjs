@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
@@ -82,7 +82,7 @@ import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
 import { primary as placePhoto, needsCredit as placeCredit, src as placeSrc, HELD as PLACE_HELD } from './place-photos.mjs';
 import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS, whenText as livWhen } from './living-facts.mjs';
-import { readBars, checkBars } from './pv-bars.mjs';
+import { readBars, checkBars, axisEnd } from './pv-bars.mjs';
 import { primary, needsCredit } from './airline-photos.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -1507,6 +1507,8 @@ head('口コミの一覧の部品の持ち越し（区分の絵・「要約の�
   const TAG_JA = "sumSrcTag: '要約のもと',", TAG_EN = "sumSrcTag: 'Used in the summary',";
   ok(n(TAG_JA) === 1 && n(TAG_EN) === 1, '「要約のもと」の札の字は、日本語「要約のもと」と英語「Used in the summary」の1行ずつ', `日本語 ${n(TAG_JA)}行・英語 ${n(TAG_EN)}行`);
 }
+/* 場面 living（ブラウザ）が読む、家賃の棒の行の答え ＝ 下の SB の BR そのもの（台帳から・団地が在れば団地）。ページからは読まない。 */
+const LIV_BARS = {};
 head('暮らし（街・家賃・空港までの移動）');
 {
   /* 期待する値は台帳から作る（viewOf も生成側も通さない）。エティハドの家賃は career-facts.mjs（1年あたり → 12で割って1の位で丸める）、
@@ -1669,6 +1671,7 @@ head('暮らし（街・家賃・空港までの移動）');
       : T.filter(t => Object.keys(t.month).length).map(t => ({ id: t.key, town: t.key, month: t.month, n: null }));
     const valOf = (x, k) => (x && typeof x.month[k] === 'number' ? x.month[k] : null);
     const barCity = c.site != null && BAR_STATS.includes(c.stat) && BR.some(x => c.bars.some(k => valOf(x, k) !== null));
+    LIV_BARS[s] = { on: barCity, bars: c.bars, lead: D.lead, rows: BR };
     const rbN = sec.split('<div class="pvg-rb" data-pvg-rent').length - 1, rb = cutAt(sec, '<div class="pvg-rb" data-pvg-rent', 'div');
     const groups = readBars(rb, 'pvg-rb'), sizeOf = g => one(g.attrs, /data-size-panel="([^"]*)"/);
     const live = barCity && rbN === 1 && groups.length > 0;
@@ -4969,6 +4972,207 @@ function cardSee() {
   return { n: cards.length, onPhoto: cards.filter(a => { const c = a.querySelector('.pvg-code3').getBoundingClientRect(), p = a.querySelector('.pvg-town-ph').getBoundingClientRect(); return c.width > 2 && c.bottom <= p.bottom + 0.5; }).length,
            bad: [...new Set(R)], over: document.documentElement.scrollWidth - document.documentElement.clientWidth };
 }
+
+/* 「暮らし・家族」の街のカードと家賃の棒（場面 living・mode 'empty'）。1440 と 390 で1枚ずつ開く（--sizes で幅を替えた時は「開ける」だけ ＝ 絵のため）。
+     1440 ── LS2 街のカードを押す（マウスと Tab＋Enter）：その街の詳細だけが出る・押された印が移る・その街の棒の行が全部印つきで、ほかの行には無い・
+                 住所も履歴の長さも動かない
+             LS3 間取りの切り替え：ボタンへ Tab で着いて Enter／Space・焦点は押したボタンのまま・出ている組は1つ・履歴を積まない・画面が動かない
+             LS4 棒の土台（.pvg-rb-track）は、どの行・どの組でも、USD に換えたあとも、切り替えが動かなかった形でも同じ長さ（±0.5px）。
+                 棒は 土台 × 台帳の比（額 ÷ 目盛の右端。±0.6px）
+     390  ── LS7 切り替えが動かなかった時の形（出荷した HTML のまま）：どの組も見出しつきで出る・切り替えのボタンは出ない
+   期待する行と比は台帳から（LIV_BARS ＝ SB の BR）。ページからは読まない。家賃の棒が無い都市（台帳で決まる）は LS3・LS4・LS7 を
+   1行ずつ「無い」で見る（都市に棒が増えても、行の数は動かない）。待つのはいつも条件（押した印・出た板）。
+   PV_GLANCE_SHOT=<フォルダ> を渡すと、別に開いたページで living-<会社>-<幅>-<形>.png を撮る（open・town2・size3・cur-USD・dark。合否には使わない）。 */
+function livSee() {
+  const on = e => !!e && e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+  const wd = e => (e ? e.getBoundingClientRect().width : null);
+  const box = document.querySelector('.pvg [data-pvg-rent]'), a = document.activeElement;
+  return {
+    url: location.href, hist: history.length, y: scrollY, rent: !!box, sw: !!box && on(box.querySelector('.pvg-rb-sw')),
+    active: !a ? '' : a.hasAttribute('data-pvg-size') ? `size:${a.getAttribute('data-pvg-size')}` : a.matches('.pvg-town[data-town]') ? `town:${a.getAttribute('data-town')}` : a.tagName,
+    btns: box ? [...box.querySelectorAll('[data-pvg-size]')].map(b => ({ k: b.getAttribute('data-pvg-size'), on: b.getAttribute('aria-pressed') === 'true' })) : [],
+    panels: box ? [...box.querySelectorAll('[data-size-panel]')].map(g => ({ k: g.getAttribute('data-size-panel'), shown: on(g), cap: on(g.querySelector('.pvg-rb-t')),
+      rows: [...g.querySelectorAll('[data-bar]')].map(li => ({ id: li.getAttribute('data-bar'), mark: li.hasAttribute('data-on'),
+        track: wd(li.querySelector('.pvg-rb-track')), fill: wd(li.querySelector('.pvg-rb-fill')) })) })) : [],
+    tracks: document.querySelectorAll('.pvg .pvg-rb-track').length,
+    cards: [...document.querySelectorAll('.pvg [data-pvg-towns] .pvg-town[data-town]')].map(b => ({ k: b.getAttribute('data-town'), on: b.getAttribute('aria-pressed') === 'true', td: b.getAttribute('aria-controls') })),
+    tds: [...document.querySelectorAll('.pvg .pvg-td')].filter(on).map(t => t.id),
+  };
+}
+const LIV_SZ = k => `.pvg [data-pvg-rent] [data-pvg-size="${k}"]`, LIV_TW = k => `.pvg [data-pvg-towns] .pvg-town[data-town="${k}"]`;
+/* 切り替えが動かなかった時の形へ戻す（出荷した HTML と同じ：data-js も hidden も無い） */
+const LIV_BARE = () => { const b = document.querySelector('.pvg [data-pvg-rent]'); if (!b) return; b.removeAttribute('data-js'); b.querySelectorAll('[data-size-panel]').forEach(g => { g.hidden = false; }); };
+async function livTab(p) {
+  await p.evaluate(() => window.PVGlance.go('life'));
+  const there = await p.waitForFunction(() => { const e = document.getElementById('pvg-p-living');
+    return window.PVGlance.at() === 'life' && !!e && e.getClientRects().length > 0 && e.checkVisibility(); }, { timeout: 8000 }).then(() => true, () => false);
+  if (!there) throw new Error('「暮らし・家族」のタブへ移れない');
+}
+async function runLiving(browser, s, [w, h]) {
+  const tag = `${s} ${w}（暮らし・家賃の棒と街のカード）`, L = LIV_BARS[s];
+  if (process.env.PV_GLANCE_SHOT) await livShots(browser, s, [w, h]).catch(e => notice(`${tag}: 絵を撮れなかった（${String(e && e.message).slice(0, 120)}）`));
+  const { ctx, p, ready } = await open(browser, s, w, h, 'empty');
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  const pressed = q => p.waitForFunction(q => { const e = document.querySelector(q); return !!e && e.getAttribute('aria-pressed') === 'true'; }, { timeout: 5000 }, q).then(() => true, () => false);
+  const key = async (k, shift) => { if (shift) await p.keyboard.down('Shift'); await p.keyboard.press(k); if (shift) await p.keyboard.up('Shift'); };
+  /* 画面が止まるまで待つ（5コマ続けて同じ位置。動きは押してから2コマ止まったまま始まる）。カードを押すと詳細へ寄せる動きが十数コマ続く
+     （html{scroll-behavior:smooth}）＝ 止まる前に測ると、その動きを「切り替えで画面が動いた」と数えてしまう。600コマで止まらなければ、そのまま進む（下の判定が落とす）。 */
+  const still = () => ev(() => new Promise(r => { let y = scrollY, n = 0, k = 0;
+    const f = () => { if (++k > 600) return r(false); if (scrollY === y) { if (++n >= 5) return r(true); } else { y = scrollY; n = 0; } requestAnimationFrame(f); };
+    requestAnimationFrame(f); }));
+  try {
+    ok(ready, `${tag}: 開ける`);
+    await livTab(p);
+    const b0 = await ev(livSee);
+    if (w === 1440) {
+      /* LS2 */
+      const keys = b0.cards.map(c => c.k), ls2 = [];
+      const judge = (r, k, how) => {
+        const card = r.cards.find(c => c.k === k), ids = L.on ? L.rows.filter(x => x.town === k).map(x => x.id) : [], rows = r.panels.flatMap(g => g.rows);
+        if (!card) { ls2.push(`${how} ${k}: カードが無い`); return; }
+        if (!same(r.tds, [card.td])) ls2.push(`${how} ${k}: 見えている詳細 ${r.tds.join('・') || '無し'}（あるべき ${card.td} だけ）`);
+        const on = r.cards.filter(c => c.on).map(c => c.k);
+        if (!same(on, [k])) ls2.push(`${how} ${k}: 押された印 ${on.join('・') || '無し'}`);
+        const off = [...new Set(rows.filter(x => x.mark !== ids.includes(x.id)).map(x => `${x.id}${x.mark ? 'に印' : 'に印が無い'}`))];
+        const gone = ids.filter(id => !rows.some(x => x.id === id)).map(id => `${id}の行が無い`);
+        if (off.length || gone.length) ls2.push(`${how} ${k}: 棒の行 ${[...off, ...gone].join('・')}（台帳のこの街の行 ${ids.join('・') || '無し'}）`);
+        if (r.url !== b0.url || r.hist !== b0.hist) ls2.push(`${how} ${k}: 住所か履歴が動いた（${b0.hist} → ${r.hist} 段）`);
+      };
+      for (const k of [...keys.slice(1), keys[0]]) {
+        await still();
+        await ev(q => document.querySelector(q).scrollIntoView({ block: 'center', behavior: 'instant' }), LIV_TW(k));
+        await (await p.$(LIV_TW(k))).click();
+        if (!(await pressed(LIV_TW(k)))) ls2.push(`マウス ${k}: 押しても印が移らない`);
+        judge(await ev(livSee), k, 'マウス');
+      }
+      await still();
+      await ev(q => document.querySelector(q).focus(), LIV_TW(keys[0]));
+      for (let i = 1; i <= keys.length; i++) {
+        const k = keys[i % keys.length];                                   // 2枚め → … → 最後 → Shift+Tab で先頭へ戻る
+        if (i < keys.length) await key('Tab'); else for (let j = 1; j < keys.length; j++) await key('Tab', true);
+        const a = (await ev(livSee)).active;
+        if (a !== `town:${k}`) { ls2.push(`キーボード ${k}: Tab で着かない（焦点 ${a}）`); continue; }
+        await key('Enter');
+        if (!(await pressed(LIV_TW(k)))) ls2.push(`キーボード ${k}: Enter で印が移らない`);
+        judge(await ev(livSee), k, 'キーボード');
+      }
+      ok(keys.length > 0 && !ls2.length, `${tag}: カードを押すと、その街の詳細だけが出る（キーボードでも）・棒の行の印が移る`, ls2.slice(0, 6).join(' ／ '));
+      /* LS3 */
+      if (!L.on) ok(!b0.rent && !b0.btns.length, `${tag}: 家賃の棒が無い都市（台帳）には、間取りの切り替えも無い`, `棒の組 ${b0.rent ? '在る' : '無い'}・ボタン ${b0.btns.length}`);
+      else {
+        const ls3 = [], r0 = await ev(livSee), n = L.bars.length, KEYS = ['Enter', 'Space'];
+        const judge3 = (r, k, how) => {
+          const on = r.btns.filter(b => b.on).map(b => b.k), shown = r.panels.filter(g => g.shown).map(g => g.k);
+          if (!same(on, [k])) ls3.push(`${how}: 押された印 ${on.join('・') || '無し'}（あるべき ${k}）`);
+          if (!same(shown, [k])) ls3.push(`${how}: 出ている組 ${shown.join('・') || '無し'}（あるべき ${k} だけ）`);
+          if (r.url !== b0.url || r.hist !== b0.hist) ls3.push(`${how}: 住所か履歴が動いた（${b0.hist} → ${r.hist} 段）`);
+        };
+        if (!r0.rent || !r0.sw) ls3.push(r0.rent ? '切り替えのボタンが見えない' : '家賃の棒の組が無い（台帳には在る）');
+        else {
+          judge3(r0, L.lead, '開いた時');
+          await still();
+          await ev(q => { const e = document.querySelector(q); e.scrollIntoView({ block: 'center', behavior: 'instant' }); e.focus({ preventScroll: true }); }, LIV_SZ(L.bars[0]));
+          for (let i = 1; i <= n; i++) {
+            const k = L.bars[i % n], how = KEYS[(i < n ? i - 1 : n - 1) % 2];   // Enter と Space を交互に（どちらも1回は押す）
+            if (i < n) await key('Tab'); else for (let j = 1; j < n; j++) await key('Tab', true);
+            await still();
+            const a = await ev(livSee);
+            if (a.active !== `size:${k}`) { ls3.push(`${k}: Tab で着かない（焦点 ${a.active}）`); continue; }
+            await key(how);
+            if (!(await pressed(LIV_SZ(k)))) ls3.push(`${k}: ${how} で切り替わらない`);
+            await still();
+            const r = await ev(livSee);
+            judge3(r, k, `${k}（${how}）`);
+            if (r.active !== `size:${k}`) ls3.push(`${k}（${how}）: 焦点が押したボタンから外れた（${r.active}）`);
+            if (Math.abs(r.y - a.y) > 1) ls3.push(`${k}（${how}）: 画面が動いた（${Math.round(r.y - a.y)}px）`);
+          }
+        }
+        ok(!ls3.length, `${tag}: 間取りの切り替え ── ボタンにキーボードで着いて Enter／Space で切り替わる・出ている組は1つ・履歴を積まない`, ls3.slice(0, 6).join(' ／ '));
+      }
+      /* LS4 */
+      if (!L.on) ok(!b0.tracks, `${tag}: 家賃の棒が無い都市（台帳）には、棒の土台も無い`, `土台 ${b0.tracks}本`);
+      else {
+        const vals = L.rows.flatMap(x => L.bars.map(k => x.month[k])).filter(v => typeof v === 'number' && v > 0);
+        const end = vals.length ? axisEnd(Math.max(...vals)) : NaN;
+        const ratio = (id, k) => { const x = L.rows.find(y => y.id === id), v = x ? x.month[k] : null; return typeof v === 'number' && v > 0 ? v / end : null; };
+        const ls4 = [], all = [];
+        const take = (g, how) => {
+          for (const x of L.rows) if (ratio(x.id, g.k) !== null && !g.rows.some(r => r.id === x.id && r.track > 0)) ls4.push(`${how} ${g.k}/${x.id}: 土台が無い`);
+          for (const r of g.rows) {
+            const v = ratio(r.id, g.k);
+            if (v === null) { if (r.track !== null) ls4.push(`${how} ${g.k}/${r.id}: 額の無い行に土台`); continue; }
+            if (!(r.track > 0)) continue;
+            all.push([`${how} ${g.k}/${r.id}`, r.track]);
+            if (!(Math.abs(r.fill - r.track * v) <= 0.6)) ls4.push(`${how} ${g.k}/${r.id}: 棒 ${(+r.fill).toFixed(1)}px（土台 ${r.track.toFixed(1)}px × 台帳の比 ${v.toFixed(4)} ＝ ${(r.track * v).toFixed(1)}px）`);
+          }
+        };
+        const sweep = async how => {
+          for (const k of L.bars) {
+            await ev(q => document.querySelector(q).click(), LIV_SZ(k));
+            if (!(await pressed(LIV_SZ(k)))) { ls4.push(`${how} ${k}: 切り替わらない`); continue; }
+            const g = (await ev(livSee)).panels.find(x => x.k === k && x.shown);
+            if (g) take(g, how); else ls4.push(`${how} ${k}: 組が出ない`);
+          }
+        };
+        if (!b0.rent) ls4.push('家賃の棒の組が無い（台帳には在る）');
+        else {
+          await sweep('JPY');
+          const cur = await ev(() => { window.PVCurrency.set('USD'); return window.PVCurrency.get(); });
+          if (cur !== 'USD') ls4.push(`USD に換わらない（${cur}）`); else await sweep('USD');
+          await ev(() => window.PVCurrency.set('JPY'));
+          await ev(LIV_BARE);
+          const f = await ev(livSee);
+          for (const k of L.bars) { const g = f.panels.find(x => x.k === k && x.shown); if (g) take(g, 'HTML のまま'); else ls4.push(`HTML のまま ${k}: 組が出ない`); }
+          const ws = all.map(x => x[1]), lo = Math.min(...ws), hi = Math.max(...ws);
+          if (!all.length) ls4.push('土台を1本も測れていない');
+          else if (hi - lo > 0.5) ls4.push(`土台の長さが揃わない ${lo.toFixed(1)}px（${all.find(x => x[1] === lo)[0]}）〜 ${hi.toFixed(1)}px（${all.find(x => x[1] === hi)[0]}）`);
+        }
+        ok(!ls4.length, `${tag}: 棒の土台は、どの行も・どの間取りの組も・USD に換えても・切り替えが動かない形でも同じ長さ。棒は土台に対して額の比`, ls4.slice(0, 6).join(' ／ '));
+      }
+    } else if (w === 390) {
+      /* LS7 */
+      if (!L.on) ok(!b0.rent && !b0.btns.length, `${tag}: 家賃の棒が無い都市（台帳）には、棒の組も切り替えのボタンも無い`, `棒の組 ${b0.rent ? '在る' : '無い'}・ボタン ${b0.btns.length}`);
+      else {
+        await ev(LIV_BARE);
+        const r = await ev(livSee), ls7 = [];
+        if (!r.rent) ls7.push('家賃の棒の組が無い（台帳には在る）');
+        if (r.sw) ls7.push('切り替えのボタンが見えている');
+        if (!same(r.panels.map(g => g.k), L.bars)) ls7.push(`組 ${r.panels.map(g => g.k).join('・') || '無し'}（台帳 ${L.bars.join('・')}）`);
+        for (const g of r.panels) { if (!g.shown) ls7.push(`${g.k}: 組が出ていない`); else if (!g.cap) ls7.push(`${g.k}: 組の見出しが出ていない`); }
+        ok(!ls7.length, `${tag}: 切り替えが動かなかった時の形 ── どの間取りの棒も出たまま・切り替えのボタンは出ない`, ls7.join(' ／ '));
+      }
+    }
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* 場面 living の絵（PV_GLANCE_SHOT がある時だけ・合否には使わない）。板が画面より高い時は、画面の高さだけを板が入るまで伸ばし、
+   上の帯（ヘッダーとタブ）の下へ板を寄せてから撮る（幅と端末の種類は変えない ＝ 組み方は測った時のまま）。 */
+async function livShots(browser, s, [w, h]) {
+  const dir = process.env.PV_GLANCE_SHOT.replace(/\/$/, () => ''), L = LIV_BARS[s];
+  const { ctx, p } = await open(browser, s, w, h, 'empty');
+  const shot = async state => {
+    const tall = await p.evaluate(() => Math.ceil(document.getElementById('pvg-p-living').getBoundingClientRect().height));
+    await p.setViewport({ width: w, height: Math.max(h, tall + 260), deviceScaleFactor: 1, isMobile: w < 900, hasTouch: w < 1100 });
+    await p.evaluate(() => new Promise(r => { scrollTo({ top: scrollY + document.getElementById('pvg-p-living').getBoundingClientRect().top - 220, behavior: 'instant' }); requestAnimationFrame(() => requestAnimationFrame(r)); }));
+    await (await p.$('#pvg-p-living')).screenshot({ path: `${dir}/living-${s}-${w}-${state}.png` });
+  };
+  try {
+    await livTab(p);
+    await shot('open');
+    const towns = await p.evaluate(() => [...document.querySelectorAll('.pvg [data-pvg-towns] .pvg-town[data-town]')].map(b => b.getAttribute('data-town')));
+    if (towns[1]) { await p.evaluate(q => document.querySelector(q).click(), LIV_TW(towns[1])); await shot('town2'); }
+    if (L.on && L.bars.length) { await p.evaluate(q => document.querySelector(q).click(), LIV_SZ(L.bars[Math.min(2, L.bars.length - 1)])); await shot('size3'); }
+    await p.evaluate(() => window.PVCurrency.set('USD'));
+    await shot('cur-USD');
+    await p.evaluate(() => { window.PVCurrency.set('JPY'); document.documentElement.setAttribute('data-theme', 'dark'); });
+    await shot('dark');
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
 /* 1枚のページの幅だけを変えて測る（container query は、幅を変えた瞬間に効く）。
    414 ＝ 大きいスマホ／600・647 ＝ 3レターが写真の上に在る、いちばん広い画面／608 ＝ 3列に替わった直後／649 ＝ 国名の行へ戻った直後。 */
 const CARD_W = [320, 351, 375, 390, 414, 600, 608, 647, 649, 768, 1001, 1440];
@@ -6056,6 +6260,7 @@ try {
   if (wantS('work')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runWork(browser, s, v));
   if (wantS('work')) for (const s of ONLY) work.push(() => runWorkSizes(browser, s));
   if (wantS('work0')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runWork0(browser, s, v));
+  if (wantS('living')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || [390, 1440].includes(x[0]))) work.push(() => runLiving(browser, s, v));
   if (wantS('ggold') && (WANT_S || !argOf('--only'))) for (const lang of ['ja', 'en']) {
     const vs = VIEWS.filter(x => GG_W.includes(x[0]));
     for (const v of vs) work.push(() => runGGOld(browser, lang, v));
