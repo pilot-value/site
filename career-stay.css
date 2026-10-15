@@ -11,10 +11,16 @@
 .crs-icw{display:inline-flex;flex:none}
 
 /* ── 1行だけの状態（準備中・鍵・0件・読めない）──────────────────── */
-.crs-line{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;
+.crs-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:44px;padding:8px 14px;
           border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-bg-sub);
           color:var(--pv-ink-2);font-size:14px;line-height:1.6}
+/* 会社ページでは pv-glance.css の .pvg p が余白を0にする。1行の状態の枠には、ここで余白を戻す（career.html と同じ形）。 */
+.pvg .crs-line{padding:8px 14px}
 .crs-lock .crs-icw{color:var(--pv-ink-3)}
+/* 鍵の1行の字は、鍵の印の横で折り返す（印だけが1行に残らない）。入口（ログインの鍵が無い人だけの「ログイン」）は右へ寄せ、
+   入らない幅では下の行へ回る。 */
+.crs-lock > span:not(.crs-icw){flex:1 1 12em;min-width:0}
+.crs-lock > a{margin-left:auto}
 .crs-err{justify-content:space-between;flex-wrap:wrap}
 /* この板は career.html の外（会社ページ）でも使う。hidden を display の指定に負けさせない。 */
 .crs [hidden]{display:none !important}
@@ -91,6 +97,8 @@
 .crs-act[data-sure]{background:var(--pv-orange-soft);border-color:var(--pv-orange-ink)}
 .crs-act:active{transform:scale(.97)}
 .cr .crs-act:focus-visible,.cr .crs-btn:focus-visible{border-radius:999px}
+/* 会社ページ（airlines/…）には .cr の根が無い。そこでも押せるものに焦点の輪を出す。 */
+.crs-act:focus-visible,.crs-btn:focus-visible,.crs-map:focus-visible,.crs-ph:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 
 .crs-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 20px;
          border:0;border-radius:999px;background:var(--pv-accent-dark);color:var(--cr-on,white);

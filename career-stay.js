@@ -2,9 +2,14 @@
  *
  * ・開けるかどうかは**サーバーが返した state だけ**で決める（locked／open）。
  *   画面でプロフィール・給与の鍵・ブラウザの保存領域を見て開けない。
+ * ・鍵の1行に「ログイン」の入口を添えるかどうかだけは、この端末にログインの鍵が在るかで決める
+ *   （鍵が無い人にだけ添える。会員には入口を出さない）。開ける・開けないには使わない。
+ * ・見てよいのは、オーナーと、オーナーが承認した人だけ（db/stays.sql）。給与の提出・ログイン・プロフィールでは開かない
+ *   ＝ 鍵の1行の横に、給与の提出への入口を置かない。
  * ・Supabase の入口は PVCareer.client()（career-live.js が作る）。ここで createClient しない。
- *   まだ無ければ欄に触らず、cr:show のたびに見直す（error にしない）。
- * ・取ってきた字は全部 textContent。リンクは https の Google マップだけ（ほかは検索のリンクに置き換える）。
+ *   まだ無ければ欄に触らず、cr:show のたびに見直す。ページを読み終えても無ければ「読み込めませんでした」にする。
+ * ・一覧の読み出しは STAY_WAIT まで待つ（来なければ「読み込めませんでした」＋「もう一度」。自動のやり直しはしない）。
+ * ・取ってきた字は全部 textContent。取ってきた行き先のリンクは https の Google マップだけ（ほかは検索のリンクに置き換える）。
  * ・写真は端末でキャンバスに描き直して JPEG にしてから送る（手本は roadmap.js の「添付の絵」）。
  *   幅と高さは**サーバーが返したもの**を使う。返ってきた b64 は Blob にして出し、
  *   使い終わった URL は revokeObjectURL（画面を離れたとき・描き直すとき・ログインが変わったとき）。
@@ -25,9 +30,38 @@
     return src ? src.split('#')[0].split('?')[0].replace(/[^\/]*$/, '') : '';
   })();
 
+  /* 会社ページ（airlines/…）は1つ下の階層に在る。career-live.js と同じ決め方。 */
+  var GL = !!d.body && d.body.getAttribute('data-pv-glance') === '1';
+  var UP = GL ? '../' : '';
+  function enc(s) { return encodeURIComponent(String(s)); }
+  function loginHref() {
+    if (GL) return UP + 'login.html?redirect=' + enc(location.pathname.replace(/^.*\/airlines\//, 'airlines/'));
+    return 'login.html?redirect=' + enc('career.html' + location.search);
+  }
+  function backHash() {
+    var h = String(location.hash || '');
+    return /^#[A-Za-z0-9_-]{1,40}$/.test(h) ? h : '';
+  }
+  /* この端末にログインの鍵が在るか。★入口を添えるかどうかを決めるためだけ（開けるかどうかは、いつもサーバーの答え）。
+     鍵が在る人（会員・もう使えない鍵が残っている人）には何も添えない。鍵が片づけば、ログインの入口が戻る。 */
+  function loggedIn() {
+    try { return !!(w.PVSession && typeof w.PVSession.hasToken === 'function' && w.PVSession.hasToken()); }
+    catch (e) { return false; }
+  }
+  /* 鍵の1行に添える、ただ1つの入口（ログインの鍵が無い人だけ）。行き先は押した時にもう一度決める
+     （描いたあとで都市やタブを移っていても、押した時の画面へ戻す）。 */
+  function entry() {
+    var a = el('a', 'crl-link', T.login);
+    a.setAttribute('data-crs-entry', 'login');
+    a.href = loginHref() + enc(backHash());
+    a.addEventListener('click', function () { a.href = loginHref() + enc(backHash()); }, true);
+    return a;
+  }
+
   var T = {
-    off:        '準備中です',
+    off:        '準備中',
     locked:     '確認済みのパイロットだけが見られます',
+    login:      'ログイン',
     err:        '読み込めませんでした',
     retry:      'もう一度',
     none:       'まだ登録がありません',
@@ -160,9 +194,30 @@
       return c;
     });
   }
-  function rpc(name, args) {
+  var STAY_WAIT = 10000;   // 一覧の返事を待つ上限（ミリ秒）。★1回だけ。自動のやり直しはしない（「もう一度」を押した人だけがやり直す）
+  /* p が ms のうちに答えなければ、読めなかったものとして返す（stop で通信も止める）。あとから届いた答えは使わない。 */
+  function within(p, ms, stop) {
+    return new Promise(function (done) {
+      var over = false;
+      var t = w.setTimeout(function () {
+        over = true;
+        if (stop) { try { stop(); } catch (e) { /* 止められなくても、欄は終わらせる */ } }
+        done({ __err: { message: 'timeout' } });
+      }, ms);
+      p.then(function (v) { if (over) return; w.clearTimeout(t); done(v); });
+    });
+  }
+  /* ctl を渡した読み出しだけが止められる（一覧の読み出し）。保存（追加・修正・写真・削除）は渡さない
+     ＝ 止めない（止めても、サーバーではもう保存されているかもしれない）。 */
+  function rpc(name, args, ctl) {
     return client().then(function (c) {
-      return Promise.resolve(c.rpc(name, { p: args })).then(function (r) {
+      var q = c.rpc(name, { p: args });
+      if (ctl && w.AbortController && q && typeof q.abortSignal === 'function') {
+        var ac = new w.AbortController();
+        q = q.abortSignal(ac.signal);
+        ctl.abort = function () { ac.abort(); };
+      }
+      return Promise.resolve(q).then(function (r) {
         if (!r) return { __err: {} };
         if (r.error) return { __err: r.error, __st: r.status };
         return r.data == null ? { __err: {} } : r.data;
@@ -224,6 +279,7 @@
   }
   /* 欄に中身を置く。前の中身の写真はここで手放す。 */
   function put(slot, state, node) {
+    slot.removeAttribute('data-who');
     while (slot.firstChild) slot.removeChild(slot.firstChild);
     if (node) slot.appendChild(node);
     slot.setAttribute('data-state', state);
@@ -261,10 +317,15 @@
     return true;
   }
 
+  var LOADED = d.readyState === 'complete';   // ページを読み終えたか（読み終えても口が無ければ、待つのをやめる）
   function scan() {
     forgetIfGone();
     LIVE.slice().forEach(function (s) { if (!shown(s)) drop(s); });
-    if (!hasClient()) return;                 /* まだ無い。次の cr:show で見直す */
+    if (!hasClient()) {
+      /* ページを読み終えても口が無い ＝ 読めなかった（「—」のまま黙らない）。やり直しは、同じ道をもう一度通る。 */
+      if (LOADED) slots().forEach(function (s) { if (shown(s) && /\|[A-Z]{3}$/.test(keyOf(s)) && !ST.get(s)) load(s, {}); });
+      return;
+    }
     slots().forEach(function (s) {
       if (!shown(s)) return;
       var st = ST.get(s), key = keyOf(s);
@@ -291,7 +352,9 @@
     put(slot, 'loading', sk);
 
     var k = st.key.split('|');
-    rpc('pv_stays', { airline: k[0], iata: k[1] }).then(function (v) {
+    /* 返事が STAY_WAIT のうちに来なければ、読めなかったことにする（待ちの絵のまま止まらない）。やり直しは「もう一度」だけ。 */
+    var ctl = {};
+    within(rpc('pv_stays', { airline: k[0], iata: k[1] }, ctl), STAY_WAIT, function () { if (ctl.abort) ctl.abort(); }).then(function (v) {
       /* 「見られない」と返ってきたら、ほかの都市で持っていた開いた答えを全部捨てる
          （見てよいかはサーバーの最新の答えだけが決める。前に開いていた都市を描き直さない）。
          ⚠️ 捨てるのは開いた答えだけ。「見られない」の答えまで捨てると、鍵の無い人（＝ほとんどの人）が
@@ -309,8 +372,12 @@
       }
       if (ST.get(slot) !== st) return;        /* 追い越された答えは描かない */
       if (missing(v)) { v = { ok: true, state: 'off' }; }
+      else if (v && v.ok === false && (v.status === 'bad_airline' || v.status === 'bad_iata')) {
+        /* この会社・この空港は保存先に無い ＝ この会社については、まだつながっていない（読めなかったのでも、0件でもない）。 */
+        v = { ok: true, state: 'off' };
+      }
       else if (bad(v) || (v.state !== 'locked' && v.state !== 'open')) { paintError(slot); return; }
-      CACHE[st.key] = v;
+      if (v.state !== 'off') CACHE[st.key] = v;      /* 「準備中」は覚えない（都市を開き直した時に聞き直す） */
       paint(slot, st, v, opt);
     });
   }
@@ -319,11 +386,15 @@
   function paint(slot, st, v, opt) {
     if (v.state === 'off') { put(slot, 'off', el('p', 'crs-line', T.off)); return; }
     if (v.state === 'locked') {
-      /* ★鍵の印と1行だけ。名前・件数・写真・追加の入口は、そもそも届いていない。 */
+      /* ★鍵の印と1行。入口は、ログインの鍵が無い人にだけ「ログイン」の1つ（会員には何も添えない）。
+         ほかの人の名前・件数・写真は、そもそも届いていない。 */
+      var who = loggedIn() ? 'member' : 'login';
       var lk = el('p', 'crs-line crs-lock');
       lk.appendChild(icon('lock'));
       lk.appendChild(el('span', '', T.locked));
+      if (who === 'login') lk.appendChild(entry());
       put(slot, 'locked', lk);
+      slot.setAttribute('data-who', who);
       return;
     }
     paintOpen(slot, st, v, opt);
@@ -1052,6 +1123,8 @@
   /* career.js が画面を出し終えるたびに #cr で cr:show を投げる。
      このファイルより先に1回目が出ていることがあるので、読み込まれた時点でも1回見る。 */
   d.addEventListener('cr:show', function () { scan(); }, true);
+  /* 読み終えた時に、もう一度だけ見る（口がまだ無い欄を「読み込めませんでした」で終わらせる）。 */
+  w.addEventListener('load', function () { LOADED = true; scan(); });
   w.addEventListener('pagehide', function () {
     LIVE.forEach(function (s) { revoke(ST.get(s)); });
   });
