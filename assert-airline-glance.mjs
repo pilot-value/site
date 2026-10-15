@@ -1495,6 +1495,16 @@ head('生成側と CSS の止め・読む人が替わった時の月の勤務（
   ok(/drop\('wkv:'\)/.test(body) && /drop\('note:'\)/.test(body) && /reset\(\[[^\]]*'work'[^\]]*\]\)/.test(body) && /reset\(\[[^\]]*'notes'[^\]]*\]\)/.test(body),
     '読む人が替わったら、月の勤務と補足も聞き直す（setUid が wkv: と note: を捨て、work / notes を描き直す）');
 }
+head('口コミの一覧の部品の持ち越し（区分の絵・「要約のもと」の札の字）');
+{
+  /* E9.5・A41：区分のタイルの絵は、区分の名前で引く（並び順の番号 CAT_ICONS[i] で引くと、区分と絵がずれる）。
+     「要約のもと」の札の字は、日本語と英語で1行ずつ。英語のページには要約の欄が無いので、英語の札の字はここでしか見られない。
+     注釈を落とした字で読む（注釈の中に書いても、ここは赤にならない）。 */
+  const ui = noJsCmt(read('airlines/airline-reviews-ui.js')), lines = ui.split('\n'), n = t => lines.filter(l => l.includes(t)).length;
+  ok(!ui.includes('CAT_ICONS[i]'), '口コミの一覧の部品は、区分のタイルの絵を並び順で選ばない（CAT_ICONS[i] が無い）');
+  const TAG_JA = "sumSrcTag: '要約のもと',", TAG_EN = "sumSrcTag: 'Used in the summary',";
+  ok(n(TAG_JA) === 1 && n(TAG_EN) === 1, '「要約のもと」の札の字は、日本語「要約のもと」と英語「Used in the summary」の1行ずつ', `日本語 ${n(TAG_JA)}行・英語 ${n(TAG_EN)}行`);
+}
 
 if (STATIC_ONLY) {
   console.log(`\n══ ${pass} pass / ${fail} fail ══（ブラウザを使う検査は流していない）`);
@@ -3180,6 +3190,7 @@ async function runRated(browser, s, [w, h, kind]) {
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
+    if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-key-${s}-${w}-overview`);
     {
       /* 口コミの一覧（口コミのタブ）のカード。届いた2件が描かれるまで待つ ── 字として出たか、タグとして働いたかのどちらか。 */
       const META = '#airline-review-section .rv-reviewer-meta';
@@ -3255,6 +3266,7 @@ async function runRated404(browser, s, [w, h, kind]) {
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-off-${s}-${w}-overview`);
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -3273,6 +3285,31 @@ const sumLeakOf = p => p.evaluate((leak, ids) => {
   }
   return bad;
 }, SUM_LEAK, SUM_SRC);
+/* 要約の欄の見本の絵（PV_GLANCE_SHOT=<フォルダ> がある時だけ撮る・検査の合否には使わない。M1）。名前は sum-<形>-<会社>-<幅>-<タブ>[-dark].png。
+   撮るのは評価・口コミのカード（#pvg-score）だけ。カードが画面より高い時は、画面の高さだけをカードが入るまで伸ばし、上の帯（ヘッダーとタブ）の
+   下へカードを寄せてから撮る（そのままだと、上の帯がカードの頭に重なって写る）。撮ったあと、画面の大きさを元へ戻す（このあとの測りは元の大きさで）。
+   dark ＝ 同じ形を暗い色でもう1枚（data-theme を替えて撮り、元の値へ戻す。色の決まりは data-theme で切り替わる）。 */
+async function sumShot(p, [w, h], name, dark) {
+  if (!process.env.PV_GLANCE_SHOT) return;
+  const dir = process.env.PV_GLANCE_SHOT.replace(/\/$/, () => ''), SEL = '#pvg-score', view = hh => ({ width: w, height: hh, deviceScaleFactor: 1, isMobile: w < 900, hasTouch: w < 1100 });
+  const tall = await p.evaluate(sel => { const e = document.querySelector(sel); return e && e.getClientRects().length ? Math.ceil(e.getBoundingClientRect().height) : 0; }, SEL);
+  if (!tall) return;
+  const frame = () => p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await p.setViewport(view(Math.max(h, tall + 260)));
+  await p.evaluate(sel => new Promise(r => { scrollTo({ top: scrollY + document.querySelector(sel).getBoundingClientRect().top - 220, behavior: 'instant' }); requestAnimationFrame(() => requestAnimationFrame(r)); }), SEL);
+  const box = await p.$(SEL);
+  await box.screenshot({ path: `${dir}/${name}.png` });
+  if (dark) {
+    const was = await p.evaluate(() => { const root = document.documentElement, was = root.getAttribute('data-theme');
+      root.setAttribute('data-theme', 'dark');
+      return was; });
+    await frame();
+    await box.screenshot({ path: `${dir}/${name}-dark.png` });
+    await p.evaluate(was => { const root = document.documentElement; if (was === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', was); }, was);
+  }
+  await p.setViewport(view(h));
+  await frame();
+}
 /* 要約の欄が通った形（SUM_WATCH が控えた [形, 高さ]）：「読み込み中」→ 最後の形 だけを通り、最後の形で終わる（ほかの形を先に見せない）。
    jump を見る時は、読み込み中に取っていた高さと、いまの高さの差が 2px まで（答えが来て下が動かない）。 */
 const SUM_FINAL = { login: 'locked', locked: 'locked', few: 'empty', none: 'empty', error: 'error' };
@@ -3335,10 +3372,14 @@ async function runRatedOne(browser, s, [w, h, kind], mode) {
       const pr = await ev(() => window.__pvg.probe('#pvg-score'));
       ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
     }
+    if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-${want}-${s}-${w}-overview`);
     /* 口コミのタブへ（概要と同じ1つの箱）。SUM_WANT で形だけを見る ── scoreBad は概要の書く入口を見るので、ここでは使わない（A35）。 */
     await ev(sel => document.querySelector(sel).click(), '.pvg-tabs [data-pvg-tab="reviews"]');
     const there = (await until(t => window.PVGlance.at() === t, 'reviews')) && (await until(SETTLED));
     const sc2 = there ? await ev(() => window.__pvg.score()) : null, c2 = sc2 && sc2.card;
+    /* E9.6：未ログインの人の口コミのタブ。一覧（.pvg-rvl）の中のログインの入口（login.html?return=）も、口コミのタブへ戻る（%23reviews まで付ける）。 */
+    const rvl = login && there ? await ev(() => [...document.querySelectorAll('.pvg-rvl a')].filter(a => (a.getAttribute('href') || '').includes('login.html?return='))
+      .map(a => ({ href: a.getAttribute('href'), on: a.getClientRects().length > 0 && a.checkVisibility({ visibilityProperty: true }) }))) : null;
     if (!there) face.push('口コミのタブへ切り替わらない・欄が落ち着かない');
     else if (!c2 || !c2.sum) face.push('口コミのタブで、評価・口コミのカードか要約の欄が見えていない');
     else {
@@ -3348,6 +3389,11 @@ async function runRatedOne(browser, s, [w, h, kind], mode) {
       B.d.push(...seqBad(c2.sum, want, false).map(x => `口コミのタブ：${x}`));
     }
     ok(!face.length, `${tag}: 口コミのタブでも、要約の欄は同じ「${want}」の形`, face.join(' ／ '));
+    /* 見えている入口が1つも無い時は、通ったとは数えずに知らせる（黙って緑にしない）。 */
+    if (login && rvl) {
+      if (!rvl.some(x => x.on)) notice(`${tag}: not applicable: no login link in the list（口コミのタブの一覧の中に、見えているログインの入口が無い）`);
+      else ok(rvl.every(x => x.href.endsWith('%23reviews')), `${tag}: 口コミのタブの一覧の中のログインの入口（login.html?return=）は、どれも %23reviews まで付けて、口コミのタブへ戻る`, rvl.map(x => `${x.href}${x.on ? '' : '（隠れている）'}`).join(' ／ '));
+    }
     ok(!B.b.length, `${tag}: 概要と口コミのタブの両方で、ページのソース（属性の中も）と手元の保存に、届いた要約の文も元の口コミの番号も無い（閉じた形は届いた中身を描かない）`, B.b.join(' ／ '));
     ok(!B.c.length, `${tag}: 概要と口コミのタブの両方で、カードの錠前の1行とログインの入口は ${login ? `「${SUM_LOGIN_TEXT}」1つ・ログイン1つ` : '1つまで'}（同じ案内を重ねない）`, B.c.join(' ／ '));
     ok(!B.d.length, `${tag}: 要約の欄は「読み込み中」→「${SUM_FINAL[want]}」だけを通る${want === 'error' ? '' : '・答えが来ても高さが動かない（2px まで）'}`, B.d.join(' ／ '));
@@ -3429,11 +3475,13 @@ async function runRatedOpenAt(browser, s, [w, h, kind], mode) {
       const pr = await ev(() => window.__pvg.probe('#pvg-score'));
       ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
     }
+    if (process.env.PV_GLANCE_SHOT && !max) await sumShot(p, [w, h], `sum-open-${s}-${w}-overview`);
     /* 口コミのタブへ（概要と同じ1つの箱）── 押し方は WP 9 の場面と同じ。 */
     await ev(sel => document.querySelector(sel).click(), '.pvg-tabs [data-pvg-tab="reviews"]');
     const there = (await until(t => window.PVGlance.at() === t, 'reviews')) && (await until(SETTLED));
     if (!there) for (const k of Object.keys(B)) B[k].push('口コミのタブへ切り替わらない・欄が落ち着かない');
     else { const R = await faceBad('reviews'); for (const k of Object.keys(B)) B[k].push(...R[k]); }
+    if (process.env.PV_GLANCE_SHOT && !max && there && w === 1440) await sumShot(p, [w, h], `sum-open-${s}-${w}-reviews`, true);
     ok(!B.a.length, `${tag}: 概要と口コミのタブの両方で、見出し「口コミの要約」・「良い点」「気になる点」・点は ${want.join('＋')}（届いた字のとおり）`, B.a.join(' ／ '));
     if (!max) {
       ok(!B.b.length, `${tag}: 概要と口コミのタブの両方で、下の1行は「AI 要約」「会員の口コミ 3件から」「2026-09-30 更新」`, B.b.join(' ／ '));
@@ -3442,6 +3490,15 @@ async function runRatedOpenAt(browser, s, [w, h, kind], mode) {
     }
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
     if (max) return;
+    /* E9.5（持ち越し）：区分のタイル6枚は、絵（.rcg-icon の svg）を1つずつ持ち、6つの絵は互いに違う（区分ごとの絵。並び順で選ばない）。
+       タイルの右の矢印も svg なので、数えるのは絵の箱の中だけ。DOM を読むだけ（タイルが画面に見えている必要は無い）。 */
+    {
+      const t = await ev(() => [...document.querySelectorAll('#airline-review-cats .rcg-card')].map(c => ({ icons: c.querySelectorAll('.rcg-icon').length, svg: [...c.querySelectorAll('.rcg-icon svg')].map(x => x.outerHTML),
+        key: (/pvSetReviewCat\('([a-z]+)'\)/.exec(c.getAttribute('onclick') || '') || [])[1] || '?' })));
+      const single = t.filter(x => x.icons === 1 && x.svg.length === 1), dup = single.filter((x, i) => single.some((y, j) => j < i && y.svg[0] === x.svg[0])).map(x => x.key);
+      ok(t.length === 6 && single.length === 6 && !dup.length, `${tag}: 区分のタイル6枚に絵が1つずつ・6つの絵は互いに違う（区分ごとの絵）`,
+        `タイル ${t.length}枚・絵の数 ${t.map(x => `${x.key} ${x.svg.length}`).join('・')}${dup.length ? `・前のタイルと同じ絵 ${dup.join('・')}` : ''}`);
+    }
     /* f) 元の口コミへ辿る。カード ＝ 一覧（#airline-review-section）の会員の口コミ（本文に「検査用の本文」が在る。
           本文の頭には分類の札「【企業文化】」などが付くので「で始まる」では測れない）。
           公開情報からの引用のカードも同じ形で並ぶが、数えない・隠さない。札は一覧ぜんぶで数える（引用のカードに付いても赤）。 */
