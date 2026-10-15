@@ -516,7 +516,7 @@
         /* 要約の点：その分類で口コミを開き、もとの口コミに札を付ける（タブを替えるのは向こうの1回だけ）。 */
         e.preventDefault();
         w.pvSetReviewCat(cat, (rev.getAttribute('data-pvg-ids') || '').split(',').filter(Boolean));
-      } else if (toTab('reviews')) e.preventDefault();
+      } else if (plain && toTab('reviews')) e.preventDefault();
     }
   });
   d.addEventListener('keydown', function (e) {

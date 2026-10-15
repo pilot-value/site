@@ -3144,6 +3144,7 @@ async function runRated(browser, s, [w, h, kind]) {
   const tag = `${s} ${w}（評価が在る時）`;
   const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rated');
   const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
   try {
     ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
     await plateWords(p, s, tag);
@@ -3195,6 +3196,30 @@ async function runRated(browser, s, [w, h, kind]) {
       if (x.hit) bad.push('書かれたタグの中の命令が動いた');
       ok(!bad.length, `${tag}: 口コミのカードの職位・在籍年数に書かれたタグは、字として出るだけ（働かない）`, bad.join(' ／ '));
     }
+    /* ruling H3（A3）と Z11 b：鍵の無い会員。概要と口コミのタブの両方で、要約の欄は「鍵」の1行だけ（欄の中にリンクが無い）・
+       カードの中で見えている錠前の1行はその1つ・ログインの入口は無い・口コミのタブでは、書く入口がそのタブの2行のボタン1つ（見えている・44px 以上）。
+       ページのソース（属性の中・隠した所も）と手元の保存に、サーバーが混ぜた要約の文も元の口コミの番号も無い（字として出ないだけでは足りない）。 */
+    {
+      const leak = (await sumLeakOf(p)).map(b => `概要：${b}`), bad = [];
+      if (sc.card && sc.card.logins !== 0) bad.push(`概要：カードの中にログインの入口が ${sc.card.logins}つ（あるべき 0）`);
+      await ev(sel => document.querySelector(sel).click(), '.pvg-tabs [data-pvg-tab="reviews"]');
+      const there = (await until(t => window.PVGlance.at() === t, 'reviews')) && (await until(SETTLED));
+      const sc2 = there ? await ev(() => window.__pvg.score()) : null, c2 = sc2 && sc2.card;
+      if (!there) bad.push('口コミのタブへ切り替わらない・欄が落ち着かない');
+      else if (!c2) bad.push('口コミのタブで、評価・口コミのカードが見えていない');
+      else {
+        if (!c2.sum || !SUM_WANT.locked(c2.sum)) bad.push(`口コミのタブ：要約の欄が「locked」の形でない（${c2.sum ? `${c2.sum.state}・${c2.sum.why}・「${c2.sum.text.slice(0, 40)}」・項目 ${c2.sum.items}・入口 ${c2.sum.links}` : '欄が無い'}）`);
+        if (!c2.revs || !same(c2.revs.locks, [SUM_LOCK_TEXT])) bad.push(`口コミのタブ：見えている錠前の行が ${c2.revs ? `${c2.revs.locks.length}つ（${c2.revs.locks.join('｜')}）` : '読めない'}（あるべき「${SUM_LOCK_TEXT}」の1つ）`);
+        if (c2.logins !== 0) bad.push(`口コミのタブ：カードの中にログインの入口が ${c2.logins}つ（あるべき 0）`);
+        const hs = await ev(() => [...document.querySelectorAll('#pvg-score a[href*="submit-review"]')].filter(a => a.getClientRects().length && a.checkVisibility({ visibilityProperty: true })).map(a => Math.round(a.getBoundingClientRect().height)));
+        if (!same(c2.write, [{ k: 'Give & Get', m: RV_GIVE.reviews, stacked: true, href: `../submit-review.html?airline=${s}` }]) || !(hs.length === 1 && hs[0] >= 44)) {
+          bad.push(`口コミのタブ：書く入口が、2行のボタン「Give & Get／${RV_GIVE.reviews}」1つ（44px 以上）でない：${c2.write.map(a => `${a.k || ''}／${a.m}${a.stacked ? '' : '（2行でない）'} → ${a.href}`).join(' ‖ ') || '見えていない'}（高さ ${hs.join('・') || '—'}）`);
+        }
+        for (const b of await sumLeakOf(p)) leak.push(`口コミのタブ：${b}`);
+      }
+      ok(!bad.length, `${tag}: 概要と口コミのタブの両方で、要約は「${SUM_LOCK_TEXT}」の1行だけ（リンク無し）・錠前の1行はその1つ・ログインの入口は無い・口コミのタブの書く入口は「${RV_GIVE.reviews}」の2行のボタン1つ`, bad.join(' ／ '));
+      ok(!leak.length, `${tag}: 概要と口コミのタブの両方で、ページのソース（属性の中も）と手元の保存に、サーバーが混ぜた要約の文も元の口コミの番号も無い`, leak.join(' ／ '));
+    }
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -3205,7 +3230,7 @@ const RATED_W = [390, 768, 1440];
 /* 「点数の付いた口コミは在るが、要約の口がまだ無い時」＝ いまの本番の形（要約の口は未適用・返事は 404）。
    上の場面（要約の口が「鍵の無い人」と答える）では、下の欄の錠前の1行「口コミの投稿で開きます」は隠れる。
    その1行が人の目に見えるのはこちらの形だけなので、**見えていること**はここで測る（字が書かれているだけでは足りない）。 */
-async function runRated404(browser, s, [w, h]) {
+async function runRated404(browser, s, [w, h, kind]) {
   const tag = `${s} ${w}（評価が在る・要約の口が無い時）`;
   const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rated404');
   const ev = (fn, ...a) => p.evaluate(fn, ...a);
@@ -3225,9 +3250,259 @@ async function runRated404(browser, s, [w, h]) {
       if (!same(r.locks, ['口コミの投稿で開きます'])) bad.push(`見えている錠前の行が ${r.locks.length}つ（${r.locks.join('｜')}）── あるべきは「口コミの投稿で開きます」の1つ`);
     }
     ok(!bad.length, `${tag}: 要約の欄は未接続の1行「${SUM_OFF_TEXT}」（件数も作った文も無い）・星と図は点数どおり・錠前の1行「口コミの投稿で開きます」が見えている`, bad.join(' ／ '));
+    const sh = await ev(() => window.__pvg.shape());
+    ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* 要約の文（SUM_LEAK）と元の口コミの番号（SUM_SRC）が、ページのソース（属性の中・隠した所も）と手元の保存に無いか。
+   返すのは見つかった所の文（空なら無い）。開いた要約（鍵を持つ人）の画面には使わない ── 矢印が番号を持つのは決めた形。 */
+const sumLeakOf = p => p.evaluate((leak, ids) => {
+  const src = document.documentElement.outerHTML, bad = [];
+  if (src.includes(leak)) bad.push('ページのソースに、サーバーが混ぜた要約の文が在る');
+  const hit = ids.filter(id => src.includes(id));
+  if (hit.length) bad.push(`ページのソースに、元の口コミの番号が ${hit.length}つ在る`);
+  for (const [n, st] of [['localStorage', () => localStorage], ['sessionStorage', () => sessionStorage]]) {
+    try { const S = st(); for (let i = 0; i < S.length; i++) { const k = S.key(i); if (String(S.getItem(k)).includes(leak)) bad.push(`${n} の ${k} に、要約の文が在る`); } } catch (e) { /* 読めない保存には、何も置けていない */ }
+  }
+  return bad;
+}, SUM_LEAK, SUM_SRC);
+/* 要約の欄が通った形（SUM_WATCH が控えた [形, 高さ]）：「読み込み中」→ 最後の形 だけを通り、最後の形で終わる（ほかの形を先に見せない）。
+   jump を見る時は、読み込み中に取っていた高さと、いまの高さの差が 2px まで（答えが来て下が動かない）。 */
+const SUM_FINAL = { login: 'locked', locked: 'locked', few: 'empty', none: 'empty', error: 'error' };
+function seqBad(sum, want, jump) {
+  const q = (sum && sum.seq) || [], st = q.map(x => x[0]), fin = SUM_FINAL[want], i = st.indexOf(fin), bad = [];
+  if (!(st.length >= 2 && st[0] === 'loading' && st[st.length - 1] === fin && i > 0 && st.slice(0, i).every(x => x === 'loading') && st.slice(i).every(x => x === fin))) {
+    bad.push(`要約の欄が通った形が ${st.join(' → ') || '無し'}（あるべき loading → ${fin}）`);
+  }
+  if (jump) {
+    const now = Math.round(sum.h), wait = q.filter(x => x[0] === 'loading').map(x => x[1]);
+    if (!wait.length || wait.some(x => Math.abs(x - now) > 2)) bad.push(`答えが来て要約の欄の高さが動く（読み込み中 ${wait.join('・') || '—'}px → ${now}px）`);
+  }
+  return bad;
+}
+/* 要約の欄が1行で済む4つの形（WP 9）：未ログイン（ログインの1行と入口1つ）・口コミが少ない・要約がまだ無い・読めなかった（「やり直す」1つ）。
+   偽のサーバーが、要約の口でその形の返事を返す（未ログインの返事には、わざと要約の文を付けてある ── 閉じた形は、届いた中身を描かない）。
+   概要と口コミのタブの両方で：欄の形（SUM_WANT。同じ1つの箱）・ページのソースと手元の保存に要約の文も元の口コミの番号も無い・
+   カードの中の錠前の1行とログインの入口は1つまで（未ログインは 錠前「ログインが必要です」1つ・ログイン1つ）・
+   欄は「読み込み中」→ 最後の形 だけを通る。概要では、読み込み中の高さから動かない（読めなかった時は形だけ：やり直すの箱は1行より高い）・
+   並び・最初の1画面・切れ・知っている口だけ。未ログインは、入口の字の大きさと押す場所・ログインの入口がこのページへ戻る
+   （#reviews で開けば %23reviews まで ＝ facts-gate の backHash）。
+   ⚠️ 絵の検査。誰にどの返事が返るかは、本物の SQL を通す側（db/test-review-summary.mjs）が見る。 */
+const SUM_ONE = { ratedLogin: 'login', ratedFew: 'few', ratedNone: 'none', ratedErr: 'error' };
+async function runRatedLogin(browser, s, v) { return runRatedOne(browser, s, v, 'ratedLogin'); }
+async function runRatedFew(browser, s, v) { return runRatedOne(browser, s, v, 'ratedFew'); }
+async function runRatedNone(browser, s, v) { return runRatedOne(browser, s, v, 'ratedNone'); }
+async function runRatedErr(browser, s, v) { return runRatedOne(browser, s, v, 'ratedErr'); }
+async function runRatedOne(browser, s, [w, h, kind], mode) {
+  const want = SUM_ONE[mode], login = want === 'login', tag = `${s} ${w}（要約の欄 ${want}）`;
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, mode, SUM_WATCH);
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
+  const fresh = async addr => { await p.goto('about:blank'); await p.goto(addr, { waitUntil: 'load', timeout: 60000 }); await until(() => !!window.PVGlance); };
+  /* 錠前の1行とログインの入口（カードの中で見えているもの）。未ログインは ちょうど 錠前1（要約の欄の1行）・ログイン1。ほかの形は どちらも1つまで。 */
+  const cBad = (c, at) => {
+    const r = c.revs, n = r ? r.locks.length : -1, bad = [];
+    if (login ? !(r && same(r.locks, [SUM_LOGIN_TEXT])) : !(r && n <= 1)) bad.push(`${at}：見えている錠前の行が ${r ? `${n}つ（${r.locks.join('｜')}）` : '読めない'}（あるべき ${login ? `「${SUM_LOGIN_TEXT}」の1つ` : '1つまで'}）`);
+    if (login ? c.logins !== 1 : !(c.logins <= 1)) bad.push(`${at}：カードの中のログインの入口が ${c.logins}つ（あるべき ${login ? '1つ' : '1つまで'}）`);
+    return bad;
+  };
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await ev(() => window.__pvg.top());
+    const rows = ratedRows(s);
+    const live = (await ev(() => window.__pvg.live())).filter(x => x.on);
+    const sc = await ev(() => window.__pvg.score()), c = sc.card;
+    const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, want);
+    ok(!bad.length, `${tag}: 概要 ── 星と図は点数どおり・書く入口は2行のボタン1つ・要約の欄は「${want}」の形`, bad.join(' ／ '));
+    const B = { b: (await sumLeakOf(p)).map(x => `概要：${x}`), c: c ? cBad(c, '概要') : ['概要：カードが見えていない'], d: c && c.sum ? seqBad(c.sum, want, want !== 'error').map(x => `概要：${x}`) : [] }, face = [];
+    if (login) {
+      const href = c && c.sum && c.sum.login.length === 1 ? c.sum.login[0] : '';
+      ok(href.startsWith('../login.html?redirect=') && href.endsWith(encodeURIComponent(`airlines/${s}.html`)), `${tag}: ログインの入口が、このページ（airlines/${s}.html）へ戻る`, href || '入口が無い');
+    }
+    const sh = await ev(() => window.__pvg.shape());
+    ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
+    if (w >= FOLD_FROM) ok(!foldBadOf(sh, w, h).length, `${tag}: 最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}（星の行が押し出さない）`, foldBadOf(sh, w, h).join('・'));
+    const geo = await ev(() => window.__pvg.geom(true));
+    ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
+    if (login) {
+      const pr = await ev(() => window.__pvg.probe('#pvg-score'));
+      ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
+    }
+    /* 口コミのタブへ（概要と同じ1つの箱）。SUM_WANT で形だけを見る ── scoreBad は概要の書く入口を見るので、ここでは使わない（A35）。 */
+    await ev(sel => document.querySelector(sel).click(), '.pvg-tabs [data-pvg-tab="reviews"]');
+    const there = (await until(t => window.PVGlance.at() === t, 'reviews')) && (await until(SETTLED));
+    const sc2 = there ? await ev(() => window.__pvg.score()) : null, c2 = sc2 && sc2.card;
+    if (!there) face.push('口コミのタブへ切り替わらない・欄が落ち着かない');
+    else if (!c2 || !c2.sum) face.push('口コミのタブで、評価・口コミのカードか要約の欄が見えていない');
+    else {
+      if (!SUM_WANT[want](c2.sum)) face.push(`口コミのタブ：要約の欄が「${want}」の形でない（${c2.sum.state}・${c2.sum.why}・高さ ${Math.round(c2.sum.h)}・「${c2.sum.text.slice(0, 40)}」・項目 ${c2.sum.items}・入口 ${c2.sum.links}）`);
+      for (const x of await sumLeakOf(p)) B.b.push(`口コミのタブ：${x}`);
+      B.c.push(...cBad(c2, '口コミのタブ'));
+      B.d.push(...seqBad(c2.sum, want, false).map(x => `口コミのタブ：${x}`));
+    }
+    ok(!face.length, `${tag}: 口コミのタブでも、要約の欄は同じ「${want}」の形`, face.join(' ／ '));
+    ok(!B.b.length, `${tag}: 概要と口コミのタブの両方で、ページのソース（属性の中も）と手元の保存に、届いた要約の文も元の口コミの番号も無い（閉じた形は届いた中身を描かない）`, B.b.join(' ／ '));
+    ok(!B.c.length, `${tag}: 概要と口コミのタブの両方で、カードの錠前の1行とログインの入口は ${login ? `「${SUM_LOGIN_TEXT}」1つ・ログイン1つ` : '1つまで'}（同じ案内を重ねない）`, B.c.join(' ／ '));
+    ok(!B.d.length, `${tag}: 要約の欄は「読み込み中」→「${SUM_FINAL[want]}」だけを通る${want === 'error' ? '' : '・答えが来ても高さが動かない（2px まで）'}`, B.d.join(' ／ '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    if (login) {
+      /* 口コミのタブで開いた時：ログインの入口は、その同じタブへ戻る（同じページの物 ＝ 偽のサーバーと SUM_WATCH は付いたまま）。 */
+      await fresh(`${BASE}/airlines/${s}.html#reviews`);
+      await p.evaluate(LIB);
+      const calm = await until(SETTLED);
+      const c3 = calm ? (await ev(() => window.__pvg.score())).card : null;
+      const href = c3 && c3.sum && c3.sum.login.length === 1 ? c3.sum.login[0] : '';
+      ok(href.endsWith(encodeURIComponent(`airlines/${s}.html#reviews`)), `${tag}: 口コミのタブ（#reviews）で開いたら、ログインの入口は %23reviews まで付けて戻る`, href || (calm ? '入口が無い' : '開き直した画面が落ち着かない'));
+    }
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* 「開いている要約」（WP 10）：鍵を持つ人の形 ── 偽のサーバーが、要約の口で 'open'（良い点・気になる点に元の口コミの番号つき）、
+   口コミの口で本文つきの3件を返す。手元の鍵の控え（pv_unlock_expiry）は、この偽のブラウザの中の印にすぎない。
+   ⚠️ この場面が言えるのは、'open' の返事を受けたページが描く形だけ。誰が 'open' を受け取るかはサーバーが決め、
+      本物の SQL を通す側（db/test-review-summary.mjs・REAL LOCAL）が見る。
+   概要と口コミのタブの両方で：a) 見出し・「良い点」「気になる点」・点の数と字が届いたとおり／b)「AI 要約」と件数・日付の1行／
+   c) 欄は鍵や空の形を一度も通らない／d) 矢印は #reviews・分類・元の口コミの番号・読み上げの名前・44px 以上。
+   置き場所（図の右か下・頭やまんなかのそろい）はここでは固定しない ── 一度見て、測った数を報告に書いた（RULING O の C）。
+   横あふれ・字の切れは geom(true) が見る。
+   f) 良い点の矢印 → 口コミのタブ・その分類・元の口コミのカードにだけ「要約のもと」。気になる点も同じ。選び直すと札が消える。
+   g) 修飾キーを押したままの矢印は、ページが受けない（ブラウザに任せる）。
+   ratedOpenMax（最初の会社だけ）：サーバーが送れるいちばん長い形（3点＋3点・90字）で、点の数と字。 */
+const SUM_OPEN_PRE = `(${SUM_WATCH})(); try { localStorage.setItem('pv_unlock_expiry', String(Date.now() + 365 * 864e5)); } catch (e) {}`;
+const SUM_OPEN_SENT = mode => { const x = JSON.parse(SUM_BY_MODE[mode]); return [x.good.map(i => i.text), x.concern.map(i => i.text)]; };
+async function runRatedOpen(browser, s, v) { return runRatedOpenAt(browser, s, v, 'ratedOpen'); }
+async function runRatedOpenMax(browser, s, v) { return runRatedOpenAt(browser, s, v, 'ratedOpenMax'); }
+async function runRatedOpenAt(browser, s, [w, h, kind], mode) {
+  const max = mode === 'ratedOpenMax', tag = `${s} ${w}（要約の欄 open${max ? '・いちばん長い形' : ''}）`;
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, mode, SUM_OPEN_PRE);
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
+  /* 開いた要約の中身（見出し・列の見出し・点の字） */
+  const openSee = () => {
+    const c = document.querySelector('#pvg-score'), e = c && c.querySelector('.crl[data-live="summary"]');
+    if (!e) return null;
+    const t = n => n.textContent.replace(/\s+/g, ' ').trim();
+    return { title: [...e.querySelectorAll('.crl-sum-title')].map(t), heads: [...e.querySelectorAll('.crl-sum-h')].map(t),
+      good: [...e.querySelectorAll('.crl-sum-col[data-kind="good"] .crl-sum-t')].map(t), concern: [...e.querySelectorAll('.crl-sum-col[data-kind="concern"] .crl-sum-t')].map(t) };
+  };
+  const [G0, C0] = SUM_OPEN_SENT(mode), want = max ? [3, 3] : [1, 1];
+  /* a〜d を1つのタブで見る。at ＝ 'overview' | 'reviews'。返すのは破れている所の文（ピンの名前ごと）。 */
+  const faceBad = async at => {
+    const sc = await ev(() => window.__pvg.score()), c = sc.card, sum = c && c.sum, o = await ev(openSee), B = { a: [], b: [], c: [], d: [] };
+    if (!sum || !o) { for (const k of Object.keys(B)) B[k].push(`${at}：要約の欄が見えていない`); return B; }
+    if (sum.state !== 'open') B.a.push(`${at}：欄が ${sum.state}（あるべき open）`);
+    if (!same(o.title, ['口コミの要約'])) B.a.push(`${at}：見出し「${o.title.join('｜')}」`);
+    if (!same(o.heads, ['良い点', '気になる点'])) B.a.push(`${at}：列の見出し「${o.heads.join('｜')}」`);
+    if (!same(sum.pts, want)) B.a.push(`${at}：点の数 ${sum.pts.join('・')}（あるべき ${want.join('・')}）`);
+    if (!same(o.good, G0) || !same(o.concern, C0)) B.a.push(`${at}：点の字が届いた字と違う（良い点「${o.good.map(x => x.slice(0, 12)).join('｜')}」・気になる点「${o.concern.map(x => x.slice(0, 12)).join('｜')}」）`);
+    if (!max) {
+      if (sum.by !== 'AI 要約会員の口コミ 3件から2026-09-30 更新' || sum.ai !== 1) B.b.push(`${at}：下の1行「${sum.by}」・「AI 要約」の札 ${sum.ai}つ`);
+      const st = sum.seq.map(x => x[0]);
+      if (st.includes('locked') || st.includes('empty') || st[st.length - 1] !== 'open') B.c.push(`${at}：欄が通った形 ${st.join(' → ') || '無し'}（鍵や空の形を通らずに open）`);
+      const ar = sum.arrows, wantA = [['culture', SUM_SRC.slice(0, 2).join(',')], ['wlb', SUM_SRC.slice(1, 3).join(',')]];
+      if (ar.length !== 2 || ar.some((a, i) => !(a.href === '#reviews' && a.cat === wantA[i][0] && a.ids === wantA[i][1] && a.label === 'この要約のもとになった口コミを見る' && a.w >= 44 && a.h >= 44))) {
+        B.d.push(`${at}：矢印 ${ar.length}つ（${ar.map(a => `${a.href}・${a.cat}・${a.ids}・「${a.label}」・${Math.round(a.w)}×${Math.round(a.h)}`).join(' ／ ')}）`);
+      }
+    }
+    return B;
+  };
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await ev(() => window.__pvg.top());
+    const B = await faceBad('overview');
+    const sh = await ev(() => window.__pvg.shape());
+    ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
+    if (w >= FOLD_FROM) ok(!foldBadOf(sh, w, h).length, `${tag}: 最初の1画面（高さ ${h}）に ${FOLD_WHAT(w)}（星の行が押し出さない）`, foldBadOf(sh, w, h).join('・'));
+    const geo = await ev(() => window.__pvg.geom(true));
+    ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
+    if (!max) {
+      const pr = await ev(() => window.__pvg.probe('#pvg-score'));
+      ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
+    }
+    /* 口コミのタブへ（概要と同じ1つの箱）── 押し方は WP 9 の場面と同じ。 */
+    await ev(sel => document.querySelector(sel).click(), '.pvg-tabs [data-pvg-tab="reviews"]');
+    const there = (await until(t => window.PVGlance.at() === t, 'reviews')) && (await until(SETTLED));
+    if (!there) for (const k of Object.keys(B)) B[k].push('口コミのタブへ切り替わらない・欄が落ち着かない');
+    else { const R = await faceBad('reviews'); for (const k of Object.keys(B)) B[k].push(...R[k]); }
+    ok(!B.a.length, `${tag}: 概要と口コミのタブの両方で、見出し「口コミの要約」・「良い点」「気になる点」・点は ${want.join('＋')}（届いた字のとおり）`, B.a.join(' ／ '));
+    if (!max) {
+      ok(!B.b.length, `${tag}: 概要と口コミのタブの両方で、下の1行は「AI 要約」「会員の口コミ 3件から」「2026-09-30 更新」`, B.b.join(' ／ '));
+      ok(!B.c.length, `${tag}: 鍵を持つ人の要約の欄は、鍵や空の形を一度も通らない`, B.c.join(' ／ '));
+      ok(!B.d.length, `${tag}: 概要と口コミのタブの両方で、矢印は #reviews・社風／勤務・元の口コミの番号・「この要約のもとになった口コミを見る」・44px 以上`, B.d.join(' ／ '));
+    }
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    if (max) return;
+    /* f) 元の口コミへ辿る。カード ＝ 一覧（#airline-review-section）の会員の口コミ（本文に「検査用の本文」が在る。
+          本文の頭には分類の札「【企業文化】」などが付くので「で始まる」では測れない）。
+          公開情報からの引用のカードも同じ形で並ぶが、数えない・隠さない。札は一覧ぜんぶで数える（引用のカードに付いても赤）。 */
+    const listSee = src => {
+      const sec = document.getElementById('airline-review-section'), vis = n => !!n && n.getClientRects().length > 0 && n.checkVisibility({ visibilityProperty: true });
+      if (!sec) return null;
+      const body = n => [...n.querySelectorAll('.rv-comment')].map(x => x.textContent.replace(/\s+/g, '')).join('');
+      const mem = [...sec.querySelectorAll('.rv-card-wrap')].filter(n => body(n).includes('検査用の本文'));
+      const chip = [...sec.querySelectorAll('button.rcf-chip.active')].map(b => (/pvSetReviewCat\('([a-z]+)'\)/.exec(b.getAttribute('onclick') || '') || [])[1] || '?');
+      const l = document.querySelector('.pvg-rvl');
+      return { pane: window.PVGlance.at() === 'reviews' && vis(sec), chip, cards: mem.length,
+        tags: [...sec.querySelectorAll('.rv-sum-tag')].map(x => x.textContent.trim()),
+        tagged: mem.filter(n => n.querySelector('.rv-sum-tag')).map(n => body(n).slice(-1)).sort().join(''),
+        ids: l ? src.filter(i => l.innerHTML.includes(i)).length : -1 };
+    };
+    const F = [];
+    const step = async (what, go, chip, tagged, three) => {
+      if (!(await go())) { F.push(`${what}：押す所が無い`); return; }
+      const done = await until((chip, n) => { const sec = document.getElementById('airline-review-section'); if (!sec) return false;
+        const a = [...sec.querySelectorAll('button.rcf-chip.active')].map(b => (/pvSetReviewCat\('([a-z]+)'\)/.exec(b.getAttribute('onclick') || '') || [])[1]);
+        return window.PVGlance.at() === 'reviews' && a.length === 1 && a[0] === chip && sec.querySelectorAll('.rv-sum-tag').length === n; }, chip, tagged.length);
+      const x = await ev(listSee, SUM_SRC);
+      if (!x) { F.push(`${what}：一覧が無い`); return; }
+      if (!done || !x.pane || !same(x.chip, [chip]) || (three && x.cards !== 3) || x.tags.length !== tagged.length || x.tags.some(t => t !== '要約のもと') || x.tagged !== tagged || x.ids) {
+        F.push(`${what}：口コミのタブ ${x.pane ? '見えている' : '見えていない'}・選ばれた分類 ${x.chip.join('｜') || '無し'}（あるべき ${chip}）・会員のカード ${x.cards}枚・札 ${x.tags.length}つ「${x.tags.join('｜')}」・札の付いたカード「${x.tagged}」（あるべき「${tagged}」）・一覧の中の番号 ${x.ids}`);
+      }
+    };
+    /* 押す所が無い時は、落ちずに f の赤い行を出す（その先の測りも続ける） */
+    const clickIn = sel => ev(sel => { const n = document.querySelector(sel); if (n) n.click(); return !!n; }, sel);
+    await ev(() => window.__pvg.top());
+    await ev(sel => document.querySelector(sel).click(), '.pvg-tabs [data-pvg-tab="overview"]');
+    await until(t => window.PVGlance.at() === t, 'overview');
+    await step('概要で良い点の矢印', () => clickIn('#pvg-score .crl-sum-col[data-kind="good"] a.crl-sum-a'), 'culture', 'あい', true);
+    await step('気になる点の矢印', () => clickIn('#pvg-score .crl-sum-col[data-kind="concern"] a.crl-sum-a'), 'wlb', 'いう', true);
+    const other = await ev(() => { const b = [...document.querySelectorAll('#airline-review-section button.rcf-chip')].map(b => (/pvSetReviewCat\('([a-z]+)'\)/.exec(b.getAttribute('onclick') || '') || [])[1]).find(k => k && k !== 'all' && k !== 'wlb' && k !== 'culture'); return b || null; });
+    if (!other) F.push('ほかの分類の札が無い');
+    else await step(`ほかの分類（${other}）を選ぶ`, () => clickIn(`#airline-review-section button.rcf-chip[onclick="pvSetReviewCat('${other}')"]`), other, '');
+    await step('「すべて」を選ぶ', () => clickIn(`#airline-review-section button.rcf-chip[onclick="pvSetReviewCat('all')"]`), 'all', '');
+    const tile = await ev(() => { const t = document.querySelector('#airline-review-cats .rcg-grid button.rcg-card'); return t ? (/pvSetReviewCat\('([a-z]+)'\)/.exec(t.getAttribute('onclick') || '') || [])[1] || null : null; });
+    if (!tile) F.push('分類のタイルが無い');
+    else await step(`分類のタイル（${tile}）を押す`, () => clickIn(`#airline-review-cats .rcg-grid button.rcg-card[onclick="pvSetReviewCat('${tile}')"]`), tile, '');
+    ok(!F.length, `${tag}: 良い点の矢印 → 口コミのタブ・社風・元の口コミ「あ」「い」にだけ「要約のもと」／気になる点 →「い」「う」／分類・すべて・タイルで選び直すと札は0（一覧に番号を書かない）`, F.join(' ／ '));
+    /* g) 修飾キー（ctrl・meta）を押したままの矢印は、ページが受けない ── 押したことを窓で控え、控えたあとでこちらが止める（偽のブラウザはどこへも行かない）。 */
+    const G = [];
+    for (const key of ['ctrlKey', 'metaKey']) {
+      const r = await ev((key, sel) => {
+        const sec = document.getElementById('airline-review-section'), a = document.querySelector(sel);
+        if (!sec || !a) return null;
+        const chip = () => [...sec.querySelectorAll('button.rcf-chip.active')].map(b => b.getAttribute('onclick')).join('|');
+        const before = chip(), at = window.PVGlance.at();
+        let seenPrev = null;
+        const f = e => { seenPrev = e.defaultPrevented; e.preventDefault(); };
+        window.addEventListener('click', f);
+        a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, [key]: true }));
+        window.removeEventListener('click', f);
+        return { prev: seenPrev, tags: sec.querySelectorAll('.rv-sum-tag').length, same: chip() === before, at, now: window.PVGlance.at() };
+      }, key, '#pvg-score .crl-sum-col[data-kind="good"] a.crl-sum-a');
+      if (!r) G.push(`${key}：矢印か一覧が無い`);
+      else if (r.prev !== false || r.tags || !r.same) G.push(`${key}：ページが受けた ${r.prev}・札 ${r.tags}つ・分類 ${r.same ? 'そのまま' : '変わった'}（タブ ${r.at} → ${r.now}）`);
+    }
+    ok(!G.length, `${tag}: 修飾キー（ctrl・meta）を押したままの矢印は、ページが受けない（札は付かない・分類も変わらない）`, G.join(' ／ '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -5485,8 +5760,9 @@ try {
   if (wantS('view')) for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
   if (wantS('off')) for (const s of ONLY) for (const v of VIEWS.filter(x => OFF_W.includes(x[0]))) work.push(() => runOff(browser, s, v), () => runFacts404(browser, s, v));
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
-  if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v));
+  if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v), () => runRatedLogin(browser, s, v), () => runRatedFew(browser, s, v), () => runRatedNone(browser, s, v), () => runRatedErr(browser, s, v), () => runRatedOpen(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) { const v = VIEWS.find(x => RATED_W.includes(x[0])); if (v) work.push(() => runRatedStale(browser, s, v)); }
+  if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRatedOpenMax(browser, s, v));
   if (wantS('tabs')) for (const s of ONLY) for (const v of [...VIEWS.filter(x => TABS_W.includes(x[0])), ...TABS_EXTRA]) work.push(() => runTabs(browser, s, v));
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
