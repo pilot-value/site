@@ -64,7 +64,7 @@
 
   var T = {
     off:        '準備中',
-    locked:     'ONLY VERIFIED PILOT',
+    locked:     'Only VERIFIED PILOT',
     login:      'ログイン',
     err:        '読み込めませんでした',
     retry:      'もう一度',

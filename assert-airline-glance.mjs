@@ -4668,7 +4668,7 @@ async function runTabs(browser, s, [w, h]) {
           hash: location.hash, at: window.PVGlance.at(), top: Math.round(r.top), over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
       });
-      const LOCK = 'ONLY VERIFIED PILOT';
+      const LOCK = 'Only VERIFIED PILOT';
       await fresh(`${url}#stay`);
       if (!(await atTab('stay')) || !(await cityIs(''))) bad.push('ステイ先のタブが一覧で開かない');
       const asked0 = (await see()).hash;
@@ -5265,7 +5265,7 @@ async function runStay(browser, s, [w, h]) {
     const vSent = [];
     let vMeasured = false;
     {
-      const bad = [], KEY = 'sb-check-auth-token', LOCKW = 'ONLY VERIFIED PILOT', NAME = '検査用の架空のホテル（会員）';
+      const bad = [], KEY = 'sb-check-auth-token', LOCKW = 'Only VERIFIED PILOT', NAME = '検査用の架空のホテル（会員）';
       const ITEM = { id: '00000000-0000-4000-8000-0000000000b5', kind: 'hotel', name: NAME, state: 'pending', mine: true, photos: [] };
       const SEND = `${STAY_ZONE} .crs-form button[type="submit"]`;
       const face = () => p.evaluate(sel => {

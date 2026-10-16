@@ -57,7 +57,7 @@ const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++
 const J = (v) => { try { return JSON.stringify(v).slice(0, 400); } catch { return String(v); } };
 
 /* 画面の字（career-stay.js の T・SAY_ADD と同じ字。ここで字を固定する） */
-const LOCK = 'ONLY VERIFIED PILOT', LOGIN = 'ログイン';
+const LOCK = 'Only VERIFIED PILOT', LOGIN = 'ログイン';
 const MINE = 'あなたの投稿', PENDING = '確認待ち';
 const ADDED = '追加しました。確認のあと公開されます。';
 const OFF = '準備中', ERR = '読み込めませんでした', RETRY = 'もう一度';

@@ -226,18 +226,22 @@ console.log('\n── B) 画面に出る数を直書きしていない ───
    足すのは、ログインしていなくても誰でもできる。給与の提出では、ホテルは開かない。
    その決まりと合わない言い方を、ホテルの欄のそばに置かない。
      (i)   見出しの小さい字「確認済みのパイロットが足したもの」── 足すのは誰でもなので、本当ではない。
-           どのページにも、どのスクリプトにも書かない。
+           どのページにも、どのスクリプトにも書かない。名前を「VERIFIED PILOT」にしたあとの形
+           「VERIFIED PILOT が足したもの」（間の空白なし・Only を付けた形も）も同じく書かない。
      (ii)  「情報を追加」の面のホテル・ステイの札は「就航地ごと」── 足すのは誰でもなので「パイロット限定」と書かない。
-     (iii) career-stay.js の鍵の1行は「ONLY VERIFIED PILOT」の1つだけ。
+     (iii) career-stay.js の鍵の1行は「Only VERIFIED PILOT」の1つだけ（大文字は O だけ）。
            給与の提出で開くような言い方（「給与の提出で開きます」「ログインと給与の提出で開きます」）を書かない。
    ※ 概要の話題の札「就航地ごと・パイロット限定」は、見るほうの話なので本当（残す）。
    ════════════════════════════════════════════════════════════════ */
 console.log('\n── C) ホテルの欄のまわりに、本当でない言い方を書いていない ─────');
 {
-  const ADDED_BY = '確認済みのパイロットが足したもの', LIMITED = 'パイロット限定', LOCKW = 'ONLY VERIFIED PILOT';
+  const ADDED_BY = '確認済みのパイロットが足したもの', LIMITED = 'パイロット限定', LOCKW = 'Only VERIFIED PILOT';
+  const ADDED_BY_V = 'VERIFIED PILOT が足したもの', ADDED_BY_V_RE = /VERIFIED PILOT\s*が足したもの/i;
   const PAY_OPENS = ['給与の提出で開きます', 'ログインと給与の提出で開きます'];
   const held = files.filter(f => strip(readFileSync(f, 'utf8')).includes(ADDED_BY)).map(f => path.relative(ROOT, f));
   ok(`(i) サイト全体 ${files.length} ファイル（HTML＋共有 JS）に「${ADDED_BY}」が無い（足すのは誰でも）`, held.length === 0, held.join(' '));
+  const heldV = files.filter(f => ADDED_BY_V_RE.test(strip(readFileSync(f, 'utf8')))).map(f => path.relative(ROOT, f));
+  ok(`(i) サイト全体 ${files.length} ファイル（HTML＋共有 JS）に「${ADDED_BY_V}」も無い（名前を変えたあとの形）`, heldV.length === 0, heldV.join(' '));
   const pc = strip(readFileSync(path.join(ROOT, 'pv-contrib.js'), 'utf8'));
   const tile = [...pc.matchAll(/\{ k: 'stay', t: 'ホテル・ステイ', q: '([^']*)'/g)].map(m => m[1]);
   ok('(ii) pv-contrib.js：ホテル・ステイの札は1つ・字は「就航地ごと」', tile.length === 1 && tile[0] === '就航地ごと', `いま ${JSON.stringify(tile)}`);
