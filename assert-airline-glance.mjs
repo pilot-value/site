@@ -1080,6 +1080,19 @@ head('career-stay.js（ホテルの欄の言葉・ログインの入口の行き
   const held = pay.filter(([, t]) => t && CS.includes(t));
   ok(pay.every(([, t]) => !!t) && !held.length, `ホテルの欄は給与の提出では開かない ── career-stay.js に「${pay.map(([, t]) => t).join('」「')}」の字が無い`,
      `${pay.filter(([, t]) => !t).map(([k]) => `career-live.js に T.${k} が無い`).join('・')}${held.map(([k, t]) => `T.${k}「${t}」が在る`).join('・')}`);
+  /* ★見てよい人になる申し込みは、画面に置かない（2026-10-16 オーナー：「確認を申し込むはいらない」）。会社の画面5枚と career.html、
+     そこが読む部品のどれにも、申し込みの口の名前（pv_stay_viewer_request）と「確認を申し込む」の字が無い。
+     呼ばないこと・欄に「確認を申し込む」「確認待ち」が出ないことは、場面 stay（S-v）と tabs（3b-member）が画面で見る。 */
+  {
+    const pages = [...FIVE.map(s => `airlines/${s}.html`), 'career.html'], files = new Set(pages);
+    for (const pg of pages) for (const m of read(pg).matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)) {
+      if (!/^(https?:)?\/\//.test(m[1])) files.add(path.posix.join(path.posix.dirname(pg), m[1].split(/[?#]/)[0]));
+    }
+    const gone = [...files].filter(f => !fs.existsSync(path.join(ROOT, f)));
+    const hit = [...files].filter(f => !gone.includes(f)).flatMap(f => ['pv_stay_viewer_request', '確認を申し込む'].filter(t => read(f).includes(t)).map(t => `${f}「${t}」`));
+    ok(files.has('career-stay.js') && !gone.length && !hit.length, `見てよい人になる申し込みは画面に置かない ── 会社の画面5枚・career.html と、そこが読む部品に、申し込みの口（pv_stay_viewer_request）と「確認を申し込む」の字が無い`,
+       [...hit, ...gone.map(f => `${f} が読めない`), files.has('career-stay.js') ? '' : 'career-stay.js を読む画面が無い'].filter(Boolean).join('・'));
+  }
 }
 head('ホテルの欄の外の面（.crs-zone）⇄ 保存するカード（career-card.js）');
 {
@@ -2275,8 +2288,9 @@ async function open(browser, slug, w, h, mode, pre) {
         const c = typeof seen.claim === 'string' ? { status: 200, body: seen.claim } : seen.claim;
         return r.respond({ status: c.status, contentType: 'application/json', headers: cors, body: c.body });
       }
-      /* 見てよい人の申し込みの口（pv_stay_viewer_request）：呼ばれた中身は、どの場面でも控える（seen.vreqd）。
-         答えるのは、場面が返事を置いた時だけ（seen.vreq）。置かなければ、知らない口として 500。 */
+      /* 見てよい人の申し込みの口（pv_stay_viewer_request）：★画面はもう呼ばない（2026-10-16 オーナー：「確認を申し込むはいらない」）。
+         呼ばれたら、どの場面でも中身を控える（seen.vreqd。場面 stay の終わりと 3b-member が 0 本を見る）。
+         答えるのは、場面がわざと返事を置いた時だけ（seen.vreq ＝ 呼んでしまう版なら申し込みの面が出る返事）。置かなければ、知らない口として 500。 */
       if (STAY_VREQ_RE.test(u.pathname)) {
         seen.vreqd.push(r.postData() || '');
         if (seen.vreq) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: seen.vreq });
@@ -4651,8 +4665,6 @@ async function runTabs(browser, s, [w, h]) {
           /* 入口（data-crs-entry）のほかの部品の数と、入口の並び（種類・字・行き先）。鍵の1行に添えてよいのは、ログインの鍵が無い人の「ログイン」1つだけ。 */
           extra: slot.querySelectorAll('img, form, input, button, a[href]:not([data-crs-entry])').length, who: slot.getAttribute('data-who'),
           entry: [...slot.querySelectorAll('a[href][data-crs-entry]')].map(a => [a.getAttribute('data-crs-entry'), a.textContent.replace(/\s+/g, ' ').trim(), a.getAttribute('href')]),
-          /* 会員の鍵の1行に添えてよいのは、オーナーへの確認の申し込みのボタン1つだけ（data-act="ask"）。 */
-          ask: slot.querySelectorAll('button[data-act="ask"]').length,
           hash: location.hash, at: window.PVGlance.at(), top: Math.round(r.top), over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
       });
@@ -4749,26 +4761,32 @@ async function runTabs(browser, s, [w, h]) {
       await fresh(`${url}#stay-${ghost}`);
       if (!((await atTab('stay')) && (await cityIs('')))) bad.push(`一覧に無い3字（#stay-${ghost}）で、空の詳細が開く`);
       ok(!bad.length, `${tag}: ステイ先 ── 都市を押す → 詳細（字・写真・クレジット・Google Maps が台帳のまま／ホテルの欄は鍵の1行と入口1つ）→ 戻る・進む／住所で直接開く／一覧に無い3字は一覧のまま`, bad.join(' ／ '));
-      /* ── 3b-member) ログインの鍵が在る人（会員。中身の読めない鍵でも同じ）：ホテルの欄は鍵の1行と、オーナーへの確認の申し込みの
-            ボタン1つだけ（まだ申し込んでいない人 ＝ 申し込みの口が 'none' と答える人）。ログインの入口も給与の提出の入口も無い
-            （ログインはもう済んでいる・給与の提出ではホテルは開かない）。鍵は開いたあとに置く（登録だけの会員に出す板を呼ばない）。 ── */
+      /* ── 3b-member) ログインの鍵が在る人（会員。中身の読めない鍵でも同じ）：ホテルの欄は鍵の1行だけ。ログインの入口も
+            給与の提出の入口も、確認の申し込みも添えない（ログインはもう済んでいる・給与の提出ではホテルは開かない・
+            見てよい人はオーナーが決める ＝ 申し込みの口 pv_stay_viewer_request を呼ばない。2026-10-16 オーナー）。
+            ★偽のサーバーは、呼ばれたら「まだ申し込んでいない」（'none'）と答える用意をしておく（呼んでしまう版では、ボタンが出る）。
+            2つ目の都市を開いてから見る（1つ目の都市で呼んでいれば、そのころにはもう偽のサーバーに届いている）。
+            鍵は開いたあとに置く（登録だけの会員に出す板を呼ばない）。 ── */
       {
-        const KEY = 'sb-check-auth-token', ASK = '確認を申し込む', mb = [];
+        const KEY = 'sb-check-auth-token', mb = [], two = [pick.iata, net.list.find(d => d.iata !== pick.iata).iata];
         await fresh(`${url}#stay`);
         if (!((await atTab('stay')) && (await cityIs('')))) mb.push('ステイ先のタブが一覧で開かない');
         await p.evaluate(k => localStorage.setItem(k, '{}'), KEY);
         seen.vreq = '{"ok":true,"state":"none"}';
+        const v0 = seen.vreqd.length;
         try {
-          if (!((await tap(`#pvg-st-list .pvg-city[data-city="${pick.iata}"]`)) && (await cityIs(pick.iata)))) mb.push(`${pick.iata} を押しても詳細にならない`);
-          /* 申し込みの口の答え（'none'）が描かれるまで待つ（時間では待たない）。 */
-          await until(() => !!document.querySelector('#pvg-city .crl[data-live="hotels"] button[data-act="ask"]'));
-          const m = await cityRead();
-          if (!(m.state === 'locked' && m.who === 'member' && m.slot === LOCK + ASK && m.ask === 1 && m.parts === 1 && m.extra === 1 && !m.entry.length)) mb.push(`会員のホテルの欄が鍵の1行と「${ASK}」の1つだけになっていない（${m.state}・${m.who}・${m.slot.slice(0, 40)}・申し込み ${m.ask}・入口 ${JSON.stringify(m.entry)}・部品 ${m.parts}）`);
+          for (const code of two) {
+            if (!((await tap(`#pvg-st-list .pvg-city[data-city="${code}"]`)) && (await cityIs(code)))) { mb.push(`${code} を押しても詳細にならない`); break; }
+            const m = await cityRead();
+            if (!(m.state === 'locked' && m.who === 'member' && m.slot === LOCK && m.parts === 0 && m.extra === 0 && !m.entry.length)) mb.push(`${code}：会員のホテルの欄が鍵の1行だけになっていない（${m.state}・${m.who}・${m.slot.slice(0, 40)}・入口 ${JSON.stringify(m.entry)}・部品 ${m.parts}）`);
+            if (code === two[0] && !((await tap('#pvg-city [data-pvg-cityback]')) && (await cityIs('')))) { mb.push('一覧へ戻れない'); break; }
+          }
+          if (seen.vreqd.length !== v0) mb.push(`申し込みの口を ${seen.vreqd.length - v0}回呼んだ（${seen.vreqd.slice(v0, v0 + 2).join(' ')}）`);
         } finally {
           await p.evaluate(k => localStorage.removeItem(k), KEY);
           seen.vreq = null;
         }
-        ok(!mb.length, `${tag}: ステイ先 ── ログインの鍵が在る人のホテルの欄は、鍵の1行と「確認を申し込む」の1つだけ（ログインも給与の提出も、入口を添えない）`, mb.join(' ／ '));
+        ok(!mb.length, `${tag}: ステイ先 ── ログインの鍵が在る人のホテルの欄は、鍵の1行だけ（ログインも給与の提出も確認の申し込みも添えない・申し込みの口を呼ばない）`, mb.join(' ／ '));
       }
     }
     /* ── 3c) ホテルの欄が開いた時（運営）。本物の運営では入れないので、サーバーの返事だけを差し替えて画面を見る。
@@ -5150,8 +5168,6 @@ async function runStay(browser, s, [w, h]) {
       seen.stay = null; seen.stayStatus = 200;
       ok(!bad.length, `${tag}: ホテルの欄の状態 ── つながっていない（404・bad_iata）は「準備中」だけ・覚えない／0件は今ある2つの文／読めない時は「読み込めませんでした」＋「もう一度」`, bad.join(' ／ '));
     }
-    /* ログインしていない人の画面（S-a）が、見てよい人の申し込みの口を呼んだ回数（0 のはず。S-v で出す）。 */
-    const vGuestA = seen.vreqd.length;
     /* ★「見られない」の答えで、ほかの都市の開いた答えを全部捨てる（ログインの鍵は在るまま）。 */
     {
       const bad = [], KEY = 'sb-check-auth-token';
@@ -5176,7 +5192,6 @@ async function runStay(browser, s, [w, h]) {
       }
       ok(!bad.length, `${tag}: ホテルの欄 ──「見られない」の答えが来たら、ほかの都市で開いていた答えも全部捨てる（選び直すと聞き直して鍵の1行。前の一覧を出さない）`, bad.join(' ／ '));
     }
-    const vGuestC = seen.vreqd.length;           /* S-c（ログインしていない人）のあいだに増えないこと */
     /* S-c 入口と追加の面（ログインしていない人）。足せない会社（can_add:false）で押す → 一言だけ。
        鍵の1行の都市で「レストランを追加」→ 面が欄の外に開く（会社・都市・3字が頭に・入口の列は隠れる・写真の欄は無い）→
        送る（中身を控える）→ 返事ごとの出し方（queue_full は面が残る／locked は「送信中…」のまま残らない／通れば面が閉じ、
@@ -5241,74 +5256,57 @@ async function runStay(browser, s, [w, h]) {
       ok(measured && !sent.filter(Boolean).length, `${tag}: 追加の面が送る中身 ── 会社・空港・押した種類・名前・この都市の名前（city）／欄の外の面にカードが読む印が無い`,
          measured ? sent.filter(Boolean).join(' ／ ') : '追加の面まで進めなかった（上の行）');
     }
-    /* S-v 見てよい人になる申し込み（オーナーが承認する人）。口は pv_stay_viewer_request の1本だけ。
-       ★送るもの：ログインしていない人は1本も呼ばない／会員は鍵の1行が出た時に自分の状態を1回だけ読む（{ask:false}・ログインごとに1回）／
-         押した時だけ {ask:true} を1本（ほかには何も送らない・ホテルの一覧も読まない）。
-       状態ごとの出し方：none ＝ 鍵の1行の下に「確認を申し込む」→ 押すと「確認待ち」／denied ＝ 鍵の1行だけ／approved ＝ 一覧を読み直す。
+    /* S-v 見てよい人になる申し込みは、画面に置かない（2026-10-16 オーナー：「確認を申し込むはいらない。…送信ボタンだけで良くない？」）。
+       ★会員の鍵の1行は、鍵の1行だけ：「確認を申し込む」も「確認待ち」も出ない ── 開いた時・ホテルを足したあとの読み直し・ほかの都市。
+         偽のサーバーは、申し込みの口が呼ばれたら「まだ」→（足す時から）「確認待ち」と答える用意をしておく（呼んでしまう版では面が出る）。
+       ★会員がホテルを足す：入口 → 名前 → 送るを1回押す ＝ 足す口（pv_stay_add）が1本だけ（会社・空港・種類・名前・都市）。ほかには送らない。
+         送ったものは場面の終わりの行で出す（申し込みの口を1回も呼ばないことは、場面の全部で数える）。
        鍵は開いたあとに置く（登録だけの会員に出す板を呼ばない）。 */
+    const vSent = [];
+    let vMeasured = false;
     {
-      const bad = [], sent = [], KEY = 'sb-check-auth-token', ASK = '確認を申し込む', LOCKW = '確認済みのパイロットだけが見られます';
-      const vClosed = (seen.vreqd.length - vGuestC) + vGuestA;
-      if (vClosed) sent.push(`ログインしていない人の画面が、申し込みの口を ${vClosed}回呼んだ`);
+      const bad = [], KEY = 'sb-check-auth-token', LOCKW = '確認済みのパイロットだけが見られます', NAME = '検査用の架空のホテル（会員）';
+      const ITEM = { id: '00000000-0000-4000-8000-0000000000b5', kind: 'hotel', name: NAME, state: 'pending', mine: true, photos: [] };
+      const SEND = `${STAY_ZONE} .crs-form button[type="submit"]`;
       const face = () => p.evaluate(sel => {
         const e = document.querySelector(sel);
         return { state: e.dataset.state, who: e.getAttribute('data-who'), text: e.textContent.replace(/\s+/g, ' ').trim(),
-          ask: e.querySelectorAll('button[data-act="ask"]').length, parts: e.querySelectorAll('img, a[href], form, input, button').length };
+          parts: e.querySelectorAll('img, a[href], form, input, button').length };
       }, STAY_SLOT);
-      const member = async () => {
-        if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
-        await p.evaluate(k => localStorage.setItem(k, '{}'), KEY);
-        seen.vreqd = [];
-      };
-      /* 返事がページに届いたか（届いた後に描き終わるまで、2コマ待つ）。届かなければ8秒で次へ（下の行で落ちる）。 */
-      const answered = n => new Promise(res => {
-        let done = 0;
-        const t = setTimeout(() => { p.off('requestfinished', h); res(false); }, 8000);
-        const h = r => { if (STAY_VREQ_RE.test(new URL(r.url()).pathname) && ++done >= n) { clearTimeout(t); p.off('requestfinished', h); res(true); } };
-        p.on('requestfinished', h);
-      }).then(okk => p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r())))).then(() => okk));
+      const lockOnly = async at => { const f = await face(); if (!(f.state === 'locked' && f.who === 'member' && f.text === LOCKW && f.parts === 0)) bad.push(`${at}：会員の欄が鍵の1行だけでない（${JSON.stringify(f)}）`); };
+      const formIs = want => K.until((sel, want) => { const s = document.querySelector(sel), z = s && s.nextElementSibling; return !!z && !!z.querySelector('.crs-formbox > .crs-form') === want; }, 8000, STAY_SLOT, want);
       const net = networkOf(s).list.map(x => x.iata);
       try {
-        /* none → 押す → pending。 */
-        await member();
+        if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
+        await p.evaluate(k => { localStorage.setItem(k, '{}'); localStorage.removeItem('pv_stay_key'); }, KEY);
         seen.stay = STAY_LOCKED; seen.vreq = '{"ok":true,"state":"none"}';
-        const n0 = seen.stays;
-        if (!(await K.city(net[2], 'locked')) || !(await K.until(sel => !!document.querySelector(sel + ' button[data-act="ask"]'), 8000, STAY_SLOT))) bad.push(`${net[2]}：まだ申し込んでいない会員の鍵の1行に「${ASK}」が出ない（${JSON.stringify(await face())}）`);
+        if (!(await K.city(net[2], 'locked'))) bad.push(`${net[2]}：鍵の1行にならない`);
         else {
-          const f = await face();
-          if (!(f.who === 'member' && f.text === LOCKW + ASK && f.ask === 1 && f.parts === 1)) bad.push(`${net[2]}：鍵の1行と「${ASK}」の1つだけでない（${JSON.stringify(f)}）`);
+          await lockOnly(`${net[2]}（開いた時）`);
+          if (!((await K.tap(`${STAY_ZONE} .crs-ent[data-kind="hotel"]`)) && (await formIs(true)))) bad.push(`${net[2]}：会員が「ホテルを追加」を押しても追加の面が開かない`);
+          else {
+            const city0 = (await K.zone()).city;
+            await p.type(`${STAY_ZONE} [data-k="name"]`, NAME);
+            seen.add = JSON.stringify({ ok: true, item: ITEM });
+            seen.vreq = '{"ok":true,"state":"pending"}';
+            const a0 = seen.asked, s0 = seen.stays, d0 = seen.added.length;
+            await K.tap(SEND);
+            if (!((await formIs(false)) && (await K.zsayIs('追加しました。確認のあと公開されます。')) && (await K.slotIs(net[2], 'locked')))) bad.push(`${net[2]}：送るを1回押したあと、面が閉じない・一言が違う・欄が鍵の1行に戻らない（「${(await K.zone()).say}」）`);
+            else await lockOnly(`${net[2]}（足したあと）`);
+            const got = seen.added.slice(d0).map(x => (x && x.p) || {}), want = { airline: s, iata: net[2], kind: 'hotel', name: NAME, city: city0 };
+            vMeasured = true;
+            if (!(got.length === 1 && city0 && Object.keys(want).every(k => got[0][k] === want[k]))) vSent.push(`会員が送るを1回押して、足す口が1本・その中身にならない（${got.length}本・${JSON.stringify(got[0] || null).slice(0, 200)}）`);
+            const more = seen.asked - a0 - got.length - (seen.stays - s0);
+            if (more) vSent.push(`会員が送るを押した時に、足す口と一覧の読み直しのほかにも ${more}本送った`);
+          }
         }
-        if (!(seen.vreqd.length === 1 && seen.vreqd[0] === '{"p":{"ask":false}}' && seen.stays - n0 === 1)) sent.push(`都市を開いた時に送ったのが、自分の状態を読む1本（{ask:false}）だけでない（${JSON.stringify(seen.vreqd)}・一覧 ${seen.stays - n0}回）`);
-        seen.vreq = '{"ok":true,"state":"pending"}';
-        const a0 = seen.asked, s0 = seen.stays;
-        if (!(await K.tap(`${STAY_SLOT} button[data-act="ask"]`))) bad.push(`「${ASK}」を押せない`);
-        else if (!(await K.until(sel => { const e = document.querySelector(sel); return !e.querySelector('button[data-act="ask"]') && [...e.querySelectorAll('.crs-lock .crs-badge')].some(b => b.textContent.trim() === '確認待ち'); }, 8000, STAY_SLOT))) bad.push(`押したあと、鍵の1行の横が「確認待ち」にならない（${JSON.stringify(await face())}）`);
-        else { const f = await face(); if (!(f.text === LOCKW + '確認待ち' && f.ask === 0 && f.parts === 0)) bad.push(`押したあとの欄が、鍵の1行と「確認待ち」だけでない（${JSON.stringify(f)}）`); }
-        if (!(seen.vreqd.length === 2 && seen.vreqd[1] === '{"p":{"ask":true}}' && seen.asked - a0 === 1 && seen.stays === s0)) sent.push(`押した時に送ったのが、申し込みの1本（{ask:true}）だけでない（${JSON.stringify(seen.vreqd.slice(1))}・ほかの通信 ${seen.asked - a0 - 1}本・一覧 ${seen.stays - s0}回）`);
-        /* ログインごとに1回：ほかの都市の鍵の1行では読み直さず、覚えている「確認待ち」を出す。 */
-        if (!((await K.back()) && (await K.city(net[3], 'locked')) && (await K.until(sel => [...document.querySelectorAll(sel + ' .crs-lock .crs-badge')].some(b => b.textContent.trim() === '確認待ち'), 8000, STAY_SLOT)))) bad.push(`${net[3]}：ほかの都市の鍵の1行に「確認待ち」が出ない`);
-        if (seen.vreqd.length !== 2) sent.push(`ほかの都市を開くと、状態を読み直す（${seen.vreqd.length - 2}本。ログインごとに1回のはず）`);
-        /* denied ＝ 鍵の1行だけ。 */
-        await member();
-        seen.vreq = '{"ok":true,"state":"denied"}';
-        const got = answered(1);
-        if (!(await K.city(net[4], 'locked'))) bad.push(`${net[4]}：鍵の1行にならない`);
-        else if (!(await got)) bad.push(`${net[4]}：申し込みの口の返事が届かない`);
-        else { const f = await face(); if (!(f.who === 'member' && f.text === LOCKW && f.ask === 0 && f.parts === 0)) bad.push(`見送られた会員の欄が、鍵の1行だけでない（${JSON.stringify(f)}）`); }
-        /* approved ＝ 一覧を読み直す（承認が先に済んでいた時。読み直した一覧が開いていれば、そのまま出る）。
-           ★ 返事を返すその時に、偽のサーバーの一覧の答えを「開いた」に替える（返事の後に替えると、読み直しと追いかけっこになる）。 */
-        await member();
-        seen.stay = STAY_LOCKED;
-        Object.defineProperty(seen, 'vreq', { configurable: true, enumerable: true, get() { seen.stay = STAY_OPEN; return '{"ok":true,"state":"approved"}'; } });
-        const n1 = seen.stays;
-        if (!(await K.city(net[5], 'open', 10000))) bad.push(`${net[5]}：承認済みと答えた会員の欄が、一覧を読み直して開かない（${JSON.stringify(await face())}）`);
-        else if (!(await K.look()).text.includes(STAY_NAME) || seen.stays - n1 !== 2 || seen.vreqd.length !== 1) bad.push(`${net[5]}：読み直しの回数・中身が違う（一覧 ${seen.stays - n1}回・申し込みの口 ${seen.vreqd.length}本）`);
+        if (!((await K.back()) && (await K.city(net[3], 'locked')))) bad.push(`${net[3]}：ほかの都市が鍵の1行にならない`);
+        else await lockOnly(`${net[3]}（ほかの都市）`);
       } finally {
-        delete seen.vreq; seen.vreq = null; seen.stay = null;
+        seen.stay = null; seen.add = null; seen.vreq = null;
         await p.evaluate(k => localStorage.removeItem(k), KEY).catch(() => {});
       }
-      ok(!sent.length, `${tag}: 見てよい人の申し込みの口に送るもの ── ログインしていない人は呼ばない／会員は鍵の1行が出た時に自分の状態を1回だけ読む（{ask:false}）／押した時だけ {ask:true} の1本（一覧も読まない）`, sent.join(' ／ '));
-      ok(!bad.length, `${tag}: 見てよい人の申し込み ── まだなら鍵の1行の下に「確認を申し込む」→ 押すと「確認待ち」／見送りは鍵の1行だけ／承認済みなら一覧を読み直す`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: ホテルの欄に「確認を申し込む」「確認待ち」を出さない ── 会員の鍵の1行は、開いた時・ホテルを足したあと・ほかの都市でも鍵の1行だけ（申し込みの口が呼ばれたら「まだ」「確認待ち」と答える用意があっても）`, bad.join(' ／ '));
     }
     /* ── 端末の控えの鍵・自分の投稿・引き取り・書きかけ（S-d〜S-h）──
        ★ログインせずに足した人は、この端末の控えの鍵（pv_stay_key）で、自分が足したものだけを見る・直す・消す。
@@ -5430,7 +5428,7 @@ async function runStay(browser, s, [w, h]) {
             await clean();
             if (!(await K.fresh())) gone.push('ステイ先のタブが一覧で開かない');
             await store({ [AUTH]: '{}' });
-            seen.stay = OWN(); seen.vreq = '{"ok":true,"state":"denied"}';
+            seen.stay = OWN();
             if (!((await K.city(C, 'locked')) && (await ownIs(1)))) gone.push(`${C}：ログインの鍵が在る人の自分の分が出ない`);
             else {
               await store({ [AUTH]: null });
@@ -5452,7 +5450,7 @@ async function runStay(browser, s, [w, h]) {
             }
           } finally {
             await clean();
-            seen.stay = null; seen.vreq = null;
+            seen.stay = null;
           }
           ok(!gone.length, `${tag}: 自分の投稿 ── ログインの鍵が消えて戻ってきたら、ログインして読んだ自分の分のカードもホテル名も残さない`, gone.join(' ／ '));
           ok(!quiet.length, `${tag}: 自分の投稿 ── 控えの鍵だけの人（ログインしていない）は、戻ってきただけでは読み直しに行かない（カードはそのまま）`, quiet.join(' ／ '));
@@ -5471,7 +5469,7 @@ async function runStay(browser, s, [w, h]) {
             if (JSON.stringify(got) !== JSON.stringify(want)) bad.push(`${code}：${JSON.stringify(got)}（${JSON.stringify(want)} のはず）`);
           };
           try {
-            seen.stay = STAY_LOCKED; seen.vreq = '{"ok":true,"state":"denied"}';
+            seen.stay = STAY_LOCKED;
             await clean();
             if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
             await store({ [AUTH]: '{}', [DEV]: DEVK });
@@ -5488,7 +5486,7 @@ async function runStay(browser, s, [w, h]) {
             await tryCity(A, { order: 'pv_stays', claimKeys: [], held: true, readKey: true });
           } finally {
             await clean();
-            seen.stay = null; seen.vreq = null; seen.claim = '{"ok":true}'; seen.claimed = [];
+            seen.stay = null; seen.claim = '{"ok":true}'; seen.claimed = [];
           }
           ok(!bad.length, `${tag}: 引き取り ── ログインしている端末に控えの鍵が在れば、読む前に1回だけ頼む（引き取れたら鍵を捨て、読み出しは鍵を送らない）／頼めなければ鍵は残り読み出しに添える／ログインしていなければ頼まない`, bad.join(' ／ '));
         }
@@ -5574,7 +5572,7 @@ async function runStay(browser, s, [w, h]) {
           try {
             await clean();
             if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
-            seen.stay = STAY_LOCKED; seen.vreq = '{"ok":true,"state":"denied"}';
+            seen.stay = STAY_LOCKED;
             if (!((await K.city(A, 'locked')) && (await K.tap(`${STAY_ZONE} .crs-ent[data-kind="hotel"]`)) && (await formIs(true)))) bad.push(`${A}：「ホテルを追加」で追加の面が開かない`);
             else {
               await p.type(`${STAY_ZONE} [data-k="name"]`, TXT);
@@ -5594,7 +5592,7 @@ async function runStay(browser, s, [w, h]) {
             }
           } finally {
             await clean();
-            seen.stay = null; seen.vreq = null;
+            seen.stay = null;
           }
           ok(!bad.length, `${tag}: 書きかけ ── ログインの前に開いた追加の面は、ほかのタブでのログインでは残し、そのログインが知らせなく消えて戻ってきたら面も字も書きかけも残さない`, bad.join(' ／ '));
         }
@@ -5603,6 +5601,11 @@ async function runStay(browser, s, [w, h]) {
         await clean();
       }
     }
+    /* S-v の終わり（送るもの）：この画面は、見てよい人の申し込みの口を1回も呼ばない ── 場面の全部で数える
+       （S-a〜S-h：ログインしていない人も会員も・都市を開く・足す・直す・消す・引き取り・書きかけ）。
+       会員が送るを1回押した時に送ったもの（S-v）も、ここで出す。 */
+    ok(vMeasured && !seen.vreqd.length && !vSent.length, `${tag}: 送るもの ── この画面は申し込みの口（pv_stay_viewer_request）を1回も呼ばない（場面の全部・ログインしていない人も会員も）／会員が送るを1回押すと、足す口（pv_stay_add）が1本だけ（会社・空港・種類・名前・都市）で、ほかには送らない`,
+       [seen.vreqd.length ? `申し込みの口を ${seen.vreqd.length}回呼んだ（${seen.vreqd.slice(0, 2).join(' ')}）` : '', ...vSent, vMeasured ? '' : '会員が足す所まで進めなかった（S-v の行）'].filter(Boolean).join(' ／ '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {

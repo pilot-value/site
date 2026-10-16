@@ -4,7 +4,8 @@
  *   画面でプロフィール・給与の鍵・ブラウザの保存領域を見て開けない。
  * ・鍵の1行に「ログイン」の入口を添えるかどうかだけは、この端末にログインの鍵が在るかで決める
  *   （鍵が無い人にだけ添える。会員には入口を出さない）。開ける・開けないには使わない。
- *   会員の鍵の1行には、オーナーへの確認の申し込み（自分の状態だけを読み、押した時だけ申し込む）の1つだけを添える。
+ *   会員の鍵の1行にも何も添えない。見てよい人になる申し込みの口は、この画面からは呼ばない
+ *   （見てよい人はオーナーが決める。ホテルを足しても、申し込みにも承認にもならない）。
  * ・見てよいのは、オーナーと、オーナーが承認した人だけ（db/stays.sql）。給与の提出・ログイン・プロフィールでは開かない
  *   ＝ 鍵の1行の横に、給与の提出への入口を置かない。
  * ・3つの入口（ホテル・レストラン・場所を追加）と追加の面は、欄のすぐ後ろの兄弟（.crs-zone）に置く。
@@ -65,7 +66,6 @@
     off:        '準備中',
     locked:     '確認済みのパイロットだけが見られます',
     login:      'ログイン',
-    ask:        '確認を申し込む',
     err:        '読み込めませんでした',
     retry:      'もう一度',
     none:       'まだ登録がありません',
@@ -270,7 +270,6 @@
         else if (uid && slots().some(function (s) { return !!zoneForm(s); })) FORM_IN = true;   /* ログインの前に開いた追加の面も、ここからはログインのあいだの面（ログインが知らせなく消えたら閉じる） */
         CACHE = {};
         PHOTO_LOCK = false;
-        vqReset();                   // 申し込みの状態も、ログインごとに読み直す
         LIVE.slice().forEach(drop);
         scan();
       });
@@ -352,7 +351,6 @@
     if (!holdsOpen() || !keyGone()) return false;
     closeAdds(); dropDrafts();
     CACHE = {};
-    vqReset();
     LIVE.slice().forEach(drop);
     /* 鍵が消えたことは onAuthStateChange には届いていない。覚えている相手も一緒に忘れる
        （忘れないと、同じ人がほかのタブでログインし直したとき「相手は変わっていない」と読んで取り直さない）。 */
@@ -463,8 +461,6 @@
       if (who === 'login') lk.appendChild(entry());
       put(slot, 'locked', lk);
       slot.setAttribute('data-who', who);
-      /* ログインしている人だけ：自分の申し込みの状態に合わせて、鍵の1行に1つだけ添える（viewer）。 */
-      if (who === 'member') viewer(slot);
       /* 欄の中に一言の置き場は無い（鍵の1行だけ）。足したあとの一言は、欄の外の面に出す。 */
       if (opt && opt.say) zsay(slot, opt.say);
       return;
@@ -477,54 +473,6 @@
     box.appendChild(el('span', '', T.err));
     box.appendChild(btn('crs-act', T.retry, 'retry'));
     put(slot, 'error', box);
-  }
-
-  // ══ 見てよい人になる申し込み（ログインしている人の鍵の1行）══════════════
-  /* ★読むのも申し込むのも、自分の状態だけ（pv_stay_viewer_request）。ホテルの字は1つも返らない。
-     開けるかどうかは、いつも pv_stays の答え（ここでは開けない）。承認するのはオーナーだけ（申し込んだ人だけを承認できる）。
-     状態はログインごとに1回だけ読む（{ask:false}）。申し込む（{ask:true}）のは、押した時だけ。ログインしていない人は呼ばない。
-       none → 鍵の1行の下に「確認を申し込む」／pending → 鍵の1行の横に「確認待ち」
-       denied・revoked・owner・読めなかった → 鍵の1行だけ（読めなかったのを「まだ申し込んでいない」にしない）
-       approved → 一覧を1回だけ読み直す（それでも鍵なら鍵の1行だけ。同じ理由で回り続けない）。 */
-  var VQ = null, VQ_TRIED = false, VQ_SEQ = 0;
-  function vqReset() { VQ = null; VQ_TRIED = false; VQ_SEQ++; }
-  function vqOf(v) {
-    var s = bad(v) ? '' : String(v.state || '');
-    return /^(none|pending|approved|denied|revoked|owner)$/.test(s) ? s : 'fail';
-  }
-  function viewer(slot) {
-    if (VQ !== null) { vqFace(slot); return; }
-    var seq = VQ_SEQ;
-    VQ = 'wait';
-    rpc('pv_stay_viewer_request', { ask: false }).then(function (v) {
-      if (seq !== VQ_SEQ) return;                 /* 待つあいだにログインが変わった */
-      VQ = vqOf(v);
-      LIVE.slice().forEach(vqFace);
-    });
-  }
-  /* 鍵の1行（会員）に、いまの状態の1つを描き直す。 */
-  function vqFace(slot) {
-    if (slot.getAttribute('data-state') !== 'locked' || slot.getAttribute('data-who') !== 'member') return;
-    [].forEach.call(slot.querySelectorAll('.crs-vq'), function (n) { n.parentNode.removeChild(n); });
-    var lk = slot.querySelector('.crs-lock');
-    if (!lk) return;
-    if (VQ === 'none') slot.appendChild(btn('crs-act crs-vq', T.ask, 'ask'));
-    else if (VQ === 'pending') lk.appendChild(el('span', 'crs-badge crs-vq', T.pending));
-    else if (VQ === 'approved' && !VQ_TRIED) { VQ_TRIED = true; load(slot, { fresh: true }); }
-  }
-  /* 押した：申し込みの1本だけを送る（ほかは何も読まない・送らない）。 */
-  function ask(slot, b) {
-    if (b.disabled) return;
-    b.disabled = true;
-    zsay(slot, '');
-    var seq = VQ_SEQ;
-    rpc('pv_stay_viewer_request', { ask: true }).then(function (v) {
-      if (seq !== VQ_SEQ) return;
-      var s = vqOf(v);
-      if (s === 'fail') { b.disabled = false; zsay(slot, SAY_FAIL); return; }
-      VQ = s;
-      LIVE.slice().forEach(vqFace);
-    });
   }
 
   function paintOpen(slot, st, v, opt) {
@@ -1415,7 +1363,6 @@
       var act = b.getAttribute('data-act');
       if (act === 'retry')       { delete CACHE[st.key]; load(slot, { fresh: true }); }
       else if (act === 'ent')    pressEnt(slot, st, b);
-      else if (act === 'ask')    ask(slot, b);
       else if (act === 'edit')   { if (b.__crsItem) openForm(slot, st, b, b.__crsItem); }
       else if (act === 'unform') {
         var uf = b.closest('.crs-form');
@@ -1465,7 +1412,7 @@
   /* 戻る・進むで、手放したあとの画面がそのまま戻ってきたとき（写真の URL はもう無い）。
      離れているあいだにログインが変わっているかもしれないので、持っている答えも使い回さない。 */
   w.addEventListener('pageshow', function (e) {
-    if (e.persisted) { CACHE = {}; vqReset(); LIVE.slice().forEach(drop); scan(); }
+    if (e.persisted) { CACHE = {}; LIVE.slice().forEach(drop); scan(); }
   });
   /* ほかの画面から戻ってきたとき、鍵が消えていたら取り直す（消えていなければ何もしない＝通信もしない）。 */
   d.addEventListener('visibilitychange', function () {

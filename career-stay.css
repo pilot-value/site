@@ -21,9 +21,6 @@
    入らない幅では下の行へ回る。 */
 .crs-lock > span:not(.crs-icw){flex:1 1 12em;min-width:0}
 .crs-lock > a{margin-left:auto}
-/* 会員の鍵の1行：申し込み中は「確認待ち」を右に添える（字の幅だけ）。まだなら「確認を申し込む」を1行の下に置く（形は .crs-act）。 */
-.crs-lock > span.crs-vq{flex:none;margin-left:auto}
-.crs-lock + .crs-vq{margin-top:8px}
 .crs-err{justify-content:space-between;flex-wrap:wrap}
 /* この板は career.html の外（会社ページ）でも使う。hidden を display の指定に負けさせない。 */
 .crs [hidden]{display:none !important}
