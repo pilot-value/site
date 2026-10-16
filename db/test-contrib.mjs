@@ -321,7 +321,7 @@ console.log('\n▼ 3. 鍵を知らない人には返らない');
 {
   const [P1] = await crew(1);
   const EMPTY = '{"ok":true,"rows":[],"known":false,"answers":[]}';
-  const same = (r) => r && r.ok === true && r.known === false && r.rows.length === 0 && r.answers.length === 0 && keys(r) === 'answers,known,ok,rows';
+  const same = (r) => r && r.ok === true && r.known === false && r.rows.length === 0 && r.answers.length === 0 && keys(r) === 'answers,known,ok,rows,towns' && r.towns.length === 0;
   ok(same(await mineA('b'.repeat(48), A_ONE)), '★形だけ合わせた鍵には、空しか返らない');
   ok(same(await mineA('', A_ONE)) && same(await rpc(ANON, 'my_contrib_anon', {})) && same(await rpc(ANON, 'my_contrib_anon')),
     '鍵を出さなければ空');
@@ -2717,6 +2717,34 @@ console.log('\n▼ 12. 前提が無い DB では、日本語の案内で止ま�
   g = await guardRun(true, true);
   ok(!named(g) && !(g.err || '').includes('db/airline-conditions.sql'),
     `   12d 対照: 2つとも在れば、この案内では止まらない（代役の引数の型は、案内が探している型と同じ）。その先: ${g.err === null ? '最後まで流れた' : g.err.split('\n')[0].slice(0, 90)}`, told(g));
+
+  /* 12e 住みやすい街の部品（db/towns.sql の pv_town_clean ほか4つ）も、前のファイルに在るものを呼ぶ（街の預かりと引き継ぎ）。
+     案内がそれより前に探すものの代役を全部置き、街の4つだけを置かない DB → 「先に db/towns.sql」で止まる。 */
+  {
+    const b = new PGlite({ extensions: { pgcrypto } });
+    await b.waitReady;
+    await b.exec(`
+      create schema if not exists extensions;
+      create function public.pv_work_month_clean(jsonb) returns jsonb language sql as $$ select null::jsonb $$;
+      create function public.pv_work_level() returns text language sql as $$ select null::text $$;
+      create function public.pv_condition_clean(text, jsonb) returns jsonb language sql as $$ select null::jsonb $$;
+      create function public.pv_condition_range_other(text) returns text language sql as $$ select null::text $$;
+      create function public.pv_condition_range_bad(text, numeric, text, numeric, text) returns text language sql as $$ select null::text $$;
+      create table public.pay_reports (id int);
+      create function public.pv_airline_resolve(text) returns text language sql as $$ select null::text $$;
+      create function public.pv_is_operator() returns boolean language sql as $$ select false $$;
+      create function public.pv_work_hash(uuid, text, text) returns text language sql as $$ select null::text $$;
+      create view public.airline_condition_facts as select 1 as x;
+    `);
+    let err = null;
+    try { await b.exec(CONTRIB_SQL); } catch (x) { err = String(x.message || x); }
+    const none = (await b.query(
+      `select to_regclass('public.pv_contrib_pending') is null and to_regclass('public.pv_contrib_keys') is null as n`)).rows[0].n;
+    await b.close();
+    ok(err !== null && err.includes('db/towns.sql') && err.includes('pv_town_clean') && /[ぁ-ん]/.test(err) && none === true,
+      '★12e 案内がそれより前に探す前提が全部在り、街の部品（db/towns.sql）だけが無い → 「先に db/towns.sql」と pv_town_clean の名前を出して止まる。表は作っていない',
+      err === null ? '止まらずに流れた' : err.split('\n')[0]);
+  }
 }
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed\n`);

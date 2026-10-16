@@ -47,7 +47,19 @@
      TB8 開いた返事に、書いた人の印・時刻・家賃・通勤が無い
      TB9 候補（pv_town_options）は、サイトの名前だけ・誰が読んでも同じ字
      TB10 mine は読む人自身の街と文にだけ      TB11 db/contrib.sql が無ければ一覧は止まり、候補は答える
-     （TS12 はもう一度、一覧と候補を読んだあとにも見る）
+     TO1 運営の3つの口（pv_town_queue・pv_town_moderate・pv_town_admin_add）は運営だけ ── ほかの人には forbidden の字だけ・何も変えない
+     TO2 確認待ちの形と絞り込み ── 投稿の無くなった名前・見送った名前の下の文は出さない・書いた人の印も日付も無い
+     TO3 名前を通す・見送る ── 見送ったものは、この口から公開へ戻せない（final）
+     TO4 文は、運営が見た字の印（rev）でだけ通る ── 本人が直したら前の印は changed
+     TO5 束ねる（into）── 投稿は束ねた先へ・両方に出した人は1行（2つの書き方を束ねても1行。LEAD-RULINGS-35 P12.22 b）
+     TO6 運営が足す ── 候補になる（人数は付かない）。台帳の街は動かさない。見送った街・束ねた街は候補から消える（P12.22 a）
+     TO7 確認待ちの数は、運営のぶんだけ ── 会員が出したぶんだけ増え、ほかの人の一覧にも自分の投稿にも出ない
+     TA1〜TA9 未ログインの預かり（db/contrib.sql の kind 'town'）と、ログインしてからの引き継ぎ
+         TA1 預かりは held・鍵が返る      TA2 その鍵にだけ返る      TA3 一覧・候補・確認待ちに出ない・街の行を作らない
+         TA4 引き継ぐと会員の行（打ち込んだ名前はそこで確認待ち）      TA5 会員のもっと新しい行が勝つ（kept）
+         TA6 街の上限と、月の勤務・質問の引き継ぎは互いに止めない（想定外の失敗でも、先に済んだ引き継ぎは取り消さない）
+         TA8 預かりの was は残さない      TA9 1本の鍵・1つの会社に10か所まで
+     （TS12 はもう一度、一覧と候補を読んだあと・運営の口のあと・預けた街の引き継ぎのあとにも見る ＝ TA7）
      TZ  返事に、64けたの16進・author_hash・user_id・created_at・updated_at が無い。住んだ時期・家賃・通勤は本人への返事だけ
 
    ⚠️ set_config の第3引数は **false**（＝セッション全体）でなければならない。
@@ -58,8 +70,8 @@
       会社は語彙（pv_airlines）から機械的に取る。基地 'QZT' と 'QZU' は検査のための作り物。
       本物の街の候補の種（db/towns.generated.sql）は SQL_FILES と一緒に流れ、TG1〜TG4・TG7 が見る。
       TS の節は、種の中身（台帳の街の名前）に左右されないよう、作り物の基地に自分で台帳の街を入れる
-      （持ち主として・origin 'ledger'）。運営が足した街（origin 'operator'）と、運営の承認・見送り
-      （state の書き換え）も、運営の口ができるまでは持ち主として書く。
+      （持ち主として・origin 'ledger'）。TS・TB の準備では、運営が足した街（origin 'operator'）と、運営の承認・見送り
+      （state の書き換え）も持ち主として書く。運営の口そのものは TO の節が、運営の名簿の会員（OPM）として確かめる。
 */
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
@@ -205,7 +217,7 @@ console.log('\n▼ TS0 貼ったあとに出る検算の1行');
 // ════════════════════════════════════════════════════════════
 // ★段が進んで検算の値が増えたら、ここに足す（列の数ごと見ている ＝ 値が黙って消えても赤くなる）
 const CLOSING = ['表は閉じている', '表は誰も直接読めない', '住所も位置も人の印も持たない',
-                 '一覧は同じ決まりで返す', '候補は誰が読んでも同じ', '入口は決めたものだけ', '資格に触らない'];
+                 '一覧は同じ決まりで返す', '候補は誰が読んでも同じ', '運営の口は名簿を見る', '入口は決めたものだけ', '資格に触らない'];
 {
   const res = await db.exec(TOWNS_SQL);
   const chk = res[res.length - 1].rows[0] || {};
@@ -392,14 +404,14 @@ const postsAt = async (name) => (await one(
   [A1, BASE, name])).n;
 const yesterday = async (who) => db.query(
   `update public.pv_town_rate set day = current_date - 1 where author_hash = $1`, [await hashOf(who)]);
-// 持ち主として、運営の確認を書く（運営の口 pv_town_moderate ができるまで）
+// 持ち主として、運営の確認を書く（TS・TB の準備。運営の口 pv_town_moderate そのものは TO の節で確かめる）
 const approveText = async (who) => db.query(
   `update public.pv_town_posts set text_state = 'public', moderated_at = now() where author_hash = $1`, [await hashOf(who)]);
 const setTown = async (name, state) => db.query(
   `update public.pv_towns set state = $4, moderated_at = now()
     where airline = $1 and base_iata = $2 and tkey = public.pv_town_key($3)`, [A1, BASE, name, state]);
 
-// 候補の街を足す（持ち主として。作り物の基地の台帳の街と、運営の街は pv_town_admin_add ができるまで）
+// 候補の街を足す（持ち主として。作り物の基地の台帳の街と、TS・TB の準備の運営の街。pv_town_admin_add は TO6 で確かめる）
 const addTown = (name, origin, aliasOf = null) => db.query(
   `insert into public.pv_towns (airline, base_iata, tkey, name, origin, state, alias_of)
    values ($1, $2, public.pv_town_key($3), $3, $4, 'public',
@@ -978,7 +990,7 @@ console.log('\n▼ TB1〜TB3 開いていない人への返事は、状態の1�
 }
 
 
-// 一覧に出す投稿（TB4〜TB10）。街は持ち主が運営の街として足す（運営の口ができるまで）
+// 一覧に出す投稿（TB4〜TB10）。街は持ち主が運営の街として足す（準備。運営の口は TO の節で確かめる）
 await addTown('芝浦', 'operator');
 await addTown('台場', 'operator');
 const X = await member(), Y = await member();
@@ -1174,6 +1186,525 @@ console.log('\n▼ TB11 db/contrib.sql の無い DB では、一覧は止まり�
 }
 
 
+// ── 運営の口（TO1〜TO7）の道具 ─────────────────────────────
+// 運営 ＝ 運営の名簿（pv_admins）に居る会員 OPM（db/pay-rows.sql の pv_is_operator の1か所が見る）。
+// ★ステイ先を見られる人の承認（db/stays.sql）とは別のもの。ここではそれに1つも触らない（PILOT は「運営ではない」側にだけ居る）。
+const queue    = (who) => rpc(who, 'pv_town_queue', {});
+const moderate = (who, p) => rpc(who, 'pv_town_moderate', p);
+const adminAdd = (who, p) => rpc(who, 'pv_town_admin_add', p);
+const FORBIDDEN = '{"ok": false, "status": "forbidden"}';
+// 鍵の並びに左右されずに比べる（jsonb は鍵を自分の順に並べ直す）
+const canon = (x) => J(JSON.parse(J(x) ?? 'null', (k, v) => (v && typeof v === 'object' && !Array.isArray(v)
+  ? Object.fromEntries(Object.keys(v).sort().map((q) => [q, v[q]])) : v)));
+const idOf    = async (name) => Number((await townRow(name)).id);
+const textOf  = async (id) => (await one(`select text_state, good, concern from public.pv_town_posts where id = $1`, [id])) || null;
+const revOf   = async (id) => (await one(`select public.pv_town_rev(s) as r from public.pv_town_posts s where s.id = $1`, [id])).r;
+const rowAt   = async (who, name) => (await one(
+  `select s.id from public.pv_town_posts s
+    where s.author_hash = $1
+      and s.town_id = (select id from public.pv_towns where airline = $2 and base_iata = $3 and tkey = public.pv_town_key($4))`,
+  [await hashOf(who), A1, BASE, name])) || null;
+const optsHas = async (name) => JSON.parse(await optsT(ANON, SCOPE)).towns.includes(name);
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TO1 運営の3つの口は、運営だけが使える');
+// ════════════════════════════════════════════════════════════
+{
+  const pend = await townRow('大井町');
+  must(pend && pend.state === 'pending' && (await postsAt('大井町')) > 0, '確認待ちの「大井町」（投稿あり）が無い');
+  const ARGS = [['pv_town_queue', {}], ['pv_town_moderate', { target: 'town', id: Number(pend.id), state: 'public' }],
+                ['pv_town_admin_add', { airline: A1, base: BASE, name: '平和島' }]];
+  const before = await tablesText();
+  const anon = [];
+  for (const [fn, p] of ARGS) anon.push(refused(await rpc(ANON, fn, p), fn));
+  ok(anon.length === 3 && anon.every(Boolean), 'TO1 未ログイン：pv_town_queue・pv_town_moderate・pv_town_admin_add のどれも呼べない（実行権が無い）', J(anon));
+  const bad = [];
+  for (const [who, label] of [[PLAIN, 'PLAIN'], [OWN, 'OWN'], [PILOT, 'PILOT'], [DEAD, 'ログインが死んでいる会員']]) {
+    for (const [fn, p] of ARGS) { const t = await readT(who, fn, p); if (t !== FORBIDDEN) bad.push({ label, fn, t }); }
+  }
+  ok(bad.length === 0 && (await tablesText()) === before && (await townRow('大井町')).state === 'pending' && (await townRow('平和島')) === null,
+     `TO1 PLAIN・OWN・PILOT（確認済みの印・ステイ先の承認）・ログインが死んでいる会員：3つの口のどれも ${FORBIDDEN} の字そのもの・街の表も投稿の表も1行も変わらない`,
+     J(bad));
+  const op = await queue(OPM);
+  must(op && op.ok === true, '運営（OPM）が確認待ちを読めない', J(op));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TO2 確認待ちの形と絞り込み');
+// ════════════════════════════════════════════════════════════
+let KAT = null;          // 「勝島」の文の id（TO4 が使う）
+const Q1 = await member();   // 「勝島」に書いた会員（TO4・TO7 も使う）
+{
+  const Q2 = await member(), Q3 = await member();
+  must(!(await post(Q1, P('勝島', { good: '運河沿いが静か' }))).__err, '「勝島」に書けなかった');
+  must(!(await post(Q2, P('八潮'))).__err && !(await post(Q2, P('品川', { was: '八潮' }))).__err
+       && (await townRow('八潮'))?.state === 'pending' && (await postsAt('八潮')) === 0,
+       '「八潮」を出してから品川へ直せなかった（投稿が0になった確認待ちの名前）');
+  must(!(await post(Q3, P('東品川', { good: '公園が多い' }))).__err, '「東品川」に書けなかった');
+  const rj = await moderate(OPM, { target: 'town', id: await idOf('東品川'), state: 'rejected' });
+  must(rj && rj.ok === true && rj.state === 'rejected', '運営が「東品川」を見送れなかった', J(rj));
+
+  const q = await queue(OPM);
+  const qt = await readT(OPM, 'pv_town_queue', {});
+  const kat = ((q && q.towns) || []).find((t) => t.name === '勝島') || null;
+  const kt = ((q && q.texts) || []).find((x) => x.town === '勝島') || null;
+  ok(keys(q) === 'ok,scopes,texts,towns' && q.ok === true && kat && keys(kat) === 'airline,base,id,name,posts'
+     && kat.airline === A1 && kat.base === BASE && kat.posts === 1 && Number(kat.id) === await idOf('勝島'),
+     'TO2 返事は ok・scopes・towns・texts だけ／会員が打ち込んだ「勝島」が towns に在る（鍵は airline・base・id・name・posts だけ・posts 1）',
+     J({ keys: keys(q), kat }));
+  ok(kt && keys(kt) === 'airline,base,concern,good,id,rev,town,town_state' && kt.airline === A1 && kt.base === BASE
+     && kt.good === '運河沿いが静か' && kt.concern === null && kt.town_state === 'pending' && kt.rev === await revOf(kt.id),
+     'TO2 その良い点・気になる点の組が texts に在る（鍵は airline・base・concern・good・id・rev・town・town_state だけ・rev は今の字の印）', J(kt));
+  KAT = kt && kt.id;
+
+  // towns：検査が表から作った「投稿の付いた・確認待ちの・束ねていない名前」（古い順。投稿の数も表から）と同じ
+  const wantT = (await many(
+    `select t.id, t.airline, t.base_iata as base, t.name,
+            (select count(*)::int from public.pv_town_posts s where s.town_id = t.id) as posts
+       from public.pv_towns t
+      where t.state = 'pending' and t.alias_of is null
+      order by t.created_at, t.id`)).filter((r) => r.posts > 0).map((r) => ({ ...r, id: Number(r.id) }));
+  ok(wantT.length >= 3 && canon(q.towns) === canon(wantT) && !(q.towns || []).some((t) => t.name === '八潮'),
+     `TO2 towns は、投稿の付いた確認待ちの名前 ${wantT.length} 個だけ（古い順・投稿の数は表と同じ）── 出した人が街を直して投稿が0になった「八潮」は無い`,
+     J({ got: q.towns, want: wantT }));
+  // texts：検査が表から作った「確認待ちの文（見送った名前の下を除く）」（古い順。rev も表の字から）と同じ
+  const wantX = (await many(
+    `select s.id::text as id, s.airline, s.base_iata as base, t.name as town, t.state as town_state,
+            s.good, s.concern, public.pv_town_rev(s) as rev
+       from public.pv_town_posts s join public.pv_towns t on t.id = s.town_id
+      where s.text_state = 'pending'
+      order by s.updated_at, s.id`)).filter((r) => r.town_state !== 'rejected');
+  ok(wantX.length >= 3 && canon(q.texts) === canon(wantX) && !(q.texts || []).some((x) => x.town === '東品川'),
+     `TO2 texts は、確認待ちの文 ${wantX.length} 組だけ（古い順）── 運営が見送った名前（東品川）の下の文は無い`, J({ got: q.texts, want: wantX }));
+  // scopes：街の在る会社・基地の全部と、その基地の公開の候補（鍵のバイト順）
+  const sc = new Map();
+  for (const r of await many(
+    `select t.airline, a.name_ja, t.base_iata, t.id, t.name, t.tkey, t.state, t.alias_of
+       from public.pv_towns t join public.pv_airlines a on a.code = t.airline`)) {
+    const k = `${r.airline}/${r.base_iata}`;
+    if (!sc.has(k)) sc.set(k, { airline: r.airline, name: r.name_ja, base: r.base_iata, towns: [] });
+    if (r.state === 'public' && r.alias_of === null) sc.get(k).towns.push(r);
+  }
+  const wantS = [...sc.values()].map((s) => ({ ...s, towns: s.towns
+    .sort((a, b) => Buffer.compare(Buffer.from(a.tkey), Buffer.from(b.tkey))).map((t) => ({ id: Number(t.id), name: t.name })) }));
+  const byScope = (a) => [...(a || [])].sort((x, y) => (`${x.airline}/${x.base}` < `${y.airline}/${y.base}` ? -1 : 1));
+  ok(wantS.length >= 6 && canon(byScope(q.scopes)) === canon(byScope(wantS)),
+     `TO2 scopes は、街の在る会社・基地 ${wantS.length} 組の全部（会社の名前・その基地の公開の候補 id と名前）`, J({ got: q.scopes, want: wantS }));
+  const marks = (await many(`select distinct author_hash as h from public.pv_town_posts`)).map((r) => r.h);
+  ok(typeof qt === 'string' && marks.length > 10 && !marks.some((h) => qt.includes(h))
+     && !/\d{4}-\d{2}-\d{2}|\d{2}:\d{2}:\d{2}/.test(qt) && !/author|user_id|email|created|updated|moderated/.test(qt),
+     `TO2 返事（字そのもの）に、書いた人の印 ${marks.length} 個のどれも・日付も時刻も・author／user_id／email／created／updated／moderated の字も無い`,
+     typeof qt === 'string' ? qt.slice(0, 300) : J(qt));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TO3 名前を通す・見送る（見送ったものは、この口から戻せない）');
+// ════════════════════════════════════════════════════════════
+{
+  const id = await idOf('勝島');
+  const r = await moderate(OPM, { target: 'town', id, state: 'public' });
+  const b = townIn(await board(OWN), '勝島');
+  ok(canon(r) === canon({ ok: true, target: 'town', id, state: 'public' }) && (await townRow('勝島')).state === 'public'
+     && b && b.n === 1 && b.n === (await postsAt('勝島')),
+     'TO3 打ち込まれた名前を通す → {ok, target town, id, state public}・一覧（OWN）に n ＝ その名前の投稿の数（1）で出る', J({ r, b }));
+
+  const R = await member();
+  must(!(await post(R, P('南大井', { good: '商店街が近い' }))).__err, '「南大井」に書けなかった');
+  const sid = await idOf('南大井');
+  const r1 = await moderate(OPM, { target: 'town', id: sid, state: 'rejected' });
+  const own = ((await mine(R, { airline: A1 })).posts || []).find((x) => x.town === '南大井') || null;
+  const r2 = await moderate(OPM, { target: 'town', id: sid, state: 'public' });
+  ok(canon(r1) === canon({ ok: true, target: 'town', id: sid, state: 'rejected' }) && own && own.town_state === 'rejected'
+     && canon(r2) === canon({ ok: false, status: 'final' }) && (await townRow('南大井')).state === 'rejected'
+     && townIn(await board(OWN), '南大井') === null,
+     'TO3 見送る → 書いた本人の自分の投稿は town_state rejected／もう一度通そうとすると final・見送りのまま・一覧に無い', J({ r1, own, r2 }));
+
+  const T = await member();
+  must(!(await post(T, P('品川', { concern: '人が多い' }))).__err, '品川に気になる点を書けなかった');
+  const tid = (await rowAt(T, '品川')).id;
+  const rev = await revOf(tid);
+  const t1 = await moderate(OPM, { target: 'text', id: tid, state: 'rejected' });
+  const t2 = await moderate(OPM, { target: 'text', id: tid, state: 'public', rev });
+  const tm = ((await mine(T, { airline: A1 })).posts || []).find((x) => x.town === '品川') || null;
+  ok(canon(t1) === canon({ ok: true, target: 'text', id: tid, state: 'rejected' }) && canon(t2) === canon({ ok: false, status: 'final' })
+     && (await textOf(tid)).text_state === 'rejected' && tm && tm.text_state === 'rejected',
+     'TO3 文を見送る（rev は要らない）→ 本人の投稿は text_state rejected／見た字の印を添えても、通そうとすると final', J({ t1, t2, tm }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TO4 文は、運営が見た字の印（rev）でだけ通る');
+// ════════════════════════════════════════════════════════════
+{
+  must(!!KAT, 'TO2 で「勝島」の文が確認待ちに出ていない');
+  const st = async () => (await textOf(KAT)).text_state;
+  const revIn = async () => (((await queue(OPM)).texts || []).find((x) => x.id === KAT) || {}).rev;
+  const rev0 = await revIn();
+  const a = await moderate(OPM, { target: 'text', id: KAT, state: 'public' });
+  const b = await moderate(OPM, { target: 'text', id: KAT, state: 'public', rev: '0123456789abcdef' });
+  ok(canon(a) === canon({ ok: false, status: 'changed' }) && canon(b) === canon({ ok: false, status: 'changed' }) && (await st()) === 'pending',
+     'TO4 rev なし・違う rev で通そうとする → changed・文は確認待ちのまま', J({ a, b }));
+  const c = await moderate(OPM, { target: 'text', id: KAT, state: 'public', rev: rev0 });
+  const g = (townIn(await board(OWN), '勝島') || {}).good || [];
+  ok(!!rev0 && canon(c) === canon({ ok: true, target: 'text', id: KAT, state: 'public' }) && (await st()) === 'public'
+     && J(g.map((x) => x.text)) === J(['運河沿いが静か']),
+     'TO4 確認待ちの一覧が返した rev を添えて通す → public・一覧の「勝島」に、その字のまま出る', J({ c, g }));
+  must(!(await post(Q1, P('勝島', { good: '運河沿いが静か。' }))).__err && (await st()) === 'pending', '本人が文を直せなかった');
+  const d = await moderate(OPM, { target: 'text', id: KAT, state: 'public', rev: rev0 });
+  const g2 = (townIn(await board(OWN), '勝島') || {}).good || [];
+  const rev1 = await revIn();
+  ok(canon(d) === canon({ ok: false, status: 'changed' }) && (await st()) === 'pending' && g2.length === 0 && !!rev1 && rev1 !== rev0,
+     'TO4 本人が1文字直したあと、前の rev で通そうとする → changed・確認待ちのまま・一覧には古い字も新しい字も無い（一覧の rev は新しい字の印）',
+     J({ d, g2, rev0, rev1 }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TO5 束ねる（into）── 投稿は束ねた先へ・1人は1行');
+// ════════════════════════════════════════════════════════════
+{
+  const X = '勝島', Y = 'Katsushima', Y2 = 'かつしま';
+  const U1 = await member(), U2 = await member(), U3 = await member();
+  must(!(await post(U1, P(Y, { lived: 'past' }))).__err
+       && !(await post(U2, P(X, { lived: 'now' }))).__err && !(await post(U2, P(Y, { lived: 'past' }))).__err
+       && !(await post(U3, P(Y, { lived: 'past' }))).__err && !(await post(U3, P(Y2, { lived: 'now' }))).__err
+       && (await townRow(Y))?.state === 'pending' && (await townRow(Y2))?.state === 'pending',
+       '束ねる前の投稿（Katsushima・かつしま・勝島）を出せなかった');
+  const xid = await idOf(X), yid = await idOf(Y), y2id = await idOf(Y2);
+  const other = await one(`select id from public.pv_towns where airline <> $1 and state = 'public' and alias_of is null order by id limit 1`, [A1]);
+  must(!!other, 'ほかの会社の公開の街が無い');
+  const before = await tablesText();
+  const bad = [];
+  for (const [label, into] of [['ほかの会社・基地の街', Number(other.id)], ['確認待ちの名前', y2id], ['自分自身', yid], ['数でない', 'x']]) {
+    const r = await moderate(OPM, { target: 'town', id: yid, state: 'public', into });
+    if (canon(r) !== canon({ ok: false, status: 'bad_into' })) bad.push({ label, r });
+  }
+  ok(bad.length === 0 && (await tablesText()) === before,
+     'TO5 束ねる先が、ほかの会社・基地の街／確認待ちの名前／自分自身／数でない → bad_into・何も変わらない', J(bad));
+
+  const n0 = await postsAt(X);
+  const r = await moderate(OPM, { target: 'town', id: yid, state: 'public', into: xid });
+  const ty = await townRow(Y);
+  ok(canon(r) === canon({ ok: true, target: 'town', id: yid, state: 'public', into: xid })
+     && ty && Number(ty.alias_of) === xid && ty.state === 'public' && (await postsAt(Y)) === 0 && (await postsAt(X)) === n0 + 2,
+     'TO5 「Katsushima」を「勝島」として束ねる → {…, into 勝島}・Katsushima は勝島の別の書き方に・投稿は勝島へ（Katsushima に0・勝島は2人増える）',
+     J({ r, ty, n0, now: await postsAt(X) }));
+  const u1 = await rowsOf(U1), u2 = await rowsOf(U2);
+  ok(u1.length === 1 && u1[0].tname === X && u1[0].lived === 'past' && u2.length === 1 && u2[0].tname === X && u2[0].lived === 'now',
+     'TO5 Katsushima だけに出した人は勝島の1行に／勝島と Katsushima の両方に出していた人は1行（勝島の行が残る ── P12.22 b）',
+     J({ u1: u1.map((x) => [x.tname, x.lived]), u2: u2.map((x) => [x.tname, x.lived]) }));
+  const r2 = await moderate(OPM, { target: 'town', id: y2id, state: 'public', into: xid });
+  const u3 = await rowsOf(U3);
+  ok(r2 && r2.ok === true && Number((await townRow(Y2)).alias_of) === xid && (await postsAt(Y2)) === 0
+     && u3.length === 1 && u3[0].tname === X && u3[0].lived === 'past',
+     'TO5 1人が2つの書き方（Katsushima・かつしま）に出していた → 2つとも勝島へ束ねても、その人は勝島の1行（先に移った行が残る ── P12.22 b）',
+     J({ r2, u3: u3.map((x) => [x.tname, x.lived]) }));
+
+  const U4 = await member();
+  const n1 = await postsAt(X);
+  const p = await post(U4, P(Y));
+  const b = townIn(await board(OWN), X);
+  ok(!p.__err && p.replaced === false && p.post.town === X && p.post.town_state === 'public'
+     && (await postsAt(X)) === n1 + 1 && (await postsAt(Y)) === 0 && b && b.n === n1 + 1,
+     'TO5 次に「Katsushima」と打つ → 勝島の行に入る（replaced:false・town_state public・その場で勝島の数に入り、一覧も n ＋1）', J({ p, n1, b }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TO6 運営が足す街は、候補になる（人数は付かない）');
+// ════════════════════════════════════════════════════════════
+{
+  const a = await adminAdd(OPM, { airline: A1, base: BASE, name: '鈴ヶ森' });
+  const ta = await townRow('鈴ヶ森');
+  ok(a && keys(a) === 'existed,id,name,ok,state' && a.ok === true && a.existed === false && a.name === '鈴ヶ森' && a.state === 'public'
+     && ta && Number(ta.id) === Number(a.id) && ta.origin === 'operator' && ta.state === 'public'
+     && (await optsHas('鈴ヶ森')) && townIn(await board(OWN), '鈴ヶ森') === null && (await postsAt('鈴ヶ森')) === 0,
+     'TO6 新しい名前を足す → {ok, id, name, state public, existed:false}・運営の街（origin operator・public）・未ログインの候補に入る・一覧には出ない（誰も挙げていない）',
+     J({ a, ta }));
+
+  const H1 = await member();
+  must(!(await post(H1, P('浜川'))).__err && (await townRow('浜川'))?.state === 'pending', '「浜川」を出せなかった');
+  const hid = await idOf('浜川');
+  const h = await adminAdd(OPM, { airline: A1, base: BASE, name: '浜川駅' });
+  const th = await townRow('浜川');
+  ok(h && h.existed === true && Number(h.id) === hid && th.state === 'public' && th.origin === 'operator'
+     && (await optsHas('浜川')) && townIn(await board(OWN), '浜川')?.n === 1,
+     'TO6 確認待ちの名前を足す（「浜川駅」と足しても同じ街）→ existed:true・同じ行が公開の運営の街に・候補に入る・一覧に n 1 で出る', J({ h, th }));
+
+  const H2 = await member();
+  must(!(await post(H2, P('大井競馬場前'))).__err, '「大井競馬場前」を出せなかった');
+  const kid = await idOf('大井競馬場前');
+  must((await moderate(OPM, { target: 'town', id: kid, state: 'public' }))?.ok === true && !(await optsHas('大井競馬場前')),
+       '「大井競馬場前」を通せなかった・通しただけで候補に入っている');
+  const k = await adminAdd(OPM, { airline: A1, base: BASE, name: '大井競馬場前' });
+  const tk = await townRow('大井競馬場前');
+  ok(k && k.existed === true && Number(k.id) === kid && tk.origin === 'operator' && tk.state === 'public' && (await optsHas('大井競馬場前')),
+     'TO6 会員が打ち込み運営が通した名前（候補には無い）を足す → existed:true・運営の街になり、ここから未ログインの候補に入る', J({ k, tk }));
+
+  const n = await countOf('pv_towns');
+  const u1 = await adminAdd(OPM, { airline: A1, base: NO_SCOPE, name: '鈴ヶ森' });
+  const u2 = await adminAdd(OPM, { airline: 'zz-none', base: BASE, name: '鈴ヶ森' });
+  ok(said(u1, '基地が正しくありません', '22023') && said(u2, '航空会社が正しくありません', '22023') && (await countOf('pv_towns')) === n,
+     'TO6 街の台帳の無い基地・知らない会社に足す → 22023 で断る（行は増えない）', J({ u1, u2 }));
+
+  const led = async () => J(await many(`select * from public.pv_towns where id in ($1, $2) order by id`, [await idOf('品川'), await idOf('Osaki')]));
+  const l0 = await led();
+  const m = await moderate(OPM, { target: 'town', id: await idOf('品川'), state: 'rejected' });
+  const l1 = await adminAdd(OPM, { airline: A1, base: BASE, name: '品川' });
+  const l2 = await adminAdd(OPM, { airline: A1, base: BASE, name: 'Osaki' });
+  ok(canon(m) === canon({ ok: false, status: 'ledger' }) && l1?.existed === true && Number(l1.id) === await idOf('品川')
+     && l2?.existed === true && Number(l2.id) === await idOf('大崎') && (await led()) === l0,
+     'TO6 台帳の街：見送ろうとすると ledger・足しても existed:true（台帳の別の書き方 Osaki は大崎の id）・台帳の行は1文字も変わらない', J({ m, l1, l2 }));
+
+  // LEAD-RULINGS-35 P12.22 a：運営が見送った街も、束ねた街も、候補（誰が読んでも同じ字）に出ない
+  const s1 = await moderate(OPM, { target: 'town', id: await idOf('鈴ヶ森'), state: 'rejected' });
+  const e = await adminAdd(OPM, { airline: A1, base: BASE, name: '大森東' });
+  const inE = await optsHas('大森東');
+  const s2 = await moderate(OPM, { target: 'town', id: Number(e && e.id), state: 'public', into: await idOf('品川') });
+  ok(s1?.ok === true && s1.state === 'rejected' && inE && s2?.ok === true && Number((await townRow('大森東')).alias_of) === await idOf('品川')
+     && !(await optsHas('鈴ヶ森')) && !(await optsHas('大森東')),
+     'TO6 運営が見送った街（鈴ヶ森）も、別の書き方として束ねた街（大森東 → 品川）も、候補から消える（LEAD-RULINGS-35 P12.22 a）', J({ s1, inE, s2 }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TO7 確認待ちの数は運営のぶんだけ ── ほかの人には出ない');
+// ════════════════════════════════════════════════════════════
+{
+  const count = async () => { const q = await queue(OPM); return ((q && q.towns) || []).length + ((q && q.texts) || []).length; };
+  const V = await member();
+  const c0 = await count();
+  must(!(await post(V, P('平和島'))).__err, '「平和島」を出せなかった');
+  const c1 = await count();
+  must(!(await post(V, P('品川', { good: '駅前が便利' }))).__err, '品川に書けなかった');
+  const c2 = await count();
+  must(!(await post(V, P('大崎'))).__err, '大崎を出せなかった');
+  const c3 = await count();
+  ok(c1 === c0 + 1 && c2 === c1 + 1 && c3 === c2,
+     'TO7 運営の確認待ちの数（towns ＋ texts）は、会員が出したぶんだけ増える（打ち込んだ名前 ＋1・候補に書いた文 ＋1・文の無い候補 ＋0）', J({ c0, c1, c2, c3 }));
+  const qp = await readT(PLAIN, 'pv_town_queue', {}), qo = await readT(OWN, 'pv_town_queue', {});
+  ok(qp === FORBIDDEN && qo === FORBIDDEN, `TO7 PLAIN・OWN は確認待ちを読めない（${FORBIDDEN}）`, J({ qp, qo }));
+  const leak = [];
+  for (const [who, label] of [[OWN, 'OWN'], [PLAIN, 'PLAIN'], [W[0].who, '台場に書いた人'], [Q1, '勝島に書いた人']]) {
+    const t = J(await mine(who, { airline: A1 }));
+    if (t.includes('平和島') || t.includes('駅前が便利')) leak.push({ label, fn: 'my_town_posts' });
+  }
+  for (const [who, label] of [[OWN, 'OWN'], [FIVER, 'FIVE'], [OPM, 'OP'], [W[0].who, '台場に書いた人']]) {
+    const t = await boardT(who, SCOPE);
+    if (typeof t !== 'string' || !t.includes('"open"') || t.includes('平和島') || t.includes('駅前が便利')) leak.push({ label, fn: 'pv_town_board' });
+  }
+  const vm = J(await mine(V, { airline: A1 }));
+  ok(leak.length === 0 && vm.includes('平和島') && vm.includes('駅前が便利'),
+     'TO7 その名前と文は、ほかの会員の自分の投稿に無く、誰の一覧（運営の一覧も）にも無い ── 本人の自分の投稿にだけ在る', J(leak));
+}
+
+
+// ── 未ログインの預かり（kind 'town'）と引き継ぎ（TA1〜TA9）の道具 ─────────────
+// 預かる口・読む口・引き継ぐ口は db/contrib.sql（あとのファイル）に在る本物を呼ぶ。鍵は預けた返事が返したものだけを使う。
+// ★同じ鍵に預ける答えは、A1 ではなく A3 の質問へ。TS12 の会員の pv_contrib_give は、A1 で「答えた人の少ない質問」を
+//   並べて返す ＝ ほかの会員が A1 に答えると、その会員に何も付いていなくても字が変わる（TS12 の比べ方が意味を失う）。
+const ANS_AIR  = A3;
+const anonT    = (p, key) => rpc(ANON, 'submit_contrib_anon', { ...(key ? { key } : {}), kind: 'town', data: p });
+const anonC    = (key, answers) => rpc(ANON, 'submit_contrib_anon', { ...(key ? { key } : {}), kind: 'cond', data: { airline: ANS_AIR, answers } });
+const heldOf   = (key, air = A1) => rpc(ANON, 'my_contrib_anon', { ...(key !== undefined ? { key } : {}), ...(air ? { airline: air } : {}) });
+const claimT   = (who, key) => rpc(who, 'claim_contrib', { key });
+const pendOf   = async (key) => many(
+  `select kind, airline, item_key, payload from public.pv_contrib_pending
+    where key_hash = public.pv_contrib_key_hash($1) order by kind, item_key collate "C"`, [key]);
+const keyLives = async (key) => (await one(
+  `select count(*)::int as n from public.pv_contrib_keys where key_hash = public.pv_contrib_key_hash($1)`, [key])).n === 1;
+const answersOf = async (who) => (await one(
+  `select count(*)::int as n from public.airline_conditions where proof_hash = public.pv_condition_hash($1::uuid, $2, null)`, [who, ANS_AIR])).n;
+const CLAIM_KEYS = 'dropped,kept,known,left,moved,ok,stale';
+const claimIs = (r, m, k, d, l) => !!r && !r.__err && keys(r) === CLAIM_KEYS && r.ok === true && r.known === true
+  && r.moved === m && r.kept === k && r.dropped === d && r.stale === 0 && r.left === l;
+// 親の無い選ぶ質問を5つ（FIVE と同じ取り方。打ち込まない）
+const FIVEQ = (await many(
+  `select id, choice_codes from public.pv_condition_questions
+    where active and parent is null and kind = 'choice' order by priority, id`))
+  .slice(0, 5).map((q) => ({ question_id: q.id, code: q.choice_codes.find((c) => c !== 'unknown') }));
+must(FIVEQ.length === 5, '親の無い選ぶ質問が5つ無い');
+// 1本の鍵に、5つの答えと街を預ける（答えが先・街があと。返すのは鍵）
+const holdMix = async (towns) => {
+  const a = await anonC(undefined, FIVEQ);
+  must(a && a.saved === 5 && /^[0-9a-f]{48}$/.test(a.key || ''), '5つの答えを預けられなかった', J(a));
+  for (const t of towns) must(!(await anonT(P(t), a.key)).__err, `「${t}」を預けられなかった`);
+  return a.key;
+};
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA1 未ログインの預かり（kind town）── 保存され、預かりのまま・鍵が返る');
+// ════════════════════════════════════════════════════════════
+let K1 = null, HELD1 = null;
+{
+  const r = await anonT(P('品川', { lived: 'now', good: '静かな通り', rent: { layout: '1K', amount: '120000', currency: CUR },
+                                     trip: { mode: 'train', minutes: '30' } }));
+  ok(r && !r.__err && keys(r) === 'key,ok,post,replaced,saved' && r.ok === true && r.saved === true && r.replaced === false
+     && /^[0-9a-f]{48}$/.test(r.key) && keys(r.post) === POST_KEYS && r.post.town === '品川'
+     && r.post.town_state === 'held' && r.post.text_state === 'held' && r.post.lived === 'now',
+     'TA1 submit_contrib_anon {kind:town} → {ok, saved:true, replaced:false, post, key}・post は POST の10個の鍵・town_state も text_state も held', J(r));
+  K1 = r && r.key; HELD1 = r && r.post;
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA2 預かりは、その鍵にだけ返る（towns・POST と同じ形）');
+// ════════════════════════════════════════════════════════════
+{
+  const r2 = await anonT(P('大崎', { good: '別の鍵の預かり' }));
+  const K2 = r2 && r2.key;
+  must(!!K1 && !!K2 && K1 !== K2, '2本目の鍵を作れなかった');
+  const m1 = await heldOf(K1), m2 = await heldOf(K2);
+  ok(m1 && keys(m1) === 'answers,known,ok,rows,towns' && m1.known === true && m1.towns.length === 1 && canon(m1.towns[0]) === canon(HELD1)
+     && m2.towns.length === 1 && m2.towns[0].town === '大崎',
+     'TA2 my_contrib_anon（その鍵）→ towns に預けた1件が、預けた時の post と同じ形・同じ字で返る／別の鍵には、その鍵の1件だけ', J({ m1, m2 }));
+  const none = [await heldOf(undefined), await heldOf(''), await heldOf('c'.repeat(48)), await heldOf(K1, A2)];
+  ok(none.every((m) => m && Array.isArray(m.towns) && m.towns.length === 0) && none.slice(0, 3).every((m) => m.known === false),
+     'TA2 鍵なし・空の鍵・知らない鍵 → towns は空（known:false）／同じ鍵でもほかの会社 → towns は空', J(none));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA3 預かりは、一覧にも候補にも運営の確認待ちにも出ない・街の行を作らない');
+// ════════════════════════════════════════════════════════════
+{
+  const state = async () => J([await boardT(OWN, SCOPE), await optsT(ANON, SCOPE), await readT(OPM, 'pv_town_queue', {}),
+                               await countOf('pv_towns'), await countOf('pv_town_posts')]);
+  const before = await state();
+  const a = await anonT(P('預かりだけの街', { good: '預かりの文' }));
+  const b = await anonT(P('品川', { concern: '預かりの気になる点' }), a && a.key);
+  must(a && !a.__err && b && !b.__err, '預けられなかった', J({ a, b }));
+  ok((await state()) === before && (await townRow('預かりだけの街')) === null,
+     'TA3 候補に無い名前と文を預けても、一覧（OWN）・候補（未ログイン）・運営の確認待ちの字も、街の表・投稿の表の行の数も変わらない（「預かりだけの街」の行は無い）');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA4 ログインして引き継ぐと、会員の行になる（打ち込んだ名前は、そこで確認待ちに）');
+// ════════════════════════════════════════════════════════════
+{
+  const r = await anonT(P('旧東海道', { good: '古い町並み' }));
+  must(r && !r.__err && (await townRow('旧東海道')) === null, '「旧東海道」を預けられなかった', J(r));
+  const M = await member();
+  const q0 = await queue(OPM);
+  const c = await claimT(M, r.key);
+  const q1 = await queue(OPM);
+  const own = ((await mine(M, { airline: A1 })).posts || []).find((x) => x.town === '旧東海道') || null;
+  const t = await townRow('旧東海道');
+  ok(claimIs(c, 1, 0, 0, 0) && own && own.town_state === 'pending' && own.text_state === 'pending' && own.good === '古い町並み'
+     && t && t.origin === 'member' && t.state === 'pending',
+     'TA4 claim_contrib → moved 1・会員の自分の投稿に「旧東海道」（town_state pending・文も pending）・街の行は会員の名前として確認待ち', J({ c, own, t }));
+  ok(q1.towns.length === q0.towns.length + 1 && q1.texts.length === q0.texts.length + 1
+     && q1.towns.some((x) => x.name === '旧東海道') && q1.texts.some((x) => x.town === '旧東海道')
+     && (await pendOf(r.key)).length === 0 && !(await keyLives(r.key)) && (await heldOf(r.key)).known === false,
+     'TA4 運営の確認待ちは、名前 ＋1・文 ＋1（ここで初めて）・預かりは空で、鍵も消える', J({ q0: [q0.towns.length, q0.texts.length], q1: [q1.towns.length, q1.texts.length] }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA5 会員の側に同じ街のもっと新しい投稿が在れば、そちらを残す');
+// ════════════════════════════════════════════════════════════
+{
+  const M = await member();
+  const r = await anonT(P('品川', { lived: 'past' }));
+  must(r && !r.__err && !(await post(M, P('品川', { lived: 'now' }))).__err, '預けてから会員として出せなかった');
+  const c = await claimT(M, r.key);
+  const rows = await rowsOf(M);
+  ok(claimIs(c, 0, 1, 0, 0) && rows.length === 1 && rows[0].tname === '品川' && rows[0].lived === 'now' && !(await keyLives(r.key)),
+     'TA5 預けたあとで会員として同じ街を出していた → kept 1・会員の行（lived now）がそのまま・預かりは捨てて鍵も消える', J({ c, rows: rows.map((x) => [x.tname, x.lived]) }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA6 引き継ぎの上限は、街と、月の勤務・質問とで互いに止めない');
+// ════════════════════════════════════════════════════════════
+{
+  // a 候補に無い名前4つ（ローマ字 ＝ 鍵の並びで候補の街より先に回る）・候補の街1つ・親の無い質問5つ
+  const Ma = await member();
+  const ka = await holdMix(['Alpha', 'Bravo', 'Charlie', 'Delta', '天王洲アイル']);
+  const ca = await claimT(Ma, ka);
+  const ra = (await rowsOf(Ma)).map((x) => x.tname);
+  ok(claimIs(ca, 9, 0, 0, 1) && (await keyLives(ka)) && (await answersOf(Ma)) === 5 && ra.length === 4 && ra.includes('天王洲アイル')
+     && (await pendOf(ka)).length === 1 && (await pendOf(ka))[0].item_key === `${BASE}:delta`,
+     'TA6 a 名前4つ・候補の街1つ・答え5つ → moved 9（答え5・名前3・候補の街）・left 1（4つ目の名前だけ）・鍵は残る・答えは会員の行に5つ',
+     J({ ca, ra, left: (await pendOf(ka)).map((x) => x.item_key) }));
+  await yesterday(Ma);
+  const ca2 = await claimT(Ma, ka);
+  ok(claimIs(ca2, 1, 0, 0, 0) && !(await keyLives(ka)) && (await rowsOf(Ma)).length === 5,
+     'TA6 a 数えの日を前の日へ動かして（持ち主として）もう一度 → moved 1・left 0・鍵は消える', J(ca2));
+
+  // b 1日の保存の数（20回）に当たっている会員：街は残り、同じ鍵の答えは引き継がれる
+  const Mb = await member();
+  await db.query(
+    `insert into public.pv_town_rate (author_hash, day, n, names) values ($1, current_date, 20, 0)
+     on conflict (author_hash) do update set day = current_date, n = 20`, [await hashOf(Mb)]);
+  const kb = await holdMix(['品川', '大崎']);
+  const cb = await claimT(Mb, kb);
+  ok(claimIs(cb, 5, 0, 0, 2) && (await keyLives(kb)) && (await answersOf(Mb)) === 5 && (await rowsOf(Mb)).length === 0,
+     'TA6 b 1日の保存の数（20回）に当たっている → 街2つは残り（left 2）・同じ鍵の答え5つは引き継がれる（moved 5）', J(cb));
+
+  // c 答えの1日の上限に当たっている会員：答えは残り、同じ鍵の候補の街は引き継がれる
+  const Mc = await member();
+  await db.query(`update public.profiles set cond_answers_day = current_date, cond_answers_today = 60 where id = $1`, [Mc]);
+  const kc = await holdMix(['品川']);
+  const cc = await claimT(Mc, kc);
+  const rc = (await rowsOf(Mc)).map((x) => x.tname);
+  ok(claimIs(cc, 1, 0, 0, 5) && (await keyLives(kc)) && (await answersOf(Mc)) === 0 && J(rc) === J(['品川']),
+     'TA6 c 答えの1日の上限に当たっている → 答え5つは残り（left 5）・同じ鍵の候補の街は引き継がれる（moved 1）', J({ cc, rc }));
+
+  // d 想定外の失敗（持ち主が投稿の表に、必ず失敗する決まりを一時だけ置く）：答えは引き継がれ、街は残る（LEAD 補足 A16）
+  const Md = await member();
+  const kd = await holdMix(['品川']);
+  let cd;
+  await db.exec(`
+    create or replace function public.pv_test_town_boom() returns trigger language plpgsql as $b$
+    begin raise exception '検査のための失敗' using errcode = 'P0001'; end $b$;
+    create trigger pv_test_town_boom before insert on public.pv_town_posts for each row execute function public.pv_test_town_boom();`);
+  try { cd = await claimT(Md, kd); }
+  finally {
+    await db.exec(`drop trigger if exists pv_test_town_boom on public.pv_town_posts; drop function if exists public.pv_test_town_boom();`);
+  }
+  ok(claimIs(cd, 5, 0, 0, 1) && (await keyLives(kd)) && (await answersOf(Md)) === 5 && (await rowsOf(Md)).length === 0,
+     'TA6 d 街の引き継ぎで想定外の失敗 → 引き継ぎ全体は落ちない：答え5つは moved・街は left 1・鍵は残る', J(cd));
+  const cd2 = await claimT(Md, kd);
+  ok(claimIs(cd2, 1, 0, 0, 0) && !(await keyLives(kd)) && J((await rowsOf(Md)).map((x) => x.tname)) === J(['品川']),
+     'TA6 d 失敗の決まりを外して（持ち主として）もう一度 → moved 1・left 0・鍵は消える（街は消えずに残っていた）', J(cd2));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA8 預かりの街を直す（was）── 1行・was は残さない');
+// ════════════════════════════════════════════════════════════
+{
+  const a = await anonT(P('品川', { good: '直す前' }));
+  const b = await anonT(P('大崎', { was: '品川', good: '直した後' }), a && a.key);
+  const rows = await pendOf(a && a.key);
+  ok(a && b && !b.__err && b.replaced === true && b.post.town === '大崎' && rows.length === 1 && rows[0].item_key === `${BASE}:大崎`
+     && rows[0].payload.town === '大崎' && !('was' in rows[0].payload),
+     'TA8 預けた品川を大崎へ直す（was 品川）→ replaced:true・預かりは大崎の1行だけ・預かった中身に was の鍵は無い', J({ b, rows }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TA9 1本の鍵・1つの会社で預かれる街は10か所まで');
+// ════════════════════════════════════════════════════════════
+{
+  const first = await anonT(P(TEN[0]));
+  const key = first && first.key;
+  let n = first && first.saved === true ? 1 : 0;
+  for (const t of TEN.slice(1, 10)) { const r = await anonT(P(t), key); if (r && r.saved === true) n++; }
+  const r11 = await anonT(P(TEN[10]), key);
+  const again = await anonT(P(TEN[0], { lived: 'now' }), key);
+  ok(n === 10 && said(r11, '1つの会社に出せる街は10か所までです', '22023') && (await pendOf(key)).length === 10
+     && again && again.replaced === true,
+     'TA9 10か所を預けた鍵で11か所目 → 22023「1つの会社に出せる街は10か所までです」（預かりは10のまま）・持っている街の出し直しは通る', J({ n, r11, again }));
+}
+
+
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ TS12（くり返し）一覧と候補を読んでも、資格は1つも付かない');
 // ════════════════════════════════════════════════════════════
@@ -1195,12 +1726,50 @@ console.log('\n▼ TS12（くり返し）一覧と候補を読んでも、資格
 
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ TS12（くり返し）運営の口を呼んでも・運営がその人の名前を通しても、資格は1つも付かない');
+// ════════════════════════════════════════════════════════════
+{
+  const { G, snap, s0 } = TS12;
+  const g = await townRow('御殿山');
+  must(g && g.state === 'pending' && (await rowsOf(G)).some((x) => x.tname === '御殿山'), 'TS12 の会員の「御殿山」が確認待ちでない');
+  const a = await snap();
+  const rs = [await readT(G, 'pv_town_queue', {}),
+              await readT(G, 'pv_town_moderate', { target: 'town', id: Number(g.id), state: 'public' }),
+              await readT(G, 'pv_town_admin_add', { airline: A1, base: BASE, name: '御殿山' })];
+  const r4 = await moderate(OPM, { target: 'town', id: Number(g.id), state: 'public' });
+  const b = await snap();
+  ok(rs.every((t) => t === FORBIDDEN) && r4 && r4.ok === true && J(a) === J(b) && b.profile === s0.profile && b.give === s0.give,
+     'TS12 給与を出した会員が運営の3つの口を呼んでも（どれも forbidden）、運営がその人の打ち込んだ名前を通しても、プロフィールの行・給与の行の数・運営の名簿・pv_contrib_give の返事は同じ（その会員のプロフィールと pv_contrib_give は TS12 の最初とも同じ）',
+     J({ rs, r4, a, b }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TS12（くり返し）未ログインで預けた街を引き継いでも、資格は1つも付かない（TA7 をここで見る）');
+// ════════════════════════════════════════════════════════════
+{
+  const { G, snap, s0 } = TS12;
+  const a = await snap();
+  const d1 = await anonT(P('御殿山', { lived: 'now' }));
+  const key = d1 && d1.key;
+  const d2 = await anonT(P('戸越', { good: '商店街が長い' }), key);
+  const d3 = await anonT(P('品川', { rent: { layout: '1LDK', amount: '150000', currency: CUR } }), key);
+  const c = await claimT(G, key);
+  const b = await snap();
+  ok(!!key && !d2.__err && !d3.__err && claimIs(c, 3, 0, 0, 0) && J(a) === J(b) && b.profile === s0.profile && b.give === s0.give,
+     'TS12 給与を出した会員が、未ログインで預けた街3つを引き継いでも（moved 3）、プロフィールの行・給与の行の数・運営の名簿・pv_contrib_give の返事は同じ（その会員のプロフィールと pv_contrib_give は TS12 の最初とも同じ ＝ 答えた数に街は入らない）',
+     J({ c, a, b }));
+}
+
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ TZ 返事に出てはいけないもの（ここまでの返事を全部見る）');
 // ════════════════════════════════════════════════════════════
 {
   const HEX = /[0-9a-f]{64}/i;
   const NEVER = new Set(['author_hash', 'user_id', 'created_at', 'updated_at']);
-  const OWN = new Set(['submit_town_post', 'my_town_posts']);    // 本人への返事（預かりの返事は db/contrib.sql の段で足す）
+  // 本人への返事：会員の入口・自分の投稿と、預けた端末への返事（預かる口・預かりを読む口）
+  const OWN = new Set(['submit_town_post', 'my_town_posts', 'submit_contrib_anon', 'my_contrib_anon']);
   const PRIVATE = new Set(['lived', 'rent', 'trip', 'layout']);
   const walk = (v, f) => { if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { f(k); walk(x, f); } };
   const hex = [], never = [], priv = [];

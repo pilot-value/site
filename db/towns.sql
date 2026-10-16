@@ -665,6 +665,193 @@ $fn$;
 revoke all on function public.pv_town_board(jsonb) from public;
 grant execute on function public.pv_town_board(jsonb) to anon, authenticated;
 
+-- ════ 8. 運営（★守っているのは grant ではなく、関数の頭の pv_is_operator。db/stays.sql と同じ1つ）════
+-- 8-a. 確認待ち。返す形: { ok:true, scopes:[{airline, name, base, towns:[{id, name}]}], towns:[{id, airline, base, name, posts}],
+--                          texts:[{id, airline, base, town, town_state, good, concern, rev}] } ／ 運営でなければ forbidden
+-- ★数えるのは会員の行だけ（預かり＝未ログインのままの投稿は、ここに出ない）。★時刻も書いた人の印も返さない。古い順に並べるだけ。
+create or replace function public.pv_town_queue(p jsonb default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_scopes jsonb;
+  v_towns  jsonb;
+  v_texts  jsonb;
+begin
+  if not public.pv_is_operator() then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  -- 会社と基地の組（街を足す先・束ねる先を、打たせずに選ばせるため）。towns は、いま公開されている候補
+  select coalesce(jsonb_agg(jsonb_build_object('airline', z.airline, 'name', z.name_ja, 'base', z.base_iata,
+                                               'towns', coalesce(z.towns, '[]'::jsonb))
+                            order by z.airline, z.base_iata), '[]'::jsonb)
+    into v_scopes
+    from (select t.airline, a.name_ja, t.base_iata,
+                 jsonb_agg(jsonb_build_object('id', t.id, 'name', t.name) order by t.tkey collate "C")
+                   filter (where t.state = 'public' and t.alias_of is null) as towns
+            from public.pv_towns t join public.pv_airlines a on a.code = t.airline
+           group by t.airline, a.name_ja, t.base_iata) z;
+  -- 待っている名前。★投稿が1つも付いていない名前は出さない（出した人が街を直して離れた行。「0人」の行を運営に見せない）。
+  select coalesce(jsonb_agg(z.j order by z.at, z.id), '[]'::jsonb)
+    into v_towns
+    from (select jsonb_build_object('id', t.id, 'airline', t.airline, 'base', t.base_iata, 'name', t.name,
+                   'posts', (select count(*)::int from public.pv_town_posts s where s.town_id = t.id)) as j,
+                 t.created_at as at, t.id
+            from public.pv_towns t
+           where t.state = 'pending' and t.alias_of is null
+             and exists (select 1 from public.pv_town_posts s where s.town_id = t.id)
+           order by t.created_at, t.id
+           limit 200) z;
+  -- 待っている文。★見送った名前の下の文は出さない（街が出ないので、通しても誰にも見えない。出した本人が街を直せば、また待つ）。
+  select coalesce(jsonb_agg(z.j order by z.at, z.id), '[]'::jsonb)
+    into v_texts
+    from (select jsonb_build_object('id', s.id, 'airline', s.airline, 'base', s.base_iata,
+                   'town', t.name, 'town_state', t.state,
+                   'good', s.good, 'concern', s.concern, 'rev', public.pv_town_rev(s)) as j,
+                 s.updated_at as at, s.id
+            from public.pv_town_posts s join public.pv_towns t on t.id = s.town_id
+           where s.text_state = 'pending' and t.state <> 'rejected'
+           order by s.updated_at, s.id
+           limit 200) z;
+  return jsonb_build_object('ok', true, 'scopes', v_scopes, 'towns', v_towns, 'texts', v_texts);
+end;
+$fn$;
+revoke all on function public.pv_town_queue(jsonb) from public, anon;
+grant execute on function public.pv_town_queue(jsonb) to authenticated;
+
+-- 8-b. 通す／見送る。引数: { target:'town'|'text', id, state:'public'|'rejected', rev, into }
+--   forbidden … 運営ではない（★何も調べずに返す）／ bad_state ／ bad_target ／ not_found
+--   ledger    … 台帳の街（台帳で直す。ここでは動かさない）
+--   final     … 見送ったものは、この口から公開へ戻せない（街は「追加」で入れ直す。文は本人が直せば、また確認待ちに入る）
+--   changed   … 運営が見たあとで、文が直されている（★何も変えずに返す）
+--   bad_into  … 束ねる先が無い・公開されていない・別の会社や基地
+-- ★文を通すときは rev が要る（見た字と通す字が同じ）。見送るときは要らない。
+-- ★into … 打ち込まれた名前を、在る街の別の書き方として通す。その名前の投稿を束ねた先へ移し、次からは打った時点で束ねた先に入る。
+create or replace function public.pv_town_moderate(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_target text := coalesce(p->>'target', '');
+  v_state  text := coalesce(p->>'state', '');
+  v_town   public.pv_towns%rowtype;
+  v_dst    public.pv_towns%rowtype;
+  v_post   public.pv_town_posts%rowtype;
+begin
+  if not public.pv_is_operator() then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  if v_state not in ('public', 'rejected') then
+    return jsonb_build_object('ok', false, 'status', 'bad_state');
+  end if;
+  if v_target not in ('town', 'text') then
+    return jsonb_build_object('ok', false, 'status', 'bad_target');
+  end if;
+
+  if v_target = 'town' then
+    if coalesce(p->>'id', '') !~ '^[0-9]{1,18}$' then
+      return jsonb_build_object('ok', false, 'status', 'not_found');
+    end if;
+    select * into v_town from public.pv_towns where id = (p->>'id')::bigint for update;
+    if v_town.id is null or v_town.alias_of is not null then
+      return jsonb_build_object('ok', false, 'status', 'not_found');
+    end if;
+    if v_town.origin = 'ledger' then
+      return jsonb_build_object('ok', false, 'status', 'ledger');
+    end if;
+    if v_town.state = 'rejected' and v_state = 'public' then
+      return jsonb_build_object('ok', false, 'status', 'final');
+    end if;
+    if v_state = 'public' and coalesce(p->>'into', '') <> '' then
+      if p->>'into' !~ '^[0-9]{1,18}$' then
+        return jsonb_build_object('ok', false, 'status', 'bad_into');
+      end if;
+      select * into v_dst from public.pv_towns
+       where id = (p->>'into')::bigint and id <> v_town.id
+         and airline = v_town.airline and base_iata = v_town.base_iata
+         and state = 'public' and alias_of is null
+         for update;
+      if v_dst.id is null then
+        return jsonb_build_object('ok', false, 'status', 'bad_into');
+      end if;
+      -- 同じ人が両方に出していたら、束ねた先の行を残す
+      delete from public.pv_town_posts s using public.pv_town_posts d
+       where s.town_id = v_town.id and d.town_id = v_dst.id and d.author_hash = s.author_hash;
+      update public.pv_town_posts set town_id = v_dst.id where town_id = v_town.id;
+      update public.pv_towns set state = 'public', alias_of = v_dst.id, moderated_at = now() where id = v_town.id;
+      return jsonb_build_object('ok', true, 'target', 'town', 'id', v_town.id, 'state', 'public', 'into', v_dst.id);
+    end if;
+    update public.pv_towns set state = v_state, moderated_at = now() where id = v_town.id;
+    return jsonb_build_object('ok', true, 'target', 'town', 'id', v_town.id, 'state', v_state);
+  end if;
+
+  if coalesce(p->>'id', '') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+  select * into v_post from public.pv_town_posts where id = (p->>'id')::uuid for update;
+  if v_post.id is null or v_post.text_state = 'none' then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+  if v_post.text_state = v_state then
+    return jsonb_build_object('ok', true, 'target', 'text', 'id', v_post.id, 'state', v_state);
+  end if;
+  if v_post.text_state = 'rejected' then
+    return jsonb_build_object('ok', false, 'status', 'final');
+  end if;
+  if v_state = 'public'
+     and nullif(btrim(coalesce(p->>'rev', '')), '') is distinct from public.pv_town_rev(v_post) then
+    return jsonb_build_object('ok', false, 'status', 'changed');
+  end if;
+  update public.pv_town_posts set text_state = v_state, moderated_at = now() where id = v_post.id;
+  return jsonb_build_object('ok', true, 'target', 'text', 'id', v_post.id, 'state', v_state);
+end;
+$fn$;
+revoke all on function public.pv_town_moderate(jsonb) from public, anon;
+grant execute on function public.pv_town_moderate(jsonb) to authenticated;
+
+-- 8-c. 運営が街を足す。引数: { airline, base, name }。候補として公開で入る（人数は付かない ＝ 一覧には、会員が挙げるまで出ない）。
+--   同じ名前が確認待ち・見送りで在れば、それを公開にする。中身の検品は 3-b（断るときは日本語の文で止まる）。
+create or replace function public.pv_town_admin_add(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_c    jsonb;
+  v_town public.pv_towns%rowtype;
+begin
+  if not public.pv_is_operator() then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  v_c := public.pv_town_clean(jsonb_build_object(
+           'airline', p->>'airline', 'base_iata', p->>'base', 'town', p->>'name'));
+  select * into v_town from public.pv_towns
+   where airline = v_c->>'airline' and base_iata = v_c->>'base_iata' and tkey = v_c->>'tkey' for update;
+  if v_town.id is null then
+    insert into public.pv_towns (airline, base_iata, tkey, name, origin, state, moderated_at)
+    values (v_c->>'airline', v_c->>'base_iata', v_c->>'tkey', v_c->>'town', 'operator', 'public', now())
+    returning * into v_town;
+    return jsonb_build_object('ok', true, 'id', v_town.id, 'name', v_town.name, 'state', 'public', 'existed', false);
+  end if;
+  if v_town.alias_of is null and v_town.origin <> 'ledger'
+     and (v_town.state <> 'public' or v_town.origin <> 'operator') then
+    update public.pv_towns set state = 'public', origin = 'operator', moderated_at = now() where id = v_town.id;
+  end if;
+  return jsonb_build_object('ok', true, 'id', coalesce(v_town.alias_of, v_town.id), 'name', v_town.name,
+                            'state', 'public', 'existed', true);
+end;
+$fn$;
+revoke all on function public.pv_town_admin_add(jsonb) from public, anon;
+grant execute on function public.pv_town_admin_add(jsonb) to authenticated;
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 9. 検算（貼ったあとに出る1行）
@@ -685,8 +872,12 @@ select (select count(*) from pg_policies
        pg_get_functiondef('public.pv_town_board(jsonb)'::regprocedure) like '%pv_contrib_sees(%'           as 一覧は同じ決まりで返す,
        pg_get_functiondef('public.pv_town_options(jsonb)'::regprocedure)
          !~ '(auth\.uid|pv_contrib_sees|pv_work_level|pv_is_operator|pv_town_posts|pv_town_hash)'         as 候補は誰が読んでも同じ,
+       pg_get_functiondef('public.pv_town_queue(jsonb)'::regprocedure) like '%pv_is_operator()%'
+         and pg_get_functiondef('public.pv_town_moderate(jsonb)'::regprocedure) like '%pv_is_operator()%'
+         and pg_get_functiondef('public.pv_town_admin_add(jsonb)'::regprocedure) like '%pv_is_operator()%' as 運営の口は名簿を見る,
        not has_function_privilege('anon', 'public.submit_town_post(jsonb)', 'execute')
          and not has_function_privilege('anon', 'public.my_town_posts(jsonb)', 'execute')
+         and not has_function_privilege('anon', 'public.pv_town_queue(jsonb)', 'execute')
          and not has_function_privilege('authenticated', 'public.pv_town_clean(jsonb)', 'execute')
          and not has_function_privilege('authenticated', 'public.pv_town_key(text)', 'execute')           as 入口は決めたものだけ,
        (pg_get_functiondef('public.submit_town_post(jsonb)'::regprocedure)

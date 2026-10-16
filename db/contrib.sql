@@ -11,7 +11,7 @@
 --
 -- ■ 貼る順（必ずこの順）
 --     db/pay-rows.sql → db/conditions.generated.sql → db/airline-conditions.sql
---     → db/work-months.sql → **このファイル**
+--     → db/work-months.sql → db/towns.sql → db/towns.generated.sql → **このファイル**
 --   検品（pv_work_month_clean / pv_condition_clean）と、対になる額の2つ（pv_condition_range_other /
 --   pv_condition_range_bad）と、見ている人の立場（pv_work_level）は
 --   前のファイルに在るものを**呼ぶ**。ここに写しを作らない。
@@ -77,6 +77,12 @@ begin
   if to_regclass('public.airline_condition_facts') is null then
     raise exception '先に db/airline-conditions.sql を実行してください（airline_condition_facts が無い）';
   end if;
+  if to_regprocedure('public.pv_town_clean(jsonb)') is null
+     or to_regprocedure('public.submit_town_post(jsonb)') is null
+     or to_regprocedure('public.pv_town_held_json(jsonb)') is null
+     or to_regprocedure('public.pv_town_newer(uuid, jsonb, timestamp with time zone)') is null then
+    raise exception '先に db/towns.sql を実行してください（pv_town_clean / submit_town_post / pv_town_held_json / pv_town_newer が無い）';
+  end if;
 end $$;
 
 
@@ -102,8 +108,8 @@ alter table public.pv_contrib_keys add constraint pv_contrib_keys_hash_ck check 
   key_hash ~ '^[0-9a-f]{64}$');
 
 -- 1-b. 預かっている回答。1行＝1か月の勤務、または1つの質問への答え。
---   kind     … 'work'（月の勤務）／'cond'（待遇・働き方の質問）
---   item_key … work は 'YYYY-MM'／cond は質問の id。同じものを出し直したら上書き（行は増えない）
+--   kind     … 'work'（月の勤務）／'cond'（待遇・働き方の質問）／'town'（住みやすい街）
+--   item_key … work は 'YYYY-MM'／cond は質問の id／town は 基地の3字 ＋ ':' ＋ 街の鍵。同じものを出し直したら上書き（行は増えない）
 --   payload  … 検品を通した形そのまま（引き継ぐ時に、会員の入口へそのまま渡す）
 create table if not exists public.pv_contrib_pending (
   id          bigint generated always as identity primary key,
@@ -119,7 +125,7 @@ alter table public.pv_contrib_pending drop constraint if exists pv_contrib_pendi
 alter table public.pv_contrib_pending drop constraint if exists pv_contrib_pending_airline_ck;
 alter table public.pv_contrib_pending drop constraint if exists pv_contrib_pending_size_ck;
 alter table public.pv_contrib_pending add constraint pv_contrib_pending_kind_ck check (
-  kind in ('work', 'cond'));
+  kind in ('work', 'cond', 'town'));
 -- 自由入力の社名（other）は預からない。名前の表記で人が分かれ、引き継ぎ先が決まらない
 alter table public.pv_contrib_pending add constraint pv_contrib_pending_airline_ck check (
   airline <> 'other');
@@ -277,7 +283,7 @@ begin
   v_kind := nullif(btrim(p->>'kind'), '');
   v_data := p->'data';
   v_key  := nullif(btrim(p->>'key'), '');
-  if v_kind is null or v_kind not in ('work', 'cond') or jsonb_typeof(v_data) is distinct from 'object' then
+  if v_kind is null or v_kind not in ('work', 'cond', 'town') or jsonb_typeof(v_data) is distinct from 'object' then
     raise exception '入力の形式が不正です' using errcode = '22023';
   end if;
 
@@ -289,6 +295,10 @@ begin
     end if;
     v_airline := v_c->>'airline';
     v_item    := (v_c->>'year') || '-' || lpad(v_c->>'month', 2, '0');
+  elsif v_kind = 'town' then
+    v_c       := public.pv_town_clean(v_data);            -- 会員の入口と同じ検品。おかしければ、ここが日本語で止める
+    v_airline := v_c->>'airline';
+    v_item    := (v_c->>'base_iata') || ':' || (v_c->>'tkey');
   else
     v_airline := nullif(btrim(v_data->>'airline'), '');
     if v_airline is null
@@ -406,6 +416,37 @@ begin
       'ok', true, 'saved', true,
       'year', (v_c->>'year')::int, 'month', (v_c->>'month')::int,
       'replaced', v_rep);
+
+  elsif v_kind = 'town' then
+    v_rep := exists (select 1 from public.pv_contrib_pending
+                      where key_hash = v_kh and kind = 'town'
+                        and airline = v_airline and item_key = v_item);
+    if v_krow.saves_today >= 80 then
+      raise exception 'しばらくしてからもう一度お試しください' using errcode = '54000';
+    end if;
+    if not v_rep and v_left <= 0 then
+      raise exception 'ログインせずに保存できる件数の上限です。ログインすると続きを保存できます'
+        using errcode = '54000';
+    end if;
+    -- 街を直した回：前の街の預かりを外してから置く（外れたら、置き換えたと数える）
+    if v_c ? 'was' then
+      delete from public.pv_contrib_pending
+       where key_hash = v_kh and kind = 'town' and airline = v_airline
+         and item_key = (v_c->>'base_iata') || ':' || public.pv_town_key(v_c->>'was');
+      if found then v_rep := true; end if;
+    end if;
+    -- 1本の鍵・1つの会社で預かる街は10か所まで（会員の入口と同じ数）
+    if not v_rep and (select count(*) from public.pv_contrib_pending
+                       where key_hash = v_kh and kind = 'town' and airline = v_airline) >= 10 then
+      raise exception '1つの会社に出せる街は10か所までです' using errcode = '22023';
+    end if;
+    insert into public.pv_contrib_pending (key_hash, kind, airline, item_key, payload)
+    values (v_kh, 'town', v_airline, v_item, v_c - 'was')
+    on conflict (key_hash, kind, airline, item_key) do update set
+      payload = excluded.payload, updated_at = now();
+    v_saved := 1;
+    v_out := jsonb_build_object('ok', true, 'saved', true, 'replaced', v_rep,
+                                'post', public.pv_town_held_json(v_c));
 
   else
     -- ★priority の昇順で回す（親は必ず子より前。会員の入口と同じ）
@@ -628,6 +669,7 @@ comment on function public.submit_contrib_anon(jsonb) is
 -- 返す形:     { ok, known, rows:[…], answers:[…] }
 --   rows    … my_work_months の rows と**同じ形**（新しい月から24件）
 --   answers … my_airline_conditions の answers と**同じ形**
+--   towns   … my_town_posts の posts と**同じ形**（town_state は 'held'）
 --   known   … 鍵が生きているか。false なら、画面は端末の鍵を捨てる
 -- ★知らない鍵には、空を返すだけ（在る・無いの手がかりを、鍵を知らない人に渡さない。
 --   known:false は「あなたの出した鍵は使えない」と言っているだけで、他人の鍵のことは何も言わない）。
@@ -644,7 +686,7 @@ declare
 begin
   if v_kh is null then
     return jsonb_build_object('ok', true, 'known', false,
-                              'rows', '[]'::jsonb, 'answers', '[]'::jsonb);
+                              'rows', '[]'::jsonb, 'answers', '[]'::jsonb, 'towns', '[]'::jsonb);
   end if;
 
   return jsonb_build_object(
@@ -692,6 +734,12 @@ begin
         from public.pv_contrib_pending c
         join public.pv_condition_questions q on q.id = c.item_key
        where c.key_hash = v_kh and c.kind = 'cond'
+         and (v_airline is null or c.airline = v_airline)
+    ), '[]'::jsonb),
+    'towns', coalesce((
+      select jsonb_agg(public.pv_town_held_json(c.payload) order by c.item_key collate "C")
+        from public.pv_contrib_pending c
+       where c.key_hash = v_kh and c.kind = 'town'
          and (v_airline is null or c.airline = v_airline)
     ), '[]'::jsonb));
 end;
@@ -750,6 +798,8 @@ comment on function public.my_contrib_anon(jsonb) is
 --      会員の額が食い違う（300／前の 200）ので、入口の決まりが外れたときの2つ目の網として残してある。
 --   分かっている端の場合: 2件の文脈が違う預かり（別の月に答えた・片方だけ機種を変えて答え直した）は
 --   1件ずつ出す。片方が、会員の前の額と比べて断られることがある。その1件は dropped（告げる）。
+-- ★住みやすい街（kind 'town'）は、いちばん最後に、街だけの止め印（v_tstop）で回す。街の上限・想定外の失敗は、
+--   先に済んだ月の勤務・質問の引き継ぎを止めも取り消しもしない。月の勤務・質問の止め印（v_stop）も、街を止めない。
 create or replace function public.claim_contrib(p jsonb)
 returns jsonb
 language plpgsql
@@ -767,6 +817,7 @@ declare
   v_stale   int := 0;
   v_left    int := 0;
   v_stop    boolean := false;
+  v_tstop   boolean := false;    -- 街の引き継ぎだけを止める（月の勤務・質問の v_stop とは別）
   v_newer   boolean;
   v_why     text;
   -- 待遇・働き方の質問を引き継ぐときの作業用
@@ -997,6 +1048,39 @@ begin
         end if;
       end if;
     end loop;
+  end loop;
+
+  -- ── 住みやすい街（★いちばん最後に回す。街の上限は、月の勤務・質問の引き継ぎを止めない。その逆も止めない）──
+  for v_r in
+    select c.id, c.airline, c.item_key, c.payload, c.updated_at
+      from public.pv_contrib_pending c
+     where c.key_hash = v_kh and c.kind = 'town'
+     order by c.airline, c.item_key, c.id
+  loop
+    exit when v_tstop;
+    -- 会員の側に、同じ街のもっと新しい投稿が在れば、そちらを残す
+    v_newer := public.pv_town_newer(v_uid, v_r.payload, v_r.updated_at);
+    if v_newer then
+      delete from public.pv_contrib_pending where id = v_r.id;
+      v_kept := v_kept + 1;
+      continue;
+    end if;
+    begin
+      perform public.submit_town_post(v_r.payload);
+      delete from public.pv_contrib_pending where id = v_r.id;
+      v_moved := v_moved + 1;
+    exception
+      when sqlstate '54000' then
+        get stacked diagnostics v_why = pg_exception_detail;
+        if v_why is distinct from 'names' then
+          v_tstop := true;                   -- 1日の件数の上限。街の残りは次の回に
+        end if;                              -- 'names' ＝ 候補に無い名前の上限。この1件だけ残して、次の街へ進む
+      when sqlstate '22023' then
+        delete from public.pv_contrib_pending where id = v_r.id;
+        v_dropped := v_dropped + 1;          -- いまの決まりでは受け取れない形（見送られた街の名前など）
+      when others then
+        v_tstop := true;                     -- 想定外の失敗：この街から先は次の回に（月の勤務・質問の引き継ぎは取り消さない）
+    end;
   end loop;
 
   select count(*) into v_left from public.pv_contrib_pending where key_hash = v_kh;
@@ -1491,6 +1575,7 @@ select (select count(*) from pg_policies
          and pg_get_functiondef('public.pv_work_view(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
          and pg_get_functiondef('public.pv_work_month_stats(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
          and pg_get_functiondef('public.next_condition_questions(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
+         and pg_get_functiondef('public.pv_town_board(jsonb)'::regprocedure) like '%pv_contrib_sees(%'
          and pg_get_functiondef('public.pv_contrib_sees(text)'::regprocedure) like '%pv_work_level()%'
                                                                                   as 集計と補足は同じ決まりで返す,
        not has_function_privilege('anon', 'public.pv_contrib_sees(text)', 'execute')
