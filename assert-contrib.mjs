@@ -163,19 +163,20 @@ console.log('\n════ ソース ════');
   ok(!/[¥￥€£＄]|[$]\s?\d|\d\s?(万円|万|円)|\b(JPY|USD|AED|HKD|TWD)\b/.test(code), 'JS に金額が1つも書かれていない',
     J((code.match(/.{0,20}(?:[¥￥€£＄]|[$]\s?\d|\d\s?(?:万円|万|円)|\b(?:JPY|USD|AED|HKD|TWD)\b).{0,20}/g) || []).slice(0, 3)));
   ok(!/supabase\.co/.test(js) && !/\/Users\//.test(js + css), 'JS・CSS に本番の住所も、この Mac の中の場所も書かれていない');
-  /* 呼ぶ関数は7つ ── 会員の「出す」「自分の分を読む」が2つずつ、ログインしていない人の
-     「預ける」「預けた分を読む」、ログインしたあとの「引き継ぐ」。
-     会員の「出す」2つは名前の表（MEMBER_FN）を通して呼ぶので、表の中身も一緒に数える。
+  /* 呼ぶ関数は10 ── 会員の「出す」「自分の分を読む」が3つずつ（月の勤務・質問・住みやすい街）、ログインしていない人の
+     「預ける」「預けた分を読む」、ログインしたあとの「引き継ぐ」、街の候補の一覧。
+     街の候補の一覧は、サイトの名前だけを返す口（誰が読んでも同じ。ほかの人の回答は入っていない）。
+     会員の「出す」3つは名前の表（MEMBER_FN）を通して呼ぶので、表の中身も一緒に数える。
      それ以外の形で名前を渡している呼び出しが在れば、ここで見落とすことになるので落とす。 */
   const rpcLit = [...code.matchAll(/rpc\('([a-z_]+)'/g)].map((m) => m[1]);
   const rpcTbl = [...((code.match(/var MEMBER_FN = \{([^}]*)\}/) || [])[1] || '').matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
   const rpcDyn = [...new Set([...code.matchAll(/rpc\(([^'\s][^,)]*)/g)].map((m) => m[1].trim()))].sort();
   const rpcs = [...new Set([...rpcLit, ...rpcTbl])].sort();
-  ok(J(rpcs) === J(['claim_contrib', 'my_airline_conditions', 'my_contrib_anon', 'my_work_months',
-    'submit_airline_conditions', 'submit_contrib_anon', 'submit_work_month']),
-    '呼ぶ関数は7つだけ（会員の「出す」「読む」×2・未ログインの「預ける」「読む」・ログイン後の「引き継ぐ」）', J(rpcs));
+  ok(J(rpcs) === J(['claim_contrib', 'my_airline_conditions', 'my_contrib_anon', 'my_town_posts', 'my_work_months', 'pv_town_options',
+    'submit_airline_conditions', 'submit_contrib_anon', 'submit_town_post', 'submit_work_month']),
+    '呼ぶ関数は10だけ（会員の「出す」「読む」×3・未ログインの「預ける」「読む」・ログイン後の「引き継ぐ」・街の候補の一覧）', J(rpcs));
   ok(J(rpcDyn) === J(['MEMBER_FN[kind]', 'name']), '名前を表から引いて呼ぶのは、会員の「出す」の1か所だけ（ほかに見えない呼び出しが無い）', J(rpcDyn));
-  ok(!/pv_work_view|pv_contrib_notes|pv_pay_rows|pv_reviews|pv_contrib_facts|airline_condition_facts|pv_contrib_give|pv_contrib_sees/.test(code), '「情報を追加」の面は、ほかの人の回答・給与・口コミを読む口を1つも呼ばない');
+  ok(!/pv_work_view|pv_contrib_notes|pv_pay_rows|pv_reviews|pv_contrib_facts|airline_condition_facts|pv_contrib_give|pv_contrib_sees|pv_town_board|pv_town_queue|pv_town_moderate/.test(code), '「情報を追加」の面は、ほかの人の回答・給与・口コミを読む口を1つも呼ばない');
 
   /* サーバの決まりを写している値（預かりの日数）が、正本と同じか。
      「消える日」を決めているのはサーバで、ここが違っていても
@@ -194,14 +195,14 @@ console.log('\n════ ソース ════');
     J((code.replace(DUTY_TERM, '').match(/.{0,16}(?:REAL PAY|解放|アンロック|unlock).{0,16}/gi) || []).slice(0, 3)));
   ok(!/機内弁当|住まい・家族/.test(code), '保存先の無い項目（機内弁当・食事／住まい・家族）のタイルを置いていない');
 
-  /* 保存できた合図（cue）を出すのは、保存後の画面を出した直後の2か所だけ。
+  /* 保存できた合図（cue）を出すのは、保存後の画面を出した直後の3か所だけ（月の勤務・質問・住みやすい街）。
      保存後の画面を組む所（savedShell）や 'pvc:saved' の合図に掛けると、描き直し・一部だけ保存できた回・
      ログイン後の引き継ぎでも鳴る ＝「保存できた時に1度だけ」が崩れる。名前を渡すだけの形（, cue)）も数える。 */
   const cueUse = (code.match(/(?<![\w-])cue\b/g) || []).length;
-  const savedShows = (code.match(/show\((?:'work-saved'|topic \+ '-saved')\);/g) || []).length;
-  const savedCued = (code.match(/show\((?:'work-saved'|topic \+ '-saved')\);\s*cue\(\);/g) || []).length;
-  ok(cueUse === 3 && savedShows === 2 && savedCued === 2,
-    '保存できた合図を出すのは、保存後の画面を出した直後の2か所だけ（ほかのどこからも呼んでいない）', J({ cue: cueUse, shows: savedShows, cued: savedCued }));
+  const savedShows = (code.match(/show\((?:'work-saved'|'town-saved'|topic \+ '-saved')\);/g) || []).length;
+  const savedCued = (code.match(/show\((?:'work-saved'|'town-saved'|topic \+ '-saved')\);\s*cue\(\);/g) || []).length;
+  ok(cueUse === 4 && savedShows === 3 && savedCued === 3,
+    '保存できた合図を出すのは、保存後の画面を出した直後の3か所だけ（月の勤務・質問・住みやすい街。ほかのどこからも呼んでいない）', J({ cue: cueUse, shows: savedShows, cued: savedCued }));
   ok(!/['"](?:修正する|別の項目を追加)['"]/.test(code), '保存後のボタンに、前の言い方（「修正する」「別の項目を追加」）が残っていない');
 
   /* ── ほかの会社について開く（PVContrib.openFor）── ここは字を読むだけ。動きは、いちばん下の場面「別の会社について開く」が見る。
@@ -211,13 +212,13 @@ console.log('\n════ ソース ════');
   const cnt = (src, s) => src.split('\n').filter((l) => l.includes(s)).length;
   const fnOf = (src, name) => (src.match(new RegExp('\\n  function ' + name + '\\([^)]*\\) \\{[\\s\\S]*?\\n  \\}')) || [''])[0];
   const coOne = (src) => { const os = fnOf(src, 'openSheet'), at = os.indexOf('setCo(o);'); return cnt(src, 'function setCo(') === 1 && at > 0 && at < os.indexOf('build();') && cnt(src, "getAttribute('data-airline')") === 1 && /\n  function pageSlug\(\) \{ return trim\(d\.body && d\.body\.getAttribute\('data-airline'\)\); \}\n/.test(src) && /^\n  function readerTurn\(\) \{\n    if \(CO && CO\.u !== uid\(\)\) \{ coEnd\(\); return true; \}\n/.test(fnOf(src, 'readerTurn')); };
-  const coGuard = (src) => { const L = src.split('\n'), isSend = (l) => /^\s*send\('[a-z]+', pl\)\.then\(function \(r\) \{$/.test(l || ''), at = L.map((l, i) => (l.includes('if (was !== coTurn) return;') ? i : -1)).filter((i) => i >= 0); return cnt(src, 'coTurn++') === 1 && fnOf(src, 'setCo').includes('coTurn++;') && L.filter(isSend).length === 2 && at.length === 2 && at.every((i) => isSend(L[i - 1]) && /^\s*var was = coTurn;$/.test(L[i - 2] || '')); };
+  const coGuard = (src) => { const L = src.split('\n'), isSend = (l) => /^\s*send\('[a-z]+', pl\)\.then\(function \(r\) \{$/.test(l || ''), at = L.map((l, i) => (l.includes('if (was !== coTurn) return;') ? i : -1)).filter((i) => i >= 0); return cnt(src, 'coTurn++') === 1 && fnOf(src, 'setCo').includes('coTurn++;') && L.filter(isSend).length === 3 && at.length === 3 && at.every((i) => isSend(L[i - 1]) && /^\s*var was = coTurn;$/.test(L[i - 2] || '')); };
   const coTrack = (src) => cnt(src, 'gtag(') === 1 && cnt(src, 'airline_code') === 1 && cnt(src, "w.gtag('event', name, { topic: topic, airline_code: CO ? '' : slug() });") === 1;
   const coOutbox = (src) => cnt(src, 'lset(OUTBOX,') === 1 && /\n  function keepOutbox\(topic\) \{\n    if \(CO\) return;\n    lset\(OUTBOX,/.test(src) && cnt(src, '入力した内容はこの端末に残しています。') === 1 && cnt(src, "(CO ? '' : '入力した内容はこの端末に残しています。')") === 1;
   const coSend = (src) => /\n  function send\(kind, data\) \{\n    if \(CO\) return rpc\(MEMBER_FN\[kind\], data\);\n/.test(src) && cnt(src, 'keepDraft(') === 4 && cnt(src, "if (!noDraft && !CO) keepDraft(topic, 'login');") === 1;
   ok(coOne(code), '★別の会社について開く：面がこのページの会社を読むのは1か所だけ（pageSlug）。どの会社について開くかは、開く時の頭の1か所（setCo）で決め直し、読む人が替わっていたら最初にそれを終える（readerTurn の頭）',
     J({ setCo: cnt(code, 'function setCo('), page: cnt(code, "getAttribute('data-airline')"), turn: fnOf(code, 'readerTurn').split('\n').slice(1, 3).join(' ').trim().slice(0, 120) }));
-  ok(coGuard(code), '★別の会社について開く：送ったあとで会社が替わっていたら、届いた返事では何もしない（月の勤務・質問の2つの送信のどちらも、返事の頭で確かめる）',
+  ok(coGuard(code), '★別の会社について開く：送ったあとで会社が替わっていたら、届いた返事では何もしない（月の勤務・質問・住みやすい街の3つの送信のどれも、返事の頭で確かめる）',
     J({ turn: cnt(code, 'coTurn++'), guard: cnt(code, 'if (was !== coTurn) return;') }));
   ok(coTrack(code), '★別の会社について開く：そのあいだは、計測に会社の符号を送らない（符号を送る所は、この1か所だけ）', J({ gtag: cnt(code, 'gtag('), code: cnt(code, 'airline_code') }));
   ok(coOutbox(code), '★別の会社について開く：そのあいだは、送れなかった1件を端末に残さない（残していないものを「この端末に残しています」と言わない）', J({ write: cnt(code, 'lset(OUTBOX,') }));
@@ -377,7 +378,7 @@ async function main() {
     if (w === 'list') return !!r.querySelector('.pvc-tiles');
     if (w === 'counted') {
       const st = r.querySelector('[data-pvc-state]');
-      return !!st && /^(ok|anon|off|fail) (ok|anon|off|fail)$/.test(st.getAttribute('data-pvc-state'));
+      return !!st && /^(ok|anon|off|fail) (ok|anon|off|fail)$/.test(st.getAttribute('data-pvc-state')) && !/^(loading|idle)$/.test(st.getAttribute('data-pvc-town') || '');
     }
     if (w === 'saved') return !!r.querySelector('[data-pvc-saved]');
     const f = r.querySelector('form[data-pvc-form="' + w + '"]');
@@ -2914,7 +2915,7 @@ async function main() {
   /* ページが1往復の通信を終えるまで待つ（「出ていかなかった」を見る前に。時間では待たない） */
   const roundTrip = (p) => p.page.evaluate(() => fetch('/pv-vocab.json', { cache: 'no-store' }).then((r) => r.text()).then((t) => t.length > 0, () => false));
   /* 自分の投稿を読みに行く通信・引き継ぎの通信 */
-  const reads = (p, from) => p.st.calls.slice(from).filter((c) => /^(my_work_months|my_airline_conditions|my_contrib_anon|claim_contrib)$/.test(c));
+  const reads = (p, from) => p.st.calls.slice(from).filter((c) => /^(my_work_months|my_airline_conditions|my_contrib_anon|claim_contrib|my_town_posts)$/.test(c));
   /* 面に見えている字。all を付けると、入力欄に入っている値も足す */
   const sheetText = (p, all) => p.page.evaluate((a) => {
     const s = document.querySelector('.pvc-root .pvc-sheet');

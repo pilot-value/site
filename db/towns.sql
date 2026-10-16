@@ -784,6 +784,8 @@ begin
       delete from public.pv_town_posts s using public.pv_town_posts d
        where s.town_id = v_town.id and d.town_id = v_dst.id and d.author_hash = s.author_hash;
       update public.pv_town_posts set town_id = v_dst.id where town_id = v_town.id;
+      -- 前にこの街へ束ねた書き方も、束ねた先へ付け替える（街を決める側は1段しかたどらない。LEAD-RULINGS-35 P12.23 a）
+      update public.pv_towns set alias_of = v_dst.id where alias_of = v_town.id;
       update public.pv_towns set state = 'public', alias_of = v_dst.id, moderated_at = now() where id = v_town.id;
       return jsonb_build_object('ok', true, 'target', 'town', 'id', v_town.id, 'state', 'public', 'into', v_dst.id);
     end if;

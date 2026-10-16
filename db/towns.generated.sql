@@ -52,6 +52,11 @@ on conflict (airline, base_iata, tkey) do update set
   name = excluded.name, origin = 'ledger', state = 'public', alias_of = excluded.alias_of,
   moderated_at = coalesce(public.pv_towns.moderated_at, excluded.moderated_at)
   where not (public.pv_towns.origin = 'ledger' and public.pv_towns.alias_of is null);
+--    別の書き方になった街に、前から束ねてあった書き方も、その街へ付け替える（街を決める側は1段しかたどらない。LEAD-RULINGS-35 P12.23 c）。
+update public.pv_towns a
+   set alias_of = b.alias_of
+  from public.pv_towns b
+ where a.alias_of = b.id and b.alias_of is not null;
 
 -- 3. 別の書き方の行に付いていた投稿を、街の行へ移す（先に会員がその書き方で出していた場合。
 --    同じ人が両方に出していたら、街の行のほうを残す）。何度流しても同じ。
@@ -59,6 +64,12 @@ delete from public.pv_town_posts s
  using public.pv_towns a, public.pv_town_posts d
  where s.town_id = a.id and a.alias_of is not null
    and d.town_id = a.alias_of and d.author_hash = s.author_hash;
+--    同じ人が同じ街の別の書き方2つ以上に出していたら（街の行には無い）、いちばん新しい1行だけを移す（LEAD-RULINGS-35 P12.23 b）。
+delete from public.pv_town_posts s
+ using public.pv_towns a, public.pv_towns b, public.pv_town_posts d
+ where s.town_id = a.id and a.alias_of is not null
+   and b.alias_of = a.alias_of and d.town_id = b.id and d.author_hash = s.author_hash
+   and (d.updated_at, d.id) > (s.updated_at, s.id);
 update public.pv_town_posts s
    set town_id = a.alias_of
   from public.pv_towns a

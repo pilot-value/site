@@ -430,5 +430,8 @@
   .pvc-root .pvc-pop{display:none}
 }
 
+.pvc-root .pvc-towns{margin-top:8px}
+.pvc-root .pvc-chip .pvc-mine{margin-left:2px;background:var(--pv-surface)}
+
 /* hidden は必ず消える（上の display:flex／grid の規則に負けさせない）。最後に置く。 */
 .pvc-root [hidden]{display:none !important}
