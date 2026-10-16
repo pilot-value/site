@@ -6,7 +6,7 @@
 -- 街の候補（台帳の街・運営が足した街・会員が打ち込んだ街）も、ここに持つ。
 --
 -- ★ このファイルは自動では流れない。オーナーが SQL Editor で実行する。
--- ★ 流す順番: … → db/founding.sql → db/stays.sql → db/work-months.sql → このファイル
+-- ★ 流す順番: … → db/founding.sql → db/proof-store.sql → db/proof-offer.sql → db/stays.sql → db/work-months.sql → このファイル
 --    → db/towns.generated.sql → db/contrib.sql
 --    （このファイルが要るのは pv_airlines・pv_currencies・pv_is_operator の3つだけ。
 --      どれかが抜けていたら、下の「0. 前提」が日本語で止める。）
@@ -379,6 +379,182 @@ as $fn$
 $fn$;
 revoke all on function public.pv_town_newer(uuid, jsonb, timestamptz) from public, anon, authenticated;
 
+-- ════ 4. 会員の入口 ════
+-- 返す形: { ok:true, saved:true, replaced, post:{…3-c…} }   replaced … 同じ街を出し直した／街を直した
+-- ★同じ街が在れば行ごと置き換える（省いた欄は空に戻る。月の勤務と同じ決まり）。
+-- ★候補（台帳の街・運営が足した街）に在る街は、その場で数に入る。候補に無い名前は 'pending' の街として入り、運営が見るまで数えない。
+-- ★文（良い点・気になる点）は、新しく書いた時と、1文字でも変えた時に、運営の確認待ちになる。
+-- ★上限は2つ。どちらも 54000 で止める。引き継ぎ（db/contrib.sql の claim_contrib）が2つを見分けられるように、
+--   候補に無い名前の上限にだけ detail = 'names' を付ける（付いていれば、その1件だけ残して次の街へ進む）。
+-- ★候補に無い名前は、もう誰かが打った名前でも、運営が承認したあとでも、初めての名前と同じに数える（1日に3つ）。
+--   数えないと、返事の town_state（'public'）から「その名前はもう在る」が、鍵の無い人にも何度でも分かる。
+-- ★ここに資格の列の名前を書かない（末尾の検算が、関数の中身を文字で見ている）。
+create or replace function public.submit_town_post(p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid   uuid := auth.uid();
+  v_c     jsonb;
+  v_air   text;
+  v_base  text;
+  v_me    text;
+  v_good  text;
+  v_conc  text;
+  v_rate  public.pv_town_rate%rowtype;
+  v_town  public.pv_towns%rowtype;
+  v_from  public.pv_towns%rowtype;
+  v_old   public.pv_town_posts%rowtype;
+  v_row   public.pv_town_posts%rowtype;
+  v_had   boolean := false;
+  v_guess boolean := false;     -- 候補（台帳・運営）に無い名前を、この人が初めて出す回
+  v_ts    text;
+  v_n     int;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_c    := public.pv_town_clean(p);
+  v_air  := v_c->>'airline';
+  v_base := v_c->>'base_iata';
+  v_good := v_c->>'good';
+  v_conc := v_c->>'concern';
+  v_me   := public.pv_town_hash(v_uid, v_air);
+
+  -- 同じ人の同時の2本を1列に並べる（数え方をすり抜けさせない）
+  perform pg_advisory_xact_lock(hashtextextended('pv_town:' || v_me, 0));
+
+  insert into public.pv_town_rate as r (author_hash, day, n, names)
+  values (v_me, current_date, 0, 0)
+  on conflict (author_hash) do update set
+    n     = case when r.day = current_date then r.n     else 0 end,
+    names = case when r.day = current_date then r.names else 0 end,
+    day   = current_date
+  returning * into v_rate;
+  if v_rate.n >= 20 then
+    raise exception '1日に投稿できる件数の上限に達しました。明日また続きをどうぞ。' using errcode = '54000';
+  end if;
+
+  -- 街を決める（候補に在ればその街。別の書き方として束ねてあれば、束ねた先）
+  select * into v_town from public.pv_towns
+   where airline = v_air and base_iata = v_base and tkey = v_c->>'tkey';
+  v_guess := v_town.id is null or v_town.origin = 'member';
+  if v_town.id is null then
+    begin
+      insert into public.pv_towns (airline, base_iata, tkey, name, origin, state)
+      values (v_air, v_base, v_c->>'tkey', v_c->>'town', 'member', 'pending')
+      returning * into v_town;
+    exception when unique_violation then          -- 同じ名前を、別の人が同時に出した
+      select * into v_town from public.pv_towns
+       where airline = v_air and base_iata = v_base and tkey = v_c->>'tkey';
+    end;
+  end if;
+  if v_town.alias_of is not null then
+    select * into v_town from public.pv_towns where id = v_town.alias_of;
+  end if;
+  if v_town.state = 'rejected' then
+    raise exception 'この街の名前は、いま受け付けていません' using errcode = '22023';
+  end if;
+
+  select * into v_old from public.pv_town_posts
+   where author_hash = v_me and town_id = v_town.id for update;
+  v_had := v_old.id is not null;
+
+  -- 候補に無い名前の上限（自分がもう出している街の出し直しは数えない）。
+  -- ★ここで止まると、上で作った街の行も一緒に取り消される（1つの呼び出しは、全部入るか、何も入らないか）。
+  v_guess := v_guess and not v_had;
+  if v_guess and v_rate.names >= 3 then
+    raise exception '新しい街の名前を出せるのは、1日に3つまでです。明日また続きをどうぞ。'
+      using errcode = '54000', detail = 'names';
+  end if;
+
+  -- 街を直した回：前の街の投稿を外してから、この街へ置く
+  if not v_had and v_c ? 'was' then
+    select * into v_from from public.pv_towns
+     where airline = v_air and base_iata = v_base and tkey = public.pv_town_key(v_c->>'was');
+    if v_from.id is not null then
+      delete from public.pv_town_posts
+       where author_hash = v_me and town_id = coalesce(v_from.alias_of, v_from.id);
+      v_had := found;
+    end if;
+  end if;
+
+  if not v_had then
+    select count(*) into v_n from public.pv_town_posts where author_hash = v_me;
+    if v_n >= 10 then
+      raise exception '1つの会社に出せる街は10か所までです' using errcode = '22023';
+    end if;
+  end if;
+
+  v_ts := case
+    when v_good is null and v_conc is null then 'none'
+    when v_old.id is not null and v_old.good is not distinct from v_good
+         and v_old.concern is not distinct from v_conc then v_old.text_state
+    else 'pending' end;
+
+  insert into public.pv_town_posts as s (
+    author_hash, airline, base_iata, town_id, lived, lived_to_year, good, concern, text_state,
+    rent_layout, rent_area, rent_area_unit, rent_amount, rent_currency,
+    trip_mode, trip_airport, trip_terminal, trip_hour, trip_minutes, lang)
+  values (
+    v_me, v_air, v_base, v_town.id, v_c->>'lived', (v_c->>'lived_to_year')::int, v_good, v_conc, v_ts,
+    v_c#>>'{rent,layout}', (v_c#>>'{rent,area}')::numeric, v_c#>>'{rent,area_unit}',
+    (v_c#>>'{rent,amount}')::numeric, v_c#>>'{rent,currency}',
+    v_c#>>'{trip,mode}', v_c#>>'{trip,airport}', v_c#>>'{trip,terminal}',
+    (v_c#>>'{trip,hour}')::int, (v_c#>>'{trip,minutes}')::int, v_c->>'lang')
+  on conflict (author_hash, town_id) do update set
+    lived = excluded.lived, lived_to_year = excluded.lived_to_year,
+    good = excluded.good, concern = excluded.concern, text_state = excluded.text_state,
+    rent_layout = excluded.rent_layout, rent_area = excluded.rent_area, rent_area_unit = excluded.rent_area_unit,
+    rent_amount = excluded.rent_amount, rent_currency = excluded.rent_currency,
+    trip_mode = excluded.trip_mode, trip_airport = excluded.trip_airport, trip_terminal = excluded.trip_terminal,
+    trip_hour = excluded.trip_hour, trip_minutes = excluded.trip_minutes, lang = excluded.lang,
+    updated_at = now(),
+    moderated_at = case when excluded.text_state = s.text_state then s.moderated_at else null end
+  returning * into v_row;
+
+  update public.pv_town_rate
+     set n = n + 1, names = names + case when v_guess then 1 else 0 end
+   where author_hash = v_me;
+
+  return jsonb_build_object('ok', true, 'saved', true, 'replaced', v_had,
+                            'post', public.pv_town_post_json(v_row, v_town));
+end;
+$fn$;
+revoke all on function public.submit_town_post(jsonb) from public, anon;
+grant execute on function public.submit_town_post(jsonb) to authenticated;
+
+-- ════ 5. 自分の投稿（その会社のぶん。ほかの人の行は1つも読まない）════
+create or replace function public.my_town_posts(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid uuid := auth.uid();
+  v_air text := nullif(btrim(p->>'airline'), '');
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  if v_air is null or v_air = 'other'
+     or not exists (select 1 from public.pv_airlines a where a.code = v_air) then
+    raise exception '航空会社が正しくありません' using errcode = '22023';
+  end if;
+  return jsonb_build_object('ok', true, 'posts', coalesce((
+    select jsonb_agg(public.pv_town_post_json(s, t) order by s.base_iata, t.tkey collate "C")
+      from public.pv_town_posts s
+      join public.pv_towns t on t.id = s.town_id
+     where s.author_hash = public.pv_town_hash(v_uid, v_air)), '[]'::jsonb));
+end;
+$fn$;
+revoke all on function public.my_town_posts(jsonb) from public, anon;
+grant execute on function public.my_town_posts(jsonb) to authenticated;
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 9. 検算（貼ったあとに出る1行）
@@ -395,4 +571,12 @@ select (select count(*) from pg_policies
        not exists (select 1 from information_schema.columns
                     where table_schema = 'public' and table_name in ('pv_towns', 'pv_town_posts')
                       and column_name ~ '(^|_)(address|lat|latitude|lng|lon|longitude|geo|coord|coords|postal|zip|user_id|uid|email)($|_)')
-                                                                                                          as 住所も位置も人の印も持たない;
+                                                                                                          as 住所も位置も人の印も持たない,
+       not has_function_privilege('anon', 'public.submit_town_post(jsonb)', 'execute')
+         and not has_function_privilege('anon', 'public.my_town_posts(jsonb)', 'execute')
+         and not has_function_privilege('authenticated', 'public.pv_town_clean(jsonb)', 'execute')
+         and not has_function_privilege('authenticated', 'public.pv_town_key(text)', 'execute')           as 入口は決めたものだけ,
+       (pg_get_functiondef('public.submit_town_post(jsonb)'::regprocedure)
+          || pg_get_functiondef('public.my_town_posts(jsonb)'::regprocedure)
+          || pg_get_functiondef('public.pv_town_clean(jsonb)'::regprocedure))
+         !~ '(access_until|pay_report|pay_streak|last_pay|badge|verify_level|founding|review_unlock)'     as 資格に触らない;
