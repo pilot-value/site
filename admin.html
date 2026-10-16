@@ -416,6 +416,7 @@
 
   async function adminLogout() {
     try { PVPayLocal.forget(); } catch (e) {}   // 給与の入力も端末に置いていかない
+    try { Object.keys(sessionStorage).forEach(function (k) { if (/^pv_(contrib|stay)_draft:/.test(k)) sessionStorage.removeItem(k); }); } catch (e) {}   // 打ってまだ送っていない下書き（このタブ）も置いていかない
     await sb.auth.signOut();
     /* ★名前と解放の写しも置いていかない（2026-09-14）。ここが抜けていたので、
        ログアウトした端末の右上にアカウント名が出たままになっていた

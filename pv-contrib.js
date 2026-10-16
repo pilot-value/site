@@ -61,7 +61,8 @@
   })();
 
   var OUTBOX = 'pv_contrib_outbox';          // 送れなかった1件（この端末だけ）
-  var DRAFT = 'pv_contrib_draft:';           // ログインをまたぐ下書き（このタブだけ）
+  var DRAFT = 'pv_contrib_draft:';           // 打ってまだ送っていない入力（このタブだけ・30分・打った人の印つき）
+  var DRAFT_MS = 30 * 60 * 1000;             // 下書きを持つのは、最後に打ってから30分まで（戻す時と、ページを開いた時に確かめる）
   var KEY = 'pv_contrib_key';                // ログインせずに保存した回答の「控えの鍵」（この端末だけ）
   var HELD_DAYS = 90;                        // 預かりの期限。正本はサーバの pv_contrib_ttl()（写し）
   var QID = /^[a-z0-9_]{1,60}$/;             // 質問の名前の形（住所や属性から来た字を、そのまま信じない）
@@ -422,10 +423,76 @@
     var t = gs(topic);
     return { vals: t.vals, dirty: t.dirty, curs: t.curs, notes: t.notes, noteDirty: t.noteDirty, noteOpen: t.noteOpen, fold: t.fold, own: t.own };
   }
-  function keepDraft(topic, why) {
-    sset(DRAFT + slug() + ':' + topic, JSON.stringify({ v: 1, why: why, draft: draftOf(topic) }));
+  /* 下書き ＝ このタブの sessionStorage だけに置く（端末の localStorage にも、サーバにも、計測にも出さない）。
+     1件 ＝ { v: 2, at: 最後に打った時刻, by: 打った人の印, why, draft }。
+       by … ログインしている人は 'm:' ＋ 会員の id の指紋（PVPayLocal.fp。id そのものは置かない）、ログインしていない人は 'a'。
+            会員の id が読めない時（noWho）・指紋の道具が無い時は置かない（誰のものか分からない）。
+     戻すのは、最後に打ってから30分以内で、打った人がいま読む人の時だけ（ログインせずに打った分は、ログインした人のものになる）。
+     ほかの会員の分は、気づいた所で消す（ページを開いた時・読む人が替わった時・戻す時）。
+     ログインが知らせなく切れた時（自動のログアウト）は消さない ── 同じ人がログインし直せば、30分のうちは戻る。
+     サイトの「ログアウト」（profile.html・admin.html）は、このタブの下書きを全部消す。送って保存できたら、その項目の分を消す。 */
+  var TYPED = {};                            // 下書きの鍵ごとの、最後に打った時刻（置き直すだけでは時刻を進めない）
+  var OWN = '';                              // いま画面にある打ちかけを打った会員の印。ログインが知らせなく切れても替えない
+  function markNow() {
+    if (!hasToken()) return 'a';
+    var u = uid(), P = w.PVPayLocal;
+    return u && P && typeof P.fp === 'function' ? 'm:' + P.fp(u) : '';
   }
-  function dropDraft(topic) { sdel(DRAFT + slug() + ':' + topic); }
+  function isMember(m) { return /^m:./.test(str(m)); }
+  /* 置く時の印。ログインが知らせなく切れた（いまは 'a'）あとも、打ちかけは、それを打っていた会員のもの。 */
+  function markFor() {
+    var cur = markNow();
+    if (cur === 'a' && isMember(OWN)) return OWN;
+    if (isMember(cur)) OWN = cur;
+    return cur;
+  }
+  /* その下書きを、いま読む人に戻してよいか（'yes'）・消すか（'drop' ＝ 別の会員の分）・触らずに置くか（'keep'）。決めるのはここだけ。 */
+  function whose(j, cur) {
+    if (cur && (j.by === cur || (j.by === 'a' && isMember(cur)))) return 'yes';
+    return isMember(j.by) && isMember(cur) ? 'drop' : 'keep';
+  }
+  function draftKey(topic) { return DRAFT + slug() + ':' + topic; }
+  /* 置いてある1件。壊れた・前の形・30分を過ぎたものは、ここで消して null。 */
+  function readRec(k) {
+    var raw = sget(k), j = null, age;
+    if (!raw) return null;
+    try { j = JSON.parse(raw); } catch (e) { j = null; }
+    age = j && typeof j.at === 'number' ? Date.now() - j.at : NaN;
+    if (!j || j.v !== 2 || !(age >= -60000 && age <= DRAFT_MS) || (j.by !== 'a' && !isMember(j.by)) || !j.draft || typeof j.draft !== 'object') { sdel(k); return null; }
+    return j;
+  }
+  function keepDraft(topic, why) {
+    var k = draftKey(topic), by = markFor(), old;
+    if (!by) return;
+    /* ログインへ送り出した時の1件（why 'login'）は、戻ってきて restore が受け取るまで、その印のまま */
+    if (why === 'kept' && (old = readRec(k)) && old.why === 'login') why = 'login';
+    sset(k, JSON.stringify({ v: 2, at: TYPED[k] || Date.now(), by: by, why: why, draft: draftOf(topic) }));
+  }
+  function dropDraft(topic) { sdel(draftKey(topic)); }
+  /* このタブの下書きを見直す：古い・壊れたものと、いまの読む人とは別の会員のものを消す（ページを開いた時・読む人が替わった時）。 */
+  function sweepDrafts() {
+    var cur = markNow(), keys = [], i, k;
+    try { for (i = 0; i < sessionStorage.length; i++) { k = sessionStorage.key(i); if (k && k.indexOf(DRAFT) === 0) keys.push(k); } } catch (e) { return; }
+    keys.forEach(function (key) { var j = readRec(key); if (j && whose(j, cur) === 'drop') sdel(key); });
+  }
+  /* 手を付けた入力が在るか（月の勤務・住みやすい街・質問のまとまり） */
+  function dirtyOf(topic) {
+    if (topic === 'work') return Object.keys(W.bufs).some(function (k) { return !!(W.bufs[k] && W.bufs[k].dirty); });
+    if (topic === 'town') return !!(TW.buf.dirty || TW.nameBy);
+    return isGroup(topic) && !!G[topic] && groupDirty(G[topic]);
+  }
+  /* 面の中で欄が変わった（打った・選んだ）。その項目の下書きを置き直す。手を付けた入力が無くなったら消す。
+     欄そのものの受け手が先に状態を書いてから、ここへ届く（面の根で受ける）。 */
+  function onTyped() {
+    var t = S.view;
+    if (!S.open || !(t === 'work' || t === 'town' || isGroup(t))) return;
+    TYPED[draftKey(t)] = Date.now();
+    if (dirtyOf(t)) keepDraft(t, 'kept'); else dropDraft(t);
+  }
+  /* ページを離れる時（戻る・読み直す・ほかのページへ）。手を付けた入力の在る項目だけ置く（まだ戻していない下書きは消さない）。 */
+  function onLeave() {
+    ['work', 'town'].concat(Object.keys(G)).forEach(function (t) { if (dirtyOf(t)) keepDraft(t, 'kept'); });
+  }
   function outbox() {
     var raw = lget(OUTBOX), j = null;
     if (!raw) return null;
@@ -458,16 +525,23 @@
   function restore(topic) {
     if (S.taken[topic]) return;
     S.taken[topic] = 1;
-    var o = outbox(), got = null, raw, j;
+    var o = outbox(), got = null, k = draftKey(topic), j = null, cur = markNow(), to;
     if (o && o.topic === topic) got = { why: 'fail', draft: o.draft };
-    if (!got) {
-      raw = sget(DRAFT + slug() + ':' + topic);
-      if (raw) { try { j = JSON.parse(raw); if (j && j.v === 1 && j.draft) got = { why: j.why || 'login', draft: j.draft }; } catch (e) { /* 壊れた下書きは捨てる */ } }
+    if (!got && (j = readRec(k))) {
+      /* 戻すのは、打った人がいま読む人の時だけ（whose）。別の会員の分は消す。会員の分を、ログインしていない人には出さない（置いたまま） */
+      to = whose(j, cur);
+      if (to === 'yes') got = { why: j.why || 'login', draft: j.draft };
+      else if (to === 'drop') sdel(k);
     }
     if (!got) return;
     /* 「ログインしました」と言うのは、戻ってきた最初の1回だけ（読み直すたびに言わない） */
     var fresh = got.why === 'login' && hasToken();
-    if (fresh) sset(DRAFT + slug() + ':' + topic, JSON.stringify({ v: 1, why: 'kept', draft: got.draft }));
+    if (j && got.why !== 'fail') {
+      TYPED[k] = j.at;
+      if (isMember(cur)) OWN = cur;
+      /* ログインせずに打った分は、ここから、ログインした人のもの（印を付け直す）。時刻は打った時のまま */
+      if (fresh || j.by !== cur) sset(k, JSON.stringify({ v: 2, at: j.at, by: cur, why: fresh ? 'kept' : got.why, draft: got.draft }));
+    }
     var dr = got.draft, k;
     if (topic === 'work') {
       if (dr.bufs && typeof dr.bufs === 'object') {
@@ -810,9 +884,10 @@
     var cn = C.note;
     readerReset();
     C.note = cn;
-    /* 残った「打ってまだ送っていない入力」は、このページの会社から離れる時だけ、その会社の下書きに置く
-       （戻ってきたら restore が戻す）。ほかの会社（＝ 読む人自身の勤め先）から離れる時は、何も置かない
-       ── その会社の符号の付いた鍵と入力を、このタブに残さない。持ち主が替わっていた時も CO が入っているので、置かない。 */
+    /* 残った「打ってまだ送っていない入力」は、このページの会社から離れる時だけ、ここでその会社の下書きに置く
+       （戻ってきたら restore が戻す）。ほかの会社（＝ 読む人自身の勤め先）について打った入力は、打つたびにその会社の符号の鍵で
+       このタブにだけ置いてある（onTyped。30分・打った人の印つき）ので、ここでは置き直さない
+       ── 持ち主が替わっていた時に、前の人の入力を次の人の印で置かない。 */
     if (!CO) {
       if (Object.keys(W.bufs).length) keepDraft('work', 'kept');
       Object.keys(G).forEach(function (k) { if (groupDirty(G[k])) keepDraft(k, 'kept'); });
@@ -823,7 +898,8 @@
     return true;
   }
   /* ほかの会社について開くのを終える（読む人が替わった時）。このページの会社へ戻して、面を閉じる。
-     下書きは残さない（持ち主の替わった CO からは、setCo が何も置かない）。閉じた面の中身も消す
+     前の人が打った下書きは、別の会員に替わったと気づいた所（onReader の sweepDrafts）で消える。ログインが知らせなく切れた
+     だけなら、その人のためにこのタブに残す（30分）。setCo は、持ち主の替わった CO からは何も置かない。閉じた面の中身も消す
      ── 画面には出なくても、前の人の勤め先の名前と打ちかけの入力が、ページの中に残る。 */
   function coEnd() {
     var open = S.open;
@@ -891,7 +967,16 @@
     if (CO && CO.u !== uid()) coEnd();
     else if (!readerSame()) { clear(S.main); S.title.textContent = ''; }
   }
-  function onReader() { if (S.open) { if (readerTurn()) redraw(); } else shutGone(); }
+  /* TOK ＝ 最後に見た時、ログインの鍵が在ったか。在った鍵が無くなった（ほかのタブで消えた・この画面の中で期限が切れた）時は、
+     ページの欄（career-live.js）にも 'pvc:logout' で知らせる ── あちらには、知らせの届かないログアウトに気づく時計が無い。 */
+  var TOK = null;
+  function onReader() {
+    var t = hasToken();
+    sweepDrafts();
+    if (TOK === true && !t) { try { d.dispatchEvent(new CustomEvent('pvc:logout')); } catch (e) { /* 古いブラウザ */ } }
+    TOK = t;
+    if (S.open) { if (readerTurn()) redraw(); } else shutGone();
+  }
   /* 一覧を読めていないあいだは、このページでいま保存できた分だけを控え（M.kept）から出す。
      読めた一覧が在るときは、必ずそちらが正（控えは見ない）。 */
   function rowFor(ym) {
@@ -928,6 +1013,9 @@
     root.appendChild(scrim); root.appendChild(sheet);
     d.body.appendChild(root);
     S.root = root; S.sheet = sheet; S.title = title; S.prev = prev; S.main = main;
+    /* 打った・選んだたびに、その項目の下書きを置き直す（欄の受け手が先に状態を書く ＝ 根で受ける） */
+    root.addEventListener('input', onTyped, false);
+    root.addEventListener('change', onTyped, false);
   }
   /* ほかの会社について開いているあいだ（CO）は、題の上に、その会社の名前を1行で出す（.pvc-whose。字としてだけ入れる）。
      題は、面の動かない頭に在る ── 質問の所まで送って開いた回は、入力の頭の会社の行が画面の外に出ていて、
@@ -1531,9 +1619,11 @@
     var was = coTurn;
     send('work', pl).then(function (r) {
       if (was !== coTurn) return;
+      /* ログインへ送り出すのは、送っている印を下ろす前に ── 下ろすと面が読む人を確かめ直し、ログインが消えていれば
+         ほかの会社について開いた面をそこで終える（下書きと戻り先が、このページの会社の空の入力になる） */
+      if (needLogin(r)) return toLogin('work');
       setBusy(W, false);
       if (r.kind === 'ok' && r.data.ok) return workSaved(pl, r.data, !!r.held);
-      if (needLogin(r)) return toLogin('work');
       if (r.kind === 'said') return workSay(saidNote(r, 'work'), fieldOf(r.msg));
       if (r.kind === 'off') return workSay(offNote());
       keepOutbox('work');
@@ -1809,9 +1899,9 @@
     var was = coTurn;
     send('town', pl).then(function (r) {
       if (was !== coTurn) return;
+      if (needLogin(r)) return toLogin('town');   // 送っている印を下ろす前に（月の勤務と同じ）
       setBusy(TW, false);
       if (r.kind === 'ok' && r.data.ok) return townSaved(pl, r.data, !!r.held);
-      if (needLogin(r)) return toLogin('town');
       if (r.kind === 'said') return townSay(saidNote(r, 'town'), townFieldOf(r.msg));
       if (r.kind === 'off') return townSay(offNote());
       keepOutbox('town');
@@ -2672,9 +2762,9 @@
     var was = coTurn;
     send('cond', pl).then(function (r) {
       if (was !== coTurn) return;
+      if (needLogin(r)) return toLogin(topic);   // 送っている印を下ろす前に（月の勤務と同じ）
       setBusy(t, false);
       if (r.kind === 'ok' && r.data.ok) return groupSaved(topic, answers, r.data, !!r.held);
-      if (needLogin(r)) return toLogin(topic);
       if (r.kind === 'said') return groupSay(topic, saidNote(r, topic));
       if (r.kind === 'off') return groupSay(topic, offNote());
       keepOutbox(topic);
@@ -2770,9 +2860,9 @@
      いま居るのは面のために積んだ1段なので、置き換えて行く（戻ったときに面の殻だけが残らない）。
      noDraft … 一覧から「ログインして引き継ぐ」で行くとき（残す入力が無い）。 */
   function toLogin(topic, noDraft) {
-    /* ほかの会社について開いているあいだ（CO）は、下書きを残さない・戻り先に ?add= も付けない
-       （戻ってきた時に ?add= で開くのは、このページの会社の面。そこへ、ほかの会社について打った入力を持ち込まない）。 */
-    if (!noDraft && !CO) keepDraft(topic, 'login');
+    /* ほかの会社について開いているあいだ（CO）も、下書きはこのタブにだけ残す（その会社の符号の鍵 ＝ 同じ会社について開き直した時に戻る）。
+       戻り先に ?add= は付けない（戻ってきた時に ?add= で開くのは、このページの会社の面。そこへ、ほかの会社について打った入力を持ち込まない）。 */
+    if (!noDraft) keepDraft(topic, 'login');
     var q = null, search;
     try { q = new URLSearchParams(location.search); } catch (e) { q = null; }
     if (CO) search = location.search;
@@ -2962,6 +3052,10 @@
        こちらも同じ長さの時計で聞く（pv-session.js の `var TICK_MS  = 60 * 1000;` と同じ）。
        読む人が同じ時は、何もしない。面が閉じている時は、描いてあった字を消すだけ ＝ どちらも、通信は1本も出ない。 */
     setInterval(onReader, 60 * 1000);
+    /* このタブの下書き：古いもの・別の会員のものを、開いた所で消す。ページを離れる時に、打ちかけを置く */
+    TOK = hasToken();
+    sweepDrafts();
+    w.addEventListener('pagehide', onLeave, false);
     function go() { var a = takeAdd(); COMING = false; if (a) openSheet(a); }
     var st = null;
     try { st = history.state; } catch (e) { st = null; }

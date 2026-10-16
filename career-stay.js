@@ -266,8 +266,11 @@
         if (UID !== undefined && uid === UID) return;
         var was = UID;
         UID = uid;
-        if (typeof was === 'string') { closeAdds(); dropDrafts(); }   /* ログアウト・人の入れ替わり：前の人が打った字を次の人に渡さない。ログインでは残す */
+        if (typeof was === 'string') closeAdds();   /* ログアウト・人の入れ替わり：開いている追加の面は閉じる（打った字を次の人の画面に残さない） */
         else if (uid && slots().some(function (s) { return !!zoneForm(s); })) FORM_IN = true;   /* ログインの前に開いた追加の面も、ここからはログインのあいだの面（ログインが知らせなく消えたら閉じる） */
+        /* 書きかけを、いまの相手に合わせる：別の会員に替わったら前の人の分を消す・ログインせずに打った分はログインした人のものにする。
+           ログアウトでは消さない（この画面から見れば、ほかのタブでの・知らせの届かないログアウト ＝ 同じ人が戻れば30分のうちは戻る） */
+        settleDrafts();
         CACHE = {};
         PHOTO_LOCK = false;
         LIVE.slice().forEach(drop);
@@ -349,7 +352,7 @@
   }
   function forgetIfGone() {
     if (!holdsOpen() || !keyGone()) return false;
-    closeAdds(); dropDrafts();
+    closeAdds();                     /* 書きかけは消さない（ログインが知らせなく切れただけ ＝ 同じ人がログインし直せば、30分のうちは戻る） */
     CACHE = {};
     LIVE.slice().forEach(drop);
     /* 鍵が消えたことは onAuthStateChange には届いていない。覚えている相手も一緒に忘れる
@@ -1269,11 +1272,14 @@
   }
 
   // ══ 書きかけ（このタブだけ）══════════════════════════════════
-  /* ログインの往復（「ログイン」→ 戻る）でも、打った字が消えない。★書きかけは打った人のもの：
-     打った人の印（u。ログインしていなければ ''）を一緒に置き、いまの相手と違う印のものは戻さずに消す
-     （ログアウトしたあと・別の人がログインしたあとに、前の人の字を出さない）。ログインせずに打った字は、
-     ログインした人のものになる（その印を付け直す ＝ その次の人へは渡らない）。 */
-  var DRAFT = 'pv_stay_draft:';     // 書きかけ（このタブだけ。打った字と、打った人の印だけ。サーバーの答えは置かない）
+  /* ログインの往復（「ログイン」→ 戻る）・戻る・読み直しでも、打った字が消えない（最後に打ってから30分まで）。
+     ★書きかけは打った人のもの：打った人の印（u。ログインしていなければ ''）と打った時刻（at）を一緒に置く。
+       戻すのは、いまの相手と同じ印のものだけ。別の会員がログインしたら、前の人の分は戻さずに消す。
+       ログインが知らせなく切れた（ログインしていない今）だけなら、会員の分は出さずに置いておく（同じ人が戻れば30分のうちは戻る）。
+       ログインせずに打った字は、ログインした人のものになる（その印を付け直す ＝ その次の人へは渡らない）。
+       30分を過ぎたもの・時刻の無い前の形のものは、ページを開いた時と読む時に消す。サイトの「ログアウト」はこのタブの分を全部消す。 */
+  var DRAFT = 'pv_stay_draft:';     // 書きかけ（このタブだけ。打った字と、打った人の印と時刻だけ。サーバーの答えは置かない）
+  var DRAFT_MS = 30 * 60 * 1000;    // 書きかけを持つのは、最後に打ってから30分まで
   var FORM_IN = false;              // ログインの鍵が在るあいだに開いた追加の面が、まだ開いている
   var DRAFT_MAX = { name: 80, address: 200, maps_url: 500, stay_hours: 3, note: 500 };   // 欄の maxlength と同じ数
   function sget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
@@ -1285,6 +1291,8 @@
     if (typeof UID === 'string') return loggedIn() ? UID : '';
     return (UID === null || !loggedIn()) ? '' : undefined;
   }
+  /* 最後に打ってから30分以内か（時刻の無い前の形は、過ぎたものとして扱う） */
+  function fresh(o) { var a = typeof o.at === 'number' ? Date.now() - o.at : NaN; return a >= -60000 && a <= DRAFT_MS; }
   function eachDraft(fn) {
     var keys = [];
     try { for (var i = 0; i < sessionStorage.length; i++) { var k = sessionStorage.key(i); if (k && k.indexOf(DRAFT) === 0) keys.push(k); } }
@@ -1292,7 +1300,7 @@
     keys.forEach(function (k) {
       var o = null;
       try { o = JSON.parse(sget(k)); } catch (e) { o = null; }
-      if (!o || typeof o !== 'object' || Array.isArray(o)) { sdel(k); return; }
+      if (!o || typeof o !== 'object' || Array.isArray(o) || !fresh(o)) { sdel(k); return; }
       fn(k, o);
     });
   }
@@ -1302,7 +1310,7 @@
     if (cur === undefined) return false;
     eachDraft(function (k, o) {
       var u = typeof o.u === 'string' ? o.u : '';
-      if (u && u !== cur) sdel(k);                                    /* ★ほかの人が打った字（ログアウトした前の人のものも） */
+      if (u && cur && u !== cur) sdel(k);                             /* ★別の会員が打った字（前の人のもの） */
       else if (!u && cur) { o.u = cur; sset(k, JSON.stringify(o)); }  /* ★ログインせずに打った字は、ログインした人のものになる */
     });
     return true;
@@ -1310,14 +1318,16 @@
   function saveDraft(key, form) {
     function val(k) { var i = form.querySelector('[data-k="' + k + '"]'); return i ? String(i.value || '').slice(0, DRAFT_MAX[k]) : ''; }
     var kr = form.querySelector('input[type="radio"]:checked');
-    sset(DRAFT + key, JSON.stringify({ v: 1, u: typeof UID === 'string' ? UID : '', kind: kr ? String(kr.value) : '',
+    sset(DRAFT + key, JSON.stringify({ v: 1, u: typeof UID === 'string' ? UID : '', at: Date.now(), kind: kr ? String(kr.value) : '',
       name: val('name'), address: val('address'), maps_url: val('maps_url'), stay_hours: val('stay_hours'), note: val('note') }));
   }
-  /* 置いてある字（字だけ）。無い・字が1つも無ければ null。 */
+  /* 置いてある字（字だけ）。無い・30分を過ぎた・いまの相手の分でない・字が1つも無ければ null。 */
   function readDraft(key) {
     var o = null;
     try { o = JSON.parse(sget(DRAFT + key)); } catch (e) { o = null; }
     if (!o || typeof o !== 'object') return null;
+    if (!fresh(o)) { sdel(DRAFT + key); return null; }
+    if (typeof o.u === 'string' && o.u && o.u !== me()) return null;   /* 会員の分を、ログインしていない今は出さない（置いたまま） */
     var d0 = {}, any = false;
     Object.keys(DRAFT_MAX).forEach(function (k) {
       var s = typeof o[k] === 'string' ? o[k].slice(0, DRAFT_MAX[k]) : '';
@@ -1329,7 +1339,6 @@
     return d0;
   }
   function dropDraft(key) { sdel(DRAFT + key); }
-  function dropDrafts() { eachDraft(function (k) { sdel(k); }); }
   /* 開いている追加の面を全部閉じる（打った字も画面から消える）。 */
   function closeAdds() {
     slots().forEach(function (s) {
@@ -1404,6 +1413,8 @@
   /* career.js が画面を出し終えるたびに #cr で cr:show を投げる。
      このファイルより先に1回目が出ていることがあるので、読み込まれた時点でも1回見る。 */
   d.addEventListener('cr:show', function () { scan(); }, true);
+  /* 30分を過ぎた・時刻の無い書きかけは、ページを開いた所で消す（誰の分かは、相手が分かった所で settleDrafts が見る）。 */
+  eachDraft(function () {});
   /* 読み終えた時に、もう一度だけ見る（口がまだ無い欄を「読み込めませんでした」で終わらせる）。 */
   w.addEventListener('load', function () { LOADED = true; scan(); });
   w.addEventListener('pagehide', function () {

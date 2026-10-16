@@ -1485,6 +1485,13 @@
     });
     d.addEventListener('toggle', later, true);
   }
+  /* ログインが知らせなく終わった（ほかのタブで鍵が消えた・この画面の中で期限が切れた）。supabase からは何も届かないので、
+     「情報を追加」の面（pv-contrib.js）が気づいて流す 'pvc:logout' で受ける。鍵がもう無ければ、読む人が替わった時と同じ（setUid）
+     ＝ ログインのあいだに読んだ行を、その場で全部消して、ログインしていない人の形で取り直す。鍵が在れば何もしない。 */
+  d.addEventListener('pvc:logout', function () {
+    var S = w.PVSession;
+    if (typeof uid === 'string' && S && typeof S.hasToken === 'function' && !S.hasToken()) setUid(null);
+  });
   /* 「情報を追加」で保存できたら、その会社の集計と補足を取り直す（古い答えを持ち越さない）。 */
   d.addEventListener('pvc:saved', function () {
     drop('wkv:'); drop('note:'); drop('fact:'); drop('give');

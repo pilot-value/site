@@ -5543,12 +5543,14 @@ async function runStay(browser, s, [w, h]) {
           }
           ok(!bad.length, `${tag}: 引き取り ── ログインしている端末に控えの鍵が在れば、読む前に1回だけ頼む（引き取れたら鍵を捨て、読み出しは鍵を送らない）／頼めなければ鍵は残り読み出しに添える／ログインしていなければ頼まない`, bad.join(' ／ '));
         }
-        /* S-h 書きかけ（ログインしていない人）：打つと pv_stay_draft:<会社>|<空港> に、決まった8つの鍵だけ・u は ''。
+        /* S-h 書きかけ（ログインしていない人）：打つと pv_stay_draft:<会社>|<空港> に、決まった9つの鍵だけ・u は ''・at は打った時刻。
            読み直すと面が戻る（種類と字・焦点は取らない）／ログインの入口は、この都市へ戻る住所／「やめる」と送って通ったあとは消える／
-           ほかの都市には面が無い／手で置いたほかの人の印（u = 'someone-else'）の書きかけは、戻さずに消す。 */
+           ほかの都市には面が無い／手で置いたほかの人の印（u = 'someone-else'・打ったばかりの時刻）の書きかけは、戻さない。
+           ★WP-keep-1（2026-10-17）で付け直した：時刻（at）が足された（30分を過ぎたら消す）。ログインしていない今、会員の印の書きかけは
+             出さずにそのまま置く（ログインが知らせなく切れた人が戻れば、30分のうちは戻る）。別の会員がログインした時に消すのは assert-stays の S9。 */
         {
           const shape = [], other = [], flow = [];
-          const TXT = '検査用の架空の書きかけ', NOTE = '架空のひとこと', WANT = 'v,u,kind,name,address,maps_url,stay_hours,note';
+          const TXT = '検査用の架空の書きかけ', NOTE = '架空のひとこと', WANT = 'v,u,at,kind,name,address,maps_url,stay_hours,note';
           const url = `${BASE}/airlines/${s}.html`;
           const reopen = async code => { await p.goto('about:blank'); await p.goto(`${url}#stay-${code}`, { waitUntil: 'load', timeout: 60000 }); return K.slotIs(code, 'locked'); };
           try {
@@ -5561,7 +5563,7 @@ async function runStay(browser, s, [w, h]) {
               await p.type(`${STAY_ZONE} [data-k="note"]`, NOTE);
               const raw = await draftOf(A);
               let o = null; try { o = JSON.parse(raw); } catch { /* 読めない形は下で落ちる */ }
-              if (!(o && Object.keys(o).join(',') === WANT && o.v === 1 && o.u === '' && o.kind === 'spot' && o.name === TXT && o.note === NOTE)) shape.push(`書きかけの形が違う（${String(raw).slice(0, 300)}）`);
+              if (!(o && Object.keys(o).join(',') === WANT && o.v === 1 && o.u === '' && typeof o.at === 'number' && Math.abs(Date.now() - o.at) < 60000 && o.kind === 'spot' && o.name === TXT && o.note === NOTE)) shape.push(`書きかけの形が違う（${String(raw).slice(0, 300)}）`);
               /* その時のログインの入口の行き先（押した時に決め直す。押しても移らないようにして読む）。 */
               const href = await p.evaluate(sel => {
                 const a = document.querySelector(sel + ' a[data-crs-entry]');
@@ -5596,30 +5598,32 @@ async function runStay(browser, s, [w, h]) {
             /* ほかの人の印の書きかけ（手で置いた）→ 同じページのまま都市を開く → 面は出ない・書きかけは消える。
                ★読み直すと、読む人の知らせ（INITIAL_SESSION）の片づけが先に消すので、都市を開いた時の片づけ（restoreDraft）は
                  ページを替えないこちらでしか見えない（知らせの届かないログアウトのあと、次の人が都市を開く時の網）。 */
-            const OTHER = JSON.stringify({ v: 1, u: 'someone-else', kind: 'hotel', name: '検査用の架空のほかの人の字', address: '', maps_url: '', stay_hours: '', note: '' });
+            const OTHER = JSON.stringify({ v: 1, u: 'someone-else', at: Date.now(), kind: 'hotel', name: '検査用の架空のほかの人の字', address: '', maps_url: '', stay_hours: '', note: '' });
             await p.evaluate((k, v) => sessionStorage.setItem(k, v), DR + D, OTHER);
             if (!(((await K.back()) || (await K.fresh())) && (await K.city(D, 'locked')))) other.push(`${D}：鍵の1行にならない`);
             else {
               const f = (await K.zone()).form, left = await draftOf(D);
-              if (f || left !== null) other.push(`同じページのまま開いた都市で、ほかの人の印の書きかけが戻る・残る（面 ${f}・書きかけ ${left !== null}）`);
+              if (f || left !== OTHER) other.push(`同じページのまま開いた都市で、ほかの人の印の書きかけが戻る・書き換わる（面 ${f}・書きかけ ${String(left).slice(0, 80)}）`);
             }
             /* 読み直す → 面は出ない・書きかけは消える */
             await p.evaluate((k, v) => sessionStorage.setItem(k, v), DR + C, OTHER);
             if (!(await reopen(C))) other.push(`#stay-${C} が鍵の1行で開かない`);
             else {
               const f = (await K.zone()).form, left = await draftOf(C);
-              if (f || left !== null) other.push(`ほかの人の印の書きかけが戻る・残る（面 ${f}・書きかけ ${left !== null}）`);
+              if (f || left !== OTHER) other.push(`ほかの人の印の書きかけが戻る・書き換わる（面 ${f}・書きかけ ${String(left).slice(0, 80)}）`);
             }
           } finally {
             await clean();
             seen.stay = null; seen.add = null;
           }
-          ok(!shape.length, `${tag}: 書きかけ ── 打つと pv_stay_draft:<会社>|<空港> に、決まった8つの鍵（${WANT}）だけを置く・ログインしていなければ u は ''（サーバーの答えは置かない）`, shape.join(' ／ '));
-          ok(!other.length, `${tag}: 書きかけ ── ほかの人の印（u = 'someone-else'）の書きかけは、同じページで都市を開いても・読み直しても、戻さずに消す`, other.join(' ／ '));
+          ok(!shape.length, `${tag}: 書きかけ ── 打つと pv_stay_draft:<会社>|<空港> に、決まった9つの鍵（${WANT}）だけを置く・ログインしていなければ u は ''・at は打った時刻（サーバーの答えは置かない）`, shape.join(' ／ '));
+          ok(!other.length, `${tag}: 書きかけ ── ほかの人の印（u = 'someone-else'）の書きかけは、同じページで都市を開いても・読み直しても、ログインしていない今は戻さない（その人のために、1文字も変えずに置く）`, other.join(' ／ '));
           ok(!flow.length, `${tag}: 書きかけ ── 読み直すと面が戻る（種類と字・焦点は取らない）／ログインの入口はこの都市へ戻る住所／「やめる」と送って通ったあとは消える／ほかの都市には面が無い`, flow.join(' ／ '));
         }
         /* S-i ログインする前に開いた追加の面：ほかのタブでログインした（鍵が置かれ、この画面には知らせ SIGNED_IN だけが届く ──
-           supabase-js がタブのあいだで使う道）→ 面と字はそのまま → そのログインが知らせなく消えて戻ってきたら、面も字も書きかけも残さない。 */
+           supabase-js がタブのあいだで使う道）→ 面と字はそのまま → そのログインが知らせなく消えて戻ってきたら、面も字も画面に残さない。
+           ★WP-keep-1（2026-10-17）で付け直した：書きかけは、ログインした会員（c1）の印に付け直されて、このタブにそのまま残る
+             （ログインが知らせなく切れただけ ＝ 同じ人がログインし直せば30分のうちは戻る。ログインしていない今は出さない）。 */
         {
           const bad = [], TXT = '検査用の架空の書きかけ（ログインの前）';
           try {
@@ -5640,14 +5644,15 @@ async function runStay(browser, s, [w, h]) {
                 await backToPage();
                 const shut = await formIs(false);
                 const left = await p.evaluate(t => [...document.querySelectorAll('input, textarea')].some(i => i.value === t), TXT), draft = await draftOf(A);
-                if (!(shut && !left && draft === null)) bad.push(`ログインが知らせなく消えて戻ってきたのに、面か字か書きかけが残る（面 ${!shut}・字 ${left}・書きかけ ${draft !== null}）`);
+                let dj = null; try { dj = JSON.parse(draft); } catch { dj = null; }
+                if (!(shut && !left && dj && dj.u === '00000000-0000-4000-8000-0000000000c1' && dj.name === TXT)) bad.push(`ログインが知らせなく消えて戻ってきたのに、面か字が残る・書きかけが c1 の印で残っていない（面 ${!shut}・字 ${left}・書きかけ ${String(draft).slice(0, 120)}）`);
               }
             }
           } finally {
             await clean();
             seen.stay = null;
           }
-          ok(!bad.length, `${tag}: 書きかけ ── ログインの前に開いた追加の面は、ほかのタブでのログインでは残し、そのログインが知らせなく消えて戻ってきたら面も字も書きかけも残さない`, bad.join(' ／ '));
+          ok(!bad.length, `${tag}: 書きかけ ── ログインの前に開いた追加の面は、ほかのタブでのログインでは残し、そのログインが知らせなく消えて戻ってきたら面も字も画面に残さない（書きかけはログインした会員の印でこのタブに残る）`, bad.join(' ／ '));
         }
       } finally {
         p.off('request', spy);

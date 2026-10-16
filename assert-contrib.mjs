@@ -215,14 +215,17 @@ console.log('\n════ ソース ════');
   const coGuard = (src) => { const L = src.split('\n'), isSend = (l) => /^\s*send\('[a-z]+', pl\)\.then\(function \(r\) \{$/.test(l || ''), at = L.map((l, i) => (l.includes('if (was !== coTurn) return;') ? i : -1)).filter((i) => i >= 0); return cnt(src, 'coTurn++') === 1 && fnOf(src, 'setCo').includes('coTurn++;') && L.filter(isSend).length === 3 && at.length === 3 && at.every((i) => isSend(L[i - 1]) && /^\s*var was = coTurn;$/.test(L[i - 2] || '')); };
   const coTrack = (src) => cnt(src, 'gtag(') === 1 && cnt(src, 'airline_code') === 1 && cnt(src, "w.gtag('event', name, { topic: topic, airline_code: CO ? '' : slug() });") === 1;
   const coOutbox = (src) => cnt(src, 'lset(OUTBOX,') === 1 && /\n  function keepOutbox\(topic\) \{\n    if \(CO\) return;\n    lset\(OUTBOX,/.test(src) && cnt(src, '入力した内容はこの端末に残しています。') === 1 && cnt(src, "(CO ? '' : '入力した内容はこの端末に残しています。')") === 1;
-  const coSend = (src) => /\n  function send\(kind, data\) \{\n    if \(CO\) return rpc\(MEMBER_FN\[kind\], data\);\n/.test(src) && cnt(src, 'keepDraft(') === 4 && cnt(src, "if (!noDraft && !CO) keepDraft(topic, 'login');") === 1;
+  /* WP-keep-1（2026-10-17）で付け直した：ログインへ送り出す時も、下書きはこのタブ（sessionStorage）にだけ残す（30分・打った人の印つき）。
+     戻り先の住所は、そのあいだは今の住所のまま（?add も会社の符号も足さない）。下書きを書く口は keepDraft の1つで、端末・サーバ・計測へは書かない。 */
+  const coSend = (src) => /\n  function send\(kind, data\) \{\n    if \(CO\) return rpc\(MEMBER_FN\[kind\], data\);\n/.test(src) && cnt(src, 'keepDraft(') === 6 && cnt(src, "if (!noDraft) keepDraft(topic, 'login');") === 1
+    && cnt(src, 'if (CO) search = location.search;') === 1 && /\n    sset\(k, JSON\.stringify\(\{ v: 2, at: /.test(fnOf(src, 'keepDraft')) && !/lset\(|rpc\(|gtag\(|fetch\(/.test(fnOf(src, 'keepDraft'));
   ok(coOne(code), '★別の会社について開く：面がこのページの会社を読むのは1か所だけ（pageSlug）。どの会社について開くかは、開く時の頭の1か所（setCo）で決め直し、読む人が替わっていたら最初にそれを終える（readerTurn の頭）',
     J({ setCo: cnt(code, 'function setCo('), page: cnt(code, "getAttribute('data-airline')"), turn: fnOf(code, 'readerTurn').split('\n').slice(1, 3).join(' ').trim().slice(0, 120) }));
   ok(coGuard(code), '★別の会社について開く：送ったあとで会社が替わっていたら、届いた返事では何もしない（月の勤務・質問・住みやすい街の3つの送信のどれも、返事の頭で確かめる）',
     J({ turn: cnt(code, 'coTurn++'), guard: cnt(code, 'if (was !== coTurn) return;') }));
   ok(coTrack(code), '★別の会社について開く：そのあいだは、計測に会社の符号を送らない（符号を送る所は、この1か所だけ）', J({ gtag: cnt(code, 'gtag('), code: cnt(code, 'airline_code') }));
   ok(coOutbox(code), '★別の会社について開く：そのあいだは、送れなかった1件を端末に残さない（残していないものを「この端末に残しています」と言わない）', J({ write: cnt(code, 'lset(OUTBOX,') }));
-  ok(coSend(code), '★別の会社について開く：そのあいだは、ログインなしの預かりへ送らない。ログインへ送り出す時にも、下書きを残さない', J({ drafts: cnt(code, 'keepDraft(') }));
+  ok(coSend(code), '★別の会社について開く：そのあいだは、ログインなしの預かりへ送らない。ログインへ送り出す時は、下書きをこのタブ（sessionStorage）にだけ残し、戻り先の住所には何も足さない', J({ drafts: cnt(code, 'keepDraft(') }));
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -6118,7 +6121,17 @@ async function main() {
       await u.page.waitForFunction(() => { const r = document.querySelector('.pvc-root'); return !!r && r.classList.contains('is-in') && !!r.querySelector('form[data-pvc-form="roster"]'); });
       if (!(await until(() => u.st.hold.reqs.length === 1))) throw new Error('前提が崩れた（このページの会社の、自分の一覧を読みに行っていない）');
       const keys = await draftKeys(u);
-      ok(!keys.some((k) => k.startsWith('pv_contrib_draft:jal')), '★JAL について打って送らなかった入力は、このタブに下書きとして残らない（JAL の符号の付いた鍵が1つも無い）', J(keys));
+      /* WP-keep-1（2026-10-17）で付け直した：打って送らなかった入力は、このタブの下書きにだけ30分残る（端末の localStorage には無い） */
+      const kept = await u.page.evaluate((id) => {
+        let rec = null;
+        try { rec = JSON.parse(sessionStorage.getItem('pv_contrib_draft:jal:roster')); } catch (e) { rec = null; }
+        return { rec, age: rec && typeof rec.at === 'number' ? Date.now() - rec.at : null, me: 'm:' + window.PVPayLocal.fp(id),
+          local: Object.keys(localStorage).filter((k) => /^pv_(contrib|stay)_draft:/.test(k) || (localStorage.getItem(k) || '').includes('pv_contrib_draft')) };
+      }, A.id);
+      const kr = kept.rec;
+      ok(J(keys.filter((k) => k.startsWith('pv_contrib_draft:jal'))) === J(['pv_contrib_draft:jal:roster']) && !!kr && kr.v === 2 && kr.by === kept.me && kr.by !== 'm:' + A.id
+        && kept.age !== null && kept.age >= 0 && kept.age < 30 * 60 * 1000 && !!kr.draft && !!kr.draft.vals && kr.draft.vals.days_off_request === 'partial' && kept.local.length === 0,
+        '★JAL について打って送らなかった入力は、このタブ（sessionStorage）の JAL の下書きにだけ残る（打った時刻と、打った会員の印 ＝ id の指紋つき。id そのものではない）。端末の localStorage には無い', J({ keys, kept }));
       const f3 = await coFace(u), h3 = await both();
       ok(f3.line.startsWith(cx + ' · ') && !f3.text.includes('JAL') && h3.duty.val === '' && !h3.duty.mine && h3.off.val === '',
         '★閉じて、このページの入口から同じ項目を開く：面の会社はこのページの会社。JAL に保存した答えも、JAL について打った答えも、入力に入っていない', J({ line: f3.line, h3 }));
@@ -6168,8 +6181,9 @@ async function main() {
       await waitView(u, 'roster');
       await settle(u);
       const c8 = { ...(await both()), own: (await vals(u)).own, line: (await coFace(u)).line };
-      ok(j8.line.startsWith('JAL · ') && j8.off === '' && j8.own === false && c8.line.startsWith(cx + ' · ') && c8.off.val === 'no' && c8.duty.val === 'no' && c8.duty.mine && c8.own === false,
-        '★このページの会社について打って送らなかった入力は、JAL について開いて閉じたあとも戻る（JAL の入力には出ない）。確認のチェックは戻さない ＝ 入れ直してから送る',
+      /* WP-keep-1（2026-10-17）で付け直した：JAL の入力に出るのは、JAL について前に打って送らなかった答え（D4 の 'partial'。このタブの下書きから戻る）だけ */
+      ok(j8.line.startsWith('JAL · ') && j8.off === 'partial' && j8.own === false && c8.line.startsWith(cx + ' · ') && c8.off.val === 'no' && c8.duty.val === 'no' && c8.duty.mine && c8.own === false,
+        '★このページの会社について打って送らなかった入力は、JAL について開いて閉じたあとも戻る（JAL の入力には出ない ── そこに在るのは JAL について前に打った答えだけ）。確認のチェックは戻さない ＝ 入れ直してから送る',
         J({ j8, c8: { off: c8.off.val, duty: c8.duty.val, mine: c8.duty.mine, own: c8.own, line: c8.line } }));
 
       /* D8b：開いたままの面を、JAL について開き直す（閉じない）。JAL の自分の一覧を読み直して、入力できるようになる */

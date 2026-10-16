@@ -1060,6 +1060,7 @@
 
     async function handleLogout() {
       if (!confirm('ログアウトしますか？')) return;
+      try { Object.keys(sessionStorage).forEach(function (k) { if (/^pv_(contrib|stay)_draft:/.test(k)) sessionStorage.removeItem(k); }); } catch (e) {}   // 打ってまだ送っていない下書き（このタブ）も置いていかない
       await sb.auth.signOut();
       localStorage.removeItem('pv_user');
       localStorage.removeItem('pv_unlock_expiry');
