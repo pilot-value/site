@@ -16,7 +16,7 @@
          （本物の口 pv_stay_viewer_decide）、読み直した時から locked。開いているあいだ、保存領域にホテルの名前は無い。
      S5  つながっていない（この保存先の中で pv_stays と pv_stay_add を消す）→「準備中」・入口の3つ・押しても「準備中」・面は開かない。
      S6  読めなかった →「読み込めませんでした」＋「もう一度」→ 押すとやり直せる。
-     S7  30秒以内の2つめ →「続けて追加するときは、少し時間をあけてください。」・打った字は面に残る。
+     S7  10秒以内の2つめ →「続けて追加するときは、少し時間をあけてください。」・打った字は面に残る。
      終わりに：どのページも、手元と書体・部品の配信元のほかへ、1本も投げていない（st.blocked・st.supa が空）。
 
    場面 two（S8・S8b）・login（S9）・kept（S10）・career（S11）── どれも自分の使い捨ての保存先を持つ（chain の S5 が関数を消すため）
@@ -536,14 +536,14 @@ async function chain() {
   });
 
   /* ── S7 ─────────────────────────────────────────────── */
-  await scene('S7 30秒以内の2つめ', async () => {
+  await scene('S7 10秒以内の2つめ', async () => {
     const g = await page({});
     const ready = await visit(g);
     const a1 = await addVia(g, NEXT1);
     ok(ready && a1.reply && a1.reply.ok === true && a1.v.say === ADDED, `準備：ログインなしで1つ足した（「${ADDED}」）`, J({ reply: a1.reply, say: a1.v.say }));
     const a2 = await addVia(g, NEXT2);
     ok(a2.reply && a2.reply.ok === false && a2.reply.status === 'too_fast' && a2.v.form === true && a2.v.fsay === FAST && a2.v.fname === NEXT2,
-      `S7 30秒以内の2つめは「${FAST}」と言い、打った名前は面に残る`, J({ reply: a2.reply, form: a2.v.form, fsay: a2.v.fsay, fname: a2.v.fname }));
+      `S7 10秒以内の2つめは「${FAST}」と言い、打った名前は面に残る`, J({ reply: a2.reply, form: a2.v.form, fsay: a2.v.fsay, fname: a2.v.fname }));
     ok((await rowsOf(NEXT2)).length === 0 && n(g, 'pv_stay_add') === 2, `S7 2つめは保存されていない（送ったのは2本）`, J({ rows: await rowsOf(NEXT2), sent: n(g, 'pv_stay_add') }));
     await shut(g);
   });
@@ -754,7 +754,7 @@ async function kept() {
   const { L, base, SL, page, shut, replies, settled, visit, stays, rowsOf, isLockedBytes, photoOf } = K;
   const OTHER = SLUG === 'ana' ? 'jal' : 'ana';
   await scene('S10 前からの動き：写真・「Google マップ」・同じ空港の他社のホテル', async () => {
-    /* 30秒に1つの決まりは書いた人ごと。2つめと3つめは会員 'a'・'b' が足し、オーナーが待ち行列の版の印（rev）を添えて公開する */
+    /* 10秒に1つの決まりは書いた人ごと。2つめと3つめは会員 'a'・'b' が足し、オーナーが待ち行列の版の印（rev）を添えて公開する */
     const p1 = await rpcAs(base, 'op', 'pv_stay_add', { airline: SLUG, iata: IATA, kind: 'hotel', name: PUB, publish: true });
     const p2 = await rpcAs(base, 'a', 'pv_stay_add', { airline: SLUG, iata: IATA, kind: 'hotel', name: PUB_MAP, maps_url: MAPS_LINK });
     const p3 = await rpcAs(base, 'b', 'pv_stay_add', { airline: OTHER, iata: IATA, kind: 'hotel', name: OTHER_HOTEL });

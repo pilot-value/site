@@ -21,7 +21,8 @@
 --      鍵はサーバが作る（192ビットの乱数）。表に残すのはその sha256 だけ ＝ 表を覗いても鍵は分からない。
 --      鍵の行には、鍵を作った回線の印も置く（「IP と日付」の sha256。秘密の値は混ぜていない）。
 --      使うのは1日だけ（同じ回線から新しく作られた鍵を数えるため）。鍵を作って1日たったら消す
---      ── そのあと、誰かが未ログインで保存するか、引き継ぐ時に空にする。
+--      ── そのあと、誰かが未ログインで保存するか、引き継ぐ時に空にする。誰も来ない日も、毎時の片づけ（3-d2。
+--      pg_cron が在るときだけ）が空にする ＝ 作って1日たった印は、遅くとも1時間あとには消えている。
 --      社名・自己申告・公開 URL は本人の証拠にしない。画面が作った鍵も受け付けない
 --      （表に無い鍵は「知らない鍵」＝ 新しい鍵を作って返す）。
 --   2. **預かっているあいだは、集計にも、他人の画面にも出さない。**
@@ -96,7 +97,7 @@ create table if not exists public.pv_contrib_keys (
   -- 最後に保存した時刻。ここから 90日（pv_contrib_ttl）で預かりごと消える
   last_at     timestamptz not null default now(),
   -- 鍵を作った回線の印。使うのは1日だけ（同じ回線から新しく作られた鍵を数えるためだけ）。
-  --   鍵を作って1日たったら消す ── そのあと、誰かが未ログインで保存するか、引き継ぐ時に空にする。
+  --   鍵を作って1日たったら消す ── そのあと、誰かが未ログインで保存するか、引き継ぐ時か、毎時の片づけ（3-d2）で空にする。
   --   中身は「IP と日付」の sha256 で、秘密の値は混ぜていない。
   ip_day_hash text,
   -- 連投の数え（1本の鍵で1日に保存できる件数）
@@ -136,7 +137,7 @@ create unique index if not exists pv_contrib_pending_item_idx
   on public.pv_contrib_pending (key_hash, kind, airline, item_key);
 
 comment on table public.pv_contrib_keys is
-  '未ログインの回答を預かる鍵（鍵は sha256 だけ）。回線の印は、鍵を作って1日たったあと、次の未ログインの保存か引き継ぎの時に消す。誰にも読ませない。入口は db/contrib.sql の関数だけ。';
+  '未ログインの回答を預かる鍵（鍵は sha256 だけ）。回線の印は、鍵を作って1日たったあと、次の未ログインの保存か引き継ぎの時か、毎時の片づけ（pg_cron が在るとき）で消す。誰にも読ませない。入口は db/contrib.sql の関数だけ。';
 comment on table public.pv_contrib_pending is
   '未ログインの回答の預かり。集計にも他人の画面にも出さない。ログイン後に claim_contrib で会員の行になる。';
 
@@ -213,6 +214,22 @@ as $$
               for update skip locked)
 $$;
 revoke all on function public.pv_contrib_mark_sweep() from public, anon, authenticated;
+
+-- 3-d2. 毎時の片づけ（★pg_cron が在るときだけ登録する。無ければ何もしない）
+--   3-d の片づけを、誰も未ログインで保存しない日・誰も引き継がない日にも流す。
+--   1時間に1回 ＝ 作って1日たった印は、遅くとも1時間あとに消える（1日に1回だと、最長で2日近く残る）。
+--   空にする文は 3-d の1か所のまま（ここはそれを呼ぶだけ）。預かりと鍵の行は消さない（印の欄を空にするだけ）。
+--   ★ pg_cron は本番（Supabase）には在る。手元の検査（PGlite）には無い ＝ ここは飛ばす。
+--   ★ 同じ名前で登録し直すだけなので、何度流しても1本のまま（pg_cron は同じ名前の登録を置き換える）。
+--   止めるとき: select cron.unschedule('pv-contrib-mark-sweep');
+do $cron$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    execute format('select cron.schedule(%L, %L, %L)',
+                   'pv-contrib-mark-sweep', '47 * * * *', 'select public.pv_contrib_mark_sweep()');
+  end if;
+end
+$cron$;
 
 
 -- ════════════════════════════════════════════════════════════════

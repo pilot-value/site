@@ -7,6 +7,7 @@
      A) 明細の扱い ── 「画像は送らない」と書く（本当は送っている）
      B) 画面に出る数 ── HTML に数字を直書きし、JS が一度も書き換えない
      C) ホテルの欄のまわりの言い方 ── 見る人・足す人の決まりと違うことを書く（2026-10-16）
+     D) ログインせずに出した人の控えの鍵と回線の印 ── 個人データのページに書いていない（2026-10-17）
 
    ※ どちらも 2026-09-20 にオーナーの指摘で見つかった。経緯は各節の頭にある。
 
@@ -251,6 +252,30 @@ console.log('\n── C) ホテルの欄のまわりに、本当でない言い�
   ok('(iii) career-stay.js に、給与の提出で開くような言い方が無い（給与ではホテルは開かない）', payWords.length === 0, payWords.join(' ／ '));
   const lockN = cs.split(LOCKW).length - 1;
   ok(`(iii) career-stay.js の鍵の1行「${LOCKW}」は1つだけ`, lockN === 1, `いま ${lockN} か所`);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   D) ログインせずに出した人の「控えの鍵」と「回線の印」（2026-10-17）
+
+   ログインせずに回答する・ホテルやレストランや場所を足す・住みやすい街を足すと、サーバーが控えの鍵を作って
+   その端末に置く（db/stays.sql の pv_stay_keys・db/contrib.sql の pv_contrib_keys。表には鍵の sha256 だけ）。
+   同じ回線から1日に作れる鍵を数えるために、IP から作った値を1日だけ持ち、毎時の片づけで消す（どちらのファイルも）。
+   その扱いを、個人データのページ（日英）に書いておく。書く文は決めた1文そのまま（1文字でも違えば落ちる）。
+     D3  端末の鍵の表がある（db/stays.sql に pv_stay_keys か、db/contrib.sql に pv_contrib_keys）
+         → personal-data.html と en/personal-data.html の両方に、その1文が1回ずつ在る
+   ※ 文を変えるときは、先にオーナーの言葉で決めてから、ここと2枚を一緒に直す。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── D) ログインせずに出した人の鍵と回線の印を、個人データのページに書いている ─────');
+{
+  const DEVICE_KEY = {
+    'personal-data.html': 'ログインせずに回答したり、ホテル・レストラン・場所や住みやすい街を追加したりした場合、あなたの投稿をあなたの端末にだけ見せるための鍵を、この端末のブラウザに保存します（サーバーには、その鍵から作った復元できない値だけを置きます）。同じ回線からの回数を数えるため、IPアドレスを復元しにくい形に変換した値を1日だけ保持し、その後削除します。メールアドレス・氏名・位置情報は伺いません。',
+    'en/personal-data.html': 'If you answer questions or add a hotel, restaurant, place or town without signing in, a key that lets only your device see your own posts is stored in this browser (the server keeps only an irreversible value made from it). To count additions from one connection, a value derived from your IP address that is hard to reverse is kept for one day and then deleted. We do not ask for an e-mail address, a name or a location.',
+  };
+  const keyTable = /\bpv_stay_keys\b/.test(readFileSync(path.join(ROOT, 'db/stays.sql'), 'utf8'))
+                || /\bpv_contrib_keys\b/.test(readFileSync(path.join(ROOT, 'db/contrib.sql'), 'utf8'));
+  const seenN = Object.entries(DEVICE_KEY).map(([rel, s]) => [rel, strip(readFileSync(path.join(ROOT, rel), 'utf8')).split(s).length - 1]);
+  ok('D3 端末の鍵の表がある（db/stays.sql・db/contrib.sql）→ 個人データのページ（日英）の両方に、控えの鍵と回線の印の1文が1回ずつ在る',
+    !keyTable || seenN.every(([, n]) => n === 1), seenN.map(([rel, n]) => `${rel}: ${n} か所`).join(' ／ '));
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

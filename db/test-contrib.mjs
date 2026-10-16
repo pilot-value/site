@@ -2588,6 +2588,31 @@ console.log('\n▼ 9. 期限と上限');
   ok(isMark(x0?.ip_day_hash) && c2.known === false && !!x2 && x2.ip_day_hash === null,
     '   c 何も引き継がない呼び出し（使い終わった鍵を出した）でも消える',
     `引き継ぎ: ${c2.__err || `known ${c2.known}`} ｜ 後: ${markSay(x2)}`);
+
+  // d. 誰も保存も引き継ぎもしない日も消える ── 毎時の片づけ（pg_cron が 3-d の pv_contrib_mark_sweep を呼ぶ。P12.30）
+  //    個人データのページの「1日だけ保持し、その後削除します」が、静かな日にも本当であるため。関数を直接呼ぶ（時計は進めない）
+  await hdr('203.0.113.25');
+  const q25 = await putW(null, W(1, { duty_days: 12 }));
+  const q23 = await putW(null, W(1, { duty_days: 11 }));
+  await noteMarks();
+  await backBy(q25.key, 25);
+  await backBy(q23.key, 23);
+  const p25 = await keyRow(q25.key), p23 = await keyRow(q23.key);
+  const heldAll = async () => J(await many(`select * from public.pv_contrib_pending order by id`));
+  const keysAll = async () => (await one(`select count(*)::int as n from public.pv_contrib_keys`)).n;
+  const hA0 = await heldAll(), kA0 = await keysAll();
+  await db.query(`select public.pv_contrib_mark_sweep()`);
+  const n25 = await keyRow(q25.key), n23 = await keyRow(q23.key);
+  ok(isMark(p25?.ip_day_hash) && isMark(p23?.ip_day_hash) && !!n25 && n25.ip_day_hash === null && !!n23 && n23.ip_day_hash === p23.ip_day_hash
+     && restSame(p25, n25) && restSame(p23, n23),
+    '★d 毎時の片づけ（関数を直接呼ぶ）: 作って25時間の鍵の印は空になる・23時間の鍵の印は残る（印のほかの欄は動かない）',
+    `25時間: ${markSay(p25)} → ${markSay(n25)} ｜ 23時間: ${markSay(p23)} → ${markSay(n23)}`);
+  ok((await heldAll()) === hA0 && (await keysAll()) === kA0,
+    '★d 毎時の片づけは、預かりの行に1文字も触らず、鍵の行を1本も消さない');
+  /* 登録の文（PGlite には pg_cron が無いので、文を読んで確かめる）。1日に1回にすると、静かな日に印が最長で2日近く残る */
+  const CRON_CONTRIB = /do \$cron\$\s+begin\s+if exists \(select 1 from pg_extension where extname = 'pg_cron'\) then\s+execute format\('select cron\.schedule\(%L, %L, %L\)',\s+'pv-contrib-mark-sweep', '47 \* \* \* \*', 'select public\.pv_contrib_mark_sweep\(\)'\);\s+end if;\s+end\s+\$cron\$;/;
+  ok(CRON_CONTRIB.test(CONTRIB_SQL) && (CONTRIB_SQL.match(/cron\.schedule/g) || []).length === 1,
+    '★d 毎時の片づけ: pg_cron が在るときだけ、pv_contrib_mark_sweep を1時間に1回（毎時47分）登録する文が1つだけ在る');
   await db.query(`select set_config('request.headers', '', false)`);
 }
 

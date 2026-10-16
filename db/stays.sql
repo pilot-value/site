@@ -564,18 +564,52 @@ $fn$;
 
 revoke all on function public.pv_stay_may_add() from public, anon, authenticated;
 
--- 3-c4. 1日に足せる数・直せる回数。ログインしている人は 20。端末の鍵だけの人は 5
---   （同じ回線が1日に作れる鍵は20本 ＝ 1つの回線から1日に 100件まで。サイト全体の待ちの上限 200 に、1つの回線では届かない）。
+-- 3-c4. 1日に足せる数・直せる回数。ログインしている人は 20。端末の鍵だけの人も 20
+--   （2026-10-16 オーナー「ログインしていない人 1日20件までにしようよ。」。前は端末の鍵だけの人は 5）。
+--   2つの数を分けて書いておくのは、片方だけ変えるときに、ここ1か所で済むようにするため。
+--   （同じ回線が1日に作れる鍵は20本 ＝ 1つの回線から1日に 400件まで。サイト全体の待ちの上限 200 には、1つの回線でも届きうる
+--    ＝ 届いたら、ログインしていない人の追加は queue_full で止まる。運営が見れば、また足せる）。
 create or replace function public.pv_stay_cap(p_device boolean)
 returns integer
 language sql
 immutable
 set search_path = public, extensions
 as $fn$
-  select case when coalesce(p_device, false) then 5 else 20 end;
+  select case when coalesce(p_device, false) then 20 else 20 end;
 $fn$;
 
 revoke all on function public.pv_stay_cap(boolean) from public, anon, authenticated;
+
+-- 3-c5. 端末の鍵の表の片づけ（★回線の印を空にする文と、足したものが無い鍵を消す文は、この1か所だけ）
+--   回線の印は1日だけ／足したものが1つも無い鍵は1日で消す。
+--   流れるのは2か所：ログインせずに足すたびに毎回（5 の足す口）と、毎時の片づけ（10-d。pg_cron が在るときだけ）。
+--   ＝ 誰も足さない日が続いても、作って1日たった印は、遅くとも1時間あとに消える
+--     （個人データのページの「1日だけ保持し、その後削除します」は、この2か所で本当になる）。
+--   ほかの呼び出しが掴んでいる行は、待たずに飛ばす（飛ばした行は、次の呼び出しが片づける。db/contrib.sql と同じ形）。
+--   ★ 足したもの（場所・写真）には触らない。足したものが在る鍵は、印を空にするだけで残す。
+create or replace function public.pv_stay_key_sweep()
+returns void
+language sql
+set search_path = public, extensions
+as $fn$
+  update public.pv_stay_keys k
+     set ip_day_hash = null
+   where k.key_hash in (
+           select x.key_hash from public.pv_stay_keys x
+            where x.ip_day_hash is not null
+              and x.created_at <= now() - interval '1 day'
+            order by x.key_hash
+              for update skip locked);
+  delete from public.pv_stay_keys k
+   where k.key_hash in (
+           select x.key_hash from public.pv_stay_keys x
+            where x.created_at <= now() - interval '1 day'
+              and not exists (select 1 from public.pv_stay_places s where s.author_hash = x.key_hash)
+            order by x.key_hash
+              for update skip locked);
+$fn$;
+
+revoke all on function public.pv_stay_key_sweep() from public, anon, authenticated;
 
 
 -- 3-d. 見えるかどうか（★この判定はここ1か所だけ。場所にも写真にも使う）
@@ -1708,8 +1742,8 @@ comment on function public.pv_stays(jsonb) is
 --   too_long      住所が200字・メモが500字を超える
 --   bad_city      都市の名前が60字を超える
 --   bad_hours     ステイ時間が 1〜240 の整数でない（ホテルのときだけ）
---   too_fast      30秒以内の連投
---   rate_limited  24時間の上限（ログインしている人 20件・端末の鍵だけの人 5件）／同じ回線が1日に作れる端末の鍵は20本
+--   too_fast      10秒以内の連投
+--   rate_limited  24時間の上限（ログインしている人 20件・端末の鍵だけの人 20件）／同じ回線が1日に作れる端末の鍵は20本
 --   queue_full    ログインせずに足されたものが、運営の確認を 200件 待っている（運営が見れば、また足せる）
 --   duplicate     自分が同じ名前を既に出している
 --   exists        同じ名前が既に**公開済み**（★見てよい人と、運営の「追加」（publish:true）にだけ返す。3-l）
@@ -1786,22 +1820,8 @@ begin
   else
     -- ログインしていない人。表に在る端末の鍵ならその手、そうでなければ新しい鍵を作る（画面が作った鍵は受け付けない）
     -- 片づけ：回線の印は1日だけ／足したものが1つも無い鍵は1日で消す（ログインせずに足すたびに、毎回流す）。
-    --   ほかの呼び出しが掴んでいる行は、待たずに飛ばす（飛ばした行は、次の呼び出しが片づける。db/contrib.sql と同じ形）
-    update public.pv_stay_keys k
-       set ip_day_hash = null
-     where k.key_hash in (
-             select x.key_hash from public.pv_stay_keys x
-              where x.ip_day_hash is not null
-                and x.created_at <= now() - interval '1 day'
-              order by x.key_hash
-                for update skip locked);
-    delete from public.pv_stay_keys k
-     where k.key_hash in (
-             select x.key_hash from public.pv_stay_keys x
-              where x.created_at <= now() - interval '1 day'
-                and not exists (select 1 from public.pv_stay_places s where s.author_hash = x.key_hash)
-              order by x.key_hash
-                for update skip locked);
+    --   文は 3-c5 の1か所だけ（毎時の片づけ 10-d も同じものを呼ぶ）
+    perform public.pv_stay_key_sweep();
     v_me := public.pv_stay_key_hash(p->>'key');
     if v_me is not null and not exists (select 1 from public.pv_stay_keys k where k.key_hash = v_me) then
       v_me := null;
@@ -1840,13 +1860,13 @@ begin
   -- 同じ人の同時の2本を1列に並べる（連投の数え方をすり抜けさせない）
   perform pg_advisory_xact_lock(hashtextextended('pv_stay:' || v_me, 0));
 
-  -- 連投（30秒）
+  -- 連投（10秒。2026-10-16 オーナー「続けて足すとき は10秒でいいよ」。前は30秒）
   if exists (select 1 from public.pv_stay_places
-              where author_hash = v_me and created_at > now() - interval '30 seconds') then
+              where author_hash = v_me and created_at > now() - interval '10 seconds') then
     return jsonb_build_object('ok', false, 'status', 'too_fast');
   end if;
 
-  -- 1日の上限（ログインしている人 20・端末の鍵だけの人 5。数は 3-c4 の1か所）
+  -- 1日の上限（ログインしている人 20・端末の鍵だけの人 20。数は 3-c4 の1か所）
   select count(*) into v_n from public.pv_stay_places
    where author_hash = v_me and created_at > now() - interval '24 hours';
   if v_n >= public.pv_stay_cap(v_uid is null) then
@@ -1879,7 +1899,7 @@ revoke all on function public.pv_stay_add(jsonb) from public;
 grant execute on function public.pv_stay_add(jsonb) to anon, authenticated;
 
 comment on function public.pv_stay_add(jsonb) is
-  'ステイ情報を1件足す。誰でも足せる（ログインも要らない。決め方は pv_stay_may_add の1行）。足せることは何も開かない（読めるのはオーナーとオーナーが承認した人だけ）。pending で入る（運営が見るまで、足した本人と運営にしか出ない。運営が publish:true を添えたときだけ、その場で public）。ログインせずに初めて足したときだけ端末の鍵を1回返す（表には sha256 だけ）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・30秒・24時間にログインしている人20件／端末の鍵だけの人5件・同じ回線が1日に作れる鍵は20本・ログインせずに足して運営の確認を待つものは200件まで。exists は見てよい人と運営の「追加」にだけ答える。地図のリンクは Google マップ以外なら捨てる。';
+  'ステイ情報を1件足す。誰でも足せる（ログインも要らない。決め方は pv_stay_may_add の1行）。足せることは何も開かない（読めるのはオーナーとオーナーが承認した人だけ）。pending で入る（運営が見るまで、足した本人と運営にしか出ない。運営が publish:true を添えたときだけ、その場で public）。ログインせずに初めて足したときだけ端末の鍵を1回返す（表には sha256 だけ）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・10秒・24時間にログインしている人20件／端末の鍵だけの人20件・同じ回線が1日に作れる鍵は20本・ログインせずに足して運営の確認を待つものは200件まで。exists は見てよい人と運営の「追加」にだけ答える。地図のリンクは Google マップ以外なら捨てる。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1901,7 +1921,7 @@ comment on function public.pv_stay_add(jsonb) is
 --   not_found     その場所が無い・自分のものではない・id の形が違う（★同じ答え。消す口と同じ）
 --   final         見送られたものは直せない（出し直してもらう。公開へ戻す道が無いので、直しても出ない）
 --   bad_kind／bad_name／too_long／bad_city／bad_hours   足す口と同じ検品（3-k）
---   rate_limited  24時間の上限（足す口と同じ数。ログインの印で書いた行は20回・端末の鍵で書いた行は5回）
+--   rate_limited  24時間の上限（足す口と同じ数。ログインの印で書いた行は20回・端末の鍵で書いた行も20回）
 --   duplicate／exists   名前か種別を変えた先に、同じ名前がもう在る（3-l。足す口と同じ決まり）。exists は見てよい人にだけ返す
 -- ★ 直したら必ず 'pending' へ戻す（2026-10-05 オーナー決定「修正した投稿は運営の確認待ちへ戻す」）。
 --   公開済みでも、その瞬間からほかの人には出なくなる（3-d の決まりのまま）。本人には出続ける。
@@ -1917,7 +1937,7 @@ comment on function public.pv_stay_add(jsonb) is
 --   見てよい人でない人（承認を取り消された人・ログインせずに足した人）も、自分が書いたものは直せる
 --   （確認待ちへ戻るだけで、何も開かない。返す1件の形と exists だけは「見てよい人か」で決める）。
 -- ★ 何も変わらない送り直しは、状態を戻さない（保存ボタンを押し直しただけで公開が外れない）。
--- ★ 30秒の決まりは入れていない（続けて直すのは普通の使い方。変わらなければ何も起きない）。
+-- ★ 10秒の決まりは入れていない（続けて直すのは普通の使い方。変わらなければ何も起きない）。
 -- ★ 錠の順番は「場所の行 → 人ごとの錠」。6 の写真を足す口と同じ向き（逆にすると噛み合って止まる）。
 create or replace function public.pv_stay_update(p jsonb)
 returns jsonb
@@ -2006,7 +2026,7 @@ begin
   -- 同じ人の同時の2本を1列に並べる（回数の数え方をすり抜けさせない）
   perform pg_advisory_xact_lock(hashtextextended('pv_stay:' || v_me, 0));
 
-  -- 1日の上限（足す口と同じ数。ログインしている人 20・端末の鍵だけの人 5。直すたびに運営の待ち行列へ戻るので、際限なく戻させない）
+  -- 1日の上限（足す口と同じ数。ログインしている人 20・端末の鍵だけの人 20。直すたびに運営の待ち行列へ戻るので、際限なく戻させない）
   select coalesce(sum(edit_n), 0) into v_n from public.pv_stay_places
    where author_hash = v_me and edit_from > now() - interval '24 hours';
   if v_n >= public.pv_stay_cap(v_dev) then
@@ -2048,7 +2068,7 @@ revoke all on function public.pv_stay_update(jsonb) from public;
 grant execute on function public.pv_stay_update(jsonb) to anon, authenticated;
 
 comment on function public.pv_stay_update(jsonb) is
-  '自分が足した場所の中身（名前・種別・住所・地図のリンク・メモ・都市・ステイ時間）を直す。書いた本人だけ（ログインの印か、ログインせずに足したときの端末の鍵）。直したら pending へ戻る（運営が見るまで他人に出ない）。会社と空港は変えられない。何も変わらなければ状態を戻さない。24時間にログインの印で書いた行は20回・端末の鍵で書いた行は5回まで。exists は見てよい人にだけ答える。';
+  '自分が足した場所の中身（名前・種別・住所・地図のリンク・メモ・都市・ステイ時間）を直す。書いた本人だけ（ログインの印か、ログインせずに足したときの端末の鍵）。直したら pending へ戻る（運営が見るまで他人に出ない）。会社と空港は変えられない。何も変わらなければ状態を戻さない。24時間にログインの印で書いた行は20回・端末の鍵で書いた行も20回まで。exists は見てよい人にだけ答える。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -3098,6 +3118,25 @@ grant execute on function public.pv_stay_viewer_verify(jsonb) to authenticated;
 
 comment on function public.pv_stay_viewer_verify(jsonb) is
   'verified（見てよい人にする）・見送り・取り消し。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申請してきた人は画像があるときだけ決める。どの決定でも申請は終わり、画像はその場で消える。パイロットの確認（pv_proof）を approved にしない。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 10-d. 毎時の片づけ（★pg_cron が在るときだけ登録する。無ければ何もしない）
+-- ════════════════════════════════════════════════════════════════
+--   3-c5 の片づけ（回線の印は1日だけ・足したものが無い鍵は1日で消す）を、誰も足さない日にも流す。
+--   1時間に1回 ＝ 作って1日たった印は、遅くとも1時間あとに消える（1日に1回だと、最長で2日近く残る）。
+--   ★ pg_cron は本番（Supabase）には在る。手元の検査（PGlite）には無い ＝ ここは飛ばす。
+--   ★ 同じ名前で登録し直すだけなので、何度流しても1本のまま（pg_cron は同じ名前の登録を置き換える）。
+--   止めるとき: select cron.unschedule('pv-stay-key-sweep');
+--   実行履歴  : select * from cron.job_run_details order by start_time desc limit 20;
+do $cron$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    execute format('select cron.schedule(%L, %L, %L)',
+                   'pv-stay-key-sweep', '17 * * * *', 'select public.pv_stay_key_sweep()');
+  end if;
+end
+$cron$;
 
 
 -- ════════════════════════════════════════════════════════════════

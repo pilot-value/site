@@ -194,7 +194,7 @@ const queue    = (who) => rpc(who, 'pv_stay_queue', {});
 const find     = (v, id) => ((v && v.places) || []).find((x) => x.id === id);
 
 /* ★時計を進める代わりに、書けた行を過去へずらす（オーナーとして）。
-   30秒の連投制限に毎回引っかかると、以降の検査が全部「連投」で緑にも赤にもならない。
+   10秒の連投制限に毎回引っかかると、以降の検査が全部「連投」で緑にも赤にもならない。
    25時間ずらすので、1日の上限にも数えられなくなる（上限そのものは専用の節で見る）。 */
 const ageOut = async () => {
   await db.exec(`
@@ -560,6 +560,8 @@ const GRANTS = {
   pv_stay_hash: '', pv_stay_role: '', pv_stay_visible: '',
   /* 端末の鍵の印・呼んだ人の手・足してよい人の決め方・1日の上限（WP-stays-2）。誰にも配らない */
   pv_stay_key_hash: '', pv_stay_me: '', pv_stay_may_add: '', pv_stay_cap: '',
+  /* 端末の鍵の表の片づけ（2026-10-17・P12.30。足す口と毎時の片づけが呼ぶ）。誰にも配らない */
+  pv_stay_key_sweep: '',
   /* 見てよい人の決め方（2026-10-15）。オーナーの id と、見てよい人か。誰にも配らない */
   pv_stay_owner_id: '', pv_stay_sees: '',
   pv_stay_age: '', pv_stay_uuid: '', pv_stay_maps_url: '', pv_stay_place_json: '',
@@ -582,8 +584,8 @@ const grantsNow = async () => (await db.query(
     order by p.proname, p.oid`)).rows;
 const checkGrants = async (label) => {
   const rows = await grantsNow();
-  ok(rows.length === 37 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
-     `${label}関数は37本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
+  ok(rows.length === 38 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
+     `${label}関数は38本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
   /* ★確認の印で開けていた頃の判定は、DB から消えている（残っていると、いつか誰かがまた門に呼ぶ） */
   ok((await one(`select to_regprocedure('public.pv_is_verified_pilot()') is null as gone`)).gone === true,
      `${label}★前の判定 pv_is_verified_pilot は DB に残っていない`);
@@ -624,11 +626,13 @@ await checkGrants('');
     [`select public.pv_stay_me('{}'::jsonb) as v`, []],
     [`select public.pv_stay_may_add() as v`, []],
     [`select public.pv_stay_cap(true) as v`, []],
+    /* 端末の鍵の表の片づけ（P12.30）。会員からも未ログインからも呼べない（流すのは足す口と毎時の片づけだけ） */
+    [`select public.pv_stay_key_sweep() as v`, []],
   ];
   for (const who of [V1, U, ANON]) {
     const res = [];
     for (const [sql, params] of tries) res.push(await call(who, sql, params));
-    ok(res.length === 20 && res.every((r) => /permission denied/i.test(r.err || '')),
+    ok(res.length === 21 && res.every((r) => /permission denied/i.test(r.err || '')),
        `${NAMES.get(who)}: 中の部品（ハッシュ・見てよい人の判定・門・見える判定・中身の検品…）を直接は呼べない`,
        J(res.map((r) => r.err || r.v)));
   }
@@ -1486,14 +1490,22 @@ let S;
 }
 
 // ════════════════════════════════════════════════════════════════
-console.log('\n▼ 場所の連投 ── 30秒・24時間に20件・同じ名前');
+console.log('\n▼ 場所の連投 ── 10秒・24時間に20件・同じ名前');
 let X1;
 {
   await ageOut();
   const x1 = await add(V2, P('etihad', 'SIN', 'hotel', 'テスト用ホテルX1'));
   X1 = x1.item.id;
   ok(x1.ok === true, '1件目は入る');
-  ok(status(await add(V2, P('etihad', 'SIN', 'hotel', 'Test Hotel X2'))) === 'too_fast', '続けてすぐ → too_fast（30秒）');
+  ok(status(await add(V2, P('etihad', 'SIN', 'hotel', 'Test Hotel X2'))) === 'too_fast', '続けてすぐ → too_fast（10秒）');
+  /* ★10秒の決まり（2026-10-16 オーナー・P12.27）。時計を進める代わりに、1件目の時刻だけを過去へずらす（ageOut と同じやり方。待たない） */
+  const gapAt = (sec) => db.query(`update public.pv_stay_places set created_at = now() - ($2::int * interval '1 second') where id = $1`, [X1, sec]);
+  await gapAt(1);
+  ok(status(await add(V2, P('etihad', 'SIN', 'hotel', 'Test Hotel X2'))) === 'too_fast', '★1件目の1秒あとの2つめ → too_fast（10秒の決まり）');
+  await gapAt(11);
+  const x11 = await add(V2, P('etihad', 'SIN', 'hotel', 'テスト用ホテルX11'));
+  ok(x11.ok === true, '★1件目の11秒あとの2つめは入る（10秒の決まり）', J(status(x11)));
+  if (x11.item) await db.query(`delete from public.pv_stay_places where id = $1`, [x11.item.id]);
   ok((await addFresh(V2, P('etihad', 'SIN', 'hotel', 'Test Hotel X2'))).ok === true, '時間を置けば入る');
 
   ok(status(await addFresh(V2, P('etihad', 'SIN', 'hotel', 'テスト用ホテルX1'))) === 'duplicate', '自分が出した名前をもう一度 → duplicate');
@@ -2605,21 +2617,22 @@ let K1, K2, G1, G2;
      && own4.own && own4.own.length === 1 && own4.own[0].id === G1 && own4.own[0].state === 'public',
      '★D4: 公開後: 承認された人（V2）に見える（mine:false）・PAY・U・鍵なしの未ログインは locked のまま・足した本人の own は public', J([v2b, own4]));
 
-  /* ★D5 a: 同じ鍵で30秒以内にもう1件 → too_fast */
+  /* ★D5 a: 同じ鍵で10秒以内にもう1件 → too_fast */
   ok(status(await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用ゲスト場所3', { key: K1 }))) === 'too_fast',
-     '★D5a: 同じ端末の鍵で30秒以内 → too_fast');
+     '★D5a: 同じ端末の鍵で10秒以内 → too_fast');
 
-  /* ★D5 b: 端末の鍵だけの人は24時間に5件まで・ログインしている人は20件まで（数の決め方は pv_stay_cap の1か所） */
+  /* ★D5 b: 端末の鍵だけの人も、ログインしている人も、24時間に20件まで（数の決め方は pv_stay_cap の1か所。
+       2026-10-16 オーナー「ログインしていない人 1日20件までにしようよ。」で、端末の鍵だけの人は 5 → 20。P12.26） */
   await db.query(`update public.pv_stay_places set created_at = now() - interval '1 hour' where author_hash = $1`, [keyHashOf(K1)]);
   const seed = (h, n, tag) => db.query(
     `insert into public.pv_stay_places (author_hash, airline, iata, kind, name, created_at)
      select $1, 'etihad', 'ZZX', 'spot', $3 || g, now() - interval '2 hours' from generate_series(1, $2::int) g`, [h, n, tag]);
-  await seed(keyHashOf(K1), 4, 'テスト用の数合わせK ');
+  await seed(keyHashOf(K1), 19, 'テスト用の数合わせK ');
   ok(status(await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用ゲスト場所3', { key: K1 }))) === 'rate_limited',
-     '★D5b: 端末の鍵の6件目（24時間に5件を超える）→ rate_limited');
+     '★D5b: 端末の鍵の21件目（24時間に20件を超える）→ rate_limited');
   await db.exec(`delete from public.pv_stay_places where iata = 'ZZX' and name = 'テスト用の数合わせK 1'`);
   const g5 = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用ゲスト場所3', { key: K1 }));
-  ok(g5.ok === true && keys(g5) === 'item,ok', 'D5b: 4件なら5件目は入る（知っている鍵には新しい鍵を返さない）', J(g5));
+  ok(g5.ok === true && keys(g5) === 'item,ok', '★D5b: 19件なら20件目は入る（知っている鍵には新しい鍵を返さない）', J(g5));
   await seed(hashOf(U), 5, 'テスト用の数合わせU ');
   const u6 = await add(U, P('etihad', 'LHR', 'spot', 'テスト用会員場所6'));
   await seed(hashOf(U), 14, 'テスト用の数合わせU2 ');
@@ -2746,6 +2759,31 @@ let K1, K2, G1, G2;
   for (const x of [b2, na]) if (x && x.item) await db.query(`delete from public.pv_stay_places where id = $1`, [x.item.id]);
   if (na.key) await db.query(`delete from public.pv_stay_keys where key_hash = $1`, [keyHashOf(na.key)]);
 
+  /* ★D10(c)（P12.30）: 誰も足さない日も同じことが起きる ── 毎時の片づけ（pg_cron が pv_stay_key_sweep を呼ぶ）。
+       個人データのページの「1日だけ保持し、その後削除します」が、静かな日にも本当であるため。
+       関数を直接呼ぶ（時計は進めず、作った時刻を過去へずらす）。a・c は足したものが在る鍵、b・d は無い鍵 */
+  const SW = { a: 'a2'.repeat(32), b: 'b2'.repeat(32), c: 'c2'.repeat(32), d: 'd2'.repeat(32) }, MARK = 'ef'.repeat(32);
+  for (const [k, h] of [[SW.a, 25], [SW.b, 25], [SW.c, 23], [SW.d, 23]]) {
+    await db.query(`insert into public.pv_stay_keys (key_hash, created_at, ip_day_hash) values ($1, now() - ($2::int * interval '1 hour'), $3)`, [k, h, MARK]);
+  }
+  for (const k of [SW.a, SW.c]) {
+    await db.query(`insert into public.pv_stay_places (author_hash, airline, iata, kind, name, created_at)
+                    values ($1, 'etihad', 'ZZV', 'spot', 'テスト用の片づけの場所', now() - interval '25 hours')`, [k]);
+  }
+  const swPlaces = async () => J((await db.query(`select * from public.pv_stay_places order by id`)).rows);
+  const swPhotos = async () => J((await db.query(`select id, place_id, author_hash, md5(bytes) as m, byte_len, state, created_at from public.pv_stay_photos order by id`)).rows);
+  const swKeys = async () => Object.fromEntries((await db.query(
+    `select key_hash, ip_day_hash from public.pv_stay_keys where key_hash = any($1::text[])`, [Object.values(SW)])).rows.map((r) => [r.key_hash, r.ip_day_hash]));
+  const pl0 = await swPlaces(), ph0 = await swPhotos();
+  await db.query(`select public.pv_stay_key_sweep()`);
+  const kw = await swKeys();
+  ok(kw[SW.a] === null && kw[SW.c] === MARK && kw[SW.d] === MARK && !(SW.b in kw),
+     '★D10(c): 毎時の片づけ（関数を直接呼ぶ）: 25時間前の印は空になる・23時間前の印は残る・足したものが無い25時間前の鍵は消え、23時間前の鍵と足したものが在る鍵は残る',
+     J({ a: kw[SW.a], b: SW.b in kw ? kw[SW.b] : '消えた', c: kw[SW.c], d: kw[SW.d] }));
+  ok((await swPlaces()) === pl0 && (await swPhotos()) === ph0, '★D10(c): 毎時の片づけは、場所と写真に1文字も触らない');
+  await db.query(`delete from public.pv_stay_places where iata = 'ZZV'`);
+  for (const k of Object.values(SW)) await db.query(`delete from public.pv_stay_keys where key_hash = $1`, [k]);
+
   /* ★D11（B2）: 見てよい人でなくなった人には、自分の場所に付いた公開済みの写真も並べない（写真を読む口も locked） */
   await db.query(`update public.pv_stay_viewers set state = 'approved', decided_by = $2, decided_at = now() where user_id = $1`, [V3, OP]);
   const m11 = await addFresh(V3, P('etihad', 'MAD', 'hotel', 'テスト用ホテル写真つき11'));
@@ -2806,14 +2844,16 @@ const authors = async () => J((await db.query(`select id, author_hash from publi
      '★U1: 足した端末の鍵で直せる（公開済みでも確認待ちへ戻る・書いた人の印は鍵のまま）', J([e1, r1]));
   ok(other.every((x) => x === NOT_FOUND) && none === LOCKED,
      '★U1: 別の端末の鍵・ログインしただけの会員・作り物の鍵は not_found／鍵なしは locked（表は変わらない）', J([other, none]));
-  /* 端末の鍵で書いた行は24時間に5回まで・ログインしている人は20回まで（数の決め方は pv_stay_cap の1か所） */
-  await db.query(`update public.pv_stay_places set edit_n = 5, edit_from = now() - interval '1 hour' where id = $1`, [IDU]);
-  const lim = await updK(ANON, { id: IDU, note: 'ゲスト用のメモ 6回目' }, KU);
+  /* 端末の鍵で書いた行も、ログインしている人も、24時間に20回まで（数の決め方は pv_stay_cap の1か所。2026-10-16 から 5 → 20。P12.26） */
+  await db.query(`update public.pv_stay_places set edit_n = 19, edit_from = now() - interval '1 hour' where id = $1`, [IDU]);
+  const l20 = await updK(ANON, { id: IDU, note: 'ゲスト用のメモ 20回目' }, KU);
+  await db.query(`update public.pv_stay_places set edit_n = 20, edit_from = now() - interval '1 hour' where id = $1`, [IDU]);
+  const lim = await updK(ANON, { id: IDU, note: 'ゲスト用のメモ 21回目' }, KU);
   const um = await addFresh(U, P('etihad', 'ZRH', 'spot', 'テスト用会員の場所U1'));
   await db.query(`update public.pv_stay_places set edit_n = 5, edit_from = now() - interval '1 hour' where id = $1`, [um.item && um.item.id]);
   const m6 = await upd(U, { id: um.item && um.item.id, note: 'テスト用のメモ 6回目' });
-  ok(status(lim) === 'rate_limited' && m6.ok === true && m6.changed === true,
-     '★U1: 端末の鍵で書いた行の6回目（24時間に5回を超える）→ rate_limited・ログインしている人の6回目は通る', J([status(lim), status(m6)]));
+  ok(l20.ok === true && l20.changed === true && status(lim) === 'rate_limited' && m6.ok === true && m6.changed === true,
+     '★U1: 端末の鍵で書いた行の20回目は通る・21回目（24時間に20回を超える）→ rate_limited・ログインしている人の6回目は通る', J([status(l20), status(lim), status(m6)]));
 
   /* ★U2: 消すも同じ（自分の鍵なら消せる・別の鍵は not_found・鍵なしは locked） */
   await ageOut();
@@ -3155,8 +3195,8 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   ok(STAYS_SQL.split('pv_is_verified_pilot').length === 2 && /^drop function if exists public\.pv_is_verified_pilot\(\);$/m.test(STAYS_SQL),
      '★前の判定 pv_is_verified_pilot は、消す1行のほかに1度も出てこない');
   const fns = code.split(/create or replace function/).slice(1);
-  ok(fns.length === 37 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
-     '37本の関数すべてに set search_path = public, extensions', String(fns.length));
+  ok(fns.length === 38 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
+     '38本の関数すべてに set search_path = public, extensions', String(fns.length));
   const fn = (name) => fns.find((f) => f.trimStart().startsWith('public.' + name + '(')) || '';
   /* 見てよい人の決め方は、毎回「会員と未ログインが名簿の2表を書けない」ことも見ている（2表 × 4通り） */
   const ownF = fn('pv_stay_owner_id'), seesF = fn('pv_stay_sees');
@@ -3210,6 +3250,11 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   /* 会員が読む関数（一覧・1件・写真）の並びに時刻を使っていない。使うのは運営の待ち行列だけ */
   const byTime = fns.filter((f) => /order by[^;]*created_at/.test(f)).map((f) => f.trimStart().split('(')[0]);
   ok(byTime.join(',') === 'public.pv_stay_queue', '時刻で並べるのは運営の待ち行列だけ', byTime.join(','));
+  /* ★毎時の片づけ（P12.30）。pg_cron が在るときだけ、3-c5 の片づけを1時間に1回登録する（PGlite には pg_cron が無いので文を読んで確かめる）。
+       1日に1回にすると、誰も足さない日に印が最長で2日近く残る（個人データのページの「1日だけ保持し、その後削除します」が本当でなくなる） */
+  const CRON_STAY = /do \$cron\$\s+begin\s+if exists \(select 1 from pg_extension where extname = 'pg_cron'\) then\s+execute format\('select cron\.schedule\(%L, %L, %L\)',\s+'pv-stay-key-sweep', '17 \* \* \* \*', 'select public\.pv_stay_key_sweep\(\)'\);\s+end if;\s+end\s+\$cron\$;/;
+  ok(CRON_STAY.test(code) && (code.match(/cron\.schedule/g) || []).length === 1,
+     '★毎時の片づけ: pg_cron が在るときだけ、pv_stay_key_sweep を1時間に1回（毎時17分）登録する文が1つだけ在る');
   /* ★ オーナーの承認の口（WP-stays-1b）── 読んで確かめる */
   const vrF = bodyOf(fn('pv_stay_viewer_request')), vdF = bodyOf(fn('pv_stay_viewer_decide'));
   const OWNER_GATE = /v_owner := public\.pv_stay_owner_id\(\);\s+if auth\.uid\(\) is null or v_owner is null or auth\.uid\(\) <> v_owner then\s+return jsonb_build_object\('ok', false, 'status', 'forbidden'\);/;
