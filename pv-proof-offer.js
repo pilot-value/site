@@ -31,6 +31,7 @@
   /* 文言。★印の付いていないものは pv-proof.js（止まった会員の板）と同じ字。
      ★NEW の4つ（lead2・okT・eUnavail・slotS）は pv-proof.js に無い字。
        日本語の lead2・slotS・okT はオーナーの言葉（2026-10-16「Only VERIFIED PILOT」「VERIFIED PILOT です」）。
+      英語も同じ形（「confirmed pilot」は「確認済みのパイロット」の訳 ── オーナーが VERIFIED PILOT に改めた）。
        ホテルの欄の鍵の1行（career-stay.js）と同じ字 ── 片方だけ直さない（大文字は O だけ）。 */
   var T = {
     ja: {
@@ -61,7 +62,7 @@
     en: {
       t:        'Please confirm that you are a pilot',
       lead:     'Please submit one image showing that you are a pilot.',
-      lead2:    'Once we have confirmed it, you will also be able to see what only confirmed pilots can see.',   // NEW
+      lead2:    'Only VERIFIED PILOT',                                                        // NEW
       exT:      'Examples of what you can submit',
       ex:       ['Epaulettes', 'Wing badge', 'Commercial pilot licence', 'Roster'],
       etc:      'etc.',
@@ -75,8 +76,8 @@
       redo:     'Submit a different image',
       alt:      'The image you are submitting',
       close:    'Close',
-      okT:      'You are a confirmed pilot',                                                   // NEW
-      slotS:    'Some information can only be seen by confirmed pilots.',                      // NEW
+      okT:      'You are a VERIFIED PILOT',                                                   // NEW
+      slotS:    'Only VERIFIED PILOT',                                                        // NEW
       eType:    'This image could not be read. Please choose a JPEG or PNG image.',
       eBig:     'This image is too large. Please choose a different one.',
       eNet:     'It could not be sent. Please check your connection and try again.',
@@ -335,7 +336,8 @@
     }
     return xBtn()
          + '<h2 class="pvpo-t" id="pvpo-t">' + esc(T.t) + '</h2>'
-         + '<p class="pvpo-s">' + esc(T.lead) + esc(T.lead2) + '</p>'
+         + '<p class="pvpo-s">' + esc(T.lead) + '</p>'
+         + '<p class="pvpo-s">' + esc(T.lead2) + '</p>'
          + '<p class="pvpo-exT">' + esc(T.exT) + '</p>'
          + '<ul class="pvpo-ex">'
          +   T.ex.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('')

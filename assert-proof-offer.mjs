@@ -67,6 +67,14 @@ const gotW = { lead2: word('lead2'), slotS: word('slotS'), okT: word('okT') };
 ok(J(gotW) === J(OWNER) && J(lockW) === J([OWNER.slotS]) && !/確認済みのパイロット|ONLY VERIFIED PILOT/.test(code),
    '★日本語の lead2・slotS は「Only VERIFIED PILOT」、okT は「VERIFIED PILOT です」── ホテルの鍵の1行と同じ字・「確認済みのパイロット」「ONLY VERIFIED PILOT」はどこにも無い',
    J({ gotW, lockW }));
+/* 英語も同じ形（2026-10-16）。「confirmed pilot(s)」は「確認済みのパイロット」の訳で、オーナーが VERIFIED PILOT に改めた。 */
+const OWNER_EN = { lead2: 'Only VERIFIED PILOT', slotS: 'Only VERIFIED PILOT', okT: 'You are a VERIFIED PILOT' };
+const enT = (code.match(/\n    en: \{\n([\s\S]*?)\n    \},?\n/) || [])[1] || '';
+const wordEn = (k) => { const m = [...enT.matchAll(new RegExp('\\n\\s*' + k + ':\\s*\'([^\']*)\'', 'g'))]; return m.length === 1 ? m[0][1] : null; };
+const gotEn = { lead2: wordEn('lead2'), slotS: wordEn('slotS'), okT: wordEn('okT') };
+ok(J(gotEn) === J(OWNER_EN) && !/confirmed pilot/i.test(code),
+   '★英語の lead2・slotS は「Only VERIFIED PILOT」、okT は「You are a VERIFIED PILOT」── 「confirmed pilot」はどこにも無い',
+   J(gotEn));
 for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
   const h = read(page);
   const want = createHash('sha256').update(readFileSync(path.join(ROOT, 'pv-proof-offer.js'))).digest('hex').slice(0, 8);
@@ -186,7 +194,7 @@ async function scenes() {
     s = await state();
     ok(s.dialog && s.lock && s.inert >= 1 && !s.text.includes('停止'), '★ポップアップが開く（下の画面は触れない）・「停止」の字はどこにも無い', J(s));
     const leadP = await page.evaluate(() => [...document.querySelectorAll('#pvpo-back .pvpo-s')].map((p) => p.textContent));
-    ok(J(leadP) === J(['パイロットであることが分かる画像を1枚ご提出ください。Only VERIFIED PILOT']) && !/確認済みのパイロット/.test(s.text),
+    ok(J(leadP) === J(['パイロットであることが分かる画像を1枚ご提出ください。', 'Only VERIFIED PILOT']) && !/確認済みのパイロット/.test(s.text),
        '★ポップアップの説明は「パイロットであることが分かる画像を1枚ご提出ください。」と「Only VERIFIED PILOT」だけ（オーナーの字）', J(leadP));
     const png = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 2400; c.height = 1600; const x = c.getContext('2d');
       for (let i = 0; i < 400; i++) { x.fillStyle = `hsl(${i % 360},70%,${30 + (i % 40)}%)`; x.fillRect((i * 37) % 2400, (i * 53) % 1600, 180, 120); }
