@@ -285,7 +285,11 @@ await asAnon();
      JSON.stringify(jal0 && jal0.clip || {}).slice(0, 160));
   ok(r.rows.every(x => x.proof_hash === undefined),
      '★proof_hash は誰にも返らない（今まで select * で外に出ていた）');
-  ok(r.rows.every(x => x.id && x.airline), '社名と id は返る（カードの見出しは出せる）');
+  /* ★2026-10-17 まではここが「社名と id は返る」だった。鍵の無い人には口コミの番号を返さない
+       （要約の番号と同じ扱い・7. で全文を探す）。画面は鍵の無い行の id を使っていない。 */
+  ok(r.rows.every(x => x.airline && !Object.prototype.hasOwnProperty.call(x, 'id')),
+     '★社名は返る・口コミの番号（id）は返らない（カードの見出しは出せる）',
+     r.rows.filter(x => Object.prototype.hasOwnProperty.call(x, 'id')).length + '行に id');
   const withCats = r.rows.find(x => x.airline === 'ana');
   ok(Array.isArray(withCats.cats) && withCats.cats.includes('culture'),
      '★どの欄に本文があるかの名前は返る（項目名まで消すと件数が全部0になる）',
@@ -497,6 +501,111 @@ console.log('\n▼ 6. 式が画面側と一致しているか（写し間違い�
   ok(/clip\(text,\s*80\)/.test(lp), '★lp.js の抜粋は 80字（SQL 側と同じ）',
      'lp.js を変えたら db/reviews-gate.sql の 80 も変える');
   ok(/\.length\s*<\s*20/.test(lp), '★lp.js の足切りは 20字（SQL 側と同じ）');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 7. 口コミの番号（id）は、本文を読める人と自分の口コミにだけ返す（2026-10-17）');
+// ════════════════════════════════════════════════════════════
+/* なぜ要るか
+     2026-10-16 まで、pv_reviews() と pv_review_voices() は鍵の無い人にも全行の id を返していた。
+     番号だけで書いた人は分からないが、要約の番号（db/review-summary.sql の ids）は
+     本文を読める人にしか返していない ── 同じ扱いにそろえた。
+   ⚠️ 表を直に読む道（1. の「画面が要る列」の id）は、今回は変えていない
+      （submit-review.html・airlines/premium-auth-lock.js・airlines/airline-base.js が
+       まだ表から id を引いている。付け替えてから閉じる）。 */
+{
+  await asOwner();
+  const all = await rows(`select id::text as id, to_jsonb(created_at) #>> '{}' as at, airline
+                            from public.reviews_v2 order by created_at desc nulls last`);
+  const IDS = all.map(x => x.id);
+  const idAt = Object.fromEntries(all.map(x => [x.at, x.id]));
+  const MINE = all.filter(x => ['ana', 'cathay'].includes(x.airline)).map(x => x.id);   // 1 さんの2件
+  const has = (o) => Object.prototype.hasOwnProperty.call(o, 'id');
+  const leak = (v) => { const s = JSON.stringify(v); return IDS.filter(id => s.includes(id)); };
+  const voices = async () => (await one(`select public.pv_review_voices() v`)).v;
+  const ASKS = [{}, { airline: 'ana' }, { airlines: ['ana', 'jal', 'cathay', 'spring'] }, { limit: 500 }];
+  ok(IDS.length >= 6, `（見本の口コミ ${IDS.length}件の番号を控えた）`);
+
+  console.log('  ── 鍵の無い人（未ログイン・登録しただけ）──');
+  for (const [who, as] of [['未ログイン', asAnon], ['登録しただけ', () => asUser(2)]]) {
+    await as();
+    let n = 0, withId = 0, found = [];
+    for (const p of ASKS) {
+      const r = await call(p);
+      n += r.rows.length; withId += r.rows.filter(has).length; found = found.concat(leak(r));
+    }
+    ok(n > 0 && withId === 0, `★${who}: pv_reviews のどの行にも id の欄が無い（${n}行）`, `${withId}行に id`);
+    ok(found.length === 0, `★★${who}: pv_reviews の返事のどこにも口コミの番号が無い（${IDS.length}件の番号を全文で探す）`,
+       found.join(','));
+    const v = await voices();
+    ok(v.length > 0 && !v.some(has), `★${who}: トップの抜粋（pv_review_voices）の行にも id の欄が無い（${v.length}行）`);
+    ok(leak(v).length === 0, `★★${who}: トップの抜粋の返事のどこにも口コミの番号が無い`, leak(v).join(','));
+  }
+
+  console.log('  ── 鍵を持つ人・運営・自分の口コミは今までどおり ──');
+  for (const [who, n] of [['口コミを出した人', 1], ['運営', 9]]) {
+    await asUser(n);
+    const r = await call({ limit: 500 });
+    ok(r.unlocked === true && JSON.stringify(r.rows.map(x => x.id)) === JSON.stringify(IDS),
+       `★${who}: pv_reviews の id は表の番号そのまま・同じ並び（${r.rows.length}行）`,
+       JSON.stringify(r.rows.map(x => x.id || null)).slice(0, 160));
+    const v = await voices();
+    ok(v.length > 0 && v.every(x => typeof x.id === 'string' && x.id === idAt[x.created_at]),
+       `★${who}: トップの抜粋にも id が今までどおり付く（${v.length}行）`,
+       JSON.stringify(v.map(x => x.id || null)).slice(0, 160));
+  }
+  await asUser(1);
+  {
+    const m = await call({ mine: true });
+    ok(JSON.stringify(m.rows.map(x => x.id)) === JSON.stringify(MINE),
+       '★自分の口コミ（mine）は id 付きで返る（マイページ）', JSON.stringify(m.rows.map(x => x.id || null)));
+  }
+
+  /* ★鍵の判定が false でも、自分の口コミ（mine）の id は残す。
+       main の db/pay-rows.sql には pv_proof_blocked（2026-10-13）があり、口コミを出した人でも
+       確認待ちのあいだは鍵が false になる。ここでは鍵の判定だけを false に差し替えて
+       その形を作り、確かめたら流し直して戻す。 */
+  await asOwner();
+  await db.exec(`create or replace function public.pv_has_review_key() returns boolean
+                   language sql stable as $$ select false $$`);
+  await asUser(1);
+  {
+    const m = await call({ mine: true });
+    ok(m.unlocked === false && JSON.stringify(m.rows.map(x => x.id)) === JSON.stringify(MINE)
+       && m.rows.every(x => x.culture_comment === undefined),
+       '★鍵が閉じていても、自分の口コミ（mine）は id 付きで返る（本文は返らない）',
+       JSON.stringify(m.rows.map(x => x.id || null)));
+    const r = await call();
+    ok(r.unlocked === false && r.rows.length > 0 && !r.rows.some(has) && leak(r).length === 0,
+       '★★鍵が閉じている人がふつうに引くと、自分の行にも id は付かない（mine のときだけ）');
+  }
+  await asOwner();
+  await db.exec(read('db/reviews-gate.sql'));
+  await asUser(1);
+  ok((await one(`select public.pv_has_review_key() v`)).v === true, '流し直すと鍵の判定が元に戻る');
+
+  console.log('  ── 鍵の無い人の返事は、番号が無いことのほかは今までと同じ ──');
+  /* 全部読める人（運営）の返事から、本文の8欄と id を引き、抜粋を足したもの ＝ 鍵の無い人の返事。
+     抜粋・項目名・点・日付・並びのどれか1つでも鍵の無い側だけ変わったら、ここが落ちる。 */
+  const HIDE = CATS.map(k => k + '_comment').concat(['translations', 'id']);
+  await asUser(9); const full = await call({ limit: 500 }); const vFull = await voices();
+  await asAnon();  const shut = await call({ limit: 500 }); const vShut = await voices();
+  await asOwner();
+  const diff = [];
+  shut.rows.forEach((s, i) => {
+    const f = { ...full.rows[i] }, t = { ...s };
+    for (const k of HIDE) delete f[k];
+    if (s.cats.length && !s.clip) diff.push(`${i}: 抜粋が無い`);
+    delete t.clip;
+    if (JSON.stringify(t) !== JSON.stringify(f)) diff.push(`${i}: ${JSON.stringify(t).slice(0, 80)} ≠ ${JSON.stringify(f).slice(0, 80)}`);
+  });
+  ok(Object.keys(shut).sort().join() === 'ok,rows,unlocked' && shut.rows.length === full.rows.length && diff.length === 0,
+     '★★鍵の無い人の pv_reviews は「本文8欄と id が無い・抜粋が付く」のほかは、全部読める人の返事と1字も違わない',
+     diff.join(' | ').slice(0, 300));
+  ok(vShut.length === vFull.length
+     && JSON.stringify(vShut) === JSON.stringify(vFull.map(({ id, ...x }) => x)),
+     '★★鍵の無い人のトップの抜粋は、id が無いことのほかは鍵を持つ人の返事と1字も違わない');
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

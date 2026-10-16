@@ -201,7 +201,13 @@ begin
     from (
       select row_number() over (order by pick.created_at desc nulls last) as ord,
              (case when v_open then to_jsonb(pick) - 'proof_hash'
-                   else to_jsonb(pick) - 'proof_hash' - v_hide end)
+                   when v_mine then to_jsonb(pick) - 'proof_hash' - v_hide
+                   /* ★鍵の無い人には口コミの番号（id）も返さない（2026-10-17）。
+                        要約の番号（pv_review_summary の ids）と同じく、本文を読める人と
+                        自分の口コミ（mine）にだけ。画面は鍵の無い行の id を使っていない。
+                      ⚠️ v_hide に 'id' を足さない ── v_hide は 7. の表の権限と同じ表で、
+                         assert-unlock が2つの一致を見ている。 */
+                   else to_jsonb(pick) - 'proof_hash' - v_hide - 'id' end)
              || jsonb_build_object('cats', to_jsonb(ck.a))
              /* ★鍵の無い人へ「先頭の1欄だけ40字」を渡す（2026-09-16 オーナー指示
                   「いまは1文字も見れないので、最初の1行だけ読めるように」）。
@@ -323,7 +329,9 @@ as $fn$
      limit 6
   )
   select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
-           'id',               pick.id,
+           /* ★番号は鍵を持つ人にだけ（2026-10-17）。null は jsonb_strip_nulls が落とす
+                ＝ 鍵の無い人の返事は、id の欄が無いだけで今までと1バイトも違わない。 */
+           'id',               case when public.pv_has_review_key() then pick.id end,
            'airline',          pick.airline,
            'position',         pick.position,
            'tenure_bucket',    pick.tenure_bucket,
