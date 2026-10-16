@@ -961,7 +961,7 @@
     { k: 'roster', t: '勤務スケジュール', q: '休みの希望、スタンバイ、スケジュールの出る時期は？', view: 'roster' },
     { k: 'career', t: '訓練・キャリア', q: '訓練費の返還、経験者採用、自社養成の条件は？', view: 'career' },
     { k: 'benefits', t: '休暇・手当', q: '年休、病欠、着陸・地上勤務の手当は？', view: 'benefits' },
-    { k: 'stay', t: 'ホテル・ステイ', q: 'パイロット限定', tab: 'stay', href: 'career.html?airline={s}&tab=life' }
+    { k: 'stay', t: 'ホテル・ステイ', q: '就航地ごと', tab: 'stay', href: 'career.html?airline={s}&tab=life' }
   ];
   /* このページが「ステイ先」のタブを持っているか（持っていれば、ほかの画面へ送り出さない）。
      ほかの会社について開いているあいだ（CO）は、持っていないことにする ── このページのタブは、このページの会社のもの。 */
@@ -2285,8 +2285,22 @@
   function leaveTo(tab) {
     var G = w.PVGlance, pushed = S.pushed;
     if (!ownTab(tab)) return;
-    /* もうそのタブの一覧に居る：行き先が無いので、積んだ1段を降りて閉じるだけ（焦点は開いたボタンへ返す） */
-    if (G.at() === tab && !(typeof G.city === 'function' && G.city())) { close(false); return; }
+    if (G.at() === tab) {
+      var city = tab === 'stay' && typeof G.city === 'function' ? G.city() : '';
+      /* もうそのタブの一覧に居る：行き先が無いので、積んだ1段を降りて閉じるだけ（焦点は開いたボタンへ返す） */
+      if (!city) { close(false); return; }
+      /* 都市を開いている：その都市のまま、追加の入口へ（一覧へ戻さない ＝ 会社・都市・空港を持ち越す）。
+         面のために積んだ1段は、この都市の段に書き換える（降りない ＝ 待つものが無い。上の ⚠️ と同じ理由）。 */
+      var ent = d.querySelector('#pvg-city .crs-ent');
+      S.from = null;
+      close(true);
+      if (pushed) { try { w.history.replaceState({ pvg: 'stay', pvgCity: city, pvgFrom: '' }, '', '#stay-' + city); } catch (e) { /* 画面はそのまま */ } }
+      if (ent) {
+        try { ent.scrollIntoView({ block: 'center' }); } catch (e) { /* 古いブラウザ */ }
+        try { ent.focus({ preventScroll: true }); } catch (e) { ent.focus(); }
+      }
+      return;
+    }
     S.from = null;                          // 行き先は別のタブ。開いたボタンへ焦点を返さない
     close(true);                            // 履歴には触れずに閉じる
     G.go(tab, { replace: pushed });

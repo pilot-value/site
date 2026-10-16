@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
@@ -1049,7 +1049,7 @@ for (const s of FIVE) {
     ok(slot.length === 1 && slot[0].includes(` data-airline="${s}"`) && slot[0].includes(' data-stay=""') && slot[0].includes(' data-city=""'),
        `${s}: ホテルの欄は1つ・空港は空のまま出荷する（どの空港のホテルも HTML に書いていない）`, slot.join(' ‖ '));
     ok(!/class="crs-/.test(PAGES[s]), `${s}: ホテルの画面の部品（crs-）を HTML に書いていない（サーバーの返事から組む）`);
-    ok(/<h4 class="pvg-askh">ホテル・レストラン・場所<small>確認済みのパイロットが足したもの<\/small><\/h4>/.test(city), `${s}: ホテルの見出しは「確認済みのパイロットが足したもの」`);
+    ok(/<h4 class="pvg-askh">ホテル・レストラン・場所<\/h4>/.test(city), `${s}: ホテルの見出しに、足した人の断りを書いていない`);
     /* 根拠・条件・時点：公式の資料と確かめた日。 */
     const off = one(G, /<a class="pvg-link pvg-st-off" href="([^"]*)" target="_blank" rel="noopener">公式の就航地<\/a>/);
     ok(off === net.src[0].url.replace(/&/g, '&amp;') && net.src.every(x => G.includes(`href="${x.url.replace(/&/g, '&amp;')}"`)), `${s}: 「公式の就航地」と根拠は、台帳の資料へ`, off || '');
@@ -4864,6 +4864,39 @@ async function runTabs(browser, s, [w, h]) {
       r = await see();
       if (!(shut && p.url() === url0 && r.at === 'overview')) bad.push(`戻るで閉じない・住所かタブが変わる（${p.url().slice(BASE.length)}・${r.at}）`);
       ok(!bad.length, `${tag}:「情報を追加」→ 話題の一覧 → 月の勤務（会社を選び直さない）→ 戻るで閉じて元の場所`, bad.join(' ／ '));
+      /* 都市を開いたまま「情報を追加」→ ホテル・ステイ：面が閉じ、同じ都市のまま（一覧へ戻さない）・焦点は「ホテルを追加」・
+         そのボタンが画面に入っている（時間では待たない）。狭い幅の1回だけ（390）。
+         一覧に居る時は閉じるだけ（焦点は開いたボタンへ）── assert-contrib.mjs の場面が見ている。 */
+      if (w === 390) {
+        const code = networkOf(s).list[0].iata, miss = [];
+        await fresh(`${url}#stay`);
+        const opened = (await atTab('stay')) && (await tap(`#pvg-st-list .pvg-city[data-city="${code}"]`)) && (await until(c => {
+          const e = document.querySelector('#pvg-city .crl[data-live="hotels"]');
+          return !!e && e.getClientRects().length > 0 && e.getAttribute('data-stay') === c && !/^(idle|loading)$/.test(e.dataset.state) && !!document.querySelector('#pvg-city .crs-ent');
+        }, code));
+        if (!opened) miss.push(`${code} の詳細が開かない`);
+        else if (!((await tap('.pvg-tabbar .pvg-add')) && (await sheetIs('list')))) miss.push('都市を開いたまま、話題の一覧が開かない');
+        else if (!((await tap('.pvc-root [data-pvc-tile="stay"]')) && (await sheetIs('closed')))) miss.push('ホテル・ステイを押しても面が閉じない');
+        else {
+          const inView = await until(() => {
+            const a = document.activeElement;
+            if (!a || !a.matches('#pvg-city .crs-ent[data-kind="hotel"]')) return false;
+            const r = a.getBoundingClientRect();
+            return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight;
+          });
+          const r = await p.evaluate(() => {
+            const a = document.activeElement, box = document.getElementById('pvg-city'), e = box && box.querySelector('.crl[data-live="hotels"]');
+            const ar = a ? a.getBoundingClientRect() : null, vis = x => !!x && x.getClientRects().length > 0;
+            return { hash: location.hash, at: window.PVGlance.at(), city: window.PVGlance.city(), box: vis(box) && !vis(document.getElementById('pvg-stay')),
+              stay: e ? e.getAttribute('data-stay') : '', focus: a ? `${a.getAttribute('data-kind') || a.tagName} ${a.textContent.trim()}` : '',
+              y: ar ? [Math.round(ar.top), Math.round(ar.bottom)] : null, vh: innerHeight };
+          });
+          if (!(inView && r.hash === `#stay-${code}` && r.at === 'stay' && r.city === code && r.box && r.stay === code && r.focus === 'hotel ホテルを追加')) miss.push(JSON.stringify(r));
+        }
+        ok(!miss.length, `${tag}: 都市を開いたまま「情報を追加」→ ホテル・ステイ ── 面が閉じ、同じ都市のまま（#stay-<空港>）・焦点は「ホテルを追加」・そのボタンが画面に入っている`, miss.join(' ／ '));
+        await fresh(url);
+        await atTab('overview');
+      }
     }
     /* ── 5) タブの中の入口から、その話題へ直接 ── */
     {
@@ -5534,6 +5567,37 @@ async function runStay(browser, s, [w, h]) {
           ok(!other.length, `${tag}: 書きかけ ── ほかの人の印（u = 'someone-else'）の書きかけは、同じページで都市を開いても・読み直しても、戻さずに消す`, other.join(' ／ '));
           ok(!flow.length, `${tag}: 書きかけ ── 読み直すと面が戻る（種類と字・焦点は取らない）／ログインの入口はこの都市へ戻る住所／「やめる」と送って通ったあとは消える／ほかの都市には面が無い`, flow.join(' ／ '));
         }
+        /* S-i ログインする前に開いた追加の面：ほかのタブでログインした（鍵が置かれ、この画面には知らせ SIGNED_IN だけが届く ──
+           supabase-js がタブのあいだで使う道）→ 面と字はそのまま → そのログインが知らせなく消えて戻ってきたら、面も字も書きかけも残さない。 */
+        {
+          const bad = [], TXT = '検査用の架空の書きかけ（ログインの前）';
+          try {
+            await clean();
+            if (!(await K.fresh())) bad.push('ステイ先のタブが一覧で開かない');
+            seen.stay = STAY_LOCKED; seen.vreq = '{"ok":true,"state":"denied"}';
+            if (!((await K.city(A, 'locked')) && (await K.tap(`${STAY_ZONE} .crs-ent[data-kind="hotel"]`)) && (await formIs(true)))) bad.push(`${A}：「ホテルを追加」で追加の面が開かない`);
+            else {
+              await p.type(`${STAY_ZONE} [data-k="name"]`, TXT);
+              const n0 = seen.stays;
+              await store({ [AUTH]: '{}' });
+              await p.evaluate(() => { const c = new BroadcastChannel('sb-vzgmnkrggrwtsrpqndsm-auth-token'); c.postMessage({ event: 'SIGNED_IN', session: { user: { id: '00000000-0000-4000-8000-0000000000c1' } } }); c.close(); });
+              const reread = (await idle(8000, () => seen.stays > n0)) && (await K.slotIs(A, 'locked'));
+              const kept = reread && (await formIs(true)) && (await K.zone()).name === TXT;
+              if (!kept) bad.push(`ほかのタブでログインしたら、面か打った字が消える・読み直さない（読み直し ${seen.stays - n0}回）`);
+              else {
+                await store({ [AUTH]: null });
+                await backToPage();
+                const shut = await formIs(false);
+                const left = await p.evaluate(t => [...document.querySelectorAll('input, textarea')].some(i => i.value === t), TXT), draft = await draftOf(A);
+                if (!(shut && !left && draft === null)) bad.push(`ログインが知らせなく消えて戻ってきたのに、面か字か書きかけが残る（面 ${!shut}・字 ${left}・書きかけ ${draft !== null}）`);
+              }
+            }
+          } finally {
+            await clean();
+            seen.stay = null; seen.vreq = null;
+          }
+          ok(!bad.length, `${tag}: 書きかけ ── ログインの前に開いた追加の面は、ほかのタブでのログインでは残し、そのログインが知らせなく消えて戻ってきたら面も字も書きかけも残さない`, bad.join(' ／ '));
+        }
       } finally {
         p.off('request', spy);
         await clean();
@@ -5583,6 +5647,109 @@ async function runStayStall(browser, s, [w, h]) {
     seen.stay = null;
     console.log(`  ・ホテルの欄の「返事が来ない」場面は ${s} ${w} で流した（待った時間 ${(took / 1000).toFixed(1)}秒・上限 ${WAIT}ms）`);
     ok(!bad.length, `${tag}: 返事が来ない読み出しは、待ちの絵のあと STAY_WAIT で「読み込めませんでした」＋「もう一度」になる・待つあいだに聞き直さない・「もう一度」で一覧になる`, bad.join(' ／ '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
+/* ── 就航地の一覧：探す字と地域の札は「戻る」と読み直しで残る（場面 find）──
+   打つ・地域の札を押す → 都市を開く → 読み直す →「‹ 就航地」：同じカード・同じ並び・同じ数・押した札・欄の字・同じ位置（2px 以内）。
+   一覧の上で読み直しても、同じカード・数・札・欄（読み直したあとの位置はブラウザが決める ＝ 見ない）。
+   住所で直接開いた都市から「‹ 就航地」は、全部の一覧（戻すものが無い）。打っても札を押しても、履歴の段は増えない（書き換えるだけ）。
+   狭い幅の1回だけ（FIND_W）。幅を絞った回（--sizes）は、その幅で流す。 */
+const FIND_W = [390];
+async function runFind(browser, s, [w, h]) {
+  const tag = `${s} ${w}（就航地を探す・戻る・読み直し）`;
+  const { ctx, p, ready } = await open(browser, s, w, h, 'empty');
+  const K = stayKit(p, s), url = `${BASE}/airlines/${s}.html`;
+  /* いまの一覧：見えているカードの並び・数の字・押した札・欄の字・位置・全部の枚数・履歴の段の数。 */
+  const read = () => p.evaluate(() => {
+    const box = document.getElementById('pvg-stay'), lis = [...document.querySelectorAll('#pvg-st-list > li')];
+    return {
+      cards: lis.filter(li => !li.hidden && li.getClientRects().length > 0).map(li => { const a = li.querySelector('.pvg-city[data-city]'); return a ? a.getAttribute('data-city') : '?'; }),
+      n: ((box && box.querySelector('[data-pvg-stn]')) || {}).textContent || '',
+      pill: box ? [...box.querySelectorAll('[data-pvg-rg][aria-pressed="true"]')].map(b => b.getAttribute('data-pvg-rg')).join(',') : '',
+      q: (document.getElementById('pvg-st-q') || {}).value, y: Math.round(window.scrollY), all: lis.length, len: history.length,
+    };
+  });
+  /* 位置が5コマ続けて同じになるまで待つ（時間では待たない。5秒で諦める）。 */
+  const still = () => p.evaluate(() => new Promise(res => {
+    let last = -1, n = 0; const t0 = performance.now();
+    const tick = () => { const y = Math.round(scrollY); n = y === last ? n + 1 : 0; last = y; if (n >= 5 || performance.now() - t0 > 5000) return res(n >= 5); requestAnimationFrame(tick); };
+    tick();
+  }));
+  const sameList = (a, b) => JSON.stringify([a.cards, a.n, a.pill, a.q]) === JSON.stringify([b.cards, b.n, b.pill, b.q]);
+  const show = r => `${r.cards.length}枚（${r.cards.slice(0, 6).join(' ')}${r.cards.length > 6 ? ' …' : ''}）・数「${r.n}」・札「${r.pill}」・欄「${r.q}」・位置 ${r.y}`;
+  const grow = [], back = [], direct = [];
+  try {
+    ok(ready, `${tag}: 開ける`);
+    if (!(await K.fresh())) back.push('ステイ先のタブが一覧で開かない');
+    else {
+      /* 打つ1字と押す地域の札：その地域で2枚以上・その地域の全部より少なく残り、札を押さなければもっと残る組（いちばん半分に近いもの）。 */
+      const pick = await p.evaluate(() => {
+        const items = [...document.querySelectorAll('#pvg-st-list > li')].map(li => ({ q: li.getAttribute('data-q') || '', rg: li.getAttribute('data-rg') || '' }));
+        const rgs = [...document.querySelectorAll('#pvg-stay [data-pvg-rg]')].map(b => b.getAttribute('data-pvg-rg')).filter(Boolean);
+        let best = null;
+        for (const rg of rgs) {
+          const mine = items.filter(i => i.rg === rg);
+          for (const c of 'abcdefghijklmnopqrstuvwxyz') {
+            const k = mine.filter(i => i.q.includes(c)).length, all = items.filter(i => i.q.includes(c)).length, d = Math.abs(k - mine.length / 2);
+            if (k >= 2 && k < mine.length && all > k && (!best || d < best.d)) best = { rg, c, k, d };
+          }
+        }
+        return best;
+      });
+      if (!pick) back.push('2枚以上が残る1字と地域の札が見つからない');
+      else {
+        const len0 = (await read()).len;
+        await p.type('#pvg-st-q', pick.c.toUpperCase());
+        const tapped = await K.tap(`#pvg-stay [data-pvg-rg="${pick.rg}"]`);
+        const narrowed = tapped && (await K.until(k => document.querySelectorAll('#pvg-st-list > li:not([hidden])').length === k, 8000, pick.k));
+        const r0 = await read();
+        if (r0.len !== len0) grow.push(`「${pick.c.toUpperCase()}」を打って「${pick.rg}」を押したら、履歴の段が ${len0} → ${r0.len}`);
+        if (!(narrowed && r0.cards.length === pick.k && r0.n === String(pick.k) && r0.pill === pick.rg)) back.push(`しぼった一覧が違う（${show(r0)}・${pick.k}枚のはず）`);
+        else {
+          /* 2枚めのカードを画面のまんなかへ（滑らせない）→ 落ち着いてから読む → そのカードを押す。
+             比べる位置は、押した瞬間の位置（押す前の寄せ直しで数 px 動くことがある ── 見ていた所は、押した時の所）。 */
+          const code = r0.cards[1];
+          await p.evaluate(c => document.querySelector(`#pvg-st-list .pvg-city[data-city="${c}"]`).scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }), code);
+          await still();
+          const before = await read();
+          await p.evaluate(() => { window.__pvgFindY = null; document.addEventListener('click', () => { window.__pvgFindY = Math.round(scrollY); }, { capture: true, once: true }); });
+          const opened = (await K.tap(`#pvg-st-list .pvg-city[data-city="${code}"]`)) && (await K.slotIs(code, 'locked'));
+          before.y = await p.evaluate(() => window.__pvgFindY);
+          if (!(before.y > 0)) back.push(`押した時の位置が読めない・一覧が短くて確かめられない（位置 ${before.y}）`);
+          if (!opened) back.push(`${code} を押しても詳細にならない`);
+          else {
+            await p.reload({ waitUntil: 'load', timeout: 60000 });
+            if (!(await K.slotIs(code, 'locked'))) back.push(`読み直すと ${code} の詳細にならない`);
+            else if (!((await K.tap('#pvg-city [data-pvg-cityback]')) && (await K.list()))) back.push('読み直したあと「‹ 就航地」で一覧に戻らない');
+            else {
+              await still();
+              const after = await read();
+              if (!(sameList(after, before) && Math.abs(after.y - before.y) <= 2)) back.push(`読み直して「‹ 就航地」── 前 ${show(before)} ／ 後 ${show(after)}`);
+              await p.reload({ waitUntil: 'load', timeout: 60000 });
+              if (!(await K.list())) back.push('一覧の上で読み直すと、一覧にならない');
+              else { const again = await read(); if (!sameList(again, before)) back.push(`一覧の上で読み直す ── 前 ${show(before)} ／ 後 ${show(again)}`); }
+            }
+          }
+        }
+      }
+    }
+    /* 住所で直接開いた都市 →「‹ 就航地」：全部の一覧（書き留めが無い ＝ 戻すものが無い） */
+    {
+      const code = networkOf(s).list[0].iata;
+      await p.goto('about:blank');
+      await p.goto(`${url}#stay-${code}`, { waitUntil: 'load', timeout: 60000 });
+      if (!(await K.slotIs(code, 'locked'))) direct.push(`#stay-${code} が詳細で開かない`);
+      else if (!((await K.tap('#pvg-city [data-pvg-cityback]')) && (await K.list()))) direct.push('「‹ 就航地」で一覧に戻らない');
+      else { const r = await read(); if (!(r.all > 0 && r.cards.length === r.all && r.n === String(r.all) && r.pill === '' && r.q === '')) direct.push(`戻った一覧 ── ${show(r)}（全部の ${r.all}枚・札「すべて」・欄は空のはず）`); }
+    }
+    ok(!grow.length, `${tag}: 探す欄に打っても地域の札を押しても、履歴の段は増えない（書き換えるだけ）`, grow.join(' ／ '));
+    ok(!back.length, `${tag}: 打って地域の札を押す → 都市 → 読み直す →「‹ 就航地」── 同じカード・同じ並び・同じ数・押した札・欄の字・同じ位置（2px 以内）／一覧の上で読み直しても同じ一覧`, back.join(' ／ '));
+    ok(!direct.length, `${tag}: 住所で直接開いた都市から「‹ 就航地」── 全部の一覧（札「すべて」・欄は空）`, direct.join(' ／ '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -6968,6 +7135,11 @@ try {
     for (const s of ONLY) for (const v of vs) work.push(() => runStay(browser, s, v));
     if (ONLY.length && vs.length) work.push(() => runStayStall(browser, ONLY[0], vs[0]));
     console.log(`  ・ホテルの欄（stay）を流す幅：${vs.map(v => v[0]).join('・') || 'なし'}（返事が来ない場面は ${ONLY[0] || '—'} ${vs.length ? vs[0][0] : '—'} の1回だけ）`);
+  }
+  if (wantS('find')) {
+    const vs = WANT_W ? VIEWS : VIEWS.filter(x => FIND_W.includes(x[0]));
+    for (const s of ONLY) for (const v of vs) work.push(() => runFind(browser, s, v));
+    console.log(`  ・就航地を探す・戻る・読み直し（find）を流す幅：${vs.map(v => v[0]).join('・') || 'なし'}`);
   }
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));

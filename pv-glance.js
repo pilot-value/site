@@ -190,6 +190,8 @@
   function markY() {
     var c = OPEN[at] ? null : current();
     var st = state({ pvgY: w.pageYOffset, pvgAt: at, pvgOpen: c ? c.getAttribute('aria-controls') : '' });
+    /* 就航地の一覧の段なら、探す字と地域の札も（「戻る」・読み直しで同じ一覧に戻す。restoreFind）。ほかの段では、その2つに触らない。 */
+    if (at === 'stay' && !cityAt) { st.pvgQ = stQ ? stQ.value : ''; st.pvgRg = stRg; }
     try {
       /* ページの中の id の段（#pvg-stay・出所の節 …）は、住所もいまのタブの住所へ直す。
          # に id が残っていると、「戻る」でこの段へ帰ってきたとき、ブラウザが自分でその id の頭へ寄せ直して
@@ -365,10 +367,27 @@
     near(stayBox);
     quiet(cityCard(was));
   }
+  /* 探す字と地域の札を、いまの段に書き留める（書き換えるだけ ＝ 打つたびに段を積まない）。
+     位置（pvgY）は足さない ── remark が「一度離れた段か」を位置の有無で見分けている。 */
+  function noteFind() {
+    if (at !== 'stay' || cityAt) return;
+    try { w.history.replaceState(state({ pvgQ: stQ ? stQ.value : '', pvgRg: stRg }), ''); } catch (e) { /* 書けなくても探せる */ }
+  }
+  /* 書き留めた探す字と地域の札を、一覧に戻す（「戻る」・読み直しで帰ってきた一覧）。書き留めが無ければ何もしない（false）。
+     札は一覧に在る地域だけ（無い地域なら「すべて」）。 */
+  function restoreFind(s) {
+    if (!s || typeof s !== 'object' || (typeof s.pvgQ !== 'string' && typeof s.pvgRg !== 'string')) return false;
+    if (stQ && typeof s.pvgQ === 'string') stQ.value = s.pvgQ;
+    var rg = typeof s.pvgRg === 'string' ? s.pvgRg : '';
+    stRg = stPills.some(function (b) { return (b.getAttribute('data-pvg-rg') || '') === rg; }) ? rg : '';
+    stPills.forEach(function (b) { b.setAttribute('aria-pressed', (b.getAttribute('data-pvg-rg') || '') === stRg ? 'true' : 'false'); });
+    filterCities();
+    return true;
+  }
   if (stQ) {
-    stQ.addEventListener('input', filterCities);
+    stQ.addEventListener('input', function () { filterCities(); noteFind(); });
     stQ.addEventListener('keydown', function (e) { if (e.key === 'Enter') stQ.blur(); });   // スマホの「検索」で、キーボードを下げる
-    if (stQ.value) filterCities();                 // 読み直しで欄に字が残っていたとき
+    if (!restoreFind(w.history.state) && stQ.value) filterCities();   // 書き留めが無く、読み直しで欄に字が残っていたとき
   }
   if (bar) {
     w.PVGlance = { go: go, at: function () { return at; }, city: function () { return cityAt; }, mark: markY };
@@ -404,6 +423,8 @@
         if (!OPEN[at] && s && s.pvgOpen) mores.forEach(function (b) { if (b.getAttribute('aria-controls') === s.pvgOpen) set(b, true); });
       }
       if (r.city !== cityAt) { setCity(r.city); fire(); }
+      /* 就航地の一覧の段へ帰ってきた：探す字と地域の札を戻してから位置を置く（一覧の高さは、しぼり方で変わる） */
+      if (r.tab === 'stay' && !r.city) restoreFind(s);
       var y = s && typeof s.pvgY === 'number' ? s.pvgY : null;
       if (y !== null) put(y); else if (cityAt) near(cityBox); else toTop();
       /* 詳細から一覧へ戻ったら、選んでいたカードへ焦点を返す（キーボードで続きから読める） */
@@ -507,6 +528,7 @@
       stRg = rg.getAttribute('data-pvg-rg') || '';
       stPills.forEach(function (b) { b.setAttribute('aria-pressed', b === rg ? 'true' : 'false'); });
       filterCities();
+      noteFind();
       return;
     }
     var more = t.closest('.pvg-more[aria-controls]');

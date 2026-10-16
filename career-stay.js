@@ -267,6 +267,7 @@
         var was = UID;
         UID = uid;
         if (typeof was === 'string') { closeAdds(); dropDrafts(); }   /* ログアウト・人の入れ替わり：前の人が打った字を次の人に渡さない。ログインでは残す */
+        else if (uid && slots().some(function (s) { return !!zoneForm(s); })) FORM_IN = true;   /* ログインの前に開いた追加の面も、ここからはログインのあいだの面（ログインが知らせなく消えたら閉じる） */
         CACHE = {};
         PHOTO_LOCK = false;
         vqReset();                   // 申し込みの状態も、ログインごとに読み直す

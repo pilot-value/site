@@ -1319,7 +1319,7 @@ async function main() {
     ok(J(L.tiles.map((t) => t.k)) === J([...INSIDE, 'stay']),
       'タイルは 勤務・通勤/タクシー・Staff Travel・機長昇格・勤務スケジュール・訓練/キャリア・休暇/手当・ホテル/ステイ の8つ', J(L.tiles.map((t) => t.t)));
     ok(INSIDE.every((k) => by[k].tag === 'BUTTON') && by.stay.tag === 'A'
-      && by.stay.to === EY + '#stay' && by.stay.d === 'パイロット限定',
+      && by.stay.to === EY + '#stay' && by.stay.d === '就航地ごと',
       '★答えられる7つは全部、面の中で開く（ほかの画面へ送り出さない＝会社を選び直させない）。ホテル・ステイは、このページの「ステイ先」のタブへ行く', J(L.tiles));
     ok(L.counts === 0 && L.state === 'anon anon' && !L.stateShown && !L.held && !/\d+\s*件/.test(L.text) && !/あなたの投稿/.test(L.text),
       '★まだ何も出していない人には件数を1つも出さない（「あなたの投稿」の字も、預かりの案内も出ない）', J({ counts: L.counts, state: L.state }));

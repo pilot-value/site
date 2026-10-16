@@ -6,6 +6,7 @@
 
      A) 明細の扱い ── 「画像は送らない」と書く（本当は送っている）
      B) 画面に出る数 ── HTML に数字を直書きし、JS が一度も書き換えない
+     C) ホテルの欄のまわりの言い方 ── 見る人・足す人の決まりと違うことを書く（2026-10-16）
 
    ※ どちらも 2026-09-20 にオーナーの指摘で見つかった。経緯は各節の頭にある。
 
@@ -216,6 +217,36 @@ console.log('\n── B) 画面に出る数を直書きしていない ───
       counts.length > 0 && badCounts.length === 0,
       counts.length ? `いま「${badCounts.join('」「')}」` : '1つも見つからない（書き方が変わった？）');
   }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   C) ホテルの欄のまわりの言い方（2026-10-16）
+
+   ホテル名・住所・写真を見られるのは、オーナーと、オーナーが確認したパイロットだけ（db/stays.sql）。
+   足すのは、ログインしていなくても誰でもできる。給与の提出では、ホテルは開かない。
+   その決まりと合わない言い方を、ホテルの欄のそばに置かない。
+     (i)   見出しの小さい字「確認済みのパイロットが足したもの」── 足すのは誰でもなので、本当ではない。
+           どのページにも、どのスクリプトにも書かない。
+     (ii)  「情報を追加」の面のホテル・ステイの札は「就航地ごと」── 足すのは誰でもなので「パイロット限定」と書かない。
+     (iii) career-stay.js の鍵の1行は「確認済みのパイロットだけが見られます」の1つだけ。
+           給与の提出で開くような言い方（「給与の提出で開きます」「ログインと給与の提出で開きます」）を書かない。
+   ※ 概要の話題の札「就航地ごと・パイロット限定」は、見るほうの話なので本当（残す）。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── C) ホテルの欄のまわりに、本当でない言い方を書いていない ─────');
+{
+  const ADDED_BY = '確認済みのパイロットが足したもの', LIMITED = 'パイロット限定', LOCKW = '確認済みのパイロットだけが見られます';
+  const PAY_OPENS = ['給与の提出で開きます', 'ログインと給与の提出で開きます'];
+  const held = files.filter(f => strip(readFileSync(f, 'utf8')).includes(ADDED_BY)).map(f => path.relative(ROOT, f));
+  ok(`(i) サイト全体 ${files.length} ファイル（HTML＋共有 JS）に「${ADDED_BY}」が無い（足すのは誰でも）`, held.length === 0, held.join(' '));
+  const pc = strip(readFileSync(path.join(ROOT, 'pv-contrib.js'), 'utf8'));
+  const tile = [...pc.matchAll(/\{ k: 'stay', t: 'ホテル・ステイ', q: '([^']*)'/g)].map(m => m[1]);
+  ok('(ii) pv-contrib.js：ホテル・ステイの札は1つ・字は「就航地ごと」', tile.length === 1 && tile[0] === '就航地ごと', `いま ${JSON.stringify(tile)}`);
+  ok(`(ii) pv-contrib.js に「${LIMITED}」が無い（足すのは誰でも）`, !pc.includes(LIMITED));
+  const cs = strip(readFileSync(path.join(ROOT, 'career-stay.js'), 'utf8'));
+  const payWords = PAY_OPENS.filter(x => cs.includes(x));
+  ok('(iii) career-stay.js に、給与の提出で開くような言い方が無い（給与ではホテルは開かない）', payWords.length === 0, payWords.join(' ／ '));
+  const lockN = cs.split(LOCKW).length - 1;
+  ok(`(iii) career-stay.js の鍵の1行「${LOCKW}」は1つだけ`, lockN === 1, `いま ${lockN} か所`);
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

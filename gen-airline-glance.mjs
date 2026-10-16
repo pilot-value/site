@@ -894,7 +894,7 @@ ${credits}
 </div>
 </div>
 <div class="pvg-cd-sec">
-<h4 class="pvg-askh">ホテル・レストラン・場所<small>確認済みのパイロットが足したもの</small></h4>
+<h4 class="pvg-askh">ホテル・レストラン・場所</h4>
 ${live('hotels', { airline: v.slug, stay: '', city: '' })}
 </div>
 </section>`;
