@@ -268,8 +268,8 @@ console.log('\n── C) ホテルの欄のまわりに、本当でない言い�
 console.log('\n── D) ログインせずに出した人の鍵と回線の印を、個人データのページに書いている ─────');
 {
   const DEVICE_KEY = {
-    'personal-data.html': 'ログインせずに回答したり、ホテル・レストラン・場所や住みやすい街を追加したりした場合、あなたの投稿をあなたの端末にだけ見せるための鍵を、この端末のブラウザに保存します（サーバーには、その鍵から作った復元できない値だけを置きます）。同じ回線からの回数を数えるため、IPアドレスを復元しにくい形に変換した値を1日だけ保持し、その後削除します。メールアドレス・氏名・位置情報は伺いません。',
-    'en/personal-data.html': 'If you answer questions or add a hotel, restaurant, place or town without signing in, a key that lets only your device see your own posts is stored in this browser (the server keeps only an irreversible value made from it). To count additions from one connection, a value derived from your IP address that is hard to reverse is kept for one day and then deleted. We do not ask for an e-mail address, a name or a location.',
+    'personal-data.html': 'ログインせずに回答したり、ホテル・レストラン・場所や住みやすい街を追加したりした場合、あなたの投稿をあなたの端末にだけ見せるための鍵を、この端末のブラウザに保存します（サーバーには、その鍵から作った復元できない値だけを置きます）。同じ回線からの回数を数えるため、IPアドレスを変換した値を1日だけ保持し、その後削除します。メールアドレス・氏名・位置情報は伺いません。',
+    'en/personal-data.html': 'If you answer questions or add a hotel, restaurant, place or town without signing in, a key that lets only your device see your own posts is stored in this browser (the server keeps only an irreversible value made from it). To count additions from one connection, a value derived from your IP address is kept for one day and then deleted. We do not ask for an e-mail address, a name or a location.',
   };
   const keyTable = /\bpv_stay_keys\b/.test(readFileSync(path.join(ROOT, 'db/stays.sql'), 'utf8'))
                 || /\bpv_contrib_keys\b/.test(readFileSync(path.join(ROOT, 'db/contrib.sql'), 'utf8'));
