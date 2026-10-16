@@ -58,6 +58,7 @@ export const SQL_FILES = [
   'db/founding.sql',
   'db/stays.sql',
   'db/work-months.sql',
+  'db/towns.sql',
   'db/contrib.sql',
 ];
 
