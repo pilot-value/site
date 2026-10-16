@@ -554,6 +554,9 @@ const GRANTS = {
   pv_stay_claim: 'auth',
   /* 見てよい人の申し込み・オーナーの一覧・オーナーが決める口（WP-stays-1b）。ログインした人にだけ配る（未ログインには配らない） */
   pv_stay_viewer_request: 'auth', pv_stay_viewer_queue: 'auth', pv_stay_viewer_decide: 'auth',
+  /* パイロットであることの確認（2026-10-16・10-c）。会員の入口1本とオーナーの4本。ログインした人にだけ配る */
+  pv_stay_apply: 'auth', pv_stay_applicants: 'auth', pv_stay_applicant_image: 'auth', pv_stay_members: 'auth',
+  pv_stay_viewer_verify: 'auth',
   pv_stay_hash: '', pv_stay_role: '', pv_stay_visible: '',
   /* 端末の鍵の印・呼んだ人の手・足してよい人の決め方・1日の上限（WP-stays-2）。誰にも配らない */
   pv_stay_key_hash: '', pv_stay_me: '', pv_stay_may_add: '', pv_stay_cap: '',
@@ -579,8 +582,8 @@ const grantsNow = async () => (await db.query(
     order by p.proname, p.oid`)).rows;
 const checkGrants = async (label) => {
   const rows = await grantsNow();
-  ok(rows.length === 32 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
-     `${label}関数は32本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
+  ok(rows.length === 37 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
+     `${label}関数は37本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
   /* ★確認の印で開けていた頃の判定は、DB から消えている（残っていると、いつか誰かがまた門に呼ぶ） */
   ok((await one(`select to_regprocedure('public.pv_is_verified_pilot()') is null as gone`)).gone === true,
      `${label}★前の判定 pv_is_verified_pilot は DB に残っていない`);
@@ -591,9 +594,10 @@ const checkGrants = async (label) => {
      J(rows.filter((r) => !/search_path=/.test(r.cfg)).map((r) => r.name)));
   const needDef = ['pv_stays', 'pv_stay_add', 'pv_stay_update', 'pv_stay_photo_add', 'pv_stay_photo', 'pv_stay_moderate',
                    'pv_stay_delete', 'pv_stay_queue', 'pv_stay_role',
-                   'pv_stay_viewer_request', 'pv_stay_viewer_queue', 'pv_stay_viewer_decide', 'pv_stay_claim'];
+                   'pv_stay_viewer_request', 'pv_stay_viewer_queue', 'pv_stay_viewer_decide', 'pv_stay_claim',
+                   'pv_stay_apply', 'pv_stay_applicants', 'pv_stay_applicant_image', 'pv_stay_members', 'pv_stay_viewer_verify'];
   ok(rows.filter((r) => r.def).map((r) => r.name).sort().join(',') === needDef.sort().join(','),
-     `${label}security definer は表を読む13本だけ（見てよい人の決め方の2本は definer にしない）`, rows.filter((r) => r.def).map((r) => r.name).join(','));
+     `${label}security definer は表を読む18本だけ（見てよい人の決め方の2本は definer にしない）`, rows.filter((r) => r.def).map((r) => r.name).join(','));
 };
 await checkGrants('');
 {
@@ -3134,8 +3138,11 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   /* 関数の本文だけ（$fn$; まで。後ろの revoke・grant・comment・次の節は入れない） */
   const bodyOf = (f) => f.slice(0, Math.max(0, f.indexOf('$fn$;')));
   const vqF = bodyOf(code.split(/create or replace function/).slice(1).find((f) => f.trimStart().startsWith('public.pv_stay_viewer_queue(')) || '');
-  ok(PROF_WORDS.every((w) => code.split(w).length === 2 && vqF.split(w).length === 2),
-     '（プロフィールの会社と職位を名指しするのは、オーナーの一覧の中の1か所ずつだけ）', J(PROF_WORDS.map((w) => [code.split(w).length - 1, vqF.split(w).length - 1])));
+  /* ★ 2026-10-16（10-c）: オーナーの一覧は3つになった（申し込み・申請してきた人・会員）。3つの中の1か所ずつだけ外す */
+  const ownLists = ['pv_stay_viewer_queue', 'pv_stay_applicants', 'pv_stay_members']
+    .map((n) => bodyOf(code.split(/create or replace function/).slice(1).find((f) => f.trimStart().startsWith('public.' + n + '(')) || ''));
+  ok(PROF_WORDS.every((w) => code.split(w).length === 4 && ownLists.every((b) => b.split(w).length === 2)),
+     '（プロフィールの会社と職位を名指しするのは、オーナーの一覧3つの中の1か所ずつだけ）', J(PROF_WORDS.map((w) => [code.split(w).length - 1, ...ownLists.map((b) => b.split(w).length - 1)])));
   const banned = PROF_WORDS.reduce((c, w) => c.split(w).join(''), code.split(POS_FF).join(''))
     .match(/access_until|pv_my_give|badge|founding|pay_reports|verified_airline|\bsource\b|company|"position"|\bposition\b/gi);
   ok(!banned, '★給与の鍵・バッジ・プロフィールの会社と職位・FOUNDING を、コードが1度も読んでいない（オーナーの一覧が見せる2つのほか）', J(banned));
@@ -3148,8 +3155,8 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   ok(STAYS_SQL.split('pv_is_verified_pilot').length === 2 && /^drop function if exists public\.pv_is_verified_pilot\(\);$/m.test(STAYS_SQL),
      '★前の判定 pv_is_verified_pilot は、消す1行のほかに1度も出てこない');
   const fns = code.split(/create or replace function/).slice(1);
-  ok(fns.length === 32 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
-     '32本の関数すべてに set search_path = public, extensions', String(fns.length));
+  ok(fns.length === 37 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
+     '37本の関数すべてに set search_path = public, extensions', String(fns.length));
   const fn = (name) => fns.find((f) => f.trimStart().startsWith('public.' + name + '(')) || '';
   /* 見てよい人の決め方は、毎回「会員と未ログインが名簿の2表を書けない」ことも見ている（2表 × 4通り） */
   const ownF = fn('pv_stay_owner_id'), seesF = fn('pv_stay_sees');
@@ -3206,8 +3213,9 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   /* ★ オーナーの承認の口（WP-stays-1b）── 読んで確かめる */
   const vrF = bodyOf(fn('pv_stay_viewer_request')), vdF = bodyOf(fn('pv_stay_viewer_decide'));
   const OWNER_GATE = /v_owner := public\.pv_stay_owner_id\(\);\s+if auth\.uid\(\) is null or v_owner is null or auth\.uid\(\) <> v_owner then\s+return jsonb_build_object\('ok', false, 'status', 'forbidden'\);/;
-  ok([vqF, vdF].every((f) => f !== '' && OWNER_GATE.test(f)
-       && f.indexOf("'forbidden'") < f.search(/from public\.pv_stay_viewers|auth\.users|public\.profiles/)
+  const ownGateF = ['pv_stay_applicants', 'pv_stay_applicant_image', 'pv_stay_members', 'pv_stay_viewer_verify'].map((n) => bodyOf(fn(n)));
+  ok([vqF, vdF, ...ownGateF].every((f) => f !== '' && OWNER_GATE.test(f)
+       && f.indexOf("'forbidden'") < f.search(/from public\.pv_stay_viewers|auth\.users|public\.profiles|pv_proof_offer/)
        && !/pv_is_operator|pv_stay_role|pv_admins|pv_stay_sees/.test(f)),
      '★一覧の口と決める口は、オーナーでなければ表を1行も読まずに forbidden（オーナーかは pv_stay_owner_id だけで決める。運営の判定・門・見てよい人の判定を使わない）');
   const EFF = /case when (v_row|v)\.state = 'pending' or \1\.decided_by is distinct from v_owner then 'pending'\s+else \1\.state end/;
@@ -3219,9 +3227,10 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
      && /values \(v_caller, 'pending', now\(\)\)\s+on conflict \(user_id\) do nothing;/.test(vrF),
      '★申し込みの口が読む欄は ask だけ（state・user_id を読まない）・入れるのは本人の pending の1行だけ・行が在れば触らない');
   ok(/set state = v_to, decided_by = auth\.uid\(\), decided_at = now\(\)\s+where user_id = v_id;/.test(vdF)
-     && (code.match(/update public\.pv_stay_viewers/g) || []).length === 1 && (code.match(/insert into public\.pv_stay_viewers/g) || []).length === 1
-     && /update public\.pv_stay_viewers/.test(vdF) && /insert into public\.pv_stay_viewers/.test(vrF),
-     '★承認の行を書き換えるのは決める口の1か所だけで、決めた人（オーナー）と時刻を必ず書く／行を入れるのは申し込みの口の1か所だけ');
+     && (code.match(/update public\.pv_stay_viewers/g) || []).length === 1 && (code.match(/insert into public\.pv_stay_viewers/g) || []).length === 2
+     && /update public\.pv_stay_viewers/.test(vdF) && /insert into public\.pv_stay_viewers/.test(vrF)
+     && /insert into public\.pv_stay_viewers as v \(user_id, state, decided_by, decided_at\)\s+values \(v_id, v_to, auth\.uid\(\), now\(\)\)\s+on conflict \(user_id\) do update\s+set state = excluded\.state, decided_by = excluded\.decided_by, decided_at = excluded\.decided_at;/.test(ownGateF[3]),
+     '★承認の行を書くのは決める口と verified の2か所だけで、どちらも決めた人（オーナー）と時刻を必ず書く／申し込みの行を入れるのは申し込みの口の1か所だけ');
   ok(vdF.indexOf("'self'") > 0 && vdF.indexOf("'self'") < vdF.indexOf('from public.pv_stay_viewers'),
      '★オーナーが自分を決めようとしたら、行を読む前に self');
   /* 写真を足すとき、場所の行を錠つきで読んでいる（読んでから入れるまでの間に見送られても画素が残らない） */

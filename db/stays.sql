@@ -2605,8 +2605,9 @@ comment on function public.pv_stay_queue(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 -- 10-a. 見てよい人の申し込みと、オーナーの承認（★決めるのはオーナーだけ）── 約束 1
 -- ════════════════════════════════════════════════════════════════
--- オーナーが承認するのは**人**（ホテルではない）。承認できるのは、申し込んだ人だけ
+-- オーナーが承認するのは**人**（ホテルではない）。この節の決める口で承認できるのは、申し込んだ人だけ
 -- （申し込みの行が無い人は not_found ＝ 承認は申し込んだ人のアカウントに結び付く）。
+-- ★ 2026-10-16 から画面はこの節を呼ばない。申請（画像つき）と verified は 10-c。
 -- 3本とも authenticated にだけ配る（未ログインには配らない）。
 -- ★ 一覧の口と決める口は、オーナーでなければ**何も読まずに** forbidden を返す。
 --   オーナーかどうかは pv_stay_owner_id()（3-b）の1か所で決める。運営であること（pv_admins）・
@@ -2804,6 +2805,299 @@ grant execute on function public.pv_stay_viewer_decide(jsonb) to authenticated;
 
 comment on function public.pv_stay_viewer_decide(jsonb) is
   'ステイ情報を見てよい人を決める（承認・見送り・取り消し）。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申し込んだ人だけ（行が無ければ not_found）。オーナー自身は self。決めた人と時刻を必ず書く。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 10-c. パイロットであることの確認（申請と、オーナーの「verified」）── 約束 1（2026-10-16）
+-- ════════════════════════════════════════════════════════════════
+-- オーナー指示（2026-10-16）「オーナーの管理画面で申請してきた人一覧と、会員一覧の中にボタンで
+--   verified ボタンをつけて。基本的に申請してきた人は、パイロットと証明する画像提出必要」
+--   「運営はおれしかいない」── 申請者・画像・verified はオーナーだけ。
+-- ★ 画像の置き場は前からある仕組み（db/proof-store.sql ＋ db/proof-offer.sql の4本）。
+--   ここは画像の表を1回も読まない・書かない。
+-- ★ 申請は何も止めない（REAL PAY・DEEP PAY・口コミ本文・ホテルの追加・いま見られているもの）。
+-- ★ 見てよい人になるのは、オーナーが verified を押したときだけ（pv_stay_viewers に 'approved'・
+--   決めた人 ＝ いまのオーナー）。画像を出しただけ・パイロットの確認（proof の approved）・運営の名簿・
+--   給与・ログイン・プロフィールの印では、どれも1行も書かれない。
+-- ★ verified はパイロットの確認（pv_proof）を 'approved' にしない。申請の行を終える（画像ごと消える）だけ。
+-- ★ オーナーの4本は、オーナーでなければ**何も読まずに** forbidden を返す（10-a と同じ1か所 pv_stay_owner_id）。
+-- ★ 申請の仕組み（db/proof-offer.sql）がまだ貼られていなければ、会員の入口は 'closed'・申請者の一覧は空・
+--   画像は 'none'（何も受け取らない）。会員一覧と verified はそれでも動く（申請の行を終える所だけ飛ばす）。
+-- ★ 10-a の申し込み（pv_stay_viewer_request / _queue / _decide）はそのまま残す（画面からはもう呼ばない）。
+
+-- 10-c-1. 申請する／自分の状態を読む（会員。ポップアップが呼ぶ）
+-- 引数: p = {image:<JPEG の base64>}（image が文字列のときだけ出す。それ以外は読むだけ）
+-- 返り値:
+--   ログインしていない → {ok:false, status:'login'}
+--   オーナーが決まっていない・申請の仕組みが無い → {ok:false, status:'closed'}（画像を受け取らない）
+--   オーナー           → {ok:true, state:'owner'}
+--   もう見てよい人      → {ok:true, state:'approved'}（画像を受け取らない）
+--   読むだけ           → {ok:true, state:'offered'|'none'}
+--   出した             → {ok:true, state:'offered'} か {ok:false, status:'image_bad'|'image_too_big'|'too_many'|'unavailable'}
+--   ★ 'unavailable' は運営の確認の途中・前の確認の控えがある人（どちらも中身を言わない ──
+--     「前に確認を求められたことがある」を画面へ渡さない。main の pv_proof_state と同じ考え）。
+create or replace function public.pv_stay_apply(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid   uuid := auth.uid();
+  v_owner uuid;
+  v_b64   text;
+  v_r     jsonb;
+begin
+  if v_uid is null then
+    return jsonb_build_object('ok', false, 'status', 'login');
+  end if;
+  v_owner := public.pv_stay_owner_id();
+  if v_owner is null or to_regprocedure('public.pv_proof_offer(text)') is null then
+    return jsonb_build_object('ok', false, 'status', 'closed');
+  end if;
+  if v_uid = v_owner then
+    return jsonb_build_object('ok', true, 'state', 'owner');
+  end if;
+  if coalesce(public.pv_stay_sees(), false) then
+    return jsonb_build_object('ok', true, 'state', 'approved');
+  end if;
+
+  v_b64 := case when jsonb_typeof(p) = 'object' and jsonb_typeof(p->'image') = 'string'
+                then p->>'image' end;
+  if v_b64 is null then
+    return jsonb_build_object('ok', true, 'state',
+      case when exists (select 1 from public.pv_proof_offers() o
+                         where o.user_id = v_uid and o.has_image)
+           then 'offered' else 'none' end);
+  end if;
+
+  v_r := public.pv_proof_offer(v_b64);
+  if v_r->>'status' in ('in_check', 'checked', 'no_member') then
+    return jsonb_build_object('ok', false, 'status', 'unavailable');
+  end if;
+  return v_r;
+end;
+$fn$;
+
+revoke all on function public.pv_stay_apply(jsonb) from public, anon;
+grant execute on function public.pv_stay_apply(jsonb) to authenticated;
+
+comment on function public.pv_stay_apply(jsonb) is
+  'パイロットであることを示す画像を自分から出す（申請）／自分の状態を読む。何も止めない。返すのは本人の状態だけ（none・offered・approved・owner）。見てよい人になるのはオーナーが verified を押したときだけ。';
+
+-- 10-c-2. 申請してきた人の一覧（オーナーだけ）
+-- 引数: p（いまは使わない。形をそろえるためだけ ── pv_stay_queue と同じ）
+-- 返り値: オーナーでない → {ok:false, status:'forbidden'}（★何も読まずに返す）
+--         オーナー → {ok:true, rows:[{id, email, name, company, position, size, asked}]}
+--   画像のある申請だけ（画像の無い申請は作れない）。出した時期は 0〜4 の段（3-e）。古い順に200人まで。
+create or replace function public.pv_stay_applicants(p jsonb default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_owner uuid;
+  v_rows  jsonb;
+begin
+  v_owner := public.pv_stay_owner_id();
+  if auth.uid() is null or v_owner is null or auth.uid() <> v_owner then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  if to_regprocedure('public.pv_proof_offers()') is null then
+    return jsonb_build_object('ok', true, 'rows', '[]'::jsonb);
+  end if;
+  select coalesce(jsonb_agg(z.j order by z.t, z.id), '[]'::jsonb) into v_rows
+    from (select jsonb_build_object(
+                   'id', o.user_id, 'email', u.email, 'name', pf.name,
+                   'company', pf.company, 'position', pf."position",
+                   'size', o.byte_len, 'asked', public.pv_stay_age(o.submitted_at)) as j,
+                 o.submitted_at as t, o.user_id as id
+            from public.pv_proof_offers() o
+            left join auth.users u on u.id = o.user_id
+            left join public.profiles pf on pf.id = o.user_id
+           where o.has_image and o.user_id <> v_owner
+           order by o.submitted_at, o.user_id
+           limit 200) z;
+  return jsonb_build_object('ok', true, 'rows', v_rows);
+end;
+$fn$;
+
+revoke all on function public.pv_stay_applicants(jsonb) from public, anon;
+grant execute on function public.pv_stay_applicants(jsonb) to authenticated;
+
+comment on function public.pv_stay_applicants(jsonb) is
+  'パイロットであることの確認を申請してきた人の一覧（画像のある人だけ）。オーナーだけ（運営でも、オーナーでなければ forbidden）。画像は返さない。';
+
+-- 10-c-3. 申請の画像を1枚見る（オーナーだけ）
+-- 引数: p = {id}  返り値: forbidden（★何も読まずに）／{ok:true, mime, b64}／{ok:false, status:'none'}
+create or replace function public.pv_stay_applicant_image(p jsonb)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare v_owner uuid;
+begin
+  v_owner := public.pv_stay_owner_id();
+  if auth.uid() is null or v_owner is null or auth.uid() <> v_owner then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  if to_regprocedure('public.pv_proof_offer_image(uuid)') is null then
+    return jsonb_build_object('ok', false, 'status', 'none');
+  end if;
+  return public.pv_proof_offer_image(public.pv_stay_uuid(p->>'id'));
+end;
+$fn$;
+
+revoke all on function public.pv_stay_applicant_image(jsonb) from public, anon;
+grant execute on function public.pv_stay_applicant_image(jsonb) to authenticated;
+
+comment on function public.pv_stay_applicant_image(jsonb) is
+  '申請の画像を1枚返す。オーナーだけ（運営でも、オーナーでなければ forbidden）。申請の行の画像だけ。';
+
+-- 10-c-4. 会員一覧（オーナーだけ）
+-- 引数: p（いまは使わない。形をそろえるためだけ）
+-- 返り値: オーナーでない → {ok:false, status:'forbidden'}（★何も読まずに返す）
+--         オーナー → {ok:true, rows:[{id, email, name, company, position, state, applied}]}
+--   state    いまのオーナーにとっての状態（'approved'|'denied'|'revoked'|'none'。前のオーナーが決めた行・
+--            申し込んだだけの行は 'none'）
+--   applied  申請（画像あり）が在るか
+--   ★ オーナー自身は出さない。並びは 申請あり → verified → それ以外、その中はメールの順。1000人まで。
+create or replace function public.pv_stay_members(p jsonb default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_owner uuid;
+  v_apps  uuid[] := array[]::uuid[];
+  v_rows  jsonb;
+begin
+  v_owner := public.pv_stay_owner_id();
+  if auth.uid() is null or v_owner is null or auth.uid() <> v_owner then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  if to_regprocedure('public.pv_proof_offers()') is not null then
+    v_apps := array(select o.user_id from public.pv_proof_offers() o where o.has_image);
+  end if;
+  select coalesce(jsonb_agg(z.j order by z.k, z.e, z.id), '[]'::jsonb) into v_rows
+    from (select jsonb_build_object(
+                   'id', pf.id, 'email', u.email, 'name', pf.name,
+                   'company', pf.company, 'position', pf."position",
+                   'state', x.st, 'applied', x.ap) as j,
+                 case when x.ap then 0 when x.st = 'approved' then 1 else 2 end as k,
+                 lower(coalesce(u.email, '')) as e, pf.id
+            from public.profiles pf
+            join auth.users u on u.id = pf.id
+            cross join lateral (
+              select coalesce((select v.state from public.pv_stay_viewers v
+                                where v.user_id = pf.id and v.decided_by = v_owner
+                                  and v.state in ('approved', 'denied', 'revoked')), 'none') as st,
+                     pf.id = any(v_apps) as ap) x
+           where pf.id <> v_owner
+           order by k, e, pf.id
+           limit 1000) z;
+  return jsonb_build_object('ok', true, 'rows', v_rows);
+end;
+$fn$;
+
+revoke all on function public.pv_stay_members(jsonb) from public, anon;
+grant execute on function public.pv_stay_members(jsonb) to authenticated;
+
+comment on function public.pv_stay_members(jsonb) is
+  '会員一覧（verified の状態と、申請があるか）。オーナーだけ（運営でも、オーナーでなければ forbidden）。オーナー自身は出さない。';
+
+-- 10-c-5. verified（オーナーだけ）── 申請してきた人の一覧と、会員一覧の両方のボタンがこれを呼ぶ
+-- 引数: p = {id, state, via}
+--   via 'applicant'（申請してきた人の一覧・画像を見た所から）: state 'approved'（verified）か 'denied'（見送り）
+--        ★申請の画像が在るときだけ決める（無ければ no_image・何も書かない）
+--   via 'member'（会員一覧）: state 'approved'（verified）か 'revoked'（取り消す・いま verified の人だけ）
+-- 返り値: forbidden（★何も読まず・何も書かずに）／self／not_found／bad_state／no_image／
+--         {ok:true, state, discarded}（discarded ＝ この決定で消えた申請の画像の枚数）
+-- ★ どの決定でも、その人の申請は終わる（画像はその場で消える）。
+-- ★ 'denied' でも、いま verified の人は verified のまま（見送りで、見られているものを取り上げない）。
+-- ★ pv_proof には「申請の行を終える」以外で1文字も触らない（approved にしない・運営の確認の行は動かさない）。
+create or replace function public.pv_stay_viewer_verify(p jsonb)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_owner uuid;
+  v_id    uuid;
+  v_via   text;
+  v_to    text;
+  v_cur   text;
+  v_img   boolean;
+  v_disc  integer := 0;
+begin
+  v_owner := public.pv_stay_owner_id();
+  if auth.uid() is null or v_owner is null or auth.uid() <> v_owner then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  v_id := public.pv_stay_uuid(p->>'id');
+  if v_id = v_owner then
+    return jsonb_build_object('ok', false, 'status', 'self');
+  end if;
+  if v_id is null
+     or not exists (select 1 from auth.users u where u.id = v_id)
+     or not exists (select 1 from public.profiles pf where pf.id = v_id) then
+    return jsonb_build_object('ok', false, 'status', 'not_found');
+  end if;
+  v_via := coalesce(p->>'via', '');
+  v_to  := coalesce(p->>'state', '');
+  if not ((v_via = 'applicant' and v_to in ('approved', 'denied'))
+          or (v_via = 'member' and v_to in ('approved', 'revoked'))) then
+    return jsonb_build_object('ok', false, 'status', 'bad_state');
+  end if;
+
+  select case when v.decided_by = v_owner and v.state in ('approved', 'denied', 'revoked')
+              then v.state else 'none' end
+    into v_cur
+    from public.pv_stay_viewers v where v.user_id = v_id for update;
+  v_cur := coalesce(v_cur, 'none');
+  v_img := false;
+  if to_regprocedure('public.pv_proof_offers()') is not null then
+    v_img := exists (select 1 from public.pv_proof_offers() o where o.user_id = v_id and o.has_image);
+  end if;
+
+  if v_via = 'applicant' and not v_img then
+    return jsonb_build_object('ok', false, 'status', 'no_image');
+  end if;
+  if v_to = 'revoked' and v_cur <> 'approved' then
+    return jsonb_build_object('ok', false, 'status', 'bad_state');
+  end if;
+  if v_to = 'denied' and v_cur = 'approved' then
+    v_to := 'approved';                         -- 見送りで、いま見られているものを取り上げない
+  end if;
+
+  if v_to <> v_cur then
+    insert into public.pv_stay_viewers as v (user_id, state, decided_by, decided_at)
+    values (v_id, v_to, auth.uid(), now())
+    on conflict (user_id) do update
+       set state = excluded.state, decided_by = excluded.decided_by, decided_at = excluded.decided_at;
+  end if;
+
+  if to_regprocedure('public.pv_proof_offer_close(uuid)') is not null then
+    v_disc := public.pv_proof_offer_close(v_id);
+  end if;
+  return jsonb_build_object('ok', true, 'state', v_to, 'discarded', coalesce(v_disc, 0));
+end;
+$fn$;
+
+revoke all on function public.pv_stay_viewer_verify(jsonb) from public, anon;
+grant execute on function public.pv_stay_viewer_verify(jsonb) to authenticated;
+
+comment on function public.pv_stay_viewer_verify(jsonb) is
+  'verified（見てよい人にする）・見送り・取り消し。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申請してきた人は画像があるときだけ決める。どの決定でも申請は終わり、画像はその場で消える。パイロットの確認（pv_proof）を approved にしない。';
 
 
 -- ════════════════════════════════════════════════════════════════

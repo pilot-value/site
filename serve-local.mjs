@@ -56,6 +56,8 @@ export const SQL_FILES = [
   'db/requests.sql',
   'db/referrals.sql',
   'db/founding.sql',
+  'db/proof-store.sql',
+  'db/proof-offer.sql',
   'db/stays.sql',
   'db/work-months.sql',
   'db/towns.sql',
