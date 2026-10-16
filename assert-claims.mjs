@@ -228,13 +228,13 @@ console.log('\n── B) 画面に出る数を直書きしていない ───
      (i)   見出しの小さい字「確認済みのパイロットが足したもの」── 足すのは誰でもなので、本当ではない。
            どのページにも、どのスクリプトにも書かない。
      (ii)  「情報を追加」の面のホテル・ステイの札は「就航地ごと」── 足すのは誰でもなので「パイロット限定」と書かない。
-     (iii) career-stay.js の鍵の1行は「確認済みのパイロットだけが見られます」の1つだけ。
+     (iii) career-stay.js の鍵の1行は「ONLY VERIFIED PILOT」の1つだけ。
            給与の提出で開くような言い方（「給与の提出で開きます」「ログインと給与の提出で開きます」）を書かない。
    ※ 概要の話題の札「就航地ごと・パイロット限定」は、見るほうの話なので本当（残す）。
    ════════════════════════════════════════════════════════════════ */
 console.log('\n── C) ホテルの欄のまわりに、本当でない言い方を書いていない ─────');
 {
-  const ADDED_BY = '確認済みのパイロットが足したもの', LIMITED = 'パイロット限定', LOCKW = '確認済みのパイロットだけが見られます';
+  const ADDED_BY = '確認済みのパイロットが足したもの', LIMITED = 'パイロット限定', LOCKW = 'ONLY VERIFIED PILOT';
   const PAY_OPENS = ['給与の提出で開きます', 'ログインと給与の提出で開きます'];
   const held = files.filter(f => strip(readFileSync(f, 'utf8')).includes(ADDED_BY)).map(f => path.relative(ROOT, f));
   ok(`(i) サイト全体 ${files.length} ファイル（HTML＋共有 JS）に「${ADDED_BY}」が無い（足すのは誰でも）`, held.length === 0, held.join(' '));
