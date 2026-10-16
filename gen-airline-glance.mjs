@@ -488,6 +488,17 @@ function townName(r) {
   const sub = r.en || (m ? m[2] : '');
   return { main: m ? m[1] : r.name, sub, en: /^[\x20-\x7e]+$/.test(sub) };
 }
+/* 街のカードの名前（追加の面の候補・サーバの候補の種が、カードと同じ関数・同じ並びで読む）。
+   sub   … カードが名前の下に出す1行（無ければ ''）。面の「街の検索」が、名前と一緒に探す
+   alias … その1行がラテン文字の表記（カードが lang="en" を付ける行）のときだけ、同じ街の別の書き方として種に入れる。
+           区や駅の案内（東京都港区・高鐵桃園站 A18）は、別のものの名前なので入れない */
+export const ledgerTowns = v => {
+  const seen = new Set();
+  return (v.living ? v.living.rents : []).map(r => townName(r)).filter(n => n.main && !seen.has(n.main) && seen.add(n.main))
+    .map(n => ({ name: n.main, sub: n.sub || '', alias: n.en && n.sub ? n.sub : '' }));
+};
+/* 街の投稿が属する基地の3字。住むエリアの節の data-base・入口・一覧の器・候補の種が、この1つを読む */
+export const baseCode = v => (v.living && v.living.airports && v.living.airports[0] && v.living.airports[0].iata) || '';
 const bare = s => String(s).replace(/（[^）]*）/g, '');
 const code3 = iata => `<i class="pvg-code3">${esc(iata)}</i>`;
 /* 段の数。幅が許す数（2／3／4／5）にカードが収まればカードの数、収まらなければ行ごとの枚数がそろう数。 */
@@ -634,7 +645,7 @@ function livingCell(v) {
     });
   }
   const t = townTracks(L.rents.length), sizes = townSizes(t);
-  const towns = `<section class="pvg-liv" data-pvg-towns data-city="${esc(L.cityKey)}" data-base="${esc(L.airports[0].iata)}">
+  const towns = `<section class="pvg-liv" data-pvg-towns data-city="${esc(L.cityKey)}" data-base="${esc(baseCode(v))}">
 ${livingHead(v, L)}
 <ul class="pvg-tgrid" data-n="${L.rents.length}" style="--tg-a:${t.a};--tg-b:${t.b};--tg-c:${t.c};--tg-d:${t.d}">
 ${L.rents.map(r => townCard(L, r, sizes)).join('\n')}

@@ -470,14 +470,17 @@ begin
       using errcode = '54000', detail = 'names';
   end if;
 
-  -- 街を直した回：前の街の投稿を外してから、この街へ置く
-  if not v_had and v_c ? 'was' then
+  -- 街を直した回：前の街の投稿を外してから、この街へ置く。
+  -- ★直した先の街をもう持っていても、前の街の行は消す（この街の1行が、出した中身で置き換わる ＝ replaced:true）。
+  --   残すと、画面からは消えた前の街が、読み直すと戻り、その街の数にも入り続ける。
+  -- ★前の街が、この街そのもの（束ねた別の書き方）なら、何も消さない。
+  if v_c ? 'was' then
     select * into v_from from public.pv_towns
      where airline = v_air and base_iata = v_base and tkey = public.pv_town_key(v_c->>'was');
-    if v_from.id is not null then
+    if v_from.id is not null and coalesce(v_from.alias_of, v_from.id) <> v_town.id then
       delete from public.pv_town_posts
        where author_hash = v_me and town_id = coalesce(v_from.alias_of, v_from.id);
-      v_had := found;
+      v_had := v_had or found;
     end if;
   end if;
 
@@ -555,6 +558,113 @@ $fn$;
 revoke all on function public.my_town_posts(jsonb) from public, anon;
 grant execute on function public.my_town_posts(jsonb) to authenticated;
 
+-- ════ 6. 候補の一覧（追加の面の中の「街の検索」が読む）════
+-- 返す形: { ok:true, towns:[名前…] }。台帳の街 → 運営が足した街。
+-- ★サイトの名前だけ。誰が読んでも同じ字が返る（立場を見ない・読む人を見ない・投稿の表を読まない）。
+-- ★会員が打ち込んだ街の名前は、運営が承認したあとも、ここには入れない。それは「ほかの人が出した情報」で、
+--   見せてよい相手にだけ 7 の一覧が返す。追加の面は、ほかの人の回答を読む口を1つも呼ばない（段階2bの決まり）。
+--   みんなの候補にしたい名前は、運営が「追加」で足す（8-c。origin が 'operator' になり、ここに入る）。
+-- ★別の書き方として束ねた行（alias_of）は出さない。
+create or replace function public.pv_town_options(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+declare
+  v_air  text := nullif(btrim(p->>'airline'), '');
+  v_base text := upper(nullif(btrim(p->>'base'), ''));
+  v_list jsonb;
+begin
+  select coalesce(jsonb_agg(z.name order by z.o, z.id), '[]'::jsonb)
+    into v_list
+    from (
+      select t.name, t.id, case t.origin when 'ledger' then 0 else 1 end as o
+        from public.pv_towns t
+       where t.airline = v_air and t.base_iata = v_base
+         and t.state = 'public' and t.alias_of is null
+         and t.origin in ('ledger', 'operator')
+       order by 3, 2
+       limit 60
+    ) z;
+  return jsonb_build_object('ok', true, 'towns', v_list);
+end;
+$fn$;
+revoke all on function public.pv_town_options(jsonb) from public;
+grant execute on function public.pv_town_options(jsonb) to anon, authenticated;
+
+-- ════ 7. 街の一覧（会員が挙げた人数の多い順）════
+-- 返す形:
+--   開いていない … { ok:true, state:'login' | 'locked' | 'give' }      ← この3つの鍵と語だけ。会社も基地も見ない
+--   開いている   … { ok:true, state:'open', towns:[{ name, n, mine, good:[{text, mine}], concern:[{text, mine}] }] }
+-- ★決めるのは pv_contrib_sees の1か所（db/contrib.sql ＝ あとのファイル。無ければここで止まる ＝ 画面は「準備中」）。
+-- ★n は会員の行の数（1人・1つの街に1行）。預かり（未ログイン）は数えない。1人から出す（オーナー指定 2026-10-11）。
+-- ★並びは n の多い順。同じ数は、街の鍵の順（意味を持たない・何度読んでも同じ）。時刻で並べない。
+-- ★返さないもの：書いた人の印・時刻・住んだ時期・家賃・通勤・確認待ちの街と文・待っている数。
+create or replace function public.pv_town_board(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+declare
+  v_air   text := nullif(btrim(p->>'airline'), '');
+  v_base  text := upper(nullif(btrim(p->>'base'), ''));
+  v_sees  text := public.pv_contrib_sees(v_air);
+  v_me    text;
+  v_towns jsonb;
+begin
+  if v_sees is distinct from 'open' then
+    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'));
+  end if;
+  if v_air is null or v_air = 'other'
+     or not exists (select 1 from public.pv_airlines a where a.code = v_air) then
+    raise exception '航空会社が正しくありません' using errcode = '22023';
+  end if;
+  if v_base is null or v_base !~ '^[A-Z]{3}$' then
+    raise exception '基地が正しくありません' using errcode = '22023';
+  end if;
+  v_me := public.pv_town_hash(auth.uid(), v_air);
+
+  select coalesce(jsonb_agg(z.j order by z.n desc, z.k), '[]'::jsonb)
+    into v_towns
+    from (
+      select jsonb_build_object(
+               'name', t.name, 'n', c.n, 'mine', c.mine,
+               -- 文は1つの街に5つまで。読む人自身の文を先に置く（6つ目以降に回って、本人にも見えなくなることが無い）。
+               -- ほかの人の文の並びは、時刻ではなく、書いた人の印と街から作った字の順（意味を持たない・何度読んでも同じ）。
+               'good', coalesce((
+                 select jsonb_agg(jsonb_build_object('text', x.body, 'mine', x.mine) order by x.mine desc, x.ord)
+                   from (select s.good as body, coalesce(s.author_hash = v_me, false) as mine,
+                                md5(s.author_hash || '::g::' || s.town_id::text) as ord
+                           from public.pv_town_posts s
+                          where s.town_id = t.id and s.text_state = 'public' and s.good is not null
+                          order by 2 desc, 3 limit 5) x), '[]'::jsonb),
+               'concern', coalesce((
+                 select jsonb_agg(jsonb_build_object('text', x.body, 'mine', x.mine) order by x.mine desc, x.ord)
+                   from (select s.concern as body, coalesce(s.author_hash = v_me, false) as mine,
+                                md5(s.author_hash || '::c::' || s.town_id::text) as ord
+                           from public.pv_town_posts s
+                          where s.town_id = t.id and s.text_state = 'public' and s.concern is not null
+                          order by 2 desc, 3 limit 5) x), '[]'::jsonb)) as j,
+             c.n, t.tkey collate "C" as k
+        from public.pv_towns t
+        join lateral (select count(*)::int as n, coalesce(bool_or(s.author_hash = v_me), false) as mine
+                        from public.pv_town_posts s where s.town_id = t.id) c on c.n > 0
+       where t.airline = v_air and t.base_iata = v_base
+         and t.state = 'public' and t.alias_of is null
+       order by c.n desc, t.tkey collate "C"
+       limit 30
+    ) z;
+
+  return jsonb_build_object('ok', true, 'state', 'open', 'towns', v_towns);
+end;
+$fn$;
+revoke all on function public.pv_town_board(jsonb) from public;
+grant execute on function public.pv_town_board(jsonb) to anon, authenticated;
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 9. 検算（貼ったあとに出る1行）
@@ -572,11 +682,16 @@ select (select count(*) from pg_policies
                     where table_schema = 'public' and table_name in ('pv_towns', 'pv_town_posts')
                       and column_name ~ '(^|_)(address|lat|latitude|lng|lon|longitude|geo|coord|coords|postal|zip|user_id|uid|email)($|_)')
                                                                                                           as 住所も位置も人の印も持たない,
+       pg_get_functiondef('public.pv_town_board(jsonb)'::regprocedure) like '%pv_contrib_sees(%'           as 一覧は同じ決まりで返す,
+       pg_get_functiondef('public.pv_town_options(jsonb)'::regprocedure)
+         !~ '(auth\.uid|pv_contrib_sees|pv_work_level|pv_is_operator|pv_town_posts|pv_town_hash)'         as 候補は誰が読んでも同じ,
        not has_function_privilege('anon', 'public.submit_town_post(jsonb)', 'execute')
          and not has_function_privilege('anon', 'public.my_town_posts(jsonb)', 'execute')
          and not has_function_privilege('authenticated', 'public.pv_town_clean(jsonb)', 'execute')
          and not has_function_privilege('authenticated', 'public.pv_town_key(text)', 'execute')           as 入口は決めたものだけ,
        (pg_get_functiondef('public.submit_town_post(jsonb)'::regprocedure)
           || pg_get_functiondef('public.my_town_posts(jsonb)'::regprocedure)
+          || pg_get_functiondef('public.pv_town_board(jsonb)'::regprocedure)
+          || pg_get_functiondef('public.pv_town_options(jsonb)'::regprocedure)
           || pg_get_functiondef('public.pv_town_clean(jsonb)'::regprocedure))
          !~ '(access_until|pay_report|pay_streak|last_pay|badge|verify_level|founding|review_unlock)'     as 資格に触らない;

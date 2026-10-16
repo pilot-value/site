@@ -29,10 +29,25 @@
      TS7 候補に無い名前は、会員の街（origin member・pending）として1行。2人目が打っても同じ行
      TS8 文（良い点・気になる点）は、新しい時と1文字でも変えた時に確認待ち。消せば none
      TS9 街を直す（was）── 前の街の行は消え、新しい街に1行。ほかの人の行には触らない
+         直した先の街をもう持っていても、前の街の行は消える（先の街の1行が出した中身に。LEAD-RULINGS-35 P12.21）
      TS10 上限 ── 1つの会社に10か所・1日20回・候補に無い名前は1日3つ（detail 'names'）
      TS11 自分の投稿は自分の行だけ。1件の形は POST の10個の鍵
      TS12 資格を1つも付けない ── 呼ぶたびに、プロフィールの行・給与の行の数・運営の名簿・pv_contrib_give の返事が同じ
      TS13 運営が見送った名前は、断る文で止まり、何も書かない
+     TG1 街の候補の種（db/towns.generated.sql）は、node gen-towns.mjs の出力そのもの
+     TG2 種の行（台帳の街・別の書き方）が入っている・もう一度流しても1行も変わらない
+     TG3 確認待ちの打ち込まれた名前と種が出会う ── 名前なら public、別の書き方なら束ねて投稿を街の下へ（両方に出した人は1行）
+     TG4 本物の種で、1つの基地の中の鍵がぶつからない（検査だけの種で、赤く出ることも確かめる）
+     TG7 種の別の書き方を打つと、その場でその街に入る（新しい名前としては数えない）
+     TB1〜TB3 街の一覧（pv_town_board）は、開いていない人に状態の1語だけを返す（字そのもの。会社・基地・投稿の有無で変わらない）
+         未ログイン → login ／ 会員・確認済みの印とステイ先の承認だけの人・鍵が切れた人・鍵だけの人 → locked ／ ほかの会社の給与だけ → give
+     TB4 開いている人（自分の会社の給与・5つ答えた人・運営）への返事の鍵は決めたものだけ
+     TB5 1人目の投稿から一覧に出る・同じ人は1人・並びは人数の多い順、同じ数は街の鍵のバイト順
+     TB6 確認待ちの名前は一覧に出ない      TB7 文は承認済みだけ・5つまで・読む人の文が先頭
+     TB8 開いた返事に、書いた人の印・時刻・家賃・通勤が無い
+     TB9 候補（pv_town_options）は、サイトの名前だけ・誰が読んでも同じ字
+     TB10 mine は読む人自身の街と文にだけ      TB11 db/contrib.sql が無ければ一覧は止まり、候補は答える
+     （TS12 はもう一度、一覧と候補を読んだあとにも見る）
      TZ  返事に、64けたの16進・author_hash・user_id・created_at・updated_at が無い。住んだ時期・家賃・通勤は本人への返事だけ
 
    ⚠️ set_config の第3引数は **false**（＝セッション全体）でなければならない。
@@ -41,7 +56,8 @@
 
    ⚠️ ここに出てくる会員は全部作り物（crew1@example.com など）。実在の人を1人も書かない。
       会社は語彙（pv_airlines）から機械的に取る。基地 'QZT' と 'QZU' は検査のための作り物。
-      街の台帳（db/towns.generated.sql）がまだ無いあいだは、検査が自分で台帳の街を入れる
+      本物の街の候補の種（db/towns.generated.sql）は SQL_FILES と一緒に流れ、TG1〜TG4・TG7 が見る。
+      TS の節は、種の中身（台帳の街の名前）に左右されないよう、作り物の基地に自分で台帳の街を入れる
       （持ち主として・origin 'ledger'）。運営が足した街（origin 'operator'）と、運営の承認・見送り
       （state の書き換え）も、運営の口ができるまでは持ち主として書く。
 */
@@ -69,8 +85,8 @@ const db = new PGlite({ extensions: { pgcrypto } });
 await db.waitReady;
 await db.exec(`set timezone = 'UTC'`);   // 本番と同じ時計（current_date が「今年」を決める）
 
-// ── 器（serve-local.mjs の BOOT の写し）──────────────────────
-await db.exec(`
+// ── 器（serve-local.mjs の BOOT の写し。TB11 が2つ目の DB にも同じものを使う）────────
+const BOOT_SQL = `
   create schema if not exists extensions;
   create schema if not exists auth;
   create role anon;
@@ -107,7 +123,8 @@ await db.exec(`
   revoke all on public.reviews_v2 from anon;
   create policy reviews_v2_insert_member on public.reviews_v2
     for insert to authenticated with check (true);
-`);
+`;
+await db.exec(BOOT_SQL);
 
 // ── 適用（順番も含めて手元のサーバーと同じ）──────────────────
 console.log('\n▼ SQL の適用');
@@ -174,7 +191,7 @@ const CUR = (await one(`select code from public.pv_currencies where active order
 const BASE = 'QZT';       // 検査のための作り物の基地（A1 にだけ台帳の街を入れる）
 const NO_SCOPE = 'QZU';   // 台帳の街が1つも無い基地
 
-// 台帳の街を1つ（db/towns.generated.sql が来るまで、検査が持ち主として入れる）
+// 作り物の基地の台帳の街を1つ（本物の種 db/towns.generated.sql は作り物の基地を持たないので、検査が持ち主として入れる）
 await db.query(
   `insert into public.pv_towns (airline, base_iata, tkey, name, origin, state)
    values ($1, $2, public.pv_town_key($3), $3, 'ledger', 'public')
@@ -187,7 +204,8 @@ must((await one(`select count(*)::int as n from public.pv_towns where airline = 
 console.log('\n▼ TS0 貼ったあとに出る検算の1行');
 // ════════════════════════════════════════════════════════════
 // ★段が進んで検算の値が増えたら、ここに足す（列の数ごと見ている ＝ 値が黙って消えても赤くなる）
-const CLOSING = ['表は閉じている', '表は誰も直接読めない', '住所も位置も人の印も持たない', '入口は決めたものだけ', '資格に触らない'];
+const CLOSING = ['表は閉じている', '表は誰も直接読めない', '住所も位置も人の印も持たない',
+                 '一覧は同じ決まりで返す', '候補は誰が読んでも同じ', '入口は決めたものだけ', '資格に触らない'];
 {
   const res = await db.exec(TOWNS_SQL);
   const chk = res[res.length - 1].rows[0] || {};
@@ -381,7 +399,7 @@ const setTown = async (name, state) => db.query(
   `update public.pv_towns set state = $4, moderated_at = now()
     where airline = $1 and base_iata = $2 and tkey = public.pv_town_key($3)`, [A1, BASE, name, state]);
 
-// 候補の街を足す（持ち主として。台帳の街は db/towns.generated.sql、運営の街は pv_town_admin_add ができるまで）
+// 候補の街を足す（持ち主として。作り物の基地の台帳の街と、運営の街は pv_town_admin_add ができるまで）
 const addTown = (name, origin, aliasOf = null) => db.query(
   `insert into public.pv_towns (airline, base_iata, tkey, name, origin, state, alias_of)
    values ($1, $2, public.pv_town_key($3), $3, $4, 'public',
@@ -532,6 +550,20 @@ console.log('\n▼ TS9 街を直す（was）');
   const r2 = await post(M6, P('大崎', { was: '大井町' }));
   ok(!r2.__err && r2.replaced === false && (await rowsOf(M6)).length === 2 && (await postsAt('大井町')) === others,
      'TS9 自分の持っていない街を was に書いても、ほかの人の行には触らない（新しい1行・replaced:false）', J(r2));
+
+  // 直した先の街を、もう持っている回（LEAD-RULINGS-35 P12.21）。前の街の行は消え、先の街の1行が出した中身になる
+  const H = await member(), O = await member();
+  must(!(await post(H, P('品川', { good: '坂が多い' }))).__err && !(await post(H, P('大崎'))).__err
+       && !(await post(O, P('品川'))).__err, '直す前の2か所（品川・大崎）を出せなかった');
+  const oRow = J((await rowsOf(O)).map((x) => [x.id, x.tname, x.updated_at]));
+  const at0 = await postsAt('品川');
+  const r3 = await post(H, P('大崎', { was: '品川', lived: 'now' }));
+  const m3 = await mine(H, { airline: A1 });
+  const towns3 = (m3.posts || []).map((x) => x.town);
+  ok(!r3.__err && r3.replaced === true && J(towns3) === J(['大崎']) && m3.posts[0].lived === 'now'
+     && (await postsAt('品川')) === at0 - 1 && J((await rowsOf(O)).map((x) => [x.id, x.tname, x.updated_at])) === oRow,
+     'TS9 直した先（大崎）をもう持っている → 品川の行は消え、大崎の1行が出した中身に（replaced:true）・品川の数から外れる・ほかの人の品川はそのまま',
+     J({ r3, towns3, at0, now: await postsAt('品川') }));
 }
 
 
@@ -653,6 +685,7 @@ console.log('\n▼ TS11 自分の投稿は、自分の行だけ');
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ TS12 資格を1つも付けない（呼ぶたびに、前と後で同じ）');
 // ════════════════════════════════════════════════════════════
+let TS12 = null;
 {
   const G = await member();
   await paid(G, A1);
@@ -690,6 +723,7 @@ console.log('\n▼ TS12 資格を1つも付けない（呼ぶたびに、前と�
      `TS12 入口を${CALLS.length}通りに呼んでも（保存5回）、プロフィールの行（md5）・給与の行の数・運営の名簿の数・pv_contrib_give の返事は1文字も変わらない`,
      J({ saved, moved }));
   ok(J(await snap()) === J(s0), 'TS12 最初と最後も同じ（give のまま・答えた数も同じ）', J({ s0, end: await snap() }));
+  TS12 = { G, snap, s0 };   // 一覧と候補の節（TB）のあとで、もう一度同じものを見る
 }
 
 
@@ -712,6 +746,451 @@ console.log('\n▼ TS13 運営が見送った名前は、断る文で止まり�
   ok(said(r1, MSG, '22023'), 'TS13 その名前を打った本人が出し直しても、同じ文で断る', J(r1));
   ok((await state()) === before, 'TS13 断られた回は何も書かない（投稿・街の行・連投の数え・本人の前の行もそのまま）',
      J({ before, after: await state() }));
+}
+
+
+// ── 街の候補の種（db/towns.generated.sql・TG1〜TG4・TG7）の道具 ─────────────
+// 種の文の values の行を読む（節の見出し「-- 1.」「-- 2.」から、その節の「) as v(」まで）。
+// ★行は種の文から取る（打ち込まない）。鍵は SQL の pv_town_key で作る（JS に写さない）。
+const SEED_FILE = 'db/towns.generated.sql';
+const SEED = read(SEED_FILE);
+const tuples = (text, head) => {
+  const i = text.indexOf('\n' + head);
+  if (i < 0) return [];
+  const j = text.indexOf('\n  ) as v(', i);
+  return text.slice(i, j < 0 ? undefined : j).split('\n').filter((l) => /^ {4}\(/.test(l))
+    .map((l) => [...l.matchAll(/'((?:[^']|'')*)'/g)].map((m) => m[1].replace(/''/g, () => "'")));
+};
+const mainsOf   = (text) => tuples(text, '-- 1.');    // [会社, 基地, 街]
+const aliasesOf = (text) => tuples(text, '-- 2.');    // [会社, 基地, 街, 別の書き方]
+const tkey = async (s) => (await one(`select public.pv_town_key($1) as k`, [s])).k;
+const scopeRow = async (air, base, name) => (await one(
+  `select id, name, origin, state, alias_of from public.pv_towns
+    where airline = $1 and base_iata = $2 and tkey = public.pv_town_key($3)`, [air, base, name])) || null;
+const tablesText = async () => J(await one(
+  `select (select string_agg(t::text, E'\\n' order by t.id) from public.pv_towns t) as towns,
+          (select string_agg(s::text, E'\\n' order by s.id) from public.pv_town_posts s) as posts`));
+// 種の文に1行ずつ足す（TG3・TG4 の自前の種。台帳は直さない）
+const withRow = (text, head, row) => {
+  const at = head === '-- 1.' ? '\n  ) as v(airline, base, name)\n' : '\n  ) as v(airline, base, name, alias)\n';
+  must(text.split(at).length === 2, `種の文に「${at.trim()}」が1つではない`);
+  return text.replace(at, () => `,\n    (${row.map((x) => `'${x.replace(/'/g, () => "''")}'`).join(', ')})${at}`);
+};
+// 1つの基地の中で、鍵がぶつかる組（名前どうし・別の書き方 ⇄ ほかの街）
+const clashes = async (text) => {
+  const out = [], names = new Map();
+  for (const [air, base, name] of mainsOf(text)) {
+    const k = `${air}/${base}/${await tkey(name)}`;
+    if (names.has(k)) out.push(`名前どうし：${names.get(k)} ⇄ ${name}（${k}）`);
+    else names.set(k, name);
+  }
+  for (const [air, base, name, alias] of aliasesOf(text)) {
+    const k = `${air}/${base}/${await tkey(alias)}`;
+    if (names.has(k) && names.get(k) !== name) out.push(`別の書き方：${alias}（${name}）⇄ 街 ${names.get(k)}（${k}）`);
+  }
+  return out;
+};
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TG1 街の候補の種のファイルは、生成スクリプトの出力そのもの');
+// ════════════════════════════════════════════════════════════
+{
+  const { build: seedText } = await import('../gen-towns.mjs');
+  ok(SEED === seedText(), `TG1 ${SEED_FILE} は node gen-towns.mjs の出力と1文字も違わない（手で直していない・流し忘れていない）`);
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TG2 種の行が入っている・もう一度流しても1行も変わらない');
+// ════════════════════════════════════════════════════════════
+{
+  const M = mainsOf(SEED), AL = aliasesOf(SEED);
+  must(M.length > 0, '種の文に台帳の街が1行も無い');
+  const badM = [];
+  for (const [air, base, name] of M) {
+    const t = await scopeRow(air, base, name);
+    if (!(t && t.name === name && t.origin === 'ledger' && t.state === 'public' && t.alias_of === null)) badM.push({ air, base, name, t });
+  }
+  ok(badM.length === 0, `TG2 台帳の街 ${M.length} 行が、どれも origin ledger・state public・束ねていない行として入っている`, J(badM));
+  const badA = [];
+  for (const [air, base, name, alias] of AL) {
+    const t = await scopeRow(air, base, name), a = await scopeRow(air, base, alias);
+    if (!(t && a && a.name === alias && a.origin === 'ledger' && a.state === 'public' && Number(a.alias_of) === Number(t.id))) {
+      badA.push({ air, base, name, alias, t, a });
+    }
+  }
+  ok(badA.length === 0, `TG2 別の書き方 ${AL.length} 行が、どれも origin ledger で、その街へ束ねてある（alias_of ＝ 街の id）`, J(badA));
+  const before = await tablesText();
+  await db.exec(SEED);
+  ok((await tablesText()) === before, 'TG2 種をもう一度流しても、街の表・投稿の表の1行も変わらない（文字で比べる）');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TG3 確認待ちの打ち込まれた名前と、種が出会う');
+// ════════════════════════════════════════════════════════════
+{
+  // 検査だけの種：本物の種に、作り物の基地（QZT）の行を1つずつ足す（台帳は直さない）
+  const NAME = '港南', ALIAS = 'Konan';
+  const Ma = await member(), Mb = await member(), Mc = await member();
+  const a = await post(Ma, P(NAME));
+  const b = await post(Mb, P(ALIAS));
+  const c1 = await post(Mc, P(ALIAS, { lived: 'past' }));
+  const c2 = await post(Mc, P(NAME, { lived: 'now' }));
+  const t0 = await townRow(NAME), al0 = await townRow(ALIAS);
+  must(!a.__err && !b.__err && !c1.__err && !c2.__err && t0?.state === 'pending' && t0?.origin === 'member'
+       && al0?.state === 'pending' && al0?.origin === 'member' && (await postsAt(ALIAS)) === 2,
+       '打ち込んだ名前（港南・Konan）を出せなかった', J({ a, b, c1, c2, t0, al0 }));
+  const text = withRow(withRow(SEED, '-- 1.', [A1, BASE, NAME]), '-- 2.', [A1, BASE, NAME, ALIAS]);
+  await db.exec(text);
+  const t1 = await townRow(NAME), al1 = await townRow(ALIAS);
+  ok(t1 && t1.id === t0.id && t1.origin === 'ledger' && t1.state === 'public' && t1.alias_of === null && (await postsAt(NAME)) >= 2,
+     'TG3 確認待ちの「港南」と鍵が同じ台帳の街 → 同じ行のまま public（origin ledger）・その行の投稿もそのまま', J({ t0, t1 }));
+  ok(al1 && al1.id === al0.id && al1.origin === 'ledger' && Number(al1.alias_of) === Number(t0.id) && (await postsAt(ALIAS)) === 0,
+     'TG3 投稿の付いた確認待ちの「Konan」と鍵が同じ別の書き方 → 「港南」へ束ねた行になり、その行の投稿は0', J({ al0, al1, left: await postsAt(ALIAS) }));
+  const rb = await rowsOf(Mb), rc = await rowsOf(Mc);
+  ok(rb.length === 1 && rb[0].tname === NAME && rc.length === 1 && rc[0].tname === NAME && rc[0].lived === 'now'
+     && (await postsAt(NAME)) === 3,
+     'TG3 「Konan」に出していた人の投稿は「港南」の下に立つ ── 両方に出していた人は1行（街の行のほうが残る）・港南は3人', J({ rb, rc }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TG4 本物の種で、鍵がぶつからない');
+// ════════════════════════════════════════════════════════════
+{
+  const real = await clashes(SEED);
+  ok(real.length === 0 && mainsOf(SEED).length > 0,
+     `TG4 本物の種：1つの基地の中で、街の名前どうしの鍵も、別の書き方とほかの街の鍵もぶつからない（街 ${mainsOf(SEED).length}・別の書き方 ${aliasesOf(SEED).length}）`, J(real));
+  // 検査そのものが見えていることを、検査だけの種で確かめる（同じ名前の2つの書き方・ほかの街の名前に畳まれる別の書き方）
+  const [air, base, name] = mainsOf(SEED)[0];
+  const other = mainsOf(SEED).find((r) => r[0] === air && r[1] === base && r[2] !== name);
+  must(!!other, '同じ基地に街が2つ無い（検査だけの種を作れない）');
+  const two = await clashes(withRow(SEED, '-- 1.', [air, base, name + '駅']));
+  const into = await clashes(withRow(SEED, '-- 2.', [air, base, name, other[2] + '駅']));
+  ok(two.length === real.length + 1 && into.length === real.length + 1,
+     `TG4 （検査の確かめ）「${name}」と「${name}駅」・「${other[2]}駅」と書いた別の書き方 → どちらも1組だけ赤く出る`, J({ two, into }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TG7 種の別の書き方を打つと、その場でその街に入る');
+// ════════════════════════════════════════════════════════════
+{
+  const AL = aliasesOf(SEED);
+  must(AL.length > 0, '種の文に別の書き方が1行も無い');
+  const [air, base, name, alias] = AL[0];
+  const W = await member();
+  const t = await scopeRow(air, base, name);
+  const at = async (id) => (await one(`select count(*)::int as n from public.pv_town_posts where town_id = $1`, [id])).n;
+  const before = await at(t.id);
+  const r = await post(W, { airline: air, base_iata: base, town: alias });
+  const rt = await rateOf(W, air);
+  const rows = await rowsOf(W, air);
+  ok(!r.__err && r.replaced === false && r.post.town === name && r.post.town_state === 'public',
+     `TG7 種の別の書き方「${alias}」（${air} / ${base}）を打つ → town_state public・replaced:false・街の名前は「${name}」`, J(r));
+  ok((await at(t.id)) === before + 1 && rows.length === 1 && Number(rows[0].town_id) === Number(t.id) && rt && rt.n === 1 && rt.names === 0,
+     `TG7 その場で「${name}」の数に入る（行は街のほう）・新しい街の名前としては数えない（names 0）`, J({ before, rows, rt }));
+}
+
+
+// ── 街の一覧（pv_town_board）と候補（pv_town_options）の道具・読む人 ─────────────
+// 返事は Postgres が返す字そのもので比べる（::text）。見た返事は seen にも入れる（最後の TZ が見る）
+const RAW = (s) => ({ raw: s });                     // 形の崩れた引数（そのままの JSON の字）
+const readT = async (who, fn, p) => {
+  const noArg = p === undefined;
+  const r = await call(who, noArg ? `select public.${fn}()::text as v` : `select public.${fn}($1::jsonb)::text as v`,
+    noArg ? [] : [p === null ? null : (p.raw !== undefined ? p.raw : J(p))]);
+  if (r.err) return { __err: r.err, code: r.code };
+  seen.push({ fn, json: r.v.v });
+  return r.v.v;
+};
+const boardT = (who, p) => readT(who, 'pv_town_board', p);
+const optsT  = (who, p) => readT(who, 'pv_town_options', p);
+const SCOPE = { airline: A1, base: BASE };
+const board = async (who, p = SCOPE) => { const t = await boardT(who, p); return typeof t === 'string' ? JSON.parse(t) : t; };
+const townIn = (b, name) => ((b && b.towns) || []).find((t) => t.name === name) || null;
+const STATE = (w) => `{"ok": true, "state": "${w}"}`;
+// 決める所（pv_contrib_sees）を、その人として読む（準備の確かめだけ。外からは呼べない関数なので持ち主の役のまま）
+const sees = async (who, air) => {
+  await db.query(`select set_config('pv.uid', $1, false)`, [who]);
+  try { return (await one(`select public.pv_contrib_sees($1) as s`, [air])).s; }
+  finally { await asOwner(); }
+};
+// 読む人は作る（打ち込まない）。PILOT は、持ち主が確認済みの印（verify_level）を立て、ステイ先を見られる人として
+// 承認した会員 ＝ 給与の鍵は無い（街の一覧は、ステイ先の承認でも確認済みの印でも開かない）
+const OPM = await member();
+must((await one(`select to_regclass('public.pv_admins') is not null as x`)).x, 'この器に運営の名簿 pv_admins が無い');
+await db.query(`insert into public.pv_admins (user_id, note) values ($1, 'test') on conflict do nothing`, [OPM]);
+const PLAIN = await member();
+const PILOT = await member();
+await db.query(`update public.profiles set verify_level = 1 where id = $1`, [PILOT]);
+await db.query(
+  `insert into public.pv_stay_viewers (user_id, state, decided_by, decided_at) values ($1, 'approved', $2, now())
+   on conflict (user_id) do update set state = 'approved', decided_by = excluded.decided_by, decided_at = excluded.decided_at`, [PILOT, OPM]);
+const OWN = await member();      await paid(OWN, A1);
+const OTHER = await member();    await paid(OTHER, A2);
+const FIVER = await member();    await paid(FIVER, A2);
+{
+  const Q = (await many(
+    `select id, choice_codes from public.pv_condition_questions
+      where active and parent is null and kind = 'choice' order by priority, id`))
+    .slice(0, 5).map((q) => ({ question_id: q.id, code: q.choice_codes.find((c) => c !== 'unknown') }));
+  const r = await call(FIVER, `select public.submit_airline_conditions($1::jsonb) as v`, [J({ airline: A2, answers: Q })]);
+  must(!r.err && r.v.v.saved === 5, '5つ答えられなかった（FIVE）', J(r));
+}
+const EXPIRED = await member();  await paid(EXPIRED, A1);
+await db.query(`update public.profiles set access_until = now() - interval '1 minute' where id = $1`, [EXPIRED]);
+const NOREPORT = await member();
+await db.query(`update public.profiles set access_until = now() + interval '30 days' where id = $1`, [NOREPORT]);
+{
+  const want = { PLAIN: 'locked', PILOT: 'locked', EXPIRED: 'locked', NOREPORT: 'locked', OTHER: 'give', OWN: 'open', FIVE: 'open', OP: 'open' };
+  const got = {};
+  for (const [k, who] of Object.entries({ PLAIN, PILOT, EXPIRED, NOREPORT, OTHER, OWN, FIVE: FIVER, OP: OPM })) got[k] = await sees(who, A1);
+  must(J(got) === J(want), `読む人の立場が決めたとおりでない（${A1} について）`, J(got));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB1〜TB3 開いていない人への返事は、状態の1語だけ（字そのもの）');
+// ════════════════════════════════════════════════════════════
+{
+  must((await postsAt('品川')) > 0, `一覧に出る投稿が ${A1} / ${BASE} に無い`);
+  must((await one(`select count(*)::int as n from public.pv_towns where airline = any($1) and base_iata = $2`, [[A2, A3], BASE])).n === 0,
+       `投稿の無い基地として使う ${A2} / ${A3} の ${BASE} に、街が在る`);
+  const CASES = [['会社と基地（投稿あり）', SCOPE], ['知らない会社', { airline: 'zz-none', base: BASE }], ["会社 'other'", { airline: 'other', base: BASE }],
+    ['引数なし', undefined], ['null', null], ['配列', RAW('[1, 2]')], ['文字', RAW('"x"')], ['会社が数', { airline: 5 }],
+    ['基地の形でない', { airline: A1, base: 'not a base' }]];
+  for (const [who, label] of [[ANON, '未ログイン'], [DEAD, 'ログインが死んでいる会員']]) {
+    const got = [];
+    for (const [, p] of CASES) got.push(await boardT(who, p));
+    ok(got.every((t) => t === STATE('login')),
+       `TB1 ${label}：${CASES.length}通り（${CASES.map((c) => c[0]).join('・')}）が全部 ${STATE('login')} の字そのもの（エラーにもならない）`, J(got));
+  }
+  for (const [who, label] of [[PLAIN, 'PLAIN（会員）'], [PILOT, 'PILOT（確認済みの印・ステイ先の承認・鍵なし）'],
+                              [EXPIRED, 'EXPIRED（鍵が切れた）'], [NOREPORT, 'NOREPORT（鍵だけ・給与の行なし）']]) {
+    const a = await boardT(who, SCOPE), b = await boardT(who, { airline: A2, base: BASE });
+    ok(a === STATE('locked') && b === STATE('locked'), `TB2 ${label}：投稿のある基地も無い基地も ${STATE('locked')} の字そのもの`, J({ a, b }));
+  }
+  const a = await boardT(OTHER, SCOPE), b = await boardT(OTHER, { airline: A3, base: BASE });
+  ok(a === STATE('give') && b === STATE('give'), `TB3 OTHER（ほかの会社の給与・答えなし）：投稿のある基地も無い基地も ${STATE('give')} の字そのもの`, J({ a, b }));
+}
+
+
+// 一覧に出す投稿（TB4〜TB10）。街は持ち主が運営の街として足す（運営の口ができるまで）
+await addTown('芝浦', 'operator');
+await addTown('台場', 'operator');
+const X = await member(), Y = await member();
+const W = [];                                   // 台場に承認済みの良い点を書く6人（6人とも自分の会社 A1 の給与を出した ＝ 一覧を読める）
+for (let i = 1; i <= 6; i++) {
+  const w = await member();
+  await paid(w, A1);
+  must(!(await post(w, P('台場', { good: `台場の良い点その${i}` }))).__err, `台場に書けなかった（${i}人目）`);
+  await approveText(w);
+  W.push({ who: w, text: `台場の良い点その${i}` });
+}
+const WP = await member(), WR = await member();
+must(!(await post(WP, P('台場', { good: '確認待ちの文' }))).__err && !(await post(WR, P('台場', { good: '見送りの文' }))).__err,
+     '台場に確認待ち・見送りの文を書けなかった');
+await db.query(`update public.pv_town_posts set text_state = 'rejected', moderated_at = now() where author_hash = $1`, [await hashOf(WR)]);
+// 気になる点も同じ決まり（承認済みだけ）。確認待ち・見送り・承認済みの気になる点を、台場に1つずつ（別の3人）
+const CP = await member(), CR = await member(), CA = await member();
+must(!(await post(CP, P('台場', { concern: '確認待ちの気になる点' }))).__err && !(await post(CR, P('台場', { concern: '見送りの気になる点' }))).__err
+     && !(await post(CA, P('台場', { concern: '台場の気になる点' }))).__err, '台場に気になる点を書けなかった');
+await approveText(CA);
+await db.query(`update public.pv_town_posts set text_state = 'rejected', moderated_at = now() where author_hash = $1`, [await hashOf(CR)]);
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB4 開いている人への返事の鍵は、決めたものだけ');
+// ════════════════════════════════════════════════════════════
+for (const [who, label] of [[OWN, 'OWN（自分の会社の給与）'], [FIVER, 'FIVE（ほかの会社の給与＋5つ答えた）'], [OPM, 'OP（運営）']]) {
+  const b = await board(who);
+  const towns = (b && b.towns) || [];
+  const texts = towns.flatMap((t) => [...(t.good || []), ...(t.concern || [])]);
+  ok(keys(b) === 'ok,state,towns' && b.ok === true && b.state === 'open' && towns.length > 0 && texts.length > 0
+     && towns.every((t) => keys(t) === 'concern,good,mine,n,name') && texts.every((x) => keys(x) === 'mine,text'),
+     `TB4 ${label}：返事は ok・state・towns だけ／街は name・n・mine・good・concern だけ／文は text・mine だけ`, J(b));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB5 1人目の投稿から一覧に出る・並びは人数の多い順');
+// ════════════════════════════════════════════════════════════
+{
+  const z0 = townIn(await board(OWN), '芝浦');
+  await post(X, P('芝浦'));
+  const z1 = townIn(await board(OWN), '芝浦');
+  ok(z0 === null && z1 && z1.n === 1, 'TB5 1人の投稿で一覧に出る（n 1 ── 何人からという下限を置かない）', J({ z0, z1 }));
+  await post(Y, P('芝浦'));
+  const z2 = townIn(await board(OWN), '芝浦');
+  await post(X, P('芝浦', { lived: 'now' }));
+  const z3 = townIn(await board(OWN), '芝浦');
+  ok(z2 && z2.n === 2 && z3 && z3.n === 2, 'TB5 2人目で n 2・同じ人がもう一度出しても数は変わらない（n 2 のまま）', J({ z2, z3 }));
+  // 並びは検査が自分で数えて並べる（数は表から・鍵のバイト順は Buffer で）
+  const rows = await many(
+    `select t.name, t.tkey, count(*)::int as n from public.pv_towns t join public.pv_town_posts s on s.town_id = t.id
+      where t.airline = $1 and t.base_iata = $2 and t.state = 'public' and t.alias_of is null group by t.id`, [A1, BASE]);
+  const want = rows.sort((a, b) => b.n - a.n || Buffer.compare(Buffer.from(a.tkey), Buffer.from(b.tkey))).slice(0, 30)
+    .map((r) => [r.name, r.n]);
+  const got = ((await board(OWN)).towns || []).map((t) => [t.name, t.n]);
+  const ties = want.some((r, i) => i > 0 && want[i - 1][1] === r[1]);
+  ok(want.length > 2 && ties && J(got) === J(want),
+     `TB5 並びは n の多い順・同じ数は街の鍵のバイト順（検査が表から数えて並べた ${want.length} 街と同じ・同じ数の組を含む）`, J({ got, want }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB6 確認待ちの名前は、一覧に出ない');
+// ════════════════════════════════════════════════════════════
+{
+  const T1 = await member(), T2 = await member();
+  must(!(await post(T1, P('高浜'))).__err && !(await post(T2, P('高浜駅'))).__err && (await townRow('高浜'))?.state === 'pending'
+       && (await postsAt('高浜')) === 2, '確認待ちの「高浜」に2人が出せなかった');
+  const a = townIn(await board(OWN), '高浜');
+  await setTown('高浜', 'public');
+  const b = townIn(await board(OWN), '高浜');
+  ok(a === null && b && b.n === 2, 'TB6 確認待ちの「高浜」（2人）は一覧に無い → 運営（持ち主）が public にすると n 2 で出る', J({ a, b }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB7 文は承認済みだけ・1つの街に5つまで・読む人の文が先頭');
+// ════════════════════════════════════════════════════════════
+{
+  const d = townIn(await board(OWN), '台場');
+  const texts = ((d && d.good) || []).map((x) => x.text);
+  const OKS = new Set(W.map((w) => w.text));
+  ok(d && texts.length === 5 && texts.every((t) => OKS.has(t)) && !texts.includes('確認待ちの文') && !texts.includes('見送りの文'),
+     'TB7 承認済みの良い点だけが出る（確認待ち・見送りの文は無い）・6つ承認済みでも5つまで', J(d));
+  ok(d && J((d.concern || []).map((x) => x.text)) === J(['台場の気になる点']),
+     'TB7 気になる点も承認済みだけが出る（確認待ち・見送りの気になる点は無い）', J(d && d.concern));
+  const bad = [];
+  for (const w of W) {
+    const g = (townIn(await board(w.who), '台場') || {}).good || [];
+    if (!(g.length === 5 && g[0].text === w.text && g[0].mine === true && g.slice(1).every((x) => x.mine === false && x.text !== w.text))) {
+      bad.push({ who: w.text, g });
+    }
+  }
+  ok(bad.length === 0, 'TB7 6人のどの人が読んでも、自分の文は5つの中に入り、先頭に立つ（mine:true はその1つだけ）', J(bad));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB8 開いた返事に、書いた人の印・時刻・家賃・通勤が無い');
+// ════════════════════════════════════════════════════════════
+{
+  const marks = (await many(`select distinct author_hash as h from public.pv_town_posts`)).map((r) => r.h);
+  const WORDS = /lived|rent|trip|amount|minutes|layout|created|updated|rev/i;
+  const DATE = /\d{4}-\d{2}-\d{2}|\d{2}:\d{2}:\d{2}/;
+  const bad = [];
+  for (const [who, label] of [[OWN, 'OWN'], [FIVER, 'FIVE'], [OPM, 'OP'], [W[0].who, '台場に書いた人']]) {
+    const t = await boardT(who, SCOPE);
+    if (typeof t !== 'string' || !t.includes('"open"') || marks.some((h) => t.includes(h)) || WORDS.test(t) || DATE.test(t)) {
+      bad.push({ label, t: typeof t === 'string' ? t.slice(0, 300) : t });
+    }
+  }
+  ok(marks.length > 10 && bad.length === 0,
+     `TB8 4人の読む人の返事（字そのもの）に、表の書いた人の印 ${marks.length} 個のどれも・lived／rent／trip／amount／minutes／layout／created／updated／rev の字も・日付も時刻も無い`, J(bad));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB9 候補の一覧は、サイトの名前だけ・誰が読んでも同じ字');
+// ════════════════════════════════════════════════════════════
+{
+  const READERS = [[ANON, '未ログイン'], [PLAIN, 'PLAIN'], [OTHER, 'OTHER'], [OWN, 'OWN'], [FIVER, 'FIVE'], [OPM, 'OP']];
+  const texts = [];
+  for (const [who] of READERS) texts.push(await optsT(who, SCOPE));
+  const want = (await many(
+    `select name from public.pv_towns
+      where airline = $1 and base_iata = $2 and state = 'public' and alias_of is null and origin in ('ledger', 'operator')
+      order by case origin when 'ledger' then 0 else 1 end, id`, [A1, BASE])).map((r) => r.name);
+  const got = typeof texts[0] === 'string' ? JSON.parse(texts[0]) : texts[0];
+  ok(texts.every((t) => typeof t === 'string' && t === texts[0]) && keys(got) === 'ok,towns' && J(got.towns) === J(want),
+     `TB9 ${READERS.map((r) => r[1]).join('・')} の6人に、1文字も違わない同じ字（台帳の街 → 運営が足した街の ${want.length} 個）`, J({ texts, want }));
+  const notSite = (await many(
+    `select name, origin, state, alias_of from public.pv_towns
+      where airline = $1 and base_iata = $2 and (origin = 'member' or state <> 'public' or alias_of is not null)`, [A1, BASE]));
+  const typedPublic = notSite.filter((r) => r.origin === 'member' && r.state === 'public' && r.alias_of === null).map((r) => r.name);
+  const leak = notSite.filter((r) => got.towns.includes(r.name)).map((r) => r.name);
+  ok(typedPublic.length >= 2 && notSite.some((r) => r.state === 'pending') && notSite.some((r) => r.state === 'rejected')
+     && notSite.some((r) => r.alias_of !== null) && leak.length === 0,
+     `TB9 会員が打ち込んで運営（持ち主）が public にした名前（${typedPublic.join('・')}）も、確認待ち・見送り・束ねた別の書き方も、誰の候補にも無い`, J({ leak, notSite }));
+  const EMPTY = '{"ok": true, "towns": []}';
+  const e = [await optsT(ANON, { airline: 'zz-none', base: BASE }), await optsT(ANON, { airline: A1, base: NO_SCOPE }),
+             await optsT(ANON, { airline: 'other', base: BASE }), await optsT(ANON)];
+  ok(e.every((t) => t === EMPTY), `TB9 知らない会社・街の無い基地・'other'・引数なし → ${EMPTY} の字そのもの`, J(e));
+  const scopes = [...new Set(mainsOf(SEED).map((r) => `${r[0]}/${r[1]}`))];
+  const off = [];
+  for (const s of scopes) {
+    const [air, base] = s.split('/');
+    const o = JSON.parse(await optsT(ANON, { airline: air, base }));
+    const w = mainsOf(SEED).filter((r) => r[0] === air && r[1] === base).map((r) => r[2]);
+    if (J(o.towns) !== J(w)) off.push({ s, got: o.towns, want: w });
+  }
+  ok(scopes.length > 0 && off.length === 0,
+     `TB9 種の ${scopes.length} の会社・基地では、候補は種の台帳の街そのもの（同じ並び・別の書き方は入らない）`, J(off));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB10 mine は、読む人自身の街と文にだけ true');
+// ════════════════════════════════════════════════════════════
+{
+  const mineOf = (b) => ({
+    towns: ((b && b.towns) || []).filter((t) => t.mine === true).map((t) => t.name),
+    texts: ((b && b.towns) || []).flatMap((t) => [...t.good, ...t.concern]).filter((x) => x.mine === true).map((x) => x.text),
+  });
+  const w = mineOf(await board(W[0].who)), o = mineOf(await board(OWN));
+  ok(J(w) === J({ towns: ['台場'], texts: [W[0].text] }) && J(o) === J({ towns: [], texts: [] }),
+     'TB10 台場に書いた人：mine は台場とその人の文だけ／何も出していない人（OWN）：mine はどこにも無い', J({ w, o }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TB11 db/contrib.sql の無い DB では、一覧は止まり、候補は答える');
+// ════════════════════════════════════════════════════════════
+{
+  const db2 = new PGlite({ extensions: { pgcrypto } });
+  await db2.waitReady;
+  await db2.exec(`set timezone = 'UTC'`);
+  await db2.exec(BOOT_SQL);
+  for (const f of FILES.filter((x) => x !== 'db/contrib.sql')) await db2.exec(read(f));
+  const [air, base] = mainsOf(SEED)[0];
+  const q = async (d, fn) => {
+    await d.exec(`set role anon`);
+    await d.query(`select set_config('pv.uid', '', false)`);
+    try { return { v: (await d.query(`select public.${fn}($1::jsonb)::text as v`, [J({ airline: air, base })])).rows[0].v }; }
+    catch (e) { return { err: String(e.message || e) }; }
+    finally { await d.exec(`reset role`); }
+  };
+  const b2 = await q(db2, 'pv_town_board'), o2 = await q(db2, 'pv_town_options'), o1 = await q(db, 'pv_town_options');
+  await db2.close();
+  ok(!!b2.err && /pv_contrib_sees/.test(b2.err) && !o2.err && o2.v === o1.v,
+     `TB11 db/contrib.sql の無い DB：pv_town_board は止まる（pv_contrib_sees が無い、と言う）・pv_town_options はいつもと同じ字を返す（${air} / ${base}）`,
+     J({ b2, o2, o1 }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ TS12（くり返し）一覧と候補を読んでも、資格は1つも付かない');
+// ════════════════════════════════════════════════════════════
+{
+  const { G, snap, s0 } = TS12;
+  const moved = [];
+  for (const [label, f] of [['一覧を読む', () => boardT(G, SCOPE)], ['候補を読む', () => optsT(G, SCOPE)]]) {
+    const a = await snap();
+    const r = await f();
+    const b = await snap();
+    if (typeof r !== 'string' || J(a) !== J(b)) moved.push({ label, r, a, b });
+  }
+  // 給与の行の数と運営の名簿の数は、TB の準備（持ち主が作った読む人）で増えている ＝ 最初と比べるのは、その会員自身の2つ
+  const end = await snap();
+  ok(moved.length === 0 && end.profile === s0.profile && end.give === s0.give,
+     'TS12 給与を出した会員が一覧（開いている）と候補を読んでも、前と後でプロフィールの行・給与の行の数・運営の名簿・pv_contrib_give の返事が同じ（その会員のプロフィールと pv_contrib_give は TS12 の最初とも同じ）',
+     J({ moved, s0, end }));
 }
 
 
