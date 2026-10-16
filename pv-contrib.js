@@ -5,10 +5,12 @@
    見た目は pv-contrib.css（どの規則も .pvc で始まる）。
 
    ■ ページとの約束
-     window.PVContrib = { open({ topic, q }), close(), isOpen() }
+     window.PVContrib = { open({ topic, q, ctx }), close(), myTowns(), isOpen() }
        topic ＝ ''／'list'（項目の一覧）・'work'（月の勤務）・'town'（住みやすい街）・質問のまとまり
                （'taxi' 'staff_travel' 'upgrade' 'roster' 'career' 'benefits'）
        q     ＝ そのまとまりの中で、最初に見せたい質問の id（無くてよい）
+       ctx   ＝ topic 'town' のとき、直す投稿の街の名前（渡した時だけ「修正」。無ければ追加）
+       myTowns() ＝ 街の自分の投稿 → Promise<{ k: 'ok'|'anon'|'off'|'fail', held, rows }>（ページの欄が読む。面は使わない）
      window.PVContrib.openFor({ airline, name, ask, from }) ── このページの会社ではなく、読む人自身の会社について開く
        （ログインしている会員だけ。開かなかった時は false を返す ＝ 呼んだ側が、自分のリンクへそのまま進ませる）。
      data-pvc-open="<topic>"（＋ data-pvc-q="<質問の id>"）を持つ要素を押すと開く。
@@ -594,6 +596,30 @@
         return;
       }
       noMine(r.kind === 'off' ? 'off' : 'fail');
+    });
+  }
+  /* 街の自分の投稿を、ページ（暮らしの欄）のために読む（PVContrib.myTowns）。面の状態（M・控え・印）には触らない・何も覚えない。
+     ログインしている人 → 会員の読み口。切れたログインは、ログインしていない人と同じ道へ。
+     ログインしていない人 → 控えの鍵で預かりを読む。鍵が無ければ、サーバへ1本も投げない。
+     会員の id が読めないあいだは読まない（誰の分を読むのかが分からない）。
+     ★引き継ぎは始めない（boot が始め、動いた分があれば 'pvc:saved'（topic 'claim'）を流す ＝ ページはそこで読み直す）。
+     ★鍵は捨てない（期限の過ぎた鍵を捨てるのは、面の読み口だけ）。 */
+  function myTowns(s) {
+    function none(k) { return { k: k, held: false, rows: [] }; }
+    function heldTowns() {
+      var key = devKey();
+      if (!key) return Promise.resolve(none('anon'));
+      return rpc('my_contrib_anon', { key: key, airline: s }, 9000).then(function (r) {
+        if (r.kind === 'ok' && r.data.ok) return r.data.known === false ? none('anon') : { k: 'ok', held: true, rows: goodTowns(r.data.towns) };
+        return none(r.kind === 'off' ? 'off' : 'fail');
+      });
+    }
+    if (noWho()) return Promise.resolve(none('fail'));
+    if (!hasToken()) return heldTowns();
+    return rpc('my_town_posts', { airline: s }, 9000).then(function (r) {
+      if (r.kind === 'ok' && Array.isArray(r.data.posts)) return { k: 'ok', held: false, rows: goodTowns(r.data.posts) };
+      if (r.kind === 'login') return heldTowns();
+      return none(r.kind === 'off' ? 'off' : 'fail');
     });
   }
   function loadMine(force) {
@@ -2948,7 +2974,7 @@
   }
 
   w.PVContrib = {
-    open: function (o) { return openSheet({ topic: o && o.topic, q: o && o.q }); },
+    open: function (o) { var a = { topic: o && o.topic, q: o && o.q }; if (o && o.ctx != null) a.ctx = o.ctx; return openSheet(a); },
     /* このページの会社ではなく、読む人自身の会社（airline・name）について開く。ask ＝ 最初に見せたい質問の id の並び
        （台帳に在って、この面で答えられる最初の1つの所へ開く。無ければ項目の一覧）。from ＝ 閉じた時に焦点を返す要素。
        渡された字は、そのまま信じない：会社の符号は形を確かめ（coCode）、質問の id も形と台帳を確かめる。名前は字としてしか入れない。
@@ -2971,6 +2997,7 @@
       return true;
     },
     close: function () { close(); },
+    myTowns: function () { return myTowns(slug()); },
     /* 開いている・これから開く（?add= で来た）。全ページ共通の案内の板が、入力の上に被らないために聞く。 */
     isOpen: function () { return !!(S.open || S.skipPop || S.queue || COMING); }
   };

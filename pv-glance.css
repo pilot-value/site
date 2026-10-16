@@ -465,7 +465,10 @@
 .pvg-evl .pvg-notes b{margin-right:6px;font-weight:600;color:var(--pv-ink-2)}
 .pvg-evl dd > span{display:block}
 .pvg-evl dd > span > b{margin-right:8px;font-weight:600;color:var(--pv-ink-2)}
-.pvg-liv-more{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;margin-top:10px!important}
+/* 住むエリアの見出しの行に置く「＋住みやすい街を追加」。行の組み方は .pvg-liv-h（見出しが左・入口が右・狭い箱では下へ回る）。
+   語の途中で折らない。字の大きさ・太さは、下の .pvg .pvg-link（同じ強さ・あとに在る）に負けないよう、2つの印で書く */
+.pvg-liv-h > .pvg-askh{margin-bottom:0!important}
+.pvg .pvg-link.pvg-liv-add{flex:none;white-space:nowrap;font-size:13px;font-weight:700}
 /* 写真の出典（作者名とライセンス名。CC BY / BY-SA の写真を使う条件） */
 .pvg-phl{display:grid;gap:4px;padding:0 0 10px}
 .pvg-phl li{display:flex;flex-wrap:wrap;gap:0 10px;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}

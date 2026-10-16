@@ -524,8 +524,17 @@ const wayFig = c => `<span class="pvg-way-f" data-way="${esc(c.key)}">${modeChip
 const endRow = e => `<li data-end="${esc(e.end)}"><span class="pvg-way-l">${esc(`${e.figs[0].from} → ${e.figs[0].to}`)}</span><span class="pvg-way-fs">${e.figs.map(wayFig).join('')}</span></li>`;
 const wayLine = c => `<li data-way="${esc(c.key)}"><span class="pvg-way-t"><i class="pvg-mode">${MODE_JA[c.mode]}</i>${code3(c.iata)}</span><span class="pvg-way-l">${esc(c.label)}</span><b>${val(c)}</b></li>`;
 /* 見出しの行。カードの移動の数字が Google マップの表示だということは、ここで1回だけ言う（カードごとに繰り返さない）。
-   「＋住みやすい街を追加」の入口は、この中へ足す（段階3の「街の投稿」の担当。ここは見出しだけ）。 */
-const livingHead = (v, L) => `<header class="pvg-liv-h"><p class="pvg-askh">住むエリア${L.rents.some(r => r.way) ? '<small>空港までの時間は Google マップの表示</small>' : ''}</p></header>`;
+   「＋住みやすい街を追加」の入口は、この中の最後（見出しが左・入口が右。狭い箱では下へ回る ＝ .pvg-liv-h の組み方）。 */
+const livingHead = (v, L) => `<header class="pvg-liv-h"><p class="pvg-askh">住むエリア${L.rents.some(r => r.way) ? '<small>空港までの時間は Google マップの表示</small>' : ''}</p>${townAdd(v)}</header>`;
+/* 「＋住みやすい街を追加」。暮らしの板に1つだけ（常設）。会社は body から、基地・空港・街の名前はここから面へ渡す。
+   ★額は1つも渡さない。家賃の欄の鍵も渡さない。★質問も街も指さない（data-pvc-q・data-pvc-ctx を付けない）。 */
+const J = a => esc(JSON.stringify(a));
+function townAdd(v) {
+  if (!tabbed(v.slug) || !v.living || !baseCode(v)) return '';
+  const base = `${v.base.city} ${v.base.iata.join('・')}`;
+  const ports = v.living.airports.map(a => a.iata);
+  return `<a class="pvg-link pvg-liv-add" href="?add=town" data-pvc-open="town" data-pvc-base="${esc(baseCode(v))}" data-pvc-basetext="${esc(base)}" data-pvc-ports="${J(ports)}" data-pvc-towns="${J(ledgerTowns(v).map(t => [t.name, t.sub]))}">＋住みやすい街を追加</a>`;
+}
 function townCard(L, r, sizes) {
   const p = PLACE.primary(r.key), n = townName(r), w = r.way;
   const col = L.leadCol && r.value[L.leadCol] != null ? L.leadCol : (L.cols.find(([key]) => r.value[key] != null) || [])[0];
@@ -636,12 +645,11 @@ ${groups}
 }
 function livingCell(v) {
   const L = v.living;
-  const other = `<p class="pvg-quiet pvg-liv-more">ここに無い街に住んでいる方は、「勤務・訓練」の通勤から条件を追加できます。<a class="pvg-link" href="#work">勤務・訓練の通勤を見る${IC.go}</a></p>`;
   const lead = L && (L.rents.find(r => r.lead) || L.rents[0]);
   if (!lead) {
     return cell('living', '暮らし', IC.living, {
       slug: v.slug, k: '拠点の街', v: esc(v.base.city), empty: true, ask: LIVE_ASK,
-      note: '家賃の資料を確認できていません', body: other,
+      note: '家賃の資料を確認できていません', body: '',
     });
   }
   const t = townTracks(L.rents.length), sizes = townSizes(t);
@@ -668,7 +676,7 @@ ${cityEvidence(v, L)}
     k: way ? `${esc(lead.name)}・空港までの移動` : '拠点の街',
     v: way ? `${way.modes.map(m => MODE_JA[m]).join('・')} ${esc(way.text)}` : esc(v.base.city),
     note: way ? esc(`Google マップ・${way.day}`) : '家賃の資料を確認できていません',
-    body: `${towns}${other}${credits}`,
+    body: `${towns}${credits}`,
   });
   const colName = Object.fromEntries(L.cols)[L.leadCol].replace(/（[^）]*）/g, '');   // 「2部屋（2房）」→ 欄の見出しでは「2部屋」。表には元のまま出る
   return cell('living', '暮らし', IC.living, {
@@ -676,7 +684,7 @@ ${cityEvidence(v, L)}
     k: `${esc(lead.name).replace(/（[^）]*）/g, m => `<span class="pvg-opt">${m}</span>`)}${lead.area ? `（${esc(lead.area)}）` : ''}・${esc(colName)}の${esc(L.measure)}`, v: rentText(L, lead, L.leadCol),
     note: esc(join(L.siteName, lead.when)),
     also, count: L.rents.length + L.commute.length, more: '街ごとの家賃と出典',
-    body: `${towns}${other}${credits}`,
+    body: `${towns}${credits}`,
   });
 }
 

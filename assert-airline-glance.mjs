@@ -196,9 +196,9 @@ const taglineLedger = s => {
 /* タブ：左からこの順・この名前（オーナーの指定）。 */
 const TABS = [['overview', '概要'], ['pay', '給与・待遇'], ['reviews', '口コミ'], ['work', '勤務・訓練'], ['life', '暮らし・家族'], ['stay', 'ステイ先']];
 const TAB_ID = new Set(TABS.map(t => t[0]));
-/* 「情報を追加」の面が持っている話題。一覧・月の勤務と、質問のまとまり6つ（pv-contrib.js の GROUPS を下で読んで照合する）。 */
+/* 「情報を追加」の面が持っている話題。一覧・月の勤務・住みやすい街と、質問のまとまり6つ（pv-contrib.js の GROUPS を下で読んで照合する）。 */
 const ASK_GROUPS = ['taxi', 'staff_travel', 'upgrade', 'roster', 'career', 'benefits'];
-const TOPICS = new Set(['list', 'work', ...ASK_GROUPS]);
+const TOPICS = new Set(['list', 'work', 'town', ...ASK_GROUPS]);
 /* 実データの欄：種類ごとの数（会社の事実6・補足5・月の勤務1・提出された年収1・口コミ1・点数1・星1・要約1）。 */
 const LIVE_BOXES = { fact: 6, notes: 5, work: 1, realpay: 1, reviews: 1, score: 1, stars: 1, summary: 1, hotels: 1 };
 const LIVE_N = Object.values(LIVE_BOXES).reduce((a, b) => a + b, 0);
@@ -895,9 +895,24 @@ for (const s of FIVE) {
     ok(!PAGES[s].includes('pvg-addrow'), `${s}: 板の下の入口の行（pvg-addrow）が、ページのどこにも無い`);
     const triples = [...EW, ...EB, ...EL].map(e => [e.topic, e.q, e.ctx].join('|')), dup = triples.filter((t, i) => triples.indexOf(t) !== i);
     ok(EW.length && EL.length && !dup.length, `${s}: 勤務・訓練／待遇／暮らしの板で、同じ話題・同じ質問・同じ街を開く入口が2つ無い`, dup.join(' ／ '));
-    const ctxs = EL.map(e => e.ctx);
-    ok(EL.length > 0 && EL.every(e => e.q && e.ctx) && new Set(ctxs).size === ctxs.length,
-       `${s}: 暮らしの板の入口は、どれも街を持ち、その質問の前で開く（街ごとに1つ）`, EL.map(e => `${e.q || '(質問なし)'}@${e.ctx || '(街なし)'}`).join(' ／ '));
+    const ELt = EL.filter(e => e.topic !== 'town');
+    const ctxs = ELt.map(e => e.ctx);
+    ok(ELt.length > 0 && ELt.every(e => e.q && e.ctx) && new Set(ctxs).size === ctxs.length,
+       `${s}: 暮らしの板の入口は、「＋住みやすい街を追加」のほかは、どれも街を持ち、その質問の前で開く（街ごとに1つ）`, ELt.map(e => `${e.q || '(質問なし)'}@${e.ctx || '(街なし)'}`).join(' ／ '));
+    /* E9.2 (b)「＋住みやすい街を追加」：ページの中に data-pvc-open="town" は1つだけ（「修正」は台本が自分の行ごとに足す）。
+       暮らしの板の 住むエリア の見出しの行（header.pvg-liv-h）の、見出しのすぐ後ろの子。<a class="pvg-link pvg-liv-add">・字はそのまま・
+       質問も街も指さない（data-pvc-q・data-pvc-ctx が無い）・属性はこの7つだけ（ほかに何も運ばない）。 */
+    const TOWN_ATTRS = ['class', 'href', 'data-pvc-open', 'data-pvc-base', 'data-pvc-basetext', 'data-pvc-ports', 'data-pvc-towns'];
+    const tEnt = /<a\b([^>]*)>([^<]*)<\/a>/.exec((PAGES[s].match(/<a\b[^>]*\bdata-pvc-open="town"[^>]*>[^<]*<\/a>/) || [''])[0]);
+    const tHead = one(L, /<header class="pvg-liv-h">([\s\S]*?)<\/header>/);
+    const tAttrs = tEnt ? [...tEnt[1].matchAll(/\s([a-z-]+)="[^"]*"/g)].map(m => m[1]) : [];
+    ok(PAGES[s].split('data-pvc-open="town"').length - 1 === 1 && !!tEnt && tHead !== null && tHead.replace(/^<p class="pvg-askh">[\s\S]*?<\/p>/, '') === tEnt[0]
+       && one(tEnt[1], / class="([^"]*)"/) === 'pvg-link pvg-liv-add' && unesc(tEnt[2]) === '＋住みやすい街を追加'
+       && !/data-pvc-q=|data-pvc-ctx=/.test(tEnt[1]) && same([...tAttrs].sort(), [...TOWN_ATTRS].sort()) && tAttrs.length === TOWN_ATTRS.length,
+       `${s}: 「＋住みやすい街を追加」は、暮らしの板に1つだけ（質問も街も指さない）── 住むエリアの見出しの行の中・字のまま・属性は ${TOWN_ATTRS.join('・')} だけ`,
+       `${PAGES[s].split('data-pvc-open="town"').length - 1}つ ／ ${tEnt ? tEnt[0].slice(0, 160) : '入口なし'} ／ 属性 ${tAttrs.join(' ')}`);
+    /* E9.3 前の案内（「勤務・訓練の通勤を見る」の行）の代わり：暮らしの板は、通勤の質問への案内で終わらない（A8） */
+    ok(!PAGES[s].includes('pvg-liv-more') && !PAGES[s].includes('勤務・訓練の通勤を見る') && !PAGES[s].includes('ここに無い街に住んでいる方') && EL.some(e => e.topic === 'town'), `${s}: 暮らしの板は、通勤の質問への案内で終わらない（案内の行が無く、「＋住みやすい街を追加」が在る）`);
     ok(![...EW, ...EB, ...EL].some(e => e.text === '追加'), `${s}: 「追加」だけの入口が無い（何を足すのかが字で分かる）`);
     /* 暮らしの板には、集計・補足の欄を置かない（通勤の回答は、勤務・訓練の通勤の面に1つだけ）。 */
     ok(L.length > 0 && !L.includes(' data-live="'), `${s}: 暮らしの板に、集計・補足の欄を残していない（通勤は勤務・訓練の面に1つだけ）`);
@@ -1719,6 +1734,44 @@ head('暮らし（街・家賃・空港までの移動）');
     }
     if (need.length ? one(fold, /<summary>写真の出典<small>(\d+)枚<\/small>/) !== String(need.length) : fold !== '') crBad.push(`枚数「${one(fold, /<small>(\d+)枚/)}」（台帳 ${need.length}）`);
     ok(panel && !crBad.length, `${s}: 街の写真のクレジット（示すことが条件の写真は、作者名とライセンスのリンクつき）`, crBad.join(' ／ '));
+    /* E9.4「＋住みやすい街を追加」が面へ渡すのは、カードのとおり（ページから作り直す。生成側の関数は呼ばない）。
+       基地 ＝ 同じ板の section.pvg-liv の data-base。空港 ＝ 3字の並びで、頭がその基地・この都市の台帳の空港と同じ並び
+       （移動の行と見出しの空港は、この台帳から作られる。全日空のページは見出しに空港の3字を出さず、成田は移動の行にも無い
+       ＝ ページの字だけでは確かめられないので、行の出どころの台帳と突き合わせる）・頭の基地はページに3字で出ている。
+       街 ＝ 同じ板のカードの [名前, 下の行 か ""] を、カードの順に。属性のどこにも額（数字＋万・円）・「¥」・通貨の3字が無い。 */
+    const tEnt = one(panel, /<a class="pvg-link pvg-liv-add"([^>]*)>/) || '';
+    const tAttr = n => unesc(one(tEnt, new RegExp(` ${n}="([^"]*)"`)) || '');
+    const tJson = n => { try { return JSON.parse(tAttr(n)); } catch { return null; } };
+    const tBase = tAttr('data-pvc-base'), tPorts = tJson('data-pvc-ports'), tTowns = tJson('data-pvc-towns');
+    const secBase = one(sec, /^<section class="pvg-liv"[^>]* data-base="([^"]*)"/);
+    const CUR3 = JSON.parse(read('pv-vocab.json')).currencies.map(x => x.code);
+    const e94 = [];
+    if (!tEnt) e94.push('入口が無い');
+    else {
+      if (!(tBase && tBase === secBase)) e94.push(`基地 ${tBase}（節の data-base ${secBase}）`);
+      if (!(Array.isArray(tPorts) && tPorts.length > 0 && tPorts.every(p => /^[A-Z]{3}$/.test(p)) && tPorts[0] === tBase && same(tPorts, c.airports.map(a => a[0]))))
+        e94.push(`空港 ${JSON.stringify(tPorts)}（台帳 ${JSON.stringify(c.airports.map(a => a[0]))}・頭は基地 ${tBase}）`);
+      if (!(PAGES[s].includes(`<i class="pvg-code3">${tBase}</i>`) || (one(PART[s].hero, /<span class="pvg-base">([\s\S]*?)<\/span>/) || '').includes(tBase))) e94.push(`基地 ${tBase} がページに3字で出ていない`);
+      if (!same(tTowns, cards.map(x => [x.n, x.sub]))) e94.push(`街 ${JSON.stringify(tTowns)}（カード ${JSON.stringify(cards.map(x => [x.n, x.sub]))}）`);
+      const raw = unesc(tEnt);
+      if (/\d\s*(?:万|円)|¥|￥/.test(raw) || CUR3.some(k => new RegExp(`\\b${k}\\b`).test(raw))) e94.push(`額・通貨の字 ${raw.slice(0, 120)}`);
+    }
+    ok(!e94.length, `${s}: 「＋住みやすい街を追加」が面へ渡すのは、カードのとおり（基地・空港・街の名前。額も通貨も渡さない）`, e94.join(' ／ '));
+    /* TG5 入口の街は、サーバの候補の種に在る（db/towns.generated.sql を字として読む）。
+       data-pvc-towns の名前は「-- 1.」の行（その会社・その基地）に、lang="en" の下の行は「-- 2.」の別の書き方の行に在る。 */
+    const seedSql = read('db/towns.generated.sql');
+    const seedRows = (head) => {
+      const i = seedSql.indexOf(`\n-- ${head}.`), j = i < 0 ? -1 : seedSql.indexOf('\n  ) as v(', i);
+      return i < 0 || j < 0 ? [] : seedSql.slice(i, j).split('\n').filter(l => /^ {4}\(/.test(l))
+        .map(l => [...l.matchAll(/'((?:[^']|'')*)'/g)].map(m => m[1].replace(/''/g, () => "'")).join('|'));
+    };
+    const sec1 = new Set(seedRows(1)), sec2 = new Set(seedRows(2)), tg5 = [];
+    if (!sec1.size || !sec2.size) tg5.push('種の節が読めない');
+    for (const t of Array.isArray(tTowns) ? tTowns : []) if (!sec1.has([s, tBase, t[0]].join('|'))) tg5.push(`「${t[0]}」が種の街に無い`);
+    for (const x of cards.filter(x => x.h.includes('<span class="pvg-town-s" lang="en">'))) if (!sec2.has([s, tBase, x.n, x.sub].join('|'))) tg5.push(`「${x.n}」の「${x.sub}」が種の別の書き方に無い`);
+    ok(Array.isArray(tTowns) && tTowns.length > 0 && !tg5.length, `${s}: 入口の街は、サーバの候補の種に在る（名前は種の街・ラテン文字の下の行は種の別の書き方）`, tg5.join(' ／ '));
+    /* TG6 暮らしの板は、街の一覧に「3人そろった」と言わない（「パイロットの回答」の見出しの下は、1件目から出る） */
+    ok(panel && !panel.includes('3人そろった') && !text(panel).includes('3人そろった'), `${s}: 暮らしの板は、街の一覧に「3人そろった」と言わない`);
 
     /* SB1〜SB5 家賃の棒（都市に1組）。棒の行は台帳から：団地ごとの家賃（estates）が在れば団地、無ければ額を持つ街。
        棒にできる数字の種類は台帳の BAR_STATS（ここに2つめの一覧を書かない）。 */
@@ -4973,12 +5026,12 @@ async function runTabs(browser, s, [w, h]) {
       }
       ok(!bad.length, `${tag}: 「勤務・訓練」の6つの入口は、どれも字のとおりの話題の入力を開く（字で探す・会社を選び直させない・希望休はその質問の所から）・閉じても「勤務・訓練」に居る`, bad.join(' ／ '));
     }
-    /* ── 5c) B7 ほかのタブから「勤務・訓練」への2つの案内（狭い幅と広い幅の1つずつ：390・1440）──
-       給与・待遇の、待遇の板の頭の1行の「勤務・訓練で見る」（その行 .pvg-moved を持つページだけ）と、暮らし・家族の「勤務・訓練の通勤を見る」。
+    /* ── 5c) B7 ほかのタブから「勤務・訓練」への案内（狭い幅と広い幅の1つずつ：390・1440）──
+       給与・待遇の、待遇の板の頭の1行の「勤務・訓練で見る」（その行 .pvg-moved を持つページだけ）。
        案内は字で探す（見えている1つ）。押す →「勤務・訓練」が選ばれ・板が見え・住所が #work → 戻る → 押す前のタブ。 */
     if (w === 390 || w === 1440) {
       const bad = [];
-      for (const [from, host, label] of [['pay', '.pvg-moved', '勤務・訓練で見る'], ['life', '.pvg-liv-more', '勤務・訓練の通勤を見る']]) {
+      for (const [from, host, label] of [['pay', '.pvg-moved', '勤務・訓練で見る']]) {
         if (!((await tap(`.pvg-tabs [data-pvg-tab="${from}"]`)) && (await atTab(from)))) { bad.push(`「${TAB_NAME[from]}」へ移れない`); continue; }
         const hit = await p.evaluate((host, label) => {
           const on = e => e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
@@ -4993,7 +5046,7 @@ async function runTabs(browser, s, [w, h]) {
         await p.goBack();
         if (!(await atTab(from))) bad.push(`「${label}」で来たあとの「戻る」が「${TAB_NAME[from]}」にならない（${(await see()).at}）`);
       }
-      ok(!bad.length, `${tag}: 給与・待遇の「勤務・訓練で見る」と、暮らし・家族の「勤務・訓練の通勤を見る」── 押すと「勤務・訓練」のタブ（選んだ印・板・住所 #work）・戻るで押す前のタブ`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 給与・待遇の「勤務・訓練で見る」── 押すと「勤務・訓練」のタブ（選んだ印・板・住所 #work）・戻るで押す前のタブ`, bad.join(' ／ '));
     }
     /* ── 6) 住所の印（?add=）で直接開く ── */
     {
