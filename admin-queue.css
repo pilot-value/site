@@ -52,3 +52,14 @@
 .adm-say{margin:0;font-size:.82rem;color:#b0c0d4}
 .adm-say[hidden]{display:none}
 .adm-img{max-width:min(100%,360px);height:auto;border-radius:8px}
+/* オーナーだけの部分（WP-towns-13v）：申請の画像の面は、その人の行の下に1つだけ（浮かせない・行の続き） */
+.adm-sheet{display:grid;gap:10px;min-width:0;padding:12px;border:1px solid rgba(245,200,66,.25);border-radius:10px;background:rgba(245,200,66,.04)}
+.adm-sheet:focus{outline:none}
+.adm-sheet:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+.adm-sheet .adm-img{max-width:min(100%,520px);justify-self:start}
+/* ★ここだけ .adm- の外（WP-towns-13v・P12.45 c）：管理ページ自身の会員の表（#users-tbody）。名前の欄に最低の幅を持たせる
+   （狭い画面と英語の見出しで、名前が1字ずつの縦書きになっていた）。
+   全部を1行に固めない・word-break:keep-all も使わない ── どちらも、区切りの無い長い名前で欄が名前の長さまで広がり、
+   広い画面でも表が箱より広くなって右端の欄が隠れるため。表は横に動く箱（.table-wrap）の中 */
+#users-tbody td:nth-child(2){min-width:9em}
+#users-tbody td:nth-child(3){min-width:12em}

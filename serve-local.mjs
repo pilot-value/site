@@ -315,6 +315,9 @@ export async function start(opt = {}) {
   await db.exec(`set timezone = 'UTC'`);   // 本番と同じ時計（now() ・ current_date ・返る時刻の形）
   const fresh = !(await db.query(`select to_regclass('public.profiles') as r`)).rows[0].r;
   if (fresh) await db.exec(BOOT);
+  /* 前からある保存先（BOOT に登録日の列が無かった頃に作ったもの）にも、管理ページの会員の表が読む列を足す。
+     冪等（新しい保存先では何もしない）。BOOT の外に置くのはこの1文だけ。 */
+  await db.exec(`alter table public.profiles add column if not exists created_at timestamptz not null default now()`);
   for (const f of SQL_FILES) {
     const p = path.join(ROOT, f);
     if (!fs.existsSync(p)) throw new Error('SQL が無い: ' + f);

@@ -1060,7 +1060,7 @@
 
     async function handleLogout() {
       if (!confirm('Log out?')) return;
-      try { Object.keys(sessionStorage).forEach(function (k) { if (/^pv_(contrib|stay)_draft:/.test(k)) sessionStorage.removeItem(k); }); } catch (e) {}   // clear this tab's unsent drafts too
+      try { Object.keys(sessionStorage).forEach(function (k) { if (/^pv_(contrib|stay|admin)_draft:/.test(k)) sessionStorage.removeItem(k); }); } catch (e) {}   // clear this tab's unsent drafts too
       await sb.auth.signOut();
       localStorage.removeItem('pv_user');
       localStorage.removeItem('pv_unlock_expiry');

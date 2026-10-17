@@ -14,7 +14,9 @@
      写真は、承認の面が開いているあいだに1枚ずつ取りにいき、このタブのメモリーにだけ置く。
    ★断られた理由は、サイトに在る一言で出す（ステイ先の欄と同じ字）。サーバーの status の名前は画面に出さない。
    ★ホテルを「追加」で足せるのは、その会社の就航地だけ（決めるのはサーバー。面の候補は同じ一覧から出す手がかり）。
-   ★「追加」の面に打った字は、このタブに30分だけ残す（打った人にだけ戻す。このページの「ログアウト」で消える）。 */
+   ★「追加」の面に打った字は、このタブに30分だけ残す（打った人にだけ戻す。このページの「ログアウト」で消える）。
+   ★承認の面の下に、オーナーだけの「申請してきた人」「会員一覧」（WP-towns-13v）。答えるのはサーバーで、
+     オーナーでない運営には何も描かない。申請の画像は押したときに1枚だけ取りにいき、閉じたら消す（下の節）。 */
 (function () {
   'use strict';
 
@@ -58,7 +60,18 @@
     fNote:    'Note',
     add:      'Add',
     added:    'Added.',
-    existed:  'It is already a candidate.'
+    existed:  'It is already a candidate.',
+    apps:     'Applicants',
+    members:  'Members',
+    verified: 'verified',
+    decline:  'Decline',
+    revoke:   'Revoke',
+    view:     'View image',
+    close:    'Close',
+    applied:  'Applied',
+    noUsers:  'No users',
+    age:      ['Within 1 month', 'Within 3 months', 'Within 6 months', 'Within a year'],
+    pos:      { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' }
   } : {
     towns:    '住みやすい街',
     stays:    'ステイ先',
@@ -91,7 +104,20 @@
     fNote:    'ひとこと',
     add:      '追加',
     added:    '追加しました。',
-    existed:  'もう候補に入っています。'
+    existed:  'もう候補に入っています。',
+    /* オーナーだけの部分（WP-towns-13v）。申請してきた人・会員一覧・verified はオーナーの言葉のまま（英語のページも verified）。
+       見送り・取り消す・閉じる・ユーザーなし・時期の段・職位はサイトに在る字（assert-admin.mjs が突き合わせる） */
+    apps:     '申請してきた人',
+    members:  '会員一覧',
+    verified: 'verified',
+    decline:  '見送り',
+    revoke:   '取り消す',
+    view:     '画像を見る',
+    close:    '閉じる',
+    applied:  '申請あり',
+    noUsers:  'ユーザーなし',
+    age:      ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内'],
+    pos:      { captain: '機長', fo: '副操縦士', cadet: '訓練生' }
   };
 
   /* 断られたときの一言（career-stay.js の SAY_MOD ／ SAY_ADD.exists ／ SAY_FAIL と同じ字。assert-admin.mjs が突き合わせる）。 */
@@ -128,6 +154,10 @@
     exists:       '同じ名前が、もう登録されています。',
     queue_full:   'この就航地には、いま追加できません。'
   };
+  /* verified・見送り・取り消すが断られたときの一言。サイトに同じ場合の字が在るのは「もう無い」だけ
+     （not_found ＝ その人が居ない／no_image ＝ 申請の画像がもう無い ── 別の窓で決めたあと）。ほかは FAIL。
+     ★forbidden に SAY.forbidden（「運営だけが…」）を使わない ── 断られるのは運営なのでその字は当たらない。 */
+  var SAY_WHO = { not_found: SAY.not_found, no_image: SAY.not_found };
 
   var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
   var isArr = Array.isArray;
@@ -147,6 +177,7 @@
         保存領域に置くのは「追加」の面に運営が打った字だけ ── 下の「打ちかけ」の決まり）──────────── */
   var EMPTY_TOWN = { k: 'idle', scopes: [], towns: [], texts: [], full: false };
   var EMPTY_STAY = { k: 'idle', places: [], photos: [], full: false };
+  var EMPTY_OWNER = { k: 'idle', apps: [], members: [] };
   var S = {
     sb: null,
     started: false,
@@ -161,7 +192,11 @@
     photoBusy: false,
     me: '',            // いま読んでいる人の印（会員の id の指紋。打ちかけを戻してよいかだけに使う。分からなければ ''）
     names: null,       // 会社の名簿（pv-airlines.json）を読む約束。1回だけ読む
-    airports: null     // 運営の「追加」で足せる空港（pv_stay_airports）を読む約束。ホテルの面を初めて出すときに1回だけ
+    airports: null,    // 運営の「追加」で足せる空港（pv_stay_airports）を読む約束。ホテルの面を初めて出すときに1回だけ
+    owner: EMPTY_OWNER, // オーナーだけの部分（申請してきた人・会員一覧）。数（承認の横）には入れない
+    ownerSeen: false,  // このタブで、オーナーの2つの一覧が1回でも読めたか（読めた人にだけ、あとの失敗を見出しで出す）
+    sheet: null,       // いま開いている申請の画像の面（1つだけ）。閉じたら画像ごと消す
+    focus: null        // 決めたあと、描き直した同じ行のボタンへ戻す印（'app:id' ／ 'member:id'）
   };
 
   /* ── 会社の名前（両方のページで同じ1枚 pv-airlines.json から。英語のページは英語の名前）──
@@ -290,6 +325,18 @@
     return { k: 'ok', places: d.places.slice(), photos: d.photos.slice(),
              full: d.places.length >= CAP || d.photos.length >= CAP };
   }
+  /* オーナーだけの2つの一覧。★2つとも ok のときだけ 'ok'（片方だけでは描かない）。
+     オーナーでない運営には forbidden（'deny'）が返る ── 見出しも行も数もボタンも出さない。
+     id が字でない行は捨てる（押したときに送る id は、この行の id だけ） */
+  function ownerPart(ra, rm) {
+    var va = verdict(ra), vm = verdict(rm);
+    var a = va === 'ok' && isArr(ra.data.rows) ? ra.data.rows : null, m = vm === 'ok' && isArr(rm.data.rows) ? rm.data.rows : null;
+    var row = function (x) { return x && typeof x === 'object' && typeof x.id === 'string' && x.id !== ''; };
+    if (a && m) return { k: 'ok', apps: a.filter(row), members: m.filter(row) };
+    /* どちらかが「運営ではない・オーナーではない」なら deny。入口が無ければ off。それ以外は fail */
+    var k = va === 'deny' || vm === 'deny' ? 'deny' : (va === 'off' || vm === 'off') ? 'off' : 'fail';
+    return { k: k, apps: [], members: [] };
+  }
 
   function parts() { return [S.town, S.stay]; }
   function allOk() { return parts().every(function (p) { return p.k === 'ok'; }); }
@@ -315,6 +362,8 @@
       b.setAttribute('aria-expanded', on ? 'true' : 'false');
       p.hidden = !on;
     });
+    /* 承認の面を閉じたら、申請の画像も閉じる（見えない所に画像を残さない） */
+    if (which !== 'q') closeSheet(false);
     if (which === 'q') pumpPhotos();
     if (which === 'a') drawAdd();
   }
@@ -542,16 +591,18 @@
     });
   }
 
+  /* 見出しの横の「読み込めませんでした」「更新」 */
+  function failPart() {
+    var sp = el('span', 'adm-part', T.err);
+    var b = el('button', 'adm-act adm-no', T.refresh, { type: 'button', 'data-act': 'reload' });
+    b.addEventListener('click', function () { load(); });
+    sp.appendChild(b);
+    return sp;
+  }
   function drawPart(q, key, title, part, rows) {
     var h = el('h2', 'adm-h', title);
     if (part.k === 'off') h.appendChild(el('span', 'adm-part', T.off));
-    else if (part.k === 'fail' || part.k === 'deny') {
-      var sp = el('span', 'adm-part', T.err);
-      var b = el('button', 'adm-act adm-no', T.refresh, { type: 'button', 'data-act': 'reload' });
-      b.addEventListener('click', function () { load(); });
-      sp.appendChild(b);
-      h.appendChild(sp);
-    }
+    else if (part.k === 'fail' || part.k === 'deny') h.appendChild(failPart());
     q.appendChild(h);
     var ul = el('ul', 'adm-rows', null, { 'data-adm-list': key });
     if (part.k === 'ok') rows.forEach(function (li) { ul.appendChild(li); });
@@ -559,14 +610,182 @@
     noneLine(key);
   }
 
+  /* ── オーナーだけの部分（申請してきた人・会員一覧）── WP-towns-13v（オーナーの言葉 2026-10-16）──────────
+     ★守っているのはサーバー（db/stays.sql 10-c）。設定したオーナーにだけ答え、ほかの運営には forbidden。
+       2つの一覧が両方 ok のときだけ描く ── オーナーでない運営には、見出しも行も数もボタンも出さない。
+     ★申請の画像は「画像を見る」を押したときに1枚だけ取りにいき、その行の下の面にだけ出す
+       （保存領域にもメモリーの一覧にも置かない・リンクにしない）。閉じる・決める・描き直す・承認の面を閉じる・
+       ページを離れる、のどれでも src を外して面ごと消す。
+     ★「verified」と「見送り」は画像の面の中にだけ置く（画像を見てから決める）。会員一覧は行に「verified」／「取り消す」。
+     ★送るのは {id, state, via} の3つだけ。決めたら2つの一覧を読み直す。数（承認の横）には入れない。 */
+  function who(x) { return str(x.name) || str(x.email) || '—'; }
+  function personRow(adm, x) {
+    var li = el('li', 'adm-row', null, { 'data-adm': adm, 'data-id': x.id });
+    li.appendChild(el('p', 'adm-row-v', who(x)));
+    if (str(x.name) && str(x.email)) li.appendChild(el('p', 'adm-row-k', x.email));
+    var pos = str(x.position);
+    var work = [str(x.company), has(T.pos, pos) ? T.pos[pos] : pos].filter(Boolean).join(' · ');
+    if (work) li.appendChild(el('p', 'adm-row-k', work));
+    return li;
+  }
+  /* 申請した時期（サーバーの 0〜4 の段 ── db/stays.sql 3-e）。4 は字を出さない：段は暦の月の差で決まるので、
+     「それより前（1年より前）」と書くと、11か月あまりの申請にも当たってしまう（本当でないことを書かない） */
+  function askedWord(n) { return typeof n === 'number' && n >= 0 && n <= 3 && Math.floor(n) === n ? T.age[n] : ''; }
+
+  function appRow(x) {
+    var li = personRow('app', x);
+    var k = askedWord(x.asked);
+    if (k) li.appendChild(el('p', 'adm-row-k', k));
+    var vb = button('adm-no', T.view, 'view');
+    vb.setAttribute('aria-expanded', 'false');
+    vb.addEventListener('click', function () {
+      if (S.sheet && S.sheet.li === li) closeSheet(true);
+      else openSheet(li, x, vb);
+    });
+    actions(li).appendChild(vb);
+    sayLine(li);
+    return li;
+  }
+  function memberRow(x) {
+    var li = personRow('member', x), v = li.querySelector('.adm-row-v');
+    var on = x.state === 'approved';
+    if (x.applied === true) v.appendChild(el('span', 'adm-tag', T.applied));
+    if (on) v.appendChild(el('span', 'adm-tag', T.verified));
+    var b = on ? button('adm-no', T.revoke, 'revoke') : button('adm-ok', T.verified, 'verify');
+    b.addEventListener('click', function () {
+      decide(li, 'member:' + x.id, { id: x.id, state: on ? 'revoked' : 'approved', via: 'member' });
+    });
+    actions(li).appendChild(b);
+    sayLine(li);
+    return li;
+  }
+
+  /* 申請の画像の面（行の下に1つだけ）。決めるボタンは、画像が読めて描けたあとにだけ出す */
+  function openSheet(li, x, vb) {
+    closeSheet(false);
+    var box = el('div', 'adm-sheet', null, { 'data-adm': 'sheet', role: 'group', 'aria-label': T.view, tabindex: '-1' });
+    box.appendChild(el('p', 'adm-say', T.loading));
+    var acts = li.querySelector('.adm-acts');
+    li.insertBefore(box, acts ? acts.nextSibling : null);
+    var sh = { li: li, box: box, vb: vb };
+    S.sheet = sh;
+    vb.setAttribute('aria-expanded', 'true');
+    /* Escape は画像の面だけを閉じる（承認の面は開いたまま）。フォーカスは「画像を見る」へ戻す */
+    box.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      closeSheet(true);
+    });
+    box.focus();
+    var closeBtn = function () {
+      var c = button('adm-no', T.close, 'close');
+      c.addEventListener('click', function () { closeSheet(true); });
+      return c;
+    };
+    var cannot = function () {
+      clear(box);
+      box.appendChild(el('p', 'adm-say', T.photoErr));
+      actions(box).appendChild(closeBtn());
+    };
+    call(function () { return S.sb.rpc('pv_stay_applicant_image', { p: { id: x.id } }); }).then(function (r) {
+      if (S.sheet !== sh) return;            // 閉じたあとに来た返事は捨てる（画像をどこにも置かない）
+      var d = verdict(r) === 'ok' ? r.data : null;
+      var b64 = d && d.mime === 'image/jpeg' && typeof d.b64 === 'string' ? d.b64.replace(/\s+/g, '') : '';
+      if (!/^[A-Za-z0-9+\/]+=*$/.test(b64)) { cannot(); return; }
+      clear(box);
+      var img = el('img', 'adm-img', null, { alt: who(x), draggable: 'false' });
+      img.addEventListener('load', function () {
+        if (S.sheet !== sh) return;
+        var a = actions(box);
+        var ok = button('adm-ok', T.verified, 'verify');
+        ok.addEventListener('click', function () { decide(li, 'app:' + x.id, { id: x.id, state: 'approved', via: 'applicant' }); });
+        var no = button('adm-no', T.decline, 'decline');
+        no.addEventListener('click', function () { decide(li, 'app:' + x.id, { id: x.id, state: 'denied', via: 'applicant' }); });
+        a.appendChild(ok);
+        a.appendChild(no);
+        a.appendChild(closeBtn());
+      }, { once: true });
+      img.addEventListener('error', function () {
+        if (S.sheet !== sh) return;
+        img.removeAttribute('src');
+        cannot();
+      }, { once: true });
+      box.appendChild(img);
+      img.setAttribute('src', 'data:image/jpeg;base64,' + b64);
+    });
+  }
+  function closeSheet(focusBack) {
+    var sh = S.sheet;
+    if (!sh) return;
+    S.sheet = null;
+    Array.prototype.forEach.call(sh.box.querySelectorAll('img'), function (i) { i.removeAttribute('src'); });
+    if (sh.box.parentNode) sh.box.parentNode.removeChild(sh.box);
+    sh.vb.setAttribute('aria-expanded', 'false');
+    if (focusBack && sh.vb.isConnected) sh.vb.focus();
+  }
+
+  /* verified ・見送り・取り消す。断られたら、その行に一言を出す。どちらでも2つの一覧を読み直す */
+  function decide(li, key, p) {
+    if (li.getAttribute('aria-busy') === 'true') return;
+    busy(li, true);
+    say(li, '');
+    call(function () { return S.sb.rpc('pv_stay_viewer_verify', { p: p }); }).then(function (r) {
+      var d = r && !r.error ? r.data : null;
+      if (!(d && d.ok === true)) {
+        var st = d && d.ok === false ? String(d.status || '') : '';
+        S.notes[key] = has(SAY_WHO, st) ? SAY_WHO[st] : FAIL;
+        say(li, S.notes[key]);
+      }
+      S.focus = key;
+      closeSheet(false);
+      load();
+    });
+  }
+
+  function drawOwner(q) {
+    var o = S.owner;
+    if (o.k === 'ok') S.ownerSeen = true;
+    /* ★オーナーと分かる前は何も描かない。このタブで一度読めたオーナーにだけ、あとの失敗を見出しの横に出す */
+    else if (!(o.k === 'fail' && S.ownerSeen)) return;
+    [['apps', T.apps, o.apps.map(appRow), T.none], ['members', T.members, o.members.map(memberRow), T.noUsers]].forEach(function (s) {
+      var h = el('h2', 'adm-h', s[1], { 'data-adm-owner': s[0] });
+      if (o.k !== 'ok') h.appendChild(failPart());
+      q.appendChild(h);
+      var ul = el('ul', 'adm-rows', null, { 'data-adm-list': s[0] });
+      s[2].forEach(function (li) { ul.appendChild(li); });
+      q.appendChild(ul);
+      if (o.k === 'ok' && !s[2].length) q.appendChild(el('p', 'adm-say', s[3], { 'data-adm': 'none', 'data-adm-part': s[0] }));
+    });
+  }
+  /* 決めたあと：描き直した同じ人の行のボタンへフォーカスを戻す（申請の行が消えたら、会員一覧のその人の行へ） */
+  function refocus(q) {
+    var key = S.focus;
+    S.focus = null;
+    if (!key) return;
+    var i = key.indexOf(':'), id = key.slice(i + 1);
+    var find = function (adm) {
+      var hit = null;
+      Array.prototype.forEach.call(q.querySelectorAll('li.adm-row'), function (x) {
+        if (!hit && x.getAttribute('data-adm') === adm && x.getAttribute('data-id') === id) hit = x;
+      });
+      return hit;
+    };
+    var li = find(key.slice(0, i)) || find('member');
+    var b = li && li.querySelector('.adm-acts button');
+    if (b) b.focus();
+  }
+
   function draw() {
     var q = $('adm-q');
     if (!q) return;
+    closeSheet(false);
     clear(q);
     S.photoWait = [];
     var town = S.town, stay = S.stay;
     drawPart(q, 'town', T.towns, town, town.k === 'ok' ? town.towns.map(townRow).concat(town.texts.map(textRow)) : []);
     drawPart(q, 'stay', T.stays, stay, stay.k === 'ok' ? stay.places.map(placeRow).concat(stay.photos.map(photoRow)) : []);
+    drawOwner(q);
     /* 断られた行の一言を、読み直したあとの同じ行へ戻す。行が無くなっていたら面の終わりに1行で残す。 */
     Object.keys(S.notes).forEach(function (key) {
       var i = key.indexOf(':'), adm = key.slice(0, i), id = key.slice(i + 1);
@@ -578,9 +797,11 @@
       else q.appendChild(el('p', 'adm-say', S.notes[key], { 'data-adm': 'note' }));
     });
     S.notes = {};
+    refocus(q);
     drawBadge();
     S.drawn = true;
-    if (!S.autoOpened && total() > 0) {
+    /* 待っているもの（数に入るもの）か、オーナーへの申請があれば、承認の面を自分で開く（ページを開いて1回だけ） */
+    if (!S.autoOpened && (total() > 0 || S.owner.apps.length > 0)) {
       S.autoOpened = true;
       if (!isOpen('q') && !isOpen('a')) setOpen('q');
     }
@@ -595,12 +816,16 @@
     /* 読み出しは、この順に始めて、そろって待つ */
     var a = call(function () { return S.sb.rpc('pv_town_queue', { p: {} }); });
     var b = call(function () { return S.sb.rpc('pv_stay_queue', { p: {} }); });
+    /* オーナーだけの2つ（申請してきた人 → 会員一覧）。オーナーでなければ forbidden が返るだけ */
+    var c = call(function () { return S.sb.rpc('pv_stay_applicants', { p: {} }); });
+    var m = call(function () { return S.sb.rpc('pv_stay_members', { p: {} }); });
     /* 行に出す会社の名前（1回だけ読む。読めなくても待ち行列は描く） */
-    return Promise.all([a, b, names()]).then(function (r) {
-      NAMES = r[2];
+    return Promise.all([a, b, c, m, names()]).then(function (r) {
+      NAMES = r[4];
       if (my !== S.seq) return;   // あとから始めた読み込みが描く
       S.town = townPart(r[0]);
       S.stay = stayPart(r[1]);
+      S.owner = ownerPart(r[2], r[3]);
       /* いま待っていない写真は、メモリーからも外す */
       var keep = {};
       S.stay.photos.forEach(function (x) { if (has(S.photos, x.id)) keep[x.id] = S.photos[x.id]; });
@@ -822,6 +1047,9 @@
       settleDrafts(S.me);
     });
   }
+
+  /* ページを離れるときも申請の画像を閉じる（戻る・進むでページが戻っても、画像は残っていない） */
+  window.addEventListener('pagehide', function () { closeSheet(false); });
 
   function start(sb) {
     if (S.started) return load();

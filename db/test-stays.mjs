@@ -3446,5 +3446,40 @@ console.log('\n▼ 前提が無ければ日本語で止まる（別の空の DB 
   await bare.close();
 }
 
+// ════════════════════════════════════════════════════════════════
+console.log('\n▼ 見送りは、いまの verified を取り上げない（P12.17。申請の仕組み db/proof-store.sql・db/proof-offer.sql をこの DB に足して）');
+{
+  /* ★申請（画像あり）が残ったまま、その人がもうオーナーに承認されていることがある（10-a の決める口で承認された・
+       前に承認したオーナーがオーナーに戻った）。そこでオーナーが申請の画像の面で「見送り」を押しても、
+       いま見られているものを取り上げない（返事は approved・承認の行は1文字も変わらない）。申請は終わり、画像は消える。
+       ★ここは最後の節（申請の仕組みを足したあとに、ほかの節を走らせない）。 */
+  const APP4 = '00000000-0000-4000-8000-0000000000d3';
+  let e = '';
+  for (const f of ['db/proof-store.sql', 'db/proof-offer.sql']) {
+    try { await db.exec(read(f)); } catch (err) { e += f + ': ' + String(err.message).slice(0, 200) + ' '; }
+  }
+  await db.query(`insert into auth.users(id,email) values($1,$2)`, [APP4, 'app4@example.com']);
+  await db.query(`insert into public.profiles(id,email) values($1,$2) on conflict (id) do nothing`, [APP4, 'app4@example.com']);
+  const imgs = async () => (await one(`select count(*)::int as n from public.pv_proof_images where user_id = $1`, [APP4])).n;
+  const apps = async () => (((await rpc(OP, 'pv_stay_applicants', {})) || {}).rows || []).filter((x) => x.id === APP4);
+  const applied = await rpc(APP4, 'pv_stay_apply', { image: JPEG });
+  /* 承認はもう在る（DB の持ち主として入れる ── このファイルの V1・V2 と同じ入れ方） */
+  await db.query(`insert into public.pv_stay_viewers (user_id, state, asked_at, decided_by, decided_at)
+                  values ($1, 'approved', now() - interval '3 days', $2, now() - interval '2 days')`, [APP4, OP]);
+  const row0 = await vrowOf(APP4), open0 = (await stays(APP4)).state, img0 = await imgs(), app0 = await apps();
+  ok(e === '' && J(await ownerNow()) === J([OP]) && J(applied) === J({ ok: true, state: 'offered' }) && img0 === 1 && app0.length === 1
+     && !!row0 && row0.state === 'approved' && row0.decided_by === OP && open0 === 'open',
+     '（申請の仕組みを足した・APP4 は画像つきで申請し、申請してきた人の一覧に居る・そのうえでオーナーに承認されていて、ホテルが読める）',
+     J({ e, applied, img0, app0: app0.length, row0, open0 }));
+  const d = await rpc(OP, 'pv_stay_viewer_verify', { id: APP4, state: 'denied', via: 'applicant' });
+  const row1 = await vrowOf(APP4), open1 = (await stays(APP4)).state;
+  ok(J(d) === J({ ok: true, state: 'approved', discarded: 1 }) && J(row1) === J(row0) && open1 === 'open',
+     '★P12.17: いま verified の人の申請を「見送り」にしても verified のまま（返事は approved・承認の行は状態も決めた人も時刻も1文字も変わらない・ホテルはそのまま読める）',
+     J({ d, row0, row1, open1 }));
+  const mem = ((await rpc(OP, 'pv_stay_members', {})).rows || []).filter((x) => x.id === APP4);
+  ok((await imgs()) === 0 && (await apps()).length === 0 && mem.length === 1 && mem[0].state === 'approved' && mem[0].applied === false,
+     '★その「見送り」でも申請は終わる（画像はその場で消える・申請してきた人の一覧から消える・会員一覧では verified のまま・申請なし）', J(mem));
+}
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed\n`);
 process.exit(fail === 0 ? 0 : 1);
