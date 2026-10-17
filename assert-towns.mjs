@@ -57,6 +57,38 @@
          'a' の街はページのどこにも無い・何も送らない。続けて 'b' が街を保存して「もう1項目を答える」→「通勤・タクシー」を
          開いても、'a' の街は面の頭の行にも、ページのどこにも無い。
 
+   場面 board（B1〜B11）── 会社ページの街の欄（career-live.js の KIND.towns）⇄ pv_town_board。読む人は本物の呼び出しで作る
+     （給与は submit_pay_report・街は面か submit_town_post。給与フォームは歩かない ── P5.5 の手元の給与フォームの確かめは無い）。
+     B1  最初の1人から：'pay'（この会社の給与）は空の欄（'empty'・器ごと出ない）→ 'a' が面で候補を選ぶ → 読み直すと
+         「人気の居住地」・その街・「回答 1人」。
+     B2  'b' が打った名前と良い点：通るまで 'pay' のどこにも無い・'b' の欄に「あなたの投稿」・名前・「確認待ち」→ 運営が名前を通す
+         → その街と「回答 1人」（文は無い）→ 文を rev で通す →「良い点」の下にその字。
+     B3  並びと数：欄の並び ＝ 返事の並び ＝ 保存先の並び（人数の多い順）・どの「回答 N人」も保存先の count(*)。
+     B4  ログインなし／鍵の無い会員／ほかの会社の給与で答えが足りない人：返事の字そのもの・鍵の1行・入口は1つ・
+         ほかの人の名前も数も欄に無い（自分の行だけは出る）。
+     B6  期限切れ：開く前に切れていれば鍵の1行。開いているあいだも、一覧の字は local / session の保存領域に1つも無い。
+     B8  2人の会員：開いている 'pay' が同じタブで・ほかのタブでログアウト → 一覧は消え、鍵の1行・pv_town_board を読み直す
+         → 'b' が入る → 'b' の形。
+     B9  面はほかの人の回答を読まない：通った会員の名前は候補に無い（ログインなしも 'pay' も同じ候補）・面は pv_town_board を
+         呼ばない・'pay' がその名前を打つと、その場で数に入る（保存後のカードに「確認待ち」が無い）。
+     B11 保存の合図：街を保存すると、読み直さずに pv_town_board が1本だけ・数が上がる。月の勤務を保存しても読み直さない
+         （一覧の節は同じもの）。
+     B10 つながっていない（pv_town_board が無い）：欄は「準備中」・入口は見えていて押せる（終わったら関数を戻す）。
+   場面 admin（AD1〜AD7）── /admin.html（admin-queue.js）を、手元の運営（'op' ＝ 手元のオーナー）とほかの人で歩く
+     AD1 運営の数 ＝ 保存先で数えた確認待ち（名前・文・ステイ先の待ち行列）。会員が面で名前と文を出すと、2つ上がり、2行とも出る。
+     AD2 ほかの人には何も無い：会員とログインなしは門だけ・会員の pv_town_queue は forbidden そのもの・待っている名前と文は
+         ほかの会員のどの返事にも無い。
+     AD3 「承認」を2行に押す → 数が戻る・'pay' の欄にその街と、打ったとおりの字（「20万円」を含む。運営の画面も同じ字）。
+     AD4 「追加」→ 街：ログインなしの面の候補に出る・一覧（人気の居住地）には出ない。
+     AD5 ログインなしの街は誰の数も上げない・その人がログインすると1つ上がる。
+     AD6 ログインなしで足したホテル：運営の数が1つ上がり、誰にも届かない → 「承認」→ オーナーが承認した人（'pilot'）には届き、
+         給与の鍵だけの人（'pay'）とオーナーではない運営（'c' ＝ この保存先の中だけで運営の名簿へ）には鍵の返事そのもの。
+     AD7 オーナーの2つの一覧：'a' がマイページから FIXTURE の画像で申請 →「申請してきた人」→「画像を見る」→「verified」→
+         'a' がホテルを読める・画像と申請は保存先から消える・「会員一覧」で verified →「取り消す」→ 次の読みは鍵。
+         「会員一覧」の「verified」も同じ（'b'）。いま verified の人の「見送り」は承認を取り上げない（'pay'・英語の画面）。
+         オーナーではない運営（'c'）・ほかの会員（'pay'）・ログインなしには一覧も画像も無く、オーナーの4つの口は門の返事だけ。
+     ★証明の画像は、その場でキャンバスに描いた FIXTURE だけ（本物の画像は使わない・ファイルも作らない）。
+
    入口：ページに入口（data-pvc-open="town" と data-pvc-base を持つもの）が在ればそれを押す（「暮らし・家族」のタブの中に
          在るので、見えていなければ先にそのタブを押す）。無ければ、カードと同じ関数
          （gen-airline-glance.mjs の ledgerTowns・baseCode）から同じ4つの属性を作った入口を差し込んで押す（どちらかを出力に書く）。
@@ -67,7 +99,7 @@
    ★手元の会員（serve-local.mjs の MEMBERS）は模擬。ここで通ったことは、本番で通った証拠にはならない。
    ★PV_TOWN_SHOTS=<リポジトリの外のフォルダ> を付けると、面の絵を書き出す（390×680 と 1440×820）。
 
-   実行: node assert-towns.mjs [--scenes frame,sheet,anon] [--only <会社>]（既定：全部の場面・jal）
+   実行: node assert-towns.mjs [--scenes frame,sheet,anon,board,admin] [--only <会社>]（既定：全部の場面・jal）
 */
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
@@ -110,7 +142,7 @@ const LAST = (() => { const n = new Date(); let y = n.getFullYear(), m = n.getMo
 
 const argv = process.argv.slice(2);
 const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-const SCENES = { frame, sheet, anon };
+const SCENES = { frame, sheet, anon, board, admin };
 const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const unknown = want.filter((s) => !SCENES[s]);
 if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -1252,6 +1284,781 @@ async function anon() {
       `A7 続けて 'b' が「${NAMES[0]}」を保存 →「もう1項目を答える」→「通勤・タクシー」：押した「修正」の「${WA}」は面の頭の行にも、ページのどこにも無い（送ったのは 'b' の街の1本だけ）`,
       J(t4));
     await shut(u);
+  });
+}
+
+/* ════ 場面 board・admin の字と道具 ══════════════════════════════════
+   字は career-live.js（欄）・admin-queue.js（運営の画面）・admin.html（門）の字。ここで字を固定する。 */
+const TBOX = '.pvg-liv-got > .crl[data-live="towns"]';
+const TOWN_HEAD = '人気の居住地', GOOD_L = '良い点', WAIT_T = '確認待ち', OFF_T = '準備中';
+const LOCK_LOGIN = 'ログインと給与の提出で開きます', LOCK_PAY = '給与の提出で開きます';
+const LOGIN_T = 'ログイン', PAY_GO = '匿名で給与を提出する', GIVE_GO = '匿名で答える', FIX_T = '修正';
+const giveLock = (n) => `自分の会社に${n}つ答えると開きます`;
+const answered = (n) => `回答 ${n}人`;
+const LOCKED_STATE = '{"ok":true,"state":"locked"}', GIVE_STATE = '{"ok":true,"state":"give"}';
+const FORBIDDEN = '{"ok":false,"status":"forbidden"}';
+const GATE_LOGIN = 'このページを見るにはログインが必要です。', GATE_NOADMIN = 'このアカウントには管理者の権限がありません。';
+const ADDED_ADM = '追加しました。';
+/* オーナーの2つの一覧の字（admin-queue.js の T。WP-towns-13v で決めた字） */
+const OWNER_WORDS = ['申請してきた人', '会員一覧', 'verified', '画像を見る'];
+/* その会社のページの、就航地の一覧の最初の都市（ステイ先の欄を #stay-XXX で直接開く。assert-stays.mjs と同じ決め方） */
+const STAY_IATA = (read(`airlines/${SLUG}.html`).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1] || '';
+/* 管理画面の「会社・基地」の選択肢の字（admin-queue.js の airName ＝ pv-airlines.json の日本語の名前） */
+const AIR_JA = ((JSON.parse(read('pv-airlines.json')).airlines || {})[SLUG] || {}).ja || '';
+const keysOf = (t) => [...String(t).matchAll(/"((?:[^"\\]|\\.)*)"\s*:/g)].map((m) => m[1]).join();
+
+/* 街の欄の道具（場面 board・admin が使う）。K は kit() の道具 */
+function boxKit(K) {
+  const { base, go } = K;
+  /* 欄が読み終わった（待ちの絵でない） */
+  const settledBox = (p) => p.page.waitForFunction((s) => {
+    const b = document.querySelector(s);
+    return !!b && /^(locked|open|empty|error|off)$/.test(b.getAttribute('data-state') || '');
+  }, { timeout: 20000 }, TBOX);
+  /* 「暮らし・家族」のタブを開き（開いていなければ押す）、街の欄が読み終わるまで */
+  const life = async (p) => {
+    const shown = await p.page.$eval('#pvg-p-living', (n) => !n.hidden && n.getClientRects().length > 0).catch(() => false);
+    if (!shown) await p.page.click('.pvg-tabs [data-pvg-tab="life"]');
+    await settledBox(p);
+  };
+  /* 会社ページを開き直して（読み直し）、街の欄を読む */
+  const visit = async (p) => { await go(p); await life(p); };
+  /* 街の欄の見えている形（ほかの人の一覧・自分の行・鍵の1行・入口・答えるカード） */
+  const boxOf = (p) => p.page.evaluate((s) => {
+    const b = document.querySelector(s);
+    if (!b) return null;
+    const tx = (n) => (n ? n.textContent.replace(/\s+/g, ' ').trim() : '');
+    const first = (n) => (n && n.firstChild ? n.firstChild.textContent.trim() : '');
+    return {
+      state: b.getAttribute('data-state'),
+      wrap: !!b.parentElement && b.parentElement.getClientRects().length > 0,
+      head: tx(b.querySelector('.crl-town-h')),
+      towns: [...b.querySelectorAll('ol.crl-towns > li.crl-town')].map((li) => ({
+        name: tx(li.querySelector('.crl-town-k .crl-town-n')), n: tx(li.querySelector('.crl-town-k .crl-town-c')),
+        mine: !!li.querySelector('.crl-town-k .crl-note-me'),
+        parts: [...li.querySelectorAll(':scope > p.crl-town-l')].map((l) => ({ label: tx(l),
+          items: [...((l.nextElementSibling && l.nextElementSibling.matches('ul.crl-town-tx')) ? l.nextElementSibling.querySelectorAll(':scope > li.crl-town-t') : [])].map(first) })),
+      })),
+      own: [...b.querySelectorAll('.crl-town-own > li')].map((li) => ({ name: tx(li.querySelector('.crl-town-n')),
+        say: tx(li.querySelector('.crl-town-st')), fix: tx(li.querySelector('.crl-town-ed')) })),
+      mineHead: tx(b.querySelector('.crl-town-me > .crl-note-h')),
+      lock: tx(b.querySelector('.crl-lock')),
+      give: tx(b.querySelector('.crl-give .crl-give-h')),
+      text: tx(b), html: b.innerHTML,
+    };
+  }, TBOX);
+  /* 「暮らし・家族」のタブ全体：字（属性の値も）と、押せるもの（字と行き先） */
+  const tabOf = (p) => p.page.evaluate(() => {
+    const t = document.getElementById('pvg-p-living');
+    if (!t) return null;
+    const vis = (n) => n.getClientRects().length > 0;
+    return {
+      text: t.textContent.replace(/\s+/g, ' '),
+      attrs: [...t.querySelectorAll('*')].flatMap((e) => [...e.attributes].map((a) => a.value)).join('\n'),
+      links: [...t.querySelectorAll('a, button')].filter(vis).map((a) => ({ text: a.textContent.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href') || '' })),
+    };
+  });
+  const boards = (p) => p.st.sent.filter((x) => x.fn === 'pv_town_board').length;
+  const lastGot = (p, fn) => { const g = p.st.got.filter((x) => x.fn === fn); return g.length ? g[g.length - 1] : null; };
+  /* 給与を、その会員としての本物の呼び出しで出す（給与の鍵が生きる）。month を変えると、もう1件 */
+  const file = async (who, airline, month = 3) => {
+    const y = (await K.L.q(`select extract(year from current_date)::int as y`)).rows[0].y - 1;
+    const r = await rpcAs(base, who, 'submit_pay_report', { currency: 'USD', lang: 'en', tax_rate_pct: 0, fleet: FLEET,
+      position: 'cap', airline, period_year: y, period_month: month, gross_monthly: 9000 });
+    if (!(r.body && r.body.ok === true)) throw new Error(`前提が崩れた（'${who}' の給与が保存されていない）: ` + J(r.body || r.text));
+  };
+  return { settledBox, life, visit, boxOf, tabOf, boards, lastGot, file };
+}
+
+/* ════ 場面 board（B1〜B11）══════════════════════════════════════ */
+async function board() {
+  const K = await kit();
+  const { L, base, page, shut, go, openTown, typeTown, typeIn, pick, tickOwn, send, card, closeSheet, rowsOf, face, swap, sheetIn } = K;
+  const { visit, boxOf, tabOf, boards, lastGot, file } = boxKit(K);
+  /* 'a' が選ぶ候補（種の最初）・3人が挙げる街（種のうち、名前の並びで最後のもの ＝ 名前で並べ替えると先頭に来ない）・
+     'b' が打つ名前（種に無い ＝ 運営の確認を待つ候補）と、その良い点 */
+  const T0 = NAMES[0], TOP = NAMES.filter((n) => n !== T0).sort().pop(), WB = '勝どき', GOOD = 'スーパーが近い';
+  if (!T0 || !TOP || SEED_NAMES.includes(WB) || [T0, WB, TOP].sort()[0] === TOP) {
+    throw new Error(`前提が崩れた（種の街が2つ無い・「${WB}」が種に在る・名前の並びで「${TOP}」が先頭）: ${J(SEED_NAMES)}`);
+  }
+  /* 欄に出してはいけないもの：一覧の名前（自分の行のぶんは除く）・文・人数（欄の中に「…人」が1つも無い）。
+     タブ全体では、台帳のカードに種の名前と運賃の「1人」（片道・1人）が元から在る ── タブで見るのは、打たれた名前・文・「回答 N人」 */
+  const leak = (b, own = []) => [T0, TOP, WB].filter((n) => !own.includes(n) && b.html.includes(n))
+    .concat([GOOD].filter((t) => b.html.includes(t))).concat(/\d人/.test(b.text) ? ['…人'] : []);
+  const tabLeak = (t, own = []) => [WB].filter((n) => !own.includes(n) && (t.text.includes(n) || t.attrs.includes(n)))
+    .concat([GOOD].filter((x) => t.text.includes(x) || t.attrs.includes(x))).concat(/回答\s*\d+人/.test(t.text) ? ['回答 N人'] : []);
+  await file('pay', SLUG);
+  const P = await page({ who: 'pay' });
+
+  await scene('B1 最初の1人から', async () => {
+    await visit(P);
+    const b0 = await boxOf(P), r0 = lastGot(P, 'pv_town_board');
+    const a = await page({ who: 'a' });
+    await go(a);
+    await openTown(a);
+    await pick(a, T0);
+    await tickOwn(a);
+    const s = await send(a);
+    await shut(a);
+    await visit(P);
+    const b1 = await boxOf(P);
+    ok(b0.state === 'empty' && !b0.wrap && r0 && norm(r0.text) === '{"ok":true,"state":"open","towns":[]}' && s.length === 1 && s[0].p.town === T0
+      && b1.state === 'open' && b1.wrap && b1.head === TOWN_HEAD && J(b1.towns.map((t) => [t.name, t.n])) === J([[T0, answered(1)]]),
+      `★B1 'pay'（この会社の給与）は空の欄（'empty'・器ごと出ない）→ 'a' が面で「${T0}」を選んで送る → 'pay' が読み直すと「${TOWN_HEAD}」・「${T0}」・「${answered(1)}」（1人から出る）`,
+      J({ b0: { state: b0.state, wrap: b0.wrap }, r0: r0 && r0.text, s, b1: { state: b1.state, head: b1.head, towns: b1.towns } }));
+  });
+
+  await scene('B2 打った名前と良い点は、通るまで誰にも見えない', async () => {
+    const bp = await page({ who: 'b' });
+    await go(bp);
+    await openTown(bp);
+    await typeTown(bp, WB);
+    await typeIn(bp, 'good', GOOD);
+    await tickOwn(bp);
+    const s = await send(bp);
+    await closeSheet(bp);
+    await until(async () => (await boxOf(bp)).own.some((r) => r.name === WB), 20000);
+    const own = await boxOf(bp);
+    await shut(bp);
+    const g0 = P.st.got.length;
+    await visit(P);
+    const p1 = await boxOf(P), html1 = await P.page.evaluate(() => document.documentElement.outerHTML);
+    const wire1 = P.st.got.slice(g0).map((x) => norm(x.text)).join('\n');
+    ok(s.length === 1 && s[0].p.town === WB && s[0].p.good === GOOD
+      && J(own.own) === J([{ name: WB, say: WAIT_T, fix: FIX_T }]) && own.mineHead === MINE
+      && !p1.towns.some((t) => t.name === WB) && !html1.includes(WB) && !html1.includes(GOOD) && !wire1.includes(WB) && !wire1.includes(GOOD),
+      `★B2 'b' が「${WB}」と良い点を出す → 'b' の欄に「${MINE}」・「${WB}」・「${WAIT_T}」／通るまで 'pay' のページにも、'pay' が受け取った返事にも、名前も文も無い`,
+      J({ s, own: { head: own.mineHead, own: own.own }, p1: p1.towns.map((t) => t.name), html: [html1.includes(WB), html1.includes(GOOD)], wire: [wire1.includes(WB), wire1.includes(GOOD)] }));
+    /* 運営（'op'）が名前を通す（rpcAs ＝ 本物の呼び出し） */
+    const q1 = await rpcAs(base, 'op', 'pv_town_queue', {});
+    const t1 = q1.body && Array.isArray(q1.body.towns) ? q1.body.towns.find((t) => t.name === WB) : null;
+    if (!t1) throw new Error(`前提が崩れた（運営の待ち行列に「${WB}」が無い）: ` + J(q1.body));
+    const m1 = await rpcAs(base, 'op', 'pv_town_moderate', { target: 'town', id: t1.id, state: 'public' });
+    await visit(P);
+    const p2 = await boxOf(P), html2 = await P.page.evaluate(() => document.documentElement.outerHTML);
+    const w2 = p2.towns.find((t) => t.name === WB);
+    ok(m1.body && m1.body.ok === true && !!w2 && w2.n === answered(1) && w2.parts.length === 0 && !html2.includes(GOOD),
+      `★B2 運営が名前を通す → 'pay' の欄に「${WB}」と「${answered(1)}」・文はまだ無い（ページのどこにも「${GOOD}」が無い）`, J({ m1: m1.body, w2 }));
+    const q2 = await rpcAs(base, 'op', 'pv_town_queue', {});
+    const x2 = q2.body && Array.isArray(q2.body.texts) ? q2.body.texts.find((t) => t.town === WB && t.good === GOOD) : null;
+    if (!x2) throw new Error(`前提が崩れた（運営の待ち行列に「${WB}」の文が無い）: ` + J(q2.body));
+    const m2 = await rpcAs(base, 'op', 'pv_town_moderate', { target: 'text', id: x2.id, state: 'public', rev: x2.rev });
+    await visit(P);
+    const w3 = (await boxOf(P)).towns.find((t) => t.name === WB);
+    ok(m2.body && m2.body.ok === true && !!w3 && J(w3.parts) === J([{ label: GOOD_L, items: [GOOD] }]),
+      `★B2 文を rev で通す → 「${WB}」の「${GOOD_L}」の下に「${GOOD}」（打ったとおりの字）`, J({ m2: m2.body, w3 }));
+  });
+
+  await scene('B3 並びと数は保存先のとおり', async () => {
+    /* ほかの3人が同じ街を挙げる（本物の呼び出し）。数は保存先から数える（検査に数を打ち込まない） */
+    for (const who of ['c', 'pilot', 'op']) {
+      const r = await rpcAs(base, who, 'submit_town_post', { airline: SLUG, base_iata: BASE, town: TOP, lang: 'ja' });
+      if (!(r.body && r.body.ok === true)) throw new Error(`前提が崩れた（'${who}' の街が保存されていない）: ` + J(r.body || r.text));
+    }
+    await visit(P);
+    const b = await boxOf(P), got = lastGot(P, 'pv_town_board');
+    let rep = null;
+    try { rep = JSON.parse(got.text).towns.map((t) => [t.name, t.n]); } catch { rep = null; }
+    const db = (await L.q(
+      `select t.name, count(s.id)::int as n from public.pv_towns t join public.pv_town_posts s on s.town_id = t.id
+        where t.airline = $1 and t.base_iata = $2 and t.state = 'public' and t.alias_of is null
+        group by t.id, t.name, t.tkey order by count(s.id) desc, t.tkey collate "C"`, [SLUG, BASE])).rows.map((r) => [r.name, r.n]);
+    const dom = b.towns.map((t) => t.name), want = db.map((r) => answered(r[1]));
+    ok(!!rep && J(dom) === J(rep.map((r) => r[0])) && J(rep) === J(db) && J(b.towns.map((t) => t.n)) === J(want)
+      && db.length === 3 && db[0][0] === TOP && db[0][1] === 3 && b.towns.every((t) => !/位/.test(t.name + t.n)),
+      `★B3 欄の並び ＝ 返事の並び ＝ 保存先の並び（人数の多い順：${db.map((r) => r[0] + ' ' + r[1]).join('・')}）・どの「回答 N人」も保存先の count(*)・順位の字は無い`,
+      J({ dom, rep, db, shown: b.towns.map((t) => t.n) }));
+  });
+
+  await scene('B4 開いていない3つの形（ログインなし・鍵の無い会員・ほかの会社の給与）', async () => {
+    /* 'c' はほかの会社の給与を出した会員（本物の呼び出し・答えは0） */
+    await file('c', SLUG === 'ana' ? 'jal' : 'ana');
+    /* ログインなし */
+    const G = await page();
+    await visit(G);
+    const gb = await boxOf(G), gr = lastGot(G, 'pv_town_board'), gt = await tabOf(G);
+    const gLogin = gt.links.filter((l) => l.text === LOGIN_T);
+    let back = '';
+    if (gLogin.length === 1) {
+      await Promise.all([G.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }),
+        G.page.evaluate((s, t) => { [...document.querySelectorAll(s + ' a')].find((a) => a.textContent.trim() === t).click(); }, TBOX, LOGIN_T)]);
+      const u = new URL(G.page.url());
+      back = u.pathname + '?' + (u.searchParams.get('redirect') || '');
+    }
+    ok(!!gr && norm(gr.text) === LOGIN_STATE && keysOf(gr.text) === 'ok,state' && gb.state === 'locked' && gb.lock === LOCK_LOGIN
+      && gb.towns.length === 0 && leak(gb).length === 0 && tabLeak(gt).length === 0
+      && gLogin.length === 1 && gt.links.filter((l) => l.text === PAY_GO).length === 0 && back === `/login.html?airlines/${SLUG}.html#life`,
+      `★B4 ログインなし：返事は ${LOGIN_STATE} そのもの・欄は「${LOCK_LOGIN}」と、タブにただ1つの「${LOGIN_T}」（押すと #life へ戻る login.html）・名前も文も「…人」も無い`,
+      J({ reply: gr && gr.text, box: { state: gb.state, lock: gb.lock, leak: leak(gb) }, tab: tabLeak(gt), login: gLogin, back }));
+    await shut(G);
+    /* 鍵の無い会員（'pilot'：自分の行が1つある） */
+    const I = await page({ who: 'pilot' });
+    await visit(I);
+    const ib = await boxOf(I), ir = lastGot(I, 'pv_town_board'), it = await tabOf(I);
+    ok(!!ir && norm(ir.text) === LOCKED_STATE && keysOf(ir.text) === 'ok,state' && ib.state === 'locked' && ib.lock === LOCK_PAY
+      && ib.towns.length === 0 && J(ib.own) === J([{ name: TOP, say: '', fix: FIX_T }]) && leak(ib, [TOP]).length === 0 && tabLeak(it).length === 0
+      && it.links.filter((l) => l.text === PAY_GO).length === 1 && it.links.filter((l) => l.text === LOGIN_T).length === 0,
+      `★B4 鍵の無い会員（'pilot'）：返事は ${LOCKED_STATE} そのもの・欄は自分の行（「${TOP}」と「${FIX_T}」）と「${LOCK_PAY}」・タブにただ1つの「${PAY_GO}」・ほかの人の名前も文も数も無い`,
+      J({ reply: ir && ir.text, box: { state: ib.state, lock: ib.lock, own: ib.own, leak: leak(ib, [TOP]) }, tab: tabLeak(it), links: it.links.map((l) => l.text) }));
+    await shut(I);
+    /* ほかの会社の給与で、答えがまだ足りない会員（'c'：ANA の給与・自分の行が1つある） */
+    const C = await page({ who: 'c' });
+    await visit(C);
+    const cb = await boxOf(C), cr = lastGot(C, 'pv_town_board'), ct = await tabOf(C);
+    let need = NaN;
+    try { need = JSON.parse(lastGot(C, 'pv_contrib_give').text).need; } catch { need = NaN; }
+    ok(!!cr && norm(cr.text) === GIVE_STATE && keysOf(cr.text) === 'ok,state' && cb.state === 'locked' && Number.isInteger(need) && cb.lock === giveLock(need)
+      && !!cb.give && cb.towns.length === 0 && J(cb.own) === J([{ name: TOP, say: '', fix: FIX_T }]) && leak(cb, [TOP]).length === 0 && tabLeak(ct).length === 0
+      && ct.links.filter((l) => l.text === GIVE_GO).length === 1 && ct.links.filter((l) => l.text === PAY_GO || l.text === LOGIN_T).length === 0,
+      `★B4 ほかの会社の給与で答えが足りない会員（'c'）：返事は ${GIVE_STATE} そのもの・欄は自分の行と「${giveLock(need)}」・答えるカード（入口はただ1つの「${GIVE_GO}」）・ほかの人の名前も文も数も無い`,
+      J({ reply: cr && cr.text, box: { state: cb.state, lock: cb.lock, give: cb.give, own: cb.own, leak: leak(cb, [TOP]) }, tab: tabLeak(ct), links: ct.links.map((l) => l.text) }));
+    await shut(C);
+  });
+
+  await scene('B6 期限切れ・保存領域', async () => {
+    const LIST = [T0, TOP, WB, GOOD];
+    const expire = () => L.q(`update public.profiles set access_until = now() - interval '1 minute' where id = $1`, [M.pay.id]);
+    const stored = (p) => p.page.evaluate((xs) => {
+      const all = [];
+      for (const s of [localStorage, sessionStorage]) for (let i = 0; i < s.length; i++) { const k = s.key(i); all.push(k + '=' + s.getItem(k)); }
+      const t = all.join('\n');
+      return xs.filter((x) => t.includes(x));
+    }, LIST);
+    try {
+      /* a) 開く前に切れている */
+      await expire();
+      const E = await page({ who: 'pay' });
+      await visit(E);
+      const eb = await boxOf(E), er = lastGot(E, 'pv_town_board');
+      ok(!!er && norm(er.text) === LOCKED_STATE && eb.state === 'locked' && eb.lock === LOCK_PAY && eb.towns.length === 0 && leak(eb).length === 0 && !/\d人/.test(eb.text),
+        `★B6 'pay' の鍵が開く前に切れている：返事は ${LOCKED_STATE}（鍵の無い会員と同じ字）・欄は鍵の1行・名前も数も無い`, J({ reply: er && er.text, state: eb.state, lock: eb.lock, leak: leak(eb) }));
+      await shut(E);
+      /* b) 生きているあいだに開き（一覧が出ている）、そのあと切れて読み直す */
+      await file('pay', SLUG, 4);
+      const F = await page({ who: 'pay' });
+      await visit(F);
+      const fb = await boxOf(F), inStore = await stored(F);
+      await expire();
+      await visit(F);
+      const fb2 = await boxOf(F), fr2 = lastGot(F, 'pv_town_board'), inStore2 = await stored(F);
+      ok(fb.state === 'open' && fb.towns.length === 3 && inStore.length === 0 && inStore2.length === 0
+        && !!fr2 && norm(fr2.text) === LOCKED_STATE && fb2.state === 'locked' && fb2.towns.length === 0 && leak(fb2).length === 0,
+        `★B6 鍵が生きているあいだは一覧が出ていて、local / session の保存領域に一覧の字（名前も文も）は1つも無い → 切れて読み直すと鍵の1行（${LOCKED_STATE}）`,
+        J({ open: { state: fb.state, n: fb.towns.length }, inStore, inStore2, after: { reply: fr2 && fr2.text, state: fb2.state, leak: leak(fb2) } }));
+      await shut(F);
+    } finally {
+      await file('pay', SLUG, 5);          // 鍵を、もう1件の本物の給与で生き返らせる
+    }
+  });
+
+  await scene('B8 2人の会員（同じタブ・ほかのタブ）', async () => {
+    const out = async () => { localStorage.removeItem('sb-local-auth-token'); localStorage.removeItem('pv_user'); };
+    const shape = async (p, want) => until(async () => { const b = await boxOf(p); return !!b && want(b); }, 15000);
+    const isLogin = (b) => b.state === 'locked' && b.lock === LOCK_LOGIN && b.towns.length === 0;
+    const isB = (b) => b.state === 'locked' && b.lock === LOCK_PAY && b.towns.length === 0 && J(b.own.map((r) => r.name)) === J([WB]);
+    for (const how of ['same', 'tab']) {
+      const S = await page({ who: 'pay' });
+      await visit(S);
+      const s0 = await boxOf(S), n0 = boards(S);
+      if (!(s0.state === 'open' && s0.towns.length === 3)) throw new Error(`前提が崩れた（'pay' に一覧が出ていない）: ` + J(s0));
+      if (how === 'same') {
+        await S.page.evaluate(out);
+        await S.page.evaluate(() => { document.dispatchEvent(new Event('visibilitychange')); });
+      } else {
+        const t = await S.ctx.newPage();
+        await t.goto(base + '/pv-vocab.json', { waitUntil: 'domcontentloaded' });
+        await S.page.bringToFront();
+        await t.evaluate(out);
+        await t.close();
+      }
+      const gone = await shape(S, isLogin);
+      const s1 = await boxOf(S), n1 = boards(S), r1 = lastGot(S, 'pv_town_board');
+      ok(gone && leak(s1).length === 0 && !/\d人/.test(s1.text) && n1 > n0 && !!r1 && norm(r1.text) === LOGIN_STATE,
+        `★B8 一覧が出ている 'pay' が${how === 'same' ? '同じタブで' : 'ほかのタブで'}ログアウト → 欄の一覧は消え（名前も文も数も無い）、「${LOCK_LOGIN}」・pv_town_board を読み直した（返事は ${LOGIN_STATE}）`,
+        J({ gone, box: { state: s1.state, lock: s1.lock, leak: leak(s1) }, boards: [n0, n1], reply: r1 && r1.text }));
+      await swap(S, 'b', how);
+      const asB = await shape(S, isB);
+      const s2 = await boxOf(S), r2 = lastGot(S, 'pv_town_board');
+      ok(asB && leak(s2, [WB]).length === 0 && !!r2 && norm(r2.text) === LOCKED_STATE,
+        `★B8 そのあと${how === 'same' ? '同じタブで' : 'ほかのタブで'} 'b' が入る → 'b' の形（自分の行「${WB}」と「${LOCK_PAY}」・返事は ${LOCKED_STATE}）`,
+        J({ asB, box: { state: s2.state, lock: s2.lock, own: s2.own, leak: leak(s2, [WB]) }, reply: r2 && r2.text }));
+      await shut(S);
+    }
+  });
+
+  await scene('B9 面はほかの人の回答を読まない', async () => {
+    /* 面の候補（pv_town_options の返事が届き、描き終わってから） */
+    const chipsOf = async (p) => {
+      await until(() => p.st.got.some((x) => x.fn === 'pv_town_options'), 20000);
+      await p.page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      return (await face(p)).chips.map((c) => c.name);
+    };
+    const G = await page();
+    await visit(G);
+    const g0 = boards(G);
+    await openTown(G);
+    const gChips = await chipsOf(G);
+    await pick(G, T0);
+    await typeIn(G, 'good', '面の中で打った字');
+    const g1 = boards(G);
+    await shut(G);
+    await visit(P);
+    const p0 = boards(P);
+    await openTown(P);
+    const pChips = await chipsOf(P);
+    await typeTown(P, WB);
+    await tickOwn(P);
+    const p1 = boards(P);
+    ok(J(gChips) === J(SEED_NAMES) && J(pChips) === J(gChips) && !gChips.includes(WB) && g1 === g0 && p1 === p0
+      && G.st.sent.filter((x) => x.fn === 'pv_town_options').every((x) => J(x.p) === J({ airline: SLUG, base: BASE })),
+      `★B9 通った会員の名前「${WB}」は面の候補に無い（ログインなしも 'pay' も同じ候補：${gChips.join('・')}）・面を開いて使っても pv_town_board は増えない`,
+      J({ gChips, pChips, guest: [g0, g1], pay: [p0, p1] }));
+    /* 'pay' がその名前を打って送る → その場で数に入る（確認待ちが付かない） */
+    const s = await send(P), c = await card(P), rows = await rowsOf('pay');
+    ok(s.length === 1 && s[0].p.town === WB && !!c && c.rows.town && c.rows.town.v === WB && c.rows.town.wait === ''
+      && rows.length === 1 && rows[0].town === WB && rows[0].town_state === 'public',
+      `★B9 'pay' が「${WB}」を打って送る → 保存後のカードに「${WAIT_T}」が無い（town_state 'public' ＝ その場で数に入る）`, J({ s, card: c && c.rows.town, rows }));
+    await closeSheet(P);
+    /* B11 その保存で、読み直さずに pv_town_board が1本だけ・数が上がる */
+    const up = await until(async () => { const b = await boxOf(P); const w = b && b.towns.find((t) => t.name === WB); return !!w && w.n === answered(2); }, 20000);
+    const p2 = boards(P);
+    ok(up && p2 === p1 + 1,
+      `B11 街の保存（topic 'town'）のあと、読み直さずに pv_town_board が1本だけ出て、「${WB}」は「${answered(2)}」`, J({ up, boards: [p1, p2] }));
+    /* B11 月の勤務を面で保存しても、欄は読み直さない（一覧の節は同じもの） */
+    await P.page.evaluate((s) => { const ol = document.querySelector(s + ' ol.crl-towns'); if (ol) ol.__pvtMark = 1; }, TBOX);
+    await P.page.evaluate(() => window.PVContrib.open({ topic: 'work' }));
+    await sheetIn(P, `const f = r.querySelector('form[data-pvc-form="work"]'), s = f && f.querySelector('fieldset.pvc-set'); return !!s && !s.disabled;`);
+    const WF = '.pvc-root form[data-pvc-form="work"]';
+    await P.page.select(`${WF} select[name="position"]`, 'cap');
+    await P.page.$eval(`${WF} [name="block_hours"]`, (n) => { n.focus(); n.value = ''; n.dispatchEvent(new Event('input', { bubbles: true })); });
+    await P.page.keyboard.type('60');
+    if (!(await P.page.$eval(`${WF} input[name="own"]`, (n) => n.checked))) await P.page.click(`${WF} label.pvc-own`);
+    const w0 = P.st.got.filter((x) => x.fn === 'submit_work_month').length;
+    await P.page.click(`${WF} .pvc-send[type="submit"]`);
+    await P.page.waitForFunction(() => !!document.querySelector('.pvc-root [data-pvc-saved]'), { timeout: 20000 });
+    await closeSheet(P);
+    /* 保存の合図のあと、欄の読み直しが走るなら次の1手で始まる（later ＝ setTimeout 0）── その手を2回流してから見る */
+    await P.page.evaluate(() => new Promise((r) => setTimeout(() => setTimeout(r, 0), 0)));
+    const wr = P.st.got.filter((x) => x.fn === 'submit_work_month').slice(w0);
+    const same = await P.page.evaluate((s) => { const b = document.querySelector(s), ol = b && b.querySelector('ol.crl-towns'); return { st: b && b.getAttribute('data-state'), mark: !!(ol && ol.__pvtMark === 1) }; }, TBOX);
+    let wok = false;
+    try { wok = wr.length === 1 && JSON.parse(wr[0].text).ok === true; } catch { wok = false; }
+    ok(wok && boards(P) === p2 && same.st === 'open' && same.mark,
+      'B11 月の勤務を面で保存しても（topic \'work\'）、pv_town_board は増えず、欄の一覧の節は同じもの（描き直していない）', J({ wok, boards: [p2, boards(P)], same }));
+  });
+
+  await scene('B10 つながっていない（pv_town_board が無い）', async () => {
+    const def = (await L.q(`select pg_get_functiondef('public.pv_town_board(jsonb)'::regprocedure) as d`)).rows[0].d;
+    await L.q(`drop function public.pv_town_board(jsonb)`);
+    try {
+      const O = await page({ who: 'pay' });
+      await visit(O);
+      const ob = await boxOf(O);
+      const how = await openTown(O);
+      ok(ob.state === 'off' && ob.text === OFF_T && how === 'page',
+        `B10 欄は「${OFF_T}」だけ・ページの入口（＋住みやすい街を追加）は見えていて、押すと街の面が開く`, J({ state: ob.state, text: ob.text, how }));
+      await shut(O);
+    } finally {
+      /* 同じ関数を戻す（db/towns.sql の定義そのもの ＝ 落とす前に保存先から読んだ字）と、同じ権限 */
+      await L.q(def);
+      await L.q(`revoke all on function public.pv_town_board(jsonb) from public`);
+      await L.q(`grant execute on function public.pv_town_board(jsonb) to anon, authenticated`);
+    }
+    const back = await rpcAs(base, null, 'pv_town_board', { airline: SLUG, base: BASE });
+    ok(back.status === 200 && norm(back.text) === LOGIN_STATE, `B10 終わったら関数を戻した（ログインなしの返事は ${LOGIN_STATE} に戻る）`, J({ status: back.status, text: back.text }));
+  });
+}
+
+/* ════ 場面 admin（AD1〜AD7）══════════════════════════════════════ */
+async function admin() {
+  const K = await kit();
+  const { L, base, page, shut, go, openTown, typeTown, typeIn, tickOwn, send, card, face, loginVia, deposits } = K;
+  const { visit, boxOf, file } = boxKit(K);
+  if (!STAY_IATA || !AIR_JA) throw new Error(`前提が崩れた（${SLUG} のページに就航地の都市が無い・pv-airlines.json に名前が無い）`);
+  /* 'a' が打つ名前と文（文は「20万円」を含む ＝ 通貨の切り替えで字が変わらないこと）・運営が足す街・ログインなしの街・ホテル */
+  const WN = '晴海', WT = '家賃は20万円くらい', NT = '有明', NA = '天王洲', HOTEL = '手元検査ホテル';
+  if ([WN, NT, NA].some((n) => SEED_NAMES.includes(n))) throw new Error(`前提が崩れた（検査の名前が種に在る）: ${J(SEED_NAMES)}`);
+  const ADM = async (who, w = 1440, lang = 'ja') => {
+    const p = await page({ who, w, h: 900 });
+    await p.page.goto(`${base}/${lang === 'en' ? 'en/' : ''}admin.html`, { waitUntil: 'load', timeout: 60000 });
+    return p;
+  };
+  /* 運営の画面：数（承認の横）が読み終わり、承認の面が開いている */
+  const ready = async (p) => {
+    await p.page.waitForFunction(() => { const n = document.getElementById('adm-n'); return !!n && n.getAttribute('data-state') === 'ok'; }, { timeout: 30000 });
+    if (await p.page.$eval('#adm-q', (e) => e.hidden)) await p.page.click('#adm-b-q');
+  };
+  const reload = async (p) => { await p.page.reload({ waitUntil: 'load', timeout: 60000 }); await ready(p); };
+  /* 門だけの画面（ログインなし・運営ではない会員）：門の字が決まるまで */
+  const gated = async (p, msg) => {
+    await p.page.waitForFunction((m) => { const g = document.getElementById('gate-msg'); return !!g && g.textContent.trim() === m; }, { timeout: 30000 }, msg);
+    return p.page.evaluate(() => ({ bar: !!document.getElementById('adm-top') && document.getElementById('adm-top').getClientRects().length > 0,
+      dash: getComputedStyle(document.getElementById('dashboard')).display, rows: document.querySelectorAll('#adm-q li').length }));
+  };
+  const badge = (p) => p.page.$eval('#adm-n', (n) => n.textContent.trim());
+  const rowsAdm = (p) => p.page.evaluate(() => [...document.querySelectorAll('#adm-q li.adm-row')].map((li) => ({
+    kind: li.getAttribute('data-adm'), id: li.getAttribute('data-id'),
+    v: ((li.querySelector('.adm-row-v') || {}).textContent || '').trim(), t: [...li.querySelectorAll('.adm-row-t')].map((x) => x.textContent) })));
+  /* 保存先で数えた確認待ち（名前・文は db/towns.sql の待ち行列の決まり／ステイ先は、その待ち行列の返事の数） */
+  const waiting = async () => {
+    const t = (await L.q(`select
+        (select count(*)::int from public.pv_towns t where t.state = 'pending' and t.alias_of is null
+            and exists (select 1 from public.pv_town_posts s where s.town_id = t.id)) as towns,
+        (select count(*)::int from public.pv_town_posts s join public.pv_towns t on t.id = s.town_id
+          where s.text_state = 'pending' and t.state <> 'rejected') as texts`)).rows[0];
+    const sq = await rpcAs(base, 'op', 'pv_stay_queue', {});
+    const st = sq.body && sq.body.ok === true && Array.isArray(sq.body.places) && Array.isArray(sq.body.photos) ? sq.body.places.length + sq.body.photos.length : NaN;
+    return t.towns + t.texts + st;
+  };
+  const press = async (p, sel, act) => {
+    const h = await p.page.evaluateHandle((s) => document.querySelector(s), sel);
+    if (!h.asElement()) throw new Error(`前提が崩れた（押す所が無い: ${sel}）`);
+    await p.page.click(`${sel} [data-act="${act}"]`);
+  };
+  const rowSel = async (p, kind, test) => {
+    const id = await p.page.evaluate((k, src) => {
+      const f = new Function('li', src);
+      const li = [...document.querySelectorAll(`#adm-q li.adm-row[data-adm="${k}"]`)].find((x) => f(x));
+      return li ? li.getAttribute('data-id') : null;
+    }, kind, test);
+    return id ? `#adm-q li.adm-row[data-adm="${kind}"][data-id="${id}"]` : null;
+  };
+  await file('pay', SLUG);
+  /* 運営が開く前から待っているもの（数が0から始まらないように）：'pilot' が打った名前と文（2つ）・ログインなしのホテル（1つ） */
+  const pre = [await rpcAs(base, 'pilot', 'submit_town_post', { airline: SLUG, base_iata: BASE, town: '佃', good: '検査の前から待っている文', lang: 'ja' }),
+    await rpcAs(base, null, 'pv_stay_add', { airline: SLUG, iata: STAY_IATA, kind: 'hotel', name: '検査の前から待っているホテル' })];
+  if (!pre.every((r) => r.body && r.body.ok === true)) throw new Error('前提が崩れた（前から待っているもの）: ' + J(pre.map((r) => r.body || r.text)));
+  const O = await ADM('op');
+  await ready(O);
+  let w0 = 0;
+
+  await scene('AD1 運営の数と、会員が出した名前と文', async () => {
+    w0 = await waiting();
+    const n0 = await badge(O);
+    const top = await O.page.evaluate(() => {
+      const b = document.getElementById('adm-top'), h = document.querySelector('#dashboard h1');
+      return !!b && !!h && b.getClientRects().length > 0 && b.getBoundingClientRect().bottom <= h.getBoundingClientRect().top;
+    });
+    const a = await page({ who: 'a' });
+    await go(a);
+    await openTown(a);
+    await typeTown(a, WN);
+    await typeIn(a, 'good', WT);
+    await tickOwn(a);
+    const s = await send(a);
+    await shut(a);
+    await reload(O);
+    const n1 = await badge(O), w1 = await waiting(), rs = await rowsAdm(O);
+    ok(top && n0 === String(w0) && s.length === 1 && w1 === w0 + 2 && n1 === String(w0 + 2)
+      && rs.some((r) => r.kind === 'town' && r.v === WN) && rs.some((r) => r.kind === 'text' && r.t.includes(WT)),
+      `★AD1 運営の画面の一番上に「承認」と数・数は保存先で数えた確認待ち（${w0}）→ 'a' が面で「${WN}」と良い点を出す → 読み直すと2つ上がり（${w0 + 2}）、名前の行と文の行が出る`,
+      J({ top, n0, w0, s: s.map((x) => x.p.town), n1, w1, rows: rs.map((r) => r.kind + ':' + (r.v || r.t.join('|'))) }));
+  });
+
+  await scene('AD2 ほかの人には、運営の数も行も無い', async () => {
+    const A = await ADM('a'), G = await ADM(null);
+    const ga = await gated(A, GATE_NOADMIN), gg = await gated(G, GATE_LOGIN);
+    const qa = await rpcAs(base, 'a', 'pv_town_queue', {});
+    const seen = [];
+    for (const who of ['b', 'c', 'pay', 'pilot', null]) {
+      for (const [fn, p] of [['pv_town_queue', {}], ['pv_town_board', { airline: SLUG, base: BASE }], ['pv_town_options', { airline: SLUG, base: BASE }], ['my_town_posts', { airline: SLUG }]]) {
+        const r = await rpcAs(base, who, fn, p), t = norm(r.text);
+        if (t.includes(WN) || t.includes(WT)) seen.push(`${who || 'ログインなし'}:${fn}`);
+      }
+    }
+    const calls = [...A.st.calls, ...G.st.calls].filter((c) => /^pv_(town|stay)_/.test(c));
+    ok(!ga.bar && ga.dash === 'none' && ga.rows === 0 && !gg.bar && gg.dash === 'none' && gg.rows === 0 && calls.length === 0
+      && norm(qa.text) === FORBIDDEN && seen.length === 0,
+      `★AD2 会員 'a' とログインなしの /admin.html は門だけ（「承認」も数も行も無い・待ち行列を呼ばない）・'a' の pv_town_queue は ${FORBIDDEN} そのもの・待っている「${WN}」と文は、ほかの会員のどの返事にも無い`,
+      J({ ga, gg, calls, qa: qa.text, seen }));
+    await shut(A);
+    await shut(G);
+  });
+
+  await scene('AD3 「承認」を2行に押す', async () => {
+    const ts = await rowSel(O, 'town', `return li.querySelector('.adm-row-v').textContent.trim() === ${J(WN)};`);
+    if (!ts) throw new Error(`前提が崩れた（「${WN}」の行が無い）`);
+    await press(O, ts, 'ok');
+    await O.page.waitForFunction((s) => !document.querySelector(s), { timeout: 20000 }, ts);
+    const xs = await rowSel(O, 'text', `return [...li.querySelectorAll('.adm-row-t')].some((x) => x.textContent === ${J(WT)});`);
+    if (!xs) throw new Error(`前提が崩れた（「${WT}」の文の行が無い）: ` + J(await rowsAdm(O)));
+    const shown = await O.page.$$eval(`${xs} .adm-row-t`, (ns) => ns.map((n) => n.textContent));
+    await press(O, xs, 'ok');
+    await O.page.waitForFunction((s) => !document.querySelector(s), { timeout: 20000 }, xs);
+    await until(async () => (await badge(O)) === String(w0), 10000);
+    const n = await badge(O);
+    const P = await page({ who: 'pay' });
+    await visit(P);
+    const b = await boxOf(P), w = b.towns.find((t) => t.name === WN);
+    ok(n === String(w0) && J(shown) === J([WT]) && !!w && w.n === answered(1) && J(w.parts) === J([{ label: GOOD_L, items: [WT] }]),
+      `AD3 名前と文の行に「承認」→ 数は ${w0} に戻る・'pay' の欄に「${WN}」（${answered(1)}）と「${WT}」── 運営の画面と同じ字、打ったとおり`,
+      J({ n, shown, w }));
+    await shut(P);
+  });
+
+  await scene('AD4 「追加」→ 街', async () => {
+    await O.page.click('#adm-b-a');
+    await O.page.waitForSelector('#adm-a form[data-adm="add-town"] select[data-k="scope"] option:nth-child(2)', { timeout: 20000 });
+    const v = await O.page.$eval('#adm-a form[data-adm="add-town"] select[data-k="scope"]', (s, want) => {
+      const o = [...s.options].find((x) => x.textContent === want);
+      return o ? o.value : null;
+    }, `${AIR_JA} · ${BASE}`);
+    if (v === null) throw new Error(`前提が崩れた（「${AIR_JA} · ${BASE}」の選択肢が無い）`);
+    await O.page.select('#adm-a form[data-adm="add-town"] select[data-k="scope"]', v);
+    await O.page.type('#adm-a form[data-adm="add-town"] input[data-k="name"]', NT);
+    await O.page.click('#adm-a form[data-adm="add-town"] button[type="submit"]');
+    await O.page.waitForFunction((t) => { const s = document.querySelector('#adm-a form[data-adm="add-town"] [data-adm="add-say"]'); return !!s && s.textContent.trim() === t; }, { timeout: 20000 }, ADDED_ADM);
+    const G = await page();
+    await visit(G);
+    await openTown(G);
+    await until(() => G.st.got.some((x) => x.fn === 'pv_town_options'), 20000);
+    await G.page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const chips = (await face(G)).chips.map((c) => c.name);
+    await shut(G);
+    const P = await page({ who: 'pay' });
+    await visit(P);
+    const b = await boxOf(P);
+    await shut(P);
+    ok(chips.includes(NT) && !b.towns.some((t) => t.name === NT) && b.state === 'open',
+      `AD4 運営が「追加」で「${NT}」を足す（「${ADDED_ADM}」）→ ログインなしの面の候補に出る・'pay' の「${TOWN_HEAD}」には出ない（誰も挙げていない）`,
+      J({ chips, towns: b.towns.map((t) => t.name) }));
+  });
+
+  await scene('AD5 ログインなしの街は、ログインしてから数える', async () => {
+    const g = await page();
+    await go(g);
+    await openTown(g);
+    await typeTown(g, NA);
+    await tickOwn(g);
+    const s = await send(g, 'submit_contrib_anon');
+    await reload(O);
+    const n1 = await badge(O), w1 = await waiting();
+    await g.page.goto(`${base}/login.html?return=/airlines/${SLUG}.html`, { waitUntil: 'load', timeout: 60000 });
+    await loginVia(g, 'pilot');
+    const claimed = await until(async () => (await deposits()).length === 0, 20000);
+    await reload(O);
+    const n2 = await badge(O), rs = await rowsAdm(O);
+    ok(s.length === 1 && n1 === String(w0) && w1 === w0 && claimed && n2 === String(w0 + 1) && rs.some((r) => r.kind === 'town' && r.v === NA),
+      `AD5 ログインなしで「${NA}」を保存しても、運営の数は ${w0} のまま → その人が 'pilot' としてログインし、預けた街が引き継がれると ${w0 + 1}（「${NA}」の行）`,
+      J({ s: s.length, n1, w1, claimed, n2, rows: rs.map((r) => r.kind + ':' + r.v) }));
+    await shut(g);
+  });
+
+  await scene('AD6 ログインなしで足したホテル', async () => {
+    /* オーナーではない運営 ── この使い捨ての保存先の中だけで、会員 'c' を運営の名簿に入れる */
+    await L.q(`insert into public.pv_admins (user_id, note) values ($1, '検査：オーナーではない運営（使い捨ての保存先だけ）') on conflict (user_id) do nothing`, [M.c.id]);
+    await reload(O);
+    const n0 = Number(await badge(O));
+    const SL = '#pvg-city .crl[data-live="hotels"]', ZN = `${SL} + .crs-zone`, FM = `${ZN} .crs-formbox > .crs-form`;
+    const g = await page({ w: 1440, h: 820 });
+    await g.page.goto(`${base}/airlines/${SLUG}.html#stay-${STAY_IATA}`, { waitUntil: 'load', timeout: 60000 });
+    await g.page.waitForFunction((s, code) => {
+      const e = document.querySelector(s);
+      return !!e && e.getClientRects().length > 0 && e.getAttribute('data-stay') === code && !/^(idle|loading)$/.test(e.dataset.state || '')
+        && !!(e.nextElementSibling && e.nextElementSibling.classList.contains('crs-zone'));
+    }, { timeout: 30000 }, SL, STAY_IATA);
+    await g.page.click(`${ZN} .crs-ent[data-kind="hotel"]`);
+    await g.page.waitForSelector(`${FM} [data-k="name"]`, { visible: true });
+    await g.page.focus(`${FM} [data-k="name"]`);
+    await g.page.keyboard.type(HOTEL);
+    await g.page.click(`${FM} button[type="submit"]`);
+    await until(() => g.st.got.some((x) => x.fn === 'pv_stay_add'), 20000);
+    const added = g.st.got.filter((x) => x.fn === 'pv_stay_add');
+    let ab = null;
+    try { ab = JSON.parse(added[0].text); } catch { ab = null; }
+    const sentAdd = g.st.sent.filter((x) => x.fn === 'pv_stay_add');
+    await shut(g);
+    await reload(O);
+    const n1 = Number(await badge(O)), rs1 = await rowsAdm(O);
+    const W = { airline: SLUG, iata: STAY_IATA };
+    const reads = async () => {
+      const o = {};
+      for (const who of ['pilot', 'pay', 'c', null]) o[who || 'guest'] = await rpcAs(base, who, 'pv_stays', W);
+      return o;
+    };
+    const r1 = await reads();
+    const leaked = Object.entries(r1).filter(([, r]) => norm(r.text).includes(HOTEL)).map(([k]) => k);
+    ok(sentAdd.length === 1 && !('key' in (sentAdd[0].p || {})) && ab && ab.ok === true && ab.item && ab.item.state === 'pending'
+      && n1 === n0 + 1 && rs1.some((r) => r.kind === 'place' && r.v === HOTEL) && leaked.length === 0,
+      `★AD6 ログインしていない画面から「${HOTEL}」を足す（確認待ち）→ 運営の数は1つ上がり（${n0}→${n1}）、その行が出る・まだ誰の返事にも無い（'pilot'・'pay'・'c'・ログインなし）`,
+      J({ sent: sentAdd.map((x) => x.p), reply: ab, n0, n1, leaked }));
+    const ps = await rowSel(O, 'place', `return li.querySelector('.adm-row-v').textContent.trim() === ${J(HOTEL)};`);
+    if (!ps) throw new Error(`前提が崩れた（「${HOTEL}」の行が無い）`);
+    await press(O, ps, 'ok');
+    await O.page.waitForFunction((s) => !document.querySelector(s), { timeout: 20000 }, ps);
+    await until(async () => (await badge(O)) === String(n0), 10000);
+    const n2 = Number(await badge(O)), r2 = await reads();
+    const names = (r) => (r.body && Array.isArray(r.body.places) ? r.body.places.map((x) => x.name) : []);
+    ok(n2 === n0 && r2.pilot.body && r2.pilot.body.state === 'open' && names(r2.pilot).includes(HOTEL)
+      && norm(r2.pay.text) === LOCKED_STATE && norm(r2.c.text) === LOCKED_STATE && !norm(r2.guest.text).includes(HOTEL),
+      `★AD6 「承認」→ 数は戻り、オーナーが承認した 'pilot' には「${HOTEL}」が届く・給与の鍵だけの 'pay' とオーナーではない運営 'c' には ${LOCKED_STATE} そのもの`,
+      J({ n2, pilot: names(r2.pilot), pay: r2.pay.text, c: r2.c.text, guest: r2.guest.text.slice(0, 120) }));
+  });
+
+  await scene('AD7 オーナーの2つの一覧（申請してきた人・会員一覧）', async () => {
+    const W = { airline: SLUG, iata: STAY_IATA };
+    const reads = async (who) => (await rpcAs(base, who, 'pv_stays', W));
+    const opens = (r) => !!r.body && r.body.state === 'open' && Array.isArray(r.body.places) && r.body.places.some((x) => x.name === HOTEL);
+    const imgs = async (who) => (await L.q(`select count(*)::int as n from public.pv_proof_images where user_id = $1`, [M[who].id])).rows[0].n;
+    const offers = async (who) => (await L.q(`select count(*)::int as n from public.pv_proof where user_id = $1`, [M[who].id])).rows[0].n;
+    const viewer = async (who) => (await L.q(`select to_jsonb(v) as j from public.pv_stay_viewers v where user_id = $1`, [M[who].id])).rows[0]?.j || null;
+    const verifies = (p, from = 0) => p.st.sent.filter((x) => x.fn === 'pv_stay_viewer_verify').slice(from).map((x) => x.p);
+    /* マイページ（日本語・英語）から、その場で描いた FIXTURE の画像で申請する（ファイルは作らない） */
+    const apply = async (who, lang) => {
+      const p = await page({ who, w: 390, h: 844 });
+      await p.page.goto(`${base}/${lang === 'en' ? 'en/' : ''}profile.html`, { waitUntil: 'load', timeout: 60000 });
+      await p.page.waitForSelector('#pv-proof-slot .mp-cta', { timeout: 30000 });
+      /* 押すのは、ページの読みが全部答え、書体がそろい、ボタンが10コマ続けて同じ位置になってから
+         （マイページのほかの欄が読み込みで伸びると、押した点がずれて外れる ── 混んだ回に、製品は正しいのにここで止まっていた） */
+      await until(() => p.st.got.filter((x) => !x.fn.includes('/')).length >= p.st.sent.length, 20000);
+      await p.page.evaluate(() => document.fonts.ready.then(() => true));
+      await p.page.waitForFunction(() => {
+        const b = document.querySelector('#pv-proof-slot .mp-cta');
+        if (!b) return false;
+        const y = Math.round(b.getBoundingClientRect().top + window.scrollY), k = window.__pvtCta || (window.__pvtCta = { y: NaN, n: 0 });
+        k.n = k.y === y ? k.n + 1 : 0;
+        k.y = y;
+        return k.n >= 10;
+      }, { timeout: 20000, polling: 'raf' });
+      await p.page.click('#pv-proof-slot .mp-cta');
+      await p.page.waitForSelector('#pvpo-back input[type=file]', { timeout: 10000 });
+      await p.page.evaluate(async () => {
+        const c = document.createElement('canvas');
+        c.width = 480; c.height = 240;
+        const g = c.getContext('2d');
+        g.fillStyle = '#f4f1e8'; g.fillRect(0, 0, 480, 240);
+        g.fillStyle = '#1b1b1b'; g.font = 'bold 64px sans-serif'; g.fillText('FIXTURE', 92, 140);
+        const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.85));
+        const dt = new DataTransfer();
+        dt.items.add(new File([blob], 'fixture.jpg', { type: 'image/jpeg' }));
+        const i = document.querySelector('#pvpo-back input[type=file]');
+        i.files = dt.files;
+        i.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      await p.page.waitForSelector('#pvpo-back [data-act="send"]:not([disabled])', { timeout: 20000 });
+      await p.page.click('#pvpo-back [data-act="send"]');
+      await p.page.waitForFunction(() => { const t = document.getElementById('pvpo-t'); return !!t && /受け取りました|received/.test(t.textContent); }, { timeout: 20000 });
+      const sent = p.st.sent.filter((x) => x.fn === 'pv_stay_apply' && x.p && typeof x.p.image === 'string').length;
+      await shut(p);
+      return sent;
+    };
+    const ownerReady = async (p) => {
+      await ready(p);
+      await p.page.waitForFunction(() => !!document.querySelector('#adm-q h2[data-adm-owner="members"]'), { timeout: 30000 });
+    };
+    const APP = (who) => `#adm-q li[data-adm="app"][data-id="${M[who].id}"]`, MEM = (who) => `#adm-q li[data-adm="member"][data-id="${M[who].id}"]`;
+    /* 画像の面を開く → 画像が読み終わるまで。返すのは画像の大きさと頭の字・行のボタン */
+    const sheet = async (p, who) => {
+      const acts0 = await p.page.$$eval(`${APP(who)} > .adm-acts [data-act]`, (ns) => ns.map((n) => n.getAttribute('data-act')));
+      await p.page.click(`${APP(who)} [data-act="view"]`);
+      await p.page.waitForSelector(`${APP(who)} .adm-sheet [data-act="verify"]`, { timeout: 20000 });
+      await p.page.waitForFunction((s) => { const i = document.querySelector(s + ' .adm-sheet img'); return !!i && i.complete && i.naturalWidth > 0; }, { timeout: 20000 }, APP(who));
+      const img = await p.page.$eval(`${APP(who)} .adm-sheet img`, (i) => ({ w: i.naturalWidth, h: i.naturalHeight, head: i.getAttribute('src').slice(0, 23) }));
+      return { acts0, img };
+    };
+    const cleanOf = (p) => p.page.evaluate((words) => ({
+      owner: document.querySelectorAll('#adm-q [data-adm-owner], #adm-q li[data-adm="app"], #adm-q li[data-adm="member"], .adm-sheet').length,
+      words: words.filter((w) => document.body.textContent.includes(w)),
+      img: document.querySelectorAll('img.adm-img').length + (document.documentElement.outerHTML.includes('data:image/jpeg') ? 1 : 0),
+    }), OWNER_WORDS);
+    const FOUR = (id, other) => [['pv_stay_applicants', {}], ['pv_stay_members', {}], ['pv_stay_applicant_image', { id }],
+      ['pv_stay_viewer_verify', { id: other, state: 'approved', via: 'member' }]];
+
+    /* 1) 'a' がマイページから申請（日本語・390）。申請だけでは何も開かない */
+    const sa = await apply('a', 'ja');
+    const ia = await imgs('a'), ra0 = await reads('a');
+    if (!(sa === 1 && ia === 1 && norm(ra0.text) === LOCKED_STATE)) throw new Error('前提が崩れた（a の申請）: ' + J({ sa, ia, ra0: ra0.text }));
+
+    /* 2) 申請が待っているあいだの、ほかの人 ── オーナーではない運営 'c'・ほかの会員 'pay'・ログインなし */
+    const Cp = await ADM('c');
+    await ready(Cp);
+    const cv = await cleanOf(Cp);
+    const cGot = Cp.st.got.filter((x) => x.fn === 'pv_stay_applicants' || x.fn === 'pv_stay_members').map((x) => norm(x.text));
+    const cFour = [];
+    for (const [fn, p] of FOUR(M.a.id, M.b.id)) cFour.push(norm((await rpcAs(base, 'c', fn, p)).text));
+    const Pp = await ADM('pay'), Gp = await ADM(null);
+    const pg = await gated(Pp, GATE_NOADMIN), gg = await gated(Gp, GATE_LOGIN);
+    const pv = await cleanOf(Pp), gv = await cleanOf(Gp);
+    const pageCalls = [...Pp.st.calls, ...Gp.st.calls].filter((c) => /^pv_stay_/.test(c));
+    const pFour = [], gFour = [];
+    for (const [fn, p] of FOUR(M.a.id, M.b.id)) {
+      pFour.push(norm((await rpcAs(base, 'pay', fn, p)).text));
+      const r = await rpcAs(base, null, fn, p);
+      gFour.push({ status: r.status, ok: !!(r.body && r.body.ok === true), text: r.text.slice(0, 200) });
+    }
+    const b64 = (await L.q(`select encode(bytes, 'base64') as b from public.pv_proof_images where user_id = $1`, [M.a.id])).rows[0].b.replace(/\s+/g, '').slice(0, 40);
+    const leaks = (ts) => ts.some((t) => t.includes(b64) || t.includes(M.a.email));
+    const vb = await viewer('b');
+    ok(cv.owner === 0 && cv.words.length === 0 && cv.img === 0 && cGot.length === 2 && cGot.every((t) => t === FORBIDDEN) && cFour.every((t) => t === FORBIDDEN)
+      && vb === null && !leaks([...cGot, ...cFour]),
+      `★AD7 申請が待っているあいだ、オーナーではない運営 'c' の /admin.html には2つの一覧も画像も無く（${OWNER_WORDS.join('・')} の字も無い）、ページの2つの読みとオーナーの4つの口は ${FORBIDDEN} そのもの・'b' には何も書かれない`,
+      J({ cv, cGot, cFour, vb }));
+    ok(!pg.bar && pg.dash === 'none' && !gg.bar && gg.dash === 'none' && pv.owner === 0 && pv.img === 0 && gv.owner === 0 && gv.img === 0 && pageCalls.length === 0
+      && pFour.every((t) => t === FORBIDDEN) && gFour.every((x) => x.status !== 200 && !x.ok) && !leaks([...pFour, ...gFour.map((x) => x.text)]),
+      `★AD7 ほかの会員 'pay' とログインなしの /admin.html は門だけ（一覧も画像も無い・オーナーの口を呼ばない）・'pay' の4つの口は ${FORBIDDEN}・ログインなしは4つとも通らない（画像の字もメールも返らない）`,
+      J({ pg, gg, pv, gv, pageCalls, pFour, gFour }));
+    await shut(Cp); await shut(Pp); await shut(Gp);
+
+    /* 3) オーナー（'op'）：申請してきた人 →「画像を見る」→「verified」→ 'a' がホテルを読める */
+    const Op = await ADM('op');
+    await ownerReady(Op);
+    const sh = await sheet(Op, 'a');
+    const v0 = verifies(Op).length;
+    await press(Op, `${APP('a')} .adm-sheet`, 'verify');
+    await Op.page.waitForFunction((s) => !document.querySelector(s), { timeout: 20000 }, APP('a'));
+    /* 待ちで止めない（verified にならなければ、この下の1行が赤くなる） */
+    await Op.page.waitForSelector(`${MEM('a')} [data-act="revoke"]`, { timeout: 20000 }).catch(() => null);
+    const tagA = await Op.page.$$eval(`${MEM('a')} .adm-tag`, (ns) => ns.map((n) => n.textContent.trim()));
+    const ia2 = await imgs('a'), oa2 = await offers('a'), va = await viewer('a'), ra1 = await reads('a');
+    ok(J(sh.acts0) === J(['view']) && sh.img.w === 480 && sh.img.h === 240 && sh.img.head === 'data:image/jpeg;base64,'
+      && J(verifies(Op, v0)) === J([{ id: M.a.id, state: 'approved', via: 'applicant' }])
+      && ia2 === 0 && oa2 === 0 && !!va && va.state === 'approved' && va.decided_by === M.op.id && opens(ra1) && tagA.includes('verified'),
+      `★AD7 'a' がマイページから FIXTURE の画像で申請 → オーナーの「申請してきた人」に 'a'（行のボタンは「画像を見る」だけ）→ 画像（480×240）→「verified」→ 画像と申請は保存先から消え、'a' は ${SLUG} の ${STAY_IATA} のホテル（「${HOTEL}」）を読める・「会員一覧」の 'a' は verified`,
+      J({ acts0: sh.acts0, img: sh.img, sent: verifies(Op, v0), ia2, oa2, va: va && { state: va.state, by: va.decided_by }, ra1: ra1.text.slice(0, 160), tagA }));
+    /* 'a' の会社ページのステイ先の欄にも、そのホテル（鍵の1行は無い） */
+    const Ap = await page({ who: 'a', w: 390, h: 844 });
+    await Ap.page.goto(`${base}/airlines/${SLUG}.html#stay-${STAY_IATA}`, { waitUntil: 'load', timeout: 60000 });
+    const seeA = await Ap.page.waitForFunction((h) => document.body.innerText.includes(h), { timeout: 30000 }, HOTEL).then(() => true, () => false);
+    const lockA = await Ap.page.evaluate(() => [...document.querySelectorAll('.crs-lock')].filter((e) => e.getClientRects().length).length);
+    ok(seeA && lockA === 0, `AD7 'a' の会社ページ（#stay-${STAY_IATA}）に「${HOTEL}」が出る・鍵の1行は無い`, J({ seeA, lockA }));
+    await shut(Ap);
+    /* 「取り消す」→ 次の読みは鍵 */
+    const v1 = verifies(Op).length;
+    await press(Op, MEM('a'), 'revoke');
+    await Op.page.waitForSelector(`${MEM('a')} [data-act="verify"]`, { timeout: 20000 });
+    const ra2 = await reads('a');
+    ok(J(verifies(Op, v1)) === J([{ id: M.a.id, state: 'revoked', via: 'member' }]) && norm(ra2.text) === LOCKED_STATE,
+      `★AD7 「会員一覧」の 'a' に「取り消す」→ {id, state:'revoked', via:'member'} だけを送り、'a' の次の読みは ${LOCKED_STATE}`, J({ sent: verifies(Op, v1), ra2: ra2.text }));
+    /* 4) 「会員一覧」の「verified」（申請していない 'b'）も同じ */
+    const rb0 = await reads('b'), v2 = verifies(Op).length;
+    await press(Op, MEM('b'), 'verify');
+    await Op.page.waitForSelector(`${MEM('b')} [data-act="revoke"]`, { timeout: 20000 });
+    const rb1 = await reads('b'), vbb = await viewer('b');
+    ok(norm(rb0.text) === LOCKED_STATE && J(verifies(Op, v2)) === J([{ id: M.b.id, state: 'approved', via: 'member' }]) && opens(rb1)
+      && !!vbb && vbb.state === 'approved' && vbb.decided_by === M.op.id,
+      `★AD7 「会員一覧」の 'b' に「verified」→ 'b' も「${HOTEL}」を読める（前は ${LOCKED_STATE}）`, J({ rb0: rb0.text, sent: verifies(Op, v2), rb1: rb1.text.slice(0, 160) }));
+    await shut(Op);
+    /* 5) いま verified の人の申請に「見送り」：承認を取り上げない（英語の画面・390）。
+          verified になった人は自分からは申請できない（pv_stay_apply が受け取らない）ので、'pay' が申請してから、
+          その承認を保存先の持ち主として書く（db/test-stays.mjs の P12.17 と同じ置き方 ── 画面ではこの形を作れない） */
+    const sp = await apply('pay', 'en');
+    await L.q(`insert into public.pv_stay_viewers (user_id, state, asked_at, decided_by, decided_at) values ($1, 'approved', now(), $2, now())
+                on conflict (user_id) do update set state = 'approved', decided_by = excluded.decided_by, decided_at = excluded.decided_at`, [M.pay.id, M.op.id]);
+    const vp0 = await viewer('pay'), rp0 = await reads('pay');
+    const En = await ADM('op', 390, 'en');
+    await ownerReady(En);
+    const she = await sheet(En, 'pay');
+    const v3 = verifies(En).length;
+    await press(En, `${APP('pay')} .adm-sheet`, 'decline');
+    await En.page.waitForFunction((s) => !document.querySelector(s), { timeout: 20000 }, APP('pay'));
+    /* 待ちで止めない（承認が取り上げられたら、この下の1行が赤くなる） */
+    await En.page.waitForSelector(`${MEM('pay')} [data-act="revoke"]`, { timeout: 20000 }).catch(() => null);
+    const vp1 = await viewer('pay'), rp1 = await reads('pay'), ip1 = await imgs('pay'), op1 = await offers('pay');
+    ok(sp === 1 && opens(rp0) && she.img.w === 480 && J(verifies(En, v3)) === J([{ id: M.pay.id, state: 'denied', via: 'applicant' }])
+      && J(vp1) === J(vp0) && opens(rp1) && ip1 === 0 && op1 === 0,
+      `★AD7 いま verified の 'pay' の申請に、オーナーが英語の画面（390）で「Decline」→ 承認の行は1文字も変わらず、'pay' は「${HOTEL}」を読めるまま・申請は終わる（画像は消える）`,
+      J({ sp, sent: verifies(En, v3), vp0, vp1, rp1: rp1.text.slice(0, 160), ip1, op1 }));
+    await shut(En);
   });
 }
 
