@@ -109,6 +109,7 @@
 })();
 </script>
 <!--/PV-3P-->
+<link rel="stylesheet" href="../admin-queue.css?v=52a95e02"/>
 <script src="../pv-session.js"></script>
 </head>
 <body>
@@ -126,6 +127,12 @@
 </div>
 
 <div id="dashboard">
+  <div class="adm-top" id="adm-top">
+    <button type="button" class="adm-b" id="adm-b-q" aria-expanded="false" aria-controls="adm-q">Approve<span class="adm-n" id="adm-n" data-state="idle">—</span></button>
+    <button type="button" class="adm-b" id="adm-b-a" aria-expanded="false" aria-controls="adm-a">Add</button>
+  </div>
+  <section class="adm-panel pv-no-cur" id="adm-q" aria-labelledby="adm-b-q" hidden></section>
+  <section class="adm-panel pv-no-cur" id="adm-a" aria-labelledby="adm-b-a" hidden></section>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
     <div>
       <h1>Admin Dashboard</h1>
@@ -203,6 +210,7 @@
   </div>
 </div>
 
+<script src="../admin-queue.js?v=f8d4b383"></script>
 <script>
   const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
@@ -258,6 +266,7 @@
     document.getElementById('gate').style.display='none';
     document.getElementById('dashboard').style.display='block';
     loadData();
+    if (window.PVAdminQueue) PVAdminQueue.start(sb);
   }
 
   async function loadData() {

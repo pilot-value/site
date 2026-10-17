@@ -1,0 +1,54 @@
+/* admin-queue.css — 管理ページの「承認」「追加」（admin-queue.js が描く）。
+   ★規則は全部 .adm- で始める。色はページ自身の配色（admin.html の style）から取る ── 新しい色は作らない。
+   ★入力欄は 16px（ページ自身の iOS の決まり）・押す所は 44px・動かすのは transform だけ。 */
+.adm-top{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.adm-b{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 20px;border-radius:10px;cursor:pointer;
+  border:1px solid rgba(245,200,66,.35);background:rgba(245,200,66,.1);color:#f5c842;
+  font:700 .92rem/1 Inter,'Noto Sans JP',sans-serif;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.adm-b:hover{background:rgba(245,200,66,.18)}
+.adm-b:active{transform:scale(.97)}
+.adm-b:focus-visible,.adm-act:focus-visible,.adm-in:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+.adm-b[aria-expanded="true"]{background:rgba(245,200,66,.22);border-color:#f5c842}
+.adm-n{min-width:1.9em;padding:3px 8px;border-radius:999px;background:#f5c842;color:#0a0c0f;font-size:.8rem;font-weight:800;
+  font-variant-numeric:tabular-nums;text-align:center;white-space:nowrap}
+.adm-n[data-state="idle"],.adm-n[data-state="part"]{background:rgba(255,255,255,.1);color:#b0c0d4}
+.adm-panel{margin-bottom:22px;padding:18px 20px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(17,22,32,.8)}
+.adm-panel[hidden]{display:none}
+.adm-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:0 0 10px;font-size:.78rem;font-weight:700;letter-spacing:.06em;color:#6b7d93}
+.adm-h:not(:first-child){margin-top:20px}
+.adm-part{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:600;letter-spacing:0;color:#b0c0d4}
+.adm-rows{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.adm-row{display:grid;gap:8px;padding:12px 14px;border:1px solid rgba(255,255,255,.07);border-radius:10px;min-width:0}
+.adm-row-k{margin:0;font-size:.74rem;color:#6b7d93}
+.adm-row-v{margin:0;font-size:.92rem;font-weight:700;color:#e8edf2;overflow-wrap:anywhere}
+.adm-row-t{margin:0;font-size:.84rem;line-height:1.7;color:#b0c0d4;overflow-wrap:anywhere;white-space:pre-wrap}
+.adm-tag{display:inline-block;white-space:nowrap;margin-left:8px;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);font-size:.7rem;font-weight:700;color:#b0c0d4}
+.adm-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.adm-act{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:9px;cursor:pointer;text-decoration:none;
+  font:600 .83rem/1 Inter,'Noto Sans JP',sans-serif;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.adm-act:active{transform:scale(.97)}
+.adm-act:disabled{opacity:.45;cursor:default}
+.adm-ok{background:rgba(72,199,142,.1);color:#48c78e;border:1px solid rgba(72,199,142,.25)}
+.adm-ok:hover:not(:disabled){background:rgba(72,199,142,.18)}
+.adm-no{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1)}
+.adm-no:hover{background:rgba(255,255,255,.1);color:#e8edf2}
+.adm-in{min-height:44px;padding:9px 14px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);
+  color:#e8edf2;font-size:16px;font-family:inherit;max-width:100%}
+.adm-form{display:grid;gap:12px;max-width:520px}
+.adm-form label{display:grid;gap:6px;min-width:0;font-size:.78rem;color:#b0c0d4}
+.adm-form .adm-in{width:100%;min-width:0}
+.adm-form button{justify-self:start}
+.adm-opt{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:9px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#b0c0d4;font-size:.86rem;font-weight:600;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.adm-opt:hover{background:rgba(255,255,255,.1);color:#e8edf2}
+.adm-opt:active{transform:scale(.97)}
+.adm-opt:focus-within{outline:2px solid #f5c842;outline-offset:2px}
+.adm-opt:has(input:checked){border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.12);color:#f5c842}
+.adm-opt input{accent-color:#f5c842;margin:0}
+#adm-a [data-adm$="-box"]{margin-top:14px}
+#adm-a input[data-k="iata"]{text-transform:uppercase}
+.adm-ph{display:grid;gap:6px;min-width:0}
+.adm-say{margin:0;font-size:.82rem;color:#b0c0d4}
+.adm-say[hidden]{display:none}
+.adm-img{max-width:min(100%,360px);height:auto;border-radius:8px}

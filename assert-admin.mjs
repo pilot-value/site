@@ -20,14 +20,23 @@
         2. 管理者でない → pv_is_admin までで止まり、一覧の RPC を呼ばない
         3. 管理者      → 一覧が出る。ただし from() は一度も使わない
         4. SQL 未適用   → 黙って空の表を出さず、入口に戻して理由を出す
+        5. 承認の入口がまだ無い → 数は「—」、面の見出しの横に「準備中」（半分の数を出さない）
+        6. 通貨を USD にしても、承認の面の「20万円」は打たれた字のまま（運営は見た字を通す）
+     D) 承認・追加（admin-queue.js。2026-10-17）── 字は字のまま出る・通すときは見た版（rev）を添える・
+        選ぶだけでは送らない・数は全部読めたときだけ・上限まで来たら「以上」
 
    実行: node assert-admin.mjs
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない（Supabase ごと差し替える）。
 */
 import puppeteer from 'puppeteer';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
+const BASE = 'http://localhost:3000';
 const read = (p) => readFileSync(new URL('./' + p, import.meta.url), 'utf8');
+/* 中身の指紋（assert-links.mjs と同じ式：sha256 の頭8字）。HTML が読む ?v= と合っていなければ、古い部品が最長4時間残る */
+const fp = (p) => createHash('sha256').update(readFileSync(new URL('./' + p, import.meta.url))).digest('hex').slice(0, 8);
+const reEsc = (t) => t.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
 
 let pass = 0, fail = 0;
 const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++, console.log('  ❌ ' + l + (e ? ' → ' + e : ''))); };
@@ -50,6 +59,76 @@ for (const f of ['admin.html', 'en/admin.html']) {
   ok(/sb\.rpc\(\s*['"]admin_list_profiles['"]\s*\)/.test(s), '会員一覧はサーバーの入口から取る');
   ok(/sb\.rpc\(\s*['"]admin_list_reviews['"]\s*\)/.test(s), '口コミ一覧はサーバーの入口から取る');
   ok(/sb\.auth\.signOut\(\)/.test(s), 'ログアウトが本当にログアウトになっている');
+
+  /* ★承認・追加（2026-10-17）。部品は2つの共有ファイル。指紋が古いと、新しい HTML に古い JS が最長4時間付く */
+  const pre = f.startsWith('en/') ? '../' : '';
+  for (const asset of ['admin-queue.css', 'admin-queue.js']) {
+    const want = fp(asset);
+    const m = s.match(new RegExp('"' + reEsc(pre + asset) + '\\?v=([0-9a-f]+)"'));
+    ok(!!m && m[1] === want, `${asset} を ?v=指紋 付きで読んでいる`,
+       m ? `${asset} の指紋が古い（?v=${m[1]} → ?v=${want} に直す）` : `${asset} を ?v= 付きで読んでいない（?v=${want}）`);
+  }
+  const head = s.slice(0, s.indexOf('</head>'));
+  ok(head.includes('<link rel="stylesheet" href="' + pre + 'admin-queue.css?v='), '見た目（admin-queue.css）は <head> で読む');
+  ok(new RegExp('<script src="' + reEsc(pre) + 'admin-queue\\.js\\?v=[0-9a-f]+"></script>\\s*<script>\\s*const SB_URL').test(s),
+     'admin-queue.js はページの script の直前で読む（後ろだと、ログイン済みのとき start がまだ無い）');
+  const show = (s.match(/function showDashboard\(\) \{[\s\S]*?\n  \}/) || [''])[0];
+  ok(/loadData\(\);\s*if \(window\.PVAdminQueue\) PVAdminQueue\.start\(sb\);/.test(show)
+     && s.split('PVAdminQueue.start(').length === 2,
+     '承認の読み出しは、管理者と分かったあと（showDashboard の中）の1か所からだけ始まる');
+  const bar = (s.match(/<div id="dashboard">\s*(<div class="adm-top" id="adm-top">[\s\S]*?<\/div>)/) || [])[1] || '';
+  const labels = [...bar.matchAll(/<button [^>]*>([\s\S]*?)<\/button>/g)].map((m) => m[1].replace(/<[^>]+>/g, ''));
+  const L = f.startsWith('en/') ? ['Approve—', 'Add'] : ['承認—', '追加'];
+  ok(!!bar && labels.length === 2 && labels[0] === L[0] && labels[1] === L[1]
+     && bar.includes('<span class="adm-n" id="adm-n" data-state="idle">—</span>'),
+     `ダッシュボードの最初の子が「${L[0].slice(0, -1)}」（数は「—」で出荷）と「${L[1]}」の2つのボタン`, JSON.stringify(labels));
+  ok(/<section class="adm-panel pv-no-cur" id="adm-q"/.test(s) && /<section class="adm-panel pv-no-cur" id="adm-a"/.test(s),
+     '承認と追加の面は両方 pv-no-cur（通貨の書き換えを受けない）');
+}
+
+/* ── D) admin-queue.js のソース ───────────────────────────────── */
+console.log('\n════ D) admin-queue.js（承認・追加）のソース ════');
+{
+  const aq = read('admin-queue.js');
+  /* 呼んでよい入口（この組がちょうど。名前は呼ぶ場所に字のまま） */
+  const RPCS = ['pv_stay_add', 'pv_stay_moderate', 'pv_stay_photo', 'pv_stay_queue',
+                'pv_town_admin_add', 'pv_town_moderate', 'pv_town_queue'];
+  ok(!/\.from\(/.test(aq), 'テーブルを直接読まない（.from( が無い）');
+  ok(!/innerHTML|insertAdjacentHTML|outerHTML|document\.write/.test(aq),
+     '会員が打った字を HTML として入れる道が無い（innerHTML ・ insertAdjacentHTML ・ outerHTML ・ document.write が無い）');
+  const named = [...aq.matchAll(/sb\.rpc\('([a-z_]+)'/g)].map((m) => m[1]);
+  ok(aq.split('.rpc(').length - 1 === named.length && [...new Set(named)].sort().join(',') === RPCS.join(','),
+     '呼ぶ入口は決めた組だけ・名前は呼ぶ場所に字のまま', [...new Set(named)].sort().join(','));
+  const townQ = (read('db/towns.sql').match(/create or replace function public\.pv_town_queue\([\s\S]*?\$fn\$;/) || [''])[0];
+  const stayQ = (read('db/stays.sql').match(/create or replace function public\.pv_stay_queue\([\s\S]*?\$fn\$;/) || [''])[0];
+  ok(aq.split('var CAP = 200;').length === 2 && townQ.split('limit 200').length === 3 && stayQ.split('limit 200').length === 3,
+     '上限の数（CAP 200）が、待ち行列の SQL の limit 200（街の2つ・ステイ先の2つ）と同じ');
+  /* 同じ字（写したもの）── 元の字が変わる・鍵の名前が変わると、ここが赤くなる（黙って緑にならない） */
+  const stay = read('career-stay.js'), live = read('career-live.js');
+  const block = (src, h) => { const i = src.indexOf(h); return i < 0 ? '' : src.slice(i, src.indexOf('};', i)); };
+  const val = (b, k) => { const m = b.match(new RegExp('^\\s*' + k + ":\\s*'([^']*)'", 'm')); return m ? m[1] : null; };
+  const SAME = [
+    ...['forbidden', 'own_post', 'final', 'not_found', 'changed']
+      .map((k) => ['career-stay.js SAY_MOD.' + k, val(block(stay, 'var SAY_MOD = {'), k)]),
+    ['career-stay.js SAY_FAIL', (stay.match(/var SAY_FAIL = '([^']*)';/) || [])[1] || null],
+    ['career-stay.js T.rej', val(block(stay, 'var T = {'), 'rej')],
+    ['career-stay.js T.pending', val(block(stay, 'var T = {'), 'pending')],
+    ['career-live.js T.sumGood', val(block(live, 'var T = {'), 'sumGood')],
+    ['career-live.js T.sumConcern', val(block(live, 'var T = {'), 'sumConcern')],
+    ['career-live.js T.off', val(block(live, 'var T = {'), 'off')],
+    /* ステイ先と「追加」の面（ホテルの欄の名前・種類・写真・同じ名前） */
+    ['career-stay.js SAY_ADD.exists', val(block(stay, 'var SAY_ADD = {'), 'exists')],
+    ['career-stay.js SAY_MOD.exists', val(block(stay, 'var SAY_MOD = {'), 'exists')],
+    ...['photoErr', 'fName', 'fAddr', 'fMap', 'fNote', 'map']
+      .map((k) => ['career-stay.js T.' + k, val(block(stay, 'var T = {'), k)]),
+    ...[0, 1, 2].map((i) => ['career-stay.js KINDS[' + i + ']',
+      (stay.match(/var KINDS = \[\['hotel', '([^']+)'\], \['food', '([^']+)'\], \['spot', '([^']+)'\]\];/) || [])[i + 1] || null]),
+    ['pv-contrib.js 街の欄の名前', (read('pv-contrib.js').match(/el\('label', 'pvc-label', '([^']+)', \{ id: 'pvc-l-town'/) || [])[1] || null],
+  ];
+  for (const [src, v] of SAME)
+    ok(v !== null && aq.includes("'" + v + "'"), `同じ字：${src}（${v}）`, v === null ? '元の字が見つからない' : 'admin-queue.js に同じ字が無い');
+  const ANS = "return '回答 ' + n + '人';";
+  ok(live.split(ANS).length === 2 && aq.split(ANS).length === 2, `同じ字：回答の人数（${ANS}）が career-live.js と admin-queue.js に1つずつ`);
 }
 
 /* ── B) DB 側（オーナーが SQL Editor で流すもの）─────────────── */
@@ -128,22 +207,246 @@ const CASES = [
   { key: 'logout',   label: '1. ログアウトのまま開く',              session: false, admin: false, err: false },
   { key: 'notadmin', label: '2. ログイン済みだが管理者ではない',      session: true,  admin: false, err: false },
   { key: 'admin',    label: '3. 管理者',                            session: true,  admin: true,  err: false },
-  { key: 'nosql',    label: '4. まだ db/admin.sql を流していない',   session: true,  admin: true,  err: true  }
+  { key: 'nosql',    label: '4. まだ db/admin.sql を流していない',   session: true,  admin: true,  err: true  },
+  { key: 'noqueue',  label: '5. 承認の入口がまだ無い（関数が無い）', session: true,  admin: true,  err: false, queue: 'off' },
+  { key: 'usd',      label: '6. 通貨を USD にしてから開く',          session: true,  admin: true,  err: false, usd: true }
 ];
+/* 承認の面に並ぶ待ち行列の作り物（名前・文・会社と基地）。文の1つは引用符入り・もう1つは「20万円」 */
+const RENT = '家賃は20万円くらい';
+const TEXT_ID = 'aaaaaaaa-0000-4000-8000-000000000001';
+/* 行の中身を、鍵の並びに左右されずに比べる */
+const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)
+  ? Object.fromEntries(Object.keys(x).sort().map((key) => [key, x[key]])) : x));
+const callsOf = (page, n) => page.evaluate((x) => window.__args.filter((a) => a[0] === x).map((a) => a[1]), n);
+/* 管理者の画面の「承認」：開いた時点の形 → 押したときに送るもの（どれも条件で待つ。時間では待たない） */
+async function queueChecks(page, lang) {
+  const EN = lang === 'en';
+  await page.waitForFunction(() => document.getElementById('adm-n').getAttribute('data-state') === 'ok', { timeout: 10000 });
+  const v = await page.evaluate((hostile, quoted, rent) => {
+    const top = document.getElementById('adm-top'), h1 = document.querySelector('#dashboard h1');
+    const rt = top.getBoundingClientRect(), rh = h1.getBoundingClientRect();
+    const q = document.getElementById('adm-q');
+    const born = [...q.querySelectorAll('*')].some((e) => [...e.attributes].some((a) => /^on/i.test(a.name)));
+    const town = q.querySelector('li[data-adm="town"][data-id="11"] .adm-row-v');
+    const place = q.querySelector('li[data-adm="place"] .adm-row-v');
+    const map = q.querySelector('li[data-adm="place"] a.adm-act');
+    return {
+      place: place ? place.textContent === hostile && !place.children.length : false,
+      map: map ? { href: map.getAttribute('href'), target: map.getAttribute('target'), rel: map.getAttribute('rel'), text: map.textContent } : null,
+      hours: [...q.querySelectorAll('li[data-adm="place"] .adm-row-t')].map((e) => e.textContent),
+      first: document.getElementById('dashboard').firstElementChild === top,
+      bar: rt.height > 0 && getComputedStyle(top).display !== 'none' && rt.bottom <= rh.top,
+      n: document.getElementById('adm-n').textContent,
+      open: !q.hidden && document.getElementById('adm-b-q').getAttribute('aria-expanded') === 'true',
+      imgs: q.querySelectorAll('img').length, born, hit: !!window.__pvHit,
+      name: town ? town.textContent === hostile && !town.children.length : false,
+      quoted: [...q.querySelectorAll('.adm-row-t')].some((e) => e.textContent === quoted && !e.children.length),
+      rent: [...q.querySelectorAll('.adm-row-t')].some((e) => e.textContent === rent),
+      tag: (q.querySelector('li[data-adm="text"] .adm-tag') || {}).textContent || '',
+      count: (q.querySelectorAll('li[data-adm="town"][data-id="11"] .adm-row-k')[1] || {}).textContent || ''
+    };
+  }, HOSTILE, QUOTED, RENT);
+  ok(v.first && v.bar, 'AQ1 「承認」「追加」の帯が、ダッシュボードの一番上（見出しより上）に見えている', JSON.stringify(v));
+  ok(v.n === '4', 'AQ2 数は待っている名前2つ＋文1つ＋ステイ先の場所1つの合計「4」', v.n);
+  ok(v.open, 'AQ3 待っているものがあれば、承認の面は押さなくても開いている');
+  ok(v.imgs === 0 && !v.born && !v.hit && v.name && v.quoted && v.rent && v.place,
+     'AQ4/AQ14 会員が打った街・ホテルの名前のタグ・文の引用符は、字として出るだけ（絵も属性も生えない）', JSON.stringify(v));
+  ok(v.tag === (EN ? 'Waiting' : '確認待ち') && v.count === (EN ? '2 members' : '回答 2人'),
+     'AQ4 文の行には街が確認待ちの印、名前の行には回答の人数', JSON.stringify({ tag: v.tag, count: v.count }));
+  ok(!!v.map && v.map.href === 'https://maps.google.com/?q=haneda' && v.map.target === '_blank' && v.map.rel === 'noopener'
+     && v.map.text === 'Google マップ' && v.hours.includes(EN ? '26 h' : '26時間') && v.hours.includes('東京都大田区羽田空港'),
+     'ステイ先の行に住所・都市・ステイ時間と「Google マップ」（別の窓）が出る', JSON.stringify({ map: v.map, hours: v.hours }));
+
+  /* AQ5 文を通す ── 送るのは id と見た版（rev）だけ。行が消え、数が1つ減る */
+  await page.click('#adm-q li[data-adm="text"] [data-act="ok"]');
+  await page.waitForFunction(() => !document.querySelector('#adm-q li[data-adm="text"]'), { timeout: 10000 });
+  const m5 = await callsOf(page, 'pv_town_moderate');
+  const n5 = await page.$eval('#adm-n', (e) => e.textContent);
+  ok(m5.length === 1 && canon(m5[0]) === canon({ p: { target: 'text', id: TEXT_ID, state: 'public', rev: 'r-1' } }) && n5 === '3',
+     'AQ5 文の「承認」は {target:text, id, state:public, rev} を1回だけ送り、行が消えて数が1つ減る', JSON.stringify({ m5, n5 }));
+
+  /* AQ14 ステイ先の場所を通す ── 送るのは id と見た版（rev）だけ。行が消え、数が1つ減る */
+  await page.click('#adm-q li[data-adm="place"] [data-act="ok"]');
+  await page.waitForFunction(() => !document.querySelector('#adm-q li[data-adm="place"]'), { timeout: 10000 });
+  const m14 = await callsOf(page, 'pv_stay_moderate');
+  const n14 = await page.$eval('#adm-n', (e) => e.textContent);
+  ok(m14.length === 1 && canon(m14[0]) === canon({ p: { target: 'place', id: 'bbbbbbbb-0000-4000-8000-000000000001', state: 'public', rev: 'p-1' } })
+     && n14 === '2',
+     'AQ14 場所の「承認」は {target:place, id, state:public, rev} を1回だけ送り、行が消えて数が1つ減る', JSON.stringify({ m14, n14 }));
+
+  /* AQ12 同じ街として承認 ── 矢印キーでもマウスでも、選ぶだけでは送らない。ボタンを押して初めて送る */
+  const row12 = '#adm-q li[data-adm="town"][data-id="12"]';
+  await page.focus(row12 + ' select[data-act="into"]');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.select(row12 + ' select[data-act="into"]', '21');
+  const m12a = await callsOf(page, 'pv_town_moderate');
+  const enabled = await page.evaluate((r) => { const b = document.querySelector(r); return b ? !b.disabled : null; }, row12 + ' [data-act="merge"]');
+  ok(m12a.length === 1 && enabled, 'AQ12 街を選んだだけでは何も送らない（束ねるボタンが押せるようになるだけ）',
+     JSON.stringify({ sent: m12a.length - 1, enabled }));
+  const reads0 = (await callsOf(page, 'pv_town_queue')).length;
+  await page.click(row12 + ' [data-act="merge"]');
+  await page.waitForFunction((r) => !document.querySelector(r), { timeout: 10000 }, row12);
+  const m12 = await callsOf(page, 'pv_town_moderate');
+  ok(m12.length === 2 && canon(m12[1]) === canon({ p: { target: 'town', id: 12, state: 'public', into: 21 } })
+     && (await callsOf(page, 'pv_town_queue')).length === reads0 + 1,
+     'AQ12 「同じ街として承認」を押すと {target:town, id, state:public, into} を送り、待ち行列を読み直す', JSON.stringify(m12[1]));
+
+  /* AQ6 名前を却下 ── 送って、読み直して、行が消える */
+  const row11 = '#adm-q li[data-adm="town"][data-id="11"]';
+  await page.click(row11 + ' [data-act="no"]');
+  await page.waitForFunction((r) => !document.querySelector(r), { timeout: 10000 }, row11);
+  const m6 = await callsOf(page, 'pv_town_moderate');
+  ok(m6.length === 3 && canon(m6[2]) === canon({ p: { target: 'town', id: 11, state: 'rejected' } })
+     && (await callsOf(page, 'pv_town_queue')).length === reads0 + 2,
+     'AQ6 名前の「却下」は {target:town, id, state:rejected} を送り、読み直すと行が無い', JSON.stringify(m6[2]));
+  await page.waitForFunction(() => document.getElementById('adm-n').textContent === '0', { timeout: 10000 }).catch(() => {});
+  const none = await page.evaluate(() => ({ n: document.getElementById('adm-n').textContent,
+    say: (document.querySelector('#adm-q [data-adm="none"]') || {}).textContent || '' }));
+  ok(none.n === '0' && none.say === (EN ? 'Nothing is waiting' : '確認待ちはありません'),
+     '全部片づくと数は「0」・面には「確認待ちはありません」', JSON.stringify(none));
+
+  /* AQ14 写真 ── 待ち行列に写真が入ったら、面が開いているあいだに1枚ずつ取りにいく（1枚につき1回）。読めない写真は一言で */
+  const PH1 = 'cccccccc-0000-4000-8000-000000000001', PH2 = 'cccccccc-0000-4000-8000-0000000000bad';
+  await page.evaluate((a, b) => {
+    window.__q.photos = [
+      { id: a, mine: false, place: 'bbbbbbbb-0000-4000-8000-000000000002', airline: 'jal', iata: 'HND', kind: 'hotel', name: 'ホテル見本', place_state: 'public' },
+      { id: b, mine: false, place: 'bbbbbbbb-0000-4000-8000-000000000003', airline: 'jal', iata: 'HND', kind: 'hotel', name: 'ホテル見本2', place_state: 'pending' }];
+    return window.PVAdminQueue.reload();
+  }, PH1, PH2);
+  await page.waitForFunction((a, b) => document.querySelector(`#adm-q li[data-adm="photo"][data-id="${a}"] img`)
+    && document.querySelector(`#adm-q li[data-adm="photo"][data-id="${b}"] .adm-ph .adm-say`), { timeout: 10000 }, PH1, PH2).catch(() => {});
+  await page.evaluate(() => window.PVAdminQueue.reload());
+  const ph = await page.evaluate((a, b) => {
+    const img = document.querySelector(`#adm-q li[data-adm="photo"][data-id="${a}"] img`);
+    const bad = document.querySelector(`#adm-q li[data-adm="photo"][data-id="${b}"] .adm-ph`);
+    return { calls: window.__args.filter((x) => x[0] === 'pv_stay_photo' && x[1] && x[1].p && x[1].p.id === a).map((x) => x[1]),
+             src: img ? img.getAttribute('src').slice(0, 15) : null, alt: img ? img.getAttribute('alt') : null,
+             bad: bad ? bad.textContent : null, n: document.getElementById('adm-n').textContent };
+  }, PH1, PH2);
+  ok(ph.calls.length === 1 && canon(ph.calls[0]) === canon({ p: { id: PH1 } }) && ph.src === 'data:image/png;' && ph.alt === 'ホテル見本',
+     'AQ14 写真は {id} で1回だけ読み、data:image/ の絵（alt は場所の名前）で出す（読み直しても取りにいかない）', JSON.stringify(ph));
+  ok(ph.bad === (EN ? 'The photo cannot be shown' : '写真を表示できません') && ph.n === '2',
+     `AQ14 読めない写真の枠には「${EN ? 'The photo cannot be shown' : '写真を表示できません'}」、数は写真2枚の「2」`, JSON.stringify(ph));
+
+  /* AQ10 ステイ先だけ読めない ── 数は「—」（街の数だけを出さない）。街の行はそのまま。ステイ先の見出しに「読み込めませんでした」「更新」 */
+  await page.evaluate(() => {
+    window.__q.photos = [];
+    window.__q.towns = [{ id: 13, airline: 'ana', base: 'NRT', name: 'なりた', posts: 1 }];
+    window.__q.stayFail = true;
+    return window.PVAdminQueue.reload();
+  });
+  const half = await page.evaluate(() => {
+    const hs = [...document.querySelectorAll('#adm-q h2.adm-h')];
+    return { n: document.getElementById('adm-n').textContent, st: document.getElementById('adm-n').getAttribute('data-state'),
+             town: !!document.querySelector('#adm-q li[data-adm="town"][data-id="13"]'),
+             parts: hs.map((h) => ({ part: (h.querySelector('.adm-part') || {}).textContent || null,
+                                      btn: (h.querySelector('[data-act="reload"]') || {}).textContent || null })) };
+  });
+  ok(half.n === '—' && half.st === 'part' && half.town && half.parts.length === 2 && half.parts[0].part === null
+     && half.parts[1].part === (EN ? 'Could not loadRefresh' : '読み込めませんでした更新') && half.parts[1].btn === (EN ? 'Refresh' : '更新'),
+     'AQ10 ステイ先だけ読めないときも数は「—」・街の行はそのまま・ステイ先の見出しに「読み込めませんでした」と「更新」', JSON.stringify(half));
+  await page.evaluate(() => { window.__q.stayFail = false; });
+  await page.click('#adm-q [data-act="reload"]');
+  await page.waitForFunction(() => document.getElementById('adm-n').getAttribute('data-state') === 'ok', { timeout: 10000 }).catch(() => {});
+  const back = await page.$eval('#adm-n', (e) => e.textContent);
+  ok(back === '1', '「更新」を押すと読み直し、読めたら数が戻る（街の名前1つ）', back);
+
+  /* AQ13 一覧が上限（200件）まで来た ── 本当の数は分からないので「以上」を付ける */
+  await page.evaluate((id) => {
+    window.__q.towns = [];
+    window.__q.texts = Array.from({ length: 200 }, (_, i) => ({ id: id.slice(0, -3) + String(100 + i), airline: 'jal', base: 'HND',
+      town: '品川', town_state: 'public', good: 'g' + i, concern: null, rev: 'r' + i }));
+    return window.PVAdminQueue.reload();
+  }, TEXT_ID);
+  const n13 = await page.$eval('#adm-n', (e) => e.textContent);
+  ok(n13 === (EN ? '200+' : '200以上'), `AQ13 200件まで来たら「${EN ? '200+' : '200以上'}」`, n13);
+
+  /* AQ8 帯の2つのボタンはキーボードで使える（Tab・Enter。面の中で Escape を押すと閉じて、ボタンに戻る） */
+  const st8 = () => page.evaluate(() => ({ f: document.activeElement && document.activeElement.id,
+    q: !document.getElementById('adm-q').hidden, a: !document.getElementById('adm-a').hidden }));
+  await page.focus('#adm-b-q');
+  await page.keyboard.press('Tab');
+  const k1 = await st8();
+  await page.keyboard.press('Enter');
+  const k2 = await st8();
+  await page.keyboard.press('Tab');
+  const inA = await page.evaluate(() => document.getElementById('adm-a').contains(document.activeElement));
+  await page.keyboard.press('Escape');
+  const k3 = await st8();
+  await page.keyboard.down('Shift'); await page.keyboard.press('Tab'); await page.keyboard.up('Shift');
+  await page.keyboard.press('Enter');
+  const k4 = await st8();
+  ok(k1.f === 'adm-b-a' && k2.a && !k2.q && inA && k3.f === 'adm-b-a' && !k3.a && !k3.q && k4.f === 'adm-b-q' && k4.q && !k4.a,
+     'AQ8 「承認」「追加」は Tab と Enter で開き、面の中の Escape で閉じてボタンに戻る', JSON.stringify({ k1, k2, inA, k3, k4 }));
+
+  /* AQ7 「追加」→ 街 ── 選んだ会社・基地と打った名前だけを送り、「追加しました。」のあと待ち行列を読み直す */
+  await page.click('#adm-b-a');
+  await page.waitForFunction(() => document.querySelector('#adm-a form[data-adm="add-town"]'), { timeout: 10000 }).catch(() => {});
+  const r7 = (await callsOf(page, 'pv_town_queue')).length;
+  const o7 = await page.evaluate(() => ({ a: !document.getElementById('adm-a').hidden, q: !document.getElementById('adm-q').hidden,
+    pick: (document.querySelector('#adm-a input[name="adm-kind"]:checked') || {}).value || null }));
+  await page.select('#adm-a form[data-adm="add-town"] select', '0');
+  await page.type('#adm-a form[data-adm="add-town"] input[data-k="name"]', '勝どき');
+  await page.click('#adm-a form[data-adm="add-town"] button[type="submit"]');
+  await page.waitForFunction(() => { const p = document.querySelector('#adm-a form[data-adm="add-town"] [data-adm="add-say"]'); return p && !p.hidden; }, { timeout: 10000 }).catch(() => {});
+  await page.waitForFunction((n) => window.__args.filter((x) => x[0] === 'pv_town_queue').length > n, { timeout: 10000 }, r7).catch(() => {});
+  const a7 = await page.evaluate(() => ({ say: (document.querySelector('#adm-a form[data-adm="add-town"] [data-adm="add-say"]') || {}).textContent || '',
+    sent: window.__args.filter((x) => x[0] === 'pv_town_admin_add').map((x) => x[1]), reads: window.__args.filter((x) => x[0] === 'pv_town_queue').length }));
+  ok(o7.a && !o7.q && o7.pick === 'town' && a7.sent.length === 1 && canon(a7.sent[0]) === canon({ p: { airline: 'jal', base: 'HND', name: '勝どき' } })
+     && a7.say === (EN ? 'Added.' : '追加しました。') && a7.reads === r7 + 1,
+     'AQ7 「追加」は承認の面を閉じて開き、街は {airline, base, name} だけを送って「追加しました。」、待ち行列を読み直す', JSON.stringify({ o7, a7 }));
+
+  /* AQ15 「追加」→ ホテル ── 打ったものと publish:true だけを送る（打っていない欄は送らない） */
+  await page.click('#adm-a input[name="adm-kind"][value="hotel"]');
+  await page.waitForFunction(() => document.querySelectorAll('#adm-a form[data-adm="add-hotel"] select[data-k="airline"] option').length > 1, { timeout: 10000 }).catch(() => {});
+  await page.select('#adm-a form[data-adm="add-hotel"] select[data-k="airline"]', 'jal');
+  await page.type('#adm-a form[data-adm="add-hotel"] input[data-k="iata"]', 'hnd');
+  await page.type('#adm-a form[data-adm="add-hotel"] input[data-k="name"]', 'ホテル見本3');
+  await page.click('#adm-a form[data-adm="add-hotel"] button[type="submit"]');
+  await page.waitForFunction(() => { const p = document.querySelector('#adm-a form[data-adm="add-hotel"] [data-adm="add-say"]'); return p && !p.hidden; }, { timeout: 10000 }).catch(() => {});
+  const a15 = await page.evaluate(() => ({ say: (document.querySelector('#adm-a form[data-adm="add-hotel"] [data-adm="add-say"]') || {}).textContent || '',
+    sent: window.__args.filter((x) => x[0] === 'pv_stay_add').map((x) => x[1]),
+    town: !document.querySelector('#adm-a [data-adm="add-town-box"]').hidden }));
+  ok(a15.sent.length === 1 && canon(a15.sent[0]) === canon({ p: { airline: 'jal', iata: 'HND', kind: 'hotel', name: 'ホテル見本3', publish: true } })
+     && a15.say === (EN ? 'Added.' : '追加しました。') && !a15.town,
+     'AQ15 ホテルは {airline, iata, kind:hotel, name, publish:true} だけを送り（打っていない欄は送らない）「追加しました。」', JSON.stringify(a15));
+}
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 
 for (const lang of ['ja', 'en']) {
-  const url = 'http://localhost:3000/' + (lang === 'en' ? 'en/' : '') + 'admin.html';
+  const url = BASE + '/' + (lang === 'en' ? 'en/' : '') + 'admin.html';
   for (const c of CASES) {
     console.log(`\n════ C) ${lang} — ${c.label} ════`);
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 900 });
 
-    await page.evaluateOnNewDocument((cfg, uid, name, hostile, quoted, formula) => {
+    await page.evaluateOnNewDocument((cfg, uid, name, hostile, quoted, formula, rent, textId, lang) => {
       localStorage.setItem('pv-theme', 'dark');
+      if (cfg.usd) localStorage.setItem(lang === 'en' ? 'pv-currency-en' : 'pv-currency', 'USD');
       window.__rpc = [];   // 呼んだ入口の名前
+      window.__args = [];  // 呼んだ入口と、渡した中身
       window.__from = [];  // 直接触ったテーブルの名前（1つでも入ったら負け）
+      /* 待ち行列（運営の確認待ち）。名前の1つは HOSTILE、文の1つは引用符入りと「20万円」 */
+      const SCOPES = [
+        { airline: 'jal', name: '日本航空', base: 'HND', towns: [{ id: 21, name: '品川' }, { id: 22, name: '大崎' }] },
+        { airline: 'ana', name: '全日空', base: 'NRT', towns: [{ id: 31, name: '成田' }] }];
+      window.__q = {
+        towns: [{ id: 11, airline: 'jal', base: 'HND', name: hostile, posts: 2 },
+                { id: 12, airline: 'jal', base: 'HND', name: 'しながわ', posts: 1 }],
+        texts: [{ id: textId, airline: 'jal', base: 'HND', town: 'しながわ', town_state: 'pending',
+                  good: quoted, concern: rent, rev: 'r-1' }],
+        /* ステイ先の確認待ち（場所の名前は HOSTILE）。写真は最初は無い（呼ぶ入口の並びを5つのままにするため） */
+        places: [{ id: 'bbbbbbbb-0000-4000-8000-000000000001', kind: 'hotel', name: hostile, address: '東京都大田区羽田空港',
+                   maps_url: 'https://maps.google.com/?q=haneda', note: null, city: 'Tokyo', stay_hours: 26, age: 0, mine: false,
+                   state: 'pending', photos: [], airline: 'jal', iata: 'HND', rev: 'p-1' }],
+        photos: [],
+        stayFail: false
+      };
+      const QUEUES = ['pv_town_queue', 'pv_stay_queue'];
+      /* 1×1 の PNG（写真の作り物） */
+      const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
       const SESSION = cfg.session
         ? { user: { id: uid, email: 'pilot@example.com' } } : null;
       const ROWS = [{ id: uid, name: name, email: 'pilot@example.com', gender: 'male',
@@ -158,7 +461,29 @@ for (const lang of ['ja', 'en']) {
       const RPC = {
         pv_is_admin: () => cfg.admin,
         admin_list_profiles: () => ROWS,
-        admin_list_reviews: () => REVIEWS
+        admin_list_reviews: () => REVIEWS,
+        pv_town_queue: () => ({ ok: true, scopes: SCOPES, towns: window.__q.towns.slice(), texts: window.__q.texts.slice() }),
+        /* 本物のサーバーと同じく、通した・見送ったものは待ち行列から抜ける（読み直すと消えている） */
+        pv_town_moderate: (a) => {
+          const p = (a && a.p) || {};
+          if (p.target === 'town') window.__q.towns = window.__q.towns.filter((t) => t.id !== p.id);
+          if (p.target === 'text') window.__q.texts = window.__q.texts.filter((t) => t.id !== p.id);
+          return { ok: true, target: p.target, id: p.id, state: p.state };
+        },
+        pv_town_admin_add: (a) => ({ ok: true, id: 99, name: ((a && a.p) || {}).name, state: 'public', existed: false }),
+        pv_stay_queue: () => ({ ok: true, places: window.__q.places.slice(), photos: window.__q.photos.slice() }),
+        pv_stay_moderate: (a) => {
+          const p = (a && a.p) || {};
+          if (p.target === 'place') window.__q.places = window.__q.places.filter((t) => t.id !== p.id);
+          if (p.target === 'photo') window.__q.photos = window.__q.photos.filter((t) => t.id !== p.id);
+          return { ok: true, target: p.target, id: p.id };
+        },
+        /* 写真を1枚読む。id が …bad で終わる写真は読めない（運営の画面は「写真を表示できません」を出す） */
+        pv_stay_photo: (a) => {
+          const id = String(((a && a.p) || {}).id || '');
+          return /bad$/.test(id) ? { ok: false, status: 'not_found' } : { ok: true, mime: 'image/png', w: 1, h: 1, state: 'pending', b64: PNG };
+        },
+        pv_stay_add: (a) => ({ ok: true, item: Object.assign({ id: 'dddddddd-0000-4000-8000-000000000001', state: 'public' }, (a && a.p) || {}) })
       };
       function q(t) {
         const o = { data: [], error: null,
@@ -178,16 +503,21 @@ for (const lang of ['ja', 'en']) {
         /* ★本物の supabase-js が返すのは then だけを持つ箱。async に戻さない */
         rpc: (n, a) => {
           window.__rpc.push(n);
+          window.__args.push([n, a === undefined ? null : JSON.parse(JSON.stringify(a))]);
           const isList = n === 'admin_list_profiles' || n === 'admin_list_reviews';
           const res = (cfg.err && isList)
             ? { data: null, error: { message: 'function does not exist' } }
-            : { data: RPC[n] ? RPC[n]() : null, error: null };
+            : (cfg.queue === 'off' && QUEUES.includes(n))
+              ? { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.' + n }, status: 404 }
+              : (n === 'pv_stay_queue' && window.__q.stayFail)
+                ? { data: null, error: { code: 'XX000', message: 'boom' }, status: 500 }
+                : { data: RPC[n] ? RPC[n](a) : null, error: null };
           return { then: (o2, n2) => Promise.resolve(res).then(o2, n2) };
         }
       };
       Object.defineProperty(window, 'supabase',
         { value: { createClient: () => FAKE }, writable: false, configurable: false });
-    }, c, UID, FAKE_NAME, HOSTILE, QUOTED, FORMULA);
+    }, c, UID, FAKE_NAME, HOSTILE, QUOTED, FORMULA, RENT, TEXT_ID, lang);
 
     await page.goto(url, { waitUntil: 'networkidle0' });
     await new Promise(r => setTimeout(r, 400));
@@ -264,9 +594,43 @@ for (const lang of ['ja', 'en']) {
          JSON.stringify(csv.map((t) => String(t).split('\n').slice(1).join(' / ').slice(0, 200))));
       ok(/,"100","200",/.test(csv[1] || ''), "CSV の数はそのまま（' を付けない）",
          String(csv[1] || '').split('\n').slice(1).join(' / ').slice(0, 200));
-      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews',
+      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,pv_town_queue,pv_stay_queue',
          'サーバーの入口だけを使っている', seen.rpc.join(','));
       ok(seen.from.length === 0, '管理者でもテーブルは直接触らない', seen.from.join(','));
+      /* 途中で行が見つからない等で止まったら、黙って落ちずに ❌ の1行で出す（後ろの場面は続けて見る） */
+      await queueChecks(page, lang).catch((e) => ok(false, 'D) 承認の面の操作が途中で止まった', String(e && e.message || e).slice(0, 200)));
+    }
+    if (c.key === 'noqueue') {
+      await page.waitForFunction(() => document.getElementById('adm-n').getAttribute('data-state') !== 'idle', { timeout: 10000 }).catch(() => {});
+      const q = await page.evaluate(() => ({
+        dash: getComputedStyle(document.getElementById('dashboard')).display !== 'none',
+        rows: document.querySelectorAll('#users-tbody tr').length,
+        n: document.getElementById('adm-n').textContent, st: document.getElementById('adm-n').getAttribute('data-state'),
+        closed: document.getElementById('adm-q').hidden,
+        add: (document.getElementById('adm-b-a') || {}).textContent || ''
+      }));
+      await page.click('#adm-b-q');
+      const part = await page.evaluate(() => ({ open: !document.getElementById('adm-q').hidden,
+        parts: [...document.querySelectorAll('#adm-q h2.adm-h')].map((h) => (h.querySelector('.adm-part') || {}).textContent || null),
+        rows: document.querySelectorAll('#adm-q li.adm-row').length }));
+      ok(q.dash && q.rows === 2, 'AQ10 承認の入口が無くても、ダッシュボードと会員の表（2行）はそのまま出る', JSON.stringify(q));
+      ok(q.n === '—' && q.st === 'part' && !/\d/.test(q.n), 'AQ10 数は「—」（半分しか読めないときに数を出さない）', JSON.stringify(q));
+      ok(q.closed && part.open && part.parts.length === 2 && part.parts.every((x) => x === (lang === 'en' ? 'Not connected yet' : '準備中'))
+         && part.rows === 0,
+         'AQ10 面は閉じたまま。開くと、街とステイ先の見出しの横にそれぞれ「準備中」', JSON.stringify(part));
+      ok(q.add === (lang === 'en' ? 'Add' : '追加'), 'AQ10 「追加」はそのまま出ている', q.add);
+    }
+    if (c.key === 'usd') {
+      /* 通貨が本当に動いていることを、面の外に置いた同じ字で確かめてから、面の中を見る（空振りの緑にしない） */
+      await page.waitForFunction(() => document.querySelector('#adm-q li[data-adm="text"]'), { timeout: 10000 }).catch(() => {});
+      await page.evaluate((rent) => { const p = document.createElement('p'); p.id = 'pv-test-probe'; p.textContent = rent; document.body.appendChild(p); }, RENT);
+      await page.waitForFunction(() => !!document.querySelector('#pv-test-probe .pv-cur'), { timeout: 10000 }).catch(() => {});
+      const u = await page.evaluate((rent) => ({
+        probe: !!document.querySelector('#pv-test-probe .pv-cur'),
+        same: [...document.querySelectorAll('#adm-q .adm-row-t')].some((e) => e.textContent === rent && !e.children.length),
+        cur: document.querySelectorAll('#adm-q .pv-cur').length
+      }), RENT);
+      ok(u.probe && u.same && u.cur === 0, `AQ11 USD でも、承認の面の「${RENT}」は打たれた字のまま（書き換えの span が無い）`, JSON.stringify(u));
     }
     if (c.key === 'nosql') {
       dashHidden();
