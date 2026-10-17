@@ -28,6 +28,12 @@
   font:600 .83rem/1 Inter,'Noto Sans JP',sans-serif;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
 .adm-act:active{transform:scale(.97)}
 .adm-act:disabled{opacity:.45;cursor:default}
+/* スマホの幅（P12.53）：押す所の横の余白を少し詰めて、画像の面の3つ（verified・見送り・閉じる）を1行に。
+   「同じ街として承認」は、却下と同じ行に入るよう、残りの幅を取って語の切れ目で2行に折る（英語の長い字でも1つずつの行にしない） */
+@media (max-width:480px){
+  .adm-act{padding:0 12px}
+  .adm-acts [data-act="merge"]{flex:1 1 9em;justify-content:center;padding-block:6px;white-space:normal;line-height:1.25;text-align:center}
+}
 .adm-ok{background:rgba(72,199,142,.1);color:#48c78e;border:1px solid rgba(72,199,142,.25)}
 .adm-ok:hover:not(:disabled){background:rgba(72,199,142,.18)}
 .adm-no{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1)}

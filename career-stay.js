@@ -97,7 +97,7 @@
     same:       '変更はありませんでした。',
     cancel:     'やめる',
     photoAdd:   '写真を追加',
-    pub:        '公開',
+    pub:        '承認',        /* 管理ページの承認のボタンと同じ字（admin-queue.js の T.ok。P12.53：2つの面で同じ言葉） */
     rej:        '却下',
     del:        '削除',
     delSure:    '削除する',
@@ -615,7 +615,9 @@
     return li;
   }
 
-  /* 運営の公開／却下、本人と運営の削除。★出すかどうかはサーバーが返した印（is_operator・mine・state）だけ。 */
+  /* 運営の承認（＝公開）／却下、本人と運営の削除。★出すかどうかはサーバーが返した印（is_operator・mine・state）だけ。
+     ★ほかの人の確認待ちには、管理ページの承認の面と同じ2つ（承認・却下）だけを、同じ字で出す。
+       管理ページは確認待ちを消す口を持たないので、ここでも確認待ちの他人の分には削除を出さない（P12.53）。 */
   function modButtons(box, target, id, it, isOp) {
     function add(text, act, cls) {
       var b = btn('crs-act' + (cls ? ' ' + cls : ''), text, act);
@@ -635,7 +637,8 @@
       }
       add(T.rej, 'rej', 'crs-act-no');
     }
-    if (it.mine === true || isOp) add(T.del, 'del', 'crs-act-no');
+    var waitOther = isOp && it.state === 'pending' && it.mine !== true;
+    if (it.mine === true || (isOp && !waitOther)) add(T.del, 'del', 'crs-act-no');
   }
 
   /* 欄の中に一言の置き場があればそこへ（欄の外の一言は消す）。無ければ（鍵・準備中）欄の外の面へ。 */
@@ -868,6 +871,9 @@
     var z = zoneIf(slot);
     if (z) return z;
     z = el('div', 'crs-zone');
+    /* 追加の面の置き場は、自分の分の列より上（P12.54：確認待ちを何件も足した人でも、開いた面が列の下に沈まない）。
+       閉じているあいだは空で、場所を取らない（.crs-formbox:empty）── 自分の分・入口・一言の並びは今までどおり。 */
+    z.appendChild(el('div', 'crs-formbox'));
     var own = el('ul', 'crs-list crs-own');
     own.hidden = true;
     z.appendChild(own);
@@ -885,7 +891,6 @@
     zs.setAttribute('role', 'status');
     zs.setAttribute('aria-live', 'polite');
     z.appendChild(zs);
-    z.appendChild(el('div', 'crs-formbox'));
     slot.parentNode.insertBefore(z, slot.nextSibling);
     bindOn(z, slot);
     return z;

@@ -19,6 +19,8 @@
      S5  つながっていない（この保存先の中で pv_stays と pv_stay_add を消す）→「準備中」・入口の3つ・押しても「準備中」・面は開かない。
      S6  読めなかった →「読み込めませんでした」＋「もう一度」→ 押すとやり直せる。
      S7  10秒以内の2つめ →「続けて追加するときは、少し時間をあけてください。」・打った字は面に残る。
+     S7b （P12.54）同じ人が確認待ちを20件まで足し（本物の口・端末の鍵）、書きかけを残したまま 390×680 で開き直す →
+         面は自分の分の列より上・ホテルの欄（鍵の1行）まで下りた最初の画面に、面の最初の欄（種類）と名前の欄が在る（上に何も重なっていない）。
      終わりに：どのページも、手元と書体・部品の配信元のほかへ、1本も投げていない（st.blocked・st.supa が空）。
 
    場面 two（S8・S8b）・login（S9）・kept（S10）・career（S11）── どれも自分の使い捨ての保存先を持つ（chain の S5 が関数を消すため）
@@ -598,6 +600,39 @@ async function chain() {
     ok(a2.reply && a2.reply.ok === false && a2.reply.status === 'too_fast' && a2.v.form === true && a2.v.fsay === FAST && a2.v.fname === NEXT2,
       `S7 10秒以内の2つめは「${FAST}」と言い、打った名前は面に残る`, J({ reply: a2.reply, form: a2.v.form, fsay: a2.v.fsay, fname: a2.v.fname }));
     ok((await rowsOf(NEXT2)).length === 0 && n(g, 'pv_stay_add') === 2, `S7 2つめは保存されていない（送ったのは2本）`, J({ rows: await rowsOf(NEXT2), sent: n(g, 'pv_stay_add') }));
+
+    /* ── S7b（P12.54）：確認待ちを20件足した人が、書きかけの面を残したまま 390 で開き直す。面は自分の分の列より上 ＝ 面の最初の欄
+       （種類）と名前の欄が、開いた最初の画面に在る。20件は、この端末の鍵での本物の追加の口（pv_stay_add）で足す
+       （連投の10秒は、この使い捨ての保存先の中だけで、足した時刻を前へずらして越える）。 */
+    const gk = await g.page.evaluate(() => { try { return localStorage.getItem('pv_stay_key'); } catch { return null; } });
+    const more = [];
+    for (let i = 2; i <= 20; i++) {
+      await L.q(`update public.pv_stay_places set created_at = created_at - interval '11 seconds' where author_hash = public.pv_stay_key_hash($1)`, [gk]);
+      const r = await rpcAs(base, null, 'pv_stay_add', { airline: SLUG, iata: IATA, kind: 'hotel', name: `検査用の確認待ち ${i}（手元）`, key: gk });
+      more.push(r.body && r.body.ok === true ? 'ok' : (r.body && r.body.status) || r.status);
+    }
+    if (!more.every((x) => x === 'ok')) throw new Error('前提が崩れた（20件まで足せない）: ' + J(more));
+    await g.page.setViewport({ width: 390, height: 680, deviceScaleFactor: 1 });
+    await g.page.goto('about:blank');
+    await g.page.goto(K.URL_, { waitUntil: 'load', timeout: 60000 });
+    const back = (await settled(g)) && (await g.page.waitForFunction((fm, nm) => { const i = document.querySelector(fm + ' [data-k="name"]'); return !!i && i.value === nm; },
+      { timeout: 20000 }, K.FM, NEXT2).then(() => true, () => false));
+    const firstScreen = () => g.page.evaluate((zn, fm) => {
+      const z = document.querySelector(zn), f = document.querySelector(fm), ul = z && z.querySelector('.crs-own');
+      const box = (n) => { if (!n) return null; const r = n.getBoundingClientRect(), at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return { top: Math.round(r.top), bottom: Math.round(r.bottom), in: r.height > 0 && r.top >= 0 && r.bottom <= innerHeight, onTop: !!at && n.contains(at) }; };
+      const kind = box(f && f.querySelector('.crs-kinds')), name = box(f && f.querySelector('[data-k="name"]')), own = ul ? ul.getBoundingClientRect() : null;
+      return { own: ul ? ul.querySelectorAll('.crs-card').length : 0, kind, name, formBottom: f ? Math.round(f.getBoundingClientRect().bottom) : null,
+        ownTop: own ? Math.round(own.top) : null, y: Math.round(scrollY), ih: innerHeight,
+        ok: !!(f && kind && name && kind.in && kind.onTop && name.in && name.onTop && own && f.getBoundingClientRect().bottom <= own.top) };
+    }, K.ZN, K.FM);
+    /* 読む人がホテルの欄（鍵の1行）まで下りた所 ＝ 欄の頭を画面の頭に合わせる（都市の写真の分は、自分の分の数に関係なく同じ） */
+    await g.page.evaluate((sl) => document.querySelector(sl).scrollIntoView({ block: 'start' }), K.SL);
+    await until(async () => (await firstScreen()).ok, 5000);
+    const fs7 = await firstScreen();
+    ok(back && fs7.own === 20 && fs7.ok,
+      `S7b 確認待ちを20件足した人が 390×680 で開き直す：書きかけの面は自分の分の列（20件）より上・ホテルの欄まで下りた最初の画面に、面の最初の欄（種類）と名前の欄が在る（P12.54）`,
+      J({ back, ...fs7 }));
     await shut(g);
   });
 

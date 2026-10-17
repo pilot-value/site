@@ -453,6 +453,11 @@
 .pvg-way-l{font-size:12.5px;line-height:1.55;color:var(--pv-ink-2);text-wrap:pretty}
 .pvg-way > li > b{font-size:14px;font-weight:700;line-height:1.5;color:var(--pv-ink);overflow-wrap:anywhere}
 .pvg-way > li.is-none .pvg-way-l{color:var(--pv-ink-3)}
+/* 暮らしの字は、語の途中で折らない（P12.55：「アル・ラハ・ビー｜チ」「ターミナ｜ルA」「掲｜載分」「マッ｜プ」「1｜寝室」）。
+   就航地の街の名前（.pvg-cgrid .pvg-town-n）と同じ keep-all ＝ 折れるのは「・」のあと・空白・括弧の前だけ。
+   字は1文字も変えない。それでも入らない長い塊だけは、入る所で折れる（はみ出さない） */
+.pvg-liv .pvg-town-n,.pvg-way-l,.pvg-rb-s > span,
+.pvg-cell[data-cell="living"] .pvg-k,.pvg-cell[data-cell="living"] .pvg-note,.pvg-cell[data-cell="living"] .pvg-also span{word-break:keep-all;overflow-wrap:anywhere}
 .pvg-way > li.is-none .pvg-mode{color:var(--pv-ink-3);background:var(--pv-bg-sub);border-color:var(--pv-line-soft)}
 .pvg-way > li > .pvg-link{margin:-3px 0 -8px}
 /* 「出典」を開くと：根拠・条件・時点 */
@@ -768,6 +773,7 @@
 .pvg .pvg-cd-sec > .pvg-askh{flex-wrap:wrap;margin:12px 0 10px!important;font-size:13px}
 /* ホテルの欄（career-stay.css）の押すもの。あちらの外枠は career.html の中だけに掛かるので、ここで同じ形を当てる */
 .pvg .crs-act:focus-visible,.pvg .crs-btn:focus-visible,.pvg .crs-map:focus-visible,.pvg .crs-ph:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:999px}
+.pvg .crs-btn:focus-visible{outline-offset:3px}   /* 塗ったボタンは 3px（career-stay.css と同じ・送るボタン .pvc-send と同じ） */
 .pvg .crs-ph:focus-visible{border-radius:var(--pv-r-sm)}
 /* 列の数は箱の幅で決める（2 → 3 → 4。5列にはしない ＝ 写真が小さくなりすぎる）。概要に出す枚数も同じ刻み */
 @container pvg (min-width:560px){

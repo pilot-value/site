@@ -34,6 +34,8 @@
          「あなたの投稿」「匿名で更新する」→ 送ると X の1行が打った字に。打つ前に選ぶと X の保存した値・自分の投稿の無い街へ移ると空に戻る。
      S10 見出しは送るボタンと同じ決まり：入口から開く →「住みやすい街を追加」。自分の投稿のある街を打つ（・札で選ぶ）→ ボタンが
          「匿名で更新する」になり、見出しは「住みやすい街」。投稿の無い街へ打ち替える → どちらも追加に戻る。
+     S11 状態の1行（「これまでの投稿を確認しています…」・読めなかった時の1行）は、390×680 と 1440×820 のどちらでも、開いた面の
+         最初の画面に在る（面の中を送らずに・窓の中・面の見える所の中・上に何も重なっていない）（P12.53。前は送るボタンの下）。
      X1  自分の街の投稿の読みが失敗しても（failNext）、月の勤務の入力は保存した値で1回だけ描かれ、読み込み中の行は2度と出ない・
          一覧は今までの2つの状態・街の入力は使える（読み込み中の行は残らない）。読みが止まったままでも、月の勤務はすぐ使える。
 
@@ -83,6 +85,8 @@
      AD5 ログインなしの街は誰の数も上げない・その人がログインすると1つ上がる。
      AD6 ログインなしで足したホテル：運営の数が1つ上がり、誰にも届かない → 「承認」→ オーナーが承認した人（'pilot'）には届き、
          給与の鍵だけの人（'pay'）とオーナーではない運営（'c' ＝ この保存先の中だけで運営の名簿へ）には鍵の返事そのもの。
+         承認の前に：同じ確認待ちのホテルに、管理ページの行とオーナーの都市の欄（career-stay.js）が出す押し所は、同じ数・同じ字・
+         同じ並び（「承認」「却下」。欄に「公開」「削除」を出さない ── 管理ページは確認待ちを消す口を持たない。P12.53）。
      AD7 オーナーの2つの一覧：'a' がマイページから FIXTURE の画像で申請 →「申請してきた人」→「画像を見る」→「verified」→
          'a' がホテルを読める・画像と申請は保存先から消える・「会員一覧」で verified →「取り消す」→ 次の読みは鍵。
          「会員一覧」の「verified」も同じ（'b'）。いま verified の人の「見送り」は承認を取り上げない（'pay'・英語の画面）。
@@ -862,6 +866,59 @@ async function sheet() {
     ok(f3.ctl.town === X && f3.send === UPD_BTN && f3.title === FIX_HEAD,
       `S10 候補の札で「${X}」を選んでも同じ（「${UPD_BTN}」・見出し「${FIX_HEAD}」）`, J({ title: f3.title, town: f3.ctl.town, send: f3.send }));
     await shut(c);
+  });
+
+  await scene('S11 状態の1行（読み込み中・読めなかった）は、開いた面の最初の画面に在る（390・1440）', async () => {
+    /* 状態の1行の箱が、開いたままの面の最初の画面に在るか：面の中は送っていない・ページの窓の中・面の見える所の中・
+       箱の真ん中に在るのがその1行（上に何も重なっていない）。読み込み中は欄が止まっている（灰色の欄だけが見える時の1行） */
+    const where = (p) => p.page.evaluate(() => {
+      const r = document.querySelector('.pvc-root'), f = r && r.querySelector('form[data-pvc-form="town"]');
+      const w = f && f.querySelector('[data-pvc-wait]'), m = r && r.querySelector('.pvc-main');
+      if (!w || !m || w.hidden || !w.getClientRects().length) return { shown: false };
+      const b = w.getBoundingClientRect(), mb = m.getBoundingClientRect();
+      const top = Math.max(0, mb.top), bottom = Math.min(innerHeight, mb.bottom);
+      const at = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      return { shown: true, text: w.textContent, scroll: Math.round(m.scrollTop), box: [Math.round(b.top), Math.round(b.bottom)],
+        view: [Math.round(top), Math.round(bottom)], inside: b.height > 0 && b.top >= top && b.bottom <= bottom, onTop: !!at && w.contains(at),
+        off: !!(f.querySelector('fieldset.pvc-set') || {}).disabled };
+    });
+    const firstScreen = (s) => s.shown && s.scroll === 0 && s.inside && s.onTop;
+    for (const [w, h] of [[390, 680], [1440, 820]]) {
+      /* 読み込み中：自分の街の投稿の読みを止めたまま（返事が来ない）開く */
+      const s = await page({ who: 'c', w, h });
+      await s.page.evaluateOnNewDocument(() => {
+        const F = window.fetch;
+        window.fetch = function (input, init) {
+          const u = String((input && input.url) || input);
+          if (/\/rest\/v1\/rpc\/my_town_posts(\?|$)/.test(u)) return new Promise(() => {});
+          return F.apply(this, arguments);
+        };
+      });
+      await go(s);
+      await K.entry(s);
+      await s.page.evaluate(() => window.PVContrib.open({ topic: 'town' }));
+      await sheetIn(s, `const f = r.querySelector('form[data-pvc-form="town"]'), w = f && f.querySelector('[data-pvc-wait]');
+        return !!w && !w.hidden && w.textContent === ${J(LOADING)};`);
+      const l = await where(s);
+      await shot(s, `${w}-s11-loading`);
+      ok(firstScreen(l) && l.text === LOADING && l.off,
+        `★S11 ${w}×${h} 読み込み中（欄が止まっている）：「${LOADING}」の1行は、開いた面の最初の画面に在る`, J(l));
+      await shut(s);
+      /* 読めなかった：自分の街の投稿の読みを1本だけ落として開く */
+      const e = await page({ who: 'c', w, h });
+      await go(e);
+      await K.L.failNext('my_town_posts', '', 1);
+      await K.entry(e);
+      await e.page.evaluate(() => window.PVContrib.open({ topic: 'town' }));
+      await sheetIn(e, `const f = r.querySelector('form[data-pvc-form="town"]'), w = f && f.querySelector('[data-pvc-wait]');
+        return !!w && !w.hidden && w.textContent === ${J(NOREAD)};`);
+      await K.L.failOff();
+      const x = await where(e);
+      await shot(e, `${w}-s11-read-failed`);
+      ok(firstScreen(x) && x.text === NOREAD && !x.off,
+        `★S11 ${w}×${h} 読めなかった（欄は使える）：「${NOREAD}」の1行は、開いた面の最初の画面に在る`, J(x));
+      await shut(e);
+    }
   });
 
   await scene('X1 街の読みが失敗・止まっても、月の勤務は待たない', async () => {
@@ -1884,6 +1941,24 @@ async function admin() {
       J({ sent: sentAdd.map((x) => x.p), reply: ab, n0, n1, leaked }));
     const ps = await rowSel(O, 'place', `return li.querySelector('.adm-row-v').textContent.trim() === ${J(HOTEL)};`);
     if (!ps) throw new Error(`前提が崩れた（「${HOTEL}」の行が無い）`);
+    /* ★P12.53：同じ確認待ちのホテルに、2つの面が出す押し所（管理ページの行の全部のボタン ⇄ オーナーの都市の欄のそのカードの
+       承認・却下・削除）は、同じ数・同じ字・同じ並び。欄はオーナー 'op' として開く（見てよい人＝ほかの人の確認待ちも返る） */
+    const admActs = await O.page.evaluate((s) => [...document.querySelectorAll(s + ' .adm-acts button')].map((b) => b.textContent.trim()), ps);
+    const v = await page({ who: 'op', w: 1440, h: 820 });
+    await v.page.goto(`${base}/airlines/${SLUG}.html#stay-${STAY_IATA}`, { waitUntil: 'load', timeout: 60000 });
+    const cardOf = `return [...document.querySelectorAll(s + ' .crs-card')].find((c) => ((c.querySelector('.crs-name') || {}).textContent || '').trim() === nm) || null;`;
+    const seenCard = await v.page.waitForFunction((s, code, nm, src) => {
+      const e = document.querySelector(s);
+      return !!e && e.getAttribute('data-stay') === code && e.dataset.state === 'open' && !!new Function('s', 'nm', src)(s, nm);
+    }, { timeout: 30000 }, SL, STAY_IATA, HOTEL, cardOf).then(() => true, () => false);
+    const slotActs = await v.page.evaluate((s, nm, src) => {
+      const c = new Function('s', 'nm', src)(s, nm);
+      return c ? [...c.querySelectorAll('button[data-act="pub"], button[data-act="rej"], button[data-act="del"]')].map((b) => b.textContent.trim()) : null;
+    }, SL, HOTEL, cardOf);
+    await shut(v);
+    ok(seenCard && admActs.length > 0 && J(slotActs) === J(admActs),
+      `★AD6 確認待ちの「${HOTEL}」に、管理ページの行とオーナーの都市の欄が出す押し所は同じ（${admActs.join('・')}）── 欄に「公開」も「削除」も無い`,
+      J({ seenCard, admin: admActs, slot: slotActs }));
     await press(O, ps, 'ok');
     await O.page.waitForFunction((s) => !document.querySelector(s), { timeout: 20000 }, ps);
     await until(async () => (await badge(O)) === String(n0), 10000);

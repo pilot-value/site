@@ -1467,6 +1467,9 @@
     E.loading = loading;
     ctx.appendChild(cr);
     f.appendChild(ctx);
+    /* 状態の1行（読み込み中・読めなかった・ログインなし）は、欄より先 ＝ 開いた面の最初の画面に出す（P12.53：送るボタンの下では、スマホで見えない） */
+    E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
+    f.appendChild(E.wait);
 
     var set = el('fieldset', 'pvc-set');
     set.disabled = loading;
@@ -1546,8 +1549,6 @@
     var o = ownRow(W, row ? '匿名で更新する' : '匿名で追加する', sync);
     E.send = o.send; E.cb = o.cb;
     f.appendChild(o.act);
-    E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
-    f.appendChild(E.wait);
     S.main.appendChild(f);
 
     function sync() {
@@ -2021,6 +2022,9 @@
     var cx = el('div', 'pvc-ctx');
     cx.appendChild(el('p', 'pvc-ctx-line', coName() + ' · ' + ctx.text));
     f.appendChild(cx);
+    /* 状態の1行は、欄より先（月の勤務と同じ） */
+    E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
+    f.appendChild(E.wait);
 
     var set = el('fieldset', 'pvc-set');
     set.disabled = loading;
@@ -2182,8 +2186,6 @@
     var o = ownRow(TW, '匿名で追加する', function () { E.sync(); });
     E.send = o.send; E.cb = o.cb;
     f.appendChild(o.act);
-    E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
-    f.appendChild(E.wait);
     S.main.appendChild(f);
 
     /* 入力の写し（TW.buf）を欄へ書く。街の欄は、打っている最中には書かない */
@@ -2424,6 +2426,9 @@
     parts.push(n.getFullYear() + '年' + (n.getMonth() + 1) + '月');
     ctx.appendChild(el('p', 'pvc-ctx-line', parts.join(' · ')));
     f.appendChild(ctx);
+    /* 状態の1行は、欄より先（月の勤務と同じ） */
+    E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
+    f.appendChild(E.wait);
 
     var set = el('fieldset', 'pvc-set');
     set.disabled = loading;
@@ -2614,8 +2619,6 @@
     var o = ownRow(t, '匿名で追加する', sync);
     E.send = o.send; E.cb = o.cb;
     f.appendChild(o.act);
-    E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
-    f.appendChild(E.wait);
     S.main.appendChild(f);
 
     function sync() {

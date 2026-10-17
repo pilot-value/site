@@ -108,6 +108,8 @@
 .cr .crs-act:focus-visible,.cr .crs-btn:focus-visible{border-radius:999px}
 /* 会社ページ（airlines/…）には .cr の根が無い。そこでも押せるものに焦点の輪を出す。 */
 .crs-act:focus-visible,.crs-btn:focus-visible,.crs-map:focus-visible,.crs-ph:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+/* 緑で塗ったボタンは、輪とボタンの色が近くて輪が埋もれる ── サイトのほかの塗ったボタン（「情報を追加」の送るボタン）と同じく、すき間を 3px に */
+.crs-btn:focus-visible{outline-offset:3px}
 
 .crs-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 20px;
          border:0;border-radius:999px;background:var(--pv-accent-dark);color:var(--cr-on,white);

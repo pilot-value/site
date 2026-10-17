@@ -315,6 +315,8 @@
 
 .pvc-root .pvc-wait{margin:14px 0 0;padding:0;font-size:13px;line-height:1.7;color:var(--pv-ink-2)}
 .pvc-root .pvc-wait[hidden]{display:none}
+/* 入力の面では、状態の1行は会社の行のすぐ下（欄より先）。上は会社の行の 20px と重ねて 14px、下は欄までの 18px */
+.pvc-root .pvc-form > .pvc-wait{margin:-6px 0 18px}
 
 /* ── 保存したあと ───────────────────────────────────────── */
 .pvc-root .pvc-saved{position:relative;margin:0;padding:20px 16px;background:var(--pv-surface);border:1px solid var(--pv-border);border-radius:18px}
