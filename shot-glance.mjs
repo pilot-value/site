@@ -12,6 +12,9 @@
        --only jal,ana         会社・画面を絞る（鍵で）
        --sizes iphone,pc      大きさを絞る
        --set airline,contrib  組を絞る
+     node shot-glance.mjs shoot draft --set stay [--only jal] [--sizes iphone,ipad-p,pc]
+                            ステイ先（就航地の詳細）を、読む人が出会う状態ごとに撮る（最初の1画面だけ）。
+                            --only は会社（jal）か、会社と番号（jal-s3）。(5) だけ 3000 番・ほかは使い捨ての手元の保存先
 
    置き場  temporary screenshots/glance/（gitignore 済み）
      current/ draft/   撮った絵と、撮ったときの覚え書き（meta.json）
@@ -34,6 +37,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { networkOf } from './airline-destinations.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const OUT  = path.join(ROOT, 'temporary screenshots', 'glance');
@@ -70,6 +74,24 @@ const ROW = (id) => `.pvcf-q[data-qid="${id}"]`;
    最初の1回は Give → Get の板が上に重なる。台紙は板の下の画面を撮る（板は閉じてある）。 */
 const BOARD = '登録だけの会員には、この上に Give → Get の板が1回重なる（板を閉じた後の画面）';
 
+/* ステイ先の状態 [番号, 何の画面か, { who, pub, prep, focus, list, label }]。並びは撮る順
+   （(4) の「まだ0件」は、(3) がホテルを入れる前に撮る）。label は絵の札（手元の本物か・模擬か・本番を読んだだけか）。 */
+const STAY_SLOT = '#pvg-city .crl[data-live="hotels"]';
+const STAY_ZONE = `${STAY_SLOT} + .crs-zone`;
+const STAY_FORM = `${STAY_ZONE} .crs-formbox > .crs-form`;
+const STAY_STATES = [
+  ['1', 'ログインしていない人', { label: '手元の保存先（REAL LOCAL）' }],
+  ['2', '会員（見てよい人ではない）', { who: 'a', label: '手元の保存先（REAL LOCAL）・会員は模擬' }],
+  ['4', '見てよい人・まだ0件', { who: 'pilot', label: '手元の保存先（REAL LOCAL）・見てよい人は模擬' }],
+  ['3', '見てよい人・ホテルと「同じ空港で他社が使うホテル」', { who: 'pilot', prep: 'staySeed', label: '手元の保存先（REAL LOCAL）・見てよい人とホテルは模擬' }],
+  ['5', 'SQL を貼る前の「準備中」（この枝のページを、本番の DB につないでゲストで見た）', { pub: true, label: '3000 番・本番の DB を読むだけ（本番の会員の画面は未確認）' }],
+  ['6', '読み込めなかった', { prep: 'stayFail', label: 'MOCK（手元のサーバーにわざと失敗させた）' }],
+  ['7', '「レストランを追加」で開いた面', { prep: 'stayForm', focus: STAY_ZONE, label: '手元の保存先（REAL LOCAL）' }],
+  ['8', '送った人の確認待ちの投稿', { prep: 'stayAdd', focus: STAY_ZONE, label: '手元の保存先（REAL LOCAL）' }],
+  ['10', '「戻る」のあとの一覧（探す字が残っている）', { list: true, prep: 'stayBack', focus: '#pvg-st-q', label: '手元の保存先（REAL LOCAL）' }],
+  ['11', 'ログインから戻った画面（板は -board.png）・板を閉じた後の書きかけの面', { prep: 'stayLogin', focus: STAY_ZONE, label: '手元の保存先（REAL LOCAL）・会員は模擬' }],
+];
+
 export const TARGETS = [
   ...AIR.map(([slug, ja, r]) => ({
     set: 'airline', key: slug, ja: `${ja} 会社ページ`,
@@ -94,9 +116,9 @@ export const TARGETS = [
     ref: wide(['staff-travel-conditions-preview.jpg']) },
   { set: 'contrib', key: 'upgrade', ja: '機長昇格', who: 'a',
     current: { path: Q('upgrade_years'), focus: ROW('upgrade_years') }, currentNote: BOARD, ref: {} },
-  { set: 'contrib', key: 'stay', ja: 'ホテル・レストランの追加', who: 'pilot',
+  { set: 'contrib', key: 'stay', ja: 'ホテル・レストランの追加', who: null,
     current: { path: '/career.html?airline=etihad&stay=BKK' },
-    currentNote: '下見用の1枚（career.html）・確認済みパイロットは模擬',
+    currentNote: '未ログインで追加',
     ref: { ...wide(['photo-hotel-upload-preview.jpg']), ...tall(['community-hotel-gate-mobile390.png']) } },
   { set: 'contrib', key: 'fail', ja: '送れなかった時', who: 'a',
     current: { path: Q('staff_travel'), prep: 'failOne', qid: 'staff_travel', code: 'yes', focus: ROW('staff_travel') },
@@ -104,6 +126,23 @@ export const TARGETS = [
   { set: 'contrib', key: 'edit', ja: '前の回答が入った状態（修正）', who: 'a',
     current: { path: Q('commuting_transport'), prep: 'answerThenReload', qid: 'commuting_transport', code: 'conditional', focus: ROW('commuting_transport') },
     currentNote: '手元の試験の回答（本物の投稿ではない）', ref: {} },
+
+  /* ステイ先（就航地の詳細）── 会社ごとに、就航地の一覧の最初の都市（#stay-CTS など）を、読む人が出会う状態で撮る。
+     「新」の側（draft）だけ。最初の1画面だけ撮る（状態は都市の詳細の中に在るので、ページ全体は撮らない）。
+     見本は採っていない。番号はステイ先の設計の「## evidence」の番号（(9) の地図は作らないので無い）。
+     手元の読み手は serve-local.mjs の模擬の会員：'a' ＝ 会員（見てよい人ではない）／'pilot' ＝ 見てよい人（名簿で承認済みの模擬）。
+     (5) だけは 3000 番を未ログインで開く（本番の DB は読むだけ）。 */
+  ...AIR.flatMap(([slug, ja]) => {
+    const c = networkOf(slug).list[0];
+    return STAY_STATES.map(([n, what, o]) => ({
+      set: 'stay', key: `${slug}-s${n}`, slug, ja: `${ja} ステイ先 ${c.city}（${c.iata}）(${n})`, who: o.who || null, local: !o.pub,
+      caption: `(${n}) ${what}・${o.label}`, refNone: 'ステイ先のタブの見本は採っていない',
+      current: null, currentNote: '前の版はこのツールでは撮り直せない',
+      draft: { path: `/airlines/${slug}.html#stay${o.list ? '' : '-' + c.iata}`, prep: o.prep, focus: o.focus || STAY_SLOT,
+        slug, iata: c.iata, other: AIR.map((x) => x[0]).find((s) => s !== slug && (networkOf(s) || { list: [] }).list.some((d) => d.iata === c.iata)) },
+      foldOnly: true, ref: {},
+    }));
+  }),
 ];
 
 /* 本番の DB へ通してよい「読むだけ」の関数。ここに無い rpc は止めて、一覧で知らせる。 */
@@ -120,7 +159,7 @@ function pick() {
   const bad = sizes.filter((s) => !SIZES[s]);
   if (bad.length) throw new Error(`知らない大きさ: ${bad.join(', ')}（${Object.keys(SIZES).join(' / ')}）`);
   return {
-    targets: TARGETS.filter((t) => (!only.length || only.includes(t.key)) && (!sets.length || sets.includes(t.set))),
+    targets: TARGETS.filter((t) => (!only.length || only.includes(t.key) || (t.slug && only.includes(t.slug))) && (!sets.length || sets.includes(t.set))),
     sizes: Object.keys(SIZES).filter((s) => !sizes.length || sizes.includes(s)),
   };
 }
@@ -200,11 +239,113 @@ const PREP = {
     await page.click(opt);
     await page.waitForSelector(`${row} .pvcf-state.is-bad`, { timeout: 20000 });
   },
+
+  /* ── ステイ先（set 'stay'）── 手元の保存先の上で、今ある画面を実際に操作して、その状態を作る ── */
+  /* (3) 手元のオーナー 'op' が、その都市に公開のホテルを1つ、同じ空港に就航する別の会社にも1つ足す → 読み直す */
+  async staySeed(page, spec, ctx) {
+    const HERE = '撮影用のホテル（手元の見本）', OTHER = '撮影用の他社のホテル（手元の見本）';
+    const has = async (airline, name) => {
+      const r = await localRpc(ctx.base, 'op', 'pv_stays', { airline, iata: spec.iata });
+      return !!(r && Array.isArray(r.places) && r.places.some((x) => x.name === name));
+    };
+    if (!(await has(spec.slug, HERE))) {
+      const r = await localRpc(ctx.base, 'op', 'pv_stay_add', { airline: spec.slug, iata: spec.iata, kind: 'hotel', name: HERE, publish: true });
+      if (!r || r.ok !== true) ctx.notes.add(`見本のホテル（${spec.slug}）を入れられない: ${JSON.stringify(r)}`);
+    }
+    /* 他社のぶんは、ログインしていない人が足し、オーナーが公開する（オーナーが続けて2つ足すと「続けて」で止まるため） */
+    if (!spec.other) ctx.notes.add('同じ空港に就航する別の会社が、5社の中に無い');
+    else if (!(await has(spec.other, OTHER))) {
+      const g = await localRpc(ctx.base, null, 'pv_stay_add', { airline: spec.other, iata: spec.iata, kind: 'hotel', name: OTHER });
+      const m = g && g.ok && g.item ? await localRpc(ctx.base, 'op', 'pv_stay_moderate', { target: 'place', id: g.item.id, state: 'public' }) : null;
+      if (!m || m.ok !== true) ctx.notes.add(`他社の見本のホテル（${spec.other}）を公開できない: ${JSON.stringify(m || g)}`);
+    }
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await settle(page, ctx.notes);
+    await stayState(page, 'open');
+  },
+  /* (6) 手元のサーバーに一覧の読み出しを失敗させたまま読み直す（欄が「読み込めませんでした」になったら戻す） */
+  async stayFail(page, spec, ctx) {
+    await fetch(`${ctx.base}/__local/fail?n=99&match=pv_stays`);
+    try {
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await stayState(page, 'error');
+    } finally { await fetch(`${ctx.base}/__local/fail?n=0`); }
+  },
+  /* (7) 欄の外の「レストランを追加」を押す */
+  async stayForm(page) {
+    await stayState(page);
+    await page.click(`${STAY_ZONE} .crs-ent[data-kind="food"]`);
+    await page.waitForSelector(`${STAY_FORM} [data-k="name"]`, { visible: true, timeout: 20000 });
+  },
+  /* (8) 「ホテルを追加」→ 名前だけ打つ → 送る（1回押す）→ 送った人にだけ見える確認待ちのカード */
+  async stayAdd(page) {
+    await stayState(page);
+    await page.click(`${STAY_ZONE} .crs-ent[data-kind="hotel"]`);
+    await page.waitForSelector(`${STAY_FORM} [data-k="name"]`, { visible: true, timeout: 20000 });
+    await page.type(`${STAY_FORM} [data-k="name"]`, '撮影用に足したホテル（手元の見本）');
+    await page.click(`${STAY_FORM} button[type="submit"]`);
+    await page.waitForFunction((z) => !!document.querySelector(z + ' .crs-own > .crs-card'), { timeout: 20000 }, STAY_ZONE);
+  },
+  /* (10) ステイ先の一覧で都市の3字を打つ → その都市を開く → ブラウザの「戻る」 */
+  async stayBack(page, spec) {
+    const q = '#pvg-st-q';
+    const shown = () => page.$eval(q, (e) => e.getClientRects().length > 0).catch(() => false);
+    if (!(await shown())) await page.click('#pvg-tabs [data-pvg-tab="stay"]');
+    await page.waitForSelector(q, { visible: true, timeout: 20000 });
+    await page.click(q);
+    await page.type(q, spec.iata);
+    const city = `#pvg-st-list a.pvg-city[data-city="${spec.iata}"]`;
+    await page.waitForSelector(city, { visible: true, timeout: 20000 });
+    await page.click(city);
+    await page.waitForFunction(() => { const c = document.getElementById('pvg-city'); return !!c && c.getClientRects().length > 0; }, { timeout: 20000 });
+    await page.evaluate(() => history.back());
+    await page.waitForFunction((s, code) => {
+      const e = document.querySelector(s), c = document.getElementById('pvg-city');
+      return !!e && e.getClientRects().length > 0 && e.value === code && !(c && c.getClientRects().length);
+    }, { timeout: 20000 }, q, spec.iata);
+  },
+  /* (11) ログインせずに「レストランを追加」に打つ（送らない）→ 欄の「ログイン」→ login.html で手元の会員 'b' のメールと
+     手元のコード → 同じ都市へ戻る → Give → Get の板（その絵は -board.png）→ 板の × → 書きかけの面が戻る */
+  async stayLogin(page, spec, ctx) {
+    await stayState(page, 'locked');
+    await page.click(`${STAY_ZONE} .crs-ent[data-kind="food"]`);
+    await page.waitForSelector(`${STAY_FORM} [data-k="name"]`, { visible: true, timeout: 20000 });
+    await page.type(`${STAY_FORM} [data-k="name"]`, '撮影用の書きかけの店（手元の見本）');
+    await page.type(`${STAY_FORM} [data-k="note"]`, '撮影用の書きかけのひとこと（手元の見本）');
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load', timeout: 45000 }), page.click(`${STAY_SLOT} a[data-crs-entry="login"]`)]);
+    const st = await (await fetch(`${ctx.base}/__local/state`)).json();
+    await page.click('button[onclick="showEmailStep()"]');
+    await page.waitForSelector('#otp-email', { visible: true, timeout: 20000 });
+    await page.type('#otp-email', st.members.find((m) => m.key === 'b').email);
+    await page.click('#otp-send-btn');
+    await page.waitForSelector('#otp-code', { visible: true, timeout: 20000 });
+    await Promise.all([page.waitForNavigation({ waitUntil: 'load', timeout: 45000 }), page.type('#otp-code', st.otp)]);
+    await page.waitForSelector('.pvgf-x', { visible: true, timeout: 20000 });
+    await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'), { timeout: 15000 }).catch(() => ctx.notes.add('板の動きが止まる前に撮った'));
+    await page.screenshot({ path: path.join(ctx.dir, `${ctx.id}-board.png`) });
+    await page.click('.pvgf-x');
+    await page.waitForFunction(() => { const x = document.querySelector('.pvgf-x'); return !x || !x.getClientRects().length; }, { timeout: 20000 });
+    await page.waitForSelector(`${STAY_FORM} [data-k="name"]`, { visible: true, timeout: 20000 });
+  },
 };
+
+/* 手元の保存先の関数を、その会員として外から呼ぶ（who が null ならログインなし）。返事の JSON（読めなければ null）。 */
+async function localRpc(base, who, fn, p) {
+  const headers = { 'content-type': 'application/json' };
+  if (who) headers.authorization = `Bearer ${(await (await fetch(`${base}/__local/login?member=${who}`)).json()).session.access_token}`;
+  const r = await fetch(`${base}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify({ p }) });
+  return r.json().catch(() => null);
+}
+/* 都市の詳細の欄が、読み出しの待ちでない状態になるまで待つ（want を渡せば、その状態になるまで） */
+const stayState = (page, want) => page.waitForFunction((sel, w) => {
+  const e = document.querySelector(sel);
+  const s = e && e.getClientRects().length ? e.getAttribute('data-state') || '' : '';
+  return w ? s === w : !!s && !/^(idle|loading)$/.test(s);
+}, { timeout: 20000 }, STAY_SLOT, want || '');
 
 async function shootOne(browser, t, sizeKey, label, local, log) {
   const size = SIZES[sizeKey], spec = t[label];
-  const base = t.who ? local.url : PUB;
+  const base = t.who || t.local ? local.url : PUB;
   const notes = new Set(), blocked = new Set();
   const bctx = await browser.createBrowserContext();
   const page = await bctx.newPage();
@@ -214,15 +355,18 @@ async function shootOne(browser, t, sizeKey, label, local, log) {
     page.on('request', (req) => gate(req, base, blocked));
     page.on('pageerror', (e) => notes.add(`ページの中でエラー: ${String(e.message).slice(0, 120)}`));
 
-    if (t.who) {
-      /* 手元の会員として入る。切替の札は隠し、Give → Get の板は「さっき見た」ことにする
-         （板そのものを撮りたいのではなく、その下の画面を撮りたい）。 */
-      const d = await (await fetch(`${base}/__local/login?member=${t.who}`)).json();
-      if (!d || !d.session) throw new Error(`手元の会員 ${t.who} で入れない`);
+    if (t.who || t.local) {
+      /* 手元の会員として入る（t.local だけなら、ログインしていない人のまま）。切替の札は隠し、
+         Give → Get の板は「さっき見た」ことにする（板そのものを撮りたいのではなく、その下の画面を撮りたい）。 */
+      const d = t.who ? await (await fetch(`${base}/__local/login?member=${t.who}`)).json() : null;
+      if (t.who && (!d || !d.session)) throw new Error(`手元の会員 ${t.who} で入れない`);
       await page.evaluateOnNewDocument((origin, s) => {
         if (location.origin !== origin) return;
         try {
           if (localStorage.getItem('pv_local_seeded')) return;
+          localStorage.setItem('pv_local_ui', '0');
+          localStorage.setItem('pv_local_seeded', '1');
+          if (!s) return;
           const now = String(Date.now());
           localStorage.setItem('sb-local-auth-token', JSON.stringify(s.session));
           localStorage.setItem('pv_user', JSON.stringify(s.pv_user));
@@ -232,25 +376,24 @@ async function shootOne(browser, t, sizeKey, label, local, log) {
              ここを now で書くと印が合わず、板が毎回出て下の画面を覆う（実際に踏んだ）。 */
           const at = Date.parse((s.session.user || {}).last_sign_in_at || '');
           localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
-          localStorage.setItem('pv_local_ui', '0');
-          localStorage.setItem('pv_local_seeded', '1');
         } catch (e) {}
       }, base, d);
     }
-
-    await page.goto(base + spec.path, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await settle(page, notes);
-    if (spec.prep) {
-      await PREP[spec.prep](page, spec, { base, notes });
-      await settle(page, notes);
-    }
-    const landed = new URL(page.url());
-    if (landed.pathname + landed.search !== spec.path) notes.add(`別の住所へ移った: ${landed.pathname}${landed.search}`);
 
     const dir = path.join(OUT, label);
     fs.mkdirSync(dir, { recursive: true });
     const id = idOf(t, sizeKey);
     for (const f of fs.readdirSync(dir)) if (f.startsWith(id + '-')) fs.unlinkSync(path.join(dir, f));
+
+    await page.goto(base + spec.path, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await settle(page, notes);
+    if (spec.prep) {
+      await PREP[spec.prep](page, spec, { base, notes, dir, id, size: sizeKey });
+      await settle(page, notes);
+    }
+    const landed = new URL(page.url());
+    const at = landed.pathname + landed.search + (spec.path.includes('#') ? landed.hash : '');
+    if (at !== spec.path) notes.add(`別の住所へ移った: ${at}`);
 
     /* 最初の1画面（そのまま2倍の細かさで）。
        質問を指して開いた画面は、ページが運んでくれる位置（その行が画面のまんなか）で撮る。
@@ -267,20 +410,22 @@ async function shootOne(browser, t, sizeKey, label, local, log) {
     }
     await page.screenshot({ path: path.join(dir, `${id}-fold.png`) });
 
-    /* ページ全体。長いページは1枚に収まらないので、縦に切って撮る（台紙の上で積む）。 */
-    await page.setViewport({ width: size.w, height: size.h, deviceScaleFactor: 1, isMobile: size.touch, hasTouch: size.touch });
-    await settle(page, notes);
+    /* ページ全体。長いページは1枚に収まらないので、縦に切って撮る（台紙の上で積む）。foldOnly は最初の1画面だけ。 */
+    if (!t.foldOnly) {
+      await page.setViewport({ width: size.w, height: size.h, deviceScaleFactor: 1, isMobile: size.touch, hasTouch: size.touch });
+      await settle(page, notes);
+    }
     const H = await page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0));
     const CUT = 6000, slices = [];
-    for (let y = 0, i = 0; y < H; y += CUT, i++) {
+    for (let y = 0, i = 0; !t.foldOnly && y < H; y += CUT, i++) {
       const f = `${id}-full-${i}.png`;
       await page.screenshot({ path: path.join(dir, f), clip: { x: 0, y, width: size.w, height: Math.min(CUT, H - y) }, captureBeyondViewport: true });
       slices.push(f);
     }
     log(`  ✓ ${id}  高さ ${H}px${notes.size ? '  ⚠ ' + [...notes].join(' / ') : ''}`);
     return {
-      id, key: t.key, set: t.set, size: sizeKey, path: spec.path, who: t.who || null,
-      base: t.who ? '手元の保存先' : '本番を読むだけ（未ログイン）',
+      id, key: t.key, set: t.set, size: sizeKey, path: spec.path, who: t.who || null, caption: t.caption || null,
+      base: t.who || t.local ? '手元の保存先' : '本番を読むだけ（未ログイン）',
       height: H, slices, notes: [...notes], blocked: [...blocked], at: new Date().toISOString(),
     };
   } finally {
@@ -296,13 +441,13 @@ async function shoot(label) {
   if (!todo.length) throw new Error('撮るものが無い');
 
   let local = null, tmp = null;
-  if (todo.some((t) => t.who)) {
+  if (todo.some((t) => t.who || t.local)) {
     const { start } = await import('./serve-local.mjs');
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-glance-'));
     console.log('  手元の保存先（使い捨て）を立てている…');
     local = await start({ port: 0, dir: tmp, quiet: true });
   }
-  if (todo.some((t) => !t.who)) {
+  if (todo.some((t) => !t.who && !t.local)) {
     const ok = await fetch(PUB + '/index.html').then((r) => r.ok, () => false);
     if (!ok) throw new Error(`${PUB} が動いていない（node serve.mjs）`);
   }
@@ -392,14 +537,14 @@ function sheetHtml(t, sizeKey, mode, ref, metas) {
     ? [...new Set(refUrls.map(([n]) => REF_NOTE[n]).filter(Boolean)), '数字・口コミ・件数は古いか架空（配置の見本）'].join('・')
     : '';
   let refBody;
-  if (!refUrls.length) refBody = `<div class="frame none" style="height:${mode === 'fold' ? foldH : 260}px">この大きさの見本は無い</div>`;
+  if (!refUrls.length) refBody = `<div class="frame none" style="height:${mode === 'fold' ? foldH : 260}px">${esc(t.refNone || 'この大きさの見本は無い')}</div>`;
   else if (mode === 'fold') refBody = `<div class="frame" style="height:${foldH}px"><img src="${refUrls[0][1]}" alt=""></div>`;
   else refBody = `<div class="frame">${refUrls.map(([, u]) => `<img src="${u}" alt="">`).join('')}</div>`;
 
   const shot = (label, emptyNote) => {
     const m = metas[label] && metas[label][id];
     if (!m) return [`<div class="frame none" style="height:${mode === 'fold' ? foldH : 260}px">${esc(emptyNote)}</div>`, ''];
-    const note = [m.base + (m.who ? `・会員 ${m.who}` : ''), `高さ ${m.height}px`, ...(m.notes || [])].join('・');
+    const note = [m.caption, m.base + (m.who ? `・会員 ${m.who}` : ''), `高さ ${m.height}px`, ...(m.notes || [])].filter(Boolean).join('・');
     if (mode === 'fold') return [`<div class="frame" style="height:${foldH}px"><img src="../${label}/${id}-fold.png" alt=""></div>`, note];
     return [`<div class="frame">${m.slices.map((f) => `<img src="../${label}/${f}" alt="">`).join('')}` +
       `<div class="fold" style="top:${foldH}px"><span>最初の1画面はここまで</span></div></div>`, note];
@@ -437,7 +582,7 @@ async function sheet() {
     const page = await browser.newPage();
     for (const t of targets) {
       for (const s of sizes) {
-        for (const mode of ['fold', 'full']) {
+        for (const mode of t.foldOnly ? ['fold'] : ['fold', 'full']) {
           const name = `${idOf(t, s)}-${mode}`;
           fs.writeFileSync(path.join(dir, name + '.html'), sheetHtml(t, s, mode, ref, metas));
           const W = SIZES[s].col * 3 + 28 * 4;
@@ -470,7 +615,7 @@ async function sheet() {
   /* 入口の1枚（開いて回る用）。絞って作り直した回も、在る台紙は全部載せる。 */
   const all = fs.readdirSync(dir).filter((f) => f.endsWith('.html') && f !== 'index.html');
   const rows = TARGETS.map((t) => {
-    const links = Object.keys(SIZES).flatMap((s) => ['fold', 'full'].map((mode) => {
+    const links = Object.keys(SIZES).flatMap((s) => (t.foldOnly ? ['fold'] : ['fold', 'full']).map((mode) => {
       const f = `${idOf(t, s)}-${mode}.html`;
       return all.includes(f) ? `<a href="${f}">${esc(SIZES[s].ja)}・${mode === 'fold' ? '最初の1画面' : '全体'}</a>` : null;
     })).filter(Boolean);
@@ -492,6 +637,7 @@ try {
   else if (cmd === 'sheet') await sheet();
   else {
     console.log('使い方: node shot-glance.mjs shoot current|draft [--only …] [--sizes …] [--set …]');
+    console.log('        node shot-glance.mjs shoot draft --set stay [--only jal|jal-s3] [--sizes iphone,ipad-p,pc]');
     console.log('        node shot-glance.mjs sheet --ref <見本のフォルダ> [--ref …]');
     process.exitCode = 1;
   }
