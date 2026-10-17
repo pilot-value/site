@@ -1982,7 +1982,9 @@
   function renderTown() {
     var ctx = townCtx();
     if (!ctx) { show('list'); return; }
-    setHead(TOPIC_NAME.town + 'を追加');
+    /* 見出し：自分の投稿を直している回（「修正」から開いた・保存後のカードから戻った ＝ TW.was）は「追加」と言わない
+       ── 送るボタンが「匿名で更新する」の時に「…を追加」を出さない。字は、保存後のカードの見出しと同じ「住みやすい街」 */
+    setHead(TW.was ? TOPIC_NAME.town : TOPIC_NAME.town + 'を追加');
     if (!V.vocab) {
       waiting('読み込んでいます…');
       vocab().then(function () { if (S.open && S.view === 'town') renderTown(); },

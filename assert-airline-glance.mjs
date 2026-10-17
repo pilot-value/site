@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
@@ -2425,6 +2425,10 @@ async function open(browser, slug, w, h, mode, pre) {
           seen.giveCalls++;
           const g = seen.give || {};
           return r.respond({ status: g.status || 200, contentType: 'application/json', headers: cors, body: g.body || giveBody(seen.mode, slug) });
+        }
+        /* 自分の街の投稿の口（my_town_posts）：場面 towns が返事を置いた時だけ、その返事（seen.town.mine）。置かなければ上の表のまま（0件）。 */
+        if (seen.town && seen.town.mine != null && /\/rest\/v1\/rpc\/my_town_posts$/.test(u.pathname)) {
+          return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: seen.town.mine });
         }
         if (hit[0] === TOWN_RE) {
           const t = seen.town || {};
@@ -7239,6 +7243,368 @@ async function runGiveOpen(browser, s, [w, h]) {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   場面 towns（--scenes towns）── 暮らしの板の「パイロットの回答」の欄（.pvg-liv-got > .crl[data-live="towns"]。
+   描くのは career-live.js の KIND.towns）。偽のサーバーの返事を、状態ごとに差し替える：seen.town ＝ { status, body }
+   （pv_town_board の返事）と mine（my_town_posts の返事。置かなければ0件）。描き直させるのは、街を保存した時の知らせ
+   （'pvc:saved' の topic 'town' ── 欄はこの時、必ず読み直す）。幅は 390 と 1440（--sizes を付けた回は、その幅）。
+   1枚のページの中で、次の順に移す：
+     M1  未ログイン（'login'）：鍵の形・「ログインと給与の提出で開きます」・欄の入口は「ログイン」1つ・欄に数字が無い・
+         見出し「パイロットの回答」・「＋住みやすい街を追加」は欄の外で、欄より前
+     M5  開いていて、街0・自分の行も無い：欄は 'empty'・器（.pvg-liv-got）ごと出ない・入口は見えたまま
+     M6  人数の無い街・人数 0 の街・人数が整数でない街は描かない（「0人」を出さない）
+     M4  開いていて3つ（3人・1人・1人）：「人気の居住地」・返事の並びのまま（名前で並べ替えない）・「回答 N人」・
+         「良い点」「気になる点」と文・「あなたの投稿」は自分のものにだけ・順位を付けない（番号も「位」も無い）
+     M9  USD に替えても、欄の字は1文字も変わらない（会員の文「家賃は20万円くらい」を額として換算しない）
+     M11 開いている欄：ほかの話題（月の勤務）の保存の知らせでは読み直さない（通信 0・欄の中身もそのまま）／
+         街の保存の知らせでは1回だけ読み直す（★鍵の1行を出している欄は、どの保存のあとでも読み直す ＝ ここは開いた欄で見る）
+     M7  404（口がまだ無い）→「準備中」／500 →「いま読み出せません」＋「やり直す」・押すと聞き直す（1回）
+     M8  'give' → 02b の1行と答えるカード
+     M2  鍵の無い会員（'locked'）の自分の行。街の名前はタグの形（HOSTILE）：「あなたの投稿」・名前は字のまま（要素が生まれない）・
+         「確認待ち」・「修正」で街の面が開き、欄にその名前・面の見出しは「住みやすい街」（直す回は「…を追加」と言わない）・
+         送るボタンは「匿名で更新する」
+     M3  'locked' の返事に街が付いてきても、欄にもページにも保存領域にも1文字も出ない
+     M10 キーボード：Tab で「＋住みやすい街を追加」に着く・Enter で面が開く・Escape で閉じる・焦点は入口へ戻る
+   会員にするのは M2 から。ログインの鍵はページが開いたあとに置く（登録だけの会員に出す板を呼ばない）。
+   面（pv-contrib.js）を初めて開くのは M2 の「修正」── 未ログインのまま面を開いたあとで会員に替わると、「修正」の街の名前が
+   読む人の替わりの片づけ（readerReset）で消える（検査の外で見つけた穴。直すのはこの場面ではない）。
+   ⚠️ 街の名前と文は、検査のために作った架空のもの（この検査のファイルの中にしか無い）。本物の投稿ではない。
+   ⚠️ 絵の検査。誰に開くか・人数の数え方は、本物の SQL を通す側（db/test-towns.mjs・assert-towns.mjs）が見る。
+   下の字は、画面に出るはずの字を検査が自分で持つもの（career-live.js・pv-contrib.js から読み込まない ＝ あちらを変えたら、ここで赤くなる）。
+   ══════════════════════════════════════════════════════════════════ */
+const TOWNS_W = [390, 1440];
+const TOWN_GOT = 'パイロットの回答', TOWN_HEAD = '人気の居住地', TOWN_MINE = 'あなたの投稿', TOWN_WAIT = '確認待ち', TOWN_EDIT = '修正';
+const TOWN_GOOD = '良い点', TOWN_CONCERN = '気になる点', TOWN_OFF = '準備中', TOWN_ERR = 'いま読み出せません', TOWN_RETRY = 'やり直す';
+const TOWN_SHEET = '住みやすい街', TOWN_UPD = '匿名で更新する';
+const townN = n => `回答 ${n}人`;
+const townOpen = towns => JSON.stringify({ ok: true, state: 'open', towns });
+const TOWN_RENT = '家賃は20万円くらい';
+/* M4 の3つ。並びは返事のまま（人数の多い順）＝ 名前の並び（ア・イ・ウ）とは違う並びにしてある */
+const TOWN_THREE = [
+  { name: '検査の街ウ', n: 3, mine: false, good: [{ text: TOWN_RENT, mine: false }, { text: '駅が近い（検査用）', mine: true }], concern: [{ text: '夜がにぎやか（検査用）', mine: false }] },
+  { name: '検査の街ア', n: 1, mine: true, good: [], concern: [{ text: '坂が多い（検査用）', mine: false }] },
+  { name: '検査の街イ', n: 1, mine: false, good: [{ text: '公園が近い（検査用）', mine: false }], concern: [] },
+];
+/* M6 描くのは、本当の人数（1 以上の整数）を持つ最後の1つだけ */
+const TOWN_ODD = [
+  { name: '人数の無い街（検査用）', mine: false, good: [{ text: '描かれてはいけない文（検査用）', mine: false }], concern: [] },
+  { name: '人数ゼロの街（検査用）', n: 0, mine: false, good: [], concern: [] },
+  { name: '人数が半端な街（検査用）', n: 1.5, mine: false, good: [], concern: [] },
+  { name: '二人の街（検査用）', n: 2, mine: false, good: [], concern: [] },
+];
+const TOWN_LEAK = '検査用の街の名前です。鍵の掛かった人の画面に出てはいけません', TOWN_LEAK_T = '検査用の街の文です。鍵の掛かった人の画面に出てはいけません';
+const TOWN_LOCKED_LEAK = JSON.stringify({ ok: true, state: 'locked', towns: [{ name: TOWN_LEAK, n: 4, mine: false, good: [{ text: TOWN_LEAK_T, mine: false }], concern: [] }] });
+const TOWN_404 = '{"code":"PGRST202","details":null,"hint":null,"message":"Could not find the function public.pv_town_board(p) in the schema cache"}';
+const TOWN_500 = '{"code":"XX000","details":null,"hint":null,"message":"検査用の失敗"}';
+const TOWN_ME = '00000000-0000-4000-8000-0000000000d7';
+/* M2 の自分の行（my_town_posts の返事の形 ＝ db/towns.sql の pv_town_post_json）。基地は、ページの欄の data-base */
+const townPosts = base => JSON.stringify({ ok: true, posts: [{ town: HOSTILE, base, town_state: 'pending', lived: null, lived_to_year: null, good: null, concern: null, text_state: 'none', rent: null, trip: null }] });
+/* 欄と、その器・入口を読む。ページの中で動く（外の変数を1つも使わない）。判定は外でする。 */
+function townSee() {
+  const box = document.querySelector('.pvg-liv-got > .crl[data-live="towns"]'), got = box && box.parentElement;
+  const ent = document.querySelector('#pvg-p-living .pvg-liv-h > a[data-pvc-open="town"]');
+  const vis = e => !!e && e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true });
+  const tx = e => (e ? e.textContent : '').replace(/\s+/g, ' ').trim();
+  /* 文そのもの（後ろに付く「あなたの投稿」の札を除く） */
+  const body = e => { const c = e.cloneNode(true); c.querySelectorAll('.crl-note-me').forEach(x => x.remove()); return c.textContent.trim(); };
+  if (!box) return null;
+  const ol = box.querySelector('ol.crl-towns');
+  return {
+    state: box.getAttribute('data-state'), on: vis(box), base: box.getAttribute('data-base') || '',
+    got: !!got && getComputedStyle(got).display !== 'none', gotHead: got ? tx(got.querySelector(':scope > .pvg-askh')) : '',
+    text: tx(box), raw: box.textContent,
+    lock: [...box.querySelectorAll('.crl-lock')].map(tx),
+    links: [...box.querySelectorAll('a')].map(a => ({ text: tx(a), href: a.getAttribute('href') || '', on: vis(a) })),
+    btns: [...box.querySelectorAll('button')].map(b => ({ text: tx(b), on: vis(b) })),
+    cards: [...box.querySelectorAll('.crl-give')].map(c => ({ head: tx(c.querySelector('.crl-give-h')), count: tx(c.querySelector('.crl-give-n')), on: vis(c) })),
+    heads: [...box.querySelectorAll('.crl-town-h')].map(tx),
+    meHead: [...box.querySelectorAll('.crl-town-me > .crl-note-h')].map(tx),
+    own: [...box.querySelectorAll('.crl-town-own > li')].map(li => { const n = li.querySelector('.crl-town-n');
+      return { name: n ? n.textContent : '', kids: n ? n.children.length : -1, say: tx(li.querySelector('.crl-town-st')), edit: tx(li.querySelector('.crl-town-ed')) }; }),
+    list: [...box.querySelectorAll('ol.crl-towns > li.crl-town')].map(li => ({
+      name: tx(li.querySelector('.crl-town-k > .crl-town-n')), n: tx(li.querySelector('.crl-town-k > .crl-town-c')),
+      mine: [...li.querySelectorAll('.crl-town-k > .crl-note-me')].map(tx),
+      labels: [...li.querySelectorAll(':scope > .crl-town-l')].map(tx),
+      texts: [...li.querySelectorAll('.crl-town-t')].map(t => ({ text: body(t), mine: [...t.querySelectorAll('.crl-note-me')].map(tx) })),
+    })),
+    marker: ol ? getComputedStyle(ol).listStyleType : '',
+    hostile: document.querySelectorAll('img[src="x"]').length + (typeof window.__pvgHit === 'undefined' ? 0 : 1),
+    curs: box.querySelectorAll('span.pv-cur').length,
+    ent: { on: vis(ent), before: !!ent && !!got && !!(ent.compareDocumentPosition(got) & Node.DOCUMENT_POSITION_FOLLOWING), inBox: !!ent && box.contains(ent) },
+  };
+}
+async function runTowns(browser, s, [w, h]) {
+  const tag = `${s} ${w}（暮らし・パイロットの回答の欄）`, G = giveOf(s);
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, 'empty');
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  const BOX = '.pvg-liv-got > .crl[data-live="towns"]', ENT = '#pvg-p-living .pvg-liv-h > a[data-pvc-open="town"]';
+  /* ページが投げた街の口（pv_town_board・my_town_posts）の本数。読むだけ（答えるのは上の偽のサーバー） */
+  const calls = { board: 0, mine: 0 };
+  p.on('request', r => {
+    if (r.method() !== 'POST') return;
+    let n = ''; try { n = new URL(r.url()).pathname; } catch { return; }
+    if (/\/rest\/v1\/rpc\/pv_town_board$/.test(n)) calls.board++;
+    else if (/\/rest\/v1\/rpc\/my_town_posts$/.test(n)) calls.mine++;
+  });
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
+  /* 欄が落ち着く（「まだ」「読み込み中」でなくなる）まで待つ。時間では待たない */
+  const calm = () => until(sel => { const b = document.querySelector(sel); return !!b && !/^(idle|loading)$/.test(b.getAttribute('data-state')); }, BOX);
+  /* 返事を置いて、街を保存した時の知らせで描き直させる（欄は、その場で「まだ」に戻ってから読み直す） */
+  const redraw = async t => { seen.town = t; await ev(sl => document.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'town', slug: sl } })), s); return calm(); };
+  /* ページの「あとで」（setTimeout 0）と、描いたあとの2コマ（通貨の部品が、増えた字を包むのは次のコマ）が過ぎるまで */
+  const frames = () => ev(() => new Promise(r => setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() => r(true))), 0)));
+  const see = () => ev(townSee);
+  const sheetSee = () => ev(() => {
+    const r = document.querySelector('.pvc-root'), f = r && r.querySelector('[data-pvc-form="town"]'), t = r && r.querySelector('.pvc-title');
+    const i = f && f.querySelector('#pvc-f-town'), b = f && f.querySelector('.pvc-send');
+    return { open: !!r && !r.hidden && r.classList.contains('is-in'), form: !!f, title: t ? t.textContent : '', town: i ? i.value : null, send: b ? b.textContent.trim() : '' };
+  });
+  const shut = async () => { await p.keyboard.press('Escape'); return until(() => { const r = document.querySelector('.pvc-root'); return !r || !r.classList.contains('is-in'); }); };
+  const DIGIT = /[0-9０-９]/;
+  /* 絵（PV_GLANCE_SHOT=<フォルダ> がある時だけ撮る・検査の合否には使わない）。名前は towns-<会社>-<幅>-<形>[-dark].png。
+     撮るのは「パイロットの回答」の器（.pvg-liv-got）。'panel' は暮らしの板ごと（入口の位置を見る）・'sheet' は開いた面を画面ごと。 */
+  const SHOT = process.env.PV_GLANCE_SHOT ? process.env.PV_GLANCE_SHOT.replace(/\/$/, () => '') : '';
+  const shot = async (name, how = 'got', dark = false) => {
+    if (!SHOT) return;
+    const was = await ev(dk => { const v = document.documentElement.getAttribute('data-theme'); if (dk) document.documentElement.setAttribute('data-theme', 'dark'); return v; }, dark);
+    try {
+      const file = `${SHOT}/towns-${s}-${w}-${name}${dark ? '-dark' : ''}.png`;
+      if (how === 'sheet') await p.screenshot({ path: file });
+      else {
+        /* 上に貼り付く帯（ヘッダーとタブ）に掛からないよう、画面の高さだけを伸ばして、帯の下へ寄せてから撮る（幅と端末の種類は変えない） */
+        const sel = how === 'panel' ? '#pvg-p-living' : '.pvg-liv-got';
+        const tall = await ev(q => { const e = document.querySelector(q); return e ? Math.ceil(e.getBoundingClientRect().height) : 0; }, sel);
+        await p.setViewport({ width: w, height: Math.max(h, tall + 260), deviceScaleFactor: 1, isMobile: w < 900, hasTouch: w < 1100 });
+        await ev(q => new Promise(r => { const e = document.querySelector(q); if (e) scrollTo({ top: scrollY + e.getBoundingClientRect().top - 220, behavior: 'instant' }); requestAnimationFrame(() => requestAnimationFrame(r)); }), sel);
+        const el = await p.$(sel);
+        if (el) await el.screenshot({ path: file, captureBeyondViewport: false });
+      }
+    } catch (e) { notice(`${tag}: 絵を撮れなかった（${name}・${String(e && e.message).slice(0, 100)}）`); }
+    finally {
+      await ev(v => { if (v === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', v); }, was);
+      if (how !== 'sheet') await p.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: w < 900, hasTouch: w < 1100 });
+    }
+  };
+  try {
+    ok(ready, `${tag}: 開ける`);
+    await livTab(p);
+    if (!(await calm())) throw new Error('「パイロットの回答」の欄が落ち着かない');
+    /* M1 */
+    {
+      const r = await see(), bad = [];
+      if (!r) bad.push('欄が無い');
+      else {
+        if (r.state !== 'locked' || !r.on) bad.push(`欄が ${r.state}${r.on ? '' : '（見えていない）'}（あるべき 鍵の形）`);
+        if (!r.got || r.gotHead !== TOWN_GOT) bad.push(`見出し「${r.gotHead}」${r.got ? '' : '（器が出ていない）'}`);
+        if (!same(r.lock, [LOGIN_LINE])) bad.push(`1行「${r.lock.join('｜')}」（あるべき「${LOGIN_LINE}」）`);
+        if (r.links.length !== 1 || r.links[0].text !== LOGIN_GO || !r.links[0].on || !r.links[0].href.includes('login.html')) bad.push(`欄の入口 ${r.links.map(a => `「${a.text}」${a.href}`).join('・') || '無し'}（あるべき「${LOGIN_GO}」1つ）`);
+        if (r.btns.length || r.cards.length || r.own.length) bad.push(`ボタン ${r.btns.length}・カード ${r.cards.length}・自分の行 ${r.own.length}`);
+        if (DIGIT.test(r.text)) bad.push(`欄に数字「${r.text}」`);
+        if (!r.ent.on || !r.ent.before || r.ent.inBox) bad.push(`「＋住みやすい街を追加」${r.ent.on ? '' : 'が見えない・'}${r.ent.before ? '' : 'が欄より前に無い・'}${r.ent.inBox ? 'が欄の中' : ''}`);
+      }
+      ok(!bad.length, `${tag}: M1 未ログイン ──「${TOWN_GOT}」の下は鍵の形：「${LOGIN_LINE}」と入口「${LOGIN_GO}」の1つ・数字なし・「＋住みやすい街を追加」は欄の外で、欄より前`, bad.join(' ／ '));
+      await shot('login'); await shot('login-panel', 'panel');
+    }
+    /* M5 */
+    {
+      const a = await redraw({ body: townOpen([]) }), r = await see(), bad = [];
+      if (!a || !r) bad.push('欄が落ち着かない');
+      else {
+        if (r.state !== 'empty') bad.push(`欄が ${r.state}（あるべき empty）`);
+        if (r.got) bad.push(`「${TOWN_GOT}」の器が出ている`);
+        if (r.text) bad.push(`欄に字「${r.text}」`);
+        if (!r.ent.on) bad.push('「＋住みやすい街を追加」が見えない');
+      }
+      ok(!bad.length, `${tag}: M5 開いていて街0・自分の行も無い ── 欄は空・「${TOWN_GOT}」の器ごと出ない・「＋住みやすい街を追加」は見えたまま`, bad.join(' ／ '));
+    }
+    /* M6 */
+    {
+      const a = await redraw({ body: townOpen(TOWN_ODD) }), r = await see(), bad = [];
+      if (!a || !r) bad.push('欄が落ち着かない');
+      else {
+        if (r.state !== 'open') bad.push(`欄が ${r.state}（あるべき open）`);
+        if (!same(r.list.map(t => [t.name, t.n]), [['二人の街（検査用）', townN(2)]])) bad.push(`描いた街 ${r.list.map(t => `${t.name}「${t.n}」`).join('・') || '無し'}（あるべき「二人の街（検査用）」「${townN(2)}」だけ）`);
+        if (/0人|undefined|NaN|1\.5|描かれてはいけない/.test(r.text)) bad.push(`欄の字「${r.text.slice(0, 160)}」`);
+      }
+      ok(!bad.length, `${tag}: M6 人数の無い街・人数 0 の街・人数が整数でない街は描かない（「0人」を出さない）── 描くのは「${townN(2)}」の1つだけ`, bad.join(' ／ '));
+    }
+    /* M4 */
+    {
+      const a = await redraw({ body: townOpen(TOWN_THREE) }), r = await see(), bad = [];
+      const W = TOWN_THREE.map(t => ({ name: t.name, n: townN(t.n), mine: t.mine ? [TOWN_MINE] : [],
+        labels: [...(t.good.length ? [TOWN_GOOD] : []), ...(t.concern.length ? [TOWN_CONCERN] : [])],
+        texts: [...t.good, ...t.concern].map(x => ({ text: x.text, mine: x.mine ? [TOWN_MINE] : [] })) }));
+      if (!a || !r) bad.push('欄が落ち着かない');
+      else {
+        if (r.state !== 'open' || !r.on || !r.got) bad.push(`欄が ${r.state}${r.on ? '' : '（見えていない）'}${r.got ? '' : '（器が出ていない）'}`);
+        if (!same(r.heads, [TOWN_HEAD])) bad.push(`見出し「${r.heads.join('｜')}」（あるべき「${TOWN_HEAD}」）`);
+        if (!same(r.list.map(t => t.name), W.map(t => t.name))) bad.push(`並び ${r.list.map(t => t.name).join('・') || '無し'}（返事の並び ${W.map(t => t.name).join('・')}）`);
+        for (const [i, t] of W.entries()) { const g = r.list[i]; if (g && g.name === t.name && !same(g, t)) bad.push(`${t.name}: ${JSON.stringify(g)}（あるべき ${JSON.stringify(t)}）`); }
+        if (r.marker !== 'none') bad.push(`並びに番号の印（list-style ${r.marker}）`);
+        if (/[0-9０-９]+\s*位|第\s*[0-9０-９]|No\.\s*[0-9]|[①-⑳]|ランキング/.test(r.text)) bad.push(`順位の字「${r.text.slice(0, 160)}」`);
+        if (r.meHead.length || r.own.length) bad.push('自分の行が出ている（未ログインで、自分の投稿は無い）');
+      }
+      ok(!bad.length, `${tag}: M4 開いていて3つ ──「${TOWN_HEAD}」・返事の並びのまま（名前で並べ替えない）・「${townN(3)}」「${townN(1)}」「${townN(1)}」・「${TOWN_GOOD}」「${TOWN_CONCERN}」と文・「${TOWN_MINE}」は自分のものにだけ・順位を付けない`, bad.slice(0, 5).join(' ／ '));
+      await shot('open'); await shot('open', 'got', true);
+    }
+    /* M9 */
+    {
+      await frames();
+      const r0 = await see(), bad = [];
+      const cur = await ev(() => { window.PVCurrency.set('USD'); return window.PVCurrency.get(); });
+      await frames();
+      const r1 = await see();
+      if (cur !== 'USD') bad.push(`USD に換わらない（${cur}）`);
+      if (!r0 || !r1) bad.push('欄が無い');
+      else {
+        if (r1.raw !== r0.raw) bad.push(`欄の字が変わった「${r0.text.slice(0, 80)}」→「${r1.text.slice(0, 80)}」`);
+        if (!r1.list.some(t => t.texts.some(x => x.text === TOWN_RENT))) bad.push(`「${TOWN_RENT}」がそのまま無い`);
+        if (r0.curs || r1.curs) bad.push(`欄の中に、通貨の部品が包んだ額（span.pv-cur）が ${Math.max(r0.curs, r1.curs)}つ`);
+      }
+      await ev(() => window.PVCurrency.set('JPY'));
+      ok(!bad.length, `${tag}: M9 USD に替えても、欄の字は1文字も変わらない（会員の文「${TOWN_RENT}」を額として換算しない）`, bad.join(' ／ '));
+    }
+    /* M11（開いた欄で見る） */
+    {
+      const bad = [];
+      await ev(sel => { const b = document.querySelector(sel); if (b && b.firstElementChild) b.firstElementChild.__pvgKeep = 1; }, BOX);
+      const c0 = calls.board;
+      await ev(sl => document.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'work', slug: sl } })), s);
+      await frames();
+      await until(SETTLED);
+      const kept = await ev(sel => { const b = document.querySelector(sel); return !!b && b.getAttribute('data-state') === 'open' && !!b.firstElementChild && b.firstElementChild.__pvgKeep === 1; }, BOX);
+      if (calls.board !== c0) bad.push(`月の勤務の保存の知らせで、街の一覧を ${calls.board - c0}回読んだ`);
+      if (!kept) bad.push('月の勤務の保存の知らせで、開いていた欄が描き直された');
+      const c1 = calls.board, a = await redraw(seen.town), r = await see();
+      if (!a || calls.board - c1 !== 1) bad.push(`街の保存の知らせで、街の一覧を ${calls.board - c1}回読んだ（あるべき 1回）`);
+      if (!r || r.state !== 'open' || !same(r.list.map(t => t.name), TOWN_THREE.map(t => t.name))) bad.push(`読み直したあとの欄 ${r ? r.state : '無し'}`);
+      ok(!bad.length, `${tag}: M11 開いている欄 ── 月の勤務の保存の知らせでは読み直さない（通信 0・欄の中身もそのまま）／街の保存の知らせでは1回だけ読み直す`, bad.join(' ／ '));
+    }
+    /* M7 */
+    {
+      const bad = [];
+      const a = await redraw({ status: 404, body: TOWN_404 }), r = await see();
+      if (!a || !r || r.state !== 'off' || r.text !== TOWN_OFF || r.lock.length || r.btns.length || r.links.length) bad.push(`404 の時 欄 ${r ? `${r.state}「${r.text}」` : '無し'}（あるべき「${TOWN_OFF}」だけ）`);
+      if (r && !r.ent.on) bad.push('404 の時「＋住みやすい街を追加」が見えない');
+      await shot('off');
+      const b = await redraw({ status: 500, body: TOWN_500 }), e = await see();
+      await shot('error');
+      if (!b || !e || e.state !== 'error' || e.text !== TOWN_ERR + TOWN_RETRY || e.btns.length !== 1 || e.btns[0].text !== TOWN_RETRY || !e.btns[0].on) bad.push(`500 の時 欄 ${e ? `${e.state}「${e.text}」` : '無し'}（あるべき「${TOWN_ERR}」＋「${TOWN_RETRY}」）`);
+      else {
+        seen.town = { body: stateBody('login') };
+        const c0 = calls.board;
+        await press(await p.$(`${BOX} .crl-retry`));
+        const back = await calm(), r2 = await see();
+        if (!back || calls.board - c0 !== 1 || !r2 || r2.state !== 'locked') bad.push(`「${TOWN_RETRY}」を押したあと 聞いた回数 ${calls.board - c0}（あるべき 1）・欄 ${r2 ? r2.state : '無し'}`);
+      }
+      ok(!bad.length, `${tag}: M7 口がまだ無い（404）は「${TOWN_OFF}」・読めない（500）は「${TOWN_ERR}」＋「${TOWN_RETRY}」で、押すと1回聞き直す`, bad.join(' ／ '));
+    }
+    /* M8 */
+    {
+      seen.give = { status: 200, body: giveBody('give', s) };
+      const a = await redraw({ body: stateBody('give') }), r = await see(), bad = [];
+      if (!a || !r) bad.push('欄が落ち着かない');
+      else {
+        if (r.state !== 'locked') bad.push(`欄が ${r.state}（あるべき 鍵の形）`);
+        if (!same(r.lock, [GIVE_LINE(5)])) bad.push(`1行「${r.lock.join('｜')}」（あるべき「${GIVE_LINE(5)}」）`);
+        if (r.cards.length !== 1 || !r.cards[0].on || r.cards[0].head !== GIVE_HEAD(G.name) || r.cards[0].count !== GIVE_COUNT(3, 5)) bad.push(`答えるカード ${JSON.stringify(r.cards)}`);
+        if (r.links.length !== 1 || r.links[0].text !== GIVE_GO || !r.links[0].on) bad.push(`欄の入口 ${r.links.map(l => `「${l.text}」`).join('・') || '無し'}（あるべき「${GIVE_GO}」1つ）`);
+        if (r.text.includes(LOGIN_GO) || r.text.includes(PAY_GO)) bad.push(`ログインか給与の提出の字が在る「${r.text.slice(0, 80)}」`);
+      }
+      await shot('give');
+      seen.give = null;
+      ok(!bad.length, `${tag}: M8 'give' ── 02b の1行「${GIVE_LINE(5)}」と答えるカード1枚（「${GIVE_HEAD(G.name)}」「${GIVE_COUNT(3, 5)}」・入口「${GIVE_GO}」の1つ）`, bad.join(' ／ '));
+    }
+    /* M2（ここから会員。面はまだ1度も開いていない ＝ 開くのは、この会員が初めて） */
+    {
+      const bad = [], base = ((await see()) || {}).base || '';
+      seen.town = { body: stateBody('locked'), mine: townPosts(base) };
+      await ev((k, id) => {
+        localStorage.setItem(k, JSON.stringify({ user: { id } }));
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+        document.dispatchEvent(new Event('visibilitychange'));
+      }, 'sb-check-auth-token', TOWN_ME);
+      const m0 = calls.mine, a = await redraw(seen.town), r = await see();
+      if (!a || !r) bad.push('欄が落ち着かない');
+      else {
+        if (r.state !== 'locked') bad.push(`欄が ${r.state}（あるべき 鍵の形）`);
+        if (calls.mine === m0) bad.push('自分の投稿の口（my_town_posts）を読んでいない');
+        if (!same(r.meHead, [TOWN_MINE])) bad.push(`自分の行の見出し「${r.meHead.join('｜')}」（あるべき「${TOWN_MINE}」）`);
+        if (r.own.length !== 1 || r.own[0].name !== HOSTILE || r.own[0].kids !== 0 || r.own[0].say !== TOWN_WAIT || r.own[0].edit !== TOWN_EDIT) bad.push(`自分の行 ${JSON.stringify(r.own)}`);
+        if (r.hostile) bad.push('街の名前から要素が生まれた（img が在る・onerror が動いた）');
+        if (!same(r.lock, [PAY_LINE]) || !r.links.some(l => l.text === PAY_GO && l.href.endsWith(`pay-report.html?airline=${s}`))) bad.push(`鍵の1行と入口「${r.lock.join('｜')}」${r.links.map(l => `「${l.text}」`).join('')}`);
+        await shot('own'); await shot('own', 'got', true);
+        const fix = await p.$(`${BOX} .crl-town-own .crl-town-ed`);
+        if (!fix) bad.push(`「${TOWN_EDIT}」が無い`);
+        else {
+          await press(fix);
+          const opened = await until(() => { const x = document.querySelector('.pvc-root'), i = x && x.querySelector('[data-pvc-form="town"] #pvc-f-town'); return !!x && x.classList.contains('is-in') && !!i && !!i.value; });
+          const f = await sheetSee();
+          await shot('fix-sheet', 'sheet');
+          if (!opened || !f.form) bad.push(`「${TOWN_EDIT}」で街の面が開かない（${JSON.stringify(f)}）`);
+          else {
+            if (f.town !== HOSTILE) bad.push(`面の欄「${f.town}」（あるべき その街の名前のまま）`);
+            if (f.title !== TOWN_SHEET) bad.push(`面の見出し「${f.title}」（直す回は「${TOWN_SHEET}」──「…を追加」と言わない）`);
+            if (f.send !== TOWN_UPD) bad.push(`送るボタン「${f.send}」（あるべき「${TOWN_UPD}」）`);
+            if (((await see()) || {}).hostile) bad.push('面を開いたあと、街の名前から要素が生まれた');
+            if (!(await shut())) bad.push('Escape で閉じない');
+          }
+        }
+      }
+      ok(!bad.length, `${tag}: M2 鍵の無い会員の自分の行 ──「${TOWN_MINE}」・タグの形の街の名前は字のまま（要素が生まれない）・「${TOWN_WAIT}」・「${TOWN_EDIT}」で街の面が開き、欄にその名前・見出しは「${TOWN_SHEET}」・ボタンは「${TOWN_UPD}」`, bad.join(' ／ '));
+    }
+    /* M3 */
+    {
+      const bad = [], a = await redraw({ body: TOWN_LOCKED_LEAK, mine: '{"ok":true,"posts":[]}' }), r = await see();
+      const leak = await ev(xs => {
+        const h = document.documentElement.outerHTML, t = document.body.innerText;
+        const st = [localStorage, sessionStorage].flatMap(S => Object.keys(S).map(k => `${k}=${S.getItem(k)}`)).join('\n');
+        return xs.filter(x => h.includes(x) || t.includes(x) || st.includes(x));
+      }, [TOWN_LEAK, TOWN_LEAK_T]);
+      if (!a || !r) bad.push('欄が落ち着かない');
+      else {
+        if (r.state !== 'locked' || !same(r.lock, [PAY_LINE])) bad.push(`欄 ${r.state}「${r.lock.join('｜')}」（あるべき 鍵の形「${PAY_LINE}」）`);
+        if (r.list.length || r.heads.length || r.text.includes(townN(4))) bad.push(`街の一覧が出ている（${r.list.length}つ）「${r.text.slice(0, 80)}」`);
+      }
+      if (leak.length) bad.push(`返事に付いてきた字が、ページか保存領域に在る：${leak.join('｜')}`);
+      ok(!bad.length, `${tag}: M3 鍵の掛かった返事（'locked'）に街が付いてきても、欄にもページにも保存領域にも1文字も出ない`, bad.join(' ／ '));
+    }
+    /* M10（同じ会員のまま） */
+    {
+      const bad = [];
+      if (!(await redraw({ body: stateBody('locked') }))) bad.push('欄が落ち着かない');
+      const i = await ev(sel => {
+        const e = document.querySelector(sel);
+        if (!e) return -1;
+        e.scrollIntoView({ block: 'center', behavior: 'instant' });
+        const vis = n => n.getClientRects().length > 0 && n.checkVisibility({ visibilityProperty: true });
+        const all = [...document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')].filter(n => n.tabIndex >= 0 && !n.disabled && vis(n));
+        /* 入口の手前で、本当に焦点を受け取るもの（畳んだ <details> の中のリンクなどは受け取らない）を探して置く */
+        for (let k = all.indexOf(e) - 1; k >= 0; k--) { all[k].focus({ preventScroll: true }); if (document.activeElement === all[k]) return k + 1; }
+        return all.indexOf(e) < 0 ? -1 : 0;
+      }, ENT);
+      if (i < 1) bad.push('「＋住みやすい街を追加」の手前に、焦点を置ける所が無い');
+      else {
+        await p.keyboard.press('Tab');
+        const at = await ev(sel => document.activeElement === document.querySelector(sel), ENT);
+        if (!at) bad.push(`Tab で着かない（焦点 ${await ev(() => { const x = document.activeElement; return x ? `${x.tagName}.${x.className}` : '無し'; })}）`);
+        else {
+          await p.keyboard.press('Enter');
+          const opened = await until(() => { const r = document.querySelector('.pvc-root'); return !!r && !r.hidden && r.classList.contains('is-in') && !!r.querySelector('[data-pvc-form="town"]'); });
+          if (!opened) bad.push('Enter で街の面が開かない');
+          else if (!(await shut())) bad.push('Escape で閉じない');
+          else if (!(await until(sel => document.activeElement === document.querySelector(sel), ENT))) bad.push('閉じたあと、焦点が「＋住みやすい街を追加」へ戻らない');
+        }
+      }
+      ok(!bad.length, `${tag}: M10 キーボード ── Tab で「＋住みやすい街を追加」に着く・Enter で街の面が開く・Escape で閉じる・焦点は入口へ戻る`, bad.join(' ／ '));
+    }
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
@@ -7269,6 +7635,7 @@ try {
   if (wantS('work')) for (const s of ONLY) work.push(() => runWorkSizes(browser, s));
   if (wantS('work0')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runWork0(browser, s, v));
   if (wantS('living')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || [390, 1440].includes(x[0]))) work.push(() => runLiving(browser, s, v));
+  if (wantS('towns')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || TOWNS_W.includes(x[0]))) work.push(() => runTowns(browser, s, v));
   if (wantS('ggold') && (WANT_S || !argOf('--only'))) for (const lang of ['ja', 'en']) {
     const vs = VIEWS.filter(x => GG_W.includes(x[0]));
     for (const v of vs) work.push(() => runGGOld(browser, lang, v));

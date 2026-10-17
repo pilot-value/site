@@ -114,7 +114,8 @@ const VIEW = viewOf(SLUG), BASE = baseCode(VIEW);
 if (!VIEW.living || !BASE) { console.error(`✗ ${SLUG} には暮らしの台帳か基地が無い（街の面が開かない会社）`); process.exit(2); }
 const ENTRY = {
   base: BASE,
-  text: `${VIEW.base.city} ${VIEW.base.iata.join('・')}`,
+  /* 入口の data-pvc-basetext と同じ決め方（gen-airline-glance.mjs の townAdd）── 空港の3字が無い会社（ANA）は街の名前だけ（後ろに空白を残さない） */
+  text: [VIEW.base.city, VIEW.base.iata.join('・')].filter(Boolean).join(' '),
   ports: VIEW.living.airports.map((a) => a.iata),
   towns: ledgerTowns(VIEW).map((t) => [t.name, t.sub]),
 };
