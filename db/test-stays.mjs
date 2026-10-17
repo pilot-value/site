@@ -543,7 +543,7 @@ for (const t of ['pv_stay_owner', 'pv_stay_viewers']) {
 
 // ════════════════════════════════════════════════════════════════
 console.log('\n▼ 関数の配り方');
-/* 期待: 画面から呼べるのは12本。未ログインに配るのは 読む・足す・直す・消す の4本（写真・公開・待ち行列・引き取り・申し込み・一覧・決める は配らない）。 */
+/* 期待: 画面から呼べるのは12本（＋2026-10-16 の確認の5本・2026-10-17 の就航地の1本）。未ログインに配るのは 読む・足す・直す・消す の4本（写真・公開・待ち行列・引き取り・申し込み・一覧・決める は配らない）。 */
 const GRANTS = {
   pv_stays: 'anon,auth',
   /* 足すのは誰でも（ログインも要らない。WP-stays-2）。直す・消すは、ログインせずに足した人も端末の鍵で（WP-stays-3） */
@@ -557,7 +557,11 @@ const GRANTS = {
   /* パイロットであることの確認（2026-10-16・10-c）。会員の入口1本とオーナーの4本。ログインした人にだけ配る */
   pv_stay_apply: 'auth', pv_stay_applicants: 'auth', pv_stay_applicant_image: 'auth', pv_stay_members: 'auth',
   pv_stay_viewer_verify: 'auth',
+  /* 運営の「追加」で足せる空港（2026-10-17・10-e。管理ページのホテルの面が候補に使う）。ログインした人にだけ配る（中で運営かを見る） */
+  pv_stay_airports: 'auth',
   pv_stay_hash: '', pv_stay_role: '', pv_stay_visible: '',
+  /* 会社ごとの就航地（3-n。足す口と 10-e が呼ぶ）。誰にも配らない */
+  pv_stay_network: '',
   /* 端末の鍵の印・呼んだ人の手・足してよい人の決め方・1日の上限（WP-stays-2）。誰にも配らない */
   pv_stay_key_hash: '', pv_stay_me: '', pv_stay_may_add: '', pv_stay_cap: '',
   /* 端末の鍵の表の片づけ（2026-10-17・P12.30。足す口と毎時の片づけが呼ぶ）。誰にも配らない */
@@ -584,8 +588,8 @@ const grantsNow = async () => (await db.query(
     order by p.proname, p.oid`)).rows;
 const checkGrants = async (label) => {
   const rows = await grantsNow();
-  ok(rows.length === 38 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
-     `${label}関数は38本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
+  ok(rows.length === 40 && rows.map((r) => r.name).join(',') === Object.keys(GRANTS).sort().join(','),
+     `${label}関数は40本ちょうど（同じ名前の別署名が残っていない・前の部品 pv_stay_jpeg_clean は消えている）`, rows.map((r) => r.name).join(','));
   /* ★確認の印で開けていた頃の判定は、DB から消えている（残っていると、いつか誰かがまた門に呼ぶ） */
   ok((await one(`select to_regprocedure('public.pv_is_verified_pilot()') is null as gone`)).gone === true,
      `${label}★前の判定 pv_is_verified_pilot は DB に残っていない`);
@@ -597,9 +601,10 @@ const checkGrants = async (label) => {
   const needDef = ['pv_stays', 'pv_stay_add', 'pv_stay_update', 'pv_stay_photo_add', 'pv_stay_photo', 'pv_stay_moderate',
                    'pv_stay_delete', 'pv_stay_queue', 'pv_stay_role',
                    'pv_stay_viewer_request', 'pv_stay_viewer_queue', 'pv_stay_viewer_decide', 'pv_stay_claim',
-                   'pv_stay_apply', 'pv_stay_applicants', 'pv_stay_applicant_image', 'pv_stay_members', 'pv_stay_viewer_verify'];
+                   'pv_stay_apply', 'pv_stay_applicants', 'pv_stay_applicant_image', 'pv_stay_members', 'pv_stay_viewer_verify',
+                   'pv_stay_airports'];
   ok(rows.filter((r) => r.def).map((r) => r.name).sort().join(',') === needDef.sort().join(','),
-     `${label}security definer は表を読む18本だけ（見てよい人の決め方の2本は definer にしない）`, rows.filter((r) => r.def).map((r) => r.name).join(','));
+     `${label}security definer は表を読む18本と、運営かを見て就航地を返す1本だけ（見てよい人の決め方の2本・就航地の一覧は definer にしない）`, rows.filter((r) => r.def).map((r) => r.name).join(','));
 };
 await checkGrants('');
 {
@@ -628,11 +633,13 @@ await checkGrants('');
     [`select public.pv_stay_cap(true) as v`, []],
     /* 端末の鍵の表の片づけ（P12.30）。会員からも未ログインからも呼べない（流すのは足す口と毎時の片づけだけ） */
     [`select public.pv_stay_key_sweep() as v`, []],
+    /* 会社ごとの就航地（3-n。2026-10-17）。誰からも直接は呼べない（運営は 10-e を通す） */
+    [`select public.pv_stay_network() as v`, []],
   ];
   for (const who of [V1, U, ANON]) {
     const res = [];
     for (const [sql, params] of tries) res.push(await call(who, sql, params));
-    ok(res.length === 21 && res.every((r) => /permission denied/i.test(r.err || '')),
+    ok(res.length === 22 && res.every((r) => /permission denied/i.test(r.err || '')),
        `${NAMES.get(who)}: 中の部品（ハッシュ・見てよい人の判定・門・見える判定・中身の検品…）を直接は呼べない`,
        J(res.map((r) => r.err || r.v)));
   }
@@ -3009,6 +3016,65 @@ console.log('\n▼ 運営 ── 直接足す・同じ名前を止める（WP-st
 }
 
 // ════════════════════════════════════════════════════════════════
+console.log('\n▼ 運営の「追加」は、その会社の就航地にだけ（WP-towns-13p。N1〜N4）');
+{
+  /* ★N1: SQL の就航地の一覧（3-n）は、会社ページのステイ先に並ぶ空港（airline-destinations.mjs の NETWORK の list）と1字も違わない
+       （会社も、空港も、並びも）。片方だけ直すと、運営が足せる空港とページに出る空港が食い違う */
+  const { NETWORK } = await import('../airline-destinations.mjs');
+  const want = Object.fromEntries(Object.entries(NETWORK).map(([s, n]) => [s, n.list]));
+  /* 会社の並びは比べない（jsonb は欄の名前を自分の順に並べ替える）。空港の並びは比べる */
+  const canonNet = (o) => J(Object.keys(o || {}).sort().map((k) => [k, o[k]]));
+  const net = (await one(`select public.pv_stay_network() as v`)).v;
+  ok(canonNet(net) === canonNet(want) && Object.keys(want).every((s) => J(net[s]) === J(want[s])),
+     `★N1: 運営の「追加」が足せる空港（3-n）は、会社ページのステイ先の空港と同じ（${Object.keys(want).map((s) => s + ' ' + want[s].length).join('・')}）`,
+     J(Object.keys(want).filter((s) => !net || J(net[s]) !== J(want[s])).map((s) => [s, (net && net[s] || []).length, want[s].length])));
+
+  /* ★N2: 運営が publish:true で、その会社の就航地に無い空港へ足す → bad_iata ちょうど・1行も書かない（3字の打ち間違い・本拠地・よその会社の空港） */
+  const NM = (w) => 'テスト用就航地ホテル' + w;
+  const before = (await one(`select count(*)::int as n from public.pv_stay_places`)).n;
+  const refused = [];
+  for (const [who, air, at] of [[OP, 'etihad', 'ZZQ'], [OP, 'etihad', 'AUH'], [OP2, 'jal', 'zzq'], [OP, 'jal', 'HND'], [OP2, 'eva-air', 'ZRH']]) {
+    await ageOut();
+    refused.push([NAMES.get(who), air, at, await add(who, P(air, at, 'hotel', NM(air + at), { publish: true }))]);
+  }
+  const after = (await one(`select count(*)::int as n from public.pv_stay_places`)).n;
+  const typo = (await one(`select count(*)::int as n from public.pv_stay_places where name like 'テスト用就航地ホテル%'`)).n;
+  ok(refused.every(([, , , r]) => J(r) === '{"ok":false,"status":"bad_iata"}') && after === before && typo === 0,
+     '★N2: 運営の「追加」で、その会社の就航地に無い空港（ZZQ・本拠地の AUH と HND・よその会社の空港）は {ok:false, status:\'bad_iata\'} だけ・1行も書かない',
+     J({ refused: refused.map(([n, a, t, r]) => [n, a, t, status(r)]), before, after, typo }));
+  /* 就航地の空港なら、今までどおりその場で公開（承認された人にすぐ見える） */
+  await ageOut();
+  const pub = await add(OP, P('jal', 'hnl', 'hotel', NM('jalHNL'), { publish: true }));
+  const pubRow = await one(`select state, iata from public.pv_stay_places where id = $1`, [pub.item && pub.item.id]);
+  const seenPub = find(await stays(V2, 'jal', 'HNL'), pub.item && pub.item.id);
+  ok(pub.ok === true && pub.item.state === 'public' && pubRow && pubRow.state === 'public' && pubRow.iata === 'HNL' && seenPub && seenPub.state === 'public',
+     '★N2: 就航地の空港（jal の HNL）なら、運営の「追加」は今までどおりその場で公開・承認された人にすぐ見える', J([status(pub), pubRow]));
+
+  /* ★N3: 就航地の決まりは運営の「追加」だけ。会員・未ログインの足す口と、publish を添えない運営の足す口は今までどおり確認待ちで入る */
+  const kept = [];
+  for (const [who, more] of [[U, {}], [U, { publish: true }], [ANON, {}], [OP, {}]]) {
+    await ageOut();
+    const r = await add(who, P('etihad', 'ZZQ', 'spot', NM('待ち' + NAMES.get(who) + kept.length), more));
+    kept.push([NAMES.get(who), r]);
+  }
+  ok(kept.every(([, r]) => r.ok === true && r.item && r.item.state === 'pending'),
+     '★N3: 会員・未ログイン（publish:true を添えても）と、publish を添えない運営の足す口は、就航地に無い空港でも今までどおり確認待ちで入る（運営が見る）',
+     J(kept.map(([n, r]) => [n, status(r)])));
+
+  /* ★N4: 足せる空港の一覧（10-e）は運営だけ。返すのは 3-n の一覧そのもの（ホテルのことは何も無い）。運営でなければ forbidden ちょうど・未ログインは呼べない */
+  const opA = await rpc(OP, 'pv_stay_airports', {}), op2A = await rpc(OP2, 'pv_stay_airports', {});
+  ok(keys(opA) === 'airports,ok' && opA.ok === true && canonNet(opA.airports) === canonNet(want) && J(op2A) === J(opA),
+     '★N4: 運営（オーナーでも、承認の無い運営でも）には {ok:true, airports} ── 中身は 3-n の就航地そのもの（ホテルの名前も件数も無い）', J([keys(opA), keys(op2A)]));
+  const noA = [];
+  for (const who of [U, PAY, V1]) noA.push([NAMES.get(who), J(await rpc(who, 'pv_stay_airports', {}))]);
+  const anonA = await rpc(ANON, 'pv_stay_airports', {});
+  ok(noA.every(([, j]) => j === FORBIDDEN) && denied(anonA),
+     '★N4: 運営でない人（会員・給与の鍵・承認された人）には {ok:false, status:\'forbidden\'} だけ・未ログインは呼べない', J([noA, anonA]));
+
+  for (const x of [pub, ...kept.map(([, r]) => r)]) if (x && x.item) await db.query(`delete from public.pv_stay_places where id = $1`, [x.item.id]);
+}
+
+// ════════════════════════════════════════════════════════════════
 console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）');
 {
   /* 1) 資格の無い人へ返ったものは、決まった定型文のどれかと完全に同じ */
@@ -3122,8 +3188,10 @@ console.log('\n▼ 全部の返事をまとめて見る（漏れが無いか）'
     'own', 'key']);
   const used = new Set();
   const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') for (const k of Object.keys(v)) { used.add(k); walk(v[k]); } };
-  /* ★ オーナーへのオーナーの一覧（WP-stays-1b）だけは、ここでは数えず、すぐ下の1行で欄の形ちょうどを見る */
-  for (const s of seen) if (!ownerQ(s)) walk(JSON.parse(s.json));
+  /* ★ オーナーへのオーナーの一覧（WP-stays-1b）だけは、ここでは数えず、すぐ下の1行で欄の形ちょうどを見る。
+       運営の「追加」で足せる空港（10-e）の答え（欄の名前が会社の符号）も数えない ── 形ちょうどは N4 が見ている（ok と airports だけ・中身は 3-n そのもの） */
+  const airQ = (s) => s.fn === 'pv_stay_airports';
+  for (const s of seen) if (!ownerQ(s) && !airQ(s)) walk(JSON.parse(s.json));
   const extra = [...used].filter((k) => !ALLOWED.has(k));
   ok(extra.length === 0 && ![...used].some((k) => /count|total|hash|uid|user|_at$/.test(k)),
      '返事に出る欄は決めた33個の中だけ（件数・ハッシュ・時刻の欄が無い）', J(extra));
@@ -3195,8 +3263,8 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   ok(STAYS_SQL.split('pv_is_verified_pilot').length === 2 && /^drop function if exists public\.pv_is_verified_pilot\(\);$/m.test(STAYS_SQL),
      '★前の判定 pv_is_verified_pilot は、消す1行のほかに1度も出てこない');
   const fns = code.split(/create or replace function/).slice(1);
-  ok(fns.length === 38 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
-     '38本の関数すべてに set search_path = public, extensions', String(fns.length));
+  ok(fns.length === 40 && fns.every((f) => /set search_path = public, extensions\s+as \$fn\$/.test(f)),
+     '40本の関数すべてに set search_path = public, extensions', String(fns.length));
   const fn = (name) => fns.find((f) => f.trimStart().startsWith('public.' + name + '(')) || '';
   /* 見てよい人の決め方は、毎回「会員と未ログインが名簿の2表を書けない」ことも見ている（2表 × 4通り） */
   const ownF = fn('pv_stay_owner_id'), seesF = fn('pv_stay_sees');

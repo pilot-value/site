@@ -24,6 +24,9 @@
         6. 通貨を USD にしても、承認の面の「20万円」は打たれた字のまま（運営は見た字を通す）
      D) 承認・追加（admin-queue.js。2026-10-17）── 字は字のまま出る・通すときは見た版（rev）を添える・
         選ぶだけでは送らない・数は全部読めたときだけ・上限まで来たら「以上」
+     E) 仕上げ（WP-towns-13p。2026-10-17）── 断られた理由はサイトに在る一言で（status の名前を出さない）・
+        英語のページは英語の字だけ（会社の名前・Google Maps・「1 member」）・空の部分ごとに「確認待ちはありません」・
+        ホテルの会社と空港は「追加」で足せるものを候補に・「追加」に打った字はこのタブに30分（打った人にだけ戻す）
 
    実行: node assert-admin.mjs
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない（Supabase ごと差し替える）。
@@ -91,7 +94,7 @@ console.log('\n════ D) admin-queue.js（承認・追加）のソース �
 {
   const aq = read('admin-queue.js');
   /* 呼んでよい入口（この組がちょうど。名前は呼ぶ場所に字のまま） */
-  const RPCS = ['pv_stay_add', 'pv_stay_moderate', 'pv_stay_photo', 'pv_stay_queue',
+  const RPCS = ['pv_stay_add', 'pv_stay_airports', 'pv_stay_moderate', 'pv_stay_photo', 'pv_stay_queue',
                 'pv_town_admin_add', 'pv_town_moderate', 'pv_town_queue'];
   ok(!/\.from\(/.test(aq), 'テーブルを直接読まない（.from( が無い）');
   ok(!/innerHTML|insertAdjacentHTML|outerHTML|document\.write/.test(aq),
@@ -129,6 +132,27 @@ console.log('\n════ D) admin-queue.js（承認・追加）のソース �
     ok(v !== null && aq.includes("'" + v + "'"), `同じ字：${src}（${v}）`, v === null ? '元の字が見つからない' : 'admin-queue.js に同じ字が無い');
   const ANS = "return '回答 ' + n + '人';";
   ok(live.split(ANS).length === 2 && aq.split(ANS).length === 2, `同じ字：回答の人数（${ANS}）が career-live.js と admin-queue.js に1つずつ`);
+
+  /* ★ホテルを足せなかったときの一言（WP-towns-13p・G2）── career-stay.js の SAY_ADD と、理由の鍵も字も1つも違わない
+       （ステイ先の欄が同じ理由に出す字。T.needName のように T を指す行は、T の字に解いて比べる） */
+  const csT = block(stay, 'var T = {');
+  const csAdd = Object.fromEntries([...block(stay, 'var SAY_ADD = {').matchAll(/^\s*([a-z_]+):\s*(?:'([^']*)'|T\.([A-Za-z]+))/gm)]
+    .map((m) => [m[1], m[2] !== undefined ? m[2] : val(csT, m[3])]));
+  const aqAdd = Object.fromEntries([...block(aq, 'var SAY_ADD = EN ? { exists: SAY.exists } : {').matchAll(/^\s*([a-z_]+):\s*'([^']*)'/gm)]
+    .map((m) => [m[1], m[2]]));
+  const sortJ = (o) => JSON.stringify(Object.keys(o).sort().map((k) => [k, o[k]]));
+  ok(Object.keys(csAdd).length >= 12 && Object.values(csAdd).every((v) => typeof v === 'string' && v) && sortJ(aqAdd) === sortJ(csAdd),
+     `同じ字：career-stay.js SAY_ADD（${Object.keys(csAdd).length}の理由）と admin-queue.js の SAY_ADD が、鍵も字も同じ`,
+     JSON.stringify(Object.keys(csAdd).filter((k) => aqAdd[k] !== csAdd[k]).map((k) => [k, csAdd[k], aqAdd[k] || null])));
+  ok(!/notAdded|追加できませんでした（|Could not add \(/.test(aq), 'サーバーの status の名前を字に混ぜて出す道が無い（「追加できませんでした（…）」を使わない）');
+
+  /* ★英語のページ（WP-towns-13p・G5）── 見出し・ボタン・一言・地図のリンクの英語の表に、日本語が1字も無い */
+  const enOf = (h) => { const i = aq.indexOf(h); return i < 0 ? '' : aq.slice(i, aq.indexOf('} : {', i)); };
+  const EN_PARTS = { T: enOf('var T = EN ? {'), SAY: enOf('var SAY = EN ? {'),
+    FAIL: (aq.match(/var FAIL = EN \? '([^']*)'/) || [])[1] || '', SAY_ADD: (aq.match(/var SAY_ADD = EN \? (\{[^}]*\})/) || [])[1] || '' };
+  const JP = /[぀-ヿ㐀-鿿＀-￯]/;
+  const jpIn = Object.entries(EN_PARTS).filter(([, s]) => !s || JP.test(s)).map(([k, s]) => [k, (s.match(new RegExp('.{0,24}' + JP.source + '.{0,8}')) || ['（見つからない）'])[0]]);
+  ok(jpIn.length === 0, '英語のページの表（T・SAY・FAIL・SAY_ADD）に日本語が1字も無い（「Google マップ」→ Google Maps）', JSON.stringify(jpIn));
 }
 
 /* ── B) DB 側（オーナーが SQL Editor で流すもの）─────────────── */
@@ -209,7 +233,9 @@ const CASES = [
   { key: 'admin',    label: '3. 管理者',                            session: true,  admin: true,  err: false },
   { key: 'nosql',    label: '4. まだ db/admin.sql を流していない',   session: true,  admin: true,  err: true  },
   { key: 'noqueue',  label: '5. 承認の入口がまだ無い（関数が無い）', session: true,  admin: true,  err: false, queue: 'off' },
-  { key: 'usd',      label: '6. 通貨を USD にしてから開く',          session: true,  admin: true,  err: false, usd: true }
+  { key: 'usd',      label: '6. 通貨を USD にしてから開く',          session: true,  admin: true,  err: false, usd: true },
+  { key: 'refuse',   label: '7. 足す・通すがサーバーに断られる（理由ごと）', session: true, admin: true, err: false },
+  { key: 'draft',    label: '8. 「追加」に打った字（読み直し・戻る・30分・ログアウト・別の人）', session: true, admin: true, err: false }
 ];
 /* 承認の面に並ぶ待ち行列の作り物（名前・文・会社と基地）。文の1つは引用符入り・もう1つは「20万円」 */
 const RENT = '家賃は20万円くらい';
@@ -243,7 +269,11 @@ async function queueChecks(page, lang) {
       quoted: [...q.querySelectorAll('.adm-row-t')].some((e) => e.textContent === quoted && !e.children.length),
       rent: [...q.querySelectorAll('.adm-row-t')].some((e) => e.textContent === rent),
       tag: (q.querySelector('li[data-adm="text"] .adm-tag') || {}).textContent || '',
-      count: (q.querySelectorAll('li[data-adm="town"][data-id="11"] .adm-row-k')[1] || {}).textContent || ''
+      count: (q.querySelectorAll('li[data-adm="town"][data-id="11"] .adm-row-k')[1] || {}).textContent || '',
+      count1: (q.querySelectorAll('li[data-adm="town"][data-id="12"] .adm-row-k')[1] || {}).textContent || '',
+      /* 会社の名前（WP-towns-13p・G5）：街の行もステイ先の行も、そのページの言葉の会社名 */
+      kTown: (q.querySelector('li[data-adm="town"][data-id="11"] .adm-row-k') || {}).textContent || '',
+      kPlace: (q.querySelector('li[data-adm="place"] .adm-row-k') || {}).textContent || ''
     };
   }, HOSTILE, QUOTED, RENT);
   ok(v.first && v.bar, 'AQ1 「承認」「追加」の帯が、ダッシュボードの一番上（見出しより上）に見えている', JSON.stringify(v));
@@ -253,9 +283,13 @@ async function queueChecks(page, lang) {
      'AQ4/AQ14 会員が打った街・ホテルの名前のタグ・文の引用符は、字として出るだけ（絵も属性も生えない）', JSON.stringify(v));
   ok(v.tag === (EN ? 'Waiting' : '確認待ち') && v.count === (EN ? '2 members' : '回答 2人'),
      'AQ4 文の行には街が確認待ちの印、名前の行には回答の人数', JSON.stringify({ tag: v.tag, count: v.count }));
+  ok(v.count1 === (EN ? '1 member' : '回答 1人'), `G5 回答が1人の行は「${EN ? '1 member' : '回答 1人'}」`, v.count1);
+  const JAL = EN ? 'Japan Airlines (JAL)' : '日本航空（JAL）';
+  ok(v.kTown === JAL + ' · HND' && v.kPlace === JAL + ' · HND · ' + (EN ? 'Hotel' : 'ホテル'),
+     `G5 街の行もステイ先の行も、会社はそのページの言葉の名前（「${JAL}」。小文字の符号・別の言葉の名前を出さない）`, JSON.stringify({ kTown: v.kTown, kPlace: v.kPlace }));
   ok(!!v.map && v.map.href === 'https://maps.google.com/?q=haneda' && v.map.target === '_blank' && v.map.rel === 'noopener'
-     && v.map.text === 'Google マップ' && v.hours.includes(EN ? '26 h' : '26時間') && v.hours.includes('東京都大田区羽田空港'),
-     'ステイ先の行に住所・都市・ステイ時間と「Google マップ」（別の窓）が出る', JSON.stringify({ map: v.map, hours: v.hours }));
+     && v.map.text === (EN ? 'Google Maps' : 'Google マップ') && v.hours.includes(EN ? '26 h' : '26時間') && v.hours.includes('東京都大田区羽田空港'),
+     `ステイ先の行に住所・都市・ステイ時間と「${EN ? 'Google Maps' : 'Google マップ'}」（別の窓）が出る`, JSON.stringify({ map: v.map, hours: v.hours }));
 
   /* AQ5 文を通す ── 送るのは id と見た版（rev）だけ。行が消え、数が1つ減る */
   await page.click('#adm-q li[data-adm="text"] [data-act="ok"]');
@@ -273,6 +307,11 @@ async function queueChecks(page, lang) {
   ok(m14.length === 1 && canon(m14[0]) === canon({ p: { target: 'place', id: 'bbbbbbbb-0000-4000-8000-000000000001', state: 'public', rev: 'p-1' } })
      && n14 === '2',
      'AQ14 場所の「承認」は {target:place, id, state:public, rev} を1回だけ送り、行が消えて数が1つ減る', JSON.stringify({ m14, n14 }));
+  /* G6 ステイ先が空になった ── その見出しの下にだけ「確認待ちはありません」（街はまだ待っている） */
+  const none1 = await page.evaluate(() => [...document.querySelectorAll('#adm-q [data-adm="none"]')]
+    .map((p) => ({ part: p.getAttribute('data-adm-part'), text: p.textContent, after: (p.previousElementSibling || {}).getAttribute && p.previousElementSibling.getAttribute('data-adm-list') })));
+  ok(none1.length === 1 && none1[0].part === 'stay' && none1[0].after === 'stay' && none1[0].text === (EN ? 'Nothing is waiting' : '確認待ちはありません'),
+     'G6 ステイ先が片づくと、ステイ先の一覧のすぐ下にだけ「確認待ちはありません」（待っている街の側には出ない）', JSON.stringify(none1));
 
   /* AQ12 同じ街として承認 ── 矢印キーでもマウスでも、選ぶだけでは送らない。ボタンを押して初めて送る */
   const row12 = '#adm-q li[data-adm="town"][data-id="12"]';
@@ -302,9 +341,12 @@ async function queueChecks(page, lang) {
      'AQ6 名前の「却下」は {target:town, id, state:rejected} を送り、読み直すと行が無い', JSON.stringify(m6[2]));
   await page.waitForFunction(() => document.getElementById('adm-n').textContent === '0', { timeout: 10000 }).catch(() => {});
   const none = await page.evaluate(() => ({ n: document.getElementById('adm-n').textContent,
-    say: (document.querySelector('#adm-q [data-adm="none"]') || {}).textContent || '' }));
-  ok(none.n === '0' && none.say === (EN ? 'Nothing is waiting' : '確認待ちはありません'),
-     '全部片づくと数は「0」・面には「確認待ちはありません」', JSON.stringify(none));
+    says: [...document.querySelectorAll('#adm-q [data-adm="none"]')].map((p) => [p.getAttribute('data-adm-part'), p.textContent,
+      (p.previousElementSibling && p.previousElementSibling.getAttribute('data-adm-list')) || null,
+      (() => { let h = p.previousElementSibling; while (h && h.tagName !== 'H2') h = h.previousElementSibling; return h ? h.firstChild.textContent : null; })()]) }));
+  const NONE = EN ? 'Nothing is waiting' : '確認待ちはありません';
+  ok(none.n === '0' && JSON.stringify(none.says) === JSON.stringify([['town', NONE, 'town', EN ? 'Towns' : '住みやすい街'], ['stay', NONE, 'stay', EN ? 'Stays' : 'ステイ先']]),
+     `G6 全部片づくと数は「0」・街とステイ先の見出しの下にそれぞれ「${NONE}」`, JSON.stringify(none));
 
   /* AQ14 写真 ── 待ち行列に写真が入ったら、面が開いているあいだに1枚ずつ取りにいく（1枚につき1回）。読めない写真は一言で */
   const PH1 = 'cccccccc-0000-4000-8000-000000000001', PH2 = 'cccccccc-0000-4000-8000-0000000000bad';
@@ -400,17 +442,255 @@ async function queueChecks(page, lang) {
   /* AQ15 「追加」→ ホテル ── 打ったものと publish:true だけを送る（打っていない欄は送らない） */
   await page.click('#adm-a input[name="adm-kind"][value="hotel"]');
   await page.waitForFunction(() => document.querySelectorAll('#adm-a form[data-adm="add-hotel"] select[data-k="airline"] option').length > 1, { timeout: 10000 }).catch(() => {});
+  /* G3 会社の欄は「追加」で足せる会社だけ（サーバーが返した就航地の会社）・空港の欄には、選んだ会社の就航地が候補に出る */
+  const hint = await page.evaluate(() => {
+    const f = document.querySelector('#adm-a form[data-adm="add-hotel"]'), i = f.querySelector('input[data-k="iata"]');
+    const list = i.getAttribute('list') && document.getElementById(i.getAttribute('list'));
+    return { airlines: [...f.querySelectorAll('select[data-k="airline"] option')].map((o) => o.value),
+             iata: list ? [...list.querySelectorAll('option')].map((o) => o.value) : null };
+  });
   await page.select('#adm-a form[data-adm="add-hotel"] select[data-k="airline"]', 'jal');
-  await page.type('#adm-a form[data-adm="add-hotel"] input[data-k="iata"]', 'hnd');
+  const hintJal = await page.evaluate(() => { const i = document.querySelector('#adm-a form[data-adm="add-hotel"] input[data-k="iata"]');
+    const list = document.getElementById(i.getAttribute('list') || ''); return list ? [...list.querySelectorAll('option')].map((o) => o.value) : null; });
+  ok(hint.airlines[0] === '' && JSON.stringify(hint.airlines.slice(1).sort()) === JSON.stringify(['ana', 'jal']) && JSON.stringify(hint.iata) === '[]' && JSON.stringify(hintJal) === JSON.stringify(['HNL', 'LAX'])
+     && (await callsOf(page, 'pv_stay_airports')).length === 1,
+     'G3 ホテルの会社の欄は足せる会社だけ・会社を選ぶと空港の候補はその会社の就航地（足せる空港は1回だけ読む）', JSON.stringify({ hint, hintJal }));
+  await page.type('#adm-a form[data-adm="add-hotel"] input[data-k="iata"]', 'hnl');
   await page.type('#adm-a form[data-adm="add-hotel"] input[data-k="name"]', 'ホテル見本3');
   await page.click('#adm-a form[data-adm="add-hotel"] button[type="submit"]');
   await page.waitForFunction(() => { const p = document.querySelector('#adm-a form[data-adm="add-hotel"] [data-adm="add-say"]'); return p && !p.hidden; }, { timeout: 10000 }).catch(() => {});
   const a15 = await page.evaluate(() => ({ say: (document.querySelector('#adm-a form[data-adm="add-hotel"] [data-adm="add-say"]') || {}).textContent || '',
     sent: window.__args.filter((x) => x[0] === 'pv_stay_add').map((x) => x[1]),
     town: !document.querySelector('#adm-a [data-adm="add-town-box"]').hidden }));
-  ok(a15.sent.length === 1 && canon(a15.sent[0]) === canon({ p: { airline: 'jal', iata: 'HND', kind: 'hotel', name: 'ホテル見本3', publish: true } })
+  ok(a15.sent.length === 1 && canon(a15.sent[0]) === canon({ p: { airline: 'jal', iata: 'HNL', kind: 'hotel', name: 'ホテル見本3', publish: true } })
      && a15.say === (EN ? 'Added.' : '追加しました。') && !a15.town,
      'AQ15 ホテルは {airline, iata, kind:hotel, name, publish:true} だけを送り（打っていない欄は送らない）「追加しました。」', JSON.stringify(a15));
+}
+
+/* ── 断られたとき（WP-towns-13p・G2）── サーバーが返しうる status を SQL から集め、1つずつ返させて、出る字を見る ──
+   ★出る字は、サイトに在る一言そのもの（ステイ先の欄と同じ字・管理ページの断りの字）。status の名前は1字も出さない。
+     英語のページで英語の字がまだ無い理由は、管理ページの FAIL（「Something went wrong. Please try again.」）。 */
+const sqlBody = (f, n) => (read(f).match(new RegExp('create or replace function public\\.' + n + '\\([\\s\\S]*?\\$fn\\$;')) || [''])[0];
+const grab = (body, re) => [...body.matchAll(re)].map((m) => m[1]);
+const ST_IS = /'status',\s*'([a-z_]+)'/g;
+const STATUS = {
+  add:  [...new Set([...grab(sqlBody('db/stays.sql', 'pv_stay_add'), ST_IS), ...grab(sqlBody('db/stays.sql', 'pv_stay_clean'), /status := '([a-z_]+)'/g),
+                     ...grab(sqlBody('db/stays.sql', 'pv_stay_clash'), /then '([a-z_]+)'/g)])].sort(),
+  town: [...new Set(grab(sqlBody('db/towns.sql', 'pv_town_admin_add'), ST_IS))].sort(),
+  tmod: [...new Set(grab(sqlBody('db/towns.sql', 'pv_town_moderate'), ST_IS))].sort(),
+  smod: [...new Set(grab(sqlBody('db/stays.sql', 'pv_stay_moderate'), ST_IS))].sort()
+};
+/* 街の名前の検品が止めるときの日本語の文（db/towns.sql の pv_town_clean。運営の「追加」→ 街 が受け取りうる） */
+const TOWN_MSG = (sqlBody('db/towns.sql', 'pv_town_clean').match(/raise exception '(街・最寄駅は[^']*)'/) || [])[1] || null;
+const CS = (() => {
+  const stay = read('career-stay.js');
+  const block = (h) => { const i = stay.indexOf(h); return i < 0 ? '' : stay.slice(i, stay.indexOf('};', i)); };
+  const T0 = block('var T = {');
+  const val = (b, k) => { const m = b.match(new RegExp('^\\s*' + k + ":\\s*'([^']*)'", 'm')); return m ? m[1] : null; };
+  const map = (h) => Object.fromEntries([...block(h).matchAll(/^\s*([a-z_]+):\s*(?:'([^']*)'|T\.([A-Za-z]+))/gm)].map((m) => [m[1], m[2] !== undefined ? m[2] : val(T0, m[3])]));
+  return { add: map('var SAY_ADD = {'), mod: map('var SAY_MOD = {'), fail: (stay.match(/var SAY_FAIL = '([^']*)';/) || [])[1] || null };
+})();
+/* 管理ページの英語の断り（C9 で決めた字） */
+const EN_SAY = {
+  changed: 'The author changed it. The current content was loaded - check it and press again.',
+  final: 'A rejected item cannot be published again.', own_post: 'Your own item is checked by another operator.',
+  not_found: 'This can no longer be shown.', forbidden: 'Only the operator can do this.', exists: 'The same name is already registered.'
+};
+const EN_FAIL = 'Something went wrong. Please try again.';
+const ALL_ST = [...new Set([...STATUS.add, ...STATUS.town, ...STATUS.tmod, ...STATUS.smod])];
+async function refusalChecks(page, lang) {
+  const EN = lang === 'en';
+  const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  const wantMod = (s) => EN ? (has(EN_SAY, s) ? EN_SAY[s] : EN_FAIL) : (has(CS.mod, s) ? CS.mod[s] : CS.fail);
+  /* status の名前（と、名前に見える英小文字の塊）が出ていないか。日本語のページは英小文字3字以上の塊も無いこと。
+     （英語の文には changed・final のような普通の語が入るので、英語のページは「_ を含む塊」と「status の名前だけの字」を見る。
+      どちらのページも、出た字が決めた一言と1字も違わないことを別に見ている） */
+  const codeIn = (t) => t == null || /[a-z]+_[a-z]+/.test(t) || ALL_ST.some((s) => t.trim() === s || t.includes('（' + s) || t.includes('(' + s))
+    || (!EN && /[a-z_]{3,}/.test(t));
+  ok(STATUS.add.length >= 13 && ['locked', 'bad_iata', 'bad_name', 'too_fast', 'rate_limited', 'queue_full', 'duplicate', 'exists'].every((s) => STATUS.add.includes(s))
+     && STATUS.town.includes('forbidden') && STATUS.tmod.length >= 6 && STATUS.smod.length >= 6 && !!TOWN_MSG && Object.keys(CS.add).length >= 12 && !!CS.fail,
+     '断りの理由を SQL から集められた（ホテルの追加・街の追加・街の承認・ステイ先の承認）', JSON.stringify(STATUS));
+  await page.waitForFunction(() => document.getElementById('adm-n').getAttribute('data-state') === 'ok', { timeout: 10000 });
+  const H = '#adm-a form[data-adm="add-hotel"]', TW = '#adm-a form[data-adm="add-town"]';
+  const say = (f) => page.evaluate((s) => { const p = document.querySelector(s + ' [data-adm="add-say"]'); return p && !p.hidden ? p.textContent : null; }, f);
+  const send = async (f, fn, set) => {
+    const n0 = (await callsOf(page, fn)).length;
+    await page.evaluate((x) => { window.__q.refuse = x.refuse || null; window.__q.raise = x.raise || null; }, set);
+    await page.click(f + ' button[type="submit"]');
+    await page.waitForFunction((fn2, n, f2) => window.__args.filter((x) => x[0] === fn2).length > n
+      && document.querySelector(f2).getAttribute('aria-busy') === 'false', { timeout: 10000 }, fn, n0, f);
+    return say(f);
+  };
+  /* AQ16 ホテルの「追加」── 理由ごとに */
+  await page.click('#adm-b-a');
+  await page.click('#adm-a input[name="adm-kind"][value="hotel"]');
+  await page.waitForFunction((h) => document.querySelectorAll(h + ' select[data-k="airline"] option').length > 1, { timeout: 10000 }, H);
+  await page.select(H + ' select[data-k="airline"]', 'jal');
+  await page.type(H + ' input[data-k="iata"]', 'zzq');
+  await page.type(H + ' input[data-k="name"]', '断られるホテル');
+  const badAdd = [];
+  for (const s of STATUS.add) {
+    const t = await send(H, 'pv_stay_add', { refuse: { pv_stay_add: s } });
+    const want = EN ? (s === 'exists' ? EN_SAY.exists : EN_FAIL) : (has(CS.add, s) ? CS.add[s] : CS.fail);
+    if (t !== want || codeIn(t)) badAdd.push([s, t]);
+  }
+  const keptH = await page.evaluate((h) => document.querySelector(h + ' input[data-k="name"]').value, H);
+  ok(badAdd.length === 0 && keptH === '断られるホテル',
+     `AQ16 ホテルの「追加」が断られたとき（${STATUS.add.length}の理由）、出る字は${EN ? '「The same name is already registered.」か「Something went wrong. Please try again.」' : ' career-stay.js の SAY_ADD（無ければ SAY_FAIL）'}と同じ・status の名前は出ない・打った字は残る`,
+     JSON.stringify(badAdd));
+  /* AQ16 街の「追加」── forbidden と、検品の日本語の文 */
+  await page.evaluate(() => { window.__q.refuse = null; });
+  await page.click('#adm-a input[name="adm-kind"][value="town"]');
+  await page.waitForSelector(TW);
+  await page.select(TW + ' select[data-k="scope"]', '0');
+  await page.type(TW + ' input[data-k="name"]', '断られる街');
+  const badTown = [];
+  for (const s of STATUS.town) {
+    const t = await send(TW, 'pv_town_admin_add', { refuse: { pv_town_admin_add: s } });
+    if (t !== wantMod(s) || codeIn(t)) badTown.push([s, t]);
+  }
+  const tMsg = await send(TW, 'pv_town_admin_add', { raise: { pv_town_admin_add: TOWN_MSG } });
+  if (tMsg !== (EN ? EN_FAIL : TOWN_MSG) || codeIn(tMsg)) badTown.push(['raise', tMsg]);
+  ok(badTown.length === 0, `AQ16 街の「追加」が断られたとき（${STATUS.town.join('・')}・検品の文）、出る字は決めた一言${EN ? '（検品の文は英語がまだ無いので FAIL）' : '（検品の文はサーバーの日本語のまま）'}・status の名前は出ない`, JSON.stringify(badTown));
+  await page.evaluate(() => { window.__q.refuse = null; window.__q.raise = null; });
+  /* AQ16 承認 ── 街の名前の行・ステイ先の場所の行。理由ごとに、その行の一言（読み直したあとの同じ行） */
+  await page.click('#adm-b-q');
+  const modOne = async (row, fn, s) => {
+    await page.evaluate((r) => { const li = document.querySelector(r); if (li) li.setAttribute('data-test-old', '1'); }, row);
+    const n0 = (await callsOf(page, fn)).length;
+    await page.evaluate((f, st) => { window.__q.refuse = { [f]: st }; }, fn, s);
+    await page.click(row + ' [data-act="ok"]');
+    await page.waitForFunction((r, f, n) => {
+      const li = document.querySelector(r), p = li && li.querySelector('[data-adm="say"]');
+      return window.__args.filter((x) => x[0] === f).length > n && li && !li.hasAttribute('data-test-old') && p && !p.hidden;
+    }, { timeout: 10000 }, row, fn, n0);
+    return page.evaluate((r) => document.querySelector(r + ' [data-adm="say"]').textContent, row);
+  };
+  const badMod = [];
+  for (const s of STATUS.tmod) { const t = await modOne('#adm-q li[data-adm="town"][data-id="11"]', 'pv_town_moderate', s); if (t !== wantMod(s) || codeIn(t)) badMod.push(['town', s, t]); }
+  for (const s of STATUS.smod) { const t = await modOne('#adm-q li[data-adm="place"]', 'pv_stay_moderate', s); if (t !== wantMod(s) || codeIn(t)) badMod.push(['place', s, t]); }
+  await page.evaluate(() => { window.__q.refuse = null; });
+  ok(badMod.length === 0, `AQ16 「承認」が断られたとき（街 ${STATUS.tmod.length}・ステイ先 ${STATUS.smod.length} の理由）、行に出る字は${EN ? '管理ページの英語の断り（無ければ FAIL）' : ' career-stay.js の SAY_MOD（無ければ SAY_FAIL）'}と同じ・status の名前は出ない`, JSON.stringify(badMod));
+}
+
+/* ── 「追加」に打った字（WP-towns-13p・G4）── 給与以外の入力と同じ決まり（WP-keep-1）──
+   読み直し・戻る・面を開き直す → 同じ字／自動のログアウト → 残り、同じ人が戻ると同じ字／30分を過ぎたら消える／
+   このページの「ログアウト」→ このタブに1つも残らない／別の人 → 戻さずに消す。どれも条件で待つ（時間では待たない） */
+const OTHER = '00000000-0000-4000-8000-00000000b002';
+async function draftChecks(page, lang, url) {
+  const EN = lang === 'en';
+  const TF = '#adm-a form[data-adm="add-town"]', HF = '#adm-a form[data-adm="add-hotel"]';
+  const ready = () => page.waitForFunction(() => document.getElementById('adm-n').getAttribute('data-state') === 'ok', { timeout: 10000 });
+  const reload = async () => { await page.reload({ waitUntil: 'networkidle0' }); };
+  /* 追加の面を開いて、2つの面がそろう（会社の欄が並ぶ）まで待つ */
+  const openAdd = async () => {
+    await ready();
+    if (await page.$eval('#adm-a', (e) => e.hidden)) await page.click('#adm-b-a');
+    await page.waitForFunction((t) => !!document.querySelector(t), { timeout: 10000 }, TF);
+    if (!(await page.$(HF))) {
+      const k = await page.$eval('#adm-a input[name="adm-kind"]:checked', (e) => e.value);
+      await page.click('#adm-a input[name="adm-kind"][value="hotel"]');
+      await page.waitForFunction((h) => !!document.querySelector(h), { timeout: 10000 }, HF);
+      if (k === 'town') await page.click('#adm-a input[name="adm-kind"][value="town"]');
+    }
+    await page.waitForFunction((h) => document.querySelectorAll(h + ' [data-k="airline"] option').length > 1, { timeout: 10000 }, HF);
+  };
+  const vals = () => page.evaluate((t, h) => {
+    const v = (s) => { const e = document.querySelector(s); return e ? e.value : null; };
+    return { kind: (document.querySelector('#adm-a input[name="adm-kind"]:checked') || {}).value || null,
+      scope: v(t + ' [data-k="scope"]'), town: v(t + ' [data-k="name"]'), air: v(h + ' [data-k="airline"]'), iata: v(h + ' [data-k="iata"]'),
+      name: v(h + ' [data-k="name"]'), addr: v(h + ' [data-k="address"]'), map: v(h + ' [data-k="maps_url"]'), note: v(h + ' [data-k="note"]') };
+  }, TF, HF);
+  const stored = () => page.evaluate(() => { try { return Object.keys(sessionStorage).filter((k) => /^pv_admin_draft:/.test(k)).sort().map((k) => [k, sessionStorage.getItem(k)]); } catch (e) { return null; } });
+  const tab = (k, v) => page.evaluate((a, b) => { if (b === null) sessionStorage.removeItem(a); else sessionStorage.setItem(a, b); }, k, v);
+  const W = { scope: '0', town: '勝どき下書き', air: 'jal', iata: 'HNL', name: 'ホテル下書き', addr: '住所下書き', map: '', note: 'メモ下書き' };
+  const same = (v) => Object.keys(W).every((k) => v[k] === W[k]);
+  const empty = (v) => ['town', 'iata', 'name', 'addr', 'map', 'note'].every((k) => !v[k]) && !v.scope && !v.air;
+  const typeAll = async () => {
+    await openAdd();
+    await page.click('#adm-a input[name="adm-kind"][value="town"]');
+    await page.select(TF + ' [data-k="scope"]', W.scope);
+    await page.type(TF + ' [data-k="name"]', W.town);
+    await page.click('#adm-a input[name="adm-kind"][value="hotel"]');
+    await page.select(HF + ' [data-k="airline"]', W.air);
+    await page.type(HF + ' [data-k="iata"]', W.iata);
+    await page.type(HF + ' [data-k="name"]', W.name);
+    await page.type(HF + ' [data-k="address"]', W.addr);
+    await page.type(HF + ' [data-k="note"]', W.note);
+  };
+
+  /* KD1 打つと、このタブに2つ（街・ホテル）。印は会員の id の指紋だけ（id そのものは置かない） */
+  await typeAll();
+  const s1 = await stored();
+  const recs = (s1 || []).map(([, j]) => { try { return JSON.parse(j); } catch (e) { return null; } });
+  ok(!!s1 && JSON.stringify(s1.map(([k]) => k)) === '["pv_admin_draft:hotel","pv_admin_draft:town"]'
+     && recs.every((o) => o && o.v === 1 && /^m:[0-9a-f]+$/.test(o.by) && typeof o.at === 'number') && recs[0].by === recs[1].by
+     && s1.every(([, j]) => !j.includes(UID) && !j.includes('@')),
+     'KD1 「追加」に打った字は、このタブに街とホテルの2つだけ置く（打った人の印は指紋・id もメールも置かない）', JSON.stringify(s1));
+
+  /* KD2 読み直す → 同じ字・最後に打っていた方（ホテル）の面で開く */
+  await reload(); await openAdd();
+  const v2 = await vals();
+  ok(same(v2) && v2.kind === 'hotel', 'KD2 読み直しても、街とホテルに打った字はそのまま（最後に打っていたホテルの面で開く）', JSON.stringify(v2));
+
+  /* KD3 ほかのページへ移って「戻る」→ 同じ字 */
+  await page.goto('about:blank');
+  await page.goBack({ waitUntil: 'networkidle0' });
+  await openAdd();
+  const v3 = await vals();
+  ok(same(v3), 'KD3 ほかのページへ移って「戻る」でも、打った字はそのまま', JSON.stringify(v3));
+
+  /* KD4 面を閉じて開き直す → 同じ字 */
+  await page.click('#adm-b-a');
+  const closed = await page.$eval('#adm-a', (e) => e.hidden);
+  await page.click('#adm-b-a');
+  const v4 = await vals();
+  ok(closed && same(v4), 'KD4 「追加」を閉じて開き直しても、打った字はそのまま', JSON.stringify(v4));
+
+  /* KD5 ログインが知らせなく切れた（自動のログアウト）→ 置いたまま → 同じ人が戻ると同じ字 */
+  await tab('pv-test-nosession', '1');
+  await reload();
+  const gate = await page.evaluate(() => getComputedStyle(document.getElementById('dashboard')).display === 'none' && getComputedStyle(document.getElementById('gate')).display !== 'none');
+  const s5 = await stored();
+  await tab('pv-test-nosession', null);
+  await reload(); await openAdd();
+  const v5 = await vals();
+  ok(gate && JSON.stringify(s5) === JSON.stringify(s1) && same(v5),
+     'KD5 ログインが知らせなく切れても打った字は消えない（画面は入口だけ）・同じ人がまた入ると、そのまま戻る', JSON.stringify({ gate, kept: JSON.stringify(s5) === JSON.stringify(s1), v5 }));
+
+  /* KD6 最後に打ってから29分 → 戻る／31分 → 戻らず、このタブからも消える */
+  const age = (min) => page.evaluate((m) => {
+    for (const k of Object.keys(sessionStorage)) if (/^pv_admin_draft:/.test(k)) {
+      const o = JSON.parse(sessionStorage.getItem(k)); o.at = Date.now() - m * 60 * 1000; sessionStorage.setItem(k, JSON.stringify(o));
+    }
+  }, min);
+  await age(29); await reload(); await openAdd();
+  const v29 = await vals();
+  await age(31); await reload(); await openAdd();
+  const v31 = await vals(), s31 = await stored();
+  ok(same(v29) && empty(v31) && JSON.stringify(s31) === '[]',
+     'KD6 最後に打ってから29分なら戻り、31分を過ぎたら戻らない（このタブからも消える）', JSON.stringify({ v29, v31, s31 }));
+
+  /* KD7 別の人がこのタブでログインしている → 前の人の字は出さず、このタブからも消す */
+  await typeAll();
+  const s7a = await stored();
+  await tab('pv-test-uid', OTHER);
+  await reload(); await openAdd();
+  const v7 = await vals(), s7 = await stored();
+  await tab('pv-test-uid', null);
+  ok(s7a.length === 2 && empty(v7) && JSON.stringify(s7) === '[]',
+     'KD7 別の人がこのタブで入ると、前の人が打った字は出ない・このタブからも消える', JSON.stringify({ before: s7a.length, v7, s7 }));
+
+  /* KD8 このページの「ログアウト」→ このタブに1つも残らない・同じ人が入り直しても戻らない */
+  await reload(); await typeAll();
+  const s8a = await stored();
+  await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }), page.click('#tab-users .btn-logout-a')]);
+  const s8 = await stored();
+  await page.goto(url, { waitUntil: 'networkidle0' });
+  await openAdd();
+  const v8 = await vals();
+  ok(s8a.length === 2 && JSON.stringify(s8) === '[]' && empty(v8),
+     'KD8 このページの「ログアウト」を押すと、打った字はこのタブから全部消える（同じ人が入り直しても戻らない）', JSON.stringify({ before: s8a.length, s8, v8 }));
 }
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
@@ -447,8 +727,10 @@ for (const lang of ['ja', 'en']) {
       const QUEUES = ['pv_town_queue', 'pv_stay_queue'];
       /* 1×1 の PNG（写真の作り物） */
       const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
-      const SESSION = cfg.session
-        ? { user: { id: uid, email: 'pilot@example.com' } } : null;
+      /* 8. の場面だけが使う2つの切り替え（このタブの保存領域）：別の人として入る・ログインが知らせなく切れた */
+      const tab = (k) => { try { return sessionStorage.getItem(k); } catch (e) { return null; } };
+      const SESSION = cfg.session && tab('pv-test-nosession') !== '1'
+        ? { user: { id: tab('pv-test-uid') || uid, email: 'pilot@example.com' } } : null;
       const ROWS = [{ id: uid, name: name, email: 'pilot@example.com', gender: 'male',
         birthdate: '1988-04-12', country: '日本', company: 'ZIPAIR', position: 'captain',
         created_at: '2026-01-11T00:00:00Z' },
@@ -483,7 +765,9 @@ for (const lang of ['ja', 'en']) {
           const id = String(((a && a.p) || {}).id || '');
           return /bad$/.test(id) ? { ok: false, status: 'not_found' } : { ok: true, mime: 'image/png', w: 1, h: 1, state: 'pending', b64: PNG };
         },
-        pv_stay_add: (a) => ({ ok: true, item: Object.assign({ id: 'dddddddd-0000-4000-8000-000000000001', state: 'public' }, (a && a.p) || {}) })
+        pv_stay_add: (a) => ({ ok: true, item: Object.assign({ id: 'dddddddd-0000-4000-8000-000000000001', state: 'public' }, (a && a.p) || {}) }),
+        /* 運営の「追加」で足せる空港（会社の符号 → 3字）。この作り物では2社だけ */
+        pv_stay_airports: () => ({ ok: true, airports: { jal: ['HNL', 'LAX'], ana: ['HNL'] } })
       };
       function q(t) {
         const o = { data: [], error: null,
@@ -505,7 +789,11 @@ for (const lang of ['ja', 'en']) {
           window.__rpc.push(n);
           window.__args.push([n, a === undefined ? null : JSON.parse(JSON.stringify(a))]);
           const isList = n === 'admin_list_profiles' || n === 'admin_list_reviews';
-          const res = (cfg.err && isList)
+          /* 7. の場面：その入口だけ、決めた status で断る（refuse）／日本語の文の例外で止まる（raise） */
+          const refuse = window.__q.refuse && window.__q.refuse[n], raise = window.__q.raise && window.__q.raise[n];
+          const res = raise ? { data: null, error: { code: '22023', message: raise } }
+            : refuse ? { data: { ok: false, status: refuse }, error: null }
+            : (cfg.err && isList)
             ? { data: null, error: { message: 'function does not exist' } }
             : (cfg.queue === 'off' && QUEUES.includes(n))
               ? { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.' + n }, status: 404 }
@@ -636,6 +924,8 @@ for (const lang of ['ja', 'en']) {
       dashHidden();
       ok(seen.msg.length > 10, '黙って空の表を出さず、理由を出す', seen.msg);
     }
+    if (c.key === 'refuse') await refusalChecks(page, lang).catch((e) => ok(false, 'AQ16 断られたときの場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
+    if (c.key === 'draft') await draftChecks(page, lang, url).catch((e) => ok(false, 'KD 打った字の場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
 
     await page.close();
   }

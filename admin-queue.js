@@ -11,7 +11,10 @@
    ★時刻・書いた人の印・メールは、サーバーが返さない。ここでも作らない。
    ★ステイ先の待ち行列は「待っているもの」だけ。公開済みのホテルを読む道はここに無い
      （読めるのはオーナーとオーナーが承認した人だけ ── db/stays.sql の門）。
-     写真は、承認の面が開いているあいだに1枚ずつ取りにいき、このタブのメモリーにだけ置く。 */
+     写真は、承認の面が開いているあいだに1枚ずつ取りにいき、このタブのメモリーにだけ置く。
+   ★断られた理由は、サイトに在る一言で出す（ステイ先の欄と同じ字）。サーバーの status の名前は画面に出さない。
+   ★ホテルを「追加」で足せるのは、その会社の就航地だけ（決めるのはサーバー。面の候補は同じ一覧から出す手がかり）。
+   ★「追加」の面に打った字は、このタブに30分だけ残す（打った人にだけ戻す。このページの「ログアウト」で消える）。 */
 (function () {
   'use strict';
 
@@ -38,10 +41,10 @@
     refresh:  'Refresh',
     loading:  'Loading…',
     more:     '+',
-    posts:    function (n) { return n + ' members'; },
+    posts:    function (n) { return n === 1 ? '1 member' : n + ' members'; },
     kinds:    { hotel: 'Hotel', food: 'Restaurant', spot: 'Place' },
     hours:    function (n) { return n + ' h'; },
-    map:      'Google マップ',
+    map:      'Google Maps',
     photoErr: 'The photo cannot be shown',
     town:     'Town',
     hotel:    'Hotel',
@@ -55,8 +58,7 @@
     fNote:    'Note',
     add:      'Add',
     added:    'Added.',
-    existed:  'It is already a candidate.',
-    notAdded: function (s) { return 'Could not add (' + s + ')'; }
+    existed:  'It is already a candidate.'
   } : {
     towns:    '住みやすい街',
     stays:    'ステイ先',
@@ -89,8 +91,7 @@
     fNote:    'ひとこと',
     add:      '追加',
     added:    '追加しました。',
-    existed:  'もう候補に入っています。',
-    notAdded: function (s) { return '追加できませんでした（' + s + '）'; }
+    existed:  'もう候補に入っています。'
   };
 
   /* 断られたときの一言（career-stay.js の SAY_MOD ／ SAY_ADD.exists ／ SAY_FAIL と同じ字。assert-admin.mjs が突き合わせる）。 */
@@ -110,6 +111,23 @@
     exists:    '同じ名前が、もう登録されています。'
   };
   var FAIL = EN ? 'Something went wrong. Please try again.' : 'うまくいきませんでした。もう一度お試しください。';
+  /* ホテルを足せなかったときの一言（career-stay.js の SAY_ADD と同じ字。ステイ先の欄が同じ理由に出す字）。
+     ★サーバーの status の名前は、画面に出さない。ここに無い status は FAIL（ステイ先の欄と同じ決め方）。
+       英語のページは、英語の字がサイトに在る exists だけ。ほかは FAIL（英語の字はまだ無い）。 */
+  var SAY_ADD = EN ? { exists: SAY.exists } : {
+    bad_airline:  'この就航地には、いま追加できません。',
+    bad_iata:     'この就航地には、いま追加できません。',
+    bad_kind:     '種類を選んでください。',
+    bad_name:     '名前は2〜80字で入力してください。',
+    too_long:     '住所は200字、ひとことは500字までです。',
+    bad_city:     '都市の名前が長すぎます。',
+    bad_hours:    'ステイ時間は 1〜240 の整数（時間）で入力してください。空のままでも送れます。',
+    too_fast:     '続けて追加するときは、少し時間をあけてください。',
+    rate_limited: '追加できる数の上限に達しました。24時間たってからお試しください。',
+    duplicate:    '同じ名前を、もう追加しています。',
+    exists:       '同じ名前が、もう登録されています。',
+    queue_full:   'この就航地には、いま追加できません。'
+  };
 
   var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
   var isArr = Array.isArray;
@@ -125,7 +143,8 @@
   function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
   function $(id) { return document.getElementById(id); }
 
-  /* ── 状態（このタブのメモリーだけ。保存領域には何も書かない）──────────── */
+  /* ── 状態（このタブのメモリーだけ。待ち行列から来たものは保存領域に何も書かない。
+        保存領域に置くのは「追加」の面に運営が打った字だけ ── 下の「打ちかけ」の決まり）──────────── */
   var EMPTY_TOWN = { k: 'idle', scopes: [], towns: [], texts: [], full: false };
   var EMPTY_STAY = { k: 'idle', places: [], photos: [], full: false };
   var S = {
@@ -139,8 +158,103 @@
     notes: {},         // 断られた行の一言（読み直したあとも、その行に残す）
     photos: {},        // 写真の id → data: URL（いま待っている写真だけ。このタブのメモリーだけ）
     photoWait: [],     // まだ取りにいっていない写真の枠
-    photoBusy: false
+    photoBusy: false,
+    me: '',            // いま読んでいる人の印（会員の id の指紋。打ちかけを戻してよいかだけに使う。分からなければ ''）
+    names: null,       // 会社の名簿（pv-airlines.json）を読む約束。1回だけ読む
+    airports: null     // 運営の「追加」で足せる空港（pv_stay_airports）を読む約束。ホテルの面を初めて出すときに1回だけ
   };
+
+  /* ── 会社の名前（両方のページで同じ1枚 pv-airlines.json から。英語のページは英語の名前）──
+     読めなければ、日本語のページはサーバーの名前、英語のページは会社の符号の大文字（ほかの画面と同じ形）。 */
+  function names() {
+    if (!S.names) S.names = fetch(new URL('pv-airlines.json', SRC).href, { credentials: 'same-origin' }).then(function (res) {
+      if (!res.ok) throw new Error('http');
+      return res.json();
+    }).then(function (j) {
+      var m = j && j.airlines;
+      if (!m || typeof m !== 'object' || isArr(m)) throw new Error('shape');
+      return m;
+    }).catch(function () { return null; });
+    return S.names;
+  }
+  var NAMES = null;   // 読めた名簿（読めるまで・読めなければ null）
+  function airName(code, serverName) {
+    var c = str(code), m = NAMES && has(NAMES, c) ? NAMES[c] : null;
+    var n = m ? str(EN ? m.en : m.ja) : '';
+    return n || (!EN && str(serverName)) || c.toUpperCase();
+  }
+  /* 運営の「追加」で足せる空港（サーバーの決まりと同じ1か所 ── db/stays.sql の 3-n）。読めなければ null（候補を出さないだけ。決めるのはサーバー） */
+  function airports() {
+    if (!S.airports) S.airports = call(function () { return S.sb.rpc('pv_stay_airports', { p: {} }); }).then(function (r) {
+      var a = verdict(r) === 'ok' ? r.data.airports : null;
+      return a && typeof a === 'object' && !isArr(a) ? a : null;
+    });
+    return S.airports;
+  }
+
+  /* ── 打ちかけ（「追加」の2つの面。このタブだけ）── 給与以外の入力と同じ決まり（WP-keep-1）──
+     ・置くのは、面の欄の字と選んだもの・打った人の印（'m:' ＋ 会員の id の指紋。id そのものは置かない）・最後に打った時刻だけ。
+       置くのは画面の欄と同じもの（足せたあと、残っている会社と空港も）。欄が全部空なら置かない。
+     ・戻すのは、最後に打ってから30分以内で、打った人がいま読んでいる人と同じときだけ（読み直し・戻る・面を開き直す）。
+     ・別の人がログインしていたら、前の人の分は戻さずに消す（ページを開いた時・読み出しを始める時）。
+     ・ログインが知らせなく切れた（自動のログアウト）だけなら消さない ── 同じ人が戻れば、30分のうちは戻る。
+     ・このページの「ログアウト」は、このタブの分を全部消す（admin.html が pv_admin_draft: で始まる鍵を消す）。 */
+  var DRAFT = 'pv_admin_draft:';
+  var DRAFT_MS = 30 * 60 * 1000;
+  var FIELDS = { town: ['scope', 'name'], hotel: ['airline', 'iata', 'name', 'address', 'maps_url', 'note'] };
+  function sget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+  function sset(k, v) { try { sessionStorage.setItem(k, v); } catch (e) { /* 置けなくても先へ */ } }
+  function sdel(k) { try { sessionStorage.removeItem(k); } catch (e) { /* 消せなくても先へ */ } }
+  function markOf(uid) {
+    var P = window.PVPayLocal;
+    return typeof uid === 'string' && uid && P && typeof P.fp === 'function' ? 'm:' + P.fp(uid) : '';
+  }
+  /* この端末に残っているログイン（supabase の鍵）の人の印。鍵が無ければ ''（誰か分からない ＝ 何も消さない） */
+  function storedMark() {
+    try {
+      var s = window.PVSession && typeof window.PVSession.readStoredSession === 'function' ? window.PVSession.readStoredSession() : null;
+      return markOf(s && s.user && s.user.id);
+    } catch (e) { return ''; }
+  }
+  /* 置いてある1件。壊れた・前の形・30分を過ぎたものは、ここで消して null */
+  function readDraft(kind) {
+    var raw = sget(DRAFT + kind), o = null;
+    if (!raw) return null;
+    try { o = JSON.parse(raw); } catch (e) { o = null; }
+    var age = o && typeof o.at === 'number' ? Date.now() - o.at : NaN;
+    if (!o || o.v !== 1 || !(age >= -60000 && age <= DRAFT_MS) || !/^m:./.test(str(o.by)) || !o.f || typeof o.f !== 'object') {
+      sdel(DRAFT + kind);
+      return null;
+    }
+    return o;
+  }
+  /* いまの人に合わせる：別の人の分は消す。いまの人が分からなければ何もしない */
+  function settleDrafts(cur) {
+    if (!cur) return;
+    Object.keys(FIELDS).forEach(function (k) { var o = readDraft(k); if (o && o.by !== cur) sdel(DRAFT + k); });
+  }
+  settleDrafts(storedMark());
+  /* いまの人の打ちかけ（無ければ null） */
+  function draftOf(kind) { var o = readDraft(kind); return o && S.me && o.by === S.me ? o : null; }
+  /* 面の欄を、そのまま置き直す（get は欄 → 置く字。town の会社・基地は「符号|基地」で置く） */
+  function keepDraft(kind, form, get) {
+    if (!S.me) return;
+    var f = {}, any = false;
+    FIELDS[kind].forEach(function (k) {
+      var v = get(k);
+      f[k] = v;
+      if (/\S/.test(v)) any = true;
+    });
+    if (!any) { sdel(DRAFT + kind); return; }
+    sset(DRAFT + kind, JSON.stringify({ v: 1, by: S.me, at: Date.now(), f: f }));
+  }
+  function fieldValue(form, k) {
+    var i = form.querySelector('[data-k="' + k + '"]');
+    if (!i) return '';
+    var v = String(i.value || ''), mx = Number(i.getAttribute('maxlength'));
+    return mx > 0 ? v.slice(0, mx) : v;
+  }
+  function draftText(o, k) { return o && typeof o.f[k] === 'string' ? o.f[k] : ''; }
 
   /* 1つの呼び出し → 返事の箱（投げられても止まらない） */
   function call(f) {
@@ -226,10 +340,10 @@
   }
   function scopeLine(airline, base) {
     var s = scopeOf(airline, base);
-    return (s && s.name ? s.name : String(airline || '')) + ' · ' + String(base || '');
+    return airName(airline, s && s.name) + ' · ' + String(base || '');
   }
   function kindWord(k) { return has(T.kinds, k) ? T.kinds[k] : String(k || ''); }
-  function stayLine(x) { return String(x.airline || '') + ' · ' + String(x.iata || '') + ' · ' + kindWord(x.kind); }
+  function stayLine(x) { return airName(x.airline) + ' · ' + String(x.iata || '') + ' · ' + kindWord(x.kind); }
   function say(li, text) {
     var p = li.querySelector('[data-adm="say"]');
     if (!p) return;
@@ -263,12 +377,24 @@
   function actions(li) { var a = el('div', 'adm-acts'); li.appendChild(a); return a; }
   function sayLine(li) { li.appendChild(el('p', 'adm-say', null, { 'data-adm': 'say', hidden: '' })); }
   function button(cls, text, act) { return el('button', 'adm-act ' + cls, text, { type: 'button', 'data-act': act }); }
-  /* 行が片づいた（文・場所・写真）：メモリーの一覧から外し、行を消し、数を描き直す */
+  /* 行が片づいた（文・場所・写真）：メモリーの一覧から外し、行を消し、数を描き直す。
+     その部分に待っているものが無くなったら、その見出しの下に「確認待ちはありません」 */
   function gone(list, x, li) {
     var part = list === 'texts' ? S.town : S.stay;
     part[list] = part[list].filter(function (y) { return y !== x; });
     if (li.parentNode) li.parentNode.removeChild(li);
-    if (allOk() && total() === 0) draw(); else drawBadge();
+    noneLine(part === S.town ? 'town' : 'stay');
+    drawBadge();
+  }
+  function partRows(key) {
+    return key === 'town' ? S.town.towns.length + S.town.texts.length : S.stay.places.length + S.stay.photos.length;
+  }
+  /* 読めた部分で、待っているものが1つも無いときだけ、その一覧のすぐ下に1行（読めない・準備中の部分には出さない） */
+  function noneLine(key) {
+    var q = $('adm-q'), part = key === 'town' ? S.town : S.stay;
+    var ul = q && q.querySelector('ul[data-adm-list="' + key + '"]');
+    if (!ul || part.k !== 'ok' || partRows(key) !== 0 || q.querySelector('[data-adm="none"][data-adm-part="' + key + '"]')) return;
+    ul.parentNode.insertBefore(el('p', 'adm-say', T.none, { 'data-adm': 'none', 'data-adm-part': key }), ul.nextSibling);
   }
 
   function townRow(t) {
@@ -430,6 +556,7 @@
     var ul = el('ul', 'adm-rows', null, { 'data-adm-list': key });
     if (part.k === 'ok') rows.forEach(function (li) { ul.appendChild(li); });
     q.appendChild(ul);
+    noneLine(key);
   }
 
   function draw() {
@@ -451,7 +578,6 @@
       else q.appendChild(el('p', 'adm-say', S.notes[key], { 'data-adm': 'note' }));
     });
     S.notes = {};
-    if (allOk() && total() === 0) q.appendChild(el('p', 'adm-say', T.none, { 'data-adm': 'none' }));
     drawBadge();
     S.drawn = true;
     if (!S.autoOpened && total() > 0) {
@@ -469,7 +595,9 @@
     /* 読み出しは、この順に始めて、そろって待つ */
     var a = call(function () { return S.sb.rpc('pv_town_queue', { p: {} }); });
     var b = call(function () { return S.sb.rpc('pv_stay_queue', { p: {} }); });
-    return Promise.all([a, b]).then(function (r) {
+    /* 行に出す会社の名前（1回だけ読む。読めなくても待ち行列は描く） */
+    return Promise.all([a, b, names()]).then(function (r) {
+      NAMES = r[2];
       if (my !== S.seq) return;   // あとから始めた読み込みが描く
       S.town = townPart(r[0]);
       S.stay = stayPart(r[1]);
@@ -501,9 +629,17 @@
     var b = form.querySelector('button[type="submit"]');
     if (b) b.disabled = !!on;
   }
+  /* サーバーが日本語の文で止めたとき（街の名前の検品）は、その文をそのまま。英語のページには英語の文がまだ無いので FAIL */
   function jaMessage(r) {
     var m = r && r.error ? str(r.error.message) : '';
-    return /[぀-ヿ㐀-鿿]/.test(m) ? m : '';
+    return !EN && /[぀-ヿ㐀-鿿]/.test(m) ? m : '';
+  }
+  /* 欄を打つ・選ぶたびに、その面の打ちかけを置き直す */
+  function keepOnInput(form, kind, get) {
+    var save = function () { keepDraft(kind, form, get); };
+    form.addEventListener('input', save);
+    form.addEventListener('change', save);
+    return save;
   }
 
   function townForm() {
@@ -511,7 +647,7 @@
     var sel = el('select', 'adm-in', null, { 'data-k': 'scope', required: '' });
     sel.appendChild(el('option', null, '—', { value: '' }));
     S.town.scopes.forEach(function (s, i) {
-      if (s && s.airline && s.base) sel.appendChild(el('option', null, (s.name || s.airline) + ' · ' + s.base, { value: String(i) }));
+      if (s && s.airline && s.base) sel.appendChild(el('option', null, airName(s.airline, s.name) + ' · ' + s.base, { value: String(i) }));
     });
     var name = el('input', 'adm-in', null, { type: 'text', maxlength: '30', 'data-k': 'name', required: '', autocomplete: 'off' });
     f.appendChild(field(T.scope, sel));
@@ -519,6 +655,16 @@
     f.appendChild(el('button', 'adm-act adm-ok', T.add, { type: 'submit' }));
     f.appendChild(el('p', 'adm-say', null, { 'data-adm': 'add-say', role: 'status', hidden: '' }));
     var scopes = S.town.scopes;
+    /* 打ちかけ：会社・基地は「符号|基地」で置く（読み直すと並びが変わることがある）。戻すのは同じ組が在るときだけ */
+    var scopeKey = function (s) { return s ? s.airline + '|' + s.base : ''; };
+    var save = keepOnInput(f, 'town', function (k) {
+      return k === 'scope' ? (sel.value === '' ? '' : scopeKey(scopes[Number(sel.value)])) : fieldValue(f, k);
+    });
+    var d0 = draftOf('town');
+    if (d0) {
+      scopes.forEach(function (s, i) { if (s && s.airline && s.base && scopeKey(s) === draftText(d0, 'scope')) sel.value = String(i); });
+      name.value = draftText(d0, 'name').slice(0, 30);
+    }
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       if (f.getAttribute('aria-busy') === 'true') return;
@@ -534,7 +680,9 @@
         if (d && d.ok === true) {
           addSay(f, d.existed === true ? T.existed : T.added);
           name.value = '';
-        } else addSay(f, jaMessage(r) || FAIL);
+          save();
+        } else if (d && d.ok === false) addSay(f, has(SAY, str(d.status)) ? SAY[d.status] : FAIL);
+        else addSay(f, jaMessage(r) || FAIL);
         load();
       });
     });
@@ -547,35 +695,62 @@
     air.appendChild(el('option', null, '—', { value: '' }));
     var airL = field(T.airline, air);
     f.appendChild(airL);
-    var codes = null;   // 名簿が読めなかったときは、会社のコードを打つ欄に替える
-    fetch(new URL('pv-airlines.json', SRC).href, { credentials: 'same-origin' }).then(function (res) {
-      if (!res.ok) throw new Error('http');
-      return res.json();
-    }).then(function (j) {
-      var m = j && j.airlines;
-      if (!m || typeof m !== 'object') throw new Error('shape');
-      codes = Object.keys(m).filter(function (c) { return c !== 'other'; });
-      codes.forEach(function (c) {
-        var n = m[c] && (EN ? m[c].en : m[c].ja);
-        air.appendChild(el('option', null, str(n) || c, { value: c }));
-      });
-    }).catch(function () {
-      var code = el('input', 'adm-in', null, { type: 'text', 'data-k': 'airline', required: '', autocomplete: 'off', maxlength: '40' });
-      airL.replaceChild(code, air);
-      air = code;
+    var iata = el('input', 'adm-in', null, { type: 'text', 'data-k': 'iata', required: '', maxlength: '3', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', list: 'adm-iata-list' });
+    /* 空港の候補：選んだ会社の就航地（サーバーが足せる空港と同じ一覧）。候補は手がかりだけ ── 決めるのはサーバー */
+    var opts = el('datalist', null, null, { id: 'adm-iata-list' });
+    var AP = null;
+    var fillIata = function () {
+      clear(opts);
+      var list = AP && has(AP, air.value.trim().toLowerCase()) ? AP[air.value.trim().toLowerCase()] : [];
+      (isArr(list) ? list : []).forEach(function (c) { if (typeof c === 'string') opts.appendChild(el('option', null, null, { value: c })); });
+    };
+    var d0 = draftOf('hotel');
+    /* 会社の欄：名簿と足せる空港がそろってから並べる。足せる空港が読めたら、その会社だけ（ほかの会社は足せない）。
+       名簿が読めなかったときは、会社の符号を打つ欄に替える */
+    Promise.all([names(), airports()]).then(function (r) {
+      var m = r[0];
+      AP = r[1];
+      if (m) {
+        Object.keys(m).filter(function (c) { return c !== 'other' && (!AP || has(AP, c)); }).forEach(function (c) {
+          var n = m[c] && (EN ? m[c].en : m[c].ja);
+          air.appendChild(el('option', null, str(n) || c.toUpperCase(), { value: c }));
+        });
+      } else {
+        var code = el('input', 'adm-in', null, { type: 'text', 'data-k': 'airline', required: '', autocomplete: 'off', maxlength: '40' });
+        airL.replaceChild(code, air);
+        air = code;
+      }
+      air.addEventListener('input', fillIata);
+      air.addEventListener('change', fillIata);
+      /* 打ちかけの会社は、名簿を並べてから戻す（選べない会社は戻さない） */
+      var a0 = draftText(draftOf('hotel'), 'airline');
+      if (a0 && (air.tagName !== 'SELECT' || [].some.call(air.options, function (o) { return o.value === a0; }))) air.value = a0;
+      fillIata();
     });
-    var iata = el('input', 'adm-in', null, { type: 'text', 'data-k': 'iata', required: '', maxlength: '3', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false' });
     var name = el('input', 'adm-in', null, { type: 'text', 'data-k': 'name', required: '', maxlength: '80', autocomplete: 'off' });
     var addr = el('input', 'adm-in', null, { type: 'text', 'data-k': 'address', maxlength: '200', autocomplete: 'off' });
     var map = el('input', 'adm-in', null, { type: 'url', 'data-k': 'maps_url', maxlength: '500', autocomplete: 'off', inputmode: 'url' });
     var note = el('textarea', 'adm-in', null, { 'data-k': 'note', maxlength: '500', rows: '3' });
     f.appendChild(field(T.iata, iata));
+    f.appendChild(opts);
     f.appendChild(field(T.fName, name));
     f.appendChild(field(T.fAddr, addr));
     f.appendChild(field(T.fMap, map));
     f.appendChild(field(T.fNote, note));
     f.appendChild(el('button', 'adm-act adm-ok', T.add, { type: 'submit' }));
     f.appendChild(el('p', 'adm-say', null, { 'data-adm': 'add-say', role: 'status', hidden: '' }));
+    /* 会社の欄がまだ並んでいないあいだは、置いてある会社をそのまま運ぶ（並ぶ前に打っても消さない） */
+    var save = keepOnInput(f, 'hotel', function (k) {
+      if (k === 'airline' && air.tagName === 'SELECT' && air.options.length <= 1) return draftText(draftOf('hotel'), 'airline');
+      return fieldValue(f, k);
+    });
+    if (d0) {
+      iata.value = draftText(d0, 'iata').slice(0, 3);
+      name.value = draftText(d0, 'name').slice(0, 80);
+      addr.value = draftText(d0, 'address').slice(0, 200);
+      map.value = draftText(d0, 'maps_url').slice(0, 500);
+      note.value = draftText(d0, 'note').slice(0, 500);
+    }
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       if (f.getAttribute('aria-busy') === 'true') return;
@@ -595,8 +770,8 @@
         if (d && d.ok === true) {
           addSay(f, T.added, d.item && d.item.state === 'pending' ? T.pending : '');
           name.value = ''; addr.value = ''; map.value = ''; note.value = '';
-        } else if (d && d.ok === false && d.status === 'exists') addSay(f, SAY.exists);
-        else if (d && d.ok === false && d.status) addSay(f, T.notAdded(String(d.status)));
+          save();
+        } else if (d && d.ok === false) addSay(f, has(SAY_ADD, str(d.status)) ? SAY_ADD[d.status] : FAIL);
         else addSay(f, FAIL);
         load();
       });
@@ -609,6 +784,9 @@
     if (!a) return;
     if (!A.built) {
       A.built = true;
+      /* 打ちかけが在れば、最後に打っていた方の面で開く */
+      var dt = draftOf('town'), dh = draftOf('hotel');
+      if (dh && (!dt || dh.at > dt.at)) A.kind = 'hotel';
       var pick = el('div', 'adm-acts', null, { role: 'radiogroup', 'aria-labelledby': 'adm-b-a' });
       [['town', T.town], ['hotel', T.hotel]].forEach(function (k) {
         var l = el('label', 'adm-opt');
@@ -636,13 +814,24 @@
     A.hotelBox.hidden = A.kind !== 'hotel';
   }
 
+  /* いま読んでいる人（打ちかけを戻してよいかだけに使う）。分からなければ ''（戻さない・置かない） */
+  function whoami() {
+    return call(function () { return S.sb.auth && typeof S.sb.auth.getSession === 'function' ? S.sb.auth.getSession() : null; }).then(function (r) {
+      var s = r && r.data && r.data.session;
+      S.me = markOf(s && s.user && s.user.id);
+      settleDrafts(S.me);
+    });
+  }
+
   function start(sb) {
     if (S.started) return load();
     if (!sb || typeof sb.rpc !== 'function') return Promise.resolve();
     S.started = true;
     S.sb = sb;
-    wire();
-    return load();
+    return whoami().then(function () {
+      wire();
+      return load();
+    });
   }
 
   window.PVAdminQueue = {

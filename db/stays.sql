@@ -1582,6 +1582,60 @@ comment on function public.pv_stay_rev(public.pv_stay_places) is
   '場所の中身（種別・名前・住所・地図のリンク・メモ・都市・ステイ時間）だけから作る16字の印。運営が見た中身と、公開するときの中身が同じかを確かめるために使う。時刻・書いた人・id は混ぜない。運営にしか返さない。';
 
 
+-- 3-n. 会社ごとの就航地（★運営の「追加」＝ 足す口の publish:true が、その場で公開で入れてよい空港は、ここに在るものだけ）
+-- 会社ページの「ステイ先」に並ぶ空港と同じ一覧（airline-destinations.mjs の NETWORK の list の写し。本拠地は入れない）。
+-- ★ 載っていない空港に運営が「追加」すると、どのページにも出ない公開の行ができてしまう（3字の打ち間違い）。
+--   ＝ 5 の足す口は、publish:true のときだけ、ここに無い空港を bad_iata で止める（何も書かない）。
+--   会員・未ログインの足す口と、publish を添えない運営の足す口は、今までどおり（確認待ちで入り、運営が見る）。
+-- ⚠️ airline-destinations.mjs を直したら、ここも直す。db/test-stays.mjs が両方を突き合わせる（食い違うと赤くなる）。
+--    会社を足すときは1行（'<会社の符号>', の行）を足す。並びは airline-destinations.mjs と同じ。
+create or replace function public.pv_stay_network()
+returns jsonb
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select jsonb_build_object(
+    'jal', regexp_split_to_array(btrim('
+      CTS MMB AKJ KUH OBO HKD AOJ MSJ KMQ NGO KIX ITM SHM OKJ IZO HIJ TKS TAK KCZ MYJ
+      FUK KKJ OIT NGS KMJ KMI KOJ ASJ OKA BKK SIN KUL CGK HAN SGN MNL DEL BLR PEK SHA
+      PVG CAN DLC TSN HKG TSA TPE GMP GUM SYD MEL JFK BOS ORD DFW SFO LAX SAN SEA YVR
+      HNL LHR CDG FRA HEL
+    ', E' \n'), '\s+'),
+    'ana', regexp_split_to_array(btrim('
+      ITM KIX UKB CTS NGO FUK OKA KOJ KMI NGS SDJ KMJ MYJ HIJ OIT ISG MMY AXT KCZ KIJ
+      HKD IWK TAK HSG OKJ UBJ KMQ TTJ YGJ SYO KUH TOY TKS SHB NTQ HAC IWJ WKJ ONJ DEL
+      BOM BKK HAN SGN KUL SIN CGK MNL PEK DLC TAO PVG SHA HGH CAN SZX HKG TSA GMP SYD
+      PER LAX SFO SEA IAD JFK IAH ORD YVR HNL MEX LHR CDG FRA MUC BRU VIE MXP ARN IST
+    ', E' \n'), '\s+'),
+    'eva-air', regexp_split_to_array(btrim('
+      NRT HND KIX UKB FUK CTS SDJ KMQ OKA AOJ MYJ TSA KHH HKG MFM PEK PVG SHA CAN HGH
+      CTU ICN GMP PUS BKK CNX HAN SGN DAD SIN KUL CGK DPS MNL CEB CRK KTI BNE LAX SFO
+      SEA JFK ORD IAH DFW IAD YVR YYZ LHR CDG AMS VIE MUC MXP
+    ', E' \n'), '\s+'),
+    'cathay-pacific', regexp_split_to_array(btrim('
+      FUK NGO KIX CTS HND NRT BLR MAA DEL HYD BOM DPS CGK SUB KTI SIN CMB BKK HKT KTM
+      DAC CEB MNL HAN SGN KUL PEN PEK CSX CTU CKG FOC CAN HAK HGH NKG NGB TAO PVG SHA
+      URC WNZ WUH XIY XMN CGO KHH TPE ICN ADL BNE MEL PER SYD AKL CHC BOS ORD DFW LAX
+      JFK SFO SEA YYZ YVR LHR MAN MXP FCO AMS ZRH BCN MAD FRA MUC CDG BRU JNB
+    ', E' \n'), '\s+'),
+    'etihad', regexp_split_to_array(btrim('
+      KIX NRT AMD BLR MAA CMB DAC HYD ISB JAI KHI COK CCU CCJ LHE MLE BOM DEL PEW TRV
+      DPS BKK PKX HAN HKG CGK KBL KBV KUL MNL KTI HKT ICN PVG SIN TPE TAS MEL SYD ATL
+      BOS CLT ORD JFK YYZ IAD AMS ATH BCN BRU CPH DUB DUS FRA GVA IST KZN KRK LIS LHR
+      MAD AGP MAN MXP SVO MUC JMK NCE PMI CDG PRG FCO LED JTR AER VIE WAW ZRH ADD DBB
+      ELQ AMM BAH BEY CAI CMN DAM DMM DOH JED JNB KWI MED MCT NBO RUH SLL SEZ TLV RSI
+      TUN ZNZ
+    ', E' \n'), '\s+')
+  );
+$fn$;
+
+revoke all on function public.pv_stay_network() from public, anon, authenticated;
+
+comment on function public.pv_stay_network() is
+  '会社ごとの就航地（会社ページの「ステイ先」に並ぶ空港の3字。airline-destinations.mjs の写し）。運営の「追加」（足す口の publish:true）が、その場で公開で入れてよい空港の一覧。誰にも配らない（足す口と、運営だけが読む 10-e が呼ぶ）。';
+
+
 -- ════════════════════════════════════════════════════════════════
 -- 4. 読む（会社 × 空港の一覧）
 -- ════════════════════════════════════════════════════════════════
@@ -1736,7 +1790,7 @@ comment on function public.pv_stays(jsonb) is
 -- 弾いたときは例外ではなく {ok:false, status:…} を返す（画面は理由ごとに違う一言を出す）。
 --   locked        いまは誰も足せない設定になっている（pv_stay_may_add。★何も調べずに返す）
 --   bad_airline   名簿に無い・無効・'other'
---   bad_iata      英字3字でない
+--   bad_iata      英字3字でない／運営の「追加」（publish:true）で、その会社の就航地（3-n）に無い空港
 --   bad_kind      白リストの外
 --   bad_name      名前が2〜80字でない
 --   too_long      住所が200字・メモが500字を超える
@@ -1876,6 +1930,12 @@ begin
   -- 運営が管理ページから直接足すときだけ、確認待ちを通さずに出す（2026-10-11 オーナー「承認と追加のボタン」）
   v_pub := coalesce(v_role = 'operator', false) and coalesce(p->'publish' = 'true'::jsonb, false);
 
+  -- ★運営の「追加」は、その会社の就航地（3-n ＝ 会社ページのステイ先に並ぶ空港）にだけ。
+  --   3字の打ち間違いで、どのページにも出ない公開の行を作らない（何も書かずに止める）
+  if v_pub and not coalesce((public.pv_stay_network() -> v_air) ? v_iata, false) then
+    return jsonb_build_object('ok', false, 'status', 'bad_iata');
+  end if;
+
   -- 自分の重ね出し（duplicate）／既に公開されている同じ名前（exists。★見てよい人と、運営の「追加」にだけ答える）。判定は 3-l の1か所
   -- （運営の「追加」は公開で入るので、ここで止めないと公開の行に同じ名前が2つできる）
   v_bad := public.pv_stay_clash(v_me, v_air, v_iata, v_kind, v_name, null, v_sees or v_pub);
@@ -1899,7 +1959,7 @@ revoke all on function public.pv_stay_add(jsonb) from public;
 grant execute on function public.pv_stay_add(jsonb) to anon, authenticated;
 
 comment on function public.pv_stay_add(jsonb) is
-  'ステイ情報を1件足す。誰でも足せる（ログインも要らない。決め方は pv_stay_may_add の1行）。足せることは何も開かない（読めるのはオーナーとオーナーが承認した人だけ）。pending で入る（運営が見るまで、足した本人と運営にしか出ない。運営が publish:true を添えたときだけ、その場で public）。ログインせずに初めて足したときだけ端末の鍵を1回返す（表には sha256 だけ）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・10秒・24時間にログインしている人20件／端末の鍵だけの人20件・同じ回線が1日に作れる鍵は20本・ログインせずに足して運営の確認を待つものは200件まで。exists は見てよい人と運営の「追加」にだけ答える。地図のリンクは Google マップ以外なら捨てる。';
+  'ステイ情報を1件足す。誰でも足せる（ログインも要らない。決め方は pv_stay_may_add の1行）。足せることは何も開かない（読めるのはオーナーとオーナーが承認した人だけ）。pending で入る（運営が見るまで、足した本人と運営にしか出ない。運営が publish:true を添えたときだけ、その場で public。その空港は、その会社の就航地（3-n）に在るものだけ）。ログインせずに初めて足したときだけ端末の鍵を1回返す（表には sha256 だけ）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・10秒・24時間にログインしている人20件／端末の鍵だけの人20件・同じ回線が1日に作れる鍵は20本・ログインせずに足して運営の確認を待つものは200件まで。exists は見てよい人と運営の「追加」にだけ答える。地図のリンクは Google マップ以外なら捨てる。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2620,6 +2680,35 @@ grant execute on function public.pv_stay_queue(jsonb) to authenticated;
 
 comment on function public.pv_stay_queue(jsonb) is
   'ステイ情報の確認待ち（場所と写真）。運営だけ。author_hash と時刻は返さない。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 10-e. 運営の「追加」で足せる空港（管理ページのホテルの面が、会社と空港の候補に使う）
+-- ════════════════════════════════════════════════════════════════
+-- 引数: p（いまは使わない。形をそろえるためだけ ── pv_stay_queue と同じ）
+-- 返り値: {ok:true, airports:{<会社の符号>:['AAA', …], …}}   3-n の一覧そのもの（足す口が止める決まりと同じ1か所）
+--   forbidden  運営ではない（★何も調べずに返す）
+-- ★ ホテルのことは何も返さない（名前も件数も）。空港の3字は会社ページに出ているものと同じ。
+create or replace function public.pv_stay_airports(p jsonb default null)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  if public.pv_stay_role() is distinct from 'operator' then
+    return jsonb_build_object('ok', false, 'status', 'forbidden');
+  end if;
+  return jsonb_build_object('ok', true, 'airports', public.pv_stay_network());
+end;
+$fn$;
+
+revoke all on function public.pv_stay_airports(jsonb) from public, anon;
+grant execute on function public.pv_stay_airports(jsonb) to authenticated;
+
+comment on function public.pv_stay_airports(jsonb) is
+  '運営の「追加」でホテルを足せる空港（会社ごとの就航地。3-n）。運営だけ。ホテルのことは何も返さない。';
 
 
 -- ════════════════════════════════════════════════════════════════

@@ -64,7 +64,8 @@ await db.exec(`
   create table public.profiles (
     id uuid primary key, email text, name text,
     email_opt_in boolean not null default false,
-    gender text, birthdate date, country text, company text, "position" text);
+    gender text, birthdate date, country text, company text, "position" text,
+    created_at timestamptz not null default now());
 
   create table public.reviews_v2 (
     id uuid primary key default gen_random_uuid(),
