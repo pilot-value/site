@@ -29,7 +29,7 @@
      S6  番地のような街の名前：「保存できませんでした」とサーバの文・打った字は残る。間取り「1-2-3」：その文・間取りの欄に印・家賃の欄は開いたまま。
      S7  届かない：「送れていません」→ 読み直すと、一覧に「住みやすい街の回答が、この端末に残っています。」と「続きを開く」→ 打った内容が戻る → 送れる。
      S8  位置を取らない（navigator.geolocation を数える物に替えて、呼ばれた数は0）・「住所」の欄が無い・
-         面は pv_town_board も pv_town_queue も呼ばない。
+         面は pv_town_board も pv_town_queue も呼ばない（pv_town_board を読むのは、ページの街の欄の1本だけ）。
      S9  打った内容は消えない：自分の投稿のある街 X を、良い点を打ってから選ぶ → 打った字のまま（X の保存した字を上に書かない）・
          「あなたの投稿」「匿名で更新する」→ 送ると X の1行が打った字に。打つ前に選ぶと X の保存した値・自分の投稿の無い街へ移ると空に戻る。
      X1  自分の街の投稿の読みが失敗しても（failNext）、月の勤務の入力は保存した値で1回だけ描かれ、読み込み中の行は2度と出ない・
@@ -45,6 +45,7 @@
      A5  引き継ぎ：預かりが空になるまで待つ → 本人の投稿・鍵は端末から消える・my_town_posts（PVContrib.myTowns()）が返す。
      A6  2人の会員：a の保存後のカード／a が「修正」で開いた確認待ちの名前が出ているまま、b が同じタブで・ほかのタブで
          ログイン → a のものは出ない・数えない・送らない・街の欄は空・a の名前はページのどこにも無い・打った字は残る。
+         ページのほかの鍵の要る欄も同じ：'pay' に開いていた REAL PAY の行は、同じタブで 'b' に替わると、ページのどこにも残らない。
 
    入口：ページに入口（data-pvc-open="town" と data-pvc-base を持つもの）が在ればそれを押す（「暮らし・家族」のタブの中に
          在るので、見えていなければ先にそのタブを押す）。無ければ、カードと同じ関数
@@ -734,6 +735,13 @@ async function sheet() {
       try { Object.defineProperty(Navigator.prototype, 'geolocation', { configurable: true, get: () => fake }); } catch (e) { /* そのまま */ }
     });
     await go(g);
+    /* ページの街の欄（暮らしの板の .crl[data-live="towns"]）が読み終わるまで待ってから、面を開く
+       ── 一覧（pv_town_board）を読んでよいのは、その欄の1本だけ。面を開く前に出ていて、面を開いたあとも増えない */
+    const BOX = '.pvg-liv-got > .crl[data-live="towns"]';
+    await g.page.click('.pvg-tabs [data-pvg-tab="life"]');
+    await g.page.waitForFunction((s) => { const b = document.querySelector(s); return !!b && /^(locked|open|empty|error|off)$/.test(b.getAttribute('data-state') || ''); }, { timeout: 20000 }, BOX);
+    const boxIs = await g.page.$eval(BOX, (b) => ({ airline: b.getAttribute('data-airline'), base: b.getAttribute('data-base') }));
+    const byBox = g.st.sent.filter((x) => x.fn === 'pv_town_board').map((x) => x.p);
     await openTown(g);
     await pick(g, T0);
     await unfold(g, 'rent');
@@ -742,11 +750,13 @@ async function sheet() {
     const f = await face(g);
     const geo = await g.page.evaluate(() => window.__geo ? window.__geo.n : -1);
     const named = Object.keys(f.ctl).filter((k) => /addr|住所|lat|lng|geo/i.test(k));
-    const gated = g.st.calls.filter((c) => c === 'pv_town_board' || c === 'pv_town_queue');
+    const boards = g.st.sent.filter((x) => x.fn === 'pv_town_board').map((x) => x.p), queue = g.st.calls.filter((c) => c === 'pv_town_queue');
+    const mine = J({ airline: SLUG, base: BASE });
     ok(geo === 0, 'S8 位置を取らない（navigator.geolocation を数える物に替えて、呼ばれた数は 0）', J({ geo }));
     ok(named.length === 0 && !f.labels.some((l) => /住所/.test(l)), 'S8 「住所」の欄が無い（そう名付いた欄も、そう書いた見出しも無い）', J({ names: Object.keys(f.ctl), labels: f.labels }));
-    ok(gated.length === 0 && g.st.calls.includes('pv_town_options'),
-      'S8 面は、街の一覧（pv_town_board）も運営の確認待ち（pv_town_queue）も呼ばない（呼ぶのは候補の pv_town_options）', J(g.st.calls));
+    ok(J(boxIs) === mine && byBox.length === 1 && J(byBox[0]) === mine && boards.length === 1 && queue.length === 0 && g.st.calls.includes('pv_town_options'),
+      'S8 街の一覧（pv_town_board）を読むのは、ページの街の欄の1本だけ（面を開く前・この会社と基地）。面は、一覧も運営の確認待ち（pv_town_queue）も呼ばない（呼ぶのは候補の pv_town_options）',
+      J({ boxIs, byBox, boards, calls: g.st.calls }));
     await shut(g);
   });
 
@@ -1064,6 +1074,31 @@ async function anon() {
     ok(c3 && f3.ctl.good === TY && !f3.tag && f3.chips.every((x) => !x.mine) && f3.send === ADD_BTN && !(await where()) && subs(n0).length === 0,
       `A6 同じ形で、ほかのタブで 'b' がログイン（こちらのタブには触らない）→ 街の欄は空・「${WN}」はページのどこにも無い・打った字は残る・何も送らない`,
       J({ c3, ctl: f3.ctl, tag: f3.tag, send: f3.send, subs: subs(n0) }));
+    /* 4) ページのほかの鍵の要る欄（02b の欄）も同じ：'pay' に開いていた REAL PAY の行が出ているまま、同じタブで 'b' がログイン
+          → その行の字はページのどこにも無い（字も属性の値も）・欄は 'b' の鍵の形。'pay' の給与は、その会員としての本物の呼び出しで作る */
+    const YEAR = (await L.q(`select extract(year from current_date)::int as y`)).rows[0].y - 1;
+    const filed = await rpcAs(K.base, 'pay', 'submit_pay_report', { currency: 'USD', lang: 'en', tax_rate_pct: 0, fleet: FLEET,
+      position: 'cap', airline: SLUG, period_year: YEAR, period_month: 3, gross_monthly: 9000 });
+    if (!(filed.body && filed.body.ok === true)) throw new Error(`前提が崩れた（'pay' の給与が保存されていない）: ` + J(filed.body));
+    const P = await page({ who: 'pay' }), PAYBOX = '.crl[data-live="realpay"]';
+    await go(P);
+    await P.page.click('.pvg-tabs [data-pvg-tab="pay"]');
+    const payState = () => P.page.evaluate((s) => [...document.querySelectorAll(s)].filter((e) => e.getClientRects().length).map((e) => e.getAttribute('data-state')), PAYBOX);
+    await until(async () => (await payState()).includes('open'), 30000);
+    const rows = await P.page.evaluate((s) => [...document.querySelectorAll(s + ' .crl-rows > li')].map((li) => li.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean), PAYBOX);
+    const left = () => P.page.evaluate((rs) => {
+      const text = document.documentElement.textContent.replace(/\s+/g, ' ');
+      const attrs = [...document.querySelectorAll('*')].flatMap((e) => [...e.attributes].map((a) => a.value)).join('\n').replace(/\s+/g, ' ');
+      return rs.filter((r) => text.includes(r) || attrs.includes(r));
+    }, rows);
+    if (!rows.length || (await left()).length !== rows.length) throw new Error(`前提が崩れた（'pay' に REAL PAY の行が出ていない・探し方で見つからない）: ` + J({ rows, st: await payState() }));
+    const n4 = P.st.calls.length;
+    await swap(P, 'b', 'same');
+    const gone4 = await until(async () => (await left()).length === 0 && (await payState()).every((s) => s === 'locked'), 15000);
+    ok(gone4 && (await payState()).length > 0 && P.st.calls.slice(n4).filter((x) => /^(submit_|claim_)/.test(x)).length === 0,
+      `A6 ページのほかの鍵の要る欄も同じ：'pay' に開いていた REAL PAY の行が出ているまま、同じタブで 'b' がログイン → その行の字はページのどこにも無い・欄は 'b' の鍵の形・何も送らない`,
+      J({ rows, left: await left(), st: await payState(), calls: P.st.calls.slice(n4) }));
+    await shut(P);
   });
 }
 

@@ -98,6 +98,11 @@
     noteHead: '会員の補足',
     noteWork: '月の勤務',
     noteMine: 'あなたの投稿',
+    townHead: '人気の居住地',
+    townWait: '確認待ち',
+    townNo: '見送り',
+    townEdit: '修正',
+    townHeld: 'ログインなしで保存した回答があります。',
 
     revEmpty: '口コミはまだありません',
     revNone: '会員からの投稿はまだありません',       // 会社ページ用。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
@@ -324,8 +329,8 @@
     if (uid === undefined) { uid = v; return; }
     if (uid === v) return;
     uid = v;
-    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:'); drop('give');
-    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts']);
+    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:'); drop('give'); drop('town:');
+    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts', 'towns']);
     later();
   }
   function watchAuth(sb) {
@@ -875,6 +880,112 @@
   KIND.notes = function (box, ids) {
     return notesFor(box, ids[0]).then(function (ul) {
       return ul ? view('open', [noteHead(), ul]) : view('empty', []);
+    });
+  };
+
+  /* ── 会員が挙げた街（会社ページの暮らしの板。欄は .crl[data-live="towns"] の1つ）──────────
+     読むのは2つ：(1) ほかの人の回答 ＝ pv_town_board（見せてよいかはサーバーの1か所 ＝ pv_contrib_sees。開いていなければ状態の1語だけ）
+                  (2) 読む人自身の投稿 ＝ PVContrib.myTowns()（控えの鍵と読み口は pv-contrib.js が持つ。このページの会社のぶん）。
+     開いていない時の1行と入口は lockView のまま。自分の投稿は、その上に置く（lead）。
+     ★並べ替えない・足さない・数えない・切らない（並びは人数の多い順のサーバーの並び・人数はサーバーの数のまま）。 */
+  var TOWN_SAY = ['login', 'locked', 'give', 'open'];
+  function townBoard(slug, base) {
+    return once('town:' + slug + ':' + base, function () {
+      return client().then(function (sb) { return sb.rpc('pv_town_board', { p: { airline: slug, base: base } }); }).then(function (res) {
+        if (!res || res.error) throw sbErr(res);
+        var x = res.data;
+        /* 知らない語は、開いているとも0件とも読まない */
+        if (!x || typeof x !== 'object' || x.ok === false || TOWN_SAY.indexOf(x.state) < 0) throw fail('error');
+        if (x.state !== 'open') return { state: x.state, towns: [] };
+        if (!isArr(x.towns)) throw fail('error');
+        /* 名前と、本当の人数（1 以上の整数）を持つ街だけを描く */
+        return {
+          state: 'open',
+          towns: x.towns.filter(function (t) { return t && typeof t.name === 'string' && t.name.replace(/^\s+|\s+$/g, '') && isInt(t.n) && t.n >= 1; })
+        };
+      });
+    });
+  }
+  /* 自分の投稿（この基地のぶん）。読めない時・面の部品が無い時は null（欄の本題は、ほかの人の回答の側）。投げない。取っておかない。 */
+  function townMine(slug, base) {
+    function ask() {
+      var C = w.PVContrib, p;
+      if (!C || typeof C.myTowns !== 'function') return null;
+      try { p = C.myTowns(); } catch (e) { return null; }
+      return Promise.resolve(p).then(function (r) {
+        if (!r || r.k !== 'ok' || !isArr(r.rows)) return null;
+        return {
+          held: r.held === true,
+          rows: r.rows.filter(function (x) { return x && typeof x.town === 'string' && x.town && x.base === base; })
+        };
+      }, function () { return null; });
+    }
+    var now = ask();
+    if (now || d.readyState !== 'loading') return Promise.resolve(now);
+    /* pv-contrib.js は、このファイルのあとに読まれる */
+    return new Promise(function (res) {
+      d.addEventListener('DOMContentLoaded', function () { res(ask()); });
+    });
+  }
+  /* 自分の行の札。街か文が確認待ちなら「確認待ち」、どちらかが見送りで確認待ちが無ければ「見送り」、ほかは何も付けない。 */
+  function townSay(r) {
+    if (r.town_state === 'pending' || r.text_state === 'pending') return T.townWait;
+    if (r.town_state === 'rejected' || r.text_state === 'rejected') return T.townNo;
+    return '';
+  }
+  function ownBlock(M) {
+    if (!M || !M.rows.length) return null;
+    var me = el('div', 'crl-town-me'), ul = el('ul', 'crl-town-own');
+    me.appendChild(el('p', 'crl-note-h', T.noteMine));
+    if (M.held) me.appendChild(msg(T.townHeld));
+    M.rows.forEach(function (r) {
+      var li = el('li'), say = townSay(r), b = el('button', 'crl-link crl-town-ed', T.townEdit);
+      li.appendChild(el('span', 'crl-town-n pv-no-cur', r.town));
+      if (say) li.appendChild(el('span', 'crl-town-st', say));
+      /* 押すと、面（pv-contrib.js）の押し口が、その街の「修正」として開く */
+      b.type = 'button';
+      b.setAttribute('data-pvc-open', 'town');
+      b.setAttribute('data-pvc-ctx', r.town);
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+    me.appendChild(ul);
+    return me;
+  }
+  function townList(towns) {
+    var ol = el('ol', 'crl-towns');
+    towns.forEach(function (t) {
+      var li = el('li', 'crl-town'), k = el('p', 'crl-town-k');
+      k.appendChild(el('span', 'crl-town-n pv-no-cur', t.name));
+      if (t.mine === true) k.appendChild(el('span', 'crl-note-me', T.noteMine));
+      k.appendChild(el('span', 'crl-town-c', T.answered(t.n)));
+      li.appendChild(k);
+      [['good', T.sumGood], ['concern', T.sumConcern]].forEach(function (g) {
+        var xs = (isArr(t[g[0]]) ? t[g[0]] : []).filter(function (x) { return x && typeof x.text === 'string' && x.text; });
+        if (!xs.length) return;
+        var ul = el('ul', 'crl-town-tx');
+        li.appendChild(el('p', 'crl-town-l', g[1]));
+        xs.forEach(function (x) {
+          var it = el('li', 'crl-town-t pv-no-cur', x.text);
+          if (x.mine === true) it.appendChild(el('span', 'crl-note-me', T.noteMine));
+          ul.appendChild(it);
+        });
+        li.appendChild(ul);
+      });
+      ol.appendChild(li);
+    });
+    return ol;
+  }
+  KIND.towns = function (box, ids) {
+    var slug = ids[0], base = box.getAttribute('data-base') || '';
+    if (!/^[A-Z]{3}$/.test(base)) return Promise.reject(fail('error'));
+    return Promise.all([townBoard(slug, base), townMine(slug, base)]).then(function (a) {
+      var B = a[0], me = ownBlock(a[1]), nodes;
+      if (B.state !== 'open') return lockView(B.state, slug, box, me);
+      if (!B.towns.length && !me) return view('empty', []);
+      nodes = me ? [me] : [];
+      if (B.towns.length) { nodes.push(el('p', 'crl-town-h', T.townHead)); nodes.push(townList(B.towns)); }
+      return view('open', nodes);
     });
   };
 
@@ -1492,10 +1603,26 @@
     var S = w.PVSession;
     if (typeof uid === 'string' && S && typeof S.hasToken === 'function' && !S.hasToken()) setUid(null);
   });
+  /* 読む人が替わった（同じタブで外からログインが書き替わった・ほかのタブで別の会員が入った）。ログインの部品からは何も届かない
+     替わり方があるので、「情報を追加」の面（pv-contrib.js）が気づいて流す 'pvc:reader'（detail.uid ＝ 今の人。ログインしていなければ null）
+     でも受ける。今までの人と違えば setUid ＝ 鍵の要る欄を全部その場で空にして、今の人の形で取り直す
+     （前の人の投稿・前の人にだけ開いていた答えを、画面に残さない）。同じ人なら何もしない。 */
+  d.addEventListener('pvc:reader', function (e) {
+    var v = e && e.detail ? e.detail.uid : undefined;
+    if (typeof v === 'string' || v === null) setUid(v);
+  });
   /* 「情報を追加」で保存できたら、その会社の集計と補足を取り直す（古い答えを持ち越さない）。 */
-  d.addEventListener('pvc:saved', function () {
+  d.addEventListener('pvc:saved', function (e) {
     drop('wkv:'); drop('note:'); drop('fact:'); drop('give');
     reset(['work', 'cmp-work', 'notes', 'fact', 'cmp-facts']);
+    /* 街の欄は、街を保存した時と、ログイン前の預かりを引き継いだ時に取り直す。
+       鍵の1行を出している欄は、どの保存のあとでも取り直す（質問に答えて門が開いたのに、鍵の1行と答えるカードを残さない）。
+       開いている欄は、月や質問の保存では触らない（見出しがちらつかない） */
+    var topic = e && e.detail ? e.detail.topic : '';
+    var shut = Array.prototype.some.call(slots(), function (b) {
+      return b.getAttribute('data-live') === 'towns' && b.getAttribute('data-state') === 'locked';
+    });
+    if (topic === 'town' || topic === 'claim' || shut) { drop('town:'); reset(['towns']); }
     later();
   });
   /* 通貨を切り替えたら、額の字だけ描き直す（通信しない）。 */

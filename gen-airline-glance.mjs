@@ -531,10 +531,13 @@ const livingHead = (v, L) => `<header class="pvg-liv-h"><p class="pvg-askh">住�
 const J = a => esc(JSON.stringify(a));
 function townAdd(v) {
   if (!tabbed(v.slug) || !v.living || !baseCode(v)) return '';
-  const base = `${v.base.city} ${v.base.iata.join('・')}`;
+  const base = [v.base.city, v.base.iata.join('・')].filter(Boolean).join(' ');   // 空港の3字が無い会社（ANA）は街の名前だけ（後ろに空白を残さない）
   const ports = v.living.airports.map(a => a.iata);
   return `<a class="pvg-link pvg-liv-add" href="?add=town" data-pvc-open="town" data-pvc-base="${esc(baseCode(v))}" data-pvc-basetext="${esc(base)}" data-pvc-ports="${J(ports)}" data-pvc-towns="${J(ledgerTowns(v).map(t => [t.name, t.sub]))}">＋住みやすい街を追加</a>`;
 }
+/* 会員が挙げた街（描くのは career-live.js。ここは器と見出しだけ）。見出しは、欄が空のあいだ CSS が隠す */
+const townGot = v => (tabbed(v.slug) && v.living && baseCode(v)
+  ? `<div class="pvg-liv-got"><p class="pvg-askh">パイロットの回答</p>${live('towns', { airline: v.slug, base: baseCode(v) })}</div>` : '');
 function townCard(L, r, sizes) {
   const p = PLACE.primary(r.key), n = townName(r), w = r.way;
   const col = L.leadCol && r.value[L.leadCol] != null ? L.leadCol : (L.cols.find(([key]) => r.value[key] != null) || [])[0];
@@ -676,7 +679,7 @@ ${cityEvidence(v, L)}
     k: way ? `${esc(lead.name)}・空港までの移動` : '拠点の街',
     v: way ? `${way.modes.map(m => MODE_JA[m]).join('・')} ${esc(way.text)}` : esc(v.base.city),
     note: way ? esc(`Google マップ・${way.day}`) : '家賃の資料を確認できていません',
-    body: `${towns}${credits}`,
+    body: `${towns}${townGot(v)}${credits}`,
   });
   const colName = Object.fromEntries(L.cols)[L.leadCol].replace(/（[^）]*）/g, '');   // 「2部屋（2房）」→ 欄の見出しでは「2部屋」。表には元のまま出る
   return cell('living', '暮らし', IC.living, {
@@ -684,7 +687,7 @@ ${cityEvidence(v, L)}
     k: `${esc(lead.name).replace(/（[^）]*）/g, m => `<span class="pvg-opt">${m}</span>`)}${lead.area ? `（${esc(lead.area)}）` : ''}・${esc(colName)}の${esc(L.measure)}`, v: rentText(L, lead, L.leadCol),
     note: esc(join(L.siteName, lead.when)),
     also, count: L.rents.length + L.commute.length, more: '街ごとの家賃と出典',
-    body: `${towns}${credits}`,
+    body: `${towns}${townGot(v)}${credits}`,
   });
 }
 

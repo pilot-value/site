@@ -11,6 +11,7 @@
        q     ＝ そのまとまりの中で、最初に見せたい質問の id（無くてよい）
        ctx   ＝ topic 'town' のとき、直す投稿の街の名前（渡した時だけ「修正」。無ければ追加）
        myTowns() ＝ 街の自分の投稿 → Promise<{ k: 'ok'|'anon'|'off'|'fail', held, rows }>（ページの欄が読む。面は使わない）
+                   ★読むのは、いつもこのページの会社のぶん（openFor で読む人自身の会社について開いた後も、ページの会社）
      window.PVContrib.openFor({ airline, name, ask, from }) ── このページの会社ではなく、読む人自身の会社について開く
        （ログインしている会員だけ。開かなかった時は false を返す ＝ 呼んだ側が、自分のリンクへそのまま進ませる）。
      data-pvc-open="<topic>"（＋ data-pvc-q="<質問の id>"）を持つ要素を押すと開く。
@@ -18,6 +19,7 @@
      会社は <body data-airline> と data-pvc-name（無ければ .hero-airline h1）から読む。
        ＝ もう一度会社を選ばせない。
      保存できたら document に 'pvc:saved'（detail = { topic, slug }）を流す。
+     読む人が替わったと気づいたら document に 'pvc:reader'（detail = { uid }）を流す（ページの欄が、前の人の分を消して取り直す）。
 
    ■ 絶対に崩さないこと
      ・「空欄」は未回答＝ null で送る。「0」は 0 で送る。0 で埋めない・0 を消さない。
@@ -970,11 +972,18 @@
   /* TOK ＝ 最後に見た時、ログインの鍵が在ったか。在った鍵が無くなった（ほかのタブで消えた・この画面の中で期限が切れた）時は、
      ページの欄（career-live.js）にも 'pvc:logout' で知らせる ── あちらには、知らせの届かないログアウトに気づく時計が無い。 */
   var TOK = null;
+  /* WHO ＝ 最後に見た時の読む人（会員の id。ログインしていなければ null。ログインは在るのに id が読めなければ ''）。
+     替わった（同じタブで外からログインが書き替わった・ほかのタブで別の会員が入った）時は、ページの欄（career-live.js）にも
+     'pvc:reader'（detail = { uid }）で知らせる ── あちらはログインの部品の知らせしか聞いていないので、それが来ない替わり方では、
+     前の人について読んだ欄（前の人の投稿・前の人にだけ開いていた答え）がそのまま画面に残る。 */
+  var WHO;
+  function readerNow() { return hasToken() ? uid() : null; }
   function onReader() {
-    var t = hasToken();
+    var t = hasToken(), who = readerNow();
     sweepDrafts();
     if (TOK === true && !t) { try { d.dispatchEvent(new CustomEvent('pvc:logout')); } catch (e) { /* 古いブラウザ */ } }
     TOK = t;
+    if (who !== WHO) { WHO = who; try { d.dispatchEvent(new CustomEvent('pvc:reader', { detail: { uid: who } })); } catch (e) { /* 古いブラウザ */ } }
     if (S.open) { if (readerTurn()) redraw(); } else shutGone();
   }
   /* 一覧を読めていないあいだは、このページでいま保存できた分だけを控え（M.kept）から出す。
@@ -3053,7 +3062,7 @@
        読む人が同じ時は、何もしない。面が閉じている時は、描いてあった字を消すだけ ＝ どちらも、通信は1本も出ない。 */
     setInterval(onReader, 60 * 1000);
     /* このタブの下書き：古いもの・別の会員のものを、開いた所で消す。ページを離れる時に、打ちかけを置く */
-    TOK = hasToken();
+    TOK = hasToken(); WHO = readerNow();
     sweepDrafts();
     w.addEventListener('pagehide', onLeave, false);
     function go() { var a = takeAdd(); COMING = false; if (a) openSheet(a); }
@@ -3091,7 +3100,9 @@
       return true;
     },
     close: function () { close(); },
-    myTowns: function () { return myTowns(slug()); },
+    /* ページの欄のための読み口 ＝ このページの会社（pageSlug）。slug() は使わない ── openFor のあと（閉じても）CO が残り、
+       ほかの会社の自分の投稿を、このページの欄に「あなたの投稿」として出してしまう */
+    myTowns: function () { return myTowns(pageSlug()); },
     /* 開いている・これから開く（?add= で来た）。全ページ共通の案内の板が、入力の上に被らないために聞く。 */
     isOpen: function () { return !!(S.open || S.skipPop || S.queue || COMING); }
   };

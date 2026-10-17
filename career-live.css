@@ -172,6 +172,24 @@
 .crl-note-me{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border-radius:999px;background:var(--pv-accent-soft);font-size:12px;font-weight:700;color:var(--pv-accent-ink)}
 .crl .crl-note-t{margin:4px 0 0;font-size:13px;line-height:1.7;color:var(--pv-ink);white-space:pre-line;overflow-wrap:anywhere}
 
+/* 会員が挙げた街（人数の多い順。数字はサーバーの答えのまま） */
+.crl .crl-town-h{margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--pv-ink-2)}
+.crl-town-me > .crl-note-h{margin-top:0}
+.crl-town-me + .crl-town-h,.crl-town-me + .crl-lock{margin-top:14px}
+.crl-towns{list-style:none;margin:0;padding:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));align-items:start}
+.crl-town{min-width:0;padding:10px 12px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface)}
+.crl-town-k{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:0}
+.crl-town-n{min-width:0;font-size:14px;font-weight:700;line-height:1.4;color:var(--pv-ink);overflow-wrap:anywhere}
+.crl-town-c{margin-left:auto;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--pv-ink-2)}
+.crl .crl-town-l{margin:10px 0 4px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--pv-ink-3)}
+.crl-town-tx{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.crl-town-t{font-size:13px;line-height:1.7;color:var(--pv-ink-2);overflow-wrap:anywhere}
+.crl-town-t > .crl-note-me{margin-left:8px}
+.crl-town-own{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.crl-town-own > li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-height:44px}
+.crl-town-st{padding:2px 9px;border-radius:999px;border:1px solid var(--pv-line);font-size:12px;font-weight:700;color:var(--pv-ink-3)}
+.crl-town-ed{appearance:none;-webkit-appearance:none;min-height:44px;padding:0 4px;border:0;background:none;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+
 /* ── 2社を並べる（同じ形・同じ色。勝ち負けを付けない） ── */
 .crl-cmp{display:grid}
 .crl-cmp-head,.crl-cmp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}

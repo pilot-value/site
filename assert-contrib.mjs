@@ -6321,7 +6321,7 @@ async function main() {
     const TAB_NAME = { work: '勤務・訓練', pay: '給与・待遇', life: '暮らし・家族', overview: '概要' };
     const SLOT_AT = { got: '集まった回答', 'pvg-p-benefits': '待遇の集計' };
     /* 勤務・訓練の板の集計の欄は、面（data-sf）ごとに1つ。黙る2つ（勤務予定・休日・昇格・訓練）は、開いていない人には鍵の形のまま隠れ、字を持たない
-       （鍵の1行は、同じ板の月の勤務の欄が1回だけ言う）。暮らし・家族の板には、もう欄が無い（通勤の回答は、勤務・訓練の通勤の面に1つだけ） */
+       （鍵の1行は、同じ板の月の勤務の欄が1回だけ言う）。暮らし・家族の板には、もう集計と月の勤務の欄が無い（街の一覧の欄だけが在る。通勤の回答は、勤務・訓練の通勤の面に1つだけ） */
     const SF_SLOT = { roster: '勤務予定・休日の集計', commute: '通勤の集計', travel: 'Staff Travel の集計', career: '昇格・訓練の集計' }, QUIET_SF = ['career', 'roster'];
     const GATED = (x) => x.live === 'fact' || x.live === 'work';
     const slotName = (x) => (x.live === 'work' ? '月の勤務' : x.at === 'pvg-p-work' ? (SF_SLOT[x.sf] || `勤務・訓練の板の欄（面 ${x.sf || 'なし'}）`) : (SLOT_AT[x.at] || x.at || '?'));
@@ -6441,7 +6441,7 @@ async function main() {
       sf: e.getAttribute('data-sf') || '', at: (e.closest('.pvg-panel') || {}).id || '', state: e.getAttribute('data-state'),
       on: e.getClientRects().length > 0, text: (e.textContent || '').replace(/\s+/g, ''),
     }));
-    /* 欄を持たないタブ（暮らし・家族）。そこでは「そのタブになった・暮らしの板が見えている・板の中に実データの欄が無い・
+    /* 集計と月の勤務の欄を持たないタブ（暮らし・家族。街の一覧の欄だけが在る）。そこでは「そのタブになった・暮らしの板が見えている・板の中に実データの欄が無い・
        鍵の掛かる欄が1つも見えていない」で落ち着いたとする（待つ欄が無いので、欄が落ち着くのを待たない） */
     const BARE_TABS = ['life'];
     const toTab = async (p, id) => {
@@ -6449,7 +6449,7 @@ async function main() {
       if (BARE_TABS.includes(id)) {
         return seen(p, (t) => {
           const pn = document.getElementById('pvg-p-living');
-          return document.body.classList.contains('pvg-at-' + t) && !!pn && pn.getClientRects().length > 0 && !pn.querySelector('.crl[data-live]')
+          return document.body.classList.contains('pvg-at-' + t) && !!pn && pn.getClientRects().length > 0 && !pn.querySelector('.crl[data-live]:not([data-live="towns"])') && pn.querySelectorAll('.crl[data-live="towns"]').length === 1 && ![...pn.querySelectorAll('.crl[data-live="towns"]')].some((e) => /^(idle|loading)$/.test(e.getAttribute('data-state')))
             && ![...document.querySelectorAll('.crl[data-live="fact"], .crl[data-live="work"]')].some((e) => e.getClientRects().length > 0);
         }, id);
       }
@@ -6467,7 +6467,7 @@ async function main() {
       return out;
     };
     /* 開いていない人の、黙る2つの欄：勤務・訓練の板に2つ（勤務予定・休日・昇格・訓練）・どちらも鍵の形・見えない・字が無い。
-       欄を持たないタブ（暮らし・家族）には、鍵の掛かる欄が1つも無い。返すのは、破れている所の文 */
+       集計と月の勤務の欄を持たないタブ（暮らし・家族。街の一覧の欄だけが在る）には、鍵の掛かる欄が1つも無い。返すのは、破れている所の文 */
     const quietBad = (w) => {
       const bad = [], q = w.quiet;
       if (!q || J(q.map((x) => x.sf).sort()) !== J(QUIET_SF) || q.some((x) => x.at !== 'pvg-p-work')) bad.push(`黙る集計の欄：${q ? q.map((x) => x.sf + '@' + x.at).join('・') || '無し' : '読めていない'}（あるべき 勤務・訓練の板に 勤務予定・休日と昇格・訓練の2つ）`);
@@ -6747,7 +6747,7 @@ async function main() {
           const w = await walk(p), replies = await ear.all(), L = lockedBad(w, LOGIN_LINE), sawOut = await sawLogin(p);
           outWalk = w;
           ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
-            `★C2 未ログイン：どのタブでも、見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は、鍵の形で「${LOGIN_LINE}」の1行だけ（回答の行も数字も無い）。黙る2つの集計の欄（勤務予定・休日・昇格・訓練）は鍵の形で隠れ、字が無い・暮らし・家族には欄が無い`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
+            `★C2 未ログイン：どのタブでも、見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は、鍵の形で「${LOGIN_LINE}」の1行だけ（回答の行も数字も無い）。黙る2つの集計の欄（勤務予定・休日・昇格・訓練）は鍵の形で隠れ、字が無い・暮らし・家族には集計と月の勤務の欄が無い（街の一覧の欄だけ）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
           const got = w.overview.filter((x) => x.at === 'got');
           ok(got.length === 1 && got[0].lock.length === 1 && got[0].lock[0] === LOGIN_LINE && got[0].links.length === 0,
             '★C2 未ログイン：概要の「集まった回答」も同じ1行で、リンクを1つも持たない', J(got.map((x) => ({ lock: x.lock, links: x.links }))));
@@ -6800,8 +6800,8 @@ async function main() {
           ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
             `★C3 会員（給与の鍵なし）：どのタブでも、見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は、鍵の形で「${PAY_LINE}」の1行だけ（回答の行も数字も無い）。黙る2つの集計の欄は鍵の形で隠れ、字が無い`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
           const goes = TABS.map((id) => [id, w[id].flatMap((x) => x.links).filter((a) => a.text === PAY_GO)]);
-          ok(goes.every(([id, a]) => (id === 'overview' ? a.length <= 1 : BARE_TABS.includes(id) ? a.length === 0 : a.length === 1) && a.every((x) => x.href.endsWith('pay-report.html?airline=' + SLUG))),
-            `★C3 会員：見えている「${PAY_GO}」は、勤務・訓練／給与・待遇 のどちらのタブでも1つだけ（暮らし・家族には欄が無く0・概要では多くて1つ）。行き先は、このページの会社の給与の提出`,
+          ok(goes.every(([id, a]) => (id === 'overview' ? a.length <= 1 : a.length === 1) && a.every((x) => x.href.endsWith('pay-report.html?airline=' + SLUG))),
+            `★C3 会員：見えている「${PAY_GO}」は、勤務・訓練／給与・待遇／暮らし・家族 のどのタブでも1つだけ（暮らし・家族では街の一覧の欄の1つ・概要では多くて1つ）。行き先は、このページの会社の給与の提出`,
             J(goes.map(([id, a]) => [id, a.map((x) => x.href)])));
           const got = w.overview.filter((x) => x.at === 'got'), rows = factRows(w);
           const named = TABS.flatMap((id) => w[id].filter((x) => x.text.includes(DUTY) || x.text.includes(TRAVEL)).map((x) => `${TAB_NAME[id]}・${slotName(x)}`));

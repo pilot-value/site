@@ -199,8 +199,8 @@ const TAB_ID = new Set(TABS.map(t => t[0]));
 /* 「情報を追加」の面が持っている話題。一覧・月の勤務・住みやすい街と、質問のまとまり6つ（pv-contrib.js の GROUPS を下で読んで照合する）。 */
 const ASK_GROUPS = ['taxi', 'staff_travel', 'upgrade', 'roster', 'career', 'benefits'];
 const TOPICS = new Set(['list', 'work', 'town', ...ASK_GROUPS]);
-/* 実データの欄：種類ごとの数（会社の事実6・補足5・月の勤務1・提出された年収1・口コミ1・点数1・星1・要約1）。 */
-const LIVE_BOXES = { fact: 6, notes: 5, work: 1, realpay: 1, reviews: 1, score: 1, stars: 1, summary: 1, hotels: 1 };
+/* 実データの欄：種類ごとの数（会社の事実6・補足5・月の勤務1・提出された年収1・口コミ1・点数1・星1・要約1・ホテル1・街1）。 */
+const LIVE_BOXES = { fact: 6, notes: 5, work: 1, realpay: 1, reviews: 1, score: 1, stars: 1, summary: 1, hotels: 1, towns: 1 };
 const LIVE_N = Object.values(LIVE_BOXES).reduce((a, b) => a + b, 0);
 const figText = (key, y) => (key === 'max_y' ? `〜${y}` : key === 'cash_y_over' ? `${y}超` : key === 'allow_m_from' ? `${y}〜` : y);
 const numKeys = g => Object.keys(g).filter(k => typeof g[k] === 'number');
@@ -613,7 +613,7 @@ for (const s of FIVE) {
   const boxes = [...both.matchAll(/<div class="crl"([^>]*)>([\s\S]*?)<\/div>/g)];
   const kinds = {};
   for (const m of boxes) { const k = one(m[1], / data-live="([^"]*)"/) || '?'; kinds[k] = (kinds[k] || 0) + 1; }
-  ok(boxes.length === LIVE_N && same(Object.entries(kinds).sort(), Object.entries(LIVE_BOXES).sort()), `${s}: 実データの欄は${LIVE_N}（事実6・補足5・月の勤務1・年収1・口コミ1・点数1・星1・要約1・ホテル1）`, JSON.stringify(kinds));
+  ok(boxes.length === LIVE_N && same(Object.entries(kinds).sort(), Object.entries(LIVE_BOXES).sort()), `${s}: 実データの欄は${LIVE_N}（事実6・補足5・月の勤務1・年収1・口コミ1・点数1・星1・要約1・ホテル1・街1）`, JSON.stringify(kinds));
   ok(boxes.every(m => m[2] === '<span class="crl-ph">—</span>' && / data-state="idle"/.test(m[1]) && m[1].includes(` data-airline="${s}"`)),
      `${s}: 実データの欄は「—」で出荷し、自分の会社を指している`);
   /* 提出された年収の一覧：給与の1枚の中、推定年収のすぐ下に1つ。HTML には数字を1つも書かない。 */
@@ -914,8 +914,15 @@ for (const s of FIVE) {
     /* E9.3 前の案内（「勤務・訓練の通勤を見る」の行）の代わり：暮らしの板は、通勤の質問への案内で終わらない（A8） */
     ok(!PAGES[s].includes('pvg-liv-more') && !PAGES[s].includes('勤務・訓練の通勤を見る') && !PAGES[s].includes('ここに無い街に住んでいる方') && EL.some(e => e.topic === 'town'), `${s}: 暮らしの板は、通勤の質問への案内で終わらない（案内の行が無く、「＋住みやすい街を追加」が在る）`);
     ok(![...EW, ...EB, ...EL].some(e => e.text === '追加'), `${s}: 「追加」だけの入口が無い（何を足すのかが字で分かる）`);
-    /* 暮らしの板には、集計・補足の欄を置かない（通勤の回答は、勤務・訓練の通勤の面に1つだけ）。 */
-    ok(L.length > 0 && !L.includes(' data-live="'), `${s}: 暮らしの板に、集計・補足の欄を残していない（通勤は勤務・訓練の面に1つだけ）`);
+    /* 暮らしの板には、集計・補足・月の勤務の欄を置かない（通勤の回答は、勤務・訓練の通勤の面に1つだけ）。 */
+    ok(L.length > 0 && !/ data-live="(?:fact|notes|work)"/.test(L), `${s}: 暮らしの板に、集計・補足の欄を残していない（通勤は勤務・訓練の面に1つだけ）`);
+    /* E9.5 暮らしの板の実データの欄は、会員が挙げた街の1つだけ：ページに data-live="towns" は1つ・住むエリアの節の閉じのすぐ後ろの
+       div.pvg-liv-got の中・見出し「パイロットの回答」の次・会社はこのページ・基地は「＋住みやすい街を追加」の data-pvc-base。字はこのとおり（器だけ）。 */
+    const gotBase = one(L, /<a class="pvg-link pvg-liv-add"[^>]* data-pvc-base="([A-Z]{3})"/);
+    const GOT = `</section><div class="pvg-liv-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="towns" data-airline="${s}" data-base="${gotBase}" data-state="idle"><span class="crl-ph">—</span></div></div>`;
+    ok(!!gotBase && PAGES[s].split('data-live="towns"').length - 1 === 1 && L.split(GOT).length - 1 === 1 && L.split('<div class="pvg-liv-got">').length - 1 === 1,
+       `${s}: 暮らしの板の実データの欄は、会員が挙げた街の1つだけ（住むエリアの節のすぐ後ろ・「パイロットの回答」の下・このページの会社・入口と同じ基地）`,
+       `欄 ${PAGES[s].split('data-live="towns"').length - 1}つ・基地 ${gotBase}・${(one(L, /(<div class="pvg-liv-got">[\s\S]{0,240})/) || '器なし').slice(0, 240)}`);
     /* S3 欄：面ごとに集計の欄1つ＋補足の欄1つ（月の勤務の面は、月の勤務の欄1つ ── 帯で描く・補足も出す・鍵の一覧は持たない）。
        集計の欄の鍵 ＝ その面の話題の、答えられる質問ぜんぶ（額の質問は除く）。補足の欄（待遇の板の1つを含む5つ）の鍵 ＝ 答えられる質問ぜんぶ。
        どちらも、1つの質問は1つの欄にだけ入る。data-sub ＝ 台帳の親。子は親のすぐ下（親と子のあいだに、親の子孫でない質問を挟まない）。 */
@@ -1071,6 +1078,47 @@ for (const s of FIVE) {
     const [y, mo, da] = net.at.split('-').map(Number);
     ok(G.includes(`<span>${y}年${mo}月${da}日に公式の資料で確認</span>`), `${s}: 確かめた日（${net.at}）が出ている`);
   }
+}
+head('会員が挙げた街の欄（career-live.js の言葉 ⇄ career-stay.js・pv-contrib.js・生成側・読む会社）');
+{
+  /* E9.6 写しの字は、元の字と1文字も違わない（career-live.js は、ほかの部品の言葉を読めない ＝ 写しを持つ）。
+       ・自分の行の札「確認待ち」「見送り」と「修正」（T.townWait・T.townNo・T.townEdit）＝ career-stay.js の T.pending・T.rejected・T.edit
+       ・「ログインなしで保存した回答があります。」（T.townHeld）＝ 「情報を追加」の一覧の、預かりの箱の見出し（pv-contrib.js）
+       ・街の面の気になる点の下の1行（C10）は pv-contrib.js に1回・月の勤務の補足の1行も1回
+       ・街の面の交通手段の4つの字（pv-contrib.js の TMODE）＝ 会社ページの移動の字（生成側の MODE_JA）
+       ・「人気の居住地」は career-live.js の1行だけ（生成側・pv-glance.js・pv-contrib.js・5社のページには無い）。暮らしの板の HTML に 人気・ランキング・1位 が無い
+     P12.33 (a) ページの欄が読む自分の投稿は、いつもこのページの会社のぶん：PVContrib.myTowns は pageSlug() で読む
+       （slug() で読むと、openFor で読む人自身の会社について開いたあと ── 閉じても ── ほかの会社の自分の投稿が、このページの欄に「あなたの投稿」として出る）。 */
+  const CL = read('career-live.js'), CS = read('career-stay.js'), PC = read('pv-contrib.js'), GEN = read('gen-airline-glance.mjs'), PG = read('pv-glance.js');
+  const wordOf = (src, k) => one(src, new RegExp(`\\n {4}${k}: +'([^'\\n]*)',`));
+  for (const [k, ks] of [['townWait', 'pending'], ['townNo', 'rejected'], ['townEdit', 'edit']]) {
+    const a = wordOf(CL, k), b = wordOf(CS, ks);
+    ok(!!a && a === b, `街の欄の自分の行の「${a}」（T.${k}）は career-stay.js の T.${ks} と同じ字`, `career-live.js「${a}」／career-stay.js「${b}」`);
+  }
+  const held = wordOf(CL, 'townHeld');
+  ok(!!held && PC.split('\n').filter(l => l.includes(`heldBox('${held}', [`)).length === 1,
+     `街の欄の「${held}」（T.townHeld）は、「情報を追加」の一覧の預かりの箱の見出し（pv-contrib.js）と同じ字`, String(held));
+  const C10 = '書いた場合は、確認のあと、給与を提出した会員に表示されます（名前は出ません）。', MONTH_NOTE = '書いた場合は、給与を提出した会員に表示されます（名前は出ません）。';
+  ok(PC.split(C10).length - 1 === 1 && PC.split(MONTH_NOTE).length - 1 === 1, `街の面の「${C10}」は pv-contrib.js に1回・月の勤務の「${MONTH_NOTE}」も1回`,
+     `${PC.split(C10).length - 1}回／${PC.split(MONTH_NOTE).length - 1}回`);
+  const TM = Object.fromEntries([...(one(PC, /var TMODE = \[([^\n]*)\];/) || '').matchAll(/\['([a-z]+)', '([^']*)'\]/g)].map(m => [m[1], m[2]]));
+  const MJ = Object.fromEntries([...(one(GEN, /const MODE_JA = \{([^}]*)\};/) || '').matchAll(/([a-z]+): '([^']*)'/g)].map(m => [m[1], m[2]]));
+  const MK = ['train', 'taxi', 'bus', 'car'];
+  ok(same(Object.keys(MJ).sort(), [...MK].sort()) && MK.every(k => TM[k] && TM[k] === MJ[k]), '街の面の交通手段の4つの字（pv-contrib.js の TMODE）は、会社ページの移動の字（生成側の MODE_JA）と同じ',
+     MK.map(k => `${k}: ${TM[k]}／${MJ[k]}`).join(' ・ '));
+  const HEAD = wordOf(CL, 'townHead'), lines = (t, w) => t.split('\n').filter(l => l.includes(w)).length;
+  const elsewhere = [['gen-airline-glance.mjs', GEN], ['pv-glance.js', PG], ['pv-contrib.js', PC], ...FIVE.map(x => [pageOf(x), PAGES[x]])].filter(([, t]) => t.includes('人気の居住地')).map(([n]) => n);
+  ok(HEAD === '人気の居住地' && lines(CL, '人気の居住地') === 1 && !elsewhere.length, '「人気の居住地」は career-live.js の1行だけ（生成側・pv-glance.js・pv-contrib.js・5社のページには無い）',
+     `career-live.js ${lines(CL, '人気の居住地')}行・T.townHead「${HEAD}」・ほか ${elsewhere.join('・') || 'なし'}`);
+  for (const x of FIVE) {
+    const i = PAGES[x].indexOf('<div class="pvg-card pvg-panel" id="pvg-p-living"'), j = i < 0 ? -1 : PAGES[x].indexOf('<div class="pvg-more-grid pvg-g-st"', i);
+    const P = i >= 0 && j > i ? PAGES[x].slice(i, j) : '';
+    const hit = (P.match(/人気|ランキング|1位/g) || []);
+    ok(!!P && !hit.length, `${x}: 暮らしの板の HTML に「人気」「ランキング」「1位」が無い（「人気の居住地」は、読めた街の一覧の上にだけ career-live.js が描く）`, hit.join('・'));
+  }
+  const exp = PC.split('\n').filter(l => /^\s+myTowns: function \(\) \{/.test(l));
+  ok(exp.length === 1 && exp[0].trim() === 'myTowns: function () { return myTowns(pageSlug()); },' && !/myTowns\(slug\(\)\)/.test(noJsCmt(PC)),
+     'ページの欄が読む自分の投稿は、このページの会社のぶん ── PVContrib.myTowns は pageSlug() で読む（openFor のあとの会社 slug() では読まない）', exp.join(' ／ ') || '書き出しが無い');
 }
 head('career-stay.js（ホテルの欄の言葉・ログインの入口の行き先 ⇄ career-live.js）');
 {
@@ -1964,6 +2012,8 @@ const factBody = mode => (mode === 'work' || mode === 'work2' || mode === 'work0
   : mode === 'give' ? JSON.stringify({ ok: true, state: 'give', facts: SENT.map(wire) })      // 自分の会社への回答が足りない人。行が付いてきても、画面は1行も出さない
   : mode === 'giveOpen' ? JSON.stringify({ ok: true, state: 'open', facts: SENT.map(wire) })  // 開いている人。欄が聞いた質問の行だけを出す
   : JSON.stringify({ ok: true, state: 'login' }));                         // 未ログイン
+/* 街の一覧の口は、集計の口と同じ語で答える（本物は、どちらも pv_contrib_sees の1語）。開いている場面では、街は0件。 */
+const townBody = mode => { const w = JSON.parse(factBody(mode)).state; return w === 'open' ? '{"ok":true,"state":"open","towns":[]}' : stateBody(w); };
 /* 返事に付けた行から作る「出てはいけない字」（行を直せば一緒に変わる）。
    LEAK_PAGE … ページの字（innerText）にも欄にも無いこと／LEAK_SLOT … 欄（.crl）の字に無いこと（「3人」はページの地の文に在る）。 */
 const LEAK_PAGE = ['9.5', '77.7', `${LEAK_ROW.n}人`];
@@ -2079,6 +2129,8 @@ const workBody = mode => (mode === 'work' ? JSON.stringify({ ok: true, state: 'o
   : mode === 'work2' ? JSON.stringify({ ok: true, state: 'open', months: 12, by: WORK_FIX2 })
   : mode === 'work0' ? JSON.stringify({ ok: true, state: 'open', months: 12, by: NO_WORK })
   : mode === 'rows' ? '{"ok":true,"state":"locked"}' : '{"ok":true,"state":"login"}');
+/* 会員が挙げた街の一覧の口（db/towns.sql の pv_town_board）。返事は場面ごと（townBody・seen.town）。 */
+const TOWN_RE = /\/rest\/v1\/rpc\/pv_town_board$/;
 const STUB = [
   [/\/rest\/v1\/rpc\/pv_reviews$/, '{"unlocked":false,"rows":[]}'],
   [PAY_RE, '{"ok":true,"state":"locked","rows":[]}'],
@@ -2089,6 +2141,10 @@ const STUB = [
   [/\/rest\/v1\/rpc\/pv_contrib_notes$/, '{"ok":true,"state":"login"}'],
   /* ホテル：見てよい人でない人に本物のサーバーが返すのは、状態の1語だけ（db/stays.sql。自分が送った行の無い人には）。都市を選んだ時にだけ呼ぶ。 */
   [/\/rest\/v1\/rpc\/pv_stays$/, '{"ok":true,"state":"locked"}'],
+  /* 会員が挙げた街：本物のサーバーが返すのは、集計の口と同じ状態の1語（db/towns.sql の pv_town_board）。語は場面ごと（townBody）。 */
+  [TOWN_RE, ''],
+  [/\/rest\/v1\/rpc\/my_town_posts$/, '{"ok":true,"posts":[]}'],
+  [/\/rest\/v1\/rpc\/pv_town_options$/, '{"ok":true,"towns":[]}'],
 ];
 /* 集計の口と同じ1語を返す、横の2つの口（月の勤務・会員の補足）。上の表の、未ログインへの1語を返す行から拾う（名前をもう一度書かない）。 */
 const SIDE = STUB.filter(([, body]) => body === stateBody('login')).map(([re]) => re);
@@ -2115,7 +2171,7 @@ const sideBody = (mode, i, slug) => {
 const GIVE_LEAK = [...LEAK_PAGE, NOTE_LEAK, String(MONTH_LEAK.lo), String(MONTH_LEAK.hi)];
 /* 未ログインの画面で、欄が落ち着く先。月の勤務と回答の集計は鍵（ログインと給与の提出で開く）・補足は欄ごと出さない・ほかは「まだありません」。
    黙る集計の欄（data-quiet="1"）は、鍵のまま見えないのが落ち着いた形（鍵の文は同じ板の月の勤務の欄が1回だけ言う）。 */
-const CALM = x => (x.kind === 'work' ? x.on && x.state === 'locked' : x.kind === 'fact' ? x.state === 'locked' && (x.quiet ? !x.on : x.on) : x.kind === 'notes' ? !x.on && x.state === 'empty' : x.on && x.state === 'empty');
+const CALM = x => (x.kind === 'towns' ? x.on && x.state === 'locked' : x.kind === 'work' ? x.on && x.state === 'locked' : x.kind === 'fact' ? x.state === 'locked' && (x.quiet ? !x.on : x.on) : x.kind === 'notes' ? !x.on && x.state === 'empty' : x.on && x.state === 'empty');
 /* ── 開いていない人に出る1行と入口 ──
    下の字は、画面に出るはずの字を検査が自分で持つもの（career-live.js から読み込まない ＝ あちらを変えたら、ここで赤くなる）。 */
 const LOGIN_LINE = 'ログインと給与の提出で開きます', LOGIN_GO = 'ログイン';
@@ -2280,7 +2336,7 @@ const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
 async function open(browser, slug, w, h, mode, pre) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
-  const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [], stayStatus: 200, stayStall: false, add: null, added: [], vreq: null, vreqd: [], edit: null, edited: [], del: null, deleted: [], claim: '{"ok":true}', claimed: [] };
+  const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [], stayStatus: 200, stayStall: false, add: null, added: [], vreq: null, vreqd: [], edit: null, edited: [], del: null, deleted: [], claim: '{"ok":true}', claimed: [], town: null };
   /* 答えるカードの口：give ＝ その場面だけ差し替える返事（{ status, body }。置かなければ giveBody）・giveCalls ＝ 呼ばれた回数。
      nav ＝ 並びを置いた場面でだけ、ページが移ろうとした行き先を控えて止める（カードのリンクが進む先を見る時）。 */
   seen.give = null; seen.giveCalls = 0; seen.nav = null;
@@ -2369,6 +2425,10 @@ async function open(browser, slug, w, h, mode, pre) {
           seen.giveCalls++;
           const g = seen.give || {};
           return r.respond({ status: g.status || 200, contentType: 'application/json', headers: cors, body: g.body || giveBody(seen.mode, slug) });
+        }
+        if (hit[0] === TOWN_RE) {
+          const t = seen.town || {};
+          return r.respond({ status: t.status || 200, contentType: 'application/json', headers: cors, body: t.body != null ? t.body : townBody(seen.mode) });
         }
         if (hit[0] === WORK_RE) {
           return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: workBody(seen.mode) });
@@ -3211,9 +3271,9 @@ async function runView(browser, s, [w, h, kind]) {
         if (!c1.every(x => (x.id === c.id) === (x.exp === 'true') && (x.id === c.id) === !x.hidden && (x.id === c.id) === x.open)) bad.push(`${c.id}: 開いているのが、その1枚だけになっていない`);
         const calm = await p.waitForFunction(id => ![...document.getElementById(id).querySelectorAll('.crl')].some(n => n.getClientRects().length && /^(idle|loading)$/.test(n.dataset.state)), {}, c.id).then(() => true, () => false);
         const lv = (await ev(() => window.__pvg.live())).filter(x => x.panel === c.id);
-        /* 暮らしの板には、実データの欄が1つも無い（通勤の回答は、勤務・訓練の通勤の面に1つだけ）＝ 欄が0なのが、落ち着いた形。 */
-        const none = c.id === 'pvg-p-living';
-        if (!calm || (none ? lv.length !== 0 : !lv.length || !lv.every(x => CALM(x) && !NO_NUM.test(x.text)))) bad.push(`${c.id}: 開いた板の欄が落ち着かない ── 集計と月の勤務は鍵・補足は出さない（${lv.map(x => `${x.kind}:${x.state}:${x.on ? '見える' : '隠れる'}`)}）`);
+        /* 暮らしの板の実データの欄は、会員が挙げた街の1つだけ（通勤の回答は、勤務・訓練の通勤の面に1つだけ）＝ その1つが鍵の形で見えているのが、落ち着いた形。 */
+        const town = c.id === 'pvg-p-living';
+        if (!calm || (town ? !(lv.length === 1 && lv[0].kind === 'towns' && CALM(lv[0]) && !NO_NUM.test(lv[0].text)) : !lv.length || !lv.every(x => CALM(x) && !NO_NUM.test(x.text)))) bad.push(`${c.id}: 開いた板の欄が落ち着かない ── 集計と月の勤務は鍵・補足は出さない（${lv.map(x => `${x.kind}:${x.state}:${x.on ? '見える' : '隠れる'}`)}）`);
         if (calm) for (const b of loginBad(await ev(slotsSee), '', m1Saw)) m1.push(`${c.id} を開いた形 ── ${b}`);
         await ev(id => { for (const d of document.getElementById(id).querySelectorAll('details')) d.open = true; }, c.id);
         await geom(`${c.id} を開いた形`, false);
@@ -3275,7 +3335,7 @@ async function runView(browser, s, [w, h, kind]) {
         `${tag}: 募集の1枚の入口は「会社の募集ページ」── 台帳のいちばん上の資料を新しいタブで開く・カードからはみ出さない`, JSON.stringify(j));
       ok(j.old === 0, `${tag}: 「募集要項を開く」（タブを切り替えるボタン）が残っていない`, String(j.old));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -3466,7 +3526,7 @@ async function runRows(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 一覧の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
     /* 給与・待遇のタブでは、欄が持つ3行がそのまま出る（概要で減らしたのは「何行めまで見せるか」だけ）。 */
     {
       await ev(() => document.querySelector('.pvg-tabs [data-pvg-tab="pay"]').click());
@@ -3559,7 +3619,7 @@ async function runRated(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-score'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
     if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-key-${s}-${w}-overview`);
     {
@@ -3636,7 +3696,7 @@ async function runRated404(browser, s, [w, h, kind]) {
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-off-${s}-${w}-overview`);
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
@@ -3768,7 +3828,7 @@ async function runRatedOne(browser, s, [w, h, kind], mode) {
     ok(!B.b.length, `${tag}: 概要と口コミのタブの両方で、ページのソース（属性の中も）と手元の保存に、届いた要約の文も元の口コミの番号も無い（閉じた形は届いた中身を描かない）`, B.b.join(' ／ '));
     ok(!B.c.length, `${tag}: 概要と口コミのタブの両方で、カードの錠前の1行とログインの入口は ${login ? `「${SUM_LOGIN_TEXT}」1つ・ログイン1つ` : '1つまで'}（同じ案内を重ねない）`, B.c.join(' ／ '));
     ok(!B.d.length, `${tag}: 要約の欄は「読み込み中」→「${SUM_FINAL[want]}」だけを通る${want === 'error' ? '' : '・答えが来ても高さが動かない（2px まで）'}`, B.d.join(' ／ '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
     if (login) {
       /* 口コミのタブで開いた時：ログインの入口は、その同じタブへ戻る（同じページの物 ＝ 偽のサーバーと SUM_WATCH は付いたまま）。 */
       await fresh(`${BASE}/airlines/${s}.html#reviews`);
@@ -3859,7 +3919,7 @@ async function runRatedOpenAt(browser, s, [w, h, kind], mode) {
       ok(!B.c.length, `${tag}: 鍵を持つ人の要約の欄は、鍵や空の形を一度も通らない`, B.c.join(' ／ '));
       ok(!B.d.length, `${tag}: 概要と口コミのタブの両方で、矢印は #reviews・社風／勤務・元の口コミの番号・「この要約のもとになった口コミを見る」・44px 以上`, B.d.join(' ／ '));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
     if (max) return;
     /* E9.5（持ち越し）：区分のタイル6枚は、絵（.rcg-icon の svg）を1つずつ持ち、6つの絵は互いに違う（区分ごとの絵。並び順で選ばない）。
        タイルの右の矢印も svg なので、数えるのは絵の箱の中だけ。DOM を読むだけ（タイルが画面に見えている必要は無い）。 */
@@ -3962,7 +4022,7 @@ async function runFacts404(browser, s, [w, h]) {
     ok(!bad.length, `${tag}: 見えている集計の欄は「${FACT_OFF}」だけ ──「${FACT_NONE}」と書かない・数字もリンクも出さない（つながっていないことを、0件のように見せない）`, [...new Set(bad)].join(' ／ '));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -6751,7 +6811,7 @@ const GIVE_ERR = 'いま読み出せません', GIVE_RETRY = 'やり直す';
    カードを出すかどうかは、欄の印（data-entry）が決める：印なし ＝ 1行＋答えるカード／"0"・"login" ＝ 1行だけ（同じ板のほかの欄が出す）／"give" ＝ 1行＋答えるカード。
      概要 ＝「集まった回答」（印 "give"）／勤務・訓練 ＝ 通勤と Staff Travel の集計（印 "login"：1行だけ）と月の勤務（カードはこちら）・
      黙る2つの集計の欄（勤務予定・休日、昇格・訓練）は見えない（quietBad が別に見る）／
-     給与・待遇 ＝ 待遇の集計／暮らし・家族 ＝ 欄なし（通勤の回答は、勤務・訓練の通勤の面に1つだけ）。口コミ・ステイ先には、どちらの欄も無い。 */
+     給与・待遇 ＝ 待遇の集計／暮らし・家族 ＝ 集計・月の勤務の欄なし（街の一覧の欄は giveBad の外）（通勤の回答は、勤務・訓練の通勤の面に1つだけ）。口コミ・ステイ先には、どちらの欄も無い。 */
 const GIVE_FACE = {
   overview: [['fact', 'got', 'give', 1]],
   pay: [['fact', 'pvg-p-benefits', null, 1]],
@@ -7094,7 +7154,7 @@ async function runGive(browser, s, [w, h]) {
       fault(await gated(), 3, 'off', FACT_OFF, '404');
       ok(!bad.length, `${tag}: 答えるカードの読み出しが失敗した時 ── 読めない時と、'open' の1語が返った時は「${GIVE_ERR}」＋「${GIVE_RETRY}」（押すと、答えるカードの口だけをもう1回呼ぶ・1行は残る）・口が無い時は「${FACT_OFF}」。数字を書いた1行も、中身の無いカードも出さない`, [...new Set(bad)].slice(0, 6).join(' ／ '));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -7171,7 +7231,7 @@ async function runGiveOpen(browser, s, [w, h]) {
       const geo3 = await ev(() => window.__pvg.geom(true));
       ok(!geo3.length, `${tag}: 給与・待遇のタブでも、切れ・はみ出し・重なりが無い`, geo3.slice(0, 8).join('\n      '));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている8つだけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {

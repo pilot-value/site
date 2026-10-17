@@ -469,6 +469,12 @@
    語の途中で折らない。字の大きさ・太さは、下の .pvg .pvg-link（同じ強さ・あとに在る）に負けないよう、2つの印で書く */
 .pvg-liv-h > .pvg-askh{margin-bottom:0!important}
 .pvg .pvg-link.pvg-liv-add{flex:none;white-space:nowrap;font-size:13px;font-weight:700}
+/* 会員が挙げた街。欄が空（まだ1件も無い・見せるものが無い）のあいだは、見出しごと出さない。
+   ⚠️ 隠すのは外の箱で、読み終わって空だった時だけ。欄そのものを、まだ・読み込み中のあいだに隠さない
+      （career-live.js は「見えている箱」だけを取りに行く ＝ 隠すと永遠に読み込まれない）。 */
+.pvg-liv-got{margin-top:14px}
+.pvg-liv-got > .pvg-askh{margin:0 0 6px!important}
+.pvg-liv-got:has(> .crl[data-state="empty"]){display:none}
 /* 写真の出典（作者名とライセンス名。CC BY / BY-SA の写真を使う条件） */
 .pvg-phl{display:grid;gap:4px;padding:0 0 10px}
 .pvg-phl li{display:flex;flex-wrap:wrap;gap:0 10px;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
