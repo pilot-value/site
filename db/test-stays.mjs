@@ -3481,5 +3481,69 @@ console.log('\n▼ 見送りは、いまの verified を取り上げない（P12
      '★その「見送り」でも申請は終わる（画像はその場で消える・申請してきた人の一覧から消える・会員一覧では verified のまま・申請なし）', J(mem));
 }
 
+// ════════════════════════════════════════════════════════════════
+console.log('\n▼ 会員一覧の verified は、申請の画像を通る道の代わりにならない（P12.46・P12.47。申請の仕組みを足したこの DB で）');
+{
+  /* ★オーナーの決まり：申請してきた人は、オーナー自身が画像を見て承認する（それが見てよい理由）。
+       会員一覧の「verified」で、申請が待っている人・画像を見て見送った人を、画像なしで通さない（何も書かない）。
+       一度も申請していない人だけは、会員一覧から画像なしで verified にしてよい（オーナーの答え P12.47「1よい」）。
+       ★ここも申請の仕組みを足したあと（上の節の続き。ほかの節をこの後に走らせない）。 */
+  const APP5 = '00000000-0000-4000-8000-0000000000d4';   // 申請が待っている人
+  const APP6 = '00000000-0000-4000-8000-0000000000d5';   // 画像を見て見送られた人
+  const NEV  = '00000000-0000-4000-8000-0000000000d6';   // 一度も申請していない人
+  for (const [id, mail] of [[APP5, 'app5@example.com'], [APP6, 'app6@example.com'], [NEV, 'never@example.com']]) {
+    await db.query(`insert into auth.users(id,email) values($1,$2)`, [id, mail]);
+    await db.query(`insert into public.profiles(id,email) values($1,$2) on conflict (id) do nothing`, [id, mail]);
+  }
+  const imgsOf = async (id) => (await one(`select count(*)::int as n from public.pv_proof_images where user_id = $1`, [id])).n;
+  const inApps = async (id) => (((await rpc(OP, 'pv_stay_applicants', {})) || {}).rows || []).some((x) => x.id === id);
+  const nRows  = async () => (await one(`select count(*)::int as n from public.pv_stay_viewers`)).n;
+  const verify = (id, state, via) => rpc(OP, 'pv_stay_viewer_verify', { id, state, via });
+
+  /* T1 申請が待っている人を会員一覧から verified → use_image・何も書かない（画像も申請もそのまま・ホテルは読めない） */
+  const a5 = await rpc(APP5, 'pv_stay_apply', { image: JPEG });
+  const n1 = await nRows();
+  const t1 = await verify(APP5, 'approved', 'member');
+  ok(J(a5) === J({ ok: true, state: 'offered' }) && J(t1) === J({ ok: false, status: 'use_image' })
+     && (await vrowOf(APP5)) === null && (await nRows()) === n1 && (await imgsOf(APP5)) === 1 && (await inApps(APP5))
+     && (await stays(APP5)).state === 'locked',
+     '★T1 申請（画像）が待っている人を会員一覧から verified にすると use_image・承認の行は書かれない・画像も申請も残る・ホテルは読めないまま',
+     J({ a5, t1, row: await vrowOf(APP5), img: await imgsOf(APP5) }));
+  /* その人は、画像の面（申請してきた人の道）からなら決められる */
+  const t1b = await verify(APP5, 'approved', 'applicant');
+  ok(J(t1b) === J({ ok: true, state: 'approved', discarded: 1 }) && (await imgsOf(APP5)) === 0 && (await stays(APP5)).state === 'open',
+     '↑ 同じ人を画像の面（via applicant）で verified にすると通る・画像はその場で消える・ホテルが読める', J(t1b));
+
+  /* T2 画像を見て見送られた人を会員一覧から verified → applied_denied・何も書かない（また申請はできる） */
+  const a6 = await rpc(APP6, 'pv_stay_apply', { image: JPEG });
+  const d6 = await verify(APP6, 'denied', 'applicant');
+  const row6 = await vrowOf(APP6);
+  const t2 = await verify(APP6, 'approved', 'member');
+  ok(J(a6) === J({ ok: true, state: 'offered' }) && J(d6) === J({ ok: true, state: 'denied', discarded: 1 })
+     && J(t2) === J({ ok: false, status: 'applied_denied' }) && !!row6 && row6.state === 'denied' && J(await vrowOf(APP6)) === J(row6)
+     && (await stays(APP6)).state === 'locked',
+     '★T2 画像を見て見送った人を会員一覧から verified にすると applied_denied・承認の行は1文字も変わらない（見送りのまま）・ホテルは読めないまま',
+     J({ a6, d6, t2, row6, now: await vrowOf(APP6) }));
+  const a6b = await rpc(APP6, 'pv_stay_apply', { image: JPEG });
+  const t2b = await verify(APP6, 'approved', 'member');
+  ok(J(a6b) === J({ ok: true, state: 'offered' }) && J(t2b) === J({ ok: false, status: 'use_image' }) && (await imgsOf(APP6)) === 1
+     && J(await vrowOf(APP6)) === J(row6),
+     '↑ 見送られた人はマイページからまた申請できる・申請が待っているあいだも会員一覧からは通らない（use_image・何も書かない）', J({ a6b, t2b }));
+
+  /* T3 申請してきた人の道は、画像が無ければ今までどおり no_image（何も書かない） */
+  const n3 = await nRows();
+  const t3 = await verify(NEV, 'approved', 'applicant');
+  ok(J(t3) === J({ ok: false, status: 'no_image' }) && (await vrowOf(NEV)) === null && (await nRows()) === n3,
+     'T3 申請（画像）の無い人を申請してきた人の道で verified にすると no_image・何も書かない（今までどおり）', J(t3));
+
+  /* T4 一度も申請していない人は、会員一覧から画像なしで verified にできる（オーナーの決まり P12.47「1よい」） */
+  const t4 = await verify(NEV, 'approved', 'member');
+  const row4 = await vrowOf(NEV);
+  ok(J(t4) === J({ ok: true, state: 'approved', discarded: 0 }) && !!row4 && row4.state === 'approved' && row4.decided_by === OP
+     && (await stays(NEV)).state === 'open',
+     '★T4 一度も申請していない人は、会員一覧から画像なしで verified にできる（オーナーの決まり P12.47「1よい」・決めた人はオーナー・ホテルが読める）',
+     J({ t4, row4 }));
+}
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed\n`);
 process.exit(fail === 0 ? 0 : 1);

@@ -156,7 +156,9 @@
   };
   /* verified・見送り・取り消すが断られたときの一言。サイトに同じ場合の字が在るのは「もう無い」だけ
      （not_found ＝ その人が居ない／no_image ＝ 申請の画像がもう無い ── 別の窓で決めたあと）。ほかは FAIL。
-     ★forbidden に SAY.forbidden（「運営だけが…」）を使わない ── 断られるのは運営なのでその字は当たらない。 */
+     ★forbidden に SAY.forbidden（「運営だけが…」）を使わない ── 断られるのは運営なのでその字は当たらない。
+     ★会員一覧の verified が断られる use_image（申請が待っている）・applied_denied（画像を見て見送った）も FAIL
+       （別の窓で状態が変わったあと。読み直すと、行は面を開く「verified」か、「見送り」の印に変わる）。 */
   var SAY_WHO = { not_found: SAY.not_found, no_image: SAY.not_found };
 
   var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
@@ -617,6 +619,10 @@
        （保存領域にもメモリーの一覧にも置かない・リンクにしない）。閉じる・決める・描き直す・承認の面を閉じる・
        ページを離れる、のどれでも src を外して面ごと消す。
      ★「verified」と「見送り」は画像の面の中にだけ置く（画像を見てから決める）。会員一覧は行に「verified」／「取り消す」。
+     ★会員一覧は、画像を見ずに通す道にしない（WP-towns-13w・P12.46）：申請が待っている人の「verified」は、その人の行の下に
+       同じ画像の面を開くだけ（決めるのは面の中・申請してきた人の道で送る）。画像を見て見送った人の行には「verified」を置かない
+       （行に「見送り」の印。本人はマイページからまた申請できる）。一度も申請していない人は今までどおり行の「verified」で決める
+       （オーナーの答え P12.47「1よい」）。断るのはサーバー（use_image ／ applied_denied）で、ここは押せる所を合わせるだけ。
      ★送るのは {id, state, via} の3つだけ。決めたら2つの一覧を読み直す。数（承認の横）には入れない。 */
   function who(x) { return str(x.name) || str(x.email) || '—'; }
   function personRow(adm, x) {
@@ -648,21 +654,39 @@
   }
   function memberRow(x) {
     var li = personRow('member', x), v = li.querySelector('.adm-row-v');
-    var on = x.state === 'approved';
-    if (x.applied === true) v.appendChild(el('span', 'adm-tag', T.applied));
+    var on = x.state === 'approved', applied = x.applied === true;
+    /* 画像を見て見送った人（いまのオーナーが見送った・申請は待っていない）。申請し直していれば「申請あり」の側 */
+    var denied = !on && !applied && x.state === 'denied';
+    if (applied) v.appendChild(el('span', 'adm-tag', T.applied));
     if (on) v.appendChild(el('span', 'adm-tag', T.verified));
-    var b = on ? button('adm-no', T.revoke, 'revoke') : button('adm-ok', T.verified, 'verify');
-    b.addEventListener('click', function () {
-      decide(li, 'member:' + x.id, { id: x.id, state: on ? 'revoked' : 'approved', via: 'member' });
-    });
-    actions(li).appendChild(b);
+    if (denied) v.appendChild(el('span', 'adm-tag', T.decline));
+    var b = null;
+    if (on || !applied) {
+      if (!denied) {
+        b = on ? button('adm-no', T.revoke, 'revoke') : button('adm-ok', T.verified, 'verify');
+        b.addEventListener('click', function () {
+          decide(li, 'member:' + x.id, { id: x.id, state: on ? 'revoked' : 'approved', via: 'member' });
+        });
+      }
+    } else {
+      /* 申請が待っている人：「verified」は画像の面を開くだけ（ここからは何も送らない） */
+      b = button('adm-ok', T.verified, 'verify');
+      b.setAttribute('aria-expanded', 'false');
+      b.addEventListener('click', function () {
+        if (S.sheet && S.sheet.li === li) closeSheet(true);
+        else openSheet(li, x, b);
+      });
+    }
+    if (b) actions(li).appendChild(b);
     sayLine(li);
     return li;
   }
 
-  /* 申請の画像の面（行の下に1つだけ）。決めるボタンは、画像が読めて描けたあとにだけ出す */
+  /* 申請の画像の面（行の下に1つだけ）。決めるボタンは、画像が読めて描けたあとにだけ出す。
+     申請してきた人の行からも、会員一覧の申請が待っている人の行からも、同じ面・同じ決め方（via applicant） */
   function openSheet(li, x, vb) {
     closeSheet(false);
+    var key = li.getAttribute('data-adm') + ':' + x.id;
     var box = el('div', 'adm-sheet', null, { 'data-adm': 'sheet', role: 'group', 'aria-label': T.view, tabindex: '-1' });
     box.appendChild(el('p', 'adm-say', T.loading));
     var acts = li.querySelector('.adm-acts');
@@ -699,9 +723,9 @@
         if (S.sheet !== sh) return;
         var a = actions(box);
         var ok = button('adm-ok', T.verified, 'verify');
-        ok.addEventListener('click', function () { decide(li, 'app:' + x.id, { id: x.id, state: 'approved', via: 'applicant' }); });
+        ok.addEventListener('click', function () { decide(li, key, { id: x.id, state: 'approved', via: 'applicant' }); });
         var no = button('adm-no', T.decline, 'decline');
-        no.addEventListener('click', function () { decide(li, 'app:' + x.id, { id: x.id, state: 'denied', via: 'applicant' }); });
+        no.addEventListener('click', function () { decide(li, key, { id: x.id, state: 'denied', via: 'applicant' }); });
         a.appendChild(ok);
         a.appendChild(no);
         a.appendChild(closeBtn());
@@ -773,6 +797,8 @@
     };
     var li = find(key.slice(0, i)) || find('member');
     var b = li && li.querySelector('.adm-acts button');
+    /* ボタンの無い行（画像を見て見送った人）なら、その行そのものへ（行の「見送り」の印が、何が起きたかを言う） */
+    if (!b && li) { li.setAttribute('tabindex', '-1'); b = li; }
     if (b) b.focus();
   }
 

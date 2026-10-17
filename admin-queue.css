@@ -56,6 +56,9 @@
 .adm-sheet{display:grid;gap:10px;min-width:0;padding:12px;border:1px solid rgba(245,200,66,.25);border-radius:10px;background:rgba(245,200,66,.04)}
 .adm-sheet:focus{outline:none}
 .adm-sheet:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+/* 決めたあと、ボタンの無い行（画像を見て見送った人）へ戻したフォーカス（WP-towns-13w） */
+.adm-row[tabindex]:focus{outline:none}
+.adm-row[tabindex]:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
 .adm-sheet .adm-img{max-width:min(100%,520px);justify-self:start}
 /* ★ここだけ .adm- の外（WP-towns-13v・P12.45 c）：管理ページ自身の会員の表（#users-tbody）。名前の欄に最低の幅を持たせる
    （狭い画面と英語の見出しで、名前が1字ずつの縦書きになっていた）。

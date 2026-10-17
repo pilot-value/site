@@ -167,7 +167,9 @@
     '.pvpo-x:hover{color:var(--pv-ink,#0f172a)}',
     '.pvpo-x:focus-visible{outline:2px solid var(--pv-orange,#f97316);outline-offset:2px}',
     '.pvpo-x:active{transform:scale(.94)}',
-    '.pvpo-slot-card{margin-top:20px}'
+    '.pvpo-slot-card{margin-top:20px}',
+    /* 場所だけ取って待つあいだ（見えない・押せない・読み上げない） */
+    '.pvpo-slot-card.pvpo-hold{visibility:hidden}'
   ].join('');
 
   /* ▼ pv-proof.js の切り出しそのまま（K2：字の逃がし方）── 直さない。assert-proof-offer.mjs が1文字ずつ見ている */
@@ -483,12 +485,51 @@
     if (opts.client) given = opts.client;
     return rpc('pv_stay_apply', { p: {} }).then(function (v) {
       var st = v && v.ok === true ? v.state : '';
-      draw(slot, st);
-      return st || null;
+      /* 初めて描くときだけ：返事が来たその場で、最後の形のまま場所を取る（見えない・押せない）。上の段が落ち着いてから見せる。
+         ★場所を空けたまま待たない ── 空いた場所に NEXT ACTION のボタンが上がって出て、カードが出た瞬間に押し下げられる。
+         （描き直しは、いまのカードの場所でそのまま入れ替える） */
+      var wait = !slot.firstChild && (st === 'none' || st === 'offered' || st === 'approved');
+      draw(slot, st, wait);
+      if (!wait) return st || null;
+      var box = slot.firstChild;
+      return settled(slot).then(function () {
+        if (box && box.parentNode === slot) box.classList.remove('pvpo-hold');
+        return st || null;
+      });
     }, function () { draw(slot, ''); return null; });
   }
 
-  function draw(slot, st) {
+  /* ── 入口のカードは、上の段が落ち着いてから見せる（WP-towns-13w・P12.48）──
+     マイページは、このカードより上（名前・会員の情報の行・鍵の札）をあとから埋め、書体もあとから入れ替わる。
+     先に描くと、出た直後にボタンが上下に動き、すぐ押した指が外れる（出た瞬間の場所から動かさない）。
+     待つのは3つ：そのページの読み込み（window.PV_SESSION のある画面だけ。マイページはプロフィールの行を
+     描いてから解く）・書体・このカードの置き場所が QUIET 枚の絵のあいだ1つも動かないこと。
+     ★待ちすぎない：MAX_WAIT（ミリ秒）たったら、そのまま描く（カードが出ないままにはしない）。 */
+  var QUIET = 10, MAX_WAIT = 3000;
+  function nextFrame(f) { return (w.requestAnimationFrame || function (g) { return w.setTimeout(g, 16); })(f); }
+  function settled(slot) {
+    var t0 = Date.now();
+    var soft = function (p) { return p && typeof p.then === 'function' ? Promise.resolve(p).then(null, function () {}) : null; };
+    var host = soft(w.PV_SESSION), fonts = soft(d.fonts && d.fonts.ready);
+    var cap = new Promise(function (done) { w.setTimeout(done, MAX_WAIT); });
+    var quiet = Promise.all([host, fonts]).then(function () {
+      return new Promise(function (done) {
+        var last = null, still = 0;
+        var tick = function () {
+          if (Date.now() - t0 >= MAX_WAIT) { done(); return; }
+          var y = slot.getBoundingClientRect().top + (w.pageYOffset || 0);
+          still = last !== null && Math.abs(y - last) < 0.5 ? still + 1 : 0;
+          last = y;
+          if (still >= QUIET) { done(); return; }
+          nextFrame(tick);
+        };
+        nextFrame(tick);
+      });
+    });
+    return Promise.race([cap, quiet]);
+  }
+
+  function draw(slot, st, hold) {
     while (slot.firstChild) slot.removeChild(slot.firstChild);
     if (st !== 'none' && st !== 'offered' && st !== 'approved') return;
     if (!d.getElementById('pvpo-css')) {
@@ -498,7 +539,7 @@
       (d.head || d.documentElement).appendChild(cs);
     }
     var box = d.createElement('div');
-    box.className = 'glass mp-row pvpo-slot-card';
+    box.className = 'glass mp-row pvpo-slot-card' + (hold ? ' pvpo-hold' : '');
     box.setAttribute('data-pvpo-state', st);
     var b = d.createElement('div'); b.className = 'mp-row-b';
     var t = d.createElement('div'); t.className = 'mp-row-t';

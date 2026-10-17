@@ -759,7 +759,9 @@ async function draftChecks(page, lang, url) {
    ★オーナーでない運営には、申請してきた人・会員一覧の見出しも行も数もボタンも出ない（サーバーが forbidden を返す）。
    ★オーナーには2つの一覧が返ってきた順のまま字として出る。「verified」「見送り」は申請の画像の面の中にだけ。
      画像は「画像を見る」を押したときに1回だけ読み、閉じたら画像は DOM にも保存領域にも残らない。
-     送るのは {id, state, via} だけ。決めたら2つの一覧を読み直す。数（承認の横）には入れない。 */
+     送るのは {id, state, via} だけ。決めたら2つの一覧を読み直す。数（承認の横）には入れない。
+   ★会員一覧は画像を見ずに通す道にならない（WP-towns-13w・P12.46）：申請が待っている人の「verified」は同じ画像の面を開くだけ（T5）・
+     画像を見て見送った人の行には「verified」が無い（T6）。一度も申請していない人は行の「verified」のまま（O6 ・オーナーの答え P12.47）。 */
 const OWN_WORDS = { ja: ['申請してきた人', '会員一覧', '画像を見る', '申請あり', '取り消す', '見送り'],
                     en: ['Applicants', 'Members', 'View image', 'Applied', 'Revoke', 'Decline'] };
 async function notOwnerChecks(page, lang) {
@@ -900,6 +902,38 @@ async function ownerChecks(page, lang) {
   ok(k1 && k2 === 'verify' && k3.sheets === 0 && k3.imgs === 0 && k3.focus === 'view' && k3.open,
      'O10 キーボード：Enter で画像の面に入り・Tab で「verified」・Escape で画像の面だけが閉じて「画像を見る」へ戻る（承認の面は開いたまま）', JSON.stringify({ k1, k2, k3 }));
 
+  /* T5（WP-towns-13w・P12.46）会員一覧の、申請が待っている人（A1）の「verified」は、その人の行の下に同じ画像の面を開くだけ。
+     押しても verified は送らない（画像を {id} で1回読むだけ）・決めるボタンは面の中・「閉じる」で消え、フォーカスは行の「verified」へ */
+  const ROWV = (s) => s + ' > .adm-acts > [data-act="verify"]';
+  const i5 = (await calls('pv_stay_applicant_image')).length, v5a = (await calls('pv_stay_viewer_verify')).length;
+  await page.click(ROWV(memSel(A1)));
+  /* 待つのは画像が描けて決めるボタンが出るまで（出なければ、この下の1行が赤くなる ── ここで止めない） */
+  await page.waitForFunction((s) => { const b = document.querySelector(s + ' > .adm-sheet'); return !!b && !!b.querySelector('[data-act="verify"]'); },
+    { timeout: 10000 }, memSel(A1)).catch(() => {});
+  const t5 = await page.evaluate((s) => {
+    const li = document.querySelector(s), box = li && li.querySelector(':scope > .adm-sheet'), img = box && box.querySelector('img');
+    const rb = li && li.querySelector(':scope > .adm-acts > [data-act="verify"]');
+    return { inRow: !!box, src: img ? (img.getAttribute('src') || '').slice(0, 23) : null, w: img ? img.naturalWidth : 0,
+             btns: box ? [...box.querySelectorAll('button')].map((b) => [b.getAttribute('data-act'), b.textContent]) : [],
+             sheets: document.querySelectorAll('#adm-q .adm-sheet').length, expanded: rb ? rb.getAttribute('aria-expanded') : null };
+  }, memSel(A1));
+  const i5b = await calls('pv_stay_applicant_image'), v5b = (await calls('pv_stay_viewer_verify')).length;
+  await page.click(memSel(A1) + ' > .adm-sheet [data-act="close"]').catch(() => {});
+  await page.waitForFunction(() => !document.querySelector('#adm-q .adm-sheet'), { timeout: 10000 }).catch(() => {});
+  const g5 = await page.evaluate((s) => {
+    const a = document.activeElement, li = a && a.closest('li');
+    const rb = document.querySelector(s + ' > .adm-acts > [data-act="verify"]');
+    return { sheets: document.querySelectorAll('#adm-q .adm-sheet').length, imgs: document.querySelectorAll('#adm-q img').length,
+             focus: a && a.getAttribute('data-act'), focusRow: li ? li.getAttribute('data-adm') + ':' + li.getAttribute('data-id') : null,
+             expanded: rb ? rb.getAttribute('aria-expanded') : null };
+  }, memSel(A1));
+  ok(t5.inRow && t5.src === 'data:image/jpeg;base64,' && t5.w > 1 && t5.sheets === 1 && t5.expanded === 'true'
+     && JSON.stringify(t5.btns) === JSON.stringify([['verify', W.verified], ['decline', W.decline], ['close', W.close]])
+     && i5b.length === i5 + 1 && canon(i5b[i5b.length - 1]) === canon({ p: { id: A1 } }) && v5b === v5a
+     && g5.sheets === 0 && g5.imgs === 0 && g5.focus === 'verify' && g5.focusRow === 'member:' + A1 && g5.expanded === 'false',
+     `★T5 会員一覧の、申請が待っている人の「${W.verified}」は、その人の行の下に同じ画像の面を開くだけ（verified は送らない・画像を {id} で1回読む・決めるボタンは面の中）・「${W.close}」で消え、フォーカスは行の「${W.verified}」へ`,
+     JSON.stringify({ t5, img: i5b.length - i5, verify: v5b - v5a, g5 }));
+
   /* O4 画像の面の「verified」→ {id, state:'approved', via:'applicant'} だけ・2つの一覧を読み直す・申請の行は消え、会員一覧で verified */
   const r0 = await reads();
   await openSheet(A1);
@@ -922,6 +956,13 @@ async function ownerChecks(page, lang) {
   ok(v5.length === 2 && canon(v5[1]) === canon({ p: { id: A2, state: 'denied', via: 'applicant' } })
      && JSON.stringify(none5.filter((x) => x[0] === 'apps')) === JSON.stringify([['apps', W.none]]),
      `★O5 画像の面の「${W.decline}」は {id, state:denied, via:applicant} だけ・申請が無くなると「${W.none}」`, JSON.stringify({ v5: v5[1], none5 }));
+  /* T6（WP-towns-13w・P12.46）画像を見て見送った人（A2）の会員一覧の行には「verified」が無い（「見送り」の印だけ・押せる所なし） */
+  const m6 = await info(memSel(A2));
+  ok(m6 && JSON.stringify(m6.tags) === JSON.stringify([W.decline]) && JSON.stringify(m6.btns) === '[]',
+     `★T6 画像を見て「${W.decline}」にした人の会員一覧の行には「${W.verified}」が無い（行は「${W.decline}」の印だけ・ボタンなし）`, JSON.stringify(m6));
+  const f6 = await page.evaluate(() => { const a = document.activeElement; return a ? [a.tagName, a.getAttribute('data-adm'), a.getAttribute('data-id')] : null; });
+  ok(JSON.stringify(f6) === JSON.stringify(['LI', 'member', A2]),
+     'T6 見送ったあと、フォーカスはその人の会員一覧の行（ボタンが無いので行そのもの）', JSON.stringify(f6));
 
   /* O6 会員一覧：「verified」→ {id, state:'approved', via:'member'}／「取り消す」→ {id, state:'revoked', via:'member'} */
   await page.click(memSel(M4) + ' [data-act="verify"]');
@@ -931,6 +972,28 @@ async function ownerChecks(page, lang) {
   const v6 = await calls('pv_stay_viewer_verify');
   ok(v6.length === 4 && canon(v6[2]) === canon({ p: { id: M4, state: 'approved', via: 'member' } }) && canon(v6[3]) === canon({ p: { id: M3, state: 'revoked', via: 'member' } }),
      `★O6 会員一覧の「${W.verified}」は {id, state:approved, via:member}・「${W.revoke}」は {id, state:revoked, via:member} だけ`, JSON.stringify(v6.slice(2)));
+
+  /* T5（続き）見送られたあとでまた申請した人（A5）：会員一覧では「申請あり」だけ。行の「verified」は画像の面を開き（その時点では
+     何も送らない）、面の「verified」は {id, state:'approved', via:'applicant'} だけを1回送る（会員一覧の道では送らない） */
+  const A5 = OW + '5';
+  await page.evaluate((id) => {
+    window.__o.apps.push({ id, email: 'again@example.com', name: 'Again Pilot', company: null, position: null, size: 2000, asked: 0 });
+    window.__o.members.push({ id, email: 'again@example.com', name: 'Again Pilot', company: null, position: null, state: 'denied', applied: true });
+    return window.PVAdminQueue.reload();
+  }, A5);
+  await page.waitForFunction((s) => document.querySelector(s), { timeout: 10000 }, memSel(A5));
+  const m5 = await info(memSel(A5)), v5c = (await calls('pv_stay_viewer_verify')).length;
+  await page.click(ROWV(memSel(A5)));
+  await page.waitForFunction((s) => document.querySelector(s + ' > .adm-sheet [data-act="verify"]'), { timeout: 10000 }, memSel(A5)).catch(() => {});
+  const v5d = (await calls('pv_stay_viewer_verify')).length;
+  await page.click(memSel(A5) + ' > .adm-sheet [data-act="verify"]').catch(() => {});
+  await page.waitForFunction((s) => { const li = document.querySelector(s); return li && li.querySelector('[data-act="revoke"]'); }, { timeout: 10000 }, memSel(A5)).catch(() => {});
+  const v5e = await calls('pv_stay_viewer_verify'), m5b = await info(memSel(A5));
+  ok(JSON.stringify(m5.tags) === JSON.stringify([W.applied]) && JSON.stringify(m5.btns) === JSON.stringify([['verify', W.verified]]) && v5d === v5c
+     && v5e.length === v5c + 1 && canon(v5e[v5e.length - 1]) === canon({ p: { id: A5, state: 'approved', via: 'applicant' } })
+     && !!m5b && JSON.stringify(m5b.tags) === JSON.stringify([W.verified]) && JSON.stringify(m5b.btns) === JSON.stringify([['revoke', W.revoke]]),
+     `★T5 見送られたあとでまた申請した人も、会員一覧では「${W.applied}」だけ・行の「${W.verified}」は画像の面を開く（その時点では何も送らない）・面の「${W.verified}」は {id, state:approved, via:applicant} だけを1回`,
+     JSON.stringify({ m5, sent: v5e.slice(v5c), m5b }));
 
   /* O8 断られたとき（pv_stay_viewer_verify が返しうる理由ごと）── サイトに在る一言（無ければ FAIL）。status の名前は出ない */
   const NF = EN ? EN_SAY.not_found : CS.mod.not_found, FL = EN ? EN_FAIL : CS.fail;
@@ -1097,6 +1160,9 @@ for (const lang of ['ja', 'en']) {
           if (!m) return { ok: false, status: 'not_found' };
           const app = o.apps.some((x) => x.id === p.id);
           if (p.via === 'applicant' && !app) return { ok: false, status: 'no_image' };
+          /* WP-towns-13w（P12.46）：会員一覧からは、申請が待っている人・画像を見て見送った人を通さない（何も変えない） */
+          if (p.via === 'member' && p.state === 'approved' && (app || m.applied)) return { ok: false, status: 'use_image' };
+          if (p.via === 'member' && p.state === 'approved' && m.state === 'denied') return { ok: false, status: 'applied_denied' };
           let to = p.state;
           if (to === 'denied' && m.state === 'approved') to = 'approved';
           m.state = to; m.applied = false;

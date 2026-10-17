@@ -310,8 +310,13 @@ console.log('\n▼ 5. 決めた瞬間に画像は消える（申請の行も）'
      && isLocked(await stays(B)), '★見送りでも画像はその場で消える・B は locked のまま', J([rb, db1]));
   const rb2 = await apply(B, { image: IMG3 });
   ok(J(rb2.v) === J({ ok: true, state: 'offered' }) && (await images(B)) === 1, '見送られた人は、また申請できる');
+  /* ★P12.46（2026-10-17）：申請（画像）が待っている人は、会員一覧からは verified にならない（use_image・何も書かない・画像は残る）。
+       画像の面（申請してきた人の道）から verified にすると通り、その場で画像が消える */
   const dm = await verify(OWN, B, 'approved', 'member');
-  ok(J(dm.v) === J({ ok: true, state: 'approved', discarded: 1 }) && (await images(B)) === 0, '会員一覧から verified にしても、その人の申請の画像は消える');
+  const dmKeep = (await images(B)) === 1 && J(await vrow(B)) === J({ state: 'denied', decided_by: OWN });
+  const da = await verify(OWN, B, 'approved', 'applicant');
+  ok(J(dm.v) === J({ ok: false, status: 'use_image' }) && dmKeep && J(da.v) === J({ ok: true, state: 'approved', discarded: 1 }) && (await images(B)) === 0,
+     '★会員一覧からは申請が待っている人を verified にできない（use_image・画像も見送りの行もそのまま）・画像の面から verified にすると、その人の申請の画像は消える', J({ dm, da }));
 }
 
 console.log('\n▼ 6. 出し直し・上限・前の確認の行');

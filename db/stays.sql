@@ -3127,7 +3127,11 @@ comment on function public.pv_stay_members(jsonb) is
 --   via 'applicant'（申請してきた人の一覧・画像を見た所から）: state 'approved'（verified）か 'denied'（見送り）
 --        ★申請の画像が在るときだけ決める（無ければ no_image・何も書かない）
 --   via 'member'（会員一覧）: state 'approved'（verified）か 'revoked'（取り消す・いま verified の人だけ）
--- 返り値: forbidden（★何も読まず・何も書かずに）／self／not_found／bad_state／no_image／
+--        ★会員一覧は、申請の画像を通る道の代わりにならない（P12.46・オーナーの決まり 2026-10-17）。verified は
+--          申請（画像）が待っている人 → use_image（画像の面から決める）・画像を見て見送った人 → applied_denied
+--          （画像なしでは通さない。本人はマイページからまた申請できる）。どちらも何も書かない・画像も申請もそのまま。
+--          一度も申請していない人は、画像なしで verified にしてよい（オーナーの答え P12.47「1よい」）。
+-- 返り値: forbidden（★何も読まず・何も書かずに）／self／not_found／bad_state／no_image／use_image／applied_denied／
 --         {ok:true, state, discarded}（discarded ＝ この決定で消えた申請の画像の枚数）
 -- ★ どの決定でも、その人の申請は終わる（画像はその場で消える）。
 -- ★ 'denied' でも、いま verified の人は verified のまま（見送りで、見られているものを取り上げない）。
@@ -3181,6 +3185,13 @@ begin
   if v_via = 'applicant' and not v_img then
     return jsonb_build_object('ok', false, 'status', 'no_image');
   end if;
+  -- ★会員一覧の verified は、画像を見ずに通す道にしない（申請が待っている人・画像を見て見送った人）
+  if v_via = 'member' and v_to = 'approved' and v_img then
+    return jsonb_build_object('ok', false, 'status', 'use_image');
+  end if;
+  if v_via = 'member' and v_to = 'approved' and v_cur = 'denied' then
+    return jsonb_build_object('ok', false, 'status', 'applied_denied');
+  end if;
   if v_to = 'revoked' and v_cur <> 'approved' then
     return jsonb_build_object('ok', false, 'status', 'bad_state');
   end if;
@@ -3206,7 +3217,7 @@ revoke all on function public.pv_stay_viewer_verify(jsonb) from public, anon;
 grant execute on function public.pv_stay_viewer_verify(jsonb) to authenticated;
 
 comment on function public.pv_stay_viewer_verify(jsonb) is
-  'verified（見てよい人にする）・見送り・取り消し。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申請してきた人は画像があるときだけ決める。どの決定でも申請は終わり、画像はその場で消える。パイロットの確認（pv_proof）を approved にしない。';
+  'verified（見てよい人にする）・見送り・取り消し。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申請してきた人は画像があるときだけ決める。会員一覧からは、申請が待っている人（use_image）・画像を見て見送った人（applied_denied）を verified にしない（何も書かない）。どの決定でも申請は終わり、画像はその場で消える。パイロットの確認（pv_proof）を approved にしない。';
 
 
 -- ════════════════════════════════════════════════════════════════

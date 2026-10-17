@@ -7,6 +7,8 @@
        そのページの外への通信は全部止めて書き留める（最後に「0本」を見る）。supabase-js は読まない。
      ★ページの sb は、呼ばれた関数をこの検査の中の PGlite（本物の db/*.sql）へその会員として渡すだけの細い橋。
        ＝ ポップアップの画面は MOCK、返事と保存は REAL LOCAL SQL。本番の証拠にはならない。
+     ★場面5だけは本物のマイページ（profile.html ／ en/profile.html）を、local-chain.mjs の使い捨ての保存先（serve-local の
+       start ・ OS が選ぶ番号）で開く（REAL LOCAL CONNECTION）。入口のボタンが出た瞬間の場所から動かないこと（WP-towns-13w）。
    ⚠️ 会員を名指しで書かない。ここの人は全員、作り物の uuid。 */
 import { readFileSync, existsSync, writeFileSync, mkdtempSync, rmSync } from 'fs';
 import { createHash } from 'crypto';
@@ -180,11 +182,13 @@ async function scenes() {
       focus: document.activeElement && (document.activeElement.id || document.activeElement.className || document.activeElement.tagName),
       store: [localStorage.length, sessionStorage.length] }));
     const waitFor = (fn, ...a) => page.waitForFunction(fn, { timeout: 15000 }, ...a);
+    /* 入口のカードが「見えて」いる（返事が来たその場で、見えないまま場所を取る ── 見えるまでは押せない） */
+    const cardShown = () => { const c = document.querySelector('#pv-proof-slot [data-pvpo-state]'); return !!c && getComputedStyle(c).visibility === 'visible'; };
     const until = async (fn, ms = 10000) => { const t0 = Date.now(); while (!fn()) { if (Date.now() - t0 > ms) throw new Error('until timeout'); await new Promise((r) => setTimeout(r, 50)); } };
 
     console.log('\n▼ 場面1（A）マイページの入口 → ポップアップ → 画像を出す（REAL LOCAL SQL）');
     await page.goto(base + '/h-ja.html');
-    await waitFor(() => document.querySelector('#pv-proof-slot [data-pvpo-state]'));
+    await waitFor(cardShown);
     let s = await state();
     ok(s.cardState === 'none' && s.card.includes('パイロットであることの確認をお願いします') && s.card.includes('画像を選んで提出する'),
        '申請していない会員：入口のカードに「パイロットであることの確認をお願いします」と「画像を選んで提出する」', J(s));
@@ -261,7 +265,7 @@ async function scenes() {
     s = await state();
     ok(s.cardState === 'none', 'その人のマイページの入口は、ほかの会員と同じ「none」の形（確認を求められたことを画面へ渡さない）', J(s));
     who = V; await page.goto(base + '/h-ja.html');
-    await waitFor(() => document.querySelector('#pv-proof-slot [data-pvpo-state]'));
+    await waitFor(cardShown);
     s = await state();
     ok(s.cardState === 'approved' && s.cardT === 'VERIFIED PILOT です' && s.cardS === 'Only VERIFIED PILOT' && !(await page.$('#pv-proof-slot button')),
        '★見てよい人：「VERIFIED PILOT です」と「Only VERIFIED PILOT」だけ（ボタンは無い・オーナーの字）', J(s));
@@ -273,11 +277,65 @@ async function scenes() {
 
     console.log('\n▼ 場面4（A）英語');
     who = A; await page.goto(base + '/h-en.html');
-    await waitFor(() => document.querySelector('#pv-proof-slot [data-pvpo-state]'));
+    await waitFor(cardShown);
     s = await state();
     ok(s.cardState === 'offered' && s.card.includes('We have received your image') && s.card.includes('Submit a different image'), '英語の入口', s.card);
 
     ok(outside.length === 0, '★ページから外への通信は0本（手元の配信だけ）', outside.join(' '));
+
+    /* 場面5（WP-towns-13w・P12.48）本物のマイページ（profile.html ／ en/profile.html）で、入口のボタンは出た瞬間の場所から動かない。
+       マイページはカードより上の段（名前・会員の情報の行）をあとから埋め、書体もあとから入れ替わる ── 先に描くと、出た直後に
+       ボタンが数十 px 上下する（すぐ押した指が外れる）。出た絵から60枚（約1秒・決まりの10枚より長く）見て、上下の幅が2px 以内。
+       「出た」＝見えた絵から数える（カードは返事が来たその場で、見えないまま最後の形で場所を取り、落ち着いてから見せる）。
+       ★もう1行：カードが見えたとき、その下の NEXT ACTION のボタン（#na-cta ＝ このページの本題）を押し下げない。
+         場所を空けたまま待つと、空いた場所に NEXT ACTION が上がって出て、カードが出た瞬間に最初の画面の外へ押し出される。
+         見えた絵の1枚前と見えた絵で2px 以内／いちど最初の画面に入ったら、そのあと外へ出ない・消えない。
+       ★手元の使い捨ての保存先（local-chain.mjs の bring ・ OS が選ぶ番号・3000 番は使わない）に、手元の会員 'a' として入る。
+         本番にも 3000 番にも通信しない（*.supabase.* もほかの行き先も0本）。 */
+    console.log('\n▼ 場面5（A）本物のマイページ：入口のボタンは、出た瞬間の場所から動かない（手元の保存先・REAL LOCAL CONNECTION）');
+    const { bring, open: openAs } = await import('./local-chain.mjs');
+    const LC = await bring();
+    try {
+      for (const [lang, wd, ht] of [['ja', 390, 844], ['en', 390, 844], ['ja', 1440, 900], ['en', 1440, 900]]) {
+        const { ctx, page: mp, st } = await openAs(browser, LC.base, { who: 'a', w: wd, h: ht });
+        await mp.evaluateOnNewDocument(() => {
+          window.__pvBtn = [];                 // 見えた絵から1枚ずつ、ボタンの上端（画面の座標）。見えたあとで消えたら・隠れたら null
+          window.__pvNa = [];                  // 最初の絵から1枚ずつ、[NEXT ACTION のボタンの上端（出ていなければ null）, カードのボタンが見えていたか]
+          const shown = (el) => !!el && !el.hidden && getComputedStyle(el).visibility === 'visible' && el.getBoundingClientRect().height > 0;
+          const tick = () => {
+            const b = document.querySelector('#pv-proof-slot [data-pvpo-state="none"] button');
+            const seen = shown(b);
+            if (seen || window.__pvBtn.length) window.__pvBtn.push(seen ? b.getBoundingClientRect().top : null);
+            const n = document.getElementById('na-cta');
+            window.__pvNa.push([shown(n) ? n.getBoundingClientRect().top : null, seen]);
+            if (window.__pvBtn.length < 61 && window.__pvNa.length < 1200) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+        await mp.goto(LC.base + (lang === 'en' ? '/en/profile.html' : '/profile.html'), { waitUntil: 'load' });
+        /* 待つのはボタンが出て60枚たつまで（出なければ、この下の1行が赤くなる ── ここで止めない） */
+        await mp.waitForFunction(() => window.__pvBtn.length >= 61, { timeout: 20000 }).catch(() => {});
+        const ys = await mp.evaluate(() => window.__pvBtn);
+        const nums = ys.filter((y) => typeof y === 'number');
+        const spread = nums.length ? Math.round((Math.max(...nums) - Math.min(...nums)) * 10) / 10 : null;
+        ok(ys.length >= 61 && nums.length === ys.length && spread !== null && spread <= 2 && st.supa.size === 0 && st.blocked.size === 0 && st.errs.length === 0,
+           `★${lang} ${wd}px：マイページの入口のボタンは、出た瞬間の場所から動かない（出てから60枚の上下が2px 以内・消えない・外への通信0本）`,
+           J({ frames: ys.length, first: nums[0], spread, moved: [...new Set(ys.map((y) => (y === null ? null : Math.round(y))))].slice(0, 6),
+               supa: [...st.supa], blocked: [...st.blocked], errs: st.errs.slice(0, 2) }));
+        const na = await mp.evaluate(() => window.__pvNa);
+        const k = na.findIndex((f) => f[1]);                                   // カードのボタンが初めて見えた絵
+        const before = k > 0 ? na[k - 1][0] : null, at = k >= 0 ? na[k][0] : null;
+        const on = (y) => typeof y === 'number' && y < ht;                    // 最初の画面の中（上端が画面の下端より上）
+        const f0 = na.findIndex((f) => on(f[0]));                              // NEXT ACTION が初めて最初の画面に入った絵
+        const out = f0 < 0 ? -1 : na.findIndex((f, i) => i > f0 && !on(f[0]));
+        const last = na.length ? na[na.length - 1][0] : null;
+        ok(k >= 0 && typeof last === 'number' && (before === null || (typeof at === 'number' && Math.abs(at - before) <= 2)) && out < 0,
+           `★${lang} ${wd}px：カードが見えても、NEXT ACTION のボタンは押し下げられない（見える前後で2px 以内・最初の画面に入ったら外へ出ない）`,
+           J({ shownAt: k, before: before === null ? null : Math.round(before), at: at === null ? null : Math.round(at),
+               firstOn: f0, pushedOutAt: out, outY: out < 0 ? null : na[out][0], last: last === null ? null : Math.round(last), h: ht }));
+        await ctx.close();
+      }
+    } finally { await LC.stop(); }
   } finally {
     await browser.close(); srv.close(); rmSync(tmp, { recursive: true, force: true });
   }
