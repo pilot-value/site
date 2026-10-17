@@ -14,6 +14,8 @@
      S3  運営が通す：承認された人 'pilot' に届く。'a'・'pay'・ほかのログインなしの人は locked のまま。送った人の札から「確認待ち」が消える。
      S4  給与の鍵は、期限が切れていても生きていても何も開かない。承認された人の承認をオーナーが取り消すと
          （本物の口 pv_stay_viewer_decide）、読み直した時から locked。開いているあいだ、保存領域にホテルの名前は無い。
+         取り消された人は申し込みの行から承認された人なので、決める口では承認し直せない（no_image・P12.51）。
+         もう一度申請し（画像はその場で描いた FIXTURE）、オーナーが画像の面の口で verified にすると、また開く。
      S5  つながっていない（この保存先の中で pv_stays と pv_stay_add を消す）→「準備中」・入口の3つ・押しても「準備中」・面は開かない。
      S6  読めなかった →「読み込めませんでした」＋「もう一度」→ 押すとやり直せる。
      S7  10秒以内の2つめ →「続けて追加するときは、少し時間をあけてください。」・打った字は面に残る。
@@ -22,7 +24,8 @@
    場面 two（S8・S8b）・login（S9）・kept（S10）・career（S11）── どれも自分の使い捨ての保存先を持つ（chain の S5 が関数を消すため）
      S8  会員 'a' がログインしたまま足す → サイトのログアウト（profile.html の「ログアウト」）→ 札も名前も残らない。
          別の窓の会員 'b' には何も無い。'a' がまた入ると札が戻る。オーナーが承認した2人目 'c'
-         （申し込みの行が無いうちは承認できない ── not_found）の開いた一覧は、ほかのタブでログアウトすると鍵の1行に戻る。
+         （申し込みの行が無いうちは決める口で承認できない ── not_found・申し込んだだけでも決める口では承認されない ── no_image。
+         申請の画像を見て verified にする）の開いた一覧は、ほかのタブでログアウトすると鍵の1行に戻る。
          給与提出者 'pay' は locked のまま。
      S8b ログインなしで足す → 同じ窓で 'a' がログイン：札は残り、端末の鍵は端末からも保存先からも消える（引き取り）→
          ログアウトのあとは札なし → 同じ窓の 'b' にも無い → 'a' は別の窓（端末の鍵なし）でも札がある。
@@ -35,8 +38,10 @@
 
    ★本番にも 3000 番にも1回も通信しない（local-chain.mjs の bring・open。終われば保存先ごと消す）。
    ★見てよい人は手元の模擬（serve-local.mjs：'op' ＝ オーナー、'pilot' ＝ そのオーナーが承認した人）。本番の証拠にはならない。
-     2人目の 'c' は、その会員としての本物の呼び出し pv_stay_viewer_request と、オーナー 'op' としての pv_stay_viewer_decide で作る
-     （画面は申し込みの口を呼ばない。その行には必ずそう書く）。
+     2人目の 'c' は、その会員としての本物の呼び出し pv_stay_viewer_request と pv_stay_apply、オーナー 'op' としての
+     pv_stay_viewer_verify（画像の面の道 via applicant）で作る（画面は申し込みの口を呼ばない。その行には必ずそう書く）。
+     ★2026-10-17（P12.51）から、申し込んだことのある人は決める口（pv_stay_viewer_decide）では承認されない（no_image）。
+       申請の画像は、その場で空のタブのキャンバスに描いた FIXTURE だけ（本物の画像は使わない・ファイルも作らない）。
    ★給与を出した人 'pay' は、その会員としての本物の呼び出し（submit_pay_report）で作る
      （手元の給与フォームから出せるかの下調べが無いため。その行には必ずそう書く）。
 
@@ -68,7 +73,7 @@ const LOCKED = '{"ok":true,"state":"locked"}';
 const BYCALL = '（給与提出者は、その会員としての本物の呼び出し submit_pay_report で作った）';
 
 /* ★見てよい2人目の作り方。'c' の承認の行には、どれにもこれを付ける */
-const BYVIEW = "（見てよい2人目 'c' は、その会員としての本物の呼び出し pv_stay_viewer_request と、オーナー 'op' としての pv_stay_viewer_decide で作った）";
+const BYVIEW = "（見てよい2人目 'c' は、その会員としての本物の呼び出し pv_stay_viewer_request と pv_stay_apply（申請の画像はその場で描いた FIXTURE）、オーナー 'op' としての pv_stay_viewer_verify（画像の面の道）で作った）";
 /* ★ログインの作り方（S8b・S9）。手元の login.html に、手元のコードを入れて通した */
 const BYLOGIN = '（ログインは手元の login.html で、手元のコードを入れて通した）';
 const MAP = 'Google マップ', OTHERS = '同じ空港で他社が使うホテル', PHOTO_DONE = '写真を追加しました。確認のあと公開されます。';
@@ -317,8 +322,30 @@ async function payKey(K) {
   if (!(live && live.live === true)) throw new Error('前提が崩れた（給与の鍵が生きていない）');
 }
 
-/* オーナーが見てよい2人目を決める（申し込んだ人だけ）。まず申し込みの行が無いまま承認させて、not_found で断られることを見る。
-   それから、その会員が本物の口で申し込み（画面はこの口を呼ばない）、オーナーが本物の口で承認する。開いた返事を返す。 */
+/* 申請の画像（P12.51 から、申し込んだことのある人は画像の面からしか見てよい人にならない）。
+   ★その場で空のタブ（about:blank・どこにも通信しない）のキャンバスに描いた FIXTURE だけ
+     （本物の画像は使わない・ファイルも作らない ── assert-towns.mjs の AD7 と同じ絵）。 */
+let FIXTURE_B64 = null;
+async function fixtureImage() {
+  if (FIXTURE_B64) return FIXTURE_B64;
+  const tab = await browser.newPage();
+  try {
+    FIXTURE_B64 = await tab.evaluate(() => {
+      const c = document.createElement('canvas');
+      c.width = 480; c.height = 240;
+      const g = c.getContext('2d');
+      g.fillStyle = '#f4f1ea'; g.fillRect(0, 0, 480, 240);
+      g.fillStyle = '#1b1b1b'; g.font = 'bold 64px sans-serif'; g.fillText('FIXTURE', 92, 140);
+      return c.toDataURL('image/jpeg', 0.85).split(',')[1];
+    });
+  } finally { await tab.close(); }
+  return FIXTURE_B64;
+}
+
+/* オーナーが見てよい2人目を決める。まず申し込みの行が無いまま決める口で承認させて、not_found で断られることを見る。
+   それから、その会員が本物の口で申し込む（画面はこの口を呼ばない）。★P12.51 から、申し込んだことのある人は決める口では
+   承認されない（no_image・名簿は変わらない）。そこで、その会員が本物の口で申請し（画像は FIXTURE）、オーナーが画像の面の
+   本物の口（verified の via applicant）で承認する。開いた返事を返す。 */
 async function approve(K, who, tag) {
   const id = M[who].id;
   const d0 = await rpcAs(K.base, 'op', 'pv_stay_viewer_decide', { id, state: 'approved' });
@@ -327,16 +354,29 @@ async function approve(K, who, tag) {
   ok(d0.body && d0.body.ok === false && d0.body.status === 'not_found' && n0 === 0 && K.isLockedBytes(r0),
     `★${tag} 申し込みの行が無い会員 '${who}' をオーナー 'op' が承認しようとすると not_found（名簿に何も書かない）・'${who}' への返事は ${LOCKED} のまま`,
     J({ decide: d0.body, rows: n0, r0: r0.text }));
+  const rowOf = async () => (await K.L.q(`select state, decided_by::text as by, asked_at::text as at from public.pv_stay_viewers where user_id = $1`, [id])).rows[0];
   const rq = await rpcAs(K.base, who, 'pv_stay_viewer_request', { ask: true });
   const r1 = await K.stays(who);
+  const rowQ = await rowOf();
   const d1 = await rpcAs(K.base, 'op', 'pv_stay_viewer_decide', { id, state: 'approved' });
-  const row = (await K.L.q(`select state, decided_by::text as by from public.pv_stay_viewers where user_id = $1`, [id])).rows[0];
-  const r2 = await K.stays(who);
+  const rowD = await rowOf();
+  const rD = await K.stays(who);
   ok(rq.body && rq.body.ok === true && rq.body.state === 'pending' && K.isLockedBytes(r1)
-    && d1.body && d1.body.ok === true && d1.body.state === 'approved' && row && row.state === 'approved' && row.by === M.op.id
+    && d1.body && d1.body.ok === false && d1.body.status === 'no_image' && !!rowQ && rowQ.state === 'pending' && J(rowD) === J(rowQ)
+    && K.isLockedBytes(rD),
+    `★${tag} '${who}' が申し込みの口で申し込んだだけでは ${LOCKED} のまま・オーナー 'op' が決める口（pv_stay_viewer_decide）で承認しようとしても no_image（P12.51：申し込んだことのある人は画像の面からだけ）・名簿は1文字も変わらない`,
+    J({ request: rq.body, r1: r1.text, decide: d1.body, rowQ, rowD, rD: rD.text }));
+  const ap = await rpcAs(K.base, who, 'pv_stay_apply', { image: await fixtureImage() });
+  const vf = await rpcAs(K.base, 'op', 'pv_stay_viewer_verify', { id, state: 'approved', via: 'applicant' });
+  const row = await rowOf();
+  const img = (await K.L.q(`select count(*)::int as n from public.pv_proof_images where user_id = $1`, [id])).rows[0].n;
+  const r2 = await K.stays(who);
+  ok(ap.body && ap.body.ok === true && ap.body.state === 'offered'
+    && vf.body && vf.body.ok === true && vf.body.state === 'approved' && vf.body.discarded === 1 && img === 0
+    && row && row.state === 'approved' && row.by === M.op.id
     && r2.body && r2.body.ok === true && r2.body.state === 'open',
-    `準備：'${who}' が申し込み（申し込んだだけでは ${LOCKED} のまま）、オーナー 'op' が承認した（決めた人は 'op'）── そこから一覧が開く${BYVIEW}`,
-    J({ request: rq.body, r1: r1.text, decide: d1.body, row, r2: r2.body && r2.body.state }));
+    `準備：'${who}' が申請し（画像は FIXTURE）、オーナー 'op' が画像の面の口で verified にした（決めた人は 'op'・画像はその場で消えた）── そこから一覧が開く${BYVIEW}`,
+    J({ apply: ap.body, verify: vf.body, row, img, r2: r2.body && r2.body.state }));
   return r2;
 }
 
@@ -508,10 +548,23 @@ async function chain() {
       `★S4 承認を取り消された 'pilot' が読み直すと、返事は ${LOCKED} そのもの・画面は鍵の1行だけ（名前は画面にも保存領域にも無い）`,
       J({ after: after.map((r) => r.text), v2, seen2 }));
     await shut(vp);
+    /* ★P12.51: 'pilot' は申し込みの行から承認された人（手元の模擬は申し込んだ時刻つきの行）＝申し込んだことのある人。
+         決める口では承認し直せない（no_image・名簿は変わらない）。戻す道は画像の面：'pilot' が本物の口で申請し（画像は FIXTURE）、
+         オーナーがその面の本物の口（verified の via applicant）で承認する */
+    const pRow = async () => (await L.q(`select state, decided_by::text as by, decided_at::text as at from public.pv_stay_viewers where user_id = $1`, [M.pilot.id])).rows[0];
+    const row0 = await pRow();
     const ba = await rpcAs(base, 'op', 'pv_stay_viewer_decide', { id: M.pilot.id, state: 'approved' });
+    const row1 = await pRow(), rn = await stays('pilot');
+    ok(ba.body && ba.body.ok === false && ba.body.status === 'no_image' && !!row0 && row0.state === 'revoked' && J(row1) === J(row0) && isLockedBytes(rn),
+      `★S4 取り消された 'pilot'（申し込みの行から承認された人）を、オーナー 'op' が決める口で承認し直そうとしても no_image（P12.51）・名簿は1文字も変わらない・返事は ${LOCKED} のまま`,
+      J({ decide: ba.body, row0, row1, rn: rn.text }));
+    const sApply = await rpcAs(base, 'pilot', 'pv_stay_apply', { image: await fixtureImage() });
+    const sVerify = await rpcAs(base, 'op', 'pv_stay_viewer_verify', { id: M.pilot.id, state: 'approved', via: 'applicant' });
     const rb = await stays('pilot');
-    ok(ba.body && ba.body.ok === true && rb.body && rb.body.state === 'open' && namesOf(rb).includes(PUB),
-      `S4 オーナー 'op' が同じ口で承認し直すと、'pilot' の一覧はまた開く`, J({ decide: ba.body, names: namesOf(rb) }));
+    ok(sApply.body && sApply.body.ok === true && sApply.body.state === 'offered' && sVerify.body && sVerify.body.ok === true && sVerify.body.state === 'approved'
+      && rb.body && rb.body.state === 'open' && namesOf(rb).includes(PUB),
+      `S4 'pilot' がもう一度申請し（画像は FIXTURE）、オーナー 'op' が画像の面の口（pv_stay_viewer_verify・via applicant）で承認し直すと、'pilot' の一覧はまた開く`,
+      J({ apply: sApply.body, verify: sVerify.body, names: namesOf(rb) }));
   });
 
   /* ── S6 ─────────────────────────────────────────────── */
