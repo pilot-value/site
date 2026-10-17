@@ -32,10 +32,12 @@
          面は pv_town_board も pv_town_queue も呼ばない（pv_town_board を読むのは、ページの街の欄の1本だけ）。
      S9  打った内容は消えない：自分の投稿のある街 X を、良い点を打ってから選ぶ → 打った字のまま（X の保存した字を上に書かない）・
          「あなたの投稿」「匿名で更新する」→ 送ると X の1行が打った字に。打つ前に選ぶと X の保存した値・自分の投稿の無い街へ移ると空に戻る。
+     S10 見出しは送るボタンと同じ決まり：入口から開く →「住みやすい街を追加」。自分の投稿のある街を打つ（・札で選ぶ）→ ボタンが
+         「匿名で更新する」になり、見出しは「住みやすい街」。投稿の無い街へ打ち替える → どちらも追加に戻る。
      X1  自分の街の投稿の読みが失敗しても（failNext）、月の勤務の入力は保存した値で1回だけ描かれ、読み込み中の行は2度と出ない・
          一覧は今までの2つの状態・街の入力は使える（読み込み中の行は残らない）。読みが止まったままでも、月の勤務はすぐ使える。
 
-   場面 anon（A1〜A6）
+   場面 anon（A1〜A7）
      A1  ログインなしで保存：通信は submit_contrib_anon（kind 'town'）・カードに「ログインなしで保存しました。」・
          保存先は預かりに1行だけ（会員の行も、新しい候補も無い）・端末に控えの鍵。
      A1b 預けたのが街だけの人の一覧に「ログインなしで保存した回答があります。」とその2行。
@@ -45,7 +47,15 @@
      A5  引き継ぎ：預かりが空になるまで待つ → 本人の投稿・鍵は端末から消える・my_town_posts（PVContrib.myTowns()）が返す。
      A6  2人の会員：a の保存後のカード／a が「修正」で開いた確認待ちの名前が出ているまま、b が同じタブで・ほかのタブで
          ログイン → a のものは出ない・数えない・送らない・街の欄は空・a の名前はページのどこにも無い・打った字は残る。
+         ほかのタブで替わったあと、'b' が街を保存して「もう1項目を答える」→「通勤・タクシー」を開いても、a の「修正」の街は
+         面の頭の行（「…からの通勤」）にも、ページのどこにも無い。
          ページのほかの鍵の要る欄も同じ：'pay' に開いていた REAL PAY の行は、同じタブで 'b' に替わると、ページのどこにも残らない。
+     A7  面を閉じたまま読む人が替わったあとの「修正」（会社ページの街の欄の本物の「修正」を押す）：
+         'a' が街を出す → 'b' に替わって入口から開く（'a' の街はどこにも無い）→ 'a' に戻って「修正」を押す → 直す面
+         （欄は 'a' の街・「あなたの投稿」・「住みやすい街」・「匿名で更新する」。空の「追加」にならない）。
+         'a' の「修正」が欄に残ったまま、ページに何も届かない替わり方で 'b' になる → その「修正」を押す → 'b' の追加の面で、
+         'a' の街はページのどこにも無い・何も送らない。続けて 'b' が街を保存して「もう1項目を答える」→「通勤・タクシー」を
+         開いても、'a' の街は面の頭の行にも、ページのどこにも無い。
 
    入口：ページに入口（data-pvc-open="town" と data-pvc-base を持つもの）が在ればそれを押す（「暮らし・家族」のタブの中に
          在るので、見えていなければ先にそのタブを押す）。無ければ、カードと同じ関数
@@ -77,6 +87,8 @@ const J = (v) => { try { return JSON.stringify(v).slice(0, 500); } catch { retur
 
 /* 画面の字（pv-contrib.js の字。ここで字を固定する） */
 const HEAD = '住みやすい街を追加';
+/* 自分の投稿を直している回の見出し（ボタンが「匿名で更新する」の時 ＝ 保存後のカードの見出しと同じ字。P12.41 a・P12.42） */
+const FIX_HEAD = '住みやすい街';
 const ADDED = '情報を追加しました';
 const MINE = 'あなたの投稿';
 const ADD_BTN = '匿名で追加する', UPD_BTN = '匿名で更新する';
@@ -789,6 +801,37 @@ async function sheet() {
     await shut(c);
   });
 
+  await scene('S10 見出しは、送るボタンと同じ決まり', async () => {
+    /* S9 で 'c' が出した「T1」（自分の投稿のある街）と、出していない「T2」 */
+    const X = T1, Y = T2;
+    const mine = (await rowsOf('c')).map((r) => r.town);
+    if (!(mine.includes(X) && !mine.includes(Y))) throw new Error(`前提が崩れた（'c' の投稿が「${X}」だけではない）: ` + J(mine));
+    const c = await page({ who: 'c' });
+    await go(c);
+    await openTown(c);
+    const f0 = await face(c);
+    ok(f0.title === HEAD && f0.ctl.town === '' && f0.send === ADD_BTN && !f0.tag,
+      `S10 入口から開く：見出しは「${HEAD}」・欄は空・ボタンは「${ADD_BTN}」`, J({ title: f0.title, town: f0.ctl.town, send: f0.send }));
+    await typeTown(c, X);
+    await until(async () => (await face(c)).send === UPD_BTN, 5000);
+    const f1 = await face(c);
+    ok(f1.ctl.town === X && f1.tag && f1.send === UPD_BTN && f1.title === FIX_HEAD,
+      `S10 自分の投稿のある「${X}」を打つ → 「${MINE}」・ボタンは「${UPD_BTN}」・見出しも「${FIX_HEAD}」（「…を追加」と言わない）`,
+      J({ title: f1.title, town: f1.ctl.town, tag: f1.tag, send: f1.send }));
+    await typeTown(c, Y);
+    await until(async () => (await face(c)).send === ADD_BTN, 5000);
+    const f2 = await face(c);
+    ok(f2.ctl.town === Y && !f2.tag && f2.send === ADD_BTN && f2.title === HEAD,
+      `S10 投稿の無い「${Y}」へ打ち替える → ボタンは「${ADD_BTN}」・見出しは「${HEAD}」に戻る`,
+      J({ title: f2.title, town: f2.ctl.town, tag: f2.tag, send: f2.send }));
+    await typeTown(c, '');
+    await pick(c, X);
+    const f3 = await face(c);
+    ok(f3.ctl.town === X && f3.send === UPD_BTN && f3.title === FIX_HEAD,
+      `S10 候補の札で「${X}」を選んでも同じ（「${UPD_BTN}」・見出し「${FIX_HEAD}」）`, J({ title: f3.title, town: f3.ctl.town, send: f3.send }));
+    await shut(c);
+  });
+
   await scene('X1 街の読みが失敗・止まっても、月の勤務は待たない', async () => {
     const w = await rpcAs(base, 'b', 'submit_work_month', { airline: SLUG, year: LAST.y, month: LAST.m, position: 'fo', fleet: FLEET, block_hours: 40, stay_nights: 3, lang: 'ja' });
     if (!(w.body && w.body.ok)) throw new Error('前提が崩れた（月の勤務を置けない）: ' + J(w.body || w.text));
@@ -855,7 +898,7 @@ async function sheet() {
   });
 }
 
-/* ════ 場面 anon（A1〜A6）══════════════════════════════════════ */
+/* ════ 場面 anon（A1〜A7）══════════════════════════════════════ */
 async function anon() {
   const K = await kit();
   const { L, page, go, shut, openTown, waitTown, face, card, typeTown, pick, choose, tickOwn, send, sentOf, rowsOf,
@@ -871,6 +914,32 @@ async function anon() {
     if (!b) return { shown: false, title: '', lines: [] };
     return { shown: !b.hidden && b.getClientRects().length > 0, title: tx(b.querySelector('.pvc-held-t')), lines: [...b.querySelectorAll('.pvc-held-d')].map(tx) };
   }, sel);
+  /* 開いている街の面で街 town を保存し、保存後のカードの「もう1項目を答える」→ 一覧の「通勤・タクシー」を開く（人が押す所を押す）。
+     返すのは、その面の頭の行（「…からの通勤」は、面を開いた押し所が持ってきた街の名前）と、ページに gone の字が在るか・
+     このあいだに送ったもの。前の人の「修正」の街（gone）を、次の人の別の項目へ持ち越さないことを見る（P12.42） */
+  const taxiAfter = async (p, town, gone) => {
+    const n0 = p.st.calls.length;
+    await typeTown(p, town);
+    await tickOwn(p);
+    const s = await send(p), c = await card(p);
+    const out = { saved: s.length === 1 && !!c, towns: s.map((x) => x.p && x.p.town), form: false, line: '', where: null, subs: [] };
+    if (out.saved) {
+      await p.page.click('.pvc-root [data-pvc-saved] [data-pvc-act="more"]');
+      await K.waitList(p);
+      await p.page.click('.pvc-root .pvc-tiles [data-pvc-tile="taxi"]');
+      await sheetIn(p, `const f = r.querySelector('form[data-pvc-form="taxi"]'), s = f && f.querySelector('fieldset.pvc-set');
+        return !!s && !s.disabled;`);
+      Object.assign(out, await p.page.evaluate((nm) => {
+        const f = document.querySelector('.pvc-root form[data-pvc-form="taxi"]'), n = f && f.querySelector('.pvc-ctx-line');
+        return { form: !!f, line: n ? n.textContent.replace(/\s+/g, ' ').trim() : '', where: document.documentElement.outerHTML.includes(nm) };
+      }, gone));
+    }
+    out.subs = p.st.calls.slice(n0).filter((x) => /^(submit_|claim_)/.test(x));
+    return out;
+  };
+  /* その結果が「持ち越していない」か（面が描けた・頭の行が在る・gone はその行にもページにも無い・送ったのは town の1本だけ） */
+  const carried = (t, town, gone) => !(t.saved && t.form && t.line !== '' && !t.line.includes(gone) && t.where === false
+    && t.towns.length === 1 && t.towns[0] === town && t.subs.length === 1 && t.subs[0] === 'submit_town_post');
   const g = await page();
   await early(g);
   await go(g);
@@ -1075,6 +1144,12 @@ async function anon() {
     ok(c3 && f3.ctl.good === TY && !f3.tag && f3.chips.every((x) => !x.mine) && f3.send === ADD_BTN && !(await where()) && subs(n0).length === 0,
       `A6 同じ形で、ほかのタブで 'b' がログイン（こちらのタブには触らない）→ 街の欄は空・「${WN}」はページのどこにも無い・打った字は残る・何も送らない`,
       J({ c3, ctl: f3.ctl, tag: f3.tag, send: f3.send, subs: subs(n0) }));
+    /* 3b) そのまま（面は開いたまま）'b' が街を保存して、別の項目へ進む。a の「修正」が持ってきた街の名前は、
+           'b' の「通勤・タクシー」の頭の行（「…からの通勤」）にも、ページのどこにも出ない */
+    const t3 = await taxiAfter(u, NAMES[0], WN);
+    ok(!carried(t3, NAMES[0], WN),
+      `A6 ほかのタブで 'b' に替わったあと、'b' が「${NAMES[0]}」を保存 →「もう1項目を答える」→「通勤・タクシー」：a の「修正」の「${WN}」は面の頭の行にも、ページのどこにも無い（送ったのは 'b' の街の1本だけ）`,
+      J(t3));
     /* 4) ページのほかの鍵の要る欄（02b の欄）も同じ：'pay' に開いていた REAL PAY の行が出ているまま、同じタブで 'b' がログイン
           → その行の字はページのどこにも無い（字も属性の値も）・欄は 'b' の鍵の形。'pay' の給与は、その会員としての本物の呼び出しで作る */
     const YEAR = (await L.q(`select extract(year from current_date)::int as y`)).rows[0].y - 1;
@@ -1100,6 +1175,83 @@ async function anon() {
       `A6 ページのほかの鍵の要る欄も同じ：'pay' に開いていた REAL PAY の行が出ているまま、同じタブで 'b' がログイン → その行の字はページのどこにも無い・欄は 'b' の鍵の形・何も送らない`,
       J({ rows, left: await left(), st: await payState(), calls: P.st.calls.slice(n4) }));
     await shut(P);
+  });
+
+  await scene('A7 面を閉じたまま読む人が替わったあとの「修正」', async () => {
+    /* 'a' の街（種に無い名前 ＝ 確認待ちの候補になる名前）。押すのは、会社ページの街の欄（career-live.js）が描いた本物の「修正」 */
+    const WA = '勝どき', BOX = '.crl[data-live="towns"]';
+    if (SEED_NAMES.includes(WA)) throw new Error(`前提が崩れた（「${WA}」が種に在る）: ${J(SEED_NAMES)}`);
+    const u = await page({ who: 'a' });
+    await go(u);
+    /* 街の欄（見えている方）の状態と、自分の行の「修正」が持つ街 */
+    const boxFace = () => u.page.evaluate((s) => {
+      const b = [...document.querySelectorAll(s)].find((x) => x.getClientRects().length > 0);
+      return b ? { state: b.getAttribute('data-state'), own: [...b.querySelectorAll('.crl-town-ed')].map((x) => x.getAttribute('data-pvc-ctx')) } : null;
+    }, BOX);
+    const settled = (st) => !!st && !/^(idle|loading)$/.test(st.state || '');
+    const where = () => u.page.evaluate((nm) => document.documentElement.outerHTML.includes(nm), WA);
+    const subs = (from) => u.st.calls.slice(from).filter((x) => /^(submit_|claim_)/.test(x));
+    await openTown(u);
+    await typeTown(u, WA);
+    await tickOwn(u);
+    const s0 = await send(u), c0 = await card(u);
+    if (!(s0.length === 1 && c0 && c0.rows.town && c0.rows.town.v === WA)) throw new Error('前提が崩れた（a の街の保存後のカードが出ていない）: ' + J({ s0, c0 }));
+    await closeSheet(u);
+    const own0 = await until(async () => { const b = await boxFace(); return settled(b) && b.own.includes(WA); }, 20000);
+    if (!own0) throw new Error(`前提が崩れた（街の欄に 'a' の「${WA}」の「修正」が無い）: ` + J(await boxFace()));
+    /* 1) 面を閉じたまま、同じタブで 'b' に替わる → 'b' が入口から開く（面には 'b' の印が付く） */
+    let n0 = u.st.calls.length;
+    await swap(u, 'b', 'same');
+    await until(async () => { const b = await boxFace(); return settled(b) && !b.own.includes(WA); }, 20000);
+    await openTown(u);
+    const f1 = await face(u);
+    ok(f1.ctl.town === '' && !f1.tag && f1.send === ADD_BTN && f1.title === HEAD && !(await where()) && subs(n0).length === 0,
+      `A7 面を閉じたまま同じタブで 'b' に替わり、入口から開く → 欄は空・見出し「${HEAD}」・「${ADD_BTN}」・'a' の「${WA}」はページのどこにも無い（街の欄にも）・何も送らない`,
+      J({ title: f1.title, town: f1.ctl.town, tag: f1.tag, send: f1.send, box: await boxFace(), subs: subs(n0) }));
+    await closeSheet(u);
+    /* 2) 面を閉じたまま、同じタブで 'a' に戻る（ログインし直す）→ 街の欄の「修正」を押す */
+    await swap(u, 'a', 'same');
+    const own2 = await until(async () => { const b = await boxFace(); return settled(b) && b.own.includes(WA); }, 20000);
+    n0 = u.st.calls.length;
+    const fix = await u.page.evaluateHandle((s, nm) => [...document.querySelectorAll(s + ' .crl-town-ed')]
+      .find((x) => x.getClientRects().length > 0 && x.getAttribute('data-pvc-ctx') === nm) || null, BOX, WA);
+    if (!own2 || !fix.asElement()) throw new Error(`前提が崩れた（'a' に戻った街の欄に「${WA}」の「修正」が無い）: ` + J(await boxFace()));
+    await fix.asElement().click();
+    await waitTown(u);
+    await until(async () => (await face(u)).send === UPD_BTN, 8000);
+    const f2 = await face(u);
+    ok(f2.ctl.town === WA && f2.tag && f2.send === UPD_BTN && f2.title === FIX_HEAD && subs(n0).length === 0,
+      `A7 面を閉じたまま 'b' → 'a' に戻り（同じタブでログインし直す）、街の欄の「修正」（${WA}）を押す → 直す面：欄は「${WA}」・「${MINE}」・見出し「${FIX_HEAD}」・「${UPD_BTN}」（空の「追加」にならない）`,
+      J({ title: f2.title, town: f2.ctl.town, tag: f2.tag, send: f2.send, subs: subs(n0) }));
+    await closeSheet(u);
+    /* 3) 'a' の「修正」が街の欄に残ったまま、ページに何も届かない替わり方で 'b' になる（同じタブで鍵だけが書き替わる。合図は出さない）。
+          書き替えと押すのは同じ1回の中（あいだに時計の確かめが入らない）── その「修正」を押す */
+    const own3 = await until(async () => { const b = await boxFace(); return settled(b) && b.own.includes(WA); }, 20000);
+    if (!own3) throw new Error(`前提が崩れた（街の欄に「${WA}」の「修正」が無い）: ` + J(await boxFace()));
+    const sb = await seedOf(K.base, 'b');
+    n0 = u.st.calls.length;
+    const pressed = await u.page.evaluate((x, s, nm) => {
+      const b = [...document.querySelectorAll(s + ' .crl-town-ed')].find((e) => e.getClientRects().length > 0 && e.getAttribute('data-pvc-ctx') === nm);
+      if (!b) return false;
+      localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session));
+      localStorage.setItem('pv_user', JSON.stringify(x.pv_user));
+      b.click();
+      return true;
+    }, sb, BOX, WA);
+    if (!pressed) throw new Error(`前提が崩れた（「${WA}」の「修正」を押せない）`);
+    await waitTown(u);
+    await until(async () => { const b = await boxFace(); return settled(b) && !b.own.includes(WA); }, 20000);
+    const f3 = await face(u);
+    ok(f3.ctl.town === '' && !f3.tag && f3.send === ADD_BTN && f3.title === HEAD && !(await where()) && subs(n0).length === 0,
+      `A7 'a' の「修正」（${WA}）が街の欄に残ったまま、ページに何も届かずに 'b' になる → その「修正」を押す：'b' の追加の面（欄は空・見出し「${HEAD}」・「${ADD_BTN}」）・「${WA}」はページのどこにも無い・何も送らない`,
+      J({ title: f3.title, town: f3.ctl.town, tag: f3.tag, send: f3.send, box: await boxFace(), subs: subs(n0) }));
+    /* 4) その面のまま 'b' が街を保存して、別の項目へ進む。押した「修正」が持っていた 'a' の街の名前は、
+          'b' の「通勤・タクシー」の頭の行（「…からの通勤」）にも、ページのどこにも出ない */
+    const t4 = await taxiAfter(u, NAMES[0], WA);
+    ok(!carried(t4, NAMES[0], WA),
+      `A7 続けて 'b' が「${NAMES[0]}」を保存 →「もう1項目を答える」→「通勤・タクシー」：押した「修正」の「${WA}」は面の頭の行にも、ページのどこにも無い（送ったのは 'b' の街の1本だけ）`,
+      J(t4));
+    await shut(u);
   });
 }
 

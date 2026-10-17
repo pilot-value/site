@@ -266,7 +266,8 @@
     open: false, view: '', from: null, viaList: false, pushed: false,
     skipPop: false, onSkip: null, queue: null, tok: 0, hideT: 0, taken: {},
     focusQ: '', focusT: '',
-    ctx: ''                                 // どの街の詳細から開かれたか（暮らしのタブ）。面を開き直すたびに決め直す
+    ctx: '',                                // どの街の詳細から開かれたか（暮らしのタブ）。面を開き直すたびに決め直す
+    ctxOwn: false                           // ctx が「修正」から入った街（読む人の投稿の街）か。読む人が替わったら ctx ごと手放す（readerReset）
   };
   /* 本人の投稿。k ＝ idle／loading／ok／anon／off／fail
      held ＝ いま見えているのは、ログインせずに預けた回答（控えの鍵で読んだもの）
@@ -835,6 +836,9 @@
            確認のチェック・知らせ・保存後のカードの記録は消す。
        C … 引き継ぎの知らせは消す。
        S … 面の開閉・履歴・どの面か・下書きを戻したかどうかは、読む人と関係が無いので触らない。
+           ただし「修正」から持って入った街の名前（S.ctx・S.ctxOwn）は、前の人の投稿の街（確認待ちの名前かもしれない）なので手放す
+           ── 手放さないと、次の人が同じ面のまま別の項目へ進んだ時に、その頭の行（「…からの通勤」）に出る。
+           街の詳細のリンクが持ってきた名前（だれでも見える街の名前）は残す。
      送っている最中の印（busy・by）は触らない（返事が来た時に下ろす）。 */
   function readerReset() {
     M.seq++; M.p = null; M.who = null;
@@ -858,6 +862,7 @@
     }
     if (!TW.nameBy) TW.name = '';
     TW.was = ''; TW.q = ''; TW.own = false; TW.notice = null; TW.err = null; TW.last = null;
+    if (S.ctxOwn) { S.ctx = ''; S.ctxOwn = false; }
     Object.keys(G).forEach(function (k) { G[k].own = false; G[k].notice = null; G[k].last = null; });
     C.note = null;
   }
@@ -978,12 +983,17 @@
      前の人について読んだ欄（前の人の投稿・前の人にだけ開いていた答え）がそのまま画面に残る。 */
   var WHO;
   function readerNow() { return hasToken() ? uid() : null; }
-  function onReader() {
+  /* ページの欄に、いまの読む人を知らせる（TOK・WHO が替わった時だけ。同じなら何もしない ＝ 欄は読み直さない）。
+     onReader と、閉じた面を「修正」から開く時（openSheet）の2か所から呼ぶ。 */
+  function tellPage() {
     var t = hasToken(), who = readerNow();
-    sweepDrafts();
     if (TOK === true && !t) { try { d.dispatchEvent(new CustomEvent('pvc:logout')); } catch (e) { /* 古いブラウザ */ } }
     TOK = t;
     if (who !== WHO) { WHO = who; try { d.dispatchEvent(new CustomEvent('pvc:reader', { detail: { uid: who } })); } catch (e) { /* 古いブラウザ */ } }
+  }
+  function onReader() {
+    sweepDrafts();
+    tellPage();
     if (S.open) { if (readerTurn()) redraw(); } else shutGone();
   }
   /* 一覧を読めていないあいだは、このページでいま保存できた分だけを控え（M.kept）から出す。
@@ -1979,12 +1989,15 @@
     try { if (t.normalize) t = t.normalize('NFKC'); } catch (e) { /* 古いブラウザ */ }
     return t.toLowerCase().replace(/[\s　]+/g, '');
   }
+  /* 見出し：自分の投稿を直している回は「追加」と言わない ── 送るボタンが「匿名で更新する」の時（「修正」から開いた・
+     保存後のカードから戻った ＝ TW.was／欄の街が、自分の投稿のある街 ＝ mine）に「…を追加」を出さない。
+     字は、保存後のカードの見出しと同じ「住みやすい街」。決まりはボタンの字と同じ（欄が替わるたびに E.sync が合わせる） */
+  function townHead(mine) { return mine || TW.was ? TOPIC_NAME.town : TOPIC_NAME.town + 'を追加'; }
   function renderTown() {
     var ctx = townCtx();
     if (!ctx) { show('list'); return; }
-    /* 見出し：自分の投稿を直している回（「修正」から開いた・保存後のカードから戻った ＝ TW.was）は「追加」と言わない
-       ── 送るボタンが「匿名で更新する」の時に「…を追加」を出さない。字は、保存後のカードの見出しと同じ「住みやすい街」 */
-    setHead(TW.was ? TOPIC_NAME.town : TOPIC_NAME.town + 'を追加');
+    var head = townHead(townRowFor(TW.name));
+    setHead(head);
     if (!V.vocab) {
       waiting('読み込んでいます…');
       vocab().then(function () { if (S.open && S.view === 'town') renderTown(); },
@@ -1996,7 +2009,7 @@
     var loading = (M.town.k === 'loading' || M.town.k === 'idle') && !M.soft;
     if (!loading) townAdopt();
     var E = TW.els = {};
-    E.loading = loading; E.ctl = {}; E.err = {};
+    E.loading = loading; E.ctl = {}; E.err = {}; E.head = head;
     clear(S.main);
 
     var f = el('form', 'pvc-form', null, { novalidate: '', autocomplete: 'off', 'data-pvc-form': 'town' });
@@ -2197,6 +2210,8 @@
       E.tag.hidden = !mine;
       E.send.disabled = !TW.own || TW.busy || E.loading;
       E.send.textContent = TW.busy ? '送っています…' : (mine || TW.was ? '匿名で更新する' : '匿名で追加する');
+      var h = townHead(mine);
+      if (h !== E.head) { E.head = h; setHead(h); }       // 見出しもボタンと同じ決まりで（townHead）
       var t = '';
       if (E.loading) t = 'これまでの投稿を確認しています…';
       else if (M.town.k === 'fail') t = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ街の投稿があれば、今回の内容に置き換わります）。';
@@ -2909,11 +2924,25 @@
     build();
     /* 街の詳細から開かれた回は、その街の名前を持って入る（字として見せるだけ。答えには勝手に書き足さない） */
     S.ctx = trim(o && o.ctx).slice(0, 40);
+    S.ctxOwn = false;
     /* 街：「修正」から押して開いた回は、その街の投稿を直す。常設の入口から押した回は、追加。
        「進む」・ログインからの戻り（o に ctx の鍵が無い）では決め直さない ＝ 直していた投稿を、追加に変えない。 */
     if (t === 'town' && o && has(o, 'ctx')) {
       var tc = trim(o.ctx).slice(0, 30);
-      if (tc) { TW.was = TW.name = tc; TW.nameBy = false; TW.q = ''; }
+      /* 閉じた面を開く時。面が閉じているあいだに読む人が替わっていたら（ほかのタブ・外からのログイン、ログインの切れ）：
+         (1) ページの欄に、いまの人を先に知らせる（tellPage）── 前の人の形のまま描いてあった欄は、その場で空になる。
+             押した「修正」がその欄と一緒に消えた ＝ 前の人の投稿の街：持って入らない（今の人の「追加」として開く）。
+             面の頭の行に出す街の名前（S.ctx）にも持って入らない ── 同じ面のまま別の項目（「通勤・タクシー」）へ進むと、
+             その頭の行（「…からの通勤」）に、前の人の街が出る。
+         (2) 前の人の分を、ここで先に手放してから「修正」の街を持って入る（readerReset）
+             ── あとで（loadMine の頭で）手放すと、押した人の「修正」の街まで消えて、空の「追加」が開く。
+         持って入った街の名前は、読む人の投稿の街（S.ctxOwn）── このあと読む人が替わったら、readerReset が手放す。 */
+      if (!S.open) {
+        tellPage();
+        if (o.from && o.from.nodeType === 1 && !d.contains(o.from)) { tc = ''; S.ctx = ''; }
+        if (!readerSame()) readerReset();
+      }
+      if (tc) { TW.was = TW.name = tc; TW.nameBy = false; TW.q = ''; S.ctxOwn = true; }
       else TW.was = '';
     }
     /* 「この質問から答える」で開かれた回は、その質問の所まで送る（show が別の話題へ移るときに忘れる） */
