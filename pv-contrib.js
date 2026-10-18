@@ -496,6 +496,26 @@
   function onLeave() {
     ['work', 'town'].concat(Object.keys(G)).forEach(function (t) { if (dirtyOf(t)) keepDraft(t, 'kept'); });
   }
+  /* 戻る・進むで、ブラウザが手元に置いていたこのページが、そのまま戻ってきた時（pageshow の persisted ＝ 読み直しを通らない）。
+     離れているあいだにログインが終わっていた（サイトの「ログアウト」・自動のログアウト）か、別の会員が入っていたら、
+     ページの中に残っている打ちかけは、前の人が打ったもの ── 画面からも、このページの中からも手放す
+     （開いていた面は閉じる。次に開いた時は空の入力から始まり、離れる時にも置き直さない）。
+     このタブの下書き（sessionStorage）には触らない ＝ WP-keep-1 の決まりのまま：サイトの「ログアウト」はもう消して出ていった・
+     自動のログアウトなら、同じ人がログインし直せば戻る・別の会員の分は onReader（sweepDrafts）が消す。
+     ログインせずに打った分（印が会員でない）と、同じ人のままの時は何もしない ＝ 戻る・進むで打った字は消えない。
+     Chrome で実測（2026-10-18）：自動のログアウトをほかのページ（supabase-js を読まないページ）で迎えて「戻る」と、
+     このページが手元から戻り、閉じた面を開き直すと前の人の打ちかけがそのまま出た・離れる時に前の人の印で置き直された。 */
+  function onBack(e) {
+    if (!e || !e.persisted) return;
+    if (isMember(OWN) && OWN !== markNow()) {
+      if (CO) coEnd(); else if (S.open) close();
+      readerReset();
+      W = newW(); G = {}; TW.name = ''; TW.nameBy = false; TW.buf = newTB();
+      TYPED = {}; S.taken = {}; OWN = '';
+      if (S.main) { clear(S.main); S.title.textContent = ''; }
+    }
+    onReader();
+  }
   function outbox() {
     var raw = lget(OUTBOX), j = null;
     if (!raw) return null;
@@ -3099,6 +3119,7 @@
     TOK = hasToken(); WHO = readerNow();
     sweepDrafts();
     w.addEventListener('pagehide', onLeave, false);
+    w.addEventListener('pageshow', onBack, false);
     function go() { var a = takeAdd(); COMING = false; if (a) openSheet(a); }
     var st = null;
     try { st = history.state; } catch (e) { st = null; }

@@ -35,6 +35,12 @@
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
 }
 .pvg-hero .pvg-meta{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;min-height:26px;padding-left:15px}
+/* 社名の下の星の欄は、読む前（—）・読んでいる最中・答えが来た後で、同じ大きさを取る（高さ 44px ＝ 答えの押せる行の高さ・
+   幅 170px ＝ 答えの行が入る幅。狭い画面で答えが次の行へ回るなら、読む前から次の行に居る）。
+   大きさが変わると、下のタブの帯が開いた直後に 44px 下がって 26px 上がり、「暮らし・家族」を押した指が帯の外に落ちて
+   タブが切り替わらなかった（2026-10-18 実測・WP-polish-b B2）。読んでいる最中の骨組みは、ここでは幅が 0 で見えていなかった。 */
+.pvg-hero .crl[data-live="stars"]{min-height:44px;min-width:min(170px,100%)}
+.pvg-hero .crl[data-live="stars"][data-state="loading"] .crl-sk{display:none}
 .pvg-hero .pvg-base{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--pv-ink-2)}
 .pvg-hero .pvg-base b{font:700 12px/1 Inter,sans-serif;letter-spacing:.06em;color:var(--pv-ink)}
 .pvg-hero .pvg-base .pvg-ic{color:var(--pvg-c,var(--pv-accent))}

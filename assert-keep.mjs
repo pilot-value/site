@@ -19,19 +19,30 @@
                     「ログインしました」・押すと保存される。
    場面 gone（KA7）  給与を出した会員が REAL PAY の行を見ている → ログインの鍵が消える（同じタブの自動のログアウト・ほかのタブ）→
                     時計の1回のうちに、読んだ行の字はページのどこにも無い・ログインしていない人の入口が出る・下書きは1文字も変わらない。
+   場面 bfcache（KA8）ブラウザが手元に置いたページが「戻る」でそのまま戻る時（back-forward cache・pageshow の persisted）。
+                    通信の差し替え（setRequestInterception）を使うとブラウザがこの置き方をやめるので、この場面だけ使わない：
+                    手元のサーバーの前に、サイトのファイルだけ GitHub Pages と同じ見出し（Cache-Control: max-age=600）で渡す口を置き、
+                    ブラウザは localhost と書体・部品の配信元（LIBS の4つ）のほかは名前を引けない（ほかへは1本も出られない）。
+                    ① 同じ 'a' のまま：ほかのページへ行って「戻る」→ 打った街のひとことはそのまま。
+                    ② ほかのページで自動のログアウト（pv-session.js の wipe）→「戻る」→ 閉じた面を開き直しても 'a' の字は出ない・
+                       右上は「ログイン」・'a' の下書きはこのタブに 'a' の印のまま残る（WP-keep-1 の決まりのまま）。
+                    ③ サイトの「ログアウト」（profile.html）→「戻る」2回：ログインの知らせ（BroadcastChannel）が来ても
+                       ページを捨てないブラウザ（Chrome は捨てる。Safari などは確かめていない）を、その窓口を外して作る →
+                       開き直しても 'a' の字は出ない・右上は「ログイン」・離れても 'a' の字を置き直さない。
 
    ★本番にも 3000 番にも1回も通信しない（local-chain.mjs の bring・open。終われば保存先ごと消す）。
    ★手元の会員（serve-local.mjs の MEMBERS）は模擬。ここで通ったことは、本番で通った証拠にはならない。
    ★画面の字（「送れていません」「ログインしました」など）は、ここで持つ（pv-contrib.js から読み込まない）。
 
-   実行: node assert-keep.mjs [--scenes back,clock,reader,store,fail,gone]（既定：全部）
+   実行: node assert-keep.mjs [--scenes back,clock,reader,store,fail,gone,bfcache]（既定：全部）
 */
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MEMBERS, OTP } from './serve-local.mjs';
-import { bring, open, rpcAs } from './local-chain.mjs';
+import { bring, open, rpcAs, seedOf, LIBS } from './local-chain.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -42,7 +53,7 @@ const J = (v) => { try { return JSON.stringify(v).slice(0, 600); } catch { retur
 
 const argv = process.argv.slice(2);
 const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-const SCENES = { back, clock, reader, store, fail: failed, gone };
+const SCENES = { back, clock, reader, store, fail: failed, gone, bfcache };
 const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const unknown = want.filter((s) => !SCENES[s]);
 if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -608,6 +619,154 @@ async function gone() {
         `★KA7 REAL PAY の欄は、ログインしていない人として読み直した形（「${LOCK_PAY}」と「ログイン」の入口）になる`, J({ slot: await slotNow(p), reads }));
       ok(JSON.stringify(d1) === JSON.stringify(d0), '★KA7 打ってまだ送っていない下書きは、1文字も変わらない', J({ d0: Object.keys(d0), d1: Object.keys(d1) }));
     });
+  }
+}
+
+/* ════ 場面 bfcache（KA8）════════════════════════════════════ */
+/* 手元のサーバーの前の口：サイトのファイルの no-store だけを GitHub Pages と同じ max-age=600 に替えて渡す（ほかは1字も替えない）。
+   serve-local.mjs の no-store のままだと、ブラウザはページを手元に置かない（MainResourceHasCacheControlNoStore）＝ 本番と違う。 */
+async function pagesFront(base) {
+  const to = new URL(base);
+  const srv = http.createServer((req, res) => {
+    const up = http.request({ host: '127.0.0.1', port: to.port, path: req.url, method: req.method, headers: { ...req.headers, host: to.host } }, (r) => {
+      const h = { ...r.headers };
+      if (!/^\/(rest|auth|functions|storage|realtime)\/v1(\/|$)|^\/__local\//.test(req.url) && /no-store/.test(h['cache-control'] || '')) h['cache-control'] = 'max-age=600';
+      res.writeHead(r.statusCode, h);
+      r.pipe(res);
+    });
+    up.on('error', () => { res.writeHead(502); res.end(); });
+    req.pipe(up);
+  });
+  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  const port = srv.address().port;
+  if (port === 3000) { srv.close(); throw new Error('3000 番は使わない'); }
+  return { base: `http://localhost:${port}`, close: () => new Promise((r) => { srv.close(r); srv.closeAllConnections?.(); }) };
+}
+async function bfcache() {
+  const L = await bring();
+  BROUGHT.push(L);
+  const fr = await pagesFront(L.base);
+  /* 新しい headless（'shell' はこの置き方をしない：BackForwardCacheDisabledForDelegate）。名前を引けるのは localhost と LIBS の4つだけ */
+  const bb = await puppeteer.launch({ headless: true, args: ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE cdn.jsdelivr.net, '
+    + 'EXCLUDE fonts.googleapis.com, EXCLUDE fonts.gstatic.com, EXCLUDE cdn.tailwindcss.com'] });
+  const base = fr.base, AT = `${base}/${PAGE}`, OFF = '/world-airlines.html';
+  const TB = { same: '検査用の戻るで戻る街のひとこと（手元・KA8）', exp: '検査用のログアウト前の街のひとこと（手元・KA8）' };
+  const tab = async (noBc) => {
+    const ctx = await bb.createBrowserContext();
+    const page = await ctx.newPage();
+    const st = { blocked: new Set(), supa: new Set(), errs: [] };
+    page.setDefaultTimeout(30000);
+    await page.setViewport({ width: 1440, height: 820, deviceScaleFactor: 1 });
+    page.on('request', (r) => {
+      let u; try { u = new URL(r.url()); } catch { return; }
+      if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.hostname === 'localhost' || LIBS.test(u.hostname)) return;
+      if (/supabase\.(co|in|com)$/.test(u.hostname)) st.supa.add(`${r.method()} ${u.hostname}`); else st.blocked.add(`${r.method()} ${u.hostname}`);
+    });
+    page.on('pageerror', (e) => st.errs.push(String(e.message).slice(0, 160)));
+    page.on('dialog', (x) => { x.accept().catch(() => {}); });
+    await page.evaluateOnNewDocument((nb) => {
+      window.__ps = [];
+      window.addEventListener('pageshow', (e) => { window.__ps.push(e.persisted); });
+      try { localStorage.setItem('pv_local_ui', '0'); } catch (e) { /* 保存領域に触れない画面はそのまま */ }
+      if (nb) { try { window.BroadcastChannel = undefined; } catch (e) { /* 消せなければそのまま */ } }
+    }, !!noBc);
+    const p = { ctx, page, st };
+    PAGES.push(p);
+    return p;
+  };
+  /* 'a' として入る（open と同じ置き方。Give → Get の板は「さっき見た」）→ 会社ページを開き直す */
+  const enter = async (p) => {
+    const s = await seedOf(L.base, 'a');
+    await p.page.goto(AT, { waitUntil: 'load', timeout: 60000 });
+    await p.page.evaluate((x) => {
+      const now = String(Date.now()), at = Date.parse((x.session.user || {}).last_sign_in_at || '');
+      localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session));
+      localStorage.setItem('pv_user', JSON.stringify(x.pv_user));
+      localStorage.setItem('pv_last_active', now);
+      localStorage.setItem('pv_session_start', now);
+      localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
+    }, s);
+    await p.page.goto(AT, { waitUntil: 'load', timeout: 60000 });
+    await p.page.waitForFunction(() => !!window.PVContrib && !!window.PVSession, { timeout: 30000 });
+  };
+  const townIn = (p) => p.page.waitForFunction(() => {
+    const r = document.querySelector('.pvc-root');
+    if (!r || r.hidden || !r.classList.contains('is-in')) return false;
+    const f = r.querySelector('form[data-pvc-form="town"]'), s = f && f.querySelector('fieldset.pvc-set');
+    return !!s && !s.disabled;
+  }, { timeout: 20000 });
+  const townShut = async (p) => {
+    await p.page.evaluate(() => window.PVContrib.close());
+    await p.page.waitForFunction(() => { const r = document.querySelector('.pvc-root'); return (!r || !r.classList.contains('is-in')) && !(history.state && history.state.pvc); }, { timeout: 20000 });
+  };
+  const townType = async (p, t) => {
+    await p.page.evaluate(() => window.PVContrib.open({ topic: 'town' })); await townIn(p);
+    await p.page.$eval('.pvc-root form [name="good"]', (n) => n.focus());
+    await p.page.keyboard.type(t);
+    await townShut(p);
+  };
+  const townRead = async (p) => {
+    await p.page.evaluate(() => window.PVContrib.open({ topic: 'town' })); await townIn(p);
+    const v = await p.page.$eval('.pvc-root form [name="good"]', (n) => n.value);
+    await townShut(p);
+    return v;
+  };
+  /* ページの中のリンクを押して移る（人が押すのと同じ、ページから始まる移動） */
+  const leave = (p, to) => Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }),
+    p.page.evaluate((h) => { const a = document.createElement('a'); a.href = h; document.body.appendChild(a); a.click(); }, to)]);
+  /* 戻ってきたページが、ブラウザの手元から戻ったか（読み直しなら false） */
+  const backTo = async (p) => {
+    await p.page.goBack({ waitUntil: 'load', timeout: 60000 });
+    await p.page.waitForFunction(() => Array.isArray(window.__ps) && window.__ps.length > 0 && !!window.PVContrib, { timeout: 30000 });
+    return p.page.evaluate(() => window.__ps[window.__ps.length - 1] === true);
+  };
+  const head = (p) => p.page.evaluate(() => { const b = document.getElementById('nav-auth-btn'); return b ? b.textContent.trim() : null; });
+  const town = (p) => p.page.evaluate(() => { const o = {}; for (const k of Object.keys(sessionStorage)) if (/^pv_contrib_draft:/.test(k)) o[k] = sessionStorage.getItem(k); return o; });
+  try {
+    await scene('KA8 戻るでそのまま戻ったページ（同じ会員のまま・ほかのページで自動のログアウト）', async () => {
+      const p = await tab(false);
+      await enter(p);
+      const named = await head(p);
+      await townType(p, TB.same);
+      await leave(p, OFF);
+      const kept1 = await backTo(p);
+      const v1 = await townRead(p);
+      ok(kept1 && v1 === TB.same && named === '会員A',
+        '★KA8 ① 同じ \'a\' のまま、ほかのページへ行って「戻る」で手元から戻ったページ（pageshow の persisted）：開き直した街の面に、打ったひとことがそのまま',
+        J({ restored: kept1, good: v1, named }));
+      const d0 = await town(p);
+      await leave(p, OFF);
+      await p.page.evaluate(() => window.PVSession.wipe());
+      const kept2 = await backTo(p);
+      const h2 = await head(p), v2 = await townRead(p), d1 = await town(p);
+      const mine = Object.values(d1).some((x) => x.includes(TB.same) && x.includes('"by":"m:'));
+      ok(kept2 && v2 === '' && h2 === 'ログイン',
+        '★KA8 ② ほかのページで自動のログアウトを迎えて「戻る」（手元から戻る）：開き直した街の面に \'a\' の字は出ない・右上は「ログイン」',
+        J({ restored: kept2, good: v2, head: h2 }));
+      ok(kept2 && JSON.stringify(d1) === JSON.stringify(d0) && mine,
+        '★KA8 ② そのとき、\'a\' の下書きはこのタブに \'a\' の印のまま1文字も変わらずに残る（自動のログアウトでは消さない・WP-keep-1 のまま）',
+        J({ d0: Object.keys(d0), d1: Object.keys(d1), mine }));
+    });
+    await scene('KA8 サイトのログアウトのあと「戻る」で、ページを捨てないブラウザ', async () => {
+      const p = await tab(true);
+      await enter(p);
+      await townType(p, TB.exp);
+      await leave(p, '/profile.html');
+      await p.page.waitForSelector('.btn-logout', { visible: true, timeout: 30000 });
+      await Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }), p.page.click('.btn-logout')]);
+      await p.page.goBack({ waitUntil: 'load', timeout: 60000 });
+      const kept = await backTo(p);
+      const h = await head(p), v = await townRead(p);
+      await leave(p, OFF);
+      const left = await town(p);
+      const seen = Object.values(left).some((x) => x.includes(TB.exp));
+      ok(kept && v === '' && h === 'ログイン' && !seen && Object.keys(left).length === 0,
+        '★KA8 ③ profile.html の「ログアウト」→「戻る」2回で手元から戻ったページ：開き直した街の面に \'a\' の字は出ない・右上は「ログイン」・離れても下書きを置き直さない',
+        J({ restored: kept, good: v, head: h, left: Object.keys(left) }));
+    });
+  } finally {
+    await bb.close().catch(() => {});
+    await fr.close();
   }
 }
 

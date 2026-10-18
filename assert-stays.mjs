@@ -19,6 +19,8 @@
      S5  つながっていない（この保存先の中で pv_stays と pv_stay_add を消す）→「準備中」・入口の3つ・押しても「準備中」・面は開かない。
      S6  読めなかった →「読み込めませんでした」＋「もう一度」→ 押すとやり直せる。
      S7  10秒以内の2つめ →「続けて追加するときは、少し時間をあけてください。」・打った字は面に残る。
+     S7c （P12.56 B6）その開き直し（390×680 と 1440×820）で、検査が画面を送らなくても、戻した面の最初の欄（種類）と名前の欄が
+         画面の中に在る（ページが自分で寄せる）・焦点は面に入らない。
      S7b （P12.54）同じ人が確認待ちを20件まで足し（本物の口・端末の鍵）、書きかけを残したまま 390×680 で開き直す →
          面は自分の分の列より上・ホテルの欄（鍵の1行）まで下りた最初の画面に、面の最初の欄（種類）と名前の欄が在る（上に何も重なっていない）。
      終わりに：どのページも、手元と書体・部品の配信元のほかへ、1本も投げていない（st.blocked・st.supa が空）。
@@ -626,6 +628,25 @@ async function chain() {
         ownTop: own ? Math.round(own.top) : null, y: Math.round(scrollY), ih: innerHeight,
         ok: !!(f && kind && name && kind.in && kind.onTop && name.in && name.onTop && own && f.getBoundingClientRect().bottom <= own.top) };
     }, K.ZN, K.FM);
+    /* ── S7c（P12.56 B6）：開き直したまま（検査は送らない）── 書きかけを戻した面は、ページが自分で画面へ寄せる。焦点は取らない。
+       幅の広い 1440×820 でも、同じく開き直して確かめる。 */
+    const noFocus = () => g.page.evaluate((fm) => { const f = document.querySelector(fm); return !!f && !f.contains(document.activeElement); }, K.FM);
+    const near390 = await until(async () => (await firstScreen()).ok, 8000);
+    const fs7c = await firstScreen(), nf390 = await noFocus();
+    await g.page.setViewport({ width: 1440, height: 820, deviceScaleFactor: 1 });
+    await g.page.goto('about:blank');
+    await g.page.goto(K.URL_, { waitUntil: 'load', timeout: 60000 });
+    const back1440 = (await settled(g)) && (await g.page.waitForFunction((fm, nm) => { const i = document.querySelector(fm + ' [data-k="name"]'); return !!i && i.value === nm; },
+      { timeout: 20000 }, K.FM, NEXT2).then(() => true, () => false));
+    const near1440 = await until(async () => (await firstScreen()).ok, 8000);
+    const fs1440 = await firstScreen(), nf1440 = await noFocus();
+    ok(back && near390 && fs7c.ok && nf390 && back1440 && near1440 && fs1440.ok && nf1440,
+      `S7c 書きかけを戻して開き直した 390×680 と 1440×820：検査が送らなくても、面の最初の欄（種類）と名前の欄が画面の中に在る・焦点は面に入らない（P12.56）`,
+      J({ at390: { y: fs7c.y, kind: fs7c.kind, name: fs7c.name, noFocus: nf390 }, at1440: { y: fs1440.y, kind: fs1440.kind, name: fs1440.name, noFocus: nf1440 } }));
+    await g.page.setViewport({ width: 390, height: 680, deviceScaleFactor: 1 });
+    await g.page.goto('about:blank');
+    await g.page.goto(K.URL_, { waitUntil: 'load', timeout: 60000 });
+    await settled(g);
     /* 読む人がホテルの欄（鍵の1行）まで下りた所 ＝ 欄の頭を画面の頭に合わせる（都市の写真の分は、自分の分の数に関係なく同じ） */
     await g.page.evaluate((sl) => document.querySelector(sl).scrollIntoView({ block: 'start' }), K.SL);
     await until(async () => (await firstScreen()).ok, 5000);

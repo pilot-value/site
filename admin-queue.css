@@ -34,6 +34,12 @@
   .adm-act{padding:0 12px}
   .adm-acts [data-act="merge"]{flex:1 1 9em;justify-content:center;padding-block:6px;white-space:normal;line-height:1.25;text-align:center}
 }
+/* もっと狭いスマホ（375・360。P12.56 B7）：画像の面の3つ（verified・見送り・閉じる／verified・Decline・Close）が、
+   「閉じる」だけ次の行へ落ちていた（360 で約20px・375 で約5px 足りない）。この面の中だけ、横の余白と間を詰めて1行に。高さ 44px はそのまま */
+@media (max-width:400px){
+  .adm-sheet .adm-acts{gap:6px}
+  .adm-sheet .adm-act{padding:0 8px}
+}
 .adm-ok{background:rgba(72,199,142,.1);color:#48c78e;border:1px solid rgba(72,199,142,.25)}
 .adm-ok:hover:not(:disabled){background:rgba(72,199,142,.18)}
 .adm-no{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1)}

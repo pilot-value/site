@@ -1582,7 +1582,22 @@
     if (t && t.closest && t.closest('#cr-swap')) later();
   });
   w.addEventListener('popstate', later);
-  w.addEventListener('pageshow', later);
+  /* 戻る・進むで、ブラウザが手元に置いていたこのページがそのまま戻ってきた時（persisted）は、離れているあいだに読む人が
+     替わったかもしれない（サイトの「ログアウト」・自動のログアウト・別の会員のログイン）。ログインの部品からは何も届かない
+     （手元に置かれていたあいだの知らせは、このページには来ない）ので、ここで確かめる：
+     鍵がもう無ければ、読む人が替わった時と同じ（setUid(null)）＝ ログインのあいだに読んだ行をその場で消して、
+     ログインしていない人の形で取り直す。右上も「ログイン」に戻す（pv-session.js の repaintAuth ── 死んだログインの時に
+     あちらがすることと同じ。あちらの見回りは、名前の控えも消えた後には何もしない）。
+     Chrome で実測（2026-10-18）：自動のログアウトをほかのページで迎えて「戻る」と、このページが手元から戻り、
+     右上に前の人の名前が出たままだった。supabase-js からも SIGNED_OUT は届かなかった（INITIAL_SESSION だけ）。 */
+  w.addEventListener('pageshow', function (e) {
+    var S = w.PVSession;
+    if (e && e.persisted && S && typeof S.hasToken === 'function' && !S.hasToken()) {
+      if (typeof uid === 'string') setUid(null);
+      if (typeof S.repaintAuth === 'function') S.repaintAuth();
+    }
+    later();
+  });
   if (w.MutationObserver) {
     new MutationObserver(later).observe(root, {
       attributes: true, subtree: true, attributeFilter: ['hidden', 'data-a', 'data-b']

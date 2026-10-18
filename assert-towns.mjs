@@ -87,6 +87,9 @@
          給与の鍵だけの人（'pay'）とオーナーではない運営（'c' ＝ この保存先の中だけで運営の名簿へ）には鍵の返事そのもの。
          承認の前に：同じ確認待ちのホテルに、管理ページの行とオーナーの都市の欄（career-stay.js）が出す押し所は、同じ数・同じ字・
          同じ並び（「承認」「却下」。欄に「公開」「削除」を出さない ── 管理ページは確認待ちを消す口を持たない。P12.53）。
+     AD6b オーナーが自分で足した確認待ちのホテル：管理ページの行とオーナーの都市の欄の押し所は同じ（「承認」「却下」。P12.56）。
+         欄で「承認」を押すと、サーバーが own_post で断り「自分が出したものは、別の運営が確認します。」── 「公開しました。」は
+         出ない・確認待ちのまま・オーナーが承認した人（'pilot'）にも届かない（人が1回見る決まりは、いつもサーバー）。
      AD7 オーナーの2つの一覧：'a' がマイページから FIXTURE の画像で申請 →「申請してきた人」→「画像を見る」→「verified」→
          'a' がホテルを読める・画像と申請は保存先から消える・「会員一覧」で verified →「取り消す」→ 次の読みは鍵。
          「会員一覧」の「verified」も同じ（'b'）。いま verified の人の「見送り」は承認を取り上げない（'pay'・英語の画面）。
@@ -98,12 +101,17 @@
          （gen-airline-glance.mjs の ledgerTowns・baseCode）から同じ4つの属性を作った入口を差し込んで押す（どちらかを出力に書く）。
          差し込む入口の名前は、サーバの候補の種（db/towns.generated.sql）と字まで同じであることを、先に確かめる。
          ログインから ?add=town で戻るページ（A4）には、ページの台本より先に同じ入口を置く（ページに入口が無い時だけ）。
+   場面 tap（T1）── 開いた直後の「暮らし・家族」（街の欄の入口が在るタブ）を、人の速さで押す（WP-polish-b B2・2026-10-18）
+     T1  1440×820 と 390×844（指）：ページが最初に描かれてから、社名の下の星の欄に答えが来るまで、「暮らし・家族」のタブは
+         1px も動かない（毎フレーム測る）。前は 44px 下がって 26px 上がり、読み終えた直後に押した指が帯の外に落ちていた。
+         1440 は、読み終えた瞬間にタブが在った所を、本物の押す・離す（その間 90ms）で押す → 「暮らし・家族」に切り替わる。
+         （390 では、最初の画面でこのタブは「情報を追加」の下に隠れていて、帯を送ってから押す ＝ 動かないことだけを見る）
 
    ★本番にも 3000 番にも1回も通信しない（local-chain.mjs の bring・open。終われば保存先ごと消す）。
    ★手元の会員（serve-local.mjs の MEMBERS）は模擬。ここで通ったことは、本番で通った証拠にはならない。
    ★PV_TOWN_SHOTS=<リポジトリの外のフォルダ> を付けると、面の絵を書き出す（390×680 と 1440×820）。
 
-   実行: node assert-towns.mjs [--scenes frame,sheet,anon,board,admin] [--only <会社>]（既定：全部の場面・jal）
+   実行: node assert-towns.mjs [--scenes frame,sheet,anon,board,admin,tap] [--only <会社>]（既定：全部の場面・jal）
 */
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
@@ -146,7 +154,7 @@ const LAST = (() => { const n = new Date(); let y = n.getFullYear(), m = n.getMo
 
 const argv = process.argv.slice(2);
 const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-const SCENES = { frame, sheet, anon, board, admin };
+const SCENES = { frame, sheet, anon, board, admin, tap };
 const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const unknown = want.filter((s) => !SCENES[s]);
 if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -1970,6 +1978,48 @@ async function admin() {
       J({ n2, pilot: names(r2.pilot), pay: r2.pay.text, c: r2.c.text, guest: r2.guest.text.slice(0, 120) }));
   });
 
+  await scene('AD6b オーナーが自分で足した確認待ちのホテル', async () => {
+    const OWN = '手元検査ホテル（オーナーの追加）', OWN_T = '自分が出したものは、別の運営が確認します。', PUB_T = '公開しました。';
+    const SL = '#pvg-city .crl[data-live="hotels"]';
+    const W = { airline: SLUG, iata: STAY_IATA };
+    const add = await rpcAs(base, 'op', 'pv_stay_add', { ...W, kind: 'hotel', name: OWN });
+    if (!(add.body && add.body.ok === true && add.body.item && add.body.item.state === 'pending')) throw new Error('前提が崩れた（オーナーの追加が確認待ちにならない）: ' + add.text.slice(0, 200));
+    await reload(O);
+    const ps = await rowSel(O, 'place', `return li.querySelector('.adm-row-v').textContent.trim() === ${J(OWN)};`);
+    if (!ps) throw new Error(`前提が崩れた（「${OWN}」の行が無い）`);
+    const admActs = await O.page.evaluate((s) => [...document.querySelectorAll(s + ' .adm-acts button')].map((b) => b.textContent.trim()), ps);
+    const v = await page({ who: 'op', w: 1440, h: 820 });
+    await v.page.goto(`${base}/airlines/${SLUG}.html#stay-${STAY_IATA}`, { waitUntil: 'load', timeout: 60000 });
+    const cardOf = `return [...document.querySelectorAll(s + ' .crs-card')].find((c) => ((c.querySelector('.crs-name') || {}).textContent || '').trim() === nm) || null;`;
+    const seenCard = await v.page.waitForFunction((s, code, nm, src) => {
+      const e = document.querySelector(s);
+      return !!e && e.getAttribute('data-stay') === code && e.dataset.state === 'open' && !!new Function('s', 'nm', src)(s, nm);
+    }, { timeout: 30000 }, SL, STAY_IATA, OWN, cardOf).then(() => true, () => false);
+    const slotActs = await v.page.evaluate((s, nm, src) => {
+      const c = new Function('s', 'nm', src)(s, nm);
+      return c ? [...c.querySelectorAll('button[data-act="pub"], button[data-act="rej"], button[data-act="del"]')].map((b) => b.textContent.trim()) : null;
+    }, SL, OWN, cardOf);
+    ok(seenCard && admActs.length > 0 && J(slotActs) === J(admActs),
+      `★AD6b オーナーが自分で足した確認待ちの「${OWN}」にも、管理ページの行とオーナーの都市の欄が出す押し所は同じ（${admActs.join('・')}）── 欄に「削除」は無い`,
+      J({ seenCard, admin: admActs, slot: slotActs }));
+    /* 欄の「承認」を押す（本物の押し方）→ サーバーの own_post の文が欄に出る */
+    const n0 = v.st.sent.filter((x) => x.fn === 'pv_stay_moderate').length;
+    await v.page.evaluate((s, nm, src) => { const c = new Function('s', 'nm', src)(s, nm); const b = c && c.querySelector('button[data-act="pub"]'); if (b) b.setAttribute('data-test-own', ''); }, SL, OWN, cardOf);
+    const hasPub = !!(await v.page.$('[data-test-own]'));
+    if (hasPub) await v.page.click('[data-test-own]');
+    const said = await until(() => v.page.evaluate((s, t) => { const e = document.querySelector(s), z = e && e.nextElementSibling; return ((e ? e.textContent : '') + (z ? z.textContent : '')).includes(t); }, SL, OWN_T), 15000);
+    const text = await v.page.evaluate((s) => { const e = document.querySelector(s), z = e && e.nextElementSibling; return (e ? e.textContent : '') + (z ? z.textContent : ''); }, SL);
+    const mods = v.st.sent.filter((x) => x.fn === 'pv_stay_moderate').slice(n0).map((x) => x.p);
+    const replies = v.st.got.filter((x) => x.fn === 'pv_stay_moderate').map((x) => norm(x.text));
+    const still = (await L.q(`select state from public.pv_stay_places where name = $1`, [OWN])).rows.map((r) => r.state);
+    const pr = await rpcAs(base, 'pilot', 'pv_stays', W);
+    const pilotSees = norm(pr.text).includes(OWN);
+    await shut(v);
+    ok(hasPub && said && !text.includes(PUB_T) && mods.length === 1 && replies.some((t) => t.includes('own_post')) && J(still) === J(['pending']) && !pilotSees,
+      `★AD6b 欄で自分の分の「承認」を押すと、サーバーが断り「${OWN_T}」が出る ──「${PUB_T}」は出ない・確認待ちのまま・'pilot' にも届かない`,
+      J({ hasPub, said, mods, replies, still, pilotSees }));
+  });
+
   await scene('AD7 オーナーの2つの一覧（申請してきた人・会員一覧）', async () => {
     const W = { airline: SLUG, iata: STAY_IATA };
     const reads = async (who) => (await rpcAs(base, who, 'pv_stays', W));
@@ -2135,6 +2185,59 @@ async function admin() {
       J({ sp, sent: verifies(En, v3), vp0, vp1, rp1: rp1.text.slice(0, 160), ip1, op1 }));
     await shut(En);
   });
+}
+
+/* ════ 場面 tap（T1）══════════════════════════════════════════ */
+async function tap() {
+  const K = await kit();
+  const { base } = K;
+  for (const [w, h] of [[1440, 820], [390, 844]]) {
+    await scene(`T1 開いた直後の「暮らし・家族」（${w}×${h}）`, async () => {
+      const touch = w < 900;
+      const p = await K.page({ w, h, touch });
+      /* 最初のフレームから毎フレーム、タブの位置（ページの中の上端）を書き留める。読み終えた瞬間（load）には、
+         タブの見えている所（ほかの物が重なっていない所）のまんなかも書き留める ＝ 人がそのとき狙う所 */
+      await p.page.evaluateOnNewDocument(() => {
+        window.__t1 = { tops: [], at: null, clicks: [], stop: false };
+        const T = window.__t1, q = '#pvg-tabs [data-pvg-tab="life"]';
+        const spot = () => {
+          const a = document.querySelector(q);
+          if (!a) return null;
+          const b = a.getBoundingClientRect(), y = b.top + b.height / 2, run = [];
+          for (let x = Math.max(1, b.left + 4); x < Math.min(innerWidth - 1, b.right - 4); x += 4) { const e = document.elementFromPoint(x, y); if (e && a.contains(e)) run.push(x); }
+          return run.length ? { x: run[Math.floor(run.length / 2)], y } : null;
+        };
+        const frame = () => {
+          const a = document.querySelector(q);
+          if (a) { const y = Math.round(a.getBoundingClientRect().top + scrollY); if (T.tops[T.tops.length - 1] !== y) T.tops.push(y); }
+          if (!T.stop) requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+        addEventListener('load', () => { T.at = spot(); });
+        document.addEventListener('click', (e) => { const t = e.target; T.clicks.push(t && t.closest && t.closest('[data-pvg-tab]') ? 'tab:' + t.closest('[data-pvg-tab]').getAttribute('data-pvg-tab') : (t && t.tagName) || '?'); }, true);
+      });
+      await p.page.goto(`${base}/airlines/${SLUG}.html`, { waitUntil: 'load', timeout: 60000 });
+      /* 星の欄に答えが来て、そのあと2フレーム描かれるまで（どの答えでもよい：開いた・0件・落ちた・口が無い） */
+      const settled = await until(() => p.page.evaluate(() => { const s = document.querySelector('.pvg-hero .crl[data-live="stars"]'); return !!s && !/^(idle|loading)$/.test(s.getAttribute('data-state') || ''); }), 20000);
+      await p.page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      const T = await p.page.evaluate(() => { window.__t1.stop = true; return { tops: window.__t1.tops.slice(), at: window.__t1.at }; });
+      ok(settled && T.tops.length === 1,
+        `★T1 ${w}×${h}：最初に描かれてから星の欄に答えが来るまで、「暮らし・家族」のタブは1pxも動かない`, J({ settled, tops: T.tops }));
+      if (touch) return;
+      /* 読み終えた瞬間に狙った所を、本物の押す・離すで押す（間の 90ms は押している長さ。ページを待つ時間ではない） */
+      const cdp = await p.page.createCDPSession();
+      if (T.at) {
+        await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: T.at.x, y: T.at.y });
+        await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: T.at.x, y: T.at.y, button: 'left', clickCount: 1 });
+        await new Promise((r) => setTimeout(r, 90));
+        await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: T.at.x, y: T.at.y, button: 'left', clickCount: 1 });
+      }
+      const on = await until(() => p.page.evaluate(() => document.body.classList.contains('pvg-at-life')), 3000);
+      const clicks = await p.page.evaluate(() => window.__t1.clicks.slice());
+      ok(!!T.at && on && clicks[0] === 'tab:life',
+        `★T1 ${w}×${h}：読み終えた瞬間にタブが在った所を人の速さで押すと、「暮らし・家族」に切り替わる`, J({ at: T.at, on, clicks }));
+    });
+  }
 }
 
 /* 場面ごとに：止まったら1行の失敗にして次の場面へ（どの場面も自分の保存先を持つ）。終わったら窓を閉じ、保存先を消す。 */

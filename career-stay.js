@@ -616,8 +616,10 @@
   }
 
   /* 運営の承認（＝公開）／却下、本人と運営の削除。★出すかどうかはサーバーが返した印（is_operator・mine・state）だけ。
-     ★ほかの人の確認待ちには、管理ページの承認の面と同じ2つ（承認・却下）だけを、同じ字で出す。
-       管理ページは確認待ちを消す口を持たないので、ここでも確認待ちの他人の分には削除を出さない（P12.53）。 */
+     ★確認待ちには、管理ページの承認の面と同じ2つ（承認・却下）だけを、同じ字・同じ並びで出す ── 運営が自分で出したものも同じ
+       （管理ページは自分の分にも「承認」を出し、サーバーが own_post で断る ＝「自分が出したものは、別の運営が確認します。」が出る。
+       人が1回見るのは、いつもサーバーの決まり）。管理ページは確認待ちを消す口を持たないので、ここでも確認待ちには削除を出さない
+       （P12.53・P12.56）。見送ったもの・公開したものは、今までどおり運営と書いた本人が削除できる。 */
   function modButtons(box, target, id, it, isOp) {
     function add(text, act, cls) {
       var b = btn('crs-act' + (cls ? ' ' + cls : ''), text, act);
@@ -626,19 +628,16 @@
       box.appendChild(b);
       return b;
     }
-    if (isOp && it.state === 'pending') {
-      /* 自分のものは別の運営が見る。
-         ★公開のボタンは「いま見えている中身」の印（rev）を持つ。サーバーは、本人が直したことのある場所を
+    var wait = isOp && it.state === 'pending';
+    if (wait) {
+      /* ★公開のボタンは「いま見えている中身」の印（rev）を持つ。サーバーは、本人が直したことのある場所を
            印なしでは通さない（＝ 運営が見ていない中身が公開されない）。持たせないと、直された場所は
            何度押しても公開に戻せない。 */
-      if (it.mine !== true) {
-        var pub = add(T.pub, 'pub', 'crs-act-go');
-        if (target === 'place' && typeof it.rev === 'string' && /^[0-9a-f]{8,64}$/.test(it.rev)) pub.setAttribute('data-rev', it.rev);
-      }
+      var pub = add(T.pub, 'pub', 'crs-act-go');
+      if (target === 'place' && typeof it.rev === 'string' && /^[0-9a-f]{8,64}$/.test(it.rev)) pub.setAttribute('data-rev', it.rev);
       add(T.rej, 'rej', 'crs-act-no');
     }
-    var waitOther = isOp && it.state === 'pending' && it.mine !== true;
-    if (it.mine === true || (isOp && !waitOther)) add(T.del, 'del', 'crs-act-no');
+    if (!wait && (it.mine === true || isOp)) add(T.del, 'del', 'crs-act-no');
   }
 
   /* 欄の中に一言の置き場があればそこへ（欄の外の一言は消す）。無ければ（鍵・準備中）欄の外の面へ。 */
@@ -1363,7 +1362,20 @@
     if (c && c.state === 'open' && c.can_add !== true) return;
     if (!settleDrafts()) return;
     var d0 = readDraft(st.key);
-    if (d0) openForm(slot, st, null, null, d0);
+    if (d0) { openForm(slot, st, null, null, d0); reveal(slot); }
+  }
+  /* 戻した書きかけの面が画面の外に在れば、面の頭を画面へ寄せる（焦点は取らない）。書きかけの無い、ふつうに来た時は動かさない。
+     読み直し・ログインの往復で戻ってきた人は都市の頭に着くので、390×680 では戻した面がすぐ下の画面の外に在った
+     （2026-10-18 実測・P12.56 B6）。上の余白は .crs-formbox の scroll-margin-top。
+     寄せるのは、このページで最初に戻した1回だけ（読み進めている人を、あとから別の欄へ連れて行かない）。 */
+  var REVEALED = false;
+  function reveal(slot) {
+    var f = zoneForm(slot), k = f && f.querySelector('.crs-kinds'), nm = f && f.querySelector('[data-k="name"]');
+    if (REVEALED || !k || !nm) return;
+    REVEALED = true;
+    var a = k.getBoundingClientRect(), b = nm.getBoundingClientRect(), vh = w.innerHeight || d.documentElement.clientHeight;
+    if (a.top >= 0 && b.bottom <= vh) return;
+    try { f.parentNode.scrollIntoView({ block: 'start' }); } catch (e) { /* 寄せられなくても面はそこに在る */ }
   }
 
   // ══ 押されたとき（欄と、欄の外の面に、1回ずつだけ結ぶ）═══════════

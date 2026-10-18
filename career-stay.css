@@ -32,6 +32,7 @@
 .crs-ctx{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:13px;font-weight:700;color:var(--pv-ink-2)}
 .crs-ctx-code{padding:1px 8px;border:1px solid var(--pv-line);border-radius:999px;font:700 12px/1.5 Inter,sans-serif;letter-spacing:.04em}
 .crs-formbox:empty{display:none}
+.crs-formbox{scroll-margin-top:132px}   /* 戻した書きかけの面を画面へ寄せる時（reveal）、上に貼り付いた見出しとタブの帯の下に置く（.pvg-stay と同じ値） */
 
 /* 0件で、追加できる人。破線の枠に「ここから足せる」を置く（追加の入口はこの中）。 */
 .crs-empty{display:grid;justify-items:start;gap:6px;padding:18px 16px;

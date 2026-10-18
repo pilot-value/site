@@ -112,7 +112,7 @@
 .cr-rentb-l dt{font-size:13px;color:var(--pv-ink-2)}
 .cr-rentb-l dd{flex-direction:column;align-items:flex-end;text-align:right}
 .cr-rentb-s{padding-bottom:10px;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
-.cr-rentb-s span{display:block}
+.cr-rentb-s span{display:block;word-break:keep-all;overflow-wrap:anywhere}   /* 「掲載分」を語の途中で折らない（会社ページの暮らしと同じ決め方。入りきらない語だけは折れる） */
 
 @media (min-width:700px){
   .cr-org-nums{grid-template-columns:repeat(4, minmax(0,1fr))}
