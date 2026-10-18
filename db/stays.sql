@@ -198,6 +198,21 @@ alter table public.pv_stay_keys drop constraint if exists pv_stay_keys_hash_ck;
 alter table public.pv_stay_keys add constraint pv_stay_keys_hash_ck check (key_hash ~ '^[0-9a-f]{64}$');
 create index if not exists pv_stay_keys_ip_idx on public.pv_stay_keys (ip_day_hash, created_at desc);
 
+-- 回線ごとの、その日に足せた数（2026-10-18 オーナーの答え Q3「②」── 同じ回線からログインせずに足せるのは1日40件まで）。
+--   ★ 鍵の行の印では数えられない：鍵の印は「鍵を作った日」の回線にしか付かず、1日で空になる。前の日に作った端末で足したものが
+--     数えから漏れる（1つの回線が、残っている端末の数だけ 20件ずつ足せてしまう）。だから、足せた1件ごとにここを1つ進める。
+--   ip_day_hash  鍵の表と同じ式の、その日だけの回線の印（IP そのものは持たない。日付が式に入っている ＝ 日が替われば別の印）
+--   n            その日に、その回線からログインせずに足せた数（断った呼び出しは数えない。あとで消しても減らさない）
+--   first_at     その日の1件目の時刻（片づけのためだけ ── 1日たったら行ごと消す。3-c5）
+--   ★ どの場所・どの鍵・どの人とも結びつけない（行は回線の印と数だけ）。誰にも読ませない・返さない（入口は 5 の足す口だけ）
+create table if not exists public.pv_stay_ip_day (
+  ip_day_hash text primary key,
+  n           integer not null default 0,
+  first_at    timestamptz not null default now()
+);
+alter table public.pv_stay_ip_day drop constraint if exists pv_stay_ip_day_hash_ck;
+alter table public.pv_stay_ip_day add constraint pv_stay_ip_day_hash_ck check (ip_day_hash ~ '^[0-9a-f]{64}$');
+
 -- check は毎回 drop してから付け直す（条件を変えて流し直したとき古い定義を残さない）
 alter table public.pv_stay_places drop constraint if exists pv_stay_places_hash_ck;
 alter table public.pv_stay_places drop constraint if exists pv_stay_places_airline_fk;
@@ -321,10 +336,12 @@ comment on column public.pv_stay_photos.author_hash is
 alter table public.pv_stay_places enable row level security;
 alter table public.pv_stay_photos enable row level security;
 alter table public.pv_stay_keys   enable row level security;
+alter table public.pv_stay_ip_day enable row level security;
 
 revoke all on public.pv_stay_places from public, anon, authenticated;
 revoke all on public.pv_stay_photos from public, anon, authenticated;
 revoke all on public.pv_stay_keys   from public, anon, authenticated;
+revoke all on public.pv_stay_ip_day from public, anon, authenticated;
 
 -- 既に作ってしまったポリシーがあれば落とす（冪等・事故防止）
 do $$
@@ -332,7 +349,7 @@ declare p record;
 begin
   for p in select policyname, tablename from pg_policies
             where schemaname = 'public'
-              and tablename in ('pv_stay_places', 'pv_stay_photos', 'pv_stay_keys') loop
+              and tablename in ('pv_stay_places', 'pv_stay_photos', 'pv_stay_keys', 'pv_stay_ip_day') loop
     execute format('drop policy %I on public.%I', p.policyname, p.tablename);
   end loop;
 end $$;
@@ -575,8 +592,9 @@ revoke all on function public.pv_stay_may_add() from public, anon, authenticated
 -- 3-c4. 1日に足せる数・直せる回数。ログインしている人は 20。端末の鍵だけの人も 20
 --   （2026-10-16 オーナー「ログインしていない人 1日20件までにしようよ。」。前は端末の鍵だけの人は 5）。
 --   2つの数を分けて書いておくのは、片方だけ変えるときに、ここ1か所で済むようにするため。
---   （同じ回線が1日に作れる鍵は20本 ＝ 1つの回線から1日に 400件まで。サイト全体の待ちの上限 200 には、1つの回線でも届きうる
---    ＝ 届いたら、ログインしていない人の追加は queue_full で止まる。運営が見れば、また足せる）。
+--   （同じ回線が1日に作れる鍵は20本。そのうえで、同じ回線からログインせずに足せるのは端末をまたいで1日40件まで ── 5 の足す口・
+--    2026-10-18 オーナーの答え Q3。数えるのは 1 の pv_stay_ip_day（足せた1件ごとに進める ＝ 前の日に作った端末で足したものも数える）。
+--    サイト全体の待ちの上限 200 に届いたら、ログインしていない人の追加は queue_full で止まる。運営が見れば、また足せる）。
 create or replace function public.pv_stay_cap(p_device boolean)
 returns integer
 language sql
@@ -589,7 +607,8 @@ $fn$;
 revoke all on function public.pv_stay_cap(boolean) from public, anon, authenticated;
 
 -- 3-c5. 端末の鍵の表の片づけ（★回線の印を空にする文と、足したものが無い鍵を消す文は、この1か所だけ）
---   回線の印は1日だけ／足したものが1つも無い鍵は1日で消す。
+--   回線の印は1日だけ／足したものが1つも無い鍵は1日で消す／回線ごとのその日の数（pv_stay_ip_day）は、1件目から1日たったら行ごと消す
+--   （その行の印は前の日のもの ＝ もう数えには使わない）。
 --   流れるのは2か所：ログインせずに足すたびに毎回（5 の足す口）と、毎時の片づけ（10-d。pg_cron が在るときだけ）。
 --   ＝ 誰も足さない日が続いても、作って1日たった印は、遅くとも1時間あとに消える
 --     （個人データのページの「1日だけ保持し、その後削除します」は、この2か所で本当になる）。
@@ -614,6 +633,12 @@ as $fn$
             where x.created_at <= now() - interval '1 day'
               and not exists (select 1 from public.pv_stay_places s where s.author_hash = x.key_hash)
             order by x.key_hash
+              for update skip locked);
+  delete from public.pv_stay_ip_day d
+   where d.ip_day_hash in (
+           select x.ip_day_hash from public.pv_stay_ip_day x
+            where x.first_at <= now() - interval '1 day'
+            order by x.ip_day_hash
               for update skip locked);
 $fn$;
 
@@ -1805,7 +1830,8 @@ comment on function public.pv_stays(jsonb) is
 --   bad_city      都市の名前が60字を超える
 --   bad_hours     ステイ時間が 1〜240 の整数でない（ホテルのときだけ）
 --   too_fast      10秒以内の連投
---   rate_limited  24時間の上限（ログインしている人 20件・端末の鍵だけの人 20件）／同じ回線が1日に作れる端末の鍵は20本
+--   rate_limited  24時間の上限（ログインしている人 20件・端末の鍵だけの人 20件）／同じ回線が1日に作れる端末の鍵は20本／
+--                 同じ回線からログインせずに足せるのは1日40件（端末をまたいで合わせて数える。2026-10-18 オーナーの答え Q3）
 --   queue_full    ログインせずに足されたものが、運営の確認を 200件 待っている（運営が見れば、また足せる）
 --   duplicate     自分が同じ名前を既に出している
 --   exists        同じ名前が既に**公開済み**（★見てよい人と、運営の「追加」（publish:true）にだけ返す。3-l）
@@ -1881,7 +1907,7 @@ begin
     v_me := public.pv_stay_hash(v_uid);
   else
     -- ログインしていない人。表に在る端末の鍵ならその手、そうでなければ新しい鍵を作る（画面が作った鍵は受け付けない）
-    -- 片づけ：回線の印は1日だけ／足したものが1つも無い鍵は1日で消す（ログインせずに足すたびに、毎回流す）。
+    -- 片づけ：回線の印は1日だけ／足したものが1つも無い鍵は1日で消す／回線ごとのその日の数も1日で消す（ログインせずに足すたびに、毎回流す）。
     --   文は 3-c5 の1か所だけ（毎時の片づけ 10-d も同じものを呼ぶ）
     perform public.pv_stay_key_sweep();
     v_me := public.pv_stay_key_hash(p->>'key');
@@ -1896,17 +1922,30 @@ begin
     if v_n >= 200 then
       return jsonb_build_object('ok', false, 'status', 'queue_full');
     end if;
+    -- 回線（x-forwarded-for の先頭）。ハッシュにして数えるだけ（生の値はどこにも置かない）。回線が分からない所では数えない
+    begin
+      v_ip := split_part(
+        coalesce(current_setting('request.headers', true)::jsonb ->> 'x-forwarded-for', ''), ',', 1);
+    exception when others then
+      v_ip := '';
+    end;
+    v_ip := btrim(v_ip);
+    if v_ip <> '' then
+      v_iph := encode(extensions.digest(v_ip || '::pv_hotel_ip::' || current_date::text, 'sha256'), 'hex');
+      -- 同じ回線の同時の呼び出しを1列に並べる（下の40件の数え方をすり抜けさせない。数えてから1つ進めるまで、この印を掴んだまま）
+      perform pg_advisory_xact_lock(hashtextextended('pv_stay_ip:' || v_iph, 0));
+      -- 同じ回線からログインせずに足せるのは1日40件まで（2026-10-18 オーナーの答え Q3「②」）。端末を替えても合わせて数える：
+      -- 数えるのは 1 の pv_stay_ip_day の、この回線のその日の数（足せた1件ごとに、下の insert のあとで1つ進める）。
+      -- ★鍵がいつ作られたかは見ない（前の日に作った端末で足したものも、新しい端末で足したものも、同じ1つの数）。
+      -- ★知っている鍵で足すときも数える（鍵を作る前に止める ＝ 断った呼び出しは鍵を作らない）。日が替われば印が替わる（鍵の20本と同じ1日の窓）
+      select coalesce((select d.n from public.pv_stay_ip_day d where d.ip_day_hash = v_iph), 0) into v_n;
+      if v_n >= 40 then
+        return jsonb_build_object('ok', false, 'status', 'rate_limited');
+      end if;
+    end if;
     if v_me is null then
       -- 同じ回線から1日に作れる鍵は20本まで（db/contrib.sql の預かりと同じ数）。回線が分からない所では数えない
-      begin
-        v_ip := split_part(
-          coalesce(current_setting('request.headers', true)::jsonb ->> 'x-forwarded-for', ''), ',', 1);
-      exception when others then
-        v_ip := '';
-      end;
-      v_ip := btrim(v_ip);
-      if v_ip <> '' then
-        v_iph := encode(extensions.digest(v_ip || '::pv_hotel_ip::' || current_date::text, 'sha256'), 'hex');
+      if v_iph is not null then
         select count(*) into v_n from public.pv_stay_keys
          where ip_day_hash = v_iph and created_at > now() - interval '1 day';
         if v_n >= 20 then
@@ -1957,6 +1996,13 @@ begin
           case when v_pub then 'public' else 'pending' end, case when v_pub then now() end)
   returning * into v_row;
 
+  -- ログインせずに足せた1件を、この回線のその日の数に入れる（40件の数え方。回線が分からない所では数えない。
+  -- 上で回線の印を掴んだまま ＝ 同じ回線の同時の呼び出しが、同じ数を見て両方とも入ることはない）
+  if v_uid is null and v_iph is not null then
+    insert into public.pv_stay_ip_day as d (ip_day_hash, n) values (v_iph, 1)
+    on conflict (ip_day_hash) do update set n = d.n + 1;
+  end if;
+
   return jsonb_build_object('ok', true, 'item',
            public.pv_stay_place_json(v_row, array[v_me], v_all, v_sees))
          || case when v_key is not null then jsonb_build_object('key', v_key) else '{}'::jsonb end;
@@ -1967,7 +2013,7 @@ revoke all on function public.pv_stay_add(jsonb) from public;
 grant execute on function public.pv_stay_add(jsonb) to anon, authenticated;
 
 comment on function public.pv_stay_add(jsonb) is
-  'ステイ情報を1件足す。誰でも足せる（ログインも要らない。決め方は pv_stay_may_add の1行）。足せることは何も開かない（読めるのはオーナーとオーナーが承認した人だけ）。pending で入る（運営が見るまで、足した本人と運営にしか出ない。運営が publish:true を添えたときだけ、その場で public。その空港は、その会社の就航地（3-n）に在るものだけ）。ログインせずに初めて足したときだけ端末の鍵を1回返す（表には sha256 だけ）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・10秒・24時間にログインしている人20件／端末の鍵だけの人20件・同じ回線が1日に作れる鍵は20本・ログインせずに足して運営の確認を待つものは200件まで。exists は見てよい人と運営の「追加」にだけ答える。地図のリンクは Google マップ以外なら捨てる。';
+  'ステイ情報を1件足す。誰でも足せる（ログインも要らない。決め方は pv_stay_may_add の1行）。足せることは何も開かない（読めるのはオーナーとオーナーが承認した人だけ）。pending で入る（運営が見るまで、足した本人と運営にしか出ない。運営が publish:true を添えたときだけ、その場で public。その空港は、その会社の就航地（3-n）に在るものだけ）。ログインせずに初めて足したときだけ端末の鍵を1回返す（表には sha256 だけ）。名前2〜80字・住所200字・メモ500字・都市60字・ステイ時間はホテルだけで1〜240時間（任意）・10秒・24時間にログインしている人20件／端末の鍵だけの人20件・同じ回線が1日に作れる鍵は20本・同じ回線からログインせずに足せるのは端末をまたいで1日40件・ログインせずに足して運営の確認を待つものは200件まで。exists は見てよい人と運営の「追加」にだけ答える。地図のリンクは Google マップ以外なら捨てる。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2868,7 +2914,7 @@ comment on function public.pv_stay_viewer_queue() is
 --                     いまは画像が無いので、画像なしでは決めない ── 本人がもう一度申請する
 --   ★ 画像を見て verified にしたあと取り消した人も「申請の跡がある」に入る（オーナーへの質問 Q-VP2 の答えを待つあいだは厳しい側）。
 -- ★ 読むのは承認の表の本人の1行と、申請の一覧（db/proof-offer.sql。無ければ画像は「無い」）だけ。何も書かない。
--- ★ 誰にも配らない（呼ぶのは 10-a-3 と 10-c-5 の security definer の中だけ）。
+-- ★ 誰にも配らない（呼ぶのは 10-a-3 と 10-c-5 の security definer の中だけ。ほかに 10-c-4 の会員一覧が、行の印 reapply を作るために読む ── 承認はしない）。
 create or replace function public.pv_stay_image_needed(p_id uuid)
 returns text
 language plpgsql
@@ -3154,10 +3200,14 @@ comment on function public.pv_stay_applicant_image(jsonb) is
 -- 10-c-4. 会員一覧（オーナーだけ）
 -- 引数: p（いまは使わない。形をそろえるためだけ）
 -- 返り値: オーナーでない → {ok:false, status:'forbidden'}（★何も読まずに返す）
---         オーナー → {ok:true, rows:[{id, email, name, company, position, state, applied}]}
+--         オーナー → {ok:true, rows:[{id, email, name, company, position, state, applied, reapply}]}
 --   state    いまのオーナーにとっての状態（'approved'|'denied'|'revoked'|'none'。前のオーナーが決めた行・
 --            申し込んだだけの行は 'none'）
 --   applied  申請（画像あり）が在るか
+--   reapply  画像なしでは verified にできず、いま待っている申請（画像）も無いか（true / false だけ）。
+--            ＝ 会員一覧の verified が断られる人（申請を見送られた・ほかに申請の跡がある ── 画像を見て verified にしたあと
+--            取り消された人も。Q-VP2 の答えを待つあいだは厳しい側）。本人がマイページから新しい画像を出すまで、行に verified を置かない。
+--            決めるのは 10-a-2b の1か所（verified の会員一覧の道と同じ答え）。申請の跡そのもの・時刻・理由は返さない。
 --   ★ オーナー自身は出さない。並びは 申請あり → verified → それ以外、その中はメールの順。1000人まで。
 create or replace function public.pv_stay_members(p jsonb default null)
 returns jsonb
@@ -3182,7 +3232,7 @@ begin
     from (select jsonb_build_object(
                    'id', pf.id, 'email', u.email, 'name', pf.name,
                    'company', pf.company, 'position', pf."position",
-                   'state', x.st, 'applied', x.ap) as j,
+                   'state', x.st, 'applied', x.ap, 'reapply', x.ra) as j,
                  case when x.ap then 0 when x.st = 'approved' then 1 else 2 end as k,
                  lower(coalesce(u.email, '')) as e, pf.id
             from public.profiles pf
@@ -3191,7 +3241,8 @@ begin
               select coalesce((select v.state from public.pv_stay_viewers v
                                 where v.user_id = pf.id and v.decided_by = v_owner
                                   and v.state in ('approved', 'denied', 'revoked')), 'none') as st,
-                     pf.id = any(v_apps) as ap) x
+                     pf.id = any(v_apps) as ap,
+                     coalesce(public.pv_stay_image_needed(pf.id) in ('applied_denied', 'no_image'), false) as ra) x
            where pf.id <> v_owner
            order by k, e, pf.id
            limit 1000) z;
@@ -3203,7 +3254,7 @@ revoke all on function public.pv_stay_members(jsonb) from public, anon;
 grant execute on function public.pv_stay_members(jsonb) to authenticated;
 
 comment on function public.pv_stay_members(jsonb) is
-  '会員一覧（verified の状態と、申請があるか）。オーナーだけ（運営でも、オーナーでなければ forbidden）。オーナー自身は出さない。';
+  '会員一覧（verified の状態と、申請があるか・画像なしでは verified にできず申請も待っていないか reapply）。オーナーだけ（運営でも、オーナーでなければ forbidden）。オーナー自身は出さない。';
 
 -- 10-c-5. verified（オーナーだけ）── 申請してきた人の一覧と、会員一覧の両方のボタンがこれを呼ぶ
 -- 引数: p = {id, state, via}
@@ -3323,7 +3374,7 @@ comment on function public.pv_stay_viewer_verify(jsonb) is
 -- ════════════════════════════════════════════════════════════════
 -- 10-d. 毎時の片づけ（★pg_cron が在るときだけ登録する。無ければ何もしない）
 -- ════════════════════════════════════════════════════════════════
---   3-c5 の片づけ（回線の印は1日だけ・足したものが無い鍵は1日で消す）を、誰も足さない日にも流す。
+--   3-c5 の片づけ（回線の印は1日だけ・足したものが無い鍵は1日で消す・回線ごとのその日の数も1日で消す）を、誰も足さない日にも流す。
 --   1時間に1回 ＝ 作って1日たった印は、遅くとも1時間あとに消える（1日に1回だと、最長で2日近く残る）。
 --   ★ pg_cron は本番（Supabase）には在る。手元の検査（PGlite）には無い ＝ ここは飛ばす。
 --   ★ 同じ名前で登録し直すだけなので、何度流しても1本のまま（pg_cron は同じ名前の登録を置き換える）。
@@ -3356,13 +3407,13 @@ on conflict (one) do update set user_id = excluded.user_id, set_at = now();
 -- ════════════════════════════════════════════════════════════════
 -- 11. 検算（貼ったあとに出る1行）
 -- ════════════════════════════════════════════════════════════════
--- ポリシー数は 0 が正しい（場所・写真・端末の鍵の表と、見てよい人の名簿の2表の合計）。
+-- ポリシー数は 0 が正しい（場所・写真・端末の鍵・回線ごとのその日の数の表と、見てよい人の名簿の2表の合計）。
 -- オーナーは 1 が正しい。0 のあいだは誰にも見えない（上の 10-b の1行を、メールアドレスを入れて流す）。
 -- 承認した人は、いまのオーナーが承認した人の数（オーナー自身は数えない。申し込み・見送り・取り消しは数えない）。
 -- 端末の鍵は、ログインせずに足した端末の数（ログインして引き取られると消える・足したものが無い鍵は1日で消える）。
 select (select count(*) from pg_policies
          where schemaname = 'public'
-           and tablename in ('pv_stay_places', 'pv_stay_photos', 'pv_stay_keys'))
+           and tablename in ('pv_stay_places', 'pv_stay_photos', 'pv_stay_keys', 'pv_stay_ip_day'))
      + (select count(*) from pg_policies
          where schemaname = 'public'
            and tablename in ('pv_stay_owner', 'pv_stay_viewers'))      as ポリシー数,

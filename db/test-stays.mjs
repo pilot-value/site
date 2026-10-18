@@ -476,8 +476,8 @@ const PROF_U0 = J(await one(`select to_jsonb(p) as j from public.profiles p wher
 
 // ════════════════════════════════════════════════════════════════
 console.log('\n▼ 表は閉じている（直接は1行も読めない・書けない）');
-/* ★ D8（WP-stays-2）: 端末の鍵の表（pv_stay_keys）も同じく閉じている */
-for (const t of ['pv_stay_places', 'pv_stay_photos', 'pv_stay_keys']) {
+/* ★ D8（WP-stays-2）: 端末の鍵の表（pv_stay_keys）も同じく閉じている。回線ごとのその日の数（pv_stay_ip_day。2026-10-18 Q3 の40件）も */
+for (const t of ['pv_stay_places', 'pv_stay_photos', 'pv_stay_keys', 'pv_stay_ip_day']) {
   const c = await one(`select relrowsecurity as rls from pg_class where oid = ('public.' || $1)::regclass`, [t]);
   const pol = await one(`select count(*)::int as n from pg_policies where schemaname='public' and tablename=$1`, [t]);
   ok(c.rls === true && pol.n === 0, `${t}: RLS が有効で、ポリシーは 0 本`, J({ c, pol }));
@@ -533,7 +533,7 @@ for (const t of ['pv_stay_owner', 'pv_stay_viewers']) {
 {
   const cols = (await db.query(
     `select table_name as t, column_name as c, data_type as d from information_schema.columns
-      where table_schema = 'public' and table_name in ('pv_stay_places','pv_stay_photos','pv_stay_keys')`)).rows;
+      where table_schema = 'public' and table_name in ('pv_stay_places','pv_stay_photos','pv_stay_keys','pv_stay_ip_day')`)).rows;
   const uu = cols.filter((x) => x.d === 'uuid').map((x) => x.t + '.' + x.c).sort().join(',');
   ok(uu === 'pv_stay_photos.id,pv_stay_photos.place_id,pv_stay_places.id',
      'uuid の列は id と place_id だけ（生の user_id を入れる場所が無い）', uu);
@@ -2586,6 +2586,7 @@ const tableText = async () => (await db.query(
   `select row_to_json(t)::text as j from public.pv_stay_places t
    union all select row_to_json(t)::text from public.pv_stay_photos t
    union all select row_to_json(t)::text from public.pv_stay_keys t
+   union all select row_to_json(t)::text from public.pv_stay_ip_day t
    union all select row_to_json(t)::text from public.pv_stay_owner t
    union all select row_to_json(t)::text from public.pv_stay_viewers t`)).rows.map((r) => r.j).join('\n');
 const lhr = (who, key) => stays(who, 'etihad', 'LHR', key);
@@ -2691,6 +2692,74 @@ let K1, K2, G1, G2;
     await db.query(`delete from public.pv_stay_keys where key_hash = $1`, [keyHashOf(x.key)]);
   }
 
+  /* ★D5 e（2026-10-18 オーナーの答え Q3「②」・修理 2026-10-18）: 同じ回線からログインせずに足せるのは、端末をまたいで1日40件。
+       数えるのは、その回線のその日の数（pv_stay_ip_day。足せた1件ごとに進む）。★鍵がいつ作られたかは見ない ──
+       前の日に作った端末（回線の印はもう空）で足したものも数える（前の作りは、その日にその回線で作った鍵の分しか数えず、
+       古い端末なら1台20件ずつ何台でも足せた）。ここでは数合わせの行を入れず、40件とも本物の足す口を通す：
+       前の日に作った端末 A（今日20件）・B（今日19件）と、今日の新しい端末 F（40件目）。41件目は、19件の B でも・1件の F でも・
+       鍵の無い新しい端末でも rate_limited（今ある字のまま・鍵も行も作らない ＝ 止めたのは端末の20件でも鍵の20本でもなく、回線の40件）。
+       ほかの回線・ログインしている人は止めない。日が替われば（回線の印が替われば）また入り、前の日の数の行は片づけで消える */
+  const NET40 = '198.51.100.40', NET41 = '198.51.100.41', RL = '{"ok":false,"status":"rate_limited"}';
+  const DAY = await one(`select current_date::text as d, (current_date - 1)::text as y`);
+  const mark = (ip, d) => hashOf(ip, '::pv_hotel_ip::' + d);      // サーバと同じ式（鍵の表の回線の印と同じ値）
+  const cnt40 = async (d) => { const r = await one(`select n from public.pv_stay_ip_day where ip_day_hash = $1`, [mark(NET40, d)]); return r ? r.n : null; };
+  /* 前の日に作った端末2台（1日たった鍵と同じ形 ＝ 回線の印は空）。足したものが1件ずつ在るので鍵は残る */
+  await setAddr(null);
+  const oldA = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用40件の古い端末A'));
+  const oldB = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用40件の古い端末B'));
+  const hO = [oldA, oldB].map((x) => keyHashOf(x.key || ''));
+  await db.query(`update public.pv_stay_keys set created_at = now() - interval '2 days', ip_day_hash = null where key_hash = any($1::text[])`, [hO]);
+  await db.query(`update public.pv_stay_places set created_at = now() - interval '2 days' where author_hash = any($1::text[])`, [hO]);
+  /* 今日、その回線から：A で20件・B で19件（どれも本物の足す口。10秒の連投に当たらないよう、足したものを1時間前へずらしながら） */
+  await setAddr(NET40);
+  const shift = (h) => db.query(`update public.pv_stay_places set created_at = now() - interval '1 hour'
+                                  where author_hash = $1 and created_at > now() - interval '1 minute'`, [h]);
+  const today40 = [];
+  for (const [x, h, n] of [[oldA, hO[0], 20], [oldB, hO[1], 19]]) {
+    for (let i = 1; i <= n; i++) {
+      today40.push(status(await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用40件の今日 ' + h.slice(0, 6) + ' ' + i, { key: x.key }))));
+      await shift(h);
+    }
+  }
+  const c39 = await cnt40(DAY.d);
+  const f40 = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用40件目の新しい端末'));
+  const hF = keyHashOf(f40.key || '');
+  await shift(hF);
+  const per = Object.fromEntries((await db.query(
+    `select author_hash as h, count(*)::int as n from public.pv_stay_places
+      where author_hash = any($1::text[]) and created_at > now() - interval '1 day' group by author_hash`, [[...hO, hF]])).rows.map((r) => [r.h, r.n]));
+  const kn40 = await keysN();
+  const r41b = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用41件目の古い端末B', { key: oldB.key }));
+  const r41f = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用41件目の今日の端末', { key: f40.key }));
+  const r41n = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用41件目の新しい端末'));
+  const made41 = (await one(`select count(*)::int as n from public.pv_stay_places where name like 'テスト用41件目%'`)).n;
+  const c41 = await cnt40(DAY.d);
+  ok(oldA.ok === true && oldB.ok === true && today40.length === 39 && today40.every((s) => s === 'ok') && c39 === 39
+     && f40.ok === true && /^[0-9a-f]{48}$/.test(f40.key) && J([per[hO[0]], per[hO[1]], per[hF]]) === J([20, 19, 1])
+     && J(r41b) === RL && J(r41f) === RL && J(r41n) === RL && (await keysN()) === kn40 && made41 === 0 && c41 === 40,
+     '★D5e: 前の日に作った端末2台（今日20件・19件）と今日の新しい端末（40件目）── 同じ回線から40件目までは入り、41件目は19件の古い端末でも・1件の今日の端末でも・鍵の無い新しい端末でも rate_limited（鍵も行も作らない・数は40のまま）',
+     J({ notOk: today40.filter((s) => s !== 'ok'), c39, f40: status(f40), per: [per[hO[0]], per[hO[1]], per[hF]], r41b, r41f, r41n, made41, c41 }));
+  await setAddr(NET41);
+  const o41 = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用ほかの回線の場所'));
+  ok(o41.ok === true && /^[0-9a-f]{48}$/.test(o41.key), 'D5e: ほかの回線の新しい端末は、今までどおり入る', J(status(o41)));
+  await setAddr(NET40);
+  const m41 = await add(U, P('etihad', 'LHR', 'spot', 'テスト用40件の回線の会員'));
+  const cm = await cnt40(DAY.d);
+  ok(m41.ok === true && cm === 40, 'D5e: ログインしている人は、同じ回線でも40件では止めない（回線の数にも入らない）', J([status(m41), cm]));
+  /* 日が替わる：今日の数の行を、前の日の印・25時間前の1件目に書き換える（＝ 前の日に40件足した回線）。今日の印の数は空 → また入る。
+     前の日の数の行は、その呼び出しの片づけで消える */
+  await db.query(`update public.pv_stay_ip_day set ip_day_hash = $2, first_at = now() - interval '25 hours' where ip_day_hash = $1`,
+                 [mark(NET40, DAY.d), mark(NET40, DAY.y)]);
+  const w40 = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用40件の次の日', { key: oldB.key }));
+  const cw = [await cnt40(DAY.d), await cnt40(DAY.y)];
+  ok(w40.ok === true && keys(w40) === 'item,ok' && J(cw) === J([1, null]),
+     '★D5e: 日が替われば（回線の印が替われば）同じ回線からまた入る（その日の数は1から）・前の日の数の行は片づけで消える', J({ w40: status(w40), cw }));
+  await setAddr(null);
+  if (m41.item) await del(U, 'place', m41.item.id);
+  await db.query(`delete from public.pv_stay_places where author_hash = any($1::text[])`, [[...hO, hF, keyHashOf(o41.key || '')]]);
+  await db.query(`delete from public.pv_stay_keys where key_hash = any($1::text[])`, [[...hO, hF, keyHashOf(o41.key || '')]]);
+  await db.query(`delete from public.pv_stay_ip_day where ip_day_hash = any($1::text[])`, [[mark(NET40, DAY.d), mark(NET40, DAY.y), mark(NET41, DAY.d)]]);
+
   /* ★D5 d: ログインせずに足されて運営を待っているものが 200件 → 未ログインは queue_full（会員は止めない）。
        運営が1件見送ると、また入る（数えるのは「待っている行」。24時間の件数ではない） */
   const SEEDK = 'cd'.repeat(32);
@@ -2756,8 +2825,9 @@ let K1, K2, G1, G2;
                                .find((x) => x.trimStart().startsWith('public.pv_stay_add(')) || '';
                            return f.slice(0, Math.max(0, f.indexOf('$fn$;'))).split('\n').map((l) => l.replace(/--.*$/, '')).join('\n'); })();
   const tabs = [...new Set([...addBody.matchAll(/public\.([a-z_0-9]+)(?![a-z_0-9])(?!\s*\()/g)].map((m) => m[1]))].sort();
-  ok(addBody !== '' && J(tabs) === J(['pv_airlines', 'pv_stay_keys', 'pv_stay_places']),
-     '★D9: 足す口の本文が名指しする表は pv_airlines・pv_stay_places・pv_stay_keys だけ（profiles などを書かない・読まない）', J(tabs));
+  /* 2026-10-18（Q3 の40件）から、回線ごとのその日の数の表（pv_stay_ip_day）が1つ増えた。それでも名指しする表はこの4つだけ */
+  ok(addBody !== '' && J(tabs) === J(['pv_airlines', 'pv_stay_ip_day', 'pv_stay_keys', 'pv_stay_places']),
+     '★D9: 足す口の本文が名指しする表は pv_airlines・pv_stay_places・pv_stay_keys・pv_stay_ip_day だけ（profiles などを書かない・読まない）', J(tabs));
 
   /* ★D10（M4・P8.4 b）: 片づけ。1日より前に作った鍵の「回線の印」は、次に未ログインで足したとき空になる。
        足したものが1つも無い1日前の鍵は消え、足したものが在る鍵は残る。知っている鍵で足したときも同じ（A24 の b2） */
@@ -2805,8 +2875,17 @@ let K1, K2, G1, G2;
   const swPhotos = async () => J((await db.query(`select id, place_id, author_hash, md5(bytes) as m, byte_len, state, created_at from public.pv_stay_photos order by id`)).rows);
   const swKeys = async () => Object.fromEntries((await db.query(
     `select key_hash, ip_day_hash from public.pv_stay_keys where key_hash = any($1::text[])`, [Object.values(SW)])).rows.map((r) => [r.key_hash, r.ip_day_hash]));
+  /* 回線ごとのその日の数の行（2026-10-18 Q3 の40件）も同じ片づけ：1件目から25時間の行は消え、23時間の行は残る */
+  const SD = { old: 'a3'.repeat(32), young: 'b3'.repeat(32) };
+  for (const [k, h] of [[SD.old, 25], [SD.young, 23]]) {
+    await db.query(`insert into public.pv_stay_ip_day (ip_day_hash, n, first_at) values ($1, 40, now() - ($2::int * interval '1 hour'))`, [k, h]);
+  }
   const pl0 = await swPlaces(), ph0 = await swPhotos();
   await db.query(`select public.pv_stay_key_sweep()`);
+  const sd = (await db.query(`select ip_day_hash as h, n from public.pv_stay_ip_day where ip_day_hash = any($1::text[])`, [Object.values(SD)])).rows;
+  ok(J(sd) === J([{ h: SD.young, n: 40 }]),
+     '★D10(c): 毎時の片づけ: 回線ごとのその日の数の行も、1件目から25時間の行は消え・23時間の行は残る（数はそのまま）', J(sd));
+  await db.query(`delete from public.pv_stay_ip_day where ip_day_hash = any($1::text[])`, [Object.values(SD)]);
   const kw = await swKeys();
   ok(kw[SW.a] === null && kw[SW.c] === MARK && kw[SW.d] === MARK && !(SW.b in kw),
      '★D10(c): 毎時の片づけ（関数を直接呼ぶ）: 25時間前の印は空になる・23時間前の印は残る・足したものが無い25時間前の鍵は消え、23時間前の鍵と足したものが在る鍵は残る',
@@ -2833,19 +2912,24 @@ let K1, K2, G1, G2;
      '★D11: 承認を取り消された人が写真の付いた自分の場所を直しても、返る1件に写真は並ばない（見てよい人でない人の形）', J(e11));
   if (m11.item) await del(V3, 'place', m11.item.id);
 
-  /* ★D12（P8.4 a・c）: 回線から作った値は端末の鍵の行にしか無い（場所の行・返事・記録に無い）。生の IP はどこにも保存しない */
+  /* ★D12（P8.4 a・c）: 回線から作った値は端末の鍵の行と、回線ごとのその日の数の行（2026-10-18 Q3 の40件）にしか無い
+       （場所の行・写真の行・返事・記録に無い）。生の IP はどこにも保存しない。
+       見る表は、ステイ情報の表ぜんぶ（名前が pv_stay_ で始まる表。あとから表が増えても、黙って印を置けない） */
   await setAddr('203.0.113.9');
   const g12 = await add(ANON, P('etihad', 'LHR', 'spot', 'テスト用回線の場所D12'));
   await setAddr(null);
   const ipc = (await db.query(`select table_name as t, column_name as c from information_schema.columns
-                                where table_schema = 'public' and table_name in ('pv_stay_places','pv_stay_photos','pv_stay_keys')
-                                  and column_name ~* 'ip'`)).rows.map((r) => r.t + '.' + r.c);
+                                where table_schema = 'public' and table_name like 'pv\\_stay\\_%'
+                                  and column_name ~* 'ip' order by 1, 2`)).rows.map((r) => r.t + '.' + r.c);
   const k12 = await one(`select ip_day_hash from public.pv_stay_keys where key_hash = $1`, [keyHashOf(g12.key || '')]);
+  const d12 = (await db.query(`select ip_day_hash from public.pv_stay_ip_day`)).rows.map((r) => r.ip_day_hash);
   const txt12 = await tableText();
   const all12 = seen.map((s) => s.json).join('\n');
-  ok(g12.ok === true && J(ipc) === J(['pv_stay_keys.ip_day_hash']), '★D12(i): 回線の印を置ける列は pv_stay_keys.ip_day_hash の1つだけ', J(ipc));
-  ok(k12 && /^[0-9a-f]{64}$/.test(String(k12.ip_day_hash)) && k12.ip_day_hash !== '203.0.113.9' && !txt12.includes('203.0.113.9'),
-     '★D12(ii)(iii): 置くのは sha256 の64字だけ・生の IP はどの表のどの行にも無い', J(k12));
+  ok(g12.ok === true && J(ipc) === J(['pv_stay_ip_day.ip_day_hash', 'pv_stay_keys.ip_day_hash']),
+     '★D12(i): 回線の印を置ける列は pv_stay_keys.ip_day_hash と pv_stay_ip_day.ip_day_hash の2つだけ（ステイ情報の表ぜんぶを見る）', J(ipc));
+  ok(k12 && /^[0-9a-f]{64}$/.test(String(k12.ip_day_hash)) && k12.ip_day_hash !== '203.0.113.9' && !txt12.includes('203.0.113.9')
+     && d12.includes(k12.ip_day_hash) && d12.every((h) => /^[0-9a-f]{64}$/.test(String(h))),
+     '★D12(ii)(iii): 置くのは sha256 の64字だけ（その日の数の行も、鍵の行と同じ印）・生の IP はどの表のどの行にも無い', J([k12, d12.length]));
   ok(!all12.includes('203.0.113.9') && !all12.includes(String(k12 && k12.ip_day_hash)),
      `★D12(iv): ${seen.length} 本のどの返事にも、生の IP も回線の印も無い`);
   ok(!/raise\s+(notice|log|info)/i.test(addBody), '★D12(v): 足す口は何も記録に書かない（raise notice / log / info が無い）');
@@ -3381,12 +3465,17 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   const NEED_MAP = /v_why := public\.pv_stay_image_needed\(v_id\);\s+if v_why = 'use_image' then\s+return jsonb_build_object\('ok', false, 'status', 'use_image'\);\s+end if;\s+if v_why = 'applied_denied' then\s+return jsonb_build_object\('ok', false, 'status', 'applied_denied'\);\s+end if;\s+if v_why is not null then\s+return jsonb_build_object\('ok', false, 'status', 'no_image'\);\s+end if;/;
   const callers = fns.filter((f) => !f.trimStart().startsWith('public.pv_stay_image_needed(') && /pv_stay_image_needed\s*\(/.test(bodyOf(f)))
                      .map((f) => f.trimStart().split('(')[0]);
-  ok(needF !== '' && J(callers) === J(['public.pv_stay_viewer_decide', 'public.pv_stay_viewer_verify'])
+  /* ★Q1（2026-10-18）で呼ぶ所が1つ増えた：会員一覧（pv_stay_members）が、行の印 reapply を作るために読むだけ（承認はしない・何も書かない）。
+       決める2本の式（NEED_MAP）は今までどおり。一覧の読み方は「applied_denied ／ no_image なら true」の1式だけ */
+  const memF = bodyOf(fn('pv_stay_members'));
+  const MEM_MAP = /coalesce\(public\.pv_stay_image_needed\(pf\.id\) in \('applied_denied', 'no_image'\), false\) as ra\)/;
+  ok(needF !== '' && J(callers) === J(['public.pv_stay_viewer_decide', 'public.pv_stay_members', 'public.pv_stay_viewer_verify'])
+     && MEM_MAP.test(memF) && memF.split('pv_stay_image_needed(').length === 2 && !/\b(insert|update|delete)\b/i.test(memF)
      && [vdF, vvF].every((f) => NEED_MAP.test(f) && f.split('pv_stay_image_needed(').length === 2)
      && /if coalesce\(p->>'state', ''\) = 'approved' then\s+v_why := /.test(vdF) && /if v_via = 'member' and v_to = 'approved' then\s+v_why := /.test(vvF)
      && vdF.indexOf("'self'") < vdF.indexOf('pv_stay_image_needed(') && vdF.indexOf('pv_stay_image_needed(') < vdF.indexOf('from public.pv_stay_viewers')
      && !/\b(insert|update|delete)\b/i.test(needF) && !/v_cur = 'denied'|and v_img then\s+return/.test(vvF),
-     '★P12.51: 画像を見ずに承認してよいかは1か所（pv_stay_image_needed）で決める ── 呼ぶのは決める口と verified の会員一覧の道の2本だけ・承認のときに1回・同じ3つの答え（use_image・applied_denied・no_image）を同じ字で返す・決める口は行を読む前に呼ぶ・その1か所は何も書かない',
+     '★P12.51: 画像を見ずに承認してよいかは1か所（pv_stay_image_needed）で決める ── 決めるのは決める口と verified の会員一覧の道の2本だけ・承認のときに1回・同じ3つの答え（use_image・applied_denied・no_image）を同じ字で返す・決める口は行を読む前に呼ぶ・その1か所は何も書かない／ほかに呼ぶのは会員一覧の印 reapply を作る1式だけ（Q1・読むだけ・何も書かない）',
      J({ callers }));
   /* 写真を足すとき、場所の行を錠つきで読んでいる（読んでから入れるまでの間に見送られても画素が残らない） */
   ok(/from public\.pv_stay_places where id = v_pid for share;/.test(fn('pv_stay_photo_add')),
@@ -3672,6 +3761,20 @@ console.log('\n▼ 決める口（10-a）も同じ決まり ── 画像なし�
      '★X2 同じ人には同じ答え：会員一覧の verified（via member）と決める口が、5人それぞれに1文字も同じ断りを返す・どちらも何も書かない',
      J({ diff, ver }));
 
+  /* ★Q1（2026-10-18・P12.60・P12.52 の 13y）: 会員一覧の行の印 reapply ── 画像なしでは verified にできず、いま待っている申請（画像）も
+       無い人だけ true（＝ 管理ページはその行に verified を置かず、マイページから新しい画像が要ると言う）。会員一覧の verified が
+       applied_denied ／ no_image で断る人と1人も違わない（同じ1か所 pv_stay_image_needed）。申請が待っている人（use_image）は false
+       （行の verified は画像の面を開く）。一度も申請していない人は false（P12.47）。返すのは true / false だけ（理由も時刻も返さない） */
+  const memQ1 = ((await rpc(OP, 'pv_stay_members', {})).rows || []).filter((x) => PEOPLE.includes(x.id));
+  const raQ1 = Object.fromEntries(memQ1.map((x) => [x.id, x.reapply]));
+  const byVer = Object.fromEntries([[PA, ver.pa], [PD, ver.pd], [PR, ver.pr], [PV, ver.pv], [PO, ver.po]]
+    .map(([id, v]) => [id, ['applied_denied', 'no_image'].includes(status(v))]));
+  ok(memQ1.length === 7 && J(Object.keys(byVer).map((id) => raQ1[id])) === J(Object.values(byVer))
+     && J([raQ1[PD], raQ1[PV], raQ1[PO], raQ1[PA], raQ1[PR], raQ1[PN], raQ1[PN0]]) === J([true, true, true, false, false, false, false])
+     && memQ1.every((x) => typeof x.reapply === 'boolean' && keys(x) === 'applied,company,email,id,name,position,reapply,state'),
+     '★Q1 会員一覧の行の reapply は、会員一覧の verified が断る人（見送られた PD・画像で verified にして取り消された PV・古い申し込みだけの PO）だけ true・申請が待っている PA・PR と、一度も申請していない PN・PN0 は false（true / false だけ・欄は8つ）',
+     J({ raQ1, byVer }));
+
   /* X1 一度も申請していない人は、決める口でも画像なしで承認できる（P12.47）。決める口の書き方（決めた人・時刻）もここで見る */
   const at0 = (await one(`select decided_at::text as t from public.pv_stay_viewers where user_id = $1`, [PN])).t;
   const dN = await decide(PN, 'approved');
@@ -3709,6 +3812,9 @@ console.log('\n▼ 決める口（10-a）も同じ決まり ── 画像なし�
      && (await mark(PO)) === true,
      'X4 画像で決めたあと取り消された人・古い申し込みだけの人も、マイページからもう一度申請すれば、画像の面から verified にできる（今までどおり・画像はその場で消える・申請の跡が付く）',
      J({ aV, xV, aO, xO }));
+  const raX4 = Object.fromEntries((((await rpc(OP, 'pv_stay_members', {})).rows) || []).filter((x) => x.id === PV || x.id === PO).map((x) => [x.id, [x.state, x.reapply]]));
+  ok(J(raX4[PV]) === J(['approved', false]) && J(raX4[PO]) === J(['approved', false]),
+     'Q1 もう一度申請して画像の面から verified になった PV・PO は、会員一覧で reapply が false に戻る（行は verified の印と「取り消す」）', J(raX4));
 }
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed\n`);

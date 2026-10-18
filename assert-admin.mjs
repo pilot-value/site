@@ -629,6 +629,17 @@ const EN_SAY = {
   not_found: 'This can no longer be shown.', forbidden: 'Only the operator can do this.', exists: 'The same name is already registered.'
 };
 const EN_FAIL = 'Something went wrong. Please try again.';
+/* オーナーだけの文（2026-10-18・P12.60。オーナーに見てもらう字。ここで1字ずつ固定する）
+   OWN_SAY.iata(code, air) ＝ 運営の「追加」で、その会社の就航地に無い空港（V3）。候補が出ているときは pick を続ける
+   OWN_SAY.reapply ＝ 会員一覧で、画像なしでは verified にできない人の行（Q1） */
+const OWN_SAY = {
+  ja: { iata: (c, a) => c + ' は、' + a + 'の就航地（会社ページのステイ先に並ぶ空港）にありません。ここから直接追加できるのは、その会社の就航地だけです。',
+        pick: '空港の欄の候補から選んでください。', sep: '',
+        reapply: 'この人は以前に申請したことがあるため、画像を見てからでないと verified にできません。本人がマイページから新しい画像を出すと「申請してきた人」に並びます。' },
+  en: { iata: (c, a) => c + ' is not on the destination list of ' + a + ". Only airports on the airline's destination list can be added here directly.",
+        pick: 'Choose one of the suggested airports in the Airport field.', sep: ' ',
+        reapply: 'This person has applied before, so they can be verified only after you see an image. When they send a new image from My Page, they will appear under "Applicants".' }
+};
 const ALL_ST = [...new Set([...STATUS.add, ...STATUS.town, ...STATUS.tmod, ...STATUS.smod])];
 async function refusalChecks(page, lang) {
   const EN = lang === 'en';
@@ -661,14 +672,23 @@ async function refusalChecks(page, lang) {
   await page.type(H + ' input[data-k="iata"]', 'zzq');
   await page.type(H + ' input[data-k="name"]', '断られるホテル');
   const badAdd = [];
+  /* ★V3（2026-10-18・P12.60）：就航地に無い空港（bad_iata）だけは、打った空港・会社の名前・なぜ足せないか・次にすること
+       （この作り物の空港の一覧には JAL の候補が在る ＝ 「候補から選んで」まで出る）。ほかの理由は今までどおりステイ先の欄と同じ字 */
+  const OS = OWN_SAY[lang], IATA_WANT = OS.iata('ZZQ', EN ? 'Japan Airlines (JAL)' : '日本航空（JAL）') + OS.sep + OS.pick;
+  let iataT = null;
   for (const s of STATUS.add) {
     const t = await send(H, 'pv_stay_add', { refuse: { pv_stay_add: s } });
-    const want = EN ? (s === 'exists' ? EN_SAY.exists : EN_FAIL) : (has(CS.add, s) ? CS.add[s] : CS.fail);
+    const want = s === 'bad_iata' ? IATA_WANT : EN ? (s === 'exists' ? EN_SAY.exists : EN_FAIL) : (has(CS.add, s) ? CS.add[s] : CS.fail);
+    if (s === 'bad_iata') iataT = t;
     if (t !== want || codeIn(t)) badAdd.push([s, t]);
   }
+  const generic = [CS.add.bad_iata, CS.add.bad_airline, CS.fail, EN_FAIL];
+  ok(iataT === IATA_WANT && iataT.includes('ZZQ') && iataT.includes(EN ? 'Japan Airlines (JAL)' : '日本航空（JAL）') && !generic.some((g) => g && iataT.includes(g)),
+     `★V3 運営の「追加」が、その会社の就航地に無い空港で断られたとき：打った空港（ZZQ）と会社の名前、なぜ足せないか（${EN ? 'only airports on the airline\'s destination list' : 'ここから直接追加できるのは、その会社の就航地だけ'}）と次にすること（候補から選ぶ）を言う・共通の一言（${CS.add.bad_iata}／${EN_FAIL}）は出ない`,
+     JSON.stringify(iataT));
   const keptH = await page.evaluate((h) => document.querySelector(h + ' input[data-k="name"]').value, H);
   ok(badAdd.length === 0 && keptH === '断られるホテル',
-     `AQ16 ホテルの「追加」が断られたとき（${STATUS.add.length}の理由）、出る字は${EN ? '「The same name is already registered.」か「Something went wrong. Please try again.」' : ' career-stay.js の SAY_ADD（無ければ SAY_FAIL）'}と同じ・status の名前は出ない・打った字は残る`,
+     `AQ16 ホテルの「追加」が断られたとき（${STATUS.add.length}の理由）、出る字は${EN ? '「The same name is already registered.」か「Something went wrong. Please try again.」' : ' career-stay.js の SAY_ADD（無ければ SAY_FAIL）'}と同じ（就航地に無い空港だけは V3 の文）・status の名前は出ない・打った字は残る`,
      JSON.stringify(badAdd));
   /* AQ16 街の「追加」── forbidden と、検品の日本語の文 */
   await page.evaluate(() => { window.__q.refuse = null; });
@@ -872,6 +892,7 @@ async function ownerChecks(page, lang) {
              k: [...li.querySelectorAll(':scope > .adm-row-k')].map((e) => e.textContent),
              btns: [...li.querySelectorAll('button')].map((b) => [b.getAttribute('data-act'), b.textContent]) };
   }, sel);
+  const NF0 = EN ? EN_SAY.not_found : CS.mod.not_found;
   const W = EN ? { view: 'View image', verified: 'verified', decline: 'Decline', revoke: 'Revoke', close: 'Close', applied: 'Applied',
                    cap: 'Sample Air · Captain', fo: 'Other Air · First Officer', cadet: 'Trainee', age0: 'Within 1 month', none: 'Nothing is waiting', noUsers: 'No users',
                    err: 'Could not loadRefresh', photoErr: 'The photo cannot be shown' }
@@ -1026,13 +1047,41 @@ async function ownerChecks(page, lang) {
   ok(v5.length === 2 && canon(v5[1]) === canon({ p: { id: A2, state: 'denied', via: 'applicant' } })
      && JSON.stringify(none5.filter((x) => x[0] === 'apps')) === JSON.stringify([['apps', W.none]]),
      `★O5 画像の面の「${W.decline}」は {id, state:denied, via:applicant} だけ・申請が無くなると「${W.none}」`, JSON.stringify({ v5: v5[1], none5 }));
-  /* T6（WP-towns-13w・P12.46）画像を見て見送った人（A2）の会員一覧の行には「verified」が無い（「見送り」の印だけ・押せる所なし） */
+  /* T6（WP-towns-13w・P12.46）画像を見て見送った人（A2）の会員一覧の行には「verified」が無い（「見送り」の印・押せる所なし）。
+     ★Q1（2026-10-18）：その行にも、次にすること（本人がマイページから新しい画像を出す）をオーナーだけの文で書く（サーバーの reapply） */
   const m6 = await info(memSel(A2));
-  ok(m6 && JSON.stringify(m6.tags) === JSON.stringify([W.decline]) && JSON.stringify(m6.btns) === '[]',
-     `★T6 画像を見て「${W.decline}」にした人の会員一覧の行には「${W.verified}」が無い（行は「${W.decline}」の印だけ・ボタンなし）`, JSON.stringify(m6));
+  const m6s = await page.evaluate((s) => { const li = document.querySelector(s), r = li && li.querySelector('[data-adm="reapply"]');
+    return { say: r ? r.textContent : null, visible: !!r && !r.hidden && r.getClientRects().length > 0, text: li ? li.textContent : '' }; }, memSel(A2));
+  ok(m6 && JSON.stringify(m6.tags) === JSON.stringify([W.decline]) && JSON.stringify(m6.btns) === '[]'
+     && m6s.say === OWN_SAY[lang].reapply && m6s.visible && !m6s.text.includes(NF0),
+     `★T6 画像を見て「${W.decline}」にした人の会員一覧の行には「${W.verified}」が無い（行は「${W.decline}」の印と、次にすること ── マイページから新しい画像 ── の1文・ボタンなし・「${NF0}」は出ない）`,
+     JSON.stringify({ m6, say: m6s.say }));
   const f6 = await page.evaluate(() => { const a = document.activeElement; return a ? [a.tagName, a.getAttribute('data-adm'), a.getAttribute('data-id')] : null; });
   ok(JSON.stringify(f6) === JSON.stringify(['LI', 'member', A2]),
      'T6 見送ったあと、フォーカスはその人の会員一覧の行（ボタンが無いので行そのもの）', JSON.stringify(f6));
+
+  /* ★Q1（2026-10-18・P12.60・P12.52 の 13y）：画像を見て verified にしたあと取り消した人など、サーバーが「画像なしでは verified に
+       できず、待っている申請も無い」（reapply）と返した人の行には「verified」が無い。押しても断られるだけのボタンを置かず、
+       なぜできないかと次にすること（本人がマイページから新しい画像を出す）をオーナーだけの文で書く。「もう表示できないものです。」は出ない。
+       一度も申請していない人（reapply なし）は今までどおり行の「verified」（O6・P12.47） */
+  const M7 = OW + '7';
+  await page.evaluate((id) => {
+    window.__o.members.push({ id, email: 'reapply@example.com', name: 'Revoked Pilot', company: null, position: null, state: 'revoked', applied: false, reapply: true });
+    return window.PVAdminQueue.reload();
+  }, M7);
+  await page.waitForFunction((s) => document.querySelector(s), { timeout: 10000 }, memSel(M7));
+  const q1 = await page.evaluate((s) => {
+    const li = document.querySelector(s), r = li.querySelector('[data-adm="reapply"]');
+    return { btns: [...li.querySelectorAll('button')].map((b) => b.getAttribute('data-act')), say: r ? r.textContent : null, sayVisible: !!r && !r.hidden && r.getClientRects().length > 0,
+             tags: [...li.querySelectorAll('.adm-row-v .adm-tag')].map((t) => t.textContent), text: li.textContent };
+  }, memSel(M7));
+  const m4q = await info(memSel(M4));
+  ok(JSON.stringify(q1.btns) === '[]' && q1.say === OWN_SAY[lang].reapply && q1.sayVisible && JSON.stringify(q1.tags) === '[]'
+     && !q1.text.includes(NF0) && !!m4q && m4q.btns.some((b) => b[0] === 'verify' || b[0] === 'revoke'),
+     `★Q1 画像なしでは verified にできない人（reapply）の会員一覧の行には「${W.verified}」が無い・なぜできないかと次にすること（マイページから新しい画像）を書く・「${NF0}」は出ない（一度も申請していない人の行は今までどおり押せる）`,
+     JSON.stringify({ q1: { btns: q1.btns, say: q1.say, tags: q1.tags }, m4: m4q && m4q.btns }));
+  await page.evaluate((id) => { window.__o.members = window.__o.members.filter((x) => x.id !== id); return window.PVAdminQueue.reload(); }, M7);
+  await page.waitForFunction((s) => !document.querySelector(s), { timeout: 10000 }, memSel(M7));
 
   /* O6 会員一覧：「verified」→ {id, state:'approved', via:'member'}／「取り消す」→ {id, state:'revoked', via:'member'} */
   await page.click(memSel(M4) + ' [data-act="verify"]');
@@ -1074,13 +1123,16 @@ async function ownerChecks(page, lang) {
     await page.click(memSel(M3) + ' [data-act="verify"]');
     await page.waitForFunction((r) => { const li = document.querySelector(r), p = li && li.querySelector('[data-adm="say"]'); return li && !li.hasAttribute('data-test-old') && p && !p.hidden; }, { timeout: 10000 }, memSel(M3));
     const t = await page.evaluate((r) => document.querySelector(r + ' [data-adm="say"]').textContent, memSel(M3));
-    const want = s === 'not_found' || s === 'no_image' ? NF : FL;
-    const codeIn = /[a-z]+_[a-z]+/.test(t) || VERIFY_ST.some((x) => t.trim() === x || t.includes('（' + x) || t.includes('(' + x)) || (!EN && /[a-z_]{3,}/.test(t));
+    /* ★Q1（2026-10-18）：会員一覧の道で no_image ・ applied_denied と断られたら、オーナーだけの文（次にすること）。
+         「もう表示できないものです。」はその人に当たらないので、会員一覧の道では not_found（その人が居ない）にだけ出る */
+    const want = s === 'not_found' ? NF : s === 'no_image' || s === 'applied_denied' ? OWN_SAY[lang].reapply : FL;
+    /* 日本語のページの「英小文字3字以上の塊」は、オーナーの言葉「verified」（日本語のページでもこの字。Q1 の文が使う）だけを除いて見る */
+    const codeIn = /[a-z]+_[a-z]+/.test(t) || VERIFY_ST.some((x) => t.trim() === x || t.includes('（' + x) || t.includes('(' + x)) || (!EN && /[a-z_]{3,}/.test(t.split(W.verified).join('')));
     if (t !== want || codeIn) bad8.push([s, t]);
   }
   await page.evaluate(() => { window.__q.refuse = null; });
-  ok(VERIFY_ST.length >= 5 && ['forbidden', 'self', 'not_found', 'bad_state', 'no_image'].every((s) => VERIFY_ST.includes(s)) && bad8.length === 0,
-     `★O8 verified ・取り消すが断られたとき（${VERIFY_ST.join('・')}）、出る字は「もう無い」だけサイトの一言（${NF}）・ほかは FAIL・status の名前は出ない`, JSON.stringify({ VERIFY_ST, bad8 }));
+  ok(VERIFY_ST.length >= 5 && ['forbidden', 'self', 'not_found', 'bad_state', 'no_image', 'applied_denied'].every((s) => VERIFY_ST.includes(s)) && bad8.length === 0,
+     `★O8 会員一覧の verified が断られたとき（${VERIFY_ST.join('・')}）、出る字は「その人が居ない」だけサイトの一言（${NF}）・画像なしでは決められない（no_image・applied_denied）はオーナーだけの文・ほかは FAIL・status の名前は出ない`, JSON.stringify({ VERIFY_ST, bad8 }));
 
   /* O11 画像が読めない申請 ── 「写真を表示できません」と「閉じる」だけ（決めるボタンは出ない） */
   await page.evaluate((id) => {
@@ -1161,7 +1213,7 @@ for (const lang of ['ja', 'en']) {
                   { id: OW + '1', email: quoted + '@example.com', name: hostile, company: 'Sample Air', position: 'captain', state: 'none', applied: true },
                   { id: OW + '3', email: 'approved@example.com', name: 'Approved Pilot', company: 'Other Air', position: 'fo', state: 'approved', applied: false },
                   { id: OW + '4', email: 'plain@example.com', name: 'Plain Member', company: null, position: 'cadet', state: 'revoked', applied: false }],
-        fail: false, lastB64: null
+        ever: [], fail: false, lastB64: null
       };
       /* 「FIXTURE」と書いた絵を JPEG にし、サーバー（encode(…, 'base64')）と同じく76字ごとに改行を入れて返す */
       const fixture = () => {
@@ -1243,6 +1295,10 @@ for (const lang of ['ja', 'en']) {
           if (to === 'denied' && m.state === 'approved') to = 'approved';
           m.state = to; m.applied = false;
           o.apps = o.apps.filter((x) => x.id !== p.id);
+          /* 会員一覧の印 reapply（Q1・2026-10-18）もサーバーと同じ決め方：画像の面で決めたことがある人（申請の跡。行には入れず、
+             ここでだけ持つ）と、見送られた人は、verified でないあいだ true。一度も申請していない人は false */
+          if (p.via === 'applicant' && !o.ever.includes(p.id)) o.ever.push(p.id);
+          m.reapply = to !== 'approved' && (to === 'denied' || o.ever.includes(p.id));
           return { ok: true, state: to, discarded: app ? 1 : 0 };
         }
       };

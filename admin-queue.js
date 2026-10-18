@@ -71,7 +71,11 @@
     applied:  'Applied',
     noUsers:  'No users',
     age:      ['Within 1 month', 'Within 3 months', 'Within 6 months', 'Within a year'],
-    pos:      { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' }
+    pos:      { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' },
+    /* owner-only sentences (2026-10-18, P12.60) - the same keys and the same meaning as the Japanese table */
+    reapply:  'This person has applied before, so they can be verified only after you see an image. When they send a new image from My Page, they will appear under "Applicants".',
+    badIata:  function (code, air) { return code + ' is not on the destination list of ' + air + '. Only airports on the airline\'s destination list can be added here directly.'; },
+    pickIata: 'Choose one of the suggested airports in the Airport field.'
   } : {
     towns:    '住みやすい街',
     stays:    'ステイ先',
@@ -117,7 +121,13 @@
     applied:  '申請あり',
     noUsers:  'ユーザーなし',
     age:      ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内'],
-    pos:      { captain: '機長', fo: '副操縦士', cadet: '訓練生' }
+    pos:      { captain: '機長', fo: '副操縦士', cadet: '訓練生' },
+    /* オーナーだけの文（2026-10-18・P12.60。オーナーに見てもらう字）
+       reapply  会員一覧で、画像なしでは verified にできない人の行（Q1。以前に申請したことがあり、いま待っている申請も無い人）
+       badIata  運営の「追加」で、その会社の就航地に無い空港を打ったとき（V3。サーバーの bad_iata）。pickIata は候補が出ているときだけ添える */
+    reapply:  'この人は以前に申請したことがあるため、画像を見てからでないと verified にできません。本人がマイページから新しい画像を出すと「申請してきた人」に並びます。',
+    badIata:  function (code, air) { return code + ' は、' + air + 'の就航地（会社ページのステイ先に並ぶ空港）にありません。ここから直接追加できるのは、その会社の就航地だけです。'; },
+    pickIata: '空港の欄の候補から選んでください。'
   };
 
   /* 断られたときの一言（career-stay.js の SAY_MOD ／ SAY_ADD.exists ／ SAY_FAIL と同じ字。assert-admin.mjs が突き合わせる）。 */
@@ -157,9 +167,12 @@
   /* verified・見送り・取り消すが断られたときの一言。サイトに同じ場合の字が在るのは「もう無い」だけ
      （not_found ＝ その人が居ない／no_image ＝ 申請の画像がもう無い ── 別の窓で決めたあと）。ほかは FAIL。
      ★forbidden に SAY.forbidden（「運営だけが…」）を使わない ── 断られるのは運営なのでその字は当たらない。
-     ★会員一覧の verified が断られる use_image（申請が待っている）・applied_denied（画像を見て見送った）も FAIL
-       （別の窓で状態が変わったあと。読み直すと、行は面を開く「verified」か、「見送り」の印に変わる）。 */
+     ★会員一覧の verified が断られる use_image（申請が待っている）は FAIL
+       （別の窓で状態が変わったあと。読み直すと、行は面を開く「verified」に変わる）。
+     ★会員一覧の道（via member）の no_image・applied_denied は T.reapply（2026-10-18・Q1）── 「もう表示できないものです。」は
+       その人には当たらない（申請の跡があるので、本人が新しい画像を出すまで画像なしでは決めない ＝ 次にすることを言う）。 */
   var SAY_WHO = { not_found: SAY.not_found, no_image: SAY.not_found };
+  var SAY_MEMBER = { no_image: T.reapply, applied_denied: T.reapply };
 
   var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
   var isArr = Array.isArray;
@@ -657,12 +670,16 @@
     var on = x.state === 'approved', applied = x.applied === true;
     /* 画像を見て見送った人（いまのオーナーが見送った・申請は待っていない）。申請し直していれば「申請あり」の側 */
     var denied = !on && !applied && x.state === 'denied';
+    /* 画像なしでは verified にできず、待っている申請も無い人（サーバーの reapply。Q1・2026-10-18）：「verified」を置かず、
+       次にすること（本人がマイページから新しい画像を出す）を行に書く。画像を見て見送った人も同じ（「見送り」の印に、この1文を添える） */
+    var again = !on && !applied && x.reapply === true;
     if (applied) v.appendChild(el('span', 'adm-tag', T.applied));
     if (on) v.appendChild(el('span', 'adm-tag', T.verified));
     if (denied) v.appendChild(el('span', 'adm-tag', T.decline));
+    if (again) li.appendChild(el('p', 'adm-say', T.reapply, { 'data-adm': 'reapply' }));
     var b = null;
     if (on || !applied) {
-      if (!denied) {
+      if (!denied && !again) {
         b = on ? button('adm-no', T.revoke, 'revoke') : button('adm-ok', T.verified, 'verify');
         b.addEventListener('click', function () {
           decide(li, 'member:' + x.id, { id: x.id, state: on ? 'revoked' : 'approved', via: 'member' });
@@ -758,7 +775,7 @@
       var d = r && !r.error ? r.data : null;
       if (!(d && d.ok === true)) {
         var st = d && d.ok === false ? String(d.status || '') : '';
-        S.notes[key] = has(SAY_WHO, st) ? SAY_WHO[st] : FAIL;
+        S.notes[key] = p.via === 'member' && has(SAY_MEMBER, st) ? SAY_MEMBER[st] : has(SAY_WHO, st) ? SAY_WHO[st] : FAIL;
         say(li, S.notes[key]);
       }
       S.focus = key;
@@ -819,7 +836,8 @@
       Array.prototype.forEach.call(q.querySelectorAll('li.adm-row'), function (x) {
         if (!li && x.getAttribute('data-adm') === adm && x.getAttribute('data-id') === id) li = x;
       });
-      if (li) say(li, S.notes[key]);
+      /* 読み直した行が、同じ字をもう行に書いている（reapply）なら、一言は重ねない */
+      if (li) { if (!(S.notes[key] === T.reapply && li.querySelector('[data-adm="reapply"]'))) say(li, S.notes[key]); }
       else q.appendChild(el('p', 'adm-say', S.notes[key], { 'data-adm': 'note' }));
     });
     S.notes = {};
@@ -1022,11 +1040,17 @@
           addSay(f, T.added, d.item && d.item.state === 'pending' ? T.pending : '');
           name.value = ''; addr.value = ''; map.value = ''; note.value = '';
           save();
-        } else if (d && d.ok === false) addSay(f, has(SAY_ADD, str(d.status)) ? SAY_ADD[d.status] : FAIL);
+        } else if (d && d.ok === false) addSay(f, str(d.status) === 'bad_iata' ? iataSay(p) : has(SAY_ADD, str(d.status)) ? SAY_ADD[d.status] : FAIL);
         else addSay(f, FAIL);
         load();
       });
     });
+    /* 就航地に無い空港（サーバーの bad_iata。V3・2026-10-18）：打った空港と会社の名前を入れて、なぜ足せないかと、次にすることを言う
+       （ほかの理由はステイ先の欄と同じ字のまま）。その会社の候補が出ていないとき（空港の一覧が読めなかった）は、選ぶ所の1文を付けない */
+    function iataSay(p) {
+      var a = str(p.airline).toLowerCase(), list = AP && has(AP, a) ? AP[a] : null;
+      return T.badIata(str(p.iata), airName(a)) + (isArr(list) && list.length ? (EN ? ' ' : '') + T.pickIata : '');
+    }
     return f;
   }
 

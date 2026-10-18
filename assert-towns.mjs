@@ -1366,6 +1366,8 @@ const GATE_LOGIN = 'このページを見るにはログインが必要です。
 const ADDED_ADM = '追加しました。';
 /* オーナーの2つの一覧の字（admin-queue.js の T。WP-towns-13v で決めた字） */
 const OWNER_WORDS = ['申請してきた人', '会員一覧', 'verified', '画像を見る'];
+/* 画像で verified にしたあと取り消した人の会員一覧の行（admin-queue.js の T.reapply。2026-10-18・P12.60 Q1 のオーナーだけの文） */
+const REAPPLY_T = 'この人は以前に申請したことがあるため、画像を見てからでないと verified にできません。本人がマイページから新しい画像を出すと「申請してきた人」に並びます。';
 /* その会社のページの、就航地の一覧の最初の都市（ステイ先の欄を #stay-XXX で直接開く。assert-stays.mjs と同じ決め方） */
 const STAY_IATA = (read(`airlines/${SLUG}.html`).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1] || '';
 /* 管理画面の「会社・基地」の選択肢の字（admin-queue.js の airName ＝ pv-airlines.json の日本語の名前） */
@@ -2147,13 +2149,17 @@ async function admin() {
     const lockA = await Ap.page.evaluate(() => [...document.querySelectorAll('.crs-lock')].filter((e) => e.getClientRects().length).length);
     ok(seeA && lockA === 0, `AD7 'a' の会社ページ（#stay-${STAY_IATA}）に「${HOTEL}」が出る・鍵の1行は無い`, J({ seeA, lockA }));
     await shut(Ap);
-    /* 「取り消す」→ 次の読みは鍵 */
+    /* 「取り消す」→ 次の読みは鍵。'a' は画像で verified になった人なので、取り消したあとの行に「verified」は無く、
+       本人が新しい画像を出すまで画像なしでは決められないことを書く（Q1・2026-10-18。サーバーの reapply をそのまま描く） */
     const v1 = verifies(Op).length;
     await press(Op, MEM('a'), 'revoke');
-    await Op.page.waitForSelector(`${MEM('a')} [data-act="verify"]`, { timeout: 20000 });
+    await Op.page.waitForSelector(`${MEM('a')} [data-adm="reapply"]`, { timeout: 20000 });
     const ra2 = await reads('a');
-    ok(J(verifies(Op, v1)) === J([{ id: M.a.id, state: 'revoked', via: 'member' }]) && norm(ra2.text) === LOCKED_STATE,
-      `★AD7 「会員一覧」の 'a' に「取り消す」→ {id, state:'revoked', via:'member'} だけを送り、'a' の次の読みは ${LOCKED_STATE}`, J({ sent: verifies(Op, v1), ra2: ra2.text }));
+    const rowA = await Op.page.evaluate((sel) => { const li = document.querySelector(sel), r = li && li.querySelector('[data-adm="reapply"]');
+      return { btns: li ? [...li.querySelectorAll('button')].map((b) => b.getAttribute('data-act')) : null, say: r ? r.textContent : null }; }, MEM('a'));
+    ok(J(verifies(Op, v1)) === J([{ id: M.a.id, state: 'revoked', via: 'member' }]) && norm(ra2.text) === LOCKED_STATE
+      && J(rowA.btns) === '[]' && rowA.say === REAPPLY_T,
+      `★AD7 「会員一覧」の 'a' に「取り消す」→ {id, state:'revoked', via:'member'} だけを送り、'a' の次の読みは ${LOCKED_STATE}・画像で verified になっていた 'a' の行には「verified」が無く、新しい画像が要ると書く（Q1）`, J({ sent: verifies(Op, v1), ra2: ra2.text, rowA }));
     /* 4) 「会員一覧」の「verified」（申請していない 'b'）も同じ */
     const rb0 = await reads('b'), v2 = verifies(Op).length;
     await press(Op, MEM('b'), 'verify');
