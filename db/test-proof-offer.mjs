@@ -1,6 +1,6 @@
 /* db/test-proof-offer.mjs — 自分から出す画像（申請）とオーナーの verified を PGlite で見る（2026-10-16）。
 
-   実行: node db/test-proof-offer.mjs      （全部 ✅ で exit 0。手で流す検査 ── check.mjs には入れない）
+   実行: node db/test-proof-offer.mjs      （全部 ✅ で exit 0。check.mjs sql に入っている ── 2026-10-18 から）
    見ている5つの約束（オーナーの 2026-10-16 の答え）
      1 申請は何も止めない（REAL PAY・DEEP PAY・口コミ本文・ホテルの追加・いま見られているもの）
      2 申請してきた人は、画像が無ければ verified にならない（画像の無い申請は作れない）

@@ -1080,7 +1080,10 @@
          生きているログイン ＝ supabase の鍵（割れた .0 .1 も数える）と、この画面が書く pv_user の両方がある
          （サイトの「ログアウト」は pv_user を必ず消す ── 鍵の削除が通信の失敗で残っても、ログアウトしたことは分かる）。
          Chrome で実測（2026-10-18）：サイトの「ログアウト」→「戻る」で、会員の名前・メール・マイページの中身がそのまま出ていた
-         （共有の端末で、次に使う人に見える）。見張りは assert-admin.mjs の H)。 */
+         （共有の端末で、次に使う人に見える）。見張りは assert-admin.mjs の H)。
+       ★ログインが生きていても、離れているあいだに別の会員が入っていたら（この画面を描いた会員と、いまのログインの会員が違う・
+         いまの会員が読めない）、同じく中身をその場で空にして読み直す ── init() がいまのログインの会員で描き直す。
+         同じ会員のままなら何もしない（「戻る」で戻ったマイページはそのまま）。見張りは assert-keep.mjs の KA8 ④（日英）。 */
     window.addEventListener('pageshow', function (e) {
       if (!e || !e.persisted) return;
       var live = false;
@@ -1090,7 +1093,19 @@
           : Object.keys(localStorage).some(function (k) { return /^sb-.+-auth-token(\.\d+)?$/.test(k); });
         live = key && !!localStorage.getItem('pv_user');
       } catch (x) { live = false; }
-      if (live) return;
+      if (live) {
+        if (!currentUser) return;
+        var who = '';
+        try {
+          var s = window.PVSession && typeof window.PVSession.readStoredSession === 'function' ? window.PVSession.readStoredSession() : null;
+          who = s && s.user && s.user.id ? String(s.user.id) : '';
+          if (!who) { var u = JSON.parse(localStorage.getItem('pv_user') || 'null'); who = u && u.id ? String(u.id) : ''; }
+        } catch (x) { who = ''; }
+        if (who === String(currentUser.id)) return;
+        try { document.body.replaceChildren(); } catch (x) {}
+        window.location.reload();
+        return;
+      }
       try { document.body.replaceChildren(); } catch (x) {}
       window.location.replace('login.html?redirect='
         + encodeURIComponent('profile.html' + (window.location.hash || '')));

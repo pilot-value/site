@@ -1,7 +1,7 @@
 /* assert-proof-offer.mjs — パイロットであることの確認の「申請」ポップアップ（pv-proof-offer.js）とマイページの入口（2026-10-16）。
 
    実行: node assert-proof-offer.mjs --static   … ブラウザなし（切り出し・指紋・呼ぶ名前・ホテルの追加から開かない）
-         node assert-proof-offer.mjs            … ＋ブラウザの場面（手で流す検査 ── check.mjs には入れない）
+         node assert-proof-offer.mjs            … ＋ブラウザの場面（check.mjs web に入っている ── 2026-10-18 から）
    場面のつくり（MOCK の画面 ＋ REAL LOCAL SQL）
      ★手元だけ。小さな配信を空いている番号（OS が選ぶ・3000 / 3100 / 3111 は使わない）で立て、
        そのページの外への通信は全部止めて書き留める（最後に「0本」を見る）。supabase-js は読まない。

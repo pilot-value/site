@@ -29,6 +29,12 @@
                     ③ サイトの「ログアウト」（profile.html）→「戻る」2回：ログインの知らせ（BroadcastChannel）が来ても
                        ページを捨てないブラウザ（Chrome は捨てる。Safari などは確かめていない）を、その窓口を外して作る →
                        開き直しても 'a' の字は出ない・右上は「ログイン」・離れても 'a' の字を置き直さない。
+                    ④ 別の会員が入ったあと（日英）：'a' のマイページ → ほかのページで自動のログアウト → login.html で 'b' がコードで入る →
+                       「戻る」の一覧から 'a' のマイページを選ぶ（手元から戻る・③ と同じく知らせの窓口を外したブラウザ）→
+                       戻った瞬間も 'a' の名前とメールは画面に無い・着いたマイページは 'b' のもの。
+                    どの確かめも、ブラウザが手元から戻さなかった（読み直した）時は、最初から新しいタブでやり直す（5回まで・時間では待たず
+                    「戻る」のあとの pageshow を待つ）。5回とも戻らなければ、その行は「確かめられなかった（not proven）」で赤
+                    （読み直しを「戻った」とは数えない）。
 
    ★本番にも 3000 番にも1回も通信しない（local-chain.mjs の bring・open。終われば保存先ごと消す）。
    ★手元の会員（serve-local.mjs の MEMBERS）は模擬。ここで通ったことは、本番で通った証拠にはならない。
@@ -666,7 +672,7 @@ async function bfcache() {
     page.on('dialog', (x) => { x.accept().catch(() => {}); });
     await page.evaluateOnNewDocument((nb) => {
       window.__ps = [];
-      window.addEventListener('pageshow', (e) => { window.__ps.push(e.persisted); });
+      window.addEventListener('pageshow', (e) => { window.__ps.push({ p: e.persisted, t: Date.now() }); });
       try { localStorage.setItem('pv_local_ui', '0'); } catch (e) { /* 保存領域に触れない画面はそのまま */ }
       if (nb) { try { window.BroadcastChannel = undefined; } catch (e) { /* 消せなければそのまま */ } }
     }, !!noBc);
@@ -674,8 +680,9 @@ async function bfcache() {
     PAGES.push(p);
     return p;
   };
-  /* 'a' として入る（open と同じ置き方。Give → Get の板は「さっき見た」）→ 会社ページを開き直す */
-  const enter = async (p) => {
+  /* 'a' として入る（open と同じ置き方。Give → Get の板は「さっき見た」）→ そのページ（既定は会社ページ）を開く。
+     置くのはいつも会社ページの上 ── マイページはログインしていないと自分で login.html へ移るので、置いている途中で移らないように */
+  const seedIn = async (p, at) => {
     const s = await seedOf(L.base, 'a');
     await p.page.goto(AT, { waitUntil: 'load', timeout: 60000 });
     await p.page.evaluate((x) => {
@@ -686,7 +693,10 @@ async function bfcache() {
       localStorage.setItem('pv_session_start', now);
       localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
     }, s);
-    await p.page.goto(AT, { waitUntil: 'load', timeout: 60000 });
+    await p.page.goto(at, { waitUntil: 'load', timeout: 60000 });
+  };
+  const enter = async (p) => {
+    await seedIn(p, AT);
     await p.page.waitForFunction(() => !!window.PVContrib && !!window.PVSession, { timeout: 30000 });
   };
   const townIn = (p) => p.page.waitForFunction(() => {
@@ -714,56 +724,170 @@ async function bfcache() {
   /* ページの中のリンクを押して移る（人が押すのと同じ、ページから始まる移動） */
   const leave = (p, to) => Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }),
     p.page.evaluate((h) => { const a = document.createElement('a'); a.href = h; document.body.appendChild(a); a.click(); }, to)]);
-  /* 戻ってきたページが、ブラウザの手元から戻ったか（読み直しなら false） */
+  /* 戻ってきたページが、ブラウザの手元から戻ったか（読み直しなら false）。押した時刻より後の pageshow が届くまで待つ
+     （手元から戻ったページには、前に開いた時の pageshow の控えも残っている ＝ 最後の1つが「いまの戻る」のものとは限らない） */
+  const lastShow = (p, t0) => p.page.evaluate((t) => {
+    const a = window.__ps, x = Array.isArray(a) && a.length ? a[a.length - 1] : null;
+    return x && x.t >= t && document.readyState === 'complete' ? x : null;
+  }, t0).catch(() => null);
   const backTo = async (p) => {
+    const t0 = Date.now();
     await p.page.goBack({ waitUntil: 'load', timeout: 60000 });
-    await p.page.waitForFunction(() => Array.isArray(window.__ps) && window.__ps.length > 0 && !!window.PVContrib, { timeout: 30000 });
-    return p.page.evaluate(() => window.__ps[window.__ps.length - 1] === true);
+    await p.page.waitForFunction((t) => {
+      const a = window.__ps;
+      return Array.isArray(a) && a.length > 0 && a[a.length - 1].t >= t && !!window.PVContrib;
+    }, { timeout: 30000 }, t0);
+    return p.page.evaluate(() => window.__ps[window.__ps.length - 1].p === true);
   };
+  /* 手元から戻らなかった時の、ブラウザの言い分（読み直したページの notRestoredReasons） */
+  const whyNot = (p) => p.page.evaluate(() => {
+    try {
+      const n = performance.getEntriesByType('navigation')[0], r = n && n.notRestoredReasons;
+      const w = []; const walk = (x) => { if (!x) return; (x.reasons || []).forEach((y) => w.push(y.reason || String(y))); (x.children || []).forEach(walk); };
+      walk(r);
+      return w.length ? w.join(',') : (n ? n.type : '?');
+    } catch (e) { return '?'; }
+  }).catch(() => '?');
+  /* ブラウザが手元から戻さなかった（読み直した）時は、その確かめを最初から新しいタブでやり直す（5回まで）。
+     5回とも戻らなければ「確かめられなかった（not proven）」＝ その行は赤（読み直しを「戻った」とは数えない）。 */
+  const TRIES = 5;
+  const tries = async (fn) => {
+    const why = [];
+    for (let i = 1; i <= TRIES; i++) {
+      const r = await fn(i);
+      if (r.restored) return { ...r, tries: i, why };
+      why.push(r.why || '?');
+    }
+    return { restored: false, tries: TRIES, why, proof: `not proven（${TRIES}回とも手元から戻らなかった）` };
+  };
+  /* やり直した時だけ、1行の知らせ（検査の行ではない。ブラウザがどれだけ読み直したかを後から読めるように） */
+  const redo = (tag, r) => { if (r.tries > 1 || !r.restored) console.log(`  ↻ ${tag}：手元から戻るまで ${r.restored ? r.tries : 'ー'} 回（読み直された回の理由：${r.why.join(' / ') || 'ー'}）`); };
   const head = (p) => p.page.evaluate(() => { const b = document.getElementById('nav-auth-btn'); return b ? b.textContent.trim() : null; });
   const town = (p) => p.page.evaluate(() => { const o = {}; for (const k of Object.keys(sessionStorage)) if (/^pv_contrib_draft:/.test(k)) o[k] = sessionStorage.getItem(k); return o; });
   try {
     await scene('KA8 戻るでそのまま戻ったページ（同じ会員のまま・ほかのページで自動のログアウト）', async () => {
-      const p = await tab(false);
-      await enter(p);
-      const named = await head(p);
-      await townType(p, TB.same);
-      await leave(p, OFF);
-      const kept1 = await backTo(p);
-      const v1 = await townRead(p);
-      ok(kept1 && v1 === TB.same && named === '会員A',
+      /* ① 'a' として入り、街のひとことを打って、ほかのページへ行って「戻る」 */
+      const r1 = await tries(async () => {
+        const p = await tab(false);
+        await enter(p);
+        const named = await head(p);
+        await townType(p, TB.same);
+        await leave(p, OFF);
+        if (!(await backTo(p))) return { restored: false, why: await whyNot(p) };
+        return { restored: true, p, named, good: await townRead(p) };
+      });
+      redo('KA8 ①', r1);
+      ok(r1.restored && r1.good === TB.same && r1.named === '会員A',
         '★KA8 ① 同じ \'a\' のまま、ほかのページへ行って「戻る」で手元から戻ったページ（pageshow の persisted）：開き直した街の面に、打ったひとことがそのまま',
-        J({ restored: kept1, good: v1, named }));
-      const d0 = await town(p);
-      await leave(p, OFF);
-      await p.page.evaluate(() => window.PVSession.wipe());
-      const kept2 = await backTo(p);
-      const h2 = await head(p), v2 = await townRead(p), d1 = await town(p);
-      const mine = Object.values(d1).some((x) => x.includes(TB.same) && x.includes('"by":"m:'));
-      ok(kept2 && v2 === '' && h2 === 'ログイン',
+        J({ restored: r1.restored, tries: r1.tries, good: r1.good, named: r1.named, why: r1.why, proof: r1.proof }));
+      /* ② 'a' の下書きがあるページから、ほかのページで自動のログアウト →「戻る」。1回目は ① のタブの続き。
+         やり直しは新しいタブで、① の手前（'a' で入って打つ）まで作り直す */
+      const r2 = await tries(async (i) => {
+        let p = i === 1 && r1.restored ? r1.p : null;
+        if (!p) { p = await tab(false); await enter(p); await townType(p, TB.same); }
+        const d0 = await town(p);
+        await leave(p, OFF);
+        await p.page.evaluate(() => window.PVSession.wipe());
+        if (!(await backTo(p))) return { restored: false, why: await whyNot(p) };
+        const h = await head(p), v = await townRead(p), d1 = await town(p);
+        return { restored: true, h, v, d0, d1, mine: Object.values(d1).some((x) => x.includes(TB.same) && x.includes('"by":"m:')) };
+      });
+      redo('KA8 ②', r2);
+      ok(r2.restored && r2.v === '' && r2.h === 'ログイン',
         '★KA8 ② ほかのページで自動のログアウトを迎えて「戻る」（手元から戻る）：開き直した街の面に \'a\' の字は出ない・右上は「ログイン」',
-        J({ restored: kept2, good: v2, head: h2 }));
-      ok(kept2 && JSON.stringify(d1) === JSON.stringify(d0) && mine,
+        J({ restored: r2.restored, tries: r2.tries, good: r2.v, head: r2.h, why: r2.why, proof: r2.proof }));
+      ok(r2.restored && JSON.stringify(r2.d1) === JSON.stringify(r2.d0) && r2.mine,
         '★KA8 ② そのとき、\'a\' の下書きはこのタブに \'a\' の印のまま1文字も変わらずに残る（自動のログアウトでは消さない・WP-keep-1 のまま）',
-        J({ d0: Object.keys(d0), d1: Object.keys(d1), mine }));
+        J({ d0: Object.keys(r2.d0 || {}), d1: Object.keys(r2.d1 || {}), mine: r2.mine, tries: r2.tries, proof: r2.proof }));
     });
     await scene('KA8 サイトのログアウトのあと「戻る」で、ページを捨てないブラウザ', async () => {
-      const p = await tab(true);
-      await enter(p);
-      await townType(p, TB.exp);
-      await leave(p, '/profile.html');
-      await p.page.waitForSelector('.btn-logout', { visible: true, timeout: 30000 });
-      await Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }), p.page.click('.btn-logout')]);
-      await p.page.goBack({ waitUntil: 'load', timeout: 60000 });
-      const kept = await backTo(p);
-      const h = await head(p), v = await townRead(p);
-      await leave(p, OFF);
-      const left = await town(p);
-      const seen = Object.values(left).some((x) => x.includes(TB.exp));
-      ok(kept && v === '' && h === 'ログイン' && !seen && Object.keys(left).length === 0,
+      const r = await tries(async () => {
+        const p = await tab(true);
+        await enter(p);
+        await townType(p, TB.exp);
+        await leave(p, '/profile.html');
+        await p.page.waitForSelector('.btn-logout', { visible: true, timeout: 30000 });
+        await Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }), p.page.click('.btn-logout')]);
+        await p.page.goBack({ waitUntil: 'load', timeout: 60000 });
+        /* マイページは、ログインしていない人の道（login.html）へ移る。着いてから、もう1回「戻る」 */
+        await p.page.waitForFunction(() => /\/login\.html$/.test(location.pathname) && document.readyState === 'complete', { timeout: 30000 });
+        if (!(await backTo(p))) return { restored: false, why: await whyNot(p) };
+        const h = await head(p), v = await townRead(p);
+        await leave(p, OFF);
+        const left = await town(p);
+        return { restored: true, h, v, left, seen: Object.values(left).some((x) => x.includes(TB.exp)) };
+      });
+      redo('KA8 ③', r);
+      ok(r.restored && r.v === '' && r.h === 'ログイン' && !r.seen && Object.keys(r.left).length === 0,
         '★KA8 ③ profile.html の「ログアウト」→「戻る」2回で手元から戻ったページ：開き直した街の面に \'a\' の字は出ない・右上は「ログイン」・離れても下書きを置き直さない',
-        J({ restored: kept, good: v, head: h, left: Object.keys(left) }));
+        J({ restored: r.restored, tries: r.tries, good: r.v, head: r.h, left: Object.keys(r.left || {}), why: r.why, proof: r.proof }));
     });
+    /* ④ 別の会員が入ったあと、前の会員のマイページへ「戻る」（日英）。'a' のマイページ → ほかのページで自動のログアウト →
+       login.html で 'b' がコードで入る →「戻る」の一覧から 'a' のマイページを選ぶ（ブラウザの履歴をたどる移動 ＝ 長押しの「戻る」）。
+       ログインの知らせ（BroadcastChannel）が来てもページを捨てないブラウザを、③ と同じくその窓口を外して作る。
+       戻った瞬間の画面は、ページ自身の pageshow のあとに足した控え（このタブの sessionStorage）で読む ── 読み直しで消えないため。 */
+    for (const lang of ['', 'en/']) {
+      await scene(`KA8 別の会員が入ったあと「戻る」で、前の会員のマイページ（${lang ? 'en' : 'ja'}）`, async () => {
+        const PROF = `/${lang}profile.html`, ELSE = `/${lang}world-airlines.html`, A = M.a, B = M.b;
+        const seeOf = (p, x) => p.page.evaluate((y) => {
+          const t = ((document.body && document.body.innerText) || '') + '\n' + [...document.querySelectorAll('input,textarea')].map((n) => n.value).join('\n');
+          return { path: location.pathname, b: t.includes(y.bm), aName: t.includes(y.an), aMail: t.includes(y.am) };
+        }, x).catch(() => null);
+        const want = { bm: B.email, an: A.ja, am: A.email };
+        const r = await tries(async () => {
+          const p = await tab(true);
+          await seedIn(p, `${base}${PROF}`);
+          const pre = await p.page.waitForFunction((n, m) => Array.isArray(window.__ps) && window.__ps.length > 0
+            && !!document.body && document.body.innerText.includes(n) && document.body.innerText.includes(m), { timeout: 30000 }, A.ja, A.email)
+            .then(() => true, () => false);
+          await p.page.evaluate((n, m) => {
+            window.addEventListener('pageshow', (e) => {
+              const t = ((document.body && document.body.innerText) || '') + '\n' + [...document.querySelectorAll('input,textarea')].map((x) => x.value).join('\n');
+              try { sessionStorage.setItem('ka8-other', JSON.stringify({ at: Date.now(), persisted: e.persisted, name: t.includes(n), mail: t.includes(m) })); } catch (x) { /* 控えられなければ確かめられない */ }
+            });
+          }, A.ja, A.email);
+          await leave(p, ELSE);
+          await p.page.evaluate(() => window.PVSession.wipe());
+          await leave(p, 'login.html?redirect=world-airlines.html');
+          await p.page.click('button[onclick="showEmailStep()"]');
+          await p.page.waitForSelector('#otp-email', { visible: true });
+          await p.page.type('#otp-email', B.email);
+          await p.page.click('#otp-send-btn');
+          await p.page.waitForSelector('#otp-code', { visible: true });
+          await Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }), p.page.type('#otp-code', OTP)]);
+          const who = await p.page.evaluate(() => { try { return (JSON.parse(localStorage.getItem('pv_user') || 'null') || {}).id || null; } catch (e) { return null; } });
+          const cdp = await p.page.createCDPSession();
+          const h = await cdp.send('Page.getNavigationHistory');
+          const ent = h.entries.slice(0, h.currentIndex).filter((x) => { try { return new URL(x.url).pathname === PROF; } catch { return false; } }).pop();
+          if (!ent) { await cdp.detach().catch(() => {}); return { restored: false, why: 'no My Page in the history' }; }
+          const t0 = Date.now();
+          await cdp.send('Page.navigateToHistoryEntry', { entryId: ent.id });
+          await cdp.detach().catch(() => {});
+          /* 手元から戻ったページだけが控えを書く（読み直しで来たページには控えの仕掛けが無い）。控えが出るか、控えの無いまま
+             読み直したページが開き切るまで待つ（戻ったページが自分で読み直しても、控えはこのタブに残る） */
+          const rec = () => p.page.evaluate(() => { try { return JSON.parse(sessionStorage.getItem('ka8-other') || 'null'); } catch (e) { return null; } }).catch(() => null);
+          let at = null;
+          await until(async () => {
+            const s = await rec();
+            if (s && s.at >= t0) { at = s; return true; }
+            const l = await lastShow(p, t0);
+            return !!l && l.p === false && !(await rec());
+          }, 30000);
+          if (!at || !at.persisted) return { restored: false, why: await whyNot(p) };
+          /* 着いた先が落ち着くまで（'b' のメールが出る）。出なければ、そのままを読む */
+          await until(async () => { const s = await seeOf(p, want); return !!s && s.b; }, 30000);
+          return { restored: true, pre, who, at, end: await seeOf(p, want) };
+        });
+        redo(`KA8 ④（${lang ? 'en' : 'ja'}）`, r);
+        const e = r.end || {};
+        ok(r.restored && r.pre && r.who === B.id && !r.at.name && !r.at.mail,
+          `★KA8 ④ 'b' が入ったあと「戻る」で手元から戻った 'a' のマイページ（${lang ? 'en' : 'ja'}・pageshow の persisted）：戻った瞬間（ページ自身の pageshow のあと）、'a' の名前もメールも画面に無い`,
+          J({ restored: r.restored, tries: r.tries, before: r.pre, live: r.who, at: r.at, why: r.why, proof: r.proof }));
+        ok(r.restored && e.path === PROF && e.b && !e.aName && !e.aMail,
+          `★KA8 ④ そのあと着いたマイページ（${lang ? 'en' : 'ja'}）は 'b' のもの（'b' のメールが出る・'a' の名前もメールもどこにも無い）`,
+          J({ restored: r.restored, end: r.end, proof: r.proof }));
+      });
+    }
   } finally {
     await bb.close().catch(() => {});
     await fr.close();

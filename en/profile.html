@@ -1080,7 +1080,11 @@
          A live login = the supabase key (split .0 .1 counted too) AND the pv_user this page writes (the site's
          "Log out" always removes pv_user - so a logout is seen even when removing the key failed on the network).
          Seen in Chrome (2026-10-18): after the site's "Log out", Back showed the member's name, e-mail and My Page
-         (on a shared device, the next person sees it). Watched by H) in assert-admin.mjs. */
+         (on a shared device, the next person sees it). Watched by H) in assert-admin.mjs.
+       ★Even with a live login: if another member logged in while we were away (the member this page was drawn for is not the
+         member of the live login, or the live member cannot be read), empty the page at once the same way and reload - init()
+         draws it again for the member of the live login. The same member: nothing (Back keeps My Page as it was).
+         Watched by KA8 ④ in assert-keep.mjs (ja and en). */
     window.addEventListener('pageshow', function (e) {
       if (!e || !e.persisted) return;
       var live = false;
@@ -1090,7 +1094,19 @@
           : Object.keys(localStorage).some(function (k) { return /^sb-.+-auth-token(\.\d+)?$/.test(k); });
         live = key && !!localStorage.getItem('pv_user');
       } catch (x) { live = false; }
-      if (live) return;
+      if (live) {
+        if (!currentUser) return;
+        var who = '';
+        try {
+          var s = window.PVSession && typeof window.PVSession.readStoredSession === 'function' ? window.PVSession.readStoredSession() : null;
+          who = s && s.user && s.user.id ? String(s.user.id) : '';
+          if (!who) { var u = JSON.parse(localStorage.getItem('pv_user') || 'null'); who = u && u.id ? String(u.id) : ''; }
+        } catch (x) { who = ''; }
+        if (who === String(currentUser.id)) return;
+        try { document.body.replaceChildren(); } catch (x) {}
+        window.location.reload();
+        return;
+      }
       try { document.body.replaceChildren(); } catch (x) {}
       window.location.replace('login.html?redirect='
         + encodeURIComponent('profile.html' + (window.location.hash || '')));

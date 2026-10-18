@@ -3,7 +3,7 @@
    実行: node db/test-towns.mjs
    ネットワーク不要・本番に一切触らない。SQL を直したら必ずこれを通してから
    オーナーに実行を依頼すること。
-   ★ check.mjs の一覧には入っていない。db/towns.sql か、このファイルを直した回は、手でこれを流す。
+   ★ check.mjs sql に入っている（2026-10-18 から。node check.mjs sql / all で一緒に流れる）。
 
    器は db/test-work-months.mjs と同じ（anon / authenticated ロール、既定権限を
    全付与した状態、auth.uid() の代役、profiles、auth.users）。

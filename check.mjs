@@ -85,14 +85,17 @@ const WEB = [
   ['assert-currency.mjs', 93], ['assert-conditions.mjs', 60],
   ['assert-unlock.mjs', 59], ['assert-career.mjs', 55], ['assert-my-posts.mjs', 32],
   ['assert-langtoggle.mjs', 24], ['assert-founding.mjs', 20],
-  ['assert-give-first.mjs', 14], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 12],
+  /* assert-admin.mjs：2026-10-18（WP-close-a）に外への通信の門と H)（本物のブラウザでマイページの「戻る」）が入り、
+     単独で約60秒・同時4本で 85秒になった（12 は門より前の値）。85 は 2026-10-18 の `node check.mjs all` の実測。 */
+  ['assert-give-first.mjs', 14], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 85],
   ['db/test-login-redirect.mjs', 7],
   ['assert-deep-pay-compare.mjs', 5.7], ['assert-deep-pay.mjs', 5.0],
   ['assert-review-quality.mjs', 2.0], ['db/test-session-expiry.mjs', 0.9],
   /* 2026-10-18（WP-close-a）：段階3の3本を足した。どれも 3000 番を使わない（手元の使い捨ての保存先を
-     OS が選ぶ番号で立て、終われば消す）。⚠️ 秒数は**単独で流した実測**（同時4本では測っていない）。
-     同時4本で測り直したら、この3つも直す。 */
-  ['assert-towns.mjs', 109], ['assert-keep.mjs', 90], ['assert-proof-offer.mjs', 18],
+     OS が選ぶ番号で立て、終われば消す）。秒数は 2026-10-18 の `node check.mjs all`（同時4本）の実測
+     （単独では 109・90・18）。⚠️ その回は機械が混んでいて、上の古い秒数の検査も2026-09-11 より長く出ていた
+     （assert-jp 210・assert-pay-rows 354 など）。表をまとめて測り直すときに、この3つも一緒に直す。 */
+  ['assert-towns.mjs', 199], ['assert-keep.mjs', 164], ['assert-proof-offer.mjs', 31],
 ];
 
 const argv = process.argv.slice(2);
