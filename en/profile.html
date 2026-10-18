@@ -1073,6 +1073,29 @@
       window.location.href = 'index.html';
     }
 
+    /* ★Back brings this page out of the browser's back-forward cache as it was (pageshow persisted = no reload).
+         If the login ended while we were away (this page's "Log out", a logout on another page, an automatic logout),
+         none of the previous member's name, e-mail or My Page content may show: empty the page at once and go the
+         logged-out way (the same login.html as init()). replace(), so that Back does not land here again.
+         A live login = the supabase key (split .0 .1 counted too) AND the pv_user this page writes (the site's
+         "Log out" always removes pv_user - so a logout is seen even when removing the key failed on the network).
+         Seen in Chrome (2026-10-18): after the site's "Log out", Back showed the member's name, e-mail and My Page
+         (on a shared device, the next person sees it). Watched by H) in assert-admin.mjs. */
+    window.addEventListener('pageshow', function (e) {
+      if (!e || !e.persisted) return;
+      var live = false;
+      try {
+        var key = window.PVSession && typeof window.PVSession.hasToken === 'function'
+          ? !!window.PVSession.hasToken()
+          : Object.keys(localStorage).some(function (k) { return /^sb-.+-auth-token(\.\d+)?$/.test(k); });
+        live = key && !!localStorage.getItem('pv_user');
+      } catch (x) { live = false; }
+      if (live) return;
+      try { document.body.replaceChildren(); } catch (x) {}
+      window.location.replace('login.html?redirect='
+        + encodeURIComponent('profile.html' + (window.location.hash || '')));
+    });
+
     init();
   </script>
 <!-- ★search.js はこの画面では ≡ を作らない ── 上の app-nav.js が先に

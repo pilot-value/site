@@ -1073,6 +1073,29 @@
       window.location.href = 'index.html';
     }
 
+    /* ★「戻る」で、ブラウザが手元に置いていたこのページがそのまま戻ってきた時（pageshow の persisted ＝ 読み直しを通らない）。
+         離れているあいだにログインが終わっていたら（この画面の「ログアウト」・ほかの画面のログアウト・自動のログアウト）、
+         前の人の名前・メール・マイページの中身を1つも見せない ── その場で中身を空にして、ログインしていない人の道
+         （init() と同じ login.html）へ移る。replace にするのは、「戻る」でまたここへ戻ってこないため。
+         生きているログイン ＝ supabase の鍵（割れた .0 .1 も数える）と、この画面が書く pv_user の両方がある
+         （サイトの「ログアウト」は pv_user を必ず消す ── 鍵の削除が通信の失敗で残っても、ログアウトしたことは分かる）。
+         Chrome で実測（2026-10-18）：サイトの「ログアウト」→「戻る」で、会員の名前・メール・マイページの中身がそのまま出ていた
+         （共有の端末で、次に使う人に見える）。見張りは assert-admin.mjs の H)。 */
+    window.addEventListener('pageshow', function (e) {
+      if (!e || !e.persisted) return;
+      var live = false;
+      try {
+        var key = window.PVSession && typeof window.PVSession.hasToken === 'function'
+          ? !!window.PVSession.hasToken()
+          : Object.keys(localStorage).some(function (k) { return /^sb-.+-auth-token(\.\d+)?$/.test(k); });
+        live = key && !!localStorage.getItem('pv_user');
+      } catch (x) { live = false; }
+      if (live) return;
+      try { document.body.replaceChildren(); } catch (x) {}
+      window.location.replace('login.html?redirect='
+        + encodeURIComponent('profile.html' + (window.location.hash || '')));
+    });
+
     init();
   </script>
 <!-- ★search.js はこの画面では ≡ を作らない ── 上の app-nav.js が先に

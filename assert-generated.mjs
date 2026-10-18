@@ -41,7 +41,7 @@
 //    一括編集で、「生成物」とは性質が違う。
 // ═══════════════════════════════════════════════════════════════════
 import { spawnSync } from 'child_process';
-import { mkdtempSync, rmSync, readdirSync, readFileSync, existsSync, symlinkSync } from 'fs';
+import { mkdtempSync, rmSync, readdirSync, readFileSync, existsSync, symlinkSync, realpathSync } from 'fs';
 import { join, relative } from 'path';
 import { tmpdir } from 'os';
 import { createHash } from 'crypto';
@@ -62,6 +62,8 @@ const GENERATORS = [
   /* 2026-10-03。年収・根拠の台帳・写真の台帳を直したのに流し忘れると、この1枚だけ古い数字が残る。
      career.css / career.js の指紋（?v=）もここが書く。画像ファイルは読まない（このコピーに画像は無い）。 */
   ['gen-career.mjs',      'career.html（概要と2社比較の1枚）'],
+  /* 2026-10-18（WP-close-a）。会社ページの暮らしのカードの街を直したのに流し忘れると、サーバの街の候補の種だけ古いまま残る。 */
+  ['gen-towns.mjs',       'db/towns.generated.sql（暮らしのカードの街 → サーバの街の候補の種）'],
 ];
 
 // どれも読まない重いもの。展開しないぶん速くなる。
@@ -81,7 +83,11 @@ function hashTree(dir) {
   return out;
 }
 
-const work = mkdtempSync(join(tmpdir(), 'pv-generated-'));
+/* ★本当の住所で持つ（2026-10-18・WP-close-a）。macOS の一時フォルダは /var → /private/var のリンクの先にある。
+     gen-career.mjs と gen-towns.mjs は「自分が直接呼ばれたときだけ書く」を path.resolve(argv[1]) と
+     import.meta.url（Node はリンクを解いた本当の住所を渡す）の一致で決めるので、リンクのままの住所で呼ぶと
+     一致せず、**何も書かずに 0 で終わっていた** ＝ この2本は流したことになっていて、古くても赤くならなかった。 */
+const work = realpathSync(mkdtempSync(join(tmpdir(), 'pv-generated-')));
 let fail = 0;
 
 try {

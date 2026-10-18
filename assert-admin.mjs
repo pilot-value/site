@@ -31,13 +31,23 @@
         オーナーには返ってきた順のまま字として出る・申請の画像は押したときに1回だけ読み、閉じたら DOM にも保存領域にも残らない・
         「verified」「見送り」は画像の面の中だけ・送るのは {id, state, via} だけ・数（承認の横）に入れない・
         マイページと管理ページの「ログアウト」は、このタブの打ちかけ（街・ステイ先・管理ページ）を全部消す
+     G) 外への通信（WP-close-a。2026-10-18）── どのページの要求も門を通る。手元と公開の部品の配信元4つのほかへ、
+        門をすり抜けて出た要求が1本でもあれば失敗（最後の1行）
+     H) マイページを「戻る」で出し直したとき（WP-close-a。2026-10-18）── サイトの「ログアウト」→「戻る」で、ブラウザが
+        手元に置いていたマイページが戻っても、前の人の名前もメールも出ない・ログインしていない人の道（login.html）に着く
+        （本物のブラウザ・通信の差し替え無し・手元の使い捨ての保存先。日英）
 
    実行: node assert-admin.mjs
    ⚠️ localhost が要る（node serve.mjs）。本番の DB には触らない（Supabase ごと差し替える）。
+   ⚠️ 3000 番が配るページは、そのままでは本番の解析（GA4）と本番の supabase につながっている。この検査では G) の門が
+      止める（2026-10-18 まで門が無く、流すたびに管理ページの閲覧が本番の GA4 に届いていた）。門を外さない。
 */
 import puppeteer from 'puppeteer';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import http from 'node:http';
+import { MEMBERS } from './serve-local.mjs';
+import { bring, seedOf, LIBS } from './local-chain.mjs';
 
 const BASE = 'http://localhost:3000';
 const read = (p) => readFileSync(new URL('./' + p, import.meta.url), 'utf8');
@@ -47,6 +57,66 @@ const reEsc = (t) => t.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
 
 let pass = 0, fail = 0;
 const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++, console.log('  ❌ ' + l + (e ? ' → ' + e : ''))); };
+
+/* ── G) 門（WP-close-a・2026-10-18）── この検査が開くどのページの要求も、ここを通る ─────────────────────
+   3000 番（serve.mjs）が配るページは、そのままでは本番につながっている：解析（www.googletagmanager.com の gtag.js →
+   www.google-analytics.com ＝ 本番の GA4）と、index.html が読む本番の supabase（pv_review_voices）。
+   ★通すのは、手元（localhost）と、ページが読む公開の部品の配信元4つ（LIBS ＝ cdn.jsdelivr.net の supabase-js・
+     fonts.googleapis.com と fonts.gstatic.com の書体・cdn.tailwindcss.com）だけ。ほかの行き先は全部止めて（abort）数える。
+   ★止めたと数えるのは、門が止めると決めた印（STOPPED）があり、しかもブラウザの中で「止められた」で終わった要求だけ
+     （閉じるまで止まったままの要求も、外へは出ていない）。それ以外の外への要求は、どう終わっても「門をすり抜けた」に数え、
+     最後の1行（★外への通信）でその数が 0 でなければ失敗にする ── 門を外す・通す側に書き換える・門を付け忘れたページ、
+     のどれでも赤くなる。
+   ★網をもう1枚：ブラウザは localhost と LIBS のほかの名前を引けない（NO_NAMES）。門が外れても、ブラウザ自身の裏の通信も、
+     外へは出られない（その時すり抜けた要求は「名前を引けない」で終わり、上の数に入る）。 */
+const NO_NAMES = '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE cdn.jsdelivr.net, '
+  + 'EXCLUDE fonts.googleapis.com, EXCLUDE fonts.gstatic.com, EXCLUDE cdn.tailwindcss.com';
+const NET = { pages: 0, libs: new Map(), stopped: new Map(), through: [] };
+const STOPPED = new WeakSet(), LIVE = new Map(), WATCHED = new WeakSet(), GATED = new WeakMap();
+const hostOf = (u) => { try { const x = new URL(u); return /^(https?|wss?):$/.test(x.protocol) ? x.hostname : null; } catch { return null; } };
+const isOut = (h) => !!h && h !== 'localhost' && !LIBS.test(h);
+const bump = (m, k) => m.set(k, (m.get(k) || 0) + 1);
+const listOf = (m) => [...m].map(([h, n]) => `${h} ×${n}`).join('・') || 'なし';
+/* 止められた終わり方：門の abort（スクリプトの読み込みは Chrome が「.Inspector」を付ける）・ページが先に移って取り消した・閉じるまで止まったまま */
+const STOP_ENDS = /^(net::ERR_BLOCKED_BY_CLIENT(\.Inspector)?|net::ERR_ABORTED|閉じるまで止まったまま)$/;
+function ended(r, how) {
+  const x = LIVE.get(r);
+  if (!x) return;
+  LIVE.delete(r);
+  if (STOPPED.has(r) && STOP_ENDS.test(how)) bump(NET.stopped, x.h);
+  else NET.through.push(`${x.u}（${how}）← ${x.from}`);
+}
+/* 見張り：外へ向かったすべての要求の結末を見る（読むだけ。止めも通しもしない） */
+function watch(page) {
+  if (WATCHED.has(page)) return;
+  WATCHED.add(page);
+  NET.pages++;
+  page.on('request', (r) => {
+    const h = hostOf(r.url());
+    if (h && LIBS.test(h)) bump(NET.libs, h);
+    if (!isOut(h)) return;
+    let u;
+    try { const x = new URL(r.url()); u = `${r.method()} ${x.host}${x.pathname}`; } catch { u = `${r.method()} ${h}`; }
+    LIVE.set(r, { h, u, from: String(page.url()).replace(/^https?:\/\/[^/]+/, '').split('?')[0] || '?', page });
+  });
+  page.on('requestfinished', (r) => ended(r, '返事が届いた'));
+  page.on('requestfailed', (r) => ended(r, (r.failure() && r.failure().errorText) || '失敗'));
+  page.on('close', () => { for (const [r, x] of [...LIVE]) if (x.page === page) ended(r, '閉じるまで止まったまま'); });
+}
+/* 門：手元と LIBS は通し、ほかは止める（止めるものに印を付けてから止める）。1枚に1回だけ（同じ約束を返す） */
+function gate(page) {
+  if (!GATED.has(page)) GATED.set(page, (async () => {
+    watch(page);
+    await page.setRequestInterception(true);
+    page.on('request', (r) => {
+      const st = r.interceptResolutionState().action;
+      if (st === 'disabled' || st === 'already-handled') return;     // 止められない／もう決まった（印は付けない）
+      if (isOut(hostOf(r.url()))) { STOPPED.add(r); r.abort('blockedbyclient').catch(() => {}); }
+      else r.continue().catch(() => {});
+    });
+  })());
+  return GATED.get(page);
+}
 
 /* ── A) ページに合言葉と直読みが残っていないか ───────────────── */
 console.log('\n════ A) 管理者ページのソース ════');
@@ -1044,13 +1114,19 @@ async function ownerChecks(page, lang) {
      `O8b 空のとき：申請してきた人の下に「${W.none}」・会員一覧の下に「${W.noUsers}」`, JSON.stringify(e8));
 }
 
-const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox', NO_NAMES] });
+/* ページから開いた窓（target=_blank など）にも同じ門を付ける */
+browser.on('targetcreated', async (t) => {
+  if (t.type() !== 'page') return;
+  try { const p = await t.page(); if (p) await gate(p); } catch (e) { /* もう閉じた */ }
+});
 
 for (const lang of ['ja', 'en']) {
   const url = BASE + '/' + (lang === 'en' ? 'en/' : '') + 'admin.html';
   for (const c of CASES) {
     console.log(`\n════ C) ${lang} — ${c.label} ════`);
     const page = await browser.newPage();
+    await gate(page);
     await page.setViewport({ width: 1280, height: 900 });
 
     await page.evaluateOnNewDocument((cfg, uid, name, hostile, quoted, formula, rent, textId, lang) => {
@@ -1341,5 +1417,115 @@ for (const lang of ['ja', 'en']) {
 }
 
 await browser.close();
+
+/* ── H) マイページを「戻る」で出し直したとき（WP-close-a・2026-10-18）──────────────────────────────────────
+   サイトの「ログアウト」（profile.html）→ index.html →「戻る」で、ブラウザが手元に置いていたマイページがそのまま戻ると、
+   前の人の名前・メール・マイページの中身が出ていた（Chrome で実測・2026-10-18。共有の端末で、次に使う人に見える）。
+   ★本物のブラウザ・通信の差し替え無し（差し替えると、ブラウザはページを手元に置かない）。手元の使い捨ての保存先
+     （local-chain.mjs の bring ・ 本物の SQL ・ 手元の会員 'a'）の前に、サイトのファイルだけ GitHub Pages と同じ見出し
+     （max-age=600）で渡す口を置く（assert-keep.mjs の pagesFront と同じ形の写し）。名前を引けるのは localhost と LIBS だけ（NO_NAMES）。
+     どのページにも G) の見張りを付ける（門は付けない ＝ 外への要求が1本でもあれば、それがそのまま G) の失敗になる）。
+   ★手元から戻ったこと（pageshow の persisted）を確かめてから見る ── 戻らなかった回は「確かめられなかった」で赤（空振りの緑にしない）。
+   見ること（日英）：戻った瞬間（ページ自身の pageshow のあと）に名前もメールも画面に無い／ログインしていない人の道
+                    （login.html?redirect=profile.html）に着く・着いた先にも名前とメールが無い。 */
+async function pagesFront(base) {
+  const to = new URL(base);
+  const srv = http.createServer((req, res) => {
+    const up = http.request({ host: '127.0.0.1', port: to.port, path: req.url, method: req.method, headers: { ...req.headers, host: to.host } }, (r) => {
+      const h = { ...r.headers };
+      if (!/^\/(rest|auth|functions|storage|realtime)\/v1(\/|$)|^\/__local\//.test(req.url) && /no-store/.test(h['cache-control'] || '')) h['cache-control'] = 'max-age=600';
+      res.writeHead(r.statusCode, h);
+      r.pipe(res);
+    });
+    up.on('error', () => { res.writeHead(502); res.end(); });
+    req.pipe(up);
+  });
+  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  const port = srv.address().port;
+  if (port === 3000) { srv.close(); throw new Error('3000 番は使わない'); }
+  return { base: `http://localhost:${port}`, close: () => new Promise((r) => { srv.close(r); srv.closeAllConnections?.(); }) };
+}
+async function profileBack() {
+  const A = MEMBERS.find((m) => m.key === 'a');
+  const L = await bring();
+  let fr = null, bb = null;
+  try {
+    fr = await pagesFront(L.base);
+    bb = await puppeteer.launch({ headless: true, args: [NO_NAMES] });
+    for (const lang of ['ja', 'en']) {
+      console.log(`\n════ H) ${lang} — マイページの「ログアウト」→「戻る」════`);
+      const P = fr.base + (lang === 'en' ? '/en/' : '/');
+      const ctx = await bb.createBrowserContext();
+      try {
+        const page = await ctx.newPage();
+        watch(page);
+        page.setDefaultTimeout(30000);
+        await page.setViewport({ width: 1440, height: 900 });
+        page.on('dialog', (d) => { d.accept().catch(() => {}); });           // 「ログアウトしますか？」に「はい」
+        await page.evaluateOnNewDocument((who) => {
+          try { localStorage.setItem('pv_local_ui', '0'); } catch (e) { /* そのまま */ }
+          if (!/\/profile\.html$/.test(location.pathname)) return;
+          const put = (o) => { try { const a = JSON.parse(sessionStorage.getItem('pv-test-ps') || '[]'); a.push(o); sessionStorage.setItem('pv-test-ps', JSON.stringify(a)); } catch (e) { /* そのまま */ } };
+          const look = () => { const t = (document.body && document.body.innerText) || ''; return { name: t.includes(who.name), mail: t.includes(who.email) }; };
+          addEventListener('pageshow', (e) => put({ at: 'first', persisted: e.persisted }));
+          /* 読み終わったあとに足す ＝ ページ自身の pageshow（インラインの script が足したもの）の**あと**に呼ばれる */
+          addEventListener('load', () => addEventListener('pageshow', (e) => put({ at: 'after', persisted: e.persisted, ...look() })));
+        }, { name: A.ja, email: A.email });
+        /* 'a' として入る（assert-keep.mjs の enter と同じ置き方。Give → Get の板は「さっき見た」） */
+        const s = await seedOf(L.base, 'a');
+        await page.goto(P + 'index.html', { waitUntil: 'load', timeout: 60000 });
+        await page.evaluate((x) => {
+          const now = String(Date.now()), at = Date.parse((x.session.user || {}).last_sign_in_at || '');
+          localStorage.setItem('sb-local-auth-token', JSON.stringify(x.session));
+          localStorage.setItem('pv_user', JSON.stringify(x.pv_user));
+          localStorage.setItem('pv_last_active', now);
+          localStorage.setItem('pv_session_start', now);
+          localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
+        }, s);
+        await page.goto(P + 'profile.html', { waitUntil: 'load', timeout: 60000 });
+        await page.waitForFunction((m) => (document.getElementById('display-email') || {}).textContent === m, {}, A.email);
+        const before = await page.evaluate((w) => { const t = document.body.innerText; return { name: t.includes(w.name), mail: t.includes(w.email) }; }, { name: A.ja, email: A.email });
+        ok(before.name && before.mail, `H 前提：ログインしているマイページには、会員の名前（${A.ja}）とメール（${A.email}）が出ている`, JSON.stringify(before));
+        await page.waitForSelector('.btn-logout', { visible: true });
+        await Promise.all([page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }), page.click('.btn-logout')]);
+        const outAt = await page.evaluate(() => { sessionStorage.removeItem('pv-test-ps'); return location.pathname; });
+        await page.goBack({ waitUntil: 'load', timeout: 60000 });
+        await page.waitForFunction(() => { try { return JSON.parse(sessionStorage.getItem('pv-test-ps') || '[]').some((o) => o.at === 'after' || o.persisted === false); } catch (e) { return false; } });
+        const rec = await page.evaluate(() => JSON.parse(sessionStorage.getItem('pv-test-ps') || '[]'));
+        const back = rec.find((o) => o.at === 'after');
+        const restored = rec.length > 0 && rec[0].persisted === true && !!back && back.persisted === true;
+        ok(/\/index\.html$/.test(outAt) && restored,
+           '★H 「ログアウト」で index.html へ移り、「戻る」でブラウザの手元からマイページがそのまま戻った（pageshow の persisted）── 戻ったことを確かめてから見る',
+           JSON.stringify({ outAt, rec }));
+        ok(restored && !back.name && !back.mail,
+           `★H 戻った瞬間（ページ自身の pageshow のあと）、前の人の名前（${A.ja}）もメール（${A.email}）も画面に無い`, JSON.stringify(back || null));
+        const landed = await page.waitForFunction(() => /\/login\.html$/.test(location.pathname) && document.readyState === 'complete', { timeout: 15000 })
+          .then(() => true, () => false);
+        /* 画面に見える字と、入力欄に入っている字（手元の配信が差し込む切替の札の設定は script の中なので数えない） */
+        const end = await page.evaluate((w) => {
+          const t = document.body.innerText + ' ' + [...document.querySelectorAll('input, textarea')].map((e) => e.value).join(' ');
+          return { path: location.pathname, q: location.search, name: t.includes(w.name), mail: t.includes(w.email) };
+        }, { name: A.ja, email: A.email });
+        ok(restored && landed && end.q === '?redirect=profile.html' && !end.name && !end.mail,
+           '★H そのままログインしていない人の道（login.html?redirect=profile.html）に着く・着いた先のどこにも名前とメールが無い', JSON.stringify(end));
+      } finally {
+        await ctx.close().catch(() => {});
+      }
+    }
+  } finally {
+    if (bb) await bb.close().catch(() => {});
+    if (fr) await fr.close();
+    await L.stop();
+  }
+}
+await profileBack().catch((e) => ok(false, 'H マイページの「戻る」の場面が途中で止まった', String(e && e.stack || e).slice(0, 400)));
+
+/* ── G) 外への通信 ── 最後の1行。門が止めたもの・すり抜けたもの（0 でなければ失敗） ─────────────────── */
+for (const [r] of [...LIVE]) ended(r, '閉じるまで止まったまま');
+console.log('\n════ G) 外への通信 ════');
+const nStopped = [...NET.stopped.values()].reduce((a, b) => a + b, 0);
+ok(NET.pages > 0 && NET.through.length === 0,
+   `★外への通信：手元と公開の部品の配信元のほかへ、門をすり抜けた要求 ${NET.through.length} 件（${NET.pages}枚のページ。門が止めた ${nStopped} 件：${listOf(NET.stopped)}／通した配信元：${listOf(NET.libs)}）`,
+   NET.through.slice(0, 10).join(' ／ '));
 console.log(`\n════ ${pass} 件 通過 / ${fail} 件 失敗 ════`);
 process.exitCode = fail ? 1 : 0;

@@ -45,6 +45,8 @@ const SQL = [
   ['db/test-requests.mjs', 5], ['db/test-reviews-gate.mjs', 6],
   ['db/test-digest.mjs', 5],
   ['db/test-stays.mjs', 8],
+  /* 2026-10-18（WP-close-a）：段階3の2本を足した。秒数は単独で流した実測 */
+  ['db/test-towns.mjs', 6], ['db/test-proof-offer.mjs', 3],
   /* ★写しの見張り（Phase 5）。確認画面の「支給の内訳」は 8区分の切り分けを
      JS へ写している（出す前の行はサーバのどこにも無いので写す以外に道が無い）。
      写しが腐ったことに気づく仕掛けはこれ1本だけ。外さないこと。
@@ -87,6 +89,10 @@ const WEB = [
   ['db/test-login-redirect.mjs', 7],
   ['assert-deep-pay-compare.mjs', 5.7], ['assert-deep-pay.mjs', 5.0],
   ['assert-review-quality.mjs', 2.0], ['db/test-session-expiry.mjs', 0.9],
+  /* 2026-10-18（WP-close-a）：段階3の3本を足した。どれも 3000 番を使わない（手元の使い捨ての保存先を
+     OS が選ぶ番号で立て、終われば消す）。⚠️ 秒数は**単独で流した実測**（同時4本では測っていない）。
+     同時4本で測り直したら、この3つも直す。 */
+  ['assert-towns.mjs', 109], ['assert-keep.mjs', 90], ['assert-proof-offer.mjs', 18],
 ];
 
 const argv = process.argv.slice(2);
