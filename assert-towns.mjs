@@ -91,7 +91,8 @@
          欄で「承認」を押すと、サーバーが own_post で断り「自分が出したものは、別の運営が確認します。」── 「公開しました。」は
          出ない・確認待ちのまま・オーナーが承認した人（'pilot'）にも届かない（人が1回見る決まりは、いつもサーバー）。
      AD7 オーナーの2つの一覧：'a' がマイページから FIXTURE の画像で申請 →「申請してきた人」→「画像を見る」→「verified」→
-         'a' がホテルを読める・画像と申請は保存先から消える・「会員一覧」で verified →「取り消す」→ 次の読みは鍵。
+         'a' がホテルを読める・画像と申請は保存先から消える・「会員一覧」で verified →「取り消す」→ 次の読みは鍵 →
+         行は押せる「verified」に戻り、押すと新しい画像なしでまた読める（P12.61 オーナーの答え Q1 = 2）。
          「会員一覧」の「verified」も同じ（'b'）。いま verified の人の「見送り」は承認を取り上げない（'pay'・英語の画面）。
          オーナーではない運営（'c'）・ほかの会員（'pay'）・ログインなしには一覧も画像も無く、オーナーの4つの口は門の返事だけ。
      ★証明の画像は、その場でキャンバスに描いた FIXTURE だけ（本物の画像は使わない・ファイルも作らない）。
@@ -1366,7 +1367,8 @@ const GATE_LOGIN = 'このページを見るにはログインが必要です。
 const ADDED_ADM = '追加しました。';
 /* オーナーの2つの一覧の字（admin-queue.js の T。WP-towns-13v で決めた字） */
 const OWNER_WORDS = ['申請してきた人', '会員一覧', 'verified', '画像を見る'];
-/* 画像で verified にしたあと取り消した人の会員一覧の行（admin-queue.js の T.reapply。2026-10-18・P12.60 Q1 のオーナーだけの文） */
+/* 画像なしでは verified にできない人の会員一覧の行（admin-queue.js の T.reapply。2026-10-18・P12.60 Q1 のオーナーだけの文）。
+   AD7 は、画像で verified にしたあと取り消した 'a' の行にこの1文が出ないこと（P12.61 Q1 = 2 ── 押せる「verified」に戻る）を見る */
 const REAPPLY_T = 'この人は以前に申請したことがあるため、画像を見てからでないと verified にできません。本人がマイページから新しい画像を出すと「申請してきた人」に並びます。';
 /* その会社のページの、就航地の一覧の最初の都市（ステイ先の欄を #stay-XXX で直接開く。assert-stays.mjs と同じ決め方） */
 const STAY_IATA = (read(`airlines/${SLUG}.html`).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1] || '';
@@ -2149,17 +2151,29 @@ async function admin() {
     const lockA = await Ap.page.evaluate(() => [...document.querySelectorAll('.crs-lock')].filter((e) => e.getClientRects().length).length);
     ok(seeA && lockA === 0, `AD7 'a' の会社ページ（#stay-${STAY_IATA}）に「${HOTEL}」が出る・鍵の1行は無い`, J({ seeA, lockA }));
     await shut(Ap);
-    /* 「取り消す」→ 次の読みは鍵。'a' は画像で verified になった人なので、取り消したあとの行に「verified」は無く、
-       本人が新しい画像を出すまで画像なしでは決められないことを書く（Q1・2026-10-18。サーバーの reapply をそのまま描く） */
+    /* 「取り消す」→ 次の読みは鍵。'a' はオーナーが画像を見て verified にした人なので、取り消したあとの行は押せる「verified」に戻る
+       （P12.61 オーナーの答え Q1 = 2 ── 新しい画像なしで戻せる。サーバーの reapply は false で、断りの1文は出ない） */
     const v1 = verifies(Op).length;
     await press(Op, MEM('a'), 'revoke');
-    await Op.page.waitForSelector(`${MEM('a')} [data-adm="reapply"]`, { timeout: 20000 });
+    /* 待ちで止めない（行が戻らなければ、この下の1行が赤くなる） */
+    await Op.page.waitForFunction((sel) => { const li = document.querySelector(sel);
+      return !!li && !!(li.querySelector('[data-act="verify"]') || li.querySelector('[data-adm="reapply"]')); }, { timeout: 20000 }, MEM('a')).catch(() => null);
     const ra2 = await reads('a');
     const rowA = await Op.page.evaluate((sel) => { const li = document.querySelector(sel), r = li && li.querySelector('[data-adm="reapply"]');
-      return { btns: li ? [...li.querySelectorAll('button')].map((b) => b.getAttribute('data-act')) : null, say: r ? r.textContent : null }; }, MEM('a'));
+      return { btns: li ? [...li.querySelectorAll('button')].map((b) => b.getAttribute('data-act')) : null, say: r ? r.textContent : null,
+               text: li ? li.textContent : '' }; }, MEM('a'));
     ok(J(verifies(Op, v1)) === J([{ id: M.a.id, state: 'revoked', via: 'member' }]) && norm(ra2.text) === LOCKED_STATE
-      && J(rowA.btns) === '[]' && rowA.say === REAPPLY_T,
-      `★AD7 「会員一覧」の 'a' に「取り消す」→ {id, state:'revoked', via:'member'} だけを送り、'a' の次の読みは ${LOCKED_STATE}・画像で verified になっていた 'a' の行には「verified」が無く、新しい画像が要ると書く（Q1）`, J({ sent: verifies(Op, v1), ra2: ra2.text, rowA }));
+      && J(rowA.btns) === J(['verify']) && rowA.say === null && !rowA.text.includes(REAPPLY_T),
+      `★AD7 「会員一覧」の 'a' に「取り消す」→ {id, state:'revoked', via:'member'} だけを送り、'a' の次の読みは ${LOCKED_STATE}・画像で verified になっていた 'a' の行は押せる「verified」に戻る（新しい画像が要るとは書かない・Q1 = 2）`, J({ sent: verifies(Op, v1), ra2: ra2.text, rowA }));
+    /* その「verified」を押すと、新しい画像なしで 'a' はまたホテルを読める（オーナーが押したときだけ戻る。画像も申請も作らない・印はそのまま） */
+    const v1b = verifies(Op).length;
+    await press(Op, MEM('a'), 'verify').catch(() => null);
+    await Op.page.waitForSelector(`${MEM('a')} [data-act="revoke"]`, { timeout: 20000 }).catch(() => null);
+    const ra3 = await reads('a'), va3 = await viewer('a'), ia3 = await imgs('a'), oa3 = await offers('a');
+    ok(J(verifies(Op, v1b)) === J([{ id: M.a.id, state: 'approved', via: 'member' }]) && opens(ra3)
+      && !!va3 && va3.state === 'approved' && va3.decided_by === M.op.id && va3.image_verified === true && va3.ever_applied === true && ia3 === 0 && oa3 === 0,
+      `★AD7 'a' の「verified」を押すと {id, state:'approved', via:'member'} だけを送り、'a' は新しい画像なしで「${HOTEL}」をまた読める（決めた人はオーナー・画像も申請も作らない・2つの印はそのまま。Q1 = 2）`,
+      J({ sent: verifies(Op, v1b), ra3: ra3.text.slice(0, 160), va3: va3 && { state: va3.state, by: va3.decided_by, iv: va3.image_verified, ea: va3.ever_applied }, ia3, oa3 }));
     /* 4) 「会員一覧」の「verified」（申請していない 'b'）も同じ */
     const rb0 = await reads('b'), v2 = verifies(Op).length;
     await press(Op, MEM('b'), 'verify');

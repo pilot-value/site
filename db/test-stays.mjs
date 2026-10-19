@@ -3454,9 +3454,9 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
   ok(/set state = v_to, decided_by = auth\.uid\(\), decided_at = now\(\)\s+where user_id = v_id;/.test(vdF)
      && (code.match(/update public\.pv_stay_viewers/g) || []).length === 1 && (code.match(/insert into public\.pv_stay_viewers/g) || []).length === 2
      && /update public\.pv_stay_viewers/.test(vdF) && /insert into public\.pv_stay_viewers/.test(vrF)
-     && /insert into public\.pv_stay_viewers as v \(user_id, state, decided_by, decided_at, ever_applied\)\s+values \(v_id, v_to, auth\.uid\(\), now\(\), v_img\)\s+on conflict \(user_id\) do update\s+set state = excluded\.state, decided_by = excluded\.decided_by, decided_at = excluded\.decided_at,\s+ever_applied = v\.ever_applied or excluded\.ever_applied;/.test(vvF)
+     && /insert into public\.pv_stay_viewers as v \(user_id, state, decided_by, decided_at, ever_applied, image_verified\)\s+values \(v_id, v_to, auth\.uid\(\), now\(\), v_img, v_imgv\)\s+on conflict \(user_id\) do update\s+set state = excluded\.state, decided_by = excluded\.decided_by, decided_at = excluded\.decided_at,\s+ever_applied = v\.ever_applied or excluded\.ever_applied,\s+image_verified = v\.image_verified or excluded\.image_verified;/.test(vvF)
      && (code.match(/ever_applied\s*=/g) || []).length === 1 && !/ever_applied/.test(vdF) && !/'ever_applied'/.test(code),
-     '★承認の行を書くのは決める口と verified の2か所だけで、どちらも決めた人（オーナー）と時刻を必ず書く／申請の跡（ever_applied）は verified の同じ1文でだけ書き、前の印を消さない（決める口は触らない・印を返す関数は無い）／申し込みの行を入れるのは申し込みの口の1か所だけ');
+     '★承認の行を書くのは決める口と verified の2か所だけで、どちらも決めた人（オーナー）と時刻を必ず書く／申請の跡（ever_applied）と「画像を見て verified にした」の印（image_verified）は verified の同じ1文でだけ書き、前の印を消さない（決める口は触らない・印を返す関数は無い）／申し込みの行を入れるのは申し込みの口の1か所だけ');
   ok(vdF.indexOf("'self'") > 0 && vdF.indexOf("'self'") < vdF.indexOf('from public.pv_stay_viewers'),
      '★オーナーが自分を決めようとしたら、行を読む前に self');
   /* ★P12.51: 「画像を見ずに承認してよい人か」は1か所（10-a-2b の pv_stay_image_needed）。呼ぶのは決める口と verified だけで、
@@ -3477,6 +3477,24 @@ console.log('\n▼ SQL の書き方（読んで確かめる）');
      && !/\b(insert|update|delete)\b/i.test(needF) && !/v_cur = 'denied'|and v_img then\s+return/.test(vvF),
      '★P12.51: 画像を見ずに承認してよいかは1か所（pv_stay_image_needed）で決める ── 決めるのは決める口と verified の会員一覧の道の2本だけ・承認のときに1回・同じ3つの答え（use_image・applied_denied・no_image）を同じ字で返す・決める口は行を読む前に呼ぶ・その1か所は何も書かない／ほかに呼ぶのは会員一覧の印 reapply を作る1式だけ（Q1・読むだけ・何も書かない）',
      J({ callers }));
+  /* ★Q1 = 2（P12.61）: 「画像を見て verified にした」の印（image_verified）── 書くのは verified の承認の行の1文だけで、値は
+       「申請してきた人の道・verified・画像が在る」の1式（v_imgv）。その式は画像の無い申請を断ったあと、見送りの読み替え（P12.17）より前。
+       false に戻す文は無い・決める口は触らない・会員一覧は返さない・どの関数も JSON の欄として返さない。
+       読むのは1か所（pv_stay_image_needed）だけで、通すのは「いまのオーナーが取り消した ＋ 印」の1式。申請が待っている・見送られたの2つより後、
+       ほかの申請の跡（no_image）より前 */
+  const SEEN_SET = /v_imgv := v_via = 'applicant' and v_to = 'approved' and v_img;/;
+  const SEEN_READ = /if v_row\.state = 'revoked' and v_row\.decided_by = public\.pv_stay_owner_id\(\) and v_row\.image_verified then\s+return null;\s+end if;/;
+  const ivFns = fns.filter((f) => /image_verified/.test(bodyOf(f))).map((f) => f.trimStart().split('(')[0]).sort();
+  const sAt = vvF.search(SEEN_SET), rAt = needF.search(SEEN_READ);
+  ok(SEEN_SET.test(vvF) && (code.match(/v_imgv\s*:=/g) || []).length === 1 && (code.match(/image_verified\s*=/g) || []).length === 1
+     && sAt > vvF.indexOf("if v_via = 'applicant' and not v_img then") && sAt < vvF.indexOf("if v_to = 'denied' and v_cur = 'approved' then")
+     && J(ivFns) === J(['public.pv_stay_image_needed', 'public.pv_stay_viewer_verify'])
+     && SEEN_READ.test(needF) && needF.split('image_verified').length === 2
+     && rAt > needF.indexOf("return 'use_image'") && rAt > needF.indexOf("return 'applied_denied'") && rAt < needF.indexOf("return 'no_image'")
+     && !/image_verified/.test(vdF) && !/image_verified/.test(memF) && !/'image_verified'/.test(code) && !/image_verified\s*(=|:=)\s*false/.test(code)
+     && /add column if not exists image_verified boolean not null default false;/.test(code),
+     '★Q1=2: 「画像を見て verified にした」の印（image_verified）は、画像の面の verified の1式でだけ true になり（画像の無い申請を断ったあと・見送りの読み替えより前）、false に戻す文は無い／読むのは pv_stay_image_needed の1か所だけで、通すのは「いまのオーナーが取り消した人 ＋ 印」の1式（申請が待っている・見送られたより後、ほかの申請の跡より前）／決める口は触らない・会員一覧も含めてどの関数も返さない',
+     J({ ivFns, sAt, rAt }));
   /* 写真を足すとき、場所の行を錠つきで読んでいる（読んでから入れるまでの間に見送られても画素が残らない） */
   ok(/from public\.pv_stay_places where id = v_pid for share;/.test(fn('pv_stay_photo_add')),
      '写真を足すとき、場所の行を for share で読んでいる');
@@ -3518,7 +3536,7 @@ console.log('\n▼ 冪等性（データが入った状態でもう一度流す�
                                from public.pv_stay_photos order by id`)).rows,
     /* ★貼り直しても、オーナーと承認の行は1文字も変わらない（オーナーの行は置き換えないまま流れる） */
     owner: (await db.query(`select one, user_id, set_at from public.pv_stay_owner`)).rows,
-    viewers: (await db.query(`select user_id, state, asked_at, decided_by, decided_at, ever_applied from public.pv_stay_viewers order by user_id`)).rows,
+    viewers: (await db.query(`select user_id, state, asked_at, decided_by, decided_at, ever_applied, image_verified from public.pv_stay_viewers order by user_id`)).rows,
   });
   const view = async () => J([await stays(V1), await stays(V2), await stays(OP), await stays(V2, 'etihad', 'SIN'),
                               await stays(U), await stays(ANON), await queue(OP)]);
@@ -3677,23 +3695,30 @@ console.log('\n▼ 会員一覧の verified は、申請の画像を通る道の
 }
 
 // ════════════════════════════════════════════════════════════════
-console.log('\n▼ 決める口（10-a）も同じ決まり ── 画像なしで承認してよいのは一度も申請していない人だけ（P12.51・WP-towns-13x。申請の仕組みを足したこの DB で）');
+console.log('\n▼ 決める口（10-a）も同じ決まり ── 画像なしで承認してよいのは、一度も申請していない人と、画像で verified にして取り消した人だけ（P12.51・P12.61 Q1 = 2。申請の仕組みを足したこの DB で）');
 {
-  /* ★オーナーの決まり（P12.47・P12.51）：画像を見ずに承認してよいのは、一度も申請していない人だけ。
+  /* ★オーナーの決まり（P12.47・P12.51・P12.61 Q1 = 2）：画像を見ずに承認してよいのは、一度も申請していない人と、
+       オーナーが画像を見て verified にしたあと、いまのオーナーが取り消した人（承認の表の印 image_verified）だけ。
        決めるのは1か所（10-a-2b の pv_stay_image_needed）で、決める口（pv_stay_viewer_decide）と会員一覧の verified
        （pv_stay_viewer_verify の via 'member'）が同じそれを呼ぶ ＝ 同じ人には同じ答え。
-       申請の行と画像は決めた瞬間に消えるので、「申請したことがある」は承認の表の ever_applied に残る。
-       画像を見て verified にしたあと取り消した人も「申請の跡がある」（オーナーへの質問 Q-VP2 の答えを待つあいだは厳しい側）。
-       ★人は全員、本物の口で作る（申請・画像の面の verified と見送り・会員一覧の verified と取り消し・古い申し込みの口）。
+       申請の行と画像は決めた瞬間に消えるので、「申請したことがある」は承認の表の ever_applied に、
+       「画像を見て verified にしたことがある」は image_verified に残る。
+       ほかの申請の跡（見送られた・古い申し込みの行・画像で verified になったことのない人）は、今までどおり画像の面からだけ。
+       ★人はできるだけ本物の口で作る（申請・画像の面の verified と見送り・会員一覧の verified と取り消し・古い申し込みの口・決める口）。
+         本物の口では作れない2つの形（PQ・PL）だけ、DB の持ち主として1文を流す（どちらも在りうる形。準備に書く）。
        ★ここも申請の仕組みを足したあと（上の2節の続き。ほかの節をこの後に走らせない）。 */
   const PA  = '00000000-0000-4000-8000-0000000000e1';   // 申請（画像）が待っている人（承認の行は無い）
   const PD  = '00000000-0000-4000-8000-0000000000e2';   // 画像を見て見送られた人
   const PR  = '00000000-0000-4000-8000-0000000000e3';   // 見送られたあと、また申請して待っている人
-  const PV  = '00000000-0000-4000-8000-0000000000e4';   // 画像を見て verified にしたあと、取り消された人
+  const PV  = '00000000-0000-4000-8000-0000000000e4';   // 画像を見て verified にしたあと、取り消された人（Q1 = 2：画像なしで戻せる）
   const PO  = '00000000-0000-4000-8000-0000000000e5';   // 古い申し込みの口（10-a-1）で申し込んだだけの人（画像なし）
   const PN  = '00000000-0000-4000-8000-0000000000e6';   // 一度も申請していない人（会員一覧から verified → 取り消し。承認の行は在る）
   const PN0 = '00000000-0000-4000-8000-0000000000e7';   // 一度も申請していない人（承認の行も無い）
-  const PEOPLE = [PA, PD, PR, PV, PO, PN, PN0];
+  const PQ  = '00000000-0000-4000-8000-0000000000e8';   // 古い申し込みの行のまま承認され（P12.51 より前の決める口の形）、取り消された人
+  const PL  = '00000000-0000-4000-8000-0000000000e9';   // 印 image_verified を足す前に画像で verified にされ、取り消された人
+  const PVD = '00000000-0000-4000-8000-0000000000ea';   // 画像で verified → 取り消し → また申請 → 画像を見て見送られた人
+  const PVW = '00000000-0000-4000-8000-0000000000eb';   // 画像で verified → 取り消し → また申請して待っている人
+  const PEOPLE = [PA, PD, PR, PV, PO, PN, PN0, PQ, PL, PVD, PVW];
   for (const id of PEOPLE) {
     const mail = 'x13-' + id.slice(-2) + '@example.com';
     await db.query(`insert into auth.users(id,email) values($1,$2)`, [id, mail]);
@@ -3703,35 +3728,54 @@ console.log('\n▼ 決める口（10-a）も同じ決まり ── 画像なし�
   const verify = (id, state, via) => rpc(OP, 'pv_stay_viewer_verify', { id, state, via });
   const apply  = (id) => rpc(id, 'pv_stay_apply', { image: JPEG });
   const IN = PEOPLE.map((x) => `'${x}'`).join(',');
-  /* この節の人の「名簿・画像・申請」の全部（何も書かれていないことを1文字単位で比べる） */
+  /* この節の人の「名簿（2つの印も）・画像・申請」の全部（何も書かれていないことを1文字単位で比べる） */
   const world = async () => J([
-    (await db.query(`select user_id, state, asked_at, decided_by, decided_at, ever_applied from public.pv_stay_viewers where user_id in (${IN}) order by user_id`)).rows,
+    (await db.query(`select user_id, state, asked_at, decided_by, decided_at, ever_applied, image_verified from public.pv_stay_viewers where user_id in (${IN}) order by user_id`)).rows,
     (await db.query(`select user_id, md5(bytes) as m from public.pv_proof_images where user_id in (${IN}) order by user_id`)).rows,
     (await db.query(`select user_id, state, tries from public.pv_proof where user_id in (${IN}) order by user_id`)).rows]);
   const mark = async (id) => { const r = await one(`select ever_applied from public.pv_stay_viewers where user_id = $1`, [id]); return r ? r.ever_applied : null; };
+  const seen = async (id) => { const r = await one(`select image_verified from public.pv_stay_viewers where user_id = $1`, [id]); return r ? r.image_verified : null; };
   const imgsOf = async (id) => (await one(`select count(*)::int as n from public.pv_proof_images where user_id = $1`, [id])).n;
   const offerOf = async (id) => (await one(`select count(*)::int as n from public.pv_proof where user_id = $1`, [id])).n;
   const locked = async (id) => J(await stays(id)) === LOCKED_READ;
   const R = (status) => J({ ok: false, status });
+  const memRow = async (id) => ((((await rpc(OP, 'pv_stay_members', {})) || {}).rows) || []).find((x) => x.id === id) || null;
 
-  /* 準備（本物の口だけで作る） */
+  /* 準備（本物の口で作る） */
   const prep = {
     pa:  [await apply(PA)],
     pd:  [await apply(PD), await verify(PD, 'denied', 'applicant')],
     pr:  [await apply(PR), await verify(PR, 'denied', 'applicant'), await apply(PR)],
     pv:  [await apply(PV), await verify(PV, 'approved', 'applicant'), await verify(PV, 'revoked', 'member')],
     po:  [await rpc(PO, 'pv_stay_viewer_request', { ask: true })],
-    pn:  [await verify(PN, 'approved', 'member'), await verify(PN, 'revoked', 'member')]
+    pn:  [await verify(PN, 'approved', 'member'), await verify(PN, 'revoked', 'member')],
+    pq:  [await rpc(PQ, 'pv_stay_viewer_request', { ask: true })],
+    pl:  [await apply(PL), await verify(PL, 'approved', 'applicant'), await verify(PL, 'revoked', 'member')],
+    pvd: [await apply(PVD), await verify(PVD, 'approved', 'applicant'), await verify(PVD, 'revoked', 'member'), await apply(PVD), await verify(PVD, 'denied', 'applicant')],
+    pvw: [await apply(PVW), await verify(PVW, 'approved', 'applicant'), await verify(PVW, 'revoked', 'member'), await apply(PVW)]
   };
+  /* 本物の口では作れない2つの形だけ、DB の持ち主として1文ずつ流す（どちらも在りうる形）:
+     PQ ── P12.51 より前の決める口は、古い申し込みの行（申し込んだ時刻つき）を画像なしで承認できた（serve-local の 'pilot' も同じ形の行で
+           始まる）。その承認を書き、取り消しは本物の決める口で。印はどちらも付かない（画像を見ていない）。
+     PL ── 印 image_verified の列を足す前に画像で verified にされた行は、列を足したとき false になる（推測で埋めない）。その形にする。 */
+  await db.query(`update public.pv_stay_viewers set state = 'approved', decided_by = $2, decided_at = now() where user_id = $1 and state = 'pending'`, [PQ, OP]);
+  prep.pq.push(await decide(PQ, 'revoked'));
+  await db.query(`update public.pv_stay_viewers set image_verified = false where user_id = $1`, [PL]);
   const OFFERED = J({ ok: true, state: 'offered' });
-  ok(J(prep.pa) === J([{ ok: true, state: 'offered' }])
-     && J(prep.pd) === J([{ ok: true, state: 'offered' }, { ok: true, state: 'denied', discarded: 1 }])
-     && J(prep.pr) === J([{ ok: true, state: 'offered' }, { ok: true, state: 'denied', discarded: 1 }, { ok: true, state: 'offered' }])
-     && J(prep.pv) === J([{ ok: true, state: 'offered' }, { ok: true, state: 'approved', discarded: 1 }, { ok: true, state: 'revoked', discarded: 0 }])
+  const OKV = (state, discarded) => ({ ok: true, state, discarded });
+  const OFF = { ok: true, state: 'offered' };
+  ok(J(prep.pa) === J([OFF])
+     && J(prep.pd) === J([OFF, OKV('denied', 1)])
+     && J(prep.pr) === J([OFF, OKV('denied', 1), OFF])
+     && J(prep.pv) === J([OFF, OKV('approved', 1), OKV('revoked', 0)])
      && J(prep.po) === J([{ ok: true, state: 'pending' }])
-     && J(prep.pn) === J([{ ok: true, state: 'approved', discarded: 0 }, { ok: true, state: 'revoked', discarded: 0 }])
+     && J(prep.pn) === J([OKV('approved', 0), OKV('revoked', 0)])
+     && J(prep.pq) === J([{ ok: true, state: 'pending' }, { ok: true, state: 'revoked' }])
+     && J(prep.pl) === J([OFF, OKV('approved', 1), OKV('revoked', 0)])
+     && J(prep.pvd) === J([OFF, OKV('approved', 1), OKV('revoked', 0), OFF, OKV('denied', 1)])
+     && J(prep.pvw) === J([OFF, OKV('approved', 1), OKV('revoked', 0), OFF])
      && OFFERED === J(prep.pa[0]),
-     '（7人を本物の口で作った: 申請が待っている PA・画像を見て見送られた PD・見送られてまた申請した PR・画像で verified にして取り消された PV・古い申し込みだけの PO・会員一覧から verified にして取り消した PN・何もしていない PN0）',
+     '（11人を作った: 申請が待っている PA・画像を見て見送られた PD・見送られてまた申請した PR・画像で verified にして取り消された PV・古い申し込みだけの PO・会員一覧から verified にして取り消した PN・何もしていない PN0・古い申し込みの行で承認されて取り消された PQ・印を足す前に画像で verified にされて取り消された PL・画像で verified → 取り消し → また申請して見送られた PVD・また申請して待っている PVW）',
      J(prep));
 
   /* X3 申請の跡（ever_applied）は、画像と申請の行が消えても・取り消されても残る（会員一覧だけ・古い申し込みだけの人には付かない） */
@@ -3743,37 +3787,89 @@ console.log('\n▼ 決める口（10-a）も同じ決まり ── 画像なし�
      '★X3 画像の面で決めた人には、画像も申請の行も消えたあと（取り消されたあとも）承認の表に「申請したことがある」（ever_applied）が残る・会員一覧から決めただけの人と古い申し込みだけの人には付かない',
      J(x3));
 
-  /* X1 決める口の承認 ── 申請の跡がある人は、どれも画像なしでは通さない（何も書かない） */
+  /* ★Q1 = 2（P12.61）: 印 image_verified が付くのは、申請してきた人の道で、画像が在るまま「verified」を押して状態が変わったときだけ。
+       見送り（PD・PR・上の節の APP6）・いま verified の人の申請への「見送り」（P12.17 の APP4 ── 承認の行に1文字も触らない）・会員一覧から
+       決めただけ（PN・上の節の NEV）・古い申し込みだけ（PO・PQ）には付かない。取り消しても・また申請して見送られても消えない（PV・PVD・PVW） */
+  const m1 = { pv: await seen(PV), pvd: await seen(PVD), pvw: await seen(PVW), app5: await seen('00000000-0000-4000-8000-0000000000d4'),
+               pd: await seen(PD), pr: await seen(PR), app6: await seen('00000000-0000-4000-8000-0000000000d5'),
+               app4: await seen('00000000-0000-4000-8000-0000000000d3'), pn: await seen(PN), nev: await seen('00000000-0000-4000-8000-0000000000d6'),
+               po: await seen(PO), pq: await seen(PQ), pa: await seen(PA), pn0: await seen(PN0) };
+  ok(J(m1) === J({ pv: true, pvd: true, pvw: true, app5: true, pd: false, pr: false, app6: false, app4: false, pn: false, nev: false,
+                   po: false, pq: false, pa: null, pn0: null }),
+     '★Q1=2 「画像を見て verified にした」の印（image_verified）は、画像の面の「verified」で状態が変わった人（PV・PVD・PVW・APP5）にだけ付き、取り消し・また申請・見送りのあとも残る／見送られた人・verified の人の申請への「見送り」（P12.17）・会員一覧から決めただけの人・古い申し込みだけの人には付かない',
+     J(m1));
+
+  /* X1 決める口の承認 ── 画像で verified にして取り消した人のほかの申請の跡は、どれも画像なしでは通さない（何も書かない） */
   const w1 = await world();
   const dec = { pa: await decide(PA, 'approved'), pd: await decide(PD, 'approved'), pr: await decide(PR, 'approved'),
-                pv: await decide(PV, 'approved'), po: await decide(PO, 'approved') };
-  const lk1 = [await locked(PA), await locked(PD), await locked(PR), await locked(PV), await locked(PO)];
+                po: await decide(PO, 'approved'), pq: await decide(PQ, 'approved'), pl: await decide(PL, 'approved'),
+                pvd: await decide(PVD, 'approved'), pvw: await decide(PVW, 'approved') };
+  const lk1 = [await locked(PA), await locked(PD), await locked(PR), await locked(PO), await locked(PQ), await locked(PL), await locked(PVD), await locked(PVW)];
   ok(J(dec.pa) === R('use_image') && J(dec.pd) === R('applied_denied') && J(dec.pr) === R('use_image')
-     && J(dec.pv) === R('no_image') && J(dec.po) === R('no_image') && (await world()) === w1 && lk1.every(Boolean),
-     '★X1 決める口で承認しようとすると：申請が待っている人 → use_image・見送られた人 → applied_denied・見送られてまた申請した人 → use_image・画像で verified にして取り消された人 → no_image（Q-VP2 の答え待ち＝厳しい側）・古い申し込みだけの人 → no_image。どれも名簿・画像・申請を1文字も変えない・ホテルは読めないまま',
+     && J(dec.po) === R('no_image') && J(dec.pq) === R('no_image') && J(dec.pl) === R('no_image')
+     && J(dec.pvd) === R('applied_denied') && J(dec.pvw) === R('use_image') && (await world()) === w1 && lk1.every(Boolean),
+     '★X1 決める口で承認しようとすると：申請が待っている人 → use_image・見送られた人 → applied_denied・見送られてまた申請した人 → use_image・古い申し込みだけの人 → no_image・古い申し込みの行で承認されて取り消された人 → no_image・印を足す前に画像で verified にされた人 → no_image（推測で戻さない）・画像で verified にしたことがあっても、そのあと画像を見て見送られた人 → applied_denied・また申請して待っている人 → use_image。どれも名簿・画像・申請を1文字も変えない・ホテルは読めないまま',
      J({ dec, lk1 }));
 
-  /* X2 同じ人には同じ答え ── 会員一覧の verified も、5人それぞれに決める口と1文字も同じ断りを返す（何も書かない） */
+  /* X2 同じ人には同じ答え ── 会員一覧の verified も、8人それぞれに決める口と1文字も同じ断りを返す（何も書かない） */
   const ver = { pa: await verify(PA, 'approved', 'member'), pd: await verify(PD, 'approved', 'member'), pr: await verify(PR, 'approved', 'member'),
-                pv: await verify(PV, 'approved', 'member'), po: await verify(PO, 'approved', 'member') };
+                po: await verify(PO, 'approved', 'member'), pq: await verify(PQ, 'approved', 'member'), pl: await verify(PL, 'approved', 'member'),
+                pvd: await verify(PVD, 'approved', 'member'), pvw: await verify(PVW, 'approved', 'member') };
   const diff = Object.keys(dec).filter((k) => J(dec[k]) !== J(ver[k]));
-  ok(diff.length === 0 && Object.keys(ver).length === 5 && Object.values(ver).every((v) => v && v.ok === false) && (await world()) === w1,
-     '★X2 同じ人には同じ答え：会員一覧の verified（via member）と決める口が、5人それぞれに1文字も同じ断りを返す・どちらも何も書かない',
+  ok(diff.length === 0 && Object.keys(ver).length === 8 && Object.values(ver).every((v) => v && v.ok === false) && (await world()) === w1,
+     '★X2 同じ人には同じ答え：会員一覧の verified（via member）と決める口が、8人それぞれに1文字も同じ断りを返す・どちらも何も書かない',
      J({ diff, ver }));
 
   /* ★Q1（2026-10-18・P12.60・P12.52 の 13y）: 会員一覧の行の印 reapply ── 画像なしでは verified にできず、いま待っている申請（画像）も
        無い人だけ true（＝ 管理ページはその行に verified を置かず、マイページから新しい画像が要ると言う）。会員一覧の verified が
        applied_denied ／ no_image で断る人と1人も違わない（同じ1か所 pv_stay_image_needed）。申請が待っている人（use_image）は false
-       （行の verified は画像の面を開く）。一度も申請していない人は false（P12.47）。返すのは true / false だけ（理由も時刻も返さない） */
+       （行の verified は画像の面を開く）。一度も申請していない人は false（P12.47）。画像で verified にして取り消した人も false
+       （P12.61 Q1 = 2 ── 行の verified で画像なしに戻せる）。返すのは true / false だけ（理由も時刻も印も返さない） */
   const memQ1 = ((await rpc(OP, 'pv_stay_members', {})).rows || []).filter((x) => PEOPLE.includes(x.id));
   const raQ1 = Object.fromEntries(memQ1.map((x) => [x.id, x.reapply]));
-  const byVer = Object.fromEntries([[PA, ver.pa], [PD, ver.pd], [PR, ver.pr], [PV, ver.pv], [PO, ver.po]]
+  const byVer = Object.fromEntries([[PA, ver.pa], [PD, ver.pd], [PR, ver.pr], [PO, ver.po], [PQ, ver.pq], [PL, ver.pl], [PVD, ver.pvd], [PVW, ver.pvw]]
     .map(([id, v]) => [id, ['applied_denied', 'no_image'].includes(status(v))]));
-  ok(memQ1.length === 7 && J(Object.keys(byVer).map((id) => raQ1[id])) === J(Object.values(byVer))
-     && J([raQ1[PD], raQ1[PV], raQ1[PO], raQ1[PA], raQ1[PR], raQ1[PN], raQ1[PN0]]) === J([true, true, true, false, false, false, false])
+  ok(memQ1.length === 11 && J(Object.keys(byVer).map((id) => raQ1[id])) === J(Object.values(byVer))
+     && J([raQ1[PD], raQ1[PO], raQ1[PQ], raQ1[PL], raQ1[PVD], raQ1[PV], raQ1[PA], raQ1[PR], raQ1[PVW], raQ1[PN], raQ1[PN0]])
+        === J([true, true, true, true, true, false, false, false, false, false, false])
      && memQ1.every((x) => typeof x.reapply === 'boolean' && keys(x) === 'applied,company,email,id,name,position,reapply,state'),
-     '★Q1 会員一覧の行の reapply は、会員一覧の verified が断る人（見送られた PD・画像で verified にして取り消された PV・古い申し込みだけの PO）だけ true・申請が待っている PA・PR と、一度も申請していない PN・PN0 は false（true / false だけ・欄は8つ）',
+     '★Q1 会員一覧の行の reapply は、会員一覧の verified が断る人（見送られた PD・PVD・古い申し込みの PO・PQ・印を足す前に画像で verified にされた PL）だけ true・画像で verified にして取り消された PV（Q1 = 2 で戻せる）・申請が待っている PA・PR・PVW と、一度も申請していない PN・PN0 は false（true / false だけ・欄は8つ）',
      J({ raQ1, byVer }));
+
+  /* ★Q1 = 2（P12.61）: オーナーが画像を見て verified にしたあと取り消した人（PV）は、新しい画像なしで verified に戻せる
+       ── オーナーが押したときだけ（自動では戻らない）。決める口でも会員一覧の verified でも同じ答え。画像も申請も作らない・印は消えない */
+  const atV = (await one(`select decided_at::text as t from public.pv_stay_viewers where user_id = $1`, [PV])).t;
+  const lkV = await locked(PV);
+  const dV = await decide(PV, 'approved');
+  const rV = await one(`select state, decided_by, ever_applied, image_verified, decided_at::text as t from public.pv_stay_viewers where user_id = $1`, [PV]);
+  const newerV = (await one(`select $1::timestamptz > $2::timestamptz as n`, [rV.t, atV])).n;
+  ok(lkV && J(dV) === REQ('approved') && rV.state === 'approved' && rV.decided_by === OP && rV.ever_applied === true && rV.image_verified === true
+     && newerV === true && (await imgsOf(PV)) === 0 && (await offerOf(PV)) === 0 && (await stays(PV)).state === 'open',
+     '★Q1=2 画像で verified にしたあと取り消した PV（ホテルは読めない）を、オーナーが決める口で承認すると、新しい画像なしで verified に戻る（決めた人 OP・時刻は新しくなる・2つの印はそのまま・画像も申請も作らない）・ホテルが読める',
+     J({ lkV, dV, rV, newerV }));
+  const rk1 = await verify(PV, 'revoked', 'member');
+  const lk2 = await locked(PV), mr2 = await memRow(PV);
+  const vV = await verify(PV, 'approved', 'member');
+  const mr3 = await memRow(PV);
+  ok(J(rk1) === J(OKV('revoked', 0)) && lk2 && !!mr2 && mr2.state === 'revoked' && mr2.reapply === false && mr2.applied === false
+     && J(vV) === J(OKV('approved', 0)) && vV.state === dV.state && (await stays(PV)).state === 'open'
+     && (await seen(PV)) === true && (await mark(PV)) === true && !!mr3 && mr3.state === 'approved' && mr3.reapply === false,
+     '★Q1=2 同じ人に会員一覧の verified も同じ答え：取り消すと会員一覧の行は reapply が false（押せる「verified」）・押すと画像なしで approved・ホテルが読める・戻しても取り消しても印は消えない',
+     J({ rk1, mr2, vV, mr3 }));
+  /* 戻せるのは、取り消したいまのオーナーだけ ── オーナーが替わると（10-b の1行を別のメールアドレスで流す）、前のオーナーが取り消した人は
+     画像なしでは戻せない（前のオーナーの承認が効かないのと同じ）。何も書かない */
+  const rk2 = await verify(PV, 'revoked', 'member');
+  await db.exec(OWNER_LINE.split(OWNER_PLACEHOLDER).join('v2@example.com'));
+  const w4 = await world();
+  const o4 = { owner: await ownerNow(), dec: await rpc(V2, 'pv_stay_viewer_decide', { id: PV, state: 'approved' }),
+               ver: await rpc(V2, 'pv_stay_viewer_verify', { id: PV, state: 'approved', via: 'member' }),
+               ra: (((((await rpc(V2, 'pv_stay_members', {})) || {}).rows) || []).find((x) => x.id === PV) || {}).reapply };
+  const same4 = (await world()) === w4, lk4 = await locked(PV);
+  await db.exec(OWNER_LINE.split(OWNER_PLACEHOLDER).join('ops@example.com'));
+  ok(J(rk2) === J(OKV('revoked', 0)) && J(o4.owner) === J([V2]) && J(o4.dec) === R('no_image') && J(o4.ver) === R('no_image') && o4.ra === true
+     && same4 && lk4 && J(await ownerNow()) === J([OP]),
+     '★Q1=2 戻せるのは取り消したいまのオーナーだけ：オーナーが替わると（V2）、PV は決める口でも会員一覧でも no_image・会員一覧の reapply は true・何も書かない・ホテルは読めない（オーナーを OP に戻した）',
+     J(o4));
 
   /* X1 一度も申請していない人は、決める口でも画像なしで承認できる（P12.47）。決める口の書き方（決めた人・時刻）もここで見る */
   const at0 = (await one(`select decided_at::text as t from public.pv_stay_viewers where user_id = $1`, [PN])).t;
@@ -3795,23 +3891,27 @@ console.log('\n▼ 決める口（10-a）も同じ決まり ── 画像なし�
      '（承認の行が無い人 PN0：決める口は今までどおり not_found・行も作らない（行の無い人はこの口では決めない）／会員一覧の verified は画像なしで承認できる（P12.47））',
      J({ dN0, rN0, vN0 }));
 
-  /* X3 貼り直しても申請の跡は残る（serve-local は立ち上げるたびに、本番はオーナーが貼るたびに全部流す） */
+  /* X3 貼り直しても2つの印は残る（serve-local は立ち上げるたびに、本番はオーナーが貼るたびに全部流す） */
   let e3 = '';
   try { await db.exec(STAYS_SQL); } catch (err) { e3 = String(err.message); }
-  const again = [await mark(PV), await mark(PD), J(await decide(PV, 'approved')), J(await verify(PV, 'approved', 'member'))];
-  ok(e3 === '' && J(again) === J([true, true, R('no_image'), R('no_image')]) && (await locked(PV)),
-     '★X3 SQL を貼り直しても、承認の表の「申請したことがある」は残る（画像で verified にして取り消された PV は、貼り直したあとも決める口・会員一覧のどちらでも no_image）',
+  const again = [await mark(PV), await seen(PV), await mark(PD), await seen(PD), await seen(PL),
+                 J(await decide(PL, 'approved')), J(await verify(PL, 'approved', 'member')), J(await verify(PV, 'approved', 'member'))];
+  ok(e3 === '' && J(again) === J([true, true, true, false, false, R('no_image'), R('no_image'), J(OKV('approved', 0))])
+     && (await locked(PL)) && (await stays(PV)).state === 'open',
+     '★X3 SQL を貼り直しても、承認の表の2つの印は残る（画像で verified にして取り消された PV は貼り直したあとも画像なしで戻せる・印を足す前に画像で verified にされた PL は決める口・会員一覧のどちらでも no_image のまま）',
      J({ e3, again }));
 
   /* X4 戻る道は画像の面（申請してきた人の道。今までどおり）── もう一度申請すれば verified にできる・画像はその場で消える */
+  const rvX = await verify(PV, 'revoked', 'member');
   const aV = await apply(PV), xV = await verify(PV, 'approved', 'applicant');
   const aO = await apply(PO), xO = await verify(PO, 'approved', 'applicant');
-  ok(J(aV) === OFFERED && J(xV) === J({ ok: true, state: 'approved', discarded: 1 }) && (await imgsOf(PV)) === 0 && (await stays(PV)).state === 'open'
+  ok(J(rvX) === J(OKV('revoked', 0))
+     && J(aV) === OFFERED && J(xV) === J({ ok: true, state: 'approved', discarded: 1 }) && (await imgsOf(PV)) === 0 && (await stays(PV)).state === 'open'
      && (await mark(PV)) === true
      && J(aO) === OFFERED && J(xO) === J({ ok: true, state: 'approved', discarded: 1 }) && (await imgsOf(PO)) === 0 && (await stays(PO)).state === 'open'
-     && (await mark(PO)) === true,
-     'X4 画像で決めたあと取り消された人・古い申し込みだけの人も、マイページからもう一度申請すれば、画像の面から verified にできる（今までどおり・画像はその場で消える・申請の跡が付く）',
-     J({ aV, xV, aO, xO }));
+     && (await mark(PO)) === true && (await seen(PO)) === true,
+     'X4 画像で決めたあと取り消された人・古い申し込みだけの人も、マイページからもう一度申請すれば、画像の面から verified にできる（今までどおり・画像はその場で消える・申請の跡と「画像を見て verified にした」の印が付く）',
+     J({ rvX, aV, xV, aO, xO }));
   const raX4 = Object.fromEntries((((await rpc(OP, 'pv_stay_members', {})).rows) || []).filter((x) => x.id === PV || x.id === PO).map((x) => [x.id, [x.state, x.reapply]]));
   ok(J(raX4[PV]) === J(['approved', false]) && J(raX4[PO]) === J(['approved', false]),
      'Q1 もう一度申請して画像の面から verified になった PV・PO は、会員一覧で reapply が false に戻る（行は verified の印と「取り消す」）', J(raX4));

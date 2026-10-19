@@ -1048,7 +1048,8 @@ async function ownerChecks(page, lang) {
      && JSON.stringify(none5.filter((x) => x[0] === 'apps')) === JSON.stringify([['apps', W.none]]),
      `★O5 画像の面の「${W.decline}」は {id, state:denied, via:applicant} だけ・申請が無くなると「${W.none}」`, JSON.stringify({ v5: v5[1], none5 }));
   /* T6（WP-towns-13w・P12.46）画像を見て見送った人（A2）の会員一覧の行には「verified」が無い（「見送り」の印・押せる所なし）。
-     ★Q1（2026-10-18）：その行にも、次にすること（本人がマイページから新しい画像を出す）をオーナーだけの文で書く（サーバーの reapply） */
+     ★Q1（2026-10-18）：その行にも、次にすること（本人がマイページから新しい画像を出す）をオーナーだけの文で書く（サーバーの reapply）。
+     ★Q1 = 2（P12.61）で戻せるようになったのは「画像を見て verified にしたあと取り消した人」だけ ── 見送った人はこのまま（下の ★Q1=2 と対） */
   const m6 = await info(memSel(A2));
   const m6s = await page.evaluate((s) => { const li = document.querySelector(s), r = li && li.querySelector('[data-adm="reapply"]');
     return { say: r ? r.textContent : null, visible: !!r && !r.hidden && r.getClientRects().length > 0, text: li ? li.textContent : '' }; }, memSel(A2));
@@ -1060,10 +1061,11 @@ async function ownerChecks(page, lang) {
   ok(JSON.stringify(f6) === JSON.stringify(['LI', 'member', A2]),
      'T6 見送ったあと、フォーカスはその人の会員一覧の行（ボタンが無いので行そのもの）', JSON.stringify(f6));
 
-  /* ★Q1（2026-10-18・P12.60・P12.52 の 13y）：画像を見て verified にしたあと取り消した人など、サーバーが「画像なしでは verified に
-       できず、待っている申請も無い」（reapply）と返した人の行には「verified」が無い。押しても断られるだけのボタンを置かず、
-       なぜできないかと次にすること（本人がマイページから新しい画像を出す）をオーナーだけの文で書く。「もう表示できないものです。」は出ない。
-       一度も申請していない人（reapply なし）は今までどおり行の「verified」（O6・P12.47） */
+  /* ★Q1（2026-10-18・P12.60・P12.52 の 13y）：サーバーが「画像なしでは verified にできず、待っている申請も無い」（reapply）と返した人
+       （古い申し込みの行の人・画像で verified になったことのない申請の跡がある人など）の行には「verified」が無い。押しても断られるだけの
+       ボタンを置かず、なぜできないかと次にすること（本人がマイページから新しい画像を出す）をオーナーだけの文で書く。「もう表示できないものです。」は出ない。
+       一度も申請していない人（reapply なし）は今までどおり行の「verified」（O6・P12.47）。画像で verified にして取り消した人は
+       reapply が false で、行の「verified」で戻せる（P12.61 Q1 = 2 ── 下の ★Q1=2） */
   const M7 = OW + '7';
   await page.evaluate((id) => {
     window.__o.members.push({ id, email: 'reapply@example.com', name: 'Revoked Pilot', company: null, position: null, state: 'revoked', applied: false, reapply: true });
@@ -1113,6 +1115,28 @@ async function ownerChecks(page, lang) {
      && !!m5b && JSON.stringify(m5b.tags) === JSON.stringify([W.verified]) && JSON.stringify(m5b.btns) === JSON.stringify([['revoke', W.revoke]]),
      `★T5 見送られたあとでまた申請した人も、会員一覧では「${W.applied}」だけ・行の「${W.verified}」は画像の面を開く（その時点では何も送らない）・面の「${W.verified}」は {id, state:approved, via:applicant} だけを1回`,
      JSON.stringify({ m5, sent: v5e.slice(v5c), m5b }));
+
+  /* ★Q1=2（2026-10-18・P12.61 オーナーの答え Q1 = 2）：画像を見て verified にした人（A1 ── O4 で画像の面から verified）を「取り消す」と、
+       行は押せる「verified」に戻る（サーバーの reapply は false ── 新しい画像なしで戻せる）。断りの1文も「もう表示できないものです。」も出ない。
+       押すと {id, state:'approved', via:'member'} だけを1回送り（オーナーが押したときだけ戻る）、行は「verified」の印と「取り消す」。
+       画像を見て見送った人（A2）の行は今までどおりボタンなし（T6） */
+  const vq0 = (await calls('pv_stay_viewer_verify')).length;
+  await page.click(memSel(A1) + ' [data-act="revoke"]');
+  /* 待ちで止めない（戻らなければ、この下の1行が赤くなる） */
+  await page.waitForFunction((s) => { const li = document.querySelector(s); return li && (li.querySelector('[data-act="verify"]') || li.querySelector('[data-adm="reapply"]')); }, { timeout: 10000 }, memSel(A1)).catch(() => {});
+  const q2a = await info(memSel(A1));
+  const q2s = await page.evaluate((s) => { const li = document.querySelector(s); return { line: !!(li && li.querySelector('[data-adm="reapply"]')), text: li ? li.textContent : '' }; }, memSel(A1));
+  await page.click(memSel(A1) + ' [data-act="verify"]').catch(() => {});
+  await page.waitForFunction((s) => { const li = document.querySelector(s); return li && li.querySelector('[data-act="revoke"]'); }, { timeout: 10000 }, memSel(A1)).catch(() => {});
+  const vq1 = await calls('pv_stay_viewer_verify'), q2b = await info(memSel(A1)), m6c = await info(memSel(A2));
+  ok(!!q2a && JSON.stringify(q2a.tags) === '[]' && JSON.stringify(q2a.btns) === JSON.stringify([['verify', W.verified]]) && !q2s.line
+     && !q2s.text.includes(OWN_SAY[lang].reapply) && !q2s.text.includes(NF0)
+     && vq1.length === vq0 + 2 && canon(vq1[vq0]) === canon({ p: { id: A1, state: 'revoked', via: 'member' } })
+     && canon(vq1[vq0 + 1]) === canon({ p: { id: A1, state: 'approved', via: 'member' } })
+     && !!q2b && JSON.stringify(q2b.tags) === JSON.stringify([W.verified]) && JSON.stringify(q2b.btns) === JSON.stringify([['revoke', W.revoke]])
+     && !!m6c && JSON.stringify(m6c.tags) === JSON.stringify([W.decline]) && JSON.stringify(m6c.btns) === '[]',
+     `★Q1=2 画像を見て「${W.verified}」にした人を「${W.revoke}」にすると、行は押せる「${W.verified}」に戻る（断りの1文も「${NF0}」も出ない）・押すと {id, state:approved, via:member} だけを送り、行は「${W.verified}」の印と「${W.revoke}」（画像を見て「${W.decline}」にした人の行は今までどおりボタンなし）`,
+     JSON.stringify({ q2a, line: q2s.line, sent: vq1.slice(vq0), q2b, m6c }));
 
   /* O8 断られたとき（pv_stay_viewer_verify が返しうる理由ごと）── サイトに在る一言（無ければ FAIL）。status の名前は出ない */
   const NF = EN ? EN_SAY.not_found : CS.mod.not_found, FL = EN ? EN_FAIL : CS.fail;
@@ -1213,7 +1237,7 @@ for (const lang of ['ja', 'en']) {
                   { id: OW + '1', email: quoted + '@example.com', name: hostile, company: 'Sample Air', position: 'captain', state: 'none', applied: true },
                   { id: OW + '3', email: 'approved@example.com', name: 'Approved Pilot', company: 'Other Air', position: 'fo', state: 'approved', applied: false },
                   { id: OW + '4', email: 'plain@example.com', name: 'Plain Member', company: null, position: 'cadet', state: 'revoked', applied: false }],
-        ever: [], fail: false, lastB64: null
+        ever: [], img: [], fail: false, lastB64: null
       };
       /* 「FIXTURE」と書いた絵を JPEG にし、サーバー（encode(…, 'base64')）と同じく76字ごとに改行を入れて返す */
       const fixture = () => {
@@ -1291,14 +1315,21 @@ for (const lang of ['ja', 'en']) {
           /* WP-towns-13w（P12.46）：会員一覧からは、申請が待っている人・画像を見て見送った人を通さない（何も変えない） */
           if (p.via === 'member' && p.state === 'approved' && (app || m.applied)) return { ok: false, status: 'use_image' };
           if (p.via === 'member' && p.state === 'approved' && m.state === 'denied') return { ok: false, status: 'applied_denied' };
+          /* 画像なしでは verified にできない人か（db/stays.sql の pv_stay_image_needed と同じ決め方）：見送られた人と、画像の面で決めたことが
+             ある人（申請の跡 o.ever。行には入れず、ここでだけ持つ）。ただし画像を見て verified にした人（o.img）を取り消したときだけは、
+             画像なしで戻せる（P12.61 Q1 = 2）。一度も申請していない人は通す（P12.47） */
+          const needs = (x) => x.state === 'denied' || (o.ever.includes(x.id) && !(x.state === 'revoked' && o.img.includes(x.id)));
+          if (p.via === 'member' && p.state === 'approved' && needs(m)) return { ok: false, status: 'no_image' };
           let to = p.state;
           if (to === 'denied' && m.state === 'approved') to = 'approved';
+          const was = m.state;
           m.state = to; m.applied = false;
           o.apps = o.apps.filter((x) => x.id !== p.id);
-          /* 会員一覧の印 reapply（Q1・2026-10-18）もサーバーと同じ決め方：画像の面で決めたことがある人（申請の跡。行には入れず、
-             ここでだけ持つ）と、見送られた人は、verified でないあいだ true。一度も申請していない人は false */
+          /* 会員一覧の印 reapply（Q1・2026-10-18）もサーバーと同じ決め方：verified でないあいだ、上の needs のとおり。
+             「画像を見て verified にした」の印は、画像の面の「verified」で状態が変わったときだけ（見送り・会員一覧の道では付かない） */
           if (p.via === 'applicant' && !o.ever.includes(p.id)) o.ever.push(p.id);
-          m.reapply = to !== 'approved' && (to === 'denied' || o.ever.includes(p.id));
+          if (p.via === 'applicant' && p.state === 'approved' && was !== 'approved' && !o.img.includes(p.id)) o.img.push(p.id);
+          m.reapply = to !== 'approved' && needs(m);
           return { ok: true, state: to, discarded: app ? 1 : 0 };
         }
       };

@@ -383,10 +383,19 @@ create table if not exists public.pv_stay_viewers (
 -- あとから足した列（2026-10-17・P12.51）。表が前から在る所へ貼り直しても入るように、ここで足す。
 --   ever_applied  画像つきの申請（10-c）を、オーナーが決めて終えたことがあるか（true / false だけ。時刻も画像も持たない）。
 --                 申請の行と画像は決めた瞬間に消えるので、「申請したことがある」はここにだけ残る。
---                 ★申請したことのある人は、画像を見ずには承認しない（10-a-2b の pv_stay_image_needed）。
+--                 ★申請したことのある人は、画像を見ずには承認しない（10-a-2b の pv_stay_image_needed。例外は下の image_verified だけ）。
 --                 ★どの関数も画面へ返さない。書くのは verified（10-c-5）の承認の行の1文だけ・false に戻す道は無い
 --                   （取り消し・見送り・オーナーを替える・貼り直す、のどれでも残る）。
 alter table public.pv_stay_viewers add column if not exists ever_applied boolean not null default false;
+-- あとから足した列（2026-10-18・P12.61 オーナーの答え Q1 = 2）。
+--   image_verified  オーナーが申請の画像を見て verified にしたことがあるか（true / false だけ。時刻も画像も持たない）。
+--                   ★ これが true で、いまのオーナーが取り消した人だけは、新しい画像なしで verified に戻せる（オーナーが押したときだけ。
+--                     10-a-2b の pv_stay_image_needed）。画像を見て見送った人・古い申し込みの行・画像で verified になったことのない人には付かない。
+--                   ★ 書くのは verified（10-c-5）の承認の行の1文だけ ── 申請してきた人の道で、画像が在るまま「verified」を押して状態が
+--                     変わったときだけ true。false に戻す道は無い（取り消し・見送り・オーナーを替える・貼り直す、のどれでも残る）。
+--                   ★ どの関数も画面へ返さない（会員一覧が返すのは、今までどおり reapply の true / false だけ）。
+--                   ★ この列を足す前に画像で verified にした行は false のまま（推測で埋めない ＝ その人は今までどおり新しい画像が要る）。
+alter table public.pv_stay_viewers add column if not exists image_verified boolean not null default false;
 
 alter table public.pv_stay_owner   drop constraint if exists pv_stay_owner_one_ck;
 alter table public.pv_stay_viewers drop constraint if exists pv_stay_viewers_state_ck;
@@ -2773,6 +2782,7 @@ comment on function public.pv_stay_airports(jsonb) is
 -- ★ 2026-10-16 から画面はこの節を呼ばない。申請（画像つき）と verified は 10-c。
 -- ★ 2026-10-17（P12.51）から、この節の決める口も「画像を見ずに承認しない」に従う（10-a-2b。会員一覧の verified と同じ1か所）。
 --   この節の申し込みで申し込んだ人・見送った人・画像を見て決めたことのある人は、ここでは承認されない（画像の面からだけ）。
+--   ただし、画像を見て verified にしたあといまのオーナーが取り消した人は、ここでも画像なしで戻せる（P12.61 Q1 = 2。同じ1か所）。
 --   見送り・取り消しは今までどおり。口そのものは消さない。
 -- 3本とも authenticated にだけ配る（未ログインには配らない）。
 -- ★ 一覧の口と決める口は、オーナーでなければ**何も読まずに** forbidden を返す。
@@ -2904,15 +2914,18 @@ comment on function public.pv_stay_viewer_queue() is
   'ステイ情報を見てよい人の申し込みの一覧。オーナーだけ（運営でも、オーナーでなければ forbidden）。id・メールアドレス・プロフィールに本人が書いた言葉・いまのオーナーにとっての状態・時期の段（0〜4）。時刻は返さない。';
 
 -- 10-a-2b. 画像を見ずに承認してよい人か（★決める口 10-a-3 と、verified の会員一覧の道 10-c-5 が、同じこれを呼ぶ）── P12.51
--- 「画像を見ずに承認してよい」のは、一度も申請していない人だけ（オーナーの答え P12.47「1よい」）。
--- 申請したことのある人は、オーナーが画像を見て決める（それが見てよい理由。P12.46）。
+-- 「画像を見ずに承認してよい」のは、一度も申請していない人（オーナーの答え P12.47「1よい」）と、
+-- オーナーが画像を見て verified にしたあと、いまのオーナーが取り消した人（オーナーの答え P12.61 Q1 = 2。印 image_verified）だけ。
+-- ほかに申請したことのある人は、オーナーが画像を見て決める（それが見てよい理由。P12.46）。
 -- 引数: p_id（その人の user_id）
--- 返り値: null ＝ 画像なしで承認してよい（申請の跡が無い・または、いまのオーナーがもう承認している ＝ 何も変わらない）
---   'use_image'       申請（画像）が待っている ── 画像の面（10-c-5 の via 'applicant'）から決める
+-- 返り値: null ＝ 画像なしで承認してよい（申請の跡が無い・画像で verified にして取り消した人・または、いまのオーナーがもう承認している ＝ 何も変わらない）
+--   'use_image'       申請（画像）が待っている ── 画像の面（10-c-5 の via 'applicant'）から決める（画像で verified にしたことがある人も同じ）
 --   'applied_denied'  申請を見送られた（決めたのがどのオーナーでも）── 画像なしでは通さない。本人はマイページからまた申請できる
+--                     （前に画像で verified にしたことがある人でも、そのあと画像を見て見送ったなら同じ）
 --   'no_image'        ほかの申請の跡がある（10-a-1 の申し込みの行が在る・画像を見て決めたことがある ever_applied）。
 --                     いまは画像が無いので、画像なしでは決めない ── 本人がもう一度申請する
---   ★ 画像を見て verified にしたあと取り消した人も「申請の跡がある」に入る（オーナーへの質問 Q-VP2 の答えを待つあいだは厳しい側）。
+--   ★ 画像で verified にしたあと取り消した人が null になるのは、取り消したのがいまのオーナーのときだけ（オーナーが替わったら no_image ──
+--     前のオーナーの承認が効かないのと同じ）。自動では戻さない（null は「オーナーが押せば通る」であって、ここは何も書かない）。
 -- ★ 読むのは承認の表の本人の1行と、申請の一覧（db/proof-offer.sql。無ければ画像は「無い」）だけ。何も書かない。
 -- ★ 誰にも配らない（呼ぶのは 10-a-3 と 10-c-5 の security definer の中だけ。ほかに 10-c-4 の会員一覧が、行の印 reapply を作るために読む ── 承認はしない）。
 create or replace function public.pv_stay_image_needed(p_id uuid)
@@ -2943,6 +2956,10 @@ begin
   if v_row.state = 'denied' then
     return 'applied_denied';
   end if;
+  -- ★Q1 = 2（P12.61）: オーナーが画像を見て verified にした人を、いまのオーナーが取り消した ── 画像なしで戻してよい
+  if v_row.state = 'revoked' and v_row.decided_by = public.pv_stay_owner_id() and v_row.image_verified then
+    return null;
+  end if;
   if v_row.state = 'pending' or v_row.asked_at is not null or v_row.ever_applied then
     return 'no_image';
   end if;
@@ -2953,7 +2970,7 @@ $fn$;
 revoke all on function public.pv_stay_image_needed(uuid) from public, anon, authenticated;
 
 comment on function public.pv_stay_image_needed(uuid) is
-  '画像を見ずに承認してよい人か（null ＝ よい）。よいのは一度も申請していない人だけ。申請が待っている → use_image・見送られた → applied_denied・ほかに申請の跡がある（申し込みの行・画像を見て決めたことがある）→ no_image。決める口と verified の会員一覧の道が同じこれを呼ぶ。誰にも配らない。';
+  '画像を見ずに承認してよい人か（null ＝ よい）。よいのは一度も申請していない人と、画像を見て verified にしたあといまのオーナーが取り消した人（image_verified）だけ。申請が待っている → use_image・見送られた → applied_denied・ほかに申請の跡がある（申し込みの行・画像を見て決めたことがある）→ no_image。決める口と verified の会員一覧の道が同じこれを呼ぶ。誰にも配らない。';
 
 -- 10-a-3. 決める（オーナーだけ）
 -- 引数: p = {id:<その人の user_id>, state:'approved'|'denied'|'revoked'}
@@ -2967,8 +2984,10 @@ comment on function public.pv_stay_image_needed(uuid) is
 --   決めた → {ok:true, state}（決めた人 decided_by ＝ オーナー・決めた時刻 decided_at ＝ now()）
 -- 動かせるのは（「いまの状態」は、いまのオーナーにとっての状態。前のオーナーが決めた行は 'pending'）:
 --   'pending' → 'approved' か 'denied'／'approved' → 'revoked'／'denied'・'revoked' → 'approved'
---   ★ 'approved' へ動かせるのは、10-a-2b が「画像なしで承認してよい」と答えた人だけ（一度も申請していない人）。
---     この節の申し込みで申し込んだ人・見送った人・画像を見て決めたことのある人は、画像の面（10-c-5）からだけ。
+--   ★ 'approved' へ動かせるのは、10-a-2b が「画像なしで承認してよい」と答えた人だけ（一度も申請していない人と、
+--     画像を見て verified にしたあといまのオーナーが取り消した人 ── P12.61 Q1 = 2）。
+--     この節の申し込みで申し込んだ人・見送った人・ほかに画像を見て決めたことのある人は、画像の面（10-c-5）からだけ。
+--     ★ 戻すときも印（image_verified・ever_applied）には触らない（この口は印を書かない）。
 --   ★ 見送り（'denied'）と取り消し（'revoked'）は今までどおり。
 --   ★ いまと同じ状態を指定したら、何も書かずに {ok:true, state} を返す（2回押しても壊れない）。
 -- ★ 承認を取り消すと、その人は次に呼んだ瞬間から locked（pv_stay_sees は呼ばれるたびに表を読む）。
@@ -3042,7 +3061,7 @@ revoke all on function public.pv_stay_viewer_decide(jsonb) from public, anon;
 grant execute on function public.pv_stay_viewer_decide(jsonb) to authenticated;
 
 comment on function public.pv_stay_viewer_decide(jsonb) is
-  'ステイ情報を見てよい人を決める（承認・見送り・取り消し）。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。行が無ければ not_found。オーナー自身は self。承認は、一度も申請していない人だけ（申請が待っている → use_image・見送った → applied_denied・ほかに申請の跡がある → no_image。会員一覧の verified と同じ1か所 pv_stay_image_needed で決める・何も書かない）。決めた人と時刻を必ず書く。';
+  'ステイ情報を見てよい人を決める（承認・見送り・取り消し）。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。行が無ければ not_found。オーナー自身は self。承認は、一度も申請していない人と、画像を見て verified にしたあといまのオーナーが取り消した人だけ（申請が待っている → use_image・見送った → applied_denied・ほかに申請の跡がある → no_image。会員一覧の verified と同じ1か所 pv_stay_image_needed で決める・何も書かない）。決めた人と時刻を必ず書く。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -3205,8 +3224,9 @@ comment on function public.pv_stay_applicant_image(jsonb) is
 --            申し込んだだけの行は 'none'）
 --   applied  申請（画像あり）が在るか
 --   reapply  画像なしでは verified にできず、いま待っている申請（画像）も無いか（true / false だけ）。
---            ＝ 会員一覧の verified が断られる人（申請を見送られた・ほかに申請の跡がある ── 画像を見て verified にしたあと
---            取り消された人も。Q-VP2 の答えを待つあいだは厳しい側）。本人がマイページから新しい画像を出すまで、行に verified を置かない。
+--            ＝ 会員一覧の verified が断られる人（申請を見送られた・ほかに申請の跡がある）。本人がマイページから新しい画像を出すまで、
+--            行に verified を置かない。画像を見て verified にしたあといまのオーナーが取り消した人は false（P12.61 Q1 = 2 ──
+--            新しい画像なしで戻せるので、行の verified を押せる）。
 --            決めるのは 10-a-2b の1か所（verified の会員一覧の道と同じ答え）。申請の跡そのもの・時刻・理由は返さない。
 --   ★ オーナー自身は出さない。並びは 申請あり → verified → それ以外、その中はメールの順。1000人まで。
 create or replace function public.pv_stay_members(p jsonb default null)
@@ -3267,12 +3287,15 @@ comment on function public.pv_stay_members(jsonb) is
 --          一度も申請していない人は、画像なしで verified にしてよい（オーナーの答え P12.47「1よい」）。
 --        ★決めるのは 10-a-2b の1か所（10-a-3 の決める口と同じ答え。P12.51）。ほかに申請の跡がある人
 --          （10-a-1 の申し込みの行が在る・画像を見て決めたことがある）も → no_image（何も書かない）。
---          画像を見て verified にしたあと取り消した人も、ここに入る（Q-VP2 の答えを待つあいだは厳しい側）。
+--          ただし、画像を見て verified にしたあと、いまのオーナーが取り消した人は、画像なしで verified に戻せる
+--          （オーナーの答え P12.61 Q1 = 2。オーナーが会員一覧の「verified」を押したときだけ ── 自動では戻さない）。
 -- 返り値: forbidden（★何も読まず・何も書かずに）／self／not_found／bad_state／no_image／use_image／applied_denied／
 --         {ok:true, state, discarded}（discarded ＝ この決定で消えた申請の画像の枚数）
 -- ★ どの決定でも、その人の申請は終わる（画像はその場で消える）。
 -- ★ 申請の画像が在るまま状態を決めたときは、承認の表のその人の行に ever_applied を残す（申請の行と画像は消えても、
 --   「申請したことがある」は消えない。前の印は消さない）。
+-- ★ 申請してきた人の道で、画像が在るまま「verified」を押したときだけ、同じ1文で image_verified も残す（Q1 = 2。前の印は消さない ──
+--   会員一覧から戻しても・取り消しても true のまま。見送りの読み替え（下の P12.17）より前に決めるので、「見送り」では付かない）。
 --   ただし状態を変えない決定（いま verified の人の申請を「見送り」── P12.17）は、承認の行に1文字も触らない（印も書かない）。
 --   verified の人は自分からは申請できない（10-c-1）ので、その形はオーナーを替えて戻したときと、DB の持ち主が作った行にしか無い。
 -- ★ 'denied' でも、いま verified の人は verified のまま（見送りで、見られているものを取り上げない）。
@@ -3292,6 +3315,7 @@ declare
   v_cur   text;
   v_img   boolean;
   v_why   text;
+  v_imgv  boolean;
   v_disc  integer := 0;
 begin
   v_owner := public.pv_stay_owner_id();
@@ -3327,8 +3351,11 @@ begin
   if v_via = 'applicant' and not v_img then
     return jsonb_build_object('ok', false, 'status', 'no_image');
   end if;
-  -- ★会員一覧の verified は、画像を見ずに通す道にしない。画像なしで承認してよいのは一度も申請していない人だけ
-  --   （10-a-3 の決める口と同じ1か所で決める・同じ答えを返す ── P12.51）
+  -- ★画像を見て verified にした印（Q1 = 2・P12.61）。申請してきた人の道で、画像が在るまま「verified」を押したときだけ
+  --   （見送りの読み替え ── 下の P12.17 ── より前に決める。会員一覧の道・見送り・取り消しでは付かない）
+  v_imgv := v_via = 'applicant' and v_to = 'approved' and v_img;
+  -- ★会員一覧の verified は、画像を見ずに通す道にしない。画像なしで承認してよいのは一度も申請していない人と、
+  --   画像を見て verified にしたあといまのオーナーが取り消した人だけ（10-a-3 の決める口と同じ1か所で決める・同じ答えを返す ── P12.51・P12.61）
   if v_via = 'member' and v_to = 'approved' then
     v_why := public.pv_stay_image_needed(v_id);
     if v_why = 'use_image' then
@@ -3350,11 +3377,12 @@ begin
 
   -- 状態を変えない決定（いま verified の人の申請への「見送り」── P12.17）では、承認の行に1文字も触らない（印も書かない）
   if v_to <> v_cur then
-    insert into public.pv_stay_viewers as v (user_id, state, decided_by, decided_at, ever_applied)
-    values (v_id, v_to, auth.uid(), now(), v_img)
+    insert into public.pv_stay_viewers as v (user_id, state, decided_by, decided_at, ever_applied, image_verified)
+    values (v_id, v_to, auth.uid(), now(), v_img, v_imgv)
     on conflict (user_id) do update
        set state = excluded.state, decided_by = excluded.decided_by, decided_at = excluded.decided_at,
-           ever_applied = v.ever_applied or excluded.ever_applied;
+           ever_applied = v.ever_applied or excluded.ever_applied,
+           image_verified = v.image_verified or excluded.image_verified;
   end if;
 
   if to_regprocedure('public.pv_proof_offer_close(uuid)') is not null then
@@ -3368,7 +3396,7 @@ revoke all on function public.pv_stay_viewer_verify(jsonb) from public, anon;
 grant execute on function public.pv_stay_viewer_verify(jsonb) to authenticated;
 
 comment on function public.pv_stay_viewer_verify(jsonb) is
-  'verified（見てよい人にする）・見送り・取り消し。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申請してきた人は画像があるときだけ決める。会員一覧からは、申請が待っている人（use_image）・画像を見て見送った人（applied_denied）・ほかに申請の跡がある人（no_image）を verified にしない（何も書かない。決める口と同じ1か所 pv_stay_image_needed）。どの決定でも申請は終わり、画像はその場で消える（申請したことは ever_applied に残る）。パイロットの確認（pv_proof）を approved にしない。';
+  'verified（見てよい人にする）・見送り・取り消し。オーナーだけ（運営でも、オーナーでなければ forbidden・何も書かない）。申請してきた人は画像があるときだけ決める。会員一覧からは、申請が待っている人（use_image）・画像を見て見送った人（applied_denied）・ほかに申請の跡がある人（no_image）を verified にしない（何も書かない。決める口と同じ1か所 pv_stay_image_needed）。ただし画像を見て verified にしたあといまのオーナーが取り消した人は、画像なしで戻せる。どの決定でも申請は終わり、画像はその場で消える（申請したことは ever_applied に、画像を見て verified にしたことは image_verified に残る）。パイロットの確認（pv_proof）を approved にしない。';
 
 
 -- ════════════════════════════════════════════════════════════════
