@@ -689,7 +689,14 @@
     return s || String(slot.getAttribute('data-stay') || '');
   }
 
-  /* 他社の名前。ページに在る5社はそこから、ほかは pv-airlines.json（生成物）を1回だけ読む。 */
+  /* 他社の名前（ステイ先の面の行の社名）。日本の会社は日本語・ほかは英語（オーナー 2026-10-18「日本は日本語、他は英語」）。
+     会社ページの島（#crc-data）に name（gen-airline-glance.mjs が同じ決まりで書く）があればそれ。無ければ pv-airlines.json
+     （生成物。地域 region を持つ）を1回だけ読んで、同じ決まりで選ぶ（読めなければ島の ja、それも無ければ符号）。 */
+  function sayName(a) {
+    if (!a || typeof a !== 'object') return '';
+    if (!a.region) return str(a.ja);
+    return a.region === 'japan' ? str(a.ja) : (str(a.en) || str(a.ja));
+  }
   var NAMES_HERE = null, NAMES_ALL = null;
   function airlineName(code) {
     if (!NAMES_HERE) {
@@ -700,13 +707,13 @@
       } catch (e) { /* 無ければ下へ */ }
     }
     var a = NAMES_HERE[code];
-    if (a && str(a.ja)) return Promise.resolve(str(a.ja));
+    if (a && str(a.name)) return Promise.resolve(str(a.name));
     if (!NAMES_ALL) {
       NAMES_ALL = (w.fetch ? w.fetch(BASE + 'pv-airlines.json') : Promise.reject())
         .then(function (r) { return r && r.ok ? r.json() : {}; })
         .then(function (j) { return (j && j.airlines) || {}; }, function () { return {}; });
     }
-    return NAMES_ALL.then(function (m) { return (m[code] && str(m[code].ja)) || code; });
+    return NAMES_ALL.then(function (m) { return sayName(m[code]) || (a && str(a.ja)) || code; });
   }
 
   // ══ 写真を出す ═════════════════════════════════════════════

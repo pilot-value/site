@@ -944,9 +944,10 @@ async function kept() {
       `S10 'c' の画面の「${MAP}」の行き先：貼ったリンクのあるホテルはそのリンク、無いホテルは名前と都市（${maps.city}）の Google マップの検索（辿らずに href を読んだだけ）${BYVIEW}`, J(maps));
 
     /* 同じ空港の他社のホテル */
-    const crc = read(`airlines/${SLUG}.html`).match(/<script[^>]*id="crc-data"[^>]*>([\s\S]*?)<\/script>/);
+    /* その会社の名前は、ステイ先の面の決まり（日本の会社は日本語・ほかは英語。オーナー 2026-10-18）。
+       検査が持つ写し：pv-airlines.json の ja / en を地域（region）で選ぶ（career-stay.js の決め方を読み込まない） */
     let other = '';
-    try { other = JSON.parse(crc[1]).airlines[OTHER].ja || ''; } catch { other = ''; }
+    try { const pa = JSON.parse(read('pv-airlines.json')).airlines[OTHER]; other = (pa.region === 'japan' ? pa.ja : pa.en) || ''; } catch { other = ''; }
     await pc.page.waitForFunction((s, nm) => [...document.querySelectorAll(s + ' .crs-co-n')].some((h) => h.textContent === nm),
       { timeout: 10000 }, SL, other).catch(() => {});
     const ov = await pc.page.evaluate((s) => {

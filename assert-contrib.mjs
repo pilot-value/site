@@ -7141,6 +7141,14 @@ async function main() {
       const nameIn = async (code) => String(((await q('select name_ja from public.pv_airlines where code = $1', [code])).rows[0] || {}).name_ja || '');
       const OWN_NAME = await nameIn(OWN), JAL_NAME = await nameIn('jal'), B_NAME = await nameIn(B_OWN);
       if (!OWN_NAME || !JAL_NAME || !B_NAME || new Set([OWN_NAME, JAL_NAME, B_NAME]).size !== 3) throw new Error('前提が崩れた（会社の一覧から、3社の名前が読めない）: ' + J([OWN_NAME, JAL_NAME, B_NAME]));
+      /* 答えるカード（と、カードから開く「情報を追加」の面）に出る社名の、検査が持つ写し：日本の会社は日本語・ほかは英語
+         （オーナー 2026-10-18「日本は日本語、他は英語」）。英語は pv-airlines.json（生成物・地域 region を持つ）の en、
+         日本の会社はサーバーが返した名前のまま。career-live.js の決め方は読み込まない。
+         サーバーの返事（カードの材料の名前）は、今までどおり会社の一覧の日本語の名前（OWN_NAME・B_NAME）。画面の字だけが OWN_SAY・B_SAY。 */
+      const AIR = JSON.parse(read('pv-airlines.json')).airlines || {};
+      const sayIn = (code, name) => (AIR[code] && AIR[code].region !== 'japan' && AIR[code].en ? AIR[code].en : name);
+      const OWN_SAY = sayIn(OWN, OWN_NAME), B_SAY = sayIn(B_OWN, B_NAME);
+      if (!(OWN_SAY !== OWN_NAME && AIR[OWN].region !== 'japan' && B_SAY === B_NAME && AIR[B_OWN].region === 'japan')) throw new Error('前提が崩れた（自分の会社は日本の会社でなく英語の名前を持ち、会員B の会社は日本の会社のはず）: ' + J({ OWN, OWN_SAY, OWN_NAME, B_OWN, B_SAY, B_NAME }));
 
       /* ── 準備 ── 給与提出者の鍵は、C5b のあと切れたまま ＝ 同じ会社・同じ月の給与を、本物の口でもう一度出して生き返らせる。
          会員B は、ANA に先月ぶんの給与を、本物の口で出す（CM4b と CM5 の読む人 ＝ 自分の会社が ANA の人）。 */
@@ -7222,7 +7230,7 @@ async function main() {
           await p.page.evaluateOnNewDocument(watchSlots);
           await go(p, JAL);
           /* 配られたページそのものに、自分の会社の名前が何回書いてあるか（誰が開いても同じ数。カードが足したぶんと分けるのに使う） */
-          wk.fileN = (await (await fetch(base + JAL)).text()).split(OWN_NAME).length - 1;
+          wk.fileN = (await (await fetch(base + JAL)).text()).split(OWN_SAY).length - 1;
           const w = await walk(p);                       // 4つのタブを歩く。終わりは概要
           wk.origin = await p.page.evaluate((m) => { window.__pvWalk = m; return performance.timeOrigin; }, WALK);
           const replies = await wk.ear.all(), gives = wk.ear.gives.slice();
@@ -7237,9 +7245,13 @@ async function main() {
             `★CM1 答えるカードの材料の返事は、読む人自身のことだけ：会社は自分の会社（${OWN}）・名前は会社の一覧の名前・答えた数 ${HAVE}・要る数 ${NEED}・次に聞く質問は、まだ触っていない質問の id の並び（8つまで）。数は、その2つのほかに1つも無い`,
             J(gives.map((g) => [g.status, g.text])));
           const got = w.overview.filter((x) => x.at === 'got');
-          ok(got.length === 1 && cardIs(got[0], OWN_NAME, HAVE),
-            `★CM1 概要の「集まった回答」は、1行「${GIVE_LINE(NEED)}」と、答えるカード（「${GIVE_HEAD(OWN_NAME)}」・「${GIVE_COUNT(HAVE, NEED)}」・「${GIVE_GO}」が1つ）だけ`,
+          ok(got.length === 1 && cardIs(got[0], OWN_SAY, HAVE),
+            `★CM1 概要の「集まった回答」は、1行「${GIVE_LINE(NEED)}」と、答えるカード（「${GIVE_HEAD(OWN_SAY)}」・「${GIVE_COUNT(HAVE, NEED)}」・「${GIVE_GO}」が1つ）だけ`,
             J(got.map((x) => ({ state: x.state, lock: x.lock, give: x.give, text: x.text.slice(0, 90) }))));
+          /* ★V2（日本の会社でない会社）：自分の会社がキャセイの人のカードは、英語の名前。サーバーの材料は日本語の名前のまま（上の行） */
+          ok(got.length === 1 && got[0].give.length === 1 && OWN_NAME === 'キャセイパシフィック' && got[0].give[0].h === GIVE_HEAD('Cathay Pacific') && !got[0].text.includes(OWN_NAME),
+            `★V2 答えるカードの社名は、日本の会社は日本語・ほかは英語：自分の会社がキャセイ（日本の会社でない）の給与提出者のカードは「Cathay Pacific」（サーバーが返した「${OWN_NAME}」ではない）`,
+            J(got.map((x) => ({ give: x.give, text: x.text.slice(0, 90) }))));
           const all = TABS.flatMap((id) => w[id].map((x) => [`${TAB_NAME[id]}・${GATED(x) ? slotName(x) : x.live}`, x]));
           const rowsAt = all.filter(([, x]) => x.rows.length).map(([at]) => at), countAt = all.filter(([, x]) => x.text.includes(`${N_JAL}人`)).map(([at]) => at);
           const gated = all.filter(([, x]) => GATED(x)), offLine = gated.filter(([, x]) => x.state !== 'locked' || J(x.lock) !== J([GIVE_LINE(NEED)])).map(([at, x]) => `${at}（${x.state}）`);
@@ -7255,35 +7267,39 @@ async function main() {
         await part('CM4b', async () => {
           if (!wk) throw new Error('前提が崩れた（通しの1枚が開いていない）');
           const { p, ear } = wk;
-          const g0 = await gotOf(p), dom0 = await domCount(p, OWN_NAME);
-          if (!cardIs(g0, OWN_NAME, HAVE) || !(dom0 > wk.fileN)) throw new Error('前提が崩れた（給与提出者のカードが出ていない）: ' + J({ got: g0 && [g0.state, g0.text.slice(0, 70)], dom0, file: wk.fileN }));
+          const g0 = await gotOf(p), dom0 = await domCount(p, OWN_SAY);
+          if (!cardIs(g0, OWN_SAY, HAVE) || !(dom0 > wk.fileN)) throw new Error('前提が崩れた（給与提出者のカードが出ていない）: ' + J({ got: g0 && [g0.state, g0.text.slice(0, 70)], dom0, file: wk.fileN }));
           wk.tab = await siteTab(p);
           await ear.all();
           const v0 = ear.gives.length;
           await markSlots(p, 'CM4b');
           await signInTab(wk.tab, 'b');
-          const turned = await cardSeen(p, B_NAME, B_HAVE);
+          const turned = await cardSeen(p, B_SAY, B_HAVE);
           await ear.all();
-          const g1 = await gotOf(p), dom1 = await domCount(p, OWN_NAME), log = await sinceMark(p, 'CM4b'), kept = await sameLoad(p);
+          const g1 = await gotOf(p), dom1 = await domCount(p, OWN_SAY), log = await sinceMark(p, 'CM4b'), kept = await sameLoad(p);
           const gives1 = ear.gives.slice(v0);
-          ok(turned && cardIs(g1, B_NAME, B_HAVE) && kept.mark === WALK && kept.origin === wk.origin && kept.navs === 1
+          ok(turned && cardIs(g1, B_SAY, B_HAVE) && kept.mark === WALK && kept.origin === wk.origin && kept.navs === 1
             && gives1.length >= 1 && gives1.every((g) => !!g.body && g.body.airline === B_OWN && g.body.name === B_NAME && g.body.have === B_HAVE && g.body.need === NEED),
             `★CM4b もう1枚のタブで別の会員（会員B）がログインすると、読み直さなくても、カードはその人のものに替わる：会社の名前は ANA のもの・答えた数はその人の数（${B_HAVE}／${NEED}）`,
             J({ turned, got: g1 && { lock: g1.lock, give: g1.give }, kept, gives: gives1.map((g) => g.body && [g.body.airline, g.body.have]) }));
+          /* ★V2（日本の会社）：同じページで、自分の会社が ANA の人のカードは、サーバーが返した日本語の名前のまま（英語にしない） */
+          ok(turned && !!g1 && g1.give.length === 1 && B_NAME === '全日本空輸（ANA）' && g1.give[0].h === GIVE_HEAD('全日本空輸（ANA）') && !g1.text.includes('All Nippon Airways'),
+            '★V2 答えるカードの社名は、日本の会社は日本語・ほかは英語：自分の会社が ANA（日本の会社）の会員B のカードは、サーバーが返した日本語の名前のまま「全日本空輸（ANA）」（「All Nippon Airways (ANA)」にしない）',
+            J({ name: B_NAME, give: g1 && g1.give, text: g1 && g1.text.slice(0, 90) }));
           const inPage = await p.page.evaluate((s) => ({
             slots: [...document.querySelectorAll('.crl')].filter((n) => (n.textContent || '').includes(s)).length,
             sheet: [...document.querySelectorAll('.pvc-root')].filter((n) => n.outerHTML.includes(s)).length,
-          }), OWN_NAME);
+          }), OWN_SAY);
           ok(dom1 === wk.fileN && inPage.slots === 0 && inPage.sheet === 0
-            && !!log && log.before.some((x) => x.t.includes(OWN_NAME)) && log.after.some((x) => x.s === 'idle') && !log.after.some((x) => x.t.includes(OWN_NAME)),
-            `★CM4b 前の人の会社の名前（${OWN_NAME}）は、ページのどこにも残っていない（どの欄にも・「情報を追加」の面にも無い。ページの中の数は、配られたページそのものの数に戻る）。替わったあと、欄がいっときでも出した字の控えにも無い`,
-            J({ dom: [dom0, dom1], file: wk.fileN, inPage, after: log && log.after.filter((x) => x.t.includes(OWN_NAME)).slice(0, 3), idle: log && log.after.some((x) => x.s === 'idle') }));
+            && !!log && log.before.some((x) => x.t.includes(OWN_SAY)) && log.after.some((x) => x.s === 'idle') && !log.after.some((x) => x.t.includes(OWN_SAY)),
+            `★CM4b 前の人の会社の名前（${OWN_SAY}）は、ページのどこにも残っていない（どの欄にも・「情報を追加」の面にも無い。ページの中の数は、配られたページそのものの数に戻る）。替わったあと、欄がいっときでも出した字の控えにも無い`,
+            J({ dom: [dom0, dom1], file: wk.fileN, inPage, after: log && log.after.filter((x) => x.t.includes(OWN_SAY)).slice(0, 3), idle: log && log.after.some((x) => x.s === 'idle') }));
           /* 給与提出者が、もう1枚のタブでログインし直す → カードは、その人のものに戻る */
           await signInTab(wk.tab, 'pay');
-          const back = await cardSeen(p, OWN_NAME, HAVE);
+          const back = await cardSeen(p, OWN_SAY, HAVE);
           const g2 = await gotOf(p);
-          ok(back && cardIs(g2, OWN_NAME, HAVE) && (await sameLoad(p)).mark === WALK,
-            `★CM4b そのあと、もう1枚のタブで給与提出者がログインし直すと、カードは、自分の会社（${OWN_NAME}）と自分の数（${HAVE}／${NEED}）に戻る（読み直さない）`,
+          ok(back && cardIs(g2, OWN_SAY, HAVE) && (await sameLoad(p)).mark === WALK,
+            `★CM4b そのあと、もう1枚のタブで給与提出者がログインし直すと、カードは、自分の会社（${OWN_SAY}）と自分の数（${HAVE}／${NEED}）に戻る（読み直さない）`,
             J({ back, got: g2 && { lock: g2.lock, give: g2.give } }));
         });
 
@@ -7292,7 +7308,7 @@ async function main() {
           if (!wk) throw new Error('前提が崩れた（通しの1枚が開いていない）');
           const { p, ear, sent } = wk;
           const g0 = await gotOf(p);
-          if (!cardIs(g0, OWN_NAME, HAVE)) throw new Error('前提が崩れた（給与提出者のカードが出ていない）: ' + J(g0 && [g0.state, g0.text.slice(0, 70)]));
+          if (!cardIs(g0, OWN_SAY, HAVE)) throw new Error('前提が崩れた（給与提出者のカードが出ていない）: ' + J(g0 && [g0.state, g0.text.slice(0, 70)]));
           await ear.all();
           const r0 = ear.replies.length, s0 = sent.length;
           /* カードがいちばん先に挙げた、この面で答えられる質問（いちばん新しい、カードの材料の返事から）。
@@ -7309,9 +7325,9 @@ async function main() {
           await settle(p);
           const at = await seen(p, inView, first.id);
           const f = await coFace(p), wz = await whoseOf(p), hs = await histOf(p), pageName = await nameOf(p);
-          ok(at && wz.n === 1 && wz.name === OWN_NAME && wz.fixed && wz.seen && f.line.startsWith(OWN_NAME + ' · ')
+          ok(at && wz.n === 1 && wz.name === OWN_SAY && wz.fixed && wz.seen && f.line.startsWith(OWN_SAY + ' · ')
             && ![JAL_NAME, pageName].some((nm) => !nm || f.text.includes(nm) || f.title.includes(nm)) && !!hs && hs.a === OWN && hs.u === PAYER.id,
-            `★CM2 カードの「${GIVE_GO}」を押すと、「情報を追加」の面は、自分の会社（${OWN_NAME}）について開く：頭と入力の会社はその名前で、このページの会社（JAL）の名前は出ない。カードがいちばん先に挙げた質問の所で開く`,
+            `★CM2 カードの「${GIVE_GO}」を押すと、「情報を追加」の面は、自分の会社（${OWN_SAY}）について開く：頭と入力の会社はその名前で、このページの会社（JAL）の名前は出ない。カードがいちばん先に挙げた質問の所で開く`,
             J({ q: first.id, kind: first.kind, at, whose: wz.name, line: f.line, title: f.title, page: pageName, hist: hs && [hs.a, hs.u === PAYER.id] }));
           if (first.kind === 'num') {
             await fill(p, first.id, String(first.num.min));
@@ -7382,10 +7398,10 @@ async function main() {
           ok(!!logA && logA.before.some((x) => x.rows > 0) && logA.after.some((x) => x.s === 'idle') && !logA.after.some(noisy),
             '★CM4 ログアウトのあと、集計の欄にも月の勤務の欄にも、回答の行も数字も、いっときも出ていない（前の人の行を、もう一度描いていない）',
             J(logA && { after: logA.after.filter(noisy).slice(0, 3).map((x) => [x.at, x.s, x.t.slice(0, 50)]), idle: logA.after.some((x) => x.s === 'idle'), n: logA.after.length }));
-          const heldOut = !!sh0 && !sh0.open && !sh0.up && sh0.saved && sh0.mine >= 1 && sh0.text.includes(OWN_NAME) && !!wk.first && sh0.text.includes(wk.first.ja.label);
-          ok(heldOut && bareOut && shutBare(sh1) && !sh1.html.includes(OWN_NAME),
-            `★CM4 その場でログアウトすると、閉じている「情報を追加」の面の中にも、前の人のものが残らない（開き直さなくても、その場で）：自分の会社の名前（${OWN_NAME}）も、保存した答えも無い ＝ 字が1つも無い・入力欄も無い。ログアウトの前には、どちらも面の中に在った`,
-            J({ before: sh0 && [sh0.open, sh0.up, sh0.saved, sh0.mine, sh0.text.slice(0, 60)], bareOut, after: sh1 && [sh1.open, sh1.up, sh1.kids, sh1.ctl, sh1.mine, sh1.html.includes(OWN_NAME), sh1.text.slice(0, 80)] }));
+          const heldOut = !!sh0 && !sh0.open && !sh0.up && sh0.saved && sh0.mine >= 1 && sh0.text.includes(OWN_SAY) && !!wk.first && sh0.text.includes(wk.first.ja.label);
+          ok(heldOut && bareOut && shutBare(sh1) && !sh1.html.includes(OWN_SAY),
+            `★CM4 その場でログアウトすると、閉じている「情報を追加」の面の中にも、前の人のものが残らない（開き直さなくても、その場で）：自分の会社の名前（${OWN_SAY}）も、保存した答えも無い ＝ 字が1つも無い・入力欄も無い。ログアウトの前には、どちらも面の中に在った`,
+            J({ before: sh0 && [sh0.open, sh0.up, sh0.saved, sh0.mine, sh0.text.slice(0, 60)], bareOut, after: sh1 && [sh1.open, sh1.up, sh1.kids, sh1.ctl, sh1.mine, sh1.html.includes(OWN_SAY), sh1.text.slice(0, 80)] }));
           /* (b) もう1枚のタブで、別の会員（給与の鍵なし）がログインする */
           await ear.all();
           r0 = ear.replies.length;
@@ -7477,7 +7493,7 @@ async function main() {
         const bX = await reportAs('b', B_OWN);
         if (!(bX && bX.ok === true && bX.access_until != null && (await liveOf(BEE)))) throw new Error('前提が崩れた（会員B が、ANA に給与を出せていない）: ' + J({ ok: bX && bX.ok, until: bX && bX.access_until, message: bX && bX.message }));
         /* (b) 読む人のことは、何も打ち込まない */
-        const need = Number((await q('select public.pv_contrib_need() as n')).rows[0].n), have = await haveOf(BEE, B_OWN), name = await nameIn(B_OWN);
+        const need = Number((await q('select public.pv_contrib_need() as n')).rows[0].n), have = await haveOf(BEE, B_OWN), name = await nameIn(B_OWN), say = sayIn(B_OWN, name);
         if (!(have !== null && have < need && !!name)) throw new Error(`前提が崩れた（会員B が、自分の会社（ANA）について答えた数 ${have}・要る数 ${need}・名前「${name}」。答えた数は要る数より少ないはず。行は消さない）`);
         const nDuty = await nOf('reserve_duty'), nTravel = await nOf('staff_travel');
         /* (c) 自分の耳（ページへ移る前）：3つの読み口（名前は、この1行の正規表現から取る）と、答えるカードの材料 */
@@ -7517,10 +7533,10 @@ async function main() {
           /* 画面：月の勤務の欄は、1行と答えるカード1つだけ */
           const month = slots.filter((s) => s.live === 'work' && s.at === 'pvg-p-work');
           const mOk = month.length === 1 && month[0].state === 'locked' && J(month[0].lock) === J([GIVE_LINE(need)]) && month[0].rows.length === 0 && month[0].give.length === 1
-            && month[0].give[0].h === GIVE_HEAD(name) && month[0].give[0].n === GIVE_COUNT(have, need) && J(month[0].give[0].go) === J([GIVE_GO]) && J(month[0].links.map((a) => a.text)) === J([GIVE_GO])
-            && month[0].text === GIVE_LINE(need) + GIVE_HEAD(name) + GIVE_COUNT(have, need) + GIVE_GO;
+            && month[0].give[0].h === GIVE_HEAD(say) && month[0].give[0].n === GIVE_COUNT(have, need) && J(month[0].give[0].go) === J([GIVE_GO]) && J(month[0].links.map((a) => a.text)) === J([GIVE_GO])
+            && month[0].text === GIVE_LINE(need) + GIVE_HEAD(say) + GIVE_COUNT(have, need) + GIVE_GO;
           ok(calm && mOk,
-            `★X6 月の勤務の欄は、鍵の形で、1行「${GIVE_LINE(need)}」と、答えるカード1つ（「${GIVE_HEAD(name)}」・「${GIVE_COUNT(have, need)}」・入口「${GIVE_GO}」が1つ）だけ（数字は、要る数と答えた数のほかに無い）`,
+            `★X6 月の勤務の欄は、鍵の形で、1行「${GIVE_LINE(need)}」と、答えるカード1つ（「${GIVE_HEAD(say)}」・「${GIVE_COUNT(have, need)}」・入口「${GIVE_GO}」が1つ）だけ（数字は、要る数と答えた数のほかに無い）`,
             J({ calm, month: month.map((s) => ({ state: s.state, lock: s.lock, give: s.give, links: s.links.map((a) => a.text), text: s.text.slice(0, 90) })) }));
           /* 通勤・Staff Travel の欄は、同じ1行だけ。黙る2つの欄は隠れて字が無い。範囲の1文は見えている。「ログイン」も「匿名で給与を提出する」も無い */
           const two = slots.filter((s) => s.live === 'fact' && s.at === 'pvg-p-work'), twoSf = two.map((s) => s.sf).sort();

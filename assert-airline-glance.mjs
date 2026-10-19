@@ -109,6 +109,11 @@ const noJsCmt = t => noCssCmt(t).replace(/(^|[^:'"`])\/\/[^\n]*/gm, (m, h) => h)
 const FIVE = ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air'];
 const RANKS = [['cap', '機長'], ['fo', '副操縦士']];
 const nameOf = s => SALARY[s].ja;
+/* 段階3の面（ステイ先・街）の行の社名：日本の会社は日本語・ほかは英語（オーナー 2026-10-18「日本は日本語、他は英語」）。
+   検査が自分で持つ写し（正本 SALARY の ja / en を地域で選ぶ。生成側の coSay は呼ばない）。 */
+const sayOf = s => (SALARY[s].region === 'japan' ? SALARY[s].ja : SALARY[s].en);
+/* 暮らしの板の入口の字（オーナーの字「パイロットに人気の街を追加」に、前からの「＋」。2026-10-18） */
+const TOWN_ADD = '＋パイロットに人気の街を追加';
 
 const yen = m => `¥${m.toLocaleString('en-US')}万`;
 const rateOf = cur => (cur === 'JPY' ? 1 : JPY_PER[cur]);
@@ -196,7 +201,7 @@ const taglineLedger = s => {
 /* タブ：左からこの順・この名前（オーナーの指定）。 */
 const TABS = [['overview', '概要'], ['pay', '給与・待遇'], ['reviews', '口コミ'], ['work', '勤務・訓練'], ['life', '暮らし・家族'], ['stay', 'ステイ先']];
 const TAB_ID = new Set(TABS.map(t => t[0]));
-/* 「情報を追加」の面が持っている話題。一覧・月の勤務・住みやすい街と、質問のまとまり6つ（pv-contrib.js の GROUPS を下で読んで照合する）。 */
+/* 「情報を追加」の面が持っている話題。一覧・月の勤務・パイロットに人気の街と、質問のまとまり6つ（pv-contrib.js の GROUPS を下で読んで照合する）。 */
 const ASK_GROUPS = ['taxi', 'staff_travel', 'upgrade', 'roster', 'career', 'benefits'];
 const TOPICS = new Set(['list', 'work', 'town', ...ASK_GROUPS]);
 /* 実データの欄：種類ごとの数（会社の事実6・補足5・月の勤務1・提出された年収1・口コミ1・点数1・星1・要約1・ホテル1・街1）。 */
@@ -898,8 +903,8 @@ for (const s of FIVE) {
     const ELt = EL.filter(e => e.topic !== 'town');
     const ctxs = ELt.map(e => e.ctx);
     ok(ELt.length > 0 && ELt.every(e => e.q && e.ctx) && new Set(ctxs).size === ctxs.length,
-       `${s}: 暮らしの板の入口は、「＋住みやすい街を追加」のほかは、どれも街を持ち、その質問の前で開く（街ごとに1つ）`, ELt.map(e => `${e.q || '(質問なし)'}@${e.ctx || '(街なし)'}`).join(' ／ '));
-    /* E9.2 (b)「＋住みやすい街を追加」：ページの中に data-pvc-open="town" は1つだけ（「修正」は台本が自分の行ごとに足す）。
+       `${s}: 暮らしの板の入口は、「＋パイロットに人気の街を追加」のほかは、どれも街を持ち、その質問の前で開く（街ごとに1つ）`, ELt.map(e => `${e.q || '(質問なし)'}@${e.ctx || '(街なし)'}`).join(' ／ '));
+    /* E9.2 (b)「＋パイロットに人気の街を追加」：ページの中に data-pvc-open="town" は1つだけ（「修正」は台本が自分の行ごとに足す）。
        暮らしの板の 住むエリア の見出しの行（header.pvg-liv-h）の、見出しのすぐ後ろの子。<a class="pvg-link pvg-liv-add">・字はそのまま・
        質問も街も指さない（data-pvc-q・data-pvc-ctx が無い）・属性はこの7つだけ（ほかに何も運ばない）。 */
     const TOWN_ATTRS = ['class', 'href', 'data-pvc-open', 'data-pvc-base', 'data-pvc-basetext', 'data-pvc-ports', 'data-pvc-towns'];
@@ -907,17 +912,17 @@ for (const s of FIVE) {
     const tHead = one(L, /<header class="pvg-liv-h">([\s\S]*?)<\/header>/);
     const tAttrs = tEnt ? [...tEnt[1].matchAll(/\s([a-z-]+)="[^"]*"/g)].map(m => m[1]) : [];
     ok(PAGES[s].split('data-pvc-open="town"').length - 1 === 1 && !!tEnt && tHead !== null && tHead.replace(/^<p class="pvg-askh">[\s\S]*?<\/p>/, '') === tEnt[0]
-       && one(tEnt[1], / class="([^"]*)"/) === 'pvg-link pvg-liv-add' && unesc(tEnt[2]) === '＋住みやすい街を追加'
+       && one(tEnt[1], / class="([^"]*)"/) === 'pvg-link pvg-liv-add' && unesc(tEnt[2]) === TOWN_ADD
        && !/data-pvc-q=|data-pvc-ctx=/.test(tEnt[1]) && same([...tAttrs].sort(), [...TOWN_ATTRS].sort()) && tAttrs.length === TOWN_ATTRS.length,
-       `${s}: 「＋住みやすい街を追加」は、暮らしの板に1つだけ（質問も街も指さない）── 住むエリアの見出しの行の中・字のまま・属性は ${TOWN_ATTRS.join('・')} だけ`,
+       `${s}: 「＋パイロットに人気の街を追加」は、暮らしの板に1つだけ（質問も街も指さない）── 住むエリアの見出しの行の中・字のまま・属性は ${TOWN_ATTRS.join('・')} だけ`,
        `${PAGES[s].split('data-pvc-open="town"').length - 1}つ ／ ${tEnt ? tEnt[0].slice(0, 160) : '入口なし'} ／ 属性 ${tAttrs.join(' ')}`);
     /* E9.3 前の案内（「勤務・訓練の通勤を見る」の行）の代わり：暮らしの板は、通勤の質問への案内で終わらない（A8） */
-    ok(!PAGES[s].includes('pvg-liv-more') && !PAGES[s].includes('勤務・訓練の通勤を見る') && !PAGES[s].includes('ここに無い街に住んでいる方') && EL.some(e => e.topic === 'town'), `${s}: 暮らしの板は、通勤の質問への案内で終わらない（案内の行が無く、「＋住みやすい街を追加」が在る）`);
+    ok(!PAGES[s].includes('pvg-liv-more') && !PAGES[s].includes('勤務・訓練の通勤を見る') && !PAGES[s].includes('ここに無い街に住んでいる方') && EL.some(e => e.topic === 'town'), `${s}: 暮らしの板は、通勤の質問への案内で終わらない（案内の行が無く、「＋パイロットに人気の街を追加」が在る）`);
     ok(![...EW, ...EB, ...EL].some(e => e.text === '追加'), `${s}: 「追加」だけの入口が無い（何を足すのかが字で分かる）`);
     /* 暮らしの板には、集計・補足・月の勤務の欄を置かない（通勤の回答は、勤務・訓練の通勤の面に1つだけ）。 */
     ok(L.length > 0 && !/ data-live="(?:fact|notes|work)"/.test(L), `${s}: 暮らしの板に、集計・補足の欄を残していない（通勤は勤務・訓練の面に1つだけ）`);
     /* E9.5 暮らしの板の実データの欄は、会員が挙げた街の1つだけ：ページに data-live="towns" は1つ・住むエリアの節の閉じのすぐ後ろの
-       div.pvg-liv-got の中・見出し「パイロットの回答」の次・会社はこのページ・基地は「＋住みやすい街を追加」の data-pvc-base。字はこのとおり（器だけ）。 */
+       div.pvg-liv-got の中・見出し「パイロットの回答」の次・会社はこのページ・基地は「＋パイロットに人気の街を追加」の data-pvc-base。字はこのとおり（器だけ）。 */
     const gotBase = one(L, /<a class="pvg-link pvg-liv-add"[^>]* data-pvc-base="([A-Z]{3})"/);
     const GOT = `</section><div class="pvg-liv-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="towns" data-airline="${s}" data-base="${gotBase}" data-state="idle"><span class="crl-ph">—</span></div></div>`;
     ok(!!gotBase && PAGES[s].split('data-live="towns"').length - 1 === 1 && L.split(GOT).length - 1 === 1 && L.split('<div class="pvg-liv-got">').length - 1 === 1,
@@ -1066,7 +1071,45 @@ for (const s of FIVE) {
     const city = one(PAGES[s], /<section class="pvg-card pvg-cd" id="pvg-city" data-pvg-pane="stay" aria-labelledby="pvg-cd-n" hidden>([\s\S]*?)\n<\/section>/) || '';
     ok(!!city && /<h3 class="pvg-cd-n" id="pvg-cd-n" tabindex="-1" data-cd="name"><\/h3>/.test(city) && /<div class="pvg-town-ph pvg-cd-ph" data-cd="ph" data-sizes="[^"]+"><\/div>/.test(city),
        `${s}: 都市の詳細は、隠した枠だけで出荷する（名前と写真は選んだ時に入る）`);
-    ok(/公式の就航地です。あなたの機種・ベースからの運航や宿泊があるとは限りません。/.test(text(city)), `${s}: 就航地と「泊まる」を混ぜない断りが、都市の詳細に在る`);
+    ok(text(city).includes(`${sayOf(s)}の公式の就航地です。あなたの機種・ベースからの運航や宿泊があるとは限りません。`),
+       `${s}: 就航地と「泊まる」を混ぜない断りが、都市の詳細に在る（社名は「${sayOf(s)}」── 日本の会社は日本語・ほかは英語）`);
+    /* ★段階3の面の社名（オーナー 2026-10-18「日本は日本語、他は英語」）：ページの島（#crc-data）の name は5社とも
+       日本の会社は日本語・ほかは英語（career-stay.js のステイ先の行・pv-contrib.js の街の面の頭の行が読む）。ja は日本語の社名のまま。 */
+    let isl = null;
+    try { isl = JSON.parse(one(PAGES[s], /<script type="application\/json" id="crc-data">([\s\S]*?)<\/script>/) || 'null'); } catch { isl = null; }
+    const islBad = FIVE.filter(x => !(isl && isl.airlines && isl.airlines[x] && isl.airlines[x].name === sayOf(x) && isl.airlines[x].ja === nameOf(x)));
+    ok(!!isl && !islBad.length, `${s}: ページの島の社名（name）は、日本の会社は日本語・ほかは英語（${FIVE.map(sayOf).join('・')}）・ja は日本語の社名のまま`,
+       islBad.map(x => `${x}: ${JSON.stringify(isl && isl.airlines && isl.airlines[x])}`).join(' ／ '));
+    /* ★同じ決まりを、暮らしの板（#pvg-p-living）と就航地・ステイの欄（#pvg-stay）の字にも（2026-10-19・リードの P12.64）：
+       台帳の字のまま出てくるこのページの会社の名前（街を選んだ理由・出典の名前・就航地の条件の1行）も、日本の会社でなければ英語。
+       引用した資料の題「…」の中は見ない（題は資料の字のまま）。生成側の関数は呼ばない ── 出荷する HTML を読む。
+       就航地の条件の1行は、台帳の1文の頭の社名だけが替わったもの（日本の会社は台帳のまま）。エバー航空の2つは字そのまま確かめる。 */
+    {
+      const elemById = (h, id) => {
+        const at = h.indexOf(` id="${id}"`);
+        if (at < 0) return '';
+        const st = h.lastIndexOf('<', at), tag = (/^<([a-z0-9]+)/.exec(h.slice(st)) || [])[1], re = new RegExp(`<(/?)${tag}\\b`, 'g');
+        re.lastIndex = st;
+        for (let d = 0, m; (m = re.exec(h));) { d += m[1] ? -1 : 1; if (!d) return h.slice(st, h.indexOf('>', m.index) + 1); }
+        return '';
+      };
+      const liv = elemById(PAGES[s], 'pvg-p-living'), stay = elemById(PAGES[s], 'pvg-stay'), bad = [];
+      const outside = h => text(h.replace(/<script[\s\S]*?<\/script>/g, '')).replace(/「[^」]*」/g, '「」');
+      if (!liv || !stay) bad.push(`暮らしの板 ${liv.length}字・就航地の欄 ${stay.length}字（どちらも在るはず）`);
+      if (SALARY[s].region !== 'japan') {
+        for (const [k, h] of [['暮らしの板', liv], ['就航地・ステイの欄', stay]]) if (outside(h).includes(nameOf(s))) bad.push(`${k}の字に「${nameOf(s)}」が在る`);
+      }
+      const cond = one(stay, /<dt>条件<\/dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">([^<]*)<\/span>/);
+      const want = SALARY[s].region !== 'japan' && net.basis.startsWith(nameOf(s)) ? sayOf(s) + net.basis.slice(nameOf(s).length) : net.basis;
+      if (cond === null || unesc(cond) !== want) bad.push(`就航地の条件の1行「${cond === null ? '（無い）' : unesc(cond).slice(0, 40)}」（あるべき「${want.slice(0, 40)}」）`);
+      if (SALARY[s].region !== 'japan' && !want.startsWith(sayOf(s))) bad.push(`台帳の条件の1行が、社名「${nameOf(s)}」で始まっていない（検査の前提）`);
+      if (s === 'eva-air') {
+        if (!liv.includes('<p><span class="pv-no-cur">EVA Airの事業所がある</span></p>')) bad.push('南崁を選んだ理由が「EVA Airの事業所がある」でない');
+        if (!liv.includes('rel="noopener">EVA Air「飛航人員福利」</a>')) bad.push('出典の名前が「EVA Air「飛航人員福利」」でない');
+      }
+      ok(!bad.length, `${s}: 暮らしの板と就航地・ステイの欄の字でも、このページの会社は「${sayOf(s)}」（日本の会社は日本語・ほかは英語）── 引用した資料の題「…」の中は資料の字のまま・就航地の条件の1行は「${want.slice(0, 24)}…」${s === 'eva-air' ? '・南崁は「EVA Airの事業所がある」・出典は「EVA Air「飛航人員福利」」' : ''}`,
+         bad.join(' ／ '));
+    }
     const slot = [...city.matchAll(/<div class="crl" data-live="hotels"([^>]*)>/g)].map(m => m[1]);
     ok(slot.length === 1 && slot[0].includes(` data-airline="${s}"`) && slot[0].includes(' data-stay=""') && slot[0].includes(' data-city=""'),
        `${s}: ホテルの欄は1つ・空港は空のまま出荷する（どの空港のホテルも HTML に書いていない）`, slot.join(' ‖ '));
@@ -1113,8 +1156,11 @@ head('会員が挙げた街の欄（career-live.js の言葉 ⇄ career-stay.js�
   for (const x of FIVE) {
     const i = PAGES[x].indexOf('<div class="pvg-card pvg-panel" id="pvg-p-living"'), j = i < 0 ? -1 : PAGES[x].indexOf('<div class="pvg-more-grid pvg-g-st"', i);
     const P = i >= 0 && j > i ? PAGES[x].slice(i, j) : '';
-    const hit = (P.match(/人気|ランキング|1位/g) || []);
-    ok(!!P && !hit.length, `${x}: 暮らしの板の HTML に「人気」「ランキング」「1位」が無い（「人気の居住地」は、読めた街の一覧の上にだけ career-live.js が描く）`, hit.join('・'));
+    /* ★オーナーの字の入口「＋パイロットに人気の街を追加」（2026-10-18）だけは、その字のまま1つ在る。その1つだけを除いて数える
+       （入口がちょうど1つ在ることも見る ＝ 除き方で、ほかの「人気」を隠さない） */
+    const ADD_A = `>${TOWN_ADD}</a>`, addN = P.split(ADD_A).length - 1;
+    const hit = (P.replace(ADD_A, () => '').match(/人気|ランキング|1位/g) || []);
+    ok(!!P && addN === 1 && !hit.length, `${x}: 暮らしの板の HTML に「人気」「ランキング」「1位」が無い（オーナーの字の入口「${TOWN_ADD}」1つを除いて。「人気の居住地」は、読めた街の一覧の上にだけ career-live.js が描く）`, `入口 ${addN}つ・${hit.join('・')}`);
   }
   const exp = PC.split('\n').filter(l => /^\s+myTowns: function \(\) \{/.test(l));
   ok(exp.length === 1 && exp[0].trim() === 'myTowns: function () { return myTowns(pageSlug()); },' && !/myTowns\(slug\(\)\)/.test(noJsCmt(PC)),
@@ -1750,9 +1796,10 @@ head('暮らし（街・家賃・空港までの移動）');
       if (!li || !same(got, (g.rent_basis || []).map(b => b.value))) evBad.push(`参考 ${g.key}: 断り ${got.length}つ（台帳 ${(g.rent_basis || []).length}）`);
     }
     ok(sec && !evBad.length, `${s}: 「出典」は都市に1つ。台帳の出どころは全部その中に在り、街の鍵の無い移動の行はそこにだけ在る`, evBad.slice(0, 6).join(' ／ '));
-    /* SL6 */
-    const rank = (text(panel).match(/人気|ランキング|おすすめ|安い|高い|割安|割高|お得|[\d.]\s*倍/g) || []);
-    ok(panel && !rank.length, `${s}: 暮らしの板に、人気・順位・安い・高い の語が無い`, rank.join('・'));
+    /* SL6（★オーナーの字の入口「＋パイロットに人気の街を追加」1つだけは除く。入口がちょうど1つ在ることも見る ── 2026-10-18） */
+    const pTx = text(panel), pAdd = pTx.split(TOWN_ADD).length - 1;
+    const rank = (pTx.replace(TOWN_ADD, () => '').match(/人気|ランキング|おすすめ|安い|高い|割安|割高|お得|[\d.]\s*倍/g) || []);
+    ok(panel && pAdd === 1 && !rank.length, `${s}: 暮らしの板に、人気・順位・安い・高い の語が無い（オーナーの字の入口「${TOWN_ADD}」1つを除いて）`, `入口 ${pAdd}つ・${rank.join('・')}`);
     /* SL8 */
     const cellH = one(PART[s].glance, /<article class="pvg-card pvg-cell" data-cell="living"[^>]*>([\s\S]*?)\n<\/article>/) || '';
     const k = text(one(cellH, /<p class="pvg-k">([\s\S]*?)<\/p>/) || ''), vH = one(cellH, /<p class="pvg-v[^"]*">([\s\S]*?)<\/p>/) || '', note = text(one(cellH, /<p class="pvg-note">([\s\S]*?)<\/p>/) || '');
@@ -1782,7 +1829,7 @@ head('暮らし（街・家賃・空港までの移動）');
     }
     if (need.length ? one(fold, /<summary>写真の出典<small>(\d+)枚<\/small>/) !== String(need.length) : fold !== '') crBad.push(`枚数「${one(fold, /<small>(\d+)枚/)}」（台帳 ${need.length}）`);
     ok(panel && !crBad.length, `${s}: 街の写真のクレジット（示すことが条件の写真は、作者名とライセンスのリンクつき）`, crBad.join(' ／ '));
-    /* E9.4「＋住みやすい街を追加」が面へ渡すのは、カードのとおり（ページから作り直す。生成側の関数は呼ばない）。
+    /* E9.4「＋パイロットに人気の街を追加」が面へ渡すのは、カードのとおり（ページから作り直す。生成側の関数は呼ばない）。
        基地 ＝ 同じ板の section.pvg-liv の data-base。空港 ＝ 3字の並びで、頭がその基地・この都市の台帳の空港と同じ並び
        （移動の行と見出しの空港は、この台帳から作られる。全日空のページは見出しに空港の3字を出さず、成田は移動の行にも無い
        ＝ ページの字だけでは確かめられないので、行の出どころの台帳と突き合わせる）・頭の基地はページに3字で出ている。
@@ -1804,7 +1851,7 @@ head('暮らし（街・家賃・空港までの移動）');
       const raw = unesc(tEnt);
       if (/\d\s*(?:万|円)|¥|￥/.test(raw) || CUR3.some(k => new RegExp(`\\b${k}\\b`).test(raw))) e94.push(`額・通貨の字 ${raw.slice(0, 120)}`);
     }
-    ok(!e94.length, `${s}: 「＋住みやすい街を追加」が面へ渡すのは、カードのとおり（基地・空港・街の名前。額も通貨も渡さない）`, e94.join(' ／ '));
+    ok(!e94.length, `${s}: 「＋パイロットに人気の街を追加」が面へ渡すのは、カードのとおり（基地・空港・街の名前。額も通貨も渡さない）`, e94.join(' ／ '));
     /* TG5 入口の街は、サーバの候補の種に在る（db/towns.generated.sql を字として読む）。
        data-pvc-towns の名前は「-- 1.」の行（その会社・その基地）に、lang="en" の下の行は「-- 2.」の別の書き方の行に在る。 */
     const seedSql = read('db/towns.generated.sql');
@@ -5317,7 +5364,8 @@ async function runStay(browser, s, [w, h]) {
       const bad = [], sent = [];
       let measured = false;
       const NAME = '検査用の架空のレストラン', ITEM = { id: '00000000-0000-4000-8000-0000000000b3', kind: 'food', name: NAME, state: 'pending', mine: true, photos: [] };
-      const CO = JSON.parse(read('pv-airlines.json')).airlines[s].ja;
+      /* 追加の面の頭の社名は、段階3の面の決まり（日本の会社は日本語・ほかは英語。オーナー 2026-10-18）＝ sayOf */
+      const CO = sayOf(s);
       const SEND = `${STAY_ZONE} .crs-form button[type="submit"]`;
       const formIs = want => K.until((sel, want) => { const s = document.querySelector(sel), z = s && s.nextElementSibling; return !!z && !!z.querySelector('.crs-formbox > .crs-form') === want; }, 8000, STAY_SLOT, want);
       const fsayIs = text => K.until((sel, t) => { const s = document.querySelector(sel), z = s && s.nextElementSibling, q = z && z.querySelector('.crs-form-say'); return !!q && q.textContent.trim() === t; }, 8000, STAY_SLOT, text);
@@ -7250,7 +7298,7 @@ async function runGiveOpen(browser, s, [w, h]) {
    （'pvc:saved' の topic 'town' ── 欄はこの時、必ず読み直す）。幅は 390 と 1440（--sizes を付けた回は、その幅）。
    1枚のページの中で、次の順に移す：
      M1  未ログイン（'login'）：鍵の形・「ログインと給与の提出で開きます」・欄の入口は「ログイン」1つ・欄に数字が無い・
-         見出し「パイロットの回答」・「＋住みやすい街を追加」は欄の外で、欄より前
+         見出し「パイロットの回答」・「＋パイロットに人気の街を追加」は欄の外で、欄より前
      M5  開いていて、街0・自分の行も無い：欄は 'empty'・器（.pvg-liv-got）ごと出ない・入口は見えたまま
      M6  人数の無い街・人数 0 の街・人数が整数でない街は描かない（「0人」を出さない）
      M4  開いていて3つ（3人・1人・1人）：「人気の居住地」・返事の並びのまま（名前で並べ替えない）・「回答 N人」・
@@ -7261,10 +7309,10 @@ async function runGiveOpen(browser, s, [w, h]) {
      M7  404（口がまだ無い）→「準備中」／500 →「いま読み出せません」＋「やり直す」・押すと聞き直す（1回）
      M8  'give' → 02b の1行と答えるカード
      M2  鍵の無い会員（'locked'）の自分の行。街の名前はタグの形（HOSTILE）：「あなたの投稿」・名前は字のまま（要素が生まれない）・
-         「確認待ち」・「修正」で街の面が開き、欄にその名前・面の見出しは「住みやすい街」（直す回は「…を追加」と言わない）・
+         「確認待ち」・「修正」で街の面が開き、欄にその名前・面の見出しは「パイロットに人気の街」（直す回は「…を追加」と言わない）・
          送るボタンは「匿名で更新する」
      M3  'locked' の返事に街が付いてきても、欄にもページにも保存領域にも1文字も出ない
-     M10 キーボード：Tab で「＋住みやすい街を追加」に着く・Enter で面が開く・Escape で閉じる・焦点は入口へ戻る
+     M10 キーボード：Tab で「＋パイロットに人気の街を追加」に着く・Enter で面が開く・Escape で閉じる・焦点は入口へ戻る
    会員にするのは M2 から。ログインの鍵はページが開いたあとに置く（登録だけの会員に出す板を呼ばない）。
    面（pv-contrib.js）を初めて開くのは M2 の「修正」── 未ログインのまま面を開いたあとで会員に替わると、「修正」の街の名前が
    読む人の替わりの片づけ（readerReset）で消える（検査の外で見つけた穴。直すのはこの場面ではない）。
@@ -7275,7 +7323,7 @@ async function runGiveOpen(browser, s, [w, h]) {
 const TOWNS_W = [390, 1440];
 const TOWN_GOT = 'パイロットの回答', TOWN_HEAD = '人気の居住地', TOWN_MINE = 'あなたの投稿', TOWN_WAIT = '確認待ち', TOWN_EDIT = '修正';
 const TOWN_GOOD = '良い点', TOWN_CONCERN = '気になる点', TOWN_OFF = '準備中', TOWN_ERR = 'いま読み出せません', TOWN_RETRY = 'やり直す';
-const TOWN_SHEET = '住みやすい街', TOWN_UPD = '匿名で更新する';
+const TOWN_SHEET = 'パイロットに人気の街', TOWN_UPD = '匿名で更新する';
 const townN = n => `回答 ${n}人`;
 const townOpen = towns => JSON.stringify({ ok: true, state: 'open', towns });
 const TOWN_RENT = '家賃は20万円くらい';
@@ -7356,8 +7404,9 @@ async function runTowns(browser, s, [w, h]) {
   const see = () => ev(townSee);
   const sheetSee = () => ev(() => {
     const r = document.querySelector('.pvc-root'), f = r && r.querySelector('[data-pvc-form="town"]'), t = r && r.querySelector('.pvc-title');
-    const i = f && f.querySelector('#pvc-f-town'), b = f && f.querySelector('.pvc-send');
-    return { open: !!r && !r.hidden && r.classList.contains('is-in'), form: !!f, title: t ? t.textContent : '', town: i ? i.value : null, send: b ? b.textContent.trim() : '' };
+    const i = f && f.querySelector('#pvc-f-town'), b = f && f.querySelector('.pvc-send'), c = f && f.querySelector('.pvc-ctx-line');
+    return { open: !!r && !r.hidden && r.classList.contains('is-in'), form: !!f, title: t ? t.textContent : '', town: i ? i.value : null, send: b ? b.textContent.trim() : '',
+      ctx: c ? c.textContent : '' };
   });
   const shut = async () => { await p.keyboard.press('Escape'); return until(() => { const r = document.querySelector('.pvc-root'); return !r || !r.classList.contains('is-in'); }); };
   const DIGIT = /[0-9０-９]/;
@@ -7400,9 +7449,9 @@ async function runTowns(browser, s, [w, h]) {
         if (r.links.length !== 1 || r.links[0].text !== LOGIN_GO || !r.links[0].on || !r.links[0].href.includes('login.html')) bad.push(`欄の入口 ${r.links.map(a => `「${a.text}」${a.href}`).join('・') || '無し'}（あるべき「${LOGIN_GO}」1つ）`);
         if (r.btns.length || r.cards.length || r.own.length) bad.push(`ボタン ${r.btns.length}・カード ${r.cards.length}・自分の行 ${r.own.length}`);
         if (DIGIT.test(r.text)) bad.push(`欄に数字「${r.text}」`);
-        if (!r.ent.on || !r.ent.before || r.ent.inBox) bad.push(`「＋住みやすい街を追加」${r.ent.on ? '' : 'が見えない・'}${r.ent.before ? '' : 'が欄より前に無い・'}${r.ent.inBox ? 'が欄の中' : ''}`);
+        if (!r.ent.on || !r.ent.before || r.ent.inBox) bad.push(`「＋パイロットに人気の街を追加」${r.ent.on ? '' : 'が見えない・'}${r.ent.before ? '' : 'が欄より前に無い・'}${r.ent.inBox ? 'が欄の中' : ''}`);
       }
-      ok(!bad.length, `${tag}: M1 未ログイン ──「${TOWN_GOT}」の下は鍵の形：「${LOGIN_LINE}」と入口「${LOGIN_GO}」の1つ・数字なし・「＋住みやすい街を追加」は欄の外で、欄より前`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: M1 未ログイン ──「${TOWN_GOT}」の下は鍵の形：「${LOGIN_LINE}」と入口「${LOGIN_GO}」の1つ・数字なし・「＋パイロットに人気の街を追加」は欄の外で、欄より前`, bad.join(' ／ '));
       await shot('login'); await shot('login-panel', 'panel');
     }
     /* M5 */
@@ -7413,9 +7462,9 @@ async function runTowns(browser, s, [w, h]) {
         if (r.state !== 'empty') bad.push(`欄が ${r.state}（あるべき empty）`);
         if (r.got) bad.push(`「${TOWN_GOT}」の器が出ている`);
         if (r.text) bad.push(`欄に字「${r.text}」`);
-        if (!r.ent.on) bad.push('「＋住みやすい街を追加」が見えない');
+        if (!r.ent.on) bad.push('「＋パイロットに人気の街を追加」が見えない');
       }
-      ok(!bad.length, `${tag}: M5 開いていて街0・自分の行も無い ── 欄は空・「${TOWN_GOT}」の器ごと出ない・「＋住みやすい街を追加」は見えたまま`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: M5 開いていて街0・自分の行も無い ── 欄は空・「${TOWN_GOT}」の器ごと出ない・「＋パイロットに人気の街を追加」は見えたまま`, bad.join(' ／ '));
     }
     /* M6 */
     {
@@ -7485,7 +7534,7 @@ async function runTowns(browser, s, [w, h]) {
       const bad = [];
       const a = await redraw({ status: 404, body: TOWN_404 }), r = await see();
       if (!a || !r || r.state !== 'off' || r.text !== TOWN_OFF || r.lock.length || r.btns.length || r.links.length) bad.push(`404 の時 欄 ${r ? `${r.state}「${r.text}」` : '無し'}（あるべき「${TOWN_OFF}」だけ）`);
-      if (r && !r.ent.on) bad.push('404 の時「＋住みやすい街を追加」が見えない');
+      if (r && !r.ent.on) bad.push('404 の時「＋パイロットに人気の街を追加」が見えない');
       await shot('off');
       const b = await redraw({ status: 500, body: TOWN_500 }), e = await see();
       await shot('error');
@@ -7517,7 +7566,7 @@ async function runTowns(browser, s, [w, h]) {
     }
     /* M2（ここから会員。面はまだ1度も開いていない ＝ 開くのは、この会員が初めて） */
     {
-      const bad = [], base = ((await see()) || {}).base || '';
+      const bad = [], v2 = { seen: false, ctx: '' }, base = ((await see()) || {}).base || '';
       seen.town = { body: stateBody('locked'), mine: townPosts(base) };
       await ev((k, id) => {
         localStorage.setItem(k, JSON.stringify({ user: { id } }));
@@ -7546,12 +7595,15 @@ async function runTowns(browser, s, [w, h]) {
             if (f.town !== HOSTILE) bad.push(`面の欄「${f.town}」（あるべき その街の名前のまま）`);
             if (f.title !== TOWN_SHEET) bad.push(`面の見出し「${f.title}」（直す回は「${TOWN_SHEET}」──「…を追加」と言わない）`);
             if (f.send !== TOWN_UPD) bad.push(`送るボタン「${f.send}」（あるべき「${TOWN_UPD}」）`);
+            v2.seen = true; v2.ctx = f.ctx;
             if (((await see()) || {}).hostile) bad.push('面を開いたあと、街の名前から要素が生まれた');
             if (!(await shut())) bad.push('Escape で閉じない');
           }
         }
       }
       ok(!bad.length, `${tag}: M2 鍵の無い会員の自分の行 ──「${TOWN_MINE}」・タグの形の街の名前は字のまま（要素が生まれない）・「${TOWN_WAIT}」・「${TOWN_EDIT}」で街の面が開き、欄にその名前・見出しは「${TOWN_SHEET}」・ボタンは「${TOWN_UPD}」`, bad.join(' ／ '));
+      /* ★V2（オーナー 2026-10-18「日本は日本語、他は英語」）：街の面の頭の行の社名は、日本の会社は日本語・ほかは英語（sayOf）。ページの見出しの字（h1）ではない */
+      ok(v2.seen && v2.ctx.startsWith(`${sayOf(s)} · `), `${tag}: 街の面の頭の行の社名は「${sayOf(s)}」（日本の会社は日本語・ほかは英語）`, JSON.stringify(v2));
     }
     /* M3 */
     {
@@ -7583,7 +7635,7 @@ async function runTowns(browser, s, [w, h]) {
         for (let k = all.indexOf(e) - 1; k >= 0; k--) { all[k].focus({ preventScroll: true }); if (document.activeElement === all[k]) return k + 1; }
         return all.indexOf(e) < 0 ? -1 : 0;
       }, ENT);
-      if (i < 1) bad.push('「＋住みやすい街を追加」の手前に、焦点を置ける所が無い');
+      if (i < 1) bad.push('「＋パイロットに人気の街を追加」の手前に、焦点を置ける所が無い');
       else {
         await p.keyboard.press('Tab');
         const at = await ev(sel => document.activeElement === document.querySelector(sel), ENT);
@@ -7593,10 +7645,10 @@ async function runTowns(browser, s, [w, h]) {
           const opened = await until(() => { const r = document.querySelector('.pvc-root'); return !!r && !r.hidden && r.classList.contains('is-in') && !!r.querySelector('[data-pvc-form="town"]'); });
           if (!opened) bad.push('Enter で街の面が開かない');
           else if (!(await shut())) bad.push('Escape で閉じない');
-          else if (!(await until(sel => document.activeElement === document.querySelector(sel), ENT))) bad.push('閉じたあと、焦点が「＋住みやすい街を追加」へ戻らない');
+          else if (!(await until(sel => document.activeElement === document.querySelector(sel), ENT))) bad.push('閉じたあと、焦点が「＋パイロットに人気の街を追加」へ戻らない');
         }
       }
-      ok(!bad.length, `${tag}: M10 キーボード ── Tab で「＋住みやすい街を追加」に着く・Enter で街の面が開く・Escape で閉じる・焦点は入口へ戻る`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: M10 キーボード ── Tab で「＋パイロットに人気の街を追加」に着く・Enter で街の面が開く・Escape で閉じる・焦点は入口へ戻る`, bad.join(' ／ '));
     }
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));

@@ -630,6 +630,22 @@
      それ以外（たとえば、別のタブで足りる数まで答えた直後の 'open'）では描かない ＝ 埋められないカードを出さない・要る数をここで決めない。 */
   var ASK_ID = /^[a-z0-9_]{1,64}$/;
   function isInt(v) { return isNum(v) && Math.floor(v) === v; }
+  /* 答えるカードに出す社名（押して開く「情報を追加」の面の頭の行にも、この名前が渡る）。どの欄のカードも、ここ1か所で決める。
+     段階3の面の社名は、日本の会社は日本語・ほかは英語（オーナー 2026-10-18「日本は日本語、他は英語」）。
+     英語の名前は、サイトの生成物 pv-airlines.json（gen-airline-codes.mjs が SALARY と OPS から書く。地域 region を持つ）の en
+     ── 新しい綴りは作らない。日本の会社（region 'japan'）・一覧に無い会社（'other' ＝ 本人が書いた名前）・この一覧に無い符号・
+     一覧が読めなかった時は、サーバーが返した名前のまま（db/contrib.sql は日本語の名前を返す。サーバーは変えない）。
+     一覧は誰が読んでも同じ字なので、読む人が替わっても読み直さない（鍵は 'give' で始めない ＝ drop('give') に消されない）。 */
+  function giveSay(code, name) {
+    if (code === 'other') return Promise.resolve(name);
+    return once('airlines', function () {
+      return json('pv-airlines.json').then(function (j) { return (j && j.airlines) || {}; });
+    }).then(function (m) {
+      var a = m && Object.prototype.hasOwnProperty.call(m, code) ? m[code] : null;
+      var en = a && typeof a.en === 'string' ? a.en.replace(/^\s+|\s+$/g, '') : '';
+      return a && typeof a.region === 'string' && a.region !== 'japan' && en ? en : name;
+    }, function () { return name; });
+  }
   function giveInfo() {
     return once('give', function () {
       return client().then(function (sb) { return sb.rpc('pv_contrib_give', { p: {} }); }).then(function (res) {
@@ -639,10 +655,11 @@
         var name = typeof x.name === 'string' ? x.name.replace(/^\s+|\s+$/g, '') : '';
         if (!okSlug(x.airline) || !name) throw fail('error');
         if (!isInt(x.have) || !isInt(x.need) || x.have < 0 || x.have >= x.need) throw fail('error');
-        return {
+        var g = {
           airline: x.airline, name: name, have: x.have, need: x.need,
           ask: (isArr(x.ask) ? x.ask : []).filter(function (q) { return typeof q === 'string' && ASK_ID.test(q); })
         };
+        return giveSay(g.airline, name).then(function (n) { g.name = n; return g; });
       });
     });
   }
@@ -927,9 +944,12 @@
       d.addEventListener('DOMContentLoaded', function () { res(ask()); });
     });
   }
-  /* 自分の行の札。街か文が確認待ちなら「確認待ち」、どちらかが見送りで確認待ちが無ければ「見送り」、ほかは何も付けない。 */
+  /* 自分の行の札。街が確認待ちなら「確認待ち」。
+     ★街がもう数に入っている（town_state 'public'）時は、文がまだ確認待ちでも「確認待ち」を付けない（オーナー 2026-10-18「いらない」
+       ── 数に入っている街の横の「確認待ち」は、その街がまだ数に入っていないと読める）。文の確認と、誰に何を見せるかは今までどおり（サーバ）。
+     ほかは今までどおり：まだ数に入っていない街で文が確認待ちなら「確認待ち」、どちらかが見送りなら「見送り」、ほかは何も付けない。 */
   function townSay(r) {
-    if (r.town_state === 'pending' || r.text_state === 'pending') return T.townWait;
+    if (r.town_state === 'pending' || (r.text_state === 'pending' && r.town_state !== 'public')) return T.townWait;
     if (r.town_state === 'rejected' || r.text_state === 'rejected') return T.townNo;
     return '';
   }

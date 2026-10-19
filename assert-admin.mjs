@@ -477,7 +477,7 @@ async function queueChecks(page, lang) {
       (p.previousElementSibling && p.previousElementSibling.getAttribute('data-adm-list')) || null,
       (() => { let h = p.previousElementSibling; while (h && h.tagName !== 'H2') h = h.previousElementSibling; return h ? h.firstChild.textContent : null; })()]) }));
   const NONE = EN ? 'Nothing is waiting' : '確認待ちはありません';
-  ok(none.n === '0' && JSON.stringify(none.says) === JSON.stringify([['town', NONE, 'town', EN ? 'Towns' : '住みやすい街'], ['stay', NONE, 'stay', EN ? 'Stays' : 'ステイ先']]),
+  ok(none.n === '0' && JSON.stringify(none.says) === JSON.stringify([['town', NONE, 'town', EN ? 'Towns' : 'パイロットに人気の街'], ['stay', NONE, 'stay', EN ? 'Stays' : 'ステイ先']]),
      `G6 全部片づくと数は「0」・街とステイ先の見出しの下にそれぞれ「${NONE}」`, JSON.stringify(none));
 
   /* AQ14 写真 ── 待ち行列に写真が入ったら、面が開いているあいだに1枚ずつ取りにいく（1枚につき1回）。読めない写真は一言で */
@@ -867,7 +867,7 @@ async function notOwnerChecks(page, lang) {
              pressed: window.__rpc.filter((n) => n === 'pv_stay_applicant_image' || n === 'pv_stay_viewer_verify').length,
              n: document.getElementById('adm-n').textContent };
   }, OWN_WORDS[lang]);
-  ok(v.owner === 0 && v.acts === 0 && JSON.stringify(v.heads) === JSON.stringify(EN ? ['Towns', 'Stays'] : ['住みやすい街', 'ステイ先'])
+  ok(v.owner === 0 && v.acts === 0 && JSON.stringify(v.heads) === JSON.stringify(EN ? ['Towns', 'Stays'] : ['パイロットに人気の街', 'ステイ先'])
      && v.words.length === 0 && !v.verified && v.asked === 2 && v.pressed === 0 && v.n === '4',
      '★O0 オーナーでない運営（2つの一覧に forbidden）：申請してきた人・会員一覧の見出しも行も数もボタンも出ない・画像も verified も呼ばない（数は待ち行列の「4」だけ）',
      JSON.stringify(v));
@@ -911,7 +911,7 @@ async function ownerChecks(page, lang) {
              open: !q.hidden };
   });
   const [a1, a2, m1, m3, m4] = [await info(appSel(A1)), await info(appSel(A2)), await info(memSel(A1)), await info(memSel(M3)), await info(memSel(M4))];
-  const HEADS = EN ? ['Towns', 'Stays', 'Applicants', 'Members'] : ['住みやすい街', 'ステイ先', '申請してきた人', '会員一覧'];
+  const HEADS = EN ? ['Towns', 'Stays', 'Applicants', 'Members'] : ['パイロットに人気の街', 'ステイ先', '申請してきた人', '会員一覧'];
   ok(JSON.stringify(o1.heads) === JSON.stringify(HEADS) && JSON.stringify(o1.apps) === JSON.stringify([A1, A2])
      && JSON.stringify(o1.members) === JSON.stringify([A2, A1, M3, M4]) && o1.open && o1.n === '4',
      `★O1 オーナーには「${HEADS[2]}」「${HEADS[3]}」が待ち行列の下に出る・行は返ってきた順のまま・数は待ち行列の「4」のまま（申請も会員も数えない）`, JSON.stringify(o1));

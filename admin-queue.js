@@ -77,7 +77,7 @@
     badIata:  function (code, air) { return code + ' is not on the destination list of ' + air + '. Only airports on the airline\'s destination list can be added here directly.'; },
     pickIata: 'Choose one of the suggested airports in the Airport field.'
   } : {
-    towns:    '住みやすい街',
+    towns:    'パイロットに人気の街',          // 会社ページの入口・面の名前と同じ字（オーナー 2026-10-18「パイロットに人気の街を追加」）
     stays:    'ステイ先',
     ok:       '承認',
     merge:    '同じ街として承認',

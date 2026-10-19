@@ -2,7 +2,7 @@
 -- PILOT VALUE — db/towns.sql
 --
 -- 会社ページの「暮らし」に集まる、住みやすい街の投稿（会社 × 基地ごと）。
--- 「＋住みやすい街を追加」から出た投稿を、会員1人・1つの街に1行で持つ。
+-- 「＋パイロットに人気の街を追加」（2026-10-18 までの字は「＋住みやすい街を追加」）から出た投稿を、会員1人・1つの街に1行で持つ。
 -- 街の候補（台帳の街・運営が足した街・会員が打ち込んだ街）も、ここに持つ。
 --
 -- ★ このファイルは自動では流れない。オーナーが SQL Editor で実行する。
@@ -510,8 +510,14 @@ begin
   on conflict (author_hash, town_id) do update set
     lived = excluded.lived, lived_to_year = excluded.lived_to_year,
     good = excluded.good, concern = excluded.concern, text_state = excluded.text_state,
-    rent_layout = excluded.rent_layout, rent_area = excluded.rent_area, rent_area_unit = excluded.rent_area_unit,
-    rent_amount = excluded.rent_amount, rent_currency = excluded.rent_currency,
+    -- ★家賃（rent_*）は、送られてきた時だけ置き換える（2026-10-18）。画面は広さ・間取り・家賃を聞かない・送らない
+    --   （オーナー「広さとか間取りとか投稿する人が入力するのおかしい」）。前に預かった値は、出し直しで消さずにそのまま持つ
+    --   （列も行も消さない。どの画面にも投稿した人の家賃としては出さない ── 家の数字はサイトが調べて載せるものだけ）。
+    rent_layout    = case when v_c ? 'rent' then excluded.rent_layout    else s.rent_layout    end,
+    rent_area      = case when v_c ? 'rent' then excluded.rent_area      else s.rent_area      end,
+    rent_area_unit = case when v_c ? 'rent' then excluded.rent_area_unit else s.rent_area_unit end,
+    rent_amount    = case when v_c ? 'rent' then excluded.rent_amount    else s.rent_amount    end,
+    rent_currency  = case when v_c ? 'rent' then excluded.rent_currency  else s.rent_currency  end,
     trip_mode = excluded.trip_mode, trip_airport = excluded.trip_airport, trip_terminal = excluded.trip_terminal,
     trip_hour = excluded.trip_hour, trip_minutes = excluded.trip_minutes, lang = excluded.lang,
     updated_at = now(),

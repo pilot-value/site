@@ -6,7 +6,7 @@
 
    ■ ページとの約束
      window.PVContrib = { open({ topic, q, ctx }), close(), myTowns(), isOpen() }
-       topic ＝ ''／'list'（項目の一覧）・'work'（月の勤務）・'town'（住みやすい街）・質問のまとまり
+       topic ＝ ''／'list'（項目の一覧）・'work'（月の勤務）・'town'（パイロットに人気の街）・質問のまとまり
                （'taxi' 'staff_travel' 'upgrade' 'roster' 'career' 'benefits'）
        q     ＝ そのまとまりの中で、最初に見せたい質問の id（無くてよい）
        ctx   ＝ topic 'town' のとき、直す投稿の街の名前（渡した時だけ「修正」。無ければ追加）
@@ -285,10 +285,13 @@
   var W = newW();
   /* 街の入力の写しは1つだけ。街の名前（TW.name）とは別に持つ ＝ 名前を打ち替えても、打った内容は消えない。
      from ＝ いま入っているのが、どの街の保存済みの投稿から起こした内容か（'' ＝ 起こしていない）
-     dirty ＝ この面で1つでも欄に手を付けた   by ＝ 手を付けた欄（読む人が替わった時に、打った欄だけを残す） */
+     dirty ＝ この面で1つでも欄に手を付けた   by ＝ 手を付けた欄（読む人が替わった時に、打った欄だけを残す）
+     ★広さ・間取り・家賃は聞かない（オーナー 2026-10-18「投稿する人が入力するのおかしい」）。家の数字はサイトが調べて載せる
+       （暮らしのカードの出どころと日付のある数字）だけ。写しにも欄を持たない ＝ 前の形の下書き・保存済みの投稿に在っても、
+       欄にも保存後のカードにも出さず、送らない（サーバは持っている値をそのまま持つ ── db/towns.sql の 4.）。 */
   function newTB() {
-    return { lived: '', lived_to_year: '', good: '', concern: '', layout: '', area: '', area_unit: 'm2', amount: '', currency: '',
-             mode: '', airport: '', terminal: '', hour: '', minutes: '', rentOpen: false, tripOpen: false, dirty: false, from: '', by: {} };
+    return { lived: '', lived_to_year: '', good: '', concern: '',
+             mode: '', airport: '', terminal: '', hour: '', minutes: '', tripOpen: false, dirty: false, from: '', by: {} };
   }
   /* name ＝ 街の欄の字   nameBy ＝ その字を、この面で打った・選んだ（「修正」から入った名前は false）
      was ＝ 直している投稿の街（'' ＝ 追加）   q ＝ 候補を絞る字（打った字。候補を選ぶと空に戻る）
@@ -305,7 +308,7 @@
     { k: 'career', t: '訓練・キャリア' },
     { k: 'benefits', t: '休暇・手当' }
   ];
-  var TOPIC_NAME = { work: '月の勤務', town: '住みやすい街' };
+  var TOPIC_NAME = { work: '月の勤務', town: 'パイロットに人気の街' };
   GROUPS.forEach(function (g) { TOPIC_NAME[g.k] = g.t; });
   function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
   function obj(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
@@ -478,7 +481,7 @@
     try { for (i = 0; i < sessionStorage.length; i++) { k = sessionStorage.key(i); if (k && k.indexOf(DRAFT) === 0) keys.push(k); } } catch (e) { return; }
     keys.forEach(function (key) { var j = readRec(key); if (j && whose(j, cur) === 'drop') sdel(key); });
   }
-  /* 手を付けた入力が在るか（月の勤務・住みやすい街・質問のまとまり） */
+  /* 手を付けた入力が在るか（月の勤務・パイロットに人気の街・質問のまとまり） */
   function dirtyOf(topic) {
     if (topic === 'work') return Object.keys(W.bufs).some(function (k) { return !!(W.bufs[k] && W.bufs[k].dirty); });
     if (topic === 'town') return !!(TW.buf.dirty || TW.nameBy);
@@ -876,8 +879,8 @@
     if (!TW.buf.dirty) TW.buf = newTB();
     else {
       Object.keys(TW.buf).forEach(function (f) {
-        if (f === 'dirty' || f === 'by' || f === 'rentOpen' || f === 'tripOpen' || TW.buf.by[f]) return;
-        TW.buf[f] = f === 'area_unit' ? 'm2' : '';
+        if (f === 'dirty' || f === 'by' || f === 'tripOpen' || TW.buf.by[f]) return;
+        TW.buf[f] = '';
       });
     }
     if (!TW.nameBy) TW.name = '';
@@ -1785,7 +1788,7 @@
     }, function () { W.ym = L.ym; show('work'); }, L.held);
   }
 
-  /* ── 住みやすい街 ───────────────────────────────────────── */
+  /* ── パイロットに人気の街 ───────────────────────────────── */
   /* 会社は body から、基地・空港・街の候補は、ページの入口（data-pvc-open="town" と data-pvc-base を持つ最初の要素）から読む。
      面を開くたびに読む（ログインからの戻り・「進む」でも同じ文脈になる）。基地を持たないページでは、街の面を出さない。
      ★住所・位置は聞かない・取らない（位置を取る口を呼ばない）。送るのは、本人が打った・選んだものだけ。
@@ -1805,6 +1808,19 @@
       return Array.isArray(t) && typeof t[0] === 'string' && trim(t[0]) !== '' && t[0].length <= 30;
     }).map(function (t) { return [t[0], typeof t[1] === 'string' && t[1].length <= 40 ? t[1] : '']; }).slice(0, 24);
     return { base: base, text: trim(a.getAttribute('data-pvc-basetext')).slice(0, 60), ports: ports, towns: towns };
+  }
+  /* 街の面の頭の行（と保存後のカード）の社名。段階3の面の社名は、日本の会社は日本語・ほかは英語（オーナー 2026-10-18）。
+     字は会社ページの島（#crc-data の airlines[このページの会社].name ＝ gen-airline-glance.mjs が同じ決まりで書く）。
+     島に無ければ、ほかの面と同じ coName()。 */
+  function townCo() {
+    var n, j, a;
+    if (CO) return coName();
+    try {
+      n = d.getElementById('crc-data'); j = n ? JSON.parse(n.textContent || '{}') : null;
+      a = j && j.airlines ? j.airlines[pageSlug()] : null;
+      if (a && typeof a.name === 'string' && trim(a.name)) return trim(a.name).slice(0, 60);
+    } catch (e) { /* 読めなければ下へ */ }
+    return coName();
   }
   /* サーバの候補（サイトの名前だけ。誰が読んでも同じ）。ページを開いているあいだに1回だけ読む。読めなくても、ページの名前で足りる。 */
   function townOptions(ctx) {
@@ -1836,13 +1852,11 @@
     for (i = 0; i < rows.length; i++) if (rows[i].town === n) return rows[i];
     return null;
   }
-  /* 保存済みの1件を、入力の写しに起こす（手を付けていない写し） */
+  /* 保存済みの1件を、入力の写しに起こす（手を付けていない写し）。★前に預かった家賃（row.rent）は写さない（欄が無い・送らない） */
   function townLoad(row) {
-    var b = newTB(), r = obj(row.rent), t = obj(row.trip);
+    var b = newTB(), t = obj(row.trip);
     function s(v) { return v == null ? '' : String(v); }
     b.lived = s(row.lived); b.lived_to_year = s(row.lived_to_year); b.good = s(row.good); b.concern = s(row.concern);
-    b.layout = s(r.layout); b.area = s(r.area); b.area_unit = r.area_unit === 'sqft' ? 'sqft' : 'm2';
-    b.amount = s(r.amount); b.currency = s(r.currency);
     b.mode = s(t.mode); b.airport = s(t.airport); b.terminal = s(t.terminal); b.hour = s(t.hour); b.minutes = s(t.minutes);
     b.from = row.town;
     TW.buf = b;
@@ -1859,7 +1873,8 @@
      読めない字は、打たれたまま送ってサーバに断らせる（黙って捨てない ＝ 月の勤務の numOut と同じ考え方）。 */
   function townNum(v) { var t = trim(v), n; if (t === '') return null; n = qNum(t); return n === null ? t : n; }
   function townFold(s) { return trim(s).replace(/[\s　]+/g, ' '); }
-  /* 送る形。空欄は null（未回答は 0 ではない）。家賃・通勤は、どれか1つでも答えた時だけ */
+  /* 送る形。空欄は null（未回答は 0 ではない）。通勤は、どれか1つでも答えた時だけ。
+     ★家賃の鍵（rent）は送らない（広さ・間取り・家賃は聞かない。サーバは前に預かった値をそのまま持つ） */
   function townPayload(ctx) {
     var b = TW.buf, town = townFold(TW.name), was = townFold(TW.was);
     var o = { airline: slug(), base_iata: ctx.base, town: town };
@@ -1868,11 +1883,6 @@
     o.lived_to_year = o.lived === 'past' && /^\d{4}$/.test(b.lived_to_year) ? Number(b.lived_to_year) : null;
     o.good = trim(b.good) || null;
     o.concern = trim(b.concern) || null;
-    var lay = trim(b.layout) || null, area = townNum(b.area), amt = townNum(b.amount);
-    if (lay !== null || area !== null || amt !== null) {
-      o.rent = { layout: lay, area: area, area_unit: area !== null ? (b.area_unit === 'sqft' ? 'sqft' : 'm2') : null,
-                 amount: amt, currency: amt !== null ? (b.currency || null) : null };
-    }
     var tr = { mode: b.mode || null, airport: b.airport || null, terminal: trim(b.terminal) || null,
                hour: /^\d{1,2}$/.test(b.hour) ? Number(b.hour) : null, minutes: townNum(b.minutes) };
     if (tr.mode !== null || tr.airport !== null || tr.terminal !== null || tr.hour !== null || tr.minutes !== null) o.trip = tr;
@@ -1911,10 +1921,6 @@
     if (/^(街・最寄駅|新しい街の名前|この街の名前)/.test(m)) return 'town';
     if (/^良い点は/.test(m)) return 'good';
     if (/^気になる点は/.test(m)) return 'concern';
-    if (/^間取り/.test(m)) return 'layout';
-    if (/^広さ/.test(m)) return 'area';
-    if (/^家賃の月額/.test(m)) return 'amount';
-    if (/^家賃の通貨/.test(m)) return 'currency';
     if (/^ターミナル/.test(m)) return 'terminal';
     if (/^通勤の所要時間/.test(m)) return 'minutes';
     return '';
@@ -1930,9 +1936,6 @@
     if (!ctx) return show('list');
     var pl = townPayload(ctx);
     if (!pl.town) return townSay({ kind: 'said', title: '保存できませんでした', text: '街・最寄駅を入れてください。' }, 'town');
-    if (pl.rent && pl.rent.amount !== null && !pl.rent.currency) {
-      return townSay({ kind: 'said', title: '保存できませんでした', text: '月額は、通貨を選んでください。' }, 'currency');
-    }
     if (turned) return;
     TW.notice = null; TW.err = null; paintTownNotice();
     setBusy(TW, true);
@@ -1980,18 +1983,14 @@
     var L = TW.last, ctx = townCtx();
     if (!L || !ctx) return renderTown();
     setHead(TOPIC_NAME.town);
-    var p = L.post, r = p.rent && typeof p.rent === 'object' ? p.rent : null, t = p.trip && typeof p.trip === 'object' ? p.trip : null;
-    savedShell(savedTitle(L.added), coName() + ' · ' + ctx.text, function (dl) {
+    /* ★サーバが前に預かった家賃（p.rent）を返しても、カードには出さない（投稿した人の家賃として見せない。家の数字はサイトが調べたものだけ） */
+    var p = L.post, t = p.trip && typeof p.trip === 'object' ? p.trip : null;
+    savedShell(savedTitle(L.added), townCo() + ' · ' + ctx.text, function (dl) {
       townSum(dl, 'town', '街・最寄駅', str(p.town), false, p.town_state === 'pending');
       townSum(dl, 'lived', '住んだ時期', p.lived === 'now' ? 'いま住んでいる' : p.lived === 'past' ? '以前住んでいた' : null);
       if (p.lived === 'past') townSum(dl, 'lived_to_year', 'いつまで', p.lived_to_year != null ? p.lived_to_year + '年' : null);
       townSum(dl, 'good', '良い点', p.good, true, !!trim(p.good) && p.text_state === 'pending');
       townSum(dl, 'concern', '気になる点', p.concern, true, !!trim(p.concern) && p.text_state === 'pending');
-      if (r) {
-        townSum(dl, 'layout', '間取り', r.layout);
-        townSum(dl, 'area', '広さ', r.area != null ? numText(r.area) + (r.area_unit === 'sqft' ? ' sq ft' : ' ㎡') : null);
-        townSum(dl, 'amount', '月額', r.amount != null ? numText(r.amount) + ' ' + str(r.currency) : null);
-      }
       if (t) {
         townSum(dl, 'mode', '交通手段', t.mode ? pick(TMODE, str(t.mode)) || null : null);
         townSum(dl, 'airport', '空港／ターミナル', [str(t.airport), str(t.terminal)].filter(Boolean).join(' · ') || null);
@@ -2012,7 +2011,8 @@
   }
   /* 見出し：自分の投稿を直している回は「追加」と言わない ── 送るボタンが「匿名で更新する」の時（「修正」から開いた・
      保存後のカードから戻った ＝ TW.was／欄の街が、自分の投稿のある街 ＝ mine）に「…を追加」を出さない。
-     字は、保存後のカードの見出しと同じ「住みやすい街」。決まりはボタンの字と同じ（欄が替わるたびに E.sync が合わせる） */
+     字は、保存後のカードの見出しと同じ「パイロットに人気の街」（追加の回は「パイロットに人気の街を追加」＝ オーナーの字。2026-10-18）。
+     決まりはボタンの字と同じ（欄が替わるたびに E.sync が合わせる） */
   function townHead(mine) { return mine || TW.was ? TOPIC_NAME.town : TOPIC_NAME.town + 'を追加'; }
   function renderTown() {
     var ctx = townCtx();
@@ -2040,7 +2040,7 @@
 
     /* いま何について答えているか（会社・基地は聞かない） */
     var cx = el('div', 'pvc-ctx');
-    cx.appendChild(el('p', 'pvc-ctx-line', coName() + ' · ' + ctx.text));
+    cx.appendChild(el('p', 'pvc-ctx-line', townCo() + ' · ' + ctx.text));
     f.appendChild(cx);
     /* 状態の1行は、欄より先（月の勤務と同じ） */
     E.wait = el('p', 'pvc-wait', '', { 'data-pvc-wait': '' });
@@ -2150,7 +2150,8 @@
     /* ここに書いた文は、確認のあと、一覧を見られる会員の画面に出る（サーバの pv_town_board）。黙って出さない。 */
     area('concern', '気になる点（任意）').appendChild(el('p', 'pvc-tip', '書いた場合は、確認のあと、給与を提出した会員に表示されます（名前は出ません）。'));
 
-    /* 家賃・通勤（任意。押すか、値が入っている時だけ開く） */
+    /* 通勤（任意。押すか、値が入っている時だけ開く）。
+       ★広さ・間取り・家賃の欄は置かない（オーナー 2026-10-18。家の数字はサイトが調べて載せる ＝ 暮らしのカード） */
     function fold(key, label, open) {
       var fo = el('div', 'pvc-fold pvc-wide', null, { 'data-pvc-fold': key });
       var bt = el('button', 'pvc-fold-b', null, { type: 'button', 'aria-expanded': 'false', 'aria-controls': 'pvc-fold-' + key });
@@ -2161,25 +2162,6 @@
       g.appendChild(fo);
       return { bt: bt, panel: panel };
     }
-    var rent = fold('rent', '家賃を追加（任意）', 'rentOpen');
-    var lay = field('pvc-field', '間取り', 'pvc-f-layout');
-    lay.appendChild(textIn('layout', 12)); errBox(lay, 'layout');
-    rent.panel.appendChild(lay);
-    var ar = field('pvc-field', '広さ', 'pvc-f-area'), arow = el('div', 'pvc-numrow');
-    arow.appendChild(textIn('area', 8, 'decimal'));
-    arow.appendChild(pickIn('area_unit', [['m2', '㎡'], ['sqft', 'sq ft']]).wrap);
-    ar.appendChild(arow); errBox(ar, 'area');
-    rent.panel.appendChild(ar);
-    var am = field('pvc-field', '月額', 'pvc-f-amount'), mrow = el('div', 'pvc-numrow');
-    var co = [['', '通貨を選ぶ']];
-    (V.vocab.currencies || []).forEach(function (c) { co.push([c.code, str(c.code) + (c.ja ? '（' + str(c.ja) + '）' : '')]); });
-    var cs = pickIn('currency', co);
-    cs.sel.setAttribute('aria-label', '月額の通貨');
-    mrow.appendChild(cs.wrap);
-    mrow.appendChild(textIn('amount', 14, 'decimal'));
-    am.appendChild(mrow); errBox(am, 'amount'); errBox(am, 'currency');
-    rent.panel.appendChild(am);
-
     var trip = fold('trip', '通勤を追加（任意）', 'tripOpen');
     var md = field('pvc-field', '交通手段', 'pvc-f-mode');
     md.appendChild(pickIn('mode', TMODE).wrap);
@@ -2220,9 +2202,7 @@
       });
       if (d.activeElement !== ti) ti.value = TW.name;
       yf.hidden = b.lived !== 'past';
-      var ro = !!(b.rentOpen || trim(b.layout) || trim(b.area) || trim(b.amount));
       var to = !!(b.tripOpen || b.mode || b.airport || trim(b.terminal) || b.hour !== '' || trim(b.minutes));
-      rent.panel.hidden = !ro; rent.bt.setAttribute('aria-expanded', ro ? 'true' : 'false');
       trip.panel.hidden = !to; trip.bt.setAttribute('aria-expanded', to ? 'true' : 'false');
     };
     E.sync = function () {

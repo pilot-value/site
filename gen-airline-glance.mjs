@@ -29,6 +29,7 @@ import { QUESTIONS } from './pv-conditions.mjs';
 import { needsCredit, src as photoSrc, smallH, SMALL_W } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
 import { networkOf } from './airline-destinations.mjs';
+import { SALARY } from './salary-data.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const UP = '../';                                   // 会社ページ（airlines/）から見たルート
@@ -44,6 +45,22 @@ export const pageOf = slug => path.join('airlines', `${slug}.html`);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fingerprint = f => createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
 const asset = f => `${UP}${f}?v=${fingerprint(f)}`;
+/* 段階3の面（ステイ先・街）の行に出す社名：日本の会社は日本語・ほかは英語（オーナー 2026-10-18「日本は日本語、他は英語」）。
+   字は正本（salary-data.mjs の SALARY）の ja / en を、地域（region 'japan'）で選ぶだけ。ページの見出し・検索向けの字には使わない。
+   島（#crc-data）の name に書く ＝ career-stay.js と pv-contrib.js（街の面の頭の行）が読む。 */
+const coSay = slug => (SALARY[slug].region === 'japan' ? SALARY[slug].ja : SALARY[slug].en);
+/* 同じ面（暮らしの板・就航地とステイの欄）の札や1行に、台帳の字のまま出てくるこのページの会社の名前も、同じ決まり（coSay）で出す
+   （街を選んだ理由「エバー航空の事業所がある」・出典の名前「エバー航空「飛航人員福利」」・就航地の条件の1行）。
+   入れ替えるのは、正本の日本語の社名（SALARY の ja。すぐ後ろに「航空」が続けばそこまで）が、かぎかっこ「…」の外に在る所だけ
+   ── 引用した資料の題（「飛航人員福利」）の中は1字も変えない。台帳（living-facts.mjs・airline-destinations.mjs）の字は変えない。
+   日本の会社のページでは何も変わらない。ページの見出し・検索向けの字には使わない。 */
+const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, c => `\\${c}`);
+const coText = (slug, t) => {
+  const s = String(t ?? ''), ja = SALARY[slug].ja, say = coSay(slug);
+  if (say === ja) return s;
+  const re = new RegExp(`${reEsc(ja)}(?:航空)?`, 'g');
+  return s.split(/(「[^」]*」)/).map(p => (p.startsWith('「') ? p : p.replace(re, () => say))).join('');
+};
 
 /* ── 行き先 ─────────────────────────────────────────── */
 const href = {
@@ -524,16 +541,17 @@ const wayFig = c => `<span class="pvg-way-f" data-way="${esc(c.key)}">${modeChip
 const endRow = e => `<li data-end="${esc(e.end)}"><span class="pvg-way-l">${esc(`${e.figs[0].from} → ${e.figs[0].to}`)}</span><span class="pvg-way-fs">${e.figs.map(wayFig).join('')}</span></li>`;
 const wayLine = c => `<li data-way="${esc(c.key)}"><span class="pvg-way-t"><i class="pvg-mode">${MODE_JA[c.mode]}</i>${code3(c.iata)}</span><span class="pvg-way-l">${esc(c.label)}</span><b>${val(c)}</b></li>`;
 /* 見出しの行。カードの移動の数字が Google マップの表示だということは、ここで1回だけ言う（カードごとに繰り返さない）。
-   「＋住みやすい街を追加」の入口は、この中の最後（見出しが左・入口が右。狭い箱では下へ回る ＝ .pvg-liv-h の組み方）。 */
+   「＋パイロットに人気の街を追加」の入口は、この中の最後（見出しが左・入口が右。狭い箱では下へ回る ＝ .pvg-liv-h の組み方）。 */
 const livingHead = (v, L) => `<header class="pvg-liv-h"><p class="pvg-askh">住むエリア${L.rents.some(r => r.way) ? '<small>空港までの時間は Google マップの表示</small>' : ''}</p>${townAdd(v)}</header>`;
-/* 「＋住みやすい街を追加」。暮らしの板に1つだけ（常設）。会社は body から、基地・空港・街の名前はここから面へ渡す。
-   ★額は1つも渡さない。家賃の欄の鍵も渡さない。★質問も街も指さない（data-pvc-q・data-pvc-ctx を付けない）。 */
+/* 「＋パイロットに人気の街を追加」（字はオーナーの「パイロットに人気の街を追加」。2026-10-18）。暮らしの板に1つだけ（常設）。
+   会社は body から、基地・空港・街の名前はここから面へ渡す。
+   ★額は1つも渡さない。家賃の欄の鍵も渡さない（面は広さ・間取り・家賃を聞かない）。★質問も街も指さない（data-pvc-q・data-pvc-ctx を付けない）。 */
 const J = a => esc(JSON.stringify(a));
 function townAdd(v) {
   if (!tabbed(v.slug) || !v.living || !baseCode(v)) return '';
   const base = [v.base.city, v.base.iata.join('・')].filter(Boolean).join(' ');   // 空港の3字が無い会社（ANA）は街の名前だけ（後ろに空白を残さない）
   const ports = v.living.airports.map(a => a.iata);
-  return `<a class="pvg-link pvg-liv-add" href="?add=town" data-pvc-open="town" data-pvc-base="${esc(baseCode(v))}" data-pvc-basetext="${esc(base)}" data-pvc-ports="${J(ports)}" data-pvc-towns="${J(ledgerTowns(v).map(t => [t.name, t.sub]))}">＋住みやすい街を追加</a>`;
+  return `<a class="pvg-link pvg-liv-add" href="?add=town" data-pvc-open="town" data-pvc-base="${esc(baseCode(v))}" data-pvc-basetext="${esc(base)}" data-pvc-ports="${J(ports)}" data-pvc-towns="${J(ledgerTowns(v).map(t => [t.name, t.sub]))}">＋パイロットに人気の街を追加</a>`;
 }
 /* 会員が挙げた街（描くのは career-live.js。ここは器と見出しだけ）。見出しは、欄が空のあいだ CSS が隠す */
 const townGot = v => (tabbed(v.slug) && v.living && baseCode(v)
@@ -565,7 +583,7 @@ ${Object.keys(r.value).length
     ? `<dl class="pvg-kv">${cols.map(([key, label]) => `<div><dt>${esc(label)}</dt><dd>${r.value[key] == null ? '<span class="pvg-none">—</span>' : rentText(L, r, key)}</dd></div>`).join('')}</dl>`
     : '<p class="pvg-quiet">家賃の資料を確認できていません</p>'}</div>`;
   return `<section class="pvg-td" id="pvg-town-${esc(r.key)}" data-town-detail="${esc(r.key)}" aria-label="${esc(n.main)}">
-<header class="pvg-td-h"><h4>${esc(n.main)}${n.sub ? `<small${n.en ? ' lang="en"' : ''}>${esc(n.sub)}</small>` : ''}</h4>${r.pick ? `<p>${prose(r.pick)}</p>` : ''}</header>
+<header class="pvg-td-h"><h4>${esc(n.main)}${n.sub ? `<small${n.en ? ' lang="en"' : ''}>${esc(n.sub)}</small>` : ''}</h4>${r.pick ? `<p>${prose(coText(v.slug, r.pick))}</p>` : ''}</header>
 <div class="pvg-td-g${rentBlock ? '' : ' is-one'}">
 ${rentBlock}
 <div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>${W.ends.length ? 'Google マップの表示' : '駅と空港のあいだ'}</small></p>
@@ -581,32 +599,32 @@ function cityEvidence(v, L) {
     if (s && s.url && !links.has(s.url)) links.set(s.url, s);
   const said = { currency: true, per: true, cols: true, what: !!(lead && lead.cond), period: !!(lead && lead.when) };
   const conds = [
-    ...(lead ? [lead.cond, ...L.basis.filter(b => !said[b.key]).map(b => b.value)] : []).filter(Boolean).map(t => `<li>${prose(t)}</li>`),
+    ...(lead ? [lead.cond, ...L.basis.filter(b => !said[b.key]).map(b => b.value)] : []).filter(Boolean).map(t => `<li>${prose(coText(v.slug, t))}</li>`),
     /* 円に直した額の断りも、ここ（「出典」の条件）に入れる。カードの下に断り文を並べない（オーナーのご指定 2026-10-07） */
     ...(L.cur && L.cur !== 'JPY' ? [`<li>${esc(fxNote(L.cur))}</li>`] : []),
-    ...[...new Set(L.commute.filter(c => c.via === 'gmaps').map(c => c.cond))].filter(Boolean).map(t => `<li>${prose(t)}</li>`),
+    ...[...new Set(L.commute.filter(c => c.via === 'gmaps').map(c => c.cond))].filter(Boolean).map(t => `<li>${prose(coText(v.slug, t))}</li>`),
   ];
   const town = k => { const r = L.rents.find(x => x.key === k); return r ? townName(r).main : ''; };
   const moves = L.commute.map(c => `<li data-way-src="${esc(c.key)}">${c.town ? `<b>${esc(town(c.town))}</b>` : ''}${esc(c.label)}<span>${
     c.via === 'gmaps' ? `${modeChips(c.modes)}${esc(c.value)}${KIND_JA[c.kind] ? `・${KIND_JA[c.kind]}` : ''}${c.ride != null ? `・乗車${c.ride}分` : ''}` : val(c)}</span>${
     c.warn ? `<span class="pv-no-cur" data-way-warn>${esc(c.warn)}</span>` : ''}${
-    c.via !== 'gmaps' && c.cond ? prose(c.cond) : ''}<span>${esc(c.when || '')}</span>${
-    ext(c.src.url, c.via === 'gmaps' ? 'Google マップで見る' : c.src.name)}</li>`);
+    c.via !== 'gmaps' && c.cond ? prose(coText(v.slug, c.cond)) : ''}<span>${esc(c.when || '')}</span>${
+    ext(c.src.url, c.via === 'gmaps' ? 'Google マップで見る' : coText(v.slug, c.src.name))}</li>`);
   /* 棒にしない区分（スタジオ・獨立套房 など）は、棒の組が在る都市ではここへ出す（詳細の一覧が無くなるので、額を画面から落とさない）。 */
   const extra = !L.hasBars ? [] : L.cols.filter(([k]) => !L.bars.includes(k) && priced.some(r => r.value[k] != null)).map(([k, label]) =>
     `<li><b>${esc(label)}</b>${priced.filter(r => r.value[k] != null).map(r => `<span>${esc(r.label)} ${rentText(L, r, k)}</span>`).join('')}</li>`);
   const refs = L.refs.map(g => {
     if (g.cur !== 'JPY') throw new Error(`${v.slug}: 外貨の参考の表（${g.key}）の書き方をまだ決めていない`);
-    return `<li data-ref="${esc(g.key)}"><b>${esc(g.name)}</b><span>${esc(join(g.measure, g.when))}</span>${g.cond ? prose(g.cond) : ''}${
+    return `<li data-ref="${esc(g.key)}"><b>${esc(g.name)}</b><span>${esc(join(g.measure, g.when))}</span>${g.cond ? prose(coText(v.slug, g.cond)) : ''}${
       g.basis.map(b => `<span class="pv-no-cur" data-ref-basis="${esc(b.key)}">${esc(b.value)}</span>`).join('')}${
-      g.src.map(s => ext(s.url, s.name)).join('')}<ul class="pvg-refl">${g.rows.map(r => `<li><b>${esc(r.name)}</b>${
+      g.src.map(s => ext(s.url, coText(v.slug, s.name))).join('')}<ul class="pvg-refl">${g.rows.map(r => `<li><b>${esc(r.name)}</b>${
       g.cols.filter(([k]) => r.value[k] != null).map(([k, label]) => `<span>${esc(label)} <b>${esc(rentCell(g.cur, r.value[k]).yen)}</b></span>`).join('')}</li>`).join('')}</ul></li>`;
   });
   const row = (dt, dd) => (dd ? `<div><dt>${dt}</dt><dd>${dd}</dd></div>` : '');
   const list = a => (a.length ? `<ul class="pvg-notes">${a.join('')}</ul>` : '');
   return `<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small>${IC.down}</summary>
 <dl class="pvg-evl">
-${links.size ? `<div><dt>根拠</dt><dd class="pvg-srcs">${[...links.values()].map(s => ext(s.url, s.name)).join('')}</dd></div>` : ''}
+${links.size ? `<div><dt>根拠</dt><dd class="pvg-srcs">${[...links.values()].map(s => ext(s.url, coText(v.slug, s.name))).join('')}</dd></div>` : ''}
 ${row('条件', list(conds))}
 ${lead && lead.when ? `<div><dt>時点</dt><dd><span><b>家賃</b>${esc(lead.when)}</span></dd></div>` : ''}
 ${row('移動', list(moves))}
@@ -870,9 +888,9 @@ ${base}
   for (const h of net.held) held.set(h.why, [...(held.get(h.why) || []), h.name]);
   const evidence = `<details class="pvg-dt pvg-srcd pvg-ev"><summary>出典<small>根拠・条件・時点</small>${IC.down}</summary>
 <dl class="pvg-evl">
-<div><dt>根拠</dt><dd class="pvg-srcs">${net.src.map(x => ext(x.url, x.name)).join('')}</dd></div>
-<div><dt>条件</dt><dd><ul class="pvg-notes"><li>${prose(net.basis)}</li><li>会社全体の就航地です。機種・ベースごとの運航や、宿泊があるかどうかは示していません。</li><li>並びは地域ごと（写真のある都市を先に）。人気や便数の順ではありません。</li></ul></dd></div>
-${held.size ? `<div><dt>載せていない空港</dt><dd><ul class="pvg-notes">${[...held].map(([why, names]) => `<li><b>${prose(why)}</b>${prose(names.join('・'))}</li>`).join('')}</ul></dd></div>` : ''}
+<div><dt>根拠</dt><dd class="pvg-srcs">${net.src.map(x => ext(x.url, coText(v.slug, x.name))).join('')}</dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li>${prose(coText(v.slug, net.basis))}</li><li>会社全体の就航地です。機種・ベースごとの運航や、宿泊があるかどうかは示していません。</li><li>並びは地域ごと（写真のある都市を先に）。人気や便数の順ではありません。</li></ul></dd></div>
+${held.size ? `<div><dt>載せていない空港</dt><dd><ul class="pvg-notes">${[...held].map(([why, names]) => `<li><b>${prose(coText(v.slug, why))}</b>${prose(names.join('・'))}</li>`).join('')}</ul></dd></div>` : ''}
 <div><dt>時点</dt><dd><span>${esc(dateJa(net.at))}に公式の資料で確認</span></dd></div>
 </dl></details>`;
   const pills = [['', 'すべて', n], ...net.regions.map(r => [r.key, r.label, r.n])].map(([key, label, k], i) =>
@@ -910,7 +928,7 @@ ${credits}
 <p class="pvg-city-k"><small data-cd="country"></small><i class="pvg-code3" data-cd="iata"></i><span class="pvg-city-t" data-cd="seasonal" hidden>季節運航</span></p>
 <h3 class="pvg-cd-n" id="pvg-cd-n" tabindex="-1" data-cd="name"></h3>
 <p class="pvg-town-s" lang="en" data-cd="en"></p>
-<p class="pvg-quiet pvg-cd-note">${esc(v.name)}の公式の就航地です。あなたの機種・ベースからの運航や宿泊があるとは限りません。</p>
+<p class="pvg-quiet pvg-cd-note">${esc(coSay(v.slug))}の公式の就航地です。あなたの機種・ベースからの運航や宿泊があるとは限りません。</p>
 <p class="pvg-cd-links"><a class="pvg-link" data-cd="maps" href="https://www.google.com/maps" target="_blank" rel="noopener">Google マップで見る${IC.out}</a>${official}</p>
 <p class="pvg-cd-cr" data-cd="credit" hidden></p>
 </div>
@@ -971,7 +989,8 @@ ${head(IC.reviews, '口コミ', '会員の投稿 <b data-pvg-n="posts">—</b> �
 
 /* ── 1社ぶん ────────────────────────────────────────── */
 function glance(v) {
-  const island = JSON.stringify({ airlines: Object.fromEntries(GLANCE.map(s => { const o = viewOf(s); return [s, { ja: o.name, color: o.color }]; })) })
+  /* 島：ja ＝ 日本語の社名（比べる画面などが読む）・name ＝ 段階3の面の社名（coSay）・color */
+  const island = JSON.stringify({ airlines: Object.fromEntries(GLANCE.map(s => { const o = viewOf(s); return [s, { ja: o.name, name: coSay(s), color: o.color }]; })) })
     .replace(/</g, () => '\\u003c');
   return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">
 <div class="pvg-more-grid"${pane(v.slug, 'overview')}>

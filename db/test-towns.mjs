@@ -32,6 +32,7 @@
          直した先の街をもう持っていても、前の街の行は消える（先の街の1行が出した中身に。LEAD-RULINGS-35 P12.21）
      TS10 上限 ── 1つの会社に10か所・1日20回・候補に無い名前は1日3つ（detail 'names'）
      TS11 自分の投稿は自分の行だけ。1件の形は POST の10個の鍵
+          ★家賃は送られてきた時だけ置き換える ── 家賃の鍵の無い出し直し（2026-10-18 からの画面）では、前に預かった家賃が消えない
      TS12 資格を1つも付けない ── 呼ぶたびに、プロフィールの行・給与の行の数・運営の名簿・pv_contrib_give の返事が同じ
      TS13 運営が見送った名前は、断る文で止まり、何も書かない
      TG1 街の候補の種（db/towns.generated.sql）は、node gen-towns.mjs の出力そのもの
@@ -695,6 +696,25 @@ console.log('\n▼ TS11 自分の投稿は、自分の行だけ');
     ? Object.fromEntries(Object.keys(v).sort().map((q) => [q, v[q]])) : v));
   ok(!s.__err && !rf.__err && rf.posts.length === 1 && J(norm(rf.posts[0])) === J(norm(WANT)) && J(norm(s.post)) === J(norm(WANT)),
      'TS11 本人の返事（保存の返事・自分の投稿）は、出したものをそのまま返す（住んだ時期・家賃・通勤も）', J({ s: s.post, rf }));
+
+  // ★家賃（rent_*）は、送られてきた時だけ置き換える（2026-10-18。画面は広さ・間取り・家賃を聞かない・送らない）。
+  //   前に預かった家賃は、家賃の鍵の無い出し直し（今の画面の形）では消えない ／ 鍵の在る出し直し（前の形の画面）では今までどおり置き換わる。
+  const RENT = `select rent_layout, rent_area::text as area, rent_area_unit, rent_amount::text as amount, rent_currency
+                  from public.pv_town_posts where author_hash = $1`;
+  const k0 = await one(RENT, [await hashOf(F)]);
+  const s2 = await post(F, P('品川', { lived: 'now', good: '静か（直した）', concern: '坂が多い',
+                                     trip: { mode: 'bus', minutes: '30' } }));
+  const k1 = await one(RENT, [await hashOf(F)]), rf2 = await mine(F, { airline: A1 });
+  ok(!s2.__err && s2.replaced === true && J(k1) === J(k0)
+     && J(k0) === J({ rent_layout: '1K', area: '25.00', rent_area_unit: 'm2', amount: '120000.00', rent_currency: CUR })
+     && rf2.posts.length === 1 && rf2.posts[0].good === '静か（直した）' && rf2.posts[0].lived === 'now' && rf2.posts[0].trip.mode === 'bus'
+     && J(norm(rf2.posts[0].rent)) === J(norm(WANT.rent)),
+     'TS11 ★家賃の鍵の無い出し直し（今の画面の形）→ 前に預かった家賃は消えない（保存先の5つの列はそのまま）・ほかの欄は出したとおりに置き換わる',
+     J({ k0, k1, s2: s2.__err || s2.replaced, rf2 }));
+  const s3 = await post(F, P('品川', { good: '静か（直した）', concern: '坂が多い', rent: { layout: '2K', amount: '90000', currency: CUR } }));
+  const k3 = await one(RENT, [await hashOf(F)]);
+  ok(!s3.__err && J(k3) === J({ rent_layout: '2K', area: null, rent_area_unit: null, amount: '90000.00', rent_currency: CUR }),
+     'TS11 家賃の鍵の在る出し直し（前の形の画面）→ 今までどおり、送られた家賃で5つの列ごと置き換わる（送らなかった広さは空）', J({ k3 }));
 }
 
 

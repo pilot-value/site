@@ -1,4 +1,4 @@
-/* assert-towns.mjs — 住みやすい街（pv-contrib.js の街の面 ⇄ db/towns.sql）を、手元の本物の保存先につないで歩く（2026-10-16）。
+/* assert-towns.mjs — パイロットに人気の街（2026-10-18 までの名前は「住みやすい街」。pv-contrib.js の街の面 ⇄ db/towns.sql）を、手元の本物の保存先につないで歩く（2026-10-16）。
 
    面の字と呼ぶ口は assert-contrib.mjs の「ソース」が見る。ここでは serve-local.mjs の使い捨ての保存先に本物の SQL
    （db/towns.sql・db/towns.generated.sql）を流し、面とブラウザの外からの呼び出しの両方で確かめる。
@@ -9,7 +9,7 @@
          ログインしていない人の pv_town_board の返事は {"ok":true,"state":"login"} そのもの。
          ログインしていない人の pv_town_options は、その基地の種の名前を、種の並びで返す。
    場面 sheet（S1〜S3）
-     S1  見出し「住みやすい街を追加」・文脈の行は「会社 · 基地」・会社も基地も聞かない・候補は入口の名前を入口の並びで・
+     S1  見出し「パイロットに人気の街を追加」・文脈の行は「会社 · 基地」（社名は日本の会社は日本語・ほかは英語）・会社も基地も聞かない・候補は入口の名前を入口の並びで・
          札に下の行（区・ラテン文字の表記）を出さない。
      S2  街の検索：2字打つと、その字を含む候補だけが残る・選ぶと欄に入り、候補が全部戻る・選んだ札に焦点が残り、→ で隣の札へ。
      S2b （--only cathay-pacific）ラテン文字の "tung" で東涌だけが残る・選ぶと「東涌」・保存の通信は town '東涌'。
@@ -24,16 +24,19 @@
          入口から開いて同じ変更をすると（was なし）行は2つ ＝ 足すのは直すことではない。
      S4c 「修正」（data-pvc-ctx の付いた押し所）から開いて、戻る → 進むで面へ戻っても、直している途中のまま（通信に was）。
      S5  0 と未回答と読めない字：空の所要時間は通信に入らない（null）・「0」はサーバの文で断られ、その欄に印・打った字は残る。
-         月額「20万」（通貨あり）は打ったとおりの字で送られ、サーバの「家賃の月額が正しくありません」・月額の欄に印・「20万」は欄に残る。
-         「250,000」は数 250000 で送られ、保存される。
-     S6  番地のような街の名前：「保存できませんでした」とサーバの文・打った字は残る。間取り「1-2-3」：その文・間取りの欄に印・家賃の欄は開いたまま。
-     S7  届かない：「送れていません」→ 読み直すと、一覧に「住みやすい街の回答が、この端末に残っています。」と「続きを開く」→ 打った内容が戻る → 送れる。
+         所要時間「20分」は打ったとおりの字で送られ、サーバの文・所要時間の欄に印・「20分」は欄に残る。
+         「４５」（全角）は数 45 で送られ、保存される。どの回も家賃の鍵は送らない。
+     S6  番地のような街の名前：「保存できませんでした」とサーバの文・打った字は残る。ターミナル「1-2-3」：その文・ターミナルの欄に印・通勤の欄は開いたまま。
+     S7  届かない：「送れていません」→ 読み直すと、一覧に「パイロットに人気の街の回答が、この端末に残っています。」と「続きを開く」→ 打った内容が戻る → 送れる。
      S8  位置を取らない（navigator.geolocation を数える物に替えて、呼ばれた数は0）・「住所」の欄が無い・
          面は pv_town_board も pv_town_queue も呼ばない（pv_town_board を読むのは、ページの街の欄の1本だけ）。
      S9  打った内容は消えない：自分の投稿のある街 X を、良い点を打ってから選ぶ → 打った字のまま（X の保存した字を上に書かない）・
          「あなたの投稿」「匿名で更新する」→ 送ると X の1行が打った字に。打つ前に選ぶと X の保存した値・自分の投稿の無い街へ移ると空に戻る。
-     S10 見出しは送るボタンと同じ決まり：入口から開く →「住みやすい街を追加」。自分の投稿のある街を打つ（・札で選ぶ）→ ボタンが
-         「匿名で更新する」になり、見出しは「住みやすい街」。投稿の無い街へ打ち替える → どちらも追加に戻る。
+     S10 見出しは送るボタンと同じ決まり：入口から開く →「パイロットに人気の街を追加」。自分の投稿のある街を打つ（・札で選ぶ）→ ボタンが
+         「匿名で更新する」になり、見出しは「パイロットに人気の街」。投稿の無い街へ打ち替える → どちらも追加に戻る。
+     S12 広さ・間取り・家賃は聞かない（オーナー 2026-10-18）：前の形で家賃を預けた会員 'pilot' が面を開く → 家賃・間取り・広さの欄も
+         ことばも無い・預けた値はどこにも出ない（欄・面の字）→ 良い点を直して送る：通信に家賃の鍵が無い・保存後のカードに家賃の行も値も無い・
+         保存先の家賃は消えずにそのまま（サーバは持っているものを持ったまま）。
      S11 状態の1行（「これまでの投稿を確認しています…」・読めなかった時の1行）は、390×680 と 1440×820 のどちらでも、開いた面の
          最初の画面に在る（面の中を送らずに・窓の中・面の見える所の中・上に何も重なっていない）（P12.53。前は送るボタンの下）。
      X1  自分の街の投稿の読みが失敗しても（failNext）、月の勤務の入力は保存した値で1回だけ描かれ、読み込み中の行は2度と出ない・
@@ -54,7 +57,7 @@
          ページのほかの鍵の要る欄も同じ：'pay' に開いていた REAL PAY の行は、同じタブで 'b' に替わると、ページのどこにも残らない。
      A7  面を閉じたまま読む人が替わったあとの「修正」（会社ページの街の欄の本物の「修正」を押す）：
          'a' が街を出す → 'b' に替わって入口から開く（'a' の街はどこにも無い）→ 'a' に戻って「修正」を押す → 直す面
-         （欄は 'a' の街・「あなたの投稿」・「住みやすい街」・「匿名で更新する」。空の「追加」にならない）。
+         （欄は 'a' の街・「あなたの投稿」・「パイロットに人気の街」・「匿名で更新する」。空の「追加」にならない）。
          'a' の「修正」が欄に残ったまま、ページに何も届かない替わり方で 'b' になる → その「修正」を押す → 'b' の追加の面で、
          'a' の街はページのどこにも無い・何も送らない。続けて 'b' が街を保存して「もう1項目を答える」→「通勤・タクシー」を
          開いても、'a' の街は面の頭の行にも、ページのどこにも無い。
@@ -64,7 +67,8 @@
      B1  最初の1人から：'pay'（この会社の給与）は空の欄（'empty'・器ごと出ない）→ 'a' が面で候補を選ぶ → 読み直すと
          「人気の居住地」・その街・「回答 1人」。
      B2  'b' が打った名前と良い点：通るまで 'pay' のどこにも無い・'b' の欄に「あなたの投稿」・名前・「確認待ち」→ 運営が名前を通す
-         → その街と「回答 1人」（文は無い）→ 文を rev で通す →「良い点」の下にその字。
+         → その街と「回答 1人」（文は無い）・★'b' の自分の行から「確認待ち」が消える（街はもう数に入っている。文はまだ待っている ＝
+         保存先の文の状態は pending のまま。オーナー 2026-10-18「いらない」）→ 文を rev で通す →「良い点」の下にその字。
      B3  並びと数：欄の並び ＝ 返事の並び ＝ 保存先の並び（人数の多い順）・どの「回答 N人」も保存先の count(*)。
      B4  ログインなし／鍵の無い会員／ほかの会社の給与で答えが足りない人：返事の字そのもの・鍵の1行・入口は1つ・
          ほかの人の名前も数も欄に無い（自分の行だけは出る）。
@@ -121,6 +125,7 @@ import { fileURLToPath } from 'node:url';
 import { MEMBERS, OTP } from './serve-local.mjs';
 import { bring, open, rpcAs, seedOf } from './local-chain.mjs';
 import { viewOf } from './pv-airline-view.mjs';
+import { SALARY } from './salary-data.mjs';
 import { ledgerTowns, baseCode } from './gen-airline-glance.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -131,9 +136,9 @@ const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++
 const J = (v) => { try { return JSON.stringify(v).slice(0, 500); } catch { return String(v); } };
 
 /* 画面の字（pv-contrib.js の字。ここで字を固定する） */
-const HEAD = '住みやすい街を追加';
+const HEAD = 'パイロットに人気の街を追加';           // オーナーの字（2026-10-18「パイロットに人気の街を追加、にして」）
 /* 自分の投稿を直している回の見出し（ボタンが「匿名で更新する」の時 ＝ 保存後のカードの見出しと同じ字。P12.41 a・P12.42） */
-const FIX_HEAD = '住みやすい街';
+const FIX_HEAD = 'パイロットに人気の街';
 const ADDED = '情報を追加しました';
 const MINE = 'あなたの投稿';
 const ADD_BTN = '匿名で追加する', UPD_BTN = '匿名で更新する';
@@ -142,7 +147,7 @@ const UPDATED = '情報を更新しました', PENDING = '確認待ち', SAY_NO 
 const NONE_YET = 'あなたの投稿はまだありません。';
 const LOADING = 'これまでの投稿を確認しています…';
 const NOREAD = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ街の投稿があれば、今回の内容に置き換わります）。';
-const FAIL_T = '送れていません', KEPT = '住みやすい街の回答が、この端末に残っています。', RESUME = '続きを開く';
+const FAIL_T = '送れていません', KEPT = 'パイロットに人気の街の回答が、この端末に残っています。', RESUME = '続きを開く';
 /* ログインせずに保存した回（場面 anon）。日数はサーバの写し（pv-contrib.js の HELD_DAYS）を読む */
 const HELD_DAYS = +((read('pv-contrib.js').match(/var HELD_DAYS = (\d+);/) || [])[1] || 0);
 const SAVED_HELD = 'ログインなしで保存しました。', LIST_HELD = 'ログインなしで保存した回答があります。';
@@ -177,6 +182,8 @@ const ENTRY = {
   towns: ledgerTowns(VIEW).map((t) => [t.name, t.sub]),
 };
 const NAMES = ENTRY.towns.map((t) => t[0]);
+/* 街の面の頭の行の社名：段階3の面は、日本の会社は日本語・ほかは英語（オーナー 2026-10-18。検査が持つ写し ＝ 正本の ja / en を地域で選ぶ） */
+const TOWN_CO = SALARY[SLUG].region === 'japan' ? SALARY[SLUG].ja : SALARY[SLUG].en;
 /* サーバの候補の種（db/towns.generated.sql の「-- 1.」の行）から、この会社・基地の名前を種の並びで */
 const SEED_NAMES = (() => {
   const text = read('db/towns.generated.sql'), i = text.indexOf('\n-- 1.'), j = text.indexOf('\n  ) as v(', i);
@@ -232,7 +239,7 @@ async function kit() {
     if (document.querySelector('[data-pvc-open="town"][data-pvc-base]:not([data-test-entry])')) return 'page';
     if (document.querySelector('[data-test-entry]')) return 'injected';
     const a = document.createElement('a');
-    a.href = '?add=town'; a.textContent = '＋住みやすい街を追加';
+    a.href = '?add=town'; a.textContent = '＋パイロットに人気の街を追加';
     a.setAttribute('data-pvc-open', 'town');
     a.setAttribute('data-pvc-base', e.base);
     a.setAttribute('data-pvc-basetext', e.text);
@@ -274,7 +281,7 @@ async function kit() {
       if (!document.body || !document.body.getAttribute('data-airline')) return;
       if (document.querySelector('[data-pvc-open="town"][data-pvc-base]')) return;
       const a = document.createElement('a');
-      a.href = '?add=town'; a.textContent = '＋住みやすい街を追加';
+      a.href = '?add=town'; a.textContent = '＋パイロットに人気の街を追加';
       a.setAttribute('data-pvc-open', 'town');
       a.setAttribute('data-pvc-base', e.base);
       a.setAttribute('data-pvc-basetext', e.text);
@@ -518,7 +525,7 @@ async function sheet() {
     const f = await face(a);
     await shot(a, '390-form');
     ok(f.title === HEAD, `S1 見出しは「${HEAD}」`, J(f.title));
-    ok(f.ctx === `${co} · ${ENTRY.text}`, `S1 文脈の行は「${co} · ${ENTRY.text}」（会社 · 基地）`, J(f.ctx));
+    ok(f.ctx === `${TOWN_CO} · ${ENTRY.text}`, `S1 文脈の行は「${TOWN_CO} · ${ENTRY.text}」（会社 · 基地。社名は日本の会社は日本語・ほかは英語）`, J({ ctx: f.ctx, h1: co }));
     const asked = Object.keys(f.ctl).filter((n) => /airline|base|company/.test(n));
     ok(asked.length === 0 && !f.labels.some((l) => /会社|基地/.test(l)),
       'S1 会社も基地も聞かない（そう名付いた欄も、そう書いた見出しも無い）', J({ names: Object.keys(f.ctl), labels: f.labels }));
@@ -716,25 +723,25 @@ async function sheet() {
       && f2.msg.length === 1 && f2.msg[0].title === SAY_NO && f2.msg[0].text === '通勤の所要時間は1〜600分で入れてください'
       && J(f2.bad) === J(['minutes']) && f2.ctl.minutes === '0',
       'S5 所要時間に「0」→ 送られるのは 0・サーバの「通勤の所要時間は1〜600分で入れてください」・所要時間の欄に印・「0」は欄に残る', J({ s2, msg: f2.msg, bad: f2.bad, v: f2.ctl.minutes }));
-    await typeIn(a, 'minutes', '');
-    await unfold(a, 'rent');
-    await choose(a, 'currency', 'JPY');
-    await typeIn(a, 'amount', '20万');
+    /* 読めない字（2026-10-18 まで月額「20万」で見ていた形 ── 面は家賃を聞かなくなったので、同じ決まりの所要時間で見る） */
+    await typeIn(a, 'minutes', '20分');
     const s3 = await send(a);
     const f3 = await face(a);
-    ok(s3.length === 1 && s3[0].p.rent && s3[0].p.rent.amount === '20万' && s3[0].p.rent.currency === 'JPY'
-      && f3.msg.length === 1 && f3.msg[0].text === '家賃の月額が正しくありません' && J(f3.bad) === J(['amount']) && f3.ctl.amount === '20万',
-      'S5 月額「20万」（通貨 JPY）→ 打ったとおりの字「20万」で送られる・サーバの「家賃の月額が正しくありません」・月額の欄に印・「20万」は欄に残る',
-      J({ rent: s3[0] && s3[0].p.rent, msg: f3.msg, bad: f3.bad, v: f3.ctl.amount }));
-    await typeIn(a, 'amount', '250,000');
+    ok(s3.length === 1 && s3[0].p.trip && s3[0].p.trip.minutes === '20分' && !('rent' in s3[0].p)
+      && f3.msg.length === 1 && f3.msg[0].title === SAY_NO && f3.msg[0].text === '通勤の所要時間は1〜600分で入れてください'
+      && J(f3.bad) === J(['minutes']) && f3.ctl.minutes === '20分',
+      'S5 所要時間「20分」→ 打ったとおりの字「20分」で送られる（黙って捨てない）・サーバの「通勤の所要時間は1〜600分で入れてください」・所要時間の欄に印・「20分」は欄に残る',
+      J({ trip: s3[0] && s3[0].p.trip, msg: f3.msg, bad: f3.bad, v: f3.ctl.minutes }));
+    /* 読める字（全角の数字）は数で送る（2026-10-18 まで月額「250,000」で見ていた形） */
+    await typeIn(a, 'minutes', '４５');
     const s4 = await send(a);
     const c4 = await card(a), r4 = (await rowsOf('a')).find((r) => r.town === T1);
-    ok(s4.length === 1 && s4[0].p.rent && s4[0].p.rent.amount === 250000 && c4 && c4.head === UPDATED
-      && r4 && Number(r4.amount) === 250000 && r4.currency === 'JPY' && r4.mode === 'train' && r4.minutes === null,
-      'S5 月額「250,000」→ 数 250000 で送られ、保存される（保存先は 250000 JPY・所要時間は null のまま）', J({ rent: s4[0] && s4[0].p.rent, r4 }));
+    ok(s4.length === 1 && s4[0].p.trip && s4[0].p.trip.minutes === 45 && !('rent' in s4[0].p) && c4 && c4.head === UPDATED
+      && r4 && r4.mode === 'train' && Number(r4.minutes) === 45 && r4.amount === null && r4.currency === null,
+      'S5 所要時間「４５」（全角）→ 数 45 で送られ、保存される（保存先は train・45分・家賃は空のまま）', J({ trip: s4[0] && s4[0].p.trip, r4 }));
   });
 
-  await scene('S6 番地のような字・間取りの断り', async () => {
+  await scene('S6 番地のような字の断り（街・ターミナル）', async () => {
     await closeSheet(a);
     await openTown(a);
     await typeTown(a, `${T0}1-2-3`);
@@ -746,14 +753,16 @@ async function sheet() {
       `S6 街の欄に「${T0}1-2-3」→「${SAY_NO}」とサーバの「街・最寄駅に、番地・部屋番号・URL は書けません」・打った字は残る・街の欄に印`, J({ msg: f1.msg, v: f1.ctl.town, bad: f1.bad }));
     await typeTown(a, '');
     await pick(a, T1);
-    await typeIn(a, 'layout', '1-2-3');
+    await unfold(a, 'trip');
+    await typeIn(a, 'terminal', '1-2-3');
     const s2 = await send(a);
     const f2 = await face(a);
     await shot(a, '390-refused');
-    ok(s2.length === 1 && s2[0].p.rent && s2[0].p.rent.layout === '1-2-3'
-      && f2.msg.length === 1 && f2.msg[0].text === '間取りが正しくありません' && J(f2.bad) === J(['layout']) && f2.rentOpen && f2.ctl.layout === '1-2-3',
-      'S6 間取り「1-2-3」→ サーバの「間取りが正しくありません」・間取りの欄に印・家賃の欄は開いたまま・字は残る', J({ msg: f2.msg, bad: f2.bad, open: f2.rentOpen }));
-    await typeIn(a, 'layout', '');
+    ok(s2.length === 1 && s2[0].p.trip && s2[0].p.trip.terminal === '1-2-3' && !('rent' in s2[0].p)
+      && f2.msg.length === 1 && f2.msg[0].text === 'ターミナルが正しくありません' && J(f2.bad) === J(['terminal']) && f2.tripOpen && f2.ctl.terminal === '1-2-3',
+      'S6 ターミナル「1-2-3」（番地の形）→ サーバの「ターミナルが正しくありません」・ターミナルの欄に印・通勤の欄は開いたまま・字は残る（2026-10-18 まで間取りで見ていた形）',
+      J({ msg: f2.msg, bad: f2.bad, open: f2.tripOpen }));
+    await typeIn(a, 'terminal', '');
   });
 
   await scene('S7 届かない → 端末に残る → 続きを開く', async () => {
@@ -802,7 +811,6 @@ async function sheet() {
     const byBox = g.st.sent.filter((x) => x.fn === 'pv_town_board').map((x) => x.p);
     await openTown(g);
     await pick(g, T0);
-    await unfold(g, 'rent');
     await unfold(g, 'trip');
     await typeIn(g, 'good', '検査の字');
     const f = await face(g);
@@ -875,6 +883,43 @@ async function sheet() {
     ok(f3.ctl.town === X && f3.send === UPD_BTN && f3.title === FIX_HEAD,
       `S10 候補の札で「${X}」を選んでも同じ（「${UPD_BTN}」・見出し「${FIX_HEAD}」）`, J({ title: f3.title, town: f3.ctl.town, send: f3.send }));
     await shut(c);
+  });
+
+  await scene('S12 広さ・間取り・家賃は聞かない（前に預けた家賃は、出さない・送らない・消さない）', async () => {
+    /* オーナー 2026-10-18「広さとか間取りとか投稿する人が入力するのおかしい」。家の数字はサイトが調べて載せるもの（暮らしのカード）だけ。
+       前の形の画面から家賃つきで出した 'pilot' の投稿を、本物の口で置く（サーバは家賃の鍵を今も受ける ＝ 前の形の画面が残っている間の形） */
+    const X = T2, OLD = { layout: '1LDK', area: '40', amount: '180000', currency: 'JPY' }, G0 = '前の形の画面で出した良い点', G1 = '直した良い点';
+    const put = await rpcAs(base, 'pilot', 'submit_town_post', { airline: SLUG, base_iata: BASE, town: X, good: G0, rent: OLD, lang: 'ja' });
+    const r0 = (await rowsOf('pilot')).find((r) => r.town === X);
+    if (!(put.body && put.body.ok === true && r0 && Number(r0.amount) === 180000 && r0.currency === 'JPY')) throw new Error('前提が崩れた（家賃つきの投稿を置けない）: ' + J(put.body || put.text));
+    const HOUSING = ['layout', 'area', 'area_unit', 'amount', 'currency'], WORDS = /家賃|間取り|広さ|月額|㎡|sq ft/, VALS = ['1LDK', '180000', '180,000'];
+    const textOf = (p, sel) => p.page.evaluate((q) => { const n = document.querySelector(q); return n ? n.textContent : ''; }, sel);
+    const p = await page({ who: 'pilot' });
+    await go(p);
+    await openTown(p);
+    await pick(p, X);
+    await until(async () => (await face(p)).ctl.good === G0, 5000);
+    const f = await face(p), sheet = await textOf(p, '.pvc-root'), fold = !!(await p.page.$('.pvc-root [data-pvc-fold="rent"]'));
+    ok(f.form && f.ctl.good === G0 && f.send === UPD_BTN && !HOUSING.some((k) => k in f.ctl) && !f.rentOpen && !fold
+      && !WORDS.test(sheet) && !VALS.some((v) => sheet.includes(v) || Object.values(f.ctl).includes(v)),
+      `★S12 前の形で家賃を預けた 'pilot' が「${X}」を開く → 良い点は戻る・家賃・間取り・広さの欄も、そのことば（家賃・間取り・広さ・月額・㎡）も面に無い・預けた値（1LDK・180000）は欄にも面の字にも無い`,
+      J({ ctl: Object.keys(f.ctl), labels: f.labels, fold, hit: (sheet.match(WORDS) || [])[0] || '', vals: VALS.filter((v) => sheet.includes(v)) }));
+    await typeIn(p, 'good', G1);
+    await tickOwn(p);
+    const g0 = p.st.got.length;
+    const s1 = await send(p);
+    const c1 = await card(p), cardText = await textOf(p, '.pvc-root [data-pvc-saved]');
+    const back = p.st.got.slice(g0).filter((x) => x.fn === 'submit_town_post').map((x) => x.text).join('\n');
+    const r1 = (await rowsOf('pilot')).find((r) => r.town === X);
+    ok(s1.length === 1 && s1[0].p.town === X && s1[0].p.good === G1 && !('rent' in s1[0].p),
+      `★S12 良い点を直して送る → submit_town_post が1本・家賃の鍵（rent）が無い（前に預けた家賃を送り返さない）`, J(s1));
+    ok(c1 && c1.head === UPDATED && c1.rows.good && c1.rows.good.v === G1 && !HOUSING.some((k) => k in c1.rows) && !WORDS.test(cardText)
+      && !VALS.some((v) => cardText.includes(v)) && back.includes('1LDK'),
+      `★S12 保存後のカード（「${UPDATED}」）に家賃・間取り・広さの行も、預けた値（1LDK・180000）も無い（サーバの返事には前の家賃が入っている ＝ 出さないのは画面）`,
+      J({ rows: c1 && Object.keys(c1.rows), hit: (cardText.match(WORDS) || [])[0] || '', replyHasOld: back.includes('1LDK') }));
+    ok(r1 && r1.good === G1 && Number(r1.amount) === 180000 && r1.currency === 'JPY',
+      `★S12 保存先の「${X}」の家賃は消えずにそのまま（180000 JPY）・良い点は「${G1}」（サーバは持っているものを持ったまま。列も行も消さない）`, J(r1));
+    await shut(p);
   });
 
   await scene('S11 状態の1行（読み込み中・読めなかった）は、開いた面の最初の画面に在る（390・1440）', async () => {
@@ -1137,11 +1182,6 @@ async function anon() {
     await choose(g, 'lived_to_year', '2020');
     await typeIn(g, 'good', G4);
     await typeIn(g, 'concern', C4);
-    await unfold(g, 'rent');
-    await typeIn(g, 'layout', '1LDK');
-    await typeIn(g, 'area', '40');
-    await choose(g, 'currency', 'JPY');
-    await typeIn(g, 'amount', '180000');
     await unfold(g, 'trip');
     await choose(g, 'mode', 'train');
     await choose(g, 'airport', ENTRY.ports[0]);
@@ -1161,11 +1201,11 @@ async function anon() {
     await loginVia(g, 'c');
     await waitTown(g);
     const f = await face(g);
-    const want = { town: T1, lived: 'past', lived_to_year: '2020', good: G4, concern: C4, layout: '1LDK', area: '40', area_unit: 'm2',
-      currency: 'JPY', amount: '180000', mode: 'train', airport: ENTRY.ports[0], terminal: '1', hour: '7', minutes: '35', own: true };
+    const want = { town: T1, lived: 'past', lived_to_year: '2020', good: G4, concern: C4,
+      mode: 'train', airport: ENTRY.ports[0], terminal: '1', hour: '7', minutes: '35', own: true };
     const diff = Object.keys(want).filter((k) => f.ctl[k] !== want[k]);
-    ok(J(f.ctl) === J(typed) && !diff.length && f.msg.some((m) => m.kind === 'back' && m.title === BACK_T) && f.rentOpen && f.tripOpen,
-      `A4 'c' として login.html で入って戻る → 街の面が開き、打った値がどれもそのまま（街「${T1}」・住んだ時期・良い点・気になる点・家賃・通勤・チェック）・「${BACK_T}」`,
+    ok(J(f.ctl) === J(typed) && !diff.length && f.msg.some((m) => m.kind === 'back' && m.title === BACK_T) && f.tripOpen,
+      `A4 'c' として login.html で入って戻る → 街の面が開き、打った値がどれもそのまま（街「${T1}」・住んだ時期・良い点・気になる点・通勤・チェック）・「${BACK_T}」`,
       J({ diff, ctl: f.ctl, msg: f.msg }));
   });
 
@@ -1508,6 +1548,17 @@ async function board() {
     const w2 = p2.towns.find((t) => t.name === WB);
     ok(m1.body && m1.body.ok === true && !!w2 && w2.n === answered(1) && w2.parts.length === 0 && !html2.includes(GOOD),
       `★B2 運営が名前を通す → 'pay' の欄に「${WB}」と「${answered(1)}」・文はまだ無い（ページのどこにも「${GOOD}」が無い）`, J({ m1: m1.body, w2 }));
+    /* ★V1（オーナー 2026-10-18「いらない」）：もう数に入っている街の自分の行に「確認待ち」を付けない（文はまだ待っている ＝ 保存先の
+       text_state は pending のまま。文を通すかどうか・誰に見せるかは変えない） */
+    const bq = await page({ who: 'b' });
+    await visit(bq);
+    await until(async () => (await boxOf(bq)).own.some((r) => r.name === WB), 20000);
+    const ob = await boxOf(bq), rb = (await rowsOf('b')).find((r) => r.town === WB);
+    await shut(bq);
+    ok(J(ob.own) === J([{ name: WB, say: '', fix: FIX_T }]) && ob.mineHead === MINE && !ob.text.includes(WAIT_T)
+      && rb && rb.town_state === 'public' && rb.text_state === 'pending' && !!w2 && w2.n === answered(1),
+      `★B2 名前が通って数に入った「${WB}」（'pay' の欄に「${answered(1)}」）── 'b' の自分の行は「${WB}」と「${FIX_T}」だけ（「${WAIT_T}」が無い）・保存先の文は確認待ち（pending）のまま`,
+      J({ own: ob.own, rb, text: ob.text.slice(0, 160) }));
     const q2 = await rpcAs(base, 'op', 'pv_town_queue', {});
     const x2 = q2.body && Array.isArray(q2.body.texts) ? q2.body.texts.find((t) => t.town === WB && t.good === GOOD) : null;
     if (!x2) throw new Error(`前提が崩れた（運営の待ち行列に「${WB}」の文が無い）: ` + J(q2.body));
@@ -1725,7 +1776,7 @@ async function board() {
       const ob = await boxOf(O);
       const how = await openTown(O);
       ok(ob.state === 'off' && ob.text === OFF_T && how === 'page',
-        `B10 欄は「${OFF_T}」だけ・ページの入口（＋住みやすい街を追加）は見えていて、押すと街の面が開く`, J({ state: ob.state, text: ob.text, how }));
+        `B10 欄は「${OFF_T}」だけ・ページの入口（＋パイロットに人気の街を追加）は見えていて、押すと街の面が開く`, J({ state: ob.state, text: ob.text, how }));
       await shut(O);
     } finally {
       /* 同じ関数を戻す（db/towns.sql の定義そのもの ＝ 落とす前に保存先から読んだ字）と、同じ権限 */
