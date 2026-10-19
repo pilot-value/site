@@ -112,6 +112,11 @@
 <!--/PV-3P-->
 <script src="../pv-session.js"></script>
 <script src="premium-auth-lock.js"></script>
+<style data-pv-light>/* PV-LIGHT: 明るい色の画面で、この会社の色の字を同じ色合いの読める濃さにする（暗い色の画面には効かない）。patch-airline-pages.mjs が書く・手で直さない。 */
+[data-theme="light"] .btn-primary{background:#0375d6!important}
+[data-theme="light"] .btn-primary:hover{background:#1d79c1!important}
+[data-theme="light"] .section-badge{color:#1d4ed8!important}
+</style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../career-live.css?v=f39e9310">
 <link rel="stylesheet" href="../pv-glance.css?v=c6b3dd74">
@@ -170,7 +175,6 @@
          ここに足さない。行き先を増やすときは patch-side-nav.mjs の ITEMS に足す。 -->
     <div class="flex items-center gap-3">
       <button id="theme-toggle" class="theme-toggle" aria-label="ダーク/ライト切替"></button>
-      <a href="../world-airlines.html" class="btn-ghost text-sm py-2 px-4 hidden md:inline-flex">← 一覧に戻る</a>
     </div>
   </div>
 </nav>
@@ -1323,7 +1327,7 @@ setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>
   <script src="../review-i18n.js"></script>
   <script src="airline-reviews-data.js"></script>
 <script src="airline-reviews-ui.js"></script>
-  <script src="airline-base.js?v=4"></script>
+  <script src="airline-base.js?v=473df075"></script>
 <script src="../currency.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../career-live.js?v=7ad1a861"></script>

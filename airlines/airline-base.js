@@ -52,13 +52,13 @@ function bindThemeA(b) {
   var nav = document.getElementById('main-nav');
   if (!nav) return;
   var inner = nav.querySelector('.max-w-7xl') || nav;
-  // 右端ラッパー: ← 一覧に戻る + ☀️ + JP をまとめて右寄せ
+  // 右端ラッパー: ☀️ + JP をまとめて右寄せ。帯の中の要素は1つも動かさない（ロゴは必ず左端のまま）。
+  // ★2026-10-19 上の帯の「← 一覧に戻る」を外した（オーナー「いらないでしょ」）。前はここで帯の最後の要素（＝戻るリンク）を
+  //   この箱へ移していたが、外した後の最後の要素はロゴ ＝ 移すとロゴが箱に入り、帯の部品がロゴの横（左）へ寄る。
   var wrap = document.createElement('div');
   wrap.id = 'pv-nav-right';
   wrap.style.cssText = 'display:flex;align-items:center;gap:8px;flex-shrink:0';
-  var backBtn = inner.lastElementChild;
   inner.appendChild(wrap);
-  if (backBtn && backBtn !== wrap) wrap.appendChild(backBtn);
   var tbtn = document.createElement('button');
   tbtn.id = 'theme-toggle';
   tbtn.className = 'theme-toggle';
@@ -269,8 +269,10 @@ document.addEventListener('DOMContentLoaded', function() {
       authBtn.className = 'btn-ghost hidden md:inline-flex';
       authBtn.style.cssText = 'font-size:.82rem;padding:7px 14px';
     }
-    var lastChild = navRight.lastElementChild;
-    navRight.insertBefore(authBtn, lastChild);
+    /* 「← 一覧に戻る」が在ればその左（比較のページ）、無ければ右の箱のいちばん右（≡ が先に入っていれば、その左）。
+       ★2026-10-19 まで「最後の要素の前」に入れていた ＝ 最後に居た「← 一覧に戻る」の左。会社ページからそのリンクを外したので、
+         同じ書き方では、その時たまたま最後に居た部品（通貨・言語の切替）の左に入ってしまう。 */
+    navRight.insertBefore(authBtn, navRight.querySelector('a.btn-ghost') || navRight.querySelector('#pv-ham-btn'));
   }
 
   // SEO meta tags + Schema.org

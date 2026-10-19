@@ -116,6 +116,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 })();
 </script>
 <!--/PV-3P-->
+<style data-pv-light>/* PV-LIGHT: on the light theme, this airline's colours are drawn in a darker shade of the same hue so the text stays readable (no effect on the dark theme). Written by patch-airline-pages.mjs - do not edit by hand. */
+[data-theme="light"] [style="color:#9333ea" i],[data-theme="light"] [style^="color:#9333ea;" i],[data-theme="light"] [style*=";color:#9333ea;" i],[data-theme="light"] [style$=";color:#9333ea" i]{color:#851bd9!important}
+[data-theme="light"] .btn-primary{background:#0375d6!important}
+[data-theme="light"] .btn-primary:hover{background:#1d79c1!important}
+[data-theme="light"] .section-badge{color:#851bd9!important}
+</style>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../../pv-tokens.css">
@@ -167,7 +173,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
      Do not add links here; add destinations to ITEMS in patch-side-nav.mjs. -->
 <div class="flex items-center gap-3">
 <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light mode"></button>
-<a href="../../en/world-airlines.html" class="btn-ghost text-sm py-2 px-4 hidden md:inline-flex">← World Airlines</a>
 </div>
 </div>
 </nav>

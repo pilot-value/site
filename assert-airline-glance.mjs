@@ -63,7 +63,8 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・contrast）
+     node assert-airline-glance.mjs --scenes contrast --only spirit,vueling   会社ページ全部の明るい色の読める濃さ（--only で会社を絞れる。日英とも）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
@@ -352,6 +353,52 @@ for (const s of FIVE) {
   const box = !!navs[0] && /<div class="flex items-center gap-3">\s*<button id="theme-toggle" class="theme-toggle"[^>]*><\/button>/.test(navs[0]);
   ok(!odd.length && box, '主要5社の上の帯（<nav id="main-nav">）は1文字も違わない同じ1つで、検索とログインが入る右の箱と、その中のテーマの切替を持つ',
      odd.length ? `${FIVE[0]} と違う帯: ${odd.join('・')}` : '右の箱かテーマの切替が無い');
+}
+/* ★会社ページ全部（airlines・en/airlines のうち <body data-airline> を持つ枚。2026-10-19 は日英 112枚ずつ）の2つ（WP-ans-f）。
+   書くのは patch-airline-pages.mjs（比較のページ *-hikaku・*-vs-*・下の帯・ほかの画面は触らない）。 */
+const COMPANY = ['airlines', 'en/airlines'].flatMap(dir => fs.readdirSync(path.join(ROOT, dir)).filter(f => f.endsWith('.html')).sort()
+  .map(f => `${dir}/${f}`).filter(rel => /<body\b[^>]*\bdata-airline="/.test(read(rel))));
+{
+  /* ① 上の帯に「← 一覧に戻る」（英語「← World Airlines」）を置かない（2026-10-19 オーナー「「← 一覧に戻る」いらないでしょ」）。
+     戻り道は左のナビの AIRLINES と、ページの下の帯の「←」。ロゴは帯の中の最初の要素のまま
+     （帯に右の箱が無いページで airline-base.js が帯の要素を動かさないことは、場面 topbar がブラウザで測る）。 */
+  const back = [], logo = [];
+  for (const rel of COMPANY) {
+    const h = read(rel), a = h.indexOf('<nav id="main-nav">'), b = a < 0 ? -1 : h.indexOf('</nav>', a);
+    const nav = a < 0 || b < 0 ? '' : h.slice(a, b);
+    if (!nav || /<a\b[^>]*>\s*←/.test(nav)) back.push(rel);
+    if (!/^<nav id="main-nav">\s*<div class="max-w-7xl[^"]*">\s*<a href="[^"]*index\.html"><img [^>]*class="logo-img"/.test(nav)) logo.push(rel);
+  }
+  ok(COMPANY.length >= 224 && !back.length, `会社ページ（${COMPANY.length}枚）の上の帯に「←」のリンク（「← 一覧に戻る」「← World Airlines」）が無い`,
+     COMPANY.length < 224 ? `会社ページが ${COMPANY.length}枚しか見つからない` : back.slice(0, 6).join(' ／ ') + (back.length > 6 ? ` ほか ${back.length - 6}枚` : ''));
+  ok(!logo.length, `会社ページ（${COMPANY.length}枚）の上の帯は、ロゴが最初の要素`, logo.slice(0, 6).join(' ／ ') + (logo.length > 6 ? ` ほか ${logo.length - 6}枚` : ''));
+}
+{
+  /* ② 明るい色の画面で、会社の色の字を同じ色合いの読める濃さにする行（<style data-pv-light>）。
+     どの行も [data-theme="light"] で始まり、字の色か地の色しか変えない ＝ 暗い色の画面には1つも効かない。
+     行は今のページから作り直したものと1文字も違わない（ページの色を変えたら patch-airline-pages.mjs を流す。新しい会社のページも同じ）。
+     読める濃さそのものは、場面 contrast がブラウザで全部のページ × 全部のタブを測る。 */
+  const odd = [];
+  for (const rel of COMPANY) {
+    for (const m of read(rel).matchAll(/<style data-pv-light>([\s\S]*?)<\/style>/g)) {
+      const rules = m[1].replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map(x => x.trim()).filter(Boolean);
+      for (const r of rules) {
+        const mm = r.match(/^([^{}]+)\{([^{}]+)\}$/);
+        /* セレクタの並びを、[…] の外のカンマだけで切る（[style*="rgba(28,28,58,.5)"] の中のカンマでは切らない） */
+        const sels = [];
+        if (mm) { let depth = 0, cur0 = ''; for (const ch of mm[1]) { if (ch === '[') depth++; if (ch === ']') depth--; if (ch === ',' && !depth) { sels.push(cur0); cur0 = ''; } else cur0 += ch; } sels.push(cur0); }
+        const decls = mm ? mm[2].split(/;(?![^(]*\))/).filter(Boolean) : [];
+        if (!mm || sels.some(x => !x.startsWith('[data-theme="light"] ')) ||
+            decls.some(d => !/^(color|background):#[0-9a-f]{6}!important$|^background:rgba\(\d+,\d+,\d+,\.12\)!important$/.test(d))) odd.push(`${rel}: ${r.slice(0, 90)}`);
+      }
+    }
+  }
+  ok(!odd.length, '会社ページの明るい色の行（<style data-pv-light>）は、どれも [data-theme="light"] で始まり、字の色か地の色だけを変える（暗い色の画面には効かない）',
+     odd.slice(0, 4).join(' ／ '));
+  let cur = '';
+  try { execFileSync(process.execPath, [path.join(ROOT, 'patch-airline-pages.mjs'), '--check'], { cwd: ROOT, encoding: 'utf8' }); }
+  catch (e) { cur = String(e.stdout || e.message).trim().split('\n').slice(-3).join(' ／ '); }
+  ok(!cur, '会社ページの上の帯と明るい色の行は、patch-airline-pages.mjs の出力と1文字も違わない（--check が「✓ 変更なし」）', cur);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -7697,6 +7744,7 @@ async function runTowns(browser, s, [w, h]) {
      ・付いた数は、ブラウザの道具（DOMDebugger.getEventListeners）で数える：click がちょうど1つ
        （2つ付くと、1回押して2回切り替わる ＝ 何も変わらない）。
    見るページ：主要5社 ＋ TOPBAR_MORE（ほかの会社で、切替を最初から持つ1枚 airdo・帯に右の箱が無く airline-base.js が切替を作る1枚 skymark）。
+   ★2026-10-19（WP-ans-f）：どのページも、ロゴは帯の最初の要素で左端のまま・帯に「←」のリンクが無い（「← 一覧に戻る」は外した）。
    幅は 1440 の1つ（幅ごとの畳み方は assert-header.mjs が見る）。何も選んでいない・未ログインの人（保存領域が空）で開く。
    外へは1本も出さない（Supabase の口は 500）。 */
 const TOPBAR_MORE = ['airdo', 'skymark'];
@@ -7731,6 +7779,24 @@ async function runTopBar(browser, s) {
       const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
       return r.width > 0 && r.height > 0 && r.top < 120 && cs.visibility !== 'hidden' && cs.display !== 'none';
     }, sel);
+    {
+      /* ★ロゴは帯の左端のまま・帯に「←」のリンクが無い（2026-10-19 WP-ans-f）。帯に右の箱が無いページ（skymark）では、airline-base.js が
+         切替の箱を作って帯の最後に足す。前はその時に帯の「最後の要素」（＝ 戻るリンク）を箱へ移していた ── リンクを外した後にそれをやると、ロゴが箱に入り、
+         帯の部品がロゴの横（左）へ寄る（ロゴの位置は変わらないので、箱の中に居ないこと・切替が帯の右側に居ることまで見る）。 */
+      const lg = await p.evaluate(() => {
+        const nav = document.getElementById('main-nav'), inner = nav && nav.firstElementChild, img = nav && nav.querySelector('img.logo-img');
+        if (!inner || !img) return { 帯: !!inner, ロゴ: !!img };
+        const x = img.getBoundingClientRect().left;
+        const others = [...nav.querySelectorAll('a,button')].filter(e => !e.contains(img) && e.getBoundingClientRect().width > 1 && getComputedStyle(e).visibility !== 'hidden')
+          .map(e => Math.round(e.getBoundingClientRect().left));
+        const tg = document.getElementById('theme-toggle');
+        return { 最初: !!inner.firstElementChild && inner.firstElementChild.contains(img), x: Math.round(x), 右に在る部品の左端: Math.min(...others),
+                 切替の箱の中: !!img.closest('#pv-nav-right'), 切替は右半分: !!tg && tg.getBoundingClientRect().left > inner.getBoundingClientRect().width / 2,
+                 戻る: [...nav.querySelectorAll('a')].some(a => /^\s*←/.test(a.textContent)) };
+      });
+      ok(lg.最初 === true && lg.x < 200 && lg.x < lg.右に在る部品の左端 && lg.切替の箱の中 === false && lg.切替は右半分 === true && lg.戻る === false,
+         `${tag}: ロゴは帯の最初の要素で左端のまま（切替の箱へ移されていない・切替は帯の右側）・帯に「←」のリンクが無い`, JSON.stringify(lg));
+    }
     if (FIVE.includes(s)) {
       const auth = await p.evaluate(() => { const a = document.getElementById('nav-auth-btn'); return a ? a.textContent.trim() : null; });
       const sb = await shown('#pv-search-btn'), lb = await shown('#nav-auth-btn');
@@ -7771,6 +7837,129 @@ async function runTopBar(browser, s) {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   場面 contrast（--scenes contrast）── 明るい色の画面で、会社ページのどの字も読める濃さ（2026-10-19 WP-ans-f）
+   英語の会社ページを明るい色で開くようにしたら（Q4）、暗い色の画面のために選んだ会社の色（例 #FFD700）の額が、
+   白い面の上で 1.1〜2.9:1 になっていた。直したのは airlines/airline-base.css（共通の部品の明るい色）と、
+   各ページの <style data-pv-light>（会社の色を同じ色合いの濃い色に。patch-airline-pages.mjs が書く）。
+   見るページ：会社ページ全部（日英。<body data-airline>）。幅 1440 の1つ（色は幅で変わらない）。何も選んでいない人 ＝ 明るい色で開く。
+   開いた画面と、タブを1つずつ押した画面で、見えている字を全部測る（左のナビ・上の帯・下の帯はサイト共通の部品なので、ここでは測らない）。
+   線は WCAG AA ── ふつうの字は 4.5:1・大きな字（24px 以上、太字は 18.66px 以上）は 3:1・星（★☆）は絵として 3:1。
+   測らないもの ── 区切りの記号だけの字（| · •）・わざとぼかしてある字（鍵の掛かった口コミの続き）。
+   字の後ろの色は、字から上へ地の色を重ねて作る（グラデーションは、いちばん濃い所で測る ＝ 厳しい側）。
+   ★暗い色の画面：同じページを暗い色に切り替え、<style data-pv-light> を外す前と後で、字の色・地の色が1つも変わらない。
+   外へは1本も出さない（Supabase の口は 500）。 */
+const CONTRAST = (mode) => {
+  const parse = (s) => {
+    let m = String(s || '').match(/^rgba?\(([^)]+)\)$/);
+    if (m) { const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; }
+    m = String(s || '').match(/^color\(srgb ([^)]+)\)$/);
+    if (m) { const p = m[1].split(/[\s/]+/).filter(Boolean).map(Number); return [p[0] * 255, p[1] * 255, p[2] * 255, p.length > 3 ? p[3] : 1]; }
+    return null;
+  };
+  const stops = (img) => (String(img).match(/rgba?\([^)]+\)|color\(srgb [^)]+\)/g) || []).map(parse).filter(Boolean);
+  const over = (t, b) => { const a = t[3]; return [t[0] * a + b[0] * (1 - a), t[1] * a + b[1] * (1 - a), t[2] * a + b[2] * (1 - a), 1]; };
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const hex = (c) => '#' + c.slice(0, 3).map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+  const bgOf = (e) => {
+    const layers = [];
+    for (let n = e; n; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      const g = /gradient/.test(cs.backgroundImage) && cs.backgroundClip !== 'text' && cs.webkitBackgroundClip !== 'text' ? stops(cs.backgroundImage) : [];
+      if (g.length) { const w = g.reduce((a, b) => (b[3] > a[3] ? b : a)); if (w[3] > 0) layers.push(w); if (w[3] >= 1) break; }
+      const c = parse(cs.backgroundColor);
+      if (c && c[3] > 0) { layers.push(c); if (c[3] >= 1) break; }
+    }
+    let base = [255, 255, 255, 1];
+    for (let i = layers.length - 1; i >= 0; i--) base = over(layers[i], base);
+    return base;
+  };
+  const out = [], seen = new Set(), w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let t = w.nextNode(); t; t = w.nextNode()) {
+    const txt = t.nodeValue.replace(/\s+/g, ' ').trim(), e = t.parentElement;
+    if (!txt || !e || seen.has(e) || e.closest('#main-nav, .mr-side, footer, script, style, noscript, template')) continue;
+    seen.add(e);
+    const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+    if (r.width <= 1 || r.height <= 1 || cs.visibility !== 'visible') continue;
+    if (mode === 'dark') { out.push(`${cs.color} ${cs.webkitTextFillColor} ${cs.backgroundColor} ${cs.backgroundImage.slice(0, 80)}`); continue; }
+    if (/^[|·•]+$/.test(txt)) continue;
+    let op = 1, skip = false;
+    for (let n = e; n; n = n.parentElement) { const c2 = getComputedStyle(n); if (c2.display === 'none' || /blur\(/.test(c2.filter)) { skip = true; break; } if (!n.classList.contains('fade-up')) op *= Number(c2.opacity); }
+    if (skip || op < 0.05) continue;
+    const size = parseFloat(cs.fontSize), wt = Number(cs.fontWeight) || 400;
+    const need = size >= 24 || (size >= 18.66 && wt >= 700) || /^[★☆]+$/.test(txt) ? 3 : 4.5;
+    let fgs, clip = null;
+    const fill = parse(cs.webkitTextFillColor);
+    if (fill && fill[3] === 0) {
+      for (let n = e; n; n = n.parentElement) { const c3 = getComputedStyle(n); if (c3.backgroundClip === 'text' || c3.webkitBackgroundClip === 'text') { clip = n; break; } }
+      fgs = clip ? stops(getComputedStyle(clip).backgroundImage) : [];
+    } else fgs = [fill && fill[3] > 0 ? fill : parse(cs.color)].filter(Boolean);
+    const bg = bgOf(clip ? clip.parentElement || clip : e);
+    let worst = Infinity, wfg = null;
+    for (const f of fgs) { const eff = over([f[0], f[1], f[2], f[3] * op], bg); const q = ratio(eff, bg); if (q < worst) { worst = q; wfg = eff; } }
+    if (wfg && worst < need) out.push(`「${txt.slice(0, 24)}」${hex(wfg)} / ${hex(bg)} = ${worst.toFixed(2)}（${need}:1 が要る・${(e.className && typeof e.className === 'string' ? e.className : e.tagName).slice(0, 40)}）`);
+  }
+  return out;
+};
+async function runContrast(browser, rel) {
+  const tag = `${rel}（明るい色）`, url = `${BASE}/${rel}`;
+  const ctx = await browser.createBrowserContext();
+  try {
+    const p = await ctx.newPage();
+    p.setDefaultTimeout(30000);
+    p.on('pageerror', e => trouble.push(`${rel} contrast: ${String(e.message).slice(0, 140)}`));
+    await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+    await p.setRequestInterception(true);
+    p.on('request', r => {
+      let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+      if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
+      if (/\.supabase\.co$/.test(u.hostname)) {
+        const cors = { 'access-control-allow-origin': '*' };
+        if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-allow-headers': r.headers()['access-control-request-headers'] || '*' } });
+        return r.respond({ status: 500, contentType: 'application/json', headers: cors, body: '{"message":"stub"}' });
+      }
+      return r.abort();
+    });
+    /* 色が移り変わっている最中に測らない（タブの字は 0.2秒かけて色が変わる）。終わるのを待つ（最長4秒）。 */
+    const settle = () => p.evaluate(() => Promise.race([
+      Promise.all(document.getAnimations().filter(a => a.constructor.name === 'CSSTransition').map(a => a.finished.catch(() => {}))),
+      new Promise(r => setTimeout(r, 4000))]).then(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))));
+    /* 224枚を続けて開くので、機械が混んだ回に1枚だけ 60秒で開き終わらないことがある（2026-10-19 に1回）。開くのだけは1回やり直す
+       （開けないページは2回目も赤になる。測った結果をやり直すことはしない）。 */
+    try { await p.goto(url, { waitUntil: 'load', timeout: 60000 }); }
+    catch (e) { if (!/Navigation timeout/i.test(String(e && e.message))) throw e; await p.goto(url, { waitUntil: 'load', timeout: 90000 }); }
+    await p.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'light'
+      && getComputedStyle(document.querySelector('.max-w-7xl') || document.body).maxWidth !== 'none', { timeout: 20000 });
+    await settle();
+    const bad = [], tabs = await p.evaluate(() => [...document.querySelectorAll('.airline-tab-btn[data-tab], [data-pvg-tab]')]
+      .filter(b => !b.classList.contains('active') && b.getAttribute('aria-current') !== 'page' && b.getBoundingClientRect().width > 0)
+      .map(b => (b.dataset.tab ? `.airline-tab-btn[data-tab="${b.dataset.tab}"]` : `[data-pvg-tab="${b.getAttribute('data-pvg-tab')}"]`)));
+    for (const x of await p.evaluate(CONTRAST, 'light')) bad.push(`開いた画面 ${x}`);
+    for (const t of tabs) {
+      await p.evaluate(q => { const b = document.querySelector(q); if (b) b.click(); }, t);
+      await settle();
+      for (const x of await p.evaluate(CONTRAST, 'light')) bad.push(`${t.replace(/^.*="([^"]+)"\]$/, '$1')} ${x}`);
+    }
+    const uniq = [...new Set(bad)];
+    ok(!uniq.length, `${tag}: 開いた画面とタブ${tabs.length}つで、見えている字がどれも読める濃さ（4.5:1・大きな字と星は 3:1）`,
+       uniq.slice(0, 4).join(' ／ ') + (uniq.length > 4 ? ` ほか ${uniq.length - 4}か所` : ''));
+    /* 暗い色の画面：この頁の明るい色の行は、外しても何も変わらない */
+    await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+    await settle();
+    const with1 = await p.evaluate(CONTRAST, 'dark');
+    const n = await p.evaluate(() => { const s = [...document.querySelectorAll('style[data-pv-light]')]; s.forEach(x => x.remove()); return s.length; });
+    await settle();
+    const without = await p.evaluate(CONTRAST, 'dark');
+    const diff = with1.filter((x, i) => x !== without[i]).length + Math.abs(with1.length - without.length);
+    ok(with1.length > 0 && !diff, `${rel}（暗い色）: 明るい色の行（${n}つ）を外す前と後で、字の色・地の色が1つも変わらない`, `${with1.length}か所のうち ${diff}か所が変わった`);
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
@@ -7796,6 +7985,8 @@ try {
   }
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('topbar')) for (const s of [...ONLY, ...TOPBAR_MORE]) work.push(() => runTopBar(browser, s));
+  /* 会社ページ全部（日英）。--only を付けた回は、その会社の日英だけ */
+  if (wantS('contrast')) for (const rel of COMPANY.filter(r => !argOf('--only') || argOf('--only').split(',').includes(path.basename(r, '.html')))) work.push(() => runContrast(browser, rel));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
   if (wantS('give')) for (const s of ONLY) for (const v of VIEWS.filter(x => GIVE_W.includes(x[0]))) work.push(() => runGive(browser, s, v), () => runGiveOpen(browser, s, v));
   if (wantS('work')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runWork(browser, s, v));

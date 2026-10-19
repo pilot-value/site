@@ -13,6 +13,13 @@
 [data-theme="light"] .lang-toggle:hover{background:rgba(0,0,0,.11)}
 
 /* ── Light Mode ───────────────────────────────────── */
+/* ★2026-10-19 明るい色の画面で、会社ページのどの字も読める濃さにした（WP-ans-f）。
+   線は WCAG AA ── ふつうの字は背景と 4.5:1、大きな字（24px 以上・太字は 18.66px 以上）と星の絵は 3:1。
+   ここで変えたのは [data-theme="light"] の行の色だけ（暗い色の画面は1か所も変えていない）。字の色の決まりは5つ：
+     控えめの字 #5b6779（前は #64748b・#94a3b8・#7a92b0 ＝ 色の付いた面の上で 2.4〜4.4:1）／金の字 #7a5800（前は #a07200・#b38000）／
+     星（絵）#a07200・空の星 #808a9a／青の字 #1d4ed8（前は #3d9bff ＝ 2.6〜2.9:1）。
+   会社ごとの色（style="color:#…" と、ページの .section-badge など）は、各ページの <style data-pv-light> が同じ色合いの濃い色に直す
+   （patch-airline-pages.mjs が書く）。測るのは assert-airline-glance.mjs の場面 contrast（会社ページ全部 × タブ全部）。 */
 [data-theme="light"] body{background-color:#f3f5f8!important;color:#0f172a!important}
 [data-theme="light"] body::before{opacity:.03}
 [data-theme="light"] nav{background:rgba(243,245,248,.96)!important;border-bottom:1px solid rgba(0,0,0,.08)!important;backdrop-filter:blur(16px)!important}
@@ -24,11 +31,15 @@
 [data-theme="light"] .stat-card{background:#fff!important;border-color:rgba(0,0,0,.08)!important;box-shadow:0 1px 6px rgba(0,0,0,.06)!important}
 [data-theme="light"] .info-card{background:rgba(0,0,0,.03)!important;border-color:rgba(0,0,0,.07)!important}
 [data-theme="light"] .tag-blue{background:rgba(37,99,235,.07)!important;color:#1d4ed8!important;border-color:rgba(37,99,235,.2)!important}
-[data-theme="light"] .tag-gold{background:rgba(161,120,0,.08)!important;color:#92690a!important;border-color:rgba(161,120,0,.2)!important}
-[data-theme="light"] .tag-green{background:rgba(5,150,105,.07)!important;color:#047857!important;border-color:rgba(5,150,105,.2)!important}
+[data-theme="light"] .tag-gold{background:rgba(161,120,0,.08)!important;color:#7a5800!important;border-color:rgba(161,120,0,.2)!important}
+[data-theme="light"] .tag-green{background:rgba(5,150,105,.07)!important;color:#036b4d!important;border-color:rgba(5,150,105,.2)!important}
 [data-theme="light"] .tag-gray{background:rgba(0,0,0,.05)!important;color:#4a5568!important;border-color:rgba(0,0,0,.1)!important}
-[data-theme="light"] .tag-orange{background:rgba(194,65,12,.07)!important;color:#c2410c!important;border-color:rgba(194,65,12,.18)!important}
+[data-theme="light"] .tag-orange{background:rgba(194,65,12,.07)!important;color:#a8380a!important;border-color:rgba(194,65,12,.18)!important}
 [data-theme="light"] .tag-red{background:rgba(185,28,28,.07)!important;color:#b91c1c!important;border-color:rgba(185,28,28,.18)!important}
+/* 青の字（Tailwind の text-accent ＝ #3d9bff）と、会社ページの本文の控えめの字・注意の字（pv-tokens.css の --pv-ink-3 ＝ #64748b・
+   --pv-orange-ink ＝ #c2410c。薄い色の板の上で 4.3〜4.49:1）。トークンは本文の中だけで濃くする（左のナビ・上の帯・下の帯はサイト共通の色のまま）。 */
+[data-theme="light"] .text-accent{color:#1d4ed8}
+[data-theme="light"] body[data-airline] > :not(nav):not(footer){--pv-ink-3:#5b6779;--pv-orange-ink:#a8380a}
 [data-theme="light"] .btn-ghost{background:rgba(0,0,0,.05)!important;color:#0f172a!important;border-color:rgba(0,0,0,.12)!important}
 [data-theme="light"] .btn-ghost:hover{background:rgba(0,0,0,.09)!important}
 [data-theme="light"] table th{color:#4a5568!important;border-bottom-color:rgba(0,0,0,.08)!important}
@@ -40,7 +51,7 @@
 [data-theme="light"] footer{background:#e4e8f0!important;border-top-color:rgba(0,0,0,.08)!important}
 [data-theme="light"] ::-webkit-scrollbar-track{background:#f3f5f8}
 [data-theme="light"] ::-webkit-scrollbar-thumb{background:#c4cfdf}
-[data-theme="light"] .text-muted,[data-theme="light"] [style*="color:#6b7d93"]{color:#64748b!important}
+[data-theme="light"] .text-muted,[data-theme="light"] [style*="color:#6b7d93"]{color:#5b6779!important}
 [data-theme="light"] [style*="color:rgba(255,255,255,.6"]{color:rgba(15,23,42,.6)!important}
 [data-theme="light"] [style*="color:rgba(255,255,255,.5"]{color:rgba(15,23,42,.5)!important}
 [data-theme="light"] [style*="color:#8899aa"]{color:#475569!important}
@@ -51,9 +62,11 @@
 [data-theme="light"] [style*="color:#9daec4"]{color:#4a6080!important}
 [data-theme="light"] [style*="color:#e8edf2"]{color:#0f172a!important}
 [data-theme="light"] [style*="color:#5b8dee"]{color:#1d4ed8!important}
-[data-theme="light"] [style*="color:#34d399"]{color:#047857!important}
+[data-theme="light"] [style*="color:#34d399"]{color:#036b4d!important}
 [data-theme="light"] [style*="color:#f5c842"]{color:#7a5800!important}
-[data-theme="light"] [style*="color:#f97316"]{color:#c2410c!important}
+[data-theme="light"] [style*="color:#f97316"]{color:#a8380a!important}
+/* 口コミの「注意・懸念点」の見出し（airline-reviews-ui.js が style="color:#fb923c" で書く）。^color: か ;color: だけを見る（border-color は別物）。 */
+[data-theme="light"] [style^="color:#fb923c" i],[data-theme="light"] [style*=";color:#fb923c" i]{color:#a8380a!important}
 /* Inline dark SURFACES (overseas-review quote cards, FAQ accordion, highlighted table rows)
    render as dark boxes on the light page — lighten them, keeping any colored left-accent stripe. */
 [data-theme="light"] [style*="background:rgba(17,22,32,.6)"]{background:#f1f4f9!important;border-top-color:rgba(0,0,0,.07)!important;border-right-color:rgba(0,0,0,.07)!important;border-bottom-color:rgba(0,0,0,.07)!important}
@@ -87,17 +100,17 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 }
 .airline-tab-btn:hover{color:rgba(255,255,255,.75)}
 .airline-tab-btn.active{color:#f5c842;border-bottom-color:#f5c842}
-[data-theme="light"] .airline-tab-btn{color:rgba(15,23,42,.4)}
-[data-theme="light"] .airline-tab-btn:hover{color:rgba(15,23,42,.75)}
-[data-theme="light"] .airline-tab-btn.active{color:#a07200;border-bottom-color:#a07200}
+[data-theme="light"] .airline-tab-btn{color:#5b6779}
+[data-theme="light"] .airline-tab-btn:hover{color:#0f172a}
+[data-theme="light"] .airline-tab-btn.active{color:#7a5800;border-bottom-color:#a07200}
 .atab-count{
   font-size:.7rem;font-weight:600;
   padding:1px 7px;border-radius:999px;margin-left:5px;
   background:rgba(255,255,255,.07);color:rgba(255,255,255,.4);
 }
 .airline-tab-btn.active .atab-count{background:rgba(245,200,66,.15);color:#f5c842}
-[data-theme="light"] .atab-count{background:rgba(0,0,0,.06);color:rgba(15,23,42,.4)}
-[data-theme="light"] .airline-tab-btn.active .atab-count{background:rgba(160,114,0,.12);color:#a07200}
+[data-theme="light"] .atab-count{background:rgba(0,0,0,.06);color:#5b6779}
+[data-theme="light"] .airline-tab-btn.active .atab-count{background:rgba(160,114,0,.12);color:#7a5800}
 
 /* ── Rating Widget ────────────────────────────────── */
 #airline-rating-widget{
@@ -151,9 +164,11 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
   color:#f5c842;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.22);
   padding:2px 10px;border-radius:999px;
 }
+[data-theme="light"] .rv-card-type{color:#7a5800}
 .rv-reviewer-meta{font-size:.75rem;color:#6b7d93;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .rv-meta-sep{opacity:.35}
 .rv-date{font-size:.72rem;color:#6b7d93}
+[data-theme="light"] .rv-reviewer-meta,[data-theme="light"] .rv-date{color:#5b6779}
 
 /* Card body */
 .rv-card-body{padding:16px 18px}
@@ -163,7 +178,7 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 .rv-stars{color:#f5c842;font-size:.95rem;letter-spacing:.04em}
 .rv-score{font-weight:800;font-size:1.05rem}
 .rv-star-empty{color:rgba(255,255,255,.18)}
-[data-theme="light"] .rv-star-empty{color:rgba(0,0,0,.14)}
+[data-theme="light"] .rv-star-empty{color:#808a9a}
 
 /* Salary table */
 .rv-salary-table{
@@ -176,12 +191,15 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 .rv-sal-cell:last-child{border-right:none}
 [data-theme="light"] .rv-sal-cell{border-right-color:rgba(0,0,0,.06)}
 .rv-sal-label{font-size:.68rem;color:#6b7d93;margin-bottom:4px;white-space:nowrap}
+[data-theme="light"] .rv-sal-label{color:#5b6779}
 .rv-sal-value{font-size:.9rem;font-weight:700;color:#f5c842}
-[data-theme="light"] .rv-sal-value{color:#a07200}
+[data-theme="light"] .rv-sal-value{color:#7a5800}
 
 /* Source attribution on review card */
 .rv-src{font-size:.68rem;color:#5a6b7d;margin-top:10px;letter-spacing:.01em}
-[data-theme="light"] .rv-src{color:#94a3b8}
+[data-theme="light"] .rv-src{color:#5b6779}
+/* 海外の評判の出典リンクは airline-reviews-ui.js が style="color:#5fb0ff" で書く（明るい面では 2.3:1）。 */
+[data-theme="light"] .rv-src a{color:#1d4ed8!important}
 
 /* Review text */
 .rv-comment{font-size:.84rem;color:#b0c0d4;line-height:1.7}
@@ -287,7 +305,7 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 .rcf-chip.active{background:rgba(245,200,66,.15);border-color:rgba(245,200,66,.5);color:#f5c842}
 [data-theme="light"] .rcf-chip{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#4a6080}
 [data-theme="light"] .rcf-chip:hover{background:rgba(0,0,0,.08)}
-[data-theme="light"] .rcf-chip.active{background:rgba(245,200,66,.12);border-color:#f5c842;color:#b38000}
+[data-theme="light"] .rcf-chip.active{background:rgba(245,200,66,.12);border-color:#f5c842;color:#7a5800}
 
 /* ── Review Modal Pills ───────────────────────────── */
 .rmt-pill{padding:8px 18px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#9daec4;font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
@@ -313,11 +331,13 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 .rv-gate-title{font-size:1rem;font-weight:800;color:#e8edf2;margin-bottom:4px}
 [data-theme="light"] .rv-gate-title{color:#0f172a}
 .rv-gate-remain{font-size:.82rem;font-weight:700;color:#f5c842;margin-bottom:12px}
-[data-theme="light"] .rv-gate-remain{color:#a07200}
+[data-theme="light"] .rv-gate-remain{color:#7a5800}
 .rv-gate-desc{font-size:.82rem;color:#8899aa;line-height:1.65;margin-bottom:18px}
 [data-theme="light"] .rv-gate-desc{color:#64748b}
 .rv-gate-login{display:block;margin-top:14px;color:#6b7d93;font-size:.78rem;text-decoration:underline;text-underline-offset:2px}
 .rv-gate-login:hover{color:#9daec4}
+[data-theme="light"] .rv-gate-login{color:#5b6779}
+[data-theme="light"] .rv-gate-login:hover{color:#0f172a}
 
 /* ── Review Category Grid ─────────────────────────── */
 #airline-review-cats{border-bottom:1px solid rgba(255,255,255,.07)}
@@ -325,7 +345,7 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 .rcg-heading{font-size:.88rem;font-weight:700;color:#9daec4;margin-bottom:14px;letter-spacing:.01em}
 .rcg-airline{font-weight:400;color:#6b7d93}
 [data-theme="light"] .rcg-heading{color:#4a6080}
-[data-theme="light"] .rcg-airline{color:#7a92b0}
+[data-theme="light"] .rcg-airline{color:#5b6779}
 /* ★2列を固定にしない。320px（iPhone SE 1 / 5s）で英語の区分名が入らず、
    グリッドごと右へ 31px 膨らんでいた（2026-08-27 /en/airlines/*.html で実測）。
    横に溢れると iOS はレイアウト幅を広げ、position:fixed の物が画面より広くなる。
@@ -351,6 +371,7 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 .rcg-label{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.8rem;font-weight:600;color:#c8d4e0;line-height:1.3}
 [data-theme="light"] .rcg-label{color:#1e3a5f}
 .rcg-count{font-size:.72rem;color:#6b7d93;white-space:nowrap}
+[data-theme="light"] .rcg-count{color:#5b6779}
 .rcg-chevron{flex-shrink:0;color:#6b7d93;display:flex}
 
 /* ── Hero Rating Banner ───────────────────────────── */
@@ -441,13 +462,14 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 [data-theme="light"] .hrb-avg{color:#a07200}
 @media(max-width:800px){.hrb-avg{font-size:2.4rem}}
 .hrb-max{font-size:.8rem;color:#6b7d93;margin-top:2px}
-[data-theme="light"] .hrb-max{color:#94a3b8}
+[data-theme="light"] .hrb-max{color:#5b6779}
 .hrb-stars{display:flex;gap:2px;margin-top:6px}
 .hrb-star{font-size:1.1rem;color:#f5c842}
+[data-theme="light"] .hrb-star{color:#a07200}
 .hrb-star.empty{color:rgba(255,255,255,.14)}
-[data-theme="light"] .hrb-star.empty{color:rgba(0,0,0,.13)}
+[data-theme="light"] .hrb-star.empty{color:#808a9a}
 .hrb-count{font-size:.72rem;color:#6b7d93;margin-top:6px}
-[data-theme="light"] .hrb-count{color:#64748b}
+[data-theme="light"] .hrb-count{color:#5b6779}
 
 /* Radar — visible in banner */
 .hrb-radar{flex-shrink:0;width:230px}
@@ -459,12 +481,12 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 .hrb-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .hrb-bar-row:last-child{margin-bottom:0}
 .hrb-bar-label{font-size:.82rem;color:#8899aa;width:120px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-[data-theme="light"] .hrb-bar-label{color:#64748b}
+[data-theme="light"] .hrb-bar-label{color:#5b6779}
 .hrb-bar-track{flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;min-width:0}
 [data-theme="light"] .hrb-bar-track{background:rgba(0,0,0,.08)}
 .hrb-bar-fill{height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,#f97316,#f5c842);transition:width 1.2s cubic-bezier(.16,1,.3,1)}
 .hrb-bar-score{font-size:.82rem;font-weight:700;color:#f5c842;width:28px;text-align:right;flex-shrink:0}
-[data-theme="light"] .hrb-bar-score{color:#a07200}
+[data-theme="light"] .hrb-bar-score{color:#7a5800}
 
 /* CTA — hidden from banner */
 .hrb-cta{display:none!important}
@@ -621,7 +643,7 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
 [data-theme="light"] .pv-gate-title { color: #0f172a; }
 [data-theme="light"] .pv-gate-desc  { color: #64748b; }
 [data-theme="light"] .pv-give-take  { color: #94a3b8; }
-[data-theme="light"] .pv-gate-footnote { color: #94a3b8; }
+[data-theme="light"] .pv-gate-footnote { color: #5b6779; }
 [data-theme="light"] .pv-btn-ghost {
   background: rgba(0,0,0,.05); color: #334155; border-color: rgba(0,0,0,.1);
 }

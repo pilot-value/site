@@ -70,6 +70,10 @@
 <!--/PV-3P-->
 <script src="../pv-session.js"></script>
 <script src="premium-auth-lock.js"></script>
+<style data-pv-light>/* PV-LIGHT: 明るい色の画面で、この会社の色の字を同じ色合いの読める濃さにする（暗い色の画面には効かない）。patch-airline-pages.mjs が書く・手で直さない。 */
+[data-theme="light"] [style="color:#9333ea" i],[data-theme="light"] [style^="color:#9333ea;" i],[data-theme="light"] [style*=";color:#9333ea;" i],[data-theme="light"] [style$=";color:#9333ea" i]{color:#851bd9!important}
+[data-theme="light"] .section-badge{color:#851bd9!important}
+</style>
   <!-- PV-NAV: 全ページ共通のナビ（広い画面＝左レール／狭い画面＝左ドロワー）。
        patch-side-nav.mjs が配る。app-nav.css は最後に読む（my-value.css より後）。 -->
   <link rel="stylesheet" href="../pv-tokens.css">
@@ -120,7 +124,6 @@
          ここに足さない。行き先を増やすときは patch-side-nav.mjs の ITEMS に足す。 -->
     <div class="flex items-center gap-3">
       <button id="theme-toggle" class="theme-toggle" aria-label="ダーク/ライト切替"></button>
-      <a href="../world-airlines.html" class="btn-ghost text-sm py-2 px-4 hidden md:inline-flex">← 一覧に戻る</a>
     </div>
   </div>
 </nav>
@@ -209,7 +212,7 @@
 <script>window.addEventListener('scroll',()=>{document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>40)},{passive:true});const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');animateBars(e.target);io.unobserve(e.target);}});},{threshold:0.01,rootMargin:'0px 0px -30px 0px'});function animateBars(c){c.querySelectorAll('[data-width]').forEach(b=>{b.style.width='0';setTimeout(()=>{b.style.width=(b.dataset.width||0)+'%';},80);});}document.querySelectorAll('.fade-up').forEach(el=>io.observe(el));setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>{el.classList.add('visible');animateBars(el);});},300);</script>  <script src="../review-i18n.js"></script>
   <script src="airline-reviews-data.js"></script>
 <script src="airline-reviews-ui.js"></script>
-  <script src="airline-base.js?v=4"></script>
+  <script src="airline-base.js?v=473df075"></script>
 <script src="../currency.js"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで

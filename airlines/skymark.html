@@ -103,6 +103,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <!--/PV-3P-->
 <script src="../pv-session.js"></script>
 <script src="premium-auth-lock.js"></script>
+<style data-pv-light>/* PV-LIGHT: 明るい色の画面で、この会社の色の字を同じ色合いの読める濃さにする（暗い色の画面には効かない）。patch-airline-pages.mjs が書く・手で直さない。 */
+[data-theme="light"] [style="color:#3d9bff" i],[data-theme="light"] [style^="color:#3d9bff;" i],[data-theme="light"] [style*=";color:#3d9bff;" i],[data-theme="light"] [style$=";color:#3d9bff" i]{color:#1d4ed8!important}
+[data-theme="light"] .btn-primary{background:#0375d6!important}
+[data-theme="light"] .btn-primary:hover{background:#1d79c1!important}
+[data-theme="light"] .section-badge{color:#1d4ed8!important}
+</style>
   <!-- PV-NAV: 全ページ共通のナビ（広い画面＝左レール／狭い画面＝左ドロワー）。
        patch-side-nav.mjs が配る。app-nav.css は最後に読む（my-value.css より後）。 -->
   <link rel="stylesheet" href="../pv-tokens.css">
@@ -151,7 +157,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <a href="../index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img"/></a>
 <!-- PV-NAV: 横並びのリンクは 2026-09-06 に左のナビへ畳んだ（オーナー確定事項13）。
      ここに足さない。行き先を増やすときは patch-side-nav.mjs の ITEMS に足す。 -->
-<a href="../index.html" class="btn-ghost text-sm py-2 px-4">← 一覧に戻る</a>
 </div>
 </nav>
 
@@ -352,7 +357,7 @@ setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>
   <script src="../review-i18n.js"></script>
 <script src="airline-reviews-data.js"></script>
 <script src="airline-reviews-ui.js"></script>
-<script src="airline-base.js?v=4"></script>
+<script src="airline-base.js?v=473df075"></script>
 <script src="../currency.js"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
