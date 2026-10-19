@@ -35,9 +35,20 @@ function applyThemeA(t) {
 }
 // Apply immediately
 applyThemeA(localStorage.getItem('pv-theme') || 'light');
+/* 押した時の動きは、ここで作った切替にも、ページに最初から在る切替（<nav> の中の #theme-toggle）にも、同じ1つを1回だけ付ける。
+   ★前は、ここで作った切替にしか付けていなかった ＝ 最初から切替を持つ会社ページ（JAL・ANA・エバーほか）では、押しても何も起きなかった（2026-10-19）。
+   印（_pvTheme）は2回付けないため（同じボタンに2つ付くと、1回押して2回切り替わる ＝ 何も変わらない）。 */
+function bindThemeA(b) {
+  if (!b || b._pvTheme) return;
+  b._pvTheme = true;
+  b.addEventListener('click', function() {
+    applyThemeA(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+}
 // 右側ナビグループ注入（スクリプトは </body> 直前のため DOM 構築済み・同期実行可）
 (function() {
-  if (document.getElementById('theme-toggle')) return;
+  var have = document.getElementById('theme-toggle');
+  if (have) { bindThemeA(have); return; }
   var nav = document.getElementById('main-nav');
   if (!nav) return;
   var inner = nav.querySelector('.max-w-7xl') || nav;
@@ -54,9 +65,7 @@ applyThemeA(localStorage.getItem('pv-theme') || 'light');
   tbtn.setAttribute('aria-label', 'ダーク/ライト切替');
   tbtn.innerHTML = (document.documentElement.getAttribute('data-theme') === 'light') ? MOON : SUN;
   wrap.appendChild(tbtn);
-  tbtn.addEventListener('click', function() {
-    applyThemeA(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-  });
+  bindThemeA(tbtn);
 })();
 
 /* ── 口コミ UI は airline-reviews-ui.js（日英共通の唯一の実装）へ移した ──

@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
    ══════════════════════════════════════════════════════════════════ */
@@ -76,7 +76,7 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE } from './pv-airline-view.mjs';
-import { build, pageOf, ASSETS, CONTRIB, STAY, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
+import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
 import { FACTS as CO_FACTS } from './airline-facts.mjs';
 import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
@@ -306,7 +306,8 @@ for (const s of FIVE) {
   }
   ok((html.match(/<h1\b/g) || []).length === 1, `${s}: h1 は1つだけ`);
   ok(/<body\b[^>]*\bdata-pv-glance="1"/.test(html), `${s}: <body data-pv-glance="1"> が在る`);
-  for (const f of [...ASSETS, ...(TABBED.has(s) ? [CONTRIB.css, CONTRIB.js, STAY.css, STAY.js] : [])]) {
+  /* PROOF.js ＝ パイロットであることの確認の共通のポップアップ（ホテルの欄の、会員の鍵の1行から開く。2026-10-18 オーナー Q2） */
+  for (const f of [...ASSETS, ...(TABBED.has(s) ? [CONTRIB.css, CONTRIB.js, STAY.css, STAY.js, PROOF.js] : [])]) {
     const v = createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
     const hit = html.split(`"../${f}?v=${v}"`).length - 1;
     ok(hit === 1, `${s}: ${f} を今の中身の指紋で1回だけ読んでいる`, `?v=${v} が ${hit}回`);
@@ -322,6 +323,35 @@ for (const s of FIVE) {
     }
   }
   ok(same(marked.sort(), FIVE.map(pageOf).sort()), 'data-pv-glance を持つのは5枚だけ', marked.join(', '));
+}
+{
+  /* ★英語の会社ページ（en/airlines）は、何も選んでいない人には明るい色で開く（2026-10-18 オーナー Q4「①」＝ 日本語と同じ。
+     書き直しは patch-en-theme-light.mjs）。色を決める行は「保存した色（pv-theme）が在ればそれ、無ければ既定」── 既定は 'light' だけ
+     ('dark' はどこにも無い)・<head> の中で、描く前に、自分で選んだ色を先に読む1行が在る（選んだ人の色は変わらない）。 */
+  const HEAD = `<script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>`;
+  const bad = [], all = fs.readdirSync(path.join(ROOT, 'en/airlines')).filter(f => f.endsWith('.html'));
+  for (const f of all) {
+    const h = read(`en/airlines/${f}`), defs = [...h.matchAll(/getItem\('pv-theme'\)\s*\|\|\s*'([a-z]*)'/g)].map(m => m[1]);
+    if (!defs.length || defs.some(d => d !== 'light')) bad.push(`${f}: 既定 ${defs.join('・') || '無し'}`);
+    else if (h.split(HEAD).length !== 2 || h.indexOf(HEAD) > h.indexOf('</head>')) bad.push(`${f}: <head> の中に、描く前に色を決める1行が無い`);
+  }
+  ok(all.length >= 121 && !bad.length, `英語の会社ページ（en/airlines の ${all.length}枚）は、何も選んでいない人には明るい色で開く（自分で選んだ色を先に読む・既定に 'dark' は無い）`,
+     bad.slice(0, 4).join(' ／ ') + (bad.length > 4 ? ` ほか ${bad.length - 4}枚` : ''));
+}
+{
+  /* ★主要5社の上の帯は、1文字も違わない同じ1つ（2026-10-18 オーナー V5「統一してつけて」）。
+     検索（search.js）とログイン（airline-base.js）は、帯の右の箱（<div class="flex items-center gap-3">）に後から入る
+     ＝ 箱を持たない帯には、どちらも出ない（キャセイ・エティハドがそうだった）。テーマの切替は箱の中に最初から在り、
+     押した時の動きは airline-base.js が付ける（押して確かめるのは場面 topbar）。帯は生成の管理ブロックの外（gen-airline-glance.mjs は書かない）。 */
+  const navOf = h => {
+    const a = h.indexOf('<nav id="main-nav">'), b = a < 0 ? -1 : h.indexOf('</nav>', a);
+    return a < 0 || b < 0 || h.indexOf('<nav id="main-nav">', a + 1) >= 0 ? null : h.slice(a, b + '</nav>'.length);
+  };
+  const navs = FIVE.map(s => navOf(PAGES[s]));
+  const odd = FIVE.filter((s, i) => !navs[i] || navs[i] !== navs[0]);
+  const box = !!navs[0] && /<div class="flex items-center gap-3">\s*<button id="theme-toggle" class="theme-toggle"[^>]*><\/button>/.test(navs[0]);
+  ok(!odd.length && box, '主要5社の上の帯（<nav id="main-nav">）は1文字も違わない同じ1つで、検索とログインが入る右の箱と、その中のテーマの切替を持つ',
+     odd.length ? `${FIVE[0]} と違う帯: ${odd.join('・')}` : '右の箱かテーマの切替が無い');
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -7657,6 +7687,90 @@ async function runTowns(browser, s, [w, h]) {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   場面 topbar（--scenes topbar）── 上の帯（2026-10-18 オーナー V5「統一してつけて」）
+   主要5社は、上の帯に検索とログインが同じように出る（検索は search.js・ログインは airline-base.js が、帯の右の箱に入れる）。
+   テーマの切替は、1回押すと1回だけ切り替わり、選んだ色が保存されて読み直しても残る・もう1回押すと戻る。
+     ・押した時の動きを付けるのは airline-base.js の1か所（bindThemeA）。ページに最初から在る切替（5社と、ほかの会社の約100枚の
+       <nav> の中）にも、airline-base.js が自分で作る切替（帯に右の箱が無いページ）にも、同じ1つを1回だけ。
+     ★2026-10-19 まで、最初から在る切替には何も付いていなかった ＝ 押しても何も起きなかった。
+     ・付いた数は、ブラウザの道具（DOMDebugger.getEventListeners）で数える：click がちょうど1つ
+       （2つ付くと、1回押して2回切り替わる ＝ 何も変わらない）。
+   見るページ：主要5社 ＋ TOPBAR_MORE（ほかの会社で、切替を最初から持つ1枚 airdo・帯に右の箱が無く airline-base.js が切替を作る1枚 skymark）。
+   幅は 1440 の1つ（幅ごとの畳み方は assert-header.mjs が見る）。何も選んでいない・未ログインの人（保存領域が空）で開く。
+   外へは1本も出さない（Supabase の口は 500）。 */
+const TOPBAR_MORE = ['airdo', 'skymark'];
+async function runTopBar(browser, s) {
+  const tag = `${s}（上の帯）`, url = `${BASE}/airlines/${s}.html`;
+  const ctx = await browser.createBrowserContext();
+  try {
+    const p = await ctx.newPage();
+    p.setDefaultTimeout(30000);
+    p.on('pageerror', e => trouble.push(`${s} topbar: ${String(e.message).slice(0, 140)}`));
+    p.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) trouble.push(`${r.status()} ${r.url()}`); });
+    await p.setViewport({ width: 1440, height: 820, deviceScaleFactor: 1 });
+    await p.setRequestInterception(true);
+    p.on('request', r => {
+      let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+      if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
+      if (/\.supabase\.co$/.test(u.hostname)) {
+        const cors = { 'access-control-allow-origin': '*' };
+        if (r.method() === 'OPTIONS') {
+          return r.respond({ status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-allow-headers': r.headers()['access-control-request-headers'] || '*' } });
+        }
+        return r.respond({ status: 500, contentType: 'application/json', headers: cors, body: '{"message":"stub"}' });
+      }
+      return r.abort();
+    });
+    await p.goto(url, { waitUntil: 'load', timeout: 60000 });
+    const box = await p.evaluate(() => !!document.querySelector('#main-nav .flex.items-center.gap-3'));
+    await p.waitForFunction(b => !!document.getElementById('theme-toggle') && (!b || (!!document.getElementById('pv-search-btn') && !!document.getElementById('nav-auth-btn'))),
+      { timeout: 20000 }, box).catch(() => { /* 出なかった物は、下の行が名指しする */ });
+    const shown = sel => p.evaluate(q => {
+      const e = document.querySelector(q); if (!e) return false;
+      const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+      return r.width > 0 && r.height > 0 && r.top < 120 && cs.visibility !== 'hidden' && cs.display !== 'none';
+    }, sel);
+    if (FIVE.includes(s)) {
+      const auth = await p.evaluate(() => { const a = document.getElementById('nav-auth-btn'); return a ? a.textContent.trim() : null; });
+      const sb = await shown('#pv-search-btn'), lb = await shown('#nav-auth-btn');
+      ok(box && sb && lb && auth === 'ログイン', `${tag}: 上の帯に検索とログイン（未ログインの人には「ログイン」）が見えている`,
+         JSON.stringify({ 右の箱: box, 検索: sb, ログイン: lb, 字: auth }));
+    }
+    const cdp = await p.createCDPSession();
+    const clicks = async () => {
+      const { result } = await cdp.send('Runtime.evaluate', { expression: "document.getElementById('theme-toggle')" });
+      if (!result.objectId) return -1;
+      const { listeners } = await cdp.send('DOMDebugger.getEventListeners', { objectId: result.objectId });
+      return listeners.filter(l => l.type === 'click').length;
+    };
+    const st = () => p.evaluate(() => ({ t: document.documentElement.getAttribute('data-theme'), k: localStorage.getItem('pv-theme') }));
+    const bad = [];
+    const n0 = await clicks(), s0 = await st();
+    if (n0 !== 1) bad.push(`押した時の動きが ${n0 < 0 ? '（切替が無い）' : `${n0}つ`}（あるべき 1つ）`);
+    if (s0.t !== 'light') bad.push(`開いた時の色 ${s0.t}（何も選んでいない人は明るい色）`);
+    if (!(await shown('#theme-toggle'))) bad.push('切替が見えていない');
+    else {
+      await p.click('#theme-toggle');
+      const s1 = await st();
+      if (s1.t !== 'dark' || s1.k !== 'dark') bad.push(`1回押した後 ${s1.t}・保存 ${s1.k}（あるべき dark・dark）`);
+      await p.reload({ waitUntil: 'load', timeout: 60000 });
+      await p.waitForFunction(() => !!document.getElementById('theme-toggle'));
+      const s2 = await st(), n2 = await clicks();
+      if (s2.t !== 'dark') bad.push(`読み直した後 ${s2.t}（選んだ色 dark が残っていない）`);
+      if (n2 !== 1) bad.push(`読み直した後、押した時の動きが ${n2}つ`);
+      await p.click('#theme-toggle');
+      const s3 = await st();
+      if (s3.t !== 'light' || s3.k !== 'light') bad.push(`もう1回押した後 ${s3.t}・保存 ${s3.k}（あるべき light・light）`);
+    }
+    ok(!bad.length, `${tag}: テーマの切替を1回押すと1回だけ切り替わり（押した時の動きはちょうど1つ）、選んだ色が保存されて読み直しても残る・もう1回押すと戻る`, bad.join(' ／ '));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
 head(`ブラウザ（${ONLY.length}社 × ${VIEWS.length}つの幅 × 全通貨）`);
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
 try {
@@ -7681,6 +7795,7 @@ try {
     console.log(`  ・就航地を探す・戻る・読み直し（find）を流す幅：${vs.map(v => v[0]).join('・') || 'なし'}`);
   }
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
+  if (wantS('topbar')) for (const s of [...ONLY, ...TOPBAR_MORE]) work.push(() => runTopBar(browser, s));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
   if (wantS('give')) for (const s of ONLY) for (const v of VIEWS.filter(x => GIVE_W.includes(x[0]))) work.push(() => runGive(browser, s, v), () => runGiveOpen(browser, s, v));
   if (wantS('work')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runWork(browser, s, v));

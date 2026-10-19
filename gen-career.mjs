@@ -883,6 +883,8 @@ const fingerprint = f => createHash('sha256').update(fs.readFileSync(path.join(R
 export const ASSETS = [
   'career.css', 'career-sec.css', 'career-live.css', 'career-stay.css', 'career-card.css',
   'career.js', 'career-live.js', 'career-stay.js', 'career-card.js',
+  /* パイロットであることの確認の共通のポップアップ。ホテルの欄の、会員の鍵の1行から開く（career-stay.js・2026-10-18 オーナー Q2） */
+  'pv-proof-offer.js',
 ];
 
 /** career.html のあるべき全文（いまのファイルを読んで、管理している所だけ差し替える）。 */

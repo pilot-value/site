@@ -1,16 +1,19 @@
-/* assert-proof-offer.mjs — パイロットであることの確認の「申請」ポップアップ（pv-proof-offer.js）とマイページの入口（2026-10-16）。
+/* assert-proof-offer.mjs — パイロットであることの確認の「申請」ポップアップ（pv-proof-offer.js）とマイページの入口（2026-10-16）、
+   ホテルの欄の会員の鍵の1行の入口（2026-10-18 オーナー Q2）。
 
-   実行: node assert-proof-offer.mjs --static   … ブラウザなし（切り出し・指紋・呼ぶ名前・ホテルの追加から開かない）
+   実行: node assert-proof-offer.mjs --static   … ブラウザなし（切り出し・指紋・呼ぶ名前・読むページ・ホテルの欄から開くのは鍵の1行だけ）
          node assert-proof-offer.mjs            … ＋ブラウザの場面（check.mjs web に入っている ── 2026-10-18 から）
    場面のつくり（MOCK の画面 ＋ REAL LOCAL SQL）
      ★手元だけ。小さな配信を空いている番号（OS が選ぶ・3000 / 3100 / 3111 は使わない）で立て、
        そのページの外への通信は全部止めて書き留める（最後に「0本」を見る）。supabase-js は読まない。
      ★ページの sb は、呼ばれた関数をこの検査の中の PGlite（本物の db/*.sql）へその会員として渡すだけの細い橋。
        ＝ ポップアップの画面は MOCK、返事と保存は REAL LOCAL SQL。本番の証拠にはならない。
-     ★場面5だけは本物のマイページ（profile.html ／ en/profile.html）を、local-chain.mjs の使い捨ての保存先（serve-local の
+     ★場面5は本物のマイページ（profile.html ／ en/profile.html）を、local-chain.mjs の使い捨ての保存先（serve-local の
        start ・ OS が選ぶ番号）で開く（REAL LOCAL CONNECTION）。入口のボタンが出た瞬間の場所から動かないこと（WP-towns-13w）。
+     ★場面6は本物の会社の画面（JAL の最初の就航地）のホテルの欄を、同じく使い捨ての保存先で開く（REAL LOCAL CONNECTION・2026-10-18
+       オーナー Q2）。会員の鍵の1行の入口からこのポップアップが開く・未ログインには出ない・ホテルの追加からは開かない・出しても何も開かない。
    ⚠️ 会員を名指しで書かない。ここの人は全員、作り物の uuid。 */
-import { readFileSync, existsSync, writeFileSync, mkdtempSync, rmSync } from 'fs';
+import { readFileSync, existsSync, writeFileSync, mkdtempSync, rmSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
 import http from 'node:http';
 import os from 'node:os';
@@ -58,7 +61,34 @@ ok(!/pv_proof_submit|pv_proof_state|proofWrite|proofRead|proofDue|'pv_proof'|loc
 ok(!/\.innerHTML\s*=\s*[^;]*\b(v|r|st|status)\b(?!\w)/.test(code.replace(/card\.innerHTML = html\(\);/, '').replace(/back\.innerHTML = '[^;]*;/, '')),
    'サーバの返事を innerHTML に入れない（返事は決まった文言に置き換える）');
 const stay = read('career-stay.js');
-ok(!/PVProofOffer|pv-proof-offer|pv_stay_apply|data-pv-proof-open/.test(stay), '★ホテルの欄（career-stay.js）はポップアップを開かない・申請を呼ばない');
+/* ★ホテルの欄（career-stay.js）からこのポップアップを開くのは、会員の鍵の1行の入口だけ（2026-10-18 オーナー Q2「もし中身が見たいなら
+   証明を提出してもらうポップアップ出さないと」。前は「開かない・申請を呼ばない」── L2 の付け替え。ホテルの追加から開かないのは同じ）。
+   ・申請の口 pv_stay_apply を呼ぶのは1か所だけで、引数は空の {}（状態を読むだけ。画像はこのファイルを通らない）。
+   ・ポップアップを開く呼び出し（P.open({…})）は openProof の中の1か所だけ。openProof を呼ぶのは、欄の中の 'proof' のボタンだけ
+     （欄の外の追加の面からは呼ばない）。そのボタンを作るのも proofEntry の1か所だけ。
+   ・押すと開く印（data-pv-proof-open）は使わない。
+   未ログインに出ないこと・ホテルの追加の途中で開かないこと・出しても何も開かないことは、場面6が本物の画面で見る。 */
+{
+  const sc = stay.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  const fnBody = (name) => (sc.match(new RegExp(`\\n  function ${name}\\(\\) \\{\\n([\\s\\S]*?)\\n  \\}\\n`)) || [])[1] || '';
+  const applyAt = [...sc.matchAll(/pv_stay_apply/g)].length, applyCalls = [...sc.matchAll(/rpc\('pv_stay_apply', ([^)]*)\)/g)].map((m) => m[1]);
+  const opens = sc.split('P.open({').length - 1, opensIn = fnBody('openProof').split('P.open({').length - 1;
+  const calls = sc.split('openProof(').length - 1;
+  const bound = /\n\s*else if \(act === 'proof'\)\s*\{ if \(slot\.contains\(b\)\) openProof\(\); \}[ \t]*\n/.test(sc);
+  const made = sc.split(", 'proof')").length - 1, madeIn = fnBody('proofEntry').split("btn('crl-link crs-proof', T.proofPick, 'proof')").length - 1;
+  ok(applyAt === 1 && J(applyCalls) === J(['{}']) && opens === 1 && opensIn === 1 && calls === 2 && bound && made === 1 && madeIn === 1
+     && !/data-pv-proof-open|pv-proof-offer\.js/.test(sc),
+     '★ホテルの欄（career-stay.js）：申請の口は状態を読む1か所だけ（空の {}）・ポップアップを開くのは鍵の1行の入口（proofEntry が作る \'proof\' のボタン → openProof）の1か所だけ・押すと開く印は使わない',
+     J({ applyAt, applyCalls, opens, opensIn, calls, bound, made, madeIn }));
+  /* 入口と、出したあとの1行の字は、このポップアップ（とマイページの入口）の字と1文字も違わない（新しい言葉を作らない） */
+  const csWord = (k) => { const m = [...stay.matchAll(new RegExp(`\\n\\s*${k}:\\s*'([^']*)'`, 'g'))]; return m.length === 1 ? m[0][1] : null; };
+  const popJa = (code.match(/\n    ja: \{\n([\s\S]*?)\n    \},\n/) || [])[1] || '';
+  const popWord = (k) => { const m = [...popJa.matchAll(new RegExp('\\n\\s*' + k + ':\\s*\'([^\']*)\'', 'g'))]; return m.length === 1 ? m[0][1] : null; };
+  const pair = { proofPick: [csWord('proofPick'), popWord('pick')], proofWait: [csWord('proofWait'), popWord('doneS')] };
+  ok(!!pair.proofPick[0] && pair.proofPick[0] === pair.proofPick[1] && !!pair.proofWait[0] && pair.proofWait[0] === pair.proofWait[1]
+     && pair.proofPick[0] === '画像を選んで提出する' && pair.proofWait[0] === '運営が確認するまでお待ちください。',
+     '★鍵の1行の入口「画像を選んで提出する」と出したあとの1行「運営が確認するまでお待ちください。」は、ポップアップの T.pick・T.doneS と同じ字', J(pair));
+}
 /* オーナーの字（2026-10-16）。「見られるのは VERIFIED PILOT だけ」の言い方は全部「Only VERIFIED PILOT」（大文字は O だけ）、
    状態は「VERIFIED PILOT です」。ホテルの欄の鍵の1行（career-stay.js）と同じ字 ── ONLY と Only を並べない。 */
 const OWNER = { lead2: 'Only VERIFIED PILOT', slotS: 'Only VERIFIED PILOT', okT: 'VERIFIED PILOT です' };
@@ -85,8 +115,31 @@ for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
   ok(h.split('<div id="pv-proof-slot"></div>').length === 2 && h.indexOf('<div id="pv-proof-slot"></div>') > h.indexOf('id="profile-card"')
      && h.indexOf('<div id="pv-proof-slot"></div>') < h.indexOf('id="pay-tracker"'), `${page}: 入口はマイページの ① YOUR STATUS の中に1か所だけ`);
 }
-const others = ['index.html', 'actual-pay.html', 'deep-pay.html', 'admin.html', 'career.html'].filter((f) => existsSync(path.join(ROOT, f)));
-ok(others.every((f) => !/pv-proof-offer\.js|pv-proof-slot/.test(read(f))), 'ほかのページはまだ読まない（入口はマイページの1か所）', others.join(','));
+/* 読むページは2種類だけ（2026-10-18 オーナー Q2 から）。マイページ（日英・上の2行）と、ホテルの欄を持つ画面（career.html と会社の画面5枚 ──
+   career-stay.js より前に、今の中身の指紋で1回だけ読む）。ホテルの欄の画面には、マイページの入口の置き場（pv-proof-slot）も、押すと開く印
+   （data-pv-proof-open）も置かない ＝ そこでの入口は会員の鍵の1行だけ。ほかのページ（サイトの HTML 全部）は読まない。
+   （前は「ほかの5枚はまだ読まない」── L2 の付け替え：見るページをサイト全部に広げ、読んでよい8枚をちょうどこの8枚に固定した） */
+{
+  const want = createHash('sha256').update(readFileSync(path.join(ROOT, 'pv-proof-offer.js'))).digest('hex').slice(0, 8);
+  const HOTEL = ['career.html', 'airlines/jal.html', 'airlines/ana.html', 'airlines/cathay-pacific.html', 'airlines/etihad.html', 'airlines/eva-air.html'];
+  for (const page of HOTEL) {
+    const h = read(page), pre = page.startsWith('airlines/') ? '../' : '';
+    const e = (s) => s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+    const m = [...h.matchAll(new RegExp('<script src="' + e(pre + 'pv-proof-offer.js') + '\\?v=([0-9a-f]+)"></script>', 'g'))];
+    const iP = h.indexOf('"' + pre + 'pv-proof-offer.js?v='), iS = h.indexOf('"' + pre + 'career-stay.js?v=');
+    ok(m.length === 1 && m[0][1] === want && h.split('pv-proof-offer.js').length === 2 && iP >= 0 && iS > iP && !/pv-proof-slot|data-pv-proof-open/.test(h),
+       `${page}: ホテルの欄の画面 ── pv-proof-offer.js を career-stay.js より前に、今の中身の指紋（?v=${want}）で1回だけ読む・マイページの入口の置き場も押すと開く印も無い`,
+       J({ hits: m.map((x) => x[1]), iP, iS }));
+  }
+  const allow = new Set(['profile.html', 'en/profile.html', ...HOTEL]);
+  const pages = [];
+  for (const dir of ['', 'airlines', 'en', 'en/airlines']) {
+    for (const f of readdirSync(path.join(ROOT, dir || '.'))) if (f.endsWith('.html')) pages.push(dir ? `${dir}/${f}` : f);
+  }
+  const readers = pages.filter((f) => /pv-proof-offer\.js|pv-proof-slot|data-pv-proof-open/.test(read(f)));
+  ok(pages.length > 300 && J(readers.slice().sort()) === J([...allow].sort()),
+     `ほかのページ（サイトの HTML ${pages.length}枚のうち、マイページ日英とホテルの欄の6枚のほか）は、このポップアップを読まない`, J(readers.filter((f) => !allow.has(f))));
+}
 
 if (!STATIC) await scenes();
 console.log(`\n${fail ? '❌' : '✅'} ${pass} passed, ${fail} failed`);
@@ -336,6 +389,133 @@ async function scenes() {
         await ctx.close();
       }
     } finally { await LC.stop(); }
+
+    /* 場面6（WP-ans-c・2026-10-18 オーナー Q2「もし中身が見たいなら証明を提出してもらうポップアップ出さないと」）
+       本物の会社の画面（JAL の最初の就航地）のホテルの欄を、手元の使い捨ての保存先で歩く（REAL LOCAL CONNECTION ── local-chain.mjs の bring・
+       OS が選ぶ番号・3000 番は使わない。本番にも 3000 番にも通信しない）。
+       ★未ログイン：鍵の1行は「ログイン」の入口のまま（確認の入口は無い）・申請の口を呼ばない。
+       ★ホテルの追加（未ログインでも会員でも、名前 → 送る）の途中で、このポップアップは1回も開かない（追加は名前 → 送信1回）。
+       ★ログインしている会員（見てよい人ではない 'a'）：鍵の1行に「画像を選んで提出する」の入口が1つ → 押すとこのポップアップ。
+         画像を出すと、鍵の1行は「運営が確認するまでお待ちください。」に替わり、読み直しても同じ（サーバーの申請の状態から）。
+         ★出しても何も開かない：返事は locked のまま・見てよい人の名簿に居ない（承認はオーナーが verified を押したときだけ）。
+       ★見てよい人 'pilot'・オーナー 'op'：欄が開く（確認の入口も、申請の口への呼び出しも無い）。
+       画像は scene 1 と同じ、その場で描いた絵（本物の画像は使わない）。 */
+    console.log('\n▼ 場面6（A）ホテルの欄の、会員の鍵の1行から このポップアップへ（未ログインには出さない・ホテルの追加からは開かない）── 本物の会社の画面・手元の保存先（REAL LOCAL CONNECTION）');
+    {
+      const { bring: bring6, open: open6, rpcAs } = await import('./local-chain.mjs');
+      const LC6 = await bring6();
+      const outs = [];
+      try {
+        const IATA = (read('airlines/jal.html').match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1];
+        const SL = '#pvg-city .crl[data-live="hotels"]', ZN = SL + ' + .crs-zone', FM = ZN + ' .crs-formbox > .crs-form';
+        const LOCK = 'Only VERIFIED PILOT', LOGIN = 'ログイン', PICK = '画像を選んで提出する', WAIT = '運営が確認するまでお待ちください。';
+        const A_ID = '00000000-0000-4000-8000-0000000000a1';           // serve-local.mjs の手元の会員 'a'（模擬）
+        const ready = (p) => p.waitForFunction((sl, zn) => {
+          const e = document.querySelector(sl);
+          return !!e && e.getClientRects().length > 0 && !/^(idle|loading)$/.test(e.dataset.state || '') && !!document.querySelector(zn + ' .crs-ent[data-kind="hotel"]');
+        }, { timeout: 20000 }, SL, ZN).then(() => true, () => false);
+        const go = async (who) => {
+          const o = await open6(browser, LC6.base, { who, w: 1440, h: 820 });
+          outs.push(o.st);
+          await o.page.evaluateOnNewDocument(() => {
+            window.__pvpo = 0;                                         // このポップアップ（#pvpo-back）が画面に出た回数
+            new MutationObserver((ms) => { ms.forEach((m) => m.addedNodes.forEach((n) => { if (n.id === 'pvpo-back') window.__pvpo++; })); })
+              .observe(document, { childList: true, subtree: true });
+          });
+          await o.page.goto(`${LC6.base}/airlines/jal.html#stay-${IATA}`, { waitUntil: 'load' });
+          o.ok = await ready(o.page);
+          return o;
+        };
+        const see = (p) => p.evaluate((sl) => {
+          const e = document.querySelector(sl), tx = (x) => (x ? x.textContent.replace(/\s+/g, ' ').trim() : '');
+          return { state: e.dataset.state, who: e.getAttribute('data-who'), text: tx(e),
+            proof: [...e.querySelectorAll('[data-crs-proof]')].map((x) => `${x.tagName.toLowerCase()}:${x.getAttribute('data-crs-proof')}`).join(','),
+            pvpo: window.__pvpo, dialog: !!document.querySelector('#pvpo-back') };
+        }, SL);
+        const applied = (st) => st.sent.filter((x) => x.fn === 'pv_stay_apply');
+        /* 欄の外の「ホテルを追加」→ 名前だけ打つ → 送る（1回押す）。返事を待ち、面が答えを出すまで待つ。 */
+        const addHotel = async (p, st, name) => {
+          const n0 = st.got.filter((g) => g.fn === 'pv_stay_add').length;
+          await p.click(`${ZN} .crs-ent[data-kind="hotel"]`);
+          await p.waitForSelector(`${FM} [data-k="name"]`, { visible: true });
+          await p.focus(`${FM} [data-k="name"]`);
+          await p.keyboard.type(name);
+          await p.click(`${FM} button[type="submit"]`);
+          await until(() => st.got.filter((g) => g.fn === 'pv_stay_add').length > n0, 20000).catch(() => {});
+          await p.waitForFunction((zn) => { const z = document.querySelector(zn + ' .crs-zone-say'); return !!z && /追加しました/.test(z.textContent); },
+            { timeout: 20000 }, ZN).catch(() => {});
+          const r = st.got.filter((g) => g.fn === 'pv_stay_add').slice(n0)[0];
+          try { return JSON.parse(r.text); } catch { return null; }
+        };
+
+        /* 未ログイン */
+        const g = await go(null);
+        const g1 = await see(g.page);
+        const gAdd = await addHotel(g.page, g.st, '検査用のゲストのホテル（場面6・手元）');
+        const g2 = await see(g.page);
+        ok(g.ok && g1.state === 'locked' && g1.who === 'login' && g1.text === LOCK + LOGIN && g1.proof === '' && !!gAdd && gAdd.ok === true
+           && g2.pvpo === 0 && !g2.dialog && g2.proof === '' && applied(g.st).length === 0,
+           `★未ログイン：鍵の1行は「${LOGIN}」の入口のまま（確認の入口は無い）・ホテルを追加しても（名前 → 送る）ポップアップは1回も開かない・申請の口を呼ばない`,
+           J({ g1, gAdd, g2, apply: applied(g.st).length }));
+        await g.ctx.close();
+
+        /* ログインしている会員（見てよい人ではない） */
+        const m = await go('a');
+        let v = await see(m.page);
+        ok(m.ok && v.state === 'locked' && v.who === 'member' && v.text === LOCK + PICK && v.proof === 'button:none'
+           && J(applied(m.st).map((x) => x.p)) === J([{}]),
+           `★ログインしている会員（見てよい人ではない）：鍵の1行に「${PICK}」の入口が1つ（「${LOGIN}」は無い）・申請の口は状態を読む1回だけ（空の {}）`,
+           J({ v, apply: applied(m.st).map((x) => x.p) }));
+        const mAdd = await addHotel(m.page, m.st, '検査用の会員のホテル（場面6・手元）');
+        v = await see(m.page);
+        ok(!!mAdd && mAdd.ok === true && v.pvpo === 0 && !v.dialog && applied(m.st).length === 1 && v.text === LOCK + PICK,
+           '★会員がホテルを追加しても（名前 → 送る）、ポップアップは開かない・申請の口を呼ばない・鍵の1行の入口はそのまま', J({ mAdd, v }));
+        const pressed = await m.page.click(`${SL} [data-crs-proof="none"]`).then(() => true, () => false);
+        const opened = pressed && await m.page.waitForSelector('#pvpo-back [role=dialog]', { timeout: 15000 }).then(() => true, () => false);
+        const popT = opened ? await m.page.evaluate(() => document.getElementById('pvpo-t').textContent) : '';
+        ok(opened && popT === 'パイロットであることの確認をお願いします' && (await see(m.page)).pvpo === 1,
+           '★鍵の1行の入口を押すと、このポップアップ（マイページの入口と同じもの）が開く', popT);
+        const n1 = applied(m.st).length;
+        let sentOk = false;
+        if (opened) {
+          const [ch6] = await Promise.all([m.page.waitForFileChooser(), m.page.click('#pvpo-back .pvpo-go[data-act="pick"]')]);
+          await ch6.accept([pngPath]);
+          await m.page.waitForSelector('#pvpo-back .pvpo-prev img');
+          await m.page.click('#pvpo-back .pvpo-go[data-act="send"]');
+          sentOk = await m.page.waitForFunction(() => /画像を受け取りました/.test((document.querySelector('#pvpo-back') || {}).textContent || ''), { timeout: 20000 })
+            .then(() => true, () => false);
+          await m.page.click('#pvpo-back .pvpo-go[data-act="close"]').catch(() => {});
+          await m.page.waitForFunction(() => !document.querySelector('#pvpo-back'), { timeout: 10000 }).catch(() => {});
+        }
+        v = await see(m.page);
+        const sentImg = applied(m.st).slice(n1);
+        const rs = await rpcAs(LC6.base, 'a', 'pv_stays', { airline: 'jal', iata: IATA });
+        const vw = (await LC6.q(`select count(*)::int as n from public.pv_stay_viewers where user_id = $1 and state = 'approved'`, [A_ID])).rows[0].n;
+        const pf = (await LC6.q(`select state from public.pv_proof where user_id = $1`, [A_ID])).rows;
+        ok(sentOk && v.text === LOCK + WAIT && v.proof === 'span:offered' && sentImg.length === 1 && typeof (sentImg[0].p || {}).image === 'string'
+           && !!rs.body && rs.body.ok === true && rs.body.state === 'locked' && vw === 0 && J(pf) === J([{ state: 'offered' }]),
+           `★画像を出したあと：鍵の1行は「${WAIT}」に替わる・出しても何も開かない（ホテルの返事は locked のまま・見てよい人の名簿に居ない・申請は offered）`,
+           J({ sentOk, v, sentImg: sentImg.length, rs: rs.text, vw, pf }));
+        await m.page.reload({ waitUntil: 'load' });
+        const back = await ready(m.page);
+        v = await see(m.page);
+        ok(back && v.state === 'locked' && v.text === LOCK + WAIT && v.proof === 'span:offered' && v.pvpo === 0,
+           `読み直しても「${WAIT}」（サーバーの申請の状態から。入口のボタンは出ない）`, J(v));
+        await m.ctx.close();
+
+        /* 見てよい人・オーナー */
+        for (const who of ['pilot', 'op']) {
+          const o = await go(who);
+          const w6 = await see(o.page);
+          ok(o.ok && w6.state !== 'locked' && w6.proof === '' && w6.pvpo === 0 && applied(o.st).length === 0,
+             `${who === 'op' ? 'オーナー' : '見てよい人'} '${who}'：欄が開く（確認の入口も、申請の口への呼び出しも無い）`, J(w6));
+          await o.ctx.close();
+        }
+        const supa = outs.flatMap((st) => [...st.supa]), blocked = outs.flatMap((st) => [...st.blocked]), errs = outs.flatMap((st) => st.errs);
+        ok(supa.length === 0 && blocked.length === 0 && errs.length === 0,
+           '★場面6のどのページも、手元と書体・部品の配信元のほかへ1本も投げていない・ページのエラー0', J({ supa, blocked, errs: errs.slice(0, 2) }));
+      } finally { await LC6.stop(); }
+    }
   } finally {
     await browser.close(); srv.close(); rmSync(tmp, { recursive: true, force: true });
   }

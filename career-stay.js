@@ -3,8 +3,10 @@
  * ・開けるかどうかは**サーバーが返した state だけ**で決める（locked／open）。
  *   画面でプロフィール・給与の鍵・ブラウザの保存領域を見て開けない。
  * ・鍵の1行に「ログイン」の入口を添えるかどうかだけは、この端末にログインの鍵が在るかで決める
- *   （鍵が無い人にだけ添える。会員には入口を出さない）。開ける・開けないには使わない。
- *   会員の鍵の1行にも何も添えない。見てよい人になる申し込みの口は、この画面からは呼ばない
+ *   （鍵が無い人にだけ添える。会員には「ログイン」を出さない）。開ける・開けないには使わない。
+ *   会員の鍵の1行に添えるのは、パイロットであることの確認の共通のポップアップ（pv-proof-offer.js）への入口だけ
+ *   （2026-10-18 オーナー「もし中身が見たいなら証明を提出してもらうポップアップ出さないと」。下の「確認のポップアップへの入口」）。
+ *   画像を出しても何も開かない。見てよい人になる申し込みの口は、この画面からは呼ばない
  *   （見てよい人はオーナーが決める。ホテルを足しても、申し込みにも承認にもならない）。
  * ・見てよいのは、オーナーと、オーナーが承認した人だけ（db/stays.sql）。給与の提出・ログイン・プロフィールでは開かない
  *   ＝ 鍵の1行の横に、給与の提出への入口を置かない。
@@ -47,7 +49,8 @@
     return /^#[A-Za-z0-9_-]{1,40}$/.test(h) ? h : '';
   }
   /* この端末にログインの鍵が在るか。★入口を添えるかどうかを決めるためだけ（開けるかどうかは、いつもサーバーの答え）。
-     鍵が在る人（会員・もう使えない鍵が残っている人）には何も添えない。鍵が片づけば、ログインの入口が戻る。 */
+     鍵が在る人（会員・もう使えない鍵が残っている人）には「ログイン」を添えない（会員に添えるのは、サーバーに聞いた申請の状態しだいの
+     確認の入口だけ ── もう使えない鍵の人は、サーバーが login と答えるので何も添わない）。鍵が片づけば、ログインの入口が戻る。 */
   function loggedIn() {
     try { return !!(w.PVSession && typeof w.PVSession.hasToken === 'function' && w.PVSession.hasToken()); }
     catch (e) { return false; }
@@ -66,6 +69,10 @@
     off:        '準備中',
     locked:     'Only VERIFIED PILOT',
     login:      'ログイン',
+    /* 会員の鍵の1行に添える、確認のポップアップへの入口と、画像を出したあとの1行。どちらもポップアップとマイページの入口の字
+       （pv-proof-offer.js の T.pick・T.doneS の写し。1文字でもずれたら assert-proof-offer.mjs が落とす）。 */
+    proofPick:  '画像を選んで提出する',
+    proofWait:  '運営が確認するまでお待ちください。',
     err:        '読み込めませんでした',
     retry:      'もう一度',
     none:       'まだ登録がありません',
@@ -272,6 +279,7 @@
            ログアウトでは消さない（この画面から見れば、ほかのタブでの・知らせの届かないログアウト ＝ 同じ人が戻れば30分のうちは戻る） */
         settleDrafts();
         CACHE = {};
+        PROOF = null;
         PHOTO_LOCK = false;
         LIVE.slice().forEach(drop);
         scan();
@@ -348,12 +356,15 @@
       var c = CACHE[k];
       if (c && (c.state === 'open' || (c.__in === true && arr(c.own).length))) return true;
     }
+    /* 会員の鍵の1行に添えた確認の入口も（ログインが消えたら、鍵の無い人の「ログイン」の形に戻す） */
+    if (PROOF && PROOF.v) return true;
     return FORM_IN;
   }
   function forgetIfGone() {
     if (!holdsOpen() || !keyGone()) return false;
     closeAdds();                     /* 書きかけは消さない（ログインが知らせなく切れただけ ＝ 同じ人がログインし直せば、30分のうちは戻る） */
     CACHE = {};
+    PROOF = null;
     LIVE.slice().forEach(drop);
     /* 鍵が消えたことは onAuthStateChange には届いていない。覚えている相手も一緒に忘れる
        （忘れないと、同じ人がほかのタブでログインし直したとき「相手は変わっていない」と読んで取り直さない）。 */
@@ -409,13 +420,16 @@
     if (LIVE.indexOf(slot) < 0) LIVE.push(slot);
 
     /* 取り直すと決めた回は、前の答えを先に捨てる（取り直しに失敗したあと、出入りで古い答えを描き直さない） */
+    var cv = opt.fresh ? null : CACHE[st.key];
     if (opt.fresh) delete CACHE[st.key];
-    else if (CACHE[st.key]) { paint(slot, st, CACHE[st.key], opt); return; }
+    else if (cv && !(needProof(cv) && !(PROOF && PROOF.done))) { paint(slot, st, cv, opt); return; }
 
     var sk = el('div', 'crs-skel');
     sk.appendChild(el('span', 'crs-skel-a'));
     sk.appendChild(el('span', 'crs-skel-b'));
     put(slot, 'loading', sk);
+    /* 覚えている答えが会員の鍵の1行で、確認の入口の形がまだ分からない（聞いている途中）：その答えを待ってから描く */
+    if (cv) { proofRead().then(function () { if (ST.get(slot) === st) paint(slot, st, cv, opt); }); return; }
 
     var k = st.key.split('|');
     /* 返事が STAY_WAIT のうちに来なければ、読めなかったことにする（待ちの絵のまま止まらない）。やり直しは「もう一度」だけ。 */
@@ -447,6 +461,11 @@
       else if (bad(v) || (v.state !== 'locked' && v.state !== 'open')) { paintError(slot); return; }
       /* 「準備中」は覚えない（都市を開き直した時に聞き直す）。覚える答えには、ログインの鍵が在るときに読んだかを添える（holdsOpen）。 */
       if (v.state !== 'off') { v.__in = loggedIn(); CACHE[st.key] = v; }
+      /* 会員の鍵の1行は、確認の入口の形（申請の状態）が分かってから1度に描く（あとから入口が生えて、下の入口の列が動かないように）。 */
+      if (needProof(v) && !(PROOF && PROOF.done)) {
+        proofRead().then(function () { if (ST.get(slot) === st) paint(slot, st, v, opt); });
+        return;
+      }
       paint(slot, st, v, opt);
     });
   }
@@ -455,13 +474,15 @@
   function paint(slot, st, v, opt) {
     if (v.state === 'off') { put(slot, 'off', el('p', 'crs-line', T.off)); if (opt && opt.say) zsay(slot, opt.say); return; }
     if (v.state === 'locked') {
-      /* ★鍵の印と1行。入口は、ログインの鍵が無い人にだけ「ログイン」の1つ（会員には何も添えない）。
+      /* ★鍵の印と1行。入口は、ログインの鍵が無い人にだけ「ログイン」の1つ。会員には、確認のポップアップへの入口
+         （申請の状態しだいで、入口のボタンか、出したあとの1行。読めなければ何も添えない）。
          ほかの人の名前・件数・写真は、そもそも届いていない。 */
       var who = loggedIn() ? 'member' : 'login';
       var lk = el('p', 'crs-line crs-lock');
       lk.appendChild(icon('lock'));
       lk.appendChild(el('span', '', T.locked));
       if (who === 'login') lk.appendChild(entry());
+      else { var pe = proofEntry(); if (pe) lk.appendChild(pe); }
       put(slot, 'locked', lk);
       slot.setAttribute('data-who', who);
       /* 欄の中に一言の置き場は無い（鍵の1行だけ）。足したあとの一言は、欄の外の面に出す。 */
@@ -476,6 +497,73 @@
     box.appendChild(el('span', '', T.err));
     box.appendChild(btn('crs-act', T.retry, 'retry'));
     put(slot, 'error', box);
+  }
+
+  // ══ 確認のポップアップへの入口（会員の鍵の1行だけ）══════════════════
+  /* オーナー（2026-10-18）「もし中身が見たいなら証明を提出してもらうポップアップ出さないと」。
+     ・出すのは、ログインしている会員で、サーバーが locked と答えた人だけ（オーナーと見てよい人には、欄そのものが開く）。
+       ログインしていない人は、今までどおり「ログイン」の入口だけ。
+     ・その人の申請の状態はサーバーに聞く（pv_stay_apply に画像を付けずに ＝ 読むだけ。何も書かない）。
+         none    → 「画像を選んで提出する」（押すと、共通のポップアップ pv-proof-offer.js が開く。マイページの入口と同じもの）
+         offered → 「運営が確認するまでお待ちください。」（画像を出したあと。ポップアップの最後の1行と同じ字）
+         それ以外（読めない・ログインが死んでいる login・受け付けていない closed・オーナー・approved）→ 鍵の1行だけ（今までどおり）
+     ★画像を出しても何も開かない。見てよい人になるのは、オーナーが verified を押したときだけ（db/stays.sql 10-c）。
+     ★ホテル・レストラン・場所の追加からは開かない（追加は名前 → 送信1回。ログインも申請もいらない）。
+     ★画像はこのファイルを通らない（選ぶ・焼き直す・送るのはポップアップ）。ここが pv_stay_apply に渡すのは、いつも空の {} だけ。 */
+  var PROOF = null;   // いまの相手の申請の状態 { v: 'none'|'offered'|''（添えない）, done: 答えが来た, p: その約束 }。相手が変わったら捨てる
+  /* この答えを描く前に、確認の入口の形を知る必要があるか（ログインの鍵が在るときに読んだ「見られない」で、いまも鍵が在る） */
+  function needProof(v) { return !!v && v.state === 'locked' && v.__in === true && loggedIn(); }
+  function proofRead() {
+    if (PROOF) return PROOF.p;
+    var box = { v: '', done: false };
+    PROOF = box;
+    box.p = within(rpc('pv_stay_apply', {}), STAY_WAIT).then(function (r) {
+      var s = (!bad(r) && (r.state === 'none' || r.state === 'offered')) ? r.state : '';
+      if (PROOF !== box) return s;
+      /* 読めなかった回も、このページでは覚えておく（鍵の1行だけのまま。都市を移るたび・足すたびに聞き直さない）。
+         ページを読み直す・相手が変わると、もう一度だけ聞く。 */
+      box.v = s;
+      box.done = true;
+      return s;
+    });
+    return box.p;
+  }
+  function proofEntry() {
+    var s = PROOF ? PROOF.v : '';
+    var P = w.PVProofOffer;
+    var e = s === 'offered' ? el('span', 'crs-proof-wait', T.proofWait)
+          : (s === 'none' && P && typeof P.open === 'function') ? btn('crl-link crs-proof', T.proofPick, 'proof')
+          : null;
+    if (e) e.setAttribute('data-crs-proof', s);
+    return e;
+  }
+  function openProof() {
+    var P = w.PVProofOffer, mine = PROOF;
+    if (!P || typeof P.open !== 'function' || !mine) return;
+    client().then(function (c) {
+      if (PROOF !== mine) return;   /* 押したあとで相手が変わった */
+      P.open({ client: c, onDone: function (state) { proofDone(mine, state); } });
+    }, function () { /* 口が無ければ開かない */ });
+  }
+  /* ポップアップが画像を受け取った（offered）。鍵の1行の入口を、出したあとの1行に替える（欄のほかの所には触らない）。
+     もう見てよい人だった（approved）ときは、欄を取り直す（開くかどうかを決めるのは、いつもサーバーの答え）。 */
+  function proofDone(mine, state) {
+    if (PROOF !== mine) return;
+    if (state === 'approved') {
+      CACHE = {}; PROOF = null;
+      LIVE.slice().forEach(function (s) { load(s, { fresh: true }); });
+      return;
+    }
+    if (state !== 'offered') return;
+    mine.v = 'offered'; mine.p = Promise.resolve('offered');
+    slots().forEach(function (s) {
+      var lk = s.getAttribute('data-who') === 'member' ? s.querySelector('.crs-lock') : null;
+      if (!lk) return;
+      var old = lk.querySelector('[data-crs-proof]');
+      if (old) lk.removeChild(old);
+      var pe = proofEntry();
+      if (pe) lk.appendChild(pe);
+    });
   }
 
   function paintOpen(slot, st, v, opt) {
@@ -1395,6 +1483,7 @@
       if (!b || !st || !node.contains(b)) return;
       var act = b.getAttribute('data-act');
       if (act === 'retry')       { delete CACHE[st.key]; load(slot, { fresh: true }); }
+      else if (act === 'proof')  { if (slot.contains(b)) openProof(); }   /* 鍵の1行の中のボタンだけ（欄の外の追加の面からは開かない） */
       else if (act === 'ent')    pressEnt(slot, st, b);
       else if (act === 'edit')   { if (b.__crsItem) openForm(slot, st, b, b.__crsItem); }
       else if (act === 'unform') {
@@ -1447,7 +1536,7 @@
   /* 戻る・進むで、手放したあとの画面がそのまま戻ってきたとき（写真の URL はもう無い）。
      離れているあいだにログインが変わっているかもしれないので、持っている答えも使い回さない。 */
   w.addEventListener('pageshow', function (e) {
-    if (e.persisted) { CACHE = {}; LIVE.slice().forEach(drop); scan(); }
+    if (e.persisted) { CACHE = {}; PROOF = null; LIVE.slice().forEach(drop); scan(); }
   });
   /* ほかの画面から戻ってきたとき、鍵が消えていたら取り直す（消えていなければ何もしない＝通信もしない）。 */
   d.addEventListener('visibilitychange', function () {

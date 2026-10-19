@@ -8,7 +8,7 @@
          （返事は {"ok":true,"state":"locked"} そのもの・名前は返事にも画面にも保存領域にも無い・鍵の1行と「ログイン」）。
      S2  ログインせずに「ホテルを追加」→ 名前 → 送る：保存される・端末の鍵が返る・「あなたの投稿」「確認待ち」が出る・
          運営（オーナー 'op'）の待ち行列が1つ増える。会員 'a' と給与を出した人 'pay' は locked のまま
-         （'pay' は鍵の1行だけ）。承認された人 'pilot' にも、確認前の他人の行は返らない。
+         （'pay' は鍵の1行と確認の入口「画像を選んで提出する」だけ）。承認された人 'pilot' にも、確認前の他人の行は返らない。
      S2b ほかのログインなしの人が、公開済みのホテルと同じ名前を送る：保存され、在ることは言わない。運営が通すと exists。
      S2c オーナーではない運営（この保存先の中だけで 'c' を運営の名簿に入れる）：待ち行列は1つ増えて見えるが、一覧は locked。
      S3  運営が通す：承認された人 'pilot' に届く。'a'・'pay'・ほかのログインなしの人は locked のまま。送った人の札から「確認待ち」が消える。
@@ -67,6 +67,9 @@ const J = (v) => { try { return JSON.stringify(v).slice(0, 400); } catch { retur
 
 /* 画面の字（career-stay.js の T・SAY_ADD と同じ字。ここで字を固定する） */
 const LOCK = 'Only VERIFIED PILOT', LOGIN = 'ログイン';
+/* 会員（ログインの鍵が在る人）の鍵の1行に添える、確認のポップアップへの入口（2026-10-18 オーナー Q2。pv-proof-offer.js の T.pick と同じ字）。
+   まだ画像を出していない会員の欄は「鍵の1行＋この入口」。ポップアップそのもの・ホテルの追加から開かないことは assert-proof-offer.mjs の場面6が見る。 */
+const PICK = '画像を選んで提出する';
 const MINE = 'あなたの投稿', PENDING = '確認待ち';
 const ADDED = '追加しました。確認のあと公開されます。';
 const OFF = '準備中', ERR = '読み込めませんでした', RETRY = 'もう一度';
@@ -173,6 +176,7 @@ async function kit(W) {
     return {
       state: e.dataset.state, who: e.getAttribute('data-who'), text: tx(e),
       entry: [...e.querySelectorAll('a[data-crs-entry]')].map(tx),
+      proof: [...e.querySelectorAll('[data-crs-proof]')].map((x) => x.getAttribute('data-crs-proof')).join(','),
       retry: [...e.querySelectorAll('[data-act="retry"]')].map(tx),
       names: [...e.querySelectorAll('.crs-name')].map(tx),
       ents: z ? [...z.querySelectorAll('.crs-ent')].filter(vis).map((b) => `${b.getAttribute('data-kind')} ${tx(b)}`).join(' ／ ') : '',
@@ -455,9 +459,9 @@ async function chain() {
     const pr = await visit(pp);
     const pv = await look(pp);
     const pseen = await whereIs(pp, [PUB, GUEST]);
-    ok(pr && pv.state === 'locked' && pv.who === 'member' && pv.text === LOCK && pv.entry.length === 0 && pseen.length === 0
+    ok(pr && pv.state === 'locked' && pv.who === 'member' && pv.text === LOCK + PICK && pv.proof === 'none' && pv.entry.length === 0 && pseen.length === 0
       && replies(pp, 'pv_stays').length >= 1 && replies(pp, 'pv_stays').every(isLockedBytes),
-      `★S2 給与提出者 'pay' の画面は、鍵の1行「${LOCK}」だけ（入口なし・どの名前も返事・画面・保存領域に無い）${BYCALL}`, J({ pv, pseen }));
+      `★S2 給与提出者 'pay' の画面は、鍵の1行「${LOCK}」と確認の入口「${PICK}」だけ（ログインの入口なし・どの名前も返事・画面・保存領域に無い）${BYCALL}`, J({ pv, pseen }));
     await shut(pp);
     const rv = await stays('pilot');
     ok(rv.body && rv.body.state === 'open' && namesOf(rv).includes(PUB) && !norm(rv.text).includes(GUEST),
@@ -523,9 +527,9 @@ async function chain() {
     const pp = await page({ who: 'pay' });
     const pr = await visit(pp);
     const pv = await look(pp);
-    ok(pr && isLockedBytes(rx) && norm(rx.text) === norm(ra.text) && pv.state === 'locked' && pv.who === 'member' && pv.text === LOCK
+    ok(pr && isLockedBytes(rx) && norm(rx.text) === norm(ra.text) && pv.state === 'locked' && pv.who === 'member' && pv.text === LOCK + PICK && pv.proof === 'none'
       && (await whereIs(pp, [PUB, GUEST])).length === 0,
-      `★S4 給与の鍵の期限が切れた 'pay'：返事は会員 'a' と同じ ${LOCKED}・画面は鍵の1行だけ${BYCALL}`, J({ rx: rx.text, pv }));
+      `★S4 給与の鍵の期限が切れた 'pay'：返事は会員 'a' と同じ ${LOCKED}・画面は鍵の1行と確認の入口「${PICK}」だけ${BYCALL}`, J({ rx: rx.text, pv }));
     await shut(pp);
     await L.q(`update public.profiles set access_until = $2 where id = $1`, [M.pay.id, until0]);
     const ry = await stays('pay');
@@ -547,9 +551,9 @@ async function chain() {
     const v2 = await look(vp);
     const after = replies(vp, 'pv_stays', from);
     const seen2 = await whereIs(vp, [PUB, GUEST]);
-    ok(r2 && after.length >= 1 && after.every(isLockedBytes) && v2.state === 'locked' && v2.who === 'member' && v2.text === LOCK
+    ok(r2 && after.length >= 1 && after.every(isLockedBytes) && v2.state === 'locked' && v2.who === 'member' && v2.text === LOCK + PICK && v2.proof === 'none'
       && seen2.filter((s) => !s.startsWith('返事')).length === 0,
-      `★S4 承認を取り消された 'pilot' が読み直すと、返事は ${LOCKED} そのもの・画面は鍵の1行だけ（名前は画面にも保存領域にも無い）`,
+      `★S4 承認を取り消された 'pilot' が読み直すと、返事は ${LOCKED} そのもの・画面は鍵の1行と確認の入口「${PICK}」だけ（名前は画面にも保存領域にも無い）`,
       J({ after: after.map((r) => r.text), v2, seen2 }));
     await shut(vp);
     /* ★P12.51: 'pilot' は申し込みの行から承認された人（手元の模擬は申し込んだ時刻つきの行）＝申し込んだことのある人。
@@ -697,8 +701,8 @@ async function two() {
       [SLUG, IATA, A_POST, M.a.id])).rows;
     ok(ra && sent.length === 1 && reply && reply.ok === true && !('key' in reply) && key === null
       && rows.length === 1 && rows[0].state === 'pending' && rows[0].by_login === true
-      && v.state === 'locked' && v.who === 'member' && v.text === LOCK && J(v.own) === J([{ name: A_POST, badges: [MINE, PENDING] }]),
-      `★S8 会員 'a' がログインしたまま足す：pv_stay_add が1本・端末の鍵は返らず置かれない・保存先の1行は確認待ちで 'a' のログインの印・欄の外に「${MINE}」「${PENDING}」の札（欄の中は鍵の1行だけ）`,
+      && v.state === 'locked' && v.who === 'member' && v.text === LOCK + PICK && v.proof === 'none' && J(v.own) === J([{ name: A_POST, badges: [MINE, PENDING] }]),
+      `★S8 会員 'a' がログインしたまま足す：pv_stay_add が1本・端末の鍵は返らず置かれない・保存先の1行は確認待ちで 'a' のログインの印・欄の外に「${MINE}」「${PENDING}」の札（欄の中は鍵の1行と確認の入口「${PICK}」だけ）`,
       J({ reply, key, rows, v }));
     const out = await logoutVia(pa);
     const from = pa.st.got.length;
@@ -721,7 +725,7 @@ async function two() {
     const pa2 = await page({ who: 'a' });
     const ra2 = await visit(pa2);
     const va2 = await look(pa2);
-    ok(ra2 && va2.state === 'locked' && va2.text === LOCK && J(va2.own) === J([{ name: A_POST, badges: [MINE, PENDING] }]),
+    ok(ra2 && va2.state === 'locked' && va2.text === LOCK + PICK && va2.proof === 'none' && J(va2.own) === J([{ name: A_POST, badges: [MINE, PENDING] }]),
       `★S8 会員 'a' がまた入る（別の窓・端末の鍵なし）：札が戻る（ログインの印で読む）`, J(va2.own));
     await shut(pa); await shut(pb); await shut(pa2);
 

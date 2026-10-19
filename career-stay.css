@@ -21,6 +21,10 @@
    入らない幅では下の行へ回る。 */
 .crs-lock > span:not(.crs-icw){flex:1 1 12em;min-width:0}
 .crs-lock > a{margin-left:auto}
+/* 会員の鍵の1行に添える、確認のポップアップへの入口（career-stay.js の proofEntry）。「ログイン」と同じ見た目（.crl-link）の
+   ボタンで右へ寄せる。画像を出したあとの1行は控えめな字で右へ寄せる。どちらも入らない幅では下の行へ回る。 */
+.crs-lock > .crs-proof{margin-left:auto;padding:0;border:0;background:none;font-family:inherit;text-align:left;cursor:pointer}
+.crs-lock > span.crs-proof-wait{flex:0 1 auto;margin-left:auto;color:var(--pv-ink-3);font-size:13px}
 .crs-err{justify-content:space-between;flex-wrap:wrap}
 /* この板は career.html の外（会社ページ）でも使う。hidden を display の指定に負けさせない。 */
 .crs [hidden]{display:none !important}

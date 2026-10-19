@@ -108,7 +108,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <link rel="stylesheet" href="../pv-glance.css?v=c6b3dd74">
 <link rel="stylesheet" href="../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../pv-contrib.css?v=45fd85fa">
-<link rel="stylesheet" href="../career-stay.css?v=2ee8891c">
+<link rel="stylesheet" href="../career-stay.css?v=0b7bd8e6">
 <!--/PV-GLANCE-HEAD-->
   <!-- PV-NAV: 全ページ共通のナビ（広い画面＝左レール／狭い画面＝左ドロワー）。
        patch-side-nav.mjs が配る。app-nav.css は最後に読む（my-value.css より後）。 -->
@@ -154,12 +154,15 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
     </nav>
 
 <nav id="main-nav">
-<div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-[72px]">
-<a href="../index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img"/></a>
-<!-- PV-NAV: 横並びのリンクは 2026-09-06 に左のナビへ畳んだ（オーナー確定事項13）。
-     ここに足さない。行き先を増やすときは patch-side-nav.mjs の ITEMS に足す。 -->
-<a href="../index.html" class="btn-ghost text-sm py-2 px-4">← 一覧に戻る</a>
-</div>
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-[72px]">
+    <a href="../index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img"/></a>
+    <!-- PV-NAV: 横並びのリンクは 2026-09-06 に左のナビへ畳んだ（オーナー確定事項13）。
+         ここに足さない。行き先を増やすときは patch-side-nav.mjs の ITEMS に足す。 -->
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="ダーク/ライト切替"></button>
+      <a href="../world-airlines.html" class="btn-ghost text-sm py-2 px-4 hidden md:inline-flex">← 一覧に戻る</a>
+    </div>
+  </div>
 </nav>
 
 <!--PV-HERO-->
@@ -1304,7 +1307,8 @@ setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>
 <script src="../career-live.js?v=7ad1a861"></script>
 <script src="../pv-glance.js?v=5bdb35f6"></script>
 <script src="../pv-contrib.js?v=b9977a0f"></script>
-<script src="../career-stay.js?v=b8411075"></script>
+<script src="../pv-proof-offer.js?v=cc4ef913"></script>
+<script src="../career-stay.js?v=357f7e5f"></script>
 <!--/PV-GLANCE-JS-->
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
