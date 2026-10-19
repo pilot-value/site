@@ -58,6 +58,25 @@ function metaOf(slug) {
   return { color, code };
 }
 
+/* ── 社名の字（段階3の面）─────────────────────────────────────────── */
+/* 段階3の面（ステイ先・街）の行に出す社名：日本の会社は日本語・ほかは英語（オーナー 2026-10-18「日本は日本語、他は英語」）。
+   字は正本（salary-data.mjs の SALARY）の ja / en を、地域（region 'japan'）で選ぶだけ。ページの見出し・検索向けの字には使わない。
+   会社ページ（gen-airline-glance.mjs）と career.html（gen-career.mjs）の両方がここを読む（2026-10-19 P12.65。1つの決まりを2つに写さない）。
+   島（#crc-data）の name に書く ＝ career-stay.js と pv-contrib.js（街の面の頭の行）が読む。 */
+export const coSay = slug => (SALARY[slug].region === 'japan' ? SALARY[slug].ja : SALARY[slug].en);
+/* 同じ面（暮らしの板・就航地とステイの欄・career.html の家賃の箱）の札や1行に、台帳の字のまま出てくるその会社の名前も、同じ決まり（coSay）で出す
+   （街を選んだ理由「エバー航空の事業所がある」・出典の名前「エバー航空「飛航人員福利」」・就航地の条件の1行）。
+   入れ替えるのは、正本の日本語の社名（SALARY の ja。すぐ後ろに「航空」が続けばそこまで）が、かぎかっこ「…」の外に在る所だけ
+   ── 引用した資料の題（「飛航人員福利」）の中は1字も変えない。台帳（living-facts.mjs・airline-destinations.mjs）の字は変えない。
+   日本の会社のページでは何も変わらない。ページの見出し・検索向けの字には使わない。 */
+const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, c => `\\${c}`);
+export const coText = (slug, t) => {
+  const s = String(t ?? ''), ja = SALARY[slug].ja, say = coSay(slug);
+  if (say === ja) return s;
+  const re = new RegExp(`${reEsc(ja)}(?:航空)?`, 'g');
+  return s.split(/(「[^」]*」)/).map(p => (p.startsWith('「') ? p : p.replace(re, () => say))).join('');
+};
+
 /* ── 金額の字 ───────────────────────────────────────────────────── */
 /** 標準の円表記（currency.js が実行時に読める形）。 */
 export const yen = m => `¥${m.toLocaleString('en-US')}万`;
@@ -192,8 +211,9 @@ function etihad() {
     }, [...E.living.rents, ...E.living.rent_basis].map(x => x.quote || '')))(ways(ABUDHABI)),
   };
 }
-/* エティハドの家賃の欄の列（1つの定数。列を足すときはここだけ）。 */
-const COLS_EY = [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室'], ['bed3', '3寝室']];
+/* エティハドの家賃の欄の列（1つの定数。列を足すときはここだけ）。名前は、どの街とも同じ1組の間取りの字（living-facts.mjs の決まり・
+   オーナー 2026-10-18 V16）。Bayut の表の呼び名（Studio・1-Bed・2-Bed・3-Bed）そのもの。 */
+const COLS_EY = [['studio', 'Studio'], ['bed1', '1-Bed'], ['bed2', '2-Bed'], ['bed3', '3-Bed']];
 /* 値を、その欄の列だけにする（列に無い鍵は渡さない）。 */
 const only = (cols, v) => Object.fromEntries(Object.entries(v).filter(([k]) => cols.some(c => c[0] === k)));
 

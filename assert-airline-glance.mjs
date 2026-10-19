@@ -1755,7 +1755,7 @@ head('暮らし（街・家賃・空港までの移動）');
   /* 期待する値は台帳から作る（viewOf も生成側も通さない）。エティハドの家賃は career-facts.mjs（1年あたり → 12で割って1の位で丸める）、
      棒の間取り・空港・移動は living-facts.mjs の ABUDHABI。エティハドの列の名前だけは台帳に無い（読み口の COLS_EY）＝ 同じ字をここに持つ（字が変われば赤）。
      団地ごとの家賃（estates）を持つ街は、rent_from の団地の額と名前で読む（カードの小さな字は「団地の名前・間取り」）。 */
-  const EY_COLS = [['studio', 'スタジオ'], ['bed1', '1寝室'], ['bed2', '2寝室']];
+  const EY_COLS = [['studio', 'Studio'], ['bed1', '1-Bed'], ['bed2', '2-Bed']];
   const perM = v => Object.fromEntries(Object.entries(v || {}).map(([k, n]) => [k, Array.isArray(n) ? n.map(x => Math.round(x / 12)) : Math.round(n / 12)]));
   const LED = s => (s === 'etihad'
     ? { c: ABUDHABI, cols: EY_COLS, lead: 'bed1', refs: [], estates: [],
@@ -2015,6 +2015,35 @@ head('暮らし（街・家賃・空港までの移動）');
     }
     if (c.site == null && (rbN || sec.includes('<span class="pvg-town-r">') || sec.includes('<dl class="pvg-kv">'))) sb5.push('出どころの無い拠点に、家賃の棒・行・表');
     ok(sec && !sb5.length, `${s}: 家賃の出どころが無い拠点・額の無い街には、家賃の行も棒も無い`, sb5.join(' ／ '));
+  }
+  /* ★V16（オーナー 2026-10-18「間取りは全て言い方統一。1-Bed とかで世界は通じるでしょ。日本も海外も」）：
+     間取りの呼び名は、どの街も Studio・1-Bed・2-Bed・3-Bed の1組（寝室の数）。出どころの呼び名（1LDK・1房・ワンルーム・スタジオ・1寝室 …）は、
+     台帳の引用（quote）と、引用の中を探す字（words_src）の中にだけ在る ── 画面には出さない。
+     SLV1 台帳：どの街の列の名前（cols・参考の表の cols）と棒の呼び名（words）も1組の字だけ（型をまとめた列は「・」でつなぐ・最後だけ「〜」可）。
+          エティハドの列の名前（読み口の COLS_EY の写し EY_COLS）も。
+     SLV2 出荷する字：5社のページと career.html の字（タグとコメントを外した本文。島の JSON も字として見る）に、ほかの間取りの呼び名が1つも無い。
+          1組の字（N-Bed）が実際に在ることも見る（空のページで緑にしない）。 */
+  {
+    const LAY = /^(?:Studio|[1-9]-Bed)(?:・(?:Studio|[1-9]-Bed))*〜?$/;
+    const led = [
+      ...Object.entries(LIVING).flatMap(([city, c]) => [
+        ...(c.cols || []).map(([k, l]) => [`${city}.cols.${k}`, l]),
+        ...Object.entries(c.words || {}).map(([k, w]) => [`${city}.words.${k}`, w]),
+        ...(c.refs || []).flatMap(g => (g.cols || []).map(([k, l]) => [`${city}.refs.${g.key}.cols.${k}`, l])),
+      ]),
+      ...EY_COLS.map(([k, l]) => [`etihad.cols.${k}`, l]),
+      ...Object.entries(ABUDHABI.words || {}).map(([k, w]) => [`abudhabi.words.${k}`, w]),
+    ];
+    const ledBad = led.filter(([, w]) => !LAY.test(String(w)));
+    ok(led.length > 0 && !ledBad.length, `間取りの呼び名は、台帳のどの街も1組（Studio・1-Bed・2-Bed・3-Bed）── 列の名前・棒の呼び名・参考の表の列（${led.length}か所）`,
+       ledBad.map(([k, w]) => `${k}「${w}」`).join(' ／ '));
+    const OTHER = /(?<![A-Za-z0-9])\d\s?(?:S?LDK|S?DK|K|R)(?![A-Za-z0-9])|ワンルーム|スタジオ|\d\s?(?:房|寝室|部屋|ベッドルーム)|獨立套房|独立した1室|\b\d\s?(?:Rooms?|Bedrooms?|BR|BHK|Beds?)\b|\bBedrooms?\b|\bstudio\b/g;
+    for (const [f, h] of [...FIVE.map(s => [pageOf(s), PAGES[s]]), ['career.html', read('career.html')]]) {
+      const t = unesc(h.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+      const hits = [...t.matchAll(OTHER)].map(m => `「${t.slice(Math.max(0, m.index - 10), m.index + m[0].length + 6).trim()}」`);
+      ok(/[1-9]-Bed/.test(t) && !hits.length, `${f}: 間取りの呼び名は1組（Studio・1-Bed・2-Bed・3-Bed）だけ ── ほかの呼び名（1LDK・1房・ワンルーム・スタジオ・1寝室 …）が字に無い`,
+         hits.length ? hits.slice(0, 6).join(' ／ ') : '1-Bed などの字が1つも無い');
+    }
   }
 }
 

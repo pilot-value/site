@@ -23,6 +23,14 @@
  *   アブダビ（別の台帳）… Bayut の募集家賃の**平均**・**年額**
  *   → 街どうしを同じ表の同じ列に並べない。出すときは、何の額かと時点を必ず一緒に出す。
  * ・value は列ごとの額。列（cols）は街ごとに違う（出どころの区分のまま）。
+ * ・★**間取りの呼び名は、どの街も1組だけ**：Studio・1-Bed・2-Bed・3-Bed（寝室の数）。cols の名前と words はこの字で書く
+ *   （オーナー 2026-10-18 V16「間取りは全て言い方統一。1-Bed とかで世界は通じるでしょ。日本も海外も」）。
+ *   出どころの呼び名は、意味（寝室の数）で読み替える ── 1R・1K・ワンルーム → Studio／1DK・1LDK → 1-Bed／2K・2DK・2LDK → 2-Bed／
+ *   3K・3DK・3LDK → 3-Bed／香港の「房」は 28Hse の記録の欄「Bedroom:」（房間數量）の数／台北の 1房〜3房 は寝室の数・獨立套房 → Studio。
+ *   いくつかの型をまとめた列（区の SUUMO の「1K・1DK」など）は、型ごとに読み替えて元の順に並べる（Studio・1-Bed）。1つの語で推さない。
+ *   部屋の数の合計を、寝室の数と推して読まない（意味が分からなければ、出どころの呼び名のまま出して、オーナーに挙げる）。
+ *   words_src ＝ 引用の中の、出どころ自身の呼び名（棒の列の呼び名が引用に在るかを見る字）。台帳の鍵（ldk1 など）は変えない
+ *   （アットホームの ldk1 と SUUMO の ldk1 は別の型の組 ＝ 鍵どうしの読み替えの表は作らない）。
  *   幅は [下, 上]。**検査は、額がその行の引用に字のまま在ることを見る**（打ち間違いを通さない）。
  * ・per は額の単位。東京の出どころ（アットホーム・区の SUUMO）は表に期間の字が無いので null。
  *   日本の賃料の相場は月額なので、画面では「月」と出す（読み口 pv-airline-view.mjs）。
@@ -245,7 +253,7 @@ export const LIVING = {
   tokyo: {
     city_ja: '東京', country_ja: '日本',
     measure_ja: '家賃相場',
-    cols: [['ldk1', '1LDK'], ['ldk2', '2LDK'], ['ldk3', '3LDK']],
+    cols: [['ldk1', '1-Bed'], ['ldk2', '2-Bed'], ['ldk3', '3-Bed']],
     lead_col: 'ldk1',
     airports: [['HND', '羽田空港'], ['NRT', '成田空港']],
     /* 経路が着く場所（Google マップがその場所に決めたとおり。駅は駅、建物は建物）。 */
@@ -257,7 +265,8 @@ export const LIVING = {
       hnd_t2s: { iata: 'HND', ja: '羽田空港第2ターミナル駅', kind: 'station' },
     },
     site: 'athome', stat: 'mean', beside_ja: '条件をしぼっていない（物件種別・駅徒歩・築年数は「すべて」）', by_town: true, card_family: 'transit',
-    bars: ['ldk1', 'ldk2', 'ldk3'], words: { ldk1: '1LDK', ldk2: '2LDK', ldk3: '3LDK' },
+    bars: ['ldk1', 'ldk2', 'ldk3'], words: { ldk1: '1-Bed', ldk2: '2-Bed', ldk3: '3-Bed' },
+    words_src: { ldk1: '1LDK', ldk2: '2LDK', ldk3: '3LDK' },
     /* 街の家賃（アットホームの駅のページ）。quote は 2026年10月11日に2人が読んで書き取った記録の行（quote_kind: 'record'）。 */
     rents: [
       athome('shinagawa', '品川', S.athomeShinagawa, ['22.02', '34.43', '41.93'], '品川 すべて 19.53 1LDK 22.02 2LDK 34.43 3LDK 41.93',
@@ -288,7 +297,7 @@ export const LIVING = {
     ],
     /* 区・市の SUUMO の家賃相場（もとの3行。値と日付はそのまま）。「出典」の中の「参考」にだけ出る。 */
     refs: [{ key: 'suumo_wards', ja: '区・市ごとの家賃相場', site: 'suumo', measure_ja: '家賃相場',
-      cols: [['oneroom', 'ワンルーム'], ['k1', '1K・1DK'], ['ldk1', '1LDK・2K・2DK'], ['ldk2', '2LDK・3K・3DK'], ['ldk3', '3LDK・4K〜']],
+      cols: [['oneroom', 'Studio'], ['k1', 'Studio・1-Bed'], ['ldk1', '1-Bed・2-Bed'], ['ldk2', '2-Bed・3-Bed'], ['ldk3', '3-Bed・4-Bed〜']],
       rows: [
         suumo('ota', '大田区', '羽田空港がある区', S.suumoTokyo, [72000, 85000, 125000, 172000, 209000],
           '大田区 7.2万円 8.5万円 12.5万円 17.2万円 20.9万円'),
@@ -306,7 +315,7 @@ export const LIVING = {
           value: '載っている物件の平均とは違うことがあり、正確さは保証しない',
           ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
           quote: '掲載中物件の平均金額とは異なる場合があり、その正確性について保証するものではありません。' },
-        { key: 'cols', ja: '列の分け方', value: 'マンションの間取りの組（ワンルーム／1K・1DK／1LDK・2K・2DK／2LDK・3K・3DK／3LDK・4K〜）',
+        { key: 'cols', ja: '列の分け方', value: 'マンションの間取りの組（Studio／Studio・1-Bed／1-Bed・2-Bed／2-Bed・3-Bed／3-Bed・4-Bed〜）',
           ...SUUMO_AT, as_of: D4, src: S.suumoTokyo,
           quote: 'ワンルーム 1K/1DK 1LDK/2K/2DK 2LDK/3K/3DK 3LDK/4K～' },
       ],
@@ -484,7 +493,7 @@ export const LIVING = {
   hongkong: {
     city_ja: '香港', country_ja: '中国・香港',
     measure_ja: '成約の家賃の平均（当サイトが計算）',
-    cols: [['bed1', '1部屋（1房）'], ['bed2', '2部屋（2房）'], ['bed3', '3部屋（3房）']],
+    cols: [['bed1', '1-Bed'], ['bed2', '2-Bed'], ['bed3', '3-Bed']],
     lead_col: 'bed2',
     airports: [['HKG', '香港国際空港']],
     /* 経路が着く場所（Google マップがその場所に決めたとおり。3つの街とも、空港の代表の地点に着いた ＝ ターミナルは言えない）。 */
@@ -492,7 +501,7 @@ export const LIVING = {
       hkg: { iata: 'HKG', ja: '香港国際空港', kind: 'airport' },
     },
     site: 'hse', stat: 'calc_mean', by_town: true, card_family: 'transit',
-    bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1房', bed2: '2房', bed3: '3房' },
+    bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1-Bed', bed2: '2-Bed', bed3: '3-Bed' },
     words_src: { bed1: '1 Room', bed2: '2 Rooms', bed3: '3 Rooms' }, refs: [],
     /* 街の家賃は団地ごと（28Hse の「租務成交」の行から当サイトが計算した平均・件数つき）。愉景灣は5件にそろう間取りが無い ＝ 額を持たない。
        団地の並びとカードに出す団地は、28Hse の団地一覧で賃貸の掲載数が多い順（2026年10月11日に読んだ並び）。額で選んでいない */
@@ -595,7 +604,7 @@ export const LIVING = {
   taipei: {
     city_ja: '台北・桃園', country_ja: '台湾',
     measure_ja: '募集の家賃の中央値',
-    cols: [['suite', '独立した1室（獨立套房）'], ['bed1', '1部屋（1房）'], ['bed2', '2部屋（2房）'], ['bed3', '3部屋（3房）']],
+    cols: [['suite', 'Studio'], ['bed1', '1-Bed'], ['bed2', '2-Bed'], ['bed3', '3-Bed']],
     lead_col: 'bed2',
     airports: [['TPE', '桃園国際空港']],
     /* 経路が着く場所（Google マップがその場所に決めたとおり。駅は駅、建物は建物）。 */
@@ -604,7 +613,8 @@ export const LIVING = {
       tpe_a13: { iata: 'TPE', ja: '機場第二航廈站（A13）', kind: 'station' },
     },
     site: 'r591', stat: 'median', by_town: true, card_family: 'transit',
-    bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1房', bed2: '2房', bed3: '3房' }, refs: [],
+    bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1-Bed', bed2: '2-Bed', bed3: '3-Bed' },
+    words_src: { bed1: '1房', bed2: '2房', bed3: '3房' }, refs: [],
     /* 街の家賃（591 の「租金行情」）。2026年10月15日に3つのページを開いて読んだ（どれも「更新至10/8」）。 */
     rents: [
       r591('nankan', '南崁', 'エバー航空の事業所がある', S.r591Luzhu, [10000, 15750, 23000, 26950],

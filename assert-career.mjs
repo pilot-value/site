@@ -70,6 +70,14 @@ const CSSC = noCssCmt(CSS);
 const JSC = noJsCmt(JS);
 
 const name = s => SALARY[s].ja;
+/* 段階3の面の社名（オーナー 2026-10-18 V2「日本は日本語、他は英語」・2026-10-19 P12.65）：比較の家賃の箱の「地域を選んだ理由」の1行に
+   台帳の字のまま出てくるその会社の名前も、日本の会社は日本語・ほかは英語。検査が自分で持つ写し（正本 SALARY の ja / en を地域で選ぶ。
+   生成側・読み口の coText は呼ばない）。日本語の社名（すぐ後ろに「航空」が続けばそこまで）を、かぎかっこ「…」の外でだけ替える。 */
+const sayText = (s, t) => {
+  const ja = SALARY[s].ja, say = SALARY[s].region === 'japan' ? ja : SALARY[s].en, str = String(t ?? '');
+  if (say === ja) return str;
+  return str.split(/(「[^」]*」)/).map(p => (p.startsWith('「') ? p : p.split(`${ja}航空`).join(say).split(ja).join(say))).join('');
+};
 const yen = m => `¥${m.toLocaleString('en-US')}万`;
 /* 鍵の名前の末尾で決まる言い添え（年収の下限・手当の下限）。 */
 const tail = key => (/_over$/.test(key) ? '超' : /_from$/.test(key) ? 'から' : '');
@@ -1176,8 +1184,11 @@ try {
       ok(exp.length > 0 && same(x.rows.map(o => ({ k: o.k, v: o.v })), exp), `${name(s)}: 家賃の額は台帳の月額どおり（${r.name}・${exp.length}行）`,
         `${JSON.stringify(x.rows.map(o => [o.k, ...o.v]))} ≠ ${JSON.stringify(exp.map(o => [o.k, ...o.v]))}`);
       ok(x.rows.every(o => same(o.keep, L.cur === 'JPY' ? [false] : [true, false])), `${name(s)}: ${L.cur === 'JPY' ? '円の額は通貨の切り替えが読める' : '原貨の額は切り替えで動かない・円の額は切り替えが読める'}`, JSON.stringify(x.rows.map(o => o.keep)));
-      ok(x.city === norm(L.city) && x.measure === norm(L.measure) && x.k.includes(norm(r.label)) && (!r.pick || x.pick === norm(r.pick)),
-        `${name(s)}: 箱に その街（${L.city}）・物差し（${L.measure}）・地域（${r.label}） が書いてある`, `「${x.city}」「${x.measure}」「${x.k}」`);
+      /* 地域を選んだ理由（pick）は台帳の字のまま ── ただし社名だけは段階3の面の決まり（sayText。エバー航空 → 「EVA Airの事業所がある」） */
+      ok(x.city === norm(L.city) && x.measure === norm(L.measure) && x.k.includes(norm(r.label)) && (!r.pick || x.pick === norm(sayText(s, r.pick)))
+        && (s !== 'eva-air' || x.pick === 'EVA Airの事業所がある'),
+        `${name(s)}: 箱に その街（${L.city}）・物差し（${L.measure}）・地域（${r.label}） が書いてある${r.pick ? `・選んだ理由は「${sayText(s, r.pick)}」（社名は日本の会社は日本語・ほかは英語）` : ''}`,
+        `「${x.city}」「${x.measure}」「${x.k}」「${x.pick}」`);
       ok(x.src.includes(norm(r.src.name)) && x.when === norm(r.when) && x.links.includes(r.src.url) && x.more === '前提と出どころ',
         `${name(s)}: 箱に 出どころ と 時点（${r.when}） が書いてあり、出どころへ行ける`, `「${x.src}」 ${x.links.join(' ')}`);
     }

@@ -21,7 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { GLANCE, RANKS, AXIS, viewOf, width, yen, rentCell } from './pv-airline-view.mjs';
+import { GLANCE, RANKS, AXIS, viewOf, width, yen, rentCell, coSay, coText } from './pv-airline-view.mjs';
 import { barGroup } from './pv-bars.mjs';
 import { fxNote } from './salary-basis.mjs';
 import { TOPICS, askGroup } from './gen-career.mjs';
@@ -29,7 +29,6 @@ import { QUESTIONS } from './pv-conditions.mjs';
 import { needsCredit, src as photoSrc, smallH, SMALL_W } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
 import { networkOf } from './airline-destinations.mjs';
-import { SALARY } from './salary-data.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const UP = '../';                                   // 会社ページ（airlines/）から見たルート
@@ -48,22 +47,8 @@ export const pageOf = slug => path.join('airlines', `${slug}.html`);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fingerprint = f => createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
 const asset = f => `${UP}${f}?v=${fingerprint(f)}`;
-/* 段階3の面（ステイ先・街）の行に出す社名：日本の会社は日本語・ほかは英語（オーナー 2026-10-18「日本は日本語、他は英語」）。
-   字は正本（salary-data.mjs の SALARY）の ja / en を、地域（region 'japan'）で選ぶだけ。ページの見出し・検索向けの字には使わない。
-   島（#crc-data）の name に書く ＝ career-stay.js と pv-contrib.js（街の面の頭の行）が読む。 */
-const coSay = slug => (SALARY[slug].region === 'japan' ? SALARY[slug].ja : SALARY[slug].en);
-/* 同じ面（暮らしの板・就航地とステイの欄）の札や1行に、台帳の字のまま出てくるこのページの会社の名前も、同じ決まり（coSay）で出す
-   （街を選んだ理由「エバー航空の事業所がある」・出典の名前「エバー航空「飛航人員福利」」・就航地の条件の1行）。
-   入れ替えるのは、正本の日本語の社名（SALARY の ja。すぐ後ろに「航空」が続けばそこまで）が、かぎかっこ「…」の外に在る所だけ
-   ── 引用した資料の題（「飛航人員福利」）の中は1字も変えない。台帳（living-facts.mjs・airline-destinations.mjs）の字は変えない。
-   日本の会社のページでは何も変わらない。ページの見出し・検索向けの字には使わない。 */
-const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, c => `\\${c}`);
-const coText = (slug, t) => {
-  const s = String(t ?? ''), ja = SALARY[slug].ja, say = coSay(slug);
-  if (say === ja) return s;
-  const re = new RegExp(`${reEsc(ja)}(?:航空)?`, 'g');
-  return s.split(/(「[^」]*」)/).map(p => (p.startsWith('「') ? p : p.replace(re, () => say))).join('');
-};
+/* 段階3の面の社名（coSay）と、台帳の字の中の社名（coText）は、読み口（pv-airline-view.mjs）の1か所に在る
+   ── career.html（gen-career.mjs）の家賃の箱も同じ決まりで出す（2026-10-19 P12.65）。ここに写しを持たない。 */
 
 /* ── 行き先 ─────────────────────────────────────────── */
 const href = {
@@ -524,7 +509,8 @@ const code3 = iata => `<i class="pvg-code3">${esc(iata)}</i>`;
 /* 段の数。幅が許す数（2／3／4／5）にカードが収まればカードの数、収まらなければ行ごとの枚数がそろう数。 */
 const townTracks = n => { const t = a => (n <= a ? n : Math.ceil(n / Math.ceil(n / a))); return { a: t(2), b: t(3), c: t(4), d: t(5) }; };
 const townSizes = t => `(min-width: 1100px) ${Math.ceil(1200 / t.d / 10) * 10}px, (min-width: 700px) ${Math.ceil(96 / t.b)}vw, 46vw`;
-/* 間取りの呼び名。棒の組が出ている都市では、出どころの呼び名（ボタンと同じ字）。出ていない都市では、今までの名前。 */
+/* 間取りの呼び名（どの街も Studio・1-Bed・2-Bed・3-Bed の1組 ── living-facts.mjs の決まり・オーナー 2026-10-18 V16）。
+   棒の組が出ている都市では、ボタンと同じ字（words）。出ていない都市では、列の名前。 */
 const sizeWord = (L, col) => (L.hasBars && L.bars.includes(col) && L.words[col]) || bare(Object.fromEntries(L.cols)[col]);
 const modeChips = modes => modes.map(m => `<i class="pvg-mode">${MODE_JA[m]}</i>`).join('');
 /* 時間の種類の字（Google マップの行）。3つは別のもの ＝ 同じ字にしない。車（運転の時間）には字を足さない。 */
@@ -613,7 +599,7 @@ function cityEvidence(v, L) {
     c.warn ? `<span class="pv-no-cur" data-way-warn>${esc(c.warn)}</span>` : ''}${
     c.via !== 'gmaps' && c.cond ? prose(coText(v.slug, c.cond)) : ''}<span>${esc(c.when || '')}</span>${
     ext(c.src.url, c.via === 'gmaps' ? 'Google マップで見る' : coText(v.slug, c.src.name))}</li>`);
-  /* 棒にしない区分（スタジオ・獨立套房 など）は、棒の組が在る都市ではここへ出す（詳細の一覧が無くなるので、額を画面から落とさない）。 */
+  /* 棒にしない区分（Studio など）は、棒の組が在る都市ではここへ出す（詳細の一覧が無くなるので、額を画面から落とさない）。 */
   const extra = !L.hasBars ? [] : L.cols.filter(([k]) => !L.bars.includes(k) && priced.some(r => r.value[k] != null)).map(([k, label]) =>
     `<li><b>${esc(label)}</b>${priced.filter(r => r.value[k] != null).map(r => `<span>${esc(r.label)} ${rentText(L, r, k)}</span>`).join('')}</li>`);
   const refs = L.refs.map(g => {
@@ -702,7 +688,7 @@ ${cityEvidence(v, L)}
     note: way ? esc(`Google マップ・${way.day}`) : '家賃の資料を確認できていません',
     body: `${towns}${townGot(v)}${credits}`,
   });
-  const colName = Object.fromEntries(L.cols)[L.leadCol].replace(/（[^）]*）/g, '');   // 「2部屋（2房）」→ 欄の見出しでは「2部屋」。表には元のまま出る
+  const colName = Object.fromEntries(L.cols)[L.leadCol].replace(/（[^）]*）/g, '');   // 列の名前（括弧の言い添えが在れば、欄の見出しでは外す）
   return cell('living', '暮らし', IC.living, {
     slug: v.slug, ask: LIVE_ASK,
     k: `${esc(lead.name).replace(/（[^）]*）/g, m => `<span class="pvg-opt">${m}</span>`)}${lead.area ? `（${esc(lead.area)}）` : ''}・${esc(colName)}の${esc(L.measure)}`, v: rentText(L, lead, L.leadCol),

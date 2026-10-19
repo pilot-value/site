@@ -55,7 +55,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures, fxNote } from './salary-basis.mjs';
-import { viewOf, AXIS as VIEW_AXIS, width, rentCell } from './pv-airline-view.mjs';
+import { viewOf, AXIS as VIEW_AXIS, width, rentCell, coText } from './pv-airline-view.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
 import { FACTS, atText, introText, valueText } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W } from './place-photos.mjs';
@@ -621,6 +621,8 @@ ${placeCredits(shots.filter(([, p]) => p).map(([r, p]) => [r.name, p]))}
 }
 
 /* 比較の中の、1社ぶんの家賃の箱。その会社の拠点の街の、台帳がいちばん先に挙げる地域（lead）だけ。
+   地域を選んだ理由（pick）の中の社名は、会社ページの暮らしの板と同じ決まり（coText：日本の会社は日本語・ほかは英語。
+   2026-10-19 P12.65「エバー航空の事業所がある」→「EVA Airの事業所がある」）。箱の見出しの社名は見出しなので変えない。
    ⚠️ 2つの街を1つの表・1つの目盛に並べない（物差しが街ごとに違う）。箱の中に その街の物差し・出どころ・時点 を持つ。 */
 function rentBox(slug, shown) {
   const L = living(slug);
@@ -631,7 +633,7 @@ function rentBox(slug, shown) {
   if (!rows.length) throw new Error(`${slug}: 先頭の地域に家賃が1つも無い`);
   return `<article class="cr-rentb" data-airline="${slug}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}>
 <h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}<span>${esc(L.city)}</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">${esc(L.measure)}</span> ${esc(r.label)}${r.pick ? `<small>${esc(r.pick)}</small>` : ''}</p>
+<p class="cr-rentb-k"><span class="cr-tag">${esc(L.measure)}</span> ${esc(r.label)}${r.pick ? `<small>${esc(coText(slug, r.pick))}</small>` : ''}</p>
 <dl class="cr-rent cr-rentb-l">
 ${rows.join('\n')}
 </dl>
