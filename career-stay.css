@@ -153,6 +153,23 @@ textarea.crs-in{resize:vertical;line-height:1.6}
 .crs-in::placeholder{color:var(--pv-ink-3)}
 .crs-in:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px}
 
+/* ホテルの名前の候補（pv-hotel-suggest.js・2026-10-18 オーナー V7）。名前の欄のすぐ下に、面の上へ浮かぶ一覧。
+   位置と幅は欄に合わせて JS が決める（面 .crs-form が置き場）。字は全部 textContent。 */
+.crs-form{position:relative}
+.crs-form .pvhs{position:absolute;z-index:20;display:grid;gap:2px;padding:6px;box-sizing:border-box;
+               border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface);
+               box-shadow:var(--pv-shadow-lift);animation:crs-in .2s var(--pv-ease) both}
+.crs-form .pvhs[hidden]{display:none}
+.pvhs-l{display:grid;gap:2px;margin:0;padding:0;list-style:none}
+.pvhs-o{display:grid;gap:2px;min-height:44px;padding:9px 10px;border-radius:calc(var(--pv-r-sm) - 4px);cursor:pointer;
+        transition:transform .18s var(--pv-ease)}
+.pvhs-o:hover,.pvhs-o[aria-selected="true"]{background:var(--pv-accent-soft)}
+.pvhs-o[aria-selected="true"]{box-shadow:inset 0 0 0 1px var(--pv-accent-line)}
+.pvhs-o:active{transform:scale(.985)}
+.pvhs-n{font-size:15px;font-weight:700;line-height:1.45;color:var(--pv-ink);overflow-wrap:anywhere}
+.pvhs-a{font-size:13px;line-height:1.5;color:var(--pv-ink-2);overflow-wrap:anywhere}
+.pvhs-by{margin:2px 8px 0;font:500 11px/1.6 Roboto,Inter,Arial,sans-serif;color:var(--pv-ink-3);text-align:right}
+
 /* 3つを同じ幅に割ると、狭い箱（自分の投稿の中で開く修正の欄）で「レストラン」が語の途中で折れる。字の長さに合わせて分ける */
 .crs-seg{display:flex;flex-wrap:wrap;gap:6px}
 .crs-seg-i{position:relative;flex:1 1 auto;display:block;cursor:pointer}

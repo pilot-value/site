@@ -33,11 +33,12 @@ export const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\
 /* 使い捨ての保存先を立ち上げる。
    q        保存先へ直接（DB の持ち主として）。サーバーの要求と同じ列に並ぶ（locked）。
    failNext 次の n 本の、match を含む要求をわざと失敗させる（mode 'drop' ＝ 通信そのものを切る）。
-   stop     サーバーを止め、保存先のフォルダを消す。 */
-export async function bring() {
+   stop     サーバーを止め、保存先のフォルダを消す。
+   o.places ホテルの名前の候補の口を立てるとき（serve-local.mjs の fnCall。手元の模擬の Google の住所と作り物の鍵）。 */
+export async function bring(o = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-chain-'));
   let local;
-  try { local = await start({ port: 0, dir, quiet: true }); }
+  try { local = await start({ port: 0, dir, quiet: true, places: o.places }); }
   catch (e) { fs.rmSync(dir, { recursive: true, force: true }); throw e; }
   if (local.port === 3000) {
     await local.close();
@@ -110,10 +111,62 @@ function gate(req, origin, st) {
   return req.abort();
 }
 
+/* ホテルの名前の候補（pv-hotel-suggest.js）を「時間で待たずに」見るための2つ（2026-10-19・P12.74）。
+   watchSuggest(page)  ページのどの台本よりも先に置く：「打つのが止まってから送るまで」の時計（PAUSE ミリ秒の setTimeout）と、
+                       候補の口（/functions/v1/）への通信の、まだ終わっていない数を数える（数えるだけ。動きは1つも変えない）。
+   settleSuggest(page) その時計が1つも残っておらず・候補の口への通信が全部答えを読み終わるまで待ち、最後に目印の1本を出して、
+                       それより前に出た通信が全部 page の 'request' の記録に載ったことを確かめる。
+                       ★これを待つあいだ、検査は欄から焦点を動かさない（＝部品が「送るかどうか」を決め終わってから、次へ進む）。 */
+export const SUGGEST_PAUSE = Number((fs.readFileSync(new URL('./pv-hotel-suggest.js', import.meta.url), 'utf8').match(/var PAUSE = (\d+);/) || [])[1]);
+export async function watchSuggest(page) {
+  if (!(SUGGEST_PAUSE > 0)) throw new Error('pv-hotel-suggest.js の PAUSE が読めない');
+  await page.evaluateOnNewDocument((pause) => {
+    const q = window.__pvSuggestQ = { t: 0, f: 0 };
+    const st0 = window.setTimeout, ct0 = window.clearTimeout, live = new Set();
+    window.setTimeout = function (fn, ms) {
+      if (ms !== pause || typeof fn !== 'function') return st0.apply(this, arguments);
+      const rest = Array.prototype.slice.call(arguments, 2);
+      let id = 0;
+      id = st0.call(window, function () { if (live.delete(id)) q.t--; return fn.apply(this, rest); }, ms);
+      live.add(id); q.t++;
+      return id;
+    };
+    window.clearTimeout = function (id) { if (live.delete(id)) q.t--; return ct0.apply(this, arguments); };
+    const f0 = window.fetch;
+    if (typeof f0 === 'function') {
+      window.fetch = function (input) {
+        let u = '';
+        try { u = String(input && input.url ? input.url : input); } catch (e) { u = ''; }
+        const p = f0.apply(this, arguments);
+        if (/\/functions\/v1\//.test(u)) {
+          q.f++;
+          const done = () => { st0.call(window, () => { q.f--; }, 0); };
+          p.then((r) => r.clone().text().then(done, done), done);
+        }
+        return p;
+      };
+    }
+  }, SUGGEST_PAUSE);
+}
+let marks = 0;
+export async function settleSuggest(page, ms = 20000) {
+  await page.waitForFunction(() => { const q = window.__pvSuggestQ; return !!q && q.t === 0 && q.f === 0; }, { timeout: ms, polling: 50 });
+  const mark = `/__pv-suggest-settled-${process.pid}-${++marks}`;
+  let on = null;
+  const seen = new Promise((resolve) => { on = (req) => { if (req.url().includes(mark)) resolve(true); }; page.on('request', on); });
+  try {
+    await page.evaluate((m) => { fetch(m).catch(() => {}); }, mark);
+    let timer = null;
+    const ok = await Promise.race([seen, new Promise((r) => { timer = setTimeout(() => r(false), ms); })]);
+    clearTimeout(timer);
+    if (!ok) throw new Error('settleSuggest: 目印の通信が記録に載らない');
+  } finally { page.off('request', on); }
+}
+
 /* 1枚開く（まだどこへも移らない。場面の側が page.goto する）。
    o  = { who: null | 会員の key, w, h, touch: false, theme: null, board: false }
    st = { calls: [関数の名前を順に], sent: [{ fn, p }], got: [{ fn, status, text }], blocked: Set, supa: Set, errs: [] }
-        got は手元の口（/rest/v1・/auth/v1）の返事の字（関数の返事は fn ＝ 関数の名前、ほかは fn ＝ 道の名前）。
+        got は手元の口（/rest/v1・/auth/v1・/functions/v1）の返事の字（関数の返事は fn ＝ 関数の名前、ほかは fn ＝ 道の名前）。
    who を渡すと、ページのどのスクリプトよりも先に、その会員のログインを保存領域へ置く（assert-contrib.mjs と同じ置き方）。
    board:false なら Give → Get の板は「さっき見た」ことにする（板ではなく、その下の画面を見る）。
    board:true なら置かない（訪れた人と同じく、板に出会う）。 */
@@ -130,7 +183,7 @@ export async function open(browser, base, o = {}) {
   page.on('response', async (res) => {
     let u;
     try { u = new URL(res.url()); } catch { return; }
-    if (u.origin !== origin || !/^\/(rest|auth)\/v1\//.test(u.pathname)) return;
+    if (u.origin !== origin || !/^\/(rest|auth|functions)\/v1\//.test(u.pathname)) return;   // functions ＝ ホテルの名前の候補の口（2026-10-19）
     const m = u.pathname.match(/^\/rest\/v1\/rpc\/([a-z0-9_]+)$/);
     let text = '';
     try { text = await res.text(); } catch { text = ''; }

@@ -42,6 +42,9 @@ export const STAY = { css: 'career-stay.css', js: 'career-stay.js' };
 /* パイロットであることの確認の共通のポップアップ（pv-proof-offer.js）。ホテルの欄の、会員の鍵の1行から開く（career-stay.js。
    2026-10-18 オーナー Q2）。これもタブを持つページだけが読む。career-stay.js より前に読む。 */
 export const PROOF = { js: 'pv-proof-offer.js' };
+/* ホテルの名前の候補（pv-hotel-suggest.js）。ホテルの欄の「ホテルを追加」の面の名前の欄に出す（career-stay.js。2026-10-18 オーナー V7）。
+   これもタブを持つページだけが読む。career-stay.js より前に読む。 */
+export const SUGGEST = { js: 'pv-hotel-suggest.js' };
 export const pageOf = slug => path.join('airlines', `${slug}.html`);
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1188,7 +1191,7 @@ export function build(slug, html) {
   html = block(html, 'PV-GLANCE', glance(v), h => once(h, BOX, '本文の箱') + BOX.length + 1);
   if (tabbed(slug)) html = dropLegacy(slug, html);
   /* 4) 部品の JS（口コミの部品より後 ＝ app-nav.js の塊の直前。あちらは </body> の直前に居続ける） */
-  html = blockBefore(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js, PROOF.js, STAY.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
+  html = blockBefore(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js, PROOF.js, SUGGEST.js, STAY.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
     const m = NAV_JS.exec(h);
     if (!m) throw new Error(`${slug}: app-nav.js の <script> が無い`);
     return m.index;

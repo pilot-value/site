@@ -14,6 +14,13 @@
                     サイトの「ログアウト」（profile.html）→ 下書きは全部消える（同じ 'a' がログインし直しても戻らない）。
                     自動のログアウト → 下書きは残る → 同じ 'a' が login.html で入り直すと戻る。
    場面 store（KA5） 打ったあいだ：下書きの鍵は localStorage に1つも無い・打った字はどの通信にも計測（gtag）にも乗らない ── 送るを押すまで。
+                    （ホテルの名前の候補の口が無いとき ＝ いまの本番。候補の部品は先に ping だけを聞き、名前の字も送らない）
+                    ★例外は1つだけ（2026-10-19 P12.74・オーナー「ホテルの名前を入れると勝手に google map の該当するであろう候補が出てきて」）：
+                    候補が出せるとき、ホテルの「追加」の名前の欄（種類がホテルのとき）の字だけが、このサイトの候補の口
+                    （/functions/v1/hotel-suggest）へ、名もなしで（公開の鍵だけ）出ていく。中身は { q: 名前, lang, near } だけ。
+                    住所・補足・ほかの種類の名前・ほかの4つの面の字は、候補が出せるときも、送るを押すまでどの通信にも乗らない。
+                    打った字を送るかどうかは「打つのが止まってから」決まるので、local-chain.mjs の settleSuggest で、その時計が
+                    鳴り終わるまで焦点を欄に置いたまま待ってから読む（時間では待たない）。
    場面 fail（KA6）  送れなかった：「送れていません」・打った値はそのまま・もう1回押すと保存される。
                     ほかの会社について答えている途中でログインがサーバに断られた：login.html へ → 同じ人が入り直して開き直すと、選んだ答えが戻り
                     「ログインしました」・押すと保存される。
@@ -48,7 +55,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MEMBERS, OTP } from './serve-local.mjs';
-import { bring, open, rpcAs, seedOf, LIBS } from './local-chain.mjs';
+import { bring, open, rpcAs, seedOf, LIBS, watchSuggest, settleSuggest } from './local-chain.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -76,6 +83,7 @@ const FAIL_T = '送れていません', BACK_T = 'ログインしました', LOC
 const T = {
   note: '検査用の打ちかけのひとこと（手元・KA）', good: '検査用の打ちかけの良い点（手元・KA）',
   hotel: '検査用の打ちかけの店（手元・KA）', qnote: '検査用の打ちかけの補足（手元・KA）', conote: '検査用のほかの会社の補足（手元・KA）',
+  haddr: '検査用の打ちかけの住所（手元・KA）', hnote: '検査用の打ちかけの店のひとこと（手元・KA）', food: '検査用の打ちかけの食堂（手元・KA）',
 };
 /* 面ごとの名前・開き方・打ち方・読み方 */
 const SLOT = '#pvg-city .crl[data-live="hotels"]', ZN = `${SLOT} + .crs-zone`, FM = `${ZN} .crs-formbox > .crs-form`;
@@ -99,8 +107,8 @@ async function scene(title, fn) {
 }
 
 /* ── 道具 ─────────────────────────────────────────────────── */
-async function kit() {
-  const L = await bring();
+async function kit(o = {}) {
+  const L = await bring(o);
   BROUGHT.push(L);
   if (!browser) browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
   const base = L.base;
@@ -111,7 +119,11 @@ async function kit() {
   const page = async (o = {}) => {
     const p = await open(browser, base, { w: 390, h: 680, ...o });
     p.reqs = [];
-    p.page.on('request', (r) => { p.reqs.push(r.url() + ' ' + (r.postData() || '')); });
+    p.full = [];   // 同じ通信を、行き先・中身・見出しごと（KA5 の例外が見る）
+    p.page.on('request', (r) => {
+      p.reqs.push(r.url() + ' ' + (r.postData() || ''));
+      p.full.push({ m: r.method(), u: r.url(), h: r.headers(), b: r.postData() || '' });
+    });
     await p.page.evaluateOnNewDocument(() => {
       window.__ticks = [];
       const every = window.setInterval;
@@ -455,13 +467,17 @@ async function reader() {
 }
 
 /* ════ 場面 store（KA5）══════════════════════════════════════ */
+const FNP = '/functions/v1/hotel-suggest';   // ホテルの名前の候補の口（KA5 の例外の、ただ1つの行き先）
 async function store() {
   const K = await kit();
   const { page, go, SURF, drafts, cityIn, hotelType } = K;
-  await scene('KA5 下書きは localStorage に置かない・送るまで通信にも計測にも乗らない', async () => {
+  await scene('KA5 下書きは localStorage に置かない・送るまで通信にも計測にも乗らない（ホテルの名前の候補の口が無いとき ＝ いまの本番）', async () => {
     const p = await page({ who: 'a' });
+    await watchSuggest(p.page);
     await go(p, CITY);
     await cityIn(p); await hotelType(p);
+    /* 打つのが止まってから送るまでの時計が鳴り終わるまで、焦点を名前の欄に置いたまま待つ（候補の部品が「送るかどうか」を決め終わる） */
+    await settleSuggest(p.page);
     for (const key of ['work', 'roster', 'town', 'co']) {
       const S = SURF[key];
       await S.open(p); await S.type(p);
@@ -479,10 +495,100 @@ async function store() {
     const sess = Object.values(await drafts(p)).join('\n');
     const sw = words.filter((w) => sess.includes(w) || sess.includes(JSON.stringify(w).slice(1, -1)));
     ok(lk.length === 0 && lw.length === 0, '★KA5 打ったあいだ、下書きの鍵（pv_contrib_draft:・pv_stay_draft:）も打った字も、localStorage に1つも無い', J({ lk, lw }));
-    ok(nw.length === 0 && p.reqs.length > 0, `★KA5 送るを押すまで、打った字はどの通信（行き先と中身。${p.reqs.length}本）にも乗らない`, J(nw));
+    const pings = p.reqs.filter((r) => r.startsWith(`${K.base}${FNP} `));
+    ok(pings.length >= 1 && pings.every((r) => r === `${K.base}${FNP} {"ping":1}`),
+      `KA5 ホテルの名前の候補の部品は、先に ping（打った字なし）だけを聞いた（${pings.length}本）── 口が無いので、名前の字は送らない`, J(pings));
+    ok(nw.length === 0 && p.reqs.length > 0, `★KA5 送るを押すまで、打った字はどの通信（行き先と中身。${p.reqs.length}本）にも乗らない（候補が出せないあいだは、ホテルの名前も）`, J(nw));
     ok(gw.length === 0 && gt.length > 0, `★KA5 打った字は、計測（gtag の呼び出し ${gt.length}回）にも乗らない`, J(gw));
     ok(sw.length === words.length, '下書きはこのタブ（sessionStorage）には在る（5つの面の字が全部）', J({ missing: words.filter((w) => !sw.includes(w)) }));
   });
+
+  /* ★KA5 の例外：候補が出せるとき（手元の本物の Edge Function と数え札・Google の代わりは、ここで 127.0.0.1 に立てる模擬の Google） */
+  const G = { reqs: [] };
+  const mock = http.createServer((req, res) => {
+    let b = '';
+    req.on('data', (c) => { b += c; });
+    req.on('end', () => {
+      let j = null;
+      try { j = JSON.parse(b); } catch { j = null; }
+      G.reqs.push({ m: req.method, path: req.url, input: j && j.input });
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ suggestions: [{ placePrediction: { placeId: 'ChIJpvKeepTest00001',
+        structuredFormat: { mainText: { text: '検査用の候補の店（手元・KA）' }, secondaryText: { text: '検査用の候補の住所（手元・KA）' } } } }] }));
+    });
+  });
+  await new Promise((r) => mock.listen(0, '127.0.0.1', r));
+  try {
+    const K2 = await kit({ places: { endpoint: `http://127.0.0.1:${mock.address().port}/v1/places:autocomplete`, key: 'pv-keep-test-not-a-real-google-key', timeoutMs: 3000 } });
+    await scene('KA5 の例外：候補が出せるとき、出ていくのはホテルの名前の欄の字だけ・このサイトの候補の口へだけ・名もなしで', async () => {
+      const p = await K2.page({ who: 'a' });
+      await watchSuggest(p.page);
+      await K2.go(p, CITY);
+      await K2.cityIn(p);
+      const NM = `${FM} [data-k="name"]`;
+      /* ① 種類がレストランの名前：候補の対象ではない（送らない）。打って、時計が鳴り終わるまで待ち、消してから種類をホテルに */
+      await p.page.click(`${ZN} .crs-ent[data-kind="food"]`);
+      await p.page.waitForSelector(NM, { visible: true });
+      await p.page.focus(NM);
+      await p.page.keyboard.type(T.food);
+      await settleSuggest(p.page);
+      await p.page.$eval(NM, (n) => { n.focus(); n.select(); });
+      await p.page.keyboard.press('Backspace');
+      await p.page.$eval(`${FM} input[type="radio"][value="hotel"]`, (r) => { (r.closest('label') || r).click(); });
+      await p.page.waitForFunction((fm) => { const r = document.querySelector(fm + ' input[type="radio"][value="hotel"]'); return !!r && r.checked; }, { timeout: 10000 }, FM);
+      /* ② 住所・ひとことに打つ（どちらも、送るを押すまで出てはいけない字）→ ③ 名前に打つ → 候補が出る */
+      for (const [k, v] of [['address', T.haddr], ['note', T.hnote], ['name', T.hotel]]) {
+        await p.page.focus(`${FM} [data-k="${k}"]`);
+        await p.page.keyboard.type(v);
+        await settleSuggest(p.page);
+      }
+      const shown = await p.page.waitForSelector(`${FM} .pvhs:not([hidden]) .pvhs-o`, { visible: true, timeout: 15000 }).then(() => true, () => false);
+      await p.page.keyboard.press('Escape');
+      /* ④ ほかの4つの面にも打つ（KA5 と同じ） */
+      for (const key of ['work', 'roster', 'town', 'co']) {
+        const S = K2.SURF[key];
+        await S.open(p); await S.type(p);
+        await p.page.evaluate(() => window.PVContrib.close());
+        await K2.closed(p);
+      }
+      await settleSuggest(p.page);
+
+      const FNURL = `${K2.base}${FNP}`;
+      const tok = await p.page.evaluate(() => { try { const x = JSON.parse(localStorage.getItem('sb-local-auth-token')); return [x.access_token || '', x.refresh_token || '']; } catch { return ['', '']; } });
+      const devk = await p.page.evaluate(() => { try { return localStorage.getItem('pv_stay_key') || ''; } catch { return ''; } });
+      const forms = (w) => [w, encodeURIComponent(w), JSON.stringify(w).slice(1, -1)];
+      const has = (r, w) => [r.u, r.b, JSON.stringify(r.h)].some((x) => forms(w).some((f) => x.includes(f)));
+      const bodyOf = (r) => { try { return JSON.parse(r.b); } catch { return null; } };
+      const fnReqs = p.full.filter((r) => r.u === FNURL);
+      /* 候補の口へ出た中身：{ ping: 1 } か、{ q: 名前の欄の字（の頭から）, lang, near: 都市 } だけ */
+      const shapeBad = fnReqs.filter((r) => {
+        const b = bodyOf(r);
+        if (r.m !== 'POST' || !b || typeof b !== 'object' || Array.isArray(b)) return true;
+        if (J(b) === '{"ping":1}') return false;
+        return !Object.keys(b).every((k) => ['q', 'lang', 'near'].includes(k)) || typeof b.q !== 'string' || !b.q || !T.hotel.startsWith(b.q)
+          || !['ja', 'en'].includes(b.lang) || ('near' in b && (typeof b.near !== 'string' || [...b.near].length > 40));
+      }).map((r) => `${r.m} ${r.u} ${r.b}`);
+      const named = fnReqs.filter((r) => { const b = bodyOf(r); return !!b && b.q === T.hotel; });
+      const elsewhere = p.full.filter((r) => r.u !== FNURL && has(r, T.hotel)).map((r) => `${r.m} ${r.u}`);
+      const gIn = G.reqs.filter((g) => typeof g.input === 'string' && g.input.startsWith(T.hotel));
+      ok(shown && named.length >= 1 && gIn.length >= 1 && shapeBad.length === 0 && elsewhere.length === 0,
+        `★KA5 の例外 候補が出せるとき、ホテルの名前の欄の字は、このサイトの候補の口（${FNP}）へだけ出る（${fnReqs.length}本）── 中身は { q: 名前, lang, near } か { ping } だけ・ほかの行き先（${p.full.length - fnReqs.length}本）には1本も無い・候補は出た`,
+        J({ shown, named: named.length, google: gIn.length, shapeBad, elsewhere }));
+      /* 名もなし：見出しは公開の鍵（anon）だけ・ログインの鍵・会員の番号とメール・書きかけの印・端末の控えの鍵は、行き先・中身・見出しのどこにも無い */
+      const role = (k) => { try { return JSON.parse(Buffer.from(String(k).split('.')[1], 'base64url').toString('utf8')).role; } catch { return null; } };
+      const ids = [tok[0], tok[1], M.a.id, M.a.email, devk, 'pv_stay_draft', 'pv_contrib_draft'].filter(Boolean);
+      const notAnon = fnReqs.filter((r) => !(r.h.authorization === `Bearer ${r.h.apikey}` && role(r.h.apikey) === 'anon' && !('cookie' in r.h)
+        && !ids.some((x) => [r.u, r.b, JSON.stringify(r.h)].some((y) => y.includes(x))))).map((r) => ({ u: r.u, a: (r.h.authorization || '').slice(0, 24), b: r.b }));
+      ok(fnReqs.length >= 2 && !!tok[0] && notAnon.length === 0,
+        `★KA5 の例外 候補の口へは名もなし（${fnReqs.length}本）：見出しは公開の鍵（anon）だけ・ログインの鍵・会員の番号とメール・書きかけの印・端末の控えの鍵はどこにも無い`, J(notAnon));
+      const others = [T.food, T.haddr, T.hnote, T.note, T.qnote, T.good, T.conote];
+      const ow = others.filter((w) => p.full.some((r) => has(r, w)));
+      ok(ow.length === 0 && p.full.length > 0,
+        `★KA5 の例外 ホテルの名前のほか（レストランの名前・住所・ひとこと・ほかの4つの面）に打った字は、候補が出せるときも、送るを押すまでどの通信（${p.full.length}本）にも乗らない（候補の口へも）`, J(ow));
+    });
+  } finally {
+    await new Promise((r) => mock.close(r));
+  }
 }
 
 /* ════ 場面 fail（KA6）═══════════════════════════════════════ */

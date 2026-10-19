@@ -22,6 +22,8 @@
      node serve-local.mjs --port 3200
      node serve-local.mjs --reset       保存先を空に戻してから立ち上げる
      node serve-local.mjs --db <dir>    別の保存先（検査が使い捨てで立てる用）
+     ★ホテルの名前の候補の口（/functions/v1/hotel-suggest）は、start({ places: { endpoint, key } }) で立てたときだけ在る
+       （endpoint は手元の模擬の Google だけ。下の fnCall）。コマンドからは立てない。
 
    ⚠️ ここで確かめられるのは「SQL と画面が手元で動くこと」まで。
       本番のサーバーに入ったこと・資格のある会員で通ったことの証拠にはならない。
@@ -63,6 +65,7 @@ export const SQL_FILES = [
   'db/towns.sql',
   'db/towns.generated.sql',
   'db/contrib.sql',
+  'db/hotel-suggest.sql',   // ホテルの名前の候補（Google）の月 10,000 回の数え札。ほかのファイルに頼らない（2026-10-19）
 ];
 
 /* Supabase が最初から持っているもの（auth・役・既定の権限）と、
@@ -629,6 +632,37 @@ export async function start(opt = {}) {
     res.end(text);
   }
 
+  /* ── /functions/v1/hotel-suggest（ホテルの名前の候補・2026-10-19）───────────────
+     本物の Edge Function（supabase/functions/hotel-suggest/index.ts）をそのまま動かす。数え札はこの保存先の本物の SQL。
+     ★opt.places を渡したときだけ在る口（渡さなければ、本番に貼る前と同じ 404）。検査と撮影だけが渡す。
+     ★Google の代わりは opt.places.endpoint ── この Mac の 127.0.0.1／localhost の住所（検査が立てた模擬の Google）だけ。
+       ほかの住所なら鍵を渡さない（＝ not_configured。本物の Google へは、どの道でも1本も出ない）。
+     ★鍵は opt.places.key（作り物の字）。本物の鍵はどこにも置かない。値は呼ばれるたびに opt.places から読む（検査が途中で替えられる）。 */
+  let suggestMod = null;
+  async function fnCall(req, url, bodyText) {
+    const P = opt.places;
+    if (url.pathname !== '/functions/v1/hotel-suggest' || !P || typeof P !== 'object') {
+      throw bad('LOCAL404', '手元のサーバーには無い口: ' + url.pathname, 404);
+    }
+    if (!suggestMod) suggestMod = await import(pathToFileURL(path.join(ROOT, 'supabase/functions/hotel-suggest/index.ts')).href);
+    const here = /^http:\/\/(127\.0\.0\.1|localhost):\d{1,5}\//.test(String(P.endpoint || ''));
+    const handler = suggestMod.makeHandler({
+      key: here && typeof P.key === 'string' ? P.key : '',
+      take: P.counter === false ? null
+        : () => locked(() => db.query(`select public.pv_hotel_suggest_take() as r`)).then((r) => r.rows[0].r),
+      room: P.counter === false ? null
+        : () => locked(() => db.query(`select public.pv_hotel_suggest_room() as r`)).then((r) => r.rows[0].r),
+      endpoint: here ? P.endpoint : undefined,
+      timeoutMs: P.timeoutMs,
+      log: opt.quiet ? () => {} : undefined,   // 検査の使い捨ての保存先では黙る（出すのは Google の番号だけ）
+    });
+    const headers = new Headers();
+    for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v);
+    const r = await handler(new Request('http://local' + url.pathname, {
+      method: req.method, headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : bodyText }));
+    return { status: r.status, text: await r.text(), headers: Object.fromEntries(r.headers) };
+  }
+
   async function api(req, res, url) {
     const who = whoOf(req);
     const note = (status) => { state.log.push({ m: req.method, p: url.pathname, role: who.role, status }); if (state.log.length > 400) state.log.shift(); };
@@ -646,6 +680,12 @@ export async function start(opt = {}) {
         note(out.status);
         if (out.html) { res.writeHead(out.status, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' }); return res.end(out.html); }
         return out.status === 204 ? (res.writeHead(204), res.end()) : sendJson(res, out.status, out.body);
+      }
+      if (url.pathname.startsWith('/functions/v1/')) {
+        out = await fnCall(req, url, bodyText);
+        note(out.status);
+        res.writeHead(out.status, { ...out.headers, 'cache-control': 'no-store' });
+        return res.end(out.text);
       }
       if (!url.pathname.startsWith('/rest/v1/')) throw bad('LOCAL404', '手元のサーバーには無い口: ' + url.pathname, 404);
       const rest1 = url.pathname.slice('/rest/v1/'.length);

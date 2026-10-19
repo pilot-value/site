@@ -77,7 +77,7 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE } from './pv-airline-view.mjs';
-import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
+import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, SUGGEST, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
 import { FACTS as CO_FACTS } from './airline-facts.mjs';
 import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
@@ -307,8 +307,9 @@ for (const s of FIVE) {
   }
   ok((html.match(/<h1\b/g) || []).length === 1, `${s}: h1 は1つだけ`);
   ok(/<body\b[^>]*\bdata-pv-glance="1"/.test(html), `${s}: <body data-pv-glance="1"> が在る`);
-  /* PROOF.js ＝ パイロットであることの確認の共通のポップアップ（ホテルの欄の、会員の鍵の1行から開く。2026-10-18 オーナー Q2） */
-  for (const f of [...ASSETS, ...(TABBED.has(s) ? [CONTRIB.css, CONTRIB.js, STAY.css, STAY.js, PROOF.js] : [])]) {
+  /* PROOF.js ＝ パイロットであることの確認の共通のポップアップ（ホテルの欄の、会員の鍵の1行から開く。2026-10-18 オーナー Q2）
+     SUGGEST.js ＝ ホテルの名前の候補（「ホテルを追加」の面の名前の欄。2026-10-18 オーナー V7） */
+  for (const f of [...ASSETS, ...(TABBED.has(s) ? [CONTRIB.css, CONTRIB.js, STAY.css, STAY.js, PROOF.js, SUGGEST.js] : [])]) {
     const v = createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
     const hit = html.split(`"../${f}?v=${v}"`).length - 1;
     ok(hit === 1, `${s}: ${f} を今の中身の指紋で1回だけ読んでいる`, `?v=${v} が ${hit}回`);

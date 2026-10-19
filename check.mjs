@@ -47,6 +47,9 @@ const SQL = [
   ['db/test-stays.mjs', 8],
   /* 2026-10-18（WP-close-a）：段階3の2本を足した。秒数は単独で流した実測 */
   ['db/test-towns.mjs', 6], ['db/test-proof-offer.mjs', 3],
+  /* 2026-10-19（WP-ans-e）：ホテルの名前の候補（Google）の月 10,000 回の数え札と Edge Function。Google へは出ない（模擬は 127.0.0.1）。
+     秒数は単独で流した実測 */
+  ['db/test-hotel-suggest.mjs', 10],
   /* ★写しの見張り（Phase 5）。確認画面の「支給の内訳」は 8区分の切り分けを
      JS へ写している（出す前の行はサーバのどこにも無いので写す以外に道が無い）。
      写しが腐ったことに気づく仕掛けはこれ1本だけ。外さないこと。

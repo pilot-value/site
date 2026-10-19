@@ -49,14 +49,31 @@
    ★給与を出した人 'pay' は、その会員としての本物の呼び出し（submit_pay_report）で作る
      （手元の給与フォームから出せるかの下調べが無いため。その行には必ずそう書く）。
 
-   実行: node assert-stays.mjs [--scenes chain,two,login,kept,career] [--only <会社>]（既定：全部の場面・jal。career は etihad の NRT）
+   場面 suggest（S12）── ホテルの名前の候補（pv-hotel-suggest.js ⇄ supabase/functions/hotel-suggest ⇄ db/hotel-suggest.sql。2026-10-18 オーナー V7）
+     Google の代わりに、この検査が 127.0.0.1 に立てた模擬の Google（鍵は作り物の字）。手元の保存先の口 /functions/v1/hotel-suggest は
+     本物の Edge Function をそのまま動かし、数え札は本物の SQL（serve-local.mjs の fnCall）。
+     S12a ログインなしで「ホテルを追加」→ 名前に1字では送らない・2字で1本 → 候補（名前・住所）と「Google Maps」→ 矢印と Enter で選ぶ →
+          名前と地図の欄に入る（住所の欄は空のまま・Enter で送られない・書きかけに残る）→「追加する」→ 保存先に地図のリンクつきの1行。
+     S12b 390 の指で選ぶ。
+     S12c ★止まっている（数え札が 10,000）→ ping が「出せない」と答える → 打った字は「追加する」まで、どの通信にも乗らない・候補は出ない・
+          欄はただの欄・Google へは0本 → 名前を打って「追加する」で保存される。
+     S12d ★つながっていない（鍵が無い）→ 同じく、打った字はどの通信にも乗らない・ただの欄・数え札は進まない・Google へ0本。
+     S12e Google が失敗 → ただの欄・送った1回は数える。
+     （打った字を送るかどうかは「打つのが止まってから」決まるので、確かめは local-chain.mjs の settleSuggest で、その時計が鳴り終わるまで
+       焦点を欄に置いたまま待ってから読む ── 時間では待たない）
+     S12f 管理ページの「追加」のホテル（日本語 1440・英語 390、オーナー 'op'）でも、同じ候補が出て、選ぶと名前と地図の欄に入る。
+     ★作り物の鍵の字は、どのページの返事・画面・保存領域にも無い。模擬の Google が受け取ったのは places:autocomplete だけ。
+     ★管理ページでも、候補の口へは名もなし（見出しは公開の鍵だけ・オーナーのログインの鍵は付けない）。
+
+   実行: node assert-stays.mjs [--scenes chain,two,login,kept,career,suggest] [--only <会社>]（既定：全部の場面・jal。career は etihad の NRT）
 */
 import puppeteer from 'puppeteer';
+import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MEMBERS, OTP } from './serve-local.mjs';
-import { LIBS, bring, open, rpcAs } from './local-chain.mjs';
+import { LIBS, bring, open, rpcAs, watchSuggest, settleSuggest } from './local-chain.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
@@ -96,7 +113,7 @@ const MAPS_LINK = 'https://maps.app.goo.gl/PvLocalTest123';
 
 const argv = process.argv.slice(2);
 const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-const SCENES = { chain, two, login, kept, career };
+const SCENES = { chain, two, login, kept, career, suggest };
 const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const unknown = want.filter((s) => !SCENES[s]);
 if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -142,8 +159,8 @@ async function scene(title, fn) {
 }
 
 /* 使い捨ての保存先を1つ立て、その面の家族（W）に向けた道具をそろえる。場面ごとに1つ（終われば消す）。 */
-async function kit(W) {
-  const L = await bring();
+async function kit(W, o = {}) {
+  const L = await bring(o);
   BROUGHT.push(L);
   if (!browser) browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
   const base = L.base, URL_ = `${base}/${W.path}`;
@@ -963,6 +980,223 @@ async function kept() {
       `S10 'c' の画面で、同じ ${IATA} の ${OTHER} のホテルは「${OTHERS}」の下に、その会社の名前（${other}）で出る${BYVIEW}`, J(ov));
     await shut(pc);
   });
+}
+
+/* ════ 場面 suggest（S12）════════════════════════════════════
+   ホテルの名前の候補。Google の代わりは、ここで 127.0.0.1 に立てる模擬の Google（打たれた字にかかわらず、決まった3つを返す）。 */
+const SG_KEY = 'pv-stays-test-not-a-real-google-key';   // 作り物の鍵（どの返事・画面・保存領域にも出てはいけない字）
+const SG_BY = 'Google Maps';                             // 候補の一覧の下の帰属表示（Google の決まりの字。訳さない）
+const SG = [['ChIJpvStayTest00001', '検査用の候補ホテル 空港前（手元）', '検査用の住所 1（手元）'],
+            ['ChIJpvStayTest00002', '検査用の候補ホテル 駅前（手元）', '検査用の住所 2（手元）'],
+            ['ChIJpvStayTest00003', '検査用の候補ホテル 港（手元）', '検査用の住所 3（手元）']];
+const SG_STOP = '検査用の止まっている時のホテル（手元）';
+const sgLink = (id, nm) => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(nm) + '&query_place_id=' + id;
+async function suggest() {
+  const G = { mode: 'ok', reqs: [] };
+  const mock = http.createServer((req, res) => {
+    let b = '';
+    req.on('data', (c) => { b += c; });
+    req.on('end', () => {
+      let j = null;
+      try { j = JSON.parse(b); } catch { j = null; }
+      G.reqs.push({ m: req.method, path: req.url, key: req.headers['x-goog-api-key'] || '', input: j && j.input });
+      if (G.mode === 'fail') { res.writeHead(500, { 'content-type': 'application/json' }); return res.end('{}'); }
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ suggestions: SG.map(([id, nm, ad]) => ({ placePrediction: { placeId: id,
+        structuredFormat: { mainText: { text: nm }, secondaryText: { text: ad } } } })) }));
+    });
+  });
+  await new Promise((r) => mock.listen(0, '127.0.0.1', r));
+  const places = { endpoint: `http://127.0.0.1:${mock.address().port}/v1/places:autocomplete`, key: SG_KEY, timeoutMs: 3000 };
+  try {
+    const K = await kit(JAL, { places });
+    const { L, base, ZN, FM, page, shut, replies, visit, whereIs, rowsOf, draftOf } = K;
+    const FN = '/functions/v1/hotel-suggest';
+    const NAME = `${FM} [data-k="name"]`;
+    const now = `date_trunc('month', now() at time zone 'UTC')::date`, nowLa = `date_trunc('month', now() at time zone 'America/Los_Angeles')::date`;
+    const counter = async () => (await L.q(`select
+        coalesce(max(n) filter (where bucket = 'utc' and month = ${now}), 0)::int as utc,
+        coalesce(max(n) filter (where bucket = 'la' and month = ${nowLa}), 0)::int as la from public.pv_hotel_suggest_quota`)).rows[0];
+    const setCounter = (n) => L.q(`insert into public.pv_hotel_suggest_quota (bucket, month, n) values ('utc', ${now}, $1), ('la', ${nowLa}, $1)
+        on conflict (bucket, month) do update set n = excluded.n`, [n]);
+    const fnReplies = (p) => replies(p, FN).map((g) => { try { return JSON.parse(g.text); } catch { return null; } });
+    /* この場面のページ：候補の時計と通信を数える台本を先に置き、出ていった通信を（見出しごと）全部控える */
+    const spage = async (o) => {
+      const p = await page(o);
+      await watchSuggest(p.page);
+      p.rq = [];
+      p.page.on('request', (r) => { p.rq.push({ m: r.method(), u: r.url(), h: r.headers(), b: r.postData() || '' }); });
+      return p;
+    };
+    /* その字が乗った通信（行き先・中身・見出しのどこかに、そのままの字か URL の形か JSON の形で） */
+    const carries = (p, w) => p.rq.filter((r) => [r.u, r.b, JSON.stringify(r.h)].some((x) => x.includes(w) || x.includes(encodeURIComponent(w)) || x.includes(JSON.stringify(w).slice(1, -1))));
+    const isPing = (x) => !!x && x.ok === true && 'on' in x && !('items' in x);
+    /* 名前の欄（ただの欄なら role も aria-* も無い）と、開いている一覧 */
+    const field = (p, form) => p.page.evaluate((fm) => {
+      const f = document.querySelector(fm), i = f && f.querySelector('[data-k="name"]'), b = f && f.querySelector('.pvhs');
+      const tx = (x) => x ? x.textContent.replace(/\s+/g, ' ').trim() : '';
+      return { attrs: i ? [...i.attributes].map((a) => a.name).filter((n) => n === 'role' || /^aria-/.test(n)).sort() : null,
+        open: !!b && !b.hidden, opts: b ? [...b.querySelectorAll('.pvhs-o')].map((o) => [tx(o.querySelector('.pvhs-n')), tx(o.querySelector('.pvhs-a'))]) : [],
+        by: b ? tx(b.querySelector('.pvhs-by')) : '', name: i ? i.value : null,
+        map: ((f && f.querySelector('[data-k="maps_url"]')) || {}).value ?? null, addr: ((f && f.querySelector('[data-k="address"]')) || {}).value ?? null };
+    }, form);
+    const openAdd = async (p) => {
+      await p.page.click(`${ZN} .crs-ent[data-kind="hotel"]`);
+      await p.page.waitForSelector(NAME, { visible: true });
+      await p.page.focus(NAME);
+    };
+    const listShown = (p, form) => p.page.waitForSelector(`${form} .pvhs:not([hidden]) .pvhs-o`, { visible: true, timeout: 15000 }).then(() => true, () => false);
+    const wantOpts = J(SG.map(([, nm, ad]) => [nm, ad]));
+    /* 閉じる前に、そのページの返事・画面・保存領域に作り物の鍵の字が無いかを見ておく（閉じたページは読めない） */
+    const leaks = [];
+    const close = async (p) => { leaks.push(...await whereIs(p, [SG_KEY])); await shut(p); };
+
+    await scene('S12 ホテルの名前の候補（模擬の Google・手元の本物の Edge Function と数え札）', async () => {
+      /* S12a 1440・ログインなし */
+      const g = await spage({});
+      ok(await visit(g), 'S12a 準備：会社ページの就航地の欄が読み終わった');
+      await openAdd(g);
+      const f0 = await field(g, FM);
+      await g.page.keyboard.type('ヒルトン');
+      const shown = await listShown(g, FM);
+      const f1 = await field(g, FM);
+      const fr1 = fnReplies(g);
+      ok(J(f0.attrs) === '[]' && shown && f1.open && J(f1.opts) === wantOpts && f1.by === SG_BY
+         && J(f1.attrs) === J(['aria-autocomplete', 'aria-controls', 'aria-expanded', 'role']) && G.reqs.length === 1
+         && fr1.length === 2 && isPing(fr1[0]) && fr1[0].on === true && fr1[1] && fr1[1].ok === true && Array.isArray(fr1[1].items),
+        `S12a 「ホテルを追加」の名前の欄は、開いた時はただの欄（role も aria-* も無い）→「ヒルトン」と打つと、Google へ1本（打つあいだは送らない）→ 候補3つ（名前・住所）と「${SG_BY}」`,
+        J({ f0: f0.attrs, f1, reqs: G.reqs.length, fr1 }));
+      const addsBefore = replies(g, 'pv_stay_add').length;
+      await g.page.keyboard.press('ArrowDown');
+      await g.page.keyboard.press('ArrowDown');
+      await g.page.keyboard.press('Enter');
+      const f2 = await field(g, FM);
+      const d2 = await draftOf(g);
+      const link1 = sgLink(SG[1][0], SG[1][1]);
+      ok(f2.name === SG[1][1] && f2.map === link1 && f2.addr === '' && !f2.open && replies(g, 'pv_stay_add').length === addsBefore
+         && !!(await g.page.$(FM)) && d2 && d2.name === SG[1][1] && d2.maps_url === link1,
+        'S12a 矢印で2つめ → Enter：名前と地図の欄（place ID つきの Google マップ）に入る・住所の欄は空のまま・Enter では送られない・書きかけに名前と地図が残る',
+        J({ f2, d2 }));
+      await g.page.click(`${FM} button[type="submit"]`);
+      await until(() => replies(g, 'pv_stay_add').length > addsBefore);
+      const sent = g.st.sent.filter((s) => s.fn === 'pv_stay_add').at(-1);
+      const row = (await L.q(`select state, maps_url, address from public.pv_stay_places where airline = $1 and iata = $2 and name = $3`, [SLUG, IATA, SG[1][1]])).rows;
+      ok(sent && sent.p && sent.p.name === SG[1][1] && sent.p.maps_url === link1 && sent.p.address === null
+         && row.length === 1 && row[0].state === 'pending' && row[0].maps_url === link1 && row[0].address === null,
+        'S12a 「追加する」の1回で保存先に1行（選んだ名前・地図のリンク・住所は空・確認待ち）', J({ sent, row }));
+      const c1 = await counter();
+      ok(c1.utc === 1 && c1.la === 1, 'S12a 数え札は Google へ送った1回だけ進んだ（UTC の月・LA の月とも 1）', J(c1));
+      await close(g);
+
+      /* S12b 390・指で選ぶ */
+      const t = await spage({ w: 390, h: 844, touch: true });
+      await visit(t);
+      await openAdd(t);
+      await t.page.keyboard.type('ヒルトン');
+      const tShown = await listShown(t, FM);
+      await t.page.tap(`${FM} .pvhs-o:nth-child(3)`);
+      const ft = await field(t, FM);
+      ok(tShown && ft.name === SG[2][1] && ft.map === sgLink(SG[2][0], SG[2][1]) && ft.addr === '' && !ft.open,
+        'S12b 390 の指で3つめを選ぶ：名前と地図の欄に入る（住所は空のまま）・一覧は閉じる', J(ft));
+      await close(t);
+
+      /* S12c ★止まっている（10,000）→ ただの欄・Google へ0本・打った名前で足せる */
+      await setCounter(10000);
+      const gBefore = G.reqs.length;
+      const s = await spage({});
+      await visit(s);
+      await openAdd(s);
+      await s.page.keyboard.type('ヒルトン');
+      await settleSuggest(s.page);
+      const fs1 = await field(s, FM);
+      await s.page.click(NAME, { clickCount: 3 });
+      await s.page.keyboard.type(SG_STOP);
+      await settleSuggest(s.page);
+      const sLeft = [...carries(s, 'ヒルトン'), ...carries(s, SG_STOP)].map((r) => `${r.m} ${r.u}`);
+      const aBefore = replies(s, 'pv_stay_add').length;
+      await s.page.click(`${FM} button[type="submit"]`);
+      await until(() => replies(s, 'pv_stay_add').length > aBefore);
+      const sRow = await rowsOf(SG_STOP);
+      const c2 = await counter();
+      const sr = fnReplies(s);
+      ok(sr.length === 1 && isPing(sr[0]) && sr[0].on === false && sr[0].has_key === true && sr[0].has_db === true && sLeft.length === 0
+         && !fs1.open && J(fs1.attrs) === '[]' && fs1.opts.length === 0
+         && G.reqs.length === gBefore && sRow.length === 1 && sRow[0].state === 'pending' && c2.utc === 10000 && c2.la === 10000,
+        '★S12c 数え札が 10,000（止まっている）：ping が「出せない」と答え、打った字（ヒルトン・名前）は「追加する」まで、どの通信にも乗らない・候補は出ない・名前の欄はただの欄のまま・Google へは0本・数え札は 10,000 のまま → 打った名前で「追加する」→ 保存される',
+        J({ sr, sLeft, fs1, google: G.reqs.length - gBefore, sRow, c2 }));
+      await close(s);
+
+      /* S12d つながっていない（鍵が無い） */
+      await setCounter(0);
+      places.key = '';
+      const n = await spage({});
+      await visit(n);
+      await openAdd(n);
+      await n.page.keyboard.type('ヒルトン');
+      await settleSuggest(n.page);
+      const fn1 = await field(n, FM), nr = fnReplies(n), c3 = await counter();
+      const nLeft = carries(n, 'ヒルトン').map((r) => `${r.m} ${r.u}`);
+      ok(nr.length === 1 && isPing(nr[0]) && nr[0].on === false && nr[0].has_key === false && nLeft.length === 0
+         && !fn1.open && J(fn1.attrs) === '[]' && fn1.name === 'ヒルトン' && G.reqs.length === gBefore && c3.utc === 0 && c3.la === 0,
+        '★S12d 鍵が無い：ping が「出せない」と答え（has_key は偽）、打った字はどの通信にも乗らない・ただの欄のまま（打った字はそのまま）・数え札は進まない・Google へ0本', J({ nr, nLeft, fn1, c3 }));
+      await close(n);
+      places.key = SG_KEY;
+
+      /* S12e Google が失敗 */
+      G.mode = 'fail';
+      const e = await spage({});
+      await visit(e);
+      await openAdd(e);
+      await e.page.keyboard.type('ヒルトン');
+      await settleSuggest(e.page);
+      const fe = await field(e, FM), er = fnReplies(e).filter((x) => !isPing(x)), c4 = await counter();
+      ok(er.length === 1 && er[0] && er[0].reason === 'read_failed' && !fe.open && J(fe.attrs) === '[]' && G.reqs.length === gBefore + 1 && c4.utc === 1 && c4.la === 1,
+        'S12e Google が 500：read_failed・ただの欄のまま・送った1回は数え札に残る', J({ er, fe, c4 }));
+      await close(e);
+      G.mode = 'ok';
+
+      /* S12f 管理ページの「追加」のホテル（オーナー 'op'）。日本語 1440・英語 390 */
+      const AF = 'form[data-adm="add-hotel"]';
+      for (const [lang, w, h, typed, pickI] of [['ja', 1440, 900, 'ヒルトン', 0], ['en', 390, 844, 'Hilton', 1]]) {
+        const a = await spage({ who: 'op', w, h });
+        await a.page.goto(`${base}/${lang === 'en' ? 'en/' : ''}admin.html`, { waitUntil: 'load', timeout: 60000 });
+        await a.page.waitForSelector('#adm-b-a', { visible: true, timeout: 30000 });
+        await a.page.click('#adm-b-a');
+        await a.page.waitForSelector('input[name="adm-kind"][value="hotel"]', { visible: true });
+        await a.page.click('input[name="adm-kind"][value="hotel"]');
+        await a.page.waitForSelector(`${AF} [data-k="name"]`, { visible: true });
+        const af0 = await field(a, AF);
+        await a.page.focus(`${AF} [data-k="name"]`);
+        await a.page.keyboard.type(typed);
+        const aShown = await listShown(a, AF);
+        const af1 = await field(a, AF);
+        await a.page.click(`${AF} .pvhs-o:nth-child(${pickI + 1})`);
+        const af2 = await field(a, AF);
+        const sentLang = G.reqs.at(-1) && G.reqs.at(-1).input;
+        /* 候補の口へは名もなし：見出しは公開の鍵（anon）だけ・オーナーのログインの鍵はどこにも無い */
+        const opTok = await a.page.evaluate(() => { try { const x = JSON.parse(localStorage.getItem('sb-local-auth-token')); return [x.access_token || '', x.refresh_token || '']; } catch { return ['', '']; } });
+        const fq = a.rq.filter((r) => r.u === `${base}${FN}`);
+        const role = (k) => { try { return JSON.parse(Buffer.from(String(k).split('.')[1], 'base64url').toString('utf8')).role; } catch { return null; } };
+        const anon = fq.length >= 2 && !!opTok[0] && fq.every((r) => r.m === 'POST' && r.h.authorization === `Bearer ${r.h.apikey}` && role(r.h.apikey) === 'anon'
+          && !('cookie' in r.h) && ![r.u, r.b, JSON.stringify(r.h)].some((x) => x.includes(opTok[0]) || (opTok[1] && x.includes(opTok[1]))));
+        ok(J(af0.attrs) === '[]' && aShown && J(af1.opts) === wantOpts && af1.by === SG_BY
+           && af2.name === SG[pickI][1] && af2.map === sgLink(SG[pickI][0], SG[pickI][1]) && af2.addr === '' && !af2.open && sentLang === typed && anon,
+          `S12f 管理ページ（${lang}・${w}）の「追加」のホテル：同じ候補と「${SG_BY}」→ 選ぶと名前と地図の欄に入る（住所は空のまま）・候補の口へは名もなし（公開の鍵だけ）`,
+          J({ af0: af0.attrs, af1, af2, sentLang, anon, fq: fq.map((r) => ({ m: r.m, a: (r.h.authorization || '').slice(0, 20), b: r.b })) }));
+        await close(a);
+      }
+
+      /* ★作り物の鍵の字は、どこにも無い・Google が受け取ったのは places:autocomplete だけ */
+      const fnAll = PAGES.flatMap((p) => replies(p, FN));
+      ok(fnAll.length >= 7 && leaks.length === 0 && fnAll.every((x) => !x.text.includes(SG_KEY)),
+        `★S12 作り物の鍵の字は、候補の口の返事（${fnAll.length}本）・7枚の画面・保存領域のどこにも無い`, J({ leaks, fn: fnAll.filter((x) => x.text.includes(SG_KEY)).length }));
+      ok(G.reqs.length >= 4 && G.reqs.every((r) => r.m === 'POST' && r.path === '/v1/places:autocomplete' && r.key === SG_KEY),
+        `★S12 模擬の Google が受け取った ${G.reqs.length} 本は全部 POST /v1/places:autocomplete（鍵は見出しだけ。Place Details・写真・口コミは0本）`,
+        J([...new Set(G.reqs.map((r) => `${r.m} ${r.path}`))]));
+    });
+  } finally {
+    await new Promise((r) => mock.close(r));
+  }
 }
 
 /* ════ 場面 career（S11）══════════════════════════════════════ */

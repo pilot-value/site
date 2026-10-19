@@ -1011,6 +1011,13 @@
     f.appendChild(field(T.fNote, note));
     f.appendChild(el('button', 'adm-act adm-ok', T.add, { type: 'submit' }));
     f.appendChild(el('p', 'adm-say', null, { 'data-adm': 'add-say', role: 'status', hidden: '' }));
+    /* ホテルの名前の候補（pv-hotel-suggest.js・2026-10-18 オーナー V7 ── 就航地の「ホテルを追加」と同じ1つの部品）。
+       選ぶと名前と地図の欄に入る（住所の欄には入れない）。出せないとき（止まっている・つながっていない・失敗した）は、今までどおりのただの欄 */
+    if (window.PVHotelSuggest && typeof window.PVHotelSuggest.attach === 'function') {
+      try {
+        window.PVHotelSuggest.attach(name, { client: function () { return Promise.resolve(S.sb); }, lang: EN ? 'en' : 'ja', host: f, maps: map });
+      } catch (e) { /* 候補が出せなくても、欄はそのまま使える */ }
+    }
     /* 会社の欄がまだ並んでいないあいだは、置いてある会社をそのまま運ぶ（並ぶ前に打っても消さない） */
     var save = keepOnInput(f, 'hotel', function (k) {
       if (k === 'airline' && air.tagName === 'SELECT' && air.options.length <= 1) return draftText(draftOf('hotel'), 'airline');

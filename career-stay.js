@@ -20,6 +20,8 @@
  *   幅と高さは**サーバーが返したもの**を使う。返ってきた b64 は Blob にして出し、
  *   使い終わった URL は revokeObjectURL（画面を離れたとき・描き直すとき・ログインが変わったとき）。
  * ・関数の形の正は db/stays.sql。引数はどれも {p:{…}} の1つ。
+ * ・追加の面のホテルの名前には、打ったそばから Google マップの候補を出す（pv-hotel-suggest.js が先に読まれていれば。
+ *   月 10,000 回の天井はサーバー ── db/hotel-suggest.sql。出せないときは、ただの欄のまま）。
  */
 (function (w, d) {
   'use strict';
@@ -1140,6 +1142,18 @@
       form.appendChild(pf);
     }
     syncKind(form);
+    /* ホテルの名前の候補（pv-hotel-suggest.js・2026-10-18 オーナー V7）。追加の面だけ・種類がホテルのときだけ。
+       選ぶと名前と地図の欄に入る（住所の欄には入れない）。候補を出せないとき（止まっている・つながっていない・失敗した）は、
+       今までどおりのただの欄 ── 打つ・送るは何も変わらない（追加は名前 → 送信1回のまま）。 */
+    if (!it && w.PVHotelSuggest && typeof w.PVHotelSuggest.attach === 'function') {
+      try {
+        w.PVHotelSuggest.attach(form.querySelector('[data-k="name"]'), {
+          client: client, lang: 'ja', host: form, maps: form.querySelector('[data-k="maps_url"]'),
+          near: function () { return cityOf(slot); },
+          active: function () { var kr = form.querySelector('input[type="radio"]:checked'); return !!kr && kr.value === 'hotel'; }
+        });
+      } catch (e) { /* 候補が出せなくても、欄はそのまま使える */ }
+    }
 
     var fsay = el('p', 'crs-say crs-form-say');
     fsay.setAttribute('role', 'status');

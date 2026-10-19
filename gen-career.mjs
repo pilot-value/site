@@ -887,6 +887,8 @@ export const ASSETS = [
   'career.js', 'career-live.js', 'career-stay.js', 'career-card.js',
   /* パイロットであることの確認の共通のポップアップ。ホテルの欄の、会員の鍵の1行から開く（career-stay.js・2026-10-18 オーナー Q2） */
   'pv-proof-offer.js',
+  /* ホテルの名前の候補（「ホテルを追加」の面の名前の欄・career-stay.js より前に読む。2026-10-18 オーナー V7） */
+  'pv-hotel-suggest.js',
 ];
 
 /** career.html のあるべき全文（いまのファイルを読んで、管理している所だけ差し替える）。 */
