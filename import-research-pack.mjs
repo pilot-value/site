@@ -311,8 +311,11 @@ const enOf = s => { const m = String(s || '').match(/英:\s*([^。]+)/); return 
 const districtOf = s => headOf(s).replace(/^英:\s*/, '');
 
 /* ════════════ 暮らしの行どうしが同じか（街は1つ・同じ行は1つ）════════════
-   同じ行 ＝ 同じ項目・同じ資料（URL）・同じ地区・同じ値。家賃は部屋の型ごとに見る
-   （1部屋ずつの記録と、4部屋をまとめた記録が出会っても、どの部屋も同じ額なら同じ行）。 */
+   同じ行 ＝ 同じ項目・同じ資料（URL）・同じ地区・同じ通貨・同じ値。家賃は部屋の型ごとに見る
+   （1部屋ずつの記録と、4部屋をまとめた記録が出会っても、どの部屋も同じ額なら同じ行）。
+   ⚠️ 指紋から地区と通貨を外さない。Eurostat の冊子のように1つの資料に何十もの街が載っていると、
+   別の街の別の行が1部屋だけ偶然同じ額になる（2026-10-20、ダブリンとロンドン・ウィーンとローマなど7件が
+   「同じ行が別の街に在る」と止まった）。 */
 const fold = s => String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 /** 地区を比べる鍵（日本語の名前と英語の名前の両方。「英: …」の印・アクセント・大文字小文字・記号は見ない）。 */
 export function districtKeys(e) {
@@ -320,10 +323,12 @@ export function districtKeys(e) {
 }
 const sameDistrict = (a, b) => { const A = districtKeys(a); return districtKeys(b).some(k => A.includes(k)); };
 const urlOf = e => ((e.src || [])[0] || {}).url || '';
-/** 行の指紋（家賃は部屋の型ごとに1つ・ほかは行に1つ）。同じ指紋 ＝ 同じ資料の同じ値。 */
+/** 行の指紋（家賃は部屋の型ごとに1つ・ほかは行に1つ。地区の名前が日英2つなら2つずつ）。同じ指紋 ＝ 同じ資料・同じ地区・同じ通貨の同じ値。 */
 export function rowPrints(e) {
-  if (e.key === 'rent' && isObj(e.value)) return Object.entries(e.value).map(([k, v]) => `${urlOf(e)}|rent|${k}|${canon(v)}`);
-  return [`${urlOf(e)}|${e.key}|${canon(e.value)}`];
+  const ds = districtKeys(e);
+  const at = (ds.length ? ds : ['']).map(d => `${urlOf(e)}|${d}|${e.currency || ''}`);
+  if (e.key === 'rent' && isObj(e.value)) return at.flatMap(p => Object.entries(e.value).map(([k, v]) => `${p}|rent|${k}|${canon(v)}`));
+  return at.map(p => `${p}|${e.key}|${canon(e.value)}`);
 }
 /**
  * 新しい行 e が、その街の行 list の中でどうなるか（自分と同じパック・同じ ID の行は見ない）。

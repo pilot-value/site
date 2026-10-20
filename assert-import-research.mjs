@@ -152,6 +152,7 @@ try {
     rent('air-new-zealand', 'rent-coogee-1', { '1bed': 800 }, { cond_ja: 'Coogee。英: Coogee。原部屋表記「1 bedroom」。' }),    // 既存と一致（まとめた行の中に同じ額 ── 逆の順）
     rent('air-new-zealand', 'rent-part', { '1bed': 900, '3bed': 1900 }, { cond_ja: 'Bondi。英: Bondi。部屋型別の表。' }),      // 競合（一部の部屋だけ同じ額）
     rent('air-new-zealand', 'rent-dfw', { '1bed': 900 }, { applies_to: { base: 'Sydney/Bankstown', pilot_specific: false } }),  // 競合（同じ資料・同じ額が街 sydney に在る）
+    rent('air-new-zealand', 'rent-mel', { '1bed': 900, '2bed': 1500 }, { applies_to: { base: 'Melbourne', pilot_specific: false }, cond_ja: 'Melbourne。英: Melbourne。部屋型別の表。' }),  // 追加（同じ資料の別の街・別の地区で、1部屋だけ偶然同じ額 ── 別の行）
   ]);
   const OLD = { ...PACK('pvr-test-old', 1, [
     { ...R('name', 'fiji-airways', 'company_master', 'name_ja', 'フィジー') },
@@ -230,7 +231,8 @@ try {
      orderBad.map(([id, c]) => `${id}: ${cat(id)} auto=${rec(id).auto}（期待 ${c}）`).join(' ／ '));
   const a9 = { 'qantas.living.rent-bondi-2': 'addition', 'jetstar.living.commute': 'addition', 'qantas.living.commute': 'matches',
     'air-new-zealand.living.rent-all': 'matches', 'air-new-zealand.living.rent-coogee-all': 'addition', 'air-new-zealand.living.rent-coogee-1': 'matches',
-    'air-new-zealand.living.rent-part': 'conflict', 'air-new-zealand.living.rent-dfw': 'conflict', 'jetstar.living.rent-bondi-950': 'conflict' };
+    'air-new-zealand.living.rent-part': 'conflict', 'air-new-zealand.living.rent-dfw': 'conflict', 'jetstar.living.rent-bondi-950': 'conflict',
+    'air-new-zealand.living.rent-mel': 'addition' };
   const a9Bad = Object.entries(a9).filter(([id, c]) => cat(id) !== c || (c === 'conflict' && rec(id).auto !== false));
   if (!/同じ街・同じ地区・同じ資料で額が違う/.test((rec('jetstar.living.rent-bondi-950').why || []).join(''))) a9Bad.push(['jetstar.living.rent-bondi-950 の理由', '「同じ街・同じ地区・同じ資料で額が違う」が無い']);
   if (rec('air-new-zealand.living.rent-all').entry?.district !== 'Bondi') a9Bad.push(['air-new-zealand.living.rent-all の地区', `「${rec('air-new-zealand.living.rent-all').entry?.district}」（「英: 」の印を外した Bondi のはず）`]);
@@ -294,10 +296,10 @@ try {
   /* A9 街は1つ */
   const syd = S1.LIVING.sydney;
   const seenIds = id => ((syd?.rents || []).concat(syd?.commute || []).find(r => r.id === id)?.seen || []).map(s => s.id);
-  ok(syd && JSON.stringify(Object.keys(S1.LIVING).sort()) === '["nadi","sydney"]' && JSON.stringify(syd.airlines) === '["air-new-zealand","jetstar","qantas"]'
-     && JSON.stringify(S1.CITY_OF.qantas) === '["sydney"]' && JSON.stringify(S1.CITY_OF.jetstar) === '["sydney"]' && JSON.stringify(S1.CITY_OF['air-new-zealand']) === '["sydney"]'
+  ok(syd && JSON.stringify(Object.keys(S1.LIVING).sort()) === '["melbourne","nadi","sydney"]' && JSON.stringify(syd.airlines) === '["air-new-zealand","jetstar","qantas"]'
+     && JSON.stringify(S1.CITY_OF.qantas) === '["sydney"]' && JSON.stringify(S1.CITY_OF.jetstar) === '["sydney"]' && JSON.stringify([...S1.CITY_OF['air-new-zealand']].sort()) === '["melbourne","sydney"]' && (S1.LIVING.melbourne?.rents || []).length === 1
      && seenIds('jetstar.living.rent-bondi').includes('qantas.living.rent-bondi'),
-     '★A9 apply: 暮らしは街ごとに1つ（3社の同じ街は1つ・3社とも街につながる・2社の同じ行は1行）', JSON.stringify(S1.LIVING));
+     '★A9 apply: 暮らしは街ごとに1つ（3社の同じ街は1つ・3社とも街につながる・2社の同じ行は1行・同じ資料の別の街は別の街のまま）', JSON.stringify(S1.LIVING));
   const roomRows = {};
   for (const r of syd?.rents || []) for (const [k, v] of Object.entries(r.value || {})) (roomRows[`${k}=${v}`] ||= []).push(r.id);
   ok(JSON.stringify((syd?.rents || []).map(r => r.id).sort()) === JSON.stringify(['air-new-zealand.living.rent-coogee-all', 'jetstar.living.rent-bondi', 'jetstar.living.rent-bondi-x', 'qantas.living.rent-bondi-2'])
@@ -327,7 +329,18 @@ try {
     const s3 = clone();
     const cm = s3.LIVING.sydney.commute[0];
     s3.LIVING.sydney.commute.push({ ...cm, id: 'x.living.commute', pack: 'pvr-test-x', district: 'Bondí', district_en: 'BONDI', seen: [] });
+    /* 写し4：同じ資料に載る別の街の別の地区が、1部屋だけ偶然同じ額（Eurostat の冊子のダブリンとロンドン）── 落とさない */
+    const s4 = clone();
+    const r4 = s4.LIVING.sydney.rents.find(r => r.id === 'jetstar.living.rent-bondi');
+    s4.LIVING.perth = { name: 'Perth', airlines: ['jetstar'], rents: [{ ...r4, id: 'x.living.perth', pack: 'pvr-test-x', district: 'Perth', district_en: 'Perth', value: { ...r4.value, '3bed': 2400 }, seen: [] }], commute: [], towns: [] };
+    s4.CITY_OF.jetstar = ['sydney', 'perth'];
+    /* 写し5：同じ地区・同じ額でも通貨が違えば別の行 */
+    const s5 = clone();
+    s5.LIVING.perth = { name: 'Perth', airlines: ['jetstar'], rents: [{ ...r4, id: 'x.living.nzd', pack: 'pvr-test-x', currency: 'NZD', seen: [] }], commute: [], towns: [] };
+    s5.CITY_OF.jetstar = ['sydney', 'perth'];
     const v1 = I.verifyStore(s1, L0), v2 = I.verifyStore(s2, L0), v3 = I.verifyStore(s3, L0);
+    const v4 = I.verifyStore(s4, L0).filter(b => /同じ資料・同じ値/.test(b)), v5 = I.verifyStore(s5, L0).filter(b => /同じ資料・同じ値/.test(b));
+    ok(!v4.length && !v5.length, '★A9 verify: 同じ資料でも、地区か通貨が違えば別の行（1部屋だけ偶然同じ額でも「別の街に同じ行」と落とさない）', JSON.stringify({ v4, v5 }));
     ok(!base0.length && v1.some(b => /x\.living\.split.*同じ地区・同じ資料・同じ値の行が2つ|qantas\.living\.rent-bondi-2.*同じ地区・同じ資料・同じ値の行が2つ/.test(b))
        && v2.some(b => /同じ資料・同じ値の行が街「sydney」にも在る|同じ資料・同じ値の行が街「sydney-bankstown」にも在る/.test(b))
        && v3.some(b => /同じ地区・同じ資料・同じ値の行が2つ/.test(b)),
