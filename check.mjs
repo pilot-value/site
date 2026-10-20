@@ -34,6 +34,7 @@ const FAST = [
   ['db/test-aha.mjs', 1], ['db/test-announce.mjs', 1],
   ['db/test-payslip-hours.mjs', 1], ['db/test-payslip-parse.mjs', 1],
   ['db/test-value-breakdown.mjs', 1], ['db/test-value-total.mjs', 1],
+  ['assert-import-research.mjs', 4],   // 2026-10-20（WP-roll-a）：調査パックの取り込み。作り物のパック・使い捨ての台帳の写しだけ（本物の台帳は読むだけ）
 ];
 
 const SQL = [
