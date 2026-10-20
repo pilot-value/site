@@ -63,6 +63,9 @@ export const USE = {
 const USES = new Set(Object.values(USE));
 /* 給与の額がサイトの推定年収（SALARY）と同じ職位でこれ以上ずれたら、決まりでは入れずにオーナーに見せる。 */
 export const PAY_GAP = 0.25;
+/* 推定年収と比べてよいのは、1年ぶんの給与の額だけ（決まりの一式の「額の種類」の表）。
+   other（手当・給与表の1行・提案の額など）を比べると、妻手当 500 BHD を年収と比べて「差 -99%」になる（2026-10-20 ガルフ・エア）。 */
+export const PAY_GAP_KINDS = new Set(['cash_y', 'pkg_y', 'max_y', 'target_y', 'cash_y_over', 'reward_y', 'avg_y']);
 const RANKS_PAY = ['cap', 'fo'];
 
 /* ════════════ 間取りの呼び名（P12.73）── 出どころごとに1つの表：出どころの言い方 → 画面の字（寝室の数）════════════
@@ -287,6 +290,12 @@ function fieldRow(fm, r) {
   return fm.get(`${r.domain}|${r.item}`) || null;
 }
 
+/**
+ * 拠点の書き方が違うだけで同じ街（決めた人と日付を添える）。左の鍵で届いた記録は右の街に入る。
+ *   dallas-fort-worth → dallas：アメリカン航空の「Dallas/Fort Worth」の家賃は、フロンティア航空・サウスウエスト航空の
+ *   「Dallas」と同じ資料（RentCafe のダラス市）・4部屋とも同じ額だった（2026-10-20 リードが決めた。家賃はダラス市のもの）。
+ */
+export const CITY_SAME = { 'dallas-fort-worth': 'dallas' };
 /** 拠点の字から街の鍵。英語の名前（「 / 」の右・カンマの区切り）→ 無ければ PLACES の日本語の都市名。決まらなければ null。 */
 export function cityKey(base, L) {
   if (typeof base !== 'string' || !base.trim()) return null;
@@ -301,6 +310,7 @@ export function cityKey(base, L) {
     if (hit) k = slug(hit[1].split(' ')[0]);
   }
   if (!k) return null;
+  if (CITY_SAME[k]) k = CITY_SAME[k];
   const flat = k.replace(/-/g, '');
   for (const have of [...Object.keys(L.LIVING), 'abudhabi']) if (have.replace(/-/g, '') === flat) return have;
   return k;
@@ -552,7 +562,10 @@ export function classify(packs, L, store, fm, opts = {}) {
     const { pack, r, inConflict, why, use, st, setCat, company, target, extra, evSrc, blocked, entry, h } = x;
     if (inConflict.has(r.record_id)) setCat('conflict', `資料どうしの食い違い（${inConflict.get(r.record_id).conflict_id}）`);
     const stored = findStored(store, r.record_id, pack.pack_id);
-    if (stored && stored.h !== h) setCat('conflict', '取り込み済みの記録が、同じ ID で中身が変わって届いた');
+    /* 中身（記録そのもの）は同じで、調べた側の「使い方」だけが変わった ── 例「参考」→「条件つき」。競合にせず、最新の判断に書き換える
+       （「保留」になったものは出さなくなる＝厳しい側へ動くだけ）。2026-10-20、ROUND4 で 585件がこれで競合に落ちていた。 */
+    const relabel = stored && stored.h !== h ? [...new Set([...USES, '未指定'])].find(u => u !== use && hashOf(r, u) === stored.h) : undefined;
+    if (stored && stored.h !== h && relabel === undefined) setCat('conflict', '取り込み済みの記録が、同じ ID で中身が変わって届いた');
     const rel = r.relation || { type: 'new' };
     if (['corrects', 'supersedes', 'retracts', 'contradicts'].includes(rel.type)) {
       if (rel.type === 'contradicts') setCat('conflict', `今の値と食い違う（${rel.target_existing_ref || (rel.target_record_ids || []).join(',')}）`);
@@ -590,16 +603,18 @@ export function classify(packs, L, store, fm, opts = {}) {
       }
     }
     if (stored && stored.h === h) setCat('matches', '取り込み済み（同じ中身）');
+    if (relabel !== undefined) setCat('matches', `取り込み済み（中身は同じ・使い方だけ ${relabel}→${use}）`);
     if (!st.cat) setCat('addition', '');
     if (blocked) why.push(blocked);
     out.push({ id: r.record_id, pack: pack.pack_id, rev: pack.pack_revision, company, domain: r.domain, item: r.item, cat: st.cat, why, target, use,
-      h, entry, test_only: !!pack.test_only, ...(basis ? { basis } : {}), ...(blocked ? { blocked: true } : {}), _r: r });
+      h, entry, test_only: !!pack.test_only, ...(basis ? { basis } : {}), ...(blocked ? { blocked: true } : {}), ...(relabel !== undefined && st.cat === 'matches' ? { relabel } : {}), _r: r });
   }
 
   /* 給与：同じ会社・同じ職位の、年額で比べられる記録の幅が、サイトの推定年収（SALARY）の平均から 25% を超えて離れていたら、決まりでは入れない。 */
   const groups = new Map();
   for (const x of out) {
     if (x.domain !== 'pay' || !L.SALARY[x.company] || !['条件つき', '過去'].includes(x.use)) continue;
+    if (!PAY_GAP_KINDS.has((x._r.amount || {}).kind)) continue;
     const at = x._r.applies_to || {};
     const rank = at.rank;
     /* 職位の書いていない、パイロットだけの平均・中央値は「乗員全体」として、機長と副操縦士の平均の中間と比べる（目安） */
@@ -626,7 +641,7 @@ export function classify(packs, L, store, fm, opts = {}) {
 
   /* オーナーの決まり（2026-10-19）：検査に通り・保留でなく・「追加」か「既存と一致」で・給与の差が 25% 以内のものだけ。 */
   for (const x of out) {
-    x.auto = ['addition', 'matches'].includes(x.cat) && USES.has(x.use) && !['保留', '空欄'].includes(x.use) && !(x.pay_gap && x.pay_gap.over)
+    x.auto = (x.relabel !== undefined || (['addition', 'matches'].includes(x.cat) && USES.has(x.use) && !['保留', '空欄'].includes(x.use) && !(x.pay_gap && x.pay_gap.over)))
       && !x.blocked && (!x.test_only || !!opts.test);
     delete x._r;
   }
@@ -765,6 +780,11 @@ export function ownerList(p, L) {
   const held = R.filter(x => ['addition', 'matches'].includes(x.cat) && x.use === '保留').length;
   const gap = R.filter(x => ['addition', 'matches'].includes(x.cat) && x.pay_gap && x.pay_gap.over).length;
   lines.push(`  「追加・既存と一致」でも決まりでは入れない：保留 ${held}件・給与の差が25%を超える ${gap}件`);
+  const rl = R.filter(x => x.relabel !== undefined);
+  if (rl.length) {
+    const t = new Map(); for (const x of rl) { const k = `${x.relabel}→${x.use}`; t.set(k, (t.get(k) || 0) + 1); }
+    lines.push(`  中身は同じで使い方だけが変わった：${rl.length}件（${[...t].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join('・')}）── 調べた側の最新の判断に書き換える（決まりで入れる数に入っている）`);
+  }
   lines.push('');
 
   lines.push('■ 1. 決めてほしいもの（1行＝1件：会社／何／サイトの今／パック／資料の日付）');
@@ -926,7 +946,8 @@ export function gate(x, pi, root, args, L) {
   const retract = (x.entry.relation || {}).type === 'retracts';
   if (!retract && (x.use === '空欄' || x.entry.value === null || x.entry.value === undefined)) return '値が無い（空は削除の指示ではない）';
   if (!retract && !hasQuoteAndUrl(x.entry)) return '引用と URL の無い記録は入れない';
-  if (!USES.has(x.use)) return `使い方（${x.use}）が決まっていない`;
+  /* 取り込み済みの行が「未指定」（調べた側の判断が無くなった）に付け直されたときは通す ── 前の使い方のまま画面に残さないため（出さない側へ動くだけ） */
+  if (!USES.has(x.use) && !(x.relabel !== undefined && x.use === '未指定')) return `使い方（${x.use}）が決まっていない`;
   if (x.domain === 'pay' && x.target !== `SOURCES.${x.company}`) return '給与は出所の台帳（候補）にだけ入る';
   if (!x.target || !/^(FACTS|NETWORK|LIVING|SOURCES)\./.test(x.target)) return '置き場が無い';
   const [sec, a] = x.target.split('.');
@@ -1034,7 +1055,8 @@ export function verifyStore(store, L) {
     for (const e of list || []) {
       const w = `${where}[${e.id}]`;
       if (!e.pack || !e.id) bad.push(`${w}: pack / id が無い`);
-      if (!USES.has(e.use)) bad.push(`${w}: use が「${e.use}」`);
+      /* 未指定 ＝ 取り込んだあとで調べた側の判断が無くなった行（画面に出さない）。新しく入る行は apply の門が USES だけに絞っている */
+      if (!USES.has(e.use) && e.use !== '未指定') bad.push(`${w}: use が「${e.use}」`);
       if (e.use === '空欄' || e.value === null || e.value === undefined) bad.push(`${w}: 値の無い行（空は削除の指示ではない・行を作らない）`);
       if (!hasQuoteAndUrl(e)) bad.push(`${w}: 引用と URL の無い行`);
       if (e.checked_at !== null && !ISO.test(String(e.checked_at))) bad.push(`${w}: checked_at の形`);

@@ -116,6 +116,8 @@ try {
       cond_ja: '機長の年額。', amount: { kind: 'cash_y', stat: 'example', tax: 'unknown', includes: [], excludes: [], unclear: [] } } }),   // 追加だが差が 25% 超
     R('pay-ok', 'qantas', 'pay', 'cash_y', 190000, { r: { currency: 'AUD', per: 'year', value_text: 'AUD 190,000', applies_to: { rank: 'fo', pilot_specific: true },
       cond_ja: '副操縦士の年額。', amount: { kind: 'cash_y', stat: 'example', tax: 'unknown', includes: [], excludes: [], unclear: [] } } }),  // 追加（推定年収の幅の中に近い）
+    R('pay-allow', 'qantas', 'pay', 'other', 500, { r: { currency: 'AUD', per: 'year', value_text: 'AUD 500', applies_to: { rank: 'fo', pilot_specific: true },
+      cond_ja: '家族手当の年額。', amount: { kind: 'other', kind_note_ja: '家族手当', stat: 'example', tax: 'unknown', includes: [], excludes: [], unclear: [] } } }),  // 追加（手当は推定年収と比べない）
     R('held', 'qantas', 'work', 'days_off', '年に120日'),                                        // 追加だが保留
     rent('qantas', 'rent-bondi', { '1bed': 900 }),                                                     // 追加（新しい街シドニー）
     rent('qantas', 'rent-bad', { '2bed': 1200 }, { cond_ja: 'Bondi。英: Bondi。原部屋表記「1 bedroom」。' }),   // 根拠不足（型の意味が資料と違う）
@@ -240,6 +242,8 @@ try {
      a9Bad.map(([id, c]) => `${id}: ${cat(id)} auto=${rec(id).auto}（期待 ${c}）`).join(' ／ '));
   ok(rec('qantas.pay.pay-big').pay_gap && rec('qantas.pay.pay-big').pay_gap.over === true && rec('qantas.pay.pay-big').auto === false
      && rec('qantas.pay.pay-ok').auto === true, '★A6 plan: 給与の額がサイトの推定年収から 25% を超えて離れたら、追加でも決まりでは入れない', JSON.stringify(rec('qantas.pay.pay-big').pay_gap));
+  ok(!rec('qantas.pay.pay-allow').pay_gap && rec('qantas.pay.pay-allow').auto === true && !(P.pay_groups || []).some(g => g.ids.includes('qantas.pay.pay-allow')),
+     '★A6 plan: 手当など1年ぶんの給与でない額（kind: other）は、推定年収と比べない（家族手当 AUD 500 を「差 -99%」にしない）', JSON.stringify(rec('qantas.pay.pay-allow')));
   ok(rec('qantas.work.held').use === '保留' && rec('qantas.work.held').auto === false, '★A6 plan: 保留の記録は、追加でも決まりでは入れない');
   const autoIds = fs.readFileSync(path.join(OUT, 'auto-approved.txt'), 'utf8').split('\n').filter(Boolean);
   const autoBad = P.records.filter(x => x.auto && (!['addition', 'matches'].includes(x.cat) || x.use === '保留' || (x.pay_gap && x.pay_gap.over)));
@@ -347,6 +351,13 @@ try {
        '★A9 verify: 同じ行が同じ街に2つ（部屋ごとに分けた写し・地区の字だけ違う写し）・2つの街に1つずつ在れば、台帳の検査が落とす',
        JSON.stringify({ base0, v1: v1.filter(b => /LIVING/.test(b)), v2: v2.filter(b => /LIVING/.test(b)), v3: v3.filter(b => /LIVING/.test(b)) }));
   }
+  /* A9 拠点の書き方が違うだけの街は、決めた1か所（CITY_SAME）で同じ街に入る */
+  {
+    const L0c = await I.loadLedgers(HERE);
+    ok(I.cityKey('Dallas/Fort Worth', L0c) === 'dallas' && I.cityKey('Dallas', L0c) === 'dallas' && I.cityKey('Fort Worth', L0c) === 'fort-worth' && I.cityKey('Sydney/Bankstown', L0c) !== 'sydney',
+       '★A9 cityKey: 「Dallas/Fort Worth」は決めた表（CITY_SAME）どおり街 dallas に入る・決めていない書き方（Sydney/Bankstown）は勝手に寄せない',
+       JSON.stringify(['Dallas/Fort Worth', 'Dallas', 'Fort Worth', 'Sydney/Bankstown'].map(b => I.cityKey(b, L0c))));
+  }
   /* A5 2回目 */
   const before2 = fs.existsSync(STORE) ? fs.readFileSync(STORE) : Buffer.alloc(0);
   const a2 = run('apply', path.join(OUT, 'import-plan.json'), '--approved', APPROVED, '--root', ROOT, '--test');
@@ -391,6 +402,9 @@ try {
   const QA2 = PACK('pvr-test-qantas', 2, [
     R('days-off', 'qantas', 'work', 'days_off', '月に10日'),                                          // 同じ ID で中身が変わった → 競合
     R('founded', 'qantas', 'profile', 'founded', '1920'),                                              // 同じ → 既存と一致
+    rent('qantas', 'rent-bondi-2', { '2bed': 1300 }, { cond_ja: 'Bondi。英: Bondi。原部屋表記「2 bedroom」。' }),   // 中身は同じ・使い方だけ「条件つき」→「保留」→ 既存と一致・書き換える
+    R('pay-ok', 'qantas', 'pay', 'cash_y', 190000, { r: { currency: 'AUD', per: 'year', value_text: 'AUD 190,000', applies_to: { rank: 'fo', pilot_specific: true },
+      cond_ja: '副操縦士の年額。', amount: { kind: 'cash_y', stat: 'example', tax: 'unknown', includes: [], excludes: [], unclear: [] } } }),  // 中身は同じ・判断が無くなった（未指定）→ 書き換える（前の使い方のまま残さない）
     R('jobs-new', 'qantas', 'jobs', 'so-b737', 'B737 SO 募集'),                                        // 新しい → 追加
     rent('qantas', 'rent-bondi', { '1bed': 900 }),                                                     // 前の版で別の会社の行と1つになった行 → 同じ中身なら既存と一致（競合にしない）
     R('syd', 'qantas', 'destinations', 'operated_airport', null, { r: { missing: { reason: 'not_checked' }, value_text: null } }),   // 空 → 消さない
@@ -399,20 +413,27 @@ try {
   const PD2 = path.join(T, 'packs2'); fs.mkdirSync(PD2);
   fs.writeFileSync(path.join(PD2, 'q2.json'), JSON.stringify(QA2));
   const DEC2 = path.join(T, 'decisions2.json');
-  fs.writeFileSync(DEC2, JSON.stringify(QA2.records.map(r => ({ record_id: r.record_id, publication_class: r.value === null ? 'omit_missing' : 'context_with_conditions' }))));
+  fs.writeFileSync(DEC2, JSON.stringify(QA2.records.filter(r => r.record_id !== 'qantas.pay.pay-ok').map(r => ({ record_id: r.record_id, publication_class: r.value === null ? 'omit_missing' : r.record_id === 'qantas.living.rent-bondi-2' ? 'hold' : 'context_with_conditions' }))));
   const OUT2 = path.join(T, 'plan2');
   const pl2 = run('plan', PD2, '--validator', STUB, '--fieldmap', FM, '--decisions', DEC2, '--root', ROOT, '--out', OUT2, '--test', '--today', '2026-10-21');
   const P2 = JSON.parse(fs.readFileSync(path.join(OUT2, 'import-plan.json'), 'utf8'));
   const c2 = id => (P2.records.find(x => x.id === id) || {}).cat;
   ok(pl2.status === 0 && c2('qantas.work.days-off') === 'conflict' && c2('qantas.profile.founded') === 'matches' && c2('qantas.jobs.jobs-new') === 'addition' && c2('qantas.living.rent-bondi') === 'matches',
      '★A8 plan: 版が上がったパック ── 同じ ID で中身が変わった記録は競合・同じ記録は既存と一致・新しい記録は追加', JSON.stringify(P2.records.map(x => [x.id, x.cat])));
+  const rb2 = P2.records.find(x => x.id === 'qantas.living.rent-bondi-2') || {};
+  ok(rb2.cat === 'matches' && rb2.relabel === '条件つき' && rb2.use === '保留' && rb2.auto === true && !P2.records.find(x => x.id === 'qantas.profile.founded')?.relabel
+     && /中身は同じで使い方だけが変わった：2件（条件つき→(保留|未指定) 1・条件つき→(保留|未指定) 1）/.test(fs.readFileSync(path.join(OUT2, 'owner-list.txt'), 'utf8')),
+     '★A8 plan: 中身は同じで使い方だけが変わった記録は、競合にせず既存と一致・決まりで書き換える（「保留」になったものも）', JSON.stringify(rb2));
   const a4 = run('apply', path.join(OUT2, 'import-plan.json'), '--approved', path.join(OUT2, 'auto-approved.txt'), '--root', ROOT, '--test');
   const S4 = I.readStore(ROOT).store;
   ok(a4.status === 0 && S4.FACTS.qantas?.work?.find(e => e.id === 'qantas.work.days-off')?.value === '月に8日'
      && !!S4.NETWORK.qantas?.list?.some(e => e.id === 'qantas.destinations.syd' && e.value === 'BNE')
      && !!S4.LIVING.sydney?.towns?.some(e => e.id === 'qantas.living.town') && !!S4.FACTS.qantas?.jobs?.some(e => e.id === 'qantas.jobs.jobs-new')
-     && S4.packs['pvr-test-qantas']?.revision === 2,
-     '★A3 apply: 空・次の版に無いことは消す指示ではない（就航地・住宅地は残る）／競合は決まりでは入れない（前の値のまま）', a4.stdout + a4.stderr);
+     && S4.packs['pvr-test-qantas']?.revision === 2
+     && S4.LIVING.sydney?.rents?.find(e => e.id === 'qantas.living.rent-bondi-2')?.use === '保留'
+     && S4.HISTORY.some(h => h.replaced?.id === 'qantas.living.rent-bondi-2' && h.replaced?.use === '条件つき')
+     && S4.SOURCES.qantas?.find(e => e.id === 'qantas.pay.pay-ok')?.use === '未指定',
+     '★A3 apply: 空・次の版に無いことは消す指示ではない（就航地・住宅地は残る）／競合は決まりでは入れない（前の値のまま）／使い方だけ変わった行は最新の判断に書き換わり、前の行は HISTORY に残る', a4.stdout + a4.stderr);
   const OWN = path.join(T, 'owner-approved.txt');
   fs.writeFileSync(OWN, 'pvr-test-qantas qantas.work.days-off\n');
   const a5 = run('apply', path.join(OUT2, 'import-plan.json'), '--approved', OWN, '--root', ROOT, '--test');
