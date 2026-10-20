@@ -75,6 +75,9 @@ node patch-site-salaries.mjs
 
 **この配列は上位21社だけ。** 対象社がランキング外なら何も出力されない（`fda` 等）。それが正常。
 
+> ⚠️ **2026-10-20 時点で `index.html` にこの配列はもう無い**（`captainData / foData not found` と出て何も変えない）。
+> この工程は今は何もしない。トップの数字は別の所から出ている。
+
 > **`world-airlines.html: 0 rows updated` は毎回出る。異常ではない。**
 > このスクリプトの world-airlines 分岐は `{... file:'airlines/xxx.html' ... salary:'...'}` という
 > 静的な配列を書き換える設計だが、その配列は既に存在しない（サラリーエンジン導入時に、
@@ -102,6 +105,18 @@ grep -rn "2,700万" airlines/*.html index.html world-airlines.html
 - meta description、og:description、JSON-LD の `headline` と FAQ の `acceptedAnswer`、
   本文の全てに入っている。**本文だけ直して meta と JSON-LD を忘れやすい**
 - 他社ページの記述は文脈付き（「ANAは2,700万円（課税後）」等）。機械置換後に文意が壊れていないか読む
+
+**会社ページ以外で見落としやすい所**（2026-10-20、BA の機長・副操縦士を直したときに全部踏んだ）：
+- [airlines-meta.js](../airlines-meta.js) ── 世界の航空会社一覧のカードの額（`¥…万` で直書き）
+- 国別・地域のページ ── その国・地域の平均、**国の順位と表の並び順**、「他の国と比べる」のカード、最も高い会社。
+  1社の `avg` が動くと、関係ない国のページの順位まで動く（BA の機長でイギリスが13位→8位、5か国が1つずつ下がった）
+- 国別・地域ページ116枚の「世界112社の平均」の注記（丸めて10万円単位で変わったときだけ）
+- 英語の欧州24社のページの「欧州の比較表」の行、`pilot-salary-guide.html` の地域の行
+
+国別ページを手で直したら、**使い捨ての写しの中で `gen-countries.mjs` を流して突き合わせる**（日付だけを除いて一致すれば正しい）。
+本物のフォルダで流すなら、そのあと `inject-session.mjs` → `patch-side-nav.mjs` → `bake-en-currency.mjs` →
+`gen-en-manifest.mjs` → `seo-normalize.mjs` を必ず続ける（流さないと左メニューが消える・英語の金額が円に戻る）。
+レンジ（`lo` / `hi`）が動いたら、共有用の画像も `node gen-og-images.mjs a-<slug>`（国なら `c-<国コード>`）で作り直す。
 
 置換後、取りこぼしゼロを確認：
 ```bash

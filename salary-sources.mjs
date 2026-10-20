@@ -390,6 +390,147 @@ export const SOURCES = {
     },
   ],
 
+  // ── 欧州 ──────────────────────────────────────────────────────────
+  // ★2026-10-20、オーナーの判断で BA の副操縦士の推定を、BA 自身の 2026年の募集資料に載っている
+  //   給与例に合わせた（fo: avg 1,660→2,590／lo 1,170→2,300／hi 2,460→3,400 万円）。
+  //   同じ日に機長も同じ資料の給与例に合わせた（cap: avg 3,030→3,980／lo 2,020→3,320／hi 4,040→5,710 万円）。
+  //   旧値の出どころは、この台帳には1件も記録が無かった。
+  //   ⚠️ BA Cityflyer（別会社・E190）の機長の額（調査パックの r2-cityflyer-cap-*）は使っていない。
+  //   資料は2つとも BA の公開募集（締切 2026-10-25）に添付された PDF で、ChatGPT の調査パック
+  //   pvr-20261019-british-airways（rev 8・2026-10-20）が原画像で確かめたもの。
+  //   ⚠️ こちらではまだ PDF を開いていない ＝ 3件とも candidate。
+  //   ⚠️ SFO の PDF には社内向けの定型フッターがあるので、原本も画像もリポジトリに置かない（URL と事実だけ）。
+  //   ⚠️ 金額はどれも「2026年8月に入社した人のキャリア例」。乗務手当（FPS・TAFB・DOA/NIA）を含み、
+  //      年 713 ブロック時間＋有給の 72 時間を飛んだ前提。平均・保証・上限ではない。税引前後の記載なし。
+  //   円は fx-rates.mjs の GBP 216.76（AS_OF 2026-08-22）で直した。
+  'british-airways': [
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'British Airways — Short Haul Pilot Recruitment Pack 2026（募集 Ref 11673「Direct Entry Pilot - A320 Type Rated Pilot - UK Licence Holder」の添付 PDF）物理4頁 PILOT PAY',
+      url:         'https://apply.ba.com/jobs/vacancy/direct-entry-pilot---a320-type-rated-pilot--uk-licence-holder-11673-heathrow-airport-london/11692/description/ajaxaction/downloadfile/?id=5002339',
+      published_at:null,
+      accessed_at: '2026-10-20',
+      value_orig:  'SH Second Officer/First Officer の1年目 £106,259/年（会社の給与例）。'
+                 + 'A320 の型式限定・UK Part-FCL・同型 500時間以上の経験者募集で、2026年8月入社者のキャリア例。'
+                 + 'FPS・TAFB・DOA/NIA を含み、年 713 ブロック時間＋holiday pay 72時間・'
+                 + '年 FPS £15,778・TAFB £10,180・DOA/NIA £900 を前提とする。税引前後の記載なし。',
+      quote:       '£106,259',
+      status:      'candidate',
+      note:        '★ fo.lo（2,300万）の根拠。£106,259 × 216.76 ＝ 約2,303万円 → 2,300万。'
+                 + '調査パックの記録 british-airways.pay.r6-a320-sh-sofo-example-y1'
+                 + '（場所: 物理4頁 / PILOT PAY / Year 1 / SH Second Officer/First Officer）。'
+                 + '⚠️ 見出しが「Second Officer/First Officer」の共通欄で、1年目がどちらの職位かを資料は分けていない'
+                 + '（パックも rank を crew にしている）。副操縦士の下端として使うのはオーナーの判断。'
+                 + '⚠️ 会社の給与例であって、在籍者全員の号俸表・実績の平均・保証・上限ではない。'
+                 + '基本給を逆算しない。PDF をこちらで開いて引用を確かめるまで candidate のまま。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'British Airways — Senior First Officer Recruitment Pack 2026（募集 Ref 12234「Direct Entry Pilot - Senior First Officer - UK CAA licence holder」の添付 PDF）物理6–7頁 左欄',
+      url:         'https://apply.ba.com/jobs/vacancy/direct-entry-pilot---senior-first-officer---uk-caa--licence-holder-12234-heathrow-airport-london/12253/description/ajaxaction/downloadfile/?id=5002331',
+      published_at:null,
+      accessed_at: '2026-10-20',
+      value_orig:  'Long-haul Senior First Officer・BA 在籍18年 £156,789/年（会社の給与例・as of August 2026）。'
+                 + '乗務手当の前提は上と同じ（年 713 ブロック時間＋holiday pay 72時間）。税引前後の記載なし。',
+      quote:       '£156,789',
+      status:      'candidate',
+      note:        '★ fo.hi（3,400万）の根拠。£156,789 × 216.76 ＝ 約3,399万円 → 3,400万。'
+                 + '調査パックの記録 british-airways.pay.r6-aug2026-lh-sfo-18years'
+                 + '（場所: 物理6–7頁 / 左欄 Long-haul Line Captain・Long-haul Senior First Officer）。'
+                 + '同じ額は Short Haul の PDF 物理4頁の左欄にも載っているが、そちらは「as of June 2026」で'
+                 + '職位の表記は First Officer（SFO と書いていない）。主な根拠は SFO の PDF（August 2026）のほう。'
+                 + '⚠️ 在籍18年の1例であって、副操縦士の給与の上限ではない。PDF を開いて確かめるまで candidate。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'British Airways — Senior First Officer Recruitment Pack 2026 物理6–7頁 PILOT PAY（First seven years・Year 8 の分岐・左欄）＋ Short Haul Pilot Recruitment Pack 2026 物理4頁（Year 6 の分岐 LH SFO）── 副操縦士の給与例 17件',
+      url:         'https://apply.ba.com/jobs/vacancy/direct-entry-pilot---senior-first-officer---uk-caa--licence-holder-12234-heathrow-airport-london/12253/description/ajaxaction/downloadfile/?id=5002331',
+      published_at:null,
+      accessed_at: '2026-10-20',
+      value_orig:  '副操縦士の会社の給与例 17件（いずれも £/年）── '
+                 + 'SH SFO Year 1〜7: 112,858／112,858／112,858／112,858／114,870／117,027／119,177｜'
+                 + 'LH SFO Year 1〜7: 115,178／115,178／115,178／115,178／118,149／121,125／124,092｜'
+                 + 'LH FO Year 8（分岐）: 127,067｜LH SFO 在籍18年: 156,789｜'
+                 + 'Short Haul の PDF の LH SFO Year 6（分岐）: 121,125。'
+                 + '17件の単純平均 £119,504（合計 £2,031,565）。',
+      quote:       '£112,858',
+      status:      'candidate',
+      note:        '★ fo.avg（2,590万）の根拠。£119,504 × 216.76 ＝ 約2,590万円。'
+                 + '調査パックの記録 british-airways.pay.r6-aug2026-sh-sfo-example-y1〜y7・'
+                 + 'r6-aug2026-lh-sfo-example-y1〜y7・r6-branch-lhfo-y8・r6-aug2026-lh-sfo-18years・'
+                 + 'r6-a320-branch-lhsfo-y6（quote は各欄の金額そのもの。ここには1件目だけ写した）。'
+                 + '⚠️ LH SFO Year 6 の £121,125 は2つの PDF に同じ額で載っていて、17件の中で2回数えている。'
+                 + '1回だけにした16件の平均は £119,403（約2,588万円）で、10万円に丸めると同じ 2,590万。'
+                 + '⚠️ **これは会社の給与例を足して割った数で、副操縦士の実績の平均ではない。**'
+                 + 'SALARY の avg はふだん「全年次の平均の推計」だが、BA だけはオーナーの判断（2026-10-20）で'
+                 + 'この単純平均を置いた。例は入社1〜8年目に偏っていて（18年目は1件だけ）、人数で重みづけもしていない。'
+                 + '調査パック自身も「会社平均へまとめない」「平均として扱わない」と書いている。'
+                 + 'PDF を開いて確かめるまで candidate のまま。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'job_posting',
+      name:        'British Airways — Senior First Officer Recruitment Pack 2026（募集 Ref 12234「Direct Entry Pilot - Senior First Officer - UK CAA licence holder」の添付 PDF）物理6–7頁 Year 5・Year 8 の分岐ボックス',
+      url:         'https://apply.ba.com/jobs/vacancy/direct-entry-pilot---senior-first-officer---uk-caa--licence-holder-12234-heathrow-airport-london/12253/description/ajaxaction/downloadfile/?id=5002331',
+      published_at:null,
+      accessed_at: '2026-10-20',
+      value_orig:  'SH Captain に5年目で移る経路の例 £153,155/年（会社の給与例）。'
+                 + '2026年8月入社者のキャリア例で、FPS・TAFB・DOA/NIA を含み、年 713 ブロック時間＋holiday pay 72時間・'
+                 + '年 FPS £15,778・TAFB £10,180・DOA/NIA £900 を前提とする。超過勤務は除く。税引前後の記載なし。',
+      quote:       '£153,155',
+      status:      'candidate',
+      note:        '★ cap.lo（3,320万）の根拠。£153,155 × 216.76 ＝ 約3,320万円。'
+                 + '調査パックの記録 british-airways.pay.r6-branch-shcap-y5'
+                 + '（場所: 物理6–7頁 / Year5・Year8の分岐ボックス）。'
+                 + '⚠️ 昇格や機材の移動を約束する額ではない（「こう進めばこの額」という分岐の1例）。'
+                 + '会社の給与例であって、機長の実績の平均・保証・下限ではない。基本給を逆算しない。'
+                 + 'PDF を開いて確かめるまで candidate のまま。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'job_posting',
+      name:        'British Airways — Senior First Officer Recruitment Pack 2026 物理6–7頁 左欄（Long-haul Line Captain）',
+      url:         'https://apply.ba.com/jobs/vacancy/direct-entry-pilot---senior-first-officer---uk-caa--licence-holder-12234-heathrow-airport-london/12253/description/ajaxaction/downloadfile/?id=5002331',
+      published_at:null,
+      accessed_at: '2026-10-20',
+      value_orig:  'Long-haul Captain・BA 在籍29年 £263,512/年（会社の給与例・as of August 2026）。'
+                 + '乗務手当の前提は上と同じ（年 713 ブロック時間＋holiday pay 72時間）。税引前後の記載なし。',
+      quote:       '£263,512',
+      status:      'candidate',
+      note:        '★ cap.hi（5,710万）の根拠。£263,512 × 216.76 ＝ 約5,712万円 → 5,710万。'
+                 + '調査パックの記録 british-airways.pay.r6-aug2026-lh-cap-29years'
+                 + '（場所: 物理6–7頁 / 左欄 Long-haul Line Captain・Long-haul Senior First Officer）。'
+                 + '同じ額は Short Haul の PDF 物理4頁の左欄にも「as of June 2026」で載っている。主な根拠は SFO の PDF（August 2026）。'
+                 + '⚠️ 在籍29年の1例であって、機長の給与の上限ではない。PDF を開いて確かめるまで candidate。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'job_posting',
+      name:        'British Airways — Senior First Officer Recruitment Pack 2026 物理6–7頁（分岐ボックス・左欄）＋ Short Haul Pilot Recruitment Pack 2026 物理4頁（Year 6 SH Captain）── BA 本体の機長の給与例 4件',
+      url:         'https://apply.ba.com/jobs/vacancy/direct-entry-pilot---senior-first-officer---uk-caa--licence-holder-12234-heathrow-airport-london/12253/description/ajaxaction/downloadfile/?id=5002331',
+      published_at:null,
+      accessed_at: '2026-10-20',
+      value_orig:  'BA 本体の機長の会社の給与例 4件（いずれも £/年）── '
+                 + 'SH Capt. 5年目（分岐）153,155｜SH Captain 6年目（Short Haul の PDF）156,463｜'
+                 + 'SH Capt. 8年目（分岐）162,080｜LH Captain 在籍29年 263,512。'
+                 + '4件の単純平均 £183,802.5（合計 £735,210）。',
+      quote:       '£156,463',
+      status:      'candidate',
+      note:        '★ cap.avg（3,980万）の根拠。£183,802.5 × 216.76 ＝ 約3,984万円 → 3,980万。'
+                 + '調査パックの記録 british-airways.pay.r6-branch-shcap-y5・r6-a320-branch-shcap-y6・'
+                 + 'r6-branch-shcap-y8・r6-aug2026-lh-cap-29years（quote は各欄の金額そのもの。ここには Short Haul の1件だけ写した）。'
+                 + '⚠️ **これは会社の給与例を足して割った数で、機長の実績の平均ではない。**'
+                 + 'BA だけはオーナーの判断（2026-10-20）でこの単純平均を置いた。'
+                 + '4件のうち3件は短距離の5〜8年目、1件は長距離の在籍29年で、人数での重みづけはしていない'
+                 + '（29年の1件が平均を押し上げている。3件だけなら約 £157,233 ＝ 約3,408万円）。'
+                 + '⚠️ BA Cityflyer（別会社・E190・募集 11323）の機長の額は入れていない。'
+                 + '調査パック自身も「平均として扱わない」と書いている。PDF を開いて確かめるまで candidate のまま。',
+    },
+  ],
+
   // ── アジア ────────────────────────────────────────────────────────
   // キャセイは今回当たった14社のうち、公式が職位別の年収額を出している唯一の会社。
   // しかも SALARY のレンジの中に入った＝この台帳で初めて、公開情報が公開情報を裏づけた。

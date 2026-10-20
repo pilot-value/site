@@ -74,7 +74,7 @@
 {code:'LH',  name:'ルフトハンザ',           en:'Lufthansa',             region:'eu_fsc', color:'#FEC10D',salary:'¥3,440万',file:'airlines/lufthansa.html',fleet:'nw',        flag:'🇩🇪',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
 {code:'AF',  name:'エール フランス',        en:'Air France',            region:'eu_fsc', color:'#002395',salary:'¥3,530万',file:'airlines/air-france.html',fleet:'nw',       flag:'🇫🇷',type:'fsc',taxfree:false,alliance:'スカイチーム'},
 {code:'KL',  name:'KLMオランダ航空',        en:'KLM',                   region:'eu_fsc', color:'#00A1DE',salary:'¥3,960万',file:'airlines/klm.html',fleet:'rnw',              flag:'🇳🇱',type:'fsc',taxfree:false,alliance:'スカイチーム'},
-{code:'BA',  name:'ブリティッシュ エアウェイズ',en:'British Airways',   region:'eu_fsc', color:'#2B3E82',salary:'¥3,030万',file:'airlines/british-airways.html',fleet:'nw',  flag:'🇬🇧',type:'fsc',taxfree:false,alliance:'ワンワールド'},
+{code:'BA',  name:'ブリティッシュ エアウェイズ',en:'British Airways',   region:'eu_fsc', color:'#2B3E82',salary:'¥3,980万',file:'airlines/british-airways.html',fleet:'nw',  flag:'🇬🇧',type:'fsc',taxfree:false,alliance:'ワンワールド'},
 {code:'VS',  name:'ヴァージン アトランティック',en:'Virgin Atlantic',   region:'eu_fsc', color:'#E2001A',salary:'¥3,600万',file:'airlines/virgin-atlantic.html',fleet:'w',  flag:'🇬🇧',type:'fsc',taxfree:false,alliance:'スカイチーム'},
 {code:'LX',  name:'スイス インターナショナル',en:'SWISS',               region:'eu_fsc', color:'#E8122D',salary:'¥4,100万',file:'airlines/swiss.html',fleet:'nw',            flag:'🇨🇭',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
 {code:'OS',  name:'オーストリア航空',       en:'Austrian Airlines',     region:'eu_fsc', color:'#CC0000',salary:'¥2,600万',file:'airlines/austrian.html',fleet:'nw',         flag:'🇦🇹',type:'fsc',taxfree:false,alliance:'スターアライアンス'},

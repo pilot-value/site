@@ -59,7 +59,7 @@ export const SALARY = {
   'air-france':        { ja:'エールフランス', en:'Air France', region:'europe',                                                  cap:{avg:3530, lo:2750, hi:6020}, fo:{avg:1810, lo:1200, hi:2920}, taxFree:false, conf:'low' },
   'lufthansa':         { ja:'ルフトハンザ', en:'Lufthansa', region:'europe',                                                     cap:{avg:3440, lo:2490, hi:4320}, fo:{avg:1890, lo:1260, hi:3010}, taxFree:false, conf:'medium' },
   'air-canada':        { ja:'エア・カナダ', en:'Air Canada', region:'us',                                                        cap:{avg:3360, lo:2490, hi:4260}, fo:{avg:1510, lo:580,  hi:2200}, taxFree:false, conf:'medium' },
-  'british-airways':   { ja:'ブリティッシュ・エアウェイズ', en:'British Airways', region:'europe',                               cap:{avg:3030, lo:2020, hi:4040}, fo:{avg:1660, lo:1170, hi:2460}, taxFree:false, conf:'medium' },
+  'british-airways':   { ja:'ブリティッシュ・エアウェイズ', en:'British Airways', region:'europe',                               cap:{avg:3980, lo:3320, hi:5710}, fo:{avg:2590, lo:2300, hi:3400}, taxFree:false, conf:'medium' },
 
   // ── 第2バッチ：地方・中小・海外中堅（79社） ─────────────────
   // 日本の地方・子会社・GA
