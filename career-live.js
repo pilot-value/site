@@ -105,9 +105,9 @@
     townHeld: 'ログインなしで保存した回答があります。',
 
     revEmpty: '口コミはまだありません',
-    revNone: '会員からの投稿はまだありません',       // 会社ページ用。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
+    revNone: '会員からの投稿はまだありません',       // 会社ページと比較で使う。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
     revNo: '評価未取得',                              // 会社ページ用。点数の付いた投稿がまだ無い（0点ではない）
-    revCount: function (n) { return '口コミ ' + n + '件'; },
+    revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（点数の有無を問わず、投稿ぜんぶ）。評価件数（revRated）と同じ行に置かない
     revRated: function (n) { return n + '件の評価'; },
     sumHead: '口コミの要約',
     sumGood: '良い点',
@@ -1027,7 +1027,34 @@
     var a = el('div', 'crl-cmp-c'); a.appendChild(cellA); r.appendChild(a);
     var b = el('div', 'crl-cmp-c'); b.appendChild(cellB); r.appendChild(b);
     g.appendChild(r);
+    return r;
   }
+  /* 比較の欄は2社を別々に読む。片方が落ちても、もう片方は出す。
+     返る形: [S, S]、S ＝ { ok:true, v }｜{ ok:false, off:真偽 }（off ＝ サーバーに口がまだ無い）。この約束は落ちない。 */
+  function both(read, ids) {
+    function one(slug) {
+      var p;
+      try { p = Promise.resolve(read(slug)); } catch (e) { p = Promise.reject(e); }
+      return p.then(function (v) { return { ok: true, v: v }; },
+                    function (e) { return { ok: false, off: !!(e && e.crl === 'off') }; });
+    }
+    return Promise.all([one(ids[0]), one(ids[1])]);
+  }
+  /* 両方落ちたら、欄ごと今までの失敗の顔へ（2社とも「口が無い」なら「準備中」）。 */
+  function needOne(S) {
+    if (!S[0].ok && !S[1].ok) throw fail(S[0].off && S[1].off ? 'off' : 'error');
+    return S;
+  }
+  /* 読めなかった側の中身。その列で1回だけ言う。「準備中」は失敗の色にしない（やり直しても同じ ＝ ボタンも付かない）。 */
+  function sideFail(x) { return el('span', x.off ? 'crl-none' : 'crl-none crl-side-err', x.off ? T.off : T.err); }
+  function blankCell() { return el('span', 'crl-blank'); }
+  /* 何行もある格子：読めなかった側は、列のいちばん上で1回だけ言う。以降のその列のマスは空（0 も「未取得」も置かない）。 */
+  function cmpFailRow(g, S) {
+    if (S[0].ok && S[1].ok) return;
+    cmpRow(g, null, S[0].ok ? blankCell() : sideFail(S[0]), S[1].ok ? blankCell() : sideFail(S[1]));
+  }
+  /* 片方だけ読めなかった時の印。run() が「やり直す」を欄に1つ足す（読めた側は出したまま）。 */
+  function partial(v, S) { v.retry = S.some(function (x) { return !x.ok && !x.off; }); return v; }
 
   KIND['cmp-work'] = function (box, ids) {
     return Promise.all([workView(ids[0]), workView(ids[1])]).then(function (a) {
@@ -1046,30 +1073,6 @@
   };
 
   /* ── 口コミ（実投稿だけ）──────────────────────────────── */
-  function score(rows) {
-    var sum = 0, k = 0;
-    rows.forEach(function (r) {
-      var s = 0, c = 0;
-      SCORES.forEach(function (key) {
-        var v = Number(r && r[key]);
-        if (isFinite(v) && v > 0) { s += v; c++; }
-      });
-      if (c) { sum += s / c; k++; }
-    });
-    return { n: rows.length, avg: k ? Math.min(5, sum / k) : null };
-  }
-  function scoreLine(s) {
-    var p = el('p', 'crl-score');
-    if (s.avg != null) {
-      var st = el('span', 'crl-stars');
-      st.setAttribute('aria-hidden', 'true');
-      st.style.setProperty('--crl-fill', (Math.round(s.avg / 5 * 1000) / 10) + '%');
-      p.appendChild(st);
-      p.appendChild(el('b', 'crl-avg', s.avg.toFixed(1)));
-    }
-    p.appendChild(el('span', 'crl-cnt', T.revCount(s.n)));
-    return p;
-  }
 
   /* ── 評価スコア（会社ページ）──────────────────────────────
      2026-10-06 オーナーのご指示「パイロットによる評価スコアの部分、企業トップのどこかのカードに残して」。
@@ -1119,6 +1122,21 @@
     st.setAttribute('data-none', '');
     return st;
   }
+  /* 評価の1行の中身（星・点数・「n件の評価」）。会社ページ・1社の概要・比較が同じ部品を使う ── 数えるのは realRated() の1つだけ。
+     点数の付いた投稿が無ければ「評価未取得」（0 を置かない）。bare ＝ 輪郭の星も置かない（比較：隣の会社の星と並ぶと 0点に見える）。 */
+  function rateInto(node, R, bare) {
+    if (R) {
+      node.appendChild(starsEl(R.avg));
+      node.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
+      node.appendChild(el('span', 'crl-cnt', T.revRated(R.n)));
+    } else {
+      if (!bare) node.appendChild(noStars());
+      node.appendChild(el('span', 'crl-cnt', T.revNo));
+    }
+    return node;
+  }
+  /* 口コミ件数（投稿ぜんぶ）。評価件数の隣ではなく、次の行に置く ── 2つの数を同じ数に見せない。 */
+  function postsLine(n) { return el('p', 'crl-posts', T.revPosts(n)); }
   function svgEl(tag, cls, attrs) {
     var n = d.createElementNS(NS, tag);
     if (cls) n.setAttribute('class', cls);
@@ -1167,29 +1185,21 @@
   KIND.stars = function (box, ids) {
     var slug = ids[0];
     return reviews(slug).then(function (res) {
+      var R = realRated(res.rows);
       if (GL) {
         /* 会社ページ：社名の横と口コミのカードの右上。押すと同じページの「口コミ」のタブが開く。
            点数は下の「評価スコア」の箱と同じ realRated() の答え。 */
-        var R = realRated(res.rows);
-        var a = el('a', 'crl-score crl-score-a');
+        var a = rateInto(el('a', 'crl-score crl-score-a'), R);
         a.setAttribute('href', '#reviews');
-        if (R) {
-          a.appendChild(starsEl(R.avg));
-          a.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
-          a.appendChild(el('span', 'crl-cnt', T.revRated(R.n)));
-        } else {
-          a.appendChild(noStars());
-          a.appendChild(el('span', 'crl-cnt', T.revNo));
-        }
         a.appendChild(icon('arrow', 14));
         return view(R ? 'open' : 'empty', [a]);
       }
-      var s = score(res.rows);
-      if (!s.n) {
-        return view('empty', [msg(GL ? T.revNone : T.revEmpty),
+      /* 1社の概要（career.html）：会社ページと同じ数え方。星の横は評価件数、その下の行が口コミ件数。 */
+      if (!res.rows.length) {
+        return view('empty', [msg(T.revEmpty),
           foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
       }
-      return view('open', [scoreLine(s)]);
+      return view('open', [rateInto(el('p', 'crl-score'), R), postsLine(res.rows.length)]);
     });
   };
 
@@ -1303,15 +1313,28 @@
     });
   };
 
+  /* 比較の口コミ。数えるのは realRated() の1つだけ ── 星・点数の横は評価件数（点数の付いた投稿）、次の行が口コミ件数（投稿ぜんぶ）。
+     ⚠️ 行（rows）から読むのは 6つの点数 と 行数 だけ。ほかの列（昔の口コミに書かれた給与・抜粋・職位）を画面に出さない。
+     ⚠️ 投稿が無い・点数が無い・読めなかった を、同じ顔にしない。どれにも 0 も、空の星も置かない。 */
+  function sideOf(s) { return s.ok ? { rows: s.v.rows, R: realRated(s.v.rows) } : null; }
+  function rateCell(slug, s, o) {
+    var c = el('div', 'crl-rate');
+    c.appendChild(el('span', 'crl-sr', coName(slug)));
+    if (!o) { c.appendChild(sideFail(s)); return c; }
+    if (!o.rows.length) { c.appendChild(el('span', 'crl-none', T.revNone)); return c; }
+    c.appendChild(rateInto(el('p', 'crl-score'), o.R, true));
+    c.appendChild(postsLine(o.rows.length));
+    return c;
+  }
   KIND['cmp-stars'] = function (box, ids) {
-    return Promise.all([reviews(ids[0]), reviews(ids[1])]).then(function (a) {
-      var A = score(a[0].rows), B = score(a[1].rows);
-      if (!A.n && !B.n) return view('empty', [msg(T.revEmpty)]);
+    return both(reviews, ids).then(needOne).then(function (S) {
+      var O = [sideOf(S[0]), sideOf(S[1])];
+      if (O[0] && O[1] && !O[0].rows.length && !O[1].rows.length) return view('empty', [msg(T.revNone)]);
       var g = cmpGrid(ids);
-      cmpRow(g, null,
-        A.n ? scoreLine(A) : el('span', 'crl-none', T.revEmpty),
-        B.n ? scoreLine(B) : el('span', 'crl-none', T.revEmpty));
-      return view('open', [g]);
+      /* すぐ下の要約の欄（CSS）が読む印：各社に点数の付いた投稿が在るか。1 ＝ 在る／0 ＝ 無い／x ＝ 読めなかった */
+      g.setAttribute('data-rated', O.map(function (o) { return !o ? 'x' : o.R ? '1' : '0'; }).join(''));
+      cmpRow(g, null, rateCell(ids[0], S[0], O[0]), rateCell(ids[1], S[1], O[1]));
+      return partial(view('open', [g]), S);
     });
   };
 
@@ -1494,6 +1517,7 @@
     (nodes || []).forEach(function (n) { if (n) box.appendChild(n); });
     box.setAttribute('data-state', state);
     box.removeAttribute('aria-busy');
+    box.removeAttribute('data-part');
   }
   function paintLoading(box) {
     var sk = el('div', 'crl-sk');
@@ -1502,11 +1526,23 @@
     paint(box, 'loading', [sk, el('span', 'crl-sr', T.loading)]);
     box.setAttribute('aria-busy', 'true');
   }
-  function paintError(box) {
+  function retryBtn() {
     var b = el('button', 'crl-retry', T.retry);
     b.type = 'button';
-    b.addEventListener('click', retryAll);
-    paint(box, 'error', [msg(T.err), b]);
+    b.addEventListener('click', function () {
+      /* キーボードで押した人の居場所を失わせない：描き直したあと、この欄へフォーカスを戻す（refocus） */
+      if (b.parentNode && d.activeElement === b) b.parentNode._crlBack = 1;
+      retryAll();
+    });
+    return b;
+  }
+  function paintError(box) { paint(box, 'error', [msg(T.err), retryBtn()]); }
+  function refocus(box) {
+    if (!box._crlBack) return;
+    box._crlBack = 0;
+    var t = box.querySelector('.crl-retry, a[href], button');
+    if (!t) { t = box; box.setAttribute('tabindex', '-1'); }
+    try { t.focus({ preventScroll: true }); } catch (e) { /* フォーカスを移せないブラウザでは、今までどおり */ }
   }
   function idle(box) {
     box._crlTok = ++seq;
@@ -1523,7 +1559,8 @@
   function retryAll() {
     var all = slots();
     for (var i = 0; i < all.length; i++) {
-      if (KIND[all[i].getAttribute('data-live')] && all[i].getAttribute('data-state') === 'error') idle(all[i]);
+      if (KIND[all[i].getAttribute('data-live')] &&
+          (all[i].getAttribute('data-state') === 'error' || all[i].getAttribute('data-part') === '1')) idle(all[i]);
     }
     sync();
   }
@@ -1537,10 +1574,13 @@
     out.then(function (v) {
       if (box._crlTok !== tok) return;
       paint(box, v.state, v.nodes);
+      if (v.retry) { box.setAttribute('data-part', '1'); box.appendChild(retryBtn()); }   // 片方だけ読めなかった：読めた側は出したまま
+      refocus(box);
     }, function (e) {
       if (box._crlTok !== tok) return;
       if (e && e.crl === 'off') paint(box, 'off', [msg(T.off)]);
       else paintError(box);
+      refocus(box);
     });
   }
 

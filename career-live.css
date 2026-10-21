@@ -55,6 +55,13 @@
 
 /* 未取得 ＝ その項目を運ぶ道が無い／その側に無い */
 .crl-none{display:inline-flex;align-items:center;align-self:flex-start;min-height:24px;padding:0 8px;border:1px dashed var(--pv-line);border-radius:6px;font-size:12px;color:var(--pv-ink-3);white-space:nowrap}
+/* 片方の会社だけ読めなかったとき（もう片方は出ている）。色は欄ごと落ちたときの帯と同じ。
+   「準備中」はこの組を持たない ＝ 今までの点線の札のまま（失敗の色にしない）。 */
+.crl-side-err{border-style:solid;border-color:transparent;background:var(--pv-orange-soft);color:var(--pv-orange-ink);font-weight:700;white-space:normal}
+.crl-blank{display:block;min-height:1px}
+.crl[data-part="1"] > .crl-retry{margin-top:10px}
+/* 「やり直す」のあと、押した人のフォーカスを受け取る欄（押せるものではないので、輪は描かない） */
+.crl[tabindex="-1"]:focus{outline:none}
 
 /* ── 入口 ── */
 .crl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:6px}
@@ -211,6 +218,11 @@
 .crl-stars[data-none]{color:var(--pv-ink-3)}
 .crl-stars[data-none]::before{content:'☆☆☆☆☆'}
 .crl-stars[data-none]::after{content:none}
+/* 比較の口コミ：星・点数・「n件の評価」の次の行に「会員の投稿 n件」（2つの数を同じ行に並べない） */
+.crl-rate{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+.crl-posts{margin:0;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+/* 投稿が無い会社・読めなかった会社の1語は、狭い列では折り返す（1行に固定しない） */
+.crl-rate > .crl-none{white-space:normal;padding:2px 8px;line-height:1.5}
 /* 会社ページ：星の行は「口コミ」のタブへの入口 */
 a.crl-score-a{display:inline-flex;flex-wrap:nowrap;gap:8px;min-height:44px;color:var(--pv-ink);text-decoration:none;border-radius:8px}
 a.crl-score-a .crl-ic{flex:none;color:var(--pv-ink-3);transition:transform .18s var(--pv-ease)}

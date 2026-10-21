@@ -111,6 +111,18 @@ ok(!/[¥万円]/.test(JSC), 'career.js に金額の字（¥・万・円）が無
 ok(!/\d{3,}/.test(JSC), 'career.js に3けた以上の数が無い', (JSC.match(/.{0,20}\d{3,}.{0,20}/) || [''])[0]);
 ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(JSC), 'career.js は HTML を組み立てない（見せる・隠すだけ）');
 
+/* 古い会社コードの表は2か所に在る（career-live.js と airlines/airline-reviews-ui.js）。会社ページの「会員の投稿 n 件」と
+   比較の「会員の投稿 n件」は、この2つが同じ集合のときだけ同じ数になる。片方だけ直すと、どの検査も緑のまま数がずれる。 */
+{
+  const pairs = (file, name) => {
+    const m = read(file).match(new RegExp('var ' + name + '\\s*=\\s*\\{([\\s\\S]*?)\\};'));
+    return m ? [...m[1].matchAll(/'([a-z0-9-]+)'\s*:\s*'([a-z0-9-]+)'/g)].map(x => `${x[1]}=${x[2]}`).sort() : null;
+  };
+  const a = pairs('career-live.js', 'LEGACY'), b = pairs('airlines/airline-reviews-ui.js', 'LEGACY_OF');
+  ok(!!a && !!b && a.length > 0 && b.length > 0, '古い会社コードの表を2つとも読めた（career-live.js・airline-reviews-ui.js）', JSON.stringify([a, b]));
+  ok(same(a, b), '古い会社コードの表が、比較（career-live.js）と会社ページ（airline-reviews-ui.js）で同じ集合', JSON.stringify([a, b]));
+}
+
 head('career.css');
 ok(!/#[0-9a-fA-F]{3,8}\b/.test(CSSC), '色の直書き（hex）が無い', (CSSC.match(/.{0,20}#[0-9a-fA-F]{3,8}\b/) || [''])[0]);
 ok(!/\b(?:rgba?|hsla?)\(/.test(CSSC), '色の直書き（rgb / hsl）が無い');
