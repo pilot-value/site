@@ -16,6 +16,7 @@
      同じ空港は、どの会社のページでも同じ呼び名で出る（呼び名はここの1か所だけ）。
      確かめた資料の原本は sources-raw/（リポジトリに入れない）。
      季節運航は seasonal にも3字を書く（画面に「季節運航」と出る）。
+     先行5社ではない会社の空港（調べの台帳の就航地）は、PLACES の下の RESEARCH_PLACES（記録が書いた名前からだけ）。
 
    ■ 確かめる
      node airline-destinations.mjs          形の検査（重複・未登録の3字・地域の白リストなど）
@@ -288,6 +289,161 @@ export const PLACES = {
   JNB: ['ヨハネスブルグ', 'Johannesburg', '南アフリカ', 'middle-east-africa'],
 };
 
+/* ── 調べの台帳の空港（全社へ広げる a2・2026-10-21 リード P12.83）──────────────────────────────
+   先行5社の就航地ではない。ChatGPT の調べ（ROUND4）の就航地の記録が、空港の名前を書いていた空港だけを、その名前から足した
+   （英語は記録の字・日本語はその読み。記録が日本語で書いていればその字。国と地域は、その空港の在る国）。
+   ★名前の書かれていない記録の空港（「掲載された空港 ABE」だけの記録など）は足していない ── 街を当て推量で埋めない。
+   ★調べの台帳（research-ledger.mjs）に就航地の行が入った空港だけ（保留だけ・食い違いだけの空港は、行が入るまで足さない）。
+     どの空港も、台帳の就航地の行がその名前を書いている（assert-import-research.mjs の A12 が見る）。
+   形は PLACES と同じ（[都市, 英語, 国, 地域]）。先行5社の PLACES に在る3字は足さない（在れば check() が赤くする）。 */
+export const RESEARCH_PLACES = Object.freeze({
+  /* japan */
+  AGJ: ['粟国', 'Aguni', '日本', 'japan'],
+  HTR: ['波照間', 'Hateruma', '日本', 'japan'],
+  IBR: ['茨城', 'Ibaraki', '日本', 'japan'],
+  MYE: ['三宅島', 'Miyakejima', '日本', 'japan'],
+  OIM: ['大島', 'Oshima', '日本', 'japan'],
+  SHI: ['下地島', 'Shimojishima', '日本', 'japan'],
+  /* asia */
+  ATQ: ['アムリトサル', 'Amritsar', 'インド', 'asia'],
+  CJB: ['コインバトール', 'Coimbatore', 'インド', 'asia'],
+  TRZ: ['ティルチラパッリ', 'Tiruchirappalli', 'インド', 'asia'],
+  VTZ: ['ヴィシャーカパトナム', 'Visakhapatnam', 'インド', 'asia'],
+  BPN: ['バリクパパン', 'Balikpapan', 'インドネシア', 'asia'],
+  KNO: ['メダン', 'Medan', 'インドネシア', 'asia'],
+  LBJ: ['ラブアンバジョ', 'Labuan Bajo', 'インドネシア', 'asia'],
+  LOP: ['ロンボク', 'Lombok', 'インドネシア', 'asia'],
+  MDC: ['マナド', 'Manado', 'インドネシア', 'asia'],
+  PDG: ['パダン', 'Padang', 'インドネシア', 'asia'],
+  PKU: ['プカンバル', 'Pekanbaru', 'インドネシア', 'asia'],
+  PLM: ['パレンバン', 'Palembang', 'インドネシア', 'asia'],
+  PNK: ['ポンティアナック', 'Pontianak', 'インドネシア', 'asia'],
+  SRG: ['スマラン', 'Semarang', 'インドネシア', 'asia'],
+  UPG: ['マカッサル', 'Makassar', 'インドネシア', 'asia'],
+  YIA: ['ジョグジャカルタ', 'Yogyakarta', 'インドネシア', 'asia'],
+  CEI: ['チェンライ', 'Chiang Rai', 'タイ', 'asia'],
+  HDY: ['ハジャイ', 'Hat Yai', 'タイ', 'asia'],
+  DVO: ['ダバオ', 'Davao', 'フィリピン', 'asia'],
+  ILO: ['イロイロ', 'Iloilo', 'フィリピン', 'asia'],
+  CXR: ['ニャチャン', 'Nha Trang', 'ベトナム', 'asia'],
+  PQC: ['フーコック', 'Phu Quoc', 'ベトナム', 'asia'],
+  VTE: ['ビエンチャン', 'Vientiane', 'ラオス', 'asia'],
+  BKI: ['コタキナバル', 'Kota Kinabalu', 'マレーシア', 'asia'],
+  IPH: ['イポー', 'Ipoh', 'マレーシア', 'asia'],
+  KBR: ['コタバル', 'Kota Bharu', 'マレーシア', 'asia'],
+  KCH: ['クチン', 'Kuching', 'マレーシア', 'asia'],
+  KUA: ['クアンタン', 'Kuantan', 'マレーシア', 'asia'],
+  LGK: ['ランカウイ', 'Langkawi', 'マレーシア', 'asia'],
+  MKZ: ['マラッカ', 'Malacca', 'マレーシア', 'asia'],
+  MYY: ['ミリ', 'Miri', 'マレーシア', 'asia'],
+  SBW: ['シブ', 'Sibu', 'マレーシア', 'asia'],
+  SZB: ['クアラルンプール（スバン）', 'Kuala Lumpur Subang', 'マレーシア', 'asia'],
+  CJU: ['済州', 'Jeju', '韓国', 'asia'],
+  TAE: ['大邱', 'Daegu', '韓国', 'asia'],
+  RMQ: ['台中', 'Taichung', '台湾', 'asia'],
+  CZX: ['常州', 'Changzhou', '中国', 'asia'],
+  NNG: ['南寧', 'Nanning', '中国', 'asia'],
+  SWA: ['汕頭', 'Shantou', '中国', 'asia'],
+  SYX: ['三亜', 'Sanya', '中国', 'asia'],
+  WUX: ['無錫', 'Wuxi', '中国', 'asia'],
+  YIW: ['義烏', 'Yiwu', '中国', 'asia'],
+  /* oceania */
+  WSI: ['ウエスタン・シドニー', 'Western Sydney', 'オーストラリア', 'oceania'],
+  NAN: ['ナンディ', 'Nadi', 'フィジー', 'oceania'],
+  /* north-america */
+  ACY: ['アトランティックシティ', 'Atlantic City', 'アメリカ', 'north-america'],
+  ALB: ['オールバニ', 'Albany', 'アメリカ', 'north-america'],
+  ANC: ['アンカレジ', 'Anchorage', 'アメリカ', 'north-america'],
+  AUS: ['オースティン', 'Austin', 'アメリカ', 'north-america'],
+  BDL: ['ハートフォード', 'Hartford', 'アメリカ', 'north-america'],
+  BGR: ['バンゴー', 'Bangor', 'アメリカ', 'north-america'],
+  BHM: ['バーミングハム', 'Birmingham', 'アメリカ', 'north-america'],
+  BNA: ['ナッシュビル', 'Nashville', 'アメリカ', 'north-america'],
+  BTV: ['バーリントン', 'Burlington', 'アメリカ', 'north-america'],
+  BUF: ['バッファロー', 'Buffalo', 'アメリカ', 'north-america'],
+  BWI: ['ボルチモア', 'Baltimore', 'アメリカ', 'north-america'],
+  CAK: ['アクロン・カントン', 'Akron Canton', 'アメリカ', 'north-america'],
+  CLE: ['クリーブランド', 'Cleveland', 'アメリカ', 'north-america'],
+  CMH: ['コロンバス', 'Columbus', 'アメリカ', 'north-america'],
+  DAB: ['デイトナビーチ', 'Daytona Beach', 'アメリカ', 'north-america'],
+  DAL: ['ダラス（ラブフィールド）', 'Dallas Love Field', 'アメリカ', 'north-america'],
+  DCA: ['ワシントンD.C.（レーガン）', 'Washington Reagan', 'アメリカ', 'north-america'],
+  DEN: ['デンバー', 'Denver', 'アメリカ', 'north-america'],
+  DTW: ['デトロイト', 'Detroit', 'アメリカ', 'north-america'],
+  EWR: ['ニューヨーク（ニューアーク）', 'New York Newark', 'アメリカ', 'north-america'],
+  EYW: ['キーウェスト', 'Key West', 'アメリカ', 'north-america'],
+  FAI: ['フェアバンクス', 'Fairbanks', 'アメリカ', 'north-america'],
+  FLL: ['フォートローダーデール', 'Fort Lauderdale', 'アメリカ', 'north-america'],
+  HOU: ['ヒューストン（ホビー）', 'Houston Hobby', 'アメリカ', 'north-america'],
+  HVN: ['ニューヘイブン', 'New Haven', 'アメリカ', 'north-america'],
+  IND: ['インディアナポリス', 'Indianapolis', 'アメリカ', 'north-america'],
+  ISP: ['アイスリップ', 'Islip', 'アメリカ', 'north-america'],
+  JAX: ['ジャクソンビル', 'Jacksonville', 'アメリカ', 'north-america'],
+  KOA: ['コナ', 'Kona', 'アメリカ', 'north-america'],
+  LAS: ['ラスベガス', 'Las Vegas', 'アメリカ', 'north-america'],
+  LGA: ['ニューヨーク（ラガーディア）', 'New York LaGuardia', 'アメリカ', 'north-america'],
+  LIH: ['リフエ', 'Lihue', 'アメリカ', 'north-america'],
+  MCO: ['オーランド', 'Orlando', 'アメリカ', 'north-america'],
+  MDW: ['シカゴ（ミッドウェー）', 'Chicago Midway', 'アメリカ', 'north-america'],
+  MEM: ['メンフィス', 'Memphis', 'アメリカ', 'north-america'],
+  MHT: ['マンチェスター', 'Manchester', 'アメリカ', 'north-america'],
+  MIA: ['マイアミ', 'Miami', 'アメリカ', 'north-america'],
+  MSN: ['マディソン', 'Madison', 'アメリカ', 'north-america'],
+  MSP: ['ミネアポリス・セントポール', 'Minneapolis-St Paul', 'アメリカ', 'north-america'],
+  MSY: ['ニューオーリンズ', 'New Orleans', 'アメリカ', 'north-america'],
+  OAK: ['オークランド', 'Oakland', 'アメリカ', 'north-america'],
+  OGG: ['マウイ（カフルイ）', 'Maui Kahului', 'アメリカ', 'north-america'],
+  PDX: ['ポートランド', 'Portland', 'アメリカ', 'north-america'],
+  PHL: ['フィラデルフィア', 'Philadelphia', 'アメリカ', 'north-america'],
+  PHX: ['フェニックス', 'Phoenix', 'アメリカ', 'north-america'],
+  RDU: ['ローリー・ダーラム', 'Raleigh-Durham', 'アメリカ', 'north-america'],
+  RSW: ['フォートマイヤーズ', 'Fort Myers', 'アメリカ', 'north-america'],
+  SDF: ['ルイビル', 'Louisville', 'アメリカ', 'north-america'],
+  SLC: ['ソルトレイクシティ', 'Salt Lake City', 'アメリカ', 'north-america'],
+  SWF: ['ニューヨーク（スチュワート）', 'New York Stewart', 'アメリカ', 'north-america'],
+  TPA: ['タンパ', 'Tampa', 'アメリカ', 'north-america'],
+  YHZ: ['ハリファックス', 'Halifax', 'カナダ', 'north-america'],
+  YTZ: ['トロント（ビリー・ビショップ）', 'Toronto Billy Bishop', 'カナダ', 'north-america'],
+  YUL: ['モントリオール', 'Montreal', 'カナダ', 'north-america'],
+  /* latin-america */
+  CUN: ['カンクン', 'Cancun', 'メキシコ', 'latin-america'],
+  SJU: ['サンフアン', 'San Juan', 'プエルトリコ', 'latin-america'],
+  BOG: ['ボゴタ', 'Bogota', 'コロンビア', 'latin-america'],
+  LIM: ['リマ', 'Lima', 'ペルー', 'latin-america'],
+  SCL: ['サンティアゴ', 'Santiago', 'チリ', 'latin-america'],
+  CWB: ['クリチバ', 'Curitiba', 'ブラジル', 'latin-america'],
+  GIG: ['リオデジャネイロ', 'Rio de Janeiro', 'ブラジル', 'latin-america'],
+  /* europe */
+  EDI: ['エディンバラ', 'Edinburgh', 'イギリス', 'europe'],
+  GLA: ['グラスゴー', 'Glasgow', 'イギリス', 'europe'],
+  LGW: ['ロンドン（ガトウィック）', 'London Gatwick', 'イギリス', 'europe'],
+  ORY: ['パリ（オルリー）', 'Paris Orly', 'フランス', 'europe'],
+  BER: ['ベルリン', 'Berlin', 'ドイツ', 'europe'],
+  ALC: ['アリカンテ', 'Alicante', 'スペイン', 'europe'],
+  BIO: ['ビルバオ', 'Bilbao', 'スペイン', 'europe'],
+  LPA: ['グラン・カナリア', 'Gran Canaria', 'スペイン', 'europe'],
+  TFS: ['テネリフェ', 'Tenerife', 'スペイン', 'europe'],
+  FAO: ['ファロ', 'Faro', 'ポルトガル', 'europe'],
+  PMO: ['パレルモ', 'Palermo', 'イタリア', 'europe'],
+  TRN: ['トリノ', 'Turin', 'イタリア', 'europe'],
+  ZAG: ['ザグレブ', 'Zagreb', 'クロアチア', 'europe'],
+  TIA: ['ティラナ', 'Tirana', 'アルバニア', 'europe'],
+  GDN: ['グダニスク', 'Gdansk', 'ポーランド', 'europe'],
+  FAE: ['フェロー諸島', 'Faroe Islands', 'フェロー諸島', 'europe'],
+  BGO: ['ベルゲン', 'Bergen', 'ノルウェー', 'europe'],
+  OSL: ['オスロ', 'Oslo', 'ノルウェー', 'europe'],
+  KEF: ['ケプラヴィーク', 'Keflavik', 'アイスランド', 'europe'],
+  RKV: ['レイキャビク', 'Reykjavik', 'アイスランド', 'europe'],
+  GOH: ['ヌーク', 'Nuuk', 'グリーンランド', 'europe'],
+  /* middle-east-africa */
+  EDL: ['エルドレット', 'Eldoret', 'ケニア', 'middle-east-africa'],
+  KIS: ['キスム', 'Kisumu', 'ケニア', 'middle-east-africa'],
+  MBA: ['モンバサ', 'Mombasa', 'ケニア', 'middle-east-africa'],
+  CPT: ['ケープタウン', 'Cape Town', '南アフリカ', 'middle-east-africa'],
+});
+const OVERLAP = Object.keys(RESEARCH_PLACES).filter(k => k in PLACES);
+for (const [k, v] of Object.entries(RESEARCH_PLACES)) if (!(k in PLACES)) PLACES[k] = v;
+
 /* 会社ごとの就航地。
    home     本拠地の空港（一覧には出さない）
    at       公式の資料を確かめた日
@@ -539,6 +695,7 @@ export function check() {
     if (!Array.isArray(v) || v.length !== 4 || v.some(x => !x || typeof x !== 'string')) bad.push(`PLACES.${k}: [都市, 英語, 国, 地域] の4つがそろっていない`);
     else if (!regs.has(v[3])) bad.push(`PLACES.${k}: 地域「${v[3]}」が REGIONS に無い`);
   }
+  for (const k of OVERLAP) bad.push(`RESEARCH_PLACES.${k}: 先行5社の PLACES に在る3字（呼び名は PLACES の1つだけ）`);
   for (const [slug, n] of Object.entries(NETWORK)) {
     const at = `NETWORK.${slug}`;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(n.at)) bad.push(`${at}: 確かめた日が無い`);

@@ -186,10 +186,11 @@ const subOf = ids => ids.filter(id => Q_BY[id].parent).map(id => `${id}:${Q_BY[i
 const MOVED = new Set(['commuting', 'staff_travel']);   // 台帳では待遇に在る公表のうち、勤務・訓練の面に出すもの
 const SURFACES = [
   { id: 'month', name: '月の勤務', icon: IC.clock, gloss: '直近12か月', facts: null, topics: null, adds: [{ topic: 'work', add: '勤務時間を追加' }] },
-  { id: 'roster', name: '勤務予定・休日', icon: IC.work, quiet: true, facts: ['days_off', 'working_time', 'trip_pattern', 'annual_leave', 'annual_leave_fo', 'annual_leave_so', 'sick_leave'], topics: ['roster'], adds: [{ topic: 'roster', add: '希望休の条件を追加', q: 'days_off_request' }] },
+  /* annual_days_off・roster_pattern・training_bond は調べの台帳の置き場（全社へ広げる a2・2026-10-21）── 今の面に出す（面は増やさない） */
+  { id: 'roster', name: '勤務予定・休日', icon: IC.work, quiet: true, facts: ['days_off', 'working_time', 'trip_pattern', 'annual_leave', 'annual_leave_fo', 'annual_leave_so', 'sick_leave', 'annual_days_off', 'roster_pattern'], topics: ['roster'], adds: [{ topic: 'roster', add: '希望休の条件を追加', q: 'days_off_request' }] },
   { id: 'commute', name: '通勤', icon: IC.sheetTaxi, entry: 'login', facts: ['commuting'], topics: ['taxi'], adds: [{ topic: 'taxi', add: '通勤の条件を追加' }] },
   { id: 'travel', name: 'Staff Travel', icon: IC.sheetStaffTravel, entry: 'login', facts: ['staff_travel'], topics: ['staff_travel'], adds: [{ topic: 'staff_travel', add: 'Staff Travel の条件を追加' }] },
-  { id: 'career', name: '昇格・訓練', icon: IC.sheetUpgrade, quiet: true, facts: ['upgrade_years', 'upgrade', 'training_location'], topics: ['upgrade', 'career'], adds: [{ topic: 'upgrade', add: '昇格の条件を追加' }, { topic: 'career', add: '訓練・キャリアの条件を追加' }] },
+  { id: 'career', name: '昇格・訓練', icon: IC.sheetUpgrade, quiet: true, facts: ['upgrade_years', 'upgrade', 'training_location', 'training_bond'], topics: ['upgrade', 'career'], adds: [{ topic: 'upgrade', add: '昇格の条件を追加' }, { topic: 'career', add: '訓練・キャリアの条件を追加' }] },
 ];
 {
   const adds = SURFACES.flatMap(S => S.adds), tp = SURFACES.flatMap(S => S.topics || []), fk = SURFACES.flatMap(S => S.facts || []);

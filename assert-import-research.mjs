@@ -19,6 +19,10 @@
         同じ資料の同じ地区・同じ部屋で額が違えば競合（決まりでは入れない・承認されても入れない）
      A10 test_only のパックはリポジトリへは入らない／plan はリポジトリの中へ書かない／古くなった plan・手で直した plan は断る
      A11 間取りの呼び名の意味（P12.73）：台帳の字が、出どころの言い方の意味と合っている（台北の「1房」を 2-Bed と出せば赤）
+     A12 置き場（a2・2026-10-21）：年金・ロスターの型・訓練費の返還・年間休日・パイロットの拠点の街・本社の国と都市・名前の書かれた
+         空港は、記録 → 台帳 → 会社ページの読み口（researchFacts）の今の欄まで届く（字は airline-display.mjs の表だけ・字の無い行は出ない）。
+         登記上の国は本社にしない・小さな項目は対象不明のまま・家賃の出典の席は出しうる記録だけが取る・
+         足した空港の呼び名は、どれも本物の台帳の就航地の行が書いている名前
    ══════════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -73,7 +77,7 @@ try {
   const FM = path.join(T, 'field-map.csv');
   fs.writeFileSync(FM, ['domain,item,fillable_by_pack,pack_slot,store',
     'pay,cash_y,yes,record,x', 'pay,other,candidate,record,', 'pay,source_entry,yes,sources,x',
-    'work,days_off,yes,record,x', 'work,roster_pattern,candidate,record,', 'benefits,housing,yes,record,x', 'benefits,staff_travel,yes,record,x',
+    'work,days_off,yes,record,x', 'work,roster_pattern,candidate,record,', 'work,training_funding,candidate,record,', 'benefits,housing,yes,record,x', 'benefits,staff_travel,yes,record,x',
     'fleet,<機種の鍵>,yes,record,x', 'jobs,<募集の鍵>,yes,record,x', 'profile,founded,yes,record,x',
     'destinations,operated_airport,yes,record,x', 'destinations,not_operated_airport,yes,record,x',
     'living,rent,yes,record,x', 'living,commute,yes,record,x', 'living,town_candidate,yes,record,x'].join('\n') + '\n');
@@ -104,7 +108,7 @@ try {
     R('founded', 'qantas', 'profile', 'founded', '1920'),                                              // 追加
     R('syd', 'qantas', 'destinations', 'operated_airport', 'BNE'),                                     // 追加（PLACES に在る）
     R('zzz', 'qantas', 'destinations', 'operated_airport', 'ZZQ'),                                     // 対象不明（PLACES に無い）
-    R('roster', 'qantas', 'work', 'roster_pattern', '5日乗務'),                                        // 対象不明（受け取り候補）
+    R('roster', 'qantas', 'work', 'training_funding', '訓練費は会社負担'),                              // 対象不明（受け取り候補。置き場の無い小さな項目 ── roster_pattern は a2 で置き場ができた → A12）
     R('missing', 'qantas', 'benefits', 'housing', null, { r: { missing: { reason: 'not_published' }, value_text: null } }),   // 対象不明（空欄）
     R('notopen', 'qantas', 'benefits', 'housing', '住宅手当あり', { r: { verification: { status: 'not_opened', checked_at: null } } }),   // 根拠不足
     R('noquote', 'qantas', 'jobs', 'fo-a320', 'A320 FO 募集', { r: { evidence: [{ source_id: 'src-a', locator: 'p', quote: '', supports: ['value'] }] } }), // 根拠不足
@@ -125,7 +129,7 @@ try {
     rent('qantas', 'rent-bondi-2', { '2bed': 1300 }, { cond_ja: 'Bondi。英: Bondi。原部屋表記「2 bedroom」。' }),             // 追加（同じ街・同じ地区の別の部屋）
     R('commute', 'qantas', 'living', 'commute', 'Bondi Junction 駅からバスで15分', { r: { applies_to: { base: 'Sydney', pilot_specific: false }, cond_ja: 'BONDÍ。英: Bondí。' } }),   // 既存と一致（地区の字が大文字・アクセントだけ違う）
     /* 上が勝つ：2つの分類に当たる記録（表の境目ごとに1件） */
-    R('tu-weak', 'qantas', 'work', 'roster_pattern', '4日乗務', { r: { verification: { status: 'not_opened', checked_at: null } } }),   // 対象不明 ＞ 根拠不足
+    R('tu-weak', 'qantas', 'work', 'training_funding', '訓練費は本人負担', { r: { verification: { status: 'not_opened', checked_at: null } } }),   // 対象不明 ＞ 根拠不足
     R('cf-weak', 'qantas', 'fleet', 'a380', 10, { r: { unit: '機', verification: { status: 'not_opened', checked_at: null } } }),      // 根拠不足 ＞ 競合
     R('cf-corr', 'qantas', 'benefits', 'housing', '住宅手当なし', { r: { relation: { type: 'corrects', target_record_ids: ['qantas.benefits.notopen'] } } }),   // 競合 ＞ 訂正候補
     rent('qantas', 'cf-twin', { '3bed': 2100 }, { cond_ja: 'Manly。英: Manly。原部屋表記「3 bedroom」。' }),                   // 競合 ＞ 既存と一致（先行の会社でない街の同じ行）
@@ -461,6 +465,100 @@ try {
     const FRESH = scratchRoot('fresh');
     const t = run('apply', TAMPER, '--approved', APPROVED, '--root', FRESH, '--test');
     ok(t.status === 2 && !fs.existsSync(path.join(FRESH, I.STORE_FILE)), '★A10 apply: 手で直した plan（指紋が合わない）は断る', t.stdout + t.stderr);
+  }
+
+  /* ── A12 置き場（全社へ広げる a2・2026-10-21）：記録 → 台帳 → 会社ページの読み口 ──
+     年金・ロスターの型・訓練費の返還・年間休日・パイロットの拠点の街・本社の国と都市・名前の書かれた空港は、置き場に入り、
+     読み口（airline-rollout.mjs の researchFacts）がページの今の欄（待遇・勤務・拠点・会社）で読む。字は airline-display.mjs の表だけ。
+     登記上の国は本社ではない・小さな項目は今までどおり対象不明。家賃の出典の席は、出しうる記録だけが取る（保留の記録は取らない）。 */
+  {
+    const { researchFacts } = await import(pathToFileURL(path.join(HERE, 'airline-rollout.mjs')).href);
+    const { RESEARCH_PLACES } = await import(pathToFileURL(path.join(HERE, 'airline-destinations.mjs')).href);
+    const at = { item_is_new: true };
+    const PL = PACK('pvr-test-places', 1, [
+      R('pension', 'air-canada', 'benefits', 'pension', '確定給付年金あり'),
+      R('roster-placed', 'air-canada', 'work', 'roster_pattern', '固定のローテーション'),
+      R('bond', 'air-canada', 'work', 'training_bond', 3, { r: { unit: 'years', value_text: '3' } }),
+      R('days-off-y', 'air-canada', 'work', 'annual_days_off', 120, { r: { ...at, unit: '日', per: 'year', value_text: '120' } }),
+      R('days-off-n', 'air-canada', 'work', 'annual_days_off', 110, { r: { ...at, unit: '日', value_text: '110' } }),       // 期間が言えない数は出さない
+      R('base-city', 'air-canada', 'base', 'pilot_base_city', 'Montréal', { r: at }),
+      R('hq-country', 'air-canada', 'profile', 'headquarters_country', 'CANADA', { r: at }),
+      R('hq-city', 'air-canada', 'profile', 'headquarters_city', 'Montréal', { r: at }),
+      R('reg-office', 'air-canada', 'profile', 'registered_office_country', 'Canada', { r: at }),                           // 登記上の国は本社ではない
+      R('minor', 'air-canada', 'work', 'collective_agreement', '協約あり', { r: at }),                                       // 小さな項目（置き場なし）
+      R('yhz', 'air-canada', 'destinations', 'operated_airport', 'YHZ', { r: { label_ja: '公表運航先空港：Halifax', cond_ja: '英: Halifax。テスト。' } }),
+      R('hq-only', 'porter', 'profile', 'headquarters_country', 'Canada', { r: at }),
+      R('rent-hold', 'air-canada', 'living', 'rent', { '1bed': 1500 }, { src: 'src-rent', r: { currency: 'CAD', per: 'month', value_text: { '1bed': '$1,500' },
+        info_kind: 'published_statistic', cond_ja: 'Downtown。英: Downtown。原部屋表記「1 bedroom」。', applies_to: { base: 'Halifax', pilot_specific: false },
+        amount: { kind: 'other', stat: 'median', tax: 'unknown', includes: [], excludes: [], unclear: [] } } }),             // 保留（出典の席を取らない）
+      R('rent-shown', 'air-canada', 'living', 'rent', { '2bed': 2000 }, { src: 'src-rent2', r: { currency: 'CAD', per: 'month', value_text: { '2bed': '$2,000' },
+        info_kind: 'published_statistic', cond_ja: 'Downtown。英: Downtown。原部屋表記「2 bedroom」。', applies_to: { base: 'Halifax', pilot_specific: false },
+        amount: { kind: 'other', stat: 'median', tax: 'unknown', includes: [], excludes: [], unclear: [] } } }),             // 追加（保留の記録が先でも競合にしない）
+      R('rent-third', 'air-canada', 'living', 'rent', { '3bed': 2500 }, { src: 'src-rent', r: { currency: 'CAD', per: 'month', value_text: { '3bed': '$2,500' },
+        info_kind: 'published_statistic', cond_ja: 'Downtown。英: Downtown。原部屋表記「3 bedroom」。', applies_to: { base: 'Halifax', pilot_specific: false },
+        amount: { kind: 'other', stat: 'median', tax: 'unknown', includes: [], excludes: [], unclear: [] } } }),             // 競合（出しうる記録どうしで2つめの出典）
+    ]);
+    PL.sources.push(SRC('src-rent2', { url: 'https://rent-two.invalid/halifax', source_type: 'third_party_reference', publisher_kind: 'portal' }));
+    const PD3 = path.join(T, 'packs-places'); fs.mkdirSync(PD3);
+    fs.writeFileSync(path.join(PD3, `${PL.pack_id}.json`), JSON.stringify(PL, null, 1));
+    const DEC3 = path.join(T, 'decisions-places.json');
+    fs.writeFileSync(DEC3, JSON.stringify(PL.records.map(r => ({ record_id: r.record_id, publication_class: r.record_id === 'air-canada.living.rent-hold' ? 'hold' : 'context_with_conditions' }))));
+    const ROOT3 = scratchRoot('root-places'), OUT3 = path.join(T, 'plan-places');
+    const pl3 = run('plan', PD3, '--validator', STUB, '--fieldmap', FM, '--decisions', DEC3, '--root', ROOT3, '--out', OUT3, '--test', '--today', '2026-10-21');
+    const P3 = pl3.status === 0 ? JSON.parse(fs.readFileSync(path.join(OUT3, 'import-plan.json'), 'utf8')) : { records: [] };
+    const r3 = id => P3.records.find(x => x.id === (id.startsWith('porter.') ? id : `air-canada.${id}`)) || {};
+    const placed = { 'benefits.pension': 'FACTS.air-canada.benefits', 'work.roster-placed': 'FACTS.air-canada.work', 'work.bond': 'FACTS.air-canada.work',
+      'work.days-off-y': 'FACTS.air-canada.work', 'base.base-city': 'FACTS.air-canada.base', 'profile.hq-country': 'FACTS.air-canada.profile',
+      'profile.hq-city': 'FACTS.air-canada.profile', 'destinations.yhz': 'NETWORK.air-canada.list', 'porter.profile.hq-only': 'FACTS.porter.profile' };
+    const badPlace = Object.entries(placed).filter(([id, t]) => { const x = r3(id); return x.cat !== 'addition' || x.target !== t || !x.auto; });
+    ok(pl3.status === 0 && !badPlace.length, `★A12 plan: 年金・ロスターの型・訓練費の返還・年間休日・拠点の街・本社の国と都市・名前の書かれた空港は置き場に入る（追加・決まりで入れてよい）`,
+      pl3.stderr + badPlace.map(([id, t]) => `${id}: ${r3(id).cat} ${r3(id).target}（期待 ${t}）`).join(' ／ '));
+    ok(r3('profile.reg-office').cat === 'target_unknown' && r3('work.minor').cat === 'target_unknown' && !Object.keys(I.PLACED).some(k => /registered_office/.test(k)),
+      '★A12 plan: 登記上の国（registered_office_country）は本社ではない・小さな項目（collective_agreement）は今までどおり対象不明', JSON.stringify([r3('profile.reg-office').why, r3('work.minor').why]));
+    ok(r3('living.rent-hold').cat === 'addition' && !r3('living.rent-hold').auto && r3('living.rent-shown').cat === 'addition' && r3('living.rent-shown').auto
+       && r3('living.rent-third').cat === 'conflict' && /2つめの家賃の出どころ/.test((r3('living.rent-third').why || []).join('')),
+      '★A12 plan: 家賃の出典の席は出しうる記録だけが取る（先に来た保留の記録が、あとの記録を「2つめの出典」にしない）・出しうる記録どうしなら今までどおり競合',
+      JSON.stringify(['rent-hold', 'rent-shown', 'rent-third'].map(k => [k, r3(`living.${k}`).cat, r3(`living.${k}`).auto, r3(`living.${k}`).why])));
+    const a12 = run('apply', path.join(OUT3, 'import-plan.json'), '--approved', path.join(OUT3, 'auto-approved.txt'), '--root', ROOT3, '--test');
+    const S12 = I.readStore(ROOT3).store, J12 = JSON.stringify(S12);
+    const has = (sec, k, id) => ((S12.FACTS['air-canada'] || {})[sec] || []).some(e => e.id === `air-canada.${sec}.${id}` && e.key === k);
+    ok(a12.status === 0 && has('benefits', 'pension', 'pension') && has('work', 'roster_pattern', 'roster-placed') && has('work', 'training_bond', 'bond')
+       && has('work', 'annual_days_off', 'days-off-y') && has('base', 'pilot_base_city', 'base-city') && has('profile', 'headquarters_country', 'hq-country')
+       && has('profile', 'headquarters_city', 'hq-city') && (S12.NETWORK['air-canada']?.list || []).some(e => e.value === 'YHZ')
+       && !J12.includes('reg-office') && !J12.includes('air-canada.work.minor') && !J12.includes('rent-hold') && !J12.includes('rent-third'),
+      '★A12 apply: 新しい置き場の行が台帳に入る（登記上の国・小さな項目・保留・競合は入らない）', a12.stdout.slice(-400) + a12.stderr);
+    const a12b = run('apply', path.join(OUT3, 'import-plan.json'), '--approved', path.join(OUT3, 'auto-approved.txt'), '--root', ROOT3, '--test');
+    ok(a12b.status === 0 && /✓ 変更なし/.test(a12b.stdout), '★A12 apply: 新しい置き場も2回流して同じ（「✓ 変更なし」）', a12b.stdout.slice(-200));
+    /* 読み口（会社ページが読む形）── 写しの台帳を渡して読む */
+    const RF = researchFacts('air-canada', S12), RP = researchFacts('porter', S12);
+    const heldAt = (id, sec) => RF.held.some(h => h.id === `air-canada.${id}` && h.sec === sec && /画面の言い方がまだ無い/.test(h.why));
+    const work = RF.work.find(f => f.id === 'air-canada.work.days-off-y');
+    ok(heldAt('benefits.pension', 'benefits') && heldAt('work.roster-placed', 'work') && heldAt('work.bond', 'work') && heldAt('work.days-off-n', 'work')
+       && !!work && work.ja === '休日' && work.value === '年120日' && !RF.work.some(f => f.id === 'air-canada.work.days-off-n'),
+      '★A12 読み口: 年金は待遇の欄・ロスターの型と訓練費の返還は勤務の欄で読まれ、字が無いあいだは出ない／年間休日は勤務の欄に「休日 年120日」（期間の言えない数は出さない）',
+      JSON.stringify({ work: RF.work.map(f => [f.id, f.ja, f.value]), held: RF.held }));
+    const hq = RF.profile.filter(f => /^headquarters_/.test(f.key));
+    ok(!!RF.base && RF.base.city === 'モントリオール' && !RF.base.iata.length && hq.length === 1 && hq[0].ja === '本社' && hq[0].value === 'モントリオール'
+       && RF.held.some(h => h.id === 'air-canada.profile.hq-country' && /本社は1行だけ/.test(h.why))
+       && RP.profile.some(f => f.key === 'headquarters_country' && f.ja === '本社' && f.value === 'カナダ'),
+      '★A12 読み口: 拠点の空港の行が無い会社の拠点はパイロットの拠点の街（サイトの街の表の字「モントリオール」・空港の3字は作らない）／本社は会社の欄に1行（都市が在れば都市・無ければ国「カナダ」）',
+      JSON.stringify({ base: RF.base, profile: RF.profile.map(f => [f.key, f.ja, f.value]), porter: RP.profile.map(f => [f.key, f.ja, f.value]) }));
+    /* 空港の呼び名：足した空港は、どれも調べの台帳（本物）の就航地の行がその名前を書いている（街を当て推量で埋めない） */
+    const store = I.readStore(HERE).store, fold = s => String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+    const textOf = new Map();
+    for (const N of Object.values(store.NETWORK || {})) for (const k of ['list', 'held']) for (const e of N[k] || []) {
+      const t = [e.label_ja, e.cond_ja, e.value_text, ...(e.evidence || []).map(v => v.quote)].join(' ');
+      textOf.set(e.value, `${textOf.get(e.value) || ''} ${t}`);
+    }
+    const unnamed = Object.entries(RESEARCH_PLACES).filter(([c, [ja, en]]) => {
+      const t = textOf.get(c);
+      if (!t) return true;
+      const words = String(en).normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+      return !(words.every(w => fold(t).includes(w)) || t.includes(ja.replace(/（.*$/, '')));
+    });
+    ok(Object.keys(RESEARCH_PLACES).length > 0 && !unnamed.length,
+      `★A12 空港の呼び名（RESEARCH_PLACES ${Object.keys(RESEARCH_PLACES).length}空港）は、どれも調べの台帳の就航地の行が書いている名前（行の無い空港・名前の違う空港を足さない）`,
+      unnamed.slice(0, 6).map(([c, v]) => `${c} ${v[1]}（${textOf.get(c) ? '行の字に無い' : '台帳に行が無い'}）`).join(' ／ '));
   }
 
   /* verify（作り物を入れた取り込みの台帳）*/

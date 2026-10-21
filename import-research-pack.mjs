@@ -291,6 +291,27 @@ function fieldRow(fm, r) {
 }
 
 /**
+ * 取り込みの台帳に置き場を作った項目（全社へ広げる a2・2026-10-21 リード P12.83）。鍵は「分野|項目」・値は置き場（会社ページの今の欄）。
+ * 決まりの一式の field-map.csv では「受け取り候補」（pension・roster_pattern・training_bond）か、表に無い新しい項目
+ * （pilot_base_city・headquarters_country・headquarters_city・annual_days_off ── item_is_new で届く）だった。ROUND4 で多くの会社に
+ * 届いたので、ほかの項目と同じ決まり（使い方・引用と URL・2回流しても同じ）で FACTS.<会社>.<分野> に入れる。
+ * 画面の字は airline-display.mjs の言い方の表だけ（言い方の無い行は「画面の言い方がまだ無い」として出ない）。
+ * ⚠️ field-map.csv（リポジトリの外の決まりの一式）には書き足さない：表に在る項目に item_is_new を付けたパックは、決まりの検査
+ *    （validate_pack.py）がエラーにする ── 届いている ROUND4 のパックが1件も入らなくなる。次に決まりの一式を出し直すときに、この表を写す。
+ * ⚠️ registered_office_country（登記上の国）は本社ではない。ここへ足さない・本社の国と混ぜない。
+ * ⚠️ ここに無い項目（小さな項目 278種類）は今までどおり「対象不明」（置き場を作るかは別に決める）。
+ */
+export const PLACED = Object.freeze({
+  'benefits|pension': '待遇',
+  'work|roster_pattern': '勤務',
+  'work|training_bond': '勤務',
+  'work|annual_days_off': '勤務',
+  'base|pilot_base_city': '拠点',
+  'profile|headquarters_country': '会社',
+  'profile|headquarters_city': '会社',
+});
+
+/**
  * 拠点の書き方が違うだけで同じ街（決めた人と日付を添える）。左の鍵で届いた記録は右の街に入る。
  *   dallas-fort-worth → dallas：アメリカン航空の「Dallas/Fort Worth」の家賃は、フロンティア航空・サウスウエスト航空の
  *   「Dallas」と同じ資料（RentCafe のダラス市）・4部屋とも同じ額だった（2026-10-20 リードが決めた。家賃はダラス市のもの）。
@@ -490,7 +511,7 @@ export function classify(packs, L, store, fm, opts = {}) {
       setCat('format_error', `パックでは書けない分野（${r.domain}）`);
 
     /* 2 対象不明（置き場） */
-    const row = fieldRow(fm, r);
+    const row = fieldRow(fm, r), placed = PLACED[`${r.domain}|${r.item}`];
     if (!master.has(company)) setCat('target_unknown', '会社が一覧に無い');
     else if (r.domain === 'pay' && !L.SALARY[company]) setCat('target_unknown', '年収の台帳に無い会社');
     if ((r.relation || {}).type === 'retracts') {
@@ -499,8 +520,8 @@ export function classify(packs, L, store, fm, opts = {}) {
     }
     else if (r.value === null || r.value === undefined) setCat('target_unknown', `値が無い記録（${(r.missing || {}).reason || '理由なし'}）── 空欄のまま・今の値を消さない`);
     else if (r.domain === 'pay') target = `SOURCES.${company}`;
-    else if (r.item_is_new) setCat('target_unknown', `新しい項目（${r.item}）── 置き場がまだ無い`);
-    else if (!row || row.fillable_by_pack !== 'yes') setCat('target_unknown', `項目「${r.item}」は${row ? '受け取り候補（置き場がまだ無い）' : 'field-map に無い'}`);
+    else if (r.item_is_new && !placed) setCat('target_unknown', `新しい項目（${r.item}）── 置き場がまだ無い`);
+    else if (!placed && (!row || row.fillable_by_pack !== 'yes')) setCat('target_unknown', `項目「${r.item}」は${row ? '受け取り候補（置き場がまだ無い）' : 'field-map に無い'}`);
     else if (FACT_DOMAINS.includes(r.domain)) target = `FACTS.${company}.${r.domain}`;
     else if (r.domain === 'destinations') {
       const code = typeof r.value === 'string' ? r.value : '';
@@ -576,7 +597,10 @@ export function classify(packs, L, store, fm, opts = {}) {
       const hand = city === 'abudhabi' || L.LIVING[city];
       if (hand && changedLedgers.has('living-facts.mjs')) setCat('conflict', `街「${city}」は先行の会社の台帳に在り、調べのあいだに台帳が変わっている（黙って足さない）`);
       else if (hand) setCat('conflict', `街「${city}」は先行の会社の台帳に在る（出どころ・地区の選び方が違う）`);
-      if (r.item === 'rent') {
+      /* 1つの街に家賃の出典は1つ ── 比べるのは画面に出しうる記録どうしだけ（保留・空欄・未指定の記録は出典の席を取らない）。
+         2026-10-21（a2）：空港の呼び名を足すと、日本語の拠点名（「ベルリン」）の記録も街が決まるようになり、保留の記録が先に席を取って、
+         取り込み済みの記録（Eurostat のベルリン）を「2つめの出典」として競合にしていた。 */
+      if (r.item === 'rent' && !['保留', '空欄', '未指定'].includes(use)) {
         const host = (evSrc[0] && evSrc[0].url ? String(evSrc[0].url).replace(/^https?:\/\/([^/]+).*$/, '$1') : '');
         if (!citySite.has(city)) citySite.set(city, host);
         else if (citySite.get(city) !== host) setCat('conflict', `同じ街に2つめの家賃の出どころ（${citySite.get(city)} と ${host}）── 1つの街に出典は1つ`);

@@ -29,6 +29,7 @@
         （本拠地は入れない。拠点のほかに残らなければ一覧を置かず今までの字）・機材は型式だけ（数を作らない）・
         暮らしの街は拠点の順で、移動の行・欄の見出しと「街を追加」の面の空港はその会社の拠点の空港だけ（ほかの空港を出さない）・家賃の無い街は今までの字・
         乗員全体の平均の話をしている年収の根拠の注を出さない（P12.77）・
+        台帳の本社・年間休日の行（a2 の置き場）は字の表の字で会社の欄・勤務の欄に出る（本社は1行）・
         「よくある質問」と FAQPage が在る
    使い方: node assert-rollout.mjs
    ═══════════════════════════════════════════════════════════════════ */
@@ -159,6 +160,15 @@ const V = Object.fromEntries(OTHER.map(s => [s, viewOf(s)]));
 /* 調べた側の値の文として見るのは、8字以上で空白か日本語を含む文だけ（「A330」「open」「Singapore」のような1語は、ほかの字と区別できない） */
 const RESEARCHER = r => [r.label_ja, r.cond_ja, typeof r.value === 'string' && r.value.length >= 8 && /[\s\u3000-\u9fff]/.test(r.value)
   && !/^\d{4}年\d{1,2}月(?:\d{1,2}日)?$/.test(r.value) ? r.value : ''].filter(t => typeof t === 'string' && t.length > 3);
+/* ページの字の中に、調べた側の字が在るか。英字で始まる・終わる字は、その端を語の切れ目で見る（2026-10-21 a2）──
+   本社の国の値「South Africa」を、同じページの会社の英語名・資料の発行元「South African Airways」の中に数えない。
+   画面に値がそのまま出ていれば（「本社 South Africa」）、前後は空白か記号なので今までどおり赤い。日本語の字は今までどおり部分一致。 */
+const LAT = 'A-Za-z0-9\\u00C0-\\u024F';
+const hasText = (hay, t) => {
+  const e = t.replace(/[.*+?^${}()|[\]\\]/g, c => '\\' + c);
+  const edge = ch => new RegExp(`[${LAT}]`).test(ch);
+  return new RegExp(`${edge(t[0]) ? `(?<![${LAT}])` : ''}${e}${edge(t[t.length - 1]) ? `(?![${LAT}])` : ''}`).test(hay);
+};
 /* ページの字（タグを外す ＝ 属性の中の字を数えない） */
 const textOf = h => h.replace(/<[^>]*>/g, ' ').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 {
@@ -250,7 +260,7 @@ try {
     ok(/<!--PV-HERO-->/.test(b) && g && /data-pv-glance="1"/.test(b) && /id="pvg-tabs"/.test(b), `D ${s}: 新しい会社ページの塊とタブが在る`);
     ok(/<div class="pvg-name">\n<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span><h1>/.test(block(b, 'PV-HERO')), `D ${s}: 社名（h1）のすぐ左にロゴの札`);
     {
-      const gt = textOf(g), rs = rowsOf(s).filter(r => !why(r)), seen = rs.flatMap(r => RESEARCHER(r).filter(t => gt.includes(t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
+      const gt = textOf(g), rs = rowsOf(s).filter(r => !why(r)), seen = rs.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
       ok(!seen.length, `D ${s}: 新しい部品の字に、調べた側の字（label_ja・cond_ja・調べた側の値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
       const v = viewOf(s), pr = [...v.work, ...v.benefits, ...v.jobs, ...v.company.profile, ...v.company.scale].filter(f => f.use === '過去' || f.use === '参考');
       const untagged = pr.filter(f => !g.includes(`${htmlEsc(f.label)}${f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : ''}<span class="pvg-tag pvg-tag-q" data-use="${f.use}">${f.use}</span>`));
@@ -373,12 +383,13 @@ try {
 /* ═══ E) リポジトリで切り替えた見本の会社（SAMPLES）のページそのもの ═══
    どれも「画面に出る字・数・言い分が本当か」（RULING O の A(3)）。写しではなく、リポジトリのページを読むだけ。 */
 const dateJa = iso => String(iso).replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
+const A2N = { hq: 0, days: 0 };
 for (const s of SAMPLES) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);
   /* L1：調べた側の字が新しい部品に無い（会社の事実・就航地・暮らしの街の行ぜんぶ） */
   const R2 = research(), cities = (R2.CITY_OF || {})[s] || [];
   const all = [...rowsOf(s), ...(((R2.NETWORK || {})[s] || {}).list || []), ...cities.flatMap(c => ['rents', 'commute'].flatMap(k => ((R2.LIVING || {})[c] || {})[k] || []))];
-  const gt = textOf(g), seen = all.flatMap(r => RESEARCHER(r).filter(t => gt.includes(t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
+  const gt = textOf(g), seen = all.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
   ok(all.length >= 5 && !seen.length, `E ${s}: 新しい部品の字に、調べた側の字（台帳の ${all.length}行の label_ja・cond_ja・値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
   const big = [...g.matchAll(/<p class="pvg-big">([^<]*)<\/p>/g)].map(m => m[1]);
   ok(same(big, ['cap', 'fo'].map(r => `¥${SALARY[s][r].avg.toLocaleString('en-US')}万`)), `E ${s}: 推定年収は SALARY の avg（機長・副操縦士）`, big.join(' ／ '));
@@ -414,6 +425,23 @@ for (const s of SAMPLES) {
   } else {
     ok(!net && st.includes('就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。') && !codes.length && !/調べで確かめた就航地|会社全体の就航地|公式の就航地/.test(st),
       `E ${s}: 拠点のほかに就航地が無い（台帳の ${fromLedger.length}空港はどれも拠点）── 一覧を置かず、今までの「…確認してから開きます。」`, `読み口 ${net ? net.list.map(d => d.iata).join(',') : 'null'} ／ 一覧 ${codes.join(',')}`);
+  }
+  /* a2 の置き場（2026-10-21）：台帳の本社・年間休日の行は、字の表（airline-display.mjs の say）の字で、会社の欄・勤務の欄に出る。
+     見る行は台帳から数える（読み口を使わない）：why を通り・字が在り・資料の住所が在り、本社は会社か政府の資料・年間休日は会社の資料の条件つき。
+     本社は1行だけ（都市の行が在れば都市・無ければ国）。 */
+  {
+    const F = (R2.FACTS || {})[s] || {}, okRow = r => !why(r) && !!say(r) && /^https:\/\//.test(((r.src || [])[0] || {}).url || '');
+    const co = (g.match(/<article class="pvg-card pvg-co[\s\S]*?<\/article>/) || [''])[0];
+    const workHtml = cellOf2(g, 'work') + (g.match(/<div class="pvg-card pvg-panel" id="pvg-p-work"[\s\S]*?<\/div>\n<article/) || [''])[0];
+    const hqRows = (F.profile || []).filter(r => /^headquarters_/.test(r.key) && okRow(r) && ['airline', 'government'].includes(r.src[0].publisher_kind));
+    const hqWant = hqRows.find(r => r.key === 'headquarters_city') || hqRows[0];
+    const dayRows = (F.work || []).filter(r => r.key === 'annual_days_off' && okRow(r) && r.src[0].publisher_kind === 'airline' && r.use === '条件つき');
+    const miss = [];
+    if (hqWant && !co.includes(`<dt>本社</dt><dd>${htmlEsc(say(hqWant).value)}</dd>`)) miss.push(`会社の欄に「本社 ${say(hqWant).value}」が無い`);
+    if ((co.match(/<dt>本社<\/dt>/g) || []).length !== (hqWant ? 1 : 0)) miss.push(`会社の欄の「本社」が ${(co.match(/<dt>本社<\/dt>/g) || []).length}行`);
+    for (const r of dayRows) if (!/<p class="pvg-k">休日<\/p>|<dt>休日/.test(workHtml) || !workHtml.includes(htmlEsc(say(r).value))) miss.push(`勤務の欄に「休日 ${say(r).value}」が無い`);
+    A2N.hq += hqRows.length; A2N.days += dayRows.length;
+    ok(!miss.length, `E ${s}: a2 の置き場の行（本社 ${hqRows.length}行・年間休日 ${dayRows.length}行）は、字の表の字で会社の欄・勤務の欄に出る（本社は1行）`, miss.join(' ／ '));
   }
   /* 機材：型式だけ（数を作らない・型式の数を「◯機種」と言わない） */
   const fl = (g.match(/<div class="pvg-fleet">[\s\S]*?<\/ul><\/div>/) || [''])[0], chips = (fl.match(/<li /g) || []).length;
@@ -452,6 +480,7 @@ for (const s of SAMPLES) {
   ok(/<article class="pvg-card pvg-co pvg-co-np"/.test(g), `E ${s}: 写真の無い会社の1枚が在る（L7）`);
   ok(/<h2\b[^>]*>[^<]*よくある質問/.test(b) && /"FAQPage"/.test(b), `E ${s}: 「よくある質問」の節と FAQPage が残っている`);
 }
+ok(A2N.hq >= 1 && A2N.days >= 1, `E 見本の会社に、a2 の置き場の行が在る（本社 ${A2N.hq}行・年間休日 ${A2N.days}行 ── 上の段が空振りしない）`);
 /* A 年収の図（トップ・会社一覧）の会社選びに、機種の段が当てはまらない運航会社を出さない（2026-10-21 roll-c 点検 T5）。
    airlines-meta.js の type が charter / agent / bizjet の会社は、図が R・N・W の段を描くと事実と違う。 */
 {

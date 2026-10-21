@@ -111,17 +111,20 @@ function asFact(r) {
 /**
  * 先行5社ではない会社の「会社の事実」（調べの台帳から）。
  *   base     … 拠点の空港（3字）と街。使い方が 条件つき・募集 で、会社か政府の資料の行だけ。
+ *              拠点の空港の行が無い会社は、パイロットの拠点の街の行（pilot_base_city。字は airline-display.mjs の街の表）の街（2026-10-21 a2）。
  *   work / benefits / jobs / profile / scale … 画面の部品が読む事実の形の並び（lead は字の表が決めた「条件つき」の行か、
  *              無ければ最初の「条件つき」の1行だけ）。過去・参考の行は札つき（tag）で並び、lead にならない
+ *              年金（pension）は待遇・ロスターの型・訓練費の返還・年間休日は勤務・本社（国か都市）は会社の欄（a2。言い方の無い行は出ない）
  *   fleet    … 機材の型式（条件つきの行だけ・機数は持たない）
- *   held     … 出さなかった行と、その理由（--status が数える）
+ *   held     … 出さなかった行と、その理由と、置き場（sec ＝ 台帳の分野。--status が数える）
+ *   R        … 調べの台帳（既定はリポジトリの research-ledger.mjs。検査が写しの台帳を渡す）
  */
-export function researchFacts(slug) {
-  const F = (research().FACTS || {})[slug] || {};
+export function researchFacts(slug, R = research()) {
+  const F = (R.FACTS || {})[slug] || {};
   const out = { base: null, work: [], benefits: [], jobs: [], profile: [], scale: [], fleet: [], held: [] };
-  const hold = (r, w) => out.held.push({ id: r.id, why: w });
-  const iata = [], baseRows = [];
+  const iata = [], baseRows = [], cities = [], cityRows = [];
   for (const [sec, rows] of Object.entries(F)) {
+    const hold = (r, w) => out.held.push({ id: r.id, why: w, sec });
     for (const r of rows || []) {
       const w = why(r);
       if (w) { hold(r, w); continue; }
@@ -137,6 +140,7 @@ export function researchFacts(slug) {
       if (sec === 'base') {
         if (!['条件つき', '募集'].includes(r.use)) { hold(r, `拠点に「${r.use}」の行は使わない`); continue; }
         if (!['company', 'gov'].includes(f.src.kind)) { hold(r, '拠点は会社か政府の資料の行だけ'); continue; }
+        if (r.key === 'pilot_base_city') { if (!cities.includes(f.value)) cities.push(f.value); cityRows.push([r, f]); continue; }
         if (!/^[A-Z]{3}$/.test(String(r.value))) { hold(r, '拠点の値が空港の3字ではない'); continue; }
         if (!iata.includes(r.value)) iata.push(r.value);
         baseRows.push(f);
@@ -160,12 +164,25 @@ export function researchFacts(slug) {
     const first = (said[0] && said[0].use === '条件つき' ? said[0] : null) || out[k].find(f => f.use === '条件つき');
     if (first && (k === 'work' || k === 'benefits')) first.lead = true;
   }
+  /* 本社は1行だけ（会社の欄）：都市が言えれば都市（国は重ねない）・無ければ国。同じ項目が2行あれば最初の1行（並びは上の順）。 */
+  const HQ = ['headquarters_city', 'headquarters_country'];
+  const hq = HQ.map(k => out.profile.find(f => f.key === k)).find(Boolean);
+  out.profile = out.profile.filter(f => {
+    if (!HQ.includes(f.key) || f === hq) return true;
+    out.held.push({ id: f.id, why: '本社は1行だけ（都市が在れば都市・無ければ国）', sec: 'profile' });
+    return false;
+  });
   if (iata.length) {
     const city = new Set(iata.map(c => (PLACES[c] || [])[0] || '')), land = new Set(iata.map(c => (PLACES[c] || [])[2] || ''));
     out.base = {
       iata, city: city.size === 1 ? [...city][0] : '', country: land.size === 1 ? [...land][0] : '',
       rows: baseRows,
     };
+    /* 拠点の空港の行が在る会社の街は、空港から（街の行は重ねない） */
+    for (const [r] of cityRows) out.held.push({ id: r.id, why: '拠点の空港の行が在る（街は空港の呼び名から）', sec: 'base' });
+  } else if (cities.length) {
+    /* 拠点の空港の行が無い会社：パイロットの拠点の街（字はサイトの街の表）。空港の3字は作らない（どの空港かは行が言っていない） */
+    out.base = { iata: [], city: cities.join('・'), country: '', rows: cityRows.map(([, f]) => f) };
   }
   return out;
 }

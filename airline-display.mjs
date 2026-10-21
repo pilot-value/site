@@ -22,17 +22,29 @@
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PLACES } from './airline-destinations.mjs';
+import { COUNTRIES } from './airline-countries.mjs';
 
 /* 使い方の札。条件つき・募集は札なし（募集は募集の1枚に置くこと自体が言い方）。 */
 export const TAG = Object.freeze({ 過去: '過去', 参考: '参考' });
 
 /* ── 項目ごとの言い方（ITEM）──────────────────────────────────────
    label … 画面の名前（先行5社の台帳と同じ言葉を使う）
-   say   … 'count'（数＋単位）／'money'（通貨つきの額）／'date'（日付）。これ以外の形の値は、この表では言わない（LINES が要る） */
+   say   … 'count'（数＋単位）／'money'（通貨つきの額）／'date'（日付）／'iata'（空港の3字）／
+           'country'（国 ── サイトの国の表 airline-countries.mjs の COUNTRIES の名前だけ）／
+           'city'（街 ── 空港の呼び名の表 airline-destinations.mjs の PLACES の街の名前だけ）。
+           これ以外の形の値は、この表では言わない（LINES が要る）。国・街の字は調べた側の字ではなく、サイトの表の字
+   per   … true ＝ 期間（年・月）が言えない行は言わない（「休日 123日」のように、何日あたりか分からない数を出さない）
+   ★年金（pension）・ロスターの型（roster_pattern）・訓練費の返還（training_bond）は、ここに置かない（2026-10-21 a2）── 値は
+     調べた側が書いた文か、誰の・何に対する率かが欄だけでは言えない数。行ごとの字（LINES）ができるまで画面に出ない。 */
 export const ITEM = Object.freeze({
   annual_leave: { label: '年次休暇', say: 'count' },
   sick_leave: { label: '有給の病気休暇', say: 'count' },
   days_off: { label: '休日', say: 'count' },
+  annual_days_off: { label: '休日', say: 'count', per: true },
+  headquarters_country: { label: '本社', say: 'country' },
+  headquarters_city: { label: '本社', say: 'city' },
+  pilot_base_city: { label: '拠点', say: 'city' },
   working_time: { label: '勤務時間', say: 'count' },
   medical: { label: '医療の補助', say: 'money' },
   commuting: { label: '通勤の補助', say: 'money' },
@@ -77,6 +89,8 @@ export const LINES = Object.freeze({
   'skymark.benefits.missing-commuting': { h: 'ec79978e22358264', label: '通勤', value: '公共交通か車。早朝・深夜などはタクシーを使える', cond: '経験者の機長候補の募集要項' },
   'skymark.benefits.missing-medical': { h: '17a9a4b06151cd60', label: '保険', value: '社会保険・健康保険組合・団体長期障害所得補償保険', cond: '経験者の機長候補の募集要項' },
   'skymark.jobs.cont-cadet-start': { h: '50fc5c46f7e86d6f', label: '自社養成の入社予定日', value: '2027年4月1日（または会社が指定する時期）', cond: '予定' },
+  /* 2026-10-21 a2：年間休日の行（値の字は ITEM の言い方「年123日」・誰の条件かを1行） */
+  'skymark.work.pub-experienced-days-off': { h: 'cf622b302915dfeb', label: '休日', cond: '経験者の機長候補の募集要項' },
   'skymark.work.cadet-hours': { h: '2873589c181b47d4', label: '訓練生の勤務時間', value: '週平均37.5時間以内（1か月単位の変形労働時間制）', cond: '自社養成パイロット訓練生の募集要項' },
   'skymark.fleet.missing-fleet-types': { h: 'b9931e917624f38f', fleet: 'ボーイング 737-800' },
   'skymark.fleet.pub-fleet-b737-8': { h: 'b930b2ada55bf942', fleet: 'ボーイング 737-8' },
@@ -90,6 +104,7 @@ export const LINES = Object.freeze({
 /* ── 資料の名前（出どころのリンクの字）── 資料の ID ごと。資料自身の題は「」の中（資料の言葉）。 */
 export const SOURCES = Object.freeze({
   'src-qantas-about': 'カンタス航空「About us」',
+  'src-qantas-resume-constitution-hq': 'カンタス航空「Qantas Constitution」（定款）',
   'src-qantas-pub-a321xlr-fleet': 'カンタス航空「Airbus A321XLR」（機材の紹介）',
   'src-qantas-pub-a330-200-fleet': 'カンタス航空「Airbus A330」（機材の紹介）',
   'src-qantas-pub-b737-800-fleet': 'カンタス航空「Boeing 737」（機材の紹介）',
@@ -112,7 +127,8 @@ export const SOURCES = Object.freeze({
 /* ── 就航地（NET）── 調べで確かめた就航地の一覧（会社全体の就航地とは限らない）。
    basis … 何の一覧か（出典の「条件」に出す1行）。h … まとめた行ぜんぶの指紋（digest）。 */
 export const NET = Object.freeze({
-  skymark: { h: 'fcff7b659fe42d55', basis: '2026年夏ダイヤ（6月1日〜10月24日）の時刻表で、スカイマークが自社便を飛ばしている空港。拠点の空港は入れていません。' },
+  /* 2026-10-21 a2：茨城（IBR）・下地島（SHI）の行が入った（空港の呼び名を足したため）── どちらも同じ夏ダイヤの時刻表の行。basis はそのまま正しい */
+  skymark: { h: '4862cf7b58b503ef', basis: '2026年夏ダイヤ（6月1日〜10月24日）の時刻表で、スカイマークが自社便を飛ばしている空港。拠点の空港は入れていません。' },
   /* ⚠️ いまの台帳の行は SYD の1つだけで、SYD はカンタスの拠点（本拠地は一覧に入れない）── 画面には就航地の一覧が出ない（2026-10-21）。 */
   qantas: { h: '965d1d7ace2efd6f', basis: 'カンタス航空の機材の紹介（A321XLR）に行き先として載っている空港' },
 });
@@ -144,12 +160,50 @@ export function srcName(s) {
 /** その行の LINES が古いか（無ければ false）。 */
 export const stale = r => !!(LINES[r.id] && LINES[r.id].h !== r.h);
 
+/* ── 国と街（say: 'country' / 'city'）── 値をサイトの表に当て、表の字を返す。当たらない・2通りに読めるときは ''（言わない）。
+   調べた側の書き方（「CANADA」「México」「Taipei City」「Denver, Colorado」）はここで表の字に置き換わり、そのまま画面に出ることはない。 */
+const fold = s => String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+const toks = s => String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+/** 国の名前（COUNTRIES の ja）。英語の名前・日本語の名前・2字の国コード・「the …」の書き方に当てる。 */
+export function countryJa(v) {
+  if (typeof v !== 'string' || !v.trim()) return '';
+  const f = fold(v.trim().replace(/^the\s+/i, ''));
+  const hit = COUNTRIES.filter(c => [c.en, c.ja, c.code, c.enIn, c.enFull].filter(Boolean).some(n => fold(String(n).replace(/^the\s+/i, '')) === f));
+  return hit.length === 1 ? hit[0].ja : '';
+}
+/* 街の名前の表：PLACES の都市の字（「東京（羽田）」→「東京」）と、その英語の名前の語の並び。 */
+let CITY_WORDS = null;
+const cityWords = () => (CITY_WORDS ??= Object.values(PLACES).map(([ja, en]) => ({ ja: ja.replace(/（.*$/, ''), en: toks(en) })));
+function cityHits(t) {
+  const ja = t.replace(/[都府県市]$/, ''), w = toks(t);
+  return new Set(cityWords().filter(c => c.ja === t || c.ja === ja || (w.length && w.every((x, i) => c.en[i] === x))).map(c => c.ja));
+}
+/** 街の名前（PLACES の都市の字）。まるごと → かっこを外して → 「 / 」とカンマで分けた1つずつの順に当て、最初に当たったもの。
+    1つに決まらなければ ''。「… City」は、まるごとで当たらないときだけ外して見る（Taipei City → 台北・Mexico City はそのまま）。 */
+export function cityJa(v) {
+  if (typeof v !== 'string' || !v.trim()) return '';
+  const tries = [];
+  const add = s => { s = String(s || '').trim(); if (s && !tries.includes(s)) tries.push(s); };
+  const bare = v.replace(/[（(][^）)]*[）)]/g, '').trim();
+  add(v); add(bare);
+  for (const part of bare.split(/\s*\/\s*/)) { add(part); for (const c of part.split(',')) add(c); }
+  for (const t of tries) for (const x of [t, /\sCity$/i.test(t) ? t.replace(/\s+City$/i, '') : null].filter(Boolean)) {
+    const hit = cityHits(x);
+    if (hit.size === 1) return [...hit][0];
+    if (hit.size > 1) return '';
+  }
+  return '';
+}
+
 /* ITEM の言い方で値を作る（言えなければ ''）。 */
 function itemValue(r) {
   const it = ITEM[r.key];
   if (!it) return '';
   if (it.say === 'iata') return typeof r.value === 'string' && /^[A-Z]{3}$/.test(r.value) ? r.value : '';
   if (it.say === 'date') return typeof r.value === 'string' ? dateJa(r.value) : '';
+  if (it.say === 'country') return countryJa(r.value);
+  if (it.say === 'city') return cityJa(r.value);
+  if (it.per && !perOf(r)) return '';
   if (typeof r.value !== 'number' || !(r.value > 0)) return '';
   if (it.say === 'money') return r.currency && !r.unit && PER[r.per] ? { per: PER[r.per], cur: r.currency, n: r.value } : '';
   if (r.currency) return '';
