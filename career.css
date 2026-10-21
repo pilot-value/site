@@ -324,7 +324,7 @@
 .cr-bars{margin-top:4px}
 .cr-bar{position:relative;isolation:isolate;display:block;margin:0 -10px;padding:10px 10px 12px;
         border-radius:var(--pv-r);color:inherit;text-decoration:none}
-.cr-bar::before,a.cr-row::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+.cr-bar::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
         opacity:0;transition:opacity .2s var(--pv-ease)}
 .cr-bar::before{background:color-mix(in srgb, var(--pv-accent) 11%, transparent)}
 .cr .cr-bar:focus-visible{border-radius:var(--pv-r)}
@@ -363,7 +363,7 @@
 .cr-asks li{border-top:1px solid var(--pv-line-soft)}
 .cr-ask{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:6px 0;
         color:var(--pv-accent-ink);font-size:13px;font-weight:600;line-height:1.5;text-decoration:none}
-.cr-ask:active,.cr-dest:active,a.cr-row:active{opacity:.6}
+.cr-ask:active,.cr-dest:active{opacity:.6}
 
 /* 暮らし・ステイ：就航地（都市名 ＋ 空港の3レター）。 */
 .cr-dests{display:grid;grid-template-columns:repeat(auto-fill, minmax(128px, 1fr));gap:8px;list-style:none}
@@ -406,15 +406,7 @@
 .cr-det > .cr-else{margin-top:8px}
 
 /* ── 2社の比較に足した部品 ─────────────────────────────────────── */
-/* 押せる行（その数字の詳細へ）。置き場所はほかの行と同じ ── 余白ぶんだけ外へ広げて、押す面にする。 */
 .cr-row{display:block}
-a.cr-row{position:relative;isolation:isolate;min-height:44px;margin:-6px -8px;padding:6px 8px;border-radius:var(--pv-r-sm);
-         color:inherit;text-decoration:none}
-a.cr-row::before{background:color-mix(in srgb, white 8%, transparent)}
-.cr .cr-panel a.cr-row:focus-visible{outline-color:var(--cr-on);border-radius:var(--pv-r-sm)}
-/* 生きた欄の並び（月の働き方・待遇・口コミ）。 */
-.cr-lives{display:grid;gap:14px;margin-top:14px}
-.cr-lives > .cr-sec{margin-top:0}
 /* 会社ごとのカードの見出し（社名の行）。 */
 .cr-card-h{font-size:inherit;font-weight:inherit}
 
@@ -431,7 +423,7 @@ a.cr-row::before{background:color-mix(in srgb, white 8%, transparent)}
   .cr-more[open] > summary:hover::after{transform:translateY(0) rotate(225deg)}
   .cr-tab:hover{color:var(--pv-ink)}
   .cr-tab[aria-current="page"]:hover{color:var(--pv-accent-ink)}
-  .cr-bar:hover::before,a.cr-row:hover::before{opacity:1}
+  .cr-bar:hover::before{opacity:1}
   .cr-bar:hover .cr-ic,.cr-ent:hover .cr-ic,.cr-ask:hover .cr-ic{transform:translateX(3px)}
   .cr-ent:hover,.cr-dest:hover{transform:translateY(-2px)}
   .cr-ask:hover{color:var(--pv-ink)}

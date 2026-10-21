@@ -143,6 +143,13 @@ export const TARGETS = [
       foldOnly: true, ref: {},
     }));
   }),
+
+  /* 段階04：2社の比較とカード。手元の保存先で撮る（本番を読まない）。ログインしていない人のまま（who: null, local: true）。 */
+  ...[['jal', 'ana'], ['etihad', 'cathay-pacific'], ['eva-air', 'jal']].map(([a, b]) => ({
+    set: 'compare', key: `cmp-${a}-${b}`, ja: `比較 ${a} × ${b}（未ログイン・投稿0件）`, who: null, local: true,
+    current: { path: `/career.html?view=compare&a=${a}&b=${b}` }, draft: { path: `/career.html?view=compare&a=${a}&b=${b}` }, ref: {} })),
+  { set: 'compare', key: 'card-jal-ana', ja: 'カード JAL × ANA', who: null, local: true,
+    current: { path: '/career.html?view=card&a=jal&b=ana' }, draft: { path: '/career.html?view=card&a=jal&b=ana' }, ref: {} },
 ];
 
 /* 本番の DB へ通してよい「読むだけ」の関数。ここに無い rpc は止めて、一覧で知らせる。 */

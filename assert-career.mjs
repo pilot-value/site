@@ -84,6 +84,8 @@ const yen = m => `¥${m.toLocaleString('en-US')}万`;
 const tail = key => (/_over$/.test(key) ? '超' : /_from$/.test(key) ? 'から' : '');
 /* 鍵の名前の頭で決まる印（求人の上限）。公表額の一覧では額の頭に「〜」が付く。 */
 const upTo = key => (/^max_/.test(key) ? '〜' : '');
+/* 比較の社名の行き先（属性で見る）＝ いま改良している会社ページ（airlines/{slug}.html の概要）。 */
+const NAME_HREF = s => `airlines/${s}.html`;
 
 /* ══════════════════════════════════════════════════════════════════
    A) 生成物と、数字を持たない2つのファイル
@@ -151,6 +153,30 @@ ok(!/(?<![\d,.])0\s*万円|¥\s?0万/.test(TEXT), '「0万円」を出さない'
 ok(!/(?<![\d０-９])(?:[3-9３-９]|[\d０-９]{2,})\s*社/.test(noTagCmt(HTML).replace(/<script\b[\s\S]*?<\/script>/g, ' ')), '掲載社数を書かない');
 ok(!/総合順位|ランキング|[\d０-９]\s*位|首位|トップ|勝ち|負け|勝る|劣る|圧勝|優位/.test(TEXT), '順位・勝ち負けの語を書かない');
 ok(!/[★☆⭐✩✪✭✮✯]/u.test(TEXT), '星を出さない');
+/* 比較の画面（<section class="cr-view cr-cmp" … </section>）。比較の中のリンクは、career.html の中の古い概要へ行かない。 */
+const CMP = (BLOCK.match(/<section class="cr-view cr-cmp"[\s\S]*?<\/section>/) || [''])[0];
+ok(CMP.length > 0 && !/href="[^"]*[?&](?:amp;)?airline=/.test(CMP), '比較の中から、career.html の中の古い概要（?airline=）へ行くリンクが無い',
+   (CMP.match(/href="[^"]*[?&](?:amp;)?airline=[^"]*"/) || [`比較の画面 ${CMP.length}字`])[0]);
+/* 比較の読む順（置き場所の順 ＝ 読み上げと Tab の順）。ほかの区画が足す箱（提出された年収・AI の要約・DEEP PAY の置き場）は、
+   在るときだけ、決まった間に在ること。月の働き方と待遇を1つにまとめる入れ物（cr-lives）は無い。 */
+{
+  const at = m => CMP.indexOf(m);
+  const REQ = ['class="cr-panel"', 'class="cr-sec cr-cmp-rev"', 'data-live="cmp-stars"', 'class="cr-sec cr-rents"', 'class="cr-sec cr-cmp-work"',
+    'data-live="cmp-work"', 'class="cr-sec cr-cmp-ben"', 'class="cr-cards"', 'id="cr-to-card"'];
+  const pos = REQ.map(at);
+  const rising = pos.every((p, i) => p >= 0 && (i === 0 || p > pos[i - 1]));
+  const facts = [...CMP.matchAll(/data-live="cmp-facts"/g)].map(m => m.index);
+  const last = facts.length ? facts[facts.length - 1] : -1;
+  const between = (m, lo, hi) => at(m) < 0 || (at(m) > lo && at(m) < hi);
+  const opt = [
+    between('class="cr-sec cr-subpay"', at('class="cr-panel"'), at('class="cr-sec cr-cmp-rev"')),
+    between('data-live="cmp-summary"', at('data-live="cmp-stars"'), at('class="cr-sec cr-rents"')),
+    between('id="cr-deep"', last, at('class="cr-cards"')),
+  ];
+  const factsOk = facts.length > 0 && facts.every(i => i > at('data-live="cmp-work"')) && last > at('class="cr-sec cr-cmp-ben"') && last < at('class="cr-cards"');
+  ok(rising && opt.every(Boolean) && factsOk && !CMP.includes('cr-lives'), '比較の読む順：年収 → 提出された年収 → 口コミ → 家賃 → 月の働き方 → 待遇 → 内訳（公表額）',
+     JSON.stringify({ pos, opt, facts, lives: CMP.includes('cr-lives') }));
+}
 
 /* ══════════════════════════════════════════════════════════════════
    C) 登録の対（CLAUDE.md「ページを1枚足すとき」）
@@ -443,8 +469,9 @@ try {
       ok(a.tag === b.tag && a.sub === b.sub, `${who}: 札と一言が概要と比較で同じ`);
       if (DEEP.includes(s)) {
         const href = `${PAGE}?airline=${s}&d=${r}-est`;
-        ok(a.href === href && b.href === href, `${who}: 概要と比較の行から、その推定の詳細へ行ける`, `${a.href} ／ ${b.href}`);
+        ok(a.href === href, `${who}: 概要の行から、その推定の詳細へ行ける`, String(a.href));
       }
+      ok(b.href === null, `${who}: 比較の行は入口にしない（どの会社も）`, String(b.href));
     }
     ok(dom.co[s].h1 === name(s), `${name(s)}: 見出しが社名`);
     ok(dom.co[s].tax === BASIS[s].tax && dom.co[s].cmpTax === BASIS[s].tax,
@@ -622,8 +649,17 @@ try {
   await pairOk('etihad', 'jal', '入れ替えた順に並ぶ');
   ok(await page.evaluate(() => history.length) === len2, '選び直しと入れ替えは履歴を積まない（戻る1回で出られる）');
 
-  await page.click('#cr .cr-view:not([hidden]) .cr-card[data-airline="etihad"] .cr-card-n');
-  ok(await until(page, '?airline=etihad') && await view(page) === 'airline:etihad', '比較のカードから、その会社の概要へ');
+  /* 社名の行き先は「属性」で見る。比較から1段積む動きは「カードを保存」で見る ── 社名は career.html の外へ出るので、
+     1つの文書の中の行き来（戻る・進む）の途中に置かない。 */
+  const NAME = '#cr .cr-view:not([hidden]) .cr-card[data-airline="etihad"] .cr-card-n';
+  ok(await page.$eval(NAME, a => a.getAttribute('href')) === NAME_HREF('etihad') && !(await page.$eval(NAME, a => a.hasAttribute('data-go'))),
+     '比較の社名は、いま改良している会社ページ（airlines/…）へ出る（career.html の中の古い概要へ行かない）', await page.$eval(NAME, a => a.getAttribute('href')));
+  /* 1段積むのは、同じ文書の中（読み直さない）。読み直しても住所と画面は同じになるので、目印と履歴の段数でも見る。 */
+  await page.evaluate(() => { window.__crSameDoc = 1; });
+  await page.click('#cr-to-card');
+  ok(await until(page, '?view=card&a=etihad&b=jal') && await view(page) === 'card'
+     && await page.evaluate(() => window.__crSameDoc === 1) && await page.evaluate(() => history.length) === len2 + 1,
+     '比較から「カードを保存」へ（履歴が1段積まれる）', `${await search(page)} ／ 履歴 ${await page.evaluate(() => history.length)}（あるべき ${len2 + 1}）`);
   await page.goBack();
   ok(await until(page, '?view=compare&a=etihad&b=jal') && await view(page) === 'compare', '戻ると、選び直したままの比較に戻る', await search(page));
   await pairOk('etihad', 'jal', '戻ったあとも同じ2社・同じ順');
@@ -905,7 +941,7 @@ try {
   const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`])];
   /* 押せるものの種類。ここに無い形のものが増えたら落とす（hover / active を付け忘れる）。 */
   const MAIN = '.cr-tile, .cr-back, .cr-btn, .cr-swap, .cr-sel, summary, .cr-link, .cr-card-n, '
-    + '.cr-tab, a.cr-bar, a.cr-row, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn';
+    + '.cr-tab, a.cr-bar, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn';
   const INLINE = '.cr-credits a, .cr-srcs a';
   for (const [w, h] of [[320, 568], [390, 680], [768, 1024], [1280, 800]]) {
     const { page: p, close: c } = await open('', w, h);
