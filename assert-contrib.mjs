@@ -226,6 +226,102 @@ console.log('\n════ ソース ════');
   ok(coTrack(code), '★別の会社について開く：そのあいだは、計測に会社の符号を送らない（符号を送る所は、この1か所だけ）', J({ gtag: cnt(code, 'gtag('), code: cnt(code, 'airline_code') }));
   ok(coOutbox(code), '★別の会社について開く：そのあいだは、送れなかった1件を端末に残さない（残していないものを「この端末に残しています」と言わない）', J({ write: cnt(code, 'lset(OUTBOX,') }));
   ok(coSend(code), '★別の会社について開く：そのあいだは、ログインなしの預かりへ送らない。ログインへ送り出す時は、下書きをこのタブ（sessionStorage）にだけ残し、戻り先の住所には何も足さない', J({ drafts: cnt(code, 'keepDraft(') }));
+
+  /* ── 英語版の準備（2026-10-21・WP-en-3）──
+     面の字は T.ja ／ T.en（pv-contrib.js の「ことば」）から出す。どちらを使うかは <html lang> だけ。
+     ・日英で鍵と型が同じ（関数は関数・字は字・表は表・並びは同じ長さ）。T.ja が null の鍵は、日本語をその場に書いたまま
+       （ほかの検査がその字と形をその場で読む）── その英語は T.en に字か並びで在り、面がそれを使っている（TX.鍵 か heldBox の鍵）。
+     ・英語の字と、英語の関数が返す字に、日本語の字（かな・漢字・全角の記号）が1つも無い。
+     ・T の外に日本語の字を書かない。書いてよいのは INLINE_JA だけ（その場に書いたままの字と、サーバの断り文を当てる字）。
+     ・サーバへ送る lang は3つとも LANG（'ja' と書いた送り先が無い）。
+     どの式も、面のファイルの字を1つ受け取る形 ＝ 1か所だけ変えた字に当てて、偽になることを確かめられる。 */
+  const JA_CH = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/;
+  const tOf = (src) => {
+    const m = src.match(/\n {2}var T = \{\n([\s\S]*?)\n {2}\};\n {2}var TX = T\[LANG\];/);
+    if (!m) return null;
+    try { return new Function('MONTHS_EN', `return {\n${m[1]}\n};`)(['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']); } catch (e) { return null; }
+  };
+  const tShape = (v) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
+  const tSame = (src) => {
+    const t = tOf(src), bad = [];
+    if (!t || !t.ja || !t.en) return ['T が読めない'];
+    const walk = (a, b, at) => {
+      for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+        if (!(k in a) || !(k in b)) { bad.push(`${at}${k}（${k in a ? '英語' : '日本語'}に無い）`); continue; }
+        const sa = tShape(a[k]), sb = tShape(b[k]);
+        if (sa === 'null') { if (sb !== 'string' && sb !== 'array') bad.push(`${at}${k}（日本語はその場に書いた鍵なのに、英語が字でも並びでもない）`); continue; }
+        if (sa !== sb) bad.push(`${at}${k}（型 ${sa}／${sb}）`);
+        else if (sa === 'object') walk(a[k], b[k], `${at}${k}.`);
+        else if (sa === 'array' && a[k].length !== b[k].length) bad.push(`${at}${k}（並びの長さ ${a[k].length}／${b[k].length}）`);
+      }
+    };
+    walk(t.ja, t.en, '');
+    return bad;
+  };
+  /* 数・名前の入る英語の文を組んでみる値（鍵ごと。面がその関数に渡す形のとおり）。ここに無い関数の鍵は、それだけで落ちる */
+  const T_SAMPLE = {
+    said: [['ログインしてください。'], ['職位が正しくありません。']], claimMoved: [[1], [2]], claimKept: [[1], [2]], claimDropped: [[1], [2]], claimLeft: [[1], [2]],
+    listHead: [['Cathay Pacific']], unsentD: [['Roster']], lead1: [['Cathay Pacific']], mine: [[3, false, 24], [24, true, 24]],
+    heldD: [[90]], heldSavedD: [[90]], howShort: [[0], [1]], ym: [[2026, 3]], year: [[2024]], hourBand: [[7]], mins: [[25]],
+    townAdd: [['Towns popular with pilots']], commuteFrom: [['Tung Chung']], saysAll: [['Select all that apply.']], curOpt: [['USD', 'US Dollar'], ['USD', '']],
+    curOf: [['Days off']], range: [[0, 31]], numUnit: [['20', 'days / month'], ['20', '']], noteOf: [['Days off']], notePhTown: [['Tung Chung']],
+    qName: [['Days off']], noEmptyMulti: [['“Days off”']], needNumber: [['“Days off”']], inRange: [['“Days off”', 0, 31]], needCur: [['“Days off”']],
+    noEmptyNum: [['“Days off”']], noteNeedsAns: [['“Days off”']], keptOthers: [[1], [2]], rejLine: [['Days off', 'Could not be saved.'], ['', 'Could not be saved.']],
+  };
+  const tEnJa = (src) => {
+    const t = tOf(src), bad = [];
+    if (!t || !t.en) return ['T が読めない'];
+    const look = (v, at, key) => {
+      if (typeof v === 'string') { if (JA_CH.test(v)) bad.push(`${at}「${v}」`); return; }
+      if (typeof v === 'function') {
+        if (!T_SAMPLE[key]) { bad.push(`${at}（組んでみる値が T_SAMPLE に無い）`); return; }
+        for (const args of T_SAMPLE[key]) {
+          let r;
+          try { r = v(...args); } catch (e) { bad.push(`${at}（組めない）`); return; }
+          if (typeof r === 'string' && (JA_CH.test(r) || /undefined|NaN|null/.test(r) || !r.trim())) bad.push(`${at}→「${r}」`);
+        }
+        return;
+      }
+      if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) look(x, `${at}${k}.`, k);
+    };
+    look(t.en, 'en.', '');
+    return bad;
+  };
+  /* その場に書いたままの日本語（ほかの検査がその形で読む字）と、サーバの断り文の頭を当てる字（fieldOf・NUMS の srv）。
+     ★ここに足すのは、その場に書く理由がある時だけ（理由はその行の注に書く）。 */
+  const INLINE_JA = new Set([
+    '通信の状態を確かめて、もう一度送ってください。', '入力した内容はこの端末に残しています。',          // failNote（assert-contrib の coOutbox）
+    'ホテル・ステイ', '就航地ごと',                                                                      // TILES（assert-claims の (ii)）
+    'ログインなしで保存した回答があります。', 'ログインなしで保存しました。',                            // heldBox（assert-airline-glance の T.townHeld）
+    '回答しない', '電車', 'バス', '車', 'タクシー', 'その他',                                              // TMODE（assert-airline-glance の MODE_JA）
+    '街・最寄駅',                                                                                         // 街の欄の名前（assert-admin の SAME）
+    SHARE_TEXT,                                                                                           // shareLine（上の oneAudience）
+    '乗務時間', '拘束時間', '勤務日数', '乗務日数', '公休日数', 'ステイ泊数', '職位', 'ひとこと',          // サーバの断り文の頭（fieldOf）
+  ]);
+  const tStray = (src) => {
+    const m = src.match(/\n {2}var T = \{\n[\s\S]*?\n {2}\};\n {2}var TX = T\[LANG\];/);
+    const rest = (m ? src.replace(m[0], '\n') : src).replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, (x, a) => a);
+    return [...rest.matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g)].map((x) => x[1] ?? x[2]).filter((s) => JA_CH.test(s) && !INLINE_JA.has(s));
+  };
+  const tWired = (src) => {
+    const t = tOf(src);
+    if (!t || !t.ja) return ['T が読めない'];
+    const nulls = Object.keys(t.ja).filter((k) => t.ja[k] === null);
+    const held = (k) => new RegExp(`\\], '${k}'\\)\\);`).test(src) && src.includes("LANG === 'en' ? TX[key] : title");
+    return nulls.length === 0 ? ['null の鍵が1つも無い（読み方が変わった）'] : nulls.filter((k) => !src.includes(`TX.${k}`) && !held(k));
+  };
+  const tLang = (src) => {
+    const c = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, (x, a) => a);
+    return cnt(c, "var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';") === 1
+      && cnt(c, 'o.lang = LANG;') === 2 && cnt(c, "var pl = { airline: slug(), lang: LANG, answers: answers };") === 1
+      && !/lang\s*[:=]\s*'ja'/.test(c);
+  };
+  const sameBad = tSame(js), enBad = tEnJa(js), jaStray = tStray(js), unwired = tWired(js);
+  ok(sameBad.length === 0, '★英語版の準備：面の字の表（T.ja ／ T.en）は、日英で鍵と型が同じ（その場に書いた日本語の鍵には、英語が在る）', J(sameBad.slice(0, 6)));
+  ok(enBad.length === 0, '★英語版の準備：英語の字にも、英語の文を組んだ字にも、日本語の字が1つも無い', J(enBad.slice(0, 6)));
+  ok(jaStray.length === 0, '★英語版の準備：表（T）の外に、日本語の字を書いていない（その場に書いたままの字・サーバの断り文を当てる字のほか）', J(jaStray.slice(0, 6)));
+  ok(unwired.length === 0, '★英語版の準備：その場に日本語を書いたままの所は、英語の面では T.en の字を出す（鍵がどれも面で使われている）', J(unwired));
+  ok(tLang(js), '★英語版の準備：言葉は <html lang> だけで決める。サーバへ送る lang は3つとも LANG（\'ja\' と書いた送り先が無い）');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -249,6 +345,11 @@ async function main() {
     try { u = new URL(req.url()); } catch { return req.continue(); }
     if (u.protocol === 'data:' || u.protocol === 'blob:' || u.protocol === 'about:') return req.continue();
     if (u.origin === base) {
+      /* 英語の面の場面（st.lang）：ページの <html lang="ja"> だけを書き替えて配る（ほかの字・部品は1字も変えない） */
+      if (st.lang && req.resourceType() === 'document' && req.method() === 'GET') {
+        return fetch(u.href).then((r) => r.text().then((t) => req.respond({ status: r.status, contentType: r.headers.get('content-type') || 'text/html; charset=utf-8',
+          body: t.replace(/<html lang="ja"/, () => `<html lang="${st.lang}"`) })), () => req.abort());
+      }
       const m = u.pathname.match(/^\/rest\/v1\/rpc\/([a-z0-9_]+)$/);
       if (m) {
         st.calls.push(m[1]);
@@ -275,11 +376,11 @@ async function main() {
      calm は「動きを減らす」設定の人として開く（保存できた合図が静かな形になるかを見る）。
      pre は、ページのどの部品よりも（下の、この検査の差し込みよりも）先に走らせる関数
      （欄に出た字を最初から見張る・保存領域への書き込みを控える）。時計を動かすのには使わない。 */
-  async function open(sizeKey, { who = null, theme = null, calm = false, pre = null } = {}) {
+  async function open(sizeKey, { who = null, theme = null, calm = false, pre = null, lang = null } = {}) {
     const size = SIZES[sizeKey];
     const ctx = await browser.createBrowserContext();
     const page = await ctx.newPage();
-    const st = { calls: [], fake: null, ctx };
+    const st = { calls: [], fake: null, ctx, lang };
     page.setDefaultTimeout(20000);
     await page.setViewport({ width: size.w, height: size.h, deviceScaleFactor: 1, isMobile: size.touch, hasTouch: size.touch });
     if (calm) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
@@ -7564,6 +7665,124 @@ async function main() {
       const leftB = (await q('select access_until from public.profiles where id = $1', [memberOf('b').id])).rows[0];
       ok(!!leftB && leftB.access_until === null, '後始末：会員B の給与の鍵も、無い形へ戻してある（ほかの場面は、会員B を、給与の鍵の無い会員として使う）', J(leftB));
     }
+  });
+
+  // ═════════════════════════════════════════════════════════════
+  // 英語の会社ページ（2026-10-21・WP-en-3）
+  // ═════════════════════════════════════════════════════════════
+  /* 英語の会社ページはまだ無い（生成器を英語にする回が作る）。ここでは本物の会社ページ（キャセイ）を、<html lang="en"> の1か所だけ
+     書き替えて配る（ほかの字・部品はそのまま ＝ open の lang）。面が「英語の面」として動くかを、手元の本物の保存先で見る（REAL LOCAL CONNECTION）。
+     ・面の字（一覧・月の勤務・質問のまとまり・街・保存後のカード）に、日本語の字が1つも無い（390×680。一覧は 1440×820 でも）。
+       会社ページから来る字（街の面の頭の行の基地・候補の街の名前）は、この面の字ではないので外して見る。
+     ・★3つの送る形（月の勤務・質問・街）が lang 'en' を運び、保存先にも 'en' で入る。同じページを日本語のまま開いて送ると 'ja'。
+     日本語の面の字は、ほかの場面がそのまま見ている（今までと1字も違わない）。 */
+  await scene('英語の会社ページ ── 面の字は英語・送る lang は en（日本語のページは ja のまま）', async () => {
+    const CXP = '/airlines/cathay-pacific.html', SLUG = 'cathay-pacific', TOWN = 'Quarry Bay';
+    const JA_RE = /[　-〿぀-ヿ㐀-䶿一-鿿＀-￯]/;
+    /* 面の中の字・読み上げの名前・入力の例・選択肢を全部集める（skip ＝ 会社ページから来る字の在りか）。隠れた字も見る */
+    const words = (p, skip = []) => p.page.evaluate((sk) => {
+      const r = document.querySelector('.pvc-root .pvc-sheet');
+      if (!r) return { text: '', bits: [] };
+      const c = r.cloneNode(true);
+      for (const s of sk) for (const n of c.querySelectorAll(s)) n.remove();
+      const bits = [...c.querySelectorAll('[aria-label],[placeholder]')].flatMap((n) => [n.getAttribute('aria-label'), n.getAttribute('placeholder')]).filter(Boolean);
+      return { text: c.textContent, bits };
+    }, skip);
+    const jaIn = (w) => [w.text, ...w.bits].join(' | ').split(/\s*\|\s*|\n/).filter((s) => JA_RE.test(s)).map((s) => s.trim().slice(0, 40));
+    const one = async (sql, args) => ((await q(sql, args)).rows[0] || {});
+
+    const p = await open('phone', { who: 'c', lang: 'en' });
+    try {
+      await go(p, CXP);
+      ok((await p.page.evaluate(() => document.documentElement.getAttribute('lang'))) === 'en', '英語の面の場面：ページの <html lang> は en（書き替えたのはこの1か所だけ）');
+      /* 一覧 */
+      await api(p, 'list');
+      await waitView(p, 'counted');
+      const L = await words(p), Lj = jaIn(L);
+      const head = await p.page.$eval('.pvc-root .pvc-title', (n) => n.textContent);
+      const stay = await p.page.$eval('.pvc-root [data-pvc-tile="stay"]', (n) => n.textContent);
+      ok(Lj.length === 0 && head === 'Add information about Cathay Pacific' && /Hotels and layovers/.test(stay) && /By destination/.test(stay),
+        '英語の面（390）：項目の一覧の字は英語だけ（見出し・札・ホテル・ステイの札・下の1行）', J({ ja: Lj.slice(0, 5), head, stay }));
+      /* 月の勤務（2016年3月・乗務時間だけ）*/
+      await p.page.click('.pvc-root [data-pvc-tile="work"]');
+      await waitView(p, 'work');
+      await pick(p, 'ym', '2016-03');
+      await waitView(p, 'work');
+      const Wk = await words(p), Wj = jaIn(Wk);
+      const wl = await p.page.$eval('.pvc-root .pvc-ctx-line', (n) => n.textContent);
+      ok(Wj.length === 0 && /March 2016/.test(wl), '英語の面：月の勤務の字は英語だけ（機種・職位の選択肢は台帳の en・月は「March 2016」）', J({ ja: Wj.slice(0, 5), line: wl }));
+      await pick(p, 'position', 'cap');
+      await fill(p, 'block_hours', '71.25');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const Ws = await summary(p), WsJ = jaIn(await words(p));
+      ok(Ws.head === 'Information added' && Ws.rows.block_hours.v === '71.25 hours' && WsJ.length === 0,
+        '英語の面：月の勤務の保存後のカードも英語だけ（「Information added」・「71.25 hours」）', J({ head: Ws.head, v: Ws.rows.block_hours, ja: WsJ.slice(0, 4) }));
+      const wr = await one("select lang from public.pv_work_months where airline = $1 and period_year = 2016 and period_month = 3", [SLUG]);
+      ok(wr.lang === 'en', "★英語の面から送った月の勤務は、保存先に lang 'en' で入る", J(wr));
+      /* 質問のまとまり（勤務スケジュール） */
+      await p.page.click('.pvc-root [data-pvc-act="more"]');
+      await waitView(p, 'list');
+      await p.page.click('.pvc-root [data-pvc-tile="roster"]');
+      await waitView(p, 'roster');
+      const R = await words(p), Rj = jaIn(R);
+      const share = await p.page.$eval('.pvc-root [data-pvc-share]', (n) => n.textContent);
+      ok(Rj.length === 0 && /members who have submitted pay/.test(share), '英語の面：質問のまとまりの字は英語だけ（問い・選択肢・補足・誰に見せるかの1行）', J({ ja: Rj.slice(0, 5), share }));
+      await pick(p, 'days_off_request', 'yes');
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const RsJ = jaIn(await words(p));
+      ok(RsJ.length === 0, '英語の面：質問の保存後のカードも英語だけ', J(RsJ.slice(0, 4)));
+      const cr = await one("select lang from public.airline_conditions where airline = $1 and question_id = 'days_off_request' order by updated_at desc limit 1", [SLUG]);
+      ok(cr.lang === 'en', "★英語の面から送った質問の答えは、保存先に lang 'en' で入る", J(cr));
+      /* パイロットに人気の街（候補の街の名前と基地の字は、会社ページから来る字 ＝ 外して見る） */
+      await api(p, 'town');
+      await waitView(p, 'town');
+      const SKIP = ['.pvc-ctx-line', '.pvc-towns'];
+      const Tw = await words(p, SKIP), Tj = jaIn(Tw);
+      const tl = await p.page.$eval('.pvc-root #pvc-l-town', (n) => n.childNodes[0].textContent);
+      const modes = await p.page.$$eval('.pvc-root select[name="mode"] option', (os) => os.map((o) => o.textContent));
+      ok(Tj.length === 0 && tl === 'Town or nearest station' && J(modes) === J(['Prefer not to say', 'Train', 'Bus', 'Car', 'Taxi', 'Other']),
+        '英語の面：街の面の字は英語だけ（見出し・欄の名前・交通手段）', J({ ja: Tj.slice(0, 5), label: tl, modes }));
+      await fill(p, 'town', TOWN);
+      await tick(p);
+      await send(p);
+      await waitView(p, 'saved');
+      const TsJ = jaIn(await words(p, ['.pvc-saved-s']));
+      ok(TsJ.length === 0, '英語の面：街の保存後のカードも英語だけ（頭の行の基地の字を除く）', J(TsJ.slice(0, 4)));
+      const tr = await one('select p.lang from public.pv_town_posts p join public.pv_towns t on t.id = p.town_id where t.name = $1', [TOWN]);
+      ok(tr.lang === 'en', "★英語の面から送った街は、保存先に lang 'en' で入る", J(tr));
+    } finally { await p.st.ctx.close(); }
+
+    /* 一覧を広い画面でも（1440） */
+    const pw = await open('desk', { who: 'c', lang: 'en' });
+    try {
+      await go(pw, CXP);
+      await api(pw, 'list');
+      await waitView(pw, 'counted');
+      const Dj = jaIn(await words(pw));
+      ok(Dj.length === 0, '英語の面（1440）：項目の一覧の字は英語だけ', J(Dj.slice(0, 4)));
+    } finally { await pw.st.ctx.close(); }
+
+    /* 比べる片方：同じページを日本語のまま開いて送ると、lang は 'ja'（2016年4月） */
+    const pj = await open('phone', { who: 'c' });
+    try {
+      await go(pj, CXP);
+      await api(pj, 'work');
+      await waitView(pj, 'work');
+      await pick(pj, 'ym', '2016-04');
+      await waitView(pj, 'work');
+      await pick(pj, 'position', 'cap');
+      await fill(pj, 'block_hours', '70');
+      await tick(pj);
+      await send(pj);
+      await waitView(pj, 'saved');
+      const jr = await one("select lang from public.pv_work_months where airline = $1 and period_year = 2016 and period_month = 4", [SLUG]);
+      const jh = await pj.page.$eval('.pvc-root .pvc-saved-h', (n) => n.textContent);
+      ok(jr.lang === 'ja' && jh === '情報を追加しました', "★日本語のページから送った月の勤務は、今までどおり lang 'ja'・見出しは「情報を追加しました」", J({ jr, jh }));
+    } finally { await pj.st.ctx.close(); }
   });
 
   console.log('\n════ 通信 ════');

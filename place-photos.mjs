@@ -48,6 +48,10 @@
  *   ・縦長は増えていない。
  */
 
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { twinOf, checkTwins } from './career-facts.mjs';
+
 export const PHOTO_DIR = 'assets/places';
 export const SMALL_W = 480;
 const CHANGES = '縮小・トリミング';
@@ -676,4 +680,141 @@ export const smallH = p => Math.round(p.h * SMALL_W / p.w);
 
 export const src = (p, small) => `${PHOTO_DIR}/${p.file}${small ? '-' + SMALL_W : ''}.jpg`;
 
+/* ── 英語の対（2026-10-21・英語版の準備）── 写真の説明（subject ＝ alt）とクレジットの加工の字（changes）の英語。
+   決まりは career-facts.mjs の「英語の対」の節（twinOf）。subject を直したら、ここも直す（直さないと check() が落ちる）。
+   作者名とライセンスの字は、作者が指定した書き方のまま（対を作らない）。HELD の写真は画面に出ないので対を持たない。 */
+export const EN = Object.freeze({
+  '縮小・トリミング': 'resized and cropped',
+  '新宿の高層ビル群と富士山（東京）': 'Shinjuku skyscrapers and Mount Fuji (Tokyo)',
+  '大阪城と周りのビル（大阪）': 'Osaka Castle and the buildings around it (Osaka)',
+  '台北101と台北の街': 'Taipei 101 and the city of Taipei',
+  'ビクトリア・ピークから見た香港の夜景': 'Hong Kong at night, seen from Victoria Peak',
+  '徳寿宮の中和殿（ソウル）': 'Junghwajeon Hall at Deoksugung Palace (Seoul)',
+  'バンコクの高層ビル群': 'Bangkok skyscrapers',
+  'シンガポール中心部の高層ビル群（マリーナベイ）': 'Skyscrapers of central Singapore (Marina Bay)',
+  'ブキッ・ビンタンの交差点（クアラルンプール）': 'Bukit Bintang junction (Kuala Lumpur)',
+  'マニラの街並み（夕方）': 'Manila cityscape (evening)',
+  'ジャーマー・マスジド（デリー）': 'Jama Masjid (Delhi)',
+  'バンドラ・ウォーリ・シーリンク（ムンバイ）': 'Bandra–Worli Sea Link (Mumbai)',
+  'ベンガルール中心部のビル': 'Buildings in central Bengaluru',
+  'シドニー・オペラハウスとハーバーブリッジ（夕暮れ）': 'Sydney Opera House and Harbour Bridge (dusk)',
+  'メルボルンの街並み（手前は戦争慰霊館）': 'Melbourne skyline (Shrine of Remembrance in front)',
+  'タワーブリッジとテムズ川（ロンドン・夕景）': 'Tower Bridge and the River Thames (London, evening)',
+  'エッフェル塔とセーヌ川（パリ）': 'The Eiffel Tower and the Seine (Paris)',
+  'フランクフルトの金融街（空から）': 'Frankfurt’s financial district (from the air)',
+  '新市庁舎とフラウエン教会（ミュンヘン）': 'New Town Hall and the Frauenkirche (Munich)',
+  'トレヴィの泉（ローマ）': 'Trevi Fountain (Rome)',
+  'チューリッヒの旧市街とリマト川': 'Zurich Old Town and the Limmat',
+  'マドリードの街並み': 'Madrid cityscape',
+  'バルセロナの街と港（夕方）': 'Barcelona and its harbor (evening)',
+  'エンパイア・ステート・ビルとマンハッタン（ニューヨーク）': 'Empire State Building and Manhattan (New York)',
+  'アメリカ合衆国議会議事堂（ワシントンD.C.）': 'United States Capitol (Washington, D.C.)',
+  'シカゴ川と遊覧船': 'Chicago River and a sightseeing boat',
+  'ビーコンヒルの石畳の路地（ボストン）': 'Cobbled lane on Beacon Hill (Boston)',
+  'トロントの街並みと CN タワー': 'Toronto skyline and the CN Tower',
+  '黄浦江越しに見る東方明珠塔と陸家嘴の高層ビル群（上海・浦東）': 'Oriental Pearl Tower and the Lujiazui skyscrapers across the Huangpu River (Pudong, Shanghai)',
+  '上空から見た福岡タワーとシーサイドももちの砂浜・ビル群（福岡）': 'Fukuoka Tower and the beach and buildings of Seaside Momochi, from the air (Fukuoka)',
+  '線路と瓦屋根の建物の向こうに並ぶCBDの高層ビル群（北京）': 'CBD skyscrapers beyond railway tracks and tiled roofs (Beijing)',
+  '珠江の対岸に立つ2本の超高層ビルと珠江新城のビル群（広州）': 'Two supertall towers and the Zhujiang New Town buildings across the Pearl River (Guangzhou)',
+  '雪を頂いた山並みを背にしたダウンタウンの高層ビル群と手前の住宅（ロサンゼルス）': 'Downtown skyscrapers against snow-capped mountains, with houses in front (Los Angeles)',
+  'ヨットの浮かぶ入り江とスタジアム、ダウンタウンのビル群、手前にカナダ国旗（バンクーバー）': 'A cove with yachts, the stadium and downtown buildings, with a Canadian flag in front (Vancouver)',
+  '上から見た小松駅前のロータリーと広場（小松）': 'The bus circle and square in front of Komatsu Station, from above (Komatsu)',
+  '松山城の天守から見下ろす櫓と市街地、奥に山並み（松山）': 'A turret and the city seen from the keep of Matsuyama Castle, with mountains behind (Matsuyama)',
+  '屋上が連なる民生社区の集合住宅と奥の山並み（台北・松山区）': 'Rows of apartment rooftops in the Minsheng Community, with mountains behind (Songshan District, Taipei)',
+  '上空から見たダウンタウンの高層ビル群（ダラス）': 'Downtown skyscrapers from the air (Dallas)',
+  '市庁舎の塔とギルドハウスに囲まれたグラン＝プラスの石畳（ブリュッセル）': 'The cobbled Grand-Place, framed by the Town Hall tower and the guildhalls (Brussels)',
+  '上空から見たサヌールの砂浜と青い海、赤い屋根と木立（バリ島・デンパサール）': 'Sanur beach and blue sea with red roofs and trees, from the air (Denpasar, Bali)',
+  '函館山から見下ろす雪の市街地と弧を描く海岸線（函館）': 'The snowy city and curving coastline seen from Mount Hakodate (Hakodate)',
+  '梅田スカイビルから見た梅田の高層ビル群（大阪）': 'Umeda skyscrapers seen from the Umeda Sky Building (Osaka)',
+  '元安川と原爆ドーム、川沿いの街並み（広島）': 'The Motoyasu River, the Atomic Bomb Dome and the riverside streets (Hiroshima)',
+  '高台から見下ろす高松の市街地と瀬戸内海の島々（高松）': 'Takamatsu and the islands of the Seto Inland Sea, seen from a hill (Takamatsu)',
+  '上から見た大分駅前の広場とロータリー、中心街のビル（大分）': 'The square and bus circle in front of Oita Station and the central buildings, from above (Oita)',
+  'マンション群の向こうの熊本城天守と、手前の高架を走る九州新幹線（熊本）': 'The keep of Kumamoto Castle beyond apartment blocks, with the Kyushu Shinkansen on the viaduct in front (Kumamoto)',
+  '鹿児島の市街地と錦江湾越しの桜島（鹿児島）': 'Kagoshima and Sakurajima across Kinko Bay (Kagoshima)',
+  'ワイキキの砂浜と海、ホテル群の奥にダイヤモンドヘッド（ホノルル）': 'Waikiki beach and sea, with Diamond Head beyond the hotels (Honolulu)',
+  '仙台城跡から見た丘陵と市街地のビル群（仙台）': 'Hills and city buildings seen from the Sendai Castle site (Sendai)',
+  'キングスパークから見た中心部の高層ビル群と高速道路、スワン川（パース）': 'Central skyscrapers, the freeway and the Swan River, seen from Kings Park (Perth)',
+  'ガラタ塔と水辺に並ぶ建物、岸壁のフェリー、空を飛ぶカモメ（イスタンブール）': 'Galata Tower, waterfront buildings, a ferry at the quay and gulls in the sky (Istanbul)',
+  '高雄85ビルを中心にした高層ビル群（高雄）': 'Skyscrapers around the 85 Sky Tower (Kaohsiung)',
+  '色とりどりの屋根が広がる市街地と背後のドイ・ステープ山（チェンマイ）': 'Colorful rooftops of the city with Doi Suthep behind (Chiang Mai)',
+  'カンガルー・ポイントの崖から見たブリスベン川と中心部の高層ビル群（ブリスベン）': 'The Brisbane River and central skyscrapers, seen from the Kangaroo Point Cliffs (Brisbane)',
+  'チャールミナールと門前の通りを行き交うオートリキシャ（ハイデラバード）': 'The Charminar, with auto-rickshaws on the street in front (Hyderabad)',
+  '木立の向こうに並ぶ中心部の高層ビル群（マンチェスター）': 'City center towers beyond the trees (Manchester)',
+  'ホアンキエム湖に浮かぶ亀の塔と湖畔の木立（ハノイ）': 'Turtle Tower in Hoan Kiem Lake and the trees on the shore (Hanoi)',
+  'テレビ塔から見下ろす秋の大通公園と市街地（札幌）': 'Odori Park in autumn and the city, seen from the TV Tower (Sapporo)',
+  'サイゴン中央郵便局の正面（ホーチミン）': 'Front of the Saigon Central Post Office (Ho Chi Minh City)',
+  '静安寺と周囲の高層ビル（上海）': 'Jing’an Temple and the towers around it (Shanghai)',
+  'パレス・オブ・ファイン・アーツの丸屋根越しに見る市街地と高層ビル群（サンフランシスコ）': 'The city and skyscrapers beyond the dome of the Palace of Fine Arts (San Francisco)',
+  'スペースニードルと高層ビル群、遠くにレーニア山（シアトル）': 'The Space Needle and skyscrapers, with Mount Rainier in the distance (Seattle)',
+  'テレビ塔から西を望む市街地と名古屋駅周辺の高層ビル（名古屋）': 'The city looking west from the TV Tower, with the towers around Nagoya Station (Nagoya)',
+  '首里城の守礼門（那覇）': 'Shureimon Gate of Shuri Castle (Naha)',
+  '漢江越しに見る汝矣島の高層ビル群（ソウル）': 'Yeouido skyscrapers across the Han River (Seoul)',
+  '西湖の遊覧船と湖畔の木立、その奥の市街地（杭州）': 'Pleasure boats on West Lake, the lakeside trees and the city beyond (Hangzhou)',
+  'カールス教会と手前の池（ウィーン）': 'Karlskirche and the pond in front (Vienna)',
+  '王宮のポチャニ殿（プノンペン）': 'Phochani Pavilion at the Royal Palace (Phnom Penh)',
+  '釧路川に架かる幣舞橋と雪の残る岸壁（釧路）': 'Nusamai Bridge over the Kushiro River and the quay with lingering snow (Kushiro)',
+  '青森ベイブリッジと港、奥に広がる市街地（青森）': 'Aomori Bay Bridge and the port, with the city beyond (Aomori)',
+  '後楽園の池と築山、奥に岡山城の天守（岡山）': 'The pond and hill of Korakuen Garden, with the keep of Okayama Castle beyond (Okayama)',
+  '眉山の山頂から見下ろす市街地と川、その先の海（徳島）': 'The city, the river and the sea beyond, seen from the top of Mount Bizan (Tokushima)',
+  '松の木越しに見上げる高知城の天守（高知）': 'The keep of Kochi Castle seen up through pine trees (Kochi)',
+  'グラバー園から見下ろす長崎港と水辺の公園、対岸の市街地（長崎）': 'Nagasaki Port, a waterside park and the city across the water, seen from Glover Garden (Nagasaki)',
+  '宮崎県庁本館と前庭のヤシの木（宮崎）': 'The Miyazaki Prefectural Government main building and the palms in its front garden (Miyazaki)',
+  '公園の緑と観覧車越しに見る中心部の高層ビル群（大連）': 'Central skyscrapers beyond a green park and a Ferris wheel (Dalian)',
+  '海から見た神戸ポートタワーとメリケンパーク周辺（神戸）': 'Kobe Port Tower and the Meriken Park area, seen from the sea (Kobe)',
+  '砂浜と波打ち際、その奥に並ぶ高層ビル（青島）': 'A beach and the water’s edge, with towers behind (Qingdao)',
+  '住宅街の木立越しに見るダウンタウンの高層ビル群（ヒューストン）': 'Downtown skyscrapers beyond the trees of a residential area (Houston)',
+  'お台場側から見たレインボーブリッジと対岸のビル群（東京）': 'Rainbow Bridge and the buildings across the water, seen from Odaiba (Tokyo)',
+  'テレビ塔と一面に広がる市街地のビル群（成都）': 'The TV tower and the city’s buildings stretching out (Chengdu)',
+  'カパーレーシュワラ寺院の塔門と手前の沐浴池（チェンナイ）': 'The gate tower of Kapaleeshwarar Temple and the temple tank in front (Chennai)',
+  '海越しに見る高層ビル群とロータスタワー（コロンボ）': 'Skyscrapers and the Lotus Tower, seen across the sea (Colombo)',
+  'ハティルジール湖と白い橋、対岸に密集する建物（ダッカ）': 'Hatirjheel Lake, a white bridge and dense buildings on the far shore (Dhaka)',
+  'ネルソン・マンデラ橋と中心業務地区の高層ビル群（ヨハネスブルグ）': 'Nelson Mandela Bridge and the towers of the central business district (Johannesburg)',
+  'アルバンダルのマリーナ（アルラハ・ビーチ）': 'Al Bandar marina (Al Raha Beach)',
+  'ハリファシティの近くを通る幹線道路（シャハマ・ロード）': 'The main road passing near Khalifa City (Shahama Road)',
+  'マスダールシティの街区（夜）': 'A block of Masdar City (night)',
+  'アルリーム島の高層ビル群': 'Al Reem Island skyscrapers',
+  'ヤス島のゴルフコース': 'Golf course on Yas Island',
+  '大田区大森の国道15号と沿道のマンション': 'National Route 15 in Omori, Ota City, and the apartments along it',
+  '夕方の港区の高層ビル群と東京タワー': 'Minato City skyscrapers and Tokyo Tower in the evening',
+  '成田の旧市街の坂道と古い商家の並び': 'A sloping street of old merchant houses in old Narita',
+  '海越しに見た東涌の映灣園（Caribbean Coast）の高層住宅': 'The Caribbean Coast towers in Tung Chung, seen across the water',
+  '上環の荷李活道（Hollywood Road）の坂道と沿道の商店・住宅': 'The slope of Hollywood Road in Sheung Wan, with shops and homes along it',
+  '桃園市中壢区の中心部の街並み（高い所から）': 'Central Zhongli District, Taoyuan City (from a height)',
+  '大園区の幹線道路と両側の街並み（空から）': 'A main road through Dayuan District and the streets on each side (from the air)',
+  '蘆竹区南崁の大通りと高層マンション': 'A main street and tall apartment blocks in Nankan, Luzhu District',
+  '台北市文山区景美の街並み（高い所から）': 'Jingmei, Wenshan District, Taipei (from a height)',
+  '大安森林公園の園路と周りのビル': 'A path in Daan Forest Park and the buildings around it',
+  '品川駅の高輪口の駅前と、駅の向こうの高層ビル群（駅前の歩道橋から）': 'Outside the Takanawa exit of Shinagawa Station, with towers beyond the station (from the footbridge)',
+  '豊洲の水辺に架かる赤いアーチの橋と、奥の高層ビル': 'A red arch bridge over the water in Toyosu, with towers behind',
+  'みなとみらいの高層ビル群と運河・観覧車（横浜）': 'Minato Mirai skyscrapers, the canal and the Ferris wheel (Yokohama)',
+  'ロープウェイ（昂坪360）から見下ろした東涌の高層住宅の並びと山・湾': 'Rows of Tung Chung residential towers, the hills and the bay, seen from the Ngong Ping 360 cable car',
+  '山の上（老虎頭）から見下ろした愉景灣の街と海・砂浜': 'Discovery Bay, the sea and the beach, seen from the hilltop (Lo Fu Tau)',
+  '荃灣から海越しに見た青衣の高層住宅の並び': 'Rows of Tsing Yi residential towers, seen across the water from Tsuen Wan',
+  '高い所から見た青埔の高層住宅と高鐵桃園駅のあたり': 'Qingpu residential towers and the area around HSR Taoyuan Station, from a height',
+  '高速道路の高架から見た林口の高層住宅の並び': 'Rows of Linkou residential towers, seen from an elevated highway',
+});
+
+/** 写真の説明（alt）の英語（英語版の準備・まだどの画面も読まない）。無ければ undefined。 */
+export const subjectEn = p => twinOf(EN, p.subject);
+/** クレジットに添える加工の字の英語。 */
+export const changesEn = p => (p.changes ? twinOf(EN, p.changes) : '');
+
+/** 検査（node place-photos.mjs --check）: 画面に出す写真の説明と加工の字に、英語の対が在る（HELD は画面に出ないので見ない）。 */
+export function check() {
+  const bad = [];
+  const fail = (where, msg) => bad.push(`${where}: ${msg}`);
+  const en = checkTwins('place-photos', EN, Object.entries(PHOTOS), fail);
+  return { n: Object.values(PHOTOS).flat().length, bad, en };
+}
+
 export default PHOTOS;
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const { n, bad, en } = check();
+  if (bad.length) {
+    for (const b of bad) console.log('❌ ' + b);
+    console.log(`\n❌ place-photos: ${bad.length}件`);
+    process.exit(1);
+  }
+  console.log(`✅ place-photos: 写真 ${n}枚（英語の対 ${en}字 ── 説明と加工の字）`);
+}

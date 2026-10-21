@@ -166,6 +166,117 @@
   var SAY_FAIL = 'うまくいきませんでした。もう一度お試しください。';
 
   var KINDS = [['hotel', 'ホテル'], ['food', 'レストラン'], ['spot', '場所']];
+
+  /* 英語の会社ページの字（2026-10-21・WP-en-4）。言葉は <html lang> だけで決める（pv-contrib.js と同じ式）。
+     ・上の日本語の表（T・SAY_ADD・SAY_EDIT・SAY_PHOTO・SAY_MOD・SAY_FAIL・KINDS）は今までと1字も違わない
+       ── ほかの検査がその場で読んでいる（assert-admin.mjs・assert-airline-glance.mjs・assert-proof-offer.mjs・assert-claims.mjs）。
+     ・英語は EN にまとめ、鍵も型も日本語の表と同じ（assert-proof-offer.mjs が鍵と型と字を見る）。英語のページでだけ、
+       下の1行で表を EN に入れ替える（日本語のページでは何も変わらない）。
+     ・鍵の1行は T.locked をそのまま使う（オーナーの字「Only VERIFIED PILOT」は日英同じ・このファイルに1回だけ ── assert-claims.mjs）。
+     ・proofPick・proofWait は pv-proof-offer.js の T.en の pick・doneS の写し（1文字でもずれたら assert-proof-offer.mjs が落とす）。
+     ・サイトに英語が在る字は、その写し（管理ページ admin-queue.js の英語：承認・却下・確認待ち・地図・名前・住所・ひとこと・種類・運営の断り／
+       「情報を追加」pv-contrib.js の英語：あなたの投稿・送信中…・読み込めませんでした／ポップアップの Close）。 */
+  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+  var EN = (function () {
+    var t = {
+      off:        'Not available yet',
+      locked:     T.locked,
+      login:      'Log in',
+      proofPick:  'Choose an image to submit',
+      proofWait:  'Please wait while we review it.',
+      err:        'Could not load',
+      retry:      'Try again',
+      none:       'Nothing has been added yet',
+      emptyT:     'Pass on the hotel you stayed at to the next pilot.',
+      emptyS:     'You can add just the hotel name. It is published after review.',
+      hours:      function (n) { return 'Layover about ' + n + (n === 1 ? ' hour' : ' hours'); },
+      pending:    'Waiting',
+      rejected:   'Declined',
+      mine:       'Your post',
+      map:        'Google Maps',
+      others:     'Hotels other airlines use at this airport',
+      entHotel:   'Add a hotel',
+      entFood:    'Add a restaurant',
+      entSpot:    'Add a place',
+      fKind:      'Type',
+      fName:      'Name',
+      fAddr:      'Address',
+      fMap:       'Google Maps URL',
+      fNote:      'Note',
+      fHours:     'Layover length (optional)',
+      fHoursU:    'hours',
+      fPhoto:     'Photo',
+      pick:       'Choose a photo',
+      unpick:     'Remove the photo',
+      send:       'Add',
+      edit:       'Edit',
+      editSend:   'Send the edit',
+      edited:     'Edited. It is published after review.',
+      same:       'Nothing was changed.',
+      cancel:     'Cancel',
+      photoAdd:   'Add a photo',
+      pub:        'Approve',
+      rej:        'Reject',
+      del:        'Delete',
+      delSure:    'Yes, delete',
+      close:      'Close',
+      zoom:       'Show the photo larger',
+      photoErr:   'The photo cannot be shown',
+      sending:    'Sending…',
+      added:      'Added. It is published after review.',
+      addedBut:   'The place was added. ',
+      photoDone:  'Photo added. It is published after review.',
+      pubDone:    'Published.',
+      rejDone:    'Rejected.',
+      delDone:    'Deleted.',
+      needName:   'Enter a name of 2 to 80 characters.',
+      needKind:   'Choose a type.',
+      badHours:   'Enter the layover length in whole hours, from 1 to 240. You can also leave it empty.',
+      badMap:     'Enter a Google Maps link (https). You can also leave it empty.'
+    };
+    return {
+      T: t,
+      SAY_ADD: {
+        bad_airline:  'You cannot add to this destination right now.',
+        bad_iata:     'You cannot add to this destination right now.',
+        bad_kind:     t.needKind,
+        bad_name:     t.needName,
+        too_long:     'The address can be up to 200 characters and the note up to 500.',
+        bad_city:     'The city name is too long.',
+        bad_hours:    t.badHours,
+        too_fast:     'Please wait a moment before adding another one.',
+        rate_limited: 'You have reached the limit for adding. Please try again after 24 hours.',
+        duplicate:    'You have already added this name.',
+        exists:       'The same name is already registered.',
+        queue_full:   'You cannot add to this destination right now.'
+      },
+      SAY_EDIT: {
+        not_found:    'This post cannot be edited right now.',
+        final:        'A declined post cannot be edited. Please add it again.',
+        rate_limited: 'You have reached the limit for edits. Please try again after 24 hours.'
+      },
+      SAY_PHOTO: {
+        image_bad:     'This photo could not be read. Please choose a different one.',
+        image_too_big: 'This photo is too large. Please choose a different one.',
+        not_found:     'A photo cannot be added to this place right now.',
+        rate_limited:  'You have reached the limit for adding photos. Please try again after 24 hours.',
+        full:          'A place can have up to 4 photos.',
+        duplicate:     'You have already added this photo.'
+      },
+      SAY_MOD: {
+        forbidden: 'Only the operator can do this.',
+        own_post:  'Your own item is checked by another operator.',
+        final:     'A rejected item cannot be published again.',
+        not_found: 'This can no longer be shown.',
+        changed:   'The author changed it. The current content was loaded - check it and press again.',
+        exists:    'The same name is already registered.'
+      },
+      SAY_FAIL: 'Something went wrong. Please try again.',
+      KINDS: [['hotel', 'Hotel'], ['food', 'Restaurant'], ['spot', 'Place']]
+    };
+  })();
+  if (LANG === 'en') { T = EN.T; SAY_ADD = EN.SAY_ADD; SAY_EDIT = EN.SAY_EDIT; SAY_PHOTO = EN.SAY_PHOTO; SAY_MOD = EN.SAY_MOD; SAY_FAIL = EN.SAY_FAIL; KINDS = EN.KINDS; }
+
   /* 欄の外に並べる3つの入口（押した種類を選んだまま、追加の面が開く）。 */
   var ENTS = [['hotel', T.entHotel], ['food', T.entFood], ['spot', T.entSpot]];
 
@@ -781,9 +892,11 @@
 
   /* 他社の名前（ステイ先の面の行の社名）。日本の会社は日本語・ほかは英語（オーナー 2026-10-18「日本は日本語、他は英語」）。
      会社ページの島（#crc-data）に name（gen-airline-glance.mjs が同じ決まりで書く）があればそれ。無ければ pv-airlines.json
-     （生成物。地域 region を持つ）を1回だけ読んで、同じ決まりで選ぶ（読めなければ島の ja、それも無ければ符号）。 */
+     （生成物。地域 region を持つ）を1回だけ読んで、同じ決まりで選ぶ（読めなければ島の ja、それも無ければ符号）。
+     ★英語のページ（WP-en-4）はどの会社も英語：島の en → pv-airlines.json の en → 符号（日本語の名前へは落ちない）。 */
   function sayName(a) {
     if (!a || typeof a !== 'object') return '';
+    if (LANG === 'en') return str(a.en);
     if (!a.region) return str(a.ja);
     return a.region === 'japan' ? str(a.ja) : (str(a.en) || str(a.ja));
   }
@@ -796,14 +909,14 @@
         NAMES_HERE = (j && j.airlines) || {};
       } catch (e) { /* 無ければ下へ */ }
     }
-    var a = NAMES_HERE[code];
-    if (a && str(a.name)) return Promise.resolve(str(a.name));
+    var a = NAMES_HERE[code], own = a && str(LANG === 'en' ? a.en : a.name);
+    if (own) return Promise.resolve(own);
     if (!NAMES_ALL) {
       NAMES_ALL = (w.fetch ? w.fetch(BASE + 'pv-airlines.json') : Promise.reject())
         .then(function (r) { return r && r.ok ? r.json() : {}; })
         .then(function (j) { return (j && j.airlines) || {}; }, function () { return {}; });
     }
-    return NAMES_ALL.then(function (m) { return sayName(m[code]) || (a && str(a.ja)) || code; });
+    return NAMES_ALL.then(function (m) { return sayName(m[code]) || (LANG !== 'en' && a && str(a.ja)) || code; });
   }
 
   // ══ 写真を出す ═════════════════════════════════════════════
@@ -1148,7 +1261,7 @@
     if (!it && w.PVHotelSuggest && typeof w.PVHotelSuggest.attach === 'function') {
       try {
         w.PVHotelSuggest.attach(form.querySelector('[data-k="name"]'), {
-          client: client, lang: 'ja', host: form, maps: form.querySelector('[data-k="maps_url"]'),
+          client: client, lang: LANG, host: form, maps: form.querySelector('[data-k="maps_url"]'),
           near: function () { return cityOf(slot); },
           active: function () { var kr = form.querySelector('input[type="radio"]:checked'); return !!kr && kr.value === 'hotel'; }
         });

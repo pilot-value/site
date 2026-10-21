@@ -694,7 +694,7 @@
   function readMoreGateTabbed() {
     var login = '../login.html?return=' + encodeURIComponent(location.pathname + location.search + (isTabbed() ? '#reviews' : ''));
     return '<div class="pvg-rmg-box" role="dialog" aria-modal="true" aria-labelledby="pvg-rmg-t">' +
-      '<button type="button" class="pvg-rmg-x" aria-label="閉じる" onclick="document.getElementById(\'pv-readmore-gate\').style.display=\'none\'">✕</button>' +
+      '<button type="button" class="pvg-rmg-x" aria-label="' + (LANG === 'en' ? 'Close' : '閉じる') + '" onclick="document.getElementById(\'pv-readmore-gate\').style.display=\'none\'">✕</button>' +
       '<div class="pvg-rmg-ic" aria-hidden="true">🔒</div>' +
       '<p class="pvg-rmg-t" id="pvg-rmg-t">' + L.rmTitle.replace('には', function () { return 'には<wbr>'; }) + '</p>' +
       '<p class="pvg-rmg-d">' + L.rmDesc.replace(/ style="[^"]*"/g, function () { return ''; }) + '</p>' +

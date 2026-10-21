@@ -444,6 +444,156 @@ export const FACTS = {
   },
 };
 
+/* ── 英語の対（2026-10-21・英語版の準備）── 画面に出る日本語の字 → 英語。決まりは下の「英語の対」の節（twinOf）。
+   行の字を直したら、ここも直す（直さないと check() が落ちる）。引用は原文のまま（ここに置かない）。
+   アブダビの街の名前（rents の en）と就航地の街（city_en）は行に在る英語を使う。国の字は airline-countries.mjs の COUNTRIES の en と同じ。 */
+export const EN = Object.freeze({
+  /* 紹介文の型（{鍵} は日本語の型と同じものだけ） */
+  '最初の商業便は{first_flight}。{national_airline}で、拠点は{home_airport:city}の{home_airport}。':
+    'First commercial flight: {first_flight}. {national_airline}, based at {home_airport} in {home_airport:city}.',
+  '{fleet_total:at}時点の運航機材は、{fleet_total:cond}{fleet_total}。{passengers_year:at}の旅客は{passengers_year}。':
+    'Operating fleet as of {fleet_total:at}: {fleet_total}, {fleet_total:cond}. Passengers in {passengers_year:at}: {passengers_year}.',
+  /* 項目の名前 */
+  '最初の商業便': 'First commercial flight',
+  '会社の形': 'Legal form',
+  '位置づけ': 'Status',
+  '所有（2022年10月の発表）': 'Ownership (announced October 2022)',
+  '所有（2026年1月の発表）': 'Ownership (announced January 2026)',
+  '拠点の空港': 'Home airport',
+  '運航している機材': 'Aircraft in operation',
+  '機材の平均の機齢': 'Average fleet age',
+  '就航地（ネットワーク）': 'Destinations (network)',
+  'その月に実際に運航した就航地': 'Destinations actually operated that month',
+  '1年間の旅客': 'Passengers in a year',
+  'その年に入社したパイロット': 'Pilots who joined that year',
+  'その年のパイロットの昇格': 'Pilot promotions that year',
+  '就航地の案内ページの見出し': 'Headline of the destinations page',
+  'ボーイング787': 'Boeing 787',
+  'エアバスA320': 'Airbus A320',
+  'エアバスA321': 'Airbus A321',
+  'エアバスA321LR': 'Airbus A321LR',
+  'エアバスA350': 'Airbus A350',
+  'ボーイング777': 'Boeing 777',
+  'エアバスA380': 'Airbus A380',
+  'エアバスA330': 'Airbus A330',
+  'ボーイング777F（貨物機）': 'Boeing 777F (freighter)',
+  '年次休暇': 'Annual leave',
+  '教育手当（初等）': 'Education allowance (primary)',
+  '教育手当（中等）': 'Education allowance (secondary)',
+  '住宅': 'Housing',
+  '社員航空券（Staff Travel）': 'Staff travel',
+  '昇給': 'Pay increments',
+  '所得補償': 'Income protection',
+  '保険': 'Insurance',
+  '退職時': 'End of service',
+  '引越し': 'Relocation',
+  '税': 'Tax',
+  '機長昇格': 'Upgrade to captain',
+  '旅行手当（Travel allowance・教官）': 'Travel allowance (instructors)',
+  '模擬機の訓練1回（4時間）・TRI': 'One simulator session (4 hours), TRI',
+  '模擬機の訓練1回（4時間）・TRE': 'One simulator session (4 hours), TRE',
+  '路線での訓練・審査（1ローテーションあたり）': 'Line training or line check (per rotation)',
+  '路線での訓練・審査（1区間あたり）': 'Line training or line check (per sector)',
+  '機長（A320）': 'Captain (A320)',
+  '交代要員つきの便で積んだ飛行時間の数え方（応募資格）': 'How hours on flights with inflight relief count (requirements)',
+  '副操縦士（A320）': 'First Officer (A320)',
+  '機長・教官（A320）': 'Captain and instructor (A320)',
+  '教官・審査員の経験': 'Instructor or examiner experience',
+  '模擬機での訓練の経験': 'Simulator training experience',
+  '路線での訓練（LIFUS／IOE）の経験': 'Line training (LIFUS/IOE) experience',
+  '訓練生（UAE 国籍の人だけ）': 'Cadet (UAE nationals only)',
+  '何の額か': 'What the figure is',
+  'いつの額か': 'Period',
+  '通貨': 'Currency',
+  '額の単位': 'Unit',
+  /* 値 */
+  '2003年11月12日（ベイルート行き）': '12 November 2003 (to Beirut)',
+  '公開株式会社（PJSC）。首長令で設立された、アブダビ首長国の法人': 'A public joint stock company (PJSC) established by Emiri Decree and incorporated in the Emirate of Abu Dhabi',
+  'UAE のナショナル・エアライン': 'The national airline of the UAE',
+  'エティハド・アビエーション・グループの所有のすべてが、アブダビの投資・持株会社 ADQ へ移された': 'Full ownership of Etihad Aviation Group was transferred to ADQ, an Abu Dhabi investment and holding company',
+  '持株会社 L’IMAD と ADQ の資産と投資を、L’IMAD の傘下へまとめる決議。L’IMAD の投資先の1つにエティハド航空の名が挙がっている':
+    'A resolution to consolidate the assets and investments of the holding company L’IMAD and of ADQ under L’IMAD; Etihad Airways is named among the companies concerned',
+  'ザーイド国際空港': 'Zayed International Airport',
+  '400人近く': 'Almost 400',
+  '150件近く': 'Nearly 150',
+  '120以上の就航地・40以上の国': '120+ destinations in 40+ countries',
+  '住宅手当（年間パッケージの内訳の1つ）': 'Housing allowance (part of the annual package)',
+  '有り（条件の記載なし）': 'Yes (terms not stated)',
+  '実績に応じた年次の昇給': 'Performance-based annual increments',
+  '所得補償の制度': 'Income protection scheme',
+  '傷害保険・生命保険': 'Accident and life insurance',
+  '退職時の給付': 'End-of-service benefits',
+  'コンテナ輸送の手当・着任時の支援・家族の渡航': 'Shipping container allowance, settling-in support and family travel',
+  '非課税のパッケージ': 'Tax-free package',
+  '年数の目安の記載なし': 'No timeline stated',
+  'その時間の75%を、必要な飛行時間に数える': '75% of those hours count towards the required minimum',
+  'A320 の教官または審査員（TRI／TRE）として3年': '3 years as an A320 instructor or examiner (TRI/TRE)',
+  '1,000時間': '1,000 hours',
+  'Bayut に不動産会社が載せた、入居できる集合住宅の募集家賃の平均（ルームシェアを除く）。成約した額ではない':
+    'Average asking rent of ready homes listed by agencies on Bayut (room shares excluded); not actual transactions',
+  '2026年1〜6月': 'January–June 2026',
+  '1年あたり': 'Per year',
+  /* 条件 */
+  '短期の借り受け（ACMI）と貨物機を含む': 'including short-term (ACMI) leases and freighters',
+  'ACMI の借り受けを除く': 'excluding ACMI leases',
+  '季節便・貨物の路線と、12か月以内に始まる予定の先を含む': 'including seasonal and cargo routes, and destinations due to start within 12 months',
+  '上限。子1人あたり・子3人まで': 'maximum, per child, for up to three children',
+  '本人と対象の家族。1年あたりか1回かは書いていない': 'for the pilot and eligible dependents; whether per year or one-off is not stated',
+  '1区間あたりの額と、乗務時間の手当が加わる': 'plus the per-sector amount and flying hours pay',
+  '1ローテーションあたりの額に加わる': 'on top of the per-rotation amount',
+  'UAE 国籍・18〜29歳': 'UAE nationals aged 18–29',
+  '表そのものに通貨の字は無い。ハリファ・シティと同じ表のアル・シャムハの平均（表では 63,000）を、同じページの本文が「AED 63k」と書いている':
+    'The table itself names no currency; the text of the same page gives Al Shamkha’s average (63,000 in the same table as Khalifa City) as “AED 63k”',
+  '2026年上半期の表の見出しは「Avg. Rent」だけで、「年額」とは書いていない。「年額」と書いてあるのは、同じ Bayut の2025年版の同じ形の表の見出し':
+    'The H1 2026 table is headed only “Avg. Rent” and does not say per year; “per year” comes from the heading of the same table in Bayut’s 2025 edition',
+  /* 街（拠点・暮らし・求人の勤務地） */
+  'アブダビ': 'Abu Dhabi',
+  /* 国（拠点と就航地。字は airline-countries.mjs の COUNTRIES の en と同じ） */
+  'アラブ首長国連邦': 'United Arab Emirates',
+  '日本': 'Japan',
+  '台湾': 'Taiwan',
+  '香港': 'Hong Kong',
+  '韓国': 'South Korea',
+  'タイ': 'Thailand',
+  'シンガポール': 'Singapore',
+  'マレーシア': 'Malaysia',
+  'インドネシア': 'Indonesia',
+  'フィリピン': 'Philippines',
+  'オーストラリア': 'Australia',
+  'インド': 'India',
+  'イギリス': 'United Kingdom',
+  'フランス': 'France',
+  'ドイツ': 'Germany',
+  'オランダ': 'Netherlands',
+  'イタリア': 'Italy',
+  'スイス': 'Switzerland',
+  'スペイン': 'Spain',
+  'アメリカ': 'United States',
+  'カナダ': 'Canada',
+  /* 出どころの名前（題は原文のまま “…”） */
+  'エティハド航空の発表「Burj Khalifa lights up for Etihad’s 20th Anniversary」': 'Etihad Airways news release, “Burj Khalifa lights up for Etihad’s 20th Anniversary”',
+  'エティハド航空「Terms and Conditions」': 'Etihad Airways, “Terms and Conditions”',
+  'エティハド航空の発表「Etihad Airways celebrates Zayed International Airport」': 'Etihad Airways news release, “Etihad Airways celebrates Zayed International Airport”',
+  'アブダビ政府メディアオフィス「Etihad Aviation Group Transferred to ADQ’s Portfolio」': 'Abu Dhabi Government Media Office, “Etihad Aviation Group Transferred to ADQ’s Portfolio”',
+  'アブダビ政府メディアオフィス「Supreme Council for Financial and Economic Affairs Issues Resolution to Consolidate the Assets and Investments of L’IMAD Holding and Abu Dhabi Developmental Holding Group」':
+    'Abu Dhabi Government Media Office, “Supreme Council for Financial and Economic Affairs Issues Resolution to Consolidate the Assets and Investments of L’IMAD Holding and Abu Dhabi Developmental Holding Group”',
+  'エティハド航空の発表「Etihad reports February 2026 Traffic Statistics」': 'Etihad Airways news release, “Etihad reports February 2026 Traffic Statistics”',
+  'エティハド航空の発表「Etihad Airways delivers record passenger numbers and growth in 2025」': 'Etihad Airways news release, “Etihad Airways delivers record passenger numbers and growth in 2025”',
+  'エティハド航空の発表「Etihad Airways Delivers Record AED 2.6 Billion (U.S $ 698 Million) Profit in 2025」': 'Etihad Airways news release, “Etihad Airways Delivers Record AED 2.6 Billion (U.S $ 698 Million) Profit in 2025”',
+  'エティハド航空「Our Destinations」': 'Etihad Airways, “Our Destinations”',
+  'エティハド航空の求人「Captain」（SmartRecruiters）': 'Etihad Airways job posting, “Captain” (SmartRecruiters)',
+  'エティハド航空の採用サイト「Etihad Pilot Careers」': 'Etihad Airways careers site, “Etihad Pilot Careers”',
+  'エティハド航空の求人「Captain A320 - Instructor」（SmartRecruiters）': 'Etihad Airways job posting, “Captain A320 - Instructor” (SmartRecruiters)',
+  'エティハド航空の求人「First Officer」（SmartRecruiters）': 'Etihad Airways job posting, “First Officer” (SmartRecruiters)',
+  'エティハド航空の求人「Cadet Pilot Programme」（SmartRecruiters）': 'Etihad Airways job posting, “Cadet Pilot Programme” (SmartRecruiters)',
+  'Bayut「Abu Dhabi Rental Market Report H1 2026」': 'Bayut, “Abu Dhabi Rental Market Report H1 2026”',
+  'Bayut「Abu Dhabi Rental Market Report for 2025」': 'Bayut, “Abu Dhabi Rental Market Report for 2025”',
+  /* 出どころの種類（SRC_KINDS） */
+  '会社の公表': 'Published by the company',
+  '政府の公表': 'Published by the government',
+  '不動産ポータルの公表': 'Published by the property portal',
+});
+
 /* ════════════ 読むための関数 ════════════ */
 
 /** 空白のそろえ方（引用と、出どころの本文の両方に使う）。nbsp も普通の空白1つにする。 */
@@ -529,6 +679,8 @@ export function fillIntro(intro, find, when = x => atText(x.at)) {
 export function introText(slug) {
   return fillIntro((FACTS[slug] || {}).intro, key => factByKey(slug, key));
 }
+/** 紹介文の英語（英語版の準備・まだどの画面も読まない）。型は EN、字は英語の対（fillIntroEn）。 */
+export const introTextEn = slug => fillIntroEn(EN, (FACTS[slug] || {}).intro, key => factByKey(slug, key), x => atTextEn(x.at));
 
 /** 紹介文の検査。字が台帳の項目だけでできているかを見る
     （手で打った数字が無い／条件つきの数字に条件が付いている／規模の数字に時点が付いている／同じ項目を2回言わない）。
@@ -567,6 +719,211 @@ export function checkIntro(slug, intro, fail, o) {
   }
   const whole = built.map(b => b.text || '').join('');
   if (whole.length > o.max) fail(`${slug}.intro`, `長い（${whole.length}字。${o.max}字まで）`);
+}
+
+/* ════════════ 英語の対（2026-10-21・英語版の準備 WP-en-1）════════════
+   英語の会社ページ（まだ無い。作るのは生成器を英語にする回）が出す字の置き場の決まり。
+   日本語の画面はここを1つも読まない ＝ 日本語の字は1字も変わらない（読む関数は全部 …En の別の名前）。
+   ・台帳ごとに EN を1つ持つ（画面に出る日本語の字 → 英語の字）。行の中には書かない ──
+     行の字を直すと、その字の英語が無くなって検査が落ちる（直す前の英語が、黙って画面に残らない）。
+   ・対の探し方（twinOf）は4つだけ、この順:
+       1. EN に、その字のまま在る
+       2. 見た日時の字（「2026年10月11日 15:31 に見た表示」）は、字の形から作る（seenEn）
+       3. 「線：A → B」「A ⇄ B」「A 〜 B」の形は、部品ごとに EN から組む
+       4. 日本語の字（かな・漢字・全角の記号）が1つも無い字は、そのまま英語に使える（ATR 42-600・Tung Chung）
+     行に英語が最初から在るもの（アブダビの街の en・就航地の city_en・地域の en）は、その字を使う（twin）。
+     国の名前も EN に置く。字は airline-countries.mjs の COUNTRIES の en と同じにしてある（2026-10-21 に突き合わせた）。
+     ⚠️ あちらを import しない ── assert-import-research.mjs は台帳のファイル（LEDGER_FILES）だけを使い捨ての場所へ写して流すので、
+        台帳がほかのファイルを読むと、その検査が「モジュールが無い」で落ちる（2026-10-21 に一度踏んだ）。
+   ・対を作らないもの（NO_TWIN）: 引用（quote・quote_more・cond_quote・pay_quote・pick_quote・name_quote・seasonal_quote）は原文のまま／
+     URL・鍵・機械の字・写真の作者とライセンス（作者が指定した書き方のまま）・単位（UNIT_EN が数字ごと言い直す）。
+   ・日付の at は atTextEn、数字と単位は valueTextEn（UNIT_EN）、紹介文は fillIntroEn（日本語と同じ {鍵} だけで組む）。
+   ・英語の字に、かな・全角の記号を入れない。漢字は “…” の中（原文の題）だけ。
+   ・検査は各台帳の check() の最後（checkTwins・checkIntroEn）。画面に出る字で対の無いもの・英語の形が違うもの・
+     どの字にも使われていない EN の行を落とす。 */
+
+/** 日本語の字（かな・漢字・全角の記号）。これを1つでも含む字には英語の対が要る。 */
+export const JA_CHARS = /[　-〿぀-ヿ㐀-䶿一-鿿＀-￯]/;
+/* 英語の字に入れない字（かな・全角の記号）。漢字は “…” の中だけ（下の enShape）。 */
+const NOT_EN = /[　-〿぀-ヿ＀-￯]/;
+const HAN = /[㐀-䶿一-鿿]/;
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** at（いつの話か）を英語の字に。'2026-02-28' → 28 February 2026／'2026-02' → February 2026／'2025' → 2025／'2026-H1' → H1 2026。 */
+export function atTextEn(at) {
+  const m = String(at ?? '').match(/^(\d{4})(?:-(?:(\d{2})(?:-(\d{2}))?|H([12])))?$/);
+  if (!m) return '';
+  if (m[4]) return `H${m[4]} ${m[1]}`;
+  return [m[3] ? String(Number(m[3])) : '', m[2] ? MONTHS[Number(m[2]) - 1] : '', m[1]].filter(Boolean).join(' ');
+}
+
+/* 見た日時の字（living-facts.mjs の seenJa が作る3つの形）。 */
+const SEEN_JA = /^(\d{4})年(\d{1,2})月(\d{1,2})日(?: (\d{2}):(\d{2})(（日本時間）| ))?に見た表示$/;
+/** 「2026年10月11日 15:31（日本時間）に見た表示」→ as shown on 11 October 2026 at 15:31 (Japan time)。形が違えば undefined。 */
+export function seenEn(s) {
+  const m = SEEN_JA.exec(String(s ?? ''));
+  if (!m) return undefined;
+  const day = `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}`;
+  return `as shown on ${day}${m[4] ? ` at ${m[4]}:${m[5]}${m[6] === '（日本時間）' ? ' (Japan time)' : ''}` : ''}`;
+}
+
+/* 「線：A → B」の部品の切れ目。〜 は英語では – 。 */
+const SEP = /\s*(→|⇄|〜)\s*/;
+function composed(dict, s, used) {
+  const got = new Set();
+  const part = p => {
+    const t = String(p).trim();
+    if (!JA_CHARS.test(t)) return t;
+    if (!Object.hasOwn(dict, t)) return undefined;
+    got.add(t);
+    return dict[t];
+  };
+  const chain = t => {
+    const bits = t.split(SEP), out = [];
+    for (const [i, b] of bits.entries()) {
+      if (i % 2) { out.push(b === '〜' ? '–' : b); continue; }
+      const e = part(b);
+      if (e === undefined) return undefined;
+      out.push(e);
+    }
+    return out.join(' ');
+  };
+  const head = /^([^：]+)：(.+)$/.exec(s);
+  const line = head ? chain(head[1]) : '', rest = chain(head ? head[2] : s);
+  if (line === undefined || rest === undefined) return undefined;
+  if (used) for (const k of got) used.add(k);
+  return head ? `${line}: ${rest}` : rest;
+}
+
+/** 日本語の字 s の英語（上の4つの探し方）。無ければ undefined。used を渡すと、使った EN の行を書き留める。 */
+export function twinOf(dict, s, used) {
+  const t = String(s ?? '');
+  if (!JA_CHARS.test(t)) return t;
+  if (Object.hasOwn(dict, t)) { if (used) used.add(t); return dict[t]; }
+  const seen = seenEn(t);
+  if (seen) return seen;
+  if (/：|→|⇄|〜/.test(t)) return composed(dict, t, used);
+  return undefined;
+}
+
+/** 行 x の項目 f（'ja'・'cond_ja'・'value'・'name' …）の英語。行に英語が在ればそれ（ja → en・◯◯_ja → ◯◯_en）、無ければ EN。 */
+export function twin(dict, x, f, used) {
+  const own = f === 'ja' ? x.en : /_ja$/.test(f) ? x[f.replace(/_ja$/, '_en')] : undefined;
+  if (typeof own === 'string' && own) return own;
+  return twinOf(dict, x[f], used);
+}
+
+/** 数字の単位（日本語の台帳の unit）ごとの英語の並べ方。人数・か所は数だけ（何の数かは項目の名前が言う）。 */
+const NUM = n => n.toLocaleString('en-US');
+const plural = (n, one, many) => `${NUM(n)} ${n === 1 ? one : many}`;
+export const UNIT_EN = Object.freeze({
+  '機': n => `${NUM(n)} aircraft`,
+  '路線': n => plural(n, 'route', 'routes'),
+  '名': n => NUM(n),
+  '人': n => NUM(n),
+  'か所': n => NUM(n),
+  '歳': n => plural(n, 'year', 'years'),
+  '年': n => plural(n, 'year', 'years'),
+  '日': n => plural(n, 'day', 'days'),
+  '時間': n => plural(n, 'hour', 'hours'),
+  '分': n => `${NUM(n)} min`,
+  '%': n => `${NUM(n)}%`,
+  '千人': n => `${(n / 1000).toLocaleString('en-US', { maximumFractionDigits: 3 })} million`,
+  '万人': n => `${(n / 100).toLocaleString('en-US', { maximumFractionDigits: 2 })} million`,
+  'AED/年': n => `AED ${NUM(n)} a year`,
+});
+
+/** 値を英語の字に（valueText の英語）。数字は UNIT_EN、字は EN。金額（cur つき）には使わない。 */
+export function valueTextEn(dict, x, used) {
+  if (typeof x.value === 'number') return x.unit ? (UNIT_EN[x.unit] ? UNIT_EN[x.unit](x.value) : undefined) : NUM(x.value);
+  return twinOf(dict, String(x.value ?? ''), used);
+}
+
+/** 紹介文の英語（fillIntro と同じ組み立て ── 型は EN の英語の型、字は英語の対）。組み立てられない文は text が null。 */
+export function fillIntroEn(dict, intro, find, when, used) {
+  return (intro || []).map(s => {
+    const tpl = twinOf(dict, s.ja, used);
+    let ok = typeof tpl === 'string' && !!tpl.trim();
+    const text = !ok ? '' : tpl.replace(INTRO_SLOT, (_, key, part) => {
+      const x = find(key);
+      const v = !x ? '' : part === 'at' ? when(x) : part === 'cond' ? (x.cond_ja ? twin(dict, x, 'cond_ja', used) : '')
+        : part === 'city' ? (x.city_ja ? twin(dict, x, 'city_ja', used) : '') : valueTextEn(dict, x, used);
+      if (!v) ok = false;
+      return v || '';
+    });
+    return { text: ok ? text : null, uses: [...(s.uses || [])] };
+  });
+}
+
+/* 対を作らない項目（原文・機械の字）。単位は UNIT_EN が見る。 */
+const NO_TWIN = new Set(['quote', 'quote_more', 'cond_quote', 'pay_quote', 'pick_quote', 'name_quote', 'seasonal_quote',
+  'url', 'img', 'file', 'orig', 'source', 'author', 'licence', 'licence_url', 'key', 'kind', 'words_src', 'unit', 'why']);
+
+/** o の中の、日本語の字を含む字を全部 { where, row, field, text, own } で返す（own ＝ row[field] がその字そのもの）。
+    中を全部歩く ── 新しい項目を足しても、英語の対が無ければ検査が落ちる。 */
+export function* shownTexts(o, where, row = null, field = '') {
+  if (typeof o === 'string') { if (JA_CHARS.test(o)) yield { where, row, field, text: o, own: !!row && row[field] === o }; return; }
+  if (Array.isArray(o)) { for (const [i, v] of o.entries()) yield* shownTexts(v, `${where}[${i}]`, null, field); return; }
+  if (o && typeof o === 'object' && !(o instanceof RegExp)) for (const [k, v] of Object.entries(o)) if (!NO_TWIN.has(k)) yield* shownTexts(v, `${where}.${k}`, o, k);
+}
+
+/* 英語の字の形（かな・全角の記号が無い・漢字は “…” の中だけ・空でない）。 */
+function enShape(en) {
+  if (typeof en !== 'string' || !en.trim()) return '英語の対が無い';
+  if (NOT_EN.test(en)) return `英語の字に、かなか全角の記号が残っている（${en}）`;
+  if (HAN.test(en.replace(/“[^”]*”/g, ''))) return `英語の字の “…” の外に漢字がある（${en}）`;
+  if (/undefined|null/.test(en)) return `英語の字が組み立てに失敗している（${en}）`;
+  return '';
+}
+
+/** 英語の対の検査。roots ＝ [[在りかの名前, 中身], …]。o.rule(t, en) ＝ 台帳ごとの決まり（落とす理由の字か ''）。
+    1. 画面に出る日本語の字ごとに、英語の対が在り、形が正しい  2. 数字の単位は全部 UNIT_EN に在る  3. EN の行はどれも、どこかの字に使われている。
+    返すのは見た字の数。 */
+export function checkTwins(name, dict, roots, fail, o = {}) {
+  const used = new Set();
+  let n = 0;
+  const units = new Set();
+  const walkUnits = (x, seen = new Set()) => {
+    if (!x || typeof x !== 'object' || seen.has(x)) return;
+    seen.add(x);
+    if (!Array.isArray(x) && typeof x.unit === 'string') units.add(x.unit);
+    for (const v of Object.values(x)) walkUnits(v, seen);
+  };
+  for (const [where0, root] of roots) {
+    walkUnits(root);
+    for (const t of shownTexts(root, where0)) {
+      n++;
+      const en = t.own ? twin(dict, t.row, t.field, used) : twinOf(dict, t.text, used);
+      const bad = enShape(en) || (o.rule ? o.rule(t, en) : '');
+      if (bad) fail(t.where, `${bad}${bad === '英語の対が無い' ? `（${t.text}）` : ''}`);
+    }
+  }
+  for (const u of units) if (!UNIT_EN[u]) fail(`${name}.unit`, `単位「${u}」の英語の並べ方が UNIT_EN に無い`);
+  for (const [k, v] of Object.entries(dict)) {
+    if (!JA_CHARS.test(k)) fail(`${name}.EN`, `日本語の字ではない行（${k}）── 対は要らない`);
+    const bad = enShape(v);
+    if (bad) fail(`${name}.EN`, `${bad}（${k}）`);
+    if (!used.has(k)) fail(`${name}.EN`, `どの字にも使われていない英語の行（${k}）── 台帳の字が変わったなら、英語も直す`);
+  }
+  return n;
+}
+
+/* 紹介文の英語に書かない言い方（日本語の INTRO_BANNED と同じ種類 ── 順位・飾り・年収の話）。 */
+export const INTRO_BANNED_EN = /\b(largest|biggest|oldest|leading|top|No\.\s*1|best|premier|flagship|state-owned|government-owned|fast-growing|prestigious|salary|pay)\b/i;
+/** 紹介文の英語の検査。型の {鍵} が日本語の型と同じ・手で打った数字が無い・書かない言い方が無い・組み立てられる。 */
+export function checkIntroEn(slug, intro, dict, find, when, fail, banned = INTRO_BANNED_EN) {
+  const slots = t => [...String(t).matchAll(INTRO_SLOT)].map(m => `${m[1]}:${m[2] || 'value'}`).sort().join(' ');
+  const built = fillIntroEn(dict, intro, find, when);
+  for (const [i, s] of (intro || []).entries()) {
+    const where = `${slug}.intro[${i}]`, tpl = twinOf(dict, s.ja);
+    if (typeof tpl !== 'string' || !tpl.trim()) { fail(where, '紹介文の英語の型が EN に無い'); continue; }
+    if (slots(tpl) !== slots(s.ja)) fail(where, `英語の型の {鍵} が日本語の型と違う（英語: ${slots(tpl)}／日本語: ${slots(s.ja)}）`);
+    const bare = tpl.replace(INTRO_SLOT, () => '');
+    if (/[0-9]/.test(bare)) fail(where, '英語の型に数字を手で打っている（数字と日付は台帳の項目から入れる）');
+    const word = bare.match(banned);
+    if (word) fail(where, `紹介文の英語に書かない言い方（${word[0]}）`);
+    if (!built[i].text) fail(where, '紹介文の英語を組み立てられない');
+  }
 }
 
 export default FACTS;
@@ -694,7 +1051,11 @@ export function check() {
   }
   if (!CAP_POST || !FO_POST) fail('etihad.jobs', 'salary-basis.mjs の BASIS.etihad.src に機長・副操縦士の求人が見つからない');
 
-  return { n, bad };
+  /* 英語の対（英語版の準備）: 画面に出る日本語の字に英語が在る・紹介文の英語は日本語と同じ {鍵} だけで組める */
+  const en = checkTwins('career-facts', EN, [['etihad', FACTS.etihad], ['REGIONS', REGIONS], ['SRC_KINDS', SRC_KINDS]], fail);
+  checkIntroEn('etihad', FACTS.etihad.intro, EN, key => factByKey('etihad', key), x => atTextEn(x.at), fail);
+
+  return { n, bad, en };
 }
 
 function list() {
@@ -722,13 +1083,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const args = process.argv.slice(2);
   if (args.includes('--list')) list();
   if (args.includes('--check') || !args.includes('--list')) {
-    const { n, bad } = check();
+    const { n, bad, en } = check();
     if (bad.length) {
       for (const b of bad) console.log(`❌ ${b}`);
       console.log(`\n❌ career-facts: ${bad.length}件`);
       process.exit(1);
     }
     const e = FACTS.etihad;
-    console.log(`✅ career-facts: ${n}項目（出どころ・確かめた日・引用・種類の白リスト・IATA ${e.destinations.length}件が3字で重なりなし・台帳との食い違いなし・紹介文 ${introText('etihad').length}文は台帳の項目だけ）`);
+    console.log(`✅ career-facts: ${n}項目（出どころ・確かめた日・引用・種類の白リスト・IATA ${e.destinations.length}件が3字で重なりなし・台帳との食い違いなし・紹介文 ${introText('etihad').length}文は台帳の項目だけ・英語の対 ${en}字）`);
   }
 }

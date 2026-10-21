@@ -59,7 +59,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { man } from './salary-basis.mjs';
-import { squash, atText, FACTS as EYF } from './career-facts.mjs';
+import { squash, atText, FACTS as EYF, atTextEn, twinOf, checkTwins } from './career-facts.mjs';
 
 /** 出どころの種類。航空会社の公表（company）は、街を選んだ理由（エバー航空の事業所がある南崁）のためだけ。報道は無い。 */
 export const SRC_KINDS = {
@@ -780,6 +780,223 @@ export const ABUDHABI = { airports: [['AUH', 'ザーイド国際空港']],
       quote: '公共交通機関 46 分 10:55 - 11:41 ; 216 ; A1' }, 'jst'),
   ] };
 
+/* ── 英語の対（2026-10-21・英語版の準備）── 画面に出る日本語の字 → 英語。決まりは career-facts.mjs の「英語の対」の節（twinOf）。
+   行の字を直したら、ここも直す（直さないと check() が落ちる）。引用・出どころの呼び名の引用（words_src）は原文のまま（ここに置かない）。
+   ・東京と台北・桃園の街の英語の名前はここが正（品川 → Shinagawa）。香港・アブダビは、行に在る英語と同じ字。
+   ・Google マップの行の名前（「京急：品川駅 → 羽田空港 第1ターミナル」）と見た日時（「…に見た表示」）は、部品と字の形から組む（twinOf）。
+     ここに在るのは部品（線・駅・空港）だけ。
+   ・街の行の英語にも、人気・順位の言葉と 機長・副操縦士 の字を書かない（日本語の RANK_WORDS と同じ ── 下の RANK_EN）。 */
+export const EN = Object.freeze({
+  /* 都市・国・数字の種類 */
+  '東京': 'Tokyo',
+  '香港': 'Hong Kong',
+  '台北・桃園': 'Taipei and Taoyuan',
+  '日本': 'Japan',
+  '台湾': 'Taiwan',
+  '中国・香港': 'Hong Kong, China',
+  '家賃相場': 'Typical rent',
+  '成約の家賃の平均（当サイトが計算）': 'Average agreed rent (calculated by this site)',
+  '募集の家賃の中央値': 'Median asking rent',
+  '条件をしぼっていない（物件種別・駅徒歩・築年数は「すべて」）': 'No filters applied (property type, walk to station and building age all set to “All”)',
+  /* 空港と、経路が着く場所 */
+  '羽田空港': 'Haneda Airport',
+  '成田空港': 'Narita Airport',
+  '香港国際空港': 'Hong Kong International Airport',
+  '桃園国際空港': 'Taoyuan International Airport',
+  'ザーイド国際空港': 'Zayed International Airport',
+  '羽田空港 第1ターミナル': 'Haneda Airport Terminal 1',
+  '羽田空港 第2ターミナル': 'Haneda Airport Terminal 2',
+  '羽田空港 第3ターミナル': 'Haneda Airport Terminal 3',
+  '羽田空港第1・第2ターミナル駅': 'Haneda Airport Terminal 1·2 Station',
+  '羽田空港第2ターミナル駅': 'Haneda Airport Terminal 2 Station',
+  '羽田空港第3ターミナル駅': 'Haneda Airport Terminal 3 Station',
+  '桃園国際空港 第2ターミナル': 'Taoyuan International Airport Terminal 2',
+  '機場第二航廈站（A13）': 'Airport Terminal 2 Station (A13)',
+  'ザーイド国際空港 ターミナルA': 'Zayed International Airport Terminal A',
+  /* 街・団地（東京と台北・桃園の英語の名前はここが正） */
+  '品川': 'Shinagawa',
+  '豊洲': 'Toyosu',
+  '横浜': 'Yokohama',
+  '東京都港区': 'Minato City, Tokyo',
+  '東京都江東区': 'Koto City, Tokyo',
+  '神奈川県横浜市西区': 'Nishi Ward, Yokohama, Kanagawa',
+  '東涌': 'Tung Chung',
+  '映灣園': 'Caribbean Coast',
+  '東環': 'Century Link',
+  '昇薈': 'The Visionary',
+  '愉景灣': 'Discovery Bay',
+  '青衣': 'Tsing Yi',
+  '盈翠半島': 'Tierra Verde',
+  '翠怡花園': 'Greenfield Garden',
+  '南崁': 'Nankan',
+  '青埔': 'Qingpu',
+  '林口': 'Linkou',
+  '蘆竹區': 'Luzhu District',
+  '林口區': 'Linkou District',
+  '高鐵桃園站 A18': 'HSR Taoyuan Station A18',
+  'A9 林口站': 'A9 Linkou Station',
+  /* 地区を選んだ理由（pick_ja） */
+  '京急が羽田空港までの所要時間を案内している駅': 'A station for which Keikyu gives the travel time to Haneda Airport',
+  '羽田空港行きのリムジンバスが停まる駅': 'A stop of the Airport Limousine bus to Haneda Airport',
+  '羽田空港がある区': 'The ward where Haneda Airport is',
+  '都心の区の例': 'An example of a central Tokyo ward',
+  '成田空港がある市': 'The city where Narita Airport is',
+  '空港行きの路線バス（S1）が出る駅がある': 'Has a station where the S1 bus to the airport starts',
+  '空港行きのバス（DB02R）が出ている': 'The DB02R bus runs to the airport',
+  'エアポート・エクスプレスの駅がある': 'Has an Airport Express station',
+  'エバー航空の事業所がある': 'EVA Air has offices here',
+  '桃園機場捷運 A18（高鐵桃園站）がある': 'Has Taoyuan Airport MRT station A18 (HSR Taoyuan Station)',
+  '桃園機場捷運 A9（林口站）がある': 'Has Taoyuan Airport MRT station A9 (Linkou Station)',
+  /* 家賃の前提の名前と中身（rent_basis） */
+  '何の額か': 'What the figure is',
+  'いつの・どの数字か': 'Which figures, from when',
+  '出どころの断り': 'The source’s caveat',
+  '列の分け方': 'How the columns are split',
+  'アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安': 'A typical-rent estimate by At Home, based on the average rent of properties listed on At Home',
+  '直近3か月に掲載された物件': 'Properties listed in the last 3 months',
+  '物件が少ないときは相場を出せないことがあり、相場のしぼり込み条件は物件の検索条件と一致しないことがある':
+    'When there are few properties no figure may be given, and the filters for the figures may not match the property search filters',
+  '1LDK・2LDK・3LDK をそれぞれ単独で。物件種別・駅徒歩・築年数は「すべて」': '1LDK, 2LDK and 3LDK, each on its own; property type, walk to station and building age set to “All”',
+  'SUUMO に登録されている賃貸物件の賃料をもとに、SUUMO が独自の集計で出した相場': 'Typical rent calculated by SUUMO with its own method from the rents of rental properties registered on SUUMO',
+  '載っている物件の平均とは違うことがあり、正確さは保証しない': 'May differ from the average of listed properties; accuracy is not guaranteed',
+  'マンションの間取りの組（Studio／Studio・1-Bed／1-Bed・2-Bed／2-Bed・3-Bed／3-Bed・4-Bed〜）':
+    'Groups of apartment layouts (Studio; Studio / 1-Bed; 1-Bed / 2-Bed; 2-Bed / 3-Bed; 3-Bed / 4-Bed+)',
+  '28Hse の記録の欄「房間數量」の数（画面には出さない）': 'The number in 28Hse’s “房間數量” (number of rooms) field (not shown on screen)',
+  '591 に載った物件の家賃から、591 が独自の集計で出した額': 'Figures calculated by 591 with its own method from the rents of properties listed on 591',
+  '直近3か月の中央値（10月8日更新）。参考まで': 'Median of the last 3 months (updated 8 October); for reference only',
+  /* 区・市の参考の家賃（refs） */
+  '区・市ごとの家賃相場': 'Typical rent by ward or city',
+  '大田区': 'Ota City',
+  '港区': 'Minato City',
+  '成田市（千葉県）': 'Narita City (Chiba)',
+  'Studio・1-Bed': 'Studio / 1-Bed',
+  '1-Bed・2-Bed': '1-Bed / 2-Bed',
+  '2-Bed・3-Bed': '2-Bed / 3-Bed',
+  '3-Bed・4-Bed〜': '3-Bed / 4-Bed+',
+  /* 時点の言い直し（at_ja。Google マップの「…に見た表示」は字の形から組む） */
+  '2026年10月11日に開いた時点の表示': 'as shown when opened on 11 October 2026',
+  '2026年7月10日更新': 'updated 10 July 2026',
+  '2026年10月に開いた時点の表示': 'as shown when opened in October 2026',
+  '2026年7〜9月の成約（10月11日に開いた時点の掲載分）': 'agreements made July–September 2026 (as listed when opened on 11 October)',
+  '2026年10月8日更新（直近3か月）': 'updated 8 October 2026 (last 3 months)',
+  /* 経路の部品（線・駅・出発地） */
+  '京急': 'Keikyu',
+  '京急本線': 'Keikyu Main Line',
+  'リムジンバス': 'Airport Limousine',
+  'ゆりかもめ': 'Yurikamome',
+  'リムジンバス羽田空港線': 'Airport Limousine, Haneda Airport line',
+  '東京モノレール': 'Tokyo Monorail',
+  '京成スカイライナー': 'Keisei Skyliner',
+  'エアポート・エクスプレス': 'Airport Express',
+  '桃園機場捷運': 'Taoyuan Airport MRT',
+  '桃園機場捷運（直達車）': 'Taoyuan Airport MRT (Express)',
+  '桃園機場捷運（普通車）': 'Taoyuan Airport MRT (Commuter)',
+  '品川駅': 'Shinagawa Station',
+  '豊洲駅': 'Toyosu Station',
+  '横浜駅': 'Yokohama Station',
+  '浜松町駅': 'Hamamatsucho Station',
+  '日暮里駅': 'Nippori Station',
+  '空港第2ビル駅': 'Airport Terminal 2 Station',
+  '京成上野・日暮里': 'Keisei Ueno / Nippori',
+  '空港第2ビル・成田空港': 'Airport Terminal 2 / Narita Airport',
+  '羽田空港の各ターミナル駅': 'each Haneda Airport terminal station',
+  '愉景灣（DB Plaza）': 'Discovery Bay (DB Plaza)',
+  '青衣站': 'Tsing Yi Station',
+  '空港': 'Airport',
+  '空港駅': 'Airport Station',
+  '香港駅': 'Hong Kong Station',
+  '南崁（南崁路）': 'Nankan (Nankan Road)',
+  '高鐵桃園站（A18）': 'HSR Taoyuan Station (A18)',
+  '林口站（A9）': 'Linkou Station (A9)',
+  '台北車站': 'Taipei Main Station',
+  '空港 第1ターミナル駅': 'Airport Terminal 1 Station',
+  '空港の駅': 'the airport stations',
+  'ハリファ・シティ': 'Khalifa City',
+  'アル・リーム島': 'Al Reem Island',
+  'アル・ラハ・ビーチ（Al Raha Blvd）': 'Al Raha Beach (Al Raha Blvd)',
+  'ヤス島': 'Yas Island',
+  /* 経路の行の名前・値・注意 */
+  '羽田空港から主な駅まで（電車・モノレール）': 'From Haneda Airport to main stations (train and monorail)',
+  '品川駅 約15分・浜松町駅 約20分・東京駅 約30分': 'Shinagawa Station about 15 min, Hamamatsucho Station about 20 min, Tokyo Station about 30 min',
+  'このルートには制限のある道路または私道を通る箇所があります。': 'This route has restricted usage or private roads.',
+  /* 条件（cond_ja） */
+  'アットホームに載った直近3か月の物件の平均家賃をもとにした、相場の目安。成約した家賃ではない。物件種別・駅からの徒歩・築年数は、ページを開いたままの表示（先頭の「すべて」）。管理費を含むか・広さ・更新の日付は、ページに書いていない':
+    'A typical-rent estimate based on the average rent of properties listed on At Home over the last 3 months; not agreed rents. Property type, walk from the station and building age were left as the page opened (the first option, “All”). The page does not say whether management fees are included, the floor area or the update date',
+  'SUUMO に登録された賃貸物件の賃料から、SUUMO が独自に集計した相場。成約した家賃ではない。マンション・間取りの組ごと。管理費を含むかはページに書いていない':
+    'Typical rent calculated by SUUMO from the rents of rental properties registered on SUUMO; not agreed rents. Apartments, by group of layouts. The page does not say whether management fees are included',
+  'Google マップが表示した目安の時間（「すぐに出発」で調べた時点の表示）。出発地と着く場所は行の名前のとおりで、家の玄関からの時間ではない。「徒歩込み」は、歩く区間を含むことを画面で確かめた合計。「経路の合計」は、経路の合計として表示された時間で、歩く区間を含むかは表示から確かめられていない。車は運転の時間で、降りたあとは含まない。時間帯・交通の状況・運行の時刻で変わる':
+    'Approximate time shown by Google Maps (as shown when searched with “Leave now”). Start and end points are as named in the row, not from your front door. “Including walking” is a total for which the screen showed the walking sections. “Route total” is the time shown as the total of the route; whether it includes walking could not be confirmed from the screen. By car is the driving time and excludes the time after getting out. Times vary with the time of day, traffic and timetables',
+  'おとな・片道・きっぷの運賃（IC カードは¥327）': 'Adult, one way, paper ticket (¥327 with an IC card)',
+  'おとな・片道・1人。豊洲駅から羽田空港までの直通バスの運賃で、ゆりかもめと乗り継ぐ経路の合計ではない':
+    'Adult, one way, per person. The fare of the direct bus from Toyosu Station to Haneda Airport, not the total of a route with a change from the Yurikamome',
+  'おとな・片道・きっぷの運賃（IC カードは¥397）': 'Adult, one way, paper ticket (¥397 with an IC card)',
+  'おとな・片道・きっぷの運賃（IC カードは¥363）': 'Adult, one way, paper ticket (¥363 with an IC card)',
+  '京急が示す目安。1つ目が第3ターミナル駅・2つ目が第1・第2ターミナル駅。列車の種別と時間帯は書いていない':
+    'Keikyu’s guide times. The first is to Terminal 3 Station, the second to Terminal 1·2 Station. Train type and time of day are not stated',
+  '目安の時間。どのターミナルから・どの路線か・乗り換えの時間を含むかは表に書いていない':
+    'Approximate times. The table does not say from which terminal, on which line, or whether transfer time is included',
+  'おとな・片道・きっぷの運賃（IC カードは¥519）。浜松町駅から。所要時間はこの表に無い':
+    'Adult, one way, paper ticket (¥519 with an IC card), from Hamamatsucho Station. This table gives no journey time',
+  '最短の時間（いつもこの時間という意味ではない）。日暮里駅から空港第2ビル駅まで': 'Fastest time (not every journey). From Nippori Station to Airport Terminal 2 Station',
+  'おとな・片道。運賃（きっぷ。IC は¥1,267）とライナー料金は別建てで、合計はページに書いていない':
+    'Adult, one way. The fare (paper ticket; ¥1,267 by IC card) and the Liner charge are separate; the page gives no total',
+  '28Hse が団地ごとに載せている「租務成交」（成約）の行のうち、日付が2026年7月1日〜9月30日の行から当サイトが計算した平均。一戸建て・メゾネットの行は除き、全部の欄が同じ2行は1つと数える。5件以上そろった間取りだけを出し、100香港ドル単位に丸めた。載っているのは成約の一部で、行の出どころは書いていない（28Hse 自身の90日の件数はもっと多い）。ページに期間の字は無く、1か月の家賃と読んだ。管理費・差餉を含むかは書いていない。28Hse の利用規約は読めていない':
+    'Average calculated by this site from the “租務成交” (agreed rental) rows that 28Hse lists for each estate, dated 1 July to 30 September 2026. Houses and maisonettes are excluded, and two rows identical in every field count as one. Only layouts with 5 or more rows are shown, rounded to the nearest HK$100. The rows are only part of all agreements and their source is not stated (28Hse’s own 90-day count is higher). The page states no period; the figures are read as monthly rent. Whether management fees and rates are included is not stated. 28Hse’s terms of use could not be read',
+  '訪問者の運賃・1回。登録した住民のオクトパスでは HK$50.0（2026年6月22日から）': 'Visitor fare, per ride. HK$50.0 with a registered resident’s Octopus card (from 22 June 2026)',
+  'おとな・片道。オクトパスなどで払う額で、スマートチケットは HK$80': 'Adult, one way, paid by Octopus or similar; HK$80 with a Smart Ticket',
+  '平均でおよその時間。駅から駅まで': 'Average, approximate time, station to station',
+  'おとな・片道（同じ日の往復も同じ額）。オクトパスなどで払う額で、スマートチケットは HK$130': 'Adult, one way (same-day return costs the same), paid by Octopus or similar; HK$130 with a Smart Ticket',
+  '募集家賃で、成約した家賃ではない。591 に載った物件の直近3か月の中央値・月額。集計は 591 独自で「僅供參考（参考まで）」。広さと管理費の扱いは書いていない':
+    'Asking rents, not agreed rents. Monthly median of properties listed on 591 over the last 3 months. The figures are 591’s own and “僅供參考” (for reference only). Floor area and management fees are not stated',
+  '片道・1人（全票・單程票）': 'One way, per person (full fare, single-journey ticket)',
+  '直達車の、駅から駅までの時間。1つ目が第1ターミナル駅・2つ目が第2ターミナル駅。待ち時間は含まない':
+    'Express train, station to station. The first is to Terminal 1 Station, the second to Terminal 2 Station. Waiting time is not included',
+  '各駅停車の、駅から駅までの時間。待ち時間は含まない': 'Commuter (all-stops) train, station to station. Waiting time is not included',
+  '片道・1人。運賃表は駅の組ごとに数字が1つあるだけで、通貨の字も、直達車と普通車の区別も無い。第2ターミナル駅も同じ額':
+    'One way, per person. The fare table gives one number per pair of stations, with no currency and no difference between express and commuter trains. The same fare applies to Terminal 2 Station',
+  /* 出どころの名前（題は “…”。日本語の題は英語に言い直し、英語の題は原文のまま、中国語の題は原文に英語を添える） */
+  'アットホーム「品川駅の家賃相場」': 'At Home, “Typical rent around Shinagawa Station”',
+  'アットホーム「豊洲駅の家賃相場」': 'At Home, “Typical rent around Toyosu Station”',
+  'アットホーム「横浜駅の家賃相場」': 'At Home, “Typical rent around Yokohama Station”',
+  '京急電鉄の羽田空港アクセス案内「Fare and Time Search」': 'Keikyu Haneda Airport access guide, “Fare and Time Search”',
+  '東京空港交通「お台場・有明エリア ⇔ 羽田空港」': 'Airport Transport Service (Airport Limousine), “Odaiba and Ariake area ⇔ Haneda Airport”',
+  'SUUMO「東京都の家賃相場情報」': 'SUUMO, “Typical rents in Tokyo”',
+  'SUUMO「千葉県の家賃相場情報」': 'SUUMO, “Typical rents in Chiba Prefecture”',
+  'Google マップの経路の表示': 'Route shown on Google Maps',
+  '京急電鉄「発駅 品川 から」': 'Keikyu, “Fares from Shinagawa”',
+  '京急電鉄「発駅 横浜 から」': 'Keikyu, “Fares from Yokohama”',
+  '羽田空港旅客ターミナル「電車・モノレール」': 'Haneda Airport passenger terminals, “Train and monorail”',
+  '東京モノレール「モノレール浜松町駅 運賃表」': 'Tokyo Monorail, “Fare table from Monorail Hamamatsucho Station”',
+  '京成電鉄「スカイライナーとは」': 'Keisei Electric Railway, “About the Skyliner”',
+  '京成電鉄「スカイライナー 料金・購入方法」': 'Keisei Electric Railway, “Skyliner fares and tickets”',
+  'Citybus「All Service- 691 Routes」': 'Citybus, “All Service- 691 Routes”',
+  '28Hse「映灣園 租務成交」': '28Hse, “映灣園 租務成交” (Caribbean Coast rental transactions)',
+  '28Hse「東環 租務成交」': '28Hse, “東環 租務成交” (Century Link rental transactions)',
+  '28Hse「昇薈 租務成交」': '28Hse, “昇薈 租務成交” (The Visionary rental transactions)',
+  '28Hse「盈翠半島 租務成交」': '28Hse, “盈翠半島 租務成交” (Tierra Verde rental transactions)',
+  '28Hse「翠怡花園 租務成交」': '28Hse, “翠怡花園 租務成交” (Greenfield Garden rental transactions)',
+  'Discovery Bay Transit「DB02R」': 'Discovery Bay Transit, “DB02R”',
+  'MTR「Tickets and Fares」': 'MTR, “Tickets and Fares”',
+  '香港政府 運輸及物流局「Hong Kong: The Facts — Railway Network」': 'Hong Kong Government, Transport and Logistics Bureau, “Hong Kong: The Facts — Railway Network”',
+  '591租屋網「租金行情」桃園市・蘆竹區': '591 Rent, “租金行情” (rent market), Luzhu District, Taoyuan City',
+  '591租屋網「租金行情」青埔-A18桃園高鐵（生活圈）': '591 Rent, “租金行情” (rent market), Qingpu – A18 HSR Taoyuan (neighborhood)',
+  '591租屋網「租金行情」新北市・林口區': '591 Rent, “租金行情” (rent market), Linkou District, New Taipei City',
+  '591租屋網「租金行情」桃園市': '591 Rent, “租金行情” (rent market), Taoyuan City',
+  'エバー航空「飛航人員福利」': 'EVA Air, “飛航人員福利” (pilot benefits)',
+  '桃園メトロ「票價表」': 'Taoyuan Metro, “票價表” (fare table)',
+  '桃園メトロ「Fares」運賃表': 'Taoyuan Metro, “Fares” fare table',
+  '桃園市政府の観光案内「Taoyuan Airport MRT」': 'Taoyuan City Government travel guide, “Taoyuan Airport MRT”',
+  /* 家賃の出どころの名前（SITES）と、出どころの種類（SRC_KINDS） */
+  '591租屋網': '591 Rent',
+  'アットホーム': 'At Home',
+  '不動産ポータルの公表': 'Published by the property portal',
+  '政府の公表': 'Published by the government',
+  '鉄道・空港の運営会社の公表': 'Published by the rail or airport operator',
+  '航空会社の公表': 'Published by the airline',
+});
+/* 街の行の英語に書かない言葉（日本語の RANK_WORDS と同じ種類。check-salary.mjs は 社名 → 職位 → 額 と読む）。 */
+const RANK_EN = /popular|many (pilots|crew) live|recommend|ranking|best place|captain|first officer/i;
+
 /* ════════════ 読むための関数 ════════════ */
 
 /** その街の全項目を [在りか, 項目, 種類] で順に返す（検査と --list が同じ並びを歩く）。
@@ -804,6 +1021,10 @@ export const cityOf = slug => LIVING[CITY_OF[slug]] || null;
 export const lead = (city, group) => ((LIVING[city] || {})[group] || []).find(x => x.lead) || null;
 /** 時点の言い方（at_ja が在ればそれ）。 */
 export const whenText = x => x.at_ja || atText(x.at);
+/** 時点の言い方の英語（英語版の準備・まだどの画面も読まない）。at_ja が在ればその英語、無ければ at を英語の日付に。 */
+export const whenTextEn = x => (x.at_ja ? twinOf(EN, x.at_ja) : atTextEn(x.at));
+/** 日本語の字の英語（EN と career-facts.mjs の twinOf の決まり。無ければ undefined）。 */
+export const enText = s => twinOf(EN, s);
 /** 額の一覧（数・幅・列ごと、のどれでも平らにする）。 */
 export const amounts = v => (typeof v === 'number' ? [v] : Array.isArray(v) ? v.flatMap(amounts) : v && typeof v === 'object' ? Object.values(v).flatMap(amounts) : []);
 
@@ -1106,7 +1327,11 @@ export function check() {
       }
     }
   }
-  return { n, bad };
+
+  /* 英語の対（英語版の準備）: 画面に出る日本語の字に英語が在る・街の行の英語に人気・順位・職位の言葉が無い */
+  const en = checkTwins('living-facts', EN, [...Object.entries(LIVING), ['abudhabi', ABUDHABI], ['SITES', SITES], ['SRC_KINDS', SRC_KINDS]], fail,
+    { rule: (t, s) => (/^[a-z]+\.(rents|refs)\[/.test(t.where) && RANK_EN.test(s) ? `街の行の英語に、人気・順位の言葉か 機長・副操縦士 の字がある（${s}）` : '') });
+  return { n, bad, en };
 }
 
 /* ════════════ コマンド ════════════ */
@@ -1128,13 +1353,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       }
     }
   } else {
-    const { n, bad } = check();
+    const { n, bad, en } = check();
     if (bad.length) {
       for (const b of bad) console.log('❌ ' + b);
       console.log(`\n❌ living-facts: ${bad.length}件`);
       process.exit(1);
     }
     const per = [...Object.keys(LIVING), 'abudhabi'].map(c => `${c} ${[...allItems(c)].length}`).join('・');
-    console.log(`✅ living-facts: ${n}項目（${per}／出どころ・確かめた日・時点・引用・種類の白リスト・額が引用に字のまま在る・金額には条件・地区を選んだ理由・最初の1画面に出す1行が家賃と足に1つずつ／街の家賃は1つの出どころ・1つの条件・1つの日付／名前が引用に在る／移動は街ごと・着く場所ごと・時間の種類は1つ）`);
+    console.log(`✅ living-facts: ${n}項目（${per}／出どころ・確かめた日・時点・引用・種類の白リスト・額が引用に字のまま在る・金額には条件・地区を選んだ理由・最初の1画面に出す1行が家賃と足に1つずつ／街の家賃は1つの出どころ・1つの条件・1つの日付／名前が引用に在る／移動は街ごと・着く場所ごと・時間の種類は1つ／英語の対 ${en}字）`);
   }
 }

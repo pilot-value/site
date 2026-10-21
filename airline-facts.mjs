@@ -48,7 +48,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { man } from './salary-basis.mjs';
-import { SRC_KINDS, squash, quoted, atText, valueText, fillIntro, checkIntro } from './career-facts.mjs';
+import { SRC_KINDS, squash, quoted, atText, valueText, fillIntro, checkIntro,
+  atTextEn, twinOf, fillIntroEn, checkTwins, checkIntroEn } from './career-facts.mjs';
 
 export { SRC_KINDS, squash, quoted, atText, valueText };
 
@@ -658,6 +659,274 @@ export const FACTS = {
   },
 };
 
+/* ── 英語の対（2026-10-21・英語版の準備）── 画面に出る日本語の字 → 英語。決まりは career-facts.mjs の「英語の対」の節（twinOf）。
+   行の字を直したら、ここも直す（直さないと check() が落ちる）。引用は原文のまま（ここに置かない）。
+   国の字は airline-countries.mjs の COUNTRIES の en と同じ。数字の単位は UNIT_EN、日付の at は atTextEn が言い直す。
+   自社養成パイロット ＝ ab initio cadet（会社が一から育てる訓練生）。 */
+export const EN = Object.freeze({
+  /* 紹介文の型（{鍵} は日本語の型と同じものだけ） */
+  '設立は{founded}。航空連合は{alliance}（{alliance:at}）。': 'Founded {founded}. Alliance: {alliance} ({alliance:at}).',
+  '{pilots:at}時点の運航乗務員は{pilots}（{pilots:cond}）。乗務を始めてからの勤務地は{pilot_base}。':
+    'Flight crew as of {pilots:at}: {pilots} ({pilots:cond}). Base once flying: {pilot_base}.',
+  '始まりは{founded}。航空連合は{alliance}（{alliance:at}）。': 'Began in {founded}. Alliance: {alliance} ({alliance:at}).',
+  '{pilots:at}時点の運航乗務員は{pilots}（{pilots:cond}）。国際線は{intl_network:at}時点で{intl_network}。':
+    'Flight crew as of {pilots:at}: {pilots} ({pilots:cond}). International network as of {intl_network:at}: {intl_network}.',
+  '設立は{founded}。航空連合は{alliance}。パイロットの拠点は{pilot_base}。': 'Founded {founded}. Alliance: {alliance}. Pilot base: {pilot_base}.',
+  '{fleet_total:at}時点の機材は、{fleet_total:cond}で{fleet_total}。': 'Fleet as of {fleet_total:at}: {fleet_total} ({fleet_total:cond}).',
+  '設立は{founded}、最初の便は{first_flight}。航空連合は{alliance}（{alliance:at}）。':
+    'Founded {founded}; first flight {first_flight}. Alliance: {alliance} ({alliance:at}).',
+  '{fleet_total:at}時点の機材は{fleet_total}。パイロットの勤務地は{pilot_base}。': 'Fleet as of {fleet_total:at}: {fleet_total}. Pilot base: {pilot_base}.',
+  /* 項目の名前 */
+  '設立': 'Founded',
+  '航空連合': 'Alliance',
+  '乗務を始めてからの勤務地': 'Base once flying',
+  '運航している機材': 'Aircraft in operation',
+  '路線': 'Routes',
+  '運航乗務員': 'Flight crew',
+  '運航乗務員の平均年齢': 'Average age of flight crew',
+  '1年の旅客': 'Passengers in a year',
+  'エアバス A350-900': 'Airbus A350-900',
+  'エアバス A350-1000': 'Airbus A350-1000',
+  'ボーイング 787-9': 'Boeing 787-9',
+  'ボーイング 787-8': 'Boeing 787-8',
+  'ボーイング 777-300ER': 'Boeing 777-300ER',
+  'ボーイング 767-300ER': 'Boeing 767-300ER',
+  'ボーイング 737-800': 'Boeing 737-800',
+  'エアバス A321ceo（貨物機）': 'Airbus A321ceo (freighter)',
+  'エンブラエル 170': 'Embraer 170',
+  'エンブラエル 190': 'Embraer 190',
+  'DHC-8-400 カーゴコンビ': 'DHC-8-400 Cargo Combi',
+  '休日': 'Days off',
+  '勤務時間の決め方': 'Working hours',
+  '訓練の場所': 'Training location',
+  '副操縦士として乗務する期間': 'Time as first officer',
+  '賞与': 'Bonus',
+  '社宅・寮': 'Company housing and dormitories',
+  '社員の航空券': 'Staff travel',
+  '通勤費': 'Commuting costs',
+  '昇給': 'Pay increments',
+  '年次有給休暇の取得率': 'Paid leave taken',
+  '採用予定数': 'Planned intake',
+  '入社時の給与': 'Starting pay',
+  'エントリーの受付': 'Applications open',
+  '自社養成パイロットへの応募': 'Applying as an ab initio cadet',
+  'パイロット（ライセンス保有者）の採用': 'Hiring of licensed pilots',
+  '国際線': 'International network',
+  '国内線': 'Domestic routes',
+  '機長': 'Captains',
+  '副操縦士': 'First officers',
+  'エアバス A380-800': 'Airbus A380-800',
+  'ボーイング 777-300／-300ER': 'Boeing 777-300/-300ER',
+  'ボーイング 777-200／-200ER': 'Boeing 777-200/-200ER',
+  'ボーイング 777F（貨物機）': 'Boeing 777F (freighter)',
+  'ボーイング 787-10（国内線仕様）': 'Boeing 787-10 (domestic configuration)',
+  'ボーイング 787-10（国際線仕様）': 'Boeing 787-10 (international configuration)',
+  'ボーイング 767-300／-300ER': 'Boeing 767-300/-300ER',
+  'ボーイング 767-300F／-300BCF（貨物機）': 'Boeing 767-300F/-300BCF (freighter)',
+  'エアバス A321-200neo': 'Airbus A321-200neo',
+  'エアバス A321-200': 'Airbus A321-200',
+  'エアバス A320-200neo': 'Airbus A320-200neo',
+  '乗務のパターン': 'Trip patterns',
+  '副操縦士から機長まで': 'First officer to captain',
+  '寮・社宅': 'Dormitories and company housing',
+  '諸手当': 'Allowances',
+  '通勤補助費': 'Commuting allowance',
+  '年次有給休暇の付与': 'Paid annual leave granted',
+  '採用人数': 'Intake',
+  '入社時の月額（大卒・高等専門学校の専攻科卒）': 'Starting monthly pay (university or technical college advanced course graduates)',
+  '入社時の月額（院卒）': 'Starting monthly pay (graduate school graduates)',
+  'プレエントリーの締切': 'Pre-entry deadline',
+  'ライセンスを持つ人の採用': 'Hiring of license holders',
+  'パイロットの拠点': 'Pilot base',
+  '旅客便の就航地': 'Passenger destinations',
+  '訓練中の訓練生': 'Cadets in training',
+  'エアバス A321neo': 'Airbus A321neo',
+  'エアバス A330-300': 'Airbus A330-300',
+  'ボーイング 777-300': 'Boeing 777-300',
+  'ボーイング 747-400ERF（貨物機）': 'Boeing 747-400ERF (freighter)',
+  'ボーイング 747-8F（貨物機）': 'Boeing 747-8F (freighter)',
+  '年次休暇（First Officer）': 'Annual leave (First Officer)',
+  '年次休暇（Second Officer）': 'Annual leave (Second Officer)',
+  '昇格の決まり方': 'How promotion is decided',
+  '住宅手当': 'Housing allowance',
+  '月々の手当（First Officer）': 'Monthly allowance (First Officer)',
+  '月々の手当（Second Officer）': 'Monthly allowance (Second Officer)',
+  '子の教育手当': 'Children’s education allowance',
+  '医療': 'Medical',
+  '引っ越しの支援': 'Relocation support',
+  '通勤': 'Commuting',
+  'First Officer の募集': 'First Officer hiring',
+  'Second Officer の募集': 'Second Officer hiring',
+  'First Officer の応募に要る飛行時間': 'Flying hours required for First Officer',
+  '訓練生の募集': 'Cadet hiring',
+  '最初の便': 'First flight',
+  'パイロットの勤務地': 'Pilot base',
+  '就航地': 'Destinations',
+  'ボーイング 787-10': 'Boeing 787-10',
+  '年次休暇': 'Annual leave',
+  '有給の病気休暇': 'Paid sick leave',
+  '住まい': 'Housing',
+  '乗務資格を失ったときの保険': 'Loss of license insurance',
+  '募集している職': 'Open position',
+  '契約の期間': 'Contract length',
+  '応募に要る総飛行時間': 'Total flying hours required',
+  '応募に要るジェット機の飛行時間': 'Jet flying hours required',
+  /* 値 */
+  '1951年8月1日': '1 August 1951',
+  'ワンワールド': 'oneworld',
+  '羽田空港、成田空港など': 'Haneda, Narita and other airports',
+  '原則として月間10日': '10 a month, as a rule',
+  '乗務に応じた変形労働時間制': 'Variable working hours set by the flying schedule',
+  '国内と米国アリゾナ州フェニックス': 'Japan, and Phoenix, Arizona, in the United States',
+  '10年程度': 'About 10 years',
+  '年3回（夏季・年末・年度末）': '3 times a year (summer, year-end and end of the fiscal year)',
+  '社宅・寮制度あり': 'Company housing and dormitory scheme available',
+  '優待搭乗制度': 'Staff travel scheme',
+  '当社規定により支給': 'Paid under company rules',
+  '年1回': 'Once a year',
+  '新卒採用およびキャリア採用合計で50名程度': 'About 50 in total, new graduates and mid-career hires combined',
+  '2026年3月1日10時より順次開始': 'In stages from 10:00 on 1 March 2026',
+  '事業用操縦士免許を持っている人・過去に取得した人は応募できない': 'Not open to anyone who holds, or has ever held, a commercial pilot license',
+  '運航乗務員訓練生の採用試験を適宜実施。詳細は在籍中の養成機関へ': 'Selection for flight crew trainees is held from time to time; ask your current flight school for details',
+  '1952年（日本ヘリコプター輸送として設立）': '1952 (founded as Japan Helicopter and Aeroplane Transports)',
+  'スターアライアンス': 'Star Alliance',
+  '東京': 'Tokyo',
+  '世界40都市55路線': '55 routes to 40 cities worldwide',
+  '月間10日間程度': 'About 10 a month',
+  '乗務に応じたシフト勤務（土・日・祝日勤務あり、早朝・深夜・宿泊を伴う勤務あり）':
+    'Shifts set by the flying schedule (including weekends and public holidays, early-morning and late-night duties, and overnight trips)',
+  '国内線は日帰りから2泊3日が基本。国際線は渡航先で1〜2日滞在': 'Domestic trips are mostly day trips up to 3 days and 2 nights; international trips include 1–2 days at the destination',
+  '約10年': 'About 10 years',
+  '年3回（夏季・年末・期末）': '3 times a year (summer, year-end and end of term)',
+  '新卒入社時か異動時に、寮・社宅を利用できる': 'Dormitories and company housing can be used when joining as a new graduate or on transfer',
+  '家族手当、住宅手当、深夜労働手当、土日出勤手当など': 'Family, housing, late-night work and weekend work allowances, among others',
+  '当社規程により支給': 'Paid under company rules',
+  '年1回（4月）': 'Once a year (April)',
+  '65名程度': 'About 65',
+  '2026年3月10日 23:59': '23:59 on 10 March 2026',
+  '操縦士資格を取得している人（ライセンサー）の採用も行っている': 'Also hires people who already hold a pilot license',
+  '1946年（香港）': '1946 (Hong Kong)',
+  'ワンワールド（創設メンバー）': 'oneworld (founding member)',
+  '香港': 'Hong Kong',
+  '100以上': 'More than 100',
+  '500人以上': 'More than 500',
+  '飛行経験・評価・空席・先任順で決まる': 'Depends on flying experience, performance, available vacancies and seniority',
+  '本人と対象の家族に割引の航空券': 'Discounted travel for you and eligible dependents',
+  '住宅手当は無い。暮らしの費用を支える月々の手当がある': 'No housing allowance; a monthly allowance supports the cost of living',
+  '対象の乗員に、子の教育手当がある': 'Children’s education allowance for eligible officers',
+  '本人と対象の家族に、選べる福利厚生の制度がある': 'A flexible benefits scheme for you and eligible family members',
+  '海外に住む採用者に、引っ越しの支援がある': 'Relocation assistance for successful candidates living overseas',
+  '香港島・九龍・新界の主な住宅地との間にバスがある': 'Buses to and from most major residential areas on Hong Kong Island, in Kowloon and in the New Territories',
+  '募集していない': 'Not hiring',
+  '合計1,500時間以上（3,000時間が望ましい）': 'At least 1,500 hours in total (3,000 preferred)',
+  '約80週の訓練生課程を、通年で募集': 'Applications to the ~80-week cadet program are open year-round',
+  '1989年3月8日': '8 March 1989',
+  '1991年7月1日': '1 July 1991',
+  '台北（台湾）': 'Taipei (Taiwan)',
+  '月に連続8日': '8 consecutive days a month',
+  '年22日。年数に応じて増え、最高で年42日': '22 days a year, rising with years of service to up to 42 days a year',
+  '年に最大30日': 'Up to 30 days a year',
+  '家賃の補助、または会社の住まい': 'Rent subsidy or company accommodation',
+  '会社の売上に応じた年末賞与': 'Year-end bonus based on company revenue',
+  '無料と割引の航空券（対象の家族を含む）': 'Free and discounted travel (eligible family members included)',
+  '副操縦士は10万米ドル、機長は20万米ドルの保険。保険料は会社が払う': 'Cover of USD 100,000 for first officers and USD 200,000 for captains; the company pays the premium',
+  'A321・B777・B787 の副操縦士（経験者）': 'Experienced first officers for the A321, B777 and B787',
+  /* 時点の言い直し（at_ja） */
+  '2007年4月に加盟': 'joined April 2007',
+  '2027年度入社の募集要項': 'requirements for 2027 entry',
+  '2025年度': 'FY2025',
+  '採用サイトの職種紹介': 'role description on the careers site',
+  '2024年度の実績': 'FY2024 actual',
+  '1999年10月に加盟': 'joined October 1999',
+  '2027年度新卒の募集要項': 'requirements for 2027 graduates',
+  '採用サイトの「働き方・福利厚生」': 'careers site, “Working style and benefits”',
+  '2026年度の予定': 'planned for FY2026',
+  '2013年6月に加盟': 'joined June 2013',
+  '経験者の副操縦士の募集': 'experienced first officer posting',
+  '会社の募集ページ': 'the company’s recruitment page',
+  /* 街と国（拠点。国の字は COUNTRIES の en と同じ ──「香港」は街と国の両方に使う） */
+  '台北': 'Taipei',
+  '日本': 'Japan',
+  '台湾': 'Taiwan',
+  /* 条件（cond_ja） */
+  'JALグループの数。ZIPAIR Tokyo とスプリング・ジャパンを含み、ジェットスター・ジャパンは含まない': 'JAL Group total, including ZIPAIR Tokyo and Spring Japan but not Jetstar Japan',
+  'JALグループの国内線と国際線の合計': 'JAL Group domestic and international routes combined',
+  '日本航空の数。休職者は除く': 'Japan Airlines only, excluding those on leave',
+  'JALグループのフルサービスキャリアの有償旅客（国際線と国内線の合計）': 'revenue passengers of the JAL Group full-service carrier (international and domestic combined)',
+  '乗務を始めてから': 'once flying',
+  '自社養成の副操縦士になるまでの訓練': 'training of ab initio cadets up to first officer',
+  '自社養成パイロットの目安年次。そのあと機長昇格訓練': 'indicative timeline for ab initio cadets, followed by captain upgrade training',
+  '日本航空の全社員': 'all Japan Airlines employees',
+  '自社養成パイロット': 'ab initio cadets',
+  '自社養成パイロットの新卒。機長・副操縦士の給与ではない': 'new-graduate ab initio cadets; not captain or first officer pay',
+  'JALグループの2027年度入社の採用': 'JAL Group recruitment for 2027 entry',
+  '事業用操縦士ライセンスを持つ人が対象。機長・副操縦士の経験者に向けた募集要項は、採用サイトに掲載が無い':
+    'for commercial pilot license holders; the careers site lists no requirements for experienced captains or first officers',
+  '全日本空輸の数': 'All Nippon Airways only',
+  'コードシェアと重複する路線を除く': 'excluding codeshare and duplicated routes',
+  '適用条件あり': 'conditions apply',
+  '全社員': 'all employees',
+  '運航乗務職（自社養成パイロット）の新卒': 'new-graduate flight crew (ab initio cadets)',
+  '入社時の月額。機長・副操縦士の給与ではない': 'monthly pay on joining; not captain or first officer pay',
+  '2027年度新卒': '2027 graduates',
+  'ライセンサーの募集要項は採用サイトに掲載が無い。キャリア採用の一覧にも運航乗務職は無い':
+    'the careers site lists no requirements for license holders, and flight crew roles are not among the mid-career openings',
+  'キャセイパシフィック航空（会社単体）の旅客機と貨物機': 'passenger and cargo aircraft of Cathay Pacific Airways alone',
+  'キャセイパシフィックと香港エクスプレスの合計': 'Cathay Pacific and HK Express combined',
+  'キャセイパシフィック航空の有償旅客。香港エクスプレスは含まない': 'Cathay Pacific revenue passengers, not including HK Express',
+  '訓練生の課程を終えたあと': 'after completing the cadet program',
+  'この額から': 'from this amount',
+  '香港を拠点とする職種の全体': 'all Hong Kong-based roles',
+  '貨物便だけの就航地を含む': 'including cargo-only destinations',
+  'A321・B777・B787 の副操縦士（経験者）の募集の条件': 'terms of the posting for experienced A321, B777 and B787 first officers',
+  '訓練を終えて最初の乗務から3か月たったあと': 'from 3 months after the first flight after training',
+  '身体検査で不適合になり、身体検査証を失った場合': 'if the pilot fails the medical and loses the medical certificate',
+  '最大離陸重量20トン超・多発・複数乗員の商用ジェット機': 'commercial multi-engine, multi-crew jets with an MTOW over 20 tons',
+  /* 出どころの名前（題は “…”。日本語の題は英語に言い直し、英語の題は原文のまま） */
+  '日本航空「会社概要」': 'Japan Airlines, “Company Overview”',
+  '日本航空「JALの歴史 2000年代」': 'Japan Airlines, “JAL History: the 2000s”',
+  '日本航空の採用サイト「職種別募集要項 パイロット（新卒）」': 'Japan Airlines careers site, “Requirements by role: Pilot (new graduates)”',
+  '日本航空「航空機数」': 'Japan Airlines, “Number of aircraft”',
+  '日本航空「運航路線数」': 'Japan Airlines, “Number of routes”',
+  '「JALグループ安全報告書 2025年度」': '“JAL Group Safety Report FY2025”',
+  '日本航空「JAL Group ESG Data」': 'Japan Airlines, “JAL Group ESG Data”',
+  '日本航空 有価証券報告書 第77期（2025年4月〜2026年3月）': 'Japan Airlines, Annual Securities Report for the 77th fiscal year (April 2025 – March 2026)',
+  '日本航空の採用サイト「職種紹介 自社養成パイロット」': 'Japan Airlines careers site, “Roles: ab initio cadet pilot”',
+  '日本航空の発表「JALグループ、2027年度入社の新卒採用の募集を開始」': 'Japan Airlines news release, “JAL Group opens new-graduate recruitment for 2027 entry”',
+  'ANA「ANAグループの歩み」': 'ANA, “History of the ANA Group”',
+  'ANAホールディングス「統合報告書 2026」': 'ANA Holdings, “Integrated Report 2026”',
+  'ANAの採用サイト「2027年度新卒 募集要項（運航乗務職）」': 'ANA careers site, “Requirements for 2027 graduates (flight crew)”',
+  'ANAホールディングス「Fact Book 2026」': 'ANA Holdings, “Fact Book 2026”',
+  '「ANAグループ 安全報告書 2025年度」': '“ANA Group Safety Report FY2025”',
+  'ANAの採用サイト「職種紹介（運航乗務職）」': 'ANA careers site, “Roles: flight crew”',
+  'ANAの採用サイト「働き方・福利厚生」': 'ANA careers site, “Working style and benefits”',
+  'キャセイパシフィック航空「Interim Report 2026」': 'Cathay Pacific, “Interim Report 2026”',
+  'キャセイパシフィック航空の採用サイトの FAQ「Is it possible to be based in my home country or somewhere other than Hong Kong?」':
+    'Cathay Pacific careers FAQ, “Is it possible to be based in my home country or somewhere other than Hong Kong?”',
+  'キャセイパシフィック航空「Flights to Hong Kong」': 'Cathay Pacific, “Flights to Hong Kong”',
+  'キャセイパシフィック航空「Annual Report 2025」': 'Cathay Pacific, “Annual Report 2025”',
+  'キャセイパシフィック航空の発表「Cathay Pacific celebrates the graduation of its first batch of cadet pilots whose ground theory training was provided by Cathay Academy」':
+    'Cathay Pacific news release, “Cathay Pacific celebrates the graduation of its first batch of cadet pilots whose ground theory training was provided by Cathay Academy”',
+  'キャセイパシフィック航空の採用サイト「Flight Crew」': 'Cathay Pacific careers site, “Flight Crew”',
+  'キャセイパシフィック航空の採用サイトの FAQ「What career progression opportunities exist after completing the Cadet Pilot Programme?」':
+    'Cathay Pacific careers FAQ, “What career progression opportunities exist after completing the Cadet Pilot Programme?”',
+  'キャセイパシフィック航空の採用サイトの FAQ「Will I receive medical coverage for myself and my family?」':
+    'Cathay Pacific careers FAQ, “Will I receive medical coverage for myself and my family?”',
+  'キャセイパシフィック航空の採用サイトの FAQ「Will Cathay Pacific help with my relocation to Hong Kong?」':
+    'Cathay Pacific careers FAQ, “Will Cathay Pacific help with my relocation to Hong Kong?”',
+  'キャセイパシフィック航空の採用サイトの FAQ「What if commuting to work feels far? Will I receive any transport allowance?」':
+    'Cathay Pacific careers FAQ, “What if commuting to work feels far? Will I receive any transport allowance?”',
+  'キャセイパシフィック航空の募集「Cadet Pilot Programme」': 'Cathay Pacific job posting, “Cadet Pilot Programme”',
+  'エバー航空「Company Chronicle」': 'EVA Air, “Company Chronicle”',
+  'エバー航空「EVA Values」': 'EVA Air, “EVA Values”',
+  'エバー航空「Job Openings (Pilots)」': 'EVA Air, “Job Openings (Pilots)”',
+  'エバー航空「Worldwide Airports」': 'EVA Air, “Worldwide Airports”',
+  'エバー航空「EVA Air Fleet」': 'EVA Air, “EVA Air Fleet”',
+  'エバー航空「Main Business and Services」': 'EVA Air, “Main Business and Services”',
+  'エバー航空「Operational Data」': 'EVA Air, “Operational Data”',
+  '長榮航空「飛航人員職缺」': 'EVA Air, “飛航人員職缺” (pilot job openings)',
+});
+
 /* ════════════ 読むための関数 ════════════ */
 
 const LISTS = ['profile', 'scale', 'fleet', 'work', 'benefits', 'jobs'];
@@ -693,6 +962,12 @@ export function introFact(slug, key) {
 }
 /** 紹介文を [{ text, uses }] で返す（作り方は career-facts.mjs の fillIntro の1か所）。 */
 export const introText = slug => fillIntro((FACTS[slug] || {}).intro, key => introFact(slug, key), whenText);
+
+/* 英語版の準備（2026-10-21）。どの画面もまだ読まない。字は EN と career-facts.mjs の英語の対の決まり。 */
+/** 「いつの話か」の英語（at_ja が在ればその英語、無ければ at を英語の日付に）。 */
+export const whenTextEn = x => (x.at_ja ? twinOf(EN, x.at_ja) : atTextEn(x.at));
+/** 紹介文の英語（fillIntroEn。型は EN、字は英語の対）。 */
+export const introTextEn = slug => fillIntroEn(EN, (FACTS[slug] || {}).intro, key => introFact(slug, key), whenTextEn);
 
 export default FACTS;
 
@@ -791,7 +1066,11 @@ export function check() {
   }
   for (const slug of SLUGS) if (!FACTS[slug]) fail(slug, '台帳に無い');
 
-  return { n, bad };
+  /* 英語の対（英語版の準備）: 画面に出る日本語の字に英語が在る・紹介文の英語は日本語と同じ {鍵} だけで組める */
+  const en = checkTwins('airline-facts', EN, Object.entries(FACTS), fail);
+  for (const slug of Object.keys(FACTS)) checkIntroEn(slug, FACTS[slug].intro, EN, key => introFact(slug, key), whenTextEn, fail);
+
+  return { n, bad, en };
 }
 
 function list() {
@@ -811,13 +1090,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const args = process.argv.slice(2);
   if (args.includes('--list')) list();
   if (args.includes('--check') || !args.includes('--list')) {
-    const { n, bad } = check();
+    const { n, bad, en } = check();
     if (bad.length) {
       for (const b of bad) console.log(`❌ ${b}`);
       console.log(`\n❌ airline-facts: ${bad.length}件`);
       process.exit(1);
     }
     const per = SLUGS.map(s => `${s} ${[...allItems(s)].length}`).join('・');
-    console.log(`✅ airline-facts: ${n}項目（${per}／出どころ・確かめた日・時点・引用・種類の白リスト・金額には条件・機材の内訳＝総数・最初の1画面に出す1つが勤務と待遇に1つずつ）`);
+    console.log(`✅ airline-facts: ${n}項目（${per}／出どころ・確かめた日・時点・引用・種類の白リスト・金額には条件・機材の内訳＝総数・最初の1画面に出す1つが勤務と待遇に1つずつ・英語の対 ${en}字）`);
   }
 }

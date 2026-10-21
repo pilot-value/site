@@ -75,6 +75,249 @@
   var FIRST_YEAR = 2015;                     // これより前の月は受け付けない（サーバと同じ）
   var MINE_CAP = 24;                         // my_work_months が返す行の上限
 
+  /* ── ことば（2026-10-21・英語版の準備 WP-en-3）──────────────────
+     面の字は、ここ（T.ja ／ T.en）から出す。どちらを使うかは <html lang> だけで決める（en で始まれば英語）。
+     ・日本語の字は、今までと1字も違わない（T.ja ＝ 今まで面のあちこちに直接書いてあった字そのもの）。
+     ・鍵は日英で同じ（assert-contrib.mjs の「ソース」が見る）。数・名前が入る文は関数（日本語は今までの足し算のまま）。
+     ・T.ja の値が null の鍵 ＝ 日本語の字を、その場に書いたままにしてある所（ほかの検査がその字と形を、その場で読んでいる
+       ── 預かりの箱の見出し・送れなかった時の1行・補足を誰に見せるかの1行・ホテル・ステイの札・交通手段の並び）。
+       英語は T.en に在り、その場で LANG を見て選ぶ。
+     ・質問・選択肢・単位・機種・職位・通貨の名前は、台帳（pv-conditions.json・pv-vocab.json）の ja ／ en（下の loc）。
+     ・サーバへ送る lang も同じ LANG（月の勤務・質問・街の3つの送る形）。
+     ・サーバの断り文は日本語。英語の面にはそのまま出さない（T.en.said）。どの欄の話かを当てる字（fieldOf・townFieldOf・NUMS の srv）は
+       サーバの字なので日本語のまま。 */
+  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+  var MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var T = {
+    ja: {
+      gTaxi: '通勤・タクシー', gUpgrade: '機長昇格', gRoster: '勤務スケジュール', gCareer: '訓練・キャリア', gBenefits: '休暇・手当',
+      tWork: '月の勤務', tTown: 'パイロットに人気の街',
+      notSaved: '保存できませんでした', loginGo: 'ログインして続ける',
+      said: function (m) { return m; },
+      claimMoved: function (n) { return n + '件を、あなたの投稿として引き継ぎました。'; },
+      claimKept: function (n) { return n + '件は、ログインしてから保存した新しい投稿があったため、そちらを残しました。'; },
+      claimDropped: function (n) { return n + '件は、いまの形式では受け取れず、引き継げませんでした。'; },
+      claimLeft: function (n) { return n + '件は、まだ引き継げていません。次にこのページを開いたときに続きを引き継ぎます。'; },
+      claimMovedT: 'ログイン前の回答を引き継ぎました', claimSeenT: 'ログイン前の回答を確認しました',
+      backT: 'ログインしました', backD: '入力した内容はそのまま残っています。確かめて送ってください。',
+      failT: '送れていません', failText: null, failKept: null, retry: 'もう一度送る', discard: '破棄する',
+      offT: '準備中です', offD: 'この項目はまだ保存できません。入力した内容は送られていません。',
+      toList: '項目の一覧へ戻る', close: '閉じる',
+      loadT: '読み込めませんでした', loadD: '選択肢を読み込めませんでした。通信の状態を確かめて、もう一度お試しください。', reload: 'もう一度読み込む',
+      own: '本人が直接経験した内容です',
+      tileWork: '勤務', qWork: '最近の勤務で、良かったこと・変わったことは？', qTaxi: 'いつ、どこまで、誰の負担で使えますか？',
+      qStaff: '本人・家族の範囲、回数、自己負担は？', qUpgrade: '昇格までの年数と、選考・訓練の条件は？',
+      qRoster: '休みの希望、スタンバイ、スケジュールの出る時期は？', qCareer: '訓練費の返還、経験者採用、自社養成の条件は？',
+      qBenefits: '年休、病欠、着陸・地上勤務の手当は？', stayT: null, stayQ: null,
+      heldLogin: 'ログインして引き継ぐ',
+      listHead: function (name) { return name + 'に情報を追加'; },
+      unsentT: '送れていない回答があります', unsentD: function (t) { return t + 'の回答が、この端末に残っています。'; }, resume: '続きを開く',
+      lead1: function (name) { return name + 'のこと、'; }, lead2: 'ひとつ教えて。',
+      talk: '匿名で話す', under: 'ひとつの項目から追加できます。ログインは要りません。',
+      mine: function (v, many, cap) { return 'あなたの投稿 ' + (many ? cap + '件以上' : v + '件'); },
+      stChecking: 'あなたの投稿を確認しています…', stFail: 'あなたの投稿の件数を取得できませんでした。',
+      stOff: 'あなたの投稿の件数は準備中です。', stNone: 'あなたの投稿はまだありません。',
+      heldList: null, heldSaved: null,
+      heldD: function (n) { return 'ログインすると、あなたの投稿として引き継がれ、会社ごとの集計に入ります。ログインしないままの回答は' + n + '日で消えます。'; },
+      heldSavedD: function (n) { return '会社ごとの集計に入るのは、ログインして引き継いだあとです。ログインしないままの回答は' + n + '日で消えます。'; },
+      howLong: 'この端末から確認・修正できます。',
+      howShort: function (how) { return 'このブラウザは控えを残せない設定のため、確認・修正できるのは' + (how === 1 ? 'このタブ' : 'このページ') + 'を開いている間だけです。'; },
+      /* 月の勤務の数字の欄：[問い, 短い名前, 単位, 例] */
+      nums: {
+        block_hours: ['乗務時間は何時間でしたか？', '乗務時間', '時間', '例：75.5'],
+        duty_hours: ['勤務・拘束時間は何時間でしたか？', '勤務・拘束時間', '時間', '例：140'],
+        work_days: ['勤務した日は何日でしたか？', '勤務した日', '日', '例：18'],
+        duty_days: ['乗務した日は何日でしたか？', '乗務した日', '日', '例：14'],
+        days_off: ['公休日は何日でしたか？', '公休日', '日', '例：10'],
+        stay_nights: ['ステイは何泊でしたか？', 'ステイ', '泊', '例：8']
+      },
+      noAns: '回答しない', bReport: '出頭から解放まで', bStandby: 'スタンバイも含めて', bRoster: '勤務表の表示どおり', dunno: '分からない',
+      cYes: '含めている', cNo: '含めていない', none: '未回答',
+      ym: function (y, m) { return y + '年' + m + '月'; },
+      loading: '読み込んでいます…', month: '対象月', yours: 'あなたの投稿',
+      qFleet: 'その月に乗務した機種は？', choose: '選択してください', qPos: 'その月の職位は？',
+      qBasis: '勤務・拘束時間をどう数えましたか？（任意）', qCommute: '通勤時間は含めていますか？（任意）', qNote: 'ほかに伝えたいこと（任意）',
+      noteTip: '書いた場合は、給与を提出した会員に表示されます（名前は出ません）。', notePh: '具体的な条件以外に、伝えたいことがあれば',
+      update: '匿名で更新する', add: '匿名で追加する', sending: '送っています…', checking: 'これまでの投稿を確認しています…',
+      failWork: 'これまでの投稿を読み込めませんでした。このまま送れます（同じ月の投稿があれば、今回の内容に置き換わります）。',
+      needPos: '職位を選んでください。', needNum: '勤務の項目を1つ以上入れてください（分かるものだけで大丈夫です）。',
+      savedAdded: '情報を追加しました', savedUpdated: '情報を更新しました', saved: '保存しました',
+      seeMine: '自分の回答を見る', more: 'もう1項目を答える',
+      sumFleet: '乗務した機種', sumBasis: '勤務・拘束時間の数え方', sumCommute: '通勤時間', sumNote: 'ほかに伝えたいこと',
+      tmode: null,
+      needTown: '街・最寄駅を入れてください。', waits: '確認待ち',
+      townF: '街・最寄駅', livedF: '住んだ時期', livedNow: 'いま住んでいる', livedPast: '以前住んでいた', untilF: 'いつまで',
+      year: function (y) { return y + '年'; }, goodF: '良い点', concernF: '気になる点', modeF: '交通手段', portF: '空港／ターミナル',
+      hourF: '時間帯', hourBand: function (h) { return h + '時台'; }, minsF: '所要時間', mins: function (m) { return m + '分'; },
+      townAdd: function (n) { return n + 'を追加'; },
+      livedOpt: '住んだ時期（任意）', untilOpt: 'いつまで（任意）', goodOpt: '良い点（任意）', concernOpt: '気になる点（任意）',
+      townTip: '書いた場合は、確認のあと、給与を提出した会員に表示されます（名前は出ません）。',
+      tripAdd: '通勤を追加（任意）', terminal: 'ターミナル', minUnit: '分',
+      failTown: 'これまでの投稿を読み込めませんでした。このまま送れます（同じ街の投稿があれば、今回の内容に置き換わります）。',
+      why: {
+        unknown_question: 'この質問はいま受け付けていません。',
+        rate_limited: '1日に送れる件数の上限に達しました。明日また続きをどうぞ。',
+        parent_missing: '上の質問の答えと合わないため、保存されませんでした。',
+        missing_code: '選択肢を選び直してください。',
+        bad_code: '選択肢を選び直してください。',
+        missing_num: '数字を入れ直してください。',
+        bad_number: '数字を入れ直してください。',
+        out_of_range: '入れられる範囲の外です。数字を確かめてください。',
+        bad_currency: '通貨を選び直してください。',
+        range_order: '低いほうの額が、高いほうの額より大きくなっています。',
+        range_currency: '低いほうと高いほうは、同じ通貨で入れてください。',
+        skip_needs_login: 'この操作はログインしてからできます。',
+        too_long: '補足が長すぎます。短くして送り直してください。',
+        text_too_long: '補足が長すぎます。短くして送り直してください。'
+      },
+      anonA: 'ログインなしで保存できます。', anonB: '保存した内容は、この端末から確認・修正できます。',
+      unk: 'わからない', sep: '、', share: null,
+      commuteFrom: function (town) { return town + 'からの通勤'; },
+      selectAll: '当てはまるものをすべて選んでください。',
+      saysAll: function (help) { return help.indexOf('すべて') >= 0; },
+      chooseCur: '通貨を選ぶ',
+      curOpt: function (code, name) { return code + (name ? '（' + name + '）' : ''); },
+      curOf: function (label) { return label + 'の通貨'; },
+      range: function (lo, hi) { return lo + '〜' + hi; },
+      numUnit: function (n, u) { return n + u; },
+      addNote: '補足を足す（任意）', noteOpt: '補足（任意）',
+      noteOf: function (label) { return label + 'の補足（任意）'; },
+      notePhTown: function (town) { return town + 'から通う場合のことなど、選択肢で言い切れないことがあれば'; },
+      notePhAny: '条件や例外など、選択肢で言い切れないことがあれば',
+      capAdd: '回数・金額の上限を追加', capNoteOpt: '上限についての補足（任意）', capPh: '回数の上限や、決まりごとがあれば',
+      failCond: 'これまでの投稿を読み込めませんでした。このまま送れます（同じ質問の答えがあれば、今回の内容に置き換わります）。',
+      qName: function (label) { return '「' + label + '」'; },
+      noEmptyMulti: function (nm) { return nm + 'は、答えを空に戻せません。当てはまるものか「わからない」を選んでください。'; },
+      needNumber: function (nm) { return nm + 'は、数字で入れてください。'; },
+      inRange: function (nm, lo, hi) { return nm + 'は、' + lo + '〜' + hi + ' の範囲で入れてください。'; },
+      needCur: function (nm) { return nm + 'は、通貨を選んでください。'; },
+      noEmptyNum: function (nm) { return nm + 'は、答えを空に戻せません。数字を入れるか「わからない」を選んでください。'; },
+      noteNeedsAns: function (nm) { return '補足を残すには、' + nm + 'の答えを選んでください。'; },
+      needOne: '1つ以上答えてください（分かるものだけで大丈夫です）。',
+      sameT: '保存済みの内容と同じです', sameD: '変えたい項目を選び直してから送ってください。',
+      rejT: '保存できなかった項目があります',
+      keptOthers: function (n) { return 'ほかの' + n + '件は保存しました。'; },
+      rejLine: function (label, why) { return (label ? '「' + label + '」' : 'この項目') + '：' + why; },
+      rejWhy: '保存できませんでした。',
+      capNote: '上限についての補足', note: '補足'
+    },
+    en: {
+      gTaxi: 'Commuting and taxis', gUpgrade: 'Upgrade to captain', gRoster: 'Roster', gCareer: 'Training and career', gBenefits: 'Leave and allowances',
+      tWork: 'Your month of duty', tTown: 'Towns popular with pilots',
+      notSaved: 'Could not save', loginGo: 'Log in to continue',
+      said: function (m) { return /ログイン/.test(m) ? 'Please log in to continue.' : 'Check your entries and try again.'; },
+      claimMoved: function (n) { return n + (n === 1 ? ' answer was' : ' answers were') + ' moved to your posts.'; },
+      claimKept: function (n) { return 'For ' + n + (n === 1 ? ' answer' : ' answers') + ', the newer post you saved after logging in was kept.'; },
+      claimDropped: function (n) { return n + (n === 1 ? ' answer' : ' answers') + ' could not be moved because the format is no longer accepted.'; },
+      claimLeft: function (n) { return n + (n === 1 ? ' answer has' : ' answers have') + ' not been moved yet. The rest will be moved the next time you open this page.'; },
+      claimMovedT: 'Your answers from before logging in were moved', claimSeenT: 'Your answers from before logging in were checked',
+      backT: 'You are logged in', backD: 'What you entered is still here. Check it and send.',
+      failT: 'Not sent', failText: 'Check your connection and send again.', failKept: ' What you entered is kept on this device.',
+      retry: 'Send again', discard: 'Discard',
+      offT: 'Not available yet', offD: 'This item cannot be saved yet. What you entered has not been sent.',
+      toList: 'Back to the list', close: 'Close',
+      loadT: 'Could not load', loadD: 'The choices could not be loaded. Check your connection and try again.', reload: 'Load again',
+      own: 'This is my own first-hand experience',
+      tileWork: 'Duty', qWork: 'What went well or changed in your recent duty?', qTaxi: 'When can you use it, how far, and who pays?',
+      qStaff: 'Who is covered, how often, and what do you pay?', qUpgrade: 'Years to command, selection and training?',
+      qRoster: 'Day-off requests, standby, and when the roster comes out?', qCareer: 'Training bonds, direct entry and cadet terms?',
+      qBenefits: 'Annual leave, sick leave, landing and ground duty pay?', stayT: 'Hotels and layovers', stayQ: 'By destination',
+      heldLogin: 'Log in to move them',
+      listHead: function (name) { return 'Add information about ' + name; },
+      unsentT: 'You have an answer that was not sent', unsentD: function (t) { return 'Your answer on ' + t + ' is kept on this device.'; }, resume: 'Continue',
+      lead1: function (name) { return 'Tell us one thing about ' + name + '.'; }, lead2: '',
+      talk: 'Talk anonymously', under: 'Add one item at a time. No login needed.',
+      mine: function (v, many, cap) { return 'Your posts: ' + (many ? cap + '+' : v); },
+      stChecking: 'Checking your posts…', stFail: 'Could not get the number of your posts.',
+      stOff: 'The number of your posts is not available yet.', stNone: 'You have no posts yet.',
+      heldList: 'You have answers saved without logging in.', heldSaved: 'Saved without logging in.',
+      heldD: function (n) { return 'Log in to move them to your posts and into the per-airline totals. Answers left without logging in are deleted after ' + n + ' days.'; },
+      heldSavedD: function (n) { return 'It joins the per-airline totals only after you log in and move it. Answers left without logging in are deleted after ' + n + ' days.'; },
+      howLong: 'You can check and edit them from this device.',
+      howShort: function (how) { return 'This browser is set not to keep the key, so you can check and edit them only while ' + (how === 1 ? 'this tab' : 'this page') + ' is open.'; },
+      nums: {
+        block_hours: ['How many block hours did you fly?', 'Block hours', ' hours', 'e.g. 75.5'],
+        duty_hours: ['How many duty hours did you work?', 'Duty hours', ' hours', 'e.g. 140'],
+        work_days: ['How many days did you work?', 'Days worked', ' days', 'e.g. 18'],
+        duty_days: ['How many days did you fly?', 'Flying days', ' days', 'e.g. 14'],
+        days_off: ['How many days off did you have?', 'Days off', ' days', 'e.g. 10'],
+        stay_nights: ['How many layover nights?', 'Layover nights', ' nights', 'e.g. 8']
+      },
+      noAns: 'Prefer not to say', bReport: 'From report to release', bStandby: 'Including standby', bRoster: 'As shown on the roster', dunno: 'Don’t know',
+      cYes: 'Included', cNo: 'Not included', none: 'Not answered',
+      ym: function (y, m) { return MONTHS_EN[m - 1] + ' ' + y; },
+      loading: 'Loading…', month: 'Month', yours: 'Your post',
+      qFleet: 'Which aircraft did you fly that month?', choose: 'Select', qPos: 'What was your position that month?',
+      qBasis: 'How did you count duty hours? (optional)', qCommute: 'Does that include commuting time? (optional)', qNote: 'Anything else to share (optional)',
+      noteTip: 'If you write something, it is shown to members who have submitted pay (your name is not shown).', notePh: 'Anything beyond the specific terms that you want to share',
+      update: 'Update anonymously', add: 'Add anonymously', sending: 'Sending…', checking: 'Checking your earlier posts…',
+      failWork: 'Your earlier posts could not be loaded. You can still send (if you already posted this month, this replaces it).',
+      needPos: 'Choose your position.', needNum: 'Enter at least one duty figure (only the ones you know are fine).',
+      savedAdded: 'Information added', savedUpdated: 'Information updated', saved: 'Saved',
+      seeMine: 'See my answers', more: 'Answer another item',
+      sumFleet: 'Aircraft flown', sumBasis: 'How duty hours were counted', sumCommute: 'Commuting time', sumNote: 'Anything else',
+      tmode: [['', 'Prefer not to say'], ['train', 'Train'], ['bus', 'Bus'], ['car', 'Car'], ['taxi', 'Taxi'], ['other', 'Other']],
+      needTown: 'Enter a town or nearest station.', waits: 'Awaiting review',
+      townF: 'Town or nearest station', livedF: 'When you lived there', livedNow: 'I live there now', livedPast: 'I lived there before', untilF: 'Until',
+      year: function (y) { return String(y); }, goodF: 'Good points', concernF: 'Concerns', modeF: 'Transport', portF: 'Airport / terminal',
+      hourF: 'Time of day', hourBand: function (h) { return h + ':00–' + h + ':59'; }, minsF: 'Travel time', mins: function (m) { return m + ' min'; },
+      townAdd: function () { return 'Add a town popular with pilots'; },
+      livedOpt: 'When you lived there (optional)', untilOpt: 'Until (optional)', goodOpt: 'Good points (optional)', concernOpt: 'Concerns (optional)',
+      townTip: 'If you write something, it is shown after review to members who have submitted pay (your name is not shown).',
+      tripAdd: 'Add your commute (optional)', terminal: 'Terminal', minUnit: 'min',
+      failTown: 'Your earlier posts could not be loaded. You can still send (if you already posted this town, this replaces it).',
+      why: {
+        unknown_question: 'This question is not accepted right now.',
+        rate_limited: 'You have reached the daily limit. Please continue tomorrow.',
+        parent_missing: 'Not saved, because it does not fit your answer to the question above.',
+        missing_code: 'Choose an option again.',
+        bad_code: 'Choose an option again.',
+        missing_num: 'Enter the number again.',
+        bad_number: 'Enter the number again.',
+        out_of_range: 'Outside the allowed range. Check the number.',
+        bad_currency: 'Choose the currency again.',
+        range_order: 'The lower amount is larger than the higher amount.',
+        range_currency: 'Enter the lower and higher amounts in the same currency.',
+        skip_needs_login: 'You need to log in to do this.',
+        too_long: 'The note is too long. Shorten it and send again.',
+        text_too_long: 'The note is too long. Shorten it and send again.'
+      },
+      anonA: 'You can save without logging in.', anonB: ' You can check and edit what you saved from this device.',
+      unk: 'Don’t know', sep: ', ', share: 'If you add a note, it is shown with the question to members who have submitted pay (your name is not shown).',
+      commuteFrom: function (town) { return 'Commuting from ' + town; },
+      selectAll: 'Select all that apply.',
+      saysAll: function (help) { return /\b(all|everyone)\b/i.test(help); },
+      chooseCur: 'Choose currency',
+      curOpt: function (code, name) { return code + (name ? ' (' + name + ')' : ''); },
+      curOf: function (label) { return 'Currency for: ' + label; },
+      range: function (lo, hi) { return lo + '–' + hi; },
+      numUnit: function (n, u) { return u ? n + ' ' + u : n; },
+      addNote: 'Add a note (optional)', noteOpt: 'Note (optional)',
+      noteOf: function (label) { return 'Note on: ' + label + ' (optional)'; },
+      notePhTown: function (town) { return 'Anything the options can’t capture, such as commuting from ' + town; },
+      notePhAny: 'Conditions, exceptions or anything the options can’t capture',
+      capAdd: 'Add a limit on uses or amount', capNoteOpt: 'Note on the limit (optional)', capPh: 'Any limit on the number of uses, or rules',
+      failCond: 'Your earlier posts could not be loaded. You can still send (if you already answered a question, this replaces it).',
+      qName: function (label) { return '“' + label + '”'; },
+      noEmptyMulti: function (nm) { return nm + ' cannot be left empty. Choose what applies or “Don’t know”.'; },
+      needNumber: function (nm) { return nm + ': enter a number.'; },
+      inRange: function (nm, lo, hi) { return nm + ': enter a value from ' + lo + ' to ' + hi + '.'; },
+      needCur: function (nm) { return nm + ': choose a currency.'; },
+      noEmptyNum: function (nm) { return nm + ' cannot be left empty. Enter a number or choose “Don’t know”.'; },
+      noteNeedsAns: function (nm) { return 'To keep a note, choose an answer for ' + nm + '.'; },
+      needOne: 'Answer at least one question (only the ones you know are fine).',
+      sameT: 'Same as what you saved', sameD: 'Change the answers you want to update, then send.',
+      rejT: 'Some items could not be saved',
+      keptOthers: function (n) { return 'The other ' + n + (n === 1 ? ' item was' : ' items were') + ' saved.'; },
+      rejLine: function (label, why) { return (label ? '“' + label + '”' : 'This item') + ': ' + why; },
+      rejWhy: 'Could not be saved.',
+      capNote: 'Note on the limit', note: 'Note'
+    }
+  };
+  var TX = T[LANG];
+  /* 台帳（pv-conditions.json・pv-vocab.json）の { ja, en } のうち、この面の言葉のほう。 */
+  function loc(o) { return o && typeof o === 'object' ? o[LANG] : undefined; }
+
   /* ── 小さな道具 ─────────────────────────────────────────── */
   function el(tag, cls, text, attrs) {
     var n = d.createElement(tag), k;
@@ -301,14 +544,14 @@
   /* 質問のまとまり。k は ?add= と data-pvc-open にそのまま出る名前
      （英小文字と _ だけ。- を入れない ── 保存後の面を「<k>-saved」と呼んでいる）。 */
   var GROUPS = [
-    { k: 'taxi', t: '通勤・タクシー' },
+    { k: 'taxi', t: TX.gTaxi },
     { k: 'staff_travel', t: 'Staff Travel' },
-    { k: 'upgrade', t: '機長昇格' },
-    { k: 'roster', t: '勤務スケジュール' },
-    { k: 'career', t: '訓練・キャリア' },
-    { k: 'benefits', t: '休暇・手当' }
+    { k: 'upgrade', t: TX.gUpgrade },
+    { k: 'roster', t: TX.gRoster },
+    { k: 'career', t: TX.gCareer },
+    { k: 'benefits', t: TX.gBenefits }
   ];
-  var TOPIC_NAME = { work: '月の勤務', town: 'パイロットに人気の街' };
+  var TOPIC_NAME = { work: TX.tWork, town: TX.tTown };
   GROUPS.forEach(function (g) { TOPIC_NAME[g.k] = g.t; });
   function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
   function obj(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
@@ -373,9 +616,9 @@
   /* 預かりの口がまだ無いサーバでは、今までどおりログインへ送る（入れた内容は下書きに残る） */
   function needLogin(r) { return r.kind === 'login' || (r.kind === 'off' && !hasToken()); }
   function saidNote(r, topic) {
-    var o = { kind: 'said', title: '保存できませんでした', text: r.msg };
+    var o = { kind: 'said', title: TX.notSaved, text: TX.said(r.msg) };
     if (!hasToken() && /ログイン/.test(r.msg)) {
-      o.actions = [{ id: 'login', label: 'ログインして続ける', on: function () { toLogin(topic); } }];
+      o.actions = [{ id: 'login', label: TX.loginGo, on: function () { toLogin(topic); } }];
     }
     return o;
   }
@@ -395,12 +638,12 @@
       if (r.kind !== 'ok' || !r.data.ok) return null;
       var x = r.data, moved = +x.moved || 0, kept = +x.kept || 0, dropped = +x.dropped || 0, left = +x.left || 0, list = [];
       if (x.known === false || left === 0) dropKey();
-      if (moved) list.push(moved + '件を、あなたの投稿として引き継ぎました。');
-      if (kept) list.push(kept + '件は、ログインしてから保存した新しい投稿があったため、そちらを残しました。');
-      if (dropped) list.push(dropped + '件は、いまの形式では受け取れず、引き継げませんでした。');
-      if (left) list.push(left + '件は、まだ引き継げていません。次にこのページを開いたときに続きを引き継ぎます。');
+      if (moved) list.push(TX.claimMoved(moved));
+      if (kept) list.push(TX.claimKept(kept));
+      if (dropped) list.push(TX.claimDropped(dropped));
+      if (left) list.push(TX.claimLeft(left));
       if (list.length) {
-        C.note = { kind: 'claim', tone: 'calm', title: moved ? 'ログイン前の回答を引き継ぎました' : 'ログイン前の回答を確認しました', list: list, who: who };
+        C.note = { kind: 'claim', tone: 'calm', title: moved ? TX.claimMovedT : TX.claimSeenT, list: list, who: who };
       }
       if (moved) {
         try { d.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'claim', slug: slug() } })); } catch (e) { /* 古いブラウザ */ }
@@ -603,21 +846,22 @@
     }
   }
   function backNote() {
-    return { kind: 'back', tone: 'calm', title: 'ログインしました', text: '入力した内容はそのまま残っています。確かめて送ってください。' };
+    return { kind: 'back', tone: 'calm', title: TX.backT, text: TX.backD };
   }
   function failNote(topic) {
     return {
-      kind: 'fail', title: '送れていません',
-      /* ほかの会社について開いているあいだ（CO）は、端末に残していない（keepOutbox）ので、「残しています」とは言わない */
-      text: '通信の状態を確かめて、もう一度送ってください。' + (CO ? '' : '入力した内容はこの端末に残しています。'),
+      kind: 'fail', title: TX.failT,
+      /* ほかの会社について開いているあいだ（CO）は、端末に残していない（keepOutbox）ので、「残しています」とは言わない。
+         日本語の2つの字は、ここに書いたまま（assert-contrib.mjs が、この形をそのまま読む）。英語は T.en の failText・failKept */
+      text: LANG === 'en' ? TX.failText + (CO ? '' : TX.failKept) : '通信の状態を確かめて、もう一度送ってください。' + (CO ? '' : '入力した内容はこの端末に残しています。'),
       actions: [
-        { id: 'retry', label: 'もう一度送る', on: function () { if (topic === 'work') sendWork(); else if (topic === 'town') sendTown(); else sendGroup(topic); } },
-        { id: 'drop', label: '破棄する', on: function () { discard(topic); } }
+        { id: 'retry', label: TX.retry, on: function () { if (topic === 'work') sendWork(); else if (topic === 'town') sendTown(); else sendGroup(topic); } },
+        { id: 'drop', label: TX.discard, on: function () { discard(topic); } }
       ]
     };
   }
   function offNote() {
-    return { kind: 'off', title: '準備中です', text: 'この項目はまだ保存できません。入力した内容は送られていません。' };
+    return { kind: 'off', title: TX.offT, text: TX.offD };
   }
   function discard(topic) {
     dropOutbox(topic); dropDraft(topic);
@@ -1042,11 +1286,11 @@
     scrim.addEventListener('click', function () { close(); });
     var sheet = el('section', 'pvc-sheet', null, { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'pvc-title', tabindex: '-1' });
     var head = el('header', 'pvc-head');
-    var prev = el('button', 'pvc-prev', null, { type: 'button', 'aria-label': '項目の一覧へ戻る' });
+    var prev = el('button', 'pvc-prev', null, { type: 'button', 'aria-label': TX.toList });
     prev.hidden = true; prev.appendChild(icon('back', 22));
     prev.addEventListener('click', function () { show('list'); });
     var title = el('h2', 'pvc-title', '', { id: 'pvc-title', tabindex: '-1' });
-    var x = el('button', 'pvc-close', null, { type: 'button', 'aria-label': '閉じる' });
+    var x = el('button', 'pvc-close', null, { type: 'button', 'aria-label': TX.close });
     x.appendChild(icon('x', 22));
     x.addEventListener('click', function () { close(); });
     head.appendChild(prev); head.appendChild(title); head.appendChild(x);
@@ -1151,9 +1395,9 @@
   function loadFailed(again) {
     clear(S.main);
     S.main.appendChild(note({
-      kind: 'load', title: '読み込めませんでした',
-      text: '選択肢を読み込めませんでした。通信の状態を確かめて、もう一度お試しください。',
-      actions: [{ id: 'reload', label: 'もう一度読み込む', on: again }]
+      kind: 'load', title: TX.loadT,
+      text: TX.loadD,
+      actions: [{ id: 'reload', label: TX.reload, on: again }]
     }));
   }
   function select(name, opts, val) {
@@ -1171,7 +1415,7 @@
     var cb = el('input', '', null, { type: 'checkbox', name: 'own' });
     cb.checked = !!st.own;
     own.appendChild(cb);
-    own.appendChild(el('span', 'pvc-own-f', '本人が直接経験した内容です'));
+    own.appendChild(el('span', 'pvc-own-f', TX.own));
     var send = el('button', 'pvc-send', label, { type: 'submit' });
     cb.addEventListener('change', function () {
       /* 読む人が替わっていたら、前の人のチェックは消える。いま入れたチェックは今の人のもの ＝ 手放したあとで置く。 */
@@ -1184,15 +1428,18 @@
   }
 
   /* ── 項目の一覧 ─────────────────────────────────────────── */
+  /* ホテル・ステイの札の字は、ここに書いたまま（assert-claims.mjs がこの形をそのまま読む）。英語は T.en の stayT・stayQ（renderList が選ぶ）。
+     ほかの画面の住所は、英語の面では en/ の下（en/career.html は英語の比較の回が作る。英語の会社ページはステイ先のタブを持つので、
+     ふだんはタブへ切り替えるだけで、この住所へは行かない）。 */
   var TILES = [
-    { k: 'work', t: '勤務', q: '最近の勤務で、良かったこと・変わったことは？', view: 'work' },
-    { k: 'taxi', t: '通勤・タクシー', q: 'いつ、どこまで、誰の負担で使えますか？', view: 'taxi' },
-    { k: 'staff_travel', t: 'Staff Travel', q: '本人・家族の範囲、回数、自己負担は？', view: 'staff_travel' },
-    { k: 'upgrade', t: '機長昇格', q: '昇格までの年数と、選考・訓練の条件は？', view: 'upgrade' },
-    { k: 'roster', t: '勤務スケジュール', q: '休みの希望、スタンバイ、スケジュールの出る時期は？', view: 'roster' },
-    { k: 'career', t: '訓練・キャリア', q: '訓練費の返還、経験者採用、自社養成の条件は？', view: 'career' },
-    { k: 'benefits', t: '休暇・手当', q: '年休、病欠、着陸・地上勤務の手当は？', view: 'benefits' },
-    { k: 'stay', t: 'ホテル・ステイ', q: '就航地ごと', tab: 'stay', href: 'career.html?airline={s}&tab=life' }
+    { k: 'work', t: TX.tileWork, q: TX.qWork, view: 'work' },
+    { k: 'taxi', t: TX.gTaxi, q: TX.qTaxi, view: 'taxi' },
+    { k: 'staff_travel', t: 'Staff Travel', q: TX.qStaff, view: 'staff_travel' },
+    { k: 'upgrade', t: TX.gUpgrade, q: TX.qUpgrade, view: 'upgrade' },
+    { k: 'roster', t: TX.gRoster, q: TX.qRoster, view: 'roster' },
+    { k: 'career', t: TX.gCareer, q: TX.qCareer, view: 'career' },
+    { k: 'benefits', t: TX.gBenefits, q: TX.qBenefits, view: 'benefits' },
+    { k: 'stay', t: 'ホテル・ステイ', q: '就航地ごと', tab: 'stay', href: (LANG === 'en' ? 'en/' : '') + 'career.html?airline={s}&tab=life' }
   ];
   /* このページが「ステイ先」のタブを持っているか（持っていれば、ほかの画面へ送り出さない）。
      ほかの会社について開いているあいだ（CO）は、持っていないことにする ── このページのタブは、このページの会社のもの。 */
@@ -1200,14 +1447,16 @@
     return !CO && !!(tab && w.PVGlance && typeof w.PVGlance.go === 'function' && d.getElementById('pvg-' + tab));
   }
   /* ログインせずに預けた回答があるときに出す1枚。ここからログインすると、開いたときに引き継がれる。 */
-  function heldBox(title, lines) {
+  /* title ＝ 日本語の見出し（呼ぶ所に書いたまま ── assert-airline-glance.mjs が、その呼び出しの形のまま読む）。
+     key ＝ その見出しの英語の鍵（T.en）。英語の面では、そちらを出す。 */
+  function heldBox(title, lines, key) {
     var b = el('div', 'pvc-held', null, { 'data-pvc-held': '' });
-    b.appendChild(el('p', 'pvc-held-t', title));
+    b.appendChild(el('p', 'pvc-held-t', LANG === 'en' ? TX[key] : title));
     lines.forEach(function (t) { b.appendChild(el('p', 'pvc-held-d', t)); });
     /* 控えがこのページを開いている間しか残らない端末では、ログインへ移った時点で鍵が消える。
        引き継げないものを「引き継ぐ」と書いたボタンで渡さない。 */
     if (K.how >= 1) {
-      var bt = el('button', 'pvc-ghost', 'ログインして引き継ぐ', { type: 'button', 'data-pvc-act': 'claim' });
+      var bt = el('button', 'pvc-ghost', TX.heldLogin, { type: 'button', 'data-pvc-act': 'claim' });
       bt.addEventListener('click', function () { toLogin('list', true); });
       b.appendChild(bt);
     }
@@ -1216,15 +1465,15 @@
   function renderList() {
     var name = coName(), s = slug();
     clear(S.main);
-    setHead(name + 'に情報を追加');
+    setHead(TX.listHead(name));
     var ob = outbox();
     if (ob) {
       S.main.appendChild(note({
-        kind: 'unsent', title: '送れていない回答があります',
-        text: TOPIC_NAME[ob.topic] + 'の回答が、この端末に残っています。',
+        kind: 'unsent', title: TX.unsentT,
+        text: TX.unsentD(TOPIC_NAME[ob.topic]),
         actions: [
-          { id: 'resume', label: '続きを開く', on: function () { show(ob.topic); } },
-          { id: 'drop', label: '破棄する', on: function () { discard(ob.topic); } }
+          { id: 'resume', label: TX.resume, on: function () { show(ob.topic); } },
+          { id: 'drop', label: TX.discard, on: function () { discard(ob.topic); } }
         ]
       }));
     }
@@ -1233,17 +1482,19 @@
     tx.appendChild(el('p', 'pvc-cap', 'BUILD IT TOGETHER'));
     /* 見出しは2つの塊に分けておく（長い社名で折れるとき、「…ひとつ教え／て。」のように語の途中で切らない） */
     var lead = el('h3', 'pvc-lead');
-    lead.appendChild(el('span', 'pvc-lead-p', name + 'のこと、'));
-    lead.appendChild(el('span', 'pvc-lead-p', 'ひとつ教えて。'));
+    lead.appendChild(el('span', 'pvc-lead-p', TX.lead1(name)));
+    if (TX.lead2) lead.appendChild(el('span', 'pvc-lead-p', TX.lead2));   // 英語は1つの塊（語の切れ目で折れる）
     tx.appendChild(lead);
     top.appendChild(tx);
-    var talk = el('a', 'pvc-talk', '匿名で話す', { href: ROOT + 'submit-review.html?airline=' + enc(s) });
+    var talk = el('a', 'pvc-talk', TX.talk, { href: ROOT + (LANG === 'en' ? 'en/' : '') + 'submit-review.html?airline=' + enc(s) });
     talk.appendChild(icon('arrow', 16));
     top.appendChild(talk);
     card.appendChild(top);
 
     var ul = el('ul', 'pvc-tiles');
-    TILES.forEach(function (t) {
+    TILES.forEach(function (t0) {
+      /* ホテル・ステイの札の字だけは TILES に日本語で書いたまま（上の注）。英語の面では T.en の字にする */
+      var t = t0.k === 'stay' && LANG === 'en' ? { k: t0.k, t: TX.stayT, q: TX.stayQ, tab: t0.tab, href: t0.href } : t0;
       var li = el('li'), n;
       if (t.view) {
         n = el('button', 'pvc-tile', null, { type: 'button', 'data-pvc-tile': t.k });
@@ -1278,7 +1529,7 @@
     S.main.appendChild(held);
     /* ほかの会社について開いているあいだ（CO）は、この1行を出さない ── その面は、ログインしている会員にしか開かず、
        ログインが要ると断られた回答を預かりへは送らない（send）。当てはまらない「ログインは要りません」を言わない。 */
-    if (!CO) S.main.appendChild(el('p', 'pvc-under', 'ひとつの項目から追加できます。ログインは要りません。'));
+    if (!CO) S.main.appendChild(el('p', 'pvc-under', TX.under));
     paintCounts();
   }
   /* 件数は、サーバが返した本人の行だけから作る。取れていないものは数にしない。 */
@@ -1302,7 +1553,7 @@
       var k = n.getAttribute('data-pvc-count'), v = c[k];
       if (typeof v === 'number' && v > 0) {
         total += v;
-        n.textContent = 'あなたの投稿 ' + (k === 'work' && v >= MINE_CAP ? MINE_CAP + '件以上' : v + '件');
+        n.textContent = TX.mine(v, k === 'work' && v >= MINE_CAP, MINE_CAP);
         n.hidden = false;
       } else { n.textContent = ''; n.hidden = true; }
     });
@@ -1313,10 +1564,10 @@
     var townWait = M.town.k === 'loading' || M.town.k === 'idle';
     var ks = [M.work.k, M.cond.k], text = '';
     if (ks.indexOf('anon') >= 0 && ks[0] === ks[1]) text = '';
-    else if (ks.indexOf('loading') >= 0 || ks.indexOf('idle') >= 0) text = 'あなたの投稿を確認しています…';
-    else if (ks.indexOf('fail') >= 0 || (M.cond.k === 'ok' && !V.conds)) text = 'あなたの投稿の件数を取得できませんでした。';
-    else if (ks.indexOf('off') >= 0) text = 'あなたの投稿の件数は準備中です。';
-    else if (ks[0] === 'ok' && ks[1] === 'ok' && total === 0) text = townWait ? '' : (M.town.k === 'fail' ? 'あなたの投稿の件数を取得できませんでした。' : 'あなたの投稿はまだありません。');
+    else if (ks.indexOf('loading') >= 0 || ks.indexOf('idle') >= 0) text = TX.stChecking;
+    else if (ks.indexOf('fail') >= 0 || (M.cond.k === 'ok' && !V.conds)) text = TX.stFail;
+    else if (ks.indexOf('off') >= 0) text = TX.stOff;
+    else if (ks[0] === 'ok' && ks[1] === 'ok' && total === 0) text = townWait ? '' : (M.town.k === 'fail' ? TX.stFail : TX.stNone);
     st.textContent = text;
     st.hidden = !text;
     st.setAttribute('data-pvc-state', ks.join(' '));
@@ -1328,34 +1579,36 @@
     if (!slot.hidden) {
       slot.appendChild(heldBox('ログインなしで保存した回答があります。', [
         howText(),
-        'ログインすると、あなたの投稿として引き継がれ、会社ごとの集計に入ります。ログインしないままの回答は' + HELD_DAYS + '日で消えます。'
-      ]));
+        TX.heldD(HELD_DAYS)
+      ], 'heldList'));
     }
   }
   /* 控えがどこまで残るか。残らないものを「この端末から直せる」と言わない。 */
   function howText() {
     devKey();
-    if (K.how >= 2) return 'この端末から確認・修正できます。';
-    return 'このブラウザは控えを残せない設定のため、確認・修正できるのは' + (K.how === 1 ? 'このタブ' : 'このページ') + 'を開いている間だけです。';
+    if (K.how >= 2) return TX.howLong;
+    return TX.howShort(K.how);
   }
 
   /* ── 月の勤務 ───────────────────────────────────────────── */
-  /* srv ＝ サーバが断るときに文の頭に置く呼び名（どの欄の話かを当てるのに使う） */
+  /* srv ＝ サーバが断るときに文の頭に置く呼び名（どの欄の話かを当てるのに使う ── サーバの字なので日本語のまま）。
+     問い・短い名前・単位・例の字は T の nums。 */
+  function numField(k, mode, srv) { var w = TX.nums[k]; return { k: k, label: w[0], short: w[1], unit: w[2], ph: w[3], mode: mode, srv: srv }; }
   var NUMS = [
-    { k: 'block_hours', label: '乗務時間は何時間でしたか？', short: '乗務時間', unit: '時間', ph: '例：75.5', mode: 'decimal', srv: '乗務時間' },
-    { k: 'duty_hours', label: '勤務・拘束時間は何時間でしたか？', short: '勤務・拘束時間', unit: '時間', ph: '例：140', mode: 'decimal', srv: '拘束時間' },
-    { k: 'work_days', label: '勤務した日は何日でしたか？', short: '勤務した日', unit: '日', ph: '例：18', mode: 'numeric', srv: '勤務日数' },
-    { k: 'duty_days', label: '乗務した日は何日でしたか？', short: '乗務した日', unit: '日', ph: '例：14', mode: 'numeric', srv: '乗務日数' },
-    { k: 'days_off', label: '公休日は何日でしたか？', short: '公休日', unit: '日', ph: '例：10', mode: 'numeric', srv: '公休日数' },
-    { k: 'stay_nights', label: 'ステイは何泊でしたか？', short: 'ステイ', unit: '泊', ph: '例：8', mode: 'numeric', srv: 'ステイ泊数' }
+    numField('block_hours', 'decimal', '乗務時間'),
+    numField('duty_hours', 'decimal', '拘束時間'),
+    numField('work_days', 'numeric', '勤務日数'),
+    numField('duty_days', 'numeric', '乗務日数'),
+    numField('days_off', 'numeric', '公休日数'),
+    numField('stay_nights', 'numeric', 'ステイ泊数')
   ];
-  var BASIS = [['', '回答しない'], ['report_to_release', '出頭から解放まで'], ['incl_standby', 'スタンバイも含めて'], ['roster', '勤務表の表示どおり'], ['unknown', '分からない']];
-  var COMMUTE = [['', '回答しない'], ['yes', '含めている'], ['no', '含めていない'], ['unknown', '分からない']];
+  var BASIS = [['', TX.noAns], ['report_to_release', TX.bReport], ['incl_standby', TX.bStandby], ['roster', TX.bRoster], ['unknown', TX.dunno]];
+  var COMMUTE = [['', TX.noAns], ['yes', TX.cYes], ['no', TX.cNo], ['unknown', TX.dunno]];
   var NOTE_MAX = 500;
-  var NONE = '未回答';
+  var NONE = TX.none;
 
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
-  function ymText(ym) { var p = ym.split('-'); return (+p[0]) + '年' + (+p[1]) + '月'; }
+  function ymText(ym) { var p = ym.split('-'); return TX.ym(+p[0], +p[1]); }
   function lastYm() {
     var n = new Date(), y = n.getFullYear(), m = n.getMonth();          // m ＝ 先月（1始まりに直すと今月−1）
     if (m === 0) { y -= 1; m = 12; }
@@ -1375,12 +1628,12 @@
   function tailless(s) { return str(s).replace(/[（(][^）)]*[）)]\s*$/, ''); }
   function posLabel(code) {
     var i, p = V.vocab ? V.vocab.positions : [];
-    for (i = 0; i < p.length; i++) if (p[i].code === code) return tailless(p[i].ja);
+    for (i = 0; i < p.length; i++) if (p[i].code === code) return tailless(loc(p[i]));
     return '';
   }
   function fleetLabel(code) {
     var i, f = V.vocab ? V.vocab.fleets : [];
-    for (i = 0; i < f.length; i++) if (f[i].code === code) return str(f[i].ja);
+    for (i = 0; i < f.length; i++) if (f[i].code === code) return str(loc(f[i]));
     return '';
   }
   function pick(list, code) {
@@ -1440,14 +1693,14 @@
     o.duty_hours_basis = b.duty_hours_basis || null;
     o.commute_included = b.commute_included || null;
     o.note = trim(b.note) || null;
-    o.lang = 'ja';
+    o.lang = LANG;
     return o;
   }
 
   function renderWork() {
     setHead(TOPIC_NAME.work);
     if (!V.vocab) {
-      waiting('読み込んでいます…');
+      waiting(TX.loading);
       vocab().then(function () { if (S.open && S.view === 'work') renderWork(); },
         function () { if (S.open && S.view === 'work') loadFailed(renderWork); });
       return;
@@ -1474,7 +1727,7 @@
     E.line = el('p', 'pvc-ctx-line');
     ctx.appendChild(E.line);
     var cr = el('div', 'pvc-ctx-row');
-    cr.appendChild(el('label', 'pvc-ctx-k', '対象月', { 'for': 'pvc-f-ym' }));
+    cr.appendChild(el('label', 'pvc-ctx-k', TX.month, { 'for': 'pvc-f-ym' }));
     var ym = select('ym', monthOpts(W.ym), W.ym);
     ym.sel.addEventListener('change', function () {
       var next = ym.sel.value;
@@ -1485,7 +1738,7 @@
       if (s2) s2.focus();
     });
     cr.appendChild(ym.wrap);
-    var tag = el('span', 'pvc-mine', 'あなたの投稿', { 'data-pvc-own-row': '' }); tag.hidden = !row;
+    var tag = el('span', 'pvc-mine', TX.yours, { 'data-pvc-own-row': '' }); tag.hidden = !row;
     cr.appendChild(tag);
     E.loading = loading;
     ctx.appendChild(cr);
@@ -1513,18 +1766,18 @@
     E.ctl = {}; E.err = {};
 
     /* 機種と職位（語彙は pv-vocab.json から。ここに一覧を持たない） */
-    var fo = [['', '回答しない']];
-    V.vocab.fleets.forEach(function (x) { if (!x.retired || x.code === b.fleet) fo.push([x.code, str(x.ja)]); });
+    var fo = [['', TX.noAns]];
+    V.vocab.fleets.forEach(function (x) { if (!x.retired || x.code === b.fleet) fo.push([x.code, str(loc(x))]); });
     var fd = el('div', 'pvc-field');
-    fd.appendChild(el('label', 'pvc-label', 'その月に乗務した機種は？', { 'for': 'pvc-f-fleet' }));
+    fd.appendChild(el('label', 'pvc-label', TX.qFleet, { 'for': 'pvc-f-fleet' }));
     var fl = select('fleet', fo, b.fleet);
     fl.sel.addEventListener('change', function () { b.fleet = fl.sel.value; touch('fleet'); });
     fd.appendChild(fl.wrap); g.appendChild(fd);
 
-    var po = [['', '選択してください']];
-    V.vocab.positions.forEach(function (x) { if (!x.retired || x.code === b.position) po.push([x.code, tailless(x.ja)]); });
+    var po = [['', TX.choose]];
+    V.vocab.positions.forEach(function (x) { if (!x.retired || x.code === b.position) po.push([x.code, tailless(loc(x))]); });
     var pd = el('div', 'pvc-field');
-    pd.appendChild(el('label', 'pvc-label', 'その月の職位は？', { 'for': 'pvc-f-position' }));
+    pd.appendChild(el('label', 'pvc-label', TX.qPos, { 'for': 'pvc-f-position' }));
     var ps = select('position', po, b.position);
     ps.sel.addEventListener('change', function () { b.position = ps.sel.value; touch('position'); line(); clearErr('position'); });
     pd.appendChild(ps.wrap); E.ctl.position = ps.sel; E.err.position = errBox(pd, 'position'); g.appendChild(pd);
@@ -1542,24 +1795,24 @@
     });
 
     var bd = el('div', 'pvc-field pvc-wide');
-    bd.appendChild(el('label', 'pvc-label', '勤務・拘束時間をどう数えましたか？（任意）', { 'for': 'pvc-f-duty_hours_basis' }));
+    bd.appendChild(el('label', 'pvc-label', TX.qBasis, { 'for': 'pvc-f-duty_hours_basis' }));
     var bs = select('duty_hours_basis', BASIS, b.duty_hours_basis);
     bs.sel.addEventListener('change', function () { b.duty_hours_basis = bs.sel.value; touch('duty_hours_basis'); });
     bd.appendChild(bs.wrap); g.appendChild(bd);
 
     var cd = el('div', 'pvc-field pvc-wide');
-    cd.appendChild(el('label', 'pvc-label', '通勤時間は含めていますか？（任意）', { 'for': 'pvc-f-commute_included' }));
+    cd.appendChild(el('label', 'pvc-label', TX.qCommute, { 'for': 'pvc-f-commute_included' }));
     var cs = select('commute_included', COMMUTE, b.commute_included);
     cs.sel.addEventListener('change', function () { b.commute_included = cs.sel.value; touch('commute_included'); });
     cd.appendChild(cs.wrap); g.appendChild(cd);
 
     var nd = el('div', 'pvc-field pvc-wide');
-    nd.appendChild(el('label', 'pvc-label', 'ほかに伝えたいこと（任意）', { 'for': 'pvc-f-note' }));
+    nd.appendChild(el('label', 'pvc-label', TX.qNote, { 'for': 'pvc-f-note' }));
     /* ここに書いた文は、給与を提出した会員の画面に出る（サーバの pv_contrib_notes）。黙って出さない。 */
-    nd.appendChild(el('p', 'pvc-tip', '書いた場合は、給与を提出した会員に表示されます（名前は出ません）。'));
+    nd.appendChild(el('p', 'pvc-tip', TX.noteTip));
     var ta = el('textarea', 'pvc-area', null, {
       name: 'note', id: 'pvc-f-note', rows: '3', maxlength: String(NOTE_MAX),
-      placeholder: '具体的な条件以外に、伝えたいことがあれば'
+      placeholder: TX.notePh
     });
     ta.value = str(b.note);
     ta.addEventListener('input', function () { b.note = ta.value; touch('note'); clearErr('note'); });
@@ -1569,7 +1822,7 @@
     f.appendChild(set);
 
     E.msg = el('div'); f.appendChild(E.msg);
-    var o = ownRow(W, row ? '匿名で更新する' : '匿名で追加する', sync);
+    var o = ownRow(W, row ? TX.update : TX.add, sync);
     E.send = o.send; E.cb = o.cb;
     f.appendChild(o.act);
     S.main.appendChild(f);
@@ -1593,10 +1846,10 @@
       }
       tag.hidden = !mine;
       E.send.disabled = !W.own || W.busy || loading;
-      E.send.textContent = W.busy ? '送っています…' : (mine ? '匿名で更新する' : '匿名で追加する');
+      E.send.textContent = W.busy ? TX.sending : (mine ? TX.update : TX.add);
       var t = '';
-      if (loading) t = 'これまでの投稿を確認しています…';
-      else if (M.work.k === 'fail') t = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ月の投稿があれば、今回の内容に置き換わります）。';
+      if (loading) t = TX.checking;
+      else if (M.work.k === 'fail') t = TX.failWork;
       else if (!logged) t = anonHint();
       E.wait.textContent = t; E.wait.hidden = !t;
     }
@@ -1649,9 +1902,9 @@
        ＝ 前の人が保存した値を、手を付けないまま今の人の投稿として送らない。 */
     if (W.els.sync) W.els.sync();
     var pl = workPayload();
-    if (!pl.position) return workSay({ kind: 'said', title: '保存できませんでした', text: '職位を選んでください。' }, 'position');
+    if (!pl.position) return workSay({ kind: 'said', title: TX.notSaved, text: TX.needPos }, 'position');
     if (!NUMS.some(function (n) { return pl[n.k] !== null; })) {
-      return workSay({ kind: 'said', title: '保存できませんでした', text: '勤務の項目を1つ以上入れてください（分かるものだけで大丈夫です）。' }, NUMS[0].k);
+      return workSay({ kind: 'said', title: TX.notSaved, text: TX.needNum }, NUMS[0].k);
     }
     /* 残った入力（打ちかけの分）だけで送れる形でも、ここでは送らない ── 今の人は、まだ確認のチェックを入れていない。 */
     if (turned) return;
@@ -1718,7 +1971,7 @@
        増えた → 「情報を追加しました」／前の答えを置き換えた → 「情報を更新しました」／
        どちらか分からない → 「保存しました」（増えたと言い切らない）。 */
   function savedTitle(added) {
-    return added === true ? '情報を追加しました' : added === false ? '情報を更新しました' : '保存しました';
+    return added === true ? TX.savedAdded : added === false ? TX.savedUpdated : TX.saved;
   }
   /* 保存できた合図（短いクラッカー）。
      ★呼ぶのは show('work-saved') と show(topic + '-saved') と show('town-saved') の直後の3か所だけ。
@@ -1749,7 +2002,7 @@
     c.appendChild(h);
     var s = el('p', 'pvc-saved-s');
     s.appendChild(el('span', '', subText));
-    s.appendChild(el('span', 'pvc-mine', 'あなたの投稿'));
+    s.appendChild(el('span', 'pvc-mine', TX.yours));
     c.appendChild(s);
     var dl = el('dl', 'pvc-sum');
     fill(dl);
@@ -1757,15 +2010,15 @@
     if (held) {
       c.appendChild(heldBox('ログインなしで保存しました。', [
         howText(),
-        '会社ごとの集計に入るのは、ログインして引き継いだあとです。ログインしないままの回答は' + HELD_DAYS + '日で消えます。'
-      ]));
+        TX.heldSavedD(HELD_DAYS)
+      ], 'heldSaved'));
     }
     /* 「自分の回答を見る」は、同じ会社・同じ項目（勤務なら同じ月）の入力を、保存した値が入った形で開く
        ＝ 直すのもそこ。「もう1項目を答える」は同じ会社の項目の一覧へ。会社を選び直させない。 */
     var a = el('div', 'pvc-saved-a');
-    var e1 = el('button', 'pvc-ghost', '自分の回答を見る', { type: 'button', 'data-pvc-act': 'edit' });
+    var e1 = el('button', 'pvc-ghost', TX.seeMine, { type: 'button', 'data-pvc-act': 'edit' });
     e1.addEventListener('click', onEdit);
-    var e2 = el('button', 'pvc-send', 'もう1項目を答える', { type: 'button', 'data-pvc-act': 'more' });
+    var e2 = el('button', 'pvc-send', TX.more, { type: 'button', 'data-pvc-act': 'more' });
     e2.addEventListener('click', function () { S.viaList = true; show('list'); });
     a.appendChild(e1); a.appendChild(e2);
     c.appendChild(a);
@@ -1780,11 +2033,11 @@
     if (pl) parts.push(pl);
     parts.push(ymText(L.ym));
     savedShell(savedTitle(L.added), parts.join(' · '), function (dl) {
-      sumRow(dl, 'fleet', '乗務した機種', fleetLabel(r.fleet));
+      sumRow(dl, 'fleet', TX.sumFleet, fleetLabel(r.fleet));
       NUMS.forEach(function (n) { sumRow(dl, n.k, n.short, r[n.k] == null ? null : String(r[n.k]) + n.unit); });
-      sumRow(dl, 'duty_hours_basis', '勤務・拘束時間の数え方', pick(BASIS, str(r.duty_hours_basis)) && r.duty_hours_basis ? pick(BASIS, r.duty_hours_basis) : null);
-      sumRow(dl, 'commute_included', '通勤時間', r.commute_included ? pick(COMMUTE, r.commute_included) : null);
-      sumRow(dl, 'note', 'ほかに伝えたいこと', r.note, !!r.note);
+      sumRow(dl, 'duty_hours_basis', TX.sumBasis, pick(BASIS, str(r.duty_hours_basis)) && r.duty_hours_basis ? pick(BASIS, r.duty_hours_basis) : null);
+      sumRow(dl, 'commute_included', TX.sumCommute, r.commute_included ? pick(COMMUTE, r.commute_included) : null);
+      sumRow(dl, 'note', TX.sumNote, r.note, !!r.note);
     }, function () { W.ym = L.ym; show('work'); }, L.held);
   }
 
@@ -1793,7 +2046,9 @@
      面を開くたびに読む（ログインからの戻り・「進む」でも同じ文脈になる）。基地を持たないページでは、街の面を出さない。
      ★住所・位置は聞かない・取らない（位置を取る口を呼ばない）。送るのは、本人が打った・選んだものだけ。
      ★ほかの人の投稿を読む口（一覧・運営の口）は呼ばない。候補（pv_town_options）は、サイトの名前だけを返す口。 */
+  /* 交通手段の字は、ここに書いたまま（assert-airline-glance.mjs が、この1行を読んで会社ページの移動の字と比べる）。英語は T.en の tmode */
   var TMODE = [['', '回答しない'], ['train', '電車'], ['bus', 'バス'], ['car', '車'], ['taxi', 'タクシー'], ['other', 'その他']];
+  var TMODES = LANG === 'en' ? TX.tmode : TMODE;
   function townCtx() {
     if (CO) return null;                    // 街の文脈は、このページの会社のもの
     var a = d.querySelector('[data-pvc-open="town"][data-pvc-base]');
@@ -1812,13 +2067,14 @@
   /* 街の面の頭の行（と保存後のカード）の社名。段階3の面の社名は、日本の会社は日本語・ほかは英語（オーナー 2026-10-18）。
      字は会社ページの島（#crc-data の airlines[このページの会社].name ＝ gen-airline-glance.mjs が同じ決まりで書く）。
      島に無ければ、ほかの面と同じ coName()。 */
+  /* 英語の面では、どの会社も英語の名前（島に en が在ればそれ・無ければ coName() ＝ 英語のページの名前）。島の name（日本の会社は日本語）は使わない。 */
   function townCo() {
-    var n, j, a;
+    var n, j, a, k = LANG === 'en' ? 'en' : 'name';
     if (CO) return coName();
     try {
       n = d.getElementById('crc-data'); j = n ? JSON.parse(n.textContent || '{}') : null;
       a = j && j.airlines ? j.airlines[pageSlug()] : null;
-      if (a && typeof a.name === 'string' && trim(a.name)) return trim(a.name).slice(0, 60);
+      if (a && typeof a[k] === 'string' && trim(a[k])) return trim(a[k]).slice(0, 60);
     } catch (e) { /* 読めなければ下へ */ }
     return coName();
   }
@@ -1886,7 +2142,7 @@
     var tr = { mode: b.mode || null, airport: b.airport || null, terminal: trim(b.terminal) || null,
                hour: /^\d{1,2}$/.test(b.hour) ? Number(b.hour) : null, minutes: townNum(b.minutes) };
     if (tr.mode !== null || tr.airport !== null || tr.terminal !== null || tr.hour !== null || tr.minutes !== null) o.trip = tr;
-    o.lang = 'ja';
+    o.lang = LANG;
     return o;
   }
   function clearTownErr(key) {
@@ -1935,7 +2191,7 @@
     var ctx = townCtx();
     if (!ctx) return show('list');
     var pl = townPayload(ctx);
-    if (!pl.town) return townSay({ kind: 'said', title: '保存できませんでした', text: '街・最寄駅を入れてください。' }, 'town');
+    if (!pl.town) return townSay({ kind: 'said', title: TX.notSaved, text: TX.needTown }, 'town');
     if (turned) return;
     TW.notice = null; TW.err = null; paintTownNotice();
     setBusy(TW, true);
@@ -1977,7 +2233,7 @@
     sumRow(dl, key, label, value == null || value === '' ? null : String(value), long);
     var r = dl.lastChild, v = r && r.querySelector('.pvc-sum-v'), k = r && r.querySelector('.pvc-sum-k');
     if (v) v.classList.add('pv-no-cur');
-    if (waits && k) k.appendChild(el('span', 'pvc-mine', '確認待ち'));
+    if (waits && k) k.appendChild(el('span', 'pvc-mine', TX.waits));
   }
   function renderTownSaved() {
     var L = TW.last, ctx = townCtx();
@@ -1986,16 +2242,16 @@
     /* ★サーバが前に預かった家賃（p.rent）を返しても、カードには出さない（投稿した人の家賃として見せない。家の数字はサイトが調べたものだけ） */
     var p = L.post, t = p.trip && typeof p.trip === 'object' ? p.trip : null;
     savedShell(savedTitle(L.added), townCo() + ' · ' + ctx.text, function (dl) {
-      townSum(dl, 'town', '街・最寄駅', str(p.town), false, p.town_state === 'pending');
-      townSum(dl, 'lived', '住んだ時期', p.lived === 'now' ? 'いま住んでいる' : p.lived === 'past' ? '以前住んでいた' : null);
-      if (p.lived === 'past') townSum(dl, 'lived_to_year', 'いつまで', p.lived_to_year != null ? p.lived_to_year + '年' : null);
-      townSum(dl, 'good', '良い点', p.good, true, !!trim(p.good) && p.text_state === 'pending');
-      townSum(dl, 'concern', '気になる点', p.concern, true, !!trim(p.concern) && p.text_state === 'pending');
+      townSum(dl, 'town', TX.townF, str(p.town), false, p.town_state === 'pending');
+      townSum(dl, 'lived', TX.livedF, p.lived === 'now' ? TX.livedNow : p.lived === 'past' ? TX.livedPast : null);
+      if (p.lived === 'past') townSum(dl, 'lived_to_year', TX.untilF, p.lived_to_year != null ? TX.year(p.lived_to_year) : null);
+      townSum(dl, 'good', TX.goodF, p.good, true, !!trim(p.good) && p.text_state === 'pending');
+      townSum(dl, 'concern', TX.concernF, p.concern, true, !!trim(p.concern) && p.text_state === 'pending');
       if (t) {
-        townSum(dl, 'mode', '交通手段', t.mode ? pick(TMODE, str(t.mode)) || null : null);
-        townSum(dl, 'airport', '空港／ターミナル', [str(t.airport), str(t.terminal)].filter(Boolean).join(' · ') || null);
-        townSum(dl, 'hour', '時間帯', t.hour != null ? t.hour + '時台' : null);
-        townSum(dl, 'minutes', '所要時間', t.minutes != null ? t.minutes + '分' : null);
+        townSum(dl, 'mode', TX.modeF, t.mode ? pick(TMODES, str(t.mode)) || null : null);
+        townSum(dl, 'airport', TX.portF, [str(t.airport), str(t.terminal)].filter(Boolean).join(' · ') || null);
+        townSum(dl, 'hour', TX.hourF, t.hour != null ? TX.hourBand(t.hour) : null);
+        townSum(dl, 'minutes', TX.minsF, t.minutes != null ? TX.mins(t.minutes) : null);
       }
     }, function () {
       TW.was = TW.name = str(L.post.town); TW.nameBy = false;
@@ -2013,14 +2269,14 @@
      保存後のカードから戻った ＝ TW.was／欄の街が、自分の投稿のある街 ＝ mine）に「…を追加」を出さない。
      字は、保存後のカードの見出しと同じ「パイロットに人気の街」（追加の回は「パイロットに人気の街を追加」＝ オーナーの字。2026-10-18）。
      決まりはボタンの字と同じ（欄が替わるたびに E.sync が合わせる） */
-  function townHead(mine) { return mine || TW.was ? TOPIC_NAME.town : TOPIC_NAME.town + 'を追加'; }
+  function townHead(mine) { return mine || TW.was ? TOPIC_NAME.town : TX.townAdd(TOPIC_NAME.town); }
   function renderTown() {
     var ctx = townCtx();
     if (!ctx) { show('list'); return; }
     var head = townHead(townRowFor(TW.name));
     setHead(head);
     if (!V.vocab) {
-      waiting('読み込んでいます…');
+      waiting(TX.loading);
       vocab().then(function () { if (S.open && S.view === 'town') renderTown(); },
         function () { if (S.open && S.view === 'town') loadFailed(renderTown); });
       return;
@@ -2080,8 +2336,10 @@
 
     /* 街・最寄駅（候補から選ぶか、打つ） */
     var tf = el('div', 'pvc-field pvc-wide');
+    /* 欄の名前は、ここに書いたまま（assert-admin.mjs が、この1行の形のまま読んで運営の画面の字と比べる）。英語の面では T.en の townF に替える */
     var tl = el('label', 'pvc-label', '街・最寄駅', { id: 'pvc-l-town', 'for': 'pvc-f-town' });
-    E.tag = el('span', 'pvc-mine', 'あなたの投稿'); E.tag.hidden = true;
+    if (LANG === 'en') tl.textContent = TX.townF;
+    E.tag = el('span', 'pvc-mine', TX.yours); E.tag.hidden = true;
     tl.appendChild(E.tag);
     tf.appendChild(tl);
     var ti = el('input', 'pvc-input', null, { type: 'text', name: 'town', id: 'pvc-f-town', maxlength: '30', autocomplete: 'off', enterkeyhint: 'next' });
@@ -2105,7 +2363,7 @@
         var c = chipOf[t[0]];
         if (!c) {
           var lab = el('label', 'pvc-chip'), r = el('input', '', null, { type: 'radio', name: 'town_pick', value: t[0] });
-          var face = el('span', 'pvc-chip-f', t[0]), tag = el('span', 'pvc-mine', 'あなたの投稿');
+          var face = el('span', 'pvc-chip-f', t[0]), tag = el('span', 'pvc-mine', TX.yours);
           face.appendChild(tag);
           lab.appendChild(r); lab.appendChild(face);
           r.addEventListener('change', function () {
@@ -2128,12 +2386,12 @@
     };
 
     /* 住んだ時期（任意） */
-    var lf = field('pvc-field', '住んだ時期（任意）', 'pvc-f-lived');
-    lf.appendChild(pickIn('lived', [['', '回答しない'], ['now', 'いま住んでいる'], ['past', '以前住んでいた']]).wrap);
+    var lf = field('pvc-field', TX.livedOpt, 'pvc-f-lived');
+    lf.appendChild(pickIn('lived', [['', TX.noAns], ['now', TX.livedNow], ['past', TX.livedPast]]).wrap);
     g.appendChild(lf);
-    var yo = [['', '回答しない']], y;
-    for (y = new Date().getFullYear(); y >= 1990; y--) yo.push([String(y), y + '年']);
-    var yf = field('pvc-field', 'いつまで（任意）', 'pvc-f-lived_to_year');
+    var yo = [['', TX.noAns]], y;
+    for (y = new Date().getFullYear(); y >= 1990; y--) yo.push([String(y), TX.year(y)]);
+    var yf = field('pvc-field', TX.untilOpt, 'pvc-f-lived_to_year');
     yf.appendChild(pickIn('lived_to_year', yo).wrap);
     g.appendChild(yf);
 
@@ -2146,9 +2404,9 @@
       g.appendChild(fd);
       return fd;
     }
-    area('good', '良い点（任意）');
+    area('good', TX.goodOpt);
     /* ここに書いた文は、確認のあと、一覧を見られる会員の画面に出る（サーバの pv_town_board）。黙って出さない。 */
-    area('concern', '気になる点（任意）').appendChild(el('p', 'pvc-tip', '書いた場合は、確認のあと、給与を提出した会員に表示されます（名前は出ません）。'));
+    area('concern', TX.concernOpt).appendChild(el('p', 'pvc-tip', TX.townTip));
 
     /* 通勤（任意。押すか、値が入っている時だけ開く）。
        ★広さ・間取り・家賃の欄は置かない（オーナー 2026-10-18。家の数字はサイトが調べて載せる ＝ 暮らしのカード） */
@@ -2162,30 +2420,30 @@
       g.appendChild(fo);
       return { bt: bt, panel: panel };
     }
-    var trip = fold('trip', '通勤を追加（任意）', 'tripOpen');
-    var md = field('pvc-field', '交通手段', 'pvc-f-mode');
-    md.appendChild(pickIn('mode', TMODE).wrap);
+    var trip = fold('trip', TX.tripAdd, 'tripOpen');
+    var md = field('pvc-field', TX.modeF, 'pvc-f-mode');
+    md.appendChild(pickIn('mode', TMODES).wrap);
     trip.panel.appendChild(md);
-    var ap = field('pvc-field', '空港／ターミナル', 'pvc-f-airport'), prow = el('div', 'pvc-numrow');
-    prow.appendChild(pickIn('airport', [['', '回答しない']].concat(ctx.ports.map(function (p) { return [p, p]; }))).wrap);
-    prow.appendChild(textIn('terminal', 12, null, { 'aria-label': 'ターミナル' }));
+    var ap = field('pvc-field', TX.portF, 'pvc-f-airport'), prow = el('div', 'pvc-numrow');
+    prow.appendChild(pickIn('airport', [['', TX.noAns]].concat(ctx.ports.map(function (p) { return [p, p]; }))).wrap);
+    prow.appendChild(textIn('terminal', 12, null, { 'aria-label': TX.terminal }));
     ap.appendChild(prow); errBox(ap, 'terminal');
     trip.panel.appendChild(ap);
-    var ho = [['', '回答しない']], h;
-    for (h = 0; h < 24; h++) ho.push([String(h), h + '時台']);
-    var hr = field('pvc-field', '時間帯', 'pvc-f-hour');
+    var ho = [['', TX.noAns]], h;
+    for (h = 0; h < 24; h++) ho.push([String(h), TX.hourBand(h)]);
+    var hr = field('pvc-field', TX.hourF, 'pvc-f-hour');
     hr.appendChild(pickIn('hour', ho).wrap);
     trip.panel.appendChild(hr);
-    var mn = field('pvc-field', '所要時間', 'pvc-f-minutes'), nrow = el('div', 'pvc-numrow');
+    var mn = field('pvc-field', TX.minsF, 'pvc-f-minutes'), nrow = el('div', 'pvc-numrow');
     nrow.appendChild(textIn('minutes', 3, 'numeric'));
-    nrow.appendChild(el('span', 'pvc-unit', '分'));
+    nrow.appendChild(el('span', 'pvc-unit', TX.minUnit));
     mn.appendChild(nrow); errBox(mn, 'minutes');
     trip.panel.appendChild(mn);
 
     set.appendChild(g);
     f.appendChild(set);
     E.msg = el('div'); f.appendChild(E.msg);
-    var o = ownRow(TW, '匿名で追加する', function () { E.sync(); });
+    var o = ownRow(TW, TX.add, function () { E.sync(); });
     E.send = o.send; E.cb = o.cb;
     f.appendChild(o.act);
     S.main.appendChild(f);
@@ -2211,12 +2469,12 @@
       var mine = townRowFor(TW.name);
       E.tag.hidden = !mine;
       E.send.disabled = !TW.own || TW.busy || E.loading;
-      E.send.textContent = TW.busy ? '送っています…' : (mine || TW.was ? '匿名で更新する' : '匿名で追加する');
+      E.send.textContent = TW.busy ? TX.sending : (mine || TW.was ? TX.update : TX.add);
       var h = townHead(mine);
       if (h !== E.head) { E.head = h; setHead(h); }       // 見出しもボタンと同じ決まりで（townHead）
       var t = '';
-      if (E.loading) t = 'これまでの投稿を確認しています…';
-      else if (M.town.k === 'fail') t = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ街の投稿があれば、今回の内容に置き換わります）。';
+      if (E.loading) t = TX.checking;
+      else if (M.town.k === 'fail') t = TX.failTown;
       else if (!hasToken()) t = anonHint();
       E.wait.textContent = t; E.wait.hidden = !t;
     };
@@ -2230,23 +2488,9 @@
   var TAXI_ORDER = ['commuting_transport', 'commuting_transport_method', 'commuting_taxi_when', 'commuting_bus_when',
     'commuting_taxi_where', 'commuting_taxi_cap', 'commuting_taxi_cost', 'commuting_bus_cost'];
   var UNK = 'unknown';
-  var WHY = {
-    unknown_question: 'この質問はいま受け付けていません。',
-    rate_limited: '1日に送れる件数の上限に達しました。明日また続きをどうぞ。',
-    parent_missing: '上の質問の答えと合わないため、保存されませんでした。',
-    missing_code: '選択肢を選び直してください。',
-    bad_code: '選択肢を選び直してください。',
-    missing_num: '数字を入れ直してください。',
-    bad_number: '数字を入れ直してください。',
-    out_of_range: '入れられる範囲の外です。数字を確かめてください。',
-    bad_currency: '通貨を選び直してください。',
-    /* 低いほう・高いほうの対（台帳の rangeLow）。送る前の確かめ（sendGroup）も、サーバが断った時も、この2つの文で言う */
-    range_order: '低いほうの額が、高いほうの額より大きくなっています。',
-    range_currency: '低いほうと高いほうは、同じ通貨で入れてください。',
-    skip_needs_login: 'この操作はログインしてからできます。',
-    too_long: '補足が長すぎます。短くして送り直してください。',
-    text_too_long: '補足が長すぎます。短くして送り直してください。'
-  };
+  /* 断りの理由の字（鍵はサーバの reason）。低いほう・高いほうの対（台帳の rangeLow）は、送る前の確かめ（sendGroup）も、
+     サーバが断った時も、range_order・range_currency の2つの文で言う。字は T の why。 */
+  var WHY = TX.why;
   /* 控えを残せる端末かどうか。残せない端末で「この端末から直せます」と言わない。 */
   function canKeep() {
     var k = 'pv_contrib_probe';
@@ -2254,10 +2498,10 @@
     return false;
   }
   function anonHint() {
-    return 'ログインなしで保存できます。' + (canKeep() ? '保存した内容は、この端末から確認・修正できます。' : '');
+    return TX.anonA + (canKeep() ? TX.anonB : '');
   }
   function usable(q) {
-    if (!q || !q.id || !q.ja || !q.ja.label) return false;
+    if (!q || !q.id || !loc(q) || !loc(q).label) return false;
     if (q.kind === 'choice' || q.kind === 'multi') return Array.isArray(q.choices) && q.choices.length > 0;
     return q.kind === 'num' && !!q.num && typeof q.num === 'object';
   }
@@ -2361,20 +2605,20 @@
     p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return p.join('.');
   }
-  function unitText(q) { return q.num && q.num.ja ? str(q.num.ja) : ''; }
+  function unitText(q) { return q.num && loc(q.num) ? str(loc(q.num)) : ''; }
   function choiceText(q, code) {
     var i, c = q.choices || [];
-    for (i = 0; i < c.length; i++) if (c[i].code === code) return str(c[i].ja);
-    return code === unkCode() ? 'わからない' : '';
+    for (i = 0; i < c.length; i++) if (c[i].code === code) return str(loc(c[i]));
+    return code === unkCode() ? TX.unk : '';
   }
   /* 保存された1件を、読める文にする */
   function answerText(q, a) {
     var v = fromSaved(q, a);
-    if (q.kind === 'multi') return v.map(function (c) { return choiceText(q, c); }).filter(Boolean).join('、');
+    if (q.kind === 'multi') return v.map(function (c) { return choiceText(q, c); }).filter(Boolean).join(TX.sep);
     if (q.kind !== 'num') return choiceText(q, v);
-    if (v === unkCode()) return 'わからない';
+    if (v === unkCode()) return TX.unk;
     if (v === '') return '';
-    return (q.currency && a.currency ? str(a.currency) + ' ' : '') + numText(v) + unitText(q);
+    return (q.currency && a.currency ? str(a.currency) + ' ' : '') + TX.numUnit(numText(v), unitText(q));
   }
   function sameAnswer(q, v, cc, a, text) {
     if (!a) return false;
@@ -2390,14 +2634,15 @@
     } else if (s !== v) return false;
     return trim(a.text) === text;
   }
+  /* 日本語の1行は、ここに書いたまま（assert-contrib.mjs が、この関数の中の字をそのまま読む）。英語は T.en の share */
   function shareLine(qs) {
-    return '補足を書いた場合は、質問の名前と一緒に、給与を提出した会員に表示されます（名前は出ません）。';
+    return LANG === 'en' ? TX.share : '補足を書いた場合は、質問の名前と一緒に、給与を提出した会員に表示されます（名前は出ません）。';
   }
 
   function renderGroup(topic) {
     setHead(TOPIC_NAME[topic]);
     if (!V.conds || !V.vocab) {
-      waiting('読み込んでいます…');
+      waiting(TX.loading);
       Promise.all([conds(), vocab()]).then(function () { if (S.open && S.view === topic) renderGroup(topic); },
         function () { if (S.open && S.view === topic) loadFailed(function () { renderGroup(topic); }); });
       return;
@@ -2422,8 +2667,8 @@
     var lastRow = M.work.k === 'ok' && M.work.rows.length ? M.work.rows[0] : null;
     if (lastRow && posLabel(lastRow.position)) parts.push(posLabel(lastRow.position));
     var town = topic === 'taxi' ? S.ctx : '';
-    if (town) parts.push(town + 'からの通勤');
-    parts.push(n.getFullYear() + '年' + (n.getMonth() + 1) + '月');
+    if (town) parts.push(TX.commuteFrom(town));
+    parts.push(TX.ym(n.getFullYear(), n.getMonth() + 1));
     ctx.appendChild(el('p', 'pvc-ctx-line', parts.join(' · ')));
     f.appendChild(ctx);
     /* 状態の1行は、欄より先（月の勤務と同じ） */
@@ -2436,27 +2681,28 @@
 
     function change(q, v) { t.vals[q.id] = v; t.dirty[q.id] = true; sync(); }
     function tips(q, fd, folded) {
+      var w = loc(q);
       if (topic === 'taxi') {
-        if (q.kind === 'multi') fd.appendChild(el('p', 'pvc-tip', '当てはまるものをすべて選んでください。'));
-        else if ((!q.parent || folded) && q.ja.help) fd.appendChild(endKept(el('p', 'pvc-tip'), q.ja.help));
+        if (q.kind === 'multi') fd.appendChild(el('p', 'pvc-tip', TX.selectAll));
+        else if ((!q.parent || folded) && w.help) fd.appendChild(endKept(el('p', 'pvc-tip'), w.help));
         return;
       }
-      if (q.ja.help) fd.appendChild(endKept(el('p', 'pvc-tip'), q.ja.help));
-      if (q.kind === 'multi' && str(q.ja.help).indexOf('すべて') < 0) fd.appendChild(el('p', 'pvc-tip', '当てはまるものをすべて選んでください。'));
+      if (w.help) fd.appendChild(endKept(el('p', 'pvc-tip'), w.help));
+      if (q.kind === 'multi' && !TX.saysAll(str(w.help))) fd.appendChild(el('p', 'pvc-tip', TX.selectAll));
     }
     function fieldFor(q, folded) {
       var a = sm[q.id], v = cur(t, q, sm), fd = el('div', 'pvc-field pvc-wide', null, { 'data-q': q.id });
       var lid = 'pvc-l-' + q.id;
       var lb = el(q.kind === 'multi' ? 'div' : 'label', 'pvc-label', null, { id: lid });
       if (q.kind !== 'multi') lb.setAttribute('for', 'pvc-f-' + q.id);
-      lb.appendChild(endKept(el('span', ''), q.ja.label));
-      if (hasValue(a)) lb.appendChild(el('span', 'pvc-mine', 'あなたの投稿'));
+      lb.appendChild(endKept(el('span', ''), loc(q).label));
+      if (hasValue(a)) lb.appendChild(el('span', 'pvc-mine', TX.yours));
       fd.appendChild(lb);
       tips(q, fd, folded);
       if (q.kind === 'multi') {
         var box = el('div', 'pvc-chips', null, { role: 'group', 'aria-labelledby': lid }), inputs = [];
-        var list = q.choices.map(function (c) { return [c.code, str(c.ja)]; });
-        if (!q.choices.some(function (c) { return c.code === unk; })) list.push([unk, 'わからない']);
+        var list = q.choices.map(function (c) { return [c.code, str(loc(c))]; });
+        if (!q.choices.some(function (c) { return c.code === unk; })) list.push([unk, TX.unk]);
         list.forEach(function (c) {
           var lab = el('label', 'pvc-chip');
           var cb = el('input', '', null, { type: 'checkbox', name: q.id, value: c[0] });
@@ -2475,10 +2721,10 @@
       } else if (q.kind === 'num') {
         var row = el('div', 'pvc-numrow');
         if (q.currency) {
-          var co = [['', '通貨を選ぶ']], cc = curCur(t, q, sm);
-          (V.vocab.currencies || []).forEach(function (c) { co.push([c.code, str(c.code) + (c.ja ? '（' + str(c.ja) + '）' : '')]); });
+          var co = [['', TX.chooseCur]], cc = curCur(t, q, sm);
+          (V.vocab.currencies || []).forEach(function (c) { co.push([c.code, TX.curOpt(str(c.code), loc(c) ? str(loc(c)) : '')]); });
           var cs = select(q.id + '_cur', co, cc);
-          cs.sel.setAttribute('aria-label', q.ja.label + 'の通貨');
+          cs.sel.setAttribute('aria-label', TX.curOf(loc(q).label));
           cs.sel.addEventListener('change', function () {
             t.curs[q.id] = cs.sel.value;
             /* 同じ親の下の、まだ通貨を持っていない額の質問にも同じ通貨を見せる（送るときに借りる通貨と
@@ -2499,7 +2745,7 @@
           type: 'text', name: q.id, id: 'pvc-f-' + q.id, autocomplete: 'off', maxlength: '14',
           inputmode: Number(q.num.step) > 0 && Number(q.num.step) < 1 ? 'decimal' : 'numeric'
         };
-        if (!q.currency && q.num.min != null && q.num.max != null) at.placeholder = q.num.min + '〜' + q.num.max;
+        if (!q.currency && q.num.min != null && q.num.max != null) at.placeholder = TX.range(q.num.min, q.num.max);
         var inp = el('input', 'pvc-input', null, at);
         inp.value = isUnk ? '' : v;
         inp.disabled = isUnk;
@@ -2519,15 +2765,15 @@
           if (ub.checked) inp.value = '';
           change(q, ub.checked ? unk : '');
         });
-        ul.appendChild(ub); ul.appendChild(el('span', 'pvc-chip-f', 'わからない'));
+        ul.appendChild(ub); ul.appendChild(el('span', 'pvc-chip-f', TX.unk));
         row.appendChild(ul);
         fd.appendChild(row);
         E.ctl[q.id] = inp;
       } else {
-        var opts = hasValue(a) ? [] : [['', '回答しない']];
-        q.choices.forEach(function (c) { opts.push([c.code, str(c.ja)]); });
-        if (!q.choices.some(function (c) { return c.code === unk; })) opts.push([unk, 'わからない']);
-        if (hasValue(a) && v === '') opts.unshift(['', '選択してください']);
+        var opts = hasValue(a) ? [] : [['', TX.noAns]];
+        q.choices.forEach(function (c) { opts.push([c.code, str(loc(c))]); });
+        if (!q.choices.some(function (c) { return c.code === unk; })) opts.push([unk, TX.unk]);
+        if (hasValue(a) && v === '') opts.unshift(['', TX.choose]);
         var s = select(q.id, opts, v);
         s.sel.addEventListener('change', function () { change(q, s.sel.value); });
         fd.appendChild(s.wrap);
@@ -2545,15 +2791,15 @@
         type: 'button', 'data-q-more': q.id, 'aria-expanded': open ? 'true' : 'false', 'aria-controls': 'pvc-m-' + q.id
       });
       bt.appendChild(icon('plus', 14));
-      bt.appendChild(el('span', '', '補足を足す（任意）'));
+      bt.appendChild(el('span', '', TX.addNote));
       bt.hidden = open;
       var panel = el('div', 'pvc-more-p', null, { id: 'pvc-m-' + q.id });
       panel.hidden = !open;
-      panel.appendChild(el('label', 'pvc-more-k', '補足（任意）', { 'for': 'pvc-n-' + q.id }));
+      panel.appendChild(el('label', 'pvc-more-k', TX.noteOpt, { 'for': 'pvc-n-' + q.id }));
       var ta = el('textarea', 'pvc-area pvc-area-s', null, {
         name: q.id + '_note', id: 'pvc-n-' + q.id, rows: '2', maxlength: String(max),
-        'aria-label': q.ja.label + 'の補足（任意）',
-        placeholder: town ? town + 'から通う場合のことなど、選択肢で言い切れないことがあれば' : '条件や例外など、選択肢で言い切れないことがあれば'
+        'aria-label': TX.noteOf(loc(q).label),
+        placeholder: town ? TX.notePhTown(town) : TX.notePhAny
       });
       ta.value = tx0;
       ta.addEventListener('input', function () { t.notes[q.id] = ta.value; t.noteDirty[q.id] = true; });
@@ -2583,8 +2829,8 @@
       var fold = el('div', 'pvc-fold pvc-wide' + (kid ? ' pvc-kid' : ''), null, { 'data-q-fold': q.id });
       var a = sm[q.id];
       var bt = el('button', 'pvc-fold-b', null, { type: 'button', 'aria-expanded': t.fold ? 'true' : 'false', 'aria-controls': 'pvc-fold-p' });
-      bt.appendChild(el('span', '', '回数・金額の上限を追加'));
-      if (hasValue(a)) bt.appendChild(el('span', 'pvc-mine', 'あなたの投稿'));
+      bt.appendChild(el('span', '', TX.capAdd));
+      if (hasValue(a)) bt.appendChild(el('span', 'pvc-mine', TX.yours));
       var panel = el('div', 'pvc-fold-p', null, { id: 'pvc-fold-p' });
       panel.hidden = !t.fold;
       bt.addEventListener('click', function () {
@@ -2596,10 +2842,10 @@
       inner.className = 'pvc-field';
       panel.appendChild(inner);
       var nf = el('div', 'pvc-field');
-      nf.appendChild(el('label', 'pvc-label', '上限についての補足（任意）', { 'for': 'pvc-f-cap-note' }));
+      nf.appendChild(el('label', 'pvc-label', TX.capNoteOpt, { 'for': 'pvc-f-cap-note' }));
       var ta = el('textarea', 'pvc-area', null, {
         name: q.id + '_note', id: 'pvc-f-cap-note', rows: '3', maxlength: String(max),
-        placeholder: '回数の上限や、決まりごとがあれば'
+        placeholder: TX.capPh
       });
       ta.value = curNote(t, q, sm);
       ta.addEventListener('input', function () { t.notes[q.id] = ta.value; t.noteDirty[q.id] = true; });
@@ -2616,7 +2862,7 @@
     f.appendChild(el('p', 'pvc-share', shareLine(qs), { 'data-pvc-share': '' }));
     E.msg = el('div'); f.appendChild(E.msg);
     if (t.notice) E.msg.appendChild(note(t.notice));
-    var o = ownRow(t, '匿名で追加する', sync);
+    var o = ownRow(t, TX.add, sync);
     E.send = o.send; E.cb = o.cb;
     f.appendChild(o.act);
     S.main.appendChild(f);
@@ -2630,10 +2876,10 @@
         else if (E.f[q.id]) E.f[q.id].hidden = !on;
       });
       E.send.disabled = !t.own || t.busy || loading;
-      E.send.textContent = t.busy ? '送っています…' : (qs.some(function (q) { return hasValue(sm[q.id]); }) ? '匿名で更新する' : '匿名で追加する');
+      E.send.textContent = t.busy ? TX.sending : (qs.some(function (q) { return hasValue(sm[q.id]); }) ? TX.update : TX.add);
       var tx = '';
-      if (loading) tx = 'これまでの投稿を確認しています…';
-      else if (M.cond.k === 'fail') tx = 'これまでの投稿を読み込めませんでした。このまま送れます（同じ質問の答えがあれば、今回の内容に置き換わります）。';
+      if (loading) tx = TX.checking;
+      else if (M.cond.k === 'fail') tx = TX.failCond;
       else if (!logged) tx = anonHint();
       E.wait.textContent = tx; E.wait.hidden = !tx;
     }
@@ -2713,25 +2959,25 @@
     var stopToo = '';                        // 断りが対の2つの欄についてのとき、もう一方の欄（どちらを直しても、断りを消す）
     qs.forEach(function (q) {
       if (stop || !visible(t, q, sm)) return;
-      var v = cur(t, q, sm), a = sm[q.id], one = null, tx = trim(curNote(t, q, sm)), cc = '', nm = '「' + q.ja.label + '」';
+      var v = cur(t, q, sm), a = sm[q.id], one = null, tx = trim(curNote(t, q, sm)), cc = '', nm = TX.qName(loc(q).label);
       function halt(text, key) { stop = text; stopQ = key || q.id; }
       if (q.kind === 'multi') {
         if (v.length) one = v.length === 1 && v[0] === unk ? { question_id: q.id, code: unk } : { question_id: q.id, codes: v.slice() };
-        else if (hasValue(a)) halt(nm + 'は、答えを空に戻せません。当てはまるものか「わからない」を選んでください。');
+        else if (hasValue(a)) halt(TX.noEmptyMulti(nm));
       } else if (q.kind === 'num') {
         if (v === unk) one = { question_id: q.id, code: unk };
         else if (trim(v) !== '') {
           var num = qNum(v);
           cc = q.currency ? curCur(t, q, sm) : '';
-          if (num === null) halt(nm + 'は、数字で入れてください。');
+          if (num === null) halt(TX.needNumber(nm));
           else if ((q.num.min != null && num < Number(q.num.min)) || (q.num.max != null && num > Number(q.num.max))) {
-            halt(nm + 'は、' + q.num.min + '〜' + q.num.max + ' の範囲で入れてください。');
-          } else if (q.currency && !cc) halt(nm + 'は、通貨を選んでください。', q.id + '_cur');
+            halt(TX.inRange(nm, q.num.min, q.num.max));
+          } else if (q.currency && !cc) halt(TX.needCur(nm), q.id + '_cur');
           else { one = { question_id: q.id, num: num }; if (q.currency) one.currency = cc; }
-        } else if (hasValue(a)) halt(nm + 'は、答えを空に戻せません。数字を入れるか「わからない」を選んでください。');
+        } else if (hasValue(a)) halt(TX.noEmptyNum(nm));
       } else if (v) one = { question_id: q.id, code: v };
       if (stop) return;
-      if (tx && !one) return halt('補足を残すには、' + nm + 'の答えを選んでください。');
+      if (tx && !one) return halt(TX.noteNeedsAns(nm));
       if (!one) return;
       had++;
       if (tx) {
@@ -2761,7 +3007,7 @@
       else if (a.num > b.num) { stop = WHY.range_order; stopQ = hi.id; stopToo = lo.id; }
     });
     if (stop) {
-      var said = { kind: 'said', title: '保存できませんでした', text: stop };
+      var said = { kind: 'said', title: TX.notSaved, text: stop };
       groupSay(topic, said);
       var c = t.els.ctl && t.els.ctl[stopQ];
       /* 畳んである質問（通勤・タクシーの「上限」）の欄を名指しした時は、先に畳みを開ける（閉じたままでは、その欄へ移れない） */
@@ -2773,15 +3019,15 @@
       if (c) { midOf(c); haltWatch(topic, stopToo ? [stopQ, stopToo] : [stopQ], said); }
       return;
     }
-    if (!had) return groupSay(topic, { kind: 'said', title: '保存できませんでした', text: '1つ以上答えてください（分かるものだけで大丈夫です）。' });
+    if (!had) return groupSay(topic, { kind: 'said', title: TX.notSaved, text: TX.needOne });
     /* 端末に残した「送れなかった1件」が、いま送ろうとした入力そのものなら、その1件はもう保存されている
        （返事だけが届かなかった回）＝ 控えを消す。消さないと、一覧が「送れていない回答があります」と言い続ける。
        ⚠️ 入力が同じ時だけ。ほかのタブで開いていた入力や、戻したあとで直した入力から「同じです」になった回に、
           まだ送れていない別の1件を捨てない。 */
     if (!answers.length && unsentIs(topic)) dropOutbox(topic);
-    if (!answers.length) return groupSay(topic, { kind: 'same', tone: 'calm', title: '保存済みの内容と同じです', text: '変えたい項目を選び直してから送ってください。' });
+    if (!answers.length) return groupSay(topic, { kind: 'same', tone: 'calm', title: TX.sameT, text: TX.sameD });
 
-    var pl = { airline: slug(), lang: 'ja', answers: answers };
+    var pl = { airline: slug(), lang: LANG, answers: answers };
     var lastRow = M.work.k === 'ok' && M.work.rows.length ? M.work.rows[0] : null;
     if (lastRow && lastRow.position) pl.position = lastRow.position;
     if (lastRow && lastRow.fleet) pl.fleet = lastRow.fleet;
@@ -2840,11 +3086,11 @@
     }
     if (rej.length) {
       t.notice = {
-        kind: 'rej', title: '保存できなかった項目があります',
-        text: kept ? 'ほかの' + kept + '件は保存しました。' : '',
+        kind: 'rej', title: TX.rejT,
+        text: kept ? TX.keptOthers(kept) : '',
         list: rej.map(function (x) {
           var q = qById(x.question_id);
-          return (q ? '「' + q.ja.label + '」' : 'この項目') + '：' + (WHY[x.reason] || '保存できませんでした。');
+          return TX.rejLine(q ? loc(q).label : '', WHY[x.reason] || TX.rejWhy);
         })
       };
       renderGroup(topic);
@@ -2871,8 +3117,8 @@
       qs.forEach(function (q) {
         var a = sm[q.id];
         if (!hasValue(a) || !chainSaved(q, sm)) return;
-        sumRow(dl, q.id, q.ja.label, answerText(q, a), true);
-        if (trim(a.text)) sumRow(dl, q.id + '_note', topic === 'taxi' && q.note ? '上限についての補足' : '補足', trim(a.text), true);
+        sumRow(dl, q.id, loc(q).label, answerText(q, a), true);
+        if (trim(a.text)) sumRow(dl, q.id + '_note', topic === 'taxi' && q.note ? TX.capNote : TX.note, trim(a.text), true);
       });
     }, function () {
       /* 「自分の回答を見る」は、いま保存した質問の所まで送る（長い項目では、保存した答えが最初の1画面の下に在り、
@@ -2896,7 +3142,7 @@
     try { q = new URLSearchParams(location.search); } catch (e) { q = null; }
     if (CO) search = location.search;
     else if (q) { q.set('add', topic); search = '?' + q.toString(); } else search = '?add=' + topic;
-    var url = ROOT + 'login.html?return=' + enc(location.pathname + search);
+    var url = ROOT + (LANG === 'en' ? 'en/' : '') + 'login.html?return=' + enc(location.pathname + search);
     try { location.replace(url); } catch (e) { location.href = url; }
   }
 
