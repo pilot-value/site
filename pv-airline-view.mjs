@@ -1,7 +1,7 @@
-/* pv-airline-view.mjs — 主要5社の会社ページが読む、ただ1つのデータの読み口。
+/* pv-airline-view.mjs — 新しい会社ページ（主要5社と、airline-rollout.mjs の SWITCH に足した会社）が読む、ただ1つのデータの読み口。
  *
- *   viewOf(slug) … 1社ぶんを、ページがそのまま並べられる形で返す
- *   AXIS … 棒の目盛の右端（万円）。5社で同じ・0 から始まる
+ *   viewOf(slug) … 1社ぶんを、ページがそのまま並べられる形で返す（先行5社 ＝ 下の6つの台帳／ほかの会社 ＝ rolloutView）
+ *   AXIS … 棒の目盛の右端（万円）。SWITCH の全社で同じ・0 から始まる
  *
  * ここは**つなぐだけ**で、数字を持たない。出どころは次の6つ。
  *   年収の正本          salary-data.mjs（SALARY）
@@ -37,10 +37,14 @@ import { FACTS as EYF, introText as eyIntro } from './career-facts.mjs';
 import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS } from './living-facts.mjs';
 import { primary } from './airline-photos.mjs';
 import { axisEnd } from './pv-bars.mjs';
+import { LEAD, SWITCH, researchFacts, PAGE_META } from './airline-rollout.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
-export const GLANCE = ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air'];
+/* 新しい会社ページを持つ会社（★1か所は airline-rollout.mjs の SWITCH。ここは今までの名前で読めるようにしているだけ）。
+   先行5社（LEAD）は手で作った台帳から・ほかの会社は「年収の正本（SALARY）と色・略号」だけで作れる（無い所は今までの「確認できていません」の形）。 */
+export const GLANCE = SWITCH;
+export { LEAD, SWITCH };
 export const RANKS = [['cap', '機長'], ['fo', '副操縦士']];
 
 /* 色と略号は airlines-meta.js（ブラウザ用の即時関数。window を渡して中身だけ借りる）。 */
@@ -50,7 +54,8 @@ const META = (() => {
   return win.AIRLINES_META || win.PV_AIRLINES || Object.values(win)[0];
 })();
 function metaOf(slug) {
-  const a = META.find(x => x.file === `airlines/${slug}.html`);
+  /* airlines-meta.js に無い会社は、airline-rollout.mjs の PAGE_META（今の会社ページの社名の行の色と略号）。 */
+  const a = META.find(x => x.file === `airlines/${slug}.html`) || PAGE_META[slug];
   if (!a) throw new Error(`${slug}: airlines-meta.js に無い`);
   const color = a.color || a.c, code = a.code || a.iata;
   if (!/^#[0-9a-fA-F]{6}$/.test(color || '')) throw new Error(`${slug}: airlines-meta.js に色が無い`);
@@ -137,8 +142,9 @@ function payOf(slug, rank) {
    （台帳の注がこの額の話をしているので、説明の中に別の行として出すためだけに返す）。 */
 const traineeOf = slug => figures(slug, 'trainee').map(f => ({ group: f.group, kind: f.kind, text: f.text }));
 
-/** 棒の目盛の右端（万円）。棒にするのは推定年収だけなので、5社の推定のいちばん大きい額を 1,000万の刻みへ切り上げる。 */
-export const AXIS = Math.ceil(Math.max(...GLANCE.flatMap(s => RANKS.map(([r]) => SALARY[s][r].avg))) / 1000) * 1000;
+/** 棒の目盛の右端（万円）。棒にするのは推定年収だけなので、新しい会社ページを持つ会社（SWITCH）ぜんぶの推定の
+    いちばん大きい額を 1,000万の刻みへ切り上げる。⚠️ 会社を足すと、その額しだいで全部の会社ページと career.html の目盛が動く。 */
+export const AXIS = Math.ceil(Math.max(...SWITCH.flatMap(s => RANKS.map(([r]) => SALARY[s][r].avg))) / 1000) * 1000;
 /** 棒の長さ（％）。 */
 export const width = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
 
@@ -358,7 +364,8 @@ export function rentCell(cur, v) {
 }
 
 export function viewOf(slug) {
-  if (!GLANCE.includes(slug)) throw new Error(`${slug}: 主要5社ではない`);
+  if (!SALARY[slug]) throw new Error(`${slug}: 年収の正本（SALARY）に無い`);
+  if (!LEAD.includes(slug)) return rolloutView(slug);
   const S = SALARY[slug], B = BASIS[slug];
   const d = slug === 'etihad' ? etihad() : others(slug);
   const iata = [].concat(d.base.iata || []);
@@ -373,6 +380,36 @@ export function viewOf(slug) {
     work: d.work, benefits: d.benefits, living: d.living,
     company: { profile: d.profile, scale: d.scale, fleet: d.fleet, photo: primary(slug), intro: introOf(slug) },
     jobs: d.jobs,
+  };
+}
+
+/* ── 先行5社ではない会社（全社へ広げる b・2026-10-21）──────────────────────────
+   要るのは 年収の正本（SALARY）と 色・略号（airlines-meta.js か airline-rollout.mjs の PAGE_META）だけ。ほかは在る分だけ:
+     年収の根拠  salary-basis.mjs（BASIS）が在れば、職位ごとの公表額・訓練生の額・注・出どころ（先行5社と同じ読み口 payOf）。
+                 ⚠️ 機長と副操縦士を分けない額（乗員全体の平均）は出さない（P12.77。crew は空）。その会社の BASIS に乗員全体の
+                    平均が在るときは、注も1つも出さない ── どの注がその額の話か、字からは分けられない（スカイマーク）。
+     会社の事実  調べの台帳（research-ledger.mjs）から、airline-rollout.mjs の決まり（why）を通った行だけ。字は台帳のまま。
+     暮らし・就航地・機材  この回は出さない（living は null・fleet は空 ＝ 今までの「確認できていません」の形）。
+   紹介文（intro）は、組み立てる型が台帳に無いので作らない（[]）。作り物の字・0 で埋めない。 */
+function rolloutView(slug) {
+  const S = SALARY[slug], B = BASIS[slug], R = researchFacts(slug);
+  const crewIn = !!(B && B.crew && B.crew.groups && B.crew.groups.some(g => g.avg_y != null));
+  const rows = list => list.map(x => ({ ...fact(x), lead: !!x.lead, use: x.use, id: x.id }));
+  const base = R.base
+    ? { city: R.base.city, country: R.base.country, iata: R.base.iata, text: R.base.city || R.base.iata[0], rows: rows(R.base.rows) }
+    : { city: '', country: '', iata: [], text: '', rows: [] };
+  return {
+    slug, name: S.ja, ...metaOf(slug), rollout: true,
+    base,
+    pay: {
+      cap: payOf(slug, 'cap'), fo: payOf(slug, 'fo'),
+      crew: [], trainee: traineeOf(slug),
+      tax: (B && B.tax) || '', notes: B && !crewIn ? (B.notes || []) : [], src: B ? srcOf(slug) : [], cur: (B && B.cur) || '',
+    },
+    work: rows(R.work), benefits: rows(R.benefits), living: null,
+    company: { profile: rows(R.profile), scale: rows(R.scale), fleet: [], photo: primary(slug), intro: [] },
+    jobs: rows(R.jobs),
+    held: R.held,
   };
 }
 

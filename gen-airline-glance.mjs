@@ -1,16 +1,20 @@
 // 主要5社の会社ページの最上部を書く ──
 //   社名の行／給与・勤務・待遇・暮らし／提出された年収（REAL PAY）／会社・口コミ・募集・ステイ・「ひとつ教えて」。
 //
-//   node gen-airline-glance.mjs            5社とも書く
+//   node gen-airline-glance.mjs            新しい会社ページを持つ会社（airline-rollout.mjs の SWITCH）を全部書く
 //   node gen-airline-glance.mjs etihad     1社だけ
 //   node gen-airline-glance.mjs --check    差分だけ見る（書かない・古ければ exit 1）
+//   node gen-airline-glance.mjs --status   会社ごとに、どの部分が出せるか（年収の根拠・会社の事実・就航地・暮らし）を並べる（書かない）
 //
 // ・冪等。管理ブロック（<!--PV-GLANCE-…-->／<!--PV-HERO-->）の中だけを書き直す。
 // ・数字は pv-airline-view.mjs の viewOf() からしか取らない。ここに額を書かない。
 // ・年収は4種類を混ぜない（推定年収／求人の上限／会社の公表額／乗員全体の公表平均）。
 //   ★ どの職位にも推定年収を額で出す。「確認中」と出さない（オーナーのご指示 2026-09-30／10-01／10-06）。
 //   ★ 棒にするのは推定年収だけ。会社が公表している金額は、棒を付けずに別の一覧へ置く。
-// ・ほかの107社のページには1文字も触らない。印は <body data-pv-glance="1">。
+// ・SWITCH に無い会社のページには1文字も触らない。印は <body data-pv-glance="1">。
+//   ★ 先行5社（LEAD）は今までの決め方のまま。ほかの会社（全社へ広げる b・2026-10-21）は、今のページより格を下げない:
+//     「よくある質問」・海外の評判のカード（airline-reviews-*.js）・検索向けの字（<head>）は消さない。
+//     下に残っている古い節は、新しい部品が同じ話を出せるときだけ外す（出せないときは、その場所に残す ── LEGACY の needs）。
 // ・英語版は、日本語の形が固まってから同じ部品で書く（いまは日本語だけ）。
 //
 // ⚠️ pv-glance.css／pv-glance.js／career-live.css／career-live.js を直したら流し直す
@@ -21,10 +25,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { GLANCE, RANKS, AXIS, viewOf, width, yen, rentCell, coSay, coText } from './pv-airline-view.mjs';
+import { GLANCE, LEAD, SWITCH, RANKS, AXIS, viewOf, width, yen, rentCell, coSay, coText } from './pv-airline-view.mjs';
 import { barGroup } from './pv-bars.mjs';
-import { fxNote } from './salary-basis.mjs';
-import { TOPICS, askGroup } from './gen-career.mjs';
+import { fxNote, BASIS } from './salary-basis.mjs';
+import { SALARY } from './salary-data.mjs';
+import { TOPICS, askGroup, FIVE as CAREER } from './gen-career.mjs';
+import { researchHeld } from './airline-rollout.mjs';
 import { QUESTIONS } from './pv-conditions.mjs';
 import { needsCredit, src as photoSrc, smallH, SMALL_W } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
@@ -94,12 +100,16 @@ const IC = {
 };
 
 /* ── タブ（見本の6つ・左から）───────────────────────────────
-   ★ 先行5社。ほかの会社へ広げるときは TABBED に社を足して流し直す（足していない社は1文字も変わらない）。
+   ★ 新しい会社ページを持つ会社（airline-rollout.mjs の SWITCH）は、どれもタブを持つ。会社を足すのは SWITCH の1か所だけ
+     （足していない社は1文字も変わらない）。
+   ★ NO_FAQ ＝「よくある質問」を置かない会社ページ（先行5社だけ。オーナーの判断 2026-10-09）。gen-faq.mjs はこの会社だけを飛ばす。
+     ほかの会社は SWITCH に足しても「よくある質問」を残す（gen-faq.mjs が今までどおり書き直す）。
    ・帯そのものは社名の行のすぐ下（PV-HERO の中）。切り替えるのは pv-glance.js、隠すのは pv-glance.css。
    ・どの塊がどのタブに出るかは data-pvg-pane（空白区切り）に書く。書いていない塊は、どのタブでも出る
      ＝ pv-glance.js が動かなくても、中身は1つも消えない（全部が縦に並ぶ）。
    ・タブに件数を書かない（数えていない数を出さない）。 */
-export const TABBED = new Set(['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air']);
+export const TABBED = new Set(SWITCH);
+export const NO_FAQ = new Set(LEAD);
 export const TABS = [['overview', '概要', IC.company], ['pay', '給与・待遇', IC.pay], ['reviews', '口コミ', IC.reviews],
   ['work', '勤務・訓練', IC.work], ['life', '暮らし・家族', IC.living], ['stay', 'ステイ先', IC.stay]];
 const tabbed = slug => TABBED.has(slug);
@@ -233,14 +243,20 @@ const asks = (slug, list, head = '匿名で答える') =>
 
 /* ── 社名の行（写真を置かない）────────────────────────── */
 function hero(v, keep) {
-  const iata = v.base.iata.length ? ` <b>${v.base.iata.map(esc).join('・')}</b>` : '';
+  const iata = v.base.iata.length ? `${v.base.city ? ' ' : ''}<b>${v.base.iata.map(esc).join('・')}</b>` : '';
   const t = tabbed(v.slug);
-  /* タブを持つページは見本の並び：左に「カードを保存」・右に「他社と比較」（狭い画面では上下）。その下にタブの帯。 */
-  const acts = t
+  /* タブを持つページは見本の並び：左に「カードを保存」・右に「他社と比較」（狭い画面では上下）。その下にタブの帯。
+     ★ 2つとも行き先は career.html。career.html が持っていない会社（gen-career.mjs の FIVE に無い会社）には出さない
+       （押すと、その会社の無い画面へ行く）。そのときも空の箱は置く ── 狭い画面の社名の行は「社名｜ボタンの列」の2列で、
+       箱が無いと拠点と星の行がボタンの列へ入り、社名が1字ずつ折れる（pv-glance.css は直さない ＝ 先行5社の ?v= が動かない）。
+       拠点を確かめられていない会社には、拠点の1行を出さない。 */
+  const acts = !CAREER.includes(v.slug) ? ''
+    : t
     ? `<a class="pvg-btn pvg-btn-save" href="${href.card(v.slug)}">${IC.save}<span>カードを保存</span></a>
 <a class="pvg-btn pvg-btn-cmp" href="${href.compare(v.slug)}"><span>他社と比較</span>${IC.swap}</a>`
     : `<a class="pvg-btn" href="${href.compare(v.slug)}">比較する</a>
 <a class="pvg-btn pvg-btn-ghost" href="${href.card(v.slug)}">カードにする</a>`;
+  const where = v.base.city || v.base.iata.length ? `<span class="pvg-base">${IC.pin}${esc(v.base.city)}${iata}</span>\n` : '';
   return `<div class="hero-airline pvg-hero${t ? ' pvg-hero-t' : ''}" style="--pvg-c:${esc(v.color)}">
 <div class="max-w-7xl mx-auto px-6">
 <div class="pvg-id">
@@ -249,12 +265,12 @@ function hero(v, keep) {
 <p class="text-muted pvg-sub">${keep.sub}</p>
 </div>
 <div class="pvg-meta">
-<span class="pvg-base">${IC.pin}${esc(v.base.city)}${iata}</span>
-${live('stars', { airline: v.slug })}
-</div>
+${where}${live('stars', { airline: v.slug })}
+</div>${acts ? `
 <div class="pvg-acts">
 ${acts}
-</div>
+</div>` : `
+<div class="pvg-acts" aria-hidden="true"></div>`}
 </div>
 </div>
 </div>${t ? '\n' + tabBar(v) : ''}`;
@@ -366,7 +382,7 @@ ${notes}${src}${fx}
    額・職位・機材を送らない（板の中は空 ＝ HTML にも JSON にも入っていない）。 */
 function payCard(v) {
   return `<article class="pvg-card pvg-pay"${pane(v.slug, 'overview pay')}>
-<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.pay}</span><h2 class="pvg-eyebrow">給与</h2><span class="pvg-chip">${esc(v.pay.tax)}</span></header>
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.pay}</span><h2 class="pvg-eyebrow">給与</h2>${v.pay.tax ? `<span class="pvg-chip">${esc(v.pay.tax)}</span>` : ''}</header>
 <div class="pvg-ranks">
 ${RANKS.map(r => rankBlock(v, r)).join('\n')}
 </div>
@@ -448,12 +464,16 @@ function workPanel(v, all) {
   }
   return `<p class="pvg-quiet pvg-sfs-note">パイロットの回答は、3人そろった項目だけを出しています。</p><div class="pvg-sfs">${SURFACES.map(S => surface(v, S, all)).join('')}</div>`;
 }
+/* 勤務・訓練の面に出す公表。先行5社は台帳の全部（面の決まっていない項目が在れば止まる ── 手で作った台帳の見張り）。
+   ほかの会社（調べの台帳）は、どの面にも決まっていない項目を出さない（止めずに外す。数は --status が言う）。 */
+export const workAll = v => [...v.work, ...v.benefits.filter(f => MOVED.has(f.key))]
+  .filter(f => !v.rollout || SURFACES.some(S => S.facts && S.facts.includes(f.key)));
 /* 概要の「勤務」のカード。カードに出す行は今までどおり台帳の勤務（v.work）から。開く板は5つの面 */
 function workCell(v) {
-  const all = [...v.work, ...v.benefits.filter(f => MOVED.has(f.key))], body = workPanel(v, all);
-  const lead = v.work.find(f => f.lead) || v.work[0];
+  const all = workAll(v), body = workPanel(v, all), work = v.work.filter(f => all.includes(f));
+  const lead = work.find(f => f.lead) || work[0];
   if (!lead) return cell('work', '勤務', IC.work, { slug: v.slug, k: '会社の公表', v: '確認できていません', empty: true, ask: WORK_ASK, note: esc('会社が公表している勤務の条件を確認できていません'), body });
-  return cell('work', '勤務', IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: v.work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
+  return cell('work', '勤務', IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
     more: all.length > 1 ? `ほか${all.length - 1}件と出典` : '出典を見る', body });
 }
 /* 概要の「待遇」のカード。カードの行は台帳の待遇ぜんぶから（面へ移した公表も、カードからは減らさない）。
@@ -660,9 +680,11 @@ function livingCell(v) {
   const L = v.living;
   const lead = L && (L.rents.find(r => r.lead) || L.rents[0]);
   if (!lead) {
+    /* 暮らしの台帳が無い会社（全社へ広げる b の会社）。開く板（＝「暮らし・家族」のタブの中身）を空にしない：答える入口を置く。
+       拠点の街を確かめられていない会社は、街の名前の代わりに「確認できていません」（勤務・待遇の欄と同じ字）。 */
     return cell('living', '暮らし', IC.living, {
-      slug: v.slug, k: '拠点の街', v: esc(v.base.city), empty: true, ask: LIVE_ASK,
-      note: '家賃の資料を確認できていません', body: '',
+      slug: v.slug, k: '拠点の街', v: esc(v.base.city || v.base.iata.join('・') || '確認できていません'), empty: true, ask: LIVE_ASK,
+      note: '家賃の資料を確認できていません', body: asks(v.slug, LIVE_ASK),
     });
   }
   const t = townTracks(L.rents.length), sizes = townSizes(t);
@@ -738,18 +760,28 @@ function companyCard(v) {
      数え方と時点・全部の数字・機材・出どころは「会社情報」を開いた中に在る
      （上に出した値も、そこでは数え方つきで出る ＝ 注記を落としたままにしない）。 */
   const said = new Set(c.intro.flatMap(s => s.uses));
-  const keys = `<dl class="pvg-keys">${facts.filter(f => !said.has(f.key)).slice(0, 4).map(f => { const m = tail(f);
+  const shown = facts.filter(f => !said.has(f.key)).slice(0, 4);
+  const keys = `<dl class="pvg-keys">${shown.map(f => { const m = tail(f);
     return `<div><dt>${esc(f.label)}</dt><dd>${m ? esc(m[1]) : val(f)}</dd></div>`; }).join('')}</dl>`;
+  const more = `<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(`数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
+${stats(facts)}
+${fleet}
+${sources([...facts, ...c.fleet])}
+</details>`;
+  /* 先行5社ではない会社：在る部品だけを置く。写真も紹介文も無い会社には、この1枚を置かない
+     ── この1枚の組み方（pv-glance.css）は左に写真の列を取るので、数字だけだと見出しと数字が左右にずれる。
+        css を直すと先行5社のページの ?v= が動く（＝ 5枚が変わる）ので、この回は直さない。会社の話は、残した「◯◯について」の節に在る。 */
+  if (v.rollout) {
+    const body = [c.intro.length ? lead : '', shown.length ? keys : '', facts.length || c.fleet.length ? more : ''].filter(Boolean);
+    if (!photo && !c.intro.length) return '';
+    return `<article class="pvg-card pvg-co"${pane(v.slug, 'overview')}>\n${[photo, head(IC.company, '会社'), ...body].filter(Boolean).join('\n')}\n</article>`;
+  }
   return `<article class="pvg-card pvg-co"${pane(v.slug, 'overview')}>
 ${photo}
 ${head(IC.company, '会社')}
 ${lead}
 ${keys}
-<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(`数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
-${stats(facts)}
-${fleet}
-${sources([...facts, ...c.fleet])}
-</details>
+${more}
 </article>`;
 }
 /* 評価スコア＋口コミ（2026-10-06 オーナーのご指示「パイロットによる評価スコアの部分、企業トップのどこかのカードに残して」）。
@@ -867,7 +899,8 @@ function cityTeaser(list, regions) {
 }
 function stayCard(v) {
   const net = networkOf(v.slug);
-  const base = `<p class="pvg-stay-base">${IC.pin}<span>拠点</span><b>${esc(v.base.city)}${v.base.iata.length ? ` ${v.base.iata.map(esc).join('・')}` : ''}</b>
+  /* 拠点を確かめられていない会社（全社へ広げる b）には、この1行を置かない */
+  const base = !v.base.city && !v.base.iata.length ? '' : `<p class="pvg-stay-base">${IC.pin}<span>拠点</span><b>${[esc(v.base.city), v.base.iata.map(esc).join('・')].filter(Boolean).join(' ')}</b>
 ${ext(href.maps(`${v.base.text} ${v.base.iata[0] || ''}`.trim()).replace(/&amp;/g, '&'), 'Google マップで見る', 'pvg-link')}</p>`;
   if (!net) return `<article class="pvg-card pvg-stay" id="pvg-stay"${pane(v.slug, 'overview stay')}>
 ${head(IC.stay, 'ステイ')}
@@ -982,12 +1015,14 @@ ${head(IC.reviews, '口コミ', '会員の投稿 <b data-pvg-n="posts">—</b> �
 /* ── 1社ぶん ────────────────────────────────────────── */
 function glance(v) {
   /* 島：ja ＝ 日本語の社名（比べる画面などが読む）・name ＝ 段階3の面の社名（coSay）・color */
-  const island = JSON.stringify({ airlines: Object.fromEntries(GLANCE.map(s => { const o = viewOf(s); return [s, { ja: o.name, name: coSay(s), color: o.color }]; })) })
+  const island = JSON.stringify({ airlines: Object.fromEntries([...new Set([...GLANCE, v.slug])].map(s => { const o = viewOf(s); return [s, { ja: o.name, name: coSay(s), color: o.color }]; })) })
     .replace(/</g, () => '\\u003c');
-  return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">
+  /* 会社の1枚が無い会社（全社へ広げる b で、紹介文・数字・写真が1つも無い会社）は、その段ごと置かない */
+  const co = companyCard(v);
+  return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${esc(v.name)}の給与・勤務・待遇・暮らし">${co ? `
 <div class="pvg-more-grid"${pane(v.slug, 'overview')}>
-${companyCard(v)}
-</div>
+${co}
+</div>` : ''}
 <div class="pvg-payrow"${pane(v.slug, 'overview pay reviews')}>
 ${payCard(v)}
 ${reviewsCard(v)}
@@ -1065,28 +1100,72 @@ function divEnd(html, i) {
      運ぶのは「話」であって「字」ではない：古い節の字は資料で確かめていないものが多かった（古い機数・訓練地・
      退職年齢・「数百倍」の倍率）。新しい部品に出るのは台帳の値だけ。
    ★ この表に無い節がページの下に在ったら、止める（黙って残さない・黙って消さない）。節を足したら、ここに1行足す。
-   ⚠️ 何度流しても同じ。写しを作らない（assert-airline-glance.mjs はこの表を import して使う）。 */
+   ⚠️ 何度流しても同じ。写しを作らない（assert-airline-glance.mjs はこの表を import して使う）。
+   ★ 先行5社ではない会社（全社へ広げる b・2026-10-21）── 今のページより格を下げない:
+       needs     … 外してよいのは、新しい部品がその話を出せるときだけ（needs の全部が legacyReady() で出せる）。出せなければ、その場所に残す。
+       rest:'keep' … 先行5社だけの判断で外した節。ほかの会社では残す（rest_why ＝ 理由）。
+       rest:'drop' … ほかの会社でも、新しい部品の用意を待たずに外す節（rest_why ＝ 理由。出してはいけない額を載せている節）。
+     ほかの会社のページにしか無い見出しは、下の LEGACY_REST（形は同じ）。 */
 export const LEGACY = [
-  { name: '会社が公表している金額（出どころの表）', id: 'kyuyo-konkyo', state: 'merged', to: '給与の1枚の「この金額は誰の・何を含んだ・いつの金額か」（住所の #kyuyo-konkyo もそこ）' },
-  { name: '◯◯について', h2: /について$/, state: 'merged', to: '会社の1枚の紹介文（台帳の項目から組み立てる）' },
-  { name: 'フライト環境・路線・機材', h2: /フライト環境|路線・機材/, state: 'merged', to: '会社の1枚（機材・路線や就航地の数）／ステイ先（公式の就航地の一覧）' },
-  { name: '訓練・昇格・審査', h2: /訓練・昇格|訓練・審査/, state: 'merged', to: '勤務（会社が公表している条件）／募集' },
-  { name: '福利厚生・待遇', h2: /福利厚生/, state: 'merged', to: '待遇（会社が公表している条件）' },
-  { name: '募集要項・採用情報', h2: /募集要項|採用情報/, state: 'merged', to: '募集の1枚（会社の募集ページへの入口つき）' },
-  { name: '他社の年収のカード', h2: /と他社の比較|他社との比較/, state: 'drop', to: '社名の横の「他社と比較」' },
-  { name: '2社の比較表', h2: /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/, state: 'drop', to: '社名の横の「他社と比較」' },
+  /* 住所 #kyuyo-konkyo は、新しい給与の1枚の中へ移る（同じ住所を1ページに2つ置けない）＝ どの会社でも外す（給与の1枚はどの会社にも在る） */
+  { name: '会社が公表している金額（出どころの表）', id: 'kyuyo-konkyo', state: 'merged', to: '給与の1枚の「この金額は誰の・何を含んだ・いつの金額か」（住所の #kyuyo-konkyo もそこ）', needs: ['pay'] },
+  { name: '◯◯について', h2: /について$/, state: 'merged', to: '会社の1枚の紹介文（台帳の項目から組み立てる）', needs: ['intro'] },
+  { name: 'フライト環境・路線・機材', h2: /フライト環境|路線・機材/, state: 'merged', to: '会社の1枚（機材・路線や就航地の数）／ステイ先（公式の就航地の一覧）', needs: ['fleet', 'network'] },
+  { name: '訓練・昇格・審査', h2: /訓練・昇格|訓練・審査/, state: 'merged', to: '勤務（会社が公表している条件）／募集', needs: ['work'] },
+  { name: '福利厚生・待遇', h2: /福利厚生/, state: 'merged', to: '待遇（会社が公表している条件）', needs: ['benefits'] },
+  { name: '募集要項・採用情報', h2: /募集要項|採用情報/, state: 'merged', to: '募集の1枚（会社の募集ページへの入口つき）', needs: ['jobs'] },
+  { name: '他社の年収のカード', h2: /と他社の比較|他社との比較/, state: 'drop', to: '社名の横の「他社と比較」', needs: ['compare'] },
+  /* ほかの会社では、比べている額が機長と副操縦士を分けない運航乗務員の平均（スカイマーク）── どの会社のページにも出さない（P12.77） */
+  { name: '2社の比較表', h2: /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/, state: 'drop', to: '社名の横の「他社と比較」', needs: ['compare'],
+    rest: 'drop', rest_why: '比べている額が、機長と副操縦士を分けない運航乗務員の平均（P12.77 ── 画面に出さない）' },
   /* ★2026-10-09 ANA だけに在った錠前つきの節。金額は1つも入っておらず（「機種ごとの金額は出していません」）、
      中身は資料で確かめていない機材の配置の話だった。残すと、給与のタブに昔の形の錠前（橙の四角いボタン）が
      新しい Give & Get と並んで出る ＝ 先行5社で形が1つにならない。錠前の箱ごと外す（dropLegacy）。 */
-  { name: '機種別・路線別の年収差（錠前つき）', h2: /年収差/, state: 'drop', to: '会社の1枚の機材（台帳の機数）。機種ごとの金額は会社が公表しておらず、当サイトも出していない' },
+  { name: '機種別・路線別の年収差（錠前つき）', h2: /年収差/, state: 'drop', to: '会社の1枚の機材（台帳の機数）。機種ごとの金額は会社が公表しておらず、当サイトも出していない', needs: ['pay'] },
   /* ★2026-10-09 オーナーの判断「節ごと外そう」。それまでは残して、台帳と食い違う答えだけ直していた。
      画面から外すので、検索向けの印（JSON-LD の FAQPage）も一緒に外す（dropFaq）── 画面に無い質問と答えを
      検索エンジンにだけ渡さない。gen-faq.mjs はタブを持つ会社ページ（TABBED）を飛ばす ＝ 流しても戻らない。 */
-  { name: 'よくある質問', h2: /よくある質問/, state: 'drop', to: '置かない（オーナーの判断）。同じ話は、給与の1枚・募集の1枚・勤務と待遇の板に、資料で確かめた値で出ている' },
+  { name: 'よくある質問', h2: /よくある質問/, state: 'drop', to: '置かない（オーナーの判断）。同じ話は、給与の1枚・募集の1枚・勤務と待遇の板に、資料で確かめた値で出ている',
+    rest: 'keep', rest_why: '外したのは先行5社だけのオーナーの判断。ほかの会社では残す（gen-faq.mjs が今までどおり書き直す・検索向けの FAQPage も残す）' },
 ];
+/* 先行5社のページには無く、ほかの会社のページにだけ在る見出し（2026-10-21 に107枚の見出しを全部読んで並べた）。
+   ★ 先行5社には当てない（先行5社の見出しは LEGACY だけで決まる ＝ 今までと1文字も同じ）。 */
+export const LEGACY_REST = [
+  /* 「パイロット年収（2026年3月・推定）」「パイロット推定年収（…）」「パイロット年収 — …」── 推定年収の表（幅つき）。
+     新しい給与の1枚がどの会社にも推定年収を出す。幅（lo〜hi）は 2026-09-30 に公開の画面から外した（オーナー）。 */
+  { name: '推定年収の表（幅つき）', h2: /^パイロット(?:推定)?年収/, state: 'merged', to: '給与の1枚（職位ごとの推定年収）', needs: ['pay'] },
+  { name: '応募要件の目安', h2: /^応募要件の目安$/, state: 'merged', to: '募集の1枚（会社の募集ページへの入口つき）', needs: ['jobs'] },
+  { name: '転職の手引き', h2: /に転職するには$/, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い' },
+  /* 本文の箱の後ろ（<footer> の前）に在る、検索向けの読み物の節（seo-content-expand.mjs・seo-phase2.mjs が入れたもの。7社） */
+  { name: 'ANA との比べ（検索向けの読み物）', h2: / vs ANA — /, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い（会社ページは他社の額を並べない）' },
+  { name: '勤務・暮らしの実態（検索向けの読み物）', h2: /勤務の実態$|生活の実態$|勤務と日本勤務/, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い' },
+  { name: '米国の年収の読み物', h2: /^なぜ米国パイロットの年収は/, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い' },
+  { name: '採用区分ごとの給与・待遇', h2: /^採用区分ごとの給与・待遇/, state: 'keep', why: '会社の募集の例を採用区分ごとに書いた表（エミレーツ）。新しい部品は年収の根拠の台帳の額しか出さない' },
+];
+/* 新しい部品がその話を出せるか（ほかの会社の古い節を外してよいか）。needs の名前はここの鍵だけ。 */
+export const legacyReady = {
+  pay: () => true,                                     // 給与の1枚はどの会社にも在る（推定年収は SALARY）
+  intro: v => v.company.intro.length > 0,
+  fleet: v => v.company.fleet.length > 0,
+  network: v => !!networkOf(v.slug),
+  work: v => workAll(v).some(f => v.work.includes(f)),   // 勤務そのものの公表（待遇から移した通勤・Staff Travel だけでは、訓練の節の代わりにならない）
+  benefits: v => v.benefits.length > 0,
+  jobs: v => v.jobs.length > 0,
+  compare: v => CAREER.includes(v.slug),               // 「他社と比較」の行き先（career.html）がその会社を持っている
+};
 /* 残す節（keep）を先に当てる ── 「◯◯についてよくある質問」のような見出しを、外す側の行が先に掴まないように */
 const legacyHit = (r, h2, tag) => (r.id ? new RegExp('\\bid="' + r.id + '"').test(tag) : r.h2.test(h2));
-const legacyOf = (h2, tag) => LEGACY.find(r => r.state === 'keep' && legacyHit(r, h2, tag)) || LEGACY.find(r => legacyHit(r, h2, tag));
+const legacyRows = slug => (LEAD.includes(slug) ? LEGACY : [...LEGACY, ...LEGACY_REST]);
+const legacyOf = (h2, tag, slug) => { const T = legacyRows(slug); return T.find(r => r.state === 'keep' && legacyHit(r, h2, tag)) || T.find(r => legacyHit(r, h2, tag)); };
+/* その節を外すか残すか。先行5社は今までどおり（keep 以外は外す）。ほかの会社は rest と needs で決める。 */
+export function legacyAct(v, r) {
+  if (r.state === 'keep') return 'keep';
+  if (LEAD.includes(v.slug)) return 'drop';
+  if (r.rest === 'keep') return 'keep';
+  if (r.rest === 'drop') return 'drop';
+  for (const n of r.needs || []) if (!legacyReady[n]) throw new Error(`古い節の台帳：needs の「${n}」を legacyReady が知らない（${r.name}）`);
+  return (r.needs || []).length && r.needs.every(n => legacyReady[n](v)) ? 'drop' : 'keep';
+}
 /* 外す節の見出し（検査が「ページに残っていない」ことを見るのに使う） */
 export const DROP_H2 = new RegExp(LEGACY.filter(r => r.state !== 'keep' && r.h2).map(r => r.h2.source).join('|'));
 /* 節のすぐ前に在る、人が書いた目印（<!-- 年収 --> <!-- ▼ PV-BASIS … -->）。管理ブロックの印（<!--NAME--> ＝ 空白なし）は掴まない */
@@ -1128,17 +1207,29 @@ function dropFaq(html) {
     return m.replace(body, () => JSON.stringify(Array.isArray(json) ? rest : rest[0]));
   });
 }
-function dropLegacy(slug, html) {
-  html = dropFaq(html);
+/* 管理ブロックより下の古い節ごとに [見出し, 台帳の行, 外す／残す]（外す前のページで。検査が107枚ぜんぶに使う ＝ 書かない）。 */
+export function legacyPlan(slug, html, v = viewOf(slug)) {
+  const end = html.indexOf('<!--/PV-GLANCE-->'), from = end >= 0 ? end : html.indexOf(BOX);
+  const out = [];
+  for (const m of html.slice(from).matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)) {
+    const a = from + m.index, sec = html.slice(a, divEnd(html, a));
+    const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(sec), title = h2 ? h2Text(h2[1]).trim() : '';
+    const row = legacyOf(title, m[0], slug);
+    out.push({ title, row, act: row ? legacyAct(v, row) : null });
+  }
+  return out;
+}
+function dropLegacy(slug, html, v) {
+  if (NO_FAQ.has(slug)) html = dropFaq(html);
   for (;;) {
     const end = html.indexOf('<!--/PV-GLANCE-->');
     let hit = null;
     for (const m of html.slice(end).matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)) {
       const a = end + m.index, sec = html.slice(a, divEnd(html, a));
       const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(sec), title = h2 ? h2Text(h2[1]).trim() : '';
-      const row = legacyOf(title, m[0]);
-      if (!row) throw new Error(slug + ': 古い節の台帳（LEGACY）に無い節が、ページの下に在る（' + (title || '見出しなし') + '）');
-      if (row.state !== 'keep') { hit = a; break; }
+      const row = legacyOf(title, m[0], slug);
+      if (!row) throw new Error(slug + ': 古い節の台帳（LEGACY・LEGACY_REST）に無い節が、ページの下に在る（' + (title || '見出しなし') + '）');
+      if (legacyAct(v, row) === 'drop') { hit = a; break; }
     }
     if (hit === null) return dropEmptyGate(html);
     let a = hit, b = divEnd(html, a);
@@ -1160,6 +1251,8 @@ function tagline(v) {
   const al = f.find(x => x.key === 'alliance'), nat = f.find(x => x.key === 'national_airline');
   if (al) { const m = tail(al); return m ? m[1] + '加盟（' + m[2] + '）' : al.value + '加盟'; }
   if (nat) return nat.value;
+  /* 先行5社ではない会社は、台帳の言葉が無ければ右を書かない（今のページの右の字は、資料で確かめていない言い方が多い）。 */
+  if (v.rollout) return '';
   throw new Error(v.slug + ': 副題に出す台帳の項目（航空連合か位置づけ）が無い');
 }
 /* 左メニューの道具が書く2つの塊（patch-side-nav.mjs の HEAD_RE / JS_RE と同じ掴み方。行頭に錨を打つ）。
@@ -1168,17 +1261,26 @@ const NAV_HEAD = /^[ \t]*<!-- PV-NAV:(?:(?!-->)[\s\S])*?-->\n(?:[ \t]*<link rel=
 const NAV_JS = /^(?:<!-- PV-NAV:(?:(?!-->)[\s\S])*?-->\n)?[ \t]*<script src="(?:\.\.\/)*app-nav\.js"><\/script>[ \t]*\n/m;
 
 export function build(slug, html) {
+  /* ★ 書くのは SWITCH の会社だけ（足していない会社のページを、この関数で作り直さない） */
+  if (!TABBED.has(slug)) throw new Error(`${slug}: 新しい会社ページを持つ会社ではない（airline-rollout.mjs の SWITCH に無い）`);
   const v = viewOf(slug);
   /* 1) 社名の行。h1 と、副題の「—」より左の字は、今のページのものを1文字も変えずに運ぶ（airline-base.js が読む）。
-        副題の右は台帳の言葉（tagline）。 */
+        副題の右は台帳の言葉（tagline）。
+        ★ 先行5社ではない会社：右に出す台帳の言葉が無ければ「—」ごと書かない（2回めからは、その1行をそのまま読む）。
+          今のページの副題に「—」が無い会社（ジェイエア・JAC・JTA の副題は1つの文）は、左に正本の英語の社名（SALARY の en）。 */
   const H0 = '<!--PV-HERO-->', H1 = '<!--/PV-HERO-->';
   let a = html.indexOf(H0), b;
   if (a >= 0) b = html.indexOf(H1, a) + H1.length;
   else { a = once(html, '<div class="hero-airline"', '社名の行'); b = once(html, BOX, '本文の箱'); }
   const old = html.slice(a, b);
   const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(old), sub = /<p class="text-muted[^"]*">([^<]*—[^<]*)<\/p>/.exec(old);
-  if (!h1 || !sub) throw new Error(`${slug}: h1 か副題が読めない`);
-  const heroText = `${H0}\n${hero(v, { h1: h1[1].trim(), sub: `${sub[1].split('—')[0].trim()} — ${esc(tagline(v))}` })}\n${H1}`;
+  const left = sub ? sub[1].split('—')[0].trim()
+    : !v.rollout ? null
+    : old.startsWith(H0) ? (/<p class="text-muted pvg-sub">([^<]*)<\/p>/.exec(old) || [])[1] ?? null
+    : esc(SALARY[slug].en);
+  if (!h1 || left == null) throw new Error(`${slug}: h1 か副題が読めない`);
+  const right = tagline(v);
+  const heroText = `${H0}\n${hero(v, { h1: h1[1].trim(), sub: right || !v.rollout ? `${left} — ${esc(right)}` : left })}\n${H1}`;
   html = html.slice(0, a) + heroText + (old.startsWith(H0) ? '' : '\n\n') + html.slice(b);
 
   /* 2) 見た目（左メニューの <link> の塊の直前。あちらは </head> の直前に居続ける） */
@@ -1189,7 +1291,7 @@ export function build(slug, html) {
   });
   /* 3) 本文の箱の先頭。そのあと、下に残っている古い節を台帳（LEGACY）のとおりに外す */
   html = block(html, 'PV-GLANCE', glance(v), h => once(h, BOX, '本文の箱') + BOX.length + 1);
-  if (tabbed(slug)) html = dropLegacy(slug, html);
+  if (tabbed(slug)) html = dropLegacy(slug, html, v);
   /* 4) 部品の JS（口コミの部品より後 ＝ app-nav.js の塊の直前。あちらは </body> の直前に居続ける） */
   html = blockBefore(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js, PROOF.js, SUGGEST.js, STAY.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
     const m = NAV_JS.exec(h);
@@ -1221,10 +1323,43 @@ export function build(slug, html) {
   return html;
 }
 
+/* ── 会社ごとの用意（--status）──────────────────────────────
+   どの部分を、新しい会社ページに出せるか。数えるだけで、何も書かない。
+     pay       推定年収（SALARY）は全社に在る。basis ＝ 年収の根拠の台帳（salary-basis.mjs）が在るか
+     facts     会社の事実（勤務の面・待遇・募集・会社の数字）に出る行の数。held ＝ 出さなかった行の数（理由は airline-rollout.mjs の why ほか）
+     dest      就航地の一覧を出すか（先行5社の台帳だけ）。store ＝ 調べの台帳に在る就航地の行（この回は出さない）
+     living    暮らしの板に街を出すか（先行5社の台帳だけ）。store ＝ 調べの台帳の街・家賃の行・拠点の空港の移動の行（この回は出さない）
+     legacy    今のページの下の古い節のうち、外す数／残す数 */
+export function readiness(slug) {
+  const v = viewOf(slug), file = path.join(ROOT, pageOf(slug));
+  const lead = LEAD.includes(slug), held = lead ? null : researchHeld(slug);
+  const plan = fs.existsSync(file) ? legacyPlan(slug, fs.readFileSync(file, 'utf8'), v) : [];
+  return {
+    slug, switched: TABBED.has(slug), lead,
+    pay: { est: true, basis: !!BASIS[slug] },
+    facts: { work: workAll(v).length, benefits: v.benefits.length, jobs: v.jobs.length,
+      company: companyCard(v) ? v.company.profile.length + v.company.scale.length + v.company.fleet.length : 0, held: lead ? 0 : v.held.length },
+    base: v.base.iata.length ? v.base.iata : (v.base.city ? [v.base.city] : []),
+    dest: { page: !!networkOf(slug), store: held ? held.destinations : 0 },
+    living: { page: !!v.living, cities: held ? held.cities : 0, rents: held ? held.rents : 0, commute: held ? `${held.commute}/${held.commuteAll}` : '' },
+    legacy: { drop: plan.filter(p => p.act === 'drop').length, keep: plan.filter(p => p.act === 'keep').length, unknown: plan.filter(p => !p.row).map(p => p.title) },
+  };
+}
+
 /* ── 実行 ───────────────────────────────────────────── */
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2), check = args.includes('--check');
   const only = args.filter(a => !a.startsWith('--'));
+  if (args.includes('--status')) {
+    const yn = b => (b ? '○' : '—');
+    console.log('会社                 新ページ 根拠 勤務 待遇 募集 会社 出さない 拠点            就航地(台帳)  暮らし(街/家賃/移動)  古い節 外す/残す');
+    for (const slug of only.length ? only : Object.keys(SALARY)) {
+      const r = readiness(slug), f = r.facts;
+      console.log(`${slug.padEnd(20)} ${yn(r.switched).padEnd(7)} ${yn(r.pay.basis).padEnd(4)} ${String(f.work).padStart(3)} ${String(f.benefits).padStart(4)} ${String(f.jobs).padStart(4)} ${String(f.company).padStart(4)} ${String(f.held).padStart(7)}  ${(r.base.join('・') || '—').padEnd(15)} ${yn(r.dest.page)}(${r.dest.store})`.padEnd(98)
+        + `${yn(r.living.page)}(${r.living.cities}/${r.living.rents}/${r.living.commute || '-'})`.padEnd(22) + `${r.legacy.drop}/${r.legacy.keep}${r.legacy.unknown.length ? `  ❌ 台帳に無い節: ${r.legacy.unknown.join('・')}` : ''}`);
+    }
+    process.exit(0);
+  }
   const bad = only.filter(s => !GLANCE.includes(s));
   if (bad.length) { console.error(`❌ 対象外の会社: ${bad.join(', ')}（対象は ${GLANCE.join(' / ')}）`); process.exit(1); }
   let stale = 0, wrote = 0;
