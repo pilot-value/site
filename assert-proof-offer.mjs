@@ -19,6 +19,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SWITCH } from './airline-rollout.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (f) => readFileSync(path.join(ROOT, f), 'utf8');
@@ -80,14 +81,141 @@ const stay = read('career-stay.js');
      && !/data-pv-proof-open|pv-proof-offer\.js/.test(sc),
      '★ホテルの欄（career-stay.js）：申請の口は状態を読む1か所だけ（空の {}）・ポップアップを開くのは鍵の1行の入口（proofEntry が作る \'proof\' のボタン → openProof）の1か所だけ・押すと開く印は使わない',
      J({ applyAt, applyCalls, opens, opensIn, calls, bound, made, madeIn }));
-  /* 入口と、出したあとの1行の字は、このポップアップ（とマイページの入口）の字と1文字も違わない（新しい言葉を作らない） */
-  const csWord = (k) => { const m = [...stay.matchAll(new RegExp(`\\n\\s*${k}:\\s*'([^']*)'`, 'g'))]; return m.length === 1 ? m[0][1] : null; };
+  /* 入口と、出したあとの1行の字は、このポップアップ（とマイページの入口）の字と1文字も違わない（新しい言葉を作らない）。
+     ★日英の対（2026-10-21 WP-en-4・L2 の付け替え）：前はファイル全体からちょうど1行を読んでいた。英語の表（EN）が同じ鍵を持つので、
+       日本語は日本語の表（var T = {…}）の中のちょうど1行・英語は英語の表（EN の t）の中のちょうど1行、ファイル全体ではちょうど2行
+       （日英のほかに3つ目の書き場所が無い）。英語はポップアップの T.en の pick・doneS と同じ字。 */
+  const csJa = (stay.match(/\n {2}var T = \{\n([\s\S]*?)\n {2}\};\n/) || [])[1] || '';
+  const csEn = (stay.match(/\n {2}var EN = \(function \(\) \{\n {4}var t = \{\n([\s\S]*?)\n {4}\};\n/) || [])[1] || '';
+  const inOne = (src, k) => { const m = [...('\n' + src).matchAll(new RegExp(`\\n\\s*${k}:\\s*'([^']*)'`, 'g'))]; return m.length === 1 ? m[0][1] : null; };
+  const inFile = (k) => [...stay.matchAll(new RegExp(`\\n\\s*${k}:\\s*'([^']*)'`, 'g'))].length;
+  const csWord = (k) => (inFile(k) === 2 ? inOne(csJa, k) : null), csWordEn = (k) => (inFile(k) === 2 ? inOne(csEn, k) : null);
   const popJa = (code.match(/\n    ja: \{\n([\s\S]*?)\n    \},\n/) || [])[1] || '';
-  const popWord = (k) => { const m = [...popJa.matchAll(new RegExp('\\n\\s*' + k + ':\\s*\'([^\']*)\'', 'g'))]; return m.length === 1 ? m[0][1] : null; };
+  const popEn = (code.match(/\n    en: \{\n([\s\S]*?)\n    \},?\n/) || [])[1] || '';
+  const popWord = (k, src = popJa) => { const m = [...src.matchAll(new RegExp('\\n\\s*' + k + ':\\s*\'([^\']*)\'', 'g'))]; return m.length === 1 ? m[0][1] : null; };
   const pair = { proofPick: [csWord('proofPick'), popWord('pick')], proofWait: [csWord('proofWait'), popWord('doneS')] };
   ok(!!pair.proofPick[0] && pair.proofPick[0] === pair.proofPick[1] && !!pair.proofWait[0] && pair.proofWait[0] === pair.proofWait[1]
      && pair.proofPick[0] === '画像を選んで提出する' && pair.proofWait[0] === '運営が確認するまでお待ちください。',
      '★鍵の1行の入口「画像を選んで提出する」と出したあとの1行「運営が確認するまでお待ちください。」は、ポップアップの T.pick・T.doneS と同じ字', J(pair));
+  const pairEn = { proofPick: [csWordEn('proofPick'), popWord('pick', popEn)], proofWait: [csWordEn('proofWait'), popWord('doneS', popEn)] };
+  ok(!!pairEn.proofPick[0] && pairEn.proofPick[0] === pairEn.proofPick[1] && !!pairEn.proofWait[0] && pairEn.proofWait[0] === pairEn.proofWait[1]
+     && pairEn.proofPick[0] === 'Choose an image to submit' && pairEn.proofWait[0] === 'Please wait while we review it.',
+     '★英語の会社ページ：鍵の1行の入口「Choose an image to submit」と出したあとの1行「Please wait while we review it.」は、ポップアップの T.en の pick・doneS と同じ字', J(pairEn));
+}
+/* ★英語の会社ページのホテルの欄（2026-10-21 WP-en-4）。career-stay.js の字は、日本語の表（T・SAY_ADD・SAY_EDIT・SAY_PHOTO・SAY_MOD・
+   SAY_FAIL・KINDS ── 今までと1字も違わない。ほかの検査がその場で読む）と、英語の表 EN（同じ鍵）から出す。
+   ・日英で鍵と型が同じ（関数は関数・字は字・KINDS は同じ種類を同じ順に）。英語の字と、英語の関数が組む字に、日本語の字が1つも無い。
+   ・日本語で同じ字の所は、英語でも同じ字（T.needKind ＝ SAY_ADD.bad_kind など）。鍵の1行は T.locked をそのまま使う
+     （オーナーの字「Only VERIFIED PILOT」はこのファイルに1回だけ ── assert-claims.mjs）。
+   ・サイトに英語が在る字は、その写し（管理ページ admin-queue.js の英語・「情報を追加」pv-contrib.js の英語・ポップアップの close）。
+   ・言葉は <html lang> だけで決める。表を EN に入れ替えるのは英語のページの1行だけ。ホテルの名前の候補へ渡す lang も同じ LANG。
+   ・表の外に日本語の字を書いていない。
+   どの式も career-stay.js の字を1つ受け取る形 ＝ 1か所だけ変えた字に当てて、偽になることを確かめられる。 */
+{
+  const JA_CH = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/;
+  const strip = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, (x, a) => a);
+  const JA_RE = /\n( {2}var T = \{\n[\s\S]*?\n {2}var KINDS = [^\n]*\n)/, EN_RE = /\n( {2}var EN = \(function \(\) \{\n[\s\S]*?\n {2}\}\)\(\);\n)/;
+  const tabs = (src) => {
+    const ja = src.match(JA_RE), en = src.match(EN_RE);
+    if (!ja || !en) return null;
+    try {
+      const j = new Function(ja[1] + 'return { T: T, SAY_ADD: SAY_ADD, SAY_EDIT: SAY_EDIT, SAY_PHOTO: SAY_PHOTO, SAY_MOD: SAY_MOD, SAY_FAIL: SAY_FAIL, KINDS: KINDS };')();
+      return { ja: j, en: new Function('T', en[1] + 'return EN;')(j.T), enSrc: en[1] };
+    } catch (e) { return null; }
+  };
+  const shape = (v) => (Array.isArray(v) ? 'array' : typeof v);
+  const HOURS = [[1], [24], [240]];
+  const sameKeys = (src) => {
+    const t = tabs(src), bad = [];
+    if (!t) return ['表が読めない'];
+    const walk = (a, b, at) => {
+      for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+        if (!(k in a) || !(k in b)) { bad.push(`${at}${k}（${k in a ? '英語' : '日本語'}に無い）`); continue; }
+        const sa = shape(a[k]), sb = shape(b[k]);
+        if (sa !== sb) bad.push(`${at}${k}（型 ${sa}／${sb}）`);
+        else if (sa === 'object') walk(a[k], b[k], `${at}${k}.`);
+        else if (sa === 'string' && !b[k]) bad.push(`${at}${k}（英語が空）`);
+      }
+    };
+    walk(t.ja, t.en, '');
+    if (J(t.ja.KINDS.map((k) => k[0])) !== J((t.en.KINDS || []).map((k) => k[0]))) bad.push('KINDS（種類の並びが違う）');
+    return bad;
+  };
+  const enJaFree = (src) => {
+    const t = tabs(src), bad = [];
+    if (!t) return ['表が読めない'];
+    const look = (v, at) => {
+      if (typeof v === 'string') { if (JA_CH.test(v)) bad.push(`${at}「${v}」`); return; }
+      if (typeof v === 'function') {
+        for (const args of HOURS) { let r; try { r = v(...args); } catch { bad.push(`${at}（組めない）`); return; }
+          if (typeof r !== 'string' || JA_CH.test(r) || /undefined|NaN|null/.test(r) || !r.trim()) bad.push(`${at}→「${r}」`); }
+        return;
+      }
+      if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) look(x, `${at}${k}.`);
+    };
+    look(t.en, 'EN.');
+    return bad;
+  };
+  /* 日本語で同じ字の所は、英語でも同じ字（字の葉を、日本語の字ごとにまとめる）。鍵の1行は T.locked をそのまま */
+  const sameAsJa = (src) => {
+    const t = tabs(src), bad = [];
+    if (!t) return ['表が読めない'];
+    const leaves = (o, at, out) => { for (const [k, v] of Object.entries(o)) { if (typeof v === 'string') out.push([at + k, v]); else if (v && typeof v === 'object' && !Array.isArray(v)) leaves(v, at + k + '.', out); } return out; };
+    const ja = leaves(t.ja, '', []), en = Object.fromEntries(leaves(t.en, '', []));
+    const by = {};
+    for (const [p, v] of ja) (by[v] = by[v] || []).push(p);
+    for (const ps of Object.values(by)) if (ps.length > 1 && new Set(ps.map((p) => en[p])).size !== 1) bad.push(ps.map((p) => `${p}「${en[p]}」`).join(' ／ '));
+    if (!/\n {6}locked: +T\.locked,\n/.test(t.enSrc) || t.en.T.locked !== t.ja.T.locked) bad.push('EN.T.locked が T.locked を使っていない');
+    return bad;
+  };
+  /* サイトに英語が在る字の写し */
+  const aq = read('admin-queue.js'), pc = read('pv-contrib.js');
+  const aqEnT = (aq.match(/\n {2}var T = EN \? \{\n([\s\S]*?)\n {2}\} : \{\n/) || [])[1] || '';
+  const aqEnSay = (aq.match(/\n {2}var SAY = EN \? \{\n([\s\S]*?)\n {2}\} : \{\n/) || [])[1] || '';
+  const pcEn = (pc.match(/\n {4}en: \{\n([\s\S]*?)\n {4}\}\n {2}\};\n/) || [])[1] || '';
+  const v1 = (b, k) => (b.match(new RegExp('(?:^|[\\s,{])' + k + ":\\s*'([^']*)'")) || [])[1] || null;
+  const aqKinds = (aqEnT.match(/\n\s*kinds:\s*\{ hotel: '([^']*)', food: '([^']*)', spot: '([^']*)' \}/) || []).slice(1);
+  const copies = (src) => {
+    const t = tabs(src);
+    if (!t) return ['表が読めない'];
+    const e = t.en;
+    const C = [
+      ['T.pub', e.T.pub, v1(aqEnT, 'ok')], ['T.rej', e.T.rej, v1(aqEnT, 'rej')],
+      ...['map', 'photoErr', 'fName', 'fAddr', 'fMap', 'fNote'].map((k) => ['T.' + k, e.T[k], v1(aqEnT, k)]),
+      ...['forbidden', 'own_post', 'final', 'not_found', 'changed', 'exists'].map((k) => ['SAY_MOD.' + k, e.SAY_MOD[k], v1(aqEnSay, k)]),
+      ['SAY_ADD.exists', e.SAY_ADD.exists, v1(aqEnSay, 'exists')],
+      ['SAY_FAIL', e.SAY_FAIL, (aq.match(/var FAIL = EN \? '([^']*)'/) || [])[1] || null],
+      ['KINDS', J((e.KINDS || []).map((k) => k[1])), aqKinds.length === 3 ? J(aqKinds) : null],
+      ['T.pending', e.T.pending, v1(aqEnT, 'pending')], ['T.mine', e.T.mine, v1(pcEn, 'yours')],
+      ['T.sending', e.T.sending, v1(pcEn, 'sending')], ['T.err', e.T.err, v1(pcEn, 'loadT')],
+      ['T.close', e.T.close, popWordEnClose()],
+    ];
+    return C.filter(([, a, b]) => !a || !b || a !== b).map(([k, a, b]) => `${k}「${a}」／「${b}」`);
+  };
+  function popWordEnClose() { const b = (code.match(/\n    en: \{\n([\s\S]*?)\n    \},?\n/) || [])[1] || ''; const m = [...b.matchAll(/\n\s*close:\s*'([^']*)'/g)]; return m.length === 1 ? m[0][1] : null; }
+  const LANGL = "  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';\n";
+  const SWAP = "  if (LANG === 'en') { T = EN.T; SAY_ADD = EN.SAY_ADD; SAY_EDIT = EN.SAY_EDIT; SAY_PHOTO = EN.SAY_PHOTO; SAY_MOD = EN.SAY_MOD; SAY_FAIL = EN.SAY_FAIL; KINDS = EN.KINDS; }\n";
+  const wired = (src) => {
+    const c = strip(src), n = (s) => c.split(s).length - 1;
+    const iL = c.indexOf(LANGL), iE = c.indexOf('\n  var EN = (function () {'), iS = c.indexOf(SWAP), iN = c.indexOf('\n  var ENTS = [');
+    const assigns = (c.match(/(^|[^.\w])(T|SAY_ADD|SAY_EDIT|SAY_PHOTO|SAY_MOD|SAY_FAIL|KINDS) = (?!\{|'|\[\[)/g) || []).length;
+    return n(LANGL) === 1 && n(SWAP) === 1 && iL >= 0 && iL < iE && iE < iS && iS < iN && assigns === 7
+      && n('client: client, lang: LANG, host: form,') === 1 && !/lang\s*[:=]\s*'ja'/.test(c);
+  };
+  /* 正規表現の字（地図の住所の全角の空白・ステイ時間の全角の数字を読む所）は面に出ない ── 字の並びとして数える前に外す */
+  const RE_LIT = /(^|[(,=:!&|?;{}]\s*)\/(?![*/])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n[])+\/[gimsuy]*/gm;
+  const stray = (src) => {
+    const m = src.match(JA_RE);
+    return [...strip(m ? src.replace(m[0], () => '\n') : src).replace(RE_LIT, (x, a) => a + 'RE').matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g)]
+      .map((x) => x[1] ?? x[2]).filter((s) => JA_CH.test(s));
+  };
+  const kb = sameKeys(stay), jb = enJaFree(stay), sb = sameAsJa(stay), cb = copies(stay), sr = stray(stay);
+  ok(kb.length === 0, '★英語の会社ページのホテルの欄：字の表（T・SAY_ADD・SAY_EDIT・SAY_PHOTO・SAY_MOD・SAY_FAIL・KINDS ⇄ EN）は、日英で鍵と型が同じ・英語が空でない', J(kb.slice(0, 6)));
+  ok(jb.length === 0, '★英語の会社ページのホテルの欄：英語の字と、英語の関数が組む字（ステイ時間）に、日本語の字が1つも無い', J(jb.slice(0, 6)));
+  ok(sb.length === 0, '★英語の会社ページのホテルの欄：日本語で同じ字の所は英語でも同じ字・鍵の1行は T.locked をそのまま使う（オーナーの字を2回書かない）', J(sb.slice(0, 6)));
+  ok(cb.length === 0, '★英語の会社ページのホテルの欄：サイトに英語が在る字は、その写し（管理ページの英語・「情報を追加」の英語・ポップアップの Close）', J(cb.slice(0, 8)));
+  ok(wired(stay), '★英語の会社ページのホテルの欄：言葉は <html lang> だけで決め、表を EN に入れ替えるのは英語のページの1行だけ・ホテルの名前の候補へ渡す lang も LANG（\'ja\' と書いた送り先が無い）');
+  ok(sr.length === 0, '★英語の会社ページのホテルの欄：表の外に、日本語の字を書いていない', J(sr.slice(0, 6)));
 }
 /* オーナーの字（2026-10-16）。「見られるのは VERIFIED PILOT だけ」の言い方は全部「Only VERIFIED PILOT」（大文字は O だけ）、
    状態は「VERIFIED PILOT です」。ホテルの欄の鍵の1行（career-stay.js）と同じ字 ── ONLY と Only を並べない。 */
@@ -115,13 +243,17 @@ for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
   ok(h.split('<div id="pv-proof-slot"></div>').length === 2 && h.indexOf('<div id="pv-proof-slot"></div>') > h.indexOf('id="profile-card"')
      && h.indexOf('<div id="pv-proof-slot"></div>') < h.indexOf('id="pay-tracker"'), `${page}: 入口はマイページの ① YOUR STATUS の中に1か所だけ`);
 }
-/* 読むページは2種類だけ（2026-10-18 オーナー Q2 から）。マイページ（日英・上の2行）と、ホテルの欄を持つ画面（career.html と会社の画面5枚 ──
-   career-stay.js より前に、今の中身の指紋で1回だけ読む）。ホテルの欄の画面には、マイページの入口の置き場（pv-proof-slot）も、押すと開く印
-   （data-pv-proof-open）も置かない ＝ そこでの入口は会員の鍵の1行だけ。ほかのページ（サイトの HTML 全部）は読まない。
-   （前は「ほかの5枚はまだ読まない」── L2 の付け替え：見るページをサイト全部に広げ、読んでよい8枚をちょうどこの8枚に固定した） */
+/* 読むページは2種類だけ（2026-10-18 オーナー Q2 から）。マイページ（日英・上の2行）と、ホテルの欄を持つ画面（career.html と、
+   airline-rollout.mjs の SWITCH の会社の画面 ── career-stay.js より前に、今の中身の指紋で1回だけ読む）。ホテルの欄の画面には、
+   マイページの入口の置き場（pv-proof-slot）も、押すと開く印（data-pv-proof-open）も置かない ＝ そこでの入口は会員の鍵の1行だけ。
+   ほかのページ（サイトの HTML 全部）は読まない。
+   （前は「ほかの5枚はまだ読まない」── L2 の付け替え：見るページをサイト全部に広げ、読んでよいページをちょうどこの集合に固定した）
+   ★会社の画面は手で並べない（2026-10-21 EN-4）。生成器はホテルの欄を SWITCH の会社ぜんぶに書くので、SWITCH を読んで作る ──
+     手の一覧のままだと、見本の2社（カンタス・スカイマーク）を足した日に「読んではいけないページ」として赤くなった。
+     SWITCH に足した会社は、その日から「1回だけ・指紋つき・career-stay.js より前」を1枚ずつ見られる（弱めていない）。 */
 {
   const want = createHash('sha256').update(readFileSync(path.join(ROOT, 'pv-proof-offer.js'))).digest('hex').slice(0, 8);
-  const HOTEL = ['career.html', 'airlines/jal.html', 'airlines/ana.html', 'airlines/cathay-pacific.html', 'airlines/etihad.html', 'airlines/eva-air.html'];
+  const HOTEL = ['career.html', ...SWITCH.map((slug) => `airlines/${slug}.html`)];
   for (const page of HOTEL) {
     const h = read(page), pre = page.startsWith('airlines/') ? '../' : '';
     const e = (s) => s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
@@ -138,7 +270,8 @@ for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
   }
   const readers = pages.filter((f) => /pv-proof-offer\.js|pv-proof-slot|data-pv-proof-open/.test(read(f)));
   ok(pages.length > 300 && J(readers.slice().sort()) === J([...allow].sort()),
-     `ほかのページ（サイトの HTML ${pages.length}枚のうち、マイページ日英とホテルの欄の6枚のほか）は、このポップアップを読まない`, J(readers.filter((f) => !allow.has(f))));
+     `ほかのページ（サイトの HTML ${pages.length}枚のうち、マイページ日英とホテルの欄の${HOTEL.length}枚のほか）は、このポップアップを読まない`,
+     J({ extra: readers.filter((f) => !allow.has(f)), missing: [...allow].filter((f) => !readers.includes(f)) }));
 }
 
 if (!STATIC) await scenes();

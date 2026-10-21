@@ -336,7 +336,7 @@
     cr.hidden = !row;
     if (row) {
       var copy = row.cloneNode(true);
-      cr.appendChild(d.createTextNode('写真：'));
+      cr.appendChild(d.createTextNode(/^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'Photo: ' : '写真：'));
       while (copy.firstChild) cr.appendChild(copy.firstChild);
     }
     if (slot) { slot.setAttribute('data-stay', code); slot.setAttribute('data-city', name); }
