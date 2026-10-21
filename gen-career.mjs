@@ -76,8 +76,11 @@ export const ROLES = [['cap', '機長'], ['fo', '副操縦士']];
 export const TABS = [['top', '概要'], ['work', '勤務・待遇'], ['life', '暮らし・ステイ']];
 /* その数字自身の詳細（d=cap-est・d=fo-est）。在るのは推定だけ ── 公表額は一覧（pub()）が持つ。 */
 export const KINDS = [['est', '推定年収']];
-/* 「会社が公表している金額」に並べる区分。訓練生は入れない（年収の比較ではない）。 */
-const PUB_RANKS = ['cap', 'fo', 'crew'];
+/* 「会社が公表している金額」に並べる区分。訓練生は入れない（年収の比較ではない）。
+   ★機長と副操縦士を分けない額（運航乗務員・運航乗務職の全体の平均 ＝ 台帳の crew）も入れない（2026-10-21 P12.77 オーナー
+     「そもそも運行乗務員の平均年収で出してどうするの？機長、副操縦士のわかないと意味ないじゃん」）。台帳には残す（社内の見張り）。
+     その額だけの会社（JAL・ANA）は「会社が公表している金額」の一覧そのものを出さない（P12.91-7）── その額の話をしている前提と出どころも、一緒に出なくなる。 */
+const PUB_RANKS = ['cap', 'fo'];
 /* 鍵の名前の末尾で決まる言い添え（年収の下限・手当の下限）。 */
 const openEnd = key => (/_over$/.test(key) ? '超' : /_from$/.test(key) ? 'から' : '');
 /* 求人の上限（max_…）は、額の頭に「〜」を付ける（平の額に見せない）。斜線の印と「上限」の字も一緒に出す。 */
@@ -203,7 +206,7 @@ const live = (kind, attrs = {}) => `<div class="crl" data-live="${kind}"${Object
 /* 中身を次に入れる箱（公表されている待遇・拠点の街）。 */
 const box = id => `<div class="cr-box" data-box="${id}"><span class="cr-ph">—</span></div>`;
 
-/* ── 会社が公表している金額（5社とも）─────────────────────────────
+/* ── 会社が公表している金額（機長・副操縦士の公表額が在る会社だけ）─────────────
    ★推定とは別の情報。1つの額ごとに 誰の額か（内訳の名前）・何の額か（種類）・額・出どころ を出す。
    ★ここに棒を描かない・目盛に載せない（推定の棒と同じ物差しで比べる額ではない）。
    ★上限（max_…）は「〜」・斜線の印・「上限」の字の3つが必ず一緒に出る。 */
@@ -225,12 +228,10 @@ const srcRow = s => `<li>${esc(s.pub)} <a href="${esc(s.url)}" target="_blank" r
 function pub(slug, tag) {
   const B = BASIS[slug] || {};
   const groups = pubGroups(slug);
-  /* 公表が1つも無い会社は「公表なし」だけ。前提や出どころも出さない
+  /* 機長・副操縦士の公表額が1つも無い会社は、この一覧そのものを出さない（見出しも「公表なし」の行も・前提や出どころも）
+     ★2026-10-21 リード P12.91-7（rollout.build.txt の d1／d2 への LATE NOTE）：JAL・ANA は運航乗務員の平均を外したあと公表額が無い。
      （台帳に残っているのは訓練生の募集の話で、ここに並べる額の説明ではない）。 */
-  if (!groups.length) return `<div class="cr-pub">
-<${tag} class="cr-h2">会社が公表している金額</${tag}>
-<p class="cr-none">公表なし</p>
-</div>`;
+  if (!groups.length) return '';
 
   const blocks = groups.map(({ tier, g, figs }) => {
     const rows = figs.map(f => {

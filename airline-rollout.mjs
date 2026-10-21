@@ -27,16 +27,29 @@
 import { fileURLToPath } from 'node:url';
 import { readStore } from './import-research-pack.mjs';
 import { PLACES } from './airline-destinations.mjs';
-import { say, srcName, NET, CITY, digest } from './airline-display.mjs';
+import { say, srcName, NET, CITY, digest, agreementOf, rankOf } from './airline-display.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 /** 先行5社（手で作った台帳を持つ会社）。並びは今までの GLANCE と同じ。 */
 export const LEAD = Object.freeze(['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air']);
-/** 新しい会社ページを持つ会社。★1か所。見本の2社（カンタス航空・スカイマーク）は「全社へ広げる c」（2026-10-21）で足した。
-    ほかの会社を足すのは、オーナーが見本の絵を見てから。 */
+/** 新しい会社ページを持つ会社。★1か所。見本の2社（カンタス航空・スカイマーク）は「全社へ広げる c」（2026-10-21）で足した。 */
 export const SAMPLES = Object.freeze(['qantas', 'skymark']);
-export const SWITCH = Object.freeze([...LEAD, ...SAMPLES]);
+/** 全社へ広げる d1（2026-10-21・リード P12.82／P12.84）：地域ごとに足す。並びは年収の正本（SALARY）の地域の中の順。
+    ★スピリット航空は入れない（オーナー 2026-10-11「スピリットを外す」）。d2 で ヨーロッパ・アメリカ大陸・オセアニアを足す。 */
+export const WIDE = Object.freeze([
+  /* 日本 */
+  'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan', 'airdo', 'starflyer', 'fda', 'airjapan', 'amx', 'ana-wings',
+  'daiichi-air', 'hac', 'ibex', 'j-air', 'jac', 'jta', 'orc', 'rac', 'shin-central', 'shin-nihon', 'toho-air', 'toki-air',
+  /* アジア（キャセイパシフィック航空・エバー航空は先行5社） */
+  'singapore-airlines', 'korean-air', 'asiana', 'starlux', 'china-airlines', 'thai-airways', 'air-china', 'china-eastern',
+  'china-southern', 'hainan-airlines', 'root-aviation', 'air-india', 'airasia', 'bamboo-airways', 'batik-air', 'garuda-indonesia',
+  'hong-kong-express', 'indigo', 'malaysia-airlines', 'philippine-airlines', 'scoot', 'vietjet', 'vietnam-airlines', 'royal-brunei',
+  /* 中東（エティハド航空は先行5社）・アフリカ */
+  'emirates', 'qatar-airways', 'gulf-air', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-jordanian', 'saudia',
+  'egyptair', 'ethiopian-airlines', 'kenya-airways', 'south-african-airways',
+]);
+export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);
 /** 画面に出してよい使い方。 */
 export const SHOWN = Object.freeze(['条件つき', '募集', '過去', '参考']);
 /** 画面の言い方が在る使い方（2026-10-21 全社へ広げる c から4つとも。過去・参考は札つき ── airline-display.mjs の TAG）。 */
@@ -88,12 +101,14 @@ export function why(r, o = {}) {
 }
 export const shown = (r, o) => !why(r, o);
 
-/* 資料の種類（調べた側の publisher_kind）→ 画面の種類（career-facts.mjs の SRC_KINDS の鍵）。在るのは会社と政府の2つだけ。 */
+/* 資料の種類（調べた側の publisher_kind）→ 画面の種類（career-facts.mjs の SRC_KINDS の鍵）。在るのは会社と政府の2つだけ。
+   ★労働協約（airline-display.mjs の AGREEMENTS に在る資料）は 'agreement'（2026-10-21 リードの決め d）── 会社の公表とも
+     政府の資料とも別の種類。画面は「労働協約」の札とその協約の名前で出す（gen-airline-glance.mjs）。 */
 const KIND = { airline: 'company', government: 'gov' };
 const srcOf = r => {
   const s = (r.src || [])[0];
   if (!s || !/^https:\/\//.test(s.url || '')) return null;
-  return { name: srcName(s), url: s.url, kind: KIND[s.publisher_kind] || s.publisher_kind || '' };
+  return { name: srcName(s), url: s.url, kind: agreementOf(s) ? 'agreement' : KIND[s.publisher_kind] || s.publisher_kind || '' };
 };
 
 /* 調べの1行 → 画面の部品が読む事実の形（airline-facts.mjs の行と同じ鍵）。字は airline-display.mjs の say() だけ
@@ -101,10 +116,12 @@ const srcOf = r => {
 function asFact(r) {
   const src = srcOf(r), d = say(r);
   if (!d || !src) return null;
+  /* 前提の1行：行ごとの字（LINES）の cond。無ければ、労働協約の行はその協約が誰の条件か（AGREEMENTS の cond） */
+  const ag = agreementOf((r.src || [])[0]);
   return {
     key: r.key, ja: d.label, value: d.value, unit: '', cur: d.cur || '', per: d.per || '', at: dateOf(r), as_of: r.checked_at || '',
-    cond_ja: d.cond, src, pilot: !(r.applies_to && r.applies_to.pilot_specific === false),
-    use: r.use, tag: d.tag, id: r.id, h: r.h, lead: !!d.lead, fleet: d.fleet || '',
+    cond_ja: d.cond || (ag ? ag.cond : ''), src, pilot: !(r.applies_to && r.applies_to.pilot_specific === false),
+    use: r.use, tag: d.tag, id: r.id, h: r.h, lead: !!d.lead, fleet: d.fleet || '', rank: rankOf(r),
   };
 }
 
@@ -134,12 +151,16 @@ export function researchFacts(slug, R = research()) {
       if (sec === 'fleet') {
         if (!f.fleet) { hold(r, '機材の型式の字が無い（airline-display.mjs の LINES の fleet）'); continue; }
         if (r.use !== '条件つき') { hold(r, `機材は条件つきの行だけ（「${r.use}」）`); continue; }
+        /* 会社の1枚の「会社の資料に載っている型式」── 会社か政府の資料の行だけ（2026-10-21 d1） */
+        if (!['company', 'gov'].includes(f.src.kind)) { hold(r, '機材は会社か政府の資料の行だけ'); continue; }
+        /* 同じ型式は1つだけ（型式の数を作らない・同じ札を2つ並べない） */
+        if (out.fleet.some(x => x.fleet === f.fleet)) { hold(r, `同じ型式がもう在る（${f.fleet}）`); continue; }
         out.fleet.push(f);
         continue;
       }
       if (sec === 'base') {
         if (!['条件つき', '募集'].includes(r.use)) { hold(r, `拠点に「${r.use}」の行は使わない`); continue; }
-        if (!['company', 'gov'].includes(f.src.kind)) { hold(r, '拠点は会社か政府の資料の行だけ'); continue; }
+        if (!['company', 'gov', 'agreement'].includes(f.src.kind)) { hold(r, '拠点は会社か政府の資料・労働協約の行だけ'); continue; }
         if (r.key === 'pilot_base_city') { if (!cities.includes(f.value)) cities.push(f.value); cityRows.push([r, f]); continue; }
         if (!/^[A-Z]{3}$/.test(String(r.value))) { hold(r, '拠点の値が空港の3字ではない'); continue; }
         if (!iata.includes(r.value)) iata.push(r.value);
@@ -148,8 +169,10 @@ export function researchFacts(slug, R = research()) {
       }
       const place = r.use === '募集' ? 'jobs' : sec;
       if (!(place in out) || place === 'held' || place === 'base') { hold(r, `置き場が無い（${sec}）`); continue; }
-      const company = f.src.kind === 'company';
-      if (['work', 'benefits', 'jobs'].includes(place) && !company) { hold(r, '会社が公表している条件の欄には、会社自身の資料の行だけ'); continue; }
+      const company = f.src.kind === 'company', agreement = f.src.kind === 'agreement';
+      /* 勤務・待遇の欄は、会社自身の資料か労働協約（リードの決め d）の行だけ。募集の1枚は会社自身の資料の行だけ */
+      if (place === 'jobs' && !company) { hold(r, '募集の1枚には、会社自身の資料の行だけ'); continue; }
+      if (['work', 'benefits'].includes(place) && !company && !agreement) { hold(r, '勤務・待遇の欄には、会社自身の資料か労働協約の行だけ'); continue; }
       if (['profile', 'scale'].includes(place) && !['company', 'gov'].includes(f.src.kind)) { hold(r, '会社の数字は、会社か政府の資料の行だけ'); continue; }
       out[place].push(f);
     }
@@ -161,7 +184,10 @@ export function researchFacts(slug, R = research()) {
     out[k] = out[k].map((f, i) => [f, i]).sort(([a, i], [b, j]) => ORDER[a.use] - ORDER[b.use] || i - j).map(([f]) => f);
     const said = out[k].filter(f => f.lead);
     for (const f of out[k]) f.lead = false;
-    const first = (said[0] && said[0].use === '条件つき' ? said[0] : null) || out[k].find(f => f.use === '条件つき');
+    /* ★訓練生の行は、名前が訓練の話と言っている行（「訓練生の休日」「訓練の場所」）でなければ1行めにしない
+       （2026-10-21 d1「訓練生の数を、どのパイロットにも当てはまるように1行めに出さない」── 狭い画面の1行めは前提の行を出さない） */
+    const whose = f => f.rank !== 'trainee' || /^訓練/.test(f.ja);
+    const first = (said[0] && said[0].use === '条件つき' && whose(said[0]) ? said[0] : null) || out[k].find(f => f.use === '条件つき' && whose(f));
     if (first && (k === 'work' || k === 'benefits')) first.lead = true;
   }
   /* 本社は1行だけ（会社の欄）：都市が言えれば都市（国は重ねない）・無ければ国。同じ項目が2行あれば最初の1行（並びは上の順）。 */
@@ -181,8 +207,11 @@ export function researchFacts(slug, R = research()) {
     /* 拠点の空港の行が在る会社の街は、空港から（街の行は重ねない） */
     for (const [r] of cityRows) out.held.push({ id: r.id, why: '拠点の空港の行が在る（街は空港の呼び名から）', sec: 'base' });
   } else if (cities.length) {
-    /* 拠点の空港の行が無い会社：パイロットの拠点の街（字はサイトの街の表）。空港の3字は作らない（どの空港かは行が言っていない） */
-    out.base = { iata: [], city: cities.join('・'), country: '', rows: cityRows.map(([, f]) => f) };
+    /* 拠点の空港の行が無い会社：パイロットの拠点の街（字はサイトの街の表）。空港の3字は作らない（どの空港かは行が言っていない）。
+       ★その街の空港（台帳の空港の一覧 PLACES で、街の名前がその街の空港 ── 東京なら羽田と成田）は home に持つ（2026-10-21 d1）。
+         就航地の一覧から外すためだけに使う（拠点の空港を就航地として並べない）。拠点の空港としては出さない・暮らしの街にも使わない。 */
+    const home = Object.entries(PLACES).filter(([, p]) => cities.includes(String(p[0]).replace(/（.*$/, ''))).map(([c]) => c);
+    out.base = { iata: [], city: cities.join('・'), country: '', rows: cityRows.map(([, f]) => f), home };
   }
   return out;
 }

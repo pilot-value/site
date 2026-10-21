@@ -1625,11 +1625,12 @@ comment on function public.pv_stay_rev(public.pv_stay_places) is
 
 
 -- 3-n. 会社ごとの就航地（★運営の「追加」＝ 足す口の publish:true が、その場で公開で入れてよい空港は、ここに在るものだけ）
--- 会社ページの「ステイ先」に並ぶ空港と同じ一覧（airline-destinations.mjs の NETWORK の list の写し。本拠地は入れない）。
+-- 会社ページの「ステイ先」に並ぶ空港と同じ一覧（先行5社 ＝ airline-destinations.mjs の NETWORK の list の写し／ほかの会社（2026-10-21 全社へ広げる d1）＝
+-- 調べで確かめた就航地（pv-airline-view.mjs の viewOf(slug).network の list）の写し。本拠地は入れない）。
 -- ★ 載っていない空港に運営が「追加」すると、どのページにも出ない公開の行ができてしまう（3字の打ち間違い）。
 --   ＝ 5 の足す口は、publish:true のときだけ、ここに無い空港を bad_iata で止める（何も書かない）。
 --   会員・未ログインの足す口と、publish を添えない運営の足す口は、今までどおり（確認待ちで入り、運営が見る）。
--- ⚠️ airline-destinations.mjs を直したら、ここも直す。db/test-stays.mjs が両方を突き合わせる（食い違うと赤くなる）。
+-- ⚠️ airline-destinations.mjs・調べの台帳の就航地・airline-display.mjs の NET を直したら、ここも直す。db/test-stays.mjs が両方を突き合わせる（食い違うと赤くなる）。
 --    会社を足すときは1行（'<会社の符号>', の行）を足す。並びは airline-destinations.mjs と同じ。
 create or replace function public.pv_stay_network()
 returns jsonb
@@ -1668,6 +1669,54 @@ as $fn$
       MAD AGP MAN MXP SVO MUC JMK NCE PMI CDG PRG FCO LED JTR AER VIE WAW ZRH ADD DBB
       ELQ AMM BAH BEY CAI CMN DAM DMM DOH JED JNB KWI MED MCT NBO RUH SLL SEZ TLV RSI
       TUN ZNZ
+    ', E' \n'), '\s+'),
+    /* ── 先行5社ではない会社（2026-10-21 全社へ広げる d1）：会社ページの「ステイ先」に並ぶ調べで確かめた就航地
+       （pv-airline-view.mjs の viewOf(slug).network の list ＝ airline-rollout.mjs の researchNetwork。拠点の空港は入れない）。
+       一覧の無い会社（拠点が分からない・拠点のほかに残らない・字がまだ無い）は書かない。 ── */
+    'skymark', regexp_split_to_array(btrim('
+      CTS FUK IBR KOJ NGO NGS OKA SDJ SHI UKB
+    ', E' \n'), '\s+'),
+    'zipair', regexp_split_to_array(btrim('
+      BKK ICN SIN HNL IAH LAX SFO YVR
+    ', E' \n'), '\s+'),
+    'jetstar-japan', regexp_split_to_array(btrim('
+      AKJ CTS FUK KCZ KIX KMI KMJ KOJ MYJ NGO NGS OIT OKA TAK
+    ', E' \n'), '\s+'),
+    'peach', regexp_split_to_array(btrim('
+      CTS FUK HND OKA
+    ', E' \n'), '\s+'),
+    'solaseed', regexp_split_to_array(btrim('
+      FUK ISG KMI KMJ KOJ NGO NGS OIT OKA UKB
+    ', E' \n'), '\s+'),
+    'airdo', regexp_split_to_array(btrim('
+      AKJ CTS FUK HKD KUH MMB NGO OBO SDJ UKB
+    ', E' \n'), '\s+'),
+    'starflyer', regexp_split_to_array(btrim('
+      FUK KIX NGO SDJ UBJ
+    ', E' \n'), '\s+'),
+    'fda', regexp_split_to_array(btrim('
+      AOJ CTS FUK GAJ HNA KIJ KMJ KOJ MMJ OKD SDJ UKB
+    ', E' \n'), '\s+'),
+    'amx', regexp_split_to_array(btrim('
+      FUK ITM KMJ
+    ', E' \n'), '\s+'),
+    'ana-wings', regexp_split_to_array(btrim('
+      CTS ISG KIX NRT OKA
+    ', E' \n'), '\s+'),
+    'daiichi-air', regexp_split_to_array(btrim('
+      AGJ HTR TRA
+    ', E' \n'), '\s+'),
+    'ibex', regexp_split_to_array(btrim('
+      CTS FKS FUK HIJ ITM KIJ MYJ NGO OIT
+    ', E' \n'), '\s+'),
+    'jac', regexp_split_to_array(btrim('
+      ASJ FUK ITM IZO KKX KUM MYJ OKA OKE OKI RNJ TJH TKN TNE
+    ', E' \n'), '\s+'),
+    'toho-air', regexp_split_to_array(btrim('
+      HAC MYE OIM
+    ', E' \n'), '\s+'),
+    'china-eastern', regexp_split_to_array(btrim('
+      NGO
     ', E' \n'), '\s+')
   );
 $fn$;

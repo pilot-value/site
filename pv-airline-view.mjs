@@ -488,7 +488,8 @@ function rolloutView(slug) {
       tax: (B && B.tax) || '', notes: free ? free.notes : [], src: B ? (free ? free.src : srcOf(slug).filter(x => !/平均年間給与|【従業員の状況/.test(x.name))) : [], cur: (B && B.cur) || '',
     },
     work: rows(R.work), benefits: rows(R.benefits), living: livings[0] || null, livings,
-    network: researchNetwork(slug, REGIONS, base.iata),
+    /* 拠点の空港は就航地の一覧に入れない。拠点が街だけの会社は、その街の空港（airline-rollout.mjs の base.home）も入れない（2026-10-21 d1） */
+    network: researchNetwork(slug, REGIONS, [...base.iata, ...((R.base && R.base.home) || [])]),
     company: { profile: rows(R.profile), scale: rows(R.scale), fleet: rows(R.fleet), photo: primary(slug), intro: [] },
     jobs: rows(R.jobs),
     held: R.held,

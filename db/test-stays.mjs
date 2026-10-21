@@ -3129,7 +3129,12 @@ console.log('\n▼ 運営の「追加」は、その会社の就航地にだけ�
   /* ★N1: SQL の就航地の一覧（3-n）は、会社ページのステイ先に並ぶ空港（airline-destinations.mjs の NETWORK の list）と1字も違わない
        （会社も、空港も、並びも）。片方だけ直すと、運営が足せる空港とページに出る空港が食い違う */
   const { NETWORK } = await import('../airline-destinations.mjs');
-  const want = Object.fromEntries(Object.entries(NETWORK).map(([s, n]) => [s, n.list]));
+  /* 2026-10-21 全社へ広げる d1：先行5社ではない切り替えた会社は、会社ページの調べで確かめた就航地（viewOf の network。一覧の無い会社は入れない） */
+  const { SWITCH, LEAD } = await import('../airline-rollout.mjs');
+  const { viewOf } = await import('../pv-airline-view.mjs');
+  const want = Object.fromEntries([...Object.entries(NETWORK).map(([s, n]) => [s, n.list]),
+    ...SWITCH.filter((s) => !LEAD.includes(s)).map((s) => [s, viewOf(s).network]).filter(([, n]) => n && n.list.length).map(([s, n]) => [s, n.list.map((d) => d.iata)])]);
+  ok(Object.keys(want).length > Object.keys(NETWORK).length, `★N1: 先行5社ではない会社の就航地も突き合わせる（${Object.keys(want).length - Object.keys(NETWORK).length}社）`);
   /* 会社の並びは比べない（jsonb は欄の名前を自分の順に並べ替える）。空港の並びは比べる */
   const canonNet = (o) => J(Object.keys(o || {}).sort().map((k) => [k, o[k]]));
   const net = (await one(`select public.pv_stay_network() as v`)).v;

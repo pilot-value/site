@@ -1342,8 +1342,8 @@ ${held ? `    <h2 id="compare">${ja ? `${name}の順位を出していない理�
     : `Captain averages by region. ${nameCap} sits at ${man(r.capAvg)} against a ${man(WORLD_CAP)} average across all ${NPUB} airlines we list — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That is ${nth(rank)} of the ${REG_RANKED.length} regions we publish an average for.`}</p>
     <div class="glass" style="padding:18px 20px">${bars(cmpRows, lang)}</div>
     <p style="font-size:.78rem;color:#6b7d93;margin-top:10px">${ja
-    ? `※ 各地域の値は、その地域の掲載社の機長の推定年収の単純平均。日本は地域ハブを別に置かず <a href="countries/japan.html">日本のページ</a>にまとめています。${name}の副操縦士の推定年収の平均は${man(r.foAvg)}（世界${NPUB}社では${man(WORLD_FO)}）。出どころを確認して表示を変えた会社は、この平均の材料に入れていません。`
-    : `Regional figures are the unweighted mean of captain averages for the airlines we list there. Japan has no separate regional hub — see the <a href="countries/japan.html">Japan page</a>. First officers in ${name} average ${man(r.foAvg)}, against ${man(WORLD_FO)} across the ${NPUB} airlines we publish an average for. Airlines whose sources we have checked and relabelled are left out of that mean.`}</p>
+    ? `※ 各地域の値は、その地域の掲載社の機長の推定年収の単純平均。日本は地域ハブを別に置かず <a href="countries/japan.html">日本のページ</a>にまとめています。${name}の副操縦士の推定年収の平均は${man(r.foAvg)}（世界${NPUB}社では${man(WORLD_FO)}）。出どころを確認して表示を変えた会社も、推定年収でこの平均に入っています。`
+    : `Regional figures are the unweighted mean of captain averages for the airlines we list there. Japan has no separate regional hub — see the <a href="countries/japan.html">Japan page</a>. First officers in ${name} average ${man(r.foAvg)}, against ${man(WORLD_FO)} across the ${NPUB} airlines we publish an average for. Airlines whose sources we have checked and relabelled are included in that mean at their estimated pay.`}</p>
 `}
 
     <h2 id="regions">${ja ? '他の地域と比べる' : 'Compare other regions'}</h2>

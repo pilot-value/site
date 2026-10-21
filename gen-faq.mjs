@@ -67,6 +67,9 @@ import { NO_FAQ } from './gen-airline-glance.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const DRY = process.argv.includes('--dry');
+/* ★機長と副操縦士を分けない額（運航乗務員の平均）の話をしている台帳の注は、答えに入れない（2026-10-21 P12.77）。
+   その額をどのページにも出さないので、額の無い「これは…の平均です」だけが答えに残らないように。 */
+const CREW_NOTE = /運航乗務(?:員|職)(?:\d+名)?(?:全体)?の(?:平均|額)|flight crew as a whole|\d+ flight crew, captains and first officers together/i;
 
 /* 通貨切替（currency.js）が拾える標準の円表記だけを使う。独自フォーマットは
    assert-currency / assert-jp が落ちる。CLAUDE.md「通貨表記のルール」。 */
@@ -251,7 +254,7 @@ function buildJaBasis(slug) {
        ★月額に12を掛けて年収にしない（オーナーが名指しで禁止）。無いと書く。 */
     const m = figJa(slug, rank, ['cash_m', 'base_m', 'allow_m_from', 'month']);
     const tail = `${r.groups[0]?.cond ? `${r.groups[0].cond}という条件が付きます。` : ''}`
-      + (b.notes[0] ? b.notes[0] : '')
+      + (b.notes[0] && !CREW_NOTE.test(b.notes[0]) ? b.notes[0] : '')
       + (acc ? `資料の確認日は${acc}です。` : '');
     /* ★2026-10-01 ── 会社自身が出した額を載せている職位にも、当サイトの推定を併記する
          （オーナー指示「**基本全て推定でいいじゃん**」）。併記しないと、題名が
@@ -469,7 +472,7 @@ function buildEnBasis(slug) {
       const y = figEn(slug, rank, f, Y_KEYS);
       if (y) parts.push(`For ${RANK_EN[rank]} we publish a ${TIERS[r.tier].en.toLowerCase()} rather than an average — ${y}. This is not an all-staff average.`);
     }
-    if (b.notes_en?.[0]) parts.push(b.notes_en[0]);
+    if (b.notes_en?.[0] && !CREW_NOTE.test(b.notes_en[0])) parts.push(b.notes_en[0]);
     if (acc) parts.push(`Source checked ${acc}; yen figures are converted for comparison at the rate held as of ${FX_AS_OF}, not a live rate.`);
     return parts.join(' ');
   };

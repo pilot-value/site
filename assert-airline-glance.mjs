@@ -249,8 +249,11 @@ const traineeModel = slug => {
   return ((b.trainee && b.trainee.groups) || []).filter(g => typeof g.start_m === 'number')
     .map(g => ({ group: g.name, text: `約${toMan(b.cur, g.start_m)}万円` }));
 };
-/* 目盛の右端：棒で出すいちばん大きい額（＝5社の推定年収）を 1,000万の刻みへ切り上げる。 */
-const AXIS = Math.ceil(Math.max(...FIVE.flatMap(s => RANKS.map(([rk]) => SALARY[s][rk].avg))) / 1000) * 1000;
+/* 目盛の右端：棒で出すいちばん大きい額（＝新しい会社ページを持つ会社（SWITCH ＝ GLANCE）の推定年収）を 1,000万の刻みへ切り上げる。
+   ★2026-10-21（全社へ広げる d1 の続き・同じ強さの当て直し）：全社へ広げる b の決まり「目盛は切り替えた会社ぜんぶから」（rollout.build.txt
+     WP-roll-b 4・P12.86-4「1つの目盛」）。先行5社だけの間は5社の最大と同じ答え（¥4,000万）。中東の会社（エミレーツ 機長 ¥3,700万 ほか）を
+     足して ¥5,000万 になった。棒の長さ・刻みの数・右端の字は、今までどおり1社ずつ正本（SALARY）から作り直して照合する。 */
+const AXIS = Math.ceil(Math.max(...GLANCE.flatMap(s => RANKS.map(([rk]) => SALARY[s][rk].avg))) / 1000) * 1000;
 const widthOf = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
 
 /* ══════════════════════════════════════════════════════════════════
@@ -6633,8 +6636,13 @@ async function runGG(browser, s, [w, h]) {
    ⚠️ 2本の JS は版の印なしで読まれる ＝ 最大4時間、片方だけ古いことがある。錠前の JS が無い（＝合図が無い）時、
       口コミの側は古いボタンのままで居る ── 錠前の JS を止めて確かめる。
    ここの口コミは、決まった返事（鍵の無い人に返る3件）で描かせる。本番の DB は読まない。 */
-const OLD_SAMPLE = 'emirates';
-const OLD_PATH = { ja: '/airlines/' + OLD_SAMPLE + '.html', en: '/en/airlines/' + OLD_SAMPLE + '.html' };
+/* ★2026-10-21（全社へ広げる d1・同じ強さの当て直し ── リード L2）：日本語のエミレーツは新しい会社ページになった（SWITCH）。
+   日本語の見本は、まだ旧い形のままで同じ面（給与の錠前2つ・「海外の評判」の鍵・口コミの一覧の鍵）を持つルフトハンザへ。
+   英語版は今までどおりエミレーツ（英語の会社ページはまだ旧い形）。測るものは1つも減らしていない。
+   ⚠️ 全社へ広げる d2 でルフトハンザも新しい形になる ── その回で、日本語の見本の置き場をリードが決める
+   （旧い形で同じ面を持つ日本語の会社ページは、d1 のあと american・delta・lufthansa・southwest・united の5枚で、どれも d2 の会社）。 */
+const OLD_SAMPLE = { ja: 'lufthansa', en: 'emirates' };
+const OLD_PATH = { ja: '/airlines/' + OLD_SAMPLE.ja + '.html', en: '/en/airlines/' + OLD_SAMPLE.en + '.html' };
 const OLD_PAY = { ja: '/pay-report.html', en: '/en/pay-report.html' };
 const OLD_POST = 'if(window.openReviewModal)openReviewModal()';
 const OLD_AT = { lock: '給与の錠前', voices: '概要の「海外の評判」の鍵', list: '口コミの一覧の鍵', dialog: '続きを読むの小窓' };
@@ -6674,7 +6682,7 @@ async function openOld(browser, lang, w, h, { block = '', stale = false } = {}) 
       const cors = { 'access-control-allow-origin': '*' };
       if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET,POST,HEAD,OPTIONS', 'access-control-allow-headers': r.headers()['access-control-request-headers'] || '*' } });
       seen.asked++;
-      if (REV_RE.test(u.pathname)) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: ratedBody(OLD_SAMPLE) });
+      if (REV_RE.test(u.pathname)) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: ratedBody(OLD_SAMPLE[lang]) });
       if (r.method() === 'HEAD' && OLD_COUNT_RE.test(u.pathname)) return r.respond({ status: 200, headers: { ...cors, 'access-control-expose-headers': 'content-range', 'content-range': '*/0' } });
       const hit = STUB.find(([re]) => re.test(u.pathname));
       if (hit && hit[0] === FACT_RE) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: factBody('') });
@@ -6735,7 +6743,7 @@ async function runGGOld(browser, lang, [w, h]) {
   const tag = `旧い形の会社ページ ${lang} ${w}（Give & Get のボタン）`;
   const lp = await ggBase(browser);
   if (!lp) { ok(false, `${tag}: トップページのいちばん上の黒いボタンを測れた（基準）`); return; }
-  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE + '.html');
+  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE[lang] + '.html');
   const nGate = (html.match(/class="premium-gate[" ]/g) || []).length;
   const { ctx, p, seen, ready } = await openOld(browser, lang, w, h);
   const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
@@ -6868,7 +6876,7 @@ async function runGGOld(browser, lang, [w, h]) {
    「古いボタンのまま」＝ 数だけでなく、字も押した先も今までと同じ（OLD_WAS・OLD_CLICK）。 */
 async function runGGOldOff(browser, lang, [w, h], block) {
   const tag = `旧い形の会社ページ ${lang} ${w}（${block === 'css' ? '形のファイルが読めない時' : block === 'empty' ? '形のファイルが空で届いた時' : '錠前の JS が無い時'}）`;
-  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE + '.html');
+  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE[lang] + '.html');
   const nGate = (html.match(/class="premium-gate[" ]/g) || []).length;
   const { ctx, p, ready } = await openOld(browser, lang, w, h, { block });
   try {

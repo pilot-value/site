@@ -159,26 +159,19 @@ const JA_ONLY = new Set(['career.html']);
    数値は式で埋めるので SSOT を更新して再実行すれば自動で追随する。
    ════════════════════════════════════════════════════════════════ */
 /* ★トップと読み物系の説明文に出す金額（2026-09-30）。
-   日本航空＝会社が公表した運航乗務員の平均年間給与／エミレーツ＝公式募集例の
-   直接入社機長の現金給与。どちらも台帳が「出してよい」と判定した額だけが返る。
-   確認中になれば null になり、下の文は**金額を1つも出さない側**へ落ちる。 */
-const jalCrew = basisMan('jal', 'crew');
-const emCash = basisMan('emirates', 'cap');
-const TOP_FIG = jalCrew && emCash;
+   ★2026-10-21 P12.77（オーナー「そもそも運行乗務員の平均年収で出してどうするの？機長、副操縦士のわかないと意味ないじゃん」）──
+     機長と副操縦士を分けない額（日本航空の運航乗務員の平均年間給与）は、どこにも出さない。その額と並べていた2つの文は、
+     金額を1つも出さない側の文（前からある字）にした。⚠️ basisMan(…, 'crew') をここへ戻さない。 */
 
 const COPY = {
   'index.html': {
     ja: { t: `パイロット年収ランキング｜世界${N}社を比較【2026年最新】`,
           d: `パイロット年収を世界${N}社で比較。`
-             + (TOP_FIG
-                ? `日本航空の運航乗務員の平均年間給与${man(jalCrew)}、エミレーツ公式募集例の機長現金給与${man(emCash)}。`
-                : `機長と副操縦士の給与、機種別・年次別の伸び方、日系と外資の手取りの差まで。`)
+             + `機長と副操縦士の給与、機種別・年次別の伸び方、日系と外資の手取りの差まで。`
              + `現役パイロットの口コミと海外求人も無料。` },
     en: { t: `Pilot Salary Comparison — ${N} Airlines Worldwide [2026]`,
           d: `Compare pilot pay at ${N} airlines worldwide. `
-             + (TOP_FIG
-                ? `Japan Airlines publishes a flight-crew average of ${usd(jalCrew)}; Emirates quotes a direct-entry Captain at ${usd(emCash)} in cash, tax-free.`
-                : `Captain and first officer pay, how it grows by fleet and seniority, reviews from working pilots, and overseas jobs.`) },
+             + `Captain and first officer pay, how it grows by fleet and seniority, reviews from working pilots, and overseas jobs.` },
   },
   'world-airlines.html': {
     ja: { t: `世界の航空会社パイロット年収一覧｜${N}社の給与を比較`,
@@ -211,9 +204,7 @@ const COPY = {
   'pilot-salary-guide.html': {
     ja: { t: 'パイロット年収完全ガイド2026｜機長・副操縦士の給与',
           d: `パイロット年収を国内外${N}社から解説。`
-             + (TOP_FIG
-                ? `日本航空の運航乗務員の平均年間給与は約${man(jalCrew)}（2025年3月期）、エミレーツの公式募集例は機長の現金給与が年約${man(emCash)}（非課税）。`
-                : `機長と副操縦士の差、機種別・年次別の伸び方、日系と外資の手取り比較まで、現役パイロットの投稿と公開資料で。`) },
+             + `機長と副操縦士の差、機種別・年次別の伸び方、日系と外資の手取り比較まで、現役パイロットの投稿と公開資料で。` },
     en: { t: 'Pilot Salary Guide 2026 — Captain & First Officer Pay',
           d: `What pilots actually earn, from ${N} airlines' data: the captain–first officer gap, how pay grows by fleet and seniority, and take-home at home vs overseas carriers.` },
   },
@@ -1052,7 +1043,8 @@ for (const rel of files) {
     };
     const basisSalary = () => {
       const out = [];
-      for (const rank of ['cap', 'fo', 'crew']) {
+      /* ★機長と副操縦士を分けない額（crew ＝ 運航乗務員の平均）は、検索向けの年収欄にも入れない（2026-10-21 P12.77） */
+      for (const rank of ['cap', 'fo']) {
         const r = BASIS[slug][rank];
         if (!r) continue;
         if (r.tier === 'estimate' && S[slug][rank]) {

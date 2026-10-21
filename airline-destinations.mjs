@@ -674,6 +674,26 @@ export const NETWORK = {
   },
 };
 
+/* ── 同じ日本語の名前の街が2つの国に在る空港（2026-10-21 全社へ広げる d1）──
+   オークランド（AKL ニュージーランド・OAK アメリカ）・マンチェスター（MAN イギリス・MHT アメリカ）。
+   ステイ先の一覧のカードと都市の面は、その名前のすぐ上に国を出す（今までどおり）。米国の空港は州も出す（placeCountry）。
+   米国の空港で名前が重なるものは、州をここに書く（無ければ check() が赤くする）。 */
+export const US_STATE = Object.freeze({ OAK: 'カリフォルニア州', MHT: 'ニューハンプシャー州' });
+const bareCity = c => String(c).replace(/（.*$/, '');
+let SHARED = null;
+/** 日本語の名前（かっこの前）が2つ以上の国の空港に在る名前の集まり */
+export const sharedNames = () => (SHARED ??= (() => {
+  const by = new Map();
+  for (const [city, , country] of Object.values(PLACES)) { const b = bareCity(city); by.set(b, (by.get(b) || new Set()).add(country)); }
+  return new Set([...by].filter(([, s]) => s.size > 1).map(([b]) => b));
+})());
+/** カード・都市の面の名前のそばに出す国の字。名前が別の国の空港と重なる米国の空港は「アメリカ・カリフォルニア州」 */
+export function placeCountry(iata) {
+  const p = PLACES[iata];
+  if (!p) return '';
+  return sharedNames().has(bareCity(p[0])) && US_STATE[iata] ? `${p[2]}・${US_STATE[iata]}` : p[2];
+}
+
 /* 画面に渡す形（会社ページを作る側はこれだけ呼ぶ）。台帳に無い会社は null。 */
 export function networkOf(slug) {
   const n = NETWORK[slug];
@@ -696,6 +716,9 @@ export function check() {
     else if (!regs.has(v[3])) bad.push(`PLACES.${k}: 地域「${v[3]}」が REGIONS に無い`);
   }
   for (const k of OVERLAP) bad.push(`RESEARCH_PLACES.${k}: 先行5社の PLACES に在る3字（呼び名は PLACES の1つだけ）`);
+  /* 名前が別の国の空港と重なる米国の空港には、州が要る（カードの国の字に出す） */
+  for (const [k, v] of Object.entries(PLACES)) if (Array.isArray(v) && v[2] === 'アメリカ' && sharedNames().has(bareCity(v[0])) && !US_STATE[k]) bad.push(`PLACES.${k}: 名前「${v[0]}」がほかの国の空港と同じ ── US_STATE に州が要る`);
+  for (const k of Object.keys(US_STATE)) if (!PLACES[k] || PLACES[k][2] !== 'アメリカ') bad.push(`US_STATE.${k}: 米国の空港ではない`);
   for (const [slug, n] of Object.entries(NETWORK)) {
     const at = `NETWORK.${slug}`;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(n.at)) bad.push(`${at}: 確かめた日が無い`);

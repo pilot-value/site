@@ -278,9 +278,11 @@ for (const slug of Object.keys(BASIS)) {
     /* ── H) 画面の出所が台帳と一致しているか ───────────────────
        ⚠️ 出所がこのサイト自身のページのこともある（スターラックスの採用試験ガイド）。
           そのときは本番の絶対URLを画面に書かず、相対リンクで指すのが正しい。
-          台帳の url が pilot-value.com なら、末尾のファイル名で照合する。 */
+          台帳の url が pilot-value.com なら、末尾のファイル名で照合する。
+       ★2026-10-21（全社へ広げる d1 の続き・同じ強さの当て直し）：生成器が書く会社ページはリンクの「&」を HTML の決まりどおり
+         「&amp;」で書く（中国東方航空の人材会社の求人 …detail.aspx?u=28&JobType=0）。同じ住所なので、その書き方でも在ると数える。 */
     const shownHere = (u) => {
-      if (html.includes(u)) return true;
+      if (html.includes(u) || html.includes(u.replace(/&/g, '&amp;'))) return true;
       const own = u.match(/^https?:\/\/(?:www\.)?pilot-value\.com\/(.+)$/);
       return !!own && new RegExp(`href="[^"]*${own[1].split('/').pop()}"`).test(html);
     };

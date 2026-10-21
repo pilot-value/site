@@ -17,7 +17,7 @@
         カードの字に、調べた側の字（label_ja・cond_ja）が無い（107社の読み口で・L1）／airline-display.mjs の字は台帳の今の行と合っている（古い字は出ない）
      C  今のページの古い節（107枚ぜんぶ）が台帳に在る。先行5社ではない会社では「よくある質問」と検索向けの読み物を外さない。
         外すのは、新しい部品がその話を出せるときだけ。どの会社も読み口（viewOf）が通る。
-     D  写しの中で3社（ブリティッシュ・エアウェイズ、南アフリカ航空・シンセントラル航空 ＝ 台帳の待遇に過去の行がある会社）を切り替えて流す:
+     D  写しの中で3社（ブリティッシュ・エアウェイズ、フィジー航空・ニュージーランド航空 ＝ 台帳に過去・参考の行がある会社。d1・d2 の途中でも切り替えない3社）を切り替えて流す:
         2回めは「✓ 変更なし」／「よくある質問」と FAQPage が同じ字で残る／<head> は部品の <link> の塊のほかは同じ／
         海外の評判のカードの部品を読んだまま／残す節は残り外す節は無い／推定年収は SALARY・乗員全体の平均は出ない／
         資料が無い所は今までの字／調べた側の字がページに無い／過去・参考の行は札つきでだけ出て、勤務・待遇のカードの1行めは
@@ -41,12 +41,15 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
-import { LEAD, SAMPLES, SWITCH, SHOWN, why, research } from './airline-rollout.mjs';
+import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts } from './airline-rollout.mjs';
 import { GLANCE, AXIS, viewOf } from './pv-airline-view.mjs';
 import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml } from './gen-airline-glance.mjs';
-import { LINES, CITY, say, check as displayCheck } from './airline-display.mjs';
+import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck } from './airline-display.mjs';
+import { logoHtml as sharedLogo, measureAll } from './airline-logo.mjs';
+import { LOGO_SIZES } from './airline-logo-sizes.mjs';
+import { unsupported as claimsLeft, claimsIn } from './airline-claims.mjs';
 import { LIVING } from './living-facts.mjs';
-import { PLACES } from './airline-destinations.mjs';
+import { PLACES, US_STATE, sharedNames } from './airline-destinations.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 let pass = 0, failN = 0;
@@ -76,7 +79,19 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   ok(!missing.length, 'A SWITCH の会社ページには新しい会社ページの印が在る（流し忘れが無い）', missing.join(','));
   let stale = [];
   try { stale = SWITCH.filter(s => build(s, ORIG[s]) !== ORIG[s]); } catch (e) { stale = [String(e.message)]; }
-  ok(!stale.length && same(SWITCH, [...LEAD, ...SAMPLES]), `A 新しい会社ページ（SWITCH ＝ 先行5社＋見本 ${SAMPLES.join('・')}）は gen-airline-glance.mjs の出力と1文字も違わない`, stale.join(','));
+  ok(!stale.length && same(SWITCH, [...LEAD, ...SAMPLES, ...WIDE]) && !SWITCH.includes('spirit'), `A 新しい会社ページ（SWITCH ＝ 先行5社＋見本 ${SAMPLES.join('・')}＋全社へ広げる ${WIDE.length}社。スピリットは入れない）は gen-airline-glance.mjs の出力と1文字も違わない`, stale.join(','));
+  /* L-LOGO（リード P12.86-2）：社名の左の札は airline-logo.mjs の1か所が描く ── どの新しい会社ページの札も、その関数の答えと1文字も違わない。
+     札の大きさの表（airline-logo-sizes.mjs）は、ロゴの絵を計り直した答えと同じ。ページを作るときは画像を1つも読まない。 */
+  {
+    const off = SWITCH.filter(s => { const m = /<div class="pvg-name">\n(<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span>)<h1>/.exec(block(ORIG[s], 'PV-HERO')); return !m || m[1] !== sharedLogo(viewOf(s)); });
+    ok(!off.length && logoHtml === sharedLogo, `A L-LOGO: 新しい会社ページ（${SWITCH.length}枚）の社名の左の札は、airline-logo.mjs の logoHtml の答えと1文字も違わない（生成器も同じ関数を読む）`, off.join(','));
+    const now = measureAll(), diff = Object.keys({ ...now, ...LOGO_SIZES }).filter(s => JSON.stringify(now[s]) !== JSON.stringify(LOGO_SIZES[s]));
+    ok(Object.keys(now).length === Object.keys(LOGOS).length && !diff.length, `A L-LOGO: 札の大きさの表（airline-logo-sizes.mjs・${Object.keys(LOGO_SIZES).length}社）は、ロゴの絵を計り直した答えと同じ`, diff.join(','));
+    const fsx = fs.readFileSync, read0 = [];
+    fs.readFileSync = function (p, ...a) { if (/assets[\\/]airline-logos[\\/]/.test(String(p))) read0.push(String(p)); return fsx.call(this, p, ...a); };
+    try { build('skymark', ORIG.skymark); build('jal', ORIG.jal); } finally { fs.readFileSync = fsx; }
+    ok(!read0.length, 'A L-LOGO: 会社ページを作るとき、ロゴの絵のバイトを1つも読まない（大きさは表から）', read0.slice(0, 3).join(','));
+  }
   /* 社名の左横のロゴ（オーナー 2026-10-21）：h1 のすぐ前（間に何も挟まない）に、その会社のロゴの札。ロゴの無い会社は頭文字の札。 */
   const NO_LOGO = ['asiana', 'daiichi-air', 'toho-air', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'eurowings'];
   const logoBad = SWITCH.filter(s => {
@@ -92,12 +107,30 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
     `A ロゴのファイルが無い${NO_LOGO.length}社（${NO_LOGO.join('・')}）は、同じ場所に会社の色の頭文字の札（絵を取りに行かない）`, mono.join(','));
   /* P12.77：機長と副操縦士を分けない額（運航乗務員・運航乗務職の平均）は、SWITCH のどのページにも無い（題・説明・構造化データ・本文）。
      seo-normalize.mjs が元の題名を預けている注記（<!--PV-SRC …-->）は画面にも検索にも出ないので見ない。 */
-  const CREW_TXT = /運航乗務(?:員|職)(?:\d+名)?(?:全体)?の平均(?!年齢)|乗員全体の平均|data-kind="crew"/;   // 「運航乗務員の平均年齢」は年収ではない
+  const CREW_TXT = /運航乗務(?:員|職)(?:\d+名)?(?:全体)?の平均(?!年齢)|乗員全体の平均|data-kind="crew"|運航乗務員（機長と副操縦士）|Flight crew \(captains and first officers\)|[Ff]light[- ][Cc]rew [Aa]verage|flight crew as a whole/;   // 「運航乗務員の平均年齢」は年収ではない
   const crewPages = SWITCH.filter(s => CREW_TXT.test(ORIG[s].replace(/<!--PV-SRC[\s\S]*?-->/g, '')));
-  ok(!crewPages.length, `A 機長と副操縦士を分けない平均（運航乗務員の平均）を、新しい会社ページ（${SWITCH.length}枚）のどこにも書かない（題・説明・構造化データ・本文 ── P12.77）`,
-    crewPages.map(s => `${s}: ${(ORIG[s].replace(/<!--PV-SRC[\s\S]*?-->/g, '').match(new RegExp(`.{0,24}(${CREW_TXT.source}).{0,16}`)) || [''])[0]}`).join(' ／ '));
+  /* 2026-10-21 d1：英語版の JAL・スカイマーク・ANA と career.html も（P12.77 の残り）── 構造化データの年収欄の名前「運航乗務員（機長と副操縦士）」も数える */
+  for (const p of ['en/airlines/jal.html', 'en/airlines/skymark.html', 'en/airlines/ana.html', 'career.html']) if (CREW_TXT.test(read(p).replace(/<!--PV-SRC[\s\S]*?-->/g, ''))) crewPages.push(p);
+  ok(!crewPages.length, `A 機長と副操縦士を分けない平均（運航乗務員の平均）を、新しい会社ページ（${SWITCH.length}枚）・英語版の JAL／スカイマーク／ANA・career.html のどこにも書かない（題・説明・構造化データ・本文 ── P12.77）`,
+    crewPages.map(s => `${s}: ${((ORIG[s] || read(s)).replace(/<!--PV-SRC[\s\S]*?-->/g, '').match(new RegExp(`.{0,24}(${CREW_TXT.source}).{0,16}`)) || [''])[0]}`).join(' ／ '));
   const want = Math.ceil(Math.max(...SWITCH.flatMap(s => ['cap', 'fo'].map(r => SALARY[s][r].avg))) / 1000) * 1000;
   ok(AXIS === want, `A 棒の目盛の右端は SWITCH の全社の推定のいちばん大きい額から（${want}万）`, `AXIS=${AXIS}`);
+  /* 同じ日本語の名前の街が2つの国に在る空港（オークランド AKL・OAK／マンチェスター MAN・MHT ── 2026-10-21 d1）：ステイ先のカードは、
+     その名前のすぐ上に国を出す（都市の面はカードの字を読む）。米国の空港は州も（「アメリカ・カリフォルニア州」）。名前が重なる米国の空港には州が要る。 */
+  {
+    const shared = new Set(Object.values(PLACES).map(p => String(p[0]).replace(/（.*$/, '')).filter((b, i, a) => a.indexOf(b) !== i)), bad = [];
+    const byName = {}; for (const [c, p] of Object.entries(PLACES)) (byName[String(p[0]).replace(/（.*$/, '')] ??= new Set()).add(p[2]);
+    const dup = new Set([...shared].filter(b => byName[b].size > 1));
+    ok(dup.has('オークランド') && dup.has('マンチェスター') && same([...sharedNames()].sort(), [...dup].sort()), 'A 名前が2つの国に在る街（オークランド・マンチェスター）を台帳から数える', [...dup].join('・'));
+    for (const [c, p] of Object.entries(PLACES)) if (p[2] === 'アメリカ' && dup.has(String(p[0]).replace(/（.*$/, '')) && !US_STATE[c]) bad.push(`${c}: 州が無い`);
+    for (const s of SWITCH) for (const m of ORIG[s].matchAll(/<a class="pvg-town pvg-city" href="#stay-([A-Z]{3})"[^>]*>[\s\S]*?<span class="pvg-city-k"><small>([^<]*)<\/small>[\s\S]*?<b class="pvg-town-n">((?:[^<]|<wbr>)*)<\/b>/g)) {
+      const [, c, small] = m, p = PLACES[c];
+      if (!p || !dup.has(String(p[0]).replace(/（.*$/, ''))) continue;
+      const want = p[2] === 'アメリカ' ? `${p[2]}・${US_STATE[c]}` : p[2];
+      if (small !== want) bad.push(`${s}:${c}「${small}」（${want} のはず）`);
+    }
+    ok(!bad.length, 'A 名前が別の国の空港と重なる街のカードは、名前のすぐ上に国（米国の空港は州も）を出す', bad.slice(0, 5).join(' ／ '));
+  }
   let refused = '';
   try { build(OTHER.find(s => !SWITCH.includes(s)), ORIG[OTHER.find(s => !SWITCH.includes(s))]); } catch (e) { refused = e.message; }
   ok(/SWITCH に無い/.test(refused), 'A 生成器は SWITCH に無い会社のページを作らない（断る）', refused || '作ってしまった');
@@ -169,15 +202,26 @@ const hasText = (hay, t) => {
   const edge = ch => new RegExp(`[${LAT}]`).test(ch);
   return new RegExp(`${edge(t[0]) ? `(?<![${LAT}])` : ''}${e}${edge(t[t.length - 1]) ? `(?![${LAT}])` : ''}`).test(hay);
 };
+/* 2026-10-21 d1（L1 の当て直し・同じ強さ）：調べた側の字のうち、その行の引用（資料そのものの字）にそのまま在る字は、資料の言葉
+   （制度・型式・保険の名前 ──「確定拠出年金」「JALレジャートラベル制度」「AW139」）。カードがその名前を使うのは調べた側の言い回しではない。
+   引用に無い字（「2026FOUGの通勤費」「機長/FO募集の保険」「SH協約」）は今までどおり赤い。 */
+const sourceWord = (r, t) => !!r && (r.evidence || []).some(e => String(e.quote || '').includes(t));
+/* 就航地の行の名前が、サイトの空港の呼び名の表（PLACES）の名前の語（「New Chitose」は「Sapporo (New Chitose)」の語）なら、それはサイトの表の字（カードの英語名はその表から出る） */
+const placeWord = (r, t) => !!r && typeof r.value === 'string' && !!PLACES[r.value] && [PLACES[r.value][0], PLACES[r.value][1]].some(n => hasText(String(n), t));
 /* ページの字（タグを外す ＝ 属性の中の字を数えない） */
 const textOf = h => h.replace(/<[^>]*>/g, ' ').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+/* L1 で見る字：出どころの欄（<p|dd class="pvg-srcs">）を除いたページの字（2026-10-21 d1・L1 の当て直し・同じ強さ）。
+   出どころの欄は資料の名前を「発行元「題」」の形で引用する所で、資料自身の言葉が出てよい唯一の所（リード L1）。
+   機材の型式を字の表で出せるようになり、ビジネスジェットの会社の求人の題「Gulfstream GV Captain – Van Nuys, CA」が出どころに並ぶと、
+   型式の名前（調べた側の label_ja「Gulfstream GV」）が題の中の字として当たっていた。カードの名前・値・前提の字は今までどおり全部見る。 */
+const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/g, ' '));
 {
   const hit = [];
   for (const s of OTHER) {
     const byId = new Map(rowsOf(s).map(r => [r.id, r])), v = V[s];
     for (const f of [...v.work, ...v.benefits, ...v.jobs, ...v.company.profile, ...v.company.scale, ...v.company.fleet, ...v.base.rows]) {
       const r = byId.get(f.id), card = [f.label, f.value, f.cond].map(String).join('\n');
-      for (const t of r ? RESEARCHER(r) : ['(台帳に無い行)']) if (card.includes(t)) hit.push(`${s}:${f.id}「${t.slice(0, 24)}」`);
+      for (const t of r ? RESEARCHER(r) : ['(台帳に無い行)']) if (card.includes(t) && !sourceWord(r, t)) hit.push(`${s}:${f.id}「${t.slice(0, 24)}」`);
     }
   }
   ok(!hit.length, `B カードの字（${OTHER.length}社の読み口）に、調べた側の字（label_ja・cond_ja・調べた側の値の文）が無い（L1）`, hit.slice(0, 5).join(' ／ '));
@@ -212,14 +256,40 @@ const textOf = h => h.replace(/<[^>]*>/g, ' ').replace(/&quot;/g, '"').replace(/
   ok(!wrong.length, 'C 古い節を外すのは、新しい部品がその話を出せるとき（needs の全部）だけ', wrong.slice(0, 6).join(' ／ '));
   const lead = LEAD.flatMap(s => LEGACY.map(r => [s, r, legacyAct({ slug: s }, r)])).filter(([, r, a]) => a !== (r.state === 'keep' ? 'keep' : 'drop'));
   ok(!lead.length, 'C 先行5社の古い節の決め方は今までどおり（keep 以外は外す・「よくある質問」も外す）', lead.map(([s, r]) => `${s}:${r.name}`).join(','));
+  /* 2026-10-21 d1（リード「古い節を外すのは、新しいページが同じ話を言えるときだけ」）── 話題ごとに、ほかの話の行だけでは外れない。
+     作り物の読み口（先行5社ではない会社の形）で見る：ほかの話の公表だけが在る → 残す／同じ話の公表が在る → 外す。 */
+  {
+    const fake = (work = [], benefits = [], jobs = []) => ({ slug: 'zz-fake', rollout: true, work, benefits, jobs, company: { intro: [], fleet: [], profile: [], scale: [] } });
+    const F = (key, tag = '') => ({ key, label: key, value: 'x', tag, src: { kind: 'company' } });
+    const row = name => [...LEGACY, ...LEGACY_REST].find(r => r.name === name);
+    const act = (name, v) => legacyAct(v, row(name));
+    const cases = [
+      ['訓練・昇格・審査', fake([F('annual_days_off'), F('roster_pattern'), F('working_time')], [F('commuting'), F('staff_travel')]), 'keep', '休日・ロスターの型・勤務時間・通勤・Staff Travel の公表だけ'],
+      ['訓練・昇格・審査', fake([F('training_location', '過去')]), 'keep', '訓練の場所の行が過去の札つきだけ'],
+      ['訓練・昇格・審査', fake([F('annual_days_off'), F('training_location')]), 'drop', '訓練の場所の公表が在る'],
+      ['訓練・昇格・審査', fake([F('upgrade_years')]), 'drop', '昇格の公表が在る'],
+      ['福利厚生・待遇', fake([F('annual_days_off')]), 'keep', '勤務の公表だけ'],
+      ['福利厚生・待遇', fake([], [F('medical')]), 'drop', '待遇の公表が在る'],
+      ['募集要項・採用情報', fake([F('annual_days_off')], [F('medical')]), 'keep', '募集の行が無い'],
+      ['募集要項・採用情報', fake([], [], [F('entry_open')]), 'drop', '募集の行が在る'],
+      ['応募要件の目安', fake([], [], [F('entry_open'), F('pilot_employment')]), 'keep', '募集の受付・雇用の形の行だけ（応募の要件ではない）'],
+      ['応募要件の目安', fake([], [], [F('requirements')]), 'drop', '応募の要件の行が在る'],
+    ];
+    const bad = cases.filter(([n, v, want]) => !row(n) || act(n, v) !== want).map(([n, , want, why]) => `${n}（${why}）→ ${want} のはずが ${row(n) ? act(n, cases.find(c => c[0] === n && c[3] === why)[1]) : '台帳に無い'}`);
+    ok(!bad.length, `C 古い節は話題ごとに、同じ話の公表が在るときだけ外す（${cases.length}通り：訓練・昇格／福利厚生／募集要項／応募要件）`, bad.join(' ／ '));
+    /* 実際のページ：a2 で休日の行だけで消えたスカイマークの「訓練・昇格システム」は、残っている（昇格・訓練の公表が無い） */
+    ok(/<h2 class="text-2xl font-bold mb-6">訓練・昇格システム<\/h2>/.test(ORIG.skymark) && !legacyReady.career(viewOf('skymark')), 'C スカイマークの古い節「訓練・昇格システム」は残っている（新しいページに昇格・訓練の公表が無い）');
+  }
 }
 
 /* ═══ D) 写しの中で2社を切り替える ═══ */
 /* PV_ROLLOUT_TRY=all（か会社の ID をカンマで）── 調べるときだけ、写しの中で切り替える会社を替える。
-   既定は見本の2社と、台帳の待遇が過去の行だけの1社（南アフリカ航空 ── 過去の行が今の待遇の1行めになっていた会社）。
+   既定はまだ切り替えていない3社（ブリティッシュ・エアウェイズと、台帳に過去・参考の行を持つフィジー航空・ニュージーランド航空）。
+   2026-10-21 d1：それまでのシンセントラル航空は SWITCH に入った（リポジトリの E で見る）。南アフリカ航空は d1 の後半（中東・アフリカ）で入るので、
+   どちらも外し、d2（ヨーロッパ・オセアニア）まで切り替えない3社にした。南アフリカ航空は切り替えるまで PV_ROLLOUT_TRY=all が写しで見る。
    ⚠️ 既定でない回は、目盛の段（額の大きい会社を足す）と「先行5社は島の1行だけ」を見ない（切り替える会社しだいで目盛が動くため）。 */
 const SWEEP = process.env.PV_ROLLOUT_TRY || '';
-const TRY = (SWEEP === 'all' ? OTHER : SWEEP ? SWEEP.split(',') : ['british-airways', 'south-african-airways', 'shin-central']).filter(s => !SWITCH.includes(s));
+const TRY = (SWEEP === 'all' ? OTHER : SWEEP ? SWEEP.split(',') : ['british-airways', 'fiji-airways', 'air-new-zealand']).filter(s => !SWITCH.includes(s));
 /* 過去・参考の行（why は通る・字の長さが4字から）。下の2つの段が見る */
 const wordlessOf = s => rowsOf(s).filter(r => (r.use === '過去' || r.use === '参考') && !why(r) && typeof r.label_ja === 'string' && r.label_ja.length > 3);
 const cellOf2 = (g, id) => (g.match(new RegExp(`<article class="pvg-card pvg-cell" data-cell="${id}"[\\s\\S]*?</article>`)) || [''])[0];
@@ -227,7 +297,7 @@ const htmlEsc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&l
 const htmlText = h => h.replace(/<span[^>]*>[\s\S]*?<\/span>/g, '').replace(/<[^>]*>/g, '').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
 const T = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-rollout-'));
 try {
-  ok(SWEEP ? TRY.length > 0 : TRY.length === 3, SWEEP ? `D 写しの中で切り替える会社（${TRY.length}社）` : 'D 写しで切り替える3社（ブリティッシュ・エアウェイズ・南アフリカ航空・シンセントラル航空）は、まだ SWITCH に無い', TRY.join(','));
+  ok(SWEEP ? TRY.length > 0 : TRY.length === 3, SWEEP ? `D 写しの中で切り替える会社（${TRY.length}社）` : 'D 写しで切り替える3社（ブリティッシュ・エアウェイズ・フィジー航空・ニュージーランド航空）は、まだ SWITCH に無い', TRY.join(','));
   if (!SWEEP) ok(TRY.some(s => wordlessOf(s).length), 'D 写しで切り替える会社に、台帳に過去の行を持つ会社が在る（過去・参考の段が空振りしない）', TRY.map(s => `${s}:${wordlessOf(s).length}`).join(','));
   /* 写し：上の段はリンク。会社ページのフォルダは本物のフォルダ（ページは本物の写し）。生成の道すじのモジュールと台帳は本物の写し。 */
   const COPY = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs'];
@@ -241,10 +311,10 @@ try {
     if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, 'airlines', b), path.join(T, 'airlines', b));
     else fs.symlinkSync(path.join(HERE, 'airlines', b), path.join(T, 'airlines', b));
   }
-  const sw = path.join(T, 'airline-rollout.mjs'), SW = 'export const SWITCH = Object.freeze([...LEAD, ...SAMPLES]);';
+  const sw = path.join(T, 'airline-rollout.mjs'), SW = 'export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);';
   const swText = fs.readFileSync(sw, 'utf8');
   ok(swText.split(SW).length === 2, 'D 切り替えの1行（SWITCH）が写しの中にちょうど1つ');
-  fs.writeFileSync(sw, swText.replace(SW, () => `export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ${TRY.map(s => `'${s}'`).join(', ')}]);`));
+  fs.writeFileSync(sw, swText.replace(SW, () => `export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE, ${TRY.map(s => `'${s}'`).join(', ')}]);`));
   /* ブリティッシュ・エアウェイズの5行に、写しの中だけで試しの字（airline-display.mjs の LINES）を置く ── 下の「使い方を替える」段が、
      ページに出ている行で試せるように（本物の字の表には、見本の2社の行しか無い）。h は台帳の本物の行のもの。 */
   const BA_TRY = TRY.includes('british-airways') ? Object.entries(R.FACTS['british-airways'] || {}).filter(([sec]) => ['benefits', 'jobs'].includes(sec))
@@ -260,7 +330,7 @@ try {
     ok(/<!--PV-HERO-->/.test(b) && g && /data-pv-glance="1"/.test(b) && /id="pvg-tabs"/.test(b), `D ${s}: 新しい会社ページの塊とタブが在る`);
     ok(/<div class="pvg-name">\n<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span><h1>/.test(block(b, 'PV-HERO')), `D ${s}: 社名（h1）のすぐ左にロゴの札`);
     {
-      const gt = textOf(g), rs = rowsOf(s).filter(r => !why(r)), seen = rs.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
+      const gt = cardText(g), rs = rowsOf(s).filter(r => !why(r)), seen = rs.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
       ok(!seen.length, `D ${s}: 新しい部品の字に、調べた側の字（label_ja・cond_ja・調べた側の値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
       const v = viewOf(s), pr = [...v.work, ...v.benefits, ...v.jobs, ...v.company.profile, ...v.company.scale].filter(f => f.use === '過去' || f.use === '参考');
       const untagged = pr.filter(f => !g.includes(`${htmlEsc(f.label)}${f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : ''}<span class="pvg-tag pvg-tag-q" data-use="${f.use}">${f.use}</span>`));
@@ -292,6 +362,9 @@ try {
       benefits: () => !!cellOf('benefits') && !cellOf('benefits').includes('会社が公表している待遇を確認できていません'),
       jobs: () => /<article class="pvg-card pvg-jobs"/.test(g) && !g.includes('会社が公表している募集を確認できていません。'),
       compare: () => /pvg-btn-cmp/.test(block(b, 'PV-HERO')),
+      /* 勤務・訓練の「昇格・訓練」の面に、公表の一覧が在る（「会社の公表は確認できていません」ではない） */
+      career: () => { const m = /<section class="pvg-sf" data-sf="career"[\s\S]*?<\/section>/.exec(g); return !!m && /<div class="pvg-sf-pub">/.test(m[0]); },
+      req: () => /<article class="pvg-card pvg-jobs"/.test(g) && !g.includes('会社が公表している募集を確認できていません。'),
     };
     /* rest:'drop'（出してはいけない額を載せた節 ── P12.77）は、新しい部品を待たずに外す（理由は台帳の rest_why） */
     const early = plan.filter(p => p.act === 'drop' && p.row.rest !== 'drop' && !(p.row.needs || []).every(n => SHOWS[n] && SHOWS[n]())).map(p => `${p.title}（${p.row.needs}）`);
@@ -380,17 +453,19 @@ try {
   fs.rmSync(T, { recursive: true, force: true });
 }
 
-/* ═══ E) リポジトリで切り替えた見本の会社（SAMPLES）のページそのもの ═══
-   どれも「画面に出る字・数・言い分が本当か」（RULING O の A(3)）。写しではなく、リポジトリのページを読むだけ。 */
+/* ═══ E) リポジトリで切り替えた会社（先行5社ではない SWITCH ＝ 見本の2社＋全社へ広げる d1 の会社）のページそのもの ═══
+   どれも「画面に出る字・数・言い分が本当か」（RULING O の A(3)）。写しではなく、リポジトリのページを読むだけ。
+   2026-10-21 d1：見本の2社だけだった段を、切り替えた会社ぜんぶへ広げた（台帳に無い部分は、無いときの決まりの字を見る）。 */
+const ROLLED = SWITCH.filter(s => !LEAD.includes(s));
 const dateJa = iso => String(iso).replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
 const A2N = { hq: 0, days: 0 };
-for (const s of SAMPLES) {
+for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);
   /* L1：調べた側の字が新しい部品に無い（会社の事実・就航地・暮らしの街の行ぜんぶ） */
   const R2 = research(), cities = (R2.CITY_OF || {})[s] || [];
   const all = [...rowsOf(s), ...(((R2.NETWORK || {})[s] || {}).list || []), ...cities.flatMap(c => ['rents', 'commute'].flatMap(k => ((R2.LIVING || {})[c] || {})[k] || []))];
-  const gt = textOf(g), seen = all.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
-  ok(all.length >= 5 && !seen.length, `E ${s}: 新しい部品の字に、調べた側の字（台帳の ${all.length}行の label_ja・cond_ja・値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
+  const gt = cardText(g), seen = all.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
+  ok(all.length >= (SAMPLES.includes(s) ? 5 : 1) && !seen.length, `E ${s}: 新しい部品の字に、調べた側の字（台帳の ${all.length}行の label_ja・cond_ja・値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
   const big = [...g.matchAll(/<p class="pvg-big">([^<]*)<\/p>/g)].map(m => m[1]);
   ok(same(big, ['cap', 'fo'].map(r => `¥${SALARY[s][r].avg.toLocaleString('en-US')}万`)), `E ${s}: 推定年収は SALARY の avg（機長・副操縦士）`, big.join(' ／ '));
   /* P12.77：乗員全体の平均を説明している年収の根拠の注（台帳 BASIS の注）は、ページに1つも出ない。どれがそうかは検査の側で書く
@@ -409,7 +484,11 @@ for (const s of SAMPLES) {
      ★本拠地（その会社の拠点の空港）は一覧に入れない ── 先行5社と同じ（airline-destinations.mjs の home・db/stays.sql「本拠地は入れない」）。
      出してよい空港は台帳から数える（読み口の答えを使わない）：就航地の行のうち why を通り PLACES に在る3字から、台帳の拠点の行の3字を引いた残り。
      残りが無い会社は、今までの「…確認してから開きます。」で一覧を置かない（カンタスの1空港 SYD は拠点だった）。 */
-  const homes = [...new Set((((R2.FACTS || {})[s] || {}).base || []).filter(r => SHOWN.includes(r.use)).map(r => String(r.value)).filter(c => /^[A-Z]{3}$/.test(c)))];
+  /* 拠点：台帳の拠点の空港の行（出せる使い方）。空港の行が無く拠点の街の行だけの会社は、その街の空港（PLACES の街の名前が同じ空港 ── 2026-10-21 d1） */
+  const baseRows = (((R2.FACTS || {})[s] || {}).base || []).filter(r => SHOWN.includes(r.use));
+  const homeIata = [...new Set(baseRows.map(r => String(r.value)).filter(c => /^[A-Z]{3}$/.test(c)))];
+  const homeCity = homeIata.length ? [] : [...new Set(baseRows.filter(r => r.key === 'pilot_base_city').map(r => say(r)).filter(Boolean).map(d => d.value))];
+  const homes = [...homeIata, ...Object.entries(PLACES).filter(([, p]) => homeCity.includes(String(p[0]).replace(/（.*$/, ''))).map(([c]) => c)];
   const fromLedger = [...new Set((((R2.NETWORK || {})[s] || {}).list || []).filter(r => !why(r)).map(r => r.value).filter(c => typeof c === 'string' && PLACES[c]))];
   const wantNet = fromLedger.filter(c => !homes.includes(c));
   /* 見る範囲：一覧が在るはずの会社は就航地の板から都市の面のホテルの前まで（都市の面の「公式の就航地」の字も見る）・無いはずの会社は板だけ */
@@ -417,9 +496,9 @@ for (const s of SAMPLES) {
   const st = sa < 0 ? '' : g.slice(sa, wantNet.length && sh > sa ? sh : g.indexOf('</article>', sa));
   const n = net ? net.list.length : 0, codes = [...st.matchAll(/<ul class="pvg-cgrid" id="pvg-st-list">([\s\S]*?)<\/ul>/g)].flatMap(m => [...m[1].matchAll(/data-city="([A-Z]{3})"/g)].map(x => x[1]));
   const shownHome = [...st.matchAll(/data-city="([A-Z]{3})"/g)].map(x => x[1]).filter(c => homes.includes(c));
-  ok(homes.length > 0 && !shownHome.length && !(net && net.list.some(d => homes.includes(d.iata))),
+  ok((homes.length > 0 || !net) && !shownHome.length && !(net && net.list.some(d => homes.includes(d.iata))),
     `E ${s}: 就航地の一覧に、その会社の拠点の空港（${homes.join('・')}）が無い（本拠地は一覧に入れない ── 先行5社と同じ）`, `出ている拠点 ${[...new Set(shownHome)].join(',')}`);
-  if (wantNet.length) {
+  if (wantNet.length && NET[s]) {
     ok(!!net && net.partial && n === wantNet.length && same([...codes].sort(), [...wantNet].sort()) && st.includes(`調べで確かめた就航地・${n}空港・${dateJa(net.at)}時点です。`) && st.includes(`調べで確かめた就航地を見る（${n}空港）`)
       && !/会社全体の就航地|公式の就航地/.test(st), `E ${s}: 就航地は「調べで確かめた就航地・${wantNet.length}空港・日付」と言い、「会社全体の就航地」「公式の就航地」と言わない（一覧も台帳の ${wantNet.length}空港）`, `一覧 ${codes.join(',')} ／ 台帳 ${wantNet.join(',')}`);
   } else {
@@ -438,19 +517,23 @@ for (const s of SAMPLES) {
     const dayRows = (F.work || []).filter(r => r.key === 'annual_days_off' && okRow(r) && r.src[0].publisher_kind === 'airline' && r.use === '条件つき');
     const miss = [];
     if (hqWant && !co.includes(`<dt>本社</dt><dd>${htmlEsc(say(hqWant).value)}</dd>`)) miss.push(`会社の欄に「本社 ${say(hqWant).value}」が無い`);
-    if ((co.match(/<dt>本社<\/dt>/g) || []).length !== (hqWant ? 1 : 0)) miss.push(`会社の欄の「本社」が ${(co.match(/<dt>本社<\/dt>/g) || []).length}行`);
-    for (const r of dayRows) if (!/<p class="pvg-k">休日<\/p>|<dt>休日/.test(workHtml) || !workHtml.includes(htmlEsc(say(r).value))) miss.push(`勤務の欄に「休日 ${say(r).value}」が無い`);
+    /* 本社は1行（国と街の2行にしない）。会社の1枚の表（開かずに見える値・開いた「会社情報」の表）ごとに数える ── 2026-10-21 d1：
+       会社の数字から「会社全体の制度」の札を外したので、2つの表の「本社」が同じ字になった（前は札の有無で表面の1行だけを数えていた） */
+    const hqPer = [...co.matchAll(/<dl class="pvg-[a-z]+">[\s\S]*?<\/dl>/g)].map(m => (m[0].match(/<dt>本社<\/dt>/g) || []).length);
+    if (hqPer.some(n => n > 1) || (hqWant ? !hqPer.some(n => n === 1) : hqPer.some(n => n > 0))) miss.push(`会社の欄の「本社」が 表ごとに ${hqPer.join('・')}行`);
+    /* 名前は「休日」か、誰の条件かを頭に付けた「機長の休日」「訓練生の休日」（2026-10-21 d1） */
+    for (const r of dayRows) if (!/<p class="pvg-k">(?:機長の|副操縦士の|訓練生の)?休日<\/p>|<dt>(?:機長の|副操縦士の|訓練生の)?休日/.test(workHtml) || !workHtml.includes(htmlEsc(say(r).value))) miss.push(`勤務の欄に「${say(r).label} ${say(r).value}」が無い`);
     A2N.hq += hqRows.length; A2N.days += dayRows.length;
     ok(!miss.length, `E ${s}: a2 の置き場の行（本社 ${hqRows.length}行・年間休日 ${dayRows.length}行）は、字の表の字で会社の欄・勤務の欄に出る（本社は1行）`, miss.join(' ／ '));
   }
   /* 機材：型式だけ（数を作らない・型式の数を「◯機種」と言わない） */
   const fl = (g.match(/<div class="pvg-fleet">[\s\S]*?<\/ul><\/div>/) || [''])[0], chips = (fl.match(/<li /g) || []).length;
-  ok(chips === v.company.fleet.length && chips > 0 && !/<b>|機種|\d+機/.test(fl), `E ${s}: 機材は型式の札だけ（${chips}つ・機数も「◯機種」も書かない）`, fl.replace(/<[^>]+>/g, ' ').slice(0, 120));
+  ok(chips === v.company.fleet.length && (chips > 0 || !SAMPLES.includes(s)) && !/<b>|機種|\d+機/.test(fl), `E ${s}: 機材は型式の札だけ（${chips}つ・機数も「◯機種」も書かない）`, fl.replace(/<[^>]+>/g, ' ').slice(0, 120));
   /* 暮らし：街は拠点の順。どの街の欄にも、その街の拠点の空港の移動の行だけ。家賃の無い街は今までの字 */
   const starts = [...g.matchAll(/<section class="pvg-liv" data-pvg-towns data-city="([^"]+)" data-base="([A-Z]{3})">/g)];
   const order = starts.map(m => m[1]), want = v.livings.map(L => L.cityKey);
   const base = v.base.iata, baseOrder = v.livings.map(L => base.findIndex(c => L.airports.some(a => a.iata === c)));
-  ok(order.length >= 1 && same(order, want) && baseOrder.every((x, i) => x >= 0 && (!i || x > baseOrder[i - 1])), `E ${s}: 暮らしの街の欄は拠点の順（${order.join('・')}）`, `${order.join(',')} ／ 拠点 ${base.join(',')}`);
+  ok((order.length >= 1 || !v.livings.length) && same(order, want) && baseOrder.every((x, i) => x >= 0 && (!i || x > baseOrder[i - 1])), `E ${s}: 暮らしの街の欄は拠点の順（${order.join('・')}）`, `${order.join(',')} ／ 拠点 ${base.join(',')}`);
   /* 見てよい空港は、台帳から（読み口の答えを使わない）：先行5社の台帳の街はその街の空港のうち会社の拠点の空港・調べの台帳の街は字の表（CITY）の空港。
      家賃が無いかも台帳から（調べの台帳の街の家賃の行のうち、出してよい行が1つも無い）。 */
   const stray = [], noRent = [], said = [];
@@ -474,13 +557,61 @@ for (const s of SAMPLES) {
     if (!ledgerRents && /<span class="pvg-town-r">/.test(sec)) noRent.push(`${key}（家賃の額が出ている）`);
   });
   ok(!stray.length, `E ${s}: 街の欄の空港までの移動は、その街の拠点の空港の行だけ（ほかの空港・ほかの会社の空港の行を出さない）`, stray.slice(0, 5).join(' ／ '));
-  ok(starts.length >= 1 && !said.length, `E ${s}: 街の欄の見出しと「街を追加」の面が言う空港は、その会社の拠点の空港だけ`, said.slice(0, 5).join(' ／ '));
+  ok((starts.length >= 1 || !v.livings.length) && !said.length, `E ${s}: 街の欄の見出しと「街を追加」の面が言う空港は、その会社の拠点の空港だけ`, said.slice(0, 5).join(' ／ '));
   ok(!noRent.length, `E ${s}: 家賃の行の無い街は、今までの「家賃の資料を確認できていません」（ほかの街の数字で埋めない）`, noRent.join(','));
   /* 会社の1枚（写真の無い形）と「よくある質問」 */
-  ok(/<article class="pvg-card pvg-co pvg-co-np"/.test(g), `E ${s}: 写真の無い会社の1枚が在る（L7）`);
+  ok(/<article class="pvg-card pvg-co pvg-co-np"/.test(g) || (!SAMPLES.includes(s) && !v.company.profile.length && !v.company.scale.length && !v.company.fleet.length && !v.company.photo), `E ${s}: 写真の無い会社の1枚が在る（L7・会社の数字か機材が1つでも在れば）`);
+  /* L6（2026-10-21 d1）：残した古い節・社名の行・題と説明の「一番・最古・唯一・第N位」は、支える資料が在るもの（airline-claims.mjs の SUPPORTED）だけ */
+  {
+    const left = claimsLeft(s, b);
+    ok(!left.length, `E ${s}: 残した節・社名の行・題と説明に、支える資料の無い最上級・順位・記録の言い分が無い（L6）`, left.slice(0, 4).map(c => `[${c.where}] ${c.word} …${c.around}…`).join(' ／ '));
+  }
+  /* 誰の条件か（2026-10-21 d1）：項目の言い方の表で言う勤務・待遇の行は、職位（機長・副操縦士・訓練生）を名前の頭に持つ。訓練生の行は、名前が訓練の話でなければ1行めにならない */
+  {
+    const byId = new Map(rowsOf(s).map(r => [r.id, r])), miss = [];
+    for (const f of [...v.work, ...v.benefits]) {
+      const r = byId.get(f.id), rk = r ? rankOf(r) : '';
+      if (r && !LINES[r.id] && RANK_JA[rk] && !f.label.startsWith(RANK_JA[rk])) miss.push(`${f.id}（${rk}）「${f.label}」`);
+      if (f.lead && rk === 'trainee' && !/^訓練/.test(f.label)) miss.push(`${f.id} 訓練生の行が1行め「${f.label}」`);
+    }
+    ok(!miss.length, `E ${s}: 勤務・待遇の行は誰の条件かを言う（項目の表の行は職位を名前の頭に・訓練生の行は名前が訓練の話のときだけ1行め）`, miss.join(' ／ '));
+    /* カードが「会社の公表 確認できていません」と言うのは、その欄に今の公表（札の無い行）が1つも無いときだけ（2026-10-21 d1 の続き）。
+       訓練生の行だけの欄で1行めが選べないと、カードは「確認できていません」と言い、開いた板には今の公表が並んでいた（ジェットスター・ジャパンの待遇）。 */
+    const said = ['work', 'benefits'].filter(k => /<p class="pvg-v">確認できていません<\/p>/.test(cellOf2(g, k)) && v[k].some(f => !f.tag)).map(k => `${k}（${v[k].filter(f => !f.tag).map(f => f.label).join('・')}）`);
+    ok(!said.length, `E ${s}: 勤務・待遇のカードが「確認できていません」と言うのは、その欄に今の公表（過去・参考の札の無い行）が無いときだけ`, said.join(' ／ '));
+    /* 会社の数字（設立・本社・機数）に「会社全体の制度」の札を付けない（待遇・勤務の制度の札。設立日や本社には意味をなさない）。 */
+    const wholeCo = [...g.matchAll(/<dl class="pvg-stats">([\s\S]*?)<\/dl>/g)].filter(m => m[1].includes('会社全体の制度')).length;
+    ok(!wholeCo, `E ${s}: 会社の数字（設立・本社・機数）に「会社全体の制度」の札が無い`, `${wholeCo}か所`);
+  }
+  /* 労働協約（2026-10-21 リードの決め d）：協約の資料の行は「労働協約」の札と協約の名前で出る。「会社が公表している条件」の一覧には入らない。会社の資料の行には札が無い */
+  {
+    const wrong = [];
+    for (const f of [...v.work, ...v.benefits]) {
+      const r = rowsOf(s).find(x => x.id === f.id), ag = r && AGREEMENTS[((r.src || [])[0] || {}).source_id];
+      if (!!ag !== (f.src && f.src.kind === 'agreement')) wrong.push(`${f.id} 資料の種類`);
+      const tagged = g.includes(`${htmlEsc(f.label)}${f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : ''}${f.tag ? `<span class="pvg-tag pvg-tag-q" data-use="${f.use}">${f.tag}</span>` : ''}<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span>`);
+      if (ag && !tagged) wrong.push(`${f.id} 札が無い`);
+      /* その行の名前が出る所（カードの1行め・小さい2行・開いた板の一覧）の、どれにも札が付いている（1か所だけ札を落としても赤） */
+      if (ag) {
+        const tagStr = `${f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : ''}${f.tag ? `<span class="pvg-tag pvg-tag-q" data-use="${f.use}">${f.tag}</span>` : ''}<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span>`;
+        const at = [...g.matchAll(new RegExp(`(?:<p class="pvg-k">|<dt>)${htmlEsc(f.label).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g'))];
+        const bare = at.filter(m => !g.startsWith(tagStr, m.index + m[0].length)).length;
+        if (!at.length || bare) wrong.push(`${f.id} 名前の出る ${at.length}か所のうち ${bare}か所に札が無い`);
+      }
+      if (ag && !g.includes(htmlEsc(ag.name))) wrong.push(`${f.id} 協約の名前が無い`);
+    }
+    for (const m of g.matchAll(/<p class="pvg-askh">会社が公表している条件<\/p><dl class="pvg-dl">([\s\S]*?)<\/dl>/g)) if (/data-src-kind="agreement"/.test(m[1])) wrong.push('「会社が公表している条件」の一覧に労働協約の行');
+    ok(!wrong.length, `E ${s}: 労働協約の行は「労働協約」の札と協約の名前で出て、「会社が公表している条件」には入らない`, wrong.join(' ／ '));
+  }
+  /* 日本の会社の本社：台帳の所在地の字の「都道府県＋市区町村」（引用にそのまま在る字）か、読めなければ国 */
+  {
+    const hq = (((R2.FACTS || {})[s] || {}).profile || []).find(r => r.key === 'headquarters_country' && !why(r));
+    const d = hq && say(hq), q = hq ? (hq.evidence || []).map(e => String(e.quote || '').replace(/[\s　]+/g, '')).join('\n') : '';
+    if (d && SALARY[s].region === 'japan') ok(d.value === '日本' || q.split('\n').some(x => x.startsWith(d.value)), `E ${s}: 本社の街（${d.value}）は台帳の所在地の字の頭そのまま`, q.slice(0, 40));
+  }
   ok(/<h2\b[^>]*>[^<]*よくある質問/.test(b) && /"FAQPage"/.test(b), `E ${s}: 「よくある質問」の節と FAQPage が残っている`);
 }
-ok(A2N.hq >= 1 && A2N.days >= 1, `E 見本の会社に、a2 の置き場の行が在る（本社 ${A2N.hq}行・年間休日 ${A2N.days}行 ── 上の段が空振りしない）`);
+ok(A2N.hq >= 1 && A2N.days >= 1, `E 切り替えた会社に、a2 の置き場の行が在る（本社 ${A2N.hq}行・年間休日 ${A2N.days}行 ── 上の段が空振りしない）`);
 /* A 年収の図（トップ・会社一覧）の会社選びに、機種の段が当てはまらない運航会社を出さない（2026-10-21 roll-c 点検 T5）。
    airlines-meta.js の type が charter / agent / bizjet の会社は、図が R・N・W の段を描くと事実と違う。 */
 {

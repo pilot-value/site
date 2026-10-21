@@ -40,13 +40,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures } from './salary-basis.mjs';
-import { viewOf, rentCell } from './pv-airline-view.mjs';
+import { viewOf, rentCell, GLANCE } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
 import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell } from './gen-career.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
-const BASE = 'http://localhost:3000';
+/* 2026-10-21（P12.86-9）：開く先は PV_BASE で替えられる（serve-local の自分のポートで流すため。3000 は本番の DB につながる）。既定は今までどおり */
+const BASE = process.env.PV_BASE || 'http://localhost:3000';
 const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
 let pass = 0, fail = 0;
@@ -93,6 +94,13 @@ ok(render(HTML) === HTML, `${PAGE} は gen-career.mjs の出力と1文字も違�
 
 const BLOCK = (HTML.match(/<!--PV-CAREER-->([\s\S]*)<!--\/PV-CAREER-->/) || [])[1] || '';
 ok(BLOCK.length > 0, '管理ブロックが在る');
+/* ★2026-10-21 リード P12.91-7：「会社が公表している金額」の一覧は、機長・副操縦士の公表額が台帳に在る会社にだけ置く。
+   無い会社（JAL・ANA ── 運航乗務員の平均を外したあと）は一覧ごと出さない ＝「公表なし」の行をこの1枚のどこにも書かない。
+   どの会社に在るかは、生成側を読まずに台帳（figures）から作り直す。 */
+const WITH_PUB = FIVE.filter(s => ['cap', 'fo'].some(r => figures(s, r).some(f => !f.training)));
+ok(!/公表なし|class="cr-none"/.test(BLOCK) && (BLOCK.match(/class="cr-pub"/g) || []).length === WITH_PUB.length * 2,
+   `「会社が公表している金額」の一覧は、機長・副操縦士の公表額が在る${WITH_PUB.length}社（${WITH_PUB.map(name).join('・')}）にだけ・概要と比較に1つずつ（「公表なし」の行をどこにも書かない）`,
+   `一覧 ${(BLOCK.match(/class="cr-pub"/g) || []).length}（あるべき ${WITH_PUB.length * 2}）／「公表なし」${(BLOCK.match(/公表なし/g) || []).length}か所`);
 /* 管理ブロックの外に金額が1つも無い（手で足した額は、正本を直しても動かない）。 */
 const OUTSIDE = noTagCmt(HTML.replace(BLOCK, () => '')).replace(/<(script|style)\b[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ');
 ok(!/[¥$]\s?\d|\d\s*万/.test(OUTSIDE), '管理ブロックの外に金額が無い', (OUTSIDE.match(/.{0,12}(?:[¥$]\s?\d|\d\s*万).{0,12}/) || [''])[0]);
@@ -443,20 +451,34 @@ try {
        `${name(s)}: 税の扱いが台帳どおり（概要と比較）`, `${dom.co[s].tax} ／ ${dom.co[s].cmpTax}`);
   }
 
-  /* 目盛。0 から・全部の棒が入る・いちばん近い 1,000万 の倍数・どの画面も同じ。 */
-  const top = Math.max(...mans);
-  ok(axisMax % 1000 === 0 && axisMax >= top && axisMax - 1000 < top, `目盛の右端 ${yen(axisMax)} は全部の棒が入るいちばん近い 1,000万 の倍数`, `最大の棒 ${yen(top)}`);
+  /* 目盛。0 から・全部の棒が入る・いちばん近い 1,000万 の倍数・どの画面も同じ。
+     ★2026-10-21（全社へ広げる d1・同じ強さの当て直し ── assert-airline-glance.mjs の AXIS と同じ）：目盛は会社ページと1つ
+     （rollout.build.txt WP-roll-b 4・P12.86-4「1つの目盛」）＝ 新しい会社ページを持つ会社（SWITCH ＝ GLANCE）の推定年収ぜんぶが入る、
+     いちばん近い 1,000万 の倍数。ここでは生成側の AXIS を読まずに SALARY から作り直す。この1枚の棒（5社）も全部入る。 */
+  const top = Math.max(...mans), shared = Math.max(...GLANCE.flatMap(s => ROLES.map(([r]) => SALARY[s][r].avg)));
+  ok(axisMax % 1000 === 0 && axisMax >= top && axisMax >= shared && axisMax - 1000 < shared,
+     `目盛の右端 ${yen(axisMax)} は、新しい会社ページを持つ ${GLANCE.length}社の推定年収（1つの目盛）が全部入るいちばん近い 1,000万 の倍数・この1枚の棒も全部入る`,
+     `${GLANCE.length}社の最大 ${yen(shared)} ／ この1枚の最大の棒 ${yen(top)}`);
   ok(dom.axes.length >= FIVE.length + 1 && dom.axes.every(a => same(a, ['0', yen(axisMax / 2), yen(axisMax)])),
      '目盛は 0 から・どの画面も同じ', JSON.stringify(dom.axes[0]));
 
   /* 会社が公表している金額。訓練生は出さない。 */
   head('会社が公表している金額');
   for (const s of FIVE) {
-    const exp = ['cap', 'fo', 'crew'].flatMap(r => figures(s, r).filter(f => !f.training).map(f => ({
+    /* 機長と副操縦士を分けない額（台帳の crew ＝ 運航乗務員の平均）は出さない（2026-10-21 P12.77）── 下の段で、ページのどこにも無いことも見る */
+    const exp = ['cap', 'fo'].flatMap(r => figures(s, r).filter(f => !f.training).map(f => ({
       tag: TIERS[BASIS[s][r].tier].ja, group: f.group, kind: f.kind, amount: upTo(f.key) + f.text + tail(f.key),
       orig: f.cur === 'JPY' ? '' : `${upTo(f.key)}${f.cur} ${f.amount.toLocaleString('en-US')}${tail(f.key) ? ' ' + tail(f.key) : ''}`,
     })));
     const got = dom.co[s].pub;
+    /* ★2026-10-21 リード P12.91-7：機長・副操縦士の公表額が無い会社（JAL・ANA）は、一覧そのものを出さない
+       （「公表なし」の行も、見出しも・前提も・出どころも無い）。 */
+    if (!exp.length) {
+      ok(dom.co[s].pubs === 0 && dom.co[s].cardPubs === 0 && !got && !dom.co[s].card,
+         `${name(s)}: 機長・副操縦士の公表額が無いので、「会社が公表している金額」の一覧を出さない（概要にも比較のカードにも）`,
+         `概要 ${dom.co[s].pubs} ／ 比較 ${dom.co[s].cardPubs}`);
+      continue;
+    }
     if (!got) { ok(false, `${name(s)}: 概要に「会社が公表している金額」の一覧が在る`); continue; }
     ok(dom.co[s].pubs === 1 && dom.co[s].cardPubs === 1, `${name(s)}: 一覧は概要に1つ・比較のカードに1つ`, `概要 ${dom.co[s].pubs} ／ 比較 ${dom.co[s].cardPubs}`);
     /* 1行ごとに、誰の額か（区分）・何の額か（種類の名前）・札が付いている。 */
@@ -468,15 +490,15 @@ try {
        `${name(s)}: 斜線の印は「上限」の行にだけ・1つずつ（概要と比較のカード）`, JSON.stringify(got.marks));
     ok(same(got.rows, exp), `${name(s)}: 台帳の ${exp.length}件がそのまま出ている（札・区分・名前・額・原貨）`,
        `画面 ${JSON.stringify(got.rows)}\n      台帳 ${JSON.stringify(exp)}`);
-    ok(exp.length ? got.none === null : got.none === '公表なし', `${name(s)}: ${exp.length ? '「公表なし」と書いていない' : '「公表なし」'}`);
+    ok(got.none === null, `${name(s)}: 「公表なし」と書いていない`);
     ok(same(dom.co[s].card, got), `${name(s)}: 比較のカードと概要で同じ中身`);
     /* 上限の額は、一覧でも「〜」と「上限」の字が対（原貨の額にも「〜」）。 */
     ok(got.rows.every(x => x.amount.startsWith('〜') === /上限/.test(x.kind) && (!x.orig || x.orig.startsWith('〜') === /上限/.test(x.kind))),
        `${name(s)}: 一覧の上限の額には「〜」と「上限」の字がそろっている`, got.rows.map(x => `${x.kind} ${x.amount} ${x.orig}`).join(' ／ '));
     /* 出どころは「会社が公表した資料」だけ・台帳のものが全部。報道など（secondary）と訓練生の資料は並べない。 */
-    const urls = exp.length ? (BASIS[s].src || []).filter(x => !x.secondary && !/訓練生|自社養成/.test(x.name)).map(x => x.url) : [];
-    ok(same(got.srcs, urls) && (!exp.length || urls.length > 0),
-       `${name(s)}: 出どころは台帳の「会社が公表した資料」そのまま${exp.length ? `（${urls.length}つ）` : '（公表なしなので出さない）'}`,
+    const urls = (BASIS[s].src || []).filter(x => !x.secondary && !/訓練生|自社養成/.test(x.name)).map(x => x.url);
+    ok(same(got.srcs, urls) && urls.length > 0,
+       `${name(s)}: 出どころは台帳の「会社が公表した資料」そのまま（${urls.length}つ）`,
        `画面 ${got.srcs.join(', ')}\n      台帳 ${urls.join(', ')}`);
     const second = (BASIS[s].src || []).filter(x => x.secondary).map(x => x.url);
     ok(second.every(u => !BLOCK.includes(u) && !BLOCK.includes(u.replace(/&/g, () => '&amp;'))),
@@ -1092,8 +1114,11 @@ try {
     /* 会社が公表した年額（求人の上限・目標年収・下限・乗員全体の平均）は「会社が公表している金額」の一覧にだけ出す。
        推定の欄・棒・目盛・詳細・家賃・カードの材料へ出さない（出すと、推定と公表額が同じ物差しに乗る）。 */
     const ests = new Set(FIVE.flatMap(s => ROLES.map(([r]) => SALARY[s][r].avg)));
-    const PUBS = FIVE.flatMap(s => ['cap', 'fo', 'crew'].flatMap(r => figures(s, r).filter(f => !f.training && /(^|_)y(_|$)/.test(f.key))
+    /* 機長と副操縦士を分けない額（台帳の crew）は一覧にも出さない（2026-10-21 P12.77）── CREW は、ページのどこにも無いことを下で見る */
+    const PUBS = FIVE.flatMap(s => ['cap', 'fo'].flatMap(r => figures(s, r).filter(f => !f.training && /(^|_)y(_|$)/.test(f.key))
       .map(f => ({ s, man: f.man, amount: f.amount, cur: f.cur }))));
+    const CREW = FIVE.flatMap(s => figures(s, 'crew').filter(f => !f.training && /(^|_)y(_|$)/.test(f.key)).map(f => ({ s, man: f.man, amount: f.amount, cur: f.cur })))
+      .filter(f => !ests.has(f.man));
     /* 推定とたまたま同じ額の公表額は探せない（探すと推定そのものを拾う）。在れば下で知らせる。 */
     const skip = PUBS.filter(f => ests.has(f.man)), seek = PUBS.filter(f => !ests.has(f.man));
     const num = n => n.toLocaleString('en-US').replace(/,/g, ',?');
@@ -1117,7 +1142,13 @@ try {
     const inside = leaks(out.inside), outside = [...leaks(out.outside), ...(out.data ? leaks(out.data) : [])];
     ok(seek.length >= FIVE.length && inside.length === seek.length, `探す道具が効いている（公表した年額 ${seek.length}件を、一覧の中では全部拾う）`, `拾えたのは ${inside.join(', ')}`);
     ok(!outside.length, `公表した年額 ${seek.length}件は、一覧の外（推定の欄・棒・詳細・家賃・カードの材料）のどこにも無い`, outside.join(', '));
-    ok(out.pubs === FIVE.length * 2 && same(out.heads, ['会社が公表している金額']) && out.figs > 0 && out.figs === out.figsIn,
+    {
+      const num2 = n => n.toLocaleString('en-US').replace(/,/g, ',?');
+      const crewHit = text => CREW.filter(f => new RegExp(`(?<![\\d,.])${num2(f.man)}\\s*万|[¥￥]\\s*${num2(f.man)}(?![\\d,])|(?<![\\d,.])${num2(f.man * 10000)}(?![\\d,])`).test(String(text))).map(f => `${name(f.s)} ${f.man}万`);
+      const hit = [...crewHit(out.inside), ...crewHit(out.outside), ...(out.data ? crewHit(out.data) : [])];
+      ok(CREW.length >= 1 && !hit.length, `機長と副操縦士を分けない額（運航乗務員の平均 ${CREW.length}件）は、一覧の中にも外にも無い（P12.77）`, hit.join(', '));
+    }
+    ok(out.pubs === WITH_PUB.length * 2 && same(out.heads, ['会社が公表している金額']) && out.figs > 0 && out.figs === out.figsIn,
       `一覧は概要と比較に1つずつ（${out.pubs}）・見出しは全部「会社が公表している金額」・額の行（${out.figs}）は一覧の中だけ`, `${out.heads.join(' / ')} ／ 行 ${out.figs}・うち一覧の中 ${out.figsIn}`);
     ok(out.scale === 0 && out.estIn === 0, '一覧の中に 棒・目盛・推定の欄 を置いていない（公表額を推定と同じ物差しに乗せない）', `棒・目盛 ${out.scale} ／ 推定の欄 ${out.estIn}`);
     /* わざと公表額を推定の欄へ写して、赤くなることを確かめる（写すのは複製のほう。画面も配っているファイルも触らない）。 */
