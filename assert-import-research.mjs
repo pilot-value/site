@@ -561,6 +561,134 @@ try {
       unnamed.slice(0, 6).map(([c, v]) => `${c} ${v[1]}（${textOf.get(c) ? '行の字に無い' : '台帳に行が無い'}）`).join(' ／ '));
   }
 
+  /* ── A13 利用者がアップロードした写しは証拠にしない（2026-10-21 リード P12.90）──
+     scribd.com の写し・発行元が「user-uploaded」と言う写し・会社でも組合でも政府でもない「public copy」は、値を支えさせても根拠不足
+     （決まりでは入れない・承認されても入れない・台帳に在れば verify が赤）。会社の報告を議会が載せた「public copy」は写しではない。 */
+  {
+    const PA = PACK('pvr-test-upload', 1, [
+      R('upl-scribd', 'westjet', 'benefits', 'housing', '住宅手当あり', { src: 'src-scribd' }),
+      R('upl-text', 'westjet', 'benefits', 'staff_travel', '社員の航空券', { src: 'src-uptext' }),
+      R('upl-pubcopy', 'westjet', 'work', 'days_off', '月に10日', { src: 'src-pubcopy' }),
+      R('upl-mixed', 'westjet', 'benefits', 'housing', '住宅手当なし', { r: { evidence: [
+        { source_id: 'src-a', locator: 'p.1', quote: 'テストの引用 mixed', supports: ['value'] },
+        { source_id: 'src-scribd', locator: 'p.2', quote: 'テストの引用 mixed 2', supports: ['value'] }] } }),
+      R('ok-parliament', 'westjet', 'profile', 'founded', '1994', { src: 'src-parl' }),     // 会社の報告を議会が載せた写し（写しではない）
+    ]);
+    PA.sources.push(
+      SRC('src-scribd', { url: 'https://www.scribd.com/document/0/pilot-value-test', publisher_kind: 'other', source_type: 'union_cba', publisher: 'Scribd' }),
+      SRC('src-uptext', { url: 'https://upload-test.invalid/doc', publisher_kind: 'other', source_type: 'official_package', publisher: 'テストの置き場（user-uploaded copy）' }),
+      SRC('src-pubcopy', { url: 'https://copy-test.invalid/doc', publisher_kind: 'other', source_type: 'official_package', publisher: 'テストの写し（public copy）' }),
+      SRC('src-parl', { url: 'https://parliament-test.invalid/report.pdf', publisher_kind: 'airline', source_type: 'regulatory_filing', publisher: 'テスト航空（Parliament public copy）' }));
+    const PD13 = path.join(T, 'packs-upload'); fs.mkdirSync(PD13);
+    fs.writeFileSync(path.join(PD13, `${PA.pack_id}.json`), JSON.stringify(PA, null, 1));
+    const DEC13 = path.join(T, 'decisions-upload.json');
+    fs.writeFileSync(DEC13, JSON.stringify(PA.records.map(r => ({ record_id: r.record_id, publication_class: 'context_with_conditions' }))));
+    const ROOT13 = scratchRoot('root-upload'), OUT13 = path.join(T, 'plan-upload');
+    const p13 = run('plan', PD13, '--validator', STUB, '--fieldmap', FM, '--decisions', DEC13, '--root', ROOT13, '--out', OUT13, '--test', '--today', '2026-10-21');
+    const P13 = p13.status === 0 ? JSON.parse(fs.readFileSync(path.join(OUT13, 'import-plan.json'), 'utf8')) : { records: [] };
+    const r13 = id => P13.records.find(x => x.id === `westjet.${id}`) || {};
+    const upl = ['benefits.upl-scribd', 'benefits.upl-text', 'work.upl-pubcopy', 'benefits.upl-mixed'];
+    ok(p13.status === 0 && upl.every(id => r13(id).cat === 'weak_evidence' && !r13(id).auto && /利用者がアップロードした写し/.test(r13(id).why.join('')))
+       && r13('profile.ok-parliament').cat === 'addition' && r13('profile.ok-parliament').auto,
+      '★A13 plan: 利用者がアップロードした写し（scribd.com・「user-uploaded」・会社でも組合でも政府でもない「public copy」・ほかの資料と並べても）に値を支えさせた記録は根拠不足で、決まりでは入れない／議会が載せた会社の報告は写しではない',
+      p13.stderr + JSON.stringify([...upl, 'profile.ok-parliament'].map(id => [id, r13(id).cat, r13(id).auto, r13(id).why])));
+    /* 承認の一覧に写しの記録を全部書いても入らない */
+    const APP13 = path.join(T, 'approved-upload.txt');
+    fs.writeFileSync(APP13, P13.records.map(x => `${x.pack} ${x.id}`).join('\n') + '\n');
+    const a13 = run('apply', path.join(OUT13, 'import-plan.json'), '--approved', APP13, '--root', ROOT13, '--test');
+    const J13 = JSON.stringify(I.readStore(ROOT13).store);
+    ok(a13.status === 0 && upl.every(id => !J13.includes(`westjet.${id}`) && a13.stdout.includes(`入れない: westjet.${id}`)) && J13.includes('westjet.profile.ok-parliament'),
+      '★A13 apply: 承認されても、写しを根拠にした記録は台帳に入らない（議会が載せた会社の報告は入る）', a13.stdout.slice(-600) + a13.stderr);
+    /* 台帳に写しの行が在れば verify が赤（手で書き足した行も通さない） */
+    const L13 = await I.loadLedgers(HERE);
+    const row = { id: 'westjet.benefits.hand', pack: 'pvr-test-upload', use: '条件つき', value: 'x', imported_on: '2026-10-21', checked_at: '2026-10-21',
+      evidence: [{ source_id: 's1', quote: 'q', supports: ['value'] }], src: [{ source_id: 's1', url: 'https://es.scribd.com/document/1/x', publisher: 'Scribd', publisher_kind: 'other' }] };
+    const bad13 = I.verifyStore({ FACTS: { westjet: { benefits: [row] } }, NETWORK: {}, LIVING: {}, CITY_OF: {}, SOURCES: {} }, L13);
+    ok(bad13.some(b => /利用者がアップロードした写し/.test(b)) && I.userUploaded({ url: 'https://es.scribd.com/x' }) && !I.userUploaded({ url: 'https://scribd.com.example.invalid/x', publisher: 'x' }),
+      '★A13 verify: 台帳に写しを根拠にした行が在れば赤（scribd.com の下の名前も写し・似た名前の別の住所は写しではない）', bad13.join(' ／ '));
+  }
+
+  /* ── A14 街ごとの家賃の台帳（2026-10-21 a3・リード P12.90）：台帳の行 → 記録 → 取り込みの台帳 → 会社ページの読み口 ──
+     つなぎはこちらの台帳の拠点だけ（候補の会社の名前ではつながない）・つながらない街は入れない・額と期間は資料のまま（週は週）・
+     保留は入れない・1つの街に出典は1つ・2回流しても同じ。読み口（researchCities）は字の表（CITY）の指紋が合うときだけ家賃を出す。 */
+  {
+    const { researchCities, researchFacts } = await import(pathToFileURL(path.join(HERE, 'airline-rollout.mjs')).href);
+    const { digest } = await import(pathToFileURL(path.join(HERE, 'airline-display.mjs')).href);
+    /* 先に、エア・カナダの拠点の空港（YHZ ＝ ハリファックス）を台帳に入れる（パックの記録・会社の資料・条件つき） */
+    /* 検査役（a3）が足した：サウスウエスト航空の拠点 OAK（オークランド ＝ 米国）。日本語の「オークランド」は AKL（ニュージーランド）とも同じ字 */
+    const PB = PACK('pvr-test-base', 1, [R('base-yhz', 'air-canada', 'base', 'pilot_base', 'YHZ', { r: { label_ja: '拠点 Halifax', item_is_new: undefined } }),
+      R('base-oak', 'southwest', 'base', 'pilot_base', 'OAK', { r: { label_ja: '拠点 Oakland', item_is_new: undefined } })]);
+    const FM14 = path.join(T, 'field-map-14.csv');
+    fs.writeFileSync(FM14, fs.readFileSync(FM, 'utf8') + 'base,pilot_base,yes,record,x\n');
+    const PD14 = path.join(T, 'packs-base'); fs.mkdirSync(PD14);
+    fs.writeFileSync(path.join(PD14, `${PB.pack_id}.json`), JSON.stringify(PB, null, 1));
+    const DEC14 = path.join(T, 'decisions-base.json');
+    fs.writeFileSync(DEC14, JSON.stringify([{ record_id: 'air-canada.base.base-yhz', publication_class: 'context_with_conditions' },
+      { record_id: 'southwest.base.base-oak', publication_class: 'context_with_conditions' }]));
+    const ROOT14 = scratchRoot('root-cityrent'), OUTB = path.join(T, 'plan-base');
+    const pb = run('plan', PD14, '--validator', STUB, '--fieldmap', FM14, '--decisions', DEC14, '--root', ROOT14, '--out', OUTB, '--test', '--today', '2026-10-21');
+    const ab = pb.status === 0 ? run('apply', path.join(OUTB, 'import-plan.json'), '--approved', path.join(OUTB, 'auto-approved.txt'), '--root', ROOT14, '--test') : pb;
+    const base14 = researchFacts('air-canada', I.readStore(ROOT14).store).base;
+    ok(ab.status === 0 && base14 && base14.iata.includes('YHZ'), 'A14 下準備: エア・カナダの拠点の空港 YHZ が台帳に入る', ab.stdout.slice(-300) + ab.stderr);
+    const row = (city, room, value, extra = {}) => ({ research_group: 'test', source_row_index: 0, data: {
+      city, room_type: room, value, currency: 'CAD', source_period: 'month', statistic: 'median', source_url: 'https://rent-a14.invalid/index',
+      publisher: 'テストの家賃の資料', title: 'テストの家賃', published: '2026-10-01', retrieved: '2026-10-21', data_period: '2026-09',
+      locator: 'table', quote: `$${value}`, conditions_ja: `英: ${city}。テストの家賃の条件。`, candidate_company_ids: ['air-canada'],
+      status: 'source_confirmed_binding_pending', company_binding_confirmed: false, ...extra } });
+    const CR = { checked_at: '2026-10-21', test_only: true, rows: [
+      row('Halifax', '1bed', 1400, { status: 'hold_as_current_available_offer' }),                                 // 保留 ── 同じ資料・同じ地区・同じ部屋で額が違っても、入る行を「額が違う」の競合にしない
+      row('Halifax', '1bed', 1500),                                                                              // 入る（YHZ の会社）
+      row('Halifax', '2bed', 480, { source_period: 'week', quote: '$480 per week' }),                             // 入る（週は週のまま）
+      row('Halifax', '3bed', 2600, { candidate_company_ids: ['porter'] }),                                         // 入る ── つながるのはエア・カナダだけ（候補のポーターではない）
+      row('Halifax', 'studio', 1100, { status: 'hold_as_current_available_offer' }),                               // 保留（入れない）
+      row('Halifax (Nova Scotia)', 'studio', 1200, { source_url: 'https://other-rent.invalid/halifax' }),         // 競合（同じ街に2つめの出典）
+      row('Nowhere Town', '1bed', 900, { candidate_company_ids: ['air-canada'] }),                               // 対象不明（この街を拠点にする会社が無い）
+      row('Halifax', '5bed', 3000),                                                                               // 形式エラー（読めない部屋の型）
+      row('Avondale (Auckland)', '1bed', 777, { currency: 'NZD', candidate_company_ids: ['air-new-zealand'], status: 'hold_as_current_available_offer' }), // 検査役（a3）：OAK の会社につながらない
+    ] };
+    const CRF = path.join(T, 'city-rent.json');
+    fs.writeFileSync(CRF, JSON.stringify(CR));
+    const OUT14 = path.join(T, 'plan-cityrent');
+    const pc = run('plan', '--city-rent', CRF, '--validator', STUB, '--fieldmap', FM14, '--root', ROOT14, '--out', OUT14, '--test', '--today', '2026-10-21');
+    const P14 = pc.status === 0 ? JSON.parse(fs.readFileSync(path.join(OUT14, 'import-plan.json'), 'utf8')) : { records: [] };
+    const at = (room, value) => P14.records.filter(x => x.entry.city_rent && x.entry.value && x.entry.value[room] === value);
+    const [h0, h1, h2, h3, h4, h5, nw, f5] = [['1bed', 1400], ['1bed', 1500], ['2bed', 480], ['3bed', 2600], ['studio', 1100], ['studio', 1200], ['1bed', 900], ['5bed', 3000]].map(([r, v]) => at(r, v));
+    ok(pc.status === 0 && h0.length === 1 && h0[0].use === '保留' && !h0[0].auto
+       && h1.length === 1 && h1[0].company === 'air-canada' && h1[0].cat === 'addition' && h1[0].auto && h1[0].target === 'LIVING.halifax.rents'
+       && h2.length === 1 && h2[0].auto && h2[0].entry.per === 'week' && h2[0].entry.value['2bed'] === 480
+       && h3.length === 1 && h3[0].company === 'air-canada' && h3[0].auto && !P14.records.some(x => x.company === 'porter')
+       && h4.length === 1 && h4[0].use === '保留' && !h4[0].auto
+       && h5.length === 1 && h5[0].cat === 'conflict' && /2つめの家賃の出どころ/.test(h5[0].why.join(''))
+       && nw.length === 1 && nw[0].cat === 'target_unknown' && !nw[0].company && !nw[0].auto && /拠点にしている会社が、こちらの台帳に無い/.test(nw[0].why.join(''))
+       && f5.length === 1 && f5[0].cat === 'format_error',
+      '★A14 plan: 街の家賃は、その街を拠点にしている会社（台帳の拠点の空港）にだけつながる（候補の会社の名前ではつながない・つながらない街は対象不明）／週は週のまま／保留は入れない（入る行の比べる相手にもならない）／同じ街に2つめの出典は競合／読めない行は形式エラー',
+      pc.stderr + JSON.stringify(P14.records.map(x => [x.id, x.company, x.cat, x.use, x.auto, x.entry.per, x.why])));
+    /* 検査役（a3）が足した：空港の街は英語の名前で当てる。日本語の名前で当てると、OAK（米国）の会社にニュージーランドのオークランドの家賃が
+       つながる（作った人が下見で踏んで直したもの。写しの中で日本語の名前に戻すと、ROUND5 の本物の台帳でサウスウエスト航空に3行が決まりで入った） */
+    const ak = at('1bed', 777);
+    ok(pc.status === 0 && ak.length >= 1 && ak.every(x => x.entry.city_rent.city === 'Auckland' && x.company !== 'southwest') && !P14.records.some(x => x.company === 'southwest'),
+      '★A14 同じ日本語の名前の街：OAK（米国のオークランド）を拠点にする会社に、ニュージーランドのオークランドの家賃はつながらない',
+      JSON.stringify(ak.map(x => [x.id, x.company, x.bound_by])));
+    const a14 = run('apply', path.join(OUT14, 'import-plan.json'), '--approved', path.join(OUT14, 'auto-approved.txt'), '--root', ROOT14, '--test');
+    const S14 = I.readStore(ROOT14).store, C14 = (S14.LIVING || {}).halifax || {};
+    const rents = C14.rents || [];
+    ok(a14.status === 0 && rents.length === 3 && rents.every(r => r.company === 'air-canada' && r.city_rent && r.src[0].publisher_kind === 'portal')
+       && rents.some(r => r.per === 'week' && r.value['2bed'] === 480) && (S14.CITY_OF['air-canada'] || []).includes('halifax') && !S14.CITY_OF.porter
+       && !JSON.stringify(S14).includes('Nowhere Town') && !rents.some(r => r.use === '保留') && !(S14.LIVING || {}).nowhere,
+      '★A14 apply: つながった会社の街にだけ家賃の行が入る（台帳の CITY_OF もその会社だけ）・つながらない街・保留・競合は入らない', a14.stdout.slice(-400) + a14.stderr);
+    const a14b = run('apply', path.join(OUT14, 'import-plan.json'), '--approved', path.join(OUT14, 'auto-approved.txt'), '--root', ROOT14, '--test');
+    const pc2 = run('plan', '--city-rent', CRF, '--validator', STUB, '--fieldmap', FM14, '--root', ROOT14, '--out', path.join(T, 'plan-cityrent-2'), '--test', '--today', '2026-10-21');
+    const P14b = pc2.status === 0 ? JSON.parse(fs.readFileSync(path.join(T, 'plan-cityrent-2', 'import-plan.json'), 'utf8')) : { records: [] };
+    ok(a14b.status === 0 && /✓ 変更なし/.test(a14b.stdout) && P14b.records.filter(x => x.auto).every(x => x.cat === 'matches') && P14b.records.filter(x => x.auto).length === 3,
+      '★A14 2回目: apply は「✓ 変更なし」・作り直した plan では入った3行が「既存と一致」', a14b.stdout.slice(-200) + JSON.stringify(P14b.records.map(x => [x.id, x.cat])));
+    /* 読み口：字の表（CITY）の指紋が台帳の行と合うときだけ、拠点の空港の街に家賃が出る */
+    const CT = { halifax: { h: digest([...rents, ...(C14.commute || [])]), ja: 'ハリファックス', en: 'Halifax', iata: 'YHZ', airport: 'ハリファックス空港', per: 'month' } };
+    const seen = researchCities('air-canada', ['YHZ'], S14, CT);
+    const stale = researchCities('air-canada', ['YHZ'], S14, { halifax: { ...CT.halifax, h: '0000000000000000' } });
+    ok(seen.length === 1 && seen[0].city === 'halifax' && seen[0].rents.length === 3 && !stale.length && !researchCities('porter', ['YHZ'], S14, CT).length,
+      '★A14 読み口: 入った家賃は、その会社の拠点の空港の街として読める（字の表の指紋が古いと出ない・つながっていない会社には出ない）', JSON.stringify(seen.map(c => [c.city, c.rents.length])));
+  }
+
   /* verify（作り物を入れた取り込みの台帳）*/
   {
     const vr = run('verify', '--root', ROOT);

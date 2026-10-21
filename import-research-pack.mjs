@@ -284,6 +284,30 @@ const FACT_DOMAINS = ['profile', 'base', 'scale', 'fleet', 'work', 'benefits', '
 const SECONDARY = new Set(['third_party_reference', 'community_reference']);
 const PRIMARY_FOR_LIVING = new Set(['portal', 'operator', 'government']);
 
+/**
+ * 利用者がアップロードした写し（2026-10-21 リード P12.90）── 証拠にしない。
+ *   ・住所が写しの置き場（scribd.com とその下の名前）
+ *   ・資料の発行元・題・注の字が「user-uploaded」（利用者がアップロードした）と言っている
+ *   ・発行元の字が「public copy」（公開の写し）で、その写しを出したのが会社・労働組合・政府のどれでもない
+ *     （フィジー航空の年次報告のように、議会が載せた会社自身の報告は写しではない ── 発行元の種類が airline）
+ * この写しに値を支えさせている記録は「根拠不足」（決まりでは入れない・承認されても入れない・台帳に在れば verify が赤）。
+ * ROUND5（2026-10-21）では14件：アビアンカの ACDAC 協約の写し・ウェストジェットの「WELCOME TO WESTJET」の案内。
+ */
+export const UPLOAD_HOSTS = Object.freeze(['scribd.com']);
+const hostOf = u => String(u || '').replace(/^[a-z][a-z0-9+.-]*:\/\/([^/?#]+).*$/i, '$1').toLowerCase();
+export function userUploaded(s) {
+  if (!s) return false;
+  const host = hostOf(s.url);
+  if (host && UPLOAD_HOSTS.some(h => host === h || host.endsWith(`.${h}`))) return true;
+  if (/user[\s-]*uploaded|利用者(が|の)?アップロード|ユーザー(が|の)?アップロード/i.test([s.publisher, s.title, s.published_note, s.scope_ja].filter(Boolean).join(' '))) return true;
+  return /public copy|公開(の)?写し/i.test(String(s.publisher || '')) && !['airline', 'union', 'government'].includes(s.publisher_kind);
+}
+/** 記録（台帳の行の形）の値を支える資料に、利用者がアップロードした写しが在るか。 */
+export function restsOnUpload(e) {
+  const srcs = new Map((e.src || []).map(s => [s.source_id, s]));
+  return (e.evidence || []).some(v => (v.supports || []).some(s => s === 'value' || s === 'estimate_input' || s === 'absence') && userUploaded(srcs.get(v.source_id)));
+}
+
 function fieldRow(fm, r) {
   if (r.domain === 'fleet') return fm.get('fleet|<機種の鍵>') || null;
   if (r.domain === 'jobs') return fm.get(`jobs|${r.item}`) || fm.get('jobs|<募集の鍵>') || null;
@@ -436,6 +460,7 @@ function entryOf(pack, r, srcById, use, extra = {}) {
     info_kind: r.info_kind ?? null, applies_to: at, amount: r.amount ?? null, effective: r.effective ?? null,
     use, evidence: ev, src, checked_at: (r.verification || {}).checked_at ?? null,
     ...(r.relation && r.relation.type && r.relation.type !== 'new' ? { relation: { type: r.relation.type, targets: r.relation.target_record_ids || [], ref: r.relation.target_existing_ref || null } } : {}),
+    ...(r.city_rent ? { city_rent: r.city_rent } : {}),
     ...extra,
   });
 }
@@ -465,6 +490,12 @@ export function classify(packs, L, store, fm, opts = {}) {
   const decisions = opts.decisions || null;
   const changedLedgers = opts.changedLedgers || new Set();
   const citySite = new Map();      // 街 → 家賃の出どころの URL の主（最初の1つ）
+  /* 取り込み済みの街の席（画面に出しうる家賃の行の資料の主）を先に置く ── 街ごとの家賃の台帳のように、パックの記録を連れてこない入力でも
+     「1つの街に出典は1つ」が取り込み済みの行と比べて効く（2026-10-21 a3。パックは取り込み済みの記録を送り直すので、パックだけなら答えは同じ） */
+  for (const [c, C] of Object.entries(store.LIVING || {})) {
+    const r = (C.rents || []).find(y => !['保留', '空欄', '未指定'].includes(y.use) && urlOf(y));
+    if (r) citySite.set(c, hostOf(urlOf(r)));
+  }
   const recs = [];
 
   for (const { pack, validation, file } of packs) {
@@ -492,7 +523,7 @@ export function classify(packs, L, store, fm, opts = {}) {
   const staged = [];
   for (const { pack, r, i, srcById, errAt, shapeError, inConflict, info } of recs) {
     const why = [];
-    const dec = decisions ? decisions.get(r.record_id) : null;
+    const dec = (opts.cityDecisions && opts.cityDecisions.get(r.record_id)) || (decisions ? decisions.get(r.record_id) : null);
     const use = dec ? (USE[dec.publication_class] || '未指定') : (r.value === null ? '空欄' : '未指定');
     const st = { cat: null };
     let target = null, extra = {};
@@ -512,7 +543,8 @@ export function classify(packs, L, store, fm, opts = {}) {
 
     /* 2 対象不明（置き場） */
     const row = fieldRow(fm, r), placed = PLACED[`${r.domain}|${r.item}`];
-    if (!master.has(company)) setCat('target_unknown', '会社が一覧に無い');
+    if (r.city_rent && r.city_rent.unbound) setCat('target_unknown', r.city_rent.unbound);
+    else if (!master.has(company)) setCat('target_unknown', '会社が一覧に無い');
     else if (r.domain === 'pay' && !L.SALARY[company]) setCat('target_unknown', '年収の台帳に無い会社');
     if ((r.relation || {}).type === 'retracts') {
       const t = ((r.relation || {}).target_record_ids || []).map(id => whereIs(store, id)).find(Boolean);
@@ -545,6 +577,8 @@ export function classify(packs, L, store, fm, opts = {}) {
       if ((r.verification || {}).status !== 'confirmed') setCat('weak_evidence', `確認の状態が confirmed でない（${(r.verification || {}).status}）`);
       if (!valueEv.length || valueEv.some(e => !String(e.quote || '').trim())) setCat('weak_evidence', '値を支える引用が無い');
       if (!valueEv.length || valueEv.some(e => !urlOk((srcById.get(e.source_id) || {}).url))) setCat('weak_evidence', '値を支える資料に URL が無い');
+      const upl = valueEv.map(e => srcById.get(e.source_id)).filter(userUploaded);
+      if (upl.length) setCat('weak_evidence', `値を支える資料が、利用者がアップロードした写し（${[...new Set(upl.map(s => hostOf(s.url) || s.publisher))].join('・')}）── 写しは証拠にしない`);
       if (['published_policy', 'published_statistic'].includes(r.info_kind) && evSrc.length && evSrc.every(s => SECONDARY.has(s.source_type))
           && !(r.domain === 'living' && evSrc.every(s => PRIMARY_FOR_LIVING.has(s.publisher_kind))))
         setCat('weak_evidence', '二次情報だけで「公表された」と名乗っている');
@@ -568,11 +602,15 @@ export function classify(packs, L, store, fm, opts = {}) {
     }
 
     const entry = entryOf(pack, r, srcById, use, extra);
-    staged.push({ pack, r, inConflict, why, use, st, setCat, company, target, extra, evSrc, blocked, entry, h: hashOf(r, use) });
+    staged.push({ pack, r, inConflict, why, use, st, setCat, company, target, extra, evSrc, blocked, entry, h: hashOf(r, use), decClass: dec && !USE[dec.publication_class] ? dec.publication_class : null });
   }
 
   /* 暮らし：比べる相手の行 ＝ 取り込みの台帳に在る行 ＋ この plan で前に出た行（入れられる見込みのある記録だけ） */
-  const canGoIn = x => !!x.target && x.target.startsWith('LIVING.') && !['format_error', 'target_unknown', 'weak_evidence'].includes(x.st.cat) && !x.blocked;
+  /* 比べる相手になるのは、入る見込みのある記録だけ ── 保留・空欄・未指定の記録は台帳に入らないので、同じ資料の「同じ行」「額の違う行」の
+     相手にもならない（2026-10-21 a3：パックの保留の家賃 1,265 ユーロ（HousingAnywhere の前の四半期）が、街ごとの家賃の台帳の
+     バルセロナ 1,225 ユーロを「額が違う」と競合にしていた。出典の席（a2）と同じ決まり） */
+  const canGoIn = x => !!x.target && x.target.startsWith('LIVING.') && !['format_error', 'target_unknown', 'weak_evidence'].includes(x.st.cat) && !x.blocked
+    && !['保留', '空欄', '未指定'].includes(x.use);
   const storeRows = Object.entries(store.LIVING || {}).flatMap(([c, C]) => ['rents', 'commute', 'towns'].flatMap(k => (C[k] || []).map(e => ({ city: c, pack: e.pack, e }))));
   const away = awayRows([...storeRows, ...staged.filter(canGoIn).map(x => ({ city: x.extra.city, pack: x.pack.pack_id, e: x.entry }))]);
   const cityRows = new Map();
@@ -580,7 +618,7 @@ export function classify(packs, L, store, fm, opts = {}) {
 
   /* 4 競合 ／ 5 訂正候補 ／ 6 既存と一致 ／ 7 追加 */
   for (const x of staged) {
-    const { pack, r, inConflict, why, use, st, setCat, company, target, extra, evSrc, blocked, entry, h } = x;
+    const { pack, r, inConflict, why, use, st, setCat, company, target, extra, evSrc, blocked, entry, h, decClass } = x;
     if (inConflict.has(r.record_id)) setCat('conflict', `資料どうしの食い違い（${inConflict.get(r.record_id).conflict_id}）`);
     const stored = findStored(store, r.record_id, pack.pack_id);
     /* 中身（記録そのもの）は同じで、調べた側の「使い方」だけが変わった ── 例「参考」→「条件つき」。競合にせず、最新の判断に書き換える
@@ -601,7 +639,7 @@ export function classify(packs, L, store, fm, opts = {}) {
          2026-10-21（a2）：空港の呼び名を足すと、日本語の拠点名（「ベルリン」）の記録も街が決まるようになり、保留の記録が先に席を取って、
          取り込み済みの記録（Eurostat のベルリン）を「2つめの出典」として競合にしていた。 */
       if (r.item === 'rent' && !['保留', '空欄', '未指定'].includes(use)) {
-        const host = (evSrc[0] && evSrc[0].url ? String(evSrc[0].url).replace(/^https?:\/\/([^/]+).*$/, '$1') : '');
+        const host = (evSrc[0] && evSrc[0].url ? hostOf(evSrc[0].url) : '');
         if (!citySite.has(city)) citySite.set(city, host);
         else if (citySite.get(city) !== host) setCat('conflict', `同じ街に2つめの家賃の出どころ（${citySite.get(city)} と ${host}）── 1つの街に出典は1つ`);
       }
@@ -631,7 +669,7 @@ export function classify(packs, L, store, fm, opts = {}) {
     if (!st.cat) setCat('addition', '');
     if (blocked) why.push(blocked);
     out.push({ id: r.record_id, pack: pack.pack_id, rev: pack.pack_revision, company, domain: r.domain, item: r.item, cat: st.cat, why, target, use,
-      h, entry, test_only: !!pack.test_only, ...(basis ? { basis } : {}), ...(blocked ? { blocked: true } : {}), ...(relabel !== undefined && st.cat === 'matches' ? { relabel } : {}), _r: r });
+      h, entry, test_only: !!pack.test_only, ...(basis ? { basis } : {}), ...(decClass ? { decision_class: decClass } : {}), ...(blocked ? { blocked: true } : {}), ...(relabel !== undefined && st.cat === 'matches' ? { relabel } : {}), _r: r });
   }
 
   /* 給与：同じ会社・同じ職位の、年額で比べられる記録の幅が、サイトの推定年収（SALARY）の平均から 25% を超えて離れていたら、決まりでは入れない。 */
@@ -687,6 +725,138 @@ function findStored(store, id, packId) {
   return { h: p.records[id] };
 }
 
+/* ════════════ 街ごとの家賃の台帳（調べた側の cities/CITY-RENT-LEDGER.json）を記録に直す（2026-10-21 a3・リード P12.90）════════════
+   調べた側の台帳は「1つの街に1つの出典」の家賃の行（会社の名前は候補だけ ── 拠点の証拠ではない、と台帳自身が言っている）。
+   ここで、パックの記録と同じ形（暮らし・家賃）に直し、同じ決まり（引用と URL・使い方・1つの街に出典は1つ・同じ行は1つ・
+   先行の会社の街へは入れない・2回流しても同じ）で plan に入れる。
+   ★会社へのつなぎは、こちらの台帳だけで決める（つなぎを作らない）：その街を拠点にしている会社 ＝
+       ・取り込みの台帳の CITY_OF（その会社の調べの記録が、その街を拠点として書いた）
+       ・その会社の拠点の空港（airline-rollout.mjs の researchFacts の base。空港の呼び名の表 PLACES の街）か、拠点の街
+     のどちらかに、その街が在る会社だけ。先行5社は先行の台帳（living-facts.mjs）を使うのでつながない。
+     どの会社にもつながらない街の行は「対象不明」として一覧に出すだけ（台帳に入れない）。候補の会社の名前だけではつながない。
+   ★数字は資料のまま：額・部屋の型・通貨・期間（週は週のまま ── per 'week'）。年額や月額に直さない・為替で直さない。
+     調べた側が直したもの（オークランドの NZD・HousingAnywhere の「月」）は、その断り（normalization）を行に残す。
+   ★使い方：調べた側の判断の表（--decisions）に在ればそれ。無ければ行の状態の字 ── 「hold」を含めば保留・
+     「source_confirmed」で始まるか「with_conditions」を含めば条件つき・それ以外は未指定（決まりでは入れない）。 */
+export const CITY_RENT_PACK = 'pvr-city-rent';
+const RENT_STAT = { median: 'median', median_asking: 'median', average: 'average', mean: 'average', example: 'example', single_advertised_example: 'example', publisher_typical_asking: 'unknown' };
+const RENT_STAT_JA = { median: '家賃の中央値', median_asking: '募集家賃の中央値', average: '家賃の平均', mean: '家賃の平均', example: '1件の募集の家賃', single_advertised_example: '1件の募集の家賃', publisher_typical_asking: '掲載者が示す典型的な募集家賃' };
+const RENT_PER = new Set(['month', 'week', 'year']);
+const GOV_HOST = /(^|\.)(gov|govt|gouv|gob)(\.[a-z]{2,3})?$|\.(gov|govt|gouv|gob)\.[a-z]{2}$/;
+/** 行の状態の字 → 使い方（調べた側の判断の表の publication_class の言葉）。言っていなければ null（未指定）。 */
+export function cityRentUse(d) {
+  const st = [d.status, d.display_status].filter(Boolean).join(' ');
+  if (/hold/i.test(st)) return 'hold';
+  if (/^source_confirmed|with_conditions/i.test(st)) return 'context_with_conditions';
+  return null;
+}
+/**
+ * その街を拠点にしている会社（こちらの台帳だけで決める）。返すのは 街の鍵 → Map(会社 → 理由)。
+ *   store ＝ 取り込みの台帳・skip ＝ 別に置く会社。先行5社は入れない。
+ */
+export async function cityBindings(L, store, skip = new Set()) {
+  const RO = await import(pathToFileURL(path.join(HERE, 'airline-rollout.mjs')).href);
+  const lead = new Set(RO.LEAD), by = new Map();
+  const add = (k, s, why) => { if (!k || lead.has(s) || skip.has(s)) return; const m = by.get(k) || by.set(k, new Map()).get(k); if (!m.has(s)) m.set(s, why); };
+  for (const [s, cs] of Object.entries(store.CITY_OF || {})) for (const c of cs) add(c, s, `暮らしの街（${s} の調べの記録の拠点）`);
+  for (const s of [...Object.keys(L.SALARY), ...Object.keys(L.OPS || {})]) {
+    if (lead.has(s) || skip.has(s)) continue;
+    const b = RO.researchFacts(s, store).base;
+    if (!b) continue;
+    /* 空港は英語の名前から（日本語の街の名前は、別の国の街と重なる ── オークランドは AKL と OAK。2026-10-21 a3 の下見で、
+       オークランド（NZ）の家賃がサウスウエスト航空（OAK）につながりかけた） */
+    for (const c of b.iata || []) {
+      const p = L.PLACES[c];
+      if (!p) continue;
+      for (const k of new Set([cityKey(p[1], L), cityKey(String(p[1]).split(' ')[0], L)])) add(k, s, `拠点の空港 ${c}`);
+    }
+    /* 拠点が街だけの会社：日本語の街の名前が1つの街にしか当たらないときだけ（2つの国の街に当たる名前ではつながない） */
+    if (!(b.iata || []).length && b.city) for (const c of String(b.city).split('・')) {
+      const keys = new Set(Object.values(L.PLACES).filter(p => String(p[0]).replace(/（.*$/, '') === c).map(p => cityKey(String(p[1]).split(' ')[0], L)).filter(Boolean));
+      if (keys.size === 1) add([...keys][0], s, `拠点の街「${c}」`);
+    }
+  }
+  return by;
+}
+/**
+ * 家賃の台帳（JSON）→ パックの形（記録・資料）と、使い方の表と、直せなかった行。
+ *   直せない行（額・型・通貨・期間・住所・引用のどれかが読めない）は記録にするが「形式エラー」（validation.errors。パックは止めない ──
+ *   1行が読めなくても、ほかの街の行は今までどおり分ける）。どの会社にもつながらない行は、会社の無い記録（対象不明）。
+ */
+export function cityRentPack(json, L, bindings, opts = {}) {
+  if (!json || !Array.isArray(json.rows)) throw new Error('家賃の台帳の形ではない（rows が無い）');
+  const sources = new Map(), records = [], errors = [], decisions = new Map(), boundBy = new Map();
+  json.rows.forEach((row, n) => {
+    const d = (row && row.data) || {}, S = d.source && typeof d.source === 'object' ? d.source : {};
+    const city = String(d.city || d.city_name || '').trim();
+    /* 括弧の付いた名前：「Avondale (Auckland)」＝ 地区（街）、「Halifax (Nova Scotia)」＝ 街（州）。どちらが街かは、空港の呼び名の表
+       （PLACES の英語の名前）に在る方。どちらも無ければ括弧の外を街にする（括弧の中を街にしない） */
+    const m = city.match(/^(.+?)\s*[（(]([^）)]+)[）)]\s*$/);
+    const known = n => Object.values(L.PLACES).some(p => cityKey(String(p[1]).split(' ')[0], L) === cityKey(n, L) || cityKey(p[1], L) === cityKey(n, L));
+    const inner = !!m && known(m[2].trim()) && !known(m[1].trim());
+    const base = m ? (inner ? m[2].trim() : m[1].trim()) : city;
+    const district = String(d.district_original || (inner ? m[1].trim() : '') || base).trim();
+    const room = d.room_type || d.room_key, raw = d.value !== undefined ? d.value : d.amount;
+    const value = typeof raw === 'number' ? raw : isObj(raw) && typeof raw.min === 'number' && typeof raw.max === 'number' ? [raw.min, raw.max] : null;
+    const cur = d.currency, per = d.source_period || d.period, url = d.source_url || S.url || null;
+    const q = d.quote !== undefined ? d.quote : S.quote, quote = Array.isArray(q) ? q.filter(Boolean).join(' ／ ') : String(q || '').trim();
+    const bad = [];
+    if (!base) bad.push('街の名前が無い');
+    if (!LAYOUT.pack[room]) bad.push(`部屋の型「${room}」を読めない`);
+    if (value === null) bad.push('額が数（か下と上の2つの数）でない');
+    if (!/^[A-Z]{3}$/.test(String(cur || ''))) bad.push('通貨が3字でない');
+    if (!RENT_PER.has(per)) bad.push(`期間「${per}」を読めない`);
+    if (!urlOk(url)) bad.push('資料の住所（https）が無い');
+    if (!quote) bad.push('引用が無い');
+    const stat = d.statistic || '', retrieved = d.retrieved || d.checked_at || json.checked_at || null;
+    const host = hostOf(url), gov = GOV_HOST.test(host);
+    const sid = `src-cityrent-${slug(base)}-${sha(String(url)).slice(0, 8)}`;
+    if (!sources.has(sid)) sources.set(sid, {
+      source_id: sid, source_type: gov ? 'government' : 'third_party_reference', publisher_kind: gov ? 'government' : 'portal',
+      publisher: d.publisher || S.publisher || host, title: d.title || S.title || null, url,
+      published: ISO.test(String(d.published || d.publication_date || '')) ? (d.published || d.publication_date) : null, retrieved,
+    });
+    const k = cityKey(base, L), bound = [...((bindings && k && bindings.get(k)) || new Map())];
+    const cands = d.candidate_company_ids || d.requested_company_ids || [];
+    const roomOrig = d.room_type_original || '';
+    const period = isObj(d.data_period) ? [d.data_period.from, d.data_period.to].filter(Boolean).join('〜') : d.data_period || null;
+    const norm = Object.fromEntries(['normalization_history', 'currency_normalization', 'period_normalization', 'currency_unit_review', 'currency_original']
+      .filter(f => d[f] !== undefined && d[f] !== null).map(f => [f, d[f]]));
+    const rid = `cityrent-${slug(base)}-${slug(district)}-${room}-${sha(canon([url, district, room, value, cur, per])).slice(0, 8)}`;
+    const make = (company, unbound) => ({
+      record_id: `${company || 'none'}.living.${rid}`, company_id: company, domain: 'living', item: 'rent',
+      label_ja: `${district} ${room}`, value: value === null ? null : { [room]: value }, value_text: { [room]: quote },
+      unit: null, currency: cur || null, per: per || null,
+      cond_ja: `${district}。英: ${district}。${roomOrig ? `原部屋表記「${String(roomOrig).replace(/[「」]/g, '')}」。` : ''}${d.conditions_ja || ''}`,
+      info_kind: 'published_statistic', applies_to: { base, pilot_specific: false },
+      amount: { kind: 'other', kind_note_ja: RENT_STAT_JA[stat] || stat || null, stat: RENT_STAT[stat] || (Array.isArray(value) ? 'range' : 'unknown'),
+        tax: 'unknown', includes: [], excludes: [], unclear: [], population: { n: d.population_n ?? d.sample_size ?? null, period } },
+      evidence: [{ source_id: sid, locator: d.locator || S.locator || null, quote, supports: ['value', 'condition', 'applies_to', 'period'] }],
+      effective: { from: null, to: null, note_ja: '数字の時点は amount.population.period。掲載の日付と、いま借りられる家賃は別。' },
+      relation: { type: 'new' }, verification: { status: 'confirmed', checked_at: d.checked_at || json.checked_at || retrieved },
+      city_rent: { city: base, row: `${row.research_group || ''}#${row.source_row_index ?? n}`, status: d.status || d.display_status || null, statistic: stat || null,
+        candidates: cands, ...(unbound ? { unbound } : {}), ...(Object.keys(norm).length ? { normalization: norm } : {}) },
+    });
+    const use = cityRentUse(d);
+    const recs = bound.length ? bound.map(([s]) => make(s, null))
+      : [make(null, `街「${base}」を拠点にしている会社が、こちらの台帳に無い（候補の会社 ${cands.join('・') || 'なし'} は拠点の証拠ではない）── 入れない`)];
+    for (const r of recs) {
+      /* どの台帳でつないだか（plan にだけ書く。記録の中身に入れない ── 入れると、2回目の plan で「台帳の CITY_OF から」に変わり、
+         同じ行が「中身が変わって届いた」になる） */
+      if (r.company_id) boundBy.set(r.record_id, (bound.find(([s]) => s === r.company_id) || [])[1] || null);
+      if (bad.length) errors.push({ path: `records[${records.length}]`, message: `家賃の台帳の行を直せない（${bad.join('・')}）` });
+      if (use) decisions.set(r.record_id, { record_id: r.record_id, publication_class: use });
+      records.push(r);
+    }
+  });
+  const rev = Number(String(json.checked_at || '').replace(/-/g, '')) || 1;
+  const pack = { contract_version: '1.1.1', pack_id: CITY_RENT_PACK, pack_revision: rev, created_at: json.checked_at || null, researcher: 'city-rent-ledger',
+    test_only: !!(opts.test_only ?? json.test_only), baseline_id: null, scope: { company_ids: [], note_ja: '街ごとの家賃の台帳' },
+    sources: [...sources.values()], records, conflicts: [], out_of_master: [], notes_ja: '' };
+  /* 行ごとのエラーは記録ごとに形式エラーにする（ok は true ＝ 台帳のファイルそのものは読めた） */
+  return { pack, validation: { ran: true, ok: true, stage: 'content', errors, warnings: [] }, decisions, boundBy };
+}
+
 /* ════════════ plan ════════════ */
 function packFiles(arg) {
   const st = fs.statSync(arg);
@@ -718,8 +888,10 @@ export async function plan(args) {
   const fmFile = args.fieldmap || (contract && path.join(contract, 'field-map.csv'));
   const baseFile = args.baseline || (contract && path.join(contract, 'baseline.json'));
   if (!fmFile || !fs.existsSync(fmFile)) fail('field-map.csv が無い（--contract か --fieldmap）');
-  const files = packFiles(args._[1]);
-  const outDir = path.resolve(args.out || path.dirname(files[0]));
+  const files = args._[1] ? packFiles(args._[1]) : [];
+  const cityFile = args['city-rent'] ? path.resolve(args['city-rent']) : null;
+  if (!files.length && !cityFile) fail('plan <pack.json|フォルダ> か --city-rent <CITY-RENT-LEDGER.json> が要る');
+  const outDir = path.resolve(args.out || path.dirname(files[0] || cityFile));
   for (const no of [root, HERE]) if (inside(real(outDir), real(no)) || inside(outDir, no)) fail(`書き出し先がリポジトリの中（${path.basename(outDir)}）── plan はリポジトリの外にだけ書く`);
   const L = await loadLedgers(root);
   const { store } = readStore(root);
@@ -742,13 +914,25 @@ export async function plan(args) {
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   const decisions = readDecisions(args.decisions);
   const skip = (args.skip || '').split(',').filter(Boolean);
-  const res = classify(packs, L, store, fm, { decisions, skip, changedLedgers: changed, test: !!args.test });
+  /* 街ごとの家賃の台帳（パックではない）：記録に直して、パックと同じ分け方に入れる（つなぎは、こちらの台帳の拠点から） */
+  let cityDecisions = null, cityInfo = null, boundBy = null;
+  if (cityFile) {
+    const json = JSON.parse(fs.readFileSync(cityFile, 'utf8').replace(/^\uFEFF/, ''));
+    const cr = cityRentPack(json, L, await cityBindings(L, store, new Set(skip)));
+    packs.push({ pack: cr.pack, validation: cr.validation, file: cityFile, sha: 'sha256:' + sha(fs.readFileSync(cityFile)).slice(0, 16) });
+    cityDecisions = cr.decisions;
+    boundBy = cr.boundBy;
+    cityInfo = { rows: json.rows.length, records: cr.pack.records.length, unbound: cr.pack.records.filter(r => r.city_rent.unbound).length, errors: cr.validation.errors.length };
+  }
+  const res = classify(packs, L, store, fm, { decisions, cityDecisions, skip, changedLedgers: changed, test: !!args.test });
+  if (boundBy) for (const x of res.records) if (x.pack === CITY_RENT_PACK && boundBy.get(x.id)) x.bound_by = boundBy.get(x.id);
   const made_on = args.today || new Date().toISOString().slice(0, 10);
   const body = {
     format: 1, made_on, root_prints: L.prints, baseline_id: baseline ? baseline.baseline_id : null, changed_since_baseline: [...changed],
     packs: res.packs.map(p => ({ ...p, sha: (packs.find(x => x.pack.pack_id === p.pack_id) || {}).sha })),
-    validator: packs[0] ? { version: packs[0].validation.validator_version, contract_version: packs[0].validation.contract_version } : null,
-    conversions: convLog, skip, pay_groups: res.payGroups, records: res.records,
+    /* 決まりの検査の版（パックの1つめ）。家賃の台帳だけの plan には検査の版が無い（null ── undefined だと書いた plan の指紋が合わなくなる） */
+    validator: packs[0] ? { version: packs[0].validation.validator_version ?? null, contract_version: packs[0].validation.contract_version ?? null } : null,
+    conversions: convLog, skip, pay_groups: res.payGroups, records: res.records, ...(cityInfo ? { city_rent: cityInfo } : {}),
   };
   const planObj = { ...body, checksum: sha(canon(body)) };
   fs.mkdirSync(outDir, { recursive: true });
@@ -767,7 +951,7 @@ function require_tmp() { return os.tmpdir(); }
 
 /* ════════════ オーナーの一覧（日本語・短く）════════════ */
 const man0 = x => `${Math.round(x).toLocaleString('en-US')}万円`;
-const PER_JA = { year: '年', month: '月', hour: '時間', day: '日', block_hour: 'ブロック時間', sector: '区間', one_off: '1回' };
+const PER_JA = { year: '年', month: '月', week: '週', hour: '時間', day: '日', block_hour: 'ブロック時間', sector: '区間', one_off: '1回' };
 const num = x => typeof x === 'number' ? x.toLocaleString('en-US') : String(x);
 /** 値を短く（元の通貨・元の単位のまま。円に直さない）。長いときは数の途中で切らない（区切りの手前まで戻して「…」・単位は残す）。 */
 export function valueShort(e, max = 90) {
@@ -803,7 +987,8 @@ export function ownerList(p, L) {
   lines.push(`  決まりで入れる：${auto.length}件（追加 ${auto.filter(x => x.cat === 'addition').length}・既存と一致 ${auto.filter(x => x.cat === 'matches').length}）`);
   const held = R.filter(x => ['addition', 'matches'].includes(x.cat) && x.use === '保留').length;
   const gap = R.filter(x => ['addition', 'matches'].includes(x.cat) && x.pay_gap && x.pay_gap.over).length;
-  lines.push(`  「追加・既存と一致」でも決まりでは入れない：保留 ${held}件・給与の差が25%を超える ${gap}件`);
+  const unset = R.filter(x => ['addition', 'matches'].includes(x.cat) && x.use === '未指定' && x.relabel === undefined).length;
+  lines.push(`  「追加・既存と一致」でも決まりでは入れない：保留 ${held}件・給与の差が25%を超える ${gap}件・使い方が決まっていない（調べた側の判断の表に無いか、この道具の知らない分類）${unset}件`);
   const rl = R.filter(x => x.relabel !== undefined);
   if (rl.length) {
     const t = new Map(); for (const x of rl) { const k = `${x.relabel}→${x.use}`; t.set(k, (t.get(k) || 0) + 1); }
@@ -887,6 +1072,12 @@ export function ownerList(p, L) {
   lines.push(`  ・保留 ${R.filter(x => x.use === '保留').length}件（どの分類でも）── 調べた側が「出さない・計算に使わない」とした記録`);
   if (cfIdle.length) lines.push(`  ・資料どうしの食い違いで、どの側の記録もまだ入れられないもの ${cfIdle.length}件（${cfIdle.join('・')}）── 置き場ができたときに一緒に決める（全部は owner-list-all.tsv）`);
   if (by('format_error').length) lines.push(`  ・形式エラー ${by('format_error').length}件 ── 直した出し直しを待つ`);
+  /* 使い方が決まっていない記録（調べた側の新しい分類の言葉ごと）── 決まりでは入れない。分類の言葉をこの道具に足すかはリードが決める */
+  const un = R.filter(x => x.use === '未指定' && ['addition', 'matches'].includes(x.cat) && x.relabel === undefined);
+  if (un.length) {
+    const t = new Map(); for (const x of un) { const k = x.decision_class || '判断の表に無い'; t.set(k, (t.get(k) || 0) + 1); }
+    lines.push(`  ・使い方が決まっていない ${un.length}件（${[...t].sort((a, b) => b[1] - a[1]).map(([k2, v]) => `${k2} ${v}`).join('・')}）── 決まりでは入れない`);
+  }
   const blockedPacks = p.packs.filter(x => !x.skipped && !x.validator_ok);
   if (blockedPacks.length) lines.push(`  ・検査のエラーが残るパック ${blockedPacks.length}（${blockedPacks.map(x => x.pack_id).join('・')}）── 記録 ${R.filter(x => x.blocked).length}件は分類だけ出し、1件も入れない`);
   const payIn = R.filter(x => x.auto && x.domain === 'pay');
@@ -896,6 +1087,20 @@ export function ownerList(p, L) {
     lines.push(`■ 5. 入る給与の記録 ${payIn.length}件 ── 出所の台帳の候補（領収書）として入るだけ。推定年収は動かない`);
     lines.push(`  ・年額で推定年収と比べたもの ${payIn.length - notCompared.length}件（会社・職位ごとの幅で比べて、差は25%以内）`);
     lines.push(`  ・額を比べていないもの ${notCompared.length}件（時給・月額・職位の分からない表・募集・参考。比べると月額×12 などの計算が要る）`);
+  }
+  /* 街ごとの家賃の台帳：街ごとに1行（入る街・つながる会社が無くて入らない街） */
+  const cr = R.filter(x => x.pack === CITY_RENT_PACK);
+  if (cr.length) {
+    const byCity = new Map(); for (const x of cr) { const c = (x.entry.city_rent || {}).city || '?'; byCity.set(c, [...(byCity.get(c) || []), x]); }
+    lines.push('');
+    lines.push(`■ 6. 街ごとの家賃の台帳（${cr.length}件・${byCity.size}街）── つなぎは、こちらの台帳の拠点だけ（候補の会社の名前ではつながない）`);
+    for (const [c, list] of byCity) {
+      const inn = list.filter(x => x.auto), co = [...new Set(list.filter(x => x.company).map(x => name(x.company)))];
+      const why = inn.length ? `入る ${inn.length}件（${co.join('・')}）`
+        : co.length ? `入らない（${[...new Set(list.map(x => x.use === '保留' ? '保留' : CAT_JA[x.cat]))].join('・')}・${co.join('・')}）`
+        : `入らない ── この街を拠点にしている会社が台帳に無い（候補 ${[...new Set(list.flatMap(x => (x.entry.city_rent || {}).candidates || []).map(name))].join('・') || 'なし'}）`;
+      lines.push(`  ・${c}：${list.map(x => valueShort(x.entry)).filter((v, i, a) => a.indexOf(v) === i).join('・')}／${why}`);
+    }
   }
   lines.push('');
   lines.push('入れた記録は research-ledger.mjs（取り込みの台帳）に入る。どの画面もまだ読まない（会社ページを広げる回が読む）。公開は別の承認。');
@@ -970,6 +1175,7 @@ export function gate(x, pi, root, args, L) {
   const retract = (x.entry.relation || {}).type === 'retracts';
   if (!retract && (x.use === '空欄' || x.entry.value === null || x.entry.value === undefined)) return '値が無い（空は削除の指示ではない）';
   if (!retract && !hasQuoteAndUrl(x.entry)) return '引用と URL の無い記録は入れない';
+  if (!retract && restsOnUpload(x.entry)) return '利用者がアップロードした写しを根拠にした記録は入れない';
   /* 取り込み済みの行が「未指定」（調べた側の判断が無くなった）に付け直されたときは通す ── 前の使い方のまま画面に残さないため（出さない側へ動くだけ） */
   if (!USES.has(x.use) && !(x.relabel !== undefined && x.use === '未指定')) return `使い方（${x.use}）が決まっていない`;
   if (x.domain === 'pay' && x.target !== `SOURCES.${x.company}`) return '給与は出所の台帳（候補）にだけ入る';
@@ -1083,6 +1289,7 @@ export function verifyStore(store, L) {
       if (!USES.has(e.use) && e.use !== '未指定') bad.push(`${w}: use が「${e.use}」`);
       if (e.use === '空欄' || e.value === null || e.value === undefined) bad.push(`${w}: 値の無い行（空は削除の指示ではない・行を作らない）`);
       if (!hasQuoteAndUrl(e)) bad.push(`${w}: 引用と URL の無い行`);
+      if (restsOnUpload(e)) bad.push(`${w}: 利用者がアップロードした写しを根拠にした行（写しは証拠にしない）`);
       if (e.checked_at !== null && !ISO.test(String(e.checked_at))) bad.push(`${w}: checked_at の形`);
       if (!ISO.test(String(e.imported_on))) bad.push(`${w}: imported_on が無い`);
     }
@@ -1212,6 +1419,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const verb = args._[0];
   const run = { check, plan, apply, verify }[verb];
   if (!run) fail('使い方: node import-research-pack.mjs check|plan|apply|verify …（頭の説明を読む）');
-  if (['check', 'plan'].includes(verb) && !args._[1]) fail(`${verb} <pack.json|フォルダ> が要る`);
-  await run(args);
+  if (['check', 'plan'].includes(verb) && !args._[1] && !(verb === 'plan' && args['city-rent'])) fail(`${verb} <pack.json|フォルダ> が要る`);
+  /* top-level の await にしない：plan は街の家賃のつなぎで airline-rollout.mjs を読み、それがこのファイルを読み返す ──
+     このファイルの評価が await で止まったままだと、読み返しが終わらず止まる（2026-10-21 a3 で踏んだ） */
+  run(args).catch(e => { console.error(e && e.stack || e); process.exit(1); });
 }

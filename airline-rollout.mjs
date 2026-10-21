@@ -249,17 +249,18 @@ export function researchNetwork(slug, REGIONS, home = []) {
  * 拠点の街（調べの台帳の街のうち、airline-display.mjs の CITY に字が在る街）。bases ＝ その会社の拠点の空港の並び（この順に返す）。
  *   rents   … 家賃の行（why を通り・字の表の街の資料の行）。間取りの鍵（studio・1bed…）ごとに1つ
  *   commute … 空港までの移動の行（why を通り・その街の空港の行で・LINES に字が在る行）
+ *   R / CT  … 調べの台帳と街の字の表（既定はリポジトリの research-ledger.mjs と airline-display.mjs の CITY。検査が写しを渡す）
  */
-export function researchCities(slug, bases) {
-  const R = research(), out = [];
+export function researchCities(slug, bases, R = research(), CT = CITY) {
+  const out = [];
   for (const iata of bases) {
-    const city = Object.keys(CITY).find(c => CITY[c].iata === iata && ((R.CITY_OF || {})[slug] || []).includes(c));
+    const city = Object.keys(CT).find(c => CT[c].iata === iata && ((R.CITY_OF || {})[slug] || []).includes(c));
     const L = city && (R.LIVING || {})[city];
-    if (!L || digest([...(L.rents || []), ...(L.commute || [])]) !== CITY[city].h) continue;
+    if (!L || digest([...(L.rents || []), ...(L.commute || [])]) !== CT[city].h) continue;
     const rents = (L.rents || []).filter(r => !why(r) && r.value && typeof r.value === 'object' && srcOf(r));
     const commute = (L.commute || []).filter(r => !why(r, { commute: true, bases: [iata] }) && say(r) && srcOf(r))
       .map(r => ({ r, d: say(r), src: srcOf(r) }));
-    out.push({ city, iata, C: CITY[city], rents: rents.map(r => ({ r, src: srcOf(r) })), commute });
+    out.push({ city, iata, C: CT[city], rents: rents.map(r => ({ r, src: srcOf(r) })), commute });
   }
   return out;
 }

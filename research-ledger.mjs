@@ -71,6 +71,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "british-airways": [
    "london"
   ],
+  "china-eastern": [
+   "shanghai"
+  ],
   "copa-airlines": [
    "ciudad-de-panama"
   ],
@@ -90,6 +93,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "seattle"
   ],
   "easyjet": [
+   "barcelona",
    "berlin",
    "bristol",
    "geneva",
@@ -97,6 +101,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "luton",
    "lyon",
    "manchester",
+   "milan",
    "paris",
    "porto",
    "rome"
@@ -1362,6 +1367,178 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "air-canada": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "pilot recruitment 38766; Air Canada Express以外の候補",
+      "employer": "Air Canada",
+      "hire_route": "外部操縦士募集38766",
+      "note_ja": "本人の操縦士募集内に記載された制度。採用時FO又はlong-haul relief pilotが通常と説明。個々の正式CBA権利の全範囲は未確認。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-canada",
+     "cond_ja": "割引率・無料/有料・席確約・家族人数/親等・税・利用開始時期は未記載。非操縦士求人の28週待機をこの募集へ転用しない。 操縦士の本人募集での説明という範囲。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "現在公開される本人募集の記載を2026-10-21確認。具体的な給付の施行/失効日は本文にない。求人掲載日や応募締切を制度適用日にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Qu’est-ce qui vous attend avec nous? / UBY and travel paragraphs",
+       "quote": "des tarifs spéciaux et des passes",
+       "source_id": "src-air-canada-r10-french-pilot-38766",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "988b3485ac2954f3",
+     "id": "air-canada.benefits.r10-fr38766-staff-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "staff_travel",
+     "label_ja": "操縦士募集の航空優待・他社相互利用",
+     "pack": "pvr-20261019-air-canada",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": "2026-02-14",
+       "publisher": "Air Canada official careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-canada-r10-french-pilot-38766",
+       "source_type": "job_posting",
+       "title": "Pilote (pour les candidats qui ne sont pas des pilotes d'Air Canada Express)",
+       "url": "https://careers.aircanada.com/ca/fr/job/38766/Pilote-pour-les-candidats-qui-ne-sont-pas-des-pilotes-d%27Air-Canada-Express"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "本人・家族・友人向けのAir Canada特別運賃・旅行パス、他社との相互旅行特典を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "pilot recruitment 38766; Air Canada Express以外の候補",
+      "employer": "Air Canada",
+      "hire_route": "外部操縦士募集38766",
+      "note_ja": "本人の操縦士募集内に記載された制度。採用時FO又はlong-haul relief pilotが通常と説明。個々の正式CBA権利の全範囲は未確認。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-canada",
+     "cond_ja": "UBYの健康/心理相談の限定情報。医療費保険・入院/外来費・本人無料・家族加入・回数上限・保険料の根拠ではない。包括医療保険の不足は残す。 操縦士の本人募集での説明という範囲。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "現在公開される本人募集の記載を2026-10-21確認。具体的な給付の施行/失効日は本文にない。求人掲載日や応募締切を制度適用日にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Qu’est-ce qui vous attend avec nous? / UBY and travel paragraphs",
+       "quote": "un réseau de conseillers et de thérapeutes",
+       "source_id": "src-air-canada-r10-french-pilot-38766",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "25921939e66a4b4b",
+     "id": "air-canada.benefits.r10-fr38766-uby-support",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "medical",
+     "label_ja": "操縦士募集のUBY相談・セラピスト支援",
+     "pack": "pvr-20261019-air-canada",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": "2026-02-14",
+       "publisher": "Air Canada official careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-canada-r10-french-pilot-38766",
+       "source_type": "job_posting",
+       "title": "Pilote (pour les candidats qui ne sont pas des pilotes d'Air Canada Express)",
+       "url": "https://careers.aircanada.com/ca/fr/job/38766/Pilote-pour-les-candidats-qui-ne-sont-pas-des-pilotes-d%27Air-Canada-Express"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "UBYというwell-beingプログラムがカウンセラー/セラピストのネットワーク等へのアクセスを案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Air Canada",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-canada",
+     "cond_ja": "ALPAのNewContractNewGrowthで2025年実施改善を報告。駐車場の場所/本人負担額・年休付与日数/選択条件は未掲載。pilot当事者が公表した制度の存在の範囲であり、現行CBA細則の独立一致とは別。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "New Contract New Growth",
+       "quote": "enhanced parking benefits",
+       "source_id": "src-air-canada-r8-alpa-benefits",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "8ee57ec8b6ec7c13",
+     "id": "air-canada.benefits.r8-parking-improvements",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤駐車改善",
+     "pack": "pvr-20261019-air-canada",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Line Pilots Association, International",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-canada-r8-alpa-benefits",
+       "source_type": "official_package",
+       "title": "Air Canada New Contract New Growth",
+       "url": "https://www.alpa.org/supporting-pilots/pilot-groups/air-canada"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2025年協約実施改善としてparking benefitsを強化と当事者公表",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -2447,6 +2624,62 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "参考",
      "value": 80,
      "value_text": "80"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Air Canada",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-canada",
+     "cond_ja": "ALPAのNewContractNewGrowthで2025年実施改善を報告。駐車場の場所/本人負担額・年休付与日数/選択条件は未掲載。pilot当事者が公表した制度の存在の範囲であり、現行CBA細則の独立一致とは別。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "New Contract New Growth",
+       "quote": "greater vacation flexibility through the optional bank plan",
+       "source_id": "src-air-canada-r8-alpa-benefits",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "1eebacb51b47f658",
+     "id": "air-canada.work.r8-vacation-bank",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休bank選択",
+     "pack": "pvr-20261019-air-canada",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Line Pilots Association, International",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-canada-r8-alpa-benefits",
+       "source_type": "official_package",
+       "title": "Air Canada New Contract New Growth",
+       "url": "https://www.alpa.org/supporting-pilots/pilot-groups/air-canada"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "optional bank planによりvacationの柔軟性を改善と当事者公表",
+     "value_text": null
     }
    ]
   },
@@ -2681,6 +2914,501 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 5,
      "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Régime complémentaire frais de santé; avenant T09325064864",
+      "employer": "Société Air France",
+      "note_ja": "記載された制度と対象の存在に限る。個人の加入・給付、全世界の在籍者への無条件適用は確定しない。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-france",
+     "cond_ja": "政府改定は2022-12-09の補完医療協約を2026-12-31まで延長し、それ以外を変更しないと明記。CSECは現役社員の義務加入を説明。2026-02-20の労組本人記事が現役PNTをmutuelle団体選挙対象として明記するため、一般社員制度からのpilot適用の推測だけには依存しない。2022親協約の給付範囲・免除・海外勤務例外・会社拠出率と現在の個人加入は未照合。2026-09-24 CSECの後継案への意見は合意成立を意味しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "条項の適用日と掲載日を区別。後継合意・個別適用・給付額が未取得の部分は条件に明記。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "原DOCX描画p1 / Préambule,Art1,Art3; 政府metadata",
+       "quote": "du 1er janvier 2023 au 31 décembre 2026 inclus",
+       "source_id": "src-air-france-r10-health-extension2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "RÉSULTAT ÉLECTIONS MUTUELLE / collège collectif",
+       "quote": "PNC, PNT et PS actifs",
+       "source_id": "src-air-france-r10-pnt-mutuelle2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "La Mutuelle / MNPAF 説明第1段落",
+       "quote": "adhésion obligatoire pour les salariés actifs",
+       "source_id": "src-air-france-r10-csec-mutuelle",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "988b340c79cb0619",
+     "id": "air-france.benefits.r10-collective-health-pnt-presence2026",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "現役PNTを含む団体補完医療制度の存在",
+     "pack": "pvr-20261019-air-france",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": "2025-11-25",
+       "publisher": "Légifrance / DILA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r10-health-extension2026",
+       "source_type": "government",
+       "title": "Avenant n°1 à l'accord d'entreprise du 9 décembre 2022 relatif au régime complémentaire frais de santé",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000052837307"
+      },
+      {
+       "published": "2026-02-20",
+       "publisher": "SNPNC-FO",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r10-pnt-mutuelle2026",
+       "source_type": "union_cba",
+       "title": "Check-list. Février 2026",
+       "url": "https://snpnc.org/check-list-fevrier-2026/"
+      },
+      {
+       "published": null,
+       "publisher": "CSE Central d’Air France",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r10-csec-mutuelle",
+       "source_type": "third_party_reference",
+       "title": "La Mutuelle",
+       "url": "https://www.csecaf.fr/?page_id=78"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "団体補完医療制度があり、現役PNTも団体加入者に含まれる",
+     "value_text": null
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "通勤費の精算上限又はkm料率。給与ではない。",
+      "stat": "upper",
+      "tax": "unknown",
+      "unclear": [
+       "本文が説明しない申請手続/対象距離/適格利用の詳細"
+      ]
+     },
+     "applies_to": {
+      "contract": "Protocole d’accord sur les mesures salariales Air France2026; FranceMétropolitaine/DOM",
+      "employer": "Société Air France",
+      "note_ja": "全社員共通制度として区分する。原協約はPilotesを適用対象へ明記し、一般福利の推測によるpilot適用ではない。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-france",
+     "cond_ja": "AF2026NAOの対象社員（フランス本土・海外県で勤務するPS/PNC/Pilotes）。制度は全社員共通だが原協約p1とp5がPilotesを含むことを明示。全世界のAF在籍者やTransavia契約へ拡張しない。本人自転車又は電動アシスト自転車の通勤利用に関するFMD2026上限。無条件の現金月給ではない。3方式相互とその他通勤精算は非併用。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-02-12",
+      "note_ja": "2026NAO政府登録の開始は2026-02-12。個別条項の年/適用日を優先。鉄道は2026年7月給与、6月活動分。2026年対象のFMD等を2027年以後へ無条件延長しない。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "p5 Titre2 Chapitre3; DOCX paragraphs82,83;対象p1末尾/p5Titre3Article1",
+       "quote": "30€ par mois",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "f2a929089f1fa04f",
+     "id": "air-france.benefits.r9-fmd-bicycle",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "AF2026協約の自転車通勤FMD",
+     "pack": "pvr-20261019-air-france",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-02-24",
+       "publisher": "Légifrance / DILA; Société Air France deposited agreement",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "source_type": "government",
+       "title": "Protocole d'accord sur les mesures salariales Air France 2026",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000053556613"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30€ par mois"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "通勤費の精算上限又はkm料率。給与ではない。",
+      "stat": "upper",
+      "tax": "unknown",
+      "unclear": [
+       "本文が説明しない申請手続/対象距離/適格利用の詳細"
+      ]
+     },
+     "applies_to": {
+      "contract": "Protocole d’accord sur les mesures salariales Air France2026; FranceMétropolitaine/DOM",
+      "employer": "Société Air France",
+      "note_ja": "全社員共通制度として区分する。原協約はPilotesを適用対象へ明記し、一般福利の推測によるpilot適用ではない。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-france",
+     "cond_ja": "AF2026NAOの対象社員（フランス本土・海外県で勤務するPS/PNC/Pilotes）。制度は全社員共通だが原協約p1とp5がPilotesを含むことを明示。全世界のAF在籍者やTransavia契約へ拡張しない。FMD2026の低排出車carsharingで実際に支出した費用の上限。一般的な自家用車燃料手当や会社送迎ではない。3方式相互とその他通勤精算は非併用。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-02-12",
+      "note_ja": "2026NAO政府登録の開始は2026-02-12。個別条項の年/適用日を優先。鉄道は2026年7月給与、6月活動分。2026年対象のFMD等を2027年以後へ無条件延長しない。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "p4–5 Titre2 Chapitre3; DOCX paragraphs79,83;対象p1末尾/p5Titre3Article1",
+       "quote": "50€ par mois",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "b09bfd3804a77826",
+     "id": "air-france.benefits.r9-fmd-carshare",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "AF2026協約の低排出carsharingFMD",
+     "pack": "pvr-20261019-air-france",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-02-24",
+       "publisher": "Légifrance / DILA; Société Air France deposited agreement",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "source_type": "government",
+       "title": "Protocole d'accord sur les mesures salariales Air France 2026",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000053556613"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 50,
+     "value_text": "50€ par mois"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "通勤費の精算上限又はkm料率。給与ではない。",
+      "stat": "upper",
+      "tax": "unknown",
+      "unclear": [
+       "本文が説明しない申請手続/対象距離/適格利用の詳細"
+      ]
+     },
+     "applies_to": {
+      "contract": "Protocole d’accord sur les mesures salariales Air France2026; FranceMétropolitaine/DOM",
+      "employer": "Société Air France",
+      "note_ja": "全社員共通制度として区分する。原協約はPilotesを適用対象へ明記し、一般福利の推測によるpilot適用ではない。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-france",
+     "cond_ja": "AF2026NAOの対象社員（フランス本土・海外県で勤務するPS/PNC/Pilotes）。制度は全社員共通だが原協約p1とp5がPilotesを含むことを明示。全世界のAF在籍者やTransavia契約へ拡張しない。FMD2026の都市公共交通単券（bus/métro等）の実費精算上限。自動支給ではない。下のcarsharing/bicycleと相互非併用、他の自宅–職場交通費精算とも非併用。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-02-12",
+      "note_ja": "2026NAO政府登録の開始は2026-02-12。個別条項の年/適用日を優先。鉄道は2026年7月給与、6月活動分。2026年対象のFMD等を2027年以後へ無条件延長しない。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "p4–5 Titre2 Chapitre3; DOCX paragraphs77,78,83;対象p1末尾/p5Titre3Article1",
+       "quote": "50€ par mois",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "cf23dadef3c7f93a",
+     "id": "air-france.benefits.r9-fmd-public-transport",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "AF2026協約の都市公共交通単券FMD",
+     "pack": "pvr-20261019-air-france",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-02-24",
+       "publisher": "Légifrance / DILA; Société Air France deposited agreement",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "source_type": "government",
+       "title": "Protocole d'accord sur les mesures salariales Air France 2026",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000053556613"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 50,
+     "value_text": "50€ par mois"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "通勤費の精算上限又はkm料率。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本文が説明しない申請手続/対象距離/適格利用の詳細"
+      ]
+     },
+     "applies_to": {
+      "contract": "Protocole d’accord sur les mesures salariales Air France2026; FranceMétropolitaine/DOM",
+      "employer": "Société Air France",
+      "note_ja": "全社員共通制度として区分する。原協約はPilotesを適用対象へ明記し、一般福利の推測によるpilot適用ではない。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-france",
+     "cond_ja": "AF2026NAOの対象社員（フランス本土・海外県で勤務するPS/PNC/Pilotes）。制度は全社員共通だが原協約p1とp5がPilotesを含むことを明示。全世界のAF在籍者やTransavia契約へ拡張しない。2026年の自宅–職場IKVのkm料率を維持。serviceIKSとdemarcheursIKDも同率と列記するが、全パイロットへ毎月同額の現金を保証する記述ではない。対象距離上限・証憑・利用日・具体的事務手続は本条で全て説明されず、別条件を捨てない。単位はEUR/km。perの既存語彙にkmがないためper=nullとし、月額や乗務時間単価に変換しない。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-02-12",
+      "note_ja": "2026NAO政府登録の開始は2026-02-12。個別条項の年/適用日を優先。鉄道は2026年7月給与、6月活動分。2026年対象のFMD等を2027年以後へ無条件延長しない。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "p4 Titre2 Chapitre1; DOCX paragraph70;対象p1末尾/p5Titre3Article1",
+       "quote": "0,3837 euros/km",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "e1803ab91b420a3f",
+     "id": "air-france.benefits.r9-ikv-rate",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "AF2026協約の通勤km料率",
+     "pack": "pvr-20261019-air-france",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-02-24",
+       "publisher": "Légifrance / DILA; Société Air France deposited agreement",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "source_type": "government",
+       "title": "Protocole d'accord sur les mesures salariales Air France 2026",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000053556613"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 0.3837,
+     "value_text": "0,3837 euros/km"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Protocole d’accord sur les mesures salariales Air France2026; FranceMétropolitaine/DOM",
+      "employer": "Société Air France",
+      "note_ja": "全社員共通制度として区分する。原協約はPilotesを適用対象へ明記し、一般福利の推測によるpilot適用ではない。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-france",
+     "cond_ja": "AF2026NAOの対象社員（フランス本土・海外県で勤務するPS/PNC/Pilotes）。制度は全社員共通だが原協約p1とp5がPilotesを含むことを明示。全世界のAF在籍者やTransavia契約へ拡張しない。LibertéSNCF割引カード利用者に購入額の50%を会社が負担。年購入額と記名invoiceに基づく。原文はこの負担を職業費用弁償の性質ではないと明記。定期券全額補償や搭乗優待へ置換しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-02-12",
+      "note_ja": "2026NAO政府登録の開始は2026-02-12。個別条項の年/適用日を優先。鉄道は2026年7月給与、6月活動分。2026年対象のFMD等を2027年以後へ無条件延長しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p4 Titre2 Chapitre2; DOCX paragraph75;対象p1末尾/p5Titre3Article1",
+       "quote": "50%",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "97ca5817ce12405c",
+     "id": "air-france.benefits.r9-sncf-liberte",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "AF2026協約のSNCFLibertéカード購入負担",
+     "pack": "pvr-20261019-air-france",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-02-24",
+       "publisher": "Légifrance / DILA; Société Air France deposited agreement",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "source_type": "government",
+       "title": "Protocole d'accord sur les mesures salariales Air France 2026",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000053556613"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 50,
+     "value_text": "50%"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "通勤費の精算上限又はkm料率。給与ではない。",
+      "stat": "upper",
+      "tax": "unknown",
+      "unclear": [
+       "本文が説明しない申請手続/対象距離/適格利用の詳細",
+       "精算周期"
+      ]
+     },
+     "applies_to": {
+      "contract": "Protocole d’accord sur les mesures salariales Air France2026; FranceMétropolitaine/DOM",
+      "employer": "Société Air France",
+      "note_ja": "全社員共通制度として区分する。原協約はPilotesを適用対象へ明記し、一般福利の推測によるpilot適用ではない。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-france",
+     "cond_ja": "AF2026NAOの対象社員（フランス本土・海外県で勤務するPS/PNC/Pilotes）。制度は全社員共通だが原協約p1とp5がPilotesを含むことを明示。全世界のAF在籍者やTransavia契約へ拡張しない。鉄道の実費精算上限で、無条件支給額ではない。元協約の当該条は周期を明記しないのでper=null。署名者FO会報には月額との説明があるが、今回のnativeは原協約本文の範囲だけを採録する。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-07-01",
+      "note_ja": "2026NAO政府登録の開始は2026-02-12。個別条項の年/適用日を優先。鉄道は2026年7月給与、6月活動分。2026年対象のFMD等を2027年以後へ無条件延長しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p4 Titre2 Chapitre2; DOCX paragraph72;対象p1末尾/p5Titre3Article1",
+       "quote": "294 euros",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "792b37c75b58e675",
+     "id": "air-france.benefits.r9-train-cap",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "AF2026協約の鉄道通勤費精算上限",
+     "pack": "pvr-20261019-air-france",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-02-24",
+       "publisher": "Légifrance / DILA; Société Air France deposited agreement",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-france-r9-nao2026-primary",
+       "source_type": "government",
+       "title": "Protocole d'accord sur les mesures salariales Air France 2026",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000053556613"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 294,
+     "value_text": "294 euros"
     }
    ],
    "jobs": [
@@ -3369,6 +4097,130 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "air-new-zealand": {
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "aircraft": [
+       "ATR"
+      ],
+      "base": "Auckland, NZ",
+      "contract": "Permanent Full time",
+      "employer": "Air New Zealand",
+      "hire_route": "Expression of Interest - Flight Simulator Instructor, ATR Fleet",
+      "note_ja": "NZCAA CPL/ATPL、3000totalflighttime、D-CategoryInstructorRating適格性を要する教官募集。line CAP/FO、全pilot、別雇用法人へ自動適用しない。",
+      "pilot_specific": true,
+      "rank": "instructor"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-new-zealand",
+     "cond_ja": "購入できる追加休暇の上限で、会社が無償付与する基本年休ではない。法定/協約年休数、購入価格、承認条件は未確認。最大4週間を基本年休や所定休日へ足さない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "無日付EOIを2026-10-21通常表示で確認。掲載継続と現在の採用枠/契約発効は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Why join Air New Zealand? > FlexiLeave; 通常IAB表示実読",
+       "quote": "Purchase up to four extra weeks of leave each year",
+       "source_id": "src-air-new-zealand-r10-atr-sim-instructor",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "02f1e5d6b0008b28",
+     "id": "air-new-zealand.benefits.r10-atr-instructor-annual-leave",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "annual_leave",
+     "label_ja": "ATRシミュレータ教官募集の追加休暇購入",
+     "pack": "pvr-20261019-air-new-zealand",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air New Zealand",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-new-zealand-r10-atr-sim-instructor",
+       "source_type": "job_posting",
+       "title": "Expression of Interest - Flight Simulator Instructor, ATR Fleet",
+       "url": "https://careers.airnewzealand.co.nz/job/expression-of-interest-flight-simulator-instructor-atr-fleet-in-auckland-nz-jid-704"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FlexiLeaveとして年に最大4週間の追加休暇を購入できると案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "aircraft": [
+       "ATR"
+      ],
+      "base": "Auckland, NZ",
+      "contract": "Permanent Full time",
+      "employer": "Air New Zealand",
+      "hire_route": "Expression of Interest - Flight Simulator Instructor, ATR Fleet",
+      "note_ja": "NZCAA CPL/ATPL、3000totalflighttime、D-CategoryInstructorRating適格性を要する教官募集。line CAP/FO、全pilot、別雇用法人へ自動適用しない。",
+      "pilot_specific": true,
+      "rank": "instructor"
+     },
+     "checked_at": "2026-10-21",
+     "company": "air-new-zealand",
+     "cond_ja": "本人公開EOIの教官募集。whanauの親族範囲・運賃・税・利用順位・待機条件は未記載。家族無料/確約航空券としない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "無日付EOIを2026-10-21通常表示で確認。掲載継続と現在の採用枠/契約発効は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Why join Air New Zealand? > Staff Travel; 通常IAB表示実読",
+       "quote": "Staff Travel",
+       "source_id": "src-air-new-zealand-r10-atr-sim-instructor",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "eb56432aa162fbd0",
+     "id": "air-new-zealand.benefits.r10-atr-instructor-staff-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "staff_travel",
+     "label_ja": "ATRシミュレータ教官募集の優待券",
+     "pack": "pvr-20261019-air-new-zealand",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air New Zealand",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-air-new-zealand-r10-atr-sim-instructor",
+       "source_type": "job_posting",
+       "title": "Expression of Interest - Flight Simulator Instructor, ATR Fleet",
+       "url": "https://careers.airnewzealand.co.nz/job/expression-of-interest-flight-simulator-instructor-atr-fleet-in-auckland-nz-jid-704"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "本人とwhanauの割引航空券、他の国際航空会社のstandby利用を案内。",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -4389,6 +5241,62 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "過去",
      "value": "雇用・健康・労災・厚生年金",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "AIRDO (AIR DO)",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "airdo",
+     "cond_ja": "B737機長募集と副操縦士募集の福利厚生に列記。2024年2月導入。近郊居住からの勤務制度であり、通勤手当の額/自宅賃料補助/社宅の提供を確定しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "福利厚生・注1",
+       "quote": "千歳地区居住地制度",
+       "source_id": "src-airdo-r8-captain",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "e860b2489393de0f",
+     "id": "airdo.benefits.r8-chitose-residence",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "commuting",
+     "label_ja": "千歳地区居住地制度",
+     "pack": "pvr-20261019-airdo",
+     "per": null,
+     "rev": 7,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AIRDO (AIR DO)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-airdo-r8-captain",
+       "source_type": "job_posting",
+       "title": "B737機長要員 募集要項",
+       "url": "https://www.airdo.jp/corporate/recruit/captain1/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "千歳地区居住地制度",
      "value_text": null
     },
     {
@@ -7140,6 +8048,353 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Alaska seniority list / joint FO recruitment 2026-21163",
+      "employer": "Alaska Airlines/Hawaiian Airlines（合同FO募集のAlaska側対象）",
+      "hire_route": "First Officer - Alaska Airlines/Hawaiian Airlines",
+      "note_ja": "現行FO求人のTotal Rewards。会社・場所・勤務量・勤続・雇用状態により差があると注記。統合した単一協約/勤続順位/全CAP権利とはしない。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "alaska-airlines",
+     "cond_ja": "加入料・本人/会社負担・家族・免責/給付上限・適格性の個別約款は未確認。全医療無料とはしない。 会社・場所・通常勤務量・勤続期間・雇用状態で給付差があると本人募集に注記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "現在公開される本人募集の記載を2026-10-21確認。具体的な給付の施行/失効日は本文にない。求人掲載日や応募締切を制度適用日にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Total Rewards",
+       "quote": "medical, dental and vision benefits",
+       "source_id": "src-alaska-r10-combined-fo-21163",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "4c3468788fc7344c",
+     "id": "alaska-airlines.benefits.r10-fo21163-medical",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "medical",
+     "label_ja": "FO募集の医療・歯科・眼科給付の存在",
+     "pack": "pvr-20261019-alaska-airlines",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines / Hawaiian Airlines official careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-alaska-r10-combined-fo-21163",
+       "source_type": "job_posting",
+       "title": "First Officer - Alaska Airlines/Hawaiian Airlines / Req2026-21163",
+       "url": "https://careers.alaskaair.com/seatac-wa/first-officer-alaska-airlineshawaiian-airlines/03F3123CBF4848918661C0C1016A3449/job/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FO本人募集が医療・歯科・眼科を含むwell-being給付を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Alaska seniority list / joint FO recruitment 2026-21163",
+      "employer": "Alaska Airlines/Hawaiian Airlines（合同FO募集のAlaska側対象）",
+      "hire_route": "First Officer - Alaska Airlines/Hawaiian Airlines",
+      "note_ja": "現行FO求人のTotal Rewards。会社・場所・勤務量・勤続・雇用状態により差があると注記。統合した単一協約/勤続順位/全CAP権利とはしない。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "alaska-airlines",
+     "cond_ja": "原語はholiday and paid time off。年間付与日数、勤続段階、年休/病休/祝日の内訳、暦日/勤務日、bid方法は未記載。PTO総数を年休として発行しない。 会社・場所・通常勤務量・勤続期間・雇用状態で給付差があると本人募集に注記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "現在公開される本人募集の記載を2026-10-21確認。具体的な給付の施行/失効日は本文にない。求人掲載日や応募締切を制度適用日にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Total Rewards",
+       "quote": "Generous holiday and paid time off",
+       "source_id": "src-alaska-r10-combined-fo-21163",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "ba4c81c4af1bbfaf",
+     "id": "alaska-airlines.benefits.r10-fo21163-paid-time-off",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "annual_leave",
+     "label_ja": "FO募集の有給休暇・休日給付案内",
+     "pack": "pvr-20261019-alaska-airlines",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines / Hawaiian Airlines official careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-alaska-r10-combined-fo-21163",
+       "source_type": "job_posting",
+       "title": "First Officer - Alaska Airlines/Hawaiian Airlines / Req2026-21163",
+       "url": "https://careers.alaskaair.com/seatac-wa/first-officer-alaska-airlineshawaiian-airlines/03F3123CBF4848918661C0C1016A3449/job/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FO本人募集は有給の休暇と休日給付を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Alaska seniority list / joint FO recruitment 2026-21163",
+      "employer": "Alaska Airlines/Hawaiian Airlines（合同FO募集のAlaska側対象）",
+      "hire_route": "First Officer - Alaska Airlines/Hawaiian Airlines",
+      "note_ja": "現行FO求人のTotal Rewards。会社・場所・勤務量・勤続・雇用状態により差があると注記。統合した単一協約/勤続順位/全CAP権利とはしない。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "alaska-airlines",
+     "cond_ja": "待機条件付き。確認席・航空通勤費負担・税/家族範囲/他社/利用開始時期は本文で確認できない。 会社・場所・通常勤務量・勤続期間・雇用状態で給付差があると本人募集に注記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "現在公開される本人募集の記載を2026-10-21確認。具体的な給付の施行/失効日は本文にない。求人掲載日や応募締切を制度適用日にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Total Rewards",
+       "quote": "Free stand-by travel privileges",
+       "source_id": "src-alaska-r10-combined-fo-21163",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "8f8f574317c6b857",
+     "id": "alaska-airlines.benefits.r10-fo21163-staff-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "staff_travel",
+     "label_ja": "FO募集の無料スタンバイ旅行特典",
+     "pack": "pvr-20261019-alaska-airlines",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines / Hawaiian Airlines official careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-alaska-r10-combined-fo-21163",
+       "source_type": "job_posting",
+       "title": "First Officer - Alaska Airlines/Hawaiian Airlines / Req2026-21163",
+       "url": "https://careers.alaskaair.com/seatac-wa/first-officer-alaska-airlineshawaiian-airlines/03F3123CBF4848918661C0C1016A3449/job/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Alaska Airlines・Hawaiian Airlines・Horizon Airの無料スタンバイ旅行特典を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Alaska Airlines",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "alaska-airlines",
+     "cond_ja": "公開中のcombined FO求人Req2026-21163（Regular/Pilots、応募期限2026-12-31）に限る募集条件。会社・勤務地・所定労働時間・勤続・雇用状態でpay/benefitsが変わるという前置免責あり。Alaska対象のFO募集について記録し、CAPや全在職pilot・家族全員へ拡張しない。Hawaiianは給与・協約の別集団として区別。無料航空券はstand-byで確約席ではない。医療plan・本人拠出・保障範囲、holiday/PTOの付与日数・通常公休/有給年休の内訳はこの求人で未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Requisition2026-21163 / Total Rewards & Detailed Benefits Information",
+       "quote": "Generous holiday and paid time off",
+       "source_id": "src-alaska-airlines-r8-combined-fo-current",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "0436b804d2e7f313",
+     "id": "alaska-airlines.benefits.r8-fo-holiday-pto",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "annual_leave",
+     "label_ja": "fo-holiday-pto",
+     "pack": "pvr-20261019-alaska-airlines",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines / Hawaiian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-alaska-airlines-r8-combined-fo-current",
+       "source_type": "job_posting",
+       "title": "First Officer Alaska Airlines Hawaiian Airlines Req2026-21163",
+       "url": "https://careers.alaskaair.com/seatac-wa/first-officer-alaska-airlineshawaiian-airlines/03F3123CBF4848918661C0C1016A3449/job/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "holidayおよびpaid time offをFO求人に記載（日数・内訳は未確認）",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Alaska Airlines",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "alaska-airlines",
+     "cond_ja": "公開中のcombined FO求人Req2026-21163（Regular/Pilots、応募期限2026-12-31）に限る募集条件。会社・勤務地・所定労働時間・勤続・雇用状態でpay/benefitsが変わるという前置免責あり。Alaska対象のFO募集について記録し、CAPや全在職pilot・家族全員へ拡張しない。Hawaiianは給与・協約の別集団として区別。無料航空券はstand-byで確約席ではない。医療plan・本人拠出・保障範囲、holiday/PTOの付与日数・通常公休/有給年休の内訳はこの求人で未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Requisition2026-21163 / Total Rewards & Detailed Benefits Information",
+       "quote": "medical, dental and vision benefits",
+       "source_id": "src-alaska-airlines-r8-combined-fo-current",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "b465b9ef115e56a8",
+     "id": "alaska-airlines.benefits.r8-fo-medical",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "medical",
+     "label_ja": "fo-medical",
+     "pack": "pvr-20261019-alaska-airlines",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines / Hawaiian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-alaska-airlines-r8-combined-fo-current",
+       "source_type": "job_posting",
+       "title": "First Officer Alaska Airlines Hawaiian Airlines Req2026-21163",
+       "url": "https://careers.alaskaair.com/seatac-wa/first-officer-alaska-airlineshawaiian-airlines/03F3123CBF4848918661C0C1016A3449/job/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "医療・歯科・視覚benefitsをFO求人に記載",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Alaska Airlines",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "alaska-airlines",
+     "cond_ja": "公開中のcombined FO求人Req2026-21163（Regular/Pilots、応募期限2026-12-31）に限る募集条件。会社・勤務地・所定労働時間・勤続・雇用状態でpay/benefitsが変わるという前置免責あり。Alaska対象のFO募集について記録し、CAPや全在職pilot・家族全員へ拡張しない。Hawaiianは給与・協約の別集団として区別。無料航空券はstand-byで確約席ではない。医療plan・本人拠出・保障範囲、holiday/PTOの付与日数・通常公休/有給年休の内訳はこの求人で未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Requisition2026-21163 / Total Rewards & Detailed Benefits Information",
+       "quote": "Free stand-by travel privileges",
+       "source_id": "src-alaska-airlines-r8-combined-fo-current",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "d3d621447d7c5241",
+     "id": "alaska-airlines.benefits.r8-fo-standby-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "staff_travel",
+     "label_ja": "fo-standby-travel",
+     "pack": "pvr-20261019-alaska-airlines",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines / Hawaiian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-alaska-airlines-r8-combined-fo-current",
+       "source_type": "job_posting",
+       "title": "First Officer Alaska Airlines Hawaiian Airlines Req2026-21163",
+       "url": "https://careers.alaskaair.com/seatac-wa/first-officer-alaska-airlineshawaiian-airlines/03F3123CBF4848918661C0C1016A3449/job/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Alaska/Hawaiian/Horizonの無料stand-by travelの福利をFO求人に記載",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -8201,6 +9456,396 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 15,
      "value_text": "15"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "allegiant",
+     "cond_ja": "2026批准協約の9-A-1表、給与longevityと同様に年初の第何年かで判定し完了年数ではない：第1年。各休暇blockは日曜–土曜の7連続日。9-A-4新入社（1/1後6/1前はOE終了後残枠、6/1後は翌年入札）・休職復帰の月数按分・繰越不可を保持。R6の7/31SEC批准対応根拠を再利用、今回は数表画像を再読。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical74–75 / printed9-1..2 9-A",
+       "quote": "7 days",
+       "source_id": "src-allegiant-r8-ta26",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "d2fa4fc9ed151c4e",
+     "id": "allegiant.benefits.r8-annual-leave-1",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続1",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": "2026-07-11",
+       "publisher": "Allegiant / International Brotherhood of Teamsters Local 2118",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-allegiant-r8-ta26",
+       "source_type": "union_cba",
+       "title": "IBT Allegiant Tentative Agreement July 11 2026",
+       "url": "https://apa2118.org/wp-content/uploads/2026/07/IBT-Allegiant-Tentative-Agreement-7.11.26.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 7,
+     "value_text": "7"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "allegiant",
+     "cond_ja": "2026批准協約の9-A-1表、給与longevityと同様に年初の第何年かで判定し完了年数ではない：第2–4年。各休暇blockは日曜–土曜の7連続日。9-A-4新入社（1/1後6/1前はOE終了後残枠、6/1後は翌年入札）・休職復帰の月数按分・繰越不可を保持。R6の7/31SEC批准対応根拠を再利用、今回は数表画像を再読。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical74–75 / printed9-1..2 9-A",
+       "quote": "14 days",
+       "source_id": "src-allegiant-r8-ta26",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "e4ca417873711707",
+     "id": "allegiant.benefits.r8-annual-leave-2to4",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続2to4",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": "2026-07-11",
+       "publisher": "Allegiant / International Brotherhood of Teamsters Local 2118",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-allegiant-r8-ta26",
+       "source_type": "union_cba",
+       "title": "IBT Allegiant Tentative Agreement July 11 2026",
+       "url": "https://apa2118.org/wp-content/uploads/2026/07/IBT-Allegiant-Tentative-Agreement-7.11.26.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "14"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "allegiant",
+     "cond_ja": "2026批准協約の9-A-1表、給与longevityと同様に年初の第何年かで判定し完了年数ではない：第5–8年。各休暇blockは日曜–土曜の7連続日。9-A-4新入社（1/1後6/1前はOE終了後残枠、6/1後は翌年入札）・休職復帰の月数按分・繰越不可を保持。R6の7/31SEC批准対応根拠を再利用、今回は数表画像を再読。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical74–75 / printed9-1..2 9-A",
+       "quote": "21 days",
+       "source_id": "src-allegiant-r8-ta26",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "f25126bb23044d4c",
+     "id": "allegiant.benefits.r8-annual-leave-5to8",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続5to8",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": "2026-07-11",
+       "publisher": "Allegiant / International Brotherhood of Teamsters Local 2118",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-allegiant-r8-ta26",
+       "source_type": "union_cba",
+       "title": "IBT Allegiant Tentative Agreement July 11 2026",
+       "url": "https://apa2118.org/wp-content/uploads/2026/07/IBT-Allegiant-Tentative-Agreement-7.11.26.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 21,
+     "value_text": "21"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "allegiant",
+     "cond_ja": "2026批准協約の9-A-1表、給与longevityと同様に年初の第何年かで判定し完了年数ではない：第9以上年。各休暇blockは日曜–土曜の7連続日。9-A-4新入社（1/1後6/1前はOE終了後残枠、6/1後は翌年入札）・休職復帰の月数按分・繰越不可を保持。R6の7/31SEC批准対応根拠を再利用、今回は数表画像を再読。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical74–75 / printed9-1..2 9-A",
+       "quote": "28 days",
+       "source_id": "src-allegiant-r8-ta26",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "152f21698ab67383",
+     "id": "allegiant.benefits.r8-annual-leave-9plus",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続9plus",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": "2026-07-11",
+       "publisher": "Allegiant / International Brotherhood of Teamsters Local 2118",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-allegiant-r8-ta26",
+       "source_type": "union_cba",
+       "title": "IBT Allegiant Tentative Agreement July 11 2026",
+       "url": "https://apa2118.org/wp-content/uploads/2026/07/IBT-Allegiant-Tentative-Agreement-7.11.26.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 28,
+     "value_text": "28"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "allegiant",
+     "cond_ja": "6-E-1/3/6。自主的VacancyBidの転居は本人負担。家財20,000lb上限、contiguous48州内の転居費上限は原記号$12,500、48州外発着は$16,500。超過額は本人負担。別途1台の車両輸送および家族移転の合理的実費（mileage/hotel/meals）をstandard government M&IE/CONUS lodging rate範囲で償還。受領90日以内に退職した場合は移転費等の返還義務。主たる住居を新Domicileの120GoogleMapmiles以内へ近づける実転居を要し、既に当該120miles内在住の移動は対象外。異動発効から9か月以内に転居・証憑提出。通常住宅費・毎月家賃補助・一般新人一律の給付ではない。物理51の$4,000–10,000等旧stipend表は取消線で削除済み。ISO通貨記号はこの条項に未明記のためnullのまま、原記号$を保持し換算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026-07-31批准した協約との対応はR6会社8-Kで既確認。各個人の移転/配属要件の成立日は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical51–53 / printed6-3..5,6-E-1/3/6（下線新条文と削除旧表を画像照合）",
+       "quote": "No other Pilots shall be entitled to a Company-Paid Move.",
+       "source_id": "src-allegiant-r8-cb-expenses",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "cb1c54d7b2901fc1",
+     "id": "allegiant.benefits.r8-cb-displaced-move",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "会社都合の基地移転に伴う転居費",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": "2026-07-11",
+       "publisher": "Allegiant / International Brotherhood of Teamsters Local 2118",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-allegiant-r8-cb-expenses",
+       "source_type": "union_cba",
+       "title": "IBT Allegiant Tentative Agreement July 11 2026",
+       "url": "https://apa2118.org/wp-content/uploads/2026/07/IBT-Allegiant-Tentative-Agreement-7.11.26.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "会社都合でDisplacedされ実際に主たる住居を移す適格pilotについて、会社指定の引越業者へ家財輸送費を会社が上限付きで直接支払う。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "allegiant",
+     "cond_ja": "6-A-3/C/D。Dutyから解放後45分以内に交通提供がなければcab利用を許可。対象実費の領収書とexpense reportを領収日から30日以内に提出、会社はexpense form受領後30日以内に償還。基地外のovernightまたは6-A-2-bによるhotelに限定し、自宅–通常基地の通勤taxi支給へ一般化しない。勤務交通の補助としてのみ条件付き表示。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026-07-31批准した協約との対応はR6会社8-Kで既確認。各個人の移転/配属要件の成立日は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical50 / printed6-2,6-A-3/C/D（画像照合）",
+       "quote": "If transportation is not available within forty-five (45) minutes",
+       "source_id": "src-allegiant-r8-cb-expenses",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "ed2bb78c697343f1",
+     "id": "allegiant.benefits.r8-cb-duty-hotel-transport",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "出先任務のホテル送迎と条件付きタクシー",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": "2026-07-11",
+       "publisher": "Allegiant / International Brotherhood of Teamsters Local 2118",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-allegiant-r8-cb-expenses",
+       "source_type": "union_cba",
+       "title": "IBT Allegiant Tentative Agreement July 11 2026",
+       "url": "https://apa2118.org/wp-content/uploads/2026/07/IBT-Allegiant-Tentative-Agreement-7.11.26.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "基地外の任務宿泊又は6-A-2-bの不規則運航による宿泊に対し、会社がホテル往復の交通を提供。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "allegiant",
+     "cond_ja": "8-L-5。相互他社はotherairlineagreementで利用可能な範囲。無料確約席・家族資格・年間回数を確定しない。R6批准対応を再利用、下線新条文を画像視認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical72 / printed8-16 8-L-5",
+       "quote": "Pilots on an approved Leave of Absence",
+       "source_id": "src-allegiant-r8-ta26",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "532abc6db6541d28",
+     "id": "allegiant.benefits.r8-leave-staff-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "承認休職時航空券",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": "2026-07-11",
+       "publisher": "Allegiant / International Brotherhood of Teamsters Local 2118",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-allegiant-r8-ta26",
+       "source_type": "union_cba",
+       "title": "IBT Allegiant Tentative Agreement July 11 2026",
+       "url": "https://apa2118.org/wp-content/uploads/2026/07/IBT-Allegiant-Tentative-Agreement-7.11.26.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "承認された休職中もAllegiant社員pass travel benefitsを保持",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -8723,6 +10368,1851 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "2024-01-01および2026-01-01へ調整する案",
+     "value_text": null
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Core、加入区分=You + child(ren)。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + child(ren) > column Core",
+       "quote": "$204.70",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "47f71cd562f98971",
+     "id": "american.benefits.r10-2026-medical-children-1",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Core・You + child(ren)",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 204.7,
+     "value_text": "$204.70"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Standard、加入区分=You + child(ren)。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + child(ren) > column Standard",
+       "quote": "$328.96",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "2965be5e88c5f9da",
+     "id": "american.benefits.r10-2026-medical-children-2",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Standard・You + child(ren)",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 328.96,
+     "value_text": "$328.96"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Plus、加入区分=You + child(ren)。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + child(ren) > column Plus",
+       "quote": "$328.96",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "b2add2e1c1a4f56e",
+     "id": "american.benefits.r10-2026-medical-children-3",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Plus・You + child(ren)",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 328.96,
+     "value_text": "$328.96"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=High-Cost Coverage、加入区分=You + child(ren)。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + child(ren) > column High-Cost Coverage",
+       "quote": "$824.74",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "9a567255400b0120",
+     "id": "american.benefits.r10-2026-medical-children-4",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・High-Cost Coverage・You + child(ren)",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 824.74,
+     "value_text": "$824.74"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Core、加入区分=You + family。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + family > column Core",
+       "quote": "$398.03",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "2da18dedcc1ea876",
+     "id": "american.benefits.r10-2026-medical-family-1",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Core・You + family",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 398.03,
+     "value_text": "$398.03"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Standard、加入区分=You + family。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + family > column Standard",
+       "quote": "$639.65",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "430292f5944063b2",
+     "id": "american.benefits.r10-2026-medical-family-2",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Standard・You + family",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 639.65,
+     "value_text": "$639.65"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Plus、加入区分=You + family。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + family > column Plus",
+       "quote": "$639.65",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "4216f4e9fa3e4b72",
+     "id": "american.benefits.r10-2026-medical-family-3",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Plus・You + family",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 639.65,
+     "value_text": "$639.65"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=High-Cost Coverage、加入区分=You + family。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + family > column High-Cost Coverage",
+       "quote": "$1,745.93",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "eb7b08be7edf7e9e",
+     "id": "american.benefits.r10-2026-medical-family-4",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・High-Cost Coverage・You + family",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 1745.93,
+     "value_text": "$1,745.93"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Core、加入区分=You only。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You only > column Core",
+       "quote": "$113.71",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "07dadec3b8630e73",
+     "id": "american.benefits.r10-2026-medical-self-1",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Core・You only",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 113.71,
+     "value_text": "$113.71"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Standard、加入区分=You only。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You only > column Standard",
+       "quote": "$182.75",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "2f66443094de9473",
+     "id": "american.benefits.r10-2026-medical-self-2",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Standard・You only",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 182.75,
+     "value_text": "$182.75"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Plus、加入区分=You only。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You only > column Plus",
+       "quote": "$182.75",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "84bf5015636b293a",
+     "id": "american.benefits.r10-2026-medical-self-3",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Plus・You only",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 182.75,
+     "value_text": "$182.75"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=High-Cost Coverage、加入区分=You only。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You only > column High-Cost Coverage",
+       "quote": "$458.19",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "d684310c2ab34fd2",
+     "id": "american.benefits.r10-2026-medical-self-4",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・High-Cost Coverage・You only",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 458.19,
+     "value_text": "$458.19"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Core、加入区分=You + spouse。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + spouse > column Core",
+       "quote": "$295.67",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "6434070a6cfa60fb",
+     "id": "american.benefits.r10-2026-medical-spouse-1",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Core・You + spouse",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 295.67,
+     "value_text": "$295.67"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Standard、加入区分=You + spouse。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + spouse > column Standard",
+       "quote": "$475.15",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "52ded8a6eee22941",
+     "id": "american.benefits.r10-2026-medical-spouse-2",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Standard・You + spouse",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 475.15,
+     "value_text": "$475.15"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=Plus、加入区分=You + spouse。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + spouse > column Plus",
+       "quote": "$475.15",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "0da158ff1707cf8d",
+     "id": "american.benefits.r10-2026-medical-spouse-3",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・Plus・You + spouse",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 475.15,
+     "value_text": "$475.15"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "2026医療保険の月次本人負担。給与ではない。",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": [
+       "本人の具体的税区分/加入適格性/州別別プラン"
+      ]
+     },
+     "applies_to": {
+      "contract": "Pilots (APA) / 2026 medical election",
+      "employer": "American Airlines",
+      "note_ja": "操縦士向け地域別の公開表。州別別プラン/退職者/国外給与を含めない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "2026年の月ごとの医療保険料・操縦士本人の給与控除負担。プラン=High-Cost Coverage、加入区分=You + spouse。公開UIの地域はAll other locations、職群Pilots (APA)。通常の対象はAmericanのU.S. payroll上の在職フル/パートタイム社員。本人加入のうえ適格扶養家族を追加し、確認書類が必要。独立請負者等は対象外。金額は本人支出で、給与/会社給付/現金年収への加算に使わない。$は米国給与・米国健康保険の文脈でUSDへ正規化（各セルにISO記載はない）。 原則pretax給与控除。ただし税法上扶養でないdomestic partner/その子はpost-tax控除とimputed income。domestic partner加入はCoreだけ。加入区分の家族構成を推測しない。2027は別表で、この額を2027へ繰り越さない。",
+     "currency": "USD",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の明示対象年は2026。具体的施行日・失効日は書かれておらずJan1/Dec31を推測で発行しない。2027は別表と明示する現行公開表を2026-10-21実読。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "2026 rates > Medical > row You + spouse > column High-Cost Coverage",
+       "quote": "$1,296.73",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "Team members / Dependents / Verifying your dependents",
+       "quote": "U.S.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Your monthly contributions > 2026 link",
+       "quote": "2026",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "69208232a0a966a2",
+     "id": "american.benefits.r10-2026-medical-spouse-4",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "2026医療保険本人負担・High-Cost Coverage・You + spouse",
+     "pack": "pvr-20261019-american",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-2026-medical-contributions",
+       "source_type": "official_package",
+       "title": "Your payroll contributions",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/your-payroll-contributions"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-medical-options",
+       "source_type": "official_package",
+       "title": "Medical options",
+       "url": "https://my.aa.com/pilot/body/medical-options"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 1296.73,
+     "value_text": "$1,296.73"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Pilots (APA) / public portal All other locations",
+      "employer": "American Airlines",
+      "note_ja": "在職操縦士向け公開案内。All other locationsは表示地域区分でありパイロット基地ではない。個人の加入/給与控除実装は未確認。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "本人が毎月選択する給与税前拠出をFidelity NetBenefits CommuterCardへ積み立て、適格な通勤公共交通の定期券/交通券等に使う制度。bus、rail、ferryが対象。tolls、gas、mileage等の個人通勤費は対象外。変更/停止まで継続、翌月分は通常前月8日が変更期限、申込期間終了後の取消不可。在職中の未使用残高は繰越。会社補助・会社の航空通勤券・通勤タクシー・無料交通・自動加入を意味しない。公開区分Pilots (APA) / All other locationsで、区分は基地名ではない。 上限額は採用しない。会社頁は2026 IRS限度を$325/月と説明するが、IRS自身の2026 Publication15-Bは$340/月。法説明の不一致を保持し、会社実申込上限・給与控除実装を$340へ推測で置換しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "会社頁の具体的制度施行日は不明。取得日を施行日にしない。2026と明示する会社説明とIRS2026の法定限度は別に照合。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "How commuter benefits work > Making an election; Eligible expenses; Carrying over funds",
+       "quote": "Your contributions are deducted from your pay before taxes",
+       "source_id": "src-american-r10-pilot-commuter",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "What’s New > Qualified parking exclusion and commuter transportation benefit; Qualified Transportation Benefits > Exclusion from wages",
+       "quote": "$340 per month",
+       "source_id": "src-american-r10-irs-2026-p15b",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "689d6e3f6a63a860",
+     "id": "american.benefits.r10-pilot-commuter-pretax",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "操縦士向け本人拠出の税前公共交通口座",
+     "pack": "pvr-20261019-american",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-commuter",
+       "source_type": "official_package",
+       "title": "Commuter benefits",
+       "url": "https://my.aa.com/pilot/security/tax-advantaged-accounts/commuter-benefits"
+      },
+      {
+       "published": null,
+       "publisher": "Internal Revenue Service",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-irs-2026-p15b",
+       "source_type": "government",
+       "title": "Publication 15-B (2026), Employer’s Tax Guide to Fringe Benefits",
+       "url": "https://www.irs.gov/publications/p15b"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "本人給与からの選択的な税前拠出で、通勤の公共交通費を払うFidelity CommuterCard制度を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Pilots (APA)",
+      "employer": "American Airlines",
+      "note_ja": "旅行特典に適格な社員/家族等。全員無条件適用とはしない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "american",
+     "cond_ja": "Pilots (APA) in All other locationsの公開画面。Travel privilegesの存在だけ。割引率・無料/有料・人数・親等・waiting period・税・予約優先・他社利用は記載せず、Jetnet原規則へ案内する。健康保険の扶養認定条件を旅行特典へ流用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旅行ページ本文は無日付。2026-10-21の公開案内を実読。取得日を制度開始日としない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Travel privileges > opening and Jetnet list",
+       "quote": "Learn about travel privileges available to eligible team members.",
+       "source_id": "src-american-r10-pilot-travel-privileges",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Verifying a dependent for travel privileges?",
+       "quote": "travel privileges.",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "41816be5d2c483be",
+     "id": "american.benefits.r10-pilot-travel-existence",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "操縦士向け旅行特典の存在・詳細条件は別資料",
+     "pack": "pvr-20261019-american",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-travel-privileges",
+       "source_type": "official_package",
+       "title": "Travel privileges",
+       "url": "https://my.aa.com/pilot/connection/travel-privileges"
+      },
+      {
+       "published": null,
+       "publisher": "American Airlines Benefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-american-r10-pilot-benefits-eligibility",
+       "source_type": "official_package",
+       "title": "Eligibility",
+       "url": "https://my.aa.com/pilot/prepare-for-take-off/eligibility"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "パイロット向け公式福利厚生ポータルが、適格な社員と家族等の旅行特典を案内する。",
      "value_text": null
     }
    ],
@@ -20794,6 +24284,312 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "contract": "Delta PWA / SRH Rev21 reference",
+      "employer": "Delta Air Lines",
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": true,
+      "seniority": "11–15 completed years before Apr1"
+     },
+     "checked_at": "2026-10-21",
+     "company": "delta",
+     "cond_ja": "2026年4月版SRHが示すPWA7A/7B。4/1〜翌3/31のVacationYear、4/1以前の完了勤続11–15年。原表EarnedVacation=4weeks、VacationBankHours=128:20（給与計算上の時間で実労働時間ではない）。前年に蓄積するaccruedと当年利用earnedを区別。合計30日超のfurlough/LOA（knownpersonalleave除外）、又は30連続日超militaryleaveで比例減算。1年未満新入社員・追加購入・IVD/補充休暇は別条件。原単位weeksを保持し、field-map既定の「日」へ独自換算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026-04版の労組現行参考書。表自体に初回発効日の明示なし。2023TAのphysical100では2025-04-01列に同値があるがTAを最終現行協約として代用しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical219/printed216,Definitions(7A),EarnedVacation table 11–15 row",
+       "quote": "4 weeks",
+       "source_id": "src-delta-r8-cb-srh21",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "4fb56a3825c32446",
+     "id": "delta.benefits.r8-cb-annual-leave-11to15",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休：4月1日前の完了勤続11–15年",
+     "pack": "pvr-20261019-delta",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "Delta MEC Scheduling Committee / ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-delta-r8-cb-srh21",
+       "source_type": "official_package",
+       "title": "Scheduling Reference Handbook Revision21 April2026",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/Scheduling%20Reference%20Handbook%20Rev%2021%20April%202026.pdf"
+      }
+     ],
+     "unit": "週",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4 weeks"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Delta PWA / SRH Rev21 reference",
+      "employer": "Delta Air Lines",
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": true,
+      "seniority": "16以上 completed years before Apr1"
+     },
+     "checked_at": "2026-10-21",
+     "company": "delta",
+     "cond_ja": "2026年4月版SRHが示すPWA7A/7B。4/1〜翌3/31のVacationYear、4/1以前の完了勤続16以上年。原表EarnedVacation=5weeks、VacationBankHours=160:25（給与計算上の時間で実労働時間ではない）。前年に蓄積するaccruedと当年利用earnedを区別。合計30日超のfurlough/LOA（knownpersonalleave除外）、又は30連続日超militaryleaveで比例減算。1年未満新入社員・追加購入・IVD/補充休暇は別条件。原単位weeksを保持し、field-map既定の「日」へ独自換算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026-04版の労組現行参考書。表自体に初回発効日の明示なし。2023TAのphysical100では2025-04-01列に同値があるがTAを最終現行協約として代用しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical219/printed216,Definitions(7A),EarnedVacation table 16以上 row",
+       "quote": "5 weeks",
+       "source_id": "src-delta-r8-cb-srh21",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "558016db7c85b6dc",
+     "id": "delta.benefits.r8-cb-annual-leave-16plus",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休：4月1日前の完了勤続16以上年",
+     "pack": "pvr-20261019-delta",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "Delta MEC Scheduling Committee / ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-delta-r8-cb-srh21",
+       "source_type": "official_package",
+       "title": "Scheduling Reference Handbook Revision21 April2026",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/Scheduling%20Reference%20Handbook%20Rev%2021%20April%202026.pdf"
+      }
+     ],
+     "unit": "週",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5 weeks"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Delta PWA / SRH Rev21 reference",
+      "employer": "Delta Air Lines",
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": true,
+      "seniority": "1–4 completed years before Apr1"
+     },
+     "checked_at": "2026-10-21",
+     "company": "delta",
+     "cond_ja": "2026年4月版SRHが示すPWA7A/7B。4/1〜翌3/31のVacationYear、4/1以前の完了勤続1–4年。原表EarnedVacation=2weeks、VacationBankHours=64:10（給与計算上の時間で実労働時間ではない）。前年に蓄積するaccruedと当年利用earnedを区別。合計30日超のfurlough/LOA（knownpersonalleave除外）、又は30連続日超militaryleaveで比例減算。1年未満新入社員・追加購入・IVD/補充休暇は別条件。原単位weeksを保持し、field-map既定の「日」へ独自換算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026-04版の労組現行参考書。表自体に初回発効日の明示なし。2023TAのphysical100では2025-04-01列に同値があるがTAを最終現行協約として代用しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical219/printed216,Definitions(7A),EarnedVacation table 1–4 row",
+       "quote": "2 weeks",
+       "source_id": "src-delta-r8-cb-srh21",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "05b672df73dd6f47",
+     "id": "delta.benefits.r8-cb-annual-leave-1to4",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休：4月1日前の完了勤続1–4年",
+     "pack": "pvr-20261019-delta",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "Delta MEC Scheduling Committee / ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-delta-r8-cb-srh21",
+       "source_type": "official_package",
+       "title": "Scheduling Reference Handbook Revision21 April2026",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/Scheduling%20Reference%20Handbook%20Rev%2021%20April%202026.pdf"
+      }
+     ],
+     "unit": "週",
+     "use": "条件つき",
+     "value": 2,
+     "value_text": "2 weeks"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Delta PWA / SRH Rev21 reference",
+      "employer": "Delta Air Lines",
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": true,
+      "seniority": "5–10 completed years before Apr1"
+     },
+     "checked_at": "2026-10-21",
+     "company": "delta",
+     "cond_ja": "2026年4月版SRHが示すPWA7A/7B。4/1〜翌3/31のVacationYear、4/1以前の完了勤続5–10年。原表EarnedVacation=3weeks、VacationBankHours=96:15（給与計算上の時間で実労働時間ではない）。前年に蓄積するaccruedと当年利用earnedを区別。合計30日超のfurlough/LOA（knownpersonalleave除外）、又は30連続日超militaryleaveで比例減算。1年未満新入社員・追加購入・IVD/補充休暇は別条件。原単位weeksを保持し、field-map既定の「日」へ独自換算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026-04版の労組現行参考書。表自体に初回発効日の明示なし。2023TAのphysical100では2025-04-01列に同値があるがTAを最終現行協約として代用しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical219/printed216,Definitions(7A),EarnedVacation table 5–10 row",
+       "quote": "3 weeks",
+       "source_id": "src-delta-r8-cb-srh21",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "95f5383e60f27b1b",
+     "id": "delta.benefits.r8-cb-annual-leave-5to10",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休：4月1日前の完了勤続5–10年",
+     "pack": "pvr-20261019-delta",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "Delta MEC Scheduling Committee / ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-delta-r8-cb-srh21",
+       "source_type": "official_package",
+       "title": "Scheduling Reference Handbook Revision21 April2026",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/Scheduling%20Reference%20Handbook%20Rev%2021%20April%202026.pdf"
+      }
+     ],
+     "unit": "週",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3 weeks"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "DPMA published participant guidance referencing PWA25B/25H; current PWA/DPMP terms not independently matched",
+      "employer": "Delta Air Lines",
+      "note_ja": "対象はDelta pilotのdisability/SLOAに関するFAQ記載の範囲。CAP/FO共通の現行権利・DPMA加入必須・対象年度を推測しない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "delta",
+     "cond_ja": "DPMAの参加者支援FAQがDeltaのpilotに向けて説明する限定事実。Delta Healthcare Benefits節は、disability中も給付が継続し、後続年のcoverageはPWA25B/25Hに従うと記す。保険料を賄えるDeltaのdisability給付からは控除し、不足する場合はESCのDirect Billを本人が支払う説明。DPMA自身の障害給付とDelta医療保険は別で、DPMA給付からの控除としない。病欠を使い切ってinactiveのSLOAへ移る定義をFAQ末尾が示す。open enrollment後かつ次暦年前にactiveからSLOAへ移行するとactive選択は無効となり、次年度の医療保険加入案内から再選択する。新しい案内に翌年発効日があり、現況の加入/適格性は個別確認を要す。DPMA加入をDelta医療継続の法的必要条件だと認定しない。原FAQは無日付で正式PWA現行本文/2026 DPMP plan/料率表とは未照合。全pilot現在加入可、保険無料、家族給付、18%料率、保険料額/免責/給付上限の確定には使わない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "無日付FAQに現在掲載される案内という資料記載の確認。施行日/失効日/2026 plan適用は未確定。取得日を適用日としない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Delta Healthcare Benefits > What happens to my healthcare benefits and premiums while on disability?; How do I enroll...; Acronyms/Terms > SLOA/SLED",
+       "quote": "Benefits continue and benefit coverage in subsequent years will be available in accordance with PWA Sections 25B and 25H.",
+       "source_id": "src-delta-r8-cm-dpma-faq",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Our Board; Governance Documents",
+       "quote": "DPMA is a Voluntary Employees’ Beneficiary Association (VEBA)",
+       "source_id": "src-delta-r8-cm-dpma-about",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "45db3d41f85a961b",
+     "id": "delta.benefits.r8-cm-disability-healthcare-guidance",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "DPMAのpilot向け案内：disability中のDelta医療継続",
+     "pack": "pvr-20261019-delta",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Delta Pilots Mutual Aid (DPMA)",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-21",
+       "source_id": "src-delta-r8-cm-dpma-faq",
+       "source_type": "official_package",
+       "title": "Frequently Asked Questions — Delta Healthcare Benefits",
+       "url": "https://dpma.org/faqs/"
+      },
+      {
+       "published": null,
+       "publisher": "Delta Pilots Mutual Aid (DPMA)",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-21",
+       "source_id": "src-delta-r8-cm-dpma-about",
+       "source_type": "official_package",
+       "title": "About Us — Delta Pilots Mutual Aid",
+       "url": "https://dpma.org/about-us/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DPMAのFAQは、disability中のDelta医療給付の継続と、Deltaのdisability給付からの保険料控除又はESCによる本人への直接請求を説明する。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": false,
       "rank": "all_staff"
@@ -24966,6 +28762,73 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "TR中は基本給・宿泊・朝夕食、OCCも原則宿泊/移動/朝夕食を会社負担",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "III Convenio de pilotos España; Art53",
+      "employer": "easyJet Airline Company Limited, Sucursal en España",
+      "note_ja": "記載された制度と対象の存在に限る。個人の加入・給付、全世界の在籍者への無条件適用は確定しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "easyjet",
+     "cond_ja": "スペイン法で雇用されスペインで運航するpilotのArt53。企業年金への拠出を選んだ場合は同じ柔軟報酬と非累積。追加のsalary sacrificeも選べる。保険料、給付上限、本人負担・家族条件は本条にない。会社が全pilotへ無料医療保険を自動付与する意味にはしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-03-01",
+      "note_ja": "条項の適用日と掲載日を区別。後継合意・個別適用・給付額が未取得の部分は条件に明記。",
+      "to": "2028-02-29"
+     },
+     "evidence": [
+      {
+       "locator": "PDF physical36 / BOE printed121582 / Art53 Retribución flexible",
+       "quote": "Podrá aplicar, entre otros, a un seguro médico privado",
+       "source_id": "src-easyjet-r10-boe2026-pilot-cba",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "PDF physical2 / Art2 Ámbito personal y funcional",
+       "quote": "contratados bajo la legislación española",
+       "source_id": "src-easyjet-r10-boe2026-pilot-cba",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "2af94bc35cca1dd2",
+     "id": "easyjet.benefits.r10-spain-private-medical-option",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "スペイン協約の民間医療保険を選べる制度",
+     "pack": "pvr-20261019-easyjet",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-09-11",
+       "publisher": "Boletín Oficial del Estado",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-easyjet-r10-boe2026-pilot-cba",
+       "source_type": "government",
+       "title": "III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España",
+       "url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2026-19041"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PCF（柔軟報酬プラン）から民間医療保険を選択できる",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -27068,6 +30931,101 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "contract": "11th Collective Agreement; individual expatriate applicability not established",
+      "employer": "Ethiopian Airlines Group",
+      "note_ja": "協約・労組通知の対象操縦士。外国人個別契約への適用を推定しない。",
+      "pilot_specific": true,
+      "rank": "crew",
+      "seniority": "first year of service"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ethiopian-airlines",
+     "cond_ja": "協約で覆われる社員の最初の勤続1年の年次休暇は16 working days。労組本人の締結記事は対象に操縦士を含むと明記。暦日ではなく勤務日。勤続後の加算条件・休暇取得手続・外国人個別契約への適用は今回確定していない。既存の外国人機長向け求人のpaid annual leaveとは適用集団を分ける。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-03-01",
+      "note_ja": "協約施行日は同労組の別通知に明記。終了日は非記載。今回の画像は協約変更の公表説明で、個別契約の全条件を保証するものではない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "11TH COLLECTIVE AGREEMENT / MAJOR CHANGES / annual-leave image / paragraph1, first-service-year sentence",
+       "quote": "(16)",
+       "source_id": "src-ethiopian-r12-cba-annual-leave",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "body / The comprehensive agreement covers all professionals paragraph",
+       "quote": "encompassing pilots",
+       "source_id": "src-ethiopian-r12-union-cba-scope",
+       "supports": [
+        "applies_to",
+        "condition"
+       ]
+      },
+      {
+       "locator": "effective-date notice / Dear Members",
+       "quote": "March 1, 2026.",
+       "source_id": "src-ethiopian-r6-eagpbtu-effective",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "0127e5034d86d653",
+     "id": "ethiopian-airlines.benefits.r12-cba-firstyear-leave",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "11次協約：最初の勤続1年の年次休暇",
+     "pack": "pvr-20261019-ethiopian-airlines",
+     "per": null,
+     "rev": 7,
+     "src": [
+      {
+       "published": "2026-02-26",
+       "publisher": "Ethiopian Airlines Group Primary Basic Trade Union (EAGPBTU)",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-ethiopian-r12-cba-annual-leave",
+       "source_type": "union_cba",
+       "title": "11th Collective Agreement Regarding Annual Leave",
+       "url": "https://t.me/s/EAGPrimaryBTU/1340"
+      },
+      {
+       "published": "2026-02-23",
+       "publisher": "Ethiopian Airlines Group Primary Basic Trade Union (EAGPBTU)",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-ethiopian-r12-union-cba-scope",
+       "source_type": "union_cba",
+       "title": "Ethiopian Airlines Group Signs Historic 11th Collective Agreement with Primary Basic Trade Union.",
+       "url": "https://eagpbtu.org/ethiopian-airlines-group-signs-historic-11th-collective-agreement-with-primary-basic-trade-union/"
+      },
+      {
+       "published": "2026-02-27",
+       "publisher": "Ethiopian Airlines Group Primary Basic Trade Union (EAGPBTU)",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-20",
+       "source_id": "src-ethiopian-r6-eagpbtu-effective",
+       "source_type": "union_cba",
+       "title": "11th Collective Agreement effective-date notice",
+       "url": "https://t.me/s/EAGPrimaryBTU/1353"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 16,
+     "value_text": "(16)"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "A350",
        "B777",
@@ -28655,6 +32613,122 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "航空優待と年間休暇旅行便の案内",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Spain homebase",
+      "contract": "Convenio colectivo Pilotos Eurowings Europe Ltd. España 2025-2027",
+      "employer": "Eurowings Europe Ltd.",
+      "note_ja": "Spain homebaseの直接雇用pilotだけ。Eurowings GmbH/GermanyまたはAustria契約へ拡張しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "eurowings",
+     "cond_ja": "7日週を基準とする暦日/年。会社勤続5年完了で5暦日追加、10年完了でさらに5暦日、12年完了でさらに2暦日、上限42暦日。到達年の追加日は入社月に応じ比例し商業丸め。休暇年は暦年で、取得/配分の詳細はAnnex30.4。勤務日や月間OFF日ではない。Germany/Austriaへ転用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "§2.1の一般適用期間。給与表固有の2026/2027施行日とは別。取得日を施行日としない。",
+      "to": "2027-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "§12.1 Vacaciones anuales; PDF physical9-10 / printed119088-119089",
+       "quote": "mínimo de 30 días naturales de vacaciones al año",
+       "source_id": "src-eurowings-r10-spain-benefits-cba2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "5c0ac09f9e825922",
+     "id": "eurowings.benefits.r10-spain-annual-leave",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "スペイン協約の最低年次有給休暇",
+     "pack": "pvr-20261019-eurowings",
+     "per": "year",
+     "rev": 7,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "Boletín Oficial del Estado",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-eurowings-r10-spain-benefits-cba2026",
+       "source_type": "government",
+       "title": "Convenio colectivo de Pilotos de Eurowings Europe Limited en España",
+       "url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-18628"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Spain homebase",
+      "contract": "Convenio colectivo Pilotos Eurowings Europe Ltd. España 2025-2027",
+      "employer": "Eurowings Europe Ltd.",
+      "note_ja": "Spain homebaseの直接雇用pilotだけ。Eurowings GmbH/GermanyまたはAustria契約へ拡張しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "eurowings",
+     "cond_ja": "§6(d):会社命令でhomebase変更を強制された場合の移転一時金EUR10,000 gross、島嶼地域へ/からの移転はEUR5,000 gross加算。遅くとも移転1か月前支給。移転後3か月以内の自己都合離職または解雇は原則全額返還。ただし経済/技術/生産/組織上の客観的解雇、法的に不当又は無効とされた懲戒解雇は返還対象外。同件の追加合意給付はこの一時金から控除。恒常家賃補助・社宅・通常の自己選択転居ではない。§6(b)の原則会社非負担は全住宅支援制度の不存在を意味しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "§2.1の一般適用期間。給与表固有の2026/2027施行日とは別。取得日を施行日としない。",
+      "to": "2027-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "§6(b)-(e) Home base; PDF physical5 / printed119084",
+       "quote": "paquete de movilidad de 10.000,00 euros brutos",
+       "source_id": "src-eurowings-r10-spain-benefits-cba2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "d56c4410818b4659",
+     "id": "eurowings.benefits.r10-spain-mandatory-base-transfer",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "スペイン協約の会社命令base移転給付",
+     "pack": "pvr-20261019-eurowings",
+     "per": null,
+     "rev": 7,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "Boletín Oficial del Estado",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-eurowings-r10-spain-benefits-cba2026",
+       "source_type": "government",
+       "title": "Convenio colectivo de Pilotos de Eurowings Europe Limited en España",
+       "url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-18628"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "会社命令によるhomebase移転の一時金",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -29604,6 +33678,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "月額給与の中から最大20,000円/月を選択して運用。選択しない場合はライフプラン支援金として毎月支給との記載。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "株式会社フジドリームエアラインズ",
+      "hire_route": "公開経験者操縦士募集",
+      "note_ja": "原票に明示された職位・募集経路のみ。原票の年次は勤続年数と自動同一視しない。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "fda",
+     "cond_ja": "ジェット定期便で副操縦士経験のある正社員候補の公開求人。通勤手当欄は「あり」だが同じ備考の住宅手当支給者上限40,000円には「※総合職」が付く。操縦士の上限額には採用しない。2024/10/07更新資料が現在の公開一覧にあることを確認。2026の個別受給権は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "施行日は未確認。原資料の更新・掲載と現在の契約への適用を区別する。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "福利厚生 > 通勤手当・備考",
+       "quote": "あり",
+       "source_id": "src-fda-r10-jpc-fo-job",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "2eb5d9cbe52258cf",
+     "id": "fda.benefits.r10-jpc-fo-commute-existence",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "commuting",
+     "label_ja": "経験者副操縦士候補求人の通勤手当の存在",
+     "pack": "pvr-20261019-fda",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "株式会社フジドリームエアラインズ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-fda-r10-jpc-fo-job",
+       "source_type": "job_posting",
+       "title": "【他社経験者】副操縦士候補",
+       "updated": "2024-10-07",
+       "url": "https://ats-entry.hito-link.jp/sites/fda-recruit/matter/matters/100103"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "通勤手当あり。",
      "value_text": null
     }
    ],
@@ -32513,6 +36645,174 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "travel benefitsの提供を明記",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Frontier pilot CBA as described by September 2026 ALPA PBS Handbook",
+      "employer": "Frontier Airlines",
+      "note_ja": "Frontier操縦士の年休・PBS条件。休暇を持つ操縦士が対象。給与creditと暦日の休暇日数・実乗務/拘束時間は区別。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "frontier",
+     "cond_ja": "V15〜V40は7日periodの総credit。残高が既定V35に不足する場合は残高で可能な最高値を自動指定。原文の近似時:分を再計算しない。credit値を下げても暦日の休暇日数は減らず、reserve月の月額保証もそれによって減らない。実乗務時間/勤務時間や年間付与日数ではない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026年9月版の当事者説明。具体的な各条項施行日は同冊子にない。取得日や改訂月を施行日に置換しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p83: Vacation Credit Value Selection (V15–V40); CBA3.P.1,3.P.4",
+       "quote": "The default is five hours per day",
+       "source_id": "src-frontier-r13-pbs-sep2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "d782047f21a82488",
+     "id": "frontier.benefits.r13-vacation-credit",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休の給与credit選択",
+     "pack": "pvr-20261019-frontier",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-09",
+       "publisher": "Frontier ALPA Master Executive Council / PBS Committee",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-frontier-r13-pbs-sep2026",
+       "source_type": "official_package",
+       "title": "Frontier ALPA PBS Handbook — September 2026",
+       "url": "https://fft.alpa.org/Portals/94/Documents/committees/pbs-resources/pbs-handbook/Frontier-ALPA-PBS-Handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "既定は年休1日につき給与credit5時間（標準7日periodは35時間）。periodごとV15〜V40を選択できる。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Frontier pilot CBA as described by September 2026 ALPA PBS Handbook",
+      "employer": "Frontier Airlines",
+      "note_ja": "Frontier操縦士の年休・PBS条件。休暇を持つ操縦士が対象。給与creditと暦日の休暇日数・実乗務/拘束時間は区別。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "frontier",
+     "cond_ja": "7日periodごと最大2暦日で、14日休暇は4日、21日は6日。両端に1日ずつ又は片端に2日等、休暇への連続配置が必要。有給ならVSD1日ごと既存年休bankから5credit時間、無給ならcredit消費なし。年休売却と両立不可。VSDはreserve日数prorationへ影響し、VSD当日の訓練指定不可。追加の無条件有給付与日数ではない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026年9月版の当事者説明。具体的な各条項施行日は同冊子にない。取得日や改訂月を施行日に置換しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p84: Vacation Stretch Days (VSDs); CBA7.J,3.P.2",
+       "quote": "up to two additional calendar days",
+       "source_id": "src-frontier-r13-pbs-sep2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "29cd7140203fbb11",
+     "id": "frontier.benefits.r13-vacation-stretch",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "休暇に連続する最大2暦日のVSD",
+     "pack": "pvr-20261019-frontier",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-09",
+       "publisher": "Frontier ALPA Master Executive Council / PBS Committee",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-frontier-r13-pbs-sep2026",
+       "source_type": "official_package",
+       "title": "Frontier ALPA PBS Handbook — September 2026",
+       "url": "https://fft.alpa.org/Portals/94/Documents/committees/pbs-resources/pbs-handbook/Frontier-ALPA-PBS-Handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "7日間の年休periodごとに最大2暦日のVacation Stretch Daysを連続して配置できる。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Frontier pilot CBA as described by September 2026 ALPA PBS Handbook",
+      "employer": "Frontier Airlines",
+      "note_ja": "Frontier操縦士の年休・PBS条件。休暇を持つ操縦士が対象。給与creditと暦日の休暇日数・実乗務/拘束時間は区別。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "frontier",
+     "cond_ja": "原文はaccrued＝当年稼得し翌年使用、earned＝前年からの未消化で今使用可と説明。年末残高の自動精算と、p84のVAP中の任意売却（翌月5日支払）は別条件。本記録は年末残高についてのみ。金額や年間付与日数は示さない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026年9月版の当事者説明。具体的な各条項施行日は同冊子にない。取得日や改訂月を施行日に置換しない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p83: Vacation Credit Balances and Accrual; CBA3.P.5",
+       "quote": "January 5th paycheck of the following year",
+       "source_id": "src-frontier-r13-pbs-sep2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "28a3ade6540da78e",
+     "id": "frontier.benefits.r13-vacation-year-end-payout",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年末未消化年休creditの自動精算",
+     "pack": "pvr-20261019-frontier",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-09",
+       "publisher": "Frontier ALPA Master Executive Council / PBS Committee",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-frontier-r13-pbs-sep2026",
+       "source_type": "official_package",
+       "title": "Frontier ALPA PBS Handbook — September 2026",
+       "url": "https://fft.alpa.org/Portals/94/Documents/committees/pbs-resources/pbs-handbook/Frontier-ALPA-PBS-Handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "暦年末にbankへ残る未消化年休creditは翌年1月5日の給与で自動精算する。",
      "value_text": null
     },
     {
@@ -36719,6 +41019,87 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "社員と家族の医療保険",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "IndiGo",
+      "note_ja": "自社pilot administration担当の職務説明でpilotへの支援を特定。輸送担当10351はcrew一般の補助文脈であり、全pilotの住宅送迎資格を確定する根拠には使用しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "indigo",
+     "cond_ja": "本人の管理担当求人8650（表示日2025-12-17）がpilot workforceを対象に、Crew Logistics/Admin Servicesと業務移動の交通を調整すると明記。別の輸送担当求人10351（2026-10-15、Kolkata）はcrew一般の空港・住宅・ホテル間送迎運用を記すが、この別求人の住宅送迎をすべてのpilotに適用しない。pilotの通常の自宅通勤の権利、無料/本人負担、支給額、距離上限、基地・雇用区分別資格、2026-10-21の実運行は不明。業務ホテルを社宅、業務移動券を私用社員優待券に置換しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原job表示日2025-12-17と2026-10-15。資料本文の説明を確認した日と、交通制度の施行日/現在の個別適用日は別。施行通知・利用規程・現在運行の確認は未取得。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Position Overview / administrative and operational support functions related to pilots; Key Responsibilities > 4. Logistical Support。通常IABで動的本文を読み取り。",
+       "quote": "Coordinate duty travel tickets, hotel accommodation, and transport with Crew Logistics and Admin Services.",
+       "source_id": "src-indigo-r10-pilot-administration-8650",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "Position Overviewの対象集団",
+       "quote": "support functions related to pilots",
+       "source_id": "src-indigo-r10-pilot-administration-8650",
+       "supports": [
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Role Objective; Key Responsibilities > 1. Transport Operations Management。通常IABで全本文を読み取り。",
+       "quote": "Ensure punctual and reliable pick-up/drop-off of crew members between airport, residences, and hotels.",
+       "source_id": "src-indigo-r10-transport-10351",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "9fe64225ff98b186",
+     "id": "indigo.benefits.r10-pilot-duty-transport-coordination",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "パイロットの業務移動に関する交通手配（職務説明で確認）",
+     "pack": "pvr-20261019-indigo",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": "2025-12-17",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-indigo-r10-pilot-administration-8650",
+       "source_type": "job_posting",
+       "title": "Senior Executive- Pilot Administration",
+       "url": "https://www.goindigo.in/careers/job-details/Senior-Executive--Pilot-Administration/8650.html"
+      },
+      {
+       "published": "2026-10-15",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-indigo-r10-transport-10351",
+       "source_type": "job_posting",
+       "title": "Consultant- Transport",
+       "url": "https://www.goindigo.in/careers/job-details/Consultant--Transport/10351.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "パイロット管理担当の職務として業務移動の航空券・ホテル・交通の手配が記載されている。",
+     "value_text": null
     }
    ],
    "jobs": [
@@ -36836,6 +41217,276 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "ita-airways": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Personale Navigante signed second-level agreement",
+      "employer": "ITALIA TRASPORTO AEREO S.P.A.",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ita-airways",
+     "cond_ja": "ITA第二階層署名協約のPersonale Navigante（pilotを含む）対象。Art1の原則施行2026-09-01、期限2028-12-31。月割発生（15日以上を1月として算入）。祝日を含み、年休3日につき1日GLS/休息を吸収、年間上限8日。追加の独立した30勤務日又は休息日との単純合計ではない。勤続24か月以上には2027/2028から年齢別増加の別日程があり、現行30へ先取り加算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "Art1の原則施行。将来年齢増加とは別。",
+      "to": "2028-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理25頁 / PN Art15bis Ferie",
+       "quote": "30 giorni",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "577db638a81db22d",
+     "id": "ita-airways.benefits.r8-signed-leave30",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "署名協約の年休30日・吸収規則",
+     "pack": "pvr-20261019-ita-airways",
+     "per": "year",
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-07-23",
+       "publisher": "FAST CONFSAL / ITALIA TRASPORTO AEREO S.P.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-20",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "source_type": "union_cba",
+       "title": "Accordo integrativo di secondo livello ITA, firmato 22 luglio 2026",
+       "url": "https://sindacatofast.it/areacon/compartoaereo/sites/default/files/FAST%20-%20Accordo%202%C2%B0%20Livello%20-%2022.07.2026%20-%20fir_compresse%20d%20%281%29.pdf"
+      }
+     ],
+     "unit": "days_under_CBA_absorption_rule",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Personale Navigante Tecnico aderente",
+      "employer": "ITALIA TRASPORTO AEREO S.P.A.",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ita-airways",
+     "cond_ja": "PNT本人の加入条件。協約p79の文は家族の対象範囲を明記しないため、既存の家族拡大の労組発表をここで無条件の家族医療保証に変換しない。会社負担医療保険料は現金給与に加算しない。2600EURの率施行は2027-01-01で、2026年の会社負担額として先取りしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2027-01-01",
+      "note_ja": "医療制度の存在とは別に、2600EUR+0.8%負担率の開始日を明記。",
+      "to": "2028-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理79頁 / PNT Art47 Assicurazioni",
+       "quote": "Cassa Sanivolo",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "同頁 /会社の年保険負担",
+       "quote": "2.600,00",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "同頁 /運営費",
+       "quote": "0,8%",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "17689cfdcfc645f2",
+     "id": "ita-airways.benefits.r8-signed-sanivolo",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "署名協約のSanivolo補完医療・2027年拠出",
+     "pack": "pvr-20261019-ita-airways",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-07-23",
+       "publisher": "FAST CONFSAL / ITALIA TRASPORTO AEREO S.P.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-20",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "source_type": "union_cba",
+       "title": "Accordo integrativo di secondo livello ITA, firmato 22 luglio 2026",
+       "url": "https://sindacatofast.it/areacon/compartoaereo/sites/default/files/FAST%20-%20Accordo%202%C2%B0%20Livello%20-%2022.07.2026%20-%20fir_compresse%20d%20%281%29.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "加入PNTへSanivolo経由で国民医療サービスを補完する医療。2027-01-01から会社年2600EUR/人と運営費0.8%。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Personale Navigante",
+      "employer": "ITALIA TRASPORTO AEREO S.P.A.",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ita-airways",
+     "cond_ja": "ITA第二階層署名協約のPersonale Navigante（pilotを含む）対象。Art1の原則施行2026-09-01、期限2028-12-31。PN Art16の通常通勤と基地外hotel交通を分離。駐車の利用方法は会社側の規則に委任され、本条から無料駐車又は自宅空港taxiを作らない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "Art1原則施行。",
+      "to": "2028-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理28頁 / PN Art16 第一段",
+       "quote": "con i propri mezzi",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "物理28頁 / PN Art16 基地外交通未提供時",
+       "quote": "spese documentabili sostenute",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "671119bf2fc285ce",
+     "id": "ita-airways.benefits.r8-signed-self-commute",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通常通勤は本人手段・基地外宿泊地交通は会社",
+     "pack": "pvr-20261019-ita-airways",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-07-23",
+       "publisher": "FAST CONFSAL / ITALIA TRASPORTO AEREO S.P.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-20",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "source_type": "union_cba",
+       "title": "Accordo integrativo di secondo livello ITA, firmato 22 luglio 2026",
+       "url": "https://sindacatofast.it/areacon/compartoaereo/sites/default/files/FAST%20-%20Accordo%202%C2%B0%20Livello%20-%2022.07.2026%20-%20fir_compresse%20d%20%281%29.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "基地での出勤は本人が交通手段を用意。基地外勤務後のhotel/空港往復は会社手配、未提供なら証憑費用精算。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Personale Navigante; company-ordered transfer",
+      "employer": "ITALIA TRASPORTO AEREO S.P.A.",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ita-airways",
+     "cond_ja": "ITA第二階層署名協約のPersonale Navigante（pilotを含む）対象。Art1の原則施行2026-09-01、期限2028-12-31。Art17の会社命令転勤条件。会社家賃手当・恒常社宅ではない。転居後1年以内に自己都合退職なら搬送費の期間按分返還があり得る。mission処遇の中身を家賃現金額へ推計しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "Art1原則施行。",
+      "to": "2028-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理30頁 / PN Art17 家族転居枝",
+       "quote": "il trattamento di missione per 1 mese",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "物理30頁 / PN Art17 本人のみ転居枝",
+       "quote": "20 giorni",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "3db0c7457b3a9e03",
+     "id": "ita-airways.benefits.r8-signed-transfer-support",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "会社命令転勤の家財移転・期限付支援",
+     "pack": "pvr-20261019-ita-airways",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-07-23",
+       "publisher": "FAST CONFSAL / ITALIA TRASPORTO AEREO S.P.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-20",
+       "source_id": "src-ita-airways-r4-signed-second-level2026",
+       "source_type": "union_cba",
+       "title": "Accordo integrativo di secondo livello ITA, firmato 22 luglio 2026",
+       "url": "https://sindacatofast.it/areacon/compartoaereo/sites/default/files/FAST%20-%20Accordo%202%C2%B0%20Livello%20-%2022.07.2026%20-%20fir_compresse%20d%20%281%29.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "会社命令転勤で旅費と事前合意した家財/身辺荷物搬送費、家族転居時1か月・本人だけの転居20日のmission処遇。",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -39221,6 +43872,62 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 17,
      "value_text": "17"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "JetBlue Airways",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "jetblue",
+     "cond_ja": "2026給付年度のGreenOptionのみ。Anthem Medical/Optum Financial HRA/CVS Caremark Rx。米ドル建てネットワーク内deductible個人1400/家族2800、自己負担上限個人5300/家族10600、通常サービスはdeductible後20%負担。2026 semi-monthly本人拠出は本人のみ86、本人+配偶者206.50、本人+子146、本人+家族267USD。週払い表にGreenOption欄はない。pilot全員自動加入/医療全額無料/年金又は現金給与とはしない。州別ネットワーク例外は原p18参照。年初施行はp64に明示。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical/printed18 Green Option;23 2026 costs for coverage;64 enrollment effective",
+       "quote": "For eligible pilots only, per the CBA.",
+       "source_id": "src-jetblue-r8-guide26",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "57a9891a3ceeb04e",
+     "id": "jetblue.benefits.r8-green-option-2026",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "green-option-2026",
+     "pack": "pvr-20261019-jetblue",
+     "per": null,
+     "rev": 7,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JetBlue / BlueBenefits",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-jetblue-r8-guide26",
+       "source_type": "official_package",
+       "title": "Open Enrollment Guide 2026",
+       "url": "https://jetblue-libib.s3.us-east-2.amazonaws.com/JetBlue_OE-Guide_2026_POST4-1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CBA適格pilot用Green Option医療保険・HRAの選択肢",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -39951,6 +44658,232 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Jetstar Airways (Jetstar)",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "jetstar",
+     "cond_ja": "批准済EA52.1で各完了勤続年に42連続暦日（土日祝日込み）、毎月按分蓄積。各日AnnualSalary/365で有給。fulltimeの7日中末尾2日はDDO兼用、42勤務日休暇に読み替えない。実際の休暇割当枠は52.3最低5週、52.5希望時6週へ合理的努力という別条件。PT/FlexiはAppendixA/Bの按分規定へ、年間通常公休と合算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-07-22",
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical66/printed63 cl52.1..9",
+       "quote": "42",
+       "source_id": "src-jetstar-r8-fwc",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "4672f6720d65ecc0",
+     "id": "jetstar.benefits.r8-annual-leave-fulltime",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "annual-leave-fulltime",
+     "pack": "pvr-20261019-jetstar",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-07-15",
+       "publisher": "Fair Work Commission",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-jetstar-r8-fwc",
+       "source_type": "government",
+       "title": "Jetstar Airways Pilots Enterprise Agreement 2026",
+       "url": "https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 42,
+     "value_text": "42"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Jetstar Airways (Jetstar)",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "jetstar",
+     "cond_ja": "EA38.1–3。駐車場は空港内/近隣、必要時のterminal送迎無料。本人申請でhomebaseの代わりに居住地に最も近い別pilotbaseの駐車へ変更可能、承認を不合理に拒否しない。自宅–空港の全区間無料taxiではない。37のBNE/OOL/SEQ・AVV→MEL等ground/sim dutiesは自己移動の例外を保持。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-07-22",
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical42–43/printed39–40 cl37,38",
+       "quote": "home base car parking",
+       "source_id": "src-jetstar-r8-fwc",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "b8186ef67957d6bd",
+     "id": "jetstar.benefits.r8-base-parking",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "base-parking",
+     "pack": "pvr-20261019-jetstar",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-07-15",
+       "publisher": "Fair Work Commission",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-jetstar-r8-fwc",
+       "source_type": "government",
+       "title": "Jetstar Airways Pilots Enterprise Agreement 2026",
+       "url": "https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "勤務時のhome base空港駐車と必要な駐車場–ターミナル送迎を会社提供",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Jetstar Airways (Jetstar)",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "jetstar",
+     "cond_ja": "EA65.2の個別要件を考慮してpackageを策定する規定。指針項目は家財・車1台運送、最大30日保管/保険、賃貸早期解約penalty、本人/同居移動家族の航空券等。65.2.8は旧地motel最大2日・新地14日、新地で少なくとも4日off。自発的異動/個人昇格に伴う異動は65.1で自己費用。恒常住宅手当・全額家賃給付・一律固定額にしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-07-22",
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical80–81/printed77–78 cl65.1–3",
+       "quote": "transfer package",
+       "source_id": "src-jetstar-r8-fwc",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "d4e65184f49b37db",
+     "id": "jetstar.benefits.r8-company-directed-transfer",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "company-directed-transfer",
+     "pack": "pvr-20261019-jetstar",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-07-15",
+       "publisher": "Fair Work Commission",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-jetstar-r8-fwc",
+       "source_type": "government",
+       "title": "Jetstar Airways Pilots Enterprise Agreement 2026",
+       "url": "https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "会社指示による恒久base異動の個別transfer package",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Jetstar Airways (Jetstar)",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "jetstar",
+     "cond_ja": "EA23.3。会社が旅行保険又は適切な代替手配を提供し、関連excessは会社負担。会社指示のtravel時限定で、自宅の日常医療・家族全員の保険・全世界いつでも無料治療を確定しない。航空身体検査の会社資金負担義務20.1.7とは別条項。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-07-22",
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical28/printed25 cl23.3.1–2",
+       "quote": "emergency medical and dental cover",
+       "source_id": "src-jetstar-r8-fwc",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "ce8e98b024ba68fa",
+     "id": "jetstar.benefits.r8-duty-travel-medical",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "duty-travel-medical",
+     "pack": "pvr-20261019-jetstar",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2026-07-15",
+       "publisher": "Fair Work Commission",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-jetstar-r8-fwc",
+       "source_type": "government",
+       "title": "Jetstar Airways Pilots Enterprise Agreement 2026",
+       "url": "https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "会社指示の業務旅行中の緊急医療・歯科・救援搬送を含む旅行保障",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -40569,6 +45502,78 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "各社会保険",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "aircraft": [
+       "A320",
+       "A321"
+      ],
+      "contract": "JCAB License Holder A320/A321 Captain recruitment R101915",
+      "employer": "Jetstar Japan",
+      "hire_route": "JCAB機長募集",
+      "note_ja": "日本会社の公式採用サイトの機長求人本文が対象。FO/NonJCAB/全在籍者へ一律適用としない。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-21",
+     "company": "jetstar-japan",
+     "cond_ja": "JCABライセンス保持者A320/A321機長求人R101915の提示条件。2025-04-07掲載、2026-10-21の公式運航部門で当該募集へのリンクを確認。指名可能なtravel companionsの定義、利用開始時期、対象便/他社、運賃・税、席数/空席優先順位はこの本文で未確定。無制限の無料券や全家族の利用権とは扱わない。併記するaccommodation discountは旅行先宿泊割引であって居住住宅の補助ではない。一般福利頁の80社以上という範囲を当該pilot契約で無条件に保証せず、現行全pilot制度の確定とは分ける。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "採用原票の対象募集条件。取得日を制度施行日としない。全在籍pilotの現行権利を確認したものではない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Your life at Jetstar is unlike any other > Live the travel dream",
+       "quote": "You and your nominated travel companions",
+       "source_id": "src-jetstar-japan-r9-jpben-jcab-captain",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "same paragraph; top summary",
+       "quote": "Qantas Group Staff Travel discount",
+       "source_id": "src-jetstar-japan-r9-jpben-jcab-captain",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "706ca6dcbf3193b5",
+     "id": "jetstar-japan.benefits.r9-jpben-jcab-captain-staff-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "staff_travel",
+     "label_ja": "JCAB機長募集のスタッフトラベル",
+     "pack": "pvr-20261019-jetstar-japan",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": "2025-04-07",
+       "publisher": "Jetstar Japan",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-jetstar-japan-r9-jpben-jcab-captain",
+       "source_type": "job_posting",
+       "title": "JCAB License Holder - A320/A321 Captain",
+       "url": "https://career-jp.jetstar.com/job-details/24855/jcab-license-holder-a320a321-captain/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "本人および指定travel companions向けのQantas Group Staff Travel航空券割引を案内。",
      "value_text": null
     }
    ],
@@ -42833,6 +47838,73 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Eelde campusの部屋を借りられ、費用は訓練費融資に含める",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "KLM cockpit personnel public careers overview",
+      "employer": "KLM",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "klm",
+     "cond_ja": "pilot/cockpit専用見出しの公表特典。35EURの支払周期は不明で月額にしない。オランダ全域又は外国の自宅からの通勤全額補償と一般化しない。医療/歯科割引とtaxi補助の詳述はcabine欄でありpilotへ転用しない。ページは権利を導けないと明示する採用情報。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "施行日不明。本文を今回確認したことは現行契約の適用証明と別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Voordelen voor cockpit-collega’s KLM /駐車カード",
+       "quote": "eigen bijdrage van 35 Euro",
+       "source_id": "src-klm-r8-cockpit-benefits",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "同cockpit欄 /公共交通",
+       "quote": "Gratis gebruik van het openbaar vervoer op en rond Schiphol",
+       "source_id": "src-klm-r8-cockpit-benefits",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "2b801d5b50c21013",
+     "id": "klm.benefits.r8-cockpit-parking-local-ov",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "Cockpit向け駐車カードと空港周辺公共交通",
+     "pack": "pvr-20261019-klm",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": null,
+       "publisher": "KLM Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-klm-r8-cockpit-benefits",
+       "source_type": "official_package",
+       "title": "Meer redenen om voor KLM te kiezen",
+       "url": "https://careers.klm.com/nl/meer-redenen-om-voor-klm-te-kiezen/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Schipholの駐車カード（自己負担35EUR）と空港・周辺の公共交通無料利用を案内。",
      "value_text": null
     }
    ],
@@ -51112,6 +56184,200 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "contract": "permanent employment; individual pilot agreement not verified",
+      "employer": "Qantas employees（原表の表記）",
+      "note_ja": "会社共通条件の記録。操縦士の雇用形態・適格性/個別staff travel policy未照合。一般社員向け特典を全pilot契約へ無条件適用しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-21",
+     "company": "qantas",
+     "cond_ja": "2026年次報告がall permanent Qantas employees向けに説明する会社共通の特典。永久雇用の操縦士個別契約/適格性までは確認しておらずpilot_specific=false。全操縦士やQantas Group別法人へ無条件適用しない。割引価格、sub-load（空席次第）で制限・利用可能数の限度あり。指定の直接家族又は指名した同伴者/受益者を含むが、人数・親等・年齢・割引率・税・待機開始時期・座席確約は未記載。CEO/Executive Management向け個人費用ゼロの旅行は別段落の別集団なので操縦士へ移さない。退職後は別の勤続条件を満たす者と説明し、自動継続とはしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026年次報告の対象年度は2026-06-30終了、発行2026-08-27。これは特典施行/失効日ではない。2026-10-21の全pilot個別条件を確定したものではない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical60/printed54 > Other Benefits table > Travel, first paragraph; rendered image checked",
+       "quote": "Travel concessions are provided to all permanent Qantas employees",
+       "source_id": "src-qantas-r10-annual-report-2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "same Travel first paragraph > family/companion sentence",
+       "quote": "or a nominated travel companion or beneficiary.",
+       "source_id": "src-qantas-r10-annual-report-2026",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "882b7aeb6266f27f",
+     "id": "qantas.benefits.r10-permanent-employee-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "permanent社員向け空席利用の旅行特典・会社共通情報",
+     "pack": "pvr-20261019-qantas",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-08-27",
+       "publisher": "Qantas Airways Limited / investor website",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-qantas-r10-annual-report-2026",
+       "source_type": "regulatory_filing",
+       "title": "Qantas Group Appendix 4E and Annual Report 2026",
+       "url": "https://investor.qantas.com/DownloadFile.axd?file=%2FReport%2FComNews%2F20260827%2F03126902.pdf&pubDate=20260919"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2026年次報告はpermanent Qantas employees向けに、制限付きのsub-load旅行割引と指定家族又は指名同伴者等の対象を説明。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Qantas Group",
+      "note_ja": "AIPA見出しEmployee Assistance Program (EAP) – Qantas Group Pilots。pilotの職位・法人・基地・契約別の差までは示さない。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "qantas",
+     "cond_ja": "操縦士対象はAIPAの見出しが明示。会社負担のconfidential supportで、雇用主はEAPを本人・家族への無料の短期カウンセリング/コーチングと説明。AIPA自身のボランティアによるnon-professional peer supportとは別サービス。無日付資料の現在掲載内容を確認した範囲。医療保険加入、入院・外来治療費、家族保険、給付回数/限度、最新正式plan約款や2026年全員適用は未確定。包括医療保険が無料とする表示には使わない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "両原ページに施行日・失効日・対象plan年度なし。取得日を制度施行日としない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Additional Support Services > Employee Assistance Program (EAP) – Qantas Group Pilots",
+       "quote": "Confidential, company-funded support via Converge International.",
+       "source_id": "src-qantas-r10-aipa-pilot-eap",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Support when you need it > Employee Assistance Program",
+       "quote": "confidential, free, short-term support to you and your family",
+       "source_id": "src-qantas-r10-employer-eap",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "75b85c30440f606a",
+     "id": "qantas.benefits.r10-pilot-eap-converge",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "Qantas Group操縦士向けEAP支援",
+     "pack": "pvr-20261019-qantas",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Australian and International Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-qantas-r10-aipa-pilot-eap",
+       "source_type": "official_package",
+       "title": "Welfare Support",
+       "url": "https://www.aipa.org.au/services/welfare-support/"
+      },
+      {
+       "published": null,
+       "publisher": "Qantas Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-qantas-r10-employer-eap",
+       "source_type": "official_package",
+       "title": "Inclusion, Wellbeing and Belonging",
+       "url": "https://careers.qantas.com/inclusion-wellbeing-belonging"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AIPAはQantas Group Pilots向けEAPとして、Converge Internationalによる会社負担の秘密保持支援を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Qantas",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "qantas",
+     "cond_ja": "ShortHaul EA9 cl15.12.7の冗員整理時に限定。対象運賃・家族・席数・在職中全pilotの条件はこの条文で確定しない。LongHaul/子会社へ拡張しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "physical34/printed30 cl15.12.7",
+       "quote": "Company’s Staff Travel Policy",
+       "source_id": "src-qantas-r8-ea9",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "aa9dde9dced278f3",
+     "id": "qantas.benefits.r8-redundancy-staff-travel",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "冗員整理時stafftravel",
+     "pack": "pvr-20261019-qantas",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2025-05-09",
+       "publisher": "Fair Work Commission / Australian Federation of Air Pilots",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-qantas-r8-ea9",
+       "source_type": "union_cba",
+       "title": "Qantas Short Haul EA9 Approved",
+       "url": "https://d15k2d11r6t6rl.cloudfront.net/pub/dw7a/z1swde28/zi1/yde/auy/20250509%20-%20SH%20EA%20Approval.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "冗員整理時は当該pilot向けStaff Travel Policyに従う権利",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "contract": "Qantas Airways Limited Pilots (Short Haul) EA2024 EBA9",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
@@ -55689,6 +60955,318 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 3000,
      "value_text": "3.000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Spain directly employed; full-time",
+      "employer": "Ryanair DAC",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ryanair",
+     "cond_ja": "9.2.1は最低30暦日の法定権利を29勤務日として実施。30暦日と29勤務日を加算/換算しない。full-timeは5日block4回+ad hoc9日（内1日はChristmas非運航日割当）。50%/66.66%/75%季節契約と婚姻休暇には9.2.6–9の別規則があるためこの値を一律適用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "協約3.1の有効期限。",
+      "to": "2027-03-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理12頁 /9.2.1",
+       "quote": "29 días laborables",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "d473f02cc0d097ee",
+     "id": "ryanair.benefits.r8-es-annual-leave29",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "Spain DAC年休：29勤務日の実施区分",
+     "pack": "pvr-20261019-ryanair",
+     "per": "year",
+     "rev": 10,
+     "src": [
+      {
+       "published": "2023-06-28",
+       "publisher": "BOE / Dirección General de Trabajo",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "source_type": "government",
+       "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+       "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+      }
+     ],
+     "unit": "working_days",
+     "use": "条件つき",
+     "value": 29,
+     "value_text": "29"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "pilot allowance内の健康保険用途成分",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "contract": "Spain directly employed pilots",
+      "employer": "Ryanair DAC",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ryanair",
+     "cond_ja": "7.1のpilot allowanceの内訳として健康保険用途を明記。会社加入の保険で全医療費を負担するとの証明ではない。CAP合計6000/FO合計5500EUR手当の一部で、給与表のOtrosに含まれるため別年収へ二重加算しない。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "協約3.1の有効期限。個別保険加入/家族/補償範囲は本条未記載。",
+      "to": "2027-03-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理9頁 /7.1/ Seguro de salud /CAP",
+       "quote": "1.500",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "9c119dcb672fe14f",
+     "id": "ryanair.benefits.r8-es-health-allowance-cap",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "Spain DAC 機長の健康保険用途の年手当",
+     "pack": "pvr-20261019-ryanair",
+     "per": "year",
+     "rev": 10,
+     "src": [
+      {
+       "published": "2023-06-28",
+       "publisher": "BOE / Dirección General de Trabajo",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "source_type": "government",
+       "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+       "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 1500,
+     "value_text": "1.500"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "pilot allowance内の健康保険用途成分",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "contract": "Spain directly employed pilots",
+      "employer": "Ryanair DAC",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ryanair",
+     "cond_ja": "7.1のpilot allowanceの内訳として健康保険用途を明記。会社加入の保険で全医療費を負担するとの証明ではない。CAP合計6000/FO合計5500EUR手当の一部で、給与表のOtrosに含まれるため別年収へ二重加算しない。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "協約3.1の有効期限。個別保険加入/家族/補償範囲は本条未記載。",
+      "to": "2027-03-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理9頁 /7.1/ Seguro de salud /FO",
+       "quote": "1.250",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "bf059ce855a7a17a",
+     "id": "ryanair.benefits.r8-es-health-allowance-fo",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "Spain DAC FOの健康保険用途の年手当",
+     "pack": "pvr-20261019-ryanair",
+     "per": "year",
+     "rev": 10,
+     "src": [
+      {
+       "published": "2023-06-28",
+       "publisher": "BOE / Dirección General de Trabajo",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "source_type": "government",
+       "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+       "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 1250,
+     "value_text": "1.250"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "pilot allowance内の駐車用途成分",
+      "stat": "fixed",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "contract": "Spain directly employed CAP/FO",
+      "employer": "Ryanair DAC",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ryanair",
+     "cond_ja": "Spain DAC直接雇用CAP/FOのpilot allowance内訳。無料駐車を保証する制度と同一視しない。総額手当/Otrosの一部で二重加算不可。自宅から空港までのタクシー補助や航空通勤はこの条項では未確認。",
+     "currency": "EUR",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "協約3.1の有効期限。",
+      "to": "2027-03-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理9頁 /7.1 / Aparcamiento / CAP,FO各500",
+       "quote": "500",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "27c4d4adcbba6d01",
+     "id": "ryanair.benefits.r8-es-parking-allowance",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "Spain DACの駐車用途年手当",
+     "pack": "pvr-20261019-ryanair",
+     "per": "year",
+     "rev": 10,
+     "src": [
+      {
+       "published": "2023-06-28",
+       "publisher": "BOE / Dirección General de Trabajo",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "source_type": "government",
+       "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+       "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Spain directly employed pilots",
+      "employer": "Ryanair DAC",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "ryanair",
+     "cond_ja": "7.4は発券枚数・対象家族・無料/確約・待機優先・料金を公表していない。航空券が保証されるという表示には使用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "協約3.1の有効期限。",
+      "to": "2027-03-31"
+     },
+     "evidence": [
+      {
+       "locator": "7.4 / staff travel policy",
+       "quote": "discrecional",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "403cd38d5d63bcd7",
+     "id": "ryanair.benefits.r8-es-staff-travel-discretionary",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "Spain DAC staff travelは裁量制度の案内",
+     "pack": "pvr-20261019-ryanair",
+     "per": null,
+     "rev": 10,
+     "src": [
+      {
+       "published": "2023-06-28",
+       "publisher": "BOE / Dirección General de Trabajo",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-ryanair-r8-boe-pilot-cba",
+       "source_type": "government",
+       "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+       "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "協約7.4は裁量によるstaff travel方針の詳細をpilotへ案内すると規定。",
+     "value_text": null
     }
    ],
    "jobs": [
@@ -59715,6 +65293,137 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     },
     {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "募集住宅手当",
+      "stat": "fixed",
+      "tax": "net",
+      "tier_proposed": "offer_posting",
+      "unclear": [
+       "個別受給条件"
+      ]
+     },
+     "applies_to": {
+      "aircraft": [
+       "B737NG"
+      ],
+      "hire_route": "公開経験者操縦士募集",
+      "note_ja": "原票に明示された職位・募集経路のみ。原票の年次は勤続年数と自動同一視しない。運航先は会社IDの航空会社。採用会社と運航会社のいずれが法的雇用主かの契約全文は未確認のためemployer=null。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-21",
+     "company": "skymark",
+     "cond_ja": "IASCO/Longreach経由B737NG機長の募集提示。訓練完了後3年契約・更新可能。flyerは2025年12月更新、2026年度から日本の税は会社負担と記載するが税務上の非課税とはしない。会社直接雇用・全機長の現在給与の根拠とはしない。 住宅手当はJPY原額を保存。資料の参考USD換算は採用しない。税後という募集表の説明に限る。",
+     "currency": "JPY",
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "施行日は未確認。原資料の更新・掲載と現在の契約への適用を区別する。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "物理1頁 下部表 / Housing Allowance",
+       "quote": "¥300,000",
+       "source_id": "src-skymark-r10-jpc-iasco-flyer",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "40c5c46bcb71bfc7",
+     "id": "skymark.benefits.r10-jpc-housing",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "housing",
+     "label_ja": "採用会社提示の機長住宅手当（月額）",
+     "pack": "pvr-20261019-skymark",
+     "per": "month",
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Longreach Aviation / IASCO Global",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-10-21",
+       "source_id": "src-skymark-r10-jpc-iasco-flyer",
+       "source_type": "job_posting",
+       "title": "SKYMARK AIRLINES B737NG CAPTAIN - NTR",
+       "url": "https://www.longreachaviation.com/wp-content/uploads/2025/12/Skymark-B737-Captain-IASCO-Dec2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": 300000,
+     "value_text": "¥300,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "aircraft": [
+       "B737NG"
+      ],
+      "hire_route": "公開経験者操縦士募集",
+      "note_ja": "原票に明示された職位・募集経路のみ。原票の年次は勤続年数と自動同一視しない。運航先は会社IDの航空会社。採用会社と運航会社のいずれが法的雇用主かの契約全文は未確認のためemployer=null。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-21",
+     "company": "skymark",
+     "cond_ja": "IASCO本人のB737NG機長SKY01募集。初回契約3年＋訓練、開始予定Fall & Winter2026以降。accommodation、education、furniture等の手当を列挙。額は記載しないので旧flyerの300,000円をこの原票で現行額と確認した扱いにはしない。法的雇用主や個別契約は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "施行日は未確認。原資料の更新・掲載と現在の契約への適用を区別する。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Benefits / Compensation & Benefits",
+       "quote": "accommodation",
+       "source_id": "src-skymark-r10-jpc-iasco-job-1027",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "f03edf0682128814",
+     "id": "skymark.benefits.r10-jpc-iasco-2026-housing-existence",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "housing",
+     "label_ja": "2026年以降の機長募集における住宅手当の存在",
+     "pack": "pvr-20261019-skymark",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "IASCO Global Ltd",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-10-21",
+       "source_id": "src-skymark-r10-jpc-iasco-job-1027",
+       "source_type": "job_posting",
+       "title": "Captain B737NG - Skymark Airlines Japan",
+       "url": "https://iasco.com/ShowJobDetail.aspx?jobopening=1027"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "住宅手当を含む待遇を提示。",
+     "value_text": null
+    },
+    {
      "amount": null,
      "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
@@ -60551,6 +66260,68 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "401K matchingを掲示",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "aircraft": [
+       "Pilatus PC-24"
+      ],
+      "base": "operation at KCOE; listing Hayden, Idaho",
+      "contract": "Full-Time / Pilot / Remote No",
+      "employer": "Solairus Aviation（募集表記。担当account条件）",
+      "hire_route": "Pilatus PC-24 Captain - Commutable",
+      "note_ja": "2026-2002募集に限る。別機材/別account/SICへの一般化なし。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-21",
+     "company": "solairus",
+     "cond_ja": "本人の募集2026-2002に限る条件。運航はKCOE、求人LocationはHayden ID。居住要件はKCOEから2時間ではなくmajor commercial airportから2時間。RemoteNoと航空通勤可能は併存する。航空券代、ホテル、駐車、通勤時間、会社手配、便数、支給上限は書かれておらず補完しない。通勤交通費を会社が払う制度や全Solairus操縦士への権利とはしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "2026-10-21通常公開本文を実読。取得日と募集条件施行日は別。実採用・契約発効は未確認。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "title and Specific Qualifications/Certifications > final residence condition; 通常IAB全本文実読",
+       "quote": "Primary residence within a 2 hour drive from a major commercial airport or willing to relocate.",
+       "source_id": "src-solairus-r10-pc24-commutable-2002",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "5fd1980f39c4d708",
+     "id": "solairus.benefits.r10-pc24-commutable-2002",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "commuting",
+     "label_ja": "PC24機長のCommutable募集・居住条件",
+     "pack": "pvr-20261019-solairus",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Solairus Aviation / official iCIMS careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-solairus-r10-pc24-commutable-2002",
+       "source_type": "job_posting",
+       "title": "Pilatus PC-24 Captain - Commutable / 2026-2002",
+       "url": "https://careers-solairus.icims.com/jobs/2002/pilatus-pc-24-captain---commutable/job"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PC24機長の特定募集をCommutableと案内し、主要商業空港から車2時間以内に住む又は転居できることを求める。",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -61301,6 +67072,63 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "自社便社員優待搭乗制度",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Solaseed Air",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-21",
+     "company": "solaseed",
+     "cond_ja": "機長要員募集の居住要件。公共交通距離55km圏か、資料列記空港の地方居住制度を選ぶ条件。通勤費の額・本人負担・住宅費支援・FO適用は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "住居に関する条件",
+       "quote": "地方居住制度",
+       "source_id": "src-solaseed-r8-captain",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "f8d55fb37c8abbd6",
+     "id": "solaseed.benefits.r8-local-residence",
+     "imported_on": "2026-10-21",
+     "info_kind": "recruitment_condition",
+     "key": "commuting",
+     "label_ja": "地方居住制度",
+     "pack": "pvr-20261019-solaseed",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Solaseed Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-solaseed-r8-captain",
+       "source_type": "job_posting",
+       "title": "中途採用 運航乗務員（機長要員）",
+       "url": "https://solaseedair-recruit.snar.jp/jobboard/detail.aspx?id=c_NERMI-JCQ"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "地方居住制度",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -61713,6 +67541,81 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": 4000,
      "value_text": "R4,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "本文に明示された対象だけ。雇用条件の包括的な保証を意味しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "south-african-airways",
+     "cond_ja": "3月18日説明の4.Rebate Travelは、独立した子6枚ID75、親6枚ID75、ID90は6枚から12枚、配偶者はpilotが乗務する便に同行し繁忙期等を除く条件で年1回確約ID00往復と記載。3月24日発表はsalary and benefits package受入を確認するが、最終署名協約や個別利用規程が未取得で、各詳細の最終実施・継続は未確定。ID75/90を無料券、確約券、無条件の家族回数へ読み替えない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "出典の公表対象時点と、今回の閲覧日を分離。掲載された条件説明まで確認。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "18 March 2025 section / Final Offer / 4. Rebate Travel",
+       "quote": "Rebate Travel",
+       "source_id": "src-south-african-airways-r8-salary-negotiation-benefits",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "24 March 2025 acceptance section / opening paragraph",
+       "quote": "pilots have accepted",
+       "source_id": "src-south-african-airways-r8-salary-package-acceptance",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "eda9e0fd657ff198",
+     "id": "south-african-airways.benefits.r8-2025-proposed-travel-package",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "2025年最終提案に記載された航空券条件",
+     "pack": "pvr-20261019-south-african-airways",
+     "per": null,
+     "rev": 7,
+     "src": [
+      {
+       "published": "2025-03-18",
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-south-african-airways-r8-salary-negotiation-benefits",
+       "source_type": "official_package",
+       "title": "SAA fully committed to minimising disruptions as pilots declare work-to-rule industrial action",
+       "url": "https://www.flysaa.com/about-us/leading-carrier/media-center/media-releases/newsroom"
+      },
+      {
+       "published": "2025-03-24",
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-south-african-airways-r8-salary-package-acceptance",
+       "source_type": "official_package",
+       "title": "Professor John Lamola, Group CEO at South African Airways, on the end of industrial action by members of the SAA Pilots Association & NTM Pilots Forum",
+       "url": "https://www.flysaa.com/about-us/leading-carrier/media-center/media-releases/newsroom"
+      }
+     ],
+     "unit": null,
+     "use": "過去",
+     "value": "会社の2025年3月最終提案説明は独立した子6枚ID75、親6枚ID75、12枚ID90、条件付き配偶者年1回確約ID00往復を記載",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -65990,6 +71893,230 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "employer": "Swiss International Air Lines",
+      "note_ja": "本文はcockpit又はprofessional pilotsを明記。操縦士に関係するサービスを選択した記録で、pilot専用/会社による無償保障との意味ではない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "swiss",
+     "cond_ja": "航空医学/職域医療サービスの存在を表す。Professional/private pilotsのEASA診察、cockpit/cabinの予防・旅行医学相談、SWISSの全社員又は契約先企業の社員について仕事由来と疑われる健康問題（jetlag、shiftwork後の睡眠問題等）の分析/助言を原文が列挙。会社本人の医師求人134232も対象を全乗務員と明記し、cockpit/cabinの適性判定を業務として列挙する。医師の求人にある駐車/交通/休暇等のBenefitsを操縦士へ適用しない。サービスの料金、会社の費用負担、保険料・補償限度・家族資格・本人の個別利用資格は確認できないため無料の包括医療保険があるとは言わない。公開サイトには外部利用者向け業務もあり、操縦士だけに限定された制度ではない。医療部門のKloten所在をpilot拠点空港に置き換えない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "各サービスの施行日は明記なし。医師募集の2026-09-01は医師着任予定でサービス施行日へ転用しない。現在の公開説明を確認したことと、労働協約の現行権利を確認したことは区別する。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Our services > We examine; We give advise to",
+       "quote": "Professional and private pilots according EASA-regulations",
+       "source_id": "src-swiss-r10-eub3-medical-services",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Our services > We give advise to",
+       "quote": "Cockpit- and cabin crew (prevention, travel medicine)",
+       "source_id": "src-swiss-r10-eub3-medical-services",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Occupational medicine / 本文1段落",
+       "quote": "any employee of SWISS",
+       "source_id": "src-swiss-r10-eub3-occupational-services",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "冒頭Medical Services説明；Aufgaben bullet1",
+       "quote": "gesamte fliegende Personal",
+       "source_id": "src-swiss-r10-eub3-company-doctor",
+       "supports": [
+        "applies_to",
+        "condition"
+       ]
+      }
+     ],
+     "h": "dba488f71c4e6ccf",
+     "id": "swiss.benefits.r10-eub3-cockpit-occupational-medicine",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "操縦士も対象とするSWISS医療部門の相談・航空医学サービス",
+     "pack": "pvr-20261019-swiss",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Swiss International Air Lines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-swiss-r10-eub3-medical-services",
+       "source_type": "official_package",
+       "title": "Our services",
+       "url": "https://www.swiss.com/medicalservices/en/our-services"
+      },
+      {
+       "published": null,
+       "publisher": "Swiss International Air Lines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-swiss-r10-eub3-occupational-services",
+       "source_type": "official_package",
+       "title": "Our services / Occupational medicine",
+       "url": "https://www.swiss.com/medicalservices/en/occupation/occupational-medicine/our-services"
+      },
+      {
+       "published": null,
+       "publisher": "Swiss International Air Lines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-swiss-r10-eub3-company-doctor",
+       "source_type": "job_posting",
+       "title": "Company Doctor (80%, alle Geschlechter)",
+       "url": "https://apply.lufthansagroup.careers/index.php?ac=jobad&id=134232&language=2"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SWISS Medical Servicesは操縦士のEASA規則に沿う診察、cockpit乗員の予防・旅行医学相談、SWISS社員の仕事由来の健康問題の分析・助言を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Swiss International Air Lines",
+      "note_ja": "本人サイトの社員一般向け案内。操縦士個別の加入・利用条件は未確認。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-21",
+     "company": "swiss",
+     "cond_ja": "公共交通割引・バス路線の補助・駐車補助の存在を社員一般向け案内として保存する。対象路線、補助額・率、利用回数、住所・拠点による資格、本人負担、操縦士の適用規程は本文にない。自宅から空港までの無料送迎や無料タクシーを意味しない。 資料の対象はSWISS社員一般。pilot個別権利へ無条件に適用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "現公開案内の原文を取得。施行日・終了日は明記なく、取得日を制度の適用日にはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Public Transport; Car",
+       "quote": "Reduced price tickets for public transport, subsidised bus lines",
+       "source_id": "src-swiss-r13-employee-offers",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "Car",
+       "quote": "subsidised parking spaces",
+       "source_id": "src-swiss-r13-employee-offers",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c329577c92c53f83",
+     "id": "swiss.benefits.r13-general-employee-commuting",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "社員一般向けの公共交通割引・交通関連補助",
+     "pack": "pvr-20261019-swiss",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Swiss International Air Lines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-swiss-r13-employee-offers",
+       "source_type": "official_package",
+       "title": "Offers for employees",
+       "url": "https://www.swiss.com/corporate/en/careers/working-at-swiss/offers-for-employees"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "社員向けに公共交通の割引切符、補助されたバス路線、補助された駐車スペースを案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Swiss International Air Lines",
+      "note_ja": "本人サイトの社員一般向け案内。操縦士個別の加入・利用条件は未確認。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-21",
+     "company": "swiss",
+     "cond_ja": "追加保険の割引であり、包括医療保険の会社負担や保険料ゼロを示すものではない。保険会社、対象商品、割引率、本人・家族の資格、基本保険との関係、操縦士契約の適用規程は本文にない。 資料の対象はSWISS社員一般。pilot個別権利へ無条件に適用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "現公開案内の原文を取得。施行日・終了日は明記なく、取得日を制度の適用日にはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Health Insurance",
+       "quote": "Discounts on additional insurance policies",
+       "source_id": "src-swiss-r13-employee-offers",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "e988b5e2d8b952ab",
+     "id": "swiss.benefits.r13-general-employee-medical",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "社員一般向けの追加医療保険の割引",
+     "pack": "pvr-20261019-swiss",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Swiss International Air Lines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-21",
+       "source_id": "src-swiss-r13-employee-offers",
+       "source_type": "official_package",
+       "title": "Offers for employees",
+       "url": "https://www.swiss.com/corporate/en/careers/working-at-swiss/offers-for-employees"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "社員向けに追加医療保険契約の割引を案内。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -66677,6 +72804,323 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "旅券優待は会社内部規程/特別protocolに従う",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "TAP–SPAC AE2023 / RUPT",
+      "employer": "Transportes Aéreos Portugueses, SA",
+      "note_ja": "AE1(1,4–10)対象のTAP直接雇用pilot（SPAC組合員又は同条の選択要件を満たす非組合員）。RUPTの業務移動時のpilot宿泊。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "tap",
+     "cond_ja": "RUPT10(1–2)。ホテルは会社がSPACの事前意見を聞いて選ぶ。可能な限り空港との移動が1時間30分を超えない距離。業務上の出先宿泊で、生活上の恒常住宅支援を意味しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "AE2(1,3,4)：公報掲載後5日施行、附属規程ごとの異なる開始日は別扱い。2024部分改定1(2)が明示変更外のAE維持。今回検索・再読した2026公報3/32のTAP条項は年金解釈で、当該RBO変更は確認せず。個別対象事由成立日は別。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "physical/printed p293; RUPT10(1–2); 原画像実読",
+       "quote": "alojamento adequado.",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "physical/printed159; cláusula1(2), 160–161変更対象",
+       "quote": "mantém-se em vigor o AE revisto.",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "3e605e0111bd0cfd",
+     "id": "tap.benefits.r8-cbe-duty-layover-lodging",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "業務出張時の適切な宿泊",
+     "pack": "pvr-20261019-tap",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2023-08-08",
+       "publisher": "Portugal Ministério do Trabalho / GEP",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "source_type": "government",
+       "title": "BTE29/2023 TAP–SPAC Acordo de empresa及び付則",
+       "url": "https://bte.gep.msess.gov.pt/completos/2023/bte29_2023.pdf"
+      },
+      {
+       "published": "2024-04-29",
+       "publisher": "Gabinete de Estratégia e Planeamento (Boletim do Trabalho e Emprego)",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "source_type": "government",
+       "title": "Acordo de empresa TAP–SPAC — Primeira revisão parcial",
+       "url": "https://bte.gep.msess.gov.pt/completos/2024/bte16_2024.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TAPはpilotが業務で移動する際、適切な宿泊を確保。",
+     "value_text": null
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "強制異動時の転居実費上限及び条件付き再定住費上限",
+      "stat": "upper",
+      "tax": "unknown",
+      "unclear": [
+       "税区分",
+       "RBO17(2)b/cの勤続10年境界",
+       "各人の月額基本報酬・前回基地在籍年数・該当異動"
+      ]
+     },
+     "applies_to": {
+      "contract": "TAP–SPAC AE2023 / RBO",
+      "employer": "Transportes Aéreos Portugueses, SA",
+      "note_ja": "AE1(1,4–10)対象のTAP直接雇用pilot（SPAC組合員又は同条の選択要件を満たす非組合員）。RBOの国内operationalbaseに関する限定制度。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "tap",
+     "cond_ja": "RBO17(1–6)。自主転居・昇進/機材転換による帰任に無条件適用しない。初期再定住費は直前国内base在籍年数×月額基本報酬の率：5年以内20%、5年超10年まで25%、10年以上35%。原文b/cが10年境界で重なるため具体額の自動計算は保留。翌計画公表翌月末又は実帰任月末の遅い方に給与と処理。次計画で自主帰還する枝は毎月1/12、元基地に戻ると残額失権。金額を保証年収・通常家賃補助に合算しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "AE2(1,3,4)：公報掲載後5日施行、附属規程ごとの異なる開始日は別扱い。2024部分改定1(2)が明示変更外のAE維持。今回検索・再読した2026公報3/32のTAP条項は年金解釈で、当該RBO変更は確認せず。個別対象事由成立日は別。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "physical/printed p335; RBO17(1–6); 原画像実読",
+       "quote": "até um montante máximo de 5000,00 €.",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "physical/printed159; cláusula1(2), 160–161変更対象",
+       "quote": "mantém-se em vigor o AE revisto.",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "74c81ad0133d97b2",
+     "id": "tap.benefits.r8-cbe-mandatory-relocation",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "国内基地縮小によるLisbon再配置の転居費",
+     "pack": "pvr-20261019-tap",
+     "per": "one_off",
+     "rev": 8,
+     "src": [
+      {
+       "published": "2023-08-08",
+       "publisher": "Portugal Ministério do Trabalho / GEP",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "source_type": "government",
+       "title": "BTE29/2023 TAP–SPAC Acordo de empresa及び付則",
+       "url": "https://bte.gep.msess.gov.pt/completos/2023/bte29_2023.pdf"
+      },
+      {
+       "published": "2024-04-29",
+       "publisher": "Gabinete de Estratégia e Planeamento (Boletim do Trabalho e Emprego)",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "source_type": "government",
+       "title": "Acordo de empresa TAP–SPAC — Primeira revisão parcial",
+       "url": "https://bte.gep.msess.gov.pt/completos/2024/bte16_2024.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "国内operational base縮小によるRBO15(a)の強制帰任では、証憑付き転居実費を上限5,000 EURまで負担。別途Lisbon初期再定住費を条件別算式で最大50,000 EUR。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "TAP–SPAC AE2023 / RBO",
+      "employer": "Transportes Aéreos Portugueses, SA",
+      "note_ja": "AE1(1,4–10)対象のTAP直接雇用pilot（SPAC組合員又は同条の選択要件を満たす非組合員）。RBOの国内operationalbaseに関する限定制度。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "tap",
+     "cond_ja": "RBO20(4)。配置転換と新職位/機材でのrelease flight後の連続5日offに関する枝。宿泊は強制配置かつ本人希望が条件。通常の住宅・月額家賃・自発異動への恒久社宅とは別。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "AE2(1,3,4)：公報掲載後5日施行、附属規程ごとの異なる開始日は別扱い。2024部分改定1(2)が明示変更外のAE維持。今回検索・再読した2026公報3/32のTAP条項は年金解釈で、当該RBO変更は確認せず。個別対象事由成立日は別。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "physical/printed p336; RBO20(4); 原画像実読",
+       "quote": "tem igualmente direito a alojamento",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "physical/printed159; cláusula1(2), 160–161変更対象",
+       "quote": "mantém-se em vigor o AE revisto.",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "068e1aae472e6b24",
+     "id": "tap.benefits.r8-cbe-mandatory-transfer-temporary-lodging",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "強制配置転換後の短期宿泊",
+     "pack": "pvr-20261019-tap",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2023-08-08",
+       "publisher": "Portugal Ministério do Trabalho / GEP",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "source_type": "government",
+       "title": "BTE29/2023 TAP–SPAC Acordo de empresa及び付則",
+       "url": "https://bte.gep.msess.gov.pt/completos/2023/bte29_2023.pdf"
+      },
+      {
+       "published": "2024-04-29",
+       "publisher": "Gabinete de Estratégia e Planeamento (Boletim do Trabalho e Emprego)",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "source_type": "government",
+       "title": "Acordo de empresa TAP–SPAC — Primeira revisão parcial",
+       "url": "https://bte.gep.msess.gov.pt/completos/2024/bte16_2024.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "強制的な本社/国内基地への配置後、規定の連続5日休暇中はpilotが希望すれば宿泊も提供。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "TAP–SPAC AE2023 / RBO",
+      "employer": "Transportes Aéreos Portugueses, SA",
+      "note_ja": "AE1(1,4–10)対象のTAP直接雇用pilot（SPAC組合員又は同条の選択要件を満たす非組合員）。RBOの国内operationalbaseに関する限定制度。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "tap",
+     "cond_ja": "RBO18(1–3)。対象は会社/ANAC義務の審査・訓練・医学検査、会社指示の移動/会議、昇進等の課程。本人が職務上本社へ行くが明示指示がない場合は基地coordinatorが理由を相当と認めることが会社負担交通の条件。自宅–常駐基地の通常通勤・常時タクシー負担へ外挿しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "AE2(1,3,4)：公報掲載後5日施行、附属規程ごとの異なる開始日は別扱い。2024部分改定1(2)が明示変更外のAE維持。今回検索・再読した2026公報3/32のTAP条項は年金解釈で、当該RBO変更は確認せず。個別対象事由成立日は別。",
+      "to": "2026-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "physical/printed p336; RBO18(1–3); 原画像実読",
+       "quote": "sendo garantido pela mesma o transporte",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "physical/printed159; cláusula1(2), 160–161変更対象",
+       "quote": "mantém-se em vigor o AE revisto.",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c12a7fedc06ab0b3",
+     "id": "tap.benefits.r8-cbe-operational-base-duty-transport",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "国内運用基地の業務移動の交通提供",
+     "pack": "pvr-20261019-tap",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2023-08-08",
+       "publisher": "Portugal Ministério do Trabalho / GEP",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-rbo2023",
+       "source_type": "government",
+       "title": "BTE29/2023 TAP–SPAC Acordo de empresa及び付則",
+       "url": "https://bte.gep.msess.gov.pt/completos/2023/bte29_2023.pdf"
+      },
+      {
+       "published": "2024-04-29",
+       "publisher": "Gabinete de Estratégia e Planeamento (Boletim do Trabalho e Emprego)",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-tap-r8-cbe-amendment2024",
+       "source_type": "government",
+       "title": "Acordo de empresa TAP–SPAC — Primeira revisão parcial",
+       "url": "https://bte.gep.msess.gov.pt/completos/2024/bte16_2024.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RBO対象の会社が設定する業務移動では、会社が交通・宿泊・日当を確保。",
      "value_text": null
     }
    ],
@@ -70328,6 +76772,140 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Pass/ZEDは勤続1年超、CEDは3か月超。配偶者/子を案内",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "THY29CBA covered; Articles3/5; Section11",
+      "employer": "Türk Hava Yolları A.O.",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "turkish-airlines",
+     "cond_ja": "THY29期協約3/5条の対象組合員又は連帯会費の適格者に限る。cockpit条項92/95も同一協約にあるが外国人expatの個別契約へ無条件に一般化しない。海外本社派遣組合員には第11部（p36–40）の別扱いがあり、80条は第11部（p36–40）の海外適用留保にも従う。法定医療へのアクセスと海外一時出張中費用の条項であり、無制限の民間医療保険・全家族の海外医療費全額保証とはしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "表紙/施行条項、2026-03-06署名。",
+      "to": "2027-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理24頁 /80A 法番号",
+       "quote": "5510",
+       "source_id": "src-turkish-airlines-r8-cba29",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "物理24頁 /80B",
+       "quote": "sağlık giderleri Ortaklık tarafından karşılanır",
+       "source_id": "src-turkish-airlines-r8-cba29",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "d4b8a50c3b3435a9",
+     "id": "turkish-airlines.benefits.r8-cba29-health",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "協約対象本人・扶養家族の法定医療と海外出張中医療費",
+     "pack": "pvr-20261019-turkish-airlines",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Hava-İş / THY A.O.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-turkish-airlines-r8-cba29",
+       "source_type": "union_cba",
+       "title": "THY A.O. 29. Dönem Toplu İş Sözleşmesi 01.01.2026–31.12.2027",
+       "url": "https://www.havais.org.tr/uploaded/thy-ao-29-donem-tis-01012026-31122027-1773664884.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "本人と扶養する配偶者・子・父母は5510法に従う医療。会社が海外へ一時派遣した者の現地疾病医療費は会社負担。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "THY29CBA covered; Section11海外中心派遣除外",
+      "employer": "Türk Hava Yolları A.O.",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "turkish-airlines",
+     "cond_ja": "THY29期協約3/5条の対象組合員又は連帯会費の適格者に限る。cockpit条項92/95も同一協約にあるが外国人expatの個別契約へ無条件に一般化しない。海外本社派遣組合員には第11部（p36–40）の別扱いがあり、74条は適用除外。対象送迎都市はIstanbul/Ankara/Izmir/Adana/Antalya/Trabzon。その他勤務地でも送迎継続利用不能に関する支払条項がある。自宅戸口タクシー、無条件現金手当、月券全額を毎日支払うとの意味にしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "表紙/施行条項、2026-03-06署名。",
+      "to": "2027-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理23頁 /74A–C",
+       "quote": "İŞYERİNE GETİRİP GÖTÜRME",
+       "source_id": "src-turkish-airlines-r8-cba29",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "物理23頁 /74A 支払基準",
+       "quote": "belediye otobüs aylık toplu taşıma",
+       "source_id": "src-turkish-airlines-r8-cba29",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "8560af12df969ed6",
+     "id": "turkish-airlines.benefits.r8-cba29-service",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "協約対象者の会社送迎と利用不能時補償",
+     "pack": "pvr-20261019-turkish-airlines",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Hava-İş / THY A.O.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-turkish-airlines-r8-cba29",
+       "source_type": "union_cba",
+       "title": "THY A.O. 29. Dönem Toplu İş Sözleşmesi 01.01.2026–31.12.2027",
+       "url": "https://www.havais.org.tr/uploaded/thy-ao-29-donem-tis-01012026-31122027-1773664884.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "会社・組合協議の所定ルートで通勤送迎。継続して利用できない者には勤務日ごとに公共交通月券の相場基準の支払。",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -70963,6 +77541,230 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "参考",
      "value": "協約24章はmedical/dental/vision、FSA、LTD、life/accident等の指定planを保持し、pilotと適格dependentsは採用日から資格対象（各plan条項・Active Service条件）。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "united",
+     "cond_ja": "UPA2023 11-A-3：VacationYear初日以前の完了勤続11–24年。前年VacationYearに蓄積した休暇を翌VacationYearで取得、11-D-1調整あり。VacationYearはMayBidPeriod初日–April末日。新入社は11-A-2の各fullBidPeriod 1と1/6日で別。休職による1/12減算等11-A-4条件。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p175 11-A-1..4 table",
+       "quote": "11 to 24 35",
+       "source_id": "src-united-r8-upa23",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "7d64fab591e14746",
+     "id": "united.benefits.r8-annual-leave-11to24",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続11to24",
+     "pack": "pvr-20261019-united",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": "2023-09-29",
+       "publisher": "United Airlines / Air Line Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-united-r8-upa23",
+       "source_type": "union_cba",
+       "title": "United Pilot Agreement 2023",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-29.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 35,
+     "value_text": "35"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "united",
+     "cond_ja": "UPA2023 11-A-3：VacationYear初日以前の完了勤続1–4年。前年VacationYearに蓄積した休暇を翌VacationYearで取得、11-D-1調整あり。VacationYearはMayBidPeriod初日–April末日。新入社は11-A-2の各fullBidPeriod 1と1/6日で別。休職による1/12減算等11-A-4条件。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p175 11-A-1..4 table",
+       "quote": "1 to 4 14",
+       "source_id": "src-united-r8-upa23",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "911a51ec5d9f480c",
+     "id": "united.benefits.r8-annual-leave-1to4",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続1to4",
+     "pack": "pvr-20261019-united",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": "2023-09-29",
+       "publisher": "United Airlines / Air Line Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-united-r8-upa23",
+       "source_type": "union_cba",
+       "title": "United Pilot Agreement 2023",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-29.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "14"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "united",
+     "cond_ja": "UPA2023 11-A-3：VacationYear初日以前の完了勤続25以上年。前年VacationYearに蓄積した休暇を翌VacationYearで取得、11-D-1調整あり。VacationYearはMayBidPeriod初日–April末日。新入社は11-A-2の各fullBidPeriod 1と1/6日で別。休職による1/12減算等11-A-4条件。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p175 11-A-1..4 table",
+       "quote": "25+ 42",
+       "source_id": "src-united-r8-upa23",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "1eb134e6c6279e51",
+     "id": "united.benefits.r8-annual-leave-25plus",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続25plus",
+     "pack": "pvr-20261019-united",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": "2023-09-29",
+       "publisher": "United Airlines / Air Line Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-united-r8-upa23",
+       "source_type": "union_cba",
+       "title": "United Pilot Agreement 2023",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-29.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 42,
+     "value_text": "42"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines",
+      "note_ja": "対象・例外はcond_jaと引用の明示部分に限定。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-21",
+     "company": "united",
+     "cond_ja": "UPA2023 11-A-3：VacationYear初日以前の完了勤続5–10年。前年VacationYearに蓄積した休暇を翌VacationYearで取得、11-D-1調整あり。VacationYearはMayBidPeriod初日–April末日。新入社は11-A-2の各fullBidPeriod 1と1/6日で別。休職による1/12減算等11-A-4条件。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "原資料の条文/募集期を保持。取得日が新しいことのみで現行給与・待遇とはしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p175 11-A-1..4 table",
+       "quote": "5 to 10 21",
+       "source_id": "src-united-r8-upa23",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "f785a603231dc9a3",
+     "id": "united.benefits.r8-annual-leave-5to10",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年休勤続5to10",
+     "pack": "pvr-20261019-united",
+     "per": null,
+     "rev": 9,
+     "src": [
+      {
+       "published": "2023-09-29",
+       "publisher": "United Airlines / Air Line Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-21",
+       "source_id": "src-united-r8-upa23",
+       "source_type": "union_cba",
+       "title": "United Pilot Agreement 2023",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-29.pdf"
+      }
+     ],
+     "unit": "日",
+     "use": "条件つき",
+     "value": 21,
+     "value_text": "21"
     },
     {
      "amount": null,
@@ -74281,6 +81083,130 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "voluntarysecondresidenceのpilotに自宅–空港taxi及び/又はparkingの選択肢",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Spanish employment contract pilots only",
+      "employer": "Vueling Airlines SA",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "vueling",
+     "cond_ja": "16.1.1は資格喪失/生命保険/COPAC/医療/年金などのうち本人が1又は複数を選ぶ。AnexoAの職位別年上限内で配分するため、全制度を各満額でもらえる又は医療が無制限に無料とはしない。退職時は既契約者が自己負担保険へ移行できる別条件。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-04-14",
+      "note_ja": "1.3施行は署名日。2026-02-12最終訂正・2026-03-11公刊。",
+      "to": "2028-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理103頁 /16.1.1 Bolsa de Beneficios",
+       "quote": "Seguro Médico",
+       "source_id": "src-vueling-r8-pilot-cba2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      },
+      {
+       "locator": "同条 本人選択",
+       "quote": "uno o varios beneficios",
+       "source_id": "src-vueling-r8-pilot-cba2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "e914d974d870610d",
+     "id": "vueling.benefits.r8-benefit-basket-medical",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "Spanish契約の医療保険は選択式benefit枠",
+     "pack": "pvr-20261019-vueling",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-03-11",
+       "publisher": "BOE / Dirección General de Trabajo",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-vueling-r8-pilot-cba2026",
+       "source_type": "government",
+       "title": "IV Convenio colectivo de Vueling Airlines SA y sus tripulantes pilotos",
+       "url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2026-5693"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "会社の選択式benefit枠で医療保険を選択でき、会社が契約商品を直接支払う。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "contract": "Spanish-contract pilots; forced permanent base change",
+      "employer": "Vueling Airlines SA",
+      "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+      "pilot_specific": true,
+      "rank": "crew"
+     },
+     "checked_at": "2026-10-21",
+     "company": "vueling",
+     "cond_ja": "7.6.2.2.2.2のSpain基地条件。2024-11-01前からのSpain在籍/Barcelonaと、それ以降の他Spain基地で金銭転居補償の枝は異なるが、このhotel15日条件は両枝に記載。恒常社宅・通常家賃補助にはしない。自己希望転基地へ一般化しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-04-14",
+      "note_ja": "1.3署名日施行。特定の強制転基地時のみ。",
+      "to": "2028-12-31"
+     },
+     "evidence": [
+      {
+       "locator": "物理48/49頁 /7.6.2.2.2.2 ホテル枝",
+       "quote": "15 días consecutivos",
+       "source_id": "src-vueling-r8-pilot-cba2026",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to"
+       ]
+      }
+     ],
+     "h": "1bb859e9c25113ce",
+     "id": "vueling.benefits.r8-forced-transfer-hotel",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "強制転基地時の15日hotel支援",
+     "pack": "pvr-20261019-vueling",
+     "per": null,
+     "rev": 8,
+     "src": [
+      {
+       "published": "2026-03-11",
+       "publisher": "BOE / Dirección General de Trabajo",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-21",
+       "source_id": "src-vueling-r8-pilot-cba2026",
+       "source_type": "government",
+       "title": "IV Convenio colectivo de Vueling Airlines SA y sus tripulantes pilotos",
+       "url": "https://www.boe.es/buscar/doc.php?id=BOE-A-2026-5693"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "強制転基地で15連続日のhotel（朝食・空港移動込み）。基地変更後最初の2か月内で本人が利用日を選ぶ。",
      "value_text": null
     }
    ],
@@ -131736,6 +138662,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "barcelona": {
    "airlines": [
+    "easyjet",
     "vueling"
    ],
    "commute": [
@@ -131866,7 +138793,151 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Barcelona",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃の中央値",
+      "population": {
+       "n": null,
+       "period": "2026-Q3"
+      },
+      "stat": "median",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Barcelona",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-21",
+     "city": "barcelona",
+     "city_rent": {
+      "candidates": [
+       "vueling"
+      ],
+      "city": "Barcelona",
+      "normalization": {
+       "normalization_history": [
+        {
+         "data": {
+          "annualization_or_currency_conversion_performed": false,
+          "candidate_company_ids": [
+           "vueling"
+          ],
+          "city": "Barcelona",
+          "company_binding_confirmed": false,
+          "conditions_ja": "英: Barcelona。原分類Studios。平台募集の家具付きstudio中央値、学生向け中期賃貸市場。2026-Q3/Q3-2025対象44862物件の横断資料で、当都市の件数は未公表。全資料約99%家具付き・66%公益費込みだが当都市/当型の含有比率は不明。資料の当版本文・画像は支払期間を明記せずper=null。一般的な月額慣行を補完しない。金額/型は原表画像で確認。期間確認まで月額比較には使わない。",
+          "currency": "EUR",
+          "data_period": "2026-Q3",
+          "locator": "Q3 2026 Rent Index image > City / Studios column; About the Index and data revisions",
+          "population_n": null,
+          "published": "2026-10-14",
+          "publisher": "HousingAnywhere",
+          "quote": "1225",
+          "retrieved": "2026-10-21",
+          "room_type": "studio",
+          "source_period": null,
+          "source_url": "https://housinganywhere.com/rent-index-by-city",
+          "statistic": "median",
+          "status": "source_confirmed_period_and_binding_pending",
+          "title": "Q3 2026 HousingAnywhere International Rent Index by City",
+          "value": 1225
+         },
+         "observation_role": "original_frozen_source_observation"
+        }
+       ],
+       "period_normalization": {
+        "decision_status": "period_normalized_from_platform_listing_definition",
+        "normalization_is_inference": true,
+        "normalization_is_payment_frequency_inference": false,
+        "normalization_not_time_conversion": true,
+        "normalized_period": "month",
+        "old_observation_must_be_retained": true,
+        "original_index_itself_states_monthly": false,
+        "original_period": null,
+        "source_ids": [
+         "hai-q3-2026-index",
+         "hai-listing-pricing-unit",
+         "hai-terms20260715"
+        ],
+        "source_record_file": "continuation_rent_units/UNIT-CORRECTIONS.json"
+       }
+      },
+      "row": "root#12",
+      "statistic": "median",
+      "status": "source_confirmed_period_normalized_binding_pending"
+     },
+     "company": "vueling",
+     "cond_ja": "Barcelona。英: Barcelona。英: Barcelona。原分類Studios。平台募集の家具付きstudio中央値、学生向け中期賃貸市場。2026-Q3/Q3-2025対象44862物件の横断資料で、当都市の件数は未公表。全資料約99%家具付き・66%公益費込みだが当都市/当型の含有比率は不明。原Q3本文/図表は周期を明記しない。今回、指数が同platformのlisting rentを中央値化する原説明と、Basic/Advanced両入力方式を月額と定義する公式Help及び2026約款を接続し、掲載家賃の分母をmonthへ正規化（推論を含む）。指数表そのものがmonthlyと逐語明記したとはしない。原値・型・対象四半期・通貨は不変、年換算なし。元の金額/型の画像確認は旧観測であり、今回は数字を再調査したものではない。",
+     "currency": "EUR",
+     "district": "Barcelona",
+     "district_en": "Barcelona",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "数字の時点は amount.population.period。掲載の日付と、いま借りられる家賃は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Q3 2026 Rent Index image > City / Studios column; About the Index and data revisions",
+       "quote": "1225",
+       "source_id": "src-cityrent-barcelona-d033210d",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "09f48f99396b7682",
+     "id": "vueling.living.cityrent-barcelona-barcelona-studio-e5b46d20",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "Barcelona studio",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-city-rent",
+     "per": "month",
+     "rev": 20261021,
+     "seen": [
+      {
+       "company": "easyjet",
+       "id": "easyjet.living.cityrent-barcelona-barcelona-studio-e5b46d20",
+       "pack": "pvr-city-rent"
+      }
+     ],
+     "src": [
+      {
+       "published": "2026-10-14",
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-21",
+       "source_id": "src-cityrent-barcelona-d033210d",
+       "source_type": "third_party_reference",
+       "title": "Q3 2026 HousingAnywhere International Rent Index by City",
+       "url": "https://housinganywhere.com/rent-index-by-city"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1225
+     },
+     "value_text": {
+      "studio": "1225"
+     }
+    }
+   ],
    "towns": [
     {
      "amount": null,
@@ -147148,6 +154219,153 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "milan": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Milan",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃の中央値",
+      "population": {
+       "n": null,
+       "period": "2026-Q3"
+      },
+      "stat": "median",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Milan",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-21",
+     "city": "milan",
+     "city_rent": {
+      "candidates": [
+       "ita-airways"
+      ],
+      "city": "Milan",
+      "normalization": {
+       "normalization_history": [
+        {
+         "data": {
+          "annualization_or_currency_conversion_performed": false,
+          "candidate_company_ids": [
+           "ita-airways"
+          ],
+          "city": "Milan",
+          "company_binding_confirmed": false,
+          "conditions_ja": "英: Milan。原分類Studios。平台募集の家具付きstudio中央値、学生向け中期賃貸市場。2026-Q3/Q3-2025対象44862物件の横断資料で、当都市の件数は未公表。全資料約99%家具付き・66%公益費込みだが当都市/当型の含有比率は不明。資料の当版本文・画像は支払期間を明記せずper=null。一般的な月額慣行を補完しない。金額/型は原表画像で確認。期間確認まで月額比較には使わない。",
+          "currency": "EUR",
+          "data_period": "2026-Q3",
+          "locator": "Q3 2026 Rent Index image > City / Studios column; About the Index and data revisions",
+          "population_n": null,
+          "published": "2026-10-14",
+          "publisher": "HousingAnywhere",
+          "quote": "1100",
+          "retrieved": "2026-10-21",
+          "room_type": "studio",
+          "source_period": null,
+          "source_url": "https://housinganywhere.com/rent-index-by-city",
+          "statistic": "median",
+          "status": "source_confirmed_period_and_binding_pending",
+          "title": "Q3 2026 HousingAnywhere International Rent Index by City",
+          "value": 1100
+         },
+         "observation_role": "original_frozen_source_observation"
+        }
+       ],
+       "period_normalization": {
+        "decision_status": "period_normalized_from_platform_listing_definition",
+        "normalization_is_inference": true,
+        "normalization_is_payment_frequency_inference": false,
+        "normalization_not_time_conversion": true,
+        "normalized_period": "month",
+        "old_observation_must_be_retained": true,
+        "original_index_itself_states_monthly": false,
+        "original_period": null,
+        "source_ids": [
+         "hai-q3-2026-index",
+         "hai-listing-pricing-unit",
+         "hai-terms20260715"
+        ],
+        "source_record_file": "continuation_rent_units/UNIT-CORRECTIONS.json"
+       }
+      },
+      "row": "root#15",
+      "statistic": "median",
+      "status": "source_confirmed_period_normalized_binding_pending"
+     },
+     "company": "easyjet",
+     "cond_ja": "Milan。英: Milan。英: Milan。原分類Studios。平台募集の家具付きstudio中央値、学生向け中期賃貸市場。2026-Q3/Q3-2025対象44862物件の横断資料で、当都市の件数は未公表。全資料約99%家具付き・66%公益費込みだが当都市/当型の含有比率は不明。原Q3本文/図表は周期を明記しない。今回、指数が同platformのlisting rentを中央値化する原説明と、Basic/Advanced両入力方式を月額と定義する公式Help及び2026約款を接続し、掲載家賃の分母をmonthへ正規化（推論を含む）。指数表そのものがmonthlyと逐語明記したとはしない。原値・型・対象四半期・通貨は不変、年換算なし。元の金額/型の画像確認は旧観測であり、今回は数字を再調査したものではない。",
+     "currency": "EUR",
+     "district": "Milan",
+     "district_en": "Milan",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "数字の時点は amount.population.period。掲載の日付と、いま借りられる家賃は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Q3 2026 Rent Index image > City / Studios column; About the Index and data revisions",
+       "quote": "1100",
+       "source_id": "src-cityrent-milan-d033210d",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "f140e8b72ec5b8e6",
+     "id": "easyjet.living.cityrent-milan-milan-studio-12ceef50",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "Milan studio",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-city-rent",
+     "per": "month",
+     "rev": 20261021,
+     "src": [
+      {
+       "published": "2026-10-14",
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-21",
+       "source_id": "src-cityrent-milan-d033210d",
+       "source_type": "third_party_reference",
+       "title": "Q3 2026 HousingAnywhere International Rent Index by City",
+       "url": "https://housinganywhere.com/rent-index-by-city"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1100
+     },
+     "value_text": {
+      "studio": "1100"
+     }
+    }
+   ],
+   "towns": []
+  },
   "minneapolis-st-paul": {
    "airlines": [
     "delta"
@@ -158158,6 +165376,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "1bed": "16 triệu/tháng"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "shanghai": {
+   "airlines": [
+    "china-eastern"
+   ],
+   "commute": [],
+   "name": "Shanghai",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "1件の募集の家賃",
+      "population": {
+       "n": null,
+       "period": null
+      },
+      "stat": "example",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Shanghai",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-21",
+     "city": "shanghai",
+     "city_rent": {
+      "candidates": [
+       "china-eastern"
+      ],
+      "city": "Shanghai",
+      "normalization": {
+       "currency_original": "RMB"
+      },
+      "row": "rent_asia#0",
+      "statistic": "example",
+      "status": "source_confirmed_binding_pending"
+     },
+     "company": "china-eastern",
+     "cond_ja": "Jinqiao, Pudong。英: Jinqiao, Pudong。原部屋表記「2 brs / 2Br/2Ba」。英: Shanghai。Jinqiao/Pudongの1住戸SH017575（142㎡、2寝室・2浴室）の募集額。家具付き、契約1年、ペット不可。管理費とofficial receipt込み。他の費用・保証金は記載を確認できず不明。広告発行・更新日は不明で、取得日を適用日としない。広告自身が空室確認を要するとしており、現時点の空室や成約額、市全体の相場を確認したものではない。",
+     "currency": "CNY",
+     "district": "Jinqiao, Pudong",
+     "district_en": "Jinqiao, Pudong",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "数字の時点は amount.population.period。掲載の日付と、いま借りられる家賃は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Property ID SH017575; property details Bedrooms / Lease term; Featured Description rent sentence",
+       "quote": "The rent is RMB 16,000/month (the rent includes property management fee and official receipt).",
+       "source_id": "src-cityrent-shanghai-2e784815",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "df9e0c4110401e67",
+     "id": "china-eastern.living.cityrent-shanghai-jinqiao-pudong-2bed-7f218e2b",
+     "imported_on": "2026-10-21",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "Jinqiao, Pudong 2bed",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 brs / 2Br/2Ba",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-city-rent",
+     "per": "month",
+     "rev": 20261021,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Maxview Realty",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-21",
+       "source_id": "src-cityrent-shanghai-2e784815",
+       "source_type": "third_party_reference",
+       "title": "Apartments for rent in Shanghai Shimao Lakeside Garden",
+       "url": "https://www.maxviewrealty.com/apartment/apartments-for-rent-in-shanghai-shimao-lakeside-garden-12157.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 16000
+     },
+     "value_text": {
+      "2bed": "The rent is RMB 16,000/month (the rent includes property management fee and official receipt)."
      }
     }
    ],
@@ -215362,6 +222684,86 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    }
   ],
   "ethiopian-airlines": [
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "給与改定の率の発表。現金給与額ではない。",
+     "stat": "fixed",
+     "tax": "unknown",
+     "unclear": [
+      "effective date",
+      "rank-specific salary basis",
+      "individual expatriate contracts"
+     ]
+    },
+    "applies_to": {
+     "employer": "Ethiopian Airlines Group",
+     "note_ja": "協約・労組通知の対象操縦士。外国人個別契約への適用を推定しない。",
+     "pilot_specific": true,
+     "rank": "crew"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ethiopian-airlines",
+    "cond_ja": "2026-07-28の労組の訂正・明確化投稿は、一般社員の総増率40–50%と操縦士の30%を分ける。施行日・CAP/FO別の基礎額・給与上の年次・機材・増額対象給与の内訳・税区分は非記載。30%を既存の推定年収に掛けず、40–50%を操縦士へ適用しない。支給実績や外国人個別契約への適用も未確認。",
+    "currency": null,
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "2026-07-28は通知公表日。施行日は原文に無いので補完しない。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "2026-07-28T17:03:21Z / clarification / Overall paragraph",
+      "quote": "and 30% for Pilots.",
+      "source_id": "src-ethiopian-r12-july-pilot-adjustment",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to",
+       "period"
+      ]
+     }
+    ],
+    "h": "e76a8700bb625ba3",
+    "id": "ethiopian-airlines.pay.r12-july2026-pilot-adjustment",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "2026年7月の労組発表：操縦士の給与増率",
+    "name": "Clarification regarding salary and scale adjustments",
+    "note": "2026-07-28の労組の訂正・明確化投稿は、一般社員の総増率40–50%と操縦士の30%を分ける。施行日・CAP/FO別の基礎額・給与上の年次・機材・増額対象給与の内訳・税区分は非記載。30%を既存の推定年収に掛けず、40–50%を操縦士へ適用しない。支給実績や外国人個別契約への適用も未確認。",
+    "pack": "pvr-20261019-ethiopian-airlines",
+    "per": null,
+    "published_at": "2026-07-28",
+    "quote": "and 30% for Pilots.",
+    "rank": "all",
+    "rev": 7,
+    "source_type": "union_cba",
+    "src": [
+     {
+      "published": "2026-07-28",
+      "publisher": "Ethiopian Airlines Group Primary Basic Trade Union (EAGPBTU)",
+      "publisher_kind": "union",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ethiopian-r12-july-pilot-adjustment",
+      "source_type": "union_cba",
+      "title": "Clarification regarding salary and scale adjustments",
+      "url": "https://t.me/s/EAGPrimaryBTU/1801"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://t.me/s/EAGPrimaryBTU/1801",
+    "use": "条件つき",
+    "value": "30% for Pilots",
+    "value_orig": "30% for Pilots",
+    "value_text": null
+   },
    {
     "accessed_at": "2026-10-20",
     "amount": {
@@ -277939,6 +285341,1554 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "value_text": "59.378"
    },
    {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "max_y",
+     "kind_note_ja": "求人の初年度年額上限",
+     "stat": "upper",
+     "tax": "unknown",
+     "tier_proposed": "offer_posting",
+     "unclear": [
+      "AOC/国別契約",
+      "税",
+      "含まれる手当",
+      "適用日"
+     ]
+    },
+    "applies_to": {
+     "employer": "Ryanair Group（AOC/法的雇用法人未特定）",
+     "hire_route": "Direct Entry Captain",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "入社1年目"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "現行公開採用ページにある初年度到達可能額の上限。保証・基本給・平均・署名協約の等級ではない。Ryanair Group案内でAOC/国別契約/勤務時間/手当内訳/税引前後と通貨対応が不明。英国の全機長又はDAC Spainの額として割り当てない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "施行日不明。本文を今回確認したことは現行契約の適用証明と別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "What we offer / Captains can earn up to ... p.a. in year1",
+      "quote": "€165,000",
+      "source_id": "src-ryanair-r8-direct-upper",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     }
+    ],
+    "h": "049f2522bdced13a",
+    "id": "ryanair.pay.r8-cap-job-upper-eur",
+    "imported_on": "2026-10-21",
+    "info_kind": "recruitment_condition",
+    "key": "max_y",
+    "label_ja": "Direct Entry機長初年度の求人上限・EUR",
+    "name": "Direct Entry Pilots",
+    "note": "現行公開採用ページにある初年度到達可能額の上限。保証・基本給・平均・署名協約の等級ではない。Ryanair Group案内でAOC/国別契約/勤務時間/手当内訳/税引前後と通貨対応が不明。英国の全機長又はDAC Spainの額として割り当てない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": null,
+    "quote": "€165,000",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "official_package",
+    "src": [
+     {
+      "published": null,
+      "publisher": "Ryanair Careers",
+      "publisher_kind": "airline",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-direct-upper",
+      "source_type": "official_package",
+      "title": "Direct Entry Pilots",
+      "url": "https://careers.ryanair.com/pilots/direct-entry-pilots/"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://careers.ryanair.com/pilots/direct-entry-pilots/",
+    "use": "募集",
+    "value": 165000,
+    "value_orig": "165,000 EUR/年",
+    "value_text": "€165,000"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "max_y",
+     "kind_note_ja": "求人の初年度年額上限",
+     "stat": "upper",
+     "tax": "unknown",
+     "tier_proposed": "offer_posting",
+     "unclear": [
+      "AOC/国別契約",
+      "税",
+      "含まれる手当",
+      "適用日"
+     ]
+    },
+    "applies_to": {
+     "employer": "Ryanair Group（AOC/法的雇用法人未特定）",
+     "hire_route": "Direct Entry Captain",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "入社1年目"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "現行公開採用ページにある初年度到達可能額の上限。保証・基本給・平均・署名協約の等級ではない。Ryanair Group案内でAOC/国別契約/勤務時間/手当内訳/税引前後と通貨対応が不明。英国の全機長又はDAC Spainの額として割り当てない。",
+    "currency": "GBP",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "施行日不明。本文を今回確認したことは現行契約の適用証明と別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "What we offer / Captains can earn up to ... p.a. in year1",
+      "quote": "£155,500",
+      "source_id": "src-ryanair-r8-direct-upper",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     }
+    ],
+    "h": "5d572e203a3ebd74",
+    "id": "ryanair.pay.r8-cap-job-upper-gbp",
+    "imported_on": "2026-10-21",
+    "info_kind": "recruitment_condition",
+    "key": "max_y",
+    "label_ja": "Direct Entry機長初年度の求人上限・GBP",
+    "name": "Direct Entry Pilots",
+    "note": "現行公開採用ページにある初年度到達可能額の上限。保証・基本給・平均・署名協約の等級ではない。Ryanair Group案内でAOC/国別契約/勤務時間/手当内訳/税引前後と通貨対応が不明。英国の全機長又はDAC Spainの額として割り当てない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": null,
+    "quote": "£155,500",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "official_package",
+    "src": [
+     {
+      "published": null,
+      "publisher": "Ryanair Careers",
+      "publisher_kind": "airline",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-direct-upper",
+      "source_type": "official_package",
+      "title": "Direct Entry Pilots",
+      "url": "https://careers.ryanair.com/pilots/direct-entry-pilots/"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://careers.ryanair.com/pilots/direct-entry-pilots/",
+    "use": "募集",
+    "value": 155500,
+    "value_orig": "155,500 GBP/年",
+    "value_text": "£155,500"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 1"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Inicio / Año1 / Salario base",
+      "quote": "100.000",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "e6a3733796743700",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade01",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級1の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "100.000",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 100000,
+    "value_orig": "100,000 EUR/年",
+    "value_text": "100.000"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 2"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año2 / Salario base",
+      "quote": "100.000",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "71cd75501d3f7504",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade02",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級2の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "100.000",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 100000,
+    "value_orig": "100,000 EUR/年",
+    "value_text": "100.000"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 3"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año3 / Salario base",
+      "quote": "102.500",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "a0780fcf72cf1d65",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade03",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級3の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "102.500",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 102500,
+    "value_orig": "102,500 EUR/年",
+    "value_text": "102.500"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 4"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año4 / Salario base",
+      "quote": "105.350",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "0d0a850b3e9d19f6",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade04",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級4の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "105.350",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 105350,
+    "value_orig": "105,350 EUR/年",
+    "value_text": "105.350"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 5"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año5 / Salario base",
+      "quote": "105.350",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "c7b24c5b5e27d136",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade05",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級5の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "105.350",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 105350,
+    "value_orig": "105,350 EUR/年",
+    "value_text": "105.350"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 6"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año6 / Salario base",
+      "quote": "105.350",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "b278b53082115756",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade06",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級6の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "105.350",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 105350,
+    "value_orig": "105,350 EUR/年",
+    "value_text": "105.350"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 7"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año7 / Salario base",
+      "quote": "105.350",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "d27948afc444f6a4",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade07",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級7の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "105.350",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 105350,
+    "value_orig": "105,350 EUR/年",
+    "value_text": "105.350"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 8"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año8 / Salario base",
+      "quote": "105.350",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "5b5d243cca380004",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade08",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級8の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "105.350",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 105350,
+    "value_orig": "105,350 EUR/年",
+    "value_text": "105.350"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 9"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año9 / Salario base",
+      "quote": "106.250",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "f792546e746fe8fc",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade09",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級9の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "106.250",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 106250,
+    "value_orig": "106,250 EUR/年",
+    "value_text": "106.250"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 10"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año10 / Salario base",
+      "quote": "107.200",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "0a1fbdcf0d22762b",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade10",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級10の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "107.200",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 107200,
+    "value_orig": "107,200 EUR/年",
+    "value_text": "107.200"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 11"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año11 / Salario base",
+      "quote": "108.150",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "75f2914ecbbd9eab",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade11",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級11の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "108.150",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 108150,
+    "value_orig": "108,150 EUR/年",
+    "value_text": "108.150"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 12"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año12 / Salario base",
+      "quote": "109.150",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "e496143b32747dff",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade12",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級12の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "109.150",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 109150,
+    "value_orig": "109,150 EUR/年",
+    "value_text": "109.150"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約の基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": [
+      "2026表へ切替える具体月日",
+      "本人等級と新任減額後の額"
+     ]
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "cap",
+     "seniority": "2026 salary grade 13"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表名は2026。1月1日の切替は推測しない。協約本体期限2027-03-31；新任機長減額・等級規則付き。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理46頁 / Anexo1 / Escala salarial2026 / Año13 / Salario base",
+      "quote": "110.150",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "075d5bd19e84a09b",
+    "id": "ryanair.pay.r8-es2026-cap-base-grade13",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC機長2026年・給与等級13の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026協約表のSalario base成分だけ。総年収ではない。Spain基地DAC直接雇用の通年full-time基準、短時間/季節契約は按分。等級は会社勤続年数ではなく、機長経験・基地/初期割当・毎年4月進行の規則に従う。新任機長は5.6条の24か月減額あり（最初12か月13,800EUR/年換算、次12か月6,900EUR/年換算）；この表から減額後給与を算定しない。850SBHは既存総額例の仮定で、この基本額を850時間の実飛行又は勤務保証に換算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "110.150",
+    "rank": "cap",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 110150,
+    "value_orig": "110,150 EUR/年",
+    "value_text": "110.150"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [
+      "Retribución por sectores",
+      "Otros"
+     ],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "署名協約のFO基本年額成分",
+     "stat": "fixed",
+     "tax": "gross",
+     "unclear": []
+    },
+    "applies_to": {
+     "contract": "Spain directly employed; full-time full-year",
+     "employer": "Ryanair DAC",
+     "note_ja": "原資料が明記した対象だけに限定。国・AOC・雇用形態・勤続条件を推測しない。",
+     "pilot_specific": true,
+     "rank": "fo"
+    },
+    "checked_at": "2026-10-21",
+    "company": "ryanair",
+    "cond_ja": "2026表のFO基本年額成分だけ。JFO/SOとは別。Spain基地DAC直接雇用full-time通年、part-time/seasonalは按分。既存79,525EURは850SBH等を含む非保証例であり、この54,800EURに二重加算しない。",
+    "currency": "EUR",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "附表の2026年。切替月日未明示、協約本体期限2027-03-31。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理47頁 / Anexo2 / Primer Oficial / 2026 / Salario base",
+      "quote": "54.800",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Retribución por sectores",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     },
+     {
+      "locator": "Anexo1/2 給与表の別列見出し",
+      "quote": "Otros",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "supports": [
+       "condition"
+      ]
+     }
+    ],
+    "h": "35ca9ccf633e5243",
+    "id": "ryanair.pay.r8-es2026-fo-base",
+    "imported_on": "2026-10-21",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "Spain DAC FO 2026年の基本年額",
+    "name": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+    "note": "2026表のFO基本年額成分だけ。JFO/SOとは別。Spain基地DAC直接雇用full-time通年、part-time/seasonalは按分。既存79,525EURは850SBH等を含む非保証例であり、この54,800EURに二重加算しない。",
+    "pack": "pvr-20261019-ryanair",
+    "per": "year",
+    "published_at": "2023-06-28",
+    "quote": "54.800",
+    "rank": "fo",
+    "rev": 10,
+    "source_type": "government",
+    "src": [
+     {
+      "published": "2023-06-28",
+      "publisher": "BOE / Dirección General de Trabajo",
+      "publisher_kind": "government",
+      "retrieved": "2026-10-21",
+      "source_id": "src-ryanair-r8-boe-pilot-cba",
+      "source_type": "government",
+      "title": "Convenio colectivo de Pilotos de Ryanair DAC en España",
+      "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.boe.es/eli/es/res/2023/06/09/(7)",
+    "use": "条件つき",
+    "value": 54800,
+    "value_orig": "54,800 EUR/年",
+    "value_text": "54.800"
+   },
+   {
     "accessed_at": "2026-10-19",
     "amount": {
      "assumed_hours": {
@@ -279179,6 +288129,89 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "value": 250000,
     "value_orig": "250,000 JPY",
     "value_text": "250,000円"
+   },
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "pkg_y",
+     "stat": "example",
+     "tax": "net",
+     "tier_proposed": "offer_posting",
+     "unclear": [
+      "対象募集以外の契約への適用",
+      "施行日と後続の改定",
+      "他の給与要素の加算可否"
+     ]
+    },
+    "applies_to": {
+     "aircraft": [
+      "B737NG"
+     ],
+     "hire_route": "公開経験者操縦士募集",
+     "note_ja": "原票に明示された職位・募集経路のみ。原票の年次は勤続年数と自動同一視しない。運航先は会社IDの航空会社。採用会社と運航会社のいずれが法的雇用主かの契約全文は未確認のためemployer=null。",
+     "pilot_specific": true,
+     "rank": "cap"
+    },
+    "checked_at": "2026-10-21",
+    "company": "skymark",
+    "cond_ja": "IASCO/Longreach経由B737NG機長の募集提示。訓練完了後3年契約・更新可能。flyerは2025年12月更新、2026年度から日本の税は会社負担と記載するが税務上の非課税とはしない。会社直接雇用・全機長の現在給与の根拠とはしない。 原資料の年間総待遇額。手当・ボーナス等の内包内訳は未分解で、現金年収と同義ではない。本文は約161,000、表は161,090という精度差を保持。",
+    "currency": "USD",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "施行日は未確認。原資料の更新・掲載と現在の契約への適用を区別する。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "物理1頁 下部表 / Annual Package (NET)",
+      "quote": "USD 161,090",
+      "source_id": "src-skymark-r10-jpc-iasco-flyer",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to",
+       "period"
+      ]
+     }
+    ],
+    "h": "7c018795cd616a19",
+    "id": "skymark.pay.r10-jpc-package-net",
+    "imported_on": "2026-10-21",
+    "info_kind": "recruitment_condition",
+    "key": "pkg_y",
+    "label_ja": "採用会社提示の機長年間パッケージ（税後）",
+    "name": "SKYMARK AIRLINES B737NG CAPTAIN - NTR",
+    "note": "IASCO/Longreach経由B737NG機長の募集提示。訓練完了後3年契約・更新可能。flyerは2025年12月更新、2026年度から日本の税は会社負担と記載するが税務上の非課税とはしない。会社直接雇用・全機長の現在給与の根拠とはしない。 原資料の年間総待遇額。手当・ボーナス等の内包内訳は未分解で、現金年収と同義ではない。本文は約161,000、表は161,090という精度差を保持。",
+    "pack": "pvr-20261019-skymark",
+    "per": "year",
+    "published_at": null,
+    "quote": "USD 161,090",
+    "rank": "cap",
+    "rev": 8,
+    "source_type": "job_posting",
+    "src": [
+     {
+      "published": null,
+      "publisher": "Longreach Aviation / IASCO Global",
+      "publisher_kind": "recruiter",
+      "retrieved": "2026-10-21",
+      "source_id": "src-skymark-r10-jpc-iasco-flyer",
+      "source_type": "job_posting",
+      "title": "SKYMARK AIRLINES B737NG CAPTAIN - NTR",
+      "url": "https://www.longreachaviation.com/wp-content/uploads/2025/12/Skymark-B737-Captain-IASCO-Dec2025.pdf"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.longreachaviation.com/wp-content/uploads/2025/12/Skymark-B737-Captain-IASCO-Dec2025.pdf",
+    "use": "募集",
+    "value": 161090,
+    "value_orig": "161,090 USD/年",
+    "value_text": "USD 161,090"
    }
   ],
   "southwest": [
@@ -327409,6 +336442,93 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "value_text": "194.12"
    }
   ],
+  "vietjet": [
+   {
+    "accessed_at": "2026-10-21",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "終了したpilot expert求人のSalary欄。基本給か現金給与総額かは不明。",
+     "stat": "example",
+     "tax": "unknown",
+     "unclear": [
+      "CAP/FOの職位",
+      "基本給/総給与の区別",
+      "税引前後",
+      "年次と機材",
+      "内訳手当",
+      "保証時間",
+      "現在の継続適用"
+     ]
+    },
+    "applies_to": {
+     "contract": "CHUYÊN GIA PHI CÔNG, vacancy 2888",
+     "hire_route": "2025 pilot expert recruitment; expired",
+     "note_ja": "CAP/FOの別は原文未記載のためcrew。",
+     "pilot_specific": true,
+     "rank": "crew"
+    },
+    "checked_at": "2026-10-21",
+    "company": "vietjet",
+    "cond_ja": "会社本人求人2888のSalary欄は40,000,000 VND/Tháng。募集期間は2025-10-15〜2025-12-31で終了している。原職名CHUYÊN GIA PHI CÔNG、飛行時間4000/うち同社運航機種2000の要件はあるがCAP/FO、給与上の年次、機材別賃率、基本給か総給与か、税引前後、含まれる手当、保証時間、賃金の発効日は明記されない。求人終了日を給与適用終了日とはしない。2026現在の機長/副操縦士給与、年額計算、基本給として採用しない。",
+    "currency": "VND",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "求人募集は2025-10-15〜2025-12-31。給与自体の適用開始・終了日は不明。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "Job overview / Salary; Category Pilots / Open and Close; Job Requirement",
+      "quote": "40,000,000 VND/Tháng",
+      "source_id": "src-vietjet-r8-expert-pilot-ad-2888",
+      "supports": [
+       "value",
+       "condition",
+       "applies_to",
+       "period"
+      ]
+     }
+    ],
+    "h": "4b2e234564176c22",
+    "id": "vietjet.pay.r8-expert-pilot-2025-ad",
+    "imported_on": "2026-10-21",
+    "info_kind": "recruitment_condition",
+    "key": "other",
+    "label_ja": "2025年終了のpilot expert求人月額（CAP/FO未特定）",
+    "name": "CHUYÊN GIA PHI CÔNG",
+    "note": "会社本人求人2888のSalary欄は40,000,000 VND/Tháng。募集期間は2025-10-15〜2025-12-31で終了している。原職名CHUYÊN GIA PHI CÔNG、飛行時間4000/うち同社運航機種2000の要件はあるがCAP/FO、給与上の年次、機材別賃率、基本給か総給与か、税引前後、含まれる手当、保証時間、賃金の発効日は明記されない。求人終了日を給与適用終了日とはしない。2026現在の機長/副操縦士給与、年額計算、基本給として採用しない。",
+    "pack": "pvr-20261019-vietjet",
+    "per": "month",
+    "published_at": "2025-10-15",
+    "quote": "40,000,000 VND/Tháng",
+    "rank": "all",
+    "rev": 8,
+    "source_type": "job_posting",
+    "src": [
+     {
+      "published": "2025-10-15",
+      "publisher": "Vietjet",
+      "publisher_kind": "airline",
+      "retrieved": "2026-10-21",
+      "source_id": "src-vietjet-r8-expert-pilot-ad-2888",
+      "source_type": "job_posting",
+      "title": "CHUYÊN GIA PHI CÔNG",
+      "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2888"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2888",
+    "use": "過去",
+    "value": 40000000,
+    "value_orig": "40,000,000 VND/月",
+    "value_text": "40,000,000"
+   }
+  ],
   "vietnam-airlines": [
    {
     "accessed_at": "2026-10-19",
@@ -329198,6 +338318,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261019-air-canada": {
    "records": {
+    "air-canada.benefits.r10-fr38766-staff-travel": "988b3485ac2954f3",
+    "air-canada.benefits.r10-fr38766-uby-support": "25921939e66a4b4b",
+    "air-canada.benefits.r8-parking-improvements": "8ee57ec8b6ec7c13",
     "air-canada.destinations.na-dest-yul": "ed2ddd281b88bc48",
     "air-canada.destinations.na-dest-yyz": "e7965e09b4060fab",
     "air-canada.fleet.a321xlr-entry": "a5c198de0cf97d05",
@@ -329243,10 +338366,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-canada.pay.r3-copy-b777-fo-y12-2026": "a2b02d62eaf9375b",
     "air-canada.profile.hq-city": "b220f163a4211c87",
     "air-canada.profile.hq-country": "fbb60d0cc2a8ea3e",
-    "air-canada.work.pub-employer-typical-flying": "56c9adb948a0f954"
+    "air-canada.work.pub-employer-typical-flying": "56c9adb948a0f954",
+    "air-canada.work.r8-vacation-bank": "1eebacb51b47f658"
    },
-   "revision": 8,
-   "sha": "sha256:abc7bf9faa75c0a8"
+   "revision": 9,
+   "sha": "sha256:45f87dd409974f10"
   },
   "pvr-20261019-air-china": {
    "records": {
@@ -329263,6 +338387,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "air-france.benefits.c-cadet-housing": "c44dee7badf1b612",
     "air-france.benefits.c-cadet-leave": "1f0ea47acf79fa7b",
+    "air-france.benefits.r10-collective-health-pnt-presence2026": "988b340c79cb0619",
+    "air-france.benefits.r9-fmd-bicycle": "f2a929089f1fa04f",
+    "air-france.benefits.r9-fmd-carshare": "b09bfd3804a77826",
+    "air-france.benefits.r9-fmd-public-transport": "cf23dadef3c7f93a",
+    "air-france.benefits.r9-ikv-rate": "e1803ab91b420a3f",
+    "air-france.benefits.r9-sncf-liberte": "97ca5817ce12405c",
+    "air-france.benefits.r9-train-cap": "792b37c75b58e675",
     "air-france.destinations.pub-cdg-operated": "9794463023cd9aa3",
     "air-france.jobs.c-cadet-alert": "e86bc714a9075521",
     "air-france.jobs.c-selection-languages": "c3869e17820bb522",
@@ -329271,8 +338402,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-france.work.c-cadet-failure": "56bc04a463fda70b",
     "air-france.work.pub-cadet-fulltime": "c150101ba64efe64"
    },
-   "revision": 5,
-   "sha": "sha256:106a200fefb46b45"
+   "revision": 6,
+   "sha": "sha256:bd56cfcd0c7ae62e"
   },
   "pvr-20261019-air-india": {
    "records": {
@@ -329289,6 +338420,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261019-air-new-zealand": {
    "records": {
+    "air-new-zealand.benefits.r10-atr-instructor-annual-leave": "02f1e5d6b0008b28",
+    "air-new-zealand.benefits.r10-atr-instructor-staff-travel": "eb56432aa162fbd0",
     "air-new-zealand.benefits.resume-jet-health": "4b16284c5bbfbad4",
     "air-new-zealand.destinations.p26-domestic-chc": "7f71019503311429",
     "air-new-zealand.destinations.resume-akl-operated": "626c23ada43b4034",
@@ -329303,8 +338436,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-new-zealand.jobs.resume-jet-entry": "94f4e30ad96a018b",
     "air-new-zealand.work.resume-jet-flex": "91f83f4b5f267b4c"
    },
-   "revision": 5,
-   "sha": "sha256:3ac89dafe4bf53a2"
+   "revision": 6,
+   "sha": "sha256:06c5d3d1b4446d3f"
   },
   "pvr-20261019-airasia": {
    "records": {
@@ -329320,6 +338453,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "airdo.benefits.cont-captain-pension": "adec6372f931a038",
     "airdo.benefits.missing-annual-leave": "a64eea6134e6c718",
     "airdo.benefits.missing-medical": "34fdfeea278f774e",
+    "airdo.benefits.r8-chitose-residence": "e860b2489393de0f",
     "airdo.benefits.travel": "e464d301fbaaaacc",
     "airdo.destinations.cont-airport-akj": "aa576b67172367f0",
     "airdo.destinations.cont-airport-cts": "694375eae795a73f",
@@ -329341,8 +338475,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "airdo.work.missing-training-location": "f07d0d13200ebd9e",
     "airdo.work.missing-working-time": "95401a9001bfb576"
    },
-   "revision": 6,
-   "sha": "sha256:34e09c432f5269d6"
+   "revision": 7,
+   "sha": "sha256:8371e8ef47c98d35"
   },
   "pvr-20261019-airjapan": {
    "records": {
@@ -329405,6 +338539,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "alaska-airlines.base.r2-base-san": "8cbfae41f0c48eec",
     "alaska-airlines.base.r2-base-sea": "d53657db3b45cec5",
     "alaska-airlines.base.r2-base-sfo": "07a67a744a7b650d",
+    "alaska-airlines.benefits.r10-fo21163-medical": "4c3468788fc7344c",
+    "alaska-airlines.benefits.r10-fo21163-paid-time-off": "ba4c81c4af1bbfaf",
+    "alaska-airlines.benefits.r10-fo21163-staff-travel": "8f8f574317c6b857",
+    "alaska-airlines.benefits.r8-fo-holiday-pto": "0436b804d2e7f313",
+    "alaska-airlines.benefits.r8-fo-medical": "b465b9ef115e56a8",
+    "alaska-airlines.benefits.r8-fo-standby-travel": "d3d621447d7c5241",
     "alaska-airlines.destinations.na-dest-fco": "2223884844032c7b",
     "alaska-airlines.destinations.na-dest-sea": "a5d8c69cf370e5ed",
     "alaska-airlines.fleet.missing-fleet-types": "c4d487a3d53a0060",
@@ -329451,8 +338591,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "alaska-airlines.pay.r4-hawaiian-list-fo-first-year": "1062fc783afc1f4c",
     "alaska-airlines.pay.resume-fo-start-rate": "4ce652bfc4077157"
    },
-   "revision": 8,
-   "sha": "sha256:7b5ba5d54df72d54"
+   "revision": 9,
+   "sha": "sha256:e4c7327ad0f9ea31"
   },
   "pvr-20261019-allegiant": {
    "records": {
@@ -329460,6 +338600,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "allegiant.base.r2x-bli-closing-november": "ddc1512f763a16e5",
     "allegiant.benefits.missing-medical": "4dbe855b88bce079",
     "allegiant.benefits.missing-pension": "9102f5089ef672ec",
+    "allegiant.benefits.r8-annual-leave-1": "d2fa4fc9ed151c4e",
+    "allegiant.benefits.r8-annual-leave-2to4": "e4ca417873711707",
+    "allegiant.benefits.r8-annual-leave-5to8": "f25126bb23044d4c",
+    "allegiant.benefits.r8-annual-leave-9plus": "152f21698ab67383",
+    "allegiant.benefits.r8-cb-displaced-move": "cb1c54d7b2901fc1",
+    "allegiant.benefits.r8-cb-duty-hotel-transport": "ed2bb78c697343f1",
+    "allegiant.benefits.r8-leave-staff-travel": "532abc6db6541d28",
     "allegiant.destinations.extra-operated-acy": "e76abc727b765cdc",
     "allegiant.destinations.extra-operated-alb": "ef9ebc440124f26a",
     "allegiant.destinations.extra-operated-aus": "cb9d227d5ce59ddf",
@@ -329521,12 +338668,30 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "allegiant.work.resume-roster-return": "fe7ceac0f7b47333",
     "allegiant.work.training-cities": "37e8c6e152e050d9"
    },
-   "revision": 10,
-   "sha": "sha256:4e550813e1682b01"
+   "revision": 11,
+   "sha": "sha256:50ddda567511d79a"
   },
   "pvr-20261019-american": {
    "records": {
     "american.benefits.deep-aip-dc-date-conditional": "ca0a4e1d2ac45abd",
+    "american.benefits.r10-2026-medical-children-1": "47f71cd562f98971",
+    "american.benefits.r10-2026-medical-children-2": "2965be5e88c5f9da",
+    "american.benefits.r10-2026-medical-children-3": "b2add2e1c1a4f56e",
+    "american.benefits.r10-2026-medical-children-4": "9a567255400b0120",
+    "american.benefits.r10-2026-medical-family-1": "2da18dedcc1ea876",
+    "american.benefits.r10-2026-medical-family-2": "430292f5944063b2",
+    "american.benefits.r10-2026-medical-family-3": "4216f4e9fa3e4b72",
+    "american.benefits.r10-2026-medical-family-4": "eb7b08be7edf7e9e",
+    "american.benefits.r10-2026-medical-self-1": "07dadec3b8630e73",
+    "american.benefits.r10-2026-medical-self-2": "2f66443094de9473",
+    "american.benefits.r10-2026-medical-self-3": "84bf5015636b293a",
+    "american.benefits.r10-2026-medical-self-4": "d684310c2ab34fd2",
+    "american.benefits.r10-2026-medical-spouse-1": "6434070a6cfa60fb",
+    "american.benefits.r10-2026-medical-spouse-2": "52ded8a6eee22941",
+    "american.benefits.r10-2026-medical-spouse-3": "0da158ff1707cf8d",
+    "american.benefits.r10-2026-medical-spouse-4": "69208232a0a966a2",
+    "american.benefits.r10-pilot-commuter-pretax": "689d6e3f6a63a860",
+    "american.benefits.r10-pilot-travel-existence": "41816be5d2c483be",
     "american.destinations.na-dest-clt": "0ebb216974260a9d",
     "american.destinations.na-dest-dca": "f265850b899e6c9e",
     "american.destinations.na-dest-dfw": "a18952677f26641a",
@@ -329581,8 +338746,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "american.profile.hq-country": "e7ffcec16975f24e",
     "american.work.training-dfw-clt": "f9243d02903125d8"
    },
-   "revision": 7,
-   "sha": "sha256:a3c2af2b31e36ba4"
+   "revision": 8,
+   "sha": "sha256:cc012f1b59141728"
   },
   "pvr-20261019-amx": {
    "records": {
@@ -330094,6 +339259,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "delta.benefits.parking-reimbursement": "a10087488e9b77f3",
     "delta.benefits.publication-newhire-hotel": "0fd412c2a6f3a143",
+    "delta.benefits.r8-cb-annual-leave-11to15": "4fb56a3825c32446",
+    "delta.benefits.r8-cb-annual-leave-16plus": "558016db7c85b6dc",
+    "delta.benefits.r8-cb-annual-leave-1to4": "05b672df73dd6f47",
+    "delta.benefits.r8-cb-annual-leave-5to10": "95f5383e60f27b1b",
+    "delta.benefits.r8-cm-disability-healthcare-guidance": "45db3d41f85a961b",
     "delta.benefits.resume-general-travel": "23477d774365b96f",
     "delta.benefits.retirement": "6826978abe85f16b",
     "delta.destinations.na-dest-anc": "2b21c2684b77b810",
@@ -330156,8 +339326,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "delta.work.missing-working-time": "67ce532ce1d4a6d5",
     "delta.work.resume-slc-training": "835444eed1e023c8"
    },
-   "revision": 9,
-   "sha": "sha256:ee1cbf6f03ad1293"
+   "revision": 10,
+   "sha": "sha256:fab8fe3ee1e617d1"
   },
   "pvr-20261019-eagle-jet": {
    "records": {
@@ -330206,6 +339376,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "easyjet.benefits.followup-agent-followup-gatwick-captain-travel2027": "f65fa373738e1788",
     "easyjet.benefits.pub-base-parking": "d198f0abd1f01758",
     "easyjet.benefits.pub-training-lodging": "5a3f8b7def4fa94e",
+    "easyjet.benefits.r10-spain-private-medical-option": "2af94bc35cca1dd2",
     "easyjet.fleet.a320": "3e72a0271c31b31b",
     "easyjet.jobs.c-southend-2027": "c5145aa01fe24f80",
     "easyjet.jobs.copilot-requirement": "93d9a603840a2520",
@@ -330227,8 +339398,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "easyjet.work.pub-occ-bond": "3b4d45fbff73c03e",
     "easyjet.work.roster": "73607d59ed394c89"
    },
-   "revision": 7,
-   "sha": "sha256:0324ae99f5fa7345"
+   "revision": 8,
+   "sha": "sha256:09f2fa83bc2f1a0e"
   },
   "pvr-20261019-egyptair": {
    "records": {
@@ -330288,6 +339459,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261019-ethiopian-airlines": {
    "records": {
+    "ethiopian-airlines.benefits.r12-cba-firstyear-leave": "0127e5034d86d653",
     "ethiopian-airlines.benefits.resume-annual-leave": "2ac45b037baa17f7",
     "ethiopian-airlines.benefits.resume-bonus": "4385c6ce18b1e297",
     "ethiopian-airlines.benefits.resume-housing": "ddadfaf105a23822",
@@ -330303,6 +339475,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "ethiopian-airlines.fleet.missing-fleet-types-type-5": "f4bb4c7b366242af",
     "ethiopian-airlines.fleet.missing-fleet-types-type-6": "8afa1a26cf85e1ce",
     "ethiopian-airlines.jobs.resume-captain-open": "6157377566ce624e",
+    "ethiopian-airlines.pay.r12-july2026-pilot-adjustment": "e76a8700bb625ba3",
     "ethiopian-airlines.pay.r6-gdo-credit": "ac30c624aba03dd1",
     "ethiopian-airlines.pay.r6-passed-over-pay": "2fc514e2a399f6a9",
     "ethiopian-airlines.profile.country": "891ffdd54bbfe6e0",
@@ -330312,8 +339485,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "ethiopian-airlines.work.r6-gdo-movement": "24cebfda71c60745",
     "ethiopian-airlines.work.r6-promotion-seniority": "0c0bb81c49b02486"
    },
-   "revision": 6,
-   "sha": "sha256:978edf748b91a152"
+   "revision": 7,
+   "sha": "sha256:660b485ed8641984"
   },
   "pvr-20261019-eurowings": {
    "records": {
@@ -330323,6 +339496,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "eurowings.base.pilot-str": "929d82e38ea908d0",
     "eurowings.benefits.c-parking": "41fb2a405fcdbbe7",
     "eurowings.benefits.c-travel": "9745ae2fcf9562c4",
+    "eurowings.benefits.r10-spain-annual-leave": "5c0ac09f9e825922",
+    "eurowings.benefits.r10-spain-mandatory-base-transfer": "d56c4410818b4659",
     "eurowings.fleet.pub-fleet-a319": "7f0d1d073436e169",
     "eurowings.fleet.pub-fleet-a320": "f7bd35fea5446b09",
     "eurowings.fleet.pub-fleet-a320neo": "c05f74a80161d4ba",
@@ -330347,8 +339522,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "eurowings.profile.missing-headquarters-country": "4fbef021f55498a3",
     "eurowings.work.c-type": "553cd290a5d9afef"
    },
-   "revision": 6,
-   "sha": "sha256:dd20178451d62848"
+   "revision": 7,
+   "sha": "sha256:99ef145898c35217"
   },
   "pvr-20261019-fda": {
    "records": {
@@ -330360,6 +339535,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "fda.benefits.missing-annual-leave": "5483daad32c9124f",
     "fda.benefits.missing-medical": "24587dd210cab51c",
     "fda.benefits.missing-pension": "6f6ae266e09b3385",
+    "fda.benefits.r10-jpc-fo-commute-existence": "2eb5d9cbe52258cf",
     "fda.destinations.cont-airport-aoj": "8e080ea56d68180c",
     "fda.destinations.cont-airport-cts": "d46358edcde3ca71",
     "fda.destinations.cont-airport-fsz": "aa806392c787228c",
@@ -330386,8 +339562,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "fda.profile.founded": "825eacd8288e30fd",
     "fda.profile.hq-country": "e2ef58d18caecfa8"
    },
-   "revision": 7,
-   "sha": "sha256:aac1f9839f281196"
+   "revision": 8,
+   "sha": "sha256:3e20684dc39e2f1b"
   },
   "pvr-20261019-fiji-airways": {
    "records": {
@@ -330453,6 +339629,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "frontier.base.r3na-tpa": "a80c4ac69ae1f5a7",
     "frontier.benefits.missing-medical": "f8c8890c3b8f76b6",
     "frontier.benefits.missing-staff-travel": "e01ae3e5befdfa9e",
+    "frontier.benefits.r13-vacation-credit": "d782047f21a82488",
+    "frontier.benefits.r13-vacation-stretch": "29cd7140203fbb11",
+    "frontier.benefits.r13-vacation-year-end-payout": "28a3ade6540da78e",
     "frontier.benefits.retirement": "230aff2efd8510b0",
     "frontier.destinations.na-dest-atl": "7a420c3b71d7a434",
     "frontier.destinations.na-dest-bos": "1cd5b3227466cbb0",
@@ -330545,8 +339724,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "frontier.work.resume-roster-flex": "bec1eb8bc22cc721",
     "frontier.work.resume-upgrade-promotion": "e979433472a00af8"
    },
-   "revision": 9,
-   "sha": "sha256:d4f1977bdf54e3f2"
+   "revision": 10,
+   "sha": "sha256:c003854f27154e35"
   },
   "pvr-20261019-garuda-indonesia": {
    "records": {
@@ -330790,14 +339969,19 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "indigo.benefits.c26-staff-standby": "8f4dce4d9d003b9d",
     "indigo.benefits.medical": "2beadf5d923304e6",
+    "indigo.benefits.r10-pilot-duty-transport-coordination": "9fe64225ff98b186",
     "indigo.jobs.pilot-family": "31ec903196fd96b3",
     "indigo.jobs.pilot-internal": "314b67baa1027d09"
    },
-   "revision": 5,
-   "sha": "sha256:ebbe388fcc461c71"
+   "revision": 6,
+   "sha": "sha256:e5574f03e9257f52"
   },
   "pvr-20261019-ita-airways": {
    "records": {
+    "ita-airways.benefits.r8-signed-leave30": "577db638a81db22d",
+    "ita-airways.benefits.r8-signed-sanivolo": "17689cfdcfc645f2",
+    "ita-airways.benefits.r8-signed-self-commute": "671119bf2fc285ce",
+    "ita-airways.benefits.r8-signed-transfer-support": "3db0c7457b3a9e03",
     "ita-airways.destinations.r2-destination-fco": "f1a225763b376471",
     "ita-airways.destinations.r2-destination-iah": "ff3f830c1570581e",
     "ita-airways.fleet.a320": "915c21b14aed7e66",
@@ -331436,8 +340620,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "ita-airways.pay.r4-tab-b-mr-ivo-51to70": "f0ef227b897af8f6",
     "ita-airways.pay.r4-tab-b-mr-ivo-gt70": "4d5071a041108d53"
    },
-   "revision": 7,
-   "sha": "sha256:6fe91939a28bbe0f"
+   "revision": 8,
+   "sha": "sha256:51f48f78bcf28b36"
   },
   "pvr-20261019-j-air": {
    "records": {
@@ -331524,6 +340708,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "jetblue.benefits.missing-housing": "ee15e6fe4d7759f5",
     "jetblue.benefits.missing-pension": "b6dff074951a0968",
     "jetblue.benefits.pub-pension-q2-confirmation": "a1b5e9891e718f01",
+    "jetblue.benefits.r8-green-option-2026": "57a9891a3ceeb04e",
     "jetblue.destinations.na-dest-aus": "65aab997f81b1a05",
     "jetblue.destinations.na-dest-bdl": "dfcb6f00da62da2f",
     "jetblue.destinations.na-dest-bos": "1017a0afbe346647",
@@ -331576,12 +340761,16 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "jetblue.work.missing-training-location": "a381c71b1cea9ff8",
     "jetblue.work.resume-fo-schedule": "6dcaf1d4807bed4e"
    },
-   "revision": 6,
-   "sha": "sha256:188c01d4dd6db877"
+   "revision": 7,
+   "sha": "sha256:c89481e5cef585b7"
   },
   "pvr-20261019-jetstar": {
    "records": {
     "jetstar.base.r2-per": "d1521a6e69015c91",
+    "jetstar.benefits.r8-annual-leave-fulltime": "4672f6720d65ecc0",
+    "jetstar.benefits.r8-base-parking": "b8186ef67957d6bd",
+    "jetstar.benefits.r8-company-directed-transfer": "d4e65184f49b37db",
+    "jetstar.benefits.r8-duty-travel-medical": "ce8e98b024ba68fa",
     "jetstar.destinations.pub-operated-syd": "8e519b78c7fa8fa4",
     "jetstar.destinations.resume-wsi-not-current": "78bae2b390ae49aa",
     "jetstar.fleet.pub-jq-fleet-a320": "57e27beb58c91242",
@@ -331592,8 +340781,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "jetstar.living.r7-perth-unit-rent-primary": "1b0887717368fb58",
     "jetstar.work.resume-temporary-base-swap": "b317159d8cd9257e"
    },
-   "revision": 9,
-   "sha": "sha256:b2255739503d63fb"
+   "revision": 10,
+   "sha": "sha256:18910fc960f0df72"
   },
   "pvr-20261019-jetstar-japan": {
    "records": {
@@ -331601,6 +340790,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "jetstar-japan.benefits.cont-foug-commuting": "8f9f9ab64cf3f175",
     "jetstar-japan.benefits.cont-foug-leave": "11384d774359f6e5",
     "jetstar-japan.benefits.missing-medical": "937efdd6df4733c1",
+    "jetstar-japan.benefits.r9-jpben-jcab-captain-staff-travel": "706ca6dcbf3193b5",
     "jetstar-japan.destinations.pub-airport-akj": "2d54b89a02c29700",
     "jetstar-japan.destinations.pub-airport-cts": "2c80aae9683ae723",
     "jetstar-japan.destinations.pub-airport-fuk": "3f51b6e0cc879ec8",
@@ -331633,8 +340823,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "jetstar-japan.work.missing-roster-pattern": "74f6affe32599982",
     "jetstar-japan.work.training-locations": "1b7b2ea16dc12ee1"
    },
-   "revision": 5,
-   "sha": "sha256:feaef18cf5d3fb36"
+   "revision": 6,
+   "sha": "sha256:9b0a5ac0e03aef08"
   },
   "pvr-20261019-jta": {
    "records": {
@@ -331689,6 +340879,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "klm.benefits.pension-employee-2026": "db2981a021265c99",
     "klm.benefits.pension-total-2026": "a0207b7233c9d61e",
     "klm.benefits.pub-kfa-campus-housing": "7e43b98796407bd5",
+    "klm.benefits.r8-cockpit-parking-local-ov": "2b801d5b50c21013",
     "klm.destinations.r2r-ams": "611863263a5f19a7",
     "klm.destinations.r2r-mia": "ceabf43d6ee6af72",
     "klm.destinations.r2r-pdx": "b983614e1ffdc3e5",
@@ -331743,8 +340934,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "klm.work.pub-kfa-training-location": "58063bc8564a1b2f",
     "klm.work.roster": "e3c941da62d17e09"
    },
-   "revision": 9,
-   "sha": "sha256:95f7e1aecb2f5ce1"
+   "revision": 10,
+   "sha": "sha256:c17f804ff209a4ad"
   },
   "pvr-20261019-korean-air": {
    "records": {
@@ -332051,6 +341242,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "qantas.base.pub-sh-contract-base-syd": "ac4b03816fc00fae",
     "qantas.benefits.pub-sh-duty-hotel": "7f0ed840281f13a8",
     "qantas.benefits.pub-sh-night-home-transport": "24bb4cb797a153b4",
+    "qantas.benefits.r10-permanent-employee-travel": "882b7aeb6266f27f",
+    "qantas.benefits.r10-pilot-eap-converge": "75b85c30440f606a",
+    "qantas.benefits.r8-redundancy-staff-travel": "aa9dde9dced278f3",
     "qantas.benefits.resume-sh-leave": "a995498e6f46de67",
     "qantas.benefits.resume-sh-super": "79bb84aaaf8cdfe1",
     "qantas.destinations.pub-operated-syd": "a8cf00cb9ee9e95f",
@@ -332087,8 +341281,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "qantas.work.resume-sh-roster-publication": "576a34e93df3acb9",
     "qantas.work.resume-training-facilities": "7a56db8de960d3ad"
    },
-   "revision": 7,
-   "sha": "sha256:14d56adc453e51ca"
+   "revision": 8,
+   "sha": "sha256:c8c27fbb1477cd84"
   },
   "pvr-20261019-qatar-airways": {
    "records": {
@@ -332207,19 +341401,40 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "ryanair.base.r2-base-tia": "241707afd384899a",
     "ryanair.benefits.pension-cap": "ad06e9b6fc5ceb86",
     "ryanair.benefits.pension-fo": "2f31e8faf1379f35",
+    "ryanair.benefits.r8-es-annual-leave29": "d473f02cc0d097ee",
+    "ryanair.benefits.r8-es-health-allowance-cap": "9c119dcb672fe14f",
+    "ryanair.benefits.r8-es-health-allowance-fo": "bf059ce855a7a17a",
+    "ryanair.benefits.r8-es-parking-allowance": "27c4d4adcbba6d01",
+    "ryanair.benefits.r8-es-staff-travel-discretionary": "403cd38d5d63bcd7",
     "ryanair.destinations.r2-destination-tia": "bb740ad0d71add51",
     "ryanair.jobs.followup-agent-followup-uk-dac-cadet-assessment-fee": "31f79ee0498630aa",
     "ryanair.living.r3-rent-tirana-source": "a7883aaa9833bf65",
     "ryanair.pay.fo-2026-annual-example": "a3133c6df4290cfe",
     "ryanair.pay.junior-fo-annual-example": "a46bafdf1a713a76",
+    "ryanair.pay.r8-cap-job-upper-eur": "049f2522bdced13a",
+    "ryanair.pay.r8-cap-job-upper-gbp": "5d572e203a3ebd74",
+    "ryanair.pay.r8-es2026-cap-base-grade01": "e6a3733796743700",
+    "ryanair.pay.r8-es2026-cap-base-grade02": "71cd75501d3f7504",
+    "ryanair.pay.r8-es2026-cap-base-grade03": "a0780fcf72cf1d65",
+    "ryanair.pay.r8-es2026-cap-base-grade04": "0d0a850b3e9d19f6",
+    "ryanair.pay.r8-es2026-cap-base-grade05": "c7b24c5b5e27d136",
+    "ryanair.pay.r8-es2026-cap-base-grade06": "b278b53082115756",
+    "ryanair.pay.r8-es2026-cap-base-grade07": "d27948afc444f6a4",
+    "ryanair.pay.r8-es2026-cap-base-grade08": "5b5d243cca380004",
+    "ryanair.pay.r8-es2026-cap-base-grade09": "f792546e746fe8fc",
+    "ryanair.pay.r8-es2026-cap-base-grade10": "0a1fbdcf0d22762b",
+    "ryanair.pay.r8-es2026-cap-base-grade11": "75f2914ecbbd9eab",
+    "ryanair.pay.r8-es2026-cap-base-grade12": "e496143b32747dff",
+    "ryanair.pay.r8-es2026-cap-base-grade13": "075d5bd19e84a09b",
+    "ryanair.pay.r8-es2026-fo-base": "35ca9ccf633e5243",
     "ryanair.pay.so-annual-example": "7ba140825e5ab0c6",
     "ryanair.work.c-no-planned-overnights": "b91b56021984dbb4",
     "ryanair.work.c-roster-notice": "d562189317481df7",
     "ryanair.work.roster-advertised": "335d6a9b1fcb1c8f",
     "ryanair.work.spain-roster-cba": "84e1c809a472b482"
    },
-   "revision": 9,
-   "sha": "sha256:532b206c26d7445f"
+   "revision": 10,
+   "sha": "sha256:ce8742c282d1e40c"
   },
   "pvr-20261019-sas": {
    "records": {
@@ -332475,6 +341690,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "skymark.benefits.missing-commuting": "ec79978e22358264",
     "skymark.benefits.missing-medical": "17a9a4b06151cd60",
     "skymark.benefits.missing-pension": "8674c4d517d43ea1",
+    "skymark.benefits.r10-jpc-housing": "40c5c46bcb71bfc7",
+    "skymark.benefits.r10-jpc-iasco-2026-housing-existence": "f03edf0682128814",
     "skymark.benefits.staff-travel": "e04f095532e3c2cf",
     "skymark.destinations.pub-summer-dest-cts": "aa8e5f438a3e9d8a",
     "skymark.destinations.pub-summer-dest-fuk": "3d61d277878931e2",
@@ -332491,14 +341708,15 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "skymark.fleet.pub-fleet-b737-8": "b930b2ada55bf942",
     "skymark.jobs.cont-cadet-start": "50fc5c46f7e86d6f",
     "skymark.pay.cadet-basic": "8308d99a565a0898",
+    "skymark.pay.r10-jpc-package-net": "7c018795cd616a19",
     "skymark.profile.founded": "f23f8cbdf11ab076",
     "skymark.profile.hq-country": "a0e0e2970dd5edfe",
     "skymark.work.cadet-hours": "2873589c181b47d4",
     "skymark.work.missing-roster-pattern": "2957d27bf35b9c85",
     "skymark.work.pub-experienced-days-off": "cf622b302915dfeb"
    },
-   "revision": 7,
-   "sha": "sha256:72b8108362ecf491"
+   "revision": 8,
+   "sha": "sha256:6a2c22cd28a27454"
   },
   "pvr-20261019-solairus": {
    "records": {
@@ -332507,6 +341725,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "solairus.base.r3na-vny-g700-account": "dcdfdd9e1bf33275",
     "solairus.benefits.missing-medical": "943d4c456b1747bf",
     "solairus.benefits.missing-pension": "aade4647e9148f84",
+    "solairus.benefits.r10-pc24-commutable-2002": "5fd1980f39c4d708",
     "solairus.fleet.missing-fleet-types": "723635d802469e70",
     "solairus.fleet.pub-type-gulfstream-g450": "3f17191b75c05d81",
     "solairus.fleet.pub-type-gulfstream-g550": "6a29baff5a15b863",
@@ -332521,8 +341740,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "solairus.profile.missing-headquarters-country": "e4cd88dd36c15126",
     "solairus.work.missing-roster-pattern": "198f4e01c5f1a222"
    },
-   "revision": 7,
-   "sha": "sha256:3105c9a57f4785d5"
+   "revision": 8,
+   "sha": "sha256:0508bdaf2cea14f5"
   },
   "pvr-20261019-solaseed": {
    "records": {
@@ -332531,6 +341750,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "solaseed.benefits.missing-medical": "1dfbca0f00c5c205",
     "solaseed.benefits.missing-pension": "b5001bbdee4ecea9",
     "solaseed.benefits.missing-staff-travel": "abe848e6f69c9471",
+    "solaseed.benefits.r8-local-residence": "f8d55fb37c8abbd6",
     "solaseed.destinations.cont-airport-fuk": "681aeb48a534e8d8",
     "solaseed.destinations.cont-airport-hnd": "8211f08e1b2b4960",
     "solaseed.destinations.cont-airport-isg": "c6720946f8622f59",
@@ -332549,12 +341769,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "solaseed.work.missing-roster-pattern": "a361bdf94d501c74",
     "solaseed.work.pub-annual-days-off": "f23b4362227d7496"
    },
-   "revision": 4,
-   "sha": "sha256:1046284e84c835c6"
+   "revision": 5,
+   "sha": "sha256:4fdbbaf58ad0afc1"
   },
   "pvr-20261019-south-african-airways": {
    "records": {
     "south-african-airways.benefits.publication-pilot-medical-subsidy": "d163256c867cbae2",
+    "south-african-airways.benefits.r8-2025-proposed-travel-package": "eda9e0fd657ff198",
     "south-african-airways.destinations.ma11-cpt": "ae3cfbdaf7fb0927",
     "south-african-airways.destinations.ma11-jnb": "a1615ff554c721ff",
     "south-african-airways.fleet.a319-100": "c374f65165de6e70",
@@ -332564,8 +341785,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "south-african-airways.profile.country": "d55394152a774f54",
     "south-african-airways.scale.fleet-in-service-2025": "75a529705ede04ce"
    },
-   "revision": 6,
-   "sha": "sha256:068b2def1606d487"
+   "revision": 7,
+   "sha": "sha256:3efd478c5a83e06c"
   },
   "pvr-20261019-southwest": {
    "records": {
@@ -332727,6 +341948,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "pvr-20261019-swiss": {
    "records": {
     "swiss.benefits.c-school-housing-scope": "b0a13ea256b71a0a",
+    "swiss.benefits.r10-eub3-cockpit-occupational-medicine": "dba488f71c4e6ccf",
+    "swiss.benefits.r13-general-employee-commuting": "c329577c92c53f83",
+    "swiss.benefits.r13-general-employee-medical": "e988b5e2d8b952ab",
     "swiss.benefits.staff-travel": "94dde833305f6fb3",
     "swiss.destinations.r2r-bos": "ed1d101cca12552f",
     "swiss.destinations.r2r-icn": "0f60f20c824ea372",
@@ -332737,8 +341961,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "swiss.jobs.followup-agent-followup-a320fo-minimum-experience": "6228036c87eebda4",
     "swiss.work.training-location": "6b1e8ed8035bdfee"
    },
-   "revision": 6,
-   "sha": "sha256:c79c67de5ca1f307"
+   "revision": 8,
+   "sha": "sha256:b958e99c3ecdeaaa"
   },
   "pvr-20261019-tap": {
    "records": {
@@ -332748,6 +341972,10 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "tap.benefits.pub-dc-pension": "db6e20867e55e0e3",
     "tap.benefits.pub-health-risk-insurance": "76e036ad555ed58b",
     "tap.benefits.pub-travel-framework": "e6138d2fb1b7668b",
+    "tap.benefits.r8-cbe-duty-layover-lodging": "3e605e0111bd0cfd",
+    "tap.benefits.r8-cbe-mandatory-relocation": "74c81ad0133d97b2",
+    "tap.benefits.r8-cbe-mandatory-transfer-temporary-lodging": "068e1aae472e6b24",
+    "tap.benefits.r8-cbe-operational-base-duty-transport": "c12a7fedc06ab0b3",
     "tap.destinations.r2-destination-cwb": "b2c235cd89a908f7",
     "tap.destinations.r2-destination-gig": "765139fadfc63dcd",
     "tap.destinations.r2-destination-lis": "6d8610fe8bf82cd6",
@@ -332774,8 +342002,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "tap.work.pub-annual-off-days": "698eb5336810846f",
     "tap.work.pub-training-cost-commitment": "09c6cacb3ce34509"
    },
-   "revision": 7,
-   "sha": "sha256:fae64f72fc0028b9"
+   "revision": 8,
+   "sha": "sha256:088baa2bddca2b86"
   },
   "pvr-20261019-thai-airways": {
    "records": {
@@ -332885,6 +342113,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "turkish-airlines.benefits.pub-cba-leave": "7c8cacfd7eaec1a7",
     "turkish-airlines.benefits.pub-general-family-travel": "605cd96686c2ea53",
+    "turkish-airlines.benefits.r8-cba29-health": "d4b8a50c3b3435a9",
+    "turkish-airlines.benefits.r8-cba29-service": "8560af12df969ed6",
     "turkish-airlines.destinations.r2r-ist": "5ac5543248eab512",
     "turkish-airlines.destinations.r2r-sin": "0acf4790e36cd0a7",
     "turkish-airlines.fleet.a319": "11a172fb4289f78f",
@@ -332898,14 +342128,18 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "turkish-airlines.work.c-roster-publication": "24d3c954ad0ff544",
     "turkish-airlines.work.pub-cba-monthly-off": "5242f8496d4e8538"
    },
-   "revision": 5,
-   "sha": "sha256:c7b57dc9dc1d84ec"
+   "revision": 6,
+   "sha": "sha256:78ea91338c523b25"
   },
   "pvr-20261019-united": {
    "records": {
     "united.benefits.deep-retirement-18": "20f0f55561aabd9b",
     "united.benefits.missing-commuting": "7c926ad5edffa2e8",
     "united.benefits.missing-medical": "2df75b2e8a7555cd",
+    "united.benefits.r8-annual-leave-11to24": "7d64fab591e14746",
+    "united.benefits.r8-annual-leave-1to4": "911a51ec5d9f480c",
+    "united.benefits.r8-annual-leave-25plus": "1eb134e6c6279e51",
+    "united.benefits.r8-annual-leave-5to10": "f785a603231dc9a3",
     "united.benefits.resume-pilot-health": "97012361f5f32cff",
     "united.benefits.travel": "39ee0dc890014b50",
     "united.destinations.na-dest-den": "cbf69320aa2a9ac5",
@@ -333535,8 +342769,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "united.work.missing-working-time": "96bb5a0873cf7c49",
     "united.work.training-denver": "d3bceaed827f46ec"
    },
-   "revision": 8,
-   "sha": "sha256:41f64b4675b358a7"
+   "revision": 9,
+   "sha": "sha256:e8c04a72c6af8435"
   },
   "pvr-20261019-vietjet": {
    "records": {
@@ -333545,10 +342779,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "vietjet.destinations.r2-centrair-ngo": "3ffbd409c0e04e48",
     "vietjet.jobs.c26-past-careerday": "df4d9cf08ea678af",
     "vietjet.jobs.followup-agent-pilot-category-snapshot": "c52ed3201b5ac1a2",
-    "vietjet.jobs.pilot-category-empty": "75babd862758f1a8"
+    "vietjet.jobs.pilot-category-empty": "75babd862758f1a8",
+    "vietjet.pay.r8-expert-pilot-2025-ad": "4b2e234564176c22"
    },
-   "revision": 7,
-   "sha": "sha256:09816d6d971e3a94"
+   "revision": 8,
+   "sha": "sha256:69f62e83a991225b"
   },
   "pvr-20261019-vietnam-airlines": {
    "records": {
@@ -333611,6 +342846,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "vueling.benefits.pension-year4": "ec7ff35c68d6f459",
     "vueling.benefits.pub-cba-travel-conditions": "e9d342ab14cfdcb6",
     "vueling.benefits.pub-second-residence-taxi": "f92668a19a596634",
+    "vueling.benefits.r8-benefit-basket-medical": "e914d974d870610d",
+    "vueling.benefits.r8-forced-transfer-hotel": "1bb859e9c25113ce",
     "vueling.destinations.r2r-bcn": "c8b190bf16cb5917",
     "vueling.destinations.r2r-bio": "9012d6ddaaa8cca0",
     "vueling.destinations.r2r-pmo": "eaa17e9aa0bf882d",
@@ -333636,8 +342873,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "vueling.pay.fo-level-5-annex-fixed": "afa83fcbace4caf3",
     "vueling.pay.fo-level6-fixed": "343a50119a433f4c"
    },
-   "revision": 7,
-   "sha": "sha256:44a4e64eed0d37de"
+   "revision": 8,
+   "sha": "sha256:8ed4aabc98f65def"
   },
   "pvr-20261019-westjet": {
    "records": {
@@ -333752,6 +342989,16 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 5,
    "sha": "sha256:faf434a84fea6239"
+  },
+  "pvr-city-rent": {
+   "records": {
+    "china-eastern.living.cityrent-shanghai-jinqiao-pudong-2bed-7f218e2b": "df9e0c4110401e67",
+    "easyjet.living.cityrent-barcelona-barcelona-studio-e5b46d20": "671fc9ec394484fe",
+    "easyjet.living.cityrent-milan-milan-studio-12ceef50": "f140e8b72ec5b8e6",
+    "vueling.living.cityrent-barcelona-barcelona-studio-e5b46d20": "09f48f99396b7682"
+   },
+   "revision": 20261021,
+   "sha": "sha256:0093f8c2a55e6fa4"
   }
  }
 }/*/PV-IMPORT-JSON*/;

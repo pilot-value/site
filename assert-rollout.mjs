@@ -113,6 +113,18 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   for (const p of ['en/airlines/jal.html', 'en/airlines/skymark.html', 'en/airlines/ana.html', 'career.html']) if (CREW_TXT.test(read(p).replace(/<!--PV-SRC[\s\S]*?-->/g, ''))) crewPages.push(p);
   ok(!crewPages.length, `A 機長と副操縦士を分けない平均（運航乗務員の平均）を、新しい会社ページ（${SWITCH.length}枚）・英語版の JAL／スカイマーク／ANA・career.html のどこにも書かない（題・説明・構造化データ・本文 ── P12.77）`,
     crewPages.map(s => `${s}: ${((ORIG[s] || read(s)).replace(/<!--PV-SRC[\s\S]*?-->/g, '').match(new RegExp(`.{0,24}(${CREW_TXT.source}).{0,16}`)) || [''])[0]}`).join(' ／ '));
+  /* 2026-10-21 a3（P12.92）：読み物（ANA vs JAL・外資系 vs 日系・LCC 比較）の日英と英語の ANA も。字に加えて、運航乗務員の平均の額そのもの
+     （日本航空 2,005万・1,959万／スカイマーク 1,646万 ── 円の字・英語の焼き込みの data-jpy・有報の円の字）も見る */
+  const ARTICLES = ['airlines/ana-vs-jal.html', 'airlines/gaishi-vs-nikkei.html', 'airlines/lcc-hikaku.html',
+    'en/airlines/ana-vs-jal.html', 'en/airlines/gaishi-vs-nikkei.html', 'en/airlines/lcc-hikaku.html', 'en/airlines/ana.html'];
+  const CREW_AMT = /2,005万|1,959万|1,646万|data-jpy="(?:20050000|20051000|19590000|19593000|16460000)"|¥20,051,000|¥19,593,000/;
+  /* 検査役（a3）が足した：英語の構造化データは額を焼き込まずに「$104K」「$126K」と素で書くので、額の字（CREW_AMT）では見えない。
+     運航乗務員の平均を言う英語・日本語の言い方そのものも見る（写しの中で英語の LCC 比較の構造化データに戻すと緑のままだった） */
+  const CREW_ART = /機長と副操縦士をあわせ|captains and first officers together|average annual pay for (?:its |all )?(?:\d+ )?flight crew/;
+  const artBad = ARTICLES.map(p => [p, read(p).replace(/<!--PV-SRC[\s\S]*?-->/g, '')])
+    .map(([p, t]) => [p, (t.match(new RegExp(`.{0,24}(${CREW_TXT.source}|${CREW_AMT.source}|${CREW_ART.source}).{0,16}`)) || [''])[0]]).filter(([, m]) => m);
+  ok(!artBad.length, `A 読み物（ANA vs JAL・外資系 vs 日系・LCC 比較）の日英と英語の ANA に、機長と副操縦士を分けない平均（運航乗務員の平均）の字も額も無い（題・説明・構造化データ・本文 ── P12.77／P12.92）`,
+    artBad.map(([p, m]) => `${p}: ${m}`).join(' ／ '));
   const want = Math.ceil(Math.max(...SWITCH.flatMap(s => ['cap', 'fo'].map(r => SALARY[s][r].avg))) / 1000) * 1000;
   ok(AXIS === want, `A 棒の目盛の右端は SWITCH の全社の推定のいちばん大きい額から（${want}万）`, `AXIS=${AXIS}`);
   /* 同じ日本語の名前の街が2つの国に在る空港（オークランド AKL・OAK／マンチェスター MAN・MHT ── 2026-10-21 d1）：ステイ先のカードは、

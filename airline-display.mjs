@@ -102,6 +102,8 @@ const WHOSE_DOMAINS = ['work', 'benefits'];
    name … 出どころのリンクの字（資料自身の題は「」の中）／cond … その協約が誰の条件か（カードの前提の1行。LINES の cond が在ればそちら） */
 export const AGREEMENTS = Object.freeze({
   'src-qantas-sh-ea9-approved': { name: 'オーストラリア公正労働委員会「[2025] FWCA 1554」（カンタス航空 短距離線パイロットの労働協約 EBA9 の承認と本文）', cond: '短距離線のパイロットの労働協約' },
+  /* 同じ PDF（同じ住所）を、ROUND5 の別の資料の ID で引いている行がある（2026-10-21 a3） */
+  'src-qantas-r8-ea9': { name: 'オーストラリア公正労働委員会「[2025] FWCA 1554」（カンタス航空 短距離線パイロットの労働協約 EBA9 の承認と本文）', cond: '短距離線のパイロットの労働協約' },
 });
 export const agreementOf = s => (s && AGREEMENTS[s.source_id]) || null;
 
@@ -214,7 +216,7 @@ export const LINES = Object.freeze({
   'solaseed.jobs.missing-entry-open': { h: '95404671724bf6cb', label: '募集の受付', value: '書類が届き次第選考（締切の日付は無い）', cond: '機長要員の募集（2026年10月19日に確認）' },
   'solaseed.work.missing-roster-pattern': { h: 'a361bdf94d501c74', label: '勤務の形', value: '土日祝日を含む変則勤務（早朝・深夜あり）', cond: '機長要員の募集要項' },
   /* AIRDO */
-  'airdo.benefits.travel': { h: 'e464d301fbaaaacc', label: '社員の航空券', value: '自社便と他社便の優待搭乗制度', cond: '運航乗務員（機長）の募集要項' },
+  'airdo.benefits.travel': { h: 'e464d301fbaaaacc', label: '社員の航空券', value: '自社便と他社便の優待搭乗制度', cond: '運航乗務員（機長）の募集要項', lead: true },
   'airdo.jobs.cont-experienced-closed': { h: '777842bf7a1b01c5', label: '募集の受付', value: '経験者の機長・副操縦士の募集は2026年9月1日から停止', cond: '運航乗務員採用のお知らせ' },
   /* スターフライヤー（運航乗務員の募集要項 ── 機長・副操縦士） */
   'starflyer.benefits.missing-annual-leave': { h: 'ef4bbe7d664f359f', label: '休暇', value: '年次有給休暇・産前産後休暇・育児休暇・介護休暇', cond: '機長・副操縦士の募集要項。日数は書かれていない' },
@@ -486,6 +488,18 @@ export const LINES = Object.freeze({
   'kenya-airways.benefits.publication-general-medical': { h: 'c6b90ff974e1972f', label: '保険', value: '医療の制度と育児の休暇', cond: '2024年の報告書（全社員）' },
   /* 南アフリカ航空（パイロット採用の案内） */
   'south-african-airways.jobs.resume-pilot-qualification': { h: '2a5e9ade9a5dc290', label: '応募の条件', value: '南アフリカの定期運送用操縦士（学科合格を含む）、多発機の計器飛行、第1種の身体検査、1,500時間以上（うち多発機で200時間）', cond: '会社のパイロット採用の案内' },
+  /* ── 全社へ広げる a3（2026-10-21・ROUND5 で入った行）：字は行の値と引用から（調べた側の字は使わない）。cond ＝ 誰の・どの資料の条件か。
+     書かなかった行（出ない）：インディゴの業務の移動の手配（パイロットの管理担当の求人の職務の説明で、パイロットの待遇の公表ではない）・
+     南アフリカ航空の航空券（2025年3月の会社の「最終提案」の説明 ── 結ばれた条件ではない）。ほかは資料の種類で出ない行
+     （エチオピア航空の労働組合の告知・カンタスの組合の案内が先の行・スカイマークの採用会社の求人）── 書いても出ないので書かない ── */
+  'airdo.benefits.r8-chitose-residence': { h: 'e860b2489393de0f', label: '居住地の制度', value: '千歳地区居住地制度', cond: 'B737機長要員の募集要項' },
+  'fda.benefits.r10-jpc-fo-commute-existence': { h: '2eb5d9cbe52258cf', label: '通勤', value: '通勤手当', cond: '他社経験者の副操縦士候補の求人。額は書かれていない' },
+  'jetstar-japan.benefits.r9-jpben-jcab-captain-staff-travel': { h: '706ca6dcbf3193b5', label: '社員の航空券', value: 'カンタス・グループのスタッフトラベルの割引（本人と、指定した同伴者）', cond: '日本の航空局の資格を持つ A320/A321 機長の求人（2025年4月7日の掲載）' },
+  /* カンタスの待遇のカードの1行めは、今までどおり労働協約の年次休暇（パイロットの条件）。字は ITEM の言い方と協約の cond のまま（lead だけ） */
+  'qantas.benefits.resume-sh-leave': { h: 'a995498e6f46de67', label: '年次休暇', lead: true },
+  'qantas.benefits.r10-permanent-employee-travel': { h: '882b7aeb6266f27f', label: '社員の航空券', value: '旅行の優待（本人と、指定した同伴者など）', cond: '2026年の年次報告（正社員ぜんたいの制度。パイロットの条件は書かれていない）' },
+  'qantas.benefits.r8-redundancy-staff-travel': { h: 'aa9dde9dced278f3', label: '社員の航空券（人員整理のとき）', value: '会社のスタッフトラベルの規程による', cond: '短距離線のパイロットの労働協約（人員整理の条項）' },
+  'solaseed.benefits.r8-local-residence': { h: 'f8d55fb37c8abbd6', label: '居住地の制度', value: '地方居住制度', cond: '機長要員の募集要項' },
   /* ── 空港までの移動（暮らしの街の行）。mode ＝ 電車・バスの札 ── */
   'qantas.living.pub-bne-transport': { h: 'a915a8178c8e4f8c', mode: 'train', label: 'Airtrain：ブリスベン中心部（Central 駅）→ 空港', value: '平日 4:31〜21:31・土日祝 5:40〜21:31（15〜30分おき）' },
   'qantas.living.pub-mel-transport': { h: '353050f3935ac078', mode: 'bus', label: 'SkyBus：サザンクロス駅 ⇄ メルボルン空港', value: '市内と空港を結ぶ City Express を運行' },
