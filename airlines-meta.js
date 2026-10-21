@@ -114,6 +114,12 @@
 {code:'AV',  name:'アビアンカ航空',         en:'Avianca',               region:'latam',  color:'#C60B1E',salary:'¥1,700万',file:'airlines/avianca.html',fleet:'n',          flag:'🇨🇴',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
 {code:'AM',  name:'アエロメヒコ',           en:'Aeromexico',            region:'latam',  color:'#006CB7',salary:'¥2,300万',file:'airlines/aeromexico.html',fleet:'nw',       flag:'🇲🇽',type:'fsc',taxfree:false,alliance:'スカイチーム'},
 {code:'CM',  name:'コパ航空',               en:'Copa Airlines',         region:'latam',  color:'#004A94',salary:'¥2,300万',file:'airlines/copa-airlines.html',fleet:'n',    flag:'🇵🇦',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
+/* 2026-10-21 全社へ広げる c（L5）：年収の正本（SALARY）に在るのにここに無かった4社。色と略号は各社の今の会社ページの社名の行の字と色。
+   チャーター・ビジネスジェット・紹介会社なので type は fsc／lcc のどちらでもない（一覧の札は fsc・lcc の会社にだけ出す）。地域は SALARY の region。 */
+{code:'AXC', name:'エアX・チャーター',         en:'AirX Charter Ltd',       region:'europe', color:'#a78bfa',salary:'¥1,850万',file:'airlines/airx-charter.html',      flag:'🇪🇺',type:'charter',taxfree:false,alliance:''},
+{code:'EJI', name:'イーグルジェット・インターナショナル', en:'Eagle Jet International, Inc.', region:'europe', color:'#5ec4ff',salary:'¥1,400万',file:'airlines/eagle-jet.html', flag:'🇪🇺',type:'charter',taxfree:false,alliance:''},
+{code:'ROOT',name:'ルート・アビエーション',   en:'Root Aviation',          region:'asia',   color:'#34d399',salary:'¥1,300万',file:'airlines/root-aviation.html',     flag:'🌏',type:'agent',taxfree:false,alliance:''},
+{code:'SOL', name:'ソレイラス・アビエーション', en:'Solairus Aviation',      region:'us',     color:'#3d9bff',salary:'¥2,400万',file:'airlines/solairus.html',          flag:'🇺🇸',type:'bizjet',taxfree:false,alliance:''},
   ];
 
   // file: 'airlines/ana.html' → 'ana'

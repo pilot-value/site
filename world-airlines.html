@@ -928,9 +928,10 @@ function createCard(a){
   wrap.href=a.file;
   wrap.className='airline-card';
   wrap.style.setProperty('--ac-rgb', hexToRgb(a.color));
+  /* 札は fsc・lcc の会社にだけ（チャーター・ビジネスジェット・紹介会社を LCC と呼ばない。2026-10-21） */
   const typeTag = a.type==='fsc'
     ? `<span class="tag tag-blue">FSC</span>`
-    : `<span class="tag tag-orange">LCC</span>`;
+    : a.type==='lcc' ? `<span class="tag tag-orange">LCC</span>` : '';
   const taxTag = a.taxfree?`<span class="tag tag-gold">免税</span>`:'';
   const alTag  = a.alliance?`<span class="tag tag-gray">${a.alliance}</span>`:'';
   wrap.innerHTML=`

@@ -115,9 +115,21 @@ for (const [slug, d] of Object.entries(SALARY)) {
        ⚠️ 旧平均の見張りを外しただけにしない。`held.was.avg` は50件すべて
           `salary-data.mjs` の現在の avg と一致している（実測）ので、**その avg が
           出ていること**を代わりに求める。数字が古くなったページは今までどおり捕まる。 */
-  const needAny = [], shown = [];
+  const needAny = [], shown = [], crewOn = [];
   for (const [rank, nm] of Object.entries(RANKS)) {
     const B = basis(slug, rank);
+    /* ★2026-10-21 P12.77（オーナー「そもそも運行乗務員の平均年収で出してどうするの？機長、副操縦士のわかないと意味ないじゃん」）。
+         機長と副操縦士を分けない額（運航乗務員の平均）は、会社ページに**出さない**。向きを裏返した ──
+         前は「出ていないと落とす」、いまは「出ていたら落とす」（同じ額の集合で見る）。台帳（BASIS.crew）には残る。 */
+    if (rank === 'crew') {
+      if (!B) continue;
+      /* 見るのは画面と検索向けの字（題・説明・構造化データ・本文）。seo-normalize.mjs が元の題名を預けている注記（<!--PV-SRC …-->）は画面に出ないので見ない */
+      const seen = html.replace(/<!--PV-SRC[\s\S]*?-->/g, '');
+      const on = [...B.allowed].map(man).filter((s) => seen.includes(s));
+      if (on.length) crewOn.push(...on);
+      shown.push(`${nm}平均（出さない）`);
+      continue;
+    }
     /* crew（運航乗務員＝機長と副操縦士をあわせた会社公表の平均）と trainee（訓練生）は、
        その資料がある会社にだけ置いてある。無い会社では何も求めない。 */
     if (!B) { if (!d[rank]) continue; const s = man(d[rank].avg); needAny.push([nm, [s]]); shown.push(nm + s); continue; }
@@ -147,9 +159,9 @@ for (const [slug, d] of Object.entries(SALARY)) {
   const miss = needAny.filter(([, list]) => !list.some((s) => html.includes(s)));
   const stale = (STALE[slug] || []).filter((s) => html.includes(s));
   let status = '✅', tag = '';
-  if (miss.length) {
+  if (miss.length || crewOn.length) {
     status = '❌'; fail++;
-    tag = miss.map(([n, l]) => `missing:${n}[${l.join('/')}]`).join(' ');
+    tag = [...miss.map(([n, l]) => `missing:${n}[${l.join('/')}]`), ...(crewOn.length ? [`crew-shown:運航乗務員の平均[${crewOn.join('/')}]`] : [])].join(' ');
   } else if (stale.length) { status = '⚠️ '; warn++; tag = `stale:${stale.join(',')}`; }
   else { pass++; }
   lines.push(`${status} ${slug.padEnd(20)} ${shown.join(' ')}   ${tag}`);

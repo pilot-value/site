@@ -76,7 +76,7 @@ import { execFileSync } from 'node:child_process';
 import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
-import { GLANCE } from './pv-airline-view.mjs';
+import { GLANCE, LEAD } from './pv-airline-view.mjs';
 import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, SUGGEST, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
 import { FACTS as CO_FACTS } from './airline-facts.mjs';
 import { FACTS as EY_FACTS } from './career-facts.mjs';
@@ -227,7 +227,16 @@ function rankModel(slug, rk) {
   return { est, figs, cap: figs.find(f => f.key === 'max_y') || null,
            co: figs.find(f => f.key === 'target_y' || f.key === 'cash_y_over') || null };
 }
-function crewModel(slug) {
+/* ★2026-10-21 P12.77：機長と副操縦士を分けない額（乗員全体の平均）は、どの会社ページにも出さない。
+   画面に出るはずの乗員全体の平均はいつも無い（crewModel は空）。台帳に在る額は crewLedger が返し、下の「出さない」の段がそれで見る。
+   その額だけの出どころ（有価証券報告書の「従業員の状況」の平均年間給与）も画面に出さない（CREW_SRC）。 */
+const CREW_SRC = /平均年間給与|【従業員の状況/;
+/* その額の話をしている台帳の注（乗員全体の平均を説明している注）。どれがそうかは検査の側でここに書く（生成側の CREW_ONLY を読まない ──
+   生成側の表から1つ消えて注が説明に戻っても、ここで赤くなる）。どの字も台帳の注にちょうど1つ当たること（台帳の字が変われば赤 ＝ 見直す）。
+   乗員全体の平均が台帳に在るのに、ここに無い会社も赤（2026-10-21 全社へ広げる c の確かめで足した）。 */
+const CREW_NOTES = { jal: ['運航乗務員全体の平均です', 'グループ連結の数字です', '連結人件費'], ana: ['運航乗務職全体の額です', 'エアージャパンをあわせた額です', '訓練生が人数に入るか'] };
+const crewModel = () => [];
+function crewLedger(slug) {
   const b = BASIS[slug];
   return ((b.crew && b.crew.groups) || []).filter(g => typeof g.avg_y === 'number').map(g => {
     const m = /^(.*?)（(.*)）$/.exec(g.name);
@@ -288,7 +297,9 @@ for (const s of FIVE) {
    A) 生成物
    ══════════════════════════════════════════════════════════════════ */
 head('生成物');
-ok(same(GLANCE, FIVE), '対象は主要5社（JAL・ANA・キャセイ・エティハド・エバー）', GLANCE.join(', '));
+/* ★2026-10-21 全社へ広げる c：新しい会社ページの会社（SWITCH ＝ GLANCE）は先行5社＋見本の会社。この検査が深く見るのは先行5社（FIVE）。
+     見本の会社のページは assert-rollout.mjs が見る。 */
+ok(same(LEAD, FIVE) && FIVE.every(s => GLANCE.includes(s)), '先行5社（JAL・ANA・キャセイ・エティハド・エバー）は、新しい会社ページの会社（SWITCH）に入っている', `LEAD=${LEAD.join(', ')} ／ SWITCH=${GLANCE.join(', ')}`);
 for (const s of FIVE) {
   const html = PAGES[s];
   ok(build(s, html) === html, `${pageOf(s)} は gen-airline-glance.mjs の出力と1文字も違わない`,
@@ -324,7 +335,7 @@ for (const s of FIVE) {
       if (f.endsWith('.html') && /data-pv-glance=/.test(read(`${dir}/${f}`))) marked.push(`${dir}/${f}`);
     }
   }
-  ok(same(marked.sort(), FIVE.map(pageOf).sort()), 'data-pv-glance を持つのは5枚だけ', marked.join(', '));
+  ok(same(marked.sort(), GLANCE.map(pageOf).sort()), `data-pv-glance を持つのは新しい会社ページの会社（airline-rollout.mjs の SWITCH・${GLANCE.length}枚）だけ`, marked.join(', '));
 }
 {
   /* ★英語の会社ページ（en/airlines）は、何も選んでいない人には明るい色で開く（2026-10-18 オーナー Q4「①」＝ 日本語と同じ。
@@ -545,8 +556,19 @@ for (const s of FIVE) {
   ok(notes.every(n => (BASIS[s].notes || []).includes(n)), `${s}: 注は台帳の言葉のまま`, notes.filter(n => !(BASIS[s].notes || []).includes(n)).join(' ／ ').slice(0, 160));
   /* 出どころ：会社の公表ではない資料（報道など）には、そう書く。 */
   const srcs = [...dt.matchAll(/<a class="pvg-src" href="([^"]*)" target="_blank" rel="noopener">([^<]*)<\/a><small>([^<]*)<\/small>/g)].map(m => ({ url: unesc(m[1]), mark: m[3] }));
-  const led = BASIS[s].src || [];
-  ok(same(srcs.map(x => x.url), led.map(x => x.url)), `${s}: 出どころは台帳の資料と同じ並び`, `${srcs.length}件／台帳 ${led.length}件`);
+  const led = (BASIS[s].src || []).filter(x => !(crewLedger(s).length && CREW_SRC.test(x.name)));   // 乗員全体の平均だけの資料は出さない（P12.77）
+  ok(same(srcs.map(x => x.url), led.map(x => x.url)), `${s}: 出どころは台帳の資料と同じ並び（乗員全体の平均だけの資料を除く）`, `${srcs.length}件／台帳 ${led.length}件`);
+  /* ★P12.77：乗員全体の平均（台帳に在る額）は、給与の箱にも説明にも1つも出ない。その額の話の注も出ない。 */
+  {
+    const amounts = crewLedger(s).map(c => yen(c.man)), payText = text(PART[s].pay);
+    ok(!/data-kind="crew"/.test(PART[s].pay) && !/全体の平均/.test(payText) && amounts.every(a => !payText.includes(a)) && !notes.some(n => /全体の(?:平均|額)です/.test(n)),
+       `${s}: 機長と副操縦士を分けない額（乗員全体の平均${amounts.length ? ` ${amounts.join('・')}` : ''}）とその注は、給与の箱にも説明にも無い（P12.77）`,
+       [...amounts.filter(a => payText.includes(a)), ...notes.filter(n => /全体の(?:平均|額)です/.test(n))].join(' ／ '));
+    const words = CREW_NOTES[s] || [], hit = words.map(w => (BASIS[s].notes || []).filter(n => n.includes(w)));
+    ok(!crewLedger(s).length || (words.length > 0 && hit.every(x => x.length === 1) && !hit.flat().some(n => notes.includes(n))),
+       `${s}: 乗員全体の平均の話をしている台帳の注${crewLedger(s).length ? `（${words.length}つ）` : ''}は、1つも説明に出ない（P12.77）`,
+       [...words.filter((w, i) => hit[i].length !== 1).map(w => `台帳の注に「${w}」がちょうど1つ無い`), ...hit.flat().filter(n => notes.includes(n))].join(' ／ ').slice(0, 200) || (words.length ? '' : 'CREW_NOTES に無い会社'));
+  }
   ok(led.every((x, i) => !srcs[i] || !!x.secondary === /会社の公表ではない資料/.test(srcs[i].mark)), `${s}: 会社の公表ではない資料に、そう書いてある（会社の資料には書かない）`);
   /* ★2026-10-08 根拠・条件・時点：資料ごとに、こちらが確かめた日を書く（台帳の accessed のまま。今日の日付で上書きしない）。 */
   ok(led.length > 0 && led.every((x, i) => /^\d{4}-\d\d-\d\d$/.test(x.accessed || '') && !!srcs[i] && srcs[i].mark.endsWith(`確認日 ${dateJa(x.accessed)}`)),

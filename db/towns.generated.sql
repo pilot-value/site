@@ -26,7 +26,10 @@ select v.airline, v.base, public.pv_town_key(v.name), v.name, 'ledger', 'public'
     ('etihad', 'AUH', 'ヤス島'),
     ('eva-air', 'TPE', '南崁'),
     ('eva-air', 'TPE', '青埔'),
-    ('eva-air', 'TPE', '林口')
+    ('eva-air', 'TPE', '林口'),
+    ('skymark', 'HND', '品川'),
+    ('skymark', 'HND', '豊洲'),
+    ('skymark', 'HND', '横浜')
   ) as v(airline, base, name)
 on conflict (airline, base_iata, tkey) do update set
   name = excluded.name, origin = 'ledger', state = 'public', alias_of = null,

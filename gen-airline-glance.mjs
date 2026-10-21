@@ -54,6 +54,34 @@ export const SUGGEST = { js: 'pv-hotel-suggest.js' };
 export const pageOf = slug => path.join('airlines', `${slug}.html`);
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+/* ── 社名の左横のロゴ（2026-10-21 オーナー「会社ページ作る時に航空会社名のタイトルの左横はロゴにしてね」）──
+   サイトに在るロゴだけ（assets/airline-logos/<slug>.<拡張子>。一覧は airline-logos.js の PV_LOGOS）。取りに行かない。
+   描き方はトップのレベリング図（salary-leveling.js の logoHtml）と同じ：白い札に元の縦横比のまま・読めなければ会社の色の四角に頭文字。
+   ロゴの無い会社（PV_LOGOS に無い会社）は、はじめから同じ大きさ・同じ場所の頭文字の四角。
+   社名のすぐ隣の飾りなので alt="" ＋ aria-hidden（社名は h1 が読む）。幅と高さの属性は絵の縦横比（読み込む前後で社名が動かない）。 */
+export const LOGOS = (() => { const w = {}; new Function('window', fs.readFileSync(path.join(ROOT, 'airline-logos.js'), 'utf8'))(w); return w.PV_LOGOS || {}; })();
+/* 頭文字（salary-leveling.js の monogram と同じ決め方：英語の社名の語の頭2つ） */
+const monogram = slug => { const t = String(SALARY[slug].en || '').replace(/[^A-Za-z ]/g, ' ').trim(); if (!t) return '✈'; const w = t.split(/\s+/); return (w.length >= 2 ? w[0][0] + w[1][0] : t.slice(0, 2)).toUpperCase(); };
+/* 絵の縦横比（SVG の viewBox か width・height／PNG の IHDR）。高さ 64 に直した整数の幅と高さ。読めなければ null。 */
+function logoBox(file) {
+  const b = fs.readFileSync(file);
+  let w, h;
+  if (file.endsWith('.png')) { w = b.readUInt32BE(16); h = b.readUInt32BE(20); }
+  else {
+    const tag = (/<svg\b[\s\S]*?>/.exec(b.toString('utf8', 0, 8000)) || [''])[0];
+    const vb = /viewBox="\s*[-\d.e]+[\s,]+[-\d.e]+[\s,]+([\d.e]+)[\s,]+([\d.e]+)/.exec(tag);
+    if (vb) { w = +vb[1]; h = +vb[2]; } else { w = +(/\bwidth="([\d.]+)/.exec(tag) || [])[1]; h = +(/\bheight="([\d.]+)/.exec(tag) || [])[1]; }
+  }
+  return w > 0 && h > 0 ? { w: Math.max(1, Math.round((64 * w) / h)), h: 64 } : null;
+}
+/* 頭文字の字の色：会社の色が明るいときだけ暗い字（salary-leveling.js と同じ式） */
+const lightBg = hex => { const n = parseInt(hex.slice(1), 16); return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 150; };
+export function logoHtml(v) {
+  const ext = LOGOS[v.slug], mono = `<b class="pvg-mono"${lightBg(v.color) ? ' style="--pvg-mono-ink:#1a2233"' : ''}>${esc(monogram(v.slug))}</b>`;
+  if (!ext) return `<span class="pvg-logo is-mono" aria-hidden="true">${mono}</span>`;
+  const rel = `assets/airline-logos/${v.slug}.${ext}`, box = logoBox(path.join(ROOT, rel));
+  return `<span class="pvg-logo" aria-hidden="true"><img src="${UP}${rel}" alt=""${box ? ` width="${box.w}" height="${box.h}"` : ''} decoding="async" onerror="this.parentNode.classList.add('is-fail')">${mono}</span>`;
+}
 const fingerprint = f => createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
 const asset = f => `${UP}${f}?v=${fingerprint(f)}`;
 /* 段階3の面の社名（coSay）と、台帳の字の中の社名（coText）は、読み口（pv-airline-view.mjs）の1か所に在る
@@ -212,7 +240,11 @@ const val = f => f.orig === true
 const prose = s => `<span class="pv-no-cur">${esc(s)}</span>`;
 /* 円の額ではない「10万米ドル」「2,240万人」の「◯万」を、通貨切替が円の額と読み違えないようにする */
 const safe = s => (!/[¥円]/.test(String(s)) && /\d\s*[万億]/.test(String(s)) ? prose(s) : esc(s));
-const whole = f => (f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : '');
+const whole = f => (f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : '') + useTag(f);
+/* 過去・参考の行の札（先行5社ではない会社の調べの台帳の行だけ。言葉は airline-display.mjs の TAG）。過去の行は日付も前提に出る（premise）。 */
+const useTag = f => (f.tag ? `<span class="pvg-tag pvg-tag-q" data-use="${esc(f.use)}">${esc(f.tag)}</span>` : '');
+/* カードの1行め・小さい2行に置いてよい行（過去・参考の行は置かない ── 開いた板の一覧にだけ、札と日付つきで出す） */
+const plain = f => !f.tag;
 
 /* 出どころの一覧（同じ資料は1回だけ）。
    fold ＝ 下のカードでは畳んで置く（押せば資料の名前とリンクが全部出る。数字のそばから1回で届く）。
@@ -261,7 +293,7 @@ function hero(v, keep) {
 <div class="max-w-7xl mx-auto px-6">
 <div class="pvg-id">
 <div class="pvg-name">
-<h1>${keep.h1}</h1><span class="pvg-code">${esc(v.code)}</span>
+${logoHtml(v)}<h1>${keep.h1}</h1><span class="pvg-code">${esc(v.code)}</span>
 <p class="text-muted pvg-sub">${keep.sub}</p>
 </div>
 <div class="pvg-meta">
@@ -470,8 +502,8 @@ export const workAll = v => [...v.work, ...v.benefits.filter(f => MOVED.has(f.ke
   .filter(f => !v.rollout || SURFACES.some(S => S.facts && S.facts.includes(f.key)));
 /* 概要の「勤務」のカード。カードに出す行は今までどおり台帳の勤務（v.work）から。開く板は5つの面 */
 function workCell(v) {
-  const all = workAll(v), body = workPanel(v, all), work = v.work.filter(f => all.includes(f));
-  const lead = work.find(f => f.lead) || work[0];
+  const all = workAll(v), body = workPanel(v, all), work = v.work.filter(f => all.includes(f) && plain(f));
+  const lead = work.find(f => f.lead) || (v.rollout ? null : work[0]);
   if (!lead) return cell('work', '勤務', IC.work, { slug: v.slug, k: '会社の公表', v: '確認できていません', empty: true, ask: WORK_ASK, note: esc('会社が公表している勤務の条件を確認できていません'), body });
   return cell('work', '勤務', IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
     more: all.length > 1 ? `ほか${all.length - 1}件と出典` : '出典を見る', body });
@@ -483,16 +515,22 @@ function benCell(v) {
   const card = v.benefits, items = card.filter(f => !MOVED.has(f.key)), gone = card.filter(f => MOVED.has(f.key));
   const moved = gone.length ? `<p class="pvg-quiet pvg-moved">${esc(gone.map(f => f.label).join('・'))}は「勤務・訓練」に載せています。<a class="pvg-link" href="#work">勤務・訓練で見る${IC.go}</a></p>` : '';
   const answers = `<div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p>${live('fact', { airline: v.slug, keys: [...BEN_ASK.map(a => a[0]), ...BEN_SHOW].join(',') })}</div>${live('notes', { airline: v.slug, keys: noteKeys(['benefits']).join(',') })}`;
-  const lead = card.find(f => f.lead) || card[0];
-  if (!lead) return cell('benefits', '待遇', IC.benefits, { slug: v.slug, k: '会社の公表', v: '確認できていません', empty: true, ask: BEN_ASK, note: esc('会社が公表している待遇を確認できていません'), body: answers + asks(v.slug, BEN_ASK) });
+  const lead = card.find(f => f.lead) || (v.rollout ? null : card[0]);
+  /* 今の公表が無い会社（先行5社ではない会社で、過去・参考の行だけ）：カードは今までの「確認できていません」。開く板には、その行を札つきで並べる */
+  const past = v.rollout && items.length ? `${moved}<p class="pvg-askh">会社が公表している条件</p>${factList(items)}${sources(items)}` : '';
+  if (!lead) return cell('benefits', '待遇', IC.benefits, { slug: v.slug, k: '会社の公表', v: '確認できていません', empty: true, ask: BEN_ASK, note: esc('会社が公表している待遇を確認できていません'), body: past + answers + asks(v.slug, BEN_ASK) });
   const others = items.filter(f => f !== lead).length;
-  return cell('benefits', '待遇', IC.benefits, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: card.filter(f => f !== lead).slice(0, 2), ask: BEN_ASK,
+  return cell('benefits', '待遇', IC.benefits, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: card.filter(f => f !== lead && plain(f)).slice(0, 2), ask: BEN_ASK,
     more: others ? `ほか${others}件と出どころ` : '出どころを見る',
     body: `${moved}${items.length ? `<p class="pvg-askh">会社が公表している条件</p>${factList(items)}${sources(items)}` : ''}${answers}${asks(v.slug, BEN_ASK)}` });
 }
+/* 家賃の期間の字。週あたりの表（オーストラリアの州の統計）は週のまま出す（月に直さない ── 資料に無い額を作らない）。 */
+const PER_WORD = { year: '年 ', month: '月 ', week: '週 ' };
+const PER_SPAN = { month: '1か月あたり', week: '1週あたり' };
+const perSpan = L => PER_SPAN[L.per] || PER_SPAN.month;
 function rentText(L, r, col) {
   const c = rentCell(L.cur, r.value[col]);
-  const per = L.per === 'year' ? '年 ' : L.per === 'month' ? '月 ' : '';
+  const per = PER_WORD[L.per] || '';
   return c.orig ? `<span class="pv-no-cur">${per}${esc(c.orig)}</span>${approx(L.cur, c.yen)}` : `${per}${esc(c.yen)}`;
 }
 /* ── 暮らし：街の写真カード → 街ごとの詳細 → 「出典」（根拠・条件・時点）──
@@ -522,7 +560,7 @@ function townName(r) {
            区や駅の案内（東京都港区・高鐵桃園站 A18）は、別のものの名前なので入れない */
 export const ledgerTowns = v => {
   const seen = new Set();
-  return (v.living ? v.living.rents : []).map(r => townName(r)).filter(n => n.main && !seen.has(n.main) && seen.add(n.main))
+  return (v.living && !v.living.research ? v.living.rents : []).map(r => townName(r)).filter(n => n.main && !seen.has(n.main) && seen.add(n.main))
     .map(n => ({ name: n.main, sub: n.sub || '', alias: n.en && n.sub ? n.sub : '' }));
 };
 /* 街の投稿が属する基地の3字。住むエリアの節の data-base・入口・一覧の器・候補の種が、この1つを読む */
@@ -554,19 +592,21 @@ const endRow = e => `<li data-end="${esc(e.end)}"><span class="pvg-way-l">${esc(
 const wayLine = c => `<li data-way="${esc(c.key)}"><span class="pvg-way-t"><i class="pvg-mode">${MODE_JA[c.mode]}</i>${code3(c.iata)}</span><span class="pvg-way-l">${esc(c.label)}</span><b>${val(c)}</b></li>`;
 /* 見出しの行。カードの移動の数字が Google マップの表示だということは、ここで1回だけ言う（カードごとに繰り返さない）。
    「＋パイロットに人気の街を追加」の入口は、この中の最後（見出しが左・入口が右。狭い箱では下へ回る ＝ .pvg-liv-h の組み方）。 */
-const livingHead = (v, L) => `<header class="pvg-liv-h"><p class="pvg-askh">住むエリア${L.rents.some(r => r.way) ? '<small>空港までの時間は Google マップの表示</small>' : ''}</p>${townAdd(v)}</header>`;
+/* 先行5社ではない会社は、どの街の話かを見出しに添える（拠点の空港が2つ以上の会社は、街の欄が拠点の順に並ぶ）。 */
+const livingHead = (v, L) => `<header class="pvg-liv-h"><p class="pvg-askh">住むエリア${v.rollout ? `<small>${esc(L.city)}・${L.airports.map(a => esc(a.iata)).join('・')}</small>` : ''}${L.rents.some(r => r.way) ? '<small>空港までの時間は Google マップの表示</small>' : ''}</p>${townAdd(v, L)}</header>`;
 /* 「＋パイロットに人気の街を追加」（字はオーナーの「パイロットに人気の街を追加」。2026-10-18）。暮らしの板に1つだけ（常設）。
    会社は body から、基地・空港・街の名前はここから面へ渡す。
    ★額は1つも渡さない。家賃の欄の鍵も渡さない（面は広さ・間取り・家賃を聞かない）。★質問も街も指さない（data-pvc-q・data-pvc-ctx を付けない）。 */
 const J = a => esc(JSON.stringify(a));
-function townAdd(v) {
-  if (!tabbed(v.slug) || !v.living || !baseCode(v)) return '';
+/* 調べの台帳の街（L.research）には出さない ── 会員が街を足せるのは、台帳に街がある会社と基地だけ（db/towns.sql の決まり）。 */
+function townAdd(v, L = v.living) {
+  if (!tabbed(v.slug) || !v.living || !baseCode(v) || L !== v.living || L.research) return '';
   const base = [v.base.city, v.base.iata.join('・')].filter(Boolean).join(' ');   // 空港の3字が無い会社（ANA）は街の名前だけ（後ろに空白を残さない）
   const ports = v.living.airports.map(a => a.iata);
   return `<a class="pvg-link pvg-liv-add" href="?add=town" data-pvc-open="town" data-pvc-base="${esc(baseCode(v))}" data-pvc-basetext="${esc(base)}" data-pvc-ports="${J(ports)}" data-pvc-towns="${J(ledgerTowns(v).map(t => [t.name, t.sub]))}">＋パイロットに人気の街を追加</a>`;
 }
 /* 会員が挙げた街（描くのは career-live.js。ここは器と見出しだけ）。見出しは、欄が空のあいだ CSS が隠す */
-const townGot = v => (tabbed(v.slug) && v.living && baseCode(v)
+const townGot = v => (tabbed(v.slug) && v.living && baseCode(v) && !v.living.research
   ? `<div class="pvg-liv-got"><p class="pvg-askh">パイロットの回答</p>${live('towns', { airline: v.slug, base: baseCode(v) })}</div>` : '');
 function townCard(L, r, sizes) {
   const p = PLACE.primary(r.key), n = townName(r), w = r.way;
@@ -590,7 +630,7 @@ function townDetail(v, L, r) {
   ];
   const cols = L.cols.filter(([key]) => L.rents.some(x => x.value[key] != null));
   /* 間取りごとの一覧は、棒の組が無い都市と、額の無い街（棒の組が在る都市でも）にだけ。額の無い街は、家賃の資料が無いことを字で言う（黙らない） */
-  const rentBlock = L.hasBars && Object.keys(r.value).length ? '' : `<div class="pvg-td-c"><p class="pvg-askh">家賃${L.measure ? `<small>${esc(L.measure)}・1か月あたり</small>` : ''}</p>
+  const rentBlock = L.hasBars && Object.keys(r.value).length ? '' : `<div class="pvg-td-c"><p class="pvg-askh">家賃${L.measure ? `<small>${esc(L.measure)}・${perSpan(L)}</small>` : ''}</p>
 ${Object.keys(r.value).length
     ? `<dl class="pvg-kv">${cols.map(([key, label]) => `<div><dt>${esc(label)}</dt><dd>${r.value[key] == null ? '<span class="pvg-none">—</span>' : rentText(L, r, key)}</dd></div>`).join('')}</dl>`
     : '<p class="pvg-quiet">家賃の資料を確認できていません</p>'}</div>`;
@@ -668,7 +708,7 @@ function rentBars(L) {
   })).join('\n');
   const lead = L.rents.find(r => r.lead);
   return `<div class="pvg-rb" data-pvg-rent style="--rb-n:${nameEm}em;--rb-v:${RB_V}em">
-<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>${esc(L.measure)}・1か月あたり</small></p>
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>${esc(L.measure)}・${perSpan(L)}</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 ${L.bars.map(k => `<button type="button" class="pvg-rb-b" data-pvg-size="${esc(k)}" aria-pressed="${k === L.leadCol ? 'true' : 'false'}">${esc(L.words[k])}</button>`).join('\n')}
 </div></div>
@@ -687,20 +727,25 @@ function livingCell(v) {
       note: '家賃の資料を確認できていません', body: asks(v.slug, LIVE_ASK),
     });
   }
-  const t = townTracks(L.rents.length), sizes = townSizes(t);
-  const towns = `<section class="pvg-liv" data-pvg-towns data-city="${esc(L.cityKey)}" data-base="${esc(baseCode(v))}">
-${livingHead(v, L)}
-<ul class="pvg-tgrid" data-n="${L.rents.length}" style="--tg-a:${t.a};--tg-b:${t.b};--tg-c:${t.c};--tg-d:${t.d}">
-${L.rents.map(r => townCard(L, r, sizes)).join('\n')}
+  /* 街の欄（拠点の街ごとに1つ。先行5社は1つ）。並びは拠点の順。 */
+  const section = C => {
+    const t = townTracks(C.rents.length), sizes = townSizes(t);
+    return `<section class="pvg-liv" data-pvg-towns data-city="${esc(C.cityKey)}" data-base="${esc(C === L ? baseCode(v) : C.airports[0].iata)}">
+${livingHead(v, C)}
+<ul class="pvg-tgrid" data-n="${C.rents.length}" style="--tg-a:${t.a};--tg-b:${t.b};--tg-c:${t.c};--tg-d:${t.d}">
+${C.rents.map(r => townCard(C, r, sizes)).join('\n')}
 </ul>
-<div class="pvg-liv-2${L.hasBars ? ' has-rb' : ''}">
+<div class="pvg-liv-2${C.hasBars ? ' has-rb' : ''}">
 <div class="pvg-tds">
-${L.rents.map(r => townDetail(v, L, r)).join('\n')}
-</div>${L.hasBars ? `\n${rentBars(L)}` : ''}
+${C.rents.map(r => townDetail(v, C, r)).join('\n')}
+</div>${C.hasBars ? `\n${rentBars(C)}` : ''}
 </div>
-${cityEvidence(v, L)}
+${cityEvidence(v, C)}
 </section>`;
-  const credits = placeCredits(L.rents.map(r => [townName(r).main, PLACE.primary(r.key), r.key]));
+  };
+  const all = v.livings && v.livings.length ? v.livings : [L];
+  const towns = all.map(section).join('\n');
+  const credits = placeCredits(all.flatMap(C => C.rents.map(r => [townName(r).main, PLACE.primary(r.key), r.key])));
   const has = !!L.leadCol && lead.value[L.leadCol] != null, way = lead.way;
   /* 概要に出す移動の1行：by_town の都市は、先頭の街のカードの行。まだの都市は、今までの lead の行。 */
   const also = way ? [{ label: `${way.from} → ${way.to}・Google マップ`, value: `${way.modes.map(m => MODE_JA[m]).join('・')} ${way.text}`, orig: false }]
@@ -718,7 +763,7 @@ ${cityEvidence(v, L)}
     slug: v.slug, ask: LIVE_ASK,
     k: `${esc(lead.name).replace(/（[^）]*）/g, m => `<span class="pvg-opt">${m}</span>`)}${lead.area ? `（${esc(lead.area)}）` : ''}・${esc(colName)}の${esc(L.measure)}`, v: rentText(L, lead, L.leadCol),
     note: esc(join(L.siteName, lead.when)),
-    also, count: L.rents.length + L.commute.length, more: '街ごとの家賃と出典',
+    also, count: all.reduce((n, C) => n + C.rents.length + C.commute.length, 0), more: '街ごとの家賃と出典',
     body: `${towns}${townGot(v)}${credits}`,
   });
 }
@@ -747,8 +792,9 @@ function companyCard(v) {
     ? `<figcaption>写真（${esc(p.changes)}）：${ext(p.source, p.author, '')}／${ext(p.licence_url, p.licence, '')}</figcaption>` : '';
   const photo = p ? `<figure class="pvg-photo"><img src="${UP}${photoSrc(p, true)}" srcset="${UP}${photoSrc(p, true)} ${SMALL_W}w, ${UP}${photoSrc(p, false)} ${p.w}w" sizes="(min-width:1100px) 400px, (min-width:700px) 34vw, 92vw" width="${SMALL_W}" height="${smallH(p)}" loading="lazy" decoding="async" alt="${esc(v.name)}の${esc(p.aircraft)}">${credit}</figure>` : '';
   const facts = [...c.profile, ...c.scale];
-  const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">機材<small>${join(`${c.fleet.length}機種`, c.fleet[0].when)}</small></p>
-<ul class="pvg-chips">${c.fleet.map(f => `<li title="${esc(f.label)}">${esc(shortType(f.label))}<b>${esc(f.value)}</b></li>`).join('')}</ul></div>` : '';
+  /* 先行5社ではない会社の機材は型式だけ（会社の資料に載っている型式。機数は作らない・型式の数を「◯機種」と言わない ── 全部の型式とは限らない） */
+  const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">機材<small>${v.rollout ? '会社の資料に載っている型式' : join(`${c.fleet.length}機種`, c.fleet[0].when)}</small></p>
+<ul class="pvg-chips">${c.fleet.map(f => `<li title="${esc(f.label)}">${esc(shortType(f.label))}${f.value === '' ? '' : `<b>${esc(f.value)}</b>`}</li>`).join('')}</ul></div>` : '';
   /* 紹介の本文（2026-10-08 オーナーのご指示「会社紹介の規模・空港名・古い機材／訓練地も台帳と公式資料にそろえる」）。
      字は台帳の項目から組み立てたものだけ（pv-airline-view.mjs の introOf。型と決まりは career-facts.mjs の checkIntro）。
      ⚠️ 手で書いた紹介文をここへ戻さない。作り直す前のページの字には「日本第2位」「日本最大」のような順位、
@@ -760,21 +806,23 @@ function companyCard(v) {
      数え方と時点・全部の数字・機材・出どころは「会社情報」を開いた中に在る
      （上に出した値も、そこでは数え方つきで出る ＝ 注記を落としたままにしない）。 */
   const said = new Set(c.intro.flatMap(s => s.uses));
-  const shown = facts.filter(f => !said.has(f.key)).slice(0, 4);
+  const shown = facts.filter(f => !said.has(f.key) && plain(f)).slice(0, 4);
   const keys = `<dl class="pvg-keys">${shown.map(f => { const m = tail(f);
     return `<div><dt>${esc(f.label)}</dt><dd>${m ? esc(m[1]) : val(f)}</dd></div>`; }).join('')}</dl>`;
-  const more = `<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(`数字${facts.length}つ`, c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
+  const more = `<details class="pvg-dt pvg-co-more"><summary>会社情報<small>${join(facts.length ? `数字${facts.length}つ` : '', c.fleet.length ? '機材' : '', '出どころ')}</small>${IC.down}</summary>
 ${stats(facts)}
 ${fleet}
 ${sources([...facts, ...c.fleet])}
 </details>`;
-  /* 先行5社ではない会社：在る部品だけを置く。写真も紹介文も無い会社には、この1枚を置かない
-     ── この1枚の組み方（pv-glance.css）は左に写真の列を取るので、数字だけだと見出しと数字が左右にずれる。
-        css を直すと先行5社のページの ?v= が動く（＝ 5枚が変わる）ので、この回は直さない。会社の話は、残した「◯◯について」の節に在る。 */
+  /* 先行5社ではない会社：在る部品だけを置く（紹介文・4つの値・「会社情報」）。どれも無ければ、この1枚を置かない。
+     写真の無い会社は写真の列を取らない形（.pvg-co-np ── 全社へ広げる c・2026-10-21 L7）。 */
   if (v.rollout) {
-    const body = [c.intro.length ? lead : '', shown.length ? keys : '', facts.length || c.fleet.length ? more : ''].filter(Boolean);
-    if (!photo && !c.intro.length) return '';
-    return `<article class="pvg-card pvg-co"${pane(v.slug, 'overview')}>\n${[photo, head(IC.company, '会社'), ...body].filter(Boolean).join('\n')}\n</article>`;
+    /* 紹介文も4つの値も無い会社（機材だけ・過去の数字だけ）は、畳まずに出す ── 畳むと見出しと「会社情報」の1行だけの1枚になる */
+    const lone = !c.intro.length && !shown.length;
+    const body = (lone ? [facts.length ? stats(facts) : '', fleet, sources([...facts, ...c.fleet], true)]
+      : [c.intro.length ? lead : '', shown.length ? keys : '', facts.length || c.fleet.length ? more : '']).filter(Boolean);
+    if (!body.length && !photo) return '';
+    return `<article class="pvg-card pvg-co${photo ? '' : ' pvg-co-np'}"${pane(v.slug, 'overview')}>\n${[photo, head(IC.company, '会社'), ...body].filter(Boolean).join('\n')}\n</article>`;
   }
   return `<article class="pvg-card pvg-co"${pane(v.slug, 'overview')}>
 ${photo}
@@ -897,26 +945,30 @@ function cityTeaser(list, regions) {
   }
   return out;
 }
+/* 就航地の一覧：先行5社は公式の資料の一覧（airline-destinations.mjs）・ほかの会社は調べで確かめた就航地（v.network。partial）。 */
+const netOf = v => (v.rollout ? v.network || null : networkOf(v.slug));
 function stayCard(v) {
-  const net = networkOf(v.slug);
+  const net = netOf(v);
   /* 拠点を確かめられていない会社（全社へ広げる b）には、この1行を置かない */
   const base = !v.base.city && !v.base.iata.length ? '' : `<p class="pvg-stay-base">${IC.pin}<span>拠点</span><b>${[esc(v.base.city), v.base.iata.map(esc).join('・')].filter(Boolean).join(' ')}</b>
-${ext(href.maps(`${v.base.text} ${v.base.iata[0] || ''}`.trim()).replace(/&amp;/g, '&'), 'Google マップで見る', 'pvg-link')}</p>`;
+${ext(href.maps([...new Set([v.base.text, v.base.iata[0] || ''])].join(' ').trim()).replace(/&amp;/g, '&'), 'Google マップで見る', 'pvg-link')}</p>`;
   if (!net) return `<article class="pvg-card pvg-stay" id="pvg-stay"${pane(v.slug, 'overview stay')}>
 ${head(IC.stay, 'ステイ')}
 ${base}
 <p class="pvg-quiet">就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。</p>
 </article>`;
   const list = cityOrder(net), n = list.length;
-  const official = ext(net.src[0].url, '公式の就航地', 'pvg-link pvg-st-off');
+  /* ★調べで確かめた就航地（partial）は「公式の就航地」「会社全体の就航地」と言わない（全部そろっているとは限らない。2026-10-21 L2）。 */
+  const official = net.partial ? '' : ext(net.src[0].url, '公式の就航地', 'pvg-link pvg-st-off');
+  const what = net.partial ? `調べで確かめた就航地・${n}空港・${dateJa(net.at)}時点です。全部の就航地とは限りません。` : '会社全体の就航地です。';
   const held = new Map();
   for (const h of net.held) held.set(h.why, [...(held.get(h.why) || []), h.name]);
   const evidence = `<details class="pvg-dt pvg-srcd pvg-ev"><summary>出典<small>根拠・条件・時点</small>${IC.down}</summary>
 <dl class="pvg-evl">
 <div><dt>根拠</dt><dd class="pvg-srcs">${net.src.map(x => ext(x.url, coText(v.slug, x.name))).join('')}</dd></div>
-<div><dt>条件</dt><dd><ul class="pvg-notes"><li>${prose(coText(v.slug, net.basis))}</li><li>会社全体の就航地です。機種・ベースごとの運航や、宿泊があるかどうかは示していません。</li><li>並びは地域ごと（写真のある都市を先に）。人気や便数の順ではありません。</li></ul></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li>${prose(coText(v.slug, net.basis))}</li><li>${esc(what)}機種・ベースごとの運航や、宿泊があるかどうかは示していません。</li><li>並びは地域ごと（写真のある都市を先に）。人気や便数の順ではありません。</li></ul></dd></div>
 ${held.size ? `<div><dt>載せていない空港</dt><dd><ul class="pvg-notes">${[...held].map(([why, names]) => `<li><b>${prose(coText(v.slug, why))}</b>${prose(names.join('・'))}</li>`).join('')}</ul></dd></div>` : ''}
-<div><dt>時点</dt><dd><span>${esc(dateJa(net.at))}に公式の資料で確認</span></dd></div>
+<div><dt>時点</dt><dd><span>${esc(dateJa(net.at))}に${net.partial ? '調べで' : '公式の資料で'}確認</span></dd></div>
 </dl></details>`;
   const pills = [['', 'すべて', n], ...net.regions.map(r => [r.key, r.label, r.n])].map(([key, label, k], i) =>
     `<button type="button" class="pvg-pill" data-pvg-rg="${key}" aria-pressed="${i ? 'false' : 'true'}">${esc(label)}<small>${k}</small></button>`).join('');
@@ -929,7 +981,7 @@ ${base}
 <ul class="pvg-cgrid pvg-cteaser">
 ${cityTeaser(list, net.regions).map(cityCard).join('\n')}
 </ul>
-<p class="pvg-st-more"><button type="button" class="pvg-btn pvg-btn-ghost" data-pvg-tab="stay">就航地をすべて見る（${n}空港）${IC.go}</button></p>
+<p class="pvg-st-more"><button type="button" class="pvg-btn pvg-btn-ghost" data-pvg-tab="stay">${net.partial ? '調べで確かめた就航地を見る' : '就航地をすべて見る'}（${n}空港）${IC.go}</button></p>
 </div>
 <div class="pvg-st-full">
 <div class="pvg-st-bar">
@@ -953,7 +1005,7 @@ ${credits}
 <p class="pvg-city-k"><small data-cd="country"></small><i class="pvg-code3" data-cd="iata"></i><span class="pvg-city-t" data-cd="seasonal" hidden>季節運航</span></p>
 <h3 class="pvg-cd-n" id="pvg-cd-n" tabindex="-1" data-cd="name"></h3>
 <p class="pvg-town-s" lang="en" data-cd="en"></p>
-<p class="pvg-quiet pvg-cd-note">${esc(coSay(v.slug))}の公式の就航地です。あなたの機種・ベースからの運航や宿泊があるとは限りません。</p>
+<p class="pvg-quiet pvg-cd-note">${net.partial ? '調べで確かめた就航地です' : `${esc(coSay(v.slug))}の公式の就航地です`}。あなたの機種・ベースからの運航や宿泊があるとは限りません。</p>
 <p class="pvg-cd-links"><a class="pvg-link" data-cd="maps" href="https://www.google.com/maps" target="_blank" rel="noopener">Google マップで見る${IC.out}</a>${official}</p>
 <p class="pvg-cd-cr" data-cd="credit" hidden></p>
 </div>
@@ -982,7 +1034,7 @@ function askCard(v) {
     const [name = title, gloss = ''] = TOPIC_NAME[id] || [];
     return [id, name, gloss, list];
   });
-  const stay = networkOf(v.slug) ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay">${topicHead(IC.stay, 'ホテル・レストラン', '就航地ごと・パイロット限定')}${IC.next}</a>` : '';
+  const stay = netOf(v) ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay">${topicHead(IC.stay, 'ホテル・レストラン', '就航地ごと・パイロット限定')}${IC.next}</a>` : '';
   const keys = [...new Set(groups.flatMap(([, , , list]) => list.map(a => a[0])))];
   /* タブを持つページ：見出しの横から項目の一覧（「情報を追加」の面）を開ける。通勤・タクシーの質問はその面の中で答える。 */
   const add = tabbed(v.slug) ? `<button type="button" class="pvg-link" data-pvc-open="list">項目の一覧から足す${IC.go}</button>` : '';
@@ -1148,9 +1200,10 @@ export const legacyReady = {
   intro: v => v.company.intro.length > 0,
   fleet: v => v.company.fleet.length > 0,
   network: v => !!networkOf(v.slug),
-  work: v => workAll(v).some(f => v.work.includes(f)),   // 勤務そのものの公表（待遇から移した通勤・Staff Travel だけでは、訓練の節の代わりにならない）
-  benefits: v => v.benefits.length > 0,
-  jobs: v => v.jobs.length > 0,
+  /* 外してよいのは今の公表が在るときだけ（過去・参考の札つきの行だけでは、今の節の代わりにならない ── 全社へ広げる c） */
+  work: v => workAll(v).some(f => v.work.includes(f) && !f.tag),   // 勤務そのものの公表（待遇から移した通勤・Staff Travel だけでは、訓練の節の代わりにならない）
+  benefits: v => v.benefits.some(f => !f.tag),
+  jobs: v => v.jobs.some(f => !f.tag),
   compare: v => CAREER.includes(v.slug),               // 「他社と比較」の行き先（career.html）がその会社を持っている
 };
 /* 残す節（keep）を先に当てる ── 「◯◯についてよくある質問」のような見出しを、外す側の行が先に掴まないように */
@@ -1340,7 +1393,7 @@ export function readiness(slug) {
     facts: { work: workAll(v).length, benefits: v.benefits.length, jobs: v.jobs.length,
       company: companyCard(v) ? v.company.profile.length + v.company.scale.length + v.company.fleet.length : 0, held: lead ? 0 : v.held.length },
     base: v.base.iata.length ? v.base.iata : (v.base.city ? [v.base.city] : []),
-    dest: { page: !!networkOf(slug), store: held ? held.destinations : 0 },
+    dest: { page: !!netOf(v), store: held ? held.destinations : 0 },
     living: { page: !!v.living, cities: held ? held.cities : 0, rents: held ? held.rents : 0, commute: held ? `${held.commute}/${held.commuteAll}` : '' },
     legacy: { drop: plan.filter(p => p.act === 'drop').length, keep: plan.filter(p => p.act === 'keep').length, unknown: plan.filter(p => !p.row).map(p => p.title) },
   };

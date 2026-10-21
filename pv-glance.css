@@ -669,6 +669,9 @@
 .pvg-co > .pvg-photo > figcaption{grid-column:1 / -1;grid-row:4;padding-top:4px;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
 .pvg-keys{grid-column:2;grid-row:3;display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
 .pvg-co:not(:has(> .pvg-photo)) > .pvg-keys{grid-column:1 / -1}
+/* 写真の無い会社の1枚（全社へ広げる c・2026-10-21）：写真の列を取らず、見出し → 紹介 → 4つの値 → 「会社情報」を上から1列に */
+.pvg-more-grid > .pvg-co.pvg-co-np{display:block}
+.pvg-co.pvg-co-np > .pvg-keys{margin-top:2px}
 .pvg-keys > div{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0;padding:2px 0}
 .pvg-keys dt{flex:1 1 0;min-width:4em;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
 .pvg-keys dd{flex:0 1 auto;max-width:66%;font:600 13px/1.5 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;text-align:right;color:var(--pv-ink)}
@@ -1074,17 +1077,38 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
    どのタブに居るかは <body class="pvg-at-…"> の1つだけで、出す・隠すはここが決める。
    pv-glance.js が動かなければ、その印が付かない ＝ 全部見える。 */
 
-/* 社名：左に略号の四角い札・その右に社名と副題（見本の形）。左の色の線は置かない */
-.pvg-hero-t .pvg-name{grid-template-columns:auto minmax(0,1fr);column-gap:12px;padding-left:0;border-left:0}
-.pvg-hero-t .pvg-code{
-  grid-column:1;grid-row:1 / span 2;align-self:center;justify-self:start;
-  display:grid;place-items:center;min-width:44px;height:44px;padding:0 6px;border-radius:var(--pv-r-sm);
-  font-size:13px;letter-spacing:.04em;
-  color:var(--pv-accent-ink);background:var(--pv-accent-soft);border-color:var(--pv-accent-line);
-}
+/* 社名：左にロゴ・その右に社名・社名の右に略号の札、社名の下に副題（2026-10-21 オーナー「航空会社名のタイトルの左横はロゴにしてね」）。
+   左の色の線は置かない。ロゴの札の高さは社名の1行め（狭い画面 28px・広い画面 32px）で、社名を押しつぶさない（幅に上限）。
+   狭い画面（〜699px）では略号の札を社名のすぐ下へ回す ── 右に置くと、ボタンの列のある会社で社名の欄が細くなり、
+   「全日本空輸」が語の途中で折れる（全社へ広げる b で見た「1字ずつ折れる」の手前）。 */
+.pvg-hero-t .pvg-name{grid-template-columns:auto minmax(0,auto) 1fr;column-gap:10px;row-gap:4px;align-items:start;padding-left:0;border-left:0}
+.pvg-hero-t .pvg-name > .pvg-logo{grid-column:1;grid-row:1}
 .pvg-hero-t .pvg-name > h1{grid-column:2;grid-row:1}
-.pvg-hero-t .pvg-name > .pvg-sub{grid-column:2;grid-row:2}
+.pvg-hero-t .pvg-code{grid-column:3;grid-row:1;align-self:start;justify-self:start;margin-top:4px;font-size:12px;line-height:20px;padding:1px 8px}
+.pvg-hero-t .pvg-name > .pvg-sub{grid-column:2 / -1;grid-row:2}
 .pvg-hero-t .pvg-meta{padding-left:0}
+/* ロゴの札：白い地に元の縦横比のまま（トップのレベリング図と同じ描き方）。ロゴの絵は白い地の上で描かれているので、暗い色の画面でも白
+   （この白はトークンに無い）。読めなかったとき・ロゴの無い会社は、同じ大きさの会社の色の四角に頭文字。
+   1行めの真ん中にそろえる（社名の行の高さ 1.2em と札の高さの差の半分だけ上へ）。 */
+.pvg-logo{
+  --lg-h:28px;--pvg-logo-bg:white;
+  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  height:var(--lg-h);min-width:var(--lg-h);max-width:76px;padding:3px 6px;overflow:hidden;
+  border-radius:var(--pv-r-sm);background:var(--pvg-logo-bg);border:1px solid var(--pv-line);
+  font-size:20px;margin-top:calc(.6em - var(--lg-h) / 2);
+}
+.pvg-logo > img{display:block;height:100%;width:auto;max-width:100%;object-fit:contain}
+.pvg-logo > .pvg-mono{display:none}
+.pvg-logo.is-mono,.pvg-logo.is-fail{width:var(--lg-h);max-width:none;padding:0;border:0;background:var(--pvg-c,var(--pv-accent))}
+.pvg-logo.is-mono > .pvg-mono,.pvg-logo.is-fail > .pvg-mono{
+  display:grid;place-items:center;width:100%;height:100%;
+  font:800 12px/1 Inter,sans-serif;letter-spacing:.02em;color:var(--pvg-mono-ink,white);
+}
+.pvg-logo.is-fail > img{display:none}
+@media (min-width:700px){
+  .pvg-logo{--lg-h:32px;max-width:136px;padding:3px 8px;font-size:26px}
+  .pvg-logo.is-mono > .pvg-mono,.pvg-logo.is-fail > .pvg-mono{font-size:13px}
+}
 
 /* 社名の横の2つ：カードを保存（薄い緑）／他社と比較（緑の面） */
 .pvg-hero-t .pvg-btn{gap:7px;border-radius:var(--pv-r-sm)}
@@ -1100,8 +1124,9 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-hero-t .pvg-btn{min-height:36px;padding:0 12px;font-size:12px}
   .pvg-hero-t .pvg-btn::before{content:"";position:absolute;inset:-6px 0}   /* 見える丈は 36px・押せる丈は 46px（枠の外へ 5px ずつ ＝ 2つのボタンの間 10px をちょうど分け合う） */
   .hero-airline.pvg-hero-t h1{font-size:20px!important}
-  .pvg-hero-t .pvg-name{column-gap:10px}
-  .pvg-hero-t .pvg-code{min-width:40px;height:40px;font-size:12px}
+  .pvg-hero-t .pvg-name{grid-template-columns:auto minmax(0,1fr);column-gap:10px}
+  .pvg-hero-t .pvg-code{grid-column:2;grid-row:2;margin-top:0;font-size:12px;line-height:18px}
+  .pvg-hero-t .pvg-name > .pvg-sub{grid-column:2;grid-row:3}
   /* 読めなかった時の「いま読み出せません｜やり直す」は、入らなければ2行にする。
      1行のままだと、〜351px の画面で「やり直す」が右の2つのボタンの下へもぐって押せなかった */
   .pvg-hero-t .crl[data-state="error"]{flex-wrap:wrap;gap:4px 8px}

@@ -22,7 +22,8 @@
  *                                 backed ＝ 根拠・算出方法・時点の3つが台帳にそろっているか（説明に添えるかどうかだけを決める）
  *   cap      求人の上限        … 棒にしない。「〜」と「上限」の字を必ず一緒に出す
  *   company  会社の公表額      … 棒にしない。対象と時点つき
- *   crew     乗員全体の公表平均 … 棒にしない（機長と副操縦士を分けていない数字）
+ *   crew     乗員全体の公表平均 … ★どの会社のページにも出さない（2026-10-21 P12.77 オーナー「機長、副操縦士のわかないと意味ないじゃん」）。
+ *                                 crew はいつも空。その額の話をしている注と、その額だけの出どころも外す（CREW_ONLY）
  *   ⚠️ 下の3つを est へ流し込まない／est を下の3つの名前で出さない（種類が違う）。
  *   ⚠️ 幅（lo〜hi）は出さない（2026-09-30 に公開の画面から外した）。
  */
@@ -37,7 +38,8 @@ import { FACTS as EYF, introText as eyIntro } from './career-facts.mjs';
 import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS } from './living-facts.mjs';
 import { primary } from './airline-photos.mjs';
 import { axisEnd } from './pv-bars.mjs';
-import { LEAD, SWITCH, researchFacts, PAGE_META } from './airline-rollout.mjs';
+import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities } from './airline-rollout.mjs';
+import { REGIONS } from './airline-destinations.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -54,8 +56,7 @@ const META = (() => {
   return win.AIRLINES_META || win.PV_AIRLINES || Object.values(win)[0];
 })();
 function metaOf(slug) {
-  /* airlines-meta.js に無い会社は、airline-rollout.mjs の PAGE_META（今の会社ページの社名の行の色と略号）。 */
-  const a = META.find(x => x.file === `airlines/${slug}.html`) || PAGE_META[slug];
+  const a = META.find(x => x.file === `airlines/${slug}.html`);
   if (!a) throw new Error(`${slug}: airlines-meta.js に無い`);
   const color = a.color || a.c, code = a.code || a.iata;
   if (!/^#[0-9a-fA-F]{6}$/.test(color || '')) throw new Error(`${slug}: airlines-meta.js に色が無い`);
@@ -148,14 +149,26 @@ export const AXIS = Math.ceil(Math.max(...SWITCH.flatMap(s => RANKS.map(([r]) =>
 /** 棒の長さ（％）。 */
 export const width = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
 
-function crewOf(slug) {
-  const b = BASIS[slug];
-  if (!b?.crew?.groups) return [];
-  return b.crew.groups.filter(g => g.avg_y != null).map(g => {
-    const m = man(b.cur, g.avg_y);
-    const [, who, at] = g.name.match(/^(.*?)（(.*)）$/) || [null, g.name, ''];
-    return { man: m, yen: yen(m), who, when: at.split('・').pop(), scope: at.split('・').slice(0, -1).join('・') };
-  });
+/* ★ 機長と副操縦士を分けない額（運航乗務員・運航乗務職の全体の平均）は、どの会社のページにも出さない（P12.77・2026-10-21）。
+   台帳（BASIS.crew）には残す（社内の見張り ── 機長の推定がこの平均より低ければ怪しい、など）。画面に出す crew はいつも空。
+   その額の話をしている注と、その額だけの出どころも一緒に外す（その額が無いのに「これは…の平均です」と言わない）。
+   どの注・出どころがその話かは、台帳の字で決める（needs）── 台帳の字が変わって当たらなくなったら止める（黙って別の注を外さない）。
+   ここに無い会社で乗員全体の平均を持つ会社は、注を1つも出さない（どれがその話か字から分けられない ── 全社へ広げる b の決まり）。 */
+const CREW_ONLY = {
+  jal: { notes: ['運航乗務員全体の平均です', 'グループ連結の数字です', '算定方法は会社の注のとおり'], src: ['平均年間給与'] },
+  ana: { notes: ['運航乗務職全体の額です', 'エアージャパンをあわせた額です', '訓練生が人数に入るか、賞与と基準外賃金を含むか'], src: ['平均年間給与'] },
+  skymark: { notes: ['運航乗務員290名の平均です', '単体（提出会社）の数字', '人材会社からの受入出向', '賞与および基準外賃金を含みます'], src: ['【従業員の状況】'] },
+};
+const crewIn = slug => { const b = BASIS[slug]; return !!(b && b.crew && b.crew.groups && b.crew.groups.some(g => g.avg_y != null)); };
+/* 注と出どころから、乗員全体の平均の話だけを外す。分けられない会社は null。 */
+function crewFree(slug) {
+  const notes = BASIS[slug].notes || [], src = srcOf(slug);
+  if (!crewIn(slug)) return { notes, src };
+  const C = CREW_ONLY[slug];
+  if (!C) return null;
+  for (const w of C.notes) if (notes.filter(n => n.includes(w)).length !== 1) throw new Error(`${slug}: 乗員全体の平均の注「${w}」が台帳の注にちょうど1つ無い（pv-airline-view.mjs の CREW_ONLY を見直す）`);
+  for (const w of C.src) if (!src.some(x => x.name.includes(w))) throw new Error(`${slug}: 乗員全体の平均の出どころ「${w}」が台帳に無い（pv-airline-view.mjs の CREW_ONLY を見直す）`);
+  return { notes: notes.filter(n => !C.notes.some(w => n.includes(w))), src: src.filter(x => !C.src.some(w => x.name.includes(w))) };
 }
 
 /* ── 事実の1行 ──────────────────────────────────────────────────── */
@@ -312,18 +325,25 @@ function gate(slug, L, quotes, said = L.words) {
 function others(slug) {
   const F = CO[slug], L = LIVING[CITY_OF[slug]];
   if (!F || !L) throw new Error(`${slug}: 台帳に無い`);
-  const rents = L.rents.map(resolve);
   const lead1st = list => facts(list).map((x, i) => ({ ...x, lead: !!list[i].lead })).sort((a, b) => b.lead - a.lead);
-  const r0 = rents.find(r => r.value), cur = r0 ? r0.cur : '';
-  const rows = ways(L);
   return {
     base: F.base,
     work: lead1st(F.work), benefits: lead1st(F.benefits),
     profile: facts(F.profile), scale: facts(F.scale), fleet: facts(F.fleet),
     jobs: facts(F.jobs),
-    living: gate(slug, {
+    living: cityLiving(slug, CITY_OF[slug], L),
+  };
+}
+/* 先行5社の台帳の街（東京・香港・台北）を、暮らしの板が読む形にする。
+   先行5社ではない会社（全社へ広げる c）も、拠点の空港がこの街の空港なら同じ1組を使う（1つの街に1つの資料）。
+   そのときは、その会社の拠点の空港の分だけ（空港・着く場所・移動の行をしぼる ── ほかの会社の空港の行を出さない）。 */
+function cityLiving(slug, cityKey, L) {
+  const rents = L.rents.map(resolve);
+  const r0 = rents.find(r => r.value), cur = r0 ? r0.cur : '';
+  const rows = ways(L);
+  return gate(slug, {
       /* 東京の出どころ（アットホーム・区の SUUMO）は、表に単位の字が無い（per が空）。日本の賃料の相場は月額なので、画面では「月」と出す。 */
-      cityKey: CITY_OF[slug], city: L.city_ja, cur, per: r0 ? (r0.per || (cur === 'JPY' ? 'month' : '')) : 'month',
+      cityKey, city: L.city_ja, cur, per: r0 ? (r0.per || (cur === 'JPY' ? 'month' : '')) : 'month',
       measure: L.measure_ja || '', site: L.site, siteName: L.site ? SITES[L.site].name : '', stat: L.stat,
       cols: L.cols, bars: L.bars, words: L.words, leadCol: L.lead_col || '', beside: L.beside_ja || '',
       byTown: !!L.by_town, cardFamily: L.card_family || '',
@@ -332,8 +352,7 @@ function others(slug) {
       estates: estatesOf(L),
       basis: (L.rent_basis || []).map(b => ({ key: b.key, value: b.value })),
       refs: refsOf(L), commute: rows,
-    }, [...L.rents, ...L.rents.flatMap(r => r.estates || []), ...(L.rent_basis || [])].map(x => x.quote || ''), L.words_src || L.words),
-  };
+    }, [...L.rents, ...L.rents.flatMap(r => r.estates || []), ...(L.rent_basis || [])].map(x => x.quote || ''), L.words_src || L.words);
 }
 /* 値が {t1:35, t2:39}（ターミナルごとの時間）や {fare:1280, liner:1300}（運賃と料金）の形で入っている行。
    台帳の鍵をそのまま画面に出さない ── 呼び名の無い鍵が来たら止める。 */
@@ -369,45 +388,108 @@ export function viewOf(slug) {
   const S = SALARY[slug], B = BASIS[slug];
   const d = slug === 'etihad' ? etihad() : others(slug);
   const iata = [].concat(d.base.iata || []);
+  const free = crewFree(slug);
+  if (!free) throw new Error(`${slug}: 乗員全体の平均の注を分けられない（pv-airline-view.mjs の CREW_ONLY に足す）`);
   return {
     slug, name: S.ja, ...metaOf(slug),
     base: { city: d.base.city_ja, country: d.base.country_ja, iata, text: valueText(d.base), ...fact(d.base) },
     pay: {
       cap: payOf(slug, 'cap'), fo: payOf(slug, 'fo'),
-      crew: crewOf(slug), trainee: traineeOf(slug),
-      tax: B.tax, notes: B.notes || [], src: srcOf(slug), cur: B.cur,
+      crew: [], trainee: traineeOf(slug),
+      tax: B.tax, notes: free.notes, src: free.src, cur: B.cur,
     },
-    work: d.work, benefits: d.benefits, living: d.living,
+    work: d.work, benefits: d.benefits, living: d.living, livings: [d.living],
     company: { profile: d.profile, scale: d.scale, fleet: d.fleet, photo: primary(slug), intro: introOf(slug) },
     jobs: d.jobs,
   };
 }
 
-/* ── 先行5社ではない会社（全社へ広げる b・2026-10-21）──────────────────────────
-   要るのは 年収の正本（SALARY）と 色・略号（airlines-meta.js か airline-rollout.mjs の PAGE_META）だけ。ほかは在る分だけ:
+/* ── 先行5社ではない会社（全社へ広げる b・c・2026-10-21）──────────────────────────
+   要るのは 年収の正本（SALARY）と 色・略号（airlines-meta.js）だけ。ほかは在る分だけ:
      年収の根拠  salary-basis.mjs（BASIS）が在れば、職位ごとの公表額・訓練生の額・注・出どころ（先行5社と同じ読み口 payOf）。
-                 ⚠️ 機長と副操縦士を分けない額（乗員全体の平均）は出さない（P12.77。crew は空）。その会社の BASIS に乗員全体の
-                    平均が在るときは、注も1つも出さない ── どの注がその額の話か、字からは分けられない（スカイマーク）。
-     会社の事実  調べの台帳（research-ledger.mjs）から、airline-rollout.mjs の決まり（why）を通った行だけ。字は台帳のまま。
-     暮らし・就航地・機材  この回は出さない（living は null・fleet は空 ＝ 今までの「確認できていません」の形）。
+                 ⚠️ 機長と副操縦士を分けない額（乗員全体の平均）は出さない（P12.77。crew は空）。その額の話の注と出どころも外す
+                    （CREW_ONLY に字が在る会社。無い会社は注を1つも出さない ── どの注がその額の話か、字からは分けられない）。
+     会社の事実  調べの台帳（research-ledger.mjs）から、airline-rollout.mjs の決まり（why）と、airline-display.mjs の字
+                 （項目の言い方の表か、行ごとに書いた字）を通った行だけ。調べた側の字は出さない。過去・参考の行は札（tag）つき。
+     機材        型式だけ（会社の資料に載っている型式。機数は作らない）。
+     就航地      調べで確かめた就航地（airline-display.mjs の NET に字が在る会社だけ・partial ＝ 会社全体の就航地とは言わない）。
+                 拠点の空港（本拠地）は一覧に入れない（先行5社と同じ）。拠点を外して1つも残らなければ、今までの「…確認してから開きます。」。
+     暮らし      拠点の空港ごとの街（拠点の並びの順・先頭 ＝ いちばん上の拠点）。拠点の空港が先行5社の台帳の街の空港なら、その街の1組
+                 （東京 ＝ アットホーム。その会社の拠点の空港の行だけにしぼる）。そうでなければ調べの台帳の街（CITY に字が在る街だけ）。
+                 家賃の行の無い街は、今までの「家賃の資料を確認できていません」。ほかの街の数字で埋めない。
    紹介文（intro）は、組み立てる型が台帳に無いので作らない（[]）。作り物の字・0 で埋めない。 */
+const ROOM = [['studio', 'studio', 'Studio'], ['1bed', 'bed1', '1-Bed'], ['2bed', 'bed2', '2-Bed'], ['3bed', 'bed3', '3-Bed']];
+/* 家賃の対象の期間（2026-07-01〜2026-09-30 → 2026年7〜9月）。月の頭から月の終わりまでの行だけ。ほかは対象の始まりの日付の字。 */
+function periodText(r) {
+  const e = r.effective || {}, f = /^(\d{4})-(\d{2})-01$/.exec(e.from || ''), t = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.to || '');
+  if (f && t && f[1] === t[1]) return f[2] === t[2] ? `${f[1]}年${+f[2]}月` : `${f[1]}年${+f[2]}〜${+t[2]}月`;
+  return whenText({ at: e.from || '' });
+}
+/* 調べの台帳の街 → 暮らしの板の形（先行5社の街と同じ形・同じ関所 gate）。家賃は街ぜんたいの1行（街の中の区分けを作らない）。 */
+function researchCityLiving(slug, c) {
+  const C = c.C, value = {}, cols = [];
+  const first = c.rents[0], same = c.rents.filter(x => first && x.src.url === first.src.url && periodText(x.r) === periodText(first.r));
+  for (const { r } of same) for (const [k, n] of Object.entries(r.value)) {
+    const m = ROOM.find(x => x[0] === k);
+    if (!m || typeof n !== 'number') continue;
+    value[m[1]] = n;
+  }
+  for (const m of ROOM) if (value[m[1]] != null) cols.push([m[1], m[2]]);
+  const priced = cols.length > 0;
+  const town = {
+    key: c.city, name: C.ja, sub: C.en, en: C.en, area: '', label: C.ja,
+    iata: C.iata, pick: '', pickSrc: null, value, when: priced ? periodText(first.r) : '',
+    src: priced ? { name: first.src.name, url: first.src.url, kind: first.src.kind } : null, cond: '', quote: '', lead: true, way: null,
+  };
+  const commute = c.commute.map(({ r, d, src }, i) => ({
+    key: r.id, town: '', iata: C.iata, end: '', mode: d.mode || 'train', modes: [d.mode || 'train'], via: 'operator', line: '', from: '', to: '',
+    kind: null, mins: null, ride: null, warn: '', label: d.label, value: d.value, orig: false, yen: '', cond: d.cond || '', when: '',
+    src: { name: src.name, url: src.url, kind: src.kind }, checked: r.checked_at || '', pilot: true, fare: false, day: '', card: false, lead: i === 0,
+  }));
+  return gate(slug, {
+    cityKey: c.city, city: C.ja, cur: priced ? first.r.currency : '', per: priced ? C.per || 'month' : 'month', measure: priced ? C.measure || '' : '',
+    site: priced ? c.city : '', siteName: priced ? C.site || '' : '', stat: priced ? (first.r.amount || {}).stat || '' : '',
+    cols, bars: [], words: {}, leadCol: cols.length ? cols[0][0] : '', beside: '', byTown: false, cardFamily: '',
+    airports: [{ iata: C.iata, to: C.airport }], ends: [], rents: [town], estates: [], basis: priced && C.scope ? [{ key: 'scope', value: C.scope }] : [], refs: [], commute, research: true,
+  }, [], {});
+}
+/* 先行5社の台帳の街を、その会社の拠点の空港の分だけにしぼって使う。 */
+function leadCityFor(slug, key, bases) {
+  const L = LIVING[key], at = iata => bases.includes(iata);
+  return cityLiving(slug, key, { ...L, airports: L.airports.filter(([a]) => at(a)),
+    ends: Object.fromEntries(Object.entries(L.ends || {}).filter(([, e]) => at(e.iata))), commute: (L.commute || []).filter(x => at(x.iata)) });
+}
+/* 拠点の空港の順に、街を1つずつ（同じ街は1回だけ）。 */
+function livingsOf(slug, bases) {
+  const out = [], found = researchCities(slug, bases);
+  for (const code of bases) {
+    const key = Object.keys(LIVING).find(k => LIVING[k].airports.some(([a]) => a === code));
+    if (key) { if (!out.some(L => L.cityKey === key)) out.push(leadCityFor(slug, key, bases)); continue; }
+    const c = found.find(x => x.iata === code);
+    if (c && !out.some(L => L.cityKey === c.city)) out.push(researchCityLiving(slug, c));
+  }
+  return out;
+}
 function rolloutView(slug) {
   const S = SALARY[slug], B = BASIS[slug], R = researchFacts(slug);
-  const crewIn = !!(B && B.crew && B.crew.groups && B.crew.groups.some(g => g.avg_y != null));
-  const rows = list => list.map(x => ({ ...fact(x), lead: !!x.lead, use: x.use, id: x.id }));
+  const free = B ? crewFree(slug) : null;
+  /* 額の行（月・年あたりの通貨つきの額）は、期間の字を額の前に置く（「月 ZAR 4,000」）。 */
+  const rows = list => list.map(x => { const f = { ...fact(x), lead: !!x.lead, use: x.use, tag: x.tag || '', id: x.id }; if (x.per && x.cur) f.value = `${x.per} ${f.value}`; return f; });
   const base = R.base
     ? { city: R.base.city, country: R.base.country, iata: R.base.iata, text: R.base.city || R.base.iata[0], rows: rows(R.base.rows) }
     : { city: '', country: '', iata: [], text: '', rows: [] };
+  const livings = livingsOf(slug, base.iata);
   return {
     slug, name: S.ja, ...metaOf(slug), rollout: true,
     base,
     pay: {
       cap: payOf(slug, 'cap'), fo: payOf(slug, 'fo'),
       crew: [], trainee: traineeOf(slug),
-      tax: (B && B.tax) || '', notes: B && !crewIn ? (B.notes || []) : [], src: B ? srcOf(slug) : [], cur: (B && B.cur) || '',
+      tax: (B && B.tax) || '', notes: free ? free.notes : [], src: B ? (free ? free.src : srcOf(slug).filter(x => !/平均年間給与|【従業員の状況/.test(x.name))) : [], cur: (B && B.cur) || '',
     },
-    work: rows(R.work), benefits: rows(R.benefits), living: null,
-    company: { profile: rows(R.profile), scale: rows(R.scale), fleet: [], photo: primary(slug), intro: [] },
+    work: rows(R.work), benefits: rows(R.benefits), living: livings[0] || null, livings,
+    network: researchNetwork(slug, REGIONS, base.iata),
+    company: { profile: rows(R.profile), scale: rows(R.scale), fleet: rows(R.fleet), photo: primary(slug), intro: [] },
     jobs: rows(R.jobs),
     held: R.held,
   };
@@ -436,7 +518,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       console.log(`  ${l}  推定年収 ${p.est.yen}${p.est.backed ? '（根拠あり）' : ''}`);
       for (const f of [...p.cap, ...p.company]) console.log(`      ${f.kind}  ${f.text}（${f.orig}）`);
     }
-    for (const c2 of v.pay.crew) console.log(`  乗員全体  ${c2.yen}（${c2.scope}・${c2.when}）`);
     console.log(`  勤務  ${lead(v.work)}\n  待遇  ${lead(v.benefits)}\n  暮らし ${r.name} ${c ? `${c.orig} ${c.yen}` : '（家賃の資料なし）'}${r.way ? ` ／ ${r.way.text}` : ''}`);
   }
 }

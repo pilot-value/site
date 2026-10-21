@@ -389,6 +389,17 @@ const COPY = {
                               en: { t: 'Gulf Airline Pilot Salary Compared 2026' } },
   'airlines/asia-hikaku.html': { ja: { t: 'アジアの航空会社 パイロット年収比較【2026】' },
                               en: { t: 'Asian Airline Pilot Salary Compared 2026' } },
+  /* ── 機長と副操縦士を分けない平均（運航乗務員の平均）を題名・説明文に出していた会社ページ（2026-10-21 P12.77。オーナー
+     「そもそも運行乗務員の平均年収で出してどうするの？機長、副操縦士のわかないと意味ないじゃん」）。
+     題名は SALARY の機長の推定（「機長 推定」の札つき）・説明文は推定の2つと、会社が公表している訓練生の額だけ。
+     数は式で埋める（SSOT を直して流し直せば追随する）。英語版はこの回では触らない（en は COPY に置かない ＝ 今までどおり）。
+     ld: true ＝ 管理ブロックの外の古い構造化データ（Article の headline・description）も、この題名と説明文にそろえる（5b）。 */
+  'airlines/jal.html': { ja: { t: `JALパイロット年収【2026】機長 推定${capJa('jal')}`,
+    d: `JALのパイロット年収は、当サイトの推定で機長 約¥${S.jal.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.jal.fo.avg.toLocaleString('en-US')}万（公開情報からの推計）。`
+       + `会社公表の自社養成訓練生の入社時の月額（約${Math.round(BASIS.jal.trainee.groups[0].start_m / 10000)}万円）も出所つきで掲載。`, ld: true } },
+  'airlines/skymark.html': { ja: { t: `スカイマーク パイロット年収 機長 推定${capJa('skymark')}【2026】`,
+    d: `スカイマークのパイロット年収は、当サイトの推定で機長 約¥${S.skymark.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.skymark.fo.avg.toLocaleString('en-US')}万。`
+       + `会社公表の訓練生の基本給は月${Math.round(BASIS.skymark.trainee.groups[0].start_m / 10000)}万円。保有機材・応募条件・現役パイロットの口コミも掲載。`, ld: true } },
 };
 
 function countryCount(code) {
@@ -908,6 +919,24 @@ for (const rel of files) {
     .replace(/[ \t]*<link\b[^>]*\brel\s*=\s*["'](?:canonical|alternate)["'][^>]*>[ \t]*\n?/gi, (m) => (/hreflang|canonical/i.test(m) ? '' : m))
     .replace(/[ \t]*<meta\b[^>]*\bname\s*=\s*["'](?:robots|description|keywords|twitter:[a-z:]+)["'][^>]*>[ \t]*\n?/gi, '')
     .replace(/[ \t]*<meta\b[^>]*\bproperty\s*=\s*["']og:[a-z:_]+["'][^>]*>[ \t]*\n?/gi, '');
+
+  /* 5b) ★2026-10-21 P12.77 ── COPY に ld: true と書いたページだけ、管理ブロックの外に在る古い構造化データの Article の
+     headline と description を、上で決めた題名と説明文にそろえる。古い題名・説明文（「運航乗務員の平均…」）が、検索向けの字にだけ
+     残らないように。ほかのページの構造化データには1文字も触らない。何度流しても同じ（そろっていれば書き直さない）。 */
+  if (copy && copy[lang] && copy[lang].ld) {
+    const core = title.replace(/\s*[|｜]\s*PILOT VALUE\s*$/i, '');
+    head = head.replace(/(<script type="application\/ld\+json">)([\s\S]*?)(<\/script>)/g, (m, open, body, close) => {
+      let j;
+      try { j = JSON.parse(body); } catch { return m; }
+      let hit = false;
+      for (const x of Array.isArray(j) ? j : [j]) {
+        if (!x || x['@type'] !== 'Article') continue;
+        if (typeof x.headline === 'string' && x.headline !== core) { x.headline = core; hit = true; }
+        if (typeof x.description === 'string' && x.description !== desc) { x.description = desc; hit = true; }
+      }
+      return hit ? open + JSON.stringify(j) + close : m;
+    });
+  }
 
   /* 6) 構造化データ。★ 既にページが持っている型は足さない。
      日本語の航空会社ページは Article / FAQPage / BreadcrumbList を自前で

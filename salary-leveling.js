@@ -260,6 +260,7 @@
   // ── 機材フラグ判定（各社が実際に保有する機材帯だけ段を出す）──
   // a.fleet = 'r'/'n'/'w' の組合せ短縮文字列（例 'nw' / 'w' / 'rnw'）。
   // T・CAP CK（cat=null）は常時表示。fleet 未設定の社は全段表示＝後方互換・段階導入。
+  var NO_LADDER_TYPES = { charter: 1, agent: 1, bizjet: 1 };
   function fleetHas(a, cat) {
     if (cat == null) return true;
     var f = a && a.fleet;
@@ -823,7 +824,9 @@
       load().then(function (SAL) {
         if (picker) {
           var pool = (opts.pool && opts.pool !== 'all') ? opts.pool : Object.keys(meta);
-          avail = pool.filter(function (sl) { var s = SAL.airlines[sl]; return s && s.ladder; });
+          // 機種の段（R/N/W）が当てはまらない運航会社（チャーター・ビジネスジェット・人材会社）は、この図の会社選びに出さない。
+          // airlines-meta.js に載せても、図が機種の段を描くと事実と違う（2026-10-21 roll-c の点検 T5）。
+          avail = pool.filter(function (sl) { var s = SAL.airlines[sl], a = meta[sl]; return s && s.ladder && !(a && NO_LADDER_TYPES[a.type]); });
           // 出どころを確認中の会社は avail に居ない。呼ぶ側は落ちたぶんの控えを
           // 後ろに並べておけるので、ここで前から詰めて「開くときの本数」で切る
           // （open が無ければ今までどおり max まで）。2026-09-30 追加。
