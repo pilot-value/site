@@ -17,7 +17,12 @@
      F) 一覧のページ（日英）＝ gen-directory.mjs が台帳から書いた112枚のカード・地域ボタン・社数のまま
         ── 並び・リンク・社名と旗・略号・ロゴ・額と札・地域ボタンの社数・手で書いた社数が無い・日英が同じ形・
            生成の流し忘れが無い・一覧の台本はページの外（pv-directory.js）で、ヘッダーのログインの行だけページの中・
-           部品（gen-directory.mjs の ASSETS）はどれも中身の指紋（?v=）で読む・左のメニューとヘッダーが1つずつ
+           部品（gen-directory.mjs の ASSETS）はどれも中身の指紋（?v=）で読む・左のメニューとヘッダーが1つずつ・
+           見つからないときの地域の8つのボタン（PV-DIR-ELSE）は地域の順・名前・社数のまま hidden で出荷
+     G) 見出しと検索欄 ── 見出しの字（日本語は「、」の後ろでだけ折れる2つの <span>）・検索欄は見出しの帯の中に HTML で在る
+        （type="search"・字はそのまま）・国の帯と地図（#wd-explore）は検索欄も地域ボタンもカードも持たない・
+        結果の見出し（すべて／All・社数の書き方）・見つからないときの並び・台本が動かないときの隠し方・
+        見た目の決まり（transition は transform / opacity だけ・色はトークン・検索欄の消すボタンを隠さない）
      H) カードの形 ── 額の行は機長→副操縦士の2行・職位の語から額まで24字以内（check-salary.mjs が読める）・
         リンクの中に押せる部品を入れない・額の行に手取りや月額の語を入れない
      W) check-salary.mjs の読み方そのもの（あちらのソースから切り出す）で、どのカードのどの額も
@@ -140,7 +145,7 @@ async function readIN() {
     files: new Set([...htmlIn('airlines'), ...htmlIn('en/airlines')]),
     list: list(), header: header(), hub,
     page: { ja: read('world-airlines.html'), en: read('en/world-airlines.html') },
-    css: readOr('pv-directory.css'), assets: {}, career: readOr('career.html'),
+    css: readOr('pv-directory.css'), tokens: readOr('pv-tokens.css'), assets: {}, career: readOr('career.html'),
     logos: logosOf(read('airline-logos.js')),
     lev: readOr('salary-leveling.js'), cs: read('check-salary.mjs'),
     sw: new Set(SWITCH), M: null, fn: {}, err: '',
@@ -491,6 +496,20 @@ function secF(I) {
       const n = code === 'all' ? N : C.filter((c) => c.region === code).length;
       if (m[3] !== String(n)) p.F3.push(`${rel} ${code}：社数 ${m[3]}／カード ${n} 枚`);
     }
+    /* F3（DG）見つからないときの地域の8つのボタン（PV-DIR-ELSE）── 地域の順・名前・その地域の社数・どれも hidden で出荷 */
+    const el = blockOf(h, 'PV-DIR-ELSE');
+    const eb = el ? [...el.text.matchAll(/<button\b([^>]*)><span class="wd-else-l">([^<]*)<\/span><span class="wd-else-n">([^<]*)<\/span><\/button>/g)] : [];
+    const ecodes = eb.map((m) => /data-region="([^"]*)"/.exec(m[1])?.[1]);
+    if (!el) p.F3.push(`${rel}：PV-DIR-ELSE が無い`);
+    else if (!same(ecodes, REG8)) p.F3.push(`${rel}：見つからないときの地域ボタン ${ecodes.join(',') || '無し'}`);
+    for (const m of eb) {
+      const code = /data-region="([^"]*)"/.exec(m[1])?.[1], lab = REGION_LABEL[code]?.[en ? 1 : 0];
+      if (!/\bclass="wd-else-b"/.test(m[1])) p.F3.push(`${rel} 見つからないとき ${code}：class が wd-else-b でない`);
+      if (unesc(m[2]) !== lab) p.F3.push(`${rel} 見つからないとき ${code}：名前「${m[2]}」／「${lab}」`);
+      const n = C.filter((c) => c.region === code).length;
+      if (m[3] !== String(n)) p.F3.push(`${rel} 見つからないとき ${code}：社数 ${m[3]}／カード ${n} 枚`);
+      if (!/(?:^|\s)hidden(?:\s|$|=)/.test(m[1])) p.F3.push(`${rel} 見つからないとき ${code}：hidden が無い（台本が当たりの数を書くまで見せない）`);
+    }
     /* F4 社数を書く所 */
     const ns = [...h.matchAll(/<!--PV-DIR-N-->([\s\S]*?)<!--\/PV-DIR-N-->/g)].map((m) => m[1]);
     if (!ns.length) p.F4.push(`${rel}：PV-DIR-N が無い`);
@@ -509,7 +528,7 @@ function secF(I) {
     for (const m of t.matchAll(/(?<![\d,.])\d{2,3}\s*(社|airlines)/gi)) p.F5.push(`${rel}：手で書いた社数「${m[0]}」（…${t.slice(Math.max(0, m.index - 20), m.index).replace(/\s+/g, ' ')}）`);
     /* F6 日英の形（タグ・class・data-slug・data-region・data-rank の並び） */
     const g = h.indexOf('<ul id="airline-grid"'), ge = blockOf(h, 'PV-DIR-CARDS');
-    const seg = (g < 0 || !ge ? '' : h.slice(g, ge.z)) + (st ? st.text : '');
+    const seg = (g < 0 || !ge ? '' : h.slice(g, ge.z)) + (st ? st.text : '') + (el ? el.text : '');
     twins[lang] = [...seg.replace(/<label class="wd-cmp"[\s\S]*?<\/label>/g, () => '').matchAll(/<([a-z][a-z0-9]*)\b([^>]*)>/gi)]
       .map((m) => [m[1], ...['class', 'data-slug', 'data-region', 'data-rank'].map((k) => new RegExp(`\\b${k}="([^"]*)"`).exec(m[2])?.[1] ?? '')].join('|'));
     /* F7 生成の流し忘れ（素のページで） */
@@ -541,6 +560,142 @@ function secF(I) {
       for (const m of refs) if (m[2] !== want) p.F9.push(`${rel}：${up + f}?v=${m[2] ?? '（無し）'}／中身の指紋 ${want}`);
     }
   }
+  return Object.entries(p).map(([id, probs]) => R(id, probs));
+}
+
+/* ── G) 見出しと検索欄（DG）。字は台帳（シート・進行役の決め）のまま。ここに書いた字が正 ── */
+const H1 = { ja: '次のキャリアを、選択する', en: 'Choose your next career' };
+/** 日本語の見出しは「、」の後ろでだけ折れる（2つの半分がどちらも折れない）。390px でも語の途中で折れない */
+const H1_HALVES = ['次のキャリアを、', '選択する'];
+const PH = { ja: '航空会社名・国名で検索（例：Emirates, フランス）', en: 'Search by airline or country (e.g. Emirates, France)' };
+const ARIA = { ja: '航空会社名・国名で検索', en: 'Search by airline or country' };
+const ALL_WORD = { ja: 'すべて', en: 'All' };
+const CLEAR = { ja: '絞り込みを解除', en: 'Clear filters' };
+const NONE = { ja: '該当する航空会社が見つかりませんでした', en: 'No airlines matched your search' };
+const FMT = { ja: '{n}社', en: '{n} airlines' };
+const FMT_ONE = { ja: null, en: '{n} airline' };
+const HEAD_Q = "<script>(function(){try{if(/[?&]q=[^&#]/.test(location.search))document.documentElement.classList.add('wd-q');}catch(e){}}());</script>";
+const NOSCRIPT = '<noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>';
+/** id="…" を持つ <div> の始まりから、対になる </div> まで（div の入れ子を数える）。無い・閉じない・2つ以上なら null */
+function divById(html, id) {
+  const hits = [...html.matchAll(new RegExp(`<div\\b[^>]*\\bid="${id}"[^>]*>`, 'g'))];
+  return hits.length === 1 ? divAt(html, hits[0].index) : null;
+}
+/** html の a から始まる <div> の、対になる </div> まで */
+function divAt(html, a) {
+  const tag = /<(\/?)div\b[^>]*>/g;
+  tag.lastIndex = a;
+  let d = 0, m;
+  while ((m = tag.exec(html))) { d += m[1] ? -1 : 1; if (d === 0) return { a, z: m.index + m[0].length, text: html.slice(a, m.index + m[0].length) }; }
+  return null;
+}
+const attrOf = (tag, k) => new RegExp(`\\s${k}="([^"]*)"`).exec(tag)?.[1] ?? null;
+const tagsWith = (html, idOrClass) => [...html.matchAll(/<([a-z][a-z0-9]*)\b([^>]*)>/gi)].filter((m) => idOrClass(m[2])).map((m) => ({ tag: m[1].toLowerCase(), attrs: m[2], at: m.index, end: m.index + m[0].length }));
+const textAfter = (html, t) => { const z = html.indexOf(`</${t.tag}>`, t.end); return z < 0 ? null : unesc(html.slice(t.end, z).replace(/<[^>]*>/g, () => '')); };
+const hasId = (id) => (a) => attrOf(a, 'id') === id;
+const hasClass = (c) => (a) => (attrOf(a, 'class') || '').split(/\s+/).includes(c);
+
+/** G) 見出し・検索欄・結果の見出し・見つからないとき（日英）と、その見た目の決まり（pv-directory.css の PV-DIR-DATA） */
+function secG(I) {
+  const p = { G1: [], G2: [], G2b: [], G3: [], G4: [], G5: [], G6: [], G7: [] };
+  for (const lang of ['ja', 'en']) {
+    const h = I.page[lang], rel = PAGE_REL[lang];
+    /* G1 検索欄は HTML に在る（台本が作らない）・見出しの帯（#wa-hero）の .wd-search の中・type="search"・字はそのまま */
+    const inputs = tagsWith(h, hasId('search'));
+    const hero = divById(h, 'wa-hero'), bi = hero ? hero.text.split('<div class="wd-search" role="search">') : [];
+    const box = bi.length === 2 ? divAt(h, hero.a + bi[0].length) : null;
+    if (inputs.length !== 1 || inputs[0].tag !== 'input') p.G1.push(`${rel}：id="search" の <input> が ${inputs.length} 個`);
+    else {
+      const a = inputs[0].attrs;
+      if (attrOf(a, 'type') !== 'search') p.G1.push(`${rel}：type="${attrOf(a, 'type')}"（search であること）`);
+      if (attrOf(a, 'placeholder') !== PH[lang]) p.G1.push(`${rel}：placeholder「${attrOf(a, 'placeholder')}」／「${PH[lang]}」`);
+      if (attrOf(a, 'aria-label') !== ARIA[lang]) p.G1.push(`${rel}：aria-label「${attrOf(a, 'aria-label')}」／「${ARIA[lang]}」`);
+      if (!box || box.z > hero.z || inputs[0].at < box.a || inputs[0].end > box.z) p.G1.push(`${rel}：検索欄が見出しの帯（#wa-hero）の .wd-search の中に無い`);
+      else if (tagsWith(box.text, hasId('wd-scope')).length !== 1) p.G1.push(`${rel}：検索欄の枠に #wd-scope が無い`);
+    }
+    /* G2 見出しの字（タグを外して） */
+    const h1s = [...h.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)];
+    const h1text = h1s.length === 1 ? unesc(h1s[0][1].replace(/<[^>]*>/g, () => '')) : null;
+    if (h1s.length !== 1) p.G2.push(`${rel}：<h1> が ${h1s.length} 個`);
+    else if (h1text !== H1[lang]) p.G2.push(`${rel}：見出し「${h1text}」／「${H1[lang]}」`);
+    /* G2b 日本語の見出しは2つの <span>（どちらも white-space:nowrap）＝「、」の後ろでだけ折れる・題名は career.html と別 */
+    if (lang === 'ja') {
+      const inner = h1s.length === 1 ? h1s[0][1] : '', sp = /^<span style="([^"]*)">([^<]*)<\/span><span style="([^"]*)">([^<]*)<\/span>$/.exec(inner);
+      if (!sp) p.G2b.push(`${rel}：見出しの中が2つの <span> だけでない（${inner.slice(0, 80)}）`);
+      else {
+        if (![sp[1], sp[3]].every((s) => /(?:^|;)\s*white-space:\s*nowrap\s*(?:;|$)/.test(s))) p.G2b.push(`${rel}：見出しの <span> に white-space:nowrap が無い`);
+        if (!same([unesc(sp[2]), unesc(sp[4])], H1_HALVES)) p.G2b.push(`${rel}：見出しの2つの半分「${sp[2]}」「${sp[4]}」／「${H1_HALVES.join('」「')}」`);
+        if (unesc(sp[2] + sp[4]) !== H1.ja) p.G2b.push(`${rel}：見出しの字「${sp[2]}${sp[4]}」／「${H1.ja}」`);
+      }
+      const tj = /<title>([^<]*)<\/title>/.exec(h)?.[1], tc = /<title>([^<]*)<\/title>/.exec(I.career || '')?.[1];
+      if (!tj || tj === tc) p.G2b.push(`${rel}：<title> が career.html と同じ（${tj}）`);
+    }
+    /* G3 #wd-explore（国の帯＋古い地図）は1つ・地域ボタン・検索欄・カードを持たない／「WORLD MAP」の行の次が <!--PV-CBAND--> */
+    const ex = divById(h, 'wd-explore');
+    if (!ex) p.G3.push(`${rel}：#wd-explore が無い・2つ以上・閉じていない`);
+    else for (const id of ['region-strip', 'search', 'airline-grid']) if (new RegExp(`\\bid="${id}"`).test(ex.text)) p.G3.push(`${rel}：#wd-explore の中に #${id}`);
+    const lines = h.split('\n'), wm = lines.map((l, i) => (l.includes('<!-- ── WORLD MAP') ? i : -1)).filter((i) => i >= 0);
+    if (wm.length !== 1 || !(lines[wm[0] + 1] || '').startsWith('<!--PV-CBAND-->')) p.G3.push(`${rel}：「<!-- ── WORLD MAP」の行（${wm.length}）の次の行が <!--PV-CBAND--> でない`);
+    /* G4 結果の見出し #wd-rh ＝ h2#wd-rh-name（すべて／All・tabindex="-1"）＋ #result-count（data-fmt）＋ .wd-clear が1つ */
+    const rh = divById(h, 'wd-rh');
+    if (!rh) p.G4.push(`${rel}：#wd-rh が無い`);
+    else {
+      const h2 = tagsWith(rh.text, hasId('wd-rh-name')), rc = tagsWith(rh.text, hasId('result-count')), cl = tagsWith(rh.text, hasClass('wd-clear'));
+      if (h2.length !== 1 || h2[0].tag !== 'h2') p.G4.push(`${rel}：#wd-rh に h2#wd-rh-name が無い`);
+      else {
+        if (textAfter(rh.text, h2[0]) !== ALL_WORD[lang]) p.G4.push(`${rel}：h2「${textAfter(rh.text, h2[0])}」／「${ALL_WORD[lang]}」`);
+        if (attrOf(h2[0].attrs, 'tabindex') !== '-1') p.G4.push(`${rel}：h2 に tabindex="-1" が無い`);
+      }
+      if (rc.length !== 1) p.G4.push(`${rel}：#wd-rh に #result-count が ${rc.length} 個`);
+      else {
+        if (attrOf(rc[0].attrs, 'data-fmt') !== FMT[lang]) p.G4.push(`${rel}：data-fmt「${attrOf(rc[0].attrs, 'data-fmt')}」／「${FMT[lang]}」`);
+        if (attrOf(rc[0].attrs, 'data-fmt-one') !== FMT_ONE[lang]) p.G4.push(`${rel}：data-fmt-one「${attrOf(rc[0].attrs, 'data-fmt-one')}」／「${FMT_ONE[lang]}」`);
+      }
+      if (cl.length !== 1) p.G4.push(`${rel}：#wd-rh に .wd-clear が ${cl.length} 個`);
+      else if (textAfter(rh.text, cl[0]) !== CLEAR[lang]) p.G4.push(`${rel}：「${textAfter(rh.text, cl[0])}」／「${CLEAR[lang]}」`);
+    }
+    if (tagsWith(h, hasId('wd-rh-name')).length !== 1 || tagsWith(h, hasId('result-count')).length !== 1) p.G4.push(`${rel}：#wd-rh-name か #result-count がページに1つでない`);
+    /* G5 <head> の1行（?q= のときは国の帯と地図を最初から隠す）と、台本が動かないときの隠し方 */
+    const head = h.slice(0, h.indexOf('</head>'));
+    for (const [what, s] of [['?q= の1行', HEAD_Q], ['<noscript> の隠し方', NOSCRIPT]]) {
+      if (h.split(s).length !== 2) p.G5.push(`${rel}：${what}がページに ${h.split(s).length - 1} 個`);
+      else if (!head.includes(s)) p.G5.push(`${rel}：${what}が <head> の外`);
+    }
+    /* G7 #no-results ＝ p#wd-none（今の文のまま）→ p.wd-empty-acts（#wd-scope-e → span#wd-else（PV-DIR-ELSE）→ #wd-clear-e）の順 */
+    const nr = divById(h, 'no-results');
+    if (!nr) p.G7.push(`${rel}：#no-results が無い`);
+    else {
+      const t = nr.text, none = t.indexOf(`<p id="wd-none">${NONE[lang]}</p>`), acts = t.indexOf('<p class="wd-empty-acts">');
+      const actsText = acts < 0 ? '' : t.slice(acts, t.indexOf('</p>', t.indexOf('<!--/PV-DIR-ELSE-->', acts)) + 4);
+      const at = (s) => actsText.indexOf(s);
+      const order = [at('id="wd-scope-e"'), at('<span class="wd-else" id="wd-else">\n<!--PV-DIR-ELSE-->'), at('<!--/PV-DIR-ELSE-->\n</span>'), at('id="wd-clear-e"')];
+      if (none < 0) p.G7.push(`${rel}：p#wd-none「${NONE[lang]}」が無い`);
+      if (acts < 0 || acts < none) p.G7.push(`${rel}：p.wd-empty-acts が p#wd-none の後ろに無い`);
+      else if (order.some((x) => x < 0) || order.some((x, i) => i && x < order[i - 1])) p.G7.push(`${rel}：p.wd-empty-acts の中の並び（#wd-scope-e → span#wd-else（PV-DIR-ELSE）→ #wd-clear-e）が違う ${JSON.stringify(order)}`);
+      const ce = tagsWith(actsText, hasId('wd-clear-e'));
+      if (ce.length === 1 && textAfter(actsText, ce[0]) !== CLEAR[lang]) p.G7.push(`${rel}：#wd-clear-e「${textAfter(actsText, ce[0])}」／「${CLEAR[lang]}」`);
+    }
+  }
+  /* G6 見た目の決まり（PV-DIR-DATA の中）── transition:all 無し・transition は transform / opacity だけ・色は #fff のほかに hex 無し・
+     var(--pv-…) はどれも pv-tokens.css に在る／検索欄の消すボタン（×）を隠す規則が無い（pv-directory.css にも2枚のページにも） */
+  const css = I.css || '', a = css.indexOf('/* PV-DIR-DATA'), z = css.indexOf('/* /PV-DIR-DATA */');
+  if (a < 0 || z < a) p.G6.push('pv-directory.css に PV-DIR-DATA の印が無い');
+  else {
+    const blk = css.slice(a, z).replace(/\/\*[\s\S]*?\*\//g, () => '');
+    if (/transition\s*:\s*all\b/i.test(blk)) p.G6.push('transition:all が在る');
+    for (const m of blk.matchAll(/(?:^|[;{\s])transition(-property)?\s*:\s*([^;}]*)/g)) {
+      const v = m[2].trim();
+      if (!m[1] && v === 'none') continue;
+      const items = v.split(/,(?![^(]*\))/).map((s) => s.trim().split(/\s+/)[0]);
+      const bad = items.filter((x) => !['transform', 'opacity'].includes(x));
+      if (bad.length) p.G6.push(`transition${m[1] || ''} が ${bad.join('・')} を動かす（transform / opacity だけ）`);
+    }
+    for (const m of blk.matchAll(/\{([^{}]*)\}/g)) for (const c of m[1].matchAll(/#[0-9a-f]{3,8}(?![0-9a-z_-])/gi)) if (c[0].toLowerCase() !== '#fff') p.G6.push(`色 ${c[0]}（トークンを使う。#fff だけは会社ページの札と同じ白）`);
+    const defined = new Set([...(I.tokens || '').matchAll(/(--pv-[\w-]+)\s*:/g)].map((m) => m[1]));
+    const used = [...new Set([...blk.matchAll(/var\(\s*(--pv-[\w-]+)/g)].map((m) => m[1]))];
+    for (const v of used) if (!defined.has(v)) p.G6.push(`${v} が pv-tokens.css に無い`);
+  }
+  for (const [name, s] of [['pv-directory.css', css], ...['ja', 'en'].map((l) => [PAGE_REL[l], I.page[l]])]) if (/-webkit-search-cancel-button/.test(s)) p.G6.push(`${name}：検索欄の消すボタンに触る規則（-webkit-search-cancel-button）`);
   return Object.entries(p).map(([id, probs]) => R(id, probs));
 }
 
@@ -663,7 +818,7 @@ function secL(I) {
   return [R('L2', p2)];
 }
 
-const SECTIONS = { A: secA, B: secB, C: secC, D: secD, E: secE, F: secF, H: secH, W: secW, L: secL };
+const SECTIONS = { A: secA, B: secB, C: secC, D: secD, E: secE, F: secF, G: secG, H: secH, W: secW, L: secL };
 const runScope = (I, scope) => [...scope].flatMap((l) => SECTIONS[l](I));
 
 /* ── 自己検査：わざと1か所だけ壊した写しで、ちょうどその項目だけが赤くなるか ─── */
@@ -725,6 +880,7 @@ const ROWS = [
   ['F2b', (I) => onCard(I, 'ja', 'ana', (c) => c.replace(/(<span class="wd-name"[^>]*>[^<]*)/, (_, a) => `${a}X`)), 'F', ['F2', 'F7']],
   ['F2c', (I) => onCard(I, 'ja', 'ana', (c) => c.replace(' loading="lazy"', () => '')), 'F', ['F2', 'F7']],
   ['F2d', (I) => onCard(I, 'ja', 'solairus', (c) => c.replace('data-lvl="0"', () => 'data-lvl="1"')), 'F', ['F2', 'F7']],
+  ['F3b', (I) => onBlock(I, 'en', 'PV-DIR-ELSE', (b) => b.replace(' hidden>', () => '>')), 'F', ['F3', 'F7']],
   ['F3a', (I) => onBlock(I, 'ja', 'PV-DIR-REGIONS', (b) => b.replace(/(data-region="japan"[^>]*>[\s\S]*?<span class="rstrip-n"[^>]*>)(\d+)/, (_, a, n) => `${a}${Number(n) + 1}`)), 'F', ['F3', 'F7']],
   ['F4', (I) => { I.page.ja = sub(I.page.ja, `"numberOfItems":${Object.keys(I.ledger).length}\n`, '"numberOfItems":117\n'); }, 'F', ['F4', 'F7']],
   ['F5a', (I) => { I.page.ja = sub(I.page.ja, '社の給与・採用・訓練情報</p>', '社の給与・採用・訓練情報（108社）</p>'); }, 'F', ['F5']],
@@ -734,6 +890,24 @@ const ROWS = [
   ['F9a', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], "applyThemeW(localStorage.getItem('pv-theme')||'light');\n", "applyThemeW(localStorage.getItem('pv-theme')||'light'),\n"); }, 'F', ['F9']],
   ['F9b', (I) => { I.page.ja = sub(I.page.ja, '</body>', 'createCard</body>'); }, 'F', ['F9']],
   ['F10', (I) => { I.page.en = I.page.en.replace(/<nav class="mr-side"[\s\S]*?<\/nav>/, () => ''); }, 'F', ['F10']],
+  ['G1', (I) => { I.page.en = sub(I.page.en, 'aria-label="Search by airline or country"', 'aria-label="Search"'); }, 'G', ['G1']],
+  ['G2', (I) => { I.page.en = sub(I.page.en, 'Choose your next career</h1>', 'World Airlines — Pilot Information</h1>'); }, 'G', ['G2']],
+  ['G2b', (I) => { I.page.ja = sub(I.page.ja, '選択する</span></h1>', '選択する。</span></h1>'); }, 'G', ['G2', 'G2b']],
+  /* 字は同じまま折れ目だけ外す（G2 はタグを外して読むので緑のまま。G2b だけが赤） */
+  ['G2bn', (I) => { I.page.ja = sub(I.page.ja, '<span style="white-space:nowrap">選択する</span></h1>', '<span>選択する</span></h1>'); }, 'G', ['G2b']],
+  ['G3a', (I) => { I.page.ja = sub(I.page.ja, '\n<!--PV-CBAND-->', '\n\n<!--PV-CBAND-->'); }, 'G', ['G3']],
+  /* #wd-explore の始まりを見出しの帯の前へ ＝ 検索欄が「探す前だけ見せる」側に入る */
+  ['G3b', (I) => { I.page.ja = sub(sub(I.page.ja, '<div id="wd-explore">\n<!-- ── WORLD MAP', '<!-- ── WORLD MAP'), '<!-- ── HERO', '<div id="wd-explore">\n<!-- ── HERO'); }, 'G', ['G3']],
+  ['G4a', (I) => { I.page.en = sub(I.page.en, 'tabindex="-1">All</h2>', 'tabindex="-1">All airlines</h2>'); }, 'G', ['G4']],
+  ['G4b', (I) => { I.page.en = sub(I.page.en, ' data-fmt-one="{n} airline"', ''); }, 'G', ['G4']],
+  ['G5', (I) => { I.page.ja = sub(I.page.ja, NOSCRIPT, ''); }, 'G', ['G5']],
+  ['G6a', (I) => { I.css = sub(I.css, '.wd-rh-name:focus{outline:none}', '.wd-rh-name:focus{outline:none;transition:all .2s}'); }, 'G', ['G6']],
+  ['G6b', (I) => { I.css = sub(I.css, '.wd-rh-name:focus{outline:none}', '.wd-rh-name:focus{outline:none;transition:color .2s}'); }, 'G', ['G6']],
+  ['G6c', (I) => { I.css = sub(I.css, '.wd-search-in::placeholder{color:var(--pv-ink-3)}', '.wd-search-in::placeholder{color:#64748b}'); }, 'G', ['G6']],
+  ['G6d', (I) => { I.css = sub(I.css, '.wd-search-in::placeholder{color:var(--pv-ink-3)}', '.wd-search-in::placeholder{color:var(--pv-ink-9)}'); }, 'G', ['G6']],
+  ['G6e', (I) => { I.css = sub(I.css, '/* /PV-DIR-DATA */', '.wd-search-in::-webkit-search-cancel-button{display:none}\n/* /PV-DIR-DATA */'); }, 'G', ['G6']],
+  ['G7', (I) => { I.page.en = sub(I.page.en, '<p id="wd-none">No airlines matched your search</p>', '<p id="wd-none">No airlines found</p>'); }, 'G', ['G7']],
+  ['G7b', (I) => { I.page.ja = sub(I.page.ja, '<span class="wd-else" id="wd-else">', '<span class="wd-else">'); }, 'G', ['G7']],
   ['H1', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/<p class="wd-fig" data-rank="fo"[\s\S]*?<\/p>\n?/, () => '')), 'H', ['H1']],
   /* 札の全体を <span> で包むだけでは、職位の語の後ろに増えるのは閉じタグ1つ（23 → 24 ＝ まだ読める）。語の直後で包んで 25 にする */
   ['H2', (I) => onCard(I, 'en', 'etihad', (c) => c.replace(/(data-rank="cap"><span class="wd-vh">[^<]*<\/span>Captain)([^<]*)/, (_, a, l) => `${a}<span>${l}</span>`)), 'H', ['H2']],
@@ -750,7 +924,8 @@ if (SELFTEST) {
   const all = runScope(I, Object.keys(SECTIONS)), ids = all.map((r) => r.id), bad = [];
   const red0 = all.filter((r) => !r.ok).map((r) => r.id);
   if (red0.length) bad.push(`壊す前から赤い：${red0.join(', ')}`);
-  for (const id of ids) if (!ROWS.some(([n]) => n.replace(/[a-z]$/, () => '') === id)) bad.push(`${id} に自己検査の行が無い`);
+  /* 行の名前 ＝ 項目の id そのもの、または id ＋ 小文字1字（F3a・F3b …）。G2b のように id が小文字で終わるときは G2b・G2bn */
+  for (const id of ids) if (!ROWS.some(([n]) => n === id || n.replace(/[a-z]$/, () => '') === id)) bad.push(`${id} に自己検査の行が無い`);
   for (const [name, doctor, scope, expected] of ROWS) {
     const J = clone(I);
     try { doctor(J); } catch (e) { bad.push(`${name}：壊し方が当たらない（${e.message}）`); continue; }

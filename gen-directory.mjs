@@ -5,6 +5,7 @@
    書くもの（印 <!--ID--> … <!--/ID--> の間だけ。印の外は1文字も触らない）
      PV-DIR-CARDS    112社のカード（ロゴ・社名・略号・機長と副操縦士の額・札）。英語は額をドルで焼き込む
      PV-DIR-REGIONS  地域の9つのボタンと社数
+     PV-DIR-ELSE     見つからないときの、地域の8つのボタン（どれも hidden で出荷。社数は台本が当たりの数に書き換えてから見せる）
      PV-DIR-N        社数（何か所でも）
      PV-DIR-LD       ItemList の構造化データ
      id="pc-…"       古い地図のピンの社数（地図が在るあいだ）
@@ -85,6 +86,11 @@ export function strip(lang, M = model()) {
   }).join('\n');
 }
 
+/** 見つからないときの、地域の8つのボタン（地域の順・どれも hidden）。社数はその地域の全社数で書き、
+    台本（pv-directory.js）が当たりの数に書き換えてから見せる */
+export function elseRow(lang, M = model()) {
+  return M.regions.map((r) => `<button type="button" class="wd-else-b" data-region="${r.code}" hidden><span class="wd-else-l">${esc(r[lang])}</span><span class="wd-else-n">${r.n}</span></button>`).join('\n');
+}
 /** ItemList の構造化データ（ページに在ったものと1文字も同じ。社数だけ台帳から） */
 export function itemList(lang, M = model()) {
   const n = M.n;
@@ -116,6 +122,7 @@ export const BLOCKS = [
   { id: 'PV-DIR-LD', build: itemList },
   { id: 'PV-DIR-N', build: (lang, M) => String(M.n), inline: true, many: true },
   { id: 'PV-DIR-REGIONS', build: strip },
+  { id: 'PV-DIR-ELSE', build: elseRow },
   { id: 'PV-DIR-CARDS', build: cards },
 ];
 /** ?v= を書く部品（両方のページが読むこと） */

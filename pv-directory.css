@@ -30,4 +30,28 @@
 .wd-foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:var(--pv-s-1);min-height:44px}
 .wd-tags{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
 @media (prefers-reduced-motion:reduce){.wd-li{transition:none}}
+/* 検索欄（見出しのすぐ下）・結果の見出し・見つからないときの押せるもの。入力欄は枠いっぱい（どこを押しても入力できる） */
+.wd-search{position:relative;display:flex;align-items:stretch;gap:var(--pv-s-1);max-width:640px;min-height:56px;margin:var(--pv-s-3) auto 0;padding:0 8px 0 0;background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow);text-align:left}
+.wd-search:focus-within{border-color:var(--pv-accent);outline:2px solid var(--pv-accent);outline-offset:2px;box-shadow:var(--pv-shadow-lift)}
+.wd-search-ic{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--pv-ink-3);pointer-events:none}
+/* ⚠️ 16px を下げない（iOS は 16px 未満の入力欄に触れるとページごと拡大して戻らない。2026-08-27 実測）。ブラウザの消すボタン（×）は隠さない */
+.wd-search-in{flex:1;min-width:0;padding:0 4px 0 48px;background:none;border:0;outline:none;font:inherit;font-size:1.0625rem;line-height:1.4;color:var(--pv-ink);text-overflow:ellipsis;appearance:none;-webkit-appearance:none}
+.wd-search-in::placeholder{color:var(--pv-ink-3)}
+.wd-scope{flex:none;align-self:center;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--pv-accent-line);background:var(--pv-accent-soft);color:var(--pv-accent-ink);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+.wd-clear,.wd-else-b{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink-2);font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+.wd-else-n{font-weight:500;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+.wd-else{display:contents}
+.wd-scope[hidden],.wd-clear[hidden],.wd-else-b[hidden],#wd-none[hidden]{display:none}
+.wd-scope:hover,.wd-clear:hover,.wd-else-b:hover{transform:translateY(-1px)}
+.wd-scope:focus-visible,.wd-clear:focus-visible,.wd-else-b:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wd-scope:active,.wd-clear:active,.wd-else-b:active{transform:translateY(0) scale(.97)}
+.wd-rh{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--pv-s-1);margin-left:auto}
+.wd-rh-name{margin:0;font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:var(--pv-ink)}
+.wd-rh-name:focus{outline:none}
+.wd-rh-name:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wd-rh-n{font-size:.8rem;color:var(--pv-ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wd-empty-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--pv-s-1);margin-top:var(--pv-s-2)}
+.wd-q #wd-explore{display:none}
+@media (pointer:coarse){.wd-scope,.wd-clear,.wd-else-b{min-height:44px}}
+@media (prefers-reduced-motion:reduce){.wd-scope,.wd-clear,.wd-else-b{transition:none}}
 /* /PV-DIR-DATA */

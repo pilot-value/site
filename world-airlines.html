@@ -6,6 +6,7 @@
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+<script>(function(){try{if(/[?&]q=[^&#]/.test(location.search))document.documentElement.classList.add('wd-q');}catch(e){}}());</script>
 <title>世界の航空会社パイロット年収一覧｜112社の給与を比較 | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="世界の航空会社パイロット年収一覧｜112社の年収・口コミ・転職情報 | PILOT VALUE" d="世界112社の航空会社パイロット年収・転職情報を一覧で比較。ANA・JAL・Emirates・Qatar Airways・Singapore Airlinesなど。パイロットの海外転職を考えるなら年収・口コミ・評価で比較できるPILOT VALUE。"-->
@@ -53,7 +54,8 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="pv-tokens.css">
-<link rel="stylesheet" href="pv-directory.css?v=b6542361">
+<link rel="stylesheet" href="pv-directory.css?v=5f1b5047">
+<noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -132,13 +134,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 /* ── SEARCH / FILTER BAR ───────────────────────────────────────── */
 .search-wrap{background:rgba(17,22,32,.7);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.search-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:10px 14px 10px 40px;color:#e8edf2;font-size:.875rem;flex:1;min-width:180px;outline:none;transition:border-color .2s}
-/* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない。拡大した画面では
-   position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
-   （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
-@media (pointer:coarse),(max-width:820px){.search-input{font-size:16px}}
-.search-input:focus{border-color:rgba(245,200,66,.4)}
-.search-input::placeholder{color:#3a4a5c}
 .ftype-btn{padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#6b7d93;cursor:pointer;transition:all .2s;white-space:nowrap}
 .ftype-btn.active{background:rgba(245,200,66,.14);color:#f5c842;border-color:rgba(245,200,66,.3)}
 
@@ -185,9 +180,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 /* Airline cards */
 /* Search bar */
 [data-theme="light"] .search-wrap{background:rgba(255,255,255,.92);border-color:rgba(0,0,0,.09)}
-[data-theme="light"] .search-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.09);color:#0f172a}
-[data-theme="light"] .search-input::placeholder{color:#8899aa}
-[data-theme="light"] .search-input:focus{border-color:rgba(180,150,0,.5)}
 /* Filter type buttons */
 [data-theme="light"] .ftype-btn{background:rgba(0,0,0,.04);color:#4a5568;border-color:rgba(0,0,0,.1)}
 [data-theme="light"] .ftype-btn.active{background:rgba(180,150,0,.12);color:#8a6e00;border-color:rgba(180,150,0,.3)}
@@ -319,11 +311,17 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(245,200,66,.04) 0%,transparent 70%);pointer-events:none"></div>
   <div class="max-w-7xl mx-auto px-5 text-center relative">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);color:#f5c842;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">🌍 WORLD AIRLINES DATABASE</div>
-    <h1 style="font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 30%,#f5c842);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px">世界の航空会社 パイロット情報</h1>
+    <h1 style="font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 30%,#f5c842);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px"><span style="white-space:nowrap">次のキャリアを、</span><span style="white-space:nowrap">選択する</span></h1>
     <p style="color:#6b7d93;font-size:.95rem">地図をクリックして地域を選択 — <!--PV-DIR-N-->112<!--/PV-DIR-N-->社の給与・採用・訓練情報</p>
+    <div class="wd-search" role="search">
+      <svg class="wd-search-ic" width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <input id="search" class="wd-search-in" type="search" name="q" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-controls="airline-grid" aria-label="航空会社名・国名で検索" placeholder="航空会社名・国名で検索（例：Emirates, フランス）"/>
+      <button type="button" class="wd-scope" id="wd-scope" aria-pressed="true" hidden><span class="wd-scope-l"></span><svg class="wd-x" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
   </div>
 </div>
 
+<div id="wd-explore">
 <!-- ── WORLD MAP ──────────────────────────────────────────────────── -->
 <!--PV-CBAND-->
 <style>
@@ -649,6 +647,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
     <div id="map-tooltip" style="position:absolute;pointer-events:none;background:rgba(10,14,24,.92);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 14px;font-size:.8rem;font-weight:600;white-space:nowrap;opacity:0;transition:opacity .15s;z-index:50;transform:translate(-50%,-140%)"></div>
   </div>
 </div>
+</div>
 
 <!-- ── FILTER BAR ─────────────────────────────────────────────────── -->
 <div class="max-w-7xl mx-auto px-5 mb-8" id="filter-bar">
@@ -670,17 +669,13 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
   <!-- Search + type -->
   <div class="search-wrap">
-    <div style="position:relative;flex:1;min-width:200px">
-      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#4a5568" width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      <input id="search" class="search-input" type="text" placeholder="航空会社名・国名で検索（例：Emirates, フランス）"/>
-    </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <button class="ftype-btn active" data-type="all">すべて</button>
       <button class="ftype-btn" data-type="fsc">FSC</button>
       <button class="ftype-btn" data-type="lcc">LCC/ULCC</button>
       <button class="ftype-btn" data-type="taxfree">🏖️ 免税</button>
     </div>
-    <div id="result-count" data-fmt="{n}社" style="font-size:.8rem;color:#6b7d93;white-space:nowrap;margin-left:auto"></div>
+    <div class="wd-rh" id="wd-rh"><h2 class="wd-rh-name" id="wd-rh-name" tabindex="-1">すべて</h2><span class="wd-rh-n" id="result-count" role="status" aria-live="polite" data-fmt="{n}社"></span><button type="button" class="wd-clear" id="wd-clear" hidden>絞り込みを解除</button></div>
   </div>
 </div>
 
@@ -1724,7 +1719,19 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
   <div id="no-results" style="display:none;text-align:center;padding:60px 20px;color:#6b7d93">
     <div style="font-size:2rem;margin-bottom:8px">🔍</div>
-    <p>該当する航空会社が見つかりませんでした</p>
+    <p id="wd-none">該当する航空会社が見つかりませんでした</p>
+    <p class="wd-empty-acts"><button type="button" class="wd-scope" id="wd-scope-e" aria-pressed="true" hidden><span class="wd-scope-l"></span><svg class="wd-x" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><span class="wd-else" id="wd-else">
+<!--PV-DIR-ELSE-->
+<button type="button" class="wd-else-b" data-region="japan" hidden><span class="wd-else-l">日本</span><span class="wd-else-n">26</span></button>
+<button type="button" class="wd-else-b" data-region="asia" hidden><span class="wd-else-l">アジア</span><span class="wd-else-n">26</span></button>
+<button type="button" class="wd-else-b" data-region="mideast" hidden><span class="wd-else-l">中東</span><span class="wd-else-n">9</span></button>
+<button type="button" class="wd-else-b" data-region="africa" hidden><span class="wd-else-l">アフリカ</span><span class="wd-else-n">4</span></button>
+<button type="button" class="wd-else-b" data-region="europe" hidden><span class="wd-else-l">欧州</span><span class="wd-else-n">25</span></button>
+<button type="button" class="wd-else-b" data-region="us" hidden><span class="wd-else-l">北米</span><span class="wd-else-n">14</span></button>
+<button type="button" class="wd-else-b" data-region="oceania" hidden><span class="wd-else-l">オセアニア</span><span class="wd-else-n">4</span></button>
+<button type="button" class="wd-else-b" data-region="latam" hidden><span class="wd-else-l">中南米</span><span class="wd-else-n">4</span></button>
+<!--/PV-DIR-ELSE-->
+</span><button type="button" class="wd-clear" id="wd-clear-e" hidden>絞り込みを解除</button></p>
   </div>
 </div>
 

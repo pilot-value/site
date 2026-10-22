@@ -25,7 +25,14 @@
      b8 ヘッダーの検索（#pv-search-btn）で «Solairus» → airlines/solairus.html へのリンクが出る
      b9 quiet(st, 'base') が空
 
-   使い方: node assert-directory-ui.mjs [--scenes base] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
+   場面 first（日英・390×680 のスマホ）
+     検索欄（#search）が最初の1画面の中・高さ 48px 以上・字 16px 以上・見出しと検索欄のあいだに押せるもの無し・
+     見出し「次のキャリアを、選択する」／«Choose your next career»・結果の見出し「すべて」／«All»・
+     開いたときは地域の札・解除・見つからないときのボタンを見せない・quiet が空
+   場面 nojs（日英・台本を止める）
+     112社のリンクが見えている・h2#wd-rh-name「すべて」／«All»・検索欄／絞り込みの帯／表示の切り替え／古い地図を見せない・quiet が空
+
+   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
 
    ほかの検査が読む名前（export）: dirOpen / ready / visible / QUIET_ALLOW / quiet
@@ -51,6 +58,8 @@ const REGION_LABEL = {
 };
 /** 社数の書き方 */
 const COUNT = { ja: (n) => `${n}社`, en: (n) => `${n} airlines` };
+/** 見出しの字（オーナーの字・進行役の決め C4） */
+const H1 = { ja: '次のキャリアを、選択する', en: 'Choose your next career' };
 /** 一覧の2枚のページ */
 const PAGE_REL = { ja: 'world-airlines.html', en: 'en/world-airlines.html' };
 
@@ -84,7 +93,7 @@ export function ready(page) {
 export function visible(page) {
   return page.evaluate(() => [...document.querySelectorAll('#airline-grid a[href^="airlines/"]')]
     .filter((a) => a.getClientRects().length > 0)
-    .map((a) => a.getAttribute('href').replace(/^airlines\//, '').replace(/\.html$/, '')));
+    .map((a) => a.getAttribute('href').replace(/^airlines\//, () => '').replace(/\.html$/, () => '')));
 }
 
 /** 一覧のページを、新しい窓（context）で開く。
@@ -125,12 +134,15 @@ export function quiet(st, label, { allow = QUIET_ALLOW } = {}) {
 }
 
 /* ── 実行（このファイルを直接流したときだけ）────────────────────── */
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
+/* ⚠️ 実体のパスどうしで比べる。リンク越し（/tmp → /private/tmp、写しの中のリンク）で流すと、Node は argv[1] をリンクのまま・
+   import.meta.url を実体で持つので、素の path.resolve では一致せず「何も流さず exit 0」＝検査の門が黙って緑になる */
+const realOf = (p) => { try { return fs.realpathSync(path.resolve(p)); } catch { return path.resolve(p); } };
+if (process.argv[1] && realOf(process.argv[1]) === realOf(fileURLToPath(import.meta.url))) await main();
 
 async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const SCENES = { base };
+  const SCENES = { base, first, nojs };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   const unknown = want.filter((s) => !SCENES[s]);
   if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -310,6 +322,67 @@ async function main() {
       /* b9 静か */
       const q = quiet(st, 'base');
       ok(q.length === 0, T('b9 quiet(st, \'base\') が空 ── 外への通信も、一覧のページからのサーバーの口の呼び出しも無い'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 first（日英・390×680 のスマホ）── 開いた最初の1画面に、見出しのすぐ下の大きな検索欄 */
+  async function first(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 390, h: 680, touch: true });
+    PAGES.push(P);
+    const { page, st } = P;
+    try {
+      await page.evaluate(() => document.fonts && document.fonts.ready);
+      const m = await page.evaluate(() => {
+        const s = document.getElementById('search'), h1 = document.querySelector('#wa-hero h1'), hero = document.getElementById('wa-hero');
+        const r = s ? s.getBoundingClientRect() : null;
+        /* 見出しと検索欄のあいだ（#wa-hero の中・文書の順）に押せるものが無い */
+        const between = !h1 || !s ? ['?'] : [...hero.querySelectorAll('a[href],button,input,select,textarea,[tabindex],[role="button"]')]
+          .filter((e) => e !== s && e.getClientRects().length > 0
+            && (h1.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING) && (e.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING))
+          .map((e) => e.outerHTML.slice(0, 80));
+        const shownEl = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0;
+        return {
+          rect: r && { top: Math.round(r.top), bottom: Math.round(r.bottom), h: Math.round(r.height) }, vh: window.innerHeight,
+          font: s ? parseFloat(getComputedStyle(s).fontSize) : 0, h1: h1 ? h1.textContent : null, between,
+          h2: (document.getElementById('wd-rh-name') || {}).textContent ?? null,
+          shown: ['#wd-scope', '#wd-clear', '#wd-scope-e', '#wd-clear-e', '.wd-else-b'].filter((sel) => [...document.querySelectorAll(sel)].some(shownEl)),
+        };
+      });
+      ok(!!m.rect && m.rect.top >= 0 && m.rect.bottom <= m.vh, T(`first #search が最初の1画面（390×680）の中`), J(m.rect));
+      ok(!!m.rect && m.rect.h >= 48, T('first #search の高さ 48px 以上'), J(m.rect));
+      ok(m.font >= 16, T('first #search の字 16px 以上（iOS の拡大を起こさない）'), J(m.font));
+      ok(m.between.length === 0, T('first 見出しと検索欄のあいだに押せるものが無い'), J(m.between));
+      ok(m.h1 === H1[lang], T(`first 見出し「${H1[lang]}」`), J(m.h1));
+      ok(m.h2 === REGION_LABEL.all[lang === 'en' ? 1 : 0], T(`first 結果の見出し「${REGION_LABEL.all[lang === 'en' ? 1 : 0]}」`), J(m.h2));
+      ok(m.shown.length === 0, T('first 開いたときは、地域の札・解除・見つからないときのボタンを見せない'), J(m.shown));
+      await shot(page, 'first', lang, '390');
+      const q = quiet(st, 'first');
+      ok(q.length === 0, T('first quiet(st, \'first\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 nojs（日英・台本を止めたブラウザ）── 112社のリンクと見出しは HTML だけで読め、台本が要る部品は見せない */
+  async function nojs(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], js: false });
+    PAGES.push(P);
+    const { page, st } = P;
+    try {
+      const v = await visible(page);
+      ok(same(v, ORDER), T(`nojs 台帳の${ORDER.length}社のリンクが見えている（一覧の並び）`), J({ n: v.length }));
+      const h2 = await page.evaluate(() => (document.getElementById('wd-rh-name') || {}).textContent ?? null);
+      ok(h2 === REGION_LABEL.all[lang === 'en' ? 1 : 0], T(`nojs h2#wd-rh-name「${REGION_LABEL.all[lang === 'en' ? 1 : 0]}」`), J(h2));
+      const vis = await page.evaluate(() => ['.wd-search', '#filter-bar', '.view-toggle', '.map-wrapper']
+        .filter((sel) => [...document.querySelectorAll(sel)].some((el) => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)));
+      ok(vis.length === 0, T('nojs 検索欄・絞り込みの帯・表示の切り替え・古い地図を見せない'), J(vis));
+      await shot(page, 'nojs', lang, '1440');
+      const q = quiet(st, 'nojs');
+      ok(q.length === 0, T('nojs quiet(st, \'nojs\') が空'), J(q));
     } finally {
       await P.ctx.close().catch(() => {});
     }
