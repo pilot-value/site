@@ -58,7 +58,7 @@ const SQL = [
      ⚠️ 2026-09-09 に画面の「公開イメージ」は廃止したが、この検査は**残す** ──
         pv_sig2 / pv_band_grid / pv_band と shelf の写しを本物の pv_pay_rows() と
         突き合わせているのがここで、消すと shelf の腐りに誰も気づかなくなる。 */
-  ['db/test-pay-preview.mjs', 3],
+  ['db/test-pay-preview.mjs', 3], ['db/test-proof.mjs', 8],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。
@@ -92,7 +92,7 @@ const WEB = [
   ['assert-langtoggle.mjs', 24], ['assert-founding.mjs', 20],
   /* assert-admin.mjs：2026-10-18（WP-close-a）に外への通信の門と H)（本物のブラウザでマイページの「戻る」）が入り、
      単独で約60秒・同時4本で 85秒になった（12 は門より前の値）。85 は 2026-10-18 の `node check.mjs all` の実測。 */
-  ['assert-give-first.mjs', 14], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 85],
+  ['assert-proof.mjs', 15], ['assert-give-first.mjs', 14], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 85],
   ['db/test-login-redirect.mjs', 7],
   ['assert-deep-pay-compare.mjs', 5.7], ['assert-deep-pay.mjs', 5.0],
   ['assert-review-quality.mjs', 2.0], ['db/test-session-expiry.mjs', 0.9],

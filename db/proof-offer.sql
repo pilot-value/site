@@ -2,8 +2,8 @@
    db/proof-offer.sql — 自分から出す画像（何も止めない申請）（2026-10-16）
 
    実行: Supabase ダッシュボード → SQL Editor に貼って Run（冪等）
-   ★貼る順 ── … → db/proof-store.sql（main を取り込んだあとは db/pay-rows.sql と db/pilot-proof.sql）
-               → これ → db/stays.sql
+   ★貼る順 ── … → db/pay-rows.sql → … → db/pilot-proof.sql → これ → db/stays.sql
+               （2026-10-23 に main を取り込んだ。それまでの db/proof-store.sql は消した）
 
    オーナー指示（2026-10-16）
      「会員が画像を出す入口…マイページに1か所で、いいよ。…ポップアップで…それを作って
@@ -15,7 +15,7 @@
      2つ目の置き場を作らない。大きさと形の最後の線は、置き場の制約そのもの（ここで数を写さない）。
    ★止める仕組みには何も足さない。main の止める決まりは「state が required か submitted」の1つで、
      新しい状態 'offered' はそこに入らない（REAL PAY・DEEP PAY・口コミ本文・印・板のどれも数えない）。
-   ★main のものを変えるのは**1つだけ**：状態の制約に 'offered' を足す（1.）。
+   ★main のものを変えるのは**1つだけ**：状態の制約に 'offered' を足す（1.・いまは db/pay-rows.sql 1-e2 に在る）。
      引き金（画像を消す・置かせない）も関数も main のまま。申請の画像を置くときは、同じ取引の中で
      一度だけ 'submitted' を通り（main の網がそれを見ているため）、終わる前に 'offered' に戻す
      ＝ 外からは 'submitted' は1度も見えない。申請の行が在るあいだ画像を残すのは 1-b の引き金。
@@ -23,8 +23,8 @@
      （会員の入口・オーナーの一覧・画像・verified）。画像を読めるのも決められるのもオーナーだけ。
    ⚠️ 会員を名指しで書かない（公開リポジトリ）。
    ⚠️ 画像は氏名・免許番号・会社名が写りうる。通知メールに載せない・ログに出さない。
-   ⚠️ main を取り込むときは 1. の2文を main の db/pay-rows.sql 1-e2 の制約へ移す（このファイルからは消す）。
-      移さないと、db/pay-rows.sql を貼り直すたびに、申請が1件でもあると制約の所で丸ごと止まる。
+   ★1. の2文は、main を取り込んだとき（2026-10-23）に db/pay-rows.sql 1-e2 の制約へ移した（このファイルからは消した）。
+      ここに戻さない ── 戻すと、db/pay-rows.sql を貼り直すたびに、申請が1件でもあると制約の所で丸ごと止まる。
 ════════════════════════════════════════════════════════════════ */
 
 -- ── 0. 前提 ───────────────────────────────────────────────────
@@ -33,17 +33,24 @@ begin
   if to_regclass('public.pv_proof') is null or to_regclass('public.pv_proof_images') is null
      or not exists (select 1 from pg_trigger t where not t.tgisinternal and t.tgname = 'pv_proof_discard')
      or not exists (select 1 from pg_trigger t where not t.tgisinternal and t.tgname = 'pv_proof_image_guard') then
-    raise exception '先に db/proof-store.sql を実行してください（画像の置き場が無い）';
+    raise exception '先に db/pilot-proof.sql を実行してください（画像の置き場が無い）';
   end if;
 end
 $guard$;
 
 
--- ── 1. 状態に 'offered' を足す（★main のものを変えるのはここだけ）────────
+-- ── 1. 状態に 'offered' を足す ─────────────────────────────────
 --   'offered' ＝ 会員が自分から画像を出した（申請）。何も止めない。
-alter table public.pv_proof drop constraint if exists pv_proof_state_ck;
-alter table public.pv_proof add constraint pv_proof_state_ck check (
-  state in ('required', 'submitted', 'approved', 'offered'));
+--   ★制約そのものは db/pay-rows.sql 1-e2 に在る（2026-10-23 の合流で移した）。無ければ止める。
+do $guard$
+begin
+  if not exists (select 1 from pg_constraint c
+                  where c.conrelid = 'public.pv_proof'::regclass and c.conname = 'pv_proof_state_ck'
+                    and pg_get_constraintdef(c.oid) like '%offered%') then
+    raise exception '先に db/pay-rows.sql を実行し直してください（状態の制約に offered が無い）';
+  end if;
+end
+$guard$;
 
 
 -- ── 1-b. 申請の行が在るあいだ、その画像を消させない ─────────────────

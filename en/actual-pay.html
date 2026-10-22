@@ -55,7 +55,7 @@
   <!-- This page only (.ap-*).
        ★ pay-viz.css is not loaded here — this page has no donut
          (how the pay is made up belongs to DEEP PAY). -->
-  <link rel="stylesheet" href="../actual-pay.css?v=91124ccf">
+  <link rel="stylesheet" href="../actual-pay.css?v=0ca4dad1">
 
   <style>
     /* Only what would flash before the stylesheet lands belongs here.
@@ -152,9 +152,23 @@
     </nav>
 
     <main class="mr-main">
-      <!-- The heading is written by actual-pay.js (one place for both languages) -->
+      <!-- ★ The REAL PAY ⇄ DEEP PAY tabs (owner, 2026-10-11: "put an entrance to DEEP PAY
+             next to REAL PAY at the top, shaped like a tab"). **This is the way into DEEP PAY.**
+           ★ Static HTML: visible and clickable before any script runs. actual-pay.js no
+             longer rewrites this box (#ap-hd) — rewriting it would delete the entrance.
+           ★ Exactly one h1 on the page: the tab you are on (REAL PAY). The other one is
+             a plain link. deep-pay.html is the mirror image. **Same order on both pages**
+             (REAL PAY on the left), so the tabs do not swap places when you switch.
+           ★ No conditions and no headcount here. DEEP PAY itself tells a member what is left.
+           ★ The look (.pv-paytabs / .pv-paytab) lives in actual-pay.css and deep-pay.css
+             as **the same block**.
+           ⚠️ The only lines into DEEP PAY are this tab (ja/en) and the button in the row
+              drawer (actual-pay.js). assert-deep-pay.mjs ① pins that exact set. -->
       <div class="mr-hd" id="ap-hd">
-        <div class="mr-skel" style="height:30px;width:52%"></div>
+        <nav class="pv-paytabs" aria-label="Switch between REAL PAY and DEEP PAY">
+          <h1 class="pv-paytab is-on" aria-current="page">REAL PAY</h1>
+          <a class="pv-paytab" href="deep-pay.html">DEEP PAY</a>
+        </nav>
       </div>
 
       <!-- Both list only the groups that actually have rows (actual-pay.js builds
@@ -203,8 +217,8 @@
 
       <!-- ★ One row is one pilot. Everyone who submitted their pay is here — no headcount gate.
            ★ Never a ranking: no sort-by-amount, no verified-only filter.
-           ★ Only one heading (actual-pay.js writes it into #ap-hd). A section heading here
-             would repeat the h1 almost word for word.
+           ★ Only one heading (the tabs in #ap-hd above; the tab you are on is the h1).
+             A section heading here would repeat the h1 almost word for word.
            pv-no-cur goes on the opening tag itself — amounts are re-rounded to two
              significant figures per currency. -->
       <div class="pv-no-cur" id="ap-rows">
@@ -278,7 +292,7 @@
      指紋を付けておけば、中身が変われば URL も変わる＝古いほうを読みに行けない。
      ⚠️ この3つを直したら指紋も変わる。検査が落ちたら出た値を日英2枚に写す。 -->
 <script src="../ap-preview.js?v=27f09a64"></script>
-<script src="../actual-pay.js?v=fb060991"></script>
+<script src="../actual-pay.js?v=c6f39e4b"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix

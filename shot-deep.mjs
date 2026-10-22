@@ -10,28 +10,89 @@
       「開く → 選択肢が生えるのを待つ → 選ぶ → 描き終わるのを待つ」まで
       やってから撮る。選ばずに撮ると、どの scene も同じ空の板が写る。
 
-   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [open]
+   ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── 会社比較は閉じている。
+     開いた画面のいちばん下の段に在った「もっと深く見る／会社比較を見る」のカードは、
+     **いまは出ない**（下の段は「何をすると給与が増えるか」が幅いっぱい）。ここで撮れるのは
+     その姿 ＝ 本番で出ている絵。
+     引数に cmp を足すと、**手元でだけ**カードを出して撮る（出した日の絵の確認用）──
+     ページのどの script よりも先に window.__PV_COMPARE_OPEN = true を置く。deep-pay.js の
+     compareOpen() が localhost で開いたときだけ読む印で、本番の住所では効かない。
+
+   実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [cmp] [open]
      scene: full  … 全部そろった状態（モックと同じ配置。既定）
-            day1  … 現実の初日。KPI は4枚中2枚・給与構成は出ない・
+                    ★2026-10-12 から、賞与の目印（head.bonus_est）が立った姿 ── 年収と
+                      Pay / Block Hour のカードに札「平均賞与を使った推計」・KPI の下に注記が1行。
+            day1  … 現実の初日。KPI は3枚中1枚・給与構成は出ない・
                     働き方は1行しか無いので節ごと消える・変動給も出ない
-            fold  … 3人に満たない項目が「その他・未分類」に畳まれた状態
+                    ★賞与の平均を作れなかった姿（head.bonus_gap）── 札は出ず、注記
+                      「賞与未回答で平均も出せない回答は…」の1行だけが出る。
+            fold  … 人数の壁に満たない項目が「その他・未分類」に畳まれた状態
                     （灰色の意味が変わるので but 書きが1行増える）
+                    ★変動給の中身にも、畳んだ分（rest）の行が出る（灰色の棒・「その他・未分類」）。
+                    ★賞与の目印が2つとも立った姿（札2つ＋注記が2行増える ＝ いちばん場所を取る）。
+            nocomp… 年収は出ているが、給与構成が無い区分（2026-10-12）。総支給だけの人が
+                    集まった区分 ── サーバは comp・var・head.fixed_pct を null で返す。
+                    KPI は2枚（年収・Pay / Block Hour。札つき）・給与構成は「まだ出せません」の
+                    板・働き方はそのまま・変動給の中身は出ない。★壊れた答えではない。
+            two   … 給与構成が2行だけの区分（2026-10-12）。基本給 60% ＋「その他・未分類」40%
+                    （ほかの項目は持つ人が足りず、サーバが未分類へ畳んだ形）。
+                    ★前の画面はこれを「3項目に満たない」と自分で隠していた。いまは来たとおり描く。
             ask   … 開いた直後。まだ何も選んでいない（★これが入口の見た目）
             pos   … 役職だけ選んで会社を選ばなかった状態
             pick  … 自分の区分ではない区分を手で選んだ状態（JAL / 機長 / B787）
-            thin  … 手で選んだ区分が3人に届かなかった状態
+            thin  … 手で選んだ区分が人数の壁に届かなかった状態
                     （★広い区分の数字で埋めない。何も出ないのが正しい）
             nolist… 選べる組み合わせが1つも届いていない
                     （★選択欄ごと出ない。全社を並べる逃げ道は置かない）
-            lock  … 鍵がまだ無い（給与を1件も出していない）
-            det   … 鍵はあるが内訳を書いていない
+            lock  … 鍵がまだ無い（給与を1件も出していない）＝板は3行＋断り
+            det   … 鍵はあるが、答えていない項目が残っている＝板は2行（答え・100人）
+                    ★「まだ答えていない項目」の一覧が出る（作り物：2026年9月分・6項目）
+                    ★ボタンは給与フォームの内訳の節（#pay-detail）を指す
+                    ★ボタンの上に断り（虚偽・不正確な情報について）が出る
+            det0  … det と同じだが、残りの一覧が来ていない（窓の中に自分の行が無い人・
+                    一覧を返さない古いサーバ）＝行と断りだけ・一覧の箱は出ない
+            goal  … 鍵も答えもそろっていて、100人だけが未達＝板は1行（断りは出ない）
+            anon  … ログインしていない人（2026-10-11・オーナー判断）。前はログイン画面へ
+                    送っていた。いまは、会員の閉じた画面と**同じ**「ぼかした影絵＋板」が出る
+                    ── 板は2行（鍵・答え）＋断り。一覧も100人の行も無い（会員が居ない・
+                    サーバに聞いていない）。ボタンは給与フォームの頭（ログインなしで出せる）。
+                    ★この scene だけ、偽のクライアントが「セッションなし」を返す。
+                      撮ったあとの「未ログイン:」の行で、rpc を1本も呼ばなかったこと・
+                      住所が変わっていないことを字でも確かめられる。
+            ★lock / det / det0 / goal / anon は、板の後ろに**ぼかした影絵**が出る（2026-10-11・
+              オーナー判断）。影絵は字も数字も無い形だけで、ここの見本の数字とは関係が無い。
+              開いた scene（full / ask / thin …）と err には出ない。撮ったあとの「影絵:」の
+              行で、ぼかしの強さと「字が0文字」を字でも確かめられる。
             err   … サーバが返らなかった
+            party … 開いた瞬間のクラッカー（2026-10-11・オーナー指示）。full と同じ画面を
+                    開いて区分を選んだあと、**本物の道**で鳴らす ── 試験用の入口で
+                    いったん閉じた板を描かせ（＝製品のコードが端末に印を置く）、続けて
+                    開いた画面を描かせる（＝印を見つけて紙吹雪が出る）。印を手で書かない。
+                    ★撮るときは、飛んでいる途中（既定は出だしから 750ms）で**止めて**撮る。
+                      時間で待って撮ると、混んだ回に絵が変わる。止める時刻は at=900 の
+                      ように名指しできる（位置は問わない）。
+                    ★open を付けると止めない ── 窓が出て 1.5 秒後に、本物の速さで1回鳴る
+                      （同じ表示の中では1回まで。もう一度見るときは流し直す）。
+                    撮ったあとの「クラッカー:」の行で、器が出たか・紙の枚数・印が消えたかを
+                    字でも確かめられる。
      lang : ja | en
      theme: light | dark
+     通貨 : JPY | USD | EUR | GBP | AUD | SGD | AED（省くと、その言語の既定のまま）
+            ★円のままでは見えない崩れがある ── 通貨を変えると字数が変わる
+              （¥1,903万 → AED 440K）。額の入る欄を触った回は、円以外でも1枚撮る。
+            ⚠️ 英語ページの既定は**この機械のタイムゾーン**で決まる。英語の絵を
+               人に見せるときは通貨を名指しする（省くと置き場所で絵が変わる）。
+            位置は問わない（open / measure と同じく、引数のどこに書いてもよい）。
+     h=   : 窓の高さ（px）。h=760 のように書く。省くと今までどおり 1000。位置は問わない。
+            ★閉じた scene（lock / det / det0 / goal / anon）の板は、**窓の高さで置き場所が決まる**
+              （2026-10-11。窓の縦の真ん中あたり ── deep-pay.css の .dp-stage）。幅だけ変えても
+              確かめたことにならないので、ノートの高さ（760 前後）でも撮れるようにしてある。
+            ★撮れる絵は今までどおりページ全体。上から h px が「開いた直後に見えている範囲」。
    保存先は screenshot.mjs と同じ ./temporary screenshots/
 
    末尾に open を付けると、撮らずに**見える窓で開いたまま**にする。
      node shot-deep.mjs full ja light 1440 open
+     node shot-deep.mjs full en light 1440 USD
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
@@ -45,10 +106,29 @@ const theme = process.argv[4] || 'light';
 const vw    = Number(process.argv[5]) || 1440;
 const open  = process.argv.includes('open');
 const measure = process.argv.includes('measure');
+/* ★cmp（省略可・2026-10-12）。会社比較を開けた日の絵を、手元でだけ撮る（冒頭の注）。
+   付けなければ、配っているファイルのまま ＝ 会社比較へのカードは出ない。 */
+const cmp = process.argv.includes('cmp');
+/* ★表示通貨（省略可）。通貨コードの形をした引数を、位置を問わず1つ拾う
+   ＝ 今までの呼び方（scene lang theme 幅 [open|measure]）は1つも変わらない。
+   効かせ方は「その言語の保存先に、選んだ通貨として書いておく」── currency.js が
+   起動時に読む本物の道を通す（日本語＝pv-currency ／ 英語＝pv-currency-en）。
+   描いたあとに PVCurrency.set() で切り替えると、切り替えの描き直しが済む前を撮りうる。
+   ⚠️ 通る通貨は currency.js の RATES に在るものだけ。無い通貨を渡すと既定のまま
+      描かれるので、撮ったあとに実際の通貨を突き合わせて知らせる（下の「通貨」の行）。 */
+const cur = process.argv.slice(2).find((a) => /^[A-Z]{3}$/.test(a)) || '';
+/* ★party の scene だけが使う。紙吹雪を止めて撮る時刻（出だしからの ms）。
+   at=900 のように書く。省くと 750（扇が開ききって、落ち始めたところ）。 */
+const partyAt = Number(((process.argv.slice(2).find((a) => /^at=\d+$/.test(a)) || '').split('=')[1])) || 750;
+
+/* ★窓の高さ（省略可・2026-10-11）。h=760 のように書く。省くと今までどおり 1000
+   ＝ 今までの呼び方で撮れる絵は1つも変わらない。使いどころは冒頭の「h=」。 */
+const winH = Number(((process.argv.slice(2).find((a) => /^h=\d+$/.test(a)) || '').split('=')[1])) || 1000;
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-const label = `deep-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '');
+const label = `deep-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '')
+  + (winH !== 1000 ? `-h${winH}` : '') + (cur ? `-${cur}` : '') + (cmp ? '-cmp' : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
@@ -57,7 +137,7 @@ const url = `http://localhost:3000/${lang === 'en' ? 'en/' : ''}deep-pay.html`;
 
 /* scene ごとに「窓の中で何を選ぶか」。★画面は選ぶまで何も出さないので、
    これが無いと撮れるのは「区分を選んでください」の板だけになる。
-   lock / err / 未登録の scene は選ばない（選べる欄がそもそも出ない）。 */
+   lock / anon / err / 未登録の scene は選ばない（選べる欄がそもそも出ない）。 */
 const PICK = {
   /* ★ask は載せない（＝何も選ばない）。それが開いた直後の見た目そのもの。 */
   full: { airline: 'ana', position: 'cap', fleet: 'b787' },
@@ -66,47 +146,83 @@ const PICK = {
   pos:  { position: 'cap' },
   pick: { airline: 'jal', position: 'cap', fleet: 'b787' },
   thin: { airline: 'sas' },
-  det:  { airline: 'ana' }
+  /* nocomp / two は full と同じ区分（3つとも選ぶ ＝ 信頼度の札が「高」で出る）。 */
+  nocomp: { airline: 'ana', position: 'cap', fleet: 'b787' },
+  two:    { airline: 'ana', position: 'cap', fleet: 'b787' },
+  /* party は full と同じ区分を選ぶ（数字の出ている画面の上で鳴らす）。 */
+  party: { airline: 'ana', position: 'cap', fleet: 'b787' }
+  /* lock / det / det0 / goal は錠前の板。**何も選ばない**（鍵が閉じている画面では
+     picker() が欄ごと隠す ── 隠れた欄へ値を入れても、写る板は変わらない）。 */
 }[scene] || null;
 
 /* ★ headless:'new' はこの環境で page.screenshot() が返ってこない
    （shot-tracker.mjs に実測の経緯あり）。chrome-headless-shell を使う。 */
 const browser = await puppeteer.launch(open
-  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},1000`] }
+  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},${winH}`] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = (await browser.pages())[0] || await browser.newPage();
-if (!open) await page.setViewport({ width: vw, height: 1000 });
+if (!open) await page.setViewport({ width: vw, height: winH });
 
 page.on('pageerror', (e) => console.log('❌ page error:', e.message));
 
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。
    CDN の supabase-js に上書きさせない目的は defineProperty で達成する。 */
-await page.evaluateOnNewDocument((scene, theme) => {
+await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
   localStorage.setItem('pv-theme', theme);
+  /* ★cmp を付けた回だけ、会社比較へのカードを手元で出す印を置く（2026-10-12）。 */
+  if (cmp) window.__PV_COMPARE_OPEN = true;
+  /* ★撮影で解析に足あとを残さない（2026-10-11）。ページは load のあと gtag を読むので、
+     立てておかないと、撮るたびに localhost の閲覧が本物の GA4 に1件ずつ入る
+     （検査の側 ── assert-*.mjs ── は前からこの1行を立てている）。 */
+  window['ga-disable-G-3XYF69VQ3X'] = true;
+  if (cur) localStorage.setItem(lang === 'en' ? 'pv-currency-en' : 'pv-currency', cur);
   const UID = '00000000-0000-4000-8000-00000000a001';
 
   const STATS = { reports: 58, month: 12, airlines: 19, contributors: 37 };
 
+  /* ★見本の形は db/deep-pay.sql の返り値（2026-10-11）──
+       ・区分の人数は**どこにも入れない**（cohort.n / head.detailed_n / head.verified_n /
+         comp.n / comp.bonus.n はサーバが返さなくなった）。代わりは cohort.trust。
+       ・gate.crowd ＝「みんなの側」の門（100人以上 or 手動の公開フラグ）。
+         37 / 100 人のまま開いている見本は「手動フラグで開けた日」の形＝ crowd:true。
+       ・見出しの2つは刻み（annual_usd は $50・per_block_usd は $0.5）。
+         給与構成の月額（avg_usd）と月換算（month_usd）は有効数字2桁。
+       ・★2026-10-12 の形（オーナー判断で、誰を数えるかと賞与の扱いが変わった）──
+           head … { annual_usd, per_block_usd, month_usd, fixed_pct, bonus_est, bonus_gap }
+                  month_usd ＝ 月換算（賞与ぬき）。画面はこれをそのまま出す（年収から作らない）。
+                  bonus_est / bonus_gap ＝ 賞与の目印（真偽）。額も人数も来ない。
+           comp … 内訳を書いた人の**平均**。金額の鍵は avg_usd（前は項目ごとの中央値で、鍵の名前も別だった）。
+                  未分類（rest）にも金額が来る。年収が出ていて comp が null の区分も在る。
+                  comp.bonus（年収に対する賞与の割合）は今も来るが、画面はもう読まない。
+           var  … null（給与構成が無い）・空の配列・割合の配列。鍵に rest が来ることがある。
+       ・gate は { key, ready, todo, crowd, contributors, goal }。ready ＝本人が、自分に
+         当てはまる項目をぜんぶ答えた月を持っているか。todo ＝足りない人にだけ
+         { year, month, items:[コード…] }。**前の鍵 detailed は gate に無い**
+         （外の give.detailed は別物 ── pv_my_give の答え。読んでいた3段の表の DEEP PAY の
+           札は 2026-10-11 に外したので、いま画面でこれを使う所は無い）。 */
   /* 段1（会社×役職×機材）まで届いた状態。★合計はちょうど100。
      サーバ（db/deep-pay.sql の pv_deep_pct）が最大剰余法で揃えて返すため。 */
   const FULL = {
     ok: true, state: 'open',
-    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+    gate: { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 },
     give: { detailed: true },
     stats: STATS,
-    cohort: { level: 'airline_pos_fleet', airline: 'ana', pos: 'fo', fleet: 'a320', n: 12 },
-    head: { annual_usd: 110000, per_block_usd: 93, detailed_n: 12, verified_n: 7, fixed_pct: 62 },
+    cohort: { level: 'airline_pos_fleet', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'high' },
+    /* ★bonus_est: true ── 札と注記が出た姿を、既定の絵にしてある（2026-10-12）。 */
+    head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 62,
+            bonus_est: true, bonus_gap: false },
     comp: {
-      total_kind: 'monthly_cash', n: 12,
+      total_kind: 'monthly_cash',
       segs: [
-        { k: 'base',     pct: 52, med_usd: 4800 },
-        { k: 'variable', pct: 24, med_usd: 2200 },
-        { k: 'command',  pct: 8,  med_usd: 730 },
-        { k: 'perdiem',  pct: 7,  med_usd: 640 },
-        { k: 'housing',  pct: 5,  med_usd: 460 },
-        { k: 'other',    pct: 4,  med_usd: 370 }
+        { k: 'base',     pct: 52, avg_usd: 4800 },
+        { k: 'variable', pct: 24, avg_usd: 2200 },
+        { k: 'command',  pct: 8,  avg_usd: 730 },
+        { k: 'perdiem',  pct: 7,  avg_usd: 640 },
+        { k: 'housing',  pct: 5,  avg_usd: 460 },
+        { k: 'other',    pct: 4,  avg_usd: 370 }
       ],
-      bonus: { pct_of_annual: 5, n: 9 }
+      /* 来ても画面は読まない（「賞与・利益分配 ◯%」の行は 2026-10-12 に外した）。 */
+      bonus: { pct_of_annual: 5 }
     },
     work: { block_h: 74.0, duty_h: 141.0, duty_days: 18, stay_nights: 9 },
     /* ⚠️ night / weekend / holiday は3つのまま。1行にまとめない（仕様の明示的な禁止）。 */
@@ -120,66 +236,124 @@ await page.evaluateOnNewDocument((scene, theme) => {
   /* 現実の初日。10〜30人が30社×4役職に散っているので、届くのは段4だけ。
      ★ここで「出ない」ことが正しい出力。0 を並べた画面と見比べるために撮る。 */
   const DAY1 = Object.assign({}, FULL, {
-    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', n: 12 },
-    head: { annual_usd: 110000, per_block_usd: null, detailed_n: 12,
-            verified_n: 3, fixed_pct: null },
+    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'low' },
+    /* ★賞与の平均を作れなかった形（bonus_gap）。申告した人が壁に届かない区分の回答が
+         数に入っている ＝ 札は出ず、注記が1行だけ出る。給与構成が無いので var も null。 */
+    head: { annual_usd: 119700, per_block_usd: null, month_usd: 9500, fixed_pct: null,
+            bonus_est: false, bonus_gap: true },
     comp: null,
     work: { block_h: 74.0, duty_h: null, duty_days: null, stay_nights: null },
-    var: []
+    var: null
   });
 
-  // 3人に満たない項目が未分類に畳まれた状態（灰色の意味が変わる）
+  // 人数の壁に満たない項目が未分類に畳まれた状態（灰色の意味が変わる）
   const FOLD = Object.assign({}, FULL, {
-    cohort: { level: 'airline_pos_cat', airline: 'ana', pos: 'fo', fleet: 'a320', n: 5 },
-    head: { annual_usd: 96000, per_block_usd: 78, detailed_n: 5, verified_n: 2, fixed_pct: 58 },
+    cohort: { level: 'airline_pos_cat', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'mid' },
+    head: { annual_usd: 96050, per_block_usd: 78.5, month_usd: 7500, fixed_pct: 58,
+            bonus_est: true, bonus_gap: true },
     comp: {
-      total_kind: 'monthly_cash', n: 5,
+      total_kind: 'monthly_cash',
       segs: [
-        { k: 'base',     pct: 58, med_usd: 2900 },
-        { k: 'variable', pct: 26, med_usd: 1300 },
-        { k: 'perdiem',  pct: 7,  med_usd: 350 },
-        { k: 'rest',     pct: 9,  med_usd: null }
+        { k: 'base',     pct: 58, avg_usd: 2900 },
+        { k: 'variable', pct: 26, avg_usd: 1300 },
+        { k: 'perdiem',  pct: 7,  avg_usd: 350 },
+        /* ★未分類にも月額が来る（2026-10-12。割合と同じ平均の額から作るので桁が合う）。 */
+        { k: 'rest',     pct: 9,  avg_usd: 450 }
       ],
       bonus: null
     },
     work: { block_h: 68.5, duty_h: 128.0, duty_days: null, stay_nights: 7 },
-    var: [{ k: 'block', pct: 62 }, { k: 'duty', pct: 38 }]
+    /* ★壁に届かない連動先は rest へ畳まれて来る（落とさない ＝ 合計は100のまま）。 */
+    var: [{ k: 'block', pct: 62 }, { k: 'duty', pct: 30 }, { k: 'rest', pct: 8 }]
+  });
+
+  /* 年収は出ているが、給与構成が無い区分（2026-10-12）。年収の母集団（有効な年収を出した人
+     ぜんぶ）は壁を越え、給与構成の母集団（内訳を書いた人）は届かない ── 本物も comp・var・
+     head.fixed_pct を null で返す。賞与の目印は年収の側の話なので、立ったまま。 */
+  const NOCOMP = Object.assign({}, FULL, {
+    head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: null,
+            bonus_est: true, bonus_gap: false },
+    comp: null,
+    var: null
+  });
+
+  /* 給与構成が2行だけの区分（2026-10-12）。db/test-deep-pay.mjs の「7. 未分類」が作る答えと
+     同じ形 ── 基本給 60%（$6,000）＋ 未分類 40%（$4,000）。固定・保証給比率は基本給の 60
+     （未分類は固定に数えない）。変動給の中身も、名前の在る1つ＋畳んだ分の2行。 */
+  const TWO = Object.assign({}, FULL, {
+    head: { annual_usd: 119700, per_block_usd: 102.5, month_usd: 9500, fixed_pct: 60,
+            bonus_est: false, bonus_gap: false },
+    comp: {
+      total_kind: 'monthly_cash',
+      segs: [
+        { k: 'base', pct: 60, avg_usd: 6000 },
+        { k: 'rest', pct: 40, avg_usd: 4000 }
+      ],
+      bonus: null
+    },
+    var: [{ k: 'block', pct: 80 }, { k: 'rest', pct: 20 }]
   });
 
   const POS = Object.assign({}, FULL, {
-    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', n: 22 }
+    cohort: { level: 'pos', airline: 'ana', pos: 'fo', fleet: 'a320', trust: 'low' }
   });
 
+  /* 錠前の板。閉じている理由は3つ（鍵／本人が答えきったか／みんなの側＝100人）で、
+     当てはまる行だけが出る（deep-pay.js の lockLines）。
+       lock … 3つとも当てはまる＝3行。まだ1件も出していないので、残りの一覧は無い
+       det  … 鍵は在る＝2行（答え・100人）。**残っている項目の一覧つき**。
+              ボタンは給与フォームの内訳の節へ
+       det0 … det と同じで、一覧だけが来ていない（todo が null）
+       goal … 鍵も答えもそろっている＝1行（100人だけ）
+     ★「答えきっていない」の行が出る3つ（lock / det / det0）には、ボタンの上に
+       断り（虚偽・不正確な情報について）が出る。goal には出ない。
+     ★一覧の中身は作り物（2026年9月分・6項目）。サーバが返すのはコードだけで、
+       画面が給与フォームの見出しと同じ名前に直す（deep-pay.js の todoNames）。 */
+  const TODO = { year: 2026, month: 9,
+                 items: ['command', 'bonus', 'profit', 'duty_h', 'duty_days', 'instructor'] };
   const LOCK = { ok: true, state: 'locked', stats: STATS, give: { detailed: false },
-                 gate: { key: false, detailed: false, contributors: 37, goal: 100 },
+                 gate: { key: false, ready: false, todo: null, crowd: false, contributors: 37, goal: 100 },
                  cohort: null, head: null, comp: null, work: null, var: null };
-  const DET  = Object.assign({}, LOCK, { give: { detailed: false },
-                 gate: { key: true, detailed: false, contributors: 37, goal: 100 } });
+  const DET  = Object.assign({}, LOCK, { give: { detailed: true },
+                 gate: { key: true, ready: false, todo: TODO, crowd: false, contributors: 37, goal: 100 } });
+  const DET0 = Object.assign({}, LOCK, { give: { detailed: false },
+                 gate: { key: true, ready: false, todo: null, crowd: false, contributors: 37, goal: 100 } });
+  const GOAL = Object.assign({}, LOCK, { give: { detailed: true },
+                 gate: { key: true, ready: true, todo: null, crowd: false, contributors: 37, goal: 100 } });
 
   /* 手で選んだ区分（2026-08-30）。自分は ANA の FO なのに JAL の機長・787 を見ている。
-     ★n=5 なので信頼度は「中」。3つとも選んでいても人数で頭打ちになる。 */
+     ★信頼度は「中」で返す。3つとも選んでいても人数で頭打ちになる、という形
+       （段を決めるのはサーバ。画面は来た段をそのまま出す）。 */
   const PICK = Object.assign({}, FULL, {
-    cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787', n: 5 },
-    head: { annual_usd: 210000, per_block_usd: 180, detailed_n: 5, verified_n: 3, fixed_pct: 71 }
+    cohort: { level: 'selected', manual: true, airline: 'jal', pos: 'cap', fleet: 'b787',
+              trust: 'mid' },
+    head: { annual_usd: 211350, per_block_usd: 180.5, month_usd: 17000, fixed_pct: 71,
+            bonus_est: true, bonus_gap: false }
   });
-  /* 選んだ区分が3人に届かなかった状態。★広い区分に登らないので、出るものが何も無い。
-     「あと1人」とも書かない（書くと人数が1人単位で読める）。 */
+  /* 選んだ区分が人数の壁に届かなかった状態。★広い区分に登らないので、出るものが何も無い。
+     「あと1人」とも、壁が何人かとも書かない（書くと人数が1人単位で読める）。
+     本物も head / comp / work / var を返り値ごと null にする（trust も null）。 */
   const THIN = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
-    cohort: { level: 'none', manual: true, airline: 'sas', pos: null, fleet: null, n: 0 },
-    head: { annual_usd: null, per_block_usd: null, detailed_n: null, fixed_pct: null },
-    comp: null, work: null, var: [] };
+    gate: { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 },
+    cohort: { level: 'none', manual: true, airline: 'sas', pos: null, fleet: null, trust: null },
+    head: null, comp: null, work: null, var: null };
 
   /* 選べる組み合わせが1つも届いていない状態（2026-09-01）。まだ誰も内訳を
      書いていない日か、SQL を貼る前がこれ。★**全社を並べる逃げ道は置かない**
      ので、選択欄ごと出ないのが正しい（選べるのに数字が出ない状態を作らない）。 */
   const NOLIST = { ok: true, state: 'open', stats: STATS, give: { detailed: true },
-    gate: { key: true, detailed: true, contributors: 37, goal: 100 },
+    gate: { key: true, ready: true, todo: null, crowd: true, contributors: 37, goal: 100 },
     cohort: null, head: null, comp: null, work: null, var: [] };
 
   const SCENES = { full: FULL, day1: DAY1, fold: FOLD, pos: POS,
-                   pick: PICK, thin: THIN, lock: LOCK, det: DET, nolist: NOLIST };
+                   nocomp: NOCOMP, two: TWO,
+                   pick: PICK, thin: THIN, lock: LOCK, det: DET, det0: DET0,
+                   goal: GOAL, nolist: NOLIST };
   const DEEP = SCENES[scene] || FULL;
+  /* ★party（クラッカー）だけ：閉じた板の答えを窓に置いておく。鳴らす手順（下の
+     「party」の節）が、試験用の入口でいったん閉じた板を描かせるのに使う。
+     ほかの scene では置かない。 */
+  if (scene === 'party') window.__shotLock = DET;
 
   /* ★選べる組み合わせ（2026-09-01）。画面はこれで選択肢を絞る。形は
      db/deep-pay.sql の avail と同じ ── 会社 / 会社ごとの職位 /「会社|職位」ごとの機材。
@@ -201,7 +375,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
        150px ほど短く出て、足りない幅を「足りている」と読み違える。 */
     swiss:                { cap: ['a320', 'a330'],         fo: ['a320'] },
     'shin-central':       { cap: ['dhc8'],                 fo: ['dhc8'] },
-    /* ★sas は「3人に届かなかった」側。**thin の絵を撮る回だけ**一覧に入れる ──
+    /* ★sas は「人数の壁に届かなかった」側。**thin の絵を撮る回だけ**一覧に入れる ──
        本来の約束（選べる＝必ず数字が返る）をわざと破って、空の板を窓の中で
        踏めるようにするための細工。他の scene では入れない。 */
     sas:                  { cap: ['a320'],                 fo: ['a320'] }
@@ -232,16 +406,28 @@ await page.evaluateOnNewDocument((scene, theme) => {
                  a330: 1.02, b767: 0.97, dhc8: 0.72, a320: 0.92, b737: 0.9 };
   /* 金額と時間だけ動かす。★割合（pct）は掛けない ── 合計 100 が崩れる。
      ★null は null のまま返す（day1 の「まだ出せない」欄を潰さないため）。 */
-  function scale(src, k, n) {
-    const r1 = (v) => (v == null ? v : Math.round(v * k));
+  function scale(src, k) {
     const r2 = (v) => (v == null ? v : Math.round(v * k * 10) / 10);
+    /* ★見出しの2つは本物と同じ刻みで返す（db/deep-pay.sql の pv_deep_step）──
+         年収 $50・Pay / Block Hour $0.5。丸い数で返すと、画面が刻みで出していることが
+         絵から分からない。 */
+    const st = (v, p) => (v == null ? v : Math.round(v * k / p) * p);
+    /* ★月換算（month_usd）と給与構成の月額（avg_usd）は、本物と同じ有効数字2桁で返す
+         （db/deep-pay.sql の pv_sig2）。null は null のまま。 */
+    const sg = (v) => {
+      if (v == null) return v;
+      const x = v * k;
+      if (!(x > 0)) return x;
+      const p = Math.pow(10, Math.floor(Math.log10(x)) - 1);
+      return Math.round(x / p) * p;
+    };
     const o = Object.assign({}, src);
+    /* ★賞与の目印（bonus_est / bonus_gap）は scene のまま運ぶ（src.head を写している）。 */
     if (src.head) o.head = Object.assign({}, src.head, {
-      annual_usd: r1(src.head.annual_usd), per_block_usd: r1(src.head.per_block_usd),
-      detailed_n: src.head.detailed_n == null ? null : n,
-      verified_n: src.head.verified_n == null ? null : Math.min(src.head.verified_n, n) });
-    if (src.comp) o.comp = Object.assign({}, src.comp, { n: n,
-      segs: src.comp.segs.map((g) => Object.assign({}, g, { med_usd: r1(g.med_usd) })) });
+      annual_usd: st(src.head.annual_usd, 50), per_block_usd: st(src.head.per_block_usd, 0.5),
+      month_usd: sg(src.head.month_usd) });
+    if (src.comp) o.comp = Object.assign({}, src.comp, {
+      segs: src.comp.segs.map((g) => Object.assign({}, g, { avg_usd: sg(g.avg_usd) })) });
     if (src.work) o.work = { block_h: r2(src.work.block_h), duty_h: r2(src.work.duty_h),
                              duty_days: src.work.duty_days, stay_nights: src.work.stay_nights };
     return o;
@@ -252,7 +438,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
        窓の中でセレクタを動かしても**答えが1つも変わらない**＝
        「壊れている」ように見えて、配置の確認にならない。
        返す数字はでたらめだが、**選んだ値をそのまま映す**ところは本物と同じ。
-       ⚠️ sas（スカンジナビア航空）だけは「3人に届かなかった」を返す。
+       ⚠️ sas（スカンジナビア航空）だけは「人数の壁に届かなかった」を返す。
           空の状態を窓の中で実際に踏めるようにするための細工で、
           本番の人数とは何の関係も無い。 */
     pv_deep_pay: (a) => {
@@ -267,14 +453,17 @@ await page.evaluateOnNewDocument((scene, theme) => {
                      fleet: q.fleet || null };
       if (q.airline === 'sas')
         return Object.assign({}, THIN,
-          { cohort: Object.assign({ level: 'none', n: 0 }, echo) });
+          { cohort: Object.assign({ level: 'none', trust: null }, echo) });
       /* ★土台は**その scene の payload**。FULL に潰すと day1（薄い初日）や
          fold（畳まれた状態）が選んだ瞬間に満杯へ化けて、確かめたい配置が消える。 */
+      /* ★信頼度の段は、選んだ軸の数で変える（3つ＝高・2つ＝中・1つ＝低）。
+         本物は人数と区分の広さの低いほうで決めて段だけを返す（db/deep-pay.sql の trust）。
+         ここは3段とも窓の中で踏めるようにするための細工で、本物の式ではない。 */
       const k = (q.airline ? 1 : 0) + (q.position ? 1 : 0) + (q.fleet ? 1 : 0);
-      const n = k >= 3 ? 5 : k === 2 ? 9 : 14;
+      const trust = k >= 3 ? 'high' : k === 2 ? 'mid' : 'low';
       return Object.assign(
-        scale(DEEP, (POSK[q.position] || 1) * (FLTK[q.fleet] || 1), n),
-        { cohort: Object.assign({ level: 'selected', n: n }, echo) });
+        scale(DEEP, (POSK[q.position] || 1) * (FLTK[q.fleet] || 1)),
+        { cohort: Object.assign({ level: 'selected', trust: trust }, echo) });
     },
     pv_pay_rows: () => ({ ok: true, state: 'open', rows: [], stats: STATS,
                           give: { detailed: !!(DEEP.give && DEEP.give.detailed) } }),
@@ -294,9 +483,14 @@ await page.evaluateOnNewDocument((scene, theme) => {
     };
     return o;
   }
+  /* ★anon だけ「セッションなし」を返す（2026-10-11）。画面はログイン画面へ送らず、
+       会員の閉じた画面と同じ器を、サーバに聞かずに描く。rpc を呼んだ回数を数えておく
+       （__shotRpc。anon で 0 のままなら、聞きに行っていない）。 */
+  window.__shotRpc = 0;
   const FAKE = {
     auth: {
-      getSession: async () => ({ data: { session: { user: { id: UID, email: 'pilot@example.com' } } } }),
+      getSession: async () => ({ data: { session: scene === 'anon' ? null
+        : { user: { id: UID, email: 'pilot@example.com' } } } }),
       getUser:    async () => ({ data: { user: { id: UID, email: 'pilot@example.com' } } }),
       signOut:    async () => ({ error: null })
     },
@@ -307,18 +501,22 @@ await page.evaluateOnNewDocument((scene, theme) => {
     },
     /* err のときだけ error を返す。★画面が「読み込めませんでした」を出すか、
        それとも 0 を並べるかは、ここでしか見分けられない。 */
-    rpc: async (name, a) => (scene === 'err' && name === 'pv_deep_pay')
-      ? { data: null, error: { message: 'synthetic failure' } }
-      : { data: RPC[name] ? RPC[name](a) : { ok: true }, error: null }
+    rpc: async (name, a) => {
+      window.__shotRpc++;
+      return (scene === 'err' && name === 'pv_deep_pay')
+        ? { data: null, error: { message: 'synthetic failure' } }
+        : { data: RPC[name] ? RPC[name](a) : { ok: true }, error: null };
+    }
   };
   Object.defineProperty(window, 'supabase', {
     value: { createClient: () => FAKE }, writable: false, configurable: false
   });
-}, scene, theme);
+}, scene, theme, lang, cur, cmp);
 
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 /* ★時間で待たない（混んだ回に嘘の結果が出る）。「描き終わった」条件で待つ。
-   deep-pay.js は必ず #dp-hd に <h1> を書き込んでから他を描く。 */
+   ★<h1> は 2026-10-11 から HTML に静的に在る（REAL PAY ⇄ DEEP PAY のタブ）ので、
+     1つめはすぐ通る。描き終わりを捕まえているのは2つめ（骨組みが消える）。 */
 await page.waitForFunction(
   () => !!document.querySelector('#dp-hd h1'), { timeout: 15000 });
 await page.waitForFunction(
@@ -353,6 +551,42 @@ if (PICK) {
    が出る（実測で 570px→920 / 580px→938 / 610px→950 と単調でない並びになった）。
    ⚠️ sleep で待たない。混んだ回に足りなくなって、また同じ揺れが戻る。 */
 await page.evaluate(() => document.fonts.ready);
+
+/* ── party：クラッカーを鳴らす（2026-10-11）────────────────────────────
+   ★印は**製品のコードに置かせる**。試験用の入口で閉じた板を描く → deep-pay.js が
+     端末に印を置く → 続けて開いた画面を描く → 印を見つけて紙吹雪が出る。
+     ここで印を手で書くと、指紋の作り方をもう1つ持つことになる（pv-session.js の1本だけ）。
+   ★撮るときは、紙吹雪を**途中で止める**（Web Animations API の pause と currentTime）。
+     時間で待って撮ると、混んだ回に絵が変わる。
+   ⚠️ 止めて撮るあいだだけ、片づけのタイマー（約 2.8 秒で器を外す）を効かせない ──
+      窓の setTimeout を、開いた画面を描く1行のあいだだけ空の関数に差し替える。
+      製品の動きを変えているのは**この撮影の中だけ**（open のときは差し替えない）。
+   ★開いた画面の答えは、窓の中の偽サーバに、選んだ区分で聞き直す（画面と同じ答え）。 */
+let party = null;
+if (scene === 'party') {
+  if (open) await new Promise((r) => setTimeout(r, 1500));   // 窓を見る人の目が追いつくまで
+  party = await page.evaluate(async (pick, at, freeze) => {
+    const KEY = 'pv_deep_was_locked';
+    const res = await window.supabase.createClient().rpc('pv_deep_pay', { p: pick });
+    window.PVDeepPay.render(window.__shotLock);
+    const mark = localStorage.getItem(KEY);
+    const st = window.setTimeout;
+    if (freeze) window.setTimeout = () => 0;
+    try { window.PVDeepPay.render(res.data); } finally { window.setTimeout = st; }
+    const lay = document.querySelector('.dp-pop');
+    const an = lay ? lay.getAnimations({ subtree: true }) : [];
+    if (freeze) an.forEach((a) => { a.pause(); a.currentTime = at; });
+    return { marked: !!mark, layer: !!lay, anims: an.length,
+             papers: lay ? lay.querySelectorAll('.dp-pop-p').length : 0,
+             chars: lay ? lay.textContent.length : 0,
+             pe: lay ? getComputedStyle(lay).pointerEvents : '',
+             left: localStorage.getItem(KEY) };
+  }, PICK, partyAt, !open);
+  console.log(`${party.marked && party.layer && party.left === null && party.chars === 0 && party.pe === 'none' ? '✓' : '❌'} クラッカー: `
+    + `閉じた板で印が置かれた=${party.marked}・器が出た=${party.layer}・紙 ${party.papers} 枚・動き ${party.anims} 本`
+    + `・字 ${party.chars} 文字・pointer-events=${party.pe}・印は${party.left === null ? '消えた' : '残っている'}`
+    + (open ? '' : `（出だしから ${partyAt}ms で止めて撮る）`));
+}
 /* ── 実測（`measure` を付けたとき）────────────────────────────────
    ★<select> は中身が入り切らなくても黙って端で切る（省略記号すら出ない）。
      選択肢の実幅を canvas で測り、欄の内寸と突き合わせる。 */
@@ -439,7 +673,9 @@ if (open) {
   await new Promise((r) => browser.on('disconnected', r));
   process.exit(0);
 }
-await page.screenshot({ path: outPath, fullPage: true });
+/* ★party だけは窓のぶんだけ撮る。紙吹雪の器は窓に貼り付いた1枚（position:fixed）で、
+     ページ全体を撮ると、スマホの幅では絵の上の端に小さく写るだけになる。 */
+await page.screenshot({ path: outPath, fullPage: scene !== 'party' });
 
 /* ★横スクロールはスクショに写らない。幅を指定して撮ったら必ず数えて出す。 */
 const over = await page.evaluate(() => {
@@ -459,6 +695,91 @@ const over = await page.evaluate(() => {
 console.log(over.doc > over.view + 1
   ? `❌ 横スクロールがある（文書 ${over.doc}px / 画面 ${over.view}px）\n   ${over.list.join('\n   ')}`
   : `✓ 横スクロールなし（${over.view}px）`);
+
+/* ★撮った画面の見出しの数字を、字でも出す（絵から読み取ると1桁を読み違える）。
+   通貨も一緒に出す ── 名指しした通貨が currency.js に無いと既定のまま描かれるので、
+   「頼んだ通貨」と「実際の通貨」が違えばここで分かる。 */
+const said = await page.evaluate(() => ({
+  cur: (window.PVCurrency && window.PVCurrency.get) ? window.PVCurrency.get() : '',
+  /* ★見出しの字と札は分けて出す（2026-10-12。札「平均賞与を使った推計」は見出しの行の中に在る
+       ── textContent をそのまま読むと、見出しと札がつながって読めない）。 */
+  kpi: [...document.querySelectorAll('#dp-kpi .dp-kpi')].map((e) => {
+    const k = e.querySelector('.dp-kpi-k');
+    const head = k ? [...k.childNodes].filter((x) => x.nodeType === 3).map((x) => x.textContent).join('').trim() : '';
+    const tag = [...e.querySelectorAll('.dp-kpi-tag')].map((t) => '［' + t.textContent + '］').join('');
+    return head + tag + ' ' + ((e.querySelector('.dp-kpi-v') || {}).textContent || '');
+  }),
+  /* 添え字（月換算 など）と、KPI の下の注記（賞与の目印が立つと行が増える）。 */
+  sub: [...document.querySelectorAll('#dp-kpi .dp-kpi-n')].map((e) => e.textContent),
+  foot: [...document.querySelectorAll('#dp-kpi .dp-foot')].map((e) => e.textContent),
+  /* 給与構成の表（行ごとの名前・割合・月額）と、変動給の中身の行。 */
+  comp: [...document.querySelectorAll('#dp-comp .pt-leg:not(.dp-th)')].map((e) =>
+    ['.nm', '.pct', '.amt'].map((c) => ((e.querySelector(c) || {}).textContent || '')).join(' ')),
+  compNone: ((document.querySelector('#dp-comp .pt-empty') || {}).textContent || ''),
+  vari: [...document.querySelectorAll('#dp-var .dp-li')].map((e) =>
+    ((e.querySelector('.dp-li-t') || {}).textContent || '') + ' ' + ((e.querySelector('.dp-li-v') || {}).textContent || '')),
+  cond: ((document.querySelector('#dp-hd .dp-cond') || {}).innerText || '').replace(/\n/g, ' '),
+  /* 板の行（1行ずつ <p>。2026-10-11 から）。 */
+  lock: [...document.querySelectorAll('#dp-kpi .dp-msg--lock .dp-msg-s')]
+    .map((e) => e.innerText.replace(/\n/g, ' ')),
+  /* まだ答えていない項目の一覧（見出しと札）と、ボタンの上の断り。出ていなければ空。 */
+  todoH: ((document.querySelector('.dp-msg--lock .dp-todo-h') || {}).textContent || ''),
+  todo: [...document.querySelectorAll('.dp-msg--lock .dp-todo-i')].map((e) => e.textContent),
+  warn: ((document.querySelector('.dp-msg--lock .dp-msg-w') || {}).textContent || ''),
+  /* 板のボタンの行き先（足りない物に合わせて変わる。deep-pay.js の lockHref）。 */
+  cta: [...document.querySelectorAll('.dp-msg--lock a.dp-cta')].map((e) => e.getAttribute('href')).join(','),
+}));
+console.log(`通貨: ${said.cur}` + (cur && said.cur !== cur ? `  ❌ 頼んだのは ${cur}（currency.js に無い通貨）` : ''));
+/* ★会社比較への入口（2026-10-12）。閉じているあいだは 0 本が正しい（cmp を付けた回だけ1本）。
+   絵では「カードが無い」ことしか分からないので、文書ぜんたいのリンクを字でも数える。 */
+{
+  const links = await page.evaluate(() => document.querySelectorAll('a[href*="deep-pay-compare"]').length);
+  console.log(`${links === (cmp ? 1 : 0) || (cmp && links === 0) ? '✓' : '❌'} 会社比較への入口: ${links} 本`
+    + (cmp ? '（cmp ＝ 手元でだけ出した絵。カードは開いた画面にしか出ない）' : '（閉じている ＝ 0 本が正しい）'));
+}
+if (said.cond) console.log('条件バー: ' + said.cond);
+if (said.kpi.length) console.log('見出し: ' + said.kpi.join(' ｜ '));
+if (said.sub.length) console.log('添え字: ' + said.sub.join(' ｜ '));
+if (said.foot.length) console.log(`注記（${said.foot.length} 行）: ` + said.foot.map((t) => t.slice(0, 34) + (t.length > 34 ? '…' : '')).join(' ｜ '));
+if (said.comp.length) console.log(`給与構成（${said.comp.length} 行）: ` + said.comp.join(' ｜ '));
+if (said.compNone) console.log('給与構成: ' + said.compNone);
+if (said.vari.length) console.log(`変動給の中身（${said.vari.length} 行）: ` + said.vari.join(' ｜ '));
+if (said.lock.length) console.log('板の行: ' + said.lock.join(' ／ '));   // 錠前の板と「まだ出せません」の板は同じ器
+if (said.todoH) console.log('板の一覧: ' + said.todoH + ' ── ' + said.todo.join(' ｜ '));
+if (said.warn) console.log('板の断り: ' + said.warn);
+if (said.cta) console.log('板のボタンの先: ' + said.cta);
+
+/* ★板の後ろの影絵（2026-10-11）。閉じた scene にだけ出る・字は1文字も入っていない、を
+   絵と一緒に字でも出す（ぼかしの下に字が在っても、絵からは見分けられない）。 */
+const ghost = await page.evaluate(() => {
+  const g = document.querySelector('.dp-ghost');
+  const blurred = [...document.querySelectorAll('main *')]
+    .filter((e) => getComputedStyle(e).filter !== 'none').length;
+  if (!g) return { on: false, blurred };
+  return { on: true, blurred, blur: getComputedStyle(g).filter, chars: g.textContent.length,
+           inert: g.inert === true, hidden: g.getAttribute('aria-hidden') };
+});
+{
+  const shut = ['lock', 'det', 'det0', 'goal', 'anon'].includes(scene);
+  if (ghost.on)
+    console.log(`${shut && ghost.chars === 0 && ghost.inert && ghost.hidden === 'true' && ghost.blurred === 1 ? '✓' : '❌'} 影絵: `
+      + `${ghost.blur}・字 ${ghost.chars} 文字・inert=${ghost.inert}・aria-hidden=${ghost.hidden}`
+      + `・ぼかしの効いた要素 ${ghost.blurred}` + (shut ? '' : '  ← 閉じていない scene に影絵が在る'));
+  else if (shut) console.log('❌ 影絵が無い（閉じた scene なのに、板の後ろに何も出ていない）');
+  else if (ghost.blurred) console.log(`❌ 開いた scene に、ぼかしの効いた要素が ${ghost.blurred} つ在る`);
+}
+
+/* ★anon（ログインしていない人）だけ：聞きに行かなかったこと・よそへ運ばれなかったこと・端末に
+   印を置かなかったことを、絵と一緒に字でも出す（どれもスクショには写らない）。 */
+if (scene === 'anon') {
+  const a = await page.evaluate(() => ({
+    rpc: window.__shotRpc, at: location.pathname,
+    mark: localStorage.getItem('pv_deep_was_locked'),
+    stage: document.querySelectorAll('#dp-kpi .dp-stage').length
+  }));
+  console.log(`${a.rpc === 0 && a.stage === 1 && a.mark === null && a.at.endsWith('/' + url.split('/').pop()) ? '✓' : '❌'} 未ログイン: `
+    + `rpc ${a.rpc} 回・住所 ${a.at}・器 ${a.stage}・クラッカーの印は${a.mark === null ? '無い' : '在る'}`);
+}
 
 await browser.close();
 console.log(outPath);

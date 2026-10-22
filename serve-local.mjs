@@ -58,7 +58,7 @@ export const SQL_FILES = [
   'db/requests.sql',
   'db/referrals.sql',
   'db/founding.sql',
-  'db/proof-store.sql',
+  'db/pilot-proof.sql',      // 2026-10-23 main を取り込んだ（それまでの db/proof-store.sql は消した）。pay-rows・admin より後
   'db/proof-offer.sql',
   'db/stays.sql',
   'db/work-months.sql',

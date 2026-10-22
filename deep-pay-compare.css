@@ -13,14 +13,28 @@
       （db/test-form-contract.mjs が見張っている）。
       この画面だけ形を変えたいときは #dc-root .pt-empty のように器で囲む。
 
-   ★「隠す」系の宣言（blur / filter / mask / user-select:none /
-     opacity:0 / visibility:hidden）を1つも置かない。
-     DEEP PAY は「ぼかして見せる」画面ではない。出せない数字は最初から描かない。
+   ★「隠す」系の宣言（blur / filter / mask / clip-path / user-select:none /
+     opacity:0 / visibility:hidden）を、**このファイルには**1つも置かない。
+     出せない数字は最初から描かない ── 数字をぼかして見せる画面ではない。
+     ★2026-10-11（オーナー判断）から、まだ開いていない人の画面には、板の後ろに
+       ぼかした影絵が出る。ぼかしているのは**字も数字も持たない形だけ**で、その規則は
+       deep-pay.css の `.dp-ghost` の1つきり。この画面の影絵だけが持つ形（.dc-gh-*）は
+       下のほうに在るが、そこにもぼかしは書かない（assert-deep-pay-compare.mjs の ①）。
    ════════════════════════════════════════════════════════════════ */
 
 /* ── 節と節のあいだ（deep-pay.css の #dp-* と同じ刻み）────────── */
 #dc-sides{margin-top:14px}
 #dc-cta{margin-top:14px}
+/* ── 閉じているあいだの板（2026-10-12・オーナー判断「会社比較はまだ出さないでよ」）──
+   deep-pay-compare.js の closedBoard() が、器（#dc-root）の中身をこの1枚に置き換える。
+   ★板も、戻るリンクも、今ある部品のまま（.dp-msg / .dp-msg-t / .dp-more-b--on は deep-pay.css）。
+     ここに足すのは**幅と間だけ** ── 色・影・角丸・押したときの動きを書き直さない。
+   ★幅を止めるのは、題とリンクしか無い板だから。止めないと広い画面で 1,200px の帯になり、
+     「読み込めなかった」ように見える。狭い画面では器いっぱい（max-width なので溢れない）。
+   ★題は <h1>（この画面の見出しはこれ1つ）。字の大きさは .dp-msg-t のまま ── 板の題を
+     ページの大見出しの大きさにしない（静かな1枚）。 */
+.dc-closed{max-width:520px}
+.dc-closed-go{margin-top:16px}
 /* ── 表（左）と 棒＋トレードオフ（右）の段 ─────────────────────
    ★段の間を空けるのは .dp-row 自身の margin-top と gap。中の板に
      margin-top を持たせない（持たせると右の板だけ下にずれ、左のカードと
@@ -167,12 +181,15 @@
   letter-spacing:-.01em;color:var(--pv-ink);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 機材の札（2026-09-01）。★左右で別の機材を選べるので、条件バーではなく
-   **会社の見出しの側**に付く。社名より弱く、人数のピルとは別の見た目にする
-   （同じ形にすると人数と読み違える）。選んでいないときは出ない。 */
+   **会社の見出しの側**に付く。社名より弱く、信頼度の札とは別の見た目にする
+   （同じ形にすると、機材の名前が札の一種に見える）。選んでいないときは出ない。 */
 .dc-side-f{flex:none;max-width:40%;font-size:.7rem;font-weight:700;
   letter-spacing:.01em;color:var(--pv-ink-3);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* 人数のピル。★「件」ではなく「人」（1行＝1人に束ねてある）。 */
+/* 信頼度の札（「信頼度 高」）。★2026-10-11 に人数のピルから替わった ── 人数は画面の
+   どこにも出さない。段はサーバが会社ごとに返す（cohort.trust）。
+   ⚠️ 段で色を変えない。左右で緑と灰色に分かれると、それだけで勝ち負けに見える
+      （この画面は順位を付けない）。左右とも同じ淡い1色のまま。 */
 .dc-side-c{flex:none;font-size:.7rem;font-weight:700;letter-spacing:.01em;
   color:var(--pv-ink-3);background:var(--pv-surface-2);
   border:1px solid var(--pv-line);border-radius:999px;padding:3px 9px}
@@ -229,7 +246,7 @@
   font-size:.68rem;font-weight:700;letter-spacing:.03em;
   color:var(--pv-ink-3);text-transform:uppercase;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* ★見出しの2列は会社カードの代わり（2026-08-31）。ロゴ・社名・人数を縦に積む。
+/* ★見出しの2列は会社カードの代わり（2026-08-31）。ロゴ・社名・機材・信頼度の札を縦に積む。
    ★text-transform:uppercase を掛けない ── 「全日本空輸（ANA）」はそのままだが
      英語版が「ALL NIPPON AIRWAYS (ANA)」になって2行に折れ、見出しだけ背が伸びる。
    ★social な省略はしない。社名は2行まで折り返してよい（切ると別会社に読める）。 */
@@ -246,7 +263,7 @@
    ★賞与はこの棒に入っていない（年額。月々の現金の100%を壊す）。
      モックの凡例には賞与があるが、モックのほうが誤り。表には行として出る。
    ★棒は pct をそのまま並べる。100% に伸ばし直さない ──
-     3人に満たない項目が抜けている分だけ短いのが正しい。 */
+     人数の壁に満たない項目が抜けている分だけ短いのが正しい。 */
 .dc-mix{display:flex;flex-direction:column;gap:12px;margin-top:2px}
 .dc-bar-row{display:flex;flex-direction:column;gap:6px;min-width:0}
 .dc-bar-h{display:flex;align-items:center;gap:9px;min-width:0}
@@ -276,13 +293,19 @@
 
 /* ── 狭い画面 ─────────────────────────────────────────────────
    3列の表は 640px を切ると読めなくなる。横スクロールにはせず、
-   「項目 → 2社の値」の2段に畳む。
-   ★このとき見出し行は意味を失うので消し、代わりに値の側の会社名を出す。 */
+   「項目 → 2社の値」の2段に畳む。値の側に会社名（.dc-c-a）を出す。
+   ★見出し行は**消さない**（2026-10-11）。前は display:none にしていたが、
+     機材の札と信頼度の札はこの行にしか無い ── 両側とも読めるときカード2枚は
+     出ない（deep-pay-compare.js の cards() の注）ので、消すとスマホでは
+     **どちらもどこにも出ない画面**になっていた。「項目」の語だけを落とし、
+     2社ぶんの ロゴ・社名・機材・信頼度 を、値の2列と同じ幅で頭に並べる。
+   ⚠️ 札の見た目は左右で同じ（上の .dc-side-c のまま）。狭い画面だけ色や順を変えない。 */
 @media (max-width:640px){
   .dc-tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     row-gap:4px;padding:12px}
   .dc-c1{grid-column:1/-1;font-weight:700;color:var(--pv-ink)}
-  .dc-th{display:none}
+  .dc-th,.dc-th:nth-child(even){padding:0 12px 10px;align-items:flex-start}
+  .dc-th .dc-c1{display:none}
   .dc-c-a{display:block;font-size:.66rem;font-weight:600;
     color:var(--pv-ink-3);letter-spacing:.01em;margin-bottom:2px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -293,3 +316,35 @@
   .dc-kv-v{font-size:.95rem}
   .dc-leg{gap:6px 12px}
 }
+
+/* ── 影絵（まだ開いていない人の画面の、板の後ろ。2026-10-11・オーナー判断）──────
+   器・ぼかし・字の代わりの線は deep-pay.css（.dp-stage / .dp-ghost / .dp-gh-*）が持つ。
+   ここに在るのは、この画面の影絵だけが持つ形 ── 欄の並び・表の行の高さ・棒の割り方。
+   骨組みは本物と同じクラス（.dp-row.dc-main / .dc-col / .dc-tbl / .dc-tr / .dc-bar …）で
+   組んであるので、幅で畳まれ方が変わるのは上の本物の規則にそのまま付いていく。
+   ⚠️ ぼかし（filter / blur）をここに書かない。書いてよいのは deep-pay.css の1規則だけ。
+   ★棒の割り方は飾り（どの会社の値でもない）。影絵には字も数字も入っていない
+     （deep-pay-compare.js の ghostShapes()）。色は lockStage() が入れた --gh-*。 */
+/* 欄は5つ。本物と同じく、広い画面では 3つ＋2つ の2段に並ぶ。 */
+.dc-gh-pick .dp-gh-fld{flex:1 1 30%}
+@media (max-width:800px){
+  .dc-gh-pick .dp-gh-fld{flex-basis:100%}
+}
+/* 左の表は、本物（#dc-diff）と同じ基準幅。行は字が無いぶん上下の余白で高さを出す。
+   マスは .dc-gh-k（項目）と .dc-gh-v（2社の値）。列の割り方は本物の .dc-tr の grid が
+   そのまま決める。狭い画面の畳み方（項目が1段ぶん使う・見出し行の「項目」は出ない）だけ、
+   本物の3つのマスの規則と同じ形をここに書いてある。 */
+.dc-main>.dc-gh-diff{flex:1 1 565px}
+.dc-gh-diff .dc-tr{align-items:center;padding:10px 12px}
+.dc-gh-k,.dc-gh-v{display:flex;flex-direction:column;gap:5px;min-width:0}
+@media (max-width:640px){
+  .dc-gh-k{grid-column:1/-1}
+  .dc-th .dc-gh-k{display:none}
+}
+/* 棒。2本で割り方を変えてある（同じ形が2本並ぶと、棒ではなく模様に見える）。 */
+.dc-gh-bar .dc-seg{flex:1 1 0;min-width:0}
+.dc-gh-bar .dc-seg:nth-child(1){flex-grow:11}
+.dc-gh-bar .dc-seg:nth-child(2){flex-grow:5}
+.dc-gh-bar .dc-seg:nth-child(3),.dc-gh-bar .dc-seg:nth-child(4){flex-grow:2}
+.dc-bar-row+.dc-bar-row .dc-gh-bar .dc-seg:nth-child(1){flex-grow:9}
+.dc-bar-row+.dc-bar-row .dc-gh-bar .dc-seg:nth-child(2){flex-grow:7}

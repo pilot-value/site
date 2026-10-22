@@ -285,6 +285,14 @@ console.log('\n▼ 1. 権限（誰が何をできるか）');
   await db.query(`update public.profiles set access_until = now() - interval '1 minute' where id = $1`, [READER]);
   ok(J(await stats(READER, q1)) === '{"ok":true,"state":"locked"}', '鍵の期限が切れた会員は、鍵の無い会員と同じ返事');
   await unlock(READER);
+  /* ★パイロットであることの確認待ちで止まっている会員は、鍵が生きていても閉じる（main の pv_proof_blocked・
+       db/pay-rows.sql 1-e2。ここでは db/work-months.sql の pv_work_level が呼ぶ）。確認が終われば元どおり開く。
+       ⚠️ 落とし方は pv_work_level の pv_proof_blocked の1行を消す。ここの期待を緩めない。 */
+  await db.query(`insert into public.pv_proof (user_id, state) values ($1, 'required')`, [READER]);
+  const blk = [J(await stats(READER, q1)), J(await view(READER, { airline: A_ONE }))];
+  await db.query(`delete from public.pv_proof where user_id = $1`, [READER]);
+  ok(blk.every((x) => x === '{"ok":true,"state":"locked"}') && (await stats(READER, q1)).state === 'open',
+     '★確認待ちで止まっている会員は、鍵が生きていても鍵の無い会員と同じ返事（月ごとの幅も直近の幅も）・確認が済めば開く', J(blk));
   for (const sig of [
     `select * from public.pv_work_month_people('${A_ONE}', 'cap')`,
     `select public.pv_work_level()`,

@@ -6,7 +6,7 @@
 -- 街の候補（台帳の街・運営が足した街・会員が打ち込んだ街）も、ここに持つ。
 --
 -- ★ このファイルは自動では流れない。オーナーが SQL Editor で実行する。
--- ★ 流す順番: … → db/founding.sql → db/proof-store.sql → db/proof-offer.sql → db/stays.sql → db/work-months.sql → このファイル
+-- ★ 流す順番: … → db/founding.sql → db/pilot-proof.sql → db/proof-offer.sql → db/stays.sql → db/work-months.sql → このファイル
 --    → db/towns.generated.sql → db/contrib.sql
 --    （このファイルが要るのは pv_airlines・pv_currencies・pv_is_operator の3つだけ。
 --      どれかが抜けていたら、下の「0. 前提」が日本語で止める。）

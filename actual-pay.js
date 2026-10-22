@@ -121,7 +121,6 @@
   // ── 文言 ───────────────────────────────────────────────────────
   var T = {
     ja: {
-      hd: 'REAL PAY',
       all: 'すべて',
       thAir: '航空会社', thPos: '職位',
       thAmt: '年収', thMon: '月あたり', thVf: '出典', thAge: '投稿時期',
@@ -134,6 +133,7 @@
       /* ★公開年収から大きく外れた本人申告の行（2026-09-19・オーナー指示）。
            行の ⚠ の読み上げ・マウスを重ねた時の説明・詳細の面の1文は、全部この1文。 */
       far: '同じ会社・同じ職位の公開年収から大きく外れた金額です。',
+      hold: '投稿者がパイロットであることを確認中の記録です。',
       /* ★投稿時期。段の番号（0〜4）を言葉にするだけ。日付は持っていない。 */
       age: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
       stRep: '実給与の投稿',       stRepU: '件',
@@ -173,9 +173,9 @@
            カードでは**いちばん大きい区分だけ**名前と％を出し、残りは数だけ言う。
            全区分の名前と％は、行を押すと出る面（ap-dw-list）に今までどおり全部ある。 */
       cbMore: 'ほか{n}区分',
-      /* 主 ── DEEP PAY。★リンクではなく、左メニューと同じ門（pv-gates.js）を開く。
-           ⚠️ ここに deep-pay.html と書かない。DEEP PAY への辺は2本だけと決めてある
-              （assert-deep-pay.mjs が root の全 .js を見張っている）。 */
+      /* 主 ── DEEP PAY へのリンク（2026-10-11 に DEEP PAY を公開した。行き先は下の DEEP_URL）。
+           前は左メニューと同じ門（pv-gates.js の説明パネル）を開くボタンだった。
+           ★字は変えていない。 */
       dwGo: '他社と比較する → DEEP PAY',
       /* 副 ── 出す側へ戻す。消さずに順位だけ下げる。 */
       dwCta: 'あなたの給与情報を匿名で追加',
@@ -258,13 +258,13 @@
       errS: '時間をおいてもう一度お試しください。'
     },
     en: {
-      hd: 'REAL PAY',
       all: 'All',
       thAir: 'Airline', thPos: 'Position',
       thAmt: 'Annual', thMon: 'Per month', thVf: 'Source', thAge: 'Submitted',
       othAir: 'Airline not listed',
       vfNo: 'Self-reported',
       far: 'This figure is far outside the published range for this airline and position.',
+      hold: 'We are still confirming that the person who posted this record is a pilot.',
       age: ['Within 1 month', 'Within 3 months', 'Within 6 months',
             'Within a year', 'Over a year ago'],
       stRep: 'Pay records',      stRepU: '',
@@ -355,6 +355,14 @@
        「くわしく入れる」を開いたところまで進めてくれる（あちらは書き足していない）。
      ★相対のまま。/en/ から踏めば /en/pay-report.html に解ける。 */
   var DETAIL_URL = 'pay-report.html#pay-detail';
+  /* ★DEEP PAY（2026-10-11 に公開）。行を押すと出る面の主のボタンの行き先。
+     ★相対のまま。/en/ から踏めば /en/deep-pay.html に解ける。
+     ⚠️ **この住所を書いてよい JS は、DEEP PAY の2本のほかはこのファイルだけ。**
+        assert-deep-pay.mjs の ① が、DEEP PAY へ繋がる辺の集合をちょうどで固定している
+        （見出しのタブ ＝ actual-pay.html の日英 ／ この1本）。3本目を足すとあちらが赤くなる。
+     ⚠️ ここで「開く条件」を言わない・人数を出さない。まだ開かない人には、
+        DEEP PAY の画面が何が残っているかを見せる。 */
+  var DEEP_URL = 'deep-pay.html';
 
   /* 門から給与フォームへ渡す「戻り先」。
      ⚠️ **URL に載せない。** クエリでもハッシュでも、他人の年収がアドレス欄に出て
@@ -771,7 +779,7 @@
          +   '<span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
          + '<td>' + cardCompHTML(r)
          +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
-         +   (isFar(r) ? farMark() : '') + '</td>'
+         +   warnMark(r) + '</td>'
          /* ★投稿時期。サーバから来るのは 0〜4 の段の番号だけ。
               段が読めない行（古いサーバ）は空欄にする＝そこだけ黙って空く。
             ★› は**文字**で描く。絵にすると表の中の svg が1つ増えて、
@@ -883,9 +891,24 @@
      ⚠️ 伏せた一覧とプレビューには出さない。サーバが伏せた行に far を入れないのが
         1本目の鍵で、ここでも画面の種類で止めるのが2本目。 */
   function isFar(r) { return !!r && r.far === true && !r._p && !isMasked(); }
-  function farMark() {
-    return '<span class="ap-far" role="img" aria-label="' + esc(T.far) + '" title="'
-         + esc(T.far) + '">\u26A0\uFE0E</span>';
+  /* ★投稿した会員がパイロットであることを確認中の行（2026-10-13・オーナー指示）。
+       印を決めるのはサーバ（db/pay-rows.sql の held）だけ。far と同じ ⚠ を置き、
+       文だけが違う。数字には触らない。運営が承認すると、サーバが hold を返さなくなる。
+     ⚠️ 伏せた一覧とプレビューには出さない（far と同じ2本の鍵）。 */
+  function isHold(r) { return !!r && r.hold === true && !r._p && !isMasked(); }
+  /* その行に付く文（0〜2つ）。両方に当たる行でも ⚠ は1つで、文を並べる。 */
+  function warnText(r) {
+    var a = [];
+    if (isFar(r)) a.push(T.far);
+    if (isHold(r)) a.push(T.hold);
+    return a;
+  }
+  function warnMark(r) {
+    var a = warnText(r);
+    if (!a.length) return '';
+    var t = a.join(' ');
+    return '<span class="ap-far" role="img" aria-label="' + esc(t) + '" title="'
+         + esc(t) + '">\u26A0\uFE0E</span>';
   }
 
   /* ══ 行を押すと出る面（2026-09-03）══════════════════════════════
@@ -1275,7 +1298,7 @@
             + esc(String(x._i)) + '">'
             /* ★⚠ は額の箱の中に置く（外に出すと space-between で真ん中へ離れる）。 */
             + '<span class="ap-dw-simv">' + esc(money(x.annual_usd))
-            + (isFar(x) ? farMark() : '') + '</span>'
+            + warnMark(x) + '</span>'
             + (b.length ? '<span class="ap-dw-simm">' + esc(b.join(' · ')) + '</span>' : '')
             + '</button>';
         }).join('') + '</div>';
@@ -1344,9 +1367,12 @@
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwMonth) + '</span>'
       +     dwAmt(r, 1) + '</div>'
       + '</div>'
-      /* ★公開年収から大きく外れた行だけ、金額の下に1文（上の isFar）。 */
-      + (isFar(r) ? '<p class="ap-dw-far"><span aria-hidden="true">\u26A0\uFE0E</span>'
-                    + esc(T.far) + '</p>' : '')
+      /* ★公開年収から大きく外れた行・確認中の会員が出した行だけ、金額の下に1文ずつ
+           （上の warnText）。 */
+      + warnText(r).map(function (t) {
+          return '<p class="ap-dw-far"><span aria-hidden="true">\u26A0\uFE0E</span>'
+               + esc(t) + '</p>';
+        }).join('')
       /* ★出典と投稿時期はプレビューでは**行ごと出さない**（上のコメント）。
            ★伏せた面では**出す**。本物の投稿なので「誰かが実際に出した」は
              事実であり、オーナーが読めると決めた4つのうちの2つ。 */
@@ -1358,19 +1384,15 @@
       /* ★「同じ会社・職位のほかの記録」は伏せた面では出さない。あれは金額を
            並べる節で、伏せた行には並べる数が無い（simHTML は money() を呼ぶ）。 */
       + (mk ? '' : simHTML(r))
-      /* ★主 ── 他社と比べる。DEEP PAY はまだ錠前が掛かっているので、リンクではなく
-           左メニューと**まったく同じ門**（pv-gates.js の説明パネル）を開く。
-           門の部品が読めていなければ**この行ごと出さない** ── 押しても何も起きない
-           ボタンを置かない。下の副 CTA は必ず残るので、面が行き止まりにはならない。 */
+      /* ★主 ── 他社と比べる。DEEP PAY への**ただのリンク**（2026-10-11 に公開）。
+           止めない・自分で location を書かない ── 真ん中クリックも「新しいタブで開く」も
+           そのまま効く。pv-gates.js の有無にも依らない（前は門の部品が要った）。 */
       + (pv || mk
-          /* ★プレビューと伏せた面は DEEP PAY の門へ行かない（あちらは鍵が2つ要る）。
-               行き先は1つだけ ── 給与を出す画面。 */
+          /* ★プレビューと伏せた面は DEEP PAY へ送らない（鍵の無い人なので、行っても
+               開かない）。行き先は1つだけ ── 給与を出す画面。 */
           ? '<a class="ap-dw-cta" data-ap-cta="detail" href="' + PAY_URL + '">'
             + esc(T.lockC) + '</a>'
-          : (hasGate()
-              ? '<button type="button" class="ap-dw-cta" data-ap-gate="deep">'
-                + esc(T.dwGo) + '</button>'
-              : ''))
+          : '<a class="ap-dw-cta" href="' + DEEP_URL + '">' + esc(T.dwGo) + '</a>')
       /* ★副 ── 出す側へ戻す。消さずに順位だけ下げる。
            ★伏せた面では出さない ── 上の主 CTA と行き先が同じで、同じ画面への
              ボタンが2つ並ぶ。 */
@@ -1380,19 +1402,6 @@
            付けると「この金額も誰かの投稿を匿名化したもの」と読める。
            ★伏せた面でも出さない ── そこに数字が1つも出ていない。 */
       + (pv || mk ? '' : '<p class="ap-dw-note">' + esc(T.dwNote) + '</p>');
-  }
-
-  function hasGate() { return !!(w.PVGates && w.PVGates.open); }
-
-  /* 面を閉じてから門を開く。
-     ⚠️ 順番を逆にしない。門のパネルは .mr-main の**先頭**に入るので、面が開いたままだと
-        覆いの裏に出る。面のフォーカストラップとも喧嘩する。
-     ⚠️ 待つのは面が滑り終わるのと同じ長さ。閉じ終わりに居場所を一覧へ戻す仕掛けが
-        動くので、そこへ門が割り込むと開いた直後に焦点を奪われる（だから戻さない指定で閉じる）。 */
-  function toDeep() {
-    if (!hasGate()) return;
-    closeDrawer(true);
-    w.setTimeout(function () { if (w.PVGates && w.PVGates.open) w.PVGates.open('deep'); }, 340);
   }
 
   /* focus を奪うのは「開いたとき」と「類似を押して中身が入れ替わったとき」だけ。
@@ -1478,7 +1487,6 @@
         return;
       }
       if (t.closest('[data-ap-cta]')) { track('realpay_cta_click', { place: 'detail' }); return; }
-      if (t.closest('[data-ap-gate]')) { toDeep(); return; }
       var sm = t.closest('[data-ap-row]');
       if (sm) { DW.i = Number(sm.getAttribute('data-ap-row')); paintDrawer(); }
       return;
@@ -1507,7 +1515,8 @@
   }
 
   /* noFocus ＝ 閉じたあと居場所を一覧へ戻さない。
-     ★門を開くときだけ true。戻すと、門が focus を取った直後に一覧へ引き戻される。
+     ★いま true で呼ぶ所は無い（2026-10-11 まで、面を閉じて DEEP PAY の説明パネルを
+       開くときに使っていた。あのボタンはただのリンクになった）。受け口だけ残してある。
      fromPop ＝ ブラウザの「戻る」から呼ばれた。
      ★そのときは段がもう外れているので、こちらから back() を呼ばない。 */
   function closeDrawer(noFocus, fromPop) {
@@ -2164,15 +2173,13 @@
 
   // ── 起動 ───────────────────────────────────────────────────────
   function boot() {
-    var head = el('ap-hd');
-    if (head) {
-      /* ★見出しは社名も説明も札も付けない、ただの1行にする（オーナー判断 2026-08-24）。
-         以前ここに「本人記録」の橙の札を置いていたが、**行ごとの出典と食い違う**。
+    /* ★見出しはここで書かない（2026-10-11）。HTML に静的に在る ── REAL PAY ⇄ DEEP PAY の
+         タブ（#ap-hd の中の <nav class="pv-paytabs">。いまの画面の側が <h1>）。
+         ⚠️ #ap-hd の innerHTML を書き換えない。タブ＝DEEP PAY への入口ごと消える。
+       ★見出しに社名も説明も札も付けない決まりはそのまま（オーナー判断 2026-08-24）。
+         以前「本人記録」の橙の札を置いていたが、**行ごとの出典と食い違う**。
          明細の裏付けがある行は 出典 が ✓ Verified になるので、
-         画面の上で「この画面は全部が本人の記録」と言い切ると、そこだけ嘘になる。
-         出典は行ごとに 出典 の列が持っている。見出しは重ねて言わない。 */
-      head.innerHTML = '<h1 class="mr-hd-t">' + esc(T.hd) + '</h1>';
-    }
+         画面の上で「この画面は全部が本人の記録」と言い切ると、そこだけ嘘になる。 */
     /* ★絞り込みを URL から戻す。行が届く**前**に読む
          ── 後から入れると、一度ぜんぶ描いてから絞り直すのが見える。 */
     urlRead();
@@ -2356,12 +2363,8 @@
           S.rows = pvRows();
         }
         S.page = 1;
-        if (w.PVGates && w.PVGates.setProgress) {
-          w.PVGates.setProgress({
-            n: (v && v.stats) ? v.stats.contributors : null,
-            detailed: (v && v.give) ? v.give.detailed : null
-          });
-        }
+        /* ★ここで PVGates.setProgress() へ人数を渡していた（DEEP PAY の札「N / 100人」）。
+             札は 2026-10-11 に外したので、渡す相手が無い。 */
         render();
         return;
       }
@@ -2379,16 +2382,6 @@
         for (var pk = 0; pk < S.rows.length; pk++) {
           if (S.rows[pk].airline === pre) { S.fAir = pre; break; }
         }
-      }
-      /* ★DEEP PAY の札（N / 100人）と、本人が内訳を出したかどうか。
-           数を作るのはサーバーだけで、pv-gates.js は渡された数を出すだけ。
-           来なければ札は「準備中」のまま＝古いサーバでも画面は壊れない。
-         ⚠️ renderRows() より前に渡す。3段の表はこの後で描かれる。 */
-      if (w.PVGates && w.PVGates.setProgress) {
-        w.PVGates.setProgress({
-          n: (v && v.stats) ? v.stats.contributors : null,
-          detailed: (v && v.give) ? v.give.detailed : null
-        });
       }
       render();
       trackOnce('realpay_open_view', { rows: S.rows.length });

@@ -6,7 +6,13 @@
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 明細まで出した人だけが読める画面。ログインが要るので検索に出してはいけない -->
+  <!-- 給与の項目をぜんぶ答えた人が読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
+       ★公開より前に内訳の3つ（基本給・保証手当／職務手当・変動給）に答えていた人は、開いたまま
+         （同じ日のオーナー判断。線は db/deep-pay.sql の門 ── v_old）。
+       ★ログインしていない人にも画面は開く（2026-10-11・オーナー判断。前はログイン画面へ
+         送っていた）。出るのは、まだ開いていない会員と同じ「ぼかした影絵＋板」だけで、
+         数字は1つも渡さない（サーバにも聞かない）。
+       数字が出るのはログインして条件を満たした人だけなので、検索に出してはいけない（noindex のまま） -->
   <title>DEEP PAY｜給与の中身を見る | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="DEEP PAY｜給与の中身を見る" d="同じ会社・同じ役職のパイロットの給与を、固定と変動の内訳、働き方の前提とセットで見ます。個人の明細は1件も表示しません。"-->
@@ -54,7 +60,7 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.dp-*）。
        ★.pt-* / .mv-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="deep-pay.css">
+  <link rel="stylesheet" href="deep-pay.css?v=75aac8cc">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -158,16 +164,28 @@
            pv-currency-change で描き直す（RPC は引き直さない）。 -->
       <div class="pv-no-cur" id="dp-root">
 
-        <!-- 見出しと、いま見ている区分の1行。中身は deep-pay.js が入れる -->
+        <!-- 見出し（REAL PAY ⇄ DEEP PAY のタブ）と、いま見ている区分の1行。
+             ★タブは HTML に静的に在る（2026-10-11 オーナー指示「上の REAL PAY の横に
+               DEEP PAY の入り口作って。タブみたいな形に」）。JS が動く前から見えていて、
+               閉じている画面（ぼかした影絵＋板）でも、開いた画面でも、同じ場所に居る。
+             ★h1 はこの画面に1つだけ ── いま居る側（DEEP PAY）がそれ。REAL PAY はただのリンク。
+               actual-pay.html は逆。**並びは2枚で同じ**（REAL PAY が左）。
+             ★deep-pay.js が入れるのは、タブの後ろの「いま見ている区分」の1行（.dp-cond）だけ。
+               ⚠️ この器（#dp-hd）の innerHTML を丸ごと書き換えない ── タブごと消える。
+             ★見た目（.pv-paytabs / .pv-paytab）は deep-pay.css と actual-pay.css に**同じ塊**で在る。
+             ⚠️ 会社比較（deep-pay-compare.html）にはタブを置いていない（あちらは DEEP PAY の中の1枚）。 -->
         <div class="mr-hd" id="dp-hd">
-          <div class="mr-skel" style="height:30px;width:42%"></div>
+          <nav class="pv-paytabs" aria-label="REAL PAY と DEEP PAY の切り替え">
+            <a class="pv-paytab" href="actual-pay.html">REAL PAY</a>
+            <h1 class="pv-paytab is-on" aria-current="page">DEEP PAY</h1>
+          </nav>
         </div>
 
         <!-- 区分を選ぶ（会社 / 役職 / 機材）。中身は deep-pay.js が入れる。
              ★どれも選んでいないうちは何も出さない（呼んだ本人の区分を勝手に出さない）。
                 入口で1回だけ引数なしで呼ぶのは、state と鍵を知るためだけ。
-             ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
-                ここで人数を数えたり隠したりしない。 -->
+             ★データが足りない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
+                壁が何人かは画面のどこにも書かない。ここで人数を数えたり隠したりしない。 -->
         <div class="dp-pick" id="dp-pick" hidden></div>
 
         <!-- KPI 4枚。★読めない数字はカードごと落とす（0 を並べない） -->
@@ -185,7 +203,12 @@
                 空いた右半分に下の入口を上げて、段を1つまるごと減らしている。
              ★この段だけ .dp-row--var で右の幅を固定する。左（変動給）は中で
                 2列に組むので、上の段と同じ伸び縮みにすると列が痩せて
-                ラベル・棒・数字が1行に入らなくなる。 -->
+                ラベル・棒・数字が1行に入らなくなる。
+             ★★2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）── いま右（#dp-more）は
+                **出ない**。入口が会社比較の1本だけなので、deep-pay.js の more() がカードを
+                枠ごと出さない（COMPARE_OPEN）。左が段の幅いっぱいになる（右の列は、在るときだけ
+                生える ── deep-pay.css の .dp-row--var）。
+                ⚠️ 器（#dp-more）は消さない。出す日に、そのままここへ戻る。 -->
         <div class="dp-row dp-row--var">
           <div id="dp-var" hidden></div>
           <div id="dp-more" hidden></div>
@@ -205,17 +228,17 @@
     applyTheme(localStorage.getItem('pv-theme')||'light');
     document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 
-    /* ★ pv_deep_pay() は未ログインだと 42501 で落ちる。エラー文言を出すのではなく
-         ログインへ送る（login.html の safePath() は pathname + search + hash を返す）。
+    /* ★ログインしていない人を、ログイン画面へ**送らない**（2026-10-11・オーナー判断）。
+         DEEP PAY には公開の入口が在る（REAL PAY の見出しのタブ ── あちらは未ログインの人にも
+         見える）。前はここで login.html?redirect=… へ送っていた。いまは null を返すだけで、
+         deep-pay.js が「会員で、まだ開いていない人」と同じ画面（ぼかした影絵＋板）を出す。
+       ⚠️ pv_deep_pay() は未ログインだと 42501 で落ちる。だから deep-pay.js は、ここが
+          null を返した人のために**サーバへ1本も聞かない**（板は聞かずに描ける）。
+       ⚠️ ここに行き先を書き足さない（ログインしたい人には、左メニューの「ログイン」が在る）。
        deep-pay.js はこの Promise を待ってから RPC を撃つ＝二重に走らない。 */
     window.PV_SESSION = (async function () {
       const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html?redirect='
-          + encodeURIComponent('deep-pay.html' + (window.location.search || '') + (window.location.hash || ''));
-        return null;
-      }
-      return session;
+      return session || null;
     }());
   </script>
 
@@ -234,7 +257,11 @@
 <script src="pv-gates.js"></script>
 <!-- ★絵の実体はここ1か所だけ。ドーナツを自前で描かない。 -->
 <script src="pay-viz.js"></script>
-<script src="deep-pay.js"></script>
+<!-- ★?v= は中身の指紋（2026-10-11 から、この画面の CSS と JS に付けてある ──
+       deep-pay.css / deep-pay.js）。
+     直したら assert-links.mjs が出す値を、読んでいるページ全部に写す
+     （deep-pay.css は2画面 × 日英の4枚・ほかは日英の2枚）。 -->
+<script src="deep-pay.js?v=41f05a2c"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。

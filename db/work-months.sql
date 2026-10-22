@@ -76,6 +76,9 @@ begin
   if to_regprocedure('public.pv_is_operator()') is null then
     raise exception '先に db/pay-rows.sql を実行してください（pv_is_operator が無い）';
   end if;
+  if to_regprocedure('public.pv_proof_blocked()') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pv_proof_blocked が無い）';
+  end if;
   if to_regclass('public.profiles') is null then
     raise exception 'profiles の表がありません（Supabase の初期設定を確認してください）';
   end if;
@@ -874,6 +877,8 @@ revoke all on function public.pv_work_month_cells(text, text) from public, anon,
 --   'pay'    … ログインしていて、給与の鍵が生きている（運営を含む）
 -- ★「給与の鍵」は REAL PAY の一覧が開く条件と**同じ**（期限つきの鍵か、運営）。
 --   条件をここで作り直さない ── 勤務・口コミ・補足を出しただけの人は 'member' のまま。
+-- ★パイロットであることの確認待ちで止まっている会員は、鍵を持っていても 'member'
+--   （REAL PAY・DEEP PAY・口コミ本文と同じ1つの関数 pv_proof_blocked。db/pay-rows.sql 1-e2）。
 -- ★誰にも渡さない。security definer の中からだけ呼ぶ（呼ぶのは db/contrib.sql の pv_contrib_sees）。
 create or replace function public.pv_work_level()
 returns text
@@ -884,6 +889,7 @@ set search_path = public, extensions
 as $$
   select case
            when auth.uid() is null then 'anon'
+           when public.pv_proof_blocked() then 'member'
            when public.pv_is_operator() then 'pay'
            when exists (select 1 from public.profiles f
                          where f.id = auth.uid()

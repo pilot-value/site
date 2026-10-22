@@ -1331,7 +1331,10 @@ for (const lang of ['ja', 'en']) {
           if (p.via === 'applicant' && p.state === 'approved' && was !== 'approved' && !o.img.includes(p.id)) o.img.push(p.id);
           m.reapply = to !== 'approved' && needs(m);
           return { ok: true, state: to, discarded: app ? 1 : 0 };
-        }
+        },
+        /* 資格確認（2026-10-13）。ここでは「入口を1つ足しただけで、表は触っていない」
+           ことだけを見る。止める・承認する・画像を消す、は assert-proof.mjs と db/test-proof.mjs */
+        admin_list_proofs: () => []
       };
       function q(t) {
         const o = { data: [], error: null,
@@ -1446,7 +1449,7 @@ for (const lang of ['ja', 'en']) {
          JSON.stringify(csv.map((t) => String(t).split('\n').slice(1).join(' / ').slice(0, 200))));
       ok(/,"100","200",/.test(csv[1] || ''), "CSV の数はそのまま（' を付けない）",
          String(csv[1] || '').split('\n').slice(1).join(' / ').slice(0, 200));
-      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
          'サーバーの入口だけを使っている（オーナーの2つの一覧も、管理者と分かったあとに読むだけ）', seen.rpc.join(','));
       ok(seen.from.length === 0, '管理者でもテーブルは直接触らない', seen.from.join(','));
       await notOwnerChecks(page, lang).catch((e) => ok(false, 'O0 オーナーでない運営の場面が途中で止まった', String(e && e.message || e).slice(0, 200)));

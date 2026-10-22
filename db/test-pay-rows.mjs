@@ -565,10 +565,14 @@ console.log('\n▼ 7. ★返り値に何が入っているか');
    ここの検査は「返すか返さないか」から **「返るのが帯と段だけか」** に移っている。
    ⚠️ ALLOWED に語を足すのは設計判断。足す前に db/pay-rows.sql の②を読むこと。 */
 /* ★2026-09-19 far を足した（公開年収から大きく外れた本人申告の行。値は true だけ）。 */
+/* ★2026-10-13 hold を足した（投稿した会員がパイロットであることを確認中の行。値は true だけ）。
+   準識別子ではない。付き方・消え方は db/test-proof.mjs が見ている。 */
 const ALLOWED = ['airline', 'pos', 'annual_usd', 'verified', 'age',
-                 'fleet', 'ten', 'tenk', 'pay', 'paylock', 'work', 'far'];
+                 'fleet', 'ten', 'tenk', 'pay', 'paylock', 'work', 'far', 'hold'];
 const extra = [...new Set(R.flatMap(x => Object.keys(x)))].filter(k => !ALLOWED.includes(k));
-ok(extra.length === 0, '返す項目は12個だけ', JSON.stringify(extra));
+ok(extra.length === 0, '返す項目は13個だけ', JSON.stringify(extra));
+ok(R.every(x => !('hold' in x)),
+   '★確認を求めている会員が居ないとき、どの行にも hold が無い（全行に鍵を生やさない）');
 ok(R.every(x => !('far' in x) || x.far === true),
    '★far は true のときだけ入る（false や null で全行に鍵を生やさない）');
 ok(R.every(x => !('comp' in x)),

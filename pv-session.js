@@ -270,6 +270,7 @@
     del(K_LAST);
     del(K_START);
     del(K_GF);      // 「Give → Get を見せた」の記録もこのログインのもの
+    del(K_PROOF);   // 「確認を求められているか」の写しもこのログインのもの
 
     /* ★給与の入力も置いていかない（2026-09-11）。ここが今まで抜けていた。
        共有端末で7日／30日の期限が来て切れたあと、次に使った人の画面に
@@ -383,6 +384,9 @@
 
   function giveFirstDue() {
     if (!isLoggedIn() || !hasToken()) return false;      // 会員ではない／もう死んだログイン
+    /* パイロットであることの確認を求められている会員には出さない（下の proof）。
+       あちらの板が画面を覆うので、同じ画面に板を2枚重ねない。 */
+    if (proofBlocked()) return false;
     if (GF_SKIP.test(location.pathname)) return false;
     /* ★預かり証を持って戻ってきた人（?claim=…）は覆わない。
          あれは「匿名で出した給与を自分の物として引き取る」途中で、
@@ -413,6 +417,70 @@
     (document.head || document.documentElement).appendChild(s);
   }
 
+  /* ── パイロットであることの確認を求められている会員に、板を出す（全ページ・2026-10-13）──
+     オーナー指示「パイロットではない会員のアカウントを止める。ログイン後の画面に、
+     パイロットであることを示す画像を出すボタンを置く。出すまでサイトの詳細は見せない」。
+
+     ★**本体はサーバ側。** 止まっている会員には、REAL PAY・DEEP PAY・口コミ本文の
+       3つの門が中身を返さない（db/pay-rows.sql 1-e2 の pv_proof_blocked）。
+       ここと pv-proof.js は「なぜ見られないのか・何を出せばよいのか」を伝えるだけで、
+       この板を消しても中身は1つも出てこない。
+     ★止まっているかどうかはサーバにしか分からないので、ここだけは聞きに行く。
+       ただし聞くのは**ログインしている会員だけ**・**同じログインのまま6時間に1回**まで。
+       未ログインの人（＝ほとんどの訪問者）は最初の1行で終わり、通信は1本も増えない。
+       聞くのも板を出すのも pv-proof.js（ここは「読むかどうか」を決めるだけ）。
+     ★答えは localStorage に写しを持つ（K_PROOF）。止まっている会員には、次のページから
+       **聞く前に**板が出る（中身が一瞬見える、を作らない）。
+     ★ログインし直したら写しは捨てる（l ＝ そのときのログインの印）。別の会員の答えを
+       引き継がない。
+     ⚠️ **会員を名指しで書かない**（公開リポジトリ）。止める相手は admin.html で決める。 */
+  var K_PROOF    = 'pv_proof';            // {s:'ok'|'required'|'submitted', a:出し直し, t:聞いた時刻, l:ログインの印}
+  var PROOF_COOL = 6 * 60 * 60 * 1000;    // 止まっていない会員に聞き直すまで
+
+  /* 出さない画面。
+       ログインの途中 … login / signup / auth-callback
+       そもそも対象外 … admin / unsubscribe / 404
+       止まっていても読めるべきもの … contact（運営に連絡する道）/ terms / privacy / personal-data
+     ⚠️ GF_SKIP とは別の集合。あちらは「入力の途中を覆わない」、こちらは
+        「止まっている会員にも開けておく」。1本にまとめない。 */
+  var PROOF_SKIP = /(?:^|\/)(login|signup|auth-callback|admin|unsubscribe|404|contact|terms|privacy|personal-data)\.html$/;
+
+  function proofRead() {
+    var r;
+    try { r = JSON.parse(get(K_PROOF) || '{}') || {}; } catch (e) { r = {}; }
+    if (String(r.l || '') !== String(sessionStart())) return {};   // ログインし直した
+    return r;
+  }
+
+  /* pv-proof.js が、サーバの答えを受け取るたびに呼ぶ。 */
+  function proofWrite(state, again) {
+    var s = (state === 'required' || state === 'submitted') ? state : 'ok';
+    set(K_PROOF, JSON.stringify({ s: s, a: again ? 1 : 0, t: Date.now(), l: String(sessionStart()) }));
+  }
+
+  function proofBlocked() {
+    if (!isLoggedIn() || !hasToken()) return false;
+    var s = proofRead().s;
+    return s === 'required' || s === 'submitted';
+  }
+
+  /* '' ＝ 何もしない ／ 'show' ＝ 板を出す（写しが「止まっている」）／ 'ask' ＝ サーバに聞く */
+  function proofDue() {
+    if (!isLoggedIn() || !hasToken()) return '';
+    if (PROOF_SKIP.test(location.pathname)) return '';
+    var r = proofRead();
+    if (r.s === 'required' || r.s === 'submitted') return 'show';
+    if (r.s === 'ok' && Date.now() - Number(r.t || 0) < PROOF_COOL) return '';
+    return 'ask';
+  }
+
+  function proofLoad() {
+    if (!SELF || !proofDue()) return;
+    var s = document.createElement('script');
+    try { s.src = new URL('pv-proof.js', SELF).href; } catch (e) { return; }
+    (document.head || document.documentElement).appendChild(s);
+  }
+
   var lastTouch = 0;
   function touch() {
     if (!isLoggedIn()) return;
@@ -426,6 +494,7 @@
   check();
   booted = true;
   if (isLoggedIn()) { sessionStart(); touch(); }
+  proofLoad();
   giveFirstLoad();
 
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) {
@@ -448,6 +517,9 @@
     repaintAuth: repaintAuth, hrefTo: hrefTo,
     /* Give → Get の板（pv-give-first.js）が使う2本。判定はこちら側に1つだけ置く。 */
     giveFirstDue: giveFirstDue, markGiveFirstSeen: markGiveFirstSeen,
+    /* パイロットであることの確認の板（pv-proof.js）が使う。判定と写しはこちら側に1つだけ置く。 */
+    proofDue: proofDue, proofRead: proofRead, proofWrite: proofWrite,
+    SB_URL: SB_URL, SB_KEY: SB_KEY,
     readStoredSession: readStoredSession,
     isLoggedIn: isLoggedIn, sessionStart: sessionStart, lastActive: lastActive,
     IDLE_MS: IDLE_MS, MAX_MS: MAX_MS
