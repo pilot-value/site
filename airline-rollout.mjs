@@ -27,7 +27,7 @@
 import { fileURLToPath } from 'node:url';
 import { readStore } from './import-research-pack.mjs';
 import { PLACES } from './airline-destinations.mjs';
-import { say, srcName, NET, CITY, digest, agreementOf, rankOf, AD_TAG, AD_TAG_EN, countryEn } from './airline-display.mjs';
+import { say, srcName, NET, CITY, LINES, digest, agreementOf, rankOf, AD_TAG, AD_TAG_EN, countryEn } from './airline-display.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -131,7 +131,7 @@ function asFact(r) {
   return {
     key: r.key, ja: d.label, value: d.value, unit: '', cur: d.cur || '', per: d.per || '', at: dateOf(r), as_of: r.checked_at || '',
     cond_ja: d.cond || (ag ? ag.cond : ''), src, pilot: !(r.applies_to && r.applies_to.pilot_specific === false),
-    use: r.use, tag: d.tag, id: r.id, h: r.h, lead: !!d.lead, fleet: d.fleet || '', rank: rankOf(r),
+    use: r.use, tag: d.tag, id: r.id, h: r.h, lead: !!d.lead, fleet: d.fleet || '', rank: rankOf(r), order: (LINES[r.id] && LINES[r.id].order) || 0,
   };
 }
 
@@ -227,7 +227,9 @@ function factsJa(slug, R) {
      最初の1画面の1行（lead）は「条件つき」の行だけ ── 字の表（LINES の lead）が決めていればその行、無ければ最初の「条件つき」の行。 */
   const ORDER = { 条件つき: 0, 募集: 0, 参考: 1, 過去: 2 };
   for (const k of ['work', 'benefits', 'jobs', 'profile', 'scale']) {
-    out[k] = out[k].map((f, i) => [f, i]).sort(([a, i], [b, j]) => ORDER[a.use] - ORDER[b.use] || i - j).map(([f]) => f);
+    /* 同じ使い方の中は台帳の順。字の表（LINES）が order を持つ行（勤続の段ごとの休暇のように、続き番号のある行）だけ、その順に並べ直す
+       （2026-10-22 全社へ広げる e。order の無い行は 0 ＝ 今までの順のまま） */
+    out[k] = out[k].map((f, i) => [f, i]).sort(([a, i], [b, j]) => ORDER[a.use] - ORDER[b.use] || (a.order || 0) - (b.order || 0) || i - j).map(([f]) => f);
     const said = out[k].filter(f => f.lead);
     for (const f of out[k]) f.lead = false;
     /* ★訓練生の行は、名前が訓練の話と言っている行（「訓練生の休日」「訓練の場所」）でなければ1行めにしない

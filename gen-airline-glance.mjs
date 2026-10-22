@@ -31,6 +31,7 @@ import { fxNote, BASIS } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
 import { TOPICS, askGroup, FIVE as CAREER } from './gen-career.mjs';
 import { researchHeld } from './airline-rollout.mjs';
+import { AD_TAG } from './airline-display.mjs';
 import { QUESTIONS } from './pv-conditions.mjs';
 import { needsCredit, src as photoSrc, smallH, SMALL_W } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
@@ -200,7 +201,11 @@ const join = (...xs) => {
 /* 値がもう時点を言っているとき（設立 1951年8月1日）は、同じ日付をもう一度書かない。 */
 const premise = f => {
   const when = f.when && String(f.value).includes(f.when) ? '' : f.when;
-  return join(f.cond, f.cond && !/\d/.test(when || '') ? '' : when);
+  const p = join(f.cond, f.cond && !/\d/.test(when || '') ? '' : when);
+  /* 「募集」の札の行（今の公表が無い勤務・待遇の欄に出す会社の募集の行 ── airline-rollout.mjs）は、その募集の日付も言う
+     （2026-10-22 全社へ広げる e・O-1）。行に日付（掲載・対象の日）が在ればその日付（上の when）・無ければ当サイトがその募集を
+     確かめた日を「確認日」で（募集の1枚の「出どころ」と同じ字・同じ台帳の日）。先行5社と募集の1枚の行には札が無い ＝ 変わらない。 */
+  return f.tag === AD_TAG && !/\d/.test(when || '') && f.checked ? join(p, `確認日 ${dateJa(f.checked)}`) : p;
 };
 const ext = (url, text, cls = 'pvg-src') => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>`;
 const dateJa = iso => iso.replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);

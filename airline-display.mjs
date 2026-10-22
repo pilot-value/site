@@ -29,6 +29,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PLACES } from './airline-destinations.mjs';
 import { COUNTRIES } from './airline-countries.mjs';
+import { UPLOAD_HOSTS } from './import-research-pack.mjs';
 
 /* 使い方の札。条件つき・募集は札なし（募集は募集の1枚に置くこと自体が言い方）。 */
 export const TAG = Object.freeze({ 過去: '過去', 参考: '参考' });
@@ -125,11 +126,94 @@ const WHOSE_DOMAINS = ['work', 'benefits'];
    その協約の名前で出す（「会社が公表している条件」とは言わない・「確認できていません」にもしない）。
    ★ここに書くのは、協約の本文か承認の決定そのものの資料だけ（資料の ID ごと）。報告・報道・掲示板・協約の要約の投稿は書かない
      （資料の種類の欄が union_cba でも、組合のお知らせ・ニュースの記事なら入れない ── 字の表で1件ずつ決める）。
-   name … 出どころのリンクの字（資料自身の題は「」の中）／cond … その協約が誰の条件か（カードの前提の1行。LINES の cond が在ればそちら） */
+   name … 出どころのリンクの字（資料自身の題は「」の中）／cond … その協約が誰の条件か（カードの前提の1行。LINES の cond が在ればそちら）
+   url / date … 台帳のその資料の住所と日付（発行・掲載の日。台帳に無ければ null）。★登録は台帳の資料そのもの ── 住所が台帳と違う・
+     発行元が政府か組合でない・利用者がアップロードした写しの置き場（import-research-pack.mjs の UPLOAD_HOSTS）の資料は、
+     assert-rollout.mjs の「労働協約の登録」が赤くする（2026-10-22 全社へ広げる e）。
+   ★登録しなかった資料（協約の本文・承認の決定ではないもの）：組合のお知らせ・ニュース（AFAP の承認のお知らせ・Teamsters の批准の記事・
+     APA の基本合意・ACDAC の声明）・仮合意の文書（Allegiant の Tentative Agreement）・組合の手引き（Delta の Scheduling Reference
+     Handbook・Frontier の PBS Handbook）・組合の要約のページ（ALPA の Air Canada・Breeze・Alaska・Porter のページ）・組合の求人
+     （ASPA の募集）・年金基金と訓練校の案内（KLM）・労使合同委員会の解釈（TAP の BTE 3/2026）。 */
 export const AGREEMENTS = Object.freeze({
-  'src-qantas-sh-ea9-approved': { name: 'オーストラリア公正労働委員会「[2025] FWCA 1554」（カンタス航空 短距離線パイロットの労働協約 EBA9 の承認と本文）', cond: '短距離線のパイロットの労働協約', name_en: 'Fair Work Commission of Australia “[2025] FWCA 1554” (approval and text of the Qantas short-haul pilots’ enterprise agreement EBA9)', cond_en: 'Short-haul pilots’ collective agreement' },
+  'src-qantas-sh-ea9-approved': { name: 'オーストラリア公正労働委員会「[2025] FWCA 1554」（カンタス航空 短距離線パイロットの労働協約 EBA9 の承認と本文）', cond: '短距離線のパイロットの労働協約', name_en: 'Fair Work Commission of Australia “[2025] FWCA 1554” (approval and text of the Qantas short-haul pilots’ enterprise agreement EBA9)', cond_en: 'Short-haul pilots’ collective agreement',
+    url: 'https://d15k2d11r6t6rl.cloudfront.net/pub/dw7a/z1swde28/zi1/yde/auy/20250509%20-%20SH%20EA%20Approval.pdf', date: '2025-05-09' },
   /* 同じ PDF（同じ住所）を、ROUND5 の別の資料の ID で引いている行がある（2026-10-21 a3） */
-  'src-qantas-r8-ea9': { name: 'オーストラリア公正労働委員会「[2025] FWCA 1554」（カンタス航空 短距離線パイロットの労働協約 EBA9 の承認と本文）', cond: '短距離線のパイロットの労働協約', name_en: 'Fair Work Commission of Australia “[2025] FWCA 1554” (approval and text of the Qantas short-haul pilots’ enterprise agreement EBA9)', cond_en: 'Short-haul pilots’ collective agreement' },
+  'src-qantas-r8-ea9': { name: 'オーストラリア公正労働委員会「[2025] FWCA 1554」（カンタス航空 短距離線パイロットの労働協約 EBA9 の承認と本文）', cond: '短距離線のパイロットの労働協約', name_en: 'Fair Work Commission of Australia “[2025] FWCA 1554” (approval and text of the Qantas short-haul pilots’ enterprise agreement EBA9)', cond_en: 'Short-haul pilots’ collective agreement',
+    url: 'https://d15k2d11r6t6rl.cloudfront.net/pub/dw7a/z1swde28/zi1/yde/auy/20250509%20-%20SH%20EA%20Approval.pdf', date: '2025-05-09' },
+  /* ── 全社へ広げる e（2026-10-22）：d2 の会社の労働協約（政府の機関が公表した協約・組合が公表した協約の本文）── */
+  'src-air-france-r9-nao2026-primary': { name: 'フランス政府の法令の公開サイト Légifrance「Protocole d\'accord sur les mesures salariales Air France 2026」（エールフランスの2026年の給与の協約）', cond: 'フランス本土・海外県で働くエールフランスの社員（パイロットを含む）の2026年の協約',
+    name_en: 'Légifrance (French government) “Protocole d\'accord sur les mesures salariales Air France 2026” (Air France’s 2026 pay agreement)', cond_en: 'Air France’s 2026 agreement for staff (pilots included) working in mainland France and the overseas departments',
+    url: 'https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000053556613', date: '2026-02-24' },
+  'src-air-france-r10-health-extension2026': { name: 'フランス政府の法令の公開サイト Légifrance「Avenant n°1 à l\'accord d\'entreprise du 9 décembre 2022 relatif au régime complémentaire frais de santé」（エールフランスの補完医療の協約の改定）', cond: 'エールフランスの社員（パイロットを含む）の補完医療の協約',
+    name_en: 'Légifrance (French government) “Avenant n°1 à l\'accord d\'entreprise du 9 décembre 2022 relatif au régime complémentaire frais de santé” (amendment to Air France’s supplementary health agreement)', cond_en: 'Air France’s supplementary health agreement for staff (pilots included)',
+    url: 'https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000052837307', date: '2025-11-25' },
+  /* 同じ協約（BOE-A-2026-19041）を、2つの資料の ID（2つの住所）で引いている */
+  'src-easyjet-spain-cba-2026': { name: 'スペイン官報（BOE）「III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España」（BOE-A-2026-19041・イージージェットのスペインのパイロットの労働協約）', cond: 'スペインで働くイージージェットのパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) “III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España” (BOE-A-2026-19041, easyJet’s collective agreement for pilots in Spain)', cond_en: 'Collective agreement for easyJet pilots in Spain',
+    url: 'https://www.boe.es/eli/es/res/2026/08/28/(1)', date: '2026-09-11' },
+  'src-easyjet-r10-boe2026-pilot-cba': { name: 'スペイン官報（BOE）「III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España」（BOE-A-2026-19041・イージージェットのスペインのパイロットの労働協約）', cond: 'スペインで働くイージージェットのパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) “III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España” (BOE-A-2026-19041, easyJet’s collective agreement for pilots in Spain)', cond_en: 'Collective agreement for easyJet pilots in Spain',
+    url: 'https://www.boe.es/buscar/doc.php?id=BOE-A-2026-19041', date: '2026-09-11' },
+  'src-eurowings-r10-spain-benefits-cba2026': { name: 'スペイン官報（BOE）「Convenio colectivo de Pilotos de Eurowings Europe Limited en España」（BOE-A-2026-18628・ユーロウイングスのスペインのパイロットの労働協約）', cond: 'スペインで働くユーロウイングス（Eurowings Europe）のパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) “Convenio colectivo de Pilotos de Eurowings Europe Limited en España” (BOE-A-2026-18628, Eurowings’ collective agreement for pilots in Spain)', cond_en: 'Collective agreement for Eurowings (Eurowings Europe) pilots in Spain',
+    url: 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-18628', date: '2026-09-04' },
+  'src-iberia-cba-base-2022': { name: 'スペイン官報（BOE）の BOE-A-2022-23017（イベリア航空とパイロットの第10次の労働協約）', cond: 'イベリア航空のパイロットの労働協約（第10次）',
+    name_en: 'Spain’s Official State Gazette (BOE) BOE-A-2022-23017 (the 10th collective agreement between Iberia and its pilots)', cond_en: 'Iberia pilots’ collective agreement (10th)',
+    url: 'https://www.boe.es/eli/es/res/2022/12/15/(6)', date: '2022-12-28' },
+  'src-iberia-cba-amendment-2024': { name: 'スペイン官報（BOE）の BOE-A-2024-25500（イベリア航空とパイロットの第10次の労働協約の改定）', cond: 'イベリア航空のパイロットの労働協約の改定（2024年）',
+    name_en: 'Spain’s Official State Gazette (BOE) BOE-A-2024-25500 (amendment to the 10th collective agreement between Iberia and its pilots)', cond_en: 'Amendment to the Iberia pilots’ collective agreement (2024)',
+    url: 'https://www.boe.es/eli/es/res/2024/11/26/(1)', date: '2024-12-06' },
+  'src-ita-airways-r4-signed-second-level2026': { name: '組合 FAST-Confsal「Accordo integrativo di secondo livello ITA, firmato 22 luglio 2026」（ITAエアウェイズと組合の会社の協約・2026年7月22日の署名）', cond: 'ITAエアウェイズの乗員（パイロットを含む）の会社の協約（2026年9月から2028年12月まで）',
+    name_en: 'FAST-Confsal (trade union) “Accordo integrativo di secondo livello ITA, firmato 22 luglio 2026” (ITA Airways’ company agreement with the unions, signed 22 July 2026)', cond_en: 'ITA Airways’ company agreement for flight crew (pilots included), September 2026 to December 2028',
+    url: 'https://sindacatofast.it/areacon/compartoaereo/sites/default/files/FAST%20-%20Accordo%202%C2%B0%20Livello%20-%2022.07.2026%20-%20fir_compresse%20d%20%281%29.pdf', date: '2026-07-23' },
+  'src-jetstar-r8-fwc': { name: 'オーストラリア公正労働委員会「Jetstar Airways Pilots Enterprise Agreement 2026」（ジェットスター航空のパイロットの労働協約・承認された本文）', cond: 'ジェットスター航空のパイロットの労働協約（2026年）',
+    name_en: 'Fair Work Commission of Australia “Jetstar Airways Pilots Enterprise Agreement 2026” (the approved text of Jetstar’s pilots’ enterprise agreement)', cond_en: 'Jetstar pilots’ enterprise agreement (2026)',
+    url: 'https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf', date: '2026-07-15' },
+  'src-latam-resume-brazil-act2527': { name: '組合 SNA（Sindicato Nacional dos Aeronautas）「ACT Aeronautas Pilotos 2025–2027」（LATAM ブラジル（TAM）とパイロットの労働協約・組合の公開版）', cond: 'LATAM ブラジル（TAM）のパイロットの労働協約（2025〜2027年）',
+    name_en: 'SNA (Sindicato Nacional dos Aeronautas, trade union) “ACT Aeronautas Pilotos 2025–2027” (collective agreement between LATAM Brasil (TAM) and its pilots, the union’s published copy)', cond_en: 'Collective agreement for LATAM Brasil (TAM) pilots (2025–2027)',
+    url: 'https://aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf', date: null },
+  'src-norwegian-spain-cba': { name: 'スペイン官報（BOE）の BOE-A-2024-24738（Norwegian Air Resources Spain とパイロットの第2次の労働協約）', cond: 'スペインで働くノルウェー・エアシャトル（Norwegian Air Resources Spain）のパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) BOE-A-2024-24738 (the 2nd collective agreement between Norwegian Air Resources Spain and its pilots)', cond_en: 'Collective agreement for Norwegian (Norwegian Air Resources Spain) pilots in Spain',
+    url: 'https://www.boe.es/buscar/doc.php?id=BOE-A-2024-24738', date: '2024-11-27' },
+  /* 同じ協約（BOE-A-2023-15123・同じ住所）を、2つの資料の ID で引いている */
+  'src-ryanair-spain-cba': { name: 'スペイン官報（BOE）「Convenio colectivo de Pilotos de Ryanair DAC en España」（BOE-A-2023-15123・ライアンエアーのスペインのパイロットの労働協約）', cond: 'スペインで働くライアンエアー（Ryanair DAC）のパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) “Convenio colectivo de Pilotos de Ryanair DAC en España” (BOE-A-2023-15123, Ryanair’s collective agreement for pilots in Spain)', cond_en: 'Collective agreement for Ryanair (Ryanair DAC) pilots in Spain',
+    url: 'https://www.boe.es/eli/es/res/2023/06/09/(7)', date: '2023-06-28' },
+  'src-ryanair-r8-boe-pilot-cba': { name: 'スペイン官報（BOE）「Convenio colectivo de Pilotos de Ryanair DAC en España」（BOE-A-2023-15123・ライアンエアーのスペインのパイロットの労働協約）', cond: 'スペインで働くライアンエアー（Ryanair DAC）のパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) “Convenio colectivo de Pilotos de Ryanair DAC en España” (BOE-A-2023-15123, Ryanair’s collective agreement for pilots in Spain)', cond_en: 'Collective agreement for Ryanair (Ryanair DAC) pilots in Spain',
+    url: 'https://www.boe.es/eli/es/res/2023/06/09/(7)', date: '2023-06-28' },
+  /* 同じ官報（BTE 2023年29号・同じ住所）を、2つの資料の ID で引いている */
+  'src-tap-pub-tap-spac-signed2023': { name: 'ポルトガル労働省（GEP）の労働の官報 BTE 2023年29号（TAPポルトガル航空とパイロットの組合 SPAC の会社協約）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）',
+    name_en: 'Portuguese Ministry of Labour (GEP) Labour Bulletin BTE no. 29/2023 (the company agreement between TAP Air Portugal and the pilots’ union SPAC)', cond_en: 'TAP Air Portugal pilots’ collective agreement (2023)',
+    url: 'https://bte.gep.msess.gov.pt/completos/2023/bte29_2023.pdf', date: '2023-08-08' },
+  'src-tap-r8-cbe-rbo2023': { name: 'ポルトガル労働省（GEP）の労働の官報 BTE 2023年29号（TAPポルトガル航空とパイロットの組合 SPAC の会社協約）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）',
+    name_en: 'Portuguese Ministry of Labour (GEP) Labour Bulletin BTE no. 29/2023 (the company agreement between TAP Air Portugal and the pilots’ union SPAC)', cond_en: 'TAP Air Portugal pilots’ collective agreement (2023)',
+    url: 'https://bte.gep.msess.gov.pt/completos/2023/bte29_2023.pdf', date: '2023-08-08' },
+  /* 同じ PDF（同じ住所）を、2つの資料の ID で引いている */
+  'src-turkish-airlines-pub-cba29-full': { name: '組合 Hava-İş「THY A.O. 29. Dönem Toplu İş Sözleşmesi 01.01.2026–31.12.2027」（ターキッシュ エアラインズの第29期の労働協約）', cond: 'ターキッシュ エアラインズの社員の労働協約（第29期・2026〜2027年。組合員が対象で、パイロットの条項を含む）',
+    name_en: 'Hava-İş (trade union) “THY A.O. 29. Dönem Toplu İş Sözleşmesi 01.01.2026–31.12.2027” (Turkish Airlines’ 29th-term collective agreement)', cond_en: 'Turkish Airlines’ collective agreement for staff (29th term, 2026–2027; covers union members and includes pilot clauses)',
+    url: 'https://www.havais.org.tr/uploaded/thy-ao-29-donem-tis-01012026-31122027-1773664884.pdf', date: '2026-03-06' },
+  'src-turkish-airlines-r8-cba29': { name: '組合 Hava-İş「THY A.O. 29. Dönem Toplu İş Sözleşmesi 01.01.2026–31.12.2027」（ターキッシュ エアラインズの第29期の労働協約）', cond: 'ターキッシュ エアラインズの社員の労働協約（第29期・2026〜2027年。組合員が対象で、パイロットの条項を含む）',
+    name_en: 'Hava-İş (trade union) “THY A.O. 29. Dönem Toplu İş Sözleşmesi 01.01.2026–31.12.2027” (Turkish Airlines’ 29th-term collective agreement)', cond_en: 'Turkish Airlines’ collective agreement for staff (29th term, 2026–2027; covers union members and includes pilot clauses)',
+    url: 'https://www.havais.org.tr/uploaded/thy-ao-29-donem-tis-01012026-31122027-1773664884.pdf', date: null },
+  /* 同じ PDF（署名版・同じ住所）を、2つの資料の ID で引いている */
+  'src-united-r8-upa23': { name: 'ユナイテッド航空とパイロットの組合 ALPA「United Pilot Agreement 2023」（パイロットの労働協約・署名版）', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）',
+    name_en: 'United Airlines and the pilots’ union ALPA “United Pilot Agreement 2023” (the signed pilots’ collective agreement)', cond_en: 'United Airlines pilots’ collective agreement (2023)',
+    url: 'https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-29.pdf', date: '2023-09-29' },
+  'src-united-signed-upa23': { name: 'ユナイテッド航空とパイロットの組合 ALPA「United Pilot Agreement 2023」（パイロットの労働協約・署名版）', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）',
+    name_en: 'United Airlines and the pilots’ union ALPA “United Pilot Agreement 2023” (the signed pilots’ collective agreement)', cond_en: 'United Airlines pilots’ collective agreement (2023)',
+    url: 'https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-29.pdf', date: '2023-09-29' },
+  /* 同じ協約（BOE-A-2026-5693）を、2つの資料の ID（2つの住所）で引いている */
+  'src-vueling-pilot-cba': { name: 'スペイン官報（BOE）「IV Convenio colectivo de Vueling Airlines SA y sus tripulantes pilotos」（BOE-A-2026-5693・ブエリング航空のパイロットの労働協約）', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) “IV Convenio colectivo de Vueling Airlines SA y sus tripulantes pilotos” (BOE-A-2026-5693, Vueling’s pilots’ collective agreement)', cond_en: 'Collective agreement for Vueling pilots on Spanish contracts',
+    url: 'https://www.boe.es/eli/es/res/2026/02/25/(6)', date: '2026-03-11' },
+  'src-vueling-r8-pilot-cba2026': { name: 'スペイン官報（BOE）「IV Convenio colectivo de Vueling Airlines SA y sus tripulantes pilotos」（BOE-A-2026-5693・ブエリング航空のパイロットの労働協約）', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約',
+    name_en: 'Spain’s Official State Gazette (BOE) “IV Convenio colectivo de Vueling Airlines SA y sus tripulantes pilotos” (BOE-A-2026-5693, Vueling’s pilots’ collective agreement)', cond_en: 'Collective agreement for Vueling pilots on Spanish contracts',
+    url: 'https://www.boe.es/buscar/doc.php?id=BOE-A-2026-5693', date: '2026-03-11' },
+  /* カナダ政府の労働協約の公開庫に登録された協約。台帳の行（拠点）は過去の協約の話で、拠点には過去の行を使わない ＝ 画面に出る行は無い */
+  'src-westjet-r3na-cba1-2019': { name: 'カナダ政府の労働協約の公開庫 Negotech「WestJet Collective Agreement No.1」（ウェストジェット航空とパイロットの組合 ALPA の第1次の労働協約・2019〜2022年）', cond: 'ウェストジェット航空のパイロットの第1次の労働協約（2019〜2022年）',
+    name_en: 'Government of Canada collective agreements repository (Negotech) “WestJet Collective Agreement No.1” (the 1st collective agreement between WestJet and the pilots’ union ALPA, 2019–2022)', cond_en: 'WestJet pilots’ 1st collective agreement (2019–2022)',
+    url: 'https://negotech.service.canada.ca/eng/agreements/15/1523801a.pdf', date: null },
 });
 export const agreementOf = s => (s && AGREEMENTS[s.source_id]) || null;
 
@@ -766,11 +850,127 @@ export const LINES = Object.freeze({
   'westjet.benefits.resume-travel': { h: 'c842873f06cb3e4a', label: '社員の航空券', value: '空席待ちの航空券（運賃は無料・税は別）。6か月後から提携社の割引も', cond: '福利厚生の案内（社員ぜんたい）', en: { label: 'Staff travel', value: 'Standby travel (no base fare; taxes extra), plus partner-airline discounts after six months', cond: 'Benefits guide (all employees)' } },
   'westjet.work.days-mainline': { h: '3c9e7e84dbac9053', label: '月の勤務の日数', value: 'ふつうのラインで月16日まで、待機のラインで18日まで', cond: 'パイロットの採用ページ（ウエストジェット本体）', en: { label: 'Duty days per month', value: 'Up to 16 days on a regular line and 18 on a reserve line', cond: 'Pilot recruitment page (WestJet mainline)' } },
   'westjet.work.resume-bidding': { h: 'f200d39efa25ca70', label: '勤務の希望', value: '勤務の希望は先任順ではない方式で割り当てる', cond: 'パイロットの採用ページ', en: { label: 'Schedule bidding', value: 'Scheduling bids are not awarded by seniority', cond: 'Pilot recruitment page' } },
+  /* ── 全社へ広げる e（2026-10-22）：d2 の会社の労働協約の行（AGREEMENTS に登録した協約）。cond は、どの協約の・誰の条件か。
+     字に外貨の額を書かない（額は money: true ＝ 台帳の数・通貨・期間のまま、円の目安つき）。
+     書かなかった行：TAP のポルトの拠点（ほかの拠点の無い1行だけで、唯一の拠点と読まれる）・TAP の旅行の優待（「社内の規程による」だけで中身が無い）・
+     ブエリング航空の自分で選んだ別の住まいのタクシー（その人だけの条件で、通勤の欄ではだれでもと読まれる）・
+     ユナイテッド航空の給与の時間の保証（給与の計算の時間で、乗務の時間と読み違えやすい） ── */
+  /* エールフランス */
+  'air-france.benefits.r10-collective-health-pnt-presence2026': { h: '988b340c79cb0619', label: '補完の医療保険', value: '現役のパイロット（PNT）も加入する団体の補完医療。協約は2026年12月31日まで延長', cond: '社員ぜんたいの補完医療の協約の改定。給付の中身・会社の負担の率は書かれていない', en: { label: 'Supplementary health cover', value: 'A group supplementary health scheme that active pilots (PNT) also join; the agreement is extended to 31 December 2026', cond: 'Amendment to the company-wide supplementary health agreement. Benefits and the employer’s share are not stated' } },
+  'air-france.benefits.r9-fmd-bicycle': { h: 'f2a929089f1fa04f', label: '自転車の通勤の補助（上限）', cond: 'フランス本土・海外県で働く社員（パイロットを含む）の2026年の協約。払い戻しの上限で、ほかの通勤の補助とは併用できない', en: { label: 'Cycling commute allowance (cap)', cond: 'Air France’s 2026 agreement for staff (pilots included) in mainland France and the overseas departments. A cap on reimbursement; cannot be combined with the other commuting allowances' } },
+  'air-france.benefits.r9-fmd-carshare': { h: 'b09bfd3804a77826', label: '低排出の車の相乗りの通勤の補助（上限）', cond: 'フランス本土・海外県で働く社員（パイロットを含む）の2026年の協約。実際に払った費用の上限で、ほかの通勤の補助とは併用できない', en: { label: 'Low-emission car-sharing commute allowance (cap)', cond: 'Air France’s 2026 agreement for staff (pilots included) in mainland France and the overseas departments. A cap on costs actually paid; cannot be combined with the other commuting allowances' } },
+  'air-france.benefits.r9-fmd-public-transport': { h: 'cf23dadef3c7f93a', label: '公共交通の1回券の通勤の補助（上限）', cond: 'フランス本土・海外県で働く社員（パイロットを含む）の2026年の協約。実費の払い戻しの上限で、ほかの通勤の補助とは併用できない', en: { label: 'Public-transport single-ticket commute allowance (cap)', cond: 'Air France’s 2026 agreement for staff (pilots included) in mainland France and the overseas departments. A cap on reimbursed costs; cannot be combined with the other commuting allowances' } },
+  'air-france.benefits.r9-ikv-rate': { h: 'e1803ab91b420a3f', label: '車の通勤の払い戻し', value: '自宅と職場の距離（km）ごとの額で払い戻す（2026年も同じ率）', cond: 'フランス本土・海外県で働く社員（パイロットを含む）の2026年の協約。距離の上限・条件は別に決まっている', en: { label: 'Car commute reimbursement', value: 'Reimbursed at a rate per kilometre between home and work (the same rate in 2026)', cond: 'Air France’s 2026 agreement for staff (pilots included) in mainland France and the overseas departments. Distance limits and conditions are set separately' } },
+  'air-france.benefits.r9-sncf-liberte': { h: '97ca5817ce12405c', label: 'SNCF の割引カード（Liberté）', value: '会社が購入の額の50%を負担', cond: 'フランス本土・海外県で働く社員（パイロットを含む）の2026年の協約。名前の入った領収書による', en: { label: 'SNCF discount card (Liberté)', value: 'The company pays 50% of the purchase price', cond: 'Air France’s 2026 agreement for staff (pilots included) in mainland France and the overseas departments. Against a named invoice' } },
+  'air-france.benefits.r9-train-cap': { h: '792b37c75b58e675', label: '電車の通勤の払い戻し', value: '電車の通勤の実費を払い戻す（上限あり。2026年7月から）', cond: 'フランス本土・海外県で働く社員（パイロットを含む）の2026年の協約。決まった額を支給するものではない', en: { label: 'Rail commute reimbursement', value: 'Actual rail commuting costs are reimbursed (up to a cap, from July 2026)', cond: 'Air France’s 2026 agreement for staff (pilots included) in mainland France and the overseas departments. Not a fixed payment' } },
+  /* イージージェット（スペインの協約） */
+  'easyjet.benefits.c-spain-pension-alternative': { h: '8df676c355f90206', label: '企業年金と選べる報酬', value: '企業年金（Loreto Mutua）への会社の拠出と、選べる報酬の制度は、どちらか1つ', cond: 'スペインで働くイージージェットのパイロットの労働協約', en: { label: 'Company pension or flexible pay', value: 'Either the company’s contribution to the company pension (Loreto Mutua) or the flexible remuneration plan, not both', cond: 'Collective agreement for easyJet pilots in Spain' } },
+  'easyjet.benefits.pub-base-parking': { h: 'd198f0abd1f01758', label: '拠点の駐車場', value: 'パイロットの拠点の車の駐車場は無料（給与の一部ではなく、なくなることもある）', cond: 'スペインで働くイージージェットのパイロットの労働協約。変えるときは組合（SEPLA）と話し合う', en: { label: 'Parking at the base', value: 'Car parking at the pilot base is free (not part of pay, and it may be withdrawn)', cond: 'Collective agreement for easyJet pilots in Spain. Changes are discussed with the union (SEPLA)' } },
+  'easyjet.benefits.pub-training-lodging': { h: '5a3f8b7def4fa94e', label: '入社の訓練のあいだの宿', value: '型式の訓練のあいだは、基本給・宿・朝と夕の食事を会社が負担', cond: 'スペインで働くイージージェットのパイロットの労働協約（入社の訓練）', en: { label: 'Accommodation during initial training', value: 'During type-rating training the company pays basic salary, accommodation and breakfast and dinner', cond: 'Collective agreement for easyJet pilots in Spain (initial training)' } },
+  'easyjet.benefits.r10-spain-private-medical-option': { h: '2af94bc35cca1dd2', label: '民間の医療保険', value: '選べる報酬の制度から、民間の医療保険を選べる', cond: 'スペインの法で雇われ、スペインで乗務するイージージェットのパイロットの労働協約。保険料と本人の負担は書かれていない', en: { label: 'Private medical insurance', value: 'Private medical insurance can be chosen through the flexible remuneration plan', cond: 'Collective agreement for easyJet pilots employed under Spanish law and flying in Spain. Premiums and the pilot’s share are not stated' } },
+  'easyjet.work.c-spain-54': { h: '82e944befc7d5558', label: '勤務の形（5勤4休を選ぶとき）', value: '5日勤務・4日休みの決まった形を選べる（基本給は8%少なく、待機の期間は無い）', cond: 'スペインで働くイージージェットのパイロットの労働協約。全員の標準の形ではない', en: { label: 'Work pattern (if 5-on/4-off is chosen)', value: 'A fixed pattern of 5 days on and 4 days off can be chosen (basic salary is 8% lower; no reserve periods)', cond: 'Collective agreement for easyJet pilots in Spain. Not everyone’s standard pattern' } },
+  'easyjet.work.pub-frv-days-off': { h: '456702b7a05313f4', label: '休日', value: '年144日以上（月12日以上・2月は11日以上）', cond: 'スペインで通年・フルタイムで働くイージージェットのパイロットの労働協約（標準の勤務の形）', lead: true, en: { label: 'Days off', value: 'At least 144 a year (at least 12 a month; 11 in February)', cond: 'Collective agreement for full-time, year-round easyJet pilots in Spain (standard roster pattern)' } },
+  'easyjet.work.pub-occ-bond': { h: '3b4d45fbff73c03e', label: '訓練費の返還', value: '入社の訓練（OCC）の費用は、辞めた時期により全額から段階的に減り、2年を過ぎると返さない', cond: 'スペインで働くイージージェットのパイロットの労働協約。本人の都合で辞めたときなど', en: { label: 'Training cost repayment', value: 'The cost of initial training (OCC) falls in steps from the full amount depending on when you leave, and nothing is repaid after two years', cond: 'Collective agreement for easyJet pilots in Spain. Applies when leaving at your own request and in similar cases' } },
+  /* ユーロウイングス（スペインの協約） */
+  'eurowings.benefits.r10-spain-annual-leave': { h: '5c0ac09f9e825922', label: '年次休暇', value: '年30日以上（暦日）。勤続5年・10年・12年で増え、最大42日', cond: 'スペインで働くユーロウイングス（Eurowings Europe）のパイロットの労働協約', en: { label: 'Annual leave', value: 'At least 30 days a year (calendar days), rising after 5, 10 and 12 years of service to a maximum of 42', cond: 'Collective agreement for Eurowings (Eurowings Europe) pilots in Spain' } },
+  'eurowings.benefits.r10-spain-mandatory-base-transfer': { h: 'd56c4410818b4659', label: '会社の命令で拠点が変わるとき', value: '引っ越しの一時金（島への・島からの移動は上乗せ）', cond: 'スペインで働くユーロウイングス（Eurowings Europe）のパイロットの労働協約。移ってから3か月以内に本人の都合で辞めると返す', en: { label: 'Company-ordered base change', value: 'A one-off relocation payment (more for moves to or from the islands)', cond: 'Collective agreement for Eurowings (Eurowings Europe) pilots in Spain. Repaid if you resign within three months of the move' } },
+  /* イベリア航空 */
+  'iberia.benefits.vacation-base': { h: 'b529ce66f583a148', label: '年次休暇', cond: 'イベリア航空のパイロットの労働協約（第10次）。続けて30日か、15日ずつなどに分けて取る', en: { label: 'Annual leave', cond: 'Iberia pilots’ collective agreement (10th). Taken as 30 consecutive days or split, for example into two blocks of 15' } },
+  'iberia.work.monthly-roster-notice': { h: '2663d72e79011483', label: '月の勤務表の発表', value: '月の始まりの14日前まで（2025年1月の勤務表から）', cond: 'イベリア航空のパイロットの労働協約の改定（2024年）', en: { label: 'Monthly roster publication', value: 'At least 14 days before the month starts (from the January 2025 roster)', cond: 'Amendment to the Iberia pilots’ collective agreement (2024)' } },
+  /* ITAエアウェイズ */
+  'ita-airways.benefits.r8-signed-leave30': { h: '577db638a81db22d', label: '年次休暇', value: '年30日（祝日を含む）', cond: 'ITAエアウェイズの乗員（パイロットを含む）の会社の協約（2026年9月から）。年次休暇の一部は休みの日と相殺される', lead: true, en: { label: 'Annual leave', value: '30 days a year (public holidays included)', cond: 'ITA Airways’ company agreement for flight crew (pilots included), from September 2026. Part of the leave offsets rest days' } },
+  'ita-airways.benefits.r8-signed-sanivolo': { h: '17689cfdcfc645f2', label: '補完の医療', value: '加入した乗員は、基金（Sanivolo）で国の医療を補う医療を受けられる（会社の拠出の新しい額は2027年から）', cond: 'ITAエアウェイズの乗員（パイロットを含む）の会社の協約。家族の範囲は書かれていない', en: { label: 'Supplementary health cover', value: 'Enrolled crew get health cover that supplements the national health service through a fund (Sanivolo); the new company contribution applies from 2027', cond: 'ITA Airways’ company agreement for flight crew (pilots included). Family eligibility is not stated' } },
+  'ita-airways.benefits.r8-signed-self-commute': { h: '671119bf2fc285ce', label: '通勤', value: 'ふだんの出勤は自分の交通手段。拠点の外で泊まるときのホテルと空港の行き来は会社が手配', cond: 'ITAエアウェイズの乗員（パイロットを含む）の会社の協約（2026年9月から）', en: { label: 'Commuting', value: 'Normal travel to work is by your own means; transport between the hotel and the airport when staying away from base is arranged by the company', cond: 'ITA Airways’ company agreement for flight crew (pilots included), from September 2026' } },
+  'ita-airways.benefits.r8-signed-transfer-support': { h: '3db0c7457b3a9e03', label: '会社の命令で転勤するとき', value: '旅費と荷物の運送費。家族と移るときは1か月・1人で移るときは20日の出張の扱い', cond: 'ITAエアウェイズの乗員（パイロットを含む）の会社の協約。移ってから1年以内に本人の都合で辞めると、運送費の一部を返すことがある', en: { label: 'Company-ordered transfer', value: 'Travel and removal costs, plus travel-allowance treatment for one month when moving with family or 20 days when moving alone', cond: 'ITA Airways’ company agreement for flight crew (pilots included). Part of the removal cost may be repaid if you resign within a year of moving' } },
+  /* ジェットスター航空 */
+  'jetstar.benefits.r8-annual-leave-fulltime': { h: '4672f6720d65ecc0', label: '年次休暇', value: '勤続1年ごとに42日（暦日。土日・祝日を含む）', cond: 'ジェットスター航空のフルタイムのパイロットの労働協約（2026年）', lead: true, en: { label: 'Annual leave', value: '42 days for each year of service (calendar days, weekends and public holidays included)', cond: 'Jetstar full-time pilots’ enterprise agreement (2026)' } },
+  'jetstar.benefits.r8-base-parking': { h: 'b8186ef67957d6bd', label: '拠点の駐車場', value: '勤務のときの拠点の空港の駐車場と、駐車場からターミナルまでの送迎を会社が用意', cond: 'ジェットスター航空のパイロットの労働協約（2026年）', en: { label: 'Parking at the base', value: 'The company provides home-base airport parking on duty days and transport between the car park and the terminal where needed', cond: 'Jetstar pilots’ enterprise agreement (2026)' } },
+  'jetstar.benefits.r8-company-directed-transfer': { h: 'd4e65184f49b37db', label: '会社の指示で拠点が変わるとき', value: '引っ越しの支援（家財と車の運送・保管・航空券など）を1人ずつ決める', cond: 'ジェットスター航空のパイロットの労働協約（2026年）。自分から望んだ異動は自分の負担', en: { label: 'Company-directed base change', value: 'A relocation package (removal and storage of belongings and a car, flights and more) is set for each person', cond: 'Jetstar pilots’ enterprise agreement (2026). Voluntary transfers are at your own cost' } },
+  'jetstar.benefits.r8-duty-travel-medical': { h: 'ce8e98b024ba68fa', label: '業務の移動中の保険', value: '会社の指示の移動中の、緊急の医療・歯科・救援搬送を含む旅行保険', cond: 'ジェットスター航空のパイロットの労働協約（2026年）。ふだんの医療の保険ではない', en: { label: 'Insurance while travelling on duty', value: 'Travel insurance covering emergency medical and dental care and evacuation while travelling at the company’s direction', cond: 'Jetstar pilots’ enterprise agreement (2026). Not everyday health insurance' } },
+  /* LATAM航空（ブラジルの協約・行は参考） */
+  'latam.benefits.missing-annual-leave': { h: '3e51ae465f41ecc4', label: '年次休暇', value: '希望すれば15日ずつ2回に分けて取れる（時期は会社が決める）', cond: 'LATAM ブラジル（TAM）のパイロットの労働協約（2025〜2027年）', en: { label: 'Annual leave', value: 'Can be split into two blocks of 15 days on request (the company sets the dates)', cond: 'Collective agreement for LATAM Brasil (TAM) pilots (2025–2027)' } },
+  'latam.benefits.missing-commuting': { h: '0705ae25f51b9c5c', label: '空港のあいだの移動', value: '契約の拠点と別の空港で始まる・終わる勤務は、会社が空港のあいだを無料で送る', cond: 'LATAM ブラジル（TAM）のパイロットの労働協約（2025〜2027年）。同じ都市圏の空港のあいだ', en: { label: 'Transfers between airports', value: 'When duty starts or ends at an airport other than the contract base, the company provides free transport between the airports', cond: 'Collective agreement for LATAM Brasil (TAM) pilots (2025–2027). Between airports in the same metropolitan area' } },
+  'latam.benefits.missing-staff-travel': { h: '4a7b82c0c72416bd', label: '乗務の前後の移動（Passe Livre）', value: '国内線で、乗務の前後の本人の移動', cond: 'LATAM ブラジル（TAM）のパイロットの労働協約（2025〜2027年）。家族の航空券ではない', en: { label: 'Travel before and after duty (Passe Livre)', value: 'Domestic travel for the pilot alone before and after duty', cond: 'Collective agreement for LATAM Brasil (TAM) pilots (2025–2027). Not family travel' } },
+  'latam.benefits.publication-health-dependent': { h: '707bb0b6b1c2dceb', label: '扶養の家族の健康保険', value: '会社が家族1人ごとの保険料の30%を負担（2026年12月から40%）', cond: 'LATAM ブラジル（TAM）のパイロットの労働協約（2025〜2027年）', en: { label: 'Dependants’ health insurance', value: 'The company pays 30% of each dependant’s premium (40% from December 2026)', cond: 'Collective agreement for LATAM Brasil (TAM) pilots (2025–2027)' } },
+  'latam.work.missing-roster-pattern': { h: 'e524f3591ffb6469', label: '月の勤務表', value: '月の勤務表は5日前までに発表', cond: 'LATAM ブラジル（TAM）のパイロットの労働協約（2025〜2027年）', en: { label: 'Monthly roster', value: 'The monthly roster is published at least five days in advance', cond: 'Collective agreement for LATAM Brasil (TAM) pilots (2025–2027)' } },
+  'latam.work.missing-working-time': { h: '0f19f5e39747b80d', label: '勤務と飛行の時間の上限', value: '勤務は週44時間まで。飛行は大型機が28日で100時間・年1,000時間、A320系とエンブラエルが28日で90時間・年900時間まで', cond: 'LATAM ブラジル（TAM）のパイロットの労働協約（2025〜2027年）。上限で、実際の時間や保証ではない', en: { label: 'Duty and flying time limits', value: 'Duty up to 44 hours a week; flying up to 100 hours in 28 days and 1,000 a year on wide-bodies, and 90 hours in 28 days and 900 a year on the A320 family and Embraer', cond: 'Collective agreement for LATAM Brasil (TAM) pilots (2025–2027). Limits, not actual or guaranteed hours' } },
+  /* ノルウェー・エアシャトル（スペインの協約） */
+  'norwegian.benefits.c-spain-staff-travel': { h: 'e2453a32c8366baa', label: '社員の航空券', value: 'グループの航空券の決まりが当てはまる', cond: 'スペインで働くノルウェー・エアシャトル（Norwegian Air Resources Spain）のパイロットの労働協約。対象の家族・料金は書かれていない', en: { label: 'Staff travel', value: 'The group’s staff travel policy applies', cond: 'Collective agreement for Norwegian (Norwegian Air Resources Spain) pilots in Spain. Family eligibility and fares are not stated' } },
+  'norwegian.benefits.pub-spain-duty-hotel': { h: '919a010025c46767', label: '乗務のときのホテル', value: '乗務中のホテルと朝食、ホテルと空港の行き来を会社が手配・負担', cond: 'スペインで働くノルウェー・エアシャトル（Norwegian Air Resources Spain）のパイロットの労働協約', en: { label: 'Hotels on duty', value: 'The company arranges and pays for hotels and breakfast on duty and transport between the hotel and the airport', cond: 'Collective agreement for Norwegian (Norwegian Air Resources Spain) pilots in Spain' } },
+  'norwegian.benefits.pub-spain-insurance': { h: '77220812296233c7', label: '保険', value: '病気、業務の事故によるけが・死亡、乗務の資格を失ったときの保険を会社がかける', cond: 'スペインで働くノルウェー・エアシャトル（Norwegian Air Resources Spain）のパイロットの労働協約。中身は会社が選んだ保険による', en: { label: 'Insurance', value: 'The company takes out insurance for sickness, injury or death in work accidents, and loss of licence', cond: 'Collective agreement for Norwegian (Norwegian Air Resources Spain) pilots in Spain. Details follow the policies the company chooses' } },
+  'norwegian.benefits.pub-spain-leave-days': { h: 'd7f9a1abbcbdb28b', label: '年次休暇', value: '年25勤務日（30暦日）', cond: 'スペインで働くノルウェー・エアシャトル（Norwegian Air Resources Spain）のパイロットの労働協約。60歳以上は5日多いなど', lead: true, en: { label: 'Annual leave', value: '25 working days a year (30 calendar days)', cond: 'Collective agreement for Norwegian (Norwegian Air Resources Spain) pilots in Spain. Five more days from age 60, among other rules' } },
+  'norwegian.benefits.pub-spain-pension-plan': { h: 'f74e838ff1f43cc5', label: '年金', value: '会社の年金の拠出は給与の段（レベル）ごとに決まる（レベル1〜3は無し）', cond: 'スペインで働くノルウェー・エアシャトルの機長と副操縦士の労働協約。月か年かは書かれていない', en: { label: 'Pension', value: 'The company’s pension contribution is set by pay level (none for levels 1–3)', cond: 'Collective agreement for Norwegian captains and first officers in Spain. Whether monthly or yearly is not stated' } },
+  'norwegian.work.c-spain-flex-2026': { h: 'b6135e5f18d820b8', label: '勤務できる日（2026年）', value: '年209日（フレキシブルの組。休暇を引く前の日数）', cond: 'スペインで働くノルウェー・エアシャトル（Norwegian Air Resources Spain）のパイロットの労働協約。実際に乗務する日数ではない', en: { label: 'Available work days (2026)', value: '209 a year (flexible group; before leave is deducted)', cond: 'Collective agreement for Norwegian (Norwegian Air Resources Spain) pilots in Spain. Not the number of days actually flown' } },
+  'norwegian.work.pub-spain-training-bond': { h: 'd9a2d43ba7edb907', label: '訓練費の返還', value: '型式の訓練を終えて24か月以内に本人の都合で辞めると、残りの月の分を返す', cond: 'スペインで働くノルウェー・エアシャトル（Norwegian Air Resources Spain）のパイロットの労働協約', en: { label: 'Training cost repayment', value: 'If you resign within 24 months of completing type-rating training, you repay the share for the remaining months', cond: 'Collective agreement for Norwegian (Norwegian Air Resources Spain) pilots in Spain' } },
+  /* ライアンエアー（スペインの協約） */
+  'ryanair.benefits.pension-cap': { h: 'ad06e9b6fc5ceb86', label: '機長の年金（会社の拠出の上限）', money: true, cond: 'スペインで働くライアンエアーのパイロットの労働協約。加入は任意で、本人も同じ額まで拠出する', en: { label: 'Captain’s pension (employer contribution cap)', cond: 'Collective agreement for Ryanair pilots in Spain. Joining is voluntary; the pilot contributes up to the same amount' } },
+  'ryanair.benefits.pension-fo': { h: '2f31e8faf1379f35', label: '副操縦士の年金（会社の拠出の上限）', money: true, cond: 'スペインで働くライアンエアーのパイロットの労働協約。加入は任意で、本人も同じ額まで拠出する', en: { label: 'First officer’s pension (employer contribution cap)', cond: 'Collective agreement for Ryanair pilots in Spain. Joining is voluntary; the pilot contributes up to the same amount' } },
+  'ryanair.benefits.r8-es-annual-leave29': { h: 'd473f02cc0d097ee', label: '年次休暇', value: '年29勤務日（法定の30暦日を勤務日で数えたもの）', cond: 'スペインで働くライアンエアーのフルタイムのパイロットの労働協約', lead: true, en: { label: 'Annual leave', value: '29 working days a year (the statutory 30 calendar days counted in working days)', cond: 'Collective agreement for full-time Ryanair pilots in Spain' } },
+  'ryanair.benefits.r8-es-health-allowance-cap': { h: '9c119dcb672fe14f', label: '機長の健康保険の手当', cond: 'スペインで働くライアンエアーのパイロットの労働協約。パイロットの手当の一部', en: { label: 'Captain’s health insurance allowance', cond: 'Collective agreement for Ryanair pilots in Spain. Part of the pilot allowance' } },
+  'ryanair.benefits.r8-es-health-allowance-fo': { h: 'bf059ce855a7a17a', label: '副操縦士の健康保険の手当', cond: 'スペインで働くライアンエアーのパイロットの労働協約。パイロットの手当の一部', en: { label: 'First officer’s health insurance allowance', cond: 'Collective agreement for Ryanair pilots in Spain. Part of the pilot allowance' } },
+  'ryanair.benefits.r8-es-parking-allowance': { h: '27c4d4adcbba6d01', label: '駐車の手当', cond: 'スペインで働くライアンエアーのパイロットの労働協約。パイロットの手当の一部で、無料の駐車場の約束ではない', en: { label: 'Parking allowance', cond: 'Collective agreement for Ryanair pilots in Spain. Part of the pilot allowance, not a promise of free parking' } },
+  'ryanair.benefits.r8-es-staff-travel-discretionary': { h: '403cd38d5d63bcd7', label: '社員の航空券', value: '会社の裁量の制度（協約は中身を知らせることを決めているだけ）', cond: 'スペインで働くライアンエアーのパイロットの労働協約。枚数・家族・料金は書かれていない', en: { label: 'Staff travel', value: 'A discretionary company scheme (the agreement only provides that its details are communicated)', cond: 'Collective agreement for Ryanair pilots in Spain. Numbers of tickets, family eligibility and fares are not stated' } },
+  'ryanair.work.spain-roster-cba': { h: '84e1c809a472b482', label: '勤務と休みの組み方', value: '5日勤務・4日休み（定期の訓練の時期などは別の形）', cond: 'スペインで働くライアンエアーのパイロットの労働協約（2027年3月31日まで）', en: { label: 'Work and rest pattern', value: '5 days on, 4 days off (a different pattern during recurrent training and similar periods)', cond: 'Collective agreement for Ryanair pilots in Spain (until 31 March 2027)' } },
+  /* TAPポルトガル航空 */
+  'tap.benefits.pub-calendar-leave': { h: '66926ade4a6a7f0a', label: '年次休暇', value: '年42日（暦日）。長い欠勤があると減る（最低30日）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）', lead: true, en: { label: 'Annual leave', value: '42 calendar days a year, reduced after long absences (to a minimum of 30)', cond: 'TAP Air Portugal pilots’ collective agreement (2023)' } },
+  'tap.benefits.pub-dc-pension': { h: 'db6e20867e55e0e3', label: '確定拠出の年金', value: '基本の報酬の7.5%を年14回。会社が8割・本人が2割を負担', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。2007年までに入社した人には別の経過の制度', en: { label: 'Defined-contribution pension', value: '7.5% of basic pay, 14 times a year; the company pays 80% and the pilot 20%', cond: 'TAP Air Portugal pilots’ collective agreement (2023). A separate transitional scheme applies to pilots who joined by 2007' } },
+  'tap.benefits.pub-health-risk-insurance': { h: '76e036ad555ed58b', label: '健康保険', value: '地上の社員と同じ条件の団体の健康保険（乗務の仕事のリスクを考えたもの）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。家族・本人の負担は書かれていない', en: { label: 'Health insurance', value: 'Group health insurance on the same terms as ground staff, taking the risks of flying into account', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Family cover and the pilot’s share are not stated' } },
+  'tap.benefits.r8-cbe-duty-layover-lodging': { h: '3e605e0111bd0cfd', label: '乗務で泊まるときの宿', value: '会社が適切な宿を用意（なるべく空港から1時間30分以内）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。ふだんの住まいの支援ではない', en: { label: 'Accommodation on duty', value: 'The company provides suitable accommodation (where possible within 1 hour 30 minutes of the airport)', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Not support for everyday housing' } },
+  'tap.benefits.r8-cbe-mandatory-relocation': { h: '74c81ad0133d97b2', label: '国内の拠点の縮小でリスボンへ移るとき', value: '引っ越しの実費（上限あり）と、最初の住まいの費用を出す', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。自分から移るとき・昇格や機種の移行で移るときは別', en: { label: 'Move to Lisbon when a domestic base shrinks', value: 'Actual removal costs (up to a cap) and an initial resettlement payment', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Different rules for voluntary moves and moves for promotion or a type change' } },
+  'tap.benefits.r8-cbe-mandatory-transfer-temporary-lodging': { h: '068e1aae472e6b24', label: '会社の命令で配置が変わるとき', value: '続けて5日の休みのあいだ、望めば宿も用意', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。ふだんの住まいの支援ではない', en: { label: 'Company-ordered reassignment', value: 'Accommodation on request during the five consecutive days off', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Not support for everyday housing' } },
+  'tap.benefits.r8-cbe-operational-base-duty-transport': { h: 'c12a7fedc06ab0b3', label: '業務の移動', value: '会社の指示の審査・訓練・身体検査などの移動は、会社が交通・宿・日当を用意', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。ふだんの通勤ではない', en: { label: 'Duty travel', value: 'For checks, training, medicals and other travel the company directs, it provides transport, accommodation and a daily allowance', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Not everyday commuting' } },
+  'tap.work.pub-annual-off-days': { h: '698eb5336810846f', label: '休日', value: '暦年で111日以上（ふつうの月は10日）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。年次休暇を取った月などは減る', lead: true, en: { label: 'Days off', value: 'At least 111 per calendar year (10 in a normal month)', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Fewer in months with annual leave and similar cases' } },
+  'tap.work.pub-training-cost-commitment': { h: '09c6cacb3ce34509', label: '訓練費の約束', value: 'ひとりで乗務できるようになってから3年。途中で辞めると訓練費を返す（2年を過ぎると減る）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）', en: { label: 'Training cost commitment', value: 'Three years from your release to the line; if you leave earlier you repay training costs (reduced after two years)', cond: 'TAP Air Portugal pilots’ collective agreement (2023)' } },
+  /* ターキッシュ エアラインズ */
+  'turkish-airlines.benefits.pub-cba-leave': { h: '7c8cacfd7eaec1a7', label: '年次休暇', value: '勤続1〜5年は20勤務日・5年を超え15年未満は22勤務日・15年以上は30勤務日（1999年6月15日以降に入社した人）', cond: 'ターキッシュ エアラインズの社員の労働協約（第29期・2026〜2027年）。組合員が対象', lead: true, en: { label: 'Annual leave', value: '20 working days for 1–5 years of service, 22 for over 5 and under 15 years, and 30 for 15 years or more (for staff who joined on or after 15 June 1999)', cond: 'Turkish Airlines’ collective agreement for staff (29th term, 2026–2027). Covers union members' } },
+  'turkish-airlines.benefits.r8-cba29-health': { h: 'd4b8a50c3b3435a9', label: '医療', value: '本人と扶養の家族は国の制度の医療。会社の命令で海外にいるあいだの病気の費用は会社が負担', cond: 'ターキッシュ エアラインズの社員の労働協約（第29期・2026〜2027年）。組合員が対象', en: { label: 'Health care', value: 'You and your dependants are covered by the national health scheme; medical costs for illness while abroad on company assignment are paid by the company', cond: 'Turkish Airlines’ collective agreement for staff (29th term, 2026–2027). Covers union members' } },
+  'turkish-airlines.benefits.r8-cba29-service': { h: '8560af12df969ed6', label: '通勤', value: '会社の送迎（決まった経路）。使えない人には、公共交通の月の定期の額をもとに払う', cond: 'ターキッシュ エアラインズの社員の労働協約（第29期・2026〜2027年）。組合員が対象', en: { label: 'Commuting', value: 'Company transport on set routes; staff who cannot use it are paid based on the price of a monthly public-transport pass', cond: 'Turkish Airlines’ collective agreement for staff (29th term, 2026–2027). Covers union members' } },
+  'turkish-airlines.work.pub-cba-monthly-off': { h: '5242f8496d4e8538', label: '休日', value: '月8日（暦日）', cond: 'ターキッシュ エアラインズの乗員の労働協約（第29期・2026〜2027年）。待機の日は休日に数えない', en: { label: 'Days off', value: '8 calendar days a month', cond: 'Turkish Airlines’ collective agreement for crew (29th term, 2026–2027). Standby days do not count as days off' } },
+  /* ユナイテッド航空 */
+  'united.benefits.r8-annual-leave-1to4': { h: '911a51ec5d9f480c', order: 1, label: '年次休暇（勤続1〜4年）', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。前の休暇の年に積み立てた分を、次の休暇の年に取る', en: { label: 'Annual leave (1–4 years of service)', cond: 'United Airlines pilots’ collective agreement (2023). Leave earned in one vacation year is taken in the next' } },
+  'united.benefits.r8-annual-leave-5to10': { h: 'f785a603231dc9a3', order: 2, label: '年次休暇（勤続5〜10年）', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。前の休暇の年に積み立てた分を、次の休暇の年に取る', en: { label: 'Annual leave (5–10 years of service)', cond: 'United Airlines pilots’ collective agreement (2023). Leave earned in one vacation year is taken in the next' } },
+  'united.benefits.r8-annual-leave-11to24': { h: '7d64fab591e14746', order: 3, label: '年次休暇（勤続11〜24年）', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。前の休暇の年に積み立てた分を、次の休暇の年に取る', en: { label: 'Annual leave (11–24 years of service)', cond: 'United Airlines pilots’ collective agreement (2023). Leave earned in one vacation year is taken in the next' } },
+  'united.benefits.r8-annual-leave-25plus': { h: '1eb134e6c6279e51', order: 4, label: '年次休暇（勤続25年以上）', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。前の休暇の年に積み立てた分を、次の休暇の年に取る', en: { label: 'Annual leave (25 or more years of service)', cond: 'United Airlines pilots’ collective agreement (2023). Leave earned in one vacation year is taken in the next' } },
+  'united.benefits.deep-retirement-18': { h: '20f0f55561aabd9b', label: '年金（会社の直接の拠出）', value: '対象の給与の18%（2026年1月の期間から）', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。入社の日から加入', en: { label: 'Pension (direct company contribution)', value: '18% of eligible earnings (from the January 2026 bid period)', cond: 'United Airlines pilots’ collective agreement (2023). Membership from the date of hire' } },
+  'united.benefits.missing-commuting': { h: '7c926ad5edffa2e8', label: '飛行機で通勤するとき', value: '出勤の便を2本（第一と予備）用意する決まり。乗れないときは乗員の勤務の担当へ連絡する', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。通勤の費用の支給ではない', en: { label: 'Commuting by air', value: 'You must plan two flights to work (a primary and a back-up); if you cannot board, you contact crew scheduling', cond: 'United Airlines pilots’ collective agreement (2023). Not a payment of commuting costs' } },
+  'united.benefits.missing-medical': { h: '2df75b2e8a7555cd', label: '保険（医療・歯科など）', value: '医療・歯科・眼科・長期の障害・生命保険など。本人と対象の家族は入社の日から', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。保険料の額は書かれていない', en: { label: 'Insurance (medical, dental and more)', value: 'Medical, dental, vision, long-term disability, life cover and more; you and eligible dependants from the date of hire', cond: 'United Airlines pilots’ collective agreement (2023). Premiums are not stated' } },
+  'united.work.missing-roster-pattern': { h: '71ed8905d66b2c5e', label: '休日', value: 'ラインを持つパイロットは月12日以上。待機（リザーブ）は30日の月が13日・31日の月が14日以上', cond: 'ユナイテッド航空のパイロットの労働協約（2023年）。協約の最低の日数で、実際の平均ではない', en: { label: 'Days off', value: 'At least 12 a month for lineholders; for reserves at least 13 in a 30-day month and 14 in a 31-day month', cond: 'United Airlines pilots’ collective agreement (2023). Contract minimums, not actual averages' } },
+  /* ブエリング航空 */
+  'vueling.benefits.pension-year4': { h: 'ec7ff35c68d6f459', label: '年金（勤続満4〜5年の会社の拠出）', money: true, cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約。会社が全額を負担', en: { label: 'Pension (company contribution at 4–5 completed years)', cond: 'Collective agreement for Vueling pilots on Spanish contracts. Paid entirely by the company' } },
+  'vueling.benefits.pub-cba-travel-conditions': { h: 'e9d342ab14cfdcb6', label: '社員の航空券', value: '本人と指名した人が使える航空券（年の枚数と使い方に決まりあり）', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約。家族がいつも無料という約束ではない', en: { label: 'Staff travel', value: 'Tickets for you and nominated beneficiaries (with annual limits and rules on use)', cond: 'Collective agreement for Vueling pilots on Spanish contracts. Not a promise of free travel for family at any time' } },
+  'vueling.benefits.r8-benefit-basket-medical': { h: 'e914d974d870610d', label: '医療保険', value: '会社の選べる手当の枠から医療保険を選べる（会社が直接払う）', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約。職位ごとの年の上限の中で', en: { label: 'Medical insurance', value: 'Medical insurance can be chosen from the company’s flexible benefits allowance (paid directly by the company)', cond: 'Collective agreement for Vueling pilots on Spanish contracts. Within each rank’s annual limit' } },
+  'vueling.benefits.r8-forced-transfer-hotel': { h: '1bb859e9c25113ce', label: '会社の命令で拠点が変わるとき', value: '朝食と空港の送迎つきのホテルに15日つづけて泊まれる', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約。自分から望んだ異動は別', en: { label: 'Company-ordered base change', value: 'Fifteen consecutive days in a hotel with breakfast and airport transfers', cond: 'Collective agreement for Vueling pilots on Spanish contracts. Voluntary transfers are different' } },
   /* ── 空港までの移動（暮らしの街の行）。mode ＝ 電車・バスの札 ── */
   'qantas.living.pub-bne-transport': { h: 'a915a8178c8e4f8c', mode: 'train', label: 'Airtrain：ブリスベン中心部（Central 駅）→ 空港', value: '平日 4:31〜21:31・土日祝 5:40〜21:31（15〜30分おき）', en: { label: 'Airtrain: Brisbane city (Central station) → airport', value: 'Weekdays 4:31–21:31, weekends and public holidays 5:40–21:31 (every 15–30 minutes)' } },
   'qantas.living.pub-mel-transport': { h: '353050f3935ac078', mode: 'bus', label: 'SkyBus：サザンクロス駅 ⇄ メルボルン空港', value: '市内と空港を結ぶ City Express を運行', en: { label: 'SkyBus: Southern Cross station ⇄ Melbourne Airport', value: 'Runs the City Express between the city and the airport' } },
   'qantas.living.pub-syd-transport': { h: '9ec22f1f80a46bca', mode: 'train', label: '電車（T8 Airport & South Line）：市内 → シドニー空港', value: '毎日 5時〜24時に運行', en: { label: 'Train (T8 Airport & South Line): city → Sydney Airport', value: 'Runs daily from 5:00 to 24:00' } },
   'qantas.living.pub-syd-transport-n20-bus': { h: '8a24a6f484e2c48e', mode: 'bus', label: '深夜バス N20：市内 → シドニー空港（国際線ターミナル経由）', value: '0時〜4時に運行', en: { label: 'Night bus N20: city → Sydney Airport (via the international terminal)', value: 'Runs from 0:00 to 4:00' } },
+  /* 全社へ広げる e（2026-10-22）：d2 の会社の拠点の街（CITY に書いた街）の、拠点の空港までの移動の行。運賃（外貨の額）は字に書かない。
+     書かなかった行：同じ道の行の2つめ（ロサンゼルスの FlyAway をまとめた行・ボストンの SL1 のもう1つの行）・運賃の改定の予告だけの行（ロンドンのバス 482） */
+  'british-airways.living.c-london-lhr-rail': { h: '8ce76f61b458c346', mode: 'train', label: 'エリザベス線：ロンドン市内 → ヒースロー空港', value: 'ロンドン市内からヒースロー空港へつながる', en: { label: 'Elizabeth line: central London → Heathrow Airport', value: 'Connects central London with Heathrow Airport' } },
+  'sas.living.pub-lhr-482': { h: 'f70e5eda18f2b44e', mode: 'bus', label: 'バス 482：ハウンズロー・ウェスト駅 ⇄ ヒースロー空港', value: '第4・第5ターミナルに停まる', en: { label: 'Bus 482: Hounslow West station ⇄ Heathrow Airport', value: 'Stops at Terminals 4 and 5' } },
+  'wizz-air.living.pub-ltn-dart': { h: '105d74e9570811b4', mode: 'train', label: 'Luton DART：ルートン・エアポート・パークウェイ駅 → 空港', value: '約4分・24時間運行', en: { label: 'Luton DART: Luton Airport Parkway station → airport', value: 'About 4 minutes, running 24/7' } },
+  'eurowings.living.pub-cgn-s19': { h: '5b9c12dcfafb9d90', mode: 'train', label: 'S19：ケルン中央駅 → ケルン・ボン空港', value: '約14分・20分おき', en: { label: 'S19: Cologne Central Station → Cologne Bonn Airport', value: 'About 14 minutes, every 20 minutes' } },
+  'sas.living.pub-arn-express': { h: '49ffb06f18e885b9', mode: 'train', label: 'アーランダ・エクスプレス：ストックホルム中央駅 → アーランダ空港', value: '南駅（第2〜4ターミナル）18分・北駅（第5ターミナル）19分・15分おき', en: { label: 'Arlanda Express: Stockholm Central → Arlanda Airport', value: '18 minutes to Arlanda South (Terminals 2–4) and 19 minutes to Arlanda North (Terminal 5), every 15 minutes' } },
+  'sas.living.pub-bgo-light-rail': { h: '46eafabfd88506f4', mode: 'train', label: 'ライトレール1号線（Skyss）：ベルゲン中心部 → ベルゲン空港', value: 'ベルゲン中心部と空港を結ぶ', en: { label: 'Light rail Line 1 (Skyss): Bergen city centre → Bergen Airport', value: 'Connects the city centre and the airport' } },
+  'solairus.living.na-commute-austin': { h: 'fe1bdc611253b5b6', mode: 'bus', label: 'バス 20番：オースティン空港 → ダウンタウン', value: '約35分（案内）・15〜30分おき', en: { label: 'Bus Route 20: Austin airport → downtown', value: 'About 35 minutes (as stated), every 15–30 minutes' } },
+  'southwest.living.publication-city-nashville-commute': { h: 'c901cdb8e0fd161f', mode: 'bus', label: 'バス 18番：ナッシュビル空港 ⇄ WeGo セントラル', value: '急行は約20分・各停は35〜45分', en: { label: 'Bus Route 18: Nashville airport ⇄ WeGo Central', value: 'About 20 minutes express, 35–45 minutes local' } },
+  'southwest.living.publication-city-baltimore-commute': { h: 'cb2a4d80f24ed2ee', mode: 'train', label: 'ライトレール：BWI 空港 ⇄ ボルチモア市内', value: '空港とカムデン・コンベンションセンター・レキシントン・マーケットなどの停留所を結ぶ', en: { label: 'Light Rail: BWI airport ⇄ Baltimore', value: 'Connects the airport with stops such as Camden, the Convention Center and Lexington Market' } },
+  'frontier.living.pub-city-dallas-commute': { h: 'bc15efe88be7e8e8', mode: 'train', label: 'DART オレンジライン：ダラス中心部 → DFW 空港（ターミナルA）', value: 'アービング経由', en: { label: 'DART Orange Line: downtown Dallas → DFW Airport (Terminal A)', value: 'Via Irving' } },
+  'southwest.living.publication-city-houston-commute': { h: 'd300ecfe0468ef9a', mode: 'bus', label: 'バス 40番（METRO）：ホビー空港 → ヒューストン中心部', value: '約1時間', en: { label: 'METRO bus 40: Hobby Airport → downtown Houston', value: 'About 1 hour' } },
+  'allegiant.living.missing-commute': { h: 'ba80cf8f33b9985b', mode: 'bus', label: '路線バス（RTC）108番・レッドライン：ラスベガス空港 第1ターミナル', value: '第3ターミナルからは空港のシャトルで第1ターミナルへ', en: { label: 'RTC buses 108 and Red Line: Las Vegas airport Terminal 1', value: 'From Terminal 3, take the terminal shuttle to Terminal 1' } },
+  'alaska-airlines.living.pub-city-los-angeles-commute': { h: '453729dc66b699fa', mode: 'bus', label: 'FlyAway：ユニオン駅 → ロサンゼルス国際空港', value: '毎日運行（現金は使えない・先着順）', en: { label: 'FlyAway: Union Station → LAX', value: 'Runs daily (no cash; first come, first served)' } },
+  'alaska-airlines.living.pub-city-los-angeles-commute-van-nuys': { h: '5a5db8ae806a236d', mode: 'bus', label: 'FlyAway：バンナイズ → ロサンゼルス国際空港', value: '毎日運行（現金は使えない・先着順）', en: { label: 'FlyAway: Van Nuys → LAX', value: 'Runs daily (no cash; first come, first served)' } },
+  'frontier.living.pub-city-orlando-commute': { h: '05546d13b4c2e3ab', mode: 'bus', label: '路線バス（LYNX）：オーランド国際空港', value: '11・42・51・311・407・436S の各系統が空港に乗り入れる', en: { label: 'LYNX buses: Orlando International Airport', value: 'Routes 11, 42, 51, 311, 407 and 436S serve the airport' } },
+  'southwest.living.publication-city-chicago-commute': { h: 'a75b40c4d38d8ff3', mode: 'train', label: 'オレンジライン（CTA）：ミッドウェー空港 → シカゴ中心部（ループ）', value: 'ふだんは約20〜25分（夜は運休し、代わりのバス N62）', en: { label: 'CTA Orange Line: Midway Airport → downtown Chicago (the Loop)', value: 'Usually about 20–25 minutes (no service at night; replacement bus N62)' } },
+  'southwest.living.publication-city-oakland-commute': { h: 'bdba048e2d795fd3', mode: 'train', label: 'BART：コロシアム駅 → オークランド国際空港', value: 'コロシアム駅で空港への連絡線に乗り換える', en: { label: 'BART: Coliseum station → Oakland International Airport', value: 'Change at Coliseum to the airport connector' } },
+  'american.living.publication-city-phoenix-commute': { h: '59d788508ac9b40d', mode: 'train', label: 'スカイトレイン：44th Street 駅 → フェニックス・スカイハーバー空港', value: '44th Street 駅でバレーメトロのライトレール（フェニックス・テンピ・メサ方面）につながる', en: { label: 'PHX Sky Train: 44th Street station → Phoenix Sky Harbor Airport', value: 'Connects at 44th Street with Valley Metro Rail (to Phoenix, Tempe and Mesa)' } },
+  'frontier.living.pub-city-cleveland-commute': { h: '63c73b64447de139', mode: 'train', label: 'レッドライン：クリーブランド中心部（タワーシティ）→ クリーブランド空港', value: '30分たらず（毎日4時ごろ〜0時30分ごろ）', en: { label: 'Red Line: downtown Cleveland (Tower City) → Cleveland airport', value: 'Under 30 minutes (daily, from about 4:00 to about 0:30)' } },
+  'frontier.living.pub-city-cincinnati-commute': { h: 'ae36ac46e979c6b2', mode: 'bus', label: 'TANK 2X（エアポーター）：シンシナティ中心部 → シンシナティ空港', value: '30分おき', en: { label: 'TANK 2X Airporter: downtown Cincinnati → Cincinnati airport', value: 'Every 30 minutes' } },
+  'jetblue.living.pub-city-boston-commute': { h: '013764a15c7f633c', mode: 'bus', label: 'シルバーライン SL1：ボストン空港の各ターミナル → サウス駅', value: '空港から乗るときは無料', en: { label: 'Silver Line SL1: Boston airport terminals → South Station', value: 'Free when boarding at the airport' } },
+  'jetblue.living.pub-city-fort-lauderdale-commute': { h: '87fa72a98665d4ef', mode: 'bus', label: 'バス 1番（BCT）：フォートローダーデール空港', value: '空港の停留所はレンタカーセンターの G・毎日運行', en: { label: 'BCT Route 1: Fort Lauderdale airport', value: 'The airport stop is Stop G at the Rental Car Center; runs daily' } },
+  'jetblue.living.pub-city-fort-lauderdale-commute-trirail': { h: 'ef1d0faf929f4167', mode: 'train', label: 'トライレール：デーニア・ビーチ駅 ⇄ フォートローダーデール空港', value: '駅と空港のターミナルは無料のシャトルで結ばれる', en: { label: 'Tri-Rail: Dania Beach station ⇄ Fort Lauderdale airport', value: 'A free shuttle connects the station and the terminals' } },
+  'american.living.publication-city-new-york-commute': { h: '405656773572a1cb', mode: 'train', label: 'エアトレイン JFK：ジャマイカ駅・ハワードビーチ駅 → JFK 空港', value: 'ジャマイカ駅・ハワードビーチ駅で乗り換える（地下鉄・ロングアイランド鉄道の運賃は別）', en: { label: 'AirTrain JFK: Jamaica and Howard Beach stations → JFK Airport', value: 'Change at Jamaica or Howard Beach (subway and Long Island Rail Road fares are separate)' } },
 });
 
 /* ── 資料の名前（出どころのリンクの字）── 資料の ID ごと。資料自身の題は「」の中（資料の言葉）。 */
@@ -846,6 +1046,42 @@ export const SOURCES = Object.freeze({
   'src-jetstar-r2-per-2026': 'ジェットスター航空のニュース（パースとクライストチャーチを結ぶ便の発表）',
   'src-eurowings-basic-final': 'Eurowings「General Conditions of Carriage」（2026年8月27日版）',
   'src-united-r7-evidence-2': 'United Airlines Holdings「2025 Form 10-K」',
+  /* 全社へ広げる e（2026-10-22）：暮らしの街の家賃・移動の資料。台帳の題が調べた側の書き足し（「部屋型別家賃 Atlanta」「Austin空港交通」
+     「… airport public transport」）のものは、資料の題として「」に入れず、どこの何の案内かを書く */
+  'src-city-r3-eurostat-isrp-market-rents-2025': 'ISRP/OECD・ユーロスタット「MARKET RENTS 2025」',
+  'src-delta-na-rent-atlanta': 'RentCafe（Yardi Matrix）のアトランタの家賃の表',
+  'src-solairus-na-rent-austin': 'RentCafe（Yardi Matrix）のオースティンの家賃の表',
+  'src-frontier-pub-shared-dallas-dallas': 'RentCafe（Yardi Matrix）のダラスの家賃の表',
+  'src-frontier-na-rent-denver': 'RentCafe（Yardi Matrix）のデンバーの家賃の表',
+  'src-allegiant-na-rent-las-vegas': 'RentCafe（Yardi Matrix）のラスベガスの家賃の表',
+  'src-american-na-rent-chicago': 'RentCafe（Yardi Matrix）のシカゴの家賃の表',
+  'src-breeze-airways-pub-rent-orlando': 'RentCafe（Yardi Matrix）のオーランドの家賃の表',
+  'src-southwest-publication-city-nashville-22': 'Zumper のナッシュビルの家賃の表',
+  'src-southwest-publication-city-baltimore-11': 'Zumper のボルチモアの家賃の表',
+  'src-southwest-publication-city-houston-15': 'Zumper のヒューストンの家賃の表',
+  'src-alaska-airlines-pub-rent-city-los-angeles': 'Zumper のロサンゼルスの家賃の表',
+  'src-southwest-publication-city-oakland-28': 'Zumper のオークランド（カリフォルニア州）の家賃の表',
+  'src-american-publication-city-phoenix-30': 'Zumper のフェニックスの家賃の表',
+  'src-frontier-pub-rent-city-cleveland': 'Zumper のクリーブランドの家賃の表',
+  'src-frontier-pub-rent-city-cincinnati': 'Zumper のシンシナティの家賃の表',
+  'src-american-publication-city-boston-15': 'Zumper のボストンの家賃の表',
+  'src-jetblue-pub-rent-city-fort-lauderdale': 'Zumper のフォートローダーデールの家賃の表',
+  'src-american-publication-city-new-york-26': 'Zumper のニューヨークの家賃の表',
+  'src-air-canada-pub-rent-city-toronto': 'Zumper のトロントの家賃の表',
+  'src-jetstar-r7-recheck-1': '西オーストラリア州不動産協会（REIWA）のパース都市圏の賃貸の市場データ',
+  'src-solairus-na-transport-austin': 'CapMetro（オースティンの交通局）の空港への案内',
+  'src-frontier-pub-transit-city-dallas': 'DFW 空港の公共交通の案内',
+  'src-southwest-publication-city-nashville-23': 'WeGo（ナッシュビルの交通局）の Q&A（空港への便）',
+  'src-southwest-publication-city-baltimore-12': 'メリーランド州交通局（MTA）のライトレールの停留所の一覧',
+  'src-southwest-publication-city-houston-16': 'ヒューストン空港局のホビー空港の交通の案内',
+  'src-allegiant-pub-transit-city-las-vegas': 'ハリー・リード国際空港（クラーク郡航空局）の路線バスの案内',
+  'src-frontier-pub-shared-transit-orlando-21': 'LYNX（オーランドの交通局）の主な行き先の案内',
+  'src-southwest-publication-city-chicago-27': 'シカゴ交通局（CTA）の空港への案内',
+  'src-southwest-publication-city-oakland-29': 'BART のコロシアム駅の案内',
+  'src-frontier-pub-transit-city-cleveland': 'クリーブランド地域交通局（RTA）の空港への便の案内',
+  'src-frontier-pub-transit-city-cincinnati': 'TANK（北ケンタッキー交通局）の Q&A',
+  'src-jetblue-pub-transit-city-boston': 'マサチューセッツ湾交通局（MBTA）のローガン空港への案内',
+  'src-american-publication-city-new-york-27': 'JFK 空港（ニューヨーク・ニュージャージー港湾公社）のエアトレインの案内',
 });
 /* 英語の名前（SOURCES の対。資料自身の題は “ ” の中 ── 資料の言葉。中国語・日本語の題は、題のあとに英語の説明を（ ）で） */
 export const SOURCES_EN = Object.freeze({
@@ -917,6 +1153,40 @@ export const SOURCES_EN = Object.freeze({
   'src-jetstar-r2-per-2026': 'Jetstar Airways news (flights between Perth and Christchurch)',
   'src-eurowings-basic-final': 'Eurowings “General Conditions of Carriage” (version of 27 August 2026)',
   'src-united-r7-evidence-2': 'United Airlines Holdings “2025 Form 10-K”',
+  'src-city-r3-eurostat-isrp-market-rents-2025': 'ISRP/OECD and Eurostat “MARKET RENTS 2025”',
+  'src-delta-na-rent-atlanta': 'RentCafe (Yardi Matrix) Atlanta rent table',
+  'src-solairus-na-rent-austin': 'RentCafe (Yardi Matrix) Austin rent table',
+  'src-frontier-pub-shared-dallas-dallas': 'RentCafe (Yardi Matrix) Dallas rent table',
+  'src-frontier-na-rent-denver': 'RentCafe (Yardi Matrix) Denver rent table',
+  'src-allegiant-na-rent-las-vegas': 'RentCafe (Yardi Matrix) Las Vegas rent table',
+  'src-american-na-rent-chicago': 'RentCafe (Yardi Matrix) Chicago rent table',
+  'src-breeze-airways-pub-rent-orlando': 'RentCafe (Yardi Matrix) Orlando rent table',
+  'src-southwest-publication-city-nashville-22': 'Zumper Nashville rent table',
+  'src-southwest-publication-city-baltimore-11': 'Zumper Baltimore rent table',
+  'src-southwest-publication-city-houston-15': 'Zumper Houston rent table',
+  'src-alaska-airlines-pub-rent-city-los-angeles': 'Zumper Los Angeles rent table',
+  'src-southwest-publication-city-oakland-28': 'Zumper Oakland (California) rent table',
+  'src-american-publication-city-phoenix-30': 'Zumper Phoenix rent table',
+  'src-frontier-pub-rent-city-cleveland': 'Zumper Cleveland rent table',
+  'src-frontier-pub-rent-city-cincinnati': 'Zumper Cincinnati rent table',
+  'src-american-publication-city-boston-15': 'Zumper Boston rent table',
+  'src-jetblue-pub-rent-city-fort-lauderdale': 'Zumper Fort Lauderdale rent table',
+  'src-american-publication-city-new-york-26': 'Zumper New York rent table',
+  'src-air-canada-pub-rent-city-toronto': 'Zumper Toronto rent table',
+  'src-jetstar-r7-recheck-1': 'Real Estate Institute of Western Australia (REIWA) Perth Metro rental market data',
+  'src-solairus-na-transport-austin': 'CapMetro (Austin transit) airport information',
+  'src-frontier-pub-transit-city-dallas': 'DFW Airport public transit information',
+  'src-southwest-publication-city-nashville-23': 'WeGo Public Transit Q&A (airport service)',
+  'src-southwest-publication-city-baltimore-12': 'Maryland Transit Administration Light Rail stop list',
+  'src-southwest-publication-city-houston-16': 'Houston Airports ground transportation at Hobby',
+  'src-allegiant-pub-transit-city-las-vegas': 'Harry Reid International Airport (Clark County Department of Aviation) public bus information',
+  'src-frontier-pub-shared-transit-orlando-21': 'LYNX (Orlando transit) popular destinations',
+  'src-southwest-publication-city-chicago-27': 'Chicago Transit Authority airport information',
+  'src-southwest-publication-city-oakland-29': 'BART Coliseum station information',
+  'src-frontier-pub-transit-city-cleveland': 'Greater Cleveland RTA airport service',
+  'src-frontier-pub-transit-city-cincinnati': 'TANK (Transit Authority of Northern Kentucky) Q&A',
+  'src-jetblue-pub-transit-city-boston': 'MBTA Logan Airport information',
+  'src-american-publication-city-new-york-27': 'JFK Airport (Port Authority of New York and New Jersey) AirTrain information',
 });
 /* 同じ資料（住所）を、会社ごとの台帳の行がちがう題で書いているときの1つの名前（全社へ広げる d1・2026-10-21）。
    国土技術政策総合研究所の空港の一覧は「（名称・3レター対応のみ）」「リンク／」のような調べた側の書き足しで題が割れていた。
@@ -1040,6 +1310,146 @@ export const CITY = Object.freeze({
     scope: '札幌市東区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
     scope_en: 'Market rent in Higashi ward, Sapporo (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
   amakusa: { h: '02ffea6efac5f756', ja: '天草', en: 'Amakusa', iata: 'AXJ', airport: '天草空港', airport_en: 'Amakusa Airport' },
+  /* 全社へ広げる e（2026-10-22）：d2 の会社の拠点の街（台帳の家賃・移動の行が在る街だけ。1つの街に1つの空港・1つの資料）。
+     空港は、その街に台帳の行で結ばれた会社の拠点の空港（台帳の拠点の行）。同じ街に拠点の空港が2つある会社では、家賃の行を持つ会社の拠点の空港
+     （ダラス ＝ DFW：家賃の行はフロンティア航空の行。サウスウエスト航空の DAL には、この街の欄は出ない）。
+     書かなかった街：オスロ（家賃の行の使い方が「募集」）・コペンハーゲン（家賃の行が物件1つの募集の例）・ティラナ（家賃の通貨 ALL の換算の
+     レートがサイトに無い）・デュッセルドルフとサンフアン（家賃の行が無く、移動の行も拠点の空港が決まらない ＝ 出せる行が無い）。 */
+  london: { h: '1a0c8c10427e2f8e', ja: 'ロンドン・ヒリンドン区', en: 'Hillingdon, London', iata: 'LHR', airport: 'ヒースロー空港', airport_en: 'Heathrow Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'ロンドンの行政区ヒリンドン（Hillingdon）の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。ロンドンぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the London borough of Hillingdon (ONS Price Index of Private Rents). Not an average for all of London. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  luton: { h: '721c0ffb00429a1d', ja: 'ルートン', en: 'Luton', iata: 'LTN', airport: 'ルートン空港', airport_en: 'London Luton Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'ルートン（Luton）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。空港のまわりの地区の値ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Luton local authority area (ONS Price Index of Private Rents). Not a figure for the area around the airport. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  manchester: { h: '105e4b691749d3e5', ja: 'マンチェスター', en: 'Manchester', iata: 'MAN', airport: 'マンチェスター空港', airport_en: 'Manchester Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'マンチェスター（Manchester）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Manchester local authority area (ONS Price Index of Private Rents). 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  vienna: { h: '7b4ca0f6ef98d4ab', ja: 'ウィーン', en: 'Vienna', iata: 'VIE', airport: 'ウィーン国際空港', airport_en: 'Vienna International Airport',
+    measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
+    scope: 'ウィーンの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Vienna, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  berlin: { h: 'f42bf17d47698559', ja: 'ベルリン', en: 'Berlin', iata: 'BER', airport: 'ベルリン・ブランデンブルク空港', airport_en: 'Berlin Brandenburg Airport',
+    measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
+    scope: 'ベルリンの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Berlin, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  paris: { h: '38bd4e947404fcc1', ja: 'パリ', en: 'Paris', iata: 'CDG', airport: 'シャルル・ド・ゴール空港', airport_en: 'Paris Charles de Gaulle Airport',
+    measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
+    scope: 'パリの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Paris, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  rome: { h: 'a06647bbe19925f2', ja: 'ローマ', en: 'Rome', iata: 'FCO', airport: 'フィウミチーノ空港', airport_en: 'Rome Fiumicino Airport',
+    measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
+    scope: 'ローマの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Rome, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  geneva: { h: '4d9cdb4da23d5a8c', ja: 'ジュネーブ', en: 'Geneva', iata: 'GVA', airport: 'ジュネーブ空港', airport_en: 'Geneva Airport',
+    measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
+    scope: 'ジュネーブの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Geneva, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  barcelona: { h: '127c825b2f654520', ja: 'バルセロナ', en: 'Barcelona', iata: 'BCN', airport: 'バルセロナ・エル・プラット空港', airport_en: 'Barcelona–El Prat Airport',
+    measure: '家具つきの募集家賃の中央値', site: 'HousingAnywhere', per: 'month', measure_en: 'Median asking rent (furnished)', site_en: 'HousingAnywhere',
+    scope: 'バルセロナで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのワンルーム（Studio）の募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
+    scope_en: 'Median asking rent of furnished studios listed on HousingAnywhere (a mid-term rental platform) in Barcelona (Q3 2026 rent index). Mostly mid-term lets (for example, students); not agreed rents' },
+  milan: { h: '1cdb0c82997ba6ed', ja: 'ミラノ', en: 'Milan', iata: 'MXP', airport: 'ミラノ・マルペンサ空港', airport_en: 'Milan Malpensa Airport',
+    measure: '家具つきの募集家賃の中央値', site: 'HousingAnywhere', per: 'month', measure_en: 'Median asking rent (furnished)', site_en: 'HousingAnywhere',
+    scope: 'ミラノで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのワンルーム（Studio）の募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
+    scope_en: 'Median asking rent of furnished studios listed on HousingAnywhere (a mid-term rental platform) in Milan (Q3 2026 rent index). Mostly mid-term lets (for example, students); not agreed rents' },
+  hamburg: { h: 'c1a23e717b2170d7', ja: 'ハンブルク', en: 'Hamburg', iata: 'HAM', airport: 'ハンブルク空港', airport_en: 'Hamburg Airport',
+    measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
+    scope: 'HousingAnywhere の生活費の案内（2026年）に載った、ハンブルクのワンルーム（Studio）の平均の月額。集計の期間・件数は書かれていない。成約した家賃ではない',
+    scope_en: 'Average monthly rent of a studio in Hamburg from HousingAnywhere’s cost-of-living guide (2026). The period and number of listings are not stated; not agreed rents' },
+  lisboa: { h: 'bad47c11babcf6f4', ja: 'リスボン', en: 'Lisbon', iata: 'LIS', airport: 'リスボン空港', airport_en: 'Lisbon Airport',
+    measure: '長期賃貸の募集家賃の中央値', site: 'idealista', per: 'month', measure_en: 'Median asking rent (long-term lets)', site_en: 'idealista',
+    scope: 'リスボン市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数',
+    scope_en: 'Median asking rent of one-bedroom (T1) long-term lets listed on idealista (a property portal) in the city of Lisbon. Not agreed rents. 1-Bed is the number of bedrooms' },
+  porto: { h: '823a94b0f0c9dfb6', ja: 'ポルト', en: 'Porto', iata: 'OPO', airport: 'ポルト空港', airport_en: 'Porto Airport',
+    measure: '長期賃貸の募集家賃の中央値', site: 'idealista', per: 'month', measure_en: 'Median asking rent (long-term lets)', site_en: 'idealista',
+    scope: 'ポルト市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数',
+    scope_en: 'Median asking rent of one-bedroom (T1) long-term lets listed on idealista (a property portal) in the city of Porto. Not agreed rents. 1-Bed is the number of bedrooms' },
+  cologne: { h: '95c685aa66315183', ja: 'ケルン', en: 'Cologne', iata: 'CGN', airport: 'ケルン・ボン空港', airport_en: 'Cologne Bonn Airport' },
+  stockholm: { h: '698d8ca8be3003f2', ja: 'ストックホルム', en: 'Stockholm', iata: 'ARN', airport: 'ストックホルム・アーランダ空港', airport_en: 'Stockholm Arlanda Airport' },
+  bergen: { h: '7dddf60ca8b5c79c', ja: 'ベルゲン', en: 'Bergen', iata: 'BGO', airport: 'ベルゲン空港', airport_en: 'Bergen Airport' },
+  atlanta: { h: '49b7de1ccf1d3c18', ja: 'アトランタ', en: 'Atlanta', iata: 'ATL', airport: 'アトランタ空港', airport_en: 'Atlanta airport',
+    measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
+    scope: 'アトランタの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Atlanta (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  austin: { h: 'd95000eef201b307', ja: 'オースティン', en: 'Austin', iata: 'AUS', airport: 'オースティン空港', airport_en: 'Austin airport',
+    measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
+    scope: 'オースティンの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Austin (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  dallas: { h: 'd2e23efaecb44d49', ja: 'ダラス', en: 'Dallas', iata: 'DFW', airport: 'ダラス・フォートワース空港', airport_en: 'Dallas Fort Worth International Airport',
+    measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
+    scope: 'ダラスの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Dallas (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  denver: { h: '907f7bd424e91784', ja: 'デンバー', en: 'Denver', iata: 'DEN', airport: 'デンバー国際空港', airport_en: 'Denver International Airport',
+    measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
+    scope: 'デンバーの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Denver (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'las-vegas': { h: '1318ebd43467c300', ja: 'ラスベガス', en: 'Las Vegas', iata: 'LAS', airport: 'ハリー・リード国際空港', airport_en: 'Harry Reid International Airport',
+    measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
+    scope: 'ラスベガスの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Las Vegas (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  chicago: { h: '8dc0be7a20ec9864', ja: 'シカゴ', en: 'Chicago', iata: 'MDW', airport: 'シカゴ・ミッドウェー空港', airport_en: 'Chicago Midway International Airport',
+    measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
+    scope: 'シカゴの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Chicago (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  orlando: { h: '3752f9c3a7c49546', ja: 'オーランド', en: 'Orlando', iata: 'MCO', airport: 'オーランド国際空港', airport_en: 'Orlando International Airport',
+    measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
+    scope: 'オーランドの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Orlando (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  nashville: { h: '2bc48cee55cb0963', ja: 'ナッシュビル', en: 'Nashville', iata: 'BNA', airport: 'ナッシュビル国際空港', airport_en: 'Nashville International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'ナッシュビルで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Nashville (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  baltimore: { h: '564ac8b5093eea6a', ja: 'ボルチモア', en: 'Baltimore', iata: 'BWI', airport: 'ボルチモア・ワシントン国際空港', airport_en: 'Baltimore/Washington International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'ボルチモアで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Baltimore (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  houston: { h: 'e80203e4e8c9a9e3', ja: 'ヒューストン', en: 'Houston', iata: 'HOU', airport: 'ヒューストン・ホビー空港', airport_en: 'Houston Hobby Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'ヒューストンで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Houston (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'los-angeles': { h: 'aa91c9bfedf1119a', ja: 'ロサンゼルス', en: 'Los Angeles', iata: 'LAX', airport: 'ロサンゼルス国際空港', airport_en: 'Los Angeles International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'ロサンゼルスで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Los Angeles (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  oakland: { h: 'c2d84102dd273ac1', ja: 'オークランド（カリフォルニア州）', en: 'Oakland, California', iata: 'OAK', airport: 'オークランド国際空港', airport_en: 'Oakland International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'オークランド（カリフォルニア州）で Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Oakland, California (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  phoenix: { h: 'e54367431213175e', ja: 'フェニックス', en: 'Phoenix', iata: 'PHX', airport: 'フェニックス・スカイハーバー国際空港', airport_en: 'Phoenix Sky Harbor International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'フェニックスで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Phoenix (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  cleveland: { h: '0418a7090af93c69', ja: 'クリーブランド', en: 'Cleveland', iata: 'CLE', airport: 'クリーブランド空港', airport_en: 'Cleveland Hopkins International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'クリーブランドで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Cleveland (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  cincinnati: { h: 'c19fcc031f260127', ja: 'シンシナティ', en: 'Cincinnati', iata: 'CVG', airport: 'シンシナティ・ノーザンケンタッキー空港', airport_en: 'Cincinnati/Northern Kentucky International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'シンシナティで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Cincinnati (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  boston: { h: 'f55f8701c857deed', ja: 'ボストン', en: 'Boston', iata: 'BOS', airport: 'ボストン・ローガン国際空港', airport_en: 'Boston Logan International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'ボストンで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Boston (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'fort-lauderdale': { h: '0b953500732c90ea', ja: 'フォートローダーデール', en: 'Fort Lauderdale', iata: 'FLL', airport: 'フォートローダーデール空港', airport_en: 'Fort Lauderdale-Hollywood International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'フォートローダーデールで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Fort Lauderdale (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'new-york': { h: 'ded636f5cf9c06d8', ja: 'ニューヨーク', en: 'New York', iata: 'JFK', airport: 'ジョン・F・ケネディ国際空港', airport_en: 'John F. Kennedy International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'ニューヨークで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in New York (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  toronto: { h: '607c7cc9ea240ff7', ja: 'トロント', en: 'Toronto', iata: 'YYZ', airport: 'トロント・ピアソン国際空港', airport_en: 'Toronto Pearson International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'トロントで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Toronto (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  perth: { h: 'a344d124e17f8857', ja: 'パース', en: 'Perth', iata: 'PER', airport: 'パース空港', airport_en: 'Perth Airport',
+    measure: 'ユニットの家賃の中央値', site: '西オーストラリア州不動産協会（REIWA）', per: 'week', measure_en: 'Median unit rent', site_en: 'Real Estate Institute of Western Australia (REIWA)',
+    scope: 'パース都市圏（Perth Metro）のユニット（集合住宅）の、寝室の数ごとの週の家賃の中央値（3か月の移動の集計）。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Median weekly rent of units (apartments) in Perth Metro by number of bedrooms (rolling three-month figures). 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
 });
 
 /** 行の並びの指紋（ID と h。並びに依らない）。NET・CITY の h はこれ。 */
@@ -1161,6 +1571,12 @@ function itemValueEn(r) {
   return `${r.value.toLocaleString('en-US')} ${r.value === 1 ? u[0] : u[1]}${per ? ` a ${per}` : ''}`;
 }
 
+/* 行ごとの字（LINES）の money: true（2026-10-22 全社へ広げる e）── 値の欄（数・通貨・年か月の期間）を、そのまま通貨つきの額として言う
+   （画面は「年 EUR 8,000」と円の目安。字の中に外貨の額を書かない）。ITEM に置けない項目（年金など）の額のため。
+   数・通貨・年か月がそろわない行（期間の無い額・単位つきの数）は言わない。 */
+const moneyOf = (r, en = false) => (typeof r.value === 'number' && r.value > 0 && r.currency && !r.unit && PER[r.per]
+  ? { per: en ? r.per : PER[r.per], cur: r.currency, n: r.value } : '');
+
 /** 英語の字（say(r, 'en') の中身）。対の無い LINES の行・英語で言えない行は null。形は say と同じ（per は 'year' か 'month'） */
 function sayEn(r) {
   const L = LINES[r.id];
@@ -1170,7 +1586,7 @@ function sayEn(r) {
     const E = L.en;
     if (!E) return null;
     if (L.fleet) { const ft = E.fleet || fleetEn(L.fleet); return ft ? { fleet: ft, label: ft, value: '', cond: '', tag, lead: false } : null; }
-    const v = E.value || (L.value ? '' : itemValueEn(r));
+    const v = E.value || (L.value ? '' : L.money ? moneyOf(r, true) : itemValueEn(r));
     if (!E.label || !v || (L.cond && !E.cond)) return null;
     return typeof v === 'object'
       ? { label: E.label, value: v.n, cur: v.cur, per: v.per, cond: E.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' }
@@ -1198,7 +1614,7 @@ export function say(r, lang = 'ja') {
   const tag = TAG[r.use] || '';
   if (L) {
     if (L.fleet) return { fleet: L.fleet, label: L.fleet, value: '', cond: '', tag, lead: false };
-    const v = L.value || itemValue(r);
+    const v = L.value || (L.money ? moneyOf(r) : itemValue(r));
     if (!L.label || !v) return null;
     return typeof v === 'object'
       ? { label: L.label, value: v.n, cur: v.cur, per: v.per, cond: L.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' }
@@ -1218,9 +1634,34 @@ export function say(r, lang = 'ja') {
 /* ここで書く字に入れてはいけない語。「よくある質問」は gen-faq.mjs がページの FAQ を探す目印 ──
    新しい部品の字に在ると、その位置から下の <details> を FAQ と読み、検索向けの FAQPage を作り違える（2026-10-21 に踏んだ）。 */
 export const NEVER = Object.freeze(['よくある質問']);
+/**
+ * 労働協約の登録（AGREEMENTS）が、台帳の資料そのものか（2026-10-22 全社へ広げる e）。[{ what, id, why }]。
+ *   ・台帳にその資料の ID を持つ行が在る（無い資料を登録しない）
+ *   ・その資料の発行元の種類は政府（government）か組合（union）だけ（会社・その他・掲載サイトの資料を「労働協約」と呼ばない）
+ *   ・登録の住所（url）と日付（date）は、台帳のその資料の住所・発行の日と同じ（別の文書を指さない）
+ *   ・住所が利用者のアップロードした写しの置き場（import-research-pack.mjs の UPLOAD_HOSTS）でない（P12.90）
+ */
+export function agreementCheck(store) {
+  const bad = [], seen = new Map();
+  const visit = r => { for (const s of (r && r.src) || []) if (s && AGREEMENTS[s.source_id]) { if (!seen.has(s.source_id)) seen.set(s.source_id, []); seen.get(s.source_id).push(s); } };
+  for (const F of Object.values(store.FACTS || {})) for (const rows of Object.values(F)) (rows || []).forEach(visit);
+  for (const S of Object.values(store.SOURCES || {})) (Array.isArray(S) ? S : []).forEach(visit);
+  for (const [id, A] of Object.entries(AGREEMENTS)) {
+    const list = seen.get(id) || [], no = why => bad.push({ what: 'AGREEMENTS', id, why });
+    if (!list.length) { no('台帳にこの資料の行が無い（台帳に無い協約を登録しない）'); continue; }
+    for (const k of new Set(list.map(s => s.publisher_kind))) if (!['government', 'union'].includes(k)) no(`発行元が政府でも組合でもない（${k || '無し'}）`);
+    for (const u of new Set(list.map(s => s.url))) if (u !== A.url) no(`住所が台帳と違う（登録 ${A.url} ／ 台帳 ${u}）`);
+    for (const d of new Set(list.map(s => s.published || null))) if (d !== (A.date ?? null)) no(`日付が台帳と違う（登録 ${A.date} ／ 台帳 ${d}）`);
+    let host = '';
+    try { host = new URL(A.url).hostname.toLowerCase(); } catch { /* 住所として読めない */ }
+    if (!host || UPLOAD_HOSTS.some(h => host === h || host.endsWith(`.${h}`))) no(`利用者がアップロードした写しの置き場か、住所として読めない（${host || A.url}）`);
+  }
+  return bad;
+}
+
 /** 古い字・名前の無い資料（store ＝ 調べの台帳）。[{ what, id, why }]。 */
 export function check(store) {
-  const bad = [];
+  const bad = [...agreementCheck(store)];
   const words = [...Object.entries(LINES).flatMap(([id, L]) => [L.label, L.value, L.cond, L.fleet].map(t => [id, t])),
     ...Object.entries(SOURCES), ...Object.entries(SOURCE_URL), ...Object.entries(AGREEMENTS).flatMap(([id, A]) => [[id, A.name], [id, A.cond]]), ...Object.entries(NET).map(([id, N]) => [id, N.basis]),
     ...Object.entries(CITY).flatMap(([id, C]) => [C.ja, C.measure, C.site, C.airport, C.scope].map(t => [id, t])), ...Object.entries(ITEM).map(([id, I]) => [id, I.label])];

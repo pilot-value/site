@@ -41,10 +41,11 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
-import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts } from './airline-rollout.mjs';
+import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf } from './airline-rollout.mjs';
 import { GLANCE, AXIS, viewOf } from './pv-airline-view.mjs';
 import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml } from './gen-airline-glance.mjs';
-import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck } from './airline-display.mjs';
+import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck } from './airline-display.mjs';
+import { whenText } from './airline-facts.mjs';
 import { logoHtml as sharedLogo, measureAll } from './airline-logo.mjs';
 import { LOGO_SIZES } from './airline-logo-sizes.mjs';
 import { unsupported as claimsLeft, claimsIn } from './airline-claims.mjs';
@@ -282,6 +283,13 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
     }
   }
   ok(!hit.length, `B カードの字（${OTHER.length}社の読み口）に、調べた側の字（label_ja・cond_ja・調べた側の値の文）が無い（L1）`, hit.slice(0, 5).join(' ／ '));
+  /* A 労働協約の登録（2026-10-22 全社へ広げる e・P12.85 d・P12.90）：「労働協約」の札が付くのは、登録（AGREEMENTS）が台帳の資料そのもので、
+     政府か組合が発行し、同じ住所・同じ日付で、利用者がアップロードした写しの置き場でないときだけ。台帳に無い協約を登録しない。 */
+  {
+    const agBad = agreementCheck(R), n = Object.keys(AGREEMENTS).length;
+    ok(n >= 20 && !agBad.length, `A 労働協約の登録（${n}件）は、どれも台帳の資料そのもの（政府か組合の発行・台帳と同じ住所と日付・写しの置き場でない）`,
+      agBad.slice(0, 4).map(b => `${b.id}: ${b.why}`).join(' ／ '));
+  }
   const bad = displayCheck(R);
   ok(!bad.length && Object.keys(LINES).length >= 1, `B airline-display.mjs の字（${Object.keys(LINES).length}行）は、どれも台帳の今の行と合っている（行の中身が変われば字は古い ── 書き直すまで赤）`, bad.slice(0, 4).map(b => `${b.id}: ${b.why}`).join(' ／ '));
   const [id0] = Object.keys(LINES), r0 = Object.values(R.FACTS).flatMap(F => Object.values(F).flat()).find(r => r.id === id0);
@@ -557,6 +565,7 @@ try {
 const ROLLED = SWITCH.filter(s => !LEAD.includes(s));
 const dateJa = iso => String(iso).replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
 const A2N = { hq: 0, days: 0, pr: 0 };
+const O1N = { n: 0 };
 for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);
   /* L1：調べた側の字が新しい部品に無い（会社の事実・就航地・暮らしの街の行ぜんぶ） */
@@ -700,6 +709,24 @@ for (const s of ROLLED) {
       return /<p class="pvg-v">確認できていません<\/p>/.test(c) || !/<p class="pvg-k">[^]*?<span class="pvg-tag pvg-tag-q" data-use="募集">募集<\/span>[^]*?<\/p>/.test(c) || !/<p class="pvg-note">[^<]+<\/p>/.test(c);
     }).map(k => `${k}（募集の行 ${adOf(k).length}）`);
     ok(!adMiss.length, `E ${s}: 今の公表の無い勤務・待遇の欄に会社の募集の行が在れば、カードはその行を「募集」の札と前提の1行つきで出す（「確認できていません」と言わない）`, adMiss.join(' ／ '));
+    /* O-1（2026-10-22 全社へ広げる e）：勤務・待遇のカードと開いた板に出す「募集」の札の行は、その募集の日付も言う ──
+       行に日付（掲載・対象の日）が在ればその日付・無ければ当サイトが確かめた日を「確認日 YYYY年M月D日」で（募集の1枚の「出どころ」と同じ台帳の日）。
+       言うべき日付は台帳から作る（読み口の答えを使わない）。札の行の名前が出る所（カードの1行め・開いた板の一覧）のどれにも、その日付が在る。 */
+    {
+      const lost = [];
+      let n = 0;
+      for (const f of [...v.work, ...v.benefits].filter(x => x.tag === '募集')) {
+        const r = byId.get(f.id);
+        if (!r) { lost.push(`${f.id} 台帳に無い`); continue; }
+        const own = dateOf(r), want = own ? whenText({ at: own }) : `確認日 ${dateJa(r.checked_at || '')}`;
+        const lab = htmlEsc(f.label).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const at = [...g.matchAll(new RegExp(`(?:<p class="pvg-k">|<dt>)${lab}(?:<span class="pvg-tag pvg-tag-q">会社全体の制度</span>)?<span class="pvg-tag pvg-tag-q" data-use="募集">募集</span>`, 'g'))];
+        if (!at.length) lost.push(`${f.id} 札の行が無い`);
+        for (const m of at) { n++; if (!g.slice(m.index, g.indexOf('</div>', m.index)).includes(want)) lost.push(`${f.id}「${f.label}」に「${want}」が無い`); }
+      }
+      O1N.n += n;
+      ok(!lost.length, `E ${s}: 勤務・待遇の「募集」の札の行（${n}か所）は、その募集の日付（行の日付か、台帳の確認日）を言う（O-1）`, lost.slice(0, 4).join(' ／ '));
+    }
     /* 会社の数字（設立・本社・機数）に「会社全体の制度」の札を付けない（待遇・勤務の制度の札。設立日や本社には意味をなさない）。 */
     const wholeCo = [...g.matchAll(/<dl class="pvg-stats">([\s\S]*?)<\/dl>/g)].filter(m => m[1].includes('会社全体の制度')).length;
     ok(!wholeCo, `E ${s}: 会社の数字（設立・本社・機数）に「会社全体の制度」の札が無い`, `${wholeCo}か所`);
@@ -734,6 +761,7 @@ for (const s of ROLLED) {
 }
 ok(A2N.hq >= 1 && A2N.days >= 1, `E 切り替えた会社に、a2 の置き場の行が在る（本社 ${A2N.hq}行・年間休日 ${A2N.days}行 ── 上の段が空振りしない）`);
 ok(A2N.pr >= 1, `E 切り替えた会社のページに、過去・参考の行が在る（${A2N.pr}行 ── 上の札の段が空振りしない）`);
+ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「募集」の札の行が在る（${O1N.n}か所 ── 上の O-1 の段が空振りしない）`);
 /* A 年収の図（トップ・会社一覧）の会社選びに、機種の段が当てはまらない運航会社を出さない（2026-10-21 roll-c 点検 T5）。
    airlines-meta.js の type が charter / agent / bizjet の会社は、図が R・N・W の段を描くと事実と違う。 */
 {

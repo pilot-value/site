@@ -71,7 +71,6 @@
 <script src="../pv-session.js"></script>
 <script src="premium-auth-lock.js"></script>
 <style data-pv-light>/* PV-LIGHT: 明るい色の画面で、この会社の色の字を同じ色合いの読める濃さにする（暗い色の画面には効かない）。patch-airline-pages.mjs が書く・手で直さない。 */
-[data-theme="light"] [style="color:#ff6600" i],[data-theme="light"] [style^="color:#ff6600;" i],[data-theme="light"] [style*=";color:#ff6600;" i],[data-theme="light"] [style$=";color:#ff6600" i]{color:#b34604!important}
 [data-theme="light"] .section-badge{color:#a54003!important}
 </style>
 <!--PV-GLANCE-HEAD-->
@@ -233,47 +232,396 @@
 <article class="pvg-card pvg-cell" data-cell="work" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4M17 3v4M4 10h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span><h2 class="pvg-eyebrow">勤務</h2></header>
 <div class="pvg-lead">
-<p class="pvg-k">勤務の形</p>
-<p class="pvg-v is-long">勤務表は数週間前に分かり、泊まりの勤務は少ない</p>
-<p class="pvg-note">パイロットの採用ページ</p>
+<p class="pvg-k">休日<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></p>
+<p class="pvg-v is-long">年144日以上（月12日以上・2月は11日以上）</p>
+<p class="pvg-note">スペインで通年・フルタイムで働くイージージェットのパイロットの労働協約（標準の勤務の形）・2025年3月1日</p>
 </div>
-
-<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=days_off_request" data-pvc-open="roster" data-pvc-q="days_off_request">希望休を指定できるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=roster_lead_days" data-pvc-open="roster" data-pvc-q="roster_lead_days">勤務予定は何日前に決まるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=reserve_duty" data-pvc-open="roster" data-pvc-q="reserve_duty">スタンバイ勤務があるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
-<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-work"><span>ほか1件と出典</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+<ul class="pvg-also"><li><span>勤務の形（5勤4休を選ぶとき）</span><b>5日勤務・4日休みの決まった形を選べる（基本給は8%少なく、待機の期間は無い）</b></li><li><span>訓練費の返還</span><b>入社の訓練（OCC）の費用は、辞めた時期により全額から段階的に減り、2年を過ぎると返さない</b></li></ul>
+<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=days_off_request" data-pvc-open="roster" data-pvc-q="days_off_request">希望休を指定できるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-work"><span>ほか4件と出典</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-work" data-panel="work" data-pvg-pane="overview work" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4M17 3v4M4 10h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span><h3 class="pvg-ptitle">勤務</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<p class="pvg-quiet pvg-sfs-note">パイロットの回答は、3人そろった項目だけを出しています。</p><div class="pvg-sfs"><section class="pvg-sf" data-sf="month" aria-labelledby="pvg-sf-month"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-month">月の勤務</h4><small>直近12か月</small></header><div class="crl" data-live="work" data-airline="easyjet" data-notes="1" data-work="1" data-bars="1" data-sf="month" data-state="idle"><span class="crl-ph">—</span></div><p class="pvg-quiet pvg-sf-scope">勤務予定・休日、昇格・訓練の回答も、同じ条件で開きます。</p><p class="pvg-sf-add"><a class="pvg-link" href="?add=work" data-pvc-open="work">勤務時間を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p></section><section class="pvg-sf" data-sf="roster" aria-labelledby="pvg-sf-roster"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4M17 3v4M4 10h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-roster">勤務予定・休日</h4></header><div class="pvg-sf-pub"><p class="pvg-askh">会社が公表している条件</p><dl class="pvg-dl"><div><dt>勤務の形</dt><dd><b>勤務表は数週間前に分かり、泊まりの勤務は少ない</b><small>パイロットの採用ページ</small></dd></div></dl></div><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="days_off_request,days_off_request_limit,schedule_bidding,bidding_scope,seniority_effect,reserve_duty,reserve_location,reserve_days,roster_lead_days,roster_changes" data-sf="roster" data-sub="days_off_request_limit:days_off_request,bidding_scope:schedule_bidding,reserve_location:reserve_duty,reserve_days:reserve_duty" data-quiet="1" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="days_off_request,days_off_request_limit,schedule_bidding,bidding_scope,seniority_effect,reserve_duty,reserve_location,reserve_days,roster_lead_days,roster_changes" data-sf="roster" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=days_off_request" data-pvc-open="roster" data-pvc-q="days_off_request">希望休の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p><details class="pvg-dt pvg-srcd"><summary>出典<small>1件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://careers.easyjet.com/en/career-areas/pilots" target="_blank" rel="noopener">easyJet「easyJet Pilots」</a></p></details></section><section class="pvg-sf" data-sf="commute" aria-labelledby="pvg-sf-commute"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z M12 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-commute">通勤</h4></header><p class="pvg-quiet pvg-sf-none">会社の公表は確認できていません</p><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_taxi_cap,commuting_bus_when,commuting_bus_cost" data-sf="commute" data-sub="commuting_transport_method:commuting_transport,commuting_taxi_when:commuting_transport_method,commuting_taxi_where:commuting_transport_method,commuting_taxi_cost:commuting_transport_method,commuting_taxi_cap:commuting_transport_method,commuting_bus_when:commuting_transport_method,commuting_bus_cost:commuting_transport_method" data-entry="login" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_taxi_cap,commuting_bus_when,commuting_bus_cost" data-sf="commute" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="?add=taxi" data-pvc-open="taxi">通勤の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p></section><section class="pvg-sf" data-sf="travel" aria-labelledby="pvg-sf-travel"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 3 10.5l6.5 2.5L12 20l9-17z M9.5 13 21 3"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-travel">Staff Travel</h4></header><div class="pvg-sf-pub"><p class="pvg-askh">会社が公表している条件</p><dl class="pvg-dl"><div><dt>社員の航空券<span class="pvg-tag pvg-tag-q" data-use="募集">募集</span></dt><dd><b>航空券の割引</b><small>ロンドン・ガトウィックの機長（型式限定なし）の2027年の求人</small></dd></div></dl></div><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="staff_travel,staff_travel_booking,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family,staff_travel_cabin,staff_travel_family" data-sf="travel" data-sub="staff_travel_booking:staff_travel,staff_travel_standby_trips:staff_travel_booking,staff_travel_standby_cost:staff_travel_booking,staff_travel_standby_family:staff_travel_booking,staff_travel_confirmed_trips:staff_travel_booking,staff_travel_confirmed_cost:staff_travel_booking,staff_travel_confirmed_family:staff_travel_booking,staff_travel_cabin:staff_travel,staff_travel_family:staff_travel" data-entry="login" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="staff_travel,staff_travel_booking,staff_travel_cabin,staff_travel_family,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family" data-sf="travel" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="?add=staff_travel" data-pvc-open="staff_travel">Staff Travel の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p><details class="pvg-dt pvg-srcd"><summary>出典<small>1件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://easyjet.taleo.net/careersection/8/jobdetail.ftl?job=17124&amp;tz=GMT-07%3A00&amp;tzname=America%2FLos_Angeles" target="_blank" rel="noopener">イージージェットの求人（ロンドン・ガトウィックの機長・2027年）</a></p></details></section><section class="pvg-sf" data-sf="career" aria-labelledby="pvg-sf-career"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5 12 5l9.5 4.5L12 14 2.5 9.5z M6.5 11.5V16c1.5 1.4 3.4 2 5.5 2s4-.6 5.5-2v-4.5"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-career">昇格・訓練</h4></header><p class="pvg-quiet pvg-sf-none">会社の公表は確認できていません</p><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="upgrade_years,upgrade_order,upgrade_min_hours,upgrade_min_tenure,external_hiring,external_experience_credit,external_seniority_start,external_hiring_types,training_bond,training_bond_years,cadet_program,fo_development" data-sf="career" data-sub="external_experience_credit:external_hiring,external_seniority_start:external_hiring,external_hiring_types:external_hiring,training_bond_years:training_bond" data-quiet="1" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="upgrade_years,upgrade_order,upgrade_min_hours,upgrade_min_tenure,external_hiring,external_experience_credit,external_seniority_start,training_bond,training_bond_years,training_bond_amount,external_hiring_types,cadet_program,fo_development" data-sf="career" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="?add=upgrade" data-pvc-open="upgrade">昇格の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="pvg-link" href="?add=career" data-pvc-open="career">訓練・キャリアの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p></section></div>
+<p class="pvg-quiet pvg-sfs-note">パイロットの回答は、3人そろった項目だけを出しています。</p><div class="pvg-sfs"><section class="pvg-sf" data-sf="month" aria-labelledby="pvg-sf-month"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-month">月の勤務</h4><small>直近12か月</small></header><div class="crl" data-live="work" data-airline="easyjet" data-notes="1" data-work="1" data-bars="1" data-sf="month" data-state="idle"><span class="crl-ph">—</span></div><p class="pvg-quiet pvg-sf-scope">勤務予定・休日、昇格・訓練の回答も、同じ条件で開きます。</p><p class="pvg-sf-add"><a class="pvg-link" href="?add=work" data-pvc-open="work">勤務時間を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p></section><section class="pvg-sf" data-sf="roster" aria-labelledby="pvg-sf-roster"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v4M17 3v4M4 10h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-roster">勤務予定・休日</h4></header><div class="pvg-sf-pub"><p class="pvg-askh">会社が公表している条件</p><dl class="pvg-dl"><div><dt>勤務の形</dt><dd><b>勤務表は数週間前に分かり、泊まりの勤務は少ない</b><small>パイロットの採用ページ</small></dd></div></dl></div><div class="pvg-sf-pub"><p class="pvg-askh">労働協約</p><dl class="pvg-dl"><div><dt>勤務の形（5勤4休を選ぶとき）<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>5日勤務・4日休みの決まった形を選べる（基本給は8%少なく、待機の期間は無い）</b><small>スペインで働くイージージェットのパイロットの労働協約。全員の標準の形ではない・2026年9月11日</small></dd></div><div><dt>休日<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>年144日以上（月12日以上・2月は11日以上）</b><small>スペインで通年・フルタイムで働くイージージェットのパイロットの労働協約（標準の勤務の形）・2025年3月1日</small></dd></div></dl></div><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="days_off_request,days_off_request_limit,schedule_bidding,bidding_scope,seniority_effect,reserve_duty,reserve_location,reserve_days,roster_lead_days,roster_changes" data-sf="roster" data-sub="days_off_request_limit:days_off_request,bidding_scope:schedule_bidding,reserve_location:reserve_duty,reserve_days:reserve_duty" data-quiet="1" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="days_off_request,days_off_request_limit,schedule_bidding,bidding_scope,seniority_effect,reserve_duty,reserve_location,reserve_days,roster_lead_days,roster_changes" data-sf="roster" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=days_off_request" data-pvc-open="roster" data-pvc-q="days_off_request">希望休の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p><details class="pvg-dt pvg-srcd"><summary>出典<small>2件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://www.boe.es/eli/es/res/2026/08/28/(1)" target="_blank" rel="noopener">スペイン官報（BOE）「III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España」（BOE-A-2026-19041・イージージェットのスペインのパイロットの労働協約）</a><a class="pvg-src" href="https://careers.easyjet.com/en/career-areas/pilots" target="_blank" rel="noopener">easyJet「easyJet Pilots」</a></p></details></section><section class="pvg-sf" data-sf="commute" aria-labelledby="pvg-sf-commute"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z M12 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-commute">通勤</h4></header><div class="pvg-sf-pub"><p class="pvg-askh">労働協約</p><dl class="pvg-dl"><div><dt>拠点の駐車場<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>パイロットの拠点の車の駐車場は無料（給与の一部ではなく、なくなることもある）</b><small>スペインで働くイージージェットのパイロットの労働協約。変えるときは組合（SEPLA）と話し合う・2025年3月1日</small></dd></div></dl></div><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_taxi_cap,commuting_bus_when,commuting_bus_cost" data-sf="commute" data-sub="commuting_transport_method:commuting_transport,commuting_taxi_when:commuting_transport_method,commuting_taxi_where:commuting_transport_method,commuting_taxi_cost:commuting_transport_method,commuting_taxi_cap:commuting_transport_method,commuting_bus_when:commuting_transport_method,commuting_bus_cost:commuting_transport_method" data-entry="login" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_taxi_cap,commuting_bus_when,commuting_bus_cost" data-sf="commute" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="?add=taxi" data-pvc-open="taxi">通勤の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p><details class="pvg-dt pvg-srcd"><summary>出典<small>1件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://www.boe.es/eli/es/res/2026/08/28/(1)" target="_blank" rel="noopener">スペイン官報（BOE）「III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España」（BOE-A-2026-19041・イージージェットのスペインのパイロットの労働協約）</a></p></details></section><section class="pvg-sf" data-sf="travel" aria-labelledby="pvg-sf-travel"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 3 10.5l6.5 2.5L12 20l9-17z M9.5 13 21 3"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-travel">Staff Travel</h4></header><p class="pvg-quiet pvg-sf-none">会社の公表は確認できていません</p><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="staff_travel,staff_travel_booking,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family,staff_travel_cabin,staff_travel_family" data-sf="travel" data-sub="staff_travel_booking:staff_travel,staff_travel_standby_trips:staff_travel_booking,staff_travel_standby_cost:staff_travel_booking,staff_travel_standby_family:staff_travel_booking,staff_travel_confirmed_trips:staff_travel_booking,staff_travel_confirmed_cost:staff_travel_booking,staff_travel_confirmed_family:staff_travel_booking,staff_travel_cabin:staff_travel,staff_travel_family:staff_travel" data-entry="login" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="staff_travel,staff_travel_booking,staff_travel_cabin,staff_travel_family,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family" data-sf="travel" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="?add=staff_travel" data-pvc-open="staff_travel">Staff Travel の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p></section><section class="pvg-sf" data-sf="career" aria-labelledby="pvg-sf-career"><header class="pvg-sf-h"><span class="pvg-sf-i" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5 12 5l9.5 4.5L12 14 2.5 9.5z M6.5 11.5V16c1.5 1.4 3.4 2 5.5 2s4-.6 5.5-2v-4.5"/></svg></span><h4 class="pvg-sf-t" id="pvg-sf-career">昇格・訓練</h4></header><div class="pvg-sf-pub"><p class="pvg-askh">労働協約</p><dl class="pvg-dl"><div><dt>訓練費の返還<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>入社の訓練（OCC）の費用は、辞めた時期により全額から段階的に減り、2年を過ぎると返さない</b><small>スペインで働くイージージェットのパイロットの労働協約。本人の都合で辞めたときなど・2025年3月1日</small></dd></div></dl></div><div class="pvg-sf-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="upgrade_years,upgrade_order,upgrade_min_hours,upgrade_min_tenure,external_hiring,external_experience_credit,external_seniority_start,external_hiring_types,training_bond,training_bond_years,cadet_program,fo_development" data-sf="career" data-sub="external_experience_credit:external_hiring,external_seniority_start:external_hiring,external_hiring_types:external_hiring,training_bond_years:training_bond" data-quiet="1" data-state="idle"><span class="crl-ph">—</span></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="upgrade_years,upgrade_order,upgrade_min_hours,upgrade_min_tenure,external_hiring,external_experience_credit,external_seniority_start,training_bond,training_bond_years,training_bond_amount,external_hiring_types,cadet_program,fo_development" data-sf="career" data-state="idle"><span class="crl-ph">—</span></div></div><p class="pvg-sf-add"><a class="pvg-link" href="?add=upgrade" data-pvc-open="upgrade">昇格の条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="pvg-link" href="?add=career" data-pvc-open="career">訓練・キャリアの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p><details class="pvg-dt pvg-srcd"><summary>出典<small>1件</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><p class="pvg-srcs"><a class="pvg-src" href="https://www.boe.es/eli/es/res/2026/08/28/(1)" target="_blank" rel="noopener">スペイン官報（BOE）「III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España」（BOE-A-2026-19041・イージージェットのスペインのパイロットの労働協約）</a></p></details></section></div>
 </div>
 <article class="pvg-card pvg-cell" data-cell="benefits" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 21V7M12 7H8.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h3.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg></span><h2 class="pvg-eyebrow">待遇</h2></header>
 <div class="pvg-lead">
-<p class="pvg-k">社員の航空券<span class="pvg-tag pvg-tag-q" data-use="募集">募集</span></p>
-<p class="pvg-v">航空券の割引</p>
-<p class="pvg-note">ロンドン・ガトウィックの機長（型式限定なし）の2027年の求人</p>
+<p class="pvg-k">年次休暇<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></p>
+<p class="pvg-v">年30日</p>
+<p class="pvg-note">スペインで働くイージージェットのパイロットの労働協約・2026年9月11日</p>
 </div>
-
-<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=annual_leave_days" data-pvc-open="benefits" data-pvc-q="annual_leave_days">年間の有給休暇の日数<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=sick_leave" data-pvc-open="benefits" data-pvc-q="sick_leave">病気休暇を使えるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
-<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-benefits"><span>出どころを見る</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+<ul class="pvg-also"><li><span>企業年金と選べる報酬</span><b>企業年金（Loreto Mutua）への会社の拠出と、選べる報酬の制度は、どちらか1つ</b></li><li><span>拠点の駐車場</span><b>パイロットの拠点の車の駐車場は無料（給与の一部ではなく、なくなることもある）</b></li></ul>
+<div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=annual_leave_days" data-pvc-open="benefits" data-pvc-q="annual_leave_days">年間の有給休暇の日数<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-benefits"><span>ほか3件と出どころ</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-benefits" data-panel="benefits" data-pvg-pane="overview pay" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 21V7M12 7H8.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h3.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg></span><h3 class="pvg-ptitle">待遇</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<p class="pvg-quiet pvg-moved">社員の航空券は「勤務・訓練」に載せています。<a class="pvg-link" href="#work">勤務・訓練で見る<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p><div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="annual_leave_days,sick_leave,landing_pay,landing_pay_unit,landing_pay_varies_by" data-state="idle"><span class="crl-ph">—</span></div></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="annual_leave_days,sick_leave,sick_leave_days,peer_support,landing_pay,landing_pay_amount,landing_pay_unit,landing_pay_from,landing_pay_to,landing_pay_varies_by,ground_duty_pay" data-state="idle"><span class="crl-ph">—</span></div><div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=annual_leave_days" data-pvc-open="benefits" data-pvc-q="annual_leave_days">年間の有給休暇の日数<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=sick_leave" data-pvc-open="benefits" data-pvc-q="sick_leave">病気休暇を使えるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<p class="pvg-quiet pvg-moved">拠点の駐車場は「勤務・訓練」に載せています。<a class="pvg-link" href="#work">勤務・訓練で見る<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p><p class="pvg-askh">労働協約</p><dl class="pvg-dl"><div><dt>年次休暇<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>年30日</b><small>スペインで働くイージージェットのパイロットの労働協約・2026年9月11日</small></dd></div><div><dt>企業年金と選べる報酬<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>企業年金（Loreto Mutua）への会社の拠出と、選べる報酬の制度は、どちらか1つ</b><small>スペインで働くイージージェットのパイロットの労働協約・2026年9月11日</small></dd></div><div><dt>入社の訓練のあいだの宿<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>型式の訓練のあいだは、基本給・宿・朝と夕の食事を会社が負担</b><small>スペインで働くイージージェットのパイロットの労働協約（入社の訓練）・2025年3月1日</small></dd></div><div><dt>民間の医療保険<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">労働協約</span></dt><dd><b>選べる報酬の制度から、民間の医療保険を選べる</b><small>スペインの法で雇われ、スペインで乗務するイージージェットのパイロットの労働協約。保険料と本人の負担は書かれていない・2025年3月1日</small></dd></div></dl><p class="pvg-srcs"><span>出どころ</span><a class="pvg-src" href="https://www.boe.es/eli/es/res/2026/08/28/(1)" target="_blank" rel="noopener">スペイン官報（BOE）「III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España」（BOE-A-2026-19041・イージージェットのスペインのパイロットの労働協約）</a><a class="pvg-src" href="https://www.boe.es/buscar/doc.php?id=BOE-A-2026-19041" target="_blank" rel="noopener">スペイン官報（BOE）「III Convenio colectivo de pilotos de easyJet Airline Company Limited, sucursal en España」（BOE-A-2026-19041・イージージェットのスペインのパイロットの労働協約）</a></p><div class="pvg-ans"><p class="pvg-askh">パイロットの回答（3人そろった項目だけ）</p><div class="crl" data-live="fact" data-airline="easyjet" data-keys="annual_leave_days,sick_leave,landing_pay,landing_pay_unit,landing_pay_varies_by" data-state="idle"><span class="crl-ph">—</span></div></div><div class="crl" data-live="notes" data-airline="easyjet" data-keys="annual_leave_days,sick_leave,sick_leave_days,peer_support,landing_pay,landing_pay_amount,landing_pay_unit,landing_pay_from,landing_pay_to,landing_pay_varies_by,ground_duty_pay" data-state="idle"><span class="crl-ph">—</span></div><div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=annual_leave_days" data-pvc-open="benefits" data-pvc-q="annual_leave_days">年間の有給休暇の日数<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=sick_leave" data-pvc-open="benefits" data-pvc-q="sick_leave">病気休暇を使えるか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
 </div>
 <article class="pvg-card pvg-cell" data-cell="living" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h2 class="pvg-eyebrow">暮らし</h2></header>
 <div class="pvg-lead">
-<p class="pvg-k">拠点の街</p>
-<p class="pvg-v is-long">AGP・ALC・AMS・BCN・BER・BFS・BHX・BOD・BRS・BSL・CDG・EDI・FAO・FCO・GLA・GVA・LGW・LIN・LIS・LPL・LTN・LYS・MAN・MXP・NAP・NCE・NCL・NTE・OPO・ORY・PMI・SEN</p>
-<p class="pvg-note">家賃の資料を確認できていません</p>
+<p class="pvg-k">バルセロナ・Studioの家具つきの募集家賃の中央値</p>
+<p class="pvg-v"><span class="pv-no-cur">月 EUR 1,225</span><small class="pvg-yen" data-cur="EUR">（約22.7万円）</small></p>
+<p class="pvg-note">HousingAnywhere</p>
 </div>
 
 <div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=commuting_transport" data-pvc-open="taxi" data-pvc-q="commuting_transport">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=commuting_bus_when" data-pvc-open="taxi" data-pvc-q="commuting_bus_when">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
-<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-living"><span>答える</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-living"><span>街ごとの家賃と出典</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=easyjet&amp;q=commuting_transport" data-pvc-open="taxi" data-pvc-q="commuting_transport">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=easyjet&amp;q=commuting_bus_when" data-pvc-open="taxi" data-pvc-q="commuting_bus_when">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<section class="pvg-liv" data-pvg-towns data-city="barcelona" data-base="BCN">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>バルセロナ・BCN</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="barcelona" aria-controls="pvg-town-barcelona" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">バルセロナ</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">バルセロナ</b><span class="pvg-town-s" lang="en">Barcelona</span>
+<span class="pvg-town-r"><small>Studio</small><span><span class="pv-no-cur">月 EUR 1,225</span><small class="pvg-yen" data-cur="EUR">（約22.7万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-barcelona" data-town-detail="barcelona" aria-label="バルセロナ">
+<header class="pvg-td-h"><h4>バルセロナ<small lang="en">Barcelona</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>家具つきの募集家賃の中央値・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>Studio</dt><dd><span class="pv-no-cur">月 EUR 1,225</span><small class="pvg-yen" data-cur="EUR">（約22.7万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">BCN</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="バルセロナ">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://housinganywhere.com/rent-index-by-city" target="_blank" rel="noopener">HousingAnywhere「Q3 2026 HousingAnywhere International Rent Index by City」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">バルセロナで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのワンルーム（Studio）の募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない</span></li><li>円額は比較用の換算です（1 EUR＝185.69円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="berlin" data-base="BER">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ベルリン・BER</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="berlin" aria-controls="pvg-town-berlin" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">ベルリン</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ベルリン</b><span class="pvg-town-s" lang="en">Berlin</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 EUR 1,350</span><small class="pvg-yen" data-cur="EUR">（約25.1万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-berlin" data-town-detail="berlin" aria-label="ベルリン">
+<header class="pvg-td-h"><h4>ベルリン<small lang="en">Berlin</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>不動産会社の調べの平均家賃・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 EUR 1,350</span><small class="pvg-yen" data-cur="EUR">（約25.1万円）</small></dd></div><div><dt>2-Bed</dt><dd><span class="pv-no-cur">月 EUR 1,750</span><small class="pvg-yen" data-cur="EUR">（約32.5万円）</small></dd></div><div><dt>3-Bed</dt><dd><span class="pv-no-cur">月 EUR 2,250</span><small class="pvg-yen" data-cur="EUR">（約41.8万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">BER</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ベルリン">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b" target="_blank" rel="noopener">ISRP/OECD・ユーロスタット「MARKET RENTS 2025」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">ベルリンの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 EUR＝185.69円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="paris" data-base="CDG">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>パリ・CDG</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="paris" aria-controls="pvg-town-paris" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">パリ</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">パリ</b><span class="pvg-town-s" lang="en">Paris</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 EUR 1,550</span><small class="pvg-yen" data-cur="EUR">（約28.8万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-paris" data-town-detail="paris" aria-label="パリ">
+<header class="pvg-td-h"><h4>パリ<small lang="en">Paris</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>不動産会社の調べの平均家賃・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 EUR 1,550</span><small class="pvg-yen" data-cur="EUR">（約28.8万円）</small></dd></div><div><dt>2-Bed</dt><dd><span class="pv-no-cur">月 EUR 2,500</span><small class="pvg-yen" data-cur="EUR">（約46.4万円）</small></dd></div><div><dt>3-Bed</dt><dd><span class="pv-no-cur">月 EUR 3,250</span><small class="pvg-yen" data-cur="EUR">（約60.3万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">CDG</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="パリ">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b" target="_blank" rel="noopener">ISRP/OECD・ユーロスタット「MARKET RENTS 2025」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">パリの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 EUR＝185.69円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="rome" data-base="FCO">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ローマ・FCO</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="rome" aria-controls="pvg-town-rome" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">ローマ</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ローマ</b><span class="pvg-town-s" lang="en">Rome</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 EUR 1,300</span><small class="pvg-yen" data-cur="EUR">（約24.1万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-rome" data-town-detail="rome" aria-label="ローマ">
+<header class="pvg-td-h"><h4>ローマ<small lang="en">Rome</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>不動産会社の調べの平均家賃・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 EUR 1,300</span><small class="pvg-yen" data-cur="EUR">（約24.1万円）</small></dd></div><div><dt>2-Bed</dt><dd><span class="pv-no-cur">月 EUR 1,650</span><small class="pvg-yen" data-cur="EUR">（約30.6万円）</small></dd></div><div><dt>3-Bed</dt><dd><span class="pv-no-cur">月 EUR 2,200</span><small class="pvg-yen" data-cur="EUR">（約40.9万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">FCO</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ローマ">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b" target="_blank" rel="noopener">ISRP/OECD・ユーロスタット「MARKET RENTS 2025」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">ローマの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 EUR＝185.69円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="geneva" data-base="GVA">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ジュネーブ・GVA</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="geneva" aria-controls="pvg-town-geneva" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">ジュネーブ</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ジュネーブ</b><span class="pvg-town-s" lang="en">Geneva</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 CHF 2,400</span><small class="pvg-yen" data-cur="CHF">（約47.6万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-geneva" data-town-detail="geneva" aria-label="ジュネーブ">
+<header class="pvg-td-h"><h4>ジュネーブ<small lang="en">Geneva</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>不動産会社の調べの平均家賃・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 CHF 2,400</span><small class="pvg-yen" data-cur="CHF">（約47.6万円）</small></dd></div><div><dt>2-Bed</dt><dd><span class="pv-no-cur">月 CHF 3,150</span><small class="pvg-yen" data-cur="CHF">（約62.5万円）</small></dd></div><div><dt>3-Bed</dt><dd><span class="pv-no-cur">月 CHF 4,100</span><small class="pvg-yen" data-cur="CHF">（約81.4万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">GVA</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ジュネーブ">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b" target="_blank" rel="noopener">ISRP/OECD・ユーロスタット「MARKET RENTS 2025」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">ジュネーブの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 CHF＝198.46円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="lisboa" data-base="LIS">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>リスボン・LIS</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="lisboa" aria-controls="pvg-town-lisboa" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">リスボン</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">リスボン</b><span class="pvg-town-s" lang="en">Lisbon</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 EUR 1,409</span><small class="pvg-yen" data-cur="EUR">（約26.2万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-lisboa" data-town-detail="lisboa" aria-label="リスボン">
+<header class="pvg-td-h"><h4>リスボン<small lang="en">Lisbon</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>長期賃貸の募集家賃の中央値・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 EUR 1,409</span><small class="pvg-yen" data-cur="EUR">（約26.2万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">LIS</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="リスボン">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.idealista.pt/news/imobiliario/habitacao/2026/09/22/77743-viver-num-t1-arrendado-em-portugal-custa-mais-do-dobro-de-um-quarto" target="_blank" rel="noopener">idealista「Viver num T1 arrendado em Portugal custa mais do dobro de um quarto」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">リスボン市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 EUR＝185.69円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>2026年4〜6月</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="luton" data-base="LTN">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ルートン・LTN</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="luton" aria-controls="pvg-town-luton" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">ルートン</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ルートン</b><span class="pvg-town-s" lang="en">Luton</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 GBP 907</span><small class="pvg-yen" data-cur="GBP">（約19.7万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-luton" data-town-detail="luton" aria-label="ルートン">
+<header class="pvg-td-h"><h4>ルートン<small lang="en">Luton</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>民間賃貸の平均家賃・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 GBP 907</span><small class="pvg-yen" data-cur="GBP">（約19.7万円）</small></dd></div><div><dt>2-Bed</dt><dd><span class="pv-no-cur">月 GBP 1,114</span><small class="pvg-yen" data-cur="GBP">（約24.1万円）</small></dd></div><div><dt>3-Bed</dt><dd><span class="pv-no-cur">月 GBP 1,337</span><small class="pvg-yen" data-cur="GBP">（約29.0万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li data-way="wizz-air.living.pub-ltn-dart"><span class="pvg-way-t"><i class="pvg-mode">電車</i><i class="pvg-code3">LTN</i></span><span class="pvg-way-l">Luton DART：ルートン・エアポート・パークウェイ駅 → 空港</span><b>約4分・24時間運行</b></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ルートン">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.ons.gov.uk/visualisations/housingpriceslocal/E06000032/" target="_blank" rel="noopener">Office for National Statistics「Housing prices in Luton」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">ルートン（Luton）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。空港のまわりの地区の値ではない。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 GBP＝216.76円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>2026年8月</span></dd></div>
+<div><dt>移動</dt><dd><ul class="pvg-notes"><li data-way-src="wizz-air.living.pub-ltn-dart">Luton DART：ルートン・エアポート・パークウェイ駅 → 空港<span>約4分・24時間運行</span><span></span><a class="pvg-src" href="https://www.lutondart.com/" target="_blank" rel="noopener">Luton DART / Luton Rising「Buy Luton DART Tickets」</a></li></ul></dd></div>
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="manchester" data-base="MAN">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>マンチェスター・MAN</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="manchester" aria-controls="pvg-town-manchester" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">マンチェスター</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">マンチェスター</b><span class="pvg-town-s" lang="en">Manchester</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 GBP 1,003</span><small class="pvg-yen" data-cur="GBP">（約21.7万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-manchester" data-town-detail="manchester" aria-label="マンチェスター">
+<header class="pvg-td-h"><h4>マンチェスター<small lang="en">Manchester</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>民間賃貸の平均家賃・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 GBP 1,003</span><small class="pvg-yen" data-cur="GBP">（約21.7万円）</small></dd></div><div><dt>2-Bed</dt><dd><span class="pv-no-cur">月 GBP 1,233</span><small class="pvg-yen" data-cur="GBP">（約26.7万円）</small></dd></div><div><dt>3-Bed</dt><dd><span class="pv-no-cur">月 GBP 1,433</span><small class="pvg-yen" data-cur="GBP">（約31.1万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">MAN</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="マンチェスター">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000003/" target="_blank" rel="noopener">Office for National Statistics「Housing prices in Manchester」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">マンチェスター（Manchester）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 GBP＝216.76円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>2026年8月</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="milan" data-base="MXP">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ミラノ・MXP</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="milan" aria-controls="pvg-town-milan" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">ミラノ</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ミラノ</b><span class="pvg-town-s" lang="en">Milan</span>
+<span class="pvg-town-r"><small>Studio</small><span><span class="pv-no-cur">月 EUR 1,100</span><small class="pvg-yen" data-cur="EUR">（約20.4万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-milan" data-town-detail="milan" aria-label="ミラノ">
+<header class="pvg-td-h"><h4>ミラノ<small lang="en">Milan</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>家具つきの募集家賃の中央値・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>Studio</dt><dd><span class="pv-no-cur">月 EUR 1,100</span><small class="pvg-yen" data-cur="EUR">（約20.4万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">MXP</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ミラノ">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://housinganywhere.com/rent-index-by-city" target="_blank" rel="noopener">HousingAnywhere「Q3 2026 HousingAnywhere International Rent Index by City」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">ミラノで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのワンルーム（Studio）の募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない</span></li><li>円額は比較用の換算です（1 EUR＝185.69円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="porto" data-base="OPO">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ポルト・OPO</small></p></header>
+<ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
+<li><button type="button" class="pvg-town" data-town="porto" aria-controls="pvg-town-porto" aria-pressed="false">
+<span class="pvg-town-ph is-none"><b aria-hidden="true">ポルト</b></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ポルト</b><span class="pvg-town-s" lang="en">Porto</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 EUR 1,003</span><small class="pvg-yen" data-cur="EUR">（約18.6万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-porto" data-town-detail="porto" aria-label="ポルト">
+<header class="pvg-td-h"><h4>ポルト<small lang="en">Porto</small></h4></header>
+<div class="pvg-td-g">
+<div class="pvg-td-c"><p class="pvg-askh">家賃<small>長期賃貸の募集家賃の中央値・1か月あたり</small></p>
+<dl class="pvg-kv"><div><dt>1-Bed</dt><dd><span class="pv-no-cur">月 EUR 1,003</span><small class="pvg-yen" data-cur="EUR">（約18.6万円）</small></dd></div></dl></div>
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">OPO</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=easyjet&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ポルト">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.idealista.pt/news/imobiliario/habitacao/2026/09/22/77743-viver-num-t1-arrendado-em-portugal-custa-mais-do-dobro-de-um-quarto" target="_blank" rel="noopener">idealista「Viver num T1 arrendado em Portugal custa mais do dobro de um quarto」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">ポルト市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 EUR＝185.69円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>2026年4〜6月</span></dd></div>
+
+
+</dl></details>
+</section>
 </div>
 </div>
 </div>
@@ -336,10 +684,6 @@
 <div><div class="text-xs text-muted uppercase tracking-widest font-semibold mb-3">就航路線</div><p class="text-muted text-sm leading-relaxed">ロンドン・アムステルダム・ジュネーブ・マドリッド・ミラノ等複数ベースから欧州全域・北アフリカ・中東に就航。短中距離路線に特化。</p></div>
 <div><div class="text-xs text-muted uppercase tracking-widest font-semibold mb-3">保有機材</div><p class="text-muted text-sm leading-relaxed">Airbus A321neo, A320neo, A320ceo, A319。約350機。</p></div>
 </div></div>
-<div class="glass p-8 fade-up" data-pvg-pane="overview"><div class="section-badge mb-4">訓練環境</div><h2 class="text-2xl font-bold mb-6">訓練・審査</h2>
-<div class="grid md:grid-cols-2 gap-4"><div class="info-card"><div class="font-semibold mb-2" style="color:#FF6600">型式訓練（EASA承認・費用負担注意）</div><p class="text-sm text-muted">EASA認定ATO使用。LCCでは型式訓練費用を一部または全額自己負担とする契約形態もある。要確認。</p></div><div class="info-card"><div class="font-semibold mb-2" style="color:#FF6600">LIFUS</div><p class="text-sm text-muted">型式取得後、教官機長同乗ライン訓練。短距離路線多数のLCCは比較的早くレグ数を稼げる。</p></div><div class="info-card"><div class="font-semibold mb-2" style="color:#FF6600">定期審査（OPC/LPC）</div><p class="text-sm text-muted">EASA基準に基づく年1〜2回の審査。LCCも同等の安全基準。</p></div><div class="info-card"><div class="font-semibold mb-2" style="color:#FF6600">昇格</div><p class="text-sm text-muted">副操縦士から機長昇格は最低4,000〜5,000h以上が目安。LCCは昇格機会が多いことも。</p></div></div></div>
-<div class="glass p-8 fade-up" data-pvg-pane="overview"><div class="section-badge mb-4">福利厚生</div><h2 class="text-2xl font-bold mb-6">福利厚生</h2>
-<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"><div class="stat-card"><div class="text-2xl mb-2">✈️</div><div class="font-semibold text-sm mb-1">スタッフ割引</div><p class="text-xs text-muted">自社便の割引または無料搭乗特典。グループ・提携会社対象のことが多い。</p></div><div class="stat-card"><div class="text-2xl mb-2">🏥</div><div class="font-semibold text-sm mb-1">医療保険</div><p class="text-xs text-muted">基本的な医療保険（欧州ではEHIC/公的医療制度との組み合わせ）。</p></div><div class="stat-card"><div class="text-2xl mb-2">📈</div><div class="font-semibold text-sm mb-1">生産性ボーナス</div><p class="text-xs text-muted">Duty Payまたはプロダクティビティボーナス。フライト時間・レグ数連動が多い。</p></div><div class="stat-card"><div class="text-2xl mb-2">📅</div><div class="font-semibold text-sm mb-1">有給休暇</div><p class="text-xs text-muted">EU指令に基づく最低20日以上。各国法に準拠。</p></div><div class="stat-card"><div class="text-2xl mb-2">🏠</div><div class="font-semibold text-sm mb-1">ベースシティ手当</div><p class="text-xs text-muted">選択ベース都市（ロンドン・マドリッド等）での勤務手当。</p></div><div class="stat-card"><div class="text-2xl mb-2">📊</div><div class="font-semibold text-sm mb-1">インセンティブペイ</div><p class="text-xs text-muted">フライト時間・生産性に連動した追加給与。繁忙期は収入増加の機会あり。</p></div></div></div>
 
 <!--PV-FAQ-->
 <div class="glass p-8 fade-up" data-pvg-pane="overview">
