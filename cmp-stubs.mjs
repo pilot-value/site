@@ -12,7 +12,7 @@
 
    道具は local-chain.mjs から借りる（LIBS・seedOf・rpcAs・loginAs・open）。ここに在るのは、あちらに無いものだけ：
      startLocal（SQL をそのまま流せる exec を持つ）・MOCK の門と open・slot / until / watch / seen・otherTab / loginIn / logoutIn・
-     読む人の作り方 makeReaders（比較の検査の3つの区域で、ただ1つ）。
+     読む人の作り方 makeReaders（比較の検査の3つの区域で、ただ1つ）・給与の一覧の返事の材料 payFix / payRowFix（同じく、ただ1つ）。
 
    使い方（assert-career-live.mjs が手本）
      const env = await H.startLocal();                                   // { local, url, q, exec, tmp, stop }
@@ -57,6 +57,28 @@ export const BASE_STUB = {
   pv_contrib_facts: () => okJson({ ok: true, state: 'login' }),
   pv_contrib_notes: () => okJson({ ok: true, state: 'login' }),
   pv_contrib_give: () => okJson({ ok: true, state: 'login' }),
+  /* 給与の区域（cmp-pay）の中央値。鍵の開いた一覧（pv_pay_rows が open）を返した場面でだけ呼ばれる。落ち着いた既定 ＝ 開いていない答え
+     （中央値の器は何も描かない）。中央値を見る場面は stub で上書きする。給与の一覧（pv_pay_rows）の既定は置かない ── 用意しない場面では
+     ほかの担当の呼び出しとして「準備中」になる（場面ごとに payFix の返事を渡す） */
+  pv_company_pay: () => okJson({ ok: true, state: 'locked' }),
+};
+
+/* 給与の一覧（pv_pay_rows）の返事の材料（比較の給与の設計 I-9）。A・B ＝ 会社ごとの行（payRowFix で作る）。
+   額はどれも検査が選んだ印（271828・314159 …）── 本物の額ではない。
+     guest   鍵の無いゲスト：開いていない答え・give の鍵そのものが無い・行は「会社・出典・投稿時期」の3つだけ（サーバーが送る形）
+     member  ログインした会員・給与を出していない：上と同じ行・give.basic false
+     expired 自分の提出は在るのに鍵が開いていない（期限が切れた）：上と同じ行・give.basic true
+     open    鍵の開いた人：全部の列の行
+   返すのは返事の中身（body）。stub には { status: 200, body: payFix.open(A, B) } の形で渡す。 */
+export const payRowFix = (airline, o = {}) => ({ airline, pos: 'cap', fleet: 'b787', ten: 1, tenk: 'r', annual_usd: 271828,
+  verified: false, age: 1, far: false, ...o });
+const payMask = (r) => ({ airline: r.airline, verified: !!r.verified, age: r.age });
+const payGive = (basic) => ({ basic, detailed: false, payslip: false, full: false });
+export const payFix = {
+  guest: (A = [], B = []) => ({ ok: true, state: 'locked', rows: [...A, ...B].map(payMask) }),
+  member: (A = [], B = []) => ({ ok: true, state: 'locked', give: payGive(false), rows: [...A, ...B].map(payMask) }),
+  expired: (A = [], B = []) => ({ ok: true, state: 'locked', give: payGive(true), rows: [...A, ...B].map(payMask) }),
+  open: (A = [], B = []) => ({ ok: true, state: 'open', give: payGive(true), rows: [...A, ...B] }),
 };
 
 /* 網の2枚目。assert-admin.mjs の NO_NAMES と1文字も違わない（assert-career-live.mjs の場面 net が見ている） */

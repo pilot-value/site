@@ -12,6 +12,8 @@
          保存先の口コミは、この検査が q() で数える（ページに聞かない）。
          顔 a・b（比較の設計 F3 の決まりの写し。同じ決まりは assert-cmp-frame.mjs の場面 faces が持つ予定 ── 直すときは両方を同じに）：
            a 開いていない欄に、一覧・表・比べる行・待ちの骨が無い・錠の1行は会社ごとに1つまで・答えるカードと「やり直す」は1つまで
+             （提出された年収の欄 cmp-pay だけは、比べる行を1つ持ってよい ── 2つのマスに、会社ごとの「n件の提出」か「まだ記録がありません」
+              の1行だけ。職位の名前・額・2つめの行・一覧が入ったら赤。2026-10-22 の LEAD の決め・WP-cmp-pay-4）
            b 見えている箱（.cr-panel・.cr-sec・.cr-cards）には、見出しと「詳しく」の足（.cr-gos）のほかに、見える字が在る・
              月の働き方の箱の錠の1行は1つまで
              （カードの見出しの会社名のリンク .cr-card-h a は中身に数える ── 会社ページへの道。2026-10-22 の LEAD の決め。
@@ -188,7 +190,14 @@ const faces = (page) => page.evaluate(() => {
   for (const x of V.querySelectorAll('.crl[data-live]')) {
     const state = x.getAttribute('data-state'), k = x.getAttribute('data-live');
     if (['idle', 'loading', 'open'].includes(state)) continue;
-    const bad = [...x.querySelectorAll('ul, ol, table, .crl-cmp-row, .crl-rows, .crl-sk')].map((n) => n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''));
+    /* cmp-pay の件数の行（頭のコメントの a の括弧）：行が1つだけで、2つのマスのどちらも .crl-pc[data-airline] の中に
+       p.crl-count「n件の提出」（n は 1 から）か p.crl-msg「まだ記録がありません」の1つだけ。ほかの形なら、許さない */
+    const cell = (c) => { const pc = c.matches('.crl-cmp-c') && c.children.length === 1 ? c.firstElementChild : null;
+      const p = pc && pc.matches('.crl-pc[data-airline]') && pc.children.length === 1 ? pc.firstElementChild : null, t = p ? p.textContent : '';
+      return !!p && (p.matches('p.crl-count') ? /^[1-9]\d*件の提出$/.test(t) && p.querySelectorAll('*').length === 1 : p.matches('p.crl-msg') && t === 'まだ記録がありません' && !p.children.length); };
+    const rows = x.querySelectorAll('.crl-cmp-row');
+    const free = k === 'cmp-pay' && rows.length === 1 && rows[0].children.length === 2 && [...rows[0].children].every(cell) ? rows[0] : null;
+    const bad = [...x.querySelectorAll('ul, ol, table, .crl-cmp-row, .crl-rows, .crl-sk')].filter((n) => n !== free).map((n) => n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''));
     if (bad.length) a.push(`${k}(${state}): ${bad.join(' ')}`);
     const per = {};
     for (const l of x.querySelectorAll('.crl-lock')) {

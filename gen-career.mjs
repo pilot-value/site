@@ -829,6 +829,10 @@ ${FIVE.map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)
 </div>
 <p class="cr-tgt">${KINDS[0][1]}<span>${EST_TARGET}</span></p>
 </div>
+<div class="cr-sec cr-subpay" data-kind="submitted">
+<h2 class="cr-h2">提出された年収<span class="cr-h2-s" lang="en">REAL PAY</span></h2>
+${live('cmp-pay')}
+</div>
 <div class="cr-sec cr-cmp-rev">
 <h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
 ${live('cmp-stars')}
@@ -909,7 +913,7 @@ const fingerprint = f => createHash('sha256').update(fs.readFileSync(path.join(R
 /* career.html が読む、この1枚だけの部品。指紋（?v=）を付ける一覧。
    ⚠️ どれか1つを直したら node gen-career.mjs を流す（流さないと古い部品が最大4時間残る）。 */
 export const ASSETS = [
-  'career.css', 'career-sec.css', 'career-live.css', 'career-stay.css', 'career-card.css',
+  'career.css', 'career-sec.css', 'career-live.css', 'career-stay.css', 'career-card.css', 'pv-gg.css',
   'career.js', 'career-live.js', 'career-stay.js', 'career-card.js',
   /* パイロットであることの確認の共通のポップアップ。ホテルの欄の、会員の鍵の1行から開く（career-stay.js・2026-10-18 オーナー Q2） */
   'pv-proof-offer.js',

@@ -239,6 +239,32 @@ ok(CMP.length > 0 && !/href="[^"]*[?&](?:amp;)?airline=/.test(CMP), '比較の�
      JSON.stringify({ pos, opt, facts, lives: CMP.includes('cr-lives') }));
 }
 
+/* ★2026-10-22 段階4 cmp-pay-4（T-S3a）：比較の「提出された年収」の生きた欄は、出荷の HTML では空 ── 「—」だけで、数字を1つも持たない
+   （件数も額も、開いた人の鍵でサーバーが決める。生成側が数字を書けば、鍵の無い人にも届く）。置き場は data-kind="submitted" の箱で、
+   見出しは会社ページと同じ「提出された年収」と小さな「REAL PAY」。（箱の並びは、上の「読む順」が見る）
+   T-S5（ファイルの半分）：比較の住所の鍵（career.js の KEYS）に、給与の職位・機材・月の鍵を足さない ── 一字一句このまま。
+   比較の給与の区画が組む REAL PAY への住所は air= と pos= だけ（REAL PAY の機材の絞り込みを戻さない）。 */
+head('比較の提出された年収（出荷の形・住所）');
+{
+  const slots = [...CMP.matchAll(/<div class="crl" data-live="cmp-pay"[^>]*>[\s\S]*?<\/div>/g)].map(m => m[0]);
+  const sec = CMP.match(/<div class="cr-sec cr-subpay" data-kind="submitted">\s*<h2 class="cr-h2">([\s\S]*?)<\/h2>\s*(<div class="crl" data-live="cmp-pay"[^>]*>[\s\S]*?<\/div>)\s*<\/div>/);
+  const h2 = sec ? sec[1].replace(/<[^>]+>/g, '') : '';
+  ok(HTML.split('data-live="cmp-pay"').length === 2 && slots.length === 1 && !!sec && h2 === '提出された年収REAL PAY',
+     '比較の「提出された年収」の欄（data-live="cmp-pay"）は career.html にちょうど1つ・data-kind="submitted" の箱の中・見出しは「提出された年収」＋「REAL PAY」',
+     `欄 ${HTML.split('data-live="cmp-pay"').length - 1}（比較の画面に ${slots.length}）・箱 ${!!sec}・見出し「${h2}」`);
+  ok(slots.length === 1 && slots[0].replace(/<[^>]+>/g, '').trim() === '—' && !/\d/.test(slots[0]),
+     '比較の「提出された年収」の欄は、出荷の HTML では「—」だけ（字にも属性にも数字が1つも無い）', slots[0] || '（欄が無い）');
+  const KEYS_LINE = "var KEYS = ['airline', 'view', 'tab', 'stay', 'd', 'a', 'b'];";
+  ok(JS.split(KEYS_LINE).length === 2, '比較の住所の鍵（career.js の KEYS）は、給与の職位・機材・月の鍵を持たない（一字一句このまま）',
+     (JS.match(/var KEYS = [^\n]*/) || ['（KEYS が無い）'])[0]);
+  const RAW = read('career-live.js');
+  const at = RAW.indexOf('\n  var PAY_TOP'), end = at < 0 ? -1 : RAW.indexOf('\n  /* ──', at + 1);
+  const BC = at < 0 || end < 0 ? '' : noJsCmt(RAW.slice(at, end));
+  const qk = [...BC.matchAll(/'[^'\n]*'/g)].flatMap(m => [...m[0].matchAll(/[?&]([A-Za-z_]+)=/g)].map(x => x[1]));
+  ok(BC.includes("'actual-pay.html?air='") && qk.includes('pos') && qk.every(k => k === 'air' || k === 'pos'),
+     '比較の給与の区画が組む REAL PAY への住所は air= と pos= だけ（機材・月の絞り込みを付けない）', `住所の鍵: ${qk.join(',') || '（無い）'}`);
+}
+
 /* ══════════════════════════════════════════════════════════════════
    C) 登録の対（CLAUDE.md「ページを1枚足すとき」）
    ══════════════════════════════════════════════════════════════════ */
@@ -610,6 +636,34 @@ try {
        `${g.n}つ（この1枚で ${g.all}）「${g.text}」 前が税の行 ${g.prev} ／ 推定の板の中 ${g.inEst}`);
     ok(g.cards === 1 && g.pub === 1, '比較の「会社が公表している金額」の入れ物は data-kind="published"', `${g.pub}/${g.cards}`);
     ok(g.rows === FIVE.length * ROLES.length && !g.said.length, `比較の棒の行（${g.rows}）に、check-salary.mjs が年額ではないと読む言葉が無い`, g.said.join(' ／ '));
+  }
+
+  /* ★2026-10-22 段階4 cmp-pay-4：比較の画面で選ぶ欄は、2社を選ぶ #cr-a・#cr-b の2つだけ（DEEP PAY の置き場 #cr-deep の中は数えない）
+     ── 提出された年収の欄に、機材・職位・月の絞り込みを置かない（T-S5）。給与の欄が読み終わってから数える。
+     棒と目盛（.cr-track・.cr-fill・.cr-axis）は推定の板（data-kind="estimate"）の中にだけ ── 公表額の箱・提出された年収の箱に棒を描かない。
+     3つの箱（推定・公表・提出）は1つずつ（T-S6）。 */
+  head('比較の箱の種類（推定・公表・提出）と選ぶ欄');
+  {
+    const paid = await page.waitForFunction(() => {
+      const b = document.querySelector('#cr .cr-view[data-view="compare"] .crl[data-live="cmp-pay"]');
+      return !!b && !!b.getAttribute('data-for') && !['idle', 'loading'].includes(b.getAttribute('data-state'));
+    }, { timeout: 20000, polling: 100 }).then(() => true, () => false);
+    const k = await page.evaluate(() => {
+      const V = document.querySelector('#cr .cr-view[data-view="compare"]');
+      if (!V) return null;
+      const bars = [...V.querySelectorAll('.cr-track, .cr-fill, .cr-axis')];
+      return {
+        pay: (V.querySelector('.crl[data-live="cmp-pay"]') || { getAttribute: () => null }).getAttribute('data-state'),
+        sel: [...V.querySelectorAll('select')].filter(s => !s.closest('#cr-deep')).map(s => s.id || s.className),
+        bars: bars.length,
+        out: bars.filter(b => !b.closest('[data-kind="estimate"]')).map(b => `${b.className}（${(b.closest('[data-kind]') || { dataset: {} }).dataset.kind || '箱の外'}）`),
+        kinds: ['estimate', 'published', 'submitted'].map(x => V.querySelectorAll(`[data-kind="${x}"]`).length),
+      };
+    });
+    ok(paid && !!k && same(k.sel, ['cr-a', 'cr-b']), `比較の画面で選ぶ欄は #cr-a・#cr-b の2つだけ（提出された年収の欄が読み終わった顔「${k && k.pay}」で数えた）`,
+       JSON.stringify({ paid, sel: k && k.sel }));
+    ok(!!k && k.bars > 0 && !k.out.length && same(k.kinds, [1, 1, 1]),
+       '棒と目盛は推定の板（data-kind="estimate"）の中にだけ・推定／公表／提出の箱は1つずつ', JSON.stringify(k && { bars: k.bars, out: k.out, kinds: k.kinds }));
   }
 
   /* 会社が公表している金額。訓練生は出さない。 */
@@ -1064,7 +1118,7 @@ try {
   const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`])];
   /* 押せるものの種類。ここに無い形のものが増えたら落とす（hover / active を付け忘れる）。 */
   const MAIN = '.cr-tile, .cr-back, .cr-btn, .cr-swap, .cr-sel, summary, .cr-link, .cr-card-n, '
-    + '.cr-tab, a.cr-bar, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn';
+    + '.cr-tab, a.cr-bar, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn, .pv-gg';
   const INLINE = '.cr-credits a, .cr-srcs a';
   for (const [w, h] of [[320, 568], [390, 680], [768, 1024], [1280, 800]]) {
     const { page: p, close: c } = await open('', w, h);
