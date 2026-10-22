@@ -871,6 +871,7 @@ ${live('cmp-pay')}
 <div class="cr-sec cr-cmp-rev">
 <h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
 ${live('cmp-stars')}
+${live('cmp-summary')}
 ${gos('reviews', 'rev')}
 </div>
 <div class="cr-sec cr-rents">

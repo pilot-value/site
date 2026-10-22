@@ -47,7 +47,7 @@
   <link rel="stylesheet" href="career.css?v=e249225c">
   <link rel="stylesheet" href="career-sec.css?v=04bae47b">
   <!-- 生きた欄（.crl-*）・就航地（.crs-*）・カード保存（.crc-*）の見た目。 -->
-  <link rel="stylesheet" href="career-live.css?v=a4e9d003">
+  <link rel="stylesheet" href="career-live.css?v=82eb08a5">
   <link rel="stylesheet" href="career-stay.css?v=fa905cac">
   <link rel="stylesheet" href="career-card.css?v=67e91a9b">
   <!-- 「Give & Get」のボタンの形（サイトに1つ。career-live.js の give2() が使う）。?v= は gen-career.mjs が書く。 -->
@@ -1237,6 +1237,7 @@
 <div class="cr-sec cr-cmp-rev">
 <h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
 <div class="crl" data-live="cmp-stars" data-state="idle"><span class="crl-ph">—</span></div>
+<div class="crl" data-live="cmp-summary" data-state="idle"><span class="crl-ph">—</span></div>
 <p class="cr-gos">
 <a class="cr-link cr-go" id="cr-go-rev-jal" href="airlines/jal.html#reviews" aria-labelledby="cr-cmp-h-rev cr-go-rev-jal" data-airline="jal" style="--cr-co:#CC0000"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">日本航空（JAL）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
 <a class="cr-link cr-go" id="cr-go-rev-ana" href="airlines/ana.html#reviews" aria-labelledby="cr-cmp-h-rev cr-go-rev-ana" data-airline="ana" style="--cr-co:#1A6EB5" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">全日本空輸（ANA）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
@@ -1505,7 +1506,7 @@
 <script src="career.js?v=02f602a2" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
 <!-- 生きた欄・就航地のホテル・カード保存。career.js が画面を出し終えるたびに出す知らせ（cr:show）で動く。
      ★どれが落ちても、上の画面と金額はそのまま読める。 -->
-<script src="career-live.js?v=7582e9dc"></script>
+<script src="career-live.js?v=85e190d3"></script>
 <script src="pv-proof-offer.js?v=cc4ef913"></script>
 <script src="pv-hotel-suggest.js?v=179d17b8"></script>
 <script src="career-stay.js?v=3fd9aebe"></script>

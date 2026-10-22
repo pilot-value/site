@@ -266,8 +266,10 @@
     var o = root.querySelector('#cr-a option[value="' + slug + '"]');
     return o ? String(o.textContent || '').trim() : slug;
   }
+  /* 社名の札。名前は1つの塊（crl-co-n）── 狭い列で語の途中で折らない（「キャセイパシフィ／ック」にしない）。収まらなければ色の点の下の行へ送る */
   function coTag(slug) {
-    var s = el('span', 'crl-co', coName(slug));
+    var s = el('span', 'crl-co');
+    s.appendChild(el('span', 'crl-co-n', coName(slug)));
     var c = companies()[slug];
     if (c && typeof c.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.color)) {
       s.style.setProperty('--crl-co', c.color);
@@ -354,7 +356,7 @@
     if (uid === v) return;
     uid = v;
     drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:'); drop('give'); drop('town:'); drop('cmed:');
-    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts', 'towns', 'cmp-pay']);
+    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts', 'towns', 'cmp-pay', 'cmp-summary']);
     later();
   }
   function watchAuth(sb) {
@@ -1562,18 +1564,19 @@
     });
   }
   var SUM_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-  function sumList(title, kind, items) {
+  /* max ＝ 何点まで（会社ページは3・比較は2）。bare ＝ 点の矢印を置かない（矢印は同じページの口コミを開く ── 会社ページにだけ在る） */
+  function sumList(title, kind, items, max, bare) {
     var wrap = el('div', 'crl-sum-col');
     wrap.setAttribute('data-kind', kind);
     wrap.appendChild(el('h4', 'crl-sum-h', title));
     var ul = el('ul', 'crl-sum-ul');
-    items.slice(0, 3).forEach(function (it) {
+    items.slice(0, max || 3).forEach(function (it) {
       var text = it && typeof it.text === 'string' ? it.text : '';
       if (!text) return;
       var li = el('li', 'crl-sum-li');
       li.appendChild(el('span', 'crl-sum-t', text));
       var cat = it && typeof it.cat === 'string' && /^[a-z]{2,12}$/.test(it.cat) ? it.cat : '';
-      if (cat) {
+      if (cat && !bare) {
         var a = el('a', 'crl-sum-a');
         a.setAttribute('href', '#reviews');
         a.setAttribute('data-pvg-cat', cat);
@@ -1589,6 +1592,15 @@
     return ul.childNodes.length ? wrap : null;
   }
   function sumNote(text, why) { var p = msg(text); p.setAttribute('data-why', why); return p; }
+  /* 要約の足元（AI 要約・もとにした件数・更新日）。件数と日付は、読めたときだけ書く。会社ページと比較が同じ部品を使う。 */
+  function sumFoot(x) {
+    var by = el('p', 'crl-sum-by');
+    by.appendChild(el('span', 'crl-sum-ai', T.sumAi));
+    var n = Number(x.n);
+    if (isFinite(n) && n > 0) by.appendChild(el('span', 'crl-sum-n', T.sumFrom(n)));     // 件数が読めなければ書かない
+    if (typeof x.as_of === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.as_of)) by.appendChild(el('span', 'crl-sum-d', T.sumWhen(x.as_of)));
+    return by;
+  }
   KIND.summary = function (box, ids) {
     return summary(ids[0]).then(function (x) {
       if (x.state === 'login') {
@@ -1609,15 +1621,63 @@
       var grid = el('div', 'crl-sum');
       if (good) grid.appendChild(good);
       if (bad) grid.appendChild(bad);
-      var by = el('p', 'crl-sum-by');
-      by.appendChild(el('span', 'crl-sum-ai', T.sumAi));
-      var n = Number(x.n);
-      if (isFinite(n) && n > 0) by.appendChild(el('span', 'crl-sum-n', T.sumFrom(n)));     // 件数が読めなければ書かない
-      if (typeof x.as_of === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.as_of)) by.appendChild(el('span', 'crl-sum-d', T.sumWhen(x.as_of)));
+      var by = sumFoot(x);
       return view('open', [el('h3', 'crl-sum-title', T.sumHead), grid, by]);
     }, function (e) {
       if (e && e.crl === 'off') return view('empty', [sumNote(T.sumOff, 'off')]);   // 口がまだ無い ＝ 未接続（件数も文も作らない）
       throw e;
+    });
+  };
+
+  /* ── 口コミの要約（比較）──────────────────────────────────
+     会社ページと同じ読み口・同じ文。比較では各社 良い点・気になる点を2つまで（頭から。作り直さない・並べ替えない）。
+     ★ 読む人についての1行は、枠に1回だけ（会社ごとに鍵の絵を並べない）。ログイン → 鍵 の順。要約の返事2つだけで決める（評価の読み込みを待たない）。
+     ★ 開いていない返事からは状態の1語しか読まない（good・concern・n に触れない）。
+     ★ 静かな1行（少ない／まだ無い／準備中）を出すかどうかは、ここでは決めない ── すぐ上の評価の欄に点数の付いた投稿が
+        描かれているときだけ、CSS が出す（data-rated。会社ページと同じ畳み方）。 */
+  var CMP_SUM_MAX = 2;
+  function quietNote(st) {
+    return st === 'few' ? sumNote(T.sumFew, 'few') : st === 'off' ? sumNote(T.sumOff, 'off') : sumNote(T.sumNone, 'none');
+  }
+  function sumCell(slug, s, st, col) {
+    var c = el('div', 'crl-sum2-c'), body = [], quiet = false;
+    c.setAttribute('data-col', String(col));
+    if (st === 'fail') body.push(sideFail(s));
+    else if (st === 'open') {
+      var x = s.v;
+      var good = sumList(T.sumGood, 'good', isArr(x.good) ? x.good : [], CMP_SUM_MAX, true);
+      var bad = sumList(T.sumConcern, 'concern', isArr(x.concern) ? x.concern : [], CMP_SUM_MAX, true);
+      if (good) body.push(good);
+      if (bad) body.push(bad);
+      if (good || bad) body.push(sumFoot(x));
+      else { body.push(quietNote('none')); quiet = true; }
+    } else { body.push(quietNote(st)); quiet = true; }
+    if (quiet) c.setAttribute('data-quiet', '');
+    c.appendChild(coTag(slug));
+    body.forEach(function (n) { c.appendChild(n); });
+    return c;
+  }
+  KIND['cmp-summary'] = function (box, ids) {
+    return both(summary, ids).then(function (S) {
+      var st = S.map(function (s) { return s.ok ? String(s.v.state) : (s.off ? 'off' : 'fail'); });
+      if (st[0] === 'fail' && st[1] === 'fail') throw fail('error');
+      if (st[0] === 'login' || st[1] === 'login') {
+        var need = lockLine(T.loginLock);
+        need.setAttribute('data-why', 'login');
+        return view('locked', [need, loginLink()]);
+      }
+      if (st[0] === 'locked' || st[1] === 'locked') {
+        var key = lockLine(T.sumLock);
+        key.setAttribute('data-why', 'key');
+        return view('locked', [key]);               // 入口はすぐ上の評価の欄の、口コミの Give & Get の1つ（ここに足さない）
+      }
+      /* 2社とも同じ静かな1行なら、会社ごとに繰り返さない */
+      if (st[0] === st[1] && (st[0] === 'few' || st[0] === 'none' || st[0] === 'off')) return view('empty', [quietNote(st[0])]);
+      var grid = el('div', 'crl-sum2');
+      S.forEach(function (s, i) { grid.appendChild(sumCell(ids[i], s, st[i], i + 1)); });
+      var any = !!grid.querySelector('.crl-sum-col');
+      var loud = any || st[0] === 'fail' || st[1] === 'fail';
+      return partial(view(loud ? 'open' : 'empty', any ? [el('h3', 'crl-sum-title', T.sumHead), grid] : [grid]), S);
     });
   };
 
@@ -1648,16 +1708,76 @@
      ★鍵の無い人の字は、サーバーが返した抜粋（最初に書かれた1欄の先頭40字）だけ ── 本文はそもそも届かない（db/reviews-gate.sql の
        pv_reviews）。ここで字を切らない・作らない・足さない。点数だけの投稿（字が無い）は飛ばす（日付だけの札を並べない）。 */
   var REV_CMP = 2;                                    // 会社ページの概要の口コミの箱（KIND.reviews）と同じ件数
+  /* 抜粋の道は、口コミの鍵が無いと答えた返事の道（鍵のある返事は下の revScroll）。読むのはサーバーの抜粋だけ ──
+     本文の列（*_comment・translations）が万一ついて来ても読まない（決めるのはサーバーの1語 unlocked。列の有る無しで決めない） */
+  function clipOnly(r) {
+    var c = {};
+    for (var k in r) {
+      if (Object.prototype.hasOwnProperty.call(r, k) && !/_comment$/.test(k) && k !== 'translations') c[k] = r[k];
+    }
+    return c;
+  }
   function clipsOf(o, I) {
     if (!o || !I) return null;
     var ul = el('ul', 'crl-revs'), locked = false;
     for (var i = 0; i < o.rows.length && ul.childNodes.length < REV_CMP; i++) {
-      var p = I.pick(o.rows[i]);
+      var p = I.pick(clipOnly(o.rows[i]));
       if (!(isArr(p.cats) && p.cats.some(function (c) { return c && c.text; }))) continue;
       if (p.locked) locked = true;
       ul.appendChild(reviewItem(p, o.rows[i]));
     }
     return ul.childNodes.length ? { ul: ul, locked: locked } : null;
+  }
+  /* 口コミの鍵のある人（2026-10-22 オーナー P12.97「投稿済みの人はそのカードで他の人の投稿スクロール可能にして」）：
+     その会社のマスの中で、ほかの人の投稿を新しい順に、本文のまま（会社ページの口コミと同じ字）スクロールして読める。
+     ★ 決めるのはサーバーの答えの1語（pv_reviews の unlocked）だけ ── 給与の鍵では開かない（給与の答えをここで見ない）。
+       鍵の無い人には、そもそも本文が届かない（上の clipsOf の抜粋だけ）。
+     ★ 行はすでに受け取った分（reviews() の1回）から、REV_PAGE 件ずつ描く。続きは「続きを見る（全n件）」── 給与の一覧の畳みと同じ言葉。
+       n は、この枠に並ぶ字のある投稿の数（点数だけの投稿は並べない・数えない）。押したら、新しく出た1件目へフォーカスを移す。
+     ★ 枠はキーボードで入れる（tabindex 0）・読み上げはその会社の名前の区切り（role region）。保存領域には何も書かない。 */
+  var REV_PAGE = 5;
+  function revScroll(slug, o, I) {
+    if (!o || !I) return null;
+    var items = [];
+    o.rows.forEach(function (r) {
+      var p = I.pick(r);
+      if (!p.locked && isArr(p.cats) && p.cats.some(function (c) { return c && c.text; })) items.push([p, r]);
+    });
+    if (!items.length) return null;
+    var wrap = el('div', 'crl-rv-scroll');
+    wrap.setAttribute('role', 'region');
+    wrap.setAttribute('aria-label', coName(slug));
+    wrap.tabIndex = 0;
+    var ul = el('ul', 'crl-revs');
+    wrap.appendChild(ul);
+    var shown = 0, more = null;
+    function next() {
+      var first = null;
+      items.slice(shown, shown + REV_PAGE).forEach(function (x) {
+        var li = reviewItem(x[0], x[1], true);
+        if (!first) first = li;
+        ul.appendChild(li);
+      });
+      shown = Math.min(items.length, shown + REV_PAGE);
+      return first;
+    }
+    next();
+    if (shown < items.length) {
+      more = el('button', 'crl-link crl-rv-more');          // 押せる形は今までの「crl-link」（新しい押せる形を足さない）
+      more.type = 'button';
+      more.appendChild(el('span', '', T.payMore(items.length)));
+      more.appendChild(icon('down', 14));
+      more.addEventListener('click', function () {
+        var first = next();
+        if (shown >= items.length && more.parentNode) more.parentNode.removeChild(more);
+        if (first) {
+          first.setAttribute('tabindex', '-1');
+          try { first.focus(); } catch (e) { /* フォーカスを移せないブラウザでは、そのまま */ }
+        }
+      });
+      wrap.appendChild(more);
+    }
+    return { ul: wrap, locked: false };
   }
   KIND['cmp-stars'] = function (box, ids) {
     return both(reviews, ids).then(needOne).then(function (S) {
@@ -1693,7 +1813,8 @@
       if (figs[0] || figs[1]) subRow(g, 'crl-rate-fig', figs[0] || blankCell(), figs[1] || blankCell());
       /* 評価の下に、新しい投稿の抜粋。続きを読むのは Give & Get（口コミの投稿 ＝ 口コミの鍵。給与の鍵では開かない）── 鍵の無い人にだけ1つ */
       return i18n().then(function (I) { return I; }, function () { return null; }).then(function (I) {
-        var C = [clipsOf(O[0], I), clipsOf(O[1], I)];
+        /* 口コミの鍵のある会社のマスは、ほかの人の投稿をスクロールで読める枠（revScroll）。無い会社は抜粋（clipsOf）のまま */
+        var C = O.map(function (o, i) { return S[i].ok && S[i].v.unlocked === true ? revScroll(ids[i], o, I) : clipsOf(o, I); });
         if (C[0] || C[1]) subRow(g, 'crl-rate-rv', C[0] ? C[0].ul : blankCell(), C[1] ? C[1].ul : blankCell());
         var nodes = [g];
         if ((C[0] && C[0].locked) || (C[1] && C[1].locked)) {
@@ -1705,14 +1826,15 @@
   };
 
   /* 1件ぶん。鍵のある人には本文、無い人にはサーバーが返した抜粋と区分の名前だけ。
-     本文を切るのは見た目（CSS）だけで、字は作らない・足さない。 */
-  function reviewItem(p, row) {
-    var li = el('li', 'crl-rev');
+     本文を切るのは見た目（CSS）だけで、字は作らない・足さない。
+     full ＝ 本文を全部（比較の、口コミの鍵のある人のスクロールの枠）。書かれた区分を全部、切らずに出す。 */
+  function reviewItem(p, row, full) {
+    var li = el('li', full && !p.locked ? 'crl-rev crl-rev-full' : 'crl-rev');
     if (p.locked) li.setAttribute('data-mask', '');
     var when = ym(row && row.created_at);
     if (when) li.appendChild(el('p', 'crl-rev-when', when));
     var cats = isArr(p.cats) ? p.cats : [];
-    var withText = cats.filter(function (c) { return c && c.text; }).slice(0, p.locked ? 1 : 3);
+    var withText = cats.filter(function (c) { return c && c.text; }).slice(0, p.locked ? 1 : full ? cats.length : 3);
     withText.forEach(function (c) {
       var b = el('div', 'crl-rev-cat');
       b.appendChild(el('span', 'crl-chip', c.label));
@@ -1922,6 +2044,8 @@
   function refocus(box) {
     if (!box._crlBack) return;
     box._crlBack = 0;
+    var at = d.activeElement;
+    if (at && at !== d.body && at !== d.documentElement) return;   // 待つあいだに読み手が自分で動いた先からは、引き戻さない
     var t = box.querySelector('.crl-retry, a[href], button');
     if (!t) { t = box; box.setAttribute('tabindex', '-1'); }
     try { t.focus({ preventScroll: true }); } catch (e) { /* フォーカスを移せないブラウザでは、今までどおり */ }

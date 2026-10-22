@@ -14,6 +14,14 @@
      ・点数の無い会社・投稿の無い会社に、0 も空の星も置かない（場面 unrated）。
      ・片方の会社が読めなくても、もう片方は出す。やり直すのは読めなかった方だけ（場面 side）。
      ・1社の概要（career.html?airline=…）も同じ数え方（場面 overview）。
+     ・比較の口コミの要約（cmp-summary）：読む人の1行は枠に1回だけ ── ゲストは「ログインが必要です」と「ログイン」1つ（評価の読み込みを
+       待たない・場面 sumlogin）、口コミの鍵の無い会員は「要約は口コミの投稿で開きます」だけ・リンク0・返事に植えた点は画面にも保存領域にも
+       出ない・給与の鍵では開かない（場面 sumkey）。別のタブで読む人が替わったら、前の人の文を1字も残さず次の人の顔へ（場面 sumtwo・static S9）。
+       関数がまだ無いときは「準備中」を1回・数字なし・点数の付いた投稿の無い2社の下には何も見せない（場面 sumoff）。
+       [B] 開いた要約は各社2点まで・足元・欄にリンク無し（sumopen）／静かな1行の出し方（sumquiet）／読めないときの顔と「やり直す」1つ（sumfail）。
+     ・口コミの鍵のある人は、会社のマスの中でほかの人の投稿を本文のまま新しい順にスクロールして読める（5件ずつ・キーボードで）。
+       ゲスト・給与の鍵だけの会員には本文が1字も出ない（返事に植えた本文の列も読まない）・読む人が替わったら消える（場面 revkey）。
+     ・[B] 欄の「やり直す」のあと、待つあいだに読み手が動いた先からフォーカスを引き戻さない（場面 refocus）。
      給与の区域（cmp-pay ── 比較の「提出された年収」。返事の材料は cmp-stubs.mjs の payFix）
      ・鍵の無い人（ゲスト・会員・期限切れ）には、会社ごとの件数だけ。行・額・板を描かず、返事に植えた列は画面にも保存領域にも出ない。
        中央値（pv_company_pay）も DEEP PAY も聞かない。錠の1行と入口（Give & Get）は1つずつ・「ログイン」はゲストにだけ（場面 pay-lock）。
@@ -29,7 +37,8 @@
    どの場面も、終わりに3つを確かめる：本番の supabase への要求 0・外へすり抜けた要求 0・（MOCK）自分の呼び出しに全部返事があった。
 
    実行: node assert-career-live.mjs [--scenes a,b] [--shots <folder>] [--via form|call] [--sql <file>]
-     --scenes  場面を選ぶ（static・net・unknown・leak・zero … pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall）。
+     --scenes  場面を選ぶ（static・net・unknown・leak・zero … sumopen・sumlogin・sumkey・sumtwo・sumoff・sumquiet・sumfail・revkey・refocus …
+               pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall）。
                付けなければ全部（static → MOCK → REAL LOCAL の順）。⚠️ pay-stall は上限まで本当に待つ（15秒あまり）
      --shots   場面の確かめのあと、口コミ・月の働き方・待遇の箱を、その場面の大きさで撮って置く（置き場は打った場所。ファイルに書かない）。
                場面 pay-fit・pay-fail は「提出された年収」の箱を撮る（ディルハム・読めない・準備中・中央値の失敗と準備中）
@@ -260,6 +269,20 @@ scene('static', 'ファイルの約束（口コミの読み方）', 'static', as
     '月の働き方の欄のすぐ次の欄は data-quiet="1"・聞く質問は勤務・訓練（CMP_KEYS.work）のまま', Q.tag.slice(0, 300));
   ok(CF.length === 2 && ben > 0 && Pz.at > ben && attrOf(Pz.tag, 'quiet') === null && attrOf(Pz.tag, 'keys') === CMP_KEYS.pay.join(','),
     '「待遇」の見出しの下の欄は data-quiet なし・聞く質問は給与・待遇（CMP_KEYS.pay）のまま', Pz.tag.slice(0, 300));
+
+  /* S9 比較の口コミの要約（cmp-summary）は、読む人が替わったら空にして取り直す欄の1つ（setUid の reset の並びに在る ── 同じ所で 'sum:' の
+     答えも捨てる）。時計や画面の出入りで取り直す仕掛けは持たない。career.html では、評価の欄（cmp-stars）のすぐ次の欄（CSS が隣の印を読む） */
+  const su = (LJ.match(/function setUid\(v\) \{[\s\S]*?\n {2}\}/) || [''])[0];
+  const rl = (su.match(/reset\(\[([^\]]*)\]\)/) || ['', ''])[1].split(',').map((s) => s.trim().replace(/^'|'$/g, ''));
+  ok(rl.includes('cmp-summary') && /drop\('sum:'\)/.test(su),
+    '読む人が替わったら、比較の要約の欄（cmp-summary）も空にして取り直す（setUid の reset の並び・同じ所で要約の答え sum: を捨てる）', JSON.stringify({ rl, sum: /drop\('sum:'\)/.test(su) }));
+  const tick = ['visibilitychange', 'setInterval', 'GATED_KEYS', 'function stale('].filter((w) => LJ.includes(w));
+  ok(tick.length === 0, '時計・画面の出入りで取り直す仕掛けを持たない（visibilitychange・setInterval・GATED_KEYS・stale が無い）', tick.join(','));
+  const slotLines = CH.split('\n').map((l) => l.trim()).filter((l) => /^<div class="crl" data-live="cmp-(stars|summary)"/.test(l));
+  const chLines = CH.split('\n').map((l) => l.trim());
+  const starsAt = chLines.findIndex((l) => l.startsWith('<div class="crl" data-live="cmp-stars"'));
+  ok(slotLines.length === 2 && starsAt >= 0 && chLines[starsAt + 1].startsWith('<div class="crl" data-live="cmp-summary"'),
+    'career.html：比較の要約の欄（cmp-summary）はちょうど1つで、評価の欄（cmp-stars）の行のすぐ次の行', JSON.stringify(slotLines));
 });
 
 /* ══ MOCK ════════════════════════════════════════════════════════ */
@@ -619,6 +642,357 @@ scene('overview', '1社の概要の評価も同じ数え方（「n件の評価�
   const u = await overview(e.page);
   ok(!!u && u.outline === 1 && u.filled === 0 && u.cnt === '評価未取得' && u.posts === '会員の投稿 2件' && u.next,
     '点数の無い投稿だけなら、輪郭の星（1社だけで立っている）・「評価未取得」・その下に「会員の投稿 2件」', JSON.stringify(u));
+});
+
+/* ══ 比較の口コミの要約（cmp-summary）と、口コミの鍵のある人の読む枠 ══════════════
+   字は決めごと（比較の口コミの設計 E6・状態の表 B）なので、ページのコードから借りずにここへ書く。 */
+const SUM_SEL = '#cr [data-view="compare"] .crl[data-live="cmp-summary"]';
+const REV_BOX = '#cr [data-view="compare"] .cr-cmp-rev';
+const SUMW = { title: '口コミの要約', login: 'ログインが必要です', key: '要約は口コミの投稿で開きます', few: '口コミがまだ少ないため、要約はありません',
+  none: '口コミの要約は、まだありません', off: '準備中', err: 'いま読み出せません', retry: 'やり直す',
+  foot: ['AI 要約', '会員の口コミ 3件から', '2026-10-01 更新'] };
+const SUM_OPEN = (co) => ({ ok: true, state: 'open', n: 3, as_of: '2026-10-01',
+  good: [{ text: `${co} 良い点その一`, cat: 'training' }, { text: `${co} 良い点その二`, cat: 'wlb' }, { text: `${co} 良い点その三`, cat: 'ops' }],
+  concern: [{ text: `${co} 気になる点その一`, cat: 'benefits' }] });
+/* 鍵の無い人への返事に、わざと点と件数を植えたもの（画面は状態の1語しか読まない） */
+const SUM_LEAK = { ok: true, state: 'locked', n: 7, as_of: '2026-10-01', good: [{ text: 'LEAK-GOOD 点', cat: 'ops' }], concern: [{ text: 'LEAK-CONCERN 点' }] };
+const SUM_FAIL = { status: 500, body: { code: 'XX000', details: null, hint: null, message: '検査のわざとの失敗' } };
+const SUM_NOFN = { status: 404, body: { code: 'PGRST202', details: null, hint: null, message: 'Could not find the function public.pv_review_summary' } };
+/* 会社ごとの要約の返事（{ slug: body | { status, body } }）。聞かれた会社は p.airline */
+const sumBy = (map, dflt = { ok: true, state: 'few' }) => (p) => {
+  const r = map[p && p.airline];
+  if (r && r.status) return r;
+  return { status: 200, body: r || dflt };
+};
+/* 送ってきたログインが誰か（serve-local.mjs の MEMBERS の key。ログインしていなければ 'anon'）── 場面 mixtwo と同じ読み方 */
+const { MEMBERS: LOCAL_MEMBERS } = await import('./serve-local.mjs');
+const MEMBER_OF = Object.fromEntries(LOCAL_MEMBERS.map((m) => [m.id, m.key]));
+const whoOf = (auth) => {
+  try { const t = String(auth || '').replace(/^Bearer /, ''); return MEMBER_OF[JSON.parse(Buffer.from(t.split('.')[1], 'base64url').toString()).sub] || 'anon'; }
+  catch { return 'anon'; }
+};
+/* 要約の欄と口コミの箱の、見えている顔（見えている字・錠前の1行・「やり直す」・「ログイン」）と、画面と保存領域の全部の字 */
+const sumFace = (page) => page.evaluate((SUM_SEL, REV_BOX) => {
+  const b = document.querySelector(SUM_SEL), box = document.querySelector(REV_BOX);
+  if (!b || !box) return null;
+  const vis = (n) => { if (!n || !n.getClientRects().length) return false; const r = n.getBoundingClientRect(), s = getComputedStyle(n);
+    return s.visibility !== 'hidden' && r.width > 1 && r.height > 1; };
+  const seen = (root) => { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), out = [];
+    for (let t = w.nextNode(); t; t = w.nextNode()) { const p = t.parentElement; if (t.nodeValue.trim() && p && !p.closest('.crl-sr') && vis(p)) out.push(t.nodeValue.trim()); }
+    return out; };
+  const store = [];
+  for (const S of [localStorage, sessionStorage]) for (let i = 0; i < S.length; i++) { const k = S.key(i); store.push(`${k}=${S.getItem(k)}`); }
+  const r = b.getBoundingClientRect();
+  return {
+    state: b.getAttribute('data-state'), part: b.getAttribute('data-part'), h: Math.round(r.height),
+    why: [...b.querySelectorAll('[data-why]')].map((x) => x.getAttribute('data-why')), seen: seen(b),
+    titles: [...b.querySelectorAll('.crl-sum-title')].filter(vis).map((x) => x.textContent),
+    cells: [...b.querySelectorAll('.crl-sum2-c')].map((c) => ({ col: c.getAttribute('data-col'), quiet: c.hasAttribute('data-quiet'), shown: vis(c),
+      tag: (c.querySelector(':scope > .crl-co') || {}).textContent || null,
+      good: [...c.querySelectorAll('.crl-sum-col[data-kind="good"] .crl-sum-t')].map((x) => x.textContent),
+      concern: [...c.querySelectorAll('.crl-sum-col[data-kind="concern"] .crl-sum-t')].map((x) => x.textContent),
+      foot: [...c.querySelectorAll('.crl-sum-by > span')].map((x) => x.textContent), seen: seen(c) })),
+    links: b.querySelectorAll('a').length,
+    boxLocks: [...box.querySelectorAll('.crl-lock')].filter(vis).map((x) => x.textContent.trim()),
+    boxRetries: [...box.querySelectorAll('.crl-retry')].filter(vis).length,
+    boxLogin: [...box.querySelectorAll('a')].filter((a) => vis(a) && a.textContent.trim() === 'ログイン').map((a) => a.getAttribute('href')),
+    boxGG: [...box.querySelectorAll('a.pv-gg')].filter(vis).length,
+    boxErrs: seen(box).filter((t) => t === 'いま読み出せません').length,
+    html: (document.querySelector('#cr [data-view="compare"]') || {}).outerHTML || '', store: store.join('\n'),
+  };
+}, SUM_SEL, REV_BOX);
+const sumDone = (page, want) => settled(page, 'cmp-summary', want);
+const pressSumRetry = async (page) => {
+  const h = await page.evaluateHandle((REV_BOX) => [...document.querySelectorAll(`${REV_BOX} .crl-retry`)]
+    .find((x) => x.getClientRects().length && x.getBoundingClientRect().height > 1) || null, REV_BOX);
+  const b = h.asElement();
+  if (!b) return false;
+  await b.focus();
+  await page.keyboard.press('Enter');
+  return true;
+};
+const sumCalls = (st, n0 = 0) => st.calls.slice(n0).filter((c) => c.name === 'pv_review_summary').map((c) => (c.p && c.p.airline) || '?');
+const revCalls = (st, n0 = 0) => st.calls.slice(n0).filter((c) => c.name === 'pv_reviews').map((c) => (c.p && c.p.airlines ? c.p.airlines[0] : '?'));
+/* 評価の欄に抜粋の行（鍵の無い人の返事 ── 錠前の1行と口コミの Give & Get が出る）を作るための、字のある行 */
+const RATED_CLIPS = {
+  jal: [...FIX.JAL.slice(0, 2), lockedRow('jc1', '2026-10-02T00:00:00Z', 'ops', 'CLIP-SUM 運航の段取りは丁寧。')],
+  ana: FIX.ANA,
+};
+
+scene('sumopen', '[B] 要約が2社とも開いている：見出しは1回・各社 良い点と気になる点を2つまで（3つ目は出さない）・足元・欄の中にリンクを置かない', 'mock', async () => {
+  for (const size of ['pc', 'sp']) {
+    const { page } = await open(size, { url: PAIR_URL('jal', 'ana'), stub: {
+      pv_reviews: reviewsBy({ jal: FIX.JAL, ana: FIX.ANA }), pv_review_summary: sumBy({ jal: SUM_OPEN('JAL'), ana: SUM_OPEN('ANA') }) } });
+    ok(await sumDone(page, 'jal|ana'), `（${size}）要約の欄が読み終わった`);
+    const F = await sumFace(page), [A, B] = F && F.cells.length === 2 ? F.cells : [{}, {}];
+    ok(!!F && F.state === 'open' && JSON.stringify(F.titles) === JSON.stringify([SUMW.title]),
+      `（${size}）欄は開いた顔・見出し「${SUMW.title}」は1回だけ`, JSON.stringify(F && { state: F.state, titles: F.titles }));
+    const two = (c, co) => c.tag === NAME[co.toLowerCase()] && c.shown && JSON.stringify(c.good) === JSON.stringify([`${co} 良い点その一`, `${co} 良い点その二`])
+      && JSON.stringify(c.concern) === JSON.stringify([`${co} 気になる点その一`]) && JSON.stringify(c.foot) === JSON.stringify(SUMW.foot);
+    ok(two(A, 'JAL') && two(B, 'ANA') && !F.seen.some((t) => t.includes('その三')),
+      `（${size}）各社の札の下に、良い点はその一・その二（その三は出さない）・気になる点はその一・足元「${SUMW.foot.join('」「')}」`, JSON.stringify(F && F.cells));
+    ok(!!F && F.links === 0, `（${size}）要約の欄の中にリンク（矢印・入口）は1つも無い`, String(F && F.links));
+    await shots(page, size);
+  }
+});
+
+scene('sumlogin', 'ログインしていない人：要約の欄は1行「ログインが必要です」と「ログイン」1つだけ（会社ごとのマスを描かない）・評価の読み込みを待たない', 'mock', async () => {
+  const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), holdIf: (name) => name === 'pv_reviews',
+    stub: { pv_reviews: reviewsBy(RATED_CLIPS), pv_review_summary: sumBy({ jal: { ok: true, state: 'login' }, ana: { ok: true, state: 'few' } }) } });
+  ok(await sumDone(page, 'jal|ana'), '要約の欄が読み終わった（口コミの行の読みは止めたまま）');
+  const s0 = await slot(page, 'cmp-stars'), F = await sumFace(page);
+  ok(!!s0 && s0.state === 'loading' && (st.held.pv_reviews || []).length >= 1, '（前提）評価の欄は、止めた口コミの行を待っている', JSON.stringify(s0 && s0.state));
+  ok(!!F && F.state === 'locked' && JSON.stringify(F.why) === '["login"]' && F.cells.length === 0 && JSON.stringify(F.seen) === JSON.stringify([SUMW.login, 'ログイン']),
+    `要約の欄は1行「${SUMW.login}」と「ログイン」だけ（会社ごとのマス・社名の札・数・文を描かない）`, JSON.stringify(F && { state: F.state, why: F.why, seen: F.seen, cells: F.cells.length }));
+  const back = F && F.boxLogin.length === 1 ? loginTo(F.boxLogin[0]) : null;
+  ok(!!F && F.boxLogin.length === 1 && back === 'career.html?view=compare&a=jal&b=ana',
+    '口コミの箱の「ログイン」は1つだけ・押すと同じ2社の比較へ戻る', JSON.stringify(F && { login: F.boxLogin, back }));
+  /* 止めておいた口コミの行（鍵の無い人の返事 ── 抜粋つき）を、聞かれた会社ごとの返事で流す：評価の欄の錠前の1行は、要約の欄の1行と重ねない */
+  st.holdIf = null;
+  for (const r of (st.held.pv_reviews || []).splice(0)) {
+    let p = null;
+    try { const b = JSON.parse(r.postData() || 'null'); p = b && typeof b === 'object' && 'p' in b ? b.p : b; } catch { p = null; }
+    const x = reviewsBy(RATED_CLIPS)(p);
+    await r.respond({ status: x.status, contentType: 'application/json; charset=utf-8', headers: { 'cache-control': 'no-store' }, body: JSON.stringify(x.body) });
+  }
+  ok(await settled(page, 'cmp-stars', 'jal|ana'), '止めていた口コミの行が届き、評価の欄が読み終わった');
+  const G = await sumFace(page);
+  ok(!!G && JSON.stringify(G.boxLocks) === JSON.stringify([SUMW.login]) && G.boxLogin.length === 1 && G.boxGG === 1,
+    `口コミの箱に見えている錠前の1行は「${SUMW.login}」の1つだけ・「ログイン」1つ・口コミの Give & Get 1つ`, JSON.stringify(G && { locks: G.boxLocks, login: G.boxLogin, gg: G.boxGG }));
+});
+
+scene('sumkey', '口コミの鍵の無い会員（給与の鍵は在る）：要約の欄は1行「要約は口コミの投稿で開きます」だけ・リンク0・返事に植えた点は画面にも保存領域にも出ない', 'mock', async () => {
+  const P = H.payFix.open([H.payRowFix('jal')], [H.payRowFix('ana')]);
+  const { page } = await open('pc', { who: 'pay', url: PAIR_URL('jal', 'ana'), stub: {
+    pv_reviews: reviewsBy(RATED_CLIPS), pv_review_summary: () => ({ status: 200, body: SUM_LEAK }),
+    pv_pay_rows: () => ({ status: 200, body: P }) } });
+  ok(await sumDone(page, 'jal|ana') && await settled(page, 'cmp-stars', 'jal|ana') && await settled(page, 'cmp-pay', 'jal|ana'), '要約・評価・提出された年収の欄が読み終わった');
+  const pay = await slot(page, 'cmp-pay');
+  ok(!!pay && pay.state === 'open', '（前提）この人の給与の鍵は開いている（提出された年収の欄が開いた顔）', pay && pay.state);
+  const F = await sumFace(page);
+  ok(!!F && F.state === 'locked' && JSON.stringify(F.why) === '["key"]' && JSON.stringify(F.seen) === JSON.stringify([SUMW.key]) && F.cells.length === 0,
+    `要約の欄は1行「${SUMW.key}」だけ（給与の鍵では開かない）`, JSON.stringify(F && { state: F.state, why: F.why, seen: F.seen }));
+  ok(!!F && F.links === 0 && JSON.stringify(F.boxLocks) === JSON.stringify([SUMW.key]) && F.boxGG === 1,
+    '要約の欄にリンクは0・口コミの箱に見えている錠前の1行はこの1つだけ（評価の欄の同じ意味の1行を重ねない）・入口は口コミの Give & Get 1つ', JSON.stringify(F && { links: F.links, locks: F.boxLocks, gg: F.boxGG }));
+  ok(!!F && !F.html.includes('LEAK-') && !F.store.includes('LEAK-'), '鍵の無い人への返事に植えた点（LEAK-）は、画面のどこにも保存領域にも出ない',
+    JSON.stringify({ html: F && F.html.includes('LEAK-'), store: F && F.store.includes('LEAK-') }));
+});
+
+scene('sumtwo', '別のタブで読む人が替わる：口コミの鍵のある人の要約 → 給与だけの会員の1行 → ログアウトの1行（前の人の文は1字も残らない）', 'mock', async () => {
+  const stub = { pv_reviews: reviewsBy({ jal: FIX.JAL, ana: FIX.ANA }),
+    pv_review_summary: (p, auth) => {
+      const w = whoOf(auth);
+      if (w === 'a') return { status: 200, body: SUM_OPEN(p && p.airline === 'jal' ? 'JAL' : 'ANA') };
+      return { status: 200, body: { ok: true, state: w === 'anon' ? 'login' : 'locked' } };
+    } };
+  const { page, st, ctx } = await open('pc', { who: 'a', url: PAIR_URL('jal', 'ana'), stub });
+  ok(await sumDone(page, 'jal|ana'), '口コミの鍵のある人（会員 a）として、要約の欄が読み終わった');
+  const F0 = await sumFace(page);
+  const MINE_TXT = ['JAL 良い点その一', 'ANA 良い点その一', 'JAL 気になる点その一', '会員の口コミ 3件から'];
+  ok(!!F0 && F0.state === 'open' && MINE_TXT.every((t) => F0.seen.includes(t)), '切り替える前：会員 a の要約が出ている（確かめが空振りしていない）', JSON.stringify(F0 && F0.seen));
+  await H.watch(page, 'cmp-summary');
+  const mark = await page.evaluate(() => { window.__crlNoReload = 1; return (window.__crlSeen || []).length; });
+  const n0 = st.calls.length;
+  const t = await H.otherTab(ctx, CUR.env.local);
+  await H.loginIn(t, CUR.env.local, 'pay');
+  const turned = await until(page, ([sel, line]) => { const b = document.querySelector(sel); return !!b && b.getAttribute('data-state') === 'locked' && b.innerText.trim() === line; }, [SUM_SEL, SUMW.key]);
+  const F1 = await sumFace(page);
+  const after = st.calls.slice(n0).filter((c) => c.name === 'pv_review_summary');
+  ok(turned && !!F1 && JSON.stringify(F1.seen) === JSON.stringify([SUMW.key]) && after.length === 2 && after.every((c) => whoOf(c.auth) === 'pay'),
+    `別のタブで給与だけの会員（pay）が入ると、読み込み直さずに「${SUMW.key}」の1行へ（2社とも pay のログインで聞き直した）`,
+    JSON.stringify({ turned, seen: F1 && F1.seen, after: after.map((c) => `${c.p && c.p.airline}:${whoOf(c.auth)}`) }));
+  const left = (await H.seen(page)).slice(mark).filter((s) => MINE_TXT.some((x) => s.includes(x)));
+  ok(left.length === 0 && !!F1 && !MINE_TXT.some((x) => F1.html.includes(x) || F1.store.includes(x)),
+    '切り替えたあと要約の欄が取ったどの顔にも、画面にも保存領域にも、会員 a の文は1字も無い', JSON.stringify(left.slice(0, 4)));
+  await H.logoutIn(t);
+  const out = await until(page, ([sel, line]) => { const b = document.querySelector(sel); return !!b && b.getAttribute('data-state') === 'locked' && b.innerText.trim().startsWith(line); }, [SUM_SEL, SUMW.login]);
+  const F2 = await sumFace(page);
+  ok(out && !!F2 && JSON.stringify(F2.seen) === JSON.stringify([SUMW.login, 'ログイン']) && await page.evaluate(() => window.__crlNoReload === 1),
+    `別のタブでログアウトすると、読み込み直さずに「${SUMW.login}」と「ログイン」へ`, JSON.stringify({ out, seen: F2 && F2.seen }));
+  await t.close();
+});
+
+scene('sumoff', '要約の関数がまだ無い（PGRST202 が2社とも）：点数の付いた2社の下に「準備中」を1回だけ・数字なし／投稿の無い2社の下には何も見せない', 'mock', async () => {
+  const { page } = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FIX.JAL, ana: FIX.ANA }), pv_review_summary: () => SUM_NOFN } });
+  ok(await sumDone(page, 'jal|ana') && await settled(page, 'cmp-stars', 'jal|ana'), '（JAL・ANA：どちらも点数あり）要約と評価の欄が読み終わった');
+  const F = await sumFace(page);
+  ok(!!F && JSON.stringify(F.seen) === JSON.stringify([SUMW.off]) && JSON.stringify(F.why) === '["off"]' && F.cells.length === 0,
+    `「${SUMW.off}」が1回だけ（会社ごとに繰り返さない・社名の札を付けない）`, JSON.stringify(F && { seen: F.seen, why: F.why, cells: F.cells.length }));
+  ok(!!F && !F.seen.join('').match(/\d/), '要約の欄に数字が1つも無い（「0件」にしない）', JSON.stringify(F && F.seen));
+  for (const [a, b, what] of [['eva-air', 'etihad', '点数の無い投稿だけ・投稿なし'], ['jal', 'etihad', '2社とも投稿なし（淡い6角形の格子）']]) {
+    const e = await open('pc', { url: PAIR_URL(a, b), stub: { pv_reviews: reviewsBy({ 'eva-air': FIX.EVA, etihad: FIX.ETD, jal: [] }), pv_review_summary: () => SUM_NOFN } });
+    ok(await sumDone(e.page, `${a}|${b}`) && await settled(e.page, 'cmp-stars', `${a}|${b}`), `（${what}）要約と評価の欄が読み終わった`);
+    const G = await sumFace(e.page);
+    ok(!!G && G.seen.length === 0 && G.h === 0, `（${what}）要約の欄は何も見せない（高さ 0）`, JSON.stringify(G && { seen: G.seen, h: G.h, state: G.state }));
+  }
+});
+
+scene('sumquiet', '[B] 要約の静かな1行：点数の付いた2社の下に出す・同じ文なら1回・違えば会社ごと・点数の無い会社の下には出さない', 'mock', async () => {
+  const S = (j, a) => sumBy({ jal: { ok: true, state: j }, ana: { ok: true, state: a }, 'eva-air': { ok: true, state: j }, etihad: { ok: true, state: a } });
+  const ROWS = { jal: FIX.JAL, ana: FIX.ANA, 'eva-air': FIX.EVA, etihad: FIX.ETD };
+  for (const size of ['pc', 'sp']) {
+    const { page } = await open(size, { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy(ROWS), pv_review_summary: S('few', 'few') } });
+    ok(await sumDone(page, 'jal|ana') && await settled(page, 'cmp-stars', 'jal|ana'), `（JAL・ANA 2社とも少ない・${size}）読み終わった`);
+    const F = await sumFace(page);
+    ok(!!F && JSON.stringify(F.seen) === JSON.stringify([SUMW.few]) && F.cells.length === 0, `（${size}）「${SUMW.few}」を1回だけ・社名の札なし`, JSON.stringify(F && F.seen));
+  }
+  const two = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy(ROWS), pv_review_summary: S('none', 'few') } });
+  ok(await sumDone(two.page, 'jal|ana') && await settled(two.page, 'cmp-stars', 'jal|ana'), '（JAL まだ無い・ANA 少ない）読み終わった');
+  const T2 = await sumFace(two.page), [A, B] = T2 && T2.cells.length === 2 ? T2.cells : [{}, {}];
+  ok(A.shown && B.shown && JSON.stringify(A.seen) === JSON.stringify([NAME.jal, SUMW.none]) && JSON.stringify(B.seen) === JSON.stringify([NAME.ana, SUMW.few]),
+    '違う文なら会社ごと：JAL の札の下に「まだありません」・ANA の札の下に「少ないため」', JSON.stringify(T2 && T2.cells));
+  const ev = await open('pc', { url: PAIR_URL('eva-air', 'etihad'), stub: { pv_reviews: reviewsBy(ROWS), pv_review_summary: S('few', 'few') } });
+  ok(await sumDone(ev.page, 'eva-air|etihad') && await settled(ev.page, 'cmp-stars', 'eva-air|etihad'), '（エバー 点数の無い投稿だけ・エティハド 投稿なし）読み終わった');
+  const E = await sumFace(ev.page);
+  ok(!!E && E.seen.length === 0 && E.h === 0, '点数の付いた投稿が2社とも無ければ、要約の欄は何も見せない（高さ 0）', JSON.stringify(E && { seen: E.seen, h: E.h }));
+  const je = await open('pc', { url: PAIR_URL('jal', 'etihad'), stub: { pv_reviews: reviewsBy({ jal: FIX.JAL, etihad: [] }), pv_review_summary: S('none', 'few') } });
+  ok(await sumDone(je.page, 'jal|etihad') && await settled(je.page, 'cmp-stars', 'jal|etihad'), '（JAL 点数あり・エティハド 投稿なし）読み終わった');
+  const JE = await sumFace(je.page), [JA, JB] = JE && JE.cells.length === 2 ? JE.cells : [{}, {}];
+  ok(JA.shown && JSON.stringify(JA.seen) === JSON.stringify([NAME.jal, SUMW.none]) && JB.shown === false,
+    'JAL の札の下には「まだありません」・投稿の無いエティハドの文は出さない', JSON.stringify(JE && JE.cells));
+});
+
+scene('sumfail', '[B] 要約が読めない：片方なら その会社の札と「いま読み出せません」・もう片方は出す・「やり直す」は箱に1つ（押すと読めなかった方だけ聞き直す）', 'mock', async () => {
+  const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FIX.JAL, ana: FIX.ANA }),
+    pv_review_summary: sumBy({ jal: SUM_FAIL, ana: SUM_OPEN('ANA') }) } });
+  ok(await sumDone(page, 'jal|ana') && await settled(page, 'cmp-stars', 'jal|ana'), '（JAL の要約だけ 500）読み終わった');
+  const F = await sumFace(page), [A, B] = F && F.cells.length === 2 ? F.cells : [{}, {}];
+  ok(!!F && F.state === 'open' && F.part === '1' && JSON.stringify(A.seen) === JSON.stringify([NAME.jal, SUMW.err]) && B.good.length === 2,
+    'JAL の札の下に「いま読み出せません」・ANA の要約はいつもどおり', JSON.stringify(F && { state: F.state, part: F.part, A: A.seen, B: B.good }));
+  ok(!!F && F.boxRetries === 1, '口コミの箱に見えている「やり直す」は1つ', String(F && F.boxRetries));
+  st.stub.pv_review_summary = sumBy({ jal: SUM_OPEN('JAL'), ana: SUM_OPEN('ANA') });
+  const n0 = st.calls.length;
+  ok(await pressSumRetry(page), '「やり直す」をキーボードで押した');
+  ok(await until(page, (sel) => { const b = document.querySelector(sel); return !!b && b.getAttribute('data-state') === 'open' && !b.getAttribute('data-part')
+    && b.innerText.includes('JAL 良い点その一'); }, SUM_SEL), 'JAL の要約が埋まった');
+  ok(JSON.stringify(sumCalls(st, n0)) === '["jal"]' && revCalls(st, n0).length === 0, '聞き直したのは JAL の要約だけ（ANA の要約・口コミの行は聞かない）',
+    JSON.stringify({ sum: sumCalls(st, n0), rev: revCalls(st, n0) }));
+  /* 2社とも評価も要約も読めない → 箱に見える失敗の帯と「やり直す」は1つずつ（狭い画面と広い画面で1回ずつ） */
+  for (const size of ['pc', 'sp']) {
+    const f = await open(size, { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FAIL500, ana: FAIL500 }), pv_review_summary: () => SUM_FAIL } });
+    ok(await sumDone(f.page, 'jal|ana') && await settled(f.page, 'cmp-stars', 'jal|ana'), `（2社とも全部 500・${size}）読み終わった`);
+    const G = await sumFace(f.page);
+    ok(!!G && G.state === 'error' && G.boxErrs === 1 && G.boxRetries === 1 && G.h === 0,
+      `（${size}）口コミの箱に見える「いま読み出せません」と「やり直す」は1つずつ（要約の欄の失敗は評価の欄の帯に畳む）`, JSON.stringify(G && { state: G.state, errs: G.boxErrs, retries: G.boxRetries, h: G.h }));
+  }
+  /* JAL だけ両方読めない → JAL の列に各欄1回ずつ・「やり直す」は箱に1つ・押すと JAL の2つを聞き直す */
+  const j = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FAIL500, ana: FIX.ANA }),
+    pv_review_summary: sumBy({ jal: SUM_FAIL, ana: SUM_OPEN('ANA') }) } });
+  ok(await sumDone(j.page, 'jal|ana') && await settled(j.page, 'cmp-stars', 'jal|ana'), '（JAL だけ評価も要約も 500）読み終わった');
+  const J1 = await sumFace(j.page);
+  ok(!!J1 && J1.boxErrs === 2 && J1.boxRetries === 1, 'JAL の列に「いま読み出せません」が欄ごとに1回（評価と要約）・見えている「やり直す」は1つ', JSON.stringify(J1 && { errs: J1.boxErrs, retries: J1.boxRetries }));
+  j.st.stub.pv_reviews = reviewsBy({ jal: FIX.JAL, ana: FIX.ANA });
+  j.st.stub.pv_review_summary = sumBy({ jal: SUM_OPEN('JAL'), ana: SUM_OPEN('ANA') });
+  const m0 = j.st.calls.length;
+  ok(await pressSumRetry(j.page), '「やり直す」をキーボードで押した');
+  ok(await until(j.page, (sel) => { const b = document.querySelector(sel); return !!b && b.getAttribute('data-state') === 'open' && !b.getAttribute('data-part'); }, SUM_SEL)
+    && await settled(j.page, 'cmp-stars', 'jal|ana'), '評価と要約が埋まった');
+  ok(JSON.stringify(sumCalls(j.st, m0)) === '["jal"]' && JSON.stringify(revCalls(j.st, m0)) === '["jal"]', '聞き直したのは JAL の2つだけ（要約と口コミの行）',
+    JSON.stringify({ sum: sumCalls(j.st, m0), rev: revCalls(j.st, m0) }));
+});
+
+/* 口コミの鍵のある人の読む枠（2026-10-22 オーナー P12.97「投稿済みの人はそのカードで他の人の投稿スクロール可能にして」）。
+   返事は送ってきたログインで決める：会員 a（口コミの鍵）だけ本文つき（unlocked）・ほかの人は鍵の無い返事。鍵の無い返事にも本文の列を
+   わざと植えておく（KEY-PLANT）── 画面はサーバーの1語（unlocked）で決め、列の有る無しで決めない */
+const KEYM = (co, i) => `KEYBODY-${co}-${i}`;
+const keyRow = (co, i) => row(`${co}${i}`, NUL, { created_at: `2026-${String(10 - Math.floor(i / 3)).padStart(2, '0')}-${String(25 - i).padStart(2, '0')}T00:00:00Z`,
+  cats: undefined, clip: undefined, training_comment: `${KEYM(co, i)} 訓練は丁寧で、教官の質も高い。`, wlb_comment: i % 2 ? `${KEYM(co, i)}w 休みは取りやすい。` : null });
+const KEY_ROWS = { jal: Array.from({ length: 12 }, (_, i) => keyRow('J', i)), ana: [keyRow('A', 0), keyRow('A', 1)] };
+const KEYLESS = { jal: [lockedRow('jk1', '2026-10-01T00:00:00Z', 'training', 'CLIPKEY-J1 訓練は丁寧で…', ['training']),
+  { ...lockedRow('jk2', '2026-09-01T00:00:00Z', 'wlb', 'CLIPKEY-J2 休みは…', ['wlb']), wlb_comment: 'KEY-PLANT 鍵の無い返事に植えた本文' }],
+ana: [lockedRow('ak1', '2026-10-01T00:00:00Z', 'ops', 'CLIPKEY-A1 運航は…', ['ops'])] };
+const keyStub = (p, auth) => {
+  const a = p && Array.isArray(p.airlines) ? p.airlines[0] : '';
+  const k = whoOf(auth) === 'a';
+  return { status: 200, body: { ok: true, unlocked: k, rows: (k ? KEY_ROWS : KEYLESS)[a] || [] } };
+};
+const RV_SEL = '#cr [data-view="compare"] .crl[data-live="cmp-stars"] .crl-rate-rv';
+const rvFace = (page) => page.evaluate((RV_SEL, REV_BOX) => {
+  const rv = document.querySelector(RV_SEL), box = document.querySelector(REV_BOX);
+  const store = [];
+  for (const S of [localStorage, sessionStorage]) for (let i = 0; i < S.length; i++) { const k = S.key(i); store.push(`${k}=${S.getItem(k)}`); }
+  const regions = rv ? [...rv.querySelectorAll('.crl-rv-scroll')].map((r) => ({ role: r.getAttribute('role'), label: r.getAttribute('aria-label'), tab: r.tabIndex,
+    scroll: getComputedStyle(r).overflowY, items: [...r.querySelectorAll('.crl-rev')].map((li) => ({ when: (li.querySelector('.crl-rev-when') || {}).textContent || '',
+      text: [...li.querySelectorAll('.crl-rev-text')].map((x) => x.textContent) })),
+    more: [...r.querySelectorAll('button')].map((b) => b.textContent.trim()) })) : [];
+  const a = document.activeElement;
+  return { regions, clips: rv ? [...rv.querySelectorAll('.crl-rev-clip')].map((x) => x.textContent) : [],
+    gg: box ? box.querySelectorAll('a.pv-gg').length : 0, locks: box ? box.querySelectorAll('.crl-lock').length : 0,
+    focus: a && a.matches && a.matches('.crl-rev') ? [...a.closest('.crl-rv-scroll').querySelectorAll('.crl-rev')].indexOf(a) : (a ? a.tagName : null),
+    html: (document.querySelector('#cr [data-view="compare"]') || {}).outerHTML || '', store: store.join('\n') };
+}, RV_SEL, REV_BOX);
+const anyKey = (s) => /KEYBODY-|KEY-PLANT/.test(s);
+
+scene('revkey', '口コミの鍵のある人は会社のマスの中で本文をスクロールして読める（新しい順・5件ずつ・キーボードで）── 鍵の無い人・給与の鍵だけの人には本文が1字も出ない・読む人が替わったら消える', 'mock', async () => {
+  const P = H.payFix.open([H.payRowFix('jal')], [H.payRowFix('ana')]);
+  /* 鍵の無い2人：ゲストと、給与の鍵だけの会員（pay） */
+  for (const who of [null, 'pay']) {
+    const label = who ? '給与の鍵だけの会員（pay）' : 'ゲスト';
+    const { page, st } = await open('pc', { who, url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: keyStub, pv_pay_rows: () => ({ status: 200, body: who ? P : H.payFix.guest() }) } });
+    ok(await settled(page, 'cmp-stars', 'jal|ana') && await settled(page, 'cmp-pay', 'jal|ana'), `（${label}）口コミと提出された年収の欄が読み終わった`);
+    const pay = await slot(page, 'cmp-pay'), R = await rvFace(page);
+    if (who) ok(!!pay && pay.state === 'open', '（前提）この人の給与の鍵は開いている（提出された年収の欄が開いた顔）', pay && pay.state);
+    ok(R.regions.length === 0 && JSON.stringify(R.clips) === JSON.stringify(['CLIPKEY-J1 訓練は丁寧で…', 'CLIPKEY-J2 休みは…', 'CLIPKEY-A1 運航は…']) && R.gg === 1,
+      `（${label}）読む枠は無い・出るのはサーバーの抜粋だけ（JAL 2件・ANA 1件）と、口コミの Give & Get 1つ`, JSON.stringify({ regions: R.regions.length, clips: R.clips, gg: R.gg }));
+    const sent = st.calls.map((c) => JSON.stringify(c.p || '')).join(' ');
+    ok(!anyKey(R.html) && !anyKey(R.store) && !anyKey(sent), `（${label}）本文（返事にわざと植えた列も）は、画面にも保存領域にも、ページが送った要求にも1字も無い`,
+      JSON.stringify({ html: anyKey(R.html), store: anyKey(R.store), sent: anyKey(sent) }));
+  }
+  /* 口コミの鍵のある会員 a */
+  const { page, st, ctx } = await open('pc', { who: 'a', url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: keyStub } });
+  ok(await settled(page, 'cmp-stars', 'jal|ana'), '（口コミの鍵のある会員 a）口コミの欄が読み終わった');
+  const K = await rvFace(page), [RJ, RA] = K.regions.length === 2 ? K.regions : [{}, {}];
+  const want = (co, n) => KEY_ROWS[co].slice(0, n).map((r) => r.training_comment);
+  ok(K.regions.length === 2 && RJ.role === 'region' && RJ.label === NAME.jal && RJ.tab === 0 && RA.label === NAME.ana && ['auto', 'scroll'].includes(RJ.scroll),
+    '会社ごとに読む枠が1つ（スクロールできる・キーボードで入れる・読み上げは会社の名前の区切り）', JSON.stringify(K.regions.map((r) => ({ ...r, items: r.items && r.items.length }))));
+  ok((RJ.items || []).length === 5 && JSON.stringify(RJ.items.map((x) => x.text[0])) === JSON.stringify(want('jal', 5))
+    && RJ.items.every((x, i) => x.text.length === (i % 2 ? 2 : 1)) && JSON.stringify(RJ.more) === '["続きを見る（全12件）"]',
+  'JAL：新しい順に5件・本文は書かれた区分を全部（切らない）・続きは「続きを見る（全12件）」', JSON.stringify({ items: RJ.items, more: RJ.more }));
+  ok((RA.items || []).length === 2 && (RA.more || []).length === 0 && K.gg === 0 && K.locks === 0,
+    'ANA：2件で全部（続きのボタンなし）・鍵のある人には錠前の1行も Give & Get も出さない', JSON.stringify({ ana: RA.items && RA.items.length, more: RA.more, gg: K.gg, locks: K.locks }));
+  const more = async () => { const b = await page.$(`${RV_SEL} .crl-rv-scroll button`); if (!b) return false; await b.focus(); await page.keyboard.press('Enter'); return true; };
+  ok(await more(), '「続きを見る（全12件）」をキーボードで押した');
+  const K2 = await rvFace(page);
+  ok(K2.regions[0].items.length === 10 && K2.focus === 5 && JSON.stringify(K2.regions[0].items.map((x) => x.text[0])) === JSON.stringify(want('jal', 10)),
+    '次の5件が新しい順のまま続き、フォーカスは新しく出た1件目へ', JSON.stringify({ n: K2.regions[0].items.length, focus: K2.focus }));
+  ok(await more(), 'もう一度押した');
+  const K3 = await rvFace(page);
+  ok(K3.regions[0].items.length === 12 && K3.regions[0].more.length === 0 && K3.focus === 10, '12件で全部・ボタンは消え、フォーカスは11件目へ', JSON.stringify({ n: K3.regions[0].items.length, more: K3.regions[0].more, focus: K3.focus }));
+  ok(!anyKey(K3.store), '読んだ本文は保存領域に入らない', '');
+  /* 読む人が替わる（別のタブで、給与の鍵だけの会員 pay が入る）→ 読み込み直さずに、本文の枠が消えて抜粋へ */
+  await H.watch(page, 'cmp-stars');
+  const mark = await page.evaluate(() => { window.__crlNoReload = 1; return (window.__crlSeen || []).length; });
+  const n0 = st.calls.length;
+  const t = await H.otherTab(ctx, CUR.env.local);
+  await H.loginIn(t, CUR.env.local, 'pay');
+  const gone = await until(page, ([sel, rv]) => { const b = document.querySelector(sel); return !!b && b.getAttribute('data-state') === 'open'
+    && !!document.querySelector(rv) && !document.querySelector(`${rv} .crl-rv-scroll`) && !!document.querySelector(`${rv} .crl-rev-clip`); },
+  ['#cr [data-view="compare"] .crl[data-live="cmp-stars"]', RV_SEL]);
+  const Z = await rvFace(page);
+  const asked = st.calls.slice(n0).filter((c) => c.name === 'pv_reviews');
+  ok(gone && Z.regions.length === 0 && asked.length === 2 && asked.every((c) => whoOf(c.auth) === 'pay'),
+    '別のタブで pay が入ると、読み込み直さずに読む枠が消えて抜粋へ（2社の口コミを pay のログインで聞き直した）', JSON.stringify({ gone, regions: Z.regions.length, asked: asked.map((c) => whoOf(c.auth)) }));
+  const left = (await H.seen(page)).slice(mark).filter((s) => anyKey(s));
+  ok(left.length === 0 && !anyKey(Z.html) && !anyKey(Z.store) && await page.evaluate(() => window.__crlNoReload === 1),
+    '入れ替わったあと、評価の欄が取ったどの顔にも、画面にも保存領域にも、会員 a が読んだ本文は1字も無い', JSON.stringify(left.slice(0, 3)));
+  await t.close();
+});
+
+/* 欄ごとの「やり直す」（refocus）── 返事を待つあいだに読み手が自分で別の所へ動いたら、届いた時に引き戻さない（cmp-pay-5 の medBack と同じ守り） */
+scene('refocus', '[B] 「やり直す」を押して待つあいだに読み手が動いた先から、届いた時にフォーカスを引き戻さない', 'mock', async () => {
+  const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FAIL500, ana: FIX.ANA }) } });
+  ok(await settled(page, 'cmp-stars', 'jal|ana'), '（JAL が読めない）口コミの欄が読み終わった');
+  st.stub.pv_reviews = reviewsBy({ jal: FIX.JAL, ana: FIX.ANA });
+  st.holdIf = (name, p) => name === 'pv_reviews' && !!p && Array.isArray(p.airlines) && p.airlines[0] === 'jal';
+  ok(await pressRetry(page), '「やり直す」をキーボードで押した');
+  ok(await waitFor(() => (st.held.pv_reviews || []).length === 1), 'JAL の口コミの読みを止めた（答えを待っている）');
+  await page.focus('#cr-a');
+  st.holdIf = null;
+  release(st, 'pv_reviews', { status: 200, body: { ok: true, unlocked: false, rows: FIX.JAL } });
+  ok(await until(page, () => { const c = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"] .crl-cmp-c .crl-avg'); return !!c && c.textContent === '3.5'; }),
+    'JAL のマスが埋まった（3.5）');
+  const at = await page.evaluate(() => (document.activeElement && document.activeElement.id) || (document.activeElement && document.activeElement.tagName));
+  ok(at === 'cr-a', '[B] 待つあいだに読み手が移った先（1社目を選ぶ欄）に、フォーカスはそのまま', String(at));
 });
 
 /* ══ 給与の区域（cmp-pay）── 比較の「提出された年収」══════════════════════
