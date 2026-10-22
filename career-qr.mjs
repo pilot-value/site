@@ -406,6 +406,10 @@ const KNOWN = {
   rs: { d: [32, 91, 11, 120, 209, 114, 220, 77, 67, 64, 236, 17, 236, 17, 236, 17], e: [196, 35, 39, 119, 235, 215, 231, 226, 93, 23] },
 };
 
+/* 検査用：公開ページの住所 → 別の読み取り器で読めた行列の指紋（無ければ null）／行列 → その指紋。 */
+export function frozenPrint(url) { return Object.prototype.hasOwnProperty.call(FROZEN, url) ? FROZEN[url] : null; }
+export function matrixPrint(m) { return print(m); }
+
 export function selfTest() {
   const failed = [];
   let total = 0;

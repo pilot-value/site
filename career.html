@@ -44,12 +44,14 @@
   <link rel="stylesheet" href="my-value.css">
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.cr-*）。?v= は中身の指紋で、gen-career.mjs が書く。 -->
-  <link rel="stylesheet" href="career.css?v=de06eada">
-  <link rel="stylesheet" href="career-sec.css?v=9c4d7651">
+  <link rel="stylesheet" href="career.css?v=e249225c">
+  <link rel="stylesheet" href="career-sec.css?v=04bae47b">
   <!-- 生きた欄（.crl-*）・就航地（.crs-*）・カード保存（.crc-*）の見た目。 -->
-  <link rel="stylesheet" href="career-live.css?v=f39e9310">
+  <link rel="stylesheet" href="career-live.css?v=8cf057ba">
   <link rel="stylesheet" href="career-stay.css?v=fa905cac">
   <link rel="stylesheet" href="career-card.css?v=67e91a9b">
+  <!-- 「Give & Get」のボタンの形（サイトに1つ。career-live.js の give2() が使う）。?v= は gen-career.mjs が書く。 -->
+  <link rel="stylesheet" href="pv-gg.css?v=fcf7ad09">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。 */
@@ -1153,8 +1155,8 @@
 <span class="cr-ring" aria-hidden="true"></span>
 </div>
 </div>
-<div class="cr-panel">
-<h2 class="cr-panel-h">年収</h2>
+<div class="cr-panel" data-kind="estimate">
+<h2 class="cr-panel-h" id="cr-cmp-h-pay">年収</h2>
 <h3 class="cr-role">機長</h3>
 <div class="cr-pair" data-role="cap">
 <div class="cr-row" data-airline="jal" style="--cr-co:#CC0000">
@@ -1172,11 +1174,11 @@
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:51.43%"></i></div>
 </div>
-<a class="cr-row" href="career.html?airline=etihad&amp;d=cap-est" data-go data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row" data-airline="etihad" style="--cr-co:#B08D57" hidden>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">機長</span><b class="cr-row-v">¥3,400万</b></div>
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:48.57%"></i></div>
-</a>
+</div>
 <div class="cr-row" data-airline="eva-air" style="--cr-co:#00A599" hidden>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エバー航空</span><span class="cr-vh">機長</span><b class="cr-row-v">¥2,950万</b></div>
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
@@ -1200,11 +1202,11 @@
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:34.29%"></i></div>
 </div>
-<a class="cr-row" href="career.html?airline=etihad&amp;d=fo-est" data-go data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<div class="cr-row" data-airline="etihad" style="--cr-co:#B08D57" hidden>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エティハド航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">¥2,300万</b></div>
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
 <div class="cr-track" aria-hidden="true"><i class="cr-fill" style="--w:32.86%"></i></div>
-</a>
+</div>
 <div class="cr-row" data-airline="eva-air" style="--cr-co:#00A599" hidden>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>エバー航空</span><span class="cr-vh">副操縦士</span><b class="cr-row-v">¥1,590万</b></div>
 <div class="cr-row-k"><span class="cr-tag">推定</span></div>
@@ -1219,18 +1221,165 @@
 <p class="cr-tax" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i>エティハド航空<span>非課税（UAE に個人所得税なし）</span></p>
 <p class="cr-tax" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i>エバー航空<span>課税（台湾）</span></p>
 </div>
+<p class="cr-tgt">推定年収<span>機種の指定なし</span></p>
+<p class="cr-gos">
+<a class="cr-link cr-go" id="cr-go-pay-jal" href="airlines/jal.html#pay" aria-labelledby="cr-cmp-h-pay cr-go-pay-jal" data-airline="jal" style="--cr-co:#CC0000"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">日本航空（JAL）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-pay-ana" href="airlines/ana.html#pay" aria-labelledby="cr-cmp-h-pay cr-go-pay-ana" data-airline="ana" style="--cr-co:#1A6EB5" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">全日本空輸（ANA）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-pay-cathay-pacific" href="airlines/cathay-pacific.html#pay" aria-labelledby="cr-cmp-h-pay cr-go-pay-cathay-pacific" data-airline="cathay-pacific" style="--cr-co:#006564"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">キャセイパシフィック</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-pay-etihad" href="airlines/etihad.html#pay" aria-labelledby="cr-cmp-h-pay cr-go-pay-etihad" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エティハド航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-pay-eva-air" href="airlines/eva-air.html#pay" aria-labelledby="cr-cmp-h-pay cr-go-pay-eva-air" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エバー航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</p>
 </div>
-<div class="cr-cards">
+<div class="cr-sec cr-subpay" data-kind="submitted">
+<h2 class="cr-h2">提出された年収<span class="cr-h2-s" lang="en">REAL PAY</span></h2>
+<div class="crl" data-live="cmp-pay" data-state="idle"><span class="crl-ph">—</span></div>
+</div>
+<div class="cr-sec cr-cmp-rev">
+<h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
+<div class="crl" data-live="cmp-stars" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="cr-gos">
+<a class="cr-link cr-go" id="cr-go-rev-jal" href="airlines/jal.html#reviews" aria-labelledby="cr-cmp-h-rev cr-go-rev-jal" data-airline="jal" style="--cr-co:#CC0000"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">日本航空（JAL）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-rev-ana" href="airlines/ana.html#reviews" aria-labelledby="cr-cmp-h-rev cr-go-rev-ana" data-airline="ana" style="--cr-co:#1A6EB5" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">全日本空輸（ANA）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-rev-cathay-pacific" href="airlines/cathay-pacific.html#reviews" aria-labelledby="cr-cmp-h-rev cr-go-rev-cathay-pacific" data-airline="cathay-pacific" style="--cr-co:#006564"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">キャセイパシフィック</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-rev-etihad" href="airlines/etihad.html#reviews" aria-labelledby="cr-cmp-h-rev cr-go-rev-etihad" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エティハド航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-rev-eva-air" href="airlines/eva-air.html#reviews" aria-labelledby="cr-cmp-h-rev cr-go-rev-eva-air" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エバー航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</p>
+</div>
+<div class="cr-sec cr-rents">
+<h2 class="cr-h2">拠点の街の家賃<span class="cr-h2-s">1か月あたり</span></h2>
+<div class="cr-rentbs">
+<article class="cr-rentb" data-airline="jal" style="--cr-co:#CC0000">
+<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>日本航空（JAL）<span>東京</span></h3>
+<p class="cr-rentb-k"><span class="cr-tag">家賃相場</span> 品川<small>京急が羽田空港までの所要時間を案内している駅</small></p>
+<dl class="cr-rent cr-rentb-l">
+<div><dt>1-Bed</dt><dd><b>22.02万円</b></dd></div>
+<div><dt>2-Bed</dt><dd><b>34.43万円</b></dd></div>
+<div><dt>3-Bed</dt><dd><b>41.93万円</b></dd></div>
+</dl>
+<p class="cr-rentb-s pv-no-cur">アットホーム「品川駅の家賃相場」<span>2026年10月11日に開いた時点の表示</span></p>
+<details class="cr-more">
+<summary>前提と出どころ</summary>
+<p>アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安（直近3か月に掲載された物件）</p>
+<p>物件が少ないときは相場を出せないことがあり、相場のしぼり込み条件は物件の検索条件と一致しないことがある</p>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://www.athome.co.jp/chintai/souba/tokyo/shinagawa-st/" target="_blank" rel="noopener">アットホーム「品川駅の家賃相場」</a><span>2026年10月11日に開いた時点の表示</span></li>
+</ul>
+</details>
+<p class="cr-else cr-rentb-go"><a class="cr-link" href="airlines/jal.html#life">ほかの街<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</article>
+<article class="cr-rentb" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
+<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>全日本空輸（ANA）<span>東京</span></h3>
+<p class="cr-rentb-k"><span class="cr-tag">家賃相場</span> 品川<small>京急が羽田空港までの所要時間を案内している駅</small></p>
+<dl class="cr-rent cr-rentb-l">
+<div><dt>1-Bed</dt><dd><b>22.02万円</b></dd></div>
+<div><dt>2-Bed</dt><dd><b>34.43万円</b></dd></div>
+<div><dt>3-Bed</dt><dd><b>41.93万円</b></dd></div>
+</dl>
+<p class="cr-rentb-s pv-no-cur">アットホーム「品川駅の家賃相場」<span>2026年10月11日に開いた時点の表示</span></p>
+<details class="cr-more">
+<summary>前提と出どころ</summary>
+<p>アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安（直近3か月に掲載された物件）</p>
+<p>物件が少ないときは相場を出せないことがあり、相場のしぼり込み条件は物件の検索条件と一致しないことがある</p>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://www.athome.co.jp/chintai/souba/tokyo/shinagawa-st/" target="_blank" rel="noopener">アットホーム「品川駅の家賃相場」</a><span>2026年10月11日に開いた時点の表示</span></li>
+</ul>
+</details>
+<p class="cr-else cr-rentb-go"><a class="cr-link" href="airlines/ana.html#life">ほかの街<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</article>
+<article class="cr-rentb" data-airline="cathay-pacific" style="--cr-co:#006564">
+<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>キャセイパシフィック<span>香港</span></h3>
+<p class="cr-rentb-k"><span class="cr-tag">成約の家賃の平均（当サイトが計算）</span> 東涌（映灣園）<small>空港行きの路線バス（S1）が出る駅がある</small></p>
+<dl class="cr-rent cr-rentb-l">
+<div><dt>2-Bed</dt><dd><b class="pv-no-cur">HKD 16,200</b><span>約32.8万円</span></dd></div>
+<div><dt>3-Bed</dt><dd><b class="pv-no-cur">HKD 22,500</b><span>約45.6万円</span></dd></div>
+</dl>
+<p class="cr-rentb-s pv-no-cur">28Hse「映灣園 租務成交」<span>2026年7〜9月の成約（10月11日に開いた時点の掲載分）</span></p>
+<details class="cr-more">
+<summary>前提と出どころ</summary>
+<p>28Hse が団地ごとに載せている「租務成交」（成約）の行のうち、日付が2026年7月1日〜9月30日の行から当サイトが計算した平均。一戸建て・メゾネットの行は除き、全部の欄が同じ2行は1つと数える。5件以上そろった間取りだけを出し、100香港ドル単位に丸めた。載っているのは成約の一部で、行の出どころは書いていない（28Hse 自身の90日の件数はもっと多い）。ページに期間の字は無く、1か月の家賃と読んだ。管理費・差餉を含むかは書いていない。28Hse の利用規約は読めていない</p>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 HKD＝20.2744円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://www.28hse.com/estate/detail/caribbean-coast-4710/transaction/rent" target="_blank" rel="noopener">28Hse「映灣園 租務成交」</a><span>2026年7〜9月の成約（10月11日に開いた時点の掲載分）</span></li>
+</ul>
+</details>
+<p class="cr-else cr-rentb-go"><a class="cr-link" href="airlines/cathay-pacific.html#life">ほかの街<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</article>
+<article class="cr-rentb" data-airline="etihad" style="--cr-co:#B08D57" hidden>
+<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>エティハド航空<span>アブダビ</span></h3>
+<p class="cr-rentb-k"><span class="cr-tag">募集家賃の平均</span> ハリファ・シティ</p>
+<dl class="cr-rent cr-rentb-l">
+<div><dt>Studio</dt><dd><b class="pv-no-cur">AED 3,250</b><span>約14.1万円</span></dd></div>
+<div><dt>1-Bed</dt><dd><b class="pv-no-cur">AED 4,917</b><span>約21.3万円</span></dd></div>
+<div><dt>2-Bed</dt><dd><b class="pv-no-cur">AED 8,667</b><span>約37.5万円</span></dd></div>
+</dl>
+<p class="cr-rentb-s pv-no-cur">Bayut「Abu Dhabi Rental Market Report H1 2026」<span>2026年上半期</span></p>
+<details class="cr-more">
+<summary>前提と出どころ</summary>
+<p>Bayut に不動産会社が載せた、入居できる集合住宅の募集家賃の平均（ルームシェアを除く）。成約した額ではない（2026年1〜6月）</p>
+<p>出どころの表は1年あたりの額。ここでは12で割って、1か月あたりにしている</p>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://www.bayut.com/mybayut/abu-dhabi-rental-market-report-h1-2026/" target="_blank" rel="noopener">Bayut「Abu Dhabi Rental Market Report H1 2026」</a><span>2026年上半期</span></li>
+</ul>
+</details>
+<p class="cr-else cr-rentb-go"><a class="cr-link" href="airlines/etihad.html#life">ほかの街<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</article>
+<article class="cr-rentb" data-airline="eva-air" style="--cr-co:#00A599" hidden>
+<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>エバー航空<span>台北・桃園</span></h3>
+<p class="cr-rentb-k"><span class="cr-tag">募集の家賃の中央値</span> 南崁（蘆竹區）<small>EVA Airの事業所がある</small></p>
+<dl class="cr-rent cr-rentb-l">
+<div><dt>Studio</dt><dd><b class="pv-no-cur">TWD 10,000</b><span>約5.0万円</span></dd></div>
+<div><dt>1-Bed</dt><dd><b class="pv-no-cur">TWD 15,750</b><span>約7.9万円</span></dd></div>
+<div><dt>2-Bed</dt><dd><b class="pv-no-cur">TWD 23,000</b><span>約11.5万円</span></dd></div>
+<div><dt>3-Bed</dt><dd><b class="pv-no-cur">TWD 26,950</b><span>約13.5万円</span></dd></div>
+</dl>
+<p class="cr-rentb-s pv-no-cur">591租屋網「租金行情」桃園市・蘆竹區<span>2026年10月8日更新（直近3か月）</span></p>
+<details class="cr-more">
+<summary>前提と出どころ</summary>
+<p>591 に載った物件の家賃から、591 が独自の集計で出した額（直近3か月の中央値（10月8日更新）。参考まで）</p>
+<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 TWD＝4.9966円・2026-08-22 時点）。現在の為替レートではありません。</p>
+<ul class="cr-srcs pv-no-cur">
+<li><a href="https://rent.591.com.tw/market/region?region_id=6&amp;section_id=79&amp;shape=0" target="_blank" rel="noopener">591租屋網「租金行情」桃園市・蘆竹區</a><span>2026年10月8日更新（直近3か月）</span></li>
+</ul>
+</details>
+<p class="cr-else cr-rentb-go"><a class="cr-link" href="airlines/eva-air.html#life">ほかの街<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</article>
+</div>
+</div>
+<div class="cr-sec cr-cmp-work">
+<h2 class="cr-h2" id="cr-cmp-h-work">月の働き方</h2>
+<div class="crl" data-live="cmp-work" data-entry="give" data-state="idle"><span class="crl-ph">—</span></div>
+<div class="crl" data-live="cmp-facts" data-keys="days_off_request,days_off_request_limit,schedule_bidding,bidding_scope,seniority_effect,reserve_duty,reserve_location,reserve_days,roster_lead_days,roster_changes,commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_taxi_cap,commuting_bus_when,commuting_bus_cost,staff_travel,staff_travel_booking,staff_travel_cabin,staff_travel_family,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family,external_hiring,external_experience_credit,external_seniority_start,training_bond,training_bond_years,upgrade_years,upgrade_order,upgrade_min_hours,upgrade_min_tenure,external_hiring_types,cadet_program,fo_development" data-quiet="1" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="cr-gos">
+<a class="cr-link cr-go" id="cr-go-work-jal" href="airlines/jal.html#work" aria-labelledby="cr-cmp-h-work cr-go-work-jal" data-airline="jal" style="--cr-co:#CC0000"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">日本航空（JAL）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-work-ana" href="airlines/ana.html#work" aria-labelledby="cr-cmp-h-work cr-go-work-ana" data-airline="ana" style="--cr-co:#1A6EB5" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">全日本空輸（ANA）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-work-cathay-pacific" href="airlines/cathay-pacific.html#work" aria-labelledby="cr-cmp-h-work cr-go-work-cathay-pacific" data-airline="cathay-pacific" style="--cr-co:#006564"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">キャセイパシフィック</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-work-etihad" href="airlines/etihad.html#work" aria-labelledby="cr-cmp-h-work cr-go-work-etihad" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エティハド航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-work-eva-air" href="airlines/eva-air.html#work" aria-labelledby="cr-cmp-h-work cr-go-work-eva-air" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エバー航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</p>
+</div>
+<div class="cr-sec cr-cmp-ben">
+<h2 class="cr-h2" id="cr-cmp-h-ben">待遇</h2>
+<div class="crl" data-live="cmp-facts" data-keys="annual_leave_days,sick_leave,sick_leave_days,peer_support,landing_pay,landing_pay_unit,landing_pay_varies_by,ground_duty_pay" data-state="idle"><span class="crl-ph">—</span></div>
+<p class="cr-gos">
+<a class="cr-link cr-go" id="cr-go-ben-jal" href="airlines/jal.html#pay" aria-labelledby="cr-cmp-h-ben cr-go-ben-jal" data-airline="jal" style="--cr-co:#CC0000"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">日本航空（JAL）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-ben-ana" href="airlines/ana.html#pay" aria-labelledby="cr-cmp-h-ben cr-go-ben-ana" data-airline="ana" style="--cr-co:#1A6EB5" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">全日本空輸（ANA）</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-ben-cathay-pacific" href="airlines/cathay-pacific.html#pay" aria-labelledby="cr-cmp-h-ben cr-go-ben-cathay-pacific" data-airline="cathay-pacific" style="--cr-co:#006564"><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">キャセイパシフィック</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-ben-etihad" href="airlines/etihad.html#pay" aria-labelledby="cr-cmp-h-ben cr-go-ben-etihad" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エティハド航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+<a class="cr-link cr-go" id="cr-go-ben-eva-air" href="airlines/eva-air.html#pay" aria-labelledby="cr-cmp-h-ben cr-go-ben-eva-air" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">エバー航空</span><span class="cr-go-t">詳しく</span><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+</p>
+</div>
+<div class="cr-cards" data-kind="published">
 <div class="cr-card" data-airline="jal" style="--cr-co:#CC0000">
-<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=jal" data-go>日本航空（JAL）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<h2 class="cr-card-h"><a class="cr-card-n" href="airlines/jal.html">日本航空（JAL）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
 
 </div>
 <div class="cr-card" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
-<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=ana" data-go>全日本空輸（ANA）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<h2 class="cr-card-h"><a class="cr-card-n" href="airlines/ana.html">全日本空輸（ANA）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
 
 </div>
 <div class="cr-card" data-airline="cathay-pacific" style="--cr-co:#006564">
-<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=cathay-pacific" data-go>キャセイパシフィック<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<h2 class="cr-card-h"><a class="cr-card-n" href="airlines/cathay-pacific.html">キャセイパシフィック<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
 <div class="cr-pub">
 <h3 class="cr-h2">会社が公表している金額</h3>
 <div class="cr-grp">
@@ -1265,7 +1414,7 @@
 </div>
 </div>
 <div class="cr-card" data-airline="etihad" style="--cr-co:#B08D57" hidden>
-<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=etihad" data-go>エティハド航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<h2 class="cr-card-h"><a class="cr-card-n" href="airlines/etihad.html">エティハド航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
 <div class="cr-pub">
 <h3 class="cr-h2">会社が公表している金額</h3>
 <div class="cr-grp">
@@ -1298,7 +1447,7 @@
 </div>
 </div>
 <div class="cr-card" data-airline="eva-air" style="--cr-co:#00A599" hidden>
-<h2 class="cr-card-h"><a class="cr-card-n" href="career.html?airline=eva-air" data-go>エバー航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
+<h2 class="cr-card-h"><a class="cr-card-n" href="airlines/eva-air.html">エバー航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
 <div class="cr-pub">
 <h3 class="cr-h2">会社が公表している金額</h3>
 <div class="cr-grp">
@@ -1323,118 +1472,9 @@
 </div>
 </div>
 </div>
-<div class="cr-sec cr-rents">
-<h2 class="cr-h2">拠点の街の家賃<span class="cr-h2-s">1か月あたり</span></h2>
-<div class="cr-rentbs">
-<article class="cr-rentb" data-airline="jal" style="--cr-co:#CC0000">
-<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>日本航空（JAL）<span>東京</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">家賃相場</span> 品川<small>京急が羽田空港までの所要時間を案内している駅</small></p>
-<dl class="cr-rent cr-rentb-l">
-<div><dt>1-Bed</dt><dd><b>22.02万円</b></dd></div>
-<div><dt>2-Bed</dt><dd><b>34.43万円</b></dd></div>
-<div><dt>3-Bed</dt><dd><b>41.93万円</b></dd></div>
-</dl>
-<p class="cr-rentb-s pv-no-cur">アットホーム「品川駅の家賃相場」<span>2026年10月11日に開いた時点の表示</span></p>
-<details class="cr-more">
-<summary>前提と出どころ</summary>
-<p>アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安（直近3か月に掲載された物件）</p>
-<p>物件が少ないときは相場を出せないことがあり、相場のしぼり込み条件は物件の検索条件と一致しないことがある</p>
-<ul class="cr-srcs pv-no-cur">
-<li><a href="https://www.athome.co.jp/chintai/souba/tokyo/shinagawa-st/" target="_blank" rel="noopener">アットホーム「品川駅の家賃相場」</a><span>2026年10月11日に開いた時点の表示</span></li>
-</ul>
-</details>
-</article>
-<article class="cr-rentb" data-airline="ana" style="--cr-co:#1A6EB5" hidden>
-<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>全日本空輸（ANA）<span>東京</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">家賃相場</span> 品川<small>京急が羽田空港までの所要時間を案内している駅</small></p>
-<dl class="cr-rent cr-rentb-l">
-<div><dt>1-Bed</dt><dd><b>22.02万円</b></dd></div>
-<div><dt>2-Bed</dt><dd><b>34.43万円</b></dd></div>
-<div><dt>3-Bed</dt><dd><b>41.93万円</b></dd></div>
-</dl>
-<p class="cr-rentb-s pv-no-cur">アットホーム「品川駅の家賃相場」<span>2026年10月11日に開いた時点の表示</span></p>
-<details class="cr-more">
-<summary>前提と出どころ</summary>
-<p>アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安（直近3か月に掲載された物件）</p>
-<p>物件が少ないときは相場を出せないことがあり、相場のしぼり込み条件は物件の検索条件と一致しないことがある</p>
-<ul class="cr-srcs pv-no-cur">
-<li><a href="https://www.athome.co.jp/chintai/souba/tokyo/shinagawa-st/" target="_blank" rel="noopener">アットホーム「品川駅の家賃相場」</a><span>2026年10月11日に開いた時点の表示</span></li>
-</ul>
-</details>
-</article>
-<article class="cr-rentb" data-airline="cathay-pacific" style="--cr-co:#006564">
-<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>キャセイパシフィック<span>香港</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">成約の家賃の平均（当サイトが計算）</span> 東涌（映灣園）<small>空港行きの路線バス（S1）が出る駅がある</small></p>
-<dl class="cr-rent cr-rentb-l">
-<div><dt>2-Bed</dt><dd><b class="pv-no-cur">HKD 16,200</b><span>約32.8万円</span></dd></div>
-<div><dt>3-Bed</dt><dd><b class="pv-no-cur">HKD 22,500</b><span>約45.6万円</span></dd></div>
-</dl>
-<p class="cr-rentb-s pv-no-cur">28Hse「映灣園 租務成交」<span>2026年7〜9月の成約（10月11日に開いた時点の掲載分）</span></p>
-<details class="cr-more">
-<summary>前提と出どころ</summary>
-<p>28Hse が団地ごとに載せている「租務成交」（成約）の行のうち、日付が2026年7月1日〜9月30日の行から当サイトが計算した平均。一戸建て・メゾネットの行は除き、全部の欄が同じ2行は1つと数える。5件以上そろった間取りだけを出し、100香港ドル単位に丸めた。載っているのは成約の一部で、行の出どころは書いていない（28Hse 自身の90日の件数はもっと多い）。ページに期間の字は無く、1か月の家賃と読んだ。管理費・差餉を含むかは書いていない。28Hse の利用規約は読めていない</p>
-<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 HKD＝20.2744円・2026-08-22 時点）。現在の為替レートではありません。</p>
-<ul class="cr-srcs pv-no-cur">
-<li><a href="https://www.28hse.com/estate/detail/caribbean-coast-4710/transaction/rent" target="_blank" rel="noopener">28Hse「映灣園 租務成交」</a><span>2026年7〜9月の成約（10月11日に開いた時点の掲載分）</span></li>
-</ul>
-</details>
-</article>
-<article class="cr-rentb" data-airline="etihad" style="--cr-co:#B08D57" hidden>
-<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>エティハド航空<span>アブダビ</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">募集家賃の平均</span> ハリファ・シティ</p>
-<dl class="cr-rent cr-rentb-l">
-<div><dt>Studio</dt><dd><b class="pv-no-cur">AED 3,250</b><span>約14.1万円</span></dd></div>
-<div><dt>1-Bed</dt><dd><b class="pv-no-cur">AED 4,917</b><span>約21.3万円</span></dd></div>
-<div><dt>2-Bed</dt><dd><b class="pv-no-cur">AED 8,667</b><span>約37.5万円</span></dd></div>
-</dl>
-<p class="cr-rentb-s pv-no-cur">Bayut「Abu Dhabi Rental Market Report H1 2026」<span>2026年上半期</span></p>
-<details class="cr-more">
-<summary>前提と出どころ</summary>
-<p>Bayut に不動産会社が載せた、入居できる集合住宅の募集家賃の平均（ルームシェアを除く）。成約した額ではない（2026年1〜6月）</p>
-<p>出どころの表は1年あたりの額。ここでは12で割って、1か月あたりにしている</p>
-<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 AED＝43.2825円・2026-08-22 時点）。現在の為替レートではありません。</p>
-<ul class="cr-srcs pv-no-cur">
-<li><a href="https://www.bayut.com/mybayut/abu-dhabi-rental-market-report-h1-2026/" target="_blank" rel="noopener">Bayut「Abu Dhabi Rental Market Report H1 2026」</a><span>2026年上半期</span></li>
-</ul>
-</details>
-</article>
-<article class="cr-rentb" data-airline="eva-air" style="--cr-co:#00A599" hidden>
-<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>エバー航空<span>台北・桃園</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">募集の家賃の中央値</span> 南崁（蘆竹區）<small>EVA Airの事業所がある</small></p>
-<dl class="cr-rent cr-rentb-l">
-<div><dt>Studio</dt><dd><b class="pv-no-cur">TWD 10,000</b><span>約5.0万円</span></dd></div>
-<div><dt>1-Bed</dt><dd><b class="pv-no-cur">TWD 15,750</b><span>約7.9万円</span></dd></div>
-<div><dt>2-Bed</dt><dd><b class="pv-no-cur">TWD 23,000</b><span>約11.5万円</span></dd></div>
-<div><dt>3-Bed</dt><dd><b class="pv-no-cur">TWD 26,950</b><span>約13.5万円</span></dd></div>
-</dl>
-<p class="cr-rentb-s pv-no-cur">591租屋網「租金行情」桃園市・蘆竹區<span>2026年10月8日更新（直近3か月）</span></p>
-<details class="cr-more">
-<summary>前提と出どころ</summary>
-<p>591 に載った物件の家賃から、591 が独自の集計で出した額（直近3か月の中央値（10月8日更新）。参考まで）</p>
-<p class="cr-fx pv-no-cur">円額は比較用の換算です（1 TWD＝4.9966円・2026-08-22 時点）。現在の為替レートではありません。</p>
-<ul class="cr-srcs pv-no-cur">
-<li><a href="https://rent.591.com.tw/market/region?region_id=6&amp;section_id=79&amp;shape=0" target="_blank" rel="noopener">591租屋網「租金行情」桃園市・蘆竹區</a><span>2026年10月8日更新（直近3か月）</span></li>
-</ul>
-</details>
-</article>
-</div>
-</div>
-<div class="cr-lives">
-<div class="cr-sec">
-<h2 class="cr-h2">月の働き方</h2>
-<div class="crl" data-live="cmp-work" data-state="idle"><span class="crl-ph">—</span></div>
-</div>
-<div class="cr-sec">
-<h2 class="cr-h2">待遇</h2>
-<div class="crl" data-live="cmp-facts" data-state="idle"><span class="crl-ph">—</span></div>
-</div>
-<div class="cr-sec">
-<h2 class="cr-h2">口コミ</h2>
-<div class="crl" data-live="cmp-stars" data-state="idle"><span class="crl-ph">—</span></div>
-</div>
-</div>
 <p class="cr-else cr-cmp-card"><a class="cr-link" id="cr-to-card" href="career.html?view=card&amp;a=jal&amp;b=cathay-pacific" data-go>カードを保存<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
 <p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="jal">日本航空（JAL） <a href="https://commons.wikimedia.org/wiki/File:Japan_Airlines_Boeing_787-9_JA881J_on_final_approach_to_Boston_April_2022.jpg" target="_blank" rel="noopener">4300streetcar</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span> <span class="cr-credit" data-airline="ana" hidden>全日本空輸（ANA） <a href="https://commons.wikimedia.org/wiki/File:All_Nippon_Airways,_Boeing_777-300ER_JA792A_NRT_(26845813980).jpg" target="_blank" rel="noopener">Masakatsu Ukon</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="cathay-pacific">キャセイパシフィック <a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="etihad" hidden>エティハド航空 <a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="eva-air" hidden>エバー航空 <a href="https://commons.wikimedia.org/wiki/File:Eva_Air_Boeing_777-300ER_B-16716.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+<script type="application/json" id="crl-cats">["企業カルチャー","給与・報酬の納得度","福利厚生","ワークライフバランス","運航環境","訓練環境"]</script>
 </section>
 <section class="cr-view cr-cardv" data-view="card" hidden>
 <a class="cr-back" id="crc-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>戻る</a>
@@ -1462,14 +1502,14 @@
 <script src="pv-gates.js"></script>
 <!-- 画面の切り替えだけ。金額は1つも持たない。
      ★読めなかったときは入口をそのまま見せる（onerror）。 -->
-<script src="career.js?v=384e034a" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
+<script src="career.js?v=02f602a2" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
 <!-- 生きた欄・就航地のホテル・カード保存。career.js が画面を出し終えるたびに出す知らせ（cr:show）で動く。
      ★どれが落ちても、上の画面と金額はそのまま読める。 -->
-<script src="career-live.js?v=a7eb6844"></script>
+<script src="career-live.js?v=8c08b3fc"></script>
 <script src="pv-proof-offer.js?v=cc4ef913"></script>
 <script src="pv-hotel-suggest.js?v=179d17b8"></script>
 <script src="career-stay.js?v=25a5ca40"></script>
-<script src="career-card.js?v=1dd5f0af"></script>
+<script src="career-card.js?v=06dc0de3"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで
      ヘッダーの自動折り畳みごと止まる）。search.js が無いページでは自分で ≡ を作る。 -->

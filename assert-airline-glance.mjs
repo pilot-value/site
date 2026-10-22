@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・contrast）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・contrast）
      node assert-airline-glance.mjs --scenes contrast --only spirit,vueling   会社ページ全部の明るい色の読める濃さ（--only で会社を絞れる。日英とも）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
@@ -78,6 +78,8 @@ import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE, LEAD } from './pv-airline-view.mjs';
 import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, SUGGEST, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
+/* 推定年収の対象（「機種の指定なし」）の字の置き場は gen-career.mjs の1か所（比較の画面と会社ページで同じ字）。写しを持たない。 */
+import { EST_TARGET } from './gen-career.mjs';
 import { FACTS as CO_FACTS } from './airline-facts.mjs';
 import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
@@ -127,6 +129,8 @@ const RANK_KEYS = ['max_y', 'target_y', 'cash_y_over', 'allow_m_from'];
 const LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
 const KIND = { max_y: 'cap', target_y: 'co', cash_y_over: 'over' };
 const EST_BY = '当サイトの推定（公開情報からの推計）';
+/* 推定年収の行の1行目（職位ごとの推定の額のすぐ次）。字は gen-career.mjs の EST_TARGET（比較の画面の「推定年収 機種の指定なし」と同じ1か所）。 */
+const EST_TGT = `対象：${EST_TARGET}`;
 const UNLOCK = '全ての待遇データを解放する';
 /* ★2026-10-07 会社ページの入口は2行のボタン（オーナーのご指示。前日の「匿名で給与を提出する」より新しい）。
      給与          Give & Get ／ 全ての給与情報を解放する
@@ -532,12 +536,13 @@ for (const s of FIVE) {
     for (const f of m.figs) want.push([f.group, f.text, f.orig]);
     const r = rows.find(x => x.dt === `${rkJa}の推定年収`);
     /* 根拠・算出方法・時点が台帳にそろっていればその3つ。そろっていなければ「当サイトの推定」とだけ書く
-       （在りもしない根拠を書かない・だからといって額を引っ込めない）。 */
+       （在りもしない根拠を書かない・だからといって額を引っ込めない）。
+       ★2026-10-22 段階4 cmp-pay-3：どちらの形でも、1行目は対象（「対象：機種の指定なし」）── 同じ強さの当て直し（リード L2） */
     if (m.est.backed) {
-      ok(!!r && same(r.small, [`根拠：${m.est.basis}`, `算出方法：${m.est.method}`, `時点：${m.est.asOf}`]),
-         `${s} ${rkJa}: 推定の説明に 根拠・算出方法・時点 が台帳のまま出ている`, r ? r.small.join(' ／ ') : '行が無い');
+      ok(!!r && same(r.small, [EST_TGT, `根拠：${m.est.basis}`, `算出方法：${m.est.method}`, `時点：${m.est.asOf}`]),
+         `${s} ${rkJa}: 推定の説明は「${EST_TGT}」の次に 根拠・算出方法・時点 が台帳のまま出ている`, r ? r.small.join(' ／ ') : '行が無い');
     } else {
-      ok(!!r && same(r.small, [EST_BY]), `${s} ${rkJa}: 根拠の台帳がそろっていない推定には「${EST_BY}」とだけ書く`, r ? r.small.join(' ／ ') : '行が無い');
+      ok(!!r && same(r.small, [EST_TGT, EST_BY]), `${s} ${rkJa}: 根拠の台帳がそろっていない推定には「${EST_TGT}」の次に「${EST_BY}」とだけ書く`, r ? r.small.join(' ／ ') : '行が無い');
     }
     for (const f of m.figs.filter(x => x.key === 'max_y')) {
       const row = rows.find(x => x.dt === f.group && x.b === f.text);
@@ -579,6 +584,23 @@ for (const s of FIVE) {
   /* 昔の「この数字の出どころ」の住所（#kyuyo-konkyo）は、この説明が引き継ぐ（外のページ・検索の結果からのリンクが切れない）。 */
   ok(PAGES[s].split('id="kyuyo-konkyo"').length === 2 && dt.startsWith('<details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">'),
      `${s}: 住所 #kyuyo-konkyo は給与の説明の1つだけ（古い「出どころの表」の節を残していない）`, `${PAGES[s].split('id="kyuyo-konkyo"').length - 1}個`);
+}
+
+/* ★2026-10-22 段階4 cmp-pay-3（T-S2b）：新しい会社ページの全部（airline-rollout.mjs の SWITCH ＝ GLANCE）── 金額の出どころの説明
+   （#kyuyo-konkyo）で、機長・副操縦士の推定年収の額（<b>）のすぐ次が「対象：機種の指定なし」。1職位に1つ・1ページに2つだけ。
+   字は EST_TARGET（gen-career.mjs の1か所・比較の画面の「推定年収 機種の指定なし」と同じ）。額は正本 SALARY の avg から作り直す。 */
+head('推定年収の対象（新しい会社ページの全部）');
+{
+  const bad = [];
+  for (const s of GLANCE) {
+    const html = read(pageOf(s)), at = html.indexOf('id="kyuyo-konkyo"'), end = at < 0 ? -1 : html.indexOf('</details>', at);
+    const box = end < 0 ? '' : html.slice(at, end), n = box.split(`<small>${EST_TGT}</small>`).length - 1;
+    const miss = RANKS.filter(([rk, rkJa]) => !box.includes(`<dt>${rkJa}の推定年収</dt><dd><b>${yen(SALARY[s][rk].avg)}</b><small>${EST_TGT}</small>`)).map(([, l]) => l);
+    if (!box || n !== RANKS.length || miss.length) bad.push(`${s}: ${box ? `「${EST_TGT}」${n}つ${miss.length ? `・${miss.join('・')}の推定の額のすぐ次に無い` : ''}` : '#kyuyo-konkyo が読めない'}`);
+  }
+  ok(FIVE.every(s => GLANCE.includes(s)) && !bad.length,
+     `新しい会社ページ ${GLANCE.length}枚とも、金額の出どころの説明で 機長・副操縦士の推定年収の額のすぐ次が「${EST_TGT}」（1職位に1つ・1ページに2つだけ）`,
+     bad.slice(0, 8).join(' ／ ') + (bad.length > 8 ? ` ほか${bad.length - 8}枚` : ''));
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1370,6 +1392,10 @@ head('career-live.js（提出された年収の一覧の、鍵の無い人の行
   ok(!/money\(|annual_usd|crl-amt/.test(ml), '伏せた行に、額の箱を作らない');
   const sl = fn('srcLine');
   ok(same([...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].sort(), ['age', 'verified']), '出典と投稿時期の行が読むのは、その2つだけ', [...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].join(', '));
+  /* T-S7（2026-10-22 段階4 cmp-pay-2）給与の鍵が切れた人の1行は、MY PAGE（profile.html）が出す字と1文字も違わない
+     （同じことを2つの言い方で言わない）。どちらの字も、ファイルから読む（ここに写さない）。 */
+  const expMine = one(LJ, /\n    payExpired: '([^']*)',\n/), expTheirs = one(read('profile.html'), /\(d > 0 \? [^\n]*? : '([^']*)'\),/);
+  ok(!!expMine && expMine === expTheirs, `給与の鍵が切れた人の1行（career-live.js の payExpired）は、MY PAGE と同じ字「${expTheirs}」`, `career-live.js「${expMine}」／ profile.html「${expTheirs}」`);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1616,8 +1642,8 @@ head('集計の欄が聞く質問（出荷した HTML の data-keys）');
        ・どの欄も、聞く質問（data-keys）を1つ以上持つ（1つも無い欄は、画面で「いま読み出せません」になる）
        ・どの質問も、質問の台帳（pv-conditions.json）に在る
        ・1ページの質問は、合わせて 120 まで（集計の口は、開いている人が聞いても、それより多いと断る ＝ そのページの集計の欄がぜんぶ読めなくなる）
-       ・2社を並べる欄（data-live="cmp-facts"・career.html に1つ）は、自分の質問を持たないか、持つなら、同じページの集計の欄が聞く質問だけ
-         （ページが聞いていない質問を並べようとすると、その欄は「いま読み出せません」になる）
+       ・2社を並べる欄（data-live="cmp-facts"・career.html に2つ：月の働き方と待遇）の質問は、台帳に在る質問だけ。
+         ページの1回の読み（career-live.js の pageKeys）がその質問も聞く ── 欄と読みの一致は assert-career-live.mjs の S7 / M-keys が見る。合わせて 120 まで
      judge ＝ 1ページ分の HTML の字から、破れている所の文を返す（空なら全部守れている）。渡された字のほかは、何も読まない。
        ledger ＝ 台帳に在る質問の名前・cap ＝ 1ページの上限・own ＝ そのページが、2社を並べる欄を持つはずか。 */
   const judge = (html, ledger, cap, own) => {
@@ -1633,14 +1659,14 @@ head('集計の欄が聞く質問（出荷した HTML の data-keys）');
       if (!keys.length) faults.push(`${i + 1}つめの集計の欄が、聞く質問を1つも持たない`);
       for (const k of keys) { all.add(k); if (!ledger.has(k)) faults.push(`${i + 1}つめの集計の欄の質問 ${k} が、台帳に無い`); }
     }
+    if (cmp.length !== (own ? 2 : 0)) faults.push(`2社を並べる欄が ${cmp.length}つ（あるべき ${own ? 2 : 0}）`);
+    for (const tag of cmp) for (const k of keysOf(tag)) { all.add(k); if (!ledger.has(k)) faults.push(`2社を並べる欄の質問 ${k} が、台帳に無い`); }
     if (all.size > cap) faults.push(`1ページの質問が ${all.size}（多くて ${cap}）`);
-    if (cmp.length !== (own ? 1 : 0)) faults.push(`2社を並べる欄が ${cmp.length}つ（あるべき ${own ? 1 : 0}）`);
-    for (const tag of cmp) for (const k of keysOf(tag)) if (!all.has(k)) faults.push(`2社を並べる欄の質問 ${k} を、同じページの集計の欄が聞いていない`);
     return faults;
   };
   for (const [name, html, own] of [...FIVE.map(s => [`${s}`, PAGES[s], false]), ['career.html', read('career.html'), true]]) {
     const f = judge(html, QID, 120, own);
-    ok(!f.length, `${name}: 集計の欄は、どれも聞く質問を持つ・質問はどれも台帳に在る・1ページで 120 まで${own ? '・2社を並べる欄は、同じページの欄が聞く質問のほかを並べない' : ''}`, f.slice(0, 6).join(' ／ '));
+    ok(!f.length, `${name}: 集計の欄は、どれも聞く質問を持つ・質問はどれも台帳に在る・1ページで 120 まで${own ? '・2社を並べる欄は2つで、その質問も台帳に在る（合わせて 120 まで）' : ''}`, f.slice(0, 6).join(' ／ '));
   }
 }
 
@@ -2499,6 +2525,31 @@ const maskedBody = slug => {
   const other = FIVE.filter(o => o !== slug).slice(0, 2).map(o => ({ airline: o, verified: true, age: 0, ...LEAK }));
   return JSON.stringify({ ok: true, state: 'locked', rows: [...mine.slice(0, 3), ...other, ...mine.slice(3)] });
 };
+/* 場面 who（2026-10-22 段階4 cmp-pay-2）── 給与の一覧を、いま誰が読んでいるか。画面が見るのは、サーバーの答えの state と give.basic だけ
+   （career-live.js の payWho）。本物のサーバー（db/pay-rows.sql の pv_pay_rows）が返す形：
+     未ログイン ＝ give が無い（上の maskedBody のまま）・ログインした会員 ＝ give の4つが全部 false・
+     鍵が切れた会員 ＝ basic だけ true（自分の提出は在るのに、鍵が開いていない）・開いている会員 ＝ state 'open' と、開いた行。
+   鍵の無い形には、上の maskedBody と同じく、開いた行が持つ欄をわざと混ぜてある（画面が1文字も出さないことを見る）。 */
+const GIVE_MEMBER = { basic: false, detailed: false, payslip: false, full: false };
+const GIVE_EXPIRED = { ...GIVE_MEMBER, basic: true };
+const PAY_EXPIRED = '年収データの解放が切れています';
+const withGive = (body, give) => JSON.stringify({ ...JSON.parse(body), give });
+/* この会社の提出が0件（ほかの会社の行だけが返る） */
+const noMineBody = (slug, give) => JSON.stringify({ ok: true, state: 'locked', give, rows: FIVE.filter(o => o !== slug).slice(0, 2).map(o => ({ airline: o, verified: true, age: 0, ...LEAK })) });
+/* 〔検査用の見本。実データではない〕開いている会員に返る行（REAL PAY と同じ形）。ほかの会社の行を1つ混ぜる（数えないことを見る） */
+const OPEN_ROWS = slug => [
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r', annual_usd: 210000, verified: true, age: 0, far: false },
+  { airline: FIVE.find(o => o !== slug), pos: 'cap', fleet: 'b787', ten: 1, tenk: 'r', annual_usd: 190000, verified: true, age: 0, far: false },
+  { airline: slug, pos: 'fo', fleet: 'b787', ten: 0, tenk: 's', annual_usd: 120000, verified: false, age: 1, far: false },
+];
+const WHO = [
+  ['guest', '未ログイン', slug => maskedBody(slug)],
+  ['member', 'ログインした会員・給与の提出なし', slug => withGive(maskedBody(slug), GIVE_MEMBER)],
+  ['expired', '給与の鍵が切れた会員', slug => withGive(maskedBody(slug), GIVE_EXPIRED)],
+  ['open', '給与の鍵が開いている会員', slug => JSON.stringify({ ok: true, state: 'open', give: { ...GIVE_EXPIRED, detailed: true }, rows: OPEN_ROWS(slug) })],
+  ['member0', 'ログインした会員・この会社の提出が0件', slug => noMineBody(slug, GIVE_MEMBER)],
+  ['expired0', '給与の鍵が切れた会員・この会社の提出が0件', slug => noMineBody(slug, GIVE_EXPIRED)],
+];
 /* 点数の付いた口コミ（鍵の無い人に返る形 ＝ 本文の列が無い）。3件めは「訓練」に点数を付けていない。 */
 const REV_RE = /\/rest\/v1\/rpc\/pv_reviews$/;
 const SCORE_KEYS = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
@@ -2558,10 +2609,12 @@ const trouble = [];
 const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
   ![...document.querySelectorAll('.pvg .crl, .pvg-hero .crl')].some(n => n.getClientRects().length && /^(idle|loading)$/.test(n.dataset.state));
 
-async function open(browser, slug, w, h, mode, pre) {
+async function open(browser, slug, w, h, mode, pre, pay) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
   const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [], stayStatus: 200, stayStall: false, add: null, added: [], vreq: null, vreqd: [], edit: null, edited: [], del: null, deleted: [], claim: '{"ok":true}', claimed: [], town: null };
+  /* 給与の一覧の口（pv_pay_rows）だけ、場面が返事を置ける（場面 who ＝ 読む人の形ごとの返事）。置かなければ、下の表と mode のまま。 */
+  seen.pay = pay ?? null;
   /* 答えるカードの口：give ＝ その場面だけ差し替える返事（{ status, body }。置かなければ giveBody）・giveCalls ＝ 呼ばれた回数。
      nav ＝ 並びを置いた場面でだけ、ページが移ろうとした行き先を控えて止める（カードのリンクが進む先を見る時）。 */
   seen.give = null; seen.giveCalls = 0; seen.nav = null;
@@ -2662,7 +2715,8 @@ async function open(browser, slug, w, h, mode, pre) {
         if (hit[0] === WORK_RE) {
           return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: workBody(seen.mode) });
         }
-        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug)
+        const body = hit[0] === PAY_RE && seen.pay != null ? seen.pay
+                   : seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug)
                    : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? revBodyOf(seen.mode, slug) : hit[1];
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body });
       }
@@ -3810,6 +3864,63 @@ async function runRows(browser, s, [w, h, kind]) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
     await ctx.close().catch(() => {});
+  }
+}
+/* 場面 who（2026-10-22 段階4 cmp-pay-2）── 提出された年収の箱の1行は、読む人の形で決まる（上の場面 rows の錠前の1行の対）。
+     未ログイン・会員 ＝「給与の提出で開きます」（ログインの入口は未ログインだけ）／鍵が切れた会員 ＝「年収データの解放が切れています」／
+     開いている会員 ＝ 行（職位・額が出る ＝ 会社ページの行は今までどおり）／この会社の提出が0件 ＝「まだ記録がありません」（開けるものが無いので錠前の1行は出さない）。
+   鍵の無い形では、わざと混ぜた職位・機材・額・印が、箱の字にも属性にも出ない。字は画面に出ている字で見る（幅を変えても字は同じ ＝ 1つの幅）。 */
+const WHO_W = [390];
+async function runWho(browser, s, [w, h]) {
+  const POS_JA = Object.fromEntries(JSON.parse(read('pv-vocab.json')).positions.map(x => [x.code, x.ja]));
+  for (const [k, who, body] of WHO) {
+    const tag = `${s} ${w}（${who}）`;
+    const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rows', null, body(s));
+    try {
+      ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+      const g = await p.evaluate(() => {
+        const box = document.querySelector('#pvg-realpay .crl[data-live="realpay"]');
+        if (!box) return null;
+        const t = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : null);
+        return {
+          state: box.dataset.state, lock: t(box.querySelector('.crl-lock')), msg: t(box.querySelector('.crl-msg')), count: t(box.querySelector('.crl-count')),
+          login: box.querySelectorAll('a[href*="login.html"]').length, html: box.innerHTML,
+          rows: [...box.querySelectorAll('.crl-row')].map(li => ({ mask: li.getAttribute('data-mask'), pos: t(li.querySelector('.crl-pos')), amt: t(li.querySelector('.crl-amt')), none: !!li.querySelector('.crl-amt[data-none]') })),
+        };
+      });
+      const bad = [];
+      if (!g) bad.push('提出された年収の箱が無い');
+      else if (k === 'open') {
+        const want = OPEN_ROWS(s).filter(r => r.airline === s);
+        if (g.state !== 'open') bad.push(`箱が ${g.state}（開いた形のはず）`);
+        if (g.lock !== null || g.msg !== null) bad.push(`開いているのに「${g.lock || g.msg}」と出ている`);
+        if (g.count !== `${want.length}件の提出`) bad.push(`件数「${g.count}」（あるべき ${want.length}件・ほかの会社の行を数えない）`);
+        if (g.login) bad.push(`ログインの入口が ${g.login}つ`);
+        if (!same(g.rows.map(r => r.pos), want.map(r => POS_JA[r.pos]))) bad.push(`行の職位「${g.rows.map(r => r.pos).join('｜')}」（あるべき「${want.map(r => POS_JA[r.pos]).join('｜')}」）`);
+        if (g.rows.some(r => r.mask !== null || r.none || !/\d/.test(r.amt || ''))) bad.push(`額の出ていない行・伏せた行が在る（${g.rows.map(r => `${r.mask}/${r.amt}`).join(' ')}）`);
+      } else if (/0$/.test(k)) {
+        if (!(g.state === 'empty' && g.msg === 'まだ記録がありません')) bad.push(`「まだ記録がありません」になっていない（${g.state}・${g.msg}）`);
+        if (g.lock !== null || g.count !== null || g.rows.length) bad.push(`0件なのに、錠前の1行・件数・行のどれかが出ている（${g.lock}・${g.count}・${g.rows.length}行）`);
+      } else {
+        const lock = k === 'expired' ? PAY_EXPIRED : '給与の提出で開きます', login = k === 'guest' ? 1 : 0;
+        if (g.state !== 'locked') bad.push(`箱が ${g.state}（鍵の掛かった形のはず）`);
+        if (g.lock !== lock) bad.push(`錠前の1行が「${g.lock}」（あるべき「${lock}」）`);
+        if (g.msg !== null) bad.push(`行が在るのに「${g.msg}」と出ている`);
+        if (g.count !== `${MASK_AGE.length}件の提出`) bad.push(`件数「${g.count}」（あるべき ${MASK_AGE.length}件）`);
+        if (g.login !== login) bad.push(`ログインの入口が ${g.login}つ（あるべき ${login}つ）`);
+        if (!g.rows.length || g.rows.some(r => r.mask !== 'line')) bad.push('伏せた行の形でない行が在る');
+        const leak = [/271/, /captain/i, /b787/i, /機長|副操縦士/, /⚠/, /data-(pos|fleet|ten|far|usd)/].filter(re => re.test(g.html)).map(String);
+        if (leak.length) bad.push(`サーバーが混ぜた職位・機材・額・印が出ている（${leak.join(' ')}）`);
+      }
+      const say = k === 'open' ? '行（職位と額）が出る' : /0$/.test(k) ? '「まだ記録がありません」（錠前の1行は出さない）'
+        : `「${k === 'expired' ? PAY_EXPIRED : '給与の提出で開きます'}」${k === 'guest' ? '・ログインの入口' : '（ログインの入口は無い）'}・混ぜた額や職位は1文字も出ない`;
+      ok(!bad.length, `${tag}: 提出された年収の箱は ${say}`, bad.join(' ／ '));
+      ok(!seen.unknown.size, `${tag}: 検査が返事を用意していない口を呼んでいない`, [...seen.unknown].join(' '));
+    } catch (e) {
+      ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+    } finally {
+      await ctx.close().catch(() => {});
+    }
   }
 }
 /* 件数と札が横に並ぶのは箱 296px（画面 344px）から。その下では札が件数の下の段へ下りる。
@@ -8099,6 +8210,7 @@ try {
   if (wantS('view')) for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
   if (wantS('off')) for (const s of ONLY) for (const v of VIEWS.filter(x => OFF_W.includes(x[0]))) work.push(() => runOff(browser, s, v), () => runFacts404(browser, s, v));
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
+  if (wantS('who')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || WHO_W.includes(x[0]))) work.push(() => runWho(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v), () => runRatedLogin(browser, s, v), () => runRatedFew(browser, s, v), () => runRatedNone(browser, s, v), () => runRatedErr(browser, s, v), () => runRatedOpen(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) { const v = VIEWS.find(x => RATED_W.includes(x[0])); if (v) work.push(() => runRatedStale(browser, s, v)); }
   if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => [390, 1440].includes(x[0]))) for (const m of Object.keys(THIN)) work.push(() => runRatedThin(browser, s, v, m));

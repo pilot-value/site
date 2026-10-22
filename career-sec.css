@@ -107,6 +107,7 @@
 .cr-rentb-k{display:flex;flex-wrap:wrap;align-items:center;gap:3px 8px;margin-top:8px;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink)}
 .cr-rentb-k small{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
 .cr-rentb-l{gap:0;padding:6px 0 4px}
+.cr-rentb-go{margin-top:0}
 .cr-rentb-l div{grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:0 12px;padding:7px 0;border-top:1px solid var(--pv-line-soft)}
 .cr-rentb-l div:first-child{border-top:0}
 .cr-rentb-l dt{font-size:13px;color:var(--pv-ink-2)}

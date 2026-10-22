@@ -29,6 +29,8 @@
  *
  * ★家賃は1か月あたり。街どうしを同じ目盛に並べない（比較では、会社ごとの箱に その街の物差し・出どころ・時点 を付ける）。
  *
+ * ★比較の読む順は 年収 → 提出された年収 → 口コミ → 家賃 → 月の働き方 → 待遇 → 内訳（公表額）。順は assert-career.mjs が見ている。
+ *
  * ★主表示には目印を付ける（5社とも）。カード保存はこの DOM の字を読む。
  *     data-main="cap|fo"      額（textContent が画面の額そのまま）
  *     data-main-tag="cap|fo"  札（「推定」）
@@ -55,7 +57,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures, fxNote } from './salary-basis.mjs';
-import { viewOf, AXIS as VIEW_AXIS, width, rentCell, coText } from './pv-airline-view.mjs';
+import { viewOf, AXIS as VIEW_AXIS, width, rentCell, coText, LEAD as LEAD_FIVE } from './pv-airline-view.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
 import { FACTS, atText, introText, valueText } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W } from './place-photos.mjs';
@@ -65,8 +67,8 @@ import { qrMatrix } from './career-qr.mjs';
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 export const PAGE = 'career.html';
-/* 先行5社。並びは入口のタイルの順。 */
-export const FIVE = ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air'];
+/* 先行5社。並びは入口のタイルの順。（正本は airline-rollout.mjs の LEAD。ここに並びを打たない） */
+export const FIVE = LEAD_FIVE;
 /* 深い画面（タブ・詳細・就航地）を持つ会社。ほかは段1の概要のまま。 */
 export const DEEP = ['etihad'];
 /* 比較を社名なしで開いたときの2社。 */
@@ -187,6 +189,9 @@ function credits(items, withName, shown) {
 }
 
 /* ── 住所と記号 ─────────────────────────────────────────────────── */
+/* 会社ページが持っているタブ（生成済みのページから読む ── タブの名前をここに打たない）。今までの形のページは空。 */
+const PAGE_TABS = {};
+const pageTabs = s => (PAGE_TABS[s] ||= new Set([...fs.readFileSync(path.join(ROOT, 'airlines', `${s}.html`), 'utf8').matchAll(/ data-pvg-tab="([a-z]+)"/g)].map(m => m[1])));
 const href = {
   home: PAGE,
   airline: s => `${PAGE}?airline=${s}`,
@@ -195,10 +200,27 @@ const href = {
   detail: (s, d) => `${PAGE}?airline=${s}&amp;d=${d}`,
   compare: (a, b) => `${PAGE}?view=compare` + (a ? `&amp;a=${a}&amp;b=${b}` : ''),
   card: (a, b) => `${PAGE}?view=card&amp;a=${a}` + (b ? `&amp;b=${b}` : ''),
+  /* いま改良している会社ページ（airlines/{slug}.html）と、そのタブ（# は pv-glance.js が読む名前）。
+     # を付けるのは、そのページがそのタブを持っているときだけ（今までの形のページは、ページの頭を開く）。
+     タブを持つページに頼んだタブが無ければ、ここで止まる（「詳しく」の先が無くなるのを、検査より先に生成で止める）。 */
+  page: (s, tab) => {
+    const has = pageTabs(s);
+    if (!tab || !has.size) return `airlines/${s}.html`;
+    if (!has.has(tab)) throw new Error(`${s}: 会社ページに「${tab}」のタブが無い（比較の「詳しく」の先が無くなる）`);
+    return `airlines/${s}.html#${tab}`;
+  },
 };
 const ic = d => `<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 const IC = { back: ic('M15 6l-6 6 6 6'), go: ic('M5 12h14M13 6l6 6-6 6'), down: ic('M6 9l6 6 6-6'), swap: ic('M7 8h11l-3-3M17 16H6l3 3'), next: ic('M9 6l6 6-6 6') };
 const back = () => `<a class="cr-back" href="${href.home}" data-go>${IC.back}航空会社を選ぶ</a>`;
+/* 比較の節の下に置く、会社ごとの入口（その会社のページの該当タブへ）。5社ぶん置いて、選ばれた2社だけ見せる（career.js の pair()）。
+   読み上げの名前は「節の見出し ＋ 社名 ＋ 詳しく」（aria-labelledby。字は足さない）。
+   ⚠️ data-go を付けない（career.html の外へ出る）。額・職位の字をこの中に書かない（check-salary.mjs の並びを崩さない）。 */
+const GO_WORD = '詳しく';
+const MORE_TOWNS = 'ほかの街';
+const gos = (tab, key) => `<p class="cr-gos">
+${FIVE.map(s => `<a class="cr-link cr-go" id="cr-go-${key}-${s}" href="${href.page(s, tab)}" aria-labelledby="cr-cmp-h-${key} cr-go-${key}-${s}" data-airline="${s}" style="--cr-co:${color(s)}"${PAIR.includes(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">${esc(name(s))}</span><span class="cr-go-t">${GO_WORD}</span>${IC.go}</a>`).join('\n')}
+</p>`;
 
 /* 生きた欄。空で出荷する（career-live.js / career-stay.js がサーバーの答えで埋める）。
    attrs は data- の名前と値。値はここで書く英数字だけ（鍵・コード）。 */
@@ -405,6 +427,28 @@ export function askGroup(id) {
   if (!ok) return '';
   return ASK_TOPICS.includes(q.topic) ? q.topic : q.section === 'roster' ? 'roster' : q.section === 'career' ? 'career' : 'benefits';
 }
+/* 比較の「回答」の欄が並べる質問。正本は質問の台帳（pv-conditions.mjs の QUESTIONS）── ここに鍵を打たない。
+   どの欄に入るかは、その回答が会社ページのどのタブに出るか：
+     work ＝ 勤務・訓練（勤務スケジュール・キャリアの質問と、通勤・Staff Travel の話題）／pay ＝ 給与・待遇（それ以外）。
+   並びは会社ページの面の順（勤務予定 → 通勤 → Staff Travel → 昇格・訓練）、その中は台帳の順。
+   額の質問（通貨つき）は入れない ── 会社ページの箱と同じ決まり（gen-airline-glance.mjs の factKeys。箱は通貨なしで数字だけを出す）。
+   ⚠️ 会社ページの面を移したら、ここも直す（どの質問がどのタブに出るかは、会社ページの生成器 gen-airline-glance.mjs が決めている）。 */
+const WORK_TOPICS = ['taxi', 'staff_travel'];
+export function tabOfKey(id) {
+  const q = QUESTIONS.find(x => x.id === id);
+  if (!q || q.retired || q.currency) return '';
+  return (q.section === 'roster' || q.section === 'career' || WORK_TOPICS.includes(q.topic)) ? 'work' : 'pay';
+}
+export const CMP_KEYS = (() => {
+  const surf = q => (q.section === 'roster' ? 0 : q.topic === 'taxi' ? 1 : q.topic === 'staff_travel' ? 2 : q.section === 'career' ? 3 : 4);
+  const ids = QUESTIONS.filter(q => !q.retired && !q.currency).map((q, i) => [q, i])
+    .sort((a, b) => surf(a[0]) - surf(b[0]) || a[1] - b[1]).map(x => x[0].id);
+  const out = { work: ids.filter(id => tabOfKey(id) === 'work'), pay: ids.filter(id => tabOfKey(id) === 'pay') };
+  if (!out.work.length || !out.pay.length) throw new Error('比較の回答の欄に並べる質問が無い（pv-conditions.mjs）');
+  if (QUESTIONS.some(q => q.currency && (out.work.includes(q.id) || out.pay.includes(q.id)))) throw new Error('比較の回答の欄に、額の質問（通貨つき）は入れられない');
+  if (ids.length > 120) throw new Error('比較が1回で聞く質問が 120 を超えた（pv_contrib_facts が受け取る上限）');
+  return out;
+})();
 export const TOPICS = TOPIC_DEFS.map(([id, title, tp]) => {
   const asks = QUESTIONS.filter(q => q.topic === tp && !q.retired).map(q => [q.id, ASK[q.id] || q.ja.label]);
   if (!asks.length) throw new Error(`話題 ${id}: 待遇アンケートに質問が1つも無い（pv-conditions.mjs。入口の先が無くなる）`);
@@ -643,6 +687,7 @@ ${rows.join('\n')}
 <summary>前提と出どころ</summary>
 ${rentBasis(slug, L, [r])}
 </details>
+${L.rents.length > 1 ? `<p class="cr-else cr-rentb-go"><a class="cr-link" href="${href.page(slug, 'life')}">${MORE_TOWNS}${IC.go}</a></p>` : ''}
 </article>`;
 }
 
@@ -756,24 +801,38 @@ ${p ? placeCredits([['', p]]) : ''}
 </section>`;
 }
 
+/* 口コミの6分類の名前（比較の6角形に添える）。正本は会社ページの口コミの部品が持つ CAT_FULL（airlines/airline-reviews-data.js）
+   ── 会社ページの評価スコアの図と同じ言葉（2026-10-21 オーナー「必ず多角形のレーダーの図を載せて」：図の名前は古いページの言葉）。
+   同じ分類を別の言葉で呼ばない。あのファイルは見本の口コミも持っているので、この1枚では読み込まない
+   ── 名前だけを生成のときに写して島に置く（career-live.js の catNames() が読む）。⚠️ ここに名前を打たない。 */
+const REVIEW_CATS = (() => {
+  const t = fs.readFileSync(path.join(ROOT, 'airlines', 'airline-reviews-data.js'), 'utf8');
+  const m = t.match(/const CAT_FULL\s*=\s*\[([^\]]*)\];/);
+  const names = m ? [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]) : [];
+  if (names.length !== 6) throw new Error('airlines/airline-reviews-data.js の CAT_FULL（6分類の名前）が読めない');
+  return names;
+})();
+
 /* ── 比較 ───────────────────────────────────────────────────────── */
 /* 比較の1行（推定年収どうし・同じ職位・同じ目盛）。職位は見出しが持っているので、行の中では隠してある。
-   DEEP の会社は行ぜんたいがその数字自身の詳細への入口。
+   行は入口にしない（会社ページの 給与・待遇 のタブへは、箱の下の「詳しく」から）。
    ⚠️ 会社が公表した額の行をここへ足さない（下の「会社が公表している金額」の箱が持つ）。 */
 function row(slug, rank, label, shown) {
   const c = cell(slug, rank);
-  const isDeep = DEEP.includes(slug);
   const attrs = `data-airline="${slug}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
-  return `<${isDeep ? `a class="cr-row" href="${href.detail(slug, rank + '-est')}" data-go` : 'div class="cr-row"'} ${attrs}>
+  return `<div class="cr-row" ${attrs}>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}</span><span class="cr-vh">${label}</span><b class="cr-row-v">${esc(c.text)}</b></div>
 <div class="cr-row-k">${kline(c)}</div>
 <div class="cr-track" aria-hidden="true">${fill(c)}</div>
-</${isDeep ? 'a' : 'div'}>`;
+</div>`;
 }
 
 function compare() {
   /* 5社ぶんを全部置いておき、選ばれた2社だけ見せる（career.js は数字を持たない）。 */
   const on = s => PAIR.includes(s);
+  /* 「会社が公表している金額」の箱（.cr-cards）は、並べた2社のどちらにも一覧が無ければ描かない（空の箱・「公表なし」を置かない ──
+     2026-10-22 LEAD AMENDMENT・P12.91-7）。片方に在れば、もう片方は社名だけ。選び直したときは career.js の pair() が同じ決まりで決める。 */
+  const pubs = Object.fromEntries(FIVE.map(s => [s, pub(s, 'h3')]));
   const side = (id, label, chosen, taken) => `<div class="cr-side" data-side="${id}">
 ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(s)}"${s === chosen ? '' : ' hidden'}>
 <span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}</span>
@@ -792,8 +851,8 @@ ${side('a', '1社目', PAIR[0], PAIR[1])}
 <button type="button" class="cr-swap" id="cr-swap" aria-label="2社を入れ替える">${IC.swap}</button>
 ${side('b', '2社目', PAIR[1], PAIR[0])}
 </div>
-<div class="cr-panel">
-<h2 class="cr-panel-h">年収</h2>
+<div class="cr-panel" data-kind="estimate">
+<h2 class="cr-panel-h" id="cr-cmp-h-pay">年収</h2>
 ${ROLES.map(([r, l]) => `<h3 class="cr-role">${l}</h3>
 <div class="cr-pair" data-role="${r}">
 ${FIVE.map(s => row(s, r, l, on(s))).join('\n')}
@@ -802,12 +861,17 @@ ${axis()}
 <div class="cr-taxes">
 ${FIVE.map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(BASIS[s].tax)}</span></p>`).join('\n')}
 </div>
+<p class="cr-tgt">${KINDS[0][1]}<span>${EST_TARGET}</span></p>
+${gos('pay', 'pay')}
 </div>
-<div class="cr-cards">
-${FIVE.map(s => `<div class="cr-card" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}>
-<h2 class="cr-card-h"><a class="cr-card-n" href="${href.airline(s)}" data-go>${esc(name(s))}${IC.go}</a></h2>
-${pub(s, 'h3')}
-</div>`).join('\n')}
+<div class="cr-sec cr-subpay" data-kind="submitted">
+<h2 class="cr-h2">提出された年収<span class="cr-h2-s" lang="en">REAL PAY</span></h2>
+${live('cmp-pay')}
+</div>
+<div class="cr-sec cr-cmp-rev">
+<h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
+${live('cmp-stars')}
+${gos('reviews', 'rev')}
 </div>
 <div class="cr-sec cr-rents">
 <h2 class="cr-h2">拠点の街の家賃<span class="cr-h2-s">1か月あたり</span></h2>
@@ -815,22 +879,26 @@ ${pub(s, 'h3')}
 ${FIVE.map(s => rentBox(s, on(s))).join('\n')}
 </div>
 </div>
-<div class="cr-lives">
-<div class="cr-sec">
-<h2 class="cr-h2">月の働き方</h2>
-${live('cmp-work')}
+<div class="cr-sec cr-cmp-work">
+<h2 class="cr-h2" id="cr-cmp-h-work">月の働き方</h2>
+${live('cmp-work', { entry: 'give' })}
+${live('cmp-facts', { keys: CMP_KEYS.work.join(','), quiet: '1' })}
+${gos('work', 'work')}
 </div>
-<div class="cr-sec">
-<h2 class="cr-h2">待遇</h2>
-${live('cmp-facts')}
+<div class="cr-sec cr-cmp-ben">
+<h2 class="cr-h2" id="cr-cmp-h-ben">待遇</h2>
+${live('cmp-facts', { keys: CMP_KEYS.pay.join(',') })}
+${gos('pay', 'ben')}
 </div>
-<div class="cr-sec">
-<h2 class="cr-h2">口コミ</h2>
-${live('cmp-stars')}
-</div>
+<div class="cr-cards" data-kind="published"${PAIR.some(s => pubs[s]) ? '' : ' hidden'}>
+${FIVE.map(s => `<div class="cr-card" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}>
+<h2 class="cr-card-h"><a class="cr-card-n" href="${href.page(s)}">${esc(name(s))}${IC.go}</a></h2>
+${pubs[s]}
+</div>`).join('\n')}
 </div>
 <p class="cr-else cr-cmp-card"><a class="cr-link" id="cr-to-card" href="${href.card(PAIR[0], PAIR[1])}" data-go>カードを保存${IC.go}</a></p>
 ${credits(FIVE.map(s => [s, shot(s)]), true, PAIR)}
+<script type="application/json" id="crl-cats">${JSON.stringify(REVIEW_CATS).replace(/</g, () => '\\u003c')}</script>
 </section>`;
 }
 
@@ -884,7 +952,7 @@ const fingerprint = f => createHash('sha256').update(fs.readFileSync(path.join(R
 /* career.html が読む、この1枚だけの部品。指紋（?v=）を付ける一覧。
    ⚠️ どれか1つを直したら node gen-career.mjs を流す（流さないと古い部品が最大4時間残る）。 */
 export const ASSETS = [
-  'career.css', 'career-sec.css', 'career-live.css', 'career-stay.css', 'career-card.css',
+  'career.css', 'career-sec.css', 'career-live.css', 'career-stay.css', 'career-card.css', 'pv-gg.css',
   'career.js', 'career-live.js', 'career-stay.js', 'career-card.js',
   /* パイロットであることの確認の共通のポップアップ。ホテルの欄の、会員の鍵の1行から開く（career-stay.js・2026-10-18 オーナー Q2） */
   'pv-proof-offer.js',

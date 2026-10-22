@@ -55,6 +55,13 @@
 
 /* 未取得 ＝ その項目を運ぶ道が無い／その側に無い */
 .crl-none{display:inline-flex;align-items:center;align-self:flex-start;min-height:24px;padding:0 8px;border:1px dashed var(--pv-line);border-radius:6px;font-size:12px;color:var(--pv-ink-3);white-space:nowrap}
+/* 片方の会社だけ読めなかったとき（もう片方は出ている）。色は欄ごと落ちたときの帯と同じ。
+   「準備中」はこの組を持たない ＝ 今までの点線の札のまま（失敗の色にしない）。 */
+.crl-side-err{border-style:solid;border-color:transparent;background:var(--pv-orange-soft);color:var(--pv-orange-ink);font-weight:700;white-space:normal}
+.crl-blank{display:block;min-height:1px}
+.crl[data-part="1"] > .crl-retry{margin-top:10px}
+/* 「やり直す」のあと、押した人のフォーカスを受け取る欄（押せるものではないので、輪は描かない） */
+.crl[tabindex="-1"]:focus{outline:none}
 
 /* ── 入口 ── */
 .crl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:6px}
@@ -199,6 +206,30 @@
 .crl-cmp-row{padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
 .crl-cmp-k{grid-column:1 / -1;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink)}
 .crl-cmp-c{display:flex;flex-direction:column;min-width:0}
+/* 片方の会社だけ開いているとき：2列をやめて上下に並べる（開いていない側に空の列を作らない） */
+.crl-split{display:grid;gap:14px}
+.crl-split-c{display:grid;gap:8px;min-width:0}
+.crl-split-c + .crl-split-c{padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+/* 「月の働き方」のすぐ下の回答の欄（data-quiet）：開いていない時・並べる行が無い時は何も言わない（すぐ上の欄が言っている）。
+   ⚠️ display:none にしない ── 比較は2社を選び直せる。消えた箱は取り直されない（career-live.js は見えている箱だけを取りに行く）。 */
+.crl[data-live="cmp-facts"][data-quiet="1"] > .crl-ph,
+.crl[data-live="cmp-facts"][data-quiet="1"] > .crl-sk{display:none}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="open"],
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="off"],
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"]{margin-top:14px}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="open"]{padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="locked"],
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="empty"],
+.crl[data-live="cmp-work"][data-state="off"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="off"],
+.crl[data-live="cmp-work"][data-state="error"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"]{display:block;height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.crl[data-live="cmp-work"][data-state="off"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="off"] > *,
+.crl[data-live="cmp-work"][data-state="error"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"] > *{display:none}
+/* 片方の会社だけ開いているときも同じ：開いた会社に並べる行が無ければ（「まだ集計がありません」の1行だけ）、その会社の部分は出さない
+   （すぐ上の「月の働き方」の欄が、その会社のことを言っている ── 1つの箱に同じ1行を2回出さない）。
+   出す部分が1つも残らなければ（並べる行も、読めなかった会社の1行も無い）、欄ごと高さ 0（上と同じ畳み方）。 */
+.crl[data-live="cmp-facts"][data-quiet="1"] .crl-split-c:has(> .crl-msg){display:none}
+.crl[data-live="cmp-facts"][data-quiet="1"] .crl-split-c:has(> .crl-msg) + .crl-split-c{padding-top:0;border-top:0}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="open"]:has(> .crl-split):not(:has(> .crl-split .crl-facts, > .crl-split .crl-none)){display:block;height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
 
 /* ── 口コミ ── */
 .crl-score{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;margin:0}
@@ -211,6 +242,54 @@
 .crl-stars[data-none]{color:var(--pv-ink-3)}
 .crl-stars[data-none]::before{content:'☆☆☆☆☆'}
 .crl-stars[data-none]::after{content:none}
+/* 比較の口コミ：星・点数・「n件の評価」の次の行に「会員の投稿 n件」（2つの数を同じ行に並べない） */
+.crl-rate{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+.crl-posts{margin:0;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+/* 投稿が無い会社・読めなかった会社の1語は、狭い列では折り返す（1行に固定しない） */
+.crl-rate > .crl-none{white-space:normal;padding:2px 8px;line-height:1.5}
+/* 評価の続きの行（6角形・口コミの抜粋）。列は評価の行と同じ2つ。評価の行とのあいだに線を引かない（同じ会社の評価の続き） */
+.crl-cmp-sub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px;padding:4px 0 12px;border-bottom:1px solid var(--pv-line-soft)}
+.crl-cmp-sc{display:flex;flex-direction:column;min-width:0}
+.crl-cmp-row:has(+ .crl-cmp-sub),.crl-cmp-sub:has(+ .crl-cmp-sub){border-bottom:0}
+.crl-rate-rv .crl-revs{margin:0}
+/* 抜粋の終わりの「…」は、サーバーが切った時だけ付けている（pv_review_clip）。比較では足さない ──「……」にしない・切っていない字に付けない */
+.crl-cmp .crl-rev-clip::after{content:none}
+/* 2社とも投稿が無いとき：1つの文の下に、社名の札と淡い6角形の格子（文と格子のあいだを少し空ける） */
+.crl[data-live="cmp-stars"] > .crl-msg + .crl-cmp{margin-top:8px}
+/* ── 比較の6角形（2社を同じ形・同じ色で）──
+   線と面は会社ページ（pv-glance.css の .pvg .crl-radar-*）と同じ値の写し。片方だけ直すと黙って別物になる。
+   点数で塗れない会社は、会社ページと同じ 3.0 の淡い面（is-ph ── 線の色を薄く敷いただけ。数字は置かない）。
+   既定は狭い箱の形：上に図、下に6分類の名前と点数を1行ずつ。欄が広いとき（560px〜）だけ、会社ページと同じ「図のまわりに名前」
+   （名前は古いページの言葉 ──「給与・報酬の納得度」まで ── なので、会社ページと同じく左右の列を 76px に広げる）。
+   ⚠️ 既定を広い形にしない。箱の幅で測れないブラウザは既定のまま出る（狭い箱で名前が図に重ならない）。 */
+.crl-rate-fig .crl-cmp-sc{align-items:center}
+.crl-cmp .crl-radar{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 8px;width:100%;max-width:272px;margin:0 auto}
+.crl-cmp .crl-radar-svg{display:block;width:100%;max-width:148px;height:auto;aspect-ratio:1;margin:0 auto 6px;overflow:visible}
+.crl-cmp .crl-radar-ring{fill:none;stroke:var(--pv-line);stroke-width:1;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-axis{stroke:var(--pv-line);stroke-width:1;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-shape{fill:var(--pv-gold-soft);stroke:var(--pv-star);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-dot{fill:var(--pv-star)}
+.crl-cmp .crl-radar-shape.is-ph{fill:var(--pv-line);fill-opacity:.6;stroke:var(--pv-ink-3);stroke-opacity:.35;stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-l{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:0 8px;min-width:0;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
+.crl-cmp .crl-radar-l span{min-width:0;word-break:keep-all;overflow-wrap:anywhere}
+.crl-cmp .crl-radar-l b{flex:none;margin-left:auto;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+@supports (container-type:inline-size){
+  .crl[data-live="cmp-stars"]{container-type:inline-size}
+  @container (min-width:560px){
+    .crl-cmp .crl-radar{grid-template-columns:76px minmax(0,1fr) 76px;grid-template-rows:auto 1fr 1fr auto;align-items:center;gap:4px 8px;max-width:300px}
+    .crl-cmp .crl-radar-svg{grid-column:2;grid-row:2 / span 2;max-width:none;margin:0}
+    .crl-cmp .crl-radar-l{flex-direction:column;flex-wrap:nowrap;align-items:flex-start;justify-content:flex-start;gap:0;line-height:1.35}
+    .crl-cmp .crl-radar-l span{word-break:normal}
+    .crl-cmp .crl-radar-l b{margin-left:0;font-size:14px}
+    .crl-cmp .crl-radar-l[data-i="0"],.crl-cmp .crl-radar-l[data-i="3"]{grid-column:1 / -1;flex-direction:row;align-items:baseline;justify-content:center;gap:6px}
+    .crl-cmp .crl-radar-l[data-i="0"]{grid-row:1}
+    .crl-cmp .crl-radar-l[data-i="3"]{grid-row:4}
+    .crl-cmp .crl-radar-l[data-i="1"]{grid-column:3;grid-row:2}
+    .crl-cmp .crl-radar-l[data-i="2"]{grid-column:3;grid-row:3}
+    .crl-cmp .crl-radar-l[data-i="5"]{grid-column:1;grid-row:2;align-items:flex-end;text-align:right}
+    .crl-cmp .crl-radar-l[data-i="4"]{grid-column:1;grid-row:3;align-items:flex-end;text-align:right}
+  }
+}
 /* 会社ページ：星の行は「口コミ」のタブへの入口 */
 a.crl-score-a{display:inline-flex;flex-wrap:nowrap;gap:8px;min-height:44px;color:var(--pv-ink);text-decoration:none;border-radius:8px}
 a.crl-score-a .crl-ic{flex:none;color:var(--pv-ink-3);transition:transform .18s var(--pv-ease)}
@@ -273,3 +352,27 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-ans-v{font-size:15px;font-weight:700;color:var(--pv-ink);overflow-wrap:anywhere}
 .crl-ans-m{display:inline-flex;flex-wrap:wrap;gap:0 8px;font-size:12px;color:var(--pv-ink-3)}
 .crl-how{font-weight:700;color:var(--pv-ink-2)}
+
+/* ── 比較：提出された年収（2社の列。行は REAL PAY の行と同じ部品）── */
+.crl-pr-h{margin:14px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-pc{display:flex;flex-direction:column;min-width:0}
+.crl-pc > .crl-msg{display:flex;align-items:center;min-height:32px;margin:0;color:var(--pv-ink-3)}
+.crl-cmp-c .crl-row{grid-template-columns:minmax(0,1fr)}                 /* 半分の幅では、額を条件の下へ */
+.crl-cmp-c .crl-row-b{justify-content:flex-start;flex-wrap:wrap;white-space:normal}
+.crl-cmp-c .crl-row-a:empty{display:none}                                /* 口コミに書かれた年収の行は、機種も年数も無い */
+.crl-cmp-c .crl-foot .crl-link > span{word-break:keep-all;overflow-wrap:anywhere}   /* 半分の幅の「REAL PAY で全部見る」：折るのは空白のところだけ（「る」1字を次の行へ落とさない） */
+.crl-more-s{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;list-style:none;color:var(--pv-accent-ink);font-size:13px;font-weight:700}
+.crl-more-s::-webkit-details-marker{display:none}
+.crl-more-s .crl-ic{transition:transform .18s var(--pv-ease)}
+.crl-more[open] > .crl-more-s .crl-ic{transform:rotate(180deg)}
+@media (hover:hover){.crl-more-s:hover{text-decoration:underline;text-underline-offset:3px}}
+.crl-more-s:active{opacity:.7}
+.crl-more-s:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){.crl-more-s .crl-ic{transition:none}}
+.crl-def{margin:10px 0 0;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
+.crl-agg{padding:0 0 12px;border-bottom:1px solid var(--pv-line)}
+.crl-agg[hidden]{display:none}
+.crl-agg-h{margin:12px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-agg .crl-cmp-row:last-of-type{border-bottom:0}
+.crl-agg > .crl-def{margin-top:4px}
+.crl-med{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}

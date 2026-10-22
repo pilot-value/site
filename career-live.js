@@ -63,6 +63,10 @@
     payEmpty: 'まだ記録がありません',
     payCount: function (n) { return ['', String(n), '件の提出']; },
     payLock: '給与の提出で開きます',
+    payExpired: '年収データの解放が切れています',
+    payMore: function (n) { return '続きを見る（全' + n + '件）'; },
+    payDef: 'REAL PAY と同じ一覧（直近24か月の提出）。月の支給額を年に直した額と、口コミに書かれた年収の両方が入っています。',
+    medDef: function (from, to, floor) { return '中央値は、給与を提出した人ごとのまんなかの額から出しています（給与の月が' + from + '〜' + to + 'のもの・' + floor + '人以上の区分だけ）。口コミに書かれた年収と、登録前に預かった提出は入りません。'; },
     payGive: '匿名で給与を提出する',
     gg: 'Give & Get',
     payUnlock: ['全ての', '給与情報を', '解放する'],
@@ -105,9 +109,9 @@
     townHeld: 'ログインなしで保存した回答があります。',
 
     revEmpty: '口コミはまだありません',
-    revNone: '会員からの投稿はまだありません',       // 会社ページ用。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
+    revNone: '会員からの投稿はまだありません',       // 会社ページと比較で使う。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
     revNo: '評価未取得',                              // 会社ページ用。点数の付いた投稿がまだ無い（0点ではない）
-    revCount: function (n) { return '口コミ ' + n + '件'; },
+    revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（点数の有無を問わず、投稿ぜんぶ）。評価件数（revRated）と同じ行に置かない
     revRated: function (n) { return n + '件の評価'; },
     sumHead: '口コミの要約',
     sumGood: '良い点',
@@ -122,6 +126,9 @@
     sumSrc: 'この要約のもとになった口コミを見る',
     revLock: '口コミの投稿で開きます',
     revGive: '匿名で口コミを書く',
+    /* 比較の口コミの入口（口コミの鍵）。会社ページの概要の口コミの入口と同じ言葉（gen-airline-glance.mjs の RV_CTA.overview）。
+       給与の入口（payUnlock）と混ぜない ── 開く鍵が別。 */
+    revUnlock: ['口コミを', '解放する'],
     revAll: 'この会社の口コミを全部見る',
 
     factEmpty: 'まだ集計がありません',
@@ -150,7 +157,8 @@
   var ICON = {
     lock: ['M7 11V7a5 5 0 0 1 10 0v4', 'M5 11h14v10H5z'],
     check: ['M20 6 9 17l-5-5'],
-    arrow: ['M5 12h14', 'M13 6l6 6-6 6']
+    arrow: ['M5 12h14', 'M13 6l6 6-6 6'],
+    down: ['M6 9l6 6 6-6']
   };
   function icon(name, size) {
     var s = d.createElementNS(NS, 'svg');
@@ -268,11 +276,25 @@
   }
 
   /* ── 取ってくる側（同じ答えは使い回す。落ちたものだけ捨てる＝やり直せる）──── */
+  /* 1本の通信に上限を置く（数え直しではない。上限で切れたら「いま読み出せません」。自動では聞き直さない）。 */
+  var REQ_LIMIT_MS = 15000;
+  function limited(build) {
+    var ctrl = (typeof AbortController === 'function') ? new AbortController() : null, t = 0;
+    var p = new Promise(function (res, rej) {
+      t = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) {} rej(fail('error')); }, REQ_LIMIT_MS);
+      Promise.resolve(build(ctrl ? ctrl.signal : null)).then(res, rej);
+    });
+    var done = function () { clearTimeout(t); };
+    p.then(done, done);
+    return p;
+  }
+  /* 上限で切るときに、その通信を本当に止める（supabase-js の abortSignal。無い版では、待つのをやめるだけ）。 */
+  function cut(q, sig) { return (sig && q && typeof q.abortSignal === 'function') ? q.abortSignal(sig) : q; }
   var cache = {};
   function once(key, fn) {
     if (cache[key]) return cache[key];
     var p;
-    try { p = Promise.resolve(fn()); } catch (e) { p = Promise.reject(e); }
+    p = limited(fn);
     cache[key] = p;
     /* 落ちた答えは持ち越さない（やり直せる）。「口がまだ無い」だけは聞き直しても同じなので持つ。 */
     p.then(null, function (e) { if (cache[key] === p && !(e && e.crl === 'off')) delete cache[key]; });
@@ -282,12 +304,14 @@
     Object.keys(cache).forEach(function (k) { if (k.indexOf(prefix) === 0) delete cache[k]; });
   }
   function loadScript(src) {
-    return new Promise(function (res, rej) {
-      var s = d.createElement('script');
-      s.src = src; s.async = true;
-      s.onload = function () { res(); };
-      s.onerror = function () { rej(fail('error')); };
-      d.head.appendChild(s);
+    return limited(function () {
+      return new Promise(function (res, rej) {
+        var s = d.createElement('script');
+        s.src = src; s.async = true;
+        s.onload = function () { res(); };
+        s.onerror = function () { rej(fail('error')); };
+        d.head.appendChild(s);
+      });
     });
   }
   function json(file) {
@@ -329,8 +353,8 @@
     if (uid === undefined) { uid = v; return; }
     if (uid === v) return;
     uid = v;
-    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:'); drop('give'); drop('town:');
-    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts', 'towns']);
+    drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:'); drop('give'); drop('town:'); drop('cmed:');
+    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts', 'towns', 'cmp-pay']);
     later();
   }
   function watchAuth(sb) {
@@ -345,12 +369,33 @@
       });
     } catch (e) { /* 読めなくても欄は出す（サーバーが資格を決める） */ }
   }
+  /* 別のタブでログイン・ログアウトしたとき（career.html だけ ── 会社ページには pv-contrib.js の合図が届く）。
+     このページの supabase-js は、ほかのタブの書き込みを聞かない（2026-10-22 に確かめた：比較を開いたまま別のタブで別の会員が入っても、
+     欄は前の人のまま）。ログインを読むのは PVSession の1か所（ここでは読まない・書かない）。読む人が替わった時だけ setUid。
+     通信も時計も使わない。 */
+  if (!GL) {
+    w.addEventListener('storage', function () {
+      var P = w.PVSession;
+      if (uid === undefined || !P || typeof P.readStoredSession !== 'function') return;
+      var s = P.readStoredSession(), u = s && s.user && typeof s.user.id === 'string' ? s.user.id : null;
+      /* 鍵は在るのに読めない形（割って入れる実装など）は、誰か分からない ＝ 何もしない（ログアウトとは読まない） */
+      if (!u && typeof P.hasToken === 'function' && P.hasToken()) return;
+      setUid(u);
+    });
+  }
 
   /* 給与の行。引数なしで1回だけ呼び、会社で絞るのは画面側（現行の REAL PAY と同じ）。
      開いていない答えからは、会社・出典・投稿時期の3つしか受け取らない。 */
+  /* 給与の一覧を、いま誰が読んでいるか。サーバーの答え（state と give.basic）だけで決める。
+     expired ＝ 自分の提出は在るのに鍵が開いていない（期限が切れた・運営が鍵を直した）。 */
+  function payWho(x) {
+    if (x.state === 'open') return 'open';
+    if (x.give == null) return 'guest';
+    return x.give.basic === true ? 'expired' : 'member';
+  }
   function payRows() {
-    return once('pay', function () {
-      return client().then(function (sb) { return sb.rpc('pv_pay_rows'); }).then(function (res) {
+    return once('pay', function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_pay_rows'), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
@@ -361,7 +406,7 @@
             return { airline: r && r.airline, verified: !!(r && r.verified), age: r && r.age };
           });
         }
-        return { open: open, rows: rows, anon: x.give == null };
+        return { open: open, rows: rows, anon: x.give == null, who: payWho(x) };
       });
     });
   }
@@ -369,8 +414,8 @@
   /* 月の勤務の集計（給与とは別の入口で集めた6項目）。見せてよい相手かどうかはサーバーが決める。
      開いていない答えに入っているのは、状態の1語だけ（数字は1つも来ない）。 */
   function workView(slug) {
-    return once('wkv:' + slug, function () {
-      return client().then(function (sb) { return sb.rpc('pv_work_view', { p: { airline: slug } }); }).then(function (res) {
+    return once('wkv:' + slug, function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_work_view', { p: { airline: slug } }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
@@ -386,8 +431,8 @@
   /* 会員が書いた補足。誰に返すかはサーバーが決める（開いていない人には1文字も返らない）。
      開いた答えに付いてきた補足だけを持つ。 */
   function notesOf(slug) {
-    return once('note:' + slug, function () {
-      return client().then(function (sb) { return sb.rpc('pv_contrib_notes', { p: { airline: slug } }); }).then(function (res) {
+    return once('note:' + slug, function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_contrib_notes', { p: { airline: slug } }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
@@ -421,21 +466,22 @@
 
   /* 待遇の集計。誰に返すかはサーバーが決める（db/contrib.sql の pv_contrib_facts）。
      開いていない人に返るのは、状態の1語だけ（集計は1件も来ない）。集計のビューは直接読まない（読めない）。
-     1社につき1回だけ聞く ── 聞く質問は、このページの集計の欄ぜんぶの分。 */
+     1社につき1回だけ聞く ── 聞く質問は、このページの集計の欄ぜんぶの分。
+     比較の回答の欄（cmp-facts）が持つ鍵も、同じ1回で聞く。 */
   function pageKeys() {
     var seen = {}, out = [];
-    var all = root.querySelectorAll('.crl[data-live="fact"][data-keys]');
+    var all = root.querySelectorAll('.crl[data-live="fact"][data-keys], .crl[data-live="cmp-facts"][data-keys]');
     for (var i = 0; i < all.length; i++) {
       keysOf(all[i]).forEach(function (k) { if (!seen[k]) { seen[k] = 1; out.push(k); } });
     }
     return out.sort();
   }
   function facts(slug) {
-    return once('fact:' + slug, function () {
+    return once('fact:' + slug, function (sig) {
       var keys = pageKeys(), asked = {};
       keys.forEach(function (k) { asked[k] = 1; });
       return client().then(function (sb) {
-        return sb.rpc('pv_contrib_facts', { p: { airline: slug, keys: keys } });
+        return cut(sb.rpc('pv_contrib_facts', { p: { airline: slug, keys: keys } }), sig);
       }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
@@ -522,10 +568,10 @@
     if (age) p.appendChild(el('span', 'crl-age', age));
     return p;
   }
-  function payRow(r, D) {
+  function payRow(r, D, bare) {
     var li = el('li', 'crl-row');
     var a = el('div', 'crl-row-a');
-    if (D.pos[r.pos]) a.appendChild(el('b', 'crl-pos', D.pos[r.pos]));
+    if (!bare && D.pos[r.pos]) a.appendChild(el('b', 'crl-pos', D.pos[r.pos]));
     if (r.fleet && D.fleet[r.fleet]) a.appendChild(el('span', 'crl-sub', D.fleet[r.fleet]));
     var ten = isNum(r.ten) ? (T.ten[r.tenk === 's' ? 's' : 'r'][r.ten] || '') : '';
     if (ten) a.appendChild(el('span', 'crl-chip', ten));
@@ -647,8 +693,8 @@
     }, function () { return name; });
   }
   function giveInfo() {
-    return once('give', function () {
-      return client().then(function (sb) { return sb.rpc('pv_contrib_give', { p: {} }); }).then(function (res) {
+    return once('give', function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_contrib_give', { p: {} }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false || x.state !== 'give') throw fail('error');
@@ -750,7 +796,7 @@
         }
         nodes.push(ul);
       }
-      nodes.push(lockLine(T.payLock));
+      nodes.push(lockLine(pay.who === 'expired' ? T.payExpired : T.payLock));
       nodes.push(feet);
       return view('locked', nodes);
     });
@@ -907,8 +953,8 @@
      ★並べ替えない・足さない・数えない・切らない（並びは人数の多い順のサーバーの並び・人数はサーバーの数のまま）。 */
   var TOWN_SAY = ['login', 'locked', 'give', 'open'];
   function townBoard(slug, base) {
-    return once('town:' + slug + ':' + base, function () {
-      return client().then(function (sb) { return sb.rpc('pv_town_board', { p: { airline: slug, base: base } }); }).then(function (res) {
+    return once('town:' + slug + ':' + base, function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_town_board', { p: { airline: slug, base: base } }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         /* 知らない語は、開いているとも0件とも読まない */
@@ -1027,49 +1073,271 @@
     var a = el('div', 'crl-cmp-c'); a.appendChild(cellA); r.appendChild(a);
     var b = el('div', 'crl-cmp-c'); b.appendChild(cellB); r.appendChild(b);
     g.appendChild(r);
+    return r;
   }
+  /* 比較の欄は2社を別々に読む。片方が落ちても、もう片方は出す。
+     返る形: [S, S]、S ＝ { ok:true, v }｜{ ok:false, off:真偽 }（off ＝ サーバーに口がまだ無い）。この約束は落ちない。 */
+  function both(read, ids) {
+    function one(slug) {
+      var p;
+      try { p = Promise.resolve(read(slug)); } catch (e) { p = Promise.reject(e); }
+      return p.then(function (v) { return { ok: true, v: v }; },
+                    function (e) { return { ok: false, off: !!(e && e.crl === 'off') }; });
+    }
+    return Promise.all([one(ids[0]), one(ids[1])]);
+  }
+  /* 両方落ちたら、欄ごと今までの失敗の顔へ（2社とも「口が無い」なら「準備中」）。 */
+  function needOne(S) {
+    if (!S[0].ok && !S[1].ok) throw fail(S[0].off && S[1].off ? 'off' : 'error');
+    return S;
+  }
+  /* 読めなかった側の中身。その列で1回だけ言う。「準備中」は失敗の色にしない（やり直しても同じ ＝ ボタンも付かない）。 */
+  function sideFail(x) { return el('span', x.off ? 'crl-none' : 'crl-none crl-side-err', x.off ? T.off : T.err); }
+  function blankCell() { return el('span', 'crl-blank'); }
+  /* 何行もある格子：読めなかった側は、列のいちばん上で1回だけ言う。以降のその列のマスは空（0 も「未取得」も置かない）。 */
+  function cmpFailRow(g, S) {
+    if (S[0].ok && S[1].ok) return;
+    cmpRow(g, null, S[0].ok ? blankCell() : sideFail(S[0]), S[1].ok ? blankCell() : sideFail(S[1]));
+  }
+  /* 片方だけ読めなかった時の印。run() が「やり直す」を欄に1つ足す（読めた側は出したまま）。 */
+  function partial(v, S) { v.retry = S.some(function (x) { return !x.ok && !x.off; }); return v; }
 
-  KIND['cmp-work'] = function (box, ids) {
-    return Promise.all([workView(ids[0]), workView(ids[1])]).then(function (a) {
-      var A = a[0], B = a[1];
-      /* どちらかが開いていなければ、欄に1行だけ（どちらの会社の値も出さない） */
-      var who = shut(A.state, B.state);
-      if (who) return lockView(who, '', box, null);
-      /* 片方がそろっていなくても、もう片方は普通に出す */
-      if (!workAny(A.by) && !workAny(B.by)) return view('empty', [msg(T.workEmpty)]);
-      var g = cmpGrid(ids);
-      T.work.forEach(function (it) {
-        cmpRow(g, workName(it), workCell(A.by, it.k), workCell(B.by, it.k));
+  /* 開いていない会社の中身。言い方と入口は lockView のものをそのまま借りる（ここに写さない）。 */
+  function closedNodes(word, box) {
+    return Promise.resolve(lockView(word, '', box, null)).then(function (v) { return v.nodes; });
+  }
+  /* 片方の会社だけ開いている（か、片方が読めなかった）ときの形：2列をやめ、会社ごとに上下へ並べる。
+     parts[i] ＝ その会社の中身（節の配列か、その約束）。null の会社は並べない（すぐ上の欄が同じ1行を言っている）。
+     ⚠️ 開いていない会社の答えは届いていない（返事は状態の1語だけ）。ここで作る値は無い。 */
+  function splitView(ids, parts, S) {
+    return Promise.all(parts).then(function (p) {
+      var w0 = el('div', 'crl-split');
+      p.forEach(function (nodes, i) {
+        if (!nodes) return;
+        var c = el('div', 'crl-split-c');
+        c.setAttribute('data-airline', ids[i]);
+        c.appendChild(coTag(ids[i]));
+        nodes.forEach(function (n) { if (n) c.appendChild(n); });
+        w0.appendChild(c);
       });
-      return view('open', [g]);
+      return partial(view('open', [w0]), S);
+    });
+  }
+  /* 1社ぶんの月の勤務（今までの6マス。比較の欄は帯を描かない）。 */
+  function workPlain(by) {
+    var g = el('div', 'crl-work');
+    T.work.forEach(function (it) {
+      var c = el('div', 'crl-wk');
+      c.appendChild(workName(it));
+      c.appendChild(workCell(by, it.k));
+      g.appendChild(c);
+    });
+    return g;
+  }
+  /* 1社ぶんの回答。行の部品は集計の欄と同じ（answer / answerNode）。 */
+  function factList(map, V, keys) {
+    var list = el('div', 'crl-facts'), n = 0;
+    keys.forEach(function (k) {
+      var ans = answer(map[k], V[k]);
+      if (!ans) return;
+      var r = el('div', 'crl-fact');
+      r.appendChild(el('span', 'crl-fact-k', V[k].ja || ''));
+      r.appendChild(answerNode(ans));
+      list.appendChild(r);
+      n++;
+    });
+    return n ? list : msg(T.factEmpty);
+  }
+  /* 会社ごとに、サーバーが決めた状態で描く（見せてよいかはサーバーの1か所。ここに決まりを持たない）。
+       2社とも開いている → 今までの2列／2社とも開いていない（2社とも読めた）→ 欄に1行（言い方と入口は lockView・語の順は shut）／
+       片方だけ開いている・片方が読めなかった → 会社ごとに上下へ（開いている会社はその会社の値、もう片方はその1行と答えるカード） */
+  KIND['cmp-work'] = function (box, ids) {
+    return both(workView, ids).then(needOne).then(function (S) {
+      var st = S.map(function (s) { return s.ok ? s.v.state : 'fail'; });
+      var open = [st[0] === 'open', st[1] === 'open'];
+      if (open[0] && open[1]) {
+        var A = S[0].v, B = S[1].v;
+        /* 片方がそろっていなくても、もう片方は普通に出す */
+        if (!workAny(A.by) && !workAny(B.by)) return view('empty', [msg(T.workEmpty)]);
+        var g = cmpGrid(ids);
+        T.work.forEach(function (it) { cmpRow(g, workName(it), workCell(A.by, it.k), workCell(B.by, it.k)); });
+        return view('open', [g]);
+      }
+      /* どちらも開いていない（2社とも読めた）：欄に1行。言い方と入口は lockView のまま */
+      if (S[0].ok && S[1].ok && !open[0] && !open[1]) return lockView(shut(st[0], st[1]), '', box, null);
+      /* 片方だけ開いている／片方が読めなかった：会社ごとに上下へ */
+      return splitView(ids, S.map(function (s, i) {
+        if (!s.ok) return [sideFail(s)];
+        if (open[i]) return [workAny(s.v.by) ? workPlain(s.v.by) : msg(T.workEmpty)];
+        return closedNodes(st[i], box);
+      }), S);
+    });
+  };
+
+  /* ── 比較：提出された年収 ──────────────────────────────────
+     REAL PAY と同じ一覧を、2社の列に分けて並べるだけ。ここで足さない・平均しない・並べ替えない・機材で絞らない
+     （数えるのは返ってきた行の本数だけ）。中央値はサーバーが出した額をそのまま置く（db/company-pay.sql）。
+     会社の名前はここに1つも書かない（どの2社でも同じ道を通る）。 */
+  var PAY_TOP = 5;                                  // 6行目からは畳む（オーナーのご指示 2026-10-11）
+  /* この面でただ1つの、給与の入口。形はサイト共通の「Give & Get」（pv-gg.css）。 */
+  function cmpPayEntry() { return give2(T.payUnlock, UP + 'pay-report.html'); }
+  function rankName(pos, D) {
+    for (var i = 0; i < T.workPos.length; i++) if (T.workPos[i][0] === pos) return T.workPos[i][1];
+    return D.pos[pos] || '';
+  }
+  function payRanks(a, b) {                         // 機長・副操縦士、そのあと返ってきた順。職位の書いていない行は比較に出さない
+    var out = T.workPos.map(function (p) { return p[0]; });
+    a.concat(b).forEach(function (r) { var k = r.pos || ''; if (k && out.indexOf(k) < 0) out.push(k); });
+    return out;
+  }
+  function foldsOpen(box) {                         // 描き直す前に開いていた畳み（会社|職位）
+    var out = [], all = box.querySelectorAll('.crl-pc > details.crl-more[open]');
+    for (var i = 0; i < all.length; i++) {
+      var c = all[i].parentNode;
+      out.push((c.getAttribute('data-airline') || '') + '|' + (c.getAttribute('data-pos') || ''));
+    }
+    return out;
+  }
+  function payCell(list, slug, pos, D, keep) {
+    var c = el('div', 'crl-pc');
+    c.setAttribute('data-airline', slug);
+    if (pos != null) c.setAttribute('data-pos', pos);
+    if (!list.length) { c.appendChild(msg(T.payEmpty)); return c; }
+    c.appendChild(payCount(list.length));
+    if (!D) return c;                               // 開いていない人：本数だけ（行も板も作らない）
+    var ul = el('ul', 'crl-rows');
+    list.slice(0, PAY_TOP).forEach(function (r) { ul.appendChild(payRow(r, D, true)); });
+    c.appendChild(ul);
+    if (list.length > PAY_TOP) {
+      var dt = el('details', 'crl-more'), sm = el('summary', 'crl-more-s');
+      sm.appendChild(el('span', '', T.payMore(list.length)));
+      sm.appendChild(icon('down', 14));
+      dt.appendChild(sm);
+      var rest = el('ul', 'crl-rows');
+      list.slice(PAY_TOP).forEach(function (r) { rest.appendChild(payRow(r, D, true)); });
+      dt.appendChild(rest);
+      if (keep.indexOf(slug + '|' + pos) >= 0) dt.open = true;   // 通貨を替えて描き直しても、開けた畳みは開けたまま
+      c.appendChild(dt);
+    }
+    var name = rankName(pos, D);
+    var go = link(T.payAll, UP + 'actual-pay.html?air=' + enc(slug) + (pos ? '&pos=' + enc(pos) : ''));
+    go.setAttribute('aria-label', coName(slug) + (name ? ' ' + name : '') + ' ' + T.payAll);
+    c.appendChild(foot([go]));
+    return c;
+  }
+  /* 会社 × 職位の中央値。出すのはサーバー（db/company-pay.sql の pv_company_pay）── 誰に返すかも、人数の壁も向こうが決める。
+     ここは、開いた答えの中の「その2社・機長と副操縦士」の額だけを受け取り、ほかは持たない（人数は来ない・出さない）。 */
+  function companyMed(a, b) {
+    return once('cmed:' + (a < b ? a + '|' + b : b + '|' + a), function (sig) {
+      return client().then(function (sb) {
+        return cut(sb.rpc('pv_company_pay', { p: { airlines: [a, b] } }), sig);
+      }).then(function (res) {
+        if (!res || res.error) throw sbErr(res);
+        var x = res.data;
+        if (!x || x.ok === false) throw fail('error');
+        if (x.state !== 'open') return { st: 'locked', floor: null, from: '', to: '', by: {} };
+        var per = x.period || {}, src = x.airlines || {}, by = {};
+        if (!isNum(x.floor) || !ym(per.from) || !ym(per.to)) throw fail('error');   // 定義の1行が組めない答えは使わない
+        [a, b].forEach(function (slug) {
+          var c = src[slug] || {}, o = {};
+          T.workPos.forEach(function (p) {
+            var k = c[p[0]], v = (k && k.s === 'ok') ? Number(k.median_usd) : NaN;
+            o[p[0]] = (isFinite(v) && v > 0) ? { usd: v } : null;
+          });
+          by[slug] = o;
+        });
+        return { st: 'open', floor: x.floor, from: ym(per.from), to: ym(per.to), by: by };
+      });
+    });
+  }
+  function medCell(c) {
+    var m = el('div', 'crl-med');
+    if (!c) { m.appendChild(el('span', 'crl-none', T.none)); return m; }
+    var v = el('b', 'crl-amt pv-no-cur', money(c.usd) || '—');
+    v.setAttribute('data-agg', '');
+    m.appendChild(v);
+    return m;
+  }
+  /* 中央値の器。空で隠したまま欄に入れ、答えが来たら「この器にだけ」書く。
+     ⚠️ ここから box へ書かない・セレクタで探さない ── 会社を替えたあとに届いた古い答えが、新しい2社の欄へ入る。 */
+  function aggBlock() {
+    var a = el('div', 'crl-agg');
+    a.setAttribute('data-kind', 'aggregate');
+    a.hidden = true;
+    return a;
+  }
+  function aggFill(agg, ids, box) {
+    companyMed(ids[0], ids[1]).then(function (M) {
+      if (M.st !== 'open') return;                  // 開いていない答えからは何も描かない
+      var rows = [];
+      T.workPos.forEach(function (p) {
+        var a = M.by[ids[0]][p[0]], b = M.by[ids[1]][p[0]];
+        if (!a && !b) return;                       // 両社とも人数が足りない職位は、行ごと出さない
+        rows.push([p, a, b]);
+      });
+      if (!rows.length) return;
+      agg.appendChild(el('h3', 'crl-agg-h', T.median));
+      rows.forEach(function (x) {
+        var row = cmpRow(agg, el('span', '', x[0][1]), medCell(x[1]), medCell(x[2])) || agg.lastChild;
+        row.setAttribute('data-med', x[0][0]);
+      });
+      var def = el('p', 'crl-def', T.medDef(M.from, M.to, M.floor));
+      def.setAttribute('data-def', 'median');
+      agg.appendChild(def);
+      agg.hidden = false;
+    }, function (e) {
+      agg.appendChild(el('h3', 'crl-agg-h', T.median));
+      if (e && e.crl === 'off') agg.appendChild(msg(T.off));
+      else {
+        agg.appendChild(msg(T.err));
+        /* この欄は「開いた」のまま（retryAll は拾わない）ので、押したらこの欄だけを描き直す。
+           形と字は共通の retryBtn() の写し（cloneNode は押した時の動きを持ってこない ＝ 動きはここで1つだけ付ける） */
+        var rb = retryBtn().cloneNode(true);
+        rb.addEventListener('click', function () { run(box, 'cmp-pay', box.getAttribute('data-for') || '', true); });
+        agg.appendChild(rb);
+      }
+      agg.hidden = false;
+    });
+  }
+  KIND['cmp-pay'] = function (box, ids) {
+    var keep = foldsOpen(box);
+    return Promise.all([payRows(), dict()]).then(function (r) {
+      var pay = r[0], D = r[1], A = ofCo(pay.rows, ids[0]), B = ofCo(pay.rows, ids[1]);
+      var g = cmpGrid(ids), none = !A.length && !B.length;
+      if (!pay.open) {
+        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
+        var feet = foot([cmpPayEntry(), pay.who === 'guest' ? loginLink() : null]);
+        if (none) return view('empty', [g, feet]);
+        return view('locked', [g, lockLine(pay.who === 'expired' ? T.payExpired : T.payLock), feet]);
+      }
+      if (none) {
+        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
+        return view('empty', [g]);
+      }
+      var agg = aggBlock();
+      g.appendChild(agg);                           // 会社の札の下・職位ごとの行の上
+      payRanks(A, B).forEach(function (pos) {
+        var a = A.filter(function (x) { return (x.pos || '') === pos; }), b = B.filter(function (x) { return (x.pos || '') === pos; });
+        var named = T.workPos.some(function (p) { return p[0] === pos; });
+        if (!a.length && !b.length && !named) return;
+        var name = rankName(pos, D);
+        if (name) { var h = el('h3', 'crl-pr-h', name); h.setAttribute('data-pos', pos); g.appendChild(h); }
+        var row = cmpRow(g, null, payCell(a, ids[0], pos, D, keep), payCell(b, ids[1], pos, D, keep)) || g.lastChild;
+        row.setAttribute('data-rows', pos);
+      });
+      var def = el('p', 'crl-def', T.payDef);
+      def.setAttribute('data-def', 'rows');
+      aggFill(agg, ids, box);                       // 待たない（行はすぐ出る。中央値は答えが来たら器に入る）
+      return view('open', [g, def]);
+    }, function (e) {
+      /* 読めなかった時も、給与の入口は残す（この面でただ1つの入口。読み手が誰かは分からないので「ログイン」は出さない） */
+      var feet = foot([cmpPayEntry()]);
+      if (e && e.crl === 'off') return view('off', [msg(T.off), feet]);
+      return view('error', [msg(T.err), retryBtn(), feet]);
     });
   };
 
   /* ── 口コミ（実投稿だけ）──────────────────────────────── */
-  function score(rows) {
-    var sum = 0, k = 0;
-    rows.forEach(function (r) {
-      var s = 0, c = 0;
-      SCORES.forEach(function (key) {
-        var v = Number(r && r[key]);
-        if (isFinite(v) && v > 0) { s += v; c++; }
-      });
-      if (c) { sum += s / c; k++; }
-    });
-    return { n: rows.length, avg: k ? Math.min(5, sum / k) : null };
-  }
-  function scoreLine(s) {
-    var p = el('p', 'crl-score');
-    if (s.avg != null) {
-      var st = el('span', 'crl-stars');
-      st.setAttribute('aria-hidden', 'true');
-      st.style.setProperty('--crl-fill', (Math.round(s.avg / 5 * 1000) / 10) + '%');
-      p.appendChild(st);
-      p.appendChild(el('b', 'crl-avg', s.avg.toFixed(1)));
-    }
-    p.appendChild(el('span', 'crl-cnt', T.revCount(s.n)));
-    return p;
-  }
 
   /* ── 評価スコア（会社ページ）──────────────────────────────
      2026-10-06 オーナーのご指示「パイロットによる評価スコアの部分、企業トップのどこかのカードに残して」。
@@ -1082,7 +1350,14 @@
   function catNames() {
     var u = GL && w.PVReviewUI;
     var a = u && u.cats && u.cats.short;
-    return (isArr(a) && a.length === SCORES.length) ? a : null;
+    if (!(isArr(a) && a.length === SCORES.length)) {
+      /* 会社ページの部品が居ない画面（比較）では、名前を島から読む（gen-career.mjs が同じ正本から写したもの） */
+      var isl = d.getElementById('crl-cats');
+      a = null;
+      if (isl) { try { a = JSON.parse(isl.textContent || ''); } catch (e) { a = null; } }
+    }
+    return (isArr(a) && a.length === SCORES.length &&
+            a.every(function (s) { return typeof s === 'string' && !!s; })) ? a : null;
   }
   function realRated(rows) {
     var sum = [], cnt = [], total = 0, n = 0;
@@ -1119,6 +1394,21 @@
     st.setAttribute('data-none', '');
     return st;
   }
+  /* 評価の1行の中身（星・点数・「n件の評価」）。会社ページ・1社の概要・比較が同じ部品を使う ── 数えるのは realRated() の1つだけ。
+     点数の付いた投稿が無ければ「評価未取得」（0 を置かない）。bare ＝ 輪郭の星も置かない（比較：隣の会社の星と並ぶと 0点に見える）。 */
+  function rateInto(node, R, bare) {
+    if (R) {
+      node.appendChild(starsEl(R.avg));
+      node.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
+      node.appendChild(el('span', 'crl-cnt', T.revRated(R.n)));
+    } else {
+      if (!bare) node.appendChild(noStars());
+      node.appendChild(el('span', 'crl-cnt', T.revNo));
+    }
+    return node;
+  }
+  /* 口コミ件数（投稿ぜんぶ）。評価件数の隣ではなく、次の行に置く ── 2つの数を同じ数に見せない。 */
+  function postsLine(n) { return el('p', 'crl-posts', T.revPosts(n)); }
   function svgEl(tag, cls, attrs) {
     var n = d.createElementNS(NS, tag);
     if (cls) n.setAttribute('class', cls);
@@ -1163,33 +1453,41 @@
     });
     return box;
   }
+  /* 点数で塗れない会社の図（比較 ── 2026-10-22 オーナー P12.97。会社ページの図と同じ見た目）：3.0 の淡い面（is-ph）と6つの名前だけ。
+     ★字に数字を1つも置かない（分類ごとの点・「3.0」・点の丸を描かない ── 作り物の点を数字として見せない）。
+     ★中身の無い絵なので読み上げない（何も無いことは、上の評価のマスが言葉で言っている）。
+     形は radar() と同じ座標（radar() は直さない）── 3.0 で描いてから、点の丸と数字を外し、面を淡い色にする。 */
+  var RADAR_PH = 3;
+  function radarPh(names) {
+    var f = radar(SCORES.map(function () { return RADAR_PH; }), names);
+    var gone = f.querySelectorAll('.crl-radar-dot, .crl-radar-l > b');
+    for (var i = 0; i < gone.length; i++) gone[i].parentNode.removeChild(gone[i]);
+    var shape = f.querySelector('.crl-radar-shape');
+    if (shape) shape.setAttribute('class', 'crl-radar-shape is-ph');
+    f.removeAttribute('role');
+    f.setAttribute('aria-hidden', 'true');
+    f.setAttribute('data-radar', 'ph');
+    return f;
+  }
 
   KIND.stars = function (box, ids) {
     var slug = ids[0];
     return reviews(slug).then(function (res) {
+      var R = realRated(res.rows);
       if (GL) {
         /* 会社ページ：社名の横と口コミのカードの右上。押すと同じページの「口コミ」のタブが開く。
            点数は下の「評価スコア」の箱と同じ realRated() の答え。 */
-        var R = realRated(res.rows);
-        var a = el('a', 'crl-score crl-score-a');
+        var a = rateInto(el('a', 'crl-score crl-score-a'), R);
         a.setAttribute('href', '#reviews');
-        if (R) {
-          a.appendChild(starsEl(R.avg));
-          a.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
-          a.appendChild(el('span', 'crl-cnt', T.revRated(R.n)));
-        } else {
-          a.appendChild(noStars());
-          a.appendChild(el('span', 'crl-cnt', T.revNo));
-        }
         a.appendChild(icon('arrow', 14));
         return view(R ? 'open' : 'empty', [a]);
       }
-      var s = score(res.rows);
-      if (!s.n) {
-        return view('empty', [msg(GL ? T.revNone : T.revEmpty),
+      /* 1社の概要（career.html）：会社ページと同じ数え方。星の横は評価件数、その下の行が口コミ件数。 */
+      if (!res.rows.length) {
+        return view('empty', [msg(T.revEmpty),
           foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
       }
-      return view('open', [scoreLine(s)]);
+      return view('open', [rateInto(el('p', 'crl-score'), R), postsLine(res.rows.length)]);
     });
   };
 
@@ -1234,9 +1532,9 @@
      ★ 文は textContent で入れる。点の矢印は data-pvg-cat（分類）と data-pvg-ids（もとの口コミ）を持ち、
         押すと同じページの口コミがその分類で開き、もとの口コミに札が付く（pv-glance.js → airline-reviews-ui.js）。 */
   function summary(slug) {
-    return once('sum:' + slug, function () {
+    return once('sum:' + slug, function (sig) {
       return client().then(function (sb) {
-        return sb.rpc('pv_review_summary', { p: { airline: slug, lang: 'ja' } });
+        return cut(sb.rpc('pv_review_summary', { p: { airline: slug, lang: 'ja' } }), sig);
       }).then(function (res) {
         if (!res || res.error) {
           var code = String((res && res.error && res.error.code) || '');
@@ -1308,15 +1606,86 @@
     });
   };
 
+  /* 比較の口コミ。数えるのは realRated() の1つだけ ── 星・点数の横は評価件数（点数の付いた投稿）、次の行が口コミ件数（投稿ぜんぶ）。
+     ⚠️ 行（rows）から読むのは 6つの点数 と 行数 だけ。ほかの列（昔の口コミに書かれた給与・抜粋・職位）を画面に出さない。
+     ⚠️ 投稿が無い・点数が無い・読めなかった を、同じ顔にしない。どれにも 0 も、空の星も置かない。 */
+  function sideOf(s) { return s.ok ? { rows: s.v.rows, R: realRated(s.v.rows) } : null; }
+  function rateCell(slug, s, o) {
+    var c = el('div', 'crl-rate');
+    c.appendChild(el('span', 'crl-sr', coName(slug)));
+    if (!o) { c.appendChild(sideFail(s)); return c; }
+    if (!o.rows.length) { c.appendChild(el('span', 'crl-none', T.revNone)); return c; }
+    c.appendChild(rateInto(el('p', 'crl-score'), o.R, true));
+    c.appendChild(postsLine(o.rows.length));
+    return c;
+  }
+  /* 評価の格子の続きの行（6角形・口コミの抜粋）。比べる1項目の行（.crl-cmp-row）とは別の印で置く ── 評価の行は2社の評価のマスだけ
+     （評価のマスを読む側 ── assert-cmp-frame.mjs・assert-career-live.mjs ── が数えるマスを増やさない）。左右は同じ要素・同じ列の幅。 */
+  function subRow(g, cls, cellA, cellB) {
+    var r = el('div', 'crl-cmp-sub ' + cls);
+    var a = el('div', 'crl-cmp-sc'); a.appendChild(cellA); r.appendChild(a);
+    var b = el('div', 'crl-cmp-sc'); b.appendChild(cellB); r.appendChild(b);
+    g.appendChild(r);
+    return r;
+  }
+  /* 比較の口コミの抜粋（2026-10-22 オーナー P12.97「比較には口コミの評価と一部内容までだしてね」── 誰にでも）。
+     サーバーが新しい順に返した行から、字のある投稿を REV_CMP 件まで。1件の形は会社ページの口コミの箱と同じ（reviewItem）。
+     ★鍵の無い人の字は、サーバーが返した抜粋（最初に書かれた1欄の先頭40字）だけ ── 本文はそもそも届かない（db/reviews-gate.sql の
+       pv_reviews）。ここで字を切らない・作らない・足さない。点数だけの投稿（字が無い）は飛ばす（日付だけの札を並べない）。 */
+  var REV_CMP = 2;                                    // 会社ページの概要の口コミの箱（KIND.reviews）と同じ件数
+  function clipsOf(o, I) {
+    if (!o || !I) return null;
+    var ul = el('ul', 'crl-revs'), locked = false;
+    for (var i = 0; i < o.rows.length && ul.childNodes.length < REV_CMP; i++) {
+      var p = I.pick(o.rows[i]);
+      if (!(isArr(p.cats) && p.cats.some(function (c) { return c && c.text; }))) continue;
+      if (p.locked) locked = true;
+      ul.appendChild(reviewItem(p, o.rows[i]));
+    }
+    return ul.childNodes.length ? { ul: ul, locked: locked } : null;
+  }
   KIND['cmp-stars'] = function (box, ids) {
-    return Promise.all([reviews(ids[0]), reviews(ids[1])]).then(function (a) {
-      var A = score(a[0].rows), B = score(a[1].rows);
-      if (!A.n && !B.n) return view('empty', [msg(T.revEmpty)]);
+    return both(reviews, ids).then(needOne).then(function (S) {
+      var O = [sideOf(S[0]), sideOf(S[1])];
+      if (O[0] && O[1] && !O[0].rows.length && !O[1].rows.length) {
+        /* 2社とも投稿が無い：1つの文（2社それぞれに同じ文を並べない）。その下に、会社ごとの 3.0 の淡い6角形（数字なし）──
+           2026-10-22 オーナー「必ず多角形のレーダーの図を載せて」（P12.95／96／97）。会社ページの図と同じ radarPh()。
+           どちらの会社の図かは、格子の頭の社名の札が言う。6分類の名前が読めなければ文だけ（名前の無い図を描かない）。 */
+        var zn = catNames(), zero = [msg(T.revNone)];
+        if (zn) {
+          var zg = cmpGrid(ids);
+          subRow(zg, 'crl-rate-fig', radarPh(zn), radarPh(zn));
+          zero.push(zg);
+        }
+        return view('empty', zero);
+      }
       var g = cmpGrid(ids);
-      cmpRow(g, null,
-        A.n ? scoreLine(A) : el('span', 'crl-none', T.revEmpty),
-        B.n ? scoreLine(B) : el('span', 'crl-none', T.revEmpty));
-      return view('open', [g]);
+      /* すぐ下の要約の欄（CSS）が読む印：各社に点数の付いた投稿が在るか。1 ＝ 在る／0 ＝ 無い／x ＝ 読めなかった */
+      g.setAttribute('data-rated', O.map(function (o) { return !o ? 'x' : o.R ? '1' : '0'; }).join(''));
+      cmpRow(g, null, rateCell(ids[0], S[0], O[0]), rateCell(ids[1], S[1], O[1]));
+      /* 6角形（P12.97：点数は誰にでも出ている ── 鍵の有無で変えない）。6分類ぜんぶに点数がある会社は、その点数で塗る（realRated の ratings）。
+         点数で塗れない会社（点数の付いた投稿が無い・欠けた分類がある・投稿が無い）は、会社ページと同じ 3.0 の淡い面（数字なし）。
+         読めなかった会社のマスは空 ── 分からないものを図にしない。 */
+      var names = catNames();
+      var figs = O.map(function (o, i) {
+        if (!names || !o) return null;
+        if (!(o.R && o.R.ratings)) return radarPh(names);
+        var f = radar(o.R.ratings, names);
+        f.setAttribute('aria-label', coName(ids[i]));
+        f.setAttribute('data-radar', 'real');
+        return f;
+      });
+      if (figs[0] || figs[1]) subRow(g, 'crl-rate-fig', figs[0] || blankCell(), figs[1] || blankCell());
+      /* 評価の下に、新しい投稿の抜粋。続きを読むのは Give & Get（口コミの投稿 ＝ 口コミの鍵。給与の鍵では開かない）── 鍵の無い人にだけ1つ */
+      return i18n().then(function (I) { return I; }, function () { return null; }).then(function (I) {
+        var C = [clipsOf(O[0], I), clipsOf(O[1], I)];
+        if (C[0] || C[1]) subRow(g, 'crl-rate-rv', C[0] ? C[0].ul : blankCell(), C[1] ? C[1].ul : blankCell());
+        var nodes = [g];
+        if ((C[0] && C[0].locked) || (C[1] && C[1].locked)) {
+          nodes.push(lockLine(T.revLock), foot([give2(T.revUnlock, UP + 'submit-review.html')]));
+        }
+        return partial(view('open', nodes), S);
+      });
     });
   };
 
@@ -1356,7 +1725,7 @@
         ul.appendChild(reviewItem(p, r));
       });
       /* 会社ページでは、同じページの「口コミ」のタブを開く（pv-glance.js が受ける）。 */
-      var all = link(T.revAll, GL ? '#reviews' : 'airlines/' + enc(slug) + '.html');
+      var all = link(T.revAll, GL ? '#reviews' : 'airlines/' + enc(slug) + '.html#reviews');
       if (anyLocked) {
         /* 会社ページの箱は、書く入口を箱の底に1つ持っている（data-give="0"）。同じボタンを2つ並べない */
         var give = box.getAttribute('data-give') === '0' ? null
@@ -1471,24 +1840,40 @@
     return out;
   }
 
+  /* 比較の回答の欄は2つ：「月の働き方」のすぐ下（data-quiet：勤務・訓練のタブの質問）と「待遇」の下（給与・待遇のタブの質問）。
+     どちらも会社ごとに、サーバーが決めた状態で描く（月の働き方と同じ3つの形）。入口とカードはここに置かない（月の働き方の欄が持つ）。 */
   KIND['cmp-facts'] = function (box, ids) {
-    var keys = cmpKeys(box);
+    var keys = cmpKeys(box), quiet = box.getAttribute('data-quiet') === '1';
     if (!keys.length) return Promise.reject(fail('error'));
-    return Promise.all([facts(ids[0]), facts(ids[1]), vocab()]).then(function (a) {
-      var FA = a[0], FB = a[1], V = a[2];
-      /* 並べる質問を聞いていない答えでは描かない（0件とも鍵とも言えない） */
-      if (keys.some(function (k) { return FA.asked[k] !== 1 || FB.asked[k] !== 1; })) throw fail('error');
-      /* どちらかが開いていなければ、欄に1行だけ（どちらの会社の値も出さない）。入口はここに置かない（上の欄が持つ） */
-      var who = shut(FA.state, FB.state);
-      if (who) return lockView(who, '', NONE, null);
-      var g = cmpGrid(ids), n = 0;
-      keys.forEach(function (k) {
-        var A = answer(FA.map[k], V[k]), B = answer(FB.map[k], V[k]);
-        if (!A && !B) return;
-        cmpRow(g, el('span', '', V[k].ja || ''), answerNode(A), answerNode(B));
-        n++;
-      });
-      return n ? view('open', [g]) : view('empty', [msg(T.factEmpty)]);
+    return Promise.all([both(facts, ids), vocab()]).then(function (r) {
+      var V = r[1];
+      /* この欄の質問を聞いていない答えでは描かない（0件とも鍵とも言えない）── その会社は「読めなかった」として扱う */
+      var S = needOne(r[0].map(function (s) {
+        return (s.ok && keys.some(function (k) { return s.v.asked[k] !== 1; })) ? { ok: false, off: false } : s;
+      }));
+      var st = S.map(function (s) { return s.ok ? s.v.state : 'fail'; });
+      var open = [st[0] === 'open', st[1] === 'open'];
+      if (open[0] && open[1]) {
+        var g = cmpGrid(ids), n = 0;
+        keys.forEach(function (k) {
+          var A = answer(S[0].v.map[k], V[k]), B = answer(S[1].v.map[k], V[k]);
+          if (!A && !B) return;
+          cmpRow(g, el('span', '', V[k].ja || ''), answerNode(A), answerNode(B));
+          n++;
+        });
+        /* 鍵の文を繰り返さない欄（data-quiet）は、並べる行が無いときも黙る（すぐ上の「月の働き方」が箱の話をしている） */
+        return n ? view('open', [g]) : view('empty', quiet ? [] : [msg(T.factEmpty)]);
+      }
+      if (S[0].ok && S[1].ok && !open[0] && !open[1]) {
+        if (quiet) return view('locked', []);
+        /* 待遇の欄は入口を持たない（NONE は「入口を出さない箱」） */
+        return lockView(shut(st[0], st[1]), '', NONE, null);
+      }
+      return splitView(ids, S.map(function (s, i) {
+        if (!s.ok) return [sideFail(s)];
+        if (open[i]) return [factList(s.v.map, V, keys)];
+        return quiet ? null : closedNodes(st[i], NONE);
+      }), S);
     });
   };
 
@@ -1539,6 +1924,7 @@
     }
     box.setAttribute('data-state', state);
     box.removeAttribute('aria-busy');
+    box.removeAttribute('data-part');
   }
   function paintLoading(box) {
     var sk = el('div', 'crl-sk');
@@ -1547,11 +1933,23 @@
     paint(box, 'loading', [sk, el('span', 'crl-sr', T.loading)]);
     box.setAttribute('aria-busy', 'true');
   }
-  function paintError(box) {
+  function retryBtn() {
     var b = el('button', 'crl-retry', T.retry);
     b.type = 'button';
-    b.addEventListener('click', retryAll);
-    paint(box, 'error', [msg(T.err), b]);
+    b.addEventListener('click', function () {
+      /* キーボードで押した人の居場所を失わせない：描き直したあと、この欄へフォーカスを戻す（refocus） */
+      if (b.parentNode && d.activeElement === b) b.parentNode._crlBack = 1;
+      retryAll();
+    });
+    return b;
+  }
+  function paintError(box) { paint(box, 'error', [msg(T.err), retryBtn()]); }
+  function refocus(box) {
+    if (!box._crlBack) return;
+    box._crlBack = 0;
+    var t = box.querySelector('.crl-retry, a[href], button');
+    if (!t) { t = box; box.setAttribute('tabindex', '-1'); }
+    try { t.focus({ preventScroll: true }); } catch (e) { /* フォーカスを移せないブラウザでは、今までどおり */ }
   }
   function idle(box) {
     box._crlTok = ++seq;
@@ -1568,7 +1966,8 @@
   function retryAll() {
     var all = slots();
     for (var i = 0; i < all.length; i++) {
-      if (KIND[all[i].getAttribute('data-live')] && all[i].getAttribute('data-state') === 'error') idle(all[i]);
+      if (KIND[all[i].getAttribute('data-live')] &&
+          (all[i].getAttribute('data-state') === 'error' || all[i].getAttribute('data-part') === '1')) idle(all[i]);
     }
     sync();
   }
@@ -1582,10 +1981,13 @@
     out.then(function (v) {
       if (box._crlTok !== tok) return;
       paint(box, v.state, v.nodes, v);
+      if (v.retry) { box.setAttribute('data-part', '1'); box.appendChild(retryBtn()); }   // 片方だけ読めなかった：読めた側は出したまま
+      refocus(box);
     }, function (e) {
       if (box._crlTok !== tok) return;
       if (e && e.crl === 'off') paint(box, 'off', [msg(T.off)]);
       else paintError(box);
+      refocus(box);
     });
   }
 
@@ -1636,6 +2038,14 @@
 
   var PC = w.PVCareer = w.PVCareer || {};
   PC.client = client;
+  /* 保存カード用：公開の評価（平均と評価件数の2つの数だけ）。口コミの行そのものは渡さない。 */
+  PC.rating = function (slug) {
+    if (!okSlug(slug)) return Promise.resolve(null);
+    return reviews(slug).then(function (res) {
+      var R = realRated(res && res.rows);
+      return R ? { avg: R.avg, n: R.n } : null;
+    });
+  };
 
   root.addEventListener('cr:show', later);
   root.addEventListener('change', function (e) {
@@ -1710,9 +2120,8 @@
     var all = slots();
     for (var i = 0; i < all.length; i++) {
       var box = all[i];
-      if (box.getAttribute('data-live') === 'realpay' && box.getAttribute('data-state') === 'open') {
-        run(box, 'realpay', box.getAttribute('data-for') || '', true);
-      }
+      var k = box.getAttribute('data-live');
+      if ((k === 'realpay' || k === 'cmp-pay') && box.getAttribute('data-state') === 'open') run(box, k, box.getAttribute('data-for') || '', true);
     }
   });
 
