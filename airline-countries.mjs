@@ -74,25 +74,26 @@ export const AIRLINE_COUNTRY = {
             持たない国（Japan / Singapore / Germany …）は en がそのまま自然。
    enFull … 本文の初出で一度だけ出す正式名。冠詞つき。
             enIn が略称の国だけ意味を持つ。
+   alt    … 検索だけに使う別の呼び名（航空会社一覧の検索窓が読む。画面の文には使わない）。実際に引けなかった呼び名だけ足す。
    ※ 表のセル・チャートのラベル・keywords には冠詞なしの en を使う。
      文ではないところに "the" を付けない。
-   ※ 日本語は 日本 / アメリカ / イギリス がそのまま自然なので別名を持たせない。
+   ※ 日本語は 日本 / アメリカ / イギリス がそのまま自然なので別名を持たせない。（画面の文の話。検索だけの呼び名は alt）
    ── 免許・税制は 2026-08 時点。制度変更があり得るのでページ側では
       「渡航前に必ず当局の最新情報を確認」と明記する。                     */
 export const COUNTRIES = [
   { code:'JP', slug:'japan',          flag:'🇯🇵', ja:'日本',           en:'Japan',          auth:'JCAB', tax:'normal', hub:true },
-  { code:'US', slug:'united-states',  flag:'🇺🇸', ja:'アメリカ',       en:'United States',  auth:'FAA',  tax:'normal', hub:true, enIn:'the USA', enFull:'the United States' },
+  { code:'US', slug:'united-states',  flag:'🇺🇸', ja:'アメリカ',       en:'United States',  auth:'FAA',  tax:'normal', hub:true, enIn:'the USA', enFull:'the United States', alt:['米国', 'アメリカ合衆国', 'America'] },
   { code:'AE', slug:'uae',            flag:'🇦🇪', ja:'アラブ首長国連邦', en:'United Arab Emirates', auth:'GCAA', tax:'none', hub:true, enIn:'the UAE', enFull:'the United Arab Emirates' },
   { code:'QA', slug:'qatar',          flag:'🇶🇦', ja:'カタール',       en:'Qatar',          auth:'QCAA', tax:'none',   hub:true },
   { code:'SA', slug:'saudi-arabia',   flag:'🇸🇦', ja:'サウジアラビア', en:'Saudi Arabia',   auth:'GACA', tax:'none',   hub:true },
-  { code:'GB', slug:'united-kingdom', flag:'🇬🇧', ja:'イギリス',       en:'United Kingdom', auth:'UK CAA', tax:'normal', hub:true, enIn:'the UK', enFull:'the United Kingdom' },
+  { code:'GB', slug:'united-kingdom', flag:'🇬🇧', ja:'イギリス',       en:'United Kingdom', auth:'UK CAA', tax:'normal', hub:true, enIn:'the UK', enFull:'the United Kingdom', alt:['英国', 'Britain', 'Great Britain', 'England'] },
   { code:'DE', slug:'germany',        flag:'🇩🇪', ja:'ドイツ',         en:'Germany',        auth:'EASA', tax:'normal', hub:true },
   { code:'FR', slug:'france',         flag:'🇫🇷', ja:'フランス',       en:'France',         auth:'EASA', tax:'normal', hub:true },
   { code:'NL', slug:'netherlands',    flag:'🇳🇱', ja:'オランダ',       en:'Netherlands',    auth:'EASA', tax:'normal', hub:true, enIn:'the Netherlands' },
   { code:'IE', slug:'ireland',        flag:'🇮🇪', ja:'アイルランド',   en:'Ireland',        auth:'EASA', tax:'normal', hub:true },
   { code:'ES', slug:'spain',          flag:'🇪🇸', ja:'スペイン',       en:'Spain',          auth:'EASA', tax:'normal', hub:true },
   { code:'CH', slug:'switzerland',    flag:'🇨🇭', ja:'スイス',         en:'Switzerland',    auth:'EASA', tax:'normal', hub:true },
-  { code:'TR', slug:'turkey',         flag:'🇹🇷', ja:'トルコ',         en:'Turkey',         auth:'SHGM', tax:'normal', hub:true },
+  { code:'TR', slug:'turkey',         flag:'🇹🇷', ja:'トルコ',         en:'Turkey',         auth:'SHGM', tax:'normal', hub:true, alt:['Türkiye', 'Turkiye'] },
   { code:'SG', slug:'singapore',      flag:'🇸🇬', ja:'シンガポール',   en:'Singapore',      auth:'CAAS', tax:'normal', hub:true },
   { code:'HK', slug:'hong-kong',      flag:'🇭🇰', ja:'香港',           en:'Hong Kong',      auth:'HKCAD', tax:'normal', hub:true },
   { code:'CN', slug:'china',          flag:'🇨🇳', ja:'中国',           en:'China',          auth:'CAAC', tax:'normal', hub:true },
