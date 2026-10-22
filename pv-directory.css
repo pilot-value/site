@@ -66,4 +66,28 @@
 @media (pointer:coarse){#region-strip .rstrip-btn{min-height:44px}}
 @media (prefers-reduced-motion:reduce){#region-strip .rstrip-btn:hover,#region-strip .rstrip-btn:active{transform:none}}
 /* /PV-DIR-STRIP */
+/* 比べる印（足もとの段の右・44px の高さで押せる）と、印を付けた社の盆（画面の下に貼りつく）── WP-dd-7（DJ） */
+.wd-cmp{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-right:-8px;padding:0 8px;border-radius:var(--pv-r-sm);font-size:.78rem;font-weight:700;color:var(--pv-ink-2);cursor:pointer;user-select:none;transition:transform .18s var(--pv-ease)}
+.wd-cmp-i{width:18px;height:18px;margin:0;accent-color:var(--pv-accent)}
+.wd-cmp:hover{color:var(--pv-ink)}
+.wd-cmp-i:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wd-cmp:active{transform:scale(.97)}
+.wd-cmp-i:disabled{cursor:not-allowed}
+.wd-cmp:has(.wd-cmp-i:disabled){opacity:.45;cursor:not-allowed}
+.wd-tray{position:sticky;bottom:var(--pv-s-2);z-index:40;display:flex;align-items:center;flex-wrap:wrap;gap:var(--pv-s-1);margin-top:var(--pv-s-2);padding:10px 12px;background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow-lift)}
+.wd-tray[hidden],.wd-tray-two[hidden],.wd-tray-lvl[hidden]{display:none}
+.wd-tray-n{font-size:.8rem;font-weight:700;color:var(--pv-ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 社名の札は1行のまま横に並べ、入りきらなければ横にすべらせる（地域の帯と同じ。折り返すとスマホで盆が画面の半分を覆う） */
+.wd-tray-list{flex:1;min-width:0;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.wd-tray-list::-webkit-scrollbar{display:none}
+.wd-tray-list button{flex:none;display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink-2);font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+.wd-tray-two,.wd-tray-lvl{flex:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:var(--pv-r-sm);border:1px solid var(--pv-accent-dark);background:var(--pv-accent-dark);color:#fff;font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+/* 狭い画面は2段：上 ＝ 何社目か・社名の札／下 ＝ ボタン（1つなら横いっぱい・2つなら並べる） */
+@media (max-width:640px){.wd-tray{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);align-items:center}.wd-tray-list{grid-column:2/-1}.wd-tray-two{grid-column:1/-1}.wd-tray-two:has(+ .wd-tray-lvl:not([hidden])){grid-column:1/3}.wd-tray-lvl{grid-column:1/-1}.wd-tray.is-two .wd-tray-lvl{grid-column:3}}
+.wd-tray.is-two .wd-tray-lvl{background:var(--pv-surface);border-color:var(--pv-line);color:var(--pv-ink)}
+.wd-tray-list button:hover,.wd-tray-two:hover,.wd-tray-lvl:hover{transform:translateY(-1px)}
+.wd-tray-list button:focus-visible,.wd-tray-two:focus-visible,.wd-tray-lvl:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wd-tray-list button:active,.wd-tray-two:active,.wd-tray-lvl:active{transform:translateY(0) scale(.97)}
+@media (pointer:coarse){.wd-tray-list button,.wd-tray-two,.wd-tray-lvl{min-height:44px}}
+@media (prefers-reduced-motion:reduce){.wd-cmp,.wd-tray-list button,.wd-tray-two,.wd-tray-lvl{transition:none}}
 /* /PV-DIR-DATA */

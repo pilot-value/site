@@ -3,7 +3,7 @@
    台帳から作った中身を書く（形は directory-model.mjs。ここは書くだけ）。
 
    書くもの（印 <!--ID--> … <!--/ID--> の間だけ。印の外は1文字も触らない）
-     PV-DIR-CARDS    112社のカード（ロゴ・社名・略号・機長と副操縦士の額・札）。英語は額をドルで焼き込む
+     PV-DIR-CARDS    112社のカード（ロゴ・社名・略号・機長と副操縦士の額・札・比べる印）。英語は額をドルで焼き込む
      PV-DIR-REGIONS  地域の9つのボタンと社数
      PV-DIR-ELSE     見つからないときの、地域の8つのボタン（どれも hidden で出荷。社数は台本が当たりの数に書き換えてから見せる）
      PV-DIR-N        社数（何か所でも）
@@ -50,6 +50,13 @@ const BARRIER = '<!--wd>-->';
 /** ロゴの札（airline-logo.mjs の1か所が描く）。一覧は112社が1枚に並ぶので、見えるまで絵を読まない（loading="lazy"） */
 const logoOf = (A, up) => logoHtml({ slug: A.slug, color: A.color }, { up }).replace('<img ', () => '<img loading="lazy" ');
 
+/* カードの字（★ここ1か所）。cmp ＝ 比べる印の字（候補 C1。リード P12.86-3 で採った「比較」／«Compare»） */
+const WORDS = { cmp: { ja: '比較', en: 'Compare' } };
+/** 比べる印（tickOf が付けると決めたカードだけ）。社名（wn-）と印の字（wc-）の2つで名乗る。リンク（a.wd-go）の外・足もとの段の右 */
+const tick = (A, lang) => (tickOf(A, lang)
+  ? `<label class="wd-cmp"><input type="checkbox" class="wd-cmp-i" value="${esc(A.slug)}" aria-labelledby="wn-${esc(A.slug)} wc-${esc(A.slug)}"><span id="wc-${esc(A.slug)}">${esc(WORDS.cmp[lang])}</span></label>`
+  : '');
+
 /** 112社のカード */
 export function cards(lang, M = model(), rule = CARD_RULE) {
   const page = pageOf(lang), en = lang === 'en', bake = bakeOf(lang);
@@ -71,8 +78,7 @@ export function cards(lang, M = model(), rule = CARD_RULE) {
       '<div class="wd-figs">',
       ...figs,
       '</div>',
-      /* 比較のチェック（tickOf）は WP-dd-7 でこの帯の右に入る */
-      `<div class="wd-foot"><span class="wd-tags">${tags}</span></div>`,
+      `<div class="wd-foot"><span class="wd-tags">${tags}</span>${tick(A, lang)}</div>`,
       '</li>',
     ].join('\n');
   }).join('\n');

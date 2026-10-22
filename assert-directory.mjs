@@ -24,7 +24,9 @@
         結果の見出し（すべて／All・社数の書き方）・見つからないときの並び・台本が動かないときの隠し方・
         見た目の決まり（transition は transform / opacity だけ・色はトークン・検索欄の消すボタンを隠さない）
      H) カードの形 ── 額の行は機長→副操縦士の2行・職位の語から額まで24字以内（check-salary.mjs が読める）・
-        リンクの中に押せる部品を入れない・額の行に手取りや月額の語を入れない
+        リンクの中に押せる部品を入れない・額の行に手取りや月額の語を入れない・
+        比べる印（label.wd-cmp）はリンクの外で、決まりどおりのカードにだけ1つ（日本語 ＝ data-two="1" かつ SWITCH・英語 ＝ fleet）（H4）・
+        日本語の data-two="1" ＝ career.html が2社比較で出せる会社・英語のカードと盆は career.html を指さない（H5）
      W) check-salary.mjs の読み方そのもの（あちらのソースから切り出す）で、どのカードのどの額も
         そのカードの会社として読まれ、別の会社として読まれない（境目の印 <!--wd>--> が1枚に1つ）
      L) カードを作るときにロゴの絵を読まない（読むと assert-generated.mjs の写し＝絵の無い所で生成が落ちる）。
@@ -420,7 +422,7 @@ function secE(I) {
 function cardsOf(html) {
   return [...String(html).matchAll(/<li class="wd-li"([^>]*)>([\s\S]*?)<\/li>/g)].map((m) => {
     const at = (k) => new RegExp(`\\b${k}="([^"]*)"`).exec(m[1])?.[1] ?? null;
-    return { slug: at('data-slug'), region: at('data-region'), type: at('data-type'), tax: at('data-tax'), lvl: at('data-lvl'),
+    return { slug: at('data-slug'), region: at('data-region'), type: at('data-type'), tax: at('data-tax'), lvl: at('data-lvl'), two: at('data-two'),
       html: m[0], body: m[2], start: m.index, end: m.index + m[0].length };
   });
 }
@@ -737,13 +739,37 @@ function acceptedOf(I, html, K) {
   return { h, hits: out };
 }
 
+/** career.html が2社比較で出せる会社（読み手はこの1つ。いまは <select id="cr-a" class="cr-sel"> の option の value。
+    career.html が会社選びを作り替えたら、compare-all がこの1つを付け替える）。無ければ null（＝ H5 は赤） */
+function offered(html) {
+  const s = String(html || ''), a = s.indexOf('<select id="cr-a" class="cr-sel"'), z = a < 0 ? -1 : s.indexOf('</select>', a);
+  if (a < 0 || z < 0) return null;
+  return [...s.slice(a, z).matchAll(/<option\b[^>]*\bvalue="([^"]*)"/g)].map((m) => m[1]);
+}
+/** 比べる印の字（自己検査で印を足すときだけ使う。ページの字は gen-directory.mjs が書く） */
+const tickHtml = (slug, word) => `<label class="wd-cmp"><input type="checkbox" class="wd-cmp-i" value="${slug}" aria-labelledby="wn-${slug} wc-${slug}"><span id="wc-${slug}">${word}</span></label>`;
+
 /** H) カードの形 */
 function secH(I) {
-  const U = pagesOf(I), p = { H1: [], H2: [], H3: [] };
+  const U = pagesOf(I), p = { H1: [], H2: [], H3: [], H4: [], H5: [] };
+  const rowOf = new Map(I.list.map((r) => [r.slug, r]));
   let K = null; try { K = scanOf(I); } catch (e) { p.H3.push(e.message); }
   for (const lang of ['ja', 'en']) {
     const rel = PAGE_REL[lang];
     for (const c of cardsOf(U[lang])) {
+      /* H4 比べる印 ── 決まり（ここで台帳から）：日本語 ＝ data-two="1" かつ SWITCH・英語 ＝ 一覧の行の fleet。
+         印はリンクの外・決まりどおりのカードにだけちょうど1つ・印の中の入力は1つで、その社の値と、カードの中に在る2つの id で名乗る */
+      const rule = lang === 'ja' ? c.two === '1' && I.sw.has(c.slug) : fleetOf(rowOf.get(c.slug));
+      const labs = [...c.body.matchAll(/<label class="wd-cmp">([\s\S]*?)<\/label>/g)];
+      if (labs.length !== (rule ? 1 : 0)) p.H4.push(`${rel} ${c.slug}：比べる印 ${labs.length} 個（${rule ? 'ちょうど1つ' : '無し'}であること・${lang === 'ja' ? `data-two ${c.two}・SWITCH ${I.sw.has(c.slug)}` : `fleet ${fleetOf(rowOf.get(c.slug))}`}）`);
+      for (const a of c.body.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/g)) if (a[0].includes('<label class="wd-cmp"')) p.H4.push(`${rel} ${c.slug}：比べる印がリンク（<a>）の中`);
+      const ins = [...c.body.matchAll(/<input\b([^>]*)>/g)].filter((m) => (attrOf(m[1], 'class') || '').split(/\s+/).includes('wd-cmp-i'));
+      if (ins.length !== labs.length || labs.some((l) => (l[1].match(/<input\b/g) || []).length !== 1)) p.H4.push(`${rel} ${c.slug}：印の入力 ${ins.length} 個／印 ${labs.length} 個（印1つに入力1つ）`);
+      for (const m of ins) {
+        const ids = (attrOf(m[1], 'aria-labelledby') || '').split(/\s+/).filter(Boolean);
+        if (attrOf(m[1], 'type') !== 'checkbox' || attrOf(m[1], 'value') !== c.slug) p.H4.push(`${rel} ${c.slug}：印の入力 type「${attrOf(m[1], 'type')}」・value「${attrOf(m[1], 'value')}」`);
+        if (ids.length !== 2 || ids.some((id) => !c.body.includes(` id="${id}"`))) p.H4.push(`${rel} ${c.slug}：aria-labelledby「${ids.join(' ')}」（カードの中に在る2つの id であること）`);
+      }
       const F = figLines(c.body);
       if (!same(F.map((f) => `${f.rank}${f.pub ? '+' : ''}`), ['cap', 'fo'])) p.H1.push(`${rel} ${c.slug}：額の行 ${F.map((f) => f.rank + (f.pub ? '（2行目）' : '')).join('・') || '無し'}（機長・副操縦士の2行であること）`);
       for (const f of F) {
@@ -759,6 +785,18 @@ function secH(I) {
       if (/<(input|label|button|select|textarea)\b/i.test(go)) p.H3.push(`${rel} ${c.slug}：リンクの中に押せる部品`);
     }
   }
+  /* H5 日本語のカードの data-two="1" ＝ career.html が出せる会社（offered）。英語のカードに data-two="1" は無く、
+     英語のページの PV-DIR-CARDS と #wd-tray は career.html を指さない（左のメニューとヘッダーはほかの持ち場なので見ない） */
+  const off = offered(I.career), jaTwo = cardsOf(U.ja).filter((c) => c.two === '1').map((c) => c.slug);
+  if (!off) p.H5.push('career.html に会社選び（<select id="cr-a" class="cr-sel">）が無い（offered() の読み手を付け替える）');
+  else {
+    for (const s of setDiff(new Set(jaTwo), new Set(off))) p.H5.push(`${PAGE_REL.ja} ${s}：data-two="1" なのに career.html が出せない`);
+    for (const s of setDiff(new Set(off), new Set(jaTwo))) p.H5.push(`${PAGE_REL.ja} ${s}：career.html が出せるのに data-two="1" でない`);
+  }
+  for (const c of cardsOf(U.en)) if (c.two === '1') p.H5.push(`${PAGE_REL.en} ${c.slug}：英語のカードに data-two="1"`);
+  const enCards = blockOf(U.en, 'PV-DIR-CARDS'), enTray = divById(U.en, 'wd-tray');
+  if (enCards && enCards.text.includes('career.html')) p.H5.push(`${PAGE_REL.en}：カード（PV-DIR-CARDS）が career.html を指す（日本語だけのページ）`);
+  if (enTray && enTray.text.includes('career.html')) p.H5.push(`${PAGE_REL.en}：盆（#wd-tray）が career.html を指す（日本語だけのページ）`);
   return Object.entries(p).map(([id, probs]) => R(id, probs));
 }
 
@@ -912,6 +950,15 @@ const ROWS = [
   /* 札の全体を <span> で包むだけでは、職位の語の後ろに増えるのは閉じタグ1つ（23 → 24 ＝ まだ読める）。語の直後で包んで 25 にする */
   ['H2', (I) => onCard(I, 'en', 'etihad', (c) => c.replace(/(data-rank="cap"><span class="wd-vh">[^<]*<\/span>Captain)([^<]*)/, (_, a, l) => `${a}<span>${l}</span>`)), 'H', ['H2']],
   ['H3', (I) => onCard(I, 'ja', 'ana', (c) => c.replace('<span class="wd-names">', () => '<button type="button">x</button><span class="wd-names">')), 'H', ['H3']],
+  /* H4a〜H4e・H5 は、compare-all の切り替え（twoSlugs が全社に）の前でも後でも、SWITCH が増えても同じ赤になる
+     （jal ＝ 5社・SWITCH の中・fleet あり／solairus ＝ fleet 無し／lufthansa ＝ 切り替えの後に印が付く社。H4d は印を「足す」＝ 2つ目でも赤）。
+     H4a は印をリンクの中へ動かす ＝ H3（リンクの中に押せる部品）も同じ1か所で赤くなる */
+  ['H4a', (I) => onCard(I, 'ja', 'jal', (c) => { const lab = /<label class="wd-cmp">[\s\S]*?<\/label>/.exec(c)?.[0]; return lab ? c.replace(lab, () => '').replace('</a>', () => `${lab}</a>`) : c; }), 'H', ['H3', 'H4']],
+  ['H4b', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/<label class="wd-cmp">[\s\S]*?<\/label>/, () => '')), 'H', ['H4']],
+  ['H4c', (I) => onCard(I, 'en', 'solairus', (c) => c.replace(/(<div class="wd-foot">[\s\S]*?)(<\/div>)/, (_, a, z) => a + tickHtml('solairus', 'Compare') + z)), 'H', ['H4']],
+  ['H4d', (I) => onCard(I, 'ja', 'lufthansa', (c) => c.replace(/(<div class="wd-foot">[\s\S]*?)(<\/div>)/, (_, a, z) => a + tickHtml('lufthansa', '比較') + z)), 'H', ['H4']],
+  ['H4e', (I) => { if (!I.sw.delete('jal')) throw new Error('SWITCH に jal が無い'); }, 'H', ['H4']],
+  ['H5', (I) => onCard(I, 'ja', 'jal', (c) => c.replace('data-two="1"', () => 'data-two="0"')), 'H', ['H4', 'H5']],
   ['W1', (I) => onCard(I, 'ja', 'airjapan', (c) => c.replace(`${BARRIER}\n`, () => '')), 'W', ['W1', 'W3']],
   ['W2', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/(data-rank="cap"[\s\S]*?)(<b class="wd-v">)/, (_, a, b) => `${a}${'<i></i>'.repeat(30)}${b}`)), 'W', ['W2']],
   ['W3', (I) => onCard(I, 'ja', 'jal', (c) => c.replace('<div class="wd-foot"><span class="wd-tags">', () => '<div class="wd-foot"><span class="wd-tags">全日本空輸（ANA）機長 ¥1,850万')), 'W', ['W3']],
