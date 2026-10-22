@@ -1266,17 +1266,30 @@
     a.hidden = true;
     return a;
   }
+  /* 中央値の「やり直す」を押した人の居場所（キーボード）。押したボタンは描き直しで消えるので、答えが来たら、その器の見出し
+     「中央値」へ移す（もう一度読めなかったら次の「やり直す」へ・器に何も出ない答えなら欄へ）。動かすのは、押したその1回の
+     描き直しの器だけ（box._crlMed ＝ その回の番号）── 通貨の切り替えや会社の選び直しの描き直しでは動かさない。 */
+  function medBack(box, tok, agg, t) {
+    if (!tok || box._crlMed !== tok || box._crlTok !== tok || !box.contains(agg)) return;
+    box._crlMed = 0;
+    var at = d.activeElement;
+    if (at && at !== d.body && at !== d.documentElement) return;   // 待つあいだに読み手が自分で動いた先からは、引き戻さない
+    if (t.tagName !== 'BUTTON') t.setAttribute('tabindex', '-1');
+    try { t.focus({ preventScroll: true }); } catch (e) { /* フォーカスを移せないブラウザでは、今までどおり */ }
+  }
   function aggFill(agg, ids, box) {
+    var tok = box._crlTok;
     companyMed(ids[0], ids[1]).then(function (M) {
-      if (M.st !== 'open') return;                  // 開いていない答えからは何も描かない
+      if (M.st !== 'open') return medBack(box, tok, agg, box);   // 開いていない答えからは何も描かない
       var rows = [];
       T.workPos.forEach(function (p) {
         var a = M.by[ids[0]][p[0]], b = M.by[ids[1]][p[0]];
         if (!a && !b) return;                       // 両社とも人数が足りない職位は、行ごと出さない
         rows.push([p, a, b]);
       });
-      if (!rows.length) return;
-      agg.appendChild(el('h3', 'crl-agg-h', T.median));
+      if (!rows.length) return medBack(box, tok, agg, box);
+      var h = el('h3', 'crl-agg-h', T.median);
+      agg.appendChild(h);
       rows.forEach(function (x) {
         var row = cmpRow(agg, el('span', '', x[0][1]), medCell(x[1]), medCell(x[2])) || agg.lastChild;
         row.setAttribute('data-med', x[0][0]);
@@ -1285,18 +1298,25 @@
       def.setAttribute('data-def', 'median');
       agg.appendChild(def);
       agg.hidden = false;
+      medBack(box, tok, agg, h);
     }, function (e) {
-      agg.appendChild(el('h3', 'crl-agg-h', T.median));
+      var h = el('h3', 'crl-agg-h', T.median), rb = null;
+      agg.appendChild(h);
       if (e && e.crl === 'off') agg.appendChild(msg(T.off));
       else {
         agg.appendChild(msg(T.err));
         /* この欄は「開いた」のまま（retryAll は拾わない）ので、押したらこの欄だけを描き直す。
            形と字は共通の retryBtn() の写し（cloneNode は押した時の動きを持ってこない ＝ 動きはここで1つだけ付ける） */
-        var rb = retryBtn().cloneNode(true);
-        rb.addEventListener('click', function () { run(box, 'cmp-pay', box.getAttribute('data-for') || '', true); });
+        rb = retryBtn().cloneNode(true);
+        rb.addEventListener('click', function () {
+          var back = d.activeElement === rb;
+          run(box, 'cmp-pay', box.getAttribute('data-for') || '', true);
+          if (back) box._crlMed = box._crlTok;     // run がいま付けた番号 ＝ この描き直し
+        });
         agg.appendChild(rb);
       }
       agg.hidden = false;
+      medBack(box, tok, agg, rb || h);
     });
   }
   KIND['cmp-pay'] = function (box, ids) {

@@ -20,11 +20,19 @@
      ・鍵の開いた人：職位ごとに会社の列・5行まで見せて6行目からは畳む・REAL PAY の行（職位は繰り返さない）・住所は air= と pos= だけ・
        選ぶ欄も入力欄も置かない・給与の入口は出さない（場面 pay-open）。
      ・中央値は開いた答えからだけ・額のそばに人数を書かない・鍵の無い人と行の無い2社には聞きもしない（場面 pay-med）。
+     ・2社を選び直し・入れ替えても、一覧は1回だけ読む・欄はいつも見えている2社のもの。前の2社へ遅れて届いた答え（一覧も中央値も）は
+       画面のどこにも入らない（場面 pay-move）。
+     ・通貨を替えても通信しない・円のほかで「¥」「万」を出さない・円に戻すと1文字も違わない・開けた畳みは開いたまま（場面 pay-fit）。
+     ・読めない（500）・口がまだ無い（404・PGRST202）でも給与の入口は残る。中央値だけ読めないときは器の中だけで言い、
+       「やり直す」は中央値だけを聞き直す。押した人のキーボードの居場所は、器の見出しか次の「やり直す」（場面 pay-fail）。
+     ・返事の来ない一覧は、上限（career-live.js の REQ_LIMIT_MS）を本当に待って「いま読み出せません」・その1本は取り消す（場面 pay-stall）。
    どの場面も、終わりに3つを確かめる：本番の supabase への要求 0・外へすり抜けた要求 0・（MOCK）自分の呼び出しに全部返事があった。
 
    実行: node assert-career-live.mjs [--scenes a,b] [--shots <folder>] [--via form|call] [--sql <file>]
-     --scenes  場面を選ぶ（static・net・unknown・leak・zero … pay-lock・pay-open・pay-med）。付けなければ全部（static → MOCK → REAL LOCAL の順）
-     --shots   場面の確かめのあと、口コミ・月の働き方・待遇の箱を、その場面の大きさで撮って置く（置き場は打った場所。ファイルに書かない）
+     --scenes  場面を選ぶ（static・net・unknown・leak・zero … pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall）。
+               付けなければ全部（static → MOCK → REAL LOCAL の順）。⚠️ pay-stall は上限まで本当に待つ（15秒あまり）
+     --shots   場面の確かめのあと、口コミ・月の働き方・待遇の箱を、その場面の大きさで撮って置く（置き場は打った場所。ファイルに書かない）。
+               場面 pay-fit・pay-fail は「提出された年収」の箱を撮る（ディルハム・読めない・準備中・中央値の失敗と準備中）
      --via     REAL LOCAL の場面で、会員の投稿を画面から入れるか（form）・関数で入れるか（call）。結果の行に書く
      --sql     REAL LOCAL の場面だけ：種をまいたあと、そのファイルの SQL を流す（壊したサーバーの写しを試す。リポジトリの SQL は直さない）
    MOCK ＝ 返事を検査が作る場面／REAL LOCAL ＝ 手元の SQL が答える場面。結果の行にどちらかを必ず書く
@@ -628,6 +636,7 @@ const W_PAY = {
   c3: (from, to, floor) => `中央値は、給与を提出した人ごとのまんなかの額から出しています（給与の月が${from}〜${to}のもの・${floor}人以上の区分だけ）。`
     + '口コミに書かれた年収と、登録前に預かった提出は入りません。',
   ten: ['昇格後5年未満', '昇格後5〜10年', '昇格後10〜15年', '昇格後15〜20年', '昇格後20年以上'],
+  err: 'いま読み出せません', retry: 'やり直す', off: '準備中',
 };
 /* ページのどのスクリプトよりも先に置く書き留め役：ページが投げた関数の呼び出しの名前（fetch を呼んだその時に）と、
    中央値の返事の中身を読み終えた回数（読み終えたあとの次の順番で数える ＝ その答えをページが使い終わったあと） */
@@ -928,6 +937,310 @@ scene('pay-med', '給与の中央値：開いた答えからだけ・職位の�
     ok(done && asked.length === 0 && !!s && s.state !== 'open', `[M10 d] ${who}：中央値（pv_company_pay）を1回も聞かない（欄は「${s && s.state}」）`, JSON.stringify({ done, asked }));
   }
   payAnswered(sts);
+});
+
+/* ── 給与の区域：選び直す・通貨を替える・読めない・返事が来ない（WP-cmp-pay-5。どれも MOCK）────────────
+   中央値の答えは、組ごとに字の違う2つ（人数の下限と期間が違う ＝ 定義の1行（C-3）を読めば、どちらの組の答えか分かる）。
+     jal|ana     2つの職位とも2社の額（4つ）・下限 7・2023年1月〜2024年12月
+     jal|etihad  JAL の機長だけ額（ほかは人数が足りない）・下限 3・2024年10月〜2026年9月 */
+const ROWS5 = ['jal', 'ana', 'etihad', 'eva-air', 'cathay-pacific'].flatMap((s) => [PRF(s), PRF(s, { pos: 'fo' })]);
+const MED_P1 = { ok: true, state: 'open', period: { from: '2023-01', to: '2024-12' }, floor: 7, airlines: {
+  jal: { cap: { s: 'ok', median_usd: 314159 }, fo: { s: 'ok', median_usd: 161803 } }, ana: { cap: { s: 'ok', median_usd: 141421 }, fo: { s: 'ok', median_usd: 173205 } } } };
+const MED_P2 = { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3, airlines: {
+  jal: { cap: { s: 'ok', median_usd: 271828 }, fo: { s: 'few' } }, etihad: { cap: { s: 'few' }, fo: { s: 'few' } } } };
+const DEF_P1 = W_PAY.c3('2023年1月', '2024年12月', 7), DEF_P2 = W_PAY.c3('2024年10月', '2026年9月', 3);
+const NOFN_PAY = (fn, status = 404) => ({ status, body: { code: 'PGRST202', details: null, hint: null, message: `Could not find the function public.${fn}` } });
+/* 中央値の返事を、聞かれた2社の組（並びを問わない）で選ぶ。表に無い組には開いていない答え（何も描かない） */
+const pairKey = (p) => (p && Array.isArray(p.airlines) ? p.airlines.slice().sort().join('|') : '');
+const medBy = (map) => (p) => ({ status: 200, body: map[pairKey(p)] || { ok: true, state: 'locked' } });
+/* 欄が見せている2社：data-for・会社の札・欄の中の data-airline（重ねない）。社名はページの島（#crc-data）の字 */
+const pairFace = (page) => page.evaluate((SEL) => {
+  const b = document.querySelector(SEL);
+  let co = {};
+  try { co = JSON.parse(document.getElementById('crc-data').textContent).airlines || {}; } catch (e) { co = {}; }
+  return { for: b ? b.getAttribute('data-for') : null, state: b ? b.getAttribute('data-state') : null,
+    tags: b ? [...b.querySelectorAll('.crl-cmp > .crl-cmp-head > .crl-co')].map((x) => x.textContent.trim()) : [],
+    airlines: b ? [...new Set([...b.querySelectorAll('[data-airline]')].map((x) => x.getAttribute('data-airline')))] : [],
+    names: Object.fromEntries(Object.entries(co).map(([k, v]) => [k, v && v.ja])) };
+}, PAY_SEL);
+const pairOk = (f, want) => {
+  const [a, b] = want.split('|');
+  return !!f && f.for === want && !!f.names[a] && !!f.names[b] && JSON.stringify(f.tags) === JSON.stringify([f.names[a], f.names[b]])
+    && f.airlines.length === 2 && f.airlines.includes(a) && f.airlines.includes(b);
+};
+const pairOf = (f) => f && { for: f.for, state: f.state, tags: f.tags, airlines: f.airlines };
+/* 中央値の器（と、ページ全体の中央値の印）を読む */
+const medFace = (page) => page.evaluate((SEL) => {
+  const b = document.querySelector(SEL), ag = b && b.querySelector('.crl-agg');
+  const tx = (n) => (n ? n.textContent.replace(/\s+/g, ' ').trim() : null);
+  return { html: document.documentElement.outerHTML, hidden: !ag || ag.hidden, text: ag ? tx(ag) || '' : '',
+    defs: [...document.querySelectorAll('[data-def="median"]')].map((p) => ({ t: tx(p), inAgg: !!ag && ag.contains(p) })),
+    meds: [...document.querySelectorAll('[data-med]')].map((r) => ({ k: r.getAttribute('data-med'), inAgg: !!ag && ag.contains(r) })),
+    aggs: document.querySelectorAll('[data-agg]').length,
+    h: ag ? [...ag.querySelectorAll('h3.crl-agg-h')].map(tx) : [], msg: ag ? [...ag.querySelectorAll('p.crl-msg')].map(tx) : [],
+    retry: ag ? [...ag.querySelectorAll('.crl-retry')].map(tx) : [], allRetry: b ? b.querySelectorAll('.crl-retry').length : -1 };
+}, PAY_SEL);
+const medOf = (M) => M && { ...M, html: undefined };
+/* 新しい2社（jal|etihad）の答えだけ：定義の1行は器の中に1つ（その組の字）・中央値の行は JAL の機長の1行・額は1つ */
+const onlyP2 = (M) => !!M && M.defs.length === 1 && M.defs[0].inAgg && M.defs[0].t === DEF_P2
+  && JSON.stringify(M.meds) === JSON.stringify([{ k: 'cap', inAgg: true }]) && M.aggs === 1;
+/* その組の定義の1行が、欄の中に出た */
+const medDrawn = (page, def) => until(page, ([SEL, def]) => {
+  const b = document.querySelector(SEL);
+  return !!b && [...b.querySelectorAll('[data-def="median"]')].some((p) => p.textContent.replace(/\s+/g, ' ').trim() === def);
+}, [PAY_SEL, def]);
+/* ページが投げた中央値の要求の答えを、全部読み終わった（読み終えたあとの次の順番まで ── PAY_WATCH） */
+const medAllRead = (page) => until(page, () => {
+  const asked = (window.__payAsked || []).filter((n) => n === 'pv_company_pay').length;
+  return asked >= 1 && window.__payRead() >= asked;
+});
+const callsN = (st, name) => st.calls.filter((c) => c.name === name).length;
+/* 欄の「やり直す」（中央値の器の中かどうか） */
+const payRetry = (page) => page.evaluate((SEL) => [...document.querySelectorAll(`${SEL} .crl-retry`)]
+  .map((x) => ({ t: x.textContent.trim(), inAgg: !!x.closest('.crl-agg'), h: Math.round(x.getBoundingClientRect().height) })), PAY_SEL);
+/* その「やり直す」をキーボードで押す（フォーカスの戻り先を見る） */
+const pressKey = async (page, sel) => {
+  const b = await page.$(sel);
+  if (!b) return false;
+  await b.focus();
+  await page.keyboard.press('Enter');
+  return true;
+};
+/* いまキーボードの居場所（フォーカス）が在るところ */
+const focusAt = (page) => page.evaluate((SEL) => {
+  const a = document.activeElement, b = document.querySelector(SEL);
+  return { tag: a ? a.tagName.toLowerCase() : null, cls: a ? String(a.className) : null, text: a ? a.textContent.replace(/\s+/g, ' ').trim().slice(0, 40) : null,
+    inSlot: !!(b && a && a !== document.body && b.contains(a)), inAgg: !!(a && a.closest && a.closest('.crl-agg')) };
+}, PAY_SEL);
+/* --shots：比較の「提出された年収」の箱を撮る（見た目の確かめのため。検査ではない） */
+async function payShot(page, size, name) {
+  if (!SHOTS) return;
+  fs.mkdirSync(SHOTS, { recursive: true });
+  const h = await page.$('#cr [data-view="compare"] .cr-subpay[data-kind="submitted"]');
+  if (h) await h.screenshot({ path: path.join(SHOTS, `${CUR.key}-${size}-${name}.png`) });
+}
+
+scene('pay-move', '給与：選び直し・入れ替えても一覧は1回だけ読む・欄はいつも見えている2社のもの・前の2社へ遅れて届いた答え（一覧・中央値）はどこにも出ない', 'mock', async () => {
+  /* M5（B）3回の選び直しと1回の入れ替え */
+  const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, stub: { pv_pay_rows: payReply(H.payFix.open(ROWS5)) } });
+  ok(await payDone(page, 'jal|ana'), '（jal|ana）給与の欄が読み終わった');
+  const STEPS = [['#cr-b', 'etihad', 'jal|etihad'], ['#cr-a', 'eva-air', 'eva-air|etihad'], ['#cr-b', 'cathay-pacific', 'eva-air|cathay-pacific'],
+    ['#cr-swap', null, 'cathay-pacific|eva-air']];
+  const went = [];
+  for (const [sel, v, want] of STEPS) {
+    if (v) await page.select(sel, v); else await page.click(sel);
+    const done = await payDone(page, want);
+    const f = await pairFace(page);
+    went.push({ want, ok: done && f.state === 'open' && pairOk(f, want), ...pairOf(f) });
+  }
+  ok(went.every((x) => x.ok), `[M5][B] 3回の選び直しと1回の入れ替え（${STEPS.map((s) => s[2]).join(' → ')}）：欄はいつも見えている2社（data-for・会社の札・欄の中の data-airline）`,
+    JSON.stringify(went));
+  const inPage = await page.evaluate(() => (window.__payAsked || []).filter((n) => n === 'pv_pay_rows').length);
+  ok(inPage === 1 && callsN(st, 'pv_pay_rows') === 1, '[M5][B] そのあいだに給与の一覧（pv_pay_rows）を読んだのは1回だけ（ページの中でも門でも1本）',
+    JSON.stringify({ inPage, atGate: callsN(st, 'pv_pay_rows') }));
+
+  /* M5b（A）一覧の返事を止めたまま2社目を選び直し、そのあとで流す → 欄は新しい2社だけ。前の2社の中央値は、どこにも出ない。
+     ページは止めていた一覧が届いたとき、前の2社の中央値も聞く（その答えが入るのは、もう画面に無い器 ── どこにも見えない） */
+  const h = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, holdIf: (name) => name === 'pv_pay_rows',
+    stub: { pv_company_pay: medBy({ 'ana|jal': MED_P1, 'etihad|jal': MED_P2 }) } });
+  const held = await waitFor(() => (h.st.held.pv_pay_rows || []).length === 1);
+  await h.page.select('#cr-b', 'etihad');
+  const moved = await until(h.page, (SEL) => { const b = document.querySelector(SEL); return !!b && b.getAttribute('data-for') === 'jal|etihad'; }, PAY_SEL);
+  ok(held && moved, '（M5b）一覧の返事を止めたまま、2社目をエティハドに選び直した（欄は jal|etihad を待っている）', JSON.stringify({ held, moved }));
+  release(h.st, 'pv_pay_rows', { status: 200, body: H.payFix.open(ROWS5) });
+  const doneH = (await payDone(h.page, 'jal|etihad')) && (await medDrawn(h.page, DEF_P2)) && (await medAllRead(h.page));
+  const PH = await pairFace(h.page), MH = await medFace(h.page);
+  const askedH = h.st.calls.filter((c) => c.name === 'pv_company_pay').map((c) => pairKey(c.p));
+  ok(doneH && PH.state === 'open' && pairOk(PH, 'jal|etihad'), '[M5b] 流したあと、欄は新しい2社（jal|etihad）の一覧だけ（data-for・会社の札・欄の中の data-airline）',
+    JSON.stringify({ doneH, ...pairOf(PH) }));
+  ok(doneH && !MH.html.includes(DEF_P1), `[M5b] 前の2社（jal|ana）の中央値の答えは、ページのどこにも入らない（定義の1行「…下限 7」が無い・中央値に聞いた組 ${askedH.join(' と ')}）`,
+    JSON.stringify({ doneH, defs: MH.defs, asked: askedH }));
+  ok(doneH && onlyP2(MH), '[M5b] 中央値の器には新しい2社の答えだけ（定義の1行は器の中に1つ・中央値の行は JAL の機長の1行・額は1つ）', JSON.stringify(medOf(MH)));
+
+  /* M10 c（A）前の2社の中央値の答えを止めたまま選び直し、新しい2社の中央値が出たあとで、止めておいた答えを流す */
+  const c = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, holdIf: (name, p) => name === 'pv_company_pay' && pairKey(p) === 'ana|jal',
+    stub: { pv_pay_rows: payReply(H.payFix.open(ROWS5)), pv_company_pay: medBy({ 'etihad|jal': MED_P2 }) } });
+  ok(await payDone(c.page, 'jal|ana'), '（M10 c）jal|ana の給与の欄が読み終わった');
+  const heldC = await waitFor(() => (c.st.held.pv_company_pay || []).length === 1);
+  await c.page.select('#cr-b', 'etihad');
+  const drewC = (await payDone(c.page, 'jal|etihad')) && (await medDrawn(c.page, DEF_P2));
+  ok(heldC && drewC, '（M10 c）jal|ana の中央値の答えを止めたまま選び直し、jal|etihad の中央値が出た', JSON.stringify({ heldC, drewC }));
+  const sent = release(c.st, 'pv_company_pay', { status: 200, body: MED_P1 });
+  const delivered = sent && (await until(c.page, () => window.__payRead() >= 2));
+  const PC = await pairFace(c.page), MC = await medFace(c.page);
+  ok(delivered && !MC.html.includes(DEF_P1), '[M10 c] 止めておいた前の2社（jal|ana）の中央値の答えは、届いて読まれたあとも、ページのどこにも出ない',
+    JSON.stringify({ sent, delivered, defs: MC.defs, meds: MC.meds }));
+  ok(delivered && PC.state === 'open' && pairOk(PC, 'jal|etihad') && onlyP2(MC), '[M10 c] 新しい2社の中央値の器は、新しい2社の額だけ（JAL の機長の1行・定義の1行は器の中に1つ）',
+    JSON.stringify({ ...pairOf(PC), ...medOf(MC) }));
+  payAnswered([st, h.st, c.st]);
+});
+
+scene('pay-fit', '給与：通貨を替えても通信しない・円のほかで「¥」「万」を出さない・円に戻すと1文字も違わない・開けた畳みは開いたまま・中央値も描き直す（390 で1往復）', 'mock', async () => {
+  /* M6 ＋ M10 g（B）390 で 円 → ドル → ディルハム → 円 の1往復（A18：大きさ・幅ごとの確かめは見た目の確かめに移した） */
+  const A = [0, 1, 2, 3, 4, 5, 6].map((i) => PRF('jal', { ten: i % 5, annual_usd: 271828 + i * 31416 })), B = [PRF('ana'), PRF('ana', { pos: 'fo' })];
+  const MED = { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3, airlines: {
+    jal: { cap: { s: 'ok', median_usd: 314159 }, fo: { s: 'few' } }, ana: { cap: { s: 'ok', median_usd: 141421 }, fo: { s: 'few' } } } };
+  const { page, st } = await open('sp', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH,
+    stub: { pv_pay_rows: payReply(H.payFix.open(A, B)), pv_company_pay: payReply(MED) } });
+  ok((await payDone(page, 'jal|ana')) && (await medDrawn(page, DEF_P2)), '（390・円）給与の欄と中央値が出た');
+  const SUM = `${PAY_SEL} .crl-pc[data-airline="jal"][data-pos="cap"] > details.crl-more > summary`;
+  await page.click(SUM);
+  const fit = () => page.evaluate((SEL) => {
+    const b = document.querySelector(SEL), ag = b && b.querySelector('.crl-agg');
+    const tx = (n) => (n ? n.textContent.replace(/\s+/g, ' ').trim() : '');
+    return { cur: window.PVCurrency ? window.PVCurrency.get() : null, state: b && b.getAttribute('data-state'), text: tx(b),
+      fold: !!b && !!b.querySelector('.crl-pc[data-airline="jal"][data-pos="cap"] > details.crl-more[open]'),
+      med: ag && !ag.hidden ? [...ag.querySelectorAll('b.crl-amt[data-agg]')].map(tx) : [] };
+  }, PAY_SEL);
+  const J0 = await fit();
+  const legs = [];
+  for (const cur of ['USD', 'AED', 'JPY']) {
+    await page.evaluate((c) => window.PVCurrency.set(c), cur);
+    /* 描き直し終わるまで待つ（その通貨になり・欄は開いたまま・中央値の額の字が替わった ／ 円は最初の字に戻った） */
+    const done = await until(page, ([SEL, cur, med0, text0]) => {
+      const b = document.querySelector(SEL), ag = b && b.querySelector('.crl-agg');
+      if (!b || b.getAttribute('data-state') !== 'open' || !ag || ag.hidden || !window.PVCurrency || window.PVCurrency.get() !== cur) return false;
+      const m = [...ag.querySelectorAll('b.crl-amt[data-agg]')].map((n) => n.textContent.replace(/\s+/g, ' ').trim());
+      return cur === 'JPY' ? b.textContent.replace(/\s+/g, ' ').trim() === text0 : m.length === med0.length && m.every((t, i) => t !== med0[i]);
+    }, [PAY_SEL, cur, J0.med, J0.text]);
+    legs.push({ cur, done, ...(await fit()) });
+    if (cur === 'AED') await payShot(page, 'sp', 'aed');
+  }
+  const [U, E, Jb] = legs;
+  ok(J0.fold && J0.med.length === 2 && U.done && E.done && [U, E].every((x) => !/[¥万]/.test(x.text)),
+    '[M6][B] ドルとディルハムでは、欄に「¥」も「万」も無い（一覧の額も中央値の額も）', JSON.stringify(legs.map((x) => ({ cur: x.cur, done: x.done, yen: (x.text.match(/.{0,8}[¥万].{0,4}/) || [''])[0] }))));
+  ok(Jb.done && Jb.text === J0.text, '[M6][B] 円 → ドル → ディルハム → 円：円に戻すと、欄の字は最初と1文字も違わない', JSON.stringify({ done: Jb.done, first: J0.text.slice(0, 160), last: Jb.text.slice(0, 160) }));
+  ok(J0.fold && legs.every((x) => x.fold), '[M6][B] 通貨を替える前に開けた畳み（JAL の機長）は、替えたあとも開いたまま', JSON.stringify([J0.fold, ...legs.map((x) => x.fold)]));
+  const PAYN = await page.evaluate(() => (window.__payAsked || []).filter((n) => n === 'pv_pay_rows' || n === 'pv_company_pay').length);
+  ok(U.med.length === 2 && E.med.length === 2 && JSON.stringify(Jb.med) === JSON.stringify(J0.med)
+    && callsN(st, 'pv_pay_rows') === 1 && callsN(st, 'pv_company_pay') === 1 && PAYN === 2,
+    '[M10 g][B] 中央値の額も通貨ごとに描き直す（ドル・ディルハムで字が替わり、円で元に戻る）── そのあいだ通信は1本も増えない（一覧1本・中央値1本のまま）',
+    JSON.stringify({ med: [J0.med, U.med, E.med, Jb.med], rows: callsN(st, 'pv_pay_rows'), median: callsN(st, 'pv_company_pay'), inPage: PAYN }));
+  payAnswered([st]);
+});
+
+scene('pay-fail', '給与：読めない（500）は「いま読み出せません」「やり直す」と入口・口がまだ無いは「準備中」と入口・中央値だけ読めないときは器の中だけ（押すと中央値だけ聞き直し、居場所は器の見出しへ）', 'mock', async () => {
+  /* M7（B）一覧が 500 → 「いま読み出せません」「やり直す」と給与の入口・「ログイン」は出さない → 次は読める・「やり直す」で行が出る */
+  const f = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, stub: { pv_pay_rows: () => FAIL500 } });
+  ok(await payDone(f.page, 'jal|ana'), '（一覧が 500）給与の欄が読み終わった');
+  const F = await payFace(f.page), RF = await payRetry(f.page);
+  ok(!!F && F.state === 'error' && F.text.includes(W_PAY.err) && JSON.stringify(RF.map((x) => x.t)) === JSON.stringify([W_PAY.retry]) && RF[0].h >= 44
+    && F.entry.length === 1 && F.login.length === 0 && F.rows === 0,
+    `[M7][B] 一覧が読めない（500）：「${W_PAY.err}」と「${W_PAY.retry}」1つ（44px 以上）・給与の入口は残る・「ログイン」は出さない（誰が読んでいるか分からない）`,
+    JSON.stringify(F && { state: F.state, text: F.text, retry: RF, entry: F.entry.length, login: F.login }));
+  await payShot(f.page, 'pc', 'error');
+  f.st.stub.pv_pay_rows = payReply(H.payFix.open(ROWS5));
+  ok(await pressKey(f.page, `${PAY_SEL} .crl-retry`), '（M7）「やり直す」をキーボードで押した');
+  const back = await until(f.page, (SEL) => { const b = document.querySelector(SEL); return !!b && b.getAttribute('data-state') === 'open' && b.querySelectorAll('li.crl-row').length > 0; }, PAY_SEL);
+  const F2 = await payFace(f.page), at7 = await focusAt(f.page);
+  ok(back && callsN(f.st, 'pv_pay_rows') === 2 && !!F2 && F2.rows > 0 && F2.entry.length === 0 && at7.inSlot,
+    '[M7][B] 押すと一覧をもう一度だけ読み（2本目）、行が出る（入口は消える）・押した人のフォーカスは欄の中に戻る',
+    JSON.stringify({ back, n: callsN(f.st, 'pv_pay_rows'), rows: F2 && F2.rows, entry: F2 && F2.entry.length, at7 }));
+
+  /* M8（B）口がまだ無い：404（符号なし）と、それとは別に符号 PGRST202（状態の数ではなく符号だけで決まることを見るため 400 で返す） */
+  const sts = [f.st];
+  for (const [why, reply] of [['404', { status: 404, body: { message: 'Not Found' } }], ['PGRST202', NOFN_PAY('pv_pay_rows', 400)]]) {
+    const o = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, stub: { pv_pay_rows: () => reply } });
+    sts.push(o.st);
+    ok(await payDone(o.page, 'jal|ana'), `（一覧が ${why}）給与の欄が読み終わった`);
+    const O = await payFace(o.page), RO = await payRetry(o.page);
+    ok(!!O && O.state === 'off' && O.text.includes(W_PAY.off) && O.entry.length === 1 && !O.text.includes(W_PAY.empty) && !/\d/.test(O.text)
+      && RO.length === 0 && O.login.length === 0,
+      `[M8][B] 口がまだ無い（${why}）：「${W_PAY.off}」と給与の入口・「${W_PAY.empty}」も数字も「${W_PAY.retry}」も「ログイン」も出さない`,
+      JSON.stringify(O && { state: O.state, text: O.text, entry: O.entry.length, retry: RO, login: O.login }));
+    if (why === '404') await payShot(o.page, 'pc', 'off');
+  }
+
+  /* M10 e（B）中央値だけ読めない（500）→ 一覧の行はそのまま・器に「中央値」「いま読み出せません」「やり直す」。
+     押すと中央値だけ聞き直す（一覧は聞き直さない）。もう一度読めなければ次の「やり直す」、読めたら額 */
+  const e = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH,
+    stub: { pv_pay_rows: payReply(H.payFix.open(ROWS5)), pv_company_pay: () => FAIL500 } });
+  sts.push(e.st);
+  ok(await payDone(e.page, 'jal|ana'), '（中央値が 500）給与の欄が読み終わった');
+  const AGG_RETRY = `${PAY_SEL} .crl-agg:not([hidden]) .crl-retry`;
+  const shownE = await until(e.page, (s) => !!document.querySelector(s), AGG_RETRY);
+  const E1 = await payFace(e.page), M1 = await medFace(e.page);
+  ok(shownE && !!E1 && E1.state === 'open' && E1.rows > 0 && JSON.stringify(M1.h) === JSON.stringify([W_PAY.median])
+    && JSON.stringify(M1.msg) === JSON.stringify([W_PAY.err]) && JSON.stringify(M1.retry) === JSON.stringify([W_PAY.retry]) && M1.allRetry === 1 && M1.meds.length === 0,
+    `[M10 e][B] 中央値が読めない（500）：一覧の行はそのまま・中央値の器に「${W_PAY.median}」「${W_PAY.err}」「${W_PAY.retry}」（欄ごとの失敗の顔にしない）`,
+    JSON.stringify({ shownE, state: E1 && E1.state, rows: E1 && E1.rows, ...medOf(M1) }));
+  await payShot(e.page, 'pc', 'med-error');
+  /* まだ読めないまま押す → 中央値だけ1本聞き直し、次の「やり直す」。キーボードの居場所はその新しい「やり直す」 */
+  ok(await pressKey(e.page, AGG_RETRY), '（M10 e）中央値の「やり直す」をキーボードで押した（まだ読めない）');
+  const again = await until(e.page, ([s, n]) => (window.__payAsked || []).filter((x) => x === 'pv_company_pay').length >= n && !!document.querySelector(s), [AGG_RETRY, 2]);
+  const at1 = await focusAt(e.page);
+  /* 次は読める → 押すと額が出る。居場所は額の出た器の見出し「中央値」 */
+  e.st.stub.pv_company_pay = payReply(MED_P1);
+  ok(again && (await pressKey(e.page, AGG_RETRY)), '（M10 e）もう一度、中央値の「やり直す」をキーボードで押した（次は読める）');
+  const came = await medDrawn(e.page, DEF_P1);
+  const M2 = await medFace(e.page), at2 = await focusAt(e.page);
+  ok(again && came && callsN(e.st, 'pv_company_pay') === 3 && callsN(e.st, 'pv_pay_rows') === 1 && M2.meds.length === 2 && M2.retry.length === 0 && M2.msg.length === 0,
+    '[M10 e][B] 押すたびに中央値だけを1本聞き直す（一覧は聞き直さない）・読めたら額が出て「やり直す」は消える',
+    JSON.stringify({ again, came, median: callsN(e.st, 'pv_company_pay'), rows: callsN(e.st, 'pv_pay_rows'), ...medOf(M2) }));
+  ok(at1.inSlot && at1.inAgg && at1.tag === 'button' && at1.text === W_PAY.retry && at2.inSlot && at2.inAgg && at2.tag === 'h3' && at2.text === W_PAY.median,
+    `[M10 e][B] 押した人のキーボードの居場所は、まだ読めなければ次の「${W_PAY.retry}」・読めたら額の出た器の見出し「${W_PAY.median}」（ページの頭へ飛ばない）`,
+    JSON.stringify({ at1, at2 }));
+  /* 口がまだ無い（PGRST202）→ 器に「中央値」「準備中」・「やり直す」は無い・描き直しても（通貨を替えても）もう聞かない */
+  const o2 = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH,
+    stub: { pv_pay_rows: payReply(H.payFix.open(ROWS5)), pv_company_pay: () => NOFN_PAY('pv_company_pay') } });
+  sts.push(o2.st);
+  ok(await payDone(o2.page, 'jal|ana'), '（中央値の口が無い）給与の欄が読み終わった');
+  const offMsg = (cur) => until(o2.page, ([SEL, cur, off]) => {
+    const b = document.querySelector(SEL), ag = b && b.querySelector('.crl-agg');
+    return !!ag && !ag.hidden && !!window.PVCurrency && window.PVCurrency.get() === cur
+      && [...ag.querySelectorAll('p.crl-msg')].some((p) => p.textContent.trim() === off);
+  }, [PAY_SEL, cur, W_PAY.off]);
+  const off1 = await offMsg('JPY');
+  const MO1 = await medFace(o2.page), EO = await payFace(o2.page);
+  await payShot(o2.page, 'pc', 'med-off');
+  await o2.page.evaluate(() => window.PVCurrency.set('USD'));
+  const redrawn = await until(o2.page, (SEL) => { const b = document.querySelector(SEL); return !!b && b.getAttribute('data-state') === 'open' && !/[¥万]/.test(b.textContent); }, PAY_SEL);
+  const off2 = redrawn && (await offMsg('USD'));
+  const MO2 = await medFace(o2.page);
+  ok(off1 && off2 && !!EO && EO.rows > 0 && [MO1, MO2].every((M) => JSON.stringify(M.h) === JSON.stringify([W_PAY.median])
+      && JSON.stringify(M.msg) === JSON.stringify([W_PAY.off]) && M.allRetry === 0 && M.meds.length === 0 && !M.text.includes(W_PAY.none) && !/\d/.test(M.text))
+    && callsN(o2.st, 'pv_company_pay') === 1,
+    `[M10 e][B] 中央値の口がまだ無い（PGRST202）：器に「${W_PAY.median}」「${W_PAY.off}」だけ（「${W_PAY.retry}」も「${W_PAY.none}」も数字も無い）・通貨を替えて描き直しても、もう聞かない（1本のまま）`,
+    JSON.stringify({ off1, off2, rows: EO && EO.rows, median: callsN(o2.st, 'pv_company_pay'), before: medOf(MO1), after: medOf(MO2) }));
+  payAnswered(sts);
+});
+
+scene('pay-stall', '給与：一覧の返事が来ないとき、上限（REQ_LIMIT_MS）を待って「いま読み出せません」「やり直す」と入口・その1本は本当に取り消す・自動では聞き直さない（本当に待つ）', 'mock', async () => {
+  const LIMIT = Number((read('career-live.js').match(/\n {2}var REQ_LIMIT_MS = (\d+);/) || [])[1]);
+  ok(Number.isFinite(LIMIT) && LIMIT >= 1000 && LIMIT <= 60000, `1本の通信の上限が career-live.js から読める（REQ_LIMIT_MS = ${LIMIT}）`);
+  if (!(Number.isFinite(LIMIT) && LIMIT >= 1000)) return;
+  /* ページの中で、欄が「読み込み中」になった時刻と、そこを抜けた時刻を書き留める（上限の時計は、読み込み中を描いたのと同じ順番で始まる） */
+  const STALL_WATCH = () => {
+    new MutationObserver((ms) => {
+      for (const m of ms) {
+        const b = m.target;
+        if (!b.matches || !b.matches('.crl[data-live="cmp-pay"]') || !b.closest('[data-view="compare"]')) continue;
+        const v = b.getAttribute('data-state');
+        if (v === 'loading' && window.__payL0 == null) window.__payL0 = performance.now();
+        else if (v !== 'loading' && v !== 'idle' && window.__payL0 != null && window.__payL1 == null) window.__payL1 = performance.now();
+      }
+    }).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-state'] });
+  };
+  /* M-stall-pay（B）一覧の返事を、いつまでも返さない（時計は進めない ── 本当に待つ） */
+  const s = await open('pc', { url: PAIR_URL('jal', 'ana'), before: STALL_WATCH, stub: { pv_pay_rows: () => 'hold' } });
+  const gone = [];
+  s.page.on('requestfailed', (r) => { if (/\/rest\/v1\/rpc\/pv_pay_rows(?:[?#]|$)/.test(r.url())) gone.push((r.failure() && r.failure().errorText) || '?'); });
+  const left = await s.page.waitForFunction((SEL) => {
+    const b = document.querySelector(SEL);
+    return !!b && b.getAttribute('data-for') === 'jal|ana' && !['idle', 'loading'].includes(b.getAttribute('data-state'));
+  }, { timeout: LIMIT + 10000, polling: 100 }, PAY_SEL).then(() => true, () => false);
+  const took = await s.page.evaluate(() => (typeof window.__payL0 === 'number' && typeof window.__payL1 === 'number' ? Math.round(window.__payL1 - window.__payL0) : -1));
+  ok(left && took >= LIMIT - 1000 && took <= LIMIT + 3000,
+    `[M-stall-pay][B] 返事の来ない一覧は、上限を待ってから読み終わる（「読み込み中」から ${took}ms ── 上限 ${LIMIT}ms より前に見切らず、上限 ＋ 3秒のうちに）`, JSON.stringify({ left, took }));
+  const F = await payFace(s.page), R = await payRetry(s.page);
+  ok(!!F && F.state === 'error' && F.text.includes(W_PAY.err) && JSON.stringify(R.map((x) => x.t)) === JSON.stringify([W_PAY.retry]) && F.entry.length === 1 && F.login.length === 0 && F.rows === 0,
+    `[M-stall-pay][B] 欄は「${W_PAY.err}」と「${W_PAY.retry}」・給与の入口は残る（「ログイン」は出さない）`,
+    JSON.stringify(F && { state: F.state, text: F.text, retry: R, entry: F.entry.length, login: F.login }));
+  const ended = await waitFor(() => gone.length >= 1, 3000);
+  ok(callsN(s.st, 'pv_pay_rows') === 1 && ended && gone.length === 1 && /ERR_ABORTED/.test(gone[0]),
+    '[M-stall-pay][B] 一覧の要求は1本だけ（自動では聞き直さない）・ブラウザはその1本を「取り消した」と言う（上限で本当に止めた）',
+    JSON.stringify({ calls: callsN(s.st, 'pv_pay_rows'), gone }));
+  payAnswered([s.st]);
 });
 
 /* ══ 比較の回答（月の働き方・待遇の3つの欄）── 口コミの区域の表 C ══════════════════
