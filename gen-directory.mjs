@@ -78,11 +78,12 @@ export function cards(lang, M = model(), rule = CARD_RULE) {
   }).join('\n');
 }
 
-/** 地域の9つのボタン（すべて ＋ 8地域）。いまの見た目（ページのスクリプトが作っていたもの）のまま */
+/** 地域の9つのボタン（すべて ＋ 8地域）。押した見た目は aria-pressed だけ（pv-directory.css の PV-DIR-STRIP）──
+    class active も直書きの色も書かない（台本も書かない） */
 export function strip(lang, M = model()) {
   return [{ ...ALL, n: M.n }, ...M.regions].map((r) => {
     const all = r.code === 'all', label = esc(r[lang]);
-    return `<button type="button" class="rstrip-btn${all ? ' active' : ''}" data-region="${r.code}" data-rc="${r.color}" data-emoji="${r.emoji}" data-label="${label}" aria-pressed="${all}" style="--rc:${r.color}${all ? ';background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.3);color:#f5c842' : ''}"><span>${r.emoji}</span><span class="rstrip-l">${label}</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">${r.n}</span></button>`;
+    return `<button type="button" class="rstrip-btn" data-region="${r.code}" data-rc="${r.color}" data-emoji="${r.emoji}" data-label="${label}" aria-pressed="${all}" style="--rc:${r.color}"><span aria-hidden="true">${r.emoji}</span><span class="rstrip-l">${label}</span><span class="rstrip-n">${r.n}</span></button>`;
   }).join('\n');
 }
 

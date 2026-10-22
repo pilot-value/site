@@ -32,7 +32,26 @@
    場面 nojs（日英・台本を止める）
      112社のリンクが見えている・h2#wd-rh-name「すべて」／«All»・検索欄／絞り込みの帯／表示の切り替え／古い地図を見せない・quiet が空
 
-   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
+   場面 search（日英・1440×900）── 検索が約束どおり（期待する集合はここで台帳から作る。台本の答えを写さない）
+     s1 112社の「自分の値」を6種類（日本語名・英語名・略称・コード・国名（日）・国名（英））そのまま打つ → その会社が見えている
+     s2 決めた例：NH・JL・EK・EY・AXC ＝ 一覧の行の略号を持つ1社だけ・UA → 先頭がユナイテッド・BA → 先頭が英国航空・
+        ANA ＝ ＡＮＡ ＝ "ana " → 先頭が ANA・日本の会社だけ・JAL と Ryanair は出ない・
+        US ＝ USA ＝ 米国 ＝ America ＝ アメリカ ＝ アメリカ合衆国 → 国が US の会社ちょうど・UK ＝ GB ＝ 英国 ＝ Britain ＝ Great Britain ＝
+        England → GB ちょうど・JP ＝ 日本 → JP ちょうど・ドイツ ＝ Germany → DE ちょうど・フランスの6つ → エールフランスだけ・
+        台湾 ＝ Taiwan → TW ちょうど・インド → 先頭の2社が IN、あとは ID だけ・India → IN ちょうど・マルタ ＝ Malta → エアX だけ・
+        トルコ ＝ Türkiye ＝ Turkiye → ターキッシュだけ・全日空 → ANA だけ・ぴーち ＝ ピーチ → ピーチだけ・ｴﾐﾚｰﾂ → 先頭がエミレーツ・
+        ワンワールド ＝ oneworld → 一覧の行の提携がワンワールドの会社ちょうど・zzzz → 0
+     s3 打っているあいだは国の帯と古い地図（#wd-explore）を見せない・空にすると戻る
+     s4 レベリング比較を開いたまま打つ → カード一覧に戻る
+   場面 scope（日英・390×680 のスマホ）── 地域を選んだまま別の地域の会社を打つ
+     欧州を選ぶ → 欄の中に「欧州」の札・「全日空」＋ Enter → カード0枚・見つからないの文は出さない・#wd-else のボタンは
+     「日本 1」の1つだけ（画面の中・横にずれない）・欧州の帯の数 ＝ 台帳で数えた当たり（0）→ 押す → 日本・ANA・欄はそのまま・
+     history.length は増えない → 欧州 → 札を押す → すべて・先頭が ANA・見えている数 ＝ すべての数 → 欧州 ＋ «air» → 見えているのは
+     欧州の会社だけ・社数 ＝ その数 → 欧州をもう1回 → 外れる
+   場面 empty（日英・1440×900）── zzzz → 見つからないの文と「絞り込みを解除」・地域のボタンは出さない・社数は空 →
+     「絞り込みを解除」→ 112社・欄は空・すべてが押されている・ボタンは隠れる
+
+   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
 
    ほかの検査が読む名前（export）: dirOpen / ready / visible / QUIET_ALLOW / quiet
@@ -44,6 +63,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bring, open } from './local-chain.mjs';
 import { SALARY } from './salary-data.mjs';
+import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -56,8 +76,11 @@ const REGION_LABEL = {
   all: ['すべて', 'All'], japan: ['日本', 'Japan'], asia: ['アジア', 'Asia'], mideast: ['中東', 'Middle East'], africa: ['アフリカ', 'Africa'],
   europe: ['欧州', 'Europe'], us: ['北米', 'North America'], oceania: ['オセアニア', 'Oceania'], latam: ['中南米', 'Latin America'],
 };
-/** 社数の書き方 */
-const COUNT = { ja: (n) => `${n}社`, en: (n) => `${n} airlines` };
+/** 社数の書き方（英語の1社だけ «1 airline» ＝ 進行役の決め C3） */
+const COUNT = { ja: (n) => `${n}社`, en: (n) => (n === 1 ? '1 airline' : `${n} airlines`) };
+/** 見つからないときの文（いまのページの字）と、絞り込みを解除の字（actual-pay.html の字） */
+const NONE_SENT = { ja: '該当する航空会社が見つかりませんでした', en: 'No airlines matched your search' };
+const CLEAR = { ja: '絞り込みを解除', en: 'Clear filters' };
 /** 見出しの字（オーナーの字・進行役の決め C4） */
 const H1 = { ja: '次のキャリアを、選択する', en: 'Choose your next career' };
 /** 一覧の2枚のページ */
@@ -79,6 +102,32 @@ const ORDER = SLUGS.slice().sort((a, b) => (REG8.indexOf(SALARY[a].region) - REG
   || ((POS.get(a) ?? 1e9) - (POS.get(b) ?? 1e9)));
 const inRegion = (code) => SLUGS.filter((s) => code === 'all' || SALARY[s].region === code);
 const listType = (s) => (ROW.get(s) || {}).type || '';
+/** ヘッダー検索の行（search.js の var DB = [ … ]; の中身）。slug を足して返す */
+function headerRows() {
+  const src = read('search.js'), a = src.indexOf('var DB = ['), z = src.indexOf('window.PV_DB = DB;');
+  if (a < 0 || z < 0) throw new Error('search.js の形が変わった（var DB = [ / window.PV_DB = DB; が無い）');
+  const rows = new Function('return ' + src.slice(a + 'var DB = '.length, src.lastIndexOf('];', z) + 1))();
+  return rows.map((r) => ({ ...r, slug: String(r.f || '').replace(/^airlines\//, () => '').replace(/\.html$/, () => '') }));
+}
+const HEAD = new Map(headerRows().map((h) => [h.slug, h]));
+const codeLike = (t) => /^[A-Z0-9]{2,3}$/.test(t);
+const uniqStr = (xs) => [...new Set(xs.filter((x) => x != null && String(x) !== '').map(String))];
+/** その会社の「自分の値」を6種類（日本語名・英語名・略称・コード・国名（日）・国名（英））。どれも打ったまま見つかること */
+function ownValues(s) {
+  const d = SALARY[s], r = ROW.get(s) || {}, t = (HEAD.get(s) || {}).t || [], c = BY_CODE[AIRLINE_COUNTRY[s]] || null, alt = (c && c.alt) || [];
+  return {
+    日本語名: uniqStr([d.ja, r.name]),
+    英語名: uniqStr([d.en, r.en]),
+    略称: uniqStr(t.filter((x) => !codeLike(x))),
+    コード: uniqStr([r.code, ...t.filter(codeLike)]),
+    '国名（日）': uniqStr(c ? [c.ja, ...alt] : []),
+    '国名（英）': uniqStr(c ? [c.en, ...alt] : []),
+  };
+}
+const ofCountry = (code) => SLUGS.filter((s) => AIRLINE_COUNTRY[s] === code);
+/** その略号を持つ会社（一覧の行の略号と、ヘッダー検索の略号らしい語 ＝ コードの種類） */
+const ofCode = (code) => SLUGS.filter((s) => ownValues(s).コード.includes(code));
+const ofAlliance = (a) => SLUGS.filter((s) => (ROW.get(s) || {}).alliance === a);
 
 /* ── 道具（export）──────────────────────────────────────────── */
 /** 一覧のページが今の文書のあいだに呼んでよいサーバーの口（この一覧では空） */
@@ -142,7 +191,7 @@ if (process.argv[1] && realOf(process.argv[1]) === realOf(fileURLToPath(import.m
 async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const SCENES = { base, first, nojs };
+  const SCENES = { base, first, nojs, search, scope, empty };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   const unknown = want.filter((s) => !SCENES[s]);
   if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -383,6 +432,227 @@ async function main() {
       await shot(page, 'nojs', lang, '1440');
       const q = quiet(st, 'nojs');
       ok(q.length === 0, T('nojs quiet(st, \'nojs\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 検索欄に打って、見えているカード（DOM の順）を返す（打つと台本はその場で並べ直す。待つものは無い） */
+  const typed = async (page, s) => { await type(page, s); return visible(page); };
+  const regionOfSlug = (s) => SALARY[s].region;
+
+  /* 場面 search（日英・1440×900）── 6種類の自分の値・決めた例・国の帯と地図・レベリング比較からの戻り */
+  async function search(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang] });
+    PAGES.push(P);
+    const { page, st } = P;
+    try {
+      /* s1 112社 × 6種類の自分の値（ブラウザの中で1つずつ打つ。打つたびに input を1回） */
+      const vals = [], perKind = {};
+      for (const s of SLUGS) for (const [kind, vs] of Object.entries(ownValues(s))) for (const v of vs) { vals.push([s, v, kind]); perKind[kind] = (perKind[kind] || 0) + 1; }
+      const misses = [];
+      for (let i = 0; i < vals.length; i += 200) {
+        misses.push(...await page.evaluate((chunk) => {
+          const el = document.getElementById('search'), out = [];
+          for (const [s, v, kind] of chunk) {
+            el.value = v;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            const a = document.querySelector(`#airline-grid a[href="airlines/${s}.html"]`);
+            if (!a || a.getClientRects().length === 0) out.push(`${s}「${v}」（${kind}）`);
+          }
+          return out;
+        }, vals.slice(i, i + 200)));
+      }
+      console.log(`  ${T(`s1 自分の値 ${vals.length} 個（${Object.entries(perKind).map(([k, n]) => `${k} ${n}`).join('・')}）・会社 ${SLUGS.length}社`)}`);
+      ok(vals.length > 0 && misses.length === 0, T(`s1 ${SLUGS.length}社の自分の値 ${vals.length} 個をそのまま打つ → どれもその会社が見えている（外れ ${misses.length}）`), J(misses.slice(0, 12)));
+
+      /* s2 決めた例（期待する集合は台帳から） */
+      const PINS = [];
+      for (const c of ['NH', 'JL', 'EK', 'EY', 'AXC']) PINS.push({ qs: [c], exact: ofCode(c), name: `略号 ${c} を持つ会社だけ` });
+      PINS.push({ qs: ['UA'], first: 'united', name: '先頭がユナイテッド' });
+      PINS.push({ qs: ['BA'], first: 'british-airways', name: '先頭が英国航空' });
+      PINS.push({ qs: ['ANA', 'ＡＮＡ', 'ana '], first: 'ana', all: (s) => AIRLINE_COUNTRY[s] === 'JP', not: ['jal', 'ryanair'], name: '先頭が ANA・日本の会社だけ・jal と ryanair は出ない' });
+      PINS.push({ qs: ['US', 'USA', '米国', 'America', 'アメリカ', 'アメリカ合衆国'], exact: ofCountry('US'), name: '国が US の会社ちょうど' });
+      PINS.push({ qs: ['UK', 'GB', '英国', 'Britain', 'Great Britain', 'England'], exact: ofCountry('GB'), name: '国が GB の会社ちょうど' });
+      PINS.push({ qs: ['JP', '日本'], exact: ofCountry('JP'), name: '国が JP の会社ちょうど' });
+      PINS.push({ qs: ['ドイツ', 'Germany'], exact: ofCountry('DE'), name: '国が DE の会社ちょうど' });
+      PINS.push({ qs: ['フランス', 'France', 'エール フランス', 'エールフランス', 'air france', 'airfrance'], exact: ['air-france'], name: 'エールフランスだけ' });
+      PINS.push({ qs: ['台湾', 'Taiwan'], exact: ofCountry('TW'), name: '国が TW の会社ちょうど' });
+      PINS.push({ qs: ['インド'], india: true, name: '先頭の2社が IN・あとは ID だけ' });
+      PINS.push({ qs: ['India'], exact: ofCountry('IN'), name: '国が IN の会社ちょうど' });
+      PINS.push({ qs: ['マルタ', 'Malta'], exact: ['airx-charter'], name: 'エアX・チャーターだけ' });
+      PINS.push({ qs: ['トルコ', 'Türkiye', 'Turkiye'], exact: ['turkish-airlines'], name: 'ターキッシュ エアラインズだけ' });
+      PINS.push({ qs: ['全日空'], exact: ['ana'], name: 'ANA だけ' });
+      PINS.push({ qs: ['ぴーち', 'ピーチ'], exact: ['peach'], name: 'ピーチだけ' });
+      PINS.push({ qs: ['ｴﾐﾚｰﾂ'], first: 'emirates', name: '先頭がエミレーツ' });
+      PINS.push({ qs: ['ワンワールド', 'oneworld'], exact: ofAlliance('ワンワールド'), name: '一覧の行の提携がワンワールドの会社ちょうど' });
+      PINS.push({ qs: ['zzzz'], exact: [], name: '0社' });
+      const IN = ofCountry('IN'), ID = ofCountry('ID');
+      let nPin = 0, nPinOk = 0;
+      for (const p of PINS) for (const q of p.qs) {
+        const v = await typed(page, q);
+        let good = true;
+        if (p.exact) good = good && sameSet(v, p.exact) && v.length === p.exact.length;
+        if (p.first) good = good && v[0] === p.first;
+        if (p.all) good = good && v.length > 0 && v.every(p.all);
+        if (p.not) good = good && p.not.every((s) => !v.includes(s));
+        if (p.india) good = good && v.length > 2 && sameSet(v.slice(0, 2), IN) && v.slice(2).every((s) => ID.includes(s));
+        nPin++; if (good) nPinOk++;
+        ok(good, T(`s2 «${q}» → ${p.name}${p.exact ? `（${p.exact.length}社）` : ''}`), J({ n: v.length, v: v.slice(0, 14) }));
+      }
+      console.log(`  ${T(`s2 決めた例 ${nPin} 個のうち ${nPinOk} 個が通った`)}`);
+      if (SHOTS) {
+        for (const [name, q] of [['ja-name', 'エミレーツ航空'], ['en-name', 'Lufthansa'], ['abbr', '全日空'], ['code', 'NH'], ['country-ja', 'ドイツ'], ['country-en', 'Britain'], ['miss', 'zzzz']]) {
+          await typed(page, q);
+          await page.evaluate(() => { const r = document.getElementById('search'); r.scrollIntoView({ block: 'start', behavior: 'instant' }); window.scrollBy({ top: -90, behavior: 'instant' }); });
+          await shot(page, 'search', lang, name);
+        }
+      }
+
+      /* s3 国の帯と古い地図（#wd-explore）は、打っているあいだ見せない */
+      await type(page, 'emirates');
+      const ex1 = await shown(page, '#wd-explore');
+      await type(page, '');
+      const ex2 = await shown(page, '#wd-explore'), v3 = await visible(page);
+      ok(!ex1 && ex2 && same(v3, ORDER), T('s3 打っているあいだは #wd-explore を見せない・空にすると見せて112社に戻る'), J({ typing: ex1, empty: ex2, n: v3.length }));
+
+      /* s4 レベリング比較を開いたまま打つ → カード一覧に戻る */
+      await press(page, '.view-btn[data-view="range"]');
+      const cols = await until(page, () => document.querySelectorAll('#lvl-wa-grid .lvl-col').length === 4);
+      await type(page, 'jal');
+      const back = await until(page, () => getComputedStyle(document.getElementById('range-view')).display === 'none'
+        && getComputedStyle(document.getElementById('airline-grid')).display !== 'none'
+        && document.querySelector('.view-btn[data-view="card"]').classList.contains('active'));
+      const v4 = await visible(page);
+      ok(cols && back && v4.includes('jal'), T('s4 レベリング比較を開いたまま «jal» → カード一覧に戻り、JAL が見えている'), J({ cols, back, v: v4.slice(0, 5) }));
+      await type(page, '');
+
+      const q = quiet(st, 'search');
+      ok(q.length === 0, T('search quiet(st, \'search\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 scope（日英・390×680 のスマホ）── 地域を選んだまま、別の地域にだけ在る会社を打つ */
+  async function scope(lang) {
+    const T = (s) => `[${lang}] ${s}`, C = COUNT[lang], li = lang === 'en' ? 1 : 0;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 390, h: 680, touch: true });
+    PAGES.push(P);
+    const { page, st } = P;
+    try {
+      const EU = REGION_LABEL.europe[li], JPN = REGION_LABEL.japan[li], Q = '全日空';
+      /* 台帳で数える「全日空」を持つ会社（一覧の行・ヘッダー検索の略称・社名）と、地域ごとの数 */
+      const holders = SLUGS.filter((s) => Object.values(ownValues(s)).flat().some((v) => v.includes(Q)));
+      const hitIn = (code) => holders.filter((s) => regionOfSlug(s) === code).length;
+      const chip = () => page.evaluate(() => { const c = document.getElementById('wd-scope'); return c && getComputedStyle(c).display !== 'none' && c.getClientRects().length > 0 ? c.textContent : null; });
+      const elseShown = () => page.evaluate(() => [...document.querySelectorAll('#wd-else .wd-else-b')]
+        .filter((b) => getComputedStyle(b).display !== 'none' && b.getClientRects().length > 0)
+        .map((b) => ({ region: b.dataset.region, l: (b.querySelector('.wd-else-l') || {}).textContent, n: (b.querySelector('.wd-else-n') || {}).textContent })));
+      const stripN = (code) => page.evaluate((code) => ((document.querySelector(`#region-strip .rstrip-btn[data-region="${code}"] .rstrip-n`) || {}).textContent || ''), code);
+
+      /* 欧州を選ぶ → 欄の中の札 */
+      await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
+      const on1 = await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="europe"]') || {}).getAttribute?.('aria-pressed') === 'true');
+      const c1 = await chip();
+      ok(on1 && c1 === EU && same(await pressed(page), ['europe']), T(`scope 欧州を選ぶ → 欄の中の札「${EU}」・欧州だけ aria-pressed="true"`), J({ chip: c1, pr: await pressed(page) }));
+      await shot(page, 'scope', lang, '1-europe');
+
+      /* 「全日空」＋ Enter（本当に欄に触って Enter を押す） */
+      await page.focus('#search');
+      await type(page, Q);
+      const hl0 = await page.evaluate(() => history.length);
+      await page.keyboard.press('Enter');
+      /* Enter は結果の見出しを上の帯のすぐ下（86px）へ送る ── そこへ着くか、ページの底に着くまで待ってから、止まるのを待つ */
+      const arrived = await until(page, () => {
+        const r = document.getElementById('wd-rh').getBoundingClientRect(), maxY = document.documentElement.scrollHeight - window.innerHeight;
+        return Math.abs(r.top - 86) <= 2 || Math.abs(window.scrollY - maxY) <= 1;
+      });
+      await still(page);
+      ok(arrived, T('scope Enter → 結果の見出しが上の帯のすぐ下へ来る'), J(await page.evaluate(() => Math.round(document.getElementById('wd-rh').getBoundingClientRect().top))));
+      const v2 = await visible(page), e2 = await elseShown(), none2 = await shown(page, '#wd-none'), n2 = await stripN('europe');
+      ok(v2.length === 0, T(`scope 欧州 ＋「${Q}」＋ Enter → カード0枚`), J(v2));
+      ok(!none2, T('scope 見つからないの文（#wd-none）を出さない（会社は在る）'), J(none2));
+      ok(holders.length === 1 && e2.length === 1 && e2[0].region === 'japan' && e2[0].l === JPN && e2[0].n === String(hitIn('japan')),
+        T(`scope #wd-else のボタンは「${JPN} ${hitIn('japan')}」の1つだけ`), J({ e2, holders }));
+      ok(n2 === String(hitIn('europe')), T(`scope 欧州の帯の数 ＝ 台帳で数えた欧州の当たり（${hitIn('europe')}）`), J(n2));
+      const geo = await page.evaluate(() => {
+        const b = [...document.querySelectorAll('#wd-else .wd-else-b')].find((x) => x.getClientRects().length > 0);
+        const r = b ? b.getBoundingClientRect() : null;
+        return { r: r && { l: Math.round(r.left), r: Math.round(r.right), t: Math.round(r.top), b: Math.round(r.bottom) }, vw: window.innerWidth, vh: window.innerHeight,
+          sx: window.scrollX, sw: document.documentElement.scrollWidth };
+      });
+      ok(!!geo.r && geo.r.l >= 0 && geo.r.r <= geo.vw && geo.r.t >= 0 && geo.r.b <= geo.vh && geo.sx === 0 && geo.sw <= geo.vw,
+        T('scope Enter のあと、そのボタンは画面の中（横にずらさずに見える）'), J(geo));
+      await shot(page, 'scope', lang, '2-else');
+
+      /* そのボタンを押す → 日本・ANA・欄はそのまま・履歴は増えない */
+      await press(page, '#wd-else .wd-else-b[data-region="japan"]');
+      const on3 = await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="japan"]') || {}).getAttribute?.('aria-pressed') === 'true');
+      const v3 = await visible(page), f3 = await page.evaluate(() => document.getElementById('search').value), hl3 = await page.evaluate(() => history.length);
+      const c3 = await countText(page), h3 = await page.evaluate(() => (document.getElementById('wd-rh-name') || {}).textContent);
+      ok(on3 && same(v3, ['ana']) && f3 === Q && hl3 === hl0 && (await chip()) === JPN,
+        T(`scope 「${JPN} 1」を押す → ${JPN}が選ばれ、ANA が見える・欄は「${Q}」のまま・history.length は増えない`), J({ on3, v3, f3, hl0, hl3 }));
+      ok(h3 === JPN && c3 === C(1), T(`scope 結果の見出し「${JPN}」「${C(1)}」（英語の1社は «1 airline»）`), J({ h3, c3 }));
+      await shot(page, 'scope', lang, '3-japan');
+
+      /* 欧州に戻して、札を押す → すべて・先頭が ANA・見えている数 ＝ すべての数 */
+      await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
+      await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="europe"]') || {}).getAttribute?.('aria-pressed') === 'true');
+      const e4 = await elseShown();
+      await press(page, '#wd-scope');
+      const on4 = await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="all"]') || {}).getAttribute?.('aria-pressed') === 'true');
+      const v4 = await visible(page), nAll = await stripN('all'), c4 = await chip();
+      ok(e4.length === 1 && on4 && v4[0] === 'ana' && String(v4.length) === nAll && c4 === null,
+        T('scope 欧州に戻して欄の札を押す → すべて・先頭が ANA・見えている数 ＝「すべて」の数・札は消える'), J({ e4, on4, v4, nAll, c4 }));
+      await shot(page, 'scope', lang, '4-all');
+
+      /* 欧州 ＋ «air» → 見えているのは欧州の会社だけ・社数 ＝ その数 → 欧州をもう1回 → 外れる */
+      await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
+      await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="europe"]') || {}).getAttribute?.('aria-pressed') === 'true');
+      const v5 = await typed(page, 'air'), c5 = await countText(page);
+      ok(v5.length > 0 && v5.every((s) => regionOfSlug(s) === 'europe') && c5 === C(v5.length),
+        T(`scope 欧州 ＋ «air» → 見えている${v5.length}社はどれも欧州・社数「${C(v5.length)}」`), J({ n: v5.length, c5, notEU: v5.filter((s) => regionOfSlug(s) !== 'europe') }));
+      await shot(page, 'scope', lang, '5-europe-air');
+      await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
+      const off = await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="all"]') || {}).getAttribute?.('aria-pressed') === 'true');
+      ok(off && same(await pressed(page), ['all']) && (await chip()) === null, T('scope 欧州をもう1回押す → 外れて「すべて」・札は消える'), J(await pressed(page)));
+
+      const q = quiet(st, 'scope');
+      ok(q.length === 0, T('scope quiet(st, \'scope\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 empty（日英・1440×900）── どの地域にも無い字 → 文と「絞り込みを解除」→ 元に戻る */
+  async function empty(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang] });
+    PAGES.push(P);
+    const { page, st } = P;
+    try {
+      const shownList = (sels) => page.evaluate((sels) => sels.filter((sel) => [...document.querySelectorAll(sel)]
+        .some((el) => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)), sels);
+      const v1 = await typed(page, 'zzzz');
+      const txt = await page.evaluate(() => ({ none: (document.getElementById('wd-none') || {}).textContent, clr: (document.getElementById('wd-clear-e') || {}).textContent }));
+      const s1 = await shownList(['#no-results', '#wd-none', '#wd-clear-e', '#wd-else .wd-else-b', '#wd-scope-e']);
+      const c1 = await countText(page);
+      ok(v1.length === 0 && s1.includes('#no-results') && s1.includes('#wd-none') && txt.none === NONE_SENT[lang],
+        T(`empty «zzzz» → カード0枚・文「${NONE_SENT[lang]}」`), J({ n: v1.length, s1, txt }));
+      ok(s1.includes('#wd-clear-e') && txt.clr === CLEAR[lang], T(`empty 「${CLEAR[lang]}」が見えている`), J({ s1, txt }));
+      ok(!s1.includes('#wd-else .wd-else-b') && !s1.includes('#wd-scope-e'), T('empty 地域のボタンも地域の札も出さない（どの地域にも無い）'), J(s1));
+      ok(c1 === '', T('empty 社数は空（「0社」と書かない）'), J(c1));
+      await page.evaluate(() => document.getElementById('no-results').scrollIntoView({ block: 'center', behavior: 'instant' }));
+      await shot(page, 'empty', lang, '1-none');
+      await press(page, '#wd-clear-e');
+      const back = await until(page, () => [...document.querySelectorAll('#airline-grid a[href^="airlines/"]')].every((a) => a.getClientRects().length > 0));
+      const v2 = await visible(page), f2 = await page.evaluate(() => document.getElementById('search').value), s2 = await shownList(['#wd-clear-e', '#wd-clear', '#no-results']);
+      ok(back && same(v2, ORDER) && f2 === '' && same(await pressed(page), ['all']) && s2.length === 0,
+        T(`empty 「${CLEAR[lang]}」を押す → 112社・欄は空・すべてが押されている・解除のボタンは隠れる`), J({ n: v2.length, f2, pr: await pressed(page), s2 }));
+      const q = quiet(st, 'empty');
+      ok(q.length === 0, T('empty quiet(st, \'empty\') が空'), J(q));
     } finally {
       await P.ctx.close().catch(() => {});
     }
