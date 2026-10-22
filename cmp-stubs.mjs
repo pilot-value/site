@@ -11,7 +11,8 @@
    ⚠️ 手元の会員（serve-local.mjs の MEMBERS）は模擬。ここで通ったことは、本番で通った証拠にはならない。
 
    道具は local-chain.mjs から借りる（LIBS・seedOf・rpcAs・loginAs・open）。ここに在るのは、あちらに無いものだけ：
-     startLocal（SQL をそのまま流せる exec を持つ）・MOCK の門と open・slot / until / watch / seen・otherTab / loginIn / logoutIn。
+     startLocal（SQL をそのまま流せる exec を持つ）・MOCK の門と open・slot / until / watch / seen・otherTab / loginIn / logoutIn・
+     読む人の作り方 makeReaders（比較の検査の3つの区域で、ただ1つ）。
 
    使い方（assert-career-live.mjs が手本）
      const env = await H.startLocal();                                   // { local, url, q, exec, tmp, stop }
@@ -308,4 +309,114 @@ export async function loginIn(tab, local, key) {
 }
 export async function logoutIn(tab) {
   await tab.evaluate(() => { localStorage.removeItem('sb-local-auth-token'); localStorage.removeItem('pv_user'); });
+}
+
+/* ── 読む人（完了確認の「ゲスト／給与資格のみ／口コミ資格のみ／双方あり／期限切れ」）──────────────────────────
+   makeReaders(local, { via }) ── 比較の検査（口コミ・給与・リンクとカードの3つの区域）が使う、ただ1つの読む人の作り方。
+   表は比較の設計の1つ（リンクとカードの I-5 ＝ 口コミの E8.3。'pilot' の行は LC-A5 で直したもの）。会員は serve-local.mjs の MEMBERS。
+     ゲスト  ログインしない・何も送らない                                                   鍵なし
+     pilot   何も送らない（VERIFIED PILOT（模擬・ホテルを見られる）・給与の鍵も口コミの鍵も無い）   鍵なし
+     a       JAL に口コミ：6つの点数 5,4,3,4,5,3・給与とワークライフバランスのひとこと               口コミの鍵だけ
+     b       JAL に口コミ 3,3,3,3,3,3 と ANA に口コミ 4,4,4,5,4,4（どちらも同じ2つのひとこと）          2人目（件数を作る）
+     c       JAL に口コミ：2つのひとことだけ・点数なし（'call' でしか作れない）／ANA に給与を1件        両方の鍵（自分の会社 ANA）
+     pay     JAL に給与を1件・口コミなし                                                          給与の鍵だけ（自分の会社 JAL）
+   → JAL：数える投稿 3件（a・b・c）・点数の付いた投稿 2件（4.0 と 3.0 → 3.5）／ANA：1件（b ── 25 ÷ 6）。ほかの会社には何も無い。
+   ★書くのはこの表のものだけ。ほかの会員は何も出さない。鍵を手で書かない（期限切れは、使う場面が最後に q() で作る1回だけ。
+     先へ延ばす書き込みはどこにも無い）。空でない保存先には作らない（同じ人の2件目が混ざる）。
+   ★作り終えたら、6人の鍵をサーバーに聞き直す（口コミ ＝ その会員として rpc pv_has_review_key・給与 ＝ profiles.access_until）。
+     表と1つでも違えば投げる（表と違う読む人で場面を歩かない）。
+   via 'call'  口コミ ＝ その会員として POST /rest/v1/reviews_v2（投稿の画面 submit-review.html と同じ表・同じ列の名前）。
+                 proof_hash はサーバーの式そのもの（public.pv_review_hash を q() で呼ぶ ── db/reviews-gate.sql の
+                 「proof_hash = SHA-256(user_id || '::pv_anon::' || 航空会社コード || '::2026')」）。
+               給与 ＝ その会員として rpc submit_pay_report。中身は db/test-work-months.mjs の PAY と同じ形（機長・月 17,000 USD）・
+                 先月ぶん（月は保存先の時計から取る）。
+   via 'form'  まだ無い ── 手元のサーバーで投稿の画面が最後まで送れるかの試し（P5.5・prestudy/PROBE-serve-local.txt）がまだ無いので、
+               呼ぶと投げる。結果の行には、いつも via を書く。
+   ひとことの字は readerText(会員, 会社, 分類)。最後に印 readerMark(…) が付く ── 誰にでも見える抜粋（先頭40字）より後ろ ＝
+   その印が画面に出るのは、本文を受け取った人だけ。
+   local  ＝ startLocal() の返り（{ url, q }）か、serve-local.mjs の start() の返り（{ url, db, locked }）。
+   返す { via, did, readers }：did ＝ 投稿1件に1行（何を・どの口へ・返事）、readers ＝ 読む人1人に1行（送ったもの・聞き直した鍵）。 */
+export const READERS = [
+  { key: null,    ja: 'ゲスト',                                                   rev: false, pay: false },
+  { key: 'pilot', ja: 'VERIFIED PILOT（模擬・ホテルを見られる）・給与の鍵も口コミの鍵も無い', rev: false, pay: false },
+  { key: 'a',     ja: '口コミ資格のみ',                                           rev: true,  pay: false },
+  { key: 'b',     ja: '2人目の口コミ（件数を作る）',                              rev: true,  pay: false },
+  { key: 'c',     ja: '双方あり（自分の会社 ANA）',                               rev: true,  pay: true },
+  { key: 'pay',   ja: '給与資格のみ（自分の会社 JAL）・期限切れは使う場面が最後に作る', rev: false, pay: true },
+];
+export const READER_POSTS = [
+  { key: 'a',   kind: 'review', airline: 'jal', scores: [5, 4, 3, 4, 5, 3] },
+  { key: 'b',   kind: 'review', airline: 'jal', scores: [3, 3, 3, 3, 3, 3] },
+  { key: 'b',   kind: 'review', airline: 'ana', scores: [4, 4, 4, 5, 4, 4] },
+  { key: 'c',   kind: 'review', airline: 'jal', scores: null },
+  { key: 'c',   kind: 'pay',    airline: 'ana' },
+  { key: 'pay', kind: 'pay',    airline: 'jal' },
+];
+const READER_SCORES = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
+const READER_CATS = { salary: '給与', wlb: 'ワークライフバランス' };
+export const readerMark = (key, slug, cat) => `ZZ${key}-${slug}-${cat}ZZ`;
+export const readerText = (key, slug, cat) =>
+  `手元の検査のための口コミです（実在の投稿ではありません）。会員${key}が${slug}の${READER_CATS[cat]}について書きました。${readerMark(key, slug, cat)}`;
+/* db/test-work-months.mjs の PAY と同じ形（会社・機材・月は makeReaders が足す） */
+const READER_PAY = { currency: 'USD', lang: 'en', tax_rate_pct: 0, position: 'cap',
+  base_pay: 9000, flight_variable_pay: 4000, other_allowance: 4400, command_pay: 2000, per_diem: 1000, housing_type: 'allowance', housing_amount: 600 };
+
+export async function makeReaders(local, { via = 'call' } = {}) {
+  if (via === 'form') {
+    throw new Error("via 'form' はまだ無い（手元で投稿の画面が送れるかの試し P5.5 ── prestudy/PROBE-serve-local.txt ── がまだ無い）。--via call で走らせる");
+  }
+  if (via !== 'call') throw new Error('via は call か form: ' + via);
+  const base = local && local.url;
+  const q = local && (local.q || (local.db && local.locked ? (sql, p) => local.locked(() => local.db.query(sql, p)) : null));
+  if (!base || !q) throw new Error('makeReaders: local は startLocal() か start() の返りを渡す');
+  const one = async (sql, p) => (await q(sql, p)).rows[0];
+  const had = await one(`select (select count(*) from public.reviews_v2)::int as r, (select count(*) from public.pay_reports)::int as p`);
+  if (had.r || had.p) throw new Error(`読む人は空の保存先にだけ作る（口コミ ${had.r} 件・給与 ${had.p} 件が先に在る）`);
+  const { MEMBERS } = await import('./serve-local.mjs');
+  const M = Object.fromEntries(MEMBERS.map((m) => [m.key, m]));
+  const fleet = (await one(`select code from public.pv_fleets where active order by code limit 1`)).code;
+  const per = await one(`select extract(year from d)::int as y, extract(month from d)::int as m
+                           from (select date_trunc('month', now()) - interval '1 month' as d) x`);
+  const did = [];
+  for (const P of READER_POSTS) {
+    const s = await seedOf(base, P.key);
+    if (P.kind === 'review') {
+      const h = (await one(`select public.pv_review_hash($1::uuid, $2) as h`, [M[P.key].id, P.airline])).h;
+      const row = { proof_hash: h, airline: P.airline, orig_lang: 'ja',
+        salary_comment: readerText(P.key, P.airline, 'salary'), wlb_comment: readerText(P.key, P.airline, 'wlb') };
+      if (P.scores) READER_SCORES.forEach((k, i) => { row[k] = P.scores[i]; });
+      const r = await fetch(`${base}/rest/v1/reviews_v2`, { method: 'POST', body: JSON.stringify(row),
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${s.session.access_token}`, prefer: 'return=minimal' } });
+      const text = await r.text();
+      const n = (await one(`select count(*)::int as n from public.reviews_v2 where proof_hash = $1 and airline = $2`, [h, P.airline])).n;
+      if (r.status !== 201 || n !== 1) throw new Error(`${P.key} の口コミ（${P.airline}）が保存されない: ${r.status} ${text.slice(0, 200)}・行 ${n}`);
+      did.push(`${P.key}: 口コミ ${P.airline}（点数 ${P.scores ? P.scores.join(',') : 'なし'}・給与とワークライフバランスのひとこと）── `
+        + `その会員として POST /rest/v1/reviews_v2 → ${r.status}・保存先に1行（via call）`);
+    } else {
+      const p = { ...READER_PAY, fleet, airline: P.airline, period_year: per.y, period_month: per.m };
+      const r = await rpcAs(base, P.key, 'submit_pay_report', p);
+      if (r.status !== 200 || !r.body || r.body.access_until == null) {
+        throw new Error(`${P.key} の給与（${P.airline}）が保存されない: ${r.status} ${r.text.slice(0, 200)}`);
+      }
+      did.push(`${P.key}: 給与 ${P.airline}（${per.y}年${per.m}月・機長・${fleet}・月 17,000 USD）── `
+        + `その会員として rpc submit_pay_report → ${r.status}・鍵の期限が返った（via call）`);
+    }
+  }
+  /* 6人の鍵を、サーバーに聞き直す（ゲストはログインが無いので、どちらの鍵も持てない ── 聞く口が無い） */
+  const readers = [], bad = [];
+  for (const R of READERS) {
+    const sent = READER_POSTS.filter((P) => P.key === R.key)
+      .map((P) => (P.kind === 'review' ? `口コミ ${P.airline}` : `給与 ${P.airline}`)).join('・') || '何も送っていない';
+    if (!R.key) { readers.push(`ゲスト: ログインしない・${sent}（鍵を聞く口が無い ＝ どちらの鍵も無い）`); continue; }
+    const s = await seedOf(base, R.key);
+    const r = await fetch(`${base}/rest/v1/rpc/pv_has_review_key`, { method: 'POST', body: '{}',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${s.session.access_token}` } });
+    const t = await r.text();
+    const rev = r.status === 200 ? t.trim() === 'true' : null;
+    const pay = !!(await one(`select coalesce(access_until > now(), false) as v from public.profiles where id = $1`, [M[R.key].id])).v;
+    if (rev !== R.rev || pay !== R.pay) bad.push(`${R.key}（口コミの鍵 ${rev}・給与の鍵 ${pay}／表では ${R.rev}・${R.pay}）`);
+    readers.push(`${R.key}: ${R.ja} ── ${sent}（via call）。サーバーに聞き直した鍵：口コミ ${rev ? 'あり' : 'なし'}・給与 ${pay ? 'あり' : 'なし'}`);
+  }
+  if (bad.length) throw new Error('表と違う読む人になった: ' + bad.join(' ／ '));
+  return { via, did, readers };
 }
