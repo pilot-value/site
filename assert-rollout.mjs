@@ -31,6 +31,15 @@
         乗員全体の平均の話をしている年収の根拠の注を出さない（P12.77）・
         台帳の本社・年間休日の行（a2 の置き場）は字の表の字で会社の欄・勤務の欄に出る（本社は1行）・
         「よくある質問」と FAQPage が在る
+     F  英語の会社ページ（2026-10-23 英語の EN-6 ── 生成器が英語を話す・リポジトリの英語のページはまだ1枚も書かない）:
+        生成器の字（WORDS）は日本語と英語で鍵・形が同じ・英語の字に日本語の字が無い（壊した写しを渡すと赤い）／
+        英語の読み口（viewOf(slug, 'en')）が SWITCH の全社で対の欠けなく作れて、読み口の英語の表に使われない行が無い／
+        EN_SWITCH はいま空（リポジトリの英語のページは古い形のまま）／写しの中で EN_SWITCH ＝ SWITCH にして流すと、英語のページが
+        全社ぶん書けて2回めは「✓ 変更なし」・日本語のページは1バイトも変わらない・bake-en-currency.mjs --check が 0 件／
+        英語のページの推定年収は SALARY の額（data-orig「¥…万」のドルの span）／新しい部品の字に日本語の字が無い（写真の作者名・原文の題を除く）／
+        部品・ページへの道（../../・../）は在るファイルを指す／「Compare」は en/career.html ができるまで出さない／
+        h1 と <head>（部品の塊のほか）は今のページのまま・先行5社ではない会社は「よくある質問」と FAQPage が同じ字で残る・
+        古い節は英語の見出しの台帳（LEGACY_EN）のとおり残る・外れる
    使い方: node assert-rollout.mjs
    ═══════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
@@ -41,9 +50,11 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
-import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf } from './airline-rollout.mjs';
-import { GLANCE, AXIS, viewOf } from './pv-airline-view.mjs';
-import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml } from './gen-airline-glance.mjs';
+import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf, EN_SWITCH } from './airline-rollout.mjs';
+import { GLANCE, AXIS, viewOf, checkViewEn } from './pv-airline-view.mjs';
+import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml, WORDS, checkWords, CMP_EN } from './gen-airline-glance.mjs';
+import { PHOTOS as PLACE_PHOTOS } from './place-photos.mjs';
+import { PHOTOS as AIRLINE_PHOTOS } from './airline-photos.mjs';
 import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck } from './airline-display.mjs';
 import { whenText } from './airline-facts.mjs';
 import { logoHtml as sharedLogo, measureAll } from './airline-logo.mjs';
@@ -67,6 +78,9 @@ const ALL = Object.keys(SALARY);
 const OTHER = ALL.filter(s => !LEAD.includes(s));
 const ORIG = Object.fromEntries(ALL.map(s => [s, read(pageOf(s))]));
 const REPO_SHA = sha(ALL.map(s => ORIG[s]).join('\u0000'));
+/* 英語の会社ページ（段 F）── 英語のページが無い会社は空 */
+const ORIG_EN = Object.fromEntries(ALL.map(s => [s, fs.existsSync(path.join(HERE, pageOf(s, 'en'))) ? read(pageOf(s, 'en')) : '']));
+const REPO_SHA_EN = sha(ALL.map(s => ORIG_EN[s]).join('\u0000'));
 
 /* ═══ A) 1か所の切り替え ═══ */
 ok(same(LEAD, ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air']), 'A 先行5社は JAL・ANA・キャセイ・エティハド・エバー', LEAD.join(','));
@@ -387,7 +401,7 @@ try {
   /* 写し：上の段はリンク。会社ページのフォルダは本物のフォルダ（ページは本物の写し）。生成の道すじのモジュールと台帳は本物の写し。 */
   const COPY = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs'];
   for (const b of fs.readdirSync(HERE)) {
-    if (['.git', 'airlines', ...COPY].includes(b)) continue;
+    if (['.git', 'airlines', 'en', ...COPY].includes(b)) continue;
     fs.symlinkSync(path.join(HERE, b), path.join(T, b));
   }
   for (const f of COPY) fs.copyFileSync(path.join(HERE, f), path.join(T, f));
@@ -395,6 +409,18 @@ try {
   for (const b of fs.readdirSync(path.join(HERE, 'airlines'))) {
     if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, 'airlines', b), path.join(T, 'airlines', b));
     else fs.symlinkSync(path.join(HERE, 'airlines', b), path.join(T, 'airlines', b));
+  }
+  /* ★英語の会社ページのフォルダも本物の写し（2026-10-23 EN-6）── 生成器は EN_SWITCH の会社の英語のページも書く。en/ がリンクのままだと、
+     写しの中で流した生成器がリポジトリの英語のページへ書いてしまう（EN-6 の壊す試しで1回起きた ── 直してある） */
+  fs.mkdirSync(path.join(T, 'en', 'airlines'), { recursive: true });
+  for (const b of fs.readdirSync(path.join(HERE, 'en'))) {
+    if (b === 'airlines') continue;
+    if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, 'en', b), path.join(T, 'en', b));
+    else fs.symlinkSync(path.join(HERE, 'en', b), path.join(T, 'en', b));
+  }
+  for (const b of fs.readdirSync(path.join(HERE, 'en', 'airlines'))) {
+    if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, 'en', 'airlines', b), path.join(T, 'en', 'airlines', b));
+    else fs.symlinkSync(path.join(HERE, 'en', 'airlines', b), path.join(T, 'en', 'airlines', b));
   }
   const sw = path.join(T, 'airline-rollout.mjs'), SW = 'export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);';
   const swText = fs.readFileSync(sw, 'utf8');
@@ -772,7 +798,125 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
   ok(types.length > 0 && types.every(t => set.has(t)) && /avail = pool\.filter\([^\n]*NO_LADDER_TYPES\[a\.type\]/.test(lv),
      'A 年収の図の会社選びは、航空会社でない種類（' + types.join('・') + '）を出さない（機種の段を描かない）', JSON.stringify({ types, set: [...set] }));
 }
+/* ═══ F) 英語の会社ページ（2026-10-23 英語の EN-6 ── 生成器が英語を話す。リポジトリの英語のページはまだ書かない）═══ */
+{
+  /* 字の表（WORDS）：日本語と英語で鍵・形が同じ・英語の字に日本語が無い。検査そのものも、壊した写しで赤くなる */
+  const w = checkWords();
+  ok(!w.length, 'F 生成器の字（WORDS）は日本語と英語で鍵・形（字／関数／並び／表・並びの長さ）が同じで、英語の字に日本語の字が無い', w.join(' ／ '));
+  const dup = x => (Array.isArray(x) ? x.map(dup) : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, dup(v)])) : x);
+  const broken = [
+    ['英語の鍵を1つ消す', W2 => { delete W2.en.saveCard; }],
+    ['英語の並びを1つ短くする', W2 => { W2.en.tabs = W2.en.tabs.slice(1); }],
+    ['英語の表の中に日本語', W2 => { W2.en.rank.cap = '機長'; }],
+    ['関数を字にする', W2 => { W2.en.qCount = '3 questions'; }],
+    ['英語の関数の答えに日本語', W2 => { W2.en.askHead = n => `<span>${n}のこと</span>`; }],
+  ].filter(([, f]) => { const W2 = dup(WORDS); f(W2); return !checkWords(W2).length; }).map(([n]) => n);
+  ok(!broken.length, 'F 字の表の検査は、英語の鍵の欠け・並びの長さの違い・日本語の混ざり・形の違いを見つける（壊した写しを渡すと赤い）', broken.join(' ／ '));
+  /* 英語の読み口 */
+  const ve = checkViewEn();
+  ok(!ve.length, `F 英語の読み口（viewOf(slug, 'en')）が SWITCH の${SWITCH.length}社で対の欠けなく作れて、読み口の英語の表（VIEW_EN・NET_EN）に使われない行が無い`, ve.slice(0, 6).join(' ／ '));
+  /* いまは書かない */
+  const enMarked = ALL.filter(s => /<!--PV-GLANCE-->|data-pv-glance="1"/.test(ORIG_EN[s]));
+  ok(EN_SWITCH.length === 0 && !enMarked.length, 'F EN_SWITCH はいま空で、リポジトリの英語の会社ページに新しい会社ページの印が1つも無い（EN-6 は英語のページを書かない）', `EN_SWITCH ${EN_SWITCH.length} ／ 印 ${enMarked.join(',')}`);
+  /* 写しの中で EN_SWITCH ＝ SWITCH にして、英語のページを全社ぶん書く */
+  const T2 = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-rollout-en-'));
+  try {
+    const COPY2 = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs', 'bake-en-currency.mjs'];
+    for (const b of fs.readdirSync(HERE)) if (!['.git', 'airlines', 'en', ...COPY2].includes(b)) fs.symlinkSync(path.join(HERE, b), path.join(T2, b));
+    for (const f of COPY2) fs.copyFileSync(path.join(HERE, f), path.join(T2, f));
+    const realDir = (rel, deeper = []) => {
+      fs.mkdirSync(path.join(T2, rel), { recursive: true });
+      for (const b of fs.readdirSync(path.join(HERE, rel))) {
+        const r = path.join(rel, b);
+        if (deeper.includes(b)) realDir(r);
+        else if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, r), path.join(T2, r));
+        else fs.symlinkSync(path.join(HERE, r), path.join(T2, r));
+      }
+    };
+    realDir('airlines');
+    realDir('en', ['airlines']);
+    const swf = path.join(T2, 'airline-rollout.mjs'), ES = 'export const EN_SWITCH = Object.freeze([]);', est = fs.readFileSync(swf, 'utf8');
+    ok(est.split(ES).length === 2, 'F 英語の切り替えの1行（EN_SWITCH）が写しの中にちょうど1つ');
+    fs.writeFileSync(swf, est.replace(ES, () => 'export const EN_SWITCH = Object.freeze([...SWITCH]);'));
+    const genT = () => spawnSync(process.execPath, ['gen-airline-glance.mjs'], { cwd: T2, encoding: 'utf8', maxBuffer: 1 << 26 });
+    const g1 = genT(), g2 = genT();
+    const wroteEn = SWITCH.filter(s => g1.stdout.includes(`✎ ${pageOf(s, 'en')}`)), wroteJa = SWITCH.filter(s => g1.stdout.includes(`✎ ${pageOf(s)}`));
+    ok(g1.status === 0 && wroteEn.length === SWITCH.length && !wroteJa.length, `F 写しの中で EN_SWITCH ＝ SWITCH にすると、英語のページが${SWITCH.length}社ぶん書けて（止まらない）、日本語のページは1枚も書き直さない`,
+      `${g1.stderr.slice(0, 400)} 英語 ${wroteEn.length} ／ 日本語 ${wroteJa.join(',')}`);
+    ok(g2.status === 0 && /✓ 変更なし/.test(g2.stdout), 'F 英語のページも、2回めは「✓ 変更なし」', g2.stdout.slice(-300) + g2.stderr.slice(0, 300));
+    const pageT = (s, lang) => fs.readFileSync(path.join(T2, pageOf(s, lang)), 'utf8');
+    const jaMoved = ALL.filter(s => pageT(s) !== ORIG[s]);
+    ok(!jaMoved.length, `F 英語のページを書いても、日本語の会社ページ（${ALL.length}枚）は1バイトも変わらない`, jaMoved.join(','));
+    const bk = spawnSync(process.execPath, ['bake-en-currency.mjs', '--check'], { cwd: T2, encoding: 'utf8' });
+    ok(bk.status === 0 && /枚を見て 0枚・0件/.test(bk.stdout), 'F 書いた英語のページに bake-en-currency.mjs --check が 0件（額は生成器が焼いてある ── あとで流しても変わらない）', bk.stdout + bk.stderr);
+    /* ページごと（落ちた会社の名前を集めて、検査ごとに1行） */
+    const JA = /[　-ヿ㐀-鿿＀-￯]/;
+    const names = [...Object.values(PLACE_PHOTOS), ...Object.values(AIRLINE_PHOTOS)].flat().map(p => p.author).filter(a => a && JA.test(a));
+    const pubs = Object.values(BASIS).flatMap(b => (b.src || []).map(x => x.pub_en || '')).filter(t => JA.test(t));
+    const ALLOW = [...new Set([...names, ...pubs])].sort((a, b) => b.length - a.length);
+    const htmlUnesc = t => t.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const seenText = h => { let t = htmlUnesc(h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]*>/g, ' ')).replace(/“[^”]*”/g, ' ');
+      for (const a of ALLOW) t = t.split(a).join(' '); return t; };
+    const attrText = h => [...h.matchAll(/\s(?:alt|title|aria-label|placeholder)="([^"]*)"/g)].map(m => htmlUnesc(m[1]));
+    const enHead = h => h.slice(0, h.indexOf('</head>')).replace(/<!--PV-GLANCE-HEAD-->[\s\S]*?<!--\/PV-GLANCE-HEAD-->\n/, '');
+    const ldOf = h => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+    const faqEn = h => [...h.matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)].map(m => h.slice(m.index, divTo(h, m.index)))
+      .filter(sec => /<h2\b[^>]*>Frequently Asked Questions<\/h2>/.test(sec) && !/<div class="glass p-8 fade-up"/.test(sec.slice(1))).join('\n').replace(/ data-pvg-pane="[a-z ]+"/g, '');
+    const h2Below = h => [...h.slice(h.indexOf('<!--/PV-GLANCE-->')).matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map(m => m[1].replace(/<[^>]*>/g, '').trim());
+    const bad = { marks: [], pay: [], ja: [], links: [], cmp: [], h1: [], head: [], faq: [], legacy: [] };
+    const EN_CAREER = fs.existsSync(path.join(HERE, 'en', 'career.html'));
+    ok(EN_CAREER || !CMP_EN, 'F 英語の比較のページ（en/career.html）が無いあいだ、生成器の CMP_EN は false', `CMP_EN ${CMP_EN}`);
+    for (const s of SWITCH) {
+      const a = ORIG_EN[s], b = pageT(s, 'en'), hero = block(b, 'PV-HERO'), g = block(b, 'PV-GLANCE'), gen = hero + g + block(b, 'PV-GLANCE-HEAD') + block(b, 'PV-GLANCE-JS');
+      if (!hero || !g || !/data-pv-glance="1"/.test(b) || !/id="pvg-tabs"/.test(hero)) bad.marks.push(s);
+      /* 推定年収：SALARY の額を「¥…万」の data-orig に持つドルの span（機長・副操縦士の順） */
+      const big = [...g.matchAll(/<p class="pvg-big"><span class="pv-cur" data-jpy="(\d+)" data-orig="([^"]*)">[^<]+<\/span><\/p>/g)].map(m => [+m[1], m[2]]);
+      const want = ['cap', 'fo'].map(r => [SALARY[s][r].avg * 10000, `¥${SALARY[s][r].avg.toLocaleString('en-US')}万`]);
+      if (!same(big, want)) bad.pay.push(`${s} ${JSON.stringify(big)}`);
+      /* 新しい部品の字に日本語が無い（写真の作者名・資料の原文の名前・“…” の中の題を除く） */
+      const jt = [seenText(hero + g), ...attrText(hero + g)].join(' ').match(/\S*[　-ヿ㐀-鿿＀-￯]\S*/g) || [];
+      if (jt.length) bad.ja.push(`${s}「${[...new Set(jt)].slice(0, 3).join(' ')}」`);
+      /* 部品・ページへの道：英語のページ（en/airlines/）から見て、在るファイルを指す */
+      for (const m of gen.matchAll(/\s(src|href|srcset)="([^"]+)"/g)) for (const u0 of m[1] === 'srcset' ? m[2].split(/,\s*/) : [m[2]]) {
+        const u = htmlUnesc(u0.trim().split(/\s+/)[0]);
+        if (!u || /^(?:https?:|mailto:|#|\?|data:|javascript:)/.test(u)) continue;
+        const f = path.resolve(HERE, 'en', 'airlines', u.replace(/[?#].*$/, ''));
+        if (!f.startsWith(HERE) || !fs.existsSync(f)) bad.links.push(`${s} ${u}`);
+      }
+      /* 「Compare」「Save card」は en/career.html ができるまで出さない（空の箱だけ） */
+      /* ★生成器の印（CMP_EN）では決めない ── 英語の比較のページそのものが無いあいだは、出してはいけない（EN-9 がページを置いたら、ここを「出ている」へ向け直す） */
+      if (!EN_CAREER && (/pvg-btn-cmp|pvg-btn-save|href="(?:\.\.\/)+career\.html/.test(hero + g) || !hero.includes('<div class="pvg-acts" aria-hidden="true"></div>'))) bad.cmp.push(s);
+      /* h1 と <head> は今のページのまま（先行5社は、日本語と同じく構造化データから FAQPage の1つだけを外す ── ほかの型は1文字も変わらない） */
+      const h1 = h => (/<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(h) || [])[1] || '';
+      if (h1(a).trim() !== h1(hero).trim()) bad.h1.push(s);
+      const noLd = h => enHead(h).replace(/[ \t]*<script type="application\/ld\+json">[\s\S]*?<\/script>[ \t]*\n?/g, '');
+      const ldTypes = h => [...enHead(h).matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].flatMap(m => { try { const j = JSON.parse(m[1]); return Array.isArray(j) ? j : [j]; } catch { return [m[1]]; } })
+        .filter(x => !(x && x['@type'] === 'FAQPage')).map(x => JSON.stringify(x));
+      if (LEAD.includes(s) ? noLd(a) !== noLd(b) || !same(ldTypes(a), ldTypes(b)) : enHead(a) !== enHead(b)) bad.head.push(s);
+      /* 「よくある質問」：先行5社は日本語と同じく置かない（FAQPage も外す）・ほかの会社は同じ字で残り、構造化データも1文字も変わらない */
+      if (LEAD.includes(s) ? (/"FAQPage"/.test(ldOf(b)) || h2Below(b).includes('Frequently Asked Questions')) : (!faqEn(a) || faqEn(a) !== faqEn(b) || ldOf(a) !== ldOf(b))) bad.faq.push(s);
+      /* 古い節：英語の見出しの台帳（LEGACY_EN）のとおり */
+      let plan = null;
+      try { plan = legacyPlan(s, a, undefined, 'en'); } catch (e) { bad.legacy.push(`${s}（${e.message.slice(0, 120)}）`); }
+      if (plan) {
+        const below = h2Below(b), lost = plan.filter(p => p.act === 'keep' && !below.includes(p.title)), left = plan.filter(p => p.act === 'drop' && below.includes(p.title));
+        if (plan.some(p => !p.row) || lost.length || left.length) bad.legacy.push(`${s}（無い節 ${plan.filter(p => !p.row).map(p => p.title).join('・')} ／ 残らない ${lost.map(p => p.title).join('・')} ／ 外れない ${left.map(p => p.title).join('・')}）`);
+      }
+    }
+    ok(!bad.marks.length, `F 英語のページ（${SWITCH.length}枚）に新しい会社ページの塊・タブ・印が在る`, bad.marks.join(','));
+    ok(!bad.pay.length, 'F 英語のページの推定年収（機長・副操縦士）は SALARY の額 ── 「¥…万」を data-orig に持つドルの span', bad.pay.slice(0, 4).join(' ／ '));
+    ok(!bad.ja.length, 'F 英語のページの新しい部品の字（見える字と alt・title・aria-label・placeholder）に日本語の字が無い（写真の作者名・資料の原文の名前・“…” の中の題を除く）', bad.ja.slice(0, 6).join(' ／ '));
+    ok(!bad.links.length, 'F 英語のページの部品・写真・ロゴ・ページへの道（../../・../）は、どれも在るファイルを指す', bad.links.slice(0, 6).join(' ／ '));
+    ok(!bad.cmp.length, 'F 英語の比較のページ（en/career.html）ができるまで、英語のページに「Compare」「Save card」も career.html への道も無く、社名の行の箱は空', bad.cmp.join(','));
+    ok(!bad.h1.length && !bad.head.length, 'F 英語のページの h1 と <head>（部品の <link> の塊のほか）は、今のページの字のまま', `h1 ${bad.h1.join(',')} ／ head ${bad.head.join(',')}`);
+    ok(!bad.faq.length, 'F 「よくある質問」：先行5社の英語のページは日本語と同じく置かない（FAQPage も外す）・ほかの会社は同じ字で残り、構造化データも1文字も変わらない', bad.faq.join(','));
+    ok(!bad.legacy.length, 'F 英語のページの古い節は、英語の見出しの台帳（LEGACY_EN）に全部在り、残す節は残り・外す節は無い', bad.legacy.slice(0, 4).join(' ／ '));
+  } finally {
+    fs.rmSync(T2, { recursive: true, force: true });
+  }
+}
 ok(sha(ALL.map(s => read(pageOf(s))).join('\u0000')) === REPO_SHA, 'リポジトリの会社ページは、この検査で1バイトも変わっていない');
+ok(sha(ALL.map(s => (fs.existsSync(path.join(HERE, pageOf(s, 'en'))) ? read(pageOf(s, 'en')) : '')).join('\u0000')) === REPO_SHA_EN, 'リポジトリの英語の会社ページも、この検査で1バイトも変わっていない');
 
 console.log(`${failN ? '❌' : '✅'} assert-rollout: ${pass} pass / ${failN} fail（写しの中で${TRY.length}社を切り替えて流した。リポジトリには書いていない）`);
 process.exit(failN ? 1 : 0);
