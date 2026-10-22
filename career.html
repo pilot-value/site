@@ -44,7 +44,7 @@
   <link rel="stylesheet" href="my-value.css">
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.cr-*）。?v= は中身の指紋で、gen-career.mjs が書く。 -->
-  <link rel="stylesheet" href="career.css?v=cfdf106c">
+  <link rel="stylesheet" href="career.css?v=ef8dcd1c">
   <link rel="stylesheet" href="career-sec.css?v=9c4d7651">
   <!-- 生きた欄（.crl-*）・就航地（.crs-*）・カード保存（.crc-*）の見た目。 -->
   <link rel="stylesheet" href="career-live.css?v=baae3a46">
@@ -1153,7 +1153,7 @@
 <span class="cr-ring" aria-hidden="true"></span>
 </div>
 </div>
-<div class="cr-panel">
+<div class="cr-panel" data-kind="estimate">
 <h2 class="cr-panel-h">年収</h2>
 <h3 class="cr-role">機長</h3>
 <div class="cr-pair" data-role="cap">
@@ -1219,6 +1219,7 @@
 <p class="cr-tax" data-airline="etihad" style="--cr-co:#B08D57" hidden><i class="cr-dot" aria-hidden="true"></i>エティハド航空<span>非課税（UAE に個人所得税なし）</span></p>
 <p class="cr-tax" data-airline="eva-air" style="--cr-co:#00A599" hidden><i class="cr-dot" aria-hidden="true"></i>エバー航空<span>課税（台湾）</span></p>
 </div>
+<p class="cr-tgt">推定年収<span>機種の指定なし</span></p>
 </div>
 <div class="cr-sec cr-cmp-rev">
 <h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
@@ -1328,7 +1329,7 @@
 <h2 class="cr-h2" id="cr-cmp-h-ben">待遇</h2>
 <div class="crl" data-live="cmp-facts" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
-<div class="cr-cards">
+<div class="cr-cards" data-kind="published">
 <div class="cr-card" data-airline="jal" style="--cr-co:#CC0000">
 <h2 class="cr-card-h"><a class="cr-card-n" href="airlines/jal.html">日本航空（JAL）<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></h2>
 

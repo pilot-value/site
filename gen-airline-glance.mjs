@@ -29,7 +29,7 @@ import { GLANCE, LEAD, SWITCH, RANKS, AXIS, viewOf, width, yen, rentCell, coSay,
 import { barGroup } from './pv-bars.mjs';
 import { fxNote, BASIS } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
-import { TOPICS, askGroup, FIVE as CAREER } from './gen-career.mjs';
+import { TOPICS, askGroup, FIVE as CAREER, EST_TARGET } from './gen-career.mjs';
 import { researchHeld } from './airline-rollout.mjs';
 import { QUESTIONS } from './pv-conditions.mjs';
 import { needsCredit, src as photoSrc, smallH, SMALL_W } from './airline-photos.mjs';
@@ -361,7 +361,7 @@ function payDetails(v) {
   for (const [rk, rkJa] of RANKS) {
     const r = p[rk], e = r.est;
     /* 根拠・算出方法・時点の3つが台帳にそろっている職位だけ、3つとも書く。そろっていない職位は、誰の推定かだけを書く */
-    rows.push(`<div><dt>${rkJa}の推定年収</dt><dd><b>${e.yen}</b>${e.backed
+    rows.push(`<div><dt>${rkJa}の推定年収</dt><dd><b>${e.yen}</b><small>対象：${EST_TARGET}</small>${e.backed
       ? `<small>根拠：${prose(e.basis)}</small><small>算出方法：${prose(e.method)}</small><small>時点：${prose(e.asOf)}</small>`
       : `<small>${EST_BY}</small>`}</dd></div>`);
     for (const f of [...r.cap, ...r.company]) {

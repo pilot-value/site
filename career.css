@@ -284,6 +284,8 @@
 .cr-taxes{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--cr-hair)}
 .cr-taxes .cr-tax{display:flex;align-items:center;gap:7px;margin:0;color:var(--cr-on-2)}
 .cr-taxes .cr-tax span{margin-left:auto;padding-left:12px;text-align:right;color:var(--cr-on-3)}
+.cr-tgt{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px;margin:10px 0 0;font-size:12px;line-height:1.5;font-weight:600;color:var(--cr-on-2)}
+.cr-tgt span{font-weight:500;color:var(--cr-on-3)}
 
 .cr-cards{display:grid;gap:14px;margin-top:14px}
 .cr-card{padding:4px 16px 6px;border-radius:var(--pv-r-lg);background:var(--pv-surface);

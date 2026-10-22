@@ -78,6 +78,8 @@ import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE, LEAD } from './pv-airline-view.mjs';
 import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, SUGGEST, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
+/* 推定年収の対象（「機種の指定なし」）の字の置き場は gen-career.mjs の1か所（比較の画面と会社ページで同じ字）。写しを持たない。 */
+import { EST_TARGET } from './gen-career.mjs';
 import { FACTS as CO_FACTS } from './airline-facts.mjs';
 import { FACTS as EY_FACTS } from './career-facts.mjs';
 import { networkOf } from './airline-destinations.mjs';
@@ -127,6 +129,8 @@ const RANK_KEYS = ['max_y', 'target_y', 'cash_y_over', 'allow_m_from'];
 const LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
 const KIND = { max_y: 'cap', target_y: 'co', cash_y_over: 'over' };
 const EST_BY = '当サイトの推定（公開情報からの推計）';
+/* 推定年収の行の1行目（職位ごとの推定の額のすぐ次）。字は gen-career.mjs の EST_TARGET（比較の画面の「推定年収 機種の指定なし」と同じ1か所）。 */
+const EST_TGT = `対象：${EST_TARGET}`;
 const UNLOCK = '全ての待遇データを解放する';
 /* ★2026-10-07 会社ページの入口は2行のボタン（オーナーのご指示。前日の「匿名で給与を提出する」より新しい）。
      給与          Give & Get ／ 全ての給与情報を解放する
@@ -532,12 +536,13 @@ for (const s of FIVE) {
     for (const f of m.figs) want.push([f.group, f.text, f.orig]);
     const r = rows.find(x => x.dt === `${rkJa}の推定年収`);
     /* 根拠・算出方法・時点が台帳にそろっていればその3つ。そろっていなければ「当サイトの推定」とだけ書く
-       （在りもしない根拠を書かない・だからといって額を引っ込めない）。 */
+       （在りもしない根拠を書かない・だからといって額を引っ込めない）。
+       ★2026-10-22 段階4 cmp-pay-3：どちらの形でも、1行目は対象（「対象：機種の指定なし」）── 同じ強さの当て直し（リード L2） */
     if (m.est.backed) {
-      ok(!!r && same(r.small, [`根拠：${m.est.basis}`, `算出方法：${m.est.method}`, `時点：${m.est.asOf}`]),
-         `${s} ${rkJa}: 推定の説明に 根拠・算出方法・時点 が台帳のまま出ている`, r ? r.small.join(' ／ ') : '行が無い');
+      ok(!!r && same(r.small, [EST_TGT, `根拠：${m.est.basis}`, `算出方法：${m.est.method}`, `時点：${m.est.asOf}`]),
+         `${s} ${rkJa}: 推定の説明は「${EST_TGT}」の次に 根拠・算出方法・時点 が台帳のまま出ている`, r ? r.small.join(' ／ ') : '行が無い');
     } else {
-      ok(!!r && same(r.small, [EST_BY]), `${s} ${rkJa}: 根拠の台帳がそろっていない推定には「${EST_BY}」とだけ書く`, r ? r.small.join(' ／ ') : '行が無い');
+      ok(!!r && same(r.small, [EST_TGT, EST_BY]), `${s} ${rkJa}: 根拠の台帳がそろっていない推定には「${EST_TGT}」の次に「${EST_BY}」とだけ書く`, r ? r.small.join(' ／ ') : '行が無い');
     }
     for (const f of m.figs.filter(x => x.key === 'max_y')) {
       const row = rows.find(x => x.dt === f.group && x.b === f.text);
@@ -579,6 +584,23 @@ for (const s of FIVE) {
   /* 昔の「この数字の出どころ」の住所（#kyuyo-konkyo）は、この説明が引き継ぐ（外のページ・検索の結果からのリンクが切れない）。 */
   ok(PAGES[s].split('id="kyuyo-konkyo"').length === 2 && dt.startsWith('<details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">'),
      `${s}: 住所 #kyuyo-konkyo は給与の説明の1つだけ（古い「出どころの表」の節を残していない）`, `${PAGES[s].split('id="kyuyo-konkyo"').length - 1}個`);
+}
+
+/* ★2026-10-22 段階4 cmp-pay-3（T-S2b）：新しい会社ページの全部（airline-rollout.mjs の SWITCH ＝ GLANCE）── 金額の出どころの説明
+   （#kyuyo-konkyo）で、機長・副操縦士の推定年収の額（<b>）のすぐ次が「対象：機種の指定なし」。1職位に1つ・1ページに2つだけ。
+   字は EST_TARGET（gen-career.mjs の1か所・比較の画面の「推定年収 機種の指定なし」と同じ）。額は正本 SALARY の avg から作り直す。 */
+head('推定年収の対象（新しい会社ページの全部）');
+{
+  const bad = [];
+  for (const s of GLANCE) {
+    const html = read(pageOf(s)), at = html.indexOf('id="kyuyo-konkyo"'), end = at < 0 ? -1 : html.indexOf('</details>', at);
+    const box = end < 0 ? '' : html.slice(at, end), n = box.split(`<small>${EST_TGT}</small>`).length - 1;
+    const miss = RANKS.filter(([rk, rkJa]) => !box.includes(`<dt>${rkJa}の推定年収</dt><dd><b>${yen(SALARY[s][rk].avg)}</b><small>${EST_TGT}</small>`)).map(([, l]) => l);
+    if (!box || n !== RANKS.length || miss.length) bad.push(`${s}: ${box ? `「${EST_TGT}」${n}つ${miss.length ? `・${miss.join('・')}の推定の額のすぐ次に無い` : ''}` : '#kyuyo-konkyo が読めない'}`);
+  }
+  ok(FIVE.every(s => GLANCE.includes(s)) && !bad.length,
+     `新しい会社ページ ${GLANCE.length}枚とも、金額の出どころの説明で 機長・副操縦士の推定年収の額のすぐ次が「${EST_TGT}」（1職位に1つ・1ページに2つだけ）`,
+     bad.slice(0, 8).join(' ／ ') + (bad.length > 8 ? ` ほか${bad.length - 8}枚` : ''));
 }
 
 /* ══════════════════════════════════════════════════════════════════

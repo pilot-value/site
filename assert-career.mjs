@@ -40,7 +40,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures } from './salary-basis.mjs';
-import { viewOf, rentCell, GLANCE } from './pv-airline-view.mjs';
+import { viewOf, rentCell, GLANCE, LEAD } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
 import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell } from './gen-career.mjs';
@@ -93,6 +93,14 @@ const NAME_HREF = s => `airlines/${s}.html`;
 head('生成物');
 ok(render(HTML) === HTML, `${PAGE} は gen-career.mjs の出力と1文字も違わない`,
    'node gen-career.mjs を流す（career.css / career.js を直したあとも）');
+
+/* ★2026-10-22 段階4 cmp-pay-3（T-S1）：この1枚の5社は、先行5社の正本（airline-rollout.mjs の LEAD）そのもの（同じ配列）。
+   生成側（gen-career.mjs・gen-airline-glance.mjs）に並びを打ち直さない ── 打ち直すと、正本を直してもこの1枚だけ古い並びのまま残る。 */
+{
+  const typed = ['gen-career.mjs', 'gen-airline-glance.mjs'].filter(f => read(f).includes("'jal', 'ana', 'cathay-pacific'"));
+  ok(FIVE === LEAD && !typed.length, '比較の5社（gen-career.mjs の FIVE）は、先行5社の正本（airline-rollout.mjs の LEAD）そのもの・生成側に並びを打っていない',
+     `${FIVE === LEAD ? '' : `FIVE=${FIVE.join(',')} は LEAD と別の配列 `}${typed.length ? `並びを打っている: ${typed.join('・')}` : ''}`);
+}
 
 const BLOCK = (HTML.match(/<!--PV-CAREER-->([\s\S]*)<!--\/PV-CAREER-->/) || [])[1] || '';
 ok(BLOCK.length > 0, '管理ブロックが在る');
@@ -540,6 +548,31 @@ try {
      `${GLANCE.length}社の最大 ${yen(shared)} ／ この1枚の最大の棒 ${yen(top)}`);
   ok(dom.axes.length >= FIVE.length + 1 && dom.axes.every(a => same(a, ['0', yen(axisMax / 2), yen(axisMax)])),
      '目盛は 0 から・どの画面も同じ', JSON.stringify(dom.axes[0]));
+
+  /* ★2026-10-22 段階4 cmp-pay-3（T-S2a）：比較の年収の板は推定の板（data-kind="estimate"）。税の行のすぐ次に、対象の1行
+     「推定年収　機種の指定なし」（会社ページの「対象：機種の指定なし」と同じ字の置き場 ── gen-career.mjs の EST_TARGET）。
+     会社が公表した額の入れ物は data-kind="published"。字は決めごとなので、生成側から借りずにここへ書く。
+     棒の行には、check-salary.mjs が「年額ではない」と読んで照合から外す言葉を書かない（書くと、その行の額が黙って照合から外れる）。 */
+  head('比較の年収の板（推定・対象の1行）');
+  {
+    const DERIVED = /手取|月収|月額|毎月|月あたり|税引|実質|パッケージ|take-?home|after[- ]tax|per month|monthly|effectively|package/i;   // check-salary.mjs の DERIVED の写し
+    const g = await page.evaluate(src => {
+      const V = document.querySelector('#cr .cr-view[data-view="compare"]'), re = new RegExp(src, 'i');
+      const tg = V ? [...V.querySelectorAll('p.cr-tgt')] : [], p = tg[0], prev = p ? p.previousElementSibling : null;
+      const rows = V ? [...V.querySelectorAll('.cr-pair .cr-row')] : [];
+      return {
+        n: tg.length, all: document.querySelectorAll('#cr p.cr-tgt').length, text: p ? p.textContent.replace(/\s+/g, '') : '',
+        prev: !!prev && prev.matches('.cr-taxes'), inEst: !!(p && p.closest('.cr-panel[data-kind="estimate"]')),
+        pub: V ? V.querySelectorAll('.cr-cards[data-kind="published"]').length : 0, cards: V ? V.querySelectorAll('.cr-cards').length : 0,
+        rows: rows.length, said: rows.filter(r => re.test(r.textContent)).map(r => r.textContent.replace(/\s+/g, ' ').trim()),
+      };
+    }, DERIVED.source);
+    ok(g.n === 1 && g.all === 1 && g.text === '推定年収機種の指定なし' && g.prev && g.inEst,
+       '比較の年収の板（data-kind="estimate"）に、税の行のすぐ次の1行「推定年収　機種の指定なし」がちょうど1つ',
+       `${g.n}つ（この1枚で ${g.all}）「${g.text}」 前が税の行 ${g.prev} ／ 推定の板の中 ${g.inEst}`);
+    ok(g.cards === 1 && g.pub === 1, '比較の「会社が公表している金額」の入れ物は data-kind="published"', `${g.pub}/${g.cards}`);
+    ok(g.rows === FIVE.length * ROLES.length && !g.said.length, `比較の棒の行（${g.rows}）に、check-salary.mjs が年額ではないと読む言葉が無い`, g.said.join(' ／ '));
+  }
 
   /* 会社が公表している金額。訓練生は出さない。 */
   head('会社が公表している金額');
@@ -1194,6 +1227,143 @@ try {
       }
     }
     await c();
+  }
+
+  /* ── ①（続き）推定年収が 会社ページ・比較・カード で同じ字 ─────── */
+  head('推定年収が 会社ページ・比較・カード で同じ字（全通貨・写真を替えても）');
+  {
+    /* ★2026-10-22 段階4 cmp-pay-3（T-E1・T-E2）。同じ会社・同じ職位の推定年収は、会社ページ（airlines/{slug}.html の大きい額）・
+       比較（棒の行の額・隠れている行も）・保存するカード（PVCareerCard.model() の字）の3か所で、どの通貨でも1文字も違わない。
+       円のときは、正本 SALARY の avg からこの検査が自分で作った ¥…万 とも同じ。カードの写真を替えても（p・p2）、職位の字は変わらない。
+       壊して確かめる道具（配っているファイルは1つも触らない。このブラウザに渡す写しだけを、その場で替える）：
+         --self-e1  会社ページ（先行5社の1社目）の機長の額を 1万 多くした写しを渡す → ここが赤
+         --self-e2  カードの JS を「写真が2枚目以降のとき、もう一方の会社の職位を読む」写しにして渡す → ここが赤 */
+    const SELF_E1 = process.argv.includes('--self-e1'), SELF_E2 = process.argv.includes('--self-e2');
+    if (SELF_E1 || SELF_E2) console.log(`    ⚠ 壊して確かめる回（${[SELF_E1 && '--self-e1', SELF_E2 && '--self-e2'].filter(Boolean).join(' ')}）── この節が赤くなるのが正しい`);
+    const swaps = [], swapBad = [];
+    if (SELF_E1) swaps.push({ path: `airlines/${FIVE[0]}.html`, fn: t => {
+      const was = `<p class="pvg-big">${yen(SALARY[FIVE[0]].cap.avg)}</p>`, a = t.indexOf('data-rank="cap"'), b = a < 0 ? -1 : t.indexOf('<p class="pvg-big">', a);
+      if (b < 0 || !t.startsWith(was, b)) { swapBad.push(`${FIVE[0]} の機長の額が見つからない`); return t; }
+      return t.slice(0, b) + `<p class="pvg-big">${yen(SALARY[FIVE[0]].cap.avg + 1)}</p>` + t.slice(b + was.length);
+    } });
+    if (SELF_E2) swaps.push({ path: 'career-card.js', fn: t => {
+      const A = 'var photos = a.photos || [], roles = {}, axis = [];';
+      if (t.split(A).length !== 2) { swapBad.push('career-card.js の readCard() の1行が見つからない'); return t; }
+      return t.replace(A, () => `${A} if (photoIx > 0) for (var j = 0; j < list.length; j++) if (list[j].getAttribute('data-airline') !== slug) { sec = list[j]; break; }`);
+    } });
+    const ORIGIN = new URL(BASE).origin;
+    const openAt = async rel => {
+      const ctx = await browser.createBrowserContext();
+      const pg = await ctx.newPage();
+      pg.on('pageerror', e => trouble.push(`${rel}: ${e.message}`));
+      pg.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) trouble.push(`${r.status()} ${r.url()}`); });
+      await pg.setViewport({ width: 390, height: 680 });
+      await pg.setRequestInterception(true);
+      pg.on('request', async r => {
+        if (NET_OFF.test(r.url())) return r.abort();
+        const u = new URL(r.url()), sw = u.origin === ORIGIN && swaps.find(x => u.pathname === `/${x.path}`);
+        if (!sw) return r.continue();
+        try {
+          const res = await fetch(r.url());
+          return r.respond({ status: res.status, contentType: res.headers.get('content-type') || undefined, body: sw.fn(await res.text()) });
+        } catch (e) { swapBad.push(`${sw.path}: ${e.message}`); return r.abort(); }
+      });
+      await pg.goto(`${BASE}/${rel}`, { waitUntil: 'load' });
+      return { pg, close: () => ctx.close() };
+    };
+    const set = (pg, cur) => pg.evaluate(x => window.PVCurrency.set(x), cur);
+    /* カードの材料（社名・写真・職位ごとの字）。 */
+    const model = pg => pg.evaluate(() => {
+      const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+      return m && m.cards ? m.cards.map(k => ({ slug: k.slug, photo: k.photo ? k.photo.src : null,
+        roles: Object.fromEntries(Object.entries(k.roles || {}).map(([r, v]) => [r, v && v.text])) })) : null;
+    });
+    const drawn = (pg, n) => pg.waitForFunction(n => {
+      const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+      return !!(m && m.cards && m.cards.length === n && m.cards.every(k => k.roles && k.roles.cap && k.roles.fo));
+    }, { timeout: 8000 }, n).then(() => true, () => false);
+    /* 通貨を替えたあと、カードが描き直されて字が前の通貨の字から変わるまで待つ（時間では待たない）。 */
+    const moved = (pg, prev) => pg.waitForFunction(prev => {
+      const m = window.PVCareerCard.model();
+      return !!(m && m.cards && m.cards.length === prev.length && m.cards.every((k, i) => ['cap', 'fo'].every(r => k.roles[r] && k.roles[r].text !== prev[i].roles[r])));
+    }, { timeout: 8000 }, prev).then(() => true, () => false);
+
+    /* a) 3か所の字を通貨ごとに集める。通貨は 円 ＋ PVCurrency.rates の鍵の全部。 */
+    const got = {};   // got[cur][`${slug}/${rank}`] = { page, cmp, card: [..] }
+    const put = (cur, k, where, v) => { const o = ((got[cur] ||= {})[k] ||= { page: null, cmp: null, card: [] }); if (where === 'card') o.card.push(v); else o[where] = v; };
+    const { pg: cp, close: cc } = await openAt(`${PAGE}?view=compare`);
+    await ready(cp);
+    const curs = await cp.evaluate(() => Object.keys(window.PVCurrency.rates));
+    const CURS = ['JPY', ...curs.filter(x => x !== 'JPY')];
+    for (const cur of CURS) {
+      await set(cp, cur);
+      const rows = await cp.evaluate(() => [...document.querySelectorAll('#cr .cr-pair[data-role] .cr-row[data-airline] .cr-row-v')]
+        .map(v => [`${v.closest('.cr-row').dataset.airline}/${v.closest('.cr-pair').dataset.role}`, v.textContent.replace(/\s+/g, ' ').trim()]));
+      for (const [k, v] of rows) put(cur, k, 'cmp', v);
+    }
+    await cc();
+    for (const s of FIVE) {
+      const { pg, close } = await openAt(`airlines/${s}.html`);
+      const up = await pg.waitForFunction(() => !!window.PVCurrency && document.querySelectorAll('.pvg-rank[data-rank] .pvg-big').length === 2, { timeout: 8000 }).then(() => true, () => false);
+      if (!up) trouble.push(`airlines/${s}.html: 推定年収の大きい額か通貨の切り替えが読めない`);
+      for (const cur of CURS) {
+        if (up) await set(pg, cur);
+        const big = up ? await pg.evaluate(() => [...document.querySelectorAll('.pvg-rank[data-rank]')].map(r => [r.dataset.rank, r.querySelector('.pvg-big').textContent.replace(/\s+/g, ' ').trim()])) : [];
+        for (const [r, v] of big) put(cur, `${s}/${r}`, 'page', v);
+      }
+      await close();
+    }
+    let cardLost = [];
+    for (const [a, b] of [[FIVE[0], FIVE[1]], [FIVE[2], FIVE[3]], [FIVE[4], FIVE[0]]]) {
+      const q = `?view=card&a=${a}&b=${b}`, { pg, close } = await openAt(`${PAGE}${q}`);
+      await ready(pg);
+      let prev = (await drawn(pg, 2)) ? await model(pg) : null;
+      if (!prev) cardLost.push(`${q}: カードの材料が出来ない`);
+      for (const cur of CURS) {
+        if (!prev) break;
+        if (cur !== 'JPY') {
+          await set(pg, cur);
+          if (!(await moved(pg, prev))) { cardLost.push(`${q} ${cur}: 通貨を替えてもカードの字が変わらない`); break; }
+          prev = await model(pg);
+        }
+        for (const k of prev) for (const [r] of ROLES) put(cur, `${k.slug}/${r}`, 'card', k.roles[r]);
+      }
+      await close();
+    }
+    /* b) 通貨ごとに、5社 × 2職位 の3か所が同じ字・円は正本の ¥…万。 */
+    let compared = 0;
+    for (const cur of CURS) {
+      const bad = [];
+      for (const s of FIVE) for (const [r, l] of ROLES) {
+        const o = (got[cur] || {})[`${s}/${r}`] || { page: null, cmp: null, card: [] }, want = cur === 'JPY' ? yen(SALARY[s][r].avg) : o.cmp;
+        const all = [o.page, o.cmp, ...o.card];
+        if (!o.page || !o.cmp || !o.card.length || all.some(v => v !== want)) bad.push(`${name(s)} ${l}: 会社ページ「${o.page}」比較「${o.cmp}」カード「${o.card.join('」「')}」${cur === 'JPY' ? `（正本 ${want}）` : ''}`);
+        else compared += 3;
+      }
+      ok(!bad.length, `${cur}: 5社 × 2職位の推定年収が、会社ページ・比較・カードで同じ字${cur === 'JPY' ? '（正本 SALARY の avg の ¥…万）' : ''}`, bad.slice(0, 6).join('\n      '));
+    }
+    console.log(`    比べた字: ${compared}（${CURS.join('・')}）`);
+    ok(!cardLost.length && !swapBad.length && compared === FIVE.length * ROLES.length * CURS.length * 3,
+       `比べた字 ${compared}（5社 × 2職位 × ${CURS.length}通貨 × 3か所）── カードは通貨を替えるたびに描き直されて字が変わる`, [...cardLost, ...swapBad].join(' ／ '));
+
+    /* c) T-E2 カードの写真を替えても（1社目 p = 0・1・2、2社目 p2 = 0・1）、職位の字は変わらない。写真は本当に替わっている。 */
+    {
+      const [a, b] = [DEEP[0], FIVE[0]], seen = [], photos = new Set(), lost = [];
+      const { pg, close } = await openAt(`${PAGE}?view=card&a=${a}&b=${b}`);
+      await ready(pg);
+      for (const p of [0, 1, 2]) for (const q of [0, 1]) {
+        await go(pg, `?view=card&a=${a}&b=${b}${p ? `&p=${p}` : ''}${q ? `&p2=${q}` : ''}`);
+        if (!(await drawn(pg, 2))) { lost.push(`p=${p} p2=${q}: カードの材料が出来ない`); continue; }
+        const m = await model(pg);
+        photos.add(`${m[0].photo}|${m[1].photo}`);
+        seen.push({ at: `p=${p} p2=${q}`, roles: JSON.stringify(m.map(k => [k.slug, k.roles.cap, k.roles.fo])) });
+      }
+      await close();
+      const base = seen[0] && seen[0].roles, differ = seen.filter(x => x.roles !== base);
+      ok(!lost.length && !swapBad.length && seen.length === 6 && photos.size === 6 && !differ.length && base === JSON.stringify([a, b].map(s => [s, yen(SALARY[s].cap.avg), yen(SALARY[s].fo.avg)])),
+         `カードの写真を替えても（${name(a)} p=0・1・2 × ${name(b)} p2=0・1 ＝ 写真の組 ${photos.size}通り）、職位の字は変わらない（各社の推定年収のまま）`,
+         [...lost, ...swapBad, ...differ.map(x => `${x.at}: ${x.roles}`), base ? '' : '材料が無い'].filter(Boolean).join(' ／ ').slice(0, 400));
+    }
   }
 
   /* ── ②（続き）会社が公表した額は、一覧の中にだけ ─────────────── */

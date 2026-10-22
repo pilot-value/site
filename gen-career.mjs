@@ -57,7 +57,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures, fxNote } from './salary-basis.mjs';
-import { viewOf, AXIS as VIEW_AXIS, width, rentCell, coText } from './pv-airline-view.mjs';
+import { viewOf, AXIS as VIEW_AXIS, width, rentCell, coText, LEAD as LEAD_FIVE } from './pv-airline-view.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
 import { FACTS, atText, introText, valueText } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W } from './place-photos.mjs';
@@ -67,8 +67,8 @@ import { qrMatrix } from './career-qr.mjs';
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 export const PAGE = 'career.html';
-/* 先行5社。並びは入口のタイルの順。 */
-export const FIVE = ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air'];
+/* 先行5社。並びは入口のタイルの順。（正本は airline-rollout.mjs の LEAD。ここに並びを打たない） */
+export const FIVE = LEAD_FIVE;
 /* 深い画面（タブ・詳細・就航地）を持つ会社。ほかは段1の概要のまま。 */
 export const DEEP = ['etihad'];
 /* 比較を社名なしで開いたときの2社。 */
@@ -817,7 +817,7 @@ ${side('a', '1社目', PAIR[0], PAIR[1])}
 <button type="button" class="cr-swap" id="cr-swap" aria-label="2社を入れ替える">${IC.swap}</button>
 ${side('b', '2社目', PAIR[1], PAIR[0])}
 </div>
-<div class="cr-panel">
+<div class="cr-panel" data-kind="estimate">
 <h2 class="cr-panel-h">年収</h2>
 ${ROLES.map(([r, l]) => `<h3 class="cr-role">${l}</h3>
 <div class="cr-pair" data-role="${r}">
@@ -827,6 +827,7 @@ ${axis()}
 <div class="cr-taxes">
 ${FIVE.map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(BASIS[s].tax)}</span></p>`).join('\n')}
 </div>
+<p class="cr-tgt">${KINDS[0][1]}<span>${EST_TARGET}</span></p>
 </div>
 <div class="cr-sec cr-cmp-rev">
 <h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
@@ -846,7 +847,7 @@ ${live('cmp-work')}
 <h2 class="cr-h2" id="cr-cmp-h-ben">待遇</h2>
 ${live('cmp-facts')}
 </div>
-<div class="cr-cards">
+<div class="cr-cards" data-kind="published">
 ${FIVE.map(s => `<div class="cr-card" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}>
 <h2 class="cr-card-h"><a class="cr-card-n" href="${href.page(s)}">${esc(name(s))}${IC.go}</a></h2>
 ${pub(s, 'h3')}
