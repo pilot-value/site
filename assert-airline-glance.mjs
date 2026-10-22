@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・contrast）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・contrast）
      node assert-airline-glance.mjs --scenes contrast --only spirit,vueling   会社ページ全部の明るい色の読める濃さ（--only で会社を絞れる。日英とも）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
@@ -1344,6 +1344,10 @@ head('career-live.js（提出された年収の一覧の、鍵の無い人の行
   ok(!/money\(|annual_usd|crl-amt/.test(ml), '伏せた行に、額の箱を作らない');
   const sl = fn('srcLine');
   ok(same([...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].sort(), ['age', 'verified']), '出典と投稿時期の行が読むのは、その2つだけ', [...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].join(', '));
+  /* T-S7（2026-10-22 段階4 cmp-pay-2）給与の鍵が切れた人の1行は、MY PAGE（profile.html）が出す字と1文字も違わない
+     （同じことを2つの言い方で言わない）。どちらの字も、ファイルから読む（ここに写さない）。 */
+  const expMine = one(LJ, /\n    payExpired: '([^']*)',\n/), expTheirs = one(read('profile.html'), /\(d > 0 \? [^\n]*? : '([^']*)'\),/);
+  ok(!!expMine && expMine === expTheirs, `給与の鍵が切れた人の1行（career-live.js の payExpired）は、MY PAGE と同じ字「${expTheirs}」`, `career-live.js「${expMine}」／ profile.html「${expTheirs}」`);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -2457,6 +2461,31 @@ const maskedBody = slug => {
   const other = FIVE.filter(o => o !== slug).slice(0, 2).map(o => ({ airline: o, verified: true, age: 0, ...LEAK }));
   return JSON.stringify({ ok: true, state: 'locked', rows: [...mine.slice(0, 3), ...other, ...mine.slice(3)] });
 };
+/* 場面 who（2026-10-22 段階4 cmp-pay-2）── 給与の一覧を、いま誰が読んでいるか。画面が見るのは、サーバーの答えの state と give.basic だけ
+   （career-live.js の payWho）。本物のサーバー（db/pay-rows.sql の pv_pay_rows）が返す形：
+     未ログイン ＝ give が無い（上の maskedBody のまま）・ログインした会員 ＝ give の4つが全部 false・
+     鍵が切れた会員 ＝ basic だけ true（自分の提出は在るのに、鍵が開いていない）・開いている会員 ＝ state 'open' と、開いた行。
+   鍵の無い形には、上の maskedBody と同じく、開いた行が持つ欄をわざと混ぜてある（画面が1文字も出さないことを見る）。 */
+const GIVE_MEMBER = { basic: false, detailed: false, payslip: false, full: false };
+const GIVE_EXPIRED = { ...GIVE_MEMBER, basic: true };
+const PAY_EXPIRED = '年収データの解放が切れています';
+const withGive = (body, give) => JSON.stringify({ ...JSON.parse(body), give });
+/* この会社の提出が0件（ほかの会社の行だけが返る） */
+const noMineBody = (slug, give) => JSON.stringify({ ok: true, state: 'locked', give, rows: FIVE.filter(o => o !== slug).slice(0, 2).map(o => ({ airline: o, verified: true, age: 0, ...LEAK })) });
+/* 〔検査用の見本。実データではない〕開いている会員に返る行（REAL PAY と同じ形）。ほかの会社の行を1つ混ぜる（数えないことを見る） */
+const OPEN_ROWS = slug => [
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r', annual_usd: 210000, verified: true, age: 0, far: false },
+  { airline: FIVE.find(o => o !== slug), pos: 'cap', fleet: 'b787', ten: 1, tenk: 'r', annual_usd: 190000, verified: true, age: 0, far: false },
+  { airline: slug, pos: 'fo', fleet: 'b787', ten: 0, tenk: 's', annual_usd: 120000, verified: false, age: 1, far: false },
+];
+const WHO = [
+  ['guest', '未ログイン', slug => maskedBody(slug)],
+  ['member', 'ログインした会員・給与の提出なし', slug => withGive(maskedBody(slug), GIVE_MEMBER)],
+  ['expired', '給与の鍵が切れた会員', slug => withGive(maskedBody(slug), GIVE_EXPIRED)],
+  ['open', '給与の鍵が開いている会員', slug => JSON.stringify({ ok: true, state: 'open', give: { ...GIVE_EXPIRED, detailed: true }, rows: OPEN_ROWS(slug) })],
+  ['member0', 'ログインした会員・この会社の提出が0件', slug => noMineBody(slug, GIVE_MEMBER)],
+  ['expired0', '給与の鍵が切れた会員・この会社の提出が0件', slug => noMineBody(slug, GIVE_EXPIRED)],
+];
 /* 点数の付いた口コミ（鍵の無い人に返る形 ＝ 本文の列が無い）。3件めは「訓練」に点数を付けていない。 */
 const REV_RE = /\/rest\/v1\/rpc\/pv_reviews$/;
 const SCORE_KEYS = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
@@ -2512,10 +2541,12 @@ const trouble = [];
 const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
   ![...document.querySelectorAll('.pvg .crl, .pvg-hero .crl')].some(n => n.getClientRects().length && /^(idle|loading)$/.test(n.dataset.state));
 
-async function open(browser, slug, w, h, mode, pre) {
+async function open(browser, slug, w, h, mode, pre, pay) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
   const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [], stayStatus: 200, stayStall: false, add: null, added: [], vreq: null, vreqd: [], edit: null, edited: [], del: null, deleted: [], claim: '{"ok":true}', claimed: [], town: null };
+  /* 給与の一覧の口（pv_pay_rows）だけ、場面が返事を置ける（場面 who ＝ 読む人の形ごとの返事）。置かなければ、下の表と mode のまま。 */
+  seen.pay = pay ?? null;
   /* 答えるカードの口：give ＝ その場面だけ差し替える返事（{ status, body }。置かなければ giveBody）・giveCalls ＝ 呼ばれた回数。
      nav ＝ 並びを置いた場面でだけ、ページが移ろうとした行き先を控えて止める（カードのリンクが進む先を見る時）。 */
   seen.give = null; seen.giveCalls = 0; seen.nav = null;
@@ -2616,7 +2647,8 @@ async function open(browser, slug, w, h, mode, pre) {
         if (hit[0] === WORK_RE) {
           return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: workBody(seen.mode) });
         }
-        const body = seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug)
+        const body = hit[0] === PAY_RE && seen.pay != null ? seen.pay
+                   : seen.mode === 'rows' && hit[0] === PAY_RE ? maskedBody(slug)
                    : /^rated/.test(seen.mode) && REV_RE.test(u.pathname) ? revBodyOf(seen.mode, slug) : hit[1];
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body });
       }
@@ -3753,6 +3785,63 @@ async function runRows(browser, s, [w, h, kind]) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
     await ctx.close().catch(() => {});
+  }
+}
+/* 場面 who（2026-10-22 段階4 cmp-pay-2）── 提出された年収の箱の1行は、読む人の形で決まる（上の場面 rows の錠前の1行の対）。
+     未ログイン・会員 ＝「給与の提出で開きます」（ログインの入口は未ログインだけ）／鍵が切れた会員 ＝「年収データの解放が切れています」／
+     開いている会員 ＝ 行（職位・額が出る ＝ 会社ページの行は今までどおり）／この会社の提出が0件 ＝「まだ記録がありません」（開けるものが無いので錠前の1行は出さない）。
+   鍵の無い形では、わざと混ぜた職位・機材・額・印が、箱の字にも属性にも出ない。字は画面に出ている字で見る（幅を変えても字は同じ ＝ 1つの幅）。 */
+const WHO_W = [390];
+async function runWho(browser, s, [w, h]) {
+  const POS_JA = Object.fromEntries(JSON.parse(read('pv-vocab.json')).positions.map(x => [x.code, x.ja]));
+  for (const [k, who, body] of WHO) {
+    const tag = `${s} ${w}（${who}）`;
+    const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rows', null, body(s));
+    try {
+      ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+      const g = await p.evaluate(() => {
+        const box = document.querySelector('#pvg-realpay .crl[data-live="realpay"]');
+        if (!box) return null;
+        const t = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : null);
+        return {
+          state: box.dataset.state, lock: t(box.querySelector('.crl-lock')), msg: t(box.querySelector('.crl-msg')), count: t(box.querySelector('.crl-count')),
+          login: box.querySelectorAll('a[href*="login.html"]').length, html: box.innerHTML,
+          rows: [...box.querySelectorAll('.crl-row')].map(li => ({ mask: li.getAttribute('data-mask'), pos: t(li.querySelector('.crl-pos')), amt: t(li.querySelector('.crl-amt')), none: !!li.querySelector('.crl-amt[data-none]') })),
+        };
+      });
+      const bad = [];
+      if (!g) bad.push('提出された年収の箱が無い');
+      else if (k === 'open') {
+        const want = OPEN_ROWS(s).filter(r => r.airline === s);
+        if (g.state !== 'open') bad.push(`箱が ${g.state}（開いた形のはず）`);
+        if (g.lock !== null || g.msg !== null) bad.push(`開いているのに「${g.lock || g.msg}」と出ている`);
+        if (g.count !== `${want.length}件の提出`) bad.push(`件数「${g.count}」（あるべき ${want.length}件・ほかの会社の行を数えない）`);
+        if (g.login) bad.push(`ログインの入口が ${g.login}つ`);
+        if (!same(g.rows.map(r => r.pos), want.map(r => POS_JA[r.pos]))) bad.push(`行の職位「${g.rows.map(r => r.pos).join('｜')}」（あるべき「${want.map(r => POS_JA[r.pos]).join('｜')}」）`);
+        if (g.rows.some(r => r.mask !== null || r.none || !/\d/.test(r.amt || ''))) bad.push(`額の出ていない行・伏せた行が在る（${g.rows.map(r => `${r.mask}/${r.amt}`).join(' ')}）`);
+      } else if (/0$/.test(k)) {
+        if (!(g.state === 'empty' && g.msg === 'まだ記録がありません')) bad.push(`「まだ記録がありません」になっていない（${g.state}・${g.msg}）`);
+        if (g.lock !== null || g.count !== null || g.rows.length) bad.push(`0件なのに、錠前の1行・件数・行のどれかが出ている（${g.lock}・${g.count}・${g.rows.length}行）`);
+      } else {
+        const lock = k === 'expired' ? PAY_EXPIRED : '給与の提出で開きます', login = k === 'guest' ? 1 : 0;
+        if (g.state !== 'locked') bad.push(`箱が ${g.state}（鍵の掛かった形のはず）`);
+        if (g.lock !== lock) bad.push(`錠前の1行が「${g.lock}」（あるべき「${lock}」）`);
+        if (g.msg !== null) bad.push(`行が在るのに「${g.msg}」と出ている`);
+        if (g.count !== `${MASK_AGE.length}件の提出`) bad.push(`件数「${g.count}」（あるべき ${MASK_AGE.length}件）`);
+        if (g.login !== login) bad.push(`ログインの入口が ${g.login}つ（あるべき ${login}つ）`);
+        if (!g.rows.length || g.rows.some(r => r.mask !== 'line')) bad.push('伏せた行の形でない行が在る');
+        const leak = [/271/, /captain/i, /b787/i, /機長|副操縦士/, /⚠/, /data-(pos|fleet|ten|far|usd)/].filter(re => re.test(g.html)).map(String);
+        if (leak.length) bad.push(`サーバーが混ぜた職位・機材・額・印が出ている（${leak.join(' ')}）`);
+      }
+      const say = k === 'open' ? '行（職位と額）が出る' : /0$/.test(k) ? '「まだ記録がありません」（錠前の1行は出さない）'
+        : `「${k === 'expired' ? PAY_EXPIRED : '給与の提出で開きます'}」${k === 'guest' ? '・ログインの入口' : '（ログインの入口は無い）'}・混ぜた額や職位は1文字も出ない`;
+      ok(!bad.length, `${tag}: 提出された年収の箱は ${say}`, bad.join(' ／ '));
+      ok(!seen.unknown.size, `${tag}: 検査が返事を用意していない口を呼んでいない`, [...seen.unknown].join(' '));
+    } catch (e) {
+      ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+    } finally {
+      await ctx.close().catch(() => {});
+    }
   }
 }
 /* 件数と札が横に並ぶのは箱 296px（画面 344px）から。その下では札が件数の下の段へ下りる。
@@ -8027,6 +8116,7 @@ try {
   if (wantS('view')) for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
   if (wantS('off')) for (const s of ONLY) for (const v of VIEWS.filter(x => OFF_W.includes(x[0]))) work.push(() => runOff(browser, s, v), () => runFacts404(browser, s, v));
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
+  if (wantS('who')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || WHO_W.includes(x[0]))) work.push(() => runWho(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v), () => runRatedLogin(browser, s, v), () => runRatedFew(browser, s, v), () => runRatedNone(browser, s, v), () => runRatedErr(browser, s, v), () => runRatedOpen(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) { const v = VIEWS.find(x => RATED_W.includes(x[0])); if (v) work.push(() => runRatedStale(browser, s, v)); }
   if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRatedOpenMax(browser, s, v));

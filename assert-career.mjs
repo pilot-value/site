@@ -123,6 +123,46 @@ ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(JSC), 'career.js は HTM
   ok(same(a, b), '古い会社コードの表が、比較（career-live.js）と会社ページ（airline-reviews-ui.js）で同じ集合', JSON.stringify([a, b]));
 }
 
+/* ★2026-10-22 段階4 cmp-pay-2：比較の「提出された年収」の区画（career-live.js の var PAY_TOP から、次の「/* ──」の区切りまで）。
+   まだどの画面もこの欄を持たない（置くのは WP-cmp-pay-4）── ここで見るのはファイルの約束だけ（どれも、わざと壊して赤くなるのを確かめた）。 */
+head('career-live.js（比較：提出された年収）');
+{
+  const RAW = read('career-live.js'), LJ = noJsCmt(RAW);
+  const at = RAW.indexOf('\n  var PAY_TOP'), end = at < 0 ? -1 : RAW.indexOf('\n  /* ──', at + 1);
+  const BLK = at < 0 || end < 0 ? '' : RAW.slice(at, end), BC = noJsCmt(BLK);
+  const fnOf = (src, nm) => (src.match(new RegExp(`\\n  function ${nm}\\([^)]*\\) \\{\\n([\\s\\S]*?)\\n  \\}\\n`)) || [])[1] || '';
+  ok(/\n  KIND\['cmp-pay'\] = function \(box, ids\) \{/.test(BLK) && ['payCell', 'companyMed', 'medCell', 'aggBlock', 'aggFill'].every(n => fnOf(BC, n)),
+     "比較の給与の区画が読めた（var PAY_TOP から次の区切りまで・KIND['cmp-pay'] と中央値の部品が在る）", `${at}・${end}`);
+  /* T-S3b どの2社でも同じ道を通る ── 区画（コメントも含めて）に、会社の符号を1つも書かない */
+  const SLUGS = [...new Set([...GLANCE, ...Object.keys(SALARY)])];
+  const named = SLUGS.filter(s => new RegExp(`['"\`]${s}['"\`]`).test(BLK));
+  ok(BLK.length > 0 && !named.length, `比較の給与の区画に、会社の符号を1つも書かない（${SLUGS.length}社のどれも）`, named.join(','));
+  /* T-S4 画面は行からもサーバーの額からも何も計算しない（数えるのは返ってきた行の本数だけ） */
+  const calc = ['.reduce(', '.sort(', 'Math.'].filter(x => BC.includes(x));
+  ok(BLK.length > 0 && !calc.length, '比較の給与の区画は、足さない・並べ替えない・計算しない（.reduce( ・ .sort( ・ Math. が無い）', calc.join(' '));
+  /* T-S6（ファイルの半分）中央値の額の印 data-agg を付けるのは medCell だけ・中央値の器の印 data-kind="aggregate" を付けるのは aggBlock だけ */
+  const aggAt = LJ.split("setAttribute('data-agg'").length - 1, kindAt = LJ.split("'data-kind', 'aggregate'").length - 1;
+  ok(aggAt === 1 && fnOf(BC, 'medCell').includes("setAttribute('data-agg'") && !/dataset\.agg\b/.test(LJ) &&
+     kindAt === 1 && fnOf(BC, 'aggBlock').includes("setAttribute('data-kind', 'aggregate')"),
+     '中央値の額の印（data-agg）を付けるのは medCell だけ・中央値の器の印（data-kind="aggregate"）を付けるのは aggBlock だけ', `data-agg ${aggAt}か所・aggregate ${kindAt}か所`);
+  /* A24 やり直しのボタンは段階で1つ（共通の retryBtn）。この区画は宣言しない。中央値の「やり直す」は、その写し（形と字だけ。動きはここで1つ） */
+  const decl = ['function retryBtn(', 'function paintError('].filter(x => BC.includes(x)), af = fnOf(BC, 'aggFill');
+  ok(BLK.length > 0 && !decl.length && af.includes('retryBtn().cloneNode(true)') && !/retryBtn\([^)]/.test(LJ),
+     '比較の給与の区画は、やり直しのボタンを自分で作らない（retryBtn・paintError を宣言しない）・中央値の「やり直す」は共通の retryBtn() の写し（cloneNode）',
+     decl.join(' ') || (af.includes('retryBtn().cloneNode(true)') ? '引数つきの retryBtn(…) が在る' : '中央値のやり直しが retryBtn().cloneNode(true) でない'));
+  /* T-S8 読む人が替わった・通貨を替えた時の3つの並び */
+  const su = fnOf(LJ, 'setUid');
+  ok(/drop\('cmed:'\)/.test(su), '読む人が替わったら、中央値の答えも捨てる（setUid の drop に cmed:）', (su.split('\n').find(l => l.includes('drop(')) || '').trim());
+  ok(/reset\(\[[^\]]*'cmp-pay'[^\]]*\]\)/.test(su), '読む人が替わったら、比較の給与の欄も描き直す（setUid の reset に cmp-pay）', (su.split('\n').find(l => l.includes('reset(')) || '').trim());
+  const cur = (LJ.match(/addEventListener\('pv-currency-change', function \(\) \{([\s\S]*?)\n  \}\);/) || [])[1] || '';
+  ok(/'cmp-pay'/.test(cur) && /'realpay'/.test(cur) && /run\(box, k, /.test(cur), '通貨を替えたら、比較の給与の欄も（開いている時だけ）描き直す（pv-currency-change が realpay と cmp-pay を名指す）', cur.trim().slice(0, 160));
+  /* A3（P12.86-5）人数はどこにも出さない ── 中央値の答えから人数を受け取らない・「人」を組み立てない */
+  const cm = fnOf(BC, 'companyMed');
+  const ppl = [/['"`]人['"`]|人['"`]\s*[;,)+]/, /\bpeople\b/, /T\.(people|answered)\b/].filter(re => re.test(BC)).map(String);
+  ok(BLK.length > 0 && !!cm && !ppl.length && !/\bn\s*:/.test(cm),
+     '比較の給与の区画は、人数を受け取らない・出さない（companyMed に people も n も無い・「人」を組み立てない）', ppl.join(' ') || (/\bn\s*:/.test(cm) ? 'companyMed に n:' : ''));
+}
+
 head('career.css');
 ok(!/#[0-9a-fA-F]{3,8}\b/.test(CSSC), '色の直書き（hex）が無い', (CSSC.match(/.{0,20}#[0-9a-fA-F]{3,8}\b/) || [''])[0]);
 ok(!/\b(?:rgba?|hsla?)\(/.test(CSSC), '色の直書き（rgb / hsl）が無い');

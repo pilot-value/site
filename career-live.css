@@ -285,3 +285,26 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-ans-v{font-size:15px;font-weight:700;color:var(--pv-ink);overflow-wrap:anywhere}
 .crl-ans-m{display:inline-flex;flex-wrap:wrap;gap:0 8px;font-size:12px;color:var(--pv-ink-3)}
 .crl-how{font-weight:700;color:var(--pv-ink-2)}
+
+/* ── 比較：提出された年収（2社の列。行は REAL PAY の行と同じ部品）── */
+.crl-pr-h{margin:14px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-pc{display:flex;flex-direction:column;min-width:0}
+.crl-pc > .crl-msg{display:flex;align-items:center;min-height:32px;margin:0;color:var(--pv-ink-3)}
+.crl-cmp-c .crl-row{grid-template-columns:minmax(0,1fr)}                 /* 半分の幅では、額を条件の下へ */
+.crl-cmp-c .crl-row-b{justify-content:flex-start;flex-wrap:wrap;white-space:normal}
+.crl-cmp-c .crl-row-a:empty{display:none}                                /* 口コミに書かれた年収の行は、機種も年数も無い */
+.crl-more-s{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;list-style:none;color:var(--pv-accent-ink);font-size:13px;font-weight:700}
+.crl-more-s::-webkit-details-marker{display:none}
+.crl-more-s .crl-ic{transition:transform .18s var(--pv-ease)}
+.crl-more[open] > .crl-more-s .crl-ic{transform:rotate(180deg)}
+@media (hover:hover){.crl-more-s:hover{text-decoration:underline;text-underline-offset:3px}}
+.crl-more-s:active{opacity:.7}
+.crl-more-s:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){.crl-more-s .crl-ic{transition:none}}
+.crl-def{margin:10px 0 0;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
+.crl-agg{padding:0 0 12px;border-bottom:1px solid var(--pv-line)}
+.crl-agg[hidden]{display:none}
+.crl-agg-h{margin:12px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-agg .crl-cmp-row:last-of-type{border-bottom:0}
+.crl-agg > .crl-def{margin-top:4px}
+.crl-med{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
