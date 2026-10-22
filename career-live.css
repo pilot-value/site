@@ -206,6 +206,24 @@
 .crl-cmp-row{padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
 .crl-cmp-k{grid-column:1 / -1;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink)}
 .crl-cmp-c{display:flex;flex-direction:column;min-width:0}
+/* 片方の会社だけ開いているとき：2列をやめて上下に並べる（開いていない側に空の列を作らない） */
+.crl-split{display:grid;gap:14px}
+.crl-split-c{display:grid;gap:8px;min-width:0}
+.crl-split-c + .crl-split-c{padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+/* 「月の働き方」のすぐ下の回答の欄（data-quiet）：開いていない時・並べる行が無い時は何も言わない（すぐ上の欄が言っている）。
+   ⚠️ display:none にしない ── 比較は2社を選び直せる。消えた箱は取り直されない（career-live.js は見えている箱だけを取りに行く）。 */
+.crl[data-live="cmp-facts"][data-quiet="1"] > .crl-ph,
+.crl[data-live="cmp-facts"][data-quiet="1"] > .crl-sk{display:none}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="open"],
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="off"],
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"]{margin-top:14px}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="open"]{padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="locked"],
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="empty"],
+.crl[data-live="cmp-work"][data-state="off"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="off"],
+.crl[data-live="cmp-work"][data-state="error"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"]{display:block;height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.crl[data-live="cmp-work"][data-state="off"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="off"] > *,
+.crl[data-live="cmp-work"][data-state="error"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"] > *{display:none}
 
 /* ── 口コミ ── */
 .crl-score{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;margin:0}
@@ -230,6 +248,8 @@
 .crl-rate-rv .crl-revs{margin:0}
 /* 抜粋の終わりの「…」は、サーバーが切った時だけ付けている（pv_review_clip）。比較では足さない ──「……」にしない・切っていない字に付けない */
 .crl-cmp .crl-rev-clip::after{content:none}
+/* 2社とも投稿が無いとき：1つの文の下に、社名の札と淡い6角形の格子（文と格子のあいだを少し空ける） */
+.crl[data-live="cmp-stars"] > .crl-msg + .crl-cmp{margin-top:8px}
 /* ── 比較の6角形（2社を同じ形・同じ色で）──
    線と面は会社ページ（pv-glance.css の .pvg .crl-radar-*）と同じ値の写し。片方だけ直すと黙って別物になる。
    点数で塗れない会社は、会社ページと同じ 3.0 の淡い面（is-ph ── 線の色を薄く敷いただけ。数字は置かない）。

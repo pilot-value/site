@@ -8,7 +8,8 @@
    守っているもの
      ・場面 zero（W-zero）── 空の保存先・ゲスト・3組（jal|ana・etihad|cathay-pacific・eva-air|jal）。「0件」を 0 と書かない：
          公開の数字（推定年収の4つの額とその札・通貨）が全部在る／鍵の要る欄は、その欄を持つ区域の表のとおりのゲストの顔／
-         口コミの欄は「会員からの投稿はまだありません」の1行だけ（数・星・6角形・抜粋を置かない）／カードに評価の行が無い。
+         口コミの欄は「会員からの投稿はまだありません」の1行と、その下の会社ごとの 3.0 の淡い6角形（数字なし）だけ
+         （数・星・点数で塗った図・抜粋を置かない ── 図は 2026-10-22 LEAD AMENDMENT (2)）／カードに評価の行が無い。
          保存先の口コミは、この検査が q() で数える（ページに聞かない）。
          顔 a・b（比較の設計 F3 の決まりの写し。同じ決まりは assert-cmp-frame.mjs の場面 faces が持つ予定 ── 直すときは両方を同じに）：
            a 開いていない欄に、一覧・表・比べる行・待ちの骨が無い・錠の1行は会社ごとに1つまで・答えるカードと「やり直す」は1つまで
@@ -259,7 +260,7 @@ const scene = (key, label, fn) => { SCENES[key] = { key, label, fn }; };
 /* 画面の字（P9.7 で決まった、比較と会社ページの「投稿が無い」の1行。ページのコードからは読まない） */
 const REV_NONE = '会員からの投稿はまだありません';
 /* ゲストが空の保存先で見る顔（data-state）。字の決まりは、その欄を持つ区域の表：
-     cmp-stars  口コミの区域の表「2社とも投稿が無い → 1行（empty）」
+     cmp-stars  口コミの区域の表「2社とも投稿が無い → 1行＋会社ごとの 3.0 の淡い6角形（empty）」
      cmp-work   口コミの区域の表 C の R0 ゲスト → 錠の1行（locked）
      cmp-facts  口コミの区域の表 C の R0 ゲスト → 錠の1行（locked）
    表に無い欄（あとの作業で足される欄）は、読み終わっていて・失敗の顔でないことだけを見る（その区域の表は、その作業が持つ） */
@@ -267,7 +268,7 @@ const GUEST_ZERO = { 'cmp-stars': 'empty', 'cmp-work': 'locked', 'cmp-facts': 'l
 const ZERO_PAIRS = [['jal', 'ana'], ['etihad', 'cathay-pacific'], ['eva-air', 'jal']];
 const YEN = /^¥[\d,]+万$/;
 
-scene('zero', '空の保存先・ゲスト・3組：公開の数字は全部在る・鍵の要る欄はゲストの顔・口コミは「投稿はまだありません」の1行・カードに評価の行が無い（この場面は投稿を作らない）', async () => {
+scene('zero', '空の保存先・ゲスト・3組：公開の数字は全部在る・鍵の要る欄はゲストの顔・口コミは「投稿はまだありません」の1行と淡い6角形・カードに評価の行が無い（この場面は投稿を作らない）', async () => {
   for (const [a, b] of ZERO_PAIRS) {
     const AB = `${a}|${b}`;
     /* 保存先の口コミ（q() で数える） */
@@ -295,14 +296,34 @@ scene('zero', '空の保存先・ゲスト・3組：公開の数字は全部在�
           && other.every((x) => !['idle', 'loading', 'error'].includes(x.state)),
         `${AB} 比較の欄はどれもゲストの顔（口コミ empty・月の働き方 locked・待遇 locked${other.length ? '・表に無い欄 ' + other.map((x) => `${x.kind}=${x.state}`).join(' ') : ''}）`,
         J(F.slots));
-        /* 口コミの欄は、投稿が無いことの1行だけ */
+        /* 口コミの欄は、投稿が無いことの1行と、その下の会社ごとの 3.0 の淡い6角形だけ（2026-10-22 LEAD AMENDMENT (2)・オーナー
+           「必ず多角形のレーダーの図を載せて」P12.95／96／97）。前の「svg が 0・欄の字はその1行だけ」は、同じ強さで次へ移した（LEAD の決め (c)）：
+           1行が先／社名の札と淡い図を除いた字はその1行だけ／svg は淡い図の中の2つだけ・左右の列に1つずつ／図は数字なし・点の丸なし・読み上げない／
+           数・星・点数で塗った図・抜粋・錠の1行・比べる行が無い／欄の字に数字が無い */
         const rv = await H.slot(page, 'cmp-stars');
-        const extra = await page.evaluate(() => {
+        const Z = await page.evaluate(() => {
           const x = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"]');
-          return x ? x.querySelectorAll('.crl-avg, .crl-cnt, .crl-posts, .crl-score, .crl-rate, svg, .crl-revs, .crl-lock').length : -1;
+          if (!x) return null;
+          const rest = x.cloneNode(true);
+          for (const n of rest.querySelectorAll('[data-radar="ph"], .crl-cmp-head')) n.remove();
+          const col = (f) => { const c = f.closest('.crl-cmp-sc'), r = c && c.parentElement; return r ? [...r.children].indexOf(c) : -1; };
+          return {
+            first: x.firstElementChild ? x.firstElementChild.className : '',
+            heads: x.querySelectorAll('.crl-cmp-head > .crl-co').length,
+            extra: x.querySelectorAll('.crl-avg, .crl-cnt, .crl-posts, .crl-score, .crl-rate, .crl-stars, .crl-revs, .crl-lock, .crl-cmp-row').length,
+            svg: x.querySelectorAll('svg').length,
+            svgOut: [...x.querySelectorAll('svg')].filter((s) => !s.closest('[data-radar="ph"]')).length,
+            figs: [...x.querySelectorAll('[data-radar]')].map((f) => ({ k: f.getAttribute('data-radar'), hidden: f.getAttribute('aria-hidden'),
+              ph: !!f.querySelector('svg .crl-radar-shape.is-ph'), dots: f.querySelectorAll('.crl-radar-dot').length, b: f.querySelectorAll('b').length, col: col(f) })),
+            rest: rest.textContent.trim(),
+          };
         });
-        ok(!!rv && rv.state === 'empty' && rv.text.trim() === REV_NONE && extra === 0 && S[a].posts === 0 && S[b].posts === 0,
-          `${AB} 口コミの欄は「${REV_NONE}」の1行だけ（数・星・6角形・抜粋・錠の1行が無い）`, J({ rv: rv && { state: rv.state, text: rv.text }, extra, stored: S }));
+        ok(!!rv && rv.state === 'empty' && !/\d/.test(rv.text) && !!Z && Z.first === 'crl-msg' && Z.rest === REV_NONE && Z.heads === 2 && Z.extra === 0
+          && Z.svg === 2 && Z.svgOut === 0 && Z.figs.length === 2
+          && Z.figs.every((f) => f.k === 'ph' && f.hidden === 'true' && f.ph && f.dots === 0 && f.b === 0) && J(Z.figs.map((f) => f.col)) === '[0,1]'
+          && S[a].posts === 0 && S[b].posts === 0,
+          `${AB} 口コミの欄は「${REV_NONE}」の1行と、その下の会社ごとの 3.0 の淡い6角形（数字なし）だけ（数・星・点数で塗った図・抜粋・錠の1行が無い）`,
+          J({ rv: rv && { state: rv.state, text: rv.text }, Z, stored: S }));
       }
       /* 顔 a・b（狭い画面と広い画面） */
       const FC = await faces(page);

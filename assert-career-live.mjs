@@ -8,7 +8,7 @@
      ・6角形の名前は会社ページの図と同じ正本から（島 #crl-cats・static）。点数は誰にでも・6分類ぜんぶに点数がある会社だけ点数で塗る・
        塗れない会社は 3.0 の淡い面で数字なし・読めなかった会社は空（場面 radar）。
      ・新しい投稿の抜粋は誰にでも。続きは口コミの Give & Get（給与の入口と混ぜない）── 鍵の無い人にだけ1つ（場面 clip）。
-     ・投稿が無い2社に、数字も2つの文も出さない（場面 zero）。
+     ・投稿が無い2社に、数字も2つの文も出さない。1つの文の下に、会社ごとの 3.0 の淡い6角形（数字なし）（場面 zero）。
      ・会社ページと比較が、同じ上限の件数で口コミを数え、同じ1つの数え方（realRated）で評価を出す（static）。
      ・比較の評価は会社ページと同じ数（星・点数・「n件の評価」、次の行に「会員の投稿 n件」）。点の低い投稿も数える（場面 rate）。
      ・点数の無い会社・投稿の無い会社に、0 も空の星も置かない（場面 unrated）。
@@ -208,6 +208,50 @@ scene('static', 'ファイルの約束（口コミの読み方）', 'static', as
   try { ov = rv ? JSON.parse(rv.replace(/'/g, '"')) : null; mine = ru ? JSON.parse(ru[1].replace(/'/g, '"')) : null; } catch { ov = mine = null; }
   ok(Array.isArray(ov) && ov.length > 0 && JSON.stringify(mine) === JSON.stringify(ov),
     `比較の口コミの入口（T.revUnlock）は、会社ページの概要の口コミの入口と同じ言葉（「${(ov || []).join('')}」）`, JSON.stringify([mine, ov]));
+
+  /* S7 比較の回答の欄が並べる質問（gen-career.mjs の CMP_KEYS）。正本は質問の台帳（pv-conditions.mjs の QUESTIONS）。
+       ・勤務・訓練（work）と給与・待遇（pay）は重ならず、合わせると「やめていない・額の質問（通貨つき）でない」質問ちょうど全部
+       ・額の質問は1つも無い（会社ページの箱と同じ ── 箱は通貨なしで数字だけを出す）
+       ・どちらの並びも、会社ページの面の順（勤務予定 → 通勤 → Staff Travel → 昇格・訓練 → ほか）、その中は台帳の順
+       ・合わせて 120 まで（pv_contrib_facts が1回で受け取る上限）
+       ・ページの1回の読み（career-live.js の pageKeys）が、比較の回答の欄（cmp-facts）の鍵も聞く */
+  const { CMP_KEYS, tabOfKey } = await import('./gen-career.mjs');
+  const { QUESTIONS } = await import('./pv-conditions.mjs');
+  const W = CMP_KEYS.work, P = CMP_KEYS.pay, U = [...W, ...P];
+  const want = QUESTIONS.filter((q) => !q.retired && !q.currency).map((q) => q.id);
+  const cur = new Set(QUESTIONS.filter((q) => q.currency).map((q) => q.id));
+  ok(W.length > 0 && P.length > 0 && !W.some((k) => P.includes(k)) && new Set(U).size === U.length
+    && W.every((k) => tabOfKey(k) === 'work') && P.every((k) => tabOfKey(k) === 'pay'),
+  `比較の回答の質問：勤務・訓練 ${W.length}・給与・待遇 ${P.length} は重ならない（tabOfKey と同じ側）`, JSON.stringify({ W, P }));
+  ok(U.length === want.length && want.every((k) => U.includes(k)),
+    `2つを合わせると、やめていない・額でない質問ちょうど全部（${want.length}）`, JSON.stringify({ missing: want.filter((k) => !U.includes(k)), extra: U.filter((k) => !want.includes(k)) }));
+  ok(!U.some((k) => cur.has(k)), '比較の回答の質問に、額の質問（通貨つき）が1つも無い', U.filter((k) => cur.has(k)).join(','));
+  const surf = (q) => (q.section === 'roster' ? 0 : q.topic === 'taxi' ? 1 : q.topic === 'staff_travel' ? 2 : q.section === 'career' ? 3 : 4);
+  const at = (k) => QUESTIONS.findIndex((q) => q.id === k);
+  const inOrder = (list) => list.every((k, i) => i === 0 || (() => {
+    const a = QUESTIONS[at(list[i - 1])], b = QUESTIONS[at(k)];
+    return surf(a) < surf(b) || (surf(a) === surf(b) && at(list[i - 1]) < at(k));
+  })());
+  ok(inOrder(W) && inOrder(P), 'どちらの並びも、会社ページの面の順（勤務予定 → 通勤 → Staff Travel → 昇格・訓練）、その中は台帳の順', JSON.stringify({ W, P }));
+  ok(U.length <= 120, `比較が1回で聞く質問は 120 まで（${U.length}）`);
+  const pk = (LJ.match(/function pageKeys\(\) \{[\s\S]*?\n {2}\}/) || [''])[0];
+  ok(pk.includes(`.crl[data-live="cmp-facts"][data-keys]`) && pk.includes(`.crl[data-live="fact"][data-keys]`),
+    'ページの1回の読み（pageKeys）は、集計の欄（fact）と比較の回答の欄（cmp-facts）の鍵を合わせて聞く', pk.slice(0, 400));
+
+  /* S8 career.html の比較の回答の欄はちょうど2つ：「月の働き方」の欄（cmp-work）のすぐ次に data-quiet="1" で勤務・訓練の質問、
+     「待遇」の見出しの下に給与・待遇の質問（data-quiet なし）。鍵の並びは CMP_KEYS のまま（生成し忘れ・入れ違いは赤） */
+  const tagsOf = (kind) => [...CH.matchAll(/<div class="crl"[^>]*>/g)].filter((m) => m[0].includes(` data-live="${kind}"`))
+    .map((m) => ({ at: m.index, end: m.index + m[0].length, tag: m[0] }));
+  const attrOf = (t, a) => { const m = new RegExp(` data-${a}="([^"]*)"`).exec(t); return m ? m[1] : null; };
+  const CF = tagsOf('cmp-facts'), CW = tagsOf('cmp-work'), ben = CH.indexOf('id="cr-cmp-h-ben"');
+  const wEnd = CW.length === 1 ? CH.indexOf('</div>', CW[0].end) + '</div>'.length : -1;
+  ok(CF.length === 2 && CW.length === 1 && CH.split('data-live="cmp-facts"').length === 3,
+    'career.html の比較の回答の欄（data-live="cmp-facts"）はちょうど2つ・月の働き方の欄（cmp-work）は1つ', JSON.stringify({ CF: CF.length, CW: CW.length }));
+  const [Q, Pz] = CF.length === 2 ? CF : [{ tag: '' }, { tag: '' }];
+  ok(CF.length === 2 && wEnd > 0 && /^\s*$/.test(CH.slice(wEnd, Q.at)) && attrOf(Q.tag, 'quiet') === '1' && attrOf(Q.tag, 'keys') === CMP_KEYS.work.join(','),
+    '月の働き方の欄のすぐ次の欄は data-quiet="1"・聞く質問は勤務・訓練（CMP_KEYS.work）のまま', Q.tag.slice(0, 300));
+  ok(CF.length === 2 && ben > 0 && Pz.at > ben && attrOf(Pz.tag, 'quiet') === null && attrOf(Pz.tag, 'keys') === CMP_KEYS.pay.join(','),
+    '「待遇」の見出しの下の欄は data-quiet なし・聞く質問は給与・待遇（CMP_KEYS.pay）のまま', Pz.tag.slice(0, 300));
 });
 
 /* ══ MOCK ════════════════════════════════════════════════════════ */
@@ -268,19 +312,40 @@ scene('leak', '口コミの行のほかの列を、画面にも保存領域に�
   await shots(page, 'pc');
 });
 
-scene('zero', '2社とも投稿が無いとき、数字も2つの文も出さない', 'mock', async () => {
+/* 2026-10-22 LEAD AMENDMENT (2)（オーナー「必ず多角形のレーダーの図を載せて」P12.95／96／97）で、1つの文の下に会社ごとの 3.0 の淡い6角形が
+   加わった。前の決まり「欄に在るのは1つの文だけ」「欄の字はその1文だけ」は、同じ強さで次へ移した（X0）：
+   欄の子は 文 ＋ 2社の格子 の2つだけ／格子を除いた字はその1文だけ／格子は社名の札と6角形の行だけ／図は2つとも 3.0 の淡い面（数字なし）／欄の字に数字が無い */
+scene('zero', '2社とも投稿が無いとき、数字も2つの文も出さない・1つの文の下に会社ごとの 3.0 の淡い6角形（数字なし）', 'mock', async () => {
   const { page } = await open('pc', { url: PAIR_URL('jal', 'etihad') });
   ok(await settled(page, 'cmp-stars', 'jal|etihad'), '口コミの欄が読み終わった');
   const s = await slot(page, 'cmp-stars');
   ok(!!s && s.state === 'empty', '欄は「まだ無い」の顔（data-state empty）', s && s.state);
-  const kids = await page.evaluate(() => {
+  const z = await page.evaluate(() => {
     const b = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"]');
-    return b ? [...b.children].map((c) => `${c.tagName.toLowerCase()}.${c.className}`) : [];
+    if (!b) return null;
+    const g = b.querySelector(':scope > .crl-cmp');
+    const rest = b.cloneNode(true), rg = rest.querySelector(':scope > .crl-cmp');
+    if (rg) rg.remove();
+    return {
+      kids: [...b.children].map((c) => `${c.tagName.toLowerCase()}.${c.className}`),
+      grid: g ? [...g.children].map((c) => c.className) : [],
+      head: g ? [...g.querySelectorAll(':scope > .crl-cmp-head > .crl-co')].map((c) => c.textContent.trim()) : [],
+      extra: b.querySelectorAll('.crl-avg, .crl-cnt, .crl-posts, .crl-score, .crl-rate, .crl-stars, .crl-revs, .crl-lock, .crl-cmp-row, .crl-radar-dot, [data-radar="real"]').length,
+      rest: rest.textContent.trim(),
+    };
   });
-  ok(kids.length === 1 && kids[0] === 'p.crl-msg', '欄に在るのは1つの文だけ（2社それぞれの文を並べない）', JSON.stringify(kids));
-  ok(!!s && s.text.trim().length > 0 && !/\d/.test(s.text), '数字を1つも出さない（0件を 0 と書かない）', s && s.text);
+  const F = await figs(page);
+  ok(!!z && JSON.stringify(z.kids) === JSON.stringify(['p.crl-msg', 'div.crl-cmp']),
+    '欄に在るのは、1つの文（2社それぞれの文を並べない）と、その下の2社の格子だけ（文が先）', JSON.stringify(z && z.kids));
   /* 会社ページと同じ言葉（海外の評判の引用もある「口コミ」とは言わない ── 会員の投稿が無い、が本当のこと） */
-  ok(!!s && s.text.trim() === '会員からの投稿はまだありません', 'その1文は「会員からの投稿はまだありません」', s && s.text);
+  ok(!!z && z.rest === '会員からの投稿はまだありません', 'その1文は「会員からの投稿はまだありません」（格子のほかに字は無い）', z && z.rest);
+  ok(!!z && JSON.stringify(z.grid) === JSON.stringify(['crl-cmp-head', 'crl-cmp-sub crl-rate-fig'])
+    && JSON.stringify(z.head) === JSON.stringify([NAME.jal, NAME.etihad]) && z.extra === 0,
+    '格子は社名の札（JAL・エティハドの順）と6角形の行だけ（星・点数・件数・抜粋・錠の1行・比べる行・点数で塗った図が無い）',
+    JSON.stringify(z && { grid: z.grid, head: z.head, extra: z.extra }));
+  ok(F.rows === 1 && F.cells.length === 2 && F.cells.every((c) => isPh(c, F.island)),
+    '2社とも、会社ページと同じ 3.0 の淡い面（is-ph）・6つの名前（島の順）・点の丸も分類ごとの点も無い・読み上げない', JSON.stringify(F));
+  ok(!!s && s.text.trim().length > 0 && !/\d/.test(s.text), '数字を1つも出さない（0件を 0 と書かない・3.0 を字にしない）', s && s.text);
   await shots(page, 'pc');
 });
 
@@ -863,6 +928,233 @@ scene('pay-med', '給与の中央値：開いた答えからだけ・職位の�
     ok(done && asked.length === 0 && !!s && s.state !== 'open', `[M10 d] ${who}：中央値（pv_company_pay）を1回も聞かない（欄は「${s && s.state}」）`, JSON.stringify({ done, asked }));
   }
   payAnswered(sts);
+});
+
+/* ══ 比較の回答（月の働き方・待遇の3つの欄）── 口コミの区域の表 C ══════════════════
+   W ＝ 月の働き方（cmp-work・pv_work_view）／Q ＝ そのすぐ下の回答の欄（cmp-facts・data-quiet）／P ＝ 待遇の回答の欄（cmp-facts）。
+   Q と P は同じ1回の読み（pv_contrib_facts・1社1回）。会社ごとに、サーバーが返した状態で描く（見せてよいかはサーバーの1か所）。
+   質問と答えの名前は、質問の台帳（pv-conditions.json）から検査が引く（ページのコードで作り直さない）。 */
+const CK = (await import('./gen-career.mjs')).CMP_KEYS;
+const QL = JSON.parse(read('pv-conditions.json')).questions;
+const QOF = (id) => QL.find((q) => q.id === id);
+const WK = CK.work[0], PK = CK.pay[0];                    // 勤務・訓練の最初の質問・給与・待遇の最初の質問
+const factRow = (id, n = 4) => {
+  const q = QOF(id);
+  return q.kind === 'num' ? { question_id: id, kind: 'num', n, lead: null, median_num: 20, ym: '2026-09' }
+    : { question_id: id, kind: q.kind, n, lead: [q.choices[0].code], median_num: null, ym: '2026-09' };
+};
+const ansOf = (id) => { const q = QOF(id); return q.kind === 'num' ? `20${(q.num && q.num.ja) || ''}` : q.choices[0].ja; };
+const labelOf = (id) => QOF(id).ja.label;
+const WORK_OPEN = { ok: true, state: 'open', by: { cap: { block_hours: { lo: 60, hi: 75 } }, fo: {} } };
+const FACT_OPEN = { ok: true, state: 'open', facts: [factRow(WK), factRow(PK)] };
+const GIVE = { ok: true, state: 'give', airline: 'jal', name: 'JAL', have: 3, need: 5, ask: ['reserve_duty'] };
+/* 開いていない会社の返事に植えた値（ページは状態の1語のほかを読まない ＝ どこにも出ない）。字が画面のほかの数と重ならないもの */
+const PLANT_W = { ok: true, state: 'give', by: { cap: { block_hours: { lo: 811, hi: 812 } } } };
+const PLANT_F = { ok: true, state: 'give', facts: [factRow(WK, 899), factRow(PK, 899)] };
+const PLANT_TXT = ['811', '812', '899'];
+const one = (s) => ({ status: 200, body: { ok: true, state: s } });
+/* 会社ごとの返事（{ slug: body | { status, body } }）。聞かれた会社は p.airline */
+const byCo = (map, dflt = { ok: true, state: 'login' }) => (p) => {
+  const r = map[p && p.airline];
+  return r && r.status ? r : { status: 200, body: r || dflt };
+};
+const W_SEL = '#cr [data-view="compare"] .crl[data-live="cmp-work"]';
+const F_SEL = '#cr [data-view="compare"] .crl[data-live="cmp-facts"]';
+/* 3つの欄が、その2社について読み終わった */
+const settled3 = (page, want) => until(page, ([ws, fs, want]) => {
+  const all = [document.querySelector(ws), ...document.querySelectorAll(fs)];
+  return all.length === 3 && all.every((b) => !!b && b.getAttribute('data-for') === want && !['idle', 'loading'].includes(b.getAttribute('data-state')));
+}, [W_SEL, F_SEL, want]);
+/* 3つの欄の顔（W・Q・P）。split ＝ 会社ごとに上下へ並べた形の列（会社の札・字・カード・錠の1行・リンク） */
+const faces3 = (page) => page.evaluate(([ws, fs]) => {
+  const one = (b) => {
+    if (!b) return null;
+    const cols = [...b.querySelectorAll(':scope > .crl-split > .crl-split-c')].map((c) => ({
+      airline: c.getAttribute('data-airline'), tag: (c.querySelector(':scope > .crl-co') || {}).textContent || null, text: c.innerText,
+      give: c.querySelectorAll('.crl-give').length, locks: [...c.querySelectorAll('.crl-lock')].map((l) => l.textContent.trim()),
+      links: c.querySelectorAll('a').length, chip: [...c.querySelectorAll('.crl-side-err, .crl-none')].map((x) => x.textContent) }));
+    return { state: b.getAttribute('data-state'), part: b.getAttribute('data-part'), text: b.innerText.trim(), html: b.outerHTML,
+      h: b.getBoundingClientRect().height, cols, grid: !!b.querySelector('.crl-cmp'),
+      give: b.querySelectorAll('.crl-give').length, giveN: [...b.querySelectorAll('.crl-give-n')].map((x) => x.textContent),
+      locks: [...b.querySelectorAll('.crl-lock')].map((l) => l.textContent.trim()), links: [...b.querySelectorAll('a')].map((a) => a.textContent.trim()),
+      login: b.querySelectorAll('a[data-crl-login]').length, retry: b.querySelectorAll('.crl-retry').length };
+  };
+  const f = document.querySelectorAll(fs);
+  const V = document.querySelector('#cr [data-view="compare"]');
+  const pay = V ? [...V.querySelectorAll('a[href^="pay-report.html"]')] : [];
+  const login = V ? [...V.querySelectorAll('a[data-crl-login]')] : [];
+  const inPay = (a) => !!a.closest('.crl[data-live="cmp-pay"]');
+  return { W: one(document.querySelector(ws)), Q: one(f[0]), P: one(f[1]), view: V ? V.innerText : '',
+    give: V ? V.querySelectorAll('.crl-give').length : -1,
+    payEntry: { n: pay.length, inPay: pay.filter(inPay).length }, loginEntry: { n: login.length, inPay: login.filter(inPay).length } };
+}, [W_SEL, F_SEL]);
+const LINE = { login: 'ログインと給与の提出で開きます', locked: '給与の提出で開きます', give: '自分の会社に5つ答えると開きます' };
+const J = (x) => JSON.stringify(x);
+/* M-mix の返事（給与提出者として：JAL は開いている・ANA は自分の会社ではない＝答える数が足りない。ANA の返事には値を植えてある） */
+const MIX = {
+  pv_work_view: byCo({ jal: WORK_OPEN, ana: PLANT_W }),
+  pv_contrib_facts: byCo({ jal: FACT_OPEN, ana: PLANT_F }),
+  pv_contrib_give: () => ({ status: 200, body: GIVE }),
+};
+
+scene('keys', '比較の回答：1社1回の読み（pv_contrib_facts）が、2つの欄の質問をちょうど聞き、2つの欄がその答えから埋まる', 'mock', async () => {
+  const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: {
+    pv_work_view: () => ({ status: 200, body: WORK_OPEN }), pv_contrib_facts: () => ({ status: 200, body: FACT_OPEN }) } });
+  ok(await settled3(page, 'jal|ana'), '3つの欄が読み終わった');
+  const calls = st.calls.filter((c) => c.name === 'pv_contrib_facts');
+  const want = [...CK.work, ...CK.pay].sort();
+  const cards = [...read('career.html').matchAll(/<div class="crl" data-live="fact"[^>]*data-keys="([^"]*)"/g)].flatMap((m) => m[1].split(','));
+  ok(calls.length === 2 && JSON.stringify(calls.map((c) => c.p && c.p.airline).sort()) === '["ana","jal"]',
+    `比較の回答の読みは1社に1回だけ（2本）`, J(calls.map((c) => c.p && c.p.airline)));
+  ok(calls.every((c) => Array.isArray(c.p.keys) && JSON.stringify([...new Set(c.p.keys)].sort()) === JSON.stringify(want) && c.p.keys.length === want.length),
+    `どちらの読みも、聞く質問はちょうど CMP_KEYS の勤務・訓練 ${CK.work.length} と給与・待遇 ${CK.pay.length}（${want.length}）`,
+    J(calls.map((c) => ({ n: c.p && c.p.keys && c.p.keys.length, extra: (c.p.keys || []).filter((k) => !want.includes(k)), missing: want.filter((k) => !(c.p.keys || []).includes(k)) }))));
+  ok(cards.length > 0 && cards.every((k) => want.includes(k)), `ページの話題のカードの質問（${new Set(cards).size}）も、その中に在る`, cards.filter((k) => !want.includes(k)).join(','));
+  const F = await faces3(page);
+  ok(!!F.Q && F.Q.state === 'open' && F.Q.grid && F.Q.text.includes(labelOf(WK)) && F.Q.text.includes(ansOf(WK)) && !F.Q.text.includes(labelOf(PK)),
+    `月の働き方の下の欄は、その答えから勤務・訓練の質問を描く（「${labelOf(WK)}」${ansOf(WK)}）`, J(F.Q && [F.Q.state, F.Q.text.slice(0, 200)]));
+  ok(!!F.P && F.P.state === 'open' && F.P.grid && F.P.text.includes(labelOf(PK)) && F.P.text.includes(ansOf(PK)) && !F.P.text.includes(labelOf(WK)),
+    `待遇の欄は、同じ答えから給与・待遇の質問を描く（「${labelOf(PK)}」${ansOf(PK)}）`, J(F.P && [F.P.state, F.P.text.slice(0, 200)]));
+  await shots(page, 'pc');
+});
+
+scene('mix', '比較の回答：会社ごとにサーバーの状態で描く（開いている会社は値・もう片方は1行と答えるカード1枚・植えた値はどこにも出ない）', 'mock', async () => {
+  for (const size of ['pc', 'sp']) {
+    const { page } = await open(size, { who: 'pay', url: PAIR_URL('jal', 'ana'), stub: MIX });
+    ok(await settled3(page, 'jal|ana'), `（${size}）3つの欄が読み終わった`);
+    const F = await faces3(page);
+    const [wj, wa] = (F.W && F.W.cols) || [];
+    ok(!!F.W && F.W.state === 'open' && F.W.cols.length === 2 && !F.W.grid && wj && wa && wj.airline === 'jal' && wa.airline === 'ana'
+      && wj.tag === NAME.jal && wa.tag === NAME.ana,
+    `（${size}）月の働き方：2列をやめて、会社の札ごとに上下へ（JAL・ANA の順）`, J(F.W && { state: F.W.state, grid: F.W.grid, cols: F.W.cols.map((c) => [c.airline, c.tag]) }));
+    ok(!!wj && wj.text.includes('60〜75') && wj.give === 0 && wj.locks.length === 0, `（${size}）月の働き方の JAL（開いている）：その会社の値（「60〜75」）・錠の1行もカードも無い`, J(wj));
+    ok(!!wa && wa.locks.length === 1 && wa.locks[0] === LINE.give && wa.give === 1 && wa.text.includes('あなたが答えた項目：3／5'),
+      `（${size}）月の働き方の ANA（答える数が足りない）：「${LINE.give}」の1行と、答えるカード1枚（「あなたが答えた項目：3／5」）`, J(wa));
+    const [qj, qa] = (F.Q && F.Q.cols) || [];
+    ok(!!F.Q && F.Q.state === 'open' && F.Q.cols.length === 1 && qj && qj.airline === 'jal' && !qa && qj.text.includes(labelOf(WK)) && qj.text.includes(ansOf(WK)) && F.Q.give === 0,
+      `（${size}）月の働き方の下の回答：JAL の札の下に勤務・訓練の答え（「${labelOf(WK)}」）・ANA の分は描かない（すぐ上が言っている）・カード無し`, J(F.Q && { cols: F.Q.cols, give: F.Q.give }));
+    const [pj, pa] = (F.P && F.P.cols) || [];
+    ok(!!F.P && F.P.state === 'open' && F.P.cols.length === 2 && pj && pa && pj.text.includes(labelOf(PK)) && pj.text.includes(ansOf(PK))
+      && pa.locks.length === 1 && pa.locks[0] === LINE.give && pa.give === 0 && pa.links === 0,
+    `（${size}）待遇：JAL の札の下に給与・待遇の答え（「${labelOf(PK)}」）・ANA の札の下に「${LINE.give}」の1行だけ（カードもリンクも無い）`, J(F.P && F.P.cols));
+    ok(F.give === 1, `（${size}）答えるカードは、比較の画面に1枚だけ（月の働き方の中）`, String(F.give));
+    const html = [F.W, F.Q, F.P].map((x) => (x ? x.html : '')).join('\n');
+    const hit = PLANT_TXT.filter((t) => F.view.includes(t) || html.includes(t));
+    ok(hit.length === 0, `（${size}）ANA の返事に植えた値（${PLANT_TXT.join('・')}）は、画面の字にも3つの欄の HTML にも無い`, hit.join(','));
+    await shots(page, size);
+  }
+});
+
+scene('mixtwo', '比較の回答：別のタブで別の会員が入ったら、読み込み直さずに、その人の状態へ（前の人の値は1字も残らない）', 'mock', async () => {
+  const { MEMBERS } = await import('./serve-local.mjs');
+  const ID = Object.fromEntries(MEMBERS.map((m) => [m.id, m.key]));
+  const who = (auth) => {
+    try { const t = String(auth || '').replace(/^Bearer /, ''); return ID[JSON.parse(Buffer.from(t.split('.')[1], 'base64url').toString()).sub] || 'anon'; }
+    catch { return 'anon'; }
+  };
+  /* 返事は送ってきたログインで決める（給与提出者 pay だけが M-mix の返事・ほかの人は「給与の鍵が無い」） */
+  const asPay = (fn) => (p, auth) => (who(auth) === 'pay' ? fn(p, auth) : one('locked'));
+  const stub = { pv_work_view: asPay(MIX.pv_work_view), pv_contrib_facts: asPay(MIX.pv_contrib_facts), pv_contrib_give: asPay(MIX.pv_contrib_give) };
+  const { page, st, ctx } = await open('pc', { who: 'pay', url: PAIR_URL('jal', 'ana'), stub });
+  ok(await settled3(page, 'jal|ana'), '給与提出者として、3つの欄が読み終わった');
+  const F0 = await faces3(page);
+  const VALS = ['60〜75', ansOf(WK), ansOf(PK)];
+  ok(!!F0.W && F0.W.text.includes('60〜75') && F0.Q.text.includes(ansOf(WK)) && F0.P.text.includes(ansOf(PK)),
+    '切り替える前：給与提出者の値が出ている（確かめが空振りしていない）', J({ W: F0.W && F0.W.text.slice(0, 120), Q: F0.Q && F0.Q.text.slice(0, 80), P: F0.P && F0.P.text.slice(0, 80) }));
+  for (const n of [0, 1]) await H.watch(page, 'cmp-facts', n);
+  await H.watch(page, 'cmp-work');
+  const mark = await page.evaluate(() => { window.__crlNoReload = 1; return (window.__crlSeen || []).length; });
+  const n0 = st.calls.length;
+  const t = await H.otherTab(ctx, CUR.env.local);
+  await H.loginIn(t, CUR.env.local, 'a');
+  const turned = await until(page, ([ws, fs, a, b]) => {
+    const w = document.querySelector(ws), f = document.querySelectorAll(fs);
+    const ok = (x, s) => !!x && x.getAttribute('data-state') === 'locked' && x.innerText.trim() === s;
+    return ok(w, a) && ok(f[1], b) && !!f[0] && f[0].getAttribute('data-state') === 'locked';
+  }, [W_SEL, F_SEL, LINE.locked, LINE.locked]);
+  const F = await faces3(page);
+  ok(turned && F.W.locks.length === 1 && F.W.links.length === 0 && F.P.text === LINE.locked && F.Q.text === '' && F.Q.h === 0,
+    `別のタブで会員A が入ると、読み込み直さずに：月の働き方と待遇は「${LINE.locked}」・すぐ下の回答の欄は高さ 0`, J({ turned, W: F.W && F.W.text, P: F.P && F.P.text, Q: F.Q && [F.Q.state, F.Q.h] }));
+  const still = await page.evaluate(() => window.__crlNoReload === 1);
+  const after = st.calls.slice(n0);
+  ok(still && after.length > 0 && after.every((c) => who(c.auth) === 'a'), '読み込み直していない・切り替えたあとの読みは、どれも会員A のログインで聞いた',
+    J({ still, after: after.map((c) => `${c.name}:${who(c.auth)}`) }));
+  const seenAfter = (await H.seen(page)).slice(mark);
+  const leftV = VALS.filter((v) => seenAfter.some((s) => s.includes(v)) || F.view.includes(v));
+  ok(seenAfter.length > 0 && leftV.length === 0, `切り替えたあと3つの欄が取ったどの顔にも、画面のどこにも、給与提出者の値（${VALS.join('・')}）が無い`,
+    J({ left: leftV, seen: seenAfter.slice(0, 8) }));
+  await t.close();
+});
+
+scene('closed', '比較の回答：2社とも開いていない時は欄に1行（語の順はログイン → 給与 → 答える）・答えるカードは月の働き方にだけ・給与の入口は「提出された年収」の欄に1つ', 'mock', async () => {
+  const CASES = [
+    ['give', 'give', 'give', H.payFix.member()],
+    ['login', 'login', 'login', H.payFix.guest()],
+    ['locked', 'locked', 'locked', H.payFix.member()],
+    ['give', 'login', 'login', H.payFix.guest()],          // 食い違った2社：先に当たる語（ログイン）
+  ];
+  for (const [a, b, word, payBody] of CASES) {
+    const AB = `jal ${a}・ana ${b}`;
+    const { page } = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: {
+      pv_work_view: byCo({ jal: { ok: true, state: a }, ana: { ok: true, state: b } }),
+      pv_contrib_facts: byCo({ jal: { ok: true, state: a }, ana: { ok: true, state: b } }),
+      pv_contrib_give: () => ({ status: 200, body: GIVE }),
+      pv_pay_rows: () => ({ status: 200, body: payBody }) } });
+    ok(await settled3(page, 'jal|ana'), `（${AB}）3つの欄が読み終わった`);
+    const F = await faces3(page);
+    const card = word === 'give';
+    ok(!!F.W && F.W.state === 'locked' && F.W.locks.length === 1 && F.W.locks[0] === LINE[word] && F.W.cols.length === 0
+      && F.W.give === (card ? 1 : 0) && (card ? F.W.giveN[0] === 'あなたが答えた項目：3／5' : F.W.text === LINE[word]),
+    `（${AB}）月の働き方：欄に1行「${LINE[word]}」${card ? 'と答えるカード1枚' : 'だけ'}`, J(F.W && { state: F.W.state, text: F.W.text, give: F.W.give }));
+    ok(!!F.W && F.W.links.length === (card ? 1 : 0) && F.W.login === 0 && !F.W.text.includes('匿名で給与を提出する'),
+      `（${AB}）月の働き方に、ログインも給与の入口も無い（リンクは${card ? '答えるカードの「匿名で答える」1つだけ' : '0'}）`, J(F.W && F.W.links));
+    ok(!!F.Q && F.Q.state === 'locked' && F.Q.text === '' && F.Q.h === 0, `（${AB}）すぐ下の回答の欄は字が無く、高さ 0`, J(F.Q && [F.Q.state, F.Q.text, F.Q.h]));
+    ok(!!F.P && F.P.state === 'locked' && F.P.text === LINE[word] && F.P.links.length === 0 && F.P.give === 0,
+      `（${AB}）待遇：「${LINE[word]}」の1行だけ（リンクもカードも無い）`, J(F.P && { text: F.P.text, links: F.P.links, give: F.P.give }));
+    const guest = !payBody.give;
+    ok(F.payEntry.n === 1 && F.payEntry.inPay === 1 && F.loginEntry.n === (guest ? 1 : 0) && F.loginEntry.inPay === F.loginEntry.n,
+      `（${AB}）比較の画面の給与の入口は1つで「提出された年収」の欄の中・「ログイン」は${guest ? 'ゲストにだけ1つ（同じ欄の中）' : '出ない（会員）'}`, J({ pay: F.payEntry, login: F.loginEntry }));
+  }
+});
+
+scene('mixfail', '比較の回答：片方の会社が読めなくても、もう片方は出す（読めなかった会社は札と「いま読み出せません」・0 も「集計なし」も置かない）', 'mock', async () => {
+  const NOFN2 = (fn) => ({ status: 404, body: { code: 'PGRST202', details: null, hint: null, message: `Could not find the function public.${fn}` } });
+  /* 月の働き方：JAL が読めない・ANA は答える数が足りない */
+  {
+    const { page } = await open('pc', { who: 'pay', url: PAIR_URL('jal', 'ana'), stub: {
+      pv_work_view: byCo({ jal: FAIL500, ana: { ok: true, state: 'give' } }), pv_contrib_give: () => ({ status: 200, body: GIVE }) } });
+    ok(await settled3(page, 'jal|ana'), '（月の働き方の JAL が失敗）3つの欄が読み終わった');
+    const F = await faces3(page), [j, a] = (F.W && F.W.cols) || [];
+    ok(!!F.W && F.W.state === 'open' && F.W.part === '1' && F.W.retry === 1 && F.W.cols.length === 2,
+      '月の働き方：会社ごとに上下へ・片方だけ読めなかった印（data-part="1"）・「やり直す」は1つ', J(F.W && { state: F.W.state, part: F.W.part, retry: F.W.retry, cols: F.W.cols.length }));
+    ok(!!j && j.tag === NAME.jal && j.chip.length === 1 && j.chip[0] === 'いま読み出せません' && !/\d/.test(j.text) && j.give === 0 && j.locks.length === 0,
+      'JAL（読めなかった）：札と「いま読み出せません」だけ（数字・錠の1行・カードを置かない ＝ 自分の会社かもしれない読みの失敗を隠さない）', J(j));
+    ok(!!a && a.tag === NAME.ana && a.locks[0] === LINE.give && a.give === 1, `ANA：「${LINE.give}」とカード`, J(a));
+  }
+  /* 回答の欄：JAL が読めない・ANA は開いている */
+  {
+    const { page } = await open('pc', { who: 'pay', url: PAIR_URL('jal', 'ana'), stub: {
+      pv_work_view: () => ({ status: 200, body: WORK_OPEN }), pv_contrib_facts: byCo({ jal: FAIL500, ana: FACT_OPEN }) } });
+    ok(await settled3(page, 'jal|ana'), '（回答の JAL が失敗）3つの欄が読み終わった');
+    const F = await faces3(page);
+    for (const [k, x, key] of [['すぐ下の回答', F.Q, WK], ['待遇', F.P, PK]]) {
+      const [j, a] = (x && x.cols) || [];
+      ok(!!x && x.state === 'open' && x.part === '1' && x.retry === 1 && x.cols.length === 2 && j && a
+        && j.chip.length === 1 && j.chip[0] === 'いま読み出せません' && !/集計なし|まだ集計がありません|\d/.test(j.text)
+        && a.text.includes(labelOf(key)) && a.text.includes(ansOf(key)),
+      `${k}：JAL は札と「いま読み出せません」だけ（「集計なし」「まだ集計がありません」を置かない）・ANA はその答え（「${labelOf(key)}」）・「やり直す」1つ`,
+      J(x && { state: x.state, part: x.part, retry: x.retry, cols: x.cols }));
+    }
+  }
+  /* 2社とも口が無い（PGRST202）→ 月の働き方と待遇は「準備中」・すぐ下の欄は畳む（同じ語を2回言わない） */
+  for (const size of ['pc', 'sp']) {
+    const { page } = await open(size, { url: PAIR_URL('jal', 'ana'), stub: {
+      pv_work_view: () => NOFN2('pv_work_view'), pv_contrib_facts: () => NOFN2('pv_contrib_facts') } });
+    ok(await settled3(page, 'jal|ana'), `（2社とも口が無い・${size}）3つの欄が読み終わった`);
+    const F = await faces3(page);
+    ok(!!F.W && F.W.state === 'off' && F.W.text === '準備中' && F.Q.state === 'off' && F.Q.h === 0 && F.P.state === 'off' && F.P.text === '準備中',
+      `（${size}）月の働き方「準備中」・すぐ下の欄は高さ 0・待遇「準備中」`, J({ W: F.W && [F.W.state, F.W.text], Q: F.Q && [F.Q.state, F.Q.h], P: F.P && [F.P.state, F.P.text] }));
+  }
 });
 
 /* ══ 走らせる ═══════════════════════════════════════════════════ */

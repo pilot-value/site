@@ -167,6 +167,17 @@ const faceOf = (page, sel) => page.evaluate((sel, ERR, RETRY) => {
     text: t.replace(/\s+/g, ' ').trim().slice(0, 300), html: b.outerHTML };
 }, sel, ERR, RETRY);
 const CMP = (kind) => `#cr [data-view="compare"] .crl[data-live="${kind}"]`;
+/* 比較の画面の cmp- の欄（getClientRects の在るもの）を、要素ごとに1つずつ（同じ種類が2つあっても、それぞれを読む）。
+   quiet ＝ data-quiet="1"・after ＝ すぐ前の欄の種類・shown ＝ 見えている「やり直す」の数・h ＝ 欄の高さ */
+const cdnFaces = (page) => page.evaluate((ERR, RETRY) => [...document.querySelectorAll('#cr [data-view="compare"] .crl[data-live^="cmp-"]')]
+  .filter((b) => b.getClientRects().length).map((b) => {
+    const t = b.innerText || '', prev = b.previousElementSibling;
+    const rs = [...b.querySelectorAll('.crl-retry')].filter((x) => x.textContent === RETRY);
+    return { kind: b.getAttribute('data-live'), quiet: b.getAttribute('data-quiet') === '1', state: b.getAttribute('data-state'),
+      after: (prev && prev.getAttribute('data-live')) || '', errs: t.split(ERR).length - 1, retries: rs.length,
+      shown: rs.filter((x) => x.getClientRects().length && x.getBoundingClientRect().height > 1).length,
+      h: Math.round(b.getBoundingClientRect().height), text: t.trim() };
+  }), ERR, RETRY);
 /* 比較の画面の cmp- の欄（見えているもの）の種類 */
 const cmpKinds = (page) => page.evaluate(() => [...document.querySelectorAll('#cr [data-view="compare"] .crl[data-live^="cmp-"]')]
   .filter((b) => b.getClientRects().length).map((b) => b.getAttribute('data-live')));
@@ -230,8 +241,18 @@ scene('stall', '返事の来ない読みは上限で「いま読み出せませ�
   const rev = await faceOf(A.page, CMP('cmp-stars')), wk = await faceOf(A.page, CMP('cmp-work'));
   ok(!!rev && rev.errs === 1 && rev.retries === 1 && rev.part === '1' && rev.text.includes('4.5'),
     `比較：口コミの欄は、JAL の側に「${ERR}」が1回・「${RETRY}」が1つ（ANA の側は読めた値のまま）`, J(rev && { ...rev, html: undefined }));
-  ok(!!wk && wk.state === 'error' && wk.errs === 1 && wk.retries === 1,
-    `比較：月の勤務の欄は「${ERR}」と「${RETRY}」が1つずつ`, J(wk && { ...wk, html: undefined }));
+  /* 月の勤務の欄は、片方の会社が読めないと会社ごとに上下へ並べる（2026-10-22 cmp-reviews-3 ── 読めた会社の値はそのまま出す）。
+     前の決まり「欄は失敗の顔（error）で「いま読み出せません」と「やり直す」が1つずつ」は、同じ強さで次へ移した（LEAD の決め (a)・X0）：
+     欄は開いた顔（open）で片側だけの印（data-part 1）・「いま読み出せません」は止めた JAL の列に1回だけ・「やり直す」は1つ・
+     ANA の列は読めた値（乗務時間 50〜55）のまま */
+  const wkCols = await A.page.evaluate((sel) => {
+    const b = document.querySelector(sel);
+    const col = (s) => { const c = b && b.querySelector(`.crl-split-c[data-airline="${s}"]`); return c ? c.innerText : null; };
+    return { jal: col('jal'), ana: col('ana') };
+  }, CMP('cmp-work'));
+  ok(!!wk && wk.state === 'open' && wk.part === '1' && wk.errs === 1 && wk.retries === 1 && wk.text.includes('50〜55')
+    && wkCols.jal !== null && wkCols.jal.split(ERR).length === 2 && wkCols.ana !== null && wkCols.ana.includes('50〜55') && !wkCols.ana.includes(ERR),
+    `比較：月の勤務の欄は、JAL の側に「${ERR}」が1回・「${RETRY}」が1つ（ANA の側は読めた値のまま）`, J(wk && { ...wk, html: undefined, cols: wkCols }));
   ok(callsOf(A.st, 'pv_reviews', 'jal') === 1 && callsOf(A.st, 'pv_work_view', 'jal') === 1,
     '比較：自動では聞き直さない ── 上限のあとも JAL の口コミ・月の勤務の要求は1本ずつのまま',
     J({ pv_reviews: callsOf(A.st, 'pv_reviews', 'jal'), pv_work_view: callsOf(A.st, 'pv_work_view', 'jal') }));
@@ -367,10 +388,19 @@ scene('cdn', 'supabase-js の読み込みが返ってこなくても、欄は上
     const all = [...document.querySelectorAll('#cr .crl[data-live]')].filter((b) => b.getClientRects().length);
     return all.length > 0 && all.every((b) => b.getAttribute('data-state') === 'error');
   }, { timeout: LIMIT + 5000, polling: 200 }).then(() => Date.now() - t0, () => -1);
-  const faces = await Promise.all(kinds.map((k) => faceOf(page, CMP(k))));
-  ok(failed > 0 && st.heldUrl.length === 1 && faces.length >= 3 && faces.every((f) => f && f.errs === 1 && f.retries === 1),
-    `部品の読み込みを止めたまま、見えている欄（${kinds.join('・')}）が全部、${(LIMIT + 5000) / 1000}秒のうちに「${ERR}」と「${RETRY}」になった（${failed}ms）`,
-    J({ failed, heldUrl: st.heldUrl.length, faces: faces.map((f, i) => f && `${kinds[i]}:${f.state}:${f.errs}:${f.retries}`) }));
+  /* 欄は1つずつ読む（同じ種類の欄が2つある ── cmp-facts は月の働き方のすぐ下と待遇の下）。前の決まり「どの欄も「いま読み出せません」と
+     「やり直す」が1つずつ」は、種類の最初の1つを2回読んでいた。同じ強さで次へ移した（LEAD の決め (b)・X0）：
+     月の働き方のすぐ下の回答の欄（data-quiet）は、月の働き方が失敗の顔のとき畳まれる（高さ 0・見える字も見える「やり直す」も無い ──
+     同じ箱で同じ1行を重ねない。やり直しは月の働き方の「やり直す」が全部を聞き直す）。ほかの欄は、どれも失敗の顔で両方が1つずつ見えている */
+  const F = await cdnFaces(page), quiet = F.filter((f) => f.quiet), loud = F.filter((f) => !f.quiet);
+  const wkF = F.find((f) => f.kind === 'cmp-work');
+  ok(failed > 0 && st.heldUrl.length === 1 && loud.length >= 3
+    && loud.every((f) => f.state === 'error' && f.errs === 1 && f.retries === 1 && f.shown === 1)
+    && F.filter((f) => f.kind === 'cmp-facts').length === 2 && loud.some((f) => f.kind === 'cmp-facts')
+    && !!wkF && wkF.state === 'error' && quiet.length === 1
+    && quiet.every((f) => f.kind === 'cmp-facts' && f.after === 'cmp-work' && f.state === 'error' && f.h === 0 && f.text === '' && f.shown === 0),
+    `部品の読み込みを止めたまま、見えている欄（${loud.map((f) => f.kind).join('・')}）が全部、${(LIMIT + 5000) / 1000}秒のうちに「${ERR}」と「${RETRY}」になった（${failed}ms）。月の働き方のすぐ下の回答の欄は畳まれて、字も「${RETRY}」も重ねない`,
+    J({ failed, heldUrl: st.heldUrl.length, faces: F.map((f) => `${f.kind}${f.quiet ? '(quiet)' : ''}:${f.state}:${f.errs}:${f.retries}:${f.shown}:h${f.h}`) }));
   /* 止めるのをやめる（止めていた1本は切る）→「やり直す」 */
   st.holdUrl = null;
   for (const r of st.heldUrl.splice(0)) await r.abort('failed').catch(() => {});
@@ -378,10 +408,10 @@ scene('cdn', 'supabase-js の読み込みが返ってこなくても、欄は上
   page.on('request', (r) => { if (r.url() === SB_CDN) again++; });
   await page.click(`${CMP('cmp-work')} .crl-retry`);
   const filled = await settled(page, 'jal|ana', 20000);
-  const after = await Promise.all(kinds.map((k) => faceOf(page, CMP(k))));
-  ok(filled && again === 1 && after.every((f) => !!f && f.state !== 'error' && f.errs === 0),
-    `「${RETRY}」を押すと、supabase-js をもう一度読みに行き（2本目 ${again}本）、欄が埋まる`,
-    J({ filled, again, after: after.map((f, i) => f && `${kinds[i]}:${f.state}`) }));
+  const after = await cdnFaces(page);
+  ok(filled && again === 1 && after.length === F.length && after.every((f) => f.state !== 'error' && f.errs === 0),
+    `「${RETRY}」を押すと、supabase-js をもう一度読みに行き（2本目 ${again}本）、欄が埋まる（月の働き方のすぐ下の回答の欄も）`,
+    J({ filled, again, after: after.map((f) => `${f.kind}${f.quiet ? '(quiet)' : ''}:${f.state}`) }));
 });
 
 /* ══ rate ═══════════════════════════════════════════════════════ */

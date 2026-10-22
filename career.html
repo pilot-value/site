@@ -47,7 +47,7 @@
   <link rel="stylesheet" href="career.css?v=ef8dcd1c">
   <link rel="stylesheet" href="career-sec.css?v=9c4d7651">
   <!-- 生きた欄（.crl-*）・就航地（.crs-*）・カード保存（.crc-*）の見た目。 -->
-  <link rel="stylesheet" href="career-live.css?v=baae3a46">
+  <link rel="stylesheet" href="career-live.css?v=4ab17c40">
   <link rel="stylesheet" href="career-stay.css?v=fa905cac">
   <link rel="stylesheet" href="career-card.css?v=67e91a9b">
   <!-- 「Give & Get」のボタンの形（サイトに1つ。career-live.js の give2() が使う）。?v= は gen-career.mjs が書く。 -->
@@ -1329,11 +1329,12 @@
 </div>
 <div class="cr-sec cr-cmp-work">
 <h2 class="cr-h2" id="cr-cmp-h-work">月の働き方</h2>
-<div class="crl" data-live="cmp-work" data-state="idle"><span class="crl-ph">—</span></div>
+<div class="crl" data-live="cmp-work" data-entry="give" data-state="idle"><span class="crl-ph">—</span></div>
+<div class="crl" data-live="cmp-facts" data-keys="days_off_request,days_off_request_limit,schedule_bidding,bidding_scope,seniority_effect,reserve_duty,reserve_location,reserve_days,roster_lead_days,roster_changes,commuting_transport,commuting_transport_method,commuting_taxi_when,commuting_taxi_where,commuting_taxi_cost,commuting_taxi_cap,commuting_bus_when,commuting_bus_cost,staff_travel,staff_travel_booking,staff_travel_cabin,staff_travel_family,staff_travel_standby_trips,staff_travel_standby_cost,staff_travel_standby_family,staff_travel_confirmed_trips,staff_travel_confirmed_cost,staff_travel_confirmed_family,external_hiring,external_experience_credit,external_seniority_start,training_bond,training_bond_years,upgrade_years,upgrade_order,upgrade_min_hours,upgrade_min_tenure,external_hiring_types,cadet_program,fo_development" data-quiet="1" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
 <div class="cr-sec cr-cmp-ben">
 <h2 class="cr-h2" id="cr-cmp-h-ben">待遇</h2>
-<div class="crl" data-live="cmp-facts" data-state="idle"><span class="crl-ph">—</span></div>
+<div class="crl" data-live="cmp-facts" data-keys="annual_leave_days,sick_leave,sick_leave_days,peer_support,landing_pay,landing_pay_unit,landing_pay_varies_by,ground_duty_pay" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
 <div class="cr-cards" data-kind="published">
 <div class="cr-card" data-airline="jal" style="--cr-co:#CC0000">
@@ -1471,7 +1472,7 @@
 <script src="career.js?v=384e034a" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
 <!-- 生きた欄・就航地のホテル・カード保存。career.js が画面を出し終えるたびに出す知らせ（cr:show）で動く。
      ★どれが落ちても、上の画面と金額はそのまま読める。 -->
-<script src="career-live.js?v=5272dbab"></script>
+<script src="career-live.js?v=5705e050"></script>
 <script src="pv-proof-offer.js?v=cc4ef913"></script>
 <script src="pv-hotel-suggest.js?v=179d17b8"></script>
 <script src="career-stay.js?v=3fd9aebe"></script>

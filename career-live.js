@@ -369,6 +369,20 @@
       });
     } catch (e) { /* 読めなくても欄は出す（サーバーが資格を決める） */ }
   }
+  /* 別のタブでログイン・ログアウトしたとき（career.html だけ ── 会社ページには pv-contrib.js の合図が届く）。
+     このページの supabase-js は、ほかのタブの書き込みを聞かない（2026-10-22 に確かめた：比較を開いたまま別のタブで別の会員が入っても、
+     欄は前の人のまま）。ログインを読むのは PVSession の1か所（ここでは読まない・書かない）。読む人が替わった時だけ setUid。
+     通信も時計も使わない。 */
+  if (!GL) {
+    w.addEventListener('storage', function () {
+      var P = w.PVSession;
+      if (uid === undefined || !P || typeof P.readStoredSession !== 'function') return;
+      var s = P.readStoredSession(), u = s && s.user && typeof s.user.id === 'string' ? s.user.id : null;
+      /* 鍵は在るのに読めない形（割って入れる実装など）は、誰か分からない ＝ 何もしない（ログアウトとは読まない） */
+      if (!u && typeof P.hasToken === 'function' && P.hasToken()) return;
+      setUid(u);
+    });
+  }
 
   /* 給与の行。引数なしで1回だけ呼び、会社で絞るのは画面側（現行の REAL PAY と同じ）。
      開いていない答えからは、会社・出典・投稿時期の3つしか受け取らない。 */
@@ -452,10 +466,11 @@
 
   /* 待遇の集計。誰に返すかはサーバーが決める（db/contrib.sql の pv_contrib_facts）。
      開いていない人に返るのは、状態の1語だけ（集計は1件も来ない）。集計のビューは直接読まない（読めない）。
-     1社につき1回だけ聞く ── 聞く質問は、このページの集計の欄ぜんぶの分。 */
+     1社につき1回だけ聞く ── 聞く質問は、このページの集計の欄ぜんぶの分。
+     比較の回答の欄（cmp-facts）が持つ鍵も、同じ1回で聞く。 */
   function pageKeys() {
     var seen = {}, out = [];
-    var all = root.querySelectorAll('.crl[data-live="fact"][data-keys]');
+    var all = root.querySelectorAll('.crl[data-live="fact"][data-keys], .crl[data-live="cmp-facts"][data-keys]');
     for (var i = 0; i < all.length; i++) {
       keysOf(all[i]).forEach(function (k) { if (!seen[k]) { seen[k] = 1; out.push(k); } });
     }
@@ -1087,19 +1102,75 @@
   /* 片方だけ読めなかった時の印。run() が「やり直す」を欄に1つ足す（読めた側は出したまま）。 */
   function partial(v, S) { v.retry = S.some(function (x) { return !x.ok && !x.off; }); return v; }
 
-  KIND['cmp-work'] = function (box, ids) {
-    return Promise.all([workView(ids[0]), workView(ids[1])]).then(function (a) {
-      var A = a[0], B = a[1];
-      /* どちらかが開いていなければ、欄に1行だけ（どちらの会社の値も出さない） */
-      var who = shut(A.state, B.state);
-      if (who) return lockView(who, '', box, null);
-      /* 片方がそろっていなくても、もう片方は普通に出す */
-      if (!workAny(A.by) && !workAny(B.by)) return view('empty', [msg(T.workEmpty)]);
-      var g = cmpGrid(ids);
-      T.work.forEach(function (it) {
-        cmpRow(g, workName(it), workCell(A.by, it.k), workCell(B.by, it.k));
+  /* 開いていない会社の中身。言い方と入口は lockView のものをそのまま借りる（ここに写さない）。 */
+  function closedNodes(word, box) {
+    return Promise.resolve(lockView(word, '', box, null)).then(function (v) { return v.nodes; });
+  }
+  /* 片方の会社だけ開いている（か、片方が読めなかった）ときの形：2列をやめ、会社ごとに上下へ並べる。
+     parts[i] ＝ その会社の中身（節の配列か、その約束）。null の会社は並べない（すぐ上の欄が同じ1行を言っている）。
+     ⚠️ 開いていない会社の答えは届いていない（返事は状態の1語だけ）。ここで作る値は無い。 */
+  function splitView(ids, parts, S) {
+    return Promise.all(parts).then(function (p) {
+      var w0 = el('div', 'crl-split');
+      p.forEach(function (nodes, i) {
+        if (!nodes) return;
+        var c = el('div', 'crl-split-c');
+        c.setAttribute('data-airline', ids[i]);
+        c.appendChild(coTag(ids[i]));
+        nodes.forEach(function (n) { if (n) c.appendChild(n); });
+        w0.appendChild(c);
       });
-      return view('open', [g]);
+      return partial(view('open', [w0]), S);
+    });
+  }
+  /* 1社ぶんの月の勤務（今までの6マス。比較の欄は帯を描かない）。 */
+  function workPlain(by) {
+    var g = el('div', 'crl-work');
+    T.work.forEach(function (it) {
+      var c = el('div', 'crl-wk');
+      c.appendChild(workName(it));
+      c.appendChild(workCell(by, it.k));
+      g.appendChild(c);
+    });
+    return g;
+  }
+  /* 1社ぶんの回答。行の部品は集計の欄と同じ（answer / answerNode）。 */
+  function factList(map, V, keys) {
+    var list = el('div', 'crl-facts'), n = 0;
+    keys.forEach(function (k) {
+      var ans = answer(map[k], V[k]);
+      if (!ans) return;
+      var r = el('div', 'crl-fact');
+      r.appendChild(el('span', 'crl-fact-k', V[k].ja || ''));
+      r.appendChild(answerNode(ans));
+      list.appendChild(r);
+      n++;
+    });
+    return n ? list : msg(T.factEmpty);
+  }
+  /* 会社ごとに、サーバーが決めた状態で描く（見せてよいかはサーバーの1か所。ここに決まりを持たない）。
+       2社とも開いている → 今までの2列／2社とも開いていない（2社とも読めた）→ 欄に1行（言い方と入口は lockView・語の順は shut）／
+       片方だけ開いている・片方が読めなかった → 会社ごとに上下へ（開いている会社はその会社の値、もう片方はその1行と答えるカード） */
+  KIND['cmp-work'] = function (box, ids) {
+    return both(workView, ids).then(needOne).then(function (S) {
+      var st = S.map(function (s) { return s.ok ? s.v.state : 'fail'; });
+      var open = [st[0] === 'open', st[1] === 'open'];
+      if (open[0] && open[1]) {
+        var A = S[0].v, B = S[1].v;
+        /* 片方がそろっていなくても、もう片方は普通に出す */
+        if (!workAny(A.by) && !workAny(B.by)) return view('empty', [msg(T.workEmpty)]);
+        var g = cmpGrid(ids);
+        T.work.forEach(function (it) { cmpRow(g, workName(it), workCell(A.by, it.k), workCell(B.by, it.k)); });
+        return view('open', [g]);
+      }
+      /* どちらも開いていない（2社とも読めた）：欄に1行。言い方と入口は lockView のまま */
+      if (S[0].ok && S[1].ok && !open[0] && !open[1]) return lockView(shut(st[0], st[1]), '', box, null);
+      /* 片方だけ開いている／片方が読めなかった：会社ごとに上下へ */
+      return splitView(ids, S.map(function (s, i) {
+        if (!s.ok) return [sideFail(s)];
+        if (open[i]) return [workAny(s.v.by) ? workPlain(s.v.by) : msg(T.workEmpty)];
+        return closedNodes(st[i], box);
+      }), S);
     });
   };
 
@@ -1571,7 +1642,18 @@
   KIND['cmp-stars'] = function (box, ids) {
     return both(reviews, ids).then(needOne).then(function (S) {
       var O = [sideOf(S[0]), sideOf(S[1])];
-      if (O[0] && O[1] && !O[0].rows.length && !O[1].rows.length) return view('empty', [msg(T.revNone)]);
+      if (O[0] && O[1] && !O[0].rows.length && !O[1].rows.length) {
+        /* 2社とも投稿が無い：1つの文（2社それぞれに同じ文を並べない）。その下に、会社ごとの 3.0 の淡い6角形（数字なし）──
+           2026-10-22 オーナー「必ず多角形のレーダーの図を載せて」（P12.95／96／97）。会社ページの図と同じ radarPh()。
+           どちらの会社の図かは、格子の頭の社名の札が言う。6分類の名前が読めなければ文だけ（名前の無い図を描かない）。 */
+        var zn = catNames(), zero = [msg(T.revNone)];
+        if (zn) {
+          var zg = cmpGrid(ids);
+          subRow(zg, 'crl-rate-fig', radarPh(zn), radarPh(zn));
+          zero.push(zg);
+        }
+        return view('empty', zero);
+      }
       var g = cmpGrid(ids);
       /* すぐ下の要約の欄（CSS）が読む印：各社に点数の付いた投稿が在るか。1 ＝ 在る／0 ＝ 無い／x ＝ 読めなかった */
       g.setAttribute('data-rated', O.map(function (o) { return !o ? 'x' : o.R ? '1' : '0'; }).join(''));
@@ -1753,24 +1835,40 @@
     return out;
   }
 
+  /* 比較の回答の欄は2つ：「月の働き方」のすぐ下（data-quiet：勤務・訓練のタブの質問）と「待遇」の下（給与・待遇のタブの質問）。
+     どちらも会社ごとに、サーバーが決めた状態で描く（月の働き方と同じ3つの形）。入口とカードはここに置かない（月の働き方の欄が持つ）。 */
   KIND['cmp-facts'] = function (box, ids) {
-    var keys = cmpKeys(box);
+    var keys = cmpKeys(box), quiet = box.getAttribute('data-quiet') === '1';
     if (!keys.length) return Promise.reject(fail('error'));
-    return Promise.all([facts(ids[0]), facts(ids[1]), vocab()]).then(function (a) {
-      var FA = a[0], FB = a[1], V = a[2];
-      /* 並べる質問を聞いていない答えでは描かない（0件とも鍵とも言えない） */
-      if (keys.some(function (k) { return FA.asked[k] !== 1 || FB.asked[k] !== 1; })) throw fail('error');
-      /* どちらかが開いていなければ、欄に1行だけ（どちらの会社の値も出さない）。入口はここに置かない（上の欄が持つ） */
-      var who = shut(FA.state, FB.state);
-      if (who) return lockView(who, '', NONE, null);
-      var g = cmpGrid(ids), n = 0;
-      keys.forEach(function (k) {
-        var A = answer(FA.map[k], V[k]), B = answer(FB.map[k], V[k]);
-        if (!A && !B) return;
-        cmpRow(g, el('span', '', V[k].ja || ''), answerNode(A), answerNode(B));
-        n++;
-      });
-      return n ? view('open', [g]) : view('empty', [msg(T.factEmpty)]);
+    return Promise.all([both(facts, ids), vocab()]).then(function (r) {
+      var V = r[1];
+      /* この欄の質問を聞いていない答えでは描かない（0件とも鍵とも言えない）── その会社は「読めなかった」として扱う */
+      var S = needOne(r[0].map(function (s) {
+        return (s.ok && keys.some(function (k) { return s.v.asked[k] !== 1; })) ? { ok: false, off: false } : s;
+      }));
+      var st = S.map(function (s) { return s.ok ? s.v.state : 'fail'; });
+      var open = [st[0] === 'open', st[1] === 'open'];
+      if (open[0] && open[1]) {
+        var g = cmpGrid(ids), n = 0;
+        keys.forEach(function (k) {
+          var A = answer(S[0].v.map[k], V[k]), B = answer(S[1].v.map[k], V[k]);
+          if (!A && !B) return;
+          cmpRow(g, el('span', '', V[k].ja || ''), answerNode(A), answerNode(B));
+          n++;
+        });
+        /* 鍵の文を繰り返さない欄（data-quiet）は、並べる行が無いときも黙る（すぐ上の「月の働き方」が箱の話をしている） */
+        return n ? view('open', [g]) : view('empty', quiet ? [] : [msg(T.factEmpty)]);
+      }
+      if (S[0].ok && S[1].ok && !open[0] && !open[1]) {
+        if (quiet) return view('locked', []);
+        /* 待遇の欄は入口を持たない（NONE は「入口を出さない箱」） */
+        return lockView(shut(st[0], st[1]), '', NONE, null);
+      }
+      return splitView(ids, S.map(function (s, i) {
+        if (!s.ok) return [sideFail(s)];
+        if (open[i]) return [factList(s.v.map, V, keys)];
+        return quiet ? null : closedNodes(st[i], NONE);
+      }), S);
     });
   };
 

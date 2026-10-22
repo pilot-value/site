@@ -1616,8 +1616,8 @@ head('集計の欄が聞く質問（出荷した HTML の data-keys）');
        ・どの欄も、聞く質問（data-keys）を1つ以上持つ（1つも無い欄は、画面で「いま読み出せません」になる）
        ・どの質問も、質問の台帳（pv-conditions.json）に在る
        ・1ページの質問は、合わせて 120 まで（集計の口は、開いている人が聞いても、それより多いと断る ＝ そのページの集計の欄がぜんぶ読めなくなる）
-       ・2社を並べる欄（data-live="cmp-facts"・career.html に1つ）は、自分の質問を持たないか、持つなら、同じページの集計の欄が聞く質問だけ
-         （ページが聞いていない質問を並べようとすると、その欄は「いま読み出せません」になる）
+       ・2社を並べる欄（data-live="cmp-facts"・career.html に2つ：月の働き方と待遇）の質問は、台帳に在る質問だけ。
+         ページの1回の読み（career-live.js の pageKeys）がその質問も聞く ── 欄と読みの一致は assert-career-live.mjs の S7 / M-keys が見る。合わせて 120 まで
      judge ＝ 1ページ分の HTML の字から、破れている所の文を返す（空なら全部守れている）。渡された字のほかは、何も読まない。
        ledger ＝ 台帳に在る質問の名前・cap ＝ 1ページの上限・own ＝ そのページが、2社を並べる欄を持つはずか。 */
   const judge = (html, ledger, cap, own) => {
@@ -1633,14 +1633,14 @@ head('集計の欄が聞く質問（出荷した HTML の data-keys）');
       if (!keys.length) faults.push(`${i + 1}つめの集計の欄が、聞く質問を1つも持たない`);
       for (const k of keys) { all.add(k); if (!ledger.has(k)) faults.push(`${i + 1}つめの集計の欄の質問 ${k} が、台帳に無い`); }
     }
+    if (cmp.length !== (own ? 2 : 0)) faults.push(`2社を並べる欄が ${cmp.length}つ（あるべき ${own ? 2 : 0}）`);
+    for (const tag of cmp) for (const k of keysOf(tag)) { all.add(k); if (!ledger.has(k)) faults.push(`2社を並べる欄の質問 ${k} が、台帳に無い`); }
     if (all.size > cap) faults.push(`1ページの質問が ${all.size}（多くて ${cap}）`);
-    if (cmp.length !== (own ? 1 : 0)) faults.push(`2社を並べる欄が ${cmp.length}つ（あるべき ${own ? 1 : 0}）`);
-    for (const tag of cmp) for (const k of keysOf(tag)) if (!all.has(k)) faults.push(`2社を並べる欄の質問 ${k} を、同じページの集計の欄が聞いていない`);
     return faults;
   };
   for (const [name, html, own] of [...FIVE.map(s => [`${s}`, PAGES[s], false]), ['career.html', read('career.html'), true]]) {
     const f = judge(html, QID, 120, own);
-    ok(!f.length, `${name}: 集計の欄は、どれも聞く質問を持つ・質問はどれも台帳に在る・1ページで 120 まで${own ? '・2社を並べる欄は、同じページの欄が聞く質問のほかを並べない' : ''}`, f.slice(0, 6).join(' ／ '));
+    ok(!f.length, `${name}: 集計の欄は、どれも聞く質問を持つ・質問はどれも台帳に在る・1ページで 120 まで${own ? '・2社を並べる欄は2つで、その質問も台帳に在る（合わせて 120 まで）' : ''}`, f.slice(0, 6).join(' ／ '));
   }
 }
 

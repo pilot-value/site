@@ -419,6 +419,28 @@ export function askGroup(id) {
   if (!ok) return '';
   return ASK_TOPICS.includes(q.topic) ? q.topic : q.section === 'roster' ? 'roster' : q.section === 'career' ? 'career' : 'benefits';
 }
+/* 比較の「回答」の欄が並べる質問。正本は質問の台帳（pv-conditions.mjs の QUESTIONS）── ここに鍵を打たない。
+   どの欄に入るかは、その回答が会社ページのどのタブに出るか：
+     work ＝ 勤務・訓練（勤務スケジュール・キャリアの質問と、通勤・Staff Travel の話題）／pay ＝ 給与・待遇（それ以外）。
+   並びは会社ページの面の順（勤務予定 → 通勤 → Staff Travel → 昇格・訓練）、その中は台帳の順。
+   額の質問（通貨つき）は入れない ── 会社ページの箱と同じ決まり（gen-airline-glance.mjs の factKeys。箱は通貨なしで数字だけを出す）。
+   ⚠️ 会社ページの面を移したら、ここも直す（どの質問がどのタブに出るかは、会社ページの生成器 gen-airline-glance.mjs が決めている）。 */
+const WORK_TOPICS = ['taxi', 'staff_travel'];
+export function tabOfKey(id) {
+  const q = QUESTIONS.find(x => x.id === id);
+  if (!q || q.retired || q.currency) return '';
+  return (q.section === 'roster' || q.section === 'career' || WORK_TOPICS.includes(q.topic)) ? 'work' : 'pay';
+}
+export const CMP_KEYS = (() => {
+  const surf = q => (q.section === 'roster' ? 0 : q.topic === 'taxi' ? 1 : q.topic === 'staff_travel' ? 2 : q.section === 'career' ? 3 : 4);
+  const ids = QUESTIONS.filter(q => !q.retired && !q.currency).map((q, i) => [q, i])
+    .sort((a, b) => surf(a[0]) - surf(b[0]) || a[1] - b[1]).map(x => x[0].id);
+  const out = { work: ids.filter(id => tabOfKey(id) === 'work'), pay: ids.filter(id => tabOfKey(id) === 'pay') };
+  if (!out.work.length || !out.pay.length) throw new Error('比較の回答の欄に並べる質問が無い（pv-conditions.mjs）');
+  if (QUESTIONS.some(q => q.currency && (out.work.includes(q.id) || out.pay.includes(q.id)))) throw new Error('比較の回答の欄に、額の質問（通貨つき）は入れられない');
+  if (ids.length > 120) throw new Error('比較が1回で聞く質問が 120 を超えた（pv_contrib_facts が受け取る上限）');
+  return out;
+})();
 export const TOPICS = TOPIC_DEFS.map(([id, title, tp]) => {
   const asks = QUESTIONS.filter(q => q.topic === tp && !q.retired).map(q => [q.id, ASK[q.id] || q.ja.label]);
   if (!asks.length) throw new Error(`話題 ${id}: 待遇アンケートに質問が1つも無い（pv-conditions.mjs。入口の先が無くなる）`);
@@ -845,11 +867,12 @@ ${FIVE.map(s => rentBox(s, on(s))).join('\n')}
 </div>
 <div class="cr-sec cr-cmp-work">
 <h2 class="cr-h2" id="cr-cmp-h-work">月の働き方</h2>
-${live('cmp-work')}
+${live('cmp-work', { entry: 'give' })}
+${live('cmp-facts', { keys: CMP_KEYS.work.join(','), quiet: '1' })}
 </div>
 <div class="cr-sec cr-cmp-ben">
 <h2 class="cr-h2" id="cr-cmp-h-ben">待遇</h2>
-${live('cmp-facts')}
+${live('cmp-facts', { keys: CMP_KEYS.pay.join(',') })}
 </div>
 <div class="cr-cards" data-kind="published">
 ${FIVE.map(s => `<div class="cr-card" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}>
