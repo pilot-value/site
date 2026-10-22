@@ -16,7 +16,8 @@
         検索の鍵・比較のチェックの決め方（SWITCH に従う）・ロゴ
      F) 一覧のページ（日英）＝ gen-directory.mjs が台帳から書いた112枚のカード・地域ボタン・社数のまま
         ── 並び・リンク・社名と旗・略号・ロゴ・額と札・地域ボタンの社数・手で書いた社数が無い・日英が同じ形・
-           生成の流し忘れが無い・2枚のページのスクリプトが同じ・左のメニューとヘッダーが1つずつ
+           生成の流し忘れが無い・一覧の台本はページの外（pv-directory.js）で、ヘッダーのログインの行だけページの中・
+           部品（gen-directory.mjs の ASSETS）はどれも中身の指紋（?v=）で読む・左のメニューとヘッダーが1つずつ
      H) カードの形 ── 額の行は機長→副操縦士の2行・職位の語から額まで24字以内（check-salary.mjs が読める）・
         リンクの中に押せる部品を入れない・額の行に手取りや月額の語を入れない
      W) check-salary.mjs の読み方そのもの（あちらのソースから切り出す）で、どのカードのどの額も
@@ -148,7 +149,8 @@ async function readIN() {
   try {
     const G = await import(pathToFileURL(path.join(ROOT, 'gen-directory.mjs')).href);
     I.fn = { model: G.model, figure: G.figure, regionMean: G.regionMean, tickOf: G.tickOf, twoSlugs: G.twoSlugs,
-      cards: G.cards, strip: G.strip, itemList: G.itemList, render: G.render, blocks: G.BLOCKS.map((b) => b.id) };
+      cards: G.cards, strip: G.strip, itemList: G.itemList, render: G.render, blocks: G.BLOCKS.map((b) => b.id), assets: [...G.ASSETS] };
+    for (const f of G.ASSETS) I.assets[f] = readOr(f, null);
     I.M = G.model();
   } catch (e) { I.err = `gen-directory.mjs / directory-model.mjs が読めない：${String(e.message).split('\n')[0].split(ROOT).join('')}`; }
   return I;
@@ -429,15 +431,14 @@ const blockOf = (html, id) => { const a = html.indexOf(`<!--${id}-->`), z = html
 /** 2枚のページ（unbake 済み）。1回の実行で1回だけ作る */
 const UNB = new WeakMap();
 const pagesOf = (I) => { if (!UNB.has(I.page)) UNB.set(I.page, { ja: unbake(I.page.ja), en: unbake(I.page.en) }); return UNB.get(I.page); };
-/** S0（一覧のページのスクリプト）：行「// ── Nav scroll ─」からヘッダーのログインの行の手前まで */
+/** ヘッダーのログインの行の頭（ページの中に残す。db/test-pay-gate.mjs がページの字を読む） */
 const LOGIN_LINE = "(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');";
-const s0Of = (html) => { const a = html.indexOf('// ── Nav scroll ─'), z = html.indexOf(LOGIN_LINE); return a < 0 || z < a ? null : html.slice(html.lastIndexOf('\n', a) + 1, html.lastIndexOf('\n', z) + 1); };
 
 /** F) 一覧のページ（日英）── 期待値はここで台帳・一覧の行・ロゴの表から作る */
 function secF(I) {
   const U = pagesOf(I), S = Object.keys(I.ledger), N = S.length, order = orderOf(I), out = [];
   const rowOf = new Map(I.list.map((r) => [r.slug, r]));
-  const p = { F1: [], F2: [], F3: [], F4: [], F5: [], F6: [], F7: [], F8: [], F10: [] };
+  const p = { F1: [], F2: [], F3: [], F4: [], F5: [], F6: [], F7: [], F9: [], F10: [] };
   const twins = {};
   for (const lang of ['ja', 'en']) {
     const h = U[lang], C = cardsOf(h), en = lang === 'en', rel = PAGE_REL[lang];
@@ -522,10 +523,24 @@ function secF(I) {
     const i = twins.ja.findIndex((x, k) => x !== twins.en[k]);
     p.F6.push(`日英でカード・地域ボタンの形が違う（${twins.ja.length}／${twins.en.length} 個・最初の違い：${twins.ja[i] ?? '無し'} ／ ${twins.en[i] ?? '無し'}）`);
   }
-  /* F8 2枚のページのスクリプト（S0）が1文字も同じ（WP-dd-3 で pv-directory.js へ移すまで） */
-  const sj = s0Of(I.page.ja), se = s0Of(I.page.en);
-  if (sj == null || se == null) p.F8.push('一覧のスクリプト（// ── Nav scroll ─ からログインの行の手前まで）が読めない');
-  else if (sj !== se) p.F8.push('日英の一覧のスクリプトが違う');
+  /* F9 一覧の台本はページの外（pv-directory.js）── ページに台本の中身が残っていない・ヘッダーのログインの行はページの中の台本に1つ・
+     ASSETS の部品はどれも、両方のページが中身の指紋（?v= ＝ sha256 の頭8字）を付けて読む（古い部品が残らない） */
+  const sha8 = (s) => crypto.createHash('sha256').update(s).digest('hex').slice(0, 8);
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, (c) => `\\${c}`);
+  if (!I.fn.assets) p.F9.push(I.err || 'gen-directory.mjs の ASSETS が読めない');
+  for (const lang of ['ja', 'en']) {
+    const h = I.page[lang], rel = PAGE_REL[lang], up = lang === 'en' ? '../' : '';
+    for (const w of ['const CARDS', 'createCard']) if (h.includes(w)) p.F9.push(`${rel}：「${w}」がページに在る（一覧の台本は pv-directory.js）`);
+    const inl = [...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].filter((m) => m[1].includes(LOGIN_LINE)).length;
+    if (inl !== 1) p.F9.push(`${rel}：ヘッダーのログインの行を持つページの中の台本が ${inl} 個（1つであること）`);
+    for (const f of I.fn.assets || []) {
+      const src = I.assets[f];
+      if (src == null) { p.F9.push(`${f} が無い`); continue; }
+      const want = sha8(src), refs = [...h.matchAll(new RegExp(`(?:src|href)=(["'])${esc(up + f)}(?:\\?v=([^"']*))?\\1`, 'g'))];
+      if (!refs.length) p.F9.push(`${rel}：${up + f} を読んでいない`);
+      for (const m of refs) if (m[2] !== want) p.F9.push(`${rel}：${up + f}?v=${m[2] ?? '（無し）'}／中身の指紋 ${want}`);
+    }
+  }
   return Object.entries(p).map(([id, probs]) => R(id, probs));
 }
 
@@ -716,7 +731,8 @@ const ROWS = [
   ['F5b', (I) => { I.page.en = sub(I.page.en, '<!--/PV-DIR-N--> airlines</p>', '<!--/PV-DIR-N--> airlines — 108 Airlines</p>'); }, 'F', ['F5']],
   ['F6', (I) => onCard(I, 'en', 'ana', (c) => c.replace('<span class="tag tag-gray">Star Alliance</span>', () => '')), 'F', ['F6', 'F7']],
   ['F7', (I) => onCard(I, 'ja', 'jal', (c) => c.replace('data-k="', () => 'data-k="X|')), 'F', ['F7']],
-  ['F8', (I) => { I.page.en = sub(I.page.en, "let activeType   = 'all';", "let activeType  = 'all';"); }, 'F', ['F8']],
+  ['F9a', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], "applyThemeW(localStorage.getItem('pv-theme')||'light');\n", "applyThemeW(localStorage.getItem('pv-theme')||'light'),\n"); }, 'F', ['F9']],
+  ['F9b', (I) => { I.page.ja = sub(I.page.ja, '</body>', 'createCard</body>'); }, 'F', ['F9']],
   ['F10', (I) => { I.page.en = I.page.en.replace(/<nav class="mr-side"[\s\S]*?<\/nav>/, () => ''); }, 'F', ['F10']],
   ['H1', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/<p class="wd-fig" data-rank="fo"[\s\S]*?<\/p>\n?/, () => '')), 'H', ['H1']],
   /* 札の全体を <span> で包むだけでは、職位の語の後ろに増えるのは閉じタグ1つ（23 → 24 ＝ まだ読める）。語の直後で包んで 25 にする */
