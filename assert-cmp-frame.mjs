@@ -13,7 +13,7 @@
    どの場面も、終わりに確かめる：門が止めた外への要求 0・本番の supabase への要求 0・すり抜け 0・自分の担当の呼び出しに全部返事があった。
 
    実行: node assert-cmp-frame.mjs [--scenes a,b] [--shots <folder>]
-     --scenes  場面を選ぶ（stall・race・cdn）。付けなければ全部
+     --scenes  場面を選ぶ（stall・race・cdn・rate）。付けなければ全部
      --shots   場面の途中の顔（失敗の顔・埋まった顔）を撮って置く（置き場は打った場所。ファイルに書かない）
    自分で手元の保存先を空いているポートで起こし、終わったら捨てる（cmp-stubs.mjs の startLocal）。3000番・3100番は使わない。
    返事は全部この検査が作る（MOCK）。結果の行の頭に [MOCK] と書く。本番については何も言わない（本番は 未確認）。
@@ -382,6 +382,184 @@ scene('cdn', 'supabase-js の読み込みが返ってこなくても、欄は上
   ok(filled && again === 1 && after.every((f) => !!f && f.state !== 'error' && f.errs === 0),
     `「${RETRY}」を押すと、supabase-js をもう一度読みに行き（2本目 ${again}本）、欄が埋まる`,
     J({ filled, again, after: after.map((f, i) => f && `${kinds[i]}:${f.state}`) }));
+});
+
+/* ══ rate ═══════════════════════════════════════════════════════ */
+/* 書き留め役（I-4b・1つの文）：キャンバスに描かれた字（fillText / strokeText）と絵（drawImage の元。キャンバスは '(canvas)'）を、
+   ページのどのスクリプトよりも先に window.__drawn へ書き留める。assert-career.mjs（T-C3）が同じ文を写して使う ── 直すときは2つを同じに直す。 */
+const RECORDER = () => {
+  const P = CanvasRenderingContext2D.prototype, D = window.__drawn = { text: [], img: [] };
+  const fT = P.fillText, sT = P.strokeText, dI = P.drawImage;
+  P.fillText = function (s) { D.text.push(String(s)); return fT.apply(this, arguments); };
+  P.strokeText = function (s) { D.text.push(String(s)); return sT.apply(this, arguments); };
+  P.drawImage = function (src) {
+    D.img.push(typeof HTMLCanvasElement !== 'undefined' && src instanceof HTMLCanvasElement ? '(canvas)' : String((src && (src.currentSrc || src.src)) || ''));
+    return dI.apply(this, arguments);
+  };
+};
+/* 保存の受け取り役：「画像を保存」の a.download を押した瞬間に、それまでに描かれた字を控えて、何も書き出さない（ダウンロードを起こさない） */
+const CATCHER = () => {
+  window.__saved = [];
+  const C = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function () {
+    if (this.download) { window.__saved.push({ name: this.download, blob: /^blob:/.test(this.href), text: ((window.__drawn || {}).text || []).slice() }); return undefined; }
+    return C.apply(this, arguments);
+  };
+};
+const CARD_BEFORE = `(${RECORDER})();(${CATCHER})();`;
+/* 評価の材料（この場面だけのもの）。植えた印は、ページの外へ渡す答えにも、カードにも出てはいけない */
+const RATE_MARK = 'RATE-PLANTED-731';
+const planted = (id, v, extra = {}) => rated(id, v, { pros: RATE_MARK, cons: RATE_MARK, clip: { k: 'salary', o: RATE_MARK, t: {} }, author_hash: RATE_MARK, ...extra });
+const RATE_ROWS = {
+  jal: [planted('j1', 3), planted('j2', 4), planted('j3', null, { salary_score: 4 })],   // 1行ずつの平均 3・4・4 → 3.666… → 「3.7」・「3件の評価」
+  ana: [planted('a1', 5), planted('a2', 4)],                                              // → 「4.5」・「2件の評価」
+  etihad: [],                                                                               // 投稿が無い
+  'eva-air': [planted('v1', null), planted('v2', 0)],                                       // 投稿は在るが、点数が無い
+};
+const RATE_FAIL = 'cathay-pacific';                                                         // 読めない（500）
+const rateStub = (fail = RATE_FAIL) => ({ pv_reviews: (p) => {
+  const a = p && Array.isArray(p.airlines) ? p.airlines[0] : '';
+  return a === fail ? CX_FAIL() : { status: 200, body: { ok: true, unlocked: false, rows: RATE_ROWS[a] || [] } };
+} });
+/* 決まりの書き直し（この検査の言葉）：1行の平均は、点数の付いた分類（0 より大きい・5 で頭打ち）だけの平均。
+   評価の平均はその行の平均の平均、評価件数は点数の付いた行の数。行が無い・点数が1つも無い → null（0 にしない） */
+const expectRate = (rows) => {
+  let tot = 0, n = 0;
+  for (const r of rows || []) {
+    const v = SC.map((k) => Number(r && r[k])).filter((x) => Number.isFinite(x) && x > 0).map((x) => Math.min(5, x));
+    if (v.length) { tot += v.reduce((a, b) => a + b, 0) / v.length; n++; }
+  }
+  return n ? { avg: tot / n, n } : null;
+};
+/* カードの材料の評価（字・塗る幅・件数）── 平均は小数1けた、塗る幅は 平均 ÷ 5 を 1000 分の1で丸める（会社ページ・比較の星と同じ決め方） */
+const cardRate = (r) => (r ? { avg: Math.min(5, r.avg).toFixed(1), fill: Math.round(Math.min(5, r.avg) / 5 * 1000) / 1000, n: r.n, text: `${r.n}件の評価` } : null);
+/* カードの画面の道具（材料は career-card.js の PVCareerCard.model()・描いた回の印は #crc-root の data-drawn） */
+const SAVE = '#crc-root .crc-act .crc-btn:not(.is-ghost)';
+const cardModel = (page) => page.evaluate(() => (window.PVCareerCard && window.PVCareerCard.model ? window.PVCareerCard.model() : null));
+const drawnAttr = (page) => page.evaluate(() => { const r = document.getElementById('crc-root'); return r ? r.getAttribute('data-drawn') : null; });
+const drawnText = (page) => page.evaluate(() => ((window.__drawn || {}).text || []).slice());
+const cardUp = (page, n) => page.waitForFunction((n) => {
+  const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+  return !!(m && m.cards && m.cards.length === n && m.layout) && !!document.getElementById('crc-root').getAttribute('data-drawn');
+}, { timeout: 8000 }, n).then(() => true, () => false);
+/* 材料の全部の会社に評価が載るまで待って、その材料を返す（載らなければ null） */
+const cardRated = (page, n) => page.waitForFunction((n) => {
+  const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+  return !!(m && m.cards && m.cards.length === n && m.cards.every((c) => !!c.rating));
+}, { timeout: 8000, polling: 50 }, n).then(() => cardModel(page), () => null);
+/* 描き直しが落ち着くまで（2コマ ＋ もう1回描かせる）。評価は聞かない（聞くと要求の数が変わる） */
+const calmCard = async (page) => { await frames(page); await page.evaluate(() => window.PVCareerCard.redraw()); await frames(page); };
+
+scene('rate', 'カードの評価 ── ページの外へ渡すのは2つの数だけ・比較の欄と同じ字・見本のまま保存・評価の無い会社は描かない・1社1回だけ聞く', async () => {
+  /* (e) 渡る値：PVCareer.rating は {avg, n} だけを返す（行・本文・抜粋・植えた印を渡さない）。投稿が無い／点数が無い → null。読めない → 失敗 */
+  {
+    const { page } = await open('pc', { url: PAIR('jal', 'ana'), stub: rateStub() });
+    await page.waitForFunction(() => !!(window.PVCareer && typeof window.PVCareer.rating === 'function'), { timeout: 8000 }).catch(() => {});
+    const got = await page.evaluate(async (slugs) => {
+      const out = {};
+      for (const s of slugs) {
+        try { const v = await window.PVCareer.rating(s); out[s] = { ok: true, v, keys: v ? Object.keys(v) : null, json: JSON.stringify(v) }; } catch (e) { out[s] = { ok: false }; }
+      }
+      return out;
+    }, ['jal', 'ana', 'etihad', 'eva-air', RATE_FAIL]);
+    const two = ['jal', 'ana'].map((s) => {
+      const g = got[s] || {}, want = expectRate(RATE_ROWS[s]);
+      return !!g.ok && J(g.keys) === J(['avg', 'n']) && !!want && Math.abs(g.v.avg - want.avg) < 1e-9 && g.v.n === want.n && !g.json.includes(RATE_MARK);
+    });
+    ok(two.every(Boolean), 'PVCareer.rating が渡すのは2つの数だけ（avg・n）── この検査が行から数え直した値と同じ・行の欄も植えた印も1つも無い（JAL 3件・ANA 2件）',
+      J({ jal: got.jal, ana: got.ana }));
+    ok(!!got.etihad && got.etihad.ok && got.etihad.v === null && !!got['eva-air'] && got['eva-air'].ok && got['eva-air'].v === null,
+      '投稿が無い会社・点数の付いた投稿が無い会社は null（0 にしない）', J({ etihad: got.etihad, eva: got['eva-air'] }));
+    ok(!!got[RATE_FAIL] && got[RATE_FAIL].ok === false, '読めなかった会社（500）は失敗として返る（null ＝「評価なし」とは別）', J(got[RATE_FAIL]));
+  }
+
+  /* (a) 返事が先・カードが後：比較で JAL｜ANA を読み終えてから「カードを保存」→ カードの評価は、比較の欄の2つの字と同じ */
+  {
+    const { page } = await open('pc', { url: PAIR('jal', 'ana'), stub: rateStub(), before: CARD_BEFORE });
+    const calm = await settled(page, 'jal|ana');
+    const lr = await starsLR(page);
+    await page.click('#cr-to-card');
+    const m = await cardRated(page, 2);
+    const drawn = await drawnText(page);
+    const want = ['jal', 'ana'].map((s) => cardRate(expectRate(RATE_ROWS[s])));
+    const okA = !!m && m.cards.map((c) => c.slug).join('|') === 'jal|ana' && lr.length === 2
+      && m.cards.every((c, i) => J(c.rating) === J(want[i]) && c.rating.avg === lr[i].avg && c.rating.text === lr[i].cnt
+        && drawn.includes(c.rating.avg) && drawn.includes(c.rating.text));
+    ok(calm && okA, 'カードの評価は、比較の欄と同じ字（平均・「n件の評価」）── 材料は、この検査が行から数え直した {avg, fill, n, text}・描かれた字にも在る（比較 →「カードを保存」）',
+      J({ calm, lr, card: m && m.cards.map((c) => c.rating), want }));
+    await shot(page, '#crc-root canvas', 'card-two-rated');
+  }
+
+  /* (b) カードが先・返事が後：カードを直接開き、口コミの返事を止めたまま「画像を保存」→ 見本のまま（評価の行なし）。返事が届けば描き直す */
+  {
+    const { page, st } = await open('pc', { url: '/career.html?view=card&a=jal&b=ana', stub: { pv_reviews: () => 'hold' }, before: CARD_BEFORE });
+    const up = await cardUp(page, 2);
+    const held = await waitFor(() => (st.held.pv_reviews || []).length >= 2);
+    const m0 = await cardModel(page), d0 = await drawnAttr(page);
+    await page.click(SAVE);
+    const s1 = await page.waitForFunction(() => (window.__saved || []).length === 1, { timeout: 8000 }).then(() => true, () => false);
+    const saved1 = await page.evaluate(() => (window.__saved || [])[0] || null);
+    ok(up && held && !!m0 && m0.cards.every((c) => c.rating === null) && !!d0 && s1 && !!saved1 && saved1.blob
+      && saved1.text.length > 0 && !saved1.text.some((t) => t.includes('件の評価')),
+      'カードを直接開き、口コミの返事を止めたまま：評価なしで描かれ、「画像を保存」はその見本のまま（「件の評価」の字が1つも無い）── 保存は返事を待たない',
+      J({ up, held, ratings: m0 && m0.cards.map((c) => c.rating), drawn: d0, saved: saved1 && { n: saved1.text.length, blob: saved1.blob } }));
+    releaseAll(st, (name, p) => rateStub().pv_reviews(p));
+    const m1 = await cardRated(page, 2), d1 = await drawnAttr(page);
+    await page.click(SAVE);
+    const s2 = await page.waitForFunction(() => (window.__saved || []).length === 2, { timeout: 8000 }).then(() => true, () => false);
+    const saved2 = await page.evaluate(() => (window.__saved || [])[1] || null);
+    ok(!!m1 && d1 !== d0 && s2 && !!saved2 && m1.cards.every((c) => saved2.text.includes(c.rating.text)),
+      '返事が届くと描き直され（data-drawn が替わる）、次の「画像を保存」には評価の行が入る',
+      J({ d0, d1, ratings: m1 && m1.cards.map((c) => c.rating), saved: !!saved2 }));
+  }
+
+  /* (c) 点数の付いた投稿が無い会社（エバー航空）は、評価の行を描かない（0 で埋めない）。もう一方（JAL）は描く */
+  {
+    const { page } = await open('pc', { url: '/career.html?view=card&a=jal&b=eva-air', stub: rateStub(), before: CARD_BEFORE });
+    const up = await cardUp(page, 2);
+    const one = up && await page.waitForFunction(() => { const m = window.PVCareerCard.model(); return !!(m && m.cards[0].rating); }, { timeout: 8000 })
+      .then(() => true, () => false);
+    await calmCard(page);
+    const m = await cardModel(page), drawn = await drawnText(page);
+    const axis = new Set(((m && m.cards) || []).flatMap((c) => c.axis || []));
+    const counts = drawn.filter((t) => t.includes('件の評価'));
+    const zero = drawn.filter((t) => !axis.has(t) && /^(0|0\.0|0件の評価)$/.test(t));
+    ok(one && !!m && m.cards[1].slug === 'eva-air' && m.cards[1].rating === null && !!m.cards[0].rating
+      && counts.length > 0 && counts.every((t) => t === m.cards[0].rating.text) && !zero.length,
+      '点数の付いた投稿が無い会社（エバー航空）は評価の行を描かない ── 材料は null・描かれた「件の評価」は JAL の1つだけ・「0」「0.0」を描かない（目盛の字のほか）',
+      J({ one, ratings: m && m.cards.map((c) => c.rating), counts: [...new Set(counts)], zero }));
+    await shot(page, '#crc-root canvas', 'card-one-side');
+  }
+
+  /* (d) 口コミが読めない会社（500）：評価なしで描かれ、保存も効く。写真を5回替えても聞き直さない。カードの画面を開き直したら、もう1回だけ聞く */
+  {
+    const { page, st } = await open('pc', { url: `/career.html?view=card&a=${RATE_FAIL}`, stub: rateStub(), before: CARD_BEFORE });
+    const up = await cardUp(page, 1);
+    const asked = await waitFor(() => callsOf(st, 'pv_reviews', RATE_FAIL) >= 1);
+    await calmCard(page);
+    const m = await cardModel(page);
+    await page.click(SAVE);
+    const s1 = await page.waitForFunction(() => (window.__saved || []).length === 1 && window.__saved[0].blob, { timeout: 8000 }).then(() => true, () => false);
+    ok(up && asked && !!m && m.cards[0].rating === null && s1, '口コミが読めない会社（500）：評価なしで描かれ、「画像を保存」も効く',
+      J({ up, asked, rating: m && m.cards[0].rating, saved: s1 }));
+    let taps = 0;
+    for (let k = 0; k < 5; k++) {
+      const was = await drawnAttr(page);
+      await page.evaluate((k) => { const th = document.querySelectorAll('#crc-root .crc-ph')[0].querySelectorAll('.crc-th'); th[k % th.length].click(); }, k);
+      if (await page.waitForFunction((was) => document.getElementById('crc-root').getAttribute('data-drawn') !== was, { timeout: 8000 }, was)
+        .then(() => true, () => false)) taps++;
+    }
+    await frames(page);
+    const after5 = callsOf(st, 'pv_reviews', RATE_FAIL);
+    ok(taps === 5 && after5 === 1, '写真を5回替えても（描き直し5回）、その会社の口コミの要求は1本のまま（落ちても、開き直すまで聞き直さない）',
+      J({ taps, requests: after5 }));
+    await page.evaluate(() => window.PVCareer.go({ view: 'compare', a: 'jal', b: 'ana' }));
+    await page.evaluate((s) => window.PVCareer.go({ view: 'card', a: s }), RATE_FAIL);
+    const again = await waitFor(() => callsOf(st, 'pv_reviews', RATE_FAIL) >= 2);
+    await calmCard(page);
+    ok(again && callsOf(st, 'pv_reviews', RATE_FAIL) === 2, 'カードの画面を離れて開き直すと、もう1回だけ聞く（2本目）',
+      String(callsOf(st, 'pv_reviews', RATE_FAIL)));
+  }
 });
 
 /* ══ 走らせる ═══════════════════════════════════════════════════ */

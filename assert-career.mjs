@@ -44,6 +44,7 @@ import { viewOf, rentCell, GLANCE, LEAD } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
 import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell } from './gen-career.mjs';
+import { frozenPrint, matrixPrint } from './career-qr.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* 2026-10-21（P12.86-9）：開く先は PV_BASE で替えられる（serve-local の自分のポートで流すため。3000 は本番の DB につながる）。既定は今までどおり */
@@ -264,6 +265,42 @@ ok(read('check.mjs').includes(`'assert-career.mjs'`), 'check.mjs の一式にこ
 ok(!read('patch-side-nav.mjs').includes(PAGE), '左メニューにまだ載せていない');
 
 /* ══════════════════════════════════════════════════════════════════
+   C2) 保存するカードの住所と QR（★2026-10-22 段階4 cmp-links-card-3・T-C1）
+   ══════════════════════════════════════════════════════════════════ */
+head('保存するカードの住所と QR');
+/* カードの材料（career.html の #crc-data）。住所は、いま改良している会社ページ（airlines/{slug}.html・タブも問い合わせも付けない）。
+   QR の行列は、別の読み取り器で読めた行列の指紋（career-qr.mjs の FROZEN）と同じ ── 住所を変えると、どの QR も読み直しが要る。 */
+let CARD_DATA = null;
+try { CARD_DATA = JSON.parse((HTML.match(/<script type="application\/json" id="crc-data">([\s\S]*?)<\/script>/) || [])[1] || 'null'); } catch { CARD_DATA = null; }
+const CARD_AIR = (CARD_DATA && CARD_DATA.airlines) || {};
+{
+  const CNAME = read('CNAME').trim(), bad = [];
+  for (const s of FIVE) {
+    const a = CARD_AIR[s], url = a ? a.url : undefined, want = `https://${CNAME}/airlines/${s}.html`;
+    const fp = typeof url === 'string' ? frozenPrint(url) : null;
+    const rows = a && Array.isArray(a.qr) ? a.qr : [];
+    const mp = rows.length ? matrixPrint(rows.map(r => [...r].map(Number))) : null;
+    if (url !== want || /[?#]/.test(String(url)) || !fs.existsSync(path.join(ROOT, 'airlines', `${s}.html`)) || fp === null || mp !== fp)
+      bad.push(`${s}: 住所 ${url}（あるべき ${want}）・指紋 ${mp}（FROZEN ${fp}）`);
+  }
+  ok(!!CNAME && !!CARD_DATA && !bad.length, 'カードの住所は、いま改良している会社ページ（5社）。QR は、別の読み取り器で読めた行列と同じ', bad.join(' ／ ') || `CNAME ${CNAME}・材料 ${!!CARD_DATA}`);
+}
+/* T-C4：カードの評価の1行の字は、会社ページ・比較の「n件の評価」と同じ字（2つのファイルに1つずつ）。星は形で描く（字にしない）。
+   カードは実データの欄（.crl）を読まない ── 欄を避ける inLive の1か所のほかに、.crl の選び方も 'crl-' を探す口も持たない（評価は PVCareer.rating から来る）。 */
+{
+  const CC = read('career-card.js'), LIVE = read('career-live.js');
+  const cardW = (CC.match(/\n {4}[^\n]*\brated: '([^']*)'\n {2}\};/) || [])[1];
+  const liveW = (LIVE.match(/\n {4}revRated: function \(n\) \{ return n \+ '([^']*)'; \},\n/) || [])[1];
+  ok(cardW === '件の評価' && liveW === cardW, 'カードの評価件数の字は、会社ページ・比較と同じ「件の評価」（career-card.js の WORD.rated ＝ career-live.js の revRated）',
+     JSON.stringify({ card: cardW, live: liveW }));
+  /* コメントの見出しの ★ は字ではなく書き手の印（描かれない）── コメントを外して見る */
+  ok(!/[★☆⭐✩✪✭✮✯]/u.test(noJsCmt(CC)), 'カードの JS は星の字を持たない（星は形で描く）', (noJsCmt(CC).match(/.{0,30}[★☆⭐✩✪✭✮✯].{0,30}/u) || [''])[0]);
+  const CODE = noJsCmt(CC).split('\n').filter(l => !/^\s+function inLive\(el\) \{/.test(l)).join('\n');
+  ok(/\n {2}function inLive\(el\) \{ return !!\(el && el\.closest && el\.closest\('\.crl, \.crs-zone'\)\); \}\n/.test(CC) && !/\.crl\b|crl-/.test(CODE),
+     'カードの JS は実データの欄（.crl）を選ばない ── inLive のほかに .crl の選び方も crl- を探す口も無い', (CODE.match(/.{0,30}(?:\.crl\b|crl-).{0,30}/) || [''])[0]);
+}
+
+/* ══════════════════════════════════════════════════════════════════
    D) 写真の台帳 ⇄ ファイル ⇄ HTML
    ══════════════════════════════════════════════════════════════════ */
 head('写真（台帳とファイル）');
@@ -402,6 +439,7 @@ async function open(q = '', w = 390, h = 680, opt = {}) {
   page.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) trouble.push(`${r.status()} ${r.url()}`); });
   await page.setViewport({ width: w, height: h });
   if (opt.js === false) await page.setJavaScriptEnabled(false);
+  if (opt.before) await page.evaluateOnNewDocument(opt.before);   // ページのどのスクリプトよりも先に流す（書き留め役）
   /* この検査からは、解析タグにも本番の DB にも1本も出さない
      （手元で開いた回が訪問として数えられる／ネットの調子で答えが変わる、の両方を避ける）。
      生きた欄は「読めなかった」の姿で落ち着く ＝ 出荷した HTML の字だけを見ることになる。 */
@@ -1363,6 +1401,101 @@ try {
       ok(!lost.length && !swapBad.length && seen.length === 6 && photos.size === 6 && !differ.length && base === JSON.stringify([a, b].map(s => [s, yen(SALARY[s].cap.avg), yen(SALARY[s].fo.avg)])),
          `カードの写真を替えても（${name(a)} p=0・1・2 × ${name(b)} p2=0・1 ＝ 写真の組 ${photos.size}通り）、職位の字は変わらない（各社の推定年収のまま）`,
          [...lost, ...swapBad, ...differ.map(x => `${x.at}: ${x.roles}`), base ? '' : '材料が無い'].filter(Boolean).join(' ／ ').slice(0, 400));
+    }
+  }
+
+  /* ── 保存するカード：写真を替えても動かない・描くのは公開の字と絵だけ（★2026-10-22 段階4 cmp-links-card-3・T-C2・T-C3）── */
+  head('保存するカード（写真を替えても動かない・描く字と絵は公開の一覧から）');
+  {
+    /* 書き留め役（I-4b）：キャンバスに描かれた字（fillText / strokeText）と絵（drawImage の元。キャンバスは '(canvas)'）を、
+       ページのどのスクリプトよりも先に window.__drawn へ書き留める。
+       ⚠️ 元は assert-cmp-frame.mjs の RECORDER（1つの文）。ここはその写し ── 直すときは2つを同じに直す。 */
+    const RECORDER = () => {
+      const P = CanvasRenderingContext2D.prototype, D = window.__drawn = { text: [], img: [] };
+      const fT = P.fillText, sT = P.strokeText, dI = P.drawImage;
+      P.fillText = function (s) { D.text.push(String(s)); return fT.apply(this, arguments); };
+      P.strokeText = function (s) { D.text.push(String(s)); return sT.apply(this, arguments); };
+      P.drawImage = function (src) {
+        D.img.push(typeof HTMLCanvasElement !== 'undefined' && src instanceof HTMLCanvasElement ? '(canvas)' : String((src && (src.currentSrc || src.src)) || ''));
+        return dI.apply(this, arguments);
+      };
+    };
+    const cardModel = pg => pg.evaluate(() => (window.PVCareerCard && window.PVCareerCard.model ? window.PVCareerCard.model() : null));
+    const cardsUp = (pg, n) => pg.waitForFunction(n => {
+      const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+      return !!(m && m.cards && m.cards.length === n && m.layout);
+    }, { timeout: 8000 }, n).then(() => true, () => false);
+    /* 評価の読み（このページの読みと同じ答え ＝ 通信は増えない）が落ち着いてから、もう一度描かせる（途中で評価が届いて字が替わらない） */
+    const calm = (pg, slugs) => pg.evaluate(async slugs => {
+      const pv = window.PVCareer;
+      if (pv && typeof pv.rating === 'function') await Promise.all(slugs.map(s => Promise.resolve(pv.rating(s)).then(() => 0, () => 0)));
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await window.PVCareerCard.redraw();
+    }, slugs);
+
+    /* T-C2：写真を1枚ずつ替えて、カードの材料（写真のほか全部）が1文字も変わらない */
+    for (const s of FIVE) {
+      const photos = ((CARD_AIR[s] || {}).photos || []), seen = [], lost = [];
+      const { page: pg, close } = await open(`?view=card&a=${s}`);
+      if (!(await cardsUp(pg, 1)) || photos.length < 2) lost.push(`カードの材料が出来ない（写真 ${photos.length}枚）`);
+      else {
+        await calm(pg, [s]);
+        for (let i = 0; i < photos.length; i++) {
+          const was = await pg.evaluate(() => document.getElementById('crc-root').getAttribute('data-drawn'));
+          await pg.evaluate(i => document.querySelectorAll('#crc-root .crc-ph')[0].querySelectorAll('.crc-th')[i].click(), i);
+          const got = await pg.waitForFunction((was, src) => {
+            const m = window.PVCareerCard.model();
+            return document.getElementById('crc-root').getAttribute('data-drawn') !== was && !!(m && m.cards[0].photo && m.cards[0].photo.src === src);
+          }, { timeout: 8000 }, was, photos[i].src).then(() => true, () => false);
+          if (!got) { lost.push(`写真${i + 1}: 描き直されない`); continue; }
+          const { photo, ...rest } = (await cardModel(pg)).cards[0];
+          seen.push(JSON.stringify(rest));
+        }
+      }
+      await close();
+      const differ = seen.filter(x => x !== seen[0]);
+      ok(!lost.length && seen.length === photos.length && !differ.length && /"url":"https:/.test(seen[0] || '') && /"qr":\["/.test(seen[0] || ''),
+         `${name(s)}：写真を替えても、額・棒・評価・住所・QR は1文字も変わらない（写真 ${photos.length}枚）`,
+         [...lost, ...differ.map(x => `${seen[0]} → ${x}`)].join(' ／ ').slice(0, 500));
+    }
+
+    /* T-C3：描かれた字は、カードの WORD（ファイルから読む）と材料の公開の字だけ。住所はその並びのつなぎ目で切っただけ。絵は台帳の写真か '(canvas)' だけ */
+    {
+      const { page: pg, close } = await open('?view=card&a=jal&b=ana', 390, 680, { before: RECORDER });
+      const up = await cardsUp(pg, 2);
+      if (up) await calm(pg, ['jal', 'ana']);
+      const m = up ? await cardModel(pg) : null;
+      const d = await pg.evaluate(() => (window.__drawn ? { text: window.__drawn.text.slice(), img: window.__drawn.img.slice() } : null));
+      await close();
+      const CC = read('career-card.js');
+      const WBLK = (CC.match(/\n {2}var WORD = \{([\s\S]*?)\n {2}\};/) || [])[1] || '';
+      const WORDS = [...WBLK.matchAll(/:\s*'([^']*)'/g)].map(x => x[1]);
+      const PHOTO_WORD = (WBLK.match(/\bphoto: '([^']*)'/) || [])[1] || '';
+      const plain = new Set(WORDS), addr = [], cred = [], pics = new Set(['(canvas)']), bad = [];
+      for (const a of Object.values(CARD_AIR)) for (const p of a.photos || []) pics.add(new URL(p.src, `${BASE}/${PAGE}`).href);
+      for (const c of (m && m.cards) || []) {
+        [c.ja, c.en, c.code].forEach(v => plain.add(v));
+        for (const r of Object.values(c.roles || {})) {
+          [r.text, r.tag, r.sub].forEach(v => plain.add(v));
+          if (r.lim) [r.lim.text, r.lim.tag, r.lim.sub].forEach(v => plain.add(v));
+        }
+        (c.axis || []).forEach(v => plain.add(v));
+        if (c.rating) { plain.add(c.rating.avg); plain.add(c.rating.text); }
+        addr.push(String(c.url).replace(/^https?:\/\//, ''));
+        if (c.photo && c.photo.credit) cred.push(`${PHOTO_WORD} ${c.photo.credit}`);
+      }
+      const text = (d && d.text) || [], img = (d && d.img) || [];
+      for (const t of text) if (!plain.has(t) && !(t && [...addr, ...cred].some(x => x.includes(t)))) bad.push(`字「${t}」`);
+      for (const u of img) if (!pics.has(u)) bad.push(`絵 ${u}`);
+      /* いちばん後の1回（WORD.brand から描き始める）で、住所の切れ端をつなぐと住所そのものになる */
+      const lastAt = text.lastIndexOf(WORDS[0]), lastPaint = lastAt < 0 ? [] : text.slice(lastAt), left = addr.slice();
+      for (const t of lastPaint) {
+        const k = t ? left.findIndex(x => x.startsWith(t)) : -1;
+        if (k >= 0) left[k] = left[k].slice(t.length);
+      }
+      ok(up && !!d && text.length > 0 && img.length >= 2 && WORDS[0] === 'PILOT VALUE' && !!PHOTO_WORD && left.every(x => x === '') && !bad.length,
+         'カードに描かれる字と絵は、公開の一覧に在るものだけ（WORD・社名・略号・額と札・目盛・評価・住所の切れ端・写真のクレジット・台帳の写真）',
+         JSON.stringify({ up, drawn: text.length, img: img.length, bad: bad.slice(0, 6), addrLeft: left }).slice(0, 600));
     }
   }
 

@@ -1895,6 +1895,14 @@
 
   var PC = w.PVCareer = w.PVCareer || {};
   PC.client = client;
+  /* 保存カード用：公開の評価（平均と評価件数の2つの数だけ）。口コミの行そのものは渡さない。 */
+  PC.rating = function (slug) {
+    if (!okSlug(slug)) return Promise.resolve(null);
+    return reviews(slug).then(function (res) {
+      var R = realRated(res && res.rows);
+      return R ? { avg: R.avg, n: R.n } : null;
+    });
+  };
 
   root.addEventListener('cr:show', later);
   root.addEventListener('change', function (e) {

@@ -7,6 +7,7 @@
  * ★会社が公表した上限は、DOM に [data-lim] が在るときだけ描く（いまの career.html には無い）。
  *   描くときは3つが必ず一緒に出る ──「〜」（DOM の字）・斜線の棒・「上限」の字。
  * ★生きた欄（.crl ＝ REAL PAY・口コミ・星・乗員ホテル・勤務の実データ）は読まない・絵に載せない。
+ *   公開の評価（平均と評価件数の2つの数）だけは、欄からではなく career-live.js の PVCareer.rating から受け取って描く（下の「公開の評価」）。
  * ★示すことが条件の写真のクレジット（#crc-data の credit）は、必ず絵の中に入る。
  * ・絵の寸法・字の太さ・絵の色は、すぐ下の「絵の定数」にまとめてある（3けた以上の数はその塊の中だけ）。
  * ・QR は #crc-data の行列をそのまま描く（1 が暗いマス・1マスは整数の画素・四方に明るい余白）。
@@ -28,6 +29,7 @@
     ROW_GAP: 36, BAR_GAP: 12, LIM_GAP: 16, LBAR_GAP: 10, AXIS_LH: 40, FOOT_GAP: 24,
     HATCH: 7, MARK: 5, TICK: 10, TAIL: 34, SWATCH: 56,
     MOD: 6, QUIET: 4, QPAD: 8, QR_R: 14, URL: 30, URL_LH: 32,
+    RATE_MAX: 5, RATE_PTS: 5, RATE_STAR: 26, RATE_GAP: 5, RATE_IN: .42, RATE_LH: 48, RATE_PAD: 12, RATE_MIN: 18, RATE_BASE: 4,
     ONE: { PH_MIN: 240, PH_MAX: 520, NAME: 64, EN: 28, PAD: 32,
            VAL: 124, VAL_LH: 132, VAL_MIN: 72, HELD: 60, HELD_LH: 76, ROLE: 36, ROLE_LH: 0, BAR: 28,
            LIM: 72, LIM_LH: 84, LIM_MIN: 48, LBAR: 22 },
@@ -71,7 +73,7 @@
     brand: 'PILOT VALUE', head: 'パイロットの年収', cap: '機長', fo: '副操縦士', max: '上限',
     photo: '写真（縮小・トリミング）',
     one: '1社', two: '2社', count: '会社の数', co: '会社', coA: '1社目', coB: '2社目', pic: '写真',
-    design: 'デザイン', color: 'カラフル', gold: '黒×金', save: '画像を保存', share: '共有', preview: 'カードの見本'
+    design: 'デザイン', color: 'カラフル', gold: '黒×金', save: '画像を保存', share: '共有', preview: 'カードの見本', rated: '件の評価'
   };
 
   var cr = document.getElementById('cr');
@@ -140,7 +142,35 @@
       if (ax && !inLive(ax)) Array.prototype.forEach.call(ax.children, function (s) { axis.push(txt(s)); });
     }
     return { slug: slug, ja: a.ja || '', en: a.en || '', code: a.code || '', color: a.color || '',
-             url: a.url || '', qr: a.qr || [], photo: photos[photoIx] || photos[0] || null, roles: roles, axis: axis };
+             url: a.url || '', qr: a.qr || [], photo: photos[photoIx] || photos[0] || null, roles: roles, axis: axis, rating: ratingOf(slug) };
+  }
+
+  /* ── 公開の評価（星の図・平均・評価件数）──
+     career-live.js が会社ページ・比較と同じ計算で出した「平均」と「評価件数」の2つの数だけを受け取る。
+     口コミの行・本文・抜粋はここへ来ない。読めていない・点数の付いた投稿が無い会社は、行ごと描かない。
+     聞くのは、カードを開くたびに1社につき1回（落ちても、開き直すまで聞き直さない）。保存と共有は待たない＝見本に出ているものがそのまま画像になる。 */
+  var RATED = {};                                 // slug → { avg, n } ｜ null（評価なし）。分からない会社は鍵が無い
+  var ASKED = {};                                 // このカードを開いてから聞いた会社
+  function sameRate(a, b) { return a === b || (!!a && !!b && a.avg === b.avg && a.n === b.n); }
+  function askRating(slug) {
+    if (ASKED[slug]) return;
+    ASKED[slug] = true;
+    var pv = PV(), p;
+    if (!pv || typeof pv.rating !== 'function') return;
+    try { p = Promise.resolve(pv.rating(slug)); } catch (e) { return; }
+    p.then(function (r) {
+      var avg = r ? Number(r.avg) : NaN, n = r ? Math.floor(Number(r.n)) : NaN;
+      var v = (isFinite(avg) && avg > 0 && isFinite(n) && n > 0) ? { avg: Math.min(D.RATE_MAX, avg), n: n } : null;
+      var had = Object.prototype.hasOwnProperty.call(RATED, slug), old = RATED[slug];
+      RATED[slug] = v;
+      if (had ? !sameRate(old, v) : !!v) schedule();
+    }, function () {                                // 読めなかった ＝ 分からない（null＝評価なし とは別）。行を描かない
+      if (Object.prototype.hasOwnProperty.call(RATED, slug)) { delete RATED[slug]; schedule(); }
+    });
+  }
+  function ratingOf(slug) {
+    var v = Object.prototype.hasOwnProperty.call(RATED, slug) ? RATED[slug] : null;
+    return v ? { avg: v.avg.toFixed(1), fill: Math.round(v.avg / D.RATE_MAX * 1000) / 1000, n: v.n, text: v.n + WORD.rated } : null;
   }
 
   /* ── 描く道具 ───────────────────────────────────────────────────── */
@@ -524,6 +554,30 @@
     return hmax;
   }
 
+  function starPath(ctx, cx, cy, R) {
+    ctx.beginPath();
+    for (var i = 0; i < D.RATE_PTS * 2; i++) {
+      var a = -Math.PI / 2 + i * Math.PI / D.RATE_PTS, q = i % 2 ? R * D.RATE_IN : R;
+      if (i) ctx.lineTo(cx + Math.cos(a) * q, cy + Math.sin(a) * q); else ctx.moveTo(cx + Math.cos(a) * q, cy + Math.sin(a) * q);
+    }
+    ctx.closePath();
+  }
+  /* 星は形で描く（字にしない）。塗る幅は平均 ÷ 5（会社ページ・比較の星と同じ決め方）。 */
+  function rateLine(ctx, P, x, base, w, r) {
+    var R = D.RATE_STAR / 2, cy = base - R, tot = D.RATE_MAX * D.RATE_STAR + (D.RATE_MAX - 1) * D.RATE_GAP;
+    function stars(fill) {
+      ctx.fillStyle = fill;
+      for (var i = 0; i < D.RATE_MAX; i++) { starPath(ctx, x + R + i * (D.RATE_STAR + D.RATE_GAP), cy, R); ctx.fill(); }
+    }
+    stars(P.track);
+    ctx.save(); ctx.beginPath(); ctx.rect(x, cy - R, tot * r.fill, D.RATE_STAR); ctx.clip(); stars(P.text); ctx.restore();
+    var tx = x + tot + D.RATE_PAD;
+    font(ctx, D.W_NUM, D.SMALL, FAM_NUM); put(ctx, r.avg, tx, base - D.RATE_BASE, 'left', P.text);
+    tx += Math.ceil(tw(ctx, r.avg)) + D.RATE_PAD;
+    var px = fit(ctx, r.text, D.W_TEXT, D.SMALL, FAM_JP, x + w - tx, D.RATE_MIN);
+    font(ctx, D.W_TEXT, px, FAM_JP); put(ctx, r.text, tx, base - D.RATE_BASE, 'left', P.soft);
+  }
+
   function paint(ctx, m, imgs) {
     var two = m.cards.length > 1, L = two ? D.TWO : D.ONE, P = basePal(m.t);
     var iw = D.W - D.M * 2, cw = two ? (iw - D.GAP) / 2 : iw, qrs = [];
@@ -543,13 +597,18 @@
       }));
     });
     var showAxis = cols.some(function (o) { return o.c.axis.length > 1 && hasBar(o.c); });
-    var body = roles.length * D.ROW_GAP + (showAxis ? D.AXIS_LH : 0);
+    var anyRate = cols.some(function (o) { return !!o.c.rating; });
+    var body = roles.length * D.ROW_GAP + (showAxis ? D.AXIS_LH : 0) + (anyRate ? D.RATE_LH : 0);
     hs.forEach(function (v) { body += v; });
     var avail = fy - D.FOOT_GAP - D.TOP - body;
     var ph = Math.max(L.PH_MIN, Math.min(L.PH_MAX, avail)), slack = Math.max(0, avail - ph);
 
     cols.forEach(function (o, i) { photo(ctx, o.P, L, imgs[i], o.x, D.TOP, o.w, ph, o.c); });
     var y = D.TOP + ph + slack / 2;
+    if (anyRate) {
+      cols.forEach(function (o) { if (o.c.rating) rateLine(ctx, o.P, o.x, y + D.RATE_LH - D.RATE_PAD, o.w, o.c.rating); });
+      y += D.RATE_LH;
+    }
     roles.forEach(function (k, i) {
       if (i) { ctx.fillStyle = P.hair; ctx.fillRect(D.M, Math.round(y + D.ROW_GAP / 2), iw, D.FRAME_W); }
       y += D.ROW_GAP;
@@ -561,7 +620,7 @@
     });
     if (showAxis) cols.forEach(function (o) { if (o.c.axis.length > 1 && hasBar(o.c)) axis(ctx, P, o.x, y + D.TICK, o.w, o.c.axis); });
     footer(ctx, cols, two, bottom, true, qrs);
-    return { qr: qrs, photoH: ph };
+    return { qr: qrs, photoH: ph, over: Math.max(0, L.PH_MIN - avail) };
   }
 
   /* ── 写真と書体を待つ ─────────────────────────────────────────────── */
@@ -590,9 +649,10 @@
       .then(function () { return fs.ready; }).catch(noop);
   }
   function stringsOf(m) {
-    var out = [WORD.brand, WORD.head, WORD.cap, WORD.fo, WORD.max, WORD.photo];
+    var out = [WORD.brand, WORD.head, WORD.cap, WORD.fo, WORD.max, WORD.photo, WORD.rated];
     m.cards.forEach(function (c) {
       out.push(c.ja, c.en, c.code, c.url, c.photo ? c.photo.credit : '');
+      if (c.rating) out.push(c.rating.avg, c.rating.text);
       c.axis.forEach(function (s) { out.push(s); });
       ROLES.forEach(function (k) {
         var r = c.roles[k];
@@ -762,6 +822,7 @@
     var my = ++seq, st = { a: S.a, b: S.b, p: S.p, q: S.q, t: S.t };
     job = job.then(function () {
       if (my !== seq) return null;
+      askRating(st.a); if (st.b) askRating(st.b);
       var m = { t: st.t, cards: [readCard(st.a, st.p)] };
       if (st.b) m.cards.push(readCard(st.b, st.q));
       return Promise.all([fontsFor(stringsOf(m)), Promise.all(m.cards.map(function (c) { return loadImg(c.photo && c.photo.src); }))])
@@ -812,6 +873,7 @@
   /* ── 出入り ─────────────────────────────────────────────────────── */
   function open(st) {
     active = true;
+    ASKED = {};
     take(st);
     if (!ui) build();
     refresh();
