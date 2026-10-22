@@ -126,6 +126,9 @@
     sumSrc: 'この要約のもとになった口コミを見る',
     revLock: '口コミの投稿で開きます',
     revGive: '匿名で口コミを書く',
+    /* 比較の口コミの入口（口コミの鍵）。会社ページの概要の口コミの入口と同じ言葉（gen-airline-glance.mjs の RV_CTA.overview）。
+       給与の入口（payUnlock）と混ぜない ── 開く鍵が別。 */
+    revUnlock: ['口コミを', '解放する'],
     revAll: 'この会社の口コミを全部見る',
 
     factEmpty: 'まだ集計がありません',
@@ -1276,7 +1279,14 @@
   function catNames() {
     var u = GL && w.PVReviewUI;
     var a = u && u.cats && u.cats.short;
-    return (isArr(a) && a.length === SCORES.length) ? a : null;
+    if (!(isArr(a) && a.length === SCORES.length)) {
+      /* 会社ページの部品が居ない画面（比較）では、名前を島から読む（gen-career.mjs が同じ正本から写したもの） */
+      var isl = d.getElementById('crl-cats');
+      a = null;
+      if (isl) { try { a = JSON.parse(isl.textContent || ''); } catch (e) { a = null; } }
+    }
+    return (isArr(a) && a.length === SCORES.length &&
+            a.every(function (s) { return typeof s === 'string' && !!s; })) ? a : null;
   }
   function realRated(rows) {
     var sum = [], cnt = [], total = 0, n = 0;
@@ -1371,6 +1381,22 @@
       box.appendChild(l);
     });
     return box;
+  }
+  /* 点数で塗れない会社の図（比較 ── 2026-10-22 オーナー P12.97。会社ページの図と同じ見た目）：3.0 の淡い面（is-ph）と6つの名前だけ。
+     ★字に数字を1つも置かない（分類ごとの点・「3.0」・点の丸を描かない ── 作り物の点を数字として見せない）。
+     ★中身の無い絵なので読み上げない（何も無いことは、上の評価のマスが言葉で言っている）。
+     形は radar() と同じ座標（radar() は直さない）── 3.0 で描いてから、点の丸と数字を外し、面を淡い色にする。 */
+  var RADAR_PH = 3;
+  function radarPh(names) {
+    var f = radar(SCORES.map(function () { return RADAR_PH; }), names);
+    var gone = f.querySelectorAll('.crl-radar-dot, .crl-radar-l > b');
+    for (var i = 0; i < gone.length; i++) gone[i].parentNode.removeChild(gone[i]);
+    var shape = f.querySelector('.crl-radar-shape');
+    if (shape) shape.setAttribute('class', 'crl-radar-shape is-ph');
+    f.removeAttribute('role');
+    f.setAttribute('aria-hidden', 'true');
+    f.setAttribute('data-radar', 'ph');
+    return f;
   }
 
   KIND.stars = function (box, ids) {
@@ -1517,6 +1543,31 @@
     c.appendChild(postsLine(o.rows.length));
     return c;
   }
+  /* 評価の格子の続きの行（6角形・口コミの抜粋）。比べる1項目の行（.crl-cmp-row）とは別の印で置く ── 評価の行は2社の評価のマスだけ
+     （評価のマスを読む側 ── assert-cmp-frame.mjs・assert-career-live.mjs ── が数えるマスを増やさない）。左右は同じ要素・同じ列の幅。 */
+  function subRow(g, cls, cellA, cellB) {
+    var r = el('div', 'crl-cmp-sub ' + cls);
+    var a = el('div', 'crl-cmp-sc'); a.appendChild(cellA); r.appendChild(a);
+    var b = el('div', 'crl-cmp-sc'); b.appendChild(cellB); r.appendChild(b);
+    g.appendChild(r);
+    return r;
+  }
+  /* 比較の口コミの抜粋（2026-10-22 オーナー P12.97「比較には口コミの評価と一部内容までだしてね」── 誰にでも）。
+     サーバーが新しい順に返した行から、字のある投稿を REV_CMP 件まで。1件の形は会社ページの口コミの箱と同じ（reviewItem）。
+     ★鍵の無い人の字は、サーバーが返した抜粋（最初に書かれた1欄の先頭40字）だけ ── 本文はそもそも届かない（db/reviews-gate.sql の
+       pv_reviews）。ここで字を切らない・作らない・足さない。点数だけの投稿（字が無い）は飛ばす（日付だけの札を並べない）。 */
+  var REV_CMP = 2;                                    // 会社ページの概要の口コミの箱（KIND.reviews）と同じ件数
+  function clipsOf(o, I) {
+    if (!o || !I) return null;
+    var ul = el('ul', 'crl-revs'), locked = false;
+    for (var i = 0; i < o.rows.length && ul.childNodes.length < REV_CMP; i++) {
+      var p = I.pick(o.rows[i]);
+      if (!(isArr(p.cats) && p.cats.some(function (c) { return c && c.text; }))) continue;
+      if (p.locked) locked = true;
+      ul.appendChild(reviewItem(p, o.rows[i]));
+    }
+    return ul.childNodes.length ? { ul: ul, locked: locked } : null;
+  }
   KIND['cmp-stars'] = function (box, ids) {
     return both(reviews, ids).then(needOne).then(function (S) {
       var O = [sideOf(S[0]), sideOf(S[1])];
@@ -1525,7 +1576,29 @@
       /* すぐ下の要約の欄（CSS）が読む印：各社に点数の付いた投稿が在るか。1 ＝ 在る／0 ＝ 無い／x ＝ 読めなかった */
       g.setAttribute('data-rated', O.map(function (o) { return !o ? 'x' : o.R ? '1' : '0'; }).join(''));
       cmpRow(g, null, rateCell(ids[0], S[0], O[0]), rateCell(ids[1], S[1], O[1]));
-      return partial(view('open', [g]), S);
+      /* 6角形（P12.97：点数は誰にでも出ている ── 鍵の有無で変えない）。6分類ぜんぶに点数がある会社は、その点数で塗る（realRated の ratings）。
+         点数で塗れない会社（点数の付いた投稿が無い・欠けた分類がある・投稿が無い）は、会社ページと同じ 3.0 の淡い面（数字なし）。
+         読めなかった会社のマスは空 ── 分からないものを図にしない。 */
+      var names = catNames();
+      var figs = O.map(function (o, i) {
+        if (!names || !o) return null;
+        if (!(o.R && o.R.ratings)) return radarPh(names);
+        var f = radar(o.R.ratings, names);
+        f.setAttribute('aria-label', coName(ids[i]));
+        f.setAttribute('data-radar', 'real');
+        return f;
+      });
+      if (figs[0] || figs[1]) subRow(g, 'crl-rate-fig', figs[0] || blankCell(), figs[1] || blankCell());
+      /* 評価の下に、新しい投稿の抜粋。続きを読むのは Give & Get（口コミの投稿 ＝ 口コミの鍵。給与の鍵では開かない）── 鍵の無い人にだけ1つ */
+      return i18n().then(function (I) { return I; }, function () { return null; }).then(function (I) {
+        var C = [clipsOf(O[0], I), clipsOf(O[1], I)];
+        if (C[0] || C[1]) subRow(g, 'crl-rate-rv', C[0] ? C[0].ul : blankCell(), C[1] ? C[1].ul : blankCell());
+        var nodes = [g];
+        if ((C[0] && C[0].locked) || (C[1] && C[1].locked)) {
+          nodes.push(lockLine(T.revLock), foot([give2(T.revUnlock, UP + 'submit-review.html')]));
+        }
+        return partial(view('open', nodes), S);
+      });
     });
   };
 

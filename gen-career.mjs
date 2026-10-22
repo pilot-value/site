@@ -770,6 +770,18 @@ ${p ? placeCredits([['', p]]) : ''}
 </section>`;
 }
 
+/* 口コミの6分類の名前（比較の6角形に添える）。正本は会社ページの口コミの部品が持つ CAT_FULL（airlines/airline-reviews-data.js）
+   ── 会社ページの評価スコアの図と同じ言葉（2026-10-21 オーナー「必ず多角形のレーダーの図を載せて」：図の名前は古いページの言葉）。
+   同じ分類を別の言葉で呼ばない。あのファイルは見本の口コミも持っているので、この1枚では読み込まない
+   ── 名前だけを生成のときに写して島に置く（career-live.js の catNames() が読む）。⚠️ ここに名前を打たない。 */
+const REVIEW_CATS = (() => {
+  const t = fs.readFileSync(path.join(ROOT, 'airlines', 'airline-reviews-data.js'), 'utf8');
+  const m = t.match(/const CAT_FULL\s*=\s*\[([^\]]*)\];/);
+  const names = m ? [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]) : [];
+  if (names.length !== 6) throw new Error('airlines/airline-reviews-data.js の CAT_FULL（6分類の名前）が読めない');
+  return names;
+})();
+
 /* ── 比較 ───────────────────────────────────────────────────────── */
 /* 比較の1行（推定年収どうし・同じ職位・同じ目盛）。職位は見出しが持っているので、行の中では隠してある。
    行は入口にしない（会社ページの 給与・待遇 のタブへは、箱の下の「詳しく」から）。
@@ -842,6 +854,7 @@ ${pub(s, 'h3')}
 </div>
 <p class="cr-else cr-cmp-card"><a class="cr-link" id="cr-to-card" href="${href.card(PAIR[0], PAIR[1])}" data-go>カードを保存${IC.go}</a></p>
 ${credits(FIVE.map(s => [s, shot(s)]), true, PAIR)}
+<script type="application/json" id="crl-cats">${JSON.stringify(REVIEW_CATS).replace(/</g, () => '\\u003c')}</script>
 </section>`;
 }
 

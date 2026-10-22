@@ -223,6 +223,47 @@
 .crl-posts{margin:0;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
 /* 投稿が無い会社・読めなかった会社の1語は、狭い列では折り返す（1行に固定しない） */
 .crl-rate > .crl-none{white-space:normal;padding:2px 8px;line-height:1.5}
+/* 評価の続きの行（6角形・口コミの抜粋）。列は評価の行と同じ2つ。評価の行とのあいだに線を引かない（同じ会社の評価の続き） */
+.crl-cmp-sub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px;padding:4px 0 12px;border-bottom:1px solid var(--pv-line-soft)}
+.crl-cmp-sc{display:flex;flex-direction:column;min-width:0}
+.crl-cmp-row:has(+ .crl-cmp-sub),.crl-cmp-sub:has(+ .crl-cmp-sub){border-bottom:0}
+.crl-rate-rv .crl-revs{margin:0}
+/* 抜粋の終わりの「…」は、サーバーが切った時だけ付けている（pv_review_clip）。比較では足さない ──「……」にしない・切っていない字に付けない */
+.crl-cmp .crl-rev-clip::after{content:none}
+/* ── 比較の6角形（2社を同じ形・同じ色で）──
+   線と面は会社ページ（pv-glance.css の .pvg .crl-radar-*）と同じ値の写し。片方だけ直すと黙って別物になる。
+   点数で塗れない会社は、会社ページと同じ 3.0 の淡い面（is-ph ── 線の色を薄く敷いただけ。数字は置かない）。
+   既定は狭い箱の形：上に図、下に6分類の名前と点数を1行ずつ。欄が広いとき（560px〜）だけ、会社ページと同じ「図のまわりに名前」
+   （名前は古いページの言葉 ──「給与・報酬の納得度」まで ── なので、会社ページと同じく左右の列を 76px に広げる）。
+   ⚠️ 既定を広い形にしない。箱の幅で測れないブラウザは既定のまま出る（狭い箱で名前が図に重ならない）。 */
+.crl-rate-fig .crl-cmp-sc{align-items:center}
+.crl-cmp .crl-radar{display:grid;grid-template-columns:minmax(0,1fr);gap:2px 8px;width:100%;max-width:272px;margin:0 auto}
+.crl-cmp .crl-radar-svg{display:block;width:100%;max-width:148px;height:auto;aspect-ratio:1;margin:0 auto 6px;overflow:visible}
+.crl-cmp .crl-radar-ring{fill:none;stroke:var(--pv-line);stroke-width:1;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-axis{stroke:var(--pv-line);stroke-width:1;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-shape{fill:var(--pv-gold-soft);stroke:var(--pv-star);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-dot{fill:var(--pv-star)}
+.crl-cmp .crl-radar-shape.is-ph{fill:var(--pv-line);fill-opacity:.6;stroke:var(--pv-ink-3);stroke-opacity:.35;stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-l{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:0 8px;min-width:0;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
+.crl-cmp .crl-radar-l span{min-width:0;word-break:keep-all;overflow-wrap:anywhere}
+.crl-cmp .crl-radar-l b{flex:none;margin-left:auto;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+@supports (container-type:inline-size){
+  .crl[data-live="cmp-stars"]{container-type:inline-size}
+  @container (min-width:560px){
+    .crl-cmp .crl-radar{grid-template-columns:76px minmax(0,1fr) 76px;grid-template-rows:auto 1fr 1fr auto;align-items:center;gap:4px 8px;max-width:300px}
+    .crl-cmp .crl-radar-svg{grid-column:2;grid-row:2 / span 2;max-width:none;margin:0}
+    .crl-cmp .crl-radar-l{flex-direction:column;flex-wrap:nowrap;align-items:flex-start;justify-content:flex-start;gap:0;line-height:1.35}
+    .crl-cmp .crl-radar-l span{word-break:normal}
+    .crl-cmp .crl-radar-l b{margin-left:0;font-size:14px}
+    .crl-cmp .crl-radar-l[data-i="0"],.crl-cmp .crl-radar-l[data-i="3"]{grid-column:1 / -1;flex-direction:row;align-items:baseline;justify-content:center;gap:6px}
+    .crl-cmp .crl-radar-l[data-i="0"]{grid-row:1}
+    .crl-cmp .crl-radar-l[data-i="3"]{grid-row:4}
+    .crl-cmp .crl-radar-l[data-i="1"]{grid-column:3;grid-row:2}
+    .crl-cmp .crl-radar-l[data-i="2"]{grid-column:3;grid-row:3}
+    .crl-cmp .crl-radar-l[data-i="5"]{grid-column:1;grid-row:2;align-items:flex-end;text-align:right}
+    .crl-cmp .crl-radar-l[data-i="4"]{grid-column:1;grid-row:3;align-items:flex-end;text-align:right}
+  }
+}
 /* 会社ページ：星の行は「口コミ」のタブへの入口 */
 a.crl-score-a{display:inline-flex;flex-wrap:nowrap;gap:8px;min-height:44px;color:var(--pv-ink);text-decoration:none;border-radius:8px}
 a.crl-score-a .crl-ic{flex:none;color:var(--pv-ink-3);transition:transform .18s var(--pv-ease)}
