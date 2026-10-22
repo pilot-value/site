@@ -50,18 +50,37 @@
      欧州の会社だけ・社数 ＝ その数 → 欧州をもう1回 → 外れる
    場面 empty（日英・1440×900）── zzzz → 見つからないの文と「絞り込みを解除」・地域のボタンは出さない・社数は空 →
      「絞り込みを解除」→ 112社・欄は空・すべてが押されている・ボタンは隠れる
+   場面 url（日英・1440×900）── 住所（WP-dd-6）
+     u1 7つの住所（?q=ana・?q=ana#list・?region=asia・?region=zz・?ref=ABCD1234・?q=ドイツ&region=europe&type=fsc・?view=range）で開く →
+        住所は1文字も変わらない・history.state は null（開いた時は履歴に触らない）・状態・欄・押した地域・種類が住所どおり・
+        見えているカード ＝ 台帳（地域・国・種類）／打った時と同じ（q）・zz は「すべて」・?view=range は絞り込みの帯が消え、
+        DOMContentLoaded のあと #lvl-wa-grid に4本の .lvl-col
+     u2 «emirates» を本当に打つ → その場で絞り込まれ、欄にいるあいだ住所は変わらない → Enter → ?q=emirates・history.length は同じ
+     u3 打って欄を離れる（Tab）→ ?q=emirates（change）・欄の消すボタン（空にして search）→ q が消える
+     u4 地域のボタン → ?region=… ・history.length は同じ → «air» ＋ Enter ＋ スクロール → 読み直す → 同じ地域・欄・スクロール
+     u5 地域を選び、打ち終えないまま言語のボタン → 向こうのページで同じカードが見えている
+   場面 back（日英・1440×900・新しい headless）── 会社のページへ移って「戻る」（WP-dd-6）
+     JAL と ルフトハンザ × 2つの歩き方 × 2つの離れ方。結果：その社の地域 ＋ «air» ／ «luft»（Enter なし）→ 社名 → 戻る →
+     同じカード・欄・札・住所に q。スクロール：何も選ばずにその社のカードを画面のまんなかへ → 社名 → 戻る → 112社・
+     スクロールが ±2px。離れ方：そのまま（ブラウザの手元に置かれたか ＝ cache ／ reload を印字）と、unload の聞き手を足して
+     （手元に置かれない ＝ 必ず reload）。ページはサイトのファイルの no-store を max-age=600（GitHub Pages と同じ）に替える前の口
+     （frontOf）から開く ── serve-local の no-store のままだと、ブラウザはいつも読み直す
+   場面 touch（日英・390×680・指）── 欄を指で押して打つ → 社名を指で押す → 移る → 戻る → 同じカードと欄
 
-   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
+   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
+     back が入る回は、ブラウザを新しい headless で立てる（'shell' は戻るの手元置き場を使わない：BackForwardCacheDisabledForDelegate）。
+     どの回も、名前を引けるのは localhost と LIBS の4つだけ（--host-resolver-rules ＝ 門の外のもう1枚の網）
 
    ほかの検査が読む名前（export）: dirOpen / ready / visible / QUIET_ALLOW / quiet
    ════════════════════════════════════════════════════════════════ */
 
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { bring, open } from './local-chain.mjs';
+import { bring, open, LIBS } from './local-chain.mjs';
 import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 
@@ -148,9 +167,10 @@ export function visible(page) {
 /** 一覧のページを、新しい窓（context）で開く。
     st.segs ＝ 主の枠が移るたびに { at: その時の st.calls の本数, dir: 一覧のページか }（quiet が「一覧が開いていたあいだの呼び出し」を切り分ける）
     st.http4 ＝ 手元の配信元が 4xx / 5xx で答えた要求 */
-export async function dirOpen(browser, L, { rel = 'world-airlines.html', query = '', w = 1440, h = 900, touch = false, theme = null, js = true } = {}) {
+export async function dirOpen(browser, L, { rel = 'world-airlines.html', query = '', w = 1440, h = 900, touch = false, theme = null, js = true, init = null } = {}) {
   const o = await open(browser, L.base, { w, h, touch, theme });
   const { page, st } = o, origin = new URL(L.base).origin;
+  if (init) await init(page);   // 最初の文書より先に置くもの（evaluateOnNewDocument など）
   st.segs = [];
   st.http4 = [];
   page.on('framenavigated', (f) => {
@@ -182,6 +202,27 @@ export function quiet(st, label, { allow = QUIET_ALLOW } = {}) {
   return out;
 }
 
+/* 手元のサーバーの前の口：サイトのファイルの no-store だけを GitHub Pages と同じ max-age=600 に替えて渡す（ほかは1字も替えない）。
+   serve-local.mjs の no-store のままだと、ブラウザは一覧を手元に置かない（戻るがいつも読み直しになる ＝ 本番と違う）。
+   assert-keep.mjs の pagesFront と同じ形の写し。3000 番では開かない。 */
+async function frontOf(base) {
+  const to = new URL(base);
+  const srv = http.createServer((req, res) => {
+    const up = http.request({ host: '127.0.0.1', port: to.port, path: req.url, method: req.method, headers: { ...req.headers, host: to.host } }, (r) => {
+      const h = { ...r.headers };
+      if (!/^\/(rest|auth|functions|storage|realtime)\/v1(\/|$)|^\/__local\//.test(req.url) && /no-store/.test(h['cache-control'] || '')) h['cache-control'] = 'max-age=600';
+      res.writeHead(r.statusCode, h);
+      r.pipe(res);
+    });
+    up.on('error', () => { try { res.writeHead(502); res.end(); } catch { /* もう書き始めていた */ } });
+    req.pipe(up);
+  });
+  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  const port = srv.address().port;
+  if (port === 3000) { srv.close(); throw new Error('3000 番は使わない'); }
+  return { base: `http://localhost:${port}`, close: () => new Promise((r) => { srv.close(r); srv.closeAllConnections?.(); }) };
+}
+
 /* ── 実行（このファイルを直接流したときだけ）────────────────────── */
 /* ⚠️ 実体のパスどうしで比べる。リンク越し（/tmp → /private/tmp、写しの中のリンク）で流すと、Node は argv[1] をリンクのまま・
    import.meta.url を実体で持つので、素の path.resolve では一致せず「何も流さず exit 0」＝検査の門が黙って緑になる */
@@ -191,7 +232,7 @@ if (process.argv[1] && realOf(process.argv[1]) === realOf(fileURLToPath(import.m
 async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const SCENES = { base, first, nojs, search, scope, empty };
+  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   const unknown = want.filter((s) => !SCENES[s]);
   if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -208,7 +249,11 @@ async function main() {
   const sameSet = (a, b) => same([...new Set(a)].sort(), [...new Set(b)].sort());
 
   const L = await bring();
-  const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+  /* back が入る回だけ新しい headless（'shell' は戻るの手元置き場を使わない）。名前を引けるのは localhost と LIBS の4つだけ */
+  const NO_NAMES = '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE cdn.jsdelivr.net, EXCLUDE fonts.googleapis.com, '
+    + 'EXCLUDE fonts.gstatic.com, EXCLUDE cdn.tailwindcss.com';
+  const browser = await puppeteer.launch({ headless: want.includes('back') ? true : 'shell', args: ['--no-sandbox', NO_NAMES] });
+  let FRONT = null;
   const PAGES = [];
   console.log(`手元の使い捨ての保存先 ${L.base}（REAL LOCAL CONNECTION・3000 番でも本番でもない）`);
 
@@ -658,6 +703,239 @@ async function main() {
     }
   }
 
+  /* ── 住所と「戻る」の場面で使う道具（WP-dd-6）── */
+  const fieldOf = (page) => page.evaluate(() => document.getElementById('search').value);
+  const stateOf = (page) => page.evaluate(() => (window.PVDirectory ? window.PVDirectory.state() : null));
+  const typeOf = (page) => page.evaluate(() => [...document.querySelectorAll('.ftype-btn.active')].map((b) => b.dataset.type));
+  const chipOf = (page) => page.evaluate(() => { const c = document.getElementById('wd-scope'); return c && getComputedStyle(c).display !== 'none' && c.getClientRects().length > 0 ? c.textContent : null; });
+  const addr = (page) => page.evaluate(() => ({ href: location.href, search: location.search, hl: history.length, hs: history.state }));
+  /* 見えているカードが v（DOM の順）と同じになるまで */
+  const untilVisible = (page, v) => until(page, (v) => JSON.stringify([...document.querySelectorAll('#airline-grid a[href^="airlines/"]')]
+    .filter((a) => a.getClientRects().length > 0)
+    .map((a) => a.getAttribute('href').replace(/^airlines\//, () => '').replace(/\.html$/, () => ''))) === JSON.stringify(v), v);
+  const pressedIs = (page, code) => until(page, (c) => (document.querySelector(`#region-strip .rstrip-btn[data-region="${c}"]`) || {}).getAttribute?.('aria-pressed') === 'true', code);
+  const D0 = { q: '', region: 'all', type: 'all', view: 'card' };
+  /* 別の文書（道の終わりが end）へ移って読み終わるまで。⚠️ waitForNavigation は使わない ── 押した時の住所の書き込み
+     （replaceState ＝ 同じ文書の中の移り）でも返るので、まだ一覧のページにいるうちに先へ進んでしまう */
+  const toDoc = async (page, end, act) => {
+    await act();
+    return page.waitForFunction((end) => location.pathname.endsWith(end) && document.readyState === 'complete', { timeout: 60000 }, end).then(() => true, () => false);
+  };
+
+  /* 場面 url（日英・1440×900）── 住所が状態を決め、決まった時だけ住所に書く（履歴は積まない） */
+  async function url(lang) {
+    const T = (s) => `[${lang}] ${s}`, rel = PAGE_REL[lang], other = lang === 'ja' ? 'en' : 'ja', plain = `${L.base}/${rel}`;
+    const P = await dirOpen(browser, L, { rel });
+    PAGES.push(P);
+    const { page, st } = P;
+    const go = async (href) => { await page.goto(href, { waitUntil: 'load', timeout: 60000 }); await ready(page); };
+    try {
+      /* u1 7つの住所（期待する集合は台帳から） */
+      const DE = ofCountry('DE').filter((s) => SALARY[s].region === 'europe' && listType(s) === 'fsc');
+      const ADDR = [
+        ['?q=ana', { ...D0, q: 'ana' }, { typed: 'ana' }],
+        ['?q=ana#list', { ...D0, q: 'ana' }, { typed: 'ana' }],
+        ['?region=asia', { ...D0, region: 'asia' }, { exp: inRegion('asia') }],
+        ['?region=zz', D0, { exp: ORDER }],
+        ['?ref=ABCD1234', D0, { exp: ORDER }],
+        ['?q=%E3%83%89%E3%82%A4%E3%83%84&region=europe&type=fsc', { ...D0, q: 'ドイツ', region: 'europe', type: 'fsc' }, { exp: DE }],
+        ['?view=range', { ...D0, view: 'range' }, { range: true }],
+      ];
+      for (const [qs, want, how] of ADDR) {
+        const href = plain + qs;
+        await go(href);
+        const a = await addr(page), s = await stateOf(page), f = await fieldOf(page), pr = await pressed(page), ty = await typeOf(page);
+        let good = a.href === href && a.hs === null && same(s, want) && f === want.q && same(pr, [want.region]) && same(ty, [want.type]), ex = {};
+        if (how.exp) {
+          const v = await visible(page);
+          ex = { n: v.length };
+          good = good && how.exp.length > 0 && sameSet(v, how.exp) && v.length === how.exp.length;
+        }
+        if (how.typed) {
+          const v = await visible(page), v2 = (await type(page, ''), await typed(page, how.typed));
+          ex = { n: v.length, first: v[0], typed: v2.length };
+          good = good && v.length > 0 && v[0] === 'ana' && same(v, v2);
+        }
+        if (how.range) {
+          const cols = await until(page, () => document.querySelectorAll('#lvl-wa-grid .lvl-col').length === 4);
+          const fb = await shown(page, '#filter-bar'), grid = await shown(page, '#airline-grid');
+          ex = { cols, fb, grid };
+          good = good && cols && !fb && !grid;
+          await shot(page, 'url', lang, 'range');
+        }
+        const what = how.exp ? `${how.exp.length}社` : how.typed ? '打った時と同じカード（先頭が ANA）' : '絞り込みの帯が消え、#lvl-wa-grid に4本の .lvl-col';
+        ok(good, T(`u1 「${decodeURIComponent(qs)}」で開く → 住所はそのまま・history.state は null・状態・欄・地域・種類が住所どおり・${what}`), J({ a, s, f, pr, ty, ...ex }));
+      }
+
+      /* u2 本当に打つ → 欄にいるあいだは住所を書かない → Enter */
+      await go(plain);
+      const h0 = (await addr(page)).hl;
+      await page.focus('#search');
+      await page.keyboard.type('emirates');
+      const narrowed = await until(page, () => {
+        const g = [...document.querySelectorAll('#airline-grid a[href^="airlines/"]')];
+        return g.some((x) => x.getAttribute('href') === 'airlines/emirates.html' && x.getClientRects().length > 0) && g.some((x) => x.getClientRects().length === 0);
+      });
+      const a2 = await addr(page), foc = await page.evaluate(() => (document.activeElement || {}).id);
+      ok(narrowed && foc === 'search' && a2.search === '', T('u2 «emirates» を打つ → その場で絞り込まれ、欄にいるあいだ住所は変わらない'), J({ narrowed, foc, search: a2.search }));
+      await page.keyboard.press('Enter');
+      const w2 = await until(page, () => location.search === '?q=emirates');
+      const a2b = await addr(page);
+      ok(w2 && a2b.hl === h0, T('u2 Enter → ?q=emirates・history.length は同じ'), J({ search: a2b.search, hl: a2b.hl, h0 }));
+
+      /* u3 打って欄を離れる → change が書く・欄の消すボタン（空にして search）→ q が消える */
+      await go(plain);
+      const h3 = (await addr(page)).hl;
+      await page.focus('#search');
+      await page.keyboard.type('emirates');
+      const s3 = (await addr(page)).search;
+      await page.keyboard.press('Tab');
+      const w3 = await until(page, () => location.search === '?q=emirates');
+      ok(s3 === '' && w3 && (await addr(page)).hl === h3, T('u3 打って欄を離れる（Tab）→ ?q=emirates・history.length は同じ'), J({ s3, now: (await addr(page)).search }));
+      await page.evaluate(() => {
+        const el = document.getElementById('search');
+        el.value = '';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('search', { bubbles: true }));
+      });
+      const w3b = await until(page, () => location.search === '');
+      const v3 = await visible(page);
+      ok(w3b && same(v3, ORDER) && (await addr(page)).hl === h3, T('u3 欄の消すボタン（空にして search）→ 住所から q が消え、112社'), J({ now: (await addr(page)).search, n: v3.length }));
+
+      /* u4 地域のボタン → ?region= → «air» ＋ Enter ＋ スクロール → 読み直す */
+      await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
+      const w4 = await until(page, () => location.search === '?region=europe');
+      ok(w4 && (await addr(page)).hl === h3, T('u4 地域のボタン（欧州）→ ?region=europe・history.length は同じ'), J(await addr(page)));
+      await page.focus('#search');
+      await page.keyboard.type('air');
+      await page.keyboard.press('Enter');
+      const w4b = await until(page, () => location.search === '?q=air&region=europe');
+      await still(page);
+      await page.evaluate(() => {
+        const g = document.getElementById('airline-grid'), max = document.documentElement.scrollHeight - window.innerHeight;
+        window.scrollTo({ top: Math.max(0, Math.min(max - 40, Math.round(g.getBoundingClientRect().top + window.scrollY + 200))), behavior: 'instant' });
+      });
+      await still(page);
+      const y4 = await page.evaluate(() => Math.round(window.scrollY)), v4 = await visible(page);
+      await page.reload({ waitUntil: 'load', timeout: 60000 });
+      await ready(page);
+      const back4 = await until(page, (y) => Math.abs(window.scrollY - y) <= 2, y4);
+      const s4 = await stateOf(page), f4 = await fieldOf(page), v4b = await visible(page), y4b = await page.evaluate(() => Math.round(window.scrollY));
+      ok(w4b && y4 > 100 && back4 && same(s4, { ...D0, q: 'air', region: 'europe' }) && f4 === 'air' && same(await pressed(page), ['europe']) && v4.length > 0 && same(v4b, v4),
+        T(`u4 欧州 ＋ «air» ＋ Enter ＋ スクロール（${y4}px）→ 読み直す → 同じ地域・欄・${v4.length}社・スクロール（±2px）`), J({ w4b, y4, y4b, s4, f4, n: v4b.length }));
+
+      /* u5 地域を選び、打ち終えないまま言語のボタン → 向こうのページで同じカード */
+      await go(plain);
+      await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
+      await until(page, () => location.search === '?region=europe');
+      await page.focus('#search');
+      await page.keyboard.type('air');
+      const v5 = await visible(page), s5 = (await addr(page)).search;
+      const went5 = await toDoc(page, '/' + PAGE_REL[other], () => page.click('#lang-toggle'));
+      await ready(page);
+      const v5b = await visible(page), a5 = await addr(page), f5 = await fieldOf(page);
+      ok(went5 && s5 === '?region=europe' && new URL(a5.href).pathname === '/' + PAGE_REL[other] && f5 === 'air' && v5.length > 0 && same(v5b, v5),
+        T(`u5 欧州 ＋ «air»（打ち終えないまま）→ 言語のボタン → ${other} のページで同じ${v5.length}社・欄は «air»`), J({ s5, to: a5.href.replace(L.base, () => ''), f5, n: v5.length, nb: v5b.length }));
+      await shot(page, 'url', lang, 'lang');
+
+      const q = quiet(st, 'url');
+      ok(q.length === 0, T('url quiet(st, \'url\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 back（日英・1440×900）── 会社のページへ移って「戻る」。前の口（frontOf）から開く */
+  async function back(lang) {
+    const T = (s) => `[${lang}] ${s}`, rel = PAGE_REL[lang];
+    if (!FRONT) FRONT = await frontOf(L.base);
+    const F = { base: FRONT.base };
+    /* 戻った時に、ブラウザの手元から出したか（pageshow の persisted）を数える */
+    const init = (page) => page.evaluateOnNewDocument(() => { window.__ps = []; window.addEventListener('pageshow', (e) => { window.__ps.push(!!e.persisted); }); });
+    const howBack = (page) => page.evaluate(() => {
+      const ps = window.__ps || [], n = performance.getEntriesByType('navigation')[0], r = n && n.notRestoredReasons, out = [];
+      const walk = (x) => { if (!x) return; (x.reasons || []).forEach((y) => out.push(y.reason || String(y))); (x.children || []).forEach(walk); };
+      walk(r);
+      return { cache: ps[ps.length - 1] === true, ps, reasons: out.join(',') };
+    });
+    const TARGETS = [['jal', 'japan', 'air'], ['lufthansa', 'europe', 'luft']], qs = [];
+    for (const [slug, region, word] of TARGETS) for (const walk of ['results', 'scroll']) for (const leave of ['as-is', 'unload']) {
+      const P = await dirOpen(browser, F, { rel, init });
+      PAGES.push(P);
+      const { page, st } = P, link = `#airline-grid a[href="airlines/${slug}.html"]`;
+      try {
+        let rec;
+        if (walk === 'results') {
+          await press(page, `#region-strip .rstrip-btn[data-region="${region}"]`);
+          await pressedIs(page, region);
+          await type(page, word);
+          rec = { v: await visible(page), f: await fieldOf(page), chip: await chipOf(page) };
+        } else {
+          await page.evaluate(() => document.fonts && document.fonts.ready);   // 書体が入って高さが決まってから
+          await page.evaluate((sel) => document.querySelector(sel).closest('li').scrollIntoView({ block: 'center', behavior: 'instant' }), link);
+          await still(page);
+        }
+        if (leave === 'unload') await page.evaluate(() => { window.addEventListener('unload', () => {}); });
+        /* 離れる直前の位置を記録する（まんなかへ送ったあとに上の高さが少し動くことがある ＝ 読む人がいた場所は押した時の位置） */
+        if (walk === 'scroll') rec = { y: await page.evaluate(() => Math.round(window.scrollY)) };
+        const went = await toDoc(page, `/airlines/${slug}.html`, () => page.click(link));
+        const there = went ? new URL(page.url()).pathname : '（移らなかった）';
+        await page.goBack({ waitUntil: 'load', timeout: 60000 });
+        await ready(page);
+        let good, got;
+        if (walk === 'results') {
+          const eq = await untilVisible(page, rec.v);
+          got = { f: await fieldOf(page), chip: await chipOf(page), search: await page.evaluate(() => location.search) };
+          const sp = new URLSearchParams(got.search);
+          good = eq && rec.v.includes(slug) && got.f === rec.f && got.chip === rec.chip && sp.get('q') === word && sp.get('region') === region;
+        } else {
+          const all = await untilVisible(page, ORDER);
+          const yok = all && await until(page, (y) => Math.abs(window.scrollY - y) <= 2, rec.y);
+          got = { y: await page.evaluate(() => Math.round(window.scrollY)) };
+          good = all && yok && rec.y > 0;
+        }
+        const h = await howBack(page), word2 = h.cache ? 'cache' : 'reload';
+        console.log(`  ${T(`back ${slug} ${walk} ${leave}: ${word2}${h.cache ? '' : `（${h.reasons || '理由の記録なし'}）`}`)}`);
+        const what = walk === 'results' ? `${REGION_LABEL[region][lang === 'en' ? 1 : 0]} ＋ «${word}» → 戻る → 同じ${rec.v.length}社・欄・札・住所に q`
+          : `カードをまんなかへ（${rec.y}px）→ 戻る → 112社・スクロール ±2px`;
+        ok(good && there.endsWith(`/airlines/${slug}.html`) && (leave === 'as-is' || !h.cache),
+          T(`back ${slug}・${walk === 'results' ? '結果' : 'スクロール'}・${leave === 'as-is' ? 'そのまま' : 'unload あり（必ず reload）'}：${what}（${word2}）`), J({ there, rec: walk === 'results' ? { n: rec.v.length, f: rec.f, chip: rec.chip } : rec, got, h }));
+        qs.push(...quiet(st, `back ${slug} ${walk} ${leave}`));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+    ok(qs.length === 0, T('back quiet が空（8つの歩き方とも）'), J(qs));
+  }
+
+  /* 場面 touch（日英・390×680・指）── 欄を指で押して打つ → 社名を指で押す → 移る → 戻る */
+  async function touch(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 390, h: 680, touch: true });
+    PAGES.push(P);
+    const { page, st } = P;
+    try {
+      await page.tap('#search');
+      const foc = await until(page, () => (document.activeElement || {}).id === 'search');
+      await page.keyboard.type('jal');
+      const v0 = await visible(page), f0 = await fieldOf(page);
+      ok(foc && f0 === 'jal' && v0.includes('jal') && v0.length < ORDER.length, T(`touch 欄を指で押して «jal» → 絞り込まれ（${v0.length}社）、JAL が見えている`), J({ foc, f0, n: v0.length }));
+      await shot(page, 'touch', lang, '1-typed');
+      const went = await toDoc(page, '/airlines/jal.html', () => page.tap('#wn-jal'));
+      const there = went ? new URL(page.url()).pathname : '（移らなかった）';
+      ok(there.endsWith('/airlines/jal.html'), T('touch 社名を指で押す → 会社のページ（jal）へ移る'), J(there));
+      await page.goBack({ waitUntil: 'load', timeout: 60000 });
+      await ready(page);
+      const eq = await untilVisible(page, v0), f1 = await fieldOf(page);
+      ok(eq && f1 === f0, T('touch 戻る → 同じカードと欄（«jal»）'), J({ f1, n: (await visible(page)).length }));
+      await shot(page, 'touch', lang, '2-back');
+      const q = quiet(st, 'touch');
+      ok(q.length === 0, T('touch quiet(st, \'touch\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
   try {
     for (const s of want) for (const lang of LANGS) {
       console.log(`\n════ ${s}（${lang}） ════`);
@@ -666,6 +944,7 @@ async function main() {
     }
   } finally {
     await browser.close().catch(() => {});
+    if (FRONT) await FRONT.close().catch(() => {});
     await L.stop().catch(() => {});
   }
 

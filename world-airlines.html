@@ -5,7 +5,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+<script>(function(){try{var t=localStorage.getItem('pv-theme')||'light';}catch(e){t='light';}document.documentElement.setAttribute('data-theme',t);}());</script>
 <script>(function(){try{if(/[?&]q=[^&#]/.test(location.search))document.documentElement.classList.add('wd-q');}catch(e){}}());</script>
 <title>世界の航空会社パイロット年収一覧｜112社の給与を比較 | PILOT VALUE</title>
 <!--PV-SEO-->
@@ -134,12 +134,16 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 /* ── SEARCH / FILTER BAR ───────────────────────────────────────── */
 .search-wrap{background:rgba(17,22,32,.7);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.ftype-btn{padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#6b7d93;cursor:pointer;transition:all .2s;white-space:nowrap}
+.ftype-btn{padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#6b7d93;cursor:pointer;transition:transform .2s var(--pv-ease);white-space:nowrap}
 .ftype-btn.active{background:rgba(245,200,66,.14);color:#f5c842;border-color:rgba(245,200,66,.3)}
+.ftype-btn:not(.active):hover{color:#e8edf2}
+.ftype-btn:hover{transform:translateY(-1px)}
+.ftype-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ftype-btn:active{transform:scale(.97)}
 
 /* ── REGION STRIP ──────────────────────────────────────────────── */
 .region-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.rstrip-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#6b7d93;transition:all .2s;white-space:nowrap}
+.rstrip-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#6b7d93;transition:transform .2s var(--pv-ease);white-space:nowrap}
 .rstrip-btn.active{color:#fff}
 
 /* ── MISC ──────────────────────────────────────────────────────── */
@@ -183,6 +187,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 /* Filter type buttons */
 [data-theme="light"] .ftype-btn{background:rgba(0,0,0,.04);color:#4a5568;border-color:rgba(0,0,0,.1)}
 [data-theme="light"] .ftype-btn.active{background:rgba(180,150,0,.12);color:#8a6e00;border-color:rgba(180,150,0,.3)}
+[data-theme="light"] .ftype-btn:not(.active):hover{color:#0f172a}
 /* Region strip */
 [data-theme="light"] .rstrip-btn{background:rgba(0,0,0,.04);color:#4a5568;border-color:rgba(0,0,0,.1)}
 [data-theme="light"] .rstrip-btn.active{color:#fff}
@@ -202,11 +207,14 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 /* ── VIEW TOGGLE (カード / レンジ比較) ──────────────────────────── */
 .view-toggle{display:inline-flex;gap:3px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:3px}
-.view-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:7px;font-size:.78rem;font-weight:600;border:none;background:transparent;color:#6b7d93;cursor:pointer;transition:background .2s,color .2s;white-space:nowrap}
+.view-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:7px;font-size:.78rem;font-weight:600;border:none;background:transparent;color:#6b7d93;cursor:pointer;transition:transform .2s var(--pv-ease);white-space:nowrap}
 .view-btn svg{width:14px;height:14px}
 .view-btn.active{background:rgba(245,200,66,.14);color:#f5c842}
 .view-btn:not(.active):hover{color:#e8edf2}
+.view-btn:hover{transform:translateY(-1px)}
 .view-btn:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.view-btn:active{transform:scale(.97)}
+@media (prefers-reduced-motion:reduce){.rstrip-btn,.ftype-btn,.view-btn{transition:none}.ftype-btn:hover,.ftype-btn:active,.view-btn:hover,.view-btn:active{transform:none}}
 
 /* ── SALARY LEVELING GRID: .lvl-* のCSS（ヒートマップ・内訳バー含む）は
    salary-leveling.js の injectCSS() が一括注入する（index.html と共有・ドリフト防止）。 ── */
@@ -1748,7 +1756,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- airlines-meta.js はレベリング比較（PVLeveling）の表。一覧のカード・地域ボタン・社数は gen-directory.mjs がこのページに書く。 -->
 <script src="airlines-meta.js"></script>
-<script src="pv-directory.js?v=39d367d5"></script>
+<script src="pv-directory.js?v=c347d50d"></script>
 <script>(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();</script>
 <script src="airline-logos.js"></script>
 <script src="salary-leveling.js"></script>

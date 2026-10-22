@@ -8,7 +8,8 @@
      （互いのほかに外の名前を読まない）。全社どうしの比較（career.js）へそのまま貼れるように、
      ¥・万・円の字・3けた以上の数・HTML を組み立てる書き方を入れない。
    ★ 地域のボタンの押した見た目は aria-pressed だけ（CSS の [aria-pressed="true"]）。ここは class も style も書かない。
-   ★ 外から読む名前は window.PVDirectory と、変わるたびの 'wd:change'（document に。html.wd-q を付け外ししたあと）。 */
+   ★ 外から読む名前は window.PVDirectory と、変わるたびの 'wd:change'（document に。html.wd-q を付け外ししたあと）。
+   ★ 住所（?q=・region・type・view）と「戻る」は WP-dd-6。履歴に触るのは commit() と save() の2つだけ（どちらも replaceState）。 */
 (function (w, d) {
   'use strict';
   var GRID = d.getElementById('airline-grid');
@@ -161,8 +162,64 @@
     for (var k in p) if (Object.prototype.hasOwnProperty.call(p, k)) st[k] = p[k];
     apply();
   }
-  /* 住所に書く（WP-dd-6 で中身が入る。いまは何もしない） */
-  function commit() {}
+  /* ── 住所と「戻る」（WP-dd-6）──────────────────────────────────
+     住所の鍵は q・region・type・view の4つ（既定は書かない・知らない値は無視）。開いたときは住所を書き換えない。
+     書くのは history.replaceState だけ ＝ 地域や種類を選び直しても履歴を積まない（このファイルは履歴を1段も足さない）。
+     書く時：Enter・Escape・欄の消すボタン（search）・欄の change・カードのリンクを押した時・pagehide・beforeunload・地域・種類・表示・解除。
+     打つたび・時計・スクロールでは書かない。history.state ＝ {wd:1, y ＝ その時のスクロール, cmp ＝ 比べる印を付けた社}。 */
+  var TYPE_CODES = ['fsc', 'lcc', 'taxfree'];
+  var cmp = [], LVL = null;
+  var cardOf = function (slug) { for (var i = 0; i < CARDS.length; i++) if (CARDS[i].slug === slug) return CARDS[i]; return null; };
+  /** history.state の cmp から、知っている社だけを1回ずつ */
+  function cmpOf(a) {
+    var out = [];
+    (Array.isArray(a) ? a : []).forEach(function (s) { if (typeof s === 'string' && cardOf(s) && out.indexOf(s) < 0) out.push(s); });
+    return out;
+  }
+  /** 住所から状態を読む（q は 80 字まで・region は地域のボタンの符号・type は fsc / lcc / taxfree・view は range。ほかは既定） */
+  function read() {
+    var p = null;
+    try { p = new URLSearchParams(w.location.search); } catch (e) { p = null; }
+    var g = function (k) { return (p && p.get(k)) || ''; }, region = g('region'), type = g('type');
+    return {
+      q: g('q').slice(0, 80),
+      region: CODES.indexOf(region) >= 0 ? region : 'all',
+      type: TYPE_CODES.indexOf(type) >= 0 ? type : 'all',
+      view: g('view') === 'range' ? 'range' : 'card',
+    };
+  }
+  function same(a, b) { return a.q === b.q && a.region === b.region && a.type === b.type && a.view === b.view; }
+  /** 状態を書いた住所（ほかの鍵 ref・utm_* と # はそのまま残す） */
+  function url(s) {
+    var p = new URLSearchParams(w.location.search);
+    ['q', 'region', 'type', 'view'].forEach(function (k) { p.delete(k); });
+    if (s.q !== '') p.set('q', s.q);
+    if (s.region !== 'all') p.set('region', s.region);
+    if (s.type !== 'all') p.set('type', s.type);
+    if (s.view !== 'card') p.set('view', s.view);
+    var qs = p.toString();
+    return w.location.pathname + (qs ? '?' + qs : '') + w.location.hash;
+  }
+  function hs() { return { wd: 1, y: Math.round(w.scrollY || w.pageYOffset || 0), cmp: cmp.slice() }; }
+  /* 住所はそのまま、history.state だけ書き直す */
+  function save() { try { w.history.replaceState(hs(), '', w.location.href); } catch (e) {} }
+  /* 住所に書く（状態が住所と同じなら住所は触らない） */
+  function commit() { try { w.history.replaceState(hs(), '', same(read(), st) ? w.location.href : url(st)); } catch (e) {} }
+  /** 戻ってきた時のスクロール。今・DOMContentLoaded のあとの1コマ・load の3回。読む人が押した・回した・触った・打ったら、もう動かさない */
+  function restoreY(y) {
+    y = Math.round(Number(y) || 0);
+    if (!(y > 0)) return;
+    var touched = false, stop = function () { touched = true; };
+    ['pointerdown', 'wheel', 'touchstart', 'keydown'].forEach(function (ev) { w.addEventListener(ev, stop, { capture: true, once: true, passive: true }); });
+    var go = function () {
+      if (touched || Math.abs((w.scrollY || w.pageYOffset || 0) - y) <= 1) return;
+      try { w.scrollTo({ top: y, left: 0, behavior: 'instant' }); } catch (e) { w.scrollTo(0, y); }   // html{scroll-behavior:smooth} に流されない
+    };
+    go();
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', function () { w.requestAnimationFrame(go); }, { once: true });
+    else w.requestAnimationFrame(go);
+    if (d.readyState !== 'complete') w.addEventListener('load', go, { once: true });
+  }
   /** 地域を選ぶ（同じ地域をもう1回 ＝ すべて） */
   function setRegion(code) {
     code = CODES.indexOf(code) >= 0 ? code : 'all';
@@ -210,19 +267,27 @@
   }
 
   /* ── Salary leveling grid：index と同一の Levels.fyi 型カラムを共有モジュール PVLeveling にマウント ── */
-  var waLvlMounted = false;
+  var waLvlMounted = false, waLvlWait = false;
   // レンジタブ初回表示時に1回だけマウント（隠れた要素での display:none 初期化差異を回避）。
+  // 住所が ?view=range のとき、この台本は salary-leveling.js より先に走る ── まだ PVLeveling が無ければ、
+  // DOMContentLoaded（どの台本も走り終わったあと）に1回だけ自分を呼び直す（その時もレベリング比較のままなら）。
   function mountWALeveling(){
+    if(!waLvlMounted && typeof PVLeveling==='undefined' && d.readyState==='loading'){
+      if(!waLvlWait){ waLvlWait = true; d.addEventListener('DOMContentLoaded', function(){ if(st.view==='range') mountWALeveling(); }, { once: true }); }
+      return;
+    }
     if(waLvlMounted || typeof PVLeveling==='undefined' || !PVLeveling.mount) return;
     const META = {};
     (window.PV_AIRLINES||[]).forEach(a=>{ META[window.PV_slugOf(a)] = a; });
-    PVLeveling.mount('#lvl-wa-grid', {
+    LVL = PVLeveling.mount('#lvl-wa-grid', {
       tip:'#lvl-wa-tip', layout:'levels', picker:'#lvl-wa-picker',
       quick:['ana','jal','emirates','delta','united','singapore-airlines'],
       max:5, pool:'all', slugs:['ana','jal','emirates','delta'],
       mode:'all', meta:META
     });
     waLvlMounted = true;
+    // 戻ってきた時の比べる印（history.state の cmp）が、どれもレベリングの段を持つ社なら、図にもその社を出す
+    if (LVL && LVL.setSlugs && cmp.length && cmp.every(function (s) { var c = cardOf(s); return !!c && c.lvl; })) LVL.setSlugs(cmp.slice());
   }
 
   /* ── 押したとき・打ったとき ──────────────────────────────────── */
@@ -241,7 +306,14 @@
       }
     });
     FIELD.addEventListener('search', function () { set({ q: FIELD.value }); commit(); });   // 欄の中の消すボタン（×）
+    FIELD.addEventListener('change', function () { commit(); });                           // 打ち終えて欄を離れた（言語のボタンを押す時も、先にここが走る）
   }
+  /* カードのリンクを押した時（移る前に住所とスクロールを書いておく ＝「戻る」で同じ一覧の同じ場所へ） */
+  GRID.addEventListener('click', function (e) { var t = e.target; if (t && t.closest && t.closest('a.wd-go')) commit(); }, true);
+  w.addEventListener('pagehide', function () { commit(); });
+  /* 再読み込みでは pagehide の中で書いた history.state が残らない（Chromium で実測）＝ 同じ場所へ戻すため、離れる直前にも書く。
+     問いかけは出さない（preventDefault も returnValue も使わない）。 */
+  w.addEventListener('beforeunload', function () { commit(); });
   STRIP.forEach(function (b) { b.addEventListener('click', function () { setRegion(b.getAttribute('data-region')); }); });
   SCOPES.forEach(function (s) { s.addEventListener('click', function () { setRegion('all'); }); });
   ELSE.forEach(function (b) {
@@ -255,8 +327,26 @@
 
   /* ── はじめ（古いページが持っていた地域のボタンの直書きの見た目と class active を外す）── */
   STRIP.forEach(function (b) { b.style.removeProperty('background'); b.style.removeProperty('border-color'); b.style.removeProperty('color'); b.classList.remove('active'); });
+  /* 住所の状態を先に、そのあとスクロール（開いた時は住所も履歴も書かない） */
+  if ('scrollRestoration' in w.history) { try { w.history.scrollRestoration = 'manual'; } catch (e) {} }
+  var HS = null;
+  try { HS = w.history.state; } catch (e) { HS = null; }
+  st = read();
+  if (FIELD) FIELD.value = st.q;
+  if (HS && HS.wd) cmp = cmpOf(HS.cmp);
   oldMap();
   apply();
+  restoreY(HS && HS.wd && HS.y);
+  /* ページの中の # の移動（このページの履歴の中を行き来した時）は、住所を読み直す */
+  w.addEventListener('popstate', function (e) {
+    var s = e.state && e.state.wd ? e.state : null;
+    st = read();
+    if (s) cmp = cmpOf(s.cmp);
+    if (FIELD) FIELD.value = st.q;
+    apply();
+    if (s) { try { w.scrollTo({ top: s.y || 0, left: 0, behavior: 'instant' }); } catch (x) { w.scrollTo(0, s.y || 0); } }
+  });
+  /* 戻る（ブラウザの手元に置いてあった時 ＝ pageshow の persisted）は、離れた時のまま ── 何もしない */
 
   w.PVDirectory = {
     state: function () { return { q: st.q, region: st.region, type: st.type, view: st.view }; },
@@ -276,7 +366,7 @@
   const MOON_SVG_W = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
   function applyThemeW(t){
     document.documentElement.setAttribute('data-theme',t);
-    localStorage.setItem('pv-theme',t);
+    try { localStorage.setItem('pv-theme',t); } catch (e) {}   // 保存領域を閉じたブラウザでも色は替わる
     const btn=document.getElementById('theme-toggle');
     if(btn) btn.innerHTML=t==='dark'?SUN_SVG_W:MOON_SVG_W;
   }
@@ -285,5 +375,7 @@
     const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
     applyThemeW(next);
   });
-  applyThemeW(localStorage.getItem('pv-theme')||'light');
+  try {
+    applyThemeW(localStorage.getItem('pv-theme')||'light');
+  } catch (e) { applyThemeW('light'); }   // 保存領域が読めなければ明るい色（何も選んでいない人と同じ）
 })(window, document);
