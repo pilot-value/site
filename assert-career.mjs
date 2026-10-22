@@ -1916,16 +1916,35 @@ try {
   {
     /* T-L6 (a)：比較の「詳しく」（月の働き方 → 勤務・訓練のタブ）と「ほかの街」（暮らしのタブ）から会社ページへ出て、
        そのタブが開く・戻ると同じ住所・同じ2社。
-       ⚠️ 戻ったときの位置はここでは決めない（数を控えるだけ）。戻った直後の比較は生きた欄がまだ「—」で、ページが短い
-       （390×680 で 2888px ／ 埋まると 3240px：2026-10-23 に測った）── 位置を戻しても下端で止まり、欄が埋まるあいだに動く。
-       欄の高さを押さえて同じ所に戻す仕組みと、その検査は 比較の設計 WP-6（career.js の history.state.h・assert-cmp-frame.mjs の場面 back）。 */
+       ★2026-10-23 段階4 cmp-links-card-6（LEAD AMENDMENT「戻ったときの位置」）：戻ったあと、生きた欄が全部落ち着いてから、
+       位置が出る前と同じ（|scrollY − y0| ≤ 1）。戻った直後の比較は生きた欄がまだ「—」で、ページの長さが違う
+       （直す前は 390×680 で出る前 2358 → 戻ったあと 2305 ／ 2183 → 2115：2026-10-23 の基準の回）── career.js が段（history.state）に
+       残した箱の高さで欄を置き、出る前のいちばん上の目印を、欄が埋まるあいだ同じ高さに合わせ直す（比較の設計 WP-6）。
+       どちらが起きたかを先に確かめる：この検査は要求を横取りする（解析タグと本番の DB を止める）ので、ブラウザはページを手元に置かない
+       （P12.36）＝ 戻ると読み込み直す。印（window.__left）が残っていたら手元から戻ったページ ── それは位置を戻す仕組みの証明にならないので赤。
+       出る前に欄が落ち着くのを待つのは、出る前と戻ったあとで同じ顔（どちらも手元の空の保存先・ゲスト）の長さを比べるため。 */
     const Q = '?view=compare&a=jal&b=ana';
     const { page: p, close: c } = await open(Q, 390, 680);
     const legs = [['#cr-go-work-jal', '詳しく', 'jal', 'work'], ['#cr .cr-rentb[data-airline="ana"] .cr-rentb-go a', 'ほかの街', 'ana', 'life']];
+    /* 比較の生きた欄が全部読み終わり（読み込み中でも、まだ何もしていない顔でもない）、見ている画面の出る動きが終わった */
+    const calmCmp = async () => {
+      const done = await p.waitForFunction(() => {
+        const all = [...document.querySelectorAll('#cr .cr-view[data-view="compare"] .crl[data-live]')];
+        return all.length > 0 && all.every(b => b.getAttribute('data-for') === 'jal|ana' && !['idle', 'loading'].includes(b.getAttribute('data-state')));
+      }, { timeout: 20000, polling: 100 }).then(() => true, () => false);
+      await p.evaluate(async () => {
+        const v = document.querySelector('#cr .cr-view:not([hidden])');
+        if (v) await Promise.all(v.getAnimations().map(a => a.finished.catch(() => {})));
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      });
+      return done;
+    };
     for (const [sel, word, s, tab] of legs) {
+      const calm0 = await calmCmp();
       await p.evaluate(x => document.querySelector(x).scrollIntoView({ block: 'center' }), sel);
       const kept = await p.waitForFunction(() => scrollY > 0 && history.state && Math.abs(history.state.y - scrollY) < 1, { timeout: 5000 }).then(() => true, () => false);
       const y0 = await p.evaluate(() => scrollY);
+      await p.evaluate(() => { window.__left = 1; });
       await Promise.all([p.waitForNavigation({ waitUntil: 'load' }), p.click(sel)]);
       const out = await p.waitForFunction(t => !!window.PVGlance && window.PVGlance.at() === t, { timeout: 15000 }, tab).then(() => true, () => false);
       const at = await p.evaluate(() => ({ path: location.pathname, hash: location.hash, tab: window.PVGlance ? window.PVGlance.at() : null }));
@@ -1935,7 +1954,14 @@ try {
       ok(kept && out && at.path === `/airlines/${s}.html` && at.hash === `#${tab}` && back,
          `比較の「${word}」から会社ページの「${tab}」のタブへ出て、戻ると同じ住所・同じ2社`,
          JSON.stringify({ kept, out, at, back: await search(p) }));
-      console.log(`    ・戻ったあとの位置（控え・WP-6 が決める）: 出る前 ${y0} → 戻った直後 ${await p.evaluate(() => scrollY)}`);
+      const how = await p.evaluate(() => (window.__left === 1 ? '手元から戻った' : '読み込み直した'));
+      const yNow = await p.evaluate(() => scrollY);
+      const calm1 = await calmCmp();
+      const y1 = await p.evaluate(() => scrollY);
+      ok(calm0 && calm1 && how === '読み込み直した' && Math.abs(y1 - y0) <= 1,
+         `比較の「${word}」から出て戻ると（${how}ページ）、欄が全部落ち着いたあとも出る前と同じ位置（出る前 ${y0} → ${y1}・ずれ ${y1 - y0}px ≤ 1）`,
+         JSON.stringify({ calm0, calm1, how, y0, yNow, y1 }));
+      console.log(`    ・「${word}」から戻った位置: ${how}ページ・出る前 ${y0} → 戻った直後 ${yNow} → 欄が落ち着いたあと ${y1}`);
       await pairOk('jal', 'ana', `  └ 戻ったあとも同じ2社（JAL・ANA。どちらにも公表額の一覧が無いので、その箱は描かない）`, p);
     }
     await c();
