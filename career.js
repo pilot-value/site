@@ -148,15 +148,25 @@
         var want = side.dataset.side === 'a' ? a : b;
         each(side.querySelectorAll('.cr-opt'), function (o) { o.hidden = o.dataset.airline !== want; });
       });
-      each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-rentb, .cr-credit'), function (el) {
+      each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-rentb, .cr-credit, .cr-go'), function (el) {
         var s = el.dataset.airline;
         el.hidden = s !== a && s !== b;
+      });
+      /* 「会社が公表している金額」の箱は、並べた2社のどちらにも中身（社名の見出しのほか）が無ければ描かない
+         （空の箱を置かない ── 2026-10-22 LEAD AMENDMENT）。片方に在れば、もう片方は社名だけ。 */
+      each(cmp.querySelectorAll('.cr-cards'), function (box) {
+        var any = false;
+        each(box.children, function (card) {
+          if (card.dataset.airline !== a && card.dataset.airline !== b) return;
+          each(card.children, function (c) { if (!c.classList.contains('cr-card-h')) any = true; });
+        });
+        box.hidden = !any;
       });
       /* 並びは置き場所そのものを入れ替える。見た目の順だけ変えると、
          読み上げと Tab の順が画面と食い違う。
          同じ会社の要素が続けて在っても、まとめて順のまま運ぶ。
          家賃の箱（.cr-rentbs）も同じ ── 街ごとの箱を、選んだ順に置き直すだけ。 */
-      each(cmp.querySelectorAll('.cr-pair, .cr-taxes, .cr-cards, .cr-rentbs, .cr-credits'), function (box) {
+      each(cmp.querySelectorAll('.cr-pair, .cr-taxes, .cr-cards, .cr-rentbs, .cr-credits, .cr-gos'), function (box) {
         var ea = [], eb = null;
         each(box.children, function (el) {
           if (el.dataset.airline === a) ea.push(el);

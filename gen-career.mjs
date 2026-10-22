@@ -213,6 +213,14 @@ const href = {
 const ic = d => `<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 const IC = { back: ic('M15 6l-6 6 6 6'), go: ic('M5 12h14M13 6l6 6-6 6'), down: ic('M6 9l6 6 6-6'), swap: ic('M7 8h11l-3-3M17 16H6l3 3'), next: ic('M9 6l6 6-6 6') };
 const back = () => `<a class="cr-back" href="${href.home}" data-go>${IC.back}航空会社を選ぶ</a>`;
+/* 比較の節の下に置く、会社ごとの入口（その会社のページの該当タブへ）。5社ぶん置いて、選ばれた2社だけ見せる（career.js の pair()）。
+   読み上げの名前は「節の見出し ＋ 社名 ＋ 詳しく」（aria-labelledby。字は足さない）。
+   ⚠️ data-go を付けない（career.html の外へ出る）。額・職位の字をこの中に書かない（check-salary.mjs の並びを崩さない）。 */
+const GO_WORD = '詳しく';
+const MORE_TOWNS = 'ほかの街';
+const gos = (tab, key) => `<p class="cr-gos">
+${FIVE.map(s => `<a class="cr-link cr-go" id="cr-go-${key}-${s}" href="${href.page(s, tab)}" aria-labelledby="cr-cmp-h-${key} cr-go-${key}-${s}" data-airline="${s}" style="--cr-co:${color(s)}"${PAIR.includes(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">${esc(name(s))}</span><span class="cr-go-t">${GO_WORD}</span>${IC.go}</a>`).join('\n')}
+</p>`;
 
 /* 生きた欄。空で出荷する（career-live.js / career-stay.js がサーバーの答えで埋める）。
    attrs は data- の名前と値。値はここで書く英数字だけ（鍵・コード）。 */
@@ -679,6 +687,7 @@ ${rows.join('\n')}
 <summary>前提と出どころ</summary>
 ${rentBasis(slug, L, [r])}
 </details>
+${L.rents.length > 1 ? `<p class="cr-else cr-rentb-go"><a class="cr-link" href="${href.page(slug, 'life')}">${MORE_TOWNS}${IC.go}</a></p>` : ''}
 </article>`;
 }
 
@@ -821,6 +830,9 @@ function row(slug, rank, label, shown) {
 function compare() {
   /* 5社ぶんを全部置いておき、選ばれた2社だけ見せる（career.js は数字を持たない）。 */
   const on = s => PAIR.includes(s);
+  /* 「会社が公表している金額」の箱（.cr-cards）は、並べた2社のどちらにも一覧が無ければ描かない（空の箱・「公表なし」を置かない ──
+     2026-10-22 LEAD AMENDMENT・P12.91-7）。片方に在れば、もう片方は社名だけ。選び直したときは career.js の pair() が同じ決まりで決める。 */
+  const pubs = Object.fromEntries(FIVE.map(s => [s, pub(s, 'h3')]));
   const side = (id, label, chosen, taken) => `<div class="cr-side" data-side="${id}">
 ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(s)}"${s === chosen ? '' : ' hidden'}>
 <span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}</span>
@@ -840,7 +852,7 @@ ${side('a', '1社目', PAIR[0], PAIR[1])}
 ${side('b', '2社目', PAIR[1], PAIR[0])}
 </div>
 <div class="cr-panel" data-kind="estimate">
-<h2 class="cr-panel-h">年収</h2>
+<h2 class="cr-panel-h" id="cr-cmp-h-pay">年収</h2>
 ${ROLES.map(([r, l]) => `<h3 class="cr-role">${l}</h3>
 <div class="cr-pair" data-role="${r}">
 ${FIVE.map(s => row(s, r, l, on(s))).join('\n')}
@@ -850,6 +862,7 @@ ${axis()}
 ${FIVE.map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(BASIS[s].tax)}</span></p>`).join('\n')}
 </div>
 <p class="cr-tgt">${KINDS[0][1]}<span>${EST_TARGET}</span></p>
+${gos('pay', 'pay')}
 </div>
 <div class="cr-sec cr-subpay" data-kind="submitted">
 <h2 class="cr-h2">提出された年収<span class="cr-h2-s" lang="en">REAL PAY</span></h2>
@@ -858,6 +871,7 @@ ${live('cmp-pay')}
 <div class="cr-sec cr-cmp-rev">
 <h2 class="cr-h2" id="cr-cmp-h-rev">口コミ</h2>
 ${live('cmp-stars')}
+${gos('reviews', 'rev')}
 </div>
 <div class="cr-sec cr-rents">
 <h2 class="cr-h2">拠点の街の家賃<span class="cr-h2-s">1か月あたり</span></h2>
@@ -869,15 +883,17 @@ ${FIVE.map(s => rentBox(s, on(s))).join('\n')}
 <h2 class="cr-h2" id="cr-cmp-h-work">月の働き方</h2>
 ${live('cmp-work', { entry: 'give' })}
 ${live('cmp-facts', { keys: CMP_KEYS.work.join(','), quiet: '1' })}
+${gos('work', 'work')}
 </div>
 <div class="cr-sec cr-cmp-ben">
 <h2 class="cr-h2" id="cr-cmp-h-ben">待遇</h2>
 ${live('cmp-facts', { keys: CMP_KEYS.pay.join(',') })}
+${gos('pay', 'ben')}
 </div>
-<div class="cr-cards" data-kind="published">
+<div class="cr-cards" data-kind="published"${PAIR.some(s => pubs[s]) ? '' : ' hidden'}>
 ${FIVE.map(s => `<div class="cr-card" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}>
 <h2 class="cr-card-h"><a class="cr-card-n" href="${href.page(s)}">${esc(name(s))}${IC.go}</a></h2>
-${pub(s, 'h3')}
+${pubs[s]}
 </div>`).join('\n')}
 </div>
 <p class="cr-else cr-cmp-card"><a class="cr-link" id="cr-to-card" href="${href.card(PAIR[0], PAIR[1])}" data-go>カードを保存${IC.go}</a></p>

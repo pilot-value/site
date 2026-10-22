@@ -224,6 +224,12 @@
 .crl[data-live="cmp-work"][data-state="error"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"]{display:block;height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
 .crl[data-live="cmp-work"][data-state="off"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="off"] > *,
 .crl[data-live="cmp-work"][data-state="error"] + .crl[data-live="cmp-facts"][data-quiet="1"][data-state="error"] > *{display:none}
+/* 片方の会社だけ開いているときも同じ：開いた会社に並べる行が無ければ（「まだ集計がありません」の1行だけ）、その会社の部分は出さない
+   （すぐ上の「月の働き方」の欄が、その会社のことを言っている ── 1つの箱に同じ1行を2回出さない）。
+   出す部分が1つも残らなければ（並べる行も、読めなかった会社の1行も無い）、欄ごと高さ 0（上と同じ畳み方）。 */
+.crl[data-live="cmp-facts"][data-quiet="1"] .crl-split-c:has(> .crl-msg){display:none}
+.crl[data-live="cmp-facts"][data-quiet="1"] .crl-split-c:has(> .crl-msg) + .crl-split-c{padding-top:0;border-top:0}
+.crl[data-live="cmp-facts"][data-quiet="1"][data-state="open"]:has(> .crl-split):not(:has(> .crl-split .crl-facts, > .crl-split .crl-none)){display:block;height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
 
 /* ── 口コミ ── */
 .crl-score{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;margin:0}
@@ -354,6 +360,7 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-cmp-c .crl-row{grid-template-columns:minmax(0,1fr)}                 /* 半分の幅では、額を条件の下へ */
 .crl-cmp-c .crl-row-b{justify-content:flex-start;flex-wrap:wrap;white-space:normal}
 .crl-cmp-c .crl-row-a:empty{display:none}                                /* 口コミに書かれた年収の行は、機種も年数も無い */
+.crl-cmp-c .crl-foot .crl-link > span{word-break:keep-all;overflow-wrap:anywhere}   /* 半分の幅の「REAL PAY で全部見る」：折るのは空白のところだけ（「る」1字を次の行へ落とさない） */
 .crl-more-s{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;list-style:none;color:var(--pv-accent-ink);font-size:13px;font-weight:700}
 .crl-more-s::-webkit-details-marker{display:none}
 .crl-more-s .crl-ic{transition:transform .18s var(--pv-ease)}

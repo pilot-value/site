@@ -43,7 +43,7 @@ import { BASIS, TIERS, figures } from './salary-basis.mjs';
 import { viewOf, rentCell, GLANCE, LEAD } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
-import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell } from './gen-career.mjs';
+import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell, tabOfKey, CMP_KEYS } from './gen-career.mjs';
 import { frozenPrint, matrixPrint } from './career-qr.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -237,6 +237,65 @@ ok(CMP.length > 0 && !/href="[^"]*[?&](?:amp;)?airline=/.test(CMP), '比較の�
   const factsOk = facts.length > 0 && facts.every(i => i > at('data-live="cmp-work"')) && last > at('class="cr-sec cr-cmp-ben"') && last < at('class="cr-cards"');
   ok(rising && opt.every(Boolean) && factsOk && !CMP.includes('cr-lives'), '比較の読む順：年収 → 提出された年収 → 口コミ → 家賃 → 月の働き方 → 待遇 → 内訳（公表額）',
      JSON.stringify({ pos, opt, facts, lives: CMP.includes('cr-lives') }));
+}
+
+/* ★2026-10-23 段階4 cmp-links-card-5（T-L3）：比較の節の下の「詳しく」は、会社ごとに4本 ── 年収・口コミ・月の働き方・待遇。
+   行き先は会社ページ（airlines/{slug}.html）の該当タブ（待遇は 給与・待遇 のタブ ── 会社ページが待遇の欄をそこに出す）。
+   見える字は 社名＋「詳しく」、読み上げの名前は 節の見出し＋その字（aria-labelledby ── 字を足さない）。社名のリンクは1本（会社ページの頭）。
+   家賃の箱の「ほかの街」は暮らしのタブ（街が2つ以上の会社だけ・その会社の箱の中）。ほかに airlines/ へ行くリンクを比較に置かない。 */
+head('比較の「詳しく」と「ほかの街」（行き先）');
+const GOS = [['pay', 'pay'], ['rev', 'reviews'], ['work', 'work'], ['ben', 'pay']];
+{
+  const ids = new Set([...BLOCK.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
+  const strip = t => t.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  const attr = (a, k) => (a.match(new RegExp(` ${k}="([^"]*)"`)) || [])[1];
+  const FEET = [...CMP.matchAll(/<a class="cr-link cr-go"[^>]*>[\s\S]*?<\/a>/g)].map(m => m[0]);
+  const LINKS = [...CMP.matchAll(/<a class="cr-link" href="[^"]*">[\s\S]*?<\/a>/g)].map(m => m[0]);
+  const expAir = [];
+  for (const s of FIVE) {
+    const feet = FEET.filter(a => attr(a, 'data-airline') === s);
+    const exp = GOS.map(([k, t]) => [`cr-go-${k}-${s}`, `airlines/${s}.html#${t}`]);
+    const got = feet.map(a => [attr(a, 'id'), attr(a, 'href')]);
+    const words = feet.map(strip);
+    const lab = feet.map(a => (attr(a, 'aria-labelledby') || '').split(' '));
+    const labOk = lab.length === GOS.length && lab.every((l, i) => l.length === 2 && l[0] === `cr-cmp-h-${GOS[i][0]}` && l[1] === exp[i][0] && ids.has(l[0]) && ids.has(l[1]));
+    const names = CMP.split(`class="cr-card-n" href="airlines/${s}.html"`).length - 1;
+    const more = viewOf(s).living.rents.length > 1;
+    const file = path.join(ROOT, 'airlines', `${s}.html`), P = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+    const used = [...new Set([...GOS.map(g => g[1]), ...(more ? ['life'] : [])])];
+    const lack = used.filter(t => !P.includes(` data-pvg-tab="${t}"`));
+    ok(same(got, exp) && words.every(w => w === name(s) + '詳しく') && labOk && names === 1 && !!P && !lack.length,
+       `${name(s)}: 比較の「詳しく」は、会社ページの 給与・待遇／口コミ／勤務・訓練 のタブへ（節ごと・会社ごとに1本）`,
+       JSON.stringify({ got, words, lab, names, page: !!P, lack }));
+    const box = (CMP.match(new RegExp(`<article class="cr-rentb" data-airline="${s}"[\\s\\S]*?</article>`)) || [''])[0];
+    const towns = LINKS.filter(a => strip(a) === 'ほかの街' && attr(a, 'href') === `airlines/${s}.html#life`);
+    const inBox = (box.match(/<a class="cr-link" href="[^"]*">[\s\S]*?<\/a>/g) || []).filter(a => strip(a) === 'ほかの街' && attr(a, 'href') === `airlines/${s}.html#life`);
+    ok(more ? towns.length === 1 && inBox.length === 1 : towns.length === 0,
+       `${name(s)}: 家賃の箱の「ほかの街」は、会社ページの暮らしのタブへ（${more ? 'その会社の箱の中に1本' : '街が1つなので置かない'}）`,
+       `比較に ${towns.length}本・箱の中に ${inBox.length}本（街 ${viewOf(s).living.rents.length}）`);
+    expAir.push(...exp.map(e => e[1]), `airlines/${s}.html`, ...(more ? [`airlines/${s}.html#life`] : []));
+  }
+  const air = [...CMP.matchAll(/href="(airlines\/[^"]*)"/g)].map(m => m[1]);
+  ok(same([...air].sort(), [...expAir].sort()), '比較の中の airlines/ へのリンクは、「詳しく」・社名・「ほかの街」のほかに無い',
+     JSON.stringify({ extra: air.filter(h => !expAir.includes(h)), missing: expAir.filter(h => !air.includes(h)) }));
+}
+
+/* ★T-L5（静的な半分）：箱・「詳しく」の先・会社ページのタブが食い違わない。月の働き方の箱の回答の欄は CMP_KEYS.work・待遇の箱は
+   CMP_KEYS.pay（欄はそれぞれちょうど1つ）。2つの一覧は同じ質問を持たない。どの質問も、その箱の「詳しく」の先のタブが家（tabOfKey）。
+   赤くなったら、直すのは決まり（gen-career.mjs の tabOfKey）── 会社ページでも「詳しく」でもない。 */
+{
+  /* 箱の見出しから、その箱の「詳しく」の手前まで（「詳しく」は箱のいちばん下）。 */
+  const boxOf = cls => { const i = CMP.indexOf(`class="cr-sec ${cls}"`), j = i < 0 ? -1 : CMP.indexOf('<p class="cr-gos">', i); return j < 0 ? '' : CMP.slice(i, j); };
+  const slots = t => [...t.matchAll(/<div class="crl" data-live="cmp-facts"([^>]*)>/g)].map(m => (m[1].match(/ data-keys="([^"]*)"/) || [])[1]);
+  const footTab = k => (CMP.match(new RegExp(` id="cr-go-${k}-${FIVE[0]}" href="airlines/${FIVE[0]}\\.html#([a-z]+)"`)) || [])[1];
+  const W = slots(boxOf('cr-cmp-work')), B = slots(boxOf('cr-cmp-ben'));
+  const shared = CMP_KEYS.work.filter(k => CMP_KEYS.pay.includes(k));
+  const tw = footTab('work'), tb = footTab('ben');
+  const stray = [...CMP_KEYS.work.filter(k => tabOfKey(k) !== tw).map(k => `${k}→${tabOfKey(k)}（月の働き方の足は ${tw}）`),
+                 ...CMP_KEYS.pay.filter(k => tabOfKey(k) !== tb).map(k => `${k}→${tabOfKey(k)}（待遇の足は ${tb}）`)];
+  ok(!shared.length && W.length === 1 && W[0] === CMP_KEYS.work.join(',') && B.length === 1 && B[0] === CMP_KEYS.pay.join(',') && !!tw && !!tb && !stray.length,
+     '比較の箱と「詳しく」の先が食い違わない：月の働き方の箱の質問は、その足の先のタブ（勤務・訓練）が家・待遇の箱の質問は 給与・待遇 が家（同じ質問を2つの箱に置かない）',
+     JSON.stringify({ shared, W: W.length, B: B.length, workSame: W[0] === CMP_KEYS.work.join(','), benSame: B[0] === CMP_KEYS.pay.join(','), tw, tb, stray }));
 }
 
 /* ★2026-10-22 段階4 cmp-pay-4（T-S3a）：比較の「提出された年収」の生きた欄は、出荷の HTML では空 ── 「—」だけで、数字を1つも持たない
@@ -458,11 +517,14 @@ const settle = page => page.evaluate(async () => {
   const mine = document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#cr'));
   await Promise.all(mine.map(a => a.finished.catch(() => {})));
 });
+/* opt.path：career.html のほかのページを開く（会社ページ ── companyPage）。opt.errs：そのページの例外と読めなかったファイルを書く先
+   （会社ページには会社ページの検査が在る。ここの trouble には入れず、控えとして出す）。 */
 async function open(q = '', w = 390, h = 680, opt = {}) {
   const ctx = await browser.createBrowserContext();
   const page = await ctx.newPage();
-  page.on('pageerror', e => trouble.push(`${q || '（入口）'}: ${e.message}`));
-  page.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) trouble.push(`${r.status()} ${r.url()}`); });
+  const errs = opt.errs || trouble;
+  page.on('pageerror', e => errs.push(`${opt.path || q || '（入口）'}: ${e.message}`));
+  page.on('response', r => { if (r.url().startsWith(BASE) && r.status() >= 400) errs.push(`${r.status()} ${r.url()}`); });
   await page.setViewport({ width: w, height: h });
   if (opt.js === false) await page.setJavaScriptEnabled(false);
   if (opt.before) await page.evaluateOnNewDocument(opt.before);   // ページのどのスクリプトよりも先に流す（書き留め役）
@@ -471,9 +533,52 @@ async function open(q = '', w = 390, h = 680, opt = {}) {
      生きた欄は「読めなかった」の姿で落ち着く ＝ 出荷した HTML の字だけを見ることになる。 */
   await page.setRequestInterception(true);
   page.on('request', r => ((opt.block && r.url().includes(opt.block)) || NET_OFF.test(r.url()) ? r.abort() : r.continue()));
-  await page.goto(`${BASE}/${PAGE}${q}`, { waitUntil: 'load' });
-  if (opt.js !== false) await ready(page);
+  await page.goto(`${BASE}/${opt.path || PAGE}${q}`, { waitUntil: 'load' });
+  if (opt.js !== false && !opt.path) await ready(page);
   return { page, close: () => ctx.close() };
+}
+/* 会社ページ（airlines/{slug}.html）を1社に1回だけ開いて読む（★2026-10-23 段階4 cmp-links-card-5・E7.5）。
+   tabs ＝ ページが持つタブ／facts ＝ 会員の回答の欄ごとの 質問の鍵 と、その欄が出るタブ（panes：その要素と祖先の data-pvg-pane の重なり。
+   どこにも無ければ全部のタブ）／towns ＝ 街ごとの字（その街の詳細と、暮らしのタブの中でその街を名指す行 ── 札・家賃の棒の行・出典の参考）／
+   townPane ＝ その街の詳細が出るタブ。開くのは、この検査の open()（解析タグと本番の DB へは1本も出さない）。 */
+const CO_NOTES = [];
+const coPages = new Map();
+async function companyPage(s) {
+  if (coPages.has(s)) return coPages.get(s);
+  const errs = [];
+  const { page: p, close: c } = await open('', 1280, 800, { path: `airlines/${s}.html`, errs });
+  await p.waitForFunction(() => !!window.PVGlance, { timeout: 15000 }).catch(() => {});
+  const got = await p.evaluate(() => {
+    const all = [...new Set([...document.querySelectorAll('[data-pvg-tab]')].map(e => e.getAttribute('data-pvg-tab')))];
+    const panes = el => {
+      let set = null;
+      for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+        const v = n.getAttribute('data-pvg-pane');
+        if (v == null) continue;
+        const l = v.split(/\s+/).filter(Boolean);
+        set = set ? set.filter(x => l.includes(x)) : l;
+      }
+      return set || all;
+    };
+    const t = el => el.textContent.replace(/\s+/g, ' ').trim();
+    const facts = [...document.querySelectorAll('.crl[data-live="fact"]')].map(e => ({ keys: (e.getAttribute('data-keys') || '').split(',').filter(Boolean), panes: panes(e) }));
+    const towns = {}, townPane = {};
+    for (const d of document.querySelectorAll('section[id^="pvg-town-"]')) {
+      const k = d.id.slice('pvg-town-'.length);
+      const h4 = d.querySelector('.pvg-td-h h4');
+      const main = h4 && h4.firstChild && h4.firstChild.nodeType === 3 ? h4.firstChild.nodeValue.trim() : '';
+      const keyed = [...document.querySelectorAll('[data-town]')].filter(x => x.getAttribute('data-town') === k && panes(x).includes('life'));
+      /* 出典の参考の行は、街の名前（と、続く地区の括弧）で始まる ──「南崁（蘆竹區） 月 TWD 10,000」 */
+      const named = main ? [...document.querySelectorAll('[data-pvg-ev] li > span')].filter(x => panes(x).includes('life') && t(x).startsWith(main) && /^[ （]/.test(t(x).slice(main.length))) : [];
+      towns[k] = [d, ...keyed, ...named].map(t).join(' ／ ');
+      townPane[k] = panes(d);
+    }
+    return { tabs: all, facts, towns, townPane };
+  });
+  await c();
+  if (errs.length) CO_NOTES.push(...errs);
+  coPages.set(s, got);
+  return got;
 }
 const go = async (page, q) => { await page.goto(`${BASE}/${PAGE}${q}`, { waitUntil: 'load' }); await ready(page); };
 const search = page => page.evaluate(() => location.search);
@@ -788,7 +893,7 @@ try {
   ok(len2 === len0 + 2, '履歴がもう1段増える');
 
   /* いま並んでいる2社（上から・左から）。 */
-  const shown = () => page.evaluate(() => {
+  const shown = (pg = page) => pg.evaluate(() => {
     const vis = sel => [...document.querySelectorAll('#cr .cr-view:not([hidden]) ' + sel)].filter(e => e.getClientRects().length);
     const order = els => els.slice().sort((a, b) => {
       const x = a.getBoundingClientRect(), y = b.getBoundingClientRect();
@@ -801,22 +906,39 @@ try {
       opts: ['a', 'b'].map(s => vis(`.cr-side[data-side="${s}"] .cr-opt`).map(e => e.dataset.airline)),
       sel: [document.getElementById('cr-a').value, document.getElementById('cr-b').value],
       off: ['cr-a', 'cr-b'].map(id => [...document.getElementById(id).options].filter(o => o.disabled).map(o => o.value)),
+      /* 節ごとの「詳しく」（置き場所の順 ＝ 読み上げと Tab の順）。 */
+      gos: [...document.querySelectorAll('#cr .cr-cmp .cr-gos')].map(g => [...g.children].filter(e => e.getClientRects().length).map(e => e.dataset.airline)),
       credits: vis('.cr-credit[data-airline]').map(e => e.dataset.airline),
       /* 置き場所の順（読み上げと Tab が進む順）。見た目の順と同じでなければならない。 */
       dom: [...document.querySelectorAll('#cr .cr-cmp .cr-pair[data-role]')].map(p => vis(`.cr-pair[data-role="${p.dataset.role}"] .cr-row`).map(e => e.dataset.airline))
         .concat([vis('.cr-card').map(e => e.dataset.airline), vis('.cr-taxes .cr-tax').map(e => e.dataset.airline), vis('.cr-rentb').map(e => e.dataset.airline)]),
     };
   });
-  const pairOk = async (a, b, label) => {
-    const g = await shown();
+  const pairOk = async (a, b, label, pg = page) => {
+    const g = await shown(pg);
+    /* 「会社が公表している金額」の箱は、2社のどちらにも一覧が無ければ描かない（2026-10-22 LEAD AMENDMENT）。片方に在れば、2社とも社名が並ぶ。 */
+    const cards = [a, b].some(s => WITH_PUB.includes(s)) ? [a, b] : [];
     const exp = {
-      rows: ROLES.map(() => [a, b]), cards: [a, b], taxes: [a, b], rents: [a, b], opts: [[a], [b]], sel: [a, b], off: [[b], [a]],
+      rows: ROLES.map(() => [a, b]), cards, taxes: [a, b], rents: [a, b], opts: [[a], [b]], sel: [a, b], off: [[b], [a]],
+      gos: GOS.map(() => [a, b]),
       credits: [a, b].filter(s => needsCredit(primary(s))),
-      dom: [...ROLES.map(() => [a, b]), [a, b], [a, b], [a, b]],
+      dom: [...ROLES.map(() => [a, b]), cards, [a, b], [a, b]],
     };
     ok(same(g, exp), label, JSON.stringify(g));
   };
   await pairOk('jal', 'cathay-pacific', '2社だけが並ぶ（棒・カード・税・家賃の箱・写真・クレジット）。相手の会社は選べない');
+  /* ★2026-10-23 段階4 cmp-links-card-5（T-L4）：比較の中の会社ごとの要素（.cr-opt・生きた欄・DEEP PAY の置き場の中を除く）は、
+     全部 career.js の pair() の「選んだ2社だけ見せる」一覧に入っている。一覧は career.js から読む（ここに写さない）。
+     入れ替えの一覧（並べ直す箱）に「詳しく」の行が在ることも見る ── 選び直し・入れ替えのあとの並びは pairOk の gos が見る。 */
+  {
+    const lists = [...JS.matchAll(/each\(cmp\.querySelectorAll\('([^']+)'\)/g)].map(m => m[1]);
+    const LIST1 = lists.find(l => l.split(',').map(x => x.trim()).includes('.cr-row')) || '';
+    const LIST2 = lists.find(l => l.split(',').map(x => x.trim()).includes('.cr-pair')) || '';
+    const stray = LIST1 ? await page.evaluate(L1 => [...document.querySelectorAll('#cr .cr-cmp [data-airline]')]
+      .filter(e => !e.matches('.cr-opt') && !e.closest('.crl, #cr-deep') && !e.matches(L1)).map(e => `${e.className || e.tagName}（${e.dataset.airline}）`), LIST1) : ['（一覧が読めない）'];
+    ok(!!LIST1 && LIST2.split(',').map(x => x.trim()).includes('.cr-gos') && !stray.length, '比較の会社ごとの要素は、全部「選んだ2社だけ見せる」の一覧に入っている',
+       JSON.stringify({ LIST1, LIST2, stray }));
+  }
 
   await page.select('#cr-b', 'etihad');
   ok(await until(page, '?view=compare&a=jal&b=etihad'), '会社を選び直すと住所が変わる', await search(page));
@@ -1754,6 +1876,96 @@ try {
       rest = rest.replace(/[\s（）／]/g, '');
       ok(rest === '', `${at}: クレジットの中に台帳に無い文言が無い`, `残り「${rest}」`);
     }
+    await c();
+  }
+
+  /* ── ⑫ 比較 → 会社ページ（★2026-10-23 段階4 cmp-links-card-5：T-L7・T-L5・T-L6）──────────────── */
+  head('比較の箱と会社ページのタブ');
+  {
+    /* T-L7：比較の家賃の箱の額は、会社ページの暮らしのタブの、その街のところに在る（「ほかの街」の先で同じ額が読める）。
+       箱は ⑪ と同じ読み方で読む。街のところ ＝ その街の詳細・札・家賃の棒の行・出典の参考の行（companyPage の towns）。 */
+    const { page: p, close: c } = await open(`?view=compare&a=${PAIR[0]}&b=${PAIR[1]}`);
+    const boxes = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('#cr .cr-view[data-view="compare"] .cr-rentb')].map(b => [b.dataset.airline,
+      [...b.querySelectorAll('dl.cr-rent > div')].map(d => ({ k: d.querySelector('dt').textContent.replace(/\s+/g, ' ').trim(),
+        parts: [...d.querySelectorAll('dd > *')].map(e => e.textContent.replace(/\s+/g, ' ').trim()) }))])));
+    await c();
+    for (const s of FIVE) {
+      const L = viewOf(s).living, r = L.rents.find(x => x.lead), P = await companyPage(s);
+      const rows = boxes[s] || [], text = (r && P.towns[r.key]) || '';
+      const lack = rows.flatMap(o => o.parts.filter(v => !v || !text.includes(v)).map(v => `${o.k} ${v}`));
+      ok(!!r && rows.length > 0 && !!text && !lack.length && (P.townPane[r.key] || []).includes('life'),
+         `${name(s)}: 比較の箱の額は、会社ページの暮らしのタブの、その街（${r ? r.name : '？'}）のところに在る`,
+         JSON.stringify({ town: r && r.key, rows: rows.length, lack, pane: r && P.townPane[r.key], text: text.slice(0, 160) }));
+    }
+    /* T-L5（会社ページの半分）：会社ページがタブに出す会員の回答の質問は、比較でも同じ節の下に在る（「詳しく」の先と食い違わない）。
+       会社ページは直さない ── 赤くなったら直すのは gen-career.mjs の tabOfKey（決まり）。 */
+    const LISTS = { work: CMP_KEYS.work, pay: CMP_KEYS.pay };
+    for (const s of FIVE) {
+      const P = await companyPage(s);
+      for (const T of ['work', 'pay']) {
+        const pageT = [...new Set(P.facts.filter(f => f.panes.includes(T)).flatMap(f => f.keys))];
+        ok(pageT.length > 0, `${name(s)}: 会社ページの「${T}」のタブに、会員の回答の欄が在る`, JSON.stringify(P.facts.map(f => f.panes)));
+        const off = pageT.filter(k => !LISTS[T].includes(k) || Object.entries(LISTS).some(([o, l]) => o !== T && l.includes(k)));
+        ok(pageT.length > 0 && !off.length, `${name(s)}: 会社ページがそのタブ（${T}）に出す質問は、比較でも同じ節の下に在る（「詳しく」の先と食い違わない）`,
+           `比較の別の節・どこにも無い: ${off.map(k => `${k}（${tabOfKey(k) || '比較に無い'}）`).join(', ')}`);
+      }
+    }
+    if (CO_NOTES.length) console.log('    ・会社ページの中のエラー（会社ページの検査が見るもの。ここでは控えだけ）: ' + [...new Set(CO_NOTES)].join(' ／ '));
+  }
+  head('比較から会社ページへ出て、戻る（狭い画面）');
+  {
+    /* T-L6 (a)：比較の「詳しく」（月の働き方 → 勤務・訓練のタブ）と「ほかの街」（暮らしのタブ）から会社ページへ出て、
+       そのタブが開く・戻ると同じ住所・同じ2社。
+       ⚠️ 戻ったときの位置はここでは決めない（数を控えるだけ）。戻った直後の比較は生きた欄がまだ「—」で、ページが短い
+       （390×680 で 2888px ／ 埋まると 3240px：2026-10-23 に測った）── 位置を戻しても下端で止まり、欄が埋まるあいだに動く。
+       欄の高さを押さえて同じ所に戻す仕組みと、その検査は 比較の設計 WP-6（career.js の history.state.h・assert-cmp-frame.mjs の場面 back）。 */
+    const Q = '?view=compare&a=jal&b=ana';
+    const { page: p, close: c } = await open(Q, 390, 680);
+    const legs = [['#cr-go-work-jal', '詳しく', 'jal', 'work'], ['#cr .cr-rentb[data-airline="ana"] .cr-rentb-go a', 'ほかの街', 'ana', 'life']];
+    for (const [sel, word, s, tab] of legs) {
+      await p.evaluate(x => document.querySelector(x).scrollIntoView({ block: 'center' }), sel);
+      const kept = await p.waitForFunction(() => scrollY > 0 && history.state && Math.abs(history.state.y - scrollY) < 1, { timeout: 5000 }).then(() => true, () => false);
+      const y0 = await p.evaluate(() => scrollY);
+      await Promise.all([p.waitForNavigation({ waitUntil: 'load' }), p.click(sel)]);
+      const out = await p.waitForFunction(t => !!window.PVGlance && window.PVGlance.at() === t, { timeout: 15000 }, tab).then(() => true, () => false);
+      const at = await p.evaluate(() => ({ path: location.pathname, hash: location.hash, tab: window.PVGlance ? window.PVGlance.at() : null }));
+      await p.goBack({ waitUntil: 'load' });
+      await ready(p);
+      const back = await until(p, Q);
+      ok(kept && out && at.path === `/airlines/${s}.html` && at.hash === `#${tab}` && back,
+         `比較の「${word}」から会社ページの「${tab}」のタブへ出て、戻ると同じ住所・同じ2社`,
+         JSON.stringify({ kept, out, at, back: await search(p) }));
+      console.log(`    ・戻ったあとの位置（控え・WP-6 が決める）: 出る前 ${y0} → 戻った直後 ${await p.evaluate(() => scrollY)}`);
+      await pairOk('jal', 'ana', `  └ 戻ったあとも同じ2社（JAL・ANA。どちらにも公表額の一覧が無いので、その箱は描かない）`, p);
+    }
+    await c();
+  }
+  head('通貨を替えたまま、選び直し・入れ替え');
+  {
+    /* T-L6 (b)：通貨を替えたまま会社を選び直し・入れ替えても、額はその通貨のまま（推定年収の行は必ずその通貨・公表額と家賃は
+       原貨の字（pv-no-cur）のほかに ¥・万 が無い）。「詳しく」の字は通貨で変わらない。円に戻すと推定年収の行は ¥。 */
+    const { page: p, close: c } = await open('?view=compare&a=jal&b=cathay-pacific', 1280, 800);
+    const feet = () => p.evaluate(() => [...document.querySelectorAll('#cr .cr-cmp .cr-go')].filter(e => e.getClientRects().length).map(e => e.textContent.trim()));
+    const read = () => p.evaluate(() => {
+      const v = document.querySelector('#cr .cr-view[data-view="compare"]');
+      const on = e => e.getClientRects().length > 0;
+      return {
+        rows: [...v.querySelectorAll('.cr-row-v')].filter(on).map(e => e.textContent.trim()),
+        rest: [...v.querySelectorAll('.cr-fig b, .cr-rent dd span')].filter(e => on(e) && !e.closest('.pv-no-cur')).map(e => e.textContent.trim()),
+      };
+    });
+    await p.evaluate(() => window.PVCurrency.set('USD'));
+    await p.select('#cr-b', 'etihad');
+    const moved = await until(p, '?view=compare&a=jal&b=etihad');
+    await p.click('#cr-swap');
+    const swapped = await until(p, '?view=compare&a=etihad&b=jal');
+    const u = await read(), f1 = await feet();
+    await p.evaluate(() => window.PVCurrency.set('JPY'));
+    const j = await read(), f2 = await feet();
+    const fx = GOS.flatMap(() => ['etihad', 'jal'].map(s => name(s) + '詳しく'));
+    ok(moved && swapped && u.rows.length === ROLES.length * 2 && u.rows.every(t => /\$/.test(t) && !/[¥万]/.test(t)) && u.rest.length > 0 && u.rest.every(t => !/[¥万]/.test(t))
+       && same(f1, fx) && same(f2, fx) && j.rows.length === ROLES.length * 2 && j.rows.every(t => /¥/.test(t)),
+       '通貨を替えたまま会社を選び直し・入れ替えても、額はその通貨のまま', JSON.stringify({ moved, swapped, usd: u, feet: [f1, f2], jpy: j.rows }));
     await c();
   }
 

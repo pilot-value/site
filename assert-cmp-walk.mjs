@@ -17,8 +17,6 @@
               の1行だけ。職位の名前・額・2つめの行・一覧が入ったら赤。2026-10-22 の LEAD の決め・WP-cmp-pay-4）
            b 見えている箱（.cr-panel・.cr-sec・.cr-cards）には、見出しと「詳しく」の足（.cr-gos）のほかに、見える字が在る・
              月の働き方の箱の錠の1行は1つまで
-             （カードの見出しの会社名のリンク .cr-card-h a は中身に数える ── 会社ページへの道。2026-10-22 の LEAD の決め。
-              どちらの会社にも中身の無い箱を描かないようにしたら、ここは厳しい形に戻す ── 比較の設計 WP-5）
          顔 a・b は狭い画面（390）と広い画面（1440）で見る。
      ・門（どの場面も）── ブラウザを立ち上げる時に置く。要求の差し替え（setRequestInterception）は使わない ── 使うとブラウザが
        「戻る」の手元の置き場（back-forward cache）を使わなくなる。出てよいのは、この場面が起こした手元のサーバーの番号と、
@@ -217,7 +215,7 @@ const faces = (page) => page.evaluate(() => {
     let has = false;
     for (let t = w.nextNode(); t && !has; t = w.nextNode()) {
       const p = t.parentElement;
-      if (!t.nodeValue.trim() || !p || (p.closest('h1, h2, h3, h4, h5, h6, .cr-gos') && !p.closest('.cr-card-h a[href]'))) continue;
+      if (!t.nodeValue.trim() || !p || p.closest('h1, h2, h3, h4, h5, h6, .cr-gos')) continue;
       if (seen(p)) has = true;
     }
     if (!has) b.push(`${box.className}：見出しと足のほかに見える字が無い（${box.innerText.trim().replace(/\s+/g, ' ').slice(0, 80)}）`);
@@ -328,7 +326,7 @@ scene('zero', '空の保存先・ゲスト・3組：公開の数字は全部在�
       /* 顔 a・b（狭い画面と広い画面） */
       const FC = await faces(page);
       ok(FC.a.length === 0, `${AB}（${W}）顔 a：開いていない欄に一覧・表・待ちの骨が無く、錠の1行は会社ごとに1つまで`, FC.a.join(' ／ '));
-      ok(FC.b.length === 0, `${AB}（${W}）顔 b：見えている箱には、見出しと足のほかに見える字が在る（カードの会社名のリンクは中身）・月の働き方の錠の1行は1つまで`, FC.b.join(' ／ '));
+      ok(FC.b.length === 0, `${AB}（${W}）顔 b：見えている箱には、見出しと足のほかに見える字が在る・月の働き方の錠の1行は1つまで`, FC.b.join(' ／ '));
       if (SHOTS) {
         await shot(page, `${a}-${b}-${W}`);
         fs.writeFileSync(path.join(SHOTS, `${CUR.key}-${a}-${b}-${W}.json`), J(await heights(page)));

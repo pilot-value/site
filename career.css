@@ -95,6 +95,16 @@
 .cr-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;
          color:var(--pv-accent-ink);font-size:14px;font-weight:700;text-decoration:none}
 .cr-link:active,.cr-back:active,.cr-card-n:active{opacity:.6}
+/* 会社ページの該当タブへの入口（会社ごと）。狭い画面は1社1行（行ぜんたいが押せる）・広い画面は2社を横に。 */
+.cr-gos{display:grid;margin-top:12px;padding-top:4px;border-top:1px solid var(--pv-line)}
+.cr-go{display:flex;gap:8px;min-height:44px;color:var(--pv-ink)}
+.cr-go-n{min-width:0}
+.cr-go-t{margin-left:auto;flex:none;color:var(--pv-accent-ink)}
+.cr-go .cr-ic{flex:none;color:var(--pv-accent-ink)}
+.cr-panel .cr-gos{border-top-color:var(--cr-hair)}
+.cr-panel .cr-go{color:var(--cr-on)}
+.cr-panel .cr-go-t,.cr-panel .cr-go .cr-ic{color:var(--cr-on-2)}
+.cr .cr-panel .cr-go:focus-visible{outline-color:var(--cr-on);border-radius:var(--pv-r-sm)}
 
 .cr-credits{margin-top:20px;font-size:12px;line-height:1.8;color:var(--pv-ink-3)}
 .cr-credit{margin-right:10px}
@@ -444,6 +454,7 @@
 
 /* ── 広い画面 ─────────────────────────────────────────────────── */
 @media (min-width:760px){
+  .cr-gos{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px}
   .cr-lead{min-height:300px;padding:40px}
   /* 広い画面では写真を右へ寄せ、左は紺のまま見出しの場所にする。 */
   .cr-lead img{left:auto;right:0;width:64%;object-position:50% 46%}
