@@ -1215,9 +1215,14 @@
       sum.appendChild(starsEl(R.avg));
       sum.appendChild(el('p', 'crl-sc-cnt', T.revRated(R.n)));
       wrap.appendChild(sum);
-      var names = catNames();
-      if (R.ratings && names) wrap.appendChild(radar(R.ratings, names));
-      return view('open', [wrap]);
+      /* 6角形の図は欄の中に HTML で在る（会社ページ ── gen-airline-glance.mjs の radarFrame）。ここは塗る点数を渡すだけ
+         （塗るのは paint ── 古い答えで図を塗らない）。★塗るかどうかは社名の行の星と同じ realRated() の答えだけ（2026-10-22
+         オーナー P12.97：点数は誰にでも出ている ── 鍵の有無で変えない・2つめの下限を作らない）。点数の無い分類が在る時（ratings が
+         null）は渡さない ＝ 3.0 の淡い面のまま（数字は出さない）。図の無いページ（比較など）では、今までどおり radar() を足す。 */
+      var out = view('open', [wrap]), fig = frameOf(box);
+      if (fig) { if (R.ratings) out.radar = R.ratings; }
+      else { var names = catNames(); if (R.ratings && names) wrap.appendChild(radar(R.ratings, names)); }
+      return out;
     });
   };
 
@@ -1487,11 +1492,51 @@
     });
   };
 
+  /* ── 評価スコアの図（会社ページ・P12.95／P12.96／P12.97）──────────────
+     欄の中の data-crl-keep の図（HTML に在る：枠・6つの名前・3.0 の淡い面）は、欄を塗り直しても残す。
+     ★塗るのは paint の中だけ ── その時の答え（v.radar）が在る「開いた」欄のときだけ点数で塗り、ほかの状態（待つ・読めない・0件・
+       人が入れ替わった）では必ず HTML のときの形（3.0 の淡い面・数字なし）に戻す。前の人の点数を図に残さない。 */
+  function frameOf(box) {
+    for (var c = box.firstChild; c; c = c.nextSibling) if (c.nodeType === 1 && c.hasAttribute('data-crl-keep')) return c;
+    return null;
+  }
+  function frameReset(fig) {
+    if (!fig._ph) { fig._ph = fig.cloneNode(true); return; }
+    if (fig.getAttribute('data-radar') === 'ph') return;
+    clear(fig);
+    for (var c = fig._ph.firstChild; c; c = c.nextSibling) fig.appendChild(c.cloneNode(true));
+    fig.setAttribute('data-radar', 'ph');
+  }
+  function frameFill(fig, vals) {
+    var shape = fig.querySelector('.crl-radar-shape'), svg = fig.querySelector('svg');
+    if (!shape || !svg || !isArr(vals) || vals.length !== 6) return;
+    var C = 100, R = 92;
+    function xy(i, k) { var a = -Math.PI / 2 + i * 2 * Math.PI / 6; return [(C + R * k * Math.cos(a)).toFixed(1), (C + R * k * Math.sin(a)).toFixed(1)]; }
+    var pts = [];
+    vals.forEach(function (v, j) { pts.push(xy(j, v / 5).join(',')); });
+    shape.setAttribute('points', pts.join(' '));
+    shape.setAttribute('class', 'crl-radar-shape');
+    vals.forEach(function (v, j) {
+      var p = xy(j, v / 5);
+      svg.appendChild(svgEl('circle', 'crl-radar-dot', { cx: p[0], cy: p[1], r: 3.5 }));
+      var l = fig.querySelector('.crl-radar-l[data-i="' + j + '"]');
+      if (l) l.appendChild(el('b', '', v.toFixed(1)));
+    });
+    fig.setAttribute('data-radar', 'real');
+  }
+
   /* ── 欄を塗る ───────────────────────────────────────────── */
   var seq = 0;
-  function paint(box, state, nodes) {
+  function paint(box, state, nodes, v) {
+    var keep = frameOf(box);
+    if (keep) box.removeChild(keep);
     clear(box);
     (nodes || []).forEach(function (n) { if (n) box.appendChild(n); });
+    if (keep) {
+      frameReset(keep);
+      if (state === 'open' && v && v.radar) frameFill(keep, v.radar);
+      box.appendChild(keep);
+    }
     box.setAttribute('data-state', state);
     box.removeAttribute('aria-busy');
   }
@@ -1536,7 +1581,7 @@
     try { out = Promise.resolve(KIND[kind](box, want.split('|'))); } catch (e) { out = Promise.reject(e); }
     out.then(function (v) {
       if (box._crlTok !== tok) return;
-      paint(box, v.state, v.nodes);
+      paint(box, v.state, v.nodes, v);
     }, function (e) {
       if (box._crlTok !== tok) return;
       if (e && e.crl === 'off') paint(box, 'off', [msg(T.off)]);

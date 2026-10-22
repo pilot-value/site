@@ -1717,6 +1717,16 @@ as $fn$
     ', E' \n'), '\s+'),
     'china-eastern', regexp_split_to_array(btrim('
       NGO
+    ', E' \n'), '\s+'),
+    /* 2026-10-22 全社へ広げる d2：ヨーロッパ・アメリカ大陸の会社（同じ決まり ── 拠点の空港の行が在り、拠点のほかに行き先が残る会社だけ） */
+    'austrian', regexp_split_to_array(btrim('
+      BOS EWR JFK LAX ORD
+    ', E' \n'), '\s+'),
+    'southwest', regexp_split_to_array(btrim('
+      BOS SLC
+    ', E' \n'), '\s+'),
+    'jetblue', regexp_split_to_array(btrim('
+      AUS BDL BUF DCA SFO
     ', E' \n'), '\s+')
   );
 $fn$;

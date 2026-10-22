@@ -633,6 +633,11 @@
 .pvg .crl-radar-l[data-i="2"]{grid-column:3;grid-row:3}
 .pvg .crl-radar-l[data-i="5"]{grid-column:1;grid-row:2;align-items:flex-end;text-align:right}
 .pvg .crl-radar-l[data-i="4"]{grid-column:1;grid-row:3;align-items:flex-end;text-align:right}
+/* 会社ページの図（2026-10-21 オーナー「必ず多角形のレーダーの図を載せて」「なにもないところは平均の3.0で塗っておいて」P12.95・P12.96）。
+   枠と6つの名前は HTML に在り、点数で塗るまでは 3.0 の淡い面（is-ph ── 線の色を薄く敷いただけ。数字は置かない）。
+   名前は古いページの言葉（「給与・報酬の納得度」まで）なので、左右の列を少し広げる。総合点・知らせの下に間をあける */
+.pvg .pvg-radar{grid-template-columns:76px minmax(0,1fr) 76px;max-width:300px;margin-top:12px}
+.pvg .crl-radar-shape.is-ph{fill:var(--pv-line);fill-opacity:.6;stroke:var(--pv-ink-3);stroke-opacity:.35;stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 /* 広い箱：左に 総合点と図（幅は決め打ち ＝ 読み込みの前後で右の欄が動かない）、右に 要約 → 口コミの抜粋 → 書く入口。
    右の3つはひとかたまりで、図より短ければ図の高さのまんなかに・長ければ上から並ぶ（上下の 1fr が余りを半分ずつ受ける）。
    ⚠️ .pvg-rv-in の子は5つ（score・summary・reviews・入口2つ）。6つめを足すなら grid-row を決める（決めないと上の 1fr の段に入る）。 */

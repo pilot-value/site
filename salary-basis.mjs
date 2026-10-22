@@ -105,8 +105,10 @@ export const man = (cur, amount) => Math.round((amount * JPY_PER[cur]) / 10000);
 export const manText = (cur, amount) => `約${man(cur, amount).toLocaleString('en-US')}万円`;
 
 /** 換算の断り書き。画面に出す。 */
-export const fxNote = (cur) =>
-  `円額は比較用の換算です（1 ${cur}＝${JPY_PER[cur]}円・${FX_AS_OF} 時点）。現在の為替レートではありません。`;
+/* lang 'en'（2026-10-22 d2 ＝ EN-2）は英語のページの言い方（英語の会社ページに今ある注と同じ形） */
+export const fxNote = (cur, lang = 'ja') => (lang === 'en'
+  ? `Yen amounts are converted for comparison at 1 ${cur} = ${JPY_PER[cur]} JPY as of ${FX_AS_OF}, and are not a current exchange rate.`
+  : `円額は比較用の換算です（1 ${cur}＝${JPY_PER[cur]}円・${FX_AS_OF} 時点）。現在の為替レートではありません。`);
 
 /* ────────────────────────────────────────────────────────────────
    BASIS
@@ -148,11 +150,11 @@ export const BASIS = {
     cur: 'AED',
     tax: '非課税（UAE に個人所得税なし）',
     src: [
-      { pub: 'エミレーツ航空（Emirates Group Careers）',
+      { pub: 'エミレーツ航空（Emirates Group Careers）', pub_en: 'Emirates (Emirates Group Careers)',
         name: 'Pilots / Our role details — Direct Entry Captains',
         as_of: '発行日の記載なし', accessed: '2026-09-26',
         url: 'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=direct-entry-captains' },
-      { pub: 'エミレーツ航空（Emirates Group Careers）',
+      { pub: 'エミレーツ航空（Emirates Group Careers）', pub_en: 'Emirates (Emirates Group Careers)',
         name: 'Pilots / Our role details — First Officers',
         as_of: '発行日の記載なし', accessed: '2026-09-26',
         url: 'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=first-officers' },
@@ -202,7 +204,7 @@ export const BASIS = {
     cur: 'HKD',
     tax: '課税（香港）',
     src: [
-      { pub: 'キャセイパシフィック航空（Cathay Pacific Careers）',
+      { pub: 'キャセイパシフィック航空（Cathay Pacific Careers）', pub_en: 'Cathay Pacific (Cathay Pacific Careers)',
         name: 'Our teams / Pilot（First Officer パネル）',
         as_of: '2026年1月時点（脚注 "Latest figures as of Jan 2026, subject to periodic review"）',
         accessed: '2026-09-26',
@@ -245,10 +247,10 @@ export const BASIS = {
     cur: 'AED',
     tax: '非課税（UAE に個人所得税なし）',
     src: [
-      { pub: 'エティハド航空（SmartRecruiters・ref 80371）', name: 'Captain A320',
+      { pub: 'エティハド航空（SmartRecruiters・ref 80371）', pub_en: 'Etihad Airways (SmartRecruiters, ref 80371)', name: 'Captain A320',
         as_of: '2026-07-31 掲載', accessed: '2026-09-26',
         url: 'https://jobs.smartrecruiters.com/EtihadAirways5/744000140889348-captain' },
-      { pub: 'エティハド航空（SmartRecruiters・ref 80372）', name: 'First Officer A320',
+      { pub: 'エティハド航空（SmartRecruiters・ref 80372）', pub_en: 'Etihad Airways (SmartRecruiters, ref 80372)', name: 'First Officer A320',
         as_of: '2026-07-31 掲載', accessed: '2026-09-26',
         url: 'https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer' },
     ],
@@ -293,16 +295,16 @@ export const BASIS = {
     cur: 'USD',
     tax: '課税（台湾）',
     src: [
-      { pub: 'エバー航空（EVA Air）', name: 'Careers / Job openings / Pilots（en-global 版）',
+      { pub: 'エバー航空（EVA Air）', pub_en: 'EVA Air', name: 'Careers / Job openings / Pilots（en-global 版）',
         as_of: '発行日の記載なし', accessed: '2026-10-02',
         url: 'https://www.evaair.com/en-global/about-eva-air/careers/job-openings/pilots/' },
-      { pub: '桃園市機師職業工會 長榮分會・長榮航空', name: '労使合意（正駕駛 月13,500元ほかの引き上げ・今周刊の報道で確認）',
+      { pub: '桃園市機師職業工會 長榮分會・長榮航空', pub_en: 'Taoyuan City Pilots’ Union, EVA branch, and EVA Air', name: '労使合意（正駕駛 月13,500元ほかの引き上げ・今周刊の報道で確認）',
         as_of: '2024年1月28日', accessed: '2026-10-02', secondary: true,
         url: 'https://www.businesstoday.com.tw/article/category/183027/post/202401280021/' },
-      { pub: '鏡週刊', name: '【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一',
+      { pub: '鏡週刊', pub_en: 'Mirror Media (鏡週刊)', name: '【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一',
         as_of: '2024年2月6日', accessed: '2026-10-02', secondary: true,
         url: 'https://www.mirrormedia.mg/story/20240205inv013' },
-      { pub: 'CTWANT', name: '18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」',
+      { pub: 'CTWANT', pub_en: 'CTWANT', name: '18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」',
         as_of: '2024年1月30日', accessed: '2026-10-02', secondary: true,
         url: 'https://www.ctwant.com/article/314950/' },
     ],
@@ -454,7 +456,7 @@ export const BASIS = {
     cur: 'GBP',
     tax: '課税（王令 56/2025。2028年初から課税所得の5%・年 OMR 42,000 が基準額）',
     src: [
-      { pub: '航空会社の募集広告（採用パートナー L3 経由）を第三者サイト FlightDeckFriend が再掲したもの',
+      { pub: '航空会社の募集広告（採用パートナー L3 経由）を第三者サイト FlightDeckFriend が再掲したもの', pub_en: 'The airline’s recruitment advert (through the recruitment partner L3), republished by the third-party site FlightDeckFriend',
         name: 'Oman Air Pilot Recruitment — B737 NG First Officers / Direct Entry Captain',
         as_of: '2017-06-28 掲載（★ページに「募集終了」と書かれている）', accessed: '2026-09-29',
         url: 'https://www.flightdeckfriend.com/job/oman-air-b737-first-officers/' },
@@ -504,7 +506,7 @@ export const BASIS = {
     cur: 'SAR',
     tax: '非課税（サウジアラビアに個人所得税なし）',
     src: [
-      { pub: 'サウディア（Saudi Arabian Airlines・自社サイト）', name: 'Advert – Captains',
+      { pub: 'サウディア（Saudi Arabian Airlines・自社サイト）', pub_en: 'Saudia (Saudi Arabian Airlines, own site)', name: 'Advert – Captains',
         as_of: '2005年（著作権表記）・保存 2006-03-16', accessed: '2026-09-29',
         url: 'http://www.saudiairlines.com/aboutus/advert_captains_1.jsp' },
     ],
@@ -595,7 +597,7 @@ export const BASIS = {
     cur: 'USD',
     tax: '課税（中国）',
     src: [
-      { pub: 'パイロット専門の人材会社 Yufeng Consulting（中国・chinaaviationjob.com）が出した求人',
+      { pub: 'パイロット専門の人材会社 Yufeng Consulting（中国・chinaaviationjob.com）が出した求人', pub_en: 'A vacancy posted by Yufeng Consulting, a pilot recruitment agency (China, chinaaviationjob.com)',
         name: 'A330 / B787 / B777 Captain – China Southern（3ページとも給与表は同一）',
         as_of: '2019-08-16 掲載（★広告自身が「新しい契約の草案に基づく要約」と断っている）',
         accessed: '2026-09-29',
@@ -646,7 +648,7 @@ export const BASIS = {
     cur: 'CNY',
     tax: '課税（中国）',
     src: [
-      { pub: '中国国際航空（Air China のパイロット採用サイト zhaopin.airchina.com.cn）',
+      { pub: '中国国際航空（Air China のパイロット採用サイト zhaopin.airchina.com.cn）', pub_en: 'Air China (pilot recruitment site zhaopin.airchina.com.cn)',
         name: '飞行员招聘 ／ 薪酬福利（パイロットの報酬と福利のページ）',
         as_of: '発行日・適用時点の記載なし', accessed: '2026-09-29',
         url: 'https://zhaopin.airchina.com.cn/cn/about_us/recruitment/pilot_salary.shtml' },
@@ -684,7 +686,7 @@ export const BASIS = {
     cur: 'USD',
     tax: '課税（中国）',
     src: [
-      { pub: '人材会社 Asia Pacific Aviation Services Limited（APAS・香港）が出した求人',
+      { pub: '人材会社 Asia Pacific Aviation Services Limited（APAS・香港）が出した求人', pub_en: 'A vacancy posted by the recruitment agency Asia Pacific Aviation Services Limited (APAS, Hong Kong)',
         name: 'China Eastern Airlines - A330 Captains（上海基地・3年契約・更新可）',
         as_of: 'ページに日付の記載が1つも無い（Internet Archive の保存では 2025-06-17 から同じ金額）',
         accessed: '2026-09-29',
@@ -748,11 +750,11 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [
-      { pub: 'ANAホールディングス株式会社（EDINET・有価証券報告書）',
+      { pub: 'ANAホールディングス株式会社（EDINET・有価証券報告書）', pub_en: 'ANA Holdings Inc. (EDINET, annual securities report)',
         name: '第76期 有価証券報告書 ５【従業員の状況等】＜参考＞職種別 グループ連結 平均年間給与',
         as_of: '2026年3月期（2026年6月25日提出・書類ID S100YKL4）', accessed: '2026-10-04',
         url: 'https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100YKL4.pdf' },
-      { pub: '全日本空輸株式会社（ANA 採用サイト）',
+      { pub: '全日本空輸株式会社（ANA 採用サイト）', pub_en: 'All Nippon Airways Co., Ltd. (ANA recruitment site)',
         name: '2027年度入社 新卒採用 募集要項（運航乗務職／自社養成パイロット）',
         as_of: '給与欄に「2026年度予定（2026年3月16日更新）」', accessed: '2026-09-29',
         url: 'https://www.ana.co.jp/group/recruit/ana-recruit/occupation/entry/' },
@@ -785,9 +787,9 @@ export const BASIS = {
       ] },
     trainee: { tier: 'employer_example',
       groups: [
-        { name: '自社養成パイロット訓練生・院卒（入社時）', start_m: 276528,
+        { name: '自社養成パイロット訓練生・院卒（入社時）', name_en: 'Company-sponsored pilot cadet, master’s graduate (on joining)', start_m: 276528,
           req: '2027年4月1日入社予定・FCAT 受験が必須・プレエントリー締切 2026年3月10日' },
-        { name: '自社養成パイロット訓練生・大卒／高等専門学校（専攻科）卒（入社時）', start_m: 267770 },
+        { name: '自社養成パイロット訓練生・大卒／高等専門学校（専攻科）卒（入社時）', name_en: 'Company-sponsored pilot cadet, bachelor’s or KOSEN advanced-course graduate (on joining)', start_m: 267770 },
       ] },
     cap: { tier: 'estimate', est_status: 'unconfirmed',
       est_why: 'ANA の機長の年収を示す資料が1件も無い。会社が公表しているのは3社（ANA・ANAウイングス・エアージャパン）をあわせた運航乗務職全体の平均だけで、職位では分かれていない。旧額の出所の記録も無い。',
@@ -808,15 +810,15 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [
-      { pub: '日本航空株式会社（EDINET・有価証券報告書）',
+      { pub: '日本航空株式会社（EDINET・有価証券報告書）', pub_en: 'Japan Airlines Co., Ltd. (EDINET, annual securities report)',
         name: '第76期 有価証券報告書 ５【従業員の状況】（参考情報）平均年間給与',
         as_of: '2025年3月期（2025年6月23日提出・書類ID S100W1KL）', accessed: '2026-09-29',
         url: 'https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100W1KL.pdf' },
-      { pub: '日本航空株式会社（EDINET・有価証券報告書）',
+      { pub: '日本航空株式会社（EDINET・有価証券報告書）', pub_en: 'Japan Airlines Co., Ltd. (EDINET, annual securities report)',
         name: '第75期 有価証券報告書 ５【従業員の状況】（参考情報）平均年間給与',
         as_of: '2024年3月期（2024年6月19日提出・書類ID S100TNGJ）', accessed: '2026-09-29',
         url: 'https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100TNGJ.pdf' },
-      { pub: '日本航空株式会社（JAL 採用サイト）',
+      { pub: '日本航空株式会社（JAL 採用サイト）', pub_en: 'Japan Airlines Co., Ltd. (JAL recruitment site)',
         name: '運航乗務員訓練生（自社養成パイロット）募集要項',
         as_of: '給与欄に「※2026年3月27日時点」', accessed: '2026-09-29',
         url: 'https://www.job-jal.com/recruit/requirement/new-graduate05.html' },
@@ -843,7 +845,7 @@ export const BASIS = {
           name_en: 'Flight crew, group consolidated, year ended March 2024', avg_y: 19593000 },
       ] },
     trainee: { tier: 'employer_example',
-      groups: [{ name: '運航乗務員訓練生（入社時）', start_m: 263000,
+      groups: [{ name: '運航乗務員訓練生（入社時）', name_en: 'Flight crew trainee (on joining)', start_m: 263000,
         req: '矯正視力1.0以上・屈折度 -6.0〜+2.0ジオプトリー・事業用操縦士免許の保有者および過去に取得した者は応募不可' }] },
     cap: { tier: 'estimate', est_status: 'unconfirmed',
       est_why: 'JAL の機長の年収を示す資料が1件も無い。会社が公表しているのは運航乗務員全体（グループ連結）の平均だけで、職位では分かれていない。旧額の出所の記録も無い。',
@@ -863,11 +865,11 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [
-      { pub: 'スカイマーク株式会社（EDINET・有価証券報告書）',
+      { pub: 'スカイマーク株式会社（EDINET・有価証券報告書）', pub_en: 'Skymark Airlines Inc. (EDINET, annual securities report)',
         name: '第29期 有価証券報告書 【従業員の状況】（1）提出会社の状況',
         as_of: '2025年3月31日現在（2025年6月26日提出・書類ID S100W68U）', accessed: '2026-09-29',
         url: 'https://disclosure2dl.edinet-fsa.go.jp/searchdocument/pdf/S100W68U.pdf' },
-      { pub: 'スカイマーク株式会社（採用サイト）', name: '自社養成パイロット訓練生 募集要項',
+      { pub: 'スカイマーク株式会社（採用サイト）', pub_en: 'Skymark Airlines Inc. (recruitment site)', name: '自社養成パイロット訓練生 募集要項',
         as_of: '掲載時点の記載なし', accessed: '2026-09-29',
         url: 'https://www.skymark.co.jp/ja/company/recruit/saiyo/recruit/' },
     ],
@@ -891,7 +893,7 @@ export const BASIS = {
       groups: [{ name: '運航乗務員 290名（スカイマーク単体・2025年3月31日現在）',
         name_en: 'Flight crew, 290 people (Skymark alone, as at 31 March 2025)', avg_y: 16456000 }] },
     trainee: { tier: 'employer_example',
-      groups: [{ name: '自社養成パイロット訓練生・院卒／大卒（入社時の基本給）', start_m: 250000,
+      groups: [{ name: '自社養成パイロット訓練生・院卒／大卒（入社時の基本給）', name_en: 'Company-sponsored pilot cadet, master’s or bachelor’s graduate (base pay on joining)', start_m: 250000,
         req: 'TOEIC 750点以上または IELTS Overall 6.0以上・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可' }] },
     cap: { tier: 'estimate', held: { was: { avg: 1900, lo: 1600, hi: 2300 },
       why: '会社が公表しているのは機長と副操縦士をあわせた運航乗務員全体の平均で、職位別の平均は公表されていない。経験者採用の求人は「給与 非公開」「当社規程による」で金額が無い。レンジの出所の記録も無い。' } },
@@ -907,7 +909,7 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [
-      { pub: '株式会社ジェイエア（採用サイト）',
+      { pub: '株式会社ジェイエア（採用サイト）', pub_en: 'J-AIR Corporation (recruitment site)',
         name: '運航乗務員訓練生（自社養成パイロット）募集要項',
         as_of: 'ページ冒頭に「募集は終了しております。前回分を参考までに掲載します。」', accessed: '2026-09-29',
         url: 'https://www.jair.co.jp/about/recruit/pilot/apply02.html' },
@@ -927,7 +929,7 @@ export const BASIS = {
       'For captains the posting states that pay follows internal rules and is explained at interview, with no amount given.',
     ],
     trainee: { tier: 'past_ad',
-      groups: [{ name: '運航乗務員訓練生（入社後の初期訓練期間中・募集終了の要項）', train_m: 221100,
+      groups: [{ name: '運航乗務員訓練生（入社後の初期訓練期間中・募集終了の要項）', name_en: 'Flight crew trainee (during initial training after joining; terms of a closed recruitment)', train_m: 221100,
         req: '採用予定数15名程度・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可・入社要件に IELTS と航空無線通信士' }] },
     cap: { tier: 'estimate', held: { was: { avg: 2000, lo: 1800, hi: 2300 },
       why: '機長の募集要項は「当社規程による」「面接時に説明」で金額が無い。非上場で有価証券報告書が無く、親会社の有報にも職種別の給与が無い。レンジの出所の記録も無い。' } },
@@ -958,7 +960,7 @@ export const BASIS = {
     cur: 'JPY',
     tax: '課税（日本）',
     src: [
-      { pub: 'Peach Aviation株式会社（採用サイト）', name: 'パイロットチャレンジ制度 応募要領',
+      { pub: 'Peach Aviation株式会社（採用サイト）', pub_en: 'Peach Aviation Limited (recruitment site)', name: 'パイロットチャレンジ制度 応募要領',
         as_of: 'ページ冒頭に「2023年度採用選考は終了いたしました。」', accessed: '2026-09-29',
         url: 'https://recruit.flypeach.com/recruiting_momotane/info.html' },
     ],
@@ -979,7 +981,7 @@ export const BASIS = {
       'For captains the posting says pay follows internal rules and is explained during selection, with no amount. There is no first officer vacancy at all.',
     ],
     trainee: { tier: 'employer_example',
-      groups: [{ name: 'パイロットチャレンジ制度の訓練生（有期契約・ライセンス取得前）', allow_train_m: 250000,
+      groups: [{ name: 'パイロットチャレンジ制度の訓練生（有期契約・ライセンス取得前）', name_en: 'Pilot Challenge trainee (fixed-term contract, before licensing)', allow_train_m: 250000,
         req: '2027年4月1日時点で矯正視力0.7以上（両眼1.0以上）・ジオプトリ -5.5〜+4.5・GTEC 660点相当程度・事業用および自家用操縦士免許の非保有・FCAT 合格・募集人数は若干名' }] },
     cap: { tier: 'estimate', held: { was: { avg: 2350, lo: 2000, hi: 2800 },
       why: '機長の求人の給与が「当社規定による（選考時に説明）」で金額が無い。非上場で有価証券報告書も無く、親会社の有報にも職種別の給与が無い。レンジの出所の記録も無い。' } },

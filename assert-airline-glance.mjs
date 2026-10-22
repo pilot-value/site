@@ -716,8 +716,34 @@ const MONEY_Q = QUESTIONS.filter(q => q.currency).map(q => q.id);
    どの入口からも答えられる質問で、3人そろえば会社ページに出る、と札に書いてある ── 出す欄が無ければ、その文が嘘になる。 */
 const BEN_SHOWN = ['landing_pay', 'landing_pay_unit', 'landing_pay_varies_by'];
 const linkedTopicOnly = new Set();
+/* 評価スコアの6角形の図（2026-10-21 オーナー P12.95・P12.96）：評価の欄の中に、HTML で1つだけ在る ── 枠と6つの名前（口コミの欄の
+   CAT_FULL ＝ airlines/airline-reviews-data.js をここで読み直す）と、3.0 の淡い面（どの頂点もまんなかから 5点の6割）。
+   ★字に数字が1つも無い（分類ごとの点・「3.0」・星を出荷しない）。点数で塗った形（is-ph の無い面・点・<b>）で出荷しない。
+   確かめた図は取り除いてから、下の「欄は「—」で出荷」を今までどおり見る（図のほかに欄の中身は無い）。 */
+const RADAR_FULL = JSON.parse((/const CAT_FULL\s*=\s*(\[[^\]]*\]);/.exec(read('airlines/airline-reviews-data.js')) || ['', '[]'])[1].replace(/'/g, '"'));
+const FRAME_RE = /<div class="crl-radar pvg-radar" role="list" data-crl-keep data-radar="ph">([\s\S]*?<\/svg>)((?:<span class="crl-radar-l" role="listitem" data-i="\d"><span>[^<]*<\/span><\/span>){6})<\/div>/g;
+function frameBad(f) {
+  const bad = [], [, svg, ls] = f;
+  const names = [...ls.matchAll(/data-i="(\d)"><span>([^<]*)<\/span>/g)];
+  if (!(names.length === 6 && names.every((m, i) => +m[1] === i && m[2] === RADAR_FULL[i]) && RADAR_FULL.length === 6)) bad.push(`名前が口コミの欄の6分類（${RADAR_FULL.join('・')}）でない：${names.map(m => m[2]).join('・')}`);
+  if (/\d/.test(`${svg}${ls}`.replace(/<[^>]*>/g, ''))) bad.push('図の字に数字が在る');
+  const rings = [...svg.matchAll(/<polygon class="crl-radar-ring" points="([^"]*)"/g)], axes = (svg.match(/<line class="crl-radar-axis"/g) || []).length;
+  const shape = [...svg.matchAll(/<polygon class="crl-radar-shape([^"]*)" points="([^"]*)"/g)];
+  if (rings.length !== 5 || axes !== 6) bad.push(`枠が輪5つ・軸6本でない（${rings.length}・${axes}）`);
+  if (shape.length !== 1 || shape[0][1] !== ' is-ph' || /crl-radar-dot|<b\b/.test(svg + ls)) bad.push('面が 3.0 の淡い面（is-ph）1つでない・点数で塗った形で出荷している');
+  else {
+    const reach = shape[0][2].split(' ').map(p => p.split(',').map(Number)).map(([x, y]) => Math.hypot(x - 100, y - 100) / 92);
+    if (!(reach.length === 6 && reach.every(r => Math.abs(r - 0.6) < 0.01))) bad.push(`面が 3.0（5点の6割）でない：${reach.map(r => r.toFixed(2)).join('・')}`);
+  }
+  return bad;
+}
 for (const s of FIVE) {
-  const P = PART[s], both = P.hero + P.glance;
+  const P = PART[s], raw = P.hero + P.glance;
+  const frames = [...raw.matchAll(FRAME_RE)], fb = frames.flatMap(frameBad);
+  const scoreBox = (raw.match(/<div class="crl" data-live="score"[^>]*>[\s\S]*?<\/div><\/div>/) || [''])[0];
+  ok(frames.length === 1 && scoreBox.includes(frames[0][0]) && !fb.length && !/<div class="crl-radar/.test(raw.replace(FRAME_RE, '')),
+    `${s}: 評価スコアの欄の中に6角形の図が1つ（枠と6分類の名前・3.0 の淡い面・字に数字なし ── P12.95／P12.96）`, `図 ${frames.length}・${fb.join(' ／ ')}`);
+  const both = raw.replace(FRAME_RE, '');
   const boxes = [...both.matchAll(/<div class="crl"([^>]*)>([\s\S]*?)<\/div>/g)];
   const kinds = {};
   for (const m of boxes) { const k = one(m[1], / data-live="([^"]*)"/) || '?'; kinds[k] = (kinds[k] || 0) + 1; }
@@ -2073,6 +2099,22 @@ head('暮らし（街・家賃・空港までの移動）');
   }
 }
 
+/* ★旧い形の会社ページの見本（下の場面 ggold が開く1枚。日英）── 2026-10-22（全社へ広げる d2・同じ強さの当て直し ── リード L2）：
+   ルフトハンザも SWITCH に入り、日本語で旧い形のまま残るのは年収の正本の 112社のうちスピリット航空だけ（オーナー 2026-10-11「スピリットを外す」）。
+   日本語の見本はその1枚（給与の錠前 1つ・口コミの一覧の鍵・「続きを読む」の小窓 ── 測る面は今までと同じ決まりで数える）。
+   「海外の評判」の鍵は、その会社に海外の評判（airlines/airline-reviews-data.js の VOICES）が在る時だけ測る ── スピリット航空には無く、
+   日本語の旧い形のページで「海外の評判」の鍵を出すページはもう1枚も無い。英語版は今までどおりエミレーツ（英語の会社ページはまだ旧い形・評判あり）。 */
+const OLD_SAMPLE = { ja: 'spirit', en: 'emirates' };
+const VOICE_KEYS = (() => { const t = read('airlines/airline-reviews-data.js'), i = t.indexOf('const VOICES = {'); return i < 0 ? [] : [...t.slice(i).matchAll(/^\s{4}'?([a-z0-9-]+)'?\s*:\s*\{/gm)].map(m => m[1]); })();
+const OLD_VOICES = { ja: VOICE_KEYS.includes(OLD_SAMPLE.ja), en: VOICE_KEYS.includes(OLD_SAMPLE.en) };
+{
+  head('旧い形の会社ページ（見本）');
+  const oldJa = Object.keys(SALARY).filter(s => !GLANCE.includes(s));
+  ok(same(oldJa, [OLD_SAMPLE.ja]) && OLD_VOICES.en && VOICE_KEYS.length > 0,
+    `日本語の会社ページで旧い形のまま残るのは見本の1枚（${OLD_SAMPLE.ja}）だけ ── ほかの${GLANCE.length}社は新しい会社ページ。「海外の評判」の鍵は英語の見本（${OLD_SAMPLE.en}）で測る`,
+    `旧い形 ${oldJa.join(',')}・英語の見本の評判 ${OLD_VOICES.en}・評判の会社 ${VOICE_KEYS.length}`);
+}
+
 if (STATIC_ONLY) {
   console.log(`\n══ ${pass} pass / ${fail} fail ══（ブラウザを使う検査は流していない）`);
   process.exit(fail ? 1 : 0);
@@ -2504,7 +2546,11 @@ const SUM_BODY = ['あ', 'い', 'う'];
 const ratedOpenBody = slug => JSON.stringify({ unlocked: true, rows: ratedRows(slug).map((r, i) => ({ ...r, translations: {},
   culture_comment: `検査用の本文・社風・${SUM_BODY[i]}`, wlb_comment: `検査用の本文・勤務・${SUM_BODY[i]}`,
   salary_comment: '', benefits_comment: '', ops_comment: '', training_comment: '' })) });
-const revBodyOf = (mode, slug) => /^ratedOpen/.test(mode) ? ratedOpenBody(slug) : ratedBody(slug);
+/* mode 'ratedTwo' … 点数の付いた口コミが2件だけ（6分類ぜんぶに点数）／'ratedGap' … 1件だけで、誰も点数を付けていない分類が1つ在る。
+   どちらも鍵の無い人向けの返事（2026-10-22 オーナー P12.97：点数は誰にでも出ている）。要約の口は 404 */
+const THIN = { ratedTwo: [0, 2], ratedGap: [2, 3] };
+const thinRows = (mode, slug) => ratedRows(slug).slice(...THIN[mode]);
+const revBodyOf = (mode, slug) => /^ratedOpen/.test(mode) ? ratedOpenBody(slug) : THIN[mode] ? JSON.stringify({ unlocked: false, rows: thinRows(mode, slug) }) : ratedBody(slug);
 /* 要約の欄の形の移り変わりを、ページが始まる前から控える（data-state と、その時の高さ）。要約の場面が pre として渡すための部品。 */
 const SUM_WATCH = () => { window.__sumSeq = []; new MutationObserver(ms => ms.forEach(m => { const t = m.target; if (t.getAttribute && t.getAttribute('data-live') === 'summary') window.__sumSeq.push([t.getAttribute('data-state'), Math.round(t.getBoundingClientRect().height)]); })).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-state'] }); };
 const trouble = [];
@@ -2663,7 +2709,7 @@ function LIB() {
     const t = (s, root) => { const e = (root || document).querySelector(s); return e && on(e) ? e.textContent.replace(/\s+/g, ' ').trim() : null; };
     const fill = s => { const e = document.querySelector(s); return e && on(e) ? e.style.getPropertyValue('--crl-fill') : null; };
     return {
-      want: { short: (u.cats || {}).short || [] },
+      want: { short: (u.cats || {}).short || [], full: (u.cats || {}).full || [] },
       hero: { avg: t('.pvg-hero .crl-avg'), cnt: t('.pvg-hero .crl-cnt'), fill: fill('.pvg-hero .crl-stars'), none: $$('.pvg-hero .crl-stars[data-none]').some(on) },
       card: !c || !on(c) ? null : {
         title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
@@ -2694,7 +2740,11 @@ function LIB() {
           lock: (() => { const x = e.querySelector('.crl-lock'); return x ? x.textContent.replace(/\s+/g, ' ').trim() : null; })(),
           /* 評価の箱の中で、いま見えている錠前の1行（同じ意味の行を2つ重ねていないかを見る） */
           locks: $$('.crl-lock', c).filter(on).map(x => x.textContent.replace(/\s+/g, ' ').trim()) }; })(),
-        radar: $$('.crl-radar-l', c).filter(on).map(e => ({ k: e.querySelector('span').textContent.trim(), v: e.querySelector('b').textContent.trim() })),
+        radar: $$('.crl-radar-l', c).filter(on).map(e => { const b = e.querySelector('b'); return { k: e.querySelector('span').textContent.trim(), v: b ? b.textContent.trim() : null }; }),
+        /* 図の数・点数の無いときの淡い面（P12.95／P12.96）：面の頂点がまんなかからどれだけ離れているか（svg の座標で・5点 ＝ 1）と、図の字の数字 */
+        figs: $$('.crl-radar', c).filter(on).length,
+        ph: (() => { const p = c.querySelector('.crl-radar-shape.is-ph'); return p && on(p) ? p.getAttribute('points').split(' ').map(q => q.split(',').map(Number)).map(([x, y]) => Math.hypot(x - 100, y - 100) / 92) : null; })(),
+        figText: $$('.crl-radar', c).filter(on).map(e => e.textContent).join(''),
         /* 図の頂点が、まんなかからどれだけ離れているか（いちばん外の輪 ＝ 5点 を 1 とする）。描かれた形そのものを測る */
         reach: (() => {
           const ring = $$('.crl-radar-ring', c).pop(); if (!ring) return [];
@@ -3073,7 +3123,9 @@ const IS_SCORE = x => x.kind === 'stars' || x.kind === 'score';
      1件の点 ＝ その人が付けた分類だけの平均（付けていない分類を 0 と数えない）
      総合点   ＝ 点数を付けた人の「1件の点」の平均／件数 ＝ 点数を付けた人の数
      6分類    ＝ 分類ごとの平均。どれか1つでも誰も付けていなければ、図は描かない
-   点数の付いた投稿が1件も無ければ null ＝「評価未取得」（0点ではない）。 */
+   点数の付いた投稿が1件も無ければ null ＝「評価未取得」（0点ではない）。
+   ★6角形の図を点数で塗るのは ratings が在る時だけ ── 社名の行の星と同じ1つの決まり（2026-10-22 オーナー P12.97：点数は誰にでも
+     出ている。件数の下限をもう1つ作らない・鍵の有無で変えない）。ratings ＝ null の時は 3.0 の淡い面のまま・数字なし。 */
 function ratedWant(rows) {
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
   const per = [], cat = SCORE_KEYS.map(() => []);
@@ -3102,9 +3154,13 @@ function scoreBad(s, sc, slots, rows, sum) {
   const bad = [], c = sc.card, W = ratedWant(rows), one = v => Number(v).toFixed(1), state = W ? 'open' : 'empty';
   if (!(slots.length === 2 && slots.every(x => x.on && x.state === state))) bad.push(`欄が ${slots.map(x => `${x.kind}:${x.state}`).join(' ')}（あるべき ${state}）`);
   if (!c) return [...bad, '評価・口コミのカードが見えていない'];
+  /* 6角形の図は、点数が在っても無くても必ず1つ（枠と6分類の名前 ＝ 口コミの欄の CAT_FULL）。点数で塗らない時は 3.0 の淡い面で、図の字に数字が無い */
+  if (c.figs !== 1 || !same(c.radar.map(r => r.k), sc.want.full) || sc.want.full.length !== 6) bad.push(`6角形の図（6分類の名前つき）が1つでない（図 ${c.figs}・${c.radar.map(r => r.k).join('・')}）`);
+  const phOk = () => !!c.ph && c.ph.length === 6 && c.ph.every(r => Math.abs(r - 0.6) < 0.01) && c.radar.every(r => r.v === null) && !NO_NUM.test(c.figText) && !c.reach.length;
+  if (!W || !W.ratings) { if (!phOk()) bad.push(`点数で塗らない図が、3.0 の淡い面・数字なしでない（面 ${(c.ph || []).map(r => r.toFixed(2)).join('・') || '無し'}・字「${c.figText.replace(/\s+/g, '').slice(0, 40)}」）`); }
   if (!W) {
     if (sc.hero.avg !== null || sc.hero.fill || !sc.hero.none || sc.hero.cnt !== '評価未取得') bad.push(`社名の行が「色の無い星＋評価未取得」でない（${sc.hero.avg}・「${sc.hero.cnt}」）`);
-    if (c.avg !== null || c.cnt !== null || c.stars || c.radar.length) bad.push(`0件なのに、カードに点数・星・図が出ている（${c.avg}・${c.cnt}・星 ${c.stars}・図 ${c.radar.length}）`);
+    if (c.avg !== null || c.cnt !== null || c.stars) bad.push(`0件なのに、カードに点数・星が出ている（${c.avg}・${c.cnt}・星 ${c.stars}）`);
     if (c.msg !== '会員からの投稿はまだありません') bad.push(`カードの知らせが「${c.msg}」`);
     if (c.give) bad.push(`口コミの欄の中に、入口がもう ${c.give}つ在る`);
   } else {
@@ -3112,10 +3168,11 @@ function scoreBad(s, sc, slots, rows, sum) {
     if (sc.hero.avg !== one(W.avg) || c.avg !== one(W.avg)) bad.push(`総合点が違う（社名の行 ${sc.hero.avg}・カード ${c.avg}・あるべき ${one(W.avg)}）`);
     if (sc.hero.fill !== fill || c.fill !== fill) bad.push(`星の塗りが違う（社名の行 ${sc.hero.fill}・カード ${c.fill}・あるべき ${fill}）`);
     if (sc.hero.cnt !== cnt || c.cnt !== cnt) bad.push(`件数が違う（社名の行「${sc.hero.cnt}」・カード「${c.cnt}」・あるべき「${cnt}」）`);
-    if (!W.ratings) { if (c.radar.length) bad.push('誰も点数を付けていない分類が在るのに、6角形の図を描いている'); }
-    else if (sc.want.short.length !== 6) bad.push('分類の名前（PVReviewUI）を読めない');
+    if (!W.ratings) { /* 下限に満たない・誰も点数を付けていない分類が在る：上の「3.0 の淡い面・数字なし」 */ }
+    else if (sc.want.full.length !== 6) bad.push('分類の名前（PVReviewUI）を読めない');
     else {
-      if (!same(c.radar.map(r => [r.k, r.v]), sc.want.short.map((k, i) => [k, one(W.ratings[i])]))) bad.push(`6角形の図のまわりの字が違う：${c.radar.map(r => `${r.k} ${r.v}`).join('・')}`);
+      if (c.ph) bad.push('点数で塗る時に、3.0 の淡い面が残っている');
+      if (!same(c.radar.map(r => [r.k, r.v]), sc.want.full.map((k, i) => [k, one(W.ratings[i])]))) bad.push(`6角形の図のまわりの字が違う：${c.radar.map(r => `${r.k} ${r.v}`).join('・')}`);
       if (c.reach.length !== 6 || !c.reach.every((r, i) => Math.abs(r - W.ratings[i] / 5) < 0.03)) bad.push(`6角形の図の形が点数に比例していない：${c.reach.map(r => r.toFixed(2)).join('・')}`);
     }
   }
@@ -3764,6 +3821,24 @@ const LOCK_UNDER = 296;
    社名の行の星とカードの総合点が同じ答えになる・6角形の図が点数どおりの形・本文は抜粋しか出ない。
    手元には本物の投稿が1件も無いので、星と図が描かれる形を見られるのはここだけ。
    PV_GLANCE_SHOT=<フォルダ> を渡すと、その形を1枚ずつ撮って置く（見本と見比べるため。検査の合否には使わない）。 */
+/* 場面 rated の2つ：図を点数で塗るかどうかは、社名の行の星と同じ1つの決まり（realRated）だけ（2026-10-22 オーナー P12.97）。
+   ratedTwo ＝ 点数の付いた投稿が2件（6分類ぜんぶ）→ 鍵の無い人にも、図は本物の点数で塗られ6つの数字が出る（件数の下限をもう1つ作らない）。
+   ratedGap ＝ 1件で、誰も点数を付けていない分類が在る → 総合点と件数は出るが、図は 3.0 の淡い面のまま・分類ごとの数字は1つも無い。 */
+async function runRatedThin(browser, s, [w, h], mode) {
+  const tag = `${s} ${w}（${mode === 'ratedTwo' ? '点数の付いた投稿が2件・鍵の無い人' : '点数の無い分類が在る時'}）`;
+  const { ctx, p, ready } = await open(browser, s, w, h, mode);
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    await p.evaluate(() => window.__pvg.top());
+    const rows = thinRows(mode, s), W = ratedWant(rows);
+    const live = (await p.evaluate(() => window.__pvg.live())).filter(x => x.on), sc = await p.evaluate(() => window.__pvg.score());
+    const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, 'off');
+    if (!W || !!W.ratings !== (mode === 'ratedTwo')) bad.push('検査の前提が違う（行の点数が場面の形になっていない）');
+    ok(!bad.length, mode === 'ratedTwo'
+      ? `${tag}: 総合点は ${W ? W.avg.toFixed(1) : '—'}（${rows.length}件）・6角形の図は本物の点数で塗られ、6分類の数字が出る（下限は社名の行の星と同じ1つだけ）`
+      : `${tag}: 総合点は ${W ? W.avg.toFixed(1) : '—'}（${rows.length}件）のまま・6角形の図は 3.0 の淡い面で分類ごとの数字が無い`, bad.join(' ／ '));
+  } finally { await ctx.close(); }
+}
 async function runRated(browser, s, [w, h, kind]) {
   const tag = `${s} ${w}（評価が在る時）`;
   const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rated');
@@ -6636,12 +6711,9 @@ async function runGG(browser, s, [w, h]) {
    ⚠️ 2本の JS は版の印なしで読まれる ＝ 最大4時間、片方だけ古いことがある。錠前の JS が無い（＝合図が無い）時、
       口コミの側は古いボタンのままで居る ── 錠前の JS を止めて確かめる。
    ここの口コミは、決まった返事（鍵の無い人に返る3件）で描かせる。本番の DB は読まない。 */
-/* ★2026-10-21（全社へ広げる d1・同じ強さの当て直し ── リード L2）：日本語のエミレーツは新しい会社ページになった（SWITCH）。
-   日本語の見本は、まだ旧い形のままで同じ面（給与の錠前2つ・「海外の評判」の鍵・口コミの一覧の鍵）を持つルフトハンザへ。
-   英語版は今までどおりエミレーツ（英語の会社ページはまだ旧い形）。測るものは1つも減らしていない。
-   ⚠️ 全社へ広げる d2 でルフトハンザも新しい形になる ── その回で、日本語の見本の置き場をリードが決める
-   （旧い形で同じ面を持つ日本語の会社ページは、d1 のあと american・delta・lufthansa・southwest・united の5枚で、どれも d2 の会社）。 */
-const OLD_SAMPLE = { ja: 'lufthansa', en: 'emirates' };
+/* ★2026-10-21（全社へ広げる d1・同じ強さの当て直し ── リード L2）：日本語のエミレーツは新しい会社ページになった（SWITCH）→ ルフトハンザへ。
+   ★2026-10-22（d2）：ルフトハンザも新しい形になった → 日本語の見本はスピリット航空（OLD_SAMPLE の定義と、旧い形が1枚だけかの段は
+   静的な検査の側 ── 「旧い形の会社ページ（見本）」）。 */
 const OLD_PATH = { ja: '/airlines/' + OLD_SAMPLE.ja + '.html', en: '/en/airlines/' + OLD_SAMPLE.en + '.html' };
 const OLD_PAY = { ja: '/pay-report.html', en: '/en/pay-report.html' };
 const OLD_POST = 'if(window.openReviewModal)openReviewModal()';
@@ -6697,10 +6769,10 @@ async function openOld(browser, lang, w, h, { block = '', stale = false } = {}) 
      「海外の評判」の鍵が描かれた・待ち受けの箱が残っていない・錠前の掛かった面の全部に板が出た
      （板はログインの確認のあとに出る ＝ 形の合否より遅いことがある。待たずに数えると、混んだ回に嘘の赤が出る）。
      ⚠️ 口コミの一覧は、口コミのタブを開いた時に初めて描かれる。ここで待つと、必ず時間切れになる。 */
-  const ready = await p.waitForFunction(lockOff => !!document.querySelector('.airline-tab-btn') &&
+  const ready = await p.waitForFunction((lockOff, voices) => !!document.querySelector('.airline-tab-btn') &&
     (lockOff ? !window.PVGG : !!window.PVGG && /^(yes|no)$/.test(window.PVGG.state())) &&
     (lockOff || [...document.querySelectorAll('.premium-gate.pv-locked')].every(g => !!g.querySelector('.pv-gate-card'))) &&
-    !!document.querySelector('#airline-voices .rv-post-gate') && !document.querySelector('[data-pvgg-wait]'), {}, block === 'lock').then(() => true, () => false);
+    (!voices || !!document.querySelector('#airline-voices .rv-post-gate')) && !document.querySelector('[data-pvgg-wait]'), {}, block === 'lock', OLD_VOICES[lang]).then(() => true, () => false);
   await p.evaluate(() => document.fonts.ready.then(() => true));
   return { ctx, p, seen, ready };
 }
@@ -6752,8 +6824,8 @@ async function runGGOld(browser, lang, [w, h]) {
     const map = await p.evaluate(oldMap);
     const shape = [], lay = [], dest = [], dark = [], dlg = [], seenAt = {};
     ok(map.state === 'yes', `${tag}: 形のファイル（pv-gg.css）を読めた`, `合図 ＝「${map.state}」`);
-    ok(nGate > 0 && map.gates.length === nGate && map.gates.every(g => g.locked && g.cards === 1 && map.tabs.includes(g.tab)) && map.voices,
-      `${tag}: 見本のページに、測る面がそろっている（給与の錠前 ${nGate}つ・「海外の評判」の鍵・口コミの一覧の鍵）`, JSON.stringify(map));
+    ok(nGate > 0 && map.gates.length === nGate && map.gates.every(g => g.locked && g.cards === 1 && map.tabs.includes(g.tab)) && map.voices === OLD_VOICES[lang],
+      `${tag}: 見本のページに、測る面がそろっている（給与の錠前 ${nGate}つ・${OLD_VOICES[lang] ? '「海外の評判」の鍵・' : '海外の評判の無い会社 ── 「海外の評判」の鍵は出ない・'}口コミの一覧の鍵）`, JSON.stringify(map));
     const measure = async () => {
       await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
       const r = await p.evaluate(ggSee, GG_KEYS, '');
@@ -6782,7 +6854,7 @@ async function runGGOld(browser, lang, [w, h]) {
     const leftAll = { main: [], pills: 0, card: 0, list: 0, voices: 0, wait: 0 };
     for (const tab of map.tabs) {
       if (!(await oldTab(p, tab))) { lay.push(`「${tab}」のタブへ切り替わらない`); continue; }
-      const want = [...map.gates.filter(g => g.tab === tab).map(() => 'lock'), ...(tab === 'overview' ? ['voices'] : []), ...(tab === 'reviews' ? ['list'] : [])];
+      const want = [...map.gates.filter(g => g.tab === tab).map(() => 'lock'), ...(tab === 'overview' && OLD_VOICES[lang] ? ['voices'] : []), ...(tab === 'reviews' ? ['list'] : [])];
       await until(n => [...document.querySelectorAll('.pv-gg')].filter(e => e.getClientRects().length > 0 && e.checkVisibility({ visibilityProperty: true })).length >= n, want.length);
       const got = (await measure()).filter(g => g.where !== 'dialog');
       seenAt[tab] = got.map(g => g.where);
@@ -6895,7 +6967,7 @@ async function runGGOldOff(browser, lang, [w, h], block) {
       for (const a of x.main) { const b = a.cta !== 'salary' ? `数える印が「${a.cta}」` : !a.text ? '字が無い' : oldPayBad(a.href, lang); if (b) bad.push(`「${tab}」の古い錠前のボタン: ${b}`);
         else if (a.text !== OLD_WAS[lang].lock) bad.push(`「${tab}」の古い錠前のボタン: 字が「${a.text}」（今までは「${OLD_WAS[lang].lock}」）`); }
       for (const b of x.old) oldBad(b, `「${tab}」の${b.at === 'card' ? '口コミ1枚ごとの古いボタン' : OLD_AT[b.at]}`);
-      if (tab === 'overview' && x.voices !== 1) bad.push(`「海外の評判」の鍵の古いボタンが ${x.voices}つ（あるべき 1つ）`);
+      if (tab === 'overview' && x.voices !== (OLD_VOICES[lang] ? 1 : 0)) bad.push(`「海外の評判」の鍵の古いボタンが ${x.voices}つ（あるべき ${OLD_VOICES[lang] ? 1 : 0}つ）`);
       if (tab === 'reviews' && (x.list !== 1 || x.card < 1)) bad.push(`口コミの一覧の鍵の古いボタンが ${x.list}つ・カードの解除ボタンが ${x.card}つ（あるべき 1つ・1つ以上）`);
     }
     /* 錠前の JS が無い回は、錠前の板そのものが出ない（板を出すのがその JS）。口コミの側だけを見る。 */
@@ -8029,6 +8101,7 @@ try {
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v), () => runRatedLogin(browser, s, v), () => runRatedFew(browser, s, v), () => runRatedNone(browser, s, v), () => runRatedErr(browser, s, v), () => runRatedOpen(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) { const v = VIEWS.find(x => RATED_W.includes(x[0])); if (v) work.push(() => runRatedStale(browser, s, v)); }
+  if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => [390, 1440].includes(x[0]))) for (const m of Object.keys(THIN)) work.push(() => runRatedThin(browser, s, v, m));
   if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRatedOpenMax(browser, s, v));
   if (wantS('tabs')) for (const s of ONLY) for (const v of [...VIEWS.filter(x => TABS_W.includes(x[0])), ...TABS_EXTRA]) work.push(() => runTabs(browser, s, v));
   if (wantS('stay')) {

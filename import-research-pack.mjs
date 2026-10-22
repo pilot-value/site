@@ -43,6 +43,7 @@ import crypto from 'node:crypto';
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { BY_CODE } from './airline-countries.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const STORE_FILE = 'research-ledger.mjs';
@@ -754,10 +755,34 @@ export function cityRentUse(d) {
  * その街を拠点にしている会社（こちらの台帳だけで決める）。返すのは 街の鍵 → Map(会社 → 理由)。
  *   store ＝ 取り込みの台帳・skip ＝ 別に置く会社。先行5社は入れない。
  */
+/* 街の名前（英語の名前・その頭の1語）→ その名前を持つ空港の国（PLACES）。2つ以上の国に在る名前（Kochi ＝ 高知・コーチ、
+   Manchester ＝ 英国・米国）は、行の国が分かって拠点の空港の国と合うときだけつなぐ（2026-10-22 d2・a3 の検査役 C-2） */
+export function cityLands(L) {
+  const by = new Map();
+  for (const p of Object.values(L.PLACES)) for (const k of new Set([cityKey(p[1], L), cityKey(String(p[1]).split(' ')[0], L)])) {
+    if (!k) continue;
+    (by.get(k) || by.set(k, new Set()).get(k)).add(p[2]);
+  }
+  return by;
+}
+/* 家賃の行の国：行が国の2字（ISO）を持てばその国・無ければ通貨の国（1つの国の通貨だけ）。分からなければ ''（推して埋めない） */
+const CUR_LAND = Object.freeze({ JPY: '日本', INR: 'インド', GBP: 'イギリス', NZD: 'ニュージーランド', AUD: 'オーストラリア', CAD: 'カナダ', USD: 'アメリカ',
+  KRW: '韓国', TWD: '台湾', HKD: '香港', CNY: '中国', SGD: 'シンガポール', THB: 'タイ', MYR: 'マレーシア', IDR: 'インドネシア', PHP: 'フィリピン', VND: 'ベトナム',
+  CHF: 'スイス', SEK: 'スウェーデン', NOK: 'ノルウェー', DKK: 'デンマーク', PLN: 'ポーランド', CZK: 'チェコ', TRY: 'トルコ', ISK: 'アイスランド', MXN: 'メキシコ',
+  BRL: 'ブラジル', COP: 'コロンビア', CLP: 'チリ', PEN: 'ペルー', AED: 'アラブ首長国連邦', QAR: 'カタール', SAR: 'サウジアラビア', OMR: 'オマーン', KWD: 'クウェート',
+  BHD: 'バーレーン', JOD: 'ヨルダン', EGP: 'エジプト', ETB: 'エチオピア', KES: 'ケニア', ZAR: '南アフリカ', FJD: 'フィジー' });
+export const rowLand = d => (d && /^[A-Z]{2}$/.test(String(d.country || '')) && BY_CODE[d.country] ? BY_CODE[d.country].ja : '') || CUR_LAND[String((d && d.currency) || '')] || '';
+
 export async function cityBindings(L, store, skip = new Set()) {
   const RO = await import(pathToFileURL(path.join(HERE, 'airline-rollout.mjs')).href);
-  const lead = new Set(RO.LEAD), by = new Map();
-  const add = (k, s, why) => { if (!k || lead.has(s) || skip.has(s)) return; const m = by.get(k) || by.set(k, new Map()).get(k); if (!m.has(s)) m.set(s, why); };
+  const lead = new Set(RO.LEAD), by = new Map(), lands = cityLands(L);
+  /* by.land … 2つ以上の国に在る名前でつないだとき、その会社の拠点の空港の国（行の国がこれと合うときだけつながる） */
+  by.land = new Map();
+  const add = (k, s, why, land = '') => {
+    if (!k || lead.has(s) || skip.has(s)) return;
+    const m = by.get(k) || by.set(k, new Map()).get(k);
+    if (!m.has(s)) { m.set(s, why); if (land && (lands.get(k) || new Set()).size > 1) by.land.set(`${k}\u0000${s}`, land); }
+  };
   for (const [s, cs] of Object.entries(store.CITY_OF || {})) for (const c of cs) add(c, s, `暮らしの街（${s} の調べの記録の拠点）`);
   for (const s of [...Object.keys(L.SALARY), ...Object.keys(L.OPS || {})]) {
     if (lead.has(s) || skip.has(s)) continue;
@@ -768,12 +793,14 @@ export async function cityBindings(L, store, skip = new Set()) {
     for (const c of b.iata || []) {
       const p = L.PLACES[c];
       if (!p) continue;
-      for (const k of new Set([cityKey(p[1], L), cityKey(String(p[1]).split(' ')[0], L)])) add(k, s, `拠点の空港 ${c}`);
+      for (const k of new Set([cityKey(p[1], L), cityKey(String(p[1]).split(' ')[0], L)])) add(k, s, `拠点の空港 ${c}`, p[2]);
     }
-    /* 拠点が街だけの会社：日本語の街の名前が1つの街にしか当たらないときだけ（2つの国の街に当たる名前ではつながない） */
+    /* 拠点が街だけの会社：日本語の街の名前が1つの国の1つの街にしか当たらないときだけ（オークランド ＝ AKL・OAK のように2つの街に当たる
+       名前も、マンチェスター ＝ MAN・MHT のように英語の名前は1つでも2つの国に在る名前も、つながない ── 2026-10-22 d2・a3 の検査役 C-3） */
     if (!(b.iata || []).length && b.city) for (const c of String(b.city).split('・')) {
-      const keys = new Set(Object.values(L.PLACES).filter(p => String(p[0]).replace(/（.*$/, '') === c).map(p => cityKey(String(p[1]).split(' ')[0], L)).filter(Boolean));
-      if (keys.size === 1) add([...keys][0], s, `拠点の街「${c}」`);
+      const ents = Object.values(L.PLACES).filter(p => String(p[0]).replace(/（.*$/, '') === c);
+      const keys = new Set(ents.map(p => cityKey(String(p[1]).split(' ')[0], L)).filter(Boolean)), land = new Set(ents.map(p => p[2]));
+      if (keys.size === 1 && land.size === 1) add([...keys][0], s, `拠点の街「${c}」`, [...land][0]);
     }
   }
   return by;
@@ -816,7 +843,9 @@ export function cityRentPack(json, L, bindings, opts = {}) {
       publisher: d.publisher || S.publisher || host, title: d.title || S.title || null, url,
       published: ISO.test(String(d.published || d.publication_date || '')) ? (d.published || d.publication_date) : null, retrieved,
     });
-    const k = cityKey(base, L), bound = [...((bindings && k && bindings.get(k)) || new Map())];
+    /* 2つ以上の国に在る名前でつないだ会社には、行の国（国の2字か通貨の国）が拠点の空港の国と合うときだけつなぐ */
+    const k = cityKey(base, L), land = rowLand(d), need = s => (bindings && bindings.land && bindings.land.get(`${k}\u0000${s}`)) || '';
+    const near = [...((bindings && k && bindings.get(k)) || new Map())], bound = near.filter(([s]) => !need(s) || need(s) === land);
     const cands = d.candidate_company_ids || d.requested_company_ids || [];
     const roomOrig = d.room_type_original || '';
     const period = isObj(d.data_period) ? [d.data_period.from, d.data_period.to].filter(Boolean).join('〜') : d.data_period || null;
@@ -839,7 +868,9 @@ export function cityRentPack(json, L, bindings, opts = {}) {
     });
     const use = cityRentUse(d);
     const recs = bound.length ? bound.map(([s]) => make(s, null))
-      : [make(null, `街「${base}」を拠点にしている会社が、こちらの台帳に無い（候補の会社 ${cands.join('・') || 'なし'} は拠点の証拠ではない）── 入れない`)];
+      : [make(null, near.length
+        ? `街「${base}」の名前は別の国の街にも在り、この行の国（${land || '分からない'}）が拠点の空港の国（${[...new Set(near.map(([s]) => need(s)))].join('・')}）と合わない ── 入れない`
+        : `街「${base}」を拠点にしている会社が、こちらの台帳に無い（候補の会社 ${cands.join('・') || 'なし'} は拠点の証拠ではない）── 入れない`)];
     for (const r of recs) {
       /* どの台帳でつないだか（plan にだけ書く。記録の中身に入れない ── 入れると、2回目の plan で「台帳の CITY_OF から」に変わり、
          同じ行が「中身が変わって届いた」になる） */

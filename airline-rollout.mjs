@@ -27,7 +27,7 @@
 import { fileURLToPath } from 'node:url';
 import { readStore } from './import-research-pack.mjs';
 import { PLACES } from './airline-destinations.mjs';
-import { say, srcName, NET, CITY, digest, agreementOf, rankOf } from './airline-display.mjs';
+import { say, srcName, NET, CITY, digest, agreementOf, rankOf, AD_TAG, AD_TAG_EN, countryEn } from './airline-display.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -36,7 +36,8 @@ export const LEAD = Object.freeze(['jal', 'ana', 'cathay-pacific', 'etihad', 'ev
 /** 新しい会社ページを持つ会社。★1か所。見本の2社（カンタス航空・スカイマーク）は「全社へ広げる c」（2026-10-21）で足した。 */
 export const SAMPLES = Object.freeze(['qantas', 'skymark']);
 /** 全社へ広げる d1（2026-10-21・リード P12.82／P12.84）：地域ごとに足す。並びは年収の正本（SALARY）の地域の中の順。
-    ★スピリット航空は入れない（オーナー 2026-10-11「スピリットを外す」）。d2 で ヨーロッパ・アメリカ大陸・オセアニアを足す。 */
+    ★スピリット航空は入れない（オーナー 2026-10-11「スピリットを外す」）。d2（2026-10-22）で ヨーロッパ・アメリカ大陸・オセアニアを足した
+    ＝ 年収の正本の 112社のうち、古い形のページはスピリット航空だけ。 */
 export const WIDE = Object.freeze([
   /* 日本 */
   'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan', 'airdo', 'starflyer', 'fda', 'airjapan', 'amx', 'ana-wings',
@@ -48,6 +49,15 @@ export const WIDE = Object.freeze([
   /* 中東（エティハド航空は先行5社）・アフリカ */
   'emirates', 'qatar-airways', 'gulf-air', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-jordanian', 'saudia',
   'egyptair', 'ethiopian-airlines', 'kenya-airways', 'south-african-airways',
+  /* 全社へ広げる d2（2026-10-22）：ヨーロッパ（運航会社の airx-charter・eagle-jet を含む） */
+  'klm', 'air-france', 'lufthansa', 'british-airways', 'airx-charter', 'eagle-jet', 'turkish-airlines', 'aegean', 'aer-lingus',
+  'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss',
+  'tap', 'virgin-atlantic', 'vueling', 'wizz-air',
+  /* アメリカ大陸（北米・中南米。スピリット航空は入れない ── オーナー 2026-10-11） */
+  'united', 'delta', 'american', 'southwest', 'air-canada', 'solairus', 'alaska-airlines', 'allegiant', 'breeze-airways', 'frontier',
+  'jetblue', 'porter', 'westjet', 'aeromexico', 'avianca', 'copa-airlines', 'latam',
+  /* オセアニア（カンタス航空は見本の2社） */
+  'air-new-zealand', 'fiji-airways', 'jetstar',
 ]);
 export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);
 /** 画面に出してよい使い方。 */
@@ -105,10 +115,10 @@ export const shown = (r, o) => !why(r, o);
    ★労働協約（airline-display.mjs の AGREEMENTS に在る資料）は 'agreement'（2026-10-21 リードの決め d）── 会社の公表とも
      政府の資料とも別の種類。画面は「労働協約」の札とその協約の名前で出す（gen-airline-glance.mjs）。 */
 const KIND = { airline: 'company', government: 'gov' };
-const srcOf = r => {
+const srcOf = (r, lang = 'ja') => {
   const s = (r.src || [])[0];
   if (!s || !/^https:\/\//.test(s.url || '')) return null;
-  return { name: srcName(s), url: s.url, kind: agreementOf(s) ? 'agreement' : KIND[s.publisher_kind] || s.publisher_kind || '' };
+  return { name: srcName(s, lang), url: s.url, kind: agreementOf(s) ? 'agreement' : KIND[s.publisher_kind] || s.publisher_kind || '' };
 };
 
 /* 調べの1行 → 画面の部品が読む事実の形（airline-facts.mjs の行と同じ鍵）。字は airline-display.mjs の say() だけ
@@ -136,10 +146,45 @@ function asFact(r) {
  *   held     … 出さなかった行と、その理由と、置き場（sec ＝ 台帳の分野。--status が数える）
  *   R        … 調べの台帳（既定はリポジトリの research-ledger.mjs。検査が写しの台帳を渡す）
  */
-export function researchFacts(slug, R = research()) {
+export function researchFacts(slug, R = research(), lang = 'ja') {
+  const out = factsJa(slug, R);
+  return lang === 'en' ? factsEn(out, slug, R) : out;
+}
+/* 英語の事実（2026-10-22 d2 ＝ EN-2）：日本語で決めた並び・1行め・置き場はそのまま（決め方は日本語の字で1回だけ）、画面の字だけを
+   英語の対に替える（airline-display.mjs の say(r, 'en')・srcName(s, 'en')）。英語の対の無い行は出さず、出さない行に理由つきで数える。 */
+function factsEn(J, slug, R) {
+  const F = (R.FACTS || {})[slug] || {}, byId = new Map();
+  for (const [sec, rows] of Object.entries(F)) for (const r of rows || []) byId.set(r.id, [r, sec]);
+  const held = [...J.held];
+  const one = f => {
+    const [r, sec] = byId.get(f.id) || [];
+    const e = r && say(r, 'en'), src = r && srcOf(r, 'en');
+    if (!e || !src || !src.name) { held.push({ id: f.id, why: '英語の言い方がまだ無い（airline-display.mjs の英語の対）', sec: sec || '' }); return null; }
+    const ag = agreementOf((r.src || [])[0]);
+    return { ...f, ja: e.label, value: e.value, cur: e.cur || '', per: e.per || '', cond_ja: e.cond || (ag ? ag.cond_en || '' : ''), src,
+      tag: f.tag === AD_TAG ? AD_TAG_EN : e.tag, fleet: e.fleet || '' };
+  };
+  const list = l => l.map(one).filter(Boolean);
+  const out = { ...J, work: list(J.work), benefits: list(J.benefits), jobs: list(J.jobs), profile: list(J.profile), scale: list(J.scale), fleet: list(J.fleet), held };
+  if (J.base) {
+    const iata = J.base.iata || [];
+    const city = new Set(iata.map(c => (PLACES[c] || [])[1] || '')), land = new Set(iata.map(c => countryEn((PLACES[c] || [])[2] || '')));
+    out.base = { ...J.base, rows: list(J.base.rows),
+      city: iata.length ? (city.size === 1 ? [...city][0] : '') : '', country: iata.length ? (land.size === 1 ? [...land][0] : '') : '' };
+    /* 拠点が街だけの会社の街の名前（日本語の街の名前 → 空港の呼び名の表の英語。2通りに読めれば言わない） */
+    if (!iata.length && J.base.city) {
+      const en = J.base.city.split('・').map(c => { const e = new Set(Object.values(PLACES).filter(p => String(p[0]).replace(/（.*$/, '') === c).map(p => String(p[1]))); return e.size === 1 ? [...e][0] : ''; });
+      out.base.city = en.every(Boolean) ? en.join(', ') : '';
+    }
+  }
+  return out;
+}
+function factsJa(slug, R) {
   const F = (R.FACTS || {})[slug] || {};
   const out = { base: null, work: [], benefits: [], jobs: [], profile: [], scale: [], fleet: [], held: [] };
   const iata = [], baseRows = [], cities = [], cityRows = [];
+  /* 会社の募集の行のうち、台帳の分野が勤務・待遇のもの（下の「今の公表が無い欄」で使う） */
+  const ads = { work: [], benefits: [] };
   for (const [sec, rows] of Object.entries(F)) {
     const hold = (r, w) => out.held.push({ id: r.id, why: w, sec });
     for (const r of rows || []) {
@@ -175,6 +220,7 @@ export function researchFacts(slug, R = research()) {
       if (['work', 'benefits'].includes(place) && !company && !agreement) { hold(r, '勤務・待遇の欄には、会社自身の資料か労働協約の行だけ'); continue; }
       if (['profile', 'scale'].includes(place) && !['company', 'gov'].includes(f.src.kind)) { hold(r, '会社の数字は、会社か政府の資料の行だけ'); continue; }
       out[place].push(f);
+      if (place === 'jobs' && sec in ads) ads[sec].push(f);
     }
   }
   /* 並び：条件つき → 参考 → 過去（台帳の順のまま）。
@@ -189,6 +235,16 @@ export function researchFacts(slug, R = research()) {
     const whose = f => f.rank !== 'trainee' || /^訓練/.test(f.ja);
     const first = (said[0] && said[0].use === '条件つき' && whose(said[0]) ? said[0] : null) || out[k].find(f => f.use === '条件つき' && whose(f));
     if (first && (k === 'work' || k === 'benefits')) first.lead = true;
+  }
+  /* ★今の公表が無い欄（勤務・待遇のカードの1行めが選べない）に、会社自身の募集の行だけが在るときは、その行を「募集」の札と
+     その募集の前提（誰の・どの募集か・日付）つきでカードに出す（2026-10-21 リード d2「確認できていません」と言わない）。
+     行は募集の1枚にも残る（募集の全部はあちらが並べる）。札の字は airline-display.mjs の AD_TAG。 */
+  for (const k of ['work', 'benefits']) {
+    if (out[k].some(f => f.lead) || !ads[k].length) continue;
+    const add = ads[k].map(f => ({ ...f, tag: AD_TAG, lead: false }));
+    /* 訓練生の行しか無いときは、その行が1行め（募集の札と前提の1行が、誰の募集の条件かを言う） */
+    (add.find(f => f.rank !== 'trainee' || /^訓練/.test(f.ja)) || add[0]).lead = true;
+    out[k] = [...add, ...out[k]];
   }
   /* 本社は1行だけ（会社の欄）：都市が言えれば都市（国は重ねない）・無ければ国。同じ項目が2行あれば最初の1行（並びは上の順）。 */
   const HQ = ['headquarters_city', 'headquarters_country'];
@@ -224,7 +280,7 @@ export function researchFacts(slug, R = research()) {
  *   home ／ db/stays.sql の pv_stay_network「本拠地は入れない」）。就航地は拠点から飛んでいく先で、拠点の空港のホテルを就航地として
  *   並べない（2026-10-21 全社へ広げる c の直し）。拠点を外して1つも残らない会社は null（今までの「…確認してから開きます。」）。
  */
-export function researchNetwork(slug, REGIONS, home = []) {
+export function researchNetwork(slug, REGIONS, home = [], lang = 'ja') {
   const N = NET[slug], list0 = ((research().NETWORK || {})[slug] || {}).list || [];
   if (!N || !list0.length || digest(list0) !== N.h) return null;
   const order = Object.fromEntries(REGIONS.map(([k], i) => [k, i]));
@@ -237,12 +293,12 @@ export function researchNetwork(slug, REGIONS, home = []) {
     if (!rows.some(x => x.iata === code)) rows.push({ iata: code, r });
   }
   if (!rows.length) return null;
-  const list = rows.map(({ iata }) => { const [city, en, country, region] = PLACES[iata]; return { iata, city, en, country, region, seasonal: false }; })
+  const list = rows.map(({ iata }) => { const [city, en, country, region] = PLACES[iata]; return lang === 'en' ? { iata, city: en, en, country: countryEn(country), region, seasonal: false } : { iata, city, en, country, region, seasonal: false }; })
     .sort((a, b) => order[a.region] - order[b.region]);
   const regions = REGIONS.filter(([k]) => list.some(d => d.region === k)).map(([key, label]) => ({ key, label, n: list.filter(d => d.region === key).length }));
-  const src = [...new Map(rows.flatMap(({ r }) => (r.src || []).filter(s => /^https:\/\//.test(s.url || '')).map(s => [s.url, { name: srcName(s), url: s.url }]))).values()];
+  const src = [...new Map(rows.flatMap(({ r }) => (r.src || []).filter(s => /^https:\/\//.test(s.url || '')).map(s => [s.url, { name: srcName(s, lang), url: s.url }]))).values()];
   const at = rows.map(({ r }) => r.checked_at || '').filter(Boolean).sort().pop() || '';
-  return { home: [...home], at, src, basis: N.basis, list, regions, held, partial: true };
+  return { home: [...home], at, src, basis: lang === 'en' ? N.basis_en : N.basis, list, regions, held, partial: true };
 }
 
 /**
@@ -251,16 +307,17 @@ export function researchNetwork(slug, REGIONS, home = []) {
  *   commute … 空港までの移動の行（why を通り・その街の空港の行で・LINES に字が在る行）
  *   R / CT  … 調べの台帳と街の字の表（既定はリポジトリの research-ledger.mjs と airline-display.mjs の CITY。検査が写しを渡す）
  */
-export function researchCities(slug, bases, R = research(), CT = CITY) {
+export function researchCities(slug, bases, R = research(), CT = CITY, lang = 'ja') {
   const out = [];
   for (const iata of bases) {
     const city = Object.keys(CT).find(c => CT[c].iata === iata && ((R.CITY_OF || {})[slug] || []).includes(c));
     const L = city && (R.LIVING || {})[city];
     if (!L || digest([...(L.rents || []), ...(L.commute || [])]) !== CT[city].h) continue;
     const rents = (L.rents || []).filter(r => !why(r) && r.value && typeof r.value === 'object' && srcOf(r));
-    const commute = (L.commute || []).filter(r => !why(r, { commute: true, bases: [iata] }) && say(r) && srcOf(r))
-      .map(r => ({ r, d: say(r), src: srcOf(r) }));
-    out.push({ city, iata, C: CT[city], rents: rents.map(r => ({ r, src: srcOf(r) })), commute });
+    /* 英語（lang 'en'）は、移動の行の字も資料の名前も英語の対（対の無い行は出さない）。街の字は C の *_en */
+    const commute = (L.commute || []).filter(r => !why(r, { commute: true, bases: [iata] }) && say(r) && srcOf(r) && (lang !== 'en' || say(r, 'en')))
+      .map(r => ({ r, d: say(r, lang), src: srcOf(r, lang) }));
+    out.push({ city, iata, C: CT[city], rents: rents.map(r => ({ r, src: srcOf(r, lang) })), commute });
   }
   return out;
 }

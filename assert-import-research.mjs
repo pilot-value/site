@@ -689,6 +689,39 @@ try {
       '★A14 読み口: 入った家賃は、その会社の拠点の空港の街として読める（字の表の指紋が古いと出ない・つながっていない会社には出ない）', JSON.stringify(seen.map(c => [c.city, c.rents.length])));
   }
 
+  /* ── A15 2つの国に在る街の名前（2026-10-22 d2・a3 の検査役 C-2 / C-3）──
+     拠点の空港の英語の名前（とその頭の1語）でつなぐとき、その名前が別の国の空港にも在れば（Kochi ＝ 高知 KCZ・コーチ COK、
+     Manchester ＝ MAN・MHT）、家賃の行の国（国の2字か通貨の国）が拠点の空港の国と合うときだけつなぐ。
+     拠点が街だけの会社は、日本語の街の名前が1つの国の1つの街にしか当たらないときだけ（マンチェスターは英国と米国の両方に在る）。
+     作り物の台帳（使い捨て）を関数に渡すだけ ── 本物の台帳は読むだけ。 */
+  {
+    const L15 = await I.loadLedgers(HERE);
+    const src15 = [{ url: 'https://pilot-value-test.invalid/a15', publisher_kind: 'airline', source_id: 'src-a15', publisher: 'テスト', title: 'テスト' }];
+    const b15 = (s, id, key, value) => ({ id: `${s}.base.${id}`, h: 'a15', key, value, use: '条件つき', domain: 'base', company: s, src: src15,
+      applies_to: { pilot_specific: true, rank: 'crew' }, evidence: [{ quote: String(value) }], checked_at: '2026-10-22' });
+    const S15 = { FACTS: {
+      'air-india': { base: [b15('air-india', 'cok', 'pilot_base', 'COK')] },                    // コーチ（インド）
+      jac: { base: [b15('jac', 'kcz', 'pilot_base', 'KCZ')] },                                  // 高知（日本）── 英語の名前は同じ Kochi
+      'british-airways': { base: [b15('british-airways', 'man', 'pilot_base', 'MAN')] },        // マンチェスター（英国）
+      frontier: { base: [b15('frontier', 'city-man', 'pilot_base_city', 'Manchester')] },       // 街だけ：マンチェスター（英国にも米国にも在る名前）
+      southwest: { base: [b15('southwest', 'city-akl', 'pilot_base_city', 'Auckland')] },       // 街だけ：オークランド（AKL と OAK の2つの街の字）
+    }, CITY_OF: {}, LIVING: {}, NETWORK: {}, SOURCES: {} };
+    const B15 = await I.cityBindings(L15, S15);
+    const row15 = (city, cur, value) => ({ research_group: 'a15', source_row_index: value, data: { city, room_type: '1bed', value, currency: cur,
+      source_period: 'month', statistic: 'median', source_url: `https://rent-a15.invalid/${city}-${cur}`, publisher: 'テストの家賃', title: 'テスト',
+      published: '2026-10-01', retrieved: '2026-10-22', data_period: '2026-09', locator: 'table', quote: `${cur} ${value}`, conditions_ja: 'テスト。',
+      candidate_company_ids: [], status: 'source_confirmed' } });
+    const P15 = I.cityRentPack({ checked_at: '2026-10-22', test_only: true, rows: [row15('Kochi', 'INR', 101), row15('Kochi', 'JPY', 102),
+      row15('Manchester', 'GBP', 103), row15('Manchester', 'USD', 104), row15('Auckland', 'NZD', 105)] }, L15, B15).pack.records;
+    const to = v => P15.filter(r => r.value && r.value['1bed'] === v).map(r => r.company_id || '-').sort().join(',');
+    ok(to(101) === 'air-india' && to(102) === 'jac' && to(103) === 'british-airways' && to(104) === '-',
+      '★A15 2つの国に在る街の名前：家賃の行は、行の国（通貨の国）と拠点の空港の国が合う会社にだけつながる（Kochi の INR はコーチの会社・JPY は高知の会社／Manchester の GBP は英国の会社・USD はどこにも）',
+      [101, 102, 103, 104].map(v => `${v}:${to(v)}`).join(' '));
+    ok(!P15.some(r => r.company_id === 'frontier' || r.company_id === 'southwest') && to(105) === '-' && [...B15.values()].every(m => !m.has('frontier') && !m.has('southwest')),
+      '★A15 拠点が街だけの会社：日本語の街の名前が2つの街（オークランド ＝ AKL・OAK）や2つの国（マンチェスター ＝ 英国・米国）に当たるときは、どの家賃にもつながない',
+      JSON.stringify([...B15].map(([k, m]) => [k, [...m.keys()]])).slice(0, 400));
+  }
+
   /* verify（作り物を入れた取り込みの台帳）*/
   {
     const vr = run('verify', '--root', ROOT);

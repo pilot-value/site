@@ -149,8 +149,8 @@ function paidLines(slug, rank, ja, M) {
     return ja ? `${grp}：${M(f.man)}（${lbl}）` : `${grp}: ${M(f.man)} (${lbl})`;
   });
 }
-/** その社で1つでも金額を出せるか（機長・副操縦士・運航乗務員のどれか）。 */
-const PRANKS = ['cap', 'fo', 'crew'];
+/** その社で1つでも金額を出せるか（機長・副操縦士のどちらか。運航乗務員の平均は出さない ── P12.77）。 */
+const PRANKS = ['cap', 'fo'];
 const hasPaid = (slug, ja, M) => PRANKS.some((r) => paidLines(slug, r, ja, M));
 
 /* ── 数値ヘルパ ──────────────────────────────────────────────────
@@ -750,11 +750,12 @@ function countryPage(c, lang) {
          金額を1つも出せない職位だけ「確認中」と書く（0 や空欄で埋めない）
        ・下＝まだ調べていない社。今までどおり平均とレンジを出す
      混ぜて1つの表にすると、読む側には同じ物差しの数字に見えてしまう。 */
-  const RK3 = [['cap', '機長', 'Captain'], ['fo', '副操縦士', 'First officer'], ['crew', '運航乗務員', 'Flight crew']];
+  /* ★機長と副操縦士を分けない額（運航乗務員の平均）は、どの表にも出さない（オーナー 2026-10-21 P12.77・d2）── 行ごと置かない */
+  const RK3 = [['cap', '機長', 'Captain'], ['fo', '副操縦士', 'First officer']];
   /* 会社自身が出した金額（公式募集例・求人・過去広告・条件つきの給与例）が取れた社の数。
      ⚠️ 推定は「会社が出した金額」ではないので数えない（paidLines は推定も返すので
         等級で絞る）。 */
-  const OWN = (slug) => ['cap', 'fo', 'crew'].some((r) => {
+  const OWN = (slug) => ['cap', 'fo'].some((r) => {
     const t = BASIS[slug]?.[r]?.tier;
     return t !== undefined && t !== 'estimate' && t !== 'held' && yearly(slug, r).some((f) => !f.training);
   });
@@ -1153,7 +1154,8 @@ function regionPage(r, lang) {
   }).join('\n');
 
   /* ★ 根拠を確認した社は「何の額か・等級」と一緒に出す（平均の表に混ぜない）。 */
-  const RK3 = [['cap', '機長', 'Captain'], ['fo', '副操縦士', 'First officer'], ['crew', '運航乗務員', 'Flight crew']];
+  /* ★機長と副操縦士を分けない額（運航乗務員の平均）は、どの表にも出さない（オーナー 2026-10-21 P12.77・d2）── 行ごと置かない */
+  const RK3 = [['cap', '機長', 'Captain'], ['fo', '副操縦士', 'First officer']];
   const basisRows = r.ledger.map((s) => {
     const a = S[s];
     const c = countryOf(s);
@@ -1171,7 +1173,7 @@ ${i === 0 ? `        <td rowspan="${ls.length}"><a href="airlines/${s}.html">${e
       </tr>`).join('\n');
   }).join('\n');
   /* 会社自身が出した金額が取れた社の数（推定は会社の金額ではないので数えない）。 */
-  const OWN = (slug) => ['cap', 'fo', 'crew'].some((k) => {
+  const OWN = (slug) => ['cap', 'fo'].some((k) => {
     const t = BASIS[slug]?.[k]?.tier;
     return t !== undefined && t !== 'estimate' && t !== 'held' && yearly(slug, k).some((f) => !f.training);
   });

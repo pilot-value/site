@@ -489,7 +489,8 @@ export const workAll = v => [...v.work, ...v.benefits.filter(f => MOVED.has(f.ke
 /* 概要の「勤務」のカード。カードに出す行は今までどおり台帳の勤務（v.work）から。開く板は5つの面 */
 function workCell(v) {
   const all = workAll(v), body = workPanel(v, all), work = v.work.filter(f => all.includes(f) && plain(f));
-  const lead = work.find(f => f.lead) || (v.rollout ? null : work[0]);
+  /* 1行めは札の無い行か、今の公表が無い欄に出す会社の募集の行（「募集」の札つき・airline-rollout.mjs が lead を付ける） */
+  const lead = v.work.find(f => f.lead && all.includes(f)) || (v.rollout ? null : work[0]);
   if (!lead) return cell('work', '勤務', IC.work, { slug: v.slug, k: '会社の公表', v: '確認できていません', empty: true, ask: WORK_ASK, note: esc('会社が公表している勤務の条件を確認できていません'), body });
   return cell('work', '勤務', IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
     more: all.length > 1 ? `ほか${all.length - 1}件と出典` : '出典を見る', body });
@@ -845,10 +846,39 @@ export const GG_ARROW = '<svg width="16" height="16" viewBox="0 0 16 16" fill="n
 const gg = cut => `<span class="pv-gg-t"><span class="pvg-gg-k" lang="en">${GG}</span><span class="pvg-gg-m">${cut.join('<wbr>')}</span></span>`;
 export const RV_CTA = { overview: ['口コミを', '解放する'], reviews: ['全ての', '口コミデータを', '解放する'] };
 const rvCta = (v, at) => `<p class="pvg-rv-cta pvg-rv-cta-${at}"><a class="pv-gg" href="${UP}submit-review.html?airline=${esc(v.slug)}">${gg(RV_CTA[at])}${GG_ARROW}</a><span>匿名・無料</span></p>`;
+/* ── 評価スコアの6角形の図（2026-10-21 オーナー「概要のパイロットによる評価スコアには必ず多角形のレーダーの図を載せて」
+     「一旦なにもないところは平均の3.0で塗っておいて」── P12.95・P12.96）──
+   枠（輪5つ・軸6本）と6つの分類の名前は、どの会社のページにも必ず在る（評価の欄の中・総合点の下）。面は 3.0（5点の6割）の淡い色（is-ph）。
+   ★HTML には数字を1つも書かない（分類ごとの点・「3.0」・星を置かない ── 作り物の点を数字として見せない）。
+     点数で塗るのは career-live.js（社名の行の星と同じ realRated() の答えで、6分類ぜんぶに点数がある時だけ。読む人の鍵では変えない
+     ── 点数は誰にでも出ている、2026-10-22 オーナー P12.97。それ以外はこの淡い面のまま）。
+     data-crl-keep ＝ career-live.js が欄を塗り直しても、この図は残る（読み込み中・失敗・0件のときも枠は消えない）。
+   名前は口コミの欄の分類の名前（airlines/airline-reviews-data.js の CAT_FULL ＝ 古いページの言葉）を、生成のときに写す（手で打たない）。
+   形（座標）は career-live.js の radar() と同じ（viewBox 200・まんなか 100・半径 92・頂点は小数1桁）。 */
+const REVIEW_DATA = 'airlines/airline-reviews-data.js';
+export const RADAR_NAMES = (() => {
+  const m = /const CAT_FULL\s*=\s*(\[[^\]]*\]);/.exec(fs.readFileSync(path.join(ROOT, REVIEW_DATA), 'utf8'));
+  const a = m ? JSON.parse(m[1].replace(/'/g, '"')) : [];
+  if (a.length !== 6 || !a.every(x => typeof x === 'string' && x)) throw new Error(`${REVIEW_DATA} の CAT_FULL（6つの分類の名前）を読めない`);
+  return Object.freeze(a);
+})();
+/** 点数の無いときに塗る面の高さ（5点のうち）。数字としては出さない */
+export const RADAR_PH = 3;
+const rxy = (i, k) => { const a = -Math.PI / 2 + i * 2 * Math.PI / 6; return [(100 + 92 * k * Math.cos(a)).toFixed(1), (100 + 92 * k * Math.sin(a)).toFixed(1)]; };
+const rpts = fn => [0, 1, 2, 3, 4, 5].map(i => rxy(i, fn(i)).join(',')).join(' ');
+export const radarFrame = () => `<div class="crl-radar pvg-radar" role="list" data-crl-keep data-radar="ph">`
+  + `<svg class="crl-radar-svg" viewBox="0 0 200 200" focusable="false" aria-hidden="true">`
+  + [0.2, 0.4, 0.6, 0.8, 1].map(k => `<polygon class="crl-radar-ring" points="${rpts(() => k)}"></polygon>`).join('')
+  + [0, 1, 2, 3, 4, 5].map(i => { const e = rxy(i, 1); return `<line class="crl-radar-axis" x1="100" y1="100" x2="${e[0]}" y2="${e[1]}"></line>`; }).join('')
+  + `<polygon class="crl-radar-shape is-ph" points="${rpts(() => RADAR_PH / 5)}"></polygon></svg>`
+  + RADAR_NAMES.map((n, i) => `<span class="crl-radar-l" role="listitem" data-i="${i}"><span>${esc(n)}</span></span>`).join('')
+  + '</div>';
+/* 評価の欄（描くのは career-live.js）。図は欄の中に置く（欄が塗り直されても data-crl-keep で残る） */
+const scoreSlot = v => live('score', { airline: v.slug }).replace(/<\/div>$/, () => `${radarFrame()}</div>`);
 const reviewsCard = v => `<article class="pvg-card pvg-rv-card" id="pvg-score"${pane(v.slug, 'overview reviews')}>
 ${head(IC.reviews, 'パイロットによる評価スコア')}
 <div class="pvg-rv-in">
-${live('score', { airline: v.slug })}
+${scoreSlot(v)}
 ${live('summary', { airline: v.slug })}
 ${live('reviews', { airline: v.slug, give: '0' })}
 ${rvCta(v, 'overview')}
