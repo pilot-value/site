@@ -21,6 +21,11 @@ const WORDS = [
   /第\s*[\d０-９一二三四五]+\s*位/, /[\d１-９]位/, /首位/, /No\.?\s*1/, /ナンバーワン/, /トップ(?:クラス|レベル|水準|の)/,
   /唯一/, /随一/, /屈指/, /有数/, /類を見ない/, /世界初|日本初|国内初|初の/, /一番/, /リーディング/, /受賞/,
   /\b(?:largest|oldest|longest|biggest|leading|best|award(?:s|-winning)?)\b/, /\bthe (?:first|only)\b/, /World.s (?:best|largest)/,
+  /* 2026-10-23 英語の EN-7：英語の順位の言い方（日本語の「第N位」「N位」「首位」の対）── 「ranking third in Japan」（スカイマークの英語のページの
+     残した節）は上の語では見えなかった。順位を言う動詞のすぐ後ろの序数・「number one」・「top 3」の形だけ（「First Officer」は数えない）
+     ★大文字も見る（文の頭の「Ranked third」・「Number One」・「Top 10」）。下の CLAIM_RE は字の形（source）だけをつなぐので、/i は効かない ──
+       大文字と小文字は字の中に両方書く（2026-10-23 EN-7 の検査役） */
+  /\b[Rr]ank(?:s|ed|ing)?\s+(?:[Ff]irst|[Ss]econd|[Tt]hird|[Ff]ourth|[Ff]ifth|[Tt]op|No\.?\s*\d|#\d|\d+(?:st|nd|rd|th))\b(?!\s+[Oo]fficers?\b)/, /\b[Nn]umber [Oo]ne\b/, /\b[Tt]op (?:three|five|ten|\d+)\b/,
 ];
 export const CLAIM_RE = new RegExp(WORDS.map(r => r.source).join('|'), 'g');
 

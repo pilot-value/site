@@ -64,6 +64,9 @@ import { BASIS, TIERS, figures, FX_AS_OF } from './salary-basis.mjs';
    ★2026-10-21 全社へ広げる b：タブを持つ会社ページ（TABBED）とは別にした。ほかの会社は新しい会社ページになっても
      「よくある質問」を残す（ここが今までどおり書き直す ＝ 推定年収を直した日に、答えの額も一緒に直る）。 */
 import { NO_FAQ } from './gen-airline-glance.mjs';
+/* 英語の会社ページを新しい形で書く会社（2026-10-23 英語の EN-7）。先行5社の英語のページも、日本語と同じく「よくある質問」を置かない
+   （リード P12.92「英語の先行5社は日本語に従う」）。下の英語の輪で、NO_FAQ の会社のうち英語のページが新しい形になった会社を飛ばす。 */
+import { EN_SWITCH } from './airline-rollout.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const DRY = process.argv.includes('--dry');
@@ -717,6 +720,10 @@ const EN_ANCHOR = /<h2[^>]*>Frequently Asked Questions<\/h2>/;
 for (const slug of Object.keys(SALARY)) {
   const abs = path.join(ROOT, 'en/airlines', `${slug}.html`);
   if (!fs.existsSync(abs)) { skipped++; continue; }
+  /* ★2026-10-23 英語の EN-7：日本語の輪と同じ決まり。先行5社（NO_FAQ）の英語のページは、新しい形にした（EN_SWITCH）時点で
+     「よくある質問」も FAQPage も gen-airline-glance.mjs が外している。ここで飛ばさないと「FAQ の見出しが無い」で落ちる。
+     英語のページがまだ古い形の会社は、今までどおり月収の1問を足す。 */
+  if (NO_FAQ.has(slug) && EN_SWITCH.includes(slug)) { report.push(`  - en ${slug}: 「よくある質問」を置かない会社ページ。対象外`); skipped++; continue; }
   const orig = fs.readFileSync(abs, 'utf8');
   let html = orig.replace(STRIP_EN, '');
 

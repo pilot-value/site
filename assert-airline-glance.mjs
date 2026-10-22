@@ -78,6 +78,8 @@ import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE, LEAD } from './pv-airline-view.mjs';
 import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, SUGGEST, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
+/* 英語の会社ページを新しい形で書く会社（2026-10-23 英語の EN-7 ── 先行5社と見本の2社） */
+import { EN_SWITCH } from './airline-rollout.mjs';
 /* 推定年収の対象（「機種の指定なし」）の字の置き場は gen-career.mjs の1か所（比較の画面と会社ページで同じ字）。写しを持たない。 */
 import { EST_TARGET } from './gen-career.mjs';
 import { FACTS as CO_FACTS } from './airline-facts.mjs';
@@ -335,14 +337,16 @@ for (const s of FIVE) {
   ok(PART[s].pay && PART[s].payDt && PART[s].hero, `${s}: 給与の箱・説明・社名の行を読み取れた`);
 }
 {
-  /* この形にしてあるのは5枚だけ（英語版はまだ・ほかの会社は今のまま）。 */
+  /* この形にしてあるのは、日本語は SWITCH の会社・英語は EN_SWITCH の会社だけ（ほかの会社は今のまま）。
+     ★2026-10-23 英語の EN-7（同じ強さの当て直し ── リード L2）：英語の先行5社と見本の2社も新しい形になった。数えるのは前と同じ2つのフォルダ。 */
   const marked = [];
   for (const dir of ['airlines', 'en/airlines']) {
     for (const f of fs.readdirSync(path.join(ROOT, dir))) {
       if (f.endsWith('.html') && /data-pv-glance=/.test(read(`${dir}/${f}`))) marked.push(`${dir}/${f}`);
     }
   }
-  ok(same(marked.sort(), GLANCE.map(pageOf).sort()), `data-pv-glance を持つのは新しい会社ページの会社（airline-rollout.mjs の SWITCH・${GLANCE.length}枚）だけ`, marked.join(', '));
+  const wantMarked = [...GLANCE.map(s => pageOf(s)), ...EN_SWITCH.map(s => pageOf(s, 'en'))];
+  ok(same(marked.sort(), wantMarked.sort()), `data-pv-glance を持つのは新しい会社ページの会社（airline-rollout.mjs の SWITCH・日本語 ${GLANCE.length}枚 ＋ EN_SWITCH・英語 ${EN_SWITCH.length}枚）だけ`, marked.filter(m => !wantMarked.includes(m)).concat(wantMarked.filter(m => !marked.includes(m)).map(m => `（無い）${m}`)).join(', '));
 }
 {
   /* ★英語の会社ページ（en/airlines）は、何も選んでいない人には明るい色で開く（2026-10-18 オーナー Q4「①」＝ 日本語と同じ。

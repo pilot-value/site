@@ -1317,7 +1317,9 @@ export const WORDS = Object.freeze({
     hotelsHead: 'Hotels, restaurants and places',
     topic: Object.freeze({ work: Object.freeze(['Duty']), taxi: Object.freeze(['Commuting and taxis']), 'staff-travel': Object.freeze(['Staff Travel', '']), upgrade: Object.freeze(['Upgrade to captain']) }),
     hotelsTopic: 'Hotels and restaurants', hotelsTopicSub: 'By destination · pilots only', addFromList: 'Add from the list of items',
-    askHead: n => `<span>Tell us one thing </span><span>about ${n}.</span>`,
+    /* 2026-10-23 EN-7：2つの span は折り返しの単位（pv-glance.css の .pvg-askc の inline-block）。語のあいだの空白は span の外に置く
+       （中の末尾の空白は inline-block の中で消え、「thingabout」と続いて見えた ── 英語の絵で見つけた） */
+    askHead: n => `<span>Tell us one thing</span> <span>about ${n}.</span>`,
     askNote: 'You can save just one answer. Answers are anonymous and appear on the airline page once three pilots have answered an item.',
     gotAns: 'Answers so far', qCount: n => pl(n, 'question', 'questions'), qMore: n => `${n} more`, reviews: 'Reviews',
     rvCount: 'Member posts <b data-pvg-n="posts">—</b><span data-pvg-quotes hidden> · quotes from public sources <b data-pvg-n="quotes">—</b></span>',
@@ -1787,7 +1789,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const bad = only.filter(s => !GLANCE.includes(s));
   if (bad.length) { console.error(`❌ 対象外の会社: ${bad.join(', ')}（対象は ${GLANCE.join(' / ')}）`); process.exit(1); }
   let stale = 0, wrote = 0;
-  /* 日本語のページ（GLANCE ＝ SWITCH）→ 英語のページ（EN_SWITCH の会社だけ。いまは空 ＝ 1枚も書かない） */
+  /* 日本語のページ（GLANCE ＝ SWITCH）→ 英語のページ（EN_SWITCH の会社だけ。2026-10-23 EN-7 から先行5社と見本の2社）。
+     ★英語のページを書いたら、続けて node patch-airline-pages.mjs（明るい色の行は <head> に在り、ページの色から作る ── ここは書かない） */
   const jobs = [...(only.length ? only : GLANCE).map(s => [s, 'ja']), ...(only.length ? only : GLANCE).filter(s => EN_SWITCH.includes(s)).map(s => [s, 'en'])];
   for (const [slug, lang] of jobs) {
     const file = path.join(ROOT, pageOf(slug, lang));

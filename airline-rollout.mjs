@@ -61,9 +61,9 @@ export const WIDE = Object.freeze([
 ]);
 export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);
 /** 英語の会社ページ（en/airlines/）を新しい形で書く会社（2026-10-23 英語の EN-6）。★ここに足した会社だけ、gen-airline-glance.mjs が
-    英語のページを書き直す。いまは空 ＝ 英語のページは1枚も書かない（生成器が英語を話せるようにしただけ）。
-    足すのは EN-7（先行5社と見本の2社）・EN-8（SWITCH の全部）。SWITCH に無い会社は足さない（日本語のページが古い形のまま）。 */
-export const EN_SWITCH = Object.freeze([]);
+    英語のページを書き直す。2026-10-23 英語の EN-7 で先行5社と見本の2社（カンタス航空・スカイマーク）を足した。
+    次は EN-8（SWITCH の全部）。SWITCH に無い会社は足さない（日本語のページが古い形のまま）。 */
+export const EN_SWITCH = Object.freeze([...LEAD, ...SAMPLES]);
 /** 画面に出してよい使い方。 */
 export const SHOWN = Object.freeze(['条件つき', '募集', '過去', '参考']);
 /** 画面の言い方が在る使い方（2026-10-21 全社へ広げる c から4つとも。過去・参考は札つき ── airline-display.mjs の TAG）。 */

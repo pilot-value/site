@@ -20,6 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GLANCE, viewOf } from './pv-airline-view.mjs';
 import { ledgerTowns, baseCode } from './gen-airline-glance.mjs';
+import { EN_SWITCH } from './airline-rollout.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 export const OUT = 'db/towns.generated.sql';
@@ -43,6 +44,24 @@ function seed() {
       if (!t.alias) continue;
       if (names.has(t.alias)) throw new Error(`${slug} / ${base}: 別の書き方が、同じ基地の街の名前と同じ → ${t.alias}`);
       alias.push([slug, base, t.name, t.alias]);
+    }
+    /* ★2026-10-23 英語の EN-7：英語の新しい会社ページ（airline-rollout.mjs の EN_SWITCH）のカードは、同じ街を英語の名前で出す
+       （品川 → Shinagawa・南崁 → Nankan）。英語のページで出した街の投稿が日本語の街と別の街に割れないように、カードの英語の名前も
+       同じ街の別の書き方として種に入れる。読むのはカードと同じ関数（ledgerTowns(viewOf(slug, 'en'))）・同じ並び（数か基地が違えば止める）。
+       名前だけを入れる（英語のカードの2行め ── 区・駅の名前 ── は街の別の名前ではないので入れない）。
+       日本語の名前と字まで同じもの・その街の書き方としてもう入れたもの（香港・アブダビの Tung Chung など）は足さない。
+       ほかの街の名前や書き方と字まで同じなら止める。 */
+    if (EN_SWITCH.includes(slug)) {
+      const ve = viewOf(slug, 'en'), en = ledgerTowns(ve);
+      if (baseCode(ve) !== base || en.length !== towns.length) throw new Error(`${slug} / ${base}: 英語のカードの街が日本語のカードと並ばない（基地 ${baseCode(ve)}・街 ${en.length} ／ ${towns.length}）`);
+      const owner = new Map(alias.filter(a => a[0] === slug).map(a => [a[3], a[2]]));
+      en.forEach((t, i) => {
+        const ja = towns[i].name;
+        if (!t.name || t.name === ja || owner.get(t.name) === ja) return;
+        if (names.has(t.name) || owner.has(t.name)) throw new Error(`${slug} / ${base}: 英語の名前が、同じ基地のほかの街の名前か書き方と同じ → ${t.name}（${ja}）`);
+        owner.set(t.name, ja);
+        alias.push([slug, base, ja, t.name]);
+      });
     }
   }
   return { main, alias };
@@ -77,7 +96,7 @@ export function build() {
   }
   if (alias.length) {
     out.push(
-      '-- 2. 同じ街の別の書き方（カードがラテン文字で添えている表記）。打った時点で、その街に入る。',
+      '-- 2. 同じ街の別の書き方（カードがラテン文字で添えている表記と、英語の会社ページのカードの名前）。打った時点で、その街に入る。',
       '--    ★台帳の街そのものは、別の書き方に変えない（where の条件。鍵がぶつかったら、街のほうを残す）。',
       'insert into public.pv_towns (airline, base_iata, tkey, name, origin, state, alias_of, moderated_at)',
       "select v.airline, v.base, public.pv_town_key(v.alias), v.alias, 'ledger', 'public', t.id, now()",

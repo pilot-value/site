@@ -2,6 +2,7 @@
 // node check-salary.mjs
 //
 // パス1: 各航空会社ページに、その会社の「機長平均」「副操縦士平均」が載っているか。
+//        （2026-10-23 から英語の新しい会社ページ ── airline-rollout.mjs の EN_SWITCH の en/airlines/{slug}.html ── も）
 // パス2: サイト全 HTML から「社名＋役職＋金額」の並びを拾って SSOT と突き合わせる。
 //
 // ★ パス2 を足した理由: パス1 は SALARY を回して airlines/{slug}.html しか見ないため、
@@ -25,6 +26,8 @@ import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { SALARY, buildSalaryJson } from './salary-data.mjs';
 import { BASIS, TIERS, figures as basisFigures } from './salary-basis.mjs';
+/* 英語の会社ページを新しい形で書く会社（2026-10-23 英語の EN-7 ── パス1が英語のページも見る） */
+import { EN_SWITCH } from './airline-rollout.mjs';
 /* 英語ページの金額は HTML の時点でドルに焼き込んである（bake-en-currency.mjs）。
    元の円表記は span の data-orig に残っているが、**タグの中なので下の正規表現からは
    見えない**。戻さずに読むと、英語ページ 183枚が照合から黙って外れる。 */
@@ -79,9 +82,14 @@ function basis(slug, rank) {
 
 let pass = 0, warn = 0, fail = 0;
 const lines = [];
-for (const [slug, d] of Object.entries(SALARY)) {
-  const p = `airlines/${slug}.html`;
-  if (!existsSync(p)) { lines.push(`❓ ${slug}: page not found`); warn++; continue; }
+/* ★2026-10-23 英語の EN-7：英語の新しい会社ページ（airline-rollout.mjs の EN_SWITCH の en/airlines/{slug}.html）もパス1で見る。
+     前はパス1が airlines/{slug}.html しか開かず、英語の会社ページの推定年収は1度も SALARY と照合されていなかった（パス2 は「…万」しか
+     読まないので、古い形の英語のページの「¥37M」の額も見えない）。新しい形の英語のページの額は、生成器が「¥3,700万」の形の data-orig を
+     持つドルの span で書く ＝ unbake() で戻せば、日本語のページと同じ物差しで読める。古い形の英語のページ（EN-8 まで）はまだ見ない。 */
+const PAGES1 = [...Object.entries(SALARY).map(([slug, d]) => [slug, d, `airlines/${slug}.html`, slug]),
+  ...EN_SWITCH.map(slug => [slug, SALARY[slug], `en/airlines/${slug}.html`, `en/${slug}`])];
+for (const [slug, d, p, who] of PAGES1) {
+  if (!existsSync(p)) { lines.push(`❓ ${who}: page not found`); warn++; continue; }
   /* ★ 「同じ国の他社」リンク（link-countries.mjs の PV-CLINK ブロック）には
         他社の年収が入っている。そこを一緒に読むと、たとえば skymark のページに
         あるジェットスター・ジャパンの¥2,400万を skymark の古い数値と誤検知する
@@ -169,10 +177,10 @@ for (const [slug, d] of Object.entries(SALARY)) {
     tag = [...miss.map(([n, l]) => `missing:${n}[${l.join('/')}]`), ...(crewOn.length ? [`crew-shown:運航乗務員の平均[${crewOn.join('/')}]`] : [])].join(' ');
   } else if (stale.length) { status = '⚠️ '; warn++; tag = `stale:${stale.join(',')}`; }
   else { pass++; }
-  lines.push(`${status} ${slug.padEnd(20)} ${shown.join(' ')}   ${tag}`);
+  lines.push(`${status} ${who.padEnd(20)} ${shown.join(' ')}   ${tag}`);
 }
 console.log(lines.join('\n'));
-console.log(`\n${pass} pass · ${warn} warn · ${fail} fail  (of ${Object.keys(SALARY).length})`);
+console.log(`\n${pass} pass · ${warn} warn · ${fail} fail  (of ${PAGES1.length} ── 日本語 ${Object.keys(SALARY).length}枚・英語の新しい会社ページ ${EN_SWITCH.length}枚)`);
 
 // ── パス2: サイト全 HTML × SSOT のクロスチェック ─────────────────────────
 // 「社名 …少し離れて… 役職 …少し離れて… 数値万」という並びを全部拾い、SSOT と比べる。
