@@ -1,9 +1,11 @@
 /* ════════════════════════════════════════════════════════════════
    pv-gates.js — Give → Get の門（左メニューの錠前と、その説明）
 
-   マイページ系8枚（4画面 × 日英）が読む。やることは2つだけ。
-     ① 左メニューの REAL PAY / DEEP PAY / VERIFIED PAY に錠前を出すか決める
-     ② 錠前を押されたら「何を出すと何が見られるか」を説明する
+   マイページ系の画面（日英）が <script> で読み、それ以外の画面では
+   pv-give-first.js が3段の表のためだけに借りる。やることは2つだけ。
+     ① 左メニューの REAL PAY に錠前を出すか決める
+        （DEEP PAY / VERIFIED PAY の段は 2026-09-06 に左メニューから外してある）
+     ② 「何を出すと何が見られるか」の3段の表を貸す（giveGetHTML）
 
    ★このファイルはデータを1バイトも隠さない。
      実給与を止めているのはサーバ（db/pay-rows.sql の pv_pay_rows()）で、
@@ -25,30 +27,28 @@
      押せば普通に REAL PAY へ行ける＝行き止まりにはならない。
 
    ── DEEP PAY / VERIFIED PAY について ─────────────────────────
-   ★この2つは**まだページが無い**。だから「詳しく出すと開きます」とは書かない。
-     今すぐ開くのは REAL PAY だけ。
+   ★DEEP PAY は 2026-10-11 に公開した（オーナー判断）。下の TIERS で live。
+     ⚠️ **このファイルに DEEP PAY への入口を書かない**（リンクも、押せる札も）。
+        入口は REAL PAY と DEEP PAY の見出しのタブ（actual-pay.html / deep-pay.html に
+        静的に在る）と、REAL PAY の行を押すと出る面のボタン（actual-pay.js）だけ。
+        assert-deep-pay.mjs の ① が、その辺の集合をちょうどで固定している
+        ── ここに deep-pay の住所を1つ書くと、あちらが赤くなる。
+     ⚠️ **DEEP PAY が開く条件をここで説明しない**（「◯◯すると開きます」と書かない）。
+        条件はサーバ（db/deep-pay.sql の門）だけが知っていて、まだ開かない人には
+        DEEP PAY の画面そのものが「何が残っているか」を見せる。外の画面が条件を
+        言い直すと、門を動かした日にここだけ嘘が残る。
+   ★VERIFIED PAY は**まだページが無い**。だから「詳しく出すと開きます」とは書かない。
      ページを作った回に、下の TIERS の state を 'soon' から外す。
 
-   ★DEEP PAY の解放条件は2つで、どちらも満たしたときだけ（オーナー決定・2026-08-25）。
-       ① 給与を出したユニークなパイロットが 100人
-          （FOUNDING PILOT 100 と同じ100人。「登録者100人」ではない）
-       ② 本人が内訳まで出している（分かる項目だけでよい。全部必須にしない）
-     ①と②は**別々に判定する**。100人は Privacy Threshold ではなく、
-     「DEEP PAY という機能を正式に開ける区切り」でしかない。
-     人数が少ない区分をどう畳むかは、ページを作る回に別で決める。
-
-   ★数はサーバから来る。このファイルは数を作らない・数えない。
-     渡されるのは2画面だけ ── actual-pay.js と my-value.js（PVGates.setProgress()）が
-     pv_pay_rows() の stats.contributors と give をそのまま渡す。
-     ★渡されない画面（設定・待遇アンケート・給与を出した人のマイレポート）では、
-       **押されたときに1回だけ** pv_give_progress() に聞く（askProgress）。
-       あちらは整数1つと真偽3つしか返さない ── 一覧を引くと、鍵を持つ人に
-       要らない行が全部付いてくるので pv_pay_rows() は使わない。
-     どちらも届かなければ「準備中」に戻るだけ。0 を置いて埋めない。
-
-   ★先に内訳を出した人が「出し損」に見えないこと。それがこの表示の目的。
-     100人に届く前でも内訳は出せるので、出した人には
-     「✓ あなたの準備は完了しています」と、あと何人かを見せる。
+   ── 2026-10-11 に外したもの（公開前の案内。戻さない）────────────────
+   ・3段の表の DEEP PAY の札（「準備中」／「N / 100人」）と、札を押すと出ていた説明
+     （「DEEP PAY はパイロット100人で開きます」「あと◯人…」「✓ あなたの準備は完了しています」
+      「給与の内訳を共有すると…」「給与内訳を追加する」「匿名でパイロットを1人招待」）。
+     オーナー指示「3段の表の DEEP PAY の札自体もういらない」── 段は**名前だけ**を出す。
+   ・人数を聞く仕掛け（pv_give_progress を押されたときに1回だけ引いていた）。
+     このファイルは、もう通信を1本も投げない。
+   ★PVGates.setProgress() は**受け取って何もしない**。呼ぶ側が4つ残っているので
+     名前は消さない（いちばん下の PVGates の注に、呼ぶ側の一覧がある）。
    ════════════════════════════════════════════════════════════════ */
 (function (w, d) {
   'use strict';
@@ -57,9 +57,8 @@
   var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
   var KEY = 'pv_salary_unlock_expiry';
   var PAY_URL = 'pay-report.html#ps';
-  var DETAIL_URL = 'pay-report.html#pay-detail';   // 「くわしく入れる」を開いた先
-  var INVITE_URL = 'profile.html#pv-invite-slot';  // 招待の常設入口（ここ1つだけ）
-  var DEEP_GOAL = 100;                             // ①の人数。FOUNDING PILOT 100 と同じ
+  /* ★DEEP PAY の住所はここに持たない（冒頭の「DEEP PAY / VERIFIED PAY について」）。
+       内訳の欄・招待の入口・100人の数も、2026-10-11 に札と一緒に外した。 */
 
   var T = {
     ja: {
@@ -75,17 +74,8 @@
           s: '他のパイロットが実際に提出した給与を1行ずつ見られます。'
            + 'あなたの給与を1件共有すると解放されます。'
         },
-        deep: {
-          t: 'DEEP PAY は準備中です',
-          s: 'その給与が基本給・乗務手当・賞与のどれでできているかを、'
-           + '複数の投稿から集計して見られるようにします。まだ作っている途中です。'
-        },
-        /* ★人数がサーバから来たときだけ、こちらを使う（上の文面は数が無いときの控え）。 */
-        deepN: {
-          t: 'DEEP PAY はパイロット100人で開きます',
-          s: '給与を出したパイロットが100人そろったときに開きます。'
-           + '内訳まで出してくれている人は、そのときに自動で解放されます。'
-        },
+        /* ★deep の説明は 2026-10-11 に外した（公開したので「準備中」は嘘になる。
+             開く条件は DEEP PAY の画面そのものが言う ── ここで言い直さない）。 */
         verified: {
           t: 'VERIFIED PAY は準備中です',
           s: '給与明細に裏付けのあるものだけを集めて見られるようにします。'
@@ -95,18 +85,11 @@
       tiers: [
         { give: '手動入力か明細読み取り', get: 'REAL PAY' },
         /* ★2026-09-13 オーナー指示で「内訳まで詳しく」を消した。
-             空のときは矢印も出さない（下の giveGetHTML）。 */
+             空のときは矢印も出さない（下の giveGetHTML）。
+           ★2026-10-11 オーナー指示で札も外した。この段は**名前だけ**。 */
         { give: '', get: 'DEEP PAY' },
         { give: '給与明細から', get: 'VERIFIED PAY' }
-      ],
-      unit: 'PILOTS',
-      goal: function (n) { return n + ' / ' + DEEP_GOAL + '人'; },
-      ready: '✓ あなたの準備は完了しています',
-      left: function (k) { return 'あと' + k + '人のパイロットが参加すると自動的に解放されます。'; },
-      arrived: '100人に届きました。まもなく開きます。',
-      needDetail: '給与の内訳を共有すると、DEEP PAY の準備が整います。',
-      ctaDetail: '給与内訳を追加する',
-      ctaInvite: '匿名でパイロットを1人招待'
+      ]
     },
     en: {
       giveHd: 'What you share', getHd: 'What you can see',
@@ -121,16 +104,6 @@
           s: 'It shows what other pilots actually get paid, one row per pilot. '
            + 'Share one of your own pay records and it opens.'
         },
-        deep: {
-          t: 'DEEP PAY is in preparation',
-          s: 'It will show what a salary is made of — base, flight pay, bonus — '
-           + 'aggregated across several submissions. We are still building it.'
-        },
-        deepN: {
-          t: 'DEEP PAY opens at 100 pilots',
-          s: 'It opens once 100 pilots have shared their pay. '
-           + 'If you have already shared your breakdown, it unlocks for you automatically.'
-        },
         verified: {
           t: 'VERIFIED PAY is in preparation',
           s: 'It will aggregate only figures backed by a payslip. '
@@ -141,25 +114,26 @@
         { give: 'Manual entry or payslip scan', get: 'REAL PAY' },
         { give: '', get: 'DEEP PAY' },
         { give: 'From a payslip', get: 'VERIFIED PAY' }
-      ],
-      unit: 'PILOTS',
-      goal: function (n) { return n + ' / ' + DEEP_GOAL; },
-      ready: '✓ You are already qualified',
-      left: function (k) { return k + ' more pilots and it unlocks automatically.'; },
-      arrived: '100 pilots reached. Opening soon.',
-      needDetail: 'Share your pay breakdown to qualify for DEEP PAY.',
-      ctaDetail: 'Add your pay breakdown',
-      ctaInvite: 'Invite one pilot anonymously'
+      ]
     }
   }[L];
 
-  /* 段の状態。★REAL PAY だけが今日ひらく。残り2つは 'soon'。
-     ページを作ったら 'soon' → 'live' に変え、patch-side-nav.mjs の soon も外す。 */
+  /* 段の状態。★REAL PAY と DEEP PAY が live（DEEP PAY は 2026-10-11 に公開）。
+       VERIFIED PAY だけが 'soon' ── ページを作った回に 'live' へ変える。
+     ★live は「ページが在る」という意味で、**見ている人に開いている**という意味ではない。
+       開くかどうかはサーバが決める（REAL PAY ＝ pv_pay_rows()・DEEP PAY ＝ pv_deep_pay()）。
+     ⚠️ 並びを変えない。文言（T.tiers）と同じ番号で引いている。 */
   var TIERS = [
     { key: 'real',     state: 'live' },
-    { key: 'deep',     state: 'soon' },
+    { key: 'deep',     state: 'live' },
     { key: 'verified', state: 'soon' }
   ];
+  function isSoon(key) {
+    for (var i = 0; i < TIERS.length; i++) {
+      if (TIERS[i].key === key) return TIERS[i].state === 'soon';
+    }
+    return false;
+  }
 
   var LOCK_SVG = '<svg class="mr-side-lk" width="13" height="13" viewBox="0 0 24 24"'
     + ' fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"'
@@ -182,63 +156,51 @@
     return !!v && Date.now() < v;
   }
 
-  /* ── いま何人集まっているか / 本人が何を出したか ────────────────
-     ★このファイルは数を作らない。サーバ（pv_pay_rows）から渡されたものを持つだけ。
-       渡されないあいだ n は null で、DEEP PAY の札は「準備中」のまま。
-       0 を置いて埋めない（REAL PAY の数字カードと同じ決まり）。 */
-  var PROG = { n: null, detailed: null };
-
-  function deepN() {
-    return (typeof PROG.n === 'number' && PROG.n >= 0) ? PROG.n : null;
-  }
-
-  /* 段ごとの「状態」の札。live は今までどおり。
-     DEEP PAY だけ、人数が分かっているときに「N / 100人」に変わる。 */
+  /* 段ごとの「状態」の札。
+     ★2026-09-15 オーナー指示。「いま開きます」は、まだ出していない人には
+       もう見られると読めてしまう。開くための条件をそのまま札に書く。
+       ✓ も外す（済んだことを表す印なので、条件と並ぶと逆の意味になる）。
+     ★DEEP PAY の段は札を持たない（2026-10-11 オーナー指示「3段の表の DEEP PAY の札自体
+       もういらない」）。空文字を返す ＝ 札の要素そのものを描かない。
+       ⚠️ REAL PAY の札の字（T.now ＝「給与提出で解放」）を DEEP PAY に使い回さない。
+          DEEP PAY が開く条件は給与を1件出すことではない ── 条件を言うのは DEEP PAY の
+          画面だけ（冒頭の注）。 */
   function pill(tier, live) {
-    /* ★2026-09-15 オーナー指示。「いま開きます」は、まだ出していない人には
-         もう見られると読めてしまう。開くための条件をそのまま札に書く。
-         ✓ も外す（済んだことを表す印なので、条件と並ぶと逆の意味になる）。 */
-    if (live) return T.now;
-    if (tier.key === 'deep' && deepN() !== null) return T.goal(deepN());
-    return T.soon;
+    if (tier.key === 'deep') return '';
+    return live ? T.now : T.soon;
   }
 
   /* ── Give → Get の3段（ロック画面とパネルで同じものを使う）──────
      ★2か所に書き写さない。actual-pay.js もこの関数を呼ぶ。
 
-     ★★押せるのは **DEEP PAY の札だけ**（2026-09-06 オーナー確定）。
-        もともとこの説明は左メニューの DEEP PAY / VERIFIED PAY を押して開いていたが、
-        ナビを7項目へ畳んだときにその2段を撤去した。DEEP PAY だけは撤去すると
-        「あと79人」も「内訳を共有すると」も**開く道が無くなる**
-        （2026-08-25 のオーナー指示そのものが消える）ので、札を入口にした。
-        ⚠️ これは DEEP PAY への入口ではない。開くのは説明パネルだけで、
-           deep-pay.html へは1本も繋がっていない。
-     ⚠️ **VERIFIED PAY の札は押さない。** 本人確認の機能がまだ無いので、
+     ★★**押せる札は1つも無い**（2026-10-11）。
+        2026-09-06 から、DEEP PAY の札だけが押せて、公開前の説明（あと◯人・内訳を
+        共有すると…）を開いていた。DEEP PAY を公開した日に、札ごと外した。
+        ⚠️ この表から DEEP PAY へリンクを張らない。入口は見出しのタブと、REAL PAY の
+           行の面のボタンだけ（assert-deep-pay.mjs の ① が辺の集合を固定している）。
+           この表は登録完了の画面（signup.html）と、全ページに出る板（pv-give-first.js）
+           にも出る ── ここに住所を書くと、入口が約400枚に一度に生える。
+     ⚠️ **VERIFIED PAY の札も押さない。** 本人確認の機能がまだ無いので、
         新しいクリック導線も目立たせる見た目も作らない
         （説明パネルのコードは消さない ── 機能ができた日に戻せるようにしておく）。
-     ⚠️ パネルの中に描く3段は押せないままにする（inPanel）。
-        自分自身を開き直すだけの札になるので、押しどころに見せない。 */
+     ★引数（inPanel）は**もう何も変えない**。前は「パネルの中では DEEP PAY の札を
+        押せなくする」ための印だった。呼ぶ側（signup.html・pv-give-first.js・下の
+        openPanel）が true を渡し続けているので、受け口だけ残してある。 */
   function giveGetHTML(inPanel) {
     var rows = TIERS.map(function (tier, i) {
       var t = T.tiers[i];
       var live = tier.state === 'live';
-      var goal = (tier.key === 'deep' && !live && deepN() !== null);
-      var hit = (tier.key === 'deep') && !live && !inPanel;   /* ★deep だけ */
-      return '<li class="pv-give-r' + (live ? ' is-live' : '')
-           + (goal ? ' is-goal' : '') + '">'
+      var p = pill(tier, live);
+      return '<li class="pv-give-r' + (live ? ' is-live' : '') + '">'
            + '<span class="pv-give-g">' + esc(t.give) + '</span>'
            /* ★出すものが空の段では矢印も出さない（何も指していない矢印になる）。
                 升そのものは消さない ── subgrid の列がずれて罫線が食い違う。 */
            + '<span class="pv-give-ar" aria-hidden="true">'
            + (t.give ? '→' : '') + '</span>'
            + '<span class="pv-give-t">' + esc(t.get) + '</span>'
+           /* ★札が無い段でも、札の升は置く（同じ理由 ── 列と罫線をそろえる）。 */
            + '<span class="pv-give-s">'
-           + (hit
-               ? '<button type="button" class="pv-give-p"'
-                 + ' data-pv-give="' + esc(tier.key) + '"'
-                 + ' aria-label="' + esc(t.get + (L === 'en' ? ' — ' : '・') + T.hint) + '">'
-                 + esc(pill(tier, live)) + '</button>'
-               : '<span class="pv-give-p">' + esc(pill(tier, live)) + '</span>')
+           + (p ? '<span class="pv-give-p">' + esc(p) + '</span>' : '')
            + '</span></li>';
     }).join('');
     return '<div class="pv-give">'
@@ -247,59 +209,16 @@
          + '<ul class="pv-give-l">' + rows + '</ul></div>';
   }
 
-  /* 数が後から届いたとき、すでに描いてある3段を描き直す。
-     ★描き直すのはこの3段だけ。まわりの文章には手を触れない。 */
-  function refreshGive() {
-    Array.prototype.slice.call(d.querySelectorAll('.pv-give')).forEach(function (el) {
-      /* ★パネルの中の3段は押せないまま作り直す（自分を開き直すだけの札にしない）。 */
-      var inPanel = !!(panel && panel.contains(el));
-      var box = d.createElement('div');
-      box.innerHTML = giveGetHTML(inPanel);
-      if (el.parentNode) el.parentNode.replaceChild(box.firstChild, el);
-    });
-    if (panel && panel.getAttribute('data-kind') === 'deep') openPanel('deep');
-  }
-
-  /* actual-pay.js / my-value.js が pv_pay_rows() の返りをそのまま渡す。
-       n        … stats.contributors（給与を出したユニークな人数）
-       detailed … give.detailed（本人が内訳まで出しているか）
-     どちらも分からなければ渡さなくてよい。渡さなければ今までの見た目に戻るだけ。 */
-  function setProgress(o) {
-    if (!o) return;
-    if (typeof o.n === 'number' && isFinite(o.n) && o.n >= 0) PROG.n = Math.floor(o.n);
-    if (typeof o.detailed === 'boolean') PROG.detailed = o.detailed;
-    refreshGive();
-  }
-
-  /* ── 数を渡されない画面のために、押されたら1回だけ聞く ────────────
-     左メニューは4画面に同じものが出ていて、DEEP PAY を押すとどこでも同じ説明が開く。
-     ところが数を渡してくれるのは pv_pay_rows() を引く2画面だけで、残りは
-     「準備中」のままだった＝**同じボタンなのに画面によって答えが違う**（2026-08-25）。
-
-     ★ここでも数えない。pv_give_progress() が返した整数と真偽を、そのまま setProgress へ渡す。
-     ★引くのは押されたときだけ・1度きり。ページを開いただけでは1回も投げない
-       （設定ページを開くだけで通信が増えない）。
-     ★既に渡されている画面（REAL PAY・空のマイレポート）では引かない。
-     ★失敗・未ログイン・関数がまだ無い → 黙って「準備中」のまま。0 を置いて埋めない。
-     ★クライアントは他画面と同じく、別の <script> が宣言した const sb を try で拾う
-       （actual-pay.js と同じ書き方）。押されたときなので読み込み順に左右されない。 */
-  var asked = false;
-
-  function askProgress() {
-    if (asked || deepN() !== null) return;
-    asked = true;
-    var client = null;
-    try { client = sb; } catch (e) { client = null; }
-    if (!client || typeof client.rpc !== 'function') return;
-    var q;
-    try { q = client.rpc('pv_give_progress'); } catch (e) { return; }
-    if (!q || typeof q.then !== 'function') return;
-    q.then(function (res) {
-      var v = res && res.data;
-      if (!v || v.ok !== true || typeof v.contributors !== 'number') return;
-      setProgress({ n: v.contributors, detailed: v.give ? v.give.detailed : null });
-    }, function () { /* 黙って「準備中」のまま */ });
-  }
+  /* ★受け取って何もしない（2026-10-11）。
+       前は { n, detailed } を受け取り、DEEP PAY の札を「N / 100人」に描き直していた。
+       札そのものを外したので、数を持つ理由が無い。
+     ⚠️ 名前は消さない。呼ぶ側が4つ残っている（どれも「在れば呼ぶ」形なので、
+        消しても落ちはしないが、このファイルだけ古いものが端末に残る4時間のあいだ、
+        新旧どちらの組み合わせでも同じに動くようにしておく）──
+          my-value.js（空のマイレポート）／deep-pay.js／deep-pay-compare.js／roadmap.js
+        呼ぶ側を片づけた日に、ここも消す。
+     ⚠️ ここに数を持ち直さない・ここから通信しない（pv_give_progress はもう引かない）。 */
+  function setProgress() {}
 
   // ── 左メニューに錠前を出す ──────────────────────────────────
   function items() {
@@ -332,13 +251,19 @@
     }
   }
 
-  /* REAL PAY の錠前だけを付け外しする。DEEP / VERIFIED は
-     ページが無いあいだ**誰にとっても**閉じているので、鍵とは関係ない。 */
+  /* REAL PAY の錠前だけを付け外しする。
+     ★いま左メニューに在る門は REAL PAY の1つだけ（2026-09-06 から）。
+       下の2つの枝は、段を足し戻した日のための決まり ──
+         'soon' の段（VERIFIED PAY）… ページが無いあいだ**誰にとっても**閉じている
+         'live' の段（DEEP PAY）   … 錠前を描かない。開くかどうかを知っているのは
+                                      サーバだけで、ここが読む鍵の写しは REAL PAY のもの。
+                                      閉じている人には DEEP PAY の画面が理由を見せる。 */
   function mark(isOpen) {
     items().forEach(function (node) {
       var k = node.getAttribute('data-mr-gate');
       if (k === 'real') setLocked(node, !isOpen, false);
-      else setLocked(node, true, true);
+      else if (isSoon(k)) setLocked(node, true, true);
+      else setLocked(node, false, false);
     });
   }
 
@@ -356,36 +281,20 @@
     if (offKey) { d.removeEventListener('keydown', offKey, true); offKey = null; }
   }
 
-  /* DEEP PAY のときだけ、条件2つの進み具合を出す。
-     ★①（100人）と②（本人の内訳）は別々に書く。混ぜると
-       「100人そろえば誰でも見られる」とも「内訳を出せば今日見られる」とも読めてしまう。
-     ★先に内訳を出した人が出し損に見えないこと。それがこの塊の目的。 */
-  function deepBody() {
-    var n = deepN();
-    if (n === null) return '';
-    var left = DEEP_GOAL - n;
-    var mine = (PROG.detailed === true)
-      ? '<p class="mr-gate-ok">' + esc(T.ready) + '</p>'
-      : '<p class="mr-gate-need">' + esc(T.needDetail) + '</p>'
-        + '<a class="mr-gate-cta" href="' + DETAIL_URL + '">' + esc(T.ctaDetail) + '</a>';
-    return '<div class="mr-gate-goal">'
-         + '<span class="mr-gate-goal-k">DEEP PAY</span>'
-         + '<span class="mr-gate-goal-n">' + esc(T.goal(n)) + '</span>'
-         + '<span class="mr-gate-goal-u">' + esc(T.unit) + '</span></div>'
-         + '<p class="mr-gate-left">' + esc(left > 0 ? T.left(left) : T.arrived) + '</p>'
-         + mine
-         + '<a class="mr-gate-inv" href="' + INVITE_URL + '">' + esc(T.ctaInvite) + '</a>';
-  }
-
+  /* ★開けるのは 'verified' と 'real' だけ。
+       'deep' は**何もしない**（2026-10-11）── 前は公開前の説明（100人・内訳）を出していた。
+       公開したので言うことが無い。条件は DEEP PAY の画面が言う（冒頭の注）。
+     ★いまこの関数へ届く道は PVGates.open() だけで、製品のどこからも呼ばれていない
+       （VERIFIED PAY の札は押せない・左メニューの門は REAL PAY だけで、あれは下の
+        onClick が本文の案内へ寄せる）。**消さずに残してある** ── VERIFIED PAY の
+       機能ができた日に、札を押せるようにするだけで説明が戻る。
+       動くことは assert-pay-rows.mjs の A-3 が PVGates.open('verified') で見ている。 */
   function openPanel(kind) {
-    /* ★ここだけが askProgress の入口。押されたときにしか通らない。
-         refreshGive() から呼び返されても asked が立っているので二度は投げない。 */
-    askProgress();
+    if (kind === 'deep') return;
     closePanel();
     var main = d.querySelector('.mr-main');
     if (!main) return;
-    var deep = (kind === 'deep' && deepN() !== null);
-    var p = (deep ? T.panel.deepN : T.panel[kind]) || T.panel.real;
+    var p = T.panel[kind] || T.panel.real;
 
     panel = d.createElement('div');
     panel.className = 'mr-gate';
@@ -399,9 +308,8 @@
       + '<path d="M6 6l12 12M18 6L6 18"/></svg></button>'
       + '<div class="mr-gate-t">' + esc(p.t) + '</div>'
       + '<p class="mr-gate-s">' + esc(p.s) + '</p>'
-      + (deep ? deepBody() : '')
       + giveGetHTML(true)
-      + (deep ? '' : '<a class="mr-gate-cta" href="' + PAY_URL + '">' + esc(T.cta) + '</a>');
+      + '<a class="mr-gate-cta" href="' + PAY_URL + '">' + esc(T.cta) + '</a>';
 
     main.insertBefore(panel, main.firstChild);
     panel.querySelector('.mr-gate-x').addEventListener('click', closePanel);
@@ -435,21 +343,18 @@
       /* 別の画面からなら、リンクとして REAL PAY へ行かせる（そこに説明がある）。 */
       return;
     }
+    /* ★止めるのは 'soon' の段だけ（ページが無いので、説明を出す）。
+         'live' の段（DEEP PAY）は**止めない** ── 段を足し戻した日に、押しても
+         何も起きないリンクにしない（openPanel('deep') は何もしないので）。 */
+    if (!isSoon(k)) return;
     ev.preventDefault();
     openPanel(k);
   }
 
-  /* ★札のほうは document で受ける。refreshGive() が3段を作り直すので、
-       札そのものに付けると数が届いた瞬間に聞き手が消える。 */
-  function onPill(ev) {
-    var b = ev.target && ev.target.closest ? ev.target.closest('[data-pv-give]') : null;
-    if (!b) return;
-    ev.preventDefault();
-    openPanel(b.getAttribute('data-pv-give'));
-  }
-
+  /* ★3段の表の札を押す聞き手（document の click）は 2026-10-11 に外した。
+       押せる札が1つも無い。VERIFIED PAY の札を押せるようにする日は、
+       札に data 属性を付けてここで受け直す。 */
   function boot() {
-    d.addEventListener('click', onPill);
     var list = items();
     if (!list.length) return;
     mark(keyOpen());
@@ -457,17 +362,17 @@
   }
 
   w.PVGates = {
-    /* 確かな値を持っている画面から呼ぶ（actual-pay.js / my-value.js）。 */
+    /* 確かな値を持っている画面から呼ぶ（actual-pay.js / my-value.js /
+       deep-pay.js / deep-pay-compare.js）。 */
     mark: mark,
-    /* 同じ2つが pv_pay_rows() の stats.contributors と give.detailed を渡す。
-       ★呼ばれない画面では、DEEP PAY を押した時に pv_give_progress() へ1回だけ聞く。 */
+    /* ★何もしない（上の setProgress の注）。呼ぶ側が残っているので名前だけ在る。 */
     setProgress: setProgress,
-    /* ロック画面が同じ3段を描くために使う。 */
+    /* ロック画面・空のマイレポート・登録完了・全ページの板が、同じ3段を描くために使う。 */
     giveGetHTML: giveGetHTML,
-    /* ★左メニュー以外から同じ門を開くために使う（actual-pay.js の面の主 CTA）。
-         ⚠️ これは「DEEP PAY への入口を1つ増やした」のではない。開くのは
-            **説明パネル**で、deep-pay.html へは繋がっていない。
-            あちらへの辺は deep-pay.js ⇄ deep-pay-compare.js の2本だけ。 */
+    /* ★説明のパネルを開く。'verified' と 'real' だけ・'deep' は何もしない（openPanel の注）。
+         2026-10-11 まで、REAL PAY の行の面のボタンがここから DEEP PAY の説明を
+         開いていた。あのボタンは DEEP PAY へのただのリンクになった（actual-pay.js）。
+         いま製品から呼ぶ所は無い ── 検査（assert-pay-rows.mjs の A-3）だけが呼ぶ。 */
     open: openPanel,
     close: closePanel
   };

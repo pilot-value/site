@@ -3601,7 +3601,7 @@ console.log('\n▼ 前提が無ければ日本語で止まる（別の空の DB 
 }
 
 // ════════════════════════════════════════════════════════════════
-console.log('\n▼ 見送りは、いまの verified を取り上げない（P12.17。申請の仕組み db/proof-store.sql・db/proof-offer.sql をこの DB に足して）');
+console.log('\n▼ 見送りは、いまの verified を取り上げない（P12.17。申請の仕組み db/pilot-proof.sql・db/proof-offer.sql をこの DB に足して）');
 {
   /* ★申請（画像あり）が残ったまま、その人がもうオーナーに承認されていることがある（10-a の決める口で承認された・
        前に承認したオーナーがオーナーに戻った）。そこでオーナーが申請の画像の面で「見送り」を押しても、
@@ -3609,7 +3609,8 @@ console.log('\n▼ 見送りは、いまの verified を取り上げない（P12
        ★ここは最後の節（申請の仕組みを足したあとに、ほかの節を走らせない）。 */
   const APP4 = '00000000-0000-4000-8000-0000000000d3';
   let e = '';
-  for (const f of ['db/proof-store.sql', 'db/proof-offer.sql']) {
+  /* 画像の置き場は main の db/pilot-proof.sql（2026-10-23 の合流まで、その切り出し db/proof-store.sql を使っていた） */
+  for (const f of ['db/pilot-proof.sql', 'db/proof-offer.sql']) {
     try { await db.exec(read(f)); } catch (err) { e += f + ': ' + String(err.message).slice(0, 200) + ' '; }
   }
   await db.query(`insert into auth.users(id,email) values($1,$2)`, [APP4, 'app4@example.com']);

@@ -24,6 +24,18 @@
          **5段の粗い区分の言葉だけ**（1ヶ月以内 / 3ヶ月以内 / 6ヶ月以内 / 1年以内 / それより前）。
          ⚠️ ここは守りを1段ゆるめたところ。**並べ替えの口も絞り込みの口も作らない**
 
+   ★2026-10-11、DEEP PAY を公開した（オーナー判断）。この画面で変わったのは3つ：
+       ・**見出しがタブになった**（REAL PAY ｜ DEEP PAY。オーナー指示「上の REAL PAY の横に
+         DEEP PAY の入り口作って。タブみたいな形に」）。HTML に静的に在り、いま居る側が <h1>。
+         形は下の「タブ（字面）」と節 T。deep-pay.html の側は assert-deep-pay.mjs が同じ物差しで見る
+       ・**3段の表の DEEP PAY の段は名前だけ**（オーナー指示「3段の表の DEEP PAY の札自体
+         もういらない」）。札・「N / 100人」・札を押すと出ていた説明・人数を聞く通信は全部外した。
+         開く条件はこの画面では言わない（DEEP PAY の画面が言う）── 節 A / A-2 / A-3 / I
+       ・**行を押すと出る面の主のボタンは、DEEP PAY へのただのリンク**（前は説明パネルを開く
+         ボタン）── 節 J-1 / J-6
+     ⚠️ DEEP PAY へ繋がる線の**集合**を固定しているのは assert-deep-pay.mjs の ①。
+        ここは、この画面に在る2本（タブ・面のボタン）が正しい形かどうかを見る。
+
    ここで見るのは7つ：
 
      ① 鍵の無い人には金額が1文字も出ない
@@ -114,6 +126,14 @@ function blurOK(v, tag, n) {
 const decomment = (s) => s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/[^\n]*/g, ' ');
 const nohtmlcomment = (s) => s.replace(/<!--[\s\S]*?-->/g, ' ');
 
+/* ── REAL PAY ⇄ DEEP PAY のタブ（2026-10-11）──
+   ナビの名前（読み上げ用）と、2つのスタイルシートからタブの塊を切り出す道具。 */
+const TAB_LABEL = { ja: 'REAL PAY と DEEP PAY の切り替え', en: 'Switch between REAL PAY and DEEP PAY' };
+const tabBlock = (css) => {
+  const a = css.indexOf('PV-PAYTABS:BEGIN'), b = css.indexOf('PV-PAYTABS:END');
+  return (a < 0 || b < a) ? '' : css.slice(a, b);
+};
+
 // ════════════════════════════════════════════════════════════════
 // 0. ソースの検査（ブラウザを開かなくても分かること）
 // ════════════════════════════════════════════════════════════════
@@ -151,6 +171,30 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   const m = html.match(/<div[^>]*id="ap-rows"[^>]*>/);
   ok(!!m && /\bpv-no-cur\b/.test(m[0]),
      `${name}: #ap-rows の開始タグに pv-no-cur が付いている`, m ? m[0] : '(タグが無い)');
+
+  /* ── タブ（字面。2026-10-11）──────────────────────────────
+     ★見出しは HTML に静的に在る（JS が動く前から見えている・押せる）。並びは
+       deep-pay.html と同じ ── REAL PAY が左。この画面では REAL PAY が <h1>
+       （いま居る側）、DEEP PAY がただのリンク。**これが DEEP PAY への入口。**
+     ⚠️ ここに「開く条件」も人数も足さない（タブの中は名前の2語だけ）。 */
+  {
+    const want = new RegExp(
+      '<div class="mr-hd" id="ap-hd">\\s*'
+      + '<nav class="pv-paytabs" aria-label="' + TAB_LABEL[name] + '">\\s*'
+      + '<h1 class="pv-paytab is-on" aria-current="page">REAL PAY</h1>\\s*'
+      + '<a class="pv-paytab" href="deep-pay\\.html">DEEP PAY</a>\\s*'
+      + '</nav>\\s*</div>');
+    ok(want.test(html),
+       `${name}: ★★見出しの器（#ap-hd）に、REAL PAY（h1・いま居る側）→ DEEP PAY（リンク）のタブが静的に在る`);
+    ok((html.match(/<h1[\s>]/g) || []).length === 1, `${name}: ★<h1> は HTML にちょうど1つ`,
+       String((html.match(/<h1[\s>]/g) || []).length));
+    ok((html.match(/class="pv-paytab(?: is-on)?"/g) || []).length === 2,
+       `${name}: タブは2つ（3つ目を足していない）`);
+    ok((html.match(/<a\b[^>]*href="[^"]*deep-pay[^"]*"/g) || []).length === 1,
+       `${name}: ★この HTML から DEEP PAY へ繋がるリンクはタブの1本だけ`);
+    ok(html.indexOf('id="ap-hd"') < html.indexOf('id="ap-filter"'),
+       `${name}: ★タブは絞り込みと一覧より前（見出しの場所）`);
+  }
 
   /* ★消したものが戻っていないこと。 */
   ok(!/id="ap-pub"/.test(html), `${name}: ★公開情報からの推定レンジの節が無い`);
@@ -662,8 +706,10 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        '★★その判定は1か所だけ（門と画面で違う答えにならない）');
     /* ★①（100人）と②（本人の内訳）は別の材料から出ている。 */
     /* ★数え方は pv_deep_contributors() 1つだけが持つ（2026-09-01 に 1-f から移した）。
-         同じ「N / 100人」を左メニューの札（pv_give_progress）も DEEP PAY の門も出すので、
+         同じ人数を、人数の口（pv_give_progress ── ROADMAP の画面が読む）も DEEP PAY の門
+         （錠前の板の「…100人に達すること（いま N人）」）も出すので、
          一覧の中に式を書き戻すと**画面によって違う数**になる。
+         （2026-10-11 まで、3段の表の DEEP PAY の札「N / 100人」もこの数を出していた。）
          これは静かに壊れる ── どちらの画面も普通に動いたまま数だけずれる。
          ⚠️ pv_contributors()（1-f・proof_hash 単位）ではない。あちらは2社に出した
             1人を2人と数える。画面は「パイロットが100人」なので実人物で数える。 */
@@ -697,8 +743,11 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        '★登録前の預かりは人数に入れない（端末×日は人ではない）', DCTB.slice(0, 260));
   }
 
-  /* ★左メニューの札の口（2026-08-25）。整数1つと真偽3つだけを返し、
-       一覧（pv_pay_rows）を引かずに済ませるためだけに在る。
+  /* ★人数の口（2026-08-25。検査の名前は当時の「札の口」のまま）。整数1つと真偽3つだけを
+       返し、一覧（pv_pay_rows）を引かずに済ませるためだけに在る。
+       ★もとは 3段の表の DEEP PAY の札「N / 100人」のための口だった。札は 2026-10-11 に
+         外したので、pv-gates.js はもう呼ばない。**いま呼ぶのは ROADMAP の画面だけ**
+         （roadmap.js。assert-roadmap.mjs が見ている）── SQL の約束はそのまま要る。
        ⚠️ 中身を書き写したら、ここが2つ目の数え方になる。 */
   {
     const i2 = SQL.indexOf('create or replace function public.pv_give_progress()');
@@ -984,6 +1033,24 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   }
 }
 
+/* ── タブ（字面のつづき。2026-10-11）──────────────────────────────
+   ★actual-pay.js は見出しを書かない・器（#ap-hd）に触らない。触ると入口ごと消える。
+   ★見た目は actual-pay.css と deep-pay.css に**同じ塊**（PV-PAYTABS:BEGIN〜END）で在る。
+     片方だけ直すと、画面を替えたときにタブの形や位置が変わって見える。
+     （同じ突き合わせを assert-deep-pay.mjs の ①-b も持っている ── どちらを流しても気づける。） */
+{
+  const j = decomment(JS);
+  ok(!/<h1/.test(j), '★actual-pay.js は <h1> を書かない（見出しは HTML のタブが持つ）');
+  ok(!/el\(\s*'ap-hd'\s*\)|getElementById\(\s*'ap-hd'\s*\)|#ap-hd/.test(j),
+     '★★actual-pay.js は見出しの器（#ap-hd）に触らない（書き換えるとタブごと消える）');
+  const blkA = tabBlock(CSS), blkD = tabBlock(read('deep-pay.css'));
+  ok(blkA.length > 400 && blkA === blkD,
+     '★★タブの CSS（PV-PAYTABS:BEGIN〜END）が actual-pay.css と deep-pay.css で1文字も違わない',
+     `actual-pay.css ${blkA.length} 字 / deep-pay.css ${blkD.length} 字`);
+  ok(!/\.pv-paytab/.test(decomment(CSS.replace(blkA, () => ' '))),
+     '★actual-pay.css: タブの規則は塊の中にだけ在る（外に書き足していない）');
+}
+
 /* ★左メニューの中身（2026-09-06 オーナー確定）。
      ┌ 独立CTA　匿名で給与を追加            → pay-report.html#ps
      └ 1 HOME / 2 REAL PAY / 3 VOTE / 4 ROADMAP & REQUESTS /
@@ -1086,9 +1153,17 @@ for (const [name, file] of [['ja', 'actual-pay.html'], ['en', 'en/actual-pay.htm
   /* ④ 閉じ方が3つある。 */
   ok(/mr-gate-x/.test(GATES) && /mousedown/.test(GATES) && /Escape/.test(GATES),
      '★閉じ方は3つ（× ／ 外を押す ／ ESC）');
-  /* ⑤ DEEP / VERIFIED は「準備中」。ページが無いのに「開きます」と書かない。 */
-  ok(/state: 'soon'[\s\S]*state: 'soon'/.test(GATES) && /'live'/.test(GATES),
-     '★いま開くのは REAL PAY だけ（残り2つは準備中）');
+  /* ⑤ VERIFIED だけが「準備中」（ページが無いのに「開きます」と書かない）。
+       DEEP PAY は 2026-10-11 に公開したので live ── ただし3段の表が出すのは**名前だけ**。 */
+  ok(/key: 'real',\s+state: 'live'/.test(GATES) && /key: 'deep',\s+state: 'live'/.test(GATES)
+     && /key: 'verified', state: 'soon'/.test(GATES)
+     && (GATES.match(/state: 'soon'/g) || []).length === 1,
+     '★ページが在るのは REAL PAY と DEEP PAY（VERIFIED だけが準備中）');
+  /* ⑤-b 3段の表は入口ではない・条件を言わない・人数を聞かない（2026-10-11）。
+       ★この表は全ページの板（pv-give-first.js）と登録完了の画面にも出る。 */
+  ok(!/deep-pay/.test(GATES), '★★pv-gates.js に DEEP PAY への住所が無い（3段の表から繋がない）');
+  ok(!/data-pv-give/.test(GATES) && !/pv_give_progress|\.rpc\s*\(/.test(GATES),
+     '★3段の表に押せる札が無い・人数を聞く通信も無い');
 
   /* ⑥ ぼかしが REAL PAY 側にも無い（CSS / JS / HTML の4本）。
      ⚠️ 2026-09-03 その3 ── 閉じている内訳の「金額の板」だけ例外にした
@@ -1260,9 +1335,10 @@ const FAKE = function (payload, anon) {
     my_pay_reports: () => ({ ok: true, reports: (payload && payload.mine) || [] }),
     my_referral_code: () => ({ ok: true, code: 'K7QD3XZM', invited: 0, converted: 0 }),
     pv_referral_settle: () => ({ ok: true }),
-    /* ★DEEP PAY の札に要る2つだけを返す口（2026-08-25）。
-       payload.progress を渡さないケースでは undefined ＝ サーバがまだ古い状態。
-       そのとき札は「準備中」のままでなければならない（0 を置いて埋めない）。 */
+    /* ★人数と本人の Give を返す口（2026-08-25）。前は 3段の表の DEEP PAY の札が、
+       押されたときに1回だけここへ聞いていた。札は 2026-10-11 に外したので、
+       **この画面からは誰も呼ばない**のが正しい（節 I が、答えを用意したうえで
+       1回も呼ばれないことを見る。ROADMAP の画面は今も自分で呼ぶ）。 */
     pv_give_progress: () => (payload && payload.progress)
   };
   function q(rows) {
@@ -1433,11 +1509,15 @@ const LOCKED = { ok: true, state: 'locked', rows: [] };
 /* ★鍵が無いのに数え上げだけ来た形。画面は帯ごと出さない（サーバも返さないが、
      返ってきても会員規模が漏れないこと）。 */
 /* ★2026-08-25 オーナー判断で、鍵が無い人にも数え上げを返すようになった。
-     contributors ＝ 給与を出したユニークな人数（DEEP PAY の「N / 100人」に使う）。 */
+     contributors ＝ 給与を出したユニークな人数。前は 3段の表の DEEP PAY の札
+     「N / 100人」に使っていた。札は 2026-10-11 に外したので、**この数は画面のどこにも
+     出ない**のが正しい（21 が出たら、札か説明が戻っている ── A-2 が見る）。 */
 const ST_LOCK = { reports: 11, month: 3, airlines: 7, contributors: 21 };
 const LOCKED_ST = { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
                     give: { basic: false, detailed: false, payslip: false } };
-/* 先に内訳を出してくれた人（100人にはまだ届いていない）。 */
+/* 内訳まで出してある人（give.detailed が true）。前はこの人にだけ「✓ あなたの準備は
+   完了しています」を出していた。いまはこの画面で DEEP PAY の資格を言わない ＝
+   3段の表は LOCKED_ST の人と**1文字も違わない**のが正しい（A-2b）。 */
 const LOCKED_DET = { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
                      give: { basic: true, detailed: true, payslip: false } };
 const EMPTY = { ok: true, state: 'open', rows: [] };
@@ -1526,10 +1606,16 @@ async function fresh() {
   return page;
 }
 
+/* ★opt.theme（'dark'）は節 T（タブ）だけが使う。渡さなければ今までと1つも変わらない
+     （保存領域に何も置かない ＝ 画面は既定の明るい面で開く）。 */
 async function open(lang, payload, opt) {
   const page = await fresh();
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
+  if (opt && opt.theme) {
+    await page.evaluateOnNewDocument((t) => { try { localStorage.setItem('pv-theme', t); } catch (e) {} },
+                                     opt.theme);
+  }
   await page.evaluateOnNewDocument(FAKE, payload, (opt && opt.anon) ? 1 : 0);
   await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'actual-pay.html',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -1551,8 +1637,9 @@ const SNAP = () => {
   return {
     url: location.pathname,
     rowsText: txt(rows),
-    /* ★3段の Give → Get を外した本文。真ん中の札は「21 / 100人」＝**進み具合**で、
-         金額ではない。金額の検査はこちらで見る（札の数字で赤くならないように）。 */
+    /* ★3段の Give → Get を外した本文。前は真ん中の札が「21 / 100人」（進み具合）で、
+         金額の形に当たるので外して見ていた。札は 2026-10-11 に外したが、表は金額を
+         持たない部品なので、金額の検査は今もこちらで見る。 */
     rowsTextX: (function () {
       if (!rows) return '';
       const c = rows.cloneNode(true);
@@ -1618,20 +1705,36 @@ const SNAP = () => {
       }
       return out;
     })(),
-    /* ── Give → Get の3段（pv-gates.js が作る）───────────── */
+    /* ── Give → Get の3段（pv-gates.js が作る）─────────────
+       p ＝ 札の要素が在るか／press ＝ その段の中の押せるもの（a / button）の数／
+       nameC ＝ 名前の字の色（live の段は濃い・準備中は薄い）。 */
     give: q('.pv-give-r').map((e) => ({
       g: ((e.querySelector('.pv-give-g') || {}).textContent || '').trim(),
       t: ((e.querySelector('.pv-give-t') || {}).textContent || '').trim(),
       s: ((e.querySelector('.pv-give-s') || {}).textContent || '').trim(),
-      live: e.classList.contains('is-live')
+      live: e.classList.contains('is-live'),
+      p: e.querySelectorAll('.pv-give-p').length,
+      cell: e.querySelectorAll('.pv-give-s').length,
+      press: e.querySelectorAll('a, button, [role="button"], [tabindex]').length,
+      nameC: e.querySelector('.pv-give-t') ? getComputedStyle(e.querySelector('.pv-give-t')).color : ''
     })),
-    /* ── 準備中の札（＝解放条件の説明への入口。2026-09-06 に左メニューから移した）── */
+    giveText: q('.pv-give').map((e) => e.textContent || '').join(' '),
+    giveHTML: q('.pv-give').map((e) => e.outerHTML).join(''),
+    /* ── 押せる札（2026-09-06〜2026-10-11 は DEEP PAY の札がこれだった）。
+         いまは**1つも無い**のが正しい ── 戻っていないことを見るために取り続ける。 ── */
     pills: q('[data-pv-give]').map((e) => ({
       k: e.getAttribute('data-pv-give'),
       tag: e.tagName.toLowerCase(),
       aria: e.getAttribute('aria-label') || '',
       inPanel: !!(e.closest && e.closest('.mr-gate'))
     })),
+    /* ── DEEP PAY へ繋がるリンク（本文の中）。在ってよいのは見出しのタブの1本だけ
+         （行の面はここではなく body の直下に出る ── 節 J が別に見る）。 ── */
+    deepLinks: q('a[href*="deep-pay"]', main).map((e) => ({
+      href: e.getAttribute('href'),
+      tab: e.classList.contains('pv-paytab') && !!e.closest('#ap-hd')
+    })),
+    gatePanels: q('#mr-gate, .mr-gate').length,
     /* ── 左メニューの門（実行時の姿）───────────────────── */
     gates: q('[data-mr-gate]').map((e) => ({
       k: e.getAttribute('data-mr-gate'),
@@ -1917,7 +2020,7 @@ function maskedDrawer(d, tag, vf) {
   ok(d.note === 0, `${tag}: ★数字が1つも出ていない面に、匿名化の断り書きを付けない`,
      String(d.note));
   ok(d.cta.length === 1 && /pay-report\.html/.test(d.cta[0] || ''),
-     `${tag}: ★★面から出る道は給与フォーム1つだけ（DEEP PAY の門へ行かせない）`,
+     `${tag}: ★★面から出る道は給与フォーム1つだけ（鍵の無い人を DEEP PAY へ送らない）`,
      d.cta.join(' | '));
   /* ⚠️ ここで MONEY（\d[\d,]{2,} を含む）を使わない。投稿時期の「1ヶ月以内」に
        当たって**製品は正しいのに赤くなる**。見るのは金額そのものの形だけ。 */
@@ -2058,19 +2161,16 @@ for (const lang of ['ja', 'en']) {
     ok(says, `${lang}: ★「給与1件（手動入力でも可）で開く」と書いてある`, t.slice(0, 140));
   }
 
-  /* ★Give → Get の3段が出ていて、開くのは REAL PAY だけと分かること。 */
+  /* ★Give → Get の3段。給与を出すと開く、と言っているのは REAL PAY の段だけ。
+       DEEP PAY の段は**名前だけ**（2026-10-11 オーナー指示「3段の表の DEEP PAY の札自体
+       もういらない」）── 札も、押せる所も、DEEP PAY への住所も、開く条件も無い。
+       公開したので名前は REAL PAY と同じ強さ（薄い「準備中」の見た目ではない）。
+       VERIFIED PAY は今までどおり「準備中」。 */
   {
     const g = v.give;
     ok(g.length === 3, `${lang}: ★Give → Get が3段そろっている`, JSON.stringify(g));
-    ok(g[0] && g[0].t === 'REAL PAY' && g[0].live,
-       `${lang}: ★REAL PAY だけが今日ひらく段`, JSON.stringify(g[0] || {}));
-    for (const i of [1, 2]) {
-      const r = g[i];
-      const soon = lang === 'ja' ? /準備中/ : /in preparation/i;
-      ok(r && !r.live && soon.test(r.s),
-         `${lang}: ★${(r || {}).t} は「準備中」と書いてある（ページが無いのに開くと書かない）`,
-         JSON.stringify(r || {}));
-    }
+    ok(g[0] && g[0].t === 'REAL PAY' && g[0].live && g[0].p === 1,
+       `${lang}: ★REAL PAY の段は live・札が1つ`, JSON.stringify(g[0] || {}));
     const soonWord = lang === 'ja' ? /準備中/ : /in preparation/i;
     ok(g[0] && !soonWord.test(g[0].s),
        `${lang}: ★REAL PAY の段に「準備中」が付いていない`, JSON.stringify(g[0] || {}));
@@ -2079,14 +2179,47 @@ for (const lang of ['ja', 'en']) {
     const openNow = lang === 'ja' ? /いま開き|今開き/ : /open now/i;
     ok(g[0] && !openNow.test(g[0].s),
        `${lang}: ★REAL PAY の札が「もう開いている」と読めない`, JSON.stringify(g[0] || {}));
+
+    const dp = g[1] || {};
+    ok(dp.t === 'DEEP PAY' && dp.g === '' && dp.s === '' && dp.p === 0,
+       `${lang}: ★★DEEP PAY の段は名前だけ（出すものの字も、札も無い）`, JSON.stringify(dp));
+    ok(dp.cell === 1,
+       `${lang}: ★札が無くても升は残してある（列と罫線がほかの段とそろう）`, String(dp.cell));
+    ok(dp.live === true && dp.nameC !== '' && dp.nameC === (g[0] || {}).nameC,
+       `${lang}: ★DEEP PAY の名前は REAL PAY と同じ強さ（薄い「準備中」の色ではない）`,
+       `${dp.nameC} / ${(g[0] || {}).nameC}`);
+    ok(!soonWord.test(dp.s) && !soonWord.test(dp.t),
+       `${lang}: ★DEEP PAY に「準備中」と書いていない（公開した）`, JSON.stringify(dp));
+
+    const vp = g[2] || {};
+    ok(vp.t === 'VERIFIED PAY' && !vp.live && soonWord.test(vp.s) && vp.p === 1,
+       `${lang}: ★VERIFIED PAY は「準備中」のまま（ページが無いのに開くと書かない）`,
+       JSON.stringify(vp));
+    ok(vp.nameC !== dp.nameC,
+       `${lang}: ★VERIFIED PAY の名前は薄いまま（DEEP PAY と見た目で区別が付く）`,
+       `${vp.nameC} / ${dp.nameC}`);
+
+    /* ★表のどこも押せない・どこにも繋がらない。 */
+    ok(g.every((r) => r.press === 0) && v.pills.length === 0,
+       `${lang}: ★★3段の表に押せるものが1つも無い（札は説明も開かない・リンクでもない）`,
+       JSON.stringify(g.map((r) => r.press)) + ' / ' + v.pills.map((x) => x.k).join(','));
+    ok(!/deep-pay/.test(v.giveHTML),
+       `${lang}: ★★3段の表から DEEP PAY へ繋がっていない（入口は見出しのタブ）`);
+    /* ★開く条件も人数も言わない（公開前の案内が戻っていない）。 */
+    const pre = lang === 'ja'
+      ? /100|人|あと|準備は完了|内訳を共有/
+      : /100|pilots?\b|more\b|qualified|breakdown/i;
+    ok(!pre.test(v.giveText),
+       `${lang}: ★★3段の表に、DEEP PAY の条件も人数も書いていない`, v.giveText.slice(0, 160));
   }
 
   /* ★左メニュー：門は REAL PAY の1つだけ（2026-09-06）。
        DEEP PAY / VERIFIED PAY の「準備中」の段は撤去した ── 押しても行き先が無い
-       段を7項目のナビに混ぜない。DEEP PAY は Phase 6 で REAL PAY の内側へ、
+       段を7項目のナビに混ぜない。DEEP PAY は 2026-10-11 に公開したが、左メニューは
+       7項目のまま（入口は見出しのタブ。段を足すのは別の回）。
        VERIFIED PAY は本物の検証機能が出来るまで出さない。
-       ⚠️ **Give → Get の3段（上のブロック）とは別物。** あちらは本文の案内で
-          「準備中」と書いてあるのが正しい。ここはナビの段。混同しない。 */
+       ⚠️ **Give → Get の3段（上のブロック）とは別物。** あちらは本文の案内で、
+          VERIFIED PAY に「準備中」と書いてあるのが正しい。ここはナビの段。混同しない。 */
   {
     const by = Object.fromEntries(v.gates.map((x) => [x.k, x]));
     ok(by.real && by.real.locked && by.real.lk === 1,
@@ -2097,22 +2230,14 @@ for (const lang of ['ja', 'en']) {
     ok(v.gates.length === 1,
        `${lang}: ★★門は REAL PAY の1つだけ（deep / verified の段を戻していない）`,
        v.gates.map((x) => x.k).join(' / '));
-    /* ★★段を撤去したぶん、DEEP PAY の説明への入口は札が引き受ける。
-         ここが消えると「あと79人」も「内訳を共有すると」も**開く道が無くなる**
-         （2026-08-25 のオーナー指示そのものが画面から消える）。
-         押せない <span> に戻っていないかまで見る。
-       ⚠️ **VERIFIED PAY の札は押せないまま**（2026-09-06 オーナー確定）。
-          本人確認の機能がまだ無いので、新しいクリック導線を作らない・目立たせない。
-          押せる札は data-pv-give を持つので、verified がここに1つも出ないことを見る。 */
-    const byP = Object.fromEntries(v.pills.map((x) => [x.k, x]));
-    ok(byP.deep && byP.deep.tag === 'button' && byP.deep.aria && !byP.deep.inPanel,
-       `${lang}: ★★deep の札が説明を開く入口になっている（段を消した先の受け皿）`,
-       JSON.stringify(byP.deep || {}));
-    ok(!byP.verified,
-       `${lang}: ★★verified の札は押せない（検証機能が出来るまで導線を作らない）`,
-       JSON.stringify(byP.verified || {}));
-    ok(v.pills.every((x) => x.k === 'deep'),
-       `${lang}: ★★押せる札は DEEP PAY だけ`, v.pills.map((x) => x.k).join(' / '));
+    /* ★★DEEP PAY への入口は、見出しのタブの1本（2026-10-11）。
+         2026-09-06 からは 3段の表の DEEP PAY の札が、公開前の説明（あと◯人・内訳を
+         共有すると）を開く入口だった。公開した日に札ごと外した ── 本文の中で DEEP PAY へ
+         繋がるのはタブだけで、説明のパネルは誰も開けない。 */
+    ok(v.deepLinks.length === 1 && v.deepLinks[0].tab && v.deepLinks[0].href === 'deep-pay.html',
+       `${lang}: ★★本文から DEEP PAY へ繋がるのは、見出しのタブの1本だけ`,
+       JSON.stringify(v.deepLinks));
+    ok(v.gatePanels === 0, `${lang}: ★説明のパネルは出ていない`, String(v.gatePanels));
   }
   /* ★2026-09-13、プレビューが出るようになったので帯も出る（選択肢が空ではない）。
        会社は**公開している会社マスタ**から作る ── 選んでも本物の投稿も件数も
@@ -2209,111 +2334,129 @@ for (const lang of ['ja', 'en']) {
      JSON.stringify(v.stats.map((c) => c.n)));
   ok(v.blurred.length === 0, `${lang}: ★ぼかしが1つも掛かっていない`, blurWhy(v));
 
-  /* ★DEEP PAY の札が「N / 100人」になる（3段の真ん中）。 */
+  /* ★数え上げが来ても、3段の表は1文字も変わらない（2026-10-11）。
+       前はここで DEEP PAY の札が「21 / 100人」になり、押すと「あと79人…」
+       「給与の内訳を共有すると…」の説明が開いていた。公開した日に全部外した ──
+       給与を出した人数（contributors ＝ 21）は、この画面のどこにも出ない。 */
   {
     const deep = v.give[1] || {};
-    const want = lang === 'ja' ? '21 / 100人' : '21 / 100';
-    ok(deep.s === want, `${lang}: ★DEEP PAY の札が「${want}」`, JSON.stringify(deep));
-    ok(!deep.live, `${lang}: ★札が出ても DEEP PAY は開いていない`, JSON.stringify(deep));
+    ok(deep.t === 'DEEP PAY' && deep.s === '' && deep.p === 0 && deep.live === true,
+       `${lang}: ★★数え上げが来ても DEEP PAY の段は名前だけ`, JSON.stringify(deep));
     const real = v.give[0] || {};
-    ok(real.t === 'REAL PAY' && real.live,
-       `${lang}: ★いま開くのは REAL PAY だけ`, JSON.stringify(real));
+    ok(real.t === 'REAL PAY' && real.live && real.p === 1,
+       `${lang}: ★REAL PAY の段は今までどおり`, JSON.stringify(real));
+    /* ⚠️ 素の 21 や 79 を探さない ── 見本の金額（¥1,790万 など）に当たって、
+         製品は正しいのに赤くなる。人数の言い方の形だけを見る。 */
+    const crowd = /21\s*\/\s*100|(?:21|79|100)\s*人|あと\s*\d+\s*人|\b\d+ more pilots?|\b100 pilots/i;
+    ok(!crowd.test(v.mainText),
+       `${lang}: ★★給与を出した人数（21 / 100）も、残りの人数（あと79人）も本文に出ない`,
+       (v.mainText.match(crowd) || [''])[0]);
+    ok(v.pills.length === 0 && v.give.every((r) => r.press === 0),
+       `${lang}: ★表に押せるものが無い`, JSON.stringify(v.give.map((r) => r.press)));
   }
 
-  /* ★条件2つを別々に書いてある（100人 ／ 本人の内訳）。
-       この人はまだ内訳を出していないので「内訳を足す」側が出る。
-       ⚠️ 押すのは**本文の Give → Get の3段の札**（2026-09-06）。
-          もとは左メニューの DEEP PAY だったが、ナビを7項目へ畳んだ回に
-          あの段を撤去した。撤去だけすると鍵を持たない人にはこの説明への道が
-          1つも無くなるので、入口を「21 / 100人」の札へ移してある。 */
+  /* ★DEEP PAY の名前を押しても、PVGates の口から呼んでも、説明は開かない・
+       人数を渡しても表は変わらない（公開前の案内へ戻る道が無い）。 */
   {
-    const g = await page.evaluate(() => {
-      const b = document.querySelector('[data-pv-give="deep"]');
-      if (!b) return { no: true };
-      b.click();
-      const p = document.getElementById('mr-gate');
-      if (!p) return { no: true };
-      const a = Array.prototype.slice.call(p.querySelectorAll('a'));
+    const g = await page.evaluate(async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const html0 = (document.querySelector('.pv-give') || {}).outerHTML || '';
+      const name = document.querySelectorAll('.pv-give-r')[1];
+      if (name) name.click();
+      if (name && name.querySelector('.pv-give-t')) name.querySelector('.pv-give-t').click();
+      await sleep(30);
+      const afterClick = document.querySelectorAll('#mr-gate, .mr-gate').length;
+      if (window.PVGates) {
+        window.PVGates.open('deep');
+        window.PVGates.setProgress({ n: 21, detailed: false });
+        window.PVGates.setProgress({ n: 100, detailed: true });
+      }
+      await sleep(30);
       return {
-        no: false,
-        goal: (p.querySelector('.mr-gate-goal-n') || {}).textContent || '',
-        left: (p.querySelector('.mr-gate-left') || {}).textContent || '',
-        ok0: p.querySelectorAll('.mr-gate-ok').length,
-        need: (p.querySelector('.mr-gate-need') || {}).textContent || '',
-        hrefs: a.map((x) => x.getAttribute('href')),
-        pos: getComputedStyle(p).position,
-        role: p.getAttribute('role') || '',
-        ov: document.body.style.overflow || ''
+        afterClick: afterClick,
+        afterOpen: document.querySelectorAll('#mr-gate, .mr-gate').length,
+        same: ((document.querySelector('.pv-give') || {}).outerHTML || '') === html0 && html0 !== '',
+        path: location.pathname,
+        calls: (window.__rpc || []).map((r) => r.name)
       };
     });
-    ok(!g.no, `${lang}: DEEP PAY の説明が開く`);
-    ok(/21/.test(g.goal) && /100/.test(g.goal),
-       `${lang}: ★①の進み具合が「21 / 100」で出る`, g.goal);
-    ok(/79/.test(g.left), `${lang}: ★あと79人と書いてある`, g.left);
-    ok(g.ok0 === 0 && g.need !== '',
-       `${lang}: ★②がまだの人には「内訳を共有すると」が出る`, `${g.ok0} / ${g.need}`);
-    ok(g.hrefs.some((h) => /pay-report\.html#pay-detail/.test(h || '')),
-       `${lang}: ★「給与内訳を追加する」の行き先がある`, g.hrefs.join(','));
-    ok(g.hrefs.some((h) => /profile\.html#pv-invite-slot/.test(h || '')),
-       `${lang}: ★招待の常設入口へ行ける`, g.hrefs.join(','));
-    ok(g.pos !== 'fixed' && g.role !== 'dialog' && g.ov === '',
-       `${lang}: ★説明は覆いではない（閉じ込めない）`, `${g.pos}/${g.role}/${g.ov}`);
+    ok(g.afterClick === 0 && /actual-pay\.html$/.test(g.path),
+       `${lang}: ★★DEEP PAY の名前を押しても何も開かない・どこへも行かない`, JSON.stringify(g));
+    ok(g.afterOpen === 0,
+       `${lang}: ★★PVGates.open('deep') は何も出さない（公開前の説明を戻していない）`,
+       String(g.afterOpen));
+    ok(g.same,
+       `${lang}: ★★PVGates.setProgress に人数を渡しても、表は1文字も変わらない`, String(g.same));
+    ok(!g.calls.includes('pv_give_progress'),
+       `${lang}: ★人数を聞きに行かない（pv_give_progress を呼ばない）`, g.calls.join(','));
   }
 
   ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
-/* ★先に内訳を出してくれた人が「出し損」に見えないこと。ここがこの表示の目的。 */
-for (const lang of ['ja', 'en']) {
-  console.log(`\n════ ${lang} / A-2b 先に内訳を出した人 ════`);
-  const { page, errs } = await open(lang, LOCKED_DET);
-  const g = await page.evaluate(() => {
-    const b = document.querySelector('[data-pv-give="deep"]');
-    if (!b) return { no: true };
-    b.click();
-    const p = document.getElementById('mr-gate');
-    if (!p) return { no: true };
-    return {
-      no: false,
-      ok0: (p.querySelector('.mr-gate-ok') || {}).textContent || '',
-      need: p.querySelectorAll('.mr-gate-need').length,
-      detail: p.querySelectorAll('a[href*="pay-detail"]').length,
-      left: (p.querySelector('.mr-gate-left') || {}).textContent || ''
-    };
-  });
-  ok(!g.no, `${lang}: DEEP PAY の説明が開く`);
-  ok(g.ok0 !== '', `${lang}: ★「あなたの準備は完了しています」が出る`, g.ok0);
-  ok(g.need === 0 && g.detail === 0,
-     `${lang}: ★済んだ人に、内訳をもう一度入れさせない`, `${g.need}/${g.detail}`);
-  ok(/79/.test(g.left), `${lang}: ★それでも①（100人）は別に書いてある`, g.left);
-  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
+/* ★内訳まで出してある人にも、この画面は DEEP PAY の資格を言わない（2026-10-11）。
+     前は「✓ あなたの準備は完了しています」を出していた。資格の線はその日に変わり
+     （自分に当てはまる項目をぜんぶ答えた人）、線を知っているのはサーバだけ ──
+     外の画面が「準備できています」と言うと、門を動かした日にここだけ嘘が残る。
+     だから 3段の表は、内訳を出していない人（A-2）と**1文字も違わない**。 */
+{
+  const tables = {};
+  for (const lang of ['ja', 'en']) {
+    console.log(`\n════ ${lang} / A-2b 内訳まで出してある人 ════`);
+    for (const [name, payload] of [['det', LOCKED_DET], ['st', LOCKED_ST]]) {
+      const { page, errs } = await open(lang, payload);
+      const v = await page.evaluate(SNAP);
+      tables[lang + name] = v.giveHTML;
+      if (name === 'det') {
+        const ready = lang === 'ja'
+          ? /準備は完了|準備が整|解放されます。内訳|自動的に解放/
+          : /already qualified|you are ready|unlocks automatically|to qualify/i;
+        ok(!ready.test(v.bodyText),
+           `${lang}: ★★「準備は完了しています」のたぐいを、画面のどこにも書いていない`,
+           (v.bodyText.match(ready) || [''])[0]);
+        ok(v.gatePanels === 0 && v.pills.length === 0,
+           `${lang}: ★説明のパネルも、押せる札も無い`, `${v.gatePanels} / ${v.pills.length}`);
+        ok(v.deepLinks.length === 1 && v.deepLinks[0].tab,
+           `${lang}: ★DEEP PAY へ繋がるのは見出しのタブだけ（資格のある人にも同じ1本）`,
+           JSON.stringify(v.deepLinks));
+      }
+      ok(errs.length === 0, `${lang}/${name}: ページのエラーが1件も出ない`, errs.join(' | '));
+    }
+    ok(tables[lang + 'det'] !== '' && tables[lang + 'det'] === tables[lang + 'st'],
+       `${lang}: ★★3段の表は、内訳を出した人と出していない人で1文字も違わない`);
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   A-3 錠前を押したとき（2026-08-25）
+   A-3 説明のパネル（2026-08-25）
    ★オーナー指示「未解放の場合は lock 状態を表示してクリック可能にし、
      クリック後に何を Give すると何が Get できるかを説明する」。
    ★ここで作るのは**覆いではない**。招待の着地と同じで、
      スクロールを止めない・下のページを残す・閉じ方が3つある。
-   ★2026-09-06、押す場所が変わった ── 左メニューの DEEP PAY / VERIFIED PAY の段は
-     ナビを7項目へ畳んだ回に撤去したので、入口は本文の Give → Get の3段の札。
-     **説明そのものは1文字も変えていない。**（REAL PAY の段だけは今も左メニューに在る）
+   ★2026-10-11、**製品の中に、このパネルを開く所が無くなった**。
+     2026-09-06 からは 3段の表の DEEP PAY の札が入口だった（その前は左メニュー）。
+     DEEP PAY を公開した日に札ごと外し、DEEP PAY の説明（準備中・あと◯人）も消した。
+     パネルの仕掛けは**消さずに残してある** ── VERIFIED PAY の機能ができた日に、
+     札を押せるようにするだけで説明が戻るように（pv-gates.js の openPanel の注）。
+     だからここは、口（PVGates.open('verified')）から開いて、仕掛けが腐っていないことを見る。
+     ⚠️ 'deep' では開かない（A-2 が見ている）。REAL PAY の段は今も左メニューに在り、
+        この画面の上では本文の案内へ寄せる（いちばん下）。
    ════════════════════════════════════════════════════════════════ */
 for (const lang of ['ja', 'en']) {
-  console.log(`\n════ ${lang} / A-3 ロックを押す ════`);
+  console.log(`\n════ ${lang} / A-3 説明のパネル ════`);
   const { page, errs } = await open(lang, LOCKED);
 
-  /* DEEP PAY（ページが無い側）の札を押す。 */
   const g = await page.evaluate(() => {
-    const b = document.querySelector('[data-pv-give="deep"]');
-    if (!b) return { no: true };
+    if (!window.PVGates || !window.PVGates.open) return { no: true };
     const before = { ov: document.body.style.overflow, h: document.body.scrollHeight };
-    b.click();
+    window.PVGates.open('verified');
     const p = document.getElementById('mr-gate');
     if (!p) return { no: true, before };
     const cs = getComputedStyle(p);
+    const rows = Array.prototype.slice.call(p.querySelectorAll('.pv-give-r'));
     return {
       no: false,
+      kind: p.getAttribute('data-kind') || '',
       first: document.querySelector('.mr-main').firstElementChild === p,
       pos: cs.position,
       role: p.getAttribute('role') || '',
@@ -2323,7 +2466,13 @@ for (const lang of ['ja', 'en']) {
       /* 下のページが残っていること（覆いなら見えなくなる） */
       bodyStillThere: document.body.scrollHeight >= before.h,
       t: (p.querySelector('.mr-gate-t') || {}).textContent || '',
-      give: Array.prototype.slice.call(p.querySelectorAll('.pv-give-r')).length,
+      give: rows.length,
+      /* パネルの中の3段も、本文の3段と同じ形（DEEP PAY は名前だけ・押せるものが無い）。 */
+      deepRow: rows[1] ? { t: (rows[1].querySelector('.pv-give-t') || {}).textContent || '',
+                           p: rows[1].querySelectorAll('.pv-give-p').length } : null,
+      press: p.querySelectorAll('.pv-give a, .pv-give button').length,
+      deep: p.querySelectorAll('a[href*="deep-pay"]').length,
+      links: Array.prototype.slice.call(p.querySelectorAll('a')).map((a) => a.getAttribute('href')),
       cta: (p.querySelector('.mr-gate-cta') || {}).getAttribute
            ? p.querySelector('.mr-gate-cta').getAttribute('href') : '',
       closeBtn: p.querySelectorAll('.mr-gate-x').length,
@@ -2332,7 +2481,8 @@ for (const lang of ['ja', 'en']) {
     };
   });
 
-  ok(!g.no, `${lang}: ★錠前（準備中の札）を押すと説明が出る`, JSON.stringify(g));
+  ok(!g.no && g.kind === 'verified', `${lang}: ★口（PVGates.open('verified')）から説明が出る`,
+     JSON.stringify(g));
   ok(g.first === true, `${lang}: ★説明は本文の先頭に差し込まれる（別画面に飛ばさない）`,
      String(g.first));
   ok(g.pos !== 'fixed' && g.role !== 'dialog' && g.modal !== 'true',
@@ -2345,17 +2495,28 @@ for (const lang of ['ja', 'en']) {
   ok(g.focused === true, `${lang}: ★開いたら読み上げの位置が説明へ移る`, String(g.focused));
   ok(g.give === 3, `${lang}: ★同じ Give → Get の3段が出る（2か所に書き写していない）`,
      String(g.give));
+  ok(g.deepRow && g.deepRow.t === 'DEEP PAY' && g.deepRow.p === 0 && g.press === 0,
+     `${lang}: ★パネルの中の3段も、DEEP PAY は名前だけ・押せるものが無い`,
+     JSON.stringify(g.deepRow) + ' / ' + g.press);
   ok(/pay-report\.html#ps/.test(g.cta || ''),
      `${lang}: ★説明の一番下は「匿名で給与を追加する」`, String(g.cta));
-  ok((lang === 'ja' ? /準備中/ : /in preparation/i).test(g.t),
-     `${lang}: ★DEEP PAY は「準備中」と名乗る`, g.t);
+  /* ★行き先は給与フォームの1本だけ。公開前は DEEP PAY の説明に「給与内訳を追加する」
+       （#pay-detail）と招待の入口（profile.html#pv-invite-slot）が出ていた。 */
+  ok(g.deep === 0 && (g.links || []).length === 1,
+     `${lang}: ★★説明の中のリンクは給与フォームの1本だけ（DEEP PAY・内訳・招待へ繋がない）`,
+     (g.links || []).join(' , '));
+  ok((lang === 'ja' ? /VERIFIED PAY は準備中/ : /VERIFIED PAY is in preparation/i).test(g.t),
+     `${lang}: ★VERIFIED PAY は「準備中」と名乗る`, g.t);
+  ok(!/DEEP PAY (?:は|is|opens)/i.test(g.text) && !/100/.test(g.text),
+     `${lang}: ★説明は DEEP PAY の条件を言わない（100人・準備中の文が無い）`,
+     JSON.stringify(g.text).slice(0, 160));
   ok(!MONEY.test(g.text), `${lang}: ★説明を開いても金額が1文字も出ない`,
      JSON.stringify(g.text).slice(0, 160));
 
   /* 閉じ方3つ ── ESC ／ 外を押す ／ ×。 */
   const closes = await page.evaluate(async () => {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    const open1 = () => { document.querySelector('[data-pv-give="deep"]').click(); };
+    const open1 = () => { window.PVGates.open('verified'); };
     const alive = () => !!document.getElementById('mr-gate');
     const out = {};
 
@@ -2372,15 +2533,26 @@ for (const lang of ['ja', 'en']) {
     document.querySelector('.mr-gate-x').click();
     out.x = !alive();
 
-    /* 二重に開かない（押すたびに増えない） */
+    /* 二重に開かない（呼ぶたびに増えない） */
     open1(); await sleep(10); open1(); await sleep(10);
     out.dup = document.querySelectorAll('.mr-gate').length;
+    /* 'deep' で呼んでも、開いている説明を差し替えない・閉じない・増やさない。 */
+    window.PVGates.open('deep'); await sleep(10);
+    out.afterDeep = document.querySelectorAll('.mr-gate').length;
+    out.kindAfterDeep = (document.getElementById('mr-gate') || { getAttribute: () => '' })
+      .getAttribute('data-kind');
     document.querySelector('.mr-gate-x').click();
+    out.calls = (window.__rpc || []).map((r) => r.name);
     return out;
   });
   ok(closes.esc && closes.outside && closes.x,
      `${lang}: ★閉じ方は3つとも効く（ESC ／ 外を押す ／ ×）`, JSON.stringify(closes));
-  ok(closes.dup === 1, `${lang}: ★続けて押しても説明は1枚だけ`, String(closes.dup));
+  ok(closes.dup === 1, `${lang}: ★続けて開いても説明は1枚だけ`, String(closes.dup));
+  ok(closes.afterDeep === 1 && closes.kindAfterDeep === 'verified',
+     `${lang}: ★PVGates.open('deep') は、出ている説明にも触らない`,
+     `${closes.afterDeep} / ${closes.kindAfterDeep}`);
+  ok(!closes.calls.includes('pv_give_progress'),
+     `${lang}: ★説明を開いても人数を聞きに行かない`, closes.calls.join(','));
 
   /* REAL PAY のロックを REAL PAY の上で押したとき ── 同じ話を二重に出さない。 */
   const same = await page.evaluate(async () => {
@@ -3012,101 +3184,78 @@ for (const lang of ['ja', 'en']) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// I. DEEP PAY の札は、数え上げが来ない場面でも同じ数になる（2026-08-25）
+// I. 3段の表は人数を聞かない・出さない（2026-10-11）
 // ════════════════════════════════════════════════════════════════
-/* もとは「左メニューの DEEP PAY を押すとどこでも同じ説明が開くのに、数を持って
-   いたのは pv_pay_rows() を引く2画面だけだった」という食い違いを直した節。
-   直した形は「押されたときに1回だけ pv_give_progress() に聞く」。
+/* 2026-08-25〜2026-10-11 のあいだ、ここは「DEEP PAY の札は、数え上げが来ない場面でも
+   押せば同じ数（17 / 100人）になる」を見ていた ── 札が押されたときに1回だけ
+   pv_give_progress() へ聞く仕掛けだった。
+   DEEP PAY を公開した日に、札も、説明も、その通信も外した。いま見るのは裏返し：
 
-   ⚠️ 2026-09-06、押す場所が左メニューから**本文の Give → Get の3段の札**へ移った
-      （ナビを7項目へ畳んだ回に DEEP PAY / VERIFIED PAY の段を撤去したため）。
-      仕掛けは1バイトも変わっていないので、見るものも同じ4つ。場面だけ、
-      「札は在るがサーバが数え上げを返さない」＝ stats の無い locked に置き換えた。
-
-     ① 数を渡されない場面でも、押せば「17 / 100人」になる
-     ② 聞くのは**押されたときだけ**（開いただけでは1本も投げない）
-     ③ 聞くのは**1度きり**（何度押しても増えない）
-     ④ 既に数を持っている場面では**聞かない**（stats が来ている locked）
-   ★サーバがまだ古い（札の口が無い）ときは黙って「準備中」のまま。0 を置かない。 */
+     ① サーバが人数を**答えられる状態でも**、この画面は1回も聞かない
+        （開いたとき・DEEP PAY の段を押したとき・PVGates の口から呼んだとき）
+     ② 一覧の数え上げ（stats.contributors）が来ていても、その数は表に出ない
+     ③ どの場面でも、説明のパネルは出ない
+   ★偽サーバには答え（17人）を**わざと用意してある**。聞けば 17 が返る ── それでも
+     画面に 17 が出ず、呼んだ記録も無いことで見る（「聞けないから出ない」ではない）。 */
 {
   const PROG = { ok: true, contributors: 17,
                  give: { basic: false, detailed: false, payslip: false } };
 
-  /* DEEP PAY の札を押して、札と RPC の呼ばれ方を読む。 */
-  const pressDeep = (times) => page => page.evaluate(async (n) => {
+  /* DEEP PAY の段を押し、PVGates の口も全部たたいてから、表と通信を読む。 */
+  const poke = (page) => page.evaluate(async () => {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    /* ⚠️ **毎回引き直す。** 数が届くと refreshGive() が3段を丸ごと作り直すので、
-         最初に掴んだ札は2回目の時点で DOM から外れている（押しても document に届かない）。
-         人は画面に出ているものを押すので、こちらも押す直前に引き直す。 */
-    if (!document.querySelector('[data-pv-give="deep"]')) return { no: true };
-    for (var i = 0; i < n; i++) {
-      var b = document.querySelector('[data-pv-give="deep"]');
-      if (b) b.click();
-      await sleep(120);
-      const x = document.querySelector('.mr-gate-x');
-      if (i < n - 1 && x) x.click();
-      await sleep(20);
+    const row = document.querySelectorAll('.pv-give-r')[1];
+    if (!row) return { no: true };
+    for (let i = 0; i < 3; i++) {
+      row.click();
+      const t = row.querySelector('.pv-give-t'); if (t) t.click();
+      const c = row.querySelector('.pv-give-s'); if (c) c.click();
+      await sleep(40);
     }
-    const p = document.getElementById('mr-gate');
-    const pills = Array.prototype.slice.call(document.querySelectorAll('.pv-give-p'))
-                       .map((e) => e.textContent);
+    if (window.PVGates) {
+      window.PVGates.open('deep');
+      window.PVGates.setProgress({ n: 17, detailed: true });
+    }
+    await sleep(120);
     return {
       no: false,
-      pills: pills,
-      goal: (p && (p.querySelector('.mr-gate-goal-n') || {}).textContent) || '',
-      left: (p && (p.querySelector('.mr-gate-left') || {}).textContent) || '',
+      name: (row.querySelector('.pv-give-t') || {}).textContent || '',
+      pills: Array.prototype.slice.call(document.querySelectorAll('.pv-give-p'))
+                  .map((e) => e.textContent),
+      table: (document.querySelector('.pv-give') || {}).textContent || '',
+      panels: document.querySelectorAll('#mr-gate, .mr-gate').length,
+      path: location.pathname,
       calls: (window.__rpc || []).map((r) => r.name)
     };
-  }, times);
+  });
 
   const nRpc = (calls, name) => calls.filter((n) => n === name).length;
 
   for (const lang of ['ja', 'en']) {
-    console.log(`\n════ ${lang} / I 数え上げが来ない場面で札を押す ════`);
+    for (const [name, base] of [['数え上げが来ない', LOCKED], ['数え上げが来ている', LOCKED_ST]]) {
+      console.log(`\n════ ${lang} / I ${name}場面で DEEP PAY の段を押す ════`);
+      const { page, errs } = await open(lang, Object.assign({ progress: PROG }, base));
+      const before = await page.evaluate(() => (window.__rpc || []).map((r) => r.name));
+      ok(!before.includes('pv_give_progress'),
+         `${lang}/${name}: ★開いただけでは人数を聞かない`, before.join(','));
+      const rows0 = nRpc(before, 'pv_pay_rows');
 
-    // ①②③ 札の口がある状態（stats が来ないので setProgress は数を持たない）
-    const { page, errs } = await open(lang, Object.assign({ progress: PROG }, LOCKED));
-    const before = await page.evaluate(() => (window.__rpc || []).map((r) => r.name));
-    ok(!before.includes('pv_give_progress'),
-       `${lang}: ★開いただけでは1本も投げない（押されたときだけ聞く）`, before.join(','));
-    const rows0 = nRpc(before, 'pv_pay_rows');
-
-    const g = await pressDeep(3)(page);
-    ok(!g.no, `${lang}: DEEP PAY の説明が開く`);
-    ok(nRpc(g.calls, 'pv_give_progress') === 1,
-       `${lang}: ★3回押しても聞くのは1度きり`, String(nRpc(g.calls, 'pv_give_progress')));
-    ok(nRpc(g.calls, 'pv_pay_rows') === rows0,
-       `${lang}: ★札のために一覧を引き直さない（鍵を持つ人に要らない行が付いてくる）`,
-       g.calls.join(','));
-    const want = (lang === 'ja' ? '17 / 100人' : '17 / 100');
-    ok(g.pills.some((t) => t.indexOf(want) === 0),
-       `${lang}: ★札が「${want}」になる（REAL PAY と同じ数）`, JSON.stringify(g.pills));
-    ok(g.goal.indexOf(want) === 0,
-       `${lang}: ★説明の中の見出しも同じ数`, g.goal);
-    ok(/83/.test(g.left), `${lang}: ★あと何人かも出る`, g.left);
-    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
-
-    // ★サーバがまだ古い（札の口が無い）とき ── 「準備中」のまま。0 を置かない。
-    const old = await open(lang, LOCKED);
-    const o = await pressDeep(1)(old.page);
-    ok(!o.no, `${lang}: 札の口が無くても説明は開く`);
-    ok(o.goal === '' && !/\d/.test(o.pills.join(' ')),
-       `${lang}: ★数が読めないときは「準備中」のまま（0 を置いて埋めない）`,
-       JSON.stringify(o.pills));
-    ok((lang === 'ja' ? /準備中/ : /in preparation/i).test(o.pills.join(' ')),
-       `${lang}: ★札は「準備中」と名乗ったまま`, JSON.stringify(o.pills));
-    ok(old.errs.length === 0, `${lang}: ページのエラーが1件も出ない`, old.errs.join(' | '));
+      const g = await poke(page);
+      ok(!g.no && g.name === 'DEEP PAY', `${lang}/${name}: 前提：DEEP PAY の段が在る`,
+         JSON.stringify(g));
+      ok(nRpc(g.calls, 'pv_give_progress') === 0,
+         `${lang}/${name}: ★★段を押しても、口から呼んでも、人数を1回も聞かない`,
+         g.calls.join(','));
+      ok(nRpc(g.calls, 'pv_pay_rows') === rows0,
+         `${lang}/${name}: ★一覧も引き直さない`, g.calls.join(','));
+      ok(!/\d/.test(g.table) && g.pills.length === 2,
+         `${lang}/${name}: ★★3段の表に数字が1つも無い（札は REAL PAY と VERIFIED PAY の2つだけ）`,
+         JSON.stringify(g.pills) + ' / ' + g.table.slice(0, 120));
+      ok(g.panels === 0 && /actual-pay\.html$/.test(g.path),
+         `${lang}/${name}: ★説明は出ない・画面も動かない`, `${g.panels} / ${g.path}`);
+      ok(errs.length === 0, `${lang}/${name}: ページのエラーが1件も出ない`, errs.join(' | '));
+    }
   }
-
-  // ④ 既に数を持っている画面（REAL PAY）では聞かない
-  console.log('\n════ ja / I 数を持っている画面では聞かない ════');
-  const { page, errs } = await open('ja', Object.assign({ progress: PROG }, LOCKED_ST));
-  const g = await pressDeep(2)(page);
-  ok(!g.calls.includes('pv_give_progress'),
-     '★一覧から数を受け取っている画面は、札のために聞き直さない', g.calls.join(','));
-  ok(g.goal.indexOf('21 / 100人') === 0,
-     '★出る数は一覧から来たほう（札の口の 17 ではない）', g.goal);
-  ok(errs.length === 0, 'ページのエラーが1件も出ない', errs.join(' | '));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -3205,9 +3354,14 @@ for (const lang of ['ja', 'en']) {
         u: t(e.querySelector('.ap-dw-u')) })),
       miss: t(document.querySelector('.ap-dw-miss')),
       sims: q('.ap-dw-sim').map((e) => ({ i: e.getAttribute('data-ap-row'), t: t(e) })),
-      /* 主 ── DEEP PAY の門を開くボタン。★href を持たない（リンクではない）。 */
+      /* 主 ── DEEP PAY へのただのリンク（2026-10-11 に公開。前は説明パネルを開くボタン）。
+           to ＝ その画面から解いた行き先・gate ＝ 前の仕掛けの目印（残っていないこと）。 */
       go: q('.ap-dw-cta').map((e) => ({
-        tag: e.tagName, href: e.getAttribute('href'), t: t(e) })),
+        tag: e.tagName, href: e.getAttribute('href'), t: t(e),
+        to: e.getAttribute('href') ? new URL(e.getAttribute('href'), location.href).pathname : '',
+        target: e.getAttribute('target') || '',
+        gate: e.getAttribute('data-ap-gate') || '' })),
+      deepA: q('.ap-dw a[href*="deep-pay"]').length,
       /* 副 ── 出す側へ戻すリンク。 */
       cta: q('.ap-dw-cta2').map((e) => e.getAttribute('href')),
       /* 積み上げバー。★flex の伸び率だけを見る（% も割合の字も持たない）。 */
@@ -3287,16 +3441,21 @@ for (const lang of ['ja', 'en']) {
     ok(d0.tags.length > 0 && d0.tags.every((x) => x === 'H3'),
        `${lang}: ★面の見出しは h3 だけ（この画面の h2 は 0 のまま）`, d0.tags.join(','));
     ok(d0.closes === 1, `${lang}: ★× は1つ`, String(d0.closes));
-    /* ★導線は2本（2026-09-03）。主＝他社と比べる（門を開く）／副＝出す側へ戻す。
-         投稿の誘導を**消していない**こと ── 下げたのは順位だけ。 */
-    ok(d0.go.length === 1 && d0.go[0].tag === 'BUTTON' && !d0.go[0].href,
-       `${lang}: ★主の導線はボタン（DEEP PAY へのリンクではない）`,
+    /* ★導線は2本（2026-09-03）。主＝他社と比べる（DEEP PAY へ）／副＝出す側へ戻す。
+         投稿の誘導を**消していない**こと ── 下げたのは順位だけ。
+       ★主は 2026-10-11 から DEEP PAY への**ただのリンク**（前は説明パネルを開くボタン）。
+         行き先はその言語の deep-pay.html。新しい窓で開かせない・前の仕掛けの目印も無い。 */
+    ok(d0.go.length === 1 && d0.go[0].tag === 'A' && d0.go[0].href === 'deep-pay.html'
+       && d0.go[0].to === (lang === 'en' ? '/en/' : '/') + 'deep-pay.html'
+       && d0.go[0].target === '' && d0.go[0].gate === '',
+       `${lang}: ★★主の導線は DEEP PAY へのただのリンク（その言語の deep-pay.html）`,
        JSON.stringify(d0.go));
     ok(d0.cta.length === 1 && /pay-report\.html#ps/.test(d0.cta[0]),
        `${lang}: ★副の導線は残っている（「あなたの給与情報を匿名で追加」）`,
        d0.cta.join(','));
-    ok(!/deep-pay/.test(d0.html),
-       `${lang}: ★DEEP PAY への辺を増やしていない（門の形を変えない）`);
+    ok(d0.deepA === 1 && (d0.html.match(/deep-pay/g) || []).length === 1,
+       `${lang}: ★面から DEEP PAY へ繋がるのは主のボタンの1本だけ（2本目を足していない）`,
+       `${d0.deepA} / ${(d0.html.match(/deep-pay/g) || []).length}`);
 
     /* 消したものが、面を開いた状態でも戻っていないこと。 */
     const vOpen = await page.evaluate(SNAP);
@@ -3539,43 +3698,54 @@ for (const lang of ['ja', 'en']) {
     ok(cl.calls === before,
        `${lang}: ★開け閉てを繰り返してもサーバへ投げない`, `${before} → ${cl.calls}`);
 
-    console.log(`\n════ ${lang} / J-6 主の導線は「既存の門」を開く ════`);
-    /* ★DEEP PAY はまだ開けていない。だから面からもリンクは張らない。
-         押すと出るのは**左メニューを押したときとまったく同じ説明パネル**で、
-         deep-pay.html へは1歩も進まない。
-       ⚠️ ここが緑でも、assert-deep-pay.mjs の「辺は2本だけ」が本丸。
-          あちらが root の全 .js を見ていて、deep-pay.html と書いた時点で落ちる。 */
+    console.log(`\n════ ${lang} / J-6 主の導線は DEEP PAY へのただのリンク ════`);
+    /* ★2026-10-11 に DEEP PAY を公開した。それまでこのボタンは、面を閉じて
+         公開前の説明パネル（#mr-gate）を開いていた。いまは**ただのリンク**：
+           ・押しても JS が止めない（真ん中クリックも「新しいタブで開く」もそのまま効く）
+           ・面を閉じない・説明パネルを出さない・サーバへ1本も投げない
+           ・本物のマウスで押すと、その言語の DEEP PAY へ着く
+       ⚠️ DEEP PAY へ繋がる線の集合を固定しているのは assert-deep-pay.mjs の ①
+          （actual-pay.js に deep-pay.html と書いてよいのは1か所だけ）。 */
     const gt = await page.evaluate(async () => {
       const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       document.querySelector('#ap-rows tbody tr[data-ap-row="0"] .ap-go').click();
-      await sleep(120);
-      const btn = document.querySelector('.ap-dw-cta');
-      const label = (btn && btn.innerText || '').trim();
-      btn.click();
+      await sleep(420);
+      const a = document.querySelector('.ap-dw-cta');
+      const label = (a && a.innerText || '').trim();
+      /* 行き先へ飛ばさずに、製品のコードがこの click を止めたかどうかだけを読む。
+         ★いちばん外（window の bubble）で読んでから、こちらで止める。 */
+      let stopped = null;
+      const spy = (e) => { stopped = e.defaultPrevented; e.preventDefault(); };
+      window.addEventListener('click', spy);
+      a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+      window.removeEventListener('click', spy);
       await sleep(520);
-      const p = document.querySelector('#mr-gate');
-      return { label: label,
+      return { label: label, tag: a.tagName, stopped: stopped,
                dw: document.querySelectorAll('.ap-dw-back').length,
-               panel: p ? (p.getAttribute('data-kind') || '') : '',
-               inMain: !!(p && p.closest('.mr-main')),
-               href: document.querySelectorAll('a[href*="deep-pay"]').length,
+               panels: document.querySelectorAll('#mr-gate, .mr-gate').length,
+               path: location.pathname,
                calls: (window.__rpc || []).map((r) => r.name) };
     });
-    ok(gt.dw === 0, `${lang}: ★門を開く前に面が閉じている（覆いの裏に出さない）`,
-       String(gt.dw));
-    ok(gt.panel === 'deep' && gt.inMain,
-       `${lang}: ★★出るのは左メニューと同じ門（説明パネル）`, `${gt.panel}/${gt.inMain}`);
-    ok(gt.href === 0,
-       `${lang}: ★★deep-pay.html へのリンクは1本も生えていない`, String(gt.href));
-    ok(/DEEP PAY/.test(gt.label),
-       `${lang}: ★主の導線は「他社と比較する → DEEP PAY」と名乗る`, gt.label);
-    /* 門は「あと何人か」を1度だけ聞くことがある（pv_give_progress）。
-       ★聞くとしてもそれだけ。面を開いたこと自体はサーバに残らない。 */
-    ok(gt.calls.filter((n) => n !== 'pv_give_progress').length === before,
-       `${lang}: ★門を開いても、行を読み直しに行かない`, gt.calls.join(','));
-    await page.evaluate(() => { if (window.PVGates) window.PVGates.close(); });
-
+    ok(gt.tag === 'A' && /DEEP PAY/.test(gt.label),
+       `${lang}: ★主の導線は「他社と比較する → DEEP PAY」と名乗るリンク`, `${gt.tag} / ${gt.label}`);
+    ok(gt.stopped === false,
+       `${lang}: ★★押しても JS が止めない（ブラウザのリンクとしてそのまま働く）`, String(gt.stopped));
+    ok(gt.panels === 0 && gt.dw === 1,
+       `${lang}: ★★説明パネルは出ない・面を勝手に閉じない（前の仕掛けが残っていない）`,
+       `説明 ${gt.panels} / 面 ${gt.dw}`);
+    ok(gt.calls.length === before && !gt.calls.includes('pv_give_progress'),
+       `${lang}: ★押してもサーバへ1本も投げない`, gt.calls.join(','));
     ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+
+    /* ★本物のマウスで押す（面の中で、当たり判定ごと）。着く先はその言語の DEEP PAY。
+         ⚠️ この先は別の画面なので、エラーの数え上げは上で済ませてある。 */
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {}),
+      page.click('.ap-dw-cta')
+    ]);
+    const landed = await page.evaluate(() => location.pathname);
+    ok(landed === (lang === 'en' ? '/en/' : '/') + 'deep-pay.html',
+       `${lang}: ★★面のボタンを押すと DEEP PAY へ着く`, landed);
   }
 }
 
@@ -4874,7 +5044,7 @@ for (const lang of ['ja', 'en']) {
       sim: q('.ap-dw-sim').length,
       note: q('.ap-dw-note').length,
       cta: q('.ap-dw-cta, .ap-dw-cta2').map(
-        (e) => e.getAttribute('href') || ('押しボタン:' + (e.getAttribute('data-ap-gate') || ''))),
+        (e) => e.getAttribute('href') || '（行き先の無いボタン）'),
       text: dw ? dw.innerText : ''
     };
   };
@@ -5327,6 +5497,508 @@ for (const lang of ['ja', 'en']) {
       ok(await shut(page), `${lang}/${name}: 戻る操作で詳細だけ閉じる`);
       ok(errs.length === 0, `${lang}/${name}: ページのエラーが1件も出ない`, errs.join(' | '));
     }
+  }
+
+  /* ── R-3 投稿した会員がパイロットであることを確認中の行（2026-10-13 オーナー指示）──
+     サーバは、確認を求めている会員が出した行にだけ hold: true を付ける
+     （db/pay-rows.sql の held。付き方・消え方は db/test-proof.mjs）。
+     画面は far と同じ ⚠ を置き、文だけが違う。両方に当たる行でも ⚠ は1つ。
+       HOLD_AT    … hold だけの行
+       FAR_AT[0]  … far と hold の両方
+     ⚠️ 1文は actual-pay.js の T を読まずにここで別に書く（FAR_TXT と同じ流儀）。 */
+  const HOLD_AT = ROWS.findIndex((r, i) => !FAR_AT.includes(i));
+  const HOLD_TXT = {
+    ja: '投稿者がパイロットであることを確認中の記録です。',
+    en: 'We are still confirming that the person who posted this record is a pilot.'
+  };
+  const OPEN_HOLD = Object.assign({}, OPEN_FAR, { rows: OPEN_FAR.rows.map((r, i) =>
+    ((i === HOLD_AT || i === FAR_AT[0]) ? Object.assign({}, r, { hold: true }) : r)) });
+  const holdAll = (p) => Object.assign({}, p, { rows: p.rows.map((r) => Object.assign({}, r, { hold: true })) });
+
+  for (const lang of ['ja', 'en']) {
+    console.log(`\n════ ${lang} / R-3 開いた一覧の ⚠（確認中の会員が出した行）════`);
+    const { page, errs } = await open(lang, OPEN_HOLD);
+    const v = await page.evaluate(FARS);
+    const marked = [...new Set([...FAR_AT, HOLD_AT])];
+    ok(v.rows.every((r) => r.n === (marked.includes(r.i) ? 1 : 0)),
+       `${lang}: ★★⚠ は far か hold の行だけに、1行に1つだけ出る（両方に当たる行でも1つ）`,
+       v.rows.map((r) => `${r.i}:${r.n}`).join(' '));
+    const aria = await page.evaluate(() => Array.prototype.map.call(
+      document.querySelectorAll('#ap-rows tbody tr[data-ap-row]'), (tr) => {
+        const m = tr.querySelector('.ap-far');
+        return [Number(tr.getAttribute('data-ap-row')), m ? m.getAttribute('aria-label') : null]; }));
+    const label = (i) => (aria.find((x) => x[0] === i) || [])[1];
+    ok(label(HOLD_AT) === HOLD_TXT[lang], `${lang}: ★hold だけの行の ⚠ は「確認中」の1文を読む`, label(HOLD_AT));
+    ok(label(FAR_AT[0]) === FAR_TXT[lang] + ' ' + HOLD_TXT[lang],
+       `${lang}: ★両方に当たる行の ⚠ は2つの文を続けて読む`, label(FAR_AT[0]));
+    ok(label(FAR_AT[1]) === FAR_TXT[lang], `${lang}: ★far だけの行は今までと1文字も違わない`, label(FAR_AT[1]));
+    ok(!v.body.includes(HOLD_TXT[lang]), `${lang}: ★一覧の本文には1文を書かない（記号だけ）`);
+
+    ok(await tapR(page, HOLD_AT), `${lang}: hold の行の詳細が開く`);
+    {
+      const d = await page.evaluate(FARS);
+      ok(d.dwFar.length === 1 && d.dwFar[0].t === WARN + HOLD_TXT[lang] && d.dwFar[0].underAmt
+         && d.dwFar[0].c === d.gold,
+         `${lang}: ★★面の金額の下に「確認中」の1文が1つだけ出る（色は --pv-gold-ink）`, JSON.stringify(d.dwFar));
+    }
+    ok(await shut(page), `${lang}: 戻る操作で詳細だけ閉じる（hold）`);
+    ok(await tapR(page, FAR_AT[0]), `${lang}: 両方に当たる行の詳細が開く`);
+    {
+      const d = await page.evaluate(FARS);
+      ok(d.dwFar.length === 2 && d.dwFar[0].t === WARN + FAR_TXT[lang] && d.dwFar[1].t === WARN + HOLD_TXT[lang],
+         `${lang}: ★両方に当たる行の面には、文が2つ並ぶ`, JSON.stringify(d.dwFar.map((x) => x.t)));
+    }
+    ok(await shut(page), `${lang}: 戻る操作で詳細だけ閉じる（両方）`);
+    ok(errs.length === 0, `${lang}: ページのエラーが1件も出ない`, errs.join(' | '));
+
+    /* 鍵の無い一覧 ── わざと全部の行に hold を混ぜても ⚠ は1つも出ない */
+    const m = await open(lang, holdAll(MASKED));
+    const w = await m.page.evaluate(FARS);
+    ok(w.rows.length > 0 && w.marks.length === 0 && !w.body.includes(HOLD_TXT[lang]),
+       `${lang}: ★★サーバが hold を混ぜても、伏せた一覧に ⚠ も1文も出ない`,
+       `${w.rows.length}行 / ⚠${w.marks.length}`);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// S. 出し直しのお願い（pv-pay-fix.js・2026-10-05）
+// ════════════════════════════════════════════════════════════════
+/* 手取りが総支給より多い月を出した会員に、直るまで出し続ける板。
+   オーナー指示「ちゃんと訂正できるまでこの人の画面にエラーメッセージ出せる？」。
+   こちらで数字は書き換えない・行も閲覧もそのまま ── 出すのは文言だけ。
+   ★守るのは7つ。
+     ① 線は1本（手取り ＞ 総支給 × 1.05）。同じ式が4か所にあり、1つも違わない
+     ② 線を超えた月がある人にだけ出る（同額・5% まで・片方が空・未ログインでは出ない）
+     ③ **金額を1文字も出さない**（出すのは対象月と社名だけ）
+     ④ 打ち込まれた社名が HTML として入らない
+     ⑤ ボタンの先が「同じ会社・同じ月」（上書きの鍵が 会社＋年＋月。月を渡さないと別の月に出る）
+     ⑥ 通信は1回まで。「問題なし」だけを控え、**問題があった人は毎回読み直す**
+        ＝ 出し直した次の画面で必ず消える。控えに会社も月も金額も入れない
+     ⑦ 置き場所は本文の先頭。錠前の案内が開いたらその下。狭い幅でもはみ出さない
+   ⚠️ 見本の数字は作り物。**会員が実際に入れた額・会社・月をここへ写さない**（公開リポジトリ）。 */
+{
+  console.log('\n════ S-0 線は1本（4か所が同じ式）════');
+  const LINE = /\*\s*1\.05\b/;
+  for (const [rel, re] of [
+    ['pay-report.html',     /function netOver\(\)[\s\S]{0,400}?n > g \* 1\.05/],
+    ['en/pay-report.html',  /function netOver\(\)[\s\S]{0,400}?n > g \* 1\.05/],
+    ['pv-pay-fix.js',       /function isBad\(r\)[\s\S]{0,300}?n > g \* 1\.05/],
+    ['db/pay-reports.sql',  /v_net > v_gross \* 1\.05/],
+    ['db/usage.mjs',        /r\.n > r\.g \* 1\.05/]]) {
+    const src = read(rel);
+    ok(re.test(src), '★' + rel + ' の線が「× 1.05」のまま');
+    /* 別の倍率が同じ比べ方で紛れ込んでいないこと（1.1 に緩めた写しが1つだけ残る、の形）。 */
+    const others = (src.match(/(?:n > g|v_net > v_gross|r\.n > r\.g) \* [\d.]+/g) || [])
+      .filter((x) => !LINE.test(x));
+    ok(others.length === 0, '★' + rel + ' に別の倍率の写しが無い', others.join(' / '));
+  }
+  {
+    const fx = read('pv-pay-fix.js');
+    const rpcs = fx.match(/\.rpc\(\s*['"][a-z_]+['"]/g) || [];
+    ok(rpcs.length === 1 && /my_pay_reports/.test(rpcs[0]),
+       '★pv-pay-fix.js が呼ぶのは my_pay_reports の1か所だけ', rpcs.join(' / '));
+    ok(!/createClient/.test(fx), '★クライアントを自分で作らない（ページの sb を借りる）');
+    ok(!/innerHTML\s*=(?!\s*ICON\b)/.test(fx),
+       '★innerHTML に入れるのは定数の絵だけ（外から来た文字は textContent）');
+    for (const rel of ['actual-pay.html', 'en/actual-pay.html', 'deep-pay.html', 'en/deep-pay.html',
+                       'deep-pay-compare.html', 'en/deep-pay-compare.html',
+                       'profile.html', 'en/profile.html']) {
+      ok(/<script src="(?:\.\.\/)?pv-pay-fix\.js\?v=[0-9a-f]{8}"><\/script>/.test(read(rel)),
+         '★' + rel + ' が pv-pay-fix.js を読んでいる');
+    }
+    for (const rel of ['pay-report.html', 'en/pay-report.html']) {
+      const src = read(rel);
+      ok(/localStorage\.removeItem\('pv_pay_fix'\)/.test(src),
+         '★' + rel + ' が提出のあと控えを消す（直したのにお願いが残らない）');
+      ok(/searchParams|URLSearchParams/.test(src) && /\.get\('ym'\)/.test(src),
+         '★' + rel + ' が ?ym= を読む（お願いのボタンが渡す対象月）');
+    }
+  }
+
+  /* 見本（作り物）。gross / net は月額。 */
+  const mine = (o) => Object.assign({ airline: 'emirates', airline_other: null,
+    period_year: 2026, period_month: 6, currency: 'AED', fx_to_jpy: 43,
+    gross_monthly: 30000, net_pay_actual: 61000, annual_total_usd: 98000 }, o || {});
+  const BAD1 = [mine()];
+  const POISON_AMT = /[¥$€£＄]|万|AED|30[,.]?000|61[,.]?000|98[,.]?000/;
+  const withMine = (base, rows) => Object.assign({}, base, { mine: rows });
+
+  /* 板が決着するまで待つ（時間で待たない）。返るのは出した月の数。 */
+  const settle = async (page) => {
+    await till(page, () => !!(window.PVPayFix && window.PVPayFix.ready));
+    return page.evaluate(() => window.PVPayFix.ready);
+  };
+  const FIX = () => {
+    const q = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+    const b = document.getElementById('pv-pay-fix');
+    const main = document.querySelector('.mr-main');
+    const gate = document.getElementById('mr-gate');
+    const r = b ? b.getBoundingClientRect() : null;
+    let store = null;
+    try { store = localStorage.getItem('pv_pay_fix'); } catch (e) {}
+    return {
+      n: q('#pv-pay-fix').length,
+      first: !!(b && main && main.firstElementChild === b),
+      afterGate: !!(b && gate && gate.nextElementSibling === b),
+      gate: !!gate,
+      role: b ? b.getAttribute('role') : '',
+      lab: b ? ((document.getElementById(b.getAttribute('aria-labelledby') || '') || {}).textContent || '') : '',
+      noCur: !!(b && b.classList.contains('pv-no-cur')),
+      cur: b ? q('.pv-cur', b).length : 0,
+      text: b ? b.innerText : '',
+      items: q('.pv-fix-i', b || document.createElement('i')).map((li) => ({
+        when: (li.querySelector('.pv-fix-w b') || {}).textContent || '',
+        name: (li.querySelector('.pv-fix-n') || {}).textContent || '',
+        href: (li.querySelector('a.pv-fix-b') || { getAttribute: () => '' }).getAttribute('href'),
+        cta: ((li.querySelector('a.pv-fix-b') || {}).textContent || '').trim(),
+        h: Math.round((li.querySelector('a.pv-fix-b') || li).getBoundingClientRect().height)
+      })),
+      tags: b ? q('img,script,iframe,svg:not(.pv-fix-ic)', b).length : 0,
+      xss: window.__xss === 1,
+      bg: b ? getComputedStyle(b).backgroundColor : '',
+      bl: b ? getComputedStyle(b).borderLeftWidth : '',
+      right: r ? Math.round(r.right) : 0, left: r ? Math.round(r.left) : 0,
+      vw: document.documentElement.clientWidth,
+      sw: document.documentElement.scrollWidth,
+      store: store,
+      calls: (window.__rpc || []).map((x) => x.name).filter((x) => x === 'my_pay_reports').length
+    };
+  };
+
+  for (const lang of ['ja', 'en']) {
+    const W = lang === 'ja'
+      ? { when: '2026年6月分', name: 'エミレーツ', cta: '匿名で', title: '確認が必要な月' }
+      : { when: 'June 2026', name: 'Emirates', cta: 'anonymously', title: 'needs a second look' };
+
+    for (const [name, base] of [['鍵がある人', OPEN], ['鍵が無い人', MASKED]]) {
+      console.log('\n════ ' + lang + ' / S-1 線を超えた月がある（' + name + '）════');
+      const { page, errs } = await open(lang, withMine(base, BAD1));
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 1 && v.n === 1, lang + '/' + name + ': ★★お願いの板が1枚出る', n + '/' + v.n);
+      ok(v.first, lang + '/' + name + ': ★本文のいちばん上に出る');
+      ok(v.role === 'status' && v.lab.indexOf(W.title) >= 0,
+         lang + '/' + name + ': 役割と見出しが読み上げに渡る', v.role + '/' + v.lab);
+      ok(v.items.length === 1 && v.items[0].when === W.when && v.items[0].name.indexOf(W.name) >= 0,
+         lang + '/' + name + ': ★対象月と社名が出る', JSON.stringify(v.items));
+      ok(!POISON_AMT.test(v.text) && v.cur === 0 && v.noCur,
+         lang + '/' + name + ': ★★金額が1文字も出ない（通貨切替の対象にもならない）', v.text);
+      ok(/^pay-report\.html\?airline=emirates&ym=2026-06#ps$/.test(v.items[0].href || ''),
+         lang + '/' + name + ': ★★ボタンの先が同じ会社・同じ月', v.items[0].href);
+      ok(v.items[0].cta.indexOf(W.cta) >= 0 && v.items[0].h >= 44,
+         lang + '/' + name + ': ボタンは「匿名で」・押せる高さ（44px 以上）',
+         v.items[0].cta + ' / ' + v.items[0].h);
+      ok(v.bg !== 'rgba(0, 0, 0, 0)' && v.bl === '3px',
+         lang + '/' + name + ': ★見た目が当たっている（素の文字で出ていない）', v.bg + ' / ' + v.bl);
+      ok(v.calls === 1 && v.store === null,
+         lang + '/' + name + ': ★★通信は1回・問題があった人は控えない', v.calls + ' / ' + v.store);
+      ok(v.sw <= v.vw + 1, lang + '/' + name + ': 横に溢れない', v.sw + ' > ' + v.vw);
+
+      /* もう一度開いても読み直す（控えていない＝直した次の画面で必ず消える）。 */
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const n2 = await settle(page);
+      const v2 = await page.evaluate(FIX);
+      ok(n2 === 1 && v2.calls === 1, lang + '/' + name + ': ★開き直すたびに読み直す', n2 + '/' + v2.calls);
+
+      /* 狭い幅。 */
+      await page.setViewport({ width: 390, height: 844 });
+      await till(page, () => document.documentElement.clientWidth <= 400);
+      const m = await page.evaluate(FIX);
+      ok(m.n === 1 && m.right <= m.vw + 1 && m.left >= 0 && m.sw <= m.vw + 1,
+         lang + '/' + name + ': ★390px でも板がはみ出さない',
+         JSON.stringify({ l: m.left, r: m.right, vw: m.vw, sw: m.sw }));
+      ok(errs.length === 0, lang + '/' + name + ': ページのエラーが1件も出ない', errs.join(' | '));
+    }
+
+    console.log('\n════ ' + lang + ' / S-2 出さない相手 ════');
+    for (const [name, rows] of [
+      ['同額', [mine({ net_pay_actual: 30000 })]],
+      ['5% ちょうど', [mine({ net_pay_actual: 31500 })]],
+      ['手取りが空', [mine({ net_pay_actual: null })]],
+      ['総支給が空', [mine({ gross_monthly: null })]],
+      ['ふつうの月', [mine({ net_pay_actual: 24000 })]],
+      ['提出が1件も無い', []]]) {
+      const { page, errs } = await open(lang, withMine(OPEN, rows));
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 0 && v.n === 0, lang + '/' + name + ': ★板は出ない', n + '/' + v.n);
+      ok(errs.length === 0, lang + '/' + name + ': ページのエラーが1件も出ない', errs.join(' | '));
+    }
+    {
+      const { page } = await open(lang, withMine(OPEN, [mine({ net_pay_actual: 31501 })]));
+      ok((await settle(page)) === 1, lang + ': ★5% を1でも超えたら出る（線は × 1.05 の1本）');
+    }
+    {
+      /* 未ログイン。毒として本人の行を渡しておく ── 呼べば板が出てしまう形。 */
+      const { page, errs } = await open(lang, withMine(MASKED, BAD1), { anon: true });
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 0 && v.n === 0 && v.calls === 0 && v.store === null,
+         lang + ': ★★未ログインでは出ない・1本も投げない・何も控えない',
+         n + '/' + v.n + '/' + v.calls + '/' + v.store);
+      ok(errs.length === 0, lang + '/未ログイン: ページのエラーが1件も出ない', errs.join(' | '));
+    }
+
+    console.log('\n════ ' + lang + ' / S-3 控え（問題なしだけ・24時間）════');
+    {
+      const { page } = await open(lang, withMine(OPEN, [mine({ net_pay_actual: 24000 })]));
+      await settle(page);
+      const a = await page.evaluate(FIX);
+      let c = null;
+      try { c = JSON.parse(a.store); } catch (e) {}
+      ok(a.calls === 1 && !!c && Object.keys(c).sort().join(',') === 't,u',
+         lang + ': ★★控えに入るのは会員の ID と時刻だけ（会社も月も金額も無い）', a.store);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await settle(page);
+      const b = await page.evaluate(FIX);
+      ok(b.calls === 0 && b.n === 0, lang + ': ★控えが新しいあいだは投げない', String(b.calls));
+
+      /* 別の会員の控えは使わない（同じ端末でアカウントを替えた人）。 */
+      await page.evaluate(() => {
+        const o = JSON.parse(localStorage.getItem('pv_pay_fix'));
+        o.u = '00000000-0000-4000-8000-00000000ffff';
+        localStorage.setItem('pv_pay_fix', JSON.stringify(o));
+      });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await settle(page);
+      ok((await page.evaluate(FIX)).calls === 1, lang + ': ★別の会員の控えは使わない');
+
+      /* 古い控えは使わない。 */
+      await page.evaluate(() => {
+        const o = JSON.parse(localStorage.getItem('pv_pay_fix'));
+        o.t = Date.now() - 25 * 60 * 60 * 1000;
+        localStorage.setItem('pv_pay_fix', JSON.stringify(o));
+      });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await settle(page);
+      ok((await page.evaluate(FIX)).calls === 1, lang + ': ★24時間を過ぎた控えは使わない');
+    }
+
+    console.log('\n════ ' + lang + ' / S-4 並び・重なり・打ち込まれた社名 ════');
+    {
+      const EVIL = '<img src=x onerror="window.__xss=1">';
+      const rows = [];
+      for (let mo = 1; mo <= 8; mo++) rows.push(mine({ airline: 'ana', period_month: mo }));
+      rows.push(mine({ airline: 'ana', period_month: 8 }));                 // 同じ月が2行
+      rows.push(mine({ airline: 'other', airline_other: EVIL, period_year: 2025, period_month: 12 }));
+      const { page, errs } = await open(lang, withMine(OPEN, rows));
+      const n = await settle(page);
+      const v = await page.evaluate(FIX);
+      ok(n === 6 && v.items.length === 6, lang + ': ★並べるのは6つまで', n + '/' + v.items.length);
+      const yms = v.items.map((i) => (i.href.match(/ym=(\d{4}-\d{2})/) || [])[1]);
+      ok(yms.join(',') === '2026-08,2026-07,2026-06,2026-05,2026-04,2026-03',
+         lang + ': ★新しい月から・同じ月は1つに畳む', yms.join(','));
+      ok(errs.length === 0, lang + ': ページのエラーが1件も出ない', errs.join(' | '));
+
+      const o = await open(lang, withMine(OPEN,
+        [mine({ airline: 'other', airline_other: EVIL, period_year: 2025, period_month: 12 })]));
+      await settle(o.page);
+      const x = await o.page.evaluate(FIX);
+      ok(x.items.length === 1 && x.items[0].name === EVIL && x.tags === 0 && !x.xss,
+         lang + ': ★★打ち込まれた社名は文字のまま出る（HTML として入らない）',
+         JSON.stringify([x.items[0] && x.items[0].name, x.tags, x.xss]));
+      ok((x.items[0].href || '') === 'pay-report.html?airline=' + encodeURIComponent(EVIL) + '&ym=2025-12#ps',
+         lang + ': ★一覧に無い会社は社名を渡す（フォームが「その他」＋社名へ入れる）', x.items[0].href);
+    }
+
+    console.log('\n════ ' + lang + ' / S-5 錠前の案内が開いたら、その下 ════');
+    {
+      /* ★2026-10-11 から、製品の中に説明のパネル（#mr-gate）を開く所は無い
+           （3段の表の DEEP PAY の札を外した）。仕掛けは VERIFIED PAY のために残して
+           あるので、口（PVGates.open）から開いて、並びの約束が腐っていないことを見る。 */
+      const { page, errs } = await open(lang, withMine(LOCKED_ST, BAD1));
+      await settle(page);
+      const opened = await page.evaluate(() => {
+        if (!window.PVGates || !window.PVGates.open) return false;
+        window.PVGates.open('verified');
+        return true;
+      });
+      ok(opened, lang + ': 前提：説明を開く口（PVGates.open）が在る');
+      await till(page, () => !!document.getElementById('mr-gate'));
+      const v = await page.evaluate(FIX);
+      const order = await page.evaluate(() => {
+        const g = document.getElementById('mr-gate'), b = document.getElementById('pv-pay-fix');
+        return (g && b) ? [Math.round(g.getBoundingClientRect().top), Math.round(b.getBoundingClientRect().top)] : null;
+      });
+      ok(v.n === 1 && v.gate && !!order && order[0] < order[1],
+         lang + ': ★錠前の案内が先・お願いはその下（開いた説明を先に読ませる）',
+         JSON.stringify(order));
+      ok(errs.length === 0, lang + ': ページのエラーが1件も出ない', errs.join(' | '));
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// T. REAL PAY ⇄ DEEP PAY のタブ（2026-10-11・オーナー指示）
+// ════════════════════════════════════════════════════════════════
+/* 「上の REAL PAY の横に DEEP PAY の入り口作って。タブみたいな形に」。
+   この画面では REAL PAY がいま居る側（<h1>）、DEEP PAY が入口（リンク）。字面は上の
+   「タブ（字面）」。ここは実物で見る：
+
+     在る   … タブが2つ・並びは REAL PAY → DEEP PAY・<h1> は画面に1つ・本文の
+              aria-current は REAL PAY の1つ（左メニューの印は別に1つ在る）
+     行き先 … DEEP PAY のリンクは、その言語の deep-pay.html に解ける。本物のマウスで
+              押して着くところまで見る（鍵がある人）
+     誰にでも … 鍵がある人・鍵が無い人（伏せた一覧）・未ログインの人（プレビュー）の
+              どの画面でも同じタブ。⚠️ ここで出し分けない ── 開くかどうかを決めるのは
+              サーバで、まだ開かない人には DEEP PAY の画面が何が残っているかを見せる
+     押せる … タブのまんなかを押して当たるのがタブ自身。リンクの的は縦 44px 以上
+     収まる … 320 / 390 / 1440 のどの幅でも1行・窓の中・横スクロールが生えない
+     場所   … 見出しの場所（絞り込みと一覧より上）。「開いたらすぐ一覧」を崩さない ──
+              タブの行は 48px より低い（前の見出し1行と同じくらい）
+     色     … いま居る側は濃い字＋橙の下線、もう片方は薄い字で下線は畳んである。
+              暗い面では字の色が明るい面と違う（トークンが切り替わっている）
+   ★TABS は assert-deep-pay.mjs の §0 と**同じ本体**（あちらは DEEP PAY の側を見る）。
+     片方だけ緩めない。
+   ⚠️ 時間で待たない。幅は「本当にその幅になった」で待つ。 */
+{
+  const TABS = () => {
+    const vw = document.documentElement.clientWidth;
+    const nav = document.querySelector('#dp-hd > nav.pv-paytabs, #ap-hd > nav.pv-paytabs');
+    const o = { vw, nav: !!nav, h1s: document.querySelectorAll('h1').length,
+                over: document.documentElement.scrollWidth - vw,
+                conds: document.querySelectorAll('#dp-hd .dp-cond').length };
+    if (!nav) return o;
+    window.scrollTo(0, 0);
+    const kids = [...nav.children];
+    const cur = nav.querySelector('[aria-current="page"]');
+    const link = nav.querySelector('a.pv-paytab');
+    o.label = nav.getAttribute('aria-label') || '';
+    o.order = kids.map((k) => k.tagName.toLowerCase() + ':' + k.textContent.trim()).join(' | ');
+    o.curs = document.querySelectorAll('.mr-main [aria-current]').length;
+    o.cur = cur ? cur.tagName.toLowerCase() + ':' + cur.textContent.trim() : '';
+    o.href = link ? link.getAttribute('href') : '';
+    o.to = link ? new URL(link.getAttribute('href'), location.href).pathname : '';
+    if (!cur || !link || kids.length !== 2) return o;
+    const rs = kids.map((k) => k.getBoundingClientRect());
+    /* 1行 ＝ 2つの下端がそろっていて、左のタブの右に右のタブが居る。折れると高さが倍になる。 */
+    o.oneLine = Math.abs(rs[0].bottom - rs[1].bottom) <= 1 && rs[0].right <= rs[1].left
+      && rs.every((r) => r.height < 2 * parseFloat(getComputedStyle(kids[0]).fontSize));
+    o.inView = rs.every((r) => r.left >= 0 && r.right <= vw + 0.5 && r.width > 0 && r.height > 0);
+    const at = (x, y) => document.elementFromPoint(x, y);
+    const mid = (r) => [(r.left + r.right) / 2, (r.top + r.bottom) / 2];
+    o.hit = kids.map((k, i) => { const t = at.apply(null, mid(rs[i])); return !!t && (t === k || k.contains(t)); });
+    /* 的の高さ ── リンクのまんなかの縦の線を 1px ずつ下りて、リンクに当たる点を数える。 */
+    const lr = link.getBoundingClientRect();
+    let tall = 0;
+    for (let y = Math.floor(lr.top) - 12; y <= Math.ceil(lr.bottom) + 12; y++) {
+      if (y < 0) continue;
+      const t = at((lr.left + lr.right) / 2, y + 0.5);
+      if (t && (t === link || link.contains(t))) tall++;
+    }
+    o.target = tall;
+    const stage = document.querySelector('.dp-stage');
+    o.stage = !!stage;
+    o.aboveStage = stage ? Math.round(stage.getBoundingClientRect().top - nav.getBoundingClientRect().bottom) : null;
+    const cc = getComputedStyle(cur), lc = getComputedStyle(link);
+    const bar = (e) => getComputedStyle(e, '::after');
+    o.cCur = cc.color; o.cLink = lc.color;
+    o.barOn = bar(cur).transform; o.barOff = bar(link).transform;
+    o.barBg = bar(cur).backgroundColor; o.barH = bar(cur).height;
+    o.moves = lc.transitionProperty.replace(/\s+/g, '');
+    o.deco = lc.textDecorationLine;
+    o.size = [cc.fontSize, lc.fontSize, cc.fontWeight, lc.fontWeight].join('/');
+    return o;
+  };
+  /* この画面だけの置き場所（タブ → 絞り込み → 一覧）。居ないもの・隠れているものは null。 */
+  const PLACE = () => {
+    const top = (e) => (!e || !e.getClientRects().length) ? null : Math.round(e.getBoundingClientRect().top);
+    const nav = document.querySelector('#ap-hd > nav.pv-paytabs');
+    const r = nav ? nav.getBoundingClientRect() : null;
+    const first = document.querySelector('.mr-main').firstElementChild;
+    return { navH: r ? Math.round(r.height) : null, navBottom: r ? Math.round(r.bottom) : null,
+             filter: top(document.getElementById('ap-filter')), rows: top(document.getElementById('ap-rows')),
+             first: first ? (first.id || first.className) : '',
+             inHd: !!(nav && nav.parentNode && nav.parentNode.id === 'ap-hd'),
+             skel: document.querySelectorAll('#ap-hd .mr-skel').length };
+  };
+  const WIDTHS = [1440, 390, 320];
+  /* ★幅を変えた直後は測らない。広い幅の左メニューは、狭い幅では右の外へ滑っていく板に
+       なる（320ms・そのあいだは見えたまま）。滑っている板がタブの上を通るので、待たずに
+       当たり判定を見ると「タブの上に左メニューが乗っている」という嘘の赤になる
+       （assert-deep-pay.mjs の §0 で実際に踏んだ）。sideStill は「板が止まった」で待つ。 */
+  const at = async (page, w) => {
+    await page.setViewport({ width: w, height: 900 });
+    await page.waitForFunction((x) => innerWidth === x, { timeout: 10000 }, w);
+    await sideStill(page);
+    return { t: await page.evaluate(TABS), p: await page.evaluate(PLACE) };
+  };
+
+  for (const lang of ['ja', 'en']) {
+    const to = (lang === 'en' ? '/en/' : '/') + 'deep-pay.html';
+    const ink = {};
+    for (const theme of ['light', 'dark']) {
+      for (const [name, payload, anon] of [['鍵がある人', OPEN, false], ['鍵が無い人', MASKED, false],
+                                           ['未ログイン', LOCKED, true]]) {
+        /* 暗い面は、形のいちばん多い「鍵がある人」だけで足りる（色はどの画面でも同じ規則）。 */
+        if (theme === 'dark' && name !== '鍵がある人') continue;
+        console.log(`\n════ ${lang} / T タブ（${name}・${theme}）════`);
+        const { page, errs } = await open(lang, payload, { anon: anon, theme: theme });
+        for (const w of WIDTHS) {
+          const { t, p } = await at(page, w);
+          const tag = `${lang}/${theme}/${name}/${w}`;
+          ok(t.nav && t.order === 'h1:REAL PAY | a:DEEP PAY',
+             `${tag}: ★★タブが2つ・並びは REAL PAY（h1）→ DEEP PAY（リンク）`, t.order || '（タブが無い）');
+          ok(t.h1s === 1 && t.cur === 'h1:REAL PAY' && t.curs === 1,
+             `${tag}: ★<h1> は画面に1つ・本文の aria-current は REAL PAY の1つだけ`,
+             `h1 ${t.h1s} / ${t.cur} / ${t.curs}`);
+          ok(t.label === TAB_LABEL[lang], `${tag}: ナビの名前が読み上げに渡る`, t.label);
+          ok(t.href === 'deep-pay.html' && t.to === to,
+             `${tag}: ★★DEEP PAY のリンクが、その言語の DEEP PAY に解ける`, `${t.href} → ${t.to}`);
+          ok(t.oneLine === true && t.inView === true && t.over <= 0,
+             `${tag}: ★★1行に入り、窓の中に居て、横スクロールが生えない`,
+             `1行=${t.oneLine} 窓の中=${t.inView} はみ出し=${t.over}px（幅 ${t.vw}）`);
+          ok(Array.isArray(t.hit) && t.hit.every(Boolean),
+             `${tag}: ★★タブのまんなかを押して当たるのはタブ自身（上に何も乗っていない）`,
+             JSON.stringify(t.hit));
+          ok(t.target >= 44, `${tag}: ★リンクの的は縦 44px 以上`, `${t.target}px`);
+          ok(t.cCur !== t.cLink && t.barOn === 'none' && /^matrix\(0,/.test(t.barOff)
+             && !/rgba\(0, 0, 0, 0\)|transparent/.test(t.barBg) && t.barH === '3px',
+             `${tag}: ★いま居る側だけが濃い字＋橙の下線（もう片方の下線は畳んである）`,
+             `${t.cCur} / ${t.cLink} / ${t.barOn} / ${t.barOff} / ${t.barBg} ${t.barH}`);
+          ok(t.moves === 'transform,opacity' && t.deco === 'none',
+             `${tag}: ★動かすのは transform と opacity だけ・下線は自前（ブラウザの下線が出ていない）`,
+             `${t.moves} / ${t.deco}`);
+          ok(p.inHd && p.skel === 0 && p.navH !== null && p.navH < 48
+             && (p.filter === null || p.navBottom <= p.filter) && p.rows !== null && p.navBottom <= p.rows,
+             `${tag}: ★★タブは見出しの場所（絞り込みと一覧より上）・行は 48px より低い`,
+             JSON.stringify(p));
+          if (w === 1440 && name === '鍵がある人') ink[theme] = t.cCur;
+        }
+        /* ★JS が動いたあとも、タブは HTML に在った要素のまま（書き換えられていない）。
+             行を押して面を開いても <h1> は1つ（面の見出しは h3）。 */
+        if (name === '鍵がある人') {
+          const dw = await page.evaluate(async () => {
+            const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+            const b = document.querySelector('#ap-rows .ap-go');
+            if (b) b.click();
+            await sleep(420);
+            const out = { open: document.querySelectorAll('.ap-dw-back').length,
+                          h1s: document.querySelectorAll('h1').length,
+                          tabs: document.querySelectorAll('.pv-paytab').length };
+            const x = document.querySelector('.ap-dw-x'); if (x) x.click();
+            await sleep(420);
+            return out;
+          });
+          ok(dw.open === 1 && dw.h1s === 1 && dw.tabs === 2,
+             `${lang}/${theme}: ★面を開いても <h1> は1つ・タブは2つのまま`, JSON.stringify(dw));
+        }
+        ok(errs.length === 0, `${lang}/${theme}/${name}: ページのエラーが1件も出ない`, errs.join(' | '));
+        /* ★本物のマウスで押す（当たり判定そのもの）。いちばん狭い幅（320）のまま。
+             ⚠️ この先は別の画面なので、エラーの数え上げは上で済ませてある。 */
+        if (theme === 'light' && name === '鍵がある人') {
+          await Promise.all([
+            page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {}),
+            page.click('#ap-hd a.pv-paytab')
+          ]);
+          const landed = await page.evaluate(() => location.pathname);
+          ok(landed === to, `${lang}: ★★タブを押すと DEEP PAY へ着く`, landed);
+        }
+      }
+    }
+    ok(!!ink.light && !!ink.dark && ink.light !== ink.dark,
+       `${lang}: ★暗い面では、いま居る側の字の色が明るい面と違う（トークンが切り替わっている）`,
+       `${ink.light} / ${ink.dark}`);
   }
 }
 

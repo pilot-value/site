@@ -384,9 +384,11 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .pd-none{margin-top:10px;padding:7px 12px;font-size:.78rem}
 /* ── 内訳の欄の左のレール（2026-09-03 その3・オーナー指示
      「入力するべきところが文字だけじゃわかりづらい」）─────────────
-   ⚠️ .fld.is-req（必須の印）とは**別物**。内訳の欄に req-tag を足さない
-      ── 足した瞬間、「該当なし」を選んだ人が送信できなくなる
-      （CLAUDE.md 給与フォームの鉄則6）。だから印だけ借りて、必須の勘定には入れない。
+   ⚠️ .fld.is-req（必須の印）とは**別物**。印だけ借りて、必須の勘定には入れない。
+      ★2026-10-08 から、内訳のうち**基本給と変動給だけ**は必須（オーナー指示）。
+        どちらも「該当なし」を答えに数える。それ以外の内訳と役割ごとの節には
+        req-tag を足さない ── 足した瞬間、「なし」を選んだ人が送信できなくなる
+        （CLAUDE.md 給与フォームの鉄則6）。
    ⚠️ .is-done も借りない（あれは markRequired() の持ち物で、必須の数を数えている）。
    ★色は2種類 ── REAL PAY の門になる3つ（基本給・保証手当・変動給）はオレンジ、
      ほかの内訳は中立の灰。どちらも埋まれば緑。
@@ -399,6 +401,15 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .is-rail.is-rail-done::before{background:rgba(52,211,153,.45)}
 @media (prefers-reduced-motion:reduce){.is-rail::before{transition:none}}
 .pd-block{margin-bottom:16px}
+/* ★変動給は**見出しだけ**が必須の欄（2026-10-08）。答えは下の行の中にある。
+   ・見出しは箱と同じ左端に居る＝必須のレールを引くと、箱のレールと同じ場所に2本重なる。
+     引くのは箱の1本だけ。
+   ・「未入力」で止めたときは、箱のレールと金額の欄を赤くする
+     （見出しの中に入力が無いので、.fld.is-miss .form-input では何も赤くならない）。 */
+.pd-block>.fld.is-req::before{content:none}
+.pd-block:has(>.fld.is-miss)::before{background:rgba(239,68,68,.7)}
+.pd-block:has(>.fld.is-miss) .pd-amt:not(:disabled){border-color:rgba(239,68,68,.7);background:rgba(239,68,68,.06);
+  box-shadow:0 0 0 3px rgba(239,68,68,.13)}
 .pd-rows{display:flex;flex-direction:column;gap:12px;margin:12px 0}
 .pd-row{position:relative;padding:14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09)}
 .pd-row>.fld{margin-bottom:12px}
@@ -1101,6 +1112,9 @@ body.has-cta #form-wrap{padding-bottom:120px}
 [data-theme="light"] .fld.is-miss .form-input:focus-visible{outline-color:rgba(220,38,38,.45)}
 [data-theme="light"] .fld.is-miss .roleboxes{outline-color:rgba(220,38,38,.4)}
 [data-theme="light"] .fld.is-req.is-miss::before{background:rgba(220,38,38,.65)}
+[data-theme="light"] .pd-block:has(>.fld.is-miss)::before{background:rgba(220,38,38,.65)}
+[data-theme="light"] .pd-block:has(>.fld.is-miss) .pd-amt:not(:disabled){border-color:rgba(220,38,38,.65);background:rgba(220,38,38,.05);
+  box-shadow:0 0 0 3px rgba(220,38,38,.1)}
 [data-theme="light"] .res{background:radial-gradient(130% 170% at 0% 0%,rgba(16,140,100,.12),transparent 60%),rgba(255,255,255,.88);border-color:rgba(16,140,100,.28)}
 /* 明るいテーマだと金の放射が白地に溶ける。線と影だけ濃くする（形は同じ）。 */
 [data-theme="light"] .res-pop{background:radial-gradient(120% 120% at 30% 20%,rgba(245,200,66,.45),rgba(13,138,99,.10) 62%,transparent);border-color:rgba(169,126,0,.32);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 6px 16px -8px rgba(169,126,0,.34),0 18px 36px -24px rgba(13,138,99,.42)}

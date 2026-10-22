@@ -3129,7 +3129,7 @@ comment on function public.pv_stay_viewer_decide(jsonb) is
 -- オーナー指示（2026-10-16）「オーナーの管理画面で申請してきた人一覧と、会員一覧の中にボタンで
 --   verified ボタンをつけて。基本的に申請してきた人は、パイロットと証明する画像提出必要」
 --   「運営はおれしかいない」── 申請者・画像・verified はオーナーだけ。
--- ★ 画像の置き場は前からある仕組み（db/proof-store.sql ＋ db/proof-offer.sql の4本）。
+-- ★ 画像の置き場は前からある仕組み（db/pilot-proof.sql ＋ db/proof-offer.sql の4本）。
 --   ここは画像の表を1回も読まない・書かない。
 -- ★ 申請は何も止めない（REAL PAY・DEEP PAY・口コミ本文・ホテルの追加・いま見られているもの）。
 -- ★ 見てよい人になるのは、オーナーが verified を押したときだけ（pv_stay_viewers に 'approved'・

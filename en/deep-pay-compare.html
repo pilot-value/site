@@ -6,7 +6,16 @@
 <link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- 明細まで出した人だけが読める画面。ログインが要るので検索に出してはいけない -->
+  <!-- ★★いまは閉じている（2026-10-12・オーナー判断「会社比較はまだ出さないでよ」）。
+       この住所を直に開いても、出るのは「会社比較は準備中です」の板1枚だけ ── 誰が来ても同じで、
+       サーバにも聞かない。決めているのは deep-pay-compare.js のいちばん上の COMPARE_OPEN。
+       この HTML は**出す日のまま**置いてある（下の器も、読み込む部品も変えていない）。
+       以下の注は、出した日に動く画面の話。
+       給与の項目をぜんぶ答えた人だけが読める画面（2026-10-11 から。前は「内訳を1件でも出した人」）。
+       ★ログインしていない人にも画面は開く（2026-10-11・オーナー判断。前はログイン画面へ
+         送っていた）。出るのは、まだ開いていない会員と同じ「ぼかした影絵＋板」だけで、
+         数字は1つも渡さない（サーバにも聞かない）。
+       数字が出るのはログインして条件を満たした人だけなので、検索に出してはいけない（noindex のまま） -->
   <title>Compare Airlines — DEEP PAY | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="Compare Airlines — DEEP PAY" d="Pick two airlines and read median pay, the pay mix and the flying behind it side by side. No ranking, and no individual payslip is ever shown."-->
@@ -54,10 +63,10 @@
   <link rel="stylesheet" href="../app-nav.css">
   <!-- ★DEEP PAY 本体の見た目をそのまま借りる。ピッカー（.dp-pick-*）・条件バー（.dp-cond）・
        案内カード（.dp-msg）・段組み（.dp-row）は写さずここから使う。写すとドリフトする。 -->
-  <link rel="stylesheet" href="../deep-pay.css">
+  <link rel="stylesheet" href="../deep-pay.css?v=75aac8cc">
   <!-- この画面だけの見た目（.dc-*）。
        ★.pt-* / .mv-* / .mr-* をトップレベルで書き直さない（db/test-form-contract.mjs が見ている）。 -->
-  <link rel="stylesheet" href="../deep-pay-compare.css">
+  <link rel="stylesheet" href="../deep-pay-compare.css?v=3cfb7d8d">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -173,20 +182,21 @@
             <div class="mr-skel" style="height:30px;width:46%"></div>
           </div>
 
-          <!-- いま見ている条件の1行（◯人 vs ◯人 / 直近24か月） -->
+          <!-- いま見ている条件の1行（役職 / 直近24か月）。人数は出さない -->
           <div id="dc-cond"></div>
         </div>
 
         <!-- 2社を選ぶ（会社A / 会社B / 役職 / 機材）。役職と機材は左右で共通。
              ★2社そろうまで何も出さない。片方だけでは比較にならない。
-             ★3人に満たない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
-                ここで人数を数えたり隠したりしない。 -->
+             ★データが足りない区分を伏せるのは SQL（db/deep-pay.sql）だけの仕事。
+                壁が何人かは画面のどこにも書かない。ここで人数を数えたり隠したりしない。 -->
         <div class="dp-pick" id="dc-pick" hidden></div>
 
         <!-- 案内の置き場（読み込み中の骨・鍵・「区分を選んでください」・「別の会社を」）
              と、2社のカード。
              ★カードが出るのは**片側が薄いときだけ**（2026-08-31）。両方読めるときは
-                ロゴ・社名・人数を表の見出し行が受け持ち、ここは空で隠れる。
+                ロゴ・社名・信頼度の札を表の見出し行が受け持ち、ここは空で隠れる
+                （人数は 2026-10-11 から画面のどこにも出さない）。
                 同じ数字を表の上にもう一度並べていたのをやめて 153px 減らした。
              ⚠️ 消し切らないこと。**片側だけ薄いとき、読める側の数字はここにしか出ない**
                 （表は片側が薄いと丸ごと畳む）。「その側だけ出せません」の約束はこの1枚。 -->
@@ -223,17 +233,17 @@
     applyTheme(localStorage.getItem('pv-theme')||'light');
     document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 
-    /* ★ pv_deep_pay() は未ログインだと 42501 で落ちる。エラー文言を出すのではなく
-         ログインへ送る（login.html の safePath() は pathname + search + hash を返す）。
+    /* ★ログインしていない人を、ログイン画面へ**送らない**（2026-10-11・オーナー判断）。
+         DEEP PAY には公開の入口が在る（REAL PAY の見出しのタブ ── あちらは未ログインの人にも
+         見える）。前はここで login.html?redirect=… へ送っていた。いまは null を返すだけで、
+         deep-pay-compare.js が「会員で、まだ開いていない人」と同じ画面（ぼかした影絵＋板）を出す。
+       ⚠️ pv_deep_pay() は未ログインだと 42501 で落ちる。だから deep-pay-compare.js は、ここが
+          null を返した人のために**サーバへ1本も聞かない**（板は聞かずに描ける）。
+       ⚠️ ここに行き先を書き足さない（ログインしたい人には、左メニューの「ログイン」が在る）。
        deep-pay-compare.js はこの Promise を待ってから RPC を撃つ＝二重に走らない。 */
     window.PV_SESSION = (async function () {
       const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html?redirect='
-          + encodeURIComponent('deep-pay-compare.html' + (window.location.search || '') + (window.location.hash || ''));
-        return null;
-      }
-      return session;
+      return session || null;
     }());
   </script>
 
@@ -254,12 +264,20 @@
 <script src="../airline-logos.js"></script>
 <!-- ★絵の実体はここ1か所だけ。色（PVViz.SEG）もここから借りる。 -->
 <script src="../pay-viz.js"></script>
-<script src="../deep-pay-compare.js"></script>
+<!-- ★?v= is a fingerprint of the file (since 2026-10-11 this page's own CSS and JS carry one —
+       deep-pay.css / deep-pay-compare.css / deep-pay-compare.js).
+     Change one → copy the value assert-links.mjs prints to every page that loads it
+     (deep-pay.css: all 4 pages, 2 screens × ja/en; the others: the ja/en pair). -->
+<script src="../deep-pay-compare.js?v=4813f593"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix
        (the rule, and how it avoids extra requests, is at the top of pv-pay-fix.js).
      ★Reads this page's PV_SESSION and sb, so it must load **after** them.
+     ★While the comparison is closed (since 2026-10-12) the notice does not appear on this
+       page either: deep-pay-compare.js, just above, replaces PV_SESSION with "nobody" before
+       it stops, so this script requests nothing and stores nothing. Keep the tag — it comes
+       back by itself on the day the comparison opens.
      ★?v= is a fingerprint of the file. Change the file → copy it to all 8 pages
        (4 screens × ja/en; assert-links.mjs checks). -->
 <script src="../pv-pay-fix.js?v=c3f06489"></script>

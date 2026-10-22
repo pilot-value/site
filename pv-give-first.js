@@ -170,6 +170,11 @@
   }
 
   function open() {
+    /* パイロットであることの確認を求められている会員には出さない（2026-10-13）。
+       pv-session.js の giveFirstDue も同じことを見ているが、あちらが見た時点では
+       まだサーバの答えが届いていないことがある（ログイン直後の1ページ目）。 */
+    if (w.PVSession && typeof w.PVSession.proofDue === 'function'
+        && w.PVSession.proofDue() === 'show') return;
     if (back) return;
     if (!w.PVGates || typeof w.PVGates.giveGetHTML !== 'function') return;
     if (contribBusy()) { w.setTimeout(open, 800); return; }
