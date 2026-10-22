@@ -125,6 +125,8 @@ function rpcGate(req, name, st) {
   const p = b && typeof b === 'object' && 'p' in b ? b.p : b;
   const auth = req.headers().authorization || null;
   st.calls.push({ name, p, auth });
+  /* holdIf（名前と送った p で選ぶ）：どの関数でも、その1本を止めておく（release で答える）。返事の stub より先に見る */
+  if (st.holdIf && st.holdIf(name, p)) { (st.held[name] = st.held[name] || []).push(req); return undefined; }
   if (st.mode !== 'mock') return req.continue();
   const s = st.stub[name];
   if (s != null) {
@@ -143,6 +145,8 @@ function gate(req, origin, st) {
   let u;
   try { u = new URL(req.url()); } catch { return req.continue(); }
   if (!isWeb(u)) return req.continue();        // data: blob: about:
+  /* holdUrl（住所で選ぶ）：部品の配信元（LIBS）への要求も、答えずに止めておける（st.heldUrl。答えるのは場面の側） */
+  if (st.holdUrl && st.holdUrl(u.href)) { st.heldUrl.push(req); return undefined; }
   if (u.origin === origin) {
     const m = u.pathname.match(/^\/rest\/v1\/rpc\/([a-z0-9_]+)$/);
     if (m) return rpcGate(req, m[1], st);
@@ -180,8 +184,14 @@ function watchNet(page, origin, st) {
    who  = serve-local.mjs の MEMBERS の key（null ＝ ログインしていない人）。ページのどのスクリプトよりも先にログインを置き、
           Give → Get の板は「さっき見た」ことにする（local-chain.mjs の open と同じ置き方。板ではなく、その下の画面を見る）。
    mode = 'mock'（返事は stub が作る）| 'local'（手元の SQL が答える）
-   st   = { mode, stub, calls: [{ name, p, auth }], unknown, foreign, supa, blocked, through, held, inflight, errs } */
-export async function open(browser, local, sizeKey, { who = null, mode = 'mock', stub = {}, url = '/career.html?view=compare&a=jal&b=ana' } = {}) {
+   url  = 手元の住所（/ から。会社のページ・カードの画面も）
+   holdIf  = (name, p) → true のとき、その関数の呼び出しを答えずに止めておく（st.held[name]。release で答える）。名前を問わない
+   holdUrl = (href) → true のとき、その住所への要求（部品の配信元も）を答えずに止めておく（st.heldUrl。答える・切るのは場面の側）
+   before  = ページのどのスクリプトよりも先に流す関数（evaluateOnNewDocument。場面の書き留め役を置く）
+   st   = { mode, stub, calls: [{ name, p, auth }], unknown, foreign, supa, blocked, through, held, heldUrl, holdIf, holdUrl,
+            inflight, errs } */
+export async function open(browser, local, sizeKey, { who = null, mode = 'mock', stub = {}, url = '/career.html?view=compare&a=jal&b=ana',
+  holdIf = null, holdUrl = null, before = null } = {}) {
   const size = SIZES[sizeKey];
   if (!size) throw new Error('知らない大きさ: ' + sizeKey);
   const [w, h, touch] = size;
@@ -189,7 +199,8 @@ export async function open(browser, local, sizeKey, { who = null, mode = 'mock',
   const ctx = await browser.createBrowserContext();
   const page = await ctx.newPage();
   const st = { mode, stub: { ...BASE_STUB, ...stub }, calls: [], unknown: [], foreign: [], supa: [], blocked: [], through: [],
-    held: {}, inflight: new Map(), errs: [] };
+    held: {}, heldUrl: [], holdIf, holdUrl, inflight: new Map(), errs: [] };
+  if (before) await page.evaluateOnNewDocument(before);
   page.setDefaultTimeout(20000);
   await page.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: !!touch, hasTouch: !!touch });
   watchNet(page, origin, st);

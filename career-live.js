@@ -268,11 +268,25 @@
   }
 
   /* ── 取ってくる側（同じ答えは使い回す。落ちたものだけ捨てる＝やり直せる）──── */
+  /* 1本の通信に上限を置く（数え直しではない。上限で切れたら「いま読み出せません」。自動では聞き直さない）。 */
+  var REQ_LIMIT_MS = 15000;
+  function limited(build) {
+    var ctrl = (typeof AbortController === 'function') ? new AbortController() : null, t = 0;
+    var p = new Promise(function (res, rej) {
+      t = setTimeout(function () { try { if (ctrl) ctrl.abort(); } catch (e) {} rej(fail('error')); }, REQ_LIMIT_MS);
+      Promise.resolve(build(ctrl ? ctrl.signal : null)).then(res, rej);
+    });
+    var done = function () { clearTimeout(t); };
+    p.then(done, done);
+    return p;
+  }
+  /* 上限で切るときに、その通信を本当に止める（supabase-js の abortSignal。無い版では、待つのをやめるだけ）。 */
+  function cut(q, sig) { return (sig && q && typeof q.abortSignal === 'function') ? q.abortSignal(sig) : q; }
   var cache = {};
   function once(key, fn) {
     if (cache[key]) return cache[key];
     var p;
-    try { p = Promise.resolve(fn()); } catch (e) { p = Promise.reject(e); }
+    p = limited(fn);
     cache[key] = p;
     /* 落ちた答えは持ち越さない（やり直せる）。「口がまだ無い」だけは聞き直しても同じなので持つ。 */
     p.then(null, function (e) { if (cache[key] === p && !(e && e.crl === 'off')) delete cache[key]; });
@@ -282,12 +296,14 @@
     Object.keys(cache).forEach(function (k) { if (k.indexOf(prefix) === 0) delete cache[k]; });
   }
   function loadScript(src) {
-    return new Promise(function (res, rej) {
-      var s = d.createElement('script');
-      s.src = src; s.async = true;
-      s.onload = function () { res(); };
-      s.onerror = function () { rej(fail('error')); };
-      d.head.appendChild(s);
+    return limited(function () {
+      return new Promise(function (res, rej) {
+        var s = d.createElement('script');
+        s.src = src; s.async = true;
+        s.onload = function () { res(); };
+        s.onerror = function () { rej(fail('error')); };
+        d.head.appendChild(s);
+      });
     });
   }
   function json(file) {
@@ -369,8 +385,8 @@
   /* 月の勤務の集計（給与とは別の入口で集めた6項目）。見せてよい相手かどうかはサーバーが決める。
      開いていない答えに入っているのは、状態の1語だけ（数字は1つも来ない）。 */
   function workView(slug) {
-    return once('wkv:' + slug, function () {
-      return client().then(function (sb) { return sb.rpc('pv_work_view', { p: { airline: slug } }); }).then(function (res) {
+    return once('wkv:' + slug, function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_work_view', { p: { airline: slug } }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
@@ -386,8 +402,8 @@
   /* 会員が書いた補足。誰に返すかはサーバーが決める（開いていない人には1文字も返らない）。
      開いた答えに付いてきた補足だけを持つ。 */
   function notesOf(slug) {
-    return once('note:' + slug, function () {
-      return client().then(function (sb) { return sb.rpc('pv_contrib_notes', { p: { airline: slug } }); }).then(function (res) {
+    return once('note:' + slug, function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_contrib_notes', { p: { airline: slug } }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false) throw fail('error');
@@ -431,11 +447,11 @@
     return out.sort();
   }
   function facts(slug) {
-    return once('fact:' + slug, function () {
+    return once('fact:' + slug, function (sig) {
       var keys = pageKeys(), asked = {};
       keys.forEach(function (k) { asked[k] = 1; });
       return client().then(function (sb) {
-        return sb.rpc('pv_contrib_facts', { p: { airline: slug, keys: keys } });
+        return cut(sb.rpc('pv_contrib_facts', { p: { airline: slug, keys: keys } }), sig);
       }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
@@ -647,8 +663,8 @@
     }, function () { return name; });
   }
   function giveInfo() {
-    return once('give', function () {
-      return client().then(function (sb) { return sb.rpc('pv_contrib_give', { p: {} }); }).then(function (res) {
+    return once('give', function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_contrib_give', { p: {} }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         if (!x || x.ok === false || x.state !== 'give') throw fail('error');
@@ -907,8 +923,8 @@
      ★並べ替えない・足さない・数えない・切らない（並びは人数の多い順のサーバーの並び・人数はサーバーの数のまま）。 */
   var TOWN_SAY = ['login', 'locked', 'give', 'open'];
   function townBoard(slug, base) {
-    return once('town:' + slug + ':' + base, function () {
-      return client().then(function (sb) { return sb.rpc('pv_town_board', { p: { airline: slug, base: base } }); }).then(function (res) {
+    return once('town:' + slug + ':' + base, function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_town_board', { p: { airline: slug, base: base } }), sig); }).then(function (res) {
         if (!res || res.error) throw sbErr(res);
         var x = res.data;
         /* 知らない語は、開いているとも0件とも読まない */
@@ -1239,9 +1255,9 @@
      ★ 文は textContent で入れる。点の矢印は data-pvg-cat（分類）と data-pvg-ids（もとの口コミ）を持ち、
         押すと同じページの口コミがその分類で開き、もとの口コミに札が付く（pv-glance.js → airline-reviews-ui.js）。 */
   function summary(slug) {
-    return once('sum:' + slug, function () {
+    return once('sum:' + slug, function (sig) {
       return client().then(function (sb) {
-        return sb.rpc('pv_review_summary', { p: { airline: slug, lang: 'ja' } });
+        return cut(sb.rpc('pv_review_summary', { p: { airline: slug, lang: 'ja' } }), sig);
       }).then(function (res) {
         if (!res || res.error) {
           var code = String((res && res.error && res.error.code) || '');
@@ -1374,7 +1390,7 @@
         ul.appendChild(reviewItem(p, r));
       });
       /* 会社ページでは、同じページの「口コミ」のタブを開く（pv-glance.js が受ける）。 */
-      var all = link(T.revAll, GL ? '#reviews' : 'airlines/' + enc(slug) + '.html');
+      var all = link(T.revAll, GL ? '#reviews' : 'airlines/' + enc(slug) + '.html#reviews');
       if (anyLocked) {
         /* 会社ページの箱は、書く入口を箱の底に1つ持っている（data-give="0"）。同じボタンを2つ並べない */
         var give = box.getAttribute('data-give') === '0' ? null
