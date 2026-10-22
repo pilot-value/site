@@ -7,11 +7,20 @@
         ── 会社ページが日英とも在る・地域は8つのどれか・国の表と公開 JSON が同じ会社を持つ・
            国の検索だけの呼び名（alt）が2つの国を指さない
      B) 一覧の行（airlines-meta.js）＝ SALARY と同じ会社・同じ金額・同じ免税・同じ地域
-        （欧州は eu_fsc / eu_lcc で書く）。機種の段（fleet）を持たないのは決まった4社だけ
+        （欧州は eu_fsc / eu_lcc で書く）。機種の段（fleet）を持たないのは決まった4社だけ。
+        行の地域の符号は、画面（年収の図の会社選び＝salary-leveling.js）では必ず地域の名前で出る（B7）。
+        旗は国の表（airline-countries.mjs）の旗と同じ・国が決まらない会社は旗なし（B8。ヘッダー検索の表も）
      C) ヘッダー検索の表（search.js）＝ SALARY と同じ会社。4社の社名・旗・略号は一覧の行と同じ字
      D) 地域ページ14枚と countries.html の社数・推定年収の平均が SALARY と合っている
      E) 一覧の形（directory-model.mjs）が台帳から正しく作られている ── 並び・金額と札・
         検索の鍵・比較のチェックの決め方（SWITCH に従う）・ロゴ
+     F) 一覧のページ（日英）＝ gen-directory.mjs が台帳から書いた112枚のカード・地域ボタン・社数のまま
+        ── 並び・リンク・社名と旗・略号・ロゴ・額と札・地域ボタンの社数・手で書いた社数が無い・日英が同じ形・
+           生成の流し忘れが無い・2枚のページのスクリプトが同じ・左のメニューとヘッダーが1つずつ
+     H) カードの形 ── 額の行は機長→副操縦士の2行・職位の語から額まで24字以内（check-salary.mjs が読める）・
+        リンクの中に押せる部品を入れない・額の行に手取りや月額の語を入れない
+     W) check-salary.mjs の読み方そのもの（あちらのソースから切り出す）で、どのカードのどの額も
+        そのカードの会社として読まれ、別の会社として読まれない（境目の印 <!--wd>--> が1枚に1つ）
      L) カードを作るときにロゴの絵を読まない（読むと assert-generated.mjs の写し＝絵の無い所で生成が落ちる）。
         ※ 大きさの表（airline-logo-sizes.mjs）と絵の一致は assert-rollout.mjs の「A L-LOGO」が見ている（ここでは重ねない）
 
@@ -54,6 +63,15 @@ const REG8 = ['japan', 'asia', 'mideast', 'africa', 'europe', 'us', 'oceania', '
 const LIST_REGION = { eu_fsc: 'europe', eu_lcc: 'europe' };
 /** 機種の段（fleet）を持たない4社 ── 新しく fleet の無い行が増えたらここで止まる（レベリング図の全部の段に出てしまう） */
 const NO_FLEET = ['airx-charter', 'eagle-jet', 'root-aviation', 'solairus'];
+/** 地域の名前（日・英）。一覧の地域ボタン・年収の図の会社選びに出る字（どちらもこの名前で出ること） */
+const REGION_LABEL = {
+  all: ['すべて', 'All'], japan: ['日本', 'Japan'], asia: ['アジア', 'Asia'], mideast: ['中東', 'Middle East'], africa: ['アフリカ', 'Africa'],
+  europe: ['欧州', 'Europe'], us: ['北米', 'North America'], oceania: ['オセアニア', 'Oceania'], latam: ['中南米', 'Latin America'],
+};
+/** 一覧の2枚のページ（言語 → ファイル） */
+const PAGE_REL = { ja: 'world-airlines.html', en: 'en/world-airlines.html' };
+/** 境目の印（カードの社名のリンクと額の行のあいだ。check-salary.mjs が社名から額へ跨いで読まないため） */
+const BARRIER = '<!--wd>-->';
 /** 地域ページ（日英7枚ずつ）→ 地域の符号 */
 const HUB = { africa: 'africa', asia: 'asia', europe: 'europe', 'latin-america': 'latam', 'middle-east': 'mideast', 'north-america': 'us', oceania: 'oceania' };
 const RW = { cap: { ja: '機長', en: 'Captain' }, fo: { ja: '副操縦士', en: 'First Officer' } };
@@ -84,6 +102,14 @@ function want(I, slug, rank) {
 /** 万円の平均を10万円で丸める（地域ページ・countries.html と同じ） */
 const mean10 = (I, slugs, rank) => Math.round(slugs.reduce((a, s) => a + I.ledger[s][rank].avg, 0) / slugs.length / 10) * 10;
 const regionSlugs = (I, code) => Object.keys(I.ledger).filter((s) => code === 'all' || I.ledger[s].region === code);
+/** 一覧の並び（地域の順 → 一覧の行の順）。ここで台帳と一覧の行から作る */
+function orderOf(I) {
+  const pos = new Map(I.list.map((r, i) => [r.slug, i]));
+  return Object.keys(I.ledger).sort((a, b) => (REG8.indexOf(I.ledger[a].region) - REG8.indexOf(I.ledger[b].region)) || ((pos.get(a) ?? 1e9) - (pos.get(b) ?? 1e9)));
+}
+/** 国の表の旗（国が決まらない会社は ''） */
+const flagOf = (I, slug) => (I.byCode[I.country[slug]] || {}).flag || '';
+const unesc = (s) => String(s).replace(/&(amp|lt|gt|quot);/g, (_, k) => ({ amp: '&', lt: '<', gt: '>', quot: '"' }[k]));
 
 /* ── 読む（1回だけ）──────────────────────────────────────── */
 /** airlines-meta.js の行（window.PV_AIRLINES）。slug は PV_slugOf で */
@@ -115,13 +141,14 @@ async function readIN() {
     page: { ja: read('world-airlines.html'), en: read('en/world-airlines.html') },
     css: readOr('pv-directory.css'), assets: {}, career: readOr('career.html'),
     logos: logosOf(read('airline-logos.js')),
+    lev: readOr('salary-leveling.js'), cs: read('check-salary.mjs'),
     sw: new Set(SWITCH), M: null, fn: {}, err: '',
   };
   /* 検査される側（ここで期待値は作らない） */
   try {
     const G = await import(pathToFileURL(path.join(ROOT, 'gen-directory.mjs')).href);
     I.fn = { model: G.model, figure: G.figure, regionMean: G.regionMean, tickOf: G.tickOf, twoSlugs: G.twoSlugs,
-      cards: G.cards, strip: G.strip, itemList: G.itemList, render: G.render };
+      cards: G.cards, strip: G.strip, itemList: G.itemList, render: G.render, blocks: G.BLOCKS.map((b) => b.id) };
     I.M = G.model();
   } catch (e) { I.err = `gen-directory.mjs / directory-model.mjs が読めない：${String(e.message).split('\n')[0].split(ROOT).join('')}`; }
   return I;
@@ -184,6 +211,30 @@ function secB(I) {
   out.push(R('B5', setEq('一覧の行', I.list.map((r) => r.slug), S)));
   const nf = I.list.filter((r) => !fleetOf(r)).map((r) => r.slug);
   out.push(R('B6', setEq('fleet の無い行', nf, NO_FLEET), `fleet の無い行：${nf.join('・') || 'なし'}（${nf.length}社）`));
+  /* B7 年収の図の会社選び（salary-leveling.js）は、行の地域の符号（eu_fsc など）を画面に出さず、地域の名前で出す。
+     名前の表と名前の決め方はあちらのソースから切り出して動かす（ここで写さない） */
+  const p7 = [], lines = String(I.lev).split('\n');
+  const tbl = lines.filter((l) => l.startsWith('  var REGION_NAME = {')), fnl = lines.filter((l) => l.startsWith('  function regionName(r) {'));
+  if (tbl.length !== 1 || fnl.length !== 1) p7.push(`salary-leveling.js の地域の名前の表（var REGION_NAME）と regionName が1つずつでない（${tbl.length}・${fnl.length}）`);
+  else {
+    const nameIn = (en) => new Function('IS_EN', `${tbl[0]}\n${fnl[0]}\nreturn regionName;`)(en);
+    const jaN = nameIn(false), enN = nameIn(true);
+    for (const t of [...new Set(I.list.map((r) => r.region))]) {
+      const w = REGION_LABEL[LIST_REGION[t] || t];
+      if (!w) { p7.push(`行の地域「${t}」に名前が無い（契約の表）`); continue; }
+      if (jaN(t) !== w[0] || enN(t) !== w[1]) p7.push(`地域「${t}」が「${jaN(t)}」／「${enN(t)}」と出る（「${w[0]}」／「${w[1]}」であること）`);
+    }
+    if (jaN('zz_x') !== '' || enN('zz_x') !== '') p7.push('知らない地域の符号に名前以外の字を出す（何も出さないこと）');
+  }
+  const html = lines.filter((l) => /'[^']*</.test(l) && /\.region\b/.test(l));
+  for (const l of html) if (/\.region\b/.test(l.replace(/regionName\(a\.region\)/g, () => ''))) p7.push(`画面に符号のまま出す行：${l.trim().slice(0, 90)}`);
+  if (!html.some((l) => l.includes('regionName(a.region)'))) p7.push('会社選びの一覧が地域の名前（regionName）を出していない');
+  out.push(R('B7', p7));
+  /* B8 旗 ＝ 国の表の旗（国が決まらない会社は旗なし）。一覧の行とヘッダー検索の表の両方 */
+  const p8 = [];
+  for (const r of rows) if ((r.flag || '') !== flagOf(I, r.slug)) p8.push(`${r.slug}：一覧の行の旗「${r.flag}」／国の表「${flagOf(I, r.slug)}」`);
+  for (const h of I.header.filter((x) => S.has(x.slug))) if ((h.g || '') !== flagOf(I, h.slug)) p8.push(`${h.slug}：ヘッダー検索の旗「${h.g}」／国の表「${flagOf(I, h.slug)}」`);
+  out.push(R('B8', p8));
   return out;
 }
 
@@ -357,6 +408,222 @@ function secE(I) {
   return out;
 }
 
+/* ── ページを読む道具（どれも unbake したページの字を読む）──────────────────── */
+/** ページのカード（<li class="wd-li" … </li>）を順に */
+function cardsOf(html) {
+  return [...String(html).matchAll(/<li class="wd-li"([^>]*)>([\s\S]*?)<\/li>/g)].map((m) => {
+    const at = (k) => new RegExp(`\\b${k}="([^"]*)"`).exec(m[1])?.[1] ?? null;
+    return { slug: at('data-slug'), region: at('data-region'), type: at('data-type'), tax: at('data-tax'), lvl: at('data-lvl'),
+      html: m[0], body: m[2], start: m.index, end: m.index + m[0].length };
+  });
+}
+/** カードの額の行（職位・2行目か・隠した社名・札・額・行の字）。札と額は字のまま（間にタグが挟まればタグごと＝F2 で違いになる） */
+const figLines = (card) => [...card.matchAll(/<p class="wd-fig[^"]*" data-rank="(cap|fo)"([^>]*)>([\s\S]*?)<\/p>/g)].map((m) => {
+  const body = m[3], hid = /^<span class="wd-vh">([^<]*)<\/span>/.exec(body), b = body.indexOf('<b class="wd-v">'), e = body.lastIndexOf('</b>');
+  return { rank: m[1], pub: /data-pub="1"/.test(m[2]), hid: hid ? unesc(hid[1]) : null,
+    label: hid && b >= 0 ? unesc(body.slice(hid[0].length, b)) : null, amount: b >= 0 && e > b ? unesc(body.slice(b + '<b class="wd-v">'.length, e)) : null,
+    src: m[0], at: m.index };
+});
+/** <!--ID--> … <!--/ID--> の中身（無ければ null） */
+const blockOf = (html, id) => { const a = html.indexOf(`<!--${id}-->`), z = html.indexOf(`<!--/${id}-->`); return a < 0 || z < a ? null : { a, z, text: html.slice(a, z) }; };
+/** 2枚のページ（unbake 済み）。1回の実行で1回だけ作る */
+const UNB = new WeakMap();
+const pagesOf = (I) => { if (!UNB.has(I.page)) UNB.set(I.page, { ja: unbake(I.page.ja), en: unbake(I.page.en) }); return UNB.get(I.page); };
+/** S0（一覧のページのスクリプト）：行「// ── Nav scroll ─」からヘッダーのログインの行の手前まで */
+const LOGIN_LINE = "(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');";
+const s0Of = (html) => { const a = html.indexOf('// ── Nav scroll ─'), z = html.indexOf(LOGIN_LINE); return a < 0 || z < a ? null : html.slice(html.lastIndexOf('\n', a) + 1, html.lastIndexOf('\n', z) + 1); };
+
+/** F) 一覧のページ（日英）── 期待値はここで台帳・一覧の行・ロゴの表から作る */
+function secF(I) {
+  const U = pagesOf(I), S = Object.keys(I.ledger), N = S.length, order = orderOf(I), out = [];
+  const rowOf = new Map(I.list.map((r) => [r.slug, r]));
+  const p = { F1: [], F2: [], F3: [], F4: [], F5: [], F6: [], F7: [], F8: [], F10: [] };
+  const twins = {};
+  for (const lang of ['ja', 'en']) {
+    const h = U[lang], C = cardsOf(h), en = lang === 'en', rel = PAGE_REL[lang];
+    /* F1 枚数と並び */
+    if (C.length !== N) p.F1.push(`${rel}：カード ${C.length} 枚／台帳 ${N} 社`);
+    if (!same(C.map((c) => c.slug), order)) p.F1.push(`${rel}：カードの並びが台帳の並び（地域の順 → 一覧の行の順）と違う`);
+    /* F2 1枚ずつ */
+    for (const c of C) {
+      const r = rowOf.get(c.slug), d = I.ledger[c.slug];
+      if (!r || !d) { p.F2.push(`${rel}：${c.slug} は台帳か一覧の行に無い`); continue; }
+      const q = [];
+      const link = /<a class="wd-go" href="([^"]*)">([\s\S]*?)<\/a>/.exec(c.body);
+      if (!link || link[1] !== `airlines/${c.slug}.html`) q.push(`リンク ${link ? link[1] : '無し'}`);
+      const name = unesc(/<span class="wd-name" id="wn-[^"]*">([^<]*)<\/span>/.exec(c.body)?.[1] ?? '');
+      const wn = `${r.flag ? `${r.flag} ` : ''}${en ? r.en : r.name}`;
+      if (name !== wn) q.push(`社名「${name}」／一覧の行「${wn}」`);
+      const sub = unesc(/<span class="wd-sub">([^<]*)<\/span>/.exec(c.body)?.[1] ?? '');
+      const ws = en ? REGION_LABEL[d.region][1] : r.en;
+      if (sub !== ws) q.push(`2行目「${sub}」／「${ws}」`);
+      const code = unesc(/<span class="wd-code">([^<]*)<\/span>/.exec(c.body)?.[1] ?? '');
+      if (code !== r.code) q.push(`略号「${code}」／一覧の行「${r.code}」`);
+      if (c.region !== d.region) q.push(`data-region ${c.region}／SALARY ${d.region}`);
+      if (c.type !== r.type) q.push(`data-type ${c.type}／一覧の行 ${r.type}`);
+      if (c.tax !== (d.taxFree === true ? '1' : '0')) q.push(`data-tax ${c.tax}`);
+      if (c.lvl !== (fleetOf(r) ? '1' : '0')) q.push(`data-lvl ${c.lvl}／fleet ${fleetOf(r)}`);
+      const lg = /<span class="wd-logo"><span class="pvg-logo([^"]*)" aria-hidden="true">([\s\S]*?)<\/span><\/span>/.exec(c.body);
+      const ext = I.logos[c.slug];
+      if (!lg) q.push('ロゴの札が無い');
+      else if (ext) {
+        const img = /<img ([^>]*)>/.exec(lg[2])?.[1] ?? '', src = /\bsrc="([^"]*)"/.exec(img)?.[1] ?? '';
+        if (lg[1] !== '' || !src.endsWith(`assets/airline-logos/${c.slug}.${ext}`) || !/\bloading="lazy"/.test(img)) q.push(`ロゴ「${src}」${/\bloading="lazy"/.test(img) ? '' : '（loading="lazy" が無い）'}`);
+      } else if (lg[1] !== ' is-mono' || /<img\b/.test(lg[2])) q.push('ロゴの無い会社なのに頭文字の札でない');
+      for (const f of figLines(c.body)) {
+        const w = want(I, c.slug, f.rank);
+        if (f.hid !== (en ? d.en : d.ja)) q.push(`${f.rank} の隠した社名「${f.hid}」／台帳「${en ? d.en : d.ja}」`);
+        if (f.label !== (en ? w.labelEn : w.labelJa)) q.push(`${f.rank} の札「${f.label}」／台帳「${en ? w.labelEn : w.labelJa}」`);
+        if (f.amount !== (w.yen ?? '—')) q.push(`${f.rank} の額「${f.amount}」／台帳「${w.yen ?? '—'}」`);
+      }
+      if (q.length) p.F2.push(`${rel} ${c.slug}：${q.join('・')}`);
+    }
+    /* F3 地域の9つのボタン */
+    const st = blockOf(h, 'PV-DIR-REGIONS');
+    const bs = st ? [...st.text.matchAll(/<button\b([^>]*)>[\s\S]*?<span class="rstrip-l">([^<]*)<\/span><span class="rstrip-n"[^>]*>([^<]*)<\/span><\/button>/g)] : [];
+    const codes = bs.map((m) => /data-region="([^"]*)"/.exec(m[1])?.[1]);
+    if (!same(codes, ['all', ...REG8])) p.F3.push(`${rel}：地域ボタン ${codes.join(',') || '無し'}`);
+    for (const m of bs) {
+      const code = /data-region="([^"]*)"/.exec(m[1])?.[1], lab = REGION_LABEL[code]?.[en ? 1 : 0];
+      const dl = unesc(/data-label="([^"]*)"/.exec(m[1])?.[1] ?? '');
+      if (dl !== lab || unesc(m[2]) !== lab) p.F3.push(`${rel} ${code}：名前「${dl}」「${m[2]}」／「${lab}」`);
+      const n = code === 'all' ? N : C.filter((c) => c.region === code).length;
+      if (m[3] !== String(n)) p.F3.push(`${rel} ${code}：社数 ${m[3]}／カード ${n} 枚`);
+    }
+    /* F4 社数を書く所 */
+    const ns = [...h.matchAll(/<!--PV-DIR-N-->([\s\S]*?)<!--\/PV-DIR-N-->/g)].map((m) => m[1]);
+    if (!ns.length) p.F4.push(`${rel}：PV-DIR-N が無い`);
+    for (const v of ns) if (v !== String(N)) p.F4.push(`${rel}：PV-DIR-N「${v}」／${N}`);
+    if (!h.includes(`"numberOfItems":${N}\n`)) p.F4.push(`${rel}：numberOfItems が ${N} でない`);
+    if (!(/<title>([^<]*)<\/title>/.exec(h)?.[1] || '').match(new RegExp(`(?<![\\d,.])${N}(?![\\d,.])`))) p.F4.push(`${rel}：<title> に ${N} が無い`);
+    for (const m of h.matchAll(/id="pc-([a-z]+)">([^<]*)</g)) {
+      const n = REG8.includes(m[1]) ? regionSlugs(I, m[1]).length : null;
+      if (m[2] !== (en ? `${n} airlines` : `${n}社`)) p.F4.push(`${rel} pc-${m[1]}：「${m[2]}」／${n}`);
+    }
+    /* F5 手で書いた社数が無い */
+    let t = h.replace(/<title>[\s\S]*?<\/title>/g, () => '').replace(/<script\b[\s\S]*?<\/script>/g, () => '').replace(/<style\b[\s\S]*?<\/style>/g, () => '')
+      .replace(/<!--PV-SEO-->[\s\S]*?<!--\/PV-SEO-->/g, () => '').replace(/<!--PV-CBAND-->[\s\S]*?<!--\/PV-CBAND-->/g, () => '');
+    for (const id of I.fn.blocks || []) t = t.replace(new RegExp(`<!--${id}-->[\\s\\S]*?<!--/${id}-->`, 'g'), () => '');
+    t = t.replace(/(id="pc-[a-z]+">)[^<]*/g, (_, a) => a);
+    for (const m of t.matchAll(/(?<![\d,.])\d{2,3}\s*(社|airlines)/gi)) p.F5.push(`${rel}：手で書いた社数「${m[0]}」（…${t.slice(Math.max(0, m.index - 20), m.index).replace(/\s+/g, ' ')}）`);
+    /* F6 日英の形（タグ・class・data-slug・data-region・data-rank の並び） */
+    const g = h.indexOf('<ul id="airline-grid"'), ge = blockOf(h, 'PV-DIR-CARDS');
+    const seg = (g < 0 || !ge ? '' : h.slice(g, ge.z)) + (st ? st.text : '');
+    twins[lang] = [...seg.replace(/<label class="wd-cmp"[\s\S]*?<\/label>/g, () => '').matchAll(/<([a-z][a-z0-9]*)\b([^>]*)>/gi)]
+      .map((m) => [m[1], ...['class', 'data-slug', 'data-region', 'data-rank'].map((k) => new RegExp(`\\b${k}="([^"]*)"`).exec(m[2])?.[1] ?? '')].join('|'));
+    /* F7 生成の流し忘れ（素のページで） */
+    if (I.fn.render) { let w; try { w = I.fn.render(lang, I.page[lang]); } catch (e) { p.F7.push(`${rel}：${e.message}`); } if (w !== undefined && w !== I.page[lang]) p.F7.push(`${rel} が台帳と合っていない（node gen-directory.mjs）`); }
+    else p.F7.push(I.err || 'render が無い');
+    /* F10 左のメニューとヘッダーが1つずつ（assert-pay-rows.mjs の枚数の静的な半分） */
+    const nav = (I.page[lang].match(/<nav class="mr-side"/g) || []).length, mn = (I.page[lang].match(/id="main-nav"/g) || []).length;
+    if (nav !== 1 || mn !== 1) p.F10.push(`${rel}：<nav class="mr-side"> ${nav}・id="main-nav" ${mn}（1つずつであること）`);
+  }
+  if (!same(twins.ja, twins.en)) {
+    const i = twins.ja.findIndex((x, k) => x !== twins.en[k]);
+    p.F6.push(`日英でカード・地域ボタンの形が違う（${twins.ja.length}／${twins.en.length} 個・最初の違い：${twins.ja[i] ?? '無し'} ／ ${twins.en[i] ?? '無し'}）`);
+  }
+  /* F8 2枚のページのスクリプト（S0）が1文字も同じ（WP-dd-3 で pv-directory.js へ移すまで） */
+  const sj = s0Of(I.page.ja), se = s0Of(I.page.en);
+  if (sj == null || se == null) p.F8.push('一覧のスクリプト（// ── Nav scroll ─ からログインの行の手前まで）が読めない');
+  else if (sj !== se) p.F8.push('日英の一覧のスクリプトが違う');
+  return Object.entries(p).map(([id, probs]) => R(id, probs));
+}
+
+/** check-salary.mjs の読み方を、あちらのソースから切り出す（写さない） */
+function scanOf(I) {
+  const src = String(I.cs), lines = src.split('\n'), pick = [];
+  for (const k of ['const ROLE =', 'const GAP =', 'const NUM =', 'const DERIVED =', 'const NAME_CHAR =']) {
+    const hit = lines.filter((l) => l.startsWith(k));
+    if (hit.length !== 1) throw new Error(`check-salary.mjs の形が変わった（${k} が ${hit.length} 行）`);
+    pick.push(hit[0]);
+  }
+  const a = lines.findIndex((l) => l.startsWith('function aliases(d) {')), z = lines.findIndex((l, i) => i > a && l === '}');
+  if (a < 0 || z < 0) throw new Error('check-salary.mjs の形が変わった（function aliases(d) { が無い）');
+  pick.push(lines.slice(a, z + 1).join('\n'));
+  return new Function(`${pick.join('\n')}\nreturn { ROLE, GAP, NUM, DERIVED, NAME_CHAR, aliases };`)();
+}
+/** そのページの「読まれた」額（check-salary.mjs と同じ規則・同じ順で） */
+function acceptedOf(I, html, K) {
+  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, (c) => `\\${c}`);
+  const ALIAS = [];
+  for (const [slug, d] of Object.entries(I.ledger)) for (const a of K.aliases(d)) ALIAS.push({ slug, a });
+  ALIAS.sort((x, y) => y.a.length - x.a.length);
+  const ALL = ALIAS.map((x) => x.a), out = [];
+  const h = html.replace(/<!--PV-CLINK-->[\s\S]*?<!--\/PV-CLINK-->/g, () => '');
+  for (const { slug, a } of ALIAS) {
+    const re = new RegExp(reEsc(a) + K.GAP + K.ROLE + K.GAP + K.NUM + '(?:\\s*万?\\s*[〜~–—-]\\s*' + K.NUM + ')?\\s*万', 'g');
+    let m;
+    while ((m = re.exec(h)) !== null) {
+      const span = m[0];
+      if (m.index > 0 && K.NAME_CHAR.test(h[m.index - 1])) continue;
+      if (ALL.some((x) => x.length > a.length && h.startsWith(x, m.index))) continue;
+      const inner = span.slice(a.length);
+      if (/<\/(?:tr|thead|tbody|table|section|article|li|ul|ol)>/.test(inner)) continue;
+      if (ALL.some((x) => x !== a && !a.includes(x) && inner.includes(x))) continue;
+      if (K.DERIVED.test(h.slice(Math.max(0, m.index - 40), m.index + span.length + 20))) continue;
+      out.push({ slug, a, at: m.index, rank: /機長|Captain/.test(m[1]) ? 'cap' : 'fo', lo: num(m[2]) });
+    }
+  }
+  return { h, hits: out };
+}
+
+/** H) カードの形 */
+function secH(I) {
+  const U = pagesOf(I), p = { H1: [], H2: [], H3: [] };
+  let K = null; try { K = scanOf(I); } catch (e) { p.H3.push(e.message); }
+  for (const lang of ['ja', 'en']) {
+    const rel = PAGE_REL[lang];
+    for (const c of cardsOf(U[lang])) {
+      const F = figLines(c.body);
+      if (!same(F.map((f) => `${f.rank}${f.pub ? '+' : ''}`), ['cap', 'fo'])) p.H1.push(`${rel} ${c.slug}：額の行 ${F.map((f) => f.rank + (f.pub ? '（2行目）' : '')).join('・') || '無し'}（機長・副操縦士の2行であること）`);
+      for (const f of F) {
+        /* 職位の語の終わりから額の最初の数字まで：タグ1つ＝1・字1つ＝1（check-salary.mjs の GAP は24まで） */
+        const body = f.src.slice(f.src.indexOf('</span>') + 7), rw = /(機長|副操縦士|Captain|First Officer)/.exec(body);
+        if (!rw) { p.H2.push(`${rel} ${c.slug} ${f.rank}：札に職位の語が無い`); continue; }
+        let i = rw.index + rw[0].length, n = 0;
+        while (i < body.length && !/\d/.test(body[i])) { if (body[i] === '<') i = body.indexOf('>', i) + 1; else i++; n++; }
+        if (i >= body.length || n > 24) p.H2.push(`${rel} ${c.slug} ${f.rank}：職位の語から額まで ${n}（24以下であること）`);
+        if (K && K.DERIVED.test(f.src)) p.H3.push(`${rel} ${c.slug} ${f.rank}：額の行に手取り・月額などの語`);
+      }
+      const go = /<a class="wd-go"[^>]*>([\s\S]*?)<\/a>/.exec(c.body)?.[1] ?? '';
+      if (/<(input|label|button|select|textarea)\b/i.test(go)) p.H3.push(`${rel} ${c.slug}：リンクの中に押せる部品`);
+    }
+  }
+  return Object.entries(p).map(([id, probs]) => R(id, probs));
+}
+
+/** W) check-salary.mjs の読み方で、カードの額がそのカードの会社として読まれる */
+function secW(I) {
+  const U = pagesOf(I), p = { W1: [], W2: [], W3: [] };
+  let K; try { K = scanOf(I); } catch (e) { return ['W1', 'W2', 'W3'].map((id) => R(id, [e.message])); }
+  const tally = [];
+  for (const lang of ['ja', 'en']) {
+    const rel = PAGE_REL[lang], { h, hits } = acceptedOf(I, U[lang], K), blk = blockOf(h, 'PV-DIR-CARDS'), C = cardsOf(h);
+    const cardAt = (at) => C.find((c) => c.start <= at && at < c.end) || null;
+    const inBlock = hits.filter((x) => blk && x.at > blk.a && x.at < blk.z);
+    tally.push(`${rel} ${inBlock.length}件`);
+    for (const c of C) {
+      /* W1 境目の印が1つ、リンクの後・最初の額の行の前 */
+      const nb = c.body.split(BARRIER).length - 1, ib = c.body.indexOf(BARRIER), ia = c.body.indexOf('</a>'), ifg = c.body.indexOf('<p class="wd-fig');
+      if (nb !== 1 || !(ia >= 0 && ia < ib && ib < ifg)) p.W1.push(`${rel} ${c.slug}：境目の印 ${nb} 個${nb === 1 ? '（場所が違う）' : ''}`);
+      /* W2 職位ごとに、そのカードの会社として・印字の額で読まれている */
+      for (const f of figLines(c.body)) {
+        if (f.amount === '—') continue;   // 確認中（—）は読まれなくてよい
+        if (f.amount == null || !/\d/.test(f.amount)) { p.W2.push(`${rel} ${c.slug} ${f.rank}：額が読めない`); continue; }
+        const lo = num(/[\d,]+/.exec(f.amount)[0]);
+        if (!inBlock.some((x) => cardAt(x.at) === c && x.slug === c.slug && x.rank === f.rank && x.lo === lo)) p.W2.push(`${rel} ${c.slug} ${f.rank}：check-salary.mjs が「${f.amount}」をこの会社の額として読まない`);
+      }
+    }
+    /* W3 カードの中の読まれた額は、どれもそのカードの会社・隠した社名から始まる */
+    for (const x of inBlock) {
+      const c = cardAt(x.at), lt = h.lastIndexOf('<', x.at), tag = h.slice(lt, h.indexOf('>', lt) + 1);
+      if (!c || c.slug !== x.slug) p.W3.push(`${rel}：${c ? c.slug : 'カードの外'} の中で ${x.slug}（「${x.a}」）の額として読まれた`);
+      else if (tag !== '<span class="wd-vh">') p.W3.push(`${rel} ${c.slug}：「${x.a}」の読み始めが隠した社名の中でない（${tag.slice(0, 40)}）`);
+    }
+  }
+  return [R('W1', p.W1), R('W2', p.W2, `check-salary.mjs の読み方でカードから読まれた額：${tally.join('・')}`), R('W3', p.W3)];
+}
+
 /** L) カードを作るときにロゴの絵を読まない */
 function secL(I) {
   if (!I.fn.cards) return [R('L2', [I.err || 'cards が無い'])];
@@ -381,13 +648,27 @@ function secL(I) {
   return [R('L2', p2)];
 }
 
-const SECTIONS = { A: secA, B: secB, C: secC, D: secD, E: secE, L: secL };
+const SECTIONS = { A: secA, B: secB, C: secC, D: secD, E: secE, F: secF, H: secH, W: secW, L: secL };
 const runScope = (I, scope) => [...scope].flatMap((l) => SECTIONS[l](I));
 
 /* ── 自己検査：わざと1か所だけ壊した写しで、ちょうどその項目だけが赤くなるか ─── */
 const clone = (I) => ({ ...structuredClone({ ...I, fn: null }), fn: { ...I.fn } });
 const rowAt = (I, slug) => I.list.find((r) => r.slug === slug);
 const bump = (I, rel, re) => { I.hub[rel] = I.hub[rel].replace(re, (m, a, n, b) => `${a}${Number(n) + 1}${b}`); };
+/** 文字列の1か所を差し替える（ちょうど1つ在ること。無ければ壊し方が当たっていない） */
+const sub = (s, a, b) => { if (s.split(a).length !== 2) throw new Error(`「${a.slice(0, 40)}」がちょうど1つでない`); return s.replace(a, () => b); };
+/** 1枚のカードを差し替える（何も変わらなければ壊し方が当たっていない） */
+const onCard = (I, lang, slug, fn) => {
+  const re = new RegExp(`<li class="wd-li"[^>]*data-slug="${slug}"[\\s\\S]*?<\\/li>\\n?`);
+  const before = I.page[lang]; I.page[lang] = before.replace(re, (c) => fn(c));
+  if (I.page[lang] === before) throw new Error(`${lang} ${slug} のカードが変わらない`);
+};
+/** <!--ID--> … <!--/ID--> の中だけを差し替える */
+const onBlock = (I, lang, id, fn) => {
+  const re = new RegExp(`<!--${id}-->[\\s\\S]*?<!--/${id}-->`);
+  const before = I.page[lang]; I.page[lang] = before.replace(re, (c) => fn(c));
+  if (I.page[lang] === before) throw new Error(`${lang} ${id} が変わらない`);
+};
 const ROWS = [
   ['A1', (I) => { I.files.delete('en/airlines/solairus.html'); }, 'A', ['A1']],
   ['A2', (I) => { I.ledger.qantas.region = 'canada'; }, 'A', ['A2']],
@@ -400,6 +681,10 @@ const ROWS = [
   ['B4', (I) => { rowAt(I, 'turkish-airlines').region = 'mideast'; }, 'B', ['B4']],
   ['B5', (I) => { I.list = I.list.filter((r) => r.slug !== 'jetstar'); }, 'B', ['B5']],
   ['B6', (I) => { delete rowAt(I, 'jetstar').fleet; }, 'B', ['B6']],
+  ['B7a', (I) => { I.lev = sub(I.lev, "regionName(a.region) + '</span>'", "(a.region || '') + '</span>'"); }, 'B', ['B7']],
+  ['B7b', (I) => { I.lev = sub(I.lev, " eu_fsc: ['欧州', 'Europe'],", ''); }, 'B', ['B7']],
+  ['B8a', (I) => { rowAt(I, 'wizz-air').flag = '🇭🇺'; }, 'B', ['B8']],
+  ['B8b', (I) => { I.header.find((h) => h.slug === 'eagle-jet').g = '🇪🇺'; }, 'B', ['B8']],
   ['C1', (I) => { const h = I.header.find((x) => x.slug === 'ana'); h.f = 'airlines/nope.html'; h.slug = 'nope'; }, 'C', ['C1', 'C2']],
   ['C2', (I) => { I.header = I.header.filter((h) => h.slug !== 'solairus'); }, 'C', ['C2', 'C3']],
   ['C3', (I) => { I.header.find((h) => h.slug === 'airx-charter').t = ['AXY']; }, 'C', ['C3']],
@@ -420,6 +705,26 @@ const ROWS = [
   ['E5', (I) => { const f = I.fn.figure; I.fn.figure = (A, rank) => f(A, rank); }, 'E', ['E5']],
   ['E6', (I) => { const f = I.fn.cards; I.fn.cards = (lang, ...a) => f(lang, ...a) + (lang === 'en' ? '¥1,850万' : ''); }, 'E', ['E6']],
   ['E7', (I) => { I.M.airlines.ana.logo = null; }, 'E', ['E7']],
+  ['F1', (I) => onCard(I, 'ja', 'skymark', () => ''), 'F', ['F1', 'F3', 'F6', 'F7']],
+  ['F2a', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/(<b class="wd-v">[^\d]*)(\d)/, (_, a, d) => a + (d === '9' ? '8' : String(+d + 1)))), 'F', ['F2', 'F7']],
+  ['F2b', (I) => onCard(I, 'ja', 'ana', (c) => c.replace(/(<span class="wd-name"[^>]*>[^<]*)/, (_, a) => `${a}X`)), 'F', ['F2', 'F7']],
+  ['F2c', (I) => onCard(I, 'ja', 'ana', (c) => c.replace(' loading="lazy"', () => '')), 'F', ['F2', 'F7']],
+  ['F2d', (I) => onCard(I, 'ja', 'solairus', (c) => c.replace('data-lvl="0"', () => 'data-lvl="1"')), 'F', ['F2', 'F7']],
+  ['F3a', (I) => onBlock(I, 'ja', 'PV-DIR-REGIONS', (b) => b.replace(/(data-region="japan"[^>]*>[\s\S]*?<span class="rstrip-n"[^>]*>)(\d+)/, (_, a, n) => `${a}${Number(n) + 1}`)), 'F', ['F3', 'F7']],
+  ['F4', (I) => { I.page.ja = sub(I.page.ja, `"numberOfItems":${Object.keys(I.ledger).length}\n`, '"numberOfItems":117\n'); }, 'F', ['F4', 'F7']],
+  ['F5a', (I) => { I.page.ja = sub(I.page.ja, '社の給与・採用・訓練情報</p>', '社の給与・採用・訓練情報（108社）</p>'); }, 'F', ['F5']],
+  ['F5b', (I) => { I.page.en = sub(I.page.en, '<!--/PV-DIR-N--> airlines</p>', '<!--/PV-DIR-N--> airlines — 108 Airlines</p>'); }, 'F', ['F5']],
+  ['F6', (I) => onCard(I, 'en', 'ana', (c) => c.replace('<span class="tag tag-gray">Star Alliance</span>', () => '')), 'F', ['F6', 'F7']],
+  ['F7', (I) => onCard(I, 'ja', 'jal', (c) => c.replace('data-k="', () => 'data-k="X|')), 'F', ['F7']],
+  ['F8', (I) => { I.page.en = sub(I.page.en, "let activeType   = 'all';", "let activeType  = 'all';"); }, 'F', ['F8']],
+  ['F10', (I) => { I.page.en = I.page.en.replace(/<nav class="mr-side"[\s\S]*?<\/nav>/, () => ''); }, 'F', ['F10']],
+  ['H1', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/<p class="wd-fig" data-rank="fo"[\s\S]*?<\/p>\n?/, () => '')), 'H', ['H1']],
+  /* 札の全体を <span> で包むだけでは、職位の語の後ろに増えるのは閉じタグ1つ（23 → 24 ＝ まだ読める）。語の直後で包んで 25 にする */
+  ['H2', (I) => onCard(I, 'en', 'etihad', (c) => c.replace(/(data-rank="cap"><span class="wd-vh">[^<]*<\/span>Captain)([^<]*)/, (_, a, l) => `${a}<span>${l}</span>`)), 'H', ['H2']],
+  ['H3', (I) => onCard(I, 'ja', 'ana', (c) => c.replace('<span class="wd-names">', () => '<button type="button">x</button><span class="wd-names">')), 'H', ['H3']],
+  ['W1', (I) => onCard(I, 'ja', 'airjapan', (c) => c.replace(`${BARRIER}\n`, () => '')), 'W', ['W1', 'W3']],
+  ['W2', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/(data-rank="cap"[\s\S]*?)(<b class="wd-v">)/, (_, a, b) => `${a}${'<i></i>'.repeat(30)}${b}`)), 'W', ['W2']],
+  ['W3', (I) => onCard(I, 'ja', 'jal', (c) => c.replace('<div class="wd-foot"><span class="wd-tags">', () => '<div class="wd-foot"><span class="wd-tags">全日本空輸（ANA）機長 ¥1,850万')), 'W', ['W3']],
   ['L2', (I) => { const f = I.fn.cards; I.fn.cards = (...a) => { fs.readFileSync(path.join(ROOT, 'assets/airline-logos/ana.svg')); return f(...a); }; }, 'L', ['L2']],
 ];
 

@@ -34,6 +34,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://pilot-value.com/en/"},{"@type":"ListItem","position":2,"name":"Pilot Salary by Airline — All 112 Airlines Compared","item":"https://pilot-value.com/en/world-airlines.html"}]}]}</script>
 <!--/PV-SEO-->
 
+<!--PV-DIR-LD-->
 <script type="application/ld+json">
 {
   "@context":"https://schema.org",
@@ -41,9 +42,10 @@
   "name":"Pilot Salaries at Airlines Worldwide",
   "description":"Pilot annual salaries, reviews and career information for 112 airlines worldwide",
   "url":"https://pilot-value.com/en/world-airlines.html",
-  "numberOfItems":117
+  "numberOfItems":112
 }
 </script>
+<!--/PV-DIR-LD-->
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
@@ -51,6 +53,7 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="../pv-tokens.css">
+<link rel="stylesheet" href="../pv-directory.css?v=b6542361">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -118,28 +121,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .pin-group.active .pin-circle{filter:drop-shadow(0 0 6px rgba(255,255,255,.6))}
 
 /* ── AIRLINE CARDS ──────────────────────────────────────────────── */
-.airline-card{
-  background:rgba(17,22,32,.65);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:14px;
-  padding:18px;
-  text-decoration:none;
-  display:block;
-  position:relative;
-  overflow:hidden;
-  transition:border-color .22s,transform .22s,box-shadow .22s;
-}
-.airline-card::before{
-  content:'';position:absolute;inset:0;border-radius:14px;
-  background:linear-gradient(135deg,rgba(var(--ac-rgb),.05),transparent 60%);
-  opacity:0;transition:opacity .22s;
-}
-.airline-card:hover{border-color:rgba(var(--ac-rgb),.5);transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.4)}
-.airline-card:hover::before{opacity:1}
 .ac-code{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;letter-spacing:.01em}
-.ac-name{font-size:.88rem;font-weight:700;line-height:1.3;margin-top:3px}
-.ac-en{font-size:.68rem;color:#6b7d93;margin-top:1px}
-.ac-sal{font-size:.8rem;font-weight:700;margin-bottom:8px}
 .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.65rem;font-weight:600}
 .tag-blue{background:rgba(61,155,255,.12);color:#5fb0ff;border:1px solid rgba(61,155,255,.2)}
 .tag-gold{background:rgba(245,200,66,.10);color:#f5c842;border:1px solid rgba(245,200,66,.2)}
@@ -201,8 +183,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 /* Map tooltip */
 [data-theme="light"] #map-tooltip{background:rgba(255,255,255,.97)!important;border-color:rgba(0,0,0,.12)!important;color:#0f172a!important}
 /* Airline cards */
-[data-theme="light"] .airline-card{background:#fff;border-color:rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.06)}
-[data-theme="light"] .airline-card:hover{border-color:rgba(var(--ac-rgb),.5);box-shadow:0 10px 28px rgba(0,0,0,.12)}
 /* Search bar */
 [data-theme="light"] .search-wrap{background:rgba(255,255,255,.92);border-color:rgba(0,0,0,.09)}
 [data-theme="light"] .search-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.09);color:#0f172a}
@@ -215,8 +195,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .rstrip-btn{background:rgba(0,0,0,.04);color:#4a5568;border-color:rgba(0,0,0,.1)}
 [data-theme="light"] .rstrip-btn.active{color:#fff}
 /* Card text */
-[data-theme="light"] .ac-en{color:#334155!important}
-[data-theme="light"] .ac-salary{color:#0f172a!important}
 /* Tags */
 [data-theme="light"] .tag-gray{background:rgba(0,0,0,.05);color:#4a5568;border-color:rgba(0,0,0,.1)}
 /* No results */
@@ -343,7 +321,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   <div class="max-w-7xl mx-auto px-5 text-center relative">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);color:#f5c842;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">🌍 WORLD AIRLINES DATABASE</div>
     <h1 style="font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 30%,#f5c842);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px">World Airlines — Pilot Information</h1>
-    <p style="color:#6b7d93;font-size:.95rem">Click the map to choose a region — pay, hiring and training details for 112 airlines</p>
+    <p style="color:#6b7d93;font-size:.95rem">Click the map to choose a region — pay, hiring and training details for <!--PV-DIR-N-->112<!--/PV-DIR-N--> airlines</p>
   </div>
 </div>
 
@@ -605,7 +583,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <circle class="pulse-ring" r="11" fill="none" stroke="rgba(200,16,46,.5)" stroke-width="1.5"/>
         <circle class="pin-circle" r="11" fill="rgba(200,16,46,.25)" stroke="rgba(200,16,46,.8)" stroke-width="1.5"/>
         <text class="pin-text" y="-18">N. America</text>
-        <text class="pin-count" y="20" fill="#ff8888" id="pc-us">13 airlines</text>
+        <text class="pin-count" y="20" fill="#ff8888" id="pc-us">14 airlines</text>
       </g>
 
       <!-- South America -->
@@ -621,7 +599,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <circle class="pulse-ring" r="11" fill="none" stroke="rgba(95,176,255,.5)" stroke-width="1.5"/>
         <circle class="pin-circle" r="11" fill="rgba(95,176,255,.2)" stroke="rgba(95,176,255,.8)" stroke-width="1.5"/>
         <text class="pin-text" y="-18">Europe</text>
-        <text class="pin-count" y="20" fill="#5fb0ff" id="pc-europe">21 airlines</text>
+        <text class="pin-count" y="20" fill="#5fb0ff" id="pc-europe">25 airlines</text>
       </g>
 
       <!-- Africa -->
@@ -637,7 +615,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <circle class="pulse-ring" r="11" fill="none" stroke="rgba(239,192,80,.5)" stroke-width="1.5"/>
         <circle class="pin-circle" r="11" fill="rgba(239,192,80,.2)" stroke="rgba(239,192,80,.8)" stroke-width="1.5"/>
         <text class="pin-text" y="-18">Middle East</text>
-        <text class="pin-count" y="20" fill="#efc050" id="pc-mideast">10 airlines</text>
+        <text class="pin-count" y="20" fill="#efc050" id="pc-mideast">9 airlines</text>
       </g>
 
       <!-- Asia -->
@@ -645,7 +623,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <circle class="pulse-ring" r="11" fill="none" stroke="rgba(249,115,22,.5)" stroke-width="1.5"/>
         <circle class="pin-circle" r="11" fill="rgba(249,115,22,.2)" stroke="rgba(249,115,22,.8)" stroke-width="1.5"/>
         <text class="pin-text" y="-18">Asia</text>
-        <text class="pin-count" y="20" fill="#fb923c" id="pc-asia">24 airlines</text>
+        <text class="pin-count" y="20" fill="#fb923c" id="pc-asia">26 airlines</text>
       </g>
 
       <!-- Japan -->
@@ -678,7 +656,17 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
   <!-- Region strip -->
   <div class="region-strip" id="region-strip">
-    <!-- populated by JS -->
+<!--PV-DIR-REGIONS-->
+<button type="button" class="rstrip-btn active" data-region="all" data-rc="#f5c842" data-emoji="🌐" data-label="All" aria-pressed="true" style="--rc:#f5c842;background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.3);color:#f5c842"><span>🌐</span><span class="rstrip-l">All</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">112</span></button>
+<button type="button" class="rstrip-btn" data-region="japan" data-rc="#3d9bff" data-emoji="🇯🇵" data-label="Japan" aria-pressed="false" style="--rc:#3d9bff"><span>🇯🇵</span><span class="rstrip-l">Japan</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">26</span></button>
+<button type="button" class="rstrip-btn" data-region="asia" data-rc="#f97316" data-emoji="🌏" data-label="Asia" aria-pressed="false" style="--rc:#f97316"><span>🌏</span><span class="rstrip-l">Asia</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">26</span></button>
+<button type="button" class="rstrip-btn" data-region="mideast" data-rc="#efc050" data-emoji="🌙" data-label="Middle East" aria-pressed="false" style="--rc:#efc050"><span>🌙</span><span class="rstrip-l">Middle East</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">9</span></button>
+<button type="button" class="rstrip-btn" data-region="africa" data-rc="#4caf50" data-emoji="🌍" data-label="Africa" aria-pressed="false" style="--rc:#4caf50"><span>🌍</span><span class="rstrip-l">Africa</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">4</span></button>
+<button type="button" class="rstrip-btn" data-region="europe" data-rc="#5fb0ff" data-emoji="✈️" data-label="Europe" aria-pressed="false" style="--rc:#5fb0ff"><span>✈️</span><span class="rstrip-l">Europe</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">25</span></button>
+<button type="button" class="rstrip-btn" data-region="us" data-rc="#c8102e" data-emoji="🇺🇸" data-label="North America" aria-pressed="false" style="--rc:#c8102e"><span>🇺🇸</span><span class="rstrip-l">North America</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">14</span></button>
+<button type="button" class="rstrip-btn" data-region="oceania" data-rc="#ee6450" data-emoji="🦘" data-label="Oceania" aria-pressed="false" style="--rc:#ee6450"><span>🦘</span><span class="rstrip-l">Oceania</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">4</span></button>
+<button type="button" class="rstrip-btn" data-region="latam" data-rc="#f5c842" data-emoji="🌎" data-label="Latin America" aria-pressed="false" style="--rc:#f5c842"><span>🌎</span><span class="rstrip-l">Latin America</span><span class="rstrip-n" style="font-size:.68rem;opacity:.65">4</span></button>
+<!--/PV-DIR-REGIONS-->
   </div>
 
   <!-- Search + type -->
@@ -693,7 +681,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
       <button class="ftype-btn" data-type="lcc">LCC/ULCC</button>
       <button class="ftype-btn" data-type="taxfree">🏖️ Tax-free</button>
     </div>
-    <div id="result-count" style="font-size:.8rem;color:#6b7d93;white-space:nowrap;margin-left:auto"></div>
+    <div id="result-count" data-fmt="{n} airlines" style="font-size:.8rem;color:#6b7d93;white-space:nowrap;margin-left:auto"></div>
   </div>
 </div>
 
@@ -713,7 +701,1018 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- ── AIRLINE GRID ───────────────────────────────────────────────── -->
 <div class="max-w-7xl mx-auto px-5 pb-24">
-  <div id="airline-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px"></div>
+  <ul id="airline-grid">
+<!--PV-DIR-CARDS-->
+<li class="wd-li" data-slug="ana" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="ANA NH JP" data-k="全日本空輸（ANA）|All Nippon Airways (ANA)|All Nippon Airways|全日空|ぜんにっくう|あな|日本|Japan|スターアライアンス|Star Alliance|🇯🇵" style="--ac:#1A6EB5;--pvg-c:#1A6EB5">
+<a class="wd-go" href="airlines/ana.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/ana.svg" alt="" width="246" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AN</b></span></span><span class="wd-names"><span class="wd-name" id="wn-ana">🇯🇵 All Nippon Airways</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">ANA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">All Nippon Airways (ANA)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">All Nippon Airways (ANA)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="jal" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="JAL JL JP" data-k="日本航空（JAL）|Japan Airlines (JAL)|Japan Airlines|じゃる|日本エアラインズ|日本|Japan|ワンワールド|oneworld|🇯🇵" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/jal.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/jal.svg" alt="" width="274" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">JA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-jal">🇯🇵 Japan Airlines</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">JAL</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Japan Airlines (JAL)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Japan Airlines (JAL)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="skymark" data-region="japan" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="SKY BC JP" data-k="スカイマーク|Skymark Airlines|すかいまーく|日本|Japan|🇯🇵" style="--ac:#00A2E8;--pvg-c:#00A2E8">
+<a class="wd-go" href="airlines/skymark.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/skymark.svg" alt="" width="375" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-skymark">🇯🇵 Skymark Airlines</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">SKY</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Skymark Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19000000" data-orig="¥1,900万">$120K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Skymark Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="9500000" data-orig="¥950万">$60K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="zipair" data-region="japan" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="ZIP ZG JP" data-k="ZIPAIR Tokyo|ZIPAIR|ジップエア|じっぷ|日本|Japan|🇯🇵" style="--ac:#00C48C;--pvg-c:#00C48C">
+<a class="wd-go" href="airlines/zipair.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/zipair.svg" alt="" width="272" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">ZT</b></span></span><span class="wd-names"><span class="wd-name" id="wn-zipair">🇯🇵 ZIPAIR Tokyo</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">ZIP</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">ZIPAIR Tokyo</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="25000000" data-orig="¥2,500万">$157K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">ZIPAIR Tokyo</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="peach" data-region="japan" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="APJ MM JP" data-k="Peach Aviation|ピーチ・アビエーション|Peach|ピーチ|日本|Japan|🇯🇵" style="--ac:#E5007F;--pvg-c:#E5007F">
+<a class="wd-go" href="airlines/peach.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/peach.svg" alt="" width="212" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">PA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-peach">🇯🇵 Peach Aviation</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">APJ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Peach Aviation</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="23500000" data-orig="¥2,350万">$148K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Peach Aviation</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14000000" data-orig="¥1,400万">$88K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="jetstar-japan" data-region="japan" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="GK JJP JP" data-k="ジェットスター・ジャパン|Jetstar Japan|Jetstar|ジェットスター|日本|Japan|🇯🇵" style="--ac:#FF5900;--pvg-c:#FF5900">
+<a class="wd-go" href="airlines/jetstar-japan.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/jetstar-japan.svg" alt="" width="230" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">JJ</b></span></span><span class="wd-names"><span class="wd-name" id="wn-jetstar-japan">🇯🇵 Jetstar Japan</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">GK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Jetstar Japan</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="24000000" data-orig="¥2,400万">$151K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Jetstar Japan</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14500000" data-orig="¥1,450万">$91K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="spring-japan" data-region="japan" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="IJ SJO JP" data-k="スプリング・ジャパン|Spring Japan|春秋航空日本|春秋|スプリング|日本|Japan|🇯🇵" style="--ac:#FF6B00;--pvg-c:#FF6B00">
+<a class="wd-go" href="airlines/spring-japan.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/spring-japan.png" alt="" width="324" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">SJ</b></span></span><span class="wd-names"><span class="wd-name" id="wn-spring-japan">🇯🇵 Spring Japan</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">IJ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Spring Japan</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Spring Japan</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11500000" data-orig="¥1,150万">$72K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="j-air" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="XM JAI JP" data-k="ジェイエア|J-Air (J-AIR)|ジェイエア（J-AIR）|J-AIR|JALグループ|jair|日本|Japan|JAL Group|🇯🇵" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/j-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/j-air.png" alt="" width="224" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">JA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-j-air">🇯🇵 J-AIR</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">XM</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">J-Air (J-AIR)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">J-Air (J-AIR)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12500000" data-orig="¥1,250万">$79K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">JAL Group</span></span></div>
+</li>
+<li class="wd-li" data-slug="jta" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="NU JTA JP" data-k="日本トランスオーシャン航空|Japan Transocean Air (JTA)|日本トランスオーシャン航空（JTA）|Japan Transocean Air|那覇|トランスオーシャン|日本|Japan|JALグループ|JAL Group|🇯🇵" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/jta.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/jta.svg" alt="" width="232" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">JT</b></span></span><span class="wd-names"><span class="wd-name" id="wn-jta">🇯🇵 Japan Transocean Air</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">NU</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Japan Transocean Air (JTA)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Japan Transocean Air (JTA)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">JAL Group</span></span></div>
+</li>
+<li class="wd-li" data-slug="jac" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="3H JAC 3X JP" data-k="日本エアコミューター|Japan Air Commuter (JAC)|日本エアコミューター（JAC）|Japan Air Commuter|鹿児島|えあこみゅーたー|日本|Japan|JALグループ|JAL Group|🇯🇵" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/jac.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/jac.svg" alt="" width="927" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">JA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-jac">🇯🇵 Japan Air Commuter</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">3H</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Japan Air Commuter (JAC)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Japan Air Commuter (JAC)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10000000" data-orig="¥1,000万">$63K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">JAL Group</span></span></div>
+</li>
+<li class="wd-li" data-slug="rac" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="3G RAC JP" data-k="琉球エアーコミューター|Ryukyu Air Commuter (RAC)|琉球エアーコミューター（RAC）|Ryukyu Air Commuter|沖縄|りゅうきゅう|日本|Japan|JALグループ|JAL Group|🇯🇵" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/rac.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/rac.svg" alt="" width="263" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">RA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-rac">🇯🇵 Ryukyu Air Commuter</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">3G</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Ryukyu Air Commuter (RAC)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Ryukyu Air Commuter (RAC)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10000000" data-orig="¥1,000万">$63K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">JAL Group</span></span></div>
+</li>
+<li class="wd-li" data-slug="hac" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="NTH HAC JP" data-k="北海道エアシステム|Hokkaido Air System (HAC)|北海道エアシステム（HAC）|Hokkaido Air System|北海道|ほっかいどう|日本|Japan|JALグループ|JAL Group|🇯🇵" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/hac.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/hac.png" alt="" width="270" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">HA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-hac">🇯🇵 Hokkaido Air System</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">NTH</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Hokkaido Air System (HAC)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Hokkaido Air System (HAC)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10000000" data-orig="¥1,000万">$63K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">JAL Group</span></span></div>
+</li>
+<li class="wd-li" data-slug="ana-wings" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="EH AKX JP" data-k="ANAウイングス|ANA Wings|ANAウィングス|日本|Japan|ANAグループ|ANA Group|🇯🇵" style="--ac:#1A6EB5;--pvg-c:#1A6EB5">
+<a class="wd-go" href="airlines/ana-wings.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/ana-wings.svg" alt="" width="246" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AW</b></span></span><span class="wd-names"><span class="wd-name" id="wn-ana-wings">🇯🇵 ANA Wings</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">EH</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">ANA Wings</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">ANA Wings</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">ANA Group</span></span></div>
+</li>
+<li class="wd-li" data-slug="airjapan" data-region="japan" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="NQ AJX JP" data-k="AirJapan|エアジャパン|Air Japan|エアージャパン|日本|Japan|ANAグループ|ANA Group|🇯🇵" style="--ac:#0090CC;--pvg-c:#0090CC">
+<a class="wd-go" href="airlines/airjapan.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/airjapan.svg" alt="" width="253" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="background:#067caf">AI</b></span></span><span class="wd-names"><span class="wd-name" id="wn-airjapan">🇯🇵 AirJapan</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">NQ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">AirJapan</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="21000000" data-orig="¥2,100万">$132K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">AirJapan</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13500000" data-orig="¥1,350万">$85K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span><span class="tag tag-gray">ANA Group</span></span></div>
+</li>
+<li class="wd-li" data-slug="airdo" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="HD ADO JP" data-k="AIRDO|AIRDO (AIR DO)|エア・ドゥ|AirDo|北海道国際航空|えあどぅ|日本|Japan|ANA提携|ANA partner|🇯🇵" style="--ac:#0055A4;--pvg-c:#0055A4">
+<a class="wd-go" href="airlines/airdo.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/airdo.svg" alt="" width="213" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-airdo">🇯🇵 AIRDO</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">HD</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">AIRDO (AIR DO)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19500000" data-orig="¥1,950万">$123K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">AIRDO (AIR DO)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">ANA partner</span></span></div>
+</li>
+<li class="wd-li" data-slug="solaseed" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="6J VJ SNJ JP" data-k="ソラシドエア|Solaseed Air|そらしど|九州|日本|Japan|ANA提携|ANA partner|🇯🇵" style="--ac:#009EDB;--pvg-c:#009EDB">
+<a class="wd-go" href="airlines/solaseed.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/solaseed.svg" alt="" width="257" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-solaseed">🇯🇵 Solaseed Air</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">6J</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Solaseed Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Solaseed Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12500000" data-orig="¥1,250万">$79K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">ANA partner</span></span></div>
+</li>
+<li class="wd-li" data-slug="starflyer" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="7G SFJ JP" data-k="スターフライヤー|StarFlyer (Star Flyer)|StarFlyer|Star Flyer|北九州|日本|Japan|ANA提携|ANA partner|🇯🇵" style="--ac:#1C1C3A;--pvg-c:#1C1C3A">
+<a class="wd-go" href="airlines/starflyer.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/starflyer.svg" alt="" width="77" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SS</b></span></span><span class="wd-names"><span class="wd-name" id="wn-starflyer">🇯🇵 StarFlyer</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">7G</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">StarFlyer (Star Flyer)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19500000" data-orig="¥1,950万">$123K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">StarFlyer (Star Flyer)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11500000" data-orig="¥1,150万">$72K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">ANA partner</span></span></div>
+</li>
+<li class="wd-li" data-slug="fda" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="JH FDA JP" data-k="フジドリームエアラインズ（FDA）|Fuji Dream Airlines (FDA)|Fuji Dream Airlines|フジドリームエアラインズ|ふじどりーむ|静岡|日本|Japan|🇯🇵" style="--ac:#FF6600;--pvg-c:#FF6600">
+<a class="wd-go" href="airlines/fda.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/fda.svg" alt="" width="198" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">FD</b></span></span><span class="wd-names"><span class="wd-name" id="wn-fda">🇯🇵 Fuji Dream Airlines</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">JH</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Fuji Dream Airlines (FDA)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="16000000" data-orig="¥1,600万">$101K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Fuji Dream Airlines (FDA)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8500000" data-orig="¥850万">$53K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="ibex" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="FW IBX JP" data-k="IBEXエアラインズ|IBEX Airlines|アイベックスエアラインズ（IBEX）|アイベックスエアラインズ|Ibex Airlines|アイベックス|仙台|日本|Japan|ANA提携|ANA partner|🇯🇵" style="--ac:#0033A0;--pvg-c:#0033A0">
+<a class="wd-go" href="airlines/ibex.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/ibex.png" alt="" width="114" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">IA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-ibex">🇯🇵 IBEX Airlines</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">FW</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">IBEX Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">IBEX Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">ANA partner</span></span></div>
+</li>
+<li class="wd-li" data-slug="toki-air" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="JO TKI JP" data-k="トキエア|Toki Air|とき|新潟|日本|Japan|🇯🇵" style="--ac:#00A0C6;--pvg-c:#00A0C6">
+<a class="wd-go" href="airlines/toki-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/toki-air.svg" alt="" width="190" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">TA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-toki-air">🇯🇵 Toki Air</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">JO</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Toki Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14000000" data-orig="¥1,400万">$88K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Toki Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8000000" data-orig="¥800万">$50K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="orc" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="OC ORC JP" data-k="オリエンタルエアブリッジ|Oriental Air Bridge (ORC)|オリエンタルエアブリッジ（ORC）|Oriental Air Bridge|長崎|おりえんたる|日本|Japan|ANA提携|ANA partner|🇯🇵" style="--ac:#1B4F97;--pvg-c:#1B4F97">
+<a class="wd-go" href="airlines/orc.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/orc.png" alt="" width="186" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">OA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-orc">🇯🇵 Oriental Air Bridge</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">OC</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Oriental Air Bridge (ORC)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Oriental Air Bridge (ORC)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8500000" data-orig="¥850万">$53K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">ANA partner</span></span></div>
+</li>
+<li class="wd-li" data-slug="amx" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="MZ AMX JP" data-k="天草エアライン|Amakusa Airlines (AMX)|天草エアライン（AMX）|Amakusa Airlines|あまくさ|天草|日本|Japan|JAL/ANA提携|JAL / ANA partner|🇯🇵" style="--ac:#00843D;--pvg-c:#00843D">
+<a class="wd-go" href="airlines/amx.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/amx.png" alt="" width="416" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-amx">🇯🇵 Amakusa Airlines</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">MZ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Amakusa Airlines (AMX)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14000000" data-orig="¥1,400万">$88K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Amakusa Airlines (AMX)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8500000" data-orig="¥850万">$53K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">JAL / ANA partner</span></span></div>
+</li>
+<li class="wd-li" data-slug="shin-central" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="SCA JP" data-k="新中央航空|Shin Chuo Airlines (Shin Nichi Aviation)|Shin Central Air|しんちゅうおう|日本|Japan|🇯🇵" style="--ac:#003087;--pvg-c:#003087">
+<a class="wd-go" href="airlines/shin-central.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/shin-central.png" alt="" width="222" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SC</b></span></span><span class="wd-names"><span class="wd-name" id="wn-shin-central">🇯🇵 Shin Central Air</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">SCA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Shin Chuo Airlines (Shin Nichi Aviation)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12500000" data-orig="¥1,250万">$79K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Shin Chuo Airlines (Shin Nichi Aviation)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7500000" data-orig="¥750万">$47K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="toho-air" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="THK THA JP" data-k="東邦航空|Toho Air Service|東邦エア|Toho Air|とうほう|日本|Japan|🇯🇵" style="--ac:#CC6600;--pvg-c:#CC6600">
+<a class="wd-go" href="airlines/toho-air.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono" style="background:#b75b05">TA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-toho-air">🇯🇵 Toho Air Service</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">THK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Toho Air Service</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Toho Air Service</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7500000" data-orig="¥750万">$47K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="daiichi-air" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="DAK DAI JP" data-k="第一航空|Daiichi Aviation (Daiichi Air)|Daiichi Aviation|Daiichi Air|だいいち|日本|Japan|🇯🇵" style="--ac:#0066CC;--pvg-c:#0066CC">
+<a class="wd-go" href="airlines/daiichi-air.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono">DA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-daiichi-air">🇯🇵 Daiichi Aviation</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">DAK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Daiichi Aviation (Daiichi Air)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Daiichi Aviation (Daiichi Air)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8000000" data-orig="¥800万">$50K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="shin-nihon" data-region="japan" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="SNJ SNA JP" data-k="新日本航空|Shin Nihon Airlines|しんにほん|日本|Japan|🇯🇵" style="--ac:#CC0033;--pvg-c:#CC0033">
+<a class="wd-go" href="airlines/shin-nihon.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/shin-nihon.png" alt="" width="145" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SN</b></span></span><span class="wd-names"><span class="wd-name" id="wn-shin-nihon">🇯🇵 Shin Nihon Airlines</span><span class="wd-meta"><span class="wd-sub">Japan</span><span class="wd-code">SNJ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Shin Nihon Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Shin Nihon Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7500000" data-orig="¥750万">$47K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="korean-air" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="KAL KE KR" data-k="大韓航空|Korean Air|だいかん|韓国|Korea|South Korea|スカイチーム|SkyTeam|🇰🇷" style="--ac:#0032A0;--pvg-c:#0032A0">
+<a class="wd-go" href="airlines/korean-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/korean-air.svg" alt="" width="419" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">KA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-korean-air">🇰🇷 Korean Air</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">KAL</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Korean Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="24500000" data-orig="¥2,450万">$154K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Korean Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12500000" data-orig="¥1,250万">$79K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="asiana" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="OZ AAR KR" data-k="アシアナ航空|Asiana Airlines|あしあな|韓国|Korea|South Korea|スターアライアンス|Star Alliance|🇰🇷" style="--ac:#E51820;--pvg-c:#E51820">
+<a class="wd-go" href="airlines/asiana.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-asiana">🇰🇷 Asiana Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">OZ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Asiana Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="21800000" data-orig="¥2,180万">$137K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Asiana Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11100000" data-orig="¥1,110万">$70K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="eva-air" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="EVA BR TW" data-k="エバー航空|EVA Air|えばー|台湾|Taiwan|スターアライアンス|Star Alliance|🇹🇼" style="--ac:#00A599;--pvg-c:#00A599">
+<a class="wd-go" href="airlines/eva-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/eva-air.svg" alt="" width="309" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">EA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-eva-air">🇹🇼 EVA Air</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">EVA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">EVA Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="29500000" data-orig="¥2,950万">$186K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">EVA Air</span>First Officer · Official posting<b class="wd-v"><span class="pv-cur" data-jpy="15890000" data-orig="¥1,589万">$100K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="china-airlines" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="CAL CI TW" data-k="チャイナエアライン|China Airlines|台湾|Taiwan|スカイチーム|SkyTeam|🇹🇼" style="--ac:#D00027;--pvg-c:#D00027">
+<a class="wd-go" href="airlines/china-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/china-airlines.svg" alt="" width="427" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">CA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-china-airlines">🇹🇼 China Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">CAL</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">China Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">China Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11000000" data-orig="¥1,100万">$69K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="starlux" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="JX TW" data-k="スターラックス|STARLUX Airlines|StarLux Airlines|スターラックス航空|StarLux|すたーらっくす|台湾|Taiwan|🇹🇼" style="--ac:#007A9B;--pvg-c:#007A9B">
+<a class="wd-go" href="airlines/starlux.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/starlux.svg" alt="" width="285" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-starlux">🇹🇼 StarLux Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">JX</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">STARLUX Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="31000000" data-orig="¥3,100万">$195K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">STARLUX Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19500000" data-orig="¥1,950万">$123K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="thai-airways" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="TG THA TH" data-k="タイ国際航空|Thai Airways International|Thai Airways|タイ|Thailand|スターアライアンス|Star Alliance|🇹🇭" style="--ac:#4A0A77;--pvg-c:#4A0A77">
+<a class="wd-go" href="airlines/thai-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/thai-airways.svg" alt="" width="218" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">TA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-thai-airways">🇹🇭 Thai Airways</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">TG</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Thai Airways International</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18500000" data-orig="¥1,850万">$116K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Thai Airways International</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8800000" data-orig="¥880万">$55K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="malaysia-airlines" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="MH MAS MY" data-k="マレーシア航空|Malaysia Airlines|マレーシア|Malaysia|ワンワールド|oneworld|🇲🇾" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/malaysia-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/malaysia-airlines.svg" alt="" width="257" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">MA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-malaysia-airlines">🇲🇾 Malaysia Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">MH</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Malaysia Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19000000" data-orig="¥1,900万">$120K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Malaysia Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10000000" data-orig="¥1,000万">$63K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="garuda-indonesia" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="GA GIA ID" data-k="ガルーダ・インドネシア航空|Garuda Indonesia|ガルーダ・インドネシア|ガルーダ|インドネシア|Indonesia|スカイチーム|SkyTeam|🇮🇩" style="--ac:#0044A8;--pvg-c:#0044A8">
+<a class="wd-go" href="airlines/garuda-indonesia.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/garuda-indonesia.svg" alt="" width="347" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">GI</b></span></span><span class="wd-names"><span class="wd-name" id="wn-garuda-indonesia">🇮🇩 Garuda Indonesia</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">GA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Garuda Indonesia</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Garuda Indonesia</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7200000" data-orig="¥720万">$45K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="vietnam-airlines" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="VN HVN" data-k="ベトナム航空|Vietnam Airlines|ベトナム|Vietnam|スカイチーム|SkyTeam|🇻🇳" style="--ac:#006B4F;--pvg-c:#006B4F">
+<a class="wd-go" href="airlines/vietnam-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/vietnam-airlines.svg" alt="" width="509" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">VA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-vietnam-airlines">🇻🇳 Vietnam Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">VN</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Vietnam Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19000000" data-orig="¥1,900万">$120K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Vietnam Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="philippine-airlines" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="PR PAL PH" data-k="フィリピン航空|Philippine Airlines|フィリピン|Philippines|ワンワールド|oneworld|🇵🇭" style="--ac:#0038A8;--pvg-c:#0038A8">
+<a class="wd-go" href="airlines/philippine-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/philippine-airlines.svg" alt="" width="388" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">PA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-philippine-airlines">🇵🇭 Philippine Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">PR</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Philippine Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Philippine Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7500000" data-orig="¥750万">$47K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="airasia" data-region="asia" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="AK AAX MY" data-k="エアアジア|AirAsia Group|AirAsia|えああじあ|マレーシア|Malaysia|🇲🇾" style="--ac:#FF0000;--pvg-c:#FF0000">
+<a class="wd-go" href="airlines/airasia.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/airasia.svg" alt="" width="64" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="background:#e7120b">AG</b></span></span><span class="wd-names"><span class="wd-name" id="wn-airasia">🇲🇾 AirAsia</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">AK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">AirAsia Group</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">AirAsia Group</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="6000000" data-orig="¥600万">$38K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="scoot" data-region="asia" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="TR TGW SG" data-k="スクート|Scoot|すくーと|シンガポール|Singapore|🇸🇬" style="--ac:#FBD800;--pvg-c:#FBD800">
+<a class="wd-go" href="airlines/scoot.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/scoot.svg" alt="" width="73" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">SC</b></span></span><span class="wd-names"><span class="wd-name" id="wn-scoot">🇸🇬 Scoot</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">TR</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Scoot</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="23500000" data-orig="¥2,350万">$148K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Scoot</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11500000" data-orig="¥1,150万">$72K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="indigo" data-region="asia" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="6E IGO IN" data-k="インディゴ航空|IndiGo|インディゴ|インド|India|🇮🇳" style="--ac:#006DB7;--pvg-c:#006DB7">
+<a class="wd-go" href="airlines/indigo.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/indigo.svg" alt="" width="314" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">IN</b></span></span><span class="wd-names"><span class="wd-name" id="wn-indigo">🇮🇳 IndiGo</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">6E</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">IndiGo</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="16000000" data-orig="¥1,600万">$101K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">IndiGo</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="5000000" data-orig="¥500万">$31K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="air-india" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AI AIC IN" data-k="エア・インディア|Air India|エアインディア|インド|India|スターアライアンス|Star Alliance|🇮🇳" style="--ac:#C8102E;--pvg-c:#C8102E">
+<a class="wd-go" href="airlines/air-india.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/air-india.svg" alt="" width="277" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AI</b></span></span><span class="wd-names"><span class="wd-name" id="wn-air-india">🇮🇳 Air India</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">AI</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Air India</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Air India</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7200000" data-orig="¥720万">$45K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="air-china" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="CA CCA CN" data-k="中国国際航空|Air China|エアチャイナ|中国|China|スターアライアンス|Star Alliance|🇨🇳" style="--ac:#C00000;--pvg-c:#C00000">
+<a class="wd-go" href="airlines/air-china.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/air-china.svg" alt="" width="206" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AC</b></span></span><span class="wd-names"><span class="wd-name" id="wn-air-china">🇨🇳 Air China</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">CA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Air China</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="30500000" data-orig="¥3,050万">$192K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Air China</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="china-southern" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="CZ CSN CN" data-k="中国南方航空|China Southern Airlines|China Southern|チャイナサザン|中国|China|スカイチーム|SkyTeam|🇨🇳" style="--ac:#005BAC;--pvg-c:#005BAC">
+<a class="wd-go" href="airlines/china-southern.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/china-southern.svg" alt="" width="289" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">CS</b></span></span><span class="wd-names"><span class="wd-name" id="wn-china-southern">🇨🇳 China Southern</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">CZ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">China Southern Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="29500000" data-orig="¥2,950万">$186K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">China Southern Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="china-eastern" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="MU CES CN" data-k="中国東方航空|China Eastern Airlines|China Eastern|チャイナイースタン|中国|China|スカイチーム|SkyTeam|🇨🇳" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/china-eastern.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/china-eastern.svg" alt="" width="292" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">CE</b></span></span><span class="wd-names"><span class="wd-name" id="wn-china-eastern">🇨🇳 China Eastern</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">MU</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">China Eastern Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="29000000" data-orig="¥2,900万">$182K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">China Eastern Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14800000" data-orig="¥1,480万">$93K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="hainan-airlines" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="HU HXA CN" data-k="海南航空|Hainan Airlines|はいなん|中国|China|ワンワールド|oneworld|🇨🇳" style="--ac:#003087;--pvg-c:#003087">
+<a class="wd-go" href="airlines/hainan-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/hainan-airlines.svg" alt="" width="257" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">HA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-hainan-airlines">🇨🇳 Hainan Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">HU</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Hainan Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="30500000" data-orig="¥3,050万">$192K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Hainan Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="vietjet" data-region="asia" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="VJ VJC VN" data-k="ベトジェット航空|VietJet Air|ベトジェット|ビエットジェット|ベトナム|Vietnam|🇻🇳" style="--ac:#D62829;--pvg-c:#D62829">
+<a class="wd-go" href="airlines/vietjet.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/vietjet.svg" alt="" width="340" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">VA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-vietjet">🇻🇳 VietJet Air</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">VJ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">VietJet Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">VietJet Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="9500000" data-orig="¥950万">$60K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="bamboo-airways" data-region="asia" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="QH BAV VN" data-k="バンブー・エアウェイズ|Bamboo Airways|バンブー|ベトナム|Vietnam|🇻🇳" style="--ac:#00A651;--pvg-c:#00A651">
+<a class="wd-go" href="airlines/bamboo-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/bamboo-airways.svg" alt="" width="263" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">BA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-bamboo-airways">🇻🇳 Bamboo Airways</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">QH</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Bamboo Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18500000" data-orig="¥1,850万">$116K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Bamboo Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="hong-kong-express" data-region="asia" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="UO HK" data-k="香港エクスプレス航空|HK Express|HKエクスプレス|香港エクスプレス|Hong Kong Express|HKExpress|香港|Hong Kong|🇭🇰" style="--ac:#E20074;--pvg-c:#E20074">
+<a class="wd-go" href="airlines/hong-kong-express.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/hong-kong-express.svg" alt="" width="243" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">HE</b></span></span><span class="wd-names"><span class="wd-name" id="wn-hong-kong-express">🇭🇰 HK Express</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">UO</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">HK Express</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20500000" data-orig="¥2,050万">$129K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">HK Express</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11500000" data-orig="¥1,150万">$72K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="batik-air" data-region="asia" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="ID BTK" data-k="バティック・エア|Batik Air|バティックエア|ばてぃっく|インドネシア|Indonesia|🇮🇩" style="--ac:#FF6B00;--pvg-c:#FF6B00">
+<a class="wd-go" href="airlines/batik-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/batik-air.svg" alt="" width="237" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">BA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-batik-air">🇮🇩 Batik Air</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">ID</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Batik Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8800000" data-orig="¥880万">$55K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Batik Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="4300000" data-orig="¥430万">$27K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="royal-brunei" data-region="asia" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="BI RBA BN" data-k="ロイヤル・ブルネイ航空|Royal Brunei Airlines|ロイヤル・ブルネイ|Royal Brunei|ロイヤルブルネイ航空|ブルネイ|Brunei|🇧🇳" style="--ac:#C8102E;--pvg-c:#C8102E">
+<a class="wd-go" href="airlines/royal-brunei.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/royal-brunei.svg" alt="" width="136" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">RB</b></span></span><span class="wd-names"><span class="wd-name" id="wn-royal-brunei">🇧🇳 Royal Brunei</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">BI</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Royal Brunei Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20500000" data-orig="¥2,050万">$129K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Royal Brunei Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11000000" data-orig="¥1,100万">$69K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span></span></div>
+</li>
+<li class="wd-li" data-slug="singapore-airlines" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="SQ SIA SG" data-k="シンガポール航空|Singapore Airlines|しんがぽーる|Singapore|シンガポール|スターアライアンス|Star Alliance|🇸🇬" style="--ac:#00378B;--pvg-c:#00378B">
+<a class="wd-go" href="airlines/singapore-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/singapore-airlines.svg" alt="" width="174" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-singapore-airlines">🇸🇬 Singapore Airlines</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">SQ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Singapore Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="34000000" data-orig="¥3,400万">$214K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Singapore Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18500000" data-orig="¥1,850万">$116K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="cathay-pacific" data-region="asia" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="CX CPA HK" data-k="キャセイパシフィック|Cathay Pacific|キャセイパシフィック航空|キャセイ|かせい|香港|HongKong|Hong Kong|ワンワールド|oneworld|🇭🇰" style="--ac:#006564;--pvg-c:#006564">
+<a class="wd-go" href="airlines/cathay-pacific.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/cathay-pacific.svg" alt="" width="459" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">CP</b></span></span><span class="wd-names"><span class="wd-name" id="wn-cathay-pacific">🇭🇰 Cathay Pacific</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">CX</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Cathay Pacific</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="36000000" data-orig="¥3,600万">$226K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Cathay Pacific</span>First Officer · Modelled example<b class="wd-v"><span class="pv-cur" data-jpy="19560000" data-orig="¥1,956万">$123K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="root-aviation" data-region="asia" data-type="agent" data-tax="0" data-lvl="0" data-two="0" data-c="ROOT" data-k="ルート・アビエーション|Root Aviation|ROOT" style="--ac:#34d399;--pvg-c:#34d399">
+<a class="wd-go" href="airlines/root-aviation.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">RA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-root-aviation">Root Aviation</span><span class="wd-meta"><span class="wd-sub">Asia</span><span class="wd-code">ROOT</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Root Aviation</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Root Aviation</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7200000" data-orig="¥720万">$45K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"></span></div>
+</li>
+<li class="wd-li" data-slug="emirates" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="EK UAE AE" data-k="エミレーツ|Emirates|エミレーツ航空|えみれーつ|ドバイ|Dubai|アラブ首長国連邦|United Arab Emirates|UAE|🇦🇪" style="--ac:#D4002B;--pvg-c:#D4002B">
+<a class="wd-go" href="airlines/emirates.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/emirates.svg" alt="" width="93" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">EM</b></span></span><span class="wd-names"><span class="wd-name" id="wn-emirates">🇦🇪 Emirates</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">EK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Emirates</span>Captain · Official posting<b class="wd-v"><span class="pv-cur" data-jpy="24890000" data-orig="¥2,489万">$157K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Emirates</span>First Officer · Official posting<b class="wd-v"><span class="pv-cur" data-jpy="16660000" data-orig="¥1,666万">$105K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span></span></div>
+</li>
+<li class="wd-li" data-slug="qatar-airways" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="QR QTR QA" data-k="カタール航空|Qatar Airways|かたーる|Qatar|カタール|ワンワールド|oneworld|🇶🇦" style="--ac:#5C0632;--pvg-c:#5C0632">
+<a class="wd-go" href="airlines/qatar-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/qatar-airways.svg" alt="" width="227" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">QA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-qatar-airways">🇶🇦 Qatar Airways</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">QR</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Qatar Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="29000000" data-orig="¥2,900万">$182K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Qatar Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20500000" data-orig="¥2,050万">$129K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="etihad" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="EY ETD AE" data-k="エティハド航空|Etihad Airways|えてぃはど|アブダビ|アラブ首長国連邦|United Arab Emirates|UAE|🇦🇪" style="--ac:#B08D57;--pvg-c:#B08D57">
+<a class="wd-go" href="airlines/etihad.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/etihad.svg" alt="" width="180" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">EA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-etihad">🇦🇪 Etihad Airways</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">EY</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Etihad Airways</span>Captain · Job posting (max)<b class="wd-v">〜<span class="pv-cur" data-jpy="29170000" data-orig="¥2,917万">$184K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Etihad Airways</span>First Officer · Job posting (max)<b class="wd-v">〜<span class="pv-cur" data-jpy="22240000" data-orig="¥2,224万">$140K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span></span></div>
+</li>
+<li class="wd-li" data-slug="riyadh-air" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="RX SA" data-k="リヤド航空|Riyadh Air|リヤドエアー|リヤドエア|サウジ|りやど|サウジアラビア|Saudi Arabia|🇸🇦" style="--ac:#00B4D8;--pvg-c:#00B4D8">
+<a class="wd-go" href="airlines/riyadh-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/riyadh-air.svg" alt="" width="153" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">RA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-riyadh-air">🇸🇦 Riyadh Air</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">RX</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Riyadh Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="43000000" data-orig="¥4,300万">$271K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Riyadh Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="30000000" data-orig="¥3,000万">$189K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span></span></div>
+</li>
+<li class="wd-li" data-slug="saudia" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="SV SA" data-k="サウジア航空|Saudia|サウディア|サウジアラビア航空|SaudiArabian|さうでぃ|サウジアラビア|Saudi Arabia|スカイチーム|SkyTeam|🇸🇦" style="--ac:#1A7A4A;--pvg-c:#1A7A4A">
+<a class="wd-go" href="airlines/saudia.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/saudia.svg" alt="" width="54" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-saudia">🇸🇦 Saudia</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">SV</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Saudia</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="33000000" data-orig="¥3,300万">$208K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Saudia</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="oman-air" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="WY OAS OM" data-k="オマーン航空|Oman Air|オマーン エア|おまーん|オマーン|Oman|🇴🇲" style="--ac:#C8102E;--pvg-c:#C8102E">
+<a class="wd-go" href="airlines/oman-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/oman-air.svg" alt="" width="260" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">OA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-oman-air">🇴🇲 Oman Air</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">WY</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Oman Air</span>Captain · Past ad<b class="wd-v"><span class="pv-cur" data-jpy="19510000" data-orig="¥1,951万">$123K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Oman Air</span>First Officer · Past ad<b class="wd-v"><span class="pv-cur" data-jpy="14090000" data-orig="¥1,409万">$89K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span></span></div>
+</li>
+<li class="wd-li" data-slug="gulf-air" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="GF GFA BH" data-k="ガルフ・エア|Gulf Air|ガルフ エア|ガルフエア|バーレーン|Bahrain|🇧🇭" style="--ac:#B8860B;--pvg-c:#B8860B">
+<a class="wd-go" href="airlines/gulf-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/gulf-air.svg" alt="" width="178" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">GA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-gulf-air">🇧🇭 Gulf Air</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">GF</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Gulf Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Gulf Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span></span></div>
+</li>
+<li class="wd-li" data-slug="kuwait-airways" data-region="mideast" data-type="fsc" data-tax="1" data-lvl="1" data-two="0" data-c="KU KAC KW" data-k="クウェート航空|Kuwait Airways|くうぇーと|クウェート|Kuwait|🇰🇼" style="--ac:#007A3D;--pvg-c:#007A3D">
+<a class="wd-go" href="airlines/kuwait-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/kuwait-airways.svg" alt="" width="175" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">KA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-kuwait-airways">🇰🇼 Kuwait Airways</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">KU</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Kuwait Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="28000000" data-orig="¥2,800万">$176K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Kuwait Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gold">Tax-free</span></span></div>
+</li>
+<li class="wd-li" data-slug="royal-jordanian" data-region="mideast" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="RJ RJA JO" data-k="ロイヤル・ヨルダン航空|Royal Jordanian|ロイヤル ヨルダニアン|ロイヤルヨルダン|ヨルダン|Jordan|ワンワールド|oneworld|🇯🇴" style="--ac:#9B111E;--pvg-c:#9B111E">
+<a class="wd-go" href="airlines/royal-jordanian.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/royal-jordanian.svg" alt="" width="276" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">RJ</b></span></span><span class="wd-names"><span class="wd-name" id="wn-royal-jordanian">🇯🇴 Royal Jordanian</span><span class="wd-meta"><span class="wd-sub">Middle East</span><span class="wd-code">RJ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Royal Jordanian</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Royal Jordanian</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="9000000" data-orig="¥900万">$57K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="ethiopian-airlines" data-region="africa" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="ET ETH" data-k="エチオピア航空|Ethiopian Airlines|えちおぴあ|エチオピア|Ethiopia|スターアライアンス|Star Alliance|🇪🇹" style="--ac:#EFC050;--pvg-c:#EFC050">
+<a class="wd-go" href="airlines/ethiopian-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/ethiopian-airlines.svg" alt="" width="152" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">EA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-ethiopian-airlines">🇪🇹 Ethiopian Airlines</span><span class="wd-meta"><span class="wd-sub">Africa</span><span class="wd-code">ET</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Ethiopian Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="16000000" data-orig="¥1,600万">$101K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Ethiopian Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8800000" data-orig="¥880万">$55K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="south-african-airways" data-region="africa" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="SA SAA ZA" data-k="南アフリカ航空|South African Airways (SAA)|South African Airways|みなみあふりか|南アフリカ|South Africa|スターアライアンス|Star Alliance|🇿🇦" style="--ac:#006BA6;--pvg-c:#006BA6">
+<a class="wd-go" href="airlines/south-african-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/south-african-airways.svg" alt="" width="162" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-south-african-airways">🇿🇦 South African Airways</span><span class="wd-meta"><span class="wd-sub">Africa</span><span class="wd-code">SA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">South African Airways (SAA)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">South African Airways (SAA)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7200000" data-orig="¥720万">$45K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="kenya-airways" data-region="africa" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="KQ KQA KE" data-k="ケニア航空|Kenya Airways|けにあ|ケニア|Kenya|スカイチーム|SkyTeam|🇰🇪" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/kenya-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/kenya-airways.svg" alt="" width="281" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">KA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-kenya-airways">🇰🇪 Kenya Airways</span><span class="wd-meta"><span class="wd-sub">Africa</span><span class="wd-code">KQ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Kenya Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Kenya Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7500000" data-orig="¥750万">$47K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="egyptair" data-region="africa" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="MS MSR EG" data-k="エジプト航空|EgyptAir|えじぷと|エジプト|Egypt|スターアライアンス|Star Alliance|🇪🇬" style="--ac:#2F5597;--pvg-c:#2F5597">
+<a class="wd-go" href="airlines/egyptair.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/egyptair.svg" alt="" width="427" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">EG</b></span></span><span class="wd-names"><span class="wd-name" id="wn-egyptair">🇪🇬 EgyptAir</span><span class="wd-meta"><span class="wd-sub">Africa</span><span class="wd-code">MS</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">EgyptAir</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">EgyptAir</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8500000" data-orig="¥850万">$53K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="turkish-airlines" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="TK THY TR" data-k="ターキッシュ エアラインズ|Turkish Airlines|トルコ|Turkey|ターキッシュ|Türkiye|Turkiye|スターアライアンス|Star Alliance|🇹🇷" style="--ac:#C8102E;--pvg-c:#C8102E">
+<a class="wd-go" href="airlines/turkish-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/turkish-airlines.svg" alt="" width="238" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">TA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-turkish-airlines">🇹🇷 Turkish Airlines</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">TK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Turkish Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="25000000" data-orig="¥2,500万">$157K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Turkish Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14000000" data-orig="¥1,400万">$88K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="lufthansa" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="LH LHA DE" data-k="ルフトハンザ|Lufthansa|ルフトハンザ航空|ドイツ|Germany|スターアライアンス|Star Alliance|🇩🇪" style="--ac:#FEC10D;--pvg-c:#FEC10D">
+<a class="wd-go" href="airlines/lufthansa.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/lufthansa.svg" alt="" width="363" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">LU</b></span></span><span class="wd-names"><span class="wd-name" id="wn-lufthansa">🇩🇪 Lufthansa</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">LH</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Lufthansa</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="34400000" data-orig="¥3,440万">$216K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Lufthansa</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18900000" data-orig="¥1,890万">$119K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="air-france" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AF AFR FR" data-k="エールフランス|Air France|エール フランス|えーるふらんす|フランス|France|スカイチーム|SkyTeam|🇫🇷" style="--ac:#002395;--pvg-c:#002395">
+<a class="wd-go" href="airlines/air-france.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/air-france.svg" alt="" width="672" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AF</b></span></span><span class="wd-names"><span class="wd-name" id="wn-air-france">🇫🇷 Air France</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">AF</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Air France</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="35300000" data-orig="¥3,530万">$222K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Air France</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18100000" data-orig="¥1,810万">$114K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="klm" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="KL KLM NL" data-k="KLMオランダ航空|KLM Royal Dutch Airlines|KLM|オランダ|Netherlands|スカイチーム|SkyTeam|🇳🇱" style="--ac:#00A1DE;--pvg-c:#00A1DE">
+<a class="wd-go" href="airlines/klm.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/klm.svg" alt="" width="110" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">KR</b></span></span><span class="wd-names"><span class="wd-name" id="wn-klm">🇳🇱 KLM</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">KL</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">KLM Royal Dutch Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="39600000" data-orig="¥3,960万">$249K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">KLM Royal Dutch Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="22400000" data-orig="¥2,240万">$141K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="british-airways" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="BA BAW UK GB" data-k="ブリティッシュ・エアウェイズ|British Airways|ブリティッシュ エアウェイズ|ブリティッシュ|イギリス|United Kingdom|UK|英国|Britain|Great Britain|England|ワンワールド|oneworld|🇬🇧" style="--ac:#2B3E82;--pvg-c:#2B3E82">
+<a class="wd-go" href="airlines/british-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/british-airways.svg" alt="" width="409" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">BA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-british-airways">🇬🇧 British Airways</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">BA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">British Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="39800000" data-orig="¥3,980万">$250K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">British Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="25900000" data-orig="¥2,590万">$163K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="virgin-atlantic" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="VS VIR GB" data-k="ヴァージン・アトランティック航空|Virgin Atlantic|ヴァージン アトランティック|ヴァージン・アトランティック|ヴァージン|バージン|イギリス|United Kingdom|UK|英国|Britain|Great Britain|England|スカイチーム|SkyTeam|🇬🇧" style="--ac:#E2001A;--pvg-c:#E2001A">
+<a class="wd-go" href="airlines/virgin-atlantic.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/virgin-atlantic.svg" alt="" width="268" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">VA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-virgin-atlantic">🇬🇧 Virgin Atlantic</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">VS</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Virgin Atlantic</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="36000000" data-orig="¥3,600万">$226K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Virgin Atlantic</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19200000" data-orig="¥1,920万">$121K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="swiss" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="LX SWR CH" data-k="スイス インターナショナル エアラインズ|Swiss International Air Lines (SWISS)|スイス インターナショナル|SWISS|スイス国際航空|Swiss International Air Lines|swiss|スイス|Switzerland|スターアライアンス|Star Alliance|🇨🇭" style="--ac:#E8122D;--pvg-c:#E8122D">
+<a class="wd-go" href="airlines/swiss.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/swiss.svg" alt="" width="276" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SI</b></span></span><span class="wd-names"><span class="wd-name" id="wn-swiss">🇨🇭 SWISS</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">LX</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Swiss International Air Lines (SWISS)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="41000000" data-orig="¥4,100万">$258K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Swiss International Air Lines (SWISS)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="25000000" data-orig="¥2,500万">$157K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="austrian" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="OS AUA AT" data-k="オーストリア航空|Austrian Airlines|オーストリア|Austria|スターアライアンス|Star Alliance|🇦🇹" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/austrian.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/austrian.svg" alt="" width="449" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-austrian">🇦🇹 Austrian Airlines</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">OS</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Austrian Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="26000000" data-orig="¥2,600万">$164K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Austrian Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="finnair" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AY FIN FI" data-k="フィンエアー|Finnair|ふぃんえあー|フィンランド|Finland|ワンワールド|oneworld|🇫🇮" style="--ac:#003580;--pvg-c:#003580">
+<a class="wd-go" href="airlines/finnair.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/finnair.svg" alt="" width="585" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">FI</b></span></span><span class="wd-names"><span class="wd-name" id="wn-finnair">🇫🇮 Finnair</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">AY</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Finnair</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="30000000" data-orig="¥3,000万">$189K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Finnair</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="sas" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="SK SAS SE" data-k="スカンジナビア航空|SAS Scandinavian Airlines|SAS スカンジナビア航空|SAS|スカンジナビア|スウェーデン|Sweden|スターアライアンス|Star Alliance|🇸🇪" style="--ac:#00445B;--pvg-c:#00445B">
+<a class="wd-go" href="airlines/sas.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/sas.svg" alt="" width="182" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">SS</b></span></span><span class="wd-names"><span class="wd-name" id="wn-sas">🇸🇪 SAS</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">SK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">SAS Scandinavian Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="26500000" data-orig="¥2,650万">$167K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">SAS Scandinavian Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11500000" data-orig="¥1,150万">$72K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="iberia" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="IB IBE ES" data-k="イベリア航空|Iberia|Iberia Airlines|スペイン|Spain|ワンワールド|oneworld|🇪🇸" style="--ac:#CC0000;--pvg-c:#CC0000">
+<a class="wd-go" href="airlines/iberia.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/iberia.svg" alt="" width="290" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">IB</b></span></span><span class="wd-names"><span class="wd-name" id="wn-iberia">🇪🇸 Iberia</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">IB</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Iberia</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="26000000" data-orig="¥2,600万">$164K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Iberia</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13800000" data-orig="¥1,380万">$87K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="tap" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="TP TAP PT" data-k="TAPポルトガル航空|TAP Air Portugal|TAPエア ポルトガル|TAPエアポルトガル|ポルトガル|Portugal|スターアライアンス|Star Alliance|🇵🇹" style="--ac:#C0272D;--pvg-c:#C0272D">
+<a class="wd-go" href="airlines/tap.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/tap.svg" alt="" width="360" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">TA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-tap">🇵🇹 TAP Air Portugal</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">TP</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">TAP Air Portugal</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="22400000" data-orig="¥2,240万">$141K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">TAP Air Portugal</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11200000" data-orig="¥1,120万">$70K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="ita-airways" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AZ ITA IT" data-k="ITAエアウェイズ|ITA Airways|イタリア|Italy|Alitalia|アリタリア|スカイチーム|SkyTeam|🇮🇹" style="--ac:#008751;--pvg-c:#008751">
+<a class="wd-go" href="airlines/ita-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/ita-airways.svg" alt="" width="153" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">IA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-ita-airways">🇮🇹 ITA Airways</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">AZ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">ITA Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="21500000" data-orig="¥2,150万">$135K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">ITA Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11200000" data-orig="¥1,120万">$70K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="aer-lingus" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="EI EIN IE" data-k="エア・リンガス|Aer Lingus|エア リンガス|エアリンガス|アイルランド|Ireland|ワンワールド|oneworld|🇮🇪" style="--ac:#00A84F;--pvg-c:#00A84F">
+<a class="wd-go" href="airlines/aer-lingus.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/aer-lingus.svg" alt="" width="342" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">AL</b></span></span><span class="wd-names"><span class="wd-name" id="wn-aer-lingus">🇮🇪 Aer Lingus</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">EI</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Aer Lingus</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="27500000" data-orig="¥2,750万">$173K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Aer Lingus</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="lot" data-region="europe" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="LO LOT PL" data-k="LOTポーランド航空|LOT Polish Airlines|ポーランド|Poland|スターアライアンス|Star Alliance|🇵🇱" style="--ac:#003399;--pvg-c:#003399">
+<a class="wd-go" href="airlines/lot.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/lot.svg" alt="" width="150" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">LP</b></span></span><span class="wd-names"><span class="wd-name" id="wn-lot">🇵🇱 LOT Polish Airlines</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">LO</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">LOT Polish Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14000000" data-orig="¥1,400万">$88K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">LOT Polish Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7300000" data-orig="¥730万">$46K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="aegean" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="A3 AEE GR" data-k="エーゲ航空|Aegean Airlines|ギリシャ|Greece|スターアライアンス|Star Alliance|🇬🇷" style="--ac:#00539C;--pvg-c:#00539C">
+<a class="wd-go" href="airlines/aegean.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/aegean.svg" alt="" width="219" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-aegean">🇬🇷 Aegean Airlines</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">A3</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Aegean Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Aegean Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="6600000" data-orig="¥660万">$42K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="icelandair" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="FI ICE IS" data-k="アイスランド航空|Icelandair|アイスランド|Iceland|🇮🇸" style="--ac:#003087;--pvg-c:#003087">
+<a class="wd-go" href="airlines/icelandair.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/icelandair.svg" alt="" width="245" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">IC</b></span></span><span class="wd-names"><span class="wd-name" id="wn-icelandair">🇮🇸 Icelandair</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">FI</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Icelandair</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="21500000" data-orig="¥2,150万">$135K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Icelandair</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="norwegian" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="DY NAX NO" data-k="ノルウェー・エアシャトル|Norwegian Air Shuttle (Norwegian)|ノルウェー エア|Norwegian|ノルウェジアン航空|Norwegian Air Shuttle|ノルウェジアン|ノルウェー|Norway|🇳🇴" style="--ac:#D41819;--pvg-c:#D41819">
+<a class="wd-go" href="airlines/norwegian.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/norwegian.svg" alt="" width="411" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">NA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-norwegian">🇳🇴 Norwegian</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">DY</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Norwegian Air Shuttle (Norwegian)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Norwegian Air Shuttle (Norwegian)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11000000" data-orig="¥1,100万">$69K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="ryanair" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="FR RYR IE" data-k="ライアンエアー|Ryanair|ライアンエア|らいあん|アイルランド|Ireland|🇮🇪" style="--ac:#073590;--pvg-c:#073590">
+<a class="wd-go" href="airlines/ryanair.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/ryanair.svg" alt="" width="550" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">RY</b></span></span><span class="wd-names"><span class="wd-name" id="wn-ryanair">🇮🇪 Ryanair</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">FR</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Ryanair</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="22400000" data-orig="¥2,240万">$141K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Ryanair</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10300000" data-orig="¥1,030万">$65K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="easyjet" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="U2 EZY GB" data-k="イージージェット|easyJet|いーじー|イギリス|United Kingdom|UK|英国|Britain|Great Britain|England|🇬🇧" style="--ac:#FF6600;--pvg-c:#FF6600">
+<a class="wd-go" href="airlines/easyjet.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/easyjet.svg" alt="" width="285" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">EA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-easyjet">🇬🇧 easyJet</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">U2</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">easyJet</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">easyJet</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="eurowings" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="EW EWG DE" data-k="ユーロウイングス|Eurowings|ドイツ|Germany|🇩🇪" style="--ac:#8F174F;--pvg-c:#8F174F">
+<a class="wd-go" href="airlines/eurowings.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono">EU</b></span></span><span class="wd-names"><span class="wd-name" id="wn-eurowings">🇩🇪 Eurowings</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">EW</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Eurowings</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="27700000" data-orig="¥2,770万">$174K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Eurowings</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17100000" data-orig="¥1,710万">$108K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="vueling" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="VY VLG ES" data-k="ブエリング航空|Vueling Airlines|ヴエリング航空|Vueling|ぶえりんぐ|スペイン|Spain|🇪🇸" style="--ac:#FFCC00;--pvg-c:#FFCC00">
+<a class="wd-go" href="airlines/vueling.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/vueling.svg" alt="" width="197" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">VA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-vueling">🇪🇸 Vueling</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">VY</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Vueling Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17200000" data-orig="¥1,720万">$108K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Vueling Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="9500000" data-orig="¥950万">$60K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="wizz-air" data-region="europe" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="W6 WZZ GB" data-k="ウィズ・エアー|Wizz Air UK|ウィズ エア|Wizz Air|ウィズエア|ウィズ|イギリス|United Kingdom|UK|英国|Britain|Great Britain|England|🇬🇧" style="--ac:#C6007E;--pvg-c:#C6007E">
+<a class="wd-go" href="airlines/wizz-air.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/wizz-air.svg" alt="" width="139" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">WA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-wizz-air">🇬🇧 Wizz Air</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">W6</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Wizz Air UK</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="24000000" data-orig="¥2,400万">$151K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Wizz Air UK</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="11200000" data-orig="¥1,120万">$70K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="airx-charter" data-region="europe" data-type="charter" data-tax="0" data-lvl="0" data-two="0" data-c="AXC MT" data-k="エアX・チャーター|AirX Charter Ltd|マルタ|Malta|🇲🇹" style="--ac:#a78bfa;--pvg-c:#a78bfa">
+<a class="wd-go" href="airlines/airx-charter.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">AC</b></span></span><span class="wd-names"><span class="wd-name" id="wn-airx-charter">🇲🇹 AirX Charter Ltd</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">AXC</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">AirX Charter Ltd</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18500000" data-orig="¥1,850万">$116K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">AirX Charter Ltd</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10800000" data-orig="¥1,080万">$68K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"></span></div>
+</li>
+<li class="wd-li" data-slug="eagle-jet" data-region="europe" data-type="charter" data-tax="0" data-lvl="0" data-two="0" data-c="EJI" data-k="イーグルジェット・インターナショナル|Eagle Jet International, Inc." style="--ac:#5ec4ff;--pvg-c:#5ec4ff">
+<a class="wd-go" href="airlines/eagle-jet.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">EJ</b></span></span><span class="wd-names"><span class="wd-name" id="wn-eagle-jet">Eagle Jet International, Inc.</span><span class="wd-meta"><span class="wd-sub">Europe</span><span class="wd-code">EJI</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Eagle Jet International, Inc.</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="14000000" data-orig="¥1,400万">$88K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Eagle Jet International, Inc.</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="7600000" data-orig="¥760万">$48K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"></span></div>
+</li>
+<li class="wd-li" data-slug="delta" data-region="us" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="DL DAL US" data-k="デルタ航空|Delta Air Lines|delta|でるた|アメリカ|United States|USA|米国|アメリカ合衆国|America|スカイチーム|SkyTeam|🇺🇸" style="--ac:#C01933;--pvg-c:#C01933">
+<a class="wd-go" href="airlines/delta.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/delta.svg" alt="" width="416" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">DA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-delta">🇺🇸 Delta Air Lines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">DL</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Delta Air Lines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="61600000" data-orig="¥6,160万">$388K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Delta Air Lines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="35100000" data-orig="¥3,510万">$221K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="united" data-region="us" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="UA UAL US" data-k="ユナイテッド航空|United Airlines|united|ゆないてっど|アメリカ|United States|USA|米国|アメリカ合衆国|America|スターアライアンス|Star Alliance|🇺🇸" style="--ac:#005DAA;--pvg-c:#005DAA">
+<a class="wd-go" href="airlines/united.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/united.svg" alt="" width="337" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">UA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-united">🇺🇸 United Airlines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">UA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">United Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="63200000" data-orig="¥6,320万">$398K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">United Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="38700000" data-orig="¥3,870万">$243K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="american" data-region="us" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AA AAL US" data-k="アメリカン航空|American Airlines|american|あめりかん|アメリカ|United States|USA|米国|アメリカ合衆国|America|ワンワールド|oneworld|🇺🇸" style="--ac:#0078D2;--pvg-c:#0078D2">
+<a class="wd-go" href="airlines/american.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/american.svg" alt="" width="417" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-american">🇺🇸 American Airlines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">AA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">American Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="59300000" data-orig="¥5,930万">$373K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">American Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="34400000" data-orig="¥3,440万">$216K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="southwest" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="WN US" data-k="サウスウエスト航空|Southwest Airlines|southwest|さうすうえすと|アメリカ|United States|USA|米国|アメリカ合衆国|America|🇺🇸" style="--ac:#FF7900;--pvg-c:#FF7900">
+<a class="wd-go" href="airlines/southwest.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/southwest.svg" alt="" width="420" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-southwest">🇺🇸 Southwest Airlines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">WN</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Southwest Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="48200000" data-orig="¥4,820万">$303K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Southwest Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="26100000" data-orig="¥2,610万">$164K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="alaska-airlines" data-region="us" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AS ASA US" data-k="アラスカ航空|Alaska Airlines|alaska|あらすか|アメリカ|United States|USA|米国|アメリカ合衆国|America|ワンワールド|oneworld|🇺🇸" style="--ac:#0060AB;--pvg-c:#0060AB">
+<a class="wd-go" href="airlines/alaska-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/alaska-airlines.svg" alt="" width="146" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-alaska-airlines">🇺🇸 Alaska Airlines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">AS</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Alaska Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="49000000" data-orig="¥4,900万">$308K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Alaska Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="28500000" data-orig="¥2,850万">$179K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="jetblue" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="B6 US" data-k="ジェットブルー航空|JetBlue Airways|JetBlue|ジェットブルー|jetblue|じぇっとぶるー|アメリカ|United States|USA|米国|アメリカ合衆国|America|🇺🇸" style="--ac:#003876;--pvg-c:#003876">
+<a class="wd-go" href="airlines/jetblue.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/jetblue.svg" alt="" width="191" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">JA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-jetblue">🇺🇸 JetBlue</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">B6</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">JetBlue Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="42000000" data-orig="¥4,200万">$264K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">JetBlue Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="24000000" data-orig="¥2,400万">$151K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="spirit" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="NK US" data-k="スピリット航空|Spirit Airlines|spirit|アメリカ|United States|USA|米国|アメリカ合衆国|America|🇺🇸" style="--ac:#FFD700;--pvg-c:#FFD700">
+<a class="wd-go" href="airlines/spirit.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/spirit.svg" alt="" width="230" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-spirit">🇺🇸 Spirit Airlines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">NK</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Spirit Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="37000000" data-orig="¥3,700万">$233K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Spirit Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="frontier" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="F9 US" data-k="フロンティア航空|Frontier Airlines|frontier|アメリカ|United States|USA|米国|アメリカ合衆国|America|🇺🇸" style="--ac:#00AE42;--pvg-c:#00AE42">
+<a class="wd-go" href="airlines/frontier.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/frontier.svg" alt="" width="291" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">FA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-frontier">🇺🇸 Frontier Airlines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">F9</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Frontier Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="33000000" data-orig="¥3,300万">$208K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Frontier Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17500000" data-orig="¥1,750万">$110K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="allegiant" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="G4 US" data-k="アレジアント航空|Allegiant Air|アリジャント エアー|allegiant|アメリカ|United States|USA|米国|アメリカ合衆国|America|🇺🇸" style="--ac:#F4A024;--pvg-c:#F4A024">
+<a class="wd-go" href="airlines/allegiant.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/allegiant.svg" alt="" width="176" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">AA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-allegiant">🇺🇸 Allegiant Air</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">G4</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Allegiant Air</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="30000000" data-orig="¥3,000万">$189K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Allegiant Air</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="air-canada" data-region="us" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AC ACA CA" data-k="エア・カナダ|Air Canada|エア カナダ|エアカナダ|あえかなだ|カナダ|Canada|スターアライアンス|Star Alliance|🇨🇦" style="--ac:#C8102E;--pvg-c:#C8102E">
+<a class="wd-go" href="airlines/air-canada.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/air-canada.svg" alt="" width="491" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AC</b></span></span><span class="wd-names"><span class="wd-name" id="wn-air-canada">🇨🇦 Air Canada</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">AC</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Air Canada</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="33600000" data-orig="¥3,360万">$211K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Air Canada</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="15100000" data-orig="¥1,510万">$95K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="westjet" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="WS WJA CA" data-k="ウェストジェット航空|WestJet Airlines|ウエストジェット|WestJet|カナダ|Canada|🇨🇦" style="--ac:#00439C;--pvg-c:#00439C">
+<a class="wd-go" href="airlines/westjet.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/westjet.svg" alt="" width="319" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">WA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-westjet">🇨🇦 WestJet</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">WS</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">WestJet Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="34000000" data-orig="¥3,400万">$214K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">WestJet Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="porter" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="PD POE CA" data-k="ポーター航空|Porter Airlines|ポーターエアラインズ|カナダ|Canada|🇨🇦" style="--ac:#3D1152;--pvg-c:#3D1152">
+<a class="wd-go" href="airlines/porter.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/porter.svg" alt="" width="176" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">PA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-porter">🇨🇦 Porter Airlines</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">PD</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Porter Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Porter Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13500000" data-orig="¥1,350万">$85K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="breeze-airways" data-region="us" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="MX US" data-k="ブリーズ・エアウェイズ|Breeze Airways|ブリーズ エアウェイズ|ブリーズ航空|breeze|アメリカ|United States|USA|米国|アメリカ合衆国|America|🇺🇸" style="--ac:#00B4D8;--pvg-c:#00B4D8">
+<a class="wd-go" href="airlines/breeze-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/breeze-airways.svg" alt="" width="239" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">BA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-breeze-airways">🇺🇸 Breeze Airways</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">MX</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Breeze Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="34000000" data-orig="¥3,400万">$214K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Breeze Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19000000" data-orig="¥1,900万">$120K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="solairus" data-region="us" data-type="bizjet" data-tax="0" data-lvl="0" data-two="0" data-c="SOL US" data-k="ソレイラス・アビエーション|Solairus Aviation|アメリカ|United States|USA|米国|アメリカ合衆国|America|🇺🇸" style="--ac:#3d9bff;--pvg-c:#3d9bff">
+<a class="wd-go" href="airlines/solairus.html"><span class="wd-logo"><span class="pvg-logo is-mono" aria-hidden="true"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">SA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-solairus">🇺🇸 Solairus Aviation</span><span class="wd-meta"><span class="wd-sub">North America</span><span class="wd-code">SOL</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Solairus Aviation</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="24000000" data-orig="¥2,400万">$151K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Solairus Aviation</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"></span></div>
+</li>
+<li class="wd-li" data-slug="qantas" data-region="oceania" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="QF QFA AU" data-k="カンタス航空|Qantas|Qantas Airways|カンタス|Australia|オーストラリア|ワンワールド|oneworld|🇦🇺" style="--ac:#EE0000;--pvg-c:#EE0000">
+<a class="wd-go" href="airlines/qantas.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/qantas.svg" alt="" width="314" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">QA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-qantas">🇦🇺 Qantas</span><span class="wd-meta"><span class="wd-sub">Oceania</span><span class="wd-code">QF</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Qantas</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="37000000" data-orig="¥3,700万">$233K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Qantas</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="21000000" data-orig="¥2,100万">$132K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">oneworld</span></span></div>
+</li>
+<li class="wd-li" data-slug="air-new-zealand" data-region="oceania" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="NZ ANZ" data-k="ニュージーランド航空|Air New Zealand|ニュージーランド|New Zealand|スターアライアンス|Star Alliance|🇳🇿" style="--ac:#00539C;--pvg-c:#00539C">
+<a class="wd-go" href="airlines/air-new-zealand.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/air-new-zealand.svg" alt="" width="374" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AN</b></span></span><span class="wd-names"><span class="wd-name" id="wn-air-new-zealand">🇳🇿 Air New Zealand</span><span class="wd-meta"><span class="wd-sub">Oceania</span><span class="wd-code">NZ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Air New Zealand</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="33000000" data-orig="¥3,300万">$208K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Air New Zealand</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17500000" data-orig="¥1,750万">$110K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="fiji-airways" data-region="oceania" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="FJ FAJ" data-k="フィジー・エアウェイズ|Fiji Airways|フィジー エアウェイズ|フィジー|Fiji|🇫🇯" style="--ac:#0073B0;--pvg-c:#0073B0">
+<a class="wd-go" href="airlines/fiji-airways.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/fiji-airways.svg" alt="" width="392" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">FA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-fiji-airways">🇫🇯 Fiji Airways</span><span class="wd-meta"><span class="wd-sub">Oceania</span><span class="wd-code">FJ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Fiji Airways</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Fiji Airways</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="jetstar" data-region="oceania" data-type="lcc" data-tax="0" data-lvl="1" data-two="0" data-c="JQ JST AU" data-k="ジェットスター航空|Jetstar Airways (Jetstar)|ジェットスター エアウェイズ|Jetstar Airways|ジェットスター（豪州）|ジェットスター|オーストラリア|Australia|🇦🇺" style="--ac:#FF5900;--pvg-c:#FF5900">
+<a class="wd-go" href="airlines/jetstar.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/jetstar.svg" alt="" width="230" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono" style="--pvg-mono-ink:#1a2233">JA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-jetstar">🇦🇺 Jetstar Airways</span><span class="wd-meta"><span class="wd-sub">Oceania</span><span class="wd-code">JQ</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Jetstar Airways (Jetstar)</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="24000000" data-orig="¥2,400万">$151K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Jetstar Airways (Jetstar)</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="13500000" data-orig="¥1,350万">$85K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-orange">LCC</span></span></div>
+</li>
+<li class="wd-li" data-slug="latam" data-region="latam" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="LA LAN CL" data-k="LATAM航空|LATAM Airlines|ラタム航空|らたむ|チリ|Chile|🇨🇱" style="--ac:#E30613;--pvg-c:#E30613">
+<a class="wd-go" href="airlines/latam.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/latam.svg" alt="" width="271" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">LA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-latam">🇨🇱 LATAM Airlines</span><span class="wd-meta"><span class="wd-sub">Latin America</span><span class="wd-code">LA</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">LATAM Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="19000000" data-orig="¥1,900万">$120K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">LATAM Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="9500000" data-orig="¥950万">$60K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span></span></div>
+</li>
+<li class="wd-li" data-slug="avianca" data-region="latam" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AV AVA CO" data-k="アビアンカ航空|Avianca|コロンビア|Colombia|スターアライアンス|Star Alliance|🇨🇴" style="--ac:#C60B1E;--pvg-c:#C60B1E">
+<a class="wd-go" href="airlines/avianca.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/avianca.svg" alt="" width="270" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AV</b></span></span><span class="wd-names"><span class="wd-name" id="wn-avianca">🇨🇴 Avianca</span><span class="wd-meta"><span class="wd-sub">Latin America</span><span class="wd-code">AV</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Avianca</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Avianca</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="8500000" data-orig="¥850万">$53K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<li class="wd-li" data-slug="aeromexico" data-region="latam" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="AM AMX MX" data-k="アエロメヒコ航空|Aeromexico|アエロメヒコ|メキシコ|Mexico|スカイチーム|SkyTeam|🇲🇽" style="--ac:#006CB7;--pvg-c:#006CB7">
+<a class="wd-go" href="airlines/aeromexico.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/aeromexico.svg" alt="" width="388" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">AE</b></span></span><span class="wd-names"><span class="wd-name" id="wn-aeromexico">🇲🇽 Aeromexico</span><span class="wd-meta"><span class="wd-sub">Latin America</span><span class="wd-code">AM</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Aeromexico</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="23000000" data-orig="¥2,300万">$145K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Aeromexico</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">SkyTeam</span></span></div>
+</li>
+<li class="wd-li" data-slug="copa-airlines" data-region="latam" data-type="fsc" data-tax="0" data-lvl="1" data-two="0" data-c="CM CMP PA" data-k="コパ航空|Copa Airlines|パナマ|Panama|スターアライアンス|Star Alliance|🇵🇦" style="--ac:#004A94;--pvg-c:#004A94">
+<a class="wd-go" href="airlines/copa-airlines.html"><span class="wd-logo"><span class="pvg-logo" aria-hidden="true"><img loading="lazy" src="../assets/airline-logos/copa-airlines.svg" alt="" width="360" height="64" decoding="async" onerror="this.parentNode.classList.add('is-fail')"><b class="pvg-mono">CA</b></span></span><span class="wd-names"><span class="wd-name" id="wn-copa-airlines">🇵🇦 Copa Airlines</span><span class="wd-meta"><span class="wd-sub">Latin America</span><span class="wd-code">CM</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>
+<!--wd>-->
+<div class="wd-figs">
+<p class="wd-fig" data-rank="cap"><span class="wd-vh">Copa Airlines</span>Captain estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="23000000" data-orig="¥2,300万">$145K</span></b></p>
+<p class="wd-fig" data-rank="fo"><span class="wd-vh">Copa Airlines</span>First Officer estimated salary<b class="wd-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b></p>
+</div>
+<div class="wd-foot"><span class="wd-tags"><span class="tag tag-blue">FSC</span><span class="tag tag-gray">Star Alliance</span></span></div>
+</li>
+<!--/PV-DIR-CARDS-->
+  </ul>
 
   <!-- Leveling grid (populated by JS; hidden until toggled) -->
   <div id="range-view" style="display:none">
@@ -741,7 +1740,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   </div>
 <div style="border-top:1px solid rgba(255,255,255,.06);margin-top:20px;padding-top:16px;text-align:center"><div style="display:flex;flex-wrap:wrap;justify-content:center"><a href="guide.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Guide</a><a href="policy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Operating Policy</a><a href="terms.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Terms of Service</a><a href="privacy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Privacy Policy</a><a href="personal-data.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Handling of Personal Data</a><a href="help.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Help</a><a href="sitemap.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Sitemap</a></div></div></footer>
 
-<!-- The airline meta (106 airlines) lives in the shared module, which is the SSOT. It references the same array as the index.html picker (never duplicate it). -->
+<!-- airlines-meta.js is the table of the leveling comparison (PVLeveling). The cards, region buttons and counts of this page are written by gen-directory.mjs. -->
 <script src="../airlines-meta.js"></script>
 <script>
 // ── Nav scroll ─────────────────────────────────────────────────────
@@ -749,113 +1748,50 @@ window.addEventListener('scroll',()=>{
   document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>40);
 },{passive:true});
 
-// ── Region config ──────────────────────────────────────────────────
-const REGION_CFG = {
-  all:     { label:'All',        emoji:'🌐', color:'#f5c842',  dataRegions:['japan','asia','mideast','africa','eu_fsc','eu_lcc','us','oceania','latam'] },
-  japan:   { label:'Japan',      emoji:'🇯🇵', color:'#3d9bff',  dataRegions:['japan']  },
-  asia:    { label:'Asia',       emoji:'🌏', color:'#f97316',  dataRegions:['asia']   },
-  mideast: { label:'Middle East',emoji:'🌙', color:'#efc050',  dataRegions:['mideast']},
-  africa:  { label:'Africa',     emoji:'🌍', color:'#4caf50',  dataRegions:['africa'] },
-  europe:  { label:'Europe',     emoji:'✈️', color:'#5fb0ff',  dataRegions:['eu_fsc','eu_lcc'] },
-  us:      { label:'North America',emoji:'🇺🇸', color:'#c8102e',dataRegions:['us']     },
-  oceania: { label:'Oceania',    emoji:'🦘', color:'#ee6450',  dataRegions:['oceania']},
-  latam:   { label:'Latin America',emoji:'🌎', color:'#f5c842',dataRegions:['latam']  },
-};
-
-// ── Airline data (106 airlines) ────────────────────────────────────
-// The SSOT is airlines-meta.js (window.PV_AIRLINES). Shared with the index.html picker — never duplicated.
-const AIRLINES = window.PV_AIRLINES;
+// ── 一覧のカード・地域ボタン・社数は gen-directory.mjs がこのページに書く。ここは見せる・隠すだけ ──
+// ⚠️ 金額も社名もここで作らない（check-salary.mjs は HTML を読む。JS が描いた額は誰も照合しない）。
+const GRID  = document.getElementById('airline-grid');
+const CARDS = Array.from(GRID.querySelectorAll('li[data-slug]'));
+const STRIP = Array.from(document.querySelectorAll('#region-strip .rstrip-btn'));
+const CNT   = document.getElementById('result-count');
+const HAY   = new Map(CARDS.map(li=>[li,(li.dataset.k||'').toLowerCase()]));
+const unit  = n => (CNT.dataset.fmt||'{n}').replace('{n}',()=>String(n));
+const regionBtn = id => STRIP.find(b=>b.dataset.region===id);
+const inRegion  = id => CARDS.filter(li=>id==='all'||li.dataset.region===id).length;
 
 // ── State ──────────────────────────────────────────────────────────
 let activeRegion = 'all';
 let activeType   = 'all';
 let searchQuery  = '';
 
-// Map region → data regions
-function getDataRegions(mapRegion){
-  return REGION_CFG[mapRegion]?.dataRegions || [];
-}
-
-// ── Build region strip ─────────────────────────────────────────────
-function buildStrip(){
-  const strip = document.getElementById('region-strip');
-  Object.entries(REGION_CFG).forEach(([id, cfg])=>{
-    const cnt = id==='all' ? AIRLINES.length : AIRLINES.filter(a=>cfg.dataRegions.includes(a.region)).length;
-    const btn = document.createElement('div');
-    btn.className = 'rstrip-btn' + (id==='all'?' active':'');
-    btn.dataset.region = id;
-    btn.style.setProperty('--rc', cfg.color);
-    if(id==='all') btn.style.background='rgba(245,200,66,.12)', btn.style.borderColor='rgba(245,200,66,.3)', btn.style.color='#f5c842';
-    btn.innerHTML = `<span>${cfg.emoji}</span><span>${cfg.label}</span><span style="font-size:.68rem;opacity:.65">${cnt}</span>`;
-    btn.addEventListener('click',()=>setRegion(id));
-    strip.appendChild(btn);
-  });
-}
-
 function setRegion(id){
   activeRegion = id;
-  // Strip buttons
-  document.querySelectorAll('.rstrip-btn').forEach(b=>{
+  STRIP.forEach(b=>{
     const active = b.dataset.region === id;
-    const rc = REGION_CFG[b.dataset.region]?.color||'#f5c842';
-    if(active){
-      b.classList.add('active');
-      b.style.background=`${rc}18`;
-      b.style.borderColor=`${rc}55`;
-      b.style.color=rc;
-    } else {
-      b.classList.remove('active');
-      b.style.background='rgba(255,255,255,.04)';
-      b.style.borderColor='rgba(255,255,255,.1)';
-      b.style.color='#6b7d93';
-    }
+    const rc = b.dataset.rc||'#f5c842';
+    b.setAttribute('aria-pressed', active?'true':'false');
+    if(active){ b.classList.add('active'); b.style.background=`${rc}18`; b.style.borderColor=`${rc}55`; b.style.color=rc; }
+    else { b.classList.remove('active'); b.style.background='rgba(255,255,255,.04)'; b.style.borderColor='rgba(255,255,255,.1)'; b.style.color='#6b7d93'; }
   });
-  // SVG region highlighting
   document.querySelectorAll('.map-region-group').forEach(g=>{
-    const rid = g.dataset.region;
-    const mapActive = id==='all' || id===rid || (id==='europe' && (rid==='europe'));
-    g.querySelectorAll('.rgn').forEach(p=>{
-      if(mapActive) p.classList.add('active'); else p.classList.remove('active');
-    });
+    const mapActive = id==='all' || id===g.dataset.region;
+    g.querySelectorAll('.rgn').forEach(p=>p.classList.toggle('active', mapActive));
   });
-  // Pin groups
-  document.querySelectorAll('.pin-group').forEach(pg=>{
-    const rid = pg.dataset.region;
-    const mapActive = id==='all' || id===rid;
-    pg.classList.toggle('active', mapActive);
-  });
+  document.querySelectorAll('.pin-group').forEach(pg=>{ pg.classList.toggle('active', id==='all' || id===pg.dataset.region); });
   render();
 }
+STRIP.forEach(b=>b.addEventListener('click',()=>setRegion(b.dataset.region)));
 
 // ── SVG map interaction ────────────────────────────────────────────
 const tooltip = document.getElementById('map-tooltip');
-
 document.querySelectorAll('.map-region-group, .pin-group').forEach(el=>{
-  const rid = el.dataset.region;
-  const cfg = REGION_CFG[rid];
-  if(!cfg) return;
-
-  el.addEventListener('mouseenter', e => {
-    const cnt = AIRLINES.filter(a=>cfg.dataRegions.includes(a.region)).length;
-    tooltip.textContent = `${cfg.emoji} ${cfg.label}  ${cnt} airlines`;
-    tooltip.style.color = cfg.color;
-    tooltip.style.borderColor = cfg.color+'44';
-    tooltip.style.opacity='1';
-  });
-  el.addEventListener('mousemove', e => {
-    const rect = document.getElementById('world-svg').getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    tooltip.style.left = x+'px';
-    tooltip.style.top  = y+'px';
-  });
+  const rid = el.dataset.region; const btn = regionBtn(rid); if(!btn) return; const rc = btn.dataset.rc;
+  el.addEventListener('mouseenter', ()=>{ tooltip.textContent = `${btn.dataset.emoji} ${btn.dataset.label}  ${unit(inRegion(rid))}`;
+    tooltip.style.color = rc; tooltip.style.borderColor = rc+'44'; tooltip.style.opacity='1'; });
+  el.addEventListener('mousemove', e=>{ const rect = document.getElementById('world-svg').getBoundingClientRect();
+    tooltip.style.left = (e.clientX - rect.left)+'px'; tooltip.style.top = (e.clientY - rect.top)+'px'; });
   el.addEventListener('mouseleave', ()=>{ tooltip.style.opacity='0'; });
-  el.addEventListener('click', ()=>{
-    // Toggle: if already active, deselect to 'all'
-    setRegion(activeRegion === rid ? 'all' : rid);
-    // Scroll to grid
-    document.getElementById('airline-grid').scrollIntoView({behavior:'smooth',block:'start'});
-  });
+  el.addEventListener('click', ()=>{ setRegion(activeRegion === rid ? 'all' : rid); GRID.scrollIntoView({behavior:'smooth',block:'start'}); });
 });
 
 // ── Type filter ────────────────────────────────────────────────────
@@ -876,104 +1812,27 @@ document.getElementById('search').addEventListener('input',e=>{
 
 // ── Render ─────────────────────────────────────────────────────────
 function render(){
-  const dataRegions = getDataRegions(activeRegion);
-  const filtered = AIRLINES.filter(a=>{
-    if(activeRegion!=='all' && !dataRegions.includes(a.region)) return false;
-    if(activeType==='fsc' && a.type!=='fsc') return false;
-    if(activeType==='lcc' && a.type!=='lcc') return false;
-    if(activeType==='taxfree' && !a.taxfree) return false;
-    if(searchQuery){
-      const hay=(a.name+a.en+a.alliance+allianceEN(a.alliance)+a.flag).toLowerCase();
-      if(!hay.includes(searchQuery)) return false;
-    }
-    return true;
+  let n = 0;
+  CARDS.forEach(li=>{
+    let on = true;
+    if(activeRegion!=='all' && li.dataset.region!==activeRegion) on = false;
+    if(activeType==='fsc' && li.dataset.type!=='fsc') on = false;
+    if(activeType==='lcc' && li.dataset.type!=='lcc') on = false;
+    if(activeType==='taxfree' && li.dataset.tax!=='1') on = false;
+    if(searchQuery && !HAY.get(li).includes(searchQuery)) on = false;
+    li.hidden = !on; if(on) n++;
   });
-
-  const grid  = document.getElementById('airline-grid');
-  const rview = document.getElementById('range-view');
-  const noR   = document.getElementById('no-results');
-  const cnt   = document.getElementById('result-count');
-  cnt.textContent = filtered.length ? `${filtered.length} airlines` : '';
-
-  const fbar = document.getElementById('filter-bar');
-  if(activeView==='range'){
-    if(fbar) fbar.style.display='none';   // Hide the top filter bar in range comparison mode (exactly as on index)
-    grid.style.display='none';
-    noR.style.display='none';
-    rview.style.display='block';
-    mountWALeveling();
-    return;
-  }
-  if(fbar) fbar.style.display='';          // Restore it for the card list
-
-  rview.style.display='none';
-  grid.style.display='grid';
-  grid.innerHTML='';
-  if(!filtered.length){
-    noR.style.display='block';
-  } else {
-    noR.style.display='none';
-    filtered.forEach(a=>grid.appendChild(createCard(a)));
-  }
+  const rview = document.getElementById('range-view'), noR = document.getElementById('no-results'), fbar = document.getElementById('filter-bar');
+  CNT.textContent = n ? unit(n) : '';
+  if(activeView==='range'){ if(fbar) fbar.style.display='none'; GRID.style.display='none'; noR.style.display='none'; rview.style.display='block'; mountWALeveling(); return; }
+  if(fbar) fbar.style.display='';
+  rview.style.display='none'; GRID.style.display=''; noR.style.display = n ? 'none' : 'block';
 }
 
-function hexToRgb(hex){
-  const r=parseInt(hex.slice(1,3),16);
-  const g=parseInt(hex.slice(3,5),16);
-  const b=parseInt(hex.slice(5,7),16);
-  return `${r},${g},${b}`;
-}
-
-// airlines-meta.js is shared with the Japanese page, so its alliance labels are Japanese.
-// Map them for display here; unknown values fall through unchanged.
-const ALLIANCE_EN = {
-  'スターアライアンス':'Star Alliance', 'ワンワールド':'oneworld', 'スカイチーム':'SkyTeam',
-  'JALグループ':'JAL Group', 'ANAグループ':'ANA Group',
-  'ANA提携':'ANA partner', 'JAL/ANA提携':'JAL / ANA partner',
-};
-function allianceEN(v){ return v ? (ALLIANCE_EN[v] || v) : ''; }
-
-// The Japanese page puts the English name on the card's second line. Mirroring that here
-// would print 106 Japanese airline names on an English page — noise for the reader and a
-// wrong-language signal for search. Show the region instead, taken from REGION_CFG so
-// there is no second label table to keep in sync (eu_fsc / eu_lcc both fold into Europe).
-const REGION_EN = Object.fromEntries(
-  Object.entries(REGION_CFG)
-    .filter(([id]) => id !== 'all')
-    .flatMap(([, cfg]) => cfg.dataRegions.map((r) => [r, cfg.label]))
-);
-function regionEN(v){ return REGION_EN[v] || ''; }
-
-function createCard(a){
-  const wrap=document.createElement('a');
-  wrap.href=a.file;
-  wrap.className='airline-card';
-  wrap.style.setProperty('--ac-rgb', hexToRgb(a.color));
-  // The FSC / LCC tag only for fsc and lcc airlines: charter, business-jet and agency operators are not called LCC (same rule as the Japanese page, 2026-10-21).
-  const typeTag = a.type==='fsc'
-    ? `<span class="tag tag-blue">FSC</span>`
-    : a.type==='lcc' ? `<span class="tag tag-orange">LCC</span>` : '';
-  const taxTag = a.taxfree?`<span class="tag tag-gold">Tax-free</span>`:'';
-  const alTag  = a.alliance?`<span class="tag tag-gray">${allianceEN(a.alliance)}</span>`:'';
-  wrap.innerHTML=`
-    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:11px">
-      <div class="ac-code" style="background:${a.color}20;color:${a.color};border:1px solid ${a.color}35">${a.code}</div>
-      <div style="flex:1;min-width:0">
-        <div class="ac-name">${a.flag} ${a.en}</div>
-        <div class="ac-en">${regionEN(a.region)}</div>
-      </div>
-    </div>
-    <div style="font-size:.67rem;color:#6b7d93;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">${a.salNoteEn || 'Captain estimated salary'}</div>
-    <div class="ac-sal" style="color:${a.color}">${a.salaryEn || a.salary}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px">${typeTag}${taxTag}${alTag}</div>
-  `;
-  return wrap;
-}
-
-// ── Salary leveling grid: the same Levels.fyi-style columns as index, mounted via the shared PVLeveling module ──
+// ── Salary leveling grid：index と同一の Levels.fyi 型カラムを共有モジュール PVLeveling にマウント ──
 let activeView   = 'card';
 let waLvlMounted = false;
-// Mount once, the first time the range tab is shown (avoids display:none initialization differences on a hidden element).
+// レンジタブ初回表示時に1回だけマウント（隠れた要素での display:none 初期化差異を回避）。
 function mountWALeveling(){
   if(waLvlMounted || typeof PVLeveling==='undefined' || !PVLeveling.mount) return;
   const META = {};
@@ -981,7 +1840,8 @@ function mountWALeveling(){
   PVLeveling.mount('#lvl-wa-grid', {
     tip:'#lvl-wa-tip', layout:'levels', picker:'#lvl-wa-picker',
     quick:['ana','jal','emirates','delta','united','singapore-airlines'],
-    max:5, pool:'all', slugs:['ana','jal','emirates','delta'], mode:'all', meta:META
+    max:5, pool:'all', slugs:['ana','jal','emirates','delta'],
+    mode:'all', meta:META
   });
   waLvlMounted = true;
 }
@@ -1000,33 +1860,9 @@ document.querySelectorAll('.view-btn').forEach(btn=>{
 });
 
 // ── Init ───────────────────────────────────────────────────────────
-buildStrip();
 render();
-
-// Update pin counts
-const regionCounts={};
-AIRLINES.forEach(a=>{
-  regionCounts[a.region]=(regionCounts[a.region]||0)+1;
-});
-// Map data region to pin element IDs
-const pinMap={japan:'pc-japan',us:'pc-us',latam:'pc-latam',africa:'pc-africa',mideast:'pc-mideast',oceania:'pc-oceania',asia:'pc-asia'};
-Object.entries(pinMap).forEach(([r,id])=>{
-  const el=document.getElementById(id);
-  if(el) el.textContent=(regionCounts[r]||0)+' airlines';
-});
-// Europe pin
-const euEl=document.getElementById('pc-europe');
-if(euEl) euEl.textContent=((regionCounts['eu_fsc']||0)+(regionCounts['eu_lcc']||0))+' airlines';
-
-// Highlight "all" regions as active on load
+STRIP.forEach(b=>{ const el=document.getElementById('pc-'+b.dataset.region); if(el) el.textContent=unit(inRegion(b.dataset.region)); });
 document.querySelectorAll('.rgn').forEach(p=>p.classList.add('active'));
-
-// Fade-up observer
-const io=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});
-},{threshold:.01});
-document.querySelectorAll('.fade-up').forEach(el=>io.observe(el));
-setTimeout(()=>document.querySelectorAll('.fade-up').forEach(el=>el.classList.add('visible')),200);
 
 // ── THEME TOGGLE ───────────────────────────────────────────────────
 const SUN_SVG_W  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;

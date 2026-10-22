@@ -119,7 +119,7 @@ export const BLOCKS = [
   { id: 'PV-DIR-CARDS', build: cards },
 ];
 /** ?v= を書く部品（両方のページが読むこと） */
-export const ASSETS = [];
+export const ASSETS = ['pv-directory.css'];
 
 const sha8 = (f) => createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
 

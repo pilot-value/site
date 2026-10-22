@@ -92,7 +92,7 @@
 {code:'U2',  name:'イージージェット',       en:'easyJet',               region:'eu_lcc', color:'#FF6600',salary:'¥2,700万',file:'airlines/easyjet.html',fleet:'n',          flag:'🇬🇧',type:'lcc',taxfree:false,alliance:''},
 {code:'EW',  name:'ユーロウイングス',       en:'Eurowings',             region:'eu_lcc', color:'#8F174F',salary:'¥2,770万',file:'airlines/eurowings.html',fleet:'n',        flag:'🇩🇪',type:'lcc',taxfree:false,alliance:''},
 {code:'VY',  name:'ヴエリング航空',         en:'Vueling',               region:'eu_lcc', color:'#FFCC00',salary:'¥1,720万',file:'airlines/vueling.html',fleet:'n',          flag:'🇪🇸',type:'lcc',taxfree:false,alliance:''},
-{code:'W6',  name:'ウィズ エア',            en:'Wizz Air',              region:'eu_lcc', color:'#C6007E',salary:'¥2,400万',file:'airlines/wizz-air.html',fleet:'n',         flag:'🇭🇺',type:'lcc',taxfree:false,alliance:''},
+{code:'W6',  name:'ウィズ エア',            en:'Wizz Air',              region:'eu_lcc', color:'#C6007E',salary:'¥2,400万',file:'airlines/wizz-air.html',fleet:'n',         flag:'🇬🇧',type:'lcc',taxfree:false,alliance:''},
 {code:'DL',  name:'デルタ航空',             en:'Delta Air Lines',       region:'us',     color:'#C01933',salary:'¥6,160万',file:'airlines/delta.html',fleet:'nw',            flag:'🇺🇸',type:'fsc',taxfree:false,alliance:'スカイチーム'},
 {code:'UA',  name:'ユナイテッド航空',       en:'United Airlines',       region:'us',     color:'#005DAA',salary:'¥6,320万',file:'airlines/united.html',fleet:'nw',           flag:'🇺🇸',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
 {code:'AA',  name:'アメリカン航空',         en:'American Airlines',     region:'us',     color:'#0078D2',salary:'¥5,930万',file:'airlines/american.html',fleet:'nw',         flag:'🇺🇸',type:'fsc',taxfree:false,alliance:'ワンワールド'},
@@ -116,9 +116,9 @@
 {code:'CM',  name:'コパ航空',               en:'Copa Airlines',         region:'latam',  color:'#004A94',salary:'¥2,300万',file:'airlines/copa-airlines.html',fleet:'n',    flag:'🇵🇦',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
 /* 2026-10-21 全社へ広げる c（L5）：年収の正本（SALARY）に在るのにここに無かった4社。色と略号は各社の今の会社ページの社名の行の字と色。
    チャーター・ビジネスジェット・紹介会社なので type は fsc／lcc のどちらでもない（一覧の札は fsc・lcc の会社にだけ出す）。地域は SALARY の region。 */
-{code:'AXC', name:'エアX・チャーター',         en:'AirX Charter Ltd',       region:'europe', color:'#a78bfa',salary:'¥1,850万',file:'airlines/airx-charter.html',      flag:'🇪🇺',type:'charter',taxfree:false,alliance:''},
-{code:'EJI', name:'イーグルジェット・インターナショナル', en:'Eagle Jet International, Inc.', region:'europe', color:'#5ec4ff',salary:'¥1,400万',file:'airlines/eagle-jet.html', flag:'🇪🇺',type:'charter',taxfree:false,alliance:''},
-{code:'ROOT',name:'ルート・アビエーション',   en:'Root Aviation',          region:'asia',   color:'#34d399',salary:'¥1,300万',file:'airlines/root-aviation.html',     flag:'🌏',type:'agent',taxfree:false,alliance:''},
+{code:'AXC', name:'エアX・チャーター',         en:'AirX Charter Ltd',       region:'europe', color:'#a78bfa',salary:'¥1,850万',file:'airlines/airx-charter.html',      flag:'🇲🇹',type:'charter',taxfree:false,alliance:''},
+{code:'EJI', name:'イーグルジェット・インターナショナル', en:'Eagle Jet International, Inc.', region:'europe', color:'#5ec4ff',salary:'¥1,400万',file:'airlines/eagle-jet.html', flag:'',type:'charter',taxfree:false,alliance:''},
+{code:'ROOT',name:'ルート・アビエーション',   en:'Root Aviation',          region:'asia',   color:'#34d399',salary:'¥1,300万',file:'airlines/root-aviation.html',     flag:'',type:'agent',taxfree:false,alliance:''},
 {code:'SOL', name:'ソレイラス・アビエーション', en:'Solairus Aviation',      region:'us',     color:'#3d9bff',salary:'¥2,400万',file:'airlines/solairus.html',          flag:'🇺🇸',type:'bizjet',taxfree:false,alliance:''},
   ];
 

@@ -49,7 +49,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { BASIS, TIERS, figures } from './salary-basis.mjs';
+import { BASIS, TIERS, figures, cardFigure } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
@@ -361,21 +361,24 @@ for (const slug of Object.keys(BASIS)) {
     if (!note && !isEst && f) bad(rel, `${slug}：一覧カードの札（salNote）が無い ＝ 共通の札に落ちる（等級を名乗れない）`);
   }
 
-  /* 札を行ごとに出す形になっているか（ここが戻ると25社ぶんが黙って「平均年収」に戻る）。
-     ★2026-09-30、**既定の札そのもの**も見る。札を持たない社（推定の20社と台帳の外の87社）は
-       全部ここに落ちるので、ここが「平均年収」に戻った瞬間に107社が「平均」を名乗る。
-       画面は普通に出るので、見ても気づけない。 */
-  for (const [p, key, dflt, ng] of [
-    ['world-airlines.html', 'salNote', '機長 推定年収', '平均'],
-    ['en/world-airlines.html', 'salNoteEn', 'Captain estimated salary', 'average'],
-  ]) {
+  /* 一覧ページの会社カードの機長の札（2026-10-22 段階5 dd-2 で付け替え。前は a.salNote || '機長 推定年収' の形を見ていた）。
+     カードは gen-directory.mjs が会社ごとに HTML に書く。ここは日英それぞれ、台帳の全社のカードが在り、
+     どの札も台帳の決め方（salary-basis.mjs の cardFigure：推定・会社の公表の種類・確認中）と1文字も違わないことを見る。
+     ★「平均」を名乗る札が1枚でも出たら落とす。推定の社の札がここで「平均年収」に戻ると、
+       推定を出している100社以上が黙って「平均」を名乗る（画面は普通に出るので、見ても気づけない）。 */
+  for (const [p, dflt, ng, en] of [['world-airlines.html', '機長 推定年収', '平均', false],
+                                   ['en/world-airlines.html', 'Captain estimated salary', 'average', true]]) {
     const html = fs.readFileSync(path.join(ROOT, p), 'utf8');
-    if (!html.includes(`a.${key}`)) bad(p, `会社カードの札が行ごとに出ていない（a.${key} を読んでいない）＝25社が共通の札に戻る`);
-    const d = html.match(new RegExp(`a\\.${key} \\|\\| '([^']*)'`))?.[1];
-    if (d == null) bad(p, `会社カードの既定の札が読めない（a.${key} || '…' の形が変わった）`);
-    else if (d !== dflt) {
-      bad(p, `会社カードの既定の札が「${d}」になっている（「${dflt}」であること）`
-        + (new RegExp(ng, 'i').test(d) ? `\n   ★これは「平均」を名乗っている。札を持たない107社が全部こうなる` : ''));
+    const cards = [...html.matchAll(/<li class="wd-li"[^>]*data-slug="([^"]+)"[\s\S]*?<\/li>/g)];
+    if (cards.length !== Object.keys(SALARY).length) bad(p, `会社カードが ${cards.length} 枚（台帳は ${Object.keys(SALARY).length} 社）`);
+    for (const [card, slug] of cards) {
+      const label = card.match(/data-rank="cap"[^>]*><span class="wd-vh">[^<]*<\/span>([^<]*)</)?.[1];
+      if (label == null) { bad(p, `${slug}：機長の札が読めない（カードの形が変わった）`); continue; }
+      const f = cardFigure(slug, 'cap');
+      const pub = !!f && !f.held && !f.estimate;
+      const want = f && f.held ? (en ? 'Captain · Under review' : '機長 確認中') : !pub ? dflt : (en ? `Captain · ${f.kindEn}` : `機長 ${f.kindJa}`);
+      if (label !== want) bad(p, `${slug}：会社カードの札が「${label}」（「${want}」であること）`
+        + (new RegExp(ng, 'i').test(label) ? `\n   ★これは「平均」を名乗っている` : ''));
     }
   }
   if (!fail) ok++;

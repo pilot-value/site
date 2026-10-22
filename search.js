@@ -158,7 +158,7 @@ var PV_SEARCH_L10N = {
     {n:'ITAエアウェイズ',        e:'ITA Airways',                 g:'🇮🇹', t:['AZ','ITA','イタリア','Italy','Alitalia','アリタリア'],f:'airlines/ita-airways.html'},
     {n:'ブエリング航空',         e:'Vueling Airlines',            g:'🇪🇸', t:['VY','VLG','ぶえりんぐ'],                              f:'airlines/vueling.html'},
     {n:'アイスランド航空',       e:'Icelandair',                  g:'🇮🇸', t:['FI','ICE','アイスランド'],                            f:'airlines/icelandair.html'},
-    {n:'ウィズエア',             e:'Wizz Air',                    g:'🇭🇺', t:['W6','WZZ','ウィズ'],                                  f:'airlines/wizz-air.html'},
+    {n:'ウィズエア',             e:'Wizz Air',                    g:'🇬🇧', t:['W6','WZZ','ウィズ'],                                  f:'airlines/wizz-air.html'},
     {n:'ライアンエア',           e:'Ryanair',                     g:'🇮🇪', t:['FR','RYR','らいあん'],                                f:'airlines/ryanair.html'},
     {n:'イージージェット',       e:'easyJet',                     g:'🇬🇧', t:['U2','EZY','いーじー'],                                f:'airlines/easyjet.html'},
     {n:'ユーロウイングス',       e:'Eurowings',                   g:'🇩🇪', t:['EW','EWG','ユーロウイングス','ドイツ','Germany'],      f:'airlines/eurowings.html'},
@@ -168,9 +168,9 @@ var PV_SEARCH_L10N = {
     {n:'ニュージーランド航空',   e:'Air New Zealand',             g:'🇳🇿', t:['NZ','ANZ','ニュージーランド'],                        f:'airlines/air-new-zealand.html'},
     {n:'ジェットスター（豪州）', e:'Jetstar Airways',             g:'🇦🇺', t:['JQ','JST','ジェットスター'],                          f:'airlines/jetstar.html'},
     /* ─ チャーター・ビジネスジェット・乗員の紹介会社（一覧と同じ112社にそろえる。略号は会社ページの社名の行と同じ字） */
-    {n:'エアX・チャーター',                     e:'AirX Charter Ltd',              g:'🇪🇺', t:['AXC'],  f:'airlines/airx-charter.html'},
-    {n:'イーグルジェット・インターナショナル',   e:'Eagle Jet International, Inc.', g:'🇪🇺', t:['EJI'],  f:'airlines/eagle-jet.html'},
-    {n:'ルート・アビエーション',                 e:'Root Aviation',                 g:'🌏', t:['ROOT'], f:'airlines/root-aviation.html'},
+    {n:'エアX・チャーター',                     e:'AirX Charter Ltd',              g:'🇲🇹', t:['AXC'],  f:'airlines/airx-charter.html'},
+    {n:'イーグルジェット・インターナショナル',   e:'Eagle Jet International, Inc.', g:'', t:['EJI'],  f:'airlines/eagle-jet.html'},
+    {n:'ルート・アビエーション',                 e:'Root Aviation',                 g:'', t:['ROOT'], f:'airlines/root-aviation.html'},
     {n:'ソレイラス・アビエーション',             e:'Solairus Aviation',             g:'🇺🇸', t:['SOL'],  f:'airlines/solairus.html'},
   ];
   window.PV_DB = DB;

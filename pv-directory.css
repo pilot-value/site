@@ -1,0 +1,33 @@
+/* PV-DIR-DATA ── 一覧のカード・検索・結果の見出し・比較の盆（directory-data の持ち場。ほかの持ち場は自分の印の中だけを直す） */
+.wd-vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+#airline-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--pv-s-2);list-style:none;margin:0;padding:0}
+.wd-li{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;row-gap:var(--pv-s-1);padding:var(--pv-s-2);background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow);transition:transform .2s var(--pv-ease)}
+.wd-li[hidden]{display:none}
+@supports (grid-template-rows:subgrid){.wd-li{grid-row:span 3;grid-template-rows:subgrid}}
+.wd-go{display:flex;align-items:flex-start;gap:10px;min-height:48px;color:inherit;text-decoration:none;outline:none}
+.wd-go::after{content:"";position:absolute;inset:0;border-radius:var(--pv-r)}   /* カード全体がリンク。足もとの段（.wd-foot）だけは上に乗る */
+.wd-li:has(.wd-go:hover){transform:translateY(-2px)}
+.wd-go:hover .wd-name{text-decoration:underline;text-underline-offset:3px}
+.wd-go:focus-visible::after{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wd-li:has(.wd-go:active){transform:translateY(0) scale(.99)}
+.wd-go:active .wd-name{opacity:.7}
+.wd-logo{flex:none;display:flex;align-items:center;height:36px}
+.wd-logo .pvg-logo{--lg-h:36px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:var(--lg-h);min-width:var(--lg-h);max-width:84px;padding:3px 6px;overflow:hidden;border-radius:var(--pv-r-sm);background:#fff;border:1px solid var(--pv-line)}
+.wd-logo .pvg-logo>img{display:block;height:100%;width:auto;max-width:100%;object-fit:contain}
+.wd-logo .pvg-logo>.pvg-mono{display:none}
+.wd-logo .pvg-logo.is-mono,.wd-logo .pvg-logo.is-fail{width:var(--lg-h);max-width:none;padding:0;border:0;background:var(--pvg-c,var(--pv-accent))}
+.wd-logo .pvg-logo.is-mono>.pvg-mono,.wd-logo .pvg-logo.is-fail>.pvg-mono{display:grid;place-items:center;width:100%;height:100%;font-size:.72rem;font-weight:800;line-height:1;letter-spacing:.02em;color:var(--pvg-mono-ink,#fff)}
+.wd-logo .pvg-logo.is-fail>img{display:none}
+.wd-names{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding-top:2px}
+.wd-name{font-size:.9rem;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:var(--pv-ink);overflow-wrap:anywhere}
+.wd-meta{display:flex;align-items:baseline;gap:6px;min-width:0}
+.wd-sub{min-width:0;font-size:.7rem;color:var(--pv-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wd-code{flex:none;padding:0 6px;border-radius:999px;border:1px solid var(--pv-line);font-size:.64rem;font-weight:800;line-height:16px;letter-spacing:.02em;color:var(--pv-ink-2)}
+.wd-chev{flex:none;width:7px;height:7px;margin:9px 3px 0 0;border-top:2px solid var(--pv-ink-3);border-right:2px solid var(--pv-ink-3);transform:rotate(45deg)}
+.wd-figs{display:grid;align-content:start;gap:6px;padding-top:var(--pv-s-1);border-top:1px solid var(--pv-line-soft)}
+.wd-fig{display:flex;align-items:baseline;justify-content:space-between;gap:var(--pv-s-1);margin:0;font-size:.72rem;line-height:1.35;color:var(--pv-ink-3)}
+.wd-v{flex:none;font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:var(--pv-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wd-foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:var(--pv-s-1);min-height:44px}
+.wd-tags{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+@media (prefers-reduced-motion:reduce){.wd-li{transition:none}}
+/* /PV-DIR-DATA */

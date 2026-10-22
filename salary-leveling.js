@@ -132,6 +132,12 @@
   };
   function T(s) { return IS_EN && L10N[s] ? L10N[s] : s; }
 
+  // 地域の名前（会社選びの一覧で社名の右に出す字）。airlines-meta.js の region は中の符号（eu_fsc など）なので、
+  // 画面には必ずこの名前を出す（名前は航空会社一覧の地域ボタンと同じ字）。知らない符号は何も出さない（符号を読み手に見せない）。
+  // ★ここ1か所。assert-directory.mjs の B7 が、一覧の行の符号がどれも名前を持つこと・画面に符号を出さないことを見ている。
+  var REGION_NAME = { japan: ['日本', 'Japan'], asia: ['アジア', 'Asia'], mideast: ['中東', 'Middle East'], africa: ['アフリカ', 'Africa'], eu_fsc: ['欧州', 'Europe'], eu_lcc: ['欧州', 'Europe'], europe: ['欧州', 'Europe'], us: ['北米', 'North America'], oceania: ['オセアニア', 'Oceania'], latam: ['中南米', 'Latin America'] };
+  function regionName(r) { var n = REGION_NAME[r]; return n ? n[IS_EN ? 1 : 0] : ''; }
+
   // ページ間リンクは EN 版が実在するときだけ言語ディレクトリ内に留め、無ければ
   // ルート（日本語版）へ退避する。/en/ から存在しないページを踏むと 404 になるため。
   // 実在判定は lang-toggle.js が生成する PV_EN_PAGES を唯一の正として参照する。
@@ -758,7 +764,7 @@
       var rows = avail.filter(function (sl) {
         if (!toks.length) return true;
         var a = meta[sl]; if (!a) return false;
-        var hay = (a.name + ' ' + (a.en || '') + ' ' + (a.region || '') + ' ' + sl).toLowerCase();
+        var hay = (a.name + ' ' + (a.en || '') + ' ' + (a.region || '') + ' ' + (REGION_NAME[a.region] || []).join(' ') + ' ' + sl).toLowerCase();
         return toks.every(function (t) { return hay.indexOf(t) >= 0; });
       });
       rows.sort(function (x, y) {
@@ -773,7 +779,7 @@
           ' role="option" aria-selected="' + (on ? 'true' : 'false') + '">' +
           logoHtml(a) +
           '<span class="di-nm">' + nameOf(a) + '</span>' +
-          '<span class="di-rg">' + (a.region || '') + '</span>' +
+          '<span class="di-rg">' + regionName(a.region) + '</span>' +
           '<span class="di-ck">' + (on ? '✓' : T('＋')) + '</span></button>';
       });
       els.list.innerHTML = html || '<div class="lvl-drop-empty">' + T('「') + (q || '') + T('」に一致する会社がありません') + '</div>';
