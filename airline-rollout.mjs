@@ -223,6 +223,15 @@ function factsJa(slug, R) {
       if (place === 'jobs' && sec in ads) ads[sec].push(f);
     }
   }
+  /* 同じ話は1行だけ（2026-10-23）：字の表（LINES）の same が名指す行が同じ欄に出ているときは、same を持つ行を出さない
+     （ユナイテッド航空の採用ページの「保険」と、労働協約の「保険（医療・歯科など）」── 資料の強い・中身の細かい行を残す）。
+     名指した行が出ない日（台帳の行が変わって字が古い など）は外さない ＝ 話題を無くさない。台帳の行は消さない。 */
+  for (const k of ['work', 'benefits']) out[k] = out[k].filter(f => {
+    const by = LINES[f.id] && LINES[f.id].same;
+    if (!by || !out[k].some(x => x.id === by)) return true;
+    out.held.push({ id: f.id, why: `同じ話を、ほかの行（${by}）が言う`, sec: k });
+    return false;
+  });
   /* 並び：条件つき → 参考 → 過去（台帳の順のまま）。
      最初の1画面の1行（lead）は「条件つき」の行だけ ── 字の表（LINES の lead）が決めていればその行、無ければ最初の「条件つき」の行。 */
   const ORDER = { 条件つき: 0, 募集: 0, 参考: 1, 過去: 2 };
