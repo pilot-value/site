@@ -18,7 +18,12 @@
        待たない・場面 sumlogin）、口コミの鍵の無い会員は「要約は口コミの投稿で開きます」だけ・リンク0・返事に植えた点は画面にも保存領域にも
        出ない・給与の鍵では開かない（場面 sumkey）。別のタブで読む人が替わったら、前の人の文を1字も残さず次の人の顔へ（場面 sumtwo・static S9）。
        関数がまだ無いときは「準備中」を1回・数字なし・点数の付いた投稿の無い2社の下には何も見せない（場面 sumoff）。
-       [B] 開いた要約は各社2点まで・足元・欄にリンク無し（sumopen）／静かな1行の出し方（sumquiet）／読めないときの顔と「やり直す」1つ（sumfail）。
+       [B] 開いた要約は各社2点まで・足元・欄にリンク無し（sumopen）／静かな1行の出し方（sumquiet）／読めないときの顔と「やり直す」1つ
+       （混ざった失敗 ── 片方の欄は2社とも・もう片方は1社だけ ── でも帯は1本・「やり直す」はその帯の1つ）（sumfail）。
+     ・[REAL LOCAL] ブラウザの「戻る」で比較が手元から戻ったら、投稿で変わる数をその場で取り直す（骨組みに戻さない・読み込み直さない）。
+       離れているあいだにほかのタブで別の会員が入っていたら、前の人の本文の字をどの瞬間にも出さずに今の人の形へ（場面 local-back ── L7。
+       本当に手元から戻ったかを毎回確かめ、5回とも戻らなければ赤。別の会員の回は画面の出入りの知らせ visibilitychange を黙らせて、
+       pageshow の中の読む人の確かめだけで止まることを見る ── 理由は場面の中の注記）。
      ・口コミの鍵のある人は、会社のマスの中でほかの人の投稿を本文のまま新しい順にスクロールして読める（5件ずつ・キーボードで）。
        ゲスト・給与の鍵だけの会員には本文が1字も出ない（返事に植えた本文の列も読まない）・読む人が替わったら消える（場面 revkey）。
      ・[B] 欄の「やり直す」のあと、待つあいだに読み手が動いた先からフォーカスを引き戻さない（場面 refocus）。
@@ -38,7 +43,7 @@
 
    実行: node assert-career-live.mjs [--scenes a,b] [--shots <folder>] [--via form|call] [--sql <file>]
      --scenes  場面を選ぶ（static・net・unknown・leak・zero … sumopen・sumlogin・sumkey・sumtwo・sumoff・sumquiet・sumfail・revkey・refocus …
-               pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall）。
+               pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall … local-back）。
                付けなければ全部（static → MOCK → REAL LOCAL の順）。⚠️ pay-stall は上限まで本当に待つ（15秒あまり）
      --shots   場面の確かめのあと、口コミ・月の働き方・待遇の箱を、その場面の大きさで撮って置く（置き場は打った場所。ファイルに書かない）。
                場面 pay-fit・pay-fail は「提出された年収」の箱を撮る（ディルハム・読めない・準備中・中央値の失敗と準備中）
@@ -698,6 +703,10 @@ const sumFace = (page) => page.evaluate((SUM_SEL, REV_BOX) => {
     boxLogin: [...box.querySelectorAll('a')].filter((a) => vis(a) && a.textContent.trim() === 'ログイン').map((a) => a.getAttribute('href')),
     boxGG: [...box.querySelectorAll('a.pv-gg')].filter(vis).length,
     boxErrs: seen(box).filter((t) => t === 'いま読み出せません').length,
+    /* 箱に見える失敗の帯（欄ごと読めなかった顔）の数と、帯・「やり直す」がどの欄のものか（1つずつの時だけ名前） */
+    boxBars: [...box.querySelectorAll('.crl[data-state="error"]')].filter(vis).length,
+    barIn: ((x) => (x.length === 1 ? x[0].getAttribute('data-live') : null))([...box.querySelectorAll('.crl[data-state="error"]')].filter(vis)),
+    retryIn: ((x) => (x.length === 1 ? x[0].closest('.crl').getAttribute('data-live') : null))([...box.querySelectorAll('.crl-retry')].filter(vis)),
     html: (document.querySelector('#cr [data-view="compare"]') || {}).outerHTML || '', store: store.join('\n'),
   };
 }, SUM_SEL, REV_BOX);
@@ -875,6 +884,23 @@ scene('sumfail', '[B] 要約が読めない：片方なら その会社の札と
     ok(!!G && G.state === 'error' && G.boxErrs === 1 && G.boxRetries === 1 && G.h === 0,
       `（${size}）口コミの箱に見える「いま読み出せません」と「やり直す」は1つずつ（要約の欄の失敗は評価の欄の帯に畳む）`, JSON.stringify(G && { state: G.state, errs: G.boxErrs, retries: G.boxRetries, h: G.h }));
   }
+  /* 混ざった失敗（片方の欄は2社とも・もう片方は1社だけ読めない）→ 箱に見える失敗の帯は1本・「やり直す」はその帯の1つだけ
+     （1社だけ読めなかった会社の所の「いま読み出せません」はそのまま）。狭い画面と広い画面で1回ずつ */
+  const MIX = {
+    '評価は2社とも・要約は JAL だけ読めない': { pv_reviews: reviewsBy({ jal: FAIL500, ana: FAIL500 }), pv_review_summary: sumBy({ jal: SUM_FAIL, ana: SUM_OPEN('ANA') }) },
+    '評価は JAL だけ・要約は2社とも読めない': { pv_reviews: reviewsBy({ jal: FAIL500, ana: FIX.ANA }), pv_review_summary: () => SUM_FAIL },
+  };
+  const mixed = [];
+  for (const [what, stub] of Object.entries(MIX)) {
+    for (const size of ['pc', 'sp']) {
+      const f = await open(size, { url: PAIR_URL('jal', 'ana'), stub });
+      const done = await sumDone(f.page, 'jal|ana') && await settled(f.page, 'cmp-stars', 'jal|ana');
+      const G = await sumFace(f.page);
+      mixed.push({ what, size, done, bars: G && G.boxBars, retries: G && G.boxRetries, bar: G && G.barIn, retry: G && G.retryIn });
+    }
+  }
+  ok(mixed.every((m) => m.done && m.bars === 1 && m.retries === 1 && m.retry === m.bar),
+    '混ざった失敗（評価は2社とも・要約は1社だけ／評価は1社だけ・要約は2社とも）でも、口コミの箱に見える失敗の帯は1本・「やり直す」はその帯の1つだけ', J(mixed));
   /* JAL だけ両方読めない → JAL の列に各欄1回ずつ・「やり直す」は箱に1つ・押すと JAL の2つを聞き直す */
   const j = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FAIL500, ana: FIX.ANA }),
     pv_review_summary: sumBy({ jal: SUM_FAIL, ana: SUM_OPEN('ANA') }) } });
@@ -1841,6 +1867,125 @@ scene('mixfail', '比較の回答：片方の会社が読めなくても、も�
     const F = await faces3(page);
     ok(!!F.W && F.W.state === 'off' && F.W.text === '準備中' && F.Q.state === 'off' && F.Q.h === 0 && F.P.state === 'off' && F.P.text === '準備中',
       `（${size}）月の働き方「準備中」・すぐ下の欄は高さ 0・待遇「準備中」`, J({ W: F.W && [F.W.state, F.W.text], Q: F.Q && [F.Q.state, F.Q.h], P: F.P && [F.P.state, F.P.text] }));
+  }
+});
+
+/* ══ REAL LOCAL：ブラウザの「戻る」で手元から戻った比較（L7・2026-10-23）══════════════════════════════
+   本当の「戻る」は、要求を横取りする上の open() では起きない（ブラウザがページを手元に置かない）。cmp-stubs.mjs の bfOpen
+   （assert-keep.mjs の KA8 と同じ3つの置き方：headless true・横取りなし・名前は localhost と LIBS だけ・max-age の口）で開く。
+   手元から戻ったか（離れる前に置いた印が残る・pageshow の persisted）を毎回確かめ、戻らなければ新しいタブで最初からやり直す
+   （5回まで）。5回とも戻らなければ、その行は赤（「戻るで手元から戻らなかった（証明できない）」── 読み直しを「戻った」と数えない）。
+   会員の投稿は makeReaders（via call）。足す1件は q() で保存先へ直接（JAL に点数つきの口コミ）。 */
+const BF_OFF = 'a[href="world-airlines.html"]';                    // 比較の画面に在る、サイトのほかのページへのリンク
+const BF_MARK = /ZZ[a-z]+-[a-z-]+-(salary|wlb)ZZ/;                  // 口コミの本文の終わりの印（抜粋の40字より後ろ ＝ 本文を受け取った人だけに出る）
+const BF_TRIES = 5;
+const bfTries = async (fn) => {
+  const why = [];
+  for (let i = 1; i <= BF_TRIES; i++) {
+    const r = await fn(i);
+    if (r.restored) return { ...r, tries: i, why };
+    why.push(r.why || '?');
+  }
+  return { restored: false, tries: BF_TRIES, why };
+};
+/* 毎回1行の知らせ（検査の行ではない）：何回目で手元から戻ったか・読み直された回のブラウザの言い分 */
+const bfNote = (tag, r) => console.log(`  ・${tag}：手元から戻るまで ${r.restored ? r.tries : 'ー'} 回（読み直された回の理由：${r.why.join(' / ') || 'ー'}）`);
+const bfWait = (page, fn, arg) => page.waitForFunction(fn, { timeout: 30000, polling: 100 }, arg).then(() => true, () => false);
+const bfNotProven = (label, r) => (r.restored ? label : `${label}：戻るで手元から戻らなかった（証明できない）`);
+scene('local-back', '「戻る」で手元から戻った比較：投稿で変わる数を、骨組みに戻さずに取り直す（ゲスト）／離れているあいだに別の会員が入ったら、前の人の字を出さずに今の人の形へ', 'local', async () => {
+  const env = CUR.env;
+  const made = await H.makeReaders(env, { via: VIA });
+  console.log(`  ・会員の投稿（via ${made.via}）: ${made.did.length} 件`);
+  const front = await H.pagesFront(env.url);
+  const bb = await H.bfLaunch();
+  const STARS = '#cr [data-view="compare"] .crl[data-live="cmp-stars"]';
+  try {
+    /* ① ゲスト：比較（JAL は点数の付いた投稿2件）→ リンクでほかのページ → JAL に点数つきの口コミを1件 →「戻る」 */
+    const r1 = await bfTries(async () => {
+      const o = await H.bfOpen(bb, front, env.local, 'pc', { url: PAIR_URL('jal', 'ana') });
+      CUR.pages.push(o);
+      const { page } = o;
+      const before = await bfWait(page, (sel) => { const b = document.querySelector(sel);
+        return !!b && b.getAttribute('data-state') === 'open' && b.getAttribute('data-for') === 'jal|ana' && b.innerText.includes('2件の評価'); }, STARS);
+      await H.watch(page, 'cmp-stars');
+      await page.evaluate(() => { window.__l7 = 'L7-1'; if (window.__crlSeen) window.__crlSeen.length = 0; });
+      await H.bfLeave(page, BF_OFF);
+      const id = (await env.q(`insert into public.reviews_v2 (proof_hash, airline, culture_score, salary_score, benefits_score, wlb_score, ops_score, training_score)
+        values (public.pv_review_hash(gen_random_uuid(), 'jal'), 'jal', 4, 4, 4, 4, 4, 4) returning id`)).rows[0].id;
+      const b = await H.bfBack(page);
+      const kept = await page.evaluate(() => window.__l7 === 'L7-1').catch(() => false);
+      if (!b.persisted || !kept) {
+        await env.q('delete from public.reviews_v2 where id = $1', [id]);     // やり直しは同じ数から（2件 → 3件）
+        return { restored: false, why: b.why || 'mark gone' };
+      }
+      const three = await bfWait(page, (sel) => { const x = document.querySelector(sel);
+        return !!x && x.getAttribute('data-state') === 'open' && x.innerText.includes('3件の評価'); }, STARS);
+      const face = await slot(page, 'cmp-stars');
+      return { restored: true, before, three, posts: !!face && face.text.includes('会員の投稿 4件'), seen: await H.seen(page) };
+    });
+    bfNote('ゲスト', r1);
+    const sk = (r1.seen || []).filter((s) => /^(loading|idle)\|/.test(s));
+    ok(r1.restored && r1.before && r1.three && r1.posts,
+      bfNotProven('★L7 ゲスト：比較 → リンクでほかのページ → JAL に口コミ1件（手元の SQL）→「戻る」で手元から戻った（離れる前の印が残る・pageshow の persisted）：読み込み直さずに「3件の評価」・会員の投稿 4件', r1),
+      J({ restored: r1.restored, tries: r1.tries, why: r1.why, before: r1.before, three: r1.three, posts: r1.posts }));
+    ok(r1.restored && r1.three && (r1.seen || []).length > 0 && sk.length === 0,
+      bfNotProven('★L7 取り直すあいだ、評価の欄は骨組み（loading）にも空（idle）にもならない（前の数を出したまま次の数へ）', r1),
+      J({ restored: r1.restored, faces: (r1.seen || []).map((s) => s.split('|')[0]), skeleton: sk.length }));
+
+    /* ② 口コミの鍵のある会員 a：比較（本文が読める）→ リンクでほかのページ → ほかのタブで pilot が入る →「戻る」。
+       戻った瞬間（ページ自身の pageshow のあと）も、そのあとのどの瞬間も、どの欄にも a が受け取った本文の字（印）は出ない ── 静かに取り直さず、
+       その場で空にしてから pilot の形（抜粋と口コミの Give & Get）へ。
+       この回だけ、離れる前に画面の出入りの知らせ（visibilitychange）を検査のブラウザの中で黙らせる（window の捕まえる段で、ページの
+       どの聞き手より先に止める。製品のファイルには何も足さない）。なぜ：Chromium では手元から戻るとき visibilitychange（見える）が
+       pageshow より先に届き、supabase-js が自分でその場で保存されたログインを読み直して SIGNED_IN（pilot）を出し直す。その知らせで
+       欄が pageshow の前に空になるので、pageshow の中の読む人の確かめ（A21 b）を外しても緑のまま ── 壊したのが見えなくなる。
+       黙らせると、ほかのタブの書き込みの知らせ（storage）が pageshow のあとに届く順になる（Safari の手元のページが返しうる順）。
+       その順で、前の人の字を止めているのが読む人の確かめだけであることを見る（外すと pageshow の時点で a の本文が出る ＝ 赤）。 */
+    const KINDS = [['cmp-stars', 0], ['cmp-summary', 0], ['cmp-work', 0], ['cmp-facts', 0], ['cmp-facts', 1], ['cmp-pay', 0]];
+    const r2 = await bfTries(async () => {
+      const o = await H.bfOpen(bb, front, env.local, 'pc', { who: 'a', url: PAIR_URL('jal', 'ana') });
+      CUR.pages.push(o);
+      const { page } = o;
+      const pre = await bfWait(page, ([sel, re]) => { const b = document.querySelector(sel);
+        return !!b && b.getAttribute('data-state') === 'open' && new RegExp(re).test(b.innerText); }, [STARS, BF_MARK.source]);
+      for (const [k, n] of KINDS) await H.watch(page, k, n);
+      await page.evaluate((re) => {
+        /* ページの台本が読み終わったあとに足す ＝ career-live.js の pageshow のあとに呼ばれる */
+        window.addEventListener('pageshow', (e) => {
+          const t = [...document.querySelectorAll('#cr [data-view="compare"] .crl[data-live]')].map((b) => b.innerText).join('\n');
+          window.__l7b = { persisted: e.persisted, mark: new RegExp(re).test(t) };
+        });
+        /* 画面の出入りの知らせを黙らせる（上の注記）。黙らせた回数は __l7vis に数える（知らせの行の詳しい中身に出す） */
+        window.__l7vis = 0;
+        window.addEventListener('visibilitychange', (e) => { window.__l7vis++; e.stopImmediatePropagation(); }, true);
+        window.__l7 = 'L7-2';
+        if (window.__crlSeen) window.__crlSeen.length = 0;
+      }, BF_MARK.source);
+      await H.bfLeave(page, BF_OFF);
+      const t = await o.ctx.newPage();
+      await t.goto(front.base + '/pv-vocab.json', { waitUntil: 'load' });
+      await H.loginIn(t, env.local, 'pilot');
+      await t.close();
+      const b = await H.bfBack(page);
+      const kept = await page.evaluate(() => window.__l7 === 'L7-2').catch(() => false);
+      if (!b.persisted || !kept) return { restored: false, why: b.why || 'mark gone' };
+      const end = await bfWait(page, (sel) => { const x = document.querySelector(sel);
+        return !!x && x.getAttribute('data-state') === 'open' && !!x.querySelector('.crl-rate-rv') && !!x.querySelector('a.pv-gg[href*="submit-review.html"]'); }, STARS);
+      const now = await page.evaluate(() => [...document.querySelectorAll('#cr [data-view="compare"] .crl[data-live]')].map((x) => x.innerText).join('\n'));
+      return { restored: true, pre, at: await page.evaluate(() => window.__l7b || null), vis: await page.evaluate(() => window.__l7vis), seen: await H.seen(page), end, now };
+    });
+    bfNote('a → pilot', r2);
+    const marked = (r2.seen || []).filter((s) => BF_MARK.test(s));
+    ok(r2.restored && r2.pre && !!r2.at && r2.at.persisted === true && r2.at.mark === false && (r2.seen || []).length > 0 && marked.length === 0,
+      bfNotProven("★L7 a（口コミの鍵）の比較 → ほかのページ → ほかのタブで pilot が入る →（画面の出入りの知らせは黙らせて）「戻る」で手元から戻った：戻った瞬間（ページ自身の pageshow のあと）も、そのあとのどの瞬間も、どの欄にも a が受け取った本文の字が無い", r2),
+      J({ restored: r2.restored, tries: r2.tries, why: r2.why, before: r2.pre, at: r2.at, vis: r2.vis, faces: (r2.seen || []).length, marked: marked.map((s) => s.slice(0, 80)) }));
+    ok(r2.restored && r2.end && !BF_MARK.test(r2.now || ''),
+      bfNotProven('★L7 そのあと比較は pilot の形（評価の下に抜粋と口コミの Give & Get）── 読み込み直さずに', r2),
+      J({ restored: r2.restored, end: r2.end }));
+  } finally {
+    for (const o of CUR.pages) await o.close();
+    await bb.close().catch(() => {});
+    await front.close();
   }
 });
 

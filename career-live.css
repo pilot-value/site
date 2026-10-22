@@ -16,10 +16,14 @@
 .crl[data-live="stars"][data-state="error"] + .crl[data-live="reviews"][data-state="error"],
 .crl[data-live="score"][data-state="error"] + .crl[data-live="reviews"][data-state="error"]{display:none}
 /* 比較：評価も要約も読めなかったとき、同じ知らせと「やり直す」を2つ重ねない（上の欄が出している。やり直すと両方取り直す）。
-   片方の会社だけ読めなかったときも、ボタンは上の欄の1つ（「読めなかった」の1語は、それぞれの欄がその会社の所で言う）。 */
+   片方の会社だけ読めなかったときも、ボタンは上の欄の1つ（「読めなかった」の1語は、それぞれの欄がその会社の所で言う）。
+   片方の欄は2社とも・もう片方は1社だけ読めなかったときも、帯と「やり直す」は箱に1つ（帯を出している欄のボタンを残す。
+   どのボタンも、読めなかった欄を全部取り直す）。 */
 .crl[data-live="cmp-stars"][data-state="error"] + .crl[data-live="cmp-summary"][data-state="error"]{height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
 .crl[data-live="cmp-stars"][data-state="error"] + .crl[data-live="cmp-summary"][data-state="error"] > *,
-.crl[data-live="cmp-stars"][data-part="1"] + .crl[data-live="cmp-summary"][data-part="1"] > .crl-retry{display:none}
+.crl[data-live="cmp-stars"][data-part="1"] + .crl[data-live="cmp-summary"][data-part="1"] > .crl-retry,
+.crl[data-live="cmp-stars"][data-state="error"] + .crl[data-live="cmp-summary"][data-part="1"] > .crl-retry,
+.crl[data-live="cmp-stars"][data-part="1"]:has(+ .crl[data-live="cmp-summary"][data-state="error"]) > .crl-retry{display:none}
 
 /* ── loading ── */
 .crl-sk{display:grid;gap:8px;padding:6px 0}
@@ -396,6 +400,9 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 /* 要約の欄が「ログインが必要です」か「要約は口コミの投稿で開きます」を言っている時は、すぐ上の評価の欄の錠前の1行
    （「口コミの投稿で開きます」）を重ねない ── 会社ページの評価スコアのカードと同じ（pv-glance.css 2026-10-08）。口コミの Give & Get は残す */
 .crl[data-live="cmp-stars"]:has(+ .crl[data-live="cmp-summary"][data-state="locked"]) > .crl-lock{display:none}
+/* 評価の欄が格子で終わっている時（口コミの鍵のある人など ── 下に錠前の1行も入口も無い）は、格子の最後の行の線が区切り。
+   要約の欄の上にもう1本引かない（細い線を2本重ねない）。読めなかった時の帯（error）は線を持たないので触らない */
+.crl[data-live="cmp-stars"]:has(> .crl-cmp:last-child) + .crl[data-live="cmp-summary"][data-state]:not([data-state="error"]){margin-top:0;border-top:0}
 @media (prefers-reduced-motion:reduce){a.crl-score-a .crl-ic,a.crl-sum-a .crl-ic{transition:none}}
 
 .crl-revs{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}

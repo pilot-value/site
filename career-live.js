@@ -374,17 +374,16 @@
   /* 別のタブでログイン・ログアウトしたとき（career.html だけ ── 会社ページには pv-contrib.js の合図が届く）。
      このページの supabase-js は、ほかのタブの書き込みを聞かない（2026-10-22 に確かめた：比較を開いたまま別のタブで別の会員が入っても、
      欄は前の人のまま）。ログインを読むのは PVSession の1か所（ここでは読まない・書かない）。読む人が替わった時だけ setUid。
-     通信も時計も使わない。 */
-  if (!GL) {
-    w.addEventListener('storage', function () {
-      var P = w.PVSession;
-      if (uid === undefined || !P || typeof P.readStoredSession !== 'function') return;
-      var s = P.readStoredSession(), u = s && s.user && typeof s.user.id === 'string' ? s.user.id : null;
-      /* 鍵は在るのに読めない形（割って入れる実装など）は、誰か分からない ＝ 何もしない（ログアウトとは読まない） */
-      if (!u && typeof P.hasToken === 'function' && P.hasToken()) return;
-      setUid(u);
-    });
+     通信も時計も使わない。同じ確かめを、ブラウザの「戻る」でこのページが手元から戻った時にも使う（下の pageshow）。 */
+  function storedReader() {
+    var P = w.PVSession;
+    if (uid === undefined || !P || typeof P.readStoredSession !== 'function') return;
+    var s = P.readStoredSession(), u = s && s.user && typeof s.user.id === 'string' ? s.user.id : null;
+    /* 鍵は在るのに読めない形（割って入れる実装など）は、誰か分からない ＝ 何もしない（ログアウトとは読まない） */
+    if (!u && typeof P.hasToken === 'function' && P.hasToken()) return;
+    setUid(u);
   }
+  if (!GL) w.addEventListener('storage', storedReader);
 
   /* 給与の行。引数なしで1回だけ呼び、会社で絞るのは画面側（現行の REAL PAY と同じ）。
      開いていない答えからは、会社・出典・投稿時期の3つしか受け取らない。 */
@@ -2046,7 +2045,11 @@
     box._crlBack = 0;
     var at = d.activeElement;
     if (at && at !== d.body && at !== d.documentElement) return;   // 待つあいだに読み手が自分で動いた先からは、引き戻さない
-    var t = box.querySelector('.crl-retry, a[href], button');
+    /* 見えているものだけ（箱に「やり直す」を1つにするため、CSS が隠したボタンがある ── そこへは移せない）。
+       欄そのものが畳まれた時（すぐ上の欄が同じ知らせを出している）は、すぐ上の欄の「やり直す」へ */
+    var c = box.querySelectorAll('.crl-retry, a[href], button'), t = null, up = box.previousElementSibling;
+    if (!box.getBoundingClientRect().height && up) c = up.querySelectorAll('.crl-retry');
+    for (var i = 0; i < c.length && !t; i++) if (c[i].getClientRects().length) t = c[i];
     if (!t) { t = box; box.setAttribute('tabindex', '-1'); }
     try { t.focus({ preventScroll: true }); } catch (e) { /* フォーカスを移せないブラウザでは、今までどおり */ }
   }
@@ -2164,11 +2167,33 @@
      あちらがすることと同じ。あちらの見回りは、名前の控えも消えた後には何もしない）。
      Chrome で実測（2026-10-18）：自動のログアウトをほかのページで迎えて「戻る」と、このページが手元から戻り、
      右上に前の人の名前が出たままだった。supabase-js からも SIGNED_OUT は届かなかった（INITIAL_SESSION だけ）。 */
+  /* ブラウザの「戻る」で、前の画面が読み直されずにそのまま戻ってきたとき（persisted）だけ、投稿で変わりうる答えを取り直す。
+     出来事でだけ取り直す ── 時間では取り直さない。見えている欄は、今の中身を出したまま取り直す（骨組みに戻すと、
+     戻ってきた人の読んでいた位置が動く）。見えていない欄は、次に出たとき取り直す。
+     会社ページではやらない：あちらは口コミの一覧と件数を別の部品が持っていて、片方だけ新しくなると同じページの中で数が食い違う。
+     上の確かめ（読む人が替わったか）が先。替わっていれば欄はもう空（idle）で、ここでは触らない。
+     離れているあいだにほかのタブで別の会員が入った時も同じ（storedReader ── ほかのタブの知らせは、手元に置かれていたページには届かない）：
+     前の人の欄を、静かに取り直すのではなく、その場で空にしてから今の人の形で取り直す。
+     知らない名前（まだ無い欄・誰も控えていない答え）は飛ばす。 */
+  var BACK_DROP = ['rev:', 'sum:', 'fact:', 'wkv:', 'note:', 'give', 'pay', 'cmed:'];
+  var BACK_KINDS = ['stars', 'reviews', 'cmp-stars', 'cmp-summary', 'fact', 'cmp-facts', 'work', 'cmp-work', 'notes', 'realpay', 'cmp-pay'];
   w.addEventListener('pageshow', function (e) {
     var S = w.PVSession;
     if (e && e.persisted && S && typeof S.hasToken === 'function' && !S.hasToken()) {
       if (typeof uid === 'string') setUid(null);
       if (typeof S.repaintAuth === 'function') S.repaintAuth();
+    }
+    if (!GL && e && e.persisted) {
+      storedReader();
+      BACK_DROP.forEach(drop);
+      var all = slots();
+      for (var i = 0; i < all.length; i++) {
+        var box = all[i], kind = box.getAttribute('data-live'), st = box.getAttribute('data-state');
+        if (!KIND[kind] || BACK_KINDS.indexOf(kind) < 0 || st === 'idle') continue;
+        var want = box.getAttribute('data-for') || '';
+        if (want && st !== 'loading' && shown(box)) run(box, kind, want, true);
+        else idle(box);
+      }
     }
     later();
   });
