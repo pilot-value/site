@@ -46,12 +46,19 @@
      ・読めない（500）・口がまだ無い（404・PGRST202）でも給与の入口は残る。中央値だけ読めないときは器の中だけで言い、
        「やり直す」は中央値だけを聞き直す。押した人のキーボードの居場所は、器の見出しか次の「やり直す」（場面 pay-fail）。
      ・返事の来ない一覧は、上限（career-live.js の REQ_LIMIT_MS）を本当に待って「いま読み出せません」・その1本は取り消す（場面 pay-stall）。
+     ・[REAL LOCAL] 手元の SQL が答える比較の給与（会員の給与は via・鍵の期限切れと運営が一覧から下ろすのは q() で直接）：
+       5人の読む人がそれぞれの顔（ゲスト・会員・口コミの鍵だけ ＝ 件数と錠の1行／給与の鍵だけ・両方 ＝ 職位ごとの行／期限切れ ＝
+       「年収データの解放が切れています」）・件数は会社ページとサーバーの答えと同じ・口コミの鍵だけの人は中央値を聞きもしない・
+       読めなければ「やり直す」で行が出る（場面 pay-readers ── L1〜L4・L8）／提出の追加・同じ月の出し直し・運営が一覧から下ろす
+       のあと、会社ページと比較の件数と行が一緒に動き、中央値はサーバーの額のまま・下限に届かなければ「未取得」（pay-change ── L5〜L7）／
+       ページのクライアントでのログアウトと、別のタブでのログアウトで、前の人の行・額・中央値が画面にも保存領域にも残らず、次の人の顔へ
+       （pay-two ── L9）。中央値を下限ちょうどの人数で見る場面（L10）は公開のあと（ここには無い）。
    どの場面も、終わりに3つを確かめる：本番の supabase への要求 0・外へすり抜けた要求 0・（MOCK）自分の呼び出しに全部返事があった。
 
    実行: node assert-career-live.mjs [--scenes a,b] [--shots <folder>] [--via form|call] [--sql <file>]
      --scenes  場面を選ぶ（static・net・unknown・leak・zero … sumopen・sumlogin・sumkey・sumtwo・sumoff・sumquiet・sumfail・revkey・refocus …
                pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall … local-back・local-eq・local-post・local-sum・
-               local-two・local-change・local-mix・local-both）。
+               local-two・local-change・local-mix・local-both・pay-readers・pay-change・pay-two）。
                付けなければ全部（static → MOCK → REAL LOCAL の順）。⚠️ pay-stall は上限まで本当に待つ（15秒あまり）
      --shots   場面の確かめのあと、口コミ・月の働き方・待遇の箱を、その場面の大きさで撮って置く（置き場は打った場所。ファイルに書かない）。
                場面 pay-fit・pay-fail は「提出された年収」の箱を撮る（ディルハム・読めない・準備中・中央値の失敗と準備中）
@@ -2106,17 +2113,18 @@ async function keysBack(at0) {
   ok(!err && diff.length === 0, '鍵の期限（profiles.access_until）は場面の終わりに、6人とも種をまいた直後の値へ戻った（期限切れは場面の中だけ）',
     J({ err, diff, keys: Object.fromEntries(Object.entries(L_ID).map(([k, id]) => [k, at0[id] ? '期限あり' : null])) }));
 }
-/* REAL LOCAL の場面の型：種（seedEq か seedGates）→（--sql の写し）→ 場面 → 終わりに鍵の期限を戻して確かめる */
+/* REAL LOCAL の場面の型：種（seedEq か seedGates、または種をまく関数 ── 給与の区域の seedPay・seedMed）→（--sql の写し）→ 場面 →
+   終わりに鍵の期限を戻して確かめる */
 const localScene = (key, label, seed, fn) => scene(key, label, 'local', async () => {
-  const made = await (seed === 'eq' ? seedEq() : seedGates());
+  const made = await (typeof seed === 'function' ? seed() : seed === 'eq' ? seedEq() : seedGates());
   const at0 = await keysNow();
   try { await fn(made, at0); } finally { await keysBack(at0); }
 });
 
 /* 1枚開く（手元の SQL が答える）。開く前から、ページが受け取った手元の関数の返事を、字のまま全部書き留める（got）。
-   who ＝ serve-local.mjs の会員（null ＝ ログインしていない）。 */
-async function lopen(size, who, url) {
-  const o = await open(size, { who, url: '/pv-vocab.json' });
+   who ＝ serve-local.mjs の会員（null ＝ ログインしていない）。before ＝ ページのどのスクリプトよりも先に流す関数（給与の区域の PAY_WATCH）。 */
+async function lopen(size, who, url, before = null) {
+  const o = await open(size, { who, url: '/pv-vocab.json', before });
   const origin = new URL(CUR.env.url).origin, got = [];
   o.page.on('response', (r) => {
     let u;
@@ -2476,6 +2484,366 @@ localScene('local-both', '2つの鍵（c：JAL の口コミ・自分の会社 AN
   const rj = await reply(p, 'pv_review_summary', 'jal');
   okSql(exact(rj, SUM_LOCKED), `★L8 (ii) 給与の鍵が生きていても、口コミの鍵が無ければ JAL の要約の返事は ${SUM_LOCKED} ちょうど`, J({ jal: rj }));
   console.log('  ・2つの鍵は、それぞれ自分の欄だけを閉じる（給与の鍵 ＝ 月の働き方・待遇／口コミの鍵 ＝ 要約）');
+});
+
+/* ══ REAL LOCAL：比較の「提出された年収」── 5人の読む人・提出の追加／出し直し／運営が下ろす・2つのアカウント（WP-cmp-pay-6・2026-10-23）══
+   どの場面も自分の使い捨ての保存先（startLocal）で、手元の SQL がそのまま答える（返事を検査は作らない）。
+   読む人は makeReaders（6人の表）。その上に足す給与は、その会員として rpc submit_pay_report（via call ── makeReaders と同じ口・同じ形）。
+   会員の画面の無い2つ ── 鍵の期限切れ（access_until を過去へ）と、運営が一覧から下ろす（pay_hidden に1行）── は q() で直接。
+   比べる相手は、その読む人としてサーバーに聞き直した答え（pv_pay_rows・pv_company_pay）。額の字は、ページの money() と同じ作り
+   （有効数字2桁にしてから PVCurrency で書く）でここで作り直す。
+   中央値を、下限ちょうどの人数で見る場面（L10・pay-med-local）は公開のあと（比較の給与の設計 A19・3区域の I）── ここには無い。 */
+const PAY_FORM = { currency: 'USD', lang: 'en', tax_rate_pct: 0, flight_variable_pay: 4000, other_allowance: 4400, command_pay: 2000,
+  per_diem: 1000, housing_type: 'allowance', housing_amount: 600 };       // makeReaders の給与と同じ形（db/test-work-months.mjs の PAY）
+/* 給与を1件、その会員として。base ＝ 月の基本給（USD。人ごとに変えて、画面の行がどの提出か額で見分けられるようにする）・
+   back ＝ 何か月前の給与か（1 ＝ 先月 ── makeReaders と同じ。月は保存先の時計から）。返す { id, usd（サーバーの有効数字2桁の年額）, isNew } */
+async function payAs(key, airline, { pos = 'cap', base = 9000, back = 1 } = {}) {
+  if (VIA !== 'call') throw new Error("via 'form' はまだ無い（手元で給与の画面が送れるかの試し P5.5 がまだ無い）。--via call で走らせる");
+  const fleet = (await q1('select code from public.pv_fleets where active order by code limit 1')).code;
+  const per = await q1(`select extract(year from d)::int as y, extract(month from d)::int as m
+                          from (select date_trunc('month', now()) - make_interval(months => $1::int) as d) x`, [back]);
+  const r = await H.rpcAs(CUR.env.url, key, 'submit_pay_report',
+    { ...PAY_FORM, position: pos, base_pay: base, fleet, airline, period_year: per.y, period_month: per.m });
+  if (r.status !== 200 || !r.body || !r.body.id) throw new Error(`${key} の給与（${airline}）が保存されない: ${r.status} ${r.text.slice(0, 200)}`);
+  const usd = (await q1('select public.pv_sig2(annual_total_usd)::float8 as v from public.pay_reports where id = $1', [r.body.id])).v;
+  console.log(`  ・${key}: 給与 ${airline}（${per.y}年${per.m}月・${pos === 'cap' ? '機長' : '副操縦士'}・月の基本給 ${base} USD）── その会員として `
+    + `rpc submit_pay_report → ${r.status}・${r.body.is_new === false ? '同じ月の出し直し' : '新しい月'}（via ${VIA}）`);
+  return { id: r.body.id, usd, isNew: r.body.is_new };
+}
+/* その読む人として、サーバーに聞き直す（key ＝ null はログインしていない人）。pv_pay_rows は引数を取らない（{} を送る） */
+async function rowsAs(key) {
+  const headers = { 'content-type': 'application/json' };
+  if (key) headers.authorization = `Bearer ${(await H.seedOf(CUR.env.url, key)).session.access_token}`;
+  const r = await fetch(`${CUR.env.url}/rest/v1/rpc/pv_pay_rows`, { method: 'POST', headers, body: '{}' });
+  try { return JSON.parse(await r.text()); } catch { return null; }
+}
+const medAs = async (key, a, b) => (await H.rpcAs(CUR.env.url, key, 'pv_company_pay', { airlines: [a, b] })).body;
+/* USD の額を、ページの money() と同じ作りで画面の字にする（有効数字2桁 → いまの通貨の PVCurrency.fmt） */
+const moneyIn = (page, list) => page.evaluate((list) => {
+  const C = window.PVCurrency;
+  const sig2 = (v) => { v = Number(v); if (!isFinite(v) || v <= 0) return 0; const p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10) - 1); return Math.round(v / p) * p; };
+  return list.map((usd) => {
+    if (!C || !C.rates || usd == null || !isFinite(Number(usd)) || Number(usd) <= 0) return '';
+    const rate = C.rates[C.get()] || 1, n = sig2(Number(usd) * (C.rates.USD || 1) / rate);
+    return n ? C.fmt(n * rate) : '';
+  });
+}, list);
+const ymJa = (s) => { const m = /^(\d{4})-(\d{2})$/.exec(String(s || '')); return m ? `${m[1]}年${Number(m[2])}月` : '?'; };
+const PAY5 = ['jal', 'ana', 'etihad', 'cathay-pacific', 'eva-air'];
+const PAY_PAIRS = [['jal', 'ana'], ['etihad', 'cathay-pacific'], ['eva-air', 'jal']];
+const MONEY = /[¥$€]\s?[\d,.]+|[\d,.]+\s?万/;
+const nOf = (t) => { const m = /^(\d+)件の提出$/.exec(String(t || '')); return m ? Number(m[1]) : NaN; };
+/* 比較のその会社の件数（開いた人は職位のマスの合計・「まだ記録がありません」は 0・形の違う字は NaN） */
+const sideN = (F, co) => {
+  const cs = F ? F.cells.filter((c) => c.co === co) : [];
+  return cs.length ? cs.reduce((n, c) => n + (c.count == null ? (c.msg === W_PAY.empty ? 0 : NaN) : nOf(c.count)), 0) : NaN;
+};
+/* 会社ページの給与の1枚（社名の下の「提出された年収」） */
+const CO_PAY = '.crl[data-live="realpay"]';
+const coPay = (page) => page.evaluate((SEL) => {
+  const b = document.querySelector(SEL);
+  if (!b) return null;
+  const tx = (n) => (n ? n.textContent.replace(/\s+/g, ' ').trim() : null);
+  return { for: b.getAttribute('data-for'), state: b.getAttribute('data-state'), count: tx(b.querySelector('p.crl-count')),
+    msgs: [...b.querySelectorAll('p.crl-msg')].map(tx), rows: b.querySelectorAll('li.crl-row').length,
+    amts: [...b.querySelectorAll('li.crl-row .crl-amt')].map(tx) };
+}, CO_PAY);
+const coPayDone = (page, slug) => page.waitForFunction(([SEL, slug]) => {
+  const b = document.querySelector(SEL);
+  return !!b && b.getAttribute('data-for') === slug && !['idle', 'loading'].includes(b.getAttribute('data-state'));
+}, { timeout: 20000, polling: 100 }, [CO_PAY, slug]).then(() => true, () => false);
+const coN = (C) => (!C ? NaN : C.count != null ? nOf(C.count) : (C.msgs.includes(W_PAY.empty) ? 0 : NaN));
+/* 比較の中央値の器（行ごとに、2社の額か「未取得」）と、定義の1行 */
+const medCells = (page) => page.evaluate((SEL) => {
+  const b = document.querySelector(SEL), ag = b && b.querySelector('.crl-agg');
+  const tx = (n) => (n ? n.textContent.replace(/\s+/g, ' ').trim() : null);
+  /* rowsText ＝ 見出しと中央値の行だけ（定義の1行の「n人以上」は決まりの下限で、人数ではない ── 場面 pay-med の M10 a と同じ読み方） */
+  return { hidden: !ag || ag.hidden, text: ag ? tx(ag) || '' : '', def: ag ? tx(ag.querySelector('[data-def="median"]')) : null,
+    rowsText: ag ? [...ag.querySelectorAll('h3.crl-agg-h, .crl-cmp-row[data-med]')].map(tx).join(' ') : '',
+    lines: ag ? [...ag.querySelectorAll('.crl-cmp-row[data-med]')].map((r) => ({ k: r.getAttribute('data-med'),
+      c: [...r.querySelectorAll('.crl-cmp-c')].map((c) => ({ amt: tx(c.querySelector('b.crl-amt[data-agg]')), none: tx(c.querySelector('.crl-none')) })) })) : [] };
+}, PAY_SEL);
+/* サーバーの中央値の答え（その読む人として聞き直したもの）から、器に出るはずの行と定義の1行を作る（2社とも足りない職位は行ごと出ない） */
+async function medWant(page, M, a, b) {
+  if (!M || M.state !== 'open' || !M.airlines) return { lines: [], def: null };
+  const lines = [];
+  for (const pos of ['cap', 'fo']) {
+    const x = (M.airlines[a] || {})[pos], y = (M.airlines[b] || {})[pos];
+    const okA = !!x && x.s === 'ok', okB = !!y && y.s === 'ok';
+    if (!okA && !okB) continue;
+    const [ta, tb] = await moneyIn(page, [okA ? x.median_usd : 0, okB ? y.median_usd : 0]);
+    lines.push({ k: pos, c: [okA ? { amt: ta, none: null } : { amt: null, none: W_PAY.none }, okB ? { amt: tb, none: null } : { amt: null, none: W_PAY.none }] });
+  }
+  return { lines, def: lines.length ? W_PAY.c3(ymJa(M.period && M.period.from), ymJa(M.period && M.period.to), M.floor) : null };
+}
+/* 比較の給与の顔（比較の給与の設計の S1・S2・S3・S5） */
+const lockedBare = (F) => !!F && F.rows === 0 && F.amt === 0 && F.plate === 0 && F.heads.length === 0 && F.cells.length === 2
+  && F.entry.length === 1 && /\bpv-gg\b/.test(F.entry[0].cls) && F.entry[0].k === W_PAY.gg && F.entry[0].m === W_PAY.ggMain && !MONEY.test(F.text);
+const PAY_FACE = {
+  S1: (F, a, b) => lockedBare(F) && F.state === 'locked' && J(F.lock) === J([W_PAY.lock]) && F.login.length === 1
+    && loginTo(F.login[0]) === `career.html?view=compare&a=${a}&b=${b}`,
+  S2: (F) => lockedBare(F) && F.state === 'locked' && J(F.lock) === J([W_PAY.lock]) && F.login.length === 0,
+  S3: (F) => lockedBare(F) && F.state === 'locked' && J(F.lock) === J([W_PAY.expired]) && F.login.length === 0,
+  S5: (F) => !!F && F.state === 'open' && J(F.heads) === J(['cap:機長', 'fo:副操縦士']) && F.rows > 0 && F.entry.length === 0 && F.login.length === 0
+    && F.lock.length === 0 && F.defs.some((x) => x.k === 'rows' && x.t === W_PAY.c2) && F.cells.every((c) => c.lis.every((r) => /^¥[\d,]+万$/.test(r.amt || ''))),
+};
+const FACE_JA = {
+  S1: `会社ごとの件数・「${W_PAY.lock}」・入口・「ログイン」（今の2社へ戻る）・行も額も無い`,
+  S2: `会社ごとの件数・「${W_PAY.lock}」・入口・「ログイン」は無い・行も額も無い`,
+  S3: `会社ごとの件数・「${W_PAY.expired}」・入口・行も額も無い`,
+  S5: '職位ごとの行（機長・副操縦士）・入口も錠の1行も無い',
+};
+const payBrief = (F) => F && { state: F.state, lock: F.lock, login: F.login, entry: F.entry.length, rows: F.rows, amt: F.amt, heads: F.heads,
+  cells: F.cells.map((c) => [c.co, c.pos, c.count, c.msg]) };
+
+/* seedPay（pay-readers）＝ makeReaders ＋ b（読む人の場面では読まない ── 件数を作るだけ）が JAL の副操縦士・エティハド・キャセイパシフィック・
+   エバーの機長として先月ぶん。→ JAL 2件（機長 pay・副操縦士 b）・ANA 1件（c）・ほかの3社 1件ずつ（b）── 比べる3つの組のどの会社にも行が在る */
+async function seedPay() {
+  const made = await H.makeReaders(CUR.env, { via: VIA });
+  made.did.forEach((l) => console.log('  ・' + l));
+  await payAs('b', 'jal', { pos: 'fo', base: 7000 });
+  for (const air of ['etihad', 'cathay-pacific', 'eva-air']) await payAs('b', air, { base: 9000 });
+  await afterSeed();
+  return made;
+}
+/* seedMed（pay-change・pay-two）＝ makeReaders ＋ a・b が JAL の機長として先月ぶん・ANA の機長として2か月前の分。
+   → JAL の機長：pay・a・b ／ ANA の機長：c・a・b ── どちらも中央値の下限（db/pay-median.sql の 3人）ちょうど。月の基本給を人ごとに変えて、
+   年額の字がぶつからないようにする（pay 9000・a 13000・b 17000）。 */
+async function seedMed() {
+  const made = await H.makeReaders(CUR.env, { via: VIA });
+  made.did.forEach((l) => console.log('  ・' + l));
+  const pay = await q1("select id::text as id, public.pv_sig2(annual_total_usd)::float8 as usd from public.pay_reports where airline = 'jal'");
+  const sub = { pay, a: await payAs('a', 'jal', { base: 13000 }), b: await payAs('b', 'jal', { base: 17000 }) };
+  sub.aAna = await payAs('a', 'ana', { base: 11000, back: 2 });
+  sub.bAna = await payAs('b', 'ana', { base: 15000, back: 2 });
+  await afterSeed();
+  return { made, sub };
+}
+
+/* ── L1〜L4・L2b・L3b・L8 ───────────────────────────────────── */
+localScene('pay-readers', '比較の給与：5人の読む人（ゲスト・会員・口コミの鍵だけ・給与の鍵だけ・両方・期限切れ）がそれぞれの顔・件数は会社ページとサーバーの答えと同じ・読めなければ「やり直す」で行（手元の SQL）', seedPay, async (made, at0) => {
+  const READ = [
+    { id: 'L1', who: null, ja: 'ゲスト', S: 'S1' },
+    { id: 'L2', who: 'pilot', ja: '会員（給与も口コミも出していない pilot）', S: 'S2' },
+    { id: 'L2b', who: 'a', ja: '口コミ資格のみ（a）', S: 'S2' },
+    { id: 'L3', who: 'pay', ja: '給与資格のみ（pay）', S: 'S5' },
+    { id: 'L3b', who: 'c', ja: '双方あり（c）', S: 'S5' },
+    { id: 'L4', who: 'pay', ja: '期限切れ（pay の鍵を、開く前に過去へ）', S: 'S3', expire: true },
+  ];
+  const PAIRS_JA = PAY_PAIRS.map((p) => p.join('｜')).join('・');
+  let guest = null;
+  for (const R of READ) {
+    if (R.expire) await expire('pay');
+    const T = await rowsAs(R.who);
+    const srvN = Object.fromEntries(PAY5.map((s) => [s, ((T && T.rows) || []).filter((r) => r && r.airline === s).length]));
+    const co = {};
+    for (const s of PAY5) {
+      const o = await lopen('pc', R.who, `/airlines/${s}.html`);
+      co[s] = (await coPayDone(o.page, s)) ? await coPay(o.page) : null;
+      await o.close();                                  // 読み終わったページは閉じる（この Mac は 8GB）
+    }
+    const cmp = await lopen('pc', R.who, PAIR_URL('jal', 'ana'));
+    const seen = [];
+    for (const [a, b] of PAY_PAIRS) {
+      if (a === 'etihad') { await cmp.page.select('#cr-a', 'etihad'); await cmp.page.select('#cr-b', 'cathay-pacific'); }
+      if (a === 'eva-air') { await cmp.page.select('#cr-a', 'eva-air'); await cmp.page.select('#cr-b', 'jal'); }
+      const done = await payDone(cmp.page, `${a}|${b}`);
+      seen.push({ a, b, done, F: await payFace(cmp.page) });
+    }
+    const open = R.S === 'S5';
+    ok(!!T && T.ok === true && T.state === (open ? 'open' : 'locked') && seen.every((x) => x.done && PAY_FACE[R.S](x.F, x.a, x.b)),
+      `★${R.id} ${R.ja}：3つの組（${PAIRS_JA}）のどれも、比較の給与は ${R.S} の顔 ── ${FACE_JA[R.S]}`,
+      J({ server: T && T.state, seen: seen.map((x) => ({ pair: `${x.a}|${x.b}`, done: x.done, ok: x.done && PAY_FACE[R.S](x.F, x.a, x.b), face: payBrief(x.F) })) }));
+    const cnt = seen.flatMap((x) => [x.a, x.b].map((s) => ({ pair: `${x.a}|${x.b}`, s, cmp: sideN(x.F, s), co: coN(co[s]), srv: srvN[s] })));
+    ok(PAY5.every((s) => !!co[s]) && cnt.every((c) => c.cmp === c.co && c.co === c.srv && c.srv >= 1),
+      `★${R.id} 件数：会社ページ（airlines/…）の「n件の提出」＝ 比較のその会社の件数${open ? '（職位のマスの合計）' : ''} ＝ サーバーがこの読む人に返した行の数（5社・3つの組の両側）`,
+      J({ cnt, co: Object.fromEntries(PAY5.map((s) => [s, co[s] && { for: co[s].for, state: co[s].state, count: co[s].count, msgs: co[s].msgs }])) }));
+    const med = cmp.st.calls.filter((c) => c.name === 'pv_company_pay').map((c) => pairKey(c.p));
+    const rowsN = callsN(cmp.st, 'pv_pay_rows');
+    /* ページの中で2社を選び直すと、途中の組（etihad｜ana・eva-air｜cathay-pacific）も一度は欄に出る ── 中央値は、欄が見せた組ごとに1回だけ */
+    ok(rowsN === 1 && (open ? new Set(med).size === med.length && PAY_PAIRS.every((p) => med.includes(p.slice().sort().join('|'))) : med.length === 0),
+      open ? `★${R.id}：一覧（pv_pay_rows）は1回・中央値（pv_company_pay）は欄が見せた2社の組ごとに1回だけ（同じ組へ2回聞かない・3つの組はどれも聞いた）`
+        : `★${R.id}：一覧（pv_pay_rows）は1回・中央値（pv_company_pay）には1回も聞かない`, J({ rowsN, med }));
+    if (R.id === 'L1') guest = cnt;
+    if (R.id === 'L2b') {
+      ok(!!guest && J(cnt.map((c) => [c.pair, c.s, c.cmp])) === J(guest.map((c) => [c.pair, c.s, c.cmp]))
+        && seen.every((x) => !!x.F && x.F.amt === 0 && x.F.rows === 0 && !MONEY.test(x.F.text)),
+      '★L2b 口コミ資格のみ：比較の件数はゲストと同じ（3つの組の両側）・額も行も1つも出ない（口コミの鍵では給与は開かない）',
+      J({ a: cnt.map((c) => [c.pair, c.s, c.cmp]), guest: guest && guest.map((c) => [c.pair, c.s, c.cmp]) }));
+    }
+    await cmp.close();
+  }
+  /* L8 一覧がわざと読めない（手元のサーバーが次の1本に 503）→ 失敗の顔と入口 →「やり直す」で行（390 で1回 ── 広い幅は上の5人） */
+  await restoreKey(at0, 'pay');
+  const fr = await (await fetch(`${CUR.env.url}/__local/fail?n=1&match=pv_pay_rows`)).json().catch(() => null);
+  const o = await lopen('sp', 'pay', PAIR_URL('jal', 'ana'));
+  const done = await payDone(o.page, 'jal|ana');
+  const F = await payFace(o.page), RB = await payRetry(o.page);
+  ok(!!fr && fr.ok === true && done && !!F && F.state === 'error' && F.text.includes(W_PAY.err) && J(RB.map((x) => x.t)) === J([W_PAY.retry])
+    && F.entry.length === 1 && F.login.length === 0 && F.rows === 0 && CUR.env.local.state.fail.n === 0,
+    `★L8 一覧がわざと読めない（/__local/fail?n=1&match=pv_pay_rows ── 手元のサーバーが 503）：「${W_PAY.err}」「${W_PAY.retry}」と給与の入口・「ログイン」は出さない（390）`,
+    J({ fr, done, face: payBrief(F), text: F && F.text, retry: RB, left: CUR.env.local.state.fail.n }));
+  await o.page.tap(`${PAY_SEL} .crl-retry`);
+  const back = await until(o.page, (SEL) => { const b = document.querySelector(SEL); return !!b && b.getAttribute('data-state') === 'open' && b.querySelectorAll('li.crl-row').length > 0; }, PAY_SEL);
+  const F2 = await payFace(o.page);
+  ok(back && PAY_FACE.S5(F2) && callsN(o.st, 'pv_pay_rows') === 2 && sideN(F2, 'jal') === 2 && sideN(F2, 'ana') === 1,
+    `★L8 「${W_PAY.retry}」を押すと一覧をもう一度だけ読み（2本目）、給与の鍵の人の行が出る（JAL 2件・ANA 1件）`,
+    J({ back, n: callsN(o.st, 'pv_pay_rows'), face: payBrief(F2) }));
+});
+
+/* ── L5〜L7 ───────────────────────────────────────────────────── */
+localScene('pay-change', '比較の給与：提出の追加・同じ月の出し直し・運営が一覧から下ろす のあと、会社ページと比較の件数と行が一緒に動き、中央値はサーバーの額（給与の鍵の pay が読む・手元の SQL）', seedMed, async ({ sub }) => {
+  const co = await lopen('pc', 'pay', '/airlines/jal.html');
+  const cmp = await lopen('pc', 'pay', PAIR_URL('jal', 'ana'), PAY_WATCH);
+  const coRead = async () => ({ done: await coPayDone(co.page, 'jal'), C: await coPay(co.page) });
+  const cmpRead = async () => {
+    const done = (await payDone(cmp.page, 'jal|ana')) && (await medAllRead(cmp.page));
+    return { done, F: await payFace(cmp.page), M: await medCells(cmp.page) };
+  };
+  /* 2つの画面を、pay としてサーバーに聞き直した答え（一覧・中央値）と突き合わせる。会社ページは上から3行（data-top）・比較は JAL の機長のマスの全部の行 */
+  const judge = async (c, f) => {
+    const T = await rowsAs('pay'), MED = await medAs('pay', 'jal', 'ana');
+    const jal = ((T && T.rows) || []).filter((r) => r.airline === 'jal'), ana = ((T && T.rows) || []).filter((r) => r.airline === 'ana');
+    const want = await medWant(cmp.page, MED, 'jal', 'ana');
+    const jt = await moneyIn(cmp.page, jal.map((r) => r.annual_usd));
+    const capJ = (f.F ? f.F.cells.find((x) => x.co === 'jal' && x.pos === 'cap') : null) || { lis: [] };
+    const cmpAmt = capJ.lis.map((r) => r.amt), coAmt = c.C ? c.C.amts : [];
+    const n = { co: coN(c.C), cmp: sideN(f.F, 'jal'), srv: jal.length, ana: sideN(f.F, 'ana'), anaSrv: ana.length };
+    return { jal, want, jt, cmpAmt, coAmt, n,
+      same: c.done && f.done && n.co === n.cmp && n.cmp === n.srv && n.ana === n.anaSrv && jal.every((r) => r.pos === 'cap')
+        && J(cmpAmt) === J(jt) && J(coAmt) === J(jt.slice(0, 3)),
+      med: !!f.M && J(f.M.lines) === J(want.lines) && f.M.def === want.def && !/\d+\s*人/.test(f.M.rowsText),
+      shown: { lines: f.M && f.M.lines, def: f.M && f.M.def } };
+  };
+  const show = (x) => J({ n: x.n, coAmt: x.coAmt, cmpAmt: x.cmpAmt, server: x.jt, med: x.shown, want: x.want });
+  /* 変える前 */
+  const c0 = await coRead();
+  const f0 = await cmpRead();
+  const x0 = await judge(c0, f0);
+  ok(x0.same && x0.med && x0.n.srv === 3 && x0.n.anaSrv === 3 && new Set(x0.jt).size === 3 && x0.want.lines.length === 1 && x0.want.lines[0].c.every((c) => !!c.amt),
+    '（前提）変える前：JAL の機長 3件（pay・a・b）・ANA の機長 3件（c・a・b）── 2つの画面が同じ件数と行・中央値は2社とも額（サーバーの答えのまま）', show(x0));
+  /* L5 追加 */
+  const p5 = await payAs('pilot', 'jal', { base: 21000 });                       // L5：もう1人（pilot）が JAL の機長として出す
+  await reload(co);
+  const c5 = await coRead();
+  await reload(cmp);
+  const f5 = await cmpRead();
+  const x5 = await judge(c5, f5);
+  const [t5] = await moneyIn(cmp.page, [p5.usd]);
+  ok(x5.same && x5.n.srv === 4 && !!x5.jal[0] && x5.jal[0].annual_usd === p5.usd && x5.coAmt[0] === t5 && x5.cmpAmt[0] === t5,
+    '★L5 追加（pilot が JAL の機長として1件・via）→ 読み直すと2つの画面とも JAL「4件の提出」・新しい行がいちばん上（その額）・行の額はサーバーの答えのまま', show(x5));
+  ok(x5.med, '★L5 中央値：JAL の機長の額は、pay としてサーバーに聞き直した額（4人）と同じ字・ANA はそのまま・定義の1行もサーバーの期間と下限', show(x5));
+  /* L6 同じ月の出し直し */
+  const p6 = await payAs('pay', 'jal', { base: 25000 });                         // L6：pay が同じ月をもう一度（総支給を変えて）
+  await reload(co);
+  const c6 = await coRead();
+  await reload(cmp);
+  const f6 = await cmpRead();
+  const x6 = await judge(c6, f6);
+  const [old6, new6] = await moneyIn(cmp.page, [sub.pay.usd, p6.usd]);
+  ok(p6.isNew === false && old6 !== new6 && x6.same && x6.n.srv === 4 && !x6.coAmt.includes(old6) && !x6.cmpAmt.includes(old6)
+    && x6.coAmt.includes(new6) && x6.cmpAmt.includes(new6),
+    `★L6 同じ月の出し直し（pay・via）→ 件数はそのまま（4件）・pay の行の額が2つの画面とも新しい額に替わる（前の額 ${old6} は JAL のどこにも無い）`, show(x6));
+  ok(x6.med && J(x6.want.lines) !== J(x5.want.lines), '★L6 中央値：出し直しで動いたサーバーの新しい額と同じ字', J({ before: x5.shown, after: x6.shown, want: x6.want }));
+  /* L7 運営が一覧から下ろす（会員の画面は無い ── q() で pay_hidden に1行。入れ方は db/pay-rows.sql 1-e1 の「id から proof_hash を引いて入れる」） */
+  const hide = (id) => CUR.env.q("insert into public.pay_hidden (proof_hash, reason) select proof_hash, '手元の検査：運営が一覧から下ろした' from public.pay_reports where id = $1 on conflict (proof_hash) do nothing", [id]);
+  await hide(p5.id);
+  await reload(co);
+  const c7 = await coRead();
+  await reload(cmp);
+  const f7 = await cmpRead();
+  const x7 = await judge(c7, f7);
+  ok(x7.same && x7.n.srv === 3 && !x7.coAmt.includes(t5) && !x7.cmpAmt.includes(t5),
+    '★L7 運営が pilot の JAL の行を下ろす（q()）→ 2つの画面とも JAL「3件の提出」・その行の額はどこにも無い', show(x7));
+  ok(x7.med && x7.want.lines.length === 1 && !!x7.want.lines[0].c[0].amt, '★L7 中央値：3人に減っても、JAL の機長の額はサーバーの答えのまま（下ろした人は入らない）', show(x7));
+  await hide(sub.b.id);
+  await reload(co);
+  const c8 = await coRead();
+  await reload(cmp);
+  const f8 = await cmpRead();
+  const x8 = await judge(c8, f8);
+  const L8c = (f8.M && f8.M.lines) || [];
+  ok(x8.same && x8.n.srv === 2 && x8.med && L8c.length === 1 && L8c[0].k === 'cap' && L8c[0].c[0].none === W_PAY.none && L8c[0].c[0].amt === null && !!L8c[0].c[1].amt,
+    `★L7 もう1人（b の JAL の行）を下ろして JAL の機長が2人（下限 − 1）：中央値のマスは「${W_PAY.none}」・ANA の機長は額のまま・件数は2つの画面とも「2件の提出」`, show(x8));
+  console.log('  ・出し直しと追加は会員の口（via）から、下ろすのは運営の作業（会員の画面が無い）なので手元のデータベースへ直接入れた');
+});
+
+/* ── L9 ───────────────────────────────────────────────────── */
+localScene('pay-two', '比較の給与：2つのアカウント ── A（給与の鍵・行と中央値）がページのクライアントでログアウト → ゲストの顔・前の人の行も額も中央値も残らない → B（会員）→ S2／別のタブのログアウトでも同じ（手元の SQL）', seedMed, async () => {
+  /* その人の字（行の額・機種・年数の段・中央値の額）が、欄・ページ・保存領域のどこかに残っていないか */
+  const textsOf = (F, M) => [...new Set([...F.cells.flatMap((c) => c.lis.flatMap((r) => [r.amt, r.fleet, r.chip])),
+    ...M.lines.flatMap((l) => l.c.map((c) => c.amt))].filter(Boolean))];
+  const leakOf = (page, texts) => page.evaluate(([SEL, texts]) => {
+    const b = document.querySelector(SEL), slotText = b ? b.textContent : '';
+    const store = [];
+    for (const S of [localStorage, sessionStorage]) for (let i = 0; i < S.length; i++) { const k = S.key(i); store.push(`${k}=${S.getItem(k)}`); }
+    const all = store.join('\n');
+    return { slotHit: texts.filter((t) => slotText.includes(t)), rowsInSlot: b ? b.querySelectorAll('li.crl-row').length : -1,
+      medMarks: document.querySelectorAll('[data-agg], [data-med], [data-def="median"], h3.crl-agg-h').length, medWord: slotText.includes('中央値'),
+      storeHit: [...texts, '中央値', 'annual_usd', 'median_usd'].filter((t) => all.includes(t)) };
+  }, [PAY_SEL, texts]);
+  const clean = (L) => !!L && L.slotHit.length === 0 && L.rowsInSlot === 0 && L.medMarks === 0 && !L.medWord && L.storeHit.length === 0;
+  /* 欄がゲストの顔になるまで待つ（data-state が locked・「ログイン」が在る）／会員の顔（locked・「ログイン」が無い・錠の1行） */
+  const asGuest = (page) => page.waitForFunction((SEL) => { const b = document.querySelector(SEL);
+    return !!b && b.getAttribute('data-state') === 'locked' && !!b.querySelector('a[data-crl-login]'); }, { timeout: 15000, polling: 100 }, PAY_SEL).then(() => true, () => false);
+  const asMember = (page) => page.waitForFunction(([SEL, line]) => { const b = document.querySelector(SEL);
+    return !!b && b.getAttribute('data-state') === 'locked' && !b.querySelector('a[data-crl-login]')
+      && [...b.querySelectorAll('p.crl-lock')].some((p) => p.textContent.trim() === line); }, { timeout: 15000, polling: 100 }, [PAY_SEL, W_PAY.lock]).then(() => true, () => false);
+  const openA = async (o) => {
+    const ready = (await payDone(o.page, 'jal|ana')) && (await medAllRead(o.page));
+    const F = await payFace(o.page), M = await medCells(o.page);
+    return { ready, F, M, texts: textsOf(F, M) };
+  };
+  const payCalls = (o, n) => o.st.calls.slice(n).filter((c) => PAY.includes(c.name)).map((c) => `${c.name}:${whoOf(c.auth)}`);
+  /* (1) 同じタブで、ページ自身のクライアントでログアウトする */
+  const o = await lopen('pc', 'pay', PAIR_URL('jal', 'ana'), PAY_WATCH);
+  const A0 = await openA(o);
+  ok(A0.ready && PAY_FACE.S5(A0.F) && A0.M.lines.length >= 1 && !!A0.M.lines[0].c[0].amt && A0.texts.length >= 4,
+    '（前提）A（pay・給与の鍵）の比較 JAL｜ANA：職位ごとの行と、中央値（JAL の機長・3人）が出ている（確かめが空振りしていない）',
+    J({ ready: A0.ready, face: payBrief(A0.F), med: A0.M.lines, texts: A0.texts }));
+  const outErr = await o.page.evaluate(() => window.PVCareer.client().then((sb) => sb.auth.signOut())
+    .then((r) => (r && r.error ? String(r.error.message || r.error) : ''), (e) => String(e)));
+  const g1 = await asGuest(o.page);
+  const G1 = await payFace(o.page), LG1 = await leakOf(o.page, A0.texts);
+  ok(!outErr && g1 && PAY_FACE.S1(G1, 'jal', 'ana') && clean(LG1),
+    `★L9 A がページのクライアント（PVCareer.client の auth.signOut）でログアウト → 欄はゲストの顔（件数・「${W_PAY.lock}」・入口・「ログイン」）・A の行・額・「中央値」は欄にもページにも保存領域にも無い`,
+    J({ outErr, g1, face: payBrief(G1), leak: LG1 }));
+  const t = await H.otherTab(o.ctx, CUR.env.local);
+  const n1 = o.st.calls.length;
+  await H.loginIn(t, CUR.env.local, 'pilot');
+  const b1 = await asMember(o.page);
+  const B1 = await payFace(o.page), LB1 = await leakOf(o.page, A0.texts), cB1 = payCalls(o, n1);
+  ok(b1 && PAY_FACE.S2(B1) && clean(LB1) && cB1.length >= 1 && cB1.every((x) => x === 'pv_pay_rows:pilot'),
+    `★L9 続けて B（pilot・給与を出していない会員）が入る → 読み込み直さずに S2（「${W_PAY.lock}」・入口・「ログイン」は無い）・一覧は B のログインで聞き直し、中央値は聞かない・A の字は残らない`,
+    J({ b1, face: payBrief(B1), leak: LB1, calls: cB1 }));
+  const n2 = o.st.calls.length;
+  await H.loginIn(t, CUR.env.local, 'pay');
+  const a2 = await until(o.page, (SEL) => { const b = document.querySelector(SEL), ag = b && b.querySelector('.crl-agg');
+    return !!b && b.getAttribute('data-state') === 'open' && !!ag && !ag.hidden && !!ag.querySelector('b.crl-amt[data-agg]'); }, PAY_SEL);
+  const cA2 = payCalls(o, n2), medA2 = cA2.filter((x) => x.startsWith('pv_company_pay:'));
+  ok(a2 && medA2.length >= 1 && medA2.every((x) => x === 'pv_company_pay:pay'),
+    '★L9 そのあと A がもう一度入る → 中央値は A のログインでサーバーにもう一度聞いてから出る（前の答えを持ち越さない）', J({ a2, calls: cA2 }));
+  await t.close();
+  await o.close();
+  /* (2) 同じブラウザの2枚目のタブでログアウトする（比較のタブは読み込み直さない） */
+  const o2 = await lopen('pc', 'pay', PAIR_URL('jal', 'ana'), PAY_WATCH);
+  const A2 = await openA(o2);
+  await o2.page.evaluate(() => { window.__crlNoReload = 1; });
+  const t2 = await H.otherTab(o2.ctx, CUR.env.local);
+  await H.logoutIn(t2);
+  const g2 = await asGuest(o2.page);
+  const G2 = await payFace(o2.page), LG2 = await leakOf(o2.page, A2.texts);
+  const still = await o2.page.evaluate(() => window.__crlNoReload === 1);
+  ok(A2.ready && PAY_FACE.S5(A2.F) && A2.M.lines.length >= 1 && g2 && still && PAY_FACE.S1(G2, 'jal', 'ana') && clean(LG2),
+    '★L9 2枚目のタブでログアウト → 比較のタブは読み込み直さずにゲストの顔・A の行・額・「中央値」は欄にもページにも保存領域にも無い',
+    J({ ready: A2.ready, g2, still, face: payBrief(G2), leak: LG2 }));
+  const n3 = o2.st.calls.length;
+  await H.loginIn(t2, CUR.env.local, 'pilot');
+  const b2 = await asMember(o2.page);
+  const B2 = await payFace(o2.page), LB2 = await leakOf(o2.page, A2.texts), cB2 = payCalls(o2, n3);
+  ok(b2 && PAY_FACE.S2(B2) && clean(LB2) && cB2.length >= 1 && cB2.every((x) => x === 'pv_pay_rows:pilot'),
+    '★L9 続けて2枚目のタブで B（pilot）が入る → S2・一覧は B のログインで聞き直す・A の字は残らない', J({ b2, face: payBrief(B2), leak: LB2, calls: cB2 }));
+  await t2.close();
 });
 
 /* ══ 走らせる ═══════════════════════════════════════════════════ */
