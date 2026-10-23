@@ -24,6 +24,13 @@
        離れているあいだにほかのタブで別の会員が入っていたら、前の人の本文の字をどの瞬間にも出さずに今の人の形へ（場面 local-back ── L7。
        本当に手元から戻ったかを毎回確かめ、5回とも戻らなければ赤。別の会員の回は画面の出入りの知らせ visibilitychange を黙らせて、
        pageshow の中の読む人の確かめだけで止まることを見る ── 理由は場面の中の注記）。
+     ・[REAL LOCAL] 手元の SQL が答える比較と会社ページ（どの場面も自分の使い捨ての保存先・会員の投稿は via・修正と削除は q() で直接）：
+       評価と件数が、比較で選べる主要5社で会社ページと同じ（古い会社コードの口コミも数える・場面 local-eq ── L1）／投稿の追加・修正・削除の
+       あと2つの画面が一緒に動く（local-post ── L2）／要約の門を返事の字で：ゲストは login・鍵の無い会員と給与の鍵だけ（期限切れも）は locked、
+       口コミの鍵の人には会社ページと同じ文・口コミの鍵では月の働き方と待遇は開かない（local-sum ── L3）／別のタブで読む人が替わる
+       （local-two ── L4）／要約は口コミの変化に付いてくる：追加では前の要約のまま・修正で消える・預け直しで新しい点・少なくなれば「少ない」
+       （local-change ── L5）／会社ごとの答え：自分の会社は開き、ほかの会社は「5つ答えると開きます」、期限切れで全部閉じる（local-mix ── L6）／
+       2つの鍵は自分の欄だけを閉じる（local-both ── L8）。給与の鍵の期限切れは場面が作り、終わりに種をまいた直後の値へ戻す。
      ・口コミの鍵のある人は、会社のマスの中でほかの人の投稿を本文のまま新しい順にスクロールして読める（5件ずつ・キーボードで）。
        ゲスト・給与の鍵だけの会員には本文が1字も出ない（返事に植えた本文の列も読まない）・読む人が替わったら消える（場面 revkey）。
      ・[B] 欄の「やり直す」のあと、待つあいだに読み手が動いた先からフォーカスを引き戻さない（場面 refocus）。
@@ -43,7 +50,8 @@
 
    実行: node assert-career-live.mjs [--scenes a,b] [--shots <folder>] [--via form|call] [--sql <file>]
      --scenes  場面を選ぶ（static・net・unknown・leak・zero … sumopen・sumlogin・sumkey・sumtwo・sumoff・sumquiet・sumfail・revkey・refocus …
-               pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall … local-back）。
+               pay-lock・pay-open・pay-med・pay-move・pay-fit・pay-fail・pay-stall … local-back・local-eq・local-post・local-sum・
+               local-two・local-change・local-mix・local-both）。
                付けなければ全部（static → MOCK → REAL LOCAL の順）。⚠️ pay-stall は上限まで本当に待つ（15秒あまり）
      --shots   場面の確かめのあと、口コミ・月の働き方・待遇の箱を、その場面の大きさで撮って置く（置き場は打った場所。ファイルに書かない）。
                場面 pay-fit・pay-fail は「提出された年収」の箱を撮る（ディルハム・読めない・準備中・中央値の失敗と準備中）
@@ -1987,6 +1995,487 @@ scene('local-back', '「戻る」で手元から戻った比較：投稿で変�
     await bb.close().catch(() => {});
     await front.close();
   }
+});
+
+/* ══ REAL LOCAL：比較と会社ページが同じ数・投稿の追加／修正／削除のあとも一緒に動く・5人の読む人・2つの鍵（L1〜L6・L8・2026-10-23）══════
+   どの場面も自分の使い捨ての保存先（startLocal）で、手元の SQL がそのまま答える（返事を検査は作らない）。
+   会員の投稿は via（いまは call ── 投稿の画面が手元で最後まで送れるかの試し P5.5 がまだ無い）。会員の画面の無い修正・削除と、
+   どの画面でも作れない行（古い会社コードの口コミ）は q() で保存先へ直接書く。要約の文は検査の決めた字（GATES …・NEW …）で、
+   運営（op）が預ける口（pv_review_summary_set）から入れる ── AI の作り直しはここでは走らない（MOCK／未確認）。
+   返事の字は、ページが受け取ったまま書き留めて比べる（[REAL LOCAL SQL] の行）。画面は [REAL LOCAL CONNECTION] の行。
+   給与の鍵の期限切れは場面が q() で作り、終わりに種をまいた直後の値へ戻す（keysBack）。 */
+const L_ID = Object.fromEntries(LOCAL_MEMBERS.map((m) => [m.key, m.id]));
+const L_SCORES = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
+const q1 = async (sql, p) => (await CUR.env.q(sql, p)).rows[0];
+/* 返事の字だけを見る行（[REAL LOCAL SQL]） */
+const okSql = (cond, label, detail) => { const m = CUR.mode; CUR.mode = 'sql'; try { ok(cond, label, detail); } finally { CUR.mode = m; } };
+/* 返事の字が、その形ちょうどか（鍵・値・並びが同じで、ほかに何も無い。手元の SQL は jsonb の字 {"ok": true, …} で返す） */
+const exact = (text, want) => { try { return JSON.stringify(JSON.parse(text)) === want; } catch { return false; } };
+
+/* 口コミを1件、その会員として（makeReaders の via call と同じ口・同じ列：POST /rest/v1/reviews_v2・proof_hash はサーバーの式を q() で）。
+   scores ＝ 6つ（null の分類は付けない）か null（点数なし）。ひとことは給与とワークライフバランス（readerText ── 印は抜粋の40字より後ろ）。 */
+async function postAs(key, airline, scores) {
+  if (VIA !== 'call') throw new Error("via 'form' はまだ無い（手元で投稿の画面が送れるかの試し P5.5 がまだ無い）。--via call で走らせる");
+  const env = CUR.env;
+  const h = (await q1('select public.pv_review_hash($1::uuid, $2) as h', [L_ID[key], airline])).h;
+  const row = { proof_hash: h, airline, orig_lang: 'ja',
+    salary_comment: H.readerText(key, airline, 'salary'), wlb_comment: H.readerText(key, airline, 'wlb') };
+  (scores || []).forEach((v, i) => { if (v != null) row[L_SCORES[i]] = v; });
+  const s = await H.seedOf(env.url, key);
+  const r = await fetch(`${env.url}/rest/v1/reviews_v2`, { method: 'POST', body: JSON.stringify(row),
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${s.session.access_token}`, prefer: 'return=minimal' } });
+  const got = await q1('select id::text as id from public.reviews_v2 where proof_hash = $1 and airline = $2', [h, airline]);
+  if (r.status !== 201 || !got) throw new Error(`${key} の口コミ（${airline}）が保存されない: ${r.status} ${(await r.text()).slice(0, 200)}`);
+  console.log(`  ・${key}: 口コミ ${airline}（点数 ${scores ? scores.map((v) => (v == null ? '-' : v)).join(',') : 'なし'}）── その会員として POST /rest/v1/reviews_v2 → ${r.status}（via ${VIA}）`);
+  return got.id;
+}
+const rowOf = async (key, airline) => (await q1('select id::text as id from public.reviews_v2 where proof_hash = public.pv_review_hash($1::uuid, $2)', [L_ID[key], airline])).id;
+
+/* seedEq（L1・L2 ── 数だけを読む場面。鍵の状態はどこも読まない。MOCK の FIX.JAL・FIX.ANA と同じ点数）：
+   jal ← a [5,4,3,4,5,3]・b [3,3,3,3,3,3]・c 点数なし（ひとことだけ）／ana ← pilot [4,-,4,5,4,4]／
+   cathay-pacific ← a [5,5,5,5,5,5] と、古い会社コード 'cathay' の1行 [3,3,3,3,3,3]（どの画面でも作れない行 ＝ q() で直接。
+   proof_hash はどの会員のものでもない字の sha256）／etihad・eva-air ← 投稿なし */
+async function seedEq() {
+  const ids = {};
+  ids.a = await postAs('a', 'jal', [5, 4, 3, 4, 5, 3]);
+  ids.b = await postAs('b', 'jal', [3, 3, 3, 3, 3, 3]);
+  ids.c = await postAs('c', 'jal', null);
+  await postAs('pilot', 'ana', [4, null, 4, 5, 4, 4]);
+  await postAs('a', 'cathay-pacific', [5, 5, 5, 5, 5, 5]);
+  await CUR.env.q(`insert into public.reviews_v2 (proof_hash, airline, culture_score, salary_score, benefits_score, wlb_score, ops_score, training_score)
+    values (encode(extensions.digest('手元の検査の古い会社コードの行（どの会員のものでもない）', 'sha256'), 'hex'), 'cathay', 3, 3, 3, 3, 3, 3)`);
+  console.log('  ・古い会社コードの行：cathay [3,3,3,3,3,3] ── q() で保存先へ直接（どの画面でも作れない行）');
+  await afterSeed();
+  return ids;
+}
+
+/* 要約の文（検査の字。数字を入れない ── 数字の入った文はサーバーが預からない） */
+const GATES = { good: ['GATES 良い点その一 教官の指導が丁寧という声', 'GATES 良い点その二 休みの希望が通りやすいという声', 'GATES 良い点その三 運航の段取りが整っているという声'],
+  concern: ['GATES 気になる点その一 手当の仕組みが分かりにくいという声'] };
+const NEWSUM = { good: ['NEW 良い点その一 乗務の組み方が分かりやすいという声', 'NEW 良い点その二 有給を取りやすいという声', 'NEW 良い点その三 同僚に相談しやすいという声'],
+  concern: ['NEW 気になる点その一 寮の決まりが細かいという声'] };
+const SUM_TXT = (S) => [...S.good, ...S.concern];
+/* 運営（op）が JAL の要約を預ける（db/test-review-summary.mjs の有効な形：良い点3つ・気になる点1つ）。どの点も、JAL のいま読める口コミ
+   全部の id で支える（読める口コミの数え方はサーバーの pv_review_summary_ids）。分類は、どの口コミにも本文の在る 給与・ワークライフバランス。
+   件数とその時刻はサーバーの字のまま渡す（JavaScript の時刻に直すと、千分の一秒より細かい所が落ちて「古い材料」で断られる） */
+async function storeSum(S) {
+  const ids = (await CUR.env.q("select x.id from public.pv_review_summary_ids(array['jal']::text[], null::timestamptz) as x(id) order by 1")).rows.map((r) => r.id);
+  const newest = (await q1("select max(created_at)::text as t from public.reviews_v2 where id::text = any(string_to_array($1, ','))", [ids.join(',')])).t;
+  const pt = (text, cat) => ({ text, cat, k: ids.length, ids });
+  const p = { airline: 'jal', lang: 'ja', n: ids.length, newest,
+    good: S.good.map((t, i) => pt(t, i % 2 ? 'wlb' : 'salary')), concern: S.concern.map((t) => pt(t, 'wlb')) };
+  const r = await H.rpcAs(CUR.env.url, 'op', 'pv_review_summary_set', p);
+  if (!r.body || r.body.state !== 'saved') throw new Error('運営が要約を預けられない: ' + r.text.slice(0, 200));
+  console.log(`  ・運営（op）が JAL の要約を預けた（rpc pv_review_summary_set → saved・口コミ ${ids.length} 件で支える・良い点 ${S.good.length}・気になる点 ${S.concern.length}・文は検査の字「${S.good[0].split(' ')[0]} …」）`);
+}
+
+/* seedGates（L3〜L6・L8）＝ makeReaders（6人の表）＋ 運営が JAL の要約を預ける ＋ a・b・pilot が JAL の勤務・訓練の最初の質問に同じ答え
+   （JAL に集計の行が1つできる）。どれも読む人の鍵を変えない（答えても鍵は増えない）。pay と c は何も答えない。 */
+async function seedGates() {
+  const made = await H.makeReaders(CUR.env, { via: VIA });
+  made.did.forEach((l) => console.log('  ・' + l));
+  await storeSum(GATES);
+  const Q = QOF(WK);
+  if (!Q || Q.kind !== 'choice') throw new Error(`勤務・訓練の最初の質問（${WK}）が選ぶ質問ではない ── 種を作り直す`);
+  const fleet = (await q1('select code from public.pv_fleets where active order by code limit 1')).code;
+  for (const key of ['a', 'b', 'pilot']) {
+    const r = await H.rpcAs(CUR.env.url, key, 'submit_airline_conditions',
+      { airline: 'jal', year: 2026, month: 9, position: 'cap', fleet, lang: 'ja', answers: [{ question_id: WK, code: Q.choices[0].code }] });
+    if (!r.body || r.body.saved !== 1) throw new Error(`${key} の答えが保存されない: ${r.text.slice(0, 200)}`);
+  }
+  console.log(`  ・a・b・pilot：JAL の「${labelOf(WK)}」に同じ答え「${ansOf(WK)}」── その会員として rpc submit_airline_conditions（via ${VIA}）`);
+  await afterSeed();
+  return made;
+}
+
+/* 鍵の期限（profiles.access_until）。場面が期限切れを作ったら、終わりに種をまいた直後の値へ戻し、6人とも戻ったことを確かめる。
+   ★設計の字は「null に戻す」。けれど種（makeReaders）のあとの c と pay は、給与の提出で開いた期限を持っている（null ＝ 給与の鍵が無い ──
+     db/work-months.sql の pv_work_level）。null にすると「鍵を戻した」が「鍵を消した」になるので、種をまいた直後の値へ戻す
+     （a・b・pilot・op は null のまま）。 */
+const keysNow = async () => Object.fromEntries((await CUR.env.q("select id::text as id, access_until::text as t from public.profiles where id::text = any(string_to_array($1, ','))",
+  [Object.values(L_ID).join(',')])).rows.map((r) => [r.id, r.t]));
+const expire = (key) => CUR.env.q("update public.profiles set access_until = now() - interval '1 day' where id = $1", [L_ID[key]]);
+const restoreKey = (at0, key) => CUR.env.q('update public.profiles set access_until = $2::timestamptz where id = $1', [L_ID[key], at0[L_ID[key]]]);
+async function keysBack(at0) {
+  let now = null, err = null;
+  try {
+    for (const key of Object.keys(L_ID)) await restoreKey(at0, key);
+    now = await keysNow();
+  } catch (e) { err = String(e && e.message); }
+  const diff = now ? Object.entries(L_ID).filter(([, id]) => now[id] !== at0[id]).map(([k]) => k) : ['（読めない）'];
+  ok(!err && diff.length === 0, '鍵の期限（profiles.access_until）は場面の終わりに、6人とも種をまいた直後の値へ戻った（期限切れは場面の中だけ）',
+    J({ err, diff, keys: Object.fromEntries(Object.entries(L_ID).map(([k, id]) => [k, at0[id] ? '期限あり' : null])) }));
+}
+/* REAL LOCAL の場面の型：種（seedEq か seedGates）→（--sql の写し）→ 場面 → 終わりに鍵の期限を戻して確かめる */
+const localScene = (key, label, seed, fn) => scene(key, label, 'local', async () => {
+  const made = await (seed === 'eq' ? seedEq() : seedGates());
+  const at0 = await keysNow();
+  try { await fn(made, at0); } finally { await keysBack(at0); }
+});
+
+/* 1枚開く（手元の SQL が答える）。開く前から、ページが受け取った手元の関数の返事を、字のまま全部書き留める（got）。
+   who ＝ serve-local.mjs の会員（null ＝ ログインしていない）。 */
+async function lopen(size, who, url) {
+  const o = await open(size, { who, url: '/pv-vocab.json' });
+  const origin = new URL(CUR.env.url).origin, got = [];
+  o.page.on('response', (r) => {
+    let u;
+    try { u = new URL(r.url()); } catch { return; }
+    const m = u.origin === origin && u.pathname.match(/^\/rest\/v1\/rpc\/([a-z0-9_]+)$/);
+    if (!m) return;
+    let p = null;
+    try { const b = JSON.parse(r.request().postData() || 'null'); p = b && typeof b === 'object' && 'p' in b ? b.p : b; } catch { p = null; }
+    const e = { fn: m[1], air: p && (p.airline || (Array.isArray(p.airlines) ? p.airlines[0] : null)), status: r.status(), text: null };
+    got.push(e);
+    r.text().then((t) => { e.text = t; }, () => { e.text = '（読めない）'; });
+  });
+  await o.page.goto(CUR.env.url + url, { waitUntil: 'domcontentloaded' });
+  return { ...o, got };
+}
+/* 読み直す（書き留めた返事は空にしてから）。 */
+const reload = async (o) => { o.got.length = 0; await o.page.reload({ waitUntil: 'domcontentloaded' }); };
+/* その関数がその会社について受け取った、いちばん新しい返事の字（届くまで待つ。来なければ null） */
+const reply = async (o, fn, air) => {
+  const pick = () => o.got.filter((e) => e.fn === fn && e.air === air && e.text != null).pop();
+  await waitFor(() => !!pick(), 15000);
+  const e = pick();
+  return e ? e.text : null;
+};
+/* 会社ページの評価と要約：社名の横の星（点数・星の塗り・「n件の評価」）・評価スコアの箱の6つの点・「会員の投稿 n 件」・要約の欄。 */
+const coFace = (page) => page.evaluate(() => {
+  const q = (s) => document.querySelector(s), tx = (e) => (e ? e.textContent.trim() : null);
+  const hero = q('.pvg-hero .crl[data-live="stars"]'), sc = q('#pvg-score .crl[data-live="score"]'), sum = q('#pvg-score .crl[data-live="summary"]');
+  const st = hero && hero.querySelector('.crl-stars:not([data-none])');
+  const store = [];
+  for (const S of [localStorage, sessionStorage]) for (let i = 0; i < S.length; i++) { const k = S.key(i); store.push(`${k}=${S.getItem(k)}`); }
+  return {
+    avg: tx(hero && hero.querySelector('.crl-avg')), cnt: tx(hero && hero.querySelector('.crl-cnt')), fill: st ? st.style.getPropertyValue('--crl-fill') : null,
+    posts: [...document.querySelectorAll('[data-pvg-n="posts"]')].map((e) => e.textContent.trim()),
+    vals: sc ? [...sc.querySelectorAll('.crl-radar-l b')].map((b) => b.textContent) : [],
+    sum: !sum ? null : { state: sum.getAttribute('data-state'), why: [...sum.querySelectorAll('[data-why]')].map((x) => x.getAttribute('data-why')),
+      text: sum.innerText.trim(),
+      good: [...sum.querySelectorAll('.crl-sum-col[data-kind="good"] .crl-sum-t')].map((x) => x.textContent),
+      concern: [...sum.querySelectorAll('.crl-sum-col[data-kind="concern"] .crl-sum-t')].map((x) => x.textContent),
+      foot: [...sum.querySelectorAll('.crl-sum-by > span')].map((x) => x.textContent) },
+    view: document.body.innerText, store: store.join('\n'),
+  };
+});
+/* 会社ページの4つ（星・評価スコア・要約・「会員の投稿」の数）が、その会社について読み終わった */
+const coDone = (page, slug) => page.waitForFunction((slug) => {
+  const fin = (sel) => { const b = document.querySelector(sel); return !!b && b.getAttribute('data-for') === slug && !['idle', 'loading'].includes(b.getAttribute('data-state')); };
+  const n = document.querySelector('[data-pvg-n="posts"]');
+  return fin('.pvg-hero .crl[data-live="stars"]') && fin('#pvg-score .crl[data-live="score"]') && fin('#pvg-score .crl[data-live="summary"]')
+    && !!n && n.textContent.trim() !== '—';
+}, { timeout: 20000, polling: 100 }, slug).then(() => true, () => false);
+/* 比較の評価のマス（列の順）と6角形の6つの点（点数で塗れない会社は []） */
+const cmpRate = async (page) => {
+  const C = await cells(page), F = await figs(page);
+  return C.cells.map((c, i) => ({ avg: c.avg, fill: c.fill, cnt: c.cnt, posts: c.posts, none: c.none,
+    vals: ((F.cells[i] || {}).vals || []).filter((v) => v !== null) }));
+};
+const cmpDone = (page, want) => page.waitForFunction((want) => {
+  const b = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"]');
+  return !!b && b.getAttribute('data-for') === want && !['idle', 'loading'].includes(b.getAttribute('data-state'));
+}, { timeout: 20000, polling: 100 }, want).then(() => true, () => false);
+/* 比較のマスと会社ページが、同じ点数・星の塗り・「n件の評価」・投稿の数・6つの点を出している */
+const sameRate = (m, c) => !!m && !!c && m.avg === c.avg && m.fill === c.fill && m.cnt === c.cnt
+  && m.posts === `会員の投稿 ${c.posts[0]}件` && c.posts.length === 1 && J(m.vals) === J(c.vals);
+
+/* ── L1 ───────────────────────────────────────────────────── */
+localScene('local-eq', '比較で選べる主要5社：評価と件数が、比較と会社ページで同じ（ゲスト・手元の SQL）', 'eq', async () => {
+  const LIT = {
+    jal: { avg: '3.5', fill: '70%', cnt: '2件の評価', posts: '会員の投稿 3件', vals: ['4.0', '3.5', '3.0', '3.5', '4.0', '3.0'] },
+    ana: { avg: '4.2', fill: '84%', cnt: '1件の評価', posts: '会員の投稿 1件', vals: [] },
+    'cathay-pacific': { avg: '4.0', fill: '80%', cnt: '2件の評価', posts: '会員の投稿 2件', vals: ['4.0', '4.0', '4.0', '4.0', '4.0', '4.0'] },
+  };
+  const isLit = (m, s) => !!m && m.avg === LIT[s].avg && m.fill === LIT[s].fill && m.cnt === LIT[s].cnt && m.posts === LIT[s].posts && J(m.vals) === J(LIT[s].vals);
+  const co = {};
+  for (const s of ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air']) {
+    const o = await lopen('pc', null, `/airlines/${s}.html`);
+    ok(await coDone(o.page, s), `（前提）会社ページ airlines/${s}.html の評価・評価スコア・要約・「会員の投稿」の数が読み終わった`);
+    co[s] = await coFace(o.page);
+    await o.close();                                    // 読み終わったページは閉じる（この Mac は 8GB）
+  }
+  const cmp = await lopen('pc', null, PAIR_URL('jal', 'ana'));
+  ok(await cmpDone(cmp.page, 'jal|ana'), '（前提）比較 JAL｜ANA の評価の欄が読み終わった');
+  const [J1, A1] = await cmpRate(cmp.page);
+  ok(isLit(J1, 'jal') && sameRate(J1, co.jal),
+    '★L1 主要5社 JAL：比較と会社ページが同じ ── 3.5・星 70%・「2件の評価」・会員の投稿 3件・6つの点 4.0/3.5/3.0/3.5/4.0/3.0',
+    J({ cmp: J1, co: co.jal && { avg: co.jal.avg, fill: co.jal.fill, cnt: co.jal.cnt, posts: co.jal.posts, vals: co.jal.vals } }));
+  ok(isLit(A1, 'ana') && sameRate(A1, co.ana),
+    '★L1 主要5社 ANA：比較と会社ページが同じ ── 4.2・星 84%・「1件の評価」・会員の投稿 1件・6つの点は無い（点の無い分類がある）',
+    J({ cmp: A1, co: co.ana && { avg: co.ana.avg, fill: co.ana.fill, cnt: co.ana.cnt, posts: co.ana.posts, vals: co.ana.vals } }));
+  /* ページの中で2社を選び直す：エティハド｜キャセイパシフィック、続けてエバー｜キャセイパシフィック */
+  await cmp.page.select('#cr-a', 'etihad');
+  await cmp.page.select('#cr-b', 'cathay-pacific');
+  ok(await cmpDone(cmp.page, 'etihad|cathay-pacific'), '（前提）ページの中で選び直した エティハド｜キャセイパシフィック の評価の欄が読み終わった');
+  const [E1, C1] = await cmpRate(cmp.page);
+  ok(!!E1 && E1.none === '会員からの投稿はまだありません' && E1.avg === null && co.etihad.avg === null && J(co.etihad.posts) === '["0"]',
+    '★L1 主要5社 エティハド：比較は「会員からの投稿はまだありません」・点数なし（会社ページも点数なし・会員の投稿 0 件）',
+    J({ cmp: E1, co: co.etihad && { avg: co.etihad.avg, posts: co.etihad.posts } }));
+  ok(isLit(C1, 'cathay-pacific') && sameRate(C1, co['cathay-pacific']),
+    '★L1 主要5社 キャセイパシフィック（古い会社コード cathay の1件を含む）：比較と会社ページが同じ ── 4.0・星 80%・「2件の評価」・会員の投稿 2件・6つの点 4.0',
+    J({ cmp: C1, co: co['cathay-pacific'] && { avg: co['cathay-pacific'].avg, fill: co['cathay-pacific'].fill, cnt: co['cathay-pacific'].cnt,
+      posts: co['cathay-pacific'].posts, vals: co['cathay-pacific'].vals } }));
+  await cmp.page.select('#cr-a', 'eva-air');
+  ok(await cmpDone(cmp.page, 'eva-air|cathay-pacific'), '（前提）ページの中で選び直した エバー｜キャセイパシフィック の評価の欄が読み終わった');
+  const [V1] = await cmpRate(cmp.page);
+  ok(!!V1 && V1.none === '会員からの投稿はまだありません' && V1.avg === null && co['eva-air'].avg === null && J(co['eva-air'].posts) === '["0"]',
+    '★L1 主要5社 エバー：比較は「会員からの投稿はまだありません」・点数なし（会社ページも点数なし・会員の投稿 0 件）',
+    J({ cmp: V1, co: co['eva-air'] && { avg: co['eva-air'].avg, posts: co['eva-air'].posts } }));
+  console.log('  ・評価と件数は、比較で選べる主要5社で会社ページと一致を確かめた（新しい形の会社ページは同じ部品・同じ数え方。比較で選べるのは今は主要5社）');
+});
+
+/* ── L2 ───────────────────────────────────────────────────── */
+localScene('local-post', '投稿の追加・修正・削除のあと、比較と会社ページの評価と件数が一緒に動く（ゲスト・手元の SQL）', 'eq', async (ids) => {
+  const co = await lopen('pc', null, '/airlines/jal.html');
+  const cmp = await lopen('pc', null, PAIR_URL('jal', 'ana'));
+  const both = async () => {
+    const a = await coDone(co.page, 'jal'), b = await cmpDone(cmp.page, 'jal|ana');
+    return { ready: a && b, co: await coFace(co.page), cmp: (await cmpRate(cmp.page))[0] };
+  };
+  const show = (x) => J({ cmp: x.cmp, co: { avg: x.co.avg, fill: x.co.fill, cnt: x.co.cnt, posts: x.co.posts, vals: x.co.vals } });
+  const x0 = await both();
+  ok(x0.ready && !!x0.cmp && x0.cmp.cnt === '2件の評価' && sameRate(x0.cmp, x0.co), '（前提）変える前：JAL は「2件の評価」・会員の投稿 3件で、2つの画面が同じ', show(x0));
+  /* 追加：pilot が JAL に [4,4,4,4,4,4]（via） */
+  await postAs('pilot', 'jal', [4, 4, 4, 4, 4, 4]);
+  await reload(co); await reload(cmp);
+  const x1 = await both();
+  ok(x1.ready && !!x1.cmp && x1.cmp.avg === '3.7' && x1.cmp.fill === '73.3%' && x1.cmp.cnt === '3件の評価' && x1.cmp.posts === '会員の投稿 4件' && sameRate(x1.cmp, x1.co),
+    '★L2 追加（pilot が JAL に1件・via）→ 読み直すと2つの画面が同じ：3.7・星 73.3%・「3件の評価」・会員の投稿 4件', show(x1));
+  /* 修正：b の行を全部 5 に（会員の画面が無い ── q() で直接） */
+  await CUR.env.q(`update public.reviews_v2 set ${L_SCORES.map((k) => `${k} = 5`).join(', ')} where id = $1`, [ids.b]);
+  await reload(co); await reload(cmp);
+  const x2 = await both();
+  ok(x2.ready && !!x2.cmp && x2.cmp.avg === '4.3' && x2.cmp.fill === '86.7%' && x2.cmp.cnt === '3件の評価' && x2.cmp.posts === '会員の投稿 4件' && sameRate(x2.cmp, x2.co),
+    '★L2 修正（b の行の点数を全部 5 に・q()）→ 読み直すと2つの画面が同じ：4.3・星 86.7%', show(x2));
+  /* 削除：a の行（q() で直接） */
+  await CUR.env.q('delete from public.reviews_v2 where id = $1', [ids.a]);
+  await reload(co); await reload(cmp);
+  const x3 = await both();
+  ok(x3.ready && !!x3.cmp && x3.cmp.avg === '4.5' && x3.cmp.cnt === '2件の評価' && x3.cmp.posts === '会員の投稿 3件' && sameRate(x3.cmp, x3.co),
+    '★L2 削除（a の行・q()）→ 読み直すと2つの画面が同じ：4.5・「2件の評価」・会員の投稿 3件', show(x3));
+  console.log('  ・修正・削除は会員の画面が無いので、手元のデータベースを直接書き換えて確かめた');
+});
+
+/* ── L3 ───────────────────────────────────────────────────── */
+const SUM_LOGIN = '{"ok":true,"state":"login"}', SUM_LOCKED = '{"ok":true,"state":"locked"}', SUM_FEW = '{"ok":true,"state":"few"}';
+const C_LOCKED = '{"ok":true,"state":"locked"}', C_GIVE = '{"ok":true,"state":"give"}';
+const noGates = (F) => !!F && !SUM_TXT(GATES).some((t) => F.html.includes(t) || F.store.includes(t));
+/* 比較を1人として開き、要約・評価の欄が読み終わるまで待つ */
+const sumOpen = async (who) => {
+  const o = await lopen('pc', who, PAIR_URL('jal', 'ana'));
+  const ready = await sumDone(o.page, 'jal|ana') && await settled(o.page, 'cmp-stars', 'jal|ana');
+  return { ...o, ready };
+};
+localScene('local-sum', '要約の門を返事の字で：ゲスト・会員（鍵なし）・給与の鍵だけ（期限切れも）・口コミの鍵（手元の SQL）', 'gates', async () => {
+  /* ゲスト */
+  {
+    const o = await sumOpen(null);
+    const rj = await reply(o, 'pv_review_summary', 'jal'), ra = await reply(o, 'pv_review_summary', 'ana');
+    okSql(exact(rj, SUM_LOGIN) && exact(ra, SUM_FEW), `★L3 ゲスト：比較が JAL の要約に聞いた返事は ${SUM_LOGIN} ちょうど（ANA は ${SUM_FEW}）`, J({ jal: rj, ana: ra }));
+    const F = await sumFace(o.page);
+    ok(o.ready && !!F && JSON.stringify(F.seen) === JSON.stringify([SUMW.login, 'ログイン']) && noGates(F),
+      `★L3 ゲスト：要約の欄は「${SUMW.login}」と「ログイン」だけ・要約の文は画面にも保存領域にも1字も無い`, J(F && { seen: F.seen, gates: !noGates(F) }));
+    await o.close();
+  }
+  /* 会員（どちらの鍵も無い）・給与の鍵だけ */
+  for (const who of ['pilot', 'pay']) {
+    const o = await sumOpen(who);
+    const rj = await reply(o, 'pv_review_summary', 'jal');
+    okSql(exact(rj, SUM_LOCKED), `★L3 ${who === 'pay' ? '給与の鍵だけ（給与提出者）：給与の鍵では開かない' : '会員（給与・口コミの鍵なし）'}：JAL の要約の返事は ${SUM_LOCKED} ちょうど`, J({ jal: rj }));
+    const F = await sumFace(o.page);
+    ok(o.ready && !!F && JSON.stringify(F.seen) === JSON.stringify([SUMW.key]) && noGates(F),
+      `★L3 ${who}：要約の欄は「${SUMW.key}」の1行だけ・要約の文は画面にも保存領域にも1字も無い`, J(F && { seen: F.seen, gates: !noGates(F) }));
+    await o.close();
+  }
+  /* 口コミの鍵（a） */
+  {
+    const o = await sumOpen('a');
+    const settledW = await settled3(o.page, 'jal|ana');
+    const F = await sumFace(o.page), [A, B] = F && F.cells.length === 2 ? F.cells : [{}, {}];
+    ok(o.ready && !!F && F.state === 'open' && A.tag === NAME.jal && J(A.good) === J(GATES.good.slice(0, 2)) && J(A.concern) === J(GATES.concern)
+      && A.foot.includes('会員の口コミ 3件から') && B.tag === NAME.ana && B.seen.includes(SUMW.few) && !F.store.includes('GATES'),
+    `★L3 a（口コミの鍵）：JAL の札の下に良い点その一・その二と気になる点（会員の口コミ 3件から）・ANA の札の下に「${SUMW.few}」・保存領域に要約の文が無い`,
+    J(F && { state: F.state, cells: F.cells.map((c) => ({ tag: c.tag, good: c.good, concern: c.concern, foot: c.foot, seen: c.seen })), store: F.store.includes('GATES') }));
+    const W = {};
+    for (const fn of ['pv_work_view', 'pv_contrib_facts']) for (const air of ['jal', 'ana']) W[`${fn}:${air}`] = await reply(o, fn, air);
+    okSql(settledW && Object.values(W).every((t) => exact(t, C_LOCKED)),
+      `★L3 a：月の働き方（pv_work_view）と待遇の答え（pv_contrib_facts）の返事は2社とも ${C_LOCKED} ちょうど（口コミの鍵では開かない）`, J(W));
+    const co = await lopen('pc', 'a', '/airlines/jal.html');
+    const done = await coDone(co.page, 'jal');
+    const C = await coFace(co.page);
+    ok(done && !!C.sum && C.sum.state === 'open' && J(C.sum.good.slice(0, 2)) === J(A.good) && J(C.sum.concern) === J(A.concern) && !C.store.includes('GATES'),
+      '★L3 a：比較の JAL の2点と気になる点は、会社ページ airlines/jal.html の要約の最初の2点・気になる点と同じ文（保存領域には無い）',
+      J({ co: C.sum && { state: C.sum.state, good: C.sum.good, concern: C.sum.concern }, cmp: { good: A.good, concern: A.concern } }));
+    await o.close(); await co.close();
+  }
+  /* 最後に：給与の鍵の期限切れ（pay の access_until を過去へ）→ pay として読み直す */
+  await expire('pay');
+  {
+    const o = await sumOpen('pay');
+    const rj = await reply(o, 'pv_review_summary', 'jal');
+    okSql(exact(rj, SUM_LOCKED), `★L3 給与の鍵が期限切れの pay：JAL の要約の返事は同じ ${SUM_LOCKED} ちょうど`, J({ jal: rj }));
+    const F = await sumFace(o.page);
+    ok(o.ready && !!F && JSON.stringify(F.seen) === JSON.stringify([SUMW.key]) && noGates(F), `★L3 期限切れの pay：同じ1行「${SUMW.key}」・要約の文は無い`, J(F && F.seen));
+  }
+});
+
+/* ── L4 ───────────────────────────────────────────────────── */
+localScene('local-two', '別のタブで読む人が替わる（サーバーが決める）：a の要約 → pilot の1行 → ログアウトの1行（前の人の文は1字も残らない）', 'gates', async () => {
+  const o = await sumOpen('a');
+  const F0 = await sumFace(o.page);
+  ok(o.ready && !!F0 && F0.state === 'open' && SUM_TXT(GATES).slice(0, 2).every((t) => F0.seen.includes(t)),
+    '（前提）切り替える前：a の比較に JAL の要約の点が出ている（確かめが空振りしていない）', J(F0 && F0.seen));
+  await H.watch(o.page, 'cmp-summary');
+  const mark = await o.page.evaluate(() => { window.__crlNoReload = 1; return (window.__crlSeen || []).length; });
+  const n0 = o.st.calls.length;
+  o.got.length = 0;                                     // 切り替えたあとの返事だけを見る
+  const t = await H.otherTab(o.ctx, CUR.env.local);
+  await H.loginIn(t, CUR.env.local, 'pilot');
+  const turned = await o.page.waitForFunction(([sel, line]) => { const b = document.querySelector(sel);
+    return !!b && b.getAttribute('data-state') === 'locked' && b.innerText.trim() === line; }, { timeout: 15000, polling: 100 }, [SUM_SEL, SUMW.key]).then(() => true, () => false);
+  const F1 = await sumFace(o.page);
+  const after = o.st.calls.slice(n0).filter((c) => c.name === 'pv_review_summary');
+  const rj = await reply(o, 'pv_review_summary', 'jal');
+  ok(turned && !!F1 && JSON.stringify(F1.seen) === JSON.stringify([SUMW.key]) && after.length >= 1 && after.every((c) => whoOf(c.auth) === 'pilot') && exact(rj, SUM_LOCKED),
+    `★L4 別のタブで pilot が入ると、読み込み直さずに「${SUMW.key}」の1行へ（pilot のログインで聞き直し、サーバーの返事は ${SUM_LOCKED}）`,
+    J({ turned, seen: F1 && F1.seen, after: after.map((c) => `${c.p && c.p.airline}:${whoOf(c.auth)}`), jal: rj }));
+  const left = (await H.seen(o.page)).slice(mark).filter((s) => SUM_TXT(GATES).some((x) => s.includes(x)));
+  ok(left.length === 0 && noGates(F1), '★L4 切り替えたあと要約の欄が取ったどの顔にも、画面にも保存領域にも、a が受け取った要約の文は1字も無い', J(left.slice(0, 3)));
+  await H.logoutIn(t);
+  const out = await o.page.waitForFunction(([sel, line]) => { const b = document.querySelector(sel);
+    return !!b && b.getAttribute('data-state') === 'locked' && b.innerText.trim().startsWith(line); }, { timeout: 15000, polling: 100 }, [SUM_SEL, SUMW.login]).then(() => true, () => false);
+  const F2 = await sumFace(o.page);
+  ok(out && !!F2 && JSON.stringify(F2.seen) === JSON.stringify([SUMW.login, 'ログイン']) && await o.page.evaluate(() => window.__crlNoReload === 1) && noGates(F2),
+    `★L4 別のタブでログアウトすると、読み込み直さずに「${SUMW.login}」と「ログイン」へ`, J({ out, seen: F2 && F2.seen }));
+  await t.close();
+});
+
+/* ── L5 ───────────────────────────────────────────────────── */
+localScene('local-change', '要約は口コミの変化に付いてくる（a が会社ページと比較で読む）：追加では前の要約のまま・修正で消える・預け直しで新しい点・少なくなれば「少ない」', 'gates', async () => {
+  const co = await lopen('pc', 'a', '/airlines/jal.html');
+  const cmp = await lopen('pc', 'a', PAIR_URL('jal', 'ana'));
+  const read2 = async () => {
+    const ready = await coDone(co.page, 'jal') && await sumDone(cmp.page, 'jal|ana') && await settled(cmp.page, 'cmp-stars', 'jal|ana');
+    const C = await coFace(co.page), F = await sumFace(cmp.page), R = (await cmpRate(cmp.page))[0];
+    return { ready, C, F, A: F && F.cells.length === 2 ? F.cells[0] : {}, R };
+  };
+  const show = (x) => J({ co: x.C.sum, cmp: x.A && { good: x.A.good, concern: x.A.concern, foot: x.A.foot, seen: x.A.seen }, posts: x.R && x.R.posts });
+  const has = (x, S) => SUM_TXT(S).some((t) => x.C.view.includes(t) || (x.F && x.F.html.includes(t)));
+  const x0 = await read2();
+  ok(x0.ready && !!x0.C.sum && x0.C.sum.state === 'open' && J(x0.A.good) === J(GATES.good.slice(0, 2)), '（前提）変える前：2つの画面に JAL の要約（GATES）が出ている', show(x0));
+  /* (0) pilot が JAL に1件（via）→ 要約はそのまま（指紋は要約のいちばん新しい口コミまでを見る ＝ あとの追加では崩れない） */
+  await postAs('pilot', 'jal', [4, 4, 4, 4, 4, 4]);
+  await reload(co); await reload(cmp);
+  const x1 = await read2();
+  ok(x1.ready && x1.C.sum.state === 'open' && J(x1.C.sum.good.slice(0, 2)) === J(GATES.good.slice(0, 2)) && x1.C.sum.foot.includes('会員の口コミ 3件から')
+    && J(x1.A.good) === J(GATES.good.slice(0, 2)) && x1.A.foot.includes('会員の口コミ 3件から') && !!x1.R && x1.R.posts === '会員の投稿 4件' && J(x1.C.posts) === '["4"]',
+  '★L5 (0) 追加（pilot・via）のあと：2つの画面とも要約はそのまま・足元は「会員の口コミ 3件から」・評価の側は会員の投稿 4件', show(x1));
+  console.log('  ・追加のあと、要約が作り直されるまで「会員の口コミ N件から」は前の件数のまま。');
+  /* (1) a の JAL の給与のひとことを書き換える（会員の画面が無い ── q()）→ 2つの画面とも「まだありません」 */
+  await CUR.env.q("update public.reviews_v2 set salary_comment = '手元の検査で書き換えたひとことです（実在の投稿ではありません）。' where id = $1", [await rowOf('a', 'jal')]);
+  await reload(co); await reload(cmp);
+  const x2 = await read2();
+  ok(x2.ready && J(x2.C.sum.why) === '["none"]' && x2.C.sum.text === SUMW.none && x2.A.seen.includes(SUMW.none) && !has(x2, GATES),
+    `★L5 (1) 修正（a の給与のひとこと・q()）のあと：2つの画面とも「${SUMW.none}」・前の要約の文は1字も無い`, show(x2));
+  /* (2) 運営が2つめの要約を預ける（同じ口・別の字・いまの口コミの id）→ 新しい2点・前の文は無い */
+  await storeSum(NEWSUM);
+  await reload(co); await reload(cmp);
+  const x3 = await read2();
+  ok(x3.ready && x3.C.sum.state === 'open' && J(x3.C.sum.good.slice(0, 2)) === J(NEWSUM.good.slice(0, 2)) && J(x3.A.good) === J(NEWSUM.good.slice(0, 2))
+    && J(x3.A.concern) === J(NEWSUM.concern) && !has(x3, GATES),
+  '★L5 (2) 運営が預け直したあと：2つの画面とも新しい要約の最初の2点（NEW …）・前の要約の文は1字も無い（預けると読むのは手元の SQL・AI の作り直しは走らせていない）', show(x3));
+  /* (3) b と pilot の JAL の行を消す（q()）→ JAL の読める口コミは2件 →「少ない」 */
+  await CUR.env.q("delete from public.reviews_v2 where id::text = any(string_to_array($1, ','))", [[await rowOf('b', 'jal'), await rowOf('pilot', 'jal')].join(',')]);
+  await reload(co); await reload(cmp);
+  const x4 = await read2();
+  /* 比較は2社とも「少ない」になる（ANA は1件）── 同じ文なら欄に1回（会社の札を付けない・場面 sumquiet の決まり） */
+  ok(x4.ready && J(x4.C.sum.why) === '["few"]' && x4.C.sum.text === SUMW.few && !!x4.F && JSON.stringify(x4.F.seen) === JSON.stringify([SUMW.few])
+    && !has(x4, NEWSUM) && !has(x4, GATES),
+  `★L5 (3) 削除（b と pilot の JAL の行・q()）のあと：2つの画面とも「${SUMW.few}」（比較は2社とも少ないので1回）・要約の文は1字も無い`,
+  J({ co: x4.C.sum, cmp: x4.F && x4.F.seen }));
+});
+
+/* ── L6 ───────────────────────────────────────────────────── */
+localScene('local-mix', '会社ごとの答え（サーバーが決める）：給与提出者（自分の会社 JAL・答えは5つ未満）→ 期限切れ', 'gates', async () => {
+  const o = await lopen('pc', 'pay', PAIR_URL('jal', 'ana'));
+  const ready = await settled3(o.page, 'jal|ana');
+  const F = await faces3(o.page);
+  const [wj, wa] = (F.W && F.W.cols) || [], [qj, qa] = (F.Q && F.Q.cols) || [], [pj, pa] = (F.P && F.P.cols) || [];
+  ok(ready && !!wj && !!wa && wj.airline === 'jal' && wj.tag === NAME.jal && wj.text.includes('まだ集計がありません') && wj.locks.length === 0
+    && wa.airline === 'ana' && wa.tag === NAME.ana && J(wa.locks) === J([LINE.give]) && wa.give === 1,
+  `★L6 pay：月の働き方 ── JAL の札の下に「まだ集計がありません」（月の記録が無い）・ANA の札の下に「${LINE.give}」と答えるカード`, J(F.W && F.W.cols));
+  ok(!!qj && !qa && qj.airline === 'jal' && qj.text.includes(labelOf(WK)) && qj.text.includes(ansOf(WK)) && qj.text.includes('3人'),
+    `★L6 pay：すぐ下の回答 ── JAL の札の下に「${labelOf(WK)}」の答え（台帳の名前「${ansOf(WK)}」・3人）・ANA の分は描かない`, J(F.Q && F.Q.cols));
+  ok(!!pj && !!pa && pj.text.includes('まだ集計がありません') && pj.locks.length === 0 && J(pa.locks) === J([LINE.give]) && pa.give === 0,
+    `★L6 pay：待遇 ── JAL の札の下に「まだ集計がありません」・ANA の札の下に「${LINE.give}」の1行`, J(F.P && F.P.cols));
+  const ra = { work: await reply(o, 'pv_work_view', 'ana'), facts: await reply(o, 'pv_contrib_facts', 'ana') };
+  okSql(exact(ra.work, C_GIVE) && exact(ra.facts, C_GIVE), `★L6 pay：ANA についての返事は2つとも ${C_GIVE} ちょうど（値は1つも来ない）`, J(ra));
+  /* 期限切れ（pay の access_until を過去へ）→ 読み直す */
+  await expire('pay');
+  await reload(o);
+  const ready2 = await settled3(o.page, 'jal|ana');
+  const G = await faces3(o.page);
+  ok(ready2 && G.W.text === LINE.locked && G.P.text === LINE.locked && G.Q.text === '' && G.Q.h === 0,
+    `★L6 期限切れの pay：月の働き方と待遇は「${LINE.locked}」・すぐ下の回答は畳む（高さ 0）`, J({ W: G.W && G.W.text, P: G.P && G.P.text, Q: G.Q && [G.Q.text, G.Q.h] }));
+  const R4 = {};
+  for (const fn of ['pv_work_view', 'pv_contrib_facts']) for (const air of ['jal', 'ana']) R4[`${fn}:${air}`] = await reply(o, fn, air);
+  okSql(Object.values(R4).every((t) => exact(t, C_LOCKED)), `★L6 期限切れの pay：4つの返事（2つの口 × 2社）が全部 ${C_LOCKED} ちょうど`, J(R4));
+});
+
+/* ── L8 ───────────────────────────────────────────────────── */
+localScene('local-both', '2つの鍵（c：JAL の口コミ・自分の会社 ANA の給与）── 鍵は自分の欄だけを閉じる（給与の鍵を外す／口コミの鍵を外す）', 'gates', async (made, at0) => {
+  const faceOf = async (o) => {
+    const ready = await sumDone(o.page, 'jal|ana') && await settled3(o.page, 'jal|ana');
+    const S = await sumFace(o.page), F = await faces3(o.page);
+    return { ready, S, F, A: S && S.cells.length === 2 ? S.cells[0] : {} };
+  };
+  const show = (x) => J({ sum: x.S && (x.S.state === 'open' ? x.A.good : x.S.seen), W: x.F.W && x.F.W.cols.map((c) => [c.airline, c.text.slice(0, 40), c.locks, c.give]),
+    Q: x.F.Q && [x.F.Q.h, x.F.Q.cols.map((c) => c.airline)], P: x.F.P && x.F.P.cols.map((c) => [c.airline, c.text.slice(0, 40), c.locks]) });
+  const sumOpenJal = (x) => !!x.S && x.S.state === 'open' && J(x.A.good) === J(GATES.good.slice(0, 2));
+  const col = (x, k, air) => ((x.F[k] && x.F[k].cols) || []).find((c) => c.airline === air);
+  /* c の顔：W と P は ANA（自分の会社）が開き JAL は1行・カードは W にだけ・Q は JAL を描かない */
+  const cFace = (x) => {
+    const wj = col(x, 'W', 'jal'), wa = col(x, 'W', 'ana'), pj = col(x, 'P', 'jal'), pa = col(x, 'P', 'ana');
+    return !!wj && !!wa && J(wj.locks) === J([LINE.give]) && wj.give === 1 && wa.text.includes('まだ集計がありません') && wa.locks.length === 0
+      && !col(x, 'Q', 'jal') && !!pj && !!pa && J(pj.locks) === J([LINE.give]) && pa.text.includes('まだ集計がありません') && pa.locks.length === 0;
+  };
+  /* pay の顔（給与の鍵・自分の会社 JAL）：JAL が開き ANA は1行 */
+  const payFace = (x) => {
+    const wj = col(x, 'W', 'jal'), wa = col(x, 'W', 'ana'), qj = col(x, 'Q', 'jal'), pj = col(x, 'P', 'jal'), pa = col(x, 'P', 'ana');
+    return !!wj && !!wa && wj.locks.length === 0 && J(wa.locks) === J([LINE.give]) && !!qj && qj.text.includes(ansOf(WK)) && !col(x, 'Q', 'ana')
+      && !!pj && !!pa && pj.locks.length === 0 && J(pa.locks) === J([LINE.give]);
+  };
+  const o = await lopen('pc', 'c', PAIR_URL('jal', 'ana'));
+  const x0 = await faceOf(o);
+  ok(x0.ready && sumOpenJal(x0) && cFace(x0),
+    `★L8 c（2つの鍵）：要約の欄に JAL の点（口コミの鍵）・月の働き方と待遇は ANA（自分の会社）の「まだ集計がありません」と JAL の「${LINE.give}」（カードは月の働き方に1枚）・すぐ下の回答は JAL を描かない`, show(x0));
+  /* (i) 給与の鍵を外す：c の access_until を過去へ */
+  await expire('c');
+  await reload(o);
+  const x1 = await faceOf(o);
+  ok(x1.ready && sumOpenJal(x1) && x1.F.W.text === LINE.locked && x1.F.P.text === LINE.locked,
+    `★L8 (i) c の給与の鍵を外す：要約はそのまま開いている・月の働き方と待遇は「${LINE.locked}」`, show(x1));
+  await restoreKey(at0, 'c');
+  await reload(o);
+  const x2 = await faceOf(o);
+  ok(x2.ready && sumOpenJal(x2) && cFace(x2), '★L8 (i) 給与の鍵を戻して読み直すと、前と同じ顔', show(x2));
+  /* (ii) 口コミの鍵を外す：JAL の3件には触らない（消すと JAL の要約が誰にとっても「少ない」になる ＝ 鍵の証明にならない）。
+     pay が ANA に口コミを1件（via）→ pay は2つの鍵 → その ANA の行を消す（q()）→ pay の口コミの鍵だけが無くなる */
+  const idAna = await postAs('pay', 'ana', [4, 4, 4, 4, 4, 4]);
+  const p = await lopen('pc', 'pay', PAIR_URL('jal', 'ana'));
+  const y0 = await faceOf(p);
+  ok(y0.ready && sumOpenJal(y0) && payFace(y0),
+    `★L8 (ii) pay が ANA に口コミ1件（via）→ 2つの鍵：要約の欄に JAL の点・月の働き方／回答／待遇は JAL（自分の会社）が開き ANA は「${LINE.give}」`, show(y0));
+  await CUR.env.q('delete from public.reviews_v2 where id = $1', [idAna]);
+  await reload(p);
+  const y1 = await faceOf(p);
+  ok(y1.ready && !!y1.S && JSON.stringify(y1.S.seen) === JSON.stringify([SUMW.key]) && noGates(y1.S) && payFace(y1),
+    `★L8 (ii) その ANA の行を消す（q()）→ 要約の欄は「${SUMW.key}」の1行（JAL の預けた要約はそのまま）・月の働き方／回答／待遇は前と同じ`, show(y1));
+  const rj = await reply(p, 'pv_review_summary', 'jal');
+  okSql(exact(rj, SUM_LOCKED), `★L8 (ii) 給与の鍵が生きていても、口コミの鍵が無ければ JAL の要約の返事は ${SUM_LOCKED} ちょうど`, J({ jal: rj }));
+  console.log('  ・2つの鍵は、それぞれ自分の欄だけを閉じる（給与の鍵 ＝ 月の働き方・待遇／口コミの鍵 ＝ 要約）');
 });
 
 /* ══ 走らせる ═══════════════════════════════════════════════════ */
