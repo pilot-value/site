@@ -247,12 +247,37 @@
       var m = shown && /^matrix\((.+)\)$/.exec(getComputedStyle(shown).transform || '');
       return m ? Number(m[1].split(',')[5]) || 0 : 0;
     };
+    var kept = function (b) { return SAME_FACE.test(b.getAttribute('data-state') || '') && !b.hasAttribute('data-part'); };
     var sizes = function () {
       var out = [];
-      each(liveOf(), function (b) {
-        out.push(SAME_FACE.test(b.getAttribute('data-state') || '') && !b.hasAttribute('data-part') ? b.offsetHeight : 0);
-      });
+      each(liveOf(), function (b) { out.push(kept(b) ? b.offsetHeight : 0); });
       return out;
+    };
+    /* 段に書く位置（y・目印の番号 k・その高さ t）も、残さない欄の高さを語らない（2026-10-23 LEAD AMENDMENT「段の k・t」）：
+       残さない欄（kept でない欄）を高さ 0 とみなした寸法で書く。上の帯の線がその欄の中なら、目印はその欄の頭
+       （戻るとその欄の頭が帯のすぐ下に来る ── 欄の中のどこまで読んでいたかは、欄の高さを語るので残さない）。
+       そうしないと y と t から「目印より上の、開いた欄の高さの合計」が割り戻せる。
+       戻ったときに合わせるのは目印の位置 t だけ（目印より上の欄は、その場で測り直す）ので、残さない欄の無い人の段は前と同じ。
+       目印の「上」はページの並びで決める（閉じた畳みの中の目印は、画面の高さが流れの中の場所を指さない）。帯の線の「上」は画面の高さで決める。 */
+    var flat = function (up) {
+      var spans = [];
+      each(liveOf(), function (b) {
+        if (kept(b) || (b.parentElement && b.parentElement.closest('.crl[data-live]'))) return;
+        var r = b.getBoundingClientRect();
+        spans.push({ b: b, top: r.top - up, bot: r.bottom - up });
+      });
+      return {
+        line: function (v) {                    // 画面の高さ v（帯の線）より上に在る、残さない欄の高さを除いた v
+          var s = 0;
+          spans.forEach(function (x) { s += Math.max(0, Math.min(v, x.bot) - x.top); });
+          return v - s;
+        },
+        mark: function (el, v) {                // 目印の高さ v から、ページの並びでその目印より前に在る、残さない欄の高さを除く
+          var s = 0;
+          spans.forEach(function (x) { if (x.b !== el && (x.b.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) s += x.bot - x.top; });
+          return v - s;
+        }
+      };
     };
     function mark() {
       var list = marksOf(), e = edge(), up = lift();
@@ -311,8 +336,12 @@
     /* ブラウザが前の画面をそのまま戻したとき：いま上に在る目印を覚え直す（取り直しで欄の高さが変わっても、読む場所を動かさない）。 */
     window.addEventListener('pageshow', function (e) { if (e.persisted) arm(mark()); });
     var keep = function () {
-      var m = mark();
-      try { history.replaceState({ y: window.scrollY, h: sizes(), k: m.k, t: m.t }, '', location.href); } catch (e) {}
+      var list = marksOf(), e = edge(), up = lift(), F = flat(up), at = F.line(e), k = -1, t = 0;
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i].getClientRects()[0], f = r ? F.mark(list[i], r.top - up) : 0;
+        if (r && f >= at) { k = i; t = Math.round(f - at + e); break; }
+      }
+      try { history.replaceState({ y: Math.round(window.scrollY - e + at), h: sizes(), k: k, t: t }, '', location.href); } catch (x) {}
     };
     /* 位置は、送り終えるたびにいまの段へ残す。ブラウザの「戻る」で出るときは
        残す間が無い（知らせが来たときには、もう次の段に居る）ので、押した時だけでは足りない。 */

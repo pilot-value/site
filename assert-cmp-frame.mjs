@@ -13,12 +13,22 @@
        ゲスト ＝ 錠とログインの顔）。欄が帰ってきたら長くなっていた・上の畳みが閉じていた、でも同じ。読む人が自分で動かしたら合わせ直さない。
        段（history.state）に残す箱の高さは、誰が見ても同じ字の顔（career.js の SAME_FACE）の欄だけ ── 開いた欄の高さは 0（LC-A19）。
        ブラウザのスクロールの自動の合わせ（scroll anchoring）は切って見る（overflow-anchor:none ── ページ自身の合わせだけが働く形）。
+       段に書く位置（y・目印 k・その高さ t）も、残さない欄を高さ 0 とみなした寸法（2026-10-23 LEAD AMENDMENT「段の k・t」・場面 leak が見る）。
+     ・片側だけ読めない（場面 side ── 2026-10-23 段階4 cmp-links-card-7）── 会社ごとに読む比較の欄（ページから数える）のどれも、JAL の読みだけ
+       落ちたら ANA の側はそのまま・JAL の列は「いま読み出せません」1回・「やり直す」1つで JAL だけ聞き直す／JAL の口がまだ無ければ「準備中」
+       （やり直すも失敗の色も無い）／両方落ちたら今までの欄ごとの失敗の顔。2社を1本で読む欄（提出された年収）は名前を出して除く。
+     ・画像に入れないもの（場面 leak）── 1つの文書で、植えた印（口コミの本文・抜粋・要約・提出された年収の額と中央値・会員の回答）を
+       全部画面に出してから、カード（2組・5社・2つのデザイン）を描かせる：描いた字にも材料（PVCareerCard.model()）にも印が1つも無い・
+       絵は #crc-data の写真だけ。生きた欄の形の字（.crl の中）を推定年収の前に置いても、カードは推定年収のまま（inLive）。
+       開いた欄の高さは段（history.state）に届かない（目印より上の欄が長くなっても・線が欄の中で、その欄が下で長くなっても、段は1文字も同じ）。
+     ・顔（場面 faces）── 5つの読む人 × 2組・390：欄は上限のうちに読み終わる・公開の箱（推定年収・家賃・公表額のカード・評価）は開いていて
+       錠が無い・開いていない欄に一覧や骨が無い（assert-cmp-walk.mjs の顔 a・b と同じ決まり）・口コミの区域の3つの顔・給与の入口は画面に1つ。
      ・門（どの場面も）── 開く画面は全部1つの門を通る。通してよいのは、この検査が起こした手元のサーバーと、部品・書体の配信元（LIBS）だけ。
        ほかの行き先への要求は止めたうえで、その場面ごと赤くする（本番へは1本も出ない）。
    どの場面も、終わりに確かめる：門が止めた外への要求 0・本番の supabase への要求 0・すり抜け 0・自分の担当の呼び出しに全部返事があった。
 
    実行: node assert-cmp-frame.mjs [--scenes a,b] [--shots <folder>]
-     --scenes  場面を選ぶ（stall・race・cdn・rate・back）。付けなければ全部
+     --scenes  場面を選ぶ（stall・race・cdn・rate・back・side・leak・faces）。付けなければ全部
      --shots   場面の途中の顔（失敗の顔・埋まった顔）を撮って置く（置き場は打った場所。ファイルに書かない）
    自分で手元の保存先を空いているポートで起こし、終わったら捨てる（cmp-stubs.mjs の startLocal）。3000番・3100番は使わない。
    返事は全部この検査が作る（MOCK）。結果の行の頭に [MOCK] と書く。本番については何も言わない（本番は 未確認）。
@@ -664,6 +674,19 @@ const BACK_GUEST = {
   pv_pay_rows: () => ({ status: 200, body: H.payFix.guest([H.payRowFix('jal')], [H.payRowFix('ana')]) }),
 };
 const answerBy = (st) => (name, p) => { const s = st.stub[name]; return typeof s === 'function' ? s(p, null) : s; };
+/* 段の y の決まり（この検査の言葉・2026-10-23 LEAD AMENDMENT「段の k・t」）：いまの位置から、上の帯の線より上に在る
+   「残さない欄」（誰が見ても同じ字の顔でない欄・片側だけの欄）の高さを引いた数（整数）。残さない欄の無い人は、いまの位置そのもの。
+   ページで流す（window.__flatY として置いてから呼ぶ） */
+const FLAT_Y = (sel, same) => {
+  const re = new RegExp(`^(${same})$`), bar = document.querySelector('.mr-top'), e = bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+  let hid = 0;
+  for (const b of document.querySelectorAll(sel)) {
+    if ((re.test(b.getAttribute('data-state') || '') && !b.hasAttribute('data-part')) || (b.parentElement && b.parentElement.closest('.crl[data-live]'))) continue;
+    const r = b.getBoundingClientRect();
+    hid += Math.max(0, Math.min(e, r.bottom) - r.top);
+  }
+  return Math.round(window.scrollY - hid);
+};
 const boxesOf = (page) => page.evaluate((sel) => [...document.querySelectorAll(sel)].map((b) => ({ kind: b.getAttribute('data-live'),
   state: b.getAttribute('data-state'), part: b.hasAttribute('data-part'), h: b.offsetHeight, mh: b.style.minHeight })), LIVE);
 const topOf = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().top : null; };
@@ -731,15 +754,20 @@ async function backLeg(name, { who = null, stub, away = null, fold = false, whee
     R.foldOpen = await page.evaluate((s) => { const d = document.querySelector(s); return !!d && d.open; }, BACK_FOLD);
     R.foldH = Math.round((await fh()) - closed);
   }
-  /* 目印：「ほかの街」を上の帯のすぐ下へ。段が書かれるまで待つ */
+  /* 目印：「ほかの街」を上の帯のすぐ下へ。段が書かれるまで待つ（動かす前に段を空にして、動かしたあとに書かれた段だけを見る）。
+     段の y は、残さない欄（誰が見ても同じ字の顔でない欄）の高さを除いた位置（FLAT_Y ── 2026-10-23 LEAD AMENDMENT「段の k・t」）。
+     前の決まり「y ＝ いまの位置」は、同じ強さで次へ移した（X0）：残さない欄の無い人（ゲスト）は今までどおり いまの位置そのもの */
   await page.evaluate((s) => {
     const bar = document.querySelector('.mr-top'), e = bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+    history.replaceState(null, '', location.href);
     window.scrollTo(0, Math.round(window.scrollY + document.querySelector(s).getBoundingClientRect().top - e - 4));
   }, BACK_AT);
-  R.wrote = await page.waitForFunction((sel) => {
+  await page.evaluate(`window.__flatY = ${FLAT_Y};`);
+  R.wrote = await page.waitForFunction((sel, same) => {
     const s = history.state;
-    return !!s && s.y === window.scrollY && s.k >= 0 && Array.isArray(s.h) && s.h.length === document.querySelectorAll(sel).length;
-  }, { timeout: 8000, polling: 50 }, LIVE).then(() => true, () => false);
+    return !!s && s.y === window.__flatY(sel, same) && s.k >= 0 && Array.isArray(s.h) && s.h.length === document.querySelectorAll(sel).length;
+  }, { timeout: 8000, polling: 50 }, LIVE, SAME_SHEET).then(() => true, () => false);
+  R.flatGap = await page.evaluate(() => window.scrollY - ((history.state && history.state.y) || 0));
   R.top0 = await steady(page, topOf, BACK_AT);
   R.leave = await boxesOf(page);
   if (shots) await shotView(page, `${name}-before`);
@@ -777,7 +805,7 @@ async function backLeg(name, { who = null, stub, away = null, fold = false, whee
   return R;
 }
 const px = (v) => (v == null ? 'null' : `${Math.round(v * 10) / 10}`);
-const legNote = (R) => J({ wrote: R.wrote, life: R.life, at: R.lifeAt, fresh: R.fresh && { ...R.fresh, st0: undefined }, reloaded: R.reloaded,
+const legNote = (R) => J({ wrote: R.wrote, flatGap: R.flatGap, life: R.life, at: R.lifeAt, fresh: R.fresh && { ...R.fresh, st0: undefined }, reloaded: R.reloaded,
   top0: R.top0, topNow: R.topNow, topAfter: R.topAfter, calm: [R.calm1, R.calm2], now: (R.now || []).map((b) => `${b.kind}:${b.state}:${b.mh || '-'}`),
   after: (R.after || []).map((b) => `${b.kind}:${b.state}:${b.h}:${b.mh || '-'}`) });
 const sameAddr = (R) => R.wrote && R.life && R.lifeAt === '/airlines/ana.html#life' && R.reloaded
@@ -842,6 +870,550 @@ scene('back', '比較 →「ほかの街」→ 会社ページ →「戻る」�
     J({ h: gh, leave: g.leave.map((b) => `${b.kind}:${b.state}:${b.h}`), note: JSON.parse(legNote(g)) }));
   ok(g.calm2 && Math.abs(g.topAfter - g.top0) <= 2 && g.after.every((b) => !b.mh),
     `B1g ゲスト：欄が全部落ち着いたあとも、目印は同じ高さ（ずれ ${px(g.topAfter - g.top0)}px ≤ 2）・控えの高さは外れている`, legNote(g));
+});
+
+/* ══ side ═══════════════════════════════════════════════════════ */
+/* 会員 c（どの欄も開いた人）・JAL｜ANA・1440。会社ごとに読む比較の欄（data-live が cmp- で始まる種類 ── ページから数える）ごとに：
+     JAL の読みだけ 500     → B-1 ANA の側は何も起きなかったように描かれる（ANA の値が在り、ANA の列に「いま読み出せません」が無い）
+                              B-2 JAL の列は「いま読み出せません」1回だけ ── 数字・「未取得」・「集計なし」・「まだ集計がありません」・
+                                  「口コミはまだありません」・「会員からの投稿はまだありません」・錠の1行が無い
+                              B-3 欄に「やり直す」が1つ（data-part 1）。押すと JAL だけをもう1回聞き（ANA の要求の数は増えない）、両方が描かれる
+     JAL の読みだけ 404 PGRST202（口がまだ無い）→ B-4 JAL の列は「準備中」・「やり直す」なし・失敗の色（.crl-side-err）なし
+     両方 500               → B-5 今までの欄ごとの失敗の顔（error・「いま読み出せません」と「やり直す」が1つずつ）
+   除く種類は行に名前を出す：2社を1本で読む種類（提出された年収 cmp-pay）と、B-4 だけ除く口コミの評価（cmp-stars ── 行は review-i18n.js の
+   fetchRows が読み、どの失敗も「読めない」と答える＝口が無いことを見分けない。pv_reviews は2社で同じ1つの関数）。 */
+const SIDE_FACTS = { jal: 37, ana: 64 };                  // 待遇の答え（中央値）。JAL と ANA で違う数
+const factsBy = (map) => (p) => {
+  const keys = p && Array.isArray(p.keys) ? p.keys : [], v = map[p && p.airline];
+  return { status: 200, body: { ok: true, state: 'open', facts: keys.map((k) => ({ question_id: k, kind: 'num', median_num: v, n: 5 })) } };
+};
+const coOf = (p) => (p && Array.isArray(p.airlines) ? p.airlines[0] : (p && p.airline)) || '';
+/* 種類ごと：読む関数・JAL と ANA の値（その列に在るはずの字）・口が無いことを見分けるか */
+const SIDE = [
+  { kind: 'cmp-stars', fn: 'pv_reviews', jal: ['4.0', '3件の評価'], ana: ['4.5', '2件の評価'], off: false },
+  { kind: 'cmp-summary', fn: 'pv_review_summary', jal: ['JAL 良い点その一'], ana: ['ANA 良い点その一'], off: true },
+  { kind: 'cmp-work', fn: 'pv_work_view', jal: ['70〜80'], ana: ['50〜55'], off: true },
+  { kind: 'cmp-facts', fn: 'pv_contrib_facts', jal: ['37'], ana: ['64'], off: true },
+];
+const SIDE_EXEMPT = { 'cmp-pay': '提出された年収（pv_pay_rows と pv_company_pay は2社で1本の読み）' };
+const ZERO_WORDS = ['未取得', '集計なし', 'まだ集計がありません', '口コミはまだありません', '会員からの投稿はまだありません'];
+const OFF = '準備中';
+const PGRST202 = (fn) => ({ status: 404, body: { code: 'PGRST202', details: null, hint: null, message: `Could not find the function public.${fn}` } });
+const sideStub = (K, mode) => {
+  const base = { ...backOpen(), pv_contrib_facts: factsBy(SIDE_FACTS) };
+  const good = base[K.fn];
+  base[K.fn] = (p, a) => {
+    const co = coOf(p);
+    if (mode === 'both500' || (mode === 'jal500' && co === 'jal')) return CX_FAIL();
+    if (mode === 'jal404' && co === 'jal') return PGRST202(K.fn);
+    return good(p, a);
+  };
+  return base;
+};
+/* その種類の欄（全部・要素ごと）の顔と、会社ごとの列（2列の格子 ＝ .crl-cmp-row / .crl-cmp-sub のマス・要約 ＝ .crl-sum2-c・
+   上下に並べた形 ＝ .crl-split-c[data-airline]）。列の字は見えている字（innerText） */
+const sideFaces = (page, kind) => page.evaluate((kind, ERR, RETRY) => [...document.querySelectorAll(`#cr [data-view="compare"] .crl[data-live="${kind}"]`)].map((x) => {
+  const els = [[], []];
+  const split = [...x.querySelectorAll('.crl-split-c[data-airline]')];
+  if (split.length) split.forEach((c) => { const i = ['jal', 'ana'].indexOf(c.getAttribute('data-airline')); if (i >= 0) els[i].push(c); });
+  else {
+    x.querySelectorAll('.crl-cmp-row, .crl-cmp-sub').forEach((r) => {
+      const cs = [...r.children].filter((c) => c.matches('.crl-cmp-c, .crl-cmp-sc'));
+      if (cs.length === 2) { els[0].push(cs[0]); els[1].push(cs[1]); }
+    });
+    x.querySelectorAll('.crl-sum2-c[data-col]').forEach((c) => { const i = Number(c.getAttribute('data-col')) - 1; if (i === 0 || i === 1) els[i].push(c); });
+  }
+  const col = (list) => {
+    const text = list.map((c) => c.innerText).join(' ').replace(/\s+/g, ' ').trim();
+    return { n: list.length, text, errs: text.split(ERR).length - 1, locks: list.reduce((n, c) => n + c.querySelectorAll('.crl-lock').length, 0),
+      sideErr: list.reduce((n, c) => n + c.querySelectorAll('.crl-side-err').length, 0) };
+  };
+  const t = x.innerText || '';
+  return { quiet: x.getAttribute('data-quiet') === '1', state: x.getAttribute('data-state'), for: x.getAttribute('data-for'), part: x.getAttribute('data-part'),
+    shown: x.getClientRects().length > 0 && x.getBoundingClientRect().height > 1, errs: t.split(ERR).length - 1,
+    retries: [...x.querySelectorAll('.crl-retry')].filter((b) => b.textContent === RETRY).length, sideErr: x.querySelectorAll('.crl-side-err').length,
+    cols: [col(els[0]), col(els[1])], text: t.replace(/\s+/g, ' ').trim().slice(0, 200) };
+}), kind, ERR, RETRY);
+const has = (text, vals) => vals.every((v) => String(text).includes(v));
+const sideNote = (F) => J(F.map((f) => ({ q: f.quiet, state: f.state, part: f.part, errs: f.errs, retries: f.retries, sideErr: f.sideErr,
+  jal: f.cols[0].text.slice(0, 90), ana: f.cols[1].text.slice(0, 90) })));
+
+scene('side', '比較の片側だけ読めない：読めた側はそのまま・読めない側は「いま読み出せません」1回・「やり直す」1つで読めない側だけ聞き直す・口が無い側は「準備中」・両方なら欄ごとの失敗の顔', async () => {
+  /* その日のページに在る、会社ごとに読む種類（ページから数える）。表に無い種類が増えたら赤（この場面に足す） */
+  {
+    const { page } = await open('pc', { who: 'c', url: PAIR('jal', 'ana'), stub: sideStub(SIDE[0], 'none') });
+    await settled(page, 'jal|ana', 15000);
+    const kinds = [...new Set(await cmpKinds(page))];
+    const known = [...SIDE.map((K) => K.kind), ...Object.keys(SIDE_EXEMPT)];
+    ok(kinds.length > 0 && kinds.every((k) => known.includes(k)) && SIDE.every((K) => kinds.includes(K.kind)),
+      `その日の比較の会社ごとの欄（${kinds.join('・')}）を全部見る ── 除くのは ${Object.entries(SIDE_EXEMPT).map(([k, v]) => `${k}（${v}）`).join('・')}`,
+      J({ kinds, known }));
+  }
+  for (const K of SIDE) {
+    /* JAL の読みだけ 500 */
+    const A = await open('pc', { who: 'c', url: PAIR('jal', 'ana'), stub: sideStub(K, 'jal500') });
+    const s1 = await settled(A.page, 'jal|ana', 15000);
+    const F1 = (await sideFaces(A.page, K.kind)).filter((f) => f.shown);
+    ok(s1 && F1.length >= 1 && F1.every((f) => f.state === 'open' && f.part === '1' && has(f.cols[1].text, K.ana) && f.cols[1].errs === 0 && f.cols[1].sideErr === 0),
+      `B-1 ${K.kind}：JAL の読み（${K.fn}）だけ 500 → ANA の側はそのまま描かれる（${K.ana.join('・')}・ANA の列に「${ERR}」なし・見えている欄 ${F1.length}つ）`, sideNote(F1));
+    ok(F1.length >= 1 && F1.every((f) => f.cols[0].n > 0 && f.cols[0].errs === 1 && f.errs === 1 && !/\d/.test(f.cols[0].text)
+      && !ZERO_WORDS.some((w) => f.cols[0].text.includes(w)) && f.cols[0].locks === 0),
+      `B-2 ${K.kind}：JAL の列は「${ERR}」を1回だけ（欄にも1回）── 数字・「未取得」などの「無い」の言葉・錠の1行が無い`, sideNote(F1));
+    const before = { jal: callsOf(A.st, K.fn, 'jal'), ana: callsOf(A.st, K.fn, 'ana') };
+    const one = F1.length >= 1 && F1.every((f) => f.retries === 1 && f.part === '1');
+    A.st.stub[K.fn] = sideStub(K, 'none')[K.fn];
+    if (one) await A.page.click(`${CMP(K.kind)}[data-part="1"] .crl-retry`);
+    const s3 = one && await settled(A.page, 'jal|ana', 15000);
+    const F3 = (await sideFaces(A.page, K.kind)).filter((f) => f.shown);
+    const after = { jal: callsOf(A.st, K.fn, 'jal'), ana: callsOf(A.st, K.fn, 'ana') };
+    ok(one && s3 && after.jal === before.jal + 1 && after.ana === before.ana && F3.length >= 1
+      && F3.every((f) => f.part === null && f.errs === 0 && f.retries === 0 && has(f.cols[0].text, K.jal) && has(f.cols[1].text, K.ana)),
+      `B-3 ${K.kind}：欄に「${RETRY}」が1つ（片側だけの印 data-part 1）── 押すと JAL だけをもう1回聞き（JAL ${before.jal} → ${after.jal}本・ANA ${before.ana} → ${after.ana}本）、両方が描かれる`,
+      J({ before, after, faces: JSON.parse(sideNote(F3)) }));
+    if (K.kind === 'cmp-stars' && SHOTS) {
+      await A.page.close();
+      for (const size of ['pc', 'sp']) {
+        const P = await open(size, { who: 'c', url: PAIR('jal', 'ana'), stub: sideStub(K, 'jal500') });
+        await settled(P.page, 'jal|ana', 15000);
+        for (const th of ['light', 'dark']) {
+          await P.page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), th);
+          await frames(P.page);
+          await shot(P.page, '#cr [data-view="compare"] .cr-cmp-rev', `stars-jal-fail-${size === 'pc' ? 1440 : 390}-${th}`);
+        }
+      }
+    }
+
+    /* JAL の読みだけ 404 PGRST202（口がまだ無い） */
+    if (K.off) {
+      const B = await open('pc', { who: 'c', url: PAIR('jal', 'ana'), stub: sideStub(K, 'jal404') });
+      const s4 = await settled(B.page, 'jal|ana', 15000);
+      const F4 = (await sideFaces(B.page, K.kind)).filter((f) => f.shown);
+      ok(s4 && F4.length >= 1 && F4.every((f) => f.cols[0].text.includes(OFF) && f.cols[0].errs === 0 && f.errs === 0 && f.retries === 0
+        && f.sideErr === 0 && f.part === null && has(f.cols[1].text, K.ana)),
+        `B-4 ${K.kind}：JAL の口（${K.fn}）がまだ無い（404 PGRST202）→ JAL の列は「${OFF}」・「${RETRY}」なし・失敗の色なし（ANA の側はそのまま）`, sideNote(F4));
+    } else {
+      console.log(`  ・B-4 ${K.kind}：除く ── 口コミの行は review-i18n.js の fetchRows が読み、どの失敗も「読めない」と答える（口が無いことを見分けない。pv_reviews は2社で同じ1つの関数）`);
+    }
+
+    /* 両方 500 */
+    const C = await open('pc', { who: 'c', url: PAIR('jal', 'ana'), stub: sideStub(K, 'both500') });
+    const s5 = await settled(C.page, 'jal|ana', 15000);
+    const F5 = (await sideFaces(C.page, K.kind)).filter((f) => f.shown);
+    ok(s5 && F5.length >= 1 && F5.every((f) => f.state === 'error' && f.part === null && f.errs === 1 && f.retries === 1),
+      `B-5 ${K.kind}：両方 500 → 今までの欄ごとの失敗の顔（「${ERR}」と「${RETRY}」が1つずつ・片側だけの印なし）`, sideNote(F5));
+  }
+});
+
+/* ══ leak ═══════════════════════════════════════════════════════ */
+/* 会員 c。どの読みも「開いた」答えを返し、その答えに印を植える（口コミの本文・抜粋・要約の点・提出された年収の額と中央値・
+   会員の回答 ＝ 月の勤務の値と待遇の答え）。1つの文書の中で、5社の概要（エティハドは評価・口コミ・REAL PAY・月の勤務・待遇の欄が在る）・
+   エティハドのステイ先の画面1つ・比較 JAL｜ANA とエティハド｜キャセイを PVCareer.go で見せる（欄が埋まるのは、その文書で見せた画面だけ）。
+   前提：植えた印が全種類、その文書の画面に出た（出なければこの場面は落ちることができない ── 赤で止める）。
+   そのあと同じ文書で、カードを JAL｜ANA・エティハド｜キャセイ・5社1社ずつ、2つのデザインで描かせる：
+     書き留めた字（fillText / strokeText）に、植えた印・提出された年収の額・中央値・要約や口コミの字・会員の回答の値が1つも無い／
+     PVCareerCard.model() にも無い／描いた絵は #crc-data の写真か '(canvas)' だけ。
+   inLive：JAL の概要の推定年収の前に <div class="crl"><b data-main="cap">ZZ給与ZZ</b></div> を置いても、カードは推定年収のまま（ZZ を描かない）。
+   ★段（history.state）── 2026-10-23 LEAD AMENDMENT「段の k・t」：開いた欄の高さは段に届かない。比較 JAL｜ANA で、
+     (a) 目印（ANA の「ほかの街」）より上の開いた欄（提出された年収）が 400px 長くなっても、同じ目印の同じ高さで書かれた段は1文字も同じ
+     (b) 上の帯の線が開いた欄（口コミ）の中に在るとき、その欄が線より下で 400px 長くなっても、段は1文字も同じ。
+   ホテルの名前は植えない（手元の模擬の返事では、誰がホテルを受け取るかを確かめられない ── LC-A5）。 */
+const LEAK = { body: (s) => `ZZ本文-${s}-ZZ`, clip: 'ZZ抜粋-キャセイ-ZZ', sum: (s) => `ZZ要約-${s}-ZZ`, note: 'ZZ補足ZZ', live: 'ZZ給与ZZ' };
+const LEAK_WORK = { lo: 83, hi: 89 }, LEAK_WORK_T = '83〜89';
+const LEAK_FACT = 41.7, LEAK_FACT_T = '41.7';
+/* 提出された年収と中央値に植える額（USD）。画面では有効数字2桁の円（¥6,100万 …）── カードが描く公開の額（推定年収・目盛）と
+   同じ字にならない額を選んだ（同じ字だと、描いてよい字と見分けられない。下の行が確かめる） */
+const LEAK_PAY = { jal: [383800, 352000], ana: [421500, 396000], etihad: [459300, 478000], 'cathay-pacific': [560000, 434000], 'eva-air': [591400, 522000] };
+const LEAK_MED = 528000;
+const LEAK_FIVE = ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air'];
+const LEAK_REV = (s) => (s === CX
+  ? [rated('x1', 2, { clip: { k: 'salary', o: LEAK.clip, t: {} } }), rated('x2', 3, { clip: { k: 'salary', o: LEAK.clip, t: {} } })]
+  : [rated(s + '1', 4, { salary_comment: `検査の口コミ ${LEAK.body(s)}` }), rated(s + '2', 3, { wlb_comment: `検査の口コミその二 ${LEAK.body(s)}` })]);
+const leakStub = () => ({
+  pv_reviews: (p) => { const a = coOf(p); return { status: 200, body: { ok: true, unlocked: a !== CX, rows: LEAK_REV(a) } }; },
+  pv_review_summary: (p) => ({ status: 200, body: { ok: true, state: 'open', n: 3, as_of: '2026-10-01',
+    good: [{ text: `検査の良い点 ${LEAK.sum(coOf(p))}`, cat: 'training' }], concern: [{ text: `検査の気になる点 ${LEAK.sum(coOf(p))}`, cat: 'wlb' }] } }),
+  pv_work_view: () => ({ status: 200, body: { ok: true, state: 'open', by: { cap: { block_hours: LEAK_WORK }, fo: { block_hours: LEAK_WORK } } } }),
+  pv_contrib_facts: (p) => {
+    const keys = p && Array.isArray(p.keys) ? p.keys : [];
+    return { status: 200, body: { ok: true, state: 'open', facts: keys.map((k) => ({ question_id: k, kind: 'num', median_num: LEAK_FACT, n: 5 })) } };
+  },
+  pv_contrib_notes: () => ({ status: 200, body: { ok: true, state: 'open', notes: [{ q: 'staff_travel', text: LEAK.note, mine: false }] } }),
+  pv_pay_rows: () => ({ status: 200, body: H.payFix.open(LEAK_FIVE.flatMap((s) => [H.payRowFix(s, { annual_usd: LEAK_PAY[s][0] }),
+    H.payRowFix(s, { pos: 'fo', annual_usd: LEAK_PAY[s][1] })]), []) }),
+  pv_company_pay: (p) => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3,
+    airlines: Object.fromEntries(((p && p.airlines) || []).map((s) => [s, { cap: { s: 'ok', median_usd: LEAK_MED }, fo: { s: 'few' } }])) } }),
+});
+/* いま見えている画面に出ている印（見えている字 ＋ 欄の中の額） */
+const leakSeen = (page, M) => page.evaluate((M) => {
+  const v = document.querySelector('#cr .cr-view:not([hidden])');
+  if (!v) return null;
+  const vis = (n) => n.getClientRects().length > 0;
+  const t = v.innerText || '';
+  return {
+    view: v.getAttribute('data-view') + (v.getAttribute('data-airline') ? ':' + v.getAttribute('data-airline') : ''),
+    body: M.body.filter((x) => t.includes(x)), clip: t.includes(M.clip), sum: M.sum.filter((x) => t.includes(x)),
+    work: t.includes(M.work), fact: t.includes(M.fact), note: t.includes(M.note),
+    amt: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt:not([data-agg]), .crl[data-live="realpay"] .crl-amt')].filter(vis).map((e) => e.textContent.trim()),
+    med: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt[data-agg]')].filter(vis).map((e) => e.textContent.trim()),
+  };
+}, M);
+/* 見えている画面の生きた欄（ホテルの欄のほか）が全部読み終わるまで */
+const viewSettled = (page) => page.waitForFunction(() => {
+  const v = document.querySelector('#cr .cr-view:not([hidden])');
+  const all = v ? [...v.querySelectorAll('.crl[data-live]:not([data-live="hotels"])')].filter((b) => b.getClientRects().length) : [];
+  return !!v && all.every((b) => !['idle', 'loading'].includes(b.getAttribute('data-state')));
+}, { timeout: 15000, polling: 100 }).then(() => true, () => false);
+const goView = (page, st) => page.evaluate((st) => window.PVCareer.go(st), st);
+/* カードの材料がその会社の並びで描かれ、評価の読みも落ち着いた（描き直しまで） */
+const cardIs = async (page, slugs) => {
+  const up = await page.waitForFunction((want) => {
+    const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+    const r = document.getElementById('crc-root');
+    return !!(m && m.cards && m.cards.map((c) => c.slug).join('|') === want && m.layout && r && r.getAttribute('data-drawn'));
+  }, { timeout: 15000, polling: 50 }, slugs.join('|')).then(() => true, () => false);
+  await page.evaluate(async (slugs) => {
+    await Promise.all(slugs.map((s) => Promise.resolve(window.PVCareer.rating(s)).then(() => 0, () => 0)));
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await window.PVCareerCard.redraw();
+  }, slugs);
+  return up;
+};
+const themeTo = async (page, word) => {
+  const was = await drawnAttr(page);
+  const hit = await page.evaluate((w) => {
+    const b = [...document.querySelectorAll('#crc-root button')].find((x) => x.textContent.trim() === w);
+    if (b) b.click();
+    return !!b;
+  }, word);
+  const moved = hit && await page.waitForFunction((was) => document.getElementById('crc-root').getAttribute('data-drawn') !== was, { timeout: 8000 }, was)
+    .then(() => true, () => false);
+  await frames(page);
+  return moved;
+};
+/* 段を空にして、目印 sel を上の帯の線から dy の所へ動かし（sel が無ければ動かさない）、新しく書かれた段を待って返す */
+const entryAt = async (page, sel, dy) => {
+  await page.evaluate((sel, dy) => {
+    history.replaceState(null, '', location.href);
+    if (sel) {
+      const bar = document.querySelector('.mr-top'), e = bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+      window.scrollTo(0, Math.round(window.scrollY + document.querySelector(sel).getBoundingClientRect().top - e - dy));
+    }
+    window.dispatchEvent(new Event('scroll'));
+  }, sel, dy);
+  const got = await page.waitForFunction(() => !!history.state && history.state.k >= 0, { timeout: 8000, polling: 50 }).then(() => true, () => false);
+  return got ? page.evaluate(() => ({ st: history.state, y: window.scrollY })) : null;
+};
+const boxAt = (page, kind) => page.evaluate((sel) => { const b = document.querySelector(sel); if (!b) return null; const r = b.getBoundingClientRect();
+  return { state: b.getAttribute('data-state'), part: b.hasAttribute('data-part'), top: Math.round(r.top), h: Math.round(r.height) }; }, CMP(kind));
+const grow = (page, kind, px) => page.evaluate((sel, px) => {
+  const d = document.createElement('div');
+  d.setAttribute('data-probe-grow', '');
+  d.style.height = px + 'px';
+  document.querySelector(sel).appendChild(d);
+}, CMP(kind), px);
+const unGrow = (page) => page.evaluate(() => { document.querySelectorAll('[data-probe-grow]').forEach((d) => d.remove()); });
+
+scene('leak', 'カードの画像と材料に、生きた欄の中身（口コミの本文・抜粋・要約・提出された年収・会員の回答）が入らない・開いた欄の高さは段（history.state）に届かない', async () => {
+  const { page, st } = await open('pc', { who: 'c', url: '/career.html?airline=jal', stub: leakStub(), before: CARD_BEFORE });
+  const M = { body: ['jal', 'ana', 'etihad'].map(LEAK.body), clip: LEAK.clip, sum: ['jal', 'ana', 'etihad', CX].map(LEAK.sum), work: LEAK_WORK_T, fact: LEAK_FACT_T, note: LEAK.note };
+  const seenAll = { body: new Set(), clip: false, sum: new Set(), work: false, fact: false, note: false, amt: new Set(), med: new Set() };
+  const views = [];
+  const take = async (label) => {
+    const s = await leakSeen(page, M);
+    if (!s) return;
+    views.push(`${label}${s.body.length || s.clip || s.sum.length || s.work || s.fact || s.amt.length ? '（印あり）' : ''}`);
+    s.body.forEach((x) => seenAll.body.add(x)); s.sum.forEach((x) => seenAll.sum.add(x));
+    s.amt.forEach((x) => seenAll.amt.add(x)); s.med.forEach((x) => seenAll.med.add(x));
+    seenAll.clip = seenAll.clip || s.clip; seenAll.work = seenAll.work || s.work; seenAll.fact = seenAll.fact || s.fact; seenAll.note = seenAll.note || s.note;
+  };
+  await page.waitForFunction(() => !!(window.PVCareer && window.PVCareer.go), { timeout: 15000 });
+  /* 5社の概要（エティハドは「概要」と「勤務・訓練」のタブ）→ エティハドのステイ先 → 比較2組 */
+  const stays = await page.evaluate(() => [...document.querySelectorAll('#cr .cr-view[data-view="stay"][data-airline="etihad"]')].map((v) => v.getAttribute('data-stay')));
+  for (const s of LEAK_FIVE) {
+    await goView(page, { view: 'airline', airline: s });
+    await viewSettled(page);
+    await take(`概要:${s}`);
+    if (s === 'etihad') {
+      await goView(page, { view: 'airline', airline: s, tab: 'work' });
+      await viewSettled(page);
+      await take('概要:etihad#work');
+    }
+  }
+  if (stays.length) {
+    await goView(page, { view: 'stay', airline: 'etihad', stay: stays[0] });
+    await viewSettled(page);
+    await take(`ステイ先:etihad:${stays[0]}`);
+  }
+  for (const [a, b] of [['jal', 'ana'], ['etihad', CX]]) {
+    await goView(page, { view: 'compare', a, b });
+    await settled(page, `${a}|${b}`, 15000);
+    await take(`比較:${a}|${b}`);
+  }
+  const amts = [...seenAll.amt], meds = [...seenAll.med];
+  const pre = seenAll.body.size === M.body.length && seenAll.clip && seenAll.sum.size === M.sum.length && seenAll.work && seenAll.fact
+    && amts.length > 0 && meds.length > 0 && !!stays.length;
+  ok(pre, pre
+    ? `（前提）植えた印が全種類、この文書の画面に出た ── 口コミの本文 ${seenAll.body.size}社・抜粋（キャセイ）・要約の点 ${seenAll.sum.size}社・`
+      + `提出された年収の額 ${amts.length}種（${amts.join(' ')}）・中央値（${meds.join(' ')}）・会員の回答（月の勤務 ${LEAK_WORK_T}・待遇 ${LEAK_FACT_T}）`
+      + `／見せた画面 ${views.length}（${views.join('・')}）`
+    : '（前提）この場面は落ちることができない（植えた印が画面に全部は出ていない）',
+    J({ body: [...seenAll.body], clip: seenAll.clip, sum: [...seenAll.sum], work: seenAll.work, fact: seenAll.fact, amts, meds, stays, views }));
+  console.log('  ・ホテルの名前は W-walk (8) で手元の本物の返事で見る（この場面の模擬の返事にはホテルの印を植えない ── LC-A5）');
+  console.log(`  ・会員が書いた補足（自由記述・pv_contrib_notes）は、career.html のどの欄も描かない（data-notes の欄が無い）── 呼ばれた数 ${st.calls.filter((c) => c.name === 'pv_contrib_notes').length}・画面に出た ${seenAll.note ? 'あり' : 'なし'}`);
+  if (!pre) return;
+
+  /* カード：2組と5社1社ずつ、2つのデザイン（同じ文書の中で） */
+  const models = [], fails = [];
+  for (const slugs of [['jal', 'ana'], ['etihad', CX], ...LEAK_FIVE.map((s) => [s])]) {
+    await goView(page, { view: 'card', a: slugs[0], b: slugs[1] || null });
+    if (!(await cardIs(page, slugs))) { fails.push(`${slugs.join('|')}: 描かれない`); continue; }
+    models.push(J(await cardModel(page)));
+    for (const w of ['黒×金', 'カラフル']) {
+      if (!(await themeTo(page, w))) fails.push(`${slugs.join('|')}: ${w} に替わらない`);
+      models.push(J(await cardModel(page)));
+    }
+  }
+  const drawn = await page.evaluate(() => ({ text: (window.__drawn || {}).text.slice(), img: (window.__drawn || {}).img.slice() }));
+  const pics = await page.evaluate(() => {
+    const out = new Set(['(canvas)']);
+    try {
+      const D = JSON.parse(document.getElementById('crc-data').textContent);
+      for (const a of Object.values(D.airlines || {})) for (const p of a.photos || []) out.add(new URL(p.src, location.href).href);
+    } catch (e) { /* 読めなければ写真は0枚 ＝ 下で赤 */ }
+    return [...out];
+  });
+  /* 描いてはいけない字：植えた印（ZZ）・額と中央値の字・要約と口コミの字・会員の回答の値 */
+  const words = ['検査の口コミ', '検査の良い点', '検査の気になる点'];
+  const bad = (s) => /ZZ/.test(s) || amts.some((a) => s.includes(a)) || meds.some((a) => s.includes(a)) || words.some((w) => s.includes(w))
+    || s.includes(LEAK_WORK_T) || s.includes(LEAK_FACT_T);
+  const publicFigs = new Set(models.flatMap((j) => (JSON.parse(j).cards || []).flatMap((c) => Object.values(c.roles || {}).map((r) => r.text))));
+  ok(!fails.length && models.length === 21 && drawn.text.length > 0 && ![...amts, ...meds].some((a) => publicFigs.has(a)),
+    `カードを ${models.length / 3}通り × 2つのデザインで描いた（JAL｜ANA・エティハド｜キャセイ・5社1社ずつ）── 植えた額は、カードの公開の額のどれとも違う字`,
+    J({ fails, n: models.length, drawn: drawn.text.length, overlap: [...amts, ...meds].filter((a) => publicFigs.has(a)) }));
+  const hitT = drawn.text.filter(bad);
+  ok(drawn.text.length > 0 && !hitT.length, `カードに描かれた字（${drawn.text.length}本）に、植えた印・提出された年収の額・中央値・要約と口コミの字・会員の回答の値が1つも無い`,
+    hitT.slice(0, 6).join(' ／ '));
+  const hitM = models.filter(bad);
+  ok(models.length > 0 && !hitM.length, `カードの材料（PVCareerCard.model() を ${models.length}回）にも、どれも無い`, hitM.slice(0, 1).join('').slice(0, 400));
+  const badImg = drawn.img.filter((u) => !pics.includes(u));
+  ok(drawn.img.length > 0 && !badImg.length, `描いた絵（${drawn.img.length}枚）は #crc-data の写真か '(canvas)' だけ`, badImg.slice(0, 4).join(' ／ '));
+
+  /* inLive：JAL の概要の推定年収（静かな字）の前に、生きた欄の形の ZZ を置いても、カードは推定年収のまま */
+  await goView(page, { view: 'airline', airline: 'jal' });
+  const est = await page.evaluate((zz) => {
+    const v = document.querySelector('#cr .cr-view[data-view="airline"][data-airline="jal"]');
+    const m = v && [...v.querySelectorAll('[data-main="cap"]')].find((x) => !x.closest('.crl'));
+    if (!m) return null;
+    const z = document.createElement('div');
+    z.className = 'crl';
+    const b = document.createElement('b');
+    b.setAttribute('data-main', 'cap');
+    b.textContent = zz;
+    z.appendChild(b);
+    m.parentElement.parentElement.insertBefore(z, m.parentElement);
+    return { text: m.textContent.replace(/\s+/g, ' ').trim(), first: v.querySelector('[data-main="cap"]').textContent };
+  }, LEAK.live);
+  const n0 = (await page.evaluate(() => window.__drawn.text.length));
+  await goView(page, { view: 'card', a: 'jal', b: null });
+  const upJ = await cardIs(page, ['jal']);
+  const mJ = await cardModel(page);
+  const newT = await page.evaluate((n) => window.__drawn.text.slice(n), n0);
+  ok(!!est && est.first === LEAK.live && upJ && !!mJ && mJ.cards[0].roles.cap && mJ.cards[0].roles.cap.text === est.text
+    && newT.includes(est.text) && !newT.some((s) => s.includes(LEAK.live)) && !J(mJ).includes(LEAK.live),
+    `inLive：JAL の概要の推定年収の前に、生きた欄の形（.crl）の「${LEAK.live}」を置いても、カードは推定年収（${est && est.text}）のまま ── ZZ を描かない・材料にも無い`,
+    J({ est, up: upJ, cap: mJ && mJ.cards[0].roles.cap, zz: newT.filter((s) => s.includes('ZZ')) }));
+
+  /* ★段（history.state）：開いた欄の高さは段に届かない（2026-10-23 LEAD AMENDMENT「段の k・t」） */
+  await goView(page, { view: 'compare', a: 'jal', b: 'ana' });
+  await settled(page, 'jal|ana', 15000);
+  await viewStill(page);
+  await page.evaluate(() => { const s = document.querySelector('#cr .cr-rentb[data-airline="jal"] details.cr-more'); if (s) s.open = false; });
+  /* (a) 目印（ANA の「ほかの街」）より上の、開いた欄（提出された年収）が 400px 長くなる */
+  const p0 = await boxAt(page, 'cmp-pay');
+  const a1 = await entryAt(page, BACK_AT, 4);
+  const t1 = await page.evaluate(topOf, BACK_AT);
+  await grow(page, 'cmp-pay', 400);
+  const p1 = await boxAt(page, 'cmp-pay');
+  const a2 = await entryAt(page, BACK_AT, 4);
+  const t2 = await page.evaluate(topOf, BACK_AT);
+  await unGrow(page);
+  const preA = !!p0 && p0.state === 'open' && !p0.part && !!p1 && p1.h - p0.h === 400 && !!a1 && !!a2 && a2.y - a1.y === 400 && Math.abs(t2 - t1) <= 1;
+  ok(preA && J(a1.st) === J(a2.st),
+    `★段 (a)：目印（ANA の「ほかの街」）より上の開いた欄（提出された年収）が 400px 長くなっても（いまの位置 ${a1 && a1.y} → ${a2 && a2.y}）、同じ目印の同じ高さで書かれた段は1文字も同じ ── 開いた欄の高さは段に届かない`,
+    J({ pre: preA, box: [p0, p1], top: [t1, t2], st: [a1 && a1.st, a2 && a2.st], y: [a1 && a1.y, a2 && a2.y] }));
+  /* (b) 上の帯の線が開いた欄（口コミ）の中に在り、その欄が線より下で 400px 長くなる */
+  const r0 = await boxAt(page, 'cmp-stars');
+  const b1 = await entryAt(page, CMP('cmp-stars'), -120);
+  const n1 = await boxAt(page, 'cmp-summary');
+  await grow(page, 'cmp-stars', 400);
+  const r1 = await boxAt(page, 'cmp-stars');
+  const b2 = await entryAt(page, null, 0);
+  const n2 = await boxAt(page, 'cmp-summary');
+  await unGrow(page);
+  const preB = !!r0 && r0.state === 'open' && !r0.part && r0.h > 240 && !!r1 && r1.h - r0.h === 400 && !!b1 && !!b2 && b1.y === b2.y
+    && !!n1 && !!n2 && n2.top - n1.top >= 400;
+  ok(preB && J(b1.st) === J(b2.st),
+    `★段 (b)：上の帯の線が開いた欄（口コミ）の中に在り、その欄が線より下で 400px 長くなっても（すぐ下の欄が ${n1 && n1.top} → ${n2 && n2.top}）、段は1文字も同じ ── 欄の中のどこまで読んでいたかも、欄の高さも段に届かない`,
+    J({ pre: preB, box: [r0, r1], next: [n1, n2], st: [b1 && b1.st, b2 && b2.st], y: [b1 && b1.y, b2 && b2.y] }));
+});
+
+/* ══ faces ══════════════════════════════════════════════════════ */
+/* 読む人5つ（ゲスト・ふつうの会員・給与の鍵が切れた人・空の答えだけの会員 zero・どの読みも落ちる回）× 2組（JAL｜ANA・エティハド｜キャセイ）・390。
+   F1 見えている欄は全部、上限 ＋ 5秒のうちに読み終わった顔になる
+   F2 公開の箱は開いている：推定年収の行4つ（額あり）・家賃の箱2つ・「会社が公表している金額」のカード2つ（その箱を描く組）・
+      評価の点の付いた投稿を返した会社の評価（落ちる回のほか）── どれにも錠の1行が無い
+   F3 顔 a・b（assert-cmp-walk.mjs の faces() と1字も違わない写し ── 提出された年収の件数の行の決まり込み）と、口コミの区域の3つの顔
+      （data-quiet の欄は字が無ければ場所を取らない・要約の欄の empty は畳むか静かな1行か静かなマスの格子1つ・片側だけの印 data-part は開いた顔のまま）
+   F5 入口：月の働き方の欄に印 data-entry="give" が在り、給与の入口（pay-report.html）は画面に1つまで・ログインの入口は口コミの箱の外に1つまで・中に1つまで
+   （F4 ＝ 余白と控えの高さは見るだけ。LC-A10 で外した） */
+const FACE_REV = { ...ROWS, [CX]: [rated('c1', 4), rated('c2', 2)] };
+const word = (state) => () => ({ status: 200, body: { ok: true, state } });
+const FACE_PAY = (fix) => () => ({ status: 200, body: fix(LEAK_FIVE.map((s) => H.payRowFix(s))) });
+const FACE_READERS = [
+  { key: 'guest', ja: 'ゲスト', who: null, rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: word('login'),
+    pv_work_view: word('login'), pv_contrib_facts: word('login'), pv_pay_rows: FACE_PAY(H.payFix.guest) } },
+  { key: 'member', ja: 'ふつうの会員（鍵なし）', who: 'pilot', rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: word('locked'),
+    pv_work_view: word('locked'), pv_contrib_facts: word('locked'), pv_pay_rows: FACE_PAY(H.payFix.member) } },
+  { key: 'expired', ja: '給与の鍵が切れた人', who: 'pay', rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: word('locked'),
+    pv_work_view: word('locked'), pv_contrib_facts: word('locked'), pv_pay_rows: FACE_PAY(H.payFix.expired) } },
+  { key: 'zero', ja: '空の答えだけ（会員 c）', who: 'c', rated: false, stub: {
+    pv_reviews: () => ({ status: 200, body: { ok: true, unlocked: true, rows: [] } }), pv_review_summary: word('few'),
+    pv_work_view: () => ({ status: 200, body: { ok: true, state: 'open', by: {} } }), pv_contrib_facts: () => ({ status: 200, body: { ok: true, state: 'open', facts: [] } }),
+    pv_pay_rows: () => ({ status: 200, body: H.payFix.open([], []) }),
+    pv_company_pay: () => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3, airlines: {} } }) } },
+  { key: 'fail', ja: 'どの読みも落ちる（会員 c）', who: 'c', rated: false, fail: true, stub: Object.fromEntries(
+    [...H.MINE, 'pv_pay_rows', 'pv_company_pay'].map((n) => [n, CX_FAIL])) },
+];
+/* 顔 a・b（比較の設計 F3 の決まりの写し ── assert-cmp-walk.mjs の faces() と1字も違わない。直すときは両方を同じに。下の静かな確かめが見ている）。
+   破った所を、1つずつ字で返す（空 ＝ 守れている） */
+const faces = (page) => page.evaluate(() => {
+  const V = document.querySelector('#cr [data-view="compare"]');
+  const seen = (n) => {
+    if (!n || n.getClientRects().length === 0) return false;
+    const r = n.getBoundingClientRect(), s = getComputedStyle(n);
+    return s.visibility !== 'hidden' && r.width > 1 && r.height > 1;
+  };
+  const a = [], b = [];
+  /* a：読み終わって、開いていない欄 */
+  for (const x of V.querySelectorAll('.crl[data-live]')) {
+    const state = x.getAttribute('data-state'), k = x.getAttribute('data-live');
+    if (['idle', 'loading', 'open'].includes(state)) continue;
+    /* cmp-pay の件数の行（頭のコメントの a の括弧）：行が1つだけで、2つのマスのどちらも .crl-pc[data-airline] の中に
+       p.crl-count「n件の提出」（n は 1 から）か p.crl-msg「まだ記録がありません」の1つだけ。ほかの形なら、許さない */
+    const cell = (c) => { const pc = c.matches('.crl-cmp-c') && c.children.length === 1 ? c.firstElementChild : null;
+      const p = pc && pc.matches('.crl-pc[data-airline]') && pc.children.length === 1 ? pc.firstElementChild : null, t = p ? p.textContent : '';
+      return !!p && (p.matches('p.crl-count') ? /^[1-9]\d*件の提出$/.test(t) && p.querySelectorAll('*').length === 1 : p.matches('p.crl-msg') && t === 'まだ記録がありません' && !p.children.length); };
+    const rows = x.querySelectorAll('.crl-cmp-row');
+    const free = k === 'cmp-pay' && rows.length === 1 && rows[0].children.length === 2 && [...rows[0].children].every(cell) ? rows[0] : null;
+    const bad = [...x.querySelectorAll('ul, ol, table, .crl-cmp-row, .crl-rows, .crl-sk')].filter((n) => n !== free).map((n) => n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''));
+    if (bad.length) a.push(`${k}(${state}): ${bad.join(' ')}`);
+    const per = {};
+    for (const l of x.querySelectorAll('.crl-lock')) {
+      const co = (l.closest('[data-airline]') || { getAttribute: () => '' }).getAttribute('data-airline') || '';
+      per[co] = (per[co] || 0) + 1;
+    }
+    for (const [co, n] of Object.entries(per)) if (n > 1) a.push(`${k}(${state}): 錠の1行が${co || '会社の札の外'}に ${n}`);
+    const give = x.querySelectorAll('.crl-give').length, retry = x.querySelectorAll('.crl-retry').length;
+    if (give > 1) a.push(`${k}(${state}): 答えるカード ${give}`);
+    if (retry > 1) a.push(`${k}(${state}): やり直す ${retry}`);
+  }
+  /* b：見えている箱に、見出しと「詳しく」の足のほかの見える字 */
+  for (const box of V.querySelectorAll('.cr-panel, .cr-sec, .cr-cards')) {
+    if (!seen(box)) continue;
+    const w = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+    let has = false;
+    for (let t = w.nextNode(); t && !has; t = w.nextNode()) {
+      const p = t.parentElement;
+      if (!t.nodeValue.trim() || !p || p.closest('h1, h2, h3, h4, h5, h6, .cr-gos')) continue;
+      if (seen(p)) has = true;
+    }
+    if (!has) b.push(`${box.className}：見出しと足のほかに見える字が無い（${box.innerText.trim().replace(/\s+/g, ' ').slice(0, 80)}）`);
+  }
+  const w = V.querySelector('.cr-cmp-work');
+  const locks = w ? [...w.querySelectorAll('.crl-lock')].filter(seen).length : 0;
+  if (locks > 1) b.push(`月の働き方の箱の錠の1行 ${locks}`);
+  return { a, b };
+});
+/* 口コミの区域の3つの顔（比較の設計 D10 FACE ── 決まりの一部であって、例外ではない） */
+const quietFaces = (page) => page.evaluate(() => {
+  const out = [];
+  for (const x of document.querySelectorAll('#cr [data-view="compare"] .crl[data-live]')) {
+    const k = x.getAttribute('data-live'), state = x.getAttribute('data-state'), h = x.getBoundingClientRect().height, t = (x.innerText || '').trim();
+    if (x.getAttribute('data-quiet') === '1' && !t && h > 0.5) out.push(`${k}(quiet,${state}): 字が無いのに ${Math.round(h)}px`);
+    if (k === 'cmp-summary' && state === 'empty' && h > 0.5) {
+      const kids = [...x.children];
+      const one = kids.length === 1 && (kids[0].matches('p.crl-msg[data-why]')
+        || (kids[0].matches('.crl-sum2') && [...kids[0].children].length > 0 && [...kids[0].children].every((c) => c.matches('.crl-sum2-c[data-quiet]'))));
+      if (!one) out.push(`cmp-summary(empty): 畳まず、静かな1行でも静かなマスの格子1つでもない（${kids.map((c) => c.className).join(' ')}）`);
+    }
+    if (x.getAttribute('data-part') === '1' && state !== 'open') out.push(`${k}(${state}): 片側だけの印なのに開いた顔ではない`);
+  }
+  return out;
+});
+/* 公開の箱（F2） */
+const publicBoxes = (page) => page.evaluate(() => {
+  const V = document.querySelector('#cr [data-view="compare"]');
+  const vis = (n) => !!n && n.getClientRects().length > 0 && getComputedStyle(n).visibility !== 'hidden';
+  const rows = [...V.querySelectorAll('.cr-panel[data-kind="estimate"] .cr-row')].filter(vis);
+  const rent = [...V.querySelectorAll('.cr-rentb')].filter(vis), cards = [...V.querySelectorAll('.cr-card')].filter(vis);
+  const rate = [...V.querySelectorAll('.crl[data-live="cmp-stars"] .crl-cmp-row .crl-cmp-c')].map((c) => ({ avg: ((c.querySelector('.crl-avg') || {}).textContent || '').trim(),
+    lock: c.querySelectorAll('.crl-lock').length }));
+  const locked = [...rows, ...rent, ...cards].filter((n) => n.querySelector('.crl-lock')).length;
+  return { rows: rows.map((r) => (r.querySelector('.cr-row-v') || {}).innerText || ''), rent: rent.length, cards: cards.length,
+    cardsBox: vis(V.querySelector('.cr-cards')), rate, locked };
+});
+const entries = (page) => page.evaluate(() => {
+  const V = document.querySelector('#cr [data-view="compare"]');
+  const vis = (n) => n.getClientRects().length > 0 && getComputedStyle(n).visibility !== 'hidden' && n.getBoundingClientRect().height > 1;
+  const where = (a) => { const s = a.closest('.crl[data-live]'); return s ? s.getAttribute('data-live') : 'ページ'; };
+  const pay = [...V.querySelectorAll('a[href*="pay-report.html"]')].filter(vis).map(where);
+  const login = [...V.querySelectorAll('a[href*="login.html"]')].filter(vis);
+  const work = V.querySelector('.crl[data-live="cmp-work"]');
+  return { pay, inRev: login.filter((a) => a.closest('.cr-cmp-rev')).length, outRev: login.filter((a) => !a.closest('.cr-cmp-rev')).length,
+    outAt: login.filter((a) => !a.closest('.cr-cmp-rev')).map(where), stamp: work ? work.getAttribute('data-entry') : null };
+});
+const FACE_PAIRS = [['jal', 'ana'], ['etihad', CX]];
+
+scene('faces', '比較の顔：5つの読む人で、欄は上限のうちに読み終わる・公開の箱は開いている・開いていない欄に一覧や骨が無い・給与の入口は1つ', async () => {
+  /* 顔 a・b は assert-cmp-walk.mjs の faces() の写し ── 1字も違わない */
+  const body = (src) => { const i = src.indexOf('const faces = (page) => page.evaluate(() => {'); const j = i < 0 ? -1 : src.indexOf('\n});\n', i); return i < 0 || j < 0 ? null : src.slice(i, j); };
+  const mine = body(read('assert-cmp-frame.mjs')), walk = body(read('assert-cmp-walk.mjs'));
+  ok(!!mine && mine === walk, '顔 a・b の決まりは assert-cmp-walk.mjs の faces() と1字も違わない（提出された年収の件数の行の決まり込み）', J({ mine: !!mine, walk: !!walk }));
+  for (const R of FACE_READERS) {
+    for (const [a, b] of FACE_PAIRS) {
+      const AB = `${a}|${b}`, t0 = Date.now();
+      const { page } = await open('sp', { who: R.who, url: PAIR(a, b), stub: R.stub });
+      const done = await settled(page, AB, LIMIT + 5000);
+      const took = Date.now() - t0;
+      const states = (await cdnFaces(page)).map((f) => `${f.kind}${f.quiet ? '(quiet)' : ''}:${f.state}`);
+      ok(done, `F1 ${R.ja}・${AB}（390）：見えている欄が全部、上限 ＋ 5秒のうちに読み終わった顔（${took}ms・${states.join(' ')}）`, J(states));
+      await viewStill(page);
+      await frames(page);
+      const P = await publicBoxes(page);
+      const est = P.rows.length === 4 && P.rows.every((v) => /^¥[\d,]+万$/.test(v.trim()));
+      const cardsOk = P.cardsBox ? P.cards === 2 : P.cards === 0;
+      const stars = R.fail ? true : R.rated ? P.rate.length === 2 && P.rate.every((r) => /^\d\.\d$/.test(r.avg) && !r.lock) : P.rate.every((r) => !r.avg && !r.lock);
+      ok(est && P.rent === 2 && cardsOk && stars && P.locked === 0,
+        `F2 ${R.ja}・${AB}：公開の箱は開いている ── 推定年収の行4つ（額あり）・家賃の箱2つ・公表額のカード${P.cardsBox ? '2つ' : 'の箱は描かない組（2社とも中身が無い）'}・`
+        + `${R.fail ? '評価（落ちる回なので見ない）' : R.rated ? '2社の評価の点' : '評価の点なし（評価の付いた投稿が無い）'} ── どれにも錠の1行が無い`, J(P));
+      const FC = await faces(page), Q = await quietFaces(page);
+      ok(FC.a.length === 0, `F3 ${R.ja}・${AB}：顔 a ── 開いていない欄に一覧・表・比べる行・待ちの骨が無い（提出された年収の件数の行1つのほか）・錠の1行は会社ごとに1つまで`, FC.a.join(' ／ '));
+      ok(FC.b.length === 0, `F3 ${R.ja}・${AB}：顔 b ── 見えている箱には、見出しと足のほかに見える字が在る・月の働き方の錠の1行は1つまで`, FC.b.join(' ／ '));
+      ok(Q.length === 0, `F3 ${R.ja}・${AB}：口コミの区域の3つの顔（静かな欄は場所を取らない・要約の空の顔・片側だけの印は開いた顔）`, Q.join(' ／ '));
+      const E = await entries(page);
+      ok(E.stamp === 'give' && E.pay.length <= 1 && E.outRev <= 1 && E.inRev <= 1,
+        `F5 ${R.ja}・${AB}：月の働き方の欄に印（data-entry="give"）が在り、給与の入口は ${E.pay.length}つ（${E.pay.join('・') || 'なし'}）・ログインの入口は口コミの箱の外に ${E.outRev}つ・中に ${E.inRev}つ（どれも1つまで）`,
+        J(E));
+      if (SHOTS) {
+        fs.mkdirSync(SHOTS, { recursive: true });
+        for (const th of ['light', 'dark']) {
+          await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), th);
+          await frames(page);
+          await page.screenshot({ path: path.join(SHOTS, `${CUR.key}-${R.key}-${a}-${b}-390-${th}.png`), fullPage: true });
+        }
+      }
+    }
+  }
 });
 
 /* ══ 走らせる ═══════════════════════════════════════════════════ */
