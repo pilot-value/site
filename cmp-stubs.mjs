@@ -22,6 +22,7 @@
      await close(); await browser.close(); await env.stop();
 */
 import fs from 'node:fs';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -331,6 +332,126 @@ export async function loginIn(tab, local, key) {
 }
 export async function logoutIn(tab) {
   await tab.evaluate(() => { localStorage.removeItem('sb-local-auth-token'); localStorage.removeItem('pv_user'); });
+}
+
+/* ── ブラウザの「戻る」で、ページが手元から戻る（back-forward cache）検査の道具 ─────────────────────
+   assert-keep.mjs の場面 bfcache（KA8）が確かめた3つの置き方でだけ、ブラウザはページを手元に置く（どれか1つ欠けると、戻るたびに読み直す）:
+     ① 新しい headless（bfLaunch ── headless: true。'shell' は置かない：BackForwardCacheDisabledForDelegate）
+     ② 要求を横取りしない（setRequestInterception を使わない ── 上の open() の門は使えない）。代わりの網は、名前を引けるのが
+        localhost と LIBS だけ（NO_NAMES）。外への要求は数える（*.supabase.* は st.supa、名前が引けずに終わったものは st.blocked、
+        それ以外の終わり方はどれも st.through ＝ すり抜け）
+     ③ サイトのファイルの no-store を GitHub Pages と同じ max-age=600 に替える口（pagesFront）
+   pagesFront は assert-keep.mjs の pagesFront の写し（1字も替えていない。あちらは場面の中の関数で、読み込めないため）。 */
+export async function pagesFront(base) {
+  const to = new URL(base);
+  const srv = http.createServer((req, res) => {
+    const up = http.request({ host: '127.0.0.1', port: to.port, path: req.url, method: req.method, headers: { ...req.headers, host: to.host } }, (r) => {
+      const h = { ...r.headers };
+      if (!/^\/(rest|auth|functions|storage|realtime)\/v1(\/|$)|^\/__local\//.test(req.url) && /no-store/.test(h['cache-control'] || '')) h['cache-control'] = 'max-age=600';
+      res.writeHead(r.statusCode, h);
+      r.pipe(res);
+    });
+    up.on('error', () => { res.writeHead(502); res.end(); });
+    req.pipe(up);
+  });
+  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  const port = srv.address().port;
+  if (port === 3000) { srv.close(); throw new Error('3000 番は使わない'); }
+  return { base: `http://localhost:${port}`, close: () => new Promise((r) => { srv.close(r); srv.closeAllConnections?.(); }) };
+}
+export async function bfLaunch() {
+  return puppeteer.launch({ headless: true, args: ['--no-sandbox', NO_NAMES] });
+}
+/* 1枚開く（横取りしない）。front ＝ pagesFront の返り（ページはこの口から読む）。local ＝ startLocal() の返りの local
+   （ログインを作る相手）。who ＝ serve-local.mjs の MEMBERS の key（null ＝ ログインしていない人。置き方は open() と同じ）。
+   ページのどのスクリプトよりも先に、pageshow の控え（window.__ps ＝ [{ p: persisted, t }]）を置く。
+   noBc ＝ BroadcastChannel を外す（KA8 ③④ と同じ：ログインの知らせが届くと、ブラウザが手元のページを捨てる）。
+   返す { page, ctx, st, close }（st は open() と同じ形 ── 場面の終わりの確かめがそのまま読める） */
+export async function bfOpen(browser, front, local, sizeKey, { who = null, url = '/career.html?view=compare&a=jal&b=ana', noBc = false } = {}) {
+  const size = SIZES[sizeKey];
+  if (!size) throw new Error('知らない大きさ: ' + sizeKey);
+  const [w, h, touch] = size;
+  const origin = new URL(front.base).origin;
+  const ctx = await browser.createBrowserContext();
+  const page = await ctx.newPage();
+  const st = { mode: 'local', stub: {}, calls: [], unknown: [], foreign: [], supa: [], blocked: [], through: [],
+    held: {}, heldUrl: [], holdIf: null, holdUrl: null, inflight: new Map(), errs: [] };
+  page.setDefaultTimeout(20000);
+  await page.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: !!touch, hasTouch: !!touch });
+  const out = new Map();
+  page.on('request', (r) => {
+    let u;
+    try { u = new URL(r.url()); } catch { return; }
+    if (!isWeb(u) || u.origin === origin || LIBS.test(u.hostname)) return;
+    if (/supabase\.(co|in|com)$/.test(u.hostname)) st.supa.push(`${r.method()} ${u.host}${u.pathname}`);
+    else out.set(r, `${r.method()} ${u.host}${u.pathname}`);
+  });
+  const end = (r, how) => {
+    const x = out.get(r);
+    if (x === undefined) return;
+    out.delete(r);
+    if (how === 'net::ERR_NAME_NOT_RESOLVED') st.blocked.push(x); else st.through.push(`${x}（${how}）`);
+  };
+  page.on('requestfinished', (r) => end(r, '返事が届いた'));
+  page.on('requestfailed', (r) => end(r, (r.failure() && r.failure().errorText) || '失敗'));
+  page.on('pageerror', (e) => st.errs.push(String(e.message).slice(0, 160)));
+  page.on('dialog', (x) => { x.accept().catch(() => {}); });
+  const seed = who ? await seedOf(local.url, who) : null;
+  await page.evaluateOnNewDocument((origin, s, nb) => {
+    window.__ps = [];
+    window.addEventListener('pageshow', (e) => { window.__ps.push({ p: e.persisted, t: Date.now() }); });
+    if (nb) { try { window.BroadcastChannel = undefined; } catch (e) { /* 消せなければそのまま */ } }
+    if (location.origin !== origin) return;
+    try {
+      if (localStorage.getItem('pv_local_seeded')) return;
+      localStorage.setItem('pv_local_ui', '0');
+      if (s) {
+        const now = String(Date.now());
+        localStorage.setItem('sb-local-auth-token', JSON.stringify(s.session));
+        localStorage.setItem('pv_user', JSON.stringify(s.pv_user));
+        localStorage.setItem('pv_last_active', now);
+        localStorage.setItem('pv_session_start', now);
+        const at = Date.parse((s.session.user || {}).last_sign_in_at || '');
+        localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
+      }
+      localStorage.setItem('pv_local_seeded', '1');
+    } catch (e) { /* 保存領域に触れない画面はそのまま */ }
+  }, origin, seed, !!noBc);
+  await page.goto(front.base + url, { waitUntil: 'load', timeout: 60000 });
+  let closed = false;
+  const close = async () => {
+    if (closed) return;
+    closed = true;
+    for (const r of [...out.keys()]) end(r, '閉じるまで止まったまま');
+    try { if (!page.isClosed()) await page.close(); } catch { /* もう閉じている */ }
+    try { await ctx.close(); } catch { /* もう閉じている */ }
+  };
+  return { page, ctx, st, close };
+}
+/* ページの中のリンクを押して、ほかのページへ移る（人が押すのと同じ、ページから始まる移動）。sel ＝ そのページに在るリンク */
+export async function bfLeave(page, sel) {
+  await Promise.all([page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }),
+    page.evaluate((s) => { const a = document.querySelector(s); if (!a) throw new Error('リンクが無い: ' + s); a.click(); }, sel)]);
+}
+/* 「戻る」を押し、戻ったページの pageshow が届くまで待つ。返す ＝ 手元から戻ったか（pageshow の persisted）と、
+   戻らなかった時のブラウザの言い分（読み直したページの notRestoredReasons） */
+export async function bfBack(page) {
+  const t0 = Date.now();
+  await page.goBack({ waitUntil: 'load', timeout: 60000 });
+  await page.waitForFunction((t) => {
+    const a = window.__ps;
+    return Array.isArray(a) && a.length > 0 && a[a.length - 1].t >= t && document.readyState === 'complete';
+  }, { timeout: 30000 }, t0);
+  const persisted = await page.evaluate(() => window.__ps[window.__ps.length - 1].p === true);
+  const why = persisted ? '' : await page.evaluate(() => {
+    try {
+      const n = performance.getEntriesByType('navigation')[0], r = n && n.notRestoredReasons;
+      const w = []; const walk = (x) => { if (!x) return; (x.reasons || []).forEach((y) => w.push(y.reason || String(y))); (x.children || []).forEach(walk); };
+      walk(r);
+      return w.length ? w.join(',') : (n ? n.type : '?');
+    } catch (e) { return '?'; }
+  }).catch(() => '?');
+  return { persisted, why };
 }
 
 /* ── 読む人（完了確認の「ゲスト／給与資格のみ／口コミ資格のみ／双方あり／期限切れ」）──────────────────────────

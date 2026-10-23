@@ -15,6 +15,15 @@
 /* 落ちたときも同じ（「やり直す」は落ちた欄を全部やり直すので、帯は1本で足りる） */
 .crl[data-live="stars"][data-state="error"] + .crl[data-live="reviews"][data-state="error"],
 .crl[data-live="score"][data-state="error"] + .crl[data-live="reviews"][data-state="error"]{display:none}
+/* 比較：評価も要約も読めなかったとき、同じ知らせと「やり直す」を2つ重ねない（上の欄が出している。やり直すと両方取り直す）。
+   片方の会社だけ読めなかったときも、ボタンは上の欄の1つ（「読めなかった」の1語は、それぞれの欄がその会社の所で言う）。
+   片方の欄は2社とも・もう片方は1社だけ読めなかったときも、帯と「やり直す」は箱に1つ（帯を出している欄のボタンを残す。
+   どのボタンも、読めなかった欄を全部取り直す）。 */
+.crl[data-live="cmp-stars"][data-state="error"] + .crl[data-live="cmp-summary"][data-state="error"]{height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.crl[data-live="cmp-stars"][data-state="error"] + .crl[data-live="cmp-summary"][data-state="error"] > *,
+.crl[data-live="cmp-stars"][data-part="1"] + .crl[data-live="cmp-summary"][data-part="1"] > .crl-retry,
+.crl[data-live="cmp-stars"][data-state="error"] + .crl[data-live="cmp-summary"][data-part="1"] > .crl-retry,
+.crl[data-live="cmp-stars"][data-part="1"]:has(+ .crl[data-live="cmp-summary"][data-state="error"]) > .crl-retry{display:none}
 
 /* ── loading ── */
 .crl-sk{display:grid;gap:8px;padding:6px 0}
@@ -60,8 +69,8 @@
 .crl-side-err{border-style:solid;border-color:transparent;background:var(--pv-orange-soft);color:var(--pv-orange-ink);font-weight:700;white-space:normal}
 .crl-blank{display:block;min-height:1px}
 .crl[data-part="1"] > .crl-retry{margin-top:10px}
-/* 「やり直す」のあと、押した人のフォーカスを受け取る欄（押せるものではないので、輪は描かない） */
-.crl[tabindex="-1"]:focus{outline:none}
+/* 「やり直す」のあと、押した人のフォーカスを受け取る欄と、中央値の器の見出し（押せるものではないので、輪は描かない） */
+.crl[tabindex="-1"]:focus,.crl-agg-h[tabindex="-1"]:focus{outline:none}
 
 /* ── 入口 ── */
 .crl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:6px}
@@ -201,8 +210,11 @@
 .crl-cmp{display:grid}
 .crl-cmp-head,.crl-cmp-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px}
 .crl-cmp-head{padding-bottom:8px;border-bottom:1px solid var(--pv-line)}
-.crl-co{display:flex;align-items:center;gap:6px;min-width:0;font-size:12px;font-weight:700;line-height:1.4;color:var(--pv-ink-2)}
+.crl-co{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-width:0;font-size:12px;font-weight:700;line-height:1.4;color:var(--pv-ink-2)}
 .crl-co::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--crl-co,var(--pv-ink-3))}
+/* 社名は語の途中で折らない（2026-10-23：320px で「キャセイパシフィ／ック」）。色の点の横に入らなければ、名前ごと次の行へ送る。
+   折るのは語の切れ目（空白・「・」・括弧の前）だけ。それでも列より長い1語は、末尾を「…」で切る（列の外へはみ出さない・字を小さくしない） */
+.crl-co-n{min-width:0;max-width:100%;word-break:keep-all;overflow-wrap:normal;overflow:hidden;text-overflow:ellipsis}
 .crl-cmp-row{padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
 .crl-cmp-k{grid-column:1 / -1;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink)}
 .crl-cmp-c{display:flex;flex-direction:column;min-width:0}
@@ -254,6 +266,16 @@
 .crl-rate-rv .crl-revs{margin:0}
 /* 抜粋の終わりの「…」は、サーバーが切った時だけ付けている（pv_review_clip）。比較では足さない ──「……」にしない・切っていない字に付けない */
 .crl-cmp .crl-rev-clip::after{content:none}
+/* 口コミの鍵のある人：その会社のマスの中で、ほかの人の投稿をスクロールして読む枠（新しい順・本文のまま）。
+   枠の外のページは動かさない（overscroll-behavior）。キーボードで入れる枠なので、入った時は枠に輪を出す */
+.crl-rv-scroll{display:grid;gap:4px;max-height:420px;overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 2px 0;border-radius:var(--pv-r-sm)}
+.crl-rv-scroll:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.crl-rv-scroll > .crl-revs{margin:0}
+.crl-rev-full .crl-rev-text{display:block;-webkit-line-clamp:unset;overflow:visible}
+.crl-rev:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.crl-rev:focus:not(:focus-visible){outline:none}
+button.crl-rv-more{appearance:none;-webkit-appearance:none;justify-self:start;margin:0;padding:0;border:0;background:none;font:inherit;font-size:13px;font-weight:700;color:var(--pv-accent-ink);cursor:pointer}
+@media (hover:hover){button.crl-rv-more:hover .crl-ic{transform:translateY(2px)}}
 /* 2社とも投稿が無いとき：1つの文の下に、社名の札と淡い6角形の格子（文と格子のあいだを少し空ける） */
 .crl[data-live="cmp-stars"] > .crl-msg + .crl-cmp{margin-top:8px}
 /* ── 比較の6角形（2社を同じ形・同じ色で）──
@@ -332,6 +354,55 @@ a.crl-sum-a:active{opacity:.7}
 a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px}
 .crl-sum-by{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:8px 0 0;font-size:12px;color:var(--pv-ink-2)}
 .crl-sum-ai{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border-radius:999px;background:var(--pv-accent-soft);color:var(--pv-accent-ink);font-weight:600;letter-spacing:.02em}
+/* ── 口コミの要約（比較・会社ごと）──
+   待っているあいだも1行ぶん（44px）取っておく ＝ 1行の答え（ログイン／鍵／少ない／まだ無い／準備中）が来ても下が動かない。
+   会社ページの要約の欄（pv-glance.css）と同じ決め方：欄は content-box で 44px、1行の顔はどれも 44px の高さ（2026-10-23 に測った：
+   40px のままだと、答えが来た時に下が 9〜19px 動いた）。骨組みは出さない。
+   ⚠️ 箱そのものを display:none にしない（2社を選び直した時に取りに行けない）。畳むときは高さ 0。 */
+.crl[data-live="cmp-summary"]{min-height:44px;box-sizing:content-box}
+.crl[data-live="cmp-summary"][data-state="locked"] > .crl-lock{min-height:44px;box-sizing:border-box}
+.crl[data-live="cmp-summary"] > .crl-ph,
+.crl[data-live="cmp-summary"] > .crl-sk{display:none}
+.crl[data-live="cmp-summary"][data-state="idle"],
+.crl[data-live="cmp-summary"][data-state="loading"],
+.crl[data-live="cmp-summary"][data-state="open"],
+.crl[data-live="cmp-summary"][data-state="locked"]{margin-top:14px;padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+.crl[data-live="cmp-summary"][data-state="error"]{margin-top:14px}
+.crl[data-live="cmp-summary"][data-state="locked"]{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}
+/* 静かな1行（少ない／まだ無い／準備中）だけの欄は畳んでおく。出すのは、すぐ上の評価の欄に「点数の付いた投稿がある会社」か
+   「読めなかった会社」が描かれている時だけ（投稿の無い会社に、同じ意味の文を2つ並べない）。
+   印（data-rated）を持つのは、評価を2社ぶん描いた格子だけ ── 2社とも投稿が無い時の淡い6角形の格子は印を持たない ＝ 畳んだまま。
+   :has() を知らないブラウザはこの下の3つの規則を捨てる ＝ 畳んだまま（言い過ぎない側へ倒れる）。 */
+.crl[data-live="cmp-summary"][data-state="empty"]{height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.crl[data-live="cmp-summary"][data-state="empty"] > *{visibility:hidden}
+.crl-sum2-c[data-quiet]{display:none}
+.crl[data-live="cmp-stars"]:has(> .crl-cmp[data-rated]:not([data-rated="00"])) + .crl[data-live="cmp-summary"][data-state="empty"]{height:auto;min-height:44px;margin-top:14px;padding-top:14px;border-top:1px solid var(--pv-line-soft);overflow:visible}
+.crl[data-live="cmp-stars"]:has(> .crl-cmp[data-rated]:not([data-rated="00"])) + .crl[data-live="cmp-summary"][data-state="empty"] > *{visibility:visible}
+.crl[data-live="cmp-stars"]:has(> .crl-cmp[data-rated]:not([data-rated^="0"])) + .crl[data-live="cmp-summary"] .crl-sum2-c[data-quiet][data-col="1"],
+.crl[data-live="cmp-stars"]:has(> .crl-cmp[data-rated]:not([data-rated$="0"])) + .crl[data-live="cmp-summary"] .crl-sum2-c[data-quiet][data-col="2"]{display:grid}
+/* 静かな1行の見た目は、欄の状態ではなく行そのもの（data-why）で決める ＝ 会社ごとの枠の中でも同じ形。「準備中」は集計の欄と同じ点線の札 */
+.crl[data-live="cmp-summary"] .crl-msg[data-why]{display:flex;align-items:center;gap:8px;min-height:32px;color:var(--pv-ink-3)}
+.crl[data-live="cmp-summary"] .crl-msg[data-why]::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;border:1px solid var(--pv-ink-3)}
+.crl[data-live="cmp-summary"] > .crl-msg[data-why]{min-height:44px}
+.crl[data-live="cmp-summary"] .crl-msg[data-why="off"]{display:inline-flex;min-height:28px;padding:0 12px;border:1px dashed var(--pv-ink-3);border-radius:999px;font-size:12px;font-weight:700}
+.crl[data-live="cmp-summary"] .crl-msg[data-why="off"]::before{content:none}
+.crl-sum2{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.crl-sum2-c{display:grid;gap:8px;align-content:start;min-width:0}
+.crl-sum2-c .crl-sum-li{min-height:0;padding:6px 0}
+@supports (container-type:inline-size){
+  .crl[data-live="cmp-summary"]{container-type:inline-size}
+  @container (min-width:560px){
+    .crl-sum2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
+    .crl-sum2-c[data-col="1"]{grid-column:1}
+    .crl-sum2-c[data-col="2"]{grid-column:2}
+  }
+}
+/* 要約の欄が「ログインが必要です」か「要約は口コミの投稿で開きます」を言っている時は、すぐ上の評価の欄の錠前の1行
+   （「口コミの投稿で開きます」）を重ねない ── 会社ページの評価スコアのカードと同じ（pv-glance.css 2026-10-08）。口コミの Give & Get は残す */
+.crl[data-live="cmp-stars"]:has(+ .crl[data-live="cmp-summary"][data-state="locked"]) > .crl-lock{display:none}
+/* 評価の欄が格子で終わっている時（口コミの鍵のある人など ── 下に錠前の1行も入口も無い）は、格子の最後の行の線が区切り。
+   要約の欄の上にもう1本引かない（細い線を2本重ねない）。読めなかった時の帯（error）は線を持たないので触らない */
+.crl[data-live="cmp-stars"]:has(> .crl-cmp:last-child) + .crl[data-live="cmp-summary"][data-state]:not([data-state="error"]){margin-top:0;border-top:0}
 @media (prefers-reduced-motion:reduce){a.crl-score-a .crl-ic,a.crl-sum-a .crl-ic{transition:none}}
 
 .crl-revs{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}

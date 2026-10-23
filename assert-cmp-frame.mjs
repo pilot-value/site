@@ -8,12 +8,17 @@
      ・切り替えの取り違え（場面 race）── 読み込みの途中で会社を選び直し・入れ替えても、去った会社の返事（遅れて届いた値も、失敗も）は
        新しい2社の欄に1文字も出ない。
      ・部品の配信元が止まっても（場面 cdn）── supabase-js の読み込みが返ってこなくても、欄は上限で失敗の顔になり、「やり直す」で読み直す。
+     ・戻る（場面 back ── 2026-10-23 段階4 cmp-links-card-6）── 比較から会社ページへ出て「戻る」で帰ると（読み込み直したページ）、
+       出る前に画面のいちばん上に在った目印（「ほかの街」）が、欄が埋まったあとも同じ高さに在る（会員 c ＝ どの欄も開いた人・
+       ゲスト ＝ 錠とログインの顔）。欄が帰ってきたら長くなっていた・上の畳みが閉じていた、でも同じ。読む人が自分で動かしたら合わせ直さない。
+       段（history.state）に残す箱の高さは、誰が見ても同じ字の顔（career.js の SAME_FACE）の欄だけ ── 開いた欄の高さは 0（LC-A19）。
+       ブラウザのスクロールの自動の合わせ（scroll anchoring）は切って見る（overflow-anchor:none ── ページ自身の合わせだけが働く形）。
      ・門（どの場面も）── 開く画面は全部1つの門を通る。通してよいのは、この検査が起こした手元のサーバーと、部品・書体の配信元（LIBS）だけ。
        ほかの行き先への要求は止めたうえで、その場面ごと赤くする（本番へは1本も出ない）。
    どの場面も、終わりに確かめる：門が止めた外への要求 0・本番の supabase への要求 0・すり抜け 0・自分の担当の呼び出しに全部返事があった。
 
    実行: node assert-cmp-frame.mjs [--scenes a,b] [--shots <folder>]
-     --scenes  場面を選ぶ（stall・race・cdn・rate）。付けなければ全部
+     --scenes  場面を選ぶ（stall・race・cdn・rate・back）。付けなければ全部
      --shots   場面の途中の顔（失敗の顔・埋まった顔）を撮って置く（置き場は打った場所。ファイルに書かない）
    自分で手元の保存先を空いているポートで起こし、終わったら捨てる（cmp-stubs.mjs の startLocal）。3000番・3100番は使わない。
    返事は全部この検査が作る（MOCK）。結果の行の頭に [MOCK] と書く。本番については何も言わない（本番は 未確認）。
@@ -168,13 +173,14 @@ const faceOf = (page, sel) => page.evaluate((sel, ERR, RETRY) => {
 }, sel, ERR, RETRY);
 const CMP = (kind) => `#cr [data-view="compare"] .crl[data-live="${kind}"]`;
 /* 比較の画面の cmp- の欄（getClientRects の在るもの）を、要素ごとに1つずつ（同じ種類が2つあっても、それぞれを読む）。
-   quiet ＝ data-quiet="1"・after ＝ すぐ前の欄の種類・shown ＝ 見えている「やり直す」の数・h ＝ 欄の高さ */
+   quiet ＝ data-quiet="1"・after ＝ すぐ前の欄の種類・afterState ＝ すぐ前の欄の状態・shown ＝ 見えている「やり直す」の数・h ＝ 欄の高さ */
 const cdnFaces = (page) => page.evaluate((ERR, RETRY) => [...document.querySelectorAll('#cr [data-view="compare"] .crl[data-live^="cmp-"]')]
   .filter((b) => b.getClientRects().length).map((b) => {
     const t = b.innerText || '', prev = b.previousElementSibling;
     const rs = [...b.querySelectorAll('.crl-retry')].filter((x) => x.textContent === RETRY);
     return { kind: b.getAttribute('data-live'), quiet: b.getAttribute('data-quiet') === '1', state: b.getAttribute('data-state'),
-      after: (prev && prev.getAttribute('data-live')) || '', errs: t.split(ERR).length - 1, retries: rs.length,
+      after: (prev && prev.getAttribute('data-live')) || '', afterState: (prev && prev.getAttribute('data-state')) || '',
+      errs: t.split(ERR).length - 1, retries: rs.length,
       shown: rs.filter((x) => x.getClientRects().length && x.getBoundingClientRect().height > 1).length,
       h: Math.round(b.getBoundingClientRect().height), text: t.trim() };
   }), ERR, RETRY);
@@ -391,16 +397,22 @@ scene('cdn', 'supabase-js の読み込みが返ってこなくても、欄は上
   /* 欄は1つずつ読む（同じ種類の欄が2つある ── cmp-facts は月の働き方のすぐ下と待遇の下）。前の決まり「どの欄も「いま読み出せません」と
      「やり直す」が1つずつ」は、種類の最初の1つを2回読んでいた。同じ強さで次へ移した（LEAD の決め (b)・X0）：
      月の働き方のすぐ下の回答の欄（data-quiet）は、月の働き方が失敗の顔のとき畳まれる（高さ 0・見える字も見える「やり直す」も無い ──
-     同じ箱で同じ1行を重ねない。やり直しは月の働き方の「やり直す」が全部を聞き直す）。ほかの欄は、どれも失敗の顔で両方が1つずつ見えている */
-  const F = await cdnFaces(page), quiet = F.filter((f) => f.quiet), loud = F.filter((f) => !f.quiet);
+     同じ箱で同じ1行を重ねない。やり直しは月の働き方の「やり直す」が全部を聞き直す）。ほかの欄は、どれも失敗の顔で両方が1つずつ見えている。
+     口コミの要約の欄（cmp-summary）も同じ形で、同じ強さで次へ移した（cmp-reviews-4 の LEAD の決め・A）：すぐ前の評価の欄（cmp-stars）が
+     失敗の顔のとき、そのすぐ下の要約の欄は畳まれる（高さ 0・見える字も見える「やり直す」も無い。やり直しは評価の欄の「やり直す」が聞き直す）。
+     畳まれてよいのはこの2つだけ（回答の欄 1・要約の欄 1）。ほかの欄は今までどおり、どれも失敗の顔で両方が1つずつ見えている */
+  const F = await cdnFaces(page), quiet = F.filter((f) => f.quiet);
+  const sumFold = F.filter((f) => !f.quiet && f.kind === 'cmp-summary' && f.after === 'cmp-stars' && f.afterState === 'error');
+  const folded = [...quiet, ...sumFold], loud = F.filter((f) => !folded.includes(f));
   const wkF = F.find((f) => f.kind === 'cmp-work');
   ok(failed > 0 && st.heldUrl.length === 1 && loud.length >= 3
     && loud.every((f) => f.state === 'error' && f.errs === 1 && f.retries === 1 && f.shown === 1)
     && F.filter((f) => f.kind === 'cmp-facts').length === 2 && loud.some((f) => f.kind === 'cmp-facts')
-    && !!wkF && wkF.state === 'error' && quiet.length === 1
-    && quiet.every((f) => f.kind === 'cmp-facts' && f.after === 'cmp-work' && f.state === 'error' && f.h === 0 && f.text === '' && f.shown === 0),
-    `部品の読み込みを止めたまま、見えている欄（${loud.map((f) => f.kind).join('・')}）が全部、${(LIMIT + 5000) / 1000}秒のうちに「${ERR}」と「${RETRY}」になった（${failed}ms）。月の働き方のすぐ下の回答の欄は畳まれて、字も「${RETRY}」も重ねない`,
-    J({ failed, heldUrl: st.heldUrl.length, faces: F.map((f) => `${f.kind}${f.quiet ? '(quiet)' : ''}:${f.state}:${f.errs}:${f.retries}:${f.shown}:h${f.h}`) }));
+    && !!wkF && wkF.state === 'error' && quiet.length === 1 && sumFold.length === 1
+    && quiet.every((f) => f.kind === 'cmp-facts' && f.after === 'cmp-work')
+    && folded.every((f) => f.state === 'error' && f.h === 0 && f.text === '' && f.shown === 0),
+    `部品の読み込みを止めたまま、見えている欄（${loud.map((f) => f.kind).join('・')}）が全部、${(LIMIT + 5000) / 1000}秒のうちに「${ERR}」と「${RETRY}」になった（${failed}ms）。月の働き方のすぐ下の回答の欄と、評価のすぐ下の要約の欄は畳まれて、字も「${RETRY}」も重ねない`,
+    J({ failed, heldUrl: st.heldUrl.length, faces: F.map((f) => `${f.kind}${f.quiet ? '(quiet)' : ''}${sumFold.includes(f) ? '(fold)' : ''}:${f.state}:${f.errs}:${f.retries}:${f.shown}:h${f.h}`) }));
   /* 止めるのをやめる（止めていた1本は切る）→「やり直す」 */
   st.holdUrl = null;
   for (const r of st.heldUrl.splice(0)) await r.abort('failed').catch(() => {});
@@ -590,6 +602,246 @@ scene('rate', 'カードの評価 ── ページの外へ渡すのは2つの�
     ok(again && callsOf(st, 'pv_reviews', RATE_FAIL) === 2, 'カードの画面を離れて開き直すと、もう1回だけ聞く（2本目）',
       String(callsOf(st, 'pv_reviews', RATE_FAIL)));
   }
+});
+
+/* ══ back ═══════════════════════════════════════════════════════ */
+/* 比較（JAL｜ANA・390×680）→ ANA の家賃の箱の「ほかの街」→ 会社ページの暮らしのタブ →「戻る」。
+   出る前：「ほかの街」を上の帯のすぐ下（画面のいちばん上の目印）へ動かし、段（history.state）に位置・箱の高さ・目印が書かれるまで待つ。
+   離れる：ページに unload の聞き手を置き（手元に置かせない ＝ 戻ると読み込み直す）、window.__left = 1 の印を付けて、リンクを本当に押す。
+   戻る：goBack。どちらが起きたかを先に確かめる ── 印が消えていて pageshow の persisted が false ＝ 読み込み直したページ。
+   戻ったページの返事は全部止めておき（欄は「読み込み中」のまま）、画面が出る動き（.cr-view の translateY）が終わってから「すぐ」を測る。
+   それから返事を流し、欄が全部落ち着いて（SETTLED）から「あと」を測る。
+   ⚠️ どの回も、ブラウザが自分でスクロールを合わせる働き（scroll anchoring）を切る（<html> に overflow-anchor:none ── Safari のように
+   自分では合わせないブラウザの形）。ページ自身の合わせ（career.js の restore／align）だけが働くので、それが無いと赤くなる。
+   ⚠️ 手元から戻る（back-forward cache）回は、この検査では起きない（要求を横取りすると、ブラウザは手元に置かない ── P12.36）。
+   その回は歩く検査（assert-cmp-walk.mjs）の持ち分（LC-A8）。 */
+const SAME_SHEET = 'locked|login|give|few|empty|off|error';    // 比較の設計（LC-A19）の一覧。製品の SAME_FACE と1字も違わない
+const SAME_RE = new RegExp(`^(${SAME_SHEET})$`);
+const SAME_SRC = (read('career.js').match(/\n {4}var SAME_FACE = \/\^\((.+?)\)\$\/;\n/) || [])[1] || null;
+const LIVE = '#cr [data-view="compare"] .crl[data-live]';
+const BACK_AT = '#cr .cr-rentb[data-airline="ana"] .cr-rentb-go a';         // ANA の「ほかの街」（目印）
+const BACK_FOLD = '#cr .cr-rentb[data-airline="jal"] details.cr-more';      // JAL の「前提と出どころ」（390px では ANA の箱の上）
+const BACK_HOLD = [...H.MINE, 'pv_pay_rows', 'pv_company_pay'];
+/* ページのどのスクリプトよりも先：pageshow の控え・この段の history.state の写し（前の文書の pagehide が書いたもの）・自動の合わせを切る */
+const BACK_BEFORE = () => {
+  if (location.pathname !== '/career.html') return;
+  window.__ps = [];
+  window.addEventListener('pageshow', (e) => { window.__ps.push(!!e.persisted); });
+  try { window.__st0 = history.state ? JSON.parse(JSON.stringify(history.state)) : null; } catch (e) { window.__st0 = 'unreadable'; }
+  const off = () => { if (!document.documentElement) return false; document.documentElement.style.overflowAnchor = 'none'; return true; };
+  if (!off()) new MutationObserver((m, o) => { if (off()) o.disconnect(); }).observe(document, { childList: true });
+};
+/* 会員 c（どの欄も開いた人）の返事：口コミは鍵あり・要約・月の勤務・会員の回答（聞かれた質問すべて）・提出された年収と中央値 */
+const OPEN_REV = {
+  jal: [rated('j1', 4, { salary_comment: '検査の口コミ JAL その一' }), rated('j2', 3, { salary_comment: '検査の口コミ JAL その二' }), rated('j3', 5)],
+  ana: [rated('a1', 4, { salary_comment: '検査の口コミ ANA その一' }), rated('a2', 5)],
+};
+const OPEN_SUM = (co) => ({ ok: true, state: 'open', n: 3, as_of: '2026-10-01',
+  good: [{ text: `${co} 良い点その一`, cat: 'training' }, { text: `${co} 良い点その二`, cat: 'wlb' }], concern: [{ text: `${co} 気になる点その一`, cat: 'benefits' }] });
+const factsAll = (p) => {
+  const keys = p && Array.isArray(p.keys) ? p.keys : [];
+  return { status: 200, body: { ok: true, state: 'open', facts: keys.map((k) => ({ question_id: k, kind: 'num', median_num: 12, n: 5 })) } };
+};
+const backOpen = (jalRows = 2) => ({
+  pv_reviews: (p) => {
+    const a = p && Array.isArray(p.airlines) ? p.airlines[0] : '';
+    return { status: 200, body: { ok: true, unlocked: true, rows: OPEN_REV[a] || [] } };
+  },
+  pv_review_summary: (p) => ({ status: 200, body: OPEN_SUM(p && p.airline === 'jal' ? 'JAL' : 'ANA') }),
+  pv_work_view: workBy(WORK),
+  pv_contrib_facts: factsAll,
+  pv_pay_rows: () => ({ status: 200, body: H.payFix.open(Array.from({ length: jalRows }, () => H.payRowFix('jal')),
+    [H.payRowFix('ana'), H.payRowFix('ana', { pos: 'fo' })]) }),
+  pv_company_pay: () => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3,
+    airlines: { jal: { cap: { s: 'few' }, fo: { s: 'few' } }, ana: { cap: { s: 'few' }, fo: { s: 'few' } } } } }),
+});
+/* ゲストの返事：口コミ0件・要約／月の勤務／会員の回答はログインの顔・提出された年収は伏せた行（会社・出典・時期だけ） */
+const BACK_GUEST = {
+  pv_reviews: () => ({ status: 200, body: { ok: true, unlocked: false, rows: [] } }),
+  pv_review_summary: () => ({ status: 200, body: { ok: true, state: 'login' } }),
+  pv_work_view: () => ({ status: 200, body: { ok: true, state: 'login' } }),
+  pv_contrib_facts: () => ({ status: 200, body: { ok: true, state: 'login' } }),
+  pv_pay_rows: () => ({ status: 200, body: H.payFix.guest([H.payRowFix('jal')], [H.payRowFix('ana')]) }),
+};
+const answerBy = (st) => (name, p) => { const s = st.stub[name]; return typeof s === 'function' ? s(p, null) : s; };
+const boxesOf = (page) => page.evaluate((sel) => [...document.querySelectorAll(sel)].map((b) => ({ kind: b.getAttribute('data-live'),
+  state: b.getAttribute('data-state'), part: b.hasAttribute('data-part'), h: b.offsetHeight, mh: b.style.minHeight })), LIVE);
+const topOf = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().top : null; };
+const yOf = () => window.scrollY;
+/* 2コマ続けて同じ値になるまで読む（測る値が動きの途中でないこと） */
+const steady = async (page, fn, arg) => {
+  let a = await page.evaluate(fn, arg);
+  for (let i = 0; i < 40; i++) {
+    await frames(page);
+    const b = await page.evaluate(fn, arg);
+    if (b === a) return b;
+    a = b;
+  }
+  return a;
+};
+/* 見ている画面そのものが出る動き（.cr-view の cr-in）が終わるまで。読み込み中の骨組みの明滅は終わらないので、そちらは待たない */
+const viewStill = (page) => page.evaluate(async () => {
+  const v = document.querySelector('#cr .cr-view:not([hidden])');
+  if (v) await Promise.all(v.getAnimations().map((a) => a.finished.catch(() => {})));
+});
+/* このページが送った関数の呼び出しのうち、まだ終わっていないもの */
+function inflight(page) {
+  const live = new Set();
+  page.on('request', (r) => { if (/\/rest\/v1\/rpc\//.test(r.url())) live.add(r); });
+  page.on('requestfinished', (r) => live.delete(r));
+  page.on('requestfailed', (r) => live.delete(r));
+  return live;
+}
+/* SETTLED：見えている比較の欄が全部 JAL｜ANA について読み終わり、止めた返事も届いていない呼び出しも無く、画面の動きが終わった */
+const calm = async (page, st, live) => {
+  const s = await settled(page, 'jal|ana', 15000);
+  const q = await waitFor(() => !Object.values(st.held).some((x) => x.length) && live.size === 0, 15000);
+  await viewStill(page);
+  await frames(page);
+  return s && q;
+};
+async function shotView(page, name) {
+  if (!SHOTS) return;
+  fs.mkdirSync(SHOTS, { recursive: true });
+  await page.screenshot({ path: path.join(SHOTS, `${CUR.key}-${name}.png`) });
+}
+/* 1回の「出て、戻る」。away ＝ 離れているあいだに返事を変える（B2）・fold ＝ 目印より上の畳みを開いてから離れる（B3）・
+   wheel ＝ 戻ったあと、返事を流す前にホイールで動かす（B5）。返すのは測った値（判定は場面の側） */
+async function backLeg(name, { who = null, stub, away = null, fold = false, wheel = false, shots = false }) {
+  const HOLD = { on: true };
+  const { page, st } = await open('sp', { who, url: PAIR('jal', 'ana'), before: BACK_BEFORE, stub, holdIf: (n) => HOLD.on && BACK_HOLD.includes(n) });
+  const live = inflight(page);
+  const R = { name };
+  /* 1枚目：返事を止めたまま（読み込み中の高さ）→ 流す → 落ち着いた高さ */
+  R.loading = await page.waitForFunction((sel) => {
+    const all = [...document.querySelectorAll(sel)];
+    return all.length > 0 && all.every((b) => ['idle', 'loading'].includes(b.getAttribute('data-state')))
+      && all.some((b) => b.getAttribute('data-state') === 'loading');
+  }, { timeout: 15000, polling: 50 }, LIVE).then(() => true, () => false);
+  R.hLoad = (await boxesOf(page)).reduce((n, b) => n + b.h, 0);
+  HOLD.on = false;
+  releaseAll(st, answerBy(st));
+  R.calm1 = await calm(page, st, live);
+  R.hFill = (await boxesOf(page)).reduce((n, b) => n + b.h, 0);
+  if (fold) {
+    const fh = () => page.evaluate((s) => { const d = document.querySelector(s); return d ? d.getBoundingClientRect().height : 0; }, BACK_FOLD);
+    const closed = await fh();
+    await page.click(`${BACK_FOLD} > summary`);
+    await frames(page);
+    R.foldOpen = await page.evaluate((s) => { const d = document.querySelector(s); return !!d && d.open; }, BACK_FOLD);
+    R.foldH = Math.round((await fh()) - closed);
+  }
+  /* 目印：「ほかの街」を上の帯のすぐ下へ。段が書かれるまで待つ */
+  await page.evaluate((s) => {
+    const bar = document.querySelector('.mr-top'), e = bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+    window.scrollTo(0, Math.round(window.scrollY + document.querySelector(s).getBoundingClientRect().top - e - 4));
+  }, BACK_AT);
+  R.wrote = await page.waitForFunction((sel) => {
+    const s = history.state;
+    return !!s && s.y === window.scrollY && s.k >= 0 && Array.isArray(s.h) && s.h.length === document.querySelectorAll(sel).length;
+  }, { timeout: 8000, polling: 50 }, LIVE).then(() => true, () => false);
+  R.top0 = await steady(page, topOf, BACK_AT);
+  R.leave = await boxesOf(page);
+  if (shots) await shotView(page, `${name}-before`);
+  /* 離れる（会社ページの返事は止めない）。離れているあいだに返事を変える場面もある */
+  if (away) away(st);
+  await page.evaluate(() => { window.addEventListener('unload', () => {}); window.__left = 1; });
+  await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.click(BACK_AT)]);
+  R.life = await page.waitForFunction(() => !!window.PVGlance && window.PVGlance.at() === 'life', { timeout: 15000 }).then(() => true, () => false);
+  R.lifeAt = await page.evaluate(() => location.pathname + location.hash);
+  /* 戻る（戻ったページの返事は全部止める） */
+  for (const k of Object.keys(st.held)) st.held[k] = [];
+  HOLD.on = true;
+  await page.goBack({ waitUntil: 'load' });
+  R.fresh = await page.evaluate(() => ({ left: window.__left === undefined ? null : window.__left, ps: (window.__ps || []).slice(), st0: window.__st0,
+    search: location.search, a: (document.getElementById('cr-a') || {}).value, b: (document.getElementById('cr-b') || {}).value }));
+  R.reloaded = R.fresh.left === null && R.fresh.ps.length > 0 && R.fresh.ps.every((x) => x === false);
+  await viewStill(page);
+  R.now = await boxesOf(page);
+  R.stillLoading = R.now.length > 0 && R.now.every((b) => ['idle', 'loading'].includes(b.state));
+  R.topNow = await steady(page, topOf, BACK_AT);
+  if (shots) await shotView(page, `${name}-loading`);
+  if (wheel) {
+    await page.mouse.move(195, 420);
+    await page.mouse.wheel({ deltaY: 200 });
+    R.y1 = await steady(page, yOf);
+  }
+  HOLD.on = false;
+  releaseAll(st, answerBy(st));
+  R.calm2 = await calm(page, st, live);
+  R.topAfter = await steady(page, topOf, BACK_AT);
+  R.yAfter = await steady(page, yOf);
+  R.after = await boxesOf(page);
+  if (fold) R.foldNow = await page.evaluate((s) => { const d = document.querySelector(s); return !!d && d.open; }, BACK_FOLD);
+  if (shots) await shotView(page, `${name}-filled`);
+  return R;
+}
+const px = (v) => (v == null ? 'null' : `${Math.round(v * 10) / 10}`);
+const legNote = (R) => J({ wrote: R.wrote, life: R.life, at: R.lifeAt, fresh: R.fresh && { ...R.fresh, st0: undefined }, reloaded: R.reloaded,
+  top0: R.top0, topNow: R.topNow, topAfter: R.topAfter, calm: [R.calm1, R.calm2], now: (R.now || []).map((b) => `${b.kind}:${b.state}:${b.mh || '-'}`),
+  after: (R.after || []).map((b) => `${b.kind}:${b.state}:${b.h}:${b.mh || '-'}`) });
+const sameAddr = (R) => R.wrote && R.life && R.lifeAt === '/airlines/ana.html#life' && R.reloaded
+  && R.fresh.search === '?view=compare&a=jal&b=ana' && R.fresh.a === 'jal' && R.fresh.b === 'ana';
+
+scene('back', '比較 →「ほかの街」→ 会社ページ →「戻る」：出る前のいちばん上の目印が、欄が埋まったあとも同じ高さ・段に残す高さは誰が見ても同じ顔の欄だけ', async () => {
+  /* ★LC-A19（ファイルの半分）：段に高さを残す顔の一覧は、設計の一覧そのもの。開いた顔・途中の顔は入っていない */
+  ok(SAME_SRC === SAME_SHEET && !SAME_RE.test('open') && !SAME_RE.test('idle') && !SAME_RE.test('loading'),
+    `★段に高さを残す顔の一覧（career.js の SAME_FACE）は、比較の設計の一覧と1字も違わない（${SAME_SHEET}）── 開いた顔（open）・途中の顔は入っていない`,
+    J({ SAME_SRC }));
+
+  /* B1 会員 c（どの欄も開いた人）：前提（埋まると十分長くなる）→ 出て戻る → 落ち着いたあとの目印 */
+  const c = await backLeg('c', { who: 'c', stub: backOpen(), shots: true });
+  const grow = c.hFill - c.hLoad;
+  ok(c.loading && c.calm1 && grow > 100,
+    grow > 100 ? `（前提）欄が埋まると、読み込み中より ${grow}px 長い（100px より大きい ── 高さも目印も合わせなければ、この場面は赤くなる）`
+      : `（前提）この場面は落ちることができない（欄が埋まっても ${grow}px しか長くならない）`, J({ loading: c.loading, calm1: c.calm1, hLoad: c.hLoad, hFill: c.hFill }));
+  if (!(c.loading && c.calm1 && grow > 100)) return;
+  ok(sameAddr(c), 'B1 会員 c：「ほかの街」→ 会社ページの暮らしのタブ →「戻る」は、読み込み直したページ（離れる前の印が無い・pageshow の persisted は false）で、同じ住所・同じ2社',
+    legNote(c));
+  console.log(`  ・B1 会員 c：戻った直後（欄は${c.stillLoading ? '全部読み込み中' : 'もう読み込み中ではない'}・画面の動きのあと）の目印のずれ ${px(c.topNow - c.top0)}px`
+    + '（開いた欄の高さは段に残さないので、ここは目印の合わせだけ ── 数を控えるだけ）');
+  ok(c.calm2 && Math.abs(c.topAfter - c.top0) <= 2 && c.after.every((b) => !b.mh),
+    `B1 会員 c：欄が全部落ち着いたあと、目印（「ほかの街」）は出る前と同じ高さ（ずれ ${px(c.topAfter - c.top0)}px ≤ 2）・どの欄にも控えの高さ（min-height）が残っていない`,
+    legNote(c));
+  /* ★LC-A19：会員 c が離れたあとの段（戻った文書の最初に写したもの ＝ 前の文書の pagehide が書いたもの） */
+  const hs = c.fresh.st0 && c.fresh.st0.h;
+  const pin = Array.isArray(hs) && c.leave.length > 0 && hs.length === c.leave.length
+    && c.leave.every((b) => !['idle', 'loading'].includes(b.state)) && c.leave.some((b) => b.state === 'open')
+    && c.leave.every((b, i) => (SAME_RE.test(b.state) && !b.part) || hs[i] === 0);
+  ok(pin, '★LC-A19 会員 c（どの欄も開いた人）が離れたあとの段：誰が見ても同じ字の顔でない欄（開いた・片側だけ）の高さは全部 0 ── 段に残るのは寸法だけで、受け取った人にしか無い行の数を語る高さは残さない',
+    J({ h: hs, at: c.leave.map((b) => `${b.kind}:${b.state}${b.part ? '(part)' : ''}:${b.h}`) }));
+
+  /* B2 会員 c：離れているあいだに、目印より上の提出された年収の欄に JAL の行が1つ増える */
+  const c2 = await backLeg('taller', { who: 'c', stub: backOpen(2), away: (st) => { st.stub.pv_pay_rows = backOpen(3).pv_pay_rows; } });
+  const payH = (L) => ((L || []).find((b) => b.kind === 'cmp-pay') || {}).h;
+  ok(sameAddr(c2) && c2.calm2 && payH(c2.after) > payH(c2.leave) && Math.abs(c2.topAfter - c2.top0) <= 2,
+    `B2 会員 c：離れているあいだに目印より上の欄（提出された年収）が長くなって帰ってきても（${payH(c2.leave)} → ${payH(c2.after)}px）、落ち着いたあと目印は同じ高さ（ずれ ${px(c2.topAfter - c2.top0)}px ≤ 2）`,
+    legNote(c2));
+
+  /* B3 会員 c：目印より上の JAL の「前提と出どころ」を開いたまま離れる → 戻ると閉じている（上が短い） */
+  const c3 = await backLeg('fold', { who: 'c', stub: backOpen(), fold: true });
+  console.log(`  ・B3 会員 c：戻った直後（欄は読み込み中）の目印のずれ ${px(c3.topNow - c3.top0)}px（数を控えるだけ）`);
+  ok(sameAddr(c3) && c3.foldOpen && c3.foldH > 0 && c3.foldNow === false && c3.calm2 && Math.abs(c3.topAfter - c3.top0) <= 2,
+    `B3 会員 c：目印より上の「前提と出どころ」（JAL の家賃の箱）を開いたまま離れ、戻ると畳みは閉じていて上が ${c3.foldH}px 短い ── 落ち着いたあと目印は同じ高さ（ずれ ${px(c3.topAfter - c3.top0)}px ≤ 2）`,
+    J({ foldOpen: c3.foldOpen, foldH: c3.foldH, foldNow: c3.foldNow, note: JSON.parse(legNote(c3)) }));
+
+  /* B5 会員 c：戻ったあと、返事を流す前に読む人がホイールで動かす → もう合わせ直さない */
+  const c5 = await backLeg('wheel', { who: 'c', stub: backOpen(), wheel: true });
+  ok(sameAddr(c5) && c5.calm2 && c5.yAfter === c5.y1,
+    `B5 会員 c：戻ったあと、欄が埋まる前に読む人がホイールで動かすと、ページはもう合わせ直さない（欄が埋まったあとも ${c5.y1} のまま ── 読む人が動かしたら、合わせ直さない）`,
+    J({ y1: c5.y1, yAfter: c5.yAfter, note: JSON.parse(legNote(c5)) }));
+
+  /* B1g ゲスト：錠・ログイン・空の顔は、出る前の高さで置かれる（すぐ・あと） */
+  const g = await backLeg('guest', { stub: BACK_GUEST, shots: true });
+  const gh = g.fresh.st0 && g.fresh.st0.h;
+  const kept = Array.isArray(gh) && g.leave.length > 0 && gh.length === g.leave.length
+    && g.leave.every((b, i) => ((SAME_RE.test(b.state) && !b.part) ? gh[i] === b.h : gh[i] === 0)) && gh.some((x) => x > 0)
+    && g.now.length === gh.length && g.now.every((b, i) => (gh[i] > 0 ? b.mh === `${gh[i]}px` : !b.mh));
+  ok(sameAddr(g) && g.stillLoading && kept && Math.abs(g.topNow - g.top0) <= 2,
+    `B1g ゲスト：戻った直後（欄は全部読み込み中）── 錠・ログイン・空の顔の欄は出る前の高さで置かれ（min-height ＝ 段の高さ）、目印（「ほかの街」）は出る前と同じ高さ（ずれ ${px(g.topNow - g.top0)}px ≤ 2）`,
+    J({ h: gh, leave: g.leave.map((b) => `${b.kind}:${b.state}:${b.h}`), note: JSON.parse(legNote(g)) }));
+  ok(g.calm2 && Math.abs(g.topAfter - g.top0) <= 2 && g.after.every((b) => !b.mh),
+    `B1g ゲスト：欄が全部落ち着いたあとも、目印は同じ高さ（ずれ ${px(g.topAfter - g.top0)}px ≤ 2）・控えの高さは外れている`, legNote(g));
 });
 
 /* ══ 走らせる ═══════════════════════════════════════════════════ */

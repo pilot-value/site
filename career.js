@@ -220,13 +220,105 @@
       try { cr.dispatchEvent(new CustomEvent('cr:show', { detail: copy() })); } catch (e) {}
     }
 
+    /* ── 戻ってきたときの位置（会社ページへ出て、ブラウザの「戻る」で帰ってきたとき）──────────
+       帰ってきた直後は、生きた欄がまだ空で、ページが短い。そのまま位置を戻すと別の所に出る。
+       (1) 生きた欄を、出る前の高さで置いておく（答えで落ち着いたら外す）。
+       (2) 出る前に画面のいちばん上に在った「動かない目印」（見出し・リンク・箱）を覚えておき、
+           欄や畳みの高さが変わるたびに、その目印が同じ高さに来るよう合わせ直す。読む人が自分で動かしたら、やめる。
+       段に残すのは画面の寸法だけ（箱の高さ・目印の番号と位置）。額・件数・字は残さない。
+       ★高さを残すのは、誰が見ても同じ字の顔（SAME_FACE：錠・ログイン・答えるカード・まだ少ない・空・準備中・読めない）の欄で、
+         片側だけの印（data-part）が無いものだけ。開いた欄（open）・途中の欄・知らない状態は 0 ── 開いた欄の高さは、
+         見える行の数（受け取った人にしか無い値）を語る。段はログアウトや読む人の交代のあとも、このタブに残る（LC-A19）。 */
+    var SAME_FACE = /^(locked|login|give|few|empty|off|error)$/;
+    var MARKS = 'h1, h2, h3, a[href], .cr-row, .cr-rentb, .cr-card, .crl[data-live]';
+    var liveOf = function () { return shown ? shown.querySelectorAll('.crl[data-live]') : []; };
+    var marksOf = function () {
+      var out = [];
+      if (shown) each(shown.querySelectorAll(MARKS), function (el) {
+        var up = el.parentElement;
+        if (!(up && up.closest('.crl, #cr-deep'))) out.push(el);    // 部品が後から描く中身は目印にしない（戻った直後には無い）
+      });
+      return out;
+    };
+    var edge = function () { return bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0; };
+    /* 画面が出るときの動き（.cr-view の translateY が 0 へ戻る途中）の分。目印の位置からは除く
+       （動きの途中で合わせると、動き終わったときにその分だけずれる）。 */
+    var lift = function () {
+      var m = shown && /^matrix\((.+)\)$/.exec(getComputedStyle(shown).transform || '');
+      return m ? Number(m[1].split(',')[5]) || 0 : 0;
+    };
+    var sizes = function () {
+      var out = [];
+      each(liveOf(), function (b) {
+        out.push(SAME_FACE.test(b.getAttribute('data-state') || '') && !b.hasAttribute('data-part') ? b.offsetHeight : 0);
+      });
+      return out;
+    };
+    function mark() {
+      var list = marksOf(), e = edge(), up = lift();
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i].getClientRects()[0];
+        if (r && r.top - up >= e) return { k: i, t: Math.round(r.top - up) };
+      }
+      return { k: -1, t: 0 };
+    }
+    var waiting = function (b) { var s = b.getAttribute('data-state'); return s === 'idle' || s === 'loading'; };
+    var free = function (b) { if (b.style.minHeight) b.style.minHeight = ''; };
+    var held = null, ro = null;
+    function letGo() {
+      held = null;
+      if (ro) ro.disconnect();
+    }
+    function align() {
+      if (!held) return;
+      var el = marksOf()[held.k], r = el && el.getClientRects()[0];
+      if (!r) return;
+      var dy = Math.round(r.top - lift()) - held.t;
+      if (dy) window.scrollBy(0, dy);
+      held.y = window.scrollY;
+    }
+    function arm(m) {
+      letGo();
+      if (!m || !(m.k >= 0)) return;
+      held = { k: m.k, t: m.t, y: window.scrollY };
+      if (window.ResizeObserver && shown) {
+        ro = ro || new ResizeObserver(align);
+        ro.observe(shown);
+      }
+      align();
+    }
+    function restore(st) {
+      letGo();
+      each(cr.querySelectorAll('.crl[data-live]'), free);
+      var h = st && st.h, list = liveOf();
+      if (h && h.length === list.length) each(list, function (b, i) { if (h[i] > 0 && waiting(b)) b.style.minHeight = h[i] + 'px'; });
+      window.scrollTo(0, (st && st.y) || 0);
+      if (st) arm({ k: st.k, t: st.t });
+    }
+    if (window.MutationObserver) {
+      new MutationObserver(function (recs) {
+        recs.forEach(function (r) { if (!waiting(r.target)) free(r.target); });
+        align();
+      }).observe(cr, { attributes: true, subtree: true, attributeFilter: ['data-state'] });
+    }
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (n) {
+      window.addEventListener(n, letGo, { capture: true, passive: true });
+    });
+    /* 生きた欄を動かす部品が届かなかったときは、控えた高さを残さない（空の箱が広がったままになる）。 */
+    window.addEventListener('load', function () {
+      if (!(window.PVCareer && window.PVCareer.client)) each(cr.querySelectorAll('.crl[data-live]'), free);
+    });
+    /* ブラウザが前の画面をそのまま戻したとき：いま上に在る目印を覚え直す（取り直しで欄の高さが変わっても、読む場所を動かさない）。 */
+    window.addEventListener('pageshow', function (e) { if (e.persisted) arm(mark()); });
     var keep = function () {
-      try { history.replaceState({ y: window.scrollY }, '', location.href); } catch (e) {}
+      var m = mark();
+      try { history.replaceState({ y: window.scrollY, h: sizes(), k: m.k, t: m.t }, '', location.href); } catch (e) {}
     };
     /* 位置は、送り終えるたびにいまの段へ残す。ブラウザの「戻る」で出るときは
        残す間が無い（知らせが来たときには、もう次の段に居る）ので、押した時だけでは足りない。 */
     var tick = 0;
     window.addEventListener('scroll', function () {
+      if (held && Math.abs(window.scrollY - held.y) > 1) letGo();    // 読む人が動かした
       clearTimeout(tick);
       tick = setTimeout(keep, 90);
     }, { passive: true });
@@ -240,6 +332,7 @@
 
     /* 画面を移る（履歴へ1段積んで、頭から見せる）。 */
     function go(st) {
+      letGo();
       clearTimeout(tick);
       keep();                                   // 戻ってきたときの位置を、いまの段に残す
       history.pushState({ y: 0 }, '', url(st));
@@ -279,11 +372,12 @@
     window.addEventListener('popstate', function (e) {
       clearTimeout(tick);                       // 前の画面の位置を、移った先の段へ書かない
       show(parse(location.search), true);
-      window.scrollTo(0, (e.state && e.state.y) || 0);
+      restore(e.state);
     });
 
     function repick(a, b) {
       if (a === b) return;
+      letGo(); each(liveOf(), free);
       var st = blank('compare');
       st.a = a; st.b = b;
       swapIn(st);
@@ -305,8 +399,7 @@
     var first = parse(location.search);
     if (first.fix) history.replaceState(history.state, '', mend(first));
     show(first, false);
-    var y = history.state && history.state.y;
-    if (y) window.scrollTo(0, y);
+    if (history.state) restore(history.state);
   }
 
   try { boot(); }
