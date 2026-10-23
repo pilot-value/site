@@ -15,6 +15,11 @@
      node shot-glance.mjs shoot draft --set stay [--only jal] [--sizes iphone,ipad-p,pc]
                             ステイ先（就航地の詳細）を、読む人が出会う状態ごとに撮る（最初の1画面だけ）。
                             --only は会社（jal）か、会社と番号（jal-s3）。(5) だけ 3000 番・ほかは使い捨ての手元の保存先
+     node shot-glance.mjs shoot draft --set compare --sizes iphone,ipad-p,pc
+                            段階04の2社の比較とカード。全部、使い捨ての手元の保存先で撮る（本番を読まない）。
+                            投稿0件の4つ → 読む人と投稿を作る（SEED.compare・--via call）→ 読む人ごとの8つ（期限切れが最後）
+     PV_PUB=http://localhost:<serve-local の番号> node shot-glance.mjs sheet --set compare --sizes iphone,ipad-p,pc
+                            台紙は、作業場から立てた serve-local.mjs で開いて撮る（★3000 番では開かない）
 
    置き場  temporary screenshots/glance/（gitignore 済み）
      current/ draft/   撮った絵と、撮ったときの覚え書き（meta.json）
@@ -91,6 +96,9 @@ const STAY_STATES = [
   ['10', '「戻る」のあとの一覧（探す字が残っている）', { list: true, prep: 'stayBack', focus: '#pvg-st-q', label: '手元の保存先（REAL LOCAL）' }],
   ['11', 'ログインから戻った画面（板は -board.png）・板を閉じた後の書きかけの面', { prep: 'stayLogin', focus: STAY_ZONE, label: '手元の保存先（REAL LOCAL）・会員は模擬' }],
 ];
+/* 段階04の比較（set 'compare'）の台紙の札。比較の画面の見本は採っていない（見本の画像 20〜23 は暮らし・話題・月勤務のもの）。 */
+const CMP_REF_NONE = '見本なし ── 比較の画面の見本は採っていない（見本の画像 20〜23 は暮らし・話題・月勤務）';
+const CMP_CUR_NOTE = '段階04の最初の変更の前に撮った画面（オーナーの画像12と並べて見る）';
 
 export const TARGETS = [
   ...AIR.map(([slug, ja, r]) => ({
@@ -146,10 +154,36 @@ export const TARGETS = [
 
   /* 段階04：2社の比較とカード。手元の保存先で撮る（本番を読まない）。ログインしていない人のまま（who: null, local: true）。 */
   ...[['jal', 'ana'], ['etihad', 'cathay-pacific'], ['eva-air', 'jal']].map(([a, b]) => ({
-    set: 'compare', key: `cmp-${a}-${b}`, ja: `比較 ${a} × ${b}（未ログイン・投稿0件）`, who: null, local: true,
+    set: 'compare', key: `cmp-${a}-${b}`, ja: `比較 ${a} × ${b}（未ログイン・投稿0件）`, who: null, local: true, refNone: CMP_REF_NONE,
+    currentNote: CMP_CUR_NOTE,
     current: { path: `/career.html?view=compare&a=${a}&b=${b}` }, draft: { path: `/career.html?view=compare&a=${a}&b=${b}` }, ref: {} })),
-  { set: 'compare', key: 'card-jal-ana', ja: 'カード JAL × ANA', who: null, local: true,
+  { set: 'compare', key: 'card-jal-ana', ja: 'カード JAL × ANA', who: null, local: true, refNone: CMP_REF_NONE, currentNote: CMP_CUR_NOTE,
     current: { path: '/career.html?view=card&a=jal&b=ana' }, draft: { path: '/career.html?view=card&a=jal&b=ana' }, ref: {} },
+
+  /* 段階04：読む人ごとの比較とカード（「新」の側だけ ── 段階04の前には無い）。上の投稿0件の4つを撮ったあと、同じ使い捨ての
+     保存先に、比較の検査と同じ1つの作り方（cmp-stubs.mjs の makeReaders）で読む人と投稿を作ってから撮る（SEED.compare）。
+     会員は serve-local.mjs の模擬の会員（pay ＝ 給与資格のみ・a ＝ 口コミ資格のみ・c ＝ 双方あり）。投稿は手元の試験の投稿（本物ではない）。
+     期限切れ（pay の給与の鍵を過去へ）は保存先を元に戻せないので、いちばん最後に撮る。 */
+  ...[
+    ['cmp-seeded', '比較', '未ログイン・手元の投稿あり', null, null],
+    ['cmp-pay', '比較', '給与資格のみ', 'pay', null],
+    ['cmp-rev', '比較', '口コミ資格のみ', 'a', null],
+    ['cmp-both', '比較', '双方あり', 'c', null],
+    ['cmp-fail', '比較', '未ログイン・片側の口コミが読めない', null, 'failReviews'],
+    ['cmp-usd', '比較', '未ログイン・ドルで表示', null, 'usd'],
+    ['card-rated', 'カード', '未ログイン・評価のある2社', null, null],
+    ['cmp-expired', '比較', '給与の鍵が切れた', 'pay', 'expire'],
+  ].map(([key, what, ja, who, prep]) => {
+    const path = `/career.html?view=${what === 'カード' ? 'card' : 'compare'}&a=jal&b=ana`;
+    return {
+      set: 'compare', key, ja: `${what} jal × ana（${ja}）`, who, local: true, seed: 'compare', refNone: CMP_REF_NONE,
+      caption: (prep === 'failReviews' ? 'MOCK（手元のサーバーに口コミの読み出しを1回わざと失敗させた）・ほかは手元の保存先（REAL LOCAL）'
+        : prep === 'expire' ? '手元の保存先（REAL LOCAL）・給与の鍵の期限は手元の保存先で過去へ書いた'
+        : '手元の保存先（REAL LOCAL）') + '・読む人と投稿は模擬（makeReaders・via call）',
+      current: null, currentNote: '段階04の前には無い',
+      draft: { path, prep: prep || undefined }, ref: {},
+    };
+  }),
 ];
 
 /* 本番の DB へ通してよい「読むだけ」の関数。ここに無い rpc は止めて、一覧で知らせる。 */
@@ -160,6 +194,8 @@ const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com|cd
 const argv = process.argv.slice(2);
 const vals = (name) => argv.flatMap((a, i) => (a === name && argv[i + 1] ? [argv[i + 1]] : []));
 const list = (name) => vals(name).flatMap((v) => v.split(',')).map((s) => s.trim()).filter(Boolean);
+/* 比較の読む人の作り方（SEED.compare）。比較の検査と同じ（今は call だけ） */
+const VIA = vals('--via')[0] || 'call';
 
 function pick() {
   const only = list('--only'), sets = list('--set'), sizes = list('--sizes');
@@ -334,6 +370,43 @@ const PREP = {
     await page.waitForFunction(() => { const x = document.querySelector('.pvgf-x'); return !x || !x.getClientRects().length; }, { timeout: 20000 });
     await page.waitForSelector(`${STAY_FORM} [data-k="name"]`, { visible: true, timeout: 20000 });
   },
+
+  /* ── 比較（set 'compare'）── */
+  /* 表示の通貨をドルにする（ページの通貨の切替と同じ口）→ 見えている推定年収の行に ¥ が残っていない */
+  async usd(page) {
+    await page.evaluate(() => window.PVCurrency.set('USD'));
+    await page.waitForFunction(() => {
+      const v = Array.from(document.querySelectorAll('.cr-row-v')).filter((e) => e.getClientRects().length);
+      return v.length > 0 && v.every((e) => !/¥/.test(e.textContent));
+    }, { timeout: 20000 });
+  },
+  /* 手元のサーバーに、口コミの読み出し（pv_reviews）を次の1回だけ失敗させて読み直す ＝ 片側だけ読めない
+     （「やり直す」が出たら失敗の仕掛けを外す ── 読み出しが1本も来なかったときに、次に撮る画面へ持ち越さない） */
+  async failReviews(page, spec, ctx) {
+    await fetch(`${ctx.base}/__local/fail?n=1&match=pv_reviews`);
+    try {
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForFunction(() => Array.from(document.querySelectorAll('#cr .crl-retry')).some((b) => b.getClientRects().length), { timeout: 30000 });
+    } finally { await fetch(`${ctx.base}/__local/fail?n=0`); }
+  },
+  /* 給与の鍵の期限を過去へ（比較の設計 I-5 の1文。鍵を手で先へは書かない）→ 読み直す。保存先を戻せないので TARGETS の最後に置く */
+  async expire(page, spec, ctx) {
+    const { MEMBERS } = await import('./serve-local.mjs');
+    const m = MEMBERS.find((x) => x.key === ctx.who);
+    if (!m || !ctx.local) throw new Error('期限切れにする会員か手元の保存先が無い');
+    await ctx.local.locked(() => ctx.local.db.query("update public.profiles set access_until = now() - interval '1 day' where id = $1", [m.id]));
+    await page.reload({ waitUntil: 'domcontentloaded' });
+  },
+};
+
+/* 撮る前に1回だけ、使い捨ての保存先に読む人と投稿を作る（TARGETS の seed。shoot() が、その seed の最初の画面の前に呼ぶ）。 */
+const SEED = {
+  /* 比較 ── 比較の検査（assert-cmp-walk.mjs）と同じ1つの作り方（cmp-stubs.mjs の makeReaders）。via も同じ call
+     （手元で投稿の画面を送る道 form は、まだ無い）。返すのは { via, did, readers }（投稿1件に1行・読む人1人に1行）。 */
+  async compare(local) {
+    const { makeReaders } = await import('./cmp-stubs.mjs');
+    return makeReaders(local, { via: VIA });
+  },
 };
 
 /* 手元の保存先の関数を、その会員として外から呼ぶ（who が null ならログインなし）。返事の JSON（読めなければ null）。 */
@@ -395,7 +468,7 @@ async function shootOne(browser, t, sizeKey, label, local, log) {
     await page.goto(base + spec.path, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await settle(page, notes);
     if (spec.prep) {
-      await PREP[spec.prep](page, spec, { base, notes, dir, id, size: sizeKey });
+      await PREP[spec.prep](page, spec, { base, notes, dir, id, size: sizeKey, local, who: t.who || null });
       await settle(page, notes);
     }
     const landed = new URL(page.url());
@@ -462,10 +535,27 @@ async function shoot(label) {
   const browser = await launch();
   const metaPath = path.join(OUT, label, 'meta.json');
   const meta = fs.existsSync(metaPath) ? JSON.parse(fs.readFileSync(metaPath, 'utf8')) : {};
-  const failed = [], blockedAll = new Set();
+  const failed = [], blockedAll = new Set(), seeded = {};
   try {
     /* 画面ごとに全部の大きさを撮り切ってから次へ（回答を入れる画面は TARGETS の最後に置いてある）。 */
     for (const t of todo) {
+      /* seed の付いた最初の画面の前に1回だけ、読む人と投稿を作る。作れなければ、その seed の画面は撮らない（黙って空の画面を撮らない） */
+      if (t.seed && !(t.seed in seeded)) {
+        try {
+          const r = await SEED[t.seed](local);
+          seeded[t.seed] = true;
+          console.log(`  読む人と投稿を作った（${t.seed}・via ${r.via}）`);
+          for (const l of [...r.did, ...r.readers]) console.log('    ' + l);
+          meta[`seed-${t.seed}`] = { via: r.via, did: r.did, readers: r.readers, at: new Date().toISOString() };
+        } catch (e) {
+          seeded[t.seed] = false;
+          console.log(`  ✗ 読む人と投稿を作れない（${t.seed}）: ${String(e.message).split('\n')[0].slice(0, 200)}`);
+        }
+      }
+      if (t.seed && !seeded[t.seed]) {
+        for (const s of sizes) failed.push(`${idOf(t, s)}: 読む人と投稿を作れなかった（${t.seed}）`);
+        continue;
+      }
       for (const s of sizes) {
         try {
           const m = await shootOne(browser, t, s, label, local, console.log);
@@ -587,6 +677,8 @@ async function sheet() {
   const made = [];
   try {
     const page = await browser.newPage();
+    /* 台紙を手元の保存先（serve-local.mjs・PV_PUB で指す）から開いたとき、会員を切り替える札（左下）を台紙の絵に写さない */
+    await page.evaluateOnNewDocument(() => { try { localStorage.setItem('pv_local_ui', '0'); } catch (e) { /* 保存領域が無い */ } });
     for (const t of targets) {
       for (const s of sizes) {
         for (const mode of t.foldOnly ? ['fold'] : ['fold', 'full']) {
