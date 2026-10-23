@@ -1542,6 +1542,32 @@ export function jpCityOf(r) {
   }
   return '';
 }
+/* ── その本社の街の英語（2026-10-23 英語の EN-8・リード「スカイマークの英語の本社が Japan ── 日本語と同じ所（Ota City, Tokyo）を」）──
+   jpCityOf が読んだ「都道府県＋市区」を、それぞれ下の表の英語にする（東京の区は「Ota City, Tokyo」・ほかは「Narita, Chiba」・
+   都道府県の無い所在地は街だけ「Sapporo」）。市区が表に無いときは、都道府県まで（「Osaka Prefecture」── 違う街を言わない・国より細かく）。
+   都道府県も街も言えなければ ''（英語では言わない ── 国の「Japan」にすり替えない）。
+   ★表に足すのは、台帳の日本の会社の本社の街だけ（assert-rollout.mjs が、日本語のページの本社の街と英語のページの本社を並べて見る）。 */
+const JP_PREF_EN = Object.freeze({
+  東京都: 'Tokyo', 北海道: 'Hokkaido', 大阪府: 'Osaka', 千葉県: 'Chiba', 宮崎県: 'Miyazaki', 福岡県: 'Fukuoka', 静岡県: 'Shizuoka',
+  熊本県: 'Kumamoto', 鹿児島県: 'Kagoshima', 長崎県: 'Nagasaki', 沖縄県: 'Okinawa', 新潟県: 'Niigata',
+});
+const JP_MUNI_EN = Object.freeze({
+  大田区: 'Ota City', 江東区: 'Koto City', 成田市: 'Narita', 泉佐野市: 'Izumisano', 豊中市: 'Toyonaka', 宮崎市: 'Miyazaki',
+  札幌市: 'Sapporo', 北九州市: 'Kitakyushu', 静岡市: 'Shizuoka', 天草市: 'Amakusa', 霧島市: 'Kirishima', 那覇市: 'Naha', 大村市: 'Omura',
+  新潟市: 'Niigata',
+});
+/** 日本の所在地の字（jpCityOf の答え「東京都大田区」「札幌市」）の英語。市区が表に無ければ都道府県まで・それも言えなければ '' */
+export function jpPlaceEn(ja) {
+  for (const re of JP_ADDR) {
+    const m = re.exec(String(ja || ''));
+    if (!m || `${m[1] || ''}${m[2]}` !== ja) continue;
+    const c = JP_MUNI_EN[m[2]], p = m[1] ? JP_PREF_EN[m[1]] : '';
+    if (m[1] && !p) return '';
+    if (c) return p ? `${c}, ${p}` : c;
+    return p ? (/^(?:東京都|北海道)$/.test(m[1]) ? p : `${p} Prefecture`) : '';
+  }
+  return '';
+}
 
 /* ITEM の言い方で値を作る（言えなければ ''）。 */
 function itemValue(r) {
@@ -1563,10 +1589,12 @@ function itemValue(r) {
   return `${head}${r.value.toLocaleString('en-US')}${u}`;
 }
 
-/* ITEM の言い方の英語（言えなければ ''）。決まりは itemValue と同じ（日本の会社の本社の街は、街の英語の表が無いので国 ── Japan） */
+/* ITEM の言い方の英語（言えなければ ''）。決まりは itemValue と同じ
+   （日本の会社の本社の街は、日本語と同じ街を英語で ── jpPlaceEn。2026-10-23 EN-8 まで「Japan」だった。街の無い所在地は今までどおり国） */
 function itemValueEn(r) {
   const it = ITEM[r.key];
   if (!it) return '';
+  if (r.key === 'headquarters_country' && countryJa(r.value) === '日本') { const c = jpCityOf(r); return c ? jpPlaceEn(c) : countryEn(r.value); }
   if (it.say === 'iata') return typeof r.value === 'string' && /^[A-Z]{3}$/.test(r.value) ? r.value : '';
   if (it.say === 'date') return typeof r.value === 'string' ? dateEn(r.value) : '';
   if (it.say === 'country') return countryEn(r.value);

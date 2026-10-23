@@ -34,6 +34,8 @@
      組み直す。申告を本文に合わせる向きで直す。
 
    英語（全110枚） … 月収の1問を可視FAQの末尾と FAQPage の両方に足す。
+   英語・新しい形の会社ページ（EN_SWITCH・2026-10-23 EN-8）… 足す問は同じ（年次の表を指す1文は書かない）。
+     FAQPage は本文の問と答えから組み直す（額は読む人に見えるドルの字 ── cur-core。日本語の「本文→LD」と同じ向き）。
 
    starlux（日本語） … FAQをJSで描画していて <details> が無い。対象外。
 
@@ -64,6 +66,14 @@ import { BASIS, TIERS, figures, FX_AS_OF } from './salary-basis.mjs';
    ★2026-10-21 全社へ広げる b：タブを持つ会社ページ（TABBED）とは別にした。ほかの会社は新しい会社ページになっても
      「よくある質問」を残す（ここが今までどおり書き直す ＝ 推定年収を直した日に、答えの額も一緒に直る）。 */
 import { NO_FAQ } from './gen-airline-glance.mjs';
+/* 英語の会社ページを新しい形で書く会社（2026-10-23 英語の EN-7）。先行5社の英語のページも、日本語と同じく「よくある質問」を置かない
+   （リード P12.92「英語の先行5社は日本語に従う」）。下の英語の輪で、NO_FAQ の会社のうち英語のページが新しい形になった会社を飛ばす。 */
+import { EN_SWITCH } from './airline-rollout.mjs';
+/* 英語の新しい会社ページの FAQPage の額（2026-10-23 英語の EN-8・リード「額は全部ひとつの通貨の道 ── cur-core／CUR.fmt」）。
+   下の英語の輪で、新しい形の英語のページは構造化データを本文の問と答えから組み直す（日本語の「本文→LD」と同じ向き）。
+   答えの中の円の字（焼いた span は unbake で元の円の字へ）を、読む人に見えるドルの字（currency.js の fmt）にする。 */
+import { curCore, unbake } from './cur-core.mjs';
+const C_EN = await curCore('USD', 'en');
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const DRY = process.argv.includes('--dry');
@@ -505,10 +515,12 @@ function buildEnExtra(slug) {
     aLd: monthly.replace('{CAP}', usd(capM)).replace('{FO}', usd(foM)),
   });
 
-  /* 給与表はページ内にある（"Pay Scale by Seniority"）。その段差を数字で言う。 */
+  /* 給与表はページ内にある（"Pay Scale by Seniority"）。その段差を数字で言う。
+     ★2026-10-23 英語の EN-8：新しい形の英語のページ（EN_SWITCH）には、もう年次の表が無い（gen-airline-glance.mjs が LEGACY_EN の
+       「Pay Scale by Seniority」を外す）。在りもしない表を指さない ── 最後の1文は、まだ古い形の英語のページにだけ書く。 */
   const scale = `We estimate ${name} first officers at {FO} and captains at {CAP} — a step of about {GAP}, or roughly ${ratio}×. `
-    + `The full range runs {FOLO} to {CAPHI}, and where you sit inside it is set by seniority, type rating and the routes you fly. `
-    + `The seniority table on this page breaks the same range into career stages.`;
+    + `The full range runs {FOLO} to {CAPHI}, and where you sit inside it is set by seniority, type rating and the routes you fly.`
+    + (EN_SWITCH.includes(slug) ? '' : ` The seniority table on this page breaks the same range into career stages.`);
   const fill = (f) => scale.replace('{FO}', f(fo.avg)).replace('{CAP}', f(cap.avg))
     .replace('{GAP}', f(cap.avg - fo.avg)).replace('{FOLO}', f(fo.lo)).replace('{CAPHI}', f(cap.hi));
   items.push({
@@ -633,6 +645,28 @@ function patchFaqLd(html, mutate) {
 }
 const asQuestion = ({ q, a }) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } });
 
+/* ── 英語の新しい会社ページ（EN_SWITCH）の「よくある質問」を本文から読む（2026-10-23 英語の EN-8）──
+   見出しの在る節（<div class="glass …"> の1つ）の中の <details> だけ。答えは読む人に見える字：焼いた span は元の円の字へ戻し（unbake）、
+   円の字をドルの字にする（C_EN.fmt ── bake-en-currency.mjs が本文に焼くのと同じ1か所）。問の数も並びも本文のまま。 */
+const enSeen = (t) => {
+  let out = '', p = 0;
+  for (const k of C_EN.tokens(t)) { out += t.slice(p, k.start) + C_EN.fmt(k.jpy); p = k.start + k.len; }
+  return out + t.slice(p);
+};
+function visibleEnQA(html) {
+  const at = html.search(EN_ANCHOR), a = html.lastIndexOf('<div class="glass', at);
+  let end = html.length;
+  const re = /<div\b|<\/div>/g;
+  re.lastIndex = a;
+  for (let d = 0, m; (m = re.exec(html));) { d += m[0] === '</div>' ? -1 : 1; if (!d) { end = m.index + 6; break; } }
+  const out = [];
+  for (const m of unbake(html.slice(a, end)).matchAll(/<details[^>]*>([\s\S]*?)<\/details>/g)) {
+    const s = m[1].match(/<summary[^>]*>([\s\S]*?)<\/summary>/);
+    if (s) out.push({ q: strip(s[1]), a: enSeen(strip(m[1].slice(s.index + s[0].length))) });
+  }
+  return out;
+}
+
 /* 管理ブロックの剥がし。末尾の空行まで食う — 食わないと、ブロックだけ消えて
    前後の改行が毎回1本ずつ残り、再実行のたびにファイルが伸びて冪等でなくなる。
    （差し込み位置の直後は必ず閉じタグなので、意味のある空行を巻き込まない） */
@@ -717,6 +751,10 @@ const EN_ANCHOR = /<h2[^>]*>Frequently Asked Questions<\/h2>/;
 for (const slug of Object.keys(SALARY)) {
   const abs = path.join(ROOT, 'en/airlines', `${slug}.html`);
   if (!fs.existsSync(abs)) { skipped++; continue; }
+  /* ★2026-10-23 英語の EN-7：日本語の輪と同じ決まり。先行5社（NO_FAQ）の英語のページは、新しい形にした（EN_SWITCH）時点で
+     「よくある質問」も FAQPage も gen-airline-glance.mjs が外している。ここで飛ばさないと「FAQ の見出しが無い」で落ちる。
+     英語のページがまだ古い形の会社は、今までどおり月収の1問を足す。 */
+  if (NO_FAQ.has(slug) && EN_SWITCH.includes(slug)) { report.push(`  - en ${slug}: 「よくある質問」を置かない会社ページ。対象外`); skipped++; continue; }
   const orig = fs.readFileSync(abs, 'utf8');
   let html = orig.replace(STRIP_EN, '');
 
@@ -730,10 +768,14 @@ for (const slug of Object.keys(SALARY)) {
   html = html.slice(0, pos) + '\n' + extra.map(visibleEn).join('') + html.slice(pos);
 
   /* 既に入っている管理下の問（前回の実行ぶん）は落としてから足す。文言を変えても重複しない。 */
-  const r = patchFaqLd(html, (list) => [
-    ...list.filter((x) => !EN_MANAGED.some((re) => re.test(x && x.name || ''))),
-    ...extra.map((it) => asQuestion({ q: it.q, a: it.aLd })),
-  ]);
+  /* ★2026-10-23 英語の EN-8：新しい形の英語のページ（EN_SWITCH）は、構造化データを本文の問と答えからそのまま組み直す（足した問も、
+     もとからの問も ── 本文と構造化データが原理的にずれない・額は読む人に見えるドルの字）。まだ古い形のページ（スピリット航空）は今までどおり */
+  const r = EN_SWITCH.includes(slug)
+    ? patchFaqLd(html, () => visibleEnQA(html).map(asQuestion))
+    : patchFaqLd(html, (list) => [
+      ...list.filter((x) => !EN_MANAGED.some((re) => re.test(x && x.name || ''))),
+      ...extra.map((it) => asQuestion({ q: it.q, a: it.aLd })),
+    ]);
   if (!r.done) { report.push(`  ! en ${slug}: FAQPage の JSON-LD が見つからない`); failed++; continue; }
   html = r.html;
 

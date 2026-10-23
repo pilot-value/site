@@ -19,7 +19,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SWITCH } from './airline-rollout.mjs';
+import { SWITCH, EN_SWITCH } from './airline-rollout.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (f) => readFileSync(path.join(ROOT, f), 'utf8');
@@ -250,12 +250,15 @@ for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
    （前は「ほかの5枚はまだ読まない」── L2 の付け替え：見るページをサイト全部に広げ、読んでよいページをちょうどこの集合に固定した）
    ★会社の画面は手で並べない（2026-10-21 EN-4）。生成器はホテルの欄を SWITCH の会社ぜんぶに書くので、SWITCH を読んで作る ──
      手の一覧のままだと、見本の2社（カンタス・スカイマーク）を足した日に「読んではいけないページ」として赤くなった。
-     SWITCH に足した会社は、その日から「1回だけ・指紋つき・career-stay.js より前」を1枚ずつ見られる（弱めていない）。 */
+     SWITCH に足した会社は、その日から「1回だけ・指紋つき・career-stay.js より前」を1枚ずつ見られる（弱めていない）。
+   ★2026-10-23 英語の EN-7（同じ強さの当て直し ── リード L2）：英語の新しい会社ページ（airline-rollout.mjs の EN_SWITCH の
+     en/airlines/{slug}.html）も、同じ部品でホテルの欄を持つ。同じく読んで作り、同じ「1回だけ・指紋つき・career-stay.js より前」を見る
+     （英語のページから見た道は ../../）。読んでよいページの集合に足すのは、その英語のページだけ。 */
 {
   const want = createHash('sha256').update(readFileSync(path.join(ROOT, 'pv-proof-offer.js'))).digest('hex').slice(0, 8);
-  const HOTEL = ['career.html', ...SWITCH.map((slug) => `airlines/${slug}.html`)];
+  const HOTEL = ['career.html', ...SWITCH.map((slug) => `airlines/${slug}.html`), ...EN_SWITCH.map((slug) => `en/airlines/${slug}.html`)];
   for (const page of HOTEL) {
-    const h = read(page), pre = page.startsWith('airlines/') ? '../' : '';
+    const h = read(page), pre = page.startsWith('en/airlines/') ? '../../' : page.startsWith('airlines/') ? '../' : '';
     const e = (s) => s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
     const m = [...h.matchAll(new RegExp('<script src="' + e(pre + 'pv-proof-offer.js') + '\\?v=([0-9a-f]+)"></script>', 'g'))];
     const iP = h.indexOf('"' + pre + 'pv-proof-offer.js?v='), iS = h.indexOf('"' + pre + 'career-stay.js?v=');

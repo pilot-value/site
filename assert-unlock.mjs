@@ -374,8 +374,10 @@ const gateState = () => ({
      日本語ページは新しい形になり、この錠前の節そのものが無い。錠前が1つも無いページでは
      premium-auth-lock.js は何もせずに終わるので、見本にすると「閉じたまま」も「開く」も測れない
      （5社の給与の行は assert-airline-glance.mjs が「鍵の無い人へ値を送らない」まで見ている）。
-     会社ページが全部新しい形になったら、この節ごと見直す。 */
-for (const [lang, url] of [['ja', '/airlines/emirates.html'], ['en', '/en/airlines/ana.html']]) {
+     会社ページが全部新しい形になったら、この節ごと見直す。
+   ★2026-10-23（英語の EN-7）英語の見本も同じ理由で ANA からエミレーツへ替えた。英語の先行5社と見本の2社の英語のページも
+     新しい形になり、ANA の英語のページから錠前の節が無くなった（エミレーツの英語のページは EN-8 まで古い形・錠前が在る）。 */
+for (const [lang, url] of [['ja', '/airlines/emirates.html'], ['en', '/en/airlines/emirates.html']]) {
   console.log(`\n════ 航空会社ページ（${lang}）— 年収枠は明細でしか開かない ════`);
   ok(/class="premium-gate[^"]*"[^>]*data-gate-key="salary_detail"/.test(read(url.slice(1))),
      '見本のページに旧い錠前（年収枠）が在る ── 無ければ見本を替える', url);

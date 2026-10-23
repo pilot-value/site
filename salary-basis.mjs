@@ -168,7 +168,7 @@ export const BASIS = {
     ],
     notes_en: [
       'The cash figure is the airline’s own "take home cash". It is a recruitment example built on basic pay plus a flying allowance for 85 hours a month.',
-      'The total package adds housing, transport, school fees, medical cover, insurance, leave tickets and the company pension contribution on top of that cash figure.',
+      'The total package is a valuation that already contains that cash figure plus housing, transport, school fees, medical cover, insurance, leave tickets and the company pension contribution.',
       'The total package is modelled on the pilot, a spouse and two eligible children.',
       'Enhanced applies to first officers who meet a set experience and licensing bar. It is not a figure common to all first officers.',
       'None of these figures is an all-staff average, a guaranteed minimum, or any individual’s final take-home pay.',
@@ -660,7 +660,7 @@ export const BASIS = {
       '当サイトが確認した資料の範囲では、機長・副操縦士の年収・月収を書いた資料は見つかりませんでした。見つかった時点で、対象と時点を付けてこの節に足します。',
     ],
     notes_en: [
-      'The airline has a pay and benefits page for pilots on its own recruitment site, and it states no amount at all. It says only that pay is made up of fixed salary, flight duty allowance, bonuses, other allowances and an annual incentive, and that the level is among the highest in the industry. The page carries no publication date and no effective date.',
+      'The airline has a pay and benefits page for pilots on its own recruitment site, and it states no amount at all. It says only that pay is made up of fixed salary, flight duty allowance, bonuses, other allowances and an annual incentive, and that the level is high within the industry. The page carries no publication date and no effective date.',
       'The cadet selection notices on the same site (the newest from 2025-11-04) and the cadet programme brief (2023-10-20) state no amount either. The only line that touches money says the company bears the training cost while the family bears the tuition, with no figure.',
       'Warning: agency postings quoting figures such as USD 18,200 a month for a B777 captain are for Air China Cargo, a separate company. We do not treat them as figures for captains on the passenger side.',
       'In the material we have checked, we found no document stating annual or monthly pay for captains or first officers. If one appears, we will add it here with its subject and its date.',

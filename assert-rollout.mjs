@@ -31,6 +31,20 @@
         乗員全体の平均の話をしている年収の根拠の注を出さない（P12.77）・
         台帳の本社・年間休日の行（a2 の置き場）は字の表の字で会社の欄・勤務の欄に出る（本社は1行）・
         「よくある質問」と FAQPage が在る
+     F  英語の会社ページ（2026-10-23 英語の EN-6 ── 生成器が英語を話す／EN-7 ── 先行5社と見本の2社の英語のページを新しい形で書いた）:
+        生成器の字（WORDS）は日本語と英語で鍵・形が同じ・英語の字に日本語の字が無い（壊した写しを渡すと赤い）／
+        英語の読み口（viewOf(slug, 'en')）が SWITCH の全社で対の欠けなく作れて、読み口の英語の表に使われない行が無い／
+        EN_SWITCH は SWITCH の全部（EN-8）・印を持つ英語のページはその111枚だけで、生成器の出力と1文字も違わない（スピリット航空は古い形のまま）／
+        その111枚の残した節・題と説明に支える資料の無い最上級が無い（L6）・gen-faq.mjs は先行5社の英語のページを飛ばし失敗0枚／
+        その111枚の「よくある質問」と FAQPage は gen-faq.mjs → bake-en-currency.mjs の出力そのもの（構造化データは本文の問と答え・額はドルの字）・
+        推定を「average」「avg」と呼ばない・日本の会社の本社は日本語のページと同じ街（EN-8）・
+        題・説明と構造化データのドルの額はどれもそのページの額（画面の字か SALARY を currency.js の fmt でドルにした字 ── EN-8 の検査役）／
+        写しの中で最後の古い形の会社（スピリット航空）を切り替えて流すと、その英語のページが
+        書けて2回めは「✓ 変更なし」・ほかの日本語のページは1バイトも変わらない・bake-en-currency.mjs --check が 0 件／
+        英語のページの推定年収は SALARY の額（data-orig「¥…万」のドルの span）／新しい部品の字に日本語の字が無い（写真の作者名・原文の題を除く）／
+        部品・ページへの道（../../・../）は在るファイルを指す／「Compare」は en/career.html ができるまで出さない／
+        h1 と <head>（部品の塊のほか）は今のページのまま・先行5社ではない会社は「よくある質問」と FAQPage が同じ字で残る・
+        古い節は英語の見出しの台帳（LEGACY_EN）のとおり残る・外れる
    使い方: node assert-rollout.mjs
    ═══════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
@@ -41,14 +55,17 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS } from './salary-basis.mjs';
-import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf } from './airline-rollout.mjs';
-import { GLANCE, AXIS, viewOf } from './pv-airline-view.mjs';
-import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml } from './gen-airline-glance.mjs';
-import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck } from './airline-display.mjs';
+import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf, EN_SWITCH } from './airline-rollout.mjs';
+import { GLANCE, AXIS, viewOf, checkViewEn } from './pv-airline-view.mjs';
+import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml, WORDS, checkWords, CMP_EN } from './gen-airline-glance.mjs';
+import { PHOTOS as PLACE_PHOTOS } from './place-photos.mjs';
+import { PHOTOS as AIRLINE_PHOTOS } from './airline-photos.mjs';
+import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck, jpPlaceEn } from './airline-display.mjs';
 import { whenText } from './airline-facts.mjs';
 import { logoHtml as sharedLogo, measureAll } from './airline-logo.mjs';
 import { LOGO_SIZES } from './airline-logo-sizes.mjs';
 import { unsupported as claimsLeft, claimsIn } from './airline-claims.mjs';
+import { curCore } from './cur-core.mjs';
 import { LIVING } from './living-facts.mjs';
 import { PLACES, US_STATE, sharedNames } from './airline-destinations.mjs';
 
@@ -58,6 +75,7 @@ const ok = (c, msg, detail = '') => { if (c) pass++; else { failN++; console.log
 const read = f => fs.readFileSync(path.join(HERE, f), 'utf8');
 const sha = t => crypto.createHash('sha256').update(t).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const CUR_EN = await curCore('USD', 'en');   // 英語のページのドルの字の作り方（currency.js が正 ── 額の道は1つ）
 const block = (html, name) => { const a = html.indexOf(`<!--${name}-->`), b = html.indexOf(`<!--/${name}-->`); return a >= 0 && b > a ? html.slice(a, b + name.length + 7) : ''; };
 /* 開きタグの位置から対になる </div> まで（生成器の関数を使わずに、ここで数える） */
 const divTo = (h, i) => { const re = /<div\b|<\/div>/g; re.lastIndex = i; let d = 0, m; while ((m = re.exec(h))) { d += m[0] === '</div>' ? -1 : 1; if (!d) return m.index + 6; } return h.length; };
@@ -67,6 +85,9 @@ const ALL = Object.keys(SALARY);
 const OTHER = ALL.filter(s => !LEAD.includes(s));
 const ORIG = Object.fromEntries(ALL.map(s => [s, read(pageOf(s))]));
 const REPO_SHA = sha(ALL.map(s => ORIG[s]).join('\u0000'));
+/* 英語の会社ページ（段 F）── 英語のページが無い会社は空 */
+const ORIG_EN = Object.fromEntries(ALL.map(s => [s, fs.existsSync(path.join(HERE, pageOf(s, 'en'))) ? read(pageOf(s, 'en')) : '']));
+const REPO_SHA_EN = sha(ALL.map(s => ORIG_EN[s]).join('\u0000'));
 
 /* ═══ A) 1か所の切り替え ═══ */
 ok(same(LEAD, ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air']), 'A 先行5社は JAL・ANA・キャセイ・エティハド・エバー', LEAD.join(','));
@@ -135,13 +156,22 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   /* 運航乗務員の平均の額そのもの（日本航空 2,005万・1,959万／スカイマーク 1,646万／ANA の運航乗務職 2,336万 ── 円の字・英語の焼き込みの
      data-jpy・有報の円の字）と、それを言う日本語・英語の言い方（検査役 a3 の R1・C-4：英語は額を素の「$126K」で書くので、言い方でも見る） */
   const CREW_AMT = /2,005万|1,959万|1,646万|2,336万|data-jpy="(?:20050000|20051000|19590000|19593000|16460000|23360000)"|¥20,051,000|¥19,593,000/;
-  const CREW_ART = /機長と副操縦士をあわせ|運航乗務(?:員|職)[^。<」"]{0,30}?平均(?!年齢)|captains and first officers together|average annual (?:pay|salary)[^.<]{0,60}?flight crew|average annual pay for (?:its |all )?(?:\d+ )?flight crew|for (?:its )?(?:\d+ )?flight crew\b/;
+  /* ★2026-10-23 英語の EN-7（同じ強さの当て直し ── リード L2）：最後の「for … flight crew」は、額を言う文（「…$126K for flight crew.」「for its 1,397
+     flight crew」）を見るためのもの。「Selection for flight crew trainees is held …」（JAL の英語のページの募集の行 ＝ 訓練生の選考の話・額は無い）は
+     運航乗務員の平均ではないので数えない（訓練生の後ろに続く形だけ）。
+     ★2026-10-23 英語の EN-8（同じ強さの当て直し ── リード L2）：資料の名前の「Recruitment terms for flight crew (captains)」（AIRDO・天草エアライン）・
+     「Recruitment terms for 2026 flight crew candidates (cadets)」（ジェットスター・ジャパン）・「… company agreement for flight crew (pilots included)」
+     （ITA エアウェイズ）も額の無い資料の名前（日本語の「運航乗務員（機長）の募集要項」の対）なので数えない ── 職位を名指すかっこ・候補者の後ろに続く形だけ。
+     「for flight crew (captains and first officers together)」のような平均の言い方は、かっこの中が職位1つで閉じないので今までどおり数える。 */
+  const CREW_ART = /機長と副操縦士をあわせ|運航乗務(?:員|職)[^。<」"]{0,30}?平均(?!年齢)|captains and first officers together|average annual (?:pay|salary)[^.<]{0,60}?flight crew|average annual pay for (?:its |all )?(?:\d+ )?flight crew|for (?:its )?(?:\d+ )?flight crew\b(?! trainees?\b| candidates?\b| \((?:captains?|cadets?|pilots? included)\))/;
   const CREW_ANY = new RegExp(`${CREW_TXT.source}|${CREW_AMT.source}|${CREW_ART.source}`);
   const crewAt = t => (t.match(new RegExp(`.{0,24}(${CREW_ANY.source}).{0,16}`)) || [''])[0];
   const crewPages = SWITCH.filter(s => CREW_ANY.test(ORIG[s].replace(/<!--PV-SRC[\s\S]*?-->/g, '')));
   /* 2026-10-21 d1：英語版の JAL・スカイマーク・ANA と career.html も（P12.77 の残り）── 構造化データの年収欄の名前「運航乗務員（機長と副操縦士）」も数える */
-  for (const p of ['en/airlines/jal.html', 'en/airlines/skymark.html', 'en/airlines/ana.html', 'career.html']) if (CREW_ANY.test(read(p).replace(/<!--PV-SRC[\s\S]*?-->/g, ''))) crewPages.push(p);
-  ok(!crewPages.length, `A 機長と副操縦士を分けない平均（運航乗務員の平均）を、新しい会社ページ（${SWITCH.length}枚）・英語版の JAL／スカイマーク／ANA・career.html のどこにも書かない（題・説明・構造化データ・本文 ── P12.77。字も額も・英語の素の「$」の文も）`,
+  /* 2026-10-23 英語の EN-7：英語の新しい会社ページ（EN_SWITCH の会社の en/airlines/{slug}.html）も全部 ── 英語の JAL・スカイマーク・ANA は今までどおり名指しでも見る */
+  const CREW_EN = [...new Set([...EN_SWITCH.map(s => pageOf(s, 'en')), 'en/airlines/jal.html', 'en/airlines/skymark.html', 'en/airlines/ana.html'])];
+  for (const p of [...CREW_EN, 'career.html']) if (CREW_ANY.test(read(p).replace(/<!--PV-SRC[\s\S]*?-->/g, ''))) crewPages.push(p);
+  ok(!crewPages.length, `A 機長と副操縦士を分けない平均（運航乗務員の平均）を、新しい会社ページ（${SWITCH.length}枚）・英語の会社ページ（新しい形の${EN_SWITCH.length}枚と JAL／スカイマーク／ANA ── ${CREW_EN.length}枚）・career.html のどこにも書かない（題・説明・構造化データ・本文 ── P12.77。字も額も・英語の素の「$」の文も）`,
     crewPages.map(s => `${s}: ${crewAt((ORIG[s] || read(s)).replace(/<!--PV-SRC[\s\S]*?-->/g, ''))}`).join(' ／ '));
   /* 2026-10-21 a3（P12.92）：読み物（ANA vs JAL・外資系 vs 日系・LCC 比較）の日英と英語の ANA も。字に加えて、運航乗務員の平均の額そのもの
      （日本航空 2,005万・1,959万／スカイマーク 1,646万 ── 円の字・英語の焼き込みの data-jpy・有報の円の字）も見る */
@@ -387,7 +417,7 @@ try {
   /* 写し：上の段はリンク。会社ページのフォルダは本物のフォルダ（ページは本物の写し）。生成の道すじのモジュールと台帳は本物の写し。 */
   const COPY = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs'];
   for (const b of fs.readdirSync(HERE)) {
-    if (['.git', 'airlines', ...COPY].includes(b)) continue;
+    if (['.git', 'airlines', 'en', ...COPY].includes(b)) continue;
     fs.symlinkSync(path.join(HERE, b), path.join(T, b));
   }
   for (const f of COPY) fs.copyFileSync(path.join(HERE, f), path.join(T, f));
@@ -395,6 +425,18 @@ try {
   for (const b of fs.readdirSync(path.join(HERE, 'airlines'))) {
     if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, 'airlines', b), path.join(T, 'airlines', b));
     else fs.symlinkSync(path.join(HERE, 'airlines', b), path.join(T, 'airlines', b));
+  }
+  /* ★英語の会社ページのフォルダも本物の写し（2026-10-23 EN-6）── 生成器は EN_SWITCH の会社の英語のページも書く。en/ がリンクのままだと、
+     写しの中で流した生成器がリポジトリの英語のページへ書いてしまう（EN-6 の壊す試しで1回起きた ── 直してある） */
+  fs.mkdirSync(path.join(T, 'en', 'airlines'), { recursive: true });
+  for (const b of fs.readdirSync(path.join(HERE, 'en'))) {
+    if (b === 'airlines') continue;
+    if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, 'en', b), path.join(T, 'en', b));
+    else fs.symlinkSync(path.join(HERE, 'en', b), path.join(T, 'en', b));
+  }
+  for (const b of fs.readdirSync(path.join(HERE, 'en', 'airlines'))) {
+    if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, 'en', 'airlines', b), path.join(T, 'en', 'airlines', b));
+    else fs.symlinkSync(path.join(HERE, 'en', 'airlines', b), path.join(T, 'en', 'airlines', b));
   }
   const sw = path.join(T, 'airline-rollout.mjs'), SW = 'export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);';
   const swText = fs.readFileSync(sw, 'utf8');
@@ -772,7 +814,228 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
   ok(types.length > 0 && types.every(t => set.has(t)) && /avail = pool\.filter\([^\n]*NO_LADDER_TYPES\[a\.type\]/.test(lv),
      'A 年収の図の会社選びは、航空会社でない種類（' + types.join('・') + '）を出さない（機種の段を描かない）', JSON.stringify({ types, set: [...set] }));
 }
+/* ═══ F) 英語の会社ページ（2026-10-23 英語の EN-6 ── 生成器が英語を話す。EN-7 ── 先行5社と見本の2社の英語のページを新しい形で書いた）═══ */
+{
+  /* 字の表（WORDS）：日本語と英語で鍵・形が同じ・英語の字に日本語が無い。検査そのものも、壊した写しで赤くなる */
+  const w = checkWords();
+  ok(!w.length, 'F 生成器の字（WORDS）は日本語と英語で鍵・形（字／関数／並び／表・並びの長さ）が同じで、英語の字に日本語の字が無い', w.join(' ／ '));
+  const dup = x => (Array.isArray(x) ? x.map(dup) : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, dup(v)])) : x);
+  const broken = [
+    ['英語の鍵を1つ消す', W2 => { delete W2.en.saveCard; }],
+    ['英語の並びを1つ短くする', W2 => { W2.en.tabs = W2.en.tabs.slice(1); }],
+    ['英語の表の中に日本語', W2 => { W2.en.rank.cap = '機長'; }],
+    ['関数を字にする', W2 => { W2.en.qCount = '3 questions'; }],
+    ['英語の関数の答えに日本語', W2 => { W2.en.askHead = n => `<span>${n}のこと</span>`; }],
+  ].filter(([, f]) => { const W2 = dup(WORDS); f(W2); return !checkWords(W2).length; }).map(([n]) => n);
+  ok(!broken.length, 'F 字の表の検査は、英語の鍵の欠け・並びの長さの違い・日本語の混ざり・形の違いを見つける（壊した写しを渡すと赤い）', broken.join(' ／ '));
+  /* 英語の読み口 */
+  const ve = checkViewEn();
+  ok(!ve.length, `F 英語の読み口（viewOf(slug, 'en')）が SWITCH の${SWITCH.length}社で対の欠けなく作れて、読み口の英語の表（VIEW_EN・NET_EN）に使われない行が無い`, ve.slice(0, 6).join(' ／ '));
+  /* リポジトリの英語のページ（2026-10-23 英語の EN-7 で当て直した ── リード L2。EN-6 の「EN_SWITCH はいま空・印が1つも無い」の続き）：
+     新しい形で書くのは EN_SWITCH の会社だけ。新しい会社ページの印を持つ英語のページはその会社のページだけで、
+     どれも生成器の出力と1文字も違わない（流し忘れ・手で直した跡が無い）。
+     ★2026-10-23 英語の EN-8 で当て直した（リード L2）：EN_SWITCH は SWITCH の全部（111社）。古い形の英語のページはスピリット航空だけ */
+  const enMarked = ALL.filter(s => /<!--PV-HERO-->|<!--PV-GLANCE-->|data-pv-glance="1"/.test(ORIG_EN[s]));
+  let enStale = [];
+  try { enStale = EN_SWITCH.filter(s => build(s, ORIG_EN[s], 'en') !== ORIG_EN[s]); } catch (e) { enStale = [String(e.message)]; }
+  ok(same(EN_SWITCH, [...SWITCH]) && same([...enMarked].sort(), [...EN_SWITCH].sort()) && !enStale.length,
+    `F EN_SWITCH は SWITCH の全部（${EN_SWITCH.length}社 ── 日本語が新しい形の会社は英語も新しい形）。リポジトリの英語の会社ページで新しい会社ページの印を持つのはその${EN_SWITCH.length}枚だけで、どれも生成器の出力と1文字も違わない（スピリット航空の英語のページは古い形のまま）`,
+    `EN_SWITCH ${EN_SWITCH.length} ／ SWITCH の外 ${EN_SWITCH.filter(s => !SWITCH.includes(s)).join(',')} ／ 足りない ${SWITCH.filter(s => !EN_SWITCH.includes(s)).join(',')} ／ 印 ${enMarked.length}（${enMarked.filter(s => !EN_SWITCH.includes(s)).join(',')}） ／ 古い ${enStale.join(',')}`);
+  /* 写しの中で、最後の古い形の会社（スピリット航空 ── D と同じ TRY）を切り替えて、その英語のページを書く（EN-8 で当て直した。
+     それまでは「写しの中で EN_SWITCH ＝ SWITCH にして、まだ古い形の英語のページを全社ぶん書く」だった ── 切り替えが済んだので、
+     古い形から新しい形へ書けることは、残った1社で見る。ほかの111枚は、写しの中でも1文字も書き直されない） */
+  const T2 = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-rollout-en-'));
+  try {
+    const COPY2 = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs', 'bake-en-currency.mjs'];
+    for (const b of fs.readdirSync(HERE)) if (!['.git', 'airlines', 'en', ...COPY2].includes(b)) fs.symlinkSync(path.join(HERE, b), path.join(T2, b));
+    for (const f of COPY2) fs.copyFileSync(path.join(HERE, f), path.join(T2, f));
+    const realDir = (rel, deeper = []) => {
+      fs.mkdirSync(path.join(T2, rel), { recursive: true });
+      for (const b of fs.readdirSync(path.join(HERE, rel))) {
+        const r = path.join(rel, b);
+        if (deeper.includes(b)) realDir(r);
+        else if (b.endsWith('.html')) fs.copyFileSync(path.join(HERE, r), path.join(T2, r));
+        else fs.symlinkSync(path.join(HERE, r), path.join(T2, r));
+      }
+    };
+    realDir('airlines');
+    /* en/countries も本物の写し（下で bake-en-currency.mjs を本当に流す ── 写しの外へ書かない） */
+    realDir('en', ['airlines', 'countries']);
+    const pageT = (s, lang) => fs.readFileSync(path.join(T2, pageOf(s, lang)), 'utf8');
+    /* ★2026-10-23 英語の EN-8：英語の新しい会社ページの「よくある質問」は、書く道具の出力そのもの ── 写しの中で gen-faq.mjs → bake-en-currency.mjs を
+       本当に流しても、EN_SWITCH の英語のページ（111枚）は1バイトも変わらない。gen-faq.mjs は新しい形の英語のページの FAQPage を本文の問と答えから
+       組み直す（額は読む人に見えるドルの字 ── cur-core）・在りもしない年次の表を指す1文を書かない。本文だけ・構造化データだけを手で直すと、ここで赤い
+       （リポジトリでは gen-faq.mjs を --dry でしか流さない ── 写しの中だけで流す。下で会社を切り替える前の、リポジトリと同じ写しで） */
+    const fqT = spawnSync(process.execPath, ['gen-faq.mjs'], { cwd: T2, encoding: 'utf8', maxBuffer: 1 << 26 });
+    const bkT = spawnSync(process.execPath, ['bake-en-currency.mjs'], { cwd: T2, encoding: 'utf8' });
+    const faqMoved = EN_SWITCH.filter(s => pageT(s, 'en') !== ORIG_EN[s]);
+    ok(fqT.status === 0 && bkT.status === 0 && /失敗 0枚/.test(fqT.stdout) && !faqMoved.length, `F 英語の新しい会社ページ（${EN_SWITCH.length}枚）の「よくある質問」と FAQPage は、gen-faq.mjs → bake-en-currency.mjs の出力そのもの（写しの中で流しても1バイトも変わらない）`,
+      `${(fqT.stdout.match(/^.*(?:失敗|! en).*$/gm) || []).join(' ／ ')} ${fqT.stderr.slice(0, 200)} ${bkT.stderr.slice(0, 200)} ／ 変わる ${faqMoved.join(',')}`);
+    /* 写しの会社ページを元に戻す（リポジトリと同じ形）── 上が赤いときも、下の段は会社の切り替えだけを見る（赤が連なって原因が見えなくならない） */
+    for (const s of ALL) { fs.writeFileSync(path.join(T2, pageOf(s)), ORIG[s]); if (ORIG_EN[s]) fs.writeFileSync(path.join(T2, pageOf(s, 'en')), ORIG_EN[s]); }
+    const swf = path.join(T2, 'airline-rollout.mjs'), SW2 = 'export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);', est = fs.readFileSync(swf, 'utf8');
+    ok(est.split(SW2).length === 2 && est.split('export const EN_SWITCH = Object.freeze([...SWITCH]);').length === 2, 'F 写しの中に、切り替えの1行（SWITCH）がちょうど1つ・英語の切り替え（EN_SWITCH）は SWITCH そのもの');
+    fs.writeFileSync(swf, est.replace(SW2, () => `export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE, ${TRY.map(s => `'${s}'`).join(', ')}]);`));
+    const genT = () => spawnSync(process.execPath, ['gen-airline-glance.mjs'], { cwd: T2, encoding: 'utf8', maxBuffer: 1 << 26 });
+    const g1 = genT(), g2 = genT();
+    /* 切り替えた会社（TRY）の日英のページが書ける。ほかのページが書き直されるのは、どのページにも在る会社の一覧（<script id="crc-data"> ── 比べる相手の候補。
+       切り替えた会社がそこに1社増える）だけで、それより外は1文字も変わらない（日本語も英語も） */
+    const EVERY = [...SWITCH, ...TRY];
+    const CRC = /(<script type="application\/json" id="crc-data">)[\s\S]*?(<\/script>)/;
+    const noCrc = h => h.replace(CRC, (m, a, b) => `${a}…${b}`);
+    const wroteEn = EVERY.filter(s => g1.stdout.includes(`✎ ${pageOf(s, 'en')}`)), wroteJa = EVERY.filter(s => g1.stdout.includes(`✎ ${pageOf(s)}`));
+    ok(g1.status === 0 && TRY.every(s => wroteEn.includes(s) && wroteJa.includes(s)), `F 写しの中で古い形の会社（${TRY.join('・')}）を切り替えると、その英語のページも書ける（止まらない）`,
+      `${g1.stderr.slice(0, 400)} 英語 ${wroteEn.length}（${TRY.filter(s => !wroteEn.includes(s)).join(',')} が無い） ／ 日本語 ${wroteJa.length}`);
+    ok(g2.status === 0 && /✓ 変更なし/.test(g2.stdout), 'F 英語のページも、2回めは「✓ 変更なし」', g2.stdout.slice(-300) + g2.stderr.slice(0, 300));
+    const moved = [...ALL.filter(s => !TRY.includes(s) && noCrc(pageT(s)) !== noCrc(ORIG[s])), ...EN_SWITCH.filter(s => noCrc(pageT(s, 'en')) !== noCrc(ORIG_EN[s])).map(s => `en/${s}`)];
+    ok(!moved.length, `F 会社を切り替えても、ほかの会社ページ（日本語 ${ALL.length - TRY.length}枚・英語 ${EN_SWITCH.length}枚）が変わるのは会社の一覧（crc-data）だけ`, moved.slice(0, 8).join(','));
+    const bk = spawnSync(process.execPath, ['bake-en-currency.mjs', '--check'], { cwd: T2, encoding: 'utf8' });
+    ok(bk.status === 0 && /枚を見て 0枚・0件/.test(bk.stdout), 'F 書いた英語のページに bake-en-currency.mjs --check が 0件（額は生成器が焼いてある ── あとで流しても変わらない）', bk.stdout + bk.stderr);
+    /* ページごと（落ちた会社の名前を集めて、検査ごとに1行） */
+    const JA = /[　-ヿ㐀-鿿＀-￯]/;
+    const names = [...Object.values(PLACE_PHOTOS), ...Object.values(AIRLINE_PHOTOS)].flat().map(p => p.author).filter(a => a && JA.test(a));
+    const pubs = Object.values(BASIS).flatMap(b => (b.src || []).map(x => x.pub_en || '')).filter(t => JA.test(t));
+    const ALLOW = [...new Set([...names, ...pubs])].sort((a, b) => b.length - a.length);
+    const htmlUnesc = t => t.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const seenText = h => { let t = htmlUnesc(h.replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]*>/g, ' ')).replace(/“[^”]*”/g, ' ');
+      for (const a of ALLOW) t = t.split(a).join(' '); return t; };
+    const attrText = h => [...h.matchAll(/\s(?:alt|title|aria-label|placeholder)="([^"]*)"/g)].map(m => htmlUnesc(m[1]));
+    const enHead = h => h.slice(0, h.indexOf('</head>')).replace(/<!--PV-GLANCE-HEAD-->[\s\S]*?<!--\/PV-GLANCE-HEAD-->\n/, '');
+    const ldOf = h => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
+    const faqEn = h => [...h.matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)].map(m => h.slice(m.index, divTo(h, m.index)))
+      .filter(sec => /<h2\b[^>]*>Frequently Asked Questions<\/h2>/.test(sec) && !/<div class="glass p-8 fade-up"/.test(sec.slice(1))).join('\n').replace(/ data-pvg-pane="[a-z ]+"/g, '');
+    const h2Below = h => [...h.slice(h.indexOf('<!--/PV-GLANCE-->')).matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map(m => m[1].replace(/<[^>]*>/g, '').trim());
+    const bad = { marks: [], pay: [], ja: [], links: [], cmp: [], h1: [], head: [], faq: [], legacy: [] };
+    const EN_CAREER = fs.existsSync(path.join(HERE, 'en', 'career.html'));
+    ok(EN_CAREER || !CMP_EN, 'F 英語の比較のページ（en/career.html）が無いあいだ、生成器の CMP_EN は false', `CMP_EN ${CMP_EN}`);
+    for (const s of EVERY) {
+      const a = ORIG_EN[s], b = pageT(s, 'en'), hero = block(b, 'PV-HERO'), g = block(b, 'PV-GLANCE'), gen = hero + g + block(b, 'PV-GLANCE-HEAD') + block(b, 'PV-GLANCE-JS');
+      if (!hero || !g || !/data-pv-glance="1"/.test(b) || !/id="pvg-tabs"/.test(hero)) bad.marks.push(s);
+      /* 推定年収：SALARY の額を「¥…万」の data-orig に持つドルの span（機長・副操縦士の順） */
+      const big = [...g.matchAll(/<p class="pvg-big"><span class="pv-cur" data-jpy="(\d+)" data-orig="([^"]*)">[^<]+<\/span><\/p>/g)].map(m => [+m[1], m[2]]);
+      const want = ['cap', 'fo'].map(r => [SALARY[s][r].avg * 10000, `¥${SALARY[s][r].avg.toLocaleString('en-US')}万`]);
+      if (!same(big, want)) bad.pay.push(`${s} ${JSON.stringify(big)}`);
+      /* 新しい部品の字に日本語が無い（写真の作者名・資料の原文の名前・“…” の中の題を除く） */
+      const jt = [seenText(hero + g), ...attrText(hero + g)].join(' ').match(/\S*[　-ヿ㐀-鿿＀-￯]\S*/g) || [];
+      if (jt.length) bad.ja.push(`${s}「${[...new Set(jt)].slice(0, 3).join(' ')}」`);
+      /* 部品・ページへの道：英語のページ（en/airlines/）から見て、在るファイルを指す */
+      for (const m of gen.matchAll(/\s(src|href|srcset)="([^"]+)"/g)) for (const u0 of m[1] === 'srcset' ? m[2].split(/,\s*/) : [m[2]]) {
+        const u = htmlUnesc(u0.trim().split(/\s+/)[0]);
+        if (!u || /^(?:https?:|mailto:|#|\?|data:|javascript:)/.test(u)) continue;
+        const f = path.resolve(HERE, 'en', 'airlines', u.replace(/[?#].*$/, ''));
+        if (!f.startsWith(HERE) || !fs.existsSync(f)) bad.links.push(`${s} ${u}`);
+      }
+      /* 「Compare」「Save card」は en/career.html ができるまで出さない（空の箱だけ） */
+      /* ★生成器の印（CMP_EN）では決めない ── 英語の比較のページそのものが無いあいだは、出してはいけない（EN-9 がページを置いたら、ここを「出ている」へ向け直す） */
+      if (!EN_CAREER && (/pvg-btn-cmp|pvg-btn-save|href="(?:\.\.\/)+career\.html/.test(hero + g) || !hero.includes('<div class="pvg-acts" aria-hidden="true"></div>'))) bad.cmp.push(s);
+      /* h1 と <head> は今のページのまま（先行5社は、日本語と同じく構造化データから FAQPage の1つだけを外す ── ほかの型は1文字も変わらない） */
+      const h1 = h => (/<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(h) || [])[1] || '';
+      if (h1(a).trim() !== h1(hero).trim()) bad.h1.push(s);
+      const noLd = h => enHead(h).replace(/[ \t]*<script type="application\/ld\+json">[\s\S]*?<\/script>[ \t]*\n?/g, '');
+      const ldTypes = h => [...enHead(h).matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].flatMap(m => { try { const j = JSON.parse(m[1]); return Array.isArray(j) ? j : [j]; } catch { return [m[1]]; } })
+        .filter(x => !(x && x['@type'] === 'FAQPage')).map(x => JSON.stringify(x));
+      if (LEAD.includes(s) ? noLd(a) !== noLd(b) || !same(ldTypes(a), ldTypes(b)) : enHead(a) !== enHead(b)) bad.head.push(s);
+      /* 「よくある質問」：先行5社は日本語と同じく置かない（FAQPage も外す）・ほかの会社は同じ字で残り、構造化データも1文字も変わらない */
+      if (LEAD.includes(s) ? (/"FAQPage"/.test(ldOf(b)) || h2Below(b).includes('Frequently Asked Questions')) : (!faqEn(a) || faqEn(a) !== faqEn(b) || ldOf(a) !== ldOf(b))) bad.faq.push(s);
+      /* 古い節：英語の見出しの台帳（LEGACY_EN）のとおり */
+      let plan = null;
+      try { plan = legacyPlan(s, a, undefined, 'en'); } catch (e) { bad.legacy.push(`${s}（${e.message.slice(0, 120)}）`); }
+      if (plan) {
+        const below = h2Below(b), lost = plan.filter(p => p.act === 'keep' && !below.includes(p.title)), left = plan.filter(p => p.act === 'drop' && below.includes(p.title));
+        if (plan.some(p => !p.row) || lost.length || left.length) bad.legacy.push(`${s}（無い節 ${plan.filter(p => !p.row).map(p => p.title).join('・')} ／ 残らない ${lost.map(p => p.title).join('・')} ／ 外れない ${left.map(p => p.title).join('・')}）`);
+      }
+    }
+    ok(!bad.marks.length, `F 英語のページ（写しの中で${EVERY.length}枚）に新しい会社ページの塊・タブ・印が在る`, bad.marks.join(','));
+    ok(!bad.pay.length, 'F 英語のページの推定年収（機長・副操縦士）は SALARY の額 ── 「¥…万」を data-orig に持つドルの span', bad.pay.slice(0, 4).join(' ／ '));
+    ok(!bad.ja.length, 'F 英語のページの新しい部品の字（見える字と alt・title・aria-label・placeholder）に日本語の字が無い（写真の作者名・資料の原文の名前・“…” の中の題を除く）', bad.ja.slice(0, 6).join(' ／ '));
+    ok(!bad.links.length, 'F 英語のページの部品・写真・ロゴ・ページへの道（../../・../）は、どれも在るファイルを指す', bad.links.slice(0, 6).join(' ／ '));
+    ok(!bad.cmp.length, 'F 英語の比較のページ（en/career.html）ができるまで、英語のページに「Compare」「Save card」も career.html への道も無く、社名の行の箱は空', bad.cmp.join(','));
+    ok(!bad.h1.length && !bad.head.length, 'F 英語のページの h1 と <head>（部品の <link> の塊のほか）は、今のページの字のまま', `h1 ${bad.h1.join(',')} ／ head ${bad.head.join(',')}`);
+    ok(!bad.faq.length, 'F 「よくある質問」：先行5社の英語のページは日本語と同じく置かない（FAQPage も外す）・ほかの会社は同じ字で残り、構造化データも1文字も変わらない', bad.faq.join(','));
+    ok(!bad.legacy.length, 'F 英語のページの古い節は、英語の見出しの台帳（LEGACY_EN）に全部在り、残す節は残り・外す節は無い', bad.legacy.slice(0, 4).join(' ／ '));
+  } finally {
+    fs.rmSync(T2, { recursive: true, force: true });
+  }
+  /* ── リポジトリの英語の新しい会社ページそのもの（2026-10-23 英語の EN-7）── */
+  /* L6：残した古い節・社名の行・題と説明の「largest・oldest・longest・the first・award…」は、支える資料が在るもの（airline-claims.mjs の SUPPORTED）だけ
+     （日本語のページと同じ1か所の物差し。カンタス航空の英語のページの残した「About Qantas」の2つ ── 世界最古の1社・世界最長の路線 ── と、
+     スカイマークの英語のページの「ranking third in Japan behind ANA and JAL」（日本で3位 ── 英語の順位の言い方は EN-7 で物差しに足した）を外した） */
+  const enClaims = EN_SWITCH.flatMap(s => claimsLeft(s, ORIG_EN[s]).map(c => `${s} [${c.where}] ${c.word} …${c.around}…`));
+  ok(!enClaims.length, `F 英語の新しい会社ページ（${EN_SWITCH.length}枚）の残した節・社名の行・題と説明に、支える資料の無い最上級・順位・記録の言い分が無い（L6）`, enClaims.slice(0, 4).join(' ／ '));
+  /* ★2026-10-23 英語の EN-8（リード：推定を「average」と呼ばない・推定の年額を割った月の額を出さない）：英語の新しい会社ページの、見える字・説明文・
+     構造化データのどこにも、当サイトの推定を平均と言う英語（「captain pay averages about $…」「Captains average about $… a month」）が無い。
+     会社が公表した「平均ではない」の断り（rather than an average・not an all-staff average）は数えない ── 平均と呼ぶ形だけ。
+     預けた元の題名（<!--PV-SRC …-->）は画面にも検索にも出ないので見ない */
+  /* ★2026-10-23 EN-8 の検査役：略した「avg」も平均（アシアナ航空・ユーロウイングスの構造化データの「captain avg $136K, first officer avg $69K」は
+     この物差しに見えなかった）── 職位に付いた「avg」も数える。大文字と小文字は字の中に両方書く */
+  const AVG_EN = /\b(?:captain|first officer) pay averages\b|\b(?:[Cc]aptains|[Ff]irst officers) average (?:about )?\$|\baverage captain salary\b|\b(?:[Cc]aptain|[Ff]irst [Oo]fficer)s? [Aa]vg\b/;
+  const avgLeft = EN_SWITCH.flatMap(s => {
+    const raw = ORIG_EN[s].replace(/<!--PV-SRC[\s\S]*?-->/g, ''), t = `${raw}\n${raw.replace(/<[^>]+>/g, '')}`;   // 説明文と構造化データ（字のまま）＋見える字（ドルの span の中の字も続けて読む）
+    const m = t.match(new RegExp(`.{0,40}(?:${AVG_EN.source}).{0,30}`));
+    return m ? [`${s}: ${m[0]}`] : [];
+  });
+  ok(!avgLeft.length, `F 英語の新しい会社ページ（${EN_SWITCH.length}枚）は、当サイトの推定を「average」と呼ばない（見える字・説明文・構造化データ）`, avgLeft.slice(0, 4).join(' ／ '));
+  /* ★2026-10-23 EN-8 の検査役（リード：額は全部ひとつの通貨の道 ── cur-core／CUR.fmt）：英語の新しい会社ページの <head> の字（題・説明・og・
+     twitter の meta）と構造化データ（ページの中の全部）に出るドルの額は、どれもそのページの額 ── 画面に見える字の額（ドルの span の中の字も）か、
+     その会社の年収の正本の推定と幅（SALARY を currency.js の fmt でドルにした字）。手で持った額は、レートが動くと黙って本文と食い違う
+     （アシアナ航空・ユーロウイングスの題名と Article が前のレート 1ドル 160円の $136K・$173K のまま、本文は $137K・$174K だった）。
+     預けた元の題名（<!--PV-SRC …-->）は画面にも検索にも出ないので見ない */
+  const AMT_EN = /\$\d[\d,]*(?:\.\d+)?[KM]?(?![\d,.]*\d)/g;
+  const deEnt = x => x.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  let amtN = 0;
+  const amtOff = EN_SWITCH.flatMap(s => {
+    const h = ORIG_EN[s].replace(/<!--PV-SRC[\s\S]*?-->/g, ''), head = h.slice(0, h.indexOf('</head>'));
+    const fields = [(/<title>([\s\S]*?)<\/title>/.exec(head) || [, ''])[1], ...[...head.matchAll(/<meta\b[^>]*\bcontent="([^"]*)"/g)].map(m => m[1]),
+      ...[...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => m[1])].map(deEnt);
+    const shown = deEnt(h.slice(h.indexOf('<body')).replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]+>/g, ''));
+    const own = new Set([...(shown.match(AMT_EN) || []), ...['cap', 'fo'].flatMap(r => ['avg', 'lo', 'hi'].map(k => SALARY[s][r]?.[k]).filter(Number.isFinite).map(v => CUR_EN.fmt(v * 10000)))]);
+    return fields.flatMap(f => [...f.matchAll(AMT_EN)].filter(m => (amtN++, !own.has(m[0]))).map(m => `${s}: ${m[0]} …${f.slice(Math.max(0, m.index - 40), m.index + m[0].length)}`));
+  });
+  ok(amtN > 0 && !amtOff.length, `F 英語の新しい会社ページ（${EN_SWITCH.length}枚）の題・説明（<head>）と構造化データのドルの額（${amtN}か所）は、どれもそのページの額（画面の字か、年収の正本を currency.js の fmt でドルにした字 ── 手で持った額・前のレートの額が無い）`, amtOff.slice(0, 6).join(' ／ '));
+  /* ★2026-10-23 英語の EN-8（リード：スカイマークの英語の本社が「Japan」── 日本語と同じ所を）：日本の会社の本社の街は、英語のページでも同じ街
+     （日本語のページの「本社」の街の字を airline-display.mjs の jpPlaceEn で英語にした字 ── 国の「Japan」にすり替えない・空にしない）。
+     ページの字どうしを並べて見る（会社の欄の最初の2行と「会社情報」の数字の欄の両方）。日本の会社（年収の正本の地域 japan）だけ */
+  const hqOf = (h, dt) => [...h.matchAll(new RegExp(`<dt>${dt}</dt><dd>(?:<b>)?([^<]*)`, 'g'))].map(m => m[1]);
+  const hqBad = [];
+  let hqPairs = 0;
+  for (const s of EN_SWITCH.filter(x => SALARY[x].region === 'japan')) {
+    const ja = hqOf(ORIG[s], '本社'), en = hqOf(ORIG_EN[s], 'Headquarters');
+    ja.forEach((v, i) => {
+      if (!/^(?:東京都|北海道|京都府|大阪府|[一-龥]{2,3}県)?[一-龥ぁ-んァ-ヶ]{1,5}?[市区]$/.test(v)) return;
+      hqPairs++;
+      const want = jpPlaceEn(v);
+      if (!want || en[i] !== want) hqBad.push(`${s}: ${v} → ${en[i] ?? '（無い）'}（字の表 ${want || '無し'}）`);
+    });
+  }
+  ok(hqPairs > 0 && !hqBad.length, `F 日本の会社の本社の街（${hqPairs}か所）は、英語のページでも日本語のページと同じ街（「Japan」にすり替えない）`, hqBad.slice(0, 6).join(' ／ '));
+  /* 「よくある質問」を書く道具（gen-faq.mjs）：先行5社の英語のページは日本語と同じく飛ばし（節が無い）、ほかの会社の英語のページは今までどおり
+     月収の問を足す側に数える。見るだけの切り替え（--dry）で流す ＝ 1文字も書かない（⚠️ --check は書き込む。使わない） */
+  const fqEn = spawnSync(process.execPath, ['gen-faq.mjs', '--dry'], { cwd: HERE, encoding: 'utf8' });
+  const fqLead = EN_SWITCH.filter(s => LEAD.includes(s)), fqRest = EN_SWITCH.filter(s => !LEAD.includes(s));
+  const fqOff = [...fqLead.filter(s => !fqEn.stdout.includes(`  - en ${s}: 「よくある質問」を置かない会社ページ。対象外`)), ...fqRest.filter(s => !new RegExp(`＋ en ${s}\\s`).test(fqEn.stdout))];
+  ok(fqEn.status === 0 && /失敗 0枚/.test(fqEn.stdout) && !fqOff.length, `F gen-faq.mjs は、先行5社の英語のページ（${fqLead.length}枚）を日本語と同じく「よくある質問を置かない」で飛ばし、ほかの会社の英語のページ（${fqRest.length}枚）は今までどおり書き直す側に数え、失敗が0枚`,
+    `${(fqEn.stdout.match(/^.*(?:失敗|! en).*$/gm) || []).join(' ／ ')} ／ 外れ ${fqOff.join(',')}${fqEn.stderr.slice(0, 200)}`);
+  /* 英語のページの「街を追加」の面が送る街の名前（data-pvc-towns ── カードの英語の名前 Shinagawa など）は、サーバの街の候補の種
+     （db/towns.generated.sql）で日本語のページの同じ街（同じ並び・同じ基地の品川）の別の書き方になっている ── 英語のページで出した街の投稿が、
+     日本語の街と別の街に割れない。種の字はファイルから読む（gen-towns.mjs の関数を使わない）。英語の名前が日本語と字まで同じ街は種に要らない */
+  const seedSql = read('db/towns.generated.sql'), unq = x => x.replace(/''/g, "'");
+  const seedAlias = new Set([...seedSql.matchAll(/^\s*\('((?:[^']|'')*)', '([A-Z]{3})', '((?:[^']|'')*)', '((?:[^']|'')*)'\),?$/gm)].map(m => [m[1], m[2], unq(m[3]), unq(m[4])].join('\u0000')));
+  const townsOf = h => [...h.matchAll(/data-pvc-base="([A-Z]{3})"[^>]*data-pvc-towns="([^"]*)"/g)].map(m => ({ base: m[1], names: JSON.parse(m[2].replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')).map(t => t[0]) }));
+  const split = [];
+  let townPairs = 0;
+  for (const s of EN_SWITCH) {
+    const ja = townsOf(ORIG[s]), en = townsOf(ORIG_EN[s]);
+    if (ja.length !== en.length || ja.some((x, i) => x.base !== en[i].base || x.names.length !== en[i].names.length)) { split.push(`${s}: 日本語と英語の面の街が並ばない`); continue; }
+    ja.forEach((x, i) => x.names.forEach((n, k) => {
+      const e = en[i].names[k];
+      townPairs++;
+      if (e !== n && !seedAlias.has([s, x.base, n, e].join('\u0000'))) split.push(`${s} ${x.base}: ${e}（${n}）`);
+    }));
+  }
+  ok(townPairs > 0 && !split.length, `F 英語の新しい会社ページの「街を追加」の面の街の名前（${townPairs}か所）は、日本語のページの同じ街と同じか、サーバの街の候補の種でその街の別の書き方（英語のページで出した投稿が別の街に割れない）`, split.slice(0, 6).join(' ／ '));
+}
 ok(sha(ALL.map(s => read(pageOf(s))).join('\u0000')) === REPO_SHA, 'リポジトリの会社ページは、この検査で1バイトも変わっていない');
+ok(sha(ALL.map(s => (fs.existsSync(path.join(HERE, pageOf(s, 'en'))) ? read(pageOf(s, 'en')) : '')).join('\u0000')) === REPO_SHA_EN, 'リポジトリの英語の会社ページも、この検査で1バイトも変わっていない');
 
 console.log(`${failN ? '❌' : '✅'} assert-rollout: ${pass} pass / ${failN} fail（写しの中で${TRY.length}社を切り替えて流した。リポジトリには書いていない）`);
 process.exit(failN ? 1 : 0);

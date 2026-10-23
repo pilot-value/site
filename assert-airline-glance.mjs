@@ -78,6 +78,8 @@ import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE, LEAD } from './pv-airline-view.mjs';
 import { build, pageOf, ASSETS, CONTRIB, STAY, PROOF, SUGGEST, TABBED, LEGACY, DROP_H2 } from './gen-airline-glance.mjs';
+/* 英語の会社ページを新しい形で書く会社（2026-10-23 英語の EN-7 ── 先行5社と見本の2社） */
+import { EN_SWITCH } from './airline-rollout.mjs';
 /* 推定年収の対象（「機種の指定なし」）の字の置き場は gen-career.mjs の1か所（比較の画面と会社ページで同じ字）。写しを持たない。 */
 import { EST_TARGET } from './gen-career.mjs';
 import { FACTS as CO_FACTS } from './airline-facts.mjs';
@@ -335,14 +337,16 @@ for (const s of FIVE) {
   ok(PART[s].pay && PART[s].payDt && PART[s].hero, `${s}: 給与の箱・説明・社名の行を読み取れた`);
 }
 {
-  /* この形にしてあるのは5枚だけ（英語版はまだ・ほかの会社は今のまま）。 */
+  /* この形にしてあるのは、日本語は SWITCH の会社・英語は EN_SWITCH の会社だけ（ほかの会社は今のまま）。
+     ★2026-10-23 英語の EN-7（同じ強さの当て直し ── リード L2）：英語の先行5社と見本の2社も新しい形になった。数えるのは前と同じ2つのフォルダ。 */
   const marked = [];
   for (const dir of ['airlines', 'en/airlines']) {
     for (const f of fs.readdirSync(path.join(ROOT, dir))) {
       if (f.endsWith('.html') && /data-pv-glance=/.test(read(`${dir}/${f}`))) marked.push(`${dir}/${f}`);
     }
   }
-  ok(same(marked.sort(), GLANCE.map(pageOf).sort()), `data-pv-glance を持つのは新しい会社ページの会社（airline-rollout.mjs の SWITCH・${GLANCE.length}枚）だけ`, marked.join(', '));
+  const wantMarked = [...GLANCE.map(s => pageOf(s)), ...EN_SWITCH.map(s => pageOf(s, 'en'))];
+  ok(same(marked.sort(), wantMarked.sort()), `data-pv-glance を持つのは新しい会社ページの会社（airline-rollout.mjs の SWITCH・日本語 ${GLANCE.length}枚 ＋ EN_SWITCH・英語 ${EN_SWITCH.length}枚）だけ`, marked.filter(m => !wantMarked.includes(m)).concat(wantMarked.filter(m => !marked.includes(m)).map(m => `（無い）${m}`)).join(', '));
 }
 {
   /* ★英語の会社ページ（en/airlines）は、何も選んでいない人には明るい色で開く（2026-10-18 オーナー Q4「①」＝ 日本語と同じ。
@@ -2129,16 +2133,20 @@ head('暮らし（街・家賃・空港までの移動）');
    ルフトハンザも SWITCH に入り、日本語で旧い形のまま残るのは年収の正本の 112社のうちスピリット航空だけ（オーナー 2026-10-11「スピリットを外す」）。
    日本語の見本はその1枚（給与の錠前 1つ・口コミの一覧の鍵・「続きを読む」の小窓 ── 測る面は今までと同じ決まりで数える）。
    「海外の評判」の鍵は、その会社に海外の評判（airlines/airline-reviews-data.js の VOICES）が在る時だけ測る ── スピリット航空には無く、
-   日本語の旧い形のページで「海外の評判」の鍵を出すページはもう1枚も無い。英語版は今までどおりエミレーツ（英語の会社ページはまだ旧い形・評判あり）。 */
-const OLD_SAMPLE = { ja: 'spirit', en: 'emirates' };
+   日本語の旧い形のページで「海外の評判」の鍵を出すページはもう1枚も無い。
+   ★2026-10-23（英語の EN-8・同じ強さの当て直し ── リード L2）：英語も EN_SWITCH ＝ SWITCH になり、エミレーツの英語のページも新しい形になった。
+   英語で旧い形のまま残る会社ページもスピリット航空だけ → 英語の見本もその1枚（測る面は日本語と同じ決まりで数える）。
+   スピリット航空には海外の評判が無いので、旧い形のページで「海外の評判」の鍵を出すページは日英ともにもう1枚も無い
+   （鍵を測る手順は消さない ── 見本の会社に評判が在れば、今までどおり測る。下の段は、評判の表が読めていて、そのうえで見本に評判が無いことを見る）。 */
+const OLD_SAMPLE = { ja: 'spirit', en: 'spirit' };
 const VOICE_KEYS = (() => { const t = read('airlines/airline-reviews-data.js'), i = t.indexOf('const VOICES = {'); return i < 0 ? [] : [...t.slice(i).matchAll(/^\s{4}'?([a-z0-9-]+)'?\s*:\s*\{/gm)].map(m => m[1]); })();
 const OLD_VOICES = { ja: VOICE_KEYS.includes(OLD_SAMPLE.ja), en: VOICE_KEYS.includes(OLD_SAMPLE.en) };
 {
   head('旧い形の会社ページ（見本）');
-  const oldJa = Object.keys(SALARY).filter(s => !GLANCE.includes(s));
-  ok(same(oldJa, [OLD_SAMPLE.ja]) && OLD_VOICES.en && VOICE_KEYS.length > 0,
-    `日本語の会社ページで旧い形のまま残るのは見本の1枚（${OLD_SAMPLE.ja}）だけ ── ほかの${GLANCE.length}社は新しい会社ページ。「海外の評判」の鍵は英語の見本（${OLD_SAMPLE.en}）で測る`,
-    `旧い形 ${oldJa.join(',')}・英語の見本の評判 ${OLD_VOICES.en}・評判の会社 ${VOICE_KEYS.length}`);
+  const oldJa = Object.keys(SALARY).filter(s => !GLANCE.includes(s)), oldEn = Object.keys(SALARY).filter(s => !EN_SWITCH.includes(s));
+  ok(same(oldJa, [OLD_SAMPLE.ja]) && same(oldEn, [OLD_SAMPLE.en]) && !OLD_VOICES.ja && !OLD_VOICES.en && VOICE_KEYS.length > 0,
+    `会社ページで旧い形のまま残るのは、日英とも見本の1枚（日本語 ${OLD_SAMPLE.ja}・英語 ${OLD_SAMPLE.en}）だけ ── ほかは新しい会社ページ（日本語 ${GLANCE.length}社・英語 ${EN_SWITCH.length}社）。見本には海外の評判が無く、旧い形のページで「海外の評判」の鍵を出すページは日英ともにもう1枚も無い（評判の表は読めている）`,
+    `旧い形 日本語 ${oldJa.join(',')}・英語 ${oldEn.join(',')}・見本の評判 日本語 ${OLD_VOICES.ja}・英語 ${OLD_VOICES.en}・評判の会社 ${VOICE_KEYS.length}`);
 }
 
 if (STATIC_ONLY) {
@@ -6824,7 +6832,8 @@ async function runGG(browser, s, [w, h]) {
    ここの口コミは、決まった返事（鍵の無い人に返る3件）で描かせる。本番の DB は読まない。 */
 /* ★2026-10-21（全社へ広げる d1・同じ強さの当て直し ── リード L2）：日本語のエミレーツは新しい会社ページになった（SWITCH）→ ルフトハンザへ。
    ★2026-10-22（d2）：ルフトハンザも新しい形になった → 日本語の見本はスピリット航空（OLD_SAMPLE の定義と、旧い形が1枚だけかの段は
-   静的な検査の側 ── 「旧い形の会社ページ（見本）」）。 */
+   静的な検査の側 ── 「旧い形の会社ページ（見本）」）。
+   ★2026-10-23（英語の EN-8）：エミレーツの英語のページも新しい形になった → 英語の見本もスピリット航空（日本語と同じく「海外の評判」の鍵は出ない）。 */
 const OLD_PATH = { ja: '/airlines/' + OLD_SAMPLE.ja + '.html', en: '/en/airlines/' + OLD_SAMPLE.en + '.html' };
 const OLD_PAY = { ja: '/pay-report.html', en: '/en/pay-report.html' };
 const OLD_POST = 'if(window.openReviewModal)openReviewModal()';

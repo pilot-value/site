@@ -519,6 +519,11 @@ const bareEstimate = (slug, lang, t) => {
   if (!t || !S[slug]) return false;
   if (mayAvg(slug, 'cap')) return false;      // 「平均」と名乗れる社は札なしでよい
   if (LABELED.test(t)) return false;
+  /* ★2026-10-23 英語の EN-8 の検査役：英語の題名の「Captain $136K」「Captain $173K」は、前のレート（1ドル 160円）で組んだ推定の額だった
+     （アシアナ航空・ユーロウイングス ── 本文は $137K・$174K）。ドルの額はレートで動くので、いまの capEn と字が違っても推定の額のこと
+     ＝ 下の includes では見えない。英語の札の無い「Captain $…」は、額が合わなくても札の無い推定として組み直す
+     （別の種類の額は上の LABELED の札を持っている ── Package・Vacancy・Advert・Target・Average）。日本語は今までどおり（円の額はレートで動かない） */
+  if (lang !== 'ja' && /\bCaptain \$\d/.test(t)) return true;
   /* 点の額（capJa/capEn）だけでなく**幅**も見る。カンタスの
      「機長3,120万〜5,400万円」は機長の推定レンジで、点の額 3,700万 は題名に無い。
      幅だけ見ていたので60枚のうち23枚が札なしのまま残っていた。 */
@@ -624,11 +629,14 @@ function enrichDesc(d, slug, lang) {
     add.push(ja ? `副操縦士は${w ? '平均' : '推定'}${man(f.avg)}。`
       : ` First officers ${w ? 'average' : 'are estimated at'} ${usd(f.avg)}.`);
   }
-  if (mayNum(slug, 'cap') && !(ja ? /月/ : /\ba month\b|monthly|per month/i).test(d)) {
-    /* 「月あたり」「a month」と書く。「月収」と言い切らないのは、賞与のある会社では
+  /* ★2026-10-23 英語の EN-8（リード：英語の説明文は日本語の対と同じ意味 ── 推定の年収・推定を「average」と呼ばない・
+     そこから割った月の額を出さない）：英語では月あたりの1文を足さない。足していたのは「Captains average about $19K a month.」
+     ── 推定を平均と呼び、推定の年額を12で割った額を検索結果にだけ出していた（キャセイ・スカイマーク・中国東方・中国南方）。
+     日本語の説明文は今までと1文字も変えない（日本語の決め方はこの下のまま）。 */
+  if (ja && mayNum(slug, 'cap') && !/月/.test(d)) {
+    /* 「月あたり」と書く。「月収」と言い切らないのは、賞与のある会社では
        毎月の支給額がこれより低く出るため（年収÷12 の単純計算だと明示できる幅が無い）。 */
-    add.push(ja ? `機長は月あたり約${man(Math.round(c.avg / 12))}。`
-      : ` Captains average about ${usd(Math.round(c.avg / 12))} a month.`);
+    add.push(`機長は月あたり約${man(Math.round(c.avg / 12))}。`);
   }
   if (a.taxFree && !(ja ? /非課税|税金がかからない/ : /tax[- ]free/i).test(d)) {
     add.push(ja ? '所得税が非課税のため額面に近い額が手取りになります。'
@@ -913,8 +921,13 @@ for (const rel of files) {
 
   /* 5b) ★2026-10-21 P12.77 ── COPY に ld: true と書いたページだけ、管理ブロックの外に在る古い構造化データの Article の
      headline と description を、上で決めた題名と説明文にそろえる。古い題名・説明文（「運航乗務員の平均…」）が、検索向けの字にだけ
-     残らないように。ほかのページの構造化データには1文字も触らない。何度流しても同じ（そろっていれば書き直さない）。 */
-  if (copy && copy[lang] && copy[lang].ld) {
+     残らないように。ほかのページの構造化データには1文字も触らない。何度流しても同じ（そろっていれば書き直さない）。
+     ★2026-10-23 英語の EN-8 の検査役：英語の会社ページ（年収の正本の会社の en/airlines/{slug}.html）も同じくそろえる。管理ブロックの外に
+     Article を持つのはアシアナ航空とユーロウイングスの2枚だけで、そこに前のレートの額（$136K・$69K）と、推定を平均と呼ぶ字
+     （「captain avg $136K」）が手で書いたまま残っていた ── 題名と説明文は SALARY から組むので、そろえればレートを直しても追随する。
+     日本語のページは今までどおり（COPY に ld: true と書いたページだけ）。 */
+  const enCo = lang === 'en' && /airlines\//.test(rel) && !!S[path.basename(rel, '.html')];
+  if ((copy && copy[lang] && copy[lang].ld) || enCo) {
     const core = title.replace(/\s*[|｜]\s*PILOT VALUE\s*$/i, '');
     head = head.replace(/(<script type="application\/ld\+json">)([\s\S]*?)(<\/script>)/g, (m, open, body, close) => {
       let j;
