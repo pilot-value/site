@@ -79,7 +79,28 @@ select v.airline, v.base, public.pv_town_key(v.alias), v.alias, 'ledger', 'publi
     ('eva-air', 'TPE', '林口', 'Linkou'),
     ('skymark', 'HND', '品川', 'Shinagawa'),
     ('skymark', 'HND', '豊洲', 'Toyosu'),
-    ('skymark', 'HND', '横浜', 'Yokohama')
+    ('skymark', 'HND', '横浜', 'Yokohama'),
+    ('zipair', 'NRT', '品川', 'Shinagawa'),
+    ('zipair', 'NRT', '豊洲', 'Toyosu'),
+    ('zipair', 'NRT', '横浜', 'Yokohama'),
+    ('jetstar-japan', 'NRT', '品川', 'Shinagawa'),
+    ('jetstar-japan', 'NRT', '豊洲', 'Toyosu'),
+    ('jetstar-japan', 'NRT', '横浜', 'Yokohama'),
+    ('peach', 'NRT', '品川', 'Shinagawa'),
+    ('peach', 'NRT', '豊洲', 'Toyosu'),
+    ('peach', 'NRT', '横浜', 'Yokohama'),
+    ('solaseed', 'HND', '品川', 'Shinagawa'),
+    ('solaseed', 'HND', '豊洲', 'Toyosu'),
+    ('solaseed', 'HND', '横浜', 'Yokohama'),
+    ('airdo', 'HND', '品川', 'Shinagawa'),
+    ('airdo', 'HND', '豊洲', 'Toyosu'),
+    ('airdo', 'HND', '横浜', 'Yokohama'),
+    ('starflyer', 'HND', '品川', 'Shinagawa'),
+    ('starflyer', 'HND', '豊洲', 'Toyosu'),
+    ('starflyer', 'HND', '横浜', 'Yokohama'),
+    ('ana-wings', 'HND', '品川', 'Shinagawa'),
+    ('ana-wings', 'HND', '豊洲', 'Toyosu'),
+    ('ana-wings', 'HND', '横浜', 'Yokohama')
   ) as v(airline, base, name, alias)
   join public.pv_towns t
     on t.airline = v.airline and t.base_iata = v.base and t.tkey = public.pv_town_key(v.name) and t.alias_of is null
