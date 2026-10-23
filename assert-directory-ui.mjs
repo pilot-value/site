@@ -14,7 +14,8 @@
      スクリプトの止まり（st.errs）と、手元の配信元からの 4xx も落ちる。
 
    場面 base（日英・1440×900）
-     b1 見えているカード ＝ 台帳の112社を一覧の並び（地域の順 → 一覧の行の順）で・社数「112社」／«112 airlines»
+     b1 見えているカード ＝ 台帳の112社を一覧の並び（地域の順 → 一覧の行の順）で・社数「112社」／«112 airlines»・
+        どの社名も語の途中で折れず切れていない（折れ目は空白・「・」の後ろ・「（」の前だけ ── WP-dd-9。390 は場面 first で）
      b2 地域のボタンを1つずつ押す → 見えているカード ＝ その地域の会社（集合）・社数・押したボタンだけ aria-pressed="true"
      b3 FSC → 一覧の行の type が fsc の会社・LCC/ULCC → lcc・免税 → SALARY の taxFree
      b4 レベリング比較 → 絞り込みの帯（#filter-bar）が消え、#lvl-wa-grid に4本の .lvl-col・カード一覧 → 戻る
@@ -28,7 +29,7 @@
    場面 first（日英・390×680 のスマホ）
      検索欄（#search）が最初の1画面の中・高さ 48px 以上・字 16px 以上・見出しと検索欄のあいだに押せるもの無し・
      見出し「次のキャリアを、選択する」／«Choose your next career»・結果の見出し「すべて」／«All»・
-     開いたときは地域の札・解除・見つからないときのボタンを見せない・quiet が空
+     開いたときは地域の札・解除・見つからないときのボタンを見せない・どの社名も語の途中で折れず切れていない（WP-dd-9）・quiet が空
    場面 nojs（日英・台本を止める）
      112社のリンクが見えている・h2#wd-rh-name「すべて」／«All»・検索欄／絞り込みの帯／表示の切り替え／古い地図／比べる印／盆を見せない・quiet が空
 
@@ -42,6 +43,8 @@
         トルコ ＝ Türkiye ＝ Turkiye → ターキッシュだけ・全日空 → ANA だけ・ぴーち ＝ ピーチ → ピーチだけ・ｴﾐﾚｰﾂ → 先頭がエミレーツ・
         ワンワールド ＝ oneworld → 一覧の行の提携がワンワールドの会社ちょうど・zzzz → 0
      s3 打っているあいだは国の帯と古い地図（#wd-explore）を見せない・空にすると戻る
+     s3b 地図の上の一言「地図をクリックして地域を選択」／«Click the map to choose a region» は地図の枠の中に1つ（見出しの帯には無い）・
+        打っているあいだは地図と一緒に見えない（WP-dd-9）
      s4 レベリング比較を開いたまま打つ → カード一覧に戻る
    場面 scope（日英・390×680 のスマホ）── 地域を選んだまま別の地域の会社を打つ
      欧州を選ぶ → 欄の中に「欧州」の札・「全日空」＋ Enter → カード0枚・見つからないの文は出さない・#wd-else のボタンは
@@ -73,7 +76,9 @@
      T0 盆なし → T1 jal「1 / 5 社」＋レベリング比較 → T2 jal ＋ ana（日本語：「航空会社を比較」＝ career.html?view=compare&a=jal&b=ana・
      英語：レベリング比較だけ・その要素そのものが無い）→ 盆のレベリング比較 → 印の2社だけの図 → 読み直す → 同じ図 → カード一覧 → 印はそのまま →
      社名 → 戻る → 印はそのまま →（日本語）「航空会社を比較」→ career.html が jal と ana を2社で開く → 戻る → 3社目で入口が隠れる → 5社「5 / 5 社」／
-     （英語）5社でほかの印はどれも押せない → 盆の札を押すと外れる／T6（段の無い社に印 ＝ 2社まで）は、日本語のページに印の在る
+     （英語）5社でほかの印はどれも押せない → 盆の札を押すと外れる／
+     WP-dd-9：盆のレベリング比較を押した直後（マウスは動かさない）に図の吹き出しが出ない・3社目で隠れた「航空会社を比較」の行き先は
+     出荷のまま（前の2社を残さない）・5社で札の列があふれても1社目から（左の端で切れない）／T6（段の無い社に印 ＝ 2社まで）は、日本語のページに印の在る
      data-lvl="0" のカードが在る時だけ歩く（無ければ「T6：まだ歩けない（比較の切り替えの前）」と印字して通す）
 
    使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
@@ -114,6 +119,8 @@ const CLEAR = { ja: '絞り込みを解除', en: 'Clear filters' };
 const H1 = { ja: '次のキャリアを、選択する', en: 'Choose your next career' };
 /** 一覧の2枚のページ */
 const PAGE_REL = { ja: 'world-airlines.html', en: 'en/world-airlines.html' };
+/** 地図の上の一言（もとは見出しの帯の1行の前半。WP-dd-9 で地図の枠の中へ移した。字はそのまま） */
+const HINT = { ja: '地図をクリックして地域を選択', en: 'Click the map to choose a region' };
 
 /* ── 読む（台帳）──────────────────────────────────────────── */
 /** 一覧の行（airlines-meta.js の window.PV_AIRLINES）。slug は PV_slugOf で */
@@ -297,6 +304,33 @@ async function main() {
     }
     return null;
   }, sel);
+  /* カードの社名が語の途中で折れていないか・切れていないか（WP-dd-9）── 折れてよいのは空白・「・」の後ろ・「（」の前だけ
+     （括弧の中の略号は別の語）。見えているカードの社名ごとに、1字ずつの行の位置から折れ目を読む。[] ＝ どの社名も大丈夫 */
+  const nameCut = (page) => page.evaluate(() => {
+    const bad = [];
+    for (const el of document.querySelectorAll('#airline-grid .wd-name')) {
+      if (!el.getClientRects().length) continue;
+      const n = el.firstChild;
+      if (!n || n.nodeType !== 3 || el.childNodes.length !== 1) { bad.push(`${el.id}：社名が字だけでない`); continue; }
+      let prevTop = null;
+      for (let i = 0; i < n.data.length; i++) {
+        const r = document.createRange();
+        r.setStart(n, i); r.setEnd(n, i + 1);
+        const q = r.getClientRects()[0];
+        if (!q) continue;
+        const top = Math.round(q.top);
+        if (prevTop != null && top > prevTop + 3) {
+          const a = n.data[i - 1], b = n.data[i];
+          if (!(/\s/.test(a) || /\s/.test(b) || a === '・' || b === '（')) bad.push(`${n.data.slice(0, i)}／${n.data.slice(i)}`);
+        }
+        prevTop = top;
+      }
+      if (el.scrollWidth > el.clientWidth) bad.push(`${n.data}（切れている ${el.scrollWidth}／${el.clientWidth}px）`);
+    }
+    return bad;
+  });
+  /* 何コマか描き終わるまで（押した直後にブラウザが送る「マウスが上に来た」の知らせを待つ。時間ではなくコマで数える） */
+  const settle = (page, n = 10) => page.evaluate((n) => new Promise((r) => { let i = 0; const f = () => (++i >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
   /* 滑らかなスクロールが止まるまで（2コマ続けて同じ位置） */
   const still = (page) => until(page, () => new Promise((res) => {
     const y = window.scrollY;
@@ -314,6 +348,8 @@ async function main() {
       ok(same(v1, ORDER), T(`b1 見えているカード ＝ 台帳の${ORDER.length}社を一覧の並びで`), J({ n: v1.length, first: v1.slice(0, 3) }));
       const c1 = await countText(page);
       ok(c1 === C(ORDER.length), T(`b1 社数「${C(ORDER.length)}」`), J(c1));
+      const nc1 = await nameCut(page);
+      ok(nc1.length === 0, T('b1 1440：どのカードの社名も語の途中で折れず、切れていない（折れ目は空白・「・」の後ろ・「（」の前だけ）'), J(nc1));
       await shot(page, 'base', lang, 'b1');
 
       /* b2 地域のボタン（すべて ＋ 8地域） */
@@ -462,6 +498,8 @@ async function main() {
       ok(m.h1 === H1[lang], T(`first 見出し「${H1[lang]}」`), J(m.h1));
       ok(m.h2 === REGION_LABEL.all[lang === 'en' ? 1 : 0], T(`first 結果の見出し「${REGION_LABEL.all[lang === 'en' ? 1 : 0]}」`), J(m.h2));
       ok(m.shown.length === 0, T('first 開いたときは、地域の札・解除・見つからないときのボタンを見せない'), J(m.shown));
+      const nc = await nameCut(page);
+      ok(nc.length === 0, T('first 390：どのカードの社名も語の途中で折れず、切れていない（折れ目は空白・「・」の後ろ・「（」の前だけ）'), J(nc));
       await shot(page, 'first', lang, '390');
       const q = quiet(st, 'first');
       ok(q.length === 0, T('first quiet(st, \'first\') が空'), J(q));
@@ -571,6 +609,18 @@ async function main() {
       await type(page, '');
       const ex2 = await shown(page, '#wd-explore'), v3 = await visible(page);
       ok(!ex1 && ex2 && same(v3, ORDER), T('s3 打っているあいだは #wd-explore を見せない・空にすると見せて112社に戻る'), J({ typing: ex1, empty: ex2, n: v3.length }));
+      /* s3b 地図の上の一言は、地図の枠（.map-wrapper）の中に1つだけ（見出しの帯には無い）・打っているあいだは地図と一緒に見えない（WP-dd-9） */
+      const hintOf = () => page.evaluate((t) => {
+        const ps = [...document.querySelectorAll('p')].filter((p) => p.textContent.includes(t)), hero = document.getElementById('wa-hero');
+        return { n: ps.length, inMap: ps.filter((p) => p.closest('.map-wrapper')).length, hero: !!hero && hero.textContent.includes(t), seen: ps.filter((p) => p.getClientRects().length > 0).length };
+      }, HINT[lang]);
+      const hn0 = await hintOf();
+      await type(page, 'emirates');
+      const hn1 = await hintOf();
+      await type(page, '');
+      const hn2 = await hintOf();
+      ok(hn0.n === 1 && hn0.inMap === 1 && !hn0.hero && hn0.seen === 1 && hn1.seen === 0 && hn2.seen === 1,
+        T(`s3b 「${HINT[lang]}」は地図の枠の中に1つ（見出しの帯には無い）・打っているあいだは地図と一緒に見えない・空にすると戻る`), J({ hn0, hn1, hn2 }));
 
       /* s4 レベリング比較を開いたまま打つ → カード一覧に戻る */
       await press(page, '.view-btn[data-view="range"]');
@@ -1035,6 +1085,14 @@ async function main() {
       const k6 = await lvlCols(page), pk6 = await pickOn(page), s6 = await page.evaluate(() => location.search), tr6 = await trayOf(page);
       ok(c6 && k6 === 2 && sameSet(pk6, ['jal', 'ana'].filter((s) => QUICK.includes(s))) && new URLSearchParams(s6).get('view') === 'range' && !tr6.shown,
         T('card 盆の「レベリング比較」→ 印の2社だけの図（.lvl-col 2本・会社選びで jal と ana が押されている）・住所に view=range・盆は隠れる'), J({ k6, pk6, s6 }));
+      /* 押した所の下に図が来ても、マウスが動くまで図の吹き出しは出ない（ブラウザが送る「上に来た」の知らせを数コマ待ってから見る ── WP-dd-9） */
+      await settle(page);
+      const tip6 = await page.evaluate(() => {
+        const t = document.getElementById('lvl-wa-tip'); if (!t) return null;
+        const cs = getComputedStyle(t);
+        return { show: t.classList.contains('show'), seen: cs.display !== 'none' && cs.visibility !== 'hidden' && Number(cs.opacity) > 0 && t.getClientRects().length > 0 };
+      });
+      ok(!!tip6 && !tip6.seen, T('card 盆の「レベリング比較」を押した直後（マウスは動かさない）→ 図の吹き出し（#lvl-wa-tip）は出ていない'), J(tip6));
       await shot(page, 'card', lang, 'lvl');
       await page.reload({ waitUntil: 'load', timeout: 60000 });
       await ready(page);
@@ -1071,6 +1129,7 @@ async function main() {
         const t3 = await trayOf(page);
         ok(t3.n === fmt(3, 5) && !t3.two.shown && !t3.isTwo && t3.lvl.shown && same(t3.chips.map((c) => c.s), ['jal', 'ana', 'etihad']),
           T(`card T3 3社目（etihad）→「${fmt(3, 5)}」・「${TWO_WORD}」は隠れ、「${LVL_WORD.ja}」だけ`), J(t3));
+        ok(!!t3.two && t3.two.href === 'career.html?view=compare', T(`card T3 隠れた「${TWO_WORD}」に前の2社が残らない（行き先は出荷のままの career.html?view=compare）`), J(t3.two));
         await shot(page, 'card', lang, 'T3');
         /* 4社目・5社目 ＝ 印の在る、fleet を持つ社のうち、ページの並びで先の2社（切り替えの前は cathay-pacific と eva-air） */
         const more = dom.filter((x) => x.tick && lvlN(x.s) && !['jal', 'ana', 'etihad'].includes(x.s)).map((x) => x.s).slice(0, 2);
@@ -1092,6 +1151,15 @@ async function main() {
           T(`card T5 5社に印 → «${fmt(5, 5)}»・ほかの${t5.boxes - 5}社の印はどれも押せない・6社目（${sixth}）は付かない`), J({ n: t5.n, checked: t5.checked, disabled: t5.disabled.length, boxes: t5.boxes, dis }));
         await shot(page, 'card', lang, 'T5');
       }
+
+      /* 5社のとき（390 では札の列が横にあふれる）、札の列は1社目から見せる ＝ 1社目の札が左の端で切れない（WP-dd-9） */
+      const chip5 = await page.evaluate(() => {
+        const l = document.getElementById('wd-tray-list'), f = l && l.firstElementChild;
+        if (!f) return null;
+        const lr = l.getBoundingClientRect(), fr = f.getBoundingClientRect();
+        return { listLeft: Math.round(lr.left), firstLeft: Math.round(fr.left), scrollLeft: l.scrollLeft, over: l.scrollWidth > l.clientWidth };
+      });
+      ok(!!chip5 && chip5.over && chip5.scrollLeft === 0 && chip5.firstLeft >= chip5.listLeft, T('card T5 盆の札の列はあふれても1社目から（1社目の札が左の端で切れない）'), J(chip5));
 
       /* c10 盆の社名の札を押す ＝ その社の印が外れる */
       const before = await trayOf(page);

@@ -244,6 +244,8 @@
      ★ 盆の社名は createElement ＋ textContent で作る（HTML の字を組み立てない）。 */
   var MAX = 5;
   var TRAY = $('wd-tray'), TRAY_N = $('wd-tray-n'), TRAY_LIST = $('wd-tray-list'), TRAY_TWO = $('wd-tray-two'), TRAY_LVL = $('wd-tray-lvl');
+  /* 「航空会社を比較」の出荷のままの行き先（2社がそろっていない時はここへ戻す ＝ 隠れたリンクに前の2社を残さない ── WP-dd-9） */
+  var TWO_HREF = TRAY_TWO ? TRAY_TWO.getAttribute('href') : null;
   var TICKS = all('#airline-grid .wd-cmp-i');
   function boxOf(slug) { for (var i = 0; i < TICKS.length; i++) if (TICKS[i].value === slug) return TICKS[i]; return null; }
   function lvl(slug) { var c = cardOf(slug); return !!c && c.lvl; }
@@ -281,13 +283,15 @@
           b.textContent = n ? n.textContent : s;
           TRAY_LIST.appendChild(b);
         });
-        if (cmp.length > now.length) TRAY_LIST.scrollLeft = TRAY_LIST.scrollWidth;   // 足した社（いちばん右）が見えるように
+        /* 札の列はいつも1社目から見せる（右の端へ送ると、スマホで1社目の札が左の端で切れていた ── WP-dd-9）。入りきらない分は横にすべらせる */
+        TRAY_LIST.scrollLeft = 0;
       }
     }
     var pair = cmp.length === 2 && two(cmp[0]) && two(cmp[1]);
     if (TRAY_TWO) {
       if (TRAY_TWO.hidden === pair) TRAY_TWO.hidden = !pair;
-      if (pair) TRAY_TWO.setAttribute('href', 'career.html?view=compare&a=' + encodeURIComponent(cmp[0]) + '&b=' + encodeURIComponent(cmp[1]));
+      var href = pair ? 'career.html?view=compare&a=' + encodeURIComponent(cmp[0]) + '&b=' + encodeURIComponent(cmp[1]) : TWO_HREF;
+      if (href != null && TRAY_TWO.getAttribute('href') !== href) TRAY_TWO.setAttribute('href', href);
     }
     TRAY.classList.toggle('is-two', !!TRAY_TWO && pair);
     if (TRAY_LVL) { var lv = cmp.length >= 1 && cmp.every(lvl); if (TRAY_LVL.hidden === lv) TRAY_LVL.hidden = !lv; }
@@ -306,9 +310,10 @@
         tip.style.color = rc; tip.style.borderColor = rc + '44'; tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', function (e) {
-        var svg = $('world-svg');
-        if (!tip || !svg) return;
-        var r = svg.getBoundingClientRect();
+        /* 吹き出しは地図の枠（.map-wrapper）の中で置く ＝ 枠から測る（地図の上に一言の行が在っても、指の所に出る ── WP-dd-9） */
+        var box = tip && (tip.offsetParent || $('world-svg'));
+        if (!tip || !box) return;
+        var r = box.getBoundingClientRect();
         tip.style.left = (e.clientX - r.left) + 'px'; tip.style.top = (e.clientY - r.top) + 'px';
       });
       el.addEventListener('mouseleave', function () { if (tip) tip.style.opacity = '0'; });
@@ -406,15 +411,31 @@
     else if (box && box.getClientRects().length) box.focus();
   });
   /* 盆の「レベリング比較」＝ 印を付けた社だけの図へ（行きの一方だけ。図の中の会社選びはそのまま使える）。表示の切り替えの帯を画面の上へ */
-  if (TRAY_LVL) TRAY_LVL.addEventListener('click', function () {
+  /* 盆のボタンを押した直後、押した所の下に図が来ると、ブラウザはマウスが動いていなくても「図の上に来た」と知らせて
+     図の吹き出しが開いてしまう。押した点から本当に動くか、キーか指で触れるまで、吹き出しを隠したままにする（WP-dd-9） */
+  var TIP = $('lvl-wa-tip');
+  function calm(e) {
+    if (!TIP) return;
+    var x = e && e.clientX, y = e && e.clientY;
+    TIP.classList.add('wd-calm');
+    function off(ev) {
+      if (ev.type === 'mousemove' && Math.abs(ev.clientX - x) < 3 && Math.abs(ev.clientY - y) < 3) return;   // 画面が動いただけ（マウスは同じ所）
+      TIP.classList.remove('wd-calm');
+      ['mousemove', 'keydown', 'touchstart'].forEach(function (t) { w.removeEventListener(t, off, true); });
+    }
+    ['mousemove', 'keydown', 'touchstart'].forEach(function (t) { w.addEventListener(t, off, true); });
+  }
+  if (TRAY_LVL) TRAY_LVL.addEventListener('click', function (e) {
     var slugs = cmp.slice();
     if (!slugs.length || !slugs.every(lvl)) return;
+    calm(e);
     set({ view: 'range' });
     commit();
     mountWALeveling();
     if (LVL && LVL.setSlugs) LVL.setSlugs(slugs);
+    /* 上の帯（固定のヘッダー）の下に隠れている時も送る（画面の中でも 86px より上はヘッダーの裏 ＝「カード一覧」が押せない ── WP-dd-9） */
     var vt = d.querySelector('.view-toggle');
-    if (vt) { var top = vt.getBoundingClientRect().top; if (top < 0 || top > w.innerHeight) w.scrollTo(0, Math.max(0, top + w.pageYOffset - 86)); }
+    if (vt) { var top = vt.getBoundingClientRect().top; if (top < 86 || top > w.innerHeight) w.scrollTo(0, Math.max(0, top + w.pageYOffset - 86)); }
   });
 
   /* ── はじめ（古いページが持っていた地域のボタンの直書きの見た目と class active を外す）── */
