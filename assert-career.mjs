@@ -511,6 +511,30 @@ const NET_OFF = /googletagmanager|google-analytics|clarity\.ms|doubleclick|supab
 const ready = page => page.waitForFunction(() =>
   !document.documentElement.classList.contains('cr-boot') && !!window.PVCurrency
   && !!document.querySelector('#cr .cr-view:not([hidden])'));
+/* いまの位置が段（history.state）に書かれたか。段の y は、いま見ている画面の「残さない欄」（誰が見ても同じ字の顔でない欄・
+   片側だけの欄 ── 開いた欄の高さは、受け取った人にしか無い行の数を語る）を高さ 0 とみなした位置
+   （★2026-10-24 段階4 cmp-links-card-8：career.js の keep() が 2026-10-23 から書く形。assert-cmp-frame.mjs の FLAT_Y と同じ決まり）。
+   前の待ち「y ＝ いまの位置（|y − scrollY| < 1）」は、同じ強さでこちらへ移した：残さない欄の無い人（空の保存先のゲスト）は
+   今までどおり いまの位置そのもの。口コミの点が在る保存先では、ゲストの評価の欄が開くので、前の待ちは時間切れで赤くなっていた。
+   顔の一覧は比較の設計（LC-A19）の字そのもの ── 製品の SAME_FACE と1字も違わないことは assert-cmp-frame.mjs が見ている。
+   ページで流す（window.__flatY として置いてから呼ぶ） */
+const SAME_SHEET = 'locked|login|give|few|empty|off|error';
+const SHOWN_LIVE = '#cr .cr-view:not([hidden]) .crl[data-live]';
+const FLAT_Y = (sel, same) => {
+  const re = new RegExp(`^(${same})$`), bar = document.querySelector('.mr-top'), e = bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+  let hid = 0;
+  for (const b of document.querySelectorAll(sel)) {
+    if ((re.test(b.getAttribute('data-state') || '') && !b.hasAttribute('data-part')) || (b.parentElement && b.parentElement.closest('.crl[data-live]'))) continue;
+    const r = b.getBoundingClientRect();
+    hid += Math.max(0, Math.min(e, r.bottom) - r.top);
+  }
+  return Math.round(window.scrollY - hid);
+};
+const keptAt = async page => {
+  await page.evaluate(`window.__flatY = ${FLAT_Y};`);
+  return page.waitForFunction((sel, same) => scrollY > 0 && history.state && history.state.y === window.__flatY(sel, same),
+    { timeout: 5000 }, SHOWN_LIVE, SAME_SHEET).then(() => true, () => false);
+};
 /* 字と動きが落ち着くまで待つ（時間では待たない）。 */
 const settle = page => page.evaluate(async () => {
   await document.fonts.ready;
@@ -985,7 +1009,7 @@ try {
   await page.goForward();
   await until(page, '?airline=ana');
   const y1 = await page.evaluate(() => { const y = Math.min(300, document.documentElement.scrollHeight - innerHeight); scrollTo(0, y); return scrollY; });
-  const kept = await page.waitForFunction(() => scrollY > 0 && history.state && Math.abs(history.state.y - scrollY) < 1, { timeout: 5000 }).then(() => true, () => false);
+  const kept = await keptAt(page);
   ok(y1 >= 100 && kept, '概要を下へ送ると、その位置がいまの段に残る', `${y1} / ${JSON.stringify(await page.evaluate(() => history.state))}`);
   await page.goBack();
   await until(page, '');
@@ -1942,7 +1966,7 @@ try {
     for (const [sel, word, s, tab] of legs) {
       const calm0 = await calmCmp();
       await p.evaluate(x => document.querySelector(x).scrollIntoView({ block: 'center' }), sel);
-      const kept = await p.waitForFunction(() => scrollY > 0 && history.state && Math.abs(history.state.y - scrollY) < 1, { timeout: 5000 }).then(() => true, () => false);
+      const kept = await keptAt(p);
       const y0 = await p.evaluate(() => scrollY);
       await p.evaluate(() => { window.__left = 1; });
       await Promise.all([p.waitForNavigation({ waitUntil: 'load' }), p.click(sel)]);

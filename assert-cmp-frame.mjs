@@ -11,6 +11,7 @@
      ・戻る（場面 back ── 2026-10-23 段階4 cmp-links-card-6）── 比較から会社ページへ出て「戻る」で帰ると（読み込み直したページ）、
        出る前に画面のいちばん上に在った目印（「ほかの街」）が、欄が埋まったあとも同じ高さに在る（会員 c ＝ どの欄も開いた人・
        ゲスト ＝ 錠とログインの顔）。欄が帰ってきたら長くなっていた・上の畳みが閉じていた、でも同じ。読む人が自分で動かしたら合わせ直さない。
+       2社を住所ではなく選び直し・入れ替えで並べたあと（隠れた会社の要素の並びが、読み込み直したページと違う）でも同じ（B1s・2026-10-24）。
        段（history.state）に残す箱の高さは、誰が見ても同じ字の顔（career.js の SAME_FACE）の欄だけ ── 開いた欄の高さは 0（LC-A19）。
        ブラウザのスクロールの自動の合わせ（scroll anchoring）は切って見る（overflow-anchor:none ── ページ自身の合わせだけが働く形）。
        段に書く位置（y・目印 k・その高さ t）も、残さない欄を高さ 0 とみなした寸法（2026-10-23 LEAD AMENDMENT「段の k・t」・場面 leak が見る）。
@@ -632,6 +633,22 @@ const LIVE = '#cr [data-view="compare"] .crl[data-live]';
 const BACK_AT = '#cr .cr-rentb[data-airline="ana"] .cr-rentb-go a';         // ANA の「ほかの街」（目印）
 const BACK_FOLD = '#cr .cr-rentb[data-airline="jal"] details.cr-more';      // JAL の「前提と出どころ」（390px では ANA の箱の上）
 const BACK_HOLD = [...H.MINE, 'pv_pay_rows', 'pv_company_pay'];
+/* 住所ではなく選び直しで JAL｜ANA に着く道（★2026-10-24 段階4 cmp-links-card-8・LEAD'S WORD S1）：キャセイ｜JAL を住所で開き →
+   入れ替え（JAL｜キャセイ）→ B に ANA。pair() は選んだ2社の要素を箱の中で動かすので、隠れたキャセイの要素は JAL の前に残る
+   （住所で開いた JAL｜ANA ＝ 読み込み直したページでは、HTML の順のまま JAL・ANA の後ろ）。目印を画面の通し番号で覚えると、
+   戻ったページで別の要素を指す ── 歩く検査（assert-cmp-walk.mjs）のエバー → JAL で見つけた形 */
+const BACK_VIA = {
+  url: PAIR(CX, 'jal'),
+  go: async (page) => {
+    await page.click('#cr-swap');
+    await page.waitForFunction(() => location.search === '?view=compare&a=jal&b=cathay-pacific', { timeout: 8000 });
+    await page.select('#cr-b', 'ana');
+    return page.waitForFunction(() => location.search === '?view=compare&a=jal&b=ana', { timeout: 8000 }).then(() => true, () => false);
+  },
+};
+/* 家賃の箱の並び（data-airline の順・隠れた会社も）。選び直しの道のりが、読み込み直したページと違う並びを作ったかを見る */
+const rentOrder = (page) => page.evaluate(() => [...document.querySelectorAll('#cr [data-view="compare"] .cr-rentbs > [data-airline]')]
+  .map((e) => e.getAttribute('data-airline') + (e.getClientRects().length ? '' : '·h')).join(' '));
 /* ページのどのスクリプトよりも先：pageshow の控え・この段の history.state の写し（前の文書の pagehide が書いたもの）・自動の合わせを切る */
 const BACK_BEFORE = () => {
   if (location.pathname !== '/career.html') return;
@@ -729,10 +746,11 @@ async function shotView(page, name) {
   await page.screenshot({ path: path.join(SHOTS, `${CUR.key}-${name}.png`) });
 }
 /* 1回の「出て、戻る」。away ＝ 離れているあいだに返事を変える（B2）・fold ＝ 目印より上の畳みを開いてから離れる（B3）・
-   wheel ＝ 戻ったあと、返事を流す前にホイールで動かす（B5）。返すのは測った値（判定は場面の側） */
-async function backLeg(name, { who = null, stub, away = null, fold = false, wheel = false, shots = false }) {
+   wheel ＝ 戻ったあと、返事を流す前にホイールで動かす（B5）・via ＝ 住所ではなく選び直しで JAL｜ANA に着く（B1s・BACK_VIA）。
+   返すのは測った値（判定は場面の側） */
+async function backLeg(name, { who = null, stub, away = null, fold = false, wheel = false, shots = false, via = null }) {
   const HOLD = { on: true };
-  const { page, st } = await open('sp', { who, url: PAIR('jal', 'ana'), before: BACK_BEFORE, stub, holdIf: (n) => HOLD.on && BACK_HOLD.includes(n) });
+  const { page, st } = await open('sp', { who, url: via ? via.url : PAIR('jal', 'ana'), before: BACK_BEFORE, stub, holdIf: (n) => HOLD.on && BACK_HOLD.includes(n) });
   const live = inflight(page);
   const R = { name };
   /* 1枚目：返事を止めたまま（読み込み中の高さ）→ 流す → 落ち着いた高さ */
@@ -744,6 +762,7 @@ async function backLeg(name, { who = null, stub, away = null, fold = false, whee
   R.hLoad = (await boxesOf(page)).reduce((n, b) => n + b.h, 0);
   HOLD.on = false;
   releaseAll(st, answerBy(st));
+  if (via) R.via = await via.go(page);
   R.calm1 = await calm(page, st, live);
   R.hFill = (await boxesOf(page)).reduce((n, b) => n + b.h, 0);
   if (fold) {
@@ -770,6 +789,7 @@ async function backLeg(name, { who = null, stub, away = null, fold = false, whee
   R.flatGap = await page.evaluate(() => window.scrollY - ((history.state && history.state.y) || 0));
   R.top0 = await steady(page, topOf, BACK_AT);
   R.leave = await boxesOf(page);
+  R.order0 = await rentOrder(page);
   if (shots) await shotView(page, `${name}-before`);
   /* 離れる（会社ページの返事は止めない）。離れているあいだに返事を変える場面もある */
   if (away) away(st);
@@ -785,6 +805,7 @@ async function backLeg(name, { who = null, stub, away = null, fold = false, whee
     search: location.search, a: (document.getElementById('cr-a') || {}).value, b: (document.getElementById('cr-b') || {}).value }));
   R.reloaded = R.fresh.left === null && R.fresh.ps.length > 0 && R.fresh.ps.every((x) => x === false);
   await viewStill(page);
+  R.order1 = await rentOrder(page);
   R.now = await boxesOf(page);
   R.stillLoading = R.now.length > 0 && R.now.every((b) => ['idle', 'loading'].includes(b.state));
   R.topNow = await steady(page, topOf, BACK_AT);
@@ -838,6 +859,18 @@ scene('back', '比較 →「ほかの街」→ 会社ページ →「戻る」�
     && c.leave.every((b, i) => (SAME_RE.test(b.state) && !b.part) || hs[i] === 0);
   ok(pin, '★LC-A19 会員 c（どの欄も開いた人）が離れたあとの段：誰が見ても同じ字の顔でない欄（開いた・片側だけ）の高さは全部 0 ── 段に残るのは寸法だけで、受け取った人にしか無い行の数を語る高さは残さない',
     J({ h: hs, at: c.leave.map((b) => `${b.kind}:${b.state}${b.part ? '(part)' : ''}:${b.h}`) }));
+
+  /* B1s 会員 c：住所ではなく選び直しで着いた JAL｜ANA（BACK_VIA）。前提：隠れた会社の要素の並びが、出る前と読み込み直したページで違う
+     （同じなら、目印を通し番号で覚えても赤くなれない ── この場面は落ちることができない）。そのうえで B1 と同じ判定 */
+  const cs = await backLeg('switched', { who: 'c', stub: backOpen(), via: BACK_VIA, shots: true });
+  const moved = cs.via === true && !!cs.order0 && !!cs.order1 && cs.order0 !== cs.order1;
+  ok(moved,
+    moved ? `B1s（前提）キャセイ｜JAL → 入れ替え → B に ANA で着いた JAL｜ANA は、隠れた会社の要素の並びが読み込み直したページと違う（出る前「${cs.order0}」・戻ったあと「${cs.order1}」）`
+      : 'B1s（前提）この場面は落ちることができない ── 選び直しの道のりが、読み込み直したページと違う並びを作らない',
+    J({ via: cs.via, order0: cs.order0, order1: cs.order1 }));
+  ok(moved && sameAddr(cs) && cs.calm2 && Math.abs(cs.topAfter - cs.top0) <= 2 && cs.after.every((b) => !b.mh),
+    `B1s 会員 c：選び直しで着いた JAL｜ANA から「ほかの街」→ 会社ページ →「戻る」（読み込み直したページ）でも、欄が全部落ち着いたあと目印は出る前と同じ高さ（ずれ ${px(cs.topAfter - cs.top0)}px ≤ 2）── 目印は画面の通し番号でなく、会社とその会社の中の番号で覚える`,
+    legNote(cs));
 
   /* B2 会員 c：離れているあいだに、目印より上の提出された年収の欄に JAL の行が1つ増える */
   const c2 = await backLeg('taller', { who: 'c', stub: backOpen(2), away: (st) => { st.stub.pv_pay_rows = backOpen(3).pv_pay_rows; } });

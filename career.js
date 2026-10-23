@@ -225,7 +225,7 @@
        (1) 生きた欄を、出る前の高さで置いておく（答えで落ち着いたら外す）。
        (2) 出る前に画面のいちばん上に在った「動かない目印」（見出し・リンク・箱）を覚えておき、
            欄や畳みの高さが変わるたびに、その目印が同じ高さに来るよう合わせ直す。読む人が自分で動かしたら、やめる。
-       段に残すのは画面の寸法だけ（箱の高さ・目印の番号と位置）。額・件数・字は残さない。
+       段に残すのは画面の寸法だけ（箱の高さ・目印の名前（会社と番号）と位置）。額・件数・字は残さない。
        ★高さを残すのは、誰が見ても同じ字の顔（SAME_FACE：錠・ログイン・答えるカード・まだ少ない・空・準備中・読めない）の欄で、
          片側だけの印（data-part）が無いものだけ。開いた欄（open）・途中の欄・知らない状態は 0 ── 開いた欄の高さは、
          見える行の数（受け取った人にしか無い値）を語る。段はログアウトや読む人の交代のあとも、このタブに残る（LC-A19）。 */
@@ -239,6 +239,24 @@
         if (!(up && up.closest('.crl, #cr-deep'))) out.push(el);    // 部品が後から描く中身は目印にしない（戻った直後には無い）
       });
       return out;
+    };
+    /* 目印の名前（段の s と k）：その目印が属する会社（いちばん近い data-airline。会社に属さない目印は ''）と、
+       その会社の目印の中での番号。画面全体の通し番号にしない ── 比較の2社を選び直すと pair() が箱の中の会社の要素を並べ替え、
+       隠れた3社の要素の順は選び直しの道のりで変わる（読み込み直すと HTML の順から並べ直す）ので、同じ通し番号が別の目印を指す
+       （エバー → JAL を選んで入れ替えたあと会社ページへ出て戻ると、読み込み直したページで目印を見失い、欄が埋まるとずれた）。
+       同じ会社の目印どうしの順は、選び直しでも読み込み直しでも変わらない（pair() は会社の要素をまとめて順のまま運び、箱は動かさない）。
+       名前の目印がページに無い・隠れているときは合わせない（位置は段の y のまま ── 隠れた要素へは飛ばない）。 */
+    var whose = function (el) { var o = el.closest('[data-airline]'); return o ? o.getAttribute('data-airline') : ''; };
+    var nameOf = function (list, i) {
+      var s = whose(list[i]), n = 0;
+      for (var j = 0; j < i; j++) if (whose(list[j]) === s) n++;
+      return { s: s, k: n };
+    };
+    var find = function (m) {
+      if (!m || typeof m.s !== 'string' || !(m.k >= 0)) return null;
+      var list = marksOf(), n = 0;
+      for (var i = 0; i < list.length; i++) if (whose(list[i]) === m.s && n++ === m.k) return list[i];
+      return null;
     };
     var edge = function () { return bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0; };
     /* 画面が出るときの動き（.cr-view の translateY が 0 へ戻る途中）の分。目印の位置からは除く
@@ -283,9 +301,9 @@
       var list = marksOf(), e = edge(), up = lift();
       for (var i = 0; i < list.length; i++) {
         var r = list[i].getClientRects()[0];
-        if (r && r.top - up >= e) return { k: i, t: Math.round(r.top - up) };
+        if (r && r.top - up >= e) { var m = nameOf(list, i); m.t = Math.round(r.top - up); return m; }
       }
-      return { k: -1, t: 0 };
+      return { s: '', k: -1, t: 0 };
     }
     var waiting = function (b) { var s = b.getAttribute('data-state'); return s === 'idle' || s === 'loading'; };
     var free = function (b) { if (b.style.minHeight) b.style.minHeight = ''; };
@@ -296,7 +314,7 @@
     }
     function align() {
       if (!held) return;
-      var el = marksOf()[held.k], r = el && el.getClientRects()[0];
+      var r = held.el.getClientRects()[0];
       if (!r) return;
       var dy = Math.round(r.top - lift()) - held.t;
       if (dy) window.scrollBy(0, dy);
@@ -304,8 +322,9 @@
     }
     function arm(m) {
       letGo();
-      if (!m || !(m.k >= 0)) return;
-      held = { k: m.k, t: m.t, y: window.scrollY };
+      var el = find(m);
+      if (!el) return;
+      held = { el: el, t: m.t, y: window.scrollY };
       if (window.ResizeObserver && shown) {
         ro = ro || new ResizeObserver(align);
         ro.observe(shown);
@@ -318,7 +337,7 @@
       var h = st && st.h, list = liveOf();
       if (h && h.length === list.length) each(list, function (b, i) { if (h[i] > 0 && waiting(b)) b.style.minHeight = h[i] + 'px'; });
       window.scrollTo(0, (st && st.y) || 0);
-      if (st) arm({ k: st.k, t: st.t });
+      if (st) arm({ s: st.s, k: st.k, t: st.t });
     }
     if (window.MutationObserver) {
       new MutationObserver(function (recs) {
@@ -336,12 +355,12 @@
     /* ブラウザが前の画面をそのまま戻したとき：いま上に在る目印を覚え直す（取り直しで欄の高さが変わっても、読む場所を動かさない）。 */
     window.addEventListener('pageshow', function (e) { if (e.persisted) arm(mark()); });
     var keep = function () {
-      var list = marksOf(), e = edge(), up = lift(), F = flat(up), at = F.line(e), k = -1, t = 0;
+      var list = marksOf(), e = edge(), up = lift(), F = flat(up), at = F.line(e), m = { s: '', k: -1 }, t = 0;
       for (var i = 0; i < list.length; i++) {
         var r = list[i].getClientRects()[0], f = r ? F.mark(list[i], r.top - up) : 0;
-        if (r && f >= at) { k = i; t = Math.round(f - at + e); break; }
+        if (r && f >= at) { m = nameOf(list, i); t = Math.round(f - at + e); break; }
       }
-      try { history.replaceState({ y: Math.round(window.scrollY - e + at), h: sizes(), k: k, t: t }, '', location.href); } catch (x) {}
+      try { history.replaceState({ y: Math.round(window.scrollY - e + at), h: sizes(), s: m.s, k: m.k, t: t }, '', location.href); } catch (x) {}
     };
     /* 位置は、送り終えるたびにいまの段へ残す。ブラウザの「戻る」で出るときは
        残す間が無い（知らせが来たときには、もう次の段に居る）ので、押した時だけでは足りない。 */
