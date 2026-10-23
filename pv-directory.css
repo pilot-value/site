@@ -4,26 +4,32 @@
 .wd-li{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;row-gap:var(--pv-s-1);padding:var(--pv-s-2);background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow);transition:transform .2s var(--pv-ease)}
 .wd-li[hidden]{display:none}
 @supports (grid-template-rows:subgrid){.wd-li{grid-row:span 3;grid-template-rows:subgrid}}
-.wd-go{display:flex;align-items:flex-start;gap:10px;min-height:48px;color:inherit;text-decoration:none;outline:none}
+/* カードの頭は2段：上 ＝ ロゴ（左）と矢印（右）／下 ＝ 社名と2行目。社名にカードの横幅を全部渡す
+   （ロゴの横に並べていた頃は、狭いカードで社名が「キャセイパシフィッ／ク」と語の途中で折れていた ── WP-dd-9） */
+.wd-go{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"logo chev" "names names";align-items:center;gap:8px 10px;min-height:48px;color:inherit;text-decoration:none;outline:none}
 .wd-go::after{content:"";position:absolute;inset:0;border-radius:var(--pv-r)}   /* カード全体がリンク。足もとの段（.wd-foot）だけは上に乗る */
 .wd-li:has(.wd-go:hover){transform:translateY(-2px)}
 .wd-go:hover .wd-name{text-decoration:underline;text-underline-offset:3px}
 .wd-go:focus-visible::after{outline:2px solid var(--pv-accent);outline-offset:2px}
 .wd-li:has(.wd-go:active){transform:translateY(0) scale(.99)}
 .wd-go:active .wd-name{opacity:.7}
-.wd-logo{flex:none;display:flex;align-items:center;height:36px}
-.wd-logo .pvg-logo{--lg-h:36px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:var(--lg-h);min-width:var(--lg-h);max-width:84px;padding:3px 6px;overflow:hidden;border-radius:var(--pv-r-sm);background:#fff;border:1px solid var(--pv-line)}
+/* ロゴの札：高さはそろえ、幅は絵の縦横比のまま（幅と高さの属性 ＝ airline-logo-sizes.mjs の表）。横に長い字だけのロゴ（JAC など）も、
+   上の段の幅いっぱいまで広がって読める大きさになる（社名の横に置いていた頃は 84px に詰められて字が潰れていた） */
+.wd-logo{grid-area:logo;min-width:0;display:flex;align-items:center;height:32px}
+.wd-logo .pvg-logo{--lg-h:32px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:var(--lg-h);min-width:var(--lg-h);max-width:100%;padding:3px 6px;overflow:hidden;border-radius:var(--pv-r-sm);background:#fff;border:1px solid var(--pv-line)}
 .wd-logo .pvg-logo>img{display:block;height:100%;width:auto;max-width:100%;object-fit:contain}
 .wd-logo .pvg-logo>.pvg-mono{display:none}
 .wd-logo .pvg-logo.is-mono,.wd-logo .pvg-logo.is-fail{width:var(--lg-h);max-width:none;padding:0;border:0;background:var(--pvg-c,var(--pv-accent))}
 .wd-logo .pvg-logo.is-mono>.pvg-mono,.wd-logo .pvg-logo.is-fail>.pvg-mono{display:grid;place-items:center;width:100%;height:100%;font-size:.72rem;font-weight:800;line-height:1;letter-spacing:.02em;color:var(--pvg-mono-ink,#fff)}
 .wd-logo .pvg-logo.is-fail>img{display:none}
-.wd-names{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding-top:2px}
-.wd-name{font-size:.9rem;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:var(--pv-ink);overflow-wrap:anywhere}
+.wd-names{grid-area:names;min-width:0;display:flex;flex-direction:column;gap:2px}
+/* 社名は語の途中で折らない（折れてよいのは空白・「・」の後ろ・括弧の前だけ ＝ keep-all）。それでも入らないときの最後の手は「…」。
+   text-spacing-trim:space-all ＝ 行末の「）」を詰めて測らない（詰めて「入る」と決めた行が 3px はみ出し、「（FD…」と切れていた） */
+.wd-name{font-size:.9rem;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:var(--pv-ink);word-break:keep-all;overflow-wrap:normal;text-spacing-trim:space-all;overflow:hidden;text-overflow:ellipsis}
 .wd-meta{display:flex;align-items:baseline;gap:6px;min-width:0}
 .wd-sub{min-width:0;font-size:.7rem;color:var(--pv-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wd-code{flex:none;padding:0 6px;border-radius:999px;border:1px solid var(--pv-line);font-size:.64rem;font-weight:800;line-height:16px;letter-spacing:.02em;color:var(--pv-ink-2)}
-.wd-chev{flex:none;width:7px;height:7px;margin:9px 3px 0 0;border-top:2px solid var(--pv-ink-3);border-right:2px solid var(--pv-ink-3);transform:rotate(45deg)}
+.wd-chev{grid-area:chev;width:7px;height:7px;margin:0 6px 0 0;border-top:2px solid var(--pv-ink-3);border-right:2px solid var(--pv-ink-3);transform:rotate(45deg)}
 .wd-figs{display:grid;align-content:start;gap:6px;padding-top:var(--pv-s-1);border-top:1px solid var(--pv-line-soft)}
 .wd-fig{display:flex;align-items:baseline;justify-content:space-between;gap:var(--pv-s-1);margin:0;font-size:.72rem;line-height:1.35;color:var(--pv-ink-3)}
 .wd-v{flex:none;font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:var(--pv-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -34,9 +40,18 @@
 .wd-search{position:relative;display:flex;align-items:stretch;gap:var(--pv-s-1);max-width:640px;min-height:56px;margin:var(--pv-s-3) auto 0;padding:0 8px 0 0;background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow);text-align:left}
 .wd-search:focus-within{border-color:var(--pv-accent);outline:2px solid var(--pv-accent);outline-offset:2px;box-shadow:var(--pv-shadow-lift)}
 .wd-search-ic{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--pv-ink-3);pointer-events:none}
-/* ⚠️ 16px を下げない（iOS は 16px 未満の入力欄に触れるとページごと拡大して戻らない。2026-08-27 実測）。ブラウザの消すボタン（×）は隠さない */
+/* ⚠️ 16px を下げない（iOS は 16px 未満の入力欄に触れるとページごと拡大して戻らない。2026-08-27 実測）。
+   ブラウザの消すボタン（×）は隠さない ── 指の画面では「検索だけを消す」ただ1つの手段。隠すのは下の2か所だけ（どちらも消す字が無い時か、
+   別の × が並ぶ時） */
 .wd-search-in{flex:1;min-width:0;padding:0 4px 0 48px;background:none;border:0;outline:none;font:inherit;font-size:1.0625rem;line-height:1.4;color:var(--pv-ink);text-overflow:ellipsis;appearance:none;-webkit-appearance:none}
 .wd-search-in::placeholder{color:var(--pv-ink-3)}
+/* マウスの画面で地域の札（×つき）が欄に出ている時だけ、ブラウザの × を出さない（×が2つ並ぶと、どちらが何を消すか分からない ── WP-dd-9）。
+   検索の字は Esc か「絞り込みを解除」で消える。指の画面・札の無い時は今までどおり */
+@media (hover:hover) and (pointer:fine){.wd-search:has(.wd-scope:not([hidden])) .wd-search-in::-webkit-search-cancel-button{display:none}}
+/* 欄が空のあいだ（例の字が出ている時）は、消す字が無い。ブラウザは見えない × の場所を空けたままにして例の字を「…」で切るので、その間だけ畳む */
+.wd-search-in:placeholder-shown::-webkit-search-cancel-button{display:none}
+/* いちばん狭い画面（〜360px）は虫めがねを少し左へ寄せ、例の字（英語 «Search by airline or country»）が 320px でも切れない幅を空ける */
+@media (max-width:360px){.wd-search-ic{left:14px}.wd-search-in{padding:0 0 0 42px}}
 .wd-scope{flex:none;align-self:center;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--pv-accent-line);background:var(--pv-accent-soft);color:var(--pv-accent-ink);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
 .wd-clear,.wd-else-b{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink-2);font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
 .wd-else-n{font-weight:500;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
@@ -52,6 +67,10 @@
 .wd-rh-n{font-size:.8rem;color:var(--pv-ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
 .wd-empty-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--pv-s-1);margin-top:var(--pv-s-2)}
 .wd-q #wd-explore{display:none}
+/* 古い地図の上の一言（地図の中に置く ＝ 地図と一緒に隠れる：打っているあいだ・?q= で開いた時・台本が動かない時 ── WP-dd-9） */
+.wd-map-hint{margin:0;padding:10px 12px 8px;text-align:center;font-size:.85rem;line-height:1.5;color:var(--pv-ink-2)}
+/* 盆の「レベリング比較」を押した直後は、押した所に図が来ても、マウスが本当に動くまで図の吹き出しを出さない（pv-directory.js の calm） */
+#lvl-wa-tip.wd-calm{display:none}
 @media (pointer:coarse){.wd-scope,.wd-clear,.wd-else-b{min-height:44px}}
 @media (prefers-reduced-motion:reduce){.wd-scope,.wd-clear,.wd-else-b{transition:none}}
 /* PV-DIR-STRIP ── 地域ボタンの見た目（DH から directory-map の DM3 まで。DM3 はこの印の中を丸ごと消して自分の持ち場で書く） */

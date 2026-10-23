@@ -22,7 +22,9 @@
      G) 見出しと検索欄 ── 見出しの字（日本語は「、」の後ろでだけ折れる2つの <span>）・検索欄は見出しの帯の中に HTML で在る
         （type="search"・字はそのまま）・国の帯と地図（#wd-explore）は検索欄も地域ボタンもカードも持たない・
         結果の見出し（すべて／All・社数の書き方）・見つからないときの並び・台本が動かないときの隠し方・
-        見た目の決まり（transition は transform / opacity だけ・色はトークン・検索欄の消すボタンを隠さない）
+        見た目の決まり（transition は transform / opacity だけ・色はトークン・検索欄の消すボタンは「マウスの画面で地域の札が出ている時」の
+        1つの規則でしか隠さない）・transition:all／transition-all が2枚のページにも pv-directory.css・.js にも無い（G8）・
+        保存領域（localStorage・sessionStorage）に触る所はどれも try の中（ページの中の台本と pv-directory.js。G9）── G8・G9 は WP-dd-9
      H) カードの形 ── 額の行は機長→副操縦士の2行・職位の語から額まで24字以内（check-salary.mjs が読める）・
         リンクの中に押せる部品を入れない・額の行に手取りや月額の語を入れない・
         比べる印（label.wd-cmp）はリンクの外で、決まりどおりのカードにだけ1つ（日本語 ＝ data-two="1" かつ SWITCH・英語 ＝ fleet）（H4）・
@@ -569,8 +571,17 @@ function secF(I) {
 const H1 = { ja: '次のキャリアを、選択する', en: 'Choose your next career' };
 /** 日本語の見出しは「、」の後ろでだけ折れる（2つの半分がどちらも折れない）。390px でも語の途中で折れない */
 const H1_HALVES = ['次のキャリアを、', '選択する'];
-const PH = { ja: '航空会社名・国名で検索（例：Emirates, フランス）', en: 'Search by airline or country (e.g. Emirates, France)' };
+/* 検索欄の例の字は、今までの例の字の前半（＝ aria-label と同じ字）。後ろの「（例：…）」は 390px で切れていた（WP-dd-9・リード P12.86-3 の一覧に載せる） */
+const PH = { ja: '航空会社名・国名で検索', en: 'Search by airline or country' };
 const ARIA = { ja: '航空会社名・国名で検索', en: 'Search by airline or country' };
+/** 検索欄のブラウザの消すボタン（×）を隠してよいのは、この2つの規則だけ ── ① マウスの画面で、地域の札（×つき）が欄に出ている時／
+    ② 欄が空の時（消す字が無い。見えない × が場所を取って例の字を「…」で切っていた）。字が入っていれば、指の画面では今までどおり出る
+    （「検索だけを消す」ただ1つの手段。最終設計 D11・N7 の「隠さない」を WP-dd-9 で付け替え） */
+const CANCEL_RULES = [
+  '@media (hover:hover) and (pointer:fine){.wd-search:has(.wd-scope:not([hidden])) .wd-search-in::-webkit-search-cancel-button{display:none}}',
+  '.wd-search-in:placeholder-shown::-webkit-search-cancel-button{display:none}',
+];
+const CANCEL_RULE = CANCEL_RULES[0];
 const ALL_WORD = { ja: 'すべて', en: 'All' };
 const CLEAR = { ja: '絞り込みを解除', en: 'Clear filters' };
 const NONE = { ja: '該当する航空会社が見つかりませんでした', en: 'No airlines matched your search' };
@@ -599,7 +610,7 @@ const hasClass = (c) => (a) => (attrOf(a, 'class') || '').split(/\s+/).includes(
 
 /** G) 見出し・検索欄・結果の見出し・見つからないとき（日英）と、その見た目の決まり（pv-directory.css の PV-DIR-DATA） */
 function secG(I) {
-  const p = { G1: [], G2: [], G2b: [], G3: [], G4: [], G5: [], G6: [], G7: [] };
+  const p = { G1: [], G2: [], G2b: [], G3: [], G4: [], G5: [], G6: [], G7: [], G8: [], G9: [] };
   for (const lang of ['ja', 'en']) {
     const h = I.page[lang], rel = PAGE_REL[lang];
     /* G1 検索欄は HTML に在る（台本が作らない）・見出しの帯（#wa-hero）の .wd-search の中・type="search"・字はそのまま */
@@ -697,8 +708,74 @@ function secG(I) {
     const used = [...new Set([...blk.matchAll(/var\(\s*(--pv-[\w-]+)/g)].map((m) => m[1]))];
     for (const v of used) if (!defined.has(v)) p.G6.push(`${v} が pv-tokens.css に無い`);
   }
-  for (const [name, s] of [['pv-directory.css', css], ...['ja', 'en'].map((l) => [PAGE_REL[l], I.page[l]])]) if (/-webkit-search-cancel-button/.test(s)) p.G6.push(`${name}：検索欄の消すボタンに触る規則（-webkit-search-cancel-button）`);
+  /* 消すボタン（×）：pv-directory.css に CANCEL_RULES の2つがちょうど1つずつ（① マウスの画面・地域の札が出ている時／② 欄が空の時）。
+     それ以外の形で触る規則は無い（pv-directory.css の残りにも2枚のページにも）── WP-dd-9 で「1つも無い」から付け替えた。
+     字が入っている欄の × を指の画面で隠さない、は今までどおり見ている */
+  let rest = css;
+  for (const rule of CANCEL_RULES) {
+    if (css.split(rule).length !== 2) p.G6.push(`pv-directory.css：検索欄の消すボタンの規則「${rule.slice(0, 60)}…」が ${css.split(rule).length - 1} 個（1つであること）`);
+    rest = rest.split(rule).join('');
+  }
+  for (const [name, s] of [['pv-directory.css', rest], ...['ja', 'en'].map((l) => [PAGE_REL[l], I.page[l]])]) if (/-webkit-search-cancel-button/.test(s)) p.G6.push(`${name}：検索欄の消すボタンに触る規則（-webkit-search-cancel-button）が CANCEL_RULES のほかに在る`);
+  /* G8 transition:all を書かない（CLAUDE.md「transition-all を使わない」）── pv-directory.css の全体・2枚のページ（<style>・style 属性・class）・
+     pv-directory.js。動かす物の名前を書かない transition（transition:.2s）も all と同じ */
+  const js = (I.assets || {})['pv-directory.js'] || '';
+  for (const [name, s] of [['pv-directory.css', css], ...['ja', 'en'].map((l) => [PAGE_REL[l], I.page[l]]), ['pv-directory.js', js]]) {
+    const t = String(s).replace(/\/\*[\s\S]*?\*\//g, () => '').replace(/<!--[\s\S]*?-->/g, () => '');
+    for (const m of t.matchAll(/transition(?:-property)?\s*[:=]\s*['"`]?\s*(?:all\b|[\d.]+m?s\b|ease|linear|cubic-bezier|steps)/gi)) p.G8.push(`${name}：「${m[0]}」（動かすのは transform / opacity だけ）`);
+    /* 並べた2つ目より後ろの all（transition:opacity .2s,all .3s）も同じ（検査役が足した ── WP-dd-9） */
+    for (const m of t.matchAll(/transition(?:-property)?\s*[:=]\s*['"`]?[^;{}"'`<>\n]*?,\s*(?:all\b|[\d.]+m?s\b)/gi)) p.G8.push(`${name}：「${m[0]}」（動かすのは transform / opacity だけ）`);
+    for (const m of t.matchAll(/(?:class(?:Name)?\s*=\s*["'][^"']*|classList\.add\([^)]*)\btransition-all\b/g)) p.G8.push(`${name}：class transition-all（${m[0].slice(-40)}）`);
+  }
+  /* G9 保存領域（localStorage・sessionStorage）に触る所は、どれも try { } の中 ── 2枚のページの中の台本（src の無い <script>・on… 属性）と
+     pv-directory.js。保存領域を閉じたブラウザ（プライベートの窓・設定で止めた人）でも、ページが止まらない（WP-dd-9） */
+  for (const lang of ['ja', 'en']) {
+    const h = I.page[lang], rel = PAGE_REL[lang];
+    const inline = [...h.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)].filter((m) => !/\bsrc=/.test(m[1]) && !/application\/ld\+json/.test(m[1])).map((m) => m[2]);
+    const attrs = [...h.matchAll(/\son[a-z]+="([^"]*)"/g)].map((m) => unesc(m[1]));
+    for (const s of [...inline, ...attrs]) for (const b of storageOutsideTry(s)) p.G9.push(`${rel}：try の外で ${b}`);
+  }
+  for (const b of storageOutsideTry(js)) p.G9.push(`pv-directory.js：try の外で ${b}`);
+  if (!js) p.G9.push('pv-directory.js が読めない');
   return Object.entries(p).map(([id, probs]) => R(id, probs));
+}
+
+/** JS の字を読み、localStorage / sessionStorage に触る所のうち、try の { } の中に無いものを返す（「行 n：その行」）。
+    コメント・文字列・正規表現の中の字は数えない。テンプレート文字列（`…`）の中に在るときは「確かめられない」として返す。 */
+function storageOutsideTry(src) {
+  const s = String(src), n = s.length, out = [], stack = [];
+  const lineOf = (k) => { const a = s.lastIndexOf('\n', k) + 1, z = s.indexOf('\n', k); return `行 ${s.slice(0, k).split('\n').length}：${s.slice(a, z < 0 ? n : z).trim().slice(0, 90)}`; };
+  let i = 0, prev = '';
+  const regexHere = () => !prev || /^[(,=:[!&|?{};+\-*%<>~^]$/.test(prev) || /^(return|typeof|case|do|else|in|of|void|delete|new|throw|yield|await)$/.test(prev);
+  while (i < n) {
+    const c = s[i], d = s[i + 1];
+    if (/\s/.test(c)) { i++; continue; }
+    if (c === '/' && d === '/') { const z = s.indexOf('\n', i); i = z < 0 ? n : z; continue; }
+    if (c === '/' && d === '*') { const z = s.indexOf('*/', i + 2); i = z < 0 ? n : z + 2; continue; }
+    if (c === '"' || c === "'") { i++; while (i < n && s[i] !== c && s[i] !== '\n') i += s[i] === '\\' ? 2 : 1; i++; prev = 'str'; continue; }
+    if (c === '`') {
+      const a = i; i++;
+      while (i < n && s[i] !== '`') i += s[i] === '\\' ? 2 : 1;
+      if (/\b(?:local|session)Storage\b/.test(s.slice(a, i))) out.push(`${lineOf(a)}（テンプレート文字列の中 ＝ 確かめられない）`);
+      i++; prev = 'str'; continue;
+    }
+    if (c === '/' && regexHere()) {
+      i++; let cls = false;
+      while (i < n && (cls || s[i] !== '/') && s[i] !== '\n') { if (s[i] === '\\') i++; else if (s[i] === '[') cls = true; else if (s[i] === ']') cls = false; i++; }
+      i++; while (i < n && /[a-z]/i.test(s[i])) i++;
+      prev = 're'; continue;
+    }
+    if (/[A-Za-z_$]/.test(c)) {
+      const a = i; while (i < n && /[A-Za-z0-9_$]/.test(s[i])) i++;
+      const w = s.slice(a, i);
+      if ((w === 'localStorage' || w === 'sessionStorage') && !stack.includes('try')) out.push(lineOf(a));
+      prev = w; continue;
+    }
+    if (c === '{') stack.push(prev === 'try' ? 'try' : '');
+    else if (c === '}') stack.pop();
+    prev = c; i++;
+  }
+  return out;
 }
 
 /** check-salary.mjs の読み方を、あちらのソースから切り出す（写さない） */
@@ -939,13 +1016,28 @@ const ROWS = [
   ['G4a', (I) => { I.page.en = sub(I.page.en, 'tabindex="-1">All</h2>', 'tabindex="-1">All airlines</h2>'); }, 'G', ['G4']],
   ['G4b', (I) => { I.page.en = sub(I.page.en, ' data-fmt-one="{n} airline"', ''); }, 'G', ['G4']],
   ['G5', (I) => { I.page.ja = sub(I.page.ja, NOSCRIPT, ''); }, 'G', ['G5']],
-  ['G6a', (I) => { I.css = sub(I.css, '.wd-rh-name:focus{outline:none}', '.wd-rh-name:focus{outline:none;transition:all .2s}'); }, 'G', ['G6']],
+  /* transition:all は G6（PV-DIR-DATA の決まり）と G8（2枚のページ・pv-directory.css の全体・台本）の両方が見る（WP-dd-9 から G8 も赤） */
+  ['G6a', (I) => { I.css = sub(I.css, '.wd-rh-name:focus{outline:none}', '.wd-rh-name:focus{outline:none;transition:all .2s}'); }, 'G', ['G6', 'G8']],
   ['G6b', (I) => { I.css = sub(I.css, '.wd-rh-name:focus{outline:none}', '.wd-rh-name:focus{outline:none;transition:color .2s}'); }, 'G', ['G6']],
   ['G6c', (I) => { I.css = sub(I.css, '.wd-search-in::placeholder{color:var(--pv-ink-3)}', '.wd-search-in::placeholder{color:#64748b}'); }, 'G', ['G6']],
   ['G6d', (I) => { I.css = sub(I.css, '.wd-search-in::placeholder{color:var(--pv-ink-3)}', '.wd-search-in::placeholder{color:var(--pv-ink-9)}'); }, 'G', ['G6']],
   ['G6e', (I) => { I.css = sub(I.css, '/* /PV-DIR-DATA */', '.wd-search-in::-webkit-search-cancel-button{display:none}\n/* /PV-DIR-DATA */'); }, 'G', ['G6']],
+  /* 消すボタンの規則から「マウスの画面だけ」を外す（指の画面でも隠れる）／「地域の札が出ている時だけ」を外す（札が無くても隠れる） */
+  ['G6f', (I) => { I.css = sub(I.css, CANCEL_RULE, '.wd-search:has(.wd-scope:not([hidden])) .wd-search-in::-webkit-search-cancel-button{display:none}'); }, 'G', ['G6']],
+  ['G6g', (I) => { I.css = sub(I.css, CANCEL_RULE, '@media (hover:hover) and (pointer:fine){.wd-search-in::-webkit-search-cancel-button{display:none}}'); }, 'G', ['G6']],
+  /* 「欄が空の時だけ」を外す（字が入っていても、指の画面でも × が出ない） */
+  ['G6h', (I) => { I.css = sub(I.css, CANCEL_RULES[1], '.wd-search-in::-webkit-search-cancel-button{display:none}'); }, 'G', ['G6']],
   ['G7', (I) => { I.page.en = sub(I.page.en, '<p id="wd-none">No airlines matched your search</p>', '<p id="wd-none">No airlines found</p>'); }, 'G', ['G7']],
   ['G7b', (I) => { I.page.ja = sub(I.page.ja, '<span class="wd-else" id="wd-else">', '<span class="wd-else">'); }, 'G', ['G7']],
+  /* G8：ページの <style> に transition:all／英語のページの部品に class transition-all／動かす物の名前の無い transition（＝ all） */
+  ['G8a', (I) => { I.page.ja = sub(I.page.ja, 'color:#6b7d93;cursor:pointer;transition:transform .2s var(--pv-ease);white-space:nowrap}\n.ftype-btn.active', 'color:#6b7d93;cursor:pointer;transition:all .2s;white-space:nowrap}\n.ftype-btn.active'); }, 'G', ['G8']],
+  ['G8b', (I) => { I.page.en = sub(I.page.en, '<div class="search-wrap">', '<div class="search-wrap transition-all">'); }, 'G', ['G8']],
+  ['G8c', (I) => { I.page.ja = sub(I.page.ja, 'background:transparent;color:#6b7d93;cursor:pointer;transition:transform .2s var(--pv-ease)', 'background:transparent;color:#6b7d93;cursor:pointer;transition:.2s'); }, 'G', ['G8']],
+  ['G8d', (I) => { I.page.en = sub(I.page.en, '.view-btn:active{transform:scale(.97)}', '.view-btn:active{transform:scale(.97);transition:opacity .2s,all .3s}'); }, 'G', ['G8']],
+  /* G9：テーマを読む1行を try の外へ（pv-directory.js）／ページの頭のテーマの1行から try を外す／テーマを書く1行から try を外す（リードが見つけた形） */
+  ['G9a', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], "  try {\n    applyThemeW(localStorage.getItem('pv-theme')||'light');\n  } catch (e) { applyThemeW('light'); }", "  applyThemeW(localStorage.getItem('pv-theme')||'light');"); }, 'G', ['G9']],
+  ['G9b', (I) => { I.page.ja = sub(I.page.ja, "<script>(function(){try{var t=localStorage.getItem('pv-theme')||'light';}catch(e){t='light';}", "<script>(function(){var t=localStorage.getItem('pv-theme')||'light';"); }, 'G', ['G9']],
+  ['G9c', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], "try { localStorage.setItem('pv-theme',t); } catch (e) {}", "localStorage.setItem('pv-theme',t);"); }, 'G', ['G9']],
   ['H1', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/<p class="wd-fig" data-rank="fo"[\s\S]*?<\/p>\n?/, () => '')), 'H', ['H1']],
   /* 札の全体を <span> で包むだけでは、職位の語の後ろに増えるのは閉じタグ1つ（23 → 24 ＝ まだ読める）。語の直後で包んで 25 にする */
   ['H2', (I) => onCard(I, 'en', 'etihad', (c) => c.replace(/(data-rank="cap"><span class="wd-vh">[^<]*<\/span>Captain)([^<]*)/, (_, a, l) => `${a}<span>${l}</span>`)), 'H', ['H2']],

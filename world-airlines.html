@@ -54,7 +54,7 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="pv-tokens.css">
-<link rel="stylesheet" href="pv-directory.css?v=c3214277">
+<link rel="stylesheet" href="pv-directory.css?v=1b96c5ac">
 <noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -320,10 +320,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   <div class="max-w-7xl mx-auto px-5 text-center relative">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);color:#f5c842;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">🌍 WORLD AIRLINES DATABASE</div>
     <h1 style="font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 30%,#f5c842);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px"><span style="white-space:nowrap">次のキャリアを、</span><span style="white-space:nowrap">選択する</span></h1>
-    <p style="color:#6b7d93;font-size:.95rem">地図をクリックして地域を選択 — <!--PV-DIR-N-->112<!--/PV-DIR-N-->社の給与・採用・訓練情報</p>
+    <p style="color:#6b7d93;font-size:.95rem"><!--PV-DIR-N-->112<!--/PV-DIR-N-->社の給与・採用・訓練情報</p>
     <div class="wd-search" role="search">
       <svg class="wd-search-ic" width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-      <input id="search" class="wd-search-in" type="search" name="q" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-controls="airline-grid" aria-label="航空会社名・国名で検索" placeholder="航空会社名・国名で検索（例：Emirates, フランス）"/>
+      <input id="search" class="wd-search-in" type="search" name="q" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-controls="airline-grid" aria-label="航空会社名・国名で検索" placeholder="航空会社名・国名で検索"/>
       <button type="button" class="wd-scope" id="wd-scope" aria-pressed="true" hidden><span class="wd-scope-l"></span><svg class="wd-x" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
     </div>
   </div>
@@ -373,6 +373,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <!--/PV-CBAND-->
 <div class="max-w-7xl mx-auto px-5 mb-6">
   <div class="map-wrapper">
+    <p class="wd-map-hint">地図をクリックして地域を選択</p>
     <!-- SVG World Map -->
     <svg id="world-svg" viewBox="0 0 1000 480" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -1757,7 +1758,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- airlines-meta.js はレベリング比較（PVLeveling）の表。一覧のカード・地域ボタン・社数は gen-directory.mjs がこのページに書く。 -->
 <script src="airlines-meta.js"></script>
-<script src="pv-directory.js?v=f474c3a9"></script>
+<script src="pv-directory.js?v=6976c33a"></script>
 <script>(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();</script>
 <script src="airline-logos.js"></script>
 <script src="salary-leveling.js"></script>
