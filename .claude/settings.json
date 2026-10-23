@@ -70,7 +70,6 @@
       "Bash(npm ls:*)",
       "Bash(python3:*)",
       "Bash(lsof -i:*)",
-      "Bash(pkill -f serve.mjs)",
       "Bash(curl -s -o /dev/null:*)",
       "Bash(node assert-*.mjs:*)",
       "Bash(git commit:*)",
@@ -125,7 +124,9 @@
       "Read(./.employer-denylist)",
       "Read(./mail-bot/.env)",
       "Read(./tweet-bot/.env)",
-      "Read(./.env)"
+      "Read(./.env)",
+      "Bash(pkill:*)",
+      "Bash(killall:*)"
     ],
     "ask": [
       "Bash(git push:*)",
@@ -149,6 +150,19 @@
       "Bash(node assert-no-pii.mjs --history)",
       "Bash(node mail-bot/*.mjs:*)",
       "Bash(node tweet-bot/*.mjs:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-mass-kill.mjs\""
+          }
+        ]
+      }
     ]
   }
 }
