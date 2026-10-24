@@ -184,6 +184,31 @@ export const TARGETS = [
       draft: { path, prep: prep || undefined }, ref: {},
     };
   }),
+
+  /* ★2026-10-25 段階5 compare-all-6：全社どうしの比較（set 'compare-all'）。手元の保存先で、ログインしていない人のまま撮る（本番を読まない）。
+     比較の設計 D20 の組（EVID）・会社を選ぶシート（開いたところ・「カタール」で探したところ）・どの会社でも作れるカード・
+     航空会社一覧の比べる印2つと盆。見本は PC の比較の画像 12 だけ（--ref に見本のフォルダを渡したとき。写真の無い会社の見本は無い）。
+     ⚠️ ほかの組と一緒に撮ると、set 'compare' が作った手元の投稿（SEED.compare）が JAL と ANA に載ったまま写る ── 投稿0件の絵は
+        --set compare-all だけで撮る。 */
+  ...[['jal', 'cathay-pacific'], ['united', 'delta'], ['jal', 'united'], ['emirates', 'jal'], ['zipair', 'qantas'], ['swiss', 'eagle-jet'], ['jta', 'orc']]
+    .map(([a, b]) => ({
+      set: 'compare-all', key: `all-${a}-${b}`, ja: `比較 ${a} × ${b}（未ログイン）`, who: null, local: true, refNone: '写真の無い会社の比較の見本は無い（見本は PC の画像 12 だけ）',
+      caption: '手元の保存先（REAL LOCAL）・未ログイン', current: null, currentNote: '段階5の前は先行5社どうしだけ（現行の絵は段階5 compare-all-1 の前に撮った回）',
+      draft: { path: `/career.html?view=compare&a=${a}&b=${b}` }, ref: wide(['12-current-comparison-pc.jpg']),
+    })),
+  ...[['all-sheet', '会社を選ぶシート（2社目・開いたところ）', 'cmpSheet'], ['all-sheet-q', '会社を選ぶシート（「カタール」で探した）', 'cmpSheetFind']]
+    .map(([key, ja, prep]) => ({
+      set: 'compare-all', key, ja, who: null, local: true, foldOnly: true, refNone: 'シートの見本は無い', caption: '手元の保存先（REAL LOCAL）・未ログイン',
+      current: null, currentNote: '段階5の前は選ぶ欄（<select>）', draft: { path: '/career.html?view=compare&a=jal&b=united', prep }, ref: {},
+    })),
+  ...[['united'], ['jal', 'united'], ['swiss', 'eagle-jet']].map((c) => ({
+    set: 'compare-all', key: `all-card-${c.join('-')}`, ja: `カード ${c.join(' × ')}`, who: null, local: true, refNone: 'カードの見本は無い',
+    caption: '手元の保存先（REAL LOCAL）・未ログイン', current: null, currentNote: '段階5の前は先行5社だけ',
+    draft: { path: `/career.html?view=card&a=${c[0]}${c[1] ? `&b=${c[1]}` : ''}` }, ref: {},
+  })),
+  { set: 'compare-all', key: 'all-tray', ja: '航空会社一覧 ── 比べる印2つ（ユナイテッド・エミレーツ）と盆', who: null, local: true, foldOnly: true,
+    refNone: '盆の見本は無い', caption: '手元の保存先（REAL LOCAL）・未ログイン', current: null, currentNote: '段階5の前は先行5社にだけ印',
+    draft: { path: '/world-airlines.html', prep: 'dirTray', slugs: ['united', 'emirates'] }, ref: {} },
 ];
 
 /* 本番の DB へ通してよい「読むだけ」の関数。ここに無い rpc は止めて、一覧で知らせる。 */
@@ -396,6 +421,35 @@ const PREP = {
     if (!m || !ctx.local) throw new Error('期限切れにする会員か手元の保存先が無い');
     await ctx.local.locked(() => ctx.local.db.query("update public.profiles set access_until = now() - interval '1 day' where id = $1", [m.id]));
     await page.reload({ waitUntil: 'domcontentloaded' });
+  },
+
+  /* ── 全社どうしの比較（set 'compare-all'）── */
+  /* 2社目の札を押して、会社を選ぶシートを開く（開く動きが終わるまで） */
+  async cmpSheet(page) {
+    await page.click('#cr-open-b');
+    await page.waitForSelector('#cr-sheet[open]', { timeout: 20000 });
+    await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => 0))));
+  },
+  /* シートを開いて「カタール」と打つ（打つのは検索欄 ── 人が打つのと同じ1字ずつ） */
+  async cmpSheetFind(page, spec, ctx) {
+    await PREP.cmpSheet(page, spec, ctx);
+    await page.focus('#cr-sheet-q');
+    await page.keyboard.type('カタール');
+    await page.waitForFunction(() => [...document.querySelectorAll('#cr-sheet-l .cr-pk')].some((e) => e.dataset.airline === 'qatar-airways' && e.getClientRects().length), { timeout: 20000 });
+  },
+  /* 航空会社一覧で2社に比べる印を付ける → 盆に「航空会社を比較」が出る（印は人が押すのと同じく、その印を押す） */
+  async dirTray(page, spec) {
+    await page.waitForFunction(() => window.PVCurrency && document.querySelectorAll('#airline-grid a[href^="airlines/"]').length > 0, { timeout: 20000 });
+    for (const s of spec.slugs) {
+      await page.evaluate((s) => {
+        const lab = document.querySelector(`li[data-slug="${s}"] label.wd-cmp`), tray = document.getElementById('wd-tray');
+        const bottom = tray && !tray.hidden ? tray.getBoundingClientRect().top : window.innerHeight, r = lab.getBoundingClientRect();
+        window.scrollBy({ top: (r.top + r.height / 2) - bottom / 2, left: 0, behavior: 'instant' });
+      }, s);
+      await page.click(`li[data-slug="${s}"] label.wd-cmp`);
+    }
+    await page.waitForFunction((n) => { const t = document.getElementById('wd-tray'), two = document.getElementById('wd-tray-two');
+      return !!t && !t.hidden && document.querySelectorAll('#wd-tray-list button').length === n && !!two && !two.hidden; }, { timeout: 20000 }, spec.slugs.length);
   },
 };
 
