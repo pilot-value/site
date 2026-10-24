@@ -474,7 +474,9 @@ for (const lang of ['ja', 'en']) {
     ok(says[1] && says[1].type === 'alert' && W.gone.test(says[1].text),
        '★サーバーが画像を消したと返したとき、「破棄しました」と言う', says[1]);
     ok(await page.evaluate(() => window.__from.length) === 0, '表を1つも直接触っていない');
-    ok((await calls(page)).every((c) => /^(pv_is_admin|admin_)/.test(c[0])), '使うのはサーバーの入口だけ', (await calls(page)).map((c) => c[0]));
+    /* ★2026-10-24 career-page の合流：管理画面は街・宿の確認待ち（db/towns.sql・db/stays.sql の入口4つ）も読む。
+         どれもサーバーの入口（表を直接触らない）なので、名前を名指しで足す ── 名前の無い入口は今までどおり落ちる。 */
+    ok((await calls(page)).every((c) => /^(pv_is_admin|admin_|pv_town_queue$|pv_stay_(queue|applicants|members)$)/.test(c[0])), '使うのはサーバーの入口だけ', (await calls(page)).map((c) => c[0]));
     await page.close();
   }
   {

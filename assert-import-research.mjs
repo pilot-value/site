@@ -23,6 +23,8 @@
          空港は、記録 → 台帳 → 会社ページの読み口（researchFacts）の今の欄まで届く（字は airline-display.mjs の表だけ・字の無い行は出ない）。
          登記上の国は本社にしない・小さな項目は対象不明のまま・家賃の出典の席は出しうる記録だけが取る・
          足した空港の呼び名は、どれも本物の台帳の就航地の行が書いている名前
+         （2026-10-24）記録が3字だけを書いた空港（CODE_PLACES）は、どれも本物の台帳にその3字の就航地の行が在る ──
+         例外は、台帳の拠点の街の行が書いている街のただ1つの空港だけ（拠点を就航地の一覧から外すため）
    ══════════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -473,7 +475,7 @@ try {
      登記上の国は本社ではない・小さな項目は今までどおり対象不明。家賃の出典の席は、出しうる記録だけが取る（保留の記録は取らない）。 */
   {
     const { researchFacts } = await import(pathToFileURL(path.join(HERE, 'airline-rollout.mjs')).href);
-    const { RESEARCH_PLACES } = await import(pathToFileURL(path.join(HERE, 'airline-destinations.mjs')).href);
+    const { RESEARCH_PLACES, CODE_PLACES, PLACES: ALL_PLACES } = await import(pathToFileURL(path.join(HERE, 'airline-destinations.mjs')).href);
     const at = { item_is_new: true };
     const PL = PACK('pvr-test-places', 1, [
       R('pension', 'air-canada', 'benefits', 'pension', '確定給付年金あり'),
@@ -559,6 +561,15 @@ try {
     ok(Object.keys(RESEARCH_PLACES).length > 0 && !unnamed.length,
       `★A12 空港の呼び名（RESEARCH_PLACES ${Object.keys(RESEARCH_PLACES).length}空港）は、どれも調べの台帳の就航地の行が書いている名前（行の無い空港・名前の違う空港を足さない）`,
       unnamed.slice(0, 6).map(([c, v]) => `${c} ${v[1]}（${textOf.get(c) ? '行の字に無い' : '台帳に行が無い'}）`).join(' ／ '));
+    /* 記録が3字だけを書いた空港（2026-10-24）：3字は記録の字 ── 本物の台帳に、その3字の就航地の行が在る空港だけ（行の無い空港を足さない）。
+       例外：台帳の拠点の街の行（pilot_base_city）が書いている街の、ただ1つの空港（英語の名前が行の値と同じ・同じ街の空港がほかに無い） */
+    const baseCity = new Set(Object.values(store.FACTS || {}).flatMap(F => (F.base || []).filter(r => r.key === 'pilot_base_city').map(r => fold(r.value))));
+    const bare = c => String(c).replace(/（.*$/, '');
+    const rowless = Object.entries(CODE_PLACES).filter(([c, [ja, en]]) => !textOf.has(c)
+      && !(baseCity.has(fold(en)) && Object.entries(ALL_PLACES).filter(([, p]) => bare(p[0]) === bare(ja)).length === 1));
+    ok(Object.keys(CODE_PLACES).length > 0 && !rowless.length,
+      `★A12 3字だけの空港（CODE_PLACES ${Object.keys(CODE_PLACES).length}空港）は、どれも調べの台帳にその3字の就航地の行が在る（例外は拠点の街のただ1つの空港だけ）`,
+      rowless.slice(0, 6).map(([c, v]) => `${c} ${v[1]}（台帳に行が無い）`).join(' ／ '));
   }
 
   /* ── A13 利用者がアップロードした写しは証拠にしない（2026-10-21 リード P12.90）──

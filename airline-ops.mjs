@@ -21,7 +21,8 @@
      en     公開表示名（英語）
      region gen-airline-codes.mjs の8地域のいずれか
             japan / mideast / asia / europe / us / oceania / latam / africa
-     kind   bizjet / charter / regional / cargo（画面の検索の補助。DB には出さない）
+     kind   bizjet / charter / regional / cargo / passenger（画面の検索の補助。DB には出さない）
+            passenger ＝ 定期旅客の航空会社で、年収の公開レンジがまだ無い社（2026-10-24 に追加）
      alias  ★フォームの検索だけが読む別名。pv_airlines には行を作らない
             （別名の行を作ると pv_airline_resolve が別会社として当たり得る）
      src    実在と正式名称を確認した出どころ＋確認日。年収が無くても出どころは要る
@@ -76,7 +77,99 @@ export const OPS = {
     src: '会社公式 j-bizavi.com（東京航空局 東空事第29号） / 確認 2026-09-13',
   },
 
-  /* ── 北米 ───────────────────────────────────────────────── */
+  /* ── 北米（定期旅客・リージョナル・貨物）── 2026-10-24 オーナー指示で11社を登録 ──
+     出どころは米国の調査パック（2026-10-11）の「雇用主体」の記録（記録番号つき）。
+     ★「現行適用を確認」まで行っていない4社（UPS・Envoy・PSA・Sun Country）は、そのまま src に書いた。
+     ★調査の記録（給与・勤務など）はまだ取り込んでいない。この11社を出す画面がまだ無いため。
+     ⚠️ 親会社・提携先と1社にまとめない（片方の給与がもう片方に黙って混ざる）。
+       Endeavor ≠ delta ／ Envoy・Piedmont・PSA ≠ american（3社どうしも別）／Horizon ≠ alaska-airlines ／
+       Sun Country ≠ allegiant ／ SkyWest Airlines ≠ SkyWest Charter ／ Republic ≠ 旧 Mesa。
+       提携ブランド（American Eagle・Delta Connection・United Express）は複数社が共有するので alias に入れない。 */
+
+  /* 定期旅客（年収の公開レンジがまだ無い社） */
+  'avelo-airlines': {
+    ja: 'Avelo Airlines', en: 'Avelo Airlines', region: 'us', kind: 'passenger',
+    alias: ['アベロ航空', 'アヴェロ航空', 'Avelo Airlines, Inc.'],
+    src: '雇用主体 Avelo Airlines, Inc.（本社 テキサス州ヒューストン）・米国の調査パックの記録 XP-A-001（現行適用を確認） / 確認 2026-10-11',
+  },
+
+  'sun-country': {
+    ja: 'Sun Country Airlines', en: 'Sun Country Airlines', region: 'us', kind: 'passenger',
+    alias: ['サンカントリー航空', 'Sun Country, Inc.'],
+    // ⚠️ 2026-05-13 に Allegiant（allegiant）との合併が完了（調査の台帳）。allegiant と混ぜない。
+    //   合併のあとも別の雇用主・別の給与の集団かは、まだ確かめていない（オーナー判断で登録は先に行った）。
+    //   別でないと分かったら、ここから消して gen-airline-codes.mjs を流し直す
+    //   （active=false に落ちるだけ＝過去の投稿は残る。workflows/add-airline.md の「エッジケース（道B）」）
+    src: '雇用主体 Sun Country, Inc.（ブランド名 Sun Country Airlines・親会社 Sun Country Airlines Holdings, Inc.・本社 ミネソタ州ミネアポリス）・米国の調査パックの記録 SY-A-001（現行適用は未確認） / 確認 2026-10-11',
+  },
+
+  /* リージョナル */
+  'endeavor-air': {
+    ja: 'Endeavor Air', en: 'Endeavor Air', region: 'us', kind: 'regional',
+    alias: ['エンデバー航空', 'エンデバー・エア', 'Endeavor Air, Inc.'],
+    // Delta Air Lines, Inc. の完全子会社だが別法人・別の給与。delta と混ぜない
+    src: '雇用主体 Endeavor Air, Inc.（Delta Air Lines, Inc. の完全子会社・本社 ミネソタ州ミネアポリス）・米国の調査パックの記録 9E-A-001（現行適用を確認） / 確認 2026-10-11',
+  },
+
+  'envoy-air': {
+    ja: 'Envoy Air', en: 'Envoy Air', region: 'us', kind: 'regional',
+    alias: ['エンボイ航空', 'エンボイ・エア', 'Envoy Air Inc.'],
+    // American Airlines Group の完全子会社。american とも Piedmont・PSA とも混ぜない
+    src: '雇用主体 Envoy Air Inc.（American Airlines Group の完全子会社・本社 テキサス州アーヴィング）・米国の調査パックの記録 MQ-A-001（現行適用は未確認） / 確認 2026-10-11',
+  },
+
+  'horizon-air': {
+    ja: 'Horizon Air', en: 'Horizon Air', region: 'us', kind: 'regional',
+    alias: ['ホライゾン航空', 'ホライズン航空', 'Horizon Air Industries, Inc.'],
+    // Alaska Air Group の子会社。alaska-airlines と混ぜない
+    src: '雇用主体 Horizon Air Industries, Inc.（ワシントン州法人・Alaska Air Group の子会社・本社 ワシントン州シータック）・米国の調査パックの記録 QX-A-001（現行適用を確認） / 確認 2026-10-11',
+  },
+
+  'piedmont-airlines': {
+    ja: 'Piedmont Airlines', en: 'Piedmont Airlines', region: 'us', kind: 'regional',
+    alias: ['ピードモント航空', 'Piedmont Airlines, Inc.'],
+    // American Airlines Group の完全子会社（American Airlines, Inc. とは別の雇用主）。american と混ぜない
+    src: '雇用主体 Piedmont Airlines, Inc.（American Airlines Group の完全子会社・本社 メリーランド州ソールズベリー）・米国の調査パックの記録 PT-A-001（現行適用を確認） / 確認 2026-10-11',
+  },
+
+  'psa-airlines': {
+    ja: 'PSA Airlines', en: 'PSA Airlines', region: 'us', kind: 'regional',
+    alias: ['PSA航空', 'PSA Airlines, Inc.'],
+    // American の完全子会社。american とも Envoy・Piedmont とも混ぜない
+    src: '雇用主体 PSA Airlines, Inc.（American の完全子会社・本社 ノースカロライナ州シャーロット）・米国の調査パックの記録 OH-A-001（現行適用は未確認） / 確認 2026-10-11',
+  },
+
+  'republic-airways': {
+    ja: 'Republic Airways', en: 'Republic Airways', region: 'us', kind: 'regional',
+    alias: ['リパブリック航空', 'リパブリック・エアウェイズ', 'Republic Airways Inc.'],
+    // ⚠️ 2025-11-25 に Mesa Air Group と合併。旧 Mesa のパイロットは別の雇用主・別の給与＝ここは Republic だけ。
+    //   Mesa の名前を alias に入れない
+    src: '雇用主体 Republic Airways Inc.（Republic Airways Holdings Inc. の完全子会社・インディアナ州カーメル）・米国の調査パックの記録 YX-A-001（現行適用を確認） / 確認 2026-10-11',
+  },
+
+  'skywest': {
+    ja: 'SkyWest Airlines', en: 'SkyWest Airlines', region: 'us', kind: 'regional',
+    alias: ['スカイウエスト航空', 'スカイウェスト航空', 'SkyWest Airlines, Inc.'],
+    // ⚠️ SkyWest Charter（別の運航証明）と混ぜない。持株会社 SkyWest, Inc. はパイロットの雇用主ではない
+    src: '雇用主体 SkyWest Airlines, Inc.（SkyWest, Inc. の完全子会社・本社 ユタ州セントジョージ）・米国の調査パックの記録 OO-A-001（現行適用を確認） / 確認 2026-10-11',
+  },
+
+  /* 貨物 */
+  'fedex-express': {
+    ja: 'FedEx Express', en: 'FedEx Express', region: 'us', kind: 'cargo',
+    alias: ['フェデックス', 'フェデックス・エクスプレス', 'フェデラル・エクスプレス', 'Federal Express Corporation'],
+    // 雇用主は Federal Express Corporation。持株会社 FedEx Corporation・FedEx Ground などとは別
+    src: '雇用主体 Federal Express Corporation（ブランド名 FedEx Express・ALPA との労働協約の当事者）・米国の調査パックの記録 FX-A-001（現行適用を確認） / 確認 2026-10-11',
+  },
+
+  'ups-airlines': {
+    ja: 'UPS Airlines', en: 'UPS Airlines', region: 'us', kind: 'cargo',
+    alias: ['UPS航空', 'ユーピーエス'],
+    // パイロットの雇用法人の名前は、調査の台帳でも公開資料で未確認の行が多い（表示名は公式の呼び名の確認待ち）
+    src: '親会社 United Parcel Service, Inc. の子会社一覧（Form 10-K・2025-12-31 期）に掲載・米国の調査パックの記録 5X-A-002（現行適用は未確認） / 確認 2026-10-11',
+  },
+
+  /* ── 北米（ビジネスジェット）──────────────────────────────── */
 
   'netjets': {
     ja: 'NetJets', en: 'NetJets', region: 'us', kind: 'bizjet',

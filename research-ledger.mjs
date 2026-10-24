@@ -8393,6 +8393,115 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Alaska/Hawaiian/Horizonの無料stand-by travelの福利をFO求人に記載",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Alaska Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Alaska Airlines, Inc.／Alaska Airlines のパイロット（Alaska–ALPA 協約、ALPA Alaska MEC））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "alaska-airlines",
+     "cond_ja": "2022-09-01付 対象：Alaska Airlines のパイロット（Alaska–ALPA 協約、ALPA Alaska MEC）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2022-09-01",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2022-09-01／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Exec. Summary p.3–4 §2",
+       "quote": "ranging between 8% and 23%",
+       "source_id": "src-alaska-airlines-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4105cda8ff2197a1",
+     "id": "alaska-airlines.benefits.us1011-as-b-010",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "【Alaska】2022年TAの昇給率（2022-09-01）",
+     "pack": "pvr-20261024-us-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2022-09-26",
+       "publisher": "ALPA Alaska Airlines MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-alaska-airlines-us1011-002",
+       "source_type": "union_cba",
+       "title": "Tentative Agreement Executive Summary: 2022 Alaska Airlines CBA Changes (with Appendix A)",
+       "url": "https://www.alpa.org/ala/-/media/ALA/files/pdf/QG92322.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 8,
+     "value_text": "8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Alaska Air Group, Inc.（グループ各社）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Alaska Air Group, Inc.（グループ各社）／Alaska Air Group の全社員向け制度（パイロット限定ではない））。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-11",
+     "company": "alaska-airlines",
+     "cond_ja": "パイロットは協約上のDC拠出（AS-B-030）が別途 対象：Alaska Air Group の全社員向け制度（パイロット限定ではない）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Benefits 一覧",
+       "quote": "Generous 401k match program",
+       "source_id": "src-alaska-airlines-us1011-004",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "37df8f00ee7050b7",
+     "id": "alaska-airlines.benefits.us1011-as-d-019",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "【全社】401(k)マッチ・株式購入",
+     "pack": "pvr-20261024-us-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-alaska-airlines-us1011-004",
+       "source_type": "official_package",
+       "title": "Why Work For Us (Careers)",
+       "url": "https://careers.alaskaair.com/why-work-for-us/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Generous 401k match program",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -9221,6 +9330,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": 43,
      "value_text": "43"
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Alaska Air Group, Inc.／会社本社（パイロットの所属ベースではない））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "alaska-airlines",
+     "cond_ja": "対象：会社本社（パイロットの所属ベースではない）",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "表紙（principal executive offices）",
+       "quote": "19300 International Boulevard, Seattle, Washington 98188",
+       "source_id": "src-alaska-airlines-us1011-001",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e537096300225f8c",
+     "id": "alaska-airlines.profile.us1011-as-a-002",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社（主たる事業所）所在地",
+     "pack": "pvr-20261024-us-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-12",
+       "publisher": "Alaska Air Group, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-alaska-airlines-us1011-001",
+       "source_type": "regulatory_filing",
+       "title": "Alaska Air Group, Inc. Form 10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000010/alk-20251231.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "19300 International Boulevard, Seattle, Washington 98188",
+     "value_text": null
     }
    ]
   },
@@ -10140,6 +10304,170 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "accepting partner-university cadets",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air, LLC（Allegiant Travel Company の完全子会社。2026-05-13 以降に同じ親会社の子会社となった Sun Country とは別雇用主・別協約・別先任順位表）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Allegiant Air, LLC（Allegiant Travel Company の完全子会社。2026-05-13 以降に同じ親会社の子会社となった Sun Country とは別雇用主・別協約・別先任順位表）／Allegiant Air, LLC の新規採用パイロット（応募者・訓練生））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "allegiant",
+     "cond_ja": "同一ページ内で表示が並存 対象：Allegiant Air, LLC の新規採用パイロット（応募者・訓練生）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-11",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-10-11／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Two Cadet Pathways セクション",
+       "quote": "The Allegiant Pilot Pathway Program application window is now closed.",
+       "source_id": "src-allegiant-pilots",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "68a2e196346ed8ca",
+     "id": "allegiant.jobs.us1011-g4-g-002",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "pathway",
+     "label_ja": "採用状況（パスウェイ）",
+     "pack": "pvr-20261024-us-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-pilots",
+       "source_type": "job_posting",
+       "title": "Pilots",
+       "url": "https://www.allegiantair.jobs/careers/pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "The Allegiant Pilot Pathway Program application window is now closed.",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Allegiant Air, LLC（Allegiant Travel Company の完全子会社。2026-05-13 以降に同じ親会社の子会社となった Sun Country とは別雇用主・別協約・別先任順位表）／Allegiant Air, LLC のパイロット（Teamsters Local 2118 代表））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "allegiant",
+     "cond_ja": "親会社の主たる事務所（principal executive offices）。旧 FAQ では本社を Summerlin（Las Vegas）と記載 対象：Allegiant Air, LLC のパイロット（Teamsters Local 2118 代表）",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item 1 Business（Available Information 付近）",
+       "quote": "Our principal executive offices are located at 1201 N. Town Center Drive",
+       "source_id": "src-allegiant-us1011-001",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "28ec55e06b39074e",
+     "id": "allegiant.profile.us1011-g4-a-003",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社所在地",
+     "pack": "pvr-20261024-us-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-26",
+       "publisher": "U.S. Securities and Exchange Commission (EDGAR) / Allegiant Travel Company",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-allegiant-us1011-001",
+       "source_type": "regulatory_filing",
+       "title": "Form 10-K（fiscal year ended December 31, 2025）",
+       "url": "https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1201 N. Town Center Drive, Las Vegas, Nevada 89144",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Allegiant Air, LLC（Allegiant Travel Company の完全子会社。2026-05-13 以降に同じ親会社の子会社となった Sun Country とは別雇用主・別協約・別先任順位表）／Allegiant Air, LLC のパイロット（Teamsters Local 2118 代表））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "allegiant",
+     "cond_ja": "2025-12-31 時点。全従業員 5,616 FTE の内数として記載 対象：Allegiant Air, LLC のパイロット（Teamsters Local 2118 代表）",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2025-12-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2025-12-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item 1 Business – Human Capital/Employees",
+       "quote": "including approximately 1,320 pilots",
+       "source_id": "src-allegiant-us1011-001",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b08d6784a1edbc21",
+     "id": "allegiant.scale.us1011-g4-a-004",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "pilots",
+     "label_ja": "パイロット数（10-K）",
+     "pack": "pvr-20261024-us-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-26",
+       "publisher": "U.S. Securities and Exchange Commission (EDGAR) / Allegiant Travel Company",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-allegiant-us1011-001",
+       "source_type": "regulatory_filing",
+       "title": "Form 10-K（fiscal year ended December 31, 2025）",
+       "url": "https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm"
+      }
+     ],
+     "unit": "人",
+     "use": "過去",
+     "value": 1320,
+     "value_text": "1,320"
     }
    ],
    "work": [
@@ -10307,6 +10635,60 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Las Vegas, Nevada; Sanford, Florida",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant Air, LLC（Allegiant Travel Company の完全子会社。2026-05-13 以降に同じ親会社の子会社となった Sun Country とは別雇用主・別協約・別先任順位表）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Allegiant Air, LLC（Allegiant Travel Company の完全子会社。2026-05-13 以降に同じ親会社の子会社となった Sun Country とは別雇用主・別協約・別先任順位表）／Allegiant Air, LLC のパイロット（Teamsters Local 2118 代表））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "allegiant",
+     "cond_ja": "新協約の規定（会社 8-K）。移行日・ベンダーは未記載 対象：Allegiant Air, LLC のパイロット（Teamsters Local 2118 代表）",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-07-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-07-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item 7.01",
+       "quote": "a quick transition to a commercial preferential bidding system",
+       "source_id": "src-allegiant-pub-sec-ratified",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "bdf109dc67f747e3",
+     "id": "allegiant.work.us1011-g4-c-003",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ビッディング方式",
+     "pack": "pvr-20261024-us-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-03",
+       "publisher": "Allegiant Travel Company",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-pub-sec-ratified",
+       "source_type": "regulatory_filing",
+       "title": "Allegiant 8-K Item7.01",
+       "url": "https://www.sec.gov/Archives/edgar/data/1362468/000136246826000044/algt-20260731.htm"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "a quick transition to a commercial preferential bidding system",
      "value_text": null
     }
    ]
@@ -12214,6 +12596,494 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "パイロット向け公式福利厚生ポータルが、適格な社員と家族等の旅行特典を案内する。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines 本体（mainline）パイロット（APA代表））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "TA 1.0 の予定。TA 2.0 で昇給日は前年1月1日へ移動（UAL 批准が条件） 対象：American Airlines 本体（mainline）パイロット（APA代表）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Executive Summary p.3",
+       "quote": "Date of Signing (DOS) / Effective Date: ~21.0%",
+       "source_id": "src-american-us1011-007",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "d8cf62af560d3a5b",
+     "id": "american.benefits.us1011-aa-b-027",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給スケジュール（TA 1.0）：DOS（署名日）/ Effective Date",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-07-07",
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-007",
+       "source_type": "union_cba",
+       "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+       "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 21,
+     "value_text": "21.0"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines 本体（mainline）パイロット（APA代表））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "TA 1.0 の予定。TA 2.0 で昇給日は前年1月1日へ移動（UAL 批准が条件） 対象：American Airlines 本体（mainline）パイロット（APA代表）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-05-02",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2024-05-02／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Executive Summary p.3",
+       "quote": "Pay rate increase May 2, 2024: 5%",
+       "source_id": "src-american-us1011-007",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a12983499eb2e9ed",
+     "id": "american.benefits.us1011-aa-b-028",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給スケジュール（TA 1.0）：2024-05-02",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-07-07",
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-007",
+       "source_type": "union_cba",
+       "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+       "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines 本体（mainline）パイロット（APA代表））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "TA 1.0 の予定。TA 2.0 で昇給日は前年1月1日へ移動（UAL 批准が条件） 対象：American Airlines 本体（mainline）パイロット（APA代表）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-05-02",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2025-05-02／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Executive Summary p.3",
+       "quote": "Pay rate increase May 2, 2025: 4%",
+       "source_id": "src-american-us1011-007",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "81f410f88c020e5b",
+     "id": "american.benefits.us1011-aa-b-029",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給スケジュール（TA 1.0）：2025-05-02",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-07-07",
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-007",
+       "source_type": "union_cba",
+       "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+       "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines 本体（mainline）パイロット（APA代表））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "TA 1.0 の予定。TA 2.0 で昇給日は前年1月1日へ移動（UAL 批准が条件） 対象：American Airlines 本体（mainline）パイロット（APA代表）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-05-02",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-05-02／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Executive Summary p.3",
+       "quote": "Pay rate increase May 2, 2026: 4%",
+       "source_id": "src-american-us1011-007",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "fe8481853c9c7bb9",
+     "id": "american.benefits.us1011-aa-b-030",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給スケジュール（TA 1.0）：2026-05-02",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-07-07",
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-007",
+       "source_type": "union_cba",
+       "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+       "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines 本体（mainline）パイロット（APA代表））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "TA 1.0 の予定。TA 2.0 で昇給日は前年1月1日へ移動（UAL 批准が条件） 対象：American Airlines 本体（mainline）パイロット（APA代表）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2027-05-02",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2027-05-02／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Executive Summary p.3",
+       "quote": "Pay rate increase May 2, 2027: 3% (Amendable Year)",
+       "source_id": "src-american-us1011-007",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b4427371867d4ef5",
+     "id": "american.benefits.us1011-aa-b-031",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給スケジュール（TA 1.0）：2027-05-02",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-07-07",
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-007",
+       "source_type": "union_cba",
+       "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+       "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "参考",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines, Inc. mainline パイロット）。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "批准前の2023年期間分の高い賃率による報酬は Q2・Q3 2023 の給与費用に計上 対象：American Airlines, Inc. mainline パイロット",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-01-01",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2023-01-01／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Note: Basis of Presentation, (b) Labor Relations（9か月累計 2023-09-30 期）",
+       "quote": "initial wage rate increase of 21% effective as of January 1, 2023",
+       "source_id": "src-american-us1011-011",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "44fa6a289c374410",
+     "id": "american.benefits.us1011-aa-b-035",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "初回賃率引上げ（会社開示）",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Group Inc. / American Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-011",
+       "source_type": "regulatory_filing",
+       "title": "American Airlines Group Inc. Form 10-Q (Q3 2023) – Note: Basis of Presentation, (b) Labor Relations (XBRL R17)",
+       "url": "https://www.sec.gov/Archives/edgar/data/6201/000000620123000092/R17.htm"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 21,
+     "value_text": "21"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines 本体（mainline）パイロット（APA代表））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "TA 1.0 は 2024-05-02 適用。TA 2.0 で 2024-01-01 に前倒し（UAL 批准が条件） 対象：American Airlines 本体（mainline）パイロット（APA代表）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-05-02",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2024-05-02／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Executive Summary p.3",
+       "quote": "401(k) company contribution increase rate May 2, 2024: 17%",
+       "source_id": "src-american-us1011-007",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1ede980004317b7b",
+     "id": "american.benefits.us1011-aa-b-075",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "会社退職拠出（401(k) 会社拠出率）：TA 1.0 第1段",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-07-07",
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-007",
+       "source_type": "union_cba",
+       "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+       "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 17,
+     "value_text": "17"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／対象従業員全体（パイロット限定ではない））。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "FY2025 10-K XBRL：Funded percentage 10.00%、maximum $2,500（百万）、above threshold 20.00% 対象：対象従業員全体（パイロット限定ではない）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Employee Benefit Plans – Additional Information (Details)、Deferred Profit Sharing 行",
+       "quote": "Percentage of earnings above threshold 20.00%",
+       "source_id": "src-american-us1011-012",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "70bea65816b84e74",
+     "id": "american.benefits.us1011-aa-b-081",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "bonus",
+     "label_ja": "プロフィットシェアリング（制度式、SEC開示）",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Group Inc. / American Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-012",
+       "source_type": "regulatory_filing",
+       "title": "American Airlines Group Inc. Form 10-K FY2025 – Employee Benefit Plans, Additional Information (Details) (XBRL R107)",
+       "url": "https://www.sec.gov/Archives/edgar/data/6201/000000620126000014/R107.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Percentage of earnings above threshold 20.00%",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "American Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American Airlines 全社員向け（パイロット固有の記載なし））。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "対象：American Airlines 全社員向け（パイロット固有の記載なし）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Health Benefits",
+       "quote": "Medical, prescription, dental, vision and more available day one",
+       "source_id": "src-american-us1011-013",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "be9a6dd9212dfc7d",
+     "id": "american.benefits.us1011-aa-d-038",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療保険等（会社採用ページ）",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-013",
+       "source_type": "official_package",
+       "title": "Perks & Benefits (American Airlines Careers)",
+       "url": "https://jobs.aa.com/go/Perks-&-Benefits/8180000/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Medical, prescription, dental, vision and more available day one",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -12796,6 +13666,589 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Boeing 787-9",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "A319 132",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "8306f5616a323376",
+     "id": "american.fleet.us1011-aa-a-024",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a319",
+     "label_ja": "メインライン機材数（型式別）：Airbus A319",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 132,
+     "value_text": "132"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "A320 48",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "3e60e92cea19641b",
+     "id": "american.fleet.us1011-aa-a-025",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a320",
+     "label_ja": "メインライン機材数（型式別）：Airbus A320",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 48,
+     "value_text": "48"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "A321 218",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "2500c91ac5682565",
+     "id": "american.fleet.us1011-aa-a-026",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a321ceo",
+     "label_ja": "メインライン機材数（型式別）：Airbus A321（ceo）",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 218,
+     "value_text": "218"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "A321neo 84",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "56c3829ee0d1cbf8",
+     "id": "american.fleet.us1011-aa-a-027",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a321neo",
+     "label_ja": "メインライン機材数（型式別）：Airbus A321neo",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 84,
+     "value_text": "84"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く（一時保管中のA321XLR 3機は含まない） 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "A321XLR 2",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f0322c336bbe0eed",
+     "id": "american.fleet.us1011-aa-a-028",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a321xlr",
+     "label_ja": "メインライン機材数（型式別）：Airbus A321XLR",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 2,
+     "value_text": "2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "737-800 303",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "16af3d88e7c062e9",
+     "id": "american.fleet.us1011-aa-a-029",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "737_800",
+     "label_ja": "メインライン機材数（型式別）：Boeing 737-800",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 303,
+     "value_text": "303"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "737 MAX 8 98",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "feda169f13e60401",
+     "id": "american.fleet.us1011-aa-a-030",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "737_max_8",
+     "label_ja": "メインライン機材数（型式別）：Boeing 737 MAX 8",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 98,
+     "value_text": "98"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "777-200 47",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f9f96fba25165c8d",
+     "id": "american.fleet.us1011-aa-a-031",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "777_200er",
+     "label_ja": "メインライン機材数（型式別）：Boeing 777-200（ER）",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 47,
+     "value_text": "47"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "777-300 20",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b59ec3bffb2e8be9",
+     "id": "american.fleet.us1011-aa-a-032",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "777_300er",
+     "label_ja": "メインライン機材数（型式別）：Boeing 777-300（ER）",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 20,
+     "value_text": "20"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "787-8 37",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a1540d23753ad485",
+     "id": "american.fleet.us1011-aa-a-033",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "787_8",
+     "label_ja": "メインライン機材数（型式別）：Boeing 787-8",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 37,
+     "value_text": "37"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体運航のメインライン機（運航中））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "1Q26末（2026-03-31）時点の運航中（Active）機。一時保管機を除く 対象：American本体運航のメインライン機（運航中）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-03-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Active mainline fleet表（At the end of 1Q26）",
+       "quote": "787-9 33",
+       "source_id": "src-american-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "2a3a2681f3e2826a",
+     "id": "american.fleet.us1011-aa-a-034",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "787_9",
+     "label_ja": "メインライン機材数（型式別）：Boeing 787-9",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-005",
+       "source_type": "official_package",
+       "title": "Fleet count（UPDATED: APRIL 2026）",
+       "url": "https://s202.q4cdn.com/986123435/files/doc_downloads/fact-sheets/fleet/Fleet-count-April-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 33,
+     "value_text": "33"
     }
    ],
    "profile": [
@@ -12853,6 +14306,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "United States",
      "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／American本体（メインライン）パイロット）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "american",
+     "cond_ja": "2023-08-21の協約批准リリース時点 対象：American本体（メインライン）パイロット",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2023-08-21",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2023-08-21／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "本文第1段落",
+       "quote": "15,000 pilots",
+       "source_id": "src-american-us1011-001",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a583ded361fdf6c2",
+     "id": "american.scale.us1011-aa-a-013",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "pilots",
+     "label_ja": "パイロット数（2023年協約批准時の会社発表）",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-08-21",
+       "publisher": "American Airlines Group Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-001",
+       "source_type": "official_package",
+       "title": "American Airlines pilots ratify new agreement",
+       "url": "https://news.aa.com/news/news-details/2023/American-Airlines-pilots-ratify-new-agreement-CORP-LAB-08/default.aspx"
+      }
+     ],
+     "unit": "人",
+     "use": "過去",
+     "value": 15000,
+     "value_text": "15,000"
     }
    ],
    "work": [
@@ -24698,6 +26206,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "401(k) contributions",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Delta Air Lines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Delta Air Lines, Inc.／\"Delta employees and their pass riders including parents and other family members; exact eligibility rules absent\"）。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-11",
+     "company": "delta",
+     "cond_ja": "pilot policy applicability／family categories and age/dependency rules／free vs fees/tax／standby ranking／pass allowances 対象：\"Delta employees and their pass riders including parents and other family members; exact eligibility rules absent\"",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Employee Pass Travel / HTML L113–115",
+       "quote": "including parents and other family members",
+       "source_id": "src-delta-us1011-004",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "0543be285f87c943",
+     "id": "delta.benefits.us1011-ben-15",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "会社の社員向け公開説明は、社員およびpass rider（親やその他家族を含む）の世界各地への航空優待を記載する。全家族",
+     "pack": "pvr-20261024-us-delta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Delta Air Lines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-delta-us1011-004",
+       "source_type": "official_package",
+       "title": "Life at Delta | One Future. One Delta.",
+       "url": "https://www.onefutureonedelta.com/content/ifs/en/life-at-delta.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "including parents and other family members",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -25688,6 +27251,63 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Delta Air Lines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Delta Air Lines, Inc.／\"First Officer, Ref28088, department PILOT TRAINEES, Flight Ops; applicant portal\"）。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-11",
+     "company": "delta",
+     "cond_ja": "応募・ログイン・送信はしていないため受付完了/選考実施は未検証。期限、採用人数、先行応募者限定の有無不明 対象：\"First Officer, Ref28088, department PILOT TRAINEES, Flight Ops; applicant portal\"",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "General Information; overview paragraph; right-side Apply link to Login?jobId=28088",
+       "quote": "Please apply or update your existing application. Apply",
+       "source_id": "src-delta-us1011-001",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "7c3015938dcd2b8e",
+     "id": "delta.jobs.us1011-ch-010",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "fo-entry",
+     "label_ja": "公式First Officer求人Ref28088が公開され、Apply入口と新規・更新応募の案内を確認。",
+     "pack": "pvr-20261024-us-delta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-04-22",
+       "publisher": "Delta Air Lines official recruiting portal on Avature",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-delta-us1011-001",
+       "source_type": "official_package",
+       "title": "First Officer — Ref #28088",
+       "url": "https://delta.avature.net/pilotcareers/JobDetail/First-Officer/28088"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Please apply or update your existing application. Apply",
+     "value_text": null
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -25743,6 +27363,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "United States",
      "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Delta Air Lines, Inc.／\"mainline operating fleet; footnote(1) excludes regional-operated aircraft\"）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "delta",
+     "cond_ja": "10/11現在稼働数ではない。元PDF現物未取得でグラフ一致は検証不可 対象：\"mainline operating fleet; footnote(1) excludes regional-operated aircraft\"",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item2 MD&A > Fleet Information, printed p26, Total row and footnote(1), HTML lines1141-1168",
+       "quote": "Total 903 15 87 1,005",
+       "source_id": "src-delta-us1011-003",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "88b0b42317393288",
+     "id": "delta.scale.us1011-ch-017",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "2026年9月末mainlineは1,005機、Owned903・Finance Lease15・Operating L",
+     "pack": "pvr-20261024-us-delta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-09",
+       "publisher": "Delta Air Lines, Inc.; U.S. SEC filing",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-delta-us1011-003",
+       "source_type": "regulatory_filing",
+       "title": "Delta Air Lines September 2026 Form 10-Q",
+       "url": "https://www.sec.gov/Archives/edgar/data/27904/000002790426000038/dal-20260930.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1005,
+     "value_text": "1,005"
     }
    ],
    "work": [
@@ -37246,6 +38921,276 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "ATP / US work authorization / 1500TT",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）／Frontier Airlines, Inc. の新規採用パイロット（応募者））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "frontier",
+     "cond_ja": "取得日（2026-10-11）時点の採用ページ表示。Cadet 求人は合格済み者向け 対象：Frontier Airlines, Inc. の新規採用パイロット（応募者）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-11",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-10-11／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "パイロット採用ページ",
+       "quote": "Our First Officer and University applications are open.",
+       "source_id": "src-frontier-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "01b53012a5f9c336",
+     "id": "frontier.jobs.us1011-f9-g-001",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "fo-entry",
+     "label_ja": "採用状況",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-002",
+       "source_type": "official_package",
+       "title": "Pilot | Frontier Airlines",
+       "url": "https://www.flyfrontier.com/careers/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Our First Officer and University applications are open.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）／Frontier Airlines, Inc. の新規採用パイロット（応募者））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "frontier",
+     "cond_ja": "採用ページの応募要件 対象：Frontier Airlines, Inc. の新規採用パイロット（応募者）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "応募要件",
+       "quote": "1,500 hours total time (2,500 hours preferred)",
+       "source_id": "src-frontier-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "66c1e79d54177641",
+     "id": "frontier.jobs.us1011-f9-g-002",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "fo-requirements",
+     "label_ja": "最低資格（飛行時間・資格）",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-002",
+       "source_type": "official_package",
+       "title": "Pilot | Frontier Airlines",
+       "url": "https://www.flyfrontier.com/careers/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1,500 hours total time (2,500 hours preferred)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）／Frontier Airlines, Inc. の新規採用パイロット（応募者））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "frontier",
+     "cond_ja": "採用ページの応募要件 対象：Frontier Airlines, Inc. の新規採用パイロット（応募者）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "応募要件",
+       "quote": "Authorization to work in the United States",
+       "source_id": "src-frontier-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "fbad4fbe40323662",
+     "id": "frontier.jobs.us1011-f9-g-003",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "travel-documents",
+     "label_ja": "就労資格・旅券・身だしなみ",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-002",
+       "source_type": "official_package",
+       "title": "Pilot | Frontier Airlines",
+       "url": "https://www.flyfrontier.com/careers/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Authorization to work in the United States",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）／大学生（応募者））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "frontier",
+     "cond_ja": "求人ページ。提携大学名は UND のみ言及 対象：大学生（応募者）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "求人本文",
+       "quote": "At least 250 hours and a commercial certificate",
+       "source_id": "src-frontier-us1011-012",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e6589f4a13f758cc",
+     "id": "frontier.jobs.us1011-f9-g-006",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "university-program",
+     "label_ja": "University Pilot Program",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-012",
+       "source_type": "official_package",
+       "title": "University Pilot Program – Frontier Airlines",
+       "url": "https://www.airlineapps.com/jobs/details.aspx?emp=Frontier-Airlines&job=University-Pilot-Program"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "At least 250 hours and a commercial certificate",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）／軍ヘリ操縦士（応募者））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "frontier",
+     "cond_ja": "求人ページ。10-K では Rotary to Air Group と提携と記載 対象：軍ヘリ操縦士（応募者）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Rotor Transition Program 求人文",
+       "quote": "provide funding to attend a Jet Transition course prior to the start of class",
+       "source_id": "src-frontier-us1011-013",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4110c601859369ee",
+     "id": "frontier.jobs.us1011-f9-g-007",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "rotor-transition",
+     "label_ja": "Rotor Transition Program",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-013",
+       "source_type": "official_package",
+       "title": "Frontier Airlines 求人一覧（airlineapps.com）",
+       "url": "https://www.airlineapps.com/jobs/default.aspx?emp=Frontier-Airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "provide funding to attend a Jet Transition course prior to the start of class",
+     "value_text": null
     }
    ],
    "profile": [
@@ -37358,6 +39303,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Denver, Colorado",
      "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）／Frontier Airlines, Inc. のパイロット（ALPA代表））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "frontier",
+     "cond_ja": "労組マイクロサイト『The Exodus』節。年は文脈上2023年（年末の年は明記なし） 対象：Frontier Airlines, Inc. のパイロット（ALPA代表）",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2023-01",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2023-01／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "The Exodus 節",
+       "quote": "In January of 2023, Frontier had 1,924 active pilots.",
+       "source_id": "src-frontier-us1011-001",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e1d82a43ab09fd07",
+     "id": "frontier.scale.us1011-f9-a-008",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "pilots",
+     "label_ja": "パイロット数の推移（労組公開サイト、2023年）",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Pilots MEC, ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-001",
+       "source_type": "union_cba",
+       "title": "Frontier Pilots",
+       "url": "https://fftpilots.alpa.org/"
+      }
+     ],
+     "unit": "人",
+     "use": "過去",
+     "value": 2023,
+     "value_text": "2023"
     }
    ],
    "work": [
@@ -43928,6 +45928,114 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "CBA適格pilot用Green Option医療保険・HRAの選択肢",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "JetBlue Airways Corporation",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue Airways のパイロット（ALPA代表、JetBlue–ALPA協約））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "対象：JetBlue Airways のパイロット（ALPA代表、JetBlue–ALPA協約）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2021-01-01",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2021-01-01／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Crewmember Retirement Plan 注記 第4段落",
+       "quote": "increased to 16% beginning on January 1, 2021",
+       "source_id": "src-jetblue-us1011-004",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "503b99c9055df479",
+     "id": "jetblue.benefits.us1011-b6-b-037",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "【退職拠出】パイロットへの会社の非選択拠出（2021-01-01〜）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-02-27",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-jetblue-us1011-004",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue Airways Corp Form 10-K FY2022, Note: Crewmember Retirement Plan (XBRL R18)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846323000002/R18.htm"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 16,
+     "value_text": "16"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "JetBlue Airways Corporation",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue Airways のパイロット（ALPA代表、JetBlue–ALPA協約））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "対象：JetBlue Airways のパイロット（ALPA代表、JetBlue–ALPA協約）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Crewmember Retirement Plan 注記",
+       "quote": "Pilot Non-elective contributions vest after three years of service",
+       "source_id": "src-jetblue-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "652004159624938f",
+     "id": "jetblue.benefits.us1011-b6-b-039",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "【退職拠出】権利確定（vesting）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-12",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-jetblue-us1011-005",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue Airways Corp Form 10-K FY2025, Note: Crewmember Retirement Plan (XBRL R19)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846326000007/R19.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Pilot Non-elective contributions vest after three years of service",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -44220,6 +46328,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Airbus A321neoLR",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue 運航機材（operating fleet））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "一時的に運航から外れた機体（Pratt & Whitney エンジン問題による4機を含む）を含む会社集計。発注済み機材は別行。 対象：JetBlue 運航機材（operating fleet）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-12-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2025-12-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Fleet 段落（As of December 31, 2025）",
+       "quote": "JetBlue's operating fleet was comprised of 129 Airbus A320 aircraft, 100 Airbus A321,",
+       "source_id": "src-jetblue-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "955341d451c42a65",
+     "id": "jetblue.fleet.us1011-b6-a-024",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a320",
+     "label_ja": "運航機材数（Airbus A320、2025-12-31 時点）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-27",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-jetblue-us1011-002",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue Investor Update Q4 2025 (Form 8-K Exhibit 99.2, accession 0001158463-26-000004)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846326000004/ex992-investorupdateq42025.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 129,
+     "value_text": "129"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue 運航機材（operating fleet））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "一時的に運航から外れた機体（Pratt & Whitney エンジン問題による4機を含む）を含む会社集計。発注済み機材は別行。 対象：JetBlue 運航機材（operating fleet）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-12-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2025-12-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Fleet 段落（As of December 31, 2025）",
+       "quote": "JetBlue's operating fleet was comprised of 129 Airbus A320 aircraft, 100 Airbus A321,",
+       "source_id": "src-jetblue-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "850a8b371a911661",
+     "id": "jetblue.fleet.us1011-b6-a-025",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a321",
+     "label_ja": "運航機材数（Airbus A321（全派生型合計）、2025-12-31 時点）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-27",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-jetblue-us1011-002",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue Investor Update Q4 2025 (Form 8-K Exhibit 99.2, accession 0001158463-26-000004)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846326000004/ex992-investorupdateq42025.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 100,
+     "value_text": "100"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue 運航機材（operating fleet））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "一時的に運航から外れた機体（Pratt & Whitney エンジン問題による4機を含む）を含む会社集計。発注済み機材は別行。 型式名は資料上 'Airbus A220'（発注・オプションは A220-300 と記載）。 対象：JetBlue 運航機材（operating fleet）",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-12-31",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2025-12-31／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Fleet 段落（As of December 31, 2025）",
+       "quote": "and 59 Airbus A220, for a total of 288 aircraft.",
+       "source_id": "src-jetblue-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "eae47a1beb9ee255",
+     "id": "jetblue.fleet.us1011-b6-a-026",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "a220",
+     "label_ja": "運航機材数（Airbus A220（A220-300）、2025-12-31 時点）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-27",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-jetblue-us1011-002",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue Investor Update Q4 2025 (Form 8-K Exhibit 99.2, accession 0001158463-26-000004)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846326000004/ex992-investorupdateq42025.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "過去",
+     "value": 59,
+     "value_text": "59"
     }
    ],
    "jobs": [
@@ -44390,6 +46657,170 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "not eligible for visa sponsorship",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "JetBlue Airways Corporation",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／新規採用 First Officer）。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "求人票（Req ID 58773）の記載。年齢要件の記載なし。 対象：新規採用 First Officer",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Minimum Requirements / Preferred Requirements",
+       "quote": "1500 hours TT, with minimum of 500 hours in fixed wing airplanes",
+       "source_id": "src-jetblue-fo-58773",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "7d21645ae516a3a8",
+     "id": "jetblue.jobs.us1011-b6-g-011",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "fo-requirements",
+     "label_ja": "First Officer 最低資格",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-jetblue-fo-58773",
+       "source_type": "job_posting",
+       "title": "First Officer – Req ID58773",
+       "url": "https://careers.jetblue.com/job/Orlando-First-Officer-FL-32827/1437544500/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1500 hours TT, with minimum of 500 hours in fixed wing airplanes",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "JetBlue Airways Corporation",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／新規採用 First Officer）。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "求人票（Req ID 58773）の記載。 対象：新規採用 First Officer",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Minimum Requirements",
+       "quote": "Currently in possession of a U.S. passport or a U.S. permanent residence card",
+       "source_id": "src-jetblue-fo-58773",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b9689e6a9f6fd72c",
+     "id": "jetblue.jobs.us1011-b6-g-013",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "travel-documents",
+     "label_ja": "渡航書類要件（パスポート等）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-jetblue-fo-58773",
+       "source_type": "job_posting",
+       "title": "First Officer – Req ID58773",
+       "url": "https://careers.jetblue.com/job/Orlando-First-Officer-FL-32827/1437544500/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Currently in possession of a U.S. passport or a U.S. permanent residence card",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "JetBlue Airways Corporation",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／Gateway Select 応募者（社員・外部））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "求人票（Req ID 58581）の記載。費用負担・提携訓練校名の記載なし。 対象：Gateway Select 応募者（社員・外部）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Requirements",
+       "quote": "Gateway Select is JetBlue's highly selective pilot pathway program",
+       "source_id": "src-jetblue-us1011-010",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ced468b206431649",
+     "id": "jetblue.jobs.us1011-b6-g-015",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "cadet-gateway-select",
+     "label_ja": "Gateway Select 求人（応募要件）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-jetblue-us1011-010",
+       "source_type": "official_package",
+       "title": "Gateway Select Training Program – Orlando, FL (Req ID 58581)",
+       "url": "https://careers.jetblue.com/job/Orlando-Gateway-Select-Training-Program-FL-32827/1425620800/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Gateway Select is JetBlue's highly selective pilot pathway program",
+     "value_text": null
     }
    ],
    "profile": [
@@ -44447,6 +46878,167 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Long Island City, New York",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue Airways Corporation）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "対象：JetBlue Airways Corporation",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item 1. Business – Overview",
+       "quote": "JetBlue was incorporated in Delaware in August 1998 and commenced service on February 11, 2000",
+       "source_id": "src-jetblue-pub-annual2025",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "d4868222984a63cf",
+     "id": "jetblue.profile.us1011-b6-a-003-first-flight",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "first_flight",
+     "label_ja": "設立・運航開始",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-12",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-jetblue-pub-annual2025",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue FY2025 Form10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846326000007/jblu-20251231.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2000-02-11",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue Airways Corporation）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "対象：JetBlue Airways Corporation",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item 1. Business – Overview",
+       "quote": "JetBlue was incorporated in Delaware in August 1998 and commenced service on February 11, 2000",
+       "source_id": "src-jetblue-pub-annual2025",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "23f148a43701b32a",
+     "id": "jetblue.profile.us1011-b6-a-003-founded",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立・運航開始",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-12",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-jetblue-pub-annual2025",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue FY2025 Form10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846326000007/jblu-20251231.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1998-08",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（JetBlue Airways Corporation／JetBlue パイロット）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "jetblue",
+     "cond_ja": "2025年通年の平均 active FTE（10-K の職群別平均表）。 対象：JetBlue パイロット",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2025",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2025／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item 1. Business – Human Capital Management, average FTE crewmembers 表（Pilots 行）",
+       "quote": "Pilots 4,326",
+       "source_id": "src-jetblue-pub-annual2025",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "49b8513cbf9d211a",
+     "id": "jetblue.scale.us1011-b6-a-014",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "pilots",
+     "label_ja": "パイロット数（常勤換算・2025年平均）",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-12",
+       "publisher": "JetBlue Airways Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-jetblue-pub-annual2025",
+       "source_type": "regulatory_filing",
+       "title": "JetBlue FY2025 Form10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/1158463/000115846326000007/jblu-20251231.htm"
+      }
+     ],
+     "unit": "人",
+     "use": "過去",
+     "value": 4326,
+     "value_text": "4,326"
     }
    ],
    "work": [
@@ -68938,6 +71530,168 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "cash_balance": "2%",
       "nonelective": "18%"
      }
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Southwest Airlines Co.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Southwest Airlines Co.／Southwest Airlines 本体のパイロット全員（SWAPA代表、B737））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "southwest",
+     "cond_ja": "対象：Southwest Airlines 本体のパイロット全員（SWAPA代表、B737）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "本文",
+       "quote": "a date of ratification pay-rate increase of 29.15%",
+       "source_id": "src-southwest-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1a02fede9b92a3a9",
+     "id": "southwest.benefits.us1011-wn-b-015",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "賃率引き上げ（批准日 DOR）",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-22",
+       "publisher": "Southwest Airlines Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-002",
+       "source_type": "union_cba",
+       "title": "Southwest Airlines Pilots Accept Tentative Agreement",
+       "url": "https://www.swapa.org/news/2023/southwest-airlines-pilots-accept-tentative-agreement"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 29.15,
+     "value_text": "29.15"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Southwest Airlines Co.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Southwest Airlines Co.／Southwest Airlines 本体のパイロット全員（SWAPA代表、B737））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "southwest",
+     "cond_ja": "2028年中（月日は資料に記載なし） 対象：Southwest Airlines 本体のパイロット全員（SWAPA代表、B737）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "本文",
+       "quote": "and a 3.25% raise in 2028.",
+       "source_id": "src-southwest-us1011-002",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1a26879d4eea24b6",
+     "id": "southwest.benefits.us1011-wn-b-019",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "賃率引き上げ（2028年）",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-22",
+       "publisher": "Southwest Airlines Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-002",
+       "source_type": "union_cba",
+       "title": "Southwest Airlines Pilots Accept Tentative Agreement",
+       "url": "https://www.swapa.org/news/2023/southwest-airlines-pilots-accept-tentative-agreement"
+      }
+     ],
+     "unit": "%",
+     "use": "参考",
+     "value": 3.25,
+     "value_text": "3.25"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Southwest Airlines Co.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Southwest Airlines Co.／Southwest Airlines 本体のパイロット全員（SWAPA代表、B737））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "southwest",
+     "cond_ja": "対象：Southwest Airlines 本体のパイロット全員（SWAPA代表、B737）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item 1, Human Capital Resources（報酬・福利厚生の段落）",
+       "quote": "a 401(k) plan with a non-elective Company contribution for Pilots",
+       "source_id": "src-southwest-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "5766693ffc53b899",
+     "id": "southwest.benefits.us1011-wn-b-038",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "パイロットの退職制度（DC）の構成",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Southwest Airlines Co.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-005",
+       "source_type": "regulatory_filing",
+       "title": "Southwest Airlines Co. Form 10-K for fiscal year ended December 31, 2025",
+       "url": "https://www.sec.gov/Archives/edgar/data/92380/000009238026000004/luv-20251231.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "a 401(k) plan with a non-elective Company contribution for Pilots",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -69172,6 +71926,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "現在受付終了",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Southwest Airlines Co.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Southwest Airlines Co.／First Officer 応募者）。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-11",
+     "company": "southwest",
+     "cond_ja": "2026-10-11 取得時点のページ表示 対象：First Officer 応募者",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Pilots ページ本文",
+       "quote": "Our Pilot - First Officer application is currently closed.",
+       "source_id": "src-southwest-us1011-009",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "5c43394b41ac82f9",
+     "id": "southwest.jobs.us1011-wn-g-006",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "fo-entry",
+     "label_ja": "パイロット採用状況（First Officer）",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Southwest Airlines Co.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-009",
+       "source_type": "official_package",
+       "title": "Southwest Careers – Pilots（Pilot - First Officer）",
+       "url": "https://careers.southwestair.com/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Our Pilot - First Officer application is currently closed.",
+     "value_text": null
     }
    ],
    "profile": [
@@ -69229,6 +72038,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "United States",
      "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Southwest Airlines Co.／Southwest パイロット）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "southwest",
+     "cond_ja": "2024年1月22日の協約承認発表時点 対象：Southwest パイロット",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "本文",
+       "quote": "nearly 11,000 Southwest® Pilots",
+       "source_id": "src-southwest-us1011-001",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "6fe8f5403a3410cd",
+     "id": "southwest.scale.us1011-wn-a-017",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "pilots",
+     "label_ja": "パイロット数（会社発表、2024年1月）",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-22",
+       "publisher": "Southwest Airlines Co.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-001",
+       "source_type": "official_package",
+       "title": "Southwest Airlines Pilots Approve New Contract",
+       "url": "https://investors.southwest.com/news-events/press-releases/detail/98/southwest-airlines-pilots-approve-new-contract"
+      }
+     ],
+     "unit": "人",
+     "use": "過去",
+     "value": 11000,
+     "value_text": "11,000"
     }
    ],
    "work": [
@@ -77877,6 +80741,387 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "travel privileges",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／機長・副操縦士（全機種））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "October 2023 Bid Period の DOS 表で実施 対象：機長・副操縦士（全機種）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-10",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2023-10／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p.12 Pay Rates",
+       "quote": "DOS pay increase has a range of 13.8% - 18.7%",
+       "source_id": "src-united-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "d2a435d620673ef6",
+     "id": "united.benefits.us1011-ua-b-023",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給（DOS）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-23",
+       "publisher": "ALPA United MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-008",
+       "source_type": "union_cba",
+       "title": "UPA23 Tentative Agreement (TA) Executive Summary, Version 1.4",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-executive-summary-2023-09-01-v1-0.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 13.8,
+     "value_text": "13.8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／機長・副操縦士（全機種））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "January 2024 Bid Period 開始時 対象：機長・副操縦士（全機種）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-01",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2024-01／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p.12 Pay Rates",
+       "quote": "January 2024 Bid period 5% increase",
+       "source_id": "src-united-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b1fcb78a8551d9b9",
+     "id": "united.benefits.us1011-ua-b-024",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給（January 2024 Bid Period）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-23",
+       "publisher": "ALPA United MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-008",
+       "source_type": "union_cba",
+       "title": "UPA23 Tentative Agreement (TA) Executive Summary, Version 1.4",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-executive-summary-2023-09-01-v1-0.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／機長・副操縦士（全機種））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "January 2025 Bid Period 開始時 対象：機長・副操縦士（全機種）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2025-01／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p.12 Pay Rates",
+       "quote": "January 2025 Bid period 4% increase",
+       "source_id": "src-united-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "5c607072bb70d9cd",
+     "id": "united.benefits.us1011-ua-b-025",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給（January 2025 Bid Period）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-23",
+       "publisher": "ALPA United MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-008",
+       "source_type": "union_cba",
+       "title": "UPA23 Tentative Agreement (TA) Executive Summary, Version 1.4",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-executive-summary-2023-09-01-v1-0.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "過去",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／機長・副操縦士（全機種））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "January 2027 Bid Period 開始時 対象：機長・副操縦士（全機種）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2027-01",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2027-01／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "p.12 Pay Rates",
+       "quote": "January 2027 Bid period 3% increase",
+       "source_id": "src-united-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c1476959abbc1fca",
+     "id": "united.benefits.us1011-ua-b-027",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "pay_raise",
+     "label_ja": "昇給（January 2027 Bid Period）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-23",
+       "publisher": "ALPA United MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-008",
+       "source_type": "union_cba",
+       "title": "UPA23 Tentative Agreement (TA) Executive Summary, Version 1.4",
+       "url": "https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-executive-summary-2023-09-01-v1-0.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "参考",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／United の全社員（全社員向け記載。パイロットへの適用条件は未記載））。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "対象：United の全社員（全社員向け記載。パイロットへの適用条件は未記載）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Travel 項",
+       "quote": "unlimited standby travel and discounted airfare to anywhere we fly",
+       "source_id": "src-united-us1011-011",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e42657c326b1d0f7",
+     "id": "united.benefits.us1011-ua-d-002",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "旅行特典（全社員向け）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-011",
+       "source_type": "official_package",
+       "title": "United Airlines Careers - Benefits",
+       "url": "https://careers.united.com/us/en/benefits"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "unlimited standby travel and discounted airfare to anywhere we fly",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／United の全社員（全社員向け記載））。",
+      "pilot_specific": false,
+      "rank": "all_staff"
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "対象：United の全社員（全社員向け記載）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Health 項",
+       "quote": "a variety of medical plans and options",
+       "source_id": "src-united-us1011-011",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "dbdc9cb337d62705",
+     "id": "united.benefits.us1011-ua-d-029",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療保険等（全社員向け）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-011",
+       "source_type": "official_package",
+       "title": "United Airlines Careers - Benefits",
+       "url": "https://careers.united.com/us/en/benefits"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "a variety of medical plans and options",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／United の副操縦士（First Officer））。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "待遇はUnited Pilot Agreement（ALPA）に準拠 対象：United の副操縦士（First Officer）",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Benefits/compensation 一覧",
+       "quote": "governed by the United Pilot Agreement between United and the Air Line Pilots Association",
+       "source_id": "src-united-fo-careers",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "30605f8a4b7cb85d",
+     "id": "united.benefits.us1011-ua-d-030",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "保険等（パイロット採用ページ）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-united-fo-careers",
+       "source_type": "job_posting",
+       "title": "First Officer",
+       "url": "https://careers.united.com/us/en/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "governed by the United Pilot Agreement between United and the Air Line Pilots Association",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -78513,6 +81758,170 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 1500,
      "value_text": "1,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／メインラインFirst Officer直接応募（経験者））。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "優遇条件: 固定翼タービン1,000時間、直近12か月100時間以上、学士号。応募は pilothiring.united.com 対象：メインラインFirst Officer直接応募（経験者）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "First Officer 採用頁（Minimum/Preferred qualifications）",
+       "quote": "Legal right to work in the United States without sponsorship",
+       "source_id": "src-united-fo-careers",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "9395b9470eb36d81",
+     "id": "united.jobs.us1011-ua-g-003",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "fo-requirements",
+     "label_ja": "パイロット採用（First Officer）応募受付と最低資格",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-united-fo-careers",
+       "source_type": "job_posting",
+       "title": "First Officer",
+       "url": "https://careers.united.com/us/en/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Legal right to work in the United States without sponsorship",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／Aviate参加地域航空会社のパイロット（現所属は別雇用主））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "米国でスポンサー不要の就労資格が必要。United採用頁は経路としてUnited Aviate Academy・Aviate Program・First Officer・United Military Pilot Programを掲示（https://careers.united.com/us/en/pilots） 対象：Aviate参加地域航空会社のパイロット（現所属は別雇用主）",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Flying for United Express パスウェイ頁",
+       "quote": "Must have a legal right to work in the United States without sponsorship.",
+       "source_id": "src-united-us1011-015",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c639b155bf5926b6",
+     "id": "united.jobs.us1011-ua-g-004",
+     "imported_on": "2026-10-24",
+     "info_kind": "recruitment_condition",
+     "key": "aviate-pathway",
+     "label_ja": "United Aviate（育成・移籍パスウェイ）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-015",
+       "source_type": "official_package",
+       "title": "United Aviate: Flying for United Express",
+       "url": "https://unitedaviate.com/aviate-program-career-paths/flying-for-united-express"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Must have a legal right to work in the United States without sponsorship.",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines Holdings, Inc.／会社本社（パイロットの所属ベースではない））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "対象：会社本社（パイロットの所属ベースではない）",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Part I, Item 1 Business",
+       "quote": "principal executive office is located at 233 South Wacker Drive, Chicago, Illinois 60606",
+       "source_id": "src-united-r7-evidence-2",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "2b46ef94c2912560",
+     "id": "united.profile.us1011-ua-a-003",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社（主たる事業所）所在地",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-12",
+       "publisher": "United Airlines Holdings, Inc. / United Airlines, Inc. (SEC filing)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-20",
+       "source_id": "src-united-r7-evidence-2",
+       "source_type": "regulatory_filing",
+       "title": "2025 Form10-K",
+       "url": "https://www.sec.gov/Archives/edgar/data/100517/000010051726000023/ual-20251231.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "233 South Wacker Drive, Chicago, Illinois 60606",
+     "value_text": null
     }
    ],
    "work": [
@@ -78682,6 +82091,114 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Flight Training Center, Denver",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／United Airlines のパイロット（ALPA代表、UPA 2023 適用））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "対象：United Airlines のパイロット（ALPA代表、UPA 2023 適用）",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "本文（United のCapt. Travis Bealmear の発表部分）",
+       "quote": "enhancements to United's latest Jeppesen PBS platform interface",
+       "source_id": "src-united-us1011-010",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "98d0a7315ef3da50",
+     "id": "united.work.us1011-ua-c-008",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "PBSのシステム（ベンダー）",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-17",
+       "publisher": "ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-010",
+       "source_type": "union_cba",
+       "title": "Pilot Schedulers Compare PBS Notes",
+       "url": "https://www.alpa.org/articles/2026/06/pilot-schedulers-compare-pbs-notes"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "enhancements to United's latest Jeppesen PBS platform interface",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "United Airlines, Inc.",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（United Airlines, Inc.／United Airlines のパイロット（ALPA代表、UPA 2023 適用））。",
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-11",
+     "company": "united",
+     "cond_ja": "対象：United Airlines のパイロット（ALPA代表、UPA 2023 適用）",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "本文（United PBS新インターフェースの機能説明）",
+       "quote": "real-time bid feedback tied to seniority",
+       "source_id": "src-united-us1011-010",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "5b13e66911067e0d",
+     "id": "united.work.us1011-ua-c-009",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "先任順位（seniority）とスケジュール選択",
+     "pack": "pvr-20261024-us-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-17",
+       "publisher": "ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-11",
+       "source_id": "src-united-us1011-010",
+       "source_type": "union_cba",
+       "title": "Pilot Schedulers Compare PBS Notes",
+       "url": "https://www.alpa.org/articles/2026/06/pilot-schedulers-compare-pbs-notes"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "real-time bid feedback tied to seniority",
      "value_text": null
     }
    ]
@@ -143657,7 +147174,293 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      }
     }
    ],
-   "towns": []
+   "towns": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dallas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Dallas–Fort Worth, TX（DFW空港への通勤）／Irving, TX（Las Colinas Urban Center 駅周辺））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "dallas",
+     "company": "american",
+     "cond_ja": "Irving。英: Irving。DART Orange Line 平日・DFW Airport 方面時刻表。駅別時刻列の対応（03:42→04:04、04:11→04:33 … 01:01→01:23）から全便とも22分差。空港駅からターミナル内・乗員施設までの徒歩時間は含まない。土日は別時刻表。 対象：Dallas–Fort Worth, TX（DFW空港への通勤）／Irving, TX（Las Colinas Urban Center 駅周辺）",
+     "currency": null,
+     "district": "Irving",
+     "district_en": "Irving",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-21",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-21／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "'Las Colinas Urban Center' と 'DFW Airport' の時刻列（先頭）",
+       "quote": "Las Colinas Urban Center 03:42 04:11 … DFW Airport 04:04 04:33",
+       "source_id": "src-american-us1011-014",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "3274da39c8f8eac8",
+     "id": "american.living.us1011-aa-e-011",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地1：Irving（Las Colinas Urban Center 駅周辺）→ DFW Airport 駅（T",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Dallas Area Rapid Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-014",
+       "source_type": "government",
+       "title": "Orange Line - Weekday",
+       "url": "https://dartorgcmsblob.dart.org/prod/docs/default-source/schedules/rail/worangeso.pdf?t=639272586128740987"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Irving",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dallas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Dallas–Fort Worth, TX（DFW空港への通勤）／Carrollton, TX（Downtown Carrollton 駅周辺））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "dallas",
+     "company": "american",
+     "cond_ja": "Carrollton。英: Carrollton。DART Silver Line 平日・DFW Airport Terminal B 方面時刻表。時刻列の対応（03:54→04:18、04:54→05:18 … 11:54→12:18）から全便とも24分差。Silver Line は downtown Dallas に行かない。空港駅からの徒歩時間は含まない。 対象：Dallas–Fort Worth, TX（DFW空港への通勤）／Carrollton, TX（Downtown Carrollton 駅周辺）",
+     "currency": null,
+     "district": "Carrollton",
+     "district_en": "Carrollton",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-21",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-21／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "'Downtown Carrollton Silver Line Station' と 'DFW Terminal B' の時刻列（先頭）",
+       "quote": "Downtown Carrollton Silver Line Station 03:54 04:54 … DFW Terminal B 04:18 05:18",
+       "source_id": "src-american-us1011-015",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "25c075358fd660db",
+     "id": "american.living.us1011-aa-e-012",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地2：Carrollton（Downtown Carrollton 駅周辺）→ DFW Terminal B 駅",
+     "pack": "pvr-20261024-us-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Dallas Area Rapid Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-american-us1011-015",
+       "source_type": "government",
+       "title": "Silver Line - Weekday To DFW Airport Terminal B (wsilverso.pdf)",
+       "url": "https://dartorgcmsblob.dart.org/prod/docs/default-source/schedules/rail/wsilverso.pdf?t=639272587699287664"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Carrollton",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dallas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Dallas, TX（DAL 通勤）／Dallas 市 Downtown（West End 駅）発）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "dallas",
+     "company": "southwest",
+     "cond_ja": "Dallas。英: Dallas。DART Green Line 平日・North Carrollton/Frankford 方面時刻表。駅別時刻列の対応（05:13→05:24、05:43→05:54 …）から11分差。Orange Line（DFW 方面）でも同区間11分（WN-E-036）。空港ターミナルへは別途 Route 5。 対象：Dallas, TX（DAL 通勤）／Dallas 市 Downtown（West End 駅）発",
+     "currency": null,
+     "district": "Dallas",
+     "district_en": "Dallas",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-21",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-21／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "'West End Station' と 'Inwood/Love Field Station' の時刻列（先頭）",
+       "quote": "West End Station 05:13 05:43 … Inwood/Love Field Station 05:24 05:54",
+       "source_id": "src-southwest-us1011-006",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "33830971d21b709b",
+     "id": "southwest.living.us1011-wn-e-011",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地1：Dallas（Downtown・West End 駅周辺）→ Inwood/Love Field 駅 時刻",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Dallas Area Rapid Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-006",
+       "source_type": "government",
+       "title": "Green Line - Weekday To North Carrollton/Frankford Station (wgreenno.pdf)",
+       "url": "https://dartorgcmsblob.dart.org/prod/docs/default-source/schedules/rail/wgreenno.pdf?t=639272605994533063"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Dallas",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dallas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Dallas, TX（DAL 通勤）／Farmers Branch, TX（Farmers Branch 駅）発）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "dallas",
+     "company": "southwest",
+     "cond_ja": "Farmers Branch。英: Farmers Branch。DART Green Line 平日・Buckner 方面時刻表。Farmers Branch 発と Inwood/Love Field 着の対応（04:38→04:57、05:08→05:27、05:38→05:57）から19分差。同じ列車で Downtown Carrollton 04:33発→04:57着（約24分）。 対象：Dallas, TX（DAL 通勤）／Farmers Branch, TX（Farmers Branch 駅）発",
+     "currency": null,
+     "district": "Farmers Branch",
+     "district_en": "Farmers Branch",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-21",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-21／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "'Farmers Branch Station'・'Bachman Station'・'Inwood/Love Field Station' の時刻列（先頭）",
+       "quote": "Inwood/Love Field Station 03:37 04:07 04:35 04:57 05:17 05:27 05:57",
+       "source_id": "src-southwest-us1011-007",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1003a0293bcdb7af",
+     "id": "southwest.living.us1011-wn-e-012",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地2：Farmers Branch（Farmers Branch 駅周辺）→ Inwood/Love Field",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Dallas Area Rapid Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-007",
+       "source_type": "government",
+       "title": "Green Line - Weekday To Buckner Station (wgreenso.pdf)",
+       "url": "https://dartorgcmsblob.dart.org/prod/docs/default-source/schedules/rail/wgreenso.pdf?t=639272605994533031"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Farmers Branch",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dallas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Dallas, TX（DAL 通勤）／Irving, TX（Las Colinas Urban Center 駅）発）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "dallas",
+     "company": "southwest",
+     "cond_ja": "Irving。英: Irving。DART Orange Line 平日・DFW Airport→Parker Road 方向の時刻表（worangeno.pdf）。対応（04:33→04:53、05:03→05:23、05:33→05:53）から20分差。Inwood/Love Field 05:13着は Bachman 始発とみられる。家賃は AA-E-040（Irving city）を参照（WN-E-052）。 対象：Dallas, TX（DAL 通勤）／Irving, TX（Las Colinas Urban Center 駅）発",
+     "currency": null,
+     "district": "Irving",
+     "district_en": "Irving",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-21",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-21／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "'Las Colinas Urban Center Station' と 'Inwood/Love Field Station' の時刻列（先頭）",
+       "quote": "Las Colinas Urban Center Station 04:33 05:03 05:33 … Inwood/Love Field 04:53",
+       "source_id": "src-southwest-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ff5e0d97fa302a5b",
+     "id": "southwest.living.us1011-wn-e-013",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地3：Irving（Las Colinas Urban Center 駅周辺）→ Inwood/Love Fie",
+     "pack": "pvr-20261024-us-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Dallas Area Rapid Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-southwest-us1011-008",
+       "source_type": "government",
+       "title": "Orange Line - Weekday",
+       "url": "https://dartorgcmsblob.dart.org/prod/docs/default-source/schedules/rail/worangeno.pdf?t=639272605994533118"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Irving",
+     "value_text": null
+    }
+   ]
   },
   "denver": {
    "airlines": [
@@ -144150,7 +147953,179 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      }
     }
    ],
-   "towns": []
+   "towns": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Denver",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Denver, CO（DEN：Denver International Airport への通勤）／Downtown Denver（Union Station 周辺））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "denver",
+     "company": "frontier",
+     "cond_ja": "Downtown Denver。英: Downtown Denver。時刻点の順：Union Station T1 → 38th & Blake → 40th & Colorado → Central Park → Peoria → 40th Ave & Airport Blvd-Gateway → 61st & Peña → Denver Airport Station。表の時刻に AM/PM の表示がなく、時刻の並び（03:00 始まり〜深夜 1時台）から午前/午後を判断。各列が発車・到着のいずれかは未確認。 対象：Denver, CO（DEN：Denver International Airport への通勤）／Downtown Denver（Union Station 周辺）",
+     "currency": null,
+     "district": "Downtown Denver",
+     "district_en": "Downtown Denver",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-27",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-27／2027-01-02）。資料の発行日と、いま適用されているかは別。",
+      "to": "2027-01-02"
+     },
+     "evidence": [
+      {
+       "locator": "Eastbound・Monday - Thursday 表の先頭行",
+       "quote": "03:00 03:04 03:09 03:13 03:16 03:22 03:25 03:37",
+       "source_id": "src-frontier-us1011-010",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4741c024fe7418b9",
+     "id": "frontier.living.us1011-f9-e-011",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地1：Downtown Denver（Union Station）→ Denver Airport Statio",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Regional Transportation District (RTD), Denver",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-010",
+       "source_type": "government",
+       "title": "A Line Eastbound（Union Station → Denver Airport Station）Monday - Thursday 時刻表（SEPTEMBER 27, 2026 - JANUARY 2, 2027）",
+       "url": "https://schedule-pdfs.rtd-denver.com/api/file/current/A/Eastbound/3"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Downtown Denver",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Denver",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Denver, CO（DEN：Denver International Airport への通勤）／38th & Blake Station 周辺）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "denver",
+     "company": "frontier",
+     "cond_ja": "38th & Blake Station。英: 38th & Blake Station。時刻点の順：Union Station T1 → 38th & Blake → 40th & Colorado → Central Park → Peoria → 40th Ave & Airport Blvd-Gateway → 61st & Peña → Denver Airport Station。表の時刻に AM/PM の表示がなく、時刻の並び（03:00 始まり〜深夜 1時台）から午前/午後を判断。各列が発車・到着のいずれかは未確認。 対象：Denver, CO（DEN：Denver International Airport への通勤）／38th & Blake Station 周辺",
+     "currency": null,
+     "district": "38th & Blake Station",
+     "district_en": "38th & Blake Station",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-27",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-27／2027-01-02）。資料の発行日と、いま適用されているかは別。",
+      "to": "2027-01-02"
+     },
+     "evidence": [
+      {
+       "locator": "Eastbound・Monday - Thursday 表の先頭行",
+       "quote": "03:00 03:04 03:09 03:13 03:16 03:22 03:25 03:37",
+       "source_id": "src-frontier-us1011-010",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a7c19eab3886c384",
+     "id": "frontier.living.us1011-f9-e-012",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地2：38th & Blake Station → Denver Airport Station 時刻表上の所要",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Regional Transportation District (RTD), Denver",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-010",
+       "source_type": "government",
+       "title": "A Line Eastbound（Union Station → Denver Airport Station）Monday - Thursday 時刻表（SEPTEMBER 27, 2026 - JANUARY 2, 2027）",
+       "url": "https://schedule-pdfs.rtd-denver.com/api/file/current/A/Eastbound/3"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "38th & Blake Station",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Denver",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Denver, CO（DEN：Denver International Airport への通勤）／Central Park Station 周辺）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "denver",
+     "company": "frontier",
+     "cond_ja": "Central Park Station。英: Central Park Station。時刻点の順：Union Station T1 → 38th & Blake → 40th & Colorado → Central Park → Peoria → 40th Ave & Airport Blvd-Gateway → 61st & Peña → Denver Airport Station。表の時刻に AM/PM の表示がなく、時刻の並び（03:00 始まり〜深夜 1時台）から午前/午後を判断。各列が発車・到着のいずれかは未確認。 対象：Denver, CO（DEN：Denver International Airport への通勤）／Central Park Station 周辺",
+     "currency": null,
+     "district": "Central Park Station",
+     "district_en": "Central Park Station",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-27",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-27／2027-01-02）。資料の発行日と、いま適用されているかは別。",
+      "to": "2027-01-02"
+     },
+     "evidence": [
+      {
+       "locator": "Eastbound・Monday - Thursday 表の先頭行",
+       "quote": "03:00 03:04 03:09 03:13 03:16 03:22 03:25 03:37",
+       "source_id": "src-frontier-us1011-010",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c4e362fe853d5787",
+     "id": "frontier.living.us1011-f9-e-013",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地3：Central Park Station → Denver Airport Station 時刻表上の所要",
+     "pack": "pvr-20261024-us-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Regional Transportation District (RTD), Denver",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-frontier-us1011-010",
+       "source_type": "government",
+       "title": "A Line Eastbound（Union Station → Denver Airport Station）Monday - Thursday 時刻表（SEPTEMBER 27, 2026 - JANUARY 2, 2027）",
+       "url": "https://schedule-pdfs.rtd-denver.com/api/file/current/A/Eastbound/3"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Central Park Station",
+     "value_text": null
+    }
+   ]
   },
   "detroit": {
    "airlines": [
@@ -151333,7 +155308,179 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      }
     }
    ],
-   "towns": []
+   "towns": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Las Vegas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Las Vegas, NV（LAS：Harry Reid International Airport への通勤）／Downtown Las Vegas（Bonneville Transit Center 周辺））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "las-vegas",
+     "company": "allegiant",
+     "cond_ja": "Downtown Las Vegas。英: Downtown Las Vegas。平日・空港行き（Southbound）の時刻点 A〜F：Bonneville Transit Center (BTC) Bay 11 → Sahara (before intersection) → Desert Inn → Flamingo → Tropicana → Harry Reid Airport (Terminal 1, Zero Level)。空港発（Northbound）の時刻点名に 'Paradise & Desert Inn'・'Sahara Monorail Station' があり、Paradise Rd 沿いの停留所と判断。凡例『AM times in REGULAR, PM times in BOLD』だが抽出テキストで太字が失われるため、午前/午後は時刻の並びから判断。 対象：Las Vegas, NV（LAS：Harry Reid International Airport への通勤）／Downtown Las Vegas（Bonneville Transit Center 周辺）",
+     "currency": null,
+     "district": "Downtown Las Vegas",
+     "district_en": "Downtown Las Vegas",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "WEEKDAYS・Southbound 表の先頭行",
+       "quote": "4:30 4:38 4:43 4:48 4:52 4:56",
+       "source_id": "src-allegiant-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1c79db3bb518aaf3",
+     "id": "allegiant.living.us1011-g4-e-011",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地1：Downtown Las Vegas（Bonneville Transit Center）→ 空港 Ter",
+     "pack": "pvr-20261024-us-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08",
+       "publisher": "Regional Transportation Commission of Southern Nevada",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-allegiant-us1011-008",
+       "source_type": "government",
+       "title": "108 Paradise 時刻表",
+       "url": "https://rtcws.rtcsnv.com/routepdf/108.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Downtown Las Vegas",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Las Vegas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Las Vegas, NV（LAS：Harry Reid International Airport への通勤）／Paradise Rd・Sahara Ave 付近）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "las-vegas",
+     "company": "allegiant",
+     "cond_ja": "Paradise Rd・Sahara Ave 付近。英: Paradise Rd・Sahara Ave 付近。平日・空港行き（Southbound）の時刻点 A〜F：Bonneville Transit Center (BTC) Bay 11 → Sahara (before intersection) → Desert Inn → Flamingo → Tropicana → Harry Reid Airport (Terminal 1, Zero Level)。空港発（Northbound）の時刻点名に 'Paradise & Desert Inn'・'Sahara Monorail Station' があり、Paradise Rd 沿いの停留所と判断。凡例『AM times in REGULAR, PM times in BOLD』だが抽出テキストで太字が失われるため、午前/午後は時刻の並びから判断。 対象：Las Vegas, NV（LAS：Harry Reid International Airport への通勤）／Paradise Rd・Sahara Ave 付近",
+     "currency": null,
+     "district": "Paradise Rd・Sahara Ave 付近",
+     "district_en": "Paradise Rd・Sahara Ave 付近",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "WEEKDAYS・Southbound 表の先頭行（B 列）",
+       "quote": "4:30 4:38 4:43 4:48 4:52 4:56",
+       "source_id": "src-allegiant-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "32094d2e79eac2f2",
+     "id": "allegiant.living.us1011-g4-e-012",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地2：Paradise Rd・Sahara Ave 付近（Sahara 時刻点）→ 空港 Terminal 1 ",
+     "pack": "pvr-20261024-us-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08",
+       "publisher": "Regional Transportation Commission of Southern Nevada",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-allegiant-us1011-008",
+       "source_type": "government",
+       "title": "108 Paradise 時刻表",
+       "url": "https://rtcws.rtcsnv.com/routepdf/108.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Paradise Rd・Sahara Ave 付近",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Las Vegas",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Las Vegas, NV（LAS：Harry Reid International Airport への通勤）／Paradise Rd・Flamingo Rd 付近）。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "las-vegas",
+     "company": "allegiant",
+     "cond_ja": "Paradise Rd・Flamingo Rd 付近。英: Paradise Rd・Flamingo Rd 付近。平日・空港行き（Southbound）の時刻点 A〜F：Bonneville Transit Center (BTC) Bay 11 → Sahara (before intersection) → Desert Inn → Flamingo → Tropicana → Harry Reid Airport (Terminal 1, Zero Level)。空港発（Northbound）の時刻点名に 'Paradise & Desert Inn'・'Sahara Monorail Station' があり、Paradise Rd 沿いの停留所と判断。凡例『AM times in REGULAR, PM times in BOLD』だが抽出テキストで太字が失われるため、午前/午後は時刻の並びから判断。 対象：Las Vegas, NV（LAS：Harry Reid International Airport への通勤）／Paradise Rd・Flamingo Rd 付近",
+     "currency": null,
+     "district": "Paradise Rd・Flamingo Rd 付近",
+     "district_en": "Paradise Rd・Flamingo Rd 付近",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "WEEKDAYS・Southbound 表の先頭行（D 列）",
+       "quote": "4:30 4:38 4:43 4:48 4:52 4:56",
+       "source_id": "src-allegiant-us1011-008",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4a4e2d0a56b33df8",
+     "id": "allegiant.living.us1011-g4-e-013",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地3：Paradise Rd・Flamingo Rd 付近（Flamingo 時刻点）→ 空港 Terminal",
+     "pack": "pvr-20261024-us-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08",
+       "publisher": "Regional Transportation Commission of Southern Nevada",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-allegiant-us1011-008",
+       "source_type": "government",
+       "title": "108 Paradise 時刻表",
+       "url": "https://rtcws.rtcsnv.com/routepdf/108.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Paradise Rd・Flamingo Rd 付近",
+     "value_text": null
+    }
+   ]
   },
   "lisboa": {
    "airlines": [
@@ -157769,7 +161916,65 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      }
     }
    ],
-   "towns": []
+   "towns": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "New York",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／New York, NY（JFK：John F. Kennedy International Airport への通勤）／Garden City, NY（LIRR Garden City 駅周辺））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "new-york",
+     "company": "jetblue",
+     "cond_ja": "Garden City。英: Garden City。LIRR Hempstead Branch 平日時刻表（2026-09-08〜2026-11-08）。Nassau County は HUD の New York HMFA ではなく Nassau-Suffolk HMFA（B6-E-035〜039）。Garden City→Jamaica の LIRR 運賃・定期代は未収集。 対象：New York, NY（JFK：John F. Kennedy International Airport への通勤）／Garden City, NY（LIRR Garden City 駅周辺）",
+     "currency": null,
+     "district": "Garden City",
+     "district_en": "Garden City",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-08",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-09-08／2026-11-08）。資料の発行日と、いま適用されているかは別。",
+      "to": "2026-11-08"
+     },
+     "evidence": [
+      {
+       "locator": "Westbound（Hempstead → Jamaica・Penn Station 方向）平日表の Garden City・Jamaica 行",
+       "quote": "Westbound Monday through Friday except Holidays, Effective September 8, 2026 - November 8, 2026",
+       "source_id": "src-jetblue-us1011-006",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "8ffd52b5e2b1e0f3",
+     "id": "jetblue.living.us1011-b6-e-013",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地3：Garden City（Nassau County）— LIRR Hempstead Branch で J",
+     "pack": "pvr-20261024-us-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "MTA Long Island Rail Road",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-jetblue-us1011-006",
+       "source_type": "government",
+       "title": "LIRR Hempstead Branch Timetable (Effective September 8, 2026 - November 8, 2026)",
+       "url": "https://www.mta.info/document/216851"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Garden City",
+     "value_text": null
+    }
+   ]
   },
   "newark": {
    "airlines": [
@@ -164667,7 +168872,179 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      }
     }
    ],
-   "towns": []
+   "towns": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Seattle",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Seattle, WA（SEA：Seattle-Tacoma International Airport への通勤）／Columbia City 駅周辺（Seattle city））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "seattle",
+     "company": "alaska-airlines",
+     "cond_ja": "Seattle市 Columbia City 駅周辺。英: Seattle市 Columbia City 駅周辺。平日（Weekdays）To Federal Way 表の早朝1便（2便目）の時刻表値。同表の Lynnwood 始発便（5:49a→6:09a）・終電（12:51a→1:11a）も20分。空港駅からターミナル・乗員施設までの徒歩時間は含まない。通勤の実用性（Link 1 Line で SeaTac/Airport 駅まで乗換なし）のみで選定。特定航空会社のパイロットに人気という意味ではない。家族向け適否・治安・学区は評価していない。 対象：Seattle, WA（SEA：Seattle-Tacoma International Airport への通勤）／Columbia City 駅周辺（Seattle city）",
+     "currency": null,
+     "district": "Seattle市 Columbia City 駅周辺",
+     "district_en": "Seattle市 Columbia City 駅周辺",
+     "domain": "living",
+     "effective": {
+      "from": "2026-08-29",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-08-29／2027-03-26）。資料の発行日と、いま適用されているかは別。",
+      "to": "2027-03-26"
+     },
+     "evidence": [
+      {
+       "locator": "1 Line | Weekdays 'To Federal Way' 表（pp.3–8）2行目：Beacon Hill, Columbia City, Rainier Beach, Tukwila Int'l Blvd, SeaTac/Airport…",
+       "quote": "4:28 a.m. 4:33 a.m. 4:40 a.m. 4:49 a.m. 4:53 a.m.",
+       "source_id": "src-alaska-airlines-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c84507133b5f925f",
+     "id": "alaska-airlines.living.us1011-as-e-011",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地1：Seattle市 Columbia City 駅周辺 → SeaTac/Airport 駅 時刻表上の所要",
+     "pack": "pvr-20261024-us-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Sound Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-alaska-airlines-us1011-005",
+       "source_type": "government",
+       "title": "1 Line timetable, Aug. 29, 2026 – March 26, 2027 (2026-service-change-schedules-train.pdf, key stops only)",
+       "url": "https://www.soundtransit.org/sites/default/files/documents/2026-service-change-schedules-train.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Seattle市 Columbia City 駅周辺",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Seattle",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Seattle, WA（SEA：Seattle-Tacoma International Airport への通勤）／Kent Des Moines 駅周辺（Kent city。駅住所は Kent, WA 98032：AS-E-014））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "seattle",
+     "company": "alaska-airlines",
+     "cond_ja": "Kent市 Kent Des Moines 駅周辺。英: Kent市 Kent Des Moines 駅周辺。平日 To Lynnwood 表で Federal Way Downtown 始発の最初の便（1便のみの例）。逆方向（SeaTac/Airport→Kent Des Moines）は南行表で約7分（1:11a→1:18a 等）。通勤の実用性（Link 1 Line で SeaTac/Airport 駅まで乗換なし）のみで選定。特定航空会社のパイロットに人気という意味ではない。家族向け適否・治安・学区は評価していない。 対象：Seattle, WA（SEA：Seattle-Tacoma International Airport への通勤）／Kent Des Moines 駅周辺（Kent city。駅住所は Kent, WA 98032：AS-E-014）",
+     "currency": null,
+     "district": "Kent市 Kent Des Moines 駅周辺",
+     "district_en": "Kent市 Kent Des Moines 駅周辺",
+     "domain": "living",
+     "effective": {
+      "from": "2026-08-29",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-08-29／2027-03-26）。資料の発行日と、いま適用されているかは別。",
+      "to": "2027-03-26"
+     },
+     "evidence": [
+      {
+       "locator": "1 Line | Weekdays 'To Lynnwood' 表（pp.9–10）8行目：Federal Way Downtown, Kent Des Moines, SeaTac/Airport…",
+       "quote": "4:36 a.m. 4:50 a.m. 4:59 a.m.",
+       "source_id": "src-alaska-airlines-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f0129d511fac8609",
+     "id": "alaska-airlines.living.us1011-as-e-012",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地2：Kent市 Kent Des Moines 駅周辺 → SeaTac/Airport 駅 時刻表上の所要時",
+     "pack": "pvr-20261024-us-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Sound Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-alaska-airlines-us1011-005",
+       "source_type": "government",
+       "title": "1 Line timetable, Aug. 29, 2026 – March 26, 2027 (2026-service-change-schedules-train.pdf, key stops only)",
+       "url": "https://www.soundtransit.org/sites/default/files/documents/2026-service-change-schedules-train.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Kent市 Kent Des Moines 駅周辺",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Seattle",
+      "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（空／Seattle, WA（SEA：Seattle-Tacoma International Airport への通勤）／Federal Way Downtown 駅周辺（Federal Way city））。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-11",
+     "city": "seattle",
+     "company": "alaska-airlines",
+     "cond_ja": "Federal Way市 Federal Way Downtown 駅周辺。英: Federal Way市 Federal Way Downtown 駅周辺。平日 To Lynnwood 表の1便のみの例。逆方向（SeaTac/Airport→Federal Way Downtown）は南行表で約17分（4:53a→5:10a、1:11a→1:28a）。方向で所要が異なる。通勤の実用性（Link 1 Line で SeaTac/Airport 駅まで乗換なし）のみで選定。特定航空会社のパイロットに人気という意味ではない。家族向け適否・治安・学区は評価していない。 対象：Seattle, WA（SEA：Seattle-Tacoma International Airport への通勤）／Federal Way Downtown 駅周辺（Federal Way city）",
+     "currency": null,
+     "district": "Federal Way市 Federal Way Downtown 駅周辺",
+     "district_en": "Federal Way市 Federal Way Downtown 駅周辺",
+     "domain": "living",
+     "effective": {
+      "from": "2026-08-29",
+      "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2026-08-29／2027-03-26）。資料の発行日と、いま適用されているかは別。",
+      "to": "2027-03-26"
+     },
+     "evidence": [
+      {
+       "locator": "1 Line | Weekdays 'To Lynnwood' 表 8行目／'To Federal Way' 表 2行目・最終行",
+       "quote": "4:36 a.m. 4:50 a.m. 4:59 a.m.",
+       "source_id": "src-alaska-airlines-us1011-005",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "38c8c1a7da1b6847",
+     "id": "alaska-airlines.living.us1011-as-e-013",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_statistic",
+     "key": "town_candidate",
+     "label_ja": "居住候補地3：Federal Way市 Federal Way Downtown 駅周辺 → SeaTac/Airpor",
+     "pack": "pvr-20261024-us-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Sound Transit",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-11",
+       "source_id": "src-alaska-airlines-us1011-005",
+       "source_type": "government",
+       "title": "1 Line timetable, Aug. 29, 2026 – March 26, 2027 (2026-service-change-schedules-train.pdf, key stops only)",
+       "url": "https://www.soundtransit.org/sites/default/files/documents/2026-service-change-schedules-train.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Federal Way市 Federal Way Downtown 駅周辺",
+     "value_text": null
+    }
+   ]
   },
   "sendai": {
    "airlines": [
@@ -171300,6 +175677,171 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-19",
      "company": "air-new-zealand",
+     "cond_ja": "本文がAKLから国内nonstopと明示する都市を同頁のIATAカードで照合。空港基地とは別。運航日/欠航のリアルタイム保証ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料の対象時期は引用・条件の範囲。掲載日と現在適用は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Auckland domestic nonstop paragraph + airport card Dunedin",
+       "quote": "DUD",
+       "source_id": "src-air-new-zealand-resume-akl-hub",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "25665386a3c398a1",
+     "id": "air-new-zealand.destinations.p26-domestic-dud",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "公式の国内nonstop案内に示す空港",
+     "pack": "pvr-20261019-air-new-zealand",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air New Zealand",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-air-new-zealand-resume-akl-hub",
+       "source_type": "job_posting",
+       "title": "Air New Zealand flights from Auckland / domestic non-stop statement",
+       "url": "https://www.airnewzealand.co.nz/flights/en-nz/flights-from-auckland"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "DUD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "air-new-zealand",
+     "cond_ja": "本文がAKLから国内nonstopと明示する都市を同頁のIATAカードで照合。空港基地とは別。運航日/欠航のリアルタイム保証ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料の対象時期は引用・条件の範囲。掲載日と現在適用は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Auckland domestic nonstop paragraph + airport card Wellington",
+       "quote": "WLG",
+       "source_id": "src-air-new-zealand-resume-akl-hub",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "bdf678da28beac77",
+     "id": "air-new-zealand.destinations.p26-domestic-wlg",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "公式の国内nonstop案内に示す空港",
+     "pack": "pvr-20261019-air-new-zealand",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air New Zealand",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-air-new-zealand-resume-akl-hub",
+       "source_type": "job_posting",
+       "title": "Air New Zealand flights from Auckland / domestic non-stop statement",
+       "url": "https://www.airnewzealand.co.nz/flights/en-nz/flights-from-auckland"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "WLG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "air-new-zealand",
+     "cond_ja": "本文がAKLから国内nonstopと明示する都市を同頁のIATAカードで照合。空港基地とは別。運航日/欠航のリアルタイム保証ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料の対象時期は引用・条件の範囲。掲載日と現在適用は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Auckland domestic nonstop paragraph + airport card Queenstown",
+       "quote": "ZQN",
+       "source_id": "src-air-new-zealand-resume-akl-hub",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "17410c2e4b1ace98",
+     "id": "air-new-zealand.destinations.p26-domestic-zqn",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "公式の国内nonstop案内に示す空港",
+     "pack": "pvr-20261019-air-new-zealand",
+     "per": null,
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air New Zealand",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-air-new-zealand-resume-akl-hub",
+       "source_type": "job_posting",
+       "title": "Air New Zealand flights from Auckland / domestic non-stop statement",
+       "url": "https://www.airnewzealand.co.nz/flights/en-nz/flights-from-auckland"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ZQN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "air-new-zealand",
      "cond_ja": "AirNZ出発地で国内non-stopの説明あり。下部LHR等の販売候補は提携便を含むため丸ごと自営就航先へ採用しない。",
      "currency": null,
      "domain": "destinations",
@@ -172291,6 +176833,60 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (ABE)",
+       "quote": "ABE",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "515ddc203e8a781e",
+     "id": "allegiant.destinations.extra-operated-abe",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 ABE",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "ABE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (ACY)",
        "quote": "ACY",
        "source_id": "src-allegiant-na-airports",
@@ -172507,6 +177103,276 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (BIL)",
+       "quote": "BIL",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "922b60582b53b34b",
+     "id": "allegiant.destinations.extra-operated-bil",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 BIL",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "BIL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (BIS)",
+       "quote": "BIS",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4e3c2943e5d30774",
+     "id": "allegiant.destinations.extra-operated-bis",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 BIS",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "BIS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (BLV)",
+       "quote": "BLV",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f1fcee002594c1fd",
+     "id": "allegiant.destinations.extra-operated-blv",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 BLV",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "BLV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (BMI)",
+       "quote": "BMI",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "8a3be52a91d246fd",
+     "id": "allegiant.destinations.extra-operated-bmi",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 BMI",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "BMI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (BOI)",
+       "quote": "BOI",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ba79b71b33836cfd",
+     "id": "allegiant.destinations.extra-operated-boi",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 BOI",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "BOI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (BOS)",
        "quote": "BOS",
        "source_id": "src-allegiant-na-airports",
@@ -172540,6 +177406,168 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "BOS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (BUR)",
+       "quote": "BUR",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4bf5408fd74f2ae2",
+     "id": "allegiant.destinations.extra-operated-bur",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 BUR",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "BUR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (BZN)",
+       "quote": "BZN",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "718e13f6c2c049e8",
+     "id": "allegiant.destinations.extra-operated-bzn",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 BZN",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "BZN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (CAE)",
+       "quote": "CAE",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c46dc93647e67bfd",
+     "id": "allegiant.destinations.extra-operated-cae",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 CAE",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "CAE",
      "value_text": null
     },
     {
@@ -172615,6 +177643,384 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (CHA)",
+       "quote": "CHA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "9fad8f2ab59d583c",
+     "id": "allegiant.destinations.extra-operated-cha",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 CHA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "CHA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (CHS)",
+       "quote": "CHS",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1c42d3970a4dded7",
+     "id": "allegiant.destinations.extra-operated-chs",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 CHS",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "CHS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (CID)",
+       "quote": "CID",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ad72439529c25119",
+     "id": "allegiant.destinations.extra-operated-cid",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 CID",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "CID",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (CKB)",
+       "quote": "CKB",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "747304b5281f79a4",
+     "id": "allegiant.destinations.extra-operated-ckb",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 CKB",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "CKB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (COS)",
+       "quote": "COS",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e2f41c7472f1585e",
+     "id": "allegiant.destinations.extra-operated-cos",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 COS",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "COS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (COU)",
+       "quote": "COU",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e6d0771e2cf8fecc",
+     "id": "allegiant.destinations.extra-operated-cou",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 COU",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "COU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (DAY)",
+       "quote": "DAY",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b690a8abbffc5cfe",
+     "id": "allegiant.destinations.extra-operated-day",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 DAY",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "DAY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (DEN)",
        "quote": "DEN",
        "source_id": "src-allegiant-na-airports",
@@ -172648,6 +178054,168 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "DEN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (ELM)",
+       "quote": "ELM",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "792beb4aaf9d5aa4",
+     "id": "allegiant.destinations.extra-operated-elm",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 ELM",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "ELM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (EUG)",
+       "quote": "EUG",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "bf78f175dab61ca8",
+     "id": "allegiant.destinations.extra-operated-eug",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 EUG",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "EUG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (EVV)",
+       "quote": "EVV",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "67f8aab7357bd1f8",
+     "id": "allegiant.destinations.extra-operated-evv",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 EVV",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "EVV",
      "value_text": null
     },
     {
@@ -172777,6 +178345,654 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (FAR)",
+       "quote": "FAR",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c957ef9c6c6961a2",
+     "id": "allegiant.destinations.extra-operated-far",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 FAR",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "FAR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (FAT)",
+       "quote": "FAT",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "83f2ef2fe7fdcd93",
+     "id": "allegiant.destinations.extra-operated-fat",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 FAT",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "FAT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (FCA)",
+       "quote": "FCA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "96223492a3df3a42",
+     "id": "allegiant.destinations.extra-operated-fca",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 FCA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "FCA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (FSD)",
+       "quote": "FSD",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "adc433c9c724ffda",
+     "id": "allegiant.destinations.extra-operated-fsd",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 FSD",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "FSD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (FWA)",
+       "quote": "FWA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4c8c352733293906",
+     "id": "allegiant.destinations.extra-operated-fwa",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 FWA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "FWA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (GEG)",
+       "quote": "GEG",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "304c7c812ff716a9",
+     "id": "allegiant.destinations.extra-operated-geg",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 GEG",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "GEG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (GFK)",
+       "quote": "GFK",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a3cffe107648dca5",
+     "id": "allegiant.destinations.extra-operated-gfk",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 GFK",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "GFK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (GRI)",
+       "quote": "GRI",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4b0d8128fc6acc36",
+     "id": "allegiant.destinations.extra-operated-gri",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 GRI",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "GRI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (GSO)",
+       "quote": "GSO",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "7b4b1f2f2d48b9c3",
+     "id": "allegiant.destinations.extra-operated-gso",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 GSO",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "GSO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (GSP)",
+       "quote": "GSP",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "38716f76035ae6e8",
+     "id": "allegiant.destinations.extra-operated-gsp",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 GSP",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "GSP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (GTF)",
+       "quote": "GTF",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b1c06c4b2d01905c",
+     "id": "allegiant.destinations.extra-operated-gtf",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 GTF",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "GTF",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (HGR)",
+       "quote": "HGR",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f20d4db195895696",
+     "id": "allegiant.destinations.extra-operated-hgr",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 HGR",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "HGR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (HOU)",
        "quote": "HOU",
        "source_id": "src-allegiant-na-airports",
@@ -172810,6 +179026,114 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "HOU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (HSV)",
+       "quote": "HSV",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "07783196ed57b580",
+     "id": "allegiant.destinations.extra-operated-hsv",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 HSV",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "HSV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (HTS)",
+       "quote": "HTS",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e637cd941262832f",
+     "id": "allegiant.destinations.extra-operated-hts",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 HTS",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "HTS",
      "value_text": null
     },
     {
@@ -172885,6 +179209,168 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (IAG)",
+       "quote": "IAG",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "2c4cba8959fd8774",
+     "id": "allegiant.destinations.extra-operated-iag",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 IAG",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "IAG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (ICT)",
+       "quote": "ICT",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "9371422e5107e5fb",
+     "id": "allegiant.destinations.extra-operated-ict",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 ICT",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "ICT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (IDA)",
+       "quote": "IDA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "9ea39f9ed8049884",
+     "id": "allegiant.destinations.extra-operated-ida",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 IDA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "IDA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (JAX)",
        "quote": "JAX",
        "source_id": "src-allegiant-na-airports",
@@ -172939,6 +179425,330 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (LCK)",
+       "quote": "LCK",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "8073feecdce7a0e0",
+     "id": "allegiant.destinations.extra-operated-lck",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 LCK",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "LCK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (LEX)",
+       "quote": "LEX",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e7fb8cfb65abb5bc",
+     "id": "allegiant.destinations.extra-operated-lex",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 LEX",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "LEX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (LIT)",
+       "quote": "LIT",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "da870e42be051293",
+     "id": "allegiant.destinations.extra-operated-lit",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 LIT",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "LIT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (LRD)",
+       "quote": "LRD",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f1ec041b3341141c",
+     "id": "allegiant.destinations.extra-operated-lrd",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 LRD",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "LRD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (LSE)",
+       "quote": "LSE",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "111d313356c2dcda",
+     "id": "allegiant.destinations.extra-operated-lse",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 LSE",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "LSE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MCI)",
+       "quote": "MCI",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "95bf4adbb286edd6",
+     "id": "allegiant.destinations.extra-operated-mci",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MCI",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MCI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (MCO)",
        "quote": "MCO",
        "source_id": "src-allegiant-na-airports",
@@ -172972,6 +179782,60 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "MCO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MDT)",
+       "quote": "MDT",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "23e35b4e063e08f6",
+     "id": "allegiant.destinations.extra-operated-mdt",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MDT",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MDT",
      "value_text": null
     },
     {
@@ -173101,6 +179965,384 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (MFE)",
+       "quote": "MFE",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c2f3659b70132b7d",
+     "id": "allegiant.destinations.extra-operated-mfe",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MFE",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MFE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MFR)",
+       "quote": "MFR",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "2892838261781c66",
+     "id": "allegiant.destinations.extra-operated-mfr",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MFR",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MFR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MLB)",
+       "quote": "MLB",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4ddd2e171856ce60",
+     "id": "allegiant.destinations.extra-operated-mlb",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MLB",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MLB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MLI)",
+       "quote": "MLI",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "72bd017a7d8326ac",
+     "id": "allegiant.destinations.extra-operated-mli",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MLI",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MLI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MOT)",
+       "quote": "MOT",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "137c3089673dc415",
+     "id": "allegiant.destinations.extra-operated-mot",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MOT",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MOT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MRY)",
+       "quote": "MRY",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "756627a116a76c43",
+     "id": "allegiant.destinations.extra-operated-mry",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MRY",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MRY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MSO)",
+       "quote": "MSO",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "01a48bb8e46c431e",
+     "id": "allegiant.destinations.extra-operated-mso",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MSO",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MSO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (MSY)",
        "quote": "MSY",
        "source_id": "src-allegiant-na-airports",
@@ -173134,6 +180376,276 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "MSY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (MYR)",
+       "quote": "MYR",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "28720249b9fd45d7",
+     "id": "allegiant.destinations.extra-operated-myr",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 MYR",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "MYR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (OKC)",
+       "quote": "OKC",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4898be0ba78c0c97",
+     "id": "allegiant.destinations.extra-operated-okc",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 OKC",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "OKC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (OMA)",
+       "quote": "OMA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "32686a8d3aaeb347",
+     "id": "allegiant.destinations.extra-operated-oma",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 OMA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "OMA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (ORF)",
+       "quote": "ORF",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1531329e104c4a4a",
+     "id": "allegiant.destinations.extra-operated-orf",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 ORF",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "ORF",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (PBG)",
+       "quote": "PBG",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ae1ea2147f5b0bf4",
+     "id": "allegiant.destinations.extra-operated-pbg",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 PBG",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "PBG",
      "value_text": null
     },
     {
@@ -173317,6 +180829,492 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (PIA)",
+       "quote": "PIA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "8ab3364d22e0ed8e",
+     "id": "allegiant.destinations.extra-operated-pia",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 PIA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "PIA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (PSC)",
+       "quote": "PSC",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ff2041b4600250b6",
+     "id": "allegiant.destinations.extra-operated-psc",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 PSC",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "PSC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (PSM)",
+       "quote": "PSM",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "76d12035322c5273",
+     "id": "allegiant.destinations.extra-operated-psm",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 PSM",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "PSM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (PVD)",
+       "quote": "PVD",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "89409a69858549ab",
+     "id": "allegiant.destinations.extra-operated-pvd",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 PVD",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "PVD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (RAP)",
+       "quote": "RAP",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "42a6c97db2eee67a",
+     "id": "allegiant.destinations.extra-operated-rap",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 RAP",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "RAP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (RFD)",
+       "quote": "RFD",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "2e6ead96fc5760a5",
+     "id": "allegiant.destinations.extra-operated-rfd",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 RFD",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "RFD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (RIC)",
+       "quote": "RIC",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "116fb1bb698135b2",
+     "id": "allegiant.destinations.extra-operated-ric",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 RIC",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "RIC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (ROA)",
+       "quote": "ROA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c647d27d8d8cd33b",
+     "id": "allegiant.destinations.extra-operated-roa",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 ROA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "ROA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (ROC)",
+       "quote": "ROC",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "6ffab20e3753ce37",
+     "id": "allegiant.destinations.extra-operated-roc",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 ROC",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "ROC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (RSW)",
        "quote": "RSW",
        "source_id": "src-allegiant-na-airports",
@@ -173350,6 +181348,168 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "RSW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SAV)",
+       "quote": "SAV",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "82bc2cfc15937bed",
+     "id": "allegiant.destinations.extra-operated-sav",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SAV",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SAV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SBN)",
+       "quote": "SBN",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "e572509d3d692e0b",
+     "id": "allegiant.destinations.extra-operated-sbn",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SBN",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SBN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SCK)",
+       "quote": "SCK",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "056f4676f302d8cc",
+     "id": "allegiant.destinations.extra-operated-sck",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SCK",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SCK",
      "value_text": null
     },
     {
@@ -173425,6 +181585,330 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "Airports / individual airport listing (SGF)",
+       "quote": "SGF",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "9ab791ab244d84de",
+     "id": "allegiant.destinations.extra-operated-sgf",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SGF",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SGF",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SHV)",
+       "quote": "SHV",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "d027fd9905a04602",
+     "id": "allegiant.destinations.extra-operated-shv",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SHV",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SHV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SMX)",
+       "quote": "SMX",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "6f25fc54d1ef2d91",
+     "id": "allegiant.destinations.extra-operated-smx",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SMX",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SMX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SNA)",
+       "quote": "SNA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a3faebd8c1a2861a",
+     "id": "allegiant.destinations.extra-operated-sna",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SNA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SNA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SPI)",
+       "quote": "SPI",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b3376e82a31d1032",
+     "id": "allegiant.destinations.extra-operated-spi",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SPI",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SPI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (STC)",
+       "quote": "STC",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b2c5a1f008a41f3c",
+     "id": "allegiant.destinations.extra-operated-stc",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 STC",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "STC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "Airports / individual airport listing (SWF)",
        "quote": "SWF",
        "source_id": "src-allegiant-na-airports",
@@ -173458,6 +181942,438 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "SWF",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (SYR)",
+       "quote": "SYR",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c1c206e2c7cc90d0",
+     "id": "allegiant.destinations.extra-operated-syr",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 SYR",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "SYR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (TOL)",
+       "quote": "TOL",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ee683e66cc39bf86",
+     "id": "allegiant.destinations.extra-operated-tol",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 TOL",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "TOL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (TRI)",
+       "quote": "TRI",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "dc54130cea687cd8",
+     "id": "allegiant.destinations.extra-operated-tri",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 TRI",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "TRI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (TTN)",
+       "quote": "TTN",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "5ebacb11fa957cb9",
+     "id": "allegiant.destinations.extra-operated-ttn",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 TTN",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "TTN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (TUL)",
+       "quote": "TUL",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "9c292797e97305ea",
+     "id": "allegiant.destinations.extra-operated-tul",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 TUL",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "TUL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (TVC)",
+       "quote": "TVC",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "b28fcfb1d05ae8a9",
+     "id": "allegiant.destinations.extra-operated-tvc",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 TVC",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "TVC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (USA)",
+       "quote": "USA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1df8ba199a04563a",
+     "id": "allegiant.destinations.extra-operated-usa",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 USA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "USA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "employer": "Allegiant",
+      "note_ja": "就航又は運航の公開資料。乗員基地・個人配属・レイオーバー実績を示さない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "allegiant",
+     "cond_ja": "Allegiant本人のAirports一覧に同空港コードを掲載。導入はAllegiantの運航空港を案内するが、当該空港の運航開始日/終了日、季節・通年、個別路線と頻度、取得当日の運航実績は未確認。2026-10-19に掲載原文を読めたことだけをreference_onlyとして採用し、常設又は当日運航を保証しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "公開案内の基準日/路線の開始・終了・季節日付未確認。取得日を運航開始日又は恒久性の証明にしない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Airports / individual airport listing (XNA)",
+       "quote": "XNA",
+       "source_id": "src-allegiant-na-airports",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "8ba4c030e3ad2d73",
+     "id": "allegiant.destinations.extra-operated-xna",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "原運航資料に掲載された空港 XNA",
+     "pack": "pvr-20261019-allegiant",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-allegiant-na-airports",
+       "source_type": "official_package",
+       "title": "Allegiant Airports",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": "XNA",
      "value_text": null
     }
    ]
@@ -175305,6 +184221,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "BKK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "asiana",
+     "cond_ja": "公式自社運航表の掲載事実。共同運航除外。運休はリアルタイム反映されないと明記され、現在の個別便実績・期間保証ではない。ICNは出発見出しで確認、下段の全空港選択候補からは作らない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料の対象時期は引用・条件の範囲。掲載日と現在適用は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "ICN departures / operating airport row BUD",
+       "quote": "운항 노선",
+       "source_id": "src-asiana-p26-routes",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "3a3fdbb2e391a9ae",
+     "id": "asiana.destinations.p26-airport-bud",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社ICN路線表の掲載空港",
+     "pack": "pvr-20261019-asiana",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Asiana Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-asiana-p26-routes",
+       "source_type": "official_package",
+       "title": "아시아나항공 운항 노선 / ICN departures",
+       "url": "https://flyasiana.com/C/KR/KO/booking/route"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BUD",
      "value_text": null
     },
     {
@@ -177250,6 +186221,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "evidence": [
       {
+       "locator": "ICN departures / operating airport row UBN",
+       "quote": "운항 노선",
+       "source_id": "src-asiana-p26-routes",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "8db392c89de6b95b",
+     "id": "asiana.destinations.p26-airport-ubn",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社ICN路線表の掲載空港",
+     "pack": "pvr-20261019-asiana",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Asiana Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-asiana-p26-routes",
+       "source_type": "official_package",
+       "title": "아시아나항공 운항 노선 / ICN departures",
+       "url": "https://flyasiana.com/C/KR/KO/booking/route"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "UBN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "asiana",
+     "cond_ja": "公式自社運航表の掲載事実。共同運航除外。運休はリアルタイム反映されないと明記され、現在の個別便実績・期間保証ではない。ICNは出発見出しで確認、下段の全空港選択候補からは作らない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料の対象時期は引用・条件の範囲。掲載日と現在適用は別。",
+      "to": null
+     },
+     "evidence": [
+      {
        "locator": "ICN departures / operating airport row XIY",
        "quote": "운항 노선",
        "source_id": "src-asiana-p26-routes",
@@ -177285,6 +186311,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "XIY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "asiana",
+     "cond_ja": "公式自社運航表の掲載事実。共同運航除外。運休はリアルタイム反映されないと明記され、現在の個別便実績・期間保証ではない。ICNは出発見出しで確認、下段の全空港選択候補からは作らない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料の対象時期は引用・条件の範囲。掲載日と現在適用は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "ICN departures / operating airport row YNJ",
+       "quote": "운항 노선",
+       "source_id": "src-asiana-p26-routes",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      }
+     ],
+     "h": "6dab908b2c636c80",
+     "id": "asiana.destinations.p26-airport-ynj",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社ICN路線表の掲載空港",
+     "pack": "pvr-20261019-asiana",
+     "per": null,
+     "rev": 11,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Asiana Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-asiana-p26-routes",
+       "source_type": "official_package",
+       "title": "아시아나항공 운항 노선 / ICN departures",
+       "url": "https://flyasiana.com/C/KR/KO/booking/route"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YNJ",
      "value_text": null
     }
    ]
@@ -179469,6 +188550,80 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "copa-airlines": {
    "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-19",
+     "company": "copa-airlines",
+     "cond_ja": "会社運航hubTocumen、会社現在SanDiego自社路線説明のPanamaPTYとも照合。pilotbase空港3letterの証明とは別。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料の対象時期は引用・条件の範囲。掲載日と現在適用は別。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Item4B/AirportFacilities p35",
+       "quote": "(PTY)",
+       "source_id": "src-copa-airlines-pub-2025-form20f",
+       "supports": [
+        "value",
+        "condition",
+        "applies_to",
+        "period"
+       ]
+      },
+      {
+       "locator": "PTY–SAN/ownflightdescription",
+       "quote": "(PTY)",
+       "source_id": "src-copa-airlines-pub-sandi-route",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f6caaf8ff6faa2d8",
+     "id": "copa-airlines.destinations.pub-pty-operated",
+     "imported_on": "2026-10-24",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "Tocumen自社hubの空港コード",
+     "pack": "pvr-20261019-copa-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2026-02-26",
+       "publisher": "Copa Holdings, S.A.; SEC filing",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-copa-airlines-pub-2025-form20f",
+       "source_type": "regulatory_filing",
+       "title": "CopaHoldings2025Form20F",
+       "url": "https://www.sec.gov/Archives/edgar/data/1345105/000134510526000019/cpa-20251231.htm"
+      },
+      {
+       "published": null,
+       "publisher": "Copa Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-19",
+       "source_id": "src-copa-airlines-pub-sandi-route",
+       "source_type": "official_package",
+       "title": "CopaSanDiegoowndestination",
+       "url": "https://www.copaair.com/es/vuelos-a-san-diego"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PTY",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -214506,6 +223661,80 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "value": 129.71,
     "value_orig": "129.71 USD",
     "value_text": "129.71"
+   },
+   {
+    "accessed_at": "2026-10-19",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "1年目の時間あたりの料率",
+     "stat": "unknown",
+     "tax": "unknown",
+     "unclear": []
+    },
+    "applies_to": {
+     "employer": "Alaska Airlines, Inc.",
+     "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Alaska Airlines, Inc.／Alaska Airlines のパイロット（Alaska–ALPA 協約、ALPA Alaska MEC）・副操縦士1年目）。",
+     "pilot_specific": true,
+     "rank": "fo"
+    },
+    "checked_at": "2026-10-11",
+    "company": "alaska-airlines",
+    "cond_ja": "採用ページ表記。適用日の記載なし 対象：Alaska Airlines のパイロット（Alaska–ALPA 協約、ALPA Alaska MEC）・副操縦士1年目",
+    "currency": "USD",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "Alaska見出し「When you come onboard at Alaska」",
+      "quote": "First year first officer rate of $124.72 (per contract)",
+      "source_id": "src-alaska-airlines-resume-combined-pilots",
+      "supports": [
+       "value",
+       "condition"
+      ]
+     }
+    ],
+    "h": "df137d7728684acc",
+    "id": "alaska-airlines.pay.us1011-as-b-014",
+    "imported_on": "2026-10-24",
+    "info_kind": "recruitment_condition",
+    "key": "other",
+    "label_ja": "【Alaska】副操縦士1年目レート（採用ページ）",
+    "name": "Pilot Jobs — Alaska and Hawaiian seniority list conditions",
+    "note": "採用ページ表記。適用日の記載なし 対象：Alaska Airlines のパイロット（Alaska–ALPA 協約、ALPA Alaska MEC）・副操縦士1年目",
+    "pack": "pvr-20261024-us-alaska-airlines",
+    "per": "hour",
+    "published_at": null,
+    "quote": "First year first officer rate of $124.72 (per contract)",
+    "rank": "fo",
+    "rev": 1,
+    "source_type": "job_posting",
+    "src": [
+     {
+      "published": null,
+      "publisher": "Alaska Air Group",
+      "publisher_kind": "airline",
+      "retrieved": "2026-10-19",
+      "source_id": "src-alaska-airlines-resume-combined-pilots",
+      "source_type": "job_posting",
+      "title": "Pilot Jobs — Alaska and Hawaiian seniority list conditions",
+      "url": "https://careers.alaskaair.com/career-opportunities/pilots/alaska-hawaiian-airlines/"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://careers.alaskaair.com/career-opportunities/pilots/alaska-hawaiian-airlines/",
+    "use": "条件つき",
+    "value": 124.72,
+    "value_orig": "124.72 USD/時間",
+    "value_text": "$124.72"
    }
   ],
   "allegiant": [
@@ -217646,6 +226875,302 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "value": 330.44,
     "value_orig": "330.44 USD/時間",
     "value_text": "330.44"
+   },
+   {
+    "accessed_at": "2026-10-11",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "時間あたりの料率への加算（オーバーライド）",
+     "stat": "unknown",
+     "tax": "unknown",
+     "unclear": []
+    },
+    "applies_to": {
+     "employer": "American Airlines, Inc.",
+     "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／機長）。",
+     "pilot_specific": true,
+     "rank": "cap"
+    },
+    "checked_at": "2026-10-11",
+    "company": "american",
+    "cond_ja": "TA 1.0。TA 2.0 で $7.00 に改定。カナダも対象（TA 1.0 要約） 対象：機長",
+    "currency": "USD",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "Appendix A p.2",
+      "quote": "International Override increase: CA $6.50 / FO $4.50",
+      "source_id": "src-american-us1011-007",
+      "supports": [
+       "value",
+       "condition"
+      ]
+     }
+    ],
+    "h": "969de6c1e02621f5",
+    "id": "american.pay.us1011-aa-b-049",
+    "imported_on": "2026-10-24",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "国際線オーバーライド",
+    "name": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+    "note": "TA 1.0。TA 2.0 で $7.00 に改定。カナダも対象（TA 1.0 要約） 対象：機長",
+    "pack": "pvr-20261024-us-american",
+    "per": "hour",
+    "published_at": "2023-07-07",
+    "quote": "International Override increase: CA $6.50 / FO $4.50",
+    "rank": "cap",
+    "rev": 1,
+    "source_type": "union_cba",
+    "src": [
+     {
+      "published": "2023-07-07",
+      "publisher": "Allied Pilots Association",
+      "publisher_kind": "union",
+      "retrieved": "2026-10-11",
+      "source_id": "src-american-us1011-007",
+      "source_type": "union_cba",
+      "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+      "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf",
+    "use": "過去",
+    "value": 6.5,
+    "value_orig": "6.5 USD/時間",
+    "value_text": "$6.50"
+   },
+   {
+    "accessed_at": "2026-10-11",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "時間あたりの料率への加算（オーバーライド）",
+     "stat": "unknown",
+     "tax": "unknown",
+     "unclear": []
+    },
+    "applies_to": {
+     "employer": "American Airlines, Inc.",
+     "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／副操縦士）。",
+     "pilot_specific": true,
+     "rank": "fo"
+    },
+    "checked_at": "2026-10-11",
+    "company": "american",
+    "cond_ja": "TA 1.0。TA 2.0 で $5.00 に改定。カナダも対象（TA 1.0 要約） 対象：副操縦士",
+    "currency": "USD",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "Appendix A p.2",
+      "quote": "International Override increase: CA $6.50 / FO $4.50",
+      "source_id": "src-american-us1011-007",
+      "supports": [
+       "value",
+       "condition"
+      ]
+     }
+    ],
+    "h": "01aa43246c0bbd02",
+    "id": "american.pay.us1011-aa-b-050",
+    "imported_on": "2026-10-24",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "国際線オーバーライド",
+    "name": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+    "note": "TA 1.0。TA 2.0 で $5.00 に改定。カナダも対象（TA 1.0 要約） 対象：副操縦士",
+    "pack": "pvr-20261024-us-american",
+    "per": "hour",
+    "published_at": "2023-07-07",
+    "quote": "International Override increase: CA $6.50 / FO $4.50",
+    "rank": "fo",
+    "rev": 1,
+    "source_type": "union_cba",
+    "src": [
+     {
+      "published": "2023-07-07",
+      "publisher": "Allied Pilots Association",
+      "publisher_kind": "union",
+      "retrieved": "2026-10-11",
+      "source_id": "src-american-us1011-007",
+      "source_type": "union_cba",
+      "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+      "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf",
+    "use": "過去",
+    "value": 4.5,
+    "value_orig": "4.5 USD/時間",
+    "value_text": "$4.50"
+   },
+   {
+    "accessed_at": "2026-10-11",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "時間あたりの料率への加算（オーバーライド）",
+     "stat": "unknown",
+     "tax": "unknown",
+     "unclear": []
+    },
+    "applies_to": {
+     "employer": "American Airlines, Inc.",
+     "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／機長）。",
+     "pilot_specific": true,
+     "rank": "cap"
+    },
+    "checked_at": "2026-10-11",
+    "company": "american",
+    "cond_ja": "ハワイ行きナローボディ便（TA 1.0）。TA 2.0 で算式に変更 対象：機長",
+    "currency": "USD",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "Appendix A p.2",
+      "quote": "CA $8.00 / FO $6.00 on all NB flying to Hawaii",
+      "source_id": "src-american-us1011-007",
+      "supports": [
+       "value",
+       "condition"
+      ]
+     }
+    ],
+    "h": "2d25bb8676848793",
+    "id": "american.pay.us1011-aa-b-053",
+    "imported_on": "2026-10-24",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "長距離ナローボディ・オーバーライド（TA 1.0）",
+    "name": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+    "note": "ハワイ行きナローボディ便（TA 1.0）。TA 2.0 で算式に変更 対象：機長",
+    "pack": "pvr-20261024-us-american",
+    "per": "hour",
+    "published_at": "2023-07-07",
+    "quote": "CA $8.00 / FO $6.00 on all NB flying to Hawaii",
+    "rank": "cap",
+    "rev": 1,
+    "source_type": "union_cba",
+    "src": [
+     {
+      "published": "2023-07-07",
+      "publisher": "Allied Pilots Association",
+      "publisher_kind": "union",
+      "retrieved": "2026-10-11",
+      "source_id": "src-american-us1011-007",
+      "source_type": "union_cba",
+      "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+      "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf",
+    "use": "過去",
+    "value": 8,
+    "value_orig": "8 USD/時間",
+    "value_text": "$8.00"
+   },
+   {
+    "accessed_at": "2026-10-11",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "時間あたりの料率への加算（オーバーライド）",
+     "stat": "unknown",
+     "tax": "unknown",
+     "unclear": []
+    },
+    "applies_to": {
+     "employer": "American Airlines, Inc.",
+     "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（American Airlines, Inc.／副操縦士）。",
+     "pilot_specific": true,
+     "rank": "fo"
+    },
+    "checked_at": "2026-10-11",
+    "company": "american",
+    "cond_ja": "ハワイ行きナローボディ便（TA 1.0）。TA 2.0 で算式に変更 対象：副操縦士",
+    "currency": "USD",
+    "domain": "pay",
+    "effective": {
+     "from": null,
+     "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（適用日は空／終了日は空）。資料の発行日と、いま適用されているかは別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "Appendix A p.2",
+      "quote": "CA $8.00 / FO $6.00 on all NB flying to Hawaii",
+      "source_id": "src-american-us1011-007",
+      "supports": [
+       "value",
+       "condition"
+      ]
+     }
+    ],
+    "h": "64f802704f886276",
+    "id": "american.pay.us1011-aa-b-054",
+    "imported_on": "2026-10-24",
+    "info_kind": "published_policy",
+    "key": "other",
+    "label_ja": "長距離ナローボディ・オーバーライド（TA 1.0）",
+    "name": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+    "note": "ハワイ行きナローボディ便（TA 1.0）。TA 2.0 で算式に変更 対象：副操縦士",
+    "pack": "pvr-20261024-us-american",
+    "per": "hour",
+    "published_at": "2023-07-07",
+    "quote": "CA $8.00 / FO $6.00 on all NB flying to Hawaii",
+    "rank": "fo",
+    "rev": 1,
+    "source_type": "union_cba",
+    "src": [
+     {
+      "published": "2023-07-07",
+      "publisher": "Allied Pilots Association",
+      "publisher_kind": "union",
+      "retrieved": "2026-10-11",
+      "source_id": "src-american-us1011-007",
+      "source_type": "union_cba",
+      "title": "2023 Tentative Agreement – Executive Summary (with Appendix A section summary)",
+      "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://aerocrewnews.com/acn/Contracts/American%20Airlines%20Executive%20Summary.pdf",
+    "use": "過去",
+    "value": 6,
+    "value_orig": "6 USD/時間",
+    "value_text": "$6.00"
    }
   ],
   "ana-wings": [
@@ -223835,6 +233360,82 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "value": 2.4,
     "value_orig": "2.4 percent",
     "value_text": "2,4"
+   }
+  ],
+  "frontier": [
+   {
+    "accessed_at": "2026-10-11",
+    "amount": {
+     "assumed_hours": null,
+     "excludes": [],
+     "includes": [],
+     "kind": "other",
+     "kind_note_ja": "1年目の時間あたりの料率",
+     "stat": "unknown",
+     "tax": "unknown",
+     "unclear": []
+    },
+    "applies_to": {
+     "employer": "Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）",
+     "note_ja": "旧形式の台帳の「雇用法人」「適用対象」の欄から（Frontier Airlines, Inc.（Frontier Group Holdings, Inc. の子会社。運航会社）／Captain（Seniority 1））。",
+     "pilot_specific": true,
+     "rank": "cap"
+    },
+    "checked_at": "2026-10-11",
+    "company": "frontier",
+    "cond_ja": "求人ページの Captain 表。列見出し 03/02/22 対象：Captain（Seniority 1）",
+    "currency": "USD",
+    "domain": "pay",
+    "effective": {
+     "from": "2022-03-02",
+     "note_ja": "旧形式の台帳（2026-10-11）の適用日・終了日の欄から（2022-03-02／終了日は空）。資料の発行日と、いま適用されているかは別。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "Captain 表 Seniority 1 行",
+      "quote": "1 $196.86 $202.76",
+      "source_id": "src-frontier-us1011-009",
+      "supports": [
+       "value",
+       "condition"
+      ]
+     }
+    ],
+    "h": "d2e4f9cf3f50ae6a",
+    "id": "frontier.pay.us1011-f9-b-017",
+    "imported_on": "2026-10-24",
+    "info_kind": "recruitment_condition",
+    "key": "other",
+    "label_ja": "機長1年目給与（列 03/02/22）",
+    "name": "First Officer – Frontier Airlines",
+    "note": "求人ページの Captain 表。列見出し 03/02/22 対象：Captain（Seniority 1）",
+    "pack": "pvr-20261024-us-frontier",
+    "per": "hour",
+    "published_at": null,
+    "quote": "1 $196.86 $202.76",
+    "rank": "cap",
+    "rev": 1,
+    "source_type": "official_package",
+    "src": [
+     {
+      "published": null,
+      "publisher": "Frontier Airlines, Inc.",
+      "publisher_kind": "airline",
+      "retrieved": "2026-10-11",
+      "source_id": "src-frontier-us1011-009",
+      "source_type": "official_package",
+      "title": "First Officer – Frontier Airlines",
+      "url": "https://www.airlineapps.com/jobs/details.aspx?emp=Frontier-Airlines&job=First-Officer"
+     }
+    ],
+    "status": "candidate",
+    "unit": null,
+    "url": "https://www.airlineapps.com/jobs/details.aspx?emp=Frontier-Airlines&job=First-Officer",
+    "use": "過去",
+    "value": 196.86,
+    "value_orig": "196.86 USD/時間",
+    "value_text": "$196.86"
    }
   ],
   "gulf-air": [
@@ -338424,6 +348025,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-new-zealand.benefits.r10-atr-instructor-staff-travel": "eb56432aa162fbd0",
     "air-new-zealand.benefits.resume-jet-health": "4b16284c5bbfbad4",
     "air-new-zealand.destinations.p26-domestic-chc": "7f71019503311429",
+    "air-new-zealand.destinations.p26-domestic-dud": "25665386a3c398a1",
+    "air-new-zealand.destinations.p26-domestic-wlg": "bdf678da28beac77",
+    "air-new-zealand.destinations.p26-domestic-zqn": "17410c2e4b1ace98",
     "air-new-zealand.destinations.resume-akl-operated": "626c23ada43b4034",
     "air-new-zealand.fleet.a320ceo": "766341ace741735c",
     "air-new-zealand.fleet.atr": "8b1c8fe7a8fd4048",
@@ -338607,28 +348211,109 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "allegiant.benefits.r8-cb-displaced-move": "cb1c54d7b2901fc1",
     "allegiant.benefits.r8-cb-duty-hotel-transport": "ed2bb78c697343f1",
     "allegiant.benefits.r8-leave-staff-travel": "532abc6db6541d28",
+    "allegiant.destinations.extra-operated-abe": "515ddc203e8a781e",
     "allegiant.destinations.extra-operated-acy": "e76abc727b765cdc",
     "allegiant.destinations.extra-operated-alb": "ef9ebc440124f26a",
     "allegiant.destinations.extra-operated-aus": "cb9d227d5ce59ddf",
     "allegiant.destinations.extra-operated-bgr": "c516e43f6f36fb33",
+    "allegiant.destinations.extra-operated-bil": "922b60582b53b34b",
+    "allegiant.destinations.extra-operated-bis": "4e3c2943e5d30774",
+    "allegiant.destinations.extra-operated-blv": "f1fcee002594c1fd",
+    "allegiant.destinations.extra-operated-bmi": "8a3be52a91d246fd",
+    "allegiant.destinations.extra-operated-boi": "ba79b71b33836cfd",
     "allegiant.destinations.extra-operated-bos": "f45468249c66e53b",
+    "allegiant.destinations.extra-operated-bur": "4bf5408fd74f2ae2",
+    "allegiant.destinations.extra-operated-bzn": "718e13f6c2c049e8",
+    "allegiant.destinations.extra-operated-cae": "c46dc93647e67bfd",
     "allegiant.destinations.extra-operated-cak": "c1185b163b088acd",
+    "allegiant.destinations.extra-operated-cha": "9fad8f2ab59d583c",
+    "allegiant.destinations.extra-operated-chs": "1c42d3970a4dded7",
+    "allegiant.destinations.extra-operated-cid": "ad72439529c25119",
+    "allegiant.destinations.extra-operated-ckb": "747304b5281f79a4",
+    "allegiant.destinations.extra-operated-cos": "e2f41c7472f1585e",
+    "allegiant.destinations.extra-operated-cou": "e6d0771e2cf8fecc",
+    "allegiant.destinations.extra-operated-day": "b690a8abbffc5cfe",
     "allegiant.destinations.extra-operated-den": "f987a4f98a05bf9d",
+    "allegiant.destinations.extra-operated-elm": "792beb4aaf9d5aa4",
+    "allegiant.destinations.extra-operated-eug": "bf78f175dab61ca8",
+    "allegiant.destinations.extra-operated-evv": "67f8aab7357bd1f8",
     "allegiant.destinations.extra-operated-ewr": "636b7a3193d00179",
     "allegiant.destinations.extra-operated-eyw": "e375af0b8460fb5a",
+    "allegiant.destinations.extra-operated-far": "c957ef9c6c6961a2",
+    "allegiant.destinations.extra-operated-fat": "83f2ef2fe7fdcd93",
+    "allegiant.destinations.extra-operated-fca": "96223492a3df3a42",
+    "allegiant.destinations.extra-operated-fsd": "adc433c9c724ffda",
+    "allegiant.destinations.extra-operated-fwa": "4c8c352733293906",
+    "allegiant.destinations.extra-operated-geg": "304c7c812ff716a9",
+    "allegiant.destinations.extra-operated-gfk": "a3cffe107648dca5",
+    "allegiant.destinations.extra-operated-gri": "4b0d8128fc6acc36",
+    "allegiant.destinations.extra-operated-gso": "7b4b1f2f2d48b9c3",
+    "allegiant.destinations.extra-operated-gsp": "38716f76035ae6e8",
+    "allegiant.destinations.extra-operated-gtf": "b1c06c4b2d01905c",
+    "allegiant.destinations.extra-operated-hgr": "f20d4db195895696",
     "allegiant.destinations.extra-operated-hou": "97525c3fdfec0e25",
+    "allegiant.destinations.extra-operated-hsv": "07783196ed57b580",
+    "allegiant.destinations.extra-operated-hts": "e637cd941262832f",
     "allegiant.destinations.extra-operated-iad": "bfec1466ef948da2",
+    "allegiant.destinations.extra-operated-iag": "2c4cba8959fd8774",
+    "allegiant.destinations.extra-operated-ict": "9371422e5107e5fb",
+    "allegiant.destinations.extra-operated-ida": "9ea39f9ed8049884",
     "allegiant.destinations.extra-operated-jax": "06039814f412e381",
+    "allegiant.destinations.extra-operated-lck": "8073feecdce7a0e0",
+    "allegiant.destinations.extra-operated-lex": "e7fb8cfb65abb5bc",
+    "allegiant.destinations.extra-operated-lit": "da870e42be051293",
+    "allegiant.destinations.extra-operated-lrd": "f1ec041b3341141c",
+    "allegiant.destinations.extra-operated-lse": "111d313356c2dcda",
+    "allegiant.destinations.extra-operated-mci": "95bf4adbb286edd6",
     "allegiant.destinations.extra-operated-mco": "563356c36265b185",
+    "allegiant.destinations.extra-operated-mdt": "23e35b4e063e08f6",
     "allegiant.destinations.extra-operated-mdw": "b5de5d19c556763e",
     "allegiant.destinations.extra-operated-mem": "68d7b562cfd4f36e",
+    "allegiant.destinations.extra-operated-mfe": "c2f3659b70132b7d",
+    "allegiant.destinations.extra-operated-mfr": "2892838261781c66",
+    "allegiant.destinations.extra-operated-mlb": "4ddd2e171856ce60",
+    "allegiant.destinations.extra-operated-mli": "72bd017a7d8326ac",
+    "allegiant.destinations.extra-operated-mot": "137c3089673dc415",
+    "allegiant.destinations.extra-operated-mry": "756627a116a76c43",
+    "allegiant.destinations.extra-operated-mso": "01a48bb8e46c431e",
     "allegiant.destinations.extra-operated-msy": "315a188688bf91fb",
+    "allegiant.destinations.extra-operated-myr": "28720249b9fd45d7",
+    "allegiant.destinations.extra-operated-okc": "4898be0ba78c0c97",
+    "allegiant.destinations.extra-operated-oma": "32686a8d3aaeb347",
+    "allegiant.destinations.extra-operated-orf": "1531329e104c4a4a",
+    "allegiant.destinations.extra-operated-pbg": "ae1ea2147f5b0bf4",
     "allegiant.destinations.extra-operated-pdx": "39d0296fc5a939de",
     "allegiant.destinations.extra-operated-phl": "4c70b49fd5b143df",
     "allegiant.destinations.extra-operated-phx": "45c1f4531578ccc1",
+    "allegiant.destinations.extra-operated-pia": "8ab3364d22e0ed8e",
+    "allegiant.destinations.extra-operated-psc": "ff2041b4600250b6",
+    "allegiant.destinations.extra-operated-psm": "76d12035322c5273",
+    "allegiant.destinations.extra-operated-pvd": "89409a69858549ab",
+    "allegiant.destinations.extra-operated-rap": "42a6c97db2eee67a",
+    "allegiant.destinations.extra-operated-rfd": "2e6ead96fc5760a5",
+    "allegiant.destinations.extra-operated-ric": "116fb1bb698135b2",
+    "allegiant.destinations.extra-operated-roa": "c647d27d8d8cd33b",
+    "allegiant.destinations.extra-operated-roc": "6ffab20e3753ce37",
     "allegiant.destinations.extra-operated-rsw": "f14385511bb8fd2a",
+    "allegiant.destinations.extra-operated-sav": "82bc2cfc15937bed",
+    "allegiant.destinations.extra-operated-sbn": "e572509d3d692e0b",
+    "allegiant.destinations.extra-operated-sck": "056f4676f302d8cc",
     "allegiant.destinations.extra-operated-sdf": "180af994f3eebd89",
+    "allegiant.destinations.extra-operated-sgf": "9ab791ab244d84de",
+    "allegiant.destinations.extra-operated-shv": "d027fd9905a04602",
+    "allegiant.destinations.extra-operated-smx": "6f25fc54d1ef2d91",
+    "allegiant.destinations.extra-operated-sna": "a3faebd8c1a2861a",
+    "allegiant.destinations.extra-operated-spi": "b3376e82a31d1032",
+    "allegiant.destinations.extra-operated-stc": "b2c5a1f008a41f3c",
     "allegiant.destinations.extra-operated-swf": "35183df9287a3fd8",
+    "allegiant.destinations.extra-operated-syr": "c1c206e2c7cc90d0",
+    "allegiant.destinations.extra-operated-tol": "ee683e66cc39bf86",
+    "allegiant.destinations.extra-operated-tri": "dc54130cea687cd8",
+    "allegiant.destinations.extra-operated-ttn": "5ebacb11fa957cb9",
+    "allegiant.destinations.extra-operated-tul": "9c292797e97305ea",
+    "allegiant.destinations.extra-operated-tvc": "b28fcfb1d05ae8a9",
+    "allegiant.destinations.extra-operated-usa": "1df8ba199a04563a",
+    "allegiant.destinations.extra-operated-xna": "8ba4c030e3ad2d73",
     "allegiant.fleet.missing-fleet-types": "3f0e0d5e33e0aaa5",
     "allegiant.fleet.pub-q2-airbusa319": "34e0328b80a3253d",
     "allegiant.fleet.pub-q2-boeing737max8200": "eccc66ac58a7d72b",
@@ -338828,6 +348513,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "asiana.destinations.p26-airport-ala": "dc72558ac66d855e",
     "asiana.destinations.p26-airport-bcn": "d0fa3b3df1690670",
     "asiana.destinations.p26-airport-bkk": "b37a89186ad65259",
+    "asiana.destinations.p26-airport-bud": "3a3fdbb2e391a9ae",
     "asiana.destinations.p26-airport-can": "47c4a9f57415b04b",
     "asiana.destinations.p26-airport-cdg": "dd40f1db0fd382e5",
     "asiana.destinations.p26-airport-cgk": "5160f1479aa55e3e",
@@ -338863,7 +348549,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "asiana.destinations.p26-airport-syd": "2f24657c45386679",
     "asiana.destinations.p26-airport-szx": "f41999a058475cbc",
     "asiana.destinations.p26-airport-tas": "a6f6347d65e17c93",
+    "asiana.destinations.p26-airport-ubn": "8db392c89de6b95b",
     "asiana.destinations.p26-airport-xiy": "a1da08ad9e167e59",
+    "asiana.destinations.p26-airport-ynj": "6dab908b2c636c80",
     "asiana.destinations.p26-not-airport-ewr": "71197427375e0b12",
     "asiana.destinations.p26-not-airport-ord": "d35542f12df6767a",
     "asiana.destinations.p26-not-airport-yvr": "52ef71cb49c3ec8f",
@@ -338874,8 +348562,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "asiana.fleet.a380-800": "d8640a83443e22be",
     "asiana.fleet.b777-200er": "f78158727969c890"
    },
-   "revision": 10,
-   "sha": "sha256:d641063f48dbbb2d"
+   "revision": 11,
+   "sha": "sha256:b7bd03383a10ab04"
   },
   "pvr-20261019-austrian": {
    "records": {
@@ -339213,6 +348901,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "copa-airlines.benefits.pub-fo-health-offer": "b0740d7761de15ac",
     "copa-airlines.benefits.pub-fo-stafftravel-offer": "5634bea33943082b",
     "copa-airlines.benefits.pub-panama-seniority-premium": "e6d445aa261b753f",
+    "copa-airlines.destinations.pub-pty-operated": "f6caaf8ff6faa2d8",
     "copa-airlines.destinations.pub-san-operated": "ff49ee0c7da8af59",
     "copa-airlines.fleet.pub-2025-fleet-b737-700": "32cf714bafd830c8",
     "copa-airlines.fleet.pub-2025-fleet-b737-800": "aa26ca122260371c",
@@ -342989,6 +352678,140 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 5,
    "sha": "sha256:faf434a84fea6239"
+  },
+  "pvr-20261024-us-alaska-airlines": {
+   "records": {
+    "alaska-airlines.benefits.us1011-as-b-010": "4105cda8ff2197a1",
+    "alaska-airlines.benefits.us1011-as-d-019": "37df8f00ee7050b7",
+    "alaska-airlines.living.us1011-as-e-011": "c84507133b5f925f",
+    "alaska-airlines.living.us1011-as-e-012": "f0129d511fac8609",
+    "alaska-airlines.living.us1011-as-e-013": "38c8c1a7da1b6847",
+    "alaska-airlines.pay.us1011-as-b-014": "df137d7728684acc",
+    "alaska-airlines.profile.us1011-as-a-002": "e537096300225f8c"
+   },
+   "revision": 1,
+   "sha": "sha256:225734ad30934753"
+  },
+  "pvr-20261024-us-allegiant": {
+   "records": {
+    "allegiant.jobs.us1011-g4-g-002": "68a2e196346ed8ca",
+    "allegiant.living.us1011-g4-e-011": "1c79db3bb518aaf3",
+    "allegiant.living.us1011-g4-e-012": "32094d2e79eac2f2",
+    "allegiant.living.us1011-g4-e-013": "4a4e2d0a56b33df8",
+    "allegiant.profile.us1011-g4-a-003": "28ec55e06b39074e",
+    "allegiant.scale.us1011-g4-a-004": "b08d6784a1edbc21",
+    "allegiant.work.us1011-g4-c-003": "bdf109dc67f747e3"
+   },
+   "revision": 1,
+   "sha": "sha256:fd80cb460892cad8"
+  },
+  "pvr-20261024-us-american": {
+   "records": {
+    "american.benefits.us1011-aa-b-027": "d8cf62af560d3a5b",
+    "american.benefits.us1011-aa-b-028": "a12983499eb2e9ed",
+    "american.benefits.us1011-aa-b-029": "81f410f88c020e5b",
+    "american.benefits.us1011-aa-b-030": "fe8481853c9c7bb9",
+    "american.benefits.us1011-aa-b-031": "b4427371867d4ef5",
+    "american.benefits.us1011-aa-b-035": "44fa6a289c374410",
+    "american.benefits.us1011-aa-b-075": "1ede980004317b7b",
+    "american.benefits.us1011-aa-b-081": "70bea65816b84e74",
+    "american.benefits.us1011-aa-d-038": "be9a6dd9212dfc7d",
+    "american.fleet.us1011-aa-a-024": "8306f5616a323376",
+    "american.fleet.us1011-aa-a-025": "3e60e92cea19641b",
+    "american.fleet.us1011-aa-a-026": "2500c91ac5682565",
+    "american.fleet.us1011-aa-a-027": "56c3829ee0d1cbf8",
+    "american.fleet.us1011-aa-a-028": "f0322c336bbe0eed",
+    "american.fleet.us1011-aa-a-029": "16af3d88e7c062e9",
+    "american.fleet.us1011-aa-a-030": "feda169f13e60401",
+    "american.fleet.us1011-aa-a-031": "f9f96fba25165c8d",
+    "american.fleet.us1011-aa-a-032": "b59ec3bffb2e8be9",
+    "american.fleet.us1011-aa-a-033": "a1540d23753ad485",
+    "american.fleet.us1011-aa-a-034": "2a3a2681f3e2826a",
+    "american.living.us1011-aa-e-011": "3274da39c8f8eac8",
+    "american.living.us1011-aa-e-012": "25c075358fd660db",
+    "american.pay.us1011-aa-b-049": "969de6c1e02621f5",
+    "american.pay.us1011-aa-b-050": "01aa43246c0bbd02",
+    "american.pay.us1011-aa-b-053": "2d25bb8676848793",
+    "american.pay.us1011-aa-b-054": "64f802704f886276",
+    "american.scale.us1011-aa-a-013": "a583ded361fdf6c2"
+   },
+   "revision": 1,
+   "sha": "sha256:64443de7a8c424d2"
+  },
+  "pvr-20261024-us-delta": {
+   "records": {
+    "delta.benefits.us1011-ben-15": "0543be285f87c943",
+    "delta.jobs.us1011-ch-010": "7c3015938dcd2b8e",
+    "delta.scale.us1011-ch-017": "88b0b42317393288"
+   },
+   "revision": 1,
+   "sha": "sha256:dfda56d58fdf9d4b"
+  },
+  "pvr-20261024-us-frontier": {
+   "records": {
+    "frontier.jobs.us1011-f9-g-001": "01b53012a5f9c336",
+    "frontier.jobs.us1011-f9-g-002": "66c1e79d54177641",
+    "frontier.jobs.us1011-f9-g-003": "fbad4fbe40323662",
+    "frontier.jobs.us1011-f9-g-006": "e6589f4a13f758cc",
+    "frontier.jobs.us1011-f9-g-007": "4110c601859369ee",
+    "frontier.living.us1011-f9-e-011": "4741c024fe7418b9",
+    "frontier.living.us1011-f9-e-012": "a7c19eab3886c384",
+    "frontier.living.us1011-f9-e-013": "c4e362fe853d5787",
+    "frontier.pay.us1011-f9-b-017": "d2e4f9cf3f50ae6a",
+    "frontier.scale.us1011-f9-a-008": "e1d82a43ab09fd07"
+   },
+   "revision": 1,
+   "sha": "sha256:34f0a9c1977a551b"
+  },
+  "pvr-20261024-us-jetblue": {
+   "records": {
+    "jetblue.benefits.us1011-b6-b-037": "503b99c9055df479",
+    "jetblue.benefits.us1011-b6-b-039": "652004159624938f",
+    "jetblue.fleet.us1011-b6-a-024": "955341d451c42a65",
+    "jetblue.fleet.us1011-b6-a-025": "850a8b371a911661",
+    "jetblue.fleet.us1011-b6-a-026": "eae47a1beb9ee255",
+    "jetblue.jobs.us1011-b6-g-011": "7d21645ae516a3a8",
+    "jetblue.jobs.us1011-b6-g-013": "b9689e6a9f6fd72c",
+    "jetblue.jobs.us1011-b6-g-015": "ced468b206431649",
+    "jetblue.living.us1011-b6-e-013": "8ffd52b5e2b1e0f3",
+    "jetblue.profile.us1011-b6-a-003-first-flight": "d4868222984a63cf",
+    "jetblue.profile.us1011-b6-a-003-founded": "23f148a43701b32a",
+    "jetblue.scale.us1011-b6-a-014": "49b8513cbf9d211a"
+   },
+   "revision": 1,
+   "sha": "sha256:87e45d1b874cc5f5"
+  },
+  "pvr-20261024-us-southwest": {
+   "records": {
+    "southwest.benefits.us1011-wn-b-015": "1a02fede9b92a3a9",
+    "southwest.benefits.us1011-wn-b-019": "1a26879d4eea24b6",
+    "southwest.benefits.us1011-wn-b-038": "5766693ffc53b899",
+    "southwest.jobs.us1011-wn-g-006": "5c43394b41ac82f9",
+    "southwest.living.us1011-wn-e-011": "33830971d21b709b",
+    "southwest.living.us1011-wn-e-012": "1003a0293bcdb7af",
+    "southwest.living.us1011-wn-e-013": "ff5e0d97fa302a5b",
+    "southwest.scale.us1011-wn-a-017": "6fe8f5403a3410cd"
+   },
+   "revision": 1,
+   "sha": "sha256:cd6b1ebdab318751"
+  },
+  "pvr-20261024-us-united": {
+   "records": {
+    "united.benefits.us1011-ua-b-023": "d2a435d620673ef6",
+    "united.benefits.us1011-ua-b-024": "b1fcb78a8551d9b9",
+    "united.benefits.us1011-ua-b-025": "5c607072bb70d9cd",
+    "united.benefits.us1011-ua-b-027": "c1476959abbc1fca",
+    "united.benefits.us1011-ua-d-002": "e42657c326b1d0f7",
+    "united.benefits.us1011-ua-d-029": "dbdc9cb337d62705",
+    "united.benefits.us1011-ua-d-030": "30605f8a4b7cb85d",
+    "united.jobs.us1011-ua-g-003": "9395b9470eb36d81",
+    "united.jobs.us1011-ua-g-004": "c639b155bf5926b6",
+    "united.profile.us1011-ua-a-003": "2b46ef94c2912560",
+    "united.work.us1011-ua-c-008": "98d0a7315ef3da50",
+    "united.work.us1011-ua-c-009": "5b13e66911067e0d"
+   },
+   "revision": 1,
+   "sha": "sha256:cf219e17e09d0836"
   },
   "pvr-city-rent": {
    "records": {

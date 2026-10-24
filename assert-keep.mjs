@@ -827,9 +827,23 @@ async function bfcache() {
     await townShut(p);
     return v;
   };
-  /* ページの中のリンクを押して移る（人が押すのと同じ、ページから始まる移動） */
-  const leave = (p, to) => Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }),
-    p.page.evaluate((h) => { const a = document.createElement('a'); a.href = h; document.body.appendChild(a); a.click(); }, to)]);
+  /* ページの中のリンクを押して移る（人が押すのと同じ、ページから始まる移動）。
+     待つのは移った先の新しいページの load（ページの load の知らせ）── waitForNavigation は、同じページの中の履歴の書き換えでも返る。
+     一覧（world-airlines.html）は離れる直前（beforeunload）に history.replaceState で住所と位置を書く（pv-directory.js・dd-6 ＝
+     「戻る」で同じ一覧の同じ場所へ）ので、それで先に返り、次の手が移る途中のページを触っていた
+     （2026-10-24 KA8 ④ の「Execution context was destroyed」。製品は設計どおり・時間では待たない） */
+  const leave = (p, to) => {
+    let stop = null;
+    const loaded = new Promise((ok, no) => {
+      const on = () => { clearTimeout(t); ok(); };
+      const t = setTimeout(() => { p.page.off('load', on); no(new Error('移った先のページが 60 秒で開き切らない: ' + to)); }, 60000);
+      stop = () => { clearTimeout(t); p.page.off('load', on); };
+      p.page.once('load', on);
+    });
+    return Promise.all([loaded,
+      p.page.evaluate((h) => { const a = document.createElement('a'); a.href = h; document.body.appendChild(a); a.click(); }, to)
+        .catch((e) => { if (stop) stop(); throw e; })]);
+  };
   /* 戻ってきたページが、ブラウザの手元から戻ったか（読み直しなら false）。押した時刻より後の pageshow が届くまで待つ
      （手元から戻ったページには、前に開いた時の pageshow の控えも残っている ＝ 最後の1つが「いまの戻る」のものとは限らない） */
   const lastShow = (p, t0) => p.page.evaluate((t) => {

@@ -715,8 +715,9 @@ const FACT_KEYS = (() => {
     let ans = null;
     try {
       if (!/function isArr/.test(helpers) || !/function isNum/.test(helpers)) throw new Error('helpers');
+      /* T.list ＝ 並んだ答えの区切り（日本語の表の字「、」── 2026-10-24 WP-en-5 で answer() の中の字を表へ移した） */
       ans = new Function('T', 'numText', 'ym', body + '\n return answer;')(
-        { top: 'TOP', split: 'SPLIT', median: 'MED' }, v => String(v), () => '');
+        { top: 'TOP', split: 'SPLIT', median: 'MED', list: '、' }, v => String(v), () => '');
     } catch { ans = null; }
     const V = { kind: 'multi', options: { self: '本人', partner: '配偶者', children: '子' } }, V1 = { ...V, kind: 'choice' };
     const run = (row, voc) => { try { const r = ans(row, voc); return r ? (r.split ? 'SPLIT' : r.text + '|' + r.how) : 'none'; } catch (e) { return 'throw'; } };
@@ -1690,15 +1691,19 @@ head('月の勤務を枠と帯で描く部品（career-live.js / career-live.css
   ok(!miss.length, '月の勤務の帯：軸の右端は T.workMax（時間 240・日と泊 31）の1か所で、帯を描く部品（workScale・barRow・workBars・workCapLine）が在る', `無い：${miss.join(' ／ ')}`);
   const gone = ['crl-wb-g', 'crl-wb-it', 'crl-wb-ax'].flatMap(w => [['career-live.js', LJS], ['career-live.css', LCSS]].filter(([, t]) => t.includes(w)).map(([f]) => `${f}: ${w}`));
   ok(!gone.length, '月の勤務は項目ごとの枠（見本の形）。帯を全幅の束に並べる部品を持たない', gone.join(' ／ '));
-  /* 切り出す範囲は「帯の軸の右端」の行から workOver: の行まで。どちらかが無い・2つ在る時は落とす（何も読まずに通さない） */
+  /* 切り出す範囲は「帯の軸の右端」の行から workOver: の行まで。どちらかが無い・数が違う時は落とす（何も読まずに通さない）。
+     ★2026-10-24 WP-en-5：英語の表（var T_EN）にも同じ鍵が在る ＝ workOver: は日英で2行。日本語の範囲は注記の行から T_EN より前の
+       workOver: まで・英語の範囲は T_EN の頭からその中の workOver: まで。英語の字にも上限・規定（limit・maximum・regulation・legal・cap）を書かない */
   const L = LJS.split('\n');
   const rows = s => L.reduce((a, l, i) => (l.includes(s) ? [...a, i] : a), []);
-  const from = rows('帯の軸の右端'), to = rows('workOver:');
-  const span = from.length === 1 && to.length === 1 && to[0] > from[0] ? L.slice(from[0], to[0] + 1) : [];
-  const words = span.filter(l => /上限|規定|法定|制限/.test(l)).map(l => l.trim().slice(0, 80));
-  ok(span.length > 0 && ['workMax:', 'workCap:', 'workAxis:'].every(k => span.some(l => l.includes(k))) && !words.length,
-     '軸の数を説明する字（「帯の軸の右端」の注記から workOver まで）に、上限・規定・法定・制限が無い（240 は物差しで、会社の決まりではない）',
-     span.length ? words.join(' ／ ') : `切り出せない（「帯の軸の右端」${from.length}行・workOver: ${to.length}行）`);
+  const from = rows('帯の軸の右端'), to = rows('workOver:'), enAt = rows('var T_EN = {');
+  const toJa = enAt.length === 1 ? to.filter(i => from.length === 1 && i > from[0] && i < enAt[0]) : [], toEn = enAt.length === 1 ? to.filter(i => i > enAt[0]) : [];
+  const span = from.length === 1 && to.length === 2 && toJa.length === 1 && toEn.length === 1 ? L.slice(from[0], toJa[0] + 1) : [];
+  const spanEn = span.length ? L.slice(enAt[0], toEn[0] + 1).filter(l => /^ {4}work(Max|Cap|Axis|Over):/.test(l)) : [];
+  const words = [...span.filter(l => /上限|規定|法定|制限/.test(l)), ...spanEn.filter(l => /limit|maxim|regulat|legal|\bcap\b/i.test(l))].map(l => l.trim().slice(0, 80));
+  ok(span.length > 0 && ['workMax:', 'workCap:', 'workAxis:'].every(k => span.some(l => l.includes(k))) && spanEn.length === 4 && !words.length,
+     '軸の数を説明する字（「帯の軸の右端」の注記から workOver まで・英語の表の同じ4つの鍵）に、上限・規定・法定・制限（limit・maximum…）が無い（240 は物差しで、会社の決まりではない）',
+     span.length ? words.join(' ／ ') || `英語の4つの鍵 ${spanEn.length}行` : `切り出せない（「帯の軸の右端」${from.length}行・workOver: ${to.length}行・var T_EN ${enAt.length}行）`);
   const C = noCssCmt(LCSS);
   const note = (LCSS.match(/\/\*[\s\S]*?\*\//g) || []).find(c => c.includes('月の勤務を枠で')) || '';
   let flat = C, prev;

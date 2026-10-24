@@ -20,6 +20,14 @@ process.stdin.on('end', () => {
     [new RegExp(String.raw`\bkill\b[^\n;]*(\$\(|\x60)\s*(${G}|ps)\b`), `kill $(${G} / ps …)`],
     [new RegExp(String.raw`\b(${G}|ps)\b[^\n;]*\|[^\n;]*\bxargs\s+(-\S+\s+)*kill\b`), `${G} / ps … | xargs kill`],
   ].find(([re]) => re.test(cmd));
+  // ★2026-10-24：この Mac（8GB）は、画面の検査をブラウザ4本同時に流して固まり、自動で再起動した（04:03・wdog）。
+  //   画面の検査一式（check.mjs web / all）は「-j 1」を付けたときだけ通す。
+  const suite = /\bcheck\.mjs\s+(web|all)\b/.test(cmd) && !/\bcheck\.mjs\s+(web|all)\b[^\n;&|]*\s-j\s*1(\s|$)/.test(cmd);
+  if (suite) {
+    process.stderr.write('画面の検査一式は「node check.mjs web -j 1」（ブラウザ1本ずつ）でだけ流せます（2026-10-24 の決まり・' +
+      'この Mac はブラウザを何本も同時に開くと固まって再起動する）。\n');
+    process.exit(2);
+  }
   if (!bad) process.exit(0);
   process.stderr.write(`${bad[1]} は使えません（2026-10-23 の決まり・.claude/hooks/block-mass-kill.mjs）。` +
     '自分が起こしたサーバーは kill <起こしたときの番号> で止める（起こすときに & echo $! > pidfile）。' +

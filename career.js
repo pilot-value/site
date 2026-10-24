@@ -336,10 +336,17 @@
     }
     var waiting = function (b) { var s = b.getAttribute('data-state'); return s === 'idle' || s === 'loading'; };
     var free = function (b) { if (b.style.minHeight) b.style.minHeight = ''; };
-    var held = null, ro = null;
+    /* 合わせているあいだは、ブラウザ自身のスクロールの合わせ（scroll anchoring）を切る（2026-10-24）。
+       あれは欄の高さが変わると、ResizeObserver の合わせより先にスクロールを動かし、その scroll を下の「読む人が動かした」と
+       取り違えて合わせをやめていた。そのあとはブラウザが自分の選んだ要素で合わせるので、目印は 2px ほどずれたまま残った
+       （比較の「詳しく」「ほかの街」から戻ると 2026 → 2028・1823 → 1825。混んだ回にだけ起きる）。
+       合わせるのはページ自身だけにする（assert-cmp-frame.mjs が、切った形 ＝ Safari のように合わせないブラウザで見ている形）。
+       やめたら前の値に戻す。見張りは表示中の画面と body の大きさ（画面の外の、上の帯の高さが変わっても合わせ直す）。 */
+    var held = null, ro = null, anchorWas = null;    // root は頭の document.documentElement
     function letGo() {
       held = null;
       if (ro) ro.disconnect();
+      if (anchorWas !== null) { root.style.overflowAnchor = anchorWas; anchorWas = null; }
     }
     function align() {
       if (!held) return;
@@ -357,6 +364,9 @@
       if (window.ResizeObserver && shown) {
         ro = ro || new ResizeObserver(align);
         ro.observe(shown);
+        if (document.body) ro.observe(document.body);
+        anchorWas = root.style.overflowAnchor || '';
+        root.style.overflowAnchor = 'none';
       }
       align();
     }

@@ -2846,6 +2846,236 @@ localScene('pay-two', '比較の給与：2つのアカウント ── A（給�
   await t2.close();
 });
 
+/* ══ 英語の会社ページ（WP-en-5・2026-10-24）═══════════════════════════
+   career-live.js の字は2つの表にだけ在る：T（日本語）と T_EN（英語）。<html lang="en"> のページでだけ T を T_EN に入れ替える。
+   en-words [STATIC]（A）
+     W1 T_EN の鍵・形・並びの長さが、どの深さでも T と同じ。字でない値（月の勤務の鍵 k・fam、職位の符号、目盛の右端）も同じ。
+        英語の字（関数の答えも）に日本語の字が無い。日本語に字の在る所で英語が空でない。
+     W2 コメントを外したコードで、日本語の字を持つ字句はすべて T の中（T の外に日本語を書くと、英語のページにそのまま出る）。
+     W3 表を入れ替えるのは <html lang> だけ（en で始まるときだけ T が T_EN になる）。
+     W4 写した英語は元と1文字も違わない ── 給与の Give & Get「Unlock all pay data」（オーナーの字。英語のトップと premium-auth-lock.js）／
+        出典・投稿時期・年数の段・外れた額の1文（actual-pay.js の英語）／街の欄の札と「ログイン」「準備中」「やり直す」（career-stay.js の英語）・
+        預かりの見出しと月の勤務の6項目の名前（pv-contrib.js の英語）／口コミの入口（gen-airline-glance.mjs の RV_CTA_EN.overview）・
+        機長と副操縦士（同じく WORDS.en.rank）。
+   en-live [MOCK]（B、ただし口コミの要約の言葉は A）
+     英語の会社ページ（en/airlines/jal.html）を4人の読み手（ゲスト／期限切れで自分の会社への答えが足りない会員／開いた会員／読めない）で
+     390 と 1440 で開き、概要・給与・勤務・暮らしのタブを順に開いて details をぜんぶ開く ── career-live.js の欄（字・aria-label・title）に日本語の字が1つも無い・
+     9種類の欄がどれも読み終わる・読み手ごとに決めた英語の字が出る・
+     サーバーが日本語で返した社名（答えるカード）は一覧の英語の名前になる。
+     ★口コミの要約はページの言葉で聞く：英語のページは lang 'en'・日本語の会社ページは 'ja'（違う言葉の要約を受け取らない）。
+   字は検査が自分で持つ（career-live.js から読み込まない ＝ あちらを変えたら、ここが赤くなる）。 */
+const JA_CHAR = /[　-ヿ㐀-鿿＀-￯]/;
+const SWITCH_LINE = "\n  if (LANG === 'en') T = T_EN;";
+/* career-live.js の言葉の区画（var LANG から入れ替えの1行まで）を、<html lang> を lang にした文書として評価する */
+function liveWords(src, lang) {
+  const a = src.indexOf('\n  var LANG = '), b = src.indexOf(SWITCH_LINE);
+  if (a < 0 || b < a || src.split(SWITCH_LINE).length !== 2) return null;
+  const doc = { documentElement: { getAttribute: (k) => (k === 'lang' ? lang : null) } };
+  try { return new Function('d', `${src.slice(a, b + SWITCH_LINE.length)}\nreturn { T: T, T_EN: T_EN, LANG: LANG };`)(doc); } catch (e) { return { err: String(e.message) }; }
+}
+/* コメントと正規表現の字句を空白に替え（位置は保つ）、字句（'…' "…" `…`）のうち日本語の字を持つものを返す */
+function jaLiterals(src) {
+  let out = '', i = 0, q = null;
+  while (i < src.length) {
+    const c = src[i], n = src[i + 1];
+    if (q) { out += c; if (c === '\\') { out += n || ''; i += 2; continue; } if (c === q) q = null; i++; continue; }
+    if (c === '/' && n === '*') { const j = src.indexOf('*/', i + 2), k = j < 0 ? src.length : j + 2; out += src.slice(i, k).replace(/[^\n]/g, ' '); i = k; continue; }
+    if (c === '/' && n === '/') { const j = src.indexOf('\n', i), k = j < 0 ? src.length : j; out += ' '.repeat(k - i); i = k; continue; }
+    if (c === '/' && /[=(,:!&|?{};[]$|^$/.test(out.replace(/\s+$/, '').slice(-1))) {
+      const m = /^\/(?:\\.|\[(?:\\.|[^\]])*\]|[^/\\\n])+\/[a-z]*/.exec(src.slice(i));
+      if (m) { out += ' '.repeat(m[0].length); i += m[0].length; continue; }
+    }
+    if (c === "'" || c === '"' || c === '`') q = c;
+    out += c; i++;
+  }
+  return [...out.matchAll(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g)].filter((m) => JA_CHAR.test(m[0]))
+    .map((m) => ({ at: m.index, text: m[0], line: src.slice(0, m.index).split('\n').length }));
+}
+/* 関数の字を試しに呼ぶ引数（同じ形で日英を呼ぶ） */
+const WORD_TRY = { payCount: [3], payMore: [7], medDef: ['A', 'B', 3], giveLock: [5], giveHead: ['Japan Airlines'], giveCount: [1, 5], revPosts: [3],
+  revRated: [2], sumFrom: [4], sumWhen: ['2026-10-01'], answered: [3], ym: ['2026', 9] };
+const CODE_AT = /\.work\[\d+\]\.(k|fam)$|\.workPos\[\d+\]\[0\]$|\.workMax\.[a-z]+$/;
+function wordsBad(ja, en) {
+  const bad = [], kind = (x) => (Array.isArray(x) ? 'array' : x === null ? 'null' : typeof x);
+  const strBad = (s, at) => { if (JA_CHAR.test(s)) bad.push(`${at}: 英語に日本語の字（${s}）`); };
+  const walk = (a, b, at) => {
+    if (kind(a) !== kind(b)) { bad.push(`${at}: 日本語は ${kind(a)}・英語は ${kind(b)}`); return; }
+    if (CODE_AT.test(at)) { if (a !== b) bad.push(`${at}: 字でない値が違う（${a}／${b}）`); return; }
+    if (Array.isArray(a)) { if (a.length !== b.length) bad.push(`${at}: 並びの長さが違う（${a.length}／${b.length}）`); a.forEach((x, i) => i < b.length && walk(x, b[i], `${at}[${i}]`)); return; }
+    if (a && typeof a === 'object') {
+      const ka = Object.keys(a).sort(), kb = Object.keys(b).sort();
+      ka.filter((k) => !kb.includes(k)).forEach((k) => bad.push(`${at}.${k}: 英語に無い鍵`));
+      kb.filter((k) => !ka.includes(k)).forEach((k) => bad.push(`${at}.${k}: 日本語に無い鍵`));
+      ka.filter((k) => kb.includes(k)).forEach((k) => walk(a[k], b[k], `${at}.${k}`));
+      return;
+    }
+    if (typeof a === 'function') {
+      const args = WORD_TRY[at.split('.').pop()] || ['A'];
+      let ra, rb;
+      try { ra = a(...args); rb = b(...args); } catch (e) { bad.push(`${at}: 呼ぶと止まる（${e.message}）`); return; }
+      if (kind(ra) !== kind(rb) || (Array.isArray(ra) && ra.length !== rb.length)) bad.push(`${at}: 答えの形が違う（${JSON.stringify(ra)}／${JSON.stringify(rb)}）`);
+      [].concat(rb).forEach((s, i) => (typeof s === 'string' ? strBad(s, `${at}()[${i}]`) : bad.push(`${at}: 英語の答えが字でない`)));
+      return;
+    }
+    if (typeof a === 'string') { strBad(b, at); if (a && !b) bad.push(`${at}: 英語が空`); return; }
+    if (a !== b) bad.push(`${at}: 値が違う（${a}／${b}）`);
+  };
+  walk(ja, en, 'T');
+  return bad;
+}
+
+scene('en-words', '英語の字の表（T_EN）：鍵と形が日本語の表と同じ・日本語の字は日本語の表の中だけ・入れ替えは <html lang> だけ・写した英語は元のまま', 'static', async () => {
+  const SRC = read('career-live.js');
+  const ja = liveWords(SRC, 'ja'), en = liveWords(SRC, 'en');
+  ok(!!ja && !ja.err && !!en && !en.err, '言葉の区画（var LANG から入れ替えの1行まで・入れ替えの1行はちょうど1つ）が読めて、評価できる', JSON.stringify([ja && ja.err, en && en.err]));
+  if (!ja || ja.err || !en || en.err) return;
+  const bad = wordsBad(ja.T, ja.T_EN);
+  ok(bad.length === 0, `W1 英語の表の鍵・形・並びの長さ・字でない値が日本語の表と同じ（鍵 ${Object.keys(ja.T).length}）・英語の字に日本語が無い・空でない`, bad.slice(0, 8).join(' ／ '));
+  const lits = jaLiterals(SRC), a = SRC.indexOf('\n  var T = {'), b = a < 0 ? -1 : SRC.indexOf('\n  };', a);
+  const out = lits.filter((x) => !(x.at > a && x.at < b));
+  ok(a > 0 && b > a && lits.length > 0 && out.length === 0, `W2 日本語の字を持つ字句（${lits.length}）は、すべて日本語の表（var T）の中`, out.slice(0, 6).map((x) => `${x.line}行 ${x.text.slice(0, 40)}`).join(' ／ '));
+  const sw = ['en', 'en-GB', 'EN', 'ja', '', 'eng', null].map((l) => { const r = liveWords(SRC, l); return r && !r.err ? `${l}:${r.T === r.T_EN ? 'en' : 'ja'}:${r.LANG}` : `${l}:err`; });
+  ok(JSON.stringify(sw) === JSON.stringify(['en:en:en', 'en-GB:en:en', 'EN:en:en', 'ja:ja:ja', ':ja:ja', 'eng:ja:ja', 'null:ja:ja']),
+    'W3 表を入れ替えるのは <html lang> が en で始まるときだけ（en・en-GB・EN → 英語／ja・空・eng・無し → 日本語）', sw.join(' '));
+  const E = ja.T_EN;
+  /* W4 写した英語 */
+  const PAL = read('airlines/premium-auth-lock.js'), IDX = read('en/index.html');
+  const ggEn = [...PAL.matchAll(/\n\s*ggSalary:\s*'([^']*)'/g)].map((m) => m[1]).filter((s) => !JA_CHAR.test(s) && !s.includes('<wbr>'));
+  ok(E.payUnlock.join('') === 'Unlock all pay data' && ggEn.length === 1 && ggEn[0] === E.payUnlock.join('') && IDX.includes('<span>Give &amp; Get</span> Unlock all pay data</span>'),
+    'W4 給与の Give & Get の下の行は「Unlock all pay data」（オーナーの字 ── 英語のトップと premium-auth-lock.js の英語の ggSalary と同じ）', JSON.stringify([E.payUnlock, ggEn]));
+  const AP = read('actual-pay.js'), apA = AP.indexOf('\n    en: {'), apB = apA < 0 ? -1 : AP.indexOf('\n  }[L];', apA);
+  let AE = null;
+  try { AE = apA > 0 && apB > apA ? new Function(`return {${AP.slice(apA + '\n    en: {'.length, AP.lastIndexOf('}', apB))}};`)() : null; } catch { AE = null; }
+  const apSame = AE ? ['vfNo', 'far', 'age', 'ten'].filter((k) => JSON.stringify(AE[k]) !== JSON.stringify(E[k])) : ['（actual-pay.js の英語が読めない）'];
+  ok(!apSame.length && AE.dash === E.dash && AE.errT === E.err, 'W4 出典・投稿時期・年数の段・外れた額の1文・幅の記号・「読み出せません」は REAL PAY の英語（actual-pay.js の T.en）と同じ', apSame.join(','));
+  const CS = read('career-stay.js'), csA = CS.indexOf('\n  var EN = (function () {'), csB = csA < 0 ? -1 : CS.indexOf('\n  })();', csA), CSE = csA > 0 && csB > csA ? CS.slice(csA, csB) : '';
+  const csOf = (k) => (CSE.match(new RegExp(`\\n {6}${k}: +'([^'\\n]*)',`)) || [])[1] || null;
+  const csPairs = [['townWait', 'pending'], ['townNo', 'rejected'], ['townEdit', 'edit'], ['noteMine', 'mine'], ['login', 'login'], ['off', 'off'], ['retry', 'retry']];
+  const csBad = csPairs.filter(([k, c]) => !csOf(c) || csOf(c) !== E[k]).map(([k, c]) => `${k}「${E[k]}」／${c}「${csOf(c)}」`);
+  ok(!!CSE && !csBad.length, 'W4 街の欄の札（確認待ち・見送り・修正）・あなたの投稿・ログイン・準備中・やり直すは、ステイ先の英語（career-stay.js の EN）と同じ', csBad.join(' ／ '));
+  const PC = read('pv-contrib.js');
+  const held = [...PC.matchAll(/\n\s*heldList: '([^']*)'/g)].map((m) => m[1]);
+  const nums = Object.fromEntries([...PC.matchAll(/\n {8}([a-z_]+): \['[^']*', '([^']*)', '[^']*', '[^']*'\]/g)].filter((m) => !JA_CHAR.test(m[2])).map((m) => [m[1], m[2]]));
+  const numBad = E.work.filter((it) => nums[it.k] !== it.name).map((it) => `${it.k}「${it.name}」／「${nums[it.k]}」`);
+  ok(held.length === 1 && held[0] === E.townHeld && !numBad.length, 'W4 預かりの見出しと月の勤務の6項目の名前は「情報を追加」の英語（pv-contrib.js の T.en）と同じ', `${JSON.stringify(held)} ${numBad.join(' ／ ')}`);
+  const GEN = read('gen-airline-glance.mjs');
+  let rvEn = null;
+  try { rvEn = JSON.parse(((GEN.match(/export const RV_CTA_EN = \{ overview: (\[[^\]]*\])/) || [])[1] || 'null').replace(/'/g, '"')); } catch { rvEn = null; }
+  const rk = GEN.match(/rank: Object\.freeze\(\{ cap: '([^']*)', fo: '([^']*)' \}\)/);
+  ok(JSON.stringify(rvEn) === JSON.stringify(E.revUnlock) && !!rk && E.workPos[0][1] === rk[1] && E.workPos[1][1] === rk[2],
+    'W4 口コミの入口（RV_CTA_EN.overview）と機長・副操縦士（WORDS.en.rank）は、会社ページの生成側の英語と同じ', JSON.stringify([rvEn, E.revUnlock, rk && rk.slice(1), E.workPos]));
+});
+
+/* 英語の会社ページの読み手（返事は検査が作る ── MOCK）。字はどれも英語（日本語の字が出たら、それは career-live.js が書いた字）。
+   ただし答えるカードの社名だけは、サーバーが返す日本語のまま植える（一覧の英語の名前に替わることを見る）。 */
+const EN_URL = '/en/airlines/jal.html', JA_URL = '/airlines/jal.html';
+const LIVE_KINDS = ['realpay', 'work', 'notes', 'fact', 'towns', 'stars', 'score', 'summary', 'reviews'];
+const enOk = (body) => ({ status: 200, body: { ok: true, ...body } });
+const EN_FAIL = { status: 500, body: { code: 'XX000', details: null, hint: null, message: 'test failure on purpose' } };
+const EN_NOFN = { status: 404, body: { code: 'PGRST202', details: null, hint: null, message: 'Could not find the function' } };
+const enRev = (id, at, scores, extra) => row(id, scores, { created_at: at, orig_lang: 'ja', position: 'captain', ...extra });
+const EN_REV_LOCKED = [
+  enRev('e1', '2026-10-02T00:00:00Z', [5, 4, 3, 4, 5, 3], { cats: ['training'], clip: { k: 'training', o: 'CLIP-ORIGINAL', t: { en: 'Training is thorough and the instructors' } } }),
+  enRev('e2', '2026-09-12T00:00:00Z', [3, 3, 3, 3, 3, 3], { cats: ['wlb'], clip: { k: 'wlb', o: 'CLIP-ORIGINAL', t: { en: 'Rosters are easy to read.' } } }),
+];
+const EN_REV_OPEN = [
+  enRev('e3', '2026-10-02T00:00:00Z', [5, 4, 3, 4, 5, 3], { cats: undefined, clip: undefined, training_comment: 'BODY-ORIGINAL', translations: { en: { training: 'Training is thorough and fair.' } } }),
+];
+const PAY_MASKED = [{ airline: 'jal', verified: true, age: 0 }, { airline: 'jal', verified: false, age: 3 }, { airline: 'ana', verified: false, age: 1 }];
+const PAY_OPEN = [
+  { airline: 'jal', pos: 'cap', fleet: 'b787', ten: 1, tenk: 'r', annual_usd: 271828, verified: true, age: 0, far: true },
+  { airline: 'jal', pos: 'fo', fleet: 'a350', ten: 0, tenk: 's', annual_usd: 150000, verified: false, age: 4 },
+  { airline: 'ana', pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r', annual_usd: 230000, verified: false, age: 1 },
+];
+const EN_READERS = [
+  { key: 'guest', who: null, stub: {
+    pv_pay_rows: () => enOk({ state: 'masked', give: null, rows: PAY_MASKED }),
+    pv_town_board: () => enOk({ state: 'login' }),
+    pv_reviews: () => enOk({ unlocked: false, rows: [] }),
+    pv_review_summary: () => enOk({ state: 'login' }),
+  }, want: ['2 submissions', 'Annual', 'Verified', 'Self-reported', 'Within 1 month', 'Within a year', 'Opens when you submit your pay', 'Give & Get',
+    'Unlock all pay data', 'Log in', 'Viewing terms', 'Opens when you log in and submit your pay', 'Not rated yet', 'No posts from members yet',
+    'Write a review anonymously', 'You need to log in'] },
+  { key: 'give', who: 'a', stub: {
+    pv_pay_rows: () => enOk({ state: 'masked', give: { basic: true }, rows: PAY_MASKED }),
+    pv_work_view: () => enOk({ state: 'give' }),
+    pv_contrib_facts: () => enOk({ state: 'give' }),
+    pv_contrib_notes: () => enOk({ state: 'locked' }),
+    pv_contrib_give: () => enOk({ state: 'give', airline: 'jal', name: '日本航空（JAL）', have: 1, need: 5, ask: ['days_off_request'] }),
+    pv_town_board: () => enOk({ state: 'give' }),
+    pv_reviews: () => enOk({ unlocked: false, rows: EN_REV_LOCKED }),
+    pv_review_summary: () => enOk({ state: 'locked' }),
+  }, want: ['Your pay-data access has ended', 'Opens when you answer 5 items about your own airline', 'Fill in what is missing about pay and conditions at Japan Airlines (JAL)',
+    'Items you have answered: 1 / 5', 'Answer anonymously', '2 ratings', 'October 2026', 'Training is thorough and the instructors',
+    'Opens when you post a review', 'The summary opens when you post a review'] },
+  { key: 'open', who: 'pilot', stub: {
+    pv_pay_rows: () => enOk({ state: 'open', give: { basic: true }, rows: PAY_OPEN }),
+    pv_work_view: () => enOk({ state: 'open', by: { cap: { block_hours: { lo: 70, hi: 85 }, days_off: { lo: 9, hi: 11 } }, fo: { block_hours: { lo: 60, hi: 260 } } } }),
+    pv_contrib_facts: () => enOk({ state: 'open', facts: [
+      { question_id: 'days_off_request', kind: 'choice', n: 4, lead: ['yes'], median_num: null, ym: '2026-09' },
+      { question_id: 'days_off_request_limit', kind: 'num', n: 3, lead: null, median_num: 8, ym: '2026-08' },
+      { question_id: 'staff_travel_standby_family', kind: 'multi', n: 3, lead: ['partner', 'self'], median_num: null, ym: '2026-07' }] }),
+    pv_contrib_notes: () => enOk({ state: 'open', notes: [{ topic: 'work', text: 'Rosters come out early.', mine: true }, { q: 'days_off_request', text: 'Requests are usually granted.' }] }),
+    pv_town_board: () => enOk({ state: 'open', towns: [{ name: 'Shinagawa', n: 3, good: [{ text: 'Quick train to Haneda.' }], concern: [{ text: 'Rent is high.' }] }] }),
+    pv_reviews: () => enOk({ unlocked: true, rows: EN_REV_OPEN }),
+    pv_review_summary: () => enOk({ state: 'open', n: 3, as_of: '2026-10-01', good: [{ text: 'Thorough training.', cat: 'training' }], concern: [{ text: 'Long duty days.', cat: 'wlb' }] }),
+  }, want: ['2 submissions', '5–10 yrs in rank', 'Under 5 yrs at airline', 'See all in REAL PAY', 'Notes from members', 'Monthly duty', 'Your post',
+    'Bars and figures show the middle half of the answers', 'Scale: hours 0–240, days and nights 0–31', 'Off the scale', 'Not enough data', 'Most common',
+    'Median', '8 days / month', 'The employee, Spouse or partner', 'September 2026', '4 members', 'Popular places to live', 'Shinagawa', '3 members',
+    'Good points', 'Points to mind', 'Review summary', 'AI summary', 'From 3 member reviews', 'Updated 2026-10-01', 'Training is thorough and fair.'],
+  attrs: ['This figure is far outside the published range for this airline and position.', 'See the reviews behind this summary'] },
+  { key: 'fail', who: 'a', stub: {
+    pv_pay_rows: () => EN_FAIL, pv_work_view: () => EN_FAIL, pv_contrib_facts: () => EN_FAIL, pv_contrib_notes: () => EN_FAIL,
+    pv_contrib_give: () => EN_FAIL, pv_town_board: () => EN_FAIL, pv_reviews: () => EN_FAIL, pv_review_summary: () => EN_NOFN,
+  }, want: ['We cannot load this right now', 'Try again', 'Not available yet'] },
+];
+/* 読む人のように、タブを順に開く（住所の #タブ ── 勤務・訓練と暮らし・家族の板は、そのタブで開く）。タブごとに details をぜんぶ開き、
+   見えている career-live.js の欄がぜんぶ読み終わるまで待って（時間では待たない）、欄ごとに1回だけ書き留める。 */
+const EN_TABS = ['overview', 'pay', 'work', 'life'];
+async function enWalk(page) {
+  const seen = new Map();
+  let done = true;
+  for (const tab of EN_TABS) {
+    await page.evaluate((tab) => { if (location.hash !== '#' + tab) location.hash = '#' + tab; }, tab);
+    await page.evaluate(() => document.querySelectorAll('details').forEach((x) => { x.open = true; }));
+    const ok1 = await page.waitForFunction((kinds, tab) => {
+      if (!document.body.classList.contains('pvg-at-' + tab)) return false;
+      const all = [...document.querySelectorAll('.crl[data-live]')].filter((b) => kinds.includes(b.getAttribute('data-live')) && b.getClientRects().length);
+      return all.length > 0 && all.every((b) => !['idle', 'loading'].includes(b.getAttribute('data-state')));
+    }, { timeout: 20000, polling: 100 }, LIVE_KINDS, tab).then(() => true, () => false);
+    done = done && ok1;
+    const F = await page.evaluate((kinds) => [...document.querySelectorAll('.crl[data-live]')].map((b, i) => [b, i])
+      .filter(([b]) => kinds.includes(b.getAttribute('data-live')) && b.getClientRects().length)
+      .map(([b, i]) => ({ i, k: b.getAttribute('data-live'), state: b.getAttribute('data-state'), text: b.textContent.replace(/\s+/g, ' ').trim(),
+        attrs: [...b.querySelectorAll('[aria-label],[title]')].map((x) => [x.getAttribute('aria-label'), x.getAttribute('title')].filter(Boolean).join(' ')).join(' | ') })), LIVE_KINDS);
+    for (const x of F) if (!seen.has(x.i)) seen.set(x.i, { ...x, tab });
+  }
+  const all = [...seen.values()];
+  /* 会員の補足の欄（notes）は、読めるものが無ければ顔を持たない（欄ごと畳む ── KIND.notes）。開いた読み手で出ることは、その読み手の字（want）が見る */
+  return { done: done && LIVE_KINDS.filter((k) => k !== 'notes').every((k) => all.some((x) => x.k === k)), F: all };
+}
+
+scene('en-live', '英語の会社ページ：career-live.js の欄に日本語の字が1つも無い（4人の読み手・390 と 1440）・決めた英語の字が出る・口コミの要約はページの言葉で聞く', 'mock', async () => {
+  for (const R of EN_READERS) {
+    for (const size of ['sp', 'pc']) {
+      const { page, st } = await open(size, { who: R.who, url: EN_URL, stub: R.stub });
+      const { done, F } = await enWalk(page);
+      const text = F.map((x) => x.text).join(' ¦ '), attrs = F.map((x) => x.attrs).join(' | ');
+      const jaAt = F.filter((x) => JA_CHAR.test(x.text) || JA_CHAR.test(x.attrs)).map((x) => `${x.k}: ${(x.text.match(/.{0,20}[　-ヿ㐀-鿿＀-￯].{0,20}/) || x.attrs.match(/.{0,20}[　-ヿ㐀-鿿＀-￯].{0,20}/) || [''])[0]}`);
+      ok(done && !jaAt.length, `${R.key}・${size}：英語の会社ページの career-live.js の欄（${F.length}・${EN_TABS.join('／')} のタブ）に日本語の字が無い（字・aria-label・title）`,
+        J({ done, n: F.length, ja: jaAt.slice(0, 6), states: F.map((x) => `${x.tab}/${x.k}:${x.state}`).join(' ') }));
+      const miss = R.want.filter((w) => !text.includes(w)), missA = (R.attrs || []).filter((w) => !attrs.includes(w));
+      ok(!miss.length && !missA.length, `${R.key}・${size}：この読み手に決めた英語の字が出る（${R.want.length + (R.attrs || []).length}）`, J({ miss, missA, text: text.slice(0, 900) }));
+      const langs = st.calls.filter((c) => c.name === 'pv_review_summary').map((c) => c.p && c.p.lang);
+      ok(langs.length >= 1 && langs.every((l) => l === 'en'), `★${R.key}・${size}：口コミの要約は英語で聞く（lang 'en'）`, JSON.stringify(langs));
+    }
+  }
+  const { page, st } = await open('pc', { who: null, url: JA_URL, stub: EN_READERS[0].stub });
+  const { done } = await enWalk(page);
+  const langs = st.calls.filter((c) => c.name === 'pv_review_summary').map((c) => c.p && c.p.lang);
+  ok(done && langs.length >= 1 && langs.every((l) => l === 'ja'), '★日本語の会社ページ（airlines/jal.html）の口コミの要約は日本語で聞く（lang \'ja\'）', JSON.stringify({ done, langs }));
+});
+
 /* ══ 走らせる ═══════════════════════════════════════════════════ */
 const KEYS = SCENES.map((s) => s.key);
 const bad = (WANT || []).filter((k) => !KEYS.includes(k));

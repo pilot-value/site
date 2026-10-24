@@ -43,6 +43,13 @@
   var SCORES = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
   var TAIL = /[（(][^）)]*[）)]\s*$/;
 
+  /* 言葉は <html lang> だけで決める（en で始まれば英語 ── pv-contrib.js・career-stay.js と同じ式。2026-10-24 WP-en-5）。
+     ・下の日本語の表（T）の今までの字は1文字も変えていない（ほかの検査がその場で読んでいる ── assert-admin.mjs・assert-airline-glance.mjs・assert-career.mjs）。
+       足したのは3つだけ：コードの中に直に在った字（並んだ答えの区切り「、」・年月の「年」「月」）を表へ移した list・ym と、数と単位のあいだ unitSp（日本語は空）。
+     ・英語は T_EN。鍵も形も T と同じ（assert-career-live.mjs の en-words が見る）。英語のページでだけ、T_EN の下の1行で表を入れ替える。
+     ・サーバーへ渡す言葉（口コミの要約の lang）・答えの名前（質問の台帳・職位と機材・会社の名前）も同じ LANG で選ぶ。 */
+  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+
   var T = {
     loading: '読み込み中',
     err: 'いま読み出せません',
@@ -50,6 +57,9 @@
     off: '準備中',
     none: '未取得',
     dash: '〜',
+    list: '、',                                       // 並んだ答えの区切り（選べるだけ選ぶ質問で、最多が2つ以上のとき）
+    unitSp: '',                                       // 数と単位のあいだ（日本語は詰める）
+    ym: function (y, m) { return y + '年' + m + '月'; },
 
     annual: '年収',
     vfYes: '明細で確認済み',
@@ -138,6 +148,108 @@
     split: '回答が分かれています',
     answered: function (n) { return '回答 ' + n + '人'; }
   };
+
+  /* 英語の会社ページの字（2026-10-24 WP-en-5）。鍵・形・並びの長さは T と同じ。字でない値（鍵 k・fam・職位の符号・目盛の右端）も T と同じ。
+     ・サイトに英語が在る字は、その写し ── REAL PAY（actual-pay.js の T.en：出典・投稿時期・年数の段・外れた額の1文・「読み出せません」・
+       匿名で給与を追加）／ステイ先（career-stay.js の英語：準備中・ログイン・やり直す・あなたの投稿・確認待ち・見送り・修正）／
+       「情報を追加」（pv-contrib.js の T.en：月の勤務の6項目の名前・預かりの見出し・年月）／会社ページの生成側（gen-airline-glance.mjs の
+       WORDS.en：機長・副操縦士・月の勤務・匿名で答える・「Unlock reviews」・「Member posts」）／トップと会社ページの給与の Give & Get
+       （premium-auth-lock.js の ggSalary「Unlock all pay data」）／運営の画面（admin-queue.js の英語：良い点・気になる点・回答の人数）／
+       マイページ（en/profile.html：年収データの解放が切れた1行）／質問の部品（pv-conditions.js：匿名で口コミを書く）。
+     ・新しい英語の字はオーナーの英語の一覧に載る（P12.86-3）。数は引数で入る（英語の字に数字を手で打たない）。 */
+  var MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var T_EN = {
+    loading: 'Loading',
+    err: 'We cannot load this right now',
+    retry: 'Try again',
+    off: 'Not available yet',
+    none: 'Not enough data',
+    dash: '–',
+    list: ', ',
+    unitSp: ' ',
+    ym: function (y, m) { return MONTHS_EN[m - 1] + ' ' + y; },
+
+    annual: 'Annual',
+    vfYes: 'Verified',
+    vfNo: 'Self-reported',
+    far: 'This figure is far outside the published range for this airline and position.',
+    age: ['Within 1 month', 'Within 3 months', 'Within 6 months', 'Within a year', 'Over a year ago'],
+    ten: {
+      r: ['Under 5 yrs in rank', '5–10 yrs in rank', '10–15 yrs in rank', '15–20 yrs in rank', '20+ yrs in rank'],
+      s: ['Under 5 yrs at airline', '5–10 yrs at airline', '10–15 yrs at airline', '15–20 yrs at airline', '20+ yrs at airline']
+    },
+    payEmpty: 'No records yet',
+    payCount: function (n) { return ['', String(n), n === 1 ? ' submission' : ' submissions']; },
+    payLock: 'Opens when you submit your pay',
+    payExpired: 'Your pay-data access has ended',
+    payMore: function (n) { return 'Show more (' + n + ' in total)'; },
+    payDef: 'The same list as REAL PAY (submissions from the last 24 months). It holds both monthly pay turned into a yearly figure and annual pay written in reviews.',
+    medDef: function (from, to, floor) { return 'The median is taken from the middle figure of each person who submitted pay (pay months ' + from + '–' + to + ', only groups of ' + floor + ' or more). Annual pay written in reviews and submissions held before registration are not included.'; },
+    payGive: 'Add your pay anonymously',
+    gg: 'Give & Get',
+    payUnlock: ['Unlock ', 'all ', 'pay data'],
+    payTerms: 'Viewing terms',
+    payAll: 'See all in REAL PAY',
+    login: 'Log in',
+    loginLock: 'You need to log in',
+    loginPayLock: 'Opens when you log in and submit your pay',
+    giveLock: function (need) { return 'Opens when you answer ' + need + (need === 1 ? ' item' : ' items') + ' about your own airline'; },
+    giveHead: function (name) { return 'Fill in what is missing about pay and conditions at ' + name; },
+    giveCount: function (have, need) { return 'Items you have answered: ' + have + ' / ' + need; },
+    giveGo: 'Answer anonymously',
+
+    work: [
+      { k: 'block_hours', name: 'Block hours', unit: 'h / month', u: 'h', fam: 'h' },
+      { k: 'duty_hours', name: 'Duty hours', unit: 'h / month', u: 'h', fam: 'h' },
+      { k: 'work_days', name: 'Days worked', unit: 'days / month', u: 'days', fam: 'd' },
+      { k: 'duty_days', name: 'Flying days', unit: 'days / month', u: 'days', fam: 'd' },
+      { k: 'days_off', name: 'Days off', unit: 'days / month', u: 'days', fam: 'd' },
+      { k: 'stay_nights', name: 'Layover nights', unit: 'nights / month', u: 'nights', fam: 'd' }
+    ],
+    workPos: [['cap', 'Captain'], ['fo', 'First Officer']],
+    workEmpty: 'No results yet',
+    workMax: { h: 240, d: 31 },
+    workCap: 'Bars and figures show the middle half of the answers',
+    workAxis: ['Scale: hours 0', ', days and nights 0'],
+    workOver: 'Off the scale',
+    noteHead: 'Notes from members',
+    noteWork: 'Monthly duty',
+    noteMine: 'Your post',
+    townHead: 'Popular places to live',
+    townWait: 'Waiting',
+    townNo: 'Declined',
+    townEdit: 'Edit',
+    townHeld: 'You have answers saved without logging in.',
+
+    revEmpty: 'No reviews yet',
+    revNone: 'No posts from members yet',
+    revNo: 'Not rated yet',
+    revPosts: function (n) { return 'Member posts ' + n; },
+    revRated: function (n) { return n + (n === 1 ? ' rating' : ' ratings'); },
+    sumHead: 'Review summary',
+    sumGood: 'Good points',
+    sumConcern: 'Points to mind',
+    sumLock: 'The summary opens when you post a review',
+    sumAi: 'AI summary',
+    sumFrom: function (n) { return 'From ' + n + (n === 1 ? ' member review' : ' member reviews'); },
+    sumWhen: function (d) { return 'Updated ' + d; },
+    sumFew: 'Too few reviews yet for a summary',
+    sumNone: 'No review summary yet',
+    sumOff: 'Not available yet',
+    sumSrc: 'See the reviews behind this summary',
+    revLock: 'Opens when you post a review',
+    revGive: 'Write a review anonymously',
+    revUnlock: ['Unlock ', 'reviews'],
+    revAll: 'See all reviews of this airline',
+
+    factEmpty: 'No results yet',
+    factNone: 'No results',
+    top: 'Most common',
+    median: 'Median',
+    split: 'Answers are split',
+    answered: function (n) { return n === 1 ? '1 member' : n + ' members'; }
+  };
+  if (LANG === 'en') T = T_EN;
 
   /* ── 小さな道具 ─────────────────────────────────────────── */
   function isArr(v) { return Object.prototype.toString.call(v) === '[object Array]'; }
@@ -238,7 +350,7 @@
   function ym(v) {
     if (!v) return '';
     var m = /^(\d{4})-(\d{2})/.exec(String(v));
-    return m ? (m[1] + '年' + Number(m[2]) + '月') : '';
+    return m ? T.ym(m[1], Number(m[2])) : '';
   }
   function view(state, nodes) { return { state: state, nodes: nodes || [] }; }
   function fail(kind) { var e = new Error(kind); e.crl = kind; return e; }
@@ -262,7 +374,7 @@
   }
   function coName(slug) {
     var c = companies()[slug];
-    if (c && c.ja) return String(c.ja);
+    if (c && c[LANG]) return String(c[LANG]);
     var o = root.querySelector('#cr-a option[value="' + slug + '"]');
     return o ? String(o.textContent || '').trim() : slug;
   }
@@ -511,15 +623,16 @@
           if (v && typeof v === 'object') return v;
         } catch (e) { /* 下へ */ }
       }
+      /* 名前の鍵は島と同じ ja のまま（中の字はページの言葉 LANG のもの。英語の単位は数と1字あける ── T.unitSp） */
       return json('pv-conditions.json').then(function (c) {
         var out = {};
         ((c && c.questions) || []).forEach(function (q) {
           if (!q || !q.id) return;
           var o = {};
-          (q.choices || []).forEach(function (ch) { if (ch && ch.code) o[ch.code] = ch.ja; });
+          (q.choices || []).forEach(function (ch) { if (ch && ch.code) o[ch.code] = ch[LANG]; });
           out[q.id] = {
-            ja: (q.ja && q.ja.label) || '', kind: q.kind || '',
-            options: o, unit: (q.num && q.num.ja) || ''
+            ja: (q[LANG] && q[LANG].label) || '', kind: q.kind || '',
+            options: o, unit: (q.num && q.num[LANG]) ? T.unitSp + q.num[LANG] : ''
           };
         });
         return out;
@@ -532,11 +645,11 @@
     return once('dict', function () {
       return json('pv-vocab.json').then(function (v) {
         var pos = {}, fleet = {};
-        ((v && v.positions) || []).forEach(function (x) { if (x && x.code) pos[x.code] = x.ja; });
+        ((v && v.positions) || []).forEach(function (x) { if (x && x.code) pos[x.code] = x[LANG]; });
         var leg = (v && v.legacyPositions) || {};
         Object.keys(leg).forEach(function (k) { if (!pos[k] && pos[leg[k]]) pos[k] = pos[leg[k]]; });
         ((v && v.fleets) || []).forEach(function (x) {
-          if (x && x.code) fleet[x.code] = String(x.ja || '').replace(TAIL, function () { return ''; });
+          if (x && x.code) fleet[x.code] = String(x[LANG] || '').replace(TAIL, function () { return ''; });
         });
         return { pos: pos, fleet: fleet };
       });
@@ -682,7 +795,9 @@
      英語の名前は、サイトの生成物 pv-airlines.json（gen-airline-codes.mjs が SALARY と OPS から書く。地域 region を持つ）の en
      ── 新しい綴りは作らない。日本の会社（region 'japan'）・一覧に無い会社（'other' ＝ 本人が書いた名前）・この一覧に無い符号・
      一覧が読めなかった時は、サーバーが返した名前のまま（db/contrib.sql は日本語の名前を返す。サーバーは変えない）。
-     一覧は誰が読んでも同じ字なので、読む人が替わっても読み直さない（鍵は 'give' で始めない ＝ drop('give') に消されない）。 */
+     一覧は誰が読んでも同じ字なので、読む人が替わっても読み直さない（鍵は 'give' で始めない ＝ drop('give') に消されない）。
+     ★英語のページ（LANG 'en'）では、日本の会社も一覧の英語の名前（「日本は日本語」は日本語のページの決まり ── 2026-10-24 WP-en-5）。
+       一覧に無い会社・一覧が読めなかった時は、英語のページでもサーバーが返した名前のまま（新しい綴りを作らない）。 */
   function giveSay(code, name) {
     if (code === 'other') return Promise.resolve(name);
     return once('airlines', function () {
@@ -690,7 +805,7 @@
     }).then(function (m) {
       var a = m && Object.prototype.hasOwnProperty.call(m, code) ? m[code] : null;
       var en = a && typeof a.en === 'string' ? a.en.replace(/^\s+|\s+$/g, '') : '';
-      return a && typeof a.region === 'string' && a.region !== 'japan' && en ? en : name;
+      return a && typeof a.region === 'string' && (LANG === 'en' || a.region !== 'japan') && en ? en : name;
     }, function () { return name; });
   }
   function giveInfo() {
@@ -1555,7 +1670,7 @@
   function summary(slug) {
     return once('sum:' + slug, function (sig) {
       return client().then(function (sb) {
-        return cut(sb.rpc('pv_review_summary', { p: { airline: slug, lang: 'ja' } }), sig);
+        return cut(sb.rpc('pv_review_summary', { p: { airline: slug, lang: LANG } }), sig);   // 要約はページの言葉のもの（サーバーは会社 × 言葉ごとに持つ）
       }).then(function (res) {
         if (!res || res.error) {
           var code = String((res && res.error && res.error.code) || '');
@@ -1910,7 +2025,7 @@
         if (lead.length > 1 && voc.kind !== 'multi' && row.kind !== 'multi') return null;
         if (lead.some(function (c) { return !optName(voc, c); })) return null;
         text = Object.keys(voc.options).filter(function (c) { return lead.indexOf(c) >= 0; })
-          .map(function (c) { return optName(voc, c); }).join('、');
+          .map(function (c) { return optName(voc, c); }).join(T.list);
         how = T.top;
       }
     }

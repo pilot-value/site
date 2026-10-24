@@ -16,7 +16,8 @@
      同じ空港は、どの会社のページでも同じ呼び名で出る（呼び名はここの1か所だけ）。
      確かめた資料の原本は sources-raw/（リポジトリに入れない）。
      季節運航は seasonal にも3字を書く（画面に「季節運航」と出る）。
-     先行5社ではない会社の空港（調べの台帳の就航地）は、PLACES の下の RESEARCH_PLACES（記録が書いた名前からだけ）。
+     先行5社ではない会社の空港（調べの台帳の就航地）は、PLACES の下の RESEARCH_PLACES（記録が書いた名前からだけ）と
+     CODE_PLACES（記録が3字だけを書いた空港。名前はその3字の空港の広く知られた名前）。
 
    ■ 確かめる
      node airline-destinations.mjs          形の検査（重複・未登録の3字・地域の白リストなど）
@@ -441,8 +442,117 @@ export const RESEARCH_PLACES = Object.freeze({
   MBA: ['モンバサ', 'Mombasa', 'ケニア', 'middle-east-africa'],
   CPT: ['ケープタウン', 'Cape Town', '南アフリカ', 'middle-east-africa'],
 });
+
+/* ── 記録が空港の3字だけを書いた空港（2026-10-24・リード「調べてあるものを会社ページに出す」）──────────────────────────────
+   ChatGPT の就航地の記録が、名前を書かずに3字だけを書いていた空港（「掲載された空港 HSV」・引用が「운항 노선」だけ など）。
+   ROUND5 までに届いた記録が、呼び名が無いために入らなかった空港だけを足した（2026-10-21 a2 では足さなかった空港）。
+   ★3字は記録の字のまま（作らない）。名前は、その3字の空港の広く知られた正式の名前（空港の在る街）。記録が名前を書いている空港は
+     上の RESEARCH_PLACES（記録の字から）。形は PLACES と同じ（[都市, 英語, 国, 地域]）。
+   ★調べの台帳（research-ledger.mjs）に、その3字の就航地の行が在る空港だけ（assert-import-research.mjs の A12 が見る）。
+     例外は1つ：台帳のパイロットの拠点の街の行が書いている街の空港（BWN ＝ ロイヤルブルネイ航空の拠点の街バンダルスリブガワンの、
+     ただ1つの空港）── 拠点の空港を就航地の一覧から外すためだけ（airline-rollout.mjs の home）。拠点の空港としては出さない。
+   ★記録が「コードの変更日や旧コードとの恒久的な同一視は保留」と書いている3字（アレジアント航空の GUF・DJT）は足さない（どの空港か言い切れない）。
+   ★同じ国の同じ名前の街（スプリングフィールド・コロンビア）は、かっこに州を書く。別の国の空港と名前が重なる街は US_STATE。 */
+export const CODE_PLACES = Object.freeze({
+  /* asia */
+  YNJ: ['延吉', 'Yanji', '中国', 'asia'],
+  UBN: ['ウランバートル', 'Ulaanbaatar', 'モンゴル', 'asia'],
+  BWN: ['バンダルスリブガワン', 'Bandar Seri Begawan', 'ブルネイ', 'asia'],
+  /* oceania */
+  WLG: ['ウェリントン', 'Wellington', 'ニュージーランド', 'oceania'],
+  ZQN: ['クイーンズタウン', 'Queenstown', 'ニュージーランド', 'oceania'],
+  DUD: ['ダニーデン', 'Dunedin', 'ニュージーランド', 'oceania'],
+  /* north-america（アレジアント航空の公式の空港の一覧） */
+  ABE: ['アレンタウン', 'Allentown', 'アメリカ', 'north-america'],
+  BIL: ['ビリングス', 'Billings', 'アメリカ', 'north-america'],
+  BIS: ['ビスマーク', 'Bismarck', 'アメリカ', 'north-america'],
+  BLV: ['セントルイス（ミッドアメリカ）', 'St. Louis MidAmerica', 'アメリカ', 'north-america'],
+  BMI: ['ブルーミントン・ノーマル', 'Bloomington-Normal', 'アメリカ', 'north-america'],
+  BOI: ['ボイシ', 'Boise', 'アメリカ', 'north-america'],
+  BUR: ['バーバンク', 'Burbank', 'アメリカ', 'north-america'],
+  BZN: ['ボーズマン', 'Bozeman', 'アメリカ', 'north-america'],
+  CAE: ['コロンビア（サウスカロライナ州）', 'Columbia, South Carolina', 'アメリカ', 'north-america'],
+  CHA: ['チャタヌーガ', 'Chattanooga', 'アメリカ', 'north-america'],
+  CHS: ['チャールストン', 'Charleston', 'アメリカ', 'north-america'],
+  CID: ['シーダーラピッズ', 'Cedar Rapids', 'アメリカ', 'north-america'],
+  CKB: ['クラークスバーグ', 'Clarksburg', 'アメリカ', 'north-america'],
+  COS: ['コロラドスプリングス', 'Colorado Springs', 'アメリカ', 'north-america'],
+  COU: ['コロンビア（ミズーリ州）', 'Columbia, Missouri', 'アメリカ', 'north-america'],
+  DAY: ['デイトン', 'Dayton', 'アメリカ', 'north-america'],
+  ELM: ['エルマイラ', 'Elmira', 'アメリカ', 'north-america'],
+  EUG: ['ユージーン', 'Eugene', 'アメリカ', 'north-america'],
+  EVV: ['エバンズビル', 'Evansville', 'アメリカ', 'north-america'],
+  FAR: ['ファーゴ', 'Fargo', 'アメリカ', 'north-america'],
+  FAT: ['フレズノ', 'Fresno', 'アメリカ', 'north-america'],
+  FCA: ['カリスペル', 'Kalispell', 'アメリカ', 'north-america'],
+  FSD: ['スーフォールズ', 'Sioux Falls', 'アメリカ', 'north-america'],
+  FWA: ['フォートウェイン', 'Fort Wayne', 'アメリカ', 'north-america'],
+  GEG: ['スポケーン', 'Spokane', 'アメリカ', 'north-america'],
+  GFK: ['グランドフォークス', 'Grand Forks', 'アメリカ', 'north-america'],
+  GRI: ['グランドアイランド', 'Grand Island', 'アメリカ', 'north-america'],
+  GSO: ['グリーンズボロ', 'Greensboro', 'アメリカ', 'north-america'],
+  GSP: ['グリーンビル・スパータンバーグ', 'Greenville-Spartanburg', 'アメリカ', 'north-america'],
+  GTF: ['グレートフォールズ', 'Great Falls', 'アメリカ', 'north-america'],
+  HGR: ['ヘイガーズタウン', 'Hagerstown', 'アメリカ', 'north-america'],
+  HSV: ['ハンツビル', 'Huntsville', 'アメリカ', 'north-america'],
+  HTS: ['ハンティントン', 'Huntington', 'アメリカ', 'north-america'],
+  IAG: ['ナイアガラフォールズ', 'Niagara Falls', 'アメリカ', 'north-america'],
+  ICT: ['ウィチタ', 'Wichita', 'アメリカ', 'north-america'],
+  IDA: ['アイダホフォールズ', 'Idaho Falls', 'アメリカ', 'north-america'],
+  LCK: ['コロンバス（リッケンバッカー）', 'Columbus Rickenbacker', 'アメリカ', 'north-america'],
+  LEX: ['レキシントン', 'Lexington', 'アメリカ', 'north-america'],
+  LIT: ['リトルロック', 'Little Rock', 'アメリカ', 'north-america'],
+  LRD: ['ラレド', 'Laredo', 'アメリカ', 'north-america'],
+  LSE: ['ラクロス', 'La Crosse', 'アメリカ', 'north-america'],
+  MCI: ['カンザスシティ', 'Kansas City', 'アメリカ', 'north-america'],
+  MDT: ['ハリスバーグ', 'Harrisburg', 'アメリカ', 'north-america'],
+  MFE: ['マッカレン', 'McAllen', 'アメリカ', 'north-america'],
+  MFR: ['メドフォード', 'Medford', 'アメリカ', 'north-america'],
+  MLB: ['メルボルン', 'Melbourne', 'アメリカ', 'north-america'],
+  MLI: ['モリーン', 'Moline', 'アメリカ', 'north-america'],
+  MOT: ['マイノット', 'Minot', 'アメリカ', 'north-america'],
+  MRY: ['モントレー', 'Monterey', 'アメリカ', 'north-america'],
+  MSO: ['ミズーラ', 'Missoula', 'アメリカ', 'north-america'],
+  MYR: ['マートルビーチ', 'Myrtle Beach', 'アメリカ', 'north-america'],
+  OKC: ['オクラホマシティ', 'Oklahoma City', 'アメリカ', 'north-america'],
+  OMA: ['オマハ', 'Omaha', 'アメリカ', 'north-america'],
+  ORF: ['ノーフォーク', 'Norfolk', 'アメリカ', 'north-america'],
+  PBG: ['プラッツバーグ', 'Plattsburgh', 'アメリカ', 'north-america'],
+  PIA: ['ピオリア', 'Peoria', 'アメリカ', 'north-america'],
+  PSC: ['パスコ', 'Pasco', 'アメリカ', 'north-america'],
+  PSM: ['ポーツマス', 'Portsmouth', 'アメリカ', 'north-america'],
+  PVD: ['プロビデンス', 'Providence', 'アメリカ', 'north-america'],
+  RAP: ['ラピッドシティ', 'Rapid City', 'アメリカ', 'north-america'],
+  RFD: ['ロックフォード', 'Rockford', 'アメリカ', 'north-america'],
+  RIC: ['リッチモンド', 'Richmond', 'アメリカ', 'north-america'],
+  ROA: ['ロアノーク', 'Roanoke', 'アメリカ', 'north-america'],
+  ROC: ['ロチェスター', 'Rochester', 'アメリカ', 'north-america'],
+  SAV: ['サバンナ', 'Savannah', 'アメリカ', 'north-america'],
+  SBN: ['サウスベンド', 'South Bend', 'アメリカ', 'north-america'],
+  SCK: ['ストックトン', 'Stockton', 'アメリカ', 'north-america'],
+  SGF: ['スプリングフィールド（ミズーリ州）', 'Springfield, Missouri', 'アメリカ', 'north-america'],
+  SHV: ['シュリーブポート', 'Shreveport', 'アメリカ', 'north-america'],
+  SMX: ['サンタマリア', 'Santa Maria', 'アメリカ', 'north-america'],
+  SNA: ['オレンジカウンティ', 'Orange County', 'アメリカ', 'north-america'],
+  SPI: ['スプリングフィールド（イリノイ州）', 'Springfield, Illinois', 'アメリカ', 'north-america'],
+  STC: ['セントクラウド', 'St. Cloud', 'アメリカ', 'north-america'],
+  SYR: ['シラキュース', 'Syracuse', 'アメリカ', 'north-america'],
+  TOL: ['トレド', 'Toledo', 'アメリカ', 'north-america'],
+  TRI: ['トライシティーズ（テネシー州）', 'Tri-Cities, Tennessee', 'アメリカ', 'north-america'],
+  TTN: ['トレントン', 'Trenton', 'アメリカ', 'north-america'],
+  TUL: ['タルサ', 'Tulsa', 'アメリカ', 'north-america'],
+  TVC: ['トラバースシティ', 'Traverse City', 'アメリカ', 'north-america'],
+  USA: ['コンコード', 'Concord', 'アメリカ', 'north-america'],
+  XNA: ['ノースウェスト・アーカンソー', 'Northwest Arkansas', 'アメリカ', 'north-america'],
+  /* latin-america */
+  PTY: ['パナマシティ', 'Panama City', 'パナマ', 'latin-america'],
+  /* europe */
+  BUD: ['ブダペスト', 'Budapest', 'ハンガリー', 'europe'],
+});
 const OVERLAP = Object.keys(RESEARCH_PLACES).filter(k => k in PLACES);
 for (const [k, v] of Object.entries(RESEARCH_PLACES)) if (!(k in PLACES)) PLACES[k] = v;
+const OVERLAP_CODE = Object.keys(CODE_PLACES).filter(k => k in PLACES);
+for (const [k, v] of Object.entries(CODE_PLACES)) if (!(k in PLACES)) PLACES[k] = v;
 
 /* 会社ごとの就航地。
    home     本拠地の空港（一覧には出さない）
@@ -678,7 +788,7 @@ export const NETWORK = {
    オークランド（AKL ニュージーランド・OAK アメリカ）・マンチェスター（MAN イギリス・MHT アメリカ）。
    ステイ先の一覧のカードと都市の面は、その名前のすぐ上に国を出す（今までどおり）。米国の空港は州も出す（placeCountry）。
    米国の空港で名前が重なるものは、州をここに書く（無ければ check() が赤くする）。 */
-export const US_STATE = Object.freeze({ OAK: 'カリフォルニア州', MHT: 'ニューハンプシャー州' });
+export const US_STATE = Object.freeze({ OAK: 'カリフォルニア州', MHT: 'ニューハンプシャー州', MLB: 'フロリダ州' });
 const bareCity = c => String(c).replace(/（.*$/, '');
 let SHARED = null;
 /** 日本語の名前（かっこの前）が2つ以上の国の空港に在る名前の集まり */
@@ -716,6 +826,7 @@ export function check() {
     else if (!regs.has(v[3])) bad.push(`PLACES.${k}: 地域「${v[3]}」が REGIONS に無い`);
   }
   for (const k of OVERLAP) bad.push(`RESEARCH_PLACES.${k}: 先行5社の PLACES に在る3字（呼び名は PLACES の1つだけ）`);
+  for (const k of OVERLAP_CODE) bad.push(`CODE_PLACES.${k}: PLACES か RESEARCH_PLACES に在る3字（呼び名は1つだけ）`);
   /* 名前が別の国の空港と重なる米国の空港には、州が要る（カードの国の字に出す） */
   for (const [k, v] of Object.entries(PLACES)) if (Array.isArray(v) && v[2] === 'アメリカ' && sharedNames().has(bareCity(v[0])) && !US_STATE[k]) bad.push(`PLACES.${k}: 名前「${v[0]}」がほかの国の空港と同じ ── US_STATE に州が要る`);
   for (const k of Object.keys(US_STATE)) if (!PLACES[k] || PLACES[k][2] !== 'アメリカ') bad.push(`US_STATE.${k}: 米国の空港ではない`);

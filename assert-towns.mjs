@@ -2136,11 +2136,18 @@ async function admin() {
       const img = await p.page.$eval(`${APP(who)} .adm-sheet img`, (i) => ({ w: i.naturalWidth, h: i.naturalHeight, head: i.getAttribute('src').slice(0, 23) }));
       return { acts0, img };
     };
-    const cleanOf = (p) => p.page.evaluate((words) => ({
-      owner: document.querySelectorAll('#adm-q [data-adm-owner], #adm-q li[data-adm="app"], #adm-q li[data-adm="member"], .adm-sheet').length,
-      words: words.filter((w) => document.body.textContent.includes(w)),
-      img: document.querySelectorAll('img.adm-img').length + (document.documentElement.outerHTML.includes('data:image/jpeg') ? 1 : 0),
-    }), OWNER_WORDS);
+    /* 字と「data:image/jpeg」は、<script> の中身を外して探す（2026-10-24）── admin.html の本番の「資格確認」の式
+       （運営が提出された画像を見る「画像を見る」のボタンの字と、画像を描く式）は画面に出る字でも画像の残りでもない。
+       外さないと、オーナーの一覧も画像も1つも出ていなくても赤くなる（assert-admin.mjs の ★O0・★O3 と同じ直し） */
+    const cleanOf = (p) => p.page.evaluate((words) => {
+      const strip = (n) => { const c = n.cloneNode(true); c.querySelectorAll('script, style, template, noscript').forEach((e) => e.remove()); return c; };
+      const text = strip(document.body).textContent, html = strip(document.documentElement).outerHTML;
+      return {
+        owner: document.querySelectorAll('#adm-q [data-adm-owner], #adm-q li[data-adm="app"], #adm-q li[data-adm="member"], .adm-sheet').length,
+        words: words.filter((w) => text.includes(w)),
+        img: document.querySelectorAll('img.adm-img').length + (html.includes('data:image/jpeg') ? 1 : 0),
+      };
+    }, OWNER_WORDS);
     const FOUR = (id, other) => [['pv_stay_applicants', {}], ['pv_stay_members', {}], ['pv_stay_applicant_image', { id }],
       ['pv_stay_viewer_verify', { id: other, state: 'approved', via: 'member' }]];
 
