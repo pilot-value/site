@@ -478,8 +478,9 @@ comment on function public.pv_review_summary_backed(jsonb, text[], timestamptz) 
 --   {ok:true,  state:'none'}     3件以上あるが、預かった要約が無い／元の口コミが変わって出せなくなった
 --   {ok:true,  state:'login'}    要約は在るが、呼んだ人はログインしていない
 --   {ok:true,  state:'locked'}   要約は在るが、呼んだ人は口コミの本文を読めない（ログイン済み）
---   {ok:true,  state:'open', n, as_of:'YYYY-MM-DD',
+--   {ok:true,  state:'open', n, as_of:'YYYY-MM-DD', as_of_at:'YYYY-MM-DDTHH:MI:00Z',
 --              good:[{text, cat, ids}], concern:[{text, cat, ids}]}
+--              as_of_at ＝ 預けた時刻（UTC・15分刻みに切り下げ。2026-10-25）── 画面が読む人の時計の日付にする
 -- ★ 未ログイン（anon）にも配ってある。配らないと画面は「権限エラー」と
 --   「鍵が掛かっている」を見分けられない（pv_stays と同じ作法）。
 -- ★ few と none は鍵を見る**前**に返す（冒頭の罠）。鍵の有無で few / none の出方は変わらない。
@@ -540,10 +541,16 @@ begin
     return jsonb_build_object('ok', true, 'state', 'locked');
   end if;
 
+  /* ★as_of_at（2026-10-25）── 預けた時刻を、UTC の15分刻みに切り下げて添える。画面はこれを読む人の時計の日付にして出す
+     （as_of は UTC の日付なので、日本の 0〜9時に預けた要約は前日の日付に見えていた）。as_of は古い画面のためにそのまま残す。
+     15分刻みなのは、どの時間帯でも日付が正しく出るいちばん粗い刻みだから（時差はどれも15分の倍数）。それより細かい時刻は渡さない。 */
   return jsonb_build_object(
     'ok', true, 'state', 'open',
     'n', v_row.n,
     'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),
+    'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')
+                        + floor(extract(minute from v_row.made_at at time zone 'utc') / 15) * interval '15 minutes',
+                        'YYYY-MM-DD"T"HH24:MI":00Z"'),
     'good',    public.pv_review_summary_out(v_row.good),
     'concern', public.pv_review_summary_out(v_row.concern));
 end;

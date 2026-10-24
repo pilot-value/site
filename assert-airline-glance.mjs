@@ -750,11 +750,13 @@ const linkedTopicOnly = new Set();
    ★字に数字が1つも無い（分類ごとの点・「3.0」・星を出荷しない）。点数で塗った形（is-ph の無い面・点・<b>）で出荷しない。
    確かめた図は取り除いてから、下の「欄は「—」で出荷」を今までどおり見る（図のほかに欄の中身は無い）。 */
 const RADAR_FULL = JSON.parse((/const CAT_FULL\s*=\s*(\[[^\]]*\]);/.exec(read('airlines/airline-reviews-data.js')) || ['', '[]'])[1].replace(/'/g, '"'));
-const FRAME_RE = /<div class="crl-radar pvg-radar" role="list" data-crl-keep data-radar="ph">([\s\S]*?<\/svg>)((?:<span class="crl-radar-l" role="listitem" data-i="\d"><span>[^<]*<\/span><\/span>){6})<\/div>/g;
+/* 表の名前の「|」は長い名前の折れてよい所（2026-10-25）── 生成した図では <wbr> になっている（「|」の字は出荷しない） */
+const RADAR_HTML = RADAR_FULL.map(n => String(n).split('|').join('<wbr>'));
+const FRAME_RE = /<div class="crl-radar pvg-radar" role="list" data-crl-keep data-radar="ph">([\s\S]*?<\/svg>)((?:<span class="crl-radar-l" role="listitem" data-i="\d"><span>(?:[^<]|<wbr>)*<\/span><\/span>){6})<\/div>/g;
 function frameBad(f) {
   const bad = [], [, svg, ls] = f;
-  const names = [...ls.matchAll(/data-i="(\d)"><span>([^<]*)<\/span>/g)];
-  if (!(names.length === 6 && names.every((m, i) => +m[1] === i && m[2] === RADAR_FULL[i]) && RADAR_FULL.length === 6)) bad.push(`名前が口コミの欄の6分類（${RADAR_FULL.join('・')}）でない：${names.map(m => m[2]).join('・')}`);
+  const names = [...ls.matchAll(/data-i="(\d)"><span>((?:[^<]|<wbr>)*)<\/span>/g)];
+  if (!(names.length === 6 && names.every((m, i) => +m[1] === i && m[2] === RADAR_HTML[i]) && RADAR_FULL.length === 6)) bad.push(`名前が口コミの欄の6分類（${RADAR_HTML.join('・')} ── 折れてよい所は <wbr>）でない：${names.map(m => m[2]).join('・')}`);
   if (/\d/.test(`${svg}${ls}`.replace(/<[^>]*>/g, ''))) bad.push('図の字に数字が在る');
   const rings = [...svg.matchAll(/<polygon class="crl-radar-ring" points="([^"]*)"/g)], axes = (svg.match(/<line class="crl-radar-axis"/g) || []).length;
   const shape = [...svg.matchAll(/<polygon class="crl-radar-shape([^"]*)" points="([^"]*)"/g)];
@@ -1479,11 +1481,12 @@ ok(/getAttribute\('data-pv-glance'\)\s*===\s*'1'\)\s*return/.test(noJsCmt(read('
      && (ui.match(/cardCta\(\n/g) || []).length === 2 && (ui.match(/unlockBtn\('/g) || []).length === 3
      && [/function lockedTailHTML\(tailText\) \{([\s\S]*?)\n  \}/, /function srvLockHTML\(catKeys\) \{([\s\S]*?)\n  \}/].every(re => { const b = one(ui, re) || ''; return b.includes('cardCta(') && !b.includes('unlockBtn('); }),
      '口コミ1枚ごとの錠前のボタンは、黒い丸いボタンを出す時には置かない（入口は評価スコアの1枚／一覧の見出しと、一覧のいちばん下）');
-  /* タブのある日本語の会社ページ ＝ いつも黒い丸いボタン。ほかの会社と英語版 ＝ pv-gg.css を読めた時だけ。
+  /* タブのある会社ページ（日本語も英語も ── 2026-10-25 に英語の会社ページにもタブが付いた）＝ いつも黒い丸いボタン。
+     タブの無い会社ページ ＝ pv-gg.css を読めた時だけ。
      読めなかった時・読む口（window.PVGG）が無い時は、渡された今までのボタンをそのまま返す（形の無い素の字を出さない）。 */
   ok(/^\s*if \(ggShape\(\)\) return ggBtn\('all'\);\s*var st = ggOld\(\);\s*return st === 'yes' \? ggBtn\(kind \|\| 'all'\) : st === 'wait' \? ggWait\(kind \|\| 'all', old\) : old;\s*$/.test(btn)
-     && /\n  function ggShape\(\) \{ return LANG === 'ja' && isTabbed\(\); \}/.test(ui),
-     'タブのある日本語の会社ページはいつも黒い丸いボタン。ほかの会社と英語版は、pv-gg.css を読めた時だけ（読めなければ今までのボタンのまま）');
+     && /\n  function ggShape\(\) \{ return isTabbed\(\); \}/.test(ui),
+     'タブのある会社ページ（日英）はいつも黒い丸いボタン。タブの無い会社ページは、pv-gg.css を読めた時だけ（読めなければ今までのボタンのまま）');
   ok(/^\s*if \(isTabbed\(\)\) return 'no';\s*var g = w\.PVGG;\s*if \(!g \|\| typeof g\.ready !== 'function' \|\| typeof g\.state !== 'function'\) return 'no';/.test(old) && /return 'wait';\s*$/.test(old)
      && /if \(!ok\) el\.outerHTML = el\.innerHTML;/.test(settle) && /else if \(kind === 'card'\) el\.parentNode\.removeChild\(el\);/.test(settle) && /else el\.outerHTML = ggBtn\(kind\);/.test(settle)
      && /\n  function ggWait\(kind, old\) \{ return '<div data-pvgg-wait="' \+ kind \+ '" style="display:none">' \+ old \+ '<\/div>'; \}/.test(ui),
@@ -2569,7 +2572,8 @@ const WHO = [
 const REV_RE = /\/rest\/v1\/rpc\/pv_reviews$/;
 const SCORE_KEYS = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
 const RATED = [[4, 3, 4, 5, 3, 4], [5, 4, 4, 4, 4, 5], [3, 4, 3, 4, 4, null]];
-const CLIP = '検査用の抜粋です。本文はサーバーから届いていません';
+/* サーバーが切った時の形（pv_review_clip：40字を超えたら 39字 ＋「…」）。画面はこの字のまま出す ──「…」をもう1つ足さない（2026-10-25） */
+const CLIP = '検査用の抜粋です。本文はサーバーから届いていません。ここから先は切られた所です…';
 /* 職位と在籍年数は、投稿した人が書いた文字列がそのまま届く（2件め＝年数・3件め＝職位にタグを書いた形）。
    カードには字として出るだけで、働いてはいけない。 */
 const HOSTILE = '<img src=x onerror=__pvgHit=1>';
@@ -2778,7 +2782,8 @@ function LIB() {
     const t = (s, root) => { const e = (root || document).querySelector(s); return e && on(e) ? e.textContent.replace(/\s+/g, ' ').trim() : null; };
     const fill = s => { const e = document.querySelector(s); return e && on(e) ? e.style.getPropertyValue('--crl-fill') : null; };
     return {
-      want: { short: (u.cats || {}).short || [], full: (u.cats || {}).full || [] },
+      /* full ＝ 表の名前から、折れてよい所の印「|」を外した字（画面の字と読む字に「|」は無い） */
+      want: { short: (u.cats || {}).short || [], full: ((u.cats || {}).full || []).map(s => String(s).split('|').join('')) },
       hero: { avg: t('.pvg-hero .crl-avg'), cnt: t('.pvg-hero .crl-cnt'), fill: fill('.pvg-hero .crl-stars'), none: $$('.pvg-hero .crl-stars[data-none]').some(on) },
       card: !c || !on(c) ? null : {
         title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
@@ -2804,12 +2809,18 @@ function LIB() {
         revs: (() => { const e = c.querySelector('.crl[data-live="reviews"]'); return !e ? null : {
           state: e.dataset.state, h: e.getBoundingClientRect().height, items: $$('.crl-rev', e).filter(on).length,
           texts: $$('.crl-rev-text', e).filter(on).map(x => x.textContent.trim()), full: $$('.crl-rev-text:not(.crl-rev-clip)', e).filter(on).length,
+          /* 抜粋の前後に CSS が足す字（::before・::after の content）。「none」「normal」のほかは、画面に字が足されている */
+          pseudo: $$('.crl-rev-clip', e).filter(on).flatMap(x => ['::before', '::after'].map(k => getComputedStyle(x, k).content)).filter(v => v !== 'none' && v !== 'normal'),
           /* 下の欄の錠前の1行は「書かれている字」を読む（見えているかは locks が見る）。
              要約の欄が同じことを言っている時、この1行は隠れる ── 見えている字で読むと、隠した瞬間に null になる */
           lock: (() => { const x = e.querySelector('.crl-lock'); return x ? x.textContent.replace(/\s+/g, ' ').trim() : null; })(),
           /* 評価の箱の中で、いま見えている錠前の1行（同じ意味の行を2つ重ねていないかを見る） */
           locks: $$('.crl-lock', c).filter(on).map(x => x.textContent.replace(/\s+/g, ' ').trim()) }; })(),
         radar: $$('.crl-radar-l', c).filter(on).map(e => { const b = e.querySelector('b'); return { k: e.querySelector('span').textContent.trim(), v: b ? b.textContent.trim() : null }; }),
+        /* 同じ1枚の中の、口コミの札の名前（図の名前と同じ表から出ているか） */
+        chips: $$('.crl-chip', c).filter(on).map(x => x.textContent.trim()),
+        /* 図の読み上げ（点数の無い淡い面は読み上げない・点数で塗った図は一覧） */
+        figAria: (() => { const f = c.querySelector('.crl-radar[data-crl-keep]'); return f ? { radar: f.getAttribute('data-radar'), role: f.getAttribute('role'), hidden: f.getAttribute('aria-hidden') } : null; })(),
         /* 図の数・点数の無いときの淡い面（P12.95／P12.96）：面の頂点がまんなかからどれだけ離れているか（svg の座標で・5点 ＝ 1）と、図の字の数字 */
         figs: $$('.crl-radar', c).filter(on).length,
         ph: (() => { const p = c.querySelector('.crl-radar-shape.is-ph'); return p && on(p) ? p.getAttribute('points').split(' ').map(q => q.split(',').map(Number)).map(([x, y]) => Math.hypot(x - 100, y - 100) / 92) : null; })(),
@@ -3707,6 +3718,45 @@ async function runOff(browser, s, [w, h, kind]) {
   }
 }
 
+/* [B] 評価スコアの1枚で、評価も口コミも読めなかった時（2026-10-25）── 帯と「やり直す」は1枚に1つ。
+   評価と口コミのあいだに要約の欄が在るので、隣どうしでしか畳まない決まり（+）では2本ずつ出ていた。
+   その1つを押すと、評価も口コミも（隠れていた欄も）取り直す。1社・狭い幅と広い幅の1回ずつ（OFF_CARD_W）。 */
+const OFF_CARD_W = [390, 1440];
+async function runOffCard(browser, s, [w, h]) {
+  const tag = `${s} ${w}（評価スコアの1枚・評価も口コミも読めない時）`;
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, 'off');
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    const face = () => ev(() => {
+      const c = document.querySelector('#pvg-score'), vis = x => x.getClientRects().length > 0 && x.checkVisibility({ visibilityProperty: true });
+      const st = k => { const e = c && c.querySelector(`.crl[data-live="${k}"]`); return e ? e.dataset.state : null; };
+      const f = c && c.querySelector('.crl-radar[data-crl-keep]');
+      return { score: st('score'), reviews: st('reviews'),
+        rows: c ? [...c.querySelectorAll('.crl[data-state="error"] > .crl-msg')].filter(vis).length : -1,
+        btns: c ? [...c.querySelectorAll('.crl-retry')].filter(vis).length : -1,
+        fig: f ? [f.getAttribute('data-radar'), f.getAttribute('role'), f.getAttribute('aria-hidden')].join('|') : null };
+    });
+    const f0 = await face();
+    ok(f0.score === 'error' && f0.reviews === 'error' && f0.rows === 1 && f0.btns === 1,
+      `${tag}: 帯「いま読み出せません」と「やり直す」は1枚に1つずつ`, JSON.stringify(f0));
+    /* 点数の無い淡い面の図は、比較の図と同じく読み上げない（2026-10-25 まで会社ページの図だけ一覧のままだった） */
+    ok(f0.fig === 'ph||true', `${tag}: 点数の無い淡い面の図は読み上げない（aria-hidden・一覧の役を持たない）`, String(f0.fig));
+    seen.mode = 'empty';
+    const before = seen.asked;
+    const b = await p.evaluateHandle(() => [...document.querySelectorAll('#pvg-score .crl-retry')].find(x => x.getClientRects().length > 0) || null);
+    if (await b.evaluate(x => !!x)) await press(b);
+    const back = await p.waitForFunction(() => ['score', 'reviews'].every(k => (document.querySelector(`#pvg-score .crl[data-live="${k}"]`) || {}).dataset?.state === 'empty'),
+      { timeout: 15000 }).then(() => true, () => false);
+    const f1 = await face();
+    ok(back && seen.asked > before && f1.rows === 0, `${tag}: その1つを押すと、評価も口コミも取り直す（隠れていた欄も残らない）`, JSON.stringify({ ...f1, asked: [before, seen.asked] }));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
 /* 「鍵の無い人」：サーバーが伏せた行を返す（この会社に7件・ほかの会社に2件）。
    出てよいのは 件数・出典・投稿時期 だけ。額・職位・機材・年数は、サーバーが間違えて送ってきても1文字も出ない。 */
 async function runRows(browser, s, [w, h, kind]) {
@@ -3995,6 +4045,17 @@ async function runRated(browser, s, [w, h, kind]) {
         if (!same(r.locks, [SUM_LOCK_TEXT])) bad.push(`見えている錠前の行が ${r.locks.length}つ（${r.locks.join('｜')}）`);
       }
       ok(!bad.length, `${tag}: 概要の口コミは新しい1件・本文は抜粋だけ・錠前の1行は「${SUM_LOCK_TEXT}」の1つだけ（同じ意味の行を重ねない）`, bad.join(' ／ '));
+      /* ★抜粋の終わりの「…」はサーバーが切った時の1つだけ（2026-10-25）。CSS の ::before／::after で字を足さない ──
+         足すと「……」になり、切っていない抜粋にも「…」が付く（会社ページは 10-25 まで ::after で足していた）。 */
+      const ell = r ? r.texts.map(t => (t.match(/…+$/) || [''])[0].length) : [];
+      ok(!!r && r.texts.length > 0 && r.texts.every(t => t === CLIP) && ell.every(n => n === 1) && !r.pseudo.length,
+        `${tag}: 抜粋はサーバーが切った字のまま・終わりの「…」は1つだけ（画面が字を足さない）`, JSON.stringify({ texts: r && r.texts, pseudo: r && r.pseudo }));
+      /* ★同じ1枚の中で、分類の名前は1つの表（2026-10-25）── 口コミの抜粋の札は、6角形の図の名前のどれか（「企業文化」「WLB」と並べない）。 */
+      const names = (sc.card && sc.card.radar || []).map(x => x.k), chips = (sc.card && sc.card.chips) || [];
+      ok(names.length === 6 && chips.length > 0 && chips.every(x => names.includes(x)),
+        `${tag}: 口コミの抜粋の札の名前は、同じ1枚の6角形の図の名前と同じ表（${chips.join('・')}）`, JSON.stringify({ chips, names }));
+      const fa = sc.card && sc.card.figAria;
+      ok(!!fa && fa.radar === 'real' && fa.role === 'list' && fa.hidden === null, `${tag}: 点数で塗った図は、名前と点数を読み上げる一覧（role list）`, JSON.stringify(fa));
     }
     const sh = await ev(() => window.__pvg.shape());
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
@@ -8225,6 +8286,7 @@ try {
   const work = [];
   if (wantS('view')) for (const s of ONLY) for (const v of VIEWS) work.push(() => runView(browser, s, v));
   if (wantS('off')) for (const s of ONLY) for (const v of VIEWS.filter(x => OFF_W.includes(x[0]))) work.push(() => runOff(browser, s, v), () => runFacts404(browser, s, v));
+  if (wantS('off')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => OFF_CARD_W.includes(x[0]))) work.push(() => runOffCard(browser, s, v));
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
   if (wantS('who')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || WHO_W.includes(x[0]))) work.push(() => runWho(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v), () => runRatedLogin(browser, s, v), () => runRatedFew(browser, s, v), () => runRatedNone(browser, s, v), () => runRatedErr(browser, s, v), () => runRatedOpen(browser, s, v));

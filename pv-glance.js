@@ -567,4 +567,35 @@
     b.focus();
     remark();
   });
+
+  /* ── 日付を途中で折らない（2026-10-25）────────────────────
+     注記の日付が行の終わりにかかると、日付の途中で折れていた（イベリア 1440 で「2025年1月／1日」。英語は「1 January／2025」も起きる）。
+     日付の塊を、折らない印（.pvg-nw ── 見た目は pv-glance.css）で包む。字は1文字も変えない（読み上げも通貨切替も同じ字を読む）。
+     どの会社のページも・日本語も英語も、この1つの決まり。生きた欄（.crl ── career-live.js が描き直す）には触らない。
+     CSS だけでは英語の語の切れ目を止められず、生成する HTML に印を入れると注記の字を読む検査がみな組み直しになるので、ここで包む。 */
+  var DATE_RE = /\d{4}年(?:\d{1,2}月(?:\d{1,2}日)?|度)?|(?:\d{1,2} )?(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/g;
+  function keepDates(box) {
+    var walk = d.createTreeWalker(box, NodeFilter.SHOW_TEXT, null), hits = [], n;
+    while ((n = walk.nextNode())) {
+      var up = n.parentNode;
+      if (!up || up.closest('.crl, .pvg-nw')) continue;
+      DATE_RE.lastIndex = 0;
+      if (DATE_RE.test(n.nodeValue)) hits.push(n);
+    }
+    hits.forEach(function (t) {
+      var s = t.nodeValue, frag = d.createDocumentFragment(), from = 0, m;
+      DATE_RE.lastIndex = 0;
+      while ((m = DATE_RE.exec(s))) {
+        if (m.index > from) frag.appendChild(d.createTextNode(s.slice(from, m.index)));
+        var nw = d.createElement('span');
+        nw.className = 'pvg-nw';
+        nw.textContent = m[0];
+        frag.appendChild(nw);
+        from = m.index + m[0].length;
+      }
+      if (from < s.length) frag.appendChild(d.createTextNode(s.slice(from)));
+      t.parentNode.replaceChild(frag, t);
+    });
+  }
+  [].forEach.call(d.querySelectorAll('.pvg small, .pvg .pvg-note'), keepDates);
 })(window, document);
