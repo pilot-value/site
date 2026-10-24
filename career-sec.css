@@ -121,6 +121,7 @@
   .cr-town-l{grid-template-columns:repeat(4, minmax(0,1fr))}
   .cr-sv-p{height:240px}
   .cr-rentbs{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:14px}
+  .cr-rentbs[data-only="b"] > .cr-rentb:not([hidden]){grid-column:2}
   .cr-rentb{padding:14px 16px 0}
 }
 @media (max-width:351px){

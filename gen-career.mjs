@@ -58,6 +58,8 @@ import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures, fxNote } from './salary-basis.mjs';
 import { viewOf, rentCell, coText, LEAD as LEAD_FIVE, scaleOf, scaleTop, width, SCALE_STEP } from './pv-airline-view.mjs';
+import { model, REGIONS } from './directory-model.mjs';
+import { logoHtml } from './airline-logo.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
 import { FACTS, atText, introText, valueText } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W } from './place-photos.mjs';
@@ -132,6 +134,20 @@ function career() {
   }
   WIDE = true;
 }
+/* 航空会社一覧と同じ並び・同じ地域（航空会社一覧の model()）。
+   ⚠️ model() を呼ぶのはこの dir() の中だけ。ファイルの地の文で呼ばない ── このファイルは gen-airline-glance.mjs からも読まれる。
+   一覧の決まりで止まるのは、比較を組むとき（build()）とカードを組むとき（cardData()）だけにする。 */
+let DIR = null;
+const dir = () => {
+  if (DIR) return DIR;
+  const M = model();
+  if ([...M.slugs].sort().join() !== [...ALL].sort().join()) throw new Error('航空会社一覧の会社が、年収の正本（SALARY）と違う');
+  for (const s of ALL) if (M.airlines[s].color !== color(s) || M.airlines[s].code !== code(s)) throw new Error(`${s}: 色か略号が、航空会社一覧と違う`);
+  return (DIR = M);
+};
+export const listed = () => dir().slugs;
+/* 比較とカードが出せる会社（gen-airline-glance.mjs の「他社と比較」「カードを保存」がこれを読む ── CA-4）。 */
+export const CMP = ALL;
 
 /* ── 棒に出す1マス ─────────────────────────────────────────────── */
 /* 主表示の1マス ＝ 推定年収。5社とも・どの職位も同じ決め方（会社ページと同じ読み口）。
@@ -882,6 +898,7 @@ ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(
 <span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}</span>
 <span class="cr-opt-n">${esc(name(s))}${IC.down}</span>
 </div>`).join('\n')}
+<div class="cr-opt cr-opt-x" data-airline="" hidden><span class="cr-opt-p"><span class="cr-opt-lg">${IC.down}</span></span><span class="cr-opt-n"><span class="cr-opt-t"></span></span></div>
 <button type="button" class="cr-pickb" id="cr-open-${id}" data-label="${label}" aria-label="${label} ${esc(name(chosen))}" aria-haspopup="dialog"></button>
 <span class="cr-ring" aria-hidden="true"></span>
 </div>`;
@@ -955,9 +972,9 @@ const HOST = (() => {
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)) throw new Error('CNAME が読めない（公開ページの住所を作れない）');
   return h;
 })();
-/* カードの島の並び：先行5社が先（カードの選ぶ欄の頭と、会社が決まらないときの1社は今までどおり）、あとは正本の順
-   （CA-3b1 から航空会社一覧の並び）。 */
-const ISLE = () => [...FIVE, ...ALL.filter(s => !FIVE.includes(s))];
+/* カードの島の並び：先行5社が先（カードの選ぶ欄の頭と、会社が決まらないときの1社は今までどおり）、あとは航空会社一覧の並び
+   （CA-3b1）。 */
+const ISLE = () => [...FIVE, ...listed().filter(s => !FIVE.includes(s))];
 export function cardData() {
   career();
   const airlines = {};
@@ -985,13 +1002,18 @@ function card() {
 }
 
 /* 比較の2社を選ぶ面（1つ・どちらの札からも開く）。並べるのは選べる会社。字は社名と略号だけ（額を置かない）。 */
-const choice = () => FIVE;                             // CA-3b1: listed()
-const entry = s => `<li><button type="button" class="cr-pk" data-airline="${s}" style="--cr-co:${color(s)}"><span class="cr-pk-n">${esc(name(s))}</span><span class="cr-pk-c">${esc(code(s))}</span></button></li>`;
+const choice = () => listed();
+/* ロゴは会社ページ・航空会社一覧と同じ部品（airline-logo.mjs）。面は開くまで見えないので、絵は見えたときに読む
+   （loading="lazy" ── 航空会社一覧の gen-directory.mjs と同じ足し方。部品は lazy の口を持たない）。 */
+const logo = s => logoHtml({ slug: s, color: color(s) }, { up: '' }).replace('<img ', () => '<img loading="lazy" ');
+const entry = s => `<li><button type="button" class="cr-pk" data-airline="${s}" style="--cr-co:${color(s)}"><span class="cr-pk-lg">${logo(s)}</span><span class="cr-pk-n">${esc(name(s))}</span><span class="cr-pk-c">${esc(code(s))}</span></button></li>`;
 function sheet() {
+  /* 会社は航空会社一覧の地域の見出しの下に、一覧の並びで（会社の無い地域は何も書かない）。見出しの行は、読み上げの「一覧の項目」に数えない。 */
   return `<dialog class="cr-sheet" id="cr-sheet" aria-labelledby="cr-sheet-h">
 <div class="cr-sheet-top"><h2 class="cr-sheet-h" id="cr-sheet-h">1社目</h2><button type="button" class="cr-sheet-x" id="cr-sheet-x" aria-label="閉じる">${IC.x}</button></div>
 <ul class="cr-sheet-l" id="cr-sheet-l">
-${choice().map(entry).join('\n')}
+${REGIONS.map(R => { const ss = choice().filter(s => dir().airlines[s].region === R.code);
+  return ss.length ? `<li class="cr-pk-gl" role="presentation" data-region="${R.code}"><h3 class="cr-pk-g">${esc(R.ja)}</h3></li>\n${ss.map(entry).join('\n')}` : ''; }).filter(Boolean).join('\n')}
 </ul>
 </dialog>`;
 }

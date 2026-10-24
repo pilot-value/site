@@ -259,8 +259,10 @@
          box-shadow:inset 0 0 0 2px var(--pv-accent), inset 0 0 0 4px color-mix(in srgb, white 82%, transparent);
          transition:opacity .15s var(--pv-ease)}
 .cr-pickb:focus-visible + .cr-ring{opacity:1}
-/* 2社を選ぶ面。開いているあいだ、後ろのページを動かさない（career.js が html に付けて外す）。 */
-html.cr-sheeting{overflow:hidden}
+/* 2社を選ぶ面。開いているあいだ、後ろのページを動かさない（career.js が html に付けて外す）。
+   幅をとるスクロールバーの画面（Windows など）では、隠したバーのぶん後ろのページが横へずれないよう、バーの幅を空けたままにする
+   （空けられないブラウザでは、career.js が測った幅 --cr-sb を右に足す）。 */
+html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-sb,0px)}
 /* margin:auto は面をまんなかに置く（ページの頭の * の margin:0 が、ブラウザの既定の auto を消すので書き戻す）。 */
 .cr-sheet{width:min(480px, calc(100% - 32px));max-height:min(640px, 80vh);margin:auto;padding:0;border:1px solid var(--pv-line);border-radius:var(--pv-r-lg);background:var(--pv-surface);color:var(--pv-ink);box-shadow:var(--pv-shadow);overflow:hidden;overscroll-behavior:contain}
 .cr-sheet[open]{display:flex;flex-direction:column}
@@ -278,10 +280,45 @@ html.cr-sheeting{overflow:hidden}
 @media (hover:hover){.cr-pk:hover{background:var(--pv-bg-sub)}}
 .cr-pk:active{transform:scale(.985)}
 .cr-pk[aria-current="true"]{background:var(--pv-accent-soft);color:var(--pv-accent-ink);font-weight:700}
-.cr-pk:disabled{opacity:.38;cursor:default}
+/* 選べない会社（もう片方の会社）は、乗せても押しても動かない（上の hover・active より後ろに置く）。 */
+.cr-pk:disabled{opacity:.38;cursor:default;background:transparent;transform:none}
 @media (max-width:759px){.cr-sheet{width:100%;max-width:100%;max-height:86vh;max-height:86dvh;margin:auto 0 0;border-bottom:0;border-radius:var(--pv-r-lg) var(--pv-r-lg) 0 0}}
 @media (prefers-reduced-motion:no-preference){.cr-sheet[open]{animation:cr-sheet-in .22s var(--pv-ease)}}
 @keyframes cr-sheet-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.cr-pk-gl{margin:0}
+.cr-pk-g{margin:0;padding:12px 10px 4px;font-size:12px;font-weight:700;color:var(--pv-ink-3)}
+/* ロゴの札（会社ページの社名の左と同じ描き方 ── 同じ部品 airline-logo.mjs が書く .pvg-logo。career.html は pv-glance.css を
+   読まないので、ここで描く）。白い地に元の縦横比のまま。読めなかったとき・ロゴの無い会社は、同じ大きさの会社の色の四角に頭文字。
+   この白はトークンに無い（ロゴの絵が白い地の上で描かれている）。 */
+.cr .pvg-logo{--lg-h:22px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:var(--lg-h);min-width:var(--lg-h);max-width:64px;padding:2px 5px;overflow:hidden;border-radius:var(--pv-r-sm);background:white;border:1px solid var(--pv-line)}
+.cr .pvg-logo > img{display:block;height:100%;width:auto;max-width:100%;object-fit:contain}
+.cr .pvg-logo > .pvg-mono{display:none}
+.cr .pvg-logo.is-mono,.cr .pvg-logo.is-fail{width:var(--lg-h);max-width:none;padding:0;border:0;background:var(--cr-co)}
+.cr .pvg-logo.is-mono > .pvg-mono,.cr .pvg-logo.is-fail > .pvg-mono{display:grid;place-items:center;width:100%;height:100%;font:800 12px/1 Inter,sans-serif;letter-spacing:.02em;color:var(--pvg-mono-ink,white)}
+.cr .pvg-logo.is-fail > img{display:none}
+/* 選ぶ面の1行：ロゴの枠の幅をそろえる（社名の頭が縦にそろう）。 */
+.cr-pk-lg{flex:none;display:flex;align-items:center;width:64px;height:24px}
+/* 写真の無い会社の札。地はサイトの紺・会社の色を左上からにじませる。上の段にロゴと「選び直せる」印、下に社名（行の幅ぜんぶ）。 */
+.cr-opt-x .cr-opt-p{background:radial-gradient(120% 150% at 0% 0%, color-mix(in srgb, var(--cr-co) 52%, var(--pv-navy)) 0%, var(--pv-navy) 66%)}
+.cr-opt-x .cr-opt-p::before{display:none}
+.cr-opt-lg{position:absolute;z-index:1;left:8px;top:10px;display:flex;align-items:center;gap:6px;color:var(--cr-on)}
+.cr-opt-lg .cr-ic{flex:none;width:13px;height:13px}
+.cr-opt-lg .pvg-logo{--lg-h:24px;max-width:72px}
+.cr-opt-x .cr-opt-n{word-break:keep-all}
+/* 社名の字は 12px（このページの下限）。幅に合わせて大きくしない ── 13字の1語（日本トランスオーシャン航空）が 390px で1行に入る。 */
+@media (max-width:759px){.cr-opt-x .cr-opt-n{left:8px;right:6px;font-size:12px}}
+.cr-opt-t{min-width:0}
+/* 写真の無い札が出ているあいだは、2枚とも高くする ── 社名が、まんなかの入れ替えボタン（44px）の帯より下に収まる高さ（E2.3 の計算）。
+   字を小さくして合わせない（下限は 12px）。374px 以下は、社名が3行になる会社がある（スイス インターナショナル エアラインズ ── 頭の2語で
+   箱の幅を超える）ので、3行ぶんの高さ（同じ計算で L = 3）。375px からは2行に収まる。 */
+.cr-pick.is-x .cr-opt-p{min-height:140px}
+@media (max-width:374px){.cr-pick.is-x .cr-opt-p{min-height:168px}}
+@media (min-width:760px){
+  .cr-opt-lg{left:16px;top:16px}
+  .cr-opt-lg .pvg-logo{--lg-h:32px;max-width:136px;padding:3px 8px}
+  .cr .pvg-logo.is-mono > .pvg-mono,.cr .pvg-logo.is-fail > .pvg-mono{font-size:13px}
+  .cr-pick.is-x .cr-opt-p{min-height:180px}
+}
 .cr-swap{position:absolute;z-index:4;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
          display:grid;place-items:center;border-radius:50%;cursor:pointer;
          background:var(--pv-surface);border:1px solid var(--pv-line);color:var(--pv-ink);
@@ -504,6 +541,7 @@ html.cr-sheeting{overflow:hidden}
   .cr-panel{padding:24px 24px 22px}
   .cr-row-v{font-size:28px}
   .cr-cards{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:16px}
+  .cr-cards[data-only="b"] > .cr-card:not([hidden]){grid-column:2}
   .cr-pub{padding:22px 22px 8px}
   .cr-pay{padding:22px 22px 18px}
   .cr-deep > .cr-hero{height:200px}

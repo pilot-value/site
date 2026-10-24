@@ -42,8 +42,8 @@ export const CARD_RULE = 'published-first';
 /* 金額の行の札の字（★ここ1か所。英語の副操縦士の字はリード P12.86-3 で採った C2） */
 const RANK_WORD = { cap: { ja: '機長', en: 'Captain' }, fo: { ja: '副操縦士', en: 'First Officer' } };
 
-// 2社を横に並べるページ（career.html?view=compare）が出せる会社。compare-all の「全社を選べるようにする」回がこの1行を Object.keys(SALARY) にする。
-export const twoSlugs = () => LEAD.filter((s) => s in SALARY);
+// 2社を横に並べるページ（career.html?view=compare）が出せる会社 ＝ 掲載している全社（compare-all CA-3b1）。
+export const twoSlugs = () => Object.keys(SALARY);
 
 /** 比較のチェックを付けるか。日本語ページ ＝ 2社比較で出せて、新しい会社ページ（SWITCH）を持つ会社（リード P12.86-1：4社も SWITCH に従う）。
     英語ページ ＝ 機種の段（fleet）を持つ会社（レベリング図だけに渡すので、段の無い4社には付けない） */

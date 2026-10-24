@@ -47,6 +47,9 @@ import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoS
 import * as PLACE from './place-photos.mjs';
 import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell, tabOfKey, CMP_KEYS } from './gen-career.mjs';
 import { frozenPrint, matrixPrint, qrMatrix } from './career-qr.mjs';
+/* 航空会社一覧の形（並び・地域 ── 台帳との突き合わせは assert-directory.mjs が持つ）と、投稿先だけの会社（年収を載せない会社）。 */
+import { model as dirModel, REGIONS as DIR_REGIONS } from './directory-model.mjs';
+import { OPS } from './airline-ops.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* 2026-10-21（P12.86-9）：開く先は PV_BASE で替えられる（serve-local の自分のポートで流すため。3000 は本番の DB につながる）。既定は今までどおり */
@@ -513,7 +516,9 @@ for (const p of PLACES) {
     || (x.photo && x.photo.file && new RegExp(`${PLACE.PHOTO_DIR}/${x.photo.file}(?:-\\d+)?\\.jpg`).test(HTML)));
   ok(!heldOut.length, `保留の写真 ${Object.keys(PLACE.HELD).length}件を画面に出していない`, heldOut.map(([k]) => k).join(', '));
 
-  const imgs = [...BLOCK.matchAll(/<img\b[^>]*>/g)].map(m => m[0]);
+  /* ★2026-10-25 段階5 compare-all-4（CA-3b1・同じ強さの当て直し）：会社を選ぶ面と写真の無い会社の札にはロゴの絵が在る。ロゴの札
+     （.pvg-logo）を先に切り取ってから、残りの絵を全部台帳と突き合わせる（ロゴは下の「ロゴ」の検査が持つ）。 */
+  const imgs = [...BLOCK.replace(/<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span>/g, () => '').matchAll(/<img\b[^>]*>/g)].map(m => m[0]);
   const off = [];
   for (const tag of imgs) {
     const at = k => (tag.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
@@ -573,11 +578,19 @@ head('掲載している全社（比較の材料）');
   const goCo = g => [...g.matchAll(/<a class="cr-link cr-go"[^>]*?\sdata-airline="([^"]+)"/g)].map(m => m[1]);
   const sorted = a => [...a].sort();
 
+  /* 2社を選ぶ面（#cr-sheet-l）の中身（★2026-10-25 段階5 compare-all-4・CA-3b1）── 地域の見出しの行と、会社の行だけ（ほかの形の行が在れば、
+     下の T-A12a が数の食い違いで落とす）。 */
+  const SHEET_L = elementAt(BLOCK, BLOCK.indexOf('<ul class="cr-sheet-l" id="cr-sheet-l">'));
+  const SHEET = [...SHEET_L.matchAll(/<li class="cr-pk-gl" role="presentation" data-region="([a-z]+)"><h3 class="cr-pk-g">([^<]*)<\/h3><\/li>|<li><button type="button" class="cr-pk" data-airline="([^"]+)" style="--cr-co:([^"]*)">([\s\S]*?)<\/button><\/li>/g)]
+    .map(m => (m[1] ? { g: m[1], h: decode(m[2]) } : { s: m[3], co: m[4], html: m[5] }));
+  const PK = SHEET.filter(x => x.s);
+
   /* T-A1 1つの集合：年収の行（機長・副操縦士）と、4つの「詳しく」の列は、どれも正本と同じ会社（並びも正本の順）。
-     ★2026-10-24 段階5 compare-all-2（CA-2）：カードの島（#crc-data）の会社も同じ集合（先行5社が先）。 */
+     ★2026-10-24 段階5 compare-all-2（CA-2）：カードの島（#crc-data）の会社も同じ集合（先行5社が先）。
+     ★2026-10-25 段階5 compare-all-4（CA-3b1）：2社を選ぶ面の会社も同じ集合（並びは航空会社一覧の並び ── 下の T-A12a）。 */
   const ISLK = Object.keys(CARD_AIR);
-  const sets = [...ROLES.map(([r]) => ROWS[r].map(x => x.s)), ...GOSB.map(goCo), ISLK];
-  ok(GOSB.length === GOS.length && sets.length === ROLES.length + GOS.length + 1 && sets.every(x => same(sorted(x), sorted(ALLK)))
+  const sets = [...ROLES.map(([r]) => ROWS[r].map(x => x.s)), ...GOSB.map(goCo), ISLK, PK.map(x => x.s)];
+  ok(GOSB.length === GOS.length && sets.length === ROLES.length + GOS.length + 2 && sets.every(x => same(sorted(x), sorted(ALLK)))
      && ROLES.every(([r]) => same(ROWS[r].map(x => x.s), ALLK)) && same(ISLK.slice(0, FIVE.length), FIVE),
      `比較が持つ会社は、年収の正本と同じ ${ALLK.length}社（数は打っていない）`,
      JSON.stringify({ gos: GOSB.length, sizes: sets.map(x => x.length), lack: sets.map(x => ALLK.filter(s => !x.includes(s)).slice(0, 4)), extra: sets.map(x => x.filter(s => !ALLK.includes(s)).slice(0, 4)), isleHead: ISLK.slice(0, FIVE.length) }));
@@ -829,6 +842,86 @@ head('掲載している全社（比較の材料）');
        && !oldIds.length && !needLack.length,
        '比較の会社選びは選ぶ面1つ：比較の画面に <select> が無い・<dialog> は管理ブロックに1つ（比較の画面の後ろ・#cr の中）・札のボタンは「1社目」「2社目」の2つ・面の見出しが空でない・career.js は無くなった選ぶ欄の id と .options を読まない・押せるものの印の一覧に面の5つ',
        JSON.stringify({ select: (CMP.match(/<select\b/g) || []).length, dialogs: dialogs.length, afterCmp: dialogs.length === 1 && cmpAt >= 0 && dialogs[0] > cmpAt + CMP.length, inCr, plates, heading, oldIds, needLack }));
+  }
+
+  /* 一覧の行（airlines-meta.js）とロゴの在る会社（airline-logos.js）── 生成側と同じ読み方で、ここで読む（生成側の関数は呼ばない）。 */
+  const winOf = f => { const w = {}; new Function('window', read(f))(w); return w; };
+  const META_ROWS = winOf('airlines-meta.js').PV_AIRLINES || [];
+  const PV_LOGOS = winOf('airline-logos.js').PV_LOGOS || {};
+
+  /* T-A12a 選ぶ面は航空会社一覧と同じ（★2026-10-25 段階5 compare-all-4・CA-3b1）：面の会社は掲載している全社で、並びは航空会社一覧の並び
+     （directory-model.mjs の model() ── 一覧の形そのもの。台帳との突き合わせは assert-directory.mjs が持つ）。会社の行は、その会社の地域の
+     見出しの下。略号の字と色（--cr-co）は一覧の行のまま。見出しは一覧の地域の名前（REGIONS の ja）で、会社の在る地域だけ・地域の順。
+     見出しの行は読み上げの「一覧の項目」に数えない（role="presentation"）。面の中の行は、この2つの形だけ。 */
+  {
+    const M = dirModel(), bad = [];
+    let cur = null;
+    for (const x of SHEET) {
+      if (x.g) { cur = x.g; continue; }
+      const row = META_ROWS.find(r => r.file === `airlines/${x.s}.html`), A = M.airlines[x.s];
+      const c = decode((x.html.match(/<span class="cr-pk-c">([^<]*)<\/span>/) || [])[1] || '');
+      if (!row || !A) { bad.push(`${x.s}: 航空会社一覧に無い`); continue; }
+      if (A.region !== cur) bad.push(`${x.s}: 見出し「${cur}」の下（地域 ${A.region}）`);
+      if (c !== row.code) bad.push(`${x.s}: 略号「${c}」（一覧 ${row.code}）`);
+      if (x.co !== row.color) bad.push(`${x.s}: 色 ${x.co}（一覧 ${row.color}）`);
+    }
+    const heads = SHEET.filter(x => x.g), want = DIR_REGIONS.filter(R => M.slugs.some(s => M.airlines[s].region === R.code));
+    const li = (SHEET_L.match(/<li\b/g) || []).length;
+    ok(PK.length > 0 && li === SHEET.length && same(PK.map(x => x.s), M.slugs) && same(sorted(M.slugs), sorted(ALLK))
+       && same(heads.map(x => x.h), want.map(R => R.ja)) && same(heads.map(x => x.g), want.map(R => R.code)) && !bad.length,
+       '比較の選ぶ面は、航空会社一覧と同じ会社・同じ並び・同じ地域',
+       JSON.stringify({ li, read: SHEET.length, entries: PK.length, firstOff: PK.findIndex((x, i) => x.s !== M.slugs[i]), heads: heads.map(x => x.h), bad: bad.slice(0, 6) }));
+  }
+
+  /* T-A16 ロゴ（★2026-10-25 段階5 compare-all-4・CA-3b1）：面の会社の行には、ロゴの札がちょうど1つ（.cr-pk-lg の中）。ロゴの在る会社は、
+     その会社自身のロゴの絵1枚（assets/airline-logos/{slug}.{拡張子}・alt は空・見えたときに読む）で、札ごと読み上げない（aria-hidden）。
+     ロゴの無い会社は頭文字の札（絵を置かない・1〜2字）。上の写真の検査はロゴを切り取ってから見る ── 切り取ったあとにロゴの絵が残らない・
+     先行5社の写真の札（.cr-opt）にロゴを置かない。 */
+  {
+    const bad = [];
+    const attr = (t, k) => (t.match(new RegExp(`\\s${k}="([^"]*)"`)) || [])[1];
+    for (const x of PK) {
+      const n = (x.html.match(/class="pvg-logo/g) || []).length;
+      const box = (x.html.match(/^<span class="cr-pk-lg">(<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span>)<\/span>/) || [])[1];
+      if (n !== 1 || !box) { bad.push(`${x.s}: ロゴの札 ${n}つ${box ? '' : '（.cr-pk-lg の中に無い・読み上げる）'}`); continue; }
+      const imgs = [...box.matchAll(/<img\b[^>]*>/g)].map(m => m[0]), mono = decode((box.match(/<b class="pvg-mono"[^>]*>([^<]*)<\/b>/) || [])[1] || '');
+      if (PV_LOGOS[x.s]) {
+        const t = imgs[0] || '';
+        if (imgs.length !== 1 || /is-mono/.test(box) || attr(t, 'src') !== `assets/airline-logos/${x.s}.${PV_LOGOS[x.s]}` || attr(t, 'alt') !== '' || attr(t, 'loading') !== 'lazy')
+          bad.push(`${x.s}: 絵 ${imgs.length}枚 ${t.slice(0, 100)}`);
+      } else if (!/^<span class="pvg-logo is-mono"/.test(box) || imgs.length || ![1, 2].includes([...mono].length)) bad.push(`${x.s}: 頭文字の札 ${box.slice(0, 100)}`);
+    }
+    const fiveLogo = [...CMP.matchAll(/<div class="cr-opt" data-airline="([^"]+)"/g)].filter(m => /pvg-logo/.test(elementAt(CMP, m.index))).map(m => m[1]);
+    const left = BLOCK.replace(/<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span>/g, () => '');
+    /* 上の写真の検査が切り取るロゴの札（この形の span）は、選ぶ面の会社の行の中の1つずつだけ。ほかの場所に置くと、その中の絵は台帳と
+       突き合わされない（台帳に無い写真を札に包めば通ってしまう）ので、数で縛る（★2026-10-25 compare-all-4 の検品で足した）。 */
+    const cut = (BLOCK.match(/<span class="pvg-logo[^"]*" aria-hidden="true">/g) || []).length;
+    ok(PK.length === ALLK.length && !bad.length && !fiveLogo.length && !left.includes('assets/airline-logos/') && cut === PK.length,
+       '選ぶ面のロゴは、その会社自身のロゴか頭文字（読み上げない）',
+       JSON.stringify({ entries: PK.length, cut, bad: bad.slice(0, 6), fiveLogo, left: (left.match(/.{0,40}assets\/airline-logos\/.{0,40}/) || [''])[0] }));
+  }
+
+  /* T-A14 b（★2026-10-25 段階5 compare-all-4・CA-3b1）：航空会社一覧の形（model()）を読むのは dir() の中の1か所だけ。dir()・listed()・career() を
+     呼ぶ所は、どれも関数の中 ── ファイルの地の文（読み込んだときに走る文）には無い（このファイルは会社ページの生成器 gen-airline-glance.mjs も
+     読む。一覧の決まりの1つの誤りで、全部の会社ページの生成まで止めない）。コメントを外して見る。地の文の1文 ＝ 字下げの無い行から始まる文
+     （字下げの無い行でも、テンプレートの中身 ── < や ${ で始まる行 ── は文の頭に数えない）。その文が関数の宣言（function）か、矢印の関数を
+     置くだけの const / let のときだけ、中の呼び出しは後で走る（すぐ呼ぶ (() => …)() は地の文）。 */
+  {
+    const G = noJsCmt(read('gen-career.mjs')), lines = G.split('\n');
+    const START = /^(?!\$\{)[A-Za-z_$]/;
+    const FN = /^(?:export\s+)?(?:async\s+)?function\b|^(?:export\s+)?(?:const|let)\s+[\w$]+\s*=\s*(?:\([^()]*\)|[\w$]+)\s*=>/;
+    const stmtOf = i => { for (let k = G.slice(0, i).split('\n').length - 1; k >= 0; k--) if (START.test(lines[k])) return lines[k]; return ''; };
+    const hits = [...G.matchAll(/(model|dir|listed|career)\(/g)].filter(m => {
+      const p = G[m.index - 1] || '';
+      if (/[\w$]/.test(p) || (p === '.' && G[m.index - 2] !== '.')) return false;   // 名前の一部・ほかのものの口（x.listed(）。広げる ...listed( は数える
+      return !/function\s+$/.test(G.slice(Math.max(0, m.index - 12), m.index));
+    });
+    const dAt = G.indexOf('\nconst dir = () => {'), dEnd = dAt >= 0 ? G.indexOf('\n};', dAt) : -1;
+    const models = hits.filter(m => m[1] === 'model');
+    const loose = hits.filter(m => !FN.test(stmtOf(m.index))).map(m => `${m[1]}()「${stmtOf(m.index).slice(0, 48)}」`);
+    ok(models.length === 1 && dAt >= 0 && models[0].index > dAt && models[0].index < dEnd && !loose.length,
+       'gen-career.mjs は、読み込まれただけでは全社の読み口と航空会社一覧の決まりを走らせない（会社ページの生成器も読む）',
+       JSON.stringify({ model: models.length, inDir: models.map(m => m.index > dAt && m.index < dEnd), loose }));
   }
 }
 
@@ -1706,6 +1799,193 @@ try {
     await c();
   }
 
+  /* R3 掲載している全社の社名（★2026-10-25 段階5 compare-all-4・CA-3b1 ── 上の「狭い画面で社名が語の途中で折れない／入れ替えボタンが社名と
+     略号の札に掛からない」を、先行5社から掲載している全社へ広げる）。1枚のページで、4つの大きさごとに、全社を2社ずつ並べ替えて
+     （正本の順に 1・2社目、3・4社目 … と、その左右を入れ替えたもの ── どの会社も左と右に1回ずつ、札・年収の行・「詳しく」に立つ。
+     3行の社名が右の札に立っても入れ替えボタンに掛からないことまで見るため）、両側を測る：
+       a) 写真の無い会社の札（.cr-opt-x）の社名は正本の字（SALARY の ja）・2行まで（374px 以下は3行まで）。語の途中で折れるのは、その1語だけで
+          社名の箱より長いときだけ（語の切れ目 ＝「・」の後ろ・空白・「（」の前。行は字ごとの四角で数え、1語の幅は同じ字の写しを折らずに札の中に
+          置いて測る）。そういう社名は大きさごとに LONG に集めて出す ── 390px と 1001px では1つも無いこと。
+       b) その札の「選び直せる」印（.cr-opt-lg の ▼）はちょうど1つ・社名の字とロゴの段が、まんなかの入れ替えボタン（丸）に掛からない・
+          札にロゴが在る・2枚の札の高さが同じ（±1px）。
+       c) 先行5社のほかの会社の年収の行の社名（.cr-row-co）と「詳しく」の社名（.cr-go-n）は 2行まで（374px 以下は3行まで）・はみ出さない・
+          その行の額（.cr-row-v）が行の外へ出ない（先行5社は上の1行の検査）。
+     それから、行の額の字がいちばん長くなる通貨（PVCurrency.rates から、ページの中で選ぶ ── 円は除く。同じ長さなら字の合計が長いほう）にして、
+     もう1周 c) だけを測る。最後に円へ戻す。 */
+  head('掲載している全社の社名（札・年収の行・「詳しく」）');
+  {
+    const { page: p, close: c } = await open('?view=compare', 390, 680);
+    await settle(p);
+    const PAIRS = Array.from({ length: Math.ceil(ALLK.length / 2) }, (_, i) => [ALLK[2 * i], ALLK[2 * i + 1] || ALLK.find(s => s !== ALLK[2 * i])])
+      .flatMap(([a, b]) => [[a, b], [b, a]]);
+    const SIZES = [[320, 568], [360, 640], [390, 680], [1001, 800]];
+    const JA = Object.fromEntries(ALLK.map(s => [s, SALARY[s].ja]));
+    const measure = (w, plates) => p.evaluate((FIVE_, JA, w, plates) => {
+      const V = document.querySelector('#cr .cr-view[data-view="compare"]');
+      const on = el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+      const most = w < 375 ? 3 : 2, bad = [], long = [];
+      /* 字ごとの四角と行の番号（空白は数えない）。 */
+      const chars = el => {
+        const out = [], tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let n; (n = tw.nextNode());) for (let i = 0; i < n.nodeValue.length; i++) {
+          const ch = n.nodeValue[i];
+          let r = null;
+          if (ch.trim()) { const g = document.createRange(); g.setStart(n, i); g.setEnd(n, i + 1); r = [...g.getClientRects()].find(x => x.width > 0.5) || null; }
+          out.push({ ch, r, line: -1 });
+        }
+        let line = -1, top = null;
+        for (const x of out) { if (!x.r) continue; if (top === null || x.r.top - top > 6) { line++; top = x.r.top; } x.line = line; }
+        return out;
+      };
+      const linesOf = cs => cs.reduce((m, x) => Math.max(m, x.line + 1), 0);
+      const cut = (t, i) => i <= 0 || i >= t.length || t[i - 1] === '・' || !t[i - 1].trim() || !t[i].trim() || t[i] === '（';
+      const wordAt = (t, k) => { let a = k, z = k + 1; while (!cut(t, a)) a--; while (!cut(t, z)) z++; return t.slice(a, z).trim(); };
+      /* 行が替わる所のうち、語の切れ目でない所（そこから始まる字の番号）。 */
+      const inner = cs => { const t = cs.map(x => x.ch).join(''), out = []; let prev = null;
+        cs.forEach((x, k) => { if (!x.r) return; if (prev && x.line > prev.line && !cut(t, k)) out.push(wordAt(t, k)); prev = x; });
+        return out; };
+      const widthOf = (host, el, word) => {
+        const cs = getComputedStyle(el), s = document.createElement('span');
+        s.textContent = word;
+        s.style.cssText = 'position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap';
+        for (const k of ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'letterSpacing', 'fontFeatureSettings', 'fontKerning']) s.style[k] = cs[k];
+        host.appendChild(s); const wd = s.getBoundingClientRect().width; s.remove(); return wd;
+      };
+      const btn = V.querySelector('.cr-swap'), sw = btn ? btn.getBoundingClientRect() : null;
+      const hit = x => { const cx = sw.left + sw.width / 2, cy = sw.top + sw.height / 2; return sw.width / 2 - Math.hypot(Math.max(x.left - cx, 0, cx - x.right), Math.max(x.top - cy, 0, cy - x.bottom)); };
+      if (plates) {
+        const sides = [...V.querySelectorAll('.cr-side')].map(sd => [...sd.querySelectorAll('.cr-opt')].filter(on));
+        if (sides.length !== 2 || sides.some(l => l.length !== 1)) bad.push(`見えている札 ${sides.map(l => l.length).join('・')}枚`);
+        const hs = sides.map(l => l[0]).filter(Boolean).map(o => o.querySelector('.cr-opt-p').getBoundingClientRect().height);
+        if (hs.length === 2 && Math.abs(hs[0] - hs[1]) > 1) bad.push(`札の高さ ${hs.map(h => Math.round(h)).join(' / ')}`);
+        for (const o of sides.map(l => l[0]).filter(x => x && x.classList.contains('cr-opt-x'))) {
+          const s = o.dataset.airline, n = o.querySelector('.cr-opt-n'), t = o.querySelector('.cr-opt-t'), lg = o.querySelector('.cr-opt-lg');
+          if (t.textContent !== JA[s]) bad.push(`${s}: 札の社名「${t.textContent}」`);
+          const cs = chars(t), lines = linesOf(cs), box = n.getBoundingClientRect().width;
+          if (lines > most) bad.push(`${s}: 札の社名 ${lines}行`);
+          for (const wd of inner(cs)) { if (widthOf(n, t, wd) > box + 0.5) long.push(s); else bad.push(`${s}: 札の社名が語の途中で折れる（「${wd}」は箱 ${Math.round(box)}px に入る）`); }
+          const marks = [...lg.querySelectorAll('.cr-ic')].filter(on).length;
+          if (marks !== 1) bad.push(`${s}: 「選び直せる」印 ${marks}つ`);
+          if (!lg.querySelector('.pvg-logo')) bad.push(`${s}: 札にロゴが無い`);
+          if (!sw) { bad.push('入れ替えボタンが無い'); continue; }
+          const over = [...cs.filter(x => x.r).map(x => ['社名', hit(x.r)]), ['ロゴの段', hit(lg.getBoundingClientRect())]].filter(x => x[1] > 0);
+          if (over.length) bad.push(`${s}: 入れ替えボタンが${[...new Set(over.map(x => x[0]))].join('・')}に掛かる（${Math.round(Math.max(...over.map(x => x[1])) * 10) / 10}px）`);
+        }
+      }
+      for (const el of V.querySelectorAll('.cr-row-co, .cr-go-n')) {
+        if (!on(el)) continue;
+        const s = (el.closest('[data-airline]') || {}).dataset?.airline;
+        if (!s || FIVE_.includes(s)) continue;
+        const kind = el.matches('.cr-row-co') ? '年収の行' : '「詳しく」', lines = linesOf(chars(el));
+        if (lines > most) bad.push(`${s}: ${kind}の社名 ${lines}行`);
+        if (el.scrollWidth > el.clientWidth + 1) bad.push(`${s}: ${kind}の社名がはみ出す（${el.scrollWidth} / ${el.clientWidth}）`);
+        if (el.matches('.cr-row-co')) {
+          const row = el.closest('.cr-row'), v = row.querySelector('.cr-row-v');
+          if (v.getBoundingClientRect().right > row.getBoundingClientRect().right + 0.5) bad.push(`${s}: 額「${v.textContent.trim()}」が行の外`);
+        }
+      }
+      return { bad, long };
+    }, FIVE, JA, w, plates);
+    const walk = async (w, plates, cur) => {
+      const bad = [], long = new Set();
+      for (const [a, b] of PAIRS) {
+        await p.evaluate((a, b) => window.PVCareer.replace({ view: 'compare', a, b }), a, b);
+        const got = await p.evaluate(() => location.search);
+        if (got !== `?view=compare&a=${a}&b=${b}`) { bad.push(`${a}|${b}: 開いたのは ${got}`); continue; }
+        const m = await measure(w, plates);
+        bad.push(...m.bad.map(x => `${cur ? cur + ' ' : ''}${a}|${b} ${x}`));
+        m.long.forEach(s => long.add(s));
+      }
+      return { bad, long: [...long] };
+    };
+    for (const [w, h] of SIZES) {
+      await p.setViewport({ width: w, height: h });
+      const r = await walk(w, true);
+      console.log(`    LONG ${w}px: ${r.long.join(', ') || 'なし'}`);
+      const longBad = [390, 1001].includes(w) && r.long.length ? [`1語が箱より長い社名 ${r.long.join(', ')}（この幅では無いはず）`] : [];
+      ok(!r.bad.length && !longBad.length,
+         `${w}px: 掲載している全社の社名が、札・年収の行・「詳しく」で切れない・語の途中で折れない（1語が箱より長いときだけ）・入れ替えボタンに掛からない`,
+         [...longBad, ...r.bad].slice(0, 8).join('\n      '));
+    }
+    const WIDEST = await p.evaluate(() => {
+      const C = window.PVCurrency;
+      let best = null;
+      for (const cur of Object.keys(C.rates).filter(x => x !== 'JPY')) {
+        C.set(cur);
+        const t = [...document.querySelectorAll('#cr .cr-cmp .cr-row-v')].map(e => e.textContent.trim());
+        const sc = [Math.max(...t.map(x => x.length)), t.reduce((n, x) => n + x.length, 0)];
+        if (!best || sc[0] > best.sc[0] || (sc[0] === best.sc[0] && sc[1] > best.sc[1])) best = { cur, sc };
+      }
+      return best ? best.cur : null;
+    });
+    await p.evaluate(x => window.PVCurrency.set(x), WIDEST);
+    for (const [w, h] of SIZES) {
+      await p.setViewport({ width: w, height: h });
+      const r = await walk(w, false, WIDEST);
+      ok(!!WIDEST && !r.bad.length, `${w}px・${WIDEST}: 年収の行・「詳しく」の社名と額が切れない`, r.bad.slice(0, 8).join('\n      '));
+    }
+    await p.evaluate(() => window.PVCurrency.set('JPY'));
+    await c();
+  }
+
+  /* R4（★2026-10-25 段階5 compare-all-4・CA-3b1 ── 状態を1回だけ見る）：写真の無い会社どうし（united|delta）を直に開くと、2枚とも写真の無い会社の
+     札（その会社の社名とロゴ）で、年収の行はその2社。投稿先だけの会社（OPS ── 年収を載せない会社。台帳から読む）と知らない名前の住所は、
+     既定の2社へ直る（住所も直る）。 */
+  head('写真の無い会社どうし・比較に出せない会社の住所');
+  {
+    const { page: p, close: c } = await open('?view=compare&a=united&b=delta', 1280, 800);
+    const plates = () => p.evaluate(() => [...document.querySelectorAll('#cr .cr-cmp .cr-side')].map(sd => [...sd.querySelectorAll('.cr-opt')]
+      .filter(o => o.getClientRects().length).map(o => [o.classList.contains('cr-opt-x'), o.dataset.airline, (o.querySelector('.cr-opt-t') || {}).textContent || '', !!o.querySelector('.cr-opt-lg .pvg-logo')])));
+    const g = await shown(p), pl = await plates();
+    ok(same(pl, [[[true, 'united', name('united'), true]], [[true, 'delta', name('delta'), true]]]) && same(g.rows, ROLES.map(() => ['united', 'delta'])),
+       '写真の無い2社を並べると、2枚とも写真の無い会社の札（社名とロゴ）・年収の行はその2社', JSON.stringify({ plates: pl, rows: g.rows }));
+    const OPS0 = Object.keys(OPS)[0];
+    await go(p, `?view=compare&a=${OPS0}&b=zzz`);
+    const q = await search(p), g2 = await shown(p);
+    ok(!!OPS0 && !(OPS0 in SALARY) && q === `?view=compare&a=${PAIR[0]}&b=${PAIR[1]}` && same(g2.rows, ROLES.map(() => PAIR)),
+       `比較に出せない会社（投稿先だけの ${OPS0}・知らない名前）の住所は、既定の2社（${PAIR.map(name).join('・')}）へ直る`, JSON.stringify({ q, rows: g2.rows }));
+    await c();
+  }
+
+  /* T-A0b'（★2026-10-25 段階5 compare-all-4・CA-A20 ── 先行5社のほかの会社を選べるようになって、片方にだけ在る箱が初めて出る）：
+     片方の会社にだけ在る箱（公表額の一覧・家賃の箱）は、その会社の列に置く（もう片方の列は空ける）・2社とも無ければ、見出しごと出さない
+     （家賃の節・税の行・写真のクレジットも）。「会社が公表している金額」の箱は、一覧を持つ会社が並べた2社に1社も無ければ出さない
+     （2026-10-22 LEAD AMENDMENT。先行5社のうち一覧を持たない会社のカードは社名だけ）。1280×800。 */
+  head('片方の会社にだけ在る箱は、その会社の列（2社とも無ければ見出しごと出さない）');
+  {
+    const { page: p, close: c } = await open('', 1280, 800);
+    const boxes = () => p.evaluate(() => {
+      const V = document.querySelector('#cr .cr-view[data-view="compare"]');
+      const vis = el => !!el && el.getClientRects().length > 0;
+      const one = sel => {
+        const b = V.querySelector(sel);
+        if (!b) return null;
+        const r = b.getBoundingClientRect();
+        return { shown: vis(b), only: b.getAttribute('data-only'), mid: r.left + r.width / 2,
+          kids: [...b.children].filter(e => e.dataset.airline && vis(e)).map(e => { const x = e.getBoundingClientRect(); return { s: e.dataset.airline, l: x.left, r: x.right }; }) };
+      };
+      return { cards: one('.cr-cards'), rents: one('.cr-rentbs'), wrap: vis(V.querySelector('.cr-rents[data-wrap]')), taxes: one('.cr-taxes'), credits: one('.cr-credits') };
+    });
+    const right = (x, s) => !!x && x.shown && x.only === 'b' && x.kids.length === 1 && x.kids[0].s === s && x.kids[0].l >= x.mid - 1;
+    const left = (x, s) => !!x && x.shown && x.only === 'a' && x.kids.length === 1 && x.kids[0].s === s && x.kids[0].r <= x.mid + 1;
+    const gone = x => !!x && !x.shown;
+    const SCENES = [
+      ['emirates', 'jal', g => right(g.rents, 'jal') && g.wrap && gone(g.cards) && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['emirates', 'jal']) && !g.taxes.only],
+      ['jal', 'united', g => left(g.rents, 'jal') && g.wrap && gone(g.cards)],
+      ['emirates', 'cathay-pacific', g => right(g.cards, 'cathay-pacific') && right(g.rents, 'cathay-pacific')],
+      ['cathay-pacific', 'united', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific')],
+      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && gone(g.taxes) && gone(g.credits)],
+    ];
+    for (const [a, b, want] of SCENES) {
+      await go(p, `?view=compare&a=${a}&b=${b}`);
+      await settle(p);
+      const g = await boxes();
+      ok(want(g), `${a}|${b}: 公表額の一覧が片方の会社にだけ在るときは、その会社の列に置く・2社とも無いときは見出しごと出さない（家賃の箱・節・税・クレジットも）`,
+         JSON.stringify(g));
+    }
+    await c();
+  }
+
   /* ── ⑦ 大きさ ───────────────────────────────────────────────── */
   head('比較 → カード保存の入口が、いま並べている2社を連れていく');
   {
@@ -1725,7 +2005,9 @@ try {
   /* 深い会社（DEEP）の、タブ・就航地・詳細・カードの画面。 */
   const DEEP_VIEWS = DEEP.flatMap(s => [`?airline=${s}&tab=work`, `?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`,
     `?airline=${s}&d=cap-est`, `?airline=${s}&d=fo-est`, `?view=compare&a=${s}&b=jal`, `?view=card&a=${s}&b=jal`, `?view=card&a=${s}`]);
-  const VIEWS = [...OLD_VIEWS, ...DEEP_VIEWS];
+  /* 写真の無い会社の札と、概要を持たない会社のカード（全社を開けるようにしたあと）。写真の検査には入れない（写真が無い）。 */
+  const WIDE_VIEWS = ['?view=compare&a=united&b=delta', '?view=compare&a=jal&b=united', '?view=card&a=united'];
+  const VIEWS = [...OLD_VIEWS, ...DEEP_VIEWS, ...WIDE_VIEWS];
   /* 写真の出る画面（詳細とカードは、ここでは見ない ── 詳細に写真は無く、カードの写真は画像の中へ描く）。 */
   const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`])];
   /* 押せるものの種類。ここに無い形のものが増えたら落とす（hover / active を付け忘れる）。 */
@@ -2390,7 +2672,7 @@ try {
         /* クレジットの段は1画面に2つ在ることがある（機体の写真の段と、街・就航地の写真の段）。見えているものを全部読む。 */
         const crs = [...v.querySelectorAll('.cr-credits')].filter(on);
         return {
-          imgs: [...v.querySelectorAll('img')].filter(on).map(i => i.getAttribute('src')),
+          imgs: [...v.querySelectorAll('img')].filter(i => on(i) && !i.closest('.pvg-logo')).map(i => i.getAttribute('src')),
           links: crs.flatMap(cr => [...cr.querySelectorAll('a')].filter(on).map(a => [a.getAttribute('href'), a.textContent.trim(), a.target, a.rel])),
           /* 1枚ぶんの塊ごとに、中のリンクを順に。 */
           spans: crs.filter(seen).flatMap(cr => [...cr.querySelectorAll('.cr-credit')].filter(seen).map(s => [...s.querySelectorAll('a')].filter(seen).map(a => [a.getAttribute('href'), a.textContent.trim()]))),

@@ -161,12 +161,22 @@
 
     /* 比較の2社を入れ替える。全社ぶんが全部 HTML に在り、見せる2社を選ぶ（と、2社の目盛で棒の長さを決め直す）だけ。 */
     function pair(a, b) {
+      /* 写真の札は先行5社だけ。ほかの会社は、写真の無い会社の札（.cr-opt-x ── 1側に1枚）に、選ぶ面のその会社の社名・色・ロゴを写す。 */
+      var anyX = false;
       each(cmp.querySelectorAll('.cr-side'), function (side) {
         var want = side.dataset.side === 'a' ? a : b;
-        each(side.querySelectorAll('.cr-opt'), function (o) { o.hidden = o.dataset.airline !== want; });
+        var hit = false, x = null;
+        each(side.querySelectorAll('.cr-opt'), function (o) {
+          if (o.classList.contains('cr-opt-x')) { x = o; return; }
+          o.hidden = o.dataset.airline !== want;
+          if (!o.hidden) hit = true;
+        });
+        if (x) { plate(x, hit ? null : pkOf[want]); if (!hit) anyX = true; }
         var p = pkOf[want], n = p && p.el.querySelector('.cr-pk-n'), ob = openB[side.dataset.side];
         if (ob && n) ob.setAttribute('aria-label', ob.dataset.label + ' ' + n.textContent.replace(/\s+/g, ' ').trim());
       });
+      /* 写真の無い札が出ているあいだは、2枚とも高くする（社名が、まんなかの入れ替えボタンの帯より下に収まる ── career.css）。 */
+      var pick = cmp.querySelector('.cr-pick'); if (pick) pick.classList.toggle('is-x', anyX);
       each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-rentb, .cr-credit, .cr-go'), function (el) {
         var s = el.dataset.airline;
         el.hidden = s !== a && s !== b;
@@ -193,16 +203,6 @@
           if (m > 0) f.style.setProperty('--w', (m / top).toLocaleString('en-US', PCT));
         });
       }
-      /* 「会社が公表している金額」の箱は、並べた2社のどちらにも中身（社名の見出しのほか）が無ければ描かない
-         （空の箱を置かない ── 2026-10-22 LEAD AMENDMENT）。片方に在れば、もう片方は社名だけ。 */
-      each(cmp.querySelectorAll('.cr-cards'), function (box) {
-        var any = false;
-        each(box.children, function (card) {
-          if (card.dataset.airline !== a && card.dataset.airline !== b) return;
-          each(card.children, function (c) { if (!c.classList.contains('cr-card-h')) any = true; });
-        });
-        box.hidden = !any;
-      });
       /* 並びは置き場所そのものを入れ替える。見た目の順だけ変えると、
          読み上げと Tab の順が画面と食い違う。
          同じ会社の要素が続けて在っても、まとめて順のまま運ぶ。
@@ -214,6 +214,25 @@
           if (el.dataset.airline === b && !eb) eb = el;
         });
         if (eb) ea.forEach(function (el) { box.insertBefore(el, eb); });
+        /* 2社とも中身の無い入れ物は、見出しごと出さない。片方だけのときは、その会社の列に置いたままにする（もう片方の列は空ける）。 */
+        if (box.matches && box.matches('.cr-taxes, .cr-cards, .cr-rentbs, .cr-credits')) {
+          var n = 0, one = null;
+          each(box.children, function (el) { if (el.dataset && el.dataset.airline && !el.hidden) { n++; one = one || el; } });
+          box.hidden = n === 0;
+          /* 「会社が公表している金額」の箱は、並べた2社のどちらにも一覧（社名の見出しのほかの中身）が無ければ、カードが在っても描かない
+             （空の箱を置かない ── 2026-10-22 LEAD AMENDMENT）。片方に在れば、もう片方（先行5社）は社名だけ。 */
+          if (n && box.classList.contains('cr-cards')) {
+            var any = false;
+            each(box.children, function (card) {
+              if (card.hidden || !card.dataset.airline) return;
+              each(card.children, function (c) { if (!c.classList.contains('cr-card-h')) any = true; });
+            });
+            box.hidden = !any;
+          }
+          if (n === 1) box.setAttribute('data-only', one.dataset.airline === a ? 'a' : 'b'); else box.removeAttribute('data-only');
+          var wrap = box.closest ? box.closest('[data-wrap]') : null;
+          if (wrap) wrap.hidden = n === 0;
+        }
       });
       /* カード保存への入口は、いま並べている2社を連れていく（HTML には既定の2社が書いてある）。 */
       var to = document.getElementById('cr-to-card');
@@ -487,6 +506,18 @@
       root.classList.remove('cr-sheeting');
       turn = null;
     }
+    function plate(x, o) {                          // x: .cr-opt-x、o: 選ぶ面の1件（無ければ隠す）
+      x.hidden = !o;
+      x.dataset.airline = o ? o.slug : '';
+      if (!o) return;
+      var c = o.el.style.getPropertyValue('--cr-co');
+      if (c) x.style.setProperty('--cr-co', c); else x.style.removeProperty('--cr-co');
+      /* ロゴは選ぶ面の1行のものを写す（名前・色・ロゴだけ。額は写さない）。印（▼）は札の上の段のロゴの右。 */
+      var lg = x.querySelector('.cr-opt-lg'), src = o.el.querySelector('.pvg-logo'), old = lg.querySelector('.pvg-logo');
+      if (old) lg.removeChild(old);
+      if (src) lg.insertBefore(src.cloneNode(true), lg.firstChild);
+      x.querySelector('.cr-opt-t').textContent = o.el.querySelector('.cr-pk-n').textContent;
+    }
     function filter() {}                            // CA-3b2
     function shownPk() {                            // いま選べる会社（画面の並びの順）
       var out = [];
@@ -503,7 +534,12 @@
       });
       if (sheetQ) sheetQ.value = '';
       filter();
+      /* 幅をとるスクロールバーの画面（Windows など）では、隠れたバーの幅を後ろのページの右に足して、ページを横へずらさない
+         （バーの幅がそのまま残るブラウザでは、足すのは 0）。 */
+      var bar0 = window.innerWidth - root.clientWidth;
       root.classList.add('cr-sheeting');
+      var lost = bar0 - (window.innerWidth - root.clientWidth);
+      if (lost > 0) root.style.setProperty('--cr-sb', lost + 'px'); else root.style.removeProperty('--cr-sb');
       if (typeof sheet.showModal === 'function') sheet.showModal(); else sheet.setAttribute('open', '');
       /* 指で使う端末では、開いた瞬間に文字盤で一覧を隠さない（検索欄は一覧のすぐ上に在る）。 */
       var coarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
