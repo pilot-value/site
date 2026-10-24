@@ -240,7 +240,7 @@ localhost でスクリーンショットを撮って目視する。**1回撮っ�
 
 ## 目的
 年収の公開レンジが無い会社（小規模航空会社・チャーター会社・ビジネスジェット運航会社・
-貨物・リージョナル）を、**給与フォームで選べて REAL PAY に正しい社名で出る**ところまで通す。
+貨物・リージョナル・年収のまだ無い定期旅客）を、**給与フォームで選べて REAL PAY に正しい社名で出る**ところまで通す。
 会社ページも年収の帯も作らない。
 
 ## ⚠️ 足す前に確かめる3つ
@@ -265,7 +265,7 @@ localhost でスクリーンショットを撮って目視する。**1回撮っ�
     ja: '正式名称（略称）',        // ★括弧の外と中の両方が pv_airline_resolve に効く
     en: 'Official Name (ABBR)',
     region: 'japan',              // gen-airline-codes.mjs の8地域のいずれか
-    kind: 'bizjet',               // bizjet / charter / regional / cargo
+    kind: 'bizjet',               // bizjet / charter / regional / cargo / passenger（定期旅客）
     alias: ['略称', 'よみがな'],   // ★画面の検索欄だけが読む。DB には出さない
     src: '会社公式サイト 2026-09-13',
   },
