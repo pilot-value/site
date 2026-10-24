@@ -33,7 +33,7 @@ import { GLANCE, LEAD, SWITCH, RANKS, scaleOf, viewOf, width, yen, rentCell, coS
 import { barGroup } from './pv-bars.mjs';
 import { fxNote, BASIS } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
-import { TOPICS, askGroup, FIVE as CAREER, EST_TARGET } from './gen-career.mjs';
+import { TOPICS, askGroup, CMP as CAREER, EST_TARGET } from './gen-career.mjs';
 import { researchHeld, EN_SWITCH } from './airline-rollout.mjs';
 import { AD_TAG } from './airline-display.mjs';
 import { QUESTIONS } from './pv-conditions.mjs';
