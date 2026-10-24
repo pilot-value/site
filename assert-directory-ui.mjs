@@ -1117,8 +1117,9 @@ async function main() {
       if (!en) {
         /* c8 「航空会社を比較」→ career.html が jal と ana を2社として開く（住所の約束の端から端まで）→ 戻る */
         const went2 = await toDoc(page, '/career.html', () => page.click('#wd-tray-two'));
-        const sides = went2 && await until(page, () => { const a = document.getElementById('cr-a'), b = document.getElementById('cr-b'); return !!a && !!b && a.value === 'jal' && b.value === 'ana'; });
-        const at2 = await page.evaluate(() => ({ path: location.pathname, search: location.search, a: (document.getElementById('cr-a') || {}).value, b: (document.getElementById('cr-b') || {}).value }));
+        /* 2社は札に見えている会社で読む（★2026-10-25 段階5 compare-all-3：career.html の2つの選ぶ欄は無くなり、札を押すと開く選ぶ面で選ぶ） */
+        const sides = went2 && await until(page, () => { const on = (sd) => document.querySelector(`#cr .cr-side[data-side="${sd}"] .cr-opt:not([hidden])`); const a = on('a'), b = on('b'); return !!a && !!b && a.dataset.airline === 'jal' && b.dataset.airline === 'ana'; });
+        const at2 = await page.evaluate(() => { const on = (sd) => (document.querySelector(`#cr .cr-side[data-side="${sd}"] .cr-opt:not([hidden])`) || { dataset: {} }).dataset.airline; return { path: location.pathname, search: location.search, a: on('a'), b: on('b') }; });
         ok(went2 && sides, T(`card 「${TWO_WORD}」を押す → career.html?view=compare&a=jal&b=ana が jal と ana を2社として開く`), J(at2));
         await page.goBack({ waitUntil: 'load', timeout: 60000 });
         await ready(page);

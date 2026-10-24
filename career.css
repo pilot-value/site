@@ -252,13 +252,36 @@
   .cr-opt .cr-code::after{content:"";display:inline-block;width:5px;height:5px;margin:0 1px 2px 6px;
                           border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
 }
-/* 押す所は透明な select（カード全体）。見えているのは写真のカード。 */
-.cr-sel{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;border:0;opacity:0;
-        cursor:pointer;font-size:16px;appearance:none;-webkit-appearance:none}
+/* 押す所は透明なボタン（カード全体）。見えているのは写真のカード。 */
+.cr-pickb{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cr .cr-pickb:focus-visible{outline:none}
 .cr-ring{position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;opacity:0;
          box-shadow:inset 0 0 0 2px var(--pv-accent), inset 0 0 0 4px color-mix(in srgb, white 82%, transparent);
          transition:opacity .15s var(--pv-ease)}
-.cr-sel:focus-visible + .cr-ring{opacity:1}
+.cr-pickb:focus-visible + .cr-ring{opacity:1}
+/* 2社を選ぶ面。開いているあいだ、後ろのページを動かさない（career.js が html に付けて外す）。 */
+html.cr-sheeting{overflow:hidden}
+/* margin:auto は面をまんなかに置く（ページの頭の * の margin:0 が、ブラウザの既定の auto を消すので書き戻す）。 */
+.cr-sheet{width:min(480px, calc(100% - 32px));max-height:min(640px, 80vh);margin:auto;padding:0;border:1px solid var(--pv-line);border-radius:var(--pv-r-lg);background:var(--pv-surface);color:var(--pv-ink);box-shadow:var(--pv-shadow);overflow:hidden;overscroll-behavior:contain}
+.cr-sheet[open]{display:flex;flex-direction:column}
+/* 後ろの地。色は紺のトークン（::backdrop に変数が届かない古いブラウザでは黒）、濃さは opacity（色の直書きをしない）。 */
+.cr-sheet::backdrop{background:var(--pv-navy, black);opacity:.56}
+.cr-sheet-top{display:flex;align-items:center;gap:8px;padding:14px 8px 6px 18px}
+.cr-sheet-h{flex:1;min-width:0;margin:0;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.cr-sheet-x{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:var(--pv-ink-2);cursor:pointer;transition:opacity .16s var(--pv-ease),transform .16s var(--pv-ease)}
+.cr-sheet-x:hover{opacity:.7}
+.cr-sheet-x:active{transform:scale(.92)}
+.cr-sheet-l{flex:1;min-height:0;margin:0;padding:0 8px calc(10px + env(safe-area-inset-bottom, 0px));list-style:none;overflow-y:auto;overscroll-behavior:contain}
+.cr-pk{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:6px 10px;border:0;border-radius:var(--pv-r-sm);background:transparent;color:var(--pv-ink);font:inherit;font-size:14px;text-align:left;cursor:pointer;transition:opacity .16s var(--pv-ease),transform .16s var(--pv-ease)}
+.cr-pk-n{flex:1;min-width:0;word-break:keep-all;overflow-wrap:anywhere}
+.cr-pk-c{flex:none;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--pv-ink-3)}
+@media (hover:hover){.cr-pk:hover{background:var(--pv-bg-sub)}}
+.cr-pk:active{transform:scale(.985)}
+.cr-pk[aria-current="true"]{background:var(--pv-accent-soft);color:var(--pv-accent-ink);font-weight:700}
+.cr-pk:disabled{opacity:.38;cursor:default}
+@media (max-width:759px){.cr-sheet{width:100%;max-width:100%;max-height:86vh;max-height:86dvh;margin:auto 0 0;border-bottom:0;border-radius:var(--pv-r-lg) var(--pv-r-lg) 0 0}}
+@media (prefers-reduced-motion:no-preference){.cr-sheet[open]{animation:cr-sheet-in .22s var(--pv-ease)}}
+@keyframes cr-sheet-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .cr-swap{position:absolute;z-index:4;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
          display:grid;place-items:center;border-radius:50%;cursor:pointer;
          background:var(--pv-surface);border:1px solid var(--pv-line);color:var(--pv-ink);

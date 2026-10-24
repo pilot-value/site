@@ -57,11 +57,25 @@
     var listed = [];
     each(cr.querySelectorAll('.cr-cmp .cr-pair[data-role="cap"] .cr-row'), function (r) { listed.push(r.dataset.airline); });
     var canCard = function (s) { return has(listed, s); };
-    var canPair = known;                                   // CA-3a: 選ぶ面に在る会社
+    var canPair = function (s) { return hasSheet ? !!pkOf[s] : known(s); };   // CA-3a: 選ぶ面に在る会社
 
     var DEF = { a: cr.dataset.a, b: cr.dataset.b };
     var cmp = cr.querySelector('.cr-view[data-view="compare"]');
-    var sel = { a: document.getElementById('cr-a'), b: document.getElementById('cr-b') };
+    var sheet = document.getElementById('cr-sheet'), sheetL = document.getElementById('cr-sheet-l'), sheetH = document.getElementById('cr-sheet-h');
+    var sheetQ = document.getElementById('cr-sheet-q'), sheet0 = document.getElementById('cr-sheet-0');      // CA-3b2 で HTML に入る（無ければ null）
+    var openB = { a: document.getElementById('cr-open-a'), b: document.getElementById('cr-open-b') };
+    /* 公開から10分のあいだ、端末に残った古い HTML（選ぶ面が無い）がこの新しい部品を読むことがある。そのときは選び直しだけを止める
+       （比較そのものは出す）。 */
+    var hasSheet = !!(sheet && sheetL && sheetH && openB.a && openB.b);
+    /* 会社の引き当ては素の入れ物で（住所の a=constructor などが、ふつうの {} の元から生えている名前に当たらない）。 */
+    var PK = [], pkOf = Object.create(null), HOME = [], turn = null;
+    if (hasSheet) {
+      each(sheetL.children, function (li) { HOME.push(li); });
+      each(sheetL.querySelectorAll('.cr-pk'), function (el) {
+        var o = { el: el, li: el.parentNode, slug: el.dataset.airline, codes: [], keys: [] };
+        PK.push(o); pkOf[o.slug] = o;
+      });
+    }
     var swap = document.getElementById('cr-swap');
     var bar = document.querySelector('.mr-top');
 
@@ -147,13 +161,11 @@
 
     /* 比較の2社を入れ替える。全社ぶんが全部 HTML に在り、見せる2社を選ぶ（と、2社の目盛で棒の長さを決め直す）だけ。 */
     function pair(a, b) {
-      sel.a.value = a;
-      sel.b.value = b;
-      each(sel.a.options, function (o) { o.disabled = o.value === b; });
-      each(sel.b.options, function (o) { o.disabled = o.value === a; });
       each(cmp.querySelectorAll('.cr-side'), function (side) {
         var want = side.dataset.side === 'a' ? a : b;
         each(side.querySelectorAll('.cr-opt'), function (o) { o.hidden = o.dataset.airline !== want; });
+        var p = pkOf[want], n = p && p.el.querySelector('.cr-pk-n'), ob = openB[side.dataset.side];
+        if (ob && n) ob.setAttribute('aria-label', ob.dataset.label + ' ' + n.textContent.replace(/\s+/g, ' ').trim());
       });
       each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-rentb, .cr-credit, .cr-go'), function (el) {
         var s = el.dataset.airline;
@@ -457,6 +469,7 @@
     });
 
     window.addEventListener('popstate', function (e) {
+      closeSheet();
       clearTimeout(tick);                       // 前の画面の位置を、移った先の段へ書かない
       show(parse(location.search), true);
       restore(e.state);
@@ -469,8 +482,67 @@
       st.a = a; st.b = b;
       swapIn(st);
     }
-    sel.a.addEventListener('change', function () { repick(sel.a.value, sel.b.value); });
-    sel.b.addEventListener('change', function () { repick(sel.a.value, sel.b.value); });
+    function closeSheet() {
+      if (hasSheet && sheet.open) { if (sheet.close) sheet.close(); else sheet.removeAttribute('open'); }
+      root.classList.remove('cr-sheeting');
+      turn = null;
+    }
+    function filter() {}                            // CA-3b2
+    function shownPk() {                            // いま選べる会社（画面の並びの順）
+      var out = [];
+      each(sheetL.querySelectorAll('.cr-pk'), function (el) { var o = pkOf[el.dataset.airline]; if (!o.li.hidden && !el.disabled) out.push(o); });
+      return out;
+    }
+    function openSheet(side) {                      // side: 'a' | 'b'
+      turn = side;
+      sheetH.textContent = openB[side].dataset.label;
+      var mine = state[side], other = state[side === 'a' ? 'b' : 'a'];
+      PK.forEach(function (o) {
+        o.el.disabled = o.slug === other;
+        if (o.slug === mine) o.el.setAttribute('aria-current', 'true'); else o.el.removeAttribute('aria-current');
+      });
+      if (sheetQ) sheetQ.value = '';
+      filter();
+      root.classList.add('cr-sheeting');
+      if (typeof sheet.showModal === 'function') sheet.showModal(); else sheet.setAttribute('open', '');
+      /* 指で使う端末では、開いた瞬間に文字盤で一覧を隠さない（検索欄は一覧のすぐ上に在る）。 */
+      var coarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+      var cur = pkOf[mine] ? pkOf[mine].el : null;
+      (sheetQ && !coarse ? sheetQ : cur || sheetL).focus();
+      /* いまの会社を一覧のまんなかへ（一覧の中だけを動かす。後ろのページは動かさない）。 */
+      if (cur) { var r = cur.getBoundingClientRect(), L = sheetL.getBoundingClientRect(); sheetL.scrollTop += (r.top - L.top) - (L.height - r.height) / 2; }
+    }
+    if (hasSheet) {
+      openB.a.addEventListener('click', function () { openSheet('a'); });
+      openB.b.addEventListener('click', function () { openSheet('b'); });
+      document.getElementById('cr-sheet-x').addEventListener('click', closeSheet);
+      sheet.addEventListener('close', function () { root.classList.remove('cr-sheeting'); turn = null; });
+      /* 面の外（地）を押して閉じるのは、押し始めも離した所も面の外のときだけ（検索欄の横の余白・欄の字をなぞって外で離した、で閉じない）。 */
+      var outside = function (e) {
+        var r = sheet.getBoundingClientRect();
+        return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      };
+      var downOut = false;
+      sheet.addEventListener('pointerdown', function (e) { downOut = e.target === sheet && outside(e); });
+      sheet.addEventListener('click', function (e) {
+        if (e.target === sheet) { if (downOut && outside(e)) closeSheet(); return; }
+        var hit = e.target.closest ? e.target.closest('.cr-pk') : null;
+        if (!hit || hit.disabled || !turn) return;
+        var side = turn, s = hit.dataset.airline;
+        closeSheet();
+        repick(side === 'a' ? s : state.a, side === 'b' ? s : state.b);
+      });
+      sheetL.addEventListener('keydown', function (e) {
+        var list = shownPk(), i = -1;
+        list.forEach(function (o, k) { if (o.el === document.activeElement) i = k; });
+        var to = e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowUp' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1 : null;
+        if (to === null) return;
+        e.preventDefault();
+        if (to < 0 && sheetQ) return sheetQ.focus();
+        var at = list[Math.max(0, Math.min(list.length - 1, to))];
+        if (at) at.el.focus();
+      });
+    }
     swap.addEventListener('click', function () { repick(state.b, state.a); });
 
     /* ほかの部品の入口。⚠️ オブジェクトを作り直さない（後から読まれる部品が口を足す）。 */

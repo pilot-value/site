@@ -816,12 +816,13 @@ function acceptedOf(I, html, K) {
   return { h, hits: out };
 }
 
-/** career.html が2社比較で出せる会社（読み手はこの1つ。いまは <select id="cr-a" class="cr-sel"> の option の value。
-    career.html が会社選びを作り替えたら、compare-all がこの1つを付け替える）。無ければ null（＝ H5 は赤） */
+/** career.html が2社比較で出せる会社（読み手はこの1つ。★2026-10-25 段階5 compare-all-3 で付け替えた：2社を選ぶ面
+    <ul class="cr-sheet-l" id="cr-sheet-l"> の中の <button type="button" class="cr-pk" data-airline="…"> の data-airline。
+    前は <select id="cr-a" class="cr-sel"> の option の value）。無ければ null（＝ H5 は赤） */
 function offered(html) {
-  const s = String(html || ''), a = s.indexOf('<select id="cr-a" class="cr-sel"'), z = a < 0 ? -1 : s.indexOf('</select>', a);
+  const s = String(html || ''), a = s.indexOf('<ul class="cr-sheet-l" id="cr-sheet-l">'), z = a < 0 ? -1 : s.indexOf('</ul>', a);
   if (a < 0 || z < 0) return null;
-  return [...s.slice(a, z).matchAll(/<option\b[^>]*\bvalue="([^"]*)"/g)].map((m) => m[1]);
+  return [...s.slice(a, z).matchAll(/<button type="button" class="cr-pk" data-airline="([^"]*)"/g)].map((m) => m[1]);
 }
 /** 比べる印の字（自己検査で印を足すときだけ使う。ページの字は gen-directory.mjs が書く） */
 const tickHtml = (slug, word) => `<label class="wd-cmp"><input type="checkbox" class="wd-cmp-i" value="${slug}" aria-labelledby="wn-${slug} wc-${slug}"><span id="wc-${slug}">${word}</span></label>`;
@@ -865,7 +866,7 @@ function secH(I) {
   /* H5 日本語のカードの data-two="1" ＝ career.html が出せる会社（offered）。英語のカードに data-two="1" は無く、
      英語のページの PV-DIR-CARDS と #wd-tray は career.html を指さない（左のメニューとヘッダーはほかの持ち場なので見ない） */
   const off = offered(I.career), jaTwo = cardsOf(U.ja).filter((c) => c.two === '1').map((c) => c.slug);
-  if (!off) p.H5.push('career.html に会社選び（<select id="cr-a" class="cr-sel">）が無い（offered() の読み手を付け替える）');
+  if (!off) p.H5.push('career.html に会社選び（選ぶ面 <ul class="cr-sheet-l" id="cr-sheet-l">）が無い（offered() の読み手を付け替える）');
   else {
     for (const s of setDiff(new Set(jaTwo), new Set(off))) p.H5.push(`${PAGE_REL.ja} ${s}：data-two="1" なのに career.html が出せない`);
     for (const s of setDiff(new Set(off), new Set(jaTwo))) p.H5.push(`${PAGE_REL.ja} ${s}：career.html が出せるのに data-two="1" でない`);

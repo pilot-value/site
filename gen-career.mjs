@@ -237,7 +237,7 @@ const href = {
   },
 };
 const ic = d => `<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
-const IC = { back: ic('M15 6l-6 6 6 6'), go: ic('M5 12h14M13 6l6 6-6 6'), down: ic('M6 9l6 6 6-6'), swap: ic('M7 8h11l-3-3M17 16H6l3 3'), next: ic('M9 6l6 6-6 6') };
+const IC = { back: ic('M15 6l-6 6 6 6'), go: ic('M5 12h14M13 6l6 6-6 6'), down: ic('M6 9l6 6 6-6'), swap: ic('M7 8h11l-3-3M17 16H6l3 3'), next: ic('M9 6l6 6-6 6'), x: ic('M6 6l12 12M18 6L6 18') };
 const back = () => `<a class="cr-back" href="${href.home}" data-go>${IC.back}航空会社を選ぶ</a>`;
 /* 比較の節の下に置く、会社ごとの入口（その会社のページの該当タブへ）。掲載している全社ぶん置いて、選ばれた2社だけ見せる（career.js の pair()）。
    読み上げの名前は「節の見出し ＋ 社名 ＋ 詳しく」（aria-labelledby。字は足さない）。
@@ -877,14 +877,12 @@ function compare() {
   /* 「会社が公表している金額」の箱（.cr-cards）は、並べた2社のどちらにも一覧が無ければ描かない（空の箱・「公表なし」を置かない ──
      2026-10-22 LEAD AMENDMENT・P12.91-7）。片方に在れば、もう片方は社名だけ。選び直したときは career.js の pair() が同じ決まりで決める。 */
   const pubs = Object.fromEntries(FIVE.map(s => [s, pub(s, 'h3')]));
-  const side = (id, label, chosen, taken) => `<div class="cr-side" data-side="${id}">
+  const side = (id, label, chosen) => `<div class="cr-side" data-side="${id}">
 ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(s)}"${s === chosen ? '' : ' hidden'}>
 <span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}</span>
 <span class="cr-opt-n">${esc(name(s))}${IC.down}</span>
 </div>`).join('\n')}
-<select id="cr-${id}" class="cr-sel" aria-label="${label}">
-${FIVE.map(s => `<option value="${s}"${s === chosen ? ' selected' : ''}${s === taken ? ' disabled' : ''}>${esc(name(s))}</option>`).join('\n')}
-</select>
+<button type="button" class="cr-pickb" id="cr-open-${id}" data-label="${label}" aria-label="${label} ${esc(name(chosen))}" aria-haspopup="dialog"></button>
 <span class="cr-ring" aria-hidden="true"></span>
 </div>`;
   /* 目盛の字は、ありうる右端（全社の目盛）ごとに1本。見せるのは並べた2社の1本だけ（career.js が選ぶ）。 */
@@ -893,9 +891,9 @@ ${FIVE.map(s => `<option value="${s}"${s === chosen ? ' selected' : ''}${s === t
 ${back()}
 <h1 class="cr-h1 cr-cmp-h" tabindex="-1">航空会社を比較</h1>
 <div class="cr-pick">
-${side('a', '1社目', PAIR[0], PAIR[1])}
+${side('a', '1社目', PAIR[0])}
 <button type="button" class="cr-swap" id="cr-swap" aria-label="2社を入れ替える">${IC.swap}</button>
-${side('b', '2社目', PAIR[1], PAIR[0])}
+${side('b', '2社目', PAIR[1])}
 </div>
 <div class="cr-panel" data-kind="estimate">
 <h2 class="cr-panel-h" id="cr-cmp-h-pay">年収</h2>
@@ -986,6 +984,18 @@ function card() {
 </section>`;
 }
 
+/* 比較の2社を選ぶ面（1つ・どちらの札からも開く）。並べるのは選べる会社。字は社名と略号だけ（額を置かない）。 */
+const choice = () => FIVE;                             // CA-3b1: listed()
+const entry = s => `<li><button type="button" class="cr-pk" data-airline="${s}" style="--cr-co:${color(s)}"><span class="cr-pk-n">${esc(name(s))}</span><span class="cr-pk-c">${esc(code(s))}</span></button></li>`;
+function sheet() {
+  return `<dialog class="cr-sheet" id="cr-sheet" aria-labelledby="cr-sheet-h">
+<div class="cr-sheet-top"><h2 class="cr-sheet-h" id="cr-sheet-h">1社目</h2><button type="button" class="cr-sheet-x" id="cr-sheet-x" aria-label="閉じる">${IC.x}</button></div>
+<ul class="cr-sheet-l" id="cr-sheet-l">
+${choice().map(entry).join('\n')}
+</ul>
+</dialog>`;
+}
+
 export function build() {
   career();
   return `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}">
@@ -994,6 +1004,7 @@ ${FIVE.map(overview).join('\n')}
 ${DEEP.flatMap(s => ROLES.map(([r, l]) => detail(s, r, l))).join('\n')}
 ${DEEP.flatMap(s => destinations(s).map(d => stay(s, d))).join('\n')}
 ${compare()}
+${sheet()}
 ${card()}
 </div>`;
 }

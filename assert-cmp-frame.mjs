@@ -356,7 +356,7 @@ async function raceLeg(leg) {
     `${leg}：その日の比較の欄（${kinds.join('・')}）が、キャセイの読みを待っている（キャセイを名指しした読み ${cxCalls()}本 ＝ 止めた ${heldN()}本）`,
     J({ held, kinds, calls: cxCalls(), held: heldN() }));
   for (const k of kinds) await watch(page, k);
-  await page.select('#cr-b', 'etihad');
+  await H.choose(page, 'b', 'etihad');
   await page.waitForFunction(() => [...document.querySelectorAll('#cr [data-view="compare"] .crl[data-live^="cmp-"]')]
     .every((b) => b.getAttribute('data-for') === 'jal|etihad'), { timeout: 8000, polling: 50 }).catch(() => {});
   await page.click('#cr-swap');
@@ -642,7 +642,7 @@ const BACK_VIA = {
   go: async (page) => {
     await page.click('#cr-swap');
     await page.waitForFunction(() => location.search === '?view=compare&a=jal&b=cathay-pacific', { timeout: 8000 });
-    await page.select('#cr-b', 'ana');
+    await H.choose(page, 'b', 'ana');
     return page.waitForFunction(() => location.search === '?view=compare&a=jal&b=ana', { timeout: 8000 }).then(() => true, () => false);
   },
 };
@@ -801,8 +801,12 @@ async function backLeg(name, { who = null, stub, away = null, fold = false, whee
   for (const k of Object.keys(st.held)) st.held[k] = [];
   HOLD.on = true;
   await page.goBack({ waitUntil: 'load' });
-  R.fresh = await page.evaluate(() => ({ left: window.__left === undefined ? null : window.__left, ps: (window.__ps || []).slice(), st0: window.__st0,
-    search: location.search, a: (document.getElementById('cr-a') || {}).value, b: (document.getElementById('cr-b') || {}).value }));
+  /* 2社は札に見えている会社で読む（★2026-10-25 段階5 compare-all-3：選ぶ欄は無くなり、選ぶ面で選ぶ） */
+  R.fresh = await page.evaluate(() => {
+    const plate = (sd) => { const o = document.querySelector(`#cr .cr-side[data-side="${sd}"] .cr-opt:not([hidden])`); return o ? o.dataset.airline : undefined; };
+    return { left: window.__left === undefined ? null : window.__left, ps: (window.__ps || []).slice(), st0: window.__st0,
+      search: location.search, a: plate('a'), b: plate('b') };
+  });
   R.reloaded = R.fresh.left === null && R.fresh.ps.length > 0 && R.fresh.ps.every((x) => x === false);
   await viewStill(page);
   R.order1 = await rentOrder(page);

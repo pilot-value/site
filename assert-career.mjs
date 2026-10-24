@@ -219,7 +219,8 @@ ok(!/prefers-color-scheme/.test(CSSC), 'prefers-color-scheme を書いていな�
   ok(/prefers-reduced-motion\s*:\s*reduce/.test(CSSC), '動きを減らす設定の人には動かさない');
   /* 押せるものには hover / focus-visible / active を全部（下の「押せるものの種類」と対）。 */
   const need = [
-    '.cr a:focus-visible', '.cr button:focus-visible', '.cr summary:focus-visible', '.cr-sel:focus-visible',
+    '.cr a:focus-visible', '.cr button:focus-visible', '.cr summary:focus-visible', '.cr-pickb:focus-visible', '.cr-pk:hover', '.cr-pk:active',
+    '.cr-sheet-x:hover', '.cr-sheet-x:active',
     '.cr-tile:hover', '.cr-tile:active', '.cr-back:hover', '.cr-back:active', '.cr-btn:hover', '.cr-btn:active',
     '.cr-link:hover', '.cr-link:active', '.cr-card-n:hover', '.cr-card-n:active',
     '.cr-swap:hover', '.cr-swap:active', '.cr-side:hover', '.cr-side:active',
@@ -807,6 +808,28 @@ head('掲載している全社（比較の材料）');
        'gen-career.mjs は、読み込まれただけでは全社の読み口を走らせない（会社ページの生成器も読む）',
        JSON.stringify({ viewOf: views.length, five: views.filter(inFive).length, inCareer: views.filter(inCareer).length, careerCalls: calls.length, buildFirst: first, cardFirst }));
   }
+
+  /* T-A11 選ぶ欄を置かない・選ぶ面は1つ（★2026-10-25 段階5 compare-all-3・CA-3a）：比較の2社は、札を押すと開く選ぶ面（<dialog>）で選ぶ。
+     比較の画面に <select> は無い。面は管理ブロックに1つだけで、比較の画面の後ろ・#cr の中（比較の画面の中に置くと、面の会社が
+     「比較の会社ごとの要素」に数えられ、選ばれていない会社が見えたままになる）。札のボタンは「1社目」「2社目」の2つ・面の見出しは空でない
+     （見出しの字は押した札の data-label を career.js が写す。HTML は1社目の字で出す）。career.js は無くなった2つの選ぶ欄の id と .options を読まない。
+     押せるものの印の一覧（上の「押せるものに hover / focus-visible / active が全部ある」の need）に、面の5つが在る。 */
+  {
+    const dialogs = [...BLOCK.matchAll(/<dialog\b/g)].map(m => m.index);
+    const cmpAt = BLOCK.indexOf(CMP), dEnd = BLOCK.indexOf('</dialog>');
+    const inCr = /^\s*<div class="cr" id="cr"/.test(BLOCK) && dEnd >= 0 && dEnd < BLOCK.lastIndexOf('</div>');
+    const plates = [...BLOCK.matchAll(/<button type="button" class="cr-pickb" id="cr-open-([ab])" data-label="([^"]*)"/g)].map(m => [m[1], m[2]]);
+    const heading = ((BLOCK.match(/<h2 class="cr-sheet-h" id="cr-sheet-h">([^<]*)<\/h2>/) || [])[1] || '').trim();
+    const oldIds = JSC.match(/['"`]#?cr-[ab]['"`]|\.options\b/g) || [];
+    const NEED_SRC = (read('assert-career.mjs').match(/const need = \[([\s\S]*?)\];/) || [])[1] || '';
+    const NEW_NEED = ['.cr-pickb:focus-visible', '.cr-pk:hover', '.cr-pk:active', '.cr-sheet-x:hover', '.cr-sheet-x:active'];
+    const needLack = NEW_NEED.filter(x => !NEED_SRC.includes(`'${x}'`));
+    ok(CMP.length > 0 && !/<select\b/.test(CMP) && dialogs.length === 1 && cmpAt >= 0 && dialogs[0] > cmpAt + CMP.length && inCr
+       && (BLOCK.match(/class="cr-pickb"/g) || []).length === 2 && same(plates, [['a', '1社目'], ['b', '2社目']]) && !!heading
+       && !oldIds.length && !needLack.length,
+       '比較の会社選びは選ぶ面1つ：比較の画面に <select> が無い・<dialog> は管理ブロックに1つ（比較の画面の後ろ・#cr の中）・札のボタンは「1社目」「2社目」の2つ・面の見出しが空でない・career.js は無くなった選ぶ欄の id と .options を読まない・押せるものの印の一覧に面の5つ',
+       JSON.stringify({ select: (CMP.match(/<select\b/g) || []).length, dialogs: dialogs.length, afterCmp: dialogs.length === 1 && cmpAt >= 0 && dialogs[0] > cmpAt + CMP.length, inCr, plates, heading, oldIds, needLack }));
+  }
 }
 
 const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
@@ -910,6 +933,15 @@ async function companyPage(s) {
   return got;
 }
 const go = async (page, q) => { await page.goto(`${BASE}/${PAGE}${q}`, { waitUntil: 'load' }); await ready(page); };
+/* 比較の2社の片方を選ぶ（★2026-10-25 段階5 compare-all-3：2つの選ぶ欄は無くなり、札を押すと開く選ぶ面 #cr-sheet で選ぶ）。
+   cmp-stubs.mjs の choose() の写し（この検査は検査の部品を読まない）。札を押す → 面が開く → その会社を押す → 面が閉じて、
+   その側の札がその会社になるまで待つ。side ＝ 'a' | 'b' */
+const choose = async (page, side, slug) => {
+  await page.click(`#cr-open-${side}`);
+  await page.waitForSelector('#cr-sheet[open]');
+  await page.click(`#cr-sheet-l .cr-pk[data-airline="${slug}"]`);
+  await page.waitForFunction((sd, s) => { const o = document.querySelector(`#cr .cr-side[data-side="${sd}"] .cr-opt:not([hidden])`); return !document.getElementById('cr-sheet').open && !!o && o.dataset.airline === s; }, {}, side, slug);
+};
 const search = page => page.evaluate(() => location.search);
 const until = (page, q) => page.waitForFunction(x => location.search === x, { timeout: 5000 }, q).then(() => true, () => false);
 /* いま見えている画面（1つだけのはず）。 */
@@ -1097,8 +1129,11 @@ try {
     ok(g.rows === ALLK.length * ROLES.length && !g.said.length, `比較の棒の行（${g.rows}）に、check-salary.mjs が年額ではないと読む言葉が無い`, g.said.join(' ／ '));
   }
 
-  /* ★2026-10-22 段階4 cmp-pay-4：比較の画面で選ぶ欄は、2社を選ぶ #cr-a・#cr-b の2つだけ（DEEP PAY の置き場 #cr-deep の中は数えない）
-     ── 提出された年収の欄に、機材・職位・月の絞り込みを置かない（T-S5）。給与の欄が読み終わってから数える。
+  /* ★2026-10-22 段階4 cmp-pay-4：比較の画面に、提出された年収の欄の機材・職位・月の絞り込みを置かない（T-S5。DEEP PAY の置き場 #cr-deep の
+     中は数えない）。給与の欄が読み終わってから数える。
+     ★2026-10-25 段階5 compare-all-3（当て直し・強くした）：前は「選ぶ欄は2社を選ぶ2つだけ」。2社はいま札を押すと開く選ぶ面（#cr-sheet）で選ぶので、比較の画面（#cr-deep の外）に
+     <select> は1つも無い。面にも <select> は無く、入力欄も無い（compare-all-5 で検索の欄 #cr-sheet-q が1つ入る）・押せるのは会社（.cr-pk）と
+     「閉じる」（.cr-sheet-x）だけ。
      棒と目盛（.cr-track・.cr-fill・.cr-axis）は推定の板（data-kind="estimate"）の中にだけ ── 公表額の箱・提出された年収の箱に棒を描かない。
      3つの箱（推定・公表・提出）は1つずつ（T-S6）。 */
   head('比較の箱の種類（推定・公表・提出）と選ぶ欄');
@@ -1114,13 +1149,17 @@ try {
       return {
         pay: (V.querySelector('.crl[data-live="cmp-pay"]') || { getAttribute: () => null }).getAttribute('data-state'),
         sel: [...V.querySelectorAll('select')].filter(s => !s.closest('#cr-deep')).map(s => s.id || s.className),
+        sheet: (S => S && { sel: S.querySelectorAll('select').length, inputs: [...S.querySelectorAll('input')].map(i => i.id || i.className),
+          other: [...S.querySelectorAll('button')].filter(b => !b.matches('.cr-pk, .cr-sheet-x')).map(b => b.id || b.className || b.tagName),
+          pk: S.querySelectorAll('.cr-pk').length, x: S.querySelectorAll('.cr-sheet-x').length })(document.getElementById('cr-sheet')),
         bars: bars.length,
         out: bars.filter(b => !b.closest('[data-kind="estimate"]')).map(b => `${b.className}（${(b.closest('[data-kind]') || { dataset: {} }).dataset.kind || '箱の外'}）`),
         kinds: ['estimate', 'published', 'submitted'].map(x => V.querySelectorAll(`[data-kind="${x}"]`).length),
       };
     });
-    ok(paid && !!k && same(k.sel, ['cr-a', 'cr-b']), `比較の画面で選ぶ欄は #cr-a・#cr-b の2つだけ（提出された年収の欄が読み終わった顔「${k && k.pay}」で数えた）`,
-       JSON.stringify({ paid, sel: k && k.sel }));
+    ok(paid && !!k && same(k.sel, []) && !!k.sheet && k.sheet.sel === 0 && same(k.sheet.inputs, []) && !k.sheet.other.length && k.sheet.pk > 0 && k.sheet.x === 1,
+       `比較の画面に選ぶ欄（<select>）が無い・2社を選ぶ面 #cr-sheet にも <select> と入力欄が無く、押せるのは会社と「閉じる」だけ（提出された年収の欄が読み終わった顔「${k && k.pay}」で数えた）`,
+       JSON.stringify({ paid, sel: k && k.sel, sheet: k && k.sheet }));
     ok(!!k && k.bars > 0 && !k.out.length && same(k.kinds, [1, 1, 1]),
        '棒と目盛は推定の板（data-kind="estimate"）の中にだけ・推定／公表／提出の箱は1つずつ', JSON.stringify(k && { bars: k.bars, out: k.out, kinds: k.kinds }));
   }
@@ -1272,7 +1311,7 @@ try {
     const low = cmpBad(await snapCmp(), 'eva-air', 'jal');
     ok(!low.length && SCALE('eva-air', 'jal') < Math.max(...ALLK.map(s => SCALE(s))),
        `低い2社（${name('eva-air')}・${name('jal')}）は低い右端 ${yen(SCALE('eva-air', 'jal'))}（${driver('eva-air', 'jal')} が入る、いちばん近い 1,000万 の倍数）`, low.join(' ／ '));
-    await page.select('#cr-a', 'cathay-pacific');
+    await choose(page, 'a', 'cathay-pacific');
     ok(await until(page, '?view=compare&a=cathay-pacific&b=jal'), '選び直すと住所が変わる（エバー航空 → キャセイパシフィック）', await search(page));
     await settle(page);
     const re = cmpBad(await snapCmp(), 'cathay-pacific', 'jal');
@@ -1334,8 +1373,6 @@ try {
       rows: [...document.querySelectorAll('#cr .cr-cmp .cr-pair[data-role]')].map(p => order(vis(`.cr-pair[data-role="${p.dataset.role}"] .cr-row`))),
       cards: order(vis('.cr-card')), taxes: order(vis('.cr-taxes .cr-tax')), rents: order(vis('.cr-rentb')),
       opts: ['a', 'b'].map(s => vis(`.cr-side[data-side="${s}"] .cr-opt`).map(e => e.dataset.airline)),
-      sel: [document.getElementById('cr-a').value, document.getElementById('cr-b').value],
-      off: ['cr-a', 'cr-b'].map(id => [...document.getElementById(id).options].filter(o => o.disabled).map(o => o.value)),
       /* 節ごとの「詳しく」（置き場所の順 ＝ 読み上げと Tab の順）。 */
       gos: [...document.querySelectorAll('#cr .cr-cmp .cr-gos')].map(g => [...g.children].filter(e => e.getClientRects().length).map(e => e.dataset.airline)),
       credits: vis('.cr-credit[data-airline]').map(e => e.dataset.airline),
@@ -1344,15 +1381,37 @@ try {
         .concat([vis('.cr-card').map(e => e.dataset.airline), vis('.cr-taxes .cr-tax').map(e => e.dataset.airline), vis('.cr-rentb').map(e => e.dataset.airline)]),
     };
   });
+  /* 選ぶ面：相手の会社は押せない・いまの会社に印・見出しは札の名前・開いているあいだ後ろは動かない・閉じると札へ戻る。 */
+  const sheetOf = async pg => {
+    const out = [];
+    for (const side of ['a', 'b']) {
+      await pg.click(`#cr-open-${side}`);
+      await pg.waitForSelector('#cr-sheet[open]');
+      const s = await pg.evaluate(() => [
+        [...document.querySelectorAll('#cr-sheet-l .cr-pk:disabled')].map(e => e.dataset.airline),
+        [...document.querySelectorAll('#cr-sheet-l .cr-pk[aria-current="true"]')].map(e => e.dataset.airline),
+        document.getElementById('cr-sheet-h').textContent.trim(),
+        document.documentElement.classList.contains('cr-sheeting'),
+      ]);
+      await pg.keyboard.press('Escape');
+      /* Esc で面は閉じるが、閉じた知らせ（close）は1拍あとに届く ── 印が外れるのもその時。外れるまで待ってから読む
+         （外れないまま5秒たてば、下の読みが true のまま ＝ 赤）。 */
+      await pg.waitForFunction(() => !document.getElementById('cr-sheet').open && !document.documentElement.classList.contains('cr-sheeting'), { timeout: 5000 }).catch(() => {});
+      out.push([...s, ...(await pg.evaluate(() => [document.documentElement.classList.contains('cr-sheeting'), document.activeElement ? document.activeElement.id : '']))]);
+    }
+    return out;
+  };
   const pairOk = async (a, b, label, pg = page) => {
     const g = await shown(pg);
+    g.sheet = await sheetOf(pg);
     /* 「会社が公表している金額」の箱は、2社のどちらにも一覧が無ければ描かない（2026-10-22 LEAD AMENDMENT）。片方に在れば、2社とも社名が並ぶ。 */
     const cards = [a, b].some(s => WITH_PUB.includes(s)) ? [a, b] : [];
     const exp = {
-      rows: ROLES.map(() => [a, b]), cards, taxes: [a, b], rents: [a, b], opts: [[a], [b]], sel: [a, b], off: [[b], [a]],
+      rows: ROLES.map(() => [a, b]), cards, taxes: [a, b], rents: [a, b], opts: [[a], [b]],
       gos: GOS.map(() => [a, b]),
       credits: [a, b].filter(s => needsCredit(primary(s))),
       dom: [...ROLES.map(() => [a, b]), cards, [a, b], [a, b]],
+      sheet: [[[b], [a], '1社目', true, false, 'cr-open-a'], [[a], [b], '2社目', true, false, 'cr-open-b']],
     };
     ok(same(g, exp), label, JSON.stringify(g));
   };
@@ -1370,7 +1429,7 @@ try {
        JSON.stringify({ LIST1, LIST2, stray }));
   }
 
-  await page.select('#cr-b', 'etihad');
+  await choose(page, 'b', 'etihad');
   ok(await until(page, '?view=compare&a=jal&b=etihad'), '会社を選び直すと住所が変わる', await search(page));
   await pairOk('jal', 'etihad', '選び直した2社に入れ替わる');
   await page.click('#cr-swap');
@@ -1654,7 +1713,7 @@ try {
     const to = () => p.evaluate(() => { const x = document.getElementById('cr-to-card'); return x ? x.getAttribute('href') : null; });
     const first = await to();
     ok(first === `${PAGE}?view=card&a=${DEEP[0]}&b=jal`, '開いたときの2社', String(first));
-    await p.evaluate(() => { const x = document.getElementById('cr-b'); x.value = 'ana'; x.dispatchEvent(new Event('change', { bubbles: true })); });
+    await choose(p, 'b', 'ana');
     await p.waitForFunction(() => /b=ana/.test(location.search));
     const next = await to();
     ok(next === `${PAGE}?view=card&a=${DEEP[0]}&b=ana`, '選び直したあとの2社', String(next));
@@ -1670,24 +1729,23 @@ try {
   /* 写真の出る画面（詳細とカードは、ここでは見ない ── 詳細に写真は無く、カードの写真は画像の中へ描く）。 */
   const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`])];
   /* 押せるものの種類。ここに無い形のものが増えたら落とす（hover / active を付け忘れる）。 */
-  const MAIN = '.cr-tile, .cr-back, .cr-btn, .cr-swap, .cr-sel, summary, .cr-link, .cr-card-n, '
+  const MAIN = '.cr-tile, .cr-back, .cr-btn, .cr-swap, .cr-pickb, .cr-pk, .cr-sheet-x, summary, .cr-link, .cr-card-n, '
     + '.cr-tab, a.cr-bar, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn, .pv-gg';
   const INLINE = '.cr-credits a, .cr-srcs a';
   for (const [w, h] of [[320, 568], [390, 680], [768, 1024], [1280, 800]]) {
     const { page: p, close: c } = await open('', w, h);
     const bad = [], past = [];
-    for (const q of VIEWS) {
-      await go(p, q);
-      await settle(p);
-      const m = await p.evaluate((MAIN, INLINE) => {
-        const v = document.querySelector('#cr .cr-view:not([hidden])');
+    /* 測る範囲（ROOT）。既定は見えている画面。★2026-10-25 段階5 compare-all-3（R2）：比較の画面では、1社目の札を押して開いた
+       選ぶ面（'#cr-sheet' ── どの画面の外にも在る #cr の子）も同じ物差しで測る。面では最初の1画面と年収の箱は測らない（null）。 */
+    const measure = (ROOT = '#cr .cr-view:not([hidden])') => p.evaluate((MAIN, INLINE, ROOT) => {
+        const v = document.querySelector(ROOT), inView = ROOT !== '#cr-sheet';
         const on = el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
         /* 最初の1画面に年収が入っているか（開く前に測る）。 */
         /* 深く作った会社の年収の箱は、推定の2行（押せる棒）＋目盛＋税の1行。「年収が入っている」は推定の2行で測る。
            箱の下端（税の1行）まで入らない大きさは落とさずに、下で1行ずつ知らせる（黙って緑にしない）。 */
-        const deep = v.querySelector('.cr-pay-deep');
+        const deep = inView ? v.querySelector('.cr-pay-deep') : null;
         const ests = deep ? [...deep.querySelectorAll('a.cr-bar.cr-bar-est')] : [];
-        const first = ests.length ? ests[ests.length - 1] : v.querySelector('.cr-pay') || v.querySelector('.cr-pair');
+        const first = !inView ? null : ests.length ? ests[ests.length - 1] : v.querySelector('.cr-pay') || v.querySelector('.cr-pair');
         const fold = first ? Math.round(first.getBoundingClientRect().bottom) : null;
         const deepEnd = deep ? Math.round(deep.getBoundingClientRect().bottom) : null;
         if (deep && !ests.length) return { noEst: true };
@@ -1708,7 +1766,7 @@ try {
             if (b.width < 44 || b.height < 44) tap.add(`${el.className || el.tagName} ${Math.round(b.width)}×${Math.round(b.height)}`);
           } else if (!el.matches(INLINE)) stray.add(el.outerHTML.slice(0, 70));
         }
-        for (const el of v.querySelectorAll('.cr-num-v, .cr-bar-v, .cr-row-v, .cr-fig b, .cr-tile-n, .cr-opt-n, .cr-hero-n, .cr-row-co')) {
+        for (const el of v.querySelectorAll('.cr-num-v, .cr-bar-v, .cr-row-v, .cr-fig b, .cr-tile-n, .cr-opt-n, .cr-hero-n, .cr-row-co, .cr-pk-n, .cr-pk-c')) {
           if (!on(el)) continue;
           let host = el.parentElement;
           while (host && !host.getClientRects().length) host = host.parentElement;   // display:contents の親は箱を持たない
@@ -1716,14 +1774,14 @@ try {
           if (b.right > innerWidth + 0.5 || b.left < -0.5 || el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0) cut.add(`${el.className} 「${el.textContent.trim().slice(0, 14)}」`);
           if (b.right > box.right + 1 && !el.matches('.cr-num-v')) cut.add(`${el.className} が箱の外`);
         }
-        const sel = [...v.querySelectorAll('select')].map(s => parseFloat(getComputedStyle(s).fontSize));
+        const sel = [...v.querySelectorAll('select, input')].map(s => parseFloat(getComputedStyle(s).fontSize));
         return {
           over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           fold, deepEnd, vh: innerHeight, small: [...small], tap: [...tap], stray: [...stray], cut: [...cut], sel,
         };
-      }, MAIN, INLINE);
-      const at = `${w}×${h} ${q || '（入口）'}`;
-      if (m.noEst) { bad.push(`${at}: 推定年収の行が見つからない`); continue; }
+      }, MAIN, INLINE, ROOT);
+    const judge = (m, at) => {
+      if (m.noEst) { bad.push(`${at}: 推定年収の行が見つからない`); return; }
       if (m.deepEnd !== null && w >= 390 && m.deepEnd > m.vh) past.push(`${at}: 年収の箱の下端（税の1行）までは最初の1画面に収まらない（下端 ${m.deepEnd} / 画面 ${m.vh}）`);
       if (m.over > 0) bad.push(`${at}: 横に ${m.over}px 溢れる`);
       if (m.fold !== null && w >= 390 && m.fold > m.vh) bad.push(`${at}: 年収が最初の1画面に入らない（下端 ${m.fold} / 画面 ${m.vh}）`);
@@ -1732,8 +1790,26 @@ try {
       if (m.stray.length) bad.push(`${at}: 知らない形の押せるもの ${m.stray.join(' ')}`);
       if (m.cut.length) bad.push(`${at}: 字がはみ出す ${m.cut.join(', ')}`);
       if (m.sel.some(f => f < 16)) bad.push(`${at}: 選ぶ欄の字が 16px 未満（iOS が画面ごと拡大する）`);
+    };
+    let sheetDone = false;
+    for (const q of VIEWS) {
+      await go(p, q);
+      await settle(p);
+      judge(await measure(), `${w}×${h} ${q || '（入口）'}`);
+      if (sheetDone || !q.startsWith('?view=compare')) continue;
+      /* その大きさの最初の比較の画面で1回：1社目の札を押して選ぶ面を開き（動きが終わるまで待つ）、面を同じ物差しで測って、Esc で閉じる
+         （面の中身はどの2社でも同じ会社の並び ── 比較の画面ごとに測り直さない）。 */
+      sheetDone = true;
+      const at = `${w}×${h} ${q} の選ぶ面`;
+      await p.click('#cr-open-a');
+      if (await p.waitForSelector('#cr-sheet[open]', { timeout: 5000 }).then(() => true, () => false)) {
+        await p.evaluate(() => Promise.all(document.getElementById('cr-sheet').getAnimations().map(x => x.finished.catch(() => {}))));
+        judge(await measure('#cr-sheet'), at);
+      } else bad.push(`${at}: 1社目の札を押しても開かない`);
+      await p.keyboard.press('Escape');
+      await p.waitForFunction(() => !document.getElementById('cr-sheet').open, { timeout: 5000 }).catch(() => {});
     }
-    ok(!bad.length, `${w}×${h}: ${VIEWS.length}画面とも 溢れない・${w >= 390 ? '年収が最初の1画面に入る・' : ''}字 12px 以上・押す場所 44px 以上`, bad.join('\n      '));
+    ok(!bad.length, `${w}×${h}: ${VIEWS.length}画面とも（比較の画面は選ぶ面も） 溢れない・${w >= 390 ? '年収が最初の1画面に入る・' : ''}字 12px 以上・押す場所 44px 以上`, bad.join('\n      '));
     for (const x of past) console.log('    ⚠ ' + x);
     await c();
   }
@@ -2456,7 +2532,7 @@ try {
       };
     });
     await p.evaluate(() => window.PVCurrency.set('USD'));
-    await p.select('#cr-b', 'etihad');
+    await choose(p, 'b', 'etihad');
     const moved = await until(p, '?view=compare&a=jal&b=etihad');
     await p.click('#cr-swap');
     const swapped = await until(p, '?view=compare&a=etihad&b=jal');

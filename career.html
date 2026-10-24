@@ -44,7 +44,7 @@
   <link rel="stylesheet" href="my-value.css">
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.cr-*）。?v= は中身の指紋で、gen-career.mjs が書く。 -->
-  <link rel="stylesheet" href="career.css?v=656986d6">
+  <link rel="stylesheet" href="career.css?v=96c80f9d">
   <link rel="stylesheet" href="career-sec.css?v=04bae47b">
   <!-- 生きた欄（.crl-*）・就航地（.crs-*）・カード保存（.crc-*）の見た目。 -->
   <link rel="stylesheet" href="career-live.css?v=d6ba101e">
@@ -1114,13 +1114,7 @@
 <span class="cr-opt-p"><img src="assets/airlines/eva-b777.jpg" srcset="assets/airlines/eva-b777-480.jpg 480w, assets/airlines/eva-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 46vw" width="1280" height="853" alt="エバー航空の Boeing 777-300ER" loading="lazy" decoding="async"/><span class="cr-code">EVA</span></span>
 <span class="cr-opt-n">エバー航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
 </div>
-<select id="cr-a" class="cr-sel" aria-label="1社目">
-<option value="jal" selected>日本航空（JAL）</option>
-<option value="ana">全日本空輸（ANA）</option>
-<option value="cathay-pacific" disabled>キャセイパシフィック</option>
-<option value="etihad">エティハド航空</option>
-<option value="eva-air">エバー航空</option>
-</select>
+<button type="button" class="cr-pickb" id="cr-open-a" data-label="1社目" aria-label="1社目 日本航空（JAL）" aria-haspopup="dialog"></button>
 <span class="cr-ring" aria-hidden="true"></span>
 </div>
 <button type="button" class="cr-swap" id="cr-swap" aria-label="2社を入れ替える"><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h11l-3-3M17 16H6l3 3"/></svg></button>
@@ -1145,13 +1139,7 @@
 <span class="cr-opt-p"><img src="assets/airlines/eva-b777.jpg" srcset="assets/airlines/eva-b777-480.jpg 480w, assets/airlines/eva-b777.jpg 1280w" sizes="(min-width: 900px) 500px, 46vw" width="1280" height="853" alt="エバー航空の Boeing 777-300ER" loading="lazy" decoding="async"/><span class="cr-code">EVA</span></span>
 <span class="cr-opt-n">エバー航空<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>
 </div>
-<select id="cr-b" class="cr-sel" aria-label="2社目">
-<option value="jal" disabled>日本航空（JAL）</option>
-<option value="ana">全日本空輸（ANA）</option>
-<option value="cathay-pacific" selected>キャセイパシフィック</option>
-<option value="etihad">エティハド航空</option>
-<option value="eva-air">エバー航空</option>
-</select>
+<button type="button" class="cr-pickb" id="cr-open-b" data-label="2社目" aria-label="2社目 キャセイパシフィック" aria-haspopup="dialog"></button>
 <span class="cr-ring" aria-hidden="true"></span>
 </div>
 </div>
@@ -3135,6 +3123,16 @@
 <p class="cr-credits">写真（縮小・トリミング） <span class="cr-credit" data-airline="jal">日本航空（JAL） <a href="https://commons.wikimedia.org/wiki/File:Japan_Airlines_Boeing_787-9_JA881J_on_final_approach_to_Boston_April_2022.jpg" target="_blank" rel="noopener">4300streetcar</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span> <span class="cr-credit" data-airline="ana" hidden>全日本空輸（ANA） <a href="https://commons.wikimedia.org/wiki/File:All_Nippon_Airways,_Boeing_777-300ER_JA792A_NRT_(26845813980).jpg" target="_blank" rel="noopener">Masakatsu Ukon</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="cathay-pacific">キャセイパシフィック <a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="etihad" hidden>エティハド航空 <a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="cr-credit" data-airline="eva-air" hidden>エバー航空 <a href="https://commons.wikimedia.org/wiki/File:Eva_Air_Boeing_777-300ER_B-16716.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
 <script type="application/json" id="crl-cats">["企業カルチャー","給与・報酬の納得度","福利厚生","ワークライフバランス","運航環境","訓練環境"]</script>
 </section>
+<dialog class="cr-sheet" id="cr-sheet" aria-labelledby="cr-sheet-h">
+<div class="cr-sheet-top"><h2 class="cr-sheet-h" id="cr-sheet-h">1社目</h2><button type="button" class="cr-sheet-x" id="cr-sheet-x" aria-label="閉じる"><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+<ul class="cr-sheet-l" id="cr-sheet-l">
+<li><button type="button" class="cr-pk" data-airline="jal" style="--cr-co:#CC0000"><span class="cr-pk-n">日本航空（JAL）</span><span class="cr-pk-c">JAL</span></button></li>
+<li><button type="button" class="cr-pk" data-airline="ana" style="--cr-co:#1A6EB5"><span class="cr-pk-n">全日本空輸（ANA）</span><span class="cr-pk-c">ANA</span></button></li>
+<li><button type="button" class="cr-pk" data-airline="cathay-pacific" style="--cr-co:#006564"><span class="cr-pk-n">キャセイパシフィック</span><span class="cr-pk-c">CX</span></button></li>
+<li><button type="button" class="cr-pk" data-airline="etihad" style="--cr-co:#B08D57"><span class="cr-pk-n">エティハド航空</span><span class="cr-pk-c">EY</span></button></li>
+<li><button type="button" class="cr-pk" data-airline="eva-air" style="--cr-co:#00A599"><span class="cr-pk-n">エバー航空</span><span class="cr-pk-c">EVA</span></button></li>
+</ul>
+</dialog>
 <section class="cr-view cr-cardv" data-view="card" hidden>
 <a class="cr-back" id="crc-back" href="career.html" data-go><svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>戻る</a>
 <h1 class="cr-h1 cr-cardv-h" tabindex="-1">カードを保存</h1>
@@ -3161,7 +3159,7 @@
 <script src="pv-gates.js"></script>
 <!-- 画面の切り替えだけ。金額は1つも持たない。
      ★読めなかったときは入口をそのまま見せる（onerror）。 -->
-<script src="career.js?v=e59c0166" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
+<script src="career.js?v=dc4b4747" onload="document.documentElement.classList.remove('cr-boot')" onerror="document.documentElement.classList.remove('cr-boot')"></script>
 <!-- 生きた欄・就航地のホテル・カード保存。career.js が画面を出し終えるたびに出す知らせ（cr:show）で動く。
      ★どれが落ちても、上の画面と金額はそのまま読める。 -->
 <script src="career-live.js?v=96cef2c2"></script>

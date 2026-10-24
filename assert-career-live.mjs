@@ -1027,13 +1027,13 @@ scene('refocus', '[B] 「やり直す」を押して待つあいだに読み手�
   st.holdIf = (name, p) => name === 'pv_reviews' && !!p && Array.isArray(p.airlines) && p.airlines[0] === 'jal';
   ok(await pressRetry(page), '「やり直す」をキーボードで押した');
   ok(await waitFor(() => (st.held.pv_reviews || []).length === 1), 'JAL の口コミの読みを止めた（答えを待っている）');
-  await page.focus('#cr-a');
+  await page.focus('#cr-open-a');
   st.holdIf = null;
   release(st, 'pv_reviews', { status: 200, body: { ok: true, unlocked: false, rows: FIX.JAL } });
   ok(await until(page, () => { const c = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"] .crl-cmp-c .crl-avg'); return !!c && c.textContent === '3.5'; }),
     'JAL のマスが埋まった（3.5）');
   const at = await page.evaluate(() => (document.activeElement && document.activeElement.id) || (document.activeElement && document.activeElement.tagName));
-  ok(at === 'cr-a', '[B] 待つあいだに読み手が移った先（1社目を選ぶ欄）に、フォーカスはそのまま', String(at));
+  ok(at === 'cr-open-a', '[B] 待つあいだに読み手が移った先（1社目を選ぶ札）に、フォーカスはそのまま', String(at));
 });
 
 /* ══ 給与の区域（cmp-pay）── 比較の「提出された年収」══════════════════════
@@ -1439,11 +1439,12 @@ scene('pay-move', '給与：選び直し・入れ替えても一覧は1回だけ
   /* M5（B）3回の選び直しと1回の入れ替え */
   const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, stub: { pv_pay_rows: payReply(H.payFix.open(ROWS5)) } });
   ok(await payDone(page, 'jal|ana'), '（jal|ana）給与の欄が読み終わった');
-  const STEPS = [['#cr-b', 'etihad', 'jal|etihad'], ['#cr-a', 'eva-air', 'eva-air|etihad'], ['#cr-b', 'cathay-pacific', 'eva-air|cathay-pacific'],
+  /* 選び直しは選ぶ面で（★2026-10-25 段階5 compare-all-3：'a' / 'b' ＝ どちらの札から選ぶか） */
+  const STEPS = [['b', 'etihad', 'jal|etihad'], ['a', 'eva-air', 'eva-air|etihad'], ['b', 'cathay-pacific', 'eva-air|cathay-pacific'],
     ['#cr-swap', null, 'cathay-pacific|eva-air']];
   const went = [];
   for (const [sel, v, want] of STEPS) {
-    if (v) await page.select(sel, v); else await page.click(sel);
+    if (v) await H.choose(page, sel, v); else await page.click(sel);
     const done = await payDone(page, want);
     const f = await pairFace(page);
     went.push({ want, ok: done && f.state === 'open' && pairOk(f, want), ...pairOf(f) });
@@ -1459,7 +1460,7 @@ scene('pay-move', '給与：選び直し・入れ替えても一覧は1回だけ
   const h = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, holdIf: (name) => name === 'pv_pay_rows',
     stub: { pv_company_pay: medBy({ 'ana|jal': MED_P1, 'etihad|jal': MED_P2 }) } });
   const held = await waitFor(() => (h.st.held.pv_pay_rows || []).length === 1);
-  await h.page.select('#cr-b', 'etihad');
+  await H.choose(h.page, 'b', 'etihad');
   const moved = await until(h.page, (SEL) => { const b = document.querySelector(SEL); return !!b && b.getAttribute('data-for') === 'jal|etihad'; }, PAY_SEL);
   ok(held && moved, '（M5b）一覧の返事を止めたまま、2社目をエティハドに選び直した（欄は jal|etihad を待っている）', JSON.stringify({ held, moved }));
   release(h.st, 'pv_pay_rows', { status: 200, body: H.payFix.open(ROWS5) });
@@ -1477,7 +1478,7 @@ scene('pay-move', '給与：選び直し・入れ替えても一覧は1回だけ
     stub: { pv_pay_rows: payReply(H.payFix.open(ROWS5)), pv_company_pay: medBy({ 'etihad|jal': MED_P2 }) } });
   ok(await payDone(c.page, 'jal|ana'), '（M10 c）jal|ana の給与の欄が読み終わった');
   const heldC = await waitFor(() => (c.st.held.pv_company_pay || []).length === 1);
-  await c.page.select('#cr-b', 'etihad');
+  await H.choose(c.page, 'b', 'etihad');
   const drewC = (await payDone(c.page, 'jal|etihad')) && (await medDrawn(c.page, DEF_P2));
   ok(heldC && drewC, '（M10 c）jal|ana の中央値の答えを止めたまま選び直し、jal|etihad の中央値が出た', JSON.stringify({ heldC, drewC }));
   const sent = release(c.st, 'pv_company_pay', { status: 200, body: MED_P1 });
@@ -2214,8 +2215,8 @@ localScene('local-eq', '比較で選べる主要5社：評価と件数が、比�
     '★L1 主要5社 ANA：比較と会社ページが同じ ── 4.2・星 84%・「1件の評価」・会員の投稿 1件・6つの点は無い（点の無い分類がある）',
     J({ cmp: A1, co: co.ana && { avg: co.ana.avg, fill: co.ana.fill, cnt: co.ana.cnt, posts: co.ana.posts, vals: co.ana.vals } }));
   /* ページの中で2社を選び直す：エティハド｜キャセイパシフィック、続けてエバー｜キャセイパシフィック */
-  await cmp.page.select('#cr-a', 'etihad');
-  await cmp.page.select('#cr-b', 'cathay-pacific');
+  await H.choose(cmp.page, 'a', 'etihad');
+  await H.choose(cmp.page, 'b', 'cathay-pacific');
   ok(await cmpDone(cmp.page, 'etihad|cathay-pacific'), '（前提）ページの中で選び直した エティハド｜キャセイパシフィック の評価の欄が読み終わった');
   const [E1, C1] = await cmpRate(cmp.page);
   ok(!!E1 && E1.none === '会員からの投稿はまだありません' && E1.avg === null && co.etihad.avg === null && J(co.etihad.posts) === '["0"]',
@@ -2225,7 +2226,7 @@ localScene('local-eq', '比較で選べる主要5社：評価と件数が、比�
     '★L1 主要5社 キャセイパシフィック（古い会社コード cathay の1件を含む）：比較と会社ページが同じ ── 4.0・星 80%・「2件の評価」・会員の投稿 2件・6つの点 4.0',
     J({ cmp: C1, co: co['cathay-pacific'] && { avg: co['cathay-pacific'].avg, fill: co['cathay-pacific'].fill, cnt: co['cathay-pacific'].cnt,
       posts: co['cathay-pacific'].posts, vals: co['cathay-pacific'].vals } }));
-  await cmp.page.select('#cr-a', 'eva-air');
+  await H.choose(cmp.page, 'a', 'eva-air');
   ok(await cmpDone(cmp.page, 'eva-air|cathay-pacific'), '（前提）ページの中で選び直した エバー｜キャセイパシフィック の評価の欄が読み終わった');
   const [V1] = await cmpRate(cmp.page);
   ok(!!V1 && V1.none === '会員からの投稿はまだありません' && V1.avg === null && co['eva-air'].avg === null && J(co['eva-air'].posts) === '["0"]',
@@ -2645,8 +2646,8 @@ localScene('pay-readers', '比較の給与：5人の読む人（ゲスト・会�
     const cmp = await lopen('pc', R.who, PAIR_URL('jal', 'ana'));
     const seen = [];
     for (const [a, b] of PAY_PAIRS) {
-      if (a === 'etihad') { await cmp.page.select('#cr-a', 'etihad'); await cmp.page.select('#cr-b', 'cathay-pacific'); }
-      if (a === 'eva-air') { await cmp.page.select('#cr-a', 'eva-air'); await cmp.page.select('#cr-b', 'jal'); }
+      if (a === 'etihad') { await H.choose(cmp.page, 'a', 'etihad'); await H.choose(cmp.page, 'b', 'cathay-pacific'); }
+      if (a === 'eva-air') { await H.choose(cmp.page, 'a', 'eva-air'); await H.choose(cmp.page, 'b', 'jal'); }
       const done = await payDone(cmp.page, `${a}|${b}`);
       seen.push({ a, b, done, F: await payFace(cmp.page) });
     }

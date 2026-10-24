@@ -11,7 +11,7 @@
    ⚠️ 手元の会員（serve-local.mjs の MEMBERS）は模擬。ここで通ったことは、本番で通った証拠にはならない。
 
    道具は local-chain.mjs から借りる（LIBS・seedOf・rpcAs・loginAs・open）。ここに在るのは、あちらに無いものだけ：
-     startLocal（SQL をそのまま流せる exec を持つ）・MOCK の門と open・slot / until / watch / seen・otherTab / loginIn / logoutIn・
+     startLocal（SQL をそのまま流せる exec を持つ）・MOCK の門と open・slot / until / choose / watch / seen・otherTab / loginIn / logoutIn・
      読む人の作り方 makeReaders（比較の検査の3つの区域で、ただ1つ）・給与の一覧の返事の材料 payFix / payRowFix（同じく、ただ1つ）。
 
    使い方（assert-career-live.mjs が手本）
@@ -288,6 +288,15 @@ export async function slot(page, kind, nth = 0) {
 /* 条件が満たされるまで待つ（時間では待たない ── CLAUDE.md「時間で待つ検査は、混んだ回に嘘の赤を出す」）。満たされなければ false */
 export function until(page, fn, arg) {
   return page.waitForFunction(fn, { timeout: 8000, polling: 100 }, arg).then(() => true, () => false);
+}
+
+/* 比較の2社の片方を選ぶ（★2026-10-25 段階5 compare-all-3：2つの選ぶ欄 #cr-a・#cr-b は無くなり、札を押すと開く選ぶ面 #cr-sheet で選ぶ）。
+   札を押す → 面が開く → その会社を押す → 面が閉じて、その側の札がその会社になるまで待つ。side ＝ 'a' | 'b' */
+export async function choose(page, side, slug) {            // side: 'a' | 'b'
+  await page.click(`#cr-open-${side}`);
+  await page.waitForSelector('#cr-sheet[open]');
+  await page.click(`#cr-sheet-l .cr-pk[data-airline="${slug}"]`);
+  await page.waitForFunction((sd, s) => { const o = document.querySelector(`#cr .cr-side[data-side="${sd}"] .cr-opt:not([hidden])`); return !document.getElementById('cr-sheet').open && !!o && o.dataset.airline === s; }, {}, side, slug);
 }
 
 /* その欄が取った顔を、全部書き留める（"状態|字" の並び）。seen(page) が返す */

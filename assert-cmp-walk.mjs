@@ -725,7 +725,7 @@ scene('walk', '会社ページ → 比較 → 切り替え・入れ替え → �
       await Promise.all([page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }), page.click('a.pvg-btn-cmp')]);
       const landed = await page.evaluate(() => location.pathname + location.search);
       const st2 = await page.evaluate(() => window.PVCareer && window.PVCareer.state ? window.PVCareer.state() : {});
-      if (st2.b !== b) await page.select('#cr-b', b);
+      if (st2.b !== b) await H.choose(page, 'b', b);
       const s2 = await settled(page, a, b);
       const q2 = await page.evaluate(() => location.search);
       ok(landed.startsWith(`/career.html?view=compare&a=${a}`) && s2 && q2 === `?view=compare&a=${a}&b=${b}`,
