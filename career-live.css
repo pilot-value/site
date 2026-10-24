@@ -163,6 +163,21 @@
   .crl-wb-o{grid-area:3 / 1 / auto / -1}
   .crl-wb-r > .crl-none{grid-area:1 / 2 / auto / -1}
 }
+/* 英語のページ（2026-10-24 WP-en-5）：職位の名前「First Officer」は 67px（12px の字）で、56px の列から帯へ 3px かぶっていた。
+   英語だけ名前の列を 76px に（日本語の「副操縦士」48px と同じ 16px のすき間）。列の幅は固定のまま（帯の長さを行ごとに変えない）。
+   英語の枠のいちばん狭い幅は 324px ＝ 96 ＋ 職位 76 ＋ 数字 72 ＋ 単位 30 ＋ すき間 8×3 ＋ 内側の余白 12×2 ＋ 罫線 1×2（並びの最小と、段を移す境も同じ数）。
+   日本語のページには1つも当たらない（:lang(en)）。 */
+.crl-wb:lang(en){grid-template-columns:repeat(auto-fit,minmax(min(100%,max(324px,calc(50% - 5px))),1fr))}
+.crl-wb-r:lang(en){grid-template-columns:76px minmax(0,1fr) 72px 30px}
+@container crlwb (width < 324px){
+  .crl-wb-r:lang(en){grid-template-columns:76px minmax(0,1fr) 30px;gap:4px 8px}
+  .crl-wb-p:lang(en){grid-area:1 / 1}
+  .crl-wb-n:lang(en){grid-area:1 / 2}
+  .crl-wb-u:lang(en){grid-area:1 / 3}
+  .crl-wb-tr:lang(en){grid-area:2 / 1 / auto / -1}
+  .crl-wb-o:lang(en){grid-area:3 / 1 / auto / -1}
+  .crl-wb-r:lang(en) > .crl-none{grid-area:1 / 2 / auto / -1}
+}
 @media (forced-colors:active){
   .crl-wb-tr{border:1px solid CanvasText}
   .crl-wb-b{background:Highlight;forced-color-adjust:none}
