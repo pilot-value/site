@@ -7,7 +7,8 @@
 
    守っていること（どれも、壊すと赤くなることを確かめてある）
      A  切り替えは1か所（airline-rollout.mjs の SWITCH ＝ 先行5社＋見本の2社）。SWITCH の外の会社ページには、新しい会社ページの印が1つも無い。
-        SWITCH の会社ページは生成器の出力と1文字も違わない。棒の目盛は SWITCH の全社の推定から決まる。
+        SWITCH の会社ページは生成器の出力と1文字も違わない。棒の目盛は1枚に1本 ── そのページに描く額のいちばん大きいもの（推定・幅の上の額・
+        公表額）を次の 1,000万 へ切り上げた額（決まった上限なし・日英の全ページ ── オーナー 2026-10-24 P12.104）。
         社名（h1）のすぐ左はロゴ（ロゴの無い8社は会社の色の頭文字）── SWITCH のどのページも（オーナー 2026-10-21）。
         機長と副操縦士を分けない額（運航乗務員の平均）は、SWITCH のどのページにも無い（題・説明・構造化データも ── P12.77）。
      B  画面に出してよい行（airline-rollout.mjs の why）── 本物の調べの台帳で:
@@ -54,9 +55,9 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
-import { BASIS } from './salary-basis.mjs';
+import { BASIS, figures } from './salary-basis.mjs';
 import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf, EN_SWITCH } from './airline-rollout.mjs';
-import { GLANCE, AXIS, viewOf, checkViewEn } from './pv-airline-view.mjs';
+import { GLANCE, viewOf, checkViewEn } from './pv-airline-view.mjs';
 import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml, WORDS, checkWords, CMP_EN } from './gen-airline-glance.mjs';
 import { PHOTOS as PLACE_PHOTOS } from './place-photos.mjs';
 import { PHOTOS as AIRLINE_PHOTOS } from './airline-photos.mjs';
@@ -77,6 +78,10 @@ const sha = t => crypto.createHash('sha256').update(t).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const CUR_EN = await curCore('USD', 'en');   // 英語のページのドルの字の作り方（currency.js が正 ── 額の道は1つ）
 const block = (html, name) => { const a = html.indexOf(`<!--${name}-->`), b = html.indexOf(`<!--/${name}-->`); return a >= 0 && b > a ? html.slice(a, b + name.length + 7) : ''; };
+/* 会社ページの棒の目盛に入る額（万円）── 推定年収 avg・その幅の上の額 hi・会社が公表している機長と副操縦士の額（訓練生の額は入れない）。
+   生成側（pv-airline-view.mjs の scaleValues）を読まずに、正本と台帳からここで作る（★2026-10-24 P12.104）。 */
+const drawnOf = s => ['cap', 'fo'].flatMap(r => [SALARY[s][r].avg, SALARY[s][r].hi, ...figures(s, r).filter(f => !f.training).map(f => f.man)]).filter(n => n > 0);
+const scaleOfPage = s => Math.ceil(Math.max(...drawnOf(s)) / 1000) * 1000;
 /* 開きタグの位置から対になる </div> まで（生成器の関数を使わずに、ここで数える） */
 const divTo = (h, i) => { const re = /<div\b|<\/div>/g; re.lastIndex = i; let d = 0, m; while ((m = re.exec(h))) { d += m[0] === '</div>' ? -1 : 1; if (!d) return m.index + 6; } return h.length; };
 const faqSections = h => [...h.matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)].map(m => h.slice(m.index, divTo(h, m.index)))
@@ -197,8 +202,33 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   const QA = /カタール航空グループ|カタールグループ|QIA|Qatar Airways Group|Qatar Investment Authority|Qatar Group/;
   const hkx = ['airlines/hong-kong-express.html', 'en/airlines/hong-kong-express.html'].map(p => [p, (read(p).match(new RegExp(`.{0,20}(${QA.source}).{0,20}`)) || [''])[0]]).filter(([, m]) => m);
   ok(!hkx.length, 'A 香港エクスプレスの日英のページに、「カタール航空グループ／QIA の傘下」という資料の無い言い分が無い（キャセイパシフィック・グループの会社）', hkx.map(([p, m]) => `${p}: ${m}`).join(' ／ '));
-  const want = Math.ceil(Math.max(...SWITCH.flatMap(s => ['cap', 'fo'].map(r => SALARY[s][r].avg))) / 1000) * 1000;
-  ok(AXIS === want, `A 棒の目盛の右端は SWITCH の全社の推定のいちばん大きい額から（${want}万）`, `AXIS=${AXIS}`);
+  /* ★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」（同じ強さの当て直し ── リード L2）：
+     2026-10-21〜10-24 は「棒の目盛の右端は SWITCH の全社の推定のいちばん大きい額から」（全ページで1本・¥7,000万）を見ていた。それだと幅の上の額
+     （ユナイテッド 機長 ¥8,530万・デルタ ¥8,690万 …）がはみ出す。いまは1枚に1本 ── そのページに描く額（推定年収 avg・その幅の上の額 hi・
+     会社が公表している機長と副操縦士の額）のどれもが右端以下で、いちばん大きい額と右端の差は 1,000万 未満（右端は 1,000万 の倍数）。
+     日英の全ページそのもの（刻みの数・目盛の1文・棒の長さ）を、生成側（scaleOf）を読まずに正本（SALARY）と台帳（figures）から作り直して見る。 */
+  {
+    const bad = [];
+    let pages = 0;
+    for (const [s, lang] of [...SWITCH.map(x => [x, 'ja']), ...EN_SWITCH.map(x => [x, 'en'])]) {
+      const g = block(read(pageOf(s, lang)), 'PV-GLANCE'), vals = drawnOf(s), max = Math.max(...vals);
+      const n = +((g.match(/<section class="pvg"[^>]*style="[^"]*--pvg-n:(\d+)"/) || [])[1]);
+      const ax = ((g.match(/<p class="pvg-axis">[\s\S]*?¥([\d,]+)万[\s\S]*?<\/p>/) || [])[1] || '').replace(/,/g, '');
+      const top = n * 1000, widths = [...g.matchAll(/<i class="pvg-bar pvg-bar-est" style="width:([\d.]+)%"><\/i>/g)].map(m => m[1]);
+      const why = [
+        !(n > 0) && '刻みの数が無い',
+        +ax !== top && `目盛の1文 ¥${ax}万 ≠ 刻み ${n}`,
+        !vals.every(v => v <= top) && `はみ出す額 ${vals.filter(v => v > top).join('・')}`,
+        !(top - max < 1000) && `右端 ${top} − いちばん大きい額 ${max} ≥ 1,000`,
+        !same(widths, ['cap', 'fo'].map(r => ((SALARY[s][r].avg / top) * 100).toFixed(2))) && `棒 ${widths.join('・')}`,
+      ].filter(Boolean);
+      if (why.length) bad.push(`${pageOf(s, lang)}: ${why.join('・')}`);
+      pages++;
+    }
+    ok(!bad.length,
+      `A 会社ページの棒の目盛は1枚に1本（日英 ${pages}枚）── 推定・幅の上の額・公表額のどれもが右端以下・いちばん大きい額と右端の差は 1,000万 未満（決まった上限なし）・棒の長さは推定 ÷ 右端`,
+      bad.slice(0, 6).join(' ／ '));
+  }
   /* 同じ日本語の名前の街が2つの国に在る空港（オークランド AKL・OAK／マンチェスター MAN・MHT ── 2026-10-21 d1）：ステイ先のカードは、
      その名前のすぐ上に国を出す（都市の面はカードの字を読む）。米国の空港は州も（「アメリカ・カリフォルニア州」）。名前が重なる米国の空港には州が要る。 */
   {
@@ -399,6 +429,7 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
    2026-10-21 d1：それまでのシンセントラル航空は SWITCH に入った（リポジトリの E で見る）。南アフリカ航空は d1 の後半（中東・アフリカ）で入るので、
    どちらも外し、d2（ヨーロッパ・オセアニア）まで切り替えない3社にした。南アフリカ航空は切り替えるまで PV_ROLLOUT_TRY=all が写しで見る。
    ⚠️ 既定でない回は、目盛の段（額の大きい会社を足す）と「先行5社は島の1行だけ」を見ない（切り替える会社しだいで目盛が動くため）。
+     （★2026-10-24 P12.104 から目盛は1枚に1本 ── 目盛の段は「外しても動かない」を見る。こちらも既定の回だけ）
    ★2026-10-22 d2（同じ強さの当て直し ── リード L2）：3社は SWITCH に入った（年収の正本の 112社のうち、古い形はスピリット航空だけ）。
      既定は「まだ古い形の会社ぜんぶ」＝ スピリット航空1社。3社で見ていたものは、どれも段ごとに置き場を替えた：
      過去・参考の札 → E（切り替えた 106社のページそのもの）／使い方を替える段 → ブリティッシュ・エアウェイズ（SWITCH の中で、写しの字を替える）／
@@ -571,30 +602,33 @@ try {
   if (!SWEEP) {
     const lead = LEAD.filter(s => { const a = ORIG[s].split('\n'), b = page(s).split('\n'); return a.length !== b.length || a.some((l, i) => l !== b[i] && !/id="crc-data"/.test(l)); });
     ok(!lead.length, 'D 先行5社のページは、島（#crc-data に会社が足される）の1行のほかは変わらない（目盛が動かない額の会社だけなので）', lead.join(','));
-    /* 目盛の右端は、切り替えた会社ぜんぶの推定から（額の大きい会社を足すと、先行5社の目盛と棒も一緒に動く）。 */
-    /* ★2026-10-22 d2：足せる会社（SWITCH の外で額の大きい会社）が残っていないので、逆向きに見る ── 推定のいちばん大きい会社から順に、
-       右端が下がるまで写しの SWITCH（WIDE）から外す。右端は残った会社の推定から決まり、先行5社と残ったいちばん大きい会社の棒もその目盛で
-       描かれる。外した会社のページは SWITCH の外になる ＝ 生成し直しても1文字も変わらない。 */
+    /* ★2026-10-24 オーナー P12.104（同じ強さの当て直し ── リード L2）：目盛は1枚に1本 ＝ ほかの会社の額では動かない。
+       2026-10-22〜10-24 は逆向き（全ページで1本の目盛 ── 推定のいちばん大きい会社を写しの SWITCH から外すと右端が下がり、先行5社の棒まで
+       描き直されるのを見ていた）。いまは、目盛のいちばん大きい会社（幅の上の額の大きい会社）を写しの SWITCH（WIDE）から外して流し直しても、
+       先行5社と、残った会社のうち目盛のいちばん大きい会社の目盛（刻みの数・目盛の1文・棒の長さ）は1文字も変わらず、どれもその会社の額から
+       作った右端のまま。外した会社のページは SWITCH の外になる ＝ 生成し直しても1文字も変わらない。 */
     {
-      const top = s => Math.max(...['cap', 'fo'].map(r => SALARY[s][r].avg));
-      const endOf = list => Math.ceil(Math.max(...list.map(top)) / 1000) * 1000;
-      const pool = WIDE.filter(s => !TRY.includes(s)).sort((a, b) => top(b) - top(a)), DROP = [];
-      let end = AXIS;
-      for (const s of pool) { DROP.push(s); end = endOf([...SWITCH, ...TRY].filter(x => !DROP.includes(x))); if (end < AXIS) break; }
-      const keep = [...SWITCH, ...TRY].filter(x => !DROP.includes(x)), TOP = keep.filter(s => !LEAD.includes(s)).sort((a, b) => top(b) - top(a))[0];
+      const pool = WIDE.filter(s => !TRY.includes(s)).sort((a, b) => scaleOfPage(b) - scaleOfPage(a));
+      const DROP = pool.filter(s => scaleOfPage(s) === scaleOfPage(pool[0]));
+      const keep = [...SWITCH, ...TRY].filter(x => !DROP.includes(x)), TOP = keep.filter(s => !LEAD.includes(s)).sort((a, b) => scaleOfPage(b) - scaleOfPage(a))[0];
+      const facts = s => {
+        const g = block(page(s), 'PV-GLANCE');
+        return [(g.match(/<section class="pvg"[^>]*style="[^"]*--pvg-n:(\d+)"/) || [])[1], (g.match(/<p class="pvg-axis">[^<]*<\/p>/) || [])[0],
+          ...[...g.matchAll(/<i class="pvg-bar pvg-bar-est" style="width:([\d.]+)%"><\/i>/g)].map(m => m[1])];
+      };
+      const WATCH = [...LEAD, TOP], was = Object.fromEntries(WATCH.map(s => [s, facts(s)]));
       let t2 = fs.readFileSync(sw, 'utf8');
       const once = DROP.map(s => t2.split(`'${s}',`).length - 1);
       for (const s of DROP) t2 = t2.split(`'${s}',`).join('');
       fs.writeFileSync(sw, t2);
       const before = Object.fromEntries(DROP.map(s => [s, page(s)]));
       const r4 = gen();
-      const widths = s => [...block(page(s), 'PV-GLANCE').matchAll(/<i class="pvg-bar pvg-bar-est" style="width:([\d.]+)%"><\/i>/g)].map(m => +m[1]);
-      const want = s => ['cap', 'fo'].map(r => +Math.min(100, (SALARY[s][r].avg / end) * 100).toFixed(2));
-      const off = [...LEAD, TOP].filter(s => !page(s).includes(`--pvg-n:${end / 1000}"`) || !same(widths(s), want(s)));
+      const own = s => String(scaleOfPage(s) / 1000);
+      const off = WATCH.filter(s => !same(facts(s), was[s]) || facts(s)[0] !== own(s));
       const moved = DROP.filter(s => page(s) !== before[s]);
-      ok(r4.status === 0 && once.every(n => n === 1) && end < AXIS && !off.length && !moved.length,
-        `D 推定のいちばん大きい会社（${DROP.join('・')}）を写しの SWITCH から外すと、目盛の右端は ¥${AXIS.toLocaleString('en-US')}万から ¥${end.toLocaleString('en-US')}万に下がり、先行5社と残ったいちばん大きい会社（${TOP}）の棒もその目盛で描かれる・外した会社のページは1文字も変わらない`,
-        `外した行 ${once.join(',')} ／ 目盛が違う ${off.join(',')} ／ 変わった ${moved.join(',')} ${r4.stderr}`);
+      ok(r4.status === 0 && once.every(n => n === 1) && DROP.length > 0 && scaleOfPage(TOP) < scaleOfPage(DROP[0]) && !off.length && !moved.length,
+        `D 目盛のいちばん大きい会社（${DROP.join('・')} ── 右端 ¥${scaleOfPage(DROP[0] || LEAD[0]).toLocaleString('en-US')}万）を写しの SWITCH から外して流し直しても、先行5社と残った会社のうち目盛のいちばん大きい会社（${TOP}・¥${scaleOfPage(TOP).toLocaleString('en-US')}万）の目盛と棒は1文字も変わらず、その会社の額から作った右端のまま（目盛は1枚に1本 ── ほかの会社の額で動かない）・外した会社のページは1文字も変わらない`,
+        `外した行 ${once.join(',')} ／ 目盛が動いた・その会社の右端でない ${off.map(s => `${s} ${JSON.stringify(was[s])} → ${JSON.stringify(facts(s))}`).join(' ／ ')} ／ 変わった ${moved.join(',')} ${r4.stderr}`);
     }
   }
 } finally {

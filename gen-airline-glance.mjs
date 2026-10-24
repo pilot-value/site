@@ -29,7 +29,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { GLANCE, LEAD, SWITCH, RANKS, AXIS, viewOf, width, yen, rentCell, coSay, coText, placeCountryEn } from './pv-airline-view.mjs';
+import { GLANCE, LEAD, SWITCH, RANKS, scaleOf, viewOf, width, yen, rentCell, coSay, coText, placeCountryEn } from './pv-airline-view.mjs';
 import { barGroup } from './pv-bars.mjs';
 import { fxNote, BASIS } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
@@ -329,7 +329,8 @@ ${acts}
    ★ 棒は推定年収だけ ＝ 1枚に2本・同じ物差し。
      会社が公表している金額（求人の上限・目標年収・下限・乗員全体の平均）は、棒を付けずに別の一覧へ置く
      （物差しの違う額を同じ目盛に並べない ── 2026-10-06）。 */
-const bar = man => `<div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:${width(man)}"></i></div>`;
+/* 目盛は1枚に1本（★2026-10-24 P12.104）＝ この会社の、描く額のいちばん大きいものから（pv-airline-view.mjs の scaleOf）。決まった上限は無い。 */
+const bar = (man, top) => `<div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:${width(man, top)}"></i></div>`;
 /* 字は WORDS（estBy ＝「当サイトの推定（公開情報からの推計）」・fig ＝ 求人の上限／目標年収／下限）。どの金額の種類に名前が在るかは FIG_LABEL の鍵 */
 const FIG_LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
 const figText = f => (f.key === 'max_y' ? W.upTo(f.yen) : f.key === 'cash_y_over' ? W.over(f.yen) : f.key.endsWith('_from') ? W.from(f.yen) : f.yen);
@@ -343,7 +344,7 @@ function whenOf(pay) {
 const rankBlock = (v, [rk]) => `<div class="pvg-rank" data-rank="${rk}">
 <h3 class="pvg-rk"><span class="pvg-vh">${W.vhName(esc(v.name))}</span>${W.rank[rk]}<span class="pvg-rk-s">${W.rankEst}</span></h3>
 <p class="pvg-big">${v.pay[rk].est.yen}</p>
-${bar(v.pay[rk].est.man)}
+${bar(v.pay[rk].est.man, scaleOf(v.slug))}
 </div>`;
 /* 会社が公表している金額（棒にしない）。職位ごとに、求人の上限を1つ・会社の公表額を1つまで。残りは下の説明に全部出る。
    ⚠️ 社名 → 職位 → 額 のあいだに数字を挟まない（外貨の原文は額の後ろ）。
@@ -417,7 +418,7 @@ function payDetails(v) {
 <summary>${W.payWhose}${IC.down}</summary>
 <div class="pvg-body">
 <dl class="pvg-dl">${rows.join('\n')}</dl>
-<p class="pvg-axis">${W.axis(yen(AXIS))}</p>
+<p class="pvg-axis">${W.axis(yen(scaleOf(v.slug)))}</p>
 ${notes}${src}${fx}
 </div>
 </details>`;
@@ -1150,7 +1151,7 @@ function glance(v) {
     .replace(/</g, () => '\\u003c');
   /* 会社の1枚が無い会社（全社へ広げる b で、紹介文・数字・写真が1つも無い会社）は、その段ごと置かない */
   const co = companyCard(v);
-  return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${AXIS / 1000}" aria-label="${W.glanceLabel(esc(v.name))}">${co ? `
+  return `<section class="pvg" data-tab-section="overview" data-slug="${v.slug}" style="--pvg-c:${esc(v.color)};--pvg-n:${scaleOf(v.slug) / 1000}" aria-label="${W.glanceLabel(esc(v.name))}">${co ? `
 <div class="pvg-more-grid"${pane(v.slug, 'overview')}>
 ${co}
 </div>` : ''}

@@ -255,12 +255,14 @@ const traineeModel = slug => {
   return ((b.trainee && b.trainee.groups) || []).filter(g => typeof g.start_m === 'number')
     .map(g => ({ group: g.name, text: `約${toMan(b.cur, g.start_m)}万円` }));
 };
-/* 目盛の右端：棒で出すいちばん大きい額（＝新しい会社ページを持つ会社（SWITCH ＝ GLANCE）の推定年収）を 1,000万の刻みへ切り上げる。
-   ★2026-10-21（全社へ広げる d1 の続き・同じ強さの当て直し）：全社へ広げる b の決まり「目盛は切り替えた会社ぜんぶから」（rollout.build.txt
-     WP-roll-b 4・P12.86-4「1つの目盛」）。先行5社だけの間は5社の最大と同じ答え（¥4,000万）。中東の会社（エミレーツ 機長 ¥3,700万 ほか）を
-     足して ¥5,000万 になった。棒の長さ・刻みの数・右端の字は、今までどおり1社ずつ正本（SALARY）から作り直して照合する。 */
-const AXIS = Math.ceil(Math.max(...GLANCE.flatMap(s => RANKS.map(([rk]) => SALARY[s][rk].avg))) / 1000) * 1000;
-const widthOf = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
+/* 目盛の右端：棒で出すいちばん大きい額を 1,000万の刻みへ切り上げる。
+   ★2026-10-21（全社へ広げる d1 の続き）〜2026-10-24 は「目盛は切り替えた会社ぜんぶから」（全ページで1本 ── 最後は ¥7,000万）。
+   ★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」（同じ強さの当て直し ── リード L2）：決まった上限は無い。
+     1枚に1本 ＝ その会社の、ページに描く額（推定年収 avg・その幅の上の額 hi・会社が公表している機長と副操縦士の額）のいちばん大きいものを、
+     次の 1,000万 へ切り上げた額。生成側（pv-airline-view.mjs の scaleOf）を読まずに、正本（SALARY）と台帳（rankModel）から1社ずつ作り直す。
+     棒の長さ・刻みの数・右端の字は、今までどおり1社ずつ照合する。 */
+const AXIS_OF = s => Math.ceil(Math.max(...RANKS.flatMap(([rk]) => [SALARY[s][rk].avg, SALARY[s][rk].hi, ...rankModel(s, rk).figs.map(f => f.man)])) / 1000) * 1000;
+const widthOf = (s, m) => `${Math.min(100, (m / AXIS_OF(s)) * 100).toFixed(2)}%`;
 
 /* ══════════════════════════════════════════════════════════════════
    HTML を読む道具（生成物なので形は機械が決めている。読めなければ、それ自体を赤にする）
@@ -472,7 +474,7 @@ for (const s of FIVE) {
     if (!r) { ok(false, `${s} ${rkJa}: 推定年収の欄が在る（「確認中」にしない）`); continue; }
     ok(r.role === rkJa && r.tail === 'の推定年収', `${s} ${rkJa}: 見出しは「${rkJa}の推定年収」`, `${r.role}${r.tail}`);
     ok(r.big === yen(avg), `${s} ${rkJa}: 推定年収は正本（SALARY）の額そのまま`, `${r.big}（正本 ${yen(avg)}）`);
-    ok(same(r.bar, ['est', widthOf(avg)]), `${s} ${rkJa}: 棒は推定の棒で、長さは額どおり`, `${r.bar}（あるべき est,${widthOf(avg)}）`);
+    ok(same(r.bar, ['est', widthOf(s, avg)]), `${s} ${rkJa}: 棒は推定の棒で、長さは額どおり`, `${r.bar}（あるべき est,${widthOf(s, avg)}）`);
     ok(r.spoken.includes(nameOf(s)), `${s} ${rkJa}: 読み上げに社名が入っている`, r.spoken);
   }
   ok(!/確認中/.test(text(PART[s].pay)), `${s}: 給与の箱に「確認中」と書かない（説明の中も）`, (text(PART[s].pay).match(/.{0,20}確認中.{0,10}/) || [''])[0]);
@@ -621,20 +623,20 @@ for (const s of FIVE) {
   const bars = (g.match(/class="pvg-bar /g) || []).length, mine = (PART[s].pay.match(/class="pvg-bar /g) || []).length;
   ok(bars === mine && mine === 2, `${s}: 棒が在るのは給与の箱の中だけ（自分の会社の推定年収の2本）`, `ページ ${bars}本・給与の箱 ${mine}本`);
   /* 棒の長さの物差し（目盛の刻みの数）は、目盛の右端と同じ数から出ている。 */
-  ok(new RegExp(`<section class="pvg"[^>]*style="[^"]*--pvg-n:${AXIS / 1000}"`).test(PART[s].glance), `${s}: 目盛の刻みは ${AXIS / 1000} 本（右端 ${yen(AXIS)}）`);
+  ok(new RegExp(`<section class="pvg"[^>]*style="[^"]*--pvg-n:${AXIS_OF(s) / 1000}"`).test(PART[s].glance), `${s}: 目盛の刻みは ${AXIS_OF(s) / 1000} 本（右端 ${yen(AXIS_OF(s))} ＝ この会社の描く額のいちばん大きいものから）`);
   const others = FIVE.filter(o => o !== s);
   const t = text(g);
   const named = others.filter(o => t.includes(nameOf(o)));
   ok(!named.length, `${s}: ほかの4社の社名を、この節に出していない`, named.join(', '));
   ok(!/&amp;b=|[?&]b=/.test(PART[s].hero + g), `${s}: 相手を決め打ちした比較の入口が無い（相手は比較の画面で選ぶ）`);
   const axes = [...PART[s].glance.matchAll(/<p class="pvg-axis">([^<]*)<\/p>/g)].map(m => m[1]);
-  ok(axes.length === 1 && axes[0].includes(`0 〜 ${yen(AXIS)}`) && !/5社/.test(axes[0]), `${s}: 目盛は 0 〜 ${yen(AXIS)}（5社を比べる言い方をしない）`, axes.join(' ／ '));
+  ok(axes.length === 1 && axes[0].includes(`0 〜 ${yen(AXIS_OF(s))}`) && !/5社/.test(axes[0]), `${s}: 目盛は 0 〜 ${yen(AXIS_OF(s))}（5社を比べる言い方をしない）`, axes.join(' ／ '));
 }
 
 head('画面に出る額（正本に無い額・出すと決めていない額）');
 for (const s of FIVE) {
   /* 給与の箱に出る「¥◯万」は、自分の会社の、正本から作れる額だけ。注（台帳の言葉のまま）は上で照合済みなので外す。 */
-  const allowed = new Set([yen(AXIS)]);
+  const allowed = new Set([yen(AXIS_OF(s))]);
   for (const [rk] of RANKS) {
     const m = rankModel(s, rk);
     allowed.add(m.est.text);
@@ -3425,7 +3427,7 @@ async function runView(browser, s, [w, h, kind]) {
       if (crewModel(s).length) want.push(crewModel(s)[0].man * 10000);
       const bad = [];
       if (!same(m0.pay, want.sort((a, b) => a - b))) bad.push(`給与の箱 ${m0.pay}（正本 ${want}）`);
-      if (!(m0.axis.length === 1 && m0.axis.every(n => n === AXIS * 10000))) bad.push(`目盛 ${m0.axis}`);
+      if (!(m0.axis.length === 1 && m0.axis.every(n => n === AXIS_OF(s) * 10000))) bad.push(`目盛 ${m0.axis}`);
       ok(!bad.length, `${tag}: 通貨を換える元の円（data-jpy）は、正本の額そのもの`, bad.join(' ／ '));
     }
 

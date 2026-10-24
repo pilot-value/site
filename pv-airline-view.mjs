@@ -1,7 +1,7 @@
 /* pv-airline-view.mjs — 新しい会社ページ（主要5社と、airline-rollout.mjs の SWITCH に足した会社）が読む、ただ1つのデータの読み口。
  *
  *   viewOf(slug) … 1社ぶんを、ページがそのまま並べられる形で返す（先行5社 ＝ 下の6つの台帳／ほかの会社 ＝ rolloutView）
- *   AXIS … 棒の目盛の右端（万円）。SWITCH の全社で同じ・0 から始まる
+ *   scaleOf(slug) … 棒の目盛の右端（万円）。1社に1本・0 から始まる（決まった上限は持たない ── 下の「棒の目盛」）
  *
  * ここは**つなぐだけ**で、数字を持たない。出どころは次の6つ。
  *   年収の正本          salary-data.mjs（SALARY）
@@ -350,11 +350,32 @@ const traineeOf = (slug, T = TX_JA) => figures(slug, 'trainee').map(f => (T.lang
   ? { group: f.group_en || enOf(f.group, `${slug}.trainee の区分`), kind: f.kind_en, text: f.text.replace(/^約/, '≈') }
   : { group: f.group, kind: f.kind, text: f.text }));
 
-/** 棒の目盛の右端（万円）。棒にするのは推定年収だけなので、新しい会社ページを持つ会社（SWITCH）ぜんぶの推定の
-    いちばん大きい額を 1,000万の刻みへ切り上げる。⚠️ 会社を足すと、その額しだいで全部の会社ページと career.html の目盛が動く。 */
-export const AXIS = Math.ceil(Math.max(...SWITCH.flatMap(s => RANKS.map(([r]) => SALARY[s][r].avg))) / 1000) * 1000;
-/** 棒の長さ（％）。 */
-export const width = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
+/* ── 棒の目盛（★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」）──────────
+   決まった上限は持たない。目盛の右端は、その画面に描く額のいちばん大きいものを、次の 1,000万 の刻みへ切り上げた額
+   （いちばん大きい額より下にはしない）。数えるのは、推定年収（avg）・その幅の上の額（hi）・会社が公表している機長と副操縦士の額。
+   提出された年収（会員の額）は、いまはどの画面でも棒にしていない ── 棒にする日は、その額もここへ数える。
+     会社ページ … 1枚に1本（scaleOf(その会社)）。機長と副操縦士で同じ。
+     比較       … 並べた2社で1本（scaleTop(2社の scaleOf)）── 2社は必ず同じ目盛。選び直すたびに career.js が決め直す。
+   ⚠️ 全社で1本の目盛（新しい会社ページを持つ会社ぜんぶの推定のいちばん大きい額から作る）に戻さない ── 推定は入っても、
+      幅の上の額（ユナイテッド 機長 ¥8,530万・デルタ ¥8,690万 …）がはみ出す。会社を足すと、ほかの会社の目盛まで動く。 */
+export const SCALE_STEP = 1000;
+/** 額の並び（万円）→ 目盛の右端（万円）。 */
+export const scaleTop = vals => {
+  const v = vals.filter(n => typeof n === 'number' && Number.isFinite(n) && n > 0);
+  if (!v.length) throw new Error('目盛に入れる額が1つも無い');
+  return Math.ceil(Math.max(...v) / SCALE_STEP) * SCALE_STEP;
+};
+/** 1社ぶんの、目盛に入れる額（万円）── 推定（avg）・幅の上の額（hi）・会社が公表している額（機長・副操縦士。訓練生の額と
+    機長と副操縦士を分けない平均は、どの画面にも出さないので入れない）。 */
+export const scaleValues = slug => RANKS.flatMap(([r]) => [SALARY[slug][r].avg, SALARY[slug][r].hi,
+  ...figures(slug, r).filter(f => !f.training).map(f => f.man)]);
+/** 1社の目盛の右端（万円）。 */
+export const scaleOf = slug => scaleTop(scaleValues(slug));
+/** 棒の長さ（目盛の右端 top に対する％）。右端を超える額は止める（目盛は描く額から作るので、起きたら作り方の誤り）。 */
+export const width = (m, top) => {
+  if (!(m > 0) || !(m <= top)) throw new Error(`棒の額 ${m} が目盛（0〜${top}）に入らない`);
+  return `${((m / top) * 100).toFixed(2)}%`;
+};
 
 /* ★ 機長と副操縦士を分けない額（運航乗務員・運航乗務職の全体の平均）は、どの会社のページにも出さない（P12.77・2026-10-21）。
    台帳（BASIS.crew）には残す（社内の見張り ── 機長の推定がこの平均より低ければ怪しい、など）。画面に出す crew はいつも空。
@@ -787,9 +808,9 @@ export function checkViewEn(slugs = SWITCH) {
 
 /* node pv-airline-view.mjs … 5社ぶんを一覧で出す（目で確かめる用）。 */
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  console.log(`目盛の右端 ${AXIS}万`);
   for (const s of GLANCE) {
     const v = viewOf(s);
+    console.log(`\n目盛の右端 ${scaleOf(s)}万`);
     const lead = l => { const x = l.find(z => z.lead) || l[0]; return x ? `${x.label}＝${x.value}` : '（公表なし）'; };
     const r = v.living.rents.find(x => x.lead), c = v.living.leadCol ? rentCell(v.living.cur, r.value[v.living.leadCol]) : null;
     console.log(`\n${v.name}（${v.code}・${v.base.city} ${v.base.iata.join('・')}）`);

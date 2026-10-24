@@ -3,6 +3,7 @@
  *
  * ★金額を1つも持たない。数字は全部 HTML に書いてある（gen-career.mjs が SSOT から書く）。
  *   ここがやるのは「どれを見せるか」だけ ＝ このファイルが落ちても、入口はそのまま読める。
+ *   （★2026-10-24 ただ1つの例外：比較を選び直したとき、並べた2社の目盛で棒の長さを決め直す ── 額と目盛の右端は HTML から読む）
  *   通貨の切り替えは currency.js がいつもどおり HTML の表記を直す（ここは関わらない）。
  *
  * 住所：
@@ -144,7 +145,7 @@
       return read(q);
     }
 
-    /* 比較の2社を入れ替える。5社ぶんが全部 HTML に在り、見せる2社を選ぶだけ。 */
+    /* 比較の2社を入れ替える。全社ぶんが全部 HTML に在り、見せる2社を選ぶ（と、2社の目盛で棒の長さを決め直す）だけ。 */
     function pair(a, b) {
       sel.a.value = a;
       sel.b.value = b;
@@ -158,6 +159,28 @@
         var s = el.dataset.airline;
         el.hidden = s !== a && s !== b;
       });
+      /* 目盛は並べた2社で1本（★2026-10-24 オーナー P12.104）── 2社の目盛の右端（行の data-scale ＝ その会社の描く額のいちばん大きいものから
+         gen-career.mjs が決めた額）の大きいほう。2社は必ず同じ目盛。棒の長さは、行の額（data-man）をその右端で割った割合（％の字にするのは
+         ブラウザの数の書き方 ── 小数2けた）。目盛の字と刻みの数は、HTML に右端ごとに置いてある1本から選ぶ（額も刻みの幅もここに持たない）。 */
+      var PCT = { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false };
+      var top = 0;
+      each(cmp.querySelectorAll('.cr-pair .cr-row'), function (r) {
+        var v = Number(r.dataset.scale);
+        if ((r.dataset.airline === a || r.dataset.airline === b) && v > top) top = v;
+      });
+      var line = null;
+      each(cmp.querySelectorAll('.cr-panel .cr-axis[data-scale]'), function (x) {
+        x.hidden = Number(x.dataset.scale) !== top;
+        if (!x.hidden) line = x;
+      });
+      if (line) {
+        cmp.style.setProperty('--cr-div', line.dataset.div);
+        each(cmp.querySelectorAll('.cr-pair .cr-row'), function (r) {
+          if (r.dataset.airline !== a && r.dataset.airline !== b) return;
+          var f = r.querySelector('.cr-fill'), m = f ? Number(f.dataset.man) : 0;
+          if (m > 0) f.style.setProperty('--w', (m / top).toLocaleString('en-US', PCT));
+        });
+      }
       /* 「会社が公表している金額」の箱は、並べた2社のどちらにも中身（社名の見出しのほか）が無ければ描かない
          （空の箱を置かない ── 2026-10-22 LEAD AMENDMENT）。片方に在れば、もう片方は社名だけ。 */
       each(cmp.querySelectorAll('.cr-cards'), function (box) {

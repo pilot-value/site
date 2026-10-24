@@ -64,6 +64,14 @@ const head = t => console.log(`\n── ${t} ${'─'.repeat(Math.max(4, 44 - t.l
 const HTML = read(PAGE);
 /* ★2026-10-24 段階5 compare-all-1：比較が持つ会社 ＝ 年収の正本（SALARY）の鍵。この検査が自分で持つ一覧（生成側の ALL は読まない）。 */
 const ALLK = Object.keys(SALARY);
+/* ★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」：棒の目盛に決まった上限は無い。右端は、その画面に
+   描く額（推定年収 avg・その幅の上の額 hi・会社が公表している機長と副操縦士の額）のどれもが入る、いちばん近い 1,000万 の倍数。
+   1社の画面はその会社・比較とカードは並べた会社をあわせて1本。生成側（pv-airline-view.mjs の scaleOf）を読まずに、正本（SALARY）と
+   台帳（figures）からここで作る。 */
+const DRAWN = s => ['cap', 'fo'].flatMap(r => [SALARY[s][r].avg, SALARY[s][r].hi, ...figures(s, r).filter(f => !f.training).map(f => f.man)]).filter(n => n > 0);
+const SCALE = (...list) => Math.ceil(Math.max(...list.filter(Boolean).flatMap(DRAWN)) / 1000) * 1000;
+/* 右端が額に合っているか（右端は 1,000万 の倍数・どの額も右端以下・いちばん大きい額との差は 1,000万 未満）。 */
+const fits = (top, ...list) => { const v = list.filter(Boolean).flatMap(DRAWN); return top > 0 && top % 1000 === 0 && v.every(x => x <= top) && top - Math.max(...v) < 1000; };
 /* 比較に家賃の箱を置ける会社。生成側の rentable() は読まずに、同じ決まり（読み口 viewOf().living が、箱の決まりどおりの
    1か月あたりの家賃を持つ）をここで打ち直す。先行5社は必ず置く。 */
 const RENT_KEYS = ['what', 'period', 'caveat', 'per_month', 'currency', 'cols'];
@@ -538,7 +546,7 @@ head('career-sec.css（会社・募集・待遇・街の節の見た目）');
 /* ══════════════════════════════════════════════════════════════════
    E0) 掲載している全社（★2026-10-24 段階5 compare-all-1・CA-1 / CA-1t）
    比較は、年収の正本（SALARY）の全社ぶんの 年収の行・「詳しく」・税の行・家賃の箱 を持ち、選んだ2社だけ見せる（ほかは hidden）。
-   どれも生成側の書き出し（ALL・AXIS・rentable）を読まずに、台帳とページのファイルから作り直して突き合わせる。
+   どれも生成側の書き出し（ALL・目盛・rentable）を読まずに、台帳とページのファイルから作り直して突き合わせる。
    ══════════════════════════════════════════════════════════════════ */
 head('掲載している全社（比較の材料）');
 {
@@ -573,9 +581,11 @@ head('掲載している全社（比較の材料）');
      `比較が持つ会社は、年収の正本と同じ ${ALLK.length}社（数は打っていない）`,
      JSON.stringify({ gos: GOSB.length, sizes: sets.map(x => x.length), lack: sets.map(x => ALLK.filter(s => !x.includes(s)).slice(0, 4)), extra: sets.map(x => x.filter(s => !ALLK.includes(s)).slice(0, 4)), isleHead: ISLK.slice(0, FIVE.length) }));
 
-  /* T-A2 全社の行・1本の目盛：どの行も推定年収（SALARY の avg ＝ 会社ページと同じ読み口の推定）。棒の長さは、掲載している全社が入る
-     1,000万 の倍数（AXISK）に対する割合。目盛の字はこの1枚のどこでも同じ。 */
-  const AXISK = Math.ceil(Math.max(...ALLK.flatMap(s => ROLES.map(([r]) => SALARY[s][r].avg))) / 1000) * 1000;
+  /* T-A2 全社の行：どの行も推定年収（SALARY の avg ＝ 会社ページと同じ読み口の推定）。
+     ★2026-10-24 オーナー P12.104（同じ強さの当て直し ── リード L2）：2026-10-24 までは「目盛はこの1枚に1本（掲載している全社が入る
+     1,000万 の倍数 ── ¥7,000万）」を見ていた。いまは目盛に決まった上限が無く、画面ごと（下の「棒の目盛（画面ごと）」）。
+     行は、その会社の目盛の右端（data-scale）と額（data-man）を持ち、棒の長さは、既定の2社（PAIR）の行は2社をあわせた目盛・ほかの行は
+     その会社の目盛に対する割合（選ばれたら career.js が並べた2社の目盛で描き直す ── ブラウザの段で見る）。 */
   {
     const bad = [];
     for (const [r, label] of ROLES) for (const s of ALLK) {
@@ -588,6 +598,8 @@ head('掲載している全社（比較の材料）');
       const vh = [...h.matchAll(/<span class="cr-vh">([^<]*)<\/span>/g)].map(m => m[1]);
       const tag = [...h.matchAll(/<span class="cr-tag">([^<]*)<\/span>/g)].map(m => decode(m[1]));
       const w = parseFloat((h.match(/<i class="cr-fill"[^>]*style="--w:([\d.]+)%"/) || [])[1]);
+      const man = +((h.match(/<i class="cr-fill"[^>]*\sdata-man="(\d+)"/) || [])[1]), sc = +((h.match(/^<div class="cr-row"[^>]*\sdata-scale="(\d+)"/) || [])[1]);
+      const top = PAIR.includes(s) ? SCALE(...PAIR) : SCALE(s);
       const why = [
         avg !== port && `正本 ${avg} ≠ 読み口 ${port}`,
         v !== yen(avg) && `額「${v}」≠ ${yen(avg)}`,
@@ -595,16 +607,46 @@ head('掲載している全社（比較の材料）');
         !same(vh, [label]) && `職位の字 ${JSON.stringify(vh)}`,
         !same(tag, [TIERS.estimate.ja]) && `札 ${JSON.stringify(tag)}`,
         /確認中|〜|超|上限/.test(strip(h)) && `「${strip(h)}」`,
-        !(Math.abs(w - Math.min(100, (avg / AXISK) * 100)) < 0.01) && `棒 ${w}%`,
+        man !== avg && `棒の額 ${man}`,
+        !(sc === SCALE(s) && fits(sc, s)) && `目盛の右端 ${sc}（あるべき ${SCALE(s)}）`,
+        !(Math.abs(w - (avg / top) * 100) < 0.01) && `棒 ${w}%（目盛 ${top}）`,
       ].filter(Boolean);
       if (why.length) bad.push(`${s}/${r}: ${why.join('・')}`);
     }
-    const div = (BLOCK.match(/<div class="cr" id="cr"[^>]*style="--cr-div:([\d.]+)"/) || [])[1];
-    const axes = [...BLOCK.matchAll(/<div class="cr-axis"[^>]*>([\s\S]*?)<\/div>/g)].map(m => [...m[1].matchAll(/<span>([^<]*)<\/span>/g)].map(x => x[1]));
-    const axOk = axes.length > 0 && axes.every(a => same(a, ['0', yen(AXISK / 2), yen(AXISK)]));
-    ok(!bad.length && Number(div) === AXISK / 1000 && axOk,
-       '比較の年収の行は、全社とも 推定年収（SALARY の avg）・目盛はこの1枚に1本（掲載している全社が入る 1,000万 の倍数）',
-       `${bad.slice(0, 4).join(' ／ ')}${bad.length > 4 ? ` ほか${bad.length - 4}` : ''} ／ --cr-div ${div}（あるべき ${AXISK / 1000}）／ 目盛 ${JSON.stringify(axes.find(a => !same(a, ['0', yen(AXISK / 2), yen(AXISK)])) || axes.length)}`);
+    ok(!bad.length,
+       '比較の年収の行は、全社とも 推定年収（SALARY の avg）・行はその会社の目盛の右端と額を持ち、棒はその目盛（既定の2社は2社をあわせた目盛）で描いてある',
+       `${bad.slice(0, 4).join(' ／ ')}${bad.length > 4 ? ` ほか${bad.length - 4}` : ''}`);
+
+    /* 棒の目盛（画面ごと・決まった上限なし ── ★2026-10-24 オーナー P12.104）：
+       a) 1社の画面（概要・詳細・エティハドのタブ）は、囲みの刻みの数（--cr-div）と、中の目盛の字が、その会社の右端。
+       b) 比較：囲みの刻みの数と、見えている目盛の1本が、既定の2社をあわせた右端。目盛の字は、ありうる右端（掲載している全社の右端）ごとに
+          1本ずつ・小さい順・刻みの数（data-div）つきで、見えているのは既定の2社の1本だけ（選び直したら career.js が見せる1本を替える）。
+       c) この1枚に、全部の画面で1本の目盛（.cr の刻みの数）が無い。
+       右端はどれも「額のどれもが右端以下・いちばん大きい額との差は 1,000万 未満」（ユナイテッドは機長の幅の上 ¥8,530万 → ¥9,000万）。 */
+    const sbad = [];
+    const axesIn = h => [...h.matchAll(/<div class="cr-axis"([^>]*)>([\s\S]*?)<\/div>/g)].map(m => ({
+      scale: +((m[1].match(/\sdata-scale="(\d+)"/) || [])[1] || 0), div: +((m[1].match(/\sdata-div="(\d+)"/) || [])[1] || 0), hidden: /\shidden(?=[\s>]|$)/.test(m[1]),
+      labels: [...m[2].matchAll(/<span>([^<]*)<\/span>/g)].map(x => x[1]) }));
+    const labelsOf = top => ['0', yen(top / 2), yen(top)];
+    const one = [...BLOCK.matchAll(/<section class="cr-view (?:cr-co|cr-det)[^"]*" data-view="(?:airline|detail)" data-airline="([^"]+)"[^>]*>/g)];
+    for (const m of one) {
+      const s = m[1], sec = elementAt(BLOCK, m.index), n = +((m[0].match(/style="[^"]*--cr-div:(\d+)"/) || [])[1] || 0), top = n * 1000, ax = axesIn(sec);
+      if (!(top === SCALE(s) && fits(top, s))) sbad.push(`${s}: 刻み ${n}（あるべき ${SCALE(s) / 1000}）`);
+      if (!ax.length || !ax.every(a => same(a.labels, labelsOf(SCALE(s))) && !a.scale && !a.hidden)) sbad.push(`${s}: 目盛 ${JSON.stringify(ax.map(a => a.labels))}`);
+    }
+    if (one.length !== FIVE.length + DEEP.length * ROLES.length) sbad.push(`1社の画面 ${one.length}`);
+    const cmpTop = +(((CMP.match(/^<section class="cr-view cr-cmp"[^>]*style="[^"]*--cr-div:(\d+)"/) || [])[1]) || 0) * 1000;
+    if (!(cmpTop === SCALE(...PAIR) && fits(cmpTop, ...PAIR))) sbad.push(`比較の刻み ${cmpTop / 1000}（あるべき ${SCALE(...PAIR) / 1000}）`);
+    const cax = axesIn(elementAt(CMP, CMP.indexOf('<div class="cr-panel"'))), WANT = [...new Set(ALLK.map(s => SCALE(s)))].sort((a, b) => a - b);
+    if (!same(cax.map(a => a.scale), WANT)) sbad.push(`比較の目盛の右端 ${cax.map(a => a.scale).join(',')}（あるべき ${WANT.join(',')}）`);
+    const off = cax.filter(a => !same(a.labels, labelsOf(a.scale)) || a.div * 1000 !== a.scale);
+    if (off.length) sbad.push(`比較の目盛の字 ${JSON.stringify(off)}`);
+    const shown = cax.filter(a => !a.hidden);
+    if (!(shown.length === 1 && shown[0].scale === SCALE(...PAIR))) sbad.push(`比較で見えている目盛 ${shown.map(a => a.scale).join(',') || 'なし'}`);
+    if (/<div class="cr" id="cr"[^>]*--cr-div/.test(BLOCK)) sbad.push('全部の画面で1本の刻み（.cr の --cr-div）が在る');
+    ok(!sbad.length,
+       `棒の目盛は画面ごと（決まった上限なし）── 1社の画面はその会社の右端・比較は既定の2社（${PAIR.map(name).join('・')}）をあわせた右端 ${yen(SCALE(...PAIR))}・比較の目盛の字は右端ごとに1本（${WANT.map(yen).join('・')}）`,
+       sbad.slice(0, 6).join(' ／ '));
     const taxB = elementAt(CMP, CMP.indexOf('<div class="cr-taxes">'));
     const taxes = [...taxB.matchAll(/<p class="cr-tax" data-airline="([^"]+)"[^>]*>([\s\S]*?)<\/p>/g)].map(m => ({ s: m[1], t: decode((m[2].match(/<span>([^<]*)<\/span>/) || [])[1] || '') }));
     const taxBad = taxes.filter(x => x.t !== viewOf(x.s).pay.tax).map(x => `${x.s}「${x.t}」`);
@@ -947,8 +989,14 @@ try {
     return {
       co: out,
       order: [...document.querySelectorAll('#cr .cr-view[data-view="airline"]')].map(s => s.dataset.airline),
-      axes: [...document.querySelectorAll('#cr .cr-axis')].map(a => [...a.children].map(c => c.textContent.trim())),
+      /* 目盛の字は、置き場の画面（と比較では右端の印・見えているか）と一緒に拾う（★2026-10-24 P12.104 ── 目盛は画面ごと） */
+      axes: [...document.querySelectorAll('#cr .cr-axis')].map(a => {
+        const v = a.closest('.cr-view');
+        return { labels: [...a.children].map(c => c.textContent.trim()), scale: Number(a.dataset.scale || 0), shown: !a.hidden,
+          view: v ? v.dataset.view : '', airline: v ? v.dataset.airline || '' : '', div: v ? Number(v.style.getPropertyValue('--cr-div').trim() || 0) : 0 };
+      }),
       div: document.getElementById('cr').style.getPropertyValue('--cr-div').trim(),
+      pair: [...document.querySelectorAll('#cr .cr-cmp .cr-pair[data-role="cap"] .cr-row')].filter(r => !r.hidden).map(r => r.dataset.airline),
       def: [document.getElementById('cr').dataset.a, document.getElementById('cr').dataset.b],
     };
   });
@@ -963,7 +1011,8 @@ try {
     return Number.isFinite(avg) && avg > 0 ? { man: avg, text: yen(avg), tag: TIERS.estimate.ja } : null;
   };
 
-  const axisMax = Math.round(Number(dom.div) * 1000);
+  /* 棒の目盛（★2026-10-24 オーナー P12.104）：概要はその会社の右端・比較の行は、並べている2社なら2社をあわせた右端・隠れている行はその会社の右端。 */
+  const topAt = (s, where) => (where === '比較' && dom.pair.includes(s) ? SCALE(...dom.pair) : SCALE(s));
   const mans = [];
   for (const s of FIVE) {
     for (const [r, label] of ROLES) {
@@ -981,8 +1030,8 @@ try {
         /* 推定の額に、公表額の印（〜・超・上限・斜線）を付けない ── 付くと、推定が求人の額の顔になる。 */
         const marks = [/[〜超]/.test(x.v), /上限|下限|目標/.test(x.tag + x.sub), !!x.bar && (x.bar.cls.includes('is-max') || x.bar.cls.includes('is-over'))];
         ok(marks.every(v => !v), `${who}（${where}）: 推定の額に公表額の印（〜・超・上限）を付けていない`, marks.join(' / '));
-        ok(!!x.bar && /%$/.test(x.bar.w) && Math.abs(parseFloat(x.bar.w) - w.man / axisMax * 100) < 0.01,
-           `${who}（${where}）: 棒の長さが額に比例`, x.bar && x.bar.w);
+        ok(!!x.bar && /%$/.test(x.bar.w) && Math.abs(parseFloat(x.bar.w) - w.man / topAt(s, where) * 100) < 0.01,
+           `${who}（${where}）: 棒の長さが額に比例（目盛 0〜${yen(topAt(s, where))}）`, x.bar && x.bar.w);
       }
       ok(a.tag === b.tag && a.sub === b.sub, `${who}: 札と一言が概要と比較で同じ`);
       if (DEEP.includes(s)) {
@@ -1003,12 +1052,24 @@ try {
   /* ★2026-10-24 段階5 compare-all-1（E5.1 P2・同じ強さの当て直し）：この1枚は掲載している全社の棒を持つ（比較の行）。右端は、
      この1枚に在るいちばん大きい棒（全社の推定年収）が入る、いちばん近い 1,000万 の倍数。生成側の AXIS を読まずに SALARY から作り直す。
      （会社ページの目盛は新しい形の会社から作る ── 全社が切り替わると同じ値。いまは spirit のほかが切り替わっていて同じ ¥7,000万） */
-  const top = Math.max(...ALLK.flatMap(s => ROLES.map(([r]) => SALARY[s][r].avg))), five = Math.max(...mans);
-  ok(axisMax % 1000 === 0 && axisMax >= top && axisMax >= five && axisMax - 1000 < top,
-     `目盛の右端 ${yen(axisMax)} は、この1枚が棒を持つ ${ALLK.length}社の推定年収（1つの目盛）が全部入るいちばん近い 1,000万 の倍数`,
-     `${ALLK.length}社の最大 ${yen(top)} ／ 先行5社の最大の棒 ${yen(five)}`);
-  ok(dom.axes.length >= FIVE.length + 1 && dom.axes.every(a => same(a, ['0', yen(axisMax / 2), yen(axisMax)])),
-     '目盛は 0 から・どの画面も同じ', JSON.stringify(dom.axes[0]));
+  /* ★2026-10-24 オーナー P12.104（同じ強さの当て直し ── リード L2）：上の2つ（右端は全社の推定が入る1本・どの画面も同じ目盛）は、
+     「決まった上限を置かない・画面ごとの目盛」に替わった。どの画面の目盛も 0 から・右端は 1,000万 の倍数で、その画面に描く額のどれもが右端以下・
+     いちばん大きい額との差は 1,000万 未満。概要・詳細はその会社の右端（囲みの刻みの数も）。比較は、見えている目盛が1本だけで、並べた2社を
+     あわせた右端（囲みの刻みの数も）。隠れている比較の目盛は、右端の印どおりの字。全部の画面で1本の刻み（.cr の --cr-div）は無い。 */
+  {
+    const bad = [];
+    for (const a of dom.axes) {
+      const top = a.view === 'compare' ? (a.shown ? SCALE(...dom.pair) : a.scale) : SCALE(a.airline);
+      if (!same(a.labels, ['0', yen(top / 2), yen(top)])) bad.push(`${a.view}:${a.airline || a.scale} の字 ${a.labels.join('・')}（あるべき 0〜${yen(top)}）`);
+      if (a.view !== 'compare' && !(a.div * 1000 === top && fits(top, a.airline))) bad.push(`${a.view}:${a.airline} の刻み ${a.div}`);
+    }
+    const shown = dom.axes.filter(a => a.view === 'compare' && a.shown);
+    if (!(dom.pair.length === 2 && shown.length === 1 && shown[0].scale === SCALE(...dom.pair) && shown[0].div * 1000 === shown[0].scale && fits(shown[0].scale, ...dom.pair)))
+      bad.push(`比較：並べた2社 ${dom.pair.join('・')} ／ 見えている目盛 ${shown.map(a => `${a.scale}（刻み ${a.div}）`).join(',') || 'なし'}`);
+    if (dom.div) bad.push(`全部の画面で1本の刻み（.cr の --cr-div:${dom.div}）`);
+    ok(!bad.length && dom.axes.length >= FIVE.length + 1, `目盛は 0 から・画面ごと（概要・詳細はその会社の右端・比較は並べた2社をあわせた右端 ${yen(SCALE(...dom.pair))}）── 決まった上限なし`,
+       bad.slice(0, 6).join(' ／ '));
+  }
 
   /* ★2026-10-22 段階4 cmp-pay-3（T-S2a）：比較の年収の板は推定の板（data-kind="estimate"）。税の行のすぐ次に、対象の1行
      「推定年収　機種の指定なし」（会社ページの「対象：機種の指定なし」と同じ字の置き場 ── gen-career.mjs の EST_TARGET）。
@@ -1162,6 +1223,82 @@ try {
       ok(hatch.length === (capped ? ROLES.length : 0) && three.length === hatch.length,
          `${w}px ${q}: ${capped ? `上限の印が${ROLES.length}件とも3つそろって描かれている（〜・斜線・「上限」の字）` : '上限の無い会社に斜線の印が無い'}`,
          hatch.map(x => `${x.kind} ${x.amount}:${stripe(x) ? '斜線' : '模様なし'} ${Math.round(x.w)}×${Math.round(x.h)}`).join(' ／ ') || '印が1つも無い');
+    }
+  }
+
+  /* ── 目盛は並べた2社で1本（★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」）──
+     決まった上限は無い。2社をあわせた右端 ＝ 2社の額（推定・幅の上の額・公表額）のどれもが入る、いちばん近い 1,000万 の倍数。
+     a) 低い2社（エバー航空・JAL）は低い右端 ── 掲載している会社のいちばん大きい目盛に引っぱられない。
+     b) 選び直すと、右端・見えている目盛の1本・刻みの数・棒の長さ（描いた長さも）が、新しい2社のものに替わる。入れ替えても同じ。
+     c) カード：2社のカードは2社で1本（JAL・ユナイテッド航空 ＝ ユナイテッドの幅の上の額で決まる）・1社のカードはその会社の目盛。
+        棒は 額 ÷ 右端・目盛の字は右端の字。
+     壊して確かめた形：career.js が2社の目盛を決め直さない／カードが1社目の目盛だけで描く／生成側に全社で1本の目盛を戻す → どれもここが赤。 */
+  head('目盛は並べた2社で1本（選び直し・カード）');
+  {
+    const driver = (...list) => {
+      const v = list.flatMap(s => ROLES.flatMap(([r, l]) => [[SALARY[s][r].avg, `${name(s)} ${l}の推定`], [SALARY[s][r].hi, `${name(s)} ${l}の幅の上の額`],
+        ...figures(s, r).filter(f => !f.training).map(f => [f.man, `${name(s)} ${l}の公表額`])])).sort((a, b) => b[0] - a[0]);
+      return `${v[0][1]} ${yen(v[0][0])}`;
+    };
+    const snapCmp = () => page.evaluate(() => {
+      const v = document.querySelector('#cr .cr-view[data-view="compare"]');
+      return {
+        div: v.style.getPropertyValue('--cr-div').trim(),
+        axis: [...v.querySelectorAll('.cr-panel .cr-axis')].filter(a => a.getClientRects().length)
+          .map(a => ({ scale: Number(a.dataset.scale || 0), labels: [...a.children].map(c => c.textContent.trim()) })),
+        rows: [...v.querySelectorAll('.cr-pair .cr-row')].filter(r => !r.hidden).map(r => {
+          const f = r.querySelector('.cr-fill'), a = f.getBoundingClientRect(), b = f.parentElement.getBoundingClientRect();
+          return { s: r.dataset.airline, role: r.closest('.cr-pair').dataset.role, w: parseFloat(f.style.getPropertyValue('--w')), fill: a.width, track: b.width };
+        }),
+      };
+    });
+    const cmpBad = (got, a, b) => {
+      const top = SCALE(a, b), why = [];
+      if (Number(got.div) * 1000 !== top) why.push(`刻み ${got.div}`);
+      if (!(got.axis.length === 1 && got.axis[0].scale === top && same(got.axis[0].labels, ['0', yen(top / 2), yen(top)]))) why.push(`見えている目盛 ${JSON.stringify(got.axis)}`);
+      if (!fits(top, a, b)) why.push(`右端 ${top} が2社の額に合わない`);
+      const rows = got.rows.map(x => `${x.s}/${x.role}`).sort(), wantRows = [a, b].flatMap(s => ROLES.map(([r]) => `${s}/${r}`)).sort();
+      if (!same(rows, wantRows)) why.push(`見えている行 ${rows.join(',')}`);
+      for (const x of got.rows) {
+        const m = SALARY[x.s][x.role].avg;
+        if (!(Math.abs(x.w - (m / top) * 100) < 0.01) || Math.abs(x.fill - x.track * x.w / 100) > 1)
+          why.push(`${x.s}/${x.role} 棒 ${x.w}%（あるべき ${((m / top) * 100).toFixed(2)}%）描いた ${Math.round(x.fill)}/${Math.round(x.track)}px`);
+      }
+      return why;
+    };
+    await page.setViewport({ width: 390, height: 680 });
+    await go(page, '?view=compare&a=eva-air&b=jal');
+    await settle(page);
+    const low = cmpBad(await snapCmp(), 'eva-air', 'jal');
+    ok(!low.length && SCALE('eva-air', 'jal') < Math.max(...ALLK.map(s => SCALE(s))),
+       `低い2社（${name('eva-air')}・${name('jal')}）は低い右端 ${yen(SCALE('eva-air', 'jal'))}（${driver('eva-air', 'jal')} が入る、いちばん近い 1,000万 の倍数）`, low.join(' ／ '));
+    await page.select('#cr-a', 'cathay-pacific');
+    ok(await until(page, '?view=compare&a=cathay-pacific&b=jal'), '選び直すと住所が変わる（エバー航空 → キャセイパシフィック）', await search(page));
+    await settle(page);
+    const re = cmpBad(await snapCmp(), 'cathay-pacific', 'jal');
+    ok(!re.length && SCALE('cathay-pacific', 'jal') !== SCALE('eva-air', 'jal'),
+       `選び直すと、右端・見えている目盛・刻みの数・棒の長さが新しい2社のもの（${yen(SCALE('cathay-pacific', 'jal'))} ── ${driver('cathay-pacific', 'jal')}）に替わる`, re.join(' ／ '));
+    await page.click('#cr-swap');
+    ok(await until(page, '?view=compare&a=jal&b=cathay-pacific'), '入れ替えると住所も入れ替わる', await search(page));
+    await settle(page);
+    const sw = cmpBad(await snapCmp(), 'jal', 'cathay-pacific');
+    ok(!sw.length, '入れ替えても、2社をあわせた目盛は同じ', sw.join(' ／ '));
+    for (const want of [['jal', 'united'], ['united', 'jal'], ['eva-air', 'jal'], ['jal'], ['united']]) {
+      const q = `?view=card&a=${want[0]}${want[1] ? `&b=${want[1]}` : ''}`;
+      await go(page, q);
+      const up = await page.waitForFunction(n => {
+        const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+        return !!(m && m.cards && m.cards.length === n && m.cards.every(k => k.roles && k.roles.cap && k.roles.fo));
+      }, { timeout: 8000 }, want.length).then(() => true, () => false);
+      const m = up ? await page.evaluate(() => window.PVCareerCard.model().cards.map(k => ({ slug: k.slug, axis: k.axis, w: { cap: k.roles.cap.w, fo: k.roles.fo.w } }))) : null;
+      const top = SCALE(...want), why = [];
+      if (!m) why.push('カードの材料が出来ない');
+      else for (const k of m) {
+        if (!same(k.axis, ['0', yen(top / 2), yen(top)])) why.push(`${k.slug} の目盛 ${k.axis.join('・')}`);
+        for (const [r] of ROLES) if (!(Math.abs(k.w[r] - SALARY[k.slug][r].avg / top) < 0.001)) why.push(`${k.slug}/${r} 棒 ${k.w[r]}（あるべき ${SALARY[k.slug][r].avg / top}）`);
+      }
+      ok(!why.length && fits(top, ...want),
+         `${q}: カードの目盛は${want.length > 1 ? '2社で1本' : 'その会社の目盛'} ── 0〜${yen(top)}（${driver(...want)} が入る・棒は 額 ÷ 右端・目盛の字は右端の字）`, why.join(' ／ '));
     }
   }
 
@@ -1684,7 +1821,7 @@ try {
           const other = ROLES.find(([q]) => q !== r);
           ok(x.h1 === `${name(s)} ${l}の推定年収` && x.v === yen(avg(s, r)) && x.tag === '推定',
             `${name(s)} ${l}の詳細: 見出しと額（${yen(avg(s, r))}・「推定」の札）`, `「${x.h1}」「${x.v}」「${x.tag}」`);
-          ok(x.fills === 1 && Math.abs(parseFloat(x.w) - avg(s, r) / axisMax * 100) < 0.01 && !/[〜超]|上限|下限|目標/.test(x.top) && x.pub === 0,
+          ok(x.fills === 1 && Math.abs(parseFloat(x.w) - avg(s, r) / SCALE(s) * 100) < 0.01 && !/[〜超]|上限|下限|目標/.test(x.top) && x.pub === 0,
             `${name(s)} ${l}の詳細: 棒は推定の1本だけ（額に比例）・公表額の印も一覧も混ぜない`, `棒${x.fills}本 ${x.w} ／ ${x.top}`);
           ok(same(x.rows, [['対象', `${l}${TARGET}`], ...estRows(s, r)]), `${name(s)} ${l}の詳細: 対象は「${TARGET}」・${why(s, r)}`, JSON.stringify(x.rows));
           ok(same(x.links, [[`${PAGE}?airline=${s}&d=${other[0]}-est`, `${other[1]}の推定年収`]]), `${name(s)} ${l}の詳細: もう一方の職位の推定へ行ける`, JSON.stringify(x.links));
@@ -1728,7 +1865,7 @@ try {
         ok(same(card.cards.map(x => x.slug), want) && !card.json.includes(WORD) && !card.text.includes(WORD), `${q}: カードの材料にも画面にも「確認中」が無い`, card.cards.map(x => x.slug).join(','));
         for (const x of card.cards) for (const [r, l] of ROLES) {
           const y = x.roles && x.roles[r], a = avg(x.slug, r);
-          ok(!!y && y.text === yen(a) && y.tag === '推定' && y.look !== 'held' && Math.abs(y.w - a / axisMax) < 0.001,
+          ok(!!y && y.text === yen(a) && y.tag === '推定' && y.look !== 'held' && Math.abs(y.w - a / SCALE(...want)) < 0.001,
             `${q}: カードの ${name(x.slug)} ${l} は推定年収 ${yen(a)}（「推定」の札・棒は額に比例）`, JSON.stringify(y && { text: y.text, tag: y.tag, look: y.look, w: y.w }));
           ok(!!y && (!y.lim || (/^〜/.test(y.lim.text) && /上限/.test(`${y.lim.tag}${y.lim.sub}`))),
             `${q}: カードの ${name(x.slug)} ${l} に公表した上限を載せるなら「〜」と「上限」の字つき`, JSON.stringify(y && y.lim));
@@ -1753,7 +1890,7 @@ try {
         ok(same(card.cards.map(x => x.slug), want) && !card.json.includes(WORD) && !card.text.includes(WORD), `${q}: カードの材料にも画面にも「確認中」が無い`, card.cards.map(x => x.slug).join(','));
         for (const x of card.cards) for (const [r, l] of ROLES) {
           const y = x.roles && x.roles[r], a = avg(x.slug, r);
-          ok(!!y && y.text === yen(a) && y.tag === '推定' && y.look !== 'held' && Math.abs(y.w - a / axisMax) < 0.001,
+          ok(!!y && y.text === yen(a) && y.tag === '推定' && y.look !== 'held' && Math.abs(y.w - a / SCALE(...want)) < 0.001,
             `${q}: カードの ${name(x.slug)} ${l} は推定年収 ${yen(a)}（「推定」の札・棒は額に比例）`, JSON.stringify(y && { text: y.text, tag: y.tag, look: y.look, w: y.w }));
           ok(!!y && (!y.lim || (/^〜/.test(y.lim.text) && /上限/.test(`${y.lim.tag}${y.lim.sub}`))),
             `${q}: カードの ${name(x.slug)} ${l} に公表した上限を載せるなら「〜」と「上限」の字つき`, JSON.stringify(y && y.lim));

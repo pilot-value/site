@@ -34,7 +34,7 @@
  * ★主表示には目印を付ける（5社とも）。カード保存はこの DOM の字を読む。
  *     data-main="cap|fo"      額（textContent が画面の額そのまま）
  *     data-main-tag="cap|fo"  札（「推定」）
- *     data-main-bar="cap|fo"  棒（style の --w が共通目盛での長さ）
+ *     data-main-bar="cap|fo"  棒（style の --w がその会社の目盛での長さ・data-man が額（万円））
  *   ⚠️ 概要の中にだけ付ける。比較・詳細には付けない（1社の中で1つずつ）。
  *   ⚠️ 公表額の一覧には付けない（カードの大きい額は推定だけ）。
  *
@@ -57,7 +57,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures, fxNote } from './salary-basis.mjs';
-import { viewOf, rentCell, coText, LEAD as LEAD_FIVE } from './pv-airline-view.mjs';
+import { viewOf, rentCell, coText, LEAD as LEAD_FIVE, scaleOf, scaleTop, width, SCALE_STEP } from './pv-airline-view.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
 import { FACTS, atText, introText, valueText } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W } from './place-photos.mjs';
@@ -128,7 +128,7 @@ function career() {
     color(s); code(s);   // airlines-meta.js に行が無い・色や略号の形が違う会社が在れば、ここで止まる（色も略号も作らない）
     if (!fs.existsSync(path.join(ROOT, 'airlines', `${s}.html`))) throw new Error(`${s}: 会社ページが無い`);
     if (!VIEW[s]) VIEW[s] = viewOf(s);
-    for (const [r] of ROLES) if (cell(s, r).man > AXIS) throw new Error(`${s}/${r}: 推定が目盛（${AXIS}）からはみ出す`);
+    for (const [r] of ROLES) width(cell(s, r).man, scaleOf(s));   // 推定がその会社の目盛からはみ出すなら、ここで止まる
   }
   WIDE = true;
 }
@@ -144,23 +144,28 @@ export function cell(slug, rank) {
   return { man: e.man, text: e.yen, tag: TIERS.estimate.ja, sub: '', look: '' };
 }
 
-/* 目盛の右端。この1枚の棒（概要・詳細・比較・カード）は全部この1本の目盛（0 から）── 掲載している全社の推定のいちばん大きい
-   額を 1,000万 の刻みへ切り上げる（年収の正本から読む）。比較はどの2社でも同じ目盛（額をスクリプトに持たない）。
-   会社ページの目盛（pv-airline-view.mjs の AXIS）は新しい形の会社（SWITCH）から作るので、全社が切り替わると同じ値になる。
-   はみ出しは、先行5社は下の繰り返しで・ほかの会社は career() の中で見る。 */
-export const AXIS = Math.ceil(Math.max(...ALL.flatMap(s => ROLES.map(([r]) => SALARY[s][r].avg))) / 1000) * 1000;
-/* 棒の長さ（目盛に対する％）。 */
-const width = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
-for (const s of FIVE) for (const [r] of ROLES) {
-  if (cell(s, r).man > AXIS) throw new Error(`${s}/${r}: 推定が目盛（${AXIS}）からはみ出す`);
-}
+/* 目盛の右端（★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」）。決まった上限は持たない。
+   決め方は会社ページと同じ1か所（pv-airline-view.mjs の scaleOf / scaleTop）── 画面に描く額のいちばん大きいもの（推定・その幅の上の額・
+   会社が公表している額）を、次の 1,000万 の刻みへ切り上げる。
+     1社の画面（概要・詳細・エティハドのタブ）… その会社の目盛（会社ページと同じ右端）。
+     比較 … 並べた2社で1本（2社の目盛の大きいほう ── 2社は必ず同じ目盛）。HTML は既定の2社（PAIR）の目盛で描いておき、
+            選び直したら career.js が、行の額（data-man）と会社の目盛（data-scale）から長さを決め直す（額をスクリプトに持たない）。
+            目盛の字は、ありうる右端（全社の scaleOf）ごとに1本ずつ比較の板に置き、career.js は見せる1本を選ぶだけ
+            （字は HTML に在る ＝ 通貨切替がそのまま読める・カードもここから読む）。
+   ⚠️ 全社で1本の目盛に戻さない（幅の上の額がはみ出す・会社を足すと全部の目盛が動く）。はみ出しは width() が止める。 */
+const pairScale = (a, b) => scaleTop([scaleOf(a), scaleOf(b)]);
+for (const s of FIVE) for (const [r] of ROLES) width(cell(s, r).man, scaleOf(s));
 
-/* 棒の長さは width()（目盛に対する％。この1枚の目盛 AXIS）。mark は目印（概要の中だけ）。 */
-const fill = (c, extra, mark) => `<i class="cr-fill${extra ? ' ' + extra : ''}"${mark ? ` data-main-bar="${mark}"` : ''} style="--w:${width(c.man)}"></i>`;
+/* 棒の長さは width()（目盛 top に対する％。会社ページと同じ関数）。data-man は額（万円 ── 比較を選び直したとき・カードを描くときに、
+   並べた2社の目盛で長さを決め直すため）。mark は目印（概要の中だけ）。 */
+const fill = (c, top, extra, mark) => `<i class="cr-fill${extra ? ' ' + extra : ''}"${mark ? ` data-main-bar="${mark}"` : ''} data-man="${c.man}" style="--w:${width(c.man, top)}"></i>`;
 /* 札（「推定」）。 */
 const kline = (c, mark) => `<span class="cr-tag"${mark ? ` data-main-tag="${mark}"` : ''}>${esc(c.tag)}</span>`;
 
-const axis = () => `<div class="cr-axis" aria-hidden="true"><span>0</span><span>${yen(AXIS / 2)}</span><span>${yen(AXIS)}</span></div>`;
+/* 目盛の字（0・まんなか・右端）。比較の板では右端ごとに1本ずつ置く（attrs ＝ data-scale・data-div・hidden）。 */
+const axis = (top, attrs = '') => `<div class="cr-axis"${attrs} aria-hidden="true"><span>0</span><span>${yen(top / 2)}</span><span>${yen(top)}</span></div>`;
+/* 目盛の刻みの数（.cr-track の線 ＝ 1,000万ごと）。画面の囲み（section）の style に置く。 */
+const div = top => `--cr-div:${top / SCALE_STEP}`;
 
 /* 概要の1マス（大きい数字）。社名は画面では隠してある（読み上げと check-salary.mjs のため）。 */
 function num(slug, rank, label) {
@@ -171,8 +176,8 @@ function num(slug, rank, label) {
 /* 概要の小さい棒。数字は上の2マスが持っているので、ここは形だけ（読み上げない）。 */
 function mini(slug) {
   return `<div class="cr-mini" aria-hidden="true">
-${ROLES.map(([r, l]) => `<div class="cr-mini-row"><span class="cr-mini-l">${l}</span><span class="cr-track">${fill(cell(slug, r), 'is-' + r, r)}</span></div>`).join('\n')}
-${axis()}
+${ROLES.map(([r, l]) => `<div class="cr-mini-row"><span class="cr-mini-l">${l}</span><span class="cr-track">${fill(cell(slug, r), scaleOf(slug), 'is-' + r, r)}</span></div>`).join('\n')}
+${axis(scaleOf(slug))}
 </div>`;
 }
 
@@ -363,7 +368,7 @@ const rival = slug => (slug === PAIR[0] ? PAIR[1] : PAIR[0]);
 /* ── 概要（段1の4社） ───────────────────────────────────────────── */
 function overview(slug) {
   if (DEEP.includes(slug)) return deep(slug);
-  return `<section class="cr-view cr-co" data-view="airline" data-airline="${slug}" style="--cr-co:${color(slug)}" hidden>
+  return `<section class="cr-view cr-co" data-view="airline" data-airline="${slug}" style="--cr-co:${color(slug)};${div(scaleOf(slug))}" hidden>
 <div class="cr-top">
 ${back()}
 <a class="cr-btn" href="${href.compare(slug, rival(slug))}" data-go>他社と比較</a>
@@ -396,7 +401,7 @@ function bar(slug, rank, label) {
   const c = cell(slug, rank);
   return `<a class="cr-bar cr-bar-est" data-role="${rank}" href="${href.detail(slug, `${rank}-est`)}" data-go>
 <span class="cr-bar-h"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-bar-r">${label}</span><b class="cr-bar-v" data-main="${rank}">${esc(c.text)}</b><span class="cr-bar-k">${kline(c, rank)}</span>${IC.next}</span>
-<span class="cr-track" aria-hidden="true">${fill(c, '', rank)}</span>
+<span class="cr-track" aria-hidden="true">${fill(c, scaleOf(slug), '', rank)}</span>
 </a>`;
 }
 
@@ -734,7 +739,7 @@ function deep(slug) {
 <h2 class="cr-pay-h">年収</h2>
 <div class="cr-bars">
 ${ROLES.map(([r, l]) => bar(slug, r, l)).join('\n')}
-${axis()}
+${axis(scaleOf(slug))}
 </div>
 <p class="cr-tax">${esc(BASIS[slug].tax)}</p>
 </div>
@@ -780,7 +785,7 @@ ${destSources(slug)}
 </div>
 </div>`;
 
-  return `<section class="cr-view cr-co cr-deep" data-view="airline" data-airline="${slug}" style="--cr-co:${color(slug)}" hidden>
+  return `<section class="cr-view cr-co cr-deep" data-view="airline" data-airline="${slug}" style="--cr-co:${color(slug)};${div(scaleOf(slug))}" hidden>
 <div class="cr-top">
 ${back()}
 <a class="cr-btn" href="${href.compare(slug, rival(slug))}" data-go>他社と比較</a>
@@ -805,13 +810,13 @@ function detail(slug, rank, label) {
   const c = cell(slug, rank);
   const hid = `<span class="cr-vh">${esc(name(slug))}</span><span class="cr-vh">${label}</span>`;
   const other = ROLES.find(([r]) => r !== rank);
-  return `<section class="cr-view cr-det" data-view="detail" data-airline="${slug}" data-d="${rank}-est" style="--cr-co:${color(slug)}" hidden>
+  return `<section class="cr-view cr-det" data-view="detail" data-airline="${slug}" data-d="${rank}-est" style="--cr-co:${color(slug)};${div(scaleOf(slug))}" hidden>
 <a class="cr-back" href="${href.airline(slug)}" data-go>${IC.back}${esc(name(slug))}</a>
 <h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">${esc(name(slug))} </span>${label}の${KINDS[0][1]}</h1>
 <div class="cr-det-top cr-det-est">
 <p class="cr-det-n">${hid}<b class="cr-det-v">${esc(c.text)}</b> <span class="cr-det-k">${kline(c)}</span></p>
-<div class="cr-track" aria-hidden="true">${fill(c)}</div>
-${axis()}
+<div class="cr-track" aria-hidden="true">${fill(c, scaleOf(slug))}</div>
+${axis(scaleOf(slug))}
 </div>
 ${facts([['対象', `${label}<small>${EST_TARGET}</small>`], ...estRows(slug, rank)])}
 <p class="cr-else"><a class="cr-link" href="${href.detail(slug, `${other[0]}-est`)}" data-go>${other[1]}の${KINDS[0][1]}${IC.go}</a></p>
@@ -853,14 +858,16 @@ const REVIEW_CATS = (() => {
 /* ── 比較 ───────────────────────────────────────────────────────── */
 /* 比較の1行（推定年収どうし・同じ職位・同じ目盛）。職位は見出しが持っているので、行の中では隠してある。
    行は入口にしない（会社ページの 給与・待遇 のタブへは、箱の下の「詳しく」から）。
-   ⚠️ 会社が公表した額の行をここへ足さない（下の「会社が公表している金額」の箱が持つ）。 */
+   ⚠️ 会社が公表した額の行をここへ足さない（下の「会社が公表している金額」の箱が持つ）。
+   data-scale はその会社の目盛の右端（並べた2社の目盛 ＝ 2つの大きいほう）。棒は、既定の2社の行はその2社の目盛で・ほかの行は
+   その会社の目盛で描いておく（選ばれたら career.js が並べた2社の目盛で描き直す）。 */
 function row(slug, rank, label, shown) {
   const c = cell(slug, rank);
-  const attrs = `data-airline="${slug}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
+  const attrs = `data-airline="${slug}" data-scale="${scaleOf(slug)}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
   return `<div class="cr-row" ${attrs}>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}</span><span class="cr-vh">${label}</span><b class="cr-row-v">${esc(c.text)}</b></div>
 <div class="cr-row-k">${kline(c)}</div>
-<div class="cr-track" aria-hidden="true">${fill(c)}</div>
+<div class="cr-track" aria-hidden="true">${fill(c, shown ? pairScale(...PAIR) : scaleOf(slug))}</div>
 </div>`;
 }
 
@@ -880,7 +887,9 @@ ${FIVE.map(s => `<option value="${s}"${s === chosen ? ' selected' : ''}${s === t
 </select>
 <span class="cr-ring" aria-hidden="true"></span>
 </div>`;
-  return `<section class="cr-view cr-cmp" data-view="compare" hidden>
+  /* 目盛の字は、ありうる右端（全社の目盛）ごとに1本。見せるのは並べた2社の1本だけ（career.js が選ぶ）。 */
+  const ax = pairScale(...PAIR), scales = [...new Set(ALL.map(scaleOf))].sort((x, y) => x - y);
+  return `<section class="cr-view cr-cmp" data-view="compare" style="${div(ax)}" hidden>
 ${back()}
 <h1 class="cr-h1 cr-cmp-h" tabindex="-1">航空会社を比較</h1>
 <div class="cr-pick">
@@ -894,7 +903,7 @@ ${ROLES.map(([r, l]) => `<h3 class="cr-role">${l}</h3>
 <div class="cr-pair" data-role="${r}">
 ${ALL.map(s => row(s, r, l, on(s))).join('\n')}
 </div>`).join('\n')}
-${axis()}
+${scales.map(t => axis(t, ` data-scale="${t}" data-div="${t / SCALE_STEP}"${t === ax ? '' : ' hidden'}`)).join('\n')}
 <div class="cr-taxes">
 ${ALL.filter(s => VIEW[s].pay.tax).map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(VIEW[s].pay.tax)}</span></p>`).join('\n')}
 </div>
@@ -979,7 +988,7 @@ function card() {
 
 export function build() {
   career();
-  return `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}" style="--cr-div:${AXIS / 1000}">
+  return `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}">
 ${home()}
 ${FIVE.map(overview).join('\n')}
 ${DEEP.flatMap(s => ROLES.map(([r, l]) => detail(s, r, l))).join('\n')}
@@ -1030,6 +1039,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(`✓ ${PAGE} 変更なし`);
   } else {
     fs.writeFileSync(file, next);
-    console.log(`✓ ${PAGE} を書いた（目盛 0〜${yen(AXIS)}）`);
+    console.log(`✓ ${PAGE} を書いた（目盛は1社の画面はその会社・比較は並べた2社で1本。既定の2社は 0〜${yen(pairScale(...PAIR))}）`);
   }
 }

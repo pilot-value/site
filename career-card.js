@@ -1,8 +1,10 @@
 /* career-card.js — 保存カード（career.html の ?view=card&a={slug}[&b={slug}]）。
  *
  * ★金額を1つも持たない。額・札・棒の長さは、同じページの「会社の概要」の DOM から読む
- *   （[data-main] の字／[data-main-tag] の札／[data-main-bar] の --w／[data-lim]・[data-lim-tag]・[data-lim-bar]）。
- *   概要を持たない会社（先行5社のほか）は、比較の行（.cr-row の字・札・棒の --w）と比較の目盛から読む（★2026-10-24 段階5 compare-all-2）。
+ *   （[data-main] の字／[data-main-tag] の札／[data-main-bar] の額 data-man／[data-lim]・[data-lim-tag]・[data-lim-bar]）。
+ *   概要を持たない会社（先行5社のほか）は、比較の行（.cr-row の字・札・棒の額）から読む（★2026-10-24 段階5 compare-all-2）。
+ *   目盛は、載せる会社の目盛（比較の行の data-scale）の大きいほう ── 2社のカードは2社で1本。棒の長さは 額 ÷ 右端、
+ *   目盛の字は比較の板の、その右端の1本から読む（★2026-10-24 P12.104）。
  *   通貨を切り替えたら、currency.js が直した字をそのまま読み直して描き直す。
  * ★本命の数字は、5社とも推定年収（[data-main] の字と「推定」の札）。career.html はそれだけを書く。
  * ★会社が公表した上限は、DOM に [data-lim] が在るときだけ描く（いまの career.html には無い）。
@@ -20,7 +22,7 @@
   /* ── 絵の定数 ここから（寸法・字の太さ・絵の色。金額でも為替でもない） ─────────── */
   var D = {
     W: 1200, H: 1500, M: 64, GAP: 32,
-    PCT: 100, BYTE: 255, GRAIN: 128, GRAIN_A: .05,
+    BYTE: 255, GRAIN: 128, GRAIN_A: .05,
     HEAD_BASE: 100, HEAD: 30, HEAD_SUB: 26, TRACK: 5, TOP: 132,
     W_NUM: 800, W_HEAD: 700, W_MID: 600, W_TEXT: 500,
     FRAME: 28, FRAME_R: 24, FRAME_W: 2,
@@ -110,26 +112,27 @@
     }
     return null;
   }
-  function frac(el) {
-    if (!el) return null;
-    var v = parseFloat(el.style.getPropertyValue('--w'));
-    return isFinite(v) ? Math.max(0, Math.min(1, v / D.PCT)) : null;
+  /* 棒の長さ（0〜1）＝ 棒の額（data-man）÷ このカードの目盛の右端（★2026-10-24 P12.104：2社のカードは2社で1本・1社はその会社の目盛）。
+     額も右端も画面の HTML の数から読む（ここに額を持たない）。 */
+  function share(el, top) {
+    var m = el ? Number(el.getAttribute('data-man')) : NaN;
+    return isFinite(m) && m > 0 && top > 0 ? Math.max(0, Math.min(1, m / top)) : null;
   }
   function subOf(tag) {
     var p = tag && tag.parentElement, s = p && p.querySelector('.cr-sub');
     return s && !inLive(s) ? txt(s) : '';
   }
-  function readRole(sec, role) {
+  function readRole(sec, role, top) {
     var main = pick(sec, 'data-main', role);
     if (!main || !txt(main)) return null;
     var look = main.getAttribute('data-look') || '';
     var tag = pick(sec, 'data-main-tag', role);
     var out = { role: role, text: txt(main), look: look, tag: txt(tag), sub: subOf(tag),
-                w: look === 'held' ? null : frac(pick(sec, 'data-main-bar', role)), lim: null };
+                w: look === 'held' ? null : share(pick(sec, 'data-main-bar', role), top), lim: null };
     var lim = pick(sec, 'data-lim', role);
     if (lim && txt(lim)) {
       var lt = nearBy(sec, 'data-lim-tag', role, lim);
-      out.lim = { text: txt(lim), tag: txt(lt), sub: subOf(lt), w: frac(nearBy(sec, 'data-lim-bar', role, lim)) };
+      out.lim = { text: txt(lim), tag: txt(lt), sub: subOf(lt), w: share(nearBy(sec, 'data-lim-bar', role, lim), top) };
     }
     return out;
   }
@@ -140,23 +143,36 @@
     for (var i = 0; i < list.length; i++) if (list[i].getAttribute('data-airline') === slug && !inLive(list[i])) return list[i];
     return null;
   }
-  function readRow(slug, role) {                  // -> readRole() と同じ形（概要の無い会社）
+  function readRow(slug, role, top) {             // -> readRole() と同じ形（概要の無い会社）
     var row = cmpRowOf(slug, role), v = row && row.querySelector('.cr-row-v');
     if (!v || !txt(v)) return null;
-    return { role: role, text: txt(v), look: '', tag: txt(row.querySelector('.cr-tag')), sub: '', w: frac(row.querySelector('.cr-fill')), lim: null };
+    return { role: role, text: txt(v), look: '', tag: txt(row.querySelector('.cr-tag')), sub: '', w: share(row.querySelector('.cr-fill'), top), lim: null };
   }
-  function readCard(slug, photoIx) {
+  /* このカードの目盛の右端（★2026-10-24 P12.104）＝ 載せる会社の目盛（比較の行の data-scale）の大きいほう。2社のカードは2社で1本。 */
+  function scaleOf(slugs) {
+    var top = 0;
+    slugs.forEach(function (s) { var r = s && cmpRowOf(s, ROLES[0]), v = r ? Number(r.getAttribute('data-scale')) : 0; if (v > top) top = v; });
+    return top;
+  }
+  /* 目盛の字は、比較の板に右端ごとに置いてある1本から読む（字は HTML に在る ＝ 通貨切替が直した字をそのまま読む）。 */
+  function axisOf(top) {
+    var out = [], list = cr.querySelectorAll('.cr-view[data-view="compare"] .cr-panel .cr-axis[data-scale]');
+    for (var i = 0; i < list.length; i++) {
+      if (inLive(list[i]) || Number(list[i].getAttribute('data-scale')) !== top) continue;
+      Array.prototype.forEach.call(list[i].children, function (s) { out.push(txt(s)); });
+      break;
+    }
+    return out;
+  }
+  function readCard(slug, photoIx, top) {
     var a = AIR[slug], sec = null, list = cr.querySelectorAll('.cr-view[data-view="airline"]');
     for (var i = 0; i < list.length; i++) if (list[i].getAttribute('data-airline') === slug) sec = list[i];
     var photos = a.photos || [], roles = {}, axis = [];
+    axisOf(top).forEach(function (s) { axis.push(s); });
     if (sec) {
-      ROLES.forEach(function (r) { var v = readRole(sec, r); if (v) roles[r] = v; });
-      var ax = sec.querySelector('.cr-axis');
-      if (ax && !inLive(ax)) Array.prototype.forEach.call(ax.children, function (s) { axis.push(txt(s)); });
+      ROLES.forEach(function (r) { var v = readRole(sec, r, top); if (v) roles[r] = v; });
     } else {
-      ROLES.forEach(function (r) { var v = readRow(slug, r); if (v) roles[r] = v; });
-      var ax2 = cr.querySelector('.cr-view[data-view="compare"] .cr-panel .cr-axis');
-      if (ax2 && !inLive(ax2)) Array.prototype.forEach.call(ax2.children, function (s) { axis.push(txt(s)); });
+      ROLES.forEach(function (r) { var v = readRow(slug, r, top); if (v) roles[r] = v; });
     }
     return { slug: slug, ja: a.ja || '', en: a.en || '', code: a.code || '', color: a.color || '',
              url: a.url || '', qr: a.qr || [], photo: photos[photoIx] || photos[0] || null, roles: roles, axis: axis, rating: ratingOf(slug) };
@@ -334,7 +350,7 @@
       ctx.closePath(); ctx.fill();
     }
   }
-  /* 棒。0 から始まり、長さは DOM の --w そのまま（共通の目盛）。
+  /* 棒。0 から始まり、長さは 額 ÷ このカードの目盛の右端（2社のカードは2社で同じ目盛）。
      look="max" は斜線＋端の印＋「上限」の字。look="over" は端を開けたままにする。 */
   function bar(ctx, P, x, y, w, h, f, look) {
     var fw = w * f, r = h / 2;
@@ -840,8 +856,9 @@
     job = job.then(function () {
       if (my !== seq) return null;
       askRating(st.a); if (st.b) askRating(st.b);
-      var m = { t: st.t, cards: [readCard(st.a, st.p)] };
-      if (st.b) m.cards.push(readCard(st.b, st.q));
+      var top = scaleOf([st.a, st.b]);              // 2社は同じ目盛（★2026-10-24 P12.104）
+      var m = { t: st.t, cards: [readCard(st.a, st.p, top)] };
+      if (st.b) m.cards.push(readCard(st.b, st.q, top));
       return Promise.all([fontsFor(stringsOf(m)), Promise.all(m.cards.map(function (c) { return loadImg(c.photo && c.photo.src); }))])
         .then(function (r) {
           if (my !== seq) return null;
