@@ -264,6 +264,10 @@
          background:var(--pv-surface);border:1px solid var(--pv-line);color:var(--pv-ink);
          box-shadow:var(--pv-shadow-lift);transition:transform .32s var(--pv-ease)}
 .cr .cr-swap:focus-visible{border-radius:50%}
+/* ── 比較：掲載している全社 ───────────────────────────── */
+/* 社名は語の切れ目（「・」の後ろ・空白・「（」の前）でだけ折る。1語が行より長いときだけ、はみ出さずに語の中で折る。
+   ⚠️ 行の社名の中にタグを入れて折らない（check-salary.mjs が社名を1続きの字として読む）。 */
+.cr-row-co,.cr-go-n{word-break:keep-all;overflow-wrap:anywhere}
 
 .cr-panel{position:relative;isolation:isolate;overflow:hidden;margin-top:14px;padding:18px 16px 16px;
           border-radius:var(--pv-r-lg);background:var(--pv-navy);border:1px solid var(--cr-hair);

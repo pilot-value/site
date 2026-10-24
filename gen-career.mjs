@@ -57,7 +57,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, figures, fxNote } from './salary-basis.mjs';
-import { viewOf, AXIS as VIEW_AXIS, width, rentCell, coText, LEAD as LEAD_FIVE } from './pv-airline-view.mjs';
+import { viewOf, rentCell, coText, LEAD as LEAD_FIVE } from './pv-airline-view.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
 import { FACTS, atText, introText, valueText } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W } from './place-photos.mjs';
@@ -114,8 +114,24 @@ const code = slug => {
 };
 const name = slug => SALARY[slug].ja;
 
-/* ── 会社ページと同じ読み口（年収の推定・家賃）── 5社ぶんを1回だけ読む ──────────── */
+/* ── 会社ページと同じ読み口（年収の推定・家賃）── 先行5社は読み込んだときに1回・ほかの会社は career() の中で1回 ── */
 const VIEW = Object.fromEntries(FIVE.map(s => [s, viewOf(s)]));
+/* 掲載している全社 ＝ 年収の正本（SALARY）の鍵。数も名前もここに打たない（P3.1）。比較とカードの材料は全社ぶん書く。 */
+export const ALL = Object.keys(SALARY);
+/* 先行5社のほかの会社の読み口と決まり（色・略号・会社ページ・目盛）は、比較とカードを組むとき（build() と cardData() の頭）に1回だけ。
+   ⚠️ ファイルの地の文で全社ぶんを走らせない ── このファイルは gen-airline-glance.mjs（会社ページの生成器）からも読まれる。
+      1社の台帳の誤りで、全部の会社ページの生成まで止めない。 */
+let WIDE = false;
+function career() {
+  if (WIDE) return;
+  for (const s of ALL) {
+    color(s); code(s);   // airlines-meta.js に行が無い・色や略号の形が違う会社が在れば、ここで止まる（色も略号も作らない）
+    if (!fs.existsSync(path.join(ROOT, 'airlines', `${s}.html`))) throw new Error(`${s}: 会社ページが無い`);
+    if (!VIEW[s]) VIEW[s] = viewOf(s);
+    for (const [r] of ROLES) if (cell(s, r).man > AXIS) throw new Error(`${s}/${r}: 推定が目盛（${AXIS}）からはみ出す`);
+  }
+  WIDE = true;
+}
 
 /* ── 棒に出す1マス ─────────────────────────────────────────────── */
 /* 主表示の1マス ＝ 推定年収。5社とも・どの職位も同じ決め方（会社ページと同じ読み口）。
@@ -128,13 +144,18 @@ export function cell(slug, rank) {
   return { man: e.man, text: e.yen, tag: TIERS.estimate.ja, sub: '', look: '' };
 }
 
-/* 目盛の右端。会社ページと同じ目盛（0 から始める）。棒が1本でもはみ出すなら止まる。 */
-export const AXIS = VIEW_AXIS;
+/* 目盛の右端。この1枚の棒（概要・詳細・比較・カード）は全部この1本の目盛（0 から）── 掲載している全社の推定のいちばん大きい
+   額を 1,000万 の刻みへ切り上げる（年収の正本から読む）。比較はどの2社でも同じ目盛（額をスクリプトに持たない）。
+   会社ページの目盛（pv-airline-view.mjs の AXIS）は新しい形の会社（SWITCH）から作るので、全社が切り替わると同じ値になる。
+   はみ出しは、先行5社は下の繰り返しで・ほかの会社は career() の中で見る。 */
+export const AXIS = Math.ceil(Math.max(...ALL.flatMap(s => ROLES.map(([r]) => SALARY[s][r].avg))) / 1000) * 1000;
+/* 棒の長さ（目盛に対する％）。 */
+const width = m => `${Math.min(100, (m / AXIS) * 100).toFixed(2)}%`;
 for (const s of FIVE) for (const [r] of ROLES) {
   if (cell(s, r).man > AXIS) throw new Error(`${s}/${r}: 推定が目盛（${AXIS}）からはみ出す`);
 }
 
-/* 棒の長さは width()（目盛に対する％。会社ページと同じ関数）。mark は目印（概要の中だけ）。 */
+/* 棒の長さは width()（目盛に対する％。この1枚の目盛 AXIS）。mark は目印（概要の中だけ）。 */
 const fill = (c, extra, mark) => `<i class="cr-fill${extra ? ' ' + extra : ''}"${mark ? ` data-main-bar="${mark}"` : ''} style="--w:${width(c.man)}"></i>`;
 /* 札（「推定」）。 */
 const kline = (c, mark) => `<span class="cr-tag"${mark ? ` data-main-tag="${mark}"` : ''}>${esc(c.tag)}</span>`;
@@ -213,13 +234,13 @@ const href = {
 const ic = d => `<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 const IC = { back: ic('M15 6l-6 6 6 6'), go: ic('M5 12h14M13 6l6 6-6 6'), down: ic('M6 9l6 6 6-6'), swap: ic('M7 8h11l-3-3M17 16H6l3 3'), next: ic('M9 6l6 6-6 6') };
 const back = () => `<a class="cr-back" href="${href.home}" data-go>${IC.back}航空会社を選ぶ</a>`;
-/* 比較の節の下に置く、会社ごとの入口（その会社のページの該当タブへ）。5社ぶん置いて、選ばれた2社だけ見せる（career.js の pair()）。
+/* 比較の節の下に置く、会社ごとの入口（その会社のページの該当タブへ）。掲載している全社ぶん置いて、選ばれた2社だけ見せる（career.js の pair()）。
    読み上げの名前は「節の見出し ＋ 社名 ＋ 詳しく」（aria-labelledby。字は足さない）。
    ⚠️ data-go を付けない（career.html の外へ出る）。額・職位の字をこの中に書かない（check-salary.mjs の並びを崩さない）。 */
 const GO_WORD = '詳しく';
 const MORE_TOWNS = 'ほかの街';
 const gos = (tab, key) => `<p class="cr-gos">
-${FIVE.map(s => `<a class="cr-link cr-go" id="cr-go-${key}-${s}" href="${href.page(s, tab)}" aria-labelledby="cr-cmp-h-${key} cr-go-${key}-${s}" data-airline="${s}" style="--cr-co:${color(s)}"${PAIR.includes(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">${esc(name(s))}</span><span class="cr-go-t">${GO_WORD}</span>${IC.go}</a>`).join('\n')}
+${ALL.map(s => `<a class="cr-link cr-go" id="cr-go-${key}-${s}" href="${href.page(s, tab)}" aria-labelledby="cr-cmp-h-${key} cr-go-${key}-${s}" data-airline="${s}" style="--cr-co:${color(s)}"${PAIR.includes(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">${esc(name(s))}</span><span class="cr-go-t">${GO_WORD}</span>${IC.go}</a>`).join('\n')}
 </p>`;
 
 /* 生きた欄。空で出荷する（career-live.js / career-stay.js がサーバーの答えで埋める）。
@@ -691,6 +712,22 @@ ${L.rents.length > 1 ? `<p class="cr-else cr-rentb-go"><a class="cr-link" href="
 </article>`;
 }
 
+/* 比較に家賃の箱を置ける会社 ＝ 会社ページと同じ読み口（viewOf().living）が、箱の決まりどおりの1か月あたりの家賃を持つ会社。
+   先行5社は今までどおり必ず置く（置けなければ rentBox が止まる）。ほかの会社は、決まりに合わない（調べの台帳の街 ── この箱は
+   「過去」「参考」の札を出さない／1週あたり／先頭の地域が1つに決まらない／前提の1行が無い …）なら箱を置かない ──
+   空の箱・「準備中」・断りの1行を比較に置かない。下の条件は living()・rentBox()・rentBasis() の止まる条件を問いの形にしたもの。 */
+function rentable(slug) {
+  if (FIVE.includes(slug)) return true;
+  const L = VIEW[slug].living;
+  if (!L || L.research || L.per !== 'month' || !L.measure || !L.city || !(L.rents || []).length) return false;
+  if ((L.basis || []).some(b => !RENT_BASIS.includes(b.key))) return false;
+  for (const x of L.rents) if (!x.name || (Object.keys(x.value || {}).length && (!x.when || !x.src?.url || !x.src?.name))) return false;
+  const lead = L.rents.filter(x => x.lead);
+  if (lead.length !== 1 || !L.cols.some(([k]) => rentCell(L.cur, lead[0].value[k]))) return false;
+  const by = k => (L.basis || []).find(b => b.key === k)?.value || '';
+  return !!(by('what') || lead[0].cond || by('caveat') || by('per_month'));
+}
+
 function deep(slug) {
   const top = `<div class="cr-tabp" data-tab="top">
 <div class="cr-pay cr-pay-deep">
@@ -828,7 +865,7 @@ function row(slug, rank, label, shown) {
 }
 
 function compare() {
-  /* 5社ぶんを全部置いておき、選ばれた2社だけ見せる（career.js は数字を持たない）。 */
+  /* 掲載している全社ぶんを置いておき、選ばれた2社だけ見せる（career.js は数字を持たない）。台帳に中身の無い箱は、その会社のぶんを置かない。 */
   const on = s => PAIR.includes(s);
   /* 「会社が公表している金額」の箱（.cr-cards）は、並べた2社のどちらにも一覧が無ければ描かない（空の箱・「公表なし」を置かない ──
      2026-10-22 LEAD AMENDMENT・P12.91-7）。片方に在れば、もう片方は社名だけ。選び直したときは career.js の pair() が同じ決まりで決める。 */
@@ -855,11 +892,11 @@ ${side('b', '2社目', PAIR[1], PAIR[0])}
 <h2 class="cr-panel-h" id="cr-cmp-h-pay">年収</h2>
 ${ROLES.map(([r, l]) => `<h3 class="cr-role">${l}</h3>
 <div class="cr-pair" data-role="${r}">
-${FIVE.map(s => row(s, r, l, on(s))).join('\n')}
+${ALL.map(s => row(s, r, l, on(s))).join('\n')}
 </div>`).join('\n')}
 ${axis()}
 <div class="cr-taxes">
-${FIVE.map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(BASIS[s].tax)}</span></p>`).join('\n')}
+${ALL.filter(s => VIEW[s].pay.tax).map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(VIEW[s].pay.tax)}</span></p>`).join('\n')}
 </div>
 <p class="cr-tgt">${KINDS[0][1]}<span>${EST_TARGET}</span></p>
 ${gos('pay', 'pay')}
@@ -874,10 +911,10 @@ ${live('cmp-stars')}
 ${live('cmp-summary')}
 ${gos('reviews', 'rev')}
 </div>
-<div class="cr-sec cr-rents">
+<div class="cr-sec cr-rents" data-wrap>
 <h2 class="cr-h2">拠点の街の家賃<span class="cr-h2-s">1か月あたり</span></h2>
 <div class="cr-rentbs">
-${FIVE.map(s => rentBox(s, on(s))).join('\n')}
+${ALL.filter(rentable).map(s => rentBox(s, on(s))).join('\n')}
 </div>
 </div>
 <div class="cr-sec cr-cmp-work">
@@ -937,6 +974,7 @@ function card() {
 }
 
 export function build() {
+  career();
   return `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}" style="--cr-div:${AXIS / 1000}">
 ${home()}
 ${FIVE.map(overview).join('\n')}
