@@ -71,7 +71,12 @@ const GROUPS = {
   },
 };
 
-const KINDS = ['bizjet', 'charter', 'regional', 'cargo'];
+/* kind は airline-ops.mjs の社の区分（pv-airlines.json に載るが DB には出さない）。
+   passenger ＝ 定期旅客の航空会社で、年収の公開レンジがまだ無い社（2026-10-24 に追加。
+   Avelo・Sun Country）。ほかの4つの意味は変えていない。
+   ⚠️ airlines-meta.js の type（fsc / lcc / charter / bizjet / agent）とは別の語彙。
+     あちらは年収のある社だけが持ち、salary-leveling.js の NO_LADDER_TYPES と世界の一覧の絞り込みが読む。 */
+const KINDS = ['bizjet', 'charter', 'regional', 'cargo', 'passenger'];
 
 /* ── 検査①：会社コードの衝突 ────────────────────────────────
    同じ code が両方の名簿にあると、後勝ちで片方が黙って消える。
