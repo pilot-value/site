@@ -858,7 +858,11 @@ async function notOwnerChecks(page, lang) {
   const EN = lang === 'en';
   await page.waitForFunction(() => document.getElementById('adm-n').getAttribute('data-state') === 'ok', { timeout: 10000 });
   const v = await page.evaluate((W) => {
-    const q = document.getElementById('adm-q'), all = document.body.textContent;
+    /* 見るのは画面に出る字だけ。<script> の中身（本番の「資格確認」の表を組む admin.html の字 ── 運営が提出された画像を見る
+       「画像を見る」のボタンの字を持っている）は数えない（2026-10-24。数えると、オーナーの一覧が1字も出ていなくても赤くなる） */
+    const body = document.body.cloneNode(true);
+    body.querySelectorAll('script, style, template, noscript').forEach((e) => e.remove());
+    const q = document.getElementById('adm-q'), all = body.textContent;
     return { owner: q.querySelectorAll('[data-adm-owner], li[data-adm="app"], li[data-adm="member"], .adm-sheet, img').length,
              acts: q.querySelectorAll('[data-act="view"], [data-act="verify"], [data-act="decline"], [data-act="revoke"]').length,
              heads: [...q.querySelectorAll('h2.adm-h')].map((h) => h.firstChild.textContent),
@@ -960,8 +964,12 @@ async function ownerChecks(page, lang) {
   const gone = () => page.evaluate((s, b64) => {
     const frag = String(b64 || '').replace(/\s+/g, '').slice(10, 60);
     const store = (st) => { try { return Object.keys(st).some((k) => String(st.getItem(k)).includes(frag)); } catch (e) { return false; } };
+    /* 「data:image/jpeg」の字は、<script> の中身（画像を描く式。admin.html の「資格確認」と admin-queue.js）を外して探す ──
+       式は画像の残りではない（2026-10-24。外さないと、本番の「資格確認」の式だけで必ず赤くなる）。画像の中身（frag）は全体で探す */
+    const doc = document.documentElement.cloneNode(true);
+    doc.querySelectorAll('script').forEach((e) => e.remove());
     return { sheets: document.querySelectorAll('#adm-q .adm-sheet').length, imgs: document.querySelectorAll('#adm-q img').length,
-             html: document.documentElement.outerHTML.includes('data:image/jpeg') || document.documentElement.outerHTML.includes(frag),
+             html: doc.outerHTML.includes('data:image/jpeg') || document.documentElement.outerHTML.includes(frag),
              store: store(localStorage) || store(sessionStorage), focus: document.activeElement && document.activeElement.getAttribute('data-act'),
              focusRow: document.activeElement && document.activeElement.closest('li') ? document.activeElement.closest('li').getAttribute('data-id') : null,
              expanded: (document.querySelector(s + ' [data-act="view"]') || {}).getAttribute && document.querySelector(s + ' [data-act="view"]').getAttribute('aria-expanded'),
@@ -1497,8 +1505,10 @@ for (const lang of ['ja', 'en']) {
     if (c.key === 'owner') {
       await page.waitForFunction(() => document.querySelector('#adm-q [data-adm-owner="members"]'), { timeout: 10000 }).catch(() => {});
       const rpc0 = await page.evaluate(() => window.__rpc.slice());
-      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
-         '★O7 オーナーも、開いたときに呼ぶのはこの7つだけ（申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
+      /* 4本目の admin_list_proofs は本番の「資格確認」（db/pilot-proof.sql・運営が提出された画像を確かめる表）。運営みんなの入口で、
+         オーナーだけの2つの一覧（pv_stay_applicants・pv_stay_members）とは別（deploy-checklist の 26 番） */
+      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+         '★O7 オーナーも、開いたときに呼ぶのはこの8つだけ（資格確認の表は運営みんなの入口・申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
       await ownerChecks(page, lang).catch((e) => ok(false, 'O オーナーの場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
     }
 
