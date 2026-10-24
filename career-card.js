@@ -729,7 +729,15 @@
   function select(id, onPick) {
     var s = el('select', 'crc-sel');
     s.id = id;
-    SLUGS.forEach(function (k) { var o = el('option', '', AIR[k].ja || k); o.value = k; s.appendChild(o); });
+    /* 会社は地域ごとに束ねる（地域の名前は航空会社一覧の見出しと同じ字 ── 材料の g。出てきた順に1つずつ）。g の無い会社は束ねずに並べる。 */
+    var groups = {};
+    SLUGS.forEach(function (k) {
+      var g = AIR[k].g || '', o = el('option', '', AIR[k].ja || k);
+      o.value = k;
+      if (!g) { s.appendChild(o); return; }
+      if (!groups[g]) { groups[g] = el('optgroup'); groups[g].label = g; s.appendChild(groups[g]); }
+      groups[g].appendChild(o);
+    });
     s.addEventListener('change', function () { onPick(s.value); });
     return s;
   }

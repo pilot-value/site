@@ -61,6 +61,49 @@
 
     var DEF = { a: cr.dataset.a, b: cr.dataset.b };
     var cmp = cr.querySelector('.cr-view[data-view="compare"]');
+    /* 航空会社一覧（pv-directory.js）と同じ検索。下の6つは あちらと同じ字（assert-career.mjs が突き合わせる）。
+       直すときは あちらを直して、ここへ写す。⚠️ この囲みの外へ出さない（query という名前が、住所を作る関数と重なる）。
+       ⚠️ 囲みの名前は wdFind（find は下の「戻る目印を探す」関数の名前 ── 同じ名前にすると、あとの代入で検索が上書きされる）。 */
+    var wdFind = (function () {
+      /** 幅・大小・かなをそろえる（全角→半角・小文字・ひらがな→カタカナ） */
+      function fold(s) {
+        s = String(s == null ? '' : s);
+        return (s.normalize ? s.normalize('NFKC') : s).toLowerCase().replace(/[ぁ-ゖ]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) + 0x60); });
+      }
+      /** 区切り（空白 ・ . , ' " ( ) [ ] / - _ & |）を1つの空白に・長音（ー）を消す */
+      function spaced(s) {
+        return fold(s).replace(/[\s・·.,'’"“”()\[\]\/\-‐‑–—_&|]+/g, function () { return ' '; }).replace(/ー/g, function () { return ''; })
+          .replace(/ +/g, function () { return ' '; }).trim();
+      }
+      /** 空白を詰めた形 */
+      function compact(s) { return spaced(s).replace(/ /g, function () { return ''; }); }
+      /** 詰めた形の中で、語が始まる位置（先頭の0と、空白1つにつき1つ） */
+      function starts(sp) {
+        var out = [0], n = 0;
+        for (var i = 0; i < sp.length; i++) { if (sp.charAt(i) === ' ') out.push(n); else n++; }
+        return out;
+      }
+      /** 打たれた字を一度だけ読む。na ＝ ASCII でない字を含む・sh ＝ ASCII だけで空白を除いて3字まで（短い） */
+      function query(raw) {
+        var S = spaced(raw), C = compact(raw), na = /[^\x00-\x7f]/.test(C);
+        return { raw: raw, S: S, C: C, na: na, sh: !na && C.length <= 3 };
+      }
+      /** 0 ＝ 略号か呼び名とぴったり同じ（先頭に並べる）・1 ＝ 当たり・-1 ＝ 外れ */
+      function tier(card, Q) {
+        var i, j, k, hit = false;
+        if (Q.C === '') return 1;
+        if (card.codes.indexOf(Q.C) >= 0) return 0;
+        for (i = 0; i < card.keys.length; i++) if (card.keys[i].C === Q.C) return 0;
+        for (i = 0; i < card.keys.length && !hit; i++) {
+          k = card.keys[i];
+          if (Q.na) { hit = k.C.indexOf(Q.C) >= 0; continue; }
+          if (!Q.sh && k.S.indexOf(Q.S) >= 0) hit = true;
+          for (j = 0; j < k.W.length && !hit; j++) if (k.C.startsWith(Q.C, k.W[j])) hit = true;
+        }
+        return hit ? 1 : -1;
+      }
+      return { spaced: spaced, compact: compact, starts: starts, query: query, tier: tier };
+    })();
     var sheet = document.getElementById('cr-sheet'), sheetL = document.getElementById('cr-sheet-l'), sheetH = document.getElementById('cr-sheet-h');
     var sheetQ = document.getElementById('cr-sheet-q'), sheet0 = document.getElementById('cr-sheet-0');      // CA-3b2 で HTML に入る（無ければ null）
     var openB = { a: document.getElementById('cr-open-a'), b: document.getElementById('cr-open-b') };
@@ -73,6 +116,9 @@
       each(sheetL.children, function (li) { HOME.push(li); });
       each(sheetL.querySelectorAll('.cr-pk'), function (el) {
         var o = { el: el, li: el.parentNode, slug: el.dataset.airline, codes: [], keys: [] };
+        /* 検索の鍵は、航空会社一覧のカードと同じ読み方で1回だけそろえる（略号 data-c・呼び名 data-k）。 */
+        (el.dataset.c || '').split(' ').forEach(function (c) { if (c) o.codes.push(wdFind.compact(c)); });
+        (el.dataset.k || '').split('|').forEach(function (k) { if (k) { var S = wdFind.spaced(k); o.keys.push({ S: S, C: S.replace(/ /g, function () { return ''; }), W: wdFind.starts(S) }); } });
         PK.push(o); pkOf[o.slug] = o;
       });
     }
@@ -518,7 +564,15 @@
       if (src) lg.insertBefore(src.cloneNode(true), lg.firstChild);
       x.querySelector('.cr-opt-t').textContent = o.el.querySelector('.cr-pk-n').textContent;
     }
-    function filter() {}                            // CA-3b2
+    /* 検索の欄の字で、選ぶ面の会社を絞る（航空会社一覧と同じ決まり：何も打っていなければ HTML の並び・地域の見出しつき。
+       打っていれば見出しを隠し、略号か呼び名とぴったり同じ会社を先頭へ・あとは HTML の並び）。1社も無いときだけ、一覧と同じ1行を出す。 */
+    function filter() {
+      var Q = wdFind.query(sheetQ ? sheetQ.value : ''), n = 0, front = [];
+      PK.forEach(function (o) { var t = wdFind.tier(o, Q); o.li.hidden = t < 0; if (t >= 0) n++; if (t === 0 && Q.C !== '') front.push(o.li); });
+      HOME.forEach(function (li) { if (li.classList.contains('cr-pk-gl')) li.hidden = Q.C !== ''; sheetL.appendChild(li); });   // HTML の並びへ戻す
+      for (var i = front.length - 1; i >= 0; i--) sheetL.insertBefore(front[i], sheetL.firstChild);                          // ぴったり当たった会社を先頭へ
+      if (sheet0) sheet0.hidden = n > 0;
+    }
     function shownPk() {                            // いま選べる会社（画面の並びの順）
       var out = [];
       each(sheetL.querySelectorAll('.cr-pk'), function (el) { var o = pkOf[el.dataset.airline]; if (!o.li.hidden && !el.disabled) out.push(o); });
@@ -578,6 +632,15 @@
         var at = list[Math.max(0, Math.min(list.length - 1, to))];
         if (at) at.el.focus();
       });
+      /* 検索の欄：打つたびに絞る。↓ で一覧のいちばん上の会社へ・Enter でその会社を選ぶ（選べる会社が無ければ何もしない）。 */
+      if (sheetQ) {
+        sheetQ.addEventListener('input', filter);
+        sheetQ.addEventListener('keydown', function (e) {
+          var list = shownPk();
+          if (e.key === 'ArrowDown' && list[0]) { e.preventDefault(); list[0].el.focus(); }
+          if (e.key === 'Enter' && list[0]) { e.preventDefault(); list[0].el.click(); }
+        });
+      }
     }
     swap.addEventListener('click', function () { repick(state.b, state.a); });
 

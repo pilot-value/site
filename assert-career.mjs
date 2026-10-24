@@ -579,10 +579,12 @@ head('掲載している全社（比較の材料）');
   const sorted = a => [...a].sort();
 
   /* 2社を選ぶ面（#cr-sheet-l）の中身（★2026-10-25 段階5 compare-all-4・CA-3b1）── 地域の見出しの行と、会社の行だけ（ほかの形の行が在れば、
-     下の T-A12a が数の食い違いで落とす）。 */
+     下の T-A12a が数の食い違いで落とす）。
+     ★2026-10-25 段階5 compare-all-5（CA-3b2・同じ強さの当て直し）：会社の行は検索の鍵（data-c ＝ 略号・data-k ＝ 呼び名）を必ず持つ形だけを読む
+     （鍵の無い行は読めない ＝ 上の T-A1 と下の T-A12a が数で落とす）。鍵の中身は下の T-A12b が航空会社一覧と突き合わせる。 */
   const SHEET_L = elementAt(BLOCK, BLOCK.indexOf('<ul class="cr-sheet-l" id="cr-sheet-l">'));
-  const SHEET = [...SHEET_L.matchAll(/<li class="cr-pk-gl" role="presentation" data-region="([a-z]+)"><h3 class="cr-pk-g">([^<]*)<\/h3><\/li>|<li><button type="button" class="cr-pk" data-airline="([^"]+)" style="--cr-co:([^"]*)">([\s\S]*?)<\/button><\/li>/g)]
-    .map(m => (m[1] ? { g: m[1], h: decode(m[2]) } : { s: m[3], co: m[4], html: m[5] }));
+  const SHEET = [...SHEET_L.matchAll(/<li class="cr-pk-gl" role="presentation" data-region="([a-z]+)"><h3 class="cr-pk-g">([^<]*)<\/h3><\/li>|<li><button type="button" class="cr-pk" data-airline="([^"]+)" data-c="([^"]*)" data-k="([^"]*)" style="--cr-co:([^"]*)">([\s\S]*?)<\/button><\/li>/g)]
+    .map(m => (m[1] ? { g: m[1], h: decode(m[2]) } : { s: m[3], c: decode(m[4]), k: decode(m[5]), co: m[6], html: m[7] }));
   const PK = SHEET.filter(x => x.s);
 
   /* T-A1 1つの集合：年収の行（機長・副操縦士）と、4つの「詳しく」の列は、どれも正本と同じ会社（並びも正本の順）。
@@ -770,17 +772,21 @@ head('掲載している全社（比較の材料）');
      住所はその会社のページ（?・# を付けない）で、ページのファイルが在る・英語の社名が在る・写真は台帳（airline-photos.mjs）に在る会社だけ。
      QR は、あるべき住所をこの検査がその場で符号化した行列（career-qr.mjs の qrMatrix）と同じで、正方形・大きさは別の読み取り器で
      読めた5社（FROZEN の指紋の頭）と同じ大きさのどちらか。島の字に ¥ と 万 は無い（額を持たない）。
-     先行5社を FROZEN に結ぶ検査（T-C1）は、上の「保存するカードの住所と QR」のまま。 */
+     先行5社を FROZEN に結ぶ検査（T-C1）は、上の「保存するカードの住所と QR」のまま。
+     ★2026-10-25 段階5 compare-all-5（CA-3b2）：島の g（カードの選ぶ欄が会社を束ねる地域の名前）は、その会社の地域の名前
+     （directory-model.mjs の REGIONS の ja ── 航空会社一覧の見出しと同じ字。地域は model() の region）。 */
   {
     const CNAME = read('CNAME').trim();
     const ISL_TEXT = (HTML.match(/<script type="application\/json" id="crc-data">([\s\S]*?)<\/script>/) || [])[1] || '';
     const QSIZE = new Set(FIVE.map(s => Number(String(frozenPrint(`https://${CNAME}/airlines/${s}.html`)).split(':')[0])));
+    const RJ = Object.fromEntries(DIR_REGIONS.map(R => [R.code, R.ja])), DM = dirModel();
     const bad = [], bySize = {};
     for (const s of ALLK) {
       const a = CARD_AIR[s];
       if (!a) { bad.push(`${s}: 島に無い`); continue; }
       const want = `https://${CNAME}/airlines/${s}.html`, rows = Array.isArray(a.qr) ? a.qr : [], why = [];
       if (a.url !== want || /[?#]/.test(String(a.url))) why.push(`住所 ${a.url}（あるべき ${want}）`);
+      if (!DM.airlines[s] || !RJ[DM.airlines[s].region] || a.g !== RJ[DM.airlines[s].region]) why.push(`地域「${a.g}」（あるべき「${DM.airlines[s] && RJ[DM.airlines[s].region]}」）`);
       if (!fs.existsSync(path.join(ROOT, 'airlines', `${s}.html`))) why.push('会社ページのファイルが無い');
       if (!String(a.en || '').trim()) why.push('英語の社名が無い');
       if (!(PHOTOS[s] || []).length && (a.photos || []).length) why.push(`写真 ${(a.photos || []).length}枚（台帳に無い）`);
@@ -871,6 +877,64 @@ head('掲載している全社（比較の材料）');
        && same(heads.map(x => x.h), want.map(R => R.ja)) && same(heads.map(x => x.g), want.map(R => R.code)) && !bad.length,
        '比較の選ぶ面は、航空会社一覧と同じ会社・同じ並び・同じ地域',
        JSON.stringify({ li, read: SHEET.length, entries: PK.length, firstOff: PK.findIndex((x, i) => x.s !== M.slugs[i]), heads: heads.map(x => x.h), bad: bad.slice(0, 6) }));
+  }
+
+  /* T-A12b 比較の検索は、航空会社一覧と同じ鍵・同じ言葉（★2026-10-25 段階5 compare-all-5・CA-3b2）：面の会社の行の検索の鍵
+     （data-k ＝ 呼び名・data-c ＝ 略号）は、航空会社一覧（world-airlines.html）のその会社のカード（li.wd-li）の鍵と1文字も違わない
+     （どちらも directory-model.mjs の model() から書く ── 片方だけ直すと、同じ字を打って当たる会社が2つの画面で変わる）。
+     検索の欄は面の中に1つ・会社の一覧の上。欄の字（placeholder と読み上げの名前）と、見つからないときの1行（出荷は隠したまま）は、
+     航空会社一覧と同じ字（決まっている字 ── P7.10）。 */
+  {
+    const WA = read('world-airlines.html'), bad = [];
+    const attr = (t, k) => { const v = (t.match(new RegExp(`\\s${k}="([^"]*)"`)) || [])[1]; return v === undefined ? undefined : decode(v); };
+    const cards = {};
+    for (const m of WA.matchAll(/<li class="wd-li"[^>]*>/g)) { const s = attr(m[0], 'data-slug'); (cards[s] = cards[s] || []).push(m[0]); }
+    for (const s of ALLK) {
+      const xs = PK.filter(x => x.s === s), cs = cards[s] || [];
+      if (xs.length !== 1 || cs.length !== 1) { bad.push(`${s}: 面の行 ${xs.length}・一覧のカード ${cs.length}`); continue; }
+      const k = attr(cs[0], 'data-k'), c = attr(cs[0], 'data-c');
+      if (!xs[0].k || xs[0].k !== k) bad.push(`${s}: 呼び名「${xs[0].k}」（一覧「${k}」）`);
+      if (!xs[0].c || xs[0].c !== c) bad.push(`${s}: 略号「${xs[0].c}」（一覧「${c}」）`);
+    }
+    const SAY = '航空会社名・国名で検索', NONE = '該当する航空会社が見つかりませんでした';
+    const DLG = elementAt(BLOCK, BLOCK.indexOf('<dialog'));
+    const fields = [...DLG.matchAll(/<input\b[^>]*>/g)].map(m => m[0]);
+    const q = fields[0] || '', dirQ = (WA.match(/<input id="search"[^>]*>/) || [''])[0];
+    const zero = [...DLG.matchAll(/<p class="cr-sheet-0" id="cr-sheet-0" role="status"( hidden)?>([^<]*)<\/p>/g)].map(m => [!!m[1], decode(m[2])]);
+    const fieldOk = fields.length === 1 && attr(q, 'id') === 'cr-sheet-q' && attr(q, 'type') === 'search' && DLG.indexOf(q) < DLG.indexOf('<ul class="cr-sheet-l"')
+      && attr(q, 'placeholder') === SAY && attr(q, 'aria-label') === SAY && attr(dirQ, 'placeholder') === SAY && attr(dirQ, 'aria-label') === SAY;
+    ok(!bad.length && fieldOk && same(zero, [[true, NONE]]) && WA.includes(NONE) && (BLOCK.match(/cr-sheet-0/g) || []).length === 2,
+       '比較の検索は、航空会社一覧と同じ鍵・同じ言葉',
+       JSON.stringify({ bad: bad.slice(0, 6), fields: fields.map(f => f.slice(0, 90)), dirField: [attr(dirQ, 'placeholder'), attr(dirQ, 'aria-label')], zero, dirNone: WA.includes(NONE) }));
+  }
+
+  /* T-A13 比較の検索は、航空会社一覧と同じ字の関数（★2026-10-25 段階5 compare-all-5・CA-3b2）：career.js の検索の6つ（fold・spaced・
+     compact・starts・query・tier）は、pv-directory.js の6つを1文字も変えずに写したもの（空白の量だけは見ない）。写しは career.js の
+     var wdFind = (function () { … })(); の囲みの中にだけ在る ── 外へ出すと query という名前が住所を作る関数（function query(st)）を
+     上書きし、ページのどの住所も壊れる。住所の関数は囲みの外にちょうど1つ。
+     囲みの名前 wdFind は career.js の中で1回だけ宣言する（設計の名前 find は「戻る目印を探す」関数がすでに使っていて、あとの代入が
+     検索を上書きし、選ぶ面が開かなくなった ── 2026-10-25 に作る途中で実際に起きた）。 */
+  {
+    const close = (t, at) => {   // at の後ろの最初の { から、それと対になる } まで
+      let d = 0;
+      for (let i = t.indexOf('{', at); i >= 0 && i < t.length; i++) {
+        if (t[i] === '{') d++;
+        else if (t[i] === '}' && !--d) return i + 1;
+      }
+      return -1;
+    };
+    const fnText = (t, name) => { const at = t.indexOf(`function ${name}(`), end = at < 0 ? -1 : close(t, at); return end < 0 ? null : t.slice(at, end); };
+    const flat = t => (t == null ? null : t.replace(/\s+/g, () => ' ').trim());
+    const DIRJS = read('pv-directory.js'), OPEN = 'var wdFind = (function () {', fAt = JS.indexOf(OPEN), fEnd = fAt < 0 ? -1 : close(JS, fAt + OPEN.length - 1);
+    const decl = (JSC.match(/\b(?:var|let|const|function)\s+wdFind\b/g) || []).length;
+    const BOX = fAt >= 0 && fEnd > 0 ? JS.slice(fAt, fEnd) : '', REST = fAt >= 0 && fEnd > 0 ? JS.slice(0, fAt) + JS.slice(fEnd) : JS;
+    const SIX = ['fold', 'spaced', 'compact', 'starts', 'query', 'tier'];
+    const diff = SIX.filter(n => { const a = flat(fnText(DIRJS, n)), b = flat(fnText(BOX, n)); return !a || !b || a !== b; });
+    const outside = SIX.filter(n => n !== 'query' && REST.includes(`function ${n}(`));
+    const qs = (REST.match(/function query\(/g) || []).length, qst = (REST.match(/function query\(st\) \{/g) || []).length;
+    ok(JS.split(OPEN).length === 2 && !!BOX && !diff.length && !outside.length && qs === 1 && qst === 1 && !BOX.includes('function query(st)') && decl === 1,
+       '比較の検索は、航空会社一覧と同じ字の関数（6つ）',
+       JSON.stringify({ box: !!BOX, diff, outside, queryOutside: qs, addressFn: qst, declared: decl }));
   }
 
   /* T-A16 ロゴ（★2026-10-25 段階5 compare-all-4・CA-3b1）：面の会社の行には、ロゴの札がちょうど1つ（.cr-pk-lg の中）。ロゴの在る会社は、
@@ -1227,6 +1291,8 @@ try {
      ★2026-10-25 段階5 compare-all-3（当て直し・強くした）：前は「選ぶ欄は2社を選ぶ2つだけ」。2社はいま札を押すと開く選ぶ面（#cr-sheet）で選ぶので、比較の画面（#cr-deep の外）に
      <select> は1つも無い。面にも <select> は無く、入力欄も無い（compare-all-5 で検索の欄 #cr-sheet-q が1つ入る）・押せるのは会社（.cr-pk）と
      「閉じる」（.cr-sheet-x）だけ。
+     ★2026-10-25 段階5 compare-all-5（CA-3b2・同じ強さの当て直し）：面の入力欄は検索の欄 #cr-sheet-q ちょうど1つ（ほかの入力欄・<select> が
+     1つでも増えれば落ちる ── 機材の絞り込みを戻さない、の見張りはそのまま）。
      棒と目盛（.cr-track・.cr-fill・.cr-axis）は推定の板（data-kind="estimate"）の中にだけ ── 公表額の箱・提出された年収の箱に棒を描かない。
      3つの箱（推定・公表・提出）は1つずつ（T-S6）。 */
   head('比較の箱の種類（推定・公表・提出）と選ぶ欄');
@@ -1250,8 +1316,8 @@ try {
         kinds: ['estimate', 'published', 'submitted'].map(x => V.querySelectorAll(`[data-kind="${x}"]`).length),
       };
     });
-    ok(paid && !!k && same(k.sel, []) && !!k.sheet && k.sheet.sel === 0 && same(k.sheet.inputs, []) && !k.sheet.other.length && k.sheet.pk > 0 && k.sheet.x === 1,
-       `比較の画面に選ぶ欄（<select>）が無い・2社を選ぶ面 #cr-sheet にも <select> と入力欄が無く、押せるのは会社と「閉じる」だけ（提出された年収の欄が読み終わった顔「${k && k.pay}」で数えた）`,
+    ok(paid && !!k && same(k.sel, []) && !!k.sheet && k.sheet.sel === 0 && same(k.sheet.inputs, ['cr-sheet-q']) && !k.sheet.other.length && k.sheet.pk > 0 && k.sheet.x === 1,
+       `比較の画面に選ぶ欄（<select>）が無い・2社を選ぶ面 #cr-sheet にも <select> が無く、入力欄は検索の欄1つだけ・押せるのは会社と「閉じる」だけ（提出された年収の欄が読み終わった顔「${k && k.pay}」で数えた）`,
        JSON.stringify({ paid, sel: k && k.sel, sheet: k && k.sheet }));
     ok(!!k && k.bars > 0 && !k.out.length && same(k.kinds, [1, 1, 1]),
        '棒と目盛は推定の板（data-kind="estimate"）の中にだけ・推定／公表／提出の箱は1つずつ', JSON.stringify(k && { bars: k.bars, out: k.out, kinds: k.kinds }));

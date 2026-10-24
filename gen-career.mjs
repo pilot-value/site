@@ -977,11 +977,13 @@ const HOST = (() => {
 const ISLE = () => [...FIVE, ...listed().filter(s => !FIVE.includes(s))];
 export function cardData() {
   career();
+  /* 地域の名前（航空会社一覧の見出しと同じ字）。カードの選ぶ欄が会社を地域ごとに束ねる（CA-3b2）。 */
+  const RJ = Object.fromEntries(REGIONS.map(R => [R.code, R.ja]));
   const airlines = {};
   for (const s of ISLE()) {
     const url = `https://${HOST}/airlines/${s}.html`;
     airlines[s] = {
-      ja: SALARY[s].ja, en: SALARY[s].en, code: code(s), color: color(s), url,
+      ja: SALARY[s].ja, en: SALARY[s].en, code: code(s), color: color(s), url, g: RJ[dir().airlines[s].region],
       qr: qrMatrix(url).map(r => r.join('')),
       /* クレジットは「示すことが使う条件」の写真にだけ入れる（要らない写真は空）。 */
       photos: (PHOTOS[s] || []).map(p => ({ src: photoSrc(p), w: p.w, h: p.h, credit: needsCredit(p) ? `${p.author} / ${p.licence}` : '' })),
@@ -1006,15 +1008,18 @@ const choice = () => listed();
 /* ロゴは会社ページ・航空会社一覧と同じ部品（airline-logo.mjs）。面は開くまで見えないので、絵は見えたときに読む
    （loading="lazy" ── 航空会社一覧の gen-directory.mjs と同じ足し方。部品は lazy の口を持たない）。 */
 const logo = s => logoHtml({ slug: s, color: color(s) }, { up: '' }).replace('<img ', () => '<img loading="lazy" ');
-const entry = s => `<li><button type="button" class="cr-pk" data-airline="${s}" style="--cr-co:${color(s)}"><span class="cr-pk-lg">${logo(s)}</span><span class="cr-pk-n">${esc(name(s))}</span><span class="cr-pk-c">${esc(code(s))}</span></button></li>`;
+/* 検索の鍵（data-c ＝ 略号・data-k ＝ 呼び名）は航空会社一覧と同じ（model() の codes / keys ── 一覧のカードと同じ字。CA-3b2）。 */
+const entry = s => `<li><button type="button" class="cr-pk" data-airline="${s}" data-c="${esc(dir().airlines[s].codes.join(' '))}" data-k="${esc(dir().airlines[s].keys.join('|'))}" style="--cr-co:${color(s)}"><span class="cr-pk-lg">${logo(s)}</span><span class="cr-pk-n">${esc(name(s))}</span><span class="cr-pk-c">${esc(code(s))}</span></button></li>`;
 function sheet() {
   /* 会社は航空会社一覧の地域の見出しの下に、一覧の並びで（会社の無い地域は何も書かない）。見出しの行は、読み上げの「一覧の項目」に数えない。 */
   return `<dialog class="cr-sheet" id="cr-sheet" aria-labelledby="cr-sheet-h">
 <div class="cr-sheet-top"><h2 class="cr-sheet-h" id="cr-sheet-h">1社目</h2><button type="button" class="cr-sheet-x" id="cr-sheet-x" aria-label="閉じる">${IC.x}</button></div>
+<input type="search" class="cr-sheet-q" id="cr-sheet-q" placeholder="航空会社名・国名で検索" aria-label="航空会社名・国名で検索" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"/>
 <ul class="cr-sheet-l" id="cr-sheet-l">
 ${REGIONS.map(R => { const ss = choice().filter(s => dir().airlines[s].region === R.code);
   return ss.length ? `<li class="cr-pk-gl" role="presentation" data-region="${R.code}"><h3 class="cr-pk-g">${esc(R.ja)}</h3></li>\n${ss.map(entry).join('\n')}` : ''; }).filter(Boolean).join('\n')}
 </ul>
+<p class="cr-sheet-0" id="cr-sheet-0" role="status" hidden>該当する航空会社が見つかりませんでした</p>
 </dialog>`;
 }
 

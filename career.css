@@ -319,6 +319,17 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
   .cr .pvg-logo.is-mono > .pvg-mono,.cr .pvg-logo.is-fail > .pvg-mono{font-size:13px}
   .cr-pick.is-x .cr-opt-p{min-height:180px}
 }
+/* 選ぶ面の検索の欄と、見つからないときの1行（CA-3b2）。欄の字は 16px ── スマホで欄を押したとき、画面ごと拡大されない。
+   見た目は航空会社一覧の検索の欄と同じく、ブラウザの既定の飾りを外す（appearance）。 */
+.cr-sheet-q{margin:0 14px 8px;min-height:48px;padding:0 14px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-bg-sub);color:var(--pv-ink);font:inherit;font-size:16px;-webkit-appearance:none;appearance:none}
+.cr .cr-sheet-q:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px}
+.cr-sheet-0{margin:0;padding:18px 18px 22px;font-size:14px;color:var(--pv-ink-2)}
+/* 絞っても面の高さを変えない ── 打つたびに欄が上下へ動かない・スマホでは面が下へ縮んで欄が文字盤の後ろへ隠れない。
+   高さは上の上限と同じ値（全社が並ぶときは今までと同じ大きさ）。 */
+.cr-sheet{height:min(640px, 80vh)}
+@media (max-width:759px){.cr-sheet{height:86vh;height:86dvh}}
+/* 見つからないときの1行は、欄のすぐ下に見せる（一覧は空のまま残りの高さをとるので、HTML の順のままだと面の下端へ離れる）。 */
+.cr-sheet-l{order:1}
 .cr-swap{position:absolute;z-index:4;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;
          display:grid;place-items:center;border-radius:50%;cursor:pointer;
          background:var(--pv-surface);border:1px solid var(--pv-line);color:var(--pv-ink);
