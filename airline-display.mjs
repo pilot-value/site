@@ -950,6 +950,28 @@ export const LINES = Object.freeze({
   'vueling.benefits.pub-cba-travel-conditions': { h: 'e9d342ab14cfdcb6', label: '社員の航空券', value: '本人と指名した人が使える航空券（年の枚数と使い方に決まりあり）', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約。家族がいつも無料という約束ではない', en: { label: 'Staff travel', value: 'Tickets for you and nominated beneficiaries (with annual limits and rules on use)', cond: 'Collective agreement for Vueling pilots on Spanish contracts. Not a promise of free travel for family at any time' } },
   'vueling.benefits.r8-benefit-basket-medical': { h: 'e914d974d870610d', label: '医療保険', value: '会社の選べる手当の枠から医療保険を選べる（会社が直接払う）', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約。職位ごとの年の上限の中で', en: { label: 'Medical insurance', value: 'Medical insurance can be chosen from the company’s flexible benefits allowance (paid directly by the company)', cond: 'Collective agreement for Vueling pilots on Spanish contracts. Within each rank’s annual limit' } },
   'vueling.benefits.r8-forced-transfer-hotel': { h: '1bb859e9c25113ce', label: '会社の命令で拠点が変わるとき', value: '朝食と空港の送迎つきのホテルに15日つづけて泊まれる', cond: 'スペインの契約で働くブエリング航空のパイロットの労働協約。自分から望んだ異動は別', en: { label: 'Company-ordered base change', value: 'Fifteen consecutive days in a hotel with breakfast and airport transfers', cond: 'Collective agreement for Vueling pilots on Spanish contracts. Voluntary transfers are different' } },
+  /* ── 米国の追補（2026-10-24）：2026-10-11 に届いた米国の調査（旧形式の台帳）を、いまの形に直して取り込んだ行（パック pvr-20261024-us-…）。
+     字は行の値（資料の引用）と条件から。同じ話を言う行が台帳に在るものは書いていない（行は台帳に在るが、画面には出ない） ── */
+  /* デルタ航空 */
+  'delta.benefits.us1011-ben-15': { h: '0543be285f87c943', label: '社員の航空券（家族）', value: '親などの家族も対象', cond: '社員ぜんたいの案内（パイロットの条件・細かい決まりは書かれていない）', en: { label: 'Staff travel (family)', value: 'Covers family members, including parents', cond: 'Overview for all employees (pilots’ terms and detailed rules are not stated)' } },
+  'delta.jobs.us1011-ch-010': { h: '7c3015938dcd2b8e', label: '募集の受付', value: '副操縦士の求人（28088）で応募を受け付けている（2026年10月11日の表示）', cond: '会社の採用ページ', en: { label: 'Recruitment', value: 'Accepting first officer applications (vacancy 28088, as shown on 11 October 2026)', cond: 'Company recruitment page' } },
+  /* アメリカン航空 */
+  'american.benefits.us1011-aa-d-038': { h: 'be9a6dd9212dfc7d', label: '保険（医療など）', value: '医療・処方薬・歯科・眼科などは入社の日から', cond: '社員ぜんたいの採用の案内（パイロットの条件は書かれていない）', en: { label: 'Insurance (medical and more)', value: 'Medical, prescription, dental, vision and more from day one', cond: 'Recruitment overview for all employees (pilots’ terms are not stated)' } },
+  /* ユナイテッド航空 */
+  'united.jobs.us1011-ua-g-003': { h: '9395b9470eb36d81', label: '働く資格', value: 'ビザの支援なしで米国で働ける資格が要る', cond: '副操縦士の採用ページ', en: { label: 'Right to work', value: 'Legal right to work in the US without sponsorship required', cond: 'First officer recruitment page' } },
+  /* アラスカ航空 */
+  'alaska-airlines.benefits.us1011-as-d-019': { h: '37df8f00ee7050b7', label: '年金', value: '401(k) の会社のマッチング', cond: '社員ぜんたいの採用の案内（パイロットの条件は書かれていない）', en: { label: 'Pension', value: '401(k) with a company match', cond: 'Recruitment overview for all employees (pilots’ terms are not stated)' } },
+  /* アレジアント航空 */
+  'allegiant.jobs.us1011-g4-g-002': { h: '68a2e196346ed8ca', label: '養成コース（Pilot Pathway）の募集', value: '受付は終わっている（2026年10月11日の表示）', cond: 'パイロットの採用ページ', en: { label: 'Pilot Pathway recruitment', value: 'Applications closed (as shown on 11 October 2026)', cond: 'Pilot recruitment page' } },
+  'allegiant.work.us1011-g4-c-003': { h: 'bdf109dc67f747e3', label: '勤務の希望の出し方', value: '市販の PBS（希望を出して組む方式）へ早めに移る', cond: '新しい労働協約についての会社の発表（Form 8-K）', en: { label: 'Schedule bidding', value: 'A quick transition to a commercial preferential bidding system (PBS)', cond: 'Company announcement on the new collective agreement (Form 8-K)' } },
+  /* フロンティア航空 */
+  'frontier.jobs.us1011-f9-g-002': { h: '66c1e79d54177641', label: '望ましい飛行時間', value: '総飛行時間2,500時間（応募の条件は1,500時間）', cond: 'パイロットの採用ページ', en: { label: 'Preferred flight time', value: '2,500 hours total time (the requirement is 1,500 hours)', cond: 'Pilot recruitment page' } },
+  'frontier.jobs.us1011-f9-g-006': { h: 'e6589f4a13f758cc', label: '大学の経路の応募の条件', value: '飛行時間250時間以上と事業用操縦士の資格', cond: '大学生向けの求人', en: { label: 'University pathway requirements', value: 'At least 250 hours and a commercial pilot certificate', cond: 'Vacancy for university students' } },
+  'frontier.jobs.us1011-f9-g-007': { h: '4110c601859369ee', label: '回転翼からの移行の支援', value: '入社のクラスが始まる前に受けるジェット機への移行コースの費用を会社が出す', cond: '軍のヘリコプターのパイロット向けの求人', en: { label: 'Rotor transition support', value: 'The company funds a jet transition course taken before the start of class', cond: 'Vacancy for military helicopter pilots' } },
+  /* ジェットブルー航空 */
+  'jetblue.jobs.us1011-b6-g-011': { h: '7d21645ae516a3a8', label: '応募の条件（飛行時間）', value: '総飛行時間1,500時間以上（うち固定翼の飛行機で500時間以上）', cond: '副操縦士の求人（58773）', en: { label: 'Requirements (flight time)', value: 'At least 1,500 hours total time, including at least 500 hours in fixed-wing aeroplanes', cond: 'First officer vacancy (58773)' } },
+  'jetblue.jobs.us1011-b6-g-013': { h: 'b9689e6a9f6fd72c', label: '旅券', value: '米国の旅券か米国の永住者カードを、いま持っていること', cond: '副操縦士の求人（58773）', en: { label: 'Travel documents', value: 'Must currently hold a US passport or a US permanent resident card', cond: 'First officer vacancy (58773)' } },
+  'jetblue.jobs.us1011-b6-g-015': { h: 'ced468b206431649', label: '養成コースの募集', value: 'パイロットの養成コース Gateway Select の募集', cond: 'Gateway Select の求人（58581）。会社は選考の厳しいコースと書いている', en: { label: 'Cadet recruitment', value: 'Recruiting for the Gateway Select pilot pathway', cond: 'Gateway Select vacancy (58581). The company calls it highly selective' } },
   /* ── 空港までの移動（暮らしの街の行）。mode ＝ 電車・バスの札 ── */
   'qantas.living.pub-bne-transport': { h: 'a915a8178c8e4f8c', mode: 'train', label: 'Airtrain：ブリスベン中心部（Central 駅）→ 空港', value: '平日 4:31〜21:31・土日祝 5:40〜21:31（15〜30分おき）', en: { label: 'Airtrain: Brisbane city (Central station) → airport', value: 'Weekdays 4:31–21:31, weekends and public holidays 5:40–21:31 (every 15–30 minutes)' } },
   'qantas.living.pub-mel-transport': { h: '353050f3935ac078', mode: 'bus', label: 'SkyBus：サザンクロス駅 ⇄ メルボルン空港', value: '市内と空港を結ぶ City Express を運行', en: { label: 'SkyBus: Southern Cross station ⇄ Melbourne Airport', value: 'Runs the City Express between the city and the airport' } },
@@ -1092,6 +1114,11 @@ export const SOURCES = Object.freeze({
   'src-frontier-pub-transit-city-cincinnati': 'TANK（北ケンタッキー交通局）の Q&A',
   'src-jetblue-pub-transit-city-boston': 'マサチューセッツ湾交通局（MBTA）のローガン空港への案内',
   'src-american-publication-city-new-york-27': 'JFK 空港（ニューヨーク・ニュージャージー港湾公社）のエアトレインの案内',
+  /* 米国の追補（2026-10-24）：旧形式の台帳の資料の名前が、発行元の書き足し・日本語の注・全角の括弧を含んでいた資料 */
+  'src-delta-us1011-001': 'Delta Air Lines「First Officer — Ref #28088」（パイロットの採用ページ）',
+  'src-delta-us1011-003': 'Delta Air Lines「Form 10-Q」（2026年9月）',
+  'src-allegiant-us1011-001': 'Allegiant Travel Company「Form 10-K」（2025年12月期）',
+  'src-frontier-us1011-013': 'Frontier Airlines の求人の一覧（airlineapps.com）',
 });
 /* 英語の名前（SOURCES の対。資料自身の題は “ ” の中 ── 資料の言葉。中国語・日本語の題は、題のあとに英語の説明を（ ）で） */
 export const SOURCES_EN = Object.freeze({
@@ -1197,6 +1224,10 @@ export const SOURCES_EN = Object.freeze({
   'src-frontier-pub-transit-city-cincinnati': 'TANK (Transit Authority of Northern Kentucky) Q&A',
   'src-jetblue-pub-transit-city-boston': 'MBTA Logan Airport information',
   'src-american-publication-city-new-york-27': 'JFK Airport (Port Authority of New York and New Jersey) AirTrain information',
+  'src-delta-us1011-001': 'Delta Air Lines “First Officer — Ref #28088” (pilot recruitment portal)',
+  'src-delta-us1011-003': 'Delta Air Lines “Form 10-Q” (September 2026)',
+  'src-allegiant-us1011-001': 'Allegiant Travel Company “Form 10-K” (fiscal year ended 31 December 2025)',
+  'src-frontier-us1011-013': 'Frontier Airlines job listings (airlineapps.com)',
 });
 /* 同じ資料（住所）を、会社ごとの台帳の行がちがう題で書いているときの1つの名前（全社へ広げる d1・2026-10-21）。
    国土技術政策総合研究所の空港の一覧は「（名称・3レター対応のみ）」「リンク／」のような調べた側の書き足しで題が割れていた。
