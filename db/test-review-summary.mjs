@@ -424,8 +424,11 @@ let today;
 
   const open = await getAs(KEYED, 'ana');
   ok(open.state === 'open' && open.ok === true, '口コミを出した会員には中身が返る', J(open));
-  ok(J(Object.keys(open).sort()) === J(['as_of', 'concern', 'good', 'n', 'ok', 'state']), '返る鍵は ok・state・n・as_of・good・concern の6つだけ', J(Object.keys(open)));
+  ok(J(Object.keys(open).sort()) === J(['as_of', 'as_of_at', 'concern', 'good', 'n', 'ok', 'state']), '返る鍵は ok・state・n・as_of・as_of_at・good・concern の7つだけ', J(Object.keys(open)));
   ok(open.n === 3 && open.as_of === today, 'n は預けたときの件数・as_of は預けた日', `${open.n} / ${open.as_of}`);
+  /* ★as_of_at（2026-10-25）── 預けた時刻を UTC の15分刻みに切り下げた字だけ（秒も分の端数も渡さない）。as_of はその UTC の日付 */
+  ok(/^\d{4}-\d{2}-\d{2}T\d{2}:(00|15|30|45):00Z$/.test(String(open.as_of_at)) && String(open.as_of_at).slice(0, 10) === open.as_of,
+     'as_of_at は UTC の15分刻みの時刻（YYYY-MM-DDTHH:MI:00Z・分は 00/15/30/45）で、as_of はその日付', String(open.as_of_at));
   const pts = [...(open.good || []), ...(open.concern || [])];
   ok(pts.length === 2 && pts.every((p) => Object.keys(p).sort().join() === 'cat,ids,text')
      && J((open.good || []).map((p) => [p.text, p.cat])) === J([[G().text, 'training']])
@@ -482,6 +485,14 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   const o0 = await getAs(KEYED, 'ana');
   await db.exec(`set timezone = 'UTC'`);
   ok(o0.as_of === '2026-04-01', 'as_of は UTC の日付（東京の 4/2 03:00 ＝ UTC の 4/1）', o0.as_of);
+  ok(o0.as_of_at === '2026-04-01T18:00:00Z', 'as_of_at は同じ時刻の UTC（東京の 4/2 03:00 ＝ 4/1 18:00Z ── 画面が読む人の時計の日付 4/2 にする）', o0.as_of_at);
+  /* 端数は切り下げる（03:44:59.9 ＋09:00 ＝ 18:44:59.9Z → 18:30）。確かめたら元の時刻へ戻す（下の「日付は動かない」はこの時刻のまま見る） */
+  await asOwner();
+  await db.exec(`update public.pv_review_summaries set made_at = '2026-04-02T03:44:59.9+09:00' where airline = 'ana'`);
+  const o0b = await getAs(KEYED, 'ana');
+  await asOwner();
+  await db.exec(`update public.pv_review_summaries set made_at = '2026-04-02T03:00:00+09:00' where airline = 'ana'`);
+  ok(o0b.as_of_at === '2026-04-01T18:30:00Z' && o0b.as_of === '2026-04-01', 'as_of_at は15分刻みに切り下げる（秒も分の端数も渡さない）', J({ at: o0b.as_of_at, d: o0b.as_of }));
 
   // 口コミが1件増えた
   await post(8, 'ana', { salary_comment: '手当の説明が分かりにくい。', __at: '2026-03-20T00:00:00Z' });
@@ -842,8 +853,10 @@ console.log('\n▼ 12. どの返り値にも、書いた人・k が1つも出て
   ok(!all.some((s) => /[0-9a-f]{32}/.test(s)), '指紋（md5 の32字）の形の字がどこにも無い');
   const keys = new Set();
   for (const x of RETURNS) for (const k of Object.keys(x.r || {})) keys.add(k);
-  ok(J([...keys].sort()) === J(['airline', 'as_of', 'concern', 'error', 'good', 'lang', 'n', 'ok', 'state']),
-     '2つの関数が返す鍵は全部で9種類だけ', J([...keys].sort()));
+  ok(J([...keys].sort()) === J(['airline', 'as_of', 'as_of_at', 'concern', 'error', 'good', 'lang', 'n', 'ok', 'state']),
+     '2つの関数が返す鍵は全部で10種類だけ', J([...keys].sort()));
+  ok(!shut.some((s) => /"as_of_at"\s*:/.test(s)) && opens.every((x) => /^\d{4}-\d{2}-\d{2}T\d{2}:(00|15|30|45):00Z$/.test(String(x.r.as_of_at))),
+     'as_of_at（預けた時刻・15分刻み）は、読む関数の open の返事にだけ在る（login・locked・few・none・預ける側の返事には無い）');
   const states = new Set(RETURNS.filter((x) => x.fn === 'pv_review_summary' && x.r.ok).map((x) => x.r.state));
   ok(J([...states].sort()) === J(['few', 'locked', 'login', 'none', 'open']), '読む関数の state は few・locked・login・none・open の5つだけ', J([...states]));
 }

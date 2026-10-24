@@ -918,8 +918,10 @@ export const radarFrame = () => `<div class="crl-radar pvg-radar" role="list" da
   + [0.2, 0.4, 0.6, 0.8, 1].map(k => `<polygon class="crl-radar-ring" points="${rpts(() => k)}"></polygon>`).join('')
   + [0, 1, 2, 3, 4, 5].map(i => { const e = rxy(i, 1); return `<line class="crl-radar-axis" x1="100" y1="100" x2="${e[0]}" y2="${e[1]}"></line>`; }).join('')
   + `<polygon class="crl-radar-shape is-ph" points="${rpts(() => RADAR_PH / 5)}"></polygon></svg>`
-  + (LANG === 'en' ? RADAR_NAMES_EN : RADAR_NAMES).map((n, i) => `<span class="crl-radar-l" role="listitem" data-i="${i}"><span>${esc(n)}</span></span>`).join('')
+  + (LANG === 'en' ? RADAR_NAMES_EN : RADAR_NAMES).map((n, i) => `<span class="crl-radar-l" role="listitem" data-i="${i}"><span>${catWbr(n)}</span></span>`).join('')
   + '</div>';
+/* 名前の中の「|」（表の、長い名前の折れてよい所 ── 2026-10-25）は、図の名前の行では <wbr> にして書く（字としては出さない） */
+function catWbr(n) { return esc(n).split('|').join('<wbr>'); }
 /* 評価の欄（描くのは career-live.js）。図は欄の中に置く（欄が塗り直されても data-crl-keep で残る） */
 const scoreSlot = v => live('score', { airline: v.slug }).replace(/<\/div>$/, () => `${radarFrame()}</div>`);
 const reviewsCard = v => `<article class="pvg-card pvg-rv-card" id="pvg-score"${pane(v.slug, 'overview reviews')}>

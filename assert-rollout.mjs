@@ -134,12 +134,13 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
      （どの頂点もまんなかから 5点の6割）。★出荷する HTML に点数は1つも無い（図の字に数字なし・点数で塗った面・点・<b> なし）
      ＝ 図を点数で塗るのは career-live.js がサーバーの答えを受け取ってからだけ（読む人みんなに・社名の行の星と同じ決まり ── P12.97） */
   {
-    const FULL = JSON.parse((/const CAT_FULL\s*=\s*(\[[^\]]*\]);/.exec(read('airlines/airline-reviews-data.js')) || ['', '[]'])[1].replace(/'/g, '"'));
+    /* 表の名前の「|」は長い名前の折れてよい所（2026-10-25）── 出荷する図では <wbr>（「|」の字は出さない） */
+    const FULL = JSON.parse((/const CAT_FULL\s*=\s*(\[[^\]]*\]);/.exec(read('airlines/airline-reviews-data.js')) || ['', '[]'])[1].replace(/'/g, '"')).map(n => String(n).split('|').join('<wbr>'));
     const bad = SWITCH.flatMap(s => {
       const g = ORIG[s], at = g.indexOf('<div class="crl" data-live="score"');
-      const fr = [...g.matchAll(/<div class="crl-radar[^"]*"[^>]*>[\s\S]*?<\/svg>((?:<span class="crl-radar-l"[^>]*><span>[^<]*<\/span>(?:<b>[^<]*<\/b>)?<\/span>)*)<\/div>/g)];
+      const fr = [...g.matchAll(/<div class="crl-radar[^"]*"[^>]*>[\s\S]*?<\/svg>((?:<span class="crl-radar-l"[^>]*><span>(?:[^<]|<wbr>)*<\/span>(?:<b>[^<]*<\/b>)?<\/span>)*)<\/div>/g)];
       if (fr.length !== 1 || at < 0 || fr[0].index < at || fr[0].index > g.indexOf('</div>', at)) return [`${s}（図 ${fr.length}・評価の欄の中でない）`];
-      const f = fr[0][0], names = [...f.matchAll(/<span class="crl-radar-l"[^>]*><span>([^<]*)<\/span>/g)].map(m => m[1]);
+      const f = fr[0][0], names = [...f.matchAll(/<span class="crl-radar-l"[^>]*><span>((?:[^<]|<wbr>)*)<\/span>/g)].map(m => m[1]);
       const shapes = [...f.matchAll(/<polygon class="crl-radar-shape([^"]*)" points="([^"]*)"/g)];
       const reach = shapes.length === 1 ? shapes[0][2].split(' ').map(p => p.split(',').map(Number)).map(([x, y]) => Math.hypot(x - 100, y - 100) / 92) : [];
       const why = [];

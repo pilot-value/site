@@ -235,8 +235,32 @@ scene('static', 'ファイルの約束（口コミの読み方）', 'static', as
   const CATS = full ? [...full.matchAll(/'([^']+)'/g)].map((x) => x[1]) : [];
   ok(CH.split('id="crl-cats"').length === 2 && isl.length === 1, 'career.html に6分類の名前の島（id="crl-cats"）がちょうど1つ', `島 ${isl.length}`);
   ok(CATS.length === 6 && JSON.stringify(islNames) === JSON.stringify(CATS),
-    `島の名前は、口コミの部品の正本（airlines/airline-reviews-data.js の CAT_FULL）の6つと同じ順で同じ（${CATS.join('・')}）`,
+    `島の名前は、口コミの部品の正本（airlines/airline-reviews-data.js の CAT_FULL）の6つと同じ順で同じ（${CATS.join('・')} ──「|」は折れてよい所）`,
     JSON.stringify([islNames, CATS]));
+  /* S5b ★同じ箱の中の分類の名前は1つの表だけ（2026-10-25）── 6角形の図と口コミの抜粋の札が、同じ表（CAT_FULL・英語は CAT_FULL_EN）の名前。
+     career-live.js は名前を字で持たない（どの名前の表の字も、コードの字句に1つも無い）・表は catNames() が口コミの部品の
+     cats.full か島から読む（cats.short ＝ 別の表は読まない）・札は catName() で表から引く（review-i18n.js の名前をそのまま出さない）。 */
+  {
+    const rd = read('airlines/airline-reviews-data.js'), ri = read('review-i18n.js');
+    const arr = (n) => { const m = rd.match(new RegExp(`const ${n}\\s*=\\s*\\[([^\\]]*)\\];`)); return m ? [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]) : []; };
+    const lab = (l) => { const m = ri.match(new RegExp(`\\n    ${l}: \\{([^}]*)\\}`)); return m ? [...m[1].matchAll(/(\w+):\s*'([^']+)'/g)].filter((x) => x[1] !== 'mgmt').map((x) => x[2]) : []; };
+    const tables = [arr('CAT_SHORT'), arr('CAT_FULL'), arr('CAT_SHORT_EN'), arr('CAT_FULL_EN'), lab('ja'), lab('en')];
+    const NAMES = [...new Set(tables.flat())];
+    /* 表の名前の「|」（長い名前の折れてよい所・2026-10-25）を、2つめの字を通す抜け道にしない ── 印のある形・印を外した形・印で切った片の
+       どれを字で書いても赤（「|」や <wbr> を挟んで書いた形も、外してから比べる） */
+    const PLAIN = [...new Set(NAMES.map((s) => s.split('|').join('')))];
+    const PIECES = [...new Set(NAMES.filter((s) => s.includes('|')).flatMap((s) => s.split('|')).filter(Boolean))];
+    /* 字は ' と " と `（テンプレートの字）のどれで書いても拾う（2026-10-25 検査役：` で書いた名前がすり抜けていた） */
+    const lits = [...LJ.matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+    const hit = lits.filter((s) => NAMES.includes(s) || PLAIN.includes(s.replace(/\||<wbr\s*\/?>/gi, '')) || PIECES.includes(s));
+    ok(tables.every((t) => t.length === 6) && hit.length === 0,
+      '★career-live.js に分類の名前の字が1つも無い（名前は1つの表 CAT_FULL から読むだけ・2つめの表を作らない）', JSON.stringify({ hit, sizes: tables.map((t) => t.length) }));
+    const cn = (LJ.match(/function catNames\(\) \{([\s\S]*?)\n  \}/) || [])[1] || '', ri2 = (LJ.match(/function reviewItem\(p, row, full\) \{([\s\S]*?)\n  \}/) || [])[1] || '';
+    ok(/u\.cats && u\.cats\.full;/.test(cn) && !/cats\.short/.test(LJ) && /getElementById\('crl-cats'\)/.test(cn)
+      && (ri2.match(/catChip\(catName\(c\.k, c\.label\)\)/g) || []).length === 2 && !/'crl-chip', c\.label\)|catChip\(c\.label\)/.test(ri2)
+      && /l\.appendChild\(catSpan\('', names\[j\]\)\)/.test(LJ),
+      '★図の名前（catNames：口コミの部品の cats.full か島）と、抜粋の札の名前（catName）が同じ表（図の行も札も catSpan で描く）', JSON.stringify({ catNames: cn.slice(0, 160), chips: (ri2.match(/catChip\([^)]*\)\)?/g) || []) }));
+  }
 
   /* 比較の口コミの入口の言葉は、会社ページの概要の口コミの入口（gen-airline-glance.mjs の RV_CTA.overview）と1文字も違わない */
   const rv = (read('gen-airline-glance.mjs').match(/export const RV_CTA = \{ overview: (\[[^\]]*\])/) || [])[1];
@@ -303,6 +327,31 @@ scene('static', 'ファイルの約束（口コミの読み方）', 'static', as
   const starsAt = chLines.findIndex((l) => l.startsWith('<div class="crl" data-live="cmp-stars"'));
   ok(slotLines.length === 2 && starsAt >= 0 && chLines[starsAt + 1].startsWith('<div class="crl" data-live="cmp-summary"'),
     'career.html：比較の要約の欄（cmp-summary）はちょうど1つで、評価の欄（cmp-stars）の行のすぐ次の行', JSON.stringify(slotLines));
+
+  /* S10 ★口コミの要約の「YYYY-MM-DD 更新」は、読む人の時計の日付（2026-10-25）。サーバーの as_of は UTC の日付なので、日本の 0〜9時に
+     預けた要約は前日に見えていた。出荷する career-live.js の sumDay を切り出し、時計の置き場所を替えて呼ぶ（式を写さない）。
+     時刻（as_of_at）の在る答え：東京の読む人は 2026-10-24T20:30Z を 2026-10-25 と読む・UTC の読む人は 2026-10-24。
+     時刻の無い古いサーバーの答え：as_of の字のまま。形の違う時刻は使わない。更新日の字は sumDay の1か所からだけ出る。 */
+  {
+    const src = (read('career-live.js').match(/\n {2}(function sumDay\(x\) \{[\s\S]*?\n {2}\})\n/) || [])[1];
+    let sumDay = null;
+    try { sumDay = src ? new Function(`return (${src});`)() : null; } catch { sumDay = null; }
+    const was = process.env.TZ, at = (tz, x) => { process.env.TZ = tz; try { return sumDay(x); } finally { if (was === undefined) delete process.env.TZ; else process.env.TZ = was; } };
+    const NEW = { as_of: '2026-10-24', as_of_at: '2026-10-24T20:30:00Z' }, OLD = { as_of: '2026-10-24' };
+    const got = sumDay ? {
+      tokyo: at('Asia/Tokyo', NEW), utc: at('UTC', NEW), la: at('America/Los_Angeles', { as_of: '2026-10-25', as_of_at: '2026-10-25T05:30:00Z' }),
+      old: at('Asia/Tokyo', OLD), bad: at('Asia/Tokyo', { as_of: '2026-10-24', as_of_at: '2026-10-24 20:30' }), none: at('Asia/Tokyo', {}),
+    } : null;
+    ok(!!got && got.tokyo === '2026-10-25' && got.utc === '2026-10-24' && got.la === '2026-10-24',
+      '★要約の更新日は読む人の時計の日付（2026-10-24T20:30Z は、東京の読む人に 2026-10-25・UTC では 2026-10-24。ロサンゼルスの 10-25T05:30Z は 10-24）', JSON.stringify(got));
+    ok(!!got && got.old === '2026-10-24' && got.bad === '2026-10-24' && got.none === '',
+      '時刻を返さない古いサーバーの答えは as_of の字のまま・形の違う時刻は使わない・どちらも無ければ書かない', JSON.stringify(got));
+    const foot = (LJ.match(/function sumFoot\(x\) \{([\s\S]*?)\n {2}\}/) || ['', ''])[1];
+    const inDay = (re) => (noJsCmt(src || '').match(re) || []).length, inAll = (re) => (LJ.match(re) || []).length;
+    ok(/var day = sumDay\(x\);/.test(foot) && /T\.sumWhen\(day\)/.test(foot) && inAll(/T\.sumWhen\(/g) === 1
+      && inDay(/\.as_of\b/g) > 0 && inAll(/\.as_of\b/g) === inDay(/\.as_of\b/g) && inAll(/\.as_of_at\b/g) === inDay(/\.as_of_at\b/g),
+      '更新日の字は sumFoot の1か所だけで、sumDay の答えから（as_of・as_of_at を sumDay のほかで読まない）', foot.slice(0, 300));
+  }
 });
 
 /* ══ MOCK ════════════════════════════════════════════════════════ */
@@ -470,7 +519,8 @@ const figs = (page) => page.evaluate(() => {
   const rows = box ? [...box.querySelectorAll('.crl-rate-fig')] : [];
   const isl = document.getElementById('crl-cats');
   let island = null;
-  try { island = isl ? JSON.parse(isl.textContent) : null; } catch { island = null; }
+  /* 島の名前の「|」は折れてよい所（2026-10-25）── 画面の字には無い（<wbr> で描く）ので、外してから図の字と比べる */
+  try { const a = isl ? JSON.parse(isl.textContent) : null; island = Array.isArray(a) ? a.map((s) => String(s).split('|').join('')) : a; } catch { island = null; }
   return {
     rows: rows.length, island,
     text: rows.map((r) => r.textContent).join(' '),
@@ -3052,8 +3102,11 @@ async function enWalk(page) {
     for (const x of F) if (!seen.has(x.i)) seen.set(x.i, { ...x, tab });
   }
   const all = [...seen.values()];
-  /* 会員の補足の欄（notes）は、読めるものが無ければ顔を持たない（欄ごと畳む ── KIND.notes）。開いた読み手で出ることは、その読み手の字（want）が見る */
-  return { done: done && LIVE_KINDS.filter((k) => k !== 'notes').every((k) => all.some((x) => x.k === k)), F: all };
+  /* 会員の補足の欄（notes）は、読めるものが無ければ顔を持たない（欄ごと畳む ── KIND.notes）。開いた読み手で出ることは、その読み手の字（want）が見る。
+     口コミの欄（reviews）は、同じ1枚の評価の欄（score）が「いま読み出せません」を出しているあいだは畳む（同じ帯と「やり直す」を2つ出さない ──
+     career-live.css・2026-10-25）。その時の字は評価の欄の字として見ている。 */
+  const folded = (k) => k === 'reviews' && all.some((x) => x.k === 'score' && x.state === 'error');
+  return { done: done && LIVE_KINDS.filter((k) => k !== 'notes').every((k) => all.some((x) => x.k === k) || folded(k)), F: all };
 }
 
 scene('en-live', '英語の会社ページ：career-live.js の欄に日本語の字が1つも無い（4人の読み手・390 と 1440）・決めた英語の字が出る・口コミの要約はページの言葉で聞く', 'mock', async () => {
@@ -3122,5 +3175,8 @@ try {
 const ran = SCENES.filter((s) => !WANT || WANT.includes(s.key)).map((s) => s.key);
 console.log(`\n  場面: ${ran.join(', ')}${WANT ? '（--scenes で絞った。緑でも全部を見たことにはならない）' : ''}`);
 console.log(`  ★外への通信（localhost と LIBS のほか）: すり抜け ${NET.through}・本番の supabase ${NET.supa}・門が止めた ${NET.blocked}`);
-console.log(`\n══ ${pass} pass / ${fail} fail ══（MOCK と STATIC。本番は 未確認）  ${Math.round((Date.now() - t0) / 1000)}s`);
+/* 最後の1行は、流した場面の種類をそのまま言う（2026-10-25 まで、手元の DB の場面を流しても「MOCK と STATIC」と言っていた） */
+const KIND_SAID = { static: 'STATIC', mock: 'MOCK', sql: 'LOCAL DB（REAL LOCAL SQL）', local: 'LOCAL DB（REAL LOCAL CONNECTION）' };
+const said = ['static', 'mock', 'sql', 'local'].filter((m) => SCENES.some((s) => s.mode === m && ran.includes(s.key))).map((m) => KIND_SAID[m]);
+console.log(`\n══ ${pass} pass / ${fail} fail ══（${said.join(' と ') || '場面なし'}。本番は 未確認）  ${Math.round((Date.now() - t0) / 1000)}s`);
 process.exit(fail ? 1 : 0);

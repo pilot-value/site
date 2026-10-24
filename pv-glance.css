@@ -240,6 +240,8 @@
 .pvg-dl dt > .pvg-tag,.pvg-stats dt > .pvg-tag{margin-left:6px;padding-block:0;line-height:16px;vertical-align:0}
 .pvg-dl dd b{display:block;font-size:14px;font-weight:700;line-height:1.5;color:var(--pv-ink);overflow-wrap:anywhere}
 .pvg-dl dd small{display:block;font-size:12px;line-height:1.55;color:var(--pv-ink-3)}
+/* 注記の日付は途中で折らない（「2025年1月／1日」「1 January／2025」にしない）。印を付けるのは pv-glance.js の keepDates の1か所 */
+.pvg-nw{white-space:nowrap}
 .pvg-notes{margin-top:10px!important;display:grid;gap:4px}
 .pvg-notes li{position:relative;padding-left:12px;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
 .pvg-notes li::before{content:"";position:absolute;left:2px;top:.72em;width:4px;height:4px;border-radius:50%;background:var(--pv-line)}
@@ -538,20 +540,18 @@
    ⚠️ 欄（.crl）そのものを display:none にしない（career-live.js は見えている箱だけを取りに行く）。 */
 .pvg-at-overview .pvg-rp > .crl[data-state="locked"] > .crl-rows > .crl-row:nth-child(n+2),
 .pvg-at-overview .pvg-rp > .crl[data-state="open"] > .crl-rows > .crl-row:nth-child(n+3){display:none}
-.pvg-rp > .crl[data-state="locked"]{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;align-items:center}
-.pvg-rp > .crl[data-state="locked"] > .crl-count{grid-area:1 / 1;margin-bottom:0}
-.pvg-rp > .crl[data-state="locked"] > .crl-lock{grid-area:1 / 2;justify-self:start;margin:0;padding:6px 10px}
-.pvg-rp > .crl[data-state="locked"] > .crl-rows{grid-area:2 / 1 / 3 / 3;margin-top:8px}
-.pvg-rp > .crl[data-state="locked"] > .crl-foot{grid-area:3 / 1 / 4 / 3}
-/* いちばん狭い画面（箱が 296px 未満 ＝ 画面 343px まで）では、件数の横に札が入らない
-   （札は 174px 要る。320px の画面で横に残るのは 162〜171px ── 最後の1文字「す」だけが次の行へ落ちていた）。
-   札を件数の下の段へ下ろす。字は小さくしない・途中で折らない。 */
-@container pvg (max-width:295.98px){
-  .pvg-rp > .crl[data-state="locked"]{grid-template-columns:minmax(0,1fr)}
-  .pvg-rp > .crl[data-state="locked"] > .crl-lock{grid-area:2 / 1;margin-top:6px}
-  .pvg-rp > .crl[data-state="locked"] > .crl-rows{grid-area:3 / 1}
-  .pvg-rp > .crl[data-state="locked"] > .crl-foot{grid-area:4 / 1}
-}
+/* 件数の横に札が丸ごと入らない時は、札が件数の下の段へ丸ごと下りる（折り返す行。字は小さくしない・途中で折らない）。
+   ★段を下ろす幅を「箱の幅」で決めない ── 札の長さは読む人で違う（「給与の提出で開きます」10字／
+     「年収データの解放が切れています」15字・英語はもっと長い）。2026-10-25 まで 296px の境目は10字の札に合わせてあり、
+     期限切れの札は 351・375px の画面で「す」「います」だけが次の行へ落ちていた。並び（件数 → 札 → 行 → 足元）は order。
+   段のあいだ：件数と札 6px（下りた時）・札と行 8px（6 ＋ 2）・行と足元 10px（6 ＋ 4）＝ 今までと同じ。 */
+.pvg-rp > .crl[data-state="locked"]{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;row-gap:6px}
+.pvg-rp > .crl[data-state="locked"] > .crl-count{order:1;margin-bottom:0}
+.pvg-rp > .crl[data-state="locked"] > .crl-lock{order:2;flex:0 1 auto;margin:0;padding:6px 10px}
+/* 下りても箱より長い札（英語の期限切れの札は 320px の画面で 251px ＞ 箱 242px）は、2行を同じくらいの長さに折る（最後の1語だけを残さない） */
+.pvg-rp > .crl[data-state="locked"] > .crl-lock > span{text-wrap:balance}
+.pvg-rp > .crl[data-state="locked"] > .crl-rows{order:3;flex:1 0 100%;margin-top:2px;margin-bottom:4px}
+.pvg-rp > .crl[data-state="locked"] > .crl-foot{order:4;flex:1 0 100%}
 
 /* ── 会社・募集・ステイ・ひとつ教えて（どれも横いっぱいの帯）── */
 .pvg-more-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--pvg-gap);margin-top:var(--pvg-gap)}
@@ -626,6 +626,8 @@
 .pvg .crl-radar-dot{fill:var(--pv-star)}
 .pvg .crl-radar-l{display:flex;flex-direction:column;min-width:0;font-size:12px;line-height:1.35;color:var(--pv-ink-2)}
 .pvg .crl-radar-l b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+/* 名前は語の途中で折らない ── 折れるのは表の名前の折れてよい所（<wbr>「給与・報酬の｜納得度」）だけ（2026-10-25）。英語は空白で折れる */
+.pvg .crl-radar-l > span{word-break:keep-all}
 .pvg .crl-radar-l[data-i="0"],.pvg .crl-radar-l[data-i="3"]{grid-column:1 / -1;flex-direction:row;align-items:baseline;justify-content:center;gap:6px}
 .pvg .crl-radar-l[data-i="0"]{grid-row:1}
 .pvg .crl-radar-l[data-i="3"]{grid-row:4}

@@ -156,6 +156,13 @@
   var CAT_SHORT = _RD.CAT_SHORT[LANG] || _RD.CAT_SHORT.ja;
   var CAT_FULL  = _RD.CAT_FULL[LANG]  || _RD.CAT_FULL.ja;
   var REVIEW_CATS = _RD.REVIEW_CATS[LANG] || _RD.REVIEW_CATS.ja;
+  /* ★区分の名前は1つの表 CAT_FULL（評価スコアの6角形の図と同じ名前）から読む（2026-10-25）。同じ口コミのタブの中で、図が
+     「企業カルチャー」・下の一覧が「企業文化」と、同じ区分を別の名前で呼ばない。表の並びは REVIEW_CATS と同じ（鍵だけここから借りる）。
+     表を読めない時だけ、今までの名前のまま。名前の中の「|」は折れてよい所 ── HTML に置く時は catHTML() で <wbr> にする。 */
+  if (CAT_FULL.length === REVIEW_CATS.length && CAT_FULL.every(function (s) { return typeof s === 'string' && !!s; })) {
+    REVIEW_CATS = REVIEW_CATS.map(function (c, i) { return { key: c.key, label: CAT_FULL[i] }; });
+  }
+  function catHTML(s) { return rvEsc(s).split('|').join('<wbr>'); }
 
   var AIRLINE_CODE = (d.body && d.body.dataset.airline) || '';
 
@@ -304,7 +311,7 @@
     var countLabel = count > 0 ? L.respondents(count) : L.sampleData;
 
     var barsHTML = CAT_FULL.map(function (label, i) {
-      return '\n    <div class="hrb-bar-row">\n      <div class="hrb-bar-label">' + label +
+      return '\n    <div class="hrb-bar-row">\n      <div class="hrb-bar-label">' + catHTML(label) +
         '</div>\n      <div class="hrb-bar-track"><div class="hrb-bar-fill" data-hrb="' +
         (ratings[i] / 5 * 100).toFixed(0) + '"></div></div>\n      <div class="hrb-bar-score">' +
         ratings[i].toFixed(1) + '</div>\n    </div>';
@@ -482,7 +489,7 @@
     }).filter(Boolean);
     return '\n      <div class="rv-srv-lock">\n' +
       (names.length ? '        <div class="rv-cat-row">' + names.map(function (n) {
-        return '<span class="rv-cat-chip">' + rvEsc(n) + '</span>';
+        return '<span class="rv-cat-chip">' + catHTML(n) + '</span>';
       }).join('') + '</div>\n' : '') +
       '        <p class="rv-srv-note">' + L.srvLockNote + '</p>\n' +
       cardCta(
@@ -542,7 +549,7 @@
     return '<div class="detail-review-card">\n' +
       '    <div class="rv-card-head">\n' +
       '      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">\n' +
-      '        <span class="rv-card-type">' + catLabel + '</span>\n' +
+      '        <span class="rv-card-type">' + catHTML(catLabel) + '</span>\n' +
       '        <span class="rv-reviewer-meta">' + L.pilot +
              (pos ? '<span class="rv-meta-sep"> | </span>' + pos : '') +
              (years ? '<span class="rv-meta-sep"> | </span>' + L.tenure(years) : '') +
@@ -755,7 +762,7 @@
         return '<a href="' + esc(s.url) + '" target="_blank" rel="nofollow noopener" style="color:#5fb0ff;text-decoration:none">' +
           esc(s.title || s.url) + '</a>';
       })
-      .join('　・　');
+      .join(IS_EN ? ' · ' : '　・　');                   // 英語のページは半角の区切り（全角の「　・　」を出さない）
     var meta = IS_EN ? '🌐 Overseas pilots · from public sources' : '🌐 海外パイロットの声・公開情報より';
     var srcLabel = IS_EN ? 'Sources' : '出典';
     return keys.map(function (k) {
@@ -767,7 +774,7 @@
       return '<div class="rv-card-wrap"><div class="detail-review-card">\n' +
         '      <div class="rv-card-head">\n' +
         '        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">\n' +
-        '          <span class="rv-card-type">' + label + '</span>\n' +
+        '          <span class="rv-card-type">' + catHTML(label) + '</span>\n' +
         '          <span class="rv-reviewer-meta">' + meta + '</span>\n' +
         '        </div>\n' +
         '      </div>\n' +
@@ -955,7 +962,7 @@
     var overseasHTML = pvOverseasCardsHTML(locked);
     var chipsHTML = [{ key: 'all', label: L.all }].concat(REVIEW_CATS).map(function (c) {
       return '<button class="rcf-chip' + (pvReviewCatFilter === c.key ? ' active' : '') +
-        '" onclick="pvSetReviewCat(\'' + c.key + '\')">' + c.label + '</button>';
+        '" onclick="pvSetReviewCat(\'' + c.key + '\')">' + catHTML(c.label) + '</button>';
     }).join('');
     var shown = filtered.length + overseasShownKeys().length;
     var emptyMsg = shown === 0
@@ -1130,7 +1137,8 @@
        給与の1枚・評価スコアの1枚の入口と、1つも違わない。ここで大きさや色を足さない。
      ★2026-10-09 オーナー判断「拡げる」：同じ形を、タブの無い会社ページと英語版にも出す（下の ggOld）。
        言葉は置き場で決まる ── 一覧の錠前と「続きを読む」の小窓は all・概要の「生の声」の下は top。 */
-  function ggShape() { return LANG === 'ja' && isTabbed(); }
+  /* ★2026-10-25 タブのある英語の会社ページも同じ形（英語の会社ページにタブが付いたので）。1枚ごとの錠前を並べない・入口は一覧の下と評価スコアの1枚 */
+  function ggShape() { return isTabbed(); }
   var GG_WORDS = {
     ja: { all: '全ての<wbr>口コミデータを<wbr>解放する', top: '口コミを<wbr>解放する' },
     en: { all: 'Unlock all reviews', top: 'Unlock reviews' },
@@ -1196,10 +1204,8 @@
     var st = ggOld();
     return st === 'yes' ? '' : st === 'wait' ? ggWait('card', old) : old;
   }
-  /* 区分の名前の「語の切れ目」。タブのある会社ページの3列の札では、名前を語の途中で折らず、ここでだけ折る
-     （折り方は pv-glance.css。ほかの会社と英語版は名前をそのまま返す）。 */
-  var CAT_WBR = { 'ワークライフバランス': 'ワークライフ<wbr>バランス' };
-  function catLabel(s) { return (isTabbed() && CAT_WBR[s]) || s; }
+  /* 区分の名前の「語の切れ目」は、表 CAT_FULL の名前の中の「|」（catHTML が <wbr> にする）。3列の札では名前を語の途中で折らず、
+     そこでだけ折る（折り方は pv-glance.css）。2026-10-25 まで、ここに名前の2つめの表（CAT_WBR）が在った。 */
 
   function injectReviewCategoryGrid() {
     var banner = d.getElementById('airline-rating-banner');
@@ -1217,7 +1223,7 @@
     var cardsHTML = REVIEW_CATS.map(function (c, i) {
       return '\n    <button class="rcg-card" onclick="pvSetReviewCat(\'' + c.key + '\')">\n' +
         '      <span class="rcg-icon">' + (CAT_ICONS[c.key] || '') + '</span>\n' +
-        '      <span class="rcg-label">' + catLabel(c.label) + '</span>\n' +
+        '      <span class="rcg-label">' + catHTML(c.label) + '</span>\n' +
         '      <span class="rcg-count">' + L.catCount(catCounts[c.key] || 0) + '</span>\n' +
         '      <span class="rcg-chevron">' + CHEVRON + '</span>\n' +
         '    </button>';

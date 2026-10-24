@@ -1483,9 +1483,13 @@
      ★ 点数は誰にでも返る列（本文と訳だけが鍵つき）── 鍵の無い人にも同じ点数が出る。権限は変えていない。
      ★ 6分類の名前だけは会社ページの口コミ欄から借りる（同じ分類を別の言葉で呼ばない）。
      ★ 読めなかった時は点数を出さない（「いま読み出せません」＋やり直す）。0件と通信失敗を同じに見せない。 */
+  /* ★6分類の名前は1つの表だけ（2026-10-25）── airlines/airline-reviews-data.js の CAT_FULL（英語は CAT_FULL_EN）。
+     会社ページはその表を口コミの部品（PVReviewUI.cats.full）から、比較は同じ表を写した島から読む。図の名前も、口コミの抜粋の札の名前も
+     ここから取る（同じ箱の中で「企業カルチャー」と「企業文化」・「ワークライフバランス」と「WLB」を並べない）。
+     ⚠️ ここに分類の名前を字で書かない（2つめの表を作らない）。 */
   function catNames() {
     var u = GL && w.PVReviewUI;
-    var a = u && u.cats && u.cats.short;
+    var a = u && u.cats && u.cats.full;
     if (!(isArr(a) && a.length === SCORES.length)) {
       /* 会社ページの部品が居ない画面（比較）では、名前を島から読む（gen-career.mjs が同じ正本から写したもの） */
       var isl = d.getElementById('crl-cats');
@@ -1494,6 +1498,27 @@
     }
     return (isArr(a) && a.length === SCORES.length &&
             a.every(function (s) { return typeof s === 'string' && !!s; })) ? a : null;
+  }
+  /* 1つの分類の名前（鍵は culture・salary … の6つ）。表に無い分類（経営陣への提案など）と、表を読めない時は、渡された名前のまま */
+  function catName(k, fallback) {
+    var names = catNames(), i = SCORES.indexOf(k + '_score');
+    return names && i >= 0 ? names[i] : fallback;
+  }
+  /* 名前を描く（札と図の名前の行）。表の名前の「|」は長い名前の折れてよい所（2026-10-25）── そこに <wbr> を置き、字としては出さない
+     （画面の字も読み上げも「|」の無い名前。折れるのは CSS の word-break:keep-all と、この <wbr> の所だけ）。 */
+  function catSpan(cls, s) {
+    var n = el('span', cls), parts = String(s == null ? '' : s).split('|');
+    parts.forEach(function (t, i) {
+      if (i) n.appendChild(d.createElement('wbr'));
+      if (t) n.appendChild(d.createTextNode(t));
+    });
+    return n;
+  }
+  /* 口コミの抜粋の区分の札。名前は内側の1つの span に入れる（札が箱より広い時、その span の中で <wbr> の所から折れる） */
+  function catChip(s) {
+    var c = el('span', 'crl-chip');
+    c.appendChild(catSpan('', s));
+    return c;
   }
   function realRated(rows) {
     var sum = [], cnt = [], total = 0, n = 0;
@@ -1583,7 +1608,7 @@
       var l = el('span', 'crl-radar-l');
       l.setAttribute('role', 'listitem');
       l.setAttribute('data-i', String(j));
-      l.appendChild(el('span', '', names[j]));
+      l.appendChild(catSpan('', names[j]));
       l.appendChild(el('b', '', v.toFixed(1)));
       box.appendChild(l);
     });
@@ -1712,12 +1737,24 @@
   }
   function sumNote(text, why) { var p = msg(text); p.setAttribute('data-why', why); return p; }
   /* 要約の足元（AI 要約・もとにした件数・更新日）。件数と日付は、読めたときだけ書く。会社ページと比較が同じ部品を使う。 */
+  /* 要約の更新日（2026-10-25）── サーバーが時刻（as_of_at・UTC の15分刻み）を返したら、読む人の時計の日付で出す
+     （サーバーの as_of は UTC の日付なので、日本の 0〜9時に預けた要約は前日の日付になっていた）。
+     時刻を返さない古いサーバーの答えは、今までどおり as_of の字のまま。どちらも読めなければ書かない。 */
+  function sumDay(x) {
+    var at = x && typeof x.as_of_at === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?Z$/.test(x.as_of_at) ? new Date(x.as_of_at) : null;
+    if (at && !isNaN(at.getTime())) {
+      var two = function (v) { return (v < 10 ? '0' : '') + v; };
+      return at.getFullYear() + '-' + two(at.getMonth() + 1) + '-' + two(at.getDate());
+    }
+    return x && typeof x.as_of === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.as_of) ? x.as_of : '';
+  }
   function sumFoot(x) {
     var by = el('p', 'crl-sum-by');
     by.appendChild(el('span', 'crl-sum-ai', T.sumAi));
     var n = Number(x.n);
     if (isFinite(n) && n > 0) by.appendChild(el('span', 'crl-sum-n', T.sumFrom(n)));     // 件数が読めなければ書かない
-    if (typeof x.as_of === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.as_of)) by.appendChild(el('span', 'crl-sum-d', T.sumWhen(x.as_of)));
+    var day = sumDay(x);
+    if (day) by.appendChild(el('span', 'crl-sum-d', T.sumWhen(day)));
     return by;
   }
   KIND.summary = function (box, ids) {
@@ -1956,14 +1993,14 @@
     var withText = cats.filter(function (c) { return c && c.text; }).slice(0, p.locked ? 1 : full ? cats.length : 3);
     withText.forEach(function (c) {
       var b = el('div', 'crl-rev-cat');
-      b.appendChild(el('span', 'crl-chip', c.label));
+      b.appendChild(catChip(catName(c.k, c.label)));     // 札の名前は図と同じ表（catNames）から
       b.appendChild(el('p', p.locked ? 'crl-rev-text crl-rev-clip' : 'crl-rev-text', c.text));
       li.appendChild(b);
     });
     var rest = cats.filter(function (c) { return c && c.label && withText.indexOf(c) < 0; });
     if (rest.length) {
       var chips = el('p', 'crl-chips');
-      rest.forEach(function (c) { chips.appendChild(el('span', 'crl-chip', c.label)); });
+      rest.forEach(function (c) { chips.appendChild(catChip(catName(c.k, c.label))); });
       li.appendChild(chips);
     }
     return li;
@@ -2141,12 +2178,19 @@
     for (var c = box.firstChild; c; c = c.nextSibling) if (c.nodeType === 1 && c.hasAttribute('data-crl-keep')) return c;
     return null;
   }
+  /* ★点数の無い淡い面は、比較の図（radarPh）と同じく読み上げない（数字の無い絵 ── 何も無いことは評価の欄が言葉で言う）。
+     点数で塗った図は、6分類の名前と点数を読む一覧（role list）に戻す。2026-10-25 まで会社ページの図だけ、淡い面でも一覧のままだった。 */
+  function frameMute(fig, mute) {
+    if (mute) { fig.removeAttribute('role'); fig.setAttribute('aria-hidden', 'true'); }
+    else { fig.setAttribute('role', 'list'); fig.removeAttribute('aria-hidden'); }
+  }
   function frameReset(fig) {
-    if (!fig._ph) { fig._ph = fig.cloneNode(true); return; }
+    if (!fig._ph) { fig._ph = fig.cloneNode(true); frameMute(fig, true); return; }
     if (fig.getAttribute('data-radar') === 'ph') return;
     clear(fig);
     for (var c = fig._ph.firstChild; c; c = c.nextSibling) fig.appendChild(c.cloneNode(true));
     fig.setAttribute('data-radar', 'ph');
+    frameMute(fig, true);
   }
   function frameFill(fig, vals) {
     var shape = fig.querySelector('.crl-radar-shape'), svg = fig.querySelector('svg');
@@ -2164,6 +2208,7 @@
       if (l) l.appendChild(el('b', '', v.toFixed(1)));
     });
     fig.setAttribute('data-radar', 'real');
+    frameMute(fig, false);
   }
 
   /* ── 欄を塗る ───────────────────────────────────────────── */

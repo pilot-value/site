@@ -82,7 +82,10 @@
   const DEFAULT_R = [3.5, 3.5, 3.5, 3.5, 3.5, 3.5];
 
   const CAT_SHORT = ['企業文化','給与','福利厚生','ワークライフバランス','運航環境','訓練環境'];
-  const CAT_FULL  = ['企業カルチャー','給与・報酬の納得度','福利厚生','ワークライフバランス','運航環境','訓練環境'];
+  /* ★区分の名前の正本は CAT_FULL（英語は CAT_FULL_EN）── 評価スコアの6角形の図・口コミの抜粋の札・口コミのタブの一覧が、ここだけを読む。
+     「|」は長い名前の折れてよい所（2026-10-25）。札と図の名前の行では <wbr> として描き、字として使う所（読み上げ・比べる字）では外す
+     ＝ 画面に出る字と読む字は「|」の無い名前。名前をほかのファイルに字で書かない（印のある形でも、無い形でも）。並びは REVIEW_CATS と同じ。 */
+  const CAT_FULL  = ['企業|カルチャー','給与・報酬の|納得度','福利厚生','ワークライフ|バランス','運航環境','訓練環境'];
   const CAT_SHORT_EN = ['Culture','Pay','Benefits','Work-Life','Operations','Training'];
   // バーのラベル欄は 120px 固定・ellipsis。'Pay & Compensation' は溢れて "Pay & Compensa…" になる。
   const CAT_FULL_EN  = ['Company Culture','Compensation','Benefits','Work-Life Balance','Operations','Training'];
