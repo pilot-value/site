@@ -46,7 +46,7 @@ import { viewOf, rentCell, GLANCE, LEAD } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
 import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell, tabOfKey, CMP_KEYS } from './gen-career.mjs';
-import { frozenPrint, matrixPrint } from './career-qr.mjs';
+import { frozenPrint, matrixPrint, qrMatrix } from './career-qr.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* 2026-10-21（P12.86-9）：開く先は PV_BASE で替えられる（serve-local の自分のポートで流すため。3000 は本番の DB につながる）。既定は今までどおり */
@@ -564,12 +564,14 @@ head('掲載している全社（比較の材料）');
   const goCo = g => [...g.matchAll(/<a class="cr-link cr-go"[^>]*?\sdata-airline="([^"]+)"/g)].map(m => m[1]);
   const sorted = a => [...a].sort();
 
-  /* T-A1 1つの集合：年収の行（機長・副操縦士）と、4つの「詳しく」の列は、どれも正本と同じ会社（並びも正本の順）。 */
-  const sets = [...ROLES.map(([r]) => ROWS[r].map(x => x.s)), ...GOSB.map(goCo)];
-  ok(GOSB.length === GOS.length && sets.length === ROLES.length + GOS.length && sets.every(x => same(sorted(x), sorted(ALLK)))
-     && ROLES.every(([r]) => same(ROWS[r].map(x => x.s), ALLK)),
+  /* T-A1 1つの集合：年収の行（機長・副操縦士）と、4つの「詳しく」の列は、どれも正本と同じ会社（並びも正本の順）。
+     ★2026-10-24 段階5 compare-all-2（CA-2）：カードの島（#crc-data）の会社も同じ集合（先行5社が先）。 */
+  const ISLK = Object.keys(CARD_AIR);
+  const sets = [...ROLES.map(([r]) => ROWS[r].map(x => x.s)), ...GOSB.map(goCo), ISLK];
+  ok(GOSB.length === GOS.length && sets.length === ROLES.length + GOS.length + 1 && sets.every(x => same(sorted(x), sorted(ALLK)))
+     && ROLES.every(([r]) => same(ROWS[r].map(x => x.s), ALLK)) && same(ISLK.slice(0, FIVE.length), FIVE),
      `比較が持つ会社は、年収の正本と同じ ${ALLK.length}社（数は打っていない）`,
-     JSON.stringify({ gos: GOSB.length, sizes: sets.map(x => x.length), lack: sets.map(x => ALLK.filter(s => !x.includes(s)).slice(0, 4)), extra: sets.map(x => x.filter(s => !ALLK.includes(s)).slice(0, 4)) }));
+     JSON.stringify({ gos: GOSB.length, sizes: sets.map(x => x.length), lack: sets.map(x => ALLK.filter(s => !x.includes(s)).slice(0, 4)), extra: sets.map(x => x.filter(s => !ALLK.includes(s)).slice(0, 4)), isleHead: ISLK.slice(0, FIVE.length) }));
 
   /* T-A2 全社の行・1本の目盛：どの行も推定年収（SALARY の avg ＝ 会社ページと同じ読み口の推定）。棒の長さは、掲載している全社が入る
      1,000万 の倍数（AXISK）に対する割合。目盛の字はこの1枚のどこでも同じ。 */
@@ -708,9 +710,39 @@ head('掲載している全社（比較の材料）');
        MISS.map(s => `${s}: 機長 ${SALARY[s].cap.avg.toLocaleString('en-US')}万・副操縦士 ${SALARY[s].fo.avg.toLocaleString('en-US')}万`).join('\n      '));
   }
 
+  /* T-A10 カードの島と QR（★2026-10-24 段階5 compare-all-2・CA-2）：保存するカードの材料（#crc-data）は掲載している全社ぶん。
+     住所はその会社のページ（?・# を付けない）で、ページのファイルが在る・英語の社名が在る・写真は台帳（airline-photos.mjs）に在る会社だけ。
+     QR は、あるべき住所をこの検査がその場で符号化した行列（career-qr.mjs の qrMatrix）と同じで、正方形・大きさは別の読み取り器で
+     読めた5社（FROZEN の指紋の頭）と同じ大きさのどちらか。島の字に ¥ と 万 は無い（額を持たない）。
+     先行5社を FROZEN に結ぶ検査（T-C1）は、上の「保存するカードの住所と QR」のまま。 */
+  {
+    const CNAME = read('CNAME').trim();
+    const ISL_TEXT = (HTML.match(/<script type="application\/json" id="crc-data">([\s\S]*?)<\/script>/) || [])[1] || '';
+    const QSIZE = new Set(FIVE.map(s => Number(String(frozenPrint(`https://${CNAME}/airlines/${s}.html`)).split(':')[0])));
+    const bad = [], bySize = {};
+    for (const s of ALLK) {
+      const a = CARD_AIR[s];
+      if (!a) { bad.push(`${s}: 島に無い`); continue; }
+      const want = `https://${CNAME}/airlines/${s}.html`, rows = Array.isArray(a.qr) ? a.qr : [], why = [];
+      if (a.url !== want || /[?#]/.test(String(a.url))) why.push(`住所 ${a.url}（あるべき ${want}）`);
+      if (!fs.existsSync(path.join(ROOT, 'airlines', `${s}.html`))) why.push('会社ページのファイルが無い');
+      if (!String(a.en || '').trim()) why.push('英語の社名が無い');
+      if (!(PHOTOS[s] || []).length && (a.photos || []).length) why.push(`写真 ${(a.photos || []).length}枚（台帳に無い）`);
+      if (!same(rows, qrMatrix(want).map(r => r.join(''))) || !rows.every(r => typeof r === 'string' && r.length === rows.length) || !QSIZE.has(rows.length))
+        why.push(`QR ${rows.length}行（あるべき住所の行列と違う・正方形でない・大きさが5社と違う）`);
+      bySize[rows.length] = (bySize[rows.length] || 0) + 1;
+      if (why.length) bad.push(`${s}: ${why.join('・')}`);
+    }
+    ok(!!CNAME && QSIZE.size === 2 && !QSIZE.has(NaN) && !bad.length && !!ISL_TEXT && !/[¥￥万]/.test(ISL_TEXT),
+       'カードの住所と QR は掲載している全社ぶん（QR の大きさは、別の読み取り器で読めた5社と同じ2通り）',
+       [...bad.slice(0, 6), `5社の大きさ ${[...QSIZE].join('・')} ／ 島の大きさ ${JSON.stringify(bySize)} ／ 島の字の ¥・万 ${(ISL_TEXT.match(/.{0,20}[¥￥万].{0,20}/) || ['なし'])[0]}`].join(' ／ '));
+  }
+
   /* T-A14 a 読み込んだだけでは全社を走らせない：gen-career.mjs は会社ページの生成器（gen-airline-glance.mjs）も読む。
-     全社の読み口（viewOf）を走らせるのは、先行5社の1行と career() の中だけ。career() を呼ぶのは build() の頭の1か所だけ
-     （ファイルの地の文で呼ばない）。コメントを外して見る。 */
+     全社の読み口（viewOf）を走らせるのは、先行5社の1行と career() の中だけ。career() を呼ぶのは build() と cardData() の頭の2か所だけ
+     （ファイルの地の文で呼ばない）。コメントを外して見る。
+     ★2026-10-24 段階5 compare-all-2（CA-2・同じ強さの当て直し）：カードの材料（cardData()）も全社ぶんを書くので、その頭にも1か所。
+       呼ぶ数が2で、2つとも関数の頭に在る ＝ ほかのどこにも無い（前は 数が1で build() の頭）。 */
   {
     const G = noJsCmt(read('gen-career.mjs'));
     const views = [...G.matchAll(/(?<![\w.])viewOf\(/g)].map(m => m.index);
@@ -728,9 +760,10 @@ head('掲載している全社（比較の材料）');
     const inCareer = i => cAt >= 0 && i > cAt && i < cEnd;
     const calls = [...G.matchAll(/(?<![\w.])career\(\)/g)].map(m => m.index).filter(i => !G.startsWith('function career()', i - 'function '.length));
     const first = /\nexport function build\(\) \{\n\s*career\(\);\n/.test(G);
-    ok(views.length === 2 && views.filter(inFive).length === 1 && views.filter(inCareer).length === 1 && calls.length === 1 && first,
+    const cardFirst = /\nexport function cardData\(\) \{\n\s*career\(\);\n/.test(G);
+    ok(views.length === 2 && views.filter(inFive).length === 1 && views.filter(inCareer).length === 1 && calls.length === 2 && first && cardFirst,
        'gen-career.mjs は、読み込まれただけでは全社の読み口を走らせない（会社ページの生成器も読む）',
-       JSON.stringify({ viewOf: views.length, five: views.filter(inFive).length, inCareer: views.filter(inCareer).length, careerCalls: calls.length, buildFirst: first }));
+       JSON.stringify({ viewOf: views.length, five: views.filter(inFive).length, inCareer: views.filter(inCareer).length, careerCalls: calls.length, buildFirst: first, cardFirst }));
   }
 }
 
@@ -1702,6 +1735,45 @@ try {
         }
       }
     }
+    /* R5（★2026-10-24 段階5 compare-all-2・E5.5）概要を持たない会社のカード（比較の行から読む）。額・札・棒は画面と同じ。
+       生きた欄の中に置いた行は読まない。中身は上の5社の繰り返しと1文字も違わない（会社だけ united 単独と jal|united）。 */
+    for (const want of [['united'], ['jal', 'united']]) {
+        const q = `?view=card&a=${want[0]}${want[1] ? `&b=${want[1]}` : ''}`;
+        await go(p, q);
+        const got = await p.waitForFunction(n => {
+          const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model();
+          return !!(m && m.cards && m.cards.length === n && m.cards.every(k => k.roles));
+        }, { timeout: 5000 }, want.length).then(() => true, () => false);
+        ok(got, `${q}: カードの材料が出来る`);
+        if (!got) continue;
+        const card = await p.evaluate(() => {
+          const m = window.PVCareerCard.model();
+          return { cards: m.cards.map(k => ({ slug: k.slug, roles: k.roles })), json: JSON.stringify(m), text: document.querySelector('#cr .cr-view:not([hidden])').textContent };
+        });
+        ok(same(card.cards.map(x => x.slug), want) && !card.json.includes(WORD) && !card.text.includes(WORD), `${q}: カードの材料にも画面にも「確認中」が無い`, card.cards.map(x => x.slug).join(','));
+        for (const x of card.cards) for (const [r, l] of ROLES) {
+          const y = x.roles && x.roles[r], a = avg(x.slug, r);
+          ok(!!y && y.text === yen(a) && y.tag === '推定' && y.look !== 'held' && Math.abs(y.w - a / axisMax) < 0.001,
+            `${q}: カードの ${name(x.slug)} ${l} は推定年収 ${yen(a)}（「推定」の札・棒は額に比例）`, JSON.stringify(y && { text: y.text, tag: y.tag, look: y.look, w: y.w }));
+          ok(!!y && (!y.lim || (/^〜/.test(y.lim.text) && /上限/.test(`${y.lim.tag}${y.lim.sub}`))),
+            `${q}: カードの ${name(x.slug)} ${l} に公表した上限を載せるなら「〜」と「上限」の字つき`, JSON.stringify(y && y.lim));
+        }
+    }
+    await go(p, '?view=card&a=united');
+    const upU = await p.waitForFunction(() => window.PVCareerCard && window.PVCareerCard.model() && window.PVCareerCard.model().cards.length === 1, { timeout: 5000 })
+      .then(() => true, () => false);
+    const planted = !upU ? null : await p.evaluate(async () => {
+      const pair = document.querySelector('#cr .cr-view[data-view="compare"] .cr-pair[data-role="cap"]');
+      const real = pair.querySelector('.cr-row[data-airline="united"]');
+      const live = document.createElement('div'); live.className = 'crl';
+      const fake = real.cloneNode(true); fake.querySelector('.cr-row-v').textContent = 'PLANTED'; live.appendChild(fake);
+      pair.insertBefore(live, pair.firstChild);
+      await window.PVCareerCard.redraw();
+      const text = window.PVCareerCard.model().cards[0].roles.cap.text;
+      live.remove();
+      return text;
+    });
+    ok(planted === yen(avg('united', 'cap')), 'カードは、生きた欄（.crl）の中の行を読まない（概要の無い会社）', String(planted));
     await c();
   }
 

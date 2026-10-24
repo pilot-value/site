@@ -2,6 +2,7 @@
  *
  * ★金額を1つも持たない。額・札・棒の長さは、同じページの「会社の概要」の DOM から読む
  *   （[data-main] の字／[data-main-tag] の札／[data-main-bar] の --w／[data-lim]・[data-lim-tag]・[data-lim-bar]）。
+ *   概要を持たない会社（先行5社のほか）は、比較の行（.cr-row の字・札・棒の --w）と比較の目盛から読む（★2026-10-24 段階5 compare-all-2）。
  *   通貨を切り替えたら、currency.js が直した字をそのまま読み直して描き直す。
  * ★本命の数字は、5社とも推定年収（[data-main] の字と「推定」の札）。career.html はそれだけを書く。
  * ★会社が公表した上限は、DOM に [data-lim] が在るときだけ描く（いまの career.html には無い）。
@@ -132,6 +133,18 @@
     }
     return out;
   }
+  /* 概要を持たない会社は、比較の行（同じページの字）から読む。目盛はこの1枚に1本なので、2社とも同じ目盛で読める。
+     ⚠️ 生きた欄（.crl）の中の行は読まない ── 限定の中身を画像へ持ち込まない。 */
+  function cmpRowOf(slug, role) {
+    var list = cr.querySelectorAll('.cr-view[data-view="compare"] .cr-pair[data-role="' + role + '"] .cr-row');
+    for (var i = 0; i < list.length; i++) if (list[i].getAttribute('data-airline') === slug && !inLive(list[i])) return list[i];
+    return null;
+  }
+  function readRow(slug, role) {                  // -> readRole() と同じ形（概要の無い会社）
+    var row = cmpRowOf(slug, role), v = row && row.querySelector('.cr-row-v');
+    if (!v || !txt(v)) return null;
+    return { role: role, text: txt(v), look: '', tag: txt(row.querySelector('.cr-tag')), sub: '', w: frac(row.querySelector('.cr-fill')), lim: null };
+  }
   function readCard(slug, photoIx) {
     var a = AIR[slug], sec = null, list = cr.querySelectorAll('.cr-view[data-view="airline"]');
     for (var i = 0; i < list.length; i++) if (list[i].getAttribute('data-airline') === slug) sec = list[i];
@@ -140,6 +153,10 @@
       ROLES.forEach(function (r) { var v = readRole(sec, r); if (v) roles[r] = v; });
       var ax = sec.querySelector('.cr-axis');
       if (ax && !inLive(ax)) Array.prototype.forEach.call(ax.children, function (s) { axis.push(txt(s)); });
+    } else {
+      ROLES.forEach(function (r) { var v = readRow(slug, r); if (v) roles[r] = v; });
+      var ax2 = cr.querySelector('.cr-view[data-view="compare"] .cr-panel .cr-axis');
+      if (ax2 && !inLive(ax2)) Array.prototype.forEach.call(ax2.children, function (s) { axis.push(txt(s)); });
     }
     return { slug: slug, ja: a.ja || '', en: a.en || '', code: a.code || '', color: a.color || '',
              url: a.url || '', qr: a.qr || [], photo: photos[photoIx] || photos[0] || null, roles: roles, axis: axis, rating: ratingOf(slug) };

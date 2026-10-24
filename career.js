@@ -52,6 +52,11 @@
     });
     var has = function (list, x) { return !!list && list.indexOf(x) >= 0; };
     var known = function (s) { return has(slugs, s); };
+    /* 比較の行が在る会社 ＝ このページが額を持っている会社。カードはこの会社なら開ける。 */
+    var listed = [];
+    each(cr.querySelectorAll('.cr-cmp .cr-pair[data-role="cap"] .cr-row'), function (r) { listed.push(r.dataset.airline); });
+    var canCard = function (s) { return has(listed, s); };
+    var canPair = known;                                   // CA-3a: 選ぶ面に在る会社
 
     var DEF = { a: cr.dataset.a, b: cr.dataset.b };
     var cmp = cr.querySelector('.cr-view[data-view="compare"]');
@@ -108,8 +113,9 @@
       }
       if (view === 'compare' || view === 'card') {
         var qa = q.get('a'), qb = q.get('b');
-        var a = known(qa) ? qa : null;
-        var b = known(qb) && qb !== a ? qb : null;
+        var can = view === 'card' ? canCard : canPair;
+        var a = can(qa) ? qa : null;
+        var b = can(qb) && qb !== a ? qb : null;
         st = blank(view);
         if (view === 'card') {
           if (!a) return blank('home');

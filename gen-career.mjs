@@ -948,9 +948,13 @@ const HOST = (() => {
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)) throw new Error('CNAME が読めない（公開ページの住所を作れない）');
   return h;
 })();
+/* カードの島の並び：先行5社が先（カードの選ぶ欄の頭と、会社が決まらないときの1社は今までどおり）、あとは正本の順
+   （CA-3b1 から航空会社一覧の並び）。 */
+const ISLE = () => [...FIVE, ...ALL.filter(s => !FIVE.includes(s))];
 export function cardData() {
+  career();
   const airlines = {};
-  for (const s of FIVE) {
+  for (const s of ISLE()) {
     const url = `https://${HOST}/airlines/${s}.html`;
     airlines[s] = {
       ja: SALARY[s].ja, en: SALARY[s].en, code: code(s), color: color(s), url,
