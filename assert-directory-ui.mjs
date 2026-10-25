@@ -84,6 +84,15 @@
      data-lvl="0" のカードが在る時だけ歩く（無ければ「T6：まだ歩けない（比較の切り替えの前）」と印字して通す）
      ★2026-10-25 英語の EN-9 で、英語を日本語と同じ決まりへ向け直した（弱めていない）。前の英語は「印 ＝ 一覧の行に fleet がある社（4社には無い）・
      盆はレベリング比較だけ（#wd-tray-two の要素そのものが無い）」── 英語の比較のページ（en/career.html）が無かったあいだの決まり
+     ★WP-dmap-10（比較リスト）で付け替えた（同じ強さ）：印は button.wd-cmp（付いた ＝ aria-pressed・押せない ＝ aria-disabled となぜか）・盆の札は行
+     （li[data-slug] と外す ×）・押せない2つのボタンは「隠れる」から「押せない形」へ（「航空会社を比較」は行き先そのものが無い ＝ 前より強い）・
+     レベリング比較は2〜5社（シート）＝ 1社では押せない・印を付け外しすると住所の cmp だけが変わる（履歴は積まない）・
+     狭い画面の盆は1行に畳んだ形（次の1手だけ）で出る ＝ レベリング比較・× は題の行で開いてから押す
+   ★場面 list（日英・1440×900 と 390×680 の指）── 比較リスト（WP-dmap-10・オーナー「膨大な量の航空会社がある中で、カードにチェックつけるだけしか方法ない
+     のキツくない？」）。class A：リストの欄の候補 ＝ ページの検索の当たり（カタール・qr・ドイツ・zzzz・同じ並び）・「航空会社を比較」の行き先 ＝
+     career.html?view=compare&a=<1社目>&b=<2社目>（英語は en/career.html）・住所の cmp からリストが戻る（読み直し・共有した住所）。
+     class B：0社でもカードの右に出る・欄から足す（↓・Enter）・カードの印で付け外し・3社目で「航空会社を比較」が押せない・× で外す・段の無い社の行は理由・
+     押せない印はなぜかを持つ／390：盆は1社から・1行に畳んだ形 → 開く → 「＋ 会社を追加」の板（履歴1段）→ 候補を指で → Esc・戻るで閉じても足した社はそのまま
 
    場面 map-pos（日英・1440×900 と 390×680 の指・台本なし）── 地図の区域（WP-dmap-3／WP-dmap-4）：面の右上の「機長｜副操縦士」の切り替え。
      押した方が区域の data-pos・aria-pressed・見せる帯・地図の点の色・凡例の行を決める・カードの高さは変わらない・履歴と保存領域に書かない・
@@ -141,7 +150,7 @@
    ★場面 map-strip（class A・390×680 と 768×1024 の指）── 地域の9つのボタンがどれも画面の中に丸ごと（帯は横にすべらない）・字が切れない（オーナー #8）
    ★場面 head-name（class A・1440×900・ライトとダーク）── ログインしている会員の名前がサイトの緑の字で、ヘッダーの地とのコントラスト 4.5:1 以上（オーナー #18）
 
-   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,map-pos,map-card,map-keys,map-fit,map-point,map-tap,map-first,map-move,map-full,map-strip,head-name] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
+   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,list,map-pos,map-card,map-keys,map-fit,map-point,map-tap,map-first,map-move,map-full,map-strip,head-name] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
      back が入る回は、ブラウザを新しい headless で立てる（'shell' は戻るの手元置き場を使わない：BackForwardCacheDisabledForDelegate）。
      どの回も、名前を引けるのは localhost と LIBS の4つだけ（--host-resolver-rules ＝ 門の外のもう1枚の網）
@@ -360,7 +369,7 @@ if (process.argv[1] && realOf(process.argv[1]) === realOf(fileURLToPath(import.m
 async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, 'map-pos': mapPos,
+  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, list, 'map-pos': mapPos,
     'map-card': mapCard, 'map-keys': mapKeys, 'map-fit': mapFit, 'map-point': mapPoint, 'map-tap': mapTap, 'map-first': mapFirst,
     'map-move': mapMove, 'map-full': mapFull, 'map-strip': mapStrip, 'head-name': headName };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
@@ -1092,33 +1101,55 @@ async function main() {
   const TWO_WORD = { ja: '航空会社を比較', en: 'Compare airlines' };
   /* 盆の2社比較が開くページ（どちらの一覧からも、そのページから見た career.html?view=compare…） */
   const CAREER_PATH = { ja: '/career.html', en: '/en/career.html' };
-  /* 盆と印の今（盆の字・社名の札・2つのボタンが見えているか・印の付き方） */
+  /* 盆（比較リスト）と印の今（盆の字・行・2つのボタンが見えているか／押せるか・印の付き方）。★WP-dmap-10：印は button.wd-cmp（付いた ＝ aria-pressed・
+     押せない ＝ aria-disabled）・行は li[data-slug]（社名・段の無い社の理由・外す ×）・ボタンは「押せる」（on）と「見えている」（shown）を分けて読む */
   const trayOf = (page) => page.evaluate(() => {
     const $ = (id) => document.getElementById(id), seen = (el) => !!el && !el.hidden && getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0;
-    const t = $('wd-tray'), two = $('wd-tray-two'), lv = $('wd-tray-lvl'), boxes = [...document.querySelectorAll('#airline-grid .wd-cmp-i')];
+    const on = (el) => !!el && el.getAttribute('aria-disabled') !== 'true';
+    const t = $('wd-tray'), two = $('wd-tray-two'), lv = $('wd-tray-lvl'), boxes = [...document.querySelectorAll('#airline-grid button.wd-cmp')];
+    const off = boxes.filter((b) => b.getAttribute('aria-disabled') === 'true');
     return {
-      shown: seen(t), n: ($('wd-tray-n') || {}).textContent ?? null, isTwo: !!t && t.classList.contains('is-two'),
-      chips: [...document.querySelectorAll('#wd-tray-list button')].map((b) => ({ s: b.dataset.slug, t: b.textContent, p: b.getAttribute('aria-pressed') })),
-      two: two ? { shown: seen(two), href: two.getAttribute('href'), text: two.textContent } : null,
-      lvl: lv ? { shown: seen(lv), text: lv.textContent } : null,
-      checked: boxes.filter((b) => b.checked).map((b) => b.value), disabled: boxes.filter((b) => b.disabled).map((b) => b.value), boxes: boxes.length,
+      shown: seen(t), n: ($('wd-tray-n') || {}).textContent ?? null, isTwo: !!t && t.classList.contains('is-two'), open: !!t && t.classList.contains('is-open'),
+      chips: [...document.querySelectorAll('#wd-tray-list li[data-slug]')].map((li) => ({ s: li.dataset.slug, t: (li.querySelector('.wd-cl-name') || {}).textContent ?? null,
+        note: (li.querySelector('.wd-cl-note') || {}).textContent ?? null, x: !!li.querySelector('button.wd-cl-x') })),
+      two: two ? { shown: seen(two), on: on(two) && two.hasAttribute('href'), href: two.getAttribute('href'), text: two.textContent, dis: two.getAttribute('aria-disabled'), by: two.getAttribute('aria-describedby') } : null,
+      lvl: lv ? { shown: seen(lv), on: on(lv), text: lv.textContent, by: lv.getAttribute('aria-describedby') } : null,
+      main: ['wd-tray-two', 'wd-tray-lvl', 'wd-cl-open'].find((id) => $(id) && $(id).classList.contains('is-main')) || null,
+      checked: boxes.filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.value), disabled: off.map((b) => b.value), boxes: boxes.length,
+      why: off.map((b) => ({ s: b.value, by: b.getAttribute('aria-describedby') || '', title: b.getAttribute('title') || '' })),
       all: boxes.map((b) => b.value),
     };
   });
+  /* 住所の cmp だけを書き直した住所（ページと同じ URLSearchParams の書き方 ＝ ?cmp=jal+ana） */
+  const cmpHref = (href, list) => { const u = new URL(href); u.searchParams.delete('cmp'); if (list.length) u.searchParams.set('cmp', list.join(' ')); return u.href; };
+  /* 比較リストの字（シートの字 ＝ gen-directory.mjs の WORDS・LIST と同じ。ここに書いた字が正。字そのものは assert-directory.mjs の H4・H6 も見る） */
+  const CL = {
+    ja: { h: '比較リスト', add: '会社を追加', open: '＋ 会社を追加', rule: '比較は2社・レベリング比較は5社まで', why: '機材の区分が無いため、レベリング比較には入りません',
+      rm: '外す', off: '＋ 比較', on: '✓ 比較中', close: '閉じる', empty: 'カードの「＋ 比較」か、下の欄から追加できます' },
+    en: { h: 'Compare list', add: 'Add an airline', open: '+ Add an airline', rule: 'Compare: 2 airlines · Leveling: up to 5', why: 'No aircraft class, so it can’t join the leveling comparison',
+      rm: 'Remove', off: '+ Compare', on: '✓ Added', close: 'Close', empty: 'Use “+ Compare” on a card, or add one below' },
+  };
   /* 押せないはずの印（ここで台帳から）：付いていない印のうち、足すと決まり（どの社も fleet を持てば5社・持たない社が入れば2社）を超える社。
      compare-all の切り替え（日本語の印が全社に）の前でも後でも同じ式で当たる */
   const lvlN = (s) => fleetOf(ROW.get(s));
   const fitsN = (list, s) => list.length < (list.concat([s]).every(lvlN) ? 5 : 2);
   const wantOff = (t) => t.all.filter((s) => !t.checked.includes(s) && !fitsN(t.checked, s));
   const nameOf = (page, s) => page.evaluate((s) => (document.getElementById('wn-' + s) || {}).textContent ?? null, s);
-  /* その社の印を押す（印を、下に貼りつく盆より上の、見えている所のまんなかへ送ってから ── 盆の下で押さない） */
+  /* その社の印を押す（印を、下に貼りつく盆より上の、見えている所のまんなかへ送ってから ── 盆の下で押さない。★WP-dmap-10：印は button.wd-cmp） */
   const tickIt = async (page, s) => {
     await page.evaluate((s) => {
-      const lab = document.querySelector(`li[data-slug="${s}"] label.wd-cmp`), tray = document.getElementById('wd-tray');
-      const bottom = tray && !tray.hidden ? tray.getBoundingClientRect().top : window.innerHeight, r = lab.getBoundingClientRect();
+      const lab = document.querySelector(`li[data-slug="${s}"] button.wd-cmp`), tray = document.getElementById('wd-tray');
+      const tr = tray && !tray.hidden ? tray.getBoundingClientRect() : null;
+      const bottom = tr && tr.top > window.innerHeight / 2 ? tr.top : window.innerHeight, r = lab.getBoundingClientRect();
       window.scrollBy({ top: (r.top + r.height / 2) - bottom / 2, left: 0, behavior: 'instant' });
     }, s);
-    await page.click(`li[data-slug="${s}"] label.wd-cmp`);
+    await page.click(`li[data-slug="${s}"] button.wd-cmp`);
+  };
+  /* 狭い画面の盆を開いた形にする（畳んだ形では行・×・2つ目のボタンは見えない） */
+  const openTray = async (page) => {
+    if (await page.evaluate(() => document.getElementById('wd-tray').classList.contains('is-open'))) return true;
+    await page.click('#wd-cl-fold');
+    return until(page, () => document.getElementById('wd-tray').classList.contains('is-open') && document.getElementById('wd-cl-fold').getAttribute('aria-expanded') === 'true');
   };
   const lvlCols = (page) => page.evaluate(() => document.querySelectorAll('#lvl-wa-grid .lvl-col').length);
   const pickOn = (page) => page.evaluate(() => [...document.querySelectorAll('#lvl-wa-picker .lvl-qchip[aria-pressed="true"]')].map((b) => b.dataset.sl));
@@ -1136,7 +1167,7 @@ async function main() {
     try {
       /* c1 印の在るカード */
       const dom = await page.evaluate(() => [...document.querySelectorAll('#airline-grid li[data-slug]')]
-        .map((li) => ({ s: li.dataset.slug, two: li.dataset.two, lvl: li.dataset.lvl, tick: !!li.querySelector('label.wd-cmp > input.wd-cmp-i') })));
+        .map((li) => ({ s: li.dataset.slug, two: li.dataset.two, lvl: li.dataset.lvl, tick: !!li.querySelector('.wd-foot > button.wd-cmp[aria-pressed]') })));
       const exp = dom.filter((x) => x.two === '1' && sw.has(x.s)).map((x) => x.s);
       const got = dom.filter((x) => x.tick).map((x) => x.s);
       ok(exp.length > 0 && sameSet(got, exp) && got.length === exp.length,
@@ -1150,15 +1181,15 @@ async function main() {
         const mid = (r) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 }), at = (p) => document.elementFromPoint(p.x, p.y);
         const cross = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
         for (const li of document.querySelectorAll('#airline-grid li[data-slug]')) {
-          const lab = li.querySelector('label.wd-cmp');
+          const lab = li.querySelector('button.wd-cmp');
           if (!lab || !li.getClientRects().length) continue;
           li.scrollIntoView({ block: 'center', behavior: 'instant' });
           const go = li.querySelector('a.wd-go'), amt = li.querySelector('.wd-fig[data-rank="cap"] .wd-v'), foot = li.querySelector('.wd-foot'), figs = li.querySelector('.wd-figs');
           const rt = lab.getBoundingClientRect(), rf = foot.getBoundingClientRect(), q = [];
           const e1 = at(mid(amt.getBoundingClientRect())), e2 = at(mid(rt)), e3 = at({ x: rf.left + 2, y: rf.top + rf.height / 2 });
           if (!e1 || !e1.closest || e1.closest('a.wd-go') !== go) q.push('額のまんなかがそのカードのリンクでない');
-          if (!e2 || !e2.closest || e2.closest('label.wd-cmp') !== lab) q.push('印のまんなかが印でない');
-          if (!e3 || !e3.closest || e3.closest('a.wd-go') || e3.closest('label.wd-cmp')) q.push('足もとの左端がリンクか印');
+          if (!e2 || !e2.closest || e2.closest('button.wd-cmp') !== lab) q.push('印のまんなかが印でない');
+          if (!e3 || !e3.closest || e3.closest('a.wd-go') || e3.closest('button.wd-cmp')) q.push('足もとの左端がリンクか印');
           if (rt.height < 44) q.push(`印の高さ ${rt.height}px`);
           for (const el of [...go.children, figs]) if (cross(rt, el.getBoundingClientRect())) q.push(`印が ${el.className} に重なる`);
           seen.push(li.dataset.slug);
@@ -1174,28 +1205,31 @@ async function main() {
       const t0 = await trayOf(page);
       ok(!t0.shown && t0.checked.length === 0 && !!t0.two && !t0.two.shown, T(`card T0 印が無い → 盆は出ない（「${TWO}」の要素は在って隠れている）`), J(t0));
 
-      /* c4 T1 1社（jal）→「1 / 5」・社名の札・レベリング比較（2社比較はまだ）／印を押しても住所はそのまま */
-      const href0 = await page.evaluate(() => location.href), wnJal = await nameOf(page, 'jal'), wnAna = await nameOf(page, 'ana');
+      /* c4 T1 1社（jal）→「1 / 5」・社名の行（× つき）／★WP-dmap-10：レベリング比較は2〜5社 ＝ 1社では押せない・「航空会社を比較」も押せない（行き先も無い）・
+         畳んだ盆の次の1手は「＋ 会社を追加」・印を押すと住所の cmp だけが変わる（履歴は積まない ── 前は「住所はそのまま」） */
+      const href0 = await page.evaluate(() => location.href), hl0 = await page.evaluate(() => history.length), wnJal = await nameOf(page, 'jal'), wnAna = await nameOf(page, 'ana');
       await tickIt(page, 'jal');
       await until(page, () => !document.getElementById('wd-tray').hidden);
-      const t1 = await trayOf(page), href1 = await page.evaluate(() => location.href);
-      ok(t1.shown && t1.n === fmt(1, 5) && same(t1.chips, [{ s: 'jal', t: wnJal, p: 'true' }]) && t1.lvl && t1.lvl.shown && t1.lvl.text === LVW
-        && !!t1.two && !t1.two.shown && same(t1.checked, ['jal']) && href1 === href0,
-        T(`card T1 jal に印 →「${fmt(1, 5)}」・札「${wnJal}」・「${LVW}」・「${TWO}」は出ない・住所はそのまま`), J({ t1, href1 }));
+      const t1 = await trayOf(page), a1 = await page.evaluate(() => ({ href: location.href, hl: history.length }));
+      ok(t1.shown && t1.n === fmt(1, 5) && same(t1.chips, [{ s: 'jal', t: wnJal, note: null, x: true }]) && t1.lvl && !t1.lvl.on && t1.lvl.text === LVW
+        && !!t1.two && !t1.two.on && t1.two.href === null && t1.main === 'wd-cl-open' && same(t1.checked, ['jal']) && a1.href === cmpHref(href0, ['jal']) && a1.hl === hl0,
+        T(`card T1 jal に印 →「${fmt(1, 5)}」・行「${wnJal}」・「${LVW}」も「${TWO}」もまだ押せない・次の1手は「${CL[lang].open}」・住所は cmp=jal だけ変わる（履歴は積まない）`), J({ t1, a1 }));
       await shot(page, 'card', lang, 'T1');
 
       /* c5 T2 2社（jal → ana） */
       await tickIt(page, 'ana');
       await until(page, (n) => document.getElementById('wd-tray-n').textContent === n, fmt(2, 5));
-      const t2 = await trayOf(page), href2 = await page.evaluate(() => location.href);
-      const chips2 = [{ s: 'jal', t: wnJal, p: 'true' }, { s: 'ana', t: wnAna, p: 'true' }];
+      const t2 = await trayOf(page), a2 = await page.evaluate(() => ({ href: location.href, hl: history.length }));
+      const chips2 = [{ s: 'jal', t: wnJal, note: null, x: true }, { s: 'ana', t: wnAna, note: null, x: true }];
       /* 日英とも同じ（★EN-9 で英語を向け直した。前の英語は「«Leveling Comparison» だけ・2社比較の入口は無い」） */
-      ok(t2.n === fmt(2, 5) && same(t2.chips, chips2) && !!t2.two && t2.two.shown && t2.two.text === TWO && t2.two.href === 'career.html?view=compare&a=jal&b=ana'
-        && t2.lvl.shown && t2.isTwo && href2 === href0,
-        T(`card T2 jal ＋ ana →「${fmt(2, 5)}」・札2つ・「${TWO}」（career.html?view=compare&a=jal&b=ana）・その横に「${LVW}」`), J(t2));
+      ok(t2.n === fmt(2, 5) && same(t2.chips, chips2) && !!t2.two && t2.two.shown && t2.two.on && t2.two.text === TWO && t2.two.href === 'career.html?view=compare&a=jal&b=ana'
+        && t2.lvl.on && t2.isTwo && t2.main === 'wd-tray-two' && a2.href === cmpHref(href0, ['jal', 'ana']) && a2.hl === hl0,
+        T(`card T2 jal ＋ ana →「${fmt(2, 5)}」・行2つ・「${TWO}」（career.html?view=compare&a=jal&b=ana ── 畳んだ盆の次の1手）・「${LVW}」も押せる・住所は cmp=jal ana`), J({ t2, a2 }));
       await shot(page, 'card', lang, 'T2');
 
-      /* c6 盆の「レベリング比較」→ 印の2社だけの図（列が2本・図の会社選びで2社が押されている）→ 読み直す → 同じ2本 → カード一覧 → 印はそのまま */
+      /* c6 盆の「レベリング比較」→ 印の2社だけの図（列が2本・図の会社選びで2社が押されている）→ 読み直す → 同じ2本 → カード一覧 → 印はそのまま
+         （★WP-dmap-10：畳んだ盆の次の1手は「航空会社を比較」＝ レベリング比較は盆を開いてから押す） */
+      await openTray(page);
       await page.click('#wd-tray-lvl');
       const c6 = await until(page, () => document.querySelectorAll('#lvl-wa-grid .lvl-col').length === 2);
       const k6 = await lvlCols(page), pk6 = await pickOn(page), s6 = await page.evaluate(() => location.search), tr6 = await trayOf(page);
@@ -1245,9 +1279,10 @@ async function main() {
       await tickIt(page, 'etihad');
       await until(page, (n) => document.getElementById('wd-tray-n').textContent === n, fmt(3, 5));
       const t3 = await trayOf(page);
-      ok(t3.n === fmt(3, 5) && !!t3.two && !t3.two.shown && !t3.isTwo && t3.lvl.shown && same(t3.chips.map((c) => c.s), ['jal', 'ana', 'etihad']),
-        T(`card T3 3社目（etihad）→「${fmt(3, 5)}」・「${TWO}」は隠れ、「${LVW}」だけ`), J(t3));
-      ok(!!t3.two && t3.two.href === 'career.html?view=compare', T(`card T3 隠れた「${TWO}」に前の2社が残らない（行き先は出荷のままの career.html?view=compare）`), J(t3.two));
+      ok(t3.n === fmt(3, 5) && !!t3.two && !t3.two.on && !t3.isTwo && t3.lvl.on && t3.main === 'wd-tray-lvl' && same(t3.chips.map((c) => c.s), ['jal', 'ana', 'etihad']),
+        T(`card T3 3社目（etihad）→「${fmt(3, 5)}」・「${TWO}」は押せない形・押せるのは「${LVW}」（畳んだ盆の次の1手）`), J(t3));
+      /* WP-dd-9 の「前の2社を残さない」を付け替えた（前は出荷のままの行き先へ戻した ── いまは行き先そのものが無く、押せない形の理由は決まりの行） */
+      ok(!!t3.two && t3.two.href === null && t3.two.dis === 'true' && t3.two.by === 'wd-cl-rule', T(`card T3 押せない「${TWO}」に前の2社が残らない（行き先そのものが無い・aria-disabled・なぜか ＝ 決まりの行）`), J(t3.two));
       await shot(page, 'card', lang, 'T3');
       /* 4社目・5社目 ＝ 印の在る、機種の段（fleet）を持つ社のうち、ページの並びで先の2社 */
       const more = dom.filter((x) => x.tick && lvlN(x.s) && !['jal', 'ana', 'etihad'].includes(x.s)).map((x) => x.s).slice(0, 2);
@@ -1256,30 +1291,34 @@ async function main() {
       const t5 = await trayOf(page), off5 = wantOff(t5);
       /* 6社目（印の在る、まだ付いていない最初の社）を押しても付かない（前は英語だけで見ていた。いまは日英とも） */
       const sixth = exp.find((s) => !t5.checked.includes(s));
-      const dis = await page.evaluate((s) => { const b = document.querySelector(`li[data-slug="${s}"] .wd-cmp-i`); b.closest('li').scrollIntoView({ block: 'center', behavior: 'instant' }); b.click(); return { checked: b.checked, disabled: b.disabled }; }, sixth);
+      const dis = await page.evaluate((s) => { const b = document.querySelector(`li[data-slug="${s}"] button.wd-cmp`); b.closest('li').scrollIntoView({ block: 'center', behavior: 'instant' }); b.click(); return { pressed: b.getAttribute('aria-pressed'), disabled: b.getAttribute('aria-disabled') }; }, sixth);
       const t5b = await trayOf(page);
-      ok(more.length === 2 && t5.n === fmt(5, 5) && t5.checked.length === 5 && sameSet(t5.disabled, off5) && t5.disabled.length === t5.boxes - 5 && t5.lvl.shown
-        && !dis.checked && t5b.checked.length === 5 && t5b.n === fmt(5, 5),
-        T(`card T5 5社に印（${more.join('・')} を足す）→「${fmt(5, 5)}」・ほかの${t5.boxes - 5}社の印はどれも押せない・6社目（${sixth}）は付かない`), J({ n: t5.n, checked: t5.checked, disabled: t5.disabled.length, boxes: t5.boxes, dis }));
+      /* ★WP-dmap-10：押せない印は灰色だけでなく、なぜか（aria-describedby ＝ 決まりの行・title ＝ その字）を持つ */
+      const why5 = t5.why.filter((x) => !x.by.split(' ').includes('wd-cl-rule') || !x.title.includes(CL[lang].rule)).map((x) => x.s);
+      ok(more.length === 2 && t5.n === fmt(5, 5) && t5.checked.length === 5 && sameSet(t5.disabled, off5) && t5.disabled.length === t5.boxes - 5 && t5.lvl.on
+        && dis.pressed === 'false' && dis.disabled === 'true' && t5b.checked.length === 5 && t5b.n === fmt(5, 5) && why5.length === 0,
+        T(`card T5 5社に印（${more.join('・')} を足す）→「${fmt(5, 5)}」・ほかの${t5.boxes - 5}社の印はどれも押せない（なぜか ＝ 決まりの行）・6社目（${sixth}）は付かない`), J({ n: t5.n, checked: t5.checked, disabled: t5.disabled.length, boxes: t5.boxes, dis, why5: why5.slice(0, 5) }));
       await shot(page, 'card', lang, 'T5');
 
-      /* 5社のとき（390 では札の列が横にあふれる）、札の列は1社目から見せる ＝ 1社目の札が左の端で切れない（WP-dd-9） */
+      /* 5社のとき、行の1社目が切れない（WP-dd-9 の「札の列はあふれても1社目から」を付け替えた ── 行は縦に並び、横にすべらない）。盆を開いて見る */
+      await openTray(page);
       const chip5 = await page.evaluate(() => {
-        const l = document.getElementById('wd-tray-list'), f = l && l.firstElementChild;
+        const l = document.getElementById('wd-tray-list'), f = l && l.firstElementChild, t = document.getElementById('wd-tray');
         if (!f) return null;
-        const lr = l.getBoundingClientRect(), fr = f.getBoundingClientRect();
-        return { listLeft: Math.round(lr.left), firstLeft: Math.round(fr.left), scrollLeft: l.scrollLeft, over: l.scrollWidth > l.clientWidth };
+        const lr = l.getBoundingClientRect(), fr = f.getBoundingClientRect(), tr = t.getBoundingClientRect();
+        return { rows: l.children.length, listLeft: Math.round(lr.left), listRight: Math.round(lr.right), firstLeft: Math.round(fr.left), firstRight: Math.round(fr.right), firstTop: Math.round(fr.top), trayTop: Math.round(tr.top), side: l.scrollWidth > l.clientWidth };
       });
-      ok(!!chip5 && chip5.over && chip5.scrollLeft === 0 && chip5.firstLeft >= chip5.listLeft, T('card T5 盆の札の列はあふれても1社目から（1社目の札が左の端で切れない）'), J(chip5));
+      ok(!!chip5 && chip5.rows === 5 && !chip5.side && chip5.firstLeft >= chip5.listLeft && chip5.firstRight <= chip5.listRight && chip5.firstTop >= chip5.trayTop,
+        T('card T5 盆を開く → 5社の行は縦に並び、1社目の行が切れていない（横にすべらない）'), J(chip5));
 
-      /* c10 盆の社名の札を押す ＝ その社の印が外れる */
+      /* c10 行の ×（外す）を押す ＝ その社の印が外れる（★WP-dmap-10：前は社名の札そのものを押した） */
       const before = await trayOf(page);
-      await page.click('#wd-tray-list button[data-slug="ana"]');
-      await until(page, () => !document.querySelector('#wd-tray-list button[data-slug="ana"]'));
+      await page.click('#wd-tray-list li[data-slug="ana"] button.wd-cl-x');
+      await until(page, () => !document.querySelector('#wd-tray-list li[data-slug="ana"]'));
       const after = await trayOf(page);
       const off10 = wantOff(after);
       ok(!after.checked.includes('ana') && after.checked.length === before.checked.length - 1 && after.n === fmt(before.checked.length - 1, 5) && sameSet(after.disabled, off10),
-        T(`card 盆の札（ana）を押す → ana の印が外れる・「${fmt(before.checked.length - 1, 5)}」・印はまた押せる（機種の段（fleet）の無い社を除いて ＝ いま ${off10.length}社が押せない）`), J({ n: after.n, checked: after.checked, disabled: after.disabled.length, want: off10.length }));
+        T(`card 行の ×（ana）を押す → ana の印が外れる・「${fmt(before.checked.length - 1, 5)}」・印はまた押せる（機種の段（fleet）の無い社を除いて ＝ いま ${off10.length}社が押せない）`), J({ n: after.n, checked: after.checked, disabled: after.disabled.length, want: off10.length }));
 
       /* c11 T6（段の無い社に印 ＝ 2社まで）── そのページに「印が在って data-lvl="0"」のカードが在る時だけ歩く（★EN-9：英語も歩く ──
          英語の印も data-two かつ EN_SWITCH になり、段の無い4社にも付くようになった。前は日本語だけ） */
@@ -1293,22 +1332,27 @@ async function main() {
           await tickIt(pg, walker);
           await until(pg, () => !document.getElementById('wd-tray').hidden);
           const a1 = await trayOf(pg);
-          ok(a1.n === fmt(1, 2) && !a1.lvl.shown && !a1.two.shown && sameSet(a1.disabled, wantOff(a1)), T(`card T6 段の無い ${walker} に印 →「${fmt(1, 2)}」・「${LVW}」は出ない`), J(a1));
+          /* ★WP-dmap-10（class B）：段の無い社の行は、レベリング比較に入らない理由を言う・押せない「レベリング比較」のなぜか ＝ その理由の行 */
+          ok(a1.n === fmt(1, 2) && !a1.lvl.on && a1.lvl.by === 'wd-cl-why' && !a1.two.on && a1.chips.length === 1 && a1.chips[0].note === CL[lang].why && sameSet(a1.disabled, wantOff(a1)),
+            T(`card T6 段の無い ${walker} に印 →「${fmt(1, 2)}」・行に理由「${CL[lang].why}」・「${LVW}」は押せない（なぜか ＝ その理由）`), J(a1));
           await tickIt(pg, 'jal');
           await until(pg, (n) => document.getElementById('wd-tray-n').textContent === n, fmt(2, 2));
           const a2 = await trayOf(pg);
-          ok(a2.two.shown && a2.two.href === `career.html?view=compare&a=${walker}&b=jal` && !a2.lvl.shown && sameSet(a2.disabled, wantOff(a2)) && a2.disabled.length === a2.boxes - 2,
-            T(`card T6 2社目（jal）→「${fmt(2, 2)}」・「${TWO}」（a=${walker}&b=jal）・ほかの印はどれも押せない`), J({ n: a2.n, two: a2.two, lvl: a2.lvl, disabled: a2.disabled.length, boxes: a2.boxes }));
+          const why2 = a2.why.filter((x) => !x.by.split(' ').includes('wd-cl-rule')).map((x) => x.s);
+          ok(a2.two.on && a2.two.href === `career.html?view=compare&a=${walker}&b=jal` && !a2.lvl.on && sameSet(a2.disabled, wantOff(a2)) && a2.disabled.length === a2.boxes - 2 && why2.length === 0,
+            T(`card T6 2社目（jal）→「${fmt(2, 2)}」・「${TWO}」（a=${walker}&b=jal）・ほかの印はどれも押せない（なぜか ＝ 決まりの行）`), J({ n: a2.n, two: a2.two, lvl: a2.lvl, disabled: a2.disabled.length, boxes: a2.boxes, why2: why2.slice(0, 5) }));
           await shot(pg, 'card', lang, 'T6');
           await tickIt(pg, walker);
           await until(pg, (n) => document.getElementById('wd-tray-n').textContent === n, fmt(1, 5));
           const a3 = await trayOf(pg);
-          ok(a3.n === fmt(1, 5) && a3.lvl.shown && sameSet(a3.disabled, wantOff(a3)), T(`card T6 ${walker} の印を外す → 5社までに戻る（「${fmt(1, 5)}」・「${LVW}」）`), J(a3));
+          /* 5社までに戻る（★WP-dmap-10：レベリング比較は2〜5社 ＝ 1社のいまは押せない。前は「1社でもレベリング比較」） */
+          ok(a3.n === fmt(1, 5) && !a3.lvl.on && sameSet(a3.disabled, wantOff(a3)), T(`card T6 ${walker} の印を外す → 5社までに戻る（「${fmt(1, 5)}」）`), J(a3));
           const third = exp.filter((s) => s !== walker && s !== 'jal' && lvlN(s)).slice(0, 2);
           for (const s of third) await tickIt(pg, s);
           await until(pg, (n) => document.getElementById('wd-tray-n').textContent === n, fmt(3, 5));
-          const a4 = await trayOf(pg);
-          ok(third.length === 2 && a4.n === fmt(3, 5) && a4.disabled.includes(walker) && sameSet(a4.disabled, wantOff(a4)), T(`card T6 段を持つ3社に印 → 段の無い ${walker} の印は押せない（3社目に段の無い社は入らない）`), J({ checked: a4.checked, disabled: a4.disabled.includes(walker) }));
+          const a4 = await trayOf(pg), w4 = a4.why.find((x) => x.s === walker) || null;
+          ok(third.length === 2 && a4.n === fmt(3, 5) && a4.disabled.includes(walker) && sameSet(a4.disabled, wantOff(a4)) && !!w4 && w4.by === 'wd-cl-why wd-cl-rule' && w4.title.includes(CL[lang].why),
+            T(`card T6 段を持つ3社に印 → 段の無い ${walker} の印は押せない（3社目に段の無い社は入らない・なぜか ＝ 理由の行と決まりの行）`), J({ checked: a4.checked, w4 }));
           qsT6.push(...quiet(Q.st, 'card T6'));
         } finally {
           await Q.ctx.close().catch(() => {});
@@ -1320,6 +1364,235 @@ async function main() {
     } finally {
       await P.ctx.close().catch(() => {});
     }
+  }
+
+  /* 場面 list（日英）── 比較リスト（WP-dmap-10）。期待する集合はここ（Node）とページの検索で作る（台本の答えを写さない）。
+     ★class A（壊すと赤を見た）：①欄の候補 ＝ ページの検索の当たり（同じ並び。地域 すべて・候補はカードに印の在る社）＋ 台帳の錨（カタール → カタール航空・
+     qr → 先頭がカタール航空・ドイツ → 国が DE の会社ちょうど・zzzz → 0 と「見つからない」の文・jal → 先頭が日本航空で、あとに JAL グループの社
+     ＝ ぴったり同じ物が先・あとはページの並び。ぴったりと一部の当たりが混ざる語はこれだけ）／②「航空会社を比較」の行き先 ＝
+     career.html?view=compare&a=<1社目>&b=<2社目>（その言葉のページから見て ＝ 英語は /en/career.html）／③住所の cmp からリストが戻る
+     （読み直し・別の窓で開いた共有の住所・知らない社と2つ目は落とす・開いた時は住所も履歴も書かない）。
+     class B：1440 の0社・欄（↓・Enter）・カードの印・3社目・×・段の無い社・押せない印のなぜか／390 の盆と「＋ 会社を追加」の板（Esc・戻る） */
+  async function list(lang) {
+    const T = (s) => `[${lang}] ${s}`, rel = PAGE_REL[lang], fmt = TRAY_FMT[lang], W = CL[lang], qs = [];
+    const P = await dirOpen(browser, L, { rel, w: 1440, h: 900 });
+    PAGES.push(P);
+    const { page, st } = P;
+    const seenOf = (pg, id) => pg.evaluate((id) => { const el = document.getElementById(id); return !!el && !el.hidden && getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0; }, id);
+    const field = (pg, v) => pg.evaluate((v) => { const f = document.getElementById('wd-cl-q'); f.focus(); f.value = v; f.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    const optsOf = (pg) => pg.evaluate(() => {
+      const o = document.getElementById('wd-cl-opts'), n = document.getElementById('wd-cl-none'), f = document.getElementById('wd-cl-q');
+      const seen = (el) => !!el && !el.hidden && getComputedStyle(el).display !== 'none';
+      const act = f.getAttribute('aria-activedescendant');
+      return { got: [...o.querySelectorAll('li[data-slug]')].map((li) => li.dataset.slug), open: seen(o), none: seen(n) ? n.textContent : null, exp: f.getAttribute('aria-expanded'),
+        act: act ? (document.getElementById(act) || { dataset: {} }).dataset.slug || null : null };
+    });
+    const pressOf = (pg, s) => pg.evaluate((s) => { const b = document.querySelector(`li[data-slug="${s}"] button.wd-cmp`); return { p: b.getAttribute('aria-pressed'), t: [...b.querySelectorAll('span[aria-hidden="true"]')].filter((x) => getComputedStyle(x).display !== 'none').map((x) => x.textContent).join('') }; }, s);
+    const tog = async (pg, s) => { await pg.evaluate((s) => document.querySelector(`li[data-slug="${s}"]`).scrollIntoView({ block: 'center', behavior: 'instant' }), s); await pg.click(`li[data-slug="${s}"] button.wd-cmp`); };
+    const nIs = (pg, n) => until(pg, (n) => document.getElementById('wd-tray-n').textContent === n, n);
+    try {
+      /* L0 0社：カードの右（上端がそろう）に題・0 / 5・空の一言・決まりの行・欄・押せない2つのボタン（狭い画面の部品は出ない） */
+      const t0 = await trayOf(page);
+      const k0 = await page.evaluate(() => {
+        const $ = (id) => document.getElementById(id), seen = (el) => !!el && !el.hidden && getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0;
+        const rt = $('wd-tray').getBoundingClientRect(), rg = $('airline-grid').getBoundingClientRect();
+        return { beside: rt.left >= rg.right, top: Math.round(rt.top - rg.top), h: $('wd-cl-h').textContent, empty: seen($('wd-cl-empty')) ? $('wd-cl-empty').textContent : null,
+          rule: seen($('wd-cl-rule')) ? $('wd-cl-rule').textContent : null, field: seen($('wd-cl-q')) ? $('wd-cl-q').getAttribute('placeholder') : null,
+          small: ['wd-cl-fold', 'wd-cl-open', 'wd-cl-close'].filter((id) => seen($(id))) };
+      });
+      ok(t0.shown && t0.n === fmt(0, 5) && t0.chips.length === 0 && k0.beside && Math.abs(k0.top) <= 2 && k0.h === W.h && k0.empty === W.empty && k0.rule === W.rule && k0.field === W.add
+        && !t0.two.on && t0.two.href === null && !t0.lvl.on && k0.small.length === 0,
+        T(`list 1440 0社 → カードの右（上端がそろう）に「${W.h}」「${fmt(0, 5)}」・空の一言・決まりの行「${W.rule}」・欄「${W.add}」・2つのボタンは押せない`), J({ t0: { n: t0.n, two: t0.two, lvl: t0.lvl }, k0 }));
+      await shot(page, 'list', lang, '1440-0');
+
+      /* L1 ★class A：欄の候補 ＝ ページの検索の当たり（同じ並び）＋ 台帳の錨 */
+      const ticked = new Set(await page.evaluate(() => [...document.querySelectorAll('#airline-grid button.wd-cmp')].map((b) => b.value)));
+      const DE = ofCountry('DE');
+      for (const q of ['カタール', 'qr', 'ドイツ', 'zzzz', 'jal']) {
+        await type(page, q);
+        const pg = (await visible(page)).filter((s) => ticked.has(s));
+        await type(page, '');
+        await field(page, q);
+        const a = await optsOf(page);
+        const anchor = q === 'カタール' ? pg.includes('qatar-airways') : q === 'qr' ? pg[0] === 'qatar-airways' : q === 'ドイツ' ? (DE.length > 0 && sameSet(pg, DE))
+          : q === 'jal' ? (pg[0] === 'jal' && pg.length > 1) : pg.length === 0;
+        ok(anchor && same(a.got, pg) && (pg.length ? a.open && a.none === null && a.exp === 'true' : !a.open && a.none === NONE_SENT[lang] && a.exp === 'false'),
+          T(`list ★欄に「${q}」→ ページの検索と同じ${pg.length}社を同じ並びで（${pg.length ? pg.slice(0, 4).join('・') : `0社・「${NONE_SENT[lang]}」`}）`), J({ q, got: a.got, pg, a }));
+      }
+      await field(page, '');
+
+      /* L2 欄から足す（キーボード）：«qatar» → いま選んでいるのは先頭の候補 → Enter → 行・カードの印も付いた形・欄は空でフォーカスはそのまま */
+      const hl0 = await page.evaluate(() => history.length), href0 = await page.evaluate(() => location.href);
+      await page.focus('#wd-cl-q');
+      await page.keyboard.type('qatar');
+      await until(page, () => !document.getElementById('wd-cl-opts').hidden);
+      const o2 = await optsOf(page);
+      await page.keyboard.press('Enter');
+      await nIs(page, fmt(1, 5));
+      const t2 = await trayOf(page), f2 = await page.evaluate(() => ({ v: document.getElementById('wd-cl-q').value, foc: (document.activeElement || {}).id, open: !document.getElementById('wd-cl-opts').hidden }));
+      ok(o2.act === 'qatar-airways' && same(t2.chips.map((c) => c.s), ['qatar-airways']) && t2.chips[0].x && same(t2.checked, ['qatar-airways']) && f2.v === '' && f2.foc === 'wd-cl-q' && !f2.open,
+        T('list 欄に «qatar» → 選んでいるのは先頭の候補（カタール航空）→ Enter → 行に入り・カードの印も付いた形・欄は空でフォーカスはそのまま'), J({ o2, t2: t2.chips, f2 }));
+      /* ↓ で選び直す：«air» の候補の2つ目を ↓ で選んで Enter → その社が入る */
+      await page.keyboard.type('air');
+      await until(page, () => !document.getElementById('wd-cl-opts').hidden);
+      const o3 = await optsOf(page);
+      const want3 = o3.got.filter((s) => s !== 'qatar-airways')[1] || null;
+      await page.keyboard.press('ArrowDown');
+      const o3b = await optsOf(page);
+      if (o3b.act !== want3) await page.keyboard.press('ArrowDown');   // 1つ目が足せない社のときは、もう1つ下
+      const o3c = await optsOf(page);
+      await page.keyboard.press('Enter');
+      await nIs(page, fmt(2, 5));
+      const t3 = await trayOf(page), a3 = await addr(page);
+      const resolved = await page.evaluate(() => { const a = document.getElementById('wd-tray-two'); return a.href ? new URL(a.href).pathname : null; });
+      ok(!!want3 && o3c.act === want3 && same(t3.chips.map((c) => c.s), ['qatar-airways', want3]),
+        T(`list «air» → ↓ で次の候補（${want3}）→ Enter → 2社目に入る`), J({ o3: o3.got.slice(0, 4), b: o3b.act, c: o3c.act, chips: t3.chips.map((c) => c.s) }));
+      /* ★class A：行き先 ＝ 1社目・2社目の順 */
+      ok(t3.two.on && t3.two.href === `career.html?view=compare&a=qatar-airways&b=${want3}` && resolved === CAREER_PATH[lang] && t3.lvl.on && t3.main === 'wd-tray-two',
+        T(`list ★「${TWO_WORD[lang]}」の行き先 ＝ ${CAREER_PATH[lang].slice(1)}?view=compare&a=qatar-airways&b=${want3}（1社目・2社目の順）・「${LVL_WORD[lang]}」も押せる`), J({ two: t3.two, resolved }));
+      ok(new URLSearchParams(a3.search).get('cmp') === `qatar-airways ${want3}` && a3.hl === hl0 && a3.href === cmpHref(href0, ['qatar-airways', want3]),
+        T('list 住所は cmp だけが変わる（付けた順）・履歴は積まない'), J(a3));
+      await shot(page, 'list', lang, '1440-2');
+
+      /* L3 カードの印で付け外し（「✓ …」→ 外れる → 「＋ …」→ もう1回 → 付いて行の最後へ） */
+      const e0 = await pressOf(page, want3);
+      await tog(page, want3);
+      await nIs(page, fmt(1, 5));
+      const e1 = await pressOf(page, want3), t4 = await trayOf(page);
+      await tog(page, want3);
+      await nIs(page, fmt(2, 5));
+      const e2 = await pressOf(page, want3), t5 = await trayOf(page);
+      ok(e0.p === 'true' && e0.t === W.on && e1.p === 'false' && e1.t === W.off && same(t4.chips.map((c) => c.s), ['qatar-airways']) && e2.p === 'true' && same(t5.chips.map((c) => c.s), ['qatar-airways', want3]),
+        T(`list カードの「${W.on}」を押す → 外れて「${W.off}」・行からも消える → もう1回 → 付いて行の最後へ`), J({ e0, e1, e2 }));
+
+      /* L4 3社目（カードの印で th ＝ 欄で足した2社と重ならない社）→「航空会社を比較」は押せない（行き先も無い）・「レベリング比較」は押せる */
+      const th = ['jal', 'ana', 'emirates'].find((s) => s !== want3 && s !== 'qatar-airways');
+      await tog(page, th);
+      await nIs(page, fmt(3, 5));
+      const t6 = await trayOf(page);
+      ok(!t6.two.on && t6.two.href === null && t6.two.dis === 'true' && t6.lvl.on && same(t6.chips.map((c) => c.s), ['qatar-airways', want3, th]),
+        T(`list 3社目（${th}）→「${TWO_WORD[lang]}」は押せない（行き先も無い）・「${LVL_WORD[lang]}」は押せる`), J({ two: t6.two, lvl: t6.lvl }));
+      /* L5 ×（外す）で2社目を外す → 行とカードから外れ、行き先は a=qatar-airways&b=<th> */
+      const xl = await page.evaluate((s) => (document.querySelector(`#wd-tray-list li[data-slug="${s}"] button.wd-cl-x`) || { getAttribute: () => null }).getAttribute('aria-label'), want3);
+      await page.click(`#wd-tray-list li[data-slug="${want3}"] button.wd-cl-x`);
+      await nIs(page, fmt(2, 5));
+      const t7 = await trayOf(page), x7 = await pressOf(page, want3);
+      ok(same(t7.chips.map((c) => c.s), ['qatar-airways', th]) && x7.p === 'false' && t7.two.href === `career.html?view=compare&a=qatar-airways&b=${th}` && typeof xl === 'string' && xl.startsWith(`${W.rm} `),
+        T(`list 「${W.rm}」（×）で ${want3} を外す → 行とカードから外れ・行き先は a=qatar-airways&b=${th}`), J({ chips: t7.chips.map((c) => c.s), x7, xl }));
+
+      /* L6 ★class A：読み直す → 同じリスト（同じ順・行き先・カードの印） */
+      await page.reload({ waitUntil: 'load', timeout: 60000 });
+      await ready(page);
+      const t8 = await trayOf(page);
+      ok(same(t8.chips.map((c) => c.s), ['qatar-airways', th]) && sameSet(t8.checked, ['qatar-airways', th]) && t8.two.href === `career.html?view=compare&a=qatar-airways&b=${th}`,
+        T('list ★読み直す → 同じリスト（同じ順・行き先・カードの印）'), J({ chips: t8.chips.map((c) => c.s), checked: t8.checked, two: t8.two.href }));
+      /* ★class A：共有した住所を別の窓で開く（知らない社・2つ目は落とす）・開いた時は住所も履歴も書かない */
+      for (const [q, want] of [['?cmp=jal+ana', ['jal', 'ana']], ['?cmp=ana+zzz+ana+jal', ['ana', 'jal']]]) {
+        const Q = await dirOpen(browser, L, { rel, query: q, w: 1440, h: 900 });
+        PAGES.push(Q);
+        try {
+          const tq = await trayOf(Q.page), aq = await addr(Q.page);
+          ok(same(tq.chips.map((c) => c.s), want) && sameSet(tq.checked, want) && tq.two.href === `career.html?view=compare&a=${want[0]}&b=${want[1]}` && aq.search === q && aq.hs === null,
+            T(`list ★共有した住所「${q}」を開く → リスト ${want.join('・')}・行き先 a=${want[0]}&b=${want[1]}・開いた時は住所も履歴も書かない`), J({ chips: tq.chips.map((c) => c.s), two: tq.two.href, aq }));
+          qs.push(...quiet(Q.st, 'list 住所'));
+        } finally {
+          await Q.ctx.close().catch(() => {});
+        }
+      }
+
+      /* L7 段の無い社（class B）：欄から足す → 行に理由・「1 / 2」・レベリング比較は押せない（なぜか ＝ 理由の行）→ jal → 2 / 2 → ほかの印と候補は押せない（なぜか） */
+      const walker = ORDER.find((s) => ticked.has(s) && !fleetOf(ROW.get(s))) || null;
+      if (!walker) ok(false, T('list 段の無い社に印が無い（歩けない）'));
+      else {
+        const R = await dirOpen(browser, L, { rel, w: 1440, h: 900 });
+        PAGES.push(R);
+        try {
+          const pg = R.page;
+          await field(pg, SALARY[walker].en);
+          await until(pg, () => !document.getElementById('wd-cl-opts').hidden);
+          const ow = await optsOf(pg);
+          await pg.keyboard.press('Enter');
+          await nIs(pg, fmt(1, 2));
+          const w1 = await trayOf(pg);
+          ok(ow.act === walker && same(w1.chips.map((c) => c.s), [walker]) && w1.chips[0].note === W.why && !w1.lvl.on && w1.lvl.by === 'wd-cl-why',
+            T(`list 段の無い ${walker} を欄から足す →「${fmt(1, 2)}」・行に理由「${W.why}」・「${LVL_WORD[lang]}」は押せない（なぜか ＝ その理由）`), J({ ow: ow.act, w1: { n: w1.n, chips: w1.chips, lvl: w1.lvl } }));
+          await tog(pg, 'jal');
+          await nIs(pg, fmt(2, 2));
+          const w2 = await trayOf(pg), ana2 = w2.why.find((x) => x.s === 'ana') || null;
+          await field(pg, 'ANA');
+          await until(pg, () => !document.getElementById('wd-cl-opts').hidden);
+          const oa = await pg.evaluate(() => { const li = document.querySelector('#wd-cl-opts li[data-slug="ana"]'); return li ? { dis: li.getAttribute('aria-disabled'), by: li.getAttribute('aria-describedby') } : null; });
+          await pg.keyboard.press('Enter');
+          const ruleB = await pg.evaluate(() => document.getElementById('wd-cl-rule').classList.contains('is-ping'));
+          const w3 = await trayOf(pg);
+          ok(w2.two.on && w2.two.href === `career.html?view=compare&a=${walker}&b=jal` && !!ana2 && ana2.by === 'wd-cl-rule' && ana2.title === W.rule && !!oa && oa.dis === 'true' && oa.by === 'wd-cl-rule' && ruleB && w3.n === fmt(2, 2),
+            T(`list 2社目（jal）→「${fmt(2, 2)}」・ほかの印と欄の候補は押せず、なぜか ＝ 決まりの行（「${W.rule}」）・押そうとすると決まりの行が強まる・増えない`), J({ two: w2.two.href, ana2, oa, ruleB, n: w3.n }));
+          await shot(pg, 'list', lang, '1440-why');
+          qs.push(...quiet(R.st, 'list 段の無い社'));
+        } finally {
+          await R.ctx.close().catch(() => {});
+        }
+      }
+      qs.push(...quiet(st, 'list 1440'));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+
+    /* L8 390（指）── 盆は1社から・1行に畳んだ形（次の1手だけ）→ 開く → 「＋ 会社を追加」の板（履歴1段・フォーカスは欄・ページは止まる）→ 候補を指で →
+       Esc で閉じる（足した社はそのまま・住所に cmp）→ もう1回開いても積み増さない → 戻るで閉じる（足した社はそのまま・一覧のページのまま） */
+    const M = await dirOpen(browser, L, { rel, w: 390, h: 680, touch: true });
+    PAGES.push(M);
+    try {
+      const pg = M.page;
+      const m0 = await trayOf(pg);
+      await pg.evaluate(() => document.querySelector('li[data-slug="jal"]').scrollIntoView({ block: 'center', behavior: 'instant' }));
+      await pg.tap('li[data-slug="jal"] button.wd-cmp');
+      await until(pg, () => !document.getElementById('wd-tray').hidden);
+      const m1 = await trayOf(pg), k1 = await pg.evaluate(() => { const t = document.getElementById('wd-tray'), r = t.getBoundingClientRect(); return { h: Math.round(r.height), bottom: Math.round(r.bottom), vh: innerHeight }; });
+      const open1 = await seenOf(pg, 'wd-cl-open'), rows1 = await seenOf(pg, 'wd-tray-list');
+      ok(!m0.shown && m1.shown && !m1.open && m1.main === 'wd-cl-open' && open1 && !rows1 && k1.h <= 72 && k1.bottom <= k1.vh,
+        T(`list 390 0社では盆は出ない → jal に印 → 盆は1行に畳んだ形（題・${fmt(1, 5)}・次の1手「${W.open}」だけ・高さ ${k1.h}px）`), J({ m1: { n: m1.n, open: m1.open, main: m1.main }, k1, open1, rows1 }));
+      await shot(pg, 'list', lang, '390-fold');
+      await pg.tap('#wd-cl-fold');
+      await until(pg, () => document.getElementById('wd-tray').classList.contains('is-open'));
+      const rows2 = await seenOf(pg, 'wd-tray-list'), rule2 = await seenOf(pg, 'wd-cl-rule'), exp2 = await pg.evaluate(() => document.getElementById('wd-cl-fold').getAttribute('aria-expanded'));
+      ok(rows2 && rule2 && exp2 === 'true', T('list 390 題の行を押す → 開いた形（行・決まりの行・aria-expanded）'), J({ rows2, rule2, exp2 }));
+      const hlA = await pg.evaluate(() => history.length);
+      await pg.tap('#wd-cl-open');
+      const sh = await until(pg, () => document.getElementById('wd-tray').classList.contains('is-adding') && (document.activeElement || {}).id === 'wd-cl-q');
+      const s1 = await pg.evaluate(() => { const t = document.getElementById('wd-tray'), r = t.getBoundingClientRect(); return { role: t.getAttribute('role'), modal: t.getAttribute('aria-modal'), lock: document.documentElement.classList.contains('wd-lock'), hl: history.length, wdadd: !!(history.state && history.state.wdadd), bottom: Math.round(r.bottom), vh: innerHeight, top: Math.round(r.top) }; });
+      ok(sh && s1.role === 'dialog' && s1.modal === 'true' && s1.lock && s1.hl === hlA + 1 && s1.wdadd && s1.bottom === s1.vh && s1.top > 0,
+        T(`list 390 「${W.open}」→ 下から出る板（role="dialog"・ページは止まる・履歴が1段・フォーカスは欄）`), J(s1));
+      await pg.keyboard.type(lang === 'en' ? 'Qatar' : 'カタール');
+      await until(pg, () => !!document.querySelector('#wd-cl-opts li[data-slug="qatar-airways"]') && !document.getElementById('wd-cl-opts').hidden);
+      await shot(pg, 'list', lang, '390-sheet');
+      await pg.tap('#wd-cl-opts li[data-slug="qatar-airways"]');
+      await nIs(pg, fmt(2, 5));
+      const s2 = await pg.evaluate(() => ({ adding: document.getElementById('wd-tray').classList.contains('is-adding'), v: document.getElementById('wd-cl-q').value, cmp: new URLSearchParams(location.search).get('cmp') }));
+      ok(s2.adding && s2.v === '' && s2.cmp === 'jal qatar-airways', T('list 390 候補（カタール航空）を指で → 足される・板は開いたまま・欄は空・住所に cmp'), J(s2));
+      await pg.keyboard.press('Escape');
+      const c1 = await until(pg, () => !document.getElementById('wd-tray').classList.contains('is-adding') && !(history.state && history.state.wdadd));
+      const s3 = await pg.evaluate(() => ({ lock: document.documentElement.classList.contains('wd-lock'), cmp: new URLSearchParams(location.search).get('cmp'), rows: [...document.querySelectorAll('#wd-tray-list li[data-slug]')].map((li) => li.dataset.slug), hs: history.state && history.state.cmp, path: location.pathname }));
+      ok(c1 && !s3.lock && s3.cmp === 'jal qatar-airways' && same(s3.rows, ['jal', 'qatar-airways']) && same(s3.hs, ['jal', 'qatar-airways']),
+        T('list 390 Esc → 板が閉じ、履歴の1段も外れる・足した社はそのまま（行・住所・history.state）'), J(s3));
+      await pg.tap('#wd-cl-open');
+      await until(pg, () => document.getElementById('wd-tray').classList.contains('is-adding'));
+      const s4 = await pg.evaluate(() => history.length);
+      await pg.keyboard.type('EK');
+      await until(pg, () => !!document.querySelector('#wd-cl-opts li[data-slug="emirates"]'));
+      await pg.tap('#wd-cl-opts li[data-slug="emirates"]');
+      await nIs(pg, fmt(3, 5));
+      await pg.evaluate(() => history.back());
+      const c2 = await until(pg, () => !document.getElementById('wd-tray').classList.contains('is-adding'));
+      await settle(pg);
+      const s5 = await pg.evaluate(() => ({ cmp: new URLSearchParams(location.search).get('cmp'), rows: [...document.querySelectorAll('#wd-tray-list li[data-slug]')].map((li) => li.dataset.slug), path: location.pathname, lock: document.documentElement.classList.contains('wd-lock'), wdadd: !!(history.state && history.state.wdadd) }));
+      ok(s4 === s1.hl && c2 && s5.cmp === 'jal qatar-airways emirates' && same(s5.rows, ['jal', 'qatar-airways', 'emirates']) && s5.path.endsWith(rel) && !s5.lock && !s5.wdadd,
+        T('list 390 もう1回開いても履歴を積み増さない → 足して → 戻る → 板が閉じ、足した社はそのまま（一覧のページのまま）'), J({ s4, hl1: s1.hl, s5 }));
+      qs.push(...quiet(M.st, 'list 390'));
+    } finally {
+      await M.ctx.close().catch(() => {});
+    }
+    ok(qs.length === 0, T('list quiet が空（1440・住所・段の無い社・390）'), J(qs));
   }
 
   /* 場面 touch（日英・390×680・指）── 欄を指で押して打つ → 社名を指で押す → 移る → 戻る */
@@ -1343,12 +1616,12 @@ async function main() {
       const eq = await untilVisible(page, v0), f1 = await fieldOf(page);
       ok(eq && f1 === f0, T('touch 戻る → 同じカードと欄（«jal»）'), J({ f1, n: (await visible(page)).length }));
       await shot(page, 'touch', lang, '2-back');
-      /* 比べる印を指で押す → 付く・どこへも移らない（WP-dd-7） */
-      const href0 = await page.evaluate(() => location.href);
-      await page.tap('li[data-slug="jal"] label.wd-cmp');
-      const on = await until(page, () => (document.querySelector('li[data-slug="jal"] .wd-cmp-i') || {}).checked === true);
-      const t1 = await page.evaluate(() => ({ href: location.href, tray: !document.getElementById('wd-tray').hidden }));
-      ok(on && t1.href === href0 && t1.tray, T('touch 比べる印（jal）を指で押す → 付く・住所はそのまま（移らない）・盆が出る'), J({ on, t1, href0 }));
+      /* 比べる印を指で押す → 付く・どこへも移らない（WP-dd-7。★WP-dmap-10：印は button.wd-cmp・住所は cmp だけが変わる ── 前は「住所はそのまま」） */
+      const href0 = await page.evaluate(() => location.href), hl0 = await page.evaluate(() => history.length);
+      await page.tap('li[data-slug="jal"] button.wd-cmp');
+      const on = await until(page, () => (document.querySelector('li[data-slug="jal"] button.wd-cmp') || { getAttribute: () => null }).getAttribute('aria-pressed') === 'true');
+      const t1 = await page.evaluate(() => ({ href: location.href, path: location.pathname, hl: history.length, tray: !document.getElementById('wd-tray').hidden }));
+      ok(on && t1.href === cmpHref(href0, ['jal']) && t1.hl === hl0 && t1.tray, T('touch 比べる印（jal）を指で押す → 付く・移らない（住所は cmp=jal だけ・履歴は積まない）・盆が出る'), J({ on, t1, href0 }));
       await shot(page, 'touch', lang, '3-tick');
       const q = quiet(st, 'touch');
       ok(q.length === 0, T('touch quiet(st, \'touch\') が空'), J(q));
