@@ -151,8 +151,9 @@ const NOINDEX = new Set([
 /* ── 日本語だけのページ（2026-10-03）────────────────────────────
    英語版をまだ置いていないページ。hreflang="en" を書くと存在しないファイルを
    指すので、ここに在るページは ja と x-default（＝ja）だけを書く。
-   **英語版を置いたら、ここから外す。** assert-seo.mjs の同名の集合と2つで対。 */
-const JA_ONLY = new Set(['career.html']);
+   **英語版を置いたら、ここから外す。** assert-seo.mjs の同名の集合と2つで対。
+   ★2026-10-25 英語の EN-9：概要と2社比較の1枚に英語版（en/career.html）を置いたので career.html を外した（いまは空）。 */
+const JA_ONLY = new Set([]);
 
 /* ════════════════════════════════════════════════════════════════
    ルートページのタイトル・説明文（日英）
@@ -189,11 +190,14 @@ const COPY = {
     en: { t: 'Roadmap and requests',
           d: 'What PILOT VALUE is building now and aiming at next. Pilots send requests anonymously, and progress is published here.' },
   },
-  /* 概要と2社比較の1枚（2026-10-03）。日本語だけ（JA_ONLY）。
-     タブの名前は career.js が画面ごとに差し替える（後ろの「 | PILOT VALUE」はそのまま使う）。 */
+  /* 概要と2社比較の1枚（2026-10-03）。★2026-10-25 英語の EN-9 で英語版（en/career.html）を置いた（JA_ONLY から外した）。
+     タブの名前は career.js が画面ごとに差し替える（後ろの「 | PILOT VALUE」はそのまま使う）。
+     英語の題は航空会社一覧の英語の見出し（オーナーの字 «Choose your next career»）。 */
   'career.html': {
     ja: { t: '次のキャリアを、選択する。',
           d: '航空会社の概要と2社の比較。機長と副操縦士の年収を同じ目盛の棒で見比べられます。会社が公表している金額と応募条件も載せています。' },
+    en: { t: 'Choose your next career',
+          d: 'Airline overviews and a two-airline comparison. See captain and first officer pay as bars on the same scale, with the pay figures airlines publish and their requirements.' },
   },
   'world-jobs.html': {
     ja: { t: 'パイロット求人（掲載停止中）',

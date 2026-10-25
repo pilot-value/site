@@ -117,7 +117,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </script>
 <!--/PV-3P-->
 <style data-pv-light>/* PV-LIGHT: on the light theme, this airline's colours are drawn in a darker shade of the same hue so the text stays readable (no effect on the dark theme). Written by patch-airline-pages.mjs - do not edit by hand. */
-[data-theme="light"] [style="color:#cc6600" i],[data-theme="light"] [style^="color:#cc6600;" i],[data-theme="light"] [style*=";color:#cc6600;" i],[data-theme="light"] [style$=";color:#cc6600" i]{color:#a35207!important}
 [data-theme="light"] .btn-primary{background:#0375d6!important}
 [data-theme="light"] .btn-primary:hover{background:#1d79c1!important}
 [data-theme="light"] .section-badge{color:#964a06!important}
@@ -195,7 +194,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="pvg-meta">
 <div class="crl" data-live="stars" data-airline="toho-air" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
-<div class="pvg-acts" aria-hidden="true"></div>
+<div class="pvg-acts">
+<a class="pvg-btn pvg-btn-save" href="../career.html?view=card&amp;a=toho-air"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>Save card</span></a>
+<a class="pvg-btn pvg-btn-cmp" href="../career.html?view=compare&amp;a=toho-air"><span>Compare</span><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></a>
+</div>
 </div>
 </div>
 </div>
@@ -497,15 +499,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="section-badge mb-4">Benefits</div>
 <h2 class="text-2xl font-bold mb-6">Pilot Benefits &amp; Allowances</h2>
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"><div class="stat-card"><div class="text-2xl mb-2">🚁</div><div class="font-semibold text-sm mb-1">Helicopter Career</div><p class="text-xs text-muted">As one of Japan's rare pilots on helicopter passenger routes, you can build unique expertise and a distinctive career.</p></div><div class="stat-card"><div class="text-2xl mb-2">🌺</div><div class="font-semibold text-sm mb-1">Okinawa Living Support</div><p class="text-xs text-muted">Based in Naha, enjoy Okinawa's rich nature and culture every day — a fulfilling lifestyle in a resort setting.</p></div><div class="stat-card"><div class="text-2xl mb-2">🏥</div><div class="font-semibold text-sm mb-1">Health Insurance & Medical</div><p class="text-xs text-muted">Enrollment in the company health-insurance society, dedicated pilot health-management support, and full loss-of-license insurance.</p></div><div class="stat-card"><div class="text-2xl mb-2">🏦</div><div class="font-semibold text-sm mb-1">Retirement Pay & Pension</div><p class="text-xs text-muted">A complete retirement-pay scheme, backed by a stable corporate foundation with more than 60 years of history.</p></div><div class="stat-card"><div class="text-2xl mb-2">🎓</div><div class="font-semibold text-sm mb-1">Multiple Type Ratings</div><p class="text-xs text-muted">Support for obtaining and maintaining both helicopter and fixed-wing qualifications, enabling a diverse set of piloting skills.</p></div><div class="stat-card"><div class="text-2xl mb-2">📚</div><div class="font-semibold text-sm mb-1">Training Cost Support</div><p class="text-xs text-muted">Type-rating training costs are covered by Toho Air Service, and a support scheme also covers helicopter proficiency-check costs.</p></div></div>
-</div>
-
-<div class="glass p-8 fade-up" data-pvg-pane="overview">
-<div class="section-badge mb-4">Comparison</div>
-<h2 class="text-2xl font-bold mb-6">Toho Air Service vs other Japanese carriers</h2>
-<div class="overflow-x-auto"><table>
-<thead><tr><th>Airline</th><th>Captain (estimate)</th><th>First Officer</th><th>Income Tax</th></tr></thead>
-<tbody><tr><td><span class="font-bold" style="color:#CC6600">Toho Air Service 🇯🇵</span></td><td><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></td><td><span class="pv-cur" data-jpy="7500000" data-orig="¥750万">$47K</span></td><td><span class="tag tag-gray">~33% (Japan)</span></td></tr><tr><td><span class="font-semibold"><a href="ana.html" class="text-accent">All Nippon Airways 🇯🇵</a></span></td><td><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></td><td><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></td><td><span class="tag tag-gray">Income tax applies</span></td></tr><tr><td><span class="font-semibold"><a href="jal.html" class="text-accent">Japan Airlines 🇯🇵</a></span></td><td><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></td><td><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></td><td><span class="tag tag-gray">Income tax applies</span></td></tr></tbody></table></div>
-<p class="text-xs text-muted mt-4">* The salary figures are our own estimates, worked out from publicly available information — not figures the airlines publish. Income tax applies in every case here, so the headline figure is not what reaches the bank account. Verify exact figures with each airline.</p>
 </div>
 
 <div class="glass p-8 fade-up" data-pvg-pane="overview">

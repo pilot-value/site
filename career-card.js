@@ -65,8 +65,11 @@
   };
   /* ── 絵の定数 ここまで ───────────────────────────────────────────────── */
 
+  /* ★2026-10-25 英語の EN-9：ページの <html lang> が en（en/career.html）なら、下の字は英語（WORD_EN ── 鍵は WORD と同じ）。
+     読むのはページの言葉だけ（端末の言語設定は読まない）。社名はいまの言葉の名前（#crc-data の ja／en）、英語のカードの見出しは英語の社名だけ。 */
+  var LANG = /^en(-|$)/i.test(document.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
   var FAM_NUM = 'Inter, "Noto Sans JP", sans-serif';     // 数字・英字
-  var FAM_JP = '"Noto Sans JP", Inter, sans-serif';      // 見出し・日本語
+  var FAM_JP = LANG === 'en' ? FAM_NUM : '"Noto Sans JP", Inter, sans-serif';      // 見出し・日本語（英語のカードは英字の書体を先に）
   var THEMES = ['color', 'gold'];
   var ROLES = ['cap', 'fo'];
   /* 住所に足す鍵: 写真（1社目・2社目）とデザイン。
@@ -76,8 +79,22 @@
     brand: 'PILOT VALUE', head: 'パイロットの年収', cap: '機長', fo: '副操縦士', max: '上限',
     photo: '写真（縮小・トリミング）',
     one: '1社', two: '2社', count: '会社の数', co: '会社', coA: '1社目', coB: '2社目', pic: '写真',
+    rated1: '件の評価', lp: '（', rp: '）', mid: '・',
     design: 'デザイン', color: 'カラフル', gold: '黒×金', save: '画像を保存', share: '共有', preview: 'カードの見本', rated: '件の評価'
   };
+  /* 英語の字。サイトに在る英語を先に（Captain・First Officer・1 airline ＝ 航空会社一覧・Save card の画面の字・photo の断り ＝ 写真の台帳の英語）。
+     ★「上限」の英語は、英語の会社ページの上限の印と同じく maximum（斜線の棒と「〜」の DOM の字 ── 英語は up to ── と必ず一緒に出る）。 */
+  var WORD_EN = {
+    brand: 'PILOT VALUE', head: 'Pilot pay', cap: 'Captain', fo: 'First Officer', max: 'Maximum',
+    photo: 'Photo (resized and cropped)',
+    one: '1 airline', two: '2 airlines', count: 'Number of airlines', co: 'Airline', coA: 'First airline', coB: 'Second airline', pic: 'Photo',
+    rated1: ' rating', lp: ' (', rp: ')', mid: ' · ',
+    design: 'Design', color: 'Colorful', gold: 'Black & gold', save: 'Save image', share: 'Share', preview: 'Card preview', rated: ' ratings'
+  };
+  if (LANG === 'en') WORD = WORD_EN;
+  /* カードに描く社名（いまの言葉の名前）と、その下に添える英語の名前（英語のカードは添えない ── 同じ名前を2度言わない） */
+  var nameOf = function (a) { return (LANG === 'en' ? a.en : a.ja) || ''; };
+  var subOf = function (a) { return LANG === 'en' ? '' : a.en || ''; };
 
   var cr = document.getElementById('cr');
   var root = document.getElementById('crc-root');
@@ -174,7 +191,7 @@
     } else {
       ROLES.forEach(function (r) { var v = readRow(slug, r, top); if (v) roles[r] = v; });
     }
-    return { slug: slug, ja: a.ja || '', en: a.en || '', code: a.code || '', color: a.color || '',
+    return { slug: slug, ja: nameOf(a), en: subOf(a), code: a.code || '', color: a.color || '',
              url: a.url || '', qr: a.qr || [], photo: photos[photoIx] || photos[0] || null, roles: roles, axis: axis, rating: ratingOf(slug) };
   }
 
@@ -203,7 +220,7 @@
   }
   function ratingOf(slug) {
     var v = Object.prototype.hasOwnProperty.call(RATED, slug) ? RATED[slug] : null;
-    return v ? { avg: v.avg.toFixed(1), fill: Math.round(v.avg / D.RATE_MAX * 1000) / 1000, n: v.n, text: v.n + WORD.rated } : null;
+    return v ? { avg: v.avg.toFixed(1), fill: Math.round(v.avg / D.RATE_MAX * 1000) / 1000, n: v.n, text: v.n + (v.n === 1 ? WORD.rated1 : WORD.rated) } : null;
   }
 
   /* ── 描く道具 ───────────────────────────────────────────────────── */
@@ -732,7 +749,7 @@
     /* 会社は地域ごとに束ねる（地域の名前は航空会社一覧の見出しと同じ字 ── 材料の g。出てきた順に1つずつ）。g の無い会社は束ねずに並べる。 */
     var groups = {};
     SLUGS.forEach(function (k) {
-      var g = AIR[k].g || '', o = el('option', '', AIR[k].ja || k);
+      var g = AIR[k].g || '', o = el('option', '', nameOf(AIR[k]) || k);
       o.value = k;
       if (!g) { s.appendChild(o); return; }
       if (!groups[g]) { groups[g] = el('optgroup'); groups[g].label = g; s.appendChild(groups[g]); }
@@ -812,15 +829,15 @@
     if (two) ui.selB.value = S.b;
     Array.prototype.forEach.call(ui.selA.options, function (o) { o.disabled = false; });
     Array.prototype.forEach.call(ui.selB.options, function (o) { o.disabled = o.value === S.a; });
-    ui.fPa.label.textContent = WORD.pic + (two ? '（' + AIR[S.a].ja + '）' : '');
+    ui.fPa.label.textContent = WORD.pic + (two ? WORD.lp + nameOf(AIR[S.a]) + WORD.rp : '');
     thumbs(ui.thA, S.a, S.p, function (i) { S.p = i; changed(); });
     ui.fPa.box.hidden = (AIR[S.a].photos || []).length < 2;
     ui.fPb.box.hidden = !two || (AIR[S.b].photos || []).length < 2;
     if (two) {
-      ui.fPb.label.textContent = WORD.pic + '（' + AIR[S.b].ja + '）';
+      ui.fPb.label.textContent = WORD.pic + WORD.lp + nameOf(AIR[S.b]) + WORD.rp;
       thumbs(ui.thB, S.b, S.q, function (i) { S.q = i; changed(); });
     }
-    ui.cv.setAttribute('aria-label', WORD.preview + '（' + AIR[S.a].ja + (two ? '・' + AIR[S.b].ja : '') + '）');
+    ui.cv.setAttribute('aria-label', WORD.preview + WORD.lp + nameOf(AIR[S.a]) + (two ? WORD.mid + nameOf(AIR[S.b]) : '') + WORD.rp);
   }
 
   /* ── 住所（選び直しは履歴を積まない） ─────────────────────────────────── */

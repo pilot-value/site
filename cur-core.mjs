@@ -87,6 +87,55 @@ export function bakeText(text, C) {
   return out + text.slice(p);
 }
 
+/* HTML の一切れ（ページの <body> の中に入る部分）の地の文を、bake-en-currency.mjs と同じ決まりで焼く（★2026-10-25 英語の EN-9）。
+   触るのは currency.js の scan() と同じ範囲だけ ── SKIP_TAG（script・style・option …）と SKIP_CLASS（pv-no-cur・pv-cur …）の中は触らない
+   （除外の一覧は currency.js から読む ── 写さない）。span を作るのは上の bakeText の1か所。
+   ⚠️ 一切れ全部が <body> の中という前提（<head> の字は渡さない）。生成器がこれで焼いた中身は、あとで bake-en-currency.mjs を
+      流しても1文字も変わらない（同じ決まり・同じ span・pv-cur は焼き直さない）。gen-career.mjs の英語の比較のページが呼ぶ。 */
+let SKIPS = null;
+function skips() {
+  if (SKIPS) return SKIPS;
+  const src = readFileSync(HERE + 'currency.js', 'utf8');
+  const keys = (name) => {
+    const i = src.indexOf(`var ${name}`);
+    if (i < 0) throw new Error(`currency.js に var ${name} が無い`);
+    let k = src.indexOf('{', i), d = 0;
+    for (; k < src.length; k++) { if (src[k] === '{') d++; else if (src[k] === '}') { d--; if (!d) break; } }
+    return src.slice(i, k + 1).split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n')
+      .match(/['"]?([A-Za-z-]+)['"]?\s*:/g).map((s) => s.replace(/['":\s]/g, ''));
+  };
+  return (SKIPS = { tag: new Set(keys('SKIP_TAG').map((s) => s.toUpperCase())), cls: new Set(keys('SKIP_CLASS')) });
+}
+const VOID_TAG = new Set(['AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR']);
+export function bakeHtml(html, C) {
+  const S = skips();
+  let out = '', i = 0, skip = 0;
+  const stack = [];
+  while (i < html.length) {
+    const lt = html.indexOf('<', i);
+    const text = html.slice(i, lt < 0 ? html.length : lt);
+    out += !skip && /[万億¥]/.test(text) ? bakeText(text, C) : text;
+    if (lt < 0) break;
+    if (html.startsWith('<!--', lt)) { const e = html.indexOf('-->', lt); const j = e < 0 ? html.length : e + 3; out += html.slice(lt, j); i = j; continue; }
+    let k = lt + 1, q = null;
+    while (k < html.length) { const c = html[k]; if (q) { if (c === q) q = null; } else if (c === '"' || c === "'") q = c; else if (c === '>') break; k++; }
+    const raw = html.slice(lt, k + 1);
+    out += raw; i = k + 1;
+    if (/^<\//.test(raw)) {
+      const name = (raw.match(/^<\/\s*([A-Za-z][\w-]*)/) || [, ''])[1].toUpperCase();
+      for (let j = stack.length - 1; j >= 0; j--) if (stack[j].name === name) { for (let m = stack.length - 1; m >= j; m--) if (stack[m].skips) skip--; stack.length = j; break; }
+      continue;
+    }
+    const name = (raw.match(/^<\s*([A-Za-z][\w-]*)/) || [, ''])[1].toUpperCase();
+    if (!name || VOID_TAG.has(name) || /\/>$/.test(raw)) continue;
+    const cls = (raw.match(/\sclass\s*=\s*("([^"]*)"|'([^']*)')/i) || [])[0] || '';
+    const sk = S.tag.has(name) || cls.split(/[\s"'=]+/).some((c) => S.cls.has(c));
+    if (sk) skip++;
+    stack.push({ name, skips: sk });
+  }
+  return out;
+}
+
 export async function curCore(state = 'USD', lang = 'en') {
   const src = readFileSync(HERE + 'currency.js', 'utf8');
   const body = [

@@ -45,7 +45,8 @@ import { BASIS, TIERS, figures } from './salary-basis.mjs';
 import { viewOf, rentCell, GLANCE, LEAD } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
-import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell, tabOfKey, CMP_KEYS, NEAR } from './gen-career.mjs';
+import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell, tabOfKey, CMP_KEYS, NEAR, PAGE_EN, WORDS as CR_WORDS, checkWords as crCheckWords } from './gen-career.mjs';
+import { curCore, bakeHtml } from './cur-core.mjs';
 import { frozenPrint, matrixPrint, qrMatrix } from './career-qr.mjs';
 /* 航空会社一覧の形（並び・地域 ── 台帳との突き合わせは assert-directory.mjs が持つ）と、投稿先だけの会社（年収を載せない会社）。 */
 import { model as dirModel, REGIONS as DIR_REGIONS } from './directory-model.mjs';
@@ -378,15 +379,25 @@ const inSet = (file, set) => {
   const to = from < 0 ? -1 : t.indexOf('])', from);
   return to > from && t.slice(from, to).includes(`'${PAGE}'`);
 };
-for (const f of ['gen-sitemap.mjs', 'seo-normalize.mjs', 'assert-seo.mjs']) ok(inSet(f, 'NOINDEX'), `${f} の NOINDEX に在る`);
-for (const f of ['seo-normalize.mjs', 'assert-seo.mjs']) ok(inSet(f, 'JA_ONLY'), `${f} の JA_ONLY に在る（日本語だけ）`);
-ok(new RegExp(`'${PAGE.replace('.', () => '\\.')}'\\s*:\\s*\\{\\s*ja\\s*:`).test(read('seo-normalize.mjs')), 'seo-normalize.mjs の COPY に題名が在る');
+for (const f of ['gen-sitemap.mjs', 'seo-normalize.mjs', 'assert-seo.mjs']) ok(inSet(f, 'NOINDEX'), `${f} の NOINDEX に在る（名前で当たる ── 英語の ${PAGE_EN} も同じ）`);
+/* ★2026-10-25 英語の EN-9 で向け直した（弱めていない）：前は「JA_ONLY の2つに在る・en/career.html は無い・hreflang="en" を出さない」。
+   英語の1枚（en/career.html）を置いたので、いまは その反対が2つとも1か所も欠けずにそろっていること ── JA_ONLY の2つから外れている・
+   COPY に英語の題名・英語も noindex・2枚が互いを hreflang で指し合う・英語の1枚も gen-career.mjs の出力と1文字も違わない（下の C3）。 */
+for (const f of ['seo-normalize.mjs', 'assert-seo.mjs']) ok(!inSet(f, 'JA_ONLY'), `${f} の JA_ONLY から外れている（英語版 ${PAGE_EN} が在る）`);
+ok(new RegExp(`'${PAGE.replace('.', () => '\\.')}'\\s*:\\s*\\{\\s*ja\\s*:[^}]*\\},\\s*en\\s*:\\s*\\{\\s*t\\s*:`).test(read('seo-normalize.mjs')), 'seo-normalize.mjs の COPY に題名が在る（日本語と英語）');
 ok(/<meta name="robots" content="noindex,follow"\s*\/?>/.test(HTML), '検索に出さない（noindex）');
-ok(!read('sitemap.xml').includes(PAGE), 'sitemap.xml に載っていない');
-ok(!fs.existsSync(path.join(ROOT, 'en', PAGE)), `en/${PAGE} は無い（置いたら JA_ONLY の2つから外す）`);
-ok(!/hreflang="en"/.test(HTML), '英語版への hreflang を出していない');
-ok(read('assert-founding.mjs').includes(`'${PAGE}'`), 'assert-founding.mjs の除外リストに在る');
-ok(read('assert-header.mjs').includes(`'/${PAGE}`), 'assert-header.mjs が測っている');
+ok(!read('sitemap.xml').includes(PAGE), 'sitemap.xml に載っていない（日本語も英語も）');
+const EN_HTML = fs.existsSync(path.join(ROOT, PAGE_EN)) ? read(PAGE_EN) : '';
+ok(!!EN_HTML && /<meta name="robots" content="noindex,follow"\s*\/?>/.test(EN_HTML) && /<html lang="en"/.test(EN_HTML), `${PAGE_EN} が在り、英語（<html lang="en">）で、検索に出さない（noindex）`);
+{
+  const alt = (h, l) => (h.match(new RegExp(`<link rel="alternate" hreflang="${l}" href="([^"]*)"\\s*/?>`)) || [])[1];
+  const want = { ja: 'https://pilot-value.com/career.html', en: 'https://pilot-value.com/en/career.html' };
+  ok([HTML, EN_HTML].every(h => alt(h, 'ja') === want.ja && alt(h, 'en') === want.en),
+     '日本語と英語の2枚が、互いを hreflang で指し合う（ja → career.html・en → en/career.html）', JSON.stringify([HTML, EN_HTML].map(h => [alt(h, 'ja'), alt(h, 'en')])));
+}
+ok(/var EN_PAGES = new Set\(\[[^\]]*"career\.html"/.test(read('lang-toggle.js')), '言葉の切り替え（lang-toggle.js の EN_PAGES ── gen-en-manifest.mjs が書く）に career.html が在る');
+ok(read('assert-founding.mjs').includes(`'${PAGE}'`) && read('assert-founding.mjs').includes(`'${PAGE_EN}'`), 'assert-founding.mjs の除外リストに在る（日本語と英語）');
+ok(read('assert-header.mjs').includes(`'/${PAGE}`) && read('assert-header.mjs').includes(`'/${PAGE_EN}`), 'assert-header.mjs が測っている（日本語と英語）');
 ok(read('assert-generated.mjs').includes(`'gen-career.mjs'`), 'assert-generated.mjs が流し忘れを見ている');
 ok(read('check.mjs').includes(`'assert-career.mjs'`), 'check.mjs の一式にこの検査が入っている');
 /* メニューにはまだ載せない（オーナーが形を決めるまでの下見用）。 */
@@ -413,6 +424,73 @@ const CARD_AIR = (CARD_DATA && CARD_DATA.airlines) || {};
   }
   ok(!!CNAME && !!CARD_DATA && !bad.length, 'カードの住所は、いま改良している会社ページ（5社）。QR は、別の読み取り器で読めた行列と同じ', bad.join(' ／ ') || `CNAME ${CNAME}・材料 ${!!CARD_DATA}`);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   C3) 英語の1枚（en/career.html ── ★2026-10-25 英語の EN-9）
+   同じ1枚を英語で：gen-career.mjs の同じ部品・同じ並び・同じ数字で、字だけ英語（WORDS.en と台帳の英語）・額は HTML の時点でドルの span。
+   見るのは 生成の出力と1文字も違わない／字の対（WORDS の鍵と形）／見える字に日本語が無い／額は日本語の1枚と同じ（焼き残しが無い）／
+   骨組み（字を外したタグと属性）が日本語の1枚と同じ／カードの住所・QR・地域の名前は英語のページのもの／口コミの6分類は英語の名前。
+   ══════════════════════════════════════════════════════════════════ */
+head('英語の1枚（en/career.html）');
+{
+  ok(!!EN_HTML && render(EN_HTML, 'en') === EN_HTML, `${PAGE_EN} は gen-career.mjs の出力（render(…, 'en')）と1文字も違わない`, 'node gen-career.mjs を流す');
+  const words = crCheckWords();
+  ok(!words.length && !!CR_WORDS.en && Object.keys(CR_WORDS.en).length === Object.keys(CR_WORDS.ja).length,
+     'この1枚の字の表（gen-career.mjs の WORDS）は、日本語と英語で鍵も形も同じ・英語に日本語の字が無い', words.slice(0, 4).join(' ／ '));
+  const blk = h => { const a = h.indexOf('<!--PV-CAREER-->'), b = h.indexOf('<!--/PV-CAREER-->'); return a < 0 || b < a ? '' : h.slice(a, b); };
+  const JB = blk(HTML), EB = blk(EN_HTML), EU = unbake(EB);
+  const un = t => t.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const noScript = t => t.replace(/<script\b[\s\S]*?<\/script>/g, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
+  /* 見える字と、読み上げ・乗せたときに出る字（alt・title・aria-label・placeholder・data-label）。写真の作者名（台帳の字）と “…” の中（原文の題）は除く */
+  const JA_RE = /[　-ヿ㐀-鿿＀-￯]/;
+  const AUTH = [...new Set([...Object.values(PHOTOS).flat(), ...Object.values(PLACE.PHOTOS).flat()].map(p => p.author).filter(a => a && JA_RE.test(a)))];
+  const clean = t => { let s = un(t).replace(/“[^”]*”/g, ' '); for (const a of AUTH) s = s.split(a).join(' '); return s; };
+  const shown = [...noScript(EB).replace(/<[^>]*>/g, '\n').split('\n'), ...[...noScript(EB).matchAll(/\s(?:alt|title|aria-label|placeholder|data-label)="([^"]*)"/g)].map(m => m[1])];
+  const jaLeft = [...new Set(shown.map(clean).map(s => s.trim()).filter(s => s && JA_RE.test(s)))];
+  ok(!!EB && !jaLeft.length, `${PAGE_EN} の見える字と alt・title・aria-label・placeholder に日本語の字が無い（写真の作者名・“…” の中の原文の題を除く）`, jaLeft.slice(0, 6).join(' ／ '));
+  /* 額：英語の1枚の額は、焼いた span を戻すと日本語の1枚と同じ並びの同じ字（比較の行・概要の大きい額・目盛）。どれも SALARY の推定 */
+  const vals = (t, re) => [...t.matchAll(re)].map(m => m[1]);
+  const ROW_V = /<b class="cr-row-v">([^<]*)<\/b>/g, MAIN_V = /data-main="(?:cap|fo)">([^<]*)<\/b>/g, AX = /<div class="cr-axis"[^>]*><span>0<\/span><span>([^<]*)<\/span><span>([^<]*)<\/span>/g;
+  const jr = vals(JB, ROW_V), er = vals(EU, ROW_V), jm = vals(JB, MAIN_V), em = vals(EU, MAIN_V);
+  const axes = t => [...t.matchAll(AX)].map(m => m[1] + '|' + m[2]);
+  /* 職位の板（.cr-pair）ごとに切って、その中の行を読む（行は板の中にだけ在る ── 次の板の頭まで） */
+  const rowsOf = t => t.split('<div class="cr-pair" data-role="').slice(1).flatMap(seg => { const r = seg.slice(0, seg.indexOf('"'));
+    return [...seg.matchAll(/<div class="cr-row" data-airline="([^"]+)"[\s\S]*?<b class="cr-row-v">([^<]*)<\/b>/g)].map(x => [r, x[1], x[2]]); });
+  const badRow = rowsOf(EU).filter(([r, s, v]) => v !== yen(SALARY[s][r].avg));
+  ok(jr.length === 2 * ALLK.length && same(jr, er) && jm.length > 0 && same(jm, em) && same(axes(JB), axes(EU)) && !badRow.length && rowsOf(EU).length === 2 * ALLK.length,
+     `${PAGE_EN} の額（比較の行 ${er.length}・概要の大きい額 ${em.length}・目盛）は、ドルの span を戻すと日本語の1枚と同じ字 ── どれも SALARY の推定`,
+     JSON.stringify({ rows: [jr.length, er.length], main: [jm, em], bad: badRow.slice(0, 4) }));
+  /* 焼き残しが無い：焼いた span を戻してから焼き直すと、1文字も違わない（＝ どの円の額も HTML の時点でドルの span ── bake-en-currency.mjs を流しても変わらない） */
+  const C_EN = await curCore('USD', 'en');
+  ok(!!EB && bakeHtml(EU, C_EN) === EB && (EB.match(/<span class="pv-cur" data-jpy="\d+" data-orig="¥[\d,]+万">/g) || []).length >= er.length,
+     `${PAGE_EN} の円の額は、どれも HTML の時点でドルの span（焼き残しが無い・data-orig は「¥…万」の形）`);
+  /* 骨組み：字を外し、言葉で違ってよい属性（alt・title・aria-label・placeholder・data-label）と道の頭の ../ を外すと、日本語の1枚と同じ */
+  const bones = t => noScript(t).replace(/>[^<]*</g, '><').replace(/\s(?:alt|title|aria-label|placeholder|data-label)="[^"]*"/g, '')
+    .replace(/(\s(?:src|srcset|href)=")((?:[^"]*?))"/g, (m, a, v) => a + v.replace(/(^|, )\.\.\//g, (x, p) => p) + '"');
+  const jb = bones(JB), eb = bones(EU);
+  let at = 0; while (at < jb.length && jb[at] === eb[at]) at++;
+  ok(!!JB && jb === eb, `${PAGE_EN} の骨組み（字を外したタグと属性）は日本語の1枚と同じ ── 同じ部品・同じ画面・同じ会社・同じ並び`, jb === eb ? '' : `最初の違い：日本語「${jb.slice(at - 60, at + 80)}」／英語「${eb.slice(at - 60, at + 80)}」`);
+  /* カードの材料：住所と QR は英語の会社ページ（en/airlines/{slug}.html ── 在るファイル）・地域の名前は英語・写真は en/ から見た道 */
+  let ED = null;
+  try { ED = JSON.parse((EN_HTML.match(/<script type="application\/json" id="crc-data">([\s\S]*?)<\/script>/) || [])[1] || 'null'); } catch { ED = null; }
+  const EA = (ED && ED.airlines) || {}, CNAME = read('CNAME').trim(), RN = Object.fromEntries(DIR_REGIONS.map(R => [R.ja, R.en]));
+  const cBad = [];
+  for (const s of ALLK) {
+    const a = EA[s], j = CARD_AIR[s], want = `https://${CNAME}/en/airlines/${s}.html`;
+    if (!a || !j) { cBad.push(`${s}: 材料が無い`); continue; }
+    if (a.url !== want || !fs.existsSync(path.join(ROOT, 'en', 'airlines', `${s}.html`))) cBad.push(`${s}: 住所 ${a.url}`);
+    if (!same(a.qr, qrMatrix(want).map(r => r.join('')))) cBad.push(`${s}: QR が住所の行列でない`);
+    if (a.g !== RN[j.g]) cBad.push(`${s}: 地域「${a.g}」（日本語「${j.g}」の英語であること）`);
+    if (a.ja !== j.ja || a.en !== j.en || a.code !== j.code || a.color !== j.color) cBad.push(`${s}: 社名・略号・色が日本語の材料と違う`);
+    if (!same((a.photos || []).map(p => p.src), (j.photos || []).map(p => `../${p.src}`)) || (a.photos || []).some(p => !fs.existsSync(path.join(ROOT, 'en', p.src)))) cBad.push(`${s}: 写真の道`);
+  }
+  ok(!!ED && !cBad.length && Object.keys(EA).join() === Object.keys(CARD_AIR).join(),
+     `${PAGE_EN} のカードの材料：住所と QR は英語の会社ページ（en/airlines/{slug}.html）・地域の名前は英語・社名と色は日本語の材料と同じ・写真は en/ から見た道（${ALLK.length}社）`, cBad.slice(0, 6).join(' ／ '));
+  /* 口コミの6分類の名前（比較の6角形）：英語の会社ページの口コミの欄と同じ英語（airlines/airline-reviews-data.js の CAT_FULL_EN） */
+  const catsEn = (read('airlines/airline-reviews-data.js').match(/const CAT_FULL_EN\s*=\s*(\[[^\]]*\]);/) || [])[1];
+  const got = (EN_HTML.match(/<script type="application\/json" id="crl-cats">([\s\S]*?)<\/script>/) || [])[1];
+  ok(!!catsEn && !!got && same(JSON.parse(got), JSON.parse(catsEn.replace(/'/g, '"'))), `${PAGE_EN} の口コミの6分類の名前は CAT_FULL_EN`, `${got} ／ ${catsEn}`);
+}
 /* T-C4：カードの評価の1行の字は、会社ページ・比較の「n件の評価」と同じ字（2つのファイルに1つずつ）。星は形で描く（字にしない）。
    カードは実データの欄（.crl）を読まない ── 欄を避ける inLive の1か所のほかに、.crl の選び方も 'crl-' を探す口も持たない（評価は PVCareer.rating から来る）。 */
 {
@@ -421,6 +499,17 @@ const CARD_AIR = (CARD_DATA && CARD_DATA.airlines) || {};
   const liveW = (LIVE.match(/\n {4}revRated: function \(n\) \{ return n \+ '([^']*)'; \},\n/) || [])[1];
   ok(cardW === '件の評価' && liveW === cardW, 'カードの評価件数の字は、会社ページ・比較と同じ「件の評価」（career-card.js の WORD.rated ＝ career-live.js の revRated）',
      JSON.stringify({ card: cardW, live: liveW }));
+  /* ★2026-10-25 英語の EN-9：英語のカード（WORD_EN）も、英語の比較・会社ページ（career-live.js の英語の revRated）と同じ字 ── 1件は単数 */
+  const cardEn = (CC.match(/\n {2}var WORD_EN = \{[\s\S]*?\n {4}rated1: '([^']*)'[\s\S]*?\brated: '([^']*)'\n {2}\};/) || []).slice(1);
+  const liveEn = (LIVE.match(/\n {4}revRated: function \(n\) \{ return n \+ \(n === 1 \? '([^']*)' : '([^']*)'\); \},\n/) || []).slice(1);
+  ok(cardEn.length === 2 && same(cardEn, liveEn) && /\bif \(LANG === 'en'\) WORD = WORD_EN;/.test(CC),
+     '英語のカードの評価件数の字は、英語の比較・会社ページと同じ（1件は「 rating」・ほかは「 ratings」）── ページが英語なら WORD_EN に替わる', JSON.stringify({ card: cardEn, live: liveEn }));
+  /* カードの字の2つの表（WORD・WORD_EN）は鍵が同じ・英語の字に日本語の字が無い・空でない（片方だけ直すと、英語のカードに鍵の名前や undefined が描かれる） */
+  const kv = name => { const b = (CC.match(new RegExp(`\\n {2}var ${name} = \\{([\\s\\S]*?)\\n {2}\\};`)) || [])[1] || ''; return Object.fromEntries([...b.matchAll(/(\w+):\s*'([^']*)'/g)].map(m => [m[1], m[2]])); };
+  const wj = kv('WORD'), we = kv('WORD_EN'), kj = Object.keys(wj).sort(), ke = Object.keys(we).sort();
+  const jaInEn = ke.filter(k => /[　-ヿ㐀-鿿＀-￯]/.test(we[k]) || !we[k].trim());
+  ok(kj.length > 20 && same(kj, ke) && !jaInEn.length, 'カードの字の表は、日本語（WORD）と英語（WORD_EN）で鍵が同じ・英語の字に日本語の字が無く空でない',
+     JSON.stringify({ onlyJa: kj.filter(k => !ke.includes(k)), onlyEn: ke.filter(k => !kj.includes(k)), jaInEn }));
   /* コメントの見出しの ★ は字ではなく書き手の印（描かれない）── コメントを外して見る */
   ok(!/[★☆⭐✩✪✭✮✯]/u.test(noJsCmt(CC)), 'カードの JS は星の字を持たない（星は形で描く）', (noJsCmt(CC).match(/.{0,30}[★☆⭐✩✪✭✮✯].{0,30}/u) || [''])[0]);
   const CODE = noJsCmt(CC).split('\n').filter(l => !/^\s+function inLive\(el\) \{/.test(l)).join('\n');
@@ -3128,6 +3217,114 @@ try {
     ok(moved && swapped && u.rows.length === ROLES.length * 2 && u.rows.every(t => /\$/.test(t) && !/[¥万]/.test(t)) && u.rest.length > 0 && u.rest.every(t => !/[¥万]/.test(t))
        && same(f1, fx) && same(f2, fx) && j.rows.length === ROLES.length * 2 && j.rows.every(t => /¥/.test(t)),
        '通貨を替えたまま会社を選び直し・入れ替えても、額はその通貨のまま', JSON.stringify({ moved, swapped, usd: u, feet: [f1, f2], jpy: j.rows }));
+    await c();
+  }
+
+  /* ── 英語の1枚（en/career.html）── ★2026-10-25 英語の EN-9 ─────────────────────────────
+     同じ1枚を英語で開いて、狭い幅と広い幅の2つで見る（日本語の検査の全部を英語でもう一度は流さない ── RULING O）：
+       (a) 見えている字（生きた欄の「読めなかった」の姿・選ぶ面・上の帯と左のメニューも）に日本語の字が無い（写真の作者名・“…” の中を除く）
+       (b) 比較の最初の1画面に、2枚の札・年収の板の全部・「Submitted pay」の見出しの頭が入る（日本語と同じ約束）
+       (c) 横に溢れない・額と社名が箱からはみ出さない（ドルと、字数の多い AED で）
+       (d) 保存するカード：描いた社名は英語の社名・住所は英語の会社ページ・描いた字に日本語の字が無い */
+  head('英語の1枚（en/career.html）を開く');
+  {
+    const JA_RE = /[　-ヿ㐀-鿿＀-￯]/;
+    const AUTH = [...new Set([...Object.values(PHOTOS).flat(), ...Object.values(PLACE.PHOTOS).flat()].map(x => x.author).filter(a => a && JA_RE.test(a)))];
+    const jaOf = list => [...new Set(list.map(t => { let s = String(t || '').replace(/“[^”]*”/g, ' '); for (const a of AUTH) s = s.split(a).join(' '); return s.replace(/\s+/g, ' ').trim(); }).filter(s => JA_RE.test(s)))];
+    const goEn = async (p, q) => { await p.goto(`${BASE}/${PAGE_EN}${q}`, { waitUntil: 'load' }); await ready(p); await settle(p); };
+    /* 見えている字（画面の字と、読み上げ・乗せたときに出る字）。手元のサーバー（serve-local.mjs）が配る瞬間に差し込む会員の切替（[data-pv-local] ──
+       公開するファイルには1文字も無い）は数えない */
+    const seenText = p => p.evaluate(() => {
+      const on = el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden' && !el.closest('[data-pv-local]');
+      const out = [], tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n; (n = tw.nextNode());) { const el = n.parentElement; if (n.nodeValue.trim() && el && !el.closest('script, style, noscript') && on(el)) out.push(n.nodeValue); }
+      for (const el of document.querySelectorAll('[alt], [title], [aria-label], [placeholder]')) if (on(el)) for (const a of ['alt', 'title', 'aria-label', 'placeholder']) if (el.hasAttribute(a)) out.push(el.getAttribute(a));
+      return out;
+    });
+    const VIEWS_EN = ['', '?airline=jal', '?airline=etihad', '?airline=etihad&tab=work', '?airline=etihad&tab=life', '?airline=etihad&stay=NRT', '?airline=etihad&d=cap-est',
+      '?view=compare&a=jal&b=united', '?view=compare&a=emirates&b=jal', '?view=compare&a=swiss&b=tap'];
+    const MONEY_NAMES = '.cr-num-v, .cr-bar-v, .cr-row-v, .cr-fig b, .cr-tile-n, .cr-opt-n, .cr-hero-n, .cr-row-co, .cr-pk-n, .cr-pk-c, .cr-go-n, .cr-tx, .cr-role, .cr-tgt';
+    const cutOf = p => p.evaluate(sel => {
+      const v = document.querySelector('#cr .cr-view:not([hidden])'), out = [];
+      const on = el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+      for (const el of v.querySelectorAll(sel)) {
+        if (!on(el)) continue;
+        if ((s => s.position === 'absolute' && s.clipPath === 'inset(50%)')(getComputedStyle(el)) && el.getBoundingClientRect().width <= 1) continue;   // 読み上げにだけ残す字
+        if (getComputedStyle(el).webkitLineClamp && getComputedStyle(el).webkitLineClamp !== 'none') continue;   // 2行で切る税の字（字は title と会社ページに在る）
+        const b = el.getBoundingClientRect();
+        if (b.right > innerWidth + 0.5 || b.left < -0.5 || (el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0)) out.push(`${el.className}「${el.textContent.trim().slice(0, 18)}」`);
+      }
+      return { over: document.documentElement.scrollWidth - document.documentElement.clientWidth, cut: out };
+    }, MONEY_NAMES);
+    for (const [w, h] of [[390, 680], [1440, 900]]) {
+      const { page: p, close: c } = await open('', w, h, { path: PAGE_EN });
+      await ready(p);
+      const jaBad = [], cut = [];
+      for (const q of VIEWS_EN) {
+        await goEn(p, q);
+        /* 生きた欄が落ち着くまで（通信は止めてあるので「読めなかった」の姿）── 待ちは条件で */
+        await p.waitForFunction(() => [...document.querySelectorAll('#cr .cr-view:not([hidden]) .crl[data-live]')].every(b => !/^(idle|loading)$/.test(b.getAttribute('data-state') || '')), { timeout: 8000 }).catch(() => {});
+        const j = jaOf(await seenText(p));
+        if (j.length) jaBad.push(`${q || '（入口）'}：${j.slice(0, 3).join(' ／ ')}`);
+        const k = await cutOf(p);
+        if (k.over > 0 || k.cut.length) cut.push(`${q || '（入口）'}：横 ${k.over}px ${k.cut.slice(0, 3).join(' ')}`);
+        if (q === '?view=compare&a=jal&b=united') {
+          /* 選ぶ面も（1社目の札を押して開き、Esc で閉じる） */
+          await p.click('#cr-open-a');
+          if (await p.waitForSelector('#cr-sheet[open]', { timeout: 5000 }).then(() => true, () => false)) {
+            const s = jaOf(await seenText(p));
+            if (s.length) jaBad.push(`選ぶ面：${s.slice(0, 3).join(' ／ ')}`);
+            await p.keyboard.press('Escape');
+            await p.waitForFunction(() => !document.getElementById('cr-sheet').open, { timeout: 5000 }).catch(() => {});
+          } else jaBad.push('選ぶ面が開かない');
+          /* (b) 最初の1画面（日本語の検査と同じ物差し） */
+          await p.evaluate(() => window.scrollTo(0, 0));
+          await settle(p);
+          const m = await p.evaluate(() => {
+            const V = document.querySelector('#cr .cr-view[data-view="compare"]'), R = el => (el ? el.getBoundingClientRect() : null), n = v => (v == null ? null : Math.round(v));
+            const panel = R(V.querySelector('.cr-panel')), sub = R(V.querySelector('.cr-subpay .cr-h2')), pick = R(V.querySelector('.cr-pick'));
+            return { vh: innerHeight, y: Math.round(scrollY), pickB: n(pick && pick.bottom), pickH: n(pick && pick.height), panelB: n(panel && panel.bottom), panelH: n(panel && panel.height), subT: n(sub && sub.top),
+              sub: V.querySelector('.cr-subpay .cr-h2') ? V.querySelector('.cr-subpay .cr-h2').textContent.trim() : '' };
+          });
+          ok(m.y === 0 && m.pickB <= m.vh && m.panelB != null && m.panelB <= m.vh && m.subT != null && m.subT <= m.vh && /^Submitted pay/.test(m.sub),
+             `en ${w}×${h}: 比較（jal｜united）の最初の1画面に、2枚の札・年収の板の全部・「Submitted pay」の見出しの頭が入る（日本語と同じ約束）`, JSON.stringify(m));
+          console.log(`    （en ${w}×${h}）札の高さ ${m.pickH}px・年収の板 ${m.panelH}px・板の下端 ${m.panelB} ／「Submitted pay」の頭 ${m.subT} ／ 画面 ${m.vh}`);
+        }
+      }
+      ok(!jaBad.length, `en ${w}×${h}: ${VIEWS_EN.length}画面と選ぶ面の見える字（alt・title・aria-label・placeholder も）に日本語の字が無い`, jaBad.join('\n      '));
+      /* (c) 字数の多い通貨（AED）でも、比較の3組（jal｜united・emirates｜jal・swiss｜tap）で溢れない・はみ出さない */
+      ok(await p.evaluate(() => window.PVCurrency.get()) !== 'JPY', `en ${w}×${h}: 英語のページの既定の通貨は円ではない`, await p.evaluate(() => window.PVCurrency.get()));
+      await p.evaluate(() => window.PVCurrency.set('AED'));
+      for (const q of VIEWS_EN.filter(x => x.startsWith('?view=compare'))) {
+        await goEn(p, q);
+        await p.waitForFunction(() => [...document.querySelectorAll('#cr .cr-row-v')].filter(e => e.getClientRects().length).every(e => /AED/.test(e.textContent)), { timeout: 5000 }).catch(() => {});
+        const k = await cutOf(p);
+        if (k.over > 0 || k.cut.length) cut.push(`AED ${q}：横 ${k.over}px ${k.cut.slice(0, 3).join(' ')}`);
+      }
+      await p.evaluate(() => window.PVCurrency.set('USD'));
+      ok(!cut.length, `en ${w}×${h}: 横に溢れない・額と社名が箱からはみ出さない（${VIEWS_EN.length}画面・比較の3組は AED でも）`, cut.join('\n      '));
+      await c();
+    }
+    /* (d) 保存するカード（英語）：描いた社名は英語の社名・住所は英語の会社ページ・描いた字に日本語の字が無い */
+    const REC = () => {
+      const P = CanvasRenderingContext2D.prototype, D = window.__drawn = { text: [] };
+      const fT = P.fillText;
+      P.fillText = function (s) { D.text.push(String(s)); return fT.apply(this, arguments); };
+    };
+    const { page: p, close: c } = await open('?view=card&a=jal&b=united', 390, 680, { path: PAGE_EN, before: REC });
+    await ready(p);
+    const up = await p.waitForFunction(() => { const m = window.PVCareerCard && window.PVCareerCard.model && window.PVCareerCard.model(); return !!(m && m.cards && m.cards.length === 2 && m.layout); }, { timeout: 8000 }).then(() => true, () => false);
+    const m = up ? await p.evaluate(() => window.PVCareerCard.model()) : null;
+    const drawn = await p.evaluate(() => (window.__drawn ? window.__drawn.text.slice() : []));
+    const ui = await p.evaluate(() => [...document.querySelectorAll('#crc-root label, #crc-root legend, #crc-root button, #crc-root option')].map(e => e.textContent.trim()).filter(Boolean));
+    const CNAME = read('CNAME').trim();
+    const cards = (m && m.cards) || [];
+    ok(up && cards.length === 2 && cards.every(x => x.ja === SALARY[x.slug].en && x.en === '' && x.url === `https://${CNAME}/en/airlines/${x.slug}.html`)
+       && ['jal', 'united'].every((s, i) => cards[i] && cards[i].slug === s),
+       'en カード：描く社名は英語の社名（下に添える名前は無し）・住所と QR は英語の会社ページ', JSON.stringify(cards.map(x => ({ s: x.slug, ja: x.ja, en: x.en, url: x.url }))));
+    const jd = jaOf([...drawn, ...ui]);
+    ok(up && drawn.length > 5 && !jd.length && drawn.includes('Captain') && drawn.includes('Pilot pay'),
+       'en カード：描いた字と選ぶ欄の字に日本語の字が無い（見出しは「Pilot pay」・職位は「Captain」）', jd.slice(0, 6).join(' ／ ') || `${drawn.length}個`);
     await c();
   }
 

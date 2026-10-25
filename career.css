@@ -493,6 +493,14 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 .cr-cmp[data-near] .crl-cmp-head > .crl-co + .crl-co::before,
 .cr-cmp[data-near] .crl-split-c + .crl-split-c > .crl-co::before,
 .cr-cmp[data-near] .crl-sum2-c[data-col="2"] > .crl-co::before{background:transparent;box-shadow:inset 0 0 0 2px var(--crl-co,var(--pv-ink-3))}
+/* ★2026-10-25 英語の EN-9：英語の比較（en/career.html）の6角形の左右の列。英語の名前（CAT_FULL_EN の「Compensation」）は 76px の列に入らず、
+   語の途中で折れていた（「Compensatio／n」）。英語のときだけ左右の列を広げ、図の列の幅は日本語と同じ（300 − 2×76 − 16 ＝ 340 − 2×96 − 16 ＝ 132px）。
+   career-live.css には書かない（222枚の会社ページがその指紋を持つ ── WP-compare-all-12 と同じ理由）。比較の6角形はこの1枚の中にだけ在る。 */
+@supports (container-type:inline-size){
+  @container (min-width:560px){
+    .crl-cmp .crl-radar:lang(en){grid-template-columns:96px minmax(0,1fr) 96px;max-width:340px}
+  }
+}
 
 .cr-cards{display:grid;gap:14px;margin-top:14px}
 .cr-card{padding:4px 16px 6px;border-radius:var(--pv-r-lg);background:var(--pv-surface);
