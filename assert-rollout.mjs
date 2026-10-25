@@ -942,7 +942,8 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
     const h2Below = h => [...h.slice(h.indexOf('<!--/PV-GLANCE-->')).matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map(m => m[1].replace(/<[^>]*>/g, '').trim());
     const bad = { marks: [], pay: [], ja: [], links: [], cmp: [], h1: [], head: [], faq: [], legacy: [] };
     const EN_CAREER = fs.existsSync(path.join(HERE, 'en', 'career.html'));
-    ok(EN_CAREER || !CMP_EN, 'F 英語の比較のページ（en/career.html）が無いあいだ、生成器の CMP_EN は false', `CMP_EN ${CMP_EN}`);
+    /* ★2026-10-25 EN-9 で向け直した（弱めていない）：前は「ページが無いあいだ false」の片側だけ。いまは両側 ── ページが在るときだけ true・無いあいだは false */
+    ok(EN_CAREER === CMP_EN, 'F 生成器の CMP_EN は、英語の比較のページ（en/career.html）が在るときだけ true（無いあいだは false）', `CMP_EN ${CMP_EN} ／ en/career.html ${EN_CAREER ? '在る' : '無い'}`);
     for (const s of EVERY) {
       const a = ORIG_EN[s], b = pageT(s, 'en'), hero = block(b, 'PV-HERO'), g = block(b, 'PV-GLANCE'), gen = hero + g + block(b, 'PV-GLANCE-HEAD') + block(b, 'PV-GLANCE-JS');
       if (!hero || !g || !/data-pv-glance="1"/.test(b) || !/id="pvg-tabs"/.test(hero)) bad.marks.push(s);
@@ -961,8 +962,16 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
         if (!f.startsWith(HERE) || !fs.existsSync(f)) bad.links.push(`${s} ${u}`);
       }
       /* 「Compare」「Save card」は en/career.html ができるまで出さない（空の箱だけ） */
-      /* ★生成器の印（CMP_EN）では決めない ── 英語の比較のページそのものが無いあいだは、出してはいけない（EN-9 がページを置いたら、ここを「出ている」へ向け直す） */
+      /* ★生成器の印（CMP_EN）では決めない ── 英語の比較のページそのものが無いあいだは、出してはいけない */
       if (!EN_CAREER && (/pvg-btn-cmp|pvg-btn-save|href="(?:\.\.\/)+career\.html/.test(hero + g) || !hero.includes('<div class="pvg-acts" aria-hidden="true"></div>'))) bad.cmp.push(s);
+      /* ★2026-10-25 EN-9 で「出ている」へ向け直した：ページが在れば、どの英語のページにも日本語と同じ2つ ──「Save card」は自分のカードへ・
+         「Compare」は自分を1社目に置いた比較へ（en/career.html ── ../career.html）。各1本ずつ・空の箱は残らない・ほかに career.html への道は無い */
+      if (EN_CAREER) {
+        const to = [...(hero + g).matchAll(/href="((?:\.\.\/)+career\.html[^"]*)"/g)].map(m => htmlUnesc(m[1]));
+        const want = [`../career.html?view=card&a=${s}`, `../career.html?view=compare&a=${s}`];
+        if (!same([...to].sort(), [...want].sort()) || !/class="pvg-btn pvg-btn-save" href="\.\.\/career\.html\?view=card&amp;a=/.test(hero) || !/class="pvg-btn pvg-btn-cmp" href="\.\.\/career\.html\?view=compare&amp;a=/.test(hero)
+          || hero.includes('<div class="pvg-acts" aria-hidden="true"></div>')) bad.cmp.push(`${s}（${to.join(' ')}）`);
+      }
       /* h1 と <head> は今のページのまま（先行5社は、日本語と同じく構造化データから FAQPage の1つだけを外す ── ほかの型は1文字も変わらない） */
       const h1 = h => (/<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(h) || [])[1] || '';
       if (h1(a).trim() !== h1(hero).trim()) bad.h1.push(s);
@@ -984,7 +993,9 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
     ok(!bad.pay.length, 'F 英語のページの推定年収（機長・副操縦士）は SALARY の額 ── 「¥…万」を data-orig に持つドルの span', bad.pay.slice(0, 4).join(' ／ '));
     ok(!bad.ja.length, 'F 英語のページの新しい部品の字（見える字と alt・title・aria-label・placeholder）に日本語の字が無い（写真の作者名・資料の原文の名前・“…” の中の題を除く）', bad.ja.slice(0, 6).join(' ／ '));
     ok(!bad.links.length, 'F 英語のページの部品・写真・ロゴ・ページへの道（../../・../）は、どれも在るファイルを指す', bad.links.slice(0, 6).join(' ／ '));
-    ok(!bad.cmp.length, 'F 英語の比較のページ（en/career.html）ができるまで、英語のページに「Compare」「Save card」も career.html への道も無く、社名の行の箱は空', bad.cmp.join(','));
+    ok(!bad.cmp.length, EN_CAREER
+      ? 'F 英語のページ（どの会社も）に「Save card」（自分のカードへ）と「Compare」（自分を1社目に置いた比較へ）が1本ずつ ── 行き先は en/career.html（../career.html）・社名の行の箱は空でない・ほかに career.html への道は無い'
+      : 'F 英語の比較のページ（en/career.html）ができるまで、英語のページに「Compare」「Save card」も career.html への道も無く、社名の行の箱は空', bad.cmp.slice(0, 6).join(','));
     ok(!bad.h1.length && !bad.head.length, 'F 英語のページの h1 と <head>（部品の <link> の塊のほか）は、今のページの字のまま', `h1 ${bad.h1.join(',')} ／ head ${bad.head.join(',')}`);
     ok(!bad.faq.length, 'F 「よくある質問」：先行5社の英語のページは日本語と同じく置かない（FAQPage も外す）・ほかの会社は同じ字で残り、構造化データも1文字も変わらない', bad.faq.join(','));
     ok(!bad.legacy.length, 'F 英語のページの古い節は、英語の見出しの台帳（LEGACY_EN）に全部在り、残す節は残り・外す節は無い', bad.legacy.slice(0, 4).join(' ／ '));

@@ -63,8 +63,9 @@ const NOINDEX = new Set([
    英語版をまだ置いていないページ。ここに在るページは hreflang が ja と
    x-default（＝ja）の2つだけであることを見る。en を書くと、存在しない
    ファイルを指すことになる。**英語版を置いたら、ここから外す**（置いたのに
-   残っていると下で落ちる）。seo-normalize.mjs の同名の集合と2つで対。 */
-const JA_ONLY = new Set(['career.html']);
+   残っていると下で落ちる）。seo-normalize.mjs の同名の集合と2つで対。
+   ★2026-10-25 英語の EN-9：概要と2社比較の1枚に英語版（en/career.html）を置いたので career.html を外した（いまは空）。 */
+const JA_ONLY = new Set([]);
 
 const isNoindexPage = (rel) => NOINDEX.has(path.basename(rel))
   && !rel.includes('/airlines/') && !rel.includes('/countries/');

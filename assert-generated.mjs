@@ -60,8 +60,9 @@ const GENERATORS = [
   ['gen-vocab.mjs',       'pv-vocab.json / db/vocab.generated.sql（選択肢と為替）'],
   ['gen-airline-codes.mjs', 'airline-codes.json / pv-airlines.json / 投稿フォーム4枚 / db/airlines.generated.sql'],
   /* 2026-10-03。年収・根拠の台帳・写真の台帳を直したのに流し忘れると、この1枚だけ古い数字が残る。
-     career.css / career.js の指紋（?v=）もここが書く。画像ファイルは読まない（このコピーに画像は無い）。 */
-  ['gen-career.mjs',      'career.html（概要と2社比較の1枚）'],
+     career.css / career.js の指紋（?v=）もここが書く。画像ファイルは読まない（このコピーに画像は無い）。
+     ★2026-10-25 英語の EN-9：同じ1本が英語の1枚（en/career.html ── 同じ部品・字だけ英語・額はドルの span）も書く（2枚）。 */
+  ['gen-career.mjs',      'career.html と en/career.html（概要と2社比較の1枚・日英の2枚）'],
   /* 2026-10-18（WP-close-a）。会社ページの暮らしのカードの街を直したのに流し忘れると、サーバの街の候補の種だけ古いまま残る。 */
   ['gen-towns.mjs',       'db/towns.generated.sql（暮らしのカードの街 → サーバの街の候補の種）'],
 ];

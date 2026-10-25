@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { SALARY } from './salary-data.mjs';
 import { cardFigure } from './salary-basis.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
-import { LEAD, SWITCH } from './airline-rollout.mjs';
+import { LEAD, SWITCH, EN_SWITCH } from './airline-rollout.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -46,8 +46,9 @@ const RANK_WORD = { cap: { ja: '機長', en: 'Captain' }, fo: { ja: '副操縦�
 export const twoSlugs = () => Object.keys(SALARY);
 
 /** 比較のチェックを付けるか。日本語ページ ＝ 2社比較で出せて、新しい会社ページ（SWITCH）を持つ会社（リード P12.86-1：4社も SWITCH に従う）。
-    英語ページ ＝ 機種の段（fleet）を持つ会社（レベリング図だけに渡すので、段の無い4社には付けない） */
-export const tickOf = (A, lang) => (lang === 'ja' ? A.two && A.sw : A.lvl);
+    ★2026-10-25 英語の EN-9：英語ページも同じ決まり ── 2社比較（en/career.html）で出せて、新しい英語の会社ページ（airline-rollout.mjs の
+    EN_SWITCH）を持つ会社。盆の「Compare airlines」が2社を en/career.html へ送る（前の英語ページは機種の段 fleet を持つ会社 ＝ レベリング図だけ）。 */
+export const tickOf = (A, lang) => (lang === 'ja' ? A.two && A.sw : A.two && A.swEn);
 
 /* 一覧の行の提携（日本語）→ 英語。知らない値は止める（英語のページに日本語の札を出さない） */
 const ALLIANCE_EN = {
@@ -84,7 +85,7 @@ export function model() {
   if (MEMO) return MEMO;
   const rows = listRows(), heads = headerRows(), L = logos();
   const rowOf = new Map(rows.map((r, i) => [r.slug, { r, i }])), headOf = new Map(heads.map((h) => [h.slug, h]));
-  const two = new Set(twoSlugs()), sw = new Set(SWITCH), airlines = {};
+  const two = new Set(twoSlugs()), sw = new Set(SWITCH), swEn = new Set(EN_SWITCH), airlines = {};
   for (const slug of Object.keys(SALARY)) {
     const d = SALARY[slug], hit = rowOf.get(slug);
     if (!hit) throw new Error(`${slug} の行が airlines-meta.js に無い（一覧に出ない）`);
@@ -101,7 +102,7 @@ export function model() {
       slug, region: d.region, ja: d.ja, en: d.en,
       show: { ja: row.name, en: row.en, flag: row.flag },
       listed: true, lvl: typeof row.fleet === 'string' && row.fleet !== '',
-      five: LEAD.includes(slug), two: two.has(slug), sw: sw.has(slug),
+      five: LEAD.includes(slug), two: two.has(slug), sw: sw.has(slug), swEn: swEn.has(slug),
       code: row.code ?? null, color: row.color ?? null, type: row.type, taxFree: d.taxFree === true,
       alliance: row.alliance ? { ja: row.alliance, en: ALLIANCE_EN[row.alliance] } : null,
       country: c ? { code: c.code, ja: c.ja, en: c.en, flag: c.flag } : null,

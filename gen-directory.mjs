@@ -61,7 +61,7 @@ const tick = (A, lang) => (tickOf(A, lang)
   ? `<label class="wd-cmp"><input type="checkbox" class="wd-cmp-i" value="${esc(A.slug)}" aria-labelledby="wn-${esc(A.slug)} wc-${esc(A.slug)}"><span id="wc-${esc(A.slug)}">${esc(WORDS.cmp[lang])}</span></label>`
   : '');
 
-/** 112社のカード */
+/** 112社のカード。★2026-10-25 英語の EN-9：英語のカードも data-two ＝ 2社比較（en/career.html）で出せる会社（前は英語だけ 0） */
 export function cards(lang, M = model(), rule = CARD_RULE) {
   const page = pageOf(lang), en = lang === 'en', bake = bakeOf(lang);
   const regionLabel = Object.fromEntries(REGIONS.map((r) => [r.code, r[lang]]));
@@ -76,7 +76,7 @@ export function cards(lang, M = model(), rule = CARD_RULE) {
       + (A.alliance ? `<span class="tag tag-gray">${esc(A.alliance[lang])}</span>` : '');
     const flag = A.show.flag ? `${esc(A.show.flag)} ` : '', second = en ? regionLabel[A.region] : A.show.en;
     return [
-      `<li class="wd-li" data-slug="${esc(slug)}" data-region="${esc(A.region)}" data-type="${esc(A.type)}" data-tax="${A.taxFree ? 1 : 0}" data-lvl="${A.lvl ? 1 : 0}" data-two="${!en && A.two ? 1 : 0}" data-c="${esc(A.codes.join(' '))}" data-k="${esc(A.keys.join('|'))}" style="--ac:${esc(A.color)};--pvg-c:${esc(A.color)}">`,
+      `<li class="wd-li" data-slug="${esc(slug)}" data-region="${esc(A.region)}" data-type="${esc(A.type)}" data-tax="${A.taxFree ? 1 : 0}" data-lvl="${A.lvl ? 1 : 0}" data-two="${A.two ? 1 : 0}" data-c="${esc(A.codes.join(' '))}" data-k="${esc(A.keys.join('|'))}" style="--ac:${esc(A.color)};--pvg-c:${esc(A.color)}">`,
       `<a class="wd-go" href="${esc(A.href)}"><span class="wd-logo">${logoOf(A, page.up)}</span><span class="wd-names"><span class="wd-name" id="wn-${esc(slug)}">${flag}${esc(A.show[lang])}</span><span class="wd-meta"><span class="wd-sub">${esc(second)}</span><span class="wd-code">${esc(A.code)}</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>`,
       BARRIER,
       '<div class="wd-figs">',

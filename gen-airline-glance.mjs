@@ -85,9 +85,11 @@ const href = {
   stay: (slug, iata) => `${PUP}career.html?airline=${slug}&amp;stay=${iata}`,
   maps: q => `https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(q)}`,
 };
-/* ★英語の「他社と比較」「カードを保存」（行き先 en/career.html）は、英語の比較のページができるまで出さない（EN-9 が true にする）。
-   出さないあいだも、社名の行には空の箱を置く（日本語の FIVE の外の会社と同じ形 ── 狭い画面で社名が1字ずつ折れない）。 */
-export const CMP_EN = false;
+/* ★英語の「他社と比較」「カードを保存」（行き先 en/career.html）は、英語の比較のページができるまで出さない。
+   出さないあいだも、社名の行には空の箱を置く（日本語の FIVE の外の会社と同じ形 ── 狭い画面で社名が1字ずつ折れない）。
+   ★2026-10-25 EN-9：英語の比較のページ（en/career.html ── gen-career.mjs が日本語と同じ部品で書く）を置いたので true。
+     en/career.html を外す日は、ここを false に戻す（assert-rollout.mjs の F が、ページの有無とこの印が食い違えば止める）。 */
+export const CMP_EN = true;
 const cmpOn = slug => CAREER.includes(slug) && (LANG !== 'en' || CMP_EN);
 
 /* ── 小さな絵 ───────────────────────────────────────── */

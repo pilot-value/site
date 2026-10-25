@@ -119,6 +119,8 @@ const PAGES = [
        ヘッダーが出る**形はこの一覧でこれだけ（login を付けない）。会社を選ぶ <select> が
        2つあるので、下の FORM_PAGES にも自動で入る。日本語だけ。 */
   ['/career.html?view=compare', 'ja 概要と比較', { ham: 'nav' }],
+  /* ★その英語版（2026-10-25 英語の EN-9）。同じ殻・同じ選ぶ面（下の FORM_PAGES にも自動で入る）。 */
+  ['/en/career.html?view=compare', 'en 概要と比較', { ham: 'nav' }],
   /* ★招待（2026-09-06 新設）。中身は既存の PVReferral.mountInvite。 */
   ['/invite.html',          'ja 招待',        { ham: 'nav', login: true }],
   ['/en/invite.html',       'en 招待',        { ham: 'nav', login: true }],

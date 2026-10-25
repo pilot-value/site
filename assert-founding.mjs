@@ -108,7 +108,7 @@ console.log('\n════ ソース ════');
                    'deep-pay.html', 'en/deep-pay.html',
                    'deep-pay-compare.html', 'en/deep-pay-compare.html',
                    'roadmap.html', 'en/roadmap.html',
-                   'career.html',
+                   'career.html', 'en/career.html',
                    'index.html', 'en/index.html']) {
     ok(!read('./' + f).includes('pv-founding'),
        `★${f} に称号を出さない（母集団が小さく、投稿の横に番号が出ると書き手が絞れる）`);

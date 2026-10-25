@@ -117,7 +117,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </script>
 <!--/PV-3P-->
 <style data-pv-light>/* PV-LIGHT: on the light theme, this airline's colours are drawn in a darker shade of the same hue so the text stays readable (no effect on the dark theme). Written by patch-airline-pages.mjs - do not edit by hand. */
-[data-theme="light"] [style="color:#a78bfa" i],[data-theme="light"] [style^="color:#a78bfa;" i],[data-theme="light"] [style*=";color:#a78bfa;" i],[data-theme="light"] [style$=";color:#a78bfa" i]{color:#7355be!important}
 [data-theme="light"] .btn-primary{background:#0375d6!important}
 [data-theme="light"] .btn-primary:hover{background:#1d79c1!important}
 [data-theme="light"] .section-badge{color:#6c4eb6!important}
@@ -196,7 +195,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <span class="pvg-base"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10zM12 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>Tokyo Narita <b>NRT</b></span>
 <div class="crl" data-live="stars" data-airline="zipair" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
-<div class="pvg-acts" aria-hidden="true"></div>
+<div class="pvg-acts">
+<a class="pvg-btn pvg-btn-save" href="../career.html?view=card&amp;a=zipair"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>Save card</span></a>
+<a class="pvg-btn pvg-btn-cmp" href="../career.html?view=compare&amp;a=zipair"><span>Compare</span><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></a>
+</div>
 </div>
 </div>
 </div>
@@ -665,15 +667,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div><div class="text-xs text-muted uppercase tracking-widest font-semibold mb-3">Routes</div><p class="text-muted text-sm leading-relaxed">International routes from Narita (NRT): LA (LAX), San Jose (SJC), Honolulu (HNL), Bangkok, Seoul, Kuala Lumpur. International-only LCC, no domestic ops.</p></div>
 <div><div class="text-xs text-muted uppercase tracking-widest font-semibold mb-3">Fleet</div><p class="text-muted text-sm leading-relaxed">B787-8 (sole aircraft type). Expansion planned.</p></div>
 </div>
-</div>
-
-<div class="glass p-8 fade-up" data-pvg-pane="overview">
-<div class="section-badge mb-4">Comparison</div>
-<h2 class="text-2xl font-bold mb-6">ZIPAIR Tokyo vs other Japanese carriers</h2>
-<div class="overflow-x-auto"><table>
-<thead><tr><th>Airline</th><th>Captain (estimate)</th><th>First Officer</th><th>Income Tax</th></tr></thead>
-<tbody><tr><td><span class="font-bold" style="color:#a78bfa">ZIPAIR Tokyo 🇯🇵</span></td><td><span class="font-bold" style="color:#a78bfa"><span class="pv-cur" data-jpy="25000000" data-orig="¥2,500万">$157K</span></span></td><td><span class="text-muted text-sm"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></span></td><td><span class="tag tag-gray">~33% (Japan)</span></td></tr><tr><td><span class="font-semibold"><a href="ana.html" class="text-accent">All Nippon Airways 🇯🇵</a></span></td><td><span class="text-muted text-sm"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></span></td><td><span class="text-muted text-sm"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></span></td><td><span class="tag tag-gray">Income tax applies</span></td></tr><tr><td><span class="font-semibold"><a href="jal.html" class="text-accent">Japan Airlines 🇯🇵</a></span></td><td><span class="text-muted text-sm"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></span></td><td><span class="text-muted text-sm"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></span></td><td><span class="tag tag-gray">Income tax applies</span></td></tr></tbody></table></div>
-<p class="text-xs text-muted mt-4">* The salary figures are our own estimates, worked out from publicly available information — not figures the airlines publish. Income tax applies in every case here, so the headline figure is not what reaches the bank account. Verify exact figures with each airline.</p>
 </div>
 
 <div class="glass p-8 fade-up" data-pvg-pane="overview">
