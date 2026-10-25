@@ -1157,14 +1157,15 @@ function secM(I) {
 const MAP_WORD = {
   ja: { k: '公開情報からの推定', def: '掲載{N}社の推定年収の平均', cond: '条件/出典', dt: ['対象', '対象掲載社数', '換算'], go: 'この地域の航空会社を見る',
         lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社', group: '職位', hint: '地図をクリックして地域を選択',
-        zoom: { in: '拡大', out: '縮小', reset: '元に戻す', fs: '全画面', close: '閉じる', touch: '2本の指で動かせます' } },
+        zoom: { in: '拡大', out: '縮小', reset: '元に戻す', touch: '2本の指で動かせます' }, close: '閉じる' },
   en: { k: 'Estimate from public information', def: 'Mean of our estimates across {N} airlines', cond: 'Conditions / Sources',
         dt: ['Airlines included', 'Number of airlines', 'Conversion'], go: 'View airlines in this region',
         lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}', group: 'Rank', hint: 'Click the map to choose a region',
-        zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', fs: 'Full screen', close: 'Close', touch: 'Use two fingers to move the map' } },
+        zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close' },
 };
 /* group ＝「機長｜副操縦士」の組の読み上げの名前（リード P12.112）。hint ＝ 地図の下の一言（いまの一覧の字のまま・directory-data WP-dd-9 の字）。
-   zoom ＝ 動かせる地図（WP-dmap-9）のボタンの字と指の一言（シートの WP-dmap-9 の wording の字。ほかの字を足さない） */
+   zoom ＝ 動かせる地図（WP-dmap-9）のボタンの字と指の一言（シートの WP-dmap-9 の wording の字。ほかの字を足さない）。
+   close ＝ 区域 1000px 未満で下から出る板（開いたカード）の閉じるボタンの字（WP-dmap-11 の直し）── このページの比較リストの閉じるボタン（#wd-cl-close）と同じ字 */
 /** 散らばりの帯の目盛の刻み（P12.104「次の 1,000万の刻みへ」。会社ページの SCALE_STEP と同じであること） */
 const MAP_STEP = 1000;
 /** 帯の目盛の右端（職位ごと）＝ 帯が描く額（掲載全社の推定 avg）のいちばん大きいものを次の刻みへ。幅の上の額（hi）は帯に描かないので数えない（リード P12.109） */
@@ -1301,13 +1302,21 @@ function secMcard(I) {
     /* 地図の下の一言（いまの一覧の字のまま・WP-dd-9）：1つ・同じ字 */
     const hints = [...B.matchAll(/<p class="wam-hint" aria-hidden="true">([^<]*)<\/p>/g)].map((m) => unesc(m[1]));
     if (hints.length !== 1 || hints[0] !== W.hint || B.split('class="wam-hint"').length !== 2) p.M11.push(`${rel}：地図の下の一言「${hints.join('｜')}」／「${W.hint}」`);
-    /* 動かせる地図のボタン（WP-dmap-9）：地図の枠の中・svg のすぐ後ろに、拡大・縮小・元に戻す（1倍のあいだ隠れている）・全画面の組（台本が動くまで hidden）、
-       全画面の「閉じる」（hidden）、指の一言（hidden・読み上げない）。字は aria-label と title に同じ字 ＝ シートの字だけ */
+    /* 動かせる地図のボタン（WP-dmap-9）：地図の枠の中・svg のすぐ後ろに、拡大・縮小・元に戻す（1倍のあいだ隠れている）の組（台本が動くまで hidden）と、
+       指の一言（hidden・読み上げない）。字は aria-label と title に同じ字 ＝ シートの字だけ。
+       ★WP-dmap-11 で付け替えた（同じ強さ）：ページそのものが地図の画面になり、全画面のボタンと全画面の「閉じる」は外した（シート W3）──
+       その2つが塊に1つも無いことも見る（字の「全画面」「Full screen」も無い） */
     const ZW = W.zoom, zbt = (z, hid) => `<button type="button" class="wam-zb" data-z="${z}" aria-label="${ZW[z]}" title="${ZW[z]}"${hid ? ' hidden' : ''}></button>`;
-    const ZC = `</svg>\n<div class="wam-zc" hidden>${zbt('in')}${zbt('out')}${zbt('reset', true)}${zbt('fs')}</div>\n`
-      + `<button type="button" class="wam-zx" data-z="close" aria-label="${ZW.close}" title="${ZW.close}" hidden></button>\n`
+    const ZC = `</svg>\n<div class="wam-zc" hidden>${zbt('in')}${zbt('out')}${zbt('reset', true)}</div>\n`
       + `<p class="wam-zh" aria-hidden="true" hidden>${ZW.touch}</p>\n</div>\n<div class="wam-foot">`;
-    if (B.split('class="wam-zc"').length !== 2 || B.split('class="wam-zx"').length !== 2 || B.split('class="wam-zh"').length !== 2 || !B.includes(ZC)) p.M11.push(`${rel}：地図を動かすボタンが決まりの形・字でない（${(/<div class="wam-zc"[^\n]*/.exec(B)?.[0] ?? '無い').slice(0, 140)}）`);
+    if (B.split('class="wam-zc"').length !== 2 || B.split('class="wam-zh"').length !== 2 || !B.includes(ZC)) p.M11.push(`${rel}：地図を動かすボタンが決まりの形・字でない（${(/<div class="wam-zc"[^\n]*/.exec(B)?.[0] ?? '無い').slice(0, 140)}）`);
+    for (const w of ['wam-zx', 'data-z="fs"', 'data-z="close"', '全画面', 'Full screen']) if (B.includes(w)) p.M11.push(`${rel}：外した全画面の「${w}」が塊に在る`);
+    /* ★WP-dmap-11 の直し：開いたカード（区域 1000px 未満では下から出る板）の閉じるボタン ── カードの先頭に1つ・hidden で出荷（台本が地図を動かす時だけ外す）・
+       字は aria-label と title に同じ字・中身なし（印は CSS の線）。字はこのページの比較リストの閉じるボタンと同じ（新しい字を作らない） */
+    const SX = `<aside class="wam-card" id="wa-sum">\n<button type="button" class="wam-sx" aria-label="${W.close}" title="${W.close}" hidden></button>\n<div class="wam-cols">`;
+    if (B.split('class="wam-sx"').length !== 2 || !B.includes(SX)) p.M11.push(`${rel}：板の閉じるボタンが決まりの形・字でない（${(/<button[^>]*class="wam-sx"[^>]*>/.exec(B)?.[0] ?? '無い').slice(0, 120)}）`);
+    const clx = /<button type="button" class="wd-cl-close" id="wd-cl-close" aria-label="([^"]*)" title="([^"]*)"/.exec(pg[lang]);
+    if (!clx || clx[1] !== W.close || clx[2] !== W.close) p.M11.push(`${rel}：板の閉じるボタンの字「${W.close}」が比較リストの閉じるボタンの字「${clx?.[1]}」と違う（新しい字になる）`);
     if (!/<div class="wam" id="wa-map-sec" data-rest="[a-z]+" data-pos="cap">/.test(B)) p.M11.push(`${rel}：区域の data-pos が機長で出ていない（切り替えの押してある方と違う）`);
     const plain = B.replace(/<span class="wam-mm-k">(?:最低|最高|Lowest|Highest)<\/span>/g, () => '');
     for (const w of [...MAP_FORBID, '最高', '最低', 'highest', 'lowest']) if (plain.toLowerCase().includes(w.toLowerCase())) p.M11.push(`${rel}：「${w}」が在る`);
@@ -1724,8 +1733,9 @@ const ROWS = [
   ['G2bn', (I) => { I.page.ja = sub(I.page.ja, '<span style="white-space:nowrap">選択する</span></h1>', '<span>選択する</span></h1>'); }, 'G', ['G2b']],
   ['G3a', (I) => { I.page.ja = sub(I.page.ja, '\n<!--PV-CBAND-->', '\n\n<!--PV-CBAND-->'); }, 'G', ['G3']],
   /* #wd-explore の始まりを見出しの帯の前へ ＝ 検索欄が「探す前だけ見せる」側に入る
-     （WP-dmap-3 で国の帯がページの終わりへ移った ── #wd-explore の先頭は地域のまとめの印。壊し方は同じ） */
-  ['G3b', (I) => { I.page.ja = sub(sub(I.page.ja, '<div id="wd-explore">\n<!--PV-DIRMAP-->', '<!--PV-DIRMAP-->'), '<!-- ── HERO', '<div id="wd-explore">\n<!-- ── HERO'); }, 'G', ['G3']],
+     （WP-dmap-3 で国の帯がページの終わりへ移った ── #wd-explore の先頭は地域のまとめの印。壊し方は同じ。
+     WP-dmap-11 で見出しの帯の前の注記の行が変わった ── 印は帯の <div> そのものへ付け替えた） */
+  ['G3b', (I) => { I.page.ja = sub(sub(I.page.ja, '<div id="wd-explore">\n<!--PV-DIRMAP-->', '<!--PV-DIRMAP-->'), '<div id="wa-hero">', '<div id="wd-explore">\n<div id="wa-hero">'); }, 'G', ['G3']],
   ['G4a', (I) => { I.page.en = sub(I.page.en, 'tabindex="-1">All</h2>', 'tabindex="-1">All airlines</h2>'); }, 'G', ['G4']],
   ['G4b', (I) => { I.page.en = sub(I.page.en, ' data-fmt-one="{n} airline"', ''); }, 'G', ['G4']],
   ['G5', (I) => { I.page.ja = sub(I.page.ja, NOSCRIPT, ''); }, 'G', ['G5']],
@@ -1826,8 +1836,10 @@ const ROWS = [
   /* 組の読み上げの名前（リード P12.112）を消す／地図の下の一言を書き換える（WP-dmap-4） */
   ['M11d', (I) => onBlock(I, 'ja', 'PV-DIRMAP', (b) => sub(b, ' aria-label="職位"', '')), 'M', ['M11']],
   ['M11e', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, '>Click the map to choose a region</p>', '>Click to choose</p>')), 'M', ['M11']],
-  /* 動かせる地図のボタンの字（WP-dmap-9）：英語の「全画面」の字を1つだけ変える */
-  ['M11f', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, 'aria-label="Full screen" title="Full screen"', 'aria-label="Fullscreen" title="Full screen"')), 'M', ['M11']],
+  /* 動かせる地図のボタンの字（WP-dmap-9）：英語の「拡大」の字を1つだけ変える（WP-dmap-11 で「全画面」のボタンを外したので、残ったボタンへ付け替えた） */
+  ['M11f', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, 'aria-label="Zoom in" title="Zoom in"', 'aria-label="Zoom-in" title="Zoom in"')), 'M', ['M11']],
+  /* 外した全画面のボタン（WP-dmap-11）を塊に戻す */
+  ['M11g', (I) => onBlock(I, 'ja', 'PV-DIRMAP', (b) => sub(b, ' title="元に戻す" hidden></button></div>', ' title="元に戻す" hidden></button><button type="button" class="wam-zb" data-z="fs" aria-label="全画面" title="全画面"></button></div>')), 'M', ['M11']],
   /* 台本の塊（M15 A）：保存領域・05b の口に書き込む・カードの額の数（欧州の機長の最低 ¥1,300万） */
   ['M15', (I) => { I.map.script += "\nlocalStorage.getItem('x');"; }, 'M', ['M15']],
   ['M15b', (I) => { I.map.script += "\nmount.setAttribute('hidden','');"; }, 'M', ['M15']],

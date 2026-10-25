@@ -272,29 +272,38 @@ html.wd-lock{overflow:hidden;overflow-anchor:none}
 .wam-go:active{transform:scale(.98)}
 .wam-go.is-off{display:none}
 @media not all and (any-pointer:coarse){.wam-go{display:none}}
-@container wam (max-width:699px){.wam[data-rest="none"]:not(.is-open,.is-fs) .wam-card{display:none}}
-/* 閉じたカードの1行（WP-dmap-8 D1）：区域 700px 未満でカードが閉じているあいだ、切り替えの右に「すべて」と選んだ職位の額だけを出す。
-   地図の濃さは職位ごとに 0〜1 で塗るので、職位を替えても地図はほとんど変わらない ── 押して変わるのが見えるのは、この額。
-   置くのは切り替えと同じ1行（面の高さは変わらない ＝ 390×680・375×640 の最初の1画面はそのまま）。中身はカードの「すべて」の札と額そのもの
-   （新しい字も額も作らない。職位の札は読み上げにだけ残す）。台本が動いて切り替えが見えているときだけ（台本なしは <noscript> の規則のまま）。
-   地図に触れるか地域を選ぶと、カードはいつもどおり開く（is-open）。全画面（is-fs・WP-dmap-9）では閉じない（カードは地図の下の板） */
-@container wam (max-width:699px){
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])){grid-template-columns:auto minmax(0,1fr);align-items:center}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) > .wam-mc{grid-column:1 / -1}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) > .wam-card{display:block;grid-row:1;grid-column:2;justify-self:end;max-width:100%;padding:0;border-top:0}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) :is(.wam-cols,.wam-panels){display:block}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) :is(.wam-panel:not([data-region="all"]),.wam-k,.wam-def,.wam-sps,.wam-cond,.wam-row){display:none}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) .wam-panel[data-region="all"]{visibility:visible;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-end;column-gap:8px}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) .wam-panel[data-region="all"] .wam-est{display:contents}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) .wam-h{font-size:13px;font-weight:700;color:var(--pv-ink-2)}
-  .wam[data-rest="none"][data-pos="cap"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) .wam-row[data-pos="cap"],
-  .wam[data-rest="none"][data-pos="fo"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) .wam-row[data-pos="fo"]{display:block;padding:0}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) .wam-rk{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  .wam[data-rest="none"]:not(.is-open,.is-fs) .wam-g:has(> .wam-pos:not([hidden])) .wam-row .wam-n{font-size:22px}
+@container wam (max-width:999px){.wam[data-rest="none"]:not(.is-open) .wam-card{display:none}}
+/* 閉じたカード（WP-dmap-8 D1 → WP-dmap-11 で区域 1000px 未満ぜんぶへ広げた）：カードが閉じているあいだ、切り替えの右に、いま見せている地域
+   （指している・選びかけ・選んだ ── 開いた時は「すべて」）の名前と選んだ職位の額（1行目）、その職位の最低と最高（2行目）だけを出す
+   （シート W2「地域の名前・推定・最低〜最高を1〜2行で」）。中身はカードの札と額そのもの（新しい字も額も作らない。職位の札は読み上げにだけ残す）。
+   置くのは切り替えと同じ行（地図の上 ＝ 陸に掛からない・面を高くしない）。箱はその行の右の升いっぱい（地域を替えても箱は動かない）。
+   行の高さは切り替えが決める（箱は升に重ねて置き、行の上下のまんなかに寄せる ── WP-dmap-11 の直し：英語の 360px では1〜2行が3行になって切り替えより
+   高く、カードを開くと行が低くなって地図が 7px 下がった。開け閉めで地図の枠を動かさない）。
+   台本が動いて切り替えが見えているときだけ（台本なしは <noscript> の規則のまま）。
+   地図に触れるか地域を選ぶと、カードは地図の下の部分に重なる板として開く（is-open ── 下の wam-stage の塊の「カードが開いた時」の規則。地図の枠は動かない）。
+   地図の濃さは職位ごとに 0〜1 で塗るので、職位を替えて変わるのが見えるのはこの額 */
+@container wam (max-width:999px){
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])){grid-template-columns:auto minmax(0,1fr);align-items:center}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) > .wam-mc{grid-column:1 / -1}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) > .wam-card{display:block;position:absolute;grid-row:1 / 2;grid-column:2 / 3;left:0;right:0;top:50%;transform:translateY(-50%);min-width:0;padding:0;border-top:0}   /* 線を両端とも書く（重ねて置く箱の auto の端は面の縁になる） */
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) :is(.wam-cols,.wam-panels){display:block}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) :is(.wam-panel:not(.is-shown),.wam-k,.wam-def,.wam-cond,.wam-row,.wam-sp-rk,.wam-track,.wam-ax,.wam-who,.wam-w){display:none}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-panel.is-shown{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-end;column-gap:8px}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-panel.is-shown .wam-est{display:contents}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-h{font-size:13px;font-weight:700;color:var(--pv-ink-2)}
+  .wam[data-rest="none"][data-pos="cap"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-row[data-pos="cap"],
+  .wam[data-rest="none"][data-pos="fo"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-row[data-pos="fo"]{display:block;padding:0}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-rk{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-row .wam-n{font-size:20px}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-sps{flex:0 0 100%;margin:1px 0 0}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-mm{flex-wrap:wrap;justify-content:flex-end;gap:0 8px;margin:0}   /* 狭い幅（320px・英語の円）では最低と最高が2行に */
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) :is(.wam-lo,.wam-hi){flex-direction:row;align-items:baseline;gap:4px}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-mm-k{font-size:10.5px}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-mm-v{font-size:11.5px;font-weight:700}
 }
 @media (prefers-reduced-motion:reduce){.wam-go,.wam-cond > summary,.wam-cond > summary::after{transition:none}}
 /* 「機長｜副操縦士」の切り替え（P12.100）── hidden で出荷し、台本が動いたときだけ見せる。押した方（aria-pressed）が区域の data-pos を決める。
-   面の先頭の子（地図の上の1行）。区域が 700px 以上は地図の左下に重ねる（見せても何もずれない）・1000px 以上は面の右上の升（カードの上）。
+   面の先頭の子（地図の上の1行 ── 区域 1000px 未満は、右に閉じたカードの1〜2行が並ぶ）・1000px 以上は面の右上の升（カードの上）。
    ダークでは押した方を緑の面と縁で塗る（字の色だけの違いにしない ── リード P12.112） */
 .wam-card{position:relative}
 .wam-pos{display:inline-flex;align-self:start;justify-self:start;gap:2px;padding:3px;border-radius:999px;background:var(--pv-bg-sub);box-shadow:inset 0 0 0 1px var(--pv-line)}
@@ -307,11 +316,9 @@ html.wd-lock{overflow:hidden;overflow-anchor:none}
 [data-theme="dark"] .wam-pb[aria-pressed="true"]{background:var(--pv-accent-soft);box-shadow:inset 0 0 0 1px var(--pv-accent-line)}
 @media (pointer:coarse){.wam-pb{min-height:44px}}
 @media (prefers-reduced-motion:reduce){.wam-pb{transition:none}.wam-pb:active{transform:none}}
-/* 700〜999px：切り替えは地図の左下（南太平洋の空いた海の上・地図の下の一言のすぐ上）に重ねる ── 右上はシベリアの陸に掛かる（WP-dmap-7・リード 2026-10-25 Q1 (v)）。
-   下端 ＝ 地図の下の縁。3つに繋がっている：.wam-g の上の余白 14px（700px 以上の規則）・横の余白 2×16 ＋ 縁 2×1 ＝ 34px・地図の箱の比 1000 / 446（.wam-map）
-   ── どれかを変えたらここも直す（陸に掛かれば assert-directory-ui.mjs の map-fit／map-first が赤くなる） */
-@container wam (min-width:700px){.wam-pos{position:absolute;top:calc(14px + (100cqi - 34px) * .446);left:16px;transform:translateY(-100%);z-index:1}}
-@container wam (min-width:1000px){.wam-pos{position:static;grid-area:sw;justify-self:end;transform:none}}
+/* 700〜999px の切り替えは、WP-dmap-7 から地図の左下に重ねていた（地図が箱の比のままだった頃）。WP-dmap-11 で地図が画面を埋めるようになり、
+   切り替えはスマホと同じ地図の上の行に戻した（陸に掛からないのは assert-directory-ui.mjs の map-fit／map-first の onLand が見る） */
+@container wam (min-width:1000px){.wam-pos{grid-area:sw;justify-self:end}}
 /* 地域の9つのボタン（DM3）── 見た目はここ1か所（NEED-10）。押した見た目は [aria-pressed="true"] だけ。
    820px までは小さめのボタンで折り返す（WP-dmap-9・オーナー #8「切れないようにして」── 前は1本の横にすべる列で、右の端が切れていた） */
 #region-strip{display:flex;gap:var(--pv-s-1);margin:0 0 var(--pv-s-2)}
@@ -352,9 +359,9 @@ html.wd-lock{overflow:hidden;overflow-anchor:none}
 [data-theme="dark"] .wam{--wam-hi:var(--pv-teal);--wam-glow:color-mix(in oklab,var(--pv-teal) 72%,var(--pv-ink));--wam-aura:.18}
 .wam-mc{min-width:0}
 .wam-map{aspect-ratio:1000 / 446;scroll-margin-top:86px;position:relative;touch-action:pan-y;-webkit-user-select:none;user-select:none}   /* 地図の箱（directory-map.mjs の VIEWBOX）と同じ比。ボタンの置き場（relative）・1本の指はページのスクロール（WP-dmap-9） */
-/* スマホの幅（区域 700px 未満）のページの中では、地図を面の縁から縁まで（面の内側の余白 12px の外まで ── WP-dmap-9「スマホで見ると小さい」）。
-   枠の高さは箱の比のまま（375×640 の最初の1画面に面が丸ごと入るのは、あと数 px ── assert-directory-ui.mjs の map-first）。大きく見るのは全画面 */
-@container wam (max-width:699px){.wam:not(.is-fs) .wam-map{margin:0 -12px}}
+/* 区域 1000px 未満は、地図を面の縁から縁まで（面の内側の余白 12px の外まで ── WP-dmap-9「スマホで見ると小さい」）。
+   枠の高さは wam-stage の塊が決める（WP-dmap-11：最初の1画面を埋める） */
+@container wam (max-width:999px){.wam-map{margin:0 -12px}}
 .wam-svg{display:block;width:100%;height:100%;overflow:visible;-webkit-tap-highlight-color:transparent}
 /* 塗りの決まり（D10）：点の見た目は地域の <g> に付けて path が受け継ぐ。.wam-land を名指す規則で fill / stroke を決めない
    （<use> の写しがそれを持ってしまい、光る層・当たりの層が自分の線を持てなくなる） */
@@ -389,58 +396,128 @@ html.wd-lock{overflow:hidden;overflow-anchor:none}
 @media (prefers-reduced-motion:reduce){.wam-halo,.wam-lit,.wam-ring{transition:none}}
 /* 動かせる地図（WP-dmap-9・オーナー「地図自体を自分で動かせるようにしたい（windy みたいに）」）。動くのは地図の層を包む g.wam-z の
    transform だけ（台本が書く）。ボタンで拡大・縮小する時だけ滑らかに（動きを減らす設定では瞬時）。拡大しているあいだは枠の外を切る。
-   ページの中の指：1本はページのスクロール（pan-y）・2本は台本が地図に使う。全画面では指は全部地図のもの */
+   ページの中の指：2本は台本が地図に使う・1本は1倍のあいだページのスクロール（pan-y）、拡大しているあいだは地図のもの（.is-z ── WP-dmap-11 W6） */
 .wam-z{transform-origin:0 0}
 .wam-z.is-glide{transition:transform .32s var(--pv-ease)}
-.wam-map.is-z{overflow:hidden;cursor:grab}
+.wam-map.is-z{overflow:hidden;cursor:grab;touch-action:none}   /* 拡大しているあいだは1本の指も地図（WP-dmap-11 W6）── 1倍に戻ればページのスクロール */
 .wam-map.is-drag,.wam-map.is-drag .wam-hit{cursor:grabbing}
 .wam-map:focus{outline:none}
 .wam-map:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
-/* 拡大・縮小・元に戻す・全画面（左上 ＝ どの幅でも陸の点がほぼ無い海の上）と、全画面の「閉じる」（右上）。指の画面は 44px */
-.wam-zc{position:absolute;left:8px;top:8px;z-index:2;display:flex;flex-direction:column;gap:6px}
-.wam-zc[hidden],.wam-zb[hidden],.wam-zx[hidden],.wam-zh[hidden]{display:none}
-.wam-zb,.wam-zx{position:relative;display:block;width:36px;height:36px;padding:0;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface);color:var(--pv-ink-2);box-shadow:var(--pv-shadow);cursor:pointer;transition:transform .18s var(--pv-ease)}
-.wam-zx{position:absolute;right:8px;top:8px;z-index:2}
-@media (pointer:coarse){.wam-zb,.wam-zx{width:44px;height:44px}}
-.wam-zb:hover,.wam-zx:hover{color:var(--pv-ink);border-color:var(--pv-accent-line)}
-.wam-zb:focus-visible,.wam-zx:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
-.wam-zb:active,.wam-zx:active{transform:scale(.94)}
+/* 拡大・縮小・元に戻す：地図の枠の右の縁の、丸いボタンの縦の列（WP-dmap-11 W3・windy の右の列）。どの画面も 44px。置くのは右上 ── 右の縁の
+   まんなかから下はニューギニア・オーストラリア・ニュージーランドの陸。右上の2つ（1倍の時の 拡大・縮小）が覆う緯度で陸がいちばん右まで来るのは
+   カムチャツカ（箱の x 858 ＋ 点の半径 1.85）と日本（x 853）。スマホの幅では世界が枠の幅いっぱい（x 860 ＝ 幅の 86%）なので、右の余白 10px のままだと
+   幅 400px 未満で列がその点に掛かった（WP-dmap-11 のチェッカー：360×640 で日本の点が2つ）。だから右の余白は「幅の 14% − 46px」（10px まで・2px より狭くしない）
+   ＝ 列の左の縁がいつも x 860 より 2px 右（360 で 4.4px・375 で 6.5px・390 で 8.6px・400px からは 10px）。縦は枠の上から 106px まで ── 枠の上の海の帯の中か、
+   その緯度（x 860 より右に陸の無い所）。どの大きさでも陸の点に掛からないことは assert-directory-ui.mjs の onLand が見る（切り替えの箱と一緒に） */
+.wam-zc{position:absolute;right:clamp(2px,14cqi - 46px,10px);top:10px;z-index:2;display:flex;flex-direction:column;gap:8px}
+.wam-zc[hidden],.wam-zb[hidden],.wam-zh[hidden]{display:none}
+.wam-zb{position:relative;display:block;width:44px;height:44px;padding:0;border:1px solid var(--pv-line);border-radius:50%;background:var(--pv-surface);color:var(--pv-ink-2);box-shadow:var(--pv-shadow);cursor:pointer;transition:transform .18s var(--pv-ease)}
+.wam-zb:hover{color:var(--pv-ink);border-color:var(--pv-accent-line)}
+.wam-zb:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wam-zb:active{transform:scale(.94)}
 .wam-zb[aria-disabled="true"]{color:var(--pv-ink-3);cursor:default}
 .wam-zb[aria-disabled="true"]:active{transform:none}
-/* 印は線だけで描く（地図の塊に <svg> を足さない ── M16）。＋ − ・まるい矢印・四隅・× */
-.wam-zb::before,.wam-zb::after,.wam-zx::before,.wam-zx::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:2px;margin:-1px 0 0 -7px;border-radius:1px;background:currentColor}
+/* 印は線だけで描く（地図の塊に <svg> を足さない ── M16）。＋ − ・まるい矢印 */
+.wam-zb::before,.wam-zb::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:2px;margin:-1px 0 0 -7px;border-radius:1px;background:currentColor}
 .wam-zb[data-z="in"]::after{width:2px;height:14px;margin:-7px 0 0 -1px}
 .wam-zb[data-z="out"]::after,.wam-zb[data-z="reset"]::after{display:none}
 .wam-zb[data-z="reset"]::before{width:12px;height:12px;margin:-7px 0 0 -7px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;background:none}
 .wam-zb[data-z="reset"]::after{display:block;width:0;height:0;margin:-9px 0 0 1px;border:4px solid transparent;border-left-color:currentColor;border-radius:0;background:none}
-.wam-zb[data-z="fs"]::before{width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:0;background:linear-gradient(currentColor,currentColor) 0 0/5px 2px no-repeat,linear-gradient(currentColor,currentColor) 0 0/2px 5px no-repeat,linear-gradient(currentColor,currentColor) 100% 0/5px 2px no-repeat,linear-gradient(currentColor,currentColor) 100% 0/2px 5px no-repeat,linear-gradient(currentColor,currentColor) 0 100%/5px 2px no-repeat,linear-gradient(currentColor,currentColor) 0 100%/2px 5px no-repeat,linear-gradient(currentColor,currentColor) 100% 100%/5px 2px no-repeat,linear-gradient(currentColor,currentColor) 100% 100%/2px 5px no-repeat}
-.wam-zb[data-z="fs"]::after{display:none}
-.wam-zx::before{transform:rotate(45deg)}
-.wam-zx::after{transform:rotate(-45deg)}
-/* スマホの幅（区域 700px 未満）のページの中：拡大・縮小は2本の指で。ボタンは全画面と（拡大している時の）元に戻すだけ */
-@container wam (max-width:699px){.wam:not(.is-fs) .wam-zb:is([data-z="in"],[data-z="out"]){display:none}}
 /* 指で触れた最初の1回だけ「2本の指で動かせます」（字は塊の中・出し入れは台本・消えるのは動きの終わり） */
 .wam-zh{position:absolute;left:50%;top:50%;z-index:2;max-width:calc(100% - 32px);margin:0;padding:8px 14px;border-radius:999px;background:color-mix(in oklab,var(--pv-ink) 84%,transparent);color:var(--pv-bg);font:600 13px/1.4 Inter,'Noto Sans JP',sans-serif;text-align:center;pointer-events:none;opacity:0;transform:translate(-50%,-50%)}
 .wam-zh.is-on{animation:wam-zh 2.4s var(--pv-ease) both}
 @keyframes wam-zh{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){.wam-z.is-glide,.wam-zb,.wam-zx{transition:none}.wam-zh.is-on{animation-timing-function:steps(1,end)}}
-/* 全画面（WP-dmap-9）：区域そのものが画面いっぱいの面になる（同じ地図・同じカード）。広い画面は地図の右にカード、狭い画面は地図の下に
-   カード（下から出る板・中だけがスクロールする）。ページは後ろで止まる（html.wam-lock）。ヘッダーと左のメニュー（200・245）より上、
-   Give → Get の板・確認の板（9997〜）より下 */
-html.wam-lock{overflow:hidden;overflow-anchor:none}
-.wam.is-fs{position:fixed;inset:0;z-index:260;max-width:none;margin:0;padding:0;background:var(--pv-bg);touch-action:none;overscroll-behavior:contain}
-.wam.is-fs .wam-g{box-sizing:border-box;height:100%;grid-template-rows:auto minmax(0,1fr) auto;align-items:stretch;padding:12px;border:0;border-radius:0}
-.wam.is-fs .wam-pos{position:static;transform:none;align-self:start}
-.wam.is-fs .wam-mc{display:flex;flex-direction:column;min-height:0}
-.wam.is-fs .wam-map{flex:1 1 auto;min-height:0;aspect-ratio:auto;margin:0;overflow:hidden;border-radius:var(--pv-r);background:var(--pv-bg-sub);touch-action:none}
-.wam.is-fs .wam-card{min-height:0;max-height:42vh;overflow:auto;overscroll-behavior:contain;touch-action:pan-y}
-.wam.is-fs .wam-hint{display:none}   /* 全画面では押しても見せるだけ（選ぶのはボタン）＝「地図をクリックして地域を選択」は本当でない（指の画面と同じ ── WP-dmap-7） */
-.wam.is-fs .wam-go:not(.is-off){display:block;position:sticky;bottom:0;z-index:1;width:100%;margin-top:8px;box-shadow:var(--pv-shadow)}   /* 板をスクロールしなくても押せる */
-@container wam (min-width:1000px){
-  .wam.is-fs .wam-g{grid-template-rows:auto minmax(0,1fr);padding:16px 24px 16px 18px}
-  .wam.is-fs .wam-mc{align-self:stretch}
-  .wam.is-fs .wam-card{max-height:none}
-}
+@media (prefers-reduced-motion:reduce){.wam-z.is-glide,.wam-zb{transition:none}.wam-zh.is-on{animation-timing-function:steps(1,end)}}
+/* 板（区域 1000px 未満で開いたカード ── 下の wam-stage の塊）の閉じるボタン。カードの先頭・hidden で出荷・台本が地図を動かす時だけ hidden を外す。
+   見えるのは板の時だけ（ほかの形のカードには出さない）。印は線（×）── 地図の塊に <svg> を足さない（M16）。地の色を持つ。
+   置き場所は板のいちばん上の、× と同じ高さ（44px）の地域の名前の行の中（その行は板の中をスクロールしても上に貼りつき、地の色を持つ ── 下の is-open の規則）。
+   スクロールした中身はその行の下を通り、× の下は通らない（前は × が行より 15px 下まで出ていて、額や社名が × の下を通った ── チェッカー2 の GAP A。
+   assert-directory-ui.mjs の map-tap の板の行・class A：開いた時・半分・終わりで × の箱がどの字にも掛からない） */
+.wam-sx{display:none;position:absolute;top:0;right:4px;z-index:2;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:var(--pv-surface);color:var(--pv-ink-2);cursor:pointer;transition:transform .18s var(--pv-ease)}
+.wam-sx:hover{color:var(--pv-ink);background:var(--pv-bg-sub)}
+.wam-sx:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px}
+.wam-sx:active{transform:scale(.94)}
+.wam-sx::before,.wam-sx::after{content:"";position:absolute;left:50%;top:50%;width:16px;height:2px;margin:-1px 0 0 -8px;border-radius:1px;background:currentColor;transform:rotate(45deg)}
+.wam-sx::after{transform:rotate(-45deg)}
+@keyframes wam-sheet{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.wam-sx{transition:none}.wam-sx:active{transform:none}}
 /* ── /wam-map ── */
 .wam-slot{display:none;min-width:0}
+/* ── wam-stage（WP-dmap-11・オーナー「ケータイ画面の次のキャリアを選択するの文字デカすぎ。なんなら最初の画面はこの部分いらないでしょ。
+   最初にもう地図どん。windy みたいに。」）── 最初の1画面 ＝ ヘッダーの下から画面の下の縁まで（.wd-stage・100dvh − ヘッダー）を、
+   上の帯（検索欄 #wa-hero）・地図（#wd-explore：切り替えの行・地図の枠・凡例）・下の帯（地域のボタンと結果の数 #filter-bar）の3段で埋める。
+   地図の枠は残った高さを全部もらい、世界は枠の中に1倍で丸ごと（縦の余りは静かな海）。帯は地図に重ねない段 ＝ 陸はいつも上の帯と下の帯のあいだ
+   （assert-directory-ui.mjs の map-first・class A）。効くのは、台本が地図を動かしている時（拡大のボタンの列が見えている ＝ .wam-zc:not([hidden])）で、
+   検索していない時（html.wd-q でない）だけ。台本なし・検索中は今までどおり上から並ぶ（検索中は地図が消え、帯・地域のボタン・結果の見出しのすぐ下にカード）。
+   区域 1000px 未満でカードが開く（is-open）と、カードは地図の下の部分に重なる板になる（面も地図の枠も動かない ── 下の is-open の規則）。
+   見出し（h1）は帯の先頭で .wd-vh（ページの本当の見出しのまま・読み上げる）。社数の1行（.wd-lede）は面の下 */
+.wd-stage{padding-top:var(--pv-topbar,71px)}   /* 固定のヘッダーの下から（前は見出しの帯の padding 110px） */
+#wa-hero{padding:16px 20px 12px}
+.wd-band{max-width:1280px;margin:0 auto}
+#wa-hero .wd-search{margin:0 auto}
+.wd-lede{margin:var(--pv-s-3) auto var(--pv-s-1);font-size:.85rem;line-height:1.6;color:var(--pv-ink-3)}
+.wd-q .wd-lede{display:none}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])){display:flex;flex-direction:column;box-sizing:border-box;min-height:100vh;min-height:100dvh;border-bottom:1px solid var(--pv-line);background:radial-gradient(120% 70% at 85% 0%,var(--pv-accent-soft) 0%,transparent 55%),var(--pv-surface)}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wa-hero{flex:none;padding:8px 12px 6px}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wa-hero .wd-search{max-width:none;min-height:50px}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-explore{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;max-width:none;margin:0;padding:0}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-g{flex:1 1 auto;min-height:0;grid-template-rows:auto 1fr;align-items:stretch;padding:0 12px;border:0;border-radius:0;background:none;box-shadow:none}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-g > .wam-pos{align-self:center}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-g > .wam-mc{align-self:stretch;display:flex;flex-direction:column;min-height:0}
+/* 地図の枠：残った高さを全部もらう（下限 ＝ 世界の高さ。区域いっぱいの幅で 1000 / 446）。svg は枠いっぱいに重ねる（position:absolute）──
+   svg そのものの高さ（幅 × 箱の比）を枠の中身の高さにしない。中身の高さを持つと、面は「100dvh より高い中身」として下へ伸び、
+   横に広くて縦が短い画面（1024×690）で下の帯が最初の1画面の外へ押し出される（実際に踏んだ） */
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-map{flex:1 1 auto;aspect-ratio:auto;min-height:calc(100cqi * .446)}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-svg{position:absolute;inset:0}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-foot{flex:none;margin:2px 0 4px}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-key{flex:1 1 auto;margin:0}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-kb{flex:1 1 auto;width:auto;min-width:72px}   /* 凡例は横いっぱいの細い帯（シート W4） */
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #filter-bar{flex:none;max-width:none;margin:0;padding:8px 12px;border-top:1px solid var(--pv-line-soft)}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #region-strip{margin:0 0 4px}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #region-strip .rstrip-btn{padding:0 10px;gap:5px;font-size:12.5px}   /* 下の帯の小さめのボタン（シート W4「compact」） */
+@media (max-width:480px){html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #region-strip{gap:5px}html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #region-strip .rstrip-btn{padding:0 8px;gap:4px;font-size:12px}html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #region-strip .rstrip-n{font-size:11px}}
+/* 下にもっと在る印（シート W5「112社 ↓」）：結果の見出しの行の後ろに下向きの小さな山（字は足さない）。
+   「絞り込みを解除」はこの行には出さない（WP-dmap-11 の直し）── 地域を選ぶとこの行に 40〜44px のボタンが増えて下の帯が 17〜21px 高くなり、
+   その分だけ地図が縮んで世界が動いた（選ぶと同時に開く板の後ろで地図が動く）。最初の1画面では、すぐ上の「すべて」のボタンと検索欄の中の地域の札が
+   同じことをする。検索中（html.wd-q）と見つからない時の「絞り込みを解除」はそのまま */
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-rh{justify-content:center;margin:0}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-rh::after{content:"";order:1;align-self:center;width:7px;height:7px;margin:0 2px 4px;border-right:2px solid var(--pv-ink-3);border-bottom:2px solid var(--pv-ink-3);transform:rotate(45deg)}
+html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-rh .wd-clear{display:none}
+/* 区域 700〜999px（iPad の横向き 1024×690 など、横に広くて縦が短い画面）：地図の枠の下限は世界の高さの 8 割（それより低い時だけ世界も縮む）。
+   世界は 1倍で丸ごと枠の中のまま（下の帯を最初の1画面の外へ押し出さない） */
+@container wam (min-width:700px) and (max-width:999px){
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-map{min-height:calc(100cqi * .446 * .8)}
+}
+/* 区域 1000px 未満でカードが開いた時（is-open ── 地図に指で触れた・地域を選んだ）：カードは下から出る板（シート W2「bottom sheet」・WP-dmap-11 の直し）。
+   板は地図の枠と凡例の升（面の 2 行目）の下の縁に置き、地図の下の部分に重なる。地図の枠の大きさも位置も変えない・ページを動かさない・下の帯はそのまま
+   （前は枠が世界の高さまで縮み、面が下へ伸びてページが動き、触れた地域が指の下から 200px 離れた ── チェッカーの GAP 1）。
+   高さは中身まで、ただし升の高さ − 114px まで（枠の上から 10 ＋ 44 ＋ 8 ＋ 44 ＝ 106px の拡大・縮小の列に掛からない ── 拡大しているあいだだけ出る
+   「元に戻す」は小さい画面では板の下になる。縮小で戻れる）。中だけがスクロールし、「この地域の航空会社を見る」は板の下の縁に残る。
+   右上の × と Esc で閉じる（切り替えの右の1〜2行に戻る）。× は板のいちばん上の地域の名前の行の中 ── 行は × と同じ高さ（44px・板の上の余白は 0 にして
+   その分を行に回した ＝ 名前の字の位置は前と同じ）で、上に貼りつき地の色を持つ。中身はこの行の下を通るので、× がどの字にも掛からない（チェッカー2 の GAP A）。
+   1行目の高さは開いても閉じても切り替えの高さ（閉じたカードの1〜2行は行の高さを決めない ── 上の「閉じたカード」の規則）＝ 開け閉めで地図が上下しない */
+@container wam (max-width:999px){
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-card{position:absolute;grid-row:2 / 3;grid-column:1 / -1;left:-12px;right:-12px;bottom:0;z-index:3;box-sizing:border-box;max-height:calc(100% - 114px);gap:0;padding:0 14px;border:1px solid var(--pv-line);border-bottom:0;border-radius:var(--pv-r-lg) var(--pv-r-lg) 0 0;background:var(--pv-surface);box-shadow:0 -1px 2px color-mix(in oklab,var(--pv-accent-dark) 6%,transparent),0 -18px 40px -20px color-mix(in oklab,var(--pv-accent-dark) 28%,transparent);animation:wam-sheet .2s var(--pv-ease) both}
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-cols{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:8px}
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-h{position:sticky;top:0;z-index:1;display:flex;align-items:center;box-sizing:border-box;min-height:44px;padding-right:40px;background:var(--pv-surface)}   /* 板の中をスクロールしても地域の名前の行は上に残る。高さは × と同じ 44px（× はこの行の中） */
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-sx:not([hidden]){display:block}
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-go:not(.is-off){flex:none;margin:0 0 8px}
+  html[data-theme="dark"]:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-card{box-shadow:0 -1px 0 var(--pv-line),0 -18px 40px -16px rgba(0,0,0,.55)}
+}
+@media (prefers-reduced-motion:reduce){html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-card{animation:none}}
+@container wam (min-width:1000px){
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-g{grid-template-rows:auto minmax(0,1fr);padding:10px 24px 4px 18px}
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-map{min-height:calc((100cqi - 414px) * .446)}   /* 地図の列の幅（区域 − 余白 42 − カード 340 − 間 32）で 1000 / 446 */
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam-card{min-height:0;overflow:auto}
+}
+@media (min-width:768px){
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wa-hero{padding:10px 24px 6px 18px}
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wa-hero .wd-search{max-width:560px;margin:0}
+  /* 地域のボタンと結果の数を1行に（入らない幅では結果の数が次の行へ回り、ボタンは横いっぱいの1行のまま） */
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;padding:8px 24px 8px 18px}
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #region-strip{flex:1 1 auto;min-width:0;margin:0}
+  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-rh{flex:none;margin-left:auto}
+}
+/* ── /wam-stage ── */
 /* ── /wam ── */

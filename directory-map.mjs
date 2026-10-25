@@ -25,8 +25,13 @@
      どこにも入れない陸地の透明な線（答えを持たない）がその次・8地域があと（それぞれの陸地が上に来て、自分の答えを持つ）。
    ★ 動かせる地図（WP-dmap-9・オーナー「地図自体を自分で動かせるようにしたい（windy みたいに）」）：svg の層は全部1つの <g class="wam-z"> の中
      （点・当たり・光る層が一緒に動く。動かすのは台本がその transform に書く1か所だけ ── 出荷は1倍 ＝ transform を書かない）。
-     地図の枠の左上に 拡大・縮小・元に戻す・全画面、右上に全画面の「閉じる」、まんなかに指の一言（どれも hidden で出荷。台本が動いた時だけ見せる）。
-     印は CSS の線だけで描く（地図の塊に2つ目の <svg> を置かない）。字は WORDS の zoom（シートの字）
+     地図の枠の右上に 拡大・縮小・元に戻す の丸いボタンの縦の列、まんなかに指の一言（どれも hidden で出荷。台本が動いた時だけ見せる）。
+     印は CSS の線だけで描く（地図の塊に2つ目の <svg> を置かない）。字は WORDS の zoom（シートの字）。
+     ★WP-dmap-11（オーナー「最初にもう地図どん。windy みたいに」）：ページそのものが地図の画面になったので、全画面のボタンと全画面の「閉じる」は外した
+     （シート W3「ページそのものが全画面の地図」）。地図がどう画面を埋めるかは pv-directory.css の wam-stage の塊
+     ★WP-dmap-11 の直し（チェッカー：シート W2「カードはスマホでは下から出る板」）：区域 1000px 未満で開いたカードは、地図の下の部分に重なる板
+     （地図の枠は動かない）。板の右上に閉じるボタン（.wam-sx・カードの先頭・hidden で出荷）── 字はこのページの比較リストの「閉じる」／Close と同じ
+     （新しい字ではない ── gen-directory.mjs の TRAY_WORDS の close）。印は CSS の線（× ）
    ★ 文字列の置き換えは関数形だけ（CLAUDE.md）。
    ════════════════════════════════════════════════════════════════ */
 import { SHAPES, JAPAN_MARK } from './world-outline.mjs';
@@ -110,7 +115,7 @@ export function toneOf(man, lo, hi) {
  *   on     選んだ地域・hot 指している地域（光る層）── 見本の絵だけが渡す。ページのブロックはどちらも無しで書く
  *   id     null のとき id="wa-map" を書かない（見本の絵のように、1枚に何枚も並べるとき）
  *   uid    <use> が指す id の後ろに付ける字（1枚に何枚も並べるとき、id がぶつからないように）
- *   zoom   動かせる地図のボタンの字 { in, out, reset, fs, close, touch }（呼び手が esc した字）── ページのブロックだけが渡す。見本の絵は渡さない（ボタンを描かない）
+ *   zoom   動かせる地図のボタンの字 { in, out, reset, touch }（呼び手が esc した字）── ページのブロックだけが渡す。見本の絵は渡さない（ボタンを描かない）
  */
 export function mapBox(o) {
   const u = o.uid ?? '';
@@ -146,10 +151,9 @@ export function mapBox(o) {
   L.push('</g>');
   L.push('</svg>');
   if (o.zoom != null) {
-    /* 動かせる地図のボタン（WP-dmap-9）。字は aria-label と title の2つ（印だけのボタン）。元に戻すは1倍のあいだ隠れている */
+    /* 動かせる地図のボタン（WP-dmap-9 → WP-dmap-11 で全画面と「閉じる」を外した）。字は aria-label と title の2つ（印だけのボタン）。元に戻すは1倍のあいだ隠れている */
     const Z = o.zoom, zb = (z, hid) => `<button type="button" class="wam-zb" data-z="${z}" aria-label="${Z[z]}" title="${Z[z]}"${hid ? ' hidden' : ''}></button>`;
-    L.push(`<div class="wam-zc" hidden>${zb('in')}${zb('out')}${zb('reset', true)}${zb('fs')}</div>`);
-    L.push(`<button type="button" class="wam-zx" data-z="close" aria-label="${Z.close}" title="${Z.close}" hidden></button>`);
+    L.push(`<div class="wam-zc" hidden>${zb('in')}${zb('out')}${zb('reset', true)}</div>`);
     L.push(`<p class="wam-zh" aria-hidden="true" hidden>${Z.touch}</p>`);
   }
   L.push('</div>');
@@ -177,23 +181,25 @@ const POS = ['cap', 'fo'];
     「機長｜副操縦士」の切り替え（P12.100）の2つのボタンの字は、行の札と同じ rank の字（新しい字を作らない）。
     その組の読み上げの名前（aria-label・画面には出ない）は「職位」／Rank（リード P12.112）。
     地図の下の一言 hint は、いまの一覧が古い地図の上に出している字のまま（directory-data WP-dd-9 の字。新しい字ではない）。
-    zoom ＝ 動かせる地図（WP-dmap-9）のボタンの字と、指の一言（シートの WP-dmap-9 の wording の字。英語はオーナー #19「自然な英語」） */
+    zoom ＝ 動かせる地図（WP-dmap-9）のボタンの字と、指の一言（シートの WP-dmap-9 の wording の字。英語はオーナー #19「自然な英語」）。
+    全画面・閉じる の2つは WP-dmap-11 でボタンごと外した（ページそのものが地図の画面）。
+    close ＝ 区域 1000px 未満で下から出る板（開いたカード）の閉じるボタンの字（WP-dmap-11 の直し）── このページの比較リストの閉じるボタンと同じ字 */
 const WORDS = {
   ja: {
     all: 'すべて', k: '公開情報からの推定', def: (n) => `掲載${n}社の推定年収の平均`, rank: { cap: '機長', fo: '副操縦士' }, rankGroup: '職位',
     cond: '条件/出典', who: '対象', count: '対象掲載社数', countN: (n) => `${n}社`, fx: '換算', go: 'この地域の航空会社を見る',
     lo: '最低', hi: '最高', span: '幅', regionN: (l, n) => `${l} ${n}社`, hint: '地図をクリックして地域を選択',
-    zoom: { in: '拡大', out: '縮小', reset: '元に戻す', fs: '全画面', close: '閉じる', touch: '2本の指で動かせます' },
+    zoom: { in: '拡大', out: '縮小', reset: '元に戻す', touch: '2本の指で動かせます' }, close: '閉じる',
   },
   en: {
     all: 'All', k: 'Estimate from public information', def: (n) => `Mean of our estimates across ${n} airlines`, rank: { cap: 'Captain', fo: 'First Officer' }, rankGroup: 'Rank',
     cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Conversion', go: 'View airlines in this region',
     lo: 'Lowest', hi: 'Highest', span: 'Range', regionN: (l, n) => `${l} ${n}`, hint: 'Click the map to choose a region',
-    zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', fs: 'Full screen', close: 'Close', touch: 'Use two fingers to move the map' },
+    zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close',
   },
 };
 /** 動かせる地図のボタンの字の鍵（mapBox が確かめる） */
-const ZOOM_KEYS = ['in', 'out', 'reset', 'fs', 'close', 'touch'];
+const ZOOM_KEYS = ['in', 'out', 'reset', 'touch'];
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -211,7 +217,9 @@ export const axisOf = (ledger, rank) => scaleTop(Object.values(ledger).map((d) =
  * PV-DIRMAP の中身（gen-directory.mjs が両方のページに書く）。
  *   o = { lang, M（directory-model.mjs の model()）, ledger（SALARY）, regionMean(code, rank), bake(text) → string, fxNote（換算の文） }
  * 1枚の面（.wam-g）に「機長｜副操縦士」の切り替え・地図の列・カードを置く（並べ方は pv-directory.css：広い画面は地図の右にカード、
- * 700〜999px は地図の下にカード、スマホは切り替え・地図・カードの順で、カードは地域を選ぶか地図に触れるまで閉じている）。
+ * 区域 1000px 未満は 切り替えの行・地図・カードの順で、カードは地域を選ぶか地図に触れるまで閉じている ── 閉じているあいだは切り替えの右に
+ * 見せている地域の名前と額の1〜2行。WP-dmap-11 から地図は最初の1画面を埋める ── pv-directory.css の wam-stage の塊。開いたカードは地図の下の部分に
+ * 重なる板で、先頭の閉じるボタン（.wam-sx）で閉じる）。
  * 9枚のカード（すべて ＋ 8地域。すべてだけ is-shown）は1つの升に重ねる（高さが入れ替わらない）。台本なしでは9枚とも縦に並び、
  * 帯は機長と副操縦士の2本とも見える。地図・凡例・一言は台本なしでは出さない（<noscript> の規則 ── 押しても何も起きない地図を出さない）。
  * #pv-rp は地域のまとめの下の段（05b）が入る口 ── ここは何も書かない。
@@ -293,6 +301,7 @@ export function mapSection(o) {
     `<div class="wam-pos" role="group" aria-label="${esc(W.rankGroup)}" hidden>${POS.map((r) => `<button type="button" class="wam-pb" data-pos="${r}" aria-pressed="${r === 'cap'}">${esc(W.rank[r])}</button>`).join('')}</div>`,
     mapBox({ tones, legend, hint: esc(W.hint), zoom: Object.fromEntries(ZOOM_KEYS.map((k) => [k, esc(W.zoom[k])])) }),
     '<aside class="wam-card" id="wa-sum">',
+    `<button type="button" class="wam-sx" aria-label="${esc(W.close)}" title="${esc(W.close)}" hidden></button>`,
     '<div class="wam-cols">',
     '<div class="wam-panels">',
     ...groups.map(panel),

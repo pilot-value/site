@@ -54,7 +54,7 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="pv-tokens.css">
-<link rel="stylesheet" href="pv-directory.css?v=ee0ba4e6">
+<link rel="stylesheet" href="pv-directory.css?v=c4d2eba4">
 <noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -111,10 +111,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] ::-webkit-scrollbar-track{background:#f3f5f8}
 [data-theme="light"] ::-webkit-scrollbar-thumb{background:#c4cfdf}
 [data-theme="light"] .glass{background:rgba(255,255,255,.9)!important;border-color:rgba(0,0,0,.08)!important}
-/* Hero section */
-[data-theme="light"] #wa-hero{background:linear-gradient(180deg,#eef2f8 0%,#f3f5f8 70%)!important}
-[data-theme="light"] #wa-hero h1{background:linear-gradient(135deg,#0f172a 30%,#b5920a)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
-[data-theme="light"] #wa-hero .badge-pill{background:rgba(180,150,0,.1)!important;border-color:rgba(180,150,0,.25)!important;color:#a07800!important}
+/* Hero section：WP-dmap-11 で見出しの帯は地図の上の検索の帯になった（見た目は pv-directory.css の wam-stage の塊） */
 /* Airline cards */
 /* Card text */
 /* Tags */
@@ -239,13 +236,14 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   </div>
 </nav>
 
-<!-- ── HERO ───────────────────────────────────────────────────────── -->
-<div id="wa-hero" style="padding:110px 0 16px;background:linear-gradient(180deg,rgba(61,155,255,.05) 0%,transparent 70%);position:relative;overflow:hidden">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(245,200,66,.04) 0%,transparent 70%);pointer-events:none"></div>
-  <div class="max-w-7xl mx-auto px-5 text-center relative">
-    <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);color:#f5c842;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">🌍 WORLD AIRLINES DATABASE</div>
-    <h1 style="font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 30%,#f5c842);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px"><span style="white-space:nowrap">次のキャリアを、</span><span style="white-space:nowrap">選択する</span></h1>
-    <p style="color:#6b7d93;font-size:.95rem"><!--PV-DIR-N-->112<!--/PV-DIR-N-->社の給与・採用・訓練情報</p>
+<!-- ── 最初の1画面（WP-dmap-11・オーナー「最初にもう地図どん。windy みたいに」）────────────────────
+     地図が画面を埋める：上の帯 ＝ 検索欄（#wa-hero）・まんなか ＝ 地図（#wd-explore）・下の帯 ＝ 地域のボタンと結果の数（#filter-bar）。
+     見た目は pv-directory.css の wam-stage の塊（台本が地図を動かしている時だけ ── 台本なし・検索中は今までどおり上から並ぶ）。
+     見出し（h1）はこのページの本当の見出しのまま、画面では見えない形（.wd-vh）で帯の先頭に置く。社数の1行は地図の下（.wd-lede）へ移した -->
+<div class="wd-stage" id="wd-stage">
+<div id="wa-hero">
+  <div class="wd-band">
+    <h1 class="wd-vh"><span style="white-space:nowrap">次のキャリアを、</span><span style="white-space:nowrap">選択する</span></h1>
     <div class="wd-search" role="search">
       <svg class="wd-search-ic" width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <input id="search" class="wd-search-in" type="search" name="q" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-controls="airline-grid" aria-label="航空会社名・国名で検索" placeholder="航空会社名・国名で検索"/>
@@ -298,8 +296,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </g>
 </g>
 </svg>
-<div class="wam-zc" hidden><button type="button" class="wam-zb" data-z="in" aria-label="拡大" title="拡大"></button><button type="button" class="wam-zb" data-z="out" aria-label="縮小" title="縮小"></button><button type="button" class="wam-zb" data-z="reset" aria-label="元に戻す" title="元に戻す" hidden></button><button type="button" class="wam-zb" data-z="fs" aria-label="全画面" title="全画面"></button></div>
-<button type="button" class="wam-zx" data-z="close" aria-label="閉じる" title="閉じる" hidden></button>
+<div class="wam-zc" hidden><button type="button" class="wam-zb" data-z="in" aria-label="拡大" title="拡大"></button><button type="button" class="wam-zb" data-z="out" aria-label="縮小" title="縮小"></button><button type="button" class="wam-zb" data-z="reset" aria-label="元に戻す" title="元に戻す" hidden></button></div>
 <p class="wam-zh" aria-hidden="true" hidden>2本の指で動かせます</p>
 </div>
 <div class="wam-foot">
@@ -309,6 +306,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </div>
 <aside class="wam-card" id="wa-sum">
+<button type="button" class="wam-sx" aria-label="閉じる" title="閉じる" hidden></button>
 <div class="wam-cols">
 <div class="wam-panels">
 <section class="wam-panel is-shown" data-region="all" id="wam-p-all">
@@ -693,6 +691,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   <!-- Results heading（航空会社の種類で絞る列は WP-dmap-7 で外した） -->
   <div class="wd-rh" id="wd-rh"><h2 class="wd-rh-name" id="wd-rh-name" tabindex="-1">すべて</h2><span class="wd-rh-n" id="result-count" role="status" aria-live="polite" data-fmt="{n}社"></span><button type="button" class="wd-clear" id="wd-clear" hidden>絞り込みを解除</button></div>
 </div>
+</div>
+
+<!-- 社数の1行（WP-dmap-11 で見出しの帯から地図の下へ移した。字はそのまま） -->
+<p class="wd-lede max-w-7xl mx-auto px-5"><!--PV-DIR-N-->112<!--/PV-DIR-N-->社の給与・採用・訓練情報</p>
 
 <!-- ── VIEW TOGGLE ────────────────────────────────────────────────── -->
 <div class="max-w-7xl mx-auto px-5 mb-5">
@@ -1817,7 +1819,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- airlines-meta.js はレベリング比較（PVLeveling）の表。一覧のカード・地域ボタン・社数は gen-directory.mjs がこのページに書く。 -->
 <script src="airlines-meta.js"></script>
-<script src="pv-directory.js?v=d96b249b"></script>
+<script src="pv-directory.js?v=2ec06082"></script>
 <script>(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();</script>
 <script src="airline-logos.js"></script>
 <script src="salary-leveling.js"></script>
