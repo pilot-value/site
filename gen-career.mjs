@@ -157,7 +157,9 @@ export function cell(slug, rank) {
   if (!e || !(e.man > 0)) throw new Error(`${slug}/${rank}: 推定年収が無い（pv-airline-view.mjs）`);
   if (e.man !== SALARY[slug]?.[rank]?.avg) throw new Error(`${slug}/${rank}: 推定が SALARY の avg と違う`);
   if (e.yen !== yen(e.man)) throw new Error(`${slug}/${rank}: 推定の字が標準の円表記ではない ──「${e.yen}」`);
-  return { man: e.man, text: e.yen, tag: TIERS.estimate.ja, sub: '', look: '' };
+  /* kind は金額の種類の鍵（salary-basis.mjs の TIERS）。比較の板は、並べた行がどれも推定なら「推定年収」を見出しに1回だけ言う
+     （行の札は読み上げにだけ残す）── 別の種類の行には、行の札を見せる（row() の data-kind ・career.css）。 */
+  return { man: e.man, text: e.yen, tag: TIERS.estimate.ja, kind: 'estimate', sub: '', look: '' };
 }
 
 /* 目盛の右端（★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」）。決まった上限は持たない。
@@ -260,8 +262,18 @@ const back = () => `<a class="cr-back" href="${href.home}" data-go>${IC.back}航
    ⚠️ data-go を付けない（career.html の外へ出る）。額・職位の字をこの中に書かない（check-salary.mjs の並びを崩さない）。 */
 const GO_WORD = '詳しく';
 const MORE_TOWNS = 'ほかの街';
-const gos = (tab, key) => `<p class="cr-gos">
-${ALL.map(s => `<a class="cr-link cr-go" id="cr-go-${key}-${s}" href="${href.page(s, tab)}" aria-labelledby="cr-cmp-h-${key} cr-go-${key}-${s}" data-airline="${s}" style="--cr-co:${color(s)}"${PAIR.includes(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">${esc(name(s))}</span><span class="cr-go-t">${GO_WORD}</span>${IC.go}</a>`).join('\n')}
+/* ★2026-10-25 オーナー P12.106（WP-compare-all-10）：年収の板の足だけは、会社ごとに1行 ── 社名・税の扱い・「詳しく」。
+   tax（会社 → 税の扱いの字）を渡すと、会社ごとの「詳しく」を1つの入れ物（.cr-ft ── career.js の「選んだ2社だけ見せる」の一覧の .cr-go）に
+   包み、税の扱いの字（.cr-tx）を「詳しく」の外に添える（リンクの読み上げの名前に字を足さない）。税の字の頭には社名を読み上げにだけ置く。
+   税の扱いを持たない会社は「詳しく」だけ。字は会社ページと同じ（viewOf().pay.tax）。 */
+const gos = (tab, key, tax) => `<p class="cr-gos">
+${ALL.map(s => {
+  const hide = PAIR.includes(s) ? '' : ' hidden';
+  const a = `<a class="cr-link cr-go" id="cr-go-${key}-${s}" href="${href.page(s, tab)}" aria-labelledby="cr-cmp-h-${key} cr-go-${key}-${s}" data-airline="${s}" style="--cr-co:${color(s)}"${hide}><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">${esc(name(s))}</span><span class="cr-go-t">${GO_WORD}</span>${IC.go}</a>`;
+  if (!tax) return a;
+  const t = tax(s);
+  return `<span class="cr-go cr-ft" data-airline="${s}"${hide}>${a}${t ? `<span class="cr-tx"><span class="cr-vh">${esc(name(s))}</span>${esc(t)}</span>` : ''}</span>`;
+}).join('\n')}
 </p>`;
 
 /* 生きた欄。空で出荷する（career-live.js / career-stay.js がサーバーの答えで埋める）。
@@ -876,10 +888,14 @@ const REVIEW_CATS = (() => {
    行は入口にしない（会社ページの 給与・待遇 のタブへは、箱の下の「詳しく」から）。
    ⚠️ 会社が公表した額の行をここへ足さない（下の「会社が公表している金額」の箱が持つ）。
    data-scale はその会社の目盛の右端（並べた2社の目盛 ＝ 2つの大きいほう）。棒は、既定の2社の行はその2社の目盛で・ほかの行は
-   その会社の目盛で描いておく（選ばれたら career.js が並べた2社の目盛で描き直す）。 */
+   その会社の目盛で描いておく（選ばれたら career.js が並べた2社の目盛で描き直す）。
+   ★2026-10-25 オーナー P12.106（WP-compare-all-10）：札（「推定」）は行に書いたまま、画面では見出しの1行「推定年収」が1回だけ言う
+   （行の札は読み上げにだけ残す ── career.css）。推定でない種類の行は data-kind を持ち、その行が見えているあいだは、どの行も自分の札を見せ、
+   見出しの1行は出さない（推定でない行に「推定年収」と言わない）。推定の行は data-kind を持たない（全社の行に同じ字を足さない ── T-A8）。 */
 function row(slug, rank, label, shown) {
   const c = cell(slug, rank);
-  const attrs = `data-airline="${slug}" data-scale="${scaleOf(slug)}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
+  if (!TIERS[c.kind] || TIERS[c.kind].ja !== c.tag) throw new Error(`${slug}/${rank}: 金額の種類「${c.kind}」と札「${c.tag}」が合わない`);
+  const attrs = `data-airline="${slug}"${c.kind === 'estimate' ? '' : ` data-kind="${c.kind}"`} data-scale="${scaleOf(slug)}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
   return `<div class="cr-row" ${attrs}>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}</span><span class="cr-vh">${label}</span><b class="cr-row-v">${esc(c.text)}</b></div>
 <div class="cr-row-k">${kline(c)}</div>
@@ -893,12 +909,12 @@ function compare() {
   /* 「会社が公表している金額」の箱（.cr-cards）は、並べた2社のどちらにも一覧が無ければ描かない（空の箱・「公表なし」を置かない ──
      2026-10-22 LEAD AMENDMENT・P12.91-7）。片方に在れば、もう片方は社名だけ。選び直したときは career.js の pair() が同じ決まりで決める。 */
   const pubs = Object.fromEntries(FIVE.map(s => [s, pub(s, 'h3')]));
+  /* 札の中身（略号かロゴ・社名・「選び直せる」印）は写真の箱（.cr-opt-p）の中 ── 広い画面では1行に並べる（★2026-10-25 P12.106・career.css）。 */
   const side = (id, label, chosen) => `<div class="cr-side" data-side="${id}">
 ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(s)}"${s === chosen ? '' : ' hidden'}>
-<span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}</span>
-<span class="cr-opt-n">${esc(name(s))}${IC.down}</span>
+<span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}<span class="cr-opt-n">${esc(name(s))}${IC.down}</span></span>
 </div>`).join('\n')}
-<div class="cr-opt cr-opt-x" data-airline="" hidden><span class="cr-opt-p"><span class="cr-opt-lg">${IC.down}</span></span><span class="cr-opt-n"><span class="cr-opt-t"></span></span></div>
+<div class="cr-opt cr-opt-x" data-airline="" hidden><span class="cr-opt-p"><span class="cr-opt-lg">${IC.down}</span><span class="cr-opt-n"><span class="cr-opt-t"></span></span></span></div>
 <button type="button" class="cr-pickb" id="cr-open-${id}" data-label="${label}" aria-label="${label} ${esc(name(chosen))}" aria-haspopup="dialog"></button>
 <span class="cr-ring" aria-hidden="true"></span>
 </div>`;
@@ -913,17 +929,13 @@ ${side('a', '1社目', PAIR[0])}
 ${side('b', '2社目', PAIR[1])}
 </div>
 <div class="cr-panel" data-kind="estimate">
-<h2 class="cr-panel-h" id="cr-cmp-h-pay">年収</h2>
+<div class="cr-panel-top"><h2 class="cr-panel-h" id="cr-cmp-h-pay">年収</h2><p class="cr-tgt"><span class="cr-tgt-k">${KINDS[0][1]}</span><span>${EST_TARGET}</span></p></div>
 ${ROLES.map(([r, l]) => `<h3 class="cr-role">${l}</h3>
 <div class="cr-pair" data-role="${r}">
 ${ALL.map(s => row(s, r, l, on(s))).join('\n')}
 </div>`).join('\n')}
 ${scales.map(t => axis(t, ` data-scale="${t}" data-div="${t / SCALE_STEP}"${t === ax ? '' : ' hidden'}`)).join('\n')}
-<div class="cr-taxes">
-${ALL.filter(s => VIEW[s].pay.tax).map(s => `<p class="cr-tax" data-airline="${s}" style="--cr-co:${color(s)}"${on(s) ? '' : ' hidden'}><i class="cr-dot" aria-hidden="true"></i>${esc(name(s))}<span>${esc(VIEW[s].pay.tax)}</span></p>`).join('\n')}
-</div>
-<p class="cr-tgt">${KINDS[0][1]}<span>${EST_TARGET}</span></p>
-${gos('pay', 'pay')}
+${gos('pay', 'pay', s => VIEW[s].pay.tax || '')}
 </div>
 <div class="cr-sec cr-subpay" data-kind="submitted">
 <h2 class="cr-h2">提出された年収<span class="cr-h2-s" lang="en">REAL PAY</span></h2>

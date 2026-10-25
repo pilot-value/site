@@ -101,10 +101,25 @@
 .cr-go-n{min-width:0}
 .cr-go-t{margin-left:auto;flex:none;color:var(--pv-accent-ink)}
 .cr-go .cr-ic{flex:none;color:var(--pv-accent-ink)}
-.cr-panel .cr-gos{border-top-color:var(--cr-hair)}
+.cr-panel .cr-gos{margin-top:8px;padding-top:0;border-top-color:var(--cr-hair)}
 .cr-panel .cr-go{color:var(--cr-on)}
 .cr-panel .cr-go-t,.cr-panel .cr-go .cr-ic{color:var(--cr-on-2)}
 .cr .cr-panel .cr-go:focus-visible{outline-color:var(--cr-on);border-radius:var(--pv-r-sm)}
+/* 年収の板の足は、会社ごとに1行：社名・税の扱い・「詳しく」（★2026-10-25 オーナー P12.106）。入れ物（.cr-ft）の格子の線を、
+   リンク（社名と「詳しく」）が subgrid で借り、税の扱いの字（.cr-tx ── リンクの外）はリンクの空けた列に置く。字はリンクの上に重なるので、
+   押すのはリンク（pointer-events）。狭い画面では、税の扱いは社名の下に寄せる（社名を細くしない）。 */
+.cr-gos .cr-ft{display:grid;grid-template-columns:[d] auto [n] minmax(0,1fr) [g] auto [i] auto [e];column-gap:0;align-items:center;min-height:0}
+.cr-ft > .cr-go{grid-row:1;grid-column:d / e;display:grid;grid-template-columns:subgrid;column-gap:0}
+.cr-ft > .cr-go > .cr-dot{grid-column:d;margin-right:8px}
+.cr-ft > .cr-go > .cr-go-n{grid-column:n;padding-right:12px}
+.cr-ft > .cr-go > .cr-go-t{grid-column:g;margin:0}
+.cr-ft > .cr-go > .cr-ic{grid-column:i;margin-left:8px}
+.cr-tx{grid-row:2;grid-column:n / e;margin:-12px 0 6px;font-size:12px;line-height:1.5;color:var(--cr-on-3);pointer-events:none}
+@media (min-width:760px){
+  .cr-gos .cr-ft{grid-template-columns:[d] auto [n] minmax(0,max-content) [x] minmax(7em,1fr) [g] auto [i] auto [e]}
+  .cr-gos .cr-ft:not(:has(.cr-tx)){grid-template-columns:[d] auto [n] minmax(0,1fr) [x] 0 [g] auto [i] auto [e]}
+  .cr-tx{grid-row:1;grid-column:x;margin:0;padding-right:12px}
+}
 
 .cr-credits{margin-top:20px;font-size:12px;line-height:1.8;color:var(--pv-ink-3)}
 .cr-credit{margin-right:10px}
@@ -235,7 +250,9 @@
 .cr-opt{position:relative;display:block;border-bottom:4px solid var(--cr-co)}
 /* 高さの下限 96px ── まんなかの入れ替えボタン（44px）が、略号の札と社名に掛からない高さ。
    390px 幅ではもともとこの高さ。それより狭いと 16:9 では足りず、札の角と社名の頭がボタンの下に入っていた（2026-10-04）。 */
-.cr-opt-p{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:16/9;min-height:96px;background:var(--pv-navy)}
+/* max-width:100% ── 縦横比の箱は、高さの下限（96px・写真の無い札の 140px / 168px）に合わせて横へも広がる。広がると箱が札より広くなり、
+   中の社名（★2026-10-25 から箱の中に置く）が札の右の外へ切れる。札の幅は .cr-side の幅のまま。 */
+.cr-opt-p{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:16/9;max-width:100%;min-height:96px;background:var(--pv-navy)}
 .cr-opt-p::before{background:linear-gradient(0deg, color-mix(in srgb, var(--pv-navy) 82%, transparent) 0%, transparent 62%)}
 .cr-opt .cr-code{top:10px;bottom:auto}
 .cr-opt-n{position:absolute;z-index:1;left:10px;right:8px;bottom:9px;display:flex;align-items:center;gap:4px;
@@ -313,11 +330,27 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
    箱の幅を超える）ので、3行ぶんの高さ（同じ計算で L = 3）。375px からは2行に収まる。 */
 .cr-pick.is-x .cr-opt-p{min-height:140px}
 @media (max-width:374px){.cr-pick.is-x .cr-opt-p{min-height:168px}}
+/* 広い画面（760px〜）の札は低い1行（★2026-10-25 オーナー P12.106「会社名とこの年収比較でpc 画面いっぱいに使うの勿体なさすぎる」）：
+   略号かロゴ → 社名 → 「選び直せる」印。写真の会社は写真とクレジットをそのまま、社名の下地は左からの紺。写真の無い会社は、会社の色を
+   にじませた低い紺の面（空の大きな箱にしない）。入れ替えボタンは2枚のあいだの溝（56px）に入れる ── 札の中身に掛からない。
+   印（▼）はロゴの段（.cr-opt-lg）の中のまま、並びだけ社名の後ろへ（display:contents と order）。 */
 @media (min-width:760px){
-  .cr-opt-lg{left:16px;top:16px}
-  .cr-opt-lg .pvg-logo{--lg-h:32px;max-width:136px;padding:3px 8px}
+  .cr-pick{gap:56px}
+  .cr-opt-p{display:flex;align-items:center;gap:10px;aspect-ratio:auto;min-height:88px;padding:12px 16px}
+  .cr-opt-p > img{position:absolute;inset:0;z-index:-1}
+  .cr-opt-p::before{background:linear-gradient(90deg, color-mix(in srgb, var(--pv-navy) 86%, transparent) 0%,
+                                                   color-mix(in srgb, var(--pv-navy) 52%, transparent) 46%, transparent 78%)}
+  .cr-opt .cr-code{position:relative;inset:auto;flex:none}
+  .cr-opt-n{position:relative;inset:auto;flex:0 1 auto;min-width:0;font-size:16px}
+  .cr-opt-n .cr-ic{width:14px;height:14px}
+  .cr-opt-x .cr-opt-p{background:linear-gradient(90deg, color-mix(in srgb, var(--cr-co) 34%, var(--pv-navy)) 0%, var(--pv-navy) 74%)}
+  .cr-opt-x .cr-opt-lg{display:contents}
+  .cr-opt-x .cr-opt-lg > *{position:relative;z-index:1}
+  .cr-opt-x .cr-opt-lg > .cr-ic{order:2}
+  .cr-opt-x .cr-opt-n{order:1;font-size:15px}
+  .cr-opt-lg .pvg-logo{--lg-h:28px;max-width:96px;padding:3px 7px}
   .cr .pvg-logo.is-mono > .pvg-mono,.cr .pvg-logo.is-fail > .pvg-mono{font-size:13px}
-  .cr-pick.is-x .cr-opt-p{min-height:180px}
+  .cr-pick.is-x .cr-opt-p{min-height:88px}
 }
 /* 選ぶ面の検索の欄と、見つからないときの1行（CA-3b2）。欄の字は 16px ── スマホで欄を押したとき、画面ごと拡大されない。
    見た目は航空会社一覧の検索の欄と同じく、ブラウザの既定の飾りを外す（appearance）。 */
@@ -348,6 +381,8 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
   radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--pv-accent) 16%, transparent), transparent 70%),
   var(--cr-grain)}
 .cr-panel-h{font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+/* 見出しの行：「年収」と、行がどれも推定のときの1行「推定年収　機種の指定なし」（★2026-10-25 P12.106 ── 行ごとの札をここへ1回にまとめた）。 */
+.cr-panel-top{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}
 .cr-role{margin-top:14px;font-size:13px;font-weight:700;color:var(--cr-on-2)}
 .cr-pair{display:flex;flex-direction:column;gap:12px;margin-top:8px}
 .cr-row-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
@@ -358,6 +393,12 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 /* いちばん狭い画面（〜339px）では、長い社名と額が1行に並ばず、社名が語の途中で折れていた（2026-10-04）。 */
 @media (max-width:339px){.cr-row-co{font-size:12px}.cr-row-v{font-size:20px}}
 .cr-row-k{display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;margin-top:3px;font-size:12px;line-height:1.6;color:var(--cr-on-3)}
+/* 行の札（「推定」）：並べた行がどれも推定のあいだは、画面では見出しの1行が1回だけ言い、行の札は読み上げにだけ残す（1行ずつ聞いても
+   推定と分かる）。推定でない種類の行（data-kind）が見えているあいだは、どの行も自分の札を見せ、見出しの1行は出さない
+   （推定でない額に「推定年収」と言わない）。★2026-10-25 P12.106 */
+.cr-panel .cr-row-k{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.cr-panel:has(.cr-row[data-kind]:not([hidden])) .cr-row-k{position:static;width:auto;height:auto;margin:3px 0 0;overflow:visible;clip:auto;clip-path:none;white-space:normal}
+.cr-panel:has(.cr-row[data-kind]:not([hidden])) .cr-tgt{display:none}
 .cr-panel .cr-tag{background:color-mix(in srgb, white 9%, transparent);
                   border-color:color-mix(in srgb, white 16%, transparent);color:var(--cr-on-2)}
 .cr-panel .cr-track{height:16px;margin-top:6px;border-radius:5px;
@@ -366,11 +407,9 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 /* 紺の上でも読めるように、会社の色を白へ寄せる（キャセイの深い緑がそのままだと沈む）。 */
 .cr-row .cr-fill{--c1:color-mix(in srgb, var(--cr-co) 78%, white);--c2:color-mix(in srgb, var(--cr-co) 48%, white)}
 .cr-panel .cr-axis{margin-top:10px;color:var(--cr-on-3)}
-.cr-taxes{display:flex;flex-direction:column;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--cr-hair)}
-.cr-taxes .cr-tax{display:flex;align-items:center;gap:7px;margin:0;color:var(--cr-on-2)}
-.cr-taxes .cr-tax span{margin-left:auto;padding-left:12px;text-align:right;color:var(--cr-on-3)}
-.cr-tgt{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px;margin:10px 0 0;font-size:12px;line-height:1.5;font-weight:600;color:var(--cr-on-2)}
-.cr-tgt span{font-weight:500;color:var(--cr-on-3)}
+.cr-tgt{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px;margin:0;font-size:12px;line-height:1.5;font-weight:500;color:var(--cr-on-3)}
+.cr-tgt-k{padding:1px 8px;border-radius:999px;background:color-mix(in srgb, white 9%, transparent);
+          border:1px solid color-mix(in srgb, white 16%, transparent);color:var(--cr-on-2);font-weight:700}
 
 .cr-cards{display:grid;gap:14px;margin-top:14px}
 .cr-card{padding:4px 16px 6px;border-radius:var(--pv-r-lg);background:var(--pv-surface);
@@ -540,17 +579,13 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
                            color-mix(in srgb, var(--pv-navy) 6%, transparent) 86%)}
   .cr-hero{height:248px}
   .cr-hero-n{font-size:28px}
-  .cr-taxes{flex-direction:row;flex-wrap:wrap;gap:6px 28px}
-  .cr-taxes .cr-tax span{margin-left:2px;padding-left:0}
   .cr-tiles{grid-template-columns:repeat(3, minmax(0,1fr));gap:16px;margin-top:20px}
   .cr-tile-n{min-height:52px;padding:10px 16px;font-size:15px}
-  .cr-opt-p{aspect-ratio:5/2}
-  .cr-opt-n{left:16px;bottom:14px;font-size:18px}
-  .cr-opt-n .cr-ic{width:16px;height:16px}
-  .cr-opt .cr-code,.cr-hero .cr-code{top:16px;left:16px}
-  .cr-cmp-h{font-size:28px}
-  .cr-panel{padding:24px 24px 22px}
-  .cr-row-v{font-size:28px}
+  .cr-hero .cr-code{top:16px;left:16px}
+  /* 比較の見出しまわりは詰める（字は同じ・空きだけ減らす ── P12.106）。戻るのリンクは押せる高さ 44px のまま。 */
+  .cr-cmp > .cr-back{margin-bottom:-6px}
+  .cr-cmp-h{margin-bottom:10px}
+  .cr-panel{padding:16px 22px 4px}
   .cr-cards{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:16px}
   .cr-cards[data-only="b"] > .cr-card:not([hidden]){grid-column:2}
   .cr-pub{padding:22px 22px 8px}
@@ -580,17 +615,28 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
   .cr-mini{margin-top:auto;padding-top:16px}
   .cr-mini-row{min-height:30px}
   .cr-pay .cr-track{height:14px}
-  /* 比較の棒は1社1行：左に社名と札・真ん中に棒・右に金額。 */
-  .cr-pair{gap:18px}
-  .cr-row{display:grid;grid-template-columns:230px minmax(0,1fr) 184px;column-gap:20px;align-items:center}
+  /* 比較の棒は1社1行（★2026-10-25 P12.106 ── 低く詰めた）：左の列に職位の見出し、その右に 社名・棒・金額。
+     札は、見せるとき（推定でない行が在るとき）だけ社名の下。目盛は棒の列の下に、社名の列と金額の列の幅だけ空けて置く。 */
+  .cr-panel{--cr-nw:200px;--cr-vw:136px;display:grid;grid-template-columns:72px minmax(0,1fr);column-gap:16px;align-items:start}
+  .cr-panel > *{grid-column:1 / -1}
+  .cr-panel > .cr-role{grid-column:1;margin:0;padding-top:7px;line-height:1.4}
+  .cr-panel > .cr-pair,.cr-panel > .cr-axis{grid-column:2}
+  .cr-panel-top{margin-bottom:10px}
+  .cr-pair{gap:2px;margin-top:0}
+  .cr-pair + .cr-role,.cr-pair + .cr-role + .cr-pair{margin-top:10px}
+  .cr-row{display:grid;grid-template-columns:var(--cr-nw) minmax(0,1fr) var(--cr-vw);column-gap:16px;align-items:center;min-height:32px}
   .cr-row-h{display:contents}
-  .cr-row-co{grid-column:1;grid-row:1;align-self:end;font-size:14px}
-  .cr-row-k{grid-column:1;grid-row:2;align-self:start}
-  .cr-row .cr-track{grid-column:2;grid-row:1 / span 2;height:22px;margin-top:0;border-radius:6px}
-  .cr-row-v{grid-column:3;grid-row:1 / span 2;text-align:right;font-size:30px}
-  .cr-panel .cr-axis{margin:10px 204px 0 250px}
+  .cr-row-co{grid-column:1;grid-row:1;font-size:13px;line-height:1.35}
+  .cr-row .cr-track{grid-column:2;grid-row:1;height:10px;margin-top:0;border-radius:4px}
+  .cr-row-v{grid-column:3;grid-row:1;text-align:right;font-size:22px}
+  .cr-panel:has(.cr-row[data-kind]:not([hidden])) .cr-row-k{grid-column:1;grid-row:2;margin:0}
+  .cr-panel:has(.cr-row[data-kind]:not([hidden])) .cr-row .cr-track,
+  .cr-panel:has(.cr-row[data-kind]:not([hidden])) .cr-row-v{grid-row:1 / span 2}
+  .cr-panel .cr-axis{margin:4px calc(var(--cr-vw) + 16px) 0 calc(var(--cr-nw) + 16px)}
   .cr-deep > .cr-hero{height:220px;min-height:0}
 }
+/* 箱が広いあいだは、社名の列を広げる（長い社名も1行に入る）。目盛は同じ変数で、棒の列の下にそろう。 */
+@media (min-width:1200px){.cr-panel{--cr-nw:280px}}
 
 @media (prefers-reduced-motion:reduce){
   .cr-view,.cr-fill{animation:none}

@@ -586,12 +586,13 @@ scene('back', '比較 → 右の会社の「詳しく」→ 会社ページ → 
       });
       return done;
     };
-    const feet = await page.evaluate((b) => [...document.querySelectorAll(`#cr .cr-view[data-view="compare"] .cr-go[data-airline="${b}"]`)]
+    /* ★2026-10-25 P12.106（WP-compare-all-10・同じ強さの当て直し）：年収の板の足は会社ごとの1行（.cr-ft ── これも .cr-go）に包んだので、足はリンク（a.cr-go）だけを数える。 */
+    const feet = await page.evaluate((b) => [...document.querySelectorAll(`#cr .cr-view[data-view="compare"] a.cr-go[data-airline="${b}"]`)]
       .filter((e) => e.getClientRects().length).map((e, i) => ({ i, href: e.getAttribute('href') })), b);
     ok(feet.length >= 1 && feet.every((f) => f.href.startsWith(`airlines/${b}.html`)), `${a}｜${b}：右の会社（${b}）の「詳しく」の足 ${feet.length}本 ── 行き先はどれも airlines/${b}.html`, J(feet), 'local');
     for (const f of feet) {
       const calm0 = await calm();
-      const sel = `#cr .cr-view[data-view="compare"] .cr-go[data-airline="${b}"]`;
+      const sel = `#cr .cr-view[data-view="compare"] a.cr-go[data-airline="${b}"]`;
       await page.evaluate((sel, i) => [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)[i].scrollIntoView({ block: 'center' }), sel, f.i);
       await frames(page);
       const y0 = await page.evaluate(() => window.scrollY);
