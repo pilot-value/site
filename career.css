@@ -492,7 +492,40 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
    比較の画面（.cr-cmp）は career.html にしか無いので、ここに置けば効く所は同じ。 */
 .cr-cmp[data-near] .crl-cmp-head > .crl-co + .crl-co::before,
 .cr-cmp[data-near] .crl-split-c + .crl-split-c > .crl-co::before,
-.cr-cmp[data-near] .crl-sum2-c[data-col="2"] > .crl-co::before{background:transparent;box-shadow:inset 0 0 0 2px var(--crl-co,var(--pv-ink-3))}
+.cr-cmp[data-near] .crl-sum2-c[data-col="2"] > .crl-co::before,
+.cr-cmp[data-near] .crl-rate-rv > .crl-cmp-sc + .crl-cmp-sc > .crl-co::before{background:transparent;box-shadow:inset 0 0 0 2px var(--crl-co,var(--pv-ink-3))}
+/* 拠点の街の家賃の箱の点にも同じ輪（★2026-10-25 WP-compare-all-13 F2 ── エミレーツ｜JAL では、家賃の欄だけ JAL の点が塗りのままで、
+   エミレーツの箱に見えた）。決まりは上と同じ data-near の1つ。箱は career.js が左の会社・右の会社の順に置き直すので、見えている2つめの箱
+   （家賃の箱か、下の「資料を確認できていません」の箱）が右の会社。右の会社にだけ箱が在り左の会社に箱を出さない時（data-only="b"）は、その1つ。 */
+.cr-cmp[data-near] .cr-rentbs > :is(.cr-rentb, .cr-rentn):not([hidden]) ~ :is(.cr-rentb, .cr-rentn):not([hidden]) .cr-dot,
+.cr-cmp[data-near] .cr-rentbs[data-only="b"] > .cr-rentb:not([hidden]) .cr-dot{
+  background:transparent;box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cr-co) 66%, white)}
+/* 家賃の箱が片方の会社にだけ在るとき、もう片方の列の箱（★2026-10-25 WP-compare-all-13 F2）。字は会社ページの暮らしの板と同じ1行
+   （「家賃の資料を確認できていません」）。社名と色は career.js が写す。見た目は家賃の箱と同じ面（中身は1行だけ）。 */
+.cr-rentn{min-width:0;padding:12px 14px;border-radius:var(--pv-r);background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}
+.cr-rentn[hidden]{display:none}
+.cr-rentn-n{font-weight:inherit}
+.cr-rentn-t{margin-top:6px;font-size:13px;line-height:1.6;color:var(--pv-ink-3)}
+@media (min-width:700px){ .cr-rentn{padding:14px 16px} }
+/* 家賃の箱の「何の家賃か」の札は、入りきらなければ札の中で折り返す（★2026-10-25 WP-compare-all-13 ── 英語の「Average agreed rent (calculated by this site)」
+   が 320px で画面の外へ 4px 出ていた ＝ assert-header.mjs の「ページが横に溢れていない」が赤。この作業の前の HEAD から）。字は削らない。
+   1行の札の見た目は今までと同じ（角の丸みは1行の札の高さの半分）。 */
+.cr-rentb-k .cr-tag{max-width:100%;white-space:normal;border-radius:11px}
+/* 口コミのカード（抜粋・本文）は、スマホ（〜759px）では2社を上下に全幅で並べる（★2026-10-25 WP-compare-all-13 F1 ── 半分の幅では
+   1行が数文字で折れて縦に長くなっていた）。どちらの会社のカードかは、マスの頭の札（career-live.js の rvCell ── 列の頭と同じ社名の札）が言う。
+   カードの無い会社のマス（空のマス）は出さない（その会社の「投稿はまだありません」は、すぐ上の評価のマスが言っている）。
+   広い画面（760px〜）は今までどおり2列・マスの頭の札は出さない。比較の画面（.cr-cmp）は career.html にしか無いので、ここに置く（WP-compare-all-12 と同じ理由）。 */
+.cr-cmp .crl-rv-co{display:none}
+@media (max-width:759px){
+  .cr-cmp .crl-cmp-sub.crl-rate-rv{grid-template-columns:minmax(0,1fr);row-gap:14px}
+  .cr-cmp .crl-rate-rv > .crl-cmp-sc:has(> .crl-blank){display:none}
+  .cr-cmp .crl-rate-rv > .crl-cmp-sc:not(:has(> .crl-blank)) ~ .crl-cmp-sc:not(:has(> .crl-blank)){padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+  .cr-cmp .crl-rv-co{display:flex;margin-bottom:8px}
+  /* 390px でカードの字の幅を 300px 以上に（1行に日本語でおよそ20字）── カードの左右の空きを 10px に・スクロールの枠の右の空きは外す（スマホの
+     スクロールの印は字に重なって出る） */
+  .cr-cmp .crl-rate-rv .crl-rev{padding-left:10px;padding-right:10px}
+  .cr-cmp .crl-rate-rv .crl-rv-scroll{padding-right:0}
+}
 /* ★2026-10-25 英語の EN-9：英語の比較（en/career.html）の6角形の左右の列。英語の名前（CAT_FULL_EN の「Compensation」）は 76px の列に入らず、
    語の途中で折れていた（「Compensatio／n」）。英語のときだけ左右の列を広げ、図の列の幅は日本語と同じ（300 − 2×76 − 16 ＝ 340 − 2×96 − 16 ＝ 132px）。
    career-live.css には書かない（222枚の会社ページがその指紋を持つ ── WP-compare-all-12 と同じ理由）。比較の6角形はこの1枚の中にだけ在る。 */

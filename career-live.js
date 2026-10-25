@@ -224,7 +224,7 @@
     revEmpty: 'No reviews yet',
     revNone: 'No posts from members yet',
     revNo: 'Not rated yet',
-    revPosts: function (n) { return 'Member posts ' + n; },
+    revPosts: function (n) { return 'Member posts: ' + n; },
     revRated: function (n) { return n + (n === 1 ? ' rating' : ' ratings'); },
     sumHead: 'Review summary',
     sumGood: 'Good points',
@@ -1892,6 +1892,16 @@
        n は、この枠に並ぶ字のある投稿の数（点数だけの投稿は並べない・数えない）。押したら、新しく出た1件目へフォーカスを移す。
      ★ 枠はキーボードで入れる（tabindex 0）・読み上げはその会社の名前の区切り（role region）。保存領域には何も書かない。 */
   var REV_PAGE = 5;
+  /* 口コミの抜粋・本文のマスの頭に、その会社の札（★2026-10-25 WP-compare-all-13 F1）。スマホ（〜759px）では口コミのカードを2社の上下に
+     全幅で並べるので（career.css）、どちらの会社の投稿かをマスの中で言う。広い画面では2列のまま・札は出さない（列の頭の札が言っている）。
+     札の部品は列の頭と同じ coTag（字は社名だけ。新しい言葉は無い）。 */
+  function rvCell(slug, node) {
+    var f = d.createDocumentFragment(), t = coTag(slug);
+    t.className += ' crl-rv-co';
+    f.appendChild(t);
+    f.appendChild(node);
+    return f;
+  }
   function revScroll(slug, o, I) {
     if (!o || !I) return null;
     var items = [];
@@ -1971,7 +1981,7 @@
       return i18n().then(function (I) { return I; }, function () { return null; }).then(function (I) {
         /* 口コミの鍵のある会社のマスは、ほかの人の投稿をスクロールで読める枠（revScroll）。無い会社は抜粋（clipsOf）のまま */
         var C = O.map(function (o, i) { return S[i].ok && S[i].v.unlocked === true ? revScroll(ids[i], o, I) : clipsOf(o, I); });
-        if (C[0] || C[1]) subRow(g, 'crl-rate-rv', C[0] ? C[0].ul : blankCell(), C[1] ? C[1].ul : blankCell());
+        if (C[0] || C[1]) subRow(g, 'crl-rate-rv', C[0] ? rvCell(ids[0], C[0].ul) : blankCell(), C[1] ? rvCell(ids[1], C[1].ul) : blankCell());
         var nodes = [g];
         if ((C[0] && C[0].locked) || (C[1] && C[1].locked)) {
           nodes.push(lockLine(T.revLock), foot([give2(T.revUnlock, UP + 'submit-review.html')]));

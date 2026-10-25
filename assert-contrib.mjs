@@ -345,11 +345,6 @@ async function main() {
     try { u = new URL(req.url()); } catch { return req.continue(); }
     if (u.protocol === 'data:' || u.protocol === 'blob:' || u.protocol === 'about:') return req.continue();
     if (u.origin === base) {
-      /* 英語の面の場面（st.lang）：ページの <html lang="ja"> だけを書き替えて配る（ほかの字・部品は1字も変えない） */
-      if (st.lang && req.resourceType() === 'document' && req.method() === 'GET') {
-        return fetch(u.href).then((r) => r.text().then((t) => req.respond({ status: r.status, contentType: r.headers.get('content-type') || 'text/html; charset=utf-8',
-          body: t.replace(/<html lang="ja"/, () => `<html lang="${st.lang}"`) })), () => req.abort());
-      }
       const m = u.pathname.match(/^\/rest\/v1\/rpc\/([a-z0-9_]+)$/);
       if (m) {
         st.calls.push(m[1]);
@@ -376,11 +371,11 @@ async function main() {
      calm は「動きを減らす」設定の人として開く（保存できた合図が静かな形になるかを見る）。
      pre は、ページのどの部品よりも（下の、この検査の差し込みよりも）先に走らせる関数
      （欄に出た字を最初から見張る・保存領域への書き込みを控える）。時計を動かすのには使わない。 */
-  async function open(sizeKey, { who = null, theme = null, calm = false, pre = null, lang = null } = {}) {
+  async function open(sizeKey, { who = null, theme = null, calm = false, pre = null } = {}) {
     const size = SIZES[sizeKey];
     const ctx = await browser.createBrowserContext();
     const page = await ctx.newPage();
-    const st = { calls: [], fake: null, ctx, lang };
+    const st = { calls: [], fake: null, ctx };
     page.setDefaultTimeout(20000);
     await page.setViewport({ width: size.w, height: size.h, deviceScaleFactor: 1, isMobile: size.touch, hasTouch: size.touch });
     if (calm) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
@@ -7670,14 +7665,16 @@ async function main() {
   // ═════════════════════════════════════════════════════════════
   // 英語の会社ページ（2026-10-21・WP-en-3）
   // ═════════════════════════════════════════════════════════════
-  /* 英語の会社ページはまだ無い（生成器を英語にする回が作る）。ここでは本物の会社ページ（キャセイ）を、<html lang="en"> の1か所だけ
-     書き替えて配る（ほかの字・部品はそのまま ＝ open の lang）。面が「英語の面」として動くかを、手元の本物の保存先で見る（REAL LOCAL CONNECTION）。
+  /* 本物の英語の会社ページ（en/airlines/cathay-pacific.html。生成器が書く）を開き、面が「英語の面」として動くかを、手元の本物の保存先で見る
+     （REAL LOCAL CONNECTION）。★2026-10-25（WP-compare-all-13）：日本語の会社ページの h1 を日本語の社名にしたので、日本語のページの
+     <html lang> だけを en に書き替えて配る形（英語のページがまだ無かった頃の代わり）は、面の社名（h1 から読む）が日本語になって使えなくなった。
+     英語のページが在るので、そちらへ向け直した（約束は同じ）。日本語のページから送ると 'ja' のまま、は下の比べる片方が見る。
      ・面の字（一覧・月の勤務・質問のまとまり・街・保存後のカード）に、日本語の字が1つも無い（390×680。一覧は 1440×820 でも）。
        会社ページから来る字（街の面の頭の行の基地・候補の街の名前）は、この面の字ではないので外して見る。
      ・★3つの送る形（月の勤務・質問・街）が lang 'en' を運び、保存先にも 'en' で入る。同じページを日本語のまま開いて送ると 'ja'。
      日本語の面の字は、ほかの場面がそのまま見ている（今までと1字も違わない）。 */
   await scene('英語の会社ページ ── 面の字は英語・送る lang は en（日本語のページは ja のまま）', async () => {
-    const CXP = '/airlines/cathay-pacific.html', SLUG = 'cathay-pacific', TOWN = 'Quarry Bay';
+    const CXP = '/airlines/cathay-pacific.html', CXP_EN = '/en/airlines/cathay-pacific.html', SLUG = 'cathay-pacific', TOWN = 'Quarry Bay';
     const JA_RE = /[　-〿぀-ヿ㐀-䶿一-鿿＀-￯]/;
     /* 面の中の字・読み上げの名前・入力の例・選択肢を全部集める（skip ＝ 会社ページから来る字の在りか）。隠れた字も見る */
     const words = (p, skip = []) => p.page.evaluate((sk) => {
@@ -7691,10 +7688,10 @@ async function main() {
     const jaIn = (w) => [w.text, ...w.bits].join(' | ').split(/\s*\|\s*|\n/).filter((s) => JA_RE.test(s)).map((s) => s.trim().slice(0, 40));
     const one = async (sql, args) => ((await q(sql, args)).rows[0] || {});
 
-    const p = await open('phone', { who: 'c', lang: 'en' });
+    const p = await open('phone', { who: 'c' });
     try {
-      await go(p, CXP);
-      ok((await p.page.evaluate(() => document.documentElement.getAttribute('lang'))) === 'en', '英語の面の場面：ページの <html lang> は en（書き替えたのはこの1か所だけ）');
+      await go(p, CXP_EN);
+      ok((await p.page.evaluate(() => document.documentElement.getAttribute('lang'))) === 'en', '英語の面の場面：本物の英語の会社ページ（<html lang> は en）');
       /* 一覧 */
       await api(p, 'list');
       await waitView(p, 'counted');
@@ -7757,9 +7754,9 @@ async function main() {
     } finally { await p.st.ctx.close(); }
 
     /* 一覧を広い画面でも（1440） */
-    const pw = await open('desk', { who: 'c', lang: 'en' });
+    const pw = await open('desk', { who: 'c' });
     try {
-      await go(pw, CXP);
+      await go(pw, CXP_EN);
       await api(pw, 'list');
       await waitView(pw, 'counted');
       const Dj = jaIn(await words(pw));

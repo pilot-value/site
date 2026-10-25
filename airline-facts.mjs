@@ -667,7 +667,7 @@ export const EN = Object.freeze({
   /* 紹介文の型（{鍵} は日本語の型と同じものだけ） */
   '設立は{founded}。航空連合は{alliance}（{alliance:at}）。': 'Founded {founded}. Alliance: {alliance} ({alliance:at}).',
   '{pilots:at}時点の運航乗務員は{pilots}（{pilots:cond}）。乗務を始めてからの勤務地は{pilot_base}。':
-    'Flight crew as of {pilots:at}: {pilots} ({pilots:cond}). Base once flying: {pilot_base}.',
+    'Flight crew as of {pilots:at}: {pilots} ({pilots:cond}). Base for line pilots: {pilot_base}.',
   '始まりは{founded}。航空連合は{alliance}（{alliance:at}）。': 'Began in {founded}. Alliance: {alliance} ({alliance:at}).',
   '{pilots:at}時点の運航乗務員は{pilots}（{pilots:cond}）。国際線は{intl_network:at}時点で{intl_network}。':
     'Flight crew as of {pilots:at}: {pilots} ({pilots:cond}). International network as of {intl_network:at}: {intl_network}.',
@@ -679,7 +679,7 @@ export const EN = Object.freeze({
   /* 項目の名前 */
   '設立': 'Founded',
   '航空連合': 'Alliance',
-  '乗務を始めてからの勤務地': 'Base once flying',
+  '乗務を始めてからの勤務地': 'Base for line pilots',
   '運航している機材': 'Aircraft in operation',
   '路線': 'Routes',
   '運航乗務員': 'Flight crew',

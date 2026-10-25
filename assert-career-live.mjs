@@ -1996,6 +1996,48 @@ scene('near', '色の近い2社：生きた欄の会社の札も、右の会社�
   }
 });
 
+/* ★2026-10-25 WP-compare-all-13 F1：口コミのカード（抜粋・本文）は、スマホでは2社を上下に全幅で並べる（半分の幅では数文字ごとに折れていた）。
+   [B] 390：カードの字の幅が 300px 以上・どちらの会社かはマスの頭の札（列の頭と同じ社名）・カードの無い会社のマスは出さない／1440：今までどおり
+   2列（マスの頭の札は出さない）。[A] マスの頭の札も、色の近い2社なら右の会社の点だけ輪（比較の画面の data-near の1つ ── 場面 near と同じ決まり）。 */
+scene('rvwide', '口コミのカード：390 は2社を上下に全幅（字の幅 300px 以上・マスの頭に会社の札・カードの無い会社のマスは出さない）・1440 は2列のまま／マスの頭の札も、色の近い2社なら右の会社の点だけ輪', 'mock', async () => {
+  const two = (k) => CLIPS.jal.slice(1, 3).map((r) => ({ ...r, id: `${k}-${r.id}` }));
+  const stub = { pv_reviews: reviewsBy({ emirates: two('ek'), jal: two('jl'), united: [] }) };
+  const face = (page) => page.evaluate(() => {
+    const box = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"]');
+    const CO = (() => { try { return JSON.parse(document.getElementById('crc-data').textContent).airlines || {}; } catch (e) { return {}; } })();
+    const slugOf = (t) => Object.keys(CO).find((k) => CO[k] && CO[k].ja === t) || '?';
+    const seen = (e) => !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
+    const row = box ? box.querySelector('.crl-rate-rv') : null;
+    return (row ? [...row.children] : []).map((c) => {
+      const t = c.querySelector(':scope > .crl-rv-co'), r = c.getBoundingClientRect(), s = t ? getComputedStyle(t, '::before') : null;
+      return { shown: seen(c), s: t ? slugOf(t.textContent.trim()) : null, head: seen(t),
+        dot: s ? (/inset/.test(s.boxShadow) && s.backgroundColor === 'rgba(0, 0, 0, 0)' ? 'ring' : 'fill') : null,
+        l: Math.round(r.left), t: Math.round(r.top), text: [...c.querySelectorAll('.crl-rev-text')].map((x) => Math.round(x.getBoundingClientRect().width)) };
+    });
+  });
+  {
+    const { page } = await open('sp', { url: PAIR_URL('emirates', 'jal'), stub });
+    for (const [a, b, near] of [['emirates', 'jal', true], ['jal', 'emirates', true], ['jal', 'united', false]]) {
+      if (a !== 'emirates' || b !== 'jal') await page.evaluate((a, b) => window.PVCareer.replace({ view: 'compare', a, b }), a, b);
+      ok(await settled(page, 'cmp-stars', `${a}|${b}`), `（390）${a}|${b}：口コミの欄が読み終わった`);
+      const F = await face(page), vis = F.filter((c) => c.shown);
+      const want = b === 'united' ? [a] : [a, b];
+      const stacked = vis.length === want.length && vis.every((c, i) => c.head && c.s === want[i] && c.l === vis[0].l && (i === 0 || c.t > vis[i - 1].t));
+      const wide = vis.every((c) => c.text.length > 0 && c.text.every((w) => w >= 300));
+      ok(F.length === 2 && stacked && wide, `[B]（390）${a}|${b}：口コミのカードは会社ごとに上下に全幅（並び ${want.join('→')}・マスの頭に会社の札・カードの無い会社のマスは出さない・字の幅 300px 以上）`, J(F));
+      const dots = vis.map((c) => c.dot), wantDots = want.map((s) => (near && s === b ? 'ring' : 'fill'));
+      ok(JSON.stringify(dots) === JSON.stringify(wantDots), `[A]（390）${a}|${b}${near ? '（近い）' : '（遠い）'}：マスの頭の札の点 ── ${near ? `右の会社（${b}）だけ輪` : '輪は無い'}`, J({ dots, wantDots }));
+    }
+  }
+  {
+    const { page } = await open('pc', { url: PAIR_URL('emirates', 'jal'), stub });
+    ok(await settled(page, 'cmp-stars', 'emirates|jal'), '（1440）emirates|jal：口コミの欄が読み終わった');
+    const F = await face(page);
+    ok(F.length === 2 && F.every((c) => c.shown && !c.head && c.text.length > 0) && F[0].t === F[1].t && F[1].l > F[0].l,
+      '[B]（1440）口コミのカードは今までどおり2列（同じ高さに左右・マスの頭の札は出さない）', J(F));
+  }
+});
+
 /* ══ REAL LOCAL：ブラウザの「戻る」で手元から戻った比較（L7・2026-10-23）══════════════════════════════
    本当の「戻る」は、要求を横取りする上の open() では起きない（ブラウザがページを手元に置かない）。cmp-stubs.mjs の bfOpen
    （assert-keep.mjs の KA8 と同じ3つの置き方：headless true・横取りなし・名前は localhost と LIBS だけ・max-age の口）で開く。

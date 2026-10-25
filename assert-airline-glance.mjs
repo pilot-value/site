@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・contrast）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・topbar-in・contrast）
      node assert-airline-glance.mjs --scenes contrast --only spirit,vueling   会社ページ全部の明るい色の読める濃さ（--only で会社を絞れる。日英とも）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
@@ -397,6 +397,29 @@ const COMPANY = ['airlines', 'en/airlines'].flatMap(dir => fs.readdirSync(path.j
   ok(COMPANY.length >= 224 && !back.length, `会社ページ（${COMPANY.length}枚）の上の帯に「←」のリンク（「← 一覧に戻る」「← World Airlines」）が無い`,
      COMPANY.length < 224 ? `会社ページが ${COMPANY.length}枚しか見つからない` : back.slice(0, 6).join(' ／ ') + (back.length > 6 ? ` ほか ${back.length - 6}枚` : ''));
   ok(!logo.length, `会社ページ（${COMPANY.length}枚）の上の帯は、ロゴが最初の要素`, logo.slice(0, 6).join(' ／ ') + (logo.length > 6 ? ` ほか ${logo.length - 6}枚` : ''));
+}
+{
+  /* ★2026-10-25 WP-compare-all-13 F4：会社ページ全部（日英）の上の帯が、検索とログイン・会員の名前の入る右の箱（<div class="flex items-center gap-3">）と、
+     その中のテーマの切替を持つ（JAL の日本語のページと同じ帯）。箱が無い帯には、検索も会員の名前も出なかった（スカイマークほか日本語の11社）。
+     出ていることそのもの（ログインした会員で、名前と検索が見える）は、場面 topbar-in がブラウザで見る。 */
+  const noBox = COMPANY.filter(rel => {
+    const h = read(rel), a = h.indexOf('<nav id="main-nav">'), b = a < 0 ? -1 : h.indexOf('</nav>', a);
+    return a < 0 || b < 0 || !/<div class="flex items-center gap-3">\s*<button id="theme-toggle" class="theme-toggle"[^>]*><\/button>/.test(h.slice(a, b));
+  });
+  ok(!noBox.length, `会社ページ（${COMPANY.length}枚・日英）の上の帯は、検索とログインの入る右の箱と、その中のテーマの切替を持つ`,
+     noBox.slice(0, 6).join(' ／ ') + (noBox.length > 6 ? ` ほか ${noBox.length - 6}枚` : ''));
+  /* ★WP-compare-all-13 F5：新しい形の日本語の会社ページ（data-pv-glance）の h1 は日本語の社名 ── 日本語の字を含むか、正本の ja そのもの
+     （ZIPAIR Tokyo のように正本の ja が英字の会社）。英語の社名は副題の左（JAL のページと同じ形）。英語の h1 のまま（13社がそうだった）なら赤。 */
+  const JA_H1 = /[　-ヿ㐀-鿿＀-￯]/;
+  const enH1 = COMPANY.filter(rel => rel.startsWith('airlines/')).flatMap(rel => {
+    const h = read(rel), s = rel.slice('airlines/'.length, -'.html'.length);
+    if (!/<body\b[^>]*\bdata-pv-glance="1"/.test(h)) return [];
+    const hero = (h.match(/<!--PV-HERO-->([\s\S]*?)<!--\/PV-HERO-->/) || [])[1] || '';
+    const h1 = (hero.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/) || [])[1];
+    return h1 != null && (JA_H1.test(h1) || (SALARY[s] && h1 === SALARY[s].ja)) ? [] : [`${s}「${h1}」`];
+  });
+  const glanceJa = COMPANY.filter(rel => rel.startsWith('airlines/') && /<body\b[^>]*\bdata-pv-glance="1"/.test(read(rel))).length;
+  ok(glanceJa >= 111 && !enH1.length, `新しい形の日本語の会社ページ（${glanceJa}枚）の h1 は日本語の社名（日本語の字を含むか、正本の ja のまま）`, enH1.slice(0, 6).join(' ／ '));
 }
 {
   /* ② 明るい色の画面で、会社の色の字を同じ色合いの読める濃さにする行（<style data-pv-light>）。
@@ -8055,6 +8078,64 @@ async function runTowns(browser, s, [w, h]) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   場面 topbar-in（--scenes topbar-in）── ログインしている会員の上の帯（★2026-10-25 WP-compare-all-13 F4）
+   どの会社ページも、日英とも、JAL の日本語のページと同じ帯：検索のボタンと、ログインしていれば会員の名前（名の最初の語・押すとマイページ）。
+   ★前は、帯に右の箱を持たない日本語の会社ページ（スカイマークほか11社）には検索も名前も出ず、英語の会社ページには名前がどこにも出なかった
+     （名前を書くのは日本語のページの airline-base.js だけ。英語のページは search.js が同じ形で足す）。
+   見るのは JAL（前から出ていた）・スカイマーク（箱が無かった）・エミレーツ（英語の h1 だった）の日英、1440 の1つの幅。
+   ログインは保存領域に置くだけ（手元の模擬の会員・名前は作り物）。外へは1本も出さない（Supabase の口は 500）。 */
+const TOPBAR_IN = ['jal', 'skymark', 'emirates'];
+const TB_NAME = '検査会員', TB_SHOWN = '検査会員';
+async function runTopBarIn(browser, s, lang) {
+  const tag = `${s}・${lang}（ログインした会員の上の帯）`, url = `${BASE}/${lang === 'en' ? 'en/' : ''}airlines/${s}.html`;
+  const ctx = await browser.createBrowserContext();
+  try {
+    const p = await ctx.newPage();
+    p.setDefaultTimeout(30000);
+    p.on('pageerror', e => trouble.push(`${s} topbar-in: ${String(e.message).slice(0, 140)}`));
+    await p.setViewport({ width: 1440, height: 820, deviceScaleFactor: 1 });
+    await p.setRequestInterception(true);
+    p.on('request', r => {
+      let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+      if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
+      if (/\.supabase\.co$/.test(u.hostname)) {
+        const cors = { 'access-control-allow-origin': '*' };
+        if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: { ...cors, 'access-control-allow-methods': 'GET,POST,OPTIONS', 'access-control-allow-headers': r.headers()['access-control-request-headers'] || '*' } });
+        return r.respond({ status: 500, contentType: 'application/json', headers: cors, body: '{"message":"stub"}' });
+      }
+      return r.abort();
+    });
+    await p.evaluateOnNewDocument((origin, name) => {
+      if (location.origin !== origin) return;
+      try {
+        const now = Date.now(), at = new Date(now).toISOString();
+        localStorage.setItem('sb-local-auth-token', JSON.stringify({ access_token: 'x', expires_at: Math.floor(now / 1000) + 3600, user: { id: '00000000-0000-0000-0000-000000000000', last_sign_in_at: at } }));
+        localStorage.setItem('pv_user', JSON.stringify({ name, email: 'member@example.com' }));
+        localStorage.setItem('pv_last_active', String(now));
+        localStorage.setItem('pv_session_start', String(now));
+        localStorage.setItem('pv_give_seen', JSON.stringify({ t: now, s: String(Date.parse(at)) }));
+      } catch (e) { /* 保存領域に触れないなら、下の行が名指しする */ }
+    }, BASE, TB_NAME);
+    await p.goto(url, { waitUntil: 'load', timeout: 60000 });
+    await p.waitForFunction(() => !!document.getElementById('pv-search-btn') && !!document.getElementById('nav-auth-btn'), { timeout: 20000 })
+      .catch(() => { /* 出なかった物は、下の行が名指しする */ });
+    const g = await p.evaluate(() => {
+      const shown = q => { const e = document.querySelector(q); if (!e) return false; const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+        return r.width > 0 && r.height > 0 && r.top < 120 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
+      const a = document.getElementById('nav-auth-btn'), box = document.querySelector('#main-nav .flex.items-center.gap-3');
+      return { 検索: shown('#pv-search-btn'), 名前: shown('#nav-auth-btn'), 字: a ? a.textContent.trim() : null, 数: document.querySelectorAll('#nav-auth-btn').length,
+        先: a ? a.getAttribute('href') : null, 箱の中: !!box && !!a && box.contains(a) && box.contains(document.getElementById('pv-search-btn')) };
+    });
+    ok(g.検索 && g.名前 && g.字 === TB_SHOWN && g.数 === 1 && /(^|\/)profile\.html$/.test(g.先 || '') && g.箱の中,
+       `${tag}: 1440 で、上の帯の右の箱に検索のボタンと会員の名前（「${TB_SHOWN}」・押すとマイページ）が1つずつ見えている`, JSON.stringify(g));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
    場面 topbar（--scenes topbar）── 上の帯（2026-10-18 オーナー V5「統一してつけて」）
    主要5社は、上の帯に検索とログインが同じように出る（検索は search.js・ログインは airline-base.js が、帯の右の箱に入れる）。
    テーマの切替は、1回押すと1回だけ切り替わり、選んだ色が保存されて読み直しても残る・もう1回押すと戻る。
@@ -8063,7 +8144,8 @@ async function runTowns(browser, s, [w, h]) {
      ★2026-10-19 まで、最初から在る切替には何も付いていなかった ＝ 押しても何も起きなかった。
      ・付いた数は、ブラウザの道具（DOMDebugger.getEventListeners）で数える：click がちょうど1つ
        （2つ付くと、1回押して2回切り替わる ＝ 何も変わらない）。
-   見るページ：主要5社 ＋ TOPBAR_MORE（ほかの会社で、切替を最初から持つ1枚 airdo・帯に右の箱が無く airline-base.js が切替を作る1枚 skymark）。
+   見るページ：主要5社 ＋ TOPBAR_MORE（ほかの会社で、切替を最初から持つ1枚 airdo・帯に右の箱が無く airline-base.js が切替を作っていた1枚 skymark ── ★2026-10-25 WP-compare-all-13 F4 で JAL と同じ右の箱を持つようになった。
+   箱の無い帯の道（airline-base.js の #pv-nav-right）は、会社ページではない比較のページ（*-hikaku ほか）にだけ残る）。
    ★2026-10-19（WP-ans-f）：どのページも、ロゴは帯の最初の要素で左端のまま・帯に「←」のリンクが無い（「← 一覧に戻る」は外した）。
    幅は 1440 の1つ（幅ごとの畳み方は assert-header.mjs が見る）。何も選んでいない・未ログインの人（保存領域が空）で開く。
    外へは1本も出さない（Supabase の口は 500）。 */
@@ -8308,6 +8390,7 @@ try {
   }
   if (wantS('cards')) for (const s of ONLY) work.push(() => runCards(browser, s));
   if (wantS('topbar')) for (const s of [...ONLY, ...TOPBAR_MORE]) work.push(() => runTopBar(browser, s));
+  if (wantS('topbar-in')) for (const s of TOPBAR_IN) for (const lang of ['ja', 'en']) work.push(() => runTopBarIn(browser, s, lang));
   /* 会社ページ全部（日英）。--only を付けた回は、その会社の日英だけ */
   if (wantS('contrast')) for (const rel of COMPANY.filter(r => !argOf('--only') || argOf('--only').split(',').includes(path.basename(r, '.html')))) work.push(() => runContrast(browser, rel));
   if (wantS('gg')) for (const s of ONLY) for (const v of VIEWS.filter(x => GG_W.includes(x[0]))) work.push(() => runGG(browser, s, v));
