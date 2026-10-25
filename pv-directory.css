@@ -87,6 +87,10 @@
 /* 社名の札は1行のまま横に並べ、入りきらなければ横にすべらせる（地域の帯と同じ。折り返すとスマホで盆が画面の半分を覆う） */
 .wd-tray-list{flex:1;min-width:0;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .wd-tray-list::-webkit-scrollbar{display:none}
+/* 続きが在る側の端をうすく消す（地域の帯と同じ決まり。台本が data-edge に l・r を書く ── WP-dmap-8 D3） */
+.wd-tray-list[data-edge="r"]{-webkit-mask-image:linear-gradient(90deg,black calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,black calc(100% - 32px),transparent)}
+.wd-tray-list[data-edge="l"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 32px);mask-image:linear-gradient(90deg,transparent,black 32px)}
+.wd-tray-list[data-edge="l r"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 32px,black calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,transparent,black 32px,black calc(100% - 32px),transparent)}
 .wd-tray-list button{flex:none;display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink-2);font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
 .wd-tray-two,.wd-tray-lvl{flex:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:var(--pv-r-sm);border:1px solid var(--pv-accent-dark);background:var(--pv-accent-dark);color:#fff;font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
 /* 狭い画面は2段：上 ＝ 何社目か・社名の札／下 ＝ ボタン（1つなら横いっぱい・2つなら並べる） */
@@ -174,6 +178,25 @@
 .wam-go.is-off{display:none}
 @media not all and (any-pointer:coarse){.wam-go{display:none}}
 @container wam (max-width:699px){.wam[data-rest="none"]:not(.is-open) .wam-card{display:none}}
+/* 閉じたカードの1行（WP-dmap-8 D1）：区域 700px 未満でカードが閉じているあいだ、切り替えの右に「すべて」と選んだ職位の額だけを出す。
+   地図の濃さは職位ごとに 0〜1 で塗るので、職位を替えても地図はほとんど変わらない ── 押して変わるのが見えるのは、この額。
+   置くのは切り替えと同じ1行（面の高さは変わらない ＝ 390×680・375×640 の最初の1画面はそのまま）。中身はカードの「すべて」の札と額そのもの
+   （新しい字も額も作らない。職位の札は読み上げにだけ残す）。台本が動いて切り替えが見えているときだけ（台本なしは <noscript> の規則のまま）。
+   地図に触れるか地域を選ぶと、カードはいつもどおり開く（is-open） */
+@container wam (max-width:699px){
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])){grid-template-columns:auto minmax(0,1fr);align-items:center}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) > .wam-mc{grid-column:1 / -1}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) > .wam-card{display:block;grid-row:1;grid-column:2;justify-self:end;max-width:100%;padding:0;border-top:0}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) :is(.wam-cols,.wam-panels){display:block}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) :is(.wam-panel:not([data-region="all"]),.wam-k,.wam-def,.wam-sps,.wam-cond,.wam-row){display:none}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-panel[data-region="all"]{visibility:visible;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:flex-end;column-gap:8px}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-panel[data-region="all"] .wam-est{display:contents}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-h{font-size:13px;font-weight:700;color:var(--pv-ink-2)}
+  .wam[data-rest="none"][data-pos="cap"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-row[data-pos="cap"],
+  .wam[data-rest="none"][data-pos="fo"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-row[data-pos="fo"]{display:block;padding:0}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-rk{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-row .wam-n{font-size:22px}
+}
 @media (prefers-reduced-motion:reduce){.wam-go,.wam-cond > summary,.wam-cond > summary::after{transition:none}}
 /* 「機長｜副操縦士」の切り替え（P12.100）── hidden で出荷し、台本が動いたときだけ見せる。押した方（aria-pressed）が区域の data-pos を決める。
    面の先頭の子（地図の上の1行）。区域が 700px 以上は地図の左下に重ねる（見せても何もずれない）・1000px 以上は面の右上の升（カードの上）。
@@ -206,6 +229,16 @@
 #region-strip .rstrip-btn[aria-pressed="true"]{border-color:var(--pv-accent-dark);background:var(--pv-accent-dark);color:#fff}
 #region-strip .rstrip-btn[aria-pressed="true"] .rstrip-n{color:#fff;opacity:.8}
 @media (max-width:820px){#region-strip{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}#region-strip::-webkit-scrollbar{display:none}#region-strip .rstrip-btn{flex:none;min-height:40px}}
+/* 横にすべる帯の端（WP-dmap-8 D2）：続きが在る側の端をうすく消す（字は足さない）。どちらの端かは台本が data-edge に書く（l・r・l r）。
+   盆の社名の札の列（.wd-tray-list）も同じ決まり（PV-DIR-DATA の中） */
+#region-strip[data-edge="r"]{-webkit-mask-image:linear-gradient(90deg,black calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,black calc(100% - 40px),transparent)}
+#region-strip[data-edge="l"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 40px);mask-image:linear-gradient(90deg,transparent,black 40px)}
+#region-strip[data-edge="l r"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 40px,black calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,black 40px,black calc(100% - 40px),transparent)}
+/* 折り返す幅（821px から）で2行になるときは、半分（5つ目の後ろ）で行を変える ── 最後の行に1つだけ残さない（英語の 1001 で「Latin America」だけが
+   2行目だった）。付けるのは台本（is-bal ＝ そのままでは2行になる時だけ）。行のあいだは1行ぶんの間隔のまま（見えない区切りの行が1つ入るので半分ずつ） */
+#region-strip.is-bal{row-gap:calc(var(--pv-s-1) / 2)}
+#region-strip.is-bal::after{content:"";flex-basis:100%;order:1}
+#region-strip.is-bal .rstrip-btn:nth-child(n+6){order:2}
 @media (pointer:coarse){#region-strip .rstrip-btn{min-height:44px}}
 @media (prefers-reduced-motion:reduce){#region-strip .rstrip-btn{transition:none}#region-strip .rstrip-btn:hover,#region-strip .rstrip-btn:active{transform:none}}
 /* ── wam-map ── */

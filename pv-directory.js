@@ -148,12 +148,34 @@
       }
     }
     lastRegion = st.region;
+    balance();
+    edge(STRIPBOX);
     sync();
     tray();
     var c2 = {};
     for (var key in counts) if (Object.prototype.hasOwnProperty.call(counts, key)) c2[key] = counts[key];
     var detail = { q: st.q, region: st.region, view: st.view, n: n, counts: c2 };
     try { d.dispatchEvent(new CustomEvent('wd:change', { detail: detail })); } catch (e) {}
+  }
+
+  /* ── 横にすべる列の端と、折り返す帯の行（WP-dmap-8）──────────────────────────
+     地域のボタンの帯（820px まで）と盆の社名の札の列は、入りきらなければ横にすべる。続きが在る側を data-edge に書き（l・r・l r。
+     すべらない時は書かない）、CSS がその端をうすく消す（字は足さない）。帯が折り返す幅（821px から）で、そのままでは2行になる時だけ
+     is-bal を付ける（CSS が5つ目の後ろで行を変える ＝ 最後の行に1つだけ残らない）。見た目を決めるのは CSS（ここは属性と class を1つずつ書くだけ） */
+  function edge(el) {
+    if (!el) return;
+    var max = el.scrollWidth - el.clientWidth, x = Math.abs(el.scrollLeft), v = '';
+    if (max > 1) v = x > 1 && x < max - 1 ? 'l r' : (x > 1 ? 'l' : 'r');
+    if ((el.getAttribute('data-edge') || '') !== v) { if (v) el.setAttribute('data-edge', v); else el.removeAttribute('data-edge'); }
+  }
+  function balance() {
+    if (!STRIPBOX) return;
+    STRIPBOX.classList.remove('is-bal');
+    var wrap = false, lines = {};
+    try { wrap = w.getComputedStyle(STRIPBOX).flexWrap === 'wrap'; } catch (e) {}
+    if (!wrap || !STRIPBOX.getClientRects().length) return;
+    STRIP.forEach(function (b) { lines[b.offsetTop] = 1; });
+    if (Object.keys(lines).length === 2) STRIPBOX.classList.add('is-bal');
   }
 
   function set(p) {
@@ -293,6 +315,7 @@
         /* 札の列はいつも1社目から見せる（右の端へ送ると、スマホで1社目の札が左の端で切れていた ── WP-dd-9）。入りきらない分は横にすべらせる */
         TRAY_LIST.scrollLeft = 0;
       }
+      edge(TRAY_LIST);
     }
     var pair = cmp.length === 2 && two(cmp[0]) && two(cmp[1]);
     if (TRAY_TWO) {
@@ -374,6 +397,12 @@
     else if (i >= 0) cmp.splice(i, 1);
     sync(); tray(); save();
   });
+  /* 横にすべる列の端（WP-dmap-8）：すべらせた時・画面の幅が変わった時・書体が届いた時に測り直す */
+  [STRIPBOX, TRAY_LIST].forEach(function (el) { if (el) el.addEventListener('scroll', function () { edge(el); }, { passive: true }); });
+  function remeasure() { balance(); edge(STRIPBOX); edge(TRAY_LIST); }
+  w.addEventListener('resize', remeasure, { passive: true });
+  w.addEventListener('load', remeasure, { once: true });
+  try { if (d.fonts && d.fonts.ready) d.fonts.ready.then(remeasure, function () {}); } catch (e) {}
   /* 盆の社名を押す ＝ その社の印を外す（押せる場所は次の社名へ。最後の1社なら、その社の印へ） */
   if (TRAY_LIST) TRAY_LIST.addEventListener('click', function (e) {
     var b = e.target && e.target.closest ? e.target.closest('button[data-slug]') : null;
@@ -510,7 +539,8 @@
     if (!force && held()) return;                                                       // the card itself is held (D13)
     panels.forEach(function (x) { x.classList.toggle('is-shown', x.getAttribute('data-region') === p); });
     go.classList.toggle('is-off', !(st.tap && st.pick === p && p !== st.committed));
-    if (p === 'all' || !card.getClientRects().length) mount.removeAttribute('data-rp-region');   // N3: a region only while the card has a box
+    var pe = d.getElementById('wam-p-' + p);                                            // N3: a region only while ITS panel has a box
+    if (p === 'all' || !pe || !pe.getClientRects().length) mount.removeAttribute('data-rp-region');   // (a closed card on a phone shows only すべて ── WP-dmap-8)
     else if (mount.getAttribute('data-rp-region') !== p) mount.setAttribute('data-rp-region', p);
     mend();
   }

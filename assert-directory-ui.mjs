@@ -87,10 +87,12 @@
 
    場面 map-pos（日英・1440×900 と 390×680 の指・台本なし）── 地図の区域（WP-dmap-3／WP-dmap-4）：面の右上の「機長｜副操縦士」の切り替え。
      押した方が区域の data-pos・aria-pressed・見せる帯・地図の点の色・凡例の行を決める・カードの高さは変わらない・履歴と保存領域に書かない・
-     キーボードでも押せる・組の読み上げの名前（職位／Rank）・台本なしでは見えない・狭い画面では地図の上の1行（中身は関数 mapPos の頭）
+     キーボードでも押せる・組の読み上げの名前（職位／Rank）・台本なしでは見えない・狭い画面では地図の上の1行（中身は関数 mapPos の頭）・
+     ★狭い画面でカードが閉じているあいだは、切り替えの右に「すべて」と選んだ職位の額だけが出ていて、押すとその額が変わる（WP-dmap-8 D1・class B）
 
    地図の場面（WP-dmap-5 ＝ DM4 ＋ DM6・日英）── 組んだ形（WP-dmap-4）のとおり：区域の幅 1000px 以上は地図の右にカード・700〜999px は地図の下・
-   700px 未満は切り替え・地図・カード（カードは触れるか選ぶまで閉じている）。地図を指す・押すのは world-outline-probes.mjs の POINT_AT／SEA／PROBES を
+   700px 未満は切り替え・地図・カード（カードは触れるか選ぶまで閉じている ＝ 見えるのは切り替えの右の「すべて」の1行だけ・closedCard ── WP-dmap-8 D1）。
+   地図を指す・押すのは world-outline-probes.mjs の POINT_AT／SEA／PROBES を
    toPage() で写した所。時計は Asia/Tokyo。どの場面も最後に quiet が空
    場面 map-card（1440×900・1001×900・390×680 の指）
      (1) 9つのボタンにマウス → 見せるカードはその地域・カードの箱（文書の上の x・y・幅・高さ）は9つとも同じ・離れると選んでいる地域
@@ -102,7 +104,7 @@
      (3) #pv-rp の data-rp-region ＝ 見せている地域（マウス・フォーカス・選ぶ）・すべてと検索中は無い・「条件/出典」を開いたまま検索欄を空にすると戻る
      (4) 古いページ（PV-DIRMAP の中身を抜いて <base> を足した写しを temporary screenshots/wam-old-{lang}.html に書き、終わったら消す）＋ 新しい台本：
          止まらない・112社・欧州が選べる
-     (5) 390 指：開いたときカードは箱を持たない → Tab で欧州（開かない）→ Enter（開く・scrollTo を呼ばない・ボタンは画面の中）→
+     (5) 390 指：開いたときカードは閉じている（「すべて」の1行だけ）→ Tab で欧州（開かない）→ Enter（開く・scrollTo を呼ばない・ボタンは画面の中）→
          アジアを指で（結果の見出しの上端が画面の中）→ すべてを指で（開いたまま）
    場面 map-keys（1440×900）── 検索欄から Tab で地域のボタンへ → 9つとも :focus-visible・その地域のカード・その地域の光る層（.wam-o … .wam-lit）の
      opacity > 0（日本は丸も）→ Enter で選ぶ・スクロールしない／欧州を選んで Tab ×40・Shift+Tab ×40（<body> にも隠れた所にも <svg> の中にも
@@ -1403,8 +1405,19 @@ async function main() {
     PAGES.push(S);
     try {
       const { page, st } = S;
-      const z = await posOf(page);
-      ok(z.h === null && z.shown, T('map-pos 390：開いたときはカードが閉じていて、切り替えは見えている（地図と一緒に立つ）'), J(z));
+      const z = await posOf(page), k0 = await closedCard(page);
+      ok(z.shown && isClosed(k0) && k0.pos === 'cap', T('map-pos 390：開いたときはカードが閉じていて（見えているのは切り替えの右の「すべて」と機長の額の1行だけ ── WP-dmap-8 D1）、切り替えは見えている（地図と一緒に立つ）'), J({ z: z.shown, k0 }));
+      /* ★WP-dmap-8 D1（class B）：カードが閉じたまま副操縦士を押すと、見えている額が変わる（地図の濃さは職位ごとに 0〜1 なので、地図だけでは押した効き目が見えない） */
+      await page.tap('#wa-map-sec .wam-pb[data-pos="fo"]');
+      const onF = await until(page, () => document.getElementById('wa-map-sec').getAttribute('data-pos') === 'fo');
+      const k1 = await closedCard(page);
+      ok(onF && isClosed(k1) && k1.pos === 'fo' && same(k1.shown, [k0.fo]) && k0.shown[0] !== k1.shown[0],
+        T(`map-pos 390：カードが閉じたまま${W[1]}を指で押す → 見えている額が「すべて」の機長の額から副操縦士の額に変わる・カードは閉じたまま（WP-dmap-8 D1）`), J({ k0: k0.shown, k1 }));
+      await shot(page, 'map-pos', lang, '2a-narrow-closed-fo');
+      await page.tap('#wa-map-sec .wam-pb[data-pos="cap"]');
+      const onC = await until(page, () => document.getElementById('wa-map-sec').getAttribute('data-pos') === 'cap');
+      const k2 = await closedCard(page);
+      ok(onC && isClosed(k2) && same(k2.shown, [k0.cap]), T(`map-pos 390：${W[0]}を押すと見えている額も機長の額へ戻る`), J(k2));
       await page.tap('#region-strip .rstrip-btn[data-region="europe"]');
       const open1 = await until(page, () => document.getElementById('wa-map-sec').classList.contains('is-open') && !!document.querySelector('#wam-p-europe.is-shown'));
       const y = await page.evaluate(() => { const s = document.querySelector('#wa-map-sec .wam-pos'), m = document.querySelector('#wa-map-sec .wam-map'); if (!s || !m) return null; s.scrollIntoView({ block: 'center', behavior: 'instant' });
@@ -1443,6 +1456,21 @@ async function main() {
     const r = c.getBoundingClientRect();
     return [Math.round(r.left), Math.round(r.top + window.scrollY), Math.round(r.width), Math.round(r.height)];
   });
+  /* 閉じたカード（区域 700px 未満・WP-dmap-8 D1）。前は「箱を持たない」だった（P7.4）── リード（WP-dmap-8 D1：スマホでは「機長｜副操縦士」を
+     押しても凡例しか変わらないように見える → 「すべて」のカードを小さく出す）で付け替えた。閉じている ＝ is-open が無く、見えているのは
+     「すべて」の札と選んだ職位の額の2つだけ（定義・散らばり・条件/出典・ボタン・ほかの地域の札と額は箱を持たない）・その1行は切り替えと同じ行の中
+     （面を高くしない）。開いたカードの中身（散らばり・条件/出典・ボタン）は今までどおり、触れるか選ぶまで出ない */
+  const closedCard = (page) => page.evaluate(() => {
+    const sec = document.getElementById('wa-map-sec'), c = document.getElementById('wa-sum'), sw = document.querySelector('#wa-map-sec .wam-pos');
+    const seen = (e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility === 'visible';
+    const parts = [...c.querySelectorAll('.wam-h, .wam-k, .wam-def, .wam-n, .wam-sp, .wam-cond, .wam-go')].filter(seen)
+      .map((e) => `${(e.closest('.wam-panel') || { dataset: {} }).dataset.region || '-'}:${e.className.split(' ')[0]}${e.closest('.wam-row') ? ':' + e.closest('.wam-row').dataset.pos : ''}`);
+    const a = c.getClientRects().length ? c.getBoundingClientRect() : null, b = sw && sw.getClientRects().length ? sw.getBoundingClientRect() : null;
+    const fig = (p) => (document.querySelector(`#wam-p-all .wam-row[data-pos="${p}"] .wam-n`) || {}).textContent || null;
+    return { open: sec.classList.contains('is-open'), pos: sec.getAttribute('data-pos'), parts, inRow: !!a && !!b && a.top >= b.top - 0.5 && a.bottom <= b.bottom + 0.5,
+      shown: [...c.querySelectorAll('.wam-n')].filter(seen).map((e) => e.textContent), cap: fig('cap'), fo: fig('fo') };
+  });
+  const isClosed = (k) => !k.open && same(k.parts, ['all:wam-h', `all:wam-n:${k.pos}`]) && k.inRow && same(k.shown, [k[k.pos]]);
   /* 光る層の opacity（地域ごと） */
   const lightOf = (page) => page.evaluate(() => Object.fromEntries([...document.querySelectorAll('#wa-map-sec .wam-o')].map((o) => {
     const q = (s) => { const e = o.querySelector(s); return e ? Number(getComputedStyle(e).opacity) : null; };
@@ -1691,19 +1719,20 @@ async function main() {
       fs.rmSync(OLD, { force: true });
     }
 
-    /* (5) スマホ（390×680・指）：開いたときカードは箱を持たない → Tab で欧州（開かない）→ Enter（開く・結果へは動かない・ボタンは画面の中）→
+    /* (5) スマホ（390×680・指）：開いたときカードは閉じている（closedCard ── 見えるのは「すべて」の1行だけ。前は「箱を持たない」・WP-dmap-8 D1 で付け替え）
+       → Tab で欧州（開かない・欧州の札も額も見せない）→ Enter（開く・結果へは動かない・ボタンは画面の中）→
        アジアを指で押す（アジア・結果の見出しが画面に入る）→ すべてを指で押す（開いたまま・すべて） */
     const S = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 390, h: 680, touch: true,
       init: async (page) => { await tokyo(page); await page.evaluateOnNewDocument(() => { const f = window.scrollTo; window.__wamTo = 0; window.scrollTo = function () { window.__wamTo++; return f.apply(window, arguments); }; }); } });
     PAGES.push(S);
     try {
       const { page, st } = S;
-      const z0 = await cardBox(page), a0 = await rpRegion(page);
+      const z0 = await closedCard(page), a0 = await rpRegion(page);
       await page.focus(BTN('africa'));
       await page.keyboard.press('Tab');
       const onE = (await act(page)).region === 'europe';
-      const z1 = await cardBox(page), a1 = await rpRegion(page);
-      ok(z0 === null && a0 === null && onE && z1 === null && a1 === null, T('map-card (5) 390 指：開いたときカードは箱を持たず #pv-rp に地域の印も無い・Tab で欧州のボタンへ → まだ開かない・印も無い（フォーカスでは開かない）'), J({ z0, a0, onE, z1, a1 }));
+      const z1 = await closedCard(page), a1 = await rpRegion(page);
+      ok(isClosed(z0) && a0 === null && onE && isClosed(z1) && a1 === null, T('map-card (5) 390 指：開いたときカードは閉じていて（「すべて」の1行だけ・WP-dmap-8 D1）#pv-rp に地域の印も無い・Tab で欧州のボタンへ → まだ開かない・欧州の札も額も見せない・印も無い（フォーカスでは開かない）'), J({ z0, a0, onE, z1, a1 }));
       const to0 = await page.evaluate(() => window.__wamTo);
       await page.keyboard.press('Enter');
       const openE = await isShown(page, 'europe');
@@ -2062,7 +2091,7 @@ async function main() {
       PAGES.push(P);
       try {
         const { page, st } = P;
-        const z = await cardBox(page), bad = [];
+        const z = await cardBox(page), z8 = w < 700 ? await closedCard(page) : null, bad = [];
         if (w === 390) {
           /* 指の画面では地図の下の一言（クリックして地域を選ぶ）を出さない ── 触れると見せるだけで、選ぶのは「この地域の航空会社を見る」
              （WP-dmap-7・P2-a：本当でないことを言わない）。凡例はそのまま。マウスの画面で見えていることは場面 search の s3b */
@@ -2086,9 +2115,9 @@ async function main() {
           if (!b0) b0 = b;
           if (!(sh && m.go === GO[lang] && m.region === 'all' && same(pr, ['all']) && same(v, ORDER) && cardIn && !!b && same(b, b0))) bad.push({ c, sh, cardIn, m, b, n: v.length, pr });
         }
-        ok((w < 700 ? z === null : z !== null) && bad.length === 0,
-          T(`map-tap ${w}×${h} 指：8つの POINT_AT に触れる → 見せるカードはその地域・「${GO[lang]}」が見える・選んでいる地域（すべて）と一覧はそのまま・カードは画面の中（${w < 700 ? '開いたときは閉じていて、触れると開く' : '初めから開いている'}）・カードの箱は8つとも同じ`),
-          J({ z, b0, bad: bad.slice(0, 3) }));
+        ok((w < 700 ? isClosed(z8) : z !== null) && bad.length === 0,
+          T(`map-tap ${w}×${h} 指：8つの POINT_AT に触れる → 見せるカードはその地域・「${GO[lang]}」が見える・選んでいる地域（すべて）と一覧はそのまま・カードは画面の中（${w < 700 ? '開いたときは閉じていて（「すべて」の1行だけ・WP-dmap-8 D1）、触れると開く' : '初めから開いている'}）・カードの箱は8つとも同じ`),
+          J({ z: z8 || z, b0, bad: bad.slice(0, 3) }));
         if (w === 390) await shot(page, 'map-tap', lang, '390-latam');
         const last = REG8[REG8.length - 1];
         await tapIn(page, '#wa-go');
