@@ -92,7 +92,8 @@ const POS = ['cap', 'fo'];
 
 /** カードの字（★ここ1か所）。日本語 ＝ オーナーの字（D18）と P12.101 の「最低」「最高」「幅」。
     英語 ＝ リードが採った候補（P12.86-3：C-1〜C-5・C-7・C-9。職位は directory-model.mjs の札と同じ C2）と、
-    P12.101 の3語の候補（Lowest / Highest / Range ── リードの決め待ち。決まった字はここだけ直す） */
+    P12.101 の3語の英語 Lowest / Highest / Range（リード P12.109 で採用）。
+    「機長｜副操縦士」の切り替え（P12.100）の2つのボタンの字は、行の札と同じ rank の字（新しい字を作らない） */
 const WORDS = {
   ja: {
     all: 'すべて', k: '公開情報からの推定', def: (n) => `掲載${n}社の推定年収の平均`, rank: { cap: '機長', fo: '副操縦士' },
@@ -111,11 +112,12 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 /**
  * 帯の目盛の右端（万円・職位ごと）。会社ページと同じ決め方 ＝ pv-airline-view.mjs の scaleTop（描く額のいちばん大きいものを、
  * 次の 1,000万の刻みへ切り上げる。決まった上限は持たない ── P12.104「MAX7000万はおかしい」）。
- * 数えるのは、掲載している全社のその職位の推定年収（avg）と、その幅の上の額（hi）。すべて ＋ 8地域で1本
- * （地域どうしの帯の長さを比べられるように）。会員の額を帯にする日（地域のまとめの下の段・05b）は、その額もここへ数える。
+ * 数えるのは、帯が描く額だけ ＝ 掲載している全社のその職位の推定年収（avg。最低・最高・平均もこの中の額）。幅の上の額（hi）は
+ * 帯に描かないので数えない（リード P12.109）。すべて ＋ 8地域で1本（地域どうしの帯の長さを比べられるように）。
+ * 台帳の額が動けば目盛も動く。会員の額を帯にする日（地域のまとめの下の段・05b）は、その額もここへ数える。
  *   ledger ＝ salary-data.mjs の SALARY（呼び手が渡す。このファイルは年収の台帳を import しない）
  */
-export const axisOf = (ledger, rank) => scaleTop(Object.values(ledger).flatMap((d) => [d[rank].avg, d[rank].hi]));
+export const axisOf = (ledger, rank) => scaleTop(Object.values(ledger).map((d) => d[rank].avg));
 
 /**
  * PV-DIRMAP の中身（gen-directory.mjs が両方のページに書く）。
@@ -123,6 +125,8 @@ export const axisOf = (ledger, rank) => scaleTop(Object.values(ledger).flatMap((
  *   show 'card' ＝ カードだけ（地図の箱は WP-dmap-4 で入る。ほかの値はまだ作らない＝止まる）
  * 9枚のカード（すべて ＋ 8地域。すべてだけ is-shown）は1つの升に重ねる（高さが入れ替わらない）。台本なしでは9枚とも縦に並び、
  * 帯は機長と副操縦士の2本とも見える（<noscript> の規則）。#pv-rp は地域のまとめの下の段（05b）が入る口 ── ここは何も書かない。
+ * 「機長｜副操縦士」の切り替え（.wam-pos・P12.100）は hidden で出荷する。台本（pv-directory.js）が動いたときだけ見せる
+ * （押しても何も起きないボタンを出さない）。押した方が区域の data-pos を決める（行の大きさ・見せる帯 ── 地図の色は WP-dmap-4）。
  */
 export function mapSection(o) {
   const W = WORDS[o.lang];
@@ -142,7 +146,8 @@ export function mapSection(o) {
     if (!vals.length) throw new Error(`mapSection：${g.code} に会社が無い`);
     for (const x of vals) if (!(typeof x.v === 'number' && x.v > 0)) throw new Error(`mapSection：${x.s} ${r} の推定「${x.v}」`);
     const lo = Math.min(...vals.map((x) => x.v)), hi = Math.max(...vals.map((x) => x.v));
-    const who = (v) => `<ul class="wam-who">${vals.filter((x) => x.v === v).map((x) => `<li>${esc(M.airlines[x.s][o.lang])}</li>`).join('')}</ul>`;
+    /* 社名はカードの「対象」と同じ出どころ（一覧のカードの社名 ＝ show）。1枚のカードの中で1社を2通りに書かない（リード P12.109） */
+    const who = (v) => `<ul class="wam-who">${vals.filter((x) => x.v === v).map((x) => `<li>${esc(M.airlines[x.s].show[o.lang])}</li>`).join('')}</ul>`;
     /* 点は class を持たない <i>（1地域に最大112個 × 2職位 × 2回 ── 字数を食わないように。見た目は .wam-track > i） */
     const dots = vals.slice().sort((a, b) => a.v - b.v).map((x) => `<i style="left:${at(x.v, ax)}"></i>`).join('');
     return [
@@ -191,6 +196,7 @@ export function mapSection(o) {
     '<noscript><style>.wam-map,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}</style></noscript>',
     '<div class="wam-g">',
     '<aside class="wam-card" id="wa-sum">',
+    `<div class="wam-pos" role="group" hidden>${POS.map((r) => `<button type="button" class="wam-pb" data-pos="${r}" aria-pressed="${r === 'cap'}">${esc(W.rank[r])}</button>`).join('')}</div>`,
     '<div class="wam-cols">',
     '<div class="wam-panels">',
     ...groups.map(panel),

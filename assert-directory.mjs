@@ -38,7 +38,11 @@
         地域のまとめのカード（PV-DIRMAP・日英）── 平均と散らばり（最低・最高・会社・幅）の額と社数が台帳と同じ（M7）・
         日本のページと欧州のページが出している額と同じ（M8）・会社のカードの額の平均ではなく推定の平均（M9）・
         散らばりの帯の位置と目盛（会社ページと同じ決め方）（M10）・オーナーの字と日英の骨組み（M11）・属性に額を書かない・05b の口（M12）・
-        英語の額はドルの span（M13）・社名は2つのリストの中だけ ＝ check-salary.mjs が地域の額を会社の額と読まない（M14）
+        英語の額はドルの span（M13）・社名は2つのリストの中だけ ＝ check-salary.mjs が地域の額を会社の額と読まない（M14）／
+        WP-dmap-3 から：地域のまとめの台本（pv-directory.js の終わりの塊）が通信・保存・時計・05b の口への書き込み・額を持たない・
+        地域の9つのボタンは名前と社数の2つの span だけで、見た目の規則は pv-directory.css に1か所（M15）・
+        国の帯はページの終わり（カードの一覧の後ろ・フッターの前・#wd-explore の外）でリンクがそろっている（M17）。
+        「機長｜副操縦士」の切り替えの字と形は M11、帯の目盛は描く額（推定）だけで決まる（M10）、最低／最高の社名は「対象」と同じ字（M7）
 
    ★ 期待する値はここで台帳から作る。directory-model.mjs / gen-directory.mjs / airline-logo.mjs は
      「検査される側」としてだけ読む（あちらの関数で期待値を作らない）。
@@ -952,6 +956,8 @@ const RINGS_SEEN = { neutral: 13, us: 34, latam: 11, europe: 15, africa: 2, mide
 const OUTLINE_CEIL = 19000;
 /** 色を読む点（欧州）が欧州の形の縁から離れているべき距離（箱の単位。A30） */
 const EU_CLEAR = 10;
+/** pv-directory.js の終わりの、地図と地域のまとめの台本の塊の印（WP-dmap-3 の E6。この行からファイルの終わりまでが M15 の読む字） */
+const MAP_SCRIPT = '/* ── 地図と地域のまとめ（directory-map）';
 
 /** 地図の区域が読むもの（読むだけ）。関数は持たない（--selftest の写しが structuredClone で作れるように） */
 async function readMap() {
@@ -971,11 +977,16 @@ async function readMap() {
   /* 会社ページの目盛の刻み（P12.104 の決め方の1か所）。数だけ読む */
   let view = null;
   try { view = await import(pathToFileURL(at('pv-airline-view.mjs')).href); } catch { view = null; }
+  /* pv-directory.js の終わりに足した、地図と地域のまとめの台本の塊（印の行からファイルの終わりまで。印が1つでなければ null）── M15 */
+  const js = readOr('pv-directory.js'), mk = js.split(MAP_SCRIPT).length - 1;
   return {
     outline: await data('world-outline.mjs'), probes: await data('world-outline-probes.mjs'),
     text: { outline: readOr('world-outline.mjs'), probes: readOr('world-outline-probes.mjs'), map: readOr('directory-map.mjs') },
     importer: readOr('import-world-outline.mjs'), gitignore: readOr('.gitignore'), files,
     japan: readOr('countries/japan.html'), view: { SCALE_STEP: view?.SCALE_STEP ?? null }, fx,
+    script: mk === 1 ? js.slice(js.indexOf(MAP_SCRIPT)) : null,
+    /* 国の帯の行き先（M17）：link-countries.mjs の字（帯の社数 n を読む）と、在る国のページ */
+    lc: readOr('link-countries.mjs'), countries: new Set([...htmlIn('countries'), ...htmlIn('en/countries'), ...['countries.html', 'en/countries.html'].filter((f) => fs.existsSync(at(f)))]),
   };
 }
 
@@ -1078,7 +1089,7 @@ function secM(I) {
     if (!Array.isArray(I.map.files)) p.M5.push('git ls-files が読めない');
     else for (const f of I.map.files.filter((f) => /\.geojson$/i.test(f))) p.M5.push(`${f} が git に入っている`);
   }
-  return [...Object.keys(p).map((id) => R(id, p[id], info[id] || '')), ...secMcard(I)];
+  return [...Object.keys(p).map((id) => R(id, p[id], info[id] || '')), ...secMcard(I), ...secMdm3(I)];
 }
 
 /* ── M7〜M14 地域のまとめのカード（PV-DIRMAP）。ページは unbake した字を読む（英語の額は data-orig の円の字に戻る）──── */
@@ -1094,6 +1105,8 @@ const MAP_WORD = {
 };
 /** 散らばりの帯の目盛の刻み（P12.104「次の 1,000万の刻みへ」。会社ページの SCALE_STEP と同じであること） */
 const MAP_STEP = 1000;
+/** 帯の目盛の右端（職位ごと）＝ 帯が描く額（掲載全社の推定 avg）のいちばん大きいものを次の刻みへ。幅の上の額（hi）は帯に描かないので数えない（リード P12.109） */
+const axOf = (I) => Object.fromEntries(['cap', 'fo'].map((r) => [r, Math.ceil(Math.max(...Object.values(I.ledger).map((d) => d[r].avg)) / MAP_STEP) * MAP_STEP]));
 /** カードに出してはいけない字（A8 e ほか）。最高・最低・highest・lowest は、散らばりの2つの札（span.wam-mm-k）の字としてだけ許す（P12.101） */
 const MAP_FORBID = ['確認中', 'Under review', '推計平均', '参考値', '全パイロット', 'パイロットの平均', '地域の平均年収', '1位', '順位', 'ランキング', 'ranking'];
 const CUR_EN = await curCore('USD', 'en');
@@ -1154,7 +1167,7 @@ function secMcard(I) {
   if (!blocks.ja || !blocks.en) return Object.keys(p).map((id) => R(id, p[id]));
   const order = orderOf(I), codes = ['all', ...REG8];
   const slugsOf = (code) => order.filter((s) => code === 'all' || I.ledger[s].region === code);
-  const AX = {}; for (const r of ['cap', 'fo']) AX[r] = Math.ceil(Math.max(...Object.values(I.ledger).flatMap((d) => [d[r].avg, d[r].hi])) / MAP_STEP) * MAP_STEP;
+  const AX = axOf(I);
   const rowOf = Object.fromEntries(I.list.map((r) => [r.slug, r]));
 
   for (const lang of ['ja', 'en']) {
@@ -1171,7 +1184,8 @@ function secMcard(I) {
         if (got !== want) p.M7.push(`${at} ${r}：平均 ${P.rows[r]?.n ?? '（行が無い）'}／${yen(want)}`);
         const S = P.sp[r]; if (!S) { p.M7.push(`${at} ${r}：散らばりが無い`); continue; }
         const vals = sl.map((s) => I.ledger[s][r].avg), lo = Math.min(...vals), hi = Math.max(...vals);
-        const who = (v) => sl.filter((s) => I.ledger[s][r].avg === v).map((s) => I.ledger[s][lang]);
+        /* 最低／最高の会社の名前 ＝ 一覧のカードの社名（「対象」と同じ出どころ。1枚のカードの中で1社を2通りに書かない ── リード P12.109） */
+        const who = (v) => sl.filter((s) => I.ledger[s][r].avg === v).map((s) => (lang === 'ja' ? rowOf[s]?.name : rowOf[s]?.en));
         if (manOf(S.lo?.v) !== lo) p.M7.push(`${at} ${r}：最低 ${S.lo?.v}／${yen(lo)}`);
         if (manOf(S.hi?.v) !== hi) p.M7.push(`${at} ${r}：最高 ${S.hi?.v}／${yen(hi)}`);
         if (!same(S.lo?.who, who(lo))) p.M7.push(`${at} ${r}：最低の会社 ${S.lo?.who?.join('・')}／${who(lo).join('・')}`);
@@ -1196,6 +1210,9 @@ function secMcard(I) {
         ? REG8.map((c) => fill(W.region, { L: REGION_LABEL[c][li], N: slugsOf(c).length }))
         : sl.map((s) => (lang === 'ja' ? rowOf[s]?.name : rowOf[s]?.en));
       if (!ul || !same(liTexts(ul[1]), wantNames)) p.M7.push(`${at}：対象の名前が台帳と違う（${ul ? liTexts(ul[1]).length : 0} 件／${wantNames.length} 件）`);
+      if (code !== 'all' && ul) for (const r of ['cap', 'fo']) for (const nm of [...(P.sp[r]?.lo?.who || []), ...(P.sp[r]?.hi?.who || [])]) {
+        if (!liTexts(ul[1]).includes(nm)) p.M7.push(`${at} ${r}：最低／最高の会社「${nm}」が同じカードの「対象」と違う字`);
+      }
       if (unesc(P.cond?.dt[1]?.dd ?? '') !== fill(W.count, { N })) p.M7.push(`${at}：対象掲載社数「${P.cond?.dt[1]?.dd}」／${fill(W.count, { N })}`);
       /* M11 字（定義・札・条件/出典） */
       if (P.k !== W.k) p.M11.push(`${at}：「${P.k}」／「${W.k}」`);
@@ -1213,6 +1230,12 @@ function secMcard(I) {
     const B = blocks[lang];
     const go = /<button type="button" class="wam-go is-off" id="wa-go">([^<]*)<\/button>/.exec(B);
     if (!go || unesc(go[1]) !== W.go) p.M11.push(`${rel}：「${go?.[1]}」／「${W.go}」`);
+    /* 「機長｜副操縦士」の切り替え（P12.100・リード P12.109）：カードの先頭に1つ・ボタン2つ・字は行の札と同じ（新しい字を作らない）・
+       hidden で出荷（台本が動いたときだけ見せる）・押してある方 ＝ 区域の data-pos（機長） */
+    const SW = `<div class="wam-pos" role="group" hidden><button type="button" class="wam-pb" data-pos="cap" aria-pressed="true">${RW.cap[lang]}</button>`
+      + `<button type="button" class="wam-pb" data-pos="fo" aria-pressed="false">${RW.fo[lang]}</button></div>`;
+    if (B.split('class="wam-pos"').length !== 2 || !B.includes(`<aside class="wam-card" id="wa-sum">\n${SW}\n`)) p.M11.push(`${rel}：「機長｜副操縦士」の切り替えが決まりの形でない（${(/<div class="wam-pos"[^\n]*/.exec(B)?.[0] ?? '無い').slice(0, 120)}）`);
+    if (!/<div class="wam" id="wa-map-sec" data-rest="[a-z]+" data-pos="cap">/.test(B)) p.M11.push(`${rel}：区域の data-pos が機長で出ていない（切り替えの押してある方と違う）`);
     const plain = B.replace(/<span class="wam-mm-k">(?:最低|最高|Lowest|Highest)<\/span>/g, () => '');
     for (const w of [...MAP_FORBID, '最高', '最低', 'highest', 'lowest']) if (plain.toLowerCase().includes(w.toLowerCase())) p.M11.push(`${rel}：「${w}」が在る`);
     /* M12 属性に額を書かない・05b の口・狭い画面の決まり */
@@ -1233,7 +1256,7 @@ function secMcard(I) {
   }
   /* M10 目盛：会社ページと同じ決め方（刻みが同じ）・05b の口の目盛 */
   if (I.map.view?.SCALE_STEP !== MAP_STEP) p.M10.push(`会社ページの目盛の刻み（pv-airline-view.mjs の SCALE_STEP）${I.map.view?.SCALE_STEP}／一覧の帯 ${MAP_STEP}`);
-  info.M10 = `帯の目盛の右端 機長 ${yen(AX.cap)}・副操縦士 ${yen(AX.fo)}（推定と幅の上の額のいちばん大きいもの・次の 1,000万）`;
+  info.M10 = `帯の目盛の右端 機長 ${yen(AX.cap)}・副操縦士 ${yen(AX.fo)}（帯が描く推定のいちばん大きいもの・次の 1,000万）`;
   /* M11 日英の骨組み（タグと class の並び。字・<br>・額の span は外す） */
   const skel = (lang) => [...String(blockOf(I.page[lang], 'PV-DIRMAP')?.text ?? '').replace(/<span class="pv-cur"[^>]*>[^<]*<\/span>/g, () => '')
     .matchAll(/<(\/?)([a-z][a-z0-9]*)\b([^>]*)>/gi)].map((m) => `${m[1]}${m[2].toLowerCase()}.${/class="([^"]*)"/.exec(m[3])?.[1] ?? ''}`).filter((x) => !/^\/?br\./.test(x));
@@ -1287,6 +1310,76 @@ function secMcard(I) {
     }
     const hits = acceptedOf(I, B, K).hits;
     if (hits.length) p.M14.push(`${PAGE_REL[lang]}：check-salary.mjs がカードから ${hits.length} 件の額を会社の額として読む（${hits[0].a}）`);
+  }
+  return Object.keys(p).map((id) => R(id, p[id], info[id] || ''));
+}
+
+/* ── M15・M17 地域のまとめの台本（pv-directory.js の終わりの塊）・地域の9つのボタンの形・ページの終わりの国の帯（WP-dmap-3）──── */
+/** 台本の塊に書いてはいけない字（通信・保存・時計・合成した出来事・HTML を書き込む・緑の段 ── S3・RULING M・A8 c） */
+const SCRIPT_FORBID = ['fetch', 'XMLHttpRequest', 'localStorage', 'sessionStorage', 'supabase', 'dispatchEvent', 'setTimeout', 'setInterval', 'requestAnimationFrame', 'innerHTML', 'wam-t'];
+/** 台本が 05b の口（#pv-rp）に触ってよい形はこの3つだけ（中には何も書かない ── S3） */
+const MOUNT_OK = ["mount.setAttribute('data-rp-region',", "mount.removeAttribute('data-rp-region')", "mount.getAttribute('data-rp-region')"];
+function secMdm3(I) {
+  const p = { M15: [], M17: [] }, info = {};
+  /* M15 A 台本の塊：禁じた字が無い・「数字＋万」も、カードのどの額（平均・最低・最高・幅・目盛の右端）の数も書いていない・
+     mount. は決まった3つの形だけ */
+  const js = I.map?.script;
+  if (!js) p.M15.push(`pv-directory.js に地図と地域のまとめの塊（「${MAP_SCRIPT}」の行）がちょうど1つ無い`);
+  else {
+    for (const w of SCRIPT_FORBID) if (js.includes(w)) p.M15.push(`台本に「${w}」`);
+    if (/\d\s*万/.test(js)) p.M15.push('台本に「数字＋万」');
+    const order = orderOf(I), AX = axOf(I), figs = new Set([AX.cap, AX.fo]);
+    for (const code of ['all', ...REG8]) for (const r of ['cap', 'fo']) {
+      const sl = order.filter((s) => code === 'all' || I.ledger[s].region === code), vals = sl.map((s) => I.ledger[s][r].avg);
+      const lo = Math.min(...vals), hi = Math.max(...vals);
+      for (const v of [mean10(I, sl, r), lo, hi, hi - lo]) figs.add(v);
+    }
+    const nums = new Set((js.match(/\d[\d,]*/g) || []).map((s) => num(s)));
+    const hit = [...figs].filter((v) => nums.has(v));
+    if (hit.length) p.M15.push(`台本にカードの額の数 ${hit.join('・')}`);
+    info.M15 = `カードの額 ${figs.size} 種類のどれも台本の数に無い`;
+    for (let i = js.indexOf('mount.'); i >= 0; i = js.indexOf('mount.', i + 1)) {
+      if (!MOUNT_OK.some((f) => js.startsWith(f, i))) p.M15.push(`台本が 05b の口に触る形「${js.slice(i, i + 40).split('\n')[0]}」`);
+    }
+  }
+  /* M15 B 地域の9つのボタン（生成した HTML）：style 無し・絵文字の span 無し・span は名前と社数の2つだけ／ページの <style> に地域のボタンの規則が無い／
+     押した見た目の規則は pv-directory.css の地図の区域の塊に1つだけ */
+  for (const lang of ['ja', 'en']) {
+    const h = I.page[lang], rel = PAGE_REL[lang], b = blockOf(h, 'PV-DIR-REGIONS');
+    const bs = b ? [...b.text.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)] : [];
+    if (bs.length !== 9) p.M15.push(`${rel}：地域のボタンが ${bs.length} 個（9つ）`);
+    for (const [, attrs, inner] of bs) {
+      const code = /data-region="([^"]*)"/.exec(attrs)?.[1] ?? '?';
+      if (/\sstyle=/.test(attrs)) p.M15.push(`${rel} ${code}：ボタンに style`);
+      if (!/^\s*class="rstrip-btn"|\sclass="rstrip-btn"/.test(attrs)) p.M15.push(`${rel} ${code}：ボタンの class が rstrip-btn だけでない`);
+      if (!/^<span class="rstrip-l">[^<]*<\/span><span class="rstrip-n">\d+<\/span>$/.test(inner)) p.M15.push(`${rel} ${code}：ボタンの中が名前と社数の2つの span でない（${inner.slice(0, 60)}）`);
+    }
+    /* 見た目を決める規則（.rstrip-btn{ ・ .rstrip-btn.active ・ .region-strip{）。「動きを減らす」の1行が名前を並べて transition:none にするのは見た目を決めない */
+    const styles = [...h.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+    for (const m of styles.matchAll(/\.rstrip-btn\{|\.rstrip-btn\.active|\.region-strip\{/g)) p.M15.push(`${rel}：ページの <style> に地域のボタンの見た目の規則「${m[0]}」`);
+  }
+  const css = I.css || '', wa = css.indexOf('/* ── wam:'), wz = css.indexOf('/* ── /wam ── */'), PR = '.rstrip-btn[aria-pressed="true"]{';
+  const iPR = css.indexOf(PR);
+  if (css.split(PR).length !== 2 || !(wa >= 0 && wa < iPR && iPR < wz)) p.M15.push(`pv-directory.css：押した見た目の規則「${PR}」が ${css.split(PR).length - 1} 個・地図の区域の塊の中に1つであること`);
+  /* M17 A 国の帯：「WORLD MAP」の行の次が <!--PV-CBAND-->・どちらもカードの一覧の後ろでフッターの前・#wd-explore の外・
+     国のページへのリンク n 本（link-countries.mjs の BANDS のそのページの行）＋ countries.html 1本・行き先はどれも在る */
+  for (const lang of ['ja', 'en']) {
+    const h = I.page[lang], rel = PAGE_REL[lang], WM = '<!-- ── WORLD MAP', A = '<!--PV-CBAND-->', Z = '<!--/PV-CBAND-->';
+    const lines = h.split('\n'), wm = lines.map((l, i) => (l.includes(WM) ? i : -1)).filter((i) => i >= 0);
+    if (wm.length !== 1 || !(lines[wm[0] + 1] || '').startsWith(A) || h.split(A).length !== 2 || h.split(Z).length !== 2) { p.M17.push(`${rel}：「${WM}」の行（${wm.length}）の次が国の帯でない・帯が1つでない`); continue; }
+    const iW = h.indexOf(WM), iZ = h.indexOf(Z), cards = h.indexOf('<!--/PV-DIR-CARDS-->'), foot = h.indexOf('<footer class="py-10">');
+    if (!(cards >= 0 && cards < iW)) p.M17.push(`${rel}：国の帯がカードの一覧より前に在る`);
+    if (!(foot > iZ)) p.M17.push(`${rel}：国の帯がフッター（<footer class="py-10">）の前に無い`);
+    const ex = divById(h, 'wd-explore');
+    if (ex && (ex.text.includes(WM) || ex.text.includes(A))) p.M17.push(`${rel}：#wd-explore の中に国の帯`);
+    const row = String(I.map.lc || '').split('\n').filter((l) => l.includes(`rel: '${rel}'`) && l.includes('after: /<!-- ── WORLD MAP'));
+    const n = row.length === 1 ? Number(/\bn: (\d+)/.exec(row[0])?.[1]) : NaN;
+    if (!Number.isInteger(n)) { p.M17.push(`link-countries.mjs の BANDS に ${rel} の行（WORLD MAP の後ろ）が1つ無い`); continue; }
+    const hrefs = [...h.slice(iW, iZ).matchAll(/href="([^"]*)"/g)].map((m) => m[1]);
+    const ctry = hrefs.filter((x) => /^countries\/[a-z-]+\.html$/.test(x)), hub = hrefs.filter((x) => x === 'countries.html');
+    if (ctry.length !== n || new Set(ctry).size !== n || hub.length !== 1 || hrefs.length !== n + 1) p.M17.push(`${rel}：帯のリンク 国 ${ctry.length}・一覧 ${hub.length}・ほか ${hrefs.length - ctry.length - hub.length}（国 ${n} 本 ＋ countries.html 1本）`);
+    for (const x of hrefs) { const t = path.posix.join(path.posix.dirname(rel), x); if (!I.map.countries?.has(t)) p.M17.push(`${rel}：帯の行き先 ${t} が無い`); }
+    info.M17 = `${info.M17 ? info.M17 + '・' : ''}${rel} 国 ${ctry.length} 本 ＋ 一覧 1本`;
   }
   return Object.keys(p).map((id) => R(id, p[id], info[id] || ''));
 }
@@ -1369,8 +1462,9 @@ const ROWS = [
   /* 字は同じまま折れ目だけ外す（G2 はタグを外して読むので緑のまま。G2b だけが赤） */
   ['G2bn', (I) => { I.page.ja = sub(I.page.ja, '<span style="white-space:nowrap">選択する</span></h1>', '<span>選択する</span></h1>'); }, 'G', ['G2b']],
   ['G3a', (I) => { I.page.ja = sub(I.page.ja, '\n<!--PV-CBAND-->', '\n\n<!--PV-CBAND-->'); }, 'G', ['G3']],
-  /* #wd-explore の始まりを見出しの帯の前へ ＝ 検索欄が「探す前だけ見せる」側に入る */
-  ['G3b', (I) => { I.page.ja = sub(sub(I.page.ja, '<div id="wd-explore">\n<!-- ── WORLD MAP', '<!-- ── WORLD MAP'), '<!-- ── HERO', '<div id="wd-explore">\n<!-- ── HERO'); }, 'G', ['G3']],
+  /* #wd-explore の始まりを見出しの帯の前へ ＝ 検索欄が「探す前だけ見せる」側に入る
+     （WP-dmap-3 で国の帯がページの終わりへ移った ── #wd-explore の先頭は地域のまとめの印。壊し方は同じ） */
+  ['G3b', (I) => { I.page.ja = sub(sub(I.page.ja, '<div id="wd-explore">\n<!--PV-DIRMAP-->', '<!--PV-DIRMAP-->'), '<!-- ── HERO', '<div id="wd-explore">\n<!-- ── HERO'); }, 'G', ['G3']],
   ['G4a', (I) => { I.page.en = sub(I.page.en, 'tabindex="-1">All</h2>', 'tabindex="-1">All airlines</h2>'); }, 'G', ['G4']],
   ['G4b', (I) => { I.page.en = sub(I.page.en, ' data-fmt-one="{n} airline"', ''); }, 'G', ['G4']],
   ['G5', (I) => { I.page.ja = sub(I.page.ja, NOSCRIPT, ''); }, 'G', ['G5']],
@@ -1430,13 +1524,29 @@ const ROWS = [
   ['M8', (I) => { I.map.japan = I.map.japan.replace('機長の推定年収の平均が¥1,850万（', () => '機長の推定年収の平均が¥1,860万（'); }, 'M', ['M8']],
   /* 中東の機長をカードの額の平均（¥2,780万）で描き直す（平均の印もそれに合わせる）── 数が台帳と違う（M7）・カードの平均を出している（M9） */
   ['M9', (I) => onPanel(I, 'ja', 'mideast', (c) => sub(sub(c, '<b class="wam-n">¥3,030万</b>', '<b class="wam-n">¥2,780万</b>'),
-    `<i class="wam-mean" style="left:${widthOf(3030, 9000)}">`, `<i class="wam-mean" style="left:${widthOf(2780, 9000)}">`)), 'M', ['M7', 'M9']],
+    `<i class="wam-mean" style="left:${widthOf(3030, axOf(I).cap)}">`, `<i class="wam-mean" style="left:${widthOf(2780, axOf(I).cap)}">`)), 'M', ['M7', 'M9']],
   ['M10', (I) => onPanel(I, 'ja', 'europe', (c) => c.replace(/(<div class="wam-sp" data-pos="cap">[\s\S]*?<i class="wam-band" style="--a:[^;]*;--b:)[^"]*/, (_, a) => `${a}52.00%`)), 'M', ['M10']],
   ['M10b', (I) => { I.map.view.SCALE_STEP = 500; }, 'M', ['M10']],
   ['M11', (I) => onPanel(I, 'ja', 'europe', (c) => sub(c, '</dl>\n</details>', '</dl>\n<p class="wam-note">x</p>\n</details>')), 'M', ['M11']],
   ['M12', (I) => onPanel(I, 'ja', 'europe', (c) => sub(c, '<p class="wam-row" data-pos="cap">', '<p class="wam-row" data-pos="cap" title="¥2,600万">')), 'M', ['M12']],
   ['M13', (I) => onPanel(I, 'en', 'europe', (c) => c.replace(/<span class="pv-cur" data-jpy="\d+" data-orig="([^"]*)">[^<]*<\/span>/, (_, o) => o)), 'M', ['M13']],
   ['M14', (I) => onPanel(I, 'ja', 'europe', (c) => sub(c, '<h2 class="wam-h">欧州</h2>', `<h2 class="wam-h">欧州 ${SALARY.lufthansa.ja}</h2>`)), 'M', ['M14']],
+  /* 「機長｜副操縦士」の切り替え：字を書き換える／hidden を外す（台本が動かないときに押しても何も起きないボタンが出る）── WP-dmap-3 */
+  ['M11b', (I) => onBlock(I, 'ja', 'PV-DIRMAP', (b) => sub(b, 'aria-pressed="false">副操縦士</button>', 'aria-pressed="false">副操縦士の平均</button>')), 'M', ['M11']],
+  ['M11c', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, '<div class="wam-pos" role="group" hidden>', '<div class="wam-pos" role="group">')), 'M', ['M11']],
+  /* 台本の塊（M15 A）：保存領域・05b の口に書き込む・カードの額の数（欧州の機長の最低 ¥1,300万） */
+  ['M15', (I) => { I.map.script += "\nlocalStorage.getItem('x');"; }, 'M', ['M15']],
+  ['M15b', (I) => { I.map.script += "\nmount.setAttribute('hidden','');"; }, 'M', ['M15']],
+  ['M15e', (I) => { I.map.script += "\nvar v = '1,300';"; }, 'M', ['M15']],
+  /* 地域のボタンの形（M15 B）：生成した HTML に style／押した見た目の規則を2つ目 */
+  ['M15c', (I) => onBlock(I, 'ja', 'PV-DIR-REGIONS', (b) => sub(b, 'data-region="japan" data-rc', 'data-region="japan" style="--rc:#3d9bff" data-rc')), 'M', ['M15']],
+  ['M15d', (I) => { I.css = sub(I.css, '/* ── /wam ── */', '#region-strip .rstrip-btn[aria-pressed="true"]{color:var(--rc)}\n/* ── /wam ── */'); }, 'M', ['M15']],
+  /* 国の帯（M17）：1つのリンクを消す／帯を #wd-explore の中（動かす前の場所）へ戻す */
+  ['M17', (I) => { I.page.ja = sub(I.page.ja, '<a href="countries/ireland.html">🇮🇪 アイルランド<i>2社</i></a>', ''); }, 'M', ['M17']],
+  ['M17b', (I) => {
+    const h = I.page.ja, Z = '<!--/PV-CBAND-->\n', s = h.lastIndexOf('\n', h.indexOf('<!-- ── WORLD MAP')) + 1, e = h.indexOf(Z) + Z.length;
+    I.page.ja = sub(h.slice(0, s) + h.slice(e), '<div id="wd-explore">\n', `<div id="wd-explore">\n${h.slice(s, e)}`);
+  }, 'M', ['M17']],
 ];
 
 /* ── 実行 ────────────────────────────────────────────────── */

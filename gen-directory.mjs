@@ -87,12 +87,13 @@ export function cards(lang, M = model(), rule = CARD_RULE) {
   }).join('\n');
 }
 
-/** 地域の9つのボタン（すべて ＋ 8地域）。押した見た目は aria-pressed だけ（pv-directory.css の PV-DIR-STRIP）──
-    class active も直書きの色も書かない（台本も書かない） */
+/** 地域の9つのボタン（すべて ＋ 8地域）。字は名前と社数の2つの span だけ（絵文字の span・style は書かない ── directory-map の DM3・A11）。
+    見た目は pv-directory.css の地図の区域の塊（「── wam:」の中）の1か所、押した見た目は [aria-pressed="true"] だけ ──
+    class active も直書きの色も書かない（台本も書かない）。data-rc・data-emoji・data-label は古い地図の吹き出しが読む */
 export function strip(lang, M = model()) {
   return [{ ...ALL, n: M.n }, ...M.regions].map((r) => {
     const all = r.code === 'all', label = esc(r[lang]);
-    return `<button type="button" class="rstrip-btn" data-region="${r.code}" data-rc="${r.color}" data-emoji="${r.emoji}" data-label="${label}" aria-pressed="${all}" style="--rc:${r.color}"><span aria-hidden="true">${r.emoji}</span><span class="rstrip-l">${label}</span><span class="rstrip-n">${r.n}</span></button>`;
+    return `<button type="button" class="rstrip-btn" data-region="${r.code}" data-rc="${r.color}" data-emoji="${r.emoji}" data-label="${label}" aria-pressed="${all}"><span class="rstrip-l">${label}</span><span class="rstrip-n">${r.n}</span></button>`;
   }).join('\n');
 }
 

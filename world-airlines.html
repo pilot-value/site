@@ -54,7 +54,7 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="pv-tokens.css">
-<link rel="stylesheet" href="pv-directory.css?v=a6c1d3ef">
+<link rel="stylesheet" href="pv-directory.css?v=f86af473">
 <noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -141,11 +141,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .ftype-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ftype-btn:active{transform:scale(.97)}
 
-/* ── REGION STRIP ──────────────────────────────────────────────── */
-.region-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.rstrip-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#6b7d93;transition:transform .2s var(--pv-ease);white-space:nowrap}
-.rstrip-btn.active{color:#fff}
-
 /* ── MISC ──────────────────────────────────────────────────────── */
 .glass{background:rgba(17,22,32,.7);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
 .fade-up{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s cubic-bezier(.16,1,.3,1)}
@@ -188,9 +183,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .ftype-btn{background:rgba(0,0,0,.04);color:#4a5568;border-color:rgba(0,0,0,.1)}
 [data-theme="light"] .ftype-btn.active{background:rgba(180,150,0,.12);color:#8a6e00;border-color:rgba(180,150,0,.3)}
 [data-theme="light"] .ftype-btn:not(.active):hover{color:#0f172a}
-/* Region strip */
-[data-theme="light"] .rstrip-btn{background:rgba(0,0,0,.04);color:#4a5568;border-color:rgba(0,0,0,.1)}
-[data-theme="light"] .rstrip-btn.active{color:#fff}
 /* Card text */
 /* Tags */
 [data-theme="light"] .tag-gray{background:rgba(0,0,0,.05);color:#4a5568;border-color:rgba(0,0,0,.1)}
@@ -330,52 +322,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 
 <div id="wd-explore">
-<!-- ── WORLD MAP ──────────────────────────────────────────────────── -->
-<!--PV-CBAND-->
-<style>
-.pvcb{max-width:1280px;margin:0 auto 24px;padding:16px 20px;border-radius:14px;background:rgba(17,22,32,.6);border:1px solid rgba(255,255,255,.07)}
-.pvcb-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 11px}
-.pvcb-h b{font-size:.82rem;font-weight:800;color:#e8edf2}
-.pvcb-h span{font-size:.74rem;color:#6b7d93}
-.pvcb-h a{margin-left:auto;font-size:.76rem;font-weight:700;color:#f5c842;text-decoration:none}
-.pvcb-h a:hover{text-decoration:underline}
-.pvcb-list{display:flex;flex-wrap:wrap;gap:7px}
-.pvcb-list a{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:#c9d4de;font-size:.78rem;font-weight:600;text-decoration:none;transition:background .2s,border-color .2s,color .2s}
-.pvcb-list a:hover{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.3);color:#f5c842}
-.pvcb-list a:focus-visible,.pvcb-h a:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
-.pvcb-list i{font-style:normal;font-size:.72rem;color:#7d8b99;font-variant-numeric:tabular-nums}
-[data-theme="light"] .pvcb{background:#fff;border-color:rgba(0,0,0,.08)}
-[data-theme="light"] .pvcb-h b{color:#0f172a}
-[data-theme="light"] .pvcb-h span,[data-theme="light"] .pvcb-list i{color:#64748b}
-[data-theme="light"] .pvcb-h a{color:#a37b00}
-[data-theme="light"] .pvcb-list a{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.09);color:#334155}
-[data-theme="light"] .pvcb-list a:hover{background:rgba(245,200,66,.16);border-color:rgba(180,140,0,.35);color:#8a6a00}
-</style>
-<section class="pvcb">
-  <p class="pvcb-h"><b>国別のパイロット年収</b><span>掲載51カ国</span><a href="countries.html">すべての国 →</a></p>
-  <div class="pvcb-list">
-    <a href="countries/japan.html">🇯🇵 日本<i>26社</i></a>
-    <a href="countries/united-states.html">🇺🇸 アメリカ<i>11社</i></a>
-    <a href="countries/china.html">🇨🇳 中国<i>4社</i></a>
-    <a href="countries/united-kingdom.html">🇬🇧 イギリス<i>4社</i></a>
-    <a href="countries/canada.html">🇨🇦 カナダ<i>3社</i></a>
-    <a href="countries/taiwan.html">🇹🇼 台湾<i>3社</i></a>
-    <a href="countries/vietnam.html">🇻🇳 ベトナム<i>3社</i></a>
-    <a href="countries/saudi-arabia.html">🇸🇦 サウジアラビア<i>2社</i></a>
-    <a href="countries/uae.html">🇦🇪 アラブ首長国連邦<i>2社</i></a>
-    <a href="countries/germany.html">🇩🇪 ドイツ<i>2社</i></a>
-    <a href="countries/australia.html">🇦🇺 オーストラリア<i>2社</i></a>
-    <a href="countries/singapore.html">🇸🇬 シンガポール<i>2社</i></a>
-    <a href="countries/hong-kong.html">🇭🇰 香港<i>2社</i></a>
-    <a href="countries/ireland.html">🇮🇪 アイルランド<i>2社</i></a>
-  </div>
-</section>
-<!--/PV-CBAND-->
 <!--PV-DIRMAP-->
 <div class="wam" id="wa-map-sec" data-rest="none" data-pos="cap">
 <noscript><style>.wam-map,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}</style></noscript>
 <div class="wam-g">
 <aside class="wam-card" id="wa-sum">
+<div class="wam-pos" role="group" hidden><button type="button" class="wam-pb" data-pos="cap" aria-pressed="true">機長</button><button type="button" class="wam-pb" data-pos="fo" aria-pressed="false">副操縦士</button></div>
 <div class="wam-cols">
 <div class="wam-panels">
 <section class="wam-panel is-shown" data-region="all" id="wam-p-all">
@@ -389,8 +341,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:9.78%;--b:70.22%"></i><i style="left:9.78%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:13.89%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:17.22%"></i><i style="left:17.22%"></i><i style="left:17.22%"></i><i style="left:17.78%"></i><i style="left:17.78%"></i><i style="left:17.78%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:19.11%"></i><i style="left:20.00%"></i><i style="left:20.56%"></i><i style="left:20.56%"></i><i style="left:20.56%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.78%"></i><i style="left:22.78%"></i><i style="left:23.33%"></i><i style="left:23.89%"></i><i style="left:23.89%"></i><i style="left:24.22%"></i><i style="left:24.89%"></i><i style="left:24.89%"></i><i style="left:25.56%"></i><i style="left:25.56%"></i><i style="left:26.11%"></i><i style="left:26.11%"></i><i style="left:26.67%"></i><i style="left:26.67%"></i><i style="left:26.67%"></i><i style="left:26.67%"></i><i style="left:27.22%"></i><i style="left:27.78%"></i><i style="left:27.78%"></i><i style="left:27.78%"></i><i style="left:28.89%"></i><i style="left:28.89%"></i><i style="left:29.44%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.56%"></i><i style="left:30.78%"></i><i style="left:31.11%"></i><i style="left:32.22%"></i><i style="left:32.22%"></i><i style="left:32.78%"></i><i style="left:32.78%"></i><i style="left:33.33%"></i><i style="left:33.33%"></i><i style="left:33.89%"></i><i style="left:33.89%"></i><i style="left:34.44%"></i><i style="left:36.67%"></i><i style="left:36.67%"></i><i style="left:36.67%"></i><i style="left:37.33%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:38.22%"></i><i style="left:39.22%"></i><i style="left:40.00%"></i><i style="left:40.00%"></i><i style="left:41.11%"></i><i style="left:41.11%"></i><i style="left:41.11%"></i><i style="left:44.00%"></i><i style="left:44.22%"></i><i style="left:45.56%"></i><i style="left:46.67%"></i><i style="left:47.78%"></i><i style="left:53.56%"></i><i style="left:54.44%"></i><i style="left:65.89%"></i><i style="left:68.44%"></i><i style="left:70.22%"></i><i class="wam-mean" style="left:27.78%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:12.57%;--b:90.29%"></i><i style="left:12.57%"></i><i style="left:17.14%"></i><i style="left:17.14%"></i><i style="left:17.86%"></i><i style="left:18.57%"></i><i style="left:18.57%"></i><i style="left:18.57%"></i><i style="left:18.57%"></i><i style="left:18.57%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:21.43%"></i><i style="left:21.43%"></i><i style="left:21.43%"></i><i style="left:22.14%"></i><i style="left:22.14%"></i><i style="left:22.14%"></i><i style="left:22.86%"></i><i style="left:22.86%"></i><i style="left:22.86%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.57%"></i><i style="left:25.71%"></i><i style="left:26.43%"></i><i style="left:26.43%"></i><i style="left:26.43%"></i><i style="left:27.14%"></i><i style="left:27.14%"></i><i style="left:27.14%"></i><i style="left:27.14%"></i><i style="left:27.86%"></i><i style="left:27.86%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:29.29%"></i><i style="left:29.29%"></i><i style="left:30.00%"></i><i style="left:30.71%"></i><i style="left:30.71%"></i><i style="left:31.14%"></i><i style="left:32.00%"></i><i style="left:32.00%"></i><i style="left:32.86%"></i><i style="left:32.86%"></i><i style="left:33.57%"></i><i style="left:33.57%"></i><i style="left:34.29%"></i><i style="left:34.29%"></i><i style="left:34.29%"></i><i style="left:34.29%"></i><i style="left:35.00%"></i><i style="left:35.71%"></i><i style="left:35.71%"></i><i style="left:35.71%"></i><i style="left:37.14%"></i><i style="left:37.14%"></i><i style="left:37.86%"></i><i style="left:38.57%"></i><i style="left:38.57%"></i><i style="left:38.57%"></i><i style="left:38.57%"></i><i style="left:38.57%"></i><i style="left:39.29%"></i><i style="left:39.57%"></i><i style="left:40.00%"></i><i style="left:41.43%"></i><i style="left:41.43%"></i><i style="left:42.14%"></i><i style="left:42.14%"></i><i style="left:42.86%"></i><i style="left:42.86%"></i><i style="left:43.57%"></i><i style="left:43.57%"></i><i style="left:44.29%"></i><i style="left:47.14%"></i><i style="left:47.14%"></i><i style="left:47.14%"></i><i style="left:48.00%"></i><i style="left:48.57%"></i><i style="left:48.57%"></i><i style="left:48.57%"></i><i style="left:48.57%"></i><i style="left:49.14%"></i><i style="left:50.43%"></i><i style="left:51.43%"></i><i style="left:51.43%"></i><i style="left:52.86%"></i><i style="left:52.86%"></i><i style="left:52.86%"></i><i style="left:56.57%"></i><i style="left:56.86%"></i><i style="left:58.57%"></i><i style="left:60.00%"></i><i style="left:61.43%"></i><i style="left:68.86%"></i><i style="left:70.00%"></i><i style="left:84.71%"></i><i style="left:88.00%"></i><i style="left:90.29%"></i><i class="wam-mean" style="left:35.71%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥880万</b><ul class="wam-who"><li>バティック・エア</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥6,320万</b><ul class="wam-who"><li>ユナイテッド航空</li></ul></div>
@@ -399,8 +351,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:7.17%;--b:64.50%"></i><i style="left:7.17%"></i><i style="left:8.33%"></i><i style="left:10.00%"></i><i style="left:11.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.17%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.67%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.67%"></i><i style="left:14.67%"></i><i style="left:15.00%"></i><i style="left:15.83%"></i><i style="left:15.83%"></i><i style="left:15.83%"></i><i style="left:15.83%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:17.17%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:18.00%"></i><i style="left:18.33%"></i><i style="left:18.33%"></i><i style="left:18.33%"></i><i style="left:18.50%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.83%"></i><i style="left:20.83%"></i><i style="left:20.83%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.50%"></i><i style="left:22.50%"></i><i style="left:22.50%"></i><i style="left:23.00%"></i><i style="left:23.33%"></i><i style="left:23.33%"></i><i style="left:23.33%"></i><i style="left:24.17%"></i><i style="left:24.67%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.17%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:26.50%"></i><i style="left:28.33%"></i><i style="left:28.33%"></i><i style="left:28.33%"></i><i style="left:28.50%"></i><i style="left:29.17%"></i><i style="left:29.17%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.17%"></i><i style="left:30.83%"></i><i style="left:31.50%"></i><i style="left:31.67%"></i><i style="left:32.00%"></i><i style="left:32.50%"></i><i style="left:33.33%"></i><i style="left:34.17%"></i><i style="left:35.00%"></i><i style="left:37.33%"></i><i style="left:38.33%"></i><i style="left:40.00%"></i><i style="left:40.00%"></i><i style="left:41.67%"></i><i style="left:43.17%"></i><i style="left:43.50%"></i><i style="left:46.67%"></i><i style="left:47.50%"></i><i style="left:50.00%"></i><i style="left:57.33%"></i><i style="left:58.50%"></i><i style="left:64.50%"></i><i class="wam-mean" style="left:23.67%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:10.75%;--b:96.75%"></i><i style="left:10.75%"></i><i style="left:12.50%"></i><i style="left:15.00%"></i><i style="left:16.50%"></i><i style="left:18.00%"></i><i style="left:18.00%"></i><i style="left:18.00%"></i><i style="left:18.00%"></i><i style="left:18.25%"></i><i style="left:18.75%"></i><i style="left:18.75%"></i><i style="left:18.75%"></i><i style="left:18.75%"></i><i style="left:18.75%"></i><i style="left:19.00%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:21.25%"></i><i style="left:21.25%"></i><i style="left:21.25%"></i><i style="left:21.25%"></i><i style="left:21.25%"></i><i style="left:22.00%"></i><i style="left:22.00%"></i><i style="left:22.50%"></i><i style="left:23.75%"></i><i style="left:23.75%"></i><i style="left:23.75%"></i><i style="left:23.75%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.75%"></i><i style="left:26.25%"></i><i style="left:26.25%"></i><i style="left:26.25%"></i><i style="left:26.25%"></i><i style="left:27.00%"></i><i style="left:27.50%"></i><i style="left:27.50%"></i><i style="left:27.50%"></i><i style="left:27.75%"></i><i style="left:28.00%"></i><i style="left:28.00%"></i><i style="left:28.00%"></i><i style="left:28.75%"></i><i style="left:28.75%"></i><i style="left:28.75%"></i><i style="left:28.75%"></i><i style="left:28.75%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:31.25%"></i><i style="left:31.25%"></i><i style="left:31.25%"></i><i style="left:32.50%"></i><i style="left:32.50%"></i><i style="left:33.75%"></i><i style="left:33.75%"></i><i style="left:33.75%"></i><i style="left:34.50%"></i><i style="left:35.00%"></i><i style="left:35.00%"></i><i style="left:35.00%"></i><i style="left:36.25%"></i><i style="left:37.00%"></i><i style="left:37.50%"></i><i style="left:37.50%"></i><i style="left:37.50%"></i><i style="left:37.50%"></i><i style="left:37.75%"></i><i style="left:38.75%"></i><i style="left:38.75%"></i><i style="left:38.75%"></i><i style="left:38.75%"></i><i style="left:38.75%"></i><i style="left:39.75%"></i><i style="left:42.50%"></i><i style="left:42.50%"></i><i style="left:42.50%"></i><i style="left:42.75%"></i><i style="left:43.75%"></i><i style="left:43.75%"></i><i style="left:45.00%"></i><i style="left:45.00%"></i><i style="left:45.00%"></i><i style="left:45.00%"></i><i style="left:45.25%"></i><i style="left:46.25%"></i><i style="left:47.25%"></i><i style="left:47.50%"></i><i style="left:48.00%"></i><i style="left:48.75%"></i><i style="left:50.00%"></i><i style="left:51.25%"></i><i style="left:52.50%"></i><i style="left:56.00%"></i><i style="left:57.50%"></i><i style="left:60.00%"></i><i style="left:60.00%"></i><i style="left:62.50%"></i><i style="left:64.75%"></i><i style="left:65.25%"></i><i style="left:70.00%"></i><i style="left:71.25%"></i><i style="left:75.00%"></i><i style="left:86.00%"></i><i style="left:87.75%"></i><i style="left:96.75%"></i><i class="wam-mean" style="left:35.50%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥430万</b><ul class="wam-who"><li>バティック・エア</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥3,870万</b><ul class="wam-who"><li>ユナイテッド航空</li></ul></div>
@@ -428,8 +380,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:13.33%;--b:30.00%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:13.89%"></i><i style="left:14.44%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:16.67%"></i><i style="left:17.78%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:21.11%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:23.33%"></i><i style="left:26.11%"></i><i style="left:26.67%"></i><i style="left:27.78%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i class="wam-mean" style="left:20.56%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:17.14%;--b:38.57%"></i><i style="left:17.14%"></i><i style="left:17.14%"></i><i style="left:17.86%"></i><i style="left:18.57%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:21.43%"></i><i style="left:22.86%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:24.29%"></i><i style="left:27.14%"></i><i style="left:27.86%"></i><i style="left:27.86%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:28.57%"></i><i style="left:30.00%"></i><i style="left:33.57%"></i><i style="left:34.29%"></i><i style="left:35.71%"></i><i style="left:38.57%"></i><i style="left:38.57%"></i><i class="wam-mean" style="left:26.43%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,200万</b><ul class="wam-who"><li>東邦航空</li><li>新日本航空</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥2,700万</b><ul class="wam-who"><li>全日本空輸（ANA）</li><li>日本航空（JAL）</li></ul></div>
@@ -438,8 +390,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:12.50%;--b:30.00%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:15.83%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:17.50%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:20.00%"></i><i style="left:20.83%"></i><i style="left:20.83%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.50%"></i><i style="left:23.33%"></i><i style="left:24.17%"></i><i style="left:25.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i class="wam-mean" style="left:18.83%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:18.75%;--b:45.00%"></i><i style="left:18.75%"></i><i style="left:18.75%"></i><i style="left:18.75%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:21.25%"></i><i style="left:21.25%"></i><i style="left:21.25%"></i><i style="left:23.75%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:26.25%"></i><i style="left:28.75%"></i><i style="left:28.75%"></i><i style="left:30.00%"></i><i style="left:31.25%"></i><i style="left:31.25%"></i><i style="left:32.50%"></i><i style="left:32.50%"></i><i style="left:33.75%"></i><i style="left:35.00%"></i><i style="left:36.25%"></i><i style="left:37.50%"></i><i style="left:45.00%"></i><i style="left:45.00%"></i><i class="wam-mean" style="left:28.25%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥750万</b><ul class="wam-who"><li>新中央航空</li><li>東邦航空</li><li>新日本航空</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥1,800万</b><ul class="wam-who"><li>全日本空輸（ANA）</li><li>日本航空（JAL）</li></ul></div>
@@ -467,8 +419,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:9.78%;--b:40.00%"></i><i style="left:9.78%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:16.67%"></i><i style="left:17.22%"></i><i style="left:17.22%"></i><i style="left:17.78%"></i><i style="left:20.00%"></i><i style="left:20.56%"></i><i style="left:20.56%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:22.22%"></i><i style="left:22.78%"></i><i style="left:22.78%"></i><i style="left:24.22%"></i><i style="left:26.11%"></i><i style="left:27.22%"></i><i style="left:32.22%"></i><i style="left:32.78%"></i><i style="left:32.78%"></i><i style="left:33.89%"></i><i style="left:33.89%"></i><i style="left:34.44%"></i><i style="left:37.78%"></i><i style="left:40.00%"></i><i class="wam-mean" style="left:24.33%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:12.57%;--b:51.43%"></i><i style="left:12.57%"></i><i style="left:18.57%"></i><i style="left:18.57%"></i><i style="left:21.43%"></i><i style="left:22.14%"></i><i style="left:22.14%"></i><i style="left:22.86%"></i><i style="left:25.71%"></i><i style="left:26.43%"></i><i style="left:26.43%"></i><i style="left:27.14%"></i><i style="left:27.14%"></i><i style="left:28.57%"></i><i style="left:29.29%"></i><i style="left:29.29%"></i><i style="left:31.14%"></i><i style="left:33.57%"></i><i style="left:35.00%"></i><i style="left:41.43%"></i><i style="left:42.14%"></i><i style="left:42.14%"></i><i style="left:43.57%"></i><i style="left:43.57%"></i><i style="left:44.29%"></i><i style="left:48.57%"></i><i style="left:51.43%"></i><i class="wam-mean" style="left:31.29%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥880万</b><ul class="wam-who"><li>バティック・エア</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥3,600万</b><ul class="wam-who"><li>キャセイパシフィック</li></ul></div>
@@ -477,8 +429,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:7.17%;--b:40.00%"></i><i style="left:7.17%"></i><i style="left:8.33%"></i><i style="left:10.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.50%"></i><i style="left:14.67%"></i><i style="left:15.83%"></i><i style="left:16.67%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:18.33%"></i><i style="left:18.33%"></i><i style="left:18.50%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:20.83%"></i><i style="left:24.67%"></i><i style="left:25.00%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:26.50%"></i><i style="left:30.83%"></i><i style="left:32.50%"></i><i style="left:40.00%"></i><i class="wam-mean" style="left:19.33%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:10.75%;--b:60.00%"></i><i style="left:10.75%"></i><i style="left:12.50%"></i><i style="left:15.00%"></i><i style="left:18.00%"></i><i style="left:18.00%"></i><i style="left:18.00%"></i><i style="left:18.75%"></i><i style="left:22.00%"></i><i style="left:23.75%"></i><i style="left:25.00%"></i><i style="left:26.25%"></i><i style="left:26.25%"></i><i style="left:27.50%"></i><i style="left:27.50%"></i><i style="left:27.75%"></i><i style="left:28.75%"></i><i style="left:28.75%"></i><i style="left:31.25%"></i><i style="left:37.00%"></i><i style="left:37.50%"></i><i style="left:38.75%"></i><i style="left:38.75%"></i><i style="left:39.75%"></i><i style="left:46.25%"></i><i style="left:48.75%"></i><i style="left:60.00%"></i><i class="wam-mean" style="left:29.00%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥430万</b><ul class="wam-who"><li>バティック・エア</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥2,400万</b><ul class="wam-who"><li>キャセイパシフィック</li></ul></div>
@@ -506,21 +458,21 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:18.89%;--b:47.78%"></i><i style="left:18.89%"></i><i style="left:27.78%"></i><i style="left:30.00%"></i><i style="left:31.11%"></i><i style="left:32.22%"></i><i style="left:36.67%"></i><i style="left:37.78%"></i><i style="left:41.11%"></i><i style="left:47.78%"></i><i class="wam-mean" style="left:33.67%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:24.29%;--b:61.43%"></i><i style="left:24.29%"></i><i style="left:35.71%"></i><i style="left:38.57%"></i><i style="left:40.00%"></i><i style="left:41.43%"></i><i style="left:47.14%"></i><i style="left:48.57%"></i><i style="left:52.86%"></i><i style="left:61.43%"></i><i class="wam-mean" style="left:43.29%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
-<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,700万</b><ul class="wam-who"><li>ロイヤル・ヨルダン航空</li></ul></div>
-<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥4,300万</b><ul class="wam-who"><li>リヤド航空</li></ul></div>
+<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,700万</b><ul class="wam-who"><li>ロイヤル ヨルダニアン</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥4,300万</b><ul class="wam-who"><li>リヤドエアー</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥2,600万</b></p>
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:15.00%;--b:50.00%"></i><i style="left:15.00%"></i><i style="left:23.33%"></i><i style="left:25.00%"></i><i style="left:25.83%"></i><i style="left:30.00%"></i><i style="left:34.17%"></i><i style="left:38.33%"></i><i style="left:46.67%"></i><i style="left:50.00%"></i><i class="wam-mean" style="left:32.00%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:22.50%;--b:75.00%"></i><i style="left:22.50%"></i><i style="left:35.00%"></i><i style="left:37.50%"></i><i style="left:38.75%"></i><i style="left:45.00%"></i><i style="left:51.25%"></i><i style="left:57.50%"></i><i style="left:70.00%"></i><i style="left:75.00%"></i><i class="wam-mean" style="left:48.00%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
-<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥900万</b><ul class="wam-who"><li>ロイヤル・ヨルダン航空</li></ul></div>
-<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥3,000万</b><ul class="wam-who"><li>リヤド航空</li></ul></div>
+<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥900万</b><ul class="wam-who"><li>ロイヤル ヨルダニアン</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥3,000万</b><ul class="wam-who"><li>リヤドエアー</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥2,100万</b></p>
 </div>
@@ -545,8 +497,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:14.44%;--b:17.78%"></i><i style="left:14.44%"></i><i style="left:16.67%"></i><i style="left:17.22%"></i><i style="left:17.78%"></i><i class="wam-mean" style="left:16.56%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:18.57%;--b:22.86%"></i><i style="left:18.57%"></i><i style="left:21.43%"></i><i style="left:22.14%"></i><i style="left:22.86%"></i><i class="wam-mean" style="left:21.29%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,300万</b><ul class="wam-who"><li>南アフリカ航空</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥1,600万</b><ul class="wam-who"><li>エチオピア航空</li></ul></div>
@@ -555,8 +507,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:12.00%;--b:14.67%"></i><i style="left:12.00%"></i><i style="left:12.50%"></i><i style="left:14.17%"></i><i style="left:14.67%"></i><i class="wam-mean" style="left:13.33%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:18.00%;--b:22.00%"></i><i style="left:18.00%"></i><i style="left:18.75%"></i><i style="left:21.25%"></i><i style="left:22.00%"></i><i class="wam-mean" style="left:20.00%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥720万</b><ul class="wam-who"><li>南アフリカ航空</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥880万</b><ul class="wam-who"><li>エチオピア航空</li></ul></div>
@@ -584,21 +536,21 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:14.44%;--b:45.56%"></i><i style="left:14.44%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:19.11%"></i><i style="left:20.56%"></i><i style="left:22.22%"></i><i style="left:23.89%"></i><i style="left:23.89%"></i><i style="left:24.89%"></i><i style="left:24.89%"></i><i style="left:26.67%"></i><i style="left:27.78%"></i><i style="left:28.89%"></i><i style="left:28.89%"></i><i style="left:29.44%"></i><i style="left:30.00%"></i><i style="left:30.56%"></i><i style="left:30.78%"></i><i style="left:33.33%"></i><i style="left:38.22%"></i><i style="left:39.22%"></i><i style="left:40.00%"></i><i style="left:44.00%"></i><i style="left:44.22%"></i><i style="left:45.56%"></i><i class="wam-mean" style="left:28.89%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:18.57%;--b:58.57%"></i><i style="left:18.57%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:24.57%"></i><i style="left:26.43%"></i><i style="left:28.57%"></i><i style="left:30.71%"></i><i style="left:30.71%"></i><i style="left:32.00%"></i><i style="left:32.00%"></i><i style="left:34.29%"></i><i style="left:35.71%"></i><i style="left:37.14%"></i><i style="left:37.14%"></i><i style="left:37.86%"></i><i style="left:38.57%"></i><i style="left:39.29%"></i><i style="left:39.57%"></i><i style="left:42.86%"></i><i style="left:49.14%"></i><i style="left:50.43%"></i><i style="left:51.43%"></i><i style="left:56.57%"></i><i style="left:56.86%"></i><i style="left:58.57%"></i><i class="wam-mean" style="left:37.14%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,300万</b><ul class="wam-who"><li>エーゲ航空</li></ul></div>
-<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥4,100万</b><ul class="wam-who"><li>スイス インターナショナル エアラインズ</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥4,100万</b><ul class="wam-who"><li>スイス インターナショナル</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥2,800万</b></p>
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:11.00%;--b:43.17%"></i><i style="left:11.00%"></i><i style="left:12.17%"></i><i style="left:12.67%"></i><i style="left:15.83%"></i><i style="left:17.17%"></i><i style="left:18.00%"></i><i style="left:18.33%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:19.17%"></i><i style="left:20.00%"></i><i style="left:23.00%"></i><i style="left:23.33%"></i><i style="left:25.00%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:28.33%"></i><i style="left:28.50%"></i><i style="left:30.17%"></i><i style="left:31.50%"></i><i style="left:32.00%"></i><i style="left:37.33%"></i><i style="left:41.67%"></i><i style="left:43.17%"></i><i class="wam-mean" style="left:23.83%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:16.50%;--b:64.75%"></i><i style="left:16.50%"></i><i style="left:18.25%"></i><i style="left:19.00%"></i><i style="left:23.75%"></i><i style="left:25.75%"></i><i style="left:27.00%"></i><i style="left:27.50%"></i><i style="left:28.00%"></i><i style="left:28.00%"></i><i style="left:28.00%"></i><i style="left:28.75%"></i><i style="left:30.00%"></i><i style="left:34.50%"></i><i style="left:35.00%"></i><i style="left:37.50%"></i><i style="left:38.75%"></i><i style="left:38.75%"></i><i style="left:42.50%"></i><i style="left:42.75%"></i><i style="left:45.25%"></i><i style="left:47.25%"></i><i style="left:48.00%"></i><i style="left:56.00%"></i><i style="left:62.50%"></i><i style="left:64.75%"></i><i class="wam-mean" style="left:35.75%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥660万</b><ul class="wam-who"><li>エーゲ航空</li></ul></div>
-<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥2,590万</b><ul class="wam-who"><li>ブリティッシュ・エアウェイズ</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥2,590万</b><ul class="wam-who"><li>ブリティッシュ エアウェイズ</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥1,930万</b></p>
 </div>
@@ -623,8 +575,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:26.67%;--b:70.22%"></i><i style="left:26.67%"></i><i style="left:30.00%"></i><i style="left:33.33%"></i><i style="left:36.67%"></i><i style="left:37.33%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:41.11%"></i><i style="left:46.67%"></i><i style="left:53.56%"></i><i style="left:54.44%"></i><i style="left:65.89%"></i><i style="left:68.44%"></i><i style="left:70.22%"></i><i class="wam-mean" style="left:45.67%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:34.29%;--b:90.29%"></i><i style="left:34.29%"></i><i style="left:38.57%"></i><i style="left:42.86%"></i><i style="left:47.14%"></i><i style="left:48.00%"></i><i style="left:48.57%"></i><i style="left:48.57%"></i><i style="left:52.86%"></i><i style="left:60.00%"></i><i style="left:68.86%"></i><i style="left:70.00%"></i><i style="left:84.71%"></i><i style="left:88.00%"></i><i style="left:90.29%"></i><i class="wam-mean" style="left:58.71%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥2,400万</b><ul class="wam-who"><li>ソレイラス・アビエーション</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥6,320万</b><ul class="wam-who"><li>ユナイテッド航空</li></ul></div>
@@ -633,10 +585,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:22.50%;--b:64.50%"></i><i style="left:22.50%"></i><i style="left:25.17%"></i><i style="left:28.33%"></i><i style="left:28.33%"></i><i style="left:29.17%"></i><i style="left:30.00%"></i><i style="left:31.67%"></i><i style="left:33.33%"></i><i style="left:40.00%"></i><i style="left:43.50%"></i><i style="left:47.50%"></i><i style="left:57.33%"></i><i style="left:58.50%"></i><i style="left:64.50%"></i><i class="wam-mean" style="left:38.50%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:33.75%;--b:96.75%"></i><i style="left:33.75%"></i><i style="left:37.75%"></i><i style="left:42.50%"></i><i style="left:42.50%"></i><i style="left:43.75%"></i><i style="left:45.00%"></i><i style="left:47.50%"></i><i style="left:50.00%"></i><i style="left:60.00%"></i><i style="left:65.25%"></i><i style="left:71.25%"></i><i style="left:86.00%"></i><i style="left:87.75%"></i><i style="left:96.75%"></i><i class="wam-mean" style="left:57.75%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
-<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,350万</b><ul class="wam-who"><li>ポーター航空</li></ul></div>
+<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,350万</b><ul class="wam-who"><li>ポーターエアラインズ</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥3,870万</b><ul class="wam-who"><li>ユナイテッド航空</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥2,520万</b></p>
@@ -662,20 +614,20 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:18.89%;--b:41.11%"></i><i style="left:18.89%"></i><i style="left:26.67%"></i><i style="left:36.67%"></i><i style="left:41.11%"></i><i class="wam-mean" style="left:30.89%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:24.29%;--b:52.86%"></i><i style="left:24.29%"></i><i style="left:34.29%"></i><i style="left:47.14%"></i><i style="left:52.86%"></i><i class="wam-mean" style="left:39.71%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
-<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,700万</b><ul class="wam-who"><li>フィジー・エアウェイズ</li></ul></div>
+<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,700万</b><ul class="wam-who"><li>フィジー エアウェイズ</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥3,700万</b><ul class="wam-who"><li>カンタス航空</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥2,000万</b></p>
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:17.50%;--b:35.00%"></i><i style="left:17.50%"></i><i style="left:22.50%"></i><i style="left:29.17%"></i><i style="left:35.00%"></i><i class="wam-mean" style="left:26.00%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:26.25%;--b:52.50%"></i><i style="left:26.25%"></i><i style="left:33.75%"></i><i style="left:43.75%"></i><i style="left:52.50%"></i><i class="wam-mean" style="left:39.00%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
-<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,050万</b><ul class="wam-who"><li>フィジー・エアウェイズ</li></ul></div>
+<div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,050万</b><ul class="wam-who"><li>フィジー エアウェイズ</li></ul></div>
 <div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥2,100万</b><ul class="wam-who"><li>カンタス航空</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥1,050万</b></p>
@@ -701,21 +653,21 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="wam-sps">
 <div class="wam-sp" data-pos="cap">
 <p class="wam-sp-rk">機長</p>
-<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:18.89%;--b:25.56%"></i><i style="left:18.89%"></i><i style="left:21.11%"></i><i style="left:25.56%"></i><i style="left:25.56%"></i><i class="wam-mean" style="left:22.78%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥9,000万</span></p>
+<div class="wam-track" style="--wam-n:7" aria-hidden="true"><i class="wam-band" style="--a:24.29%;--b:32.86%"></i><i style="left:24.29%"></i><i style="left:27.14%"></i><i style="left:32.86%"></i><i style="left:32.86%"></i><i class="wam-mean" style="left:29.29%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥7,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥1,700万</b><ul class="wam-who"><li>アビアンカ航空</li></ul></div>
-<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥2,300万</b><ul class="wam-who"><li>アエロメヒコ航空</li><li>コパ航空</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥2,300万</b><ul class="wam-who"><li>アエロメヒコ</li><li>コパ航空</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥600万</b></p>
 </div>
 <div class="wam-sp" data-pos="fo">
 <p class="wam-sp-rk">副操縦士</p>
-<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:14.17%;--b:20.00%"></i><i style="left:14.17%"></i><i style="left:15.83%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i class="wam-mean" style="left:17.50%"></i></div>
-<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥6,000万</span></p>
+<div class="wam-track" style="--wam-n:4" aria-hidden="true"><i class="wam-band" style="--a:21.25%;--b:30.00%"></i><i style="left:21.25%"></i><i style="left:23.75%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i class="wam-mean" style="left:26.25%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span>¥4,000万</span></p>
 <div class="wam-mm">
 <div class="wam-lo"><span class="wam-mm-k">最低</span><b class="wam-mm-v">¥850万</b><ul class="wam-who"><li>アビアンカ航空</li></ul></div>
-<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥1,200万</b><ul class="wam-who"><li>アエロメヒコ航空</li><li>コパ航空</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">最高</span><b class="wam-mm-v">¥1,200万</b><ul class="wam-who"><li>アエロメヒコ</li><li>コパ航空</li></ul></div>
 </div>
 <p class="wam-w"><span class="wam-w-k">幅</span><b class="wam-w-v">¥350万</b></p>
 </div>
@@ -730,7 +682,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </details>
 </section>
 </div>
-<div class="wam-slot"><div id="pv-rp" class="pv-rp" data-axis-jpy="90000000" hidden></div></div>
+<div class="wam-slot"><div id="pv-rp" class="pv-rp" data-axis-jpy="70000000" hidden></div></div>
 </div>
 <button type="button" class="wam-go is-off" id="wa-go">この地域の航空会社を見る</button>
 </aside>
@@ -1030,15 +982,15 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   <!-- Region strip -->
   <div class="region-strip" id="region-strip">
 <!--PV-DIR-REGIONS-->
-<button type="button" class="rstrip-btn" data-region="all" data-rc="#f5c842" data-emoji="🌐" data-label="すべて" aria-pressed="true" style="--rc:#f5c842"><span aria-hidden="true">🌐</span><span class="rstrip-l">すべて</span><span class="rstrip-n">112</span></button>
-<button type="button" class="rstrip-btn" data-region="japan" data-rc="#3d9bff" data-emoji="🇯🇵" data-label="日本" aria-pressed="false" style="--rc:#3d9bff"><span aria-hidden="true">🇯🇵</span><span class="rstrip-l">日本</span><span class="rstrip-n">26</span></button>
-<button type="button" class="rstrip-btn" data-region="asia" data-rc="#f97316" data-emoji="🌏" data-label="アジア" aria-pressed="false" style="--rc:#f97316"><span aria-hidden="true">🌏</span><span class="rstrip-l">アジア</span><span class="rstrip-n">26</span></button>
-<button type="button" class="rstrip-btn" data-region="mideast" data-rc="#efc050" data-emoji="🌙" data-label="中東" aria-pressed="false" style="--rc:#efc050"><span aria-hidden="true">🌙</span><span class="rstrip-l">中東</span><span class="rstrip-n">9</span></button>
-<button type="button" class="rstrip-btn" data-region="africa" data-rc="#4caf50" data-emoji="🌍" data-label="アフリカ" aria-pressed="false" style="--rc:#4caf50"><span aria-hidden="true">🌍</span><span class="rstrip-l">アフリカ</span><span class="rstrip-n">4</span></button>
-<button type="button" class="rstrip-btn" data-region="europe" data-rc="#5fb0ff" data-emoji="✈️" data-label="欧州" aria-pressed="false" style="--rc:#5fb0ff"><span aria-hidden="true">✈️</span><span class="rstrip-l">欧州</span><span class="rstrip-n">25</span></button>
-<button type="button" class="rstrip-btn" data-region="us" data-rc="#c8102e" data-emoji="🇺🇸" data-label="北米" aria-pressed="false" style="--rc:#c8102e"><span aria-hidden="true">🇺🇸</span><span class="rstrip-l">北米</span><span class="rstrip-n">14</span></button>
-<button type="button" class="rstrip-btn" data-region="oceania" data-rc="#ee6450" data-emoji="🦘" data-label="オセアニア" aria-pressed="false" style="--rc:#ee6450"><span aria-hidden="true">🦘</span><span class="rstrip-l">オセアニア</span><span class="rstrip-n">4</span></button>
-<button type="button" class="rstrip-btn" data-region="latam" data-rc="#f5c842" data-emoji="🌎" data-label="中南米" aria-pressed="false" style="--rc:#f5c842"><span aria-hidden="true">🌎</span><span class="rstrip-l">中南米</span><span class="rstrip-n">4</span></button>
+<button type="button" class="rstrip-btn" data-region="all" data-rc="#f5c842" data-emoji="🌐" data-label="すべて" aria-pressed="true"><span class="rstrip-l">すべて</span><span class="rstrip-n">112</span></button>
+<button type="button" class="rstrip-btn" data-region="japan" data-rc="#3d9bff" data-emoji="🇯🇵" data-label="日本" aria-pressed="false"><span class="rstrip-l">日本</span><span class="rstrip-n">26</span></button>
+<button type="button" class="rstrip-btn" data-region="asia" data-rc="#f97316" data-emoji="🌏" data-label="アジア" aria-pressed="false"><span class="rstrip-l">アジア</span><span class="rstrip-n">26</span></button>
+<button type="button" class="rstrip-btn" data-region="mideast" data-rc="#efc050" data-emoji="🌙" data-label="中東" aria-pressed="false"><span class="rstrip-l">中東</span><span class="rstrip-n">9</span></button>
+<button type="button" class="rstrip-btn" data-region="africa" data-rc="#4caf50" data-emoji="🌍" data-label="アフリカ" aria-pressed="false"><span class="rstrip-l">アフリカ</span><span class="rstrip-n">4</span></button>
+<button type="button" class="rstrip-btn" data-region="europe" data-rc="#5fb0ff" data-emoji="✈️" data-label="欧州" aria-pressed="false"><span class="rstrip-l">欧州</span><span class="rstrip-n">25</span></button>
+<button type="button" class="rstrip-btn" data-region="us" data-rc="#c8102e" data-emoji="🇺🇸" data-label="北米" aria-pressed="false"><span class="rstrip-l">北米</span><span class="rstrip-n">14</span></button>
+<button type="button" class="rstrip-btn" data-region="oceania" data-rc="#ee6450" data-emoji="🦘" data-label="オセアニア" aria-pressed="false"><span class="rstrip-l">オセアニア</span><span class="rstrip-n">4</span></button>
+<button type="button" class="rstrip-btn" data-region="latam" data-rc="#f5c842" data-emoji="🌎" data-label="中南米" aria-pressed="false"><span class="rstrip-l">中南米</span><span class="rstrip-n">4</span></button>
 <!--/PV-DIR-REGIONS-->
   </div>
 
@@ -2114,6 +2066,47 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <!-- Leveling grid hover/tap tooltip (fixed-positioned; lives outside overflow container) -->
 <div class="lvl-tip" id="lvl-wa-tip" role="tooltip" aria-hidden="true"></div>
 
+<!-- ── WORLD MAP ──────────────────────────────────────────────────── -->
+<!--PV-CBAND-->
+<style>
+.pvcb{max-width:1280px;margin:0 auto 24px;padding:16px 20px;border-radius:14px;background:rgba(17,22,32,.6);border:1px solid rgba(255,255,255,.07)}
+.pvcb-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 11px}
+.pvcb-h b{font-size:.82rem;font-weight:800;color:#e8edf2}
+.pvcb-h span{font-size:.74rem;color:#6b7d93}
+.pvcb-h a{margin-left:auto;font-size:.76rem;font-weight:700;color:#f5c842;text-decoration:none}
+.pvcb-h a:hover{text-decoration:underline}
+.pvcb-list{display:flex;flex-wrap:wrap;gap:7px}
+.pvcb-list a{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:#c9d4de;font-size:.78rem;font-weight:600;text-decoration:none;transition:background .2s,border-color .2s,color .2s}
+.pvcb-list a:hover{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.3);color:#f5c842}
+.pvcb-list a:focus-visible,.pvcb-h a:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+.pvcb-list i{font-style:normal;font-size:.72rem;color:#7d8b99;font-variant-numeric:tabular-nums}
+[data-theme="light"] .pvcb{background:#fff;border-color:rgba(0,0,0,.08)}
+[data-theme="light"] .pvcb-h b{color:#0f172a}
+[data-theme="light"] .pvcb-h span,[data-theme="light"] .pvcb-list i{color:#64748b}
+[data-theme="light"] .pvcb-h a{color:#a37b00}
+[data-theme="light"] .pvcb-list a{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.09);color:#334155}
+[data-theme="light"] .pvcb-list a:hover{background:rgba(245,200,66,.16);border-color:rgba(180,140,0,.35);color:#8a6a00}
+</style>
+<section class="pvcb">
+  <p class="pvcb-h"><b>国別のパイロット年収</b><span>掲載51カ国</span><a href="countries.html">すべての国 →</a></p>
+  <div class="pvcb-list">
+    <a href="countries/japan.html">🇯🇵 日本<i>26社</i></a>
+    <a href="countries/united-states.html">🇺🇸 アメリカ<i>11社</i></a>
+    <a href="countries/china.html">🇨🇳 中国<i>4社</i></a>
+    <a href="countries/united-kingdom.html">🇬🇧 イギリス<i>4社</i></a>
+    <a href="countries/canada.html">🇨🇦 カナダ<i>3社</i></a>
+    <a href="countries/taiwan.html">🇹🇼 台湾<i>3社</i></a>
+    <a href="countries/vietnam.html">🇻🇳 ベトナム<i>3社</i></a>
+    <a href="countries/saudi-arabia.html">🇸🇦 サウジアラビア<i>2社</i></a>
+    <a href="countries/uae.html">🇦🇪 アラブ首長国連邦<i>2社</i></a>
+    <a href="countries/germany.html">🇩🇪 ドイツ<i>2社</i></a>
+    <a href="countries/australia.html">🇦🇺 オーストラリア<i>2社</i></a>
+    <a href="countries/singapore.html">🇸🇬 シンガポール<i>2社</i></a>
+    <a href="countries/hong-kong.html">🇭🇰 香港<i>2社</i></a>
+    <a href="countries/ireland.html">🇮🇪 アイルランド<i>2社</i></a>
+  </div>
+</section>
+<!--/PV-CBAND-->
 <footer class="py-10">
   <div class="max-w-7xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
     <a href="index.html"><img src="assets/logo.png" alt="PILOT VALUE" style="height:28px;opacity:.7"/></a>
@@ -2124,7 +2117,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- airlines-meta.js はレベリング比較（PVLeveling）の表。一覧のカード・地域ボタン・社数は gen-directory.mjs がこのページに書く。 -->
 <script src="airlines-meta.js"></script>
-<script src="pv-directory.js?v=6976c33a"></script>
+<script src="pv-directory.js?v=4fe3afb4"></script>
 <script>(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();</script>
 <script src="airline-logos.js"></script>
 <script src="salary-leveling.js"></script>

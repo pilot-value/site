@@ -81,7 +81,11 @@
      出荷のまま（前の2社を残さない）・5社で札の列があふれても1社目から（左の端で切れない）／T6（段の無い社に印 ＝ 2社まで）は、日本語のページに印の在る
      data-lvl="0" のカードが在る時だけ歩く（無ければ「T6：まだ歩けない（比較の切り替えの前）」と印字して通す）
 
-   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
+   場面 map-pos（日英・1440×900 と 390×680 の指・台本なし）── 地図の区域（WP-dmap-3）：地域のまとめのカードの「機長｜副操縦士」の切り替え。
+     押した方が区域の data-pos・aria-pressed・見せる帯を決める・カードの高さは変わらない・履歴と保存領域に書かない・キーボードでも押せる・
+     台本なしでは見えない・狭い画面では開いたカードの先頭の1行（中身は関数 mapPos の頭）
+
+   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,map-pos] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
      back が入る回は、ブラウザを新しい headless で立てる（'shell' は戻るの手元置き場を使わない：BackForwardCacheDisabledForDelegate）。
      どの回も、名前を引けるのは localhost と LIBS の4つだけ（--host-resolver-rules ＝ 門の外のもう1枚の網）
@@ -249,7 +253,7 @@ if (process.argv[1] && realOf(process.argv[1]) === realOf(fileURLToPath(import.m
 async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card };
+  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, 'map-pos': mapPos };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   const unknown = want.filter((s) => !SCENES[s]);
   if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -1245,6 +1249,84 @@ async function main() {
       ok(q.length === 0, T('touch quiet(st, \'touch\') が空'), J(q));
     } finally {
       await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 map-pos（WP-dmap-3・リード P12.109 (3)）── 地域のまとめのカードの「機長｜副操縦士」の切り替え（P12.100）。
+     広い画面（1440×900）：台本が動けば見える・押してあるのは機長（区域の data-pos も機長・見せている帯は機長の1本）→
+     副操縦士を押す → data-pos・aria-pressed・見せる帯が副操縦士へ・カードの高さはそのまま・履歴も保存領域も増えない →
+     キーボード（機長にフォーカスして Space）で戻る／台本を止めると切り替えは見えない（押しても何も起きないボタンを出さない）／
+     狭い画面（390×680・指）：カードは閉じている → 地域のボタンを指で押す → カードが開き、切り替えはその先頭の1行 → 副操縦士を指で押す → data-pos／
+     どれも quiet が空 */
+  async function mapPos(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const posOf = (page) => page.evaluate(() => {
+      const sec = document.getElementById('wa-map-sec'), sw = document.querySelector('#wa-sum .wam-pos');
+      const p = document.querySelector('#wa-sum .wam-panel.is-shown'), c = document.getElementById('wa-sum');
+      return {
+        pos: sec && sec.getAttribute('data-pos'), shown: !!sw && !sw.hidden && sw.getClientRects().length > 0,
+        btn: sw ? [...sw.querySelectorAll('.wam-pb')].map((b) => `${b.dataset.pos}:${b.getAttribute('aria-pressed')}:${b.textContent}`) : [],
+        strip: p ? [...p.querySelectorAll('.wam-sp')].filter((s) => getComputedStyle(s).visibility === 'visible').map((s) => s.dataset.pos) : [],
+        h: c && c.getClientRects().length ? Math.round(c.getBoundingClientRect().height) : null,
+        hist: history.length, ls: JSON.stringify(Object.entries(localStorage).sort()), ss: JSON.stringify(Object.entries(sessionStorage).sort()),
+      };
+    });
+    const W = { ja: ['機長', '副操縦士'], en: ['Captain', 'First Officer'] }[lang];
+    /* 広い画面 */
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang] });
+    PAGES.push(P);
+    try {
+      const { page, st } = P;
+      const a = await posOf(page);
+      ok(a.shown && same(a.btn, [`cap:true:${W[0]}`, `fo:false:${W[1]}`]) && a.pos === 'cap' && same(a.strip, ['cap']),
+        T(`map-pos 1440：切り替えが見える（${W[0]}｜${W[1]}・押してあるのは${W[0]}）・区域は cap・見せる帯は機長の1本`), J(a));
+      await press(page, '#wa-sum .wam-pb[data-pos="fo"]');
+      const on = await until(page, () => document.getElementById('wa-map-sec').getAttribute('data-pos') === 'fo');
+      const b = await posOf(page);
+      ok(on && same(b.btn, [`cap:false:${W[0]}`, `fo:true:${W[1]}`]) && same(b.strip, ['fo']) && b.h === a.h,
+        T(`map-pos 1440：${W[1]}を押す → 区域は fo・押してあるのは${W[1]}・見せる帯は副操縦士の1本・カードの高さはそのまま`), J({ a: a.h, b }));
+      ok(b.hist === a.hist && b.ls === a.ls && b.ss === a.ss, T('map-pos 1440：履歴も保存領域（local / session）も1つも増えない・変わらない'), J({ hist: [a.hist, b.hist], ls: a.ls === b.ls, ss: a.ss === b.ss }));
+      await shot(page, 'map-pos', lang, '1-fo');
+      await page.focus('#wa-sum .wam-pb[data-pos="cap"]');
+      await page.keyboard.press('Space');
+      const back = await until(page, () => document.getElementById('wa-map-sec').getAttribute('data-pos') === 'cap');
+      const c = await posOf(page);
+      ok(back && same(c.btn, [`cap:true:${W[0]}`, `fo:false:${W[1]}`]) && same(c.strip, ['cap']), T(`map-pos 1440：キーボード（${W[0]}にフォーカスして Space）で機長へ戻る`), J(c));
+      const q = quiet(st, 'map-pos');
+      ok(q.length === 0, T('map-pos quiet(st, \'map-pos\') が空（1440）'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+    /* 台本を止める */
+    const N = await dirOpen(browser, L, { rel: PAGE_REL[lang], js: false });
+    PAGES.push(N);
+    try {
+      const n = await N.page.evaluate(() => { const s = document.querySelector('#wa-sum .wam-pos'); return s ? { disp: getComputedStyle(s).display, rects: s.getClientRects().length } : null; });
+      ok(!!n && n.disp === 'none' && n.rects === 0, T('map-pos 台本なし：切り替えは見えない（押しても何も起きないボタンを出さない）'), J(n));
+    } finally {
+      await N.ctx.close().catch(() => {});
+    }
+    /* 狭い画面・指 */
+    const S = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 390, h: 680, touch: true });
+    PAGES.push(S);
+    try {
+      const { page, st } = S;
+      const z = await posOf(page);
+      ok(z.h === null && !z.shown, T('map-pos 390：開いたときはカード（と切り替え）が閉じている'), J(z));
+      await page.tap('#region-strip .rstrip-btn[data-region="europe"]');
+      const open1 = await until(page, () => document.getElementById('wa-map-sec').classList.contains('is-open') && !!document.querySelector('#wam-p-europe.is-shown'));
+      const y = await page.evaluate(() => { const s = document.querySelector('#wa-sum .wam-pos'), c = document.getElementById('wa-sum'); if (!s || !c) return null; s.scrollIntoView({ block: 'center', behavior: 'instant' });
+        const a = s.getBoundingClientRect(), b = c.getBoundingClientRect(), f = c.querySelector('.wam-cols').getBoundingClientRect(); return { pos: getComputedStyle(s).position, first: a.top >= b.top && a.bottom <= f.top + 1 }; });
+      ok(open1 && !!y && y.pos === 'static' && y.first, T('map-pos 390：地域のボタンを指で押す → カードが開き、切り替えはカードの先頭の1行'), J({ open1, y }));
+      await page.tap('#wa-sum .wam-pb[data-pos="fo"]');
+      const on = await until(page, () => document.getElementById('wa-map-sec').getAttribute('data-pos') === 'fo');
+      const b = await posOf(page);
+      ok(on && same(b.strip, ['fo']) && same(b.btn, [`cap:false:${W[0]}`, `fo:true:${W[1]}`]), T(`map-pos 390：${W[1]}を指で押す → 区域は fo・見せる帯は副操縦士の1本`), J(b));
+      await shot(page, 'map-pos', lang, '2-narrow');
+      const q = quiet(st, 'map-pos');
+      ok(q.length === 0, T('map-pos quiet(st, \'map-pos\') が空（390）'), J(q));
+    } finally {
+      await S.ctx.close().catch(() => {});
     }
   }
 

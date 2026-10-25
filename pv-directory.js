@@ -492,3 +492,110 @@
     applyThemeW(localStorage.getItem('pv-theme')||'light');
   } catch (e) { applyThemeW('light'); }   // 保存領域が読めなければ明るい色（何も選んでいない人と同じ）
 })(window, document);
+
+/* ── 地図と地域のまとめ（directory-map）。金額を持たない・通信しない・保存しない・時計を使わない。 ── */
+/* 見せる地域 ＝ 指している（マウス）?? 選びかけ（キーボードのフォーカス・地図に指で触れた）?? 選んだ地域（一覧の地域 ＝ 'wd:change'）。
+   カードは動かない（9枚を1つの升に重ねてある）。カードの中にフォーカスがある・「条件/出典」が開いているあいだは入れ替えない。
+   狭い画面のカードは、選んだ時（と地図に指で触れた時 ── WP-dmap-4）に開き、そのあと閉じない（is-open は足すだけ）。
+   ボタンを指・マウスで押して選んだら、結果の見出しを画面に入れる（キーボードで押したときはページを動かさない）。
+   「機長｜副操縦士」の切り替え（P12.100）は区域の data-pos だけを書く（履歴にも保存領域にも書かない）。
+   地図の形（.wam-svg）を指す・押す聞き手は WP-dmap-4（いまの svg は null）。 */
+(function (w, d) {
+  'use strict';
+  var sec = d.getElementById('wa-map-sec'); if (!sec) return;          // 古いページ＋新しい台本：何もしない
+  var card = d.getElementById('wa-sum'), go = d.getElementById('wa-go'), mount = d.getElementById('pv-rp');
+  if (!card || !go || !mount) return;
+  var strip = d.getElementById('region-strip'), svg = sec.querySelector('.wam-svg'), root = d.documentElement;   // svg: null before DM5a
+  var each = Array.prototype.forEach, list = Array.prototype.slice;
+  var panels = list.call(card.querySelectorAll('.wam-panel'));
+  var st = { committed: 'all', hover: null, pick: null, tap: false, key: false, q: false, via: '', press: false };
+  var reduce = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion:reduce)').matches);
+  function known(c) { return !!c && !!d.getElementById('wam-p-' + c); }                 // (code) -> boolean
+  function codeOf(el) {                                                                 // (Element) -> code | null: region controls only
+    var n = el && el.closest ? el.closest('.rstrip-btn,.wam-r,.wam-hit') : null, c = n ? n.getAttribute('data-region') : null;
+    return n && !card.contains(n) && known(c) ? c : null; }
+  function shown() { return st.hover || st.pick || st.committed; }                      // -> code, never null
+  function held() { return st.key || !!card.querySelector('details[open]'); }           // -> boolean (D13)
+  function closeFolds() { each.call(card.querySelectorAll('details[open]'), function (x) { x.open = false; }); }
+  function seen(el) { return el.getClientRects().length > 0 && w.getComputedStyle(el).visibility !== 'hidden'; }
+  function mend() {                                                                     // D26 (e): the focus never stays on a hidden element
+    var a = d.activeElement; if (!a || a === d.body || !card.contains(a) || seen(a)) return;
+    var s = card.querySelector('.wam-panel.is-shown .wam-cond > summary'); if (s) s.focus({ preventScroll: true }); }
+  function marks() {                                                                    // -> Element[]: shapes, outlines, names, buttons (A37: '.wam-o' from WP-dmap-4)
+    var a = list.call(sec.querySelectorAll('.wam-r,.wam-o,.wam-lbl'));
+    return strip ? a.concat(list.call(strip.querySelectorAll('.rstrip-btn'))) : a; }
+  function render(force) {                                                              // (boolean) -> void
+    if (root.classList.contains('wd-q')) { mount.removeAttribute('data-rp-region'); return; }   // search mode: nothing is displayed, no layout is read
+    var p = shown();
+    marks().forEach(function (n) { var c = n.getAttribute('data-region');               // the lights always follow the pointing
+      n.classList.toggle('is-on', c !== 'all' && c === st.committed);
+      n.classList.toggle('is-hot', c !== 'all' && c === p && c !== st.committed); });
+    if (st.tap || st.committed !== 'all') sec.classList.add('is-open');                 // D27: a tap or a selection; never removed; focus / hover never open
+    if (!force && held()) return;                                                       // the card itself is held (D13)
+    panels.forEach(function (x) { x.classList.toggle('is-shown', x.getAttribute('data-region') === p); });
+    go.classList.toggle('is-off', !(st.tap && st.pick === p && p !== st.committed));
+    if (p === 'all' || !card.getClientRects().length) mount.removeAttribute('data-rp-region');   // N3: a region only while the card has a box
+    else if (mount.getAttribute('data-rp-region') !== p) mount.setAttribute('data-rp-region', p);
+    mend();
+  }
+  function reveal() {                                                                   // the result heading into view, once
+    var h = d.getElementById('wd-rh'); if (!h) return;
+    var b = h.getBoundingClientRect(); if (b.top >= 86 && b.bottom <= w.innerHeight) return;
+    w.scrollTo({ top: w.pageYOffset + b.top - 86, behavior: reduce ? 'instant' : 'smooth' });
+  }
+  d.addEventListener('wd:change', function (e) {
+    var c = e.detail && e.detail.region; c = known(c) ? c : 'all';
+    var q = root.classList.contains('wd-q'), back = st.q && !q; st.q = q;               // back = the section is displayed again
+    var moved = c !== st.committed, was = sec.classList.contains('is-open');
+    if (moved) { st.committed = c; st.pick = null; st.tap = false; closeFolds(); }
+    render(moved || back);
+    var a = d.activeElement;                                                            // D26 (e): a card that just opened above a focused button keeps it in view
+    if (!was && sec.classList.contains('is-open') && a && strip && strip.contains(a)) a.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'auto' });
+  });
+  function over(e) { if (e.pointerType && e.pointerType !== 'mouse') return; var c = codeOf(e.target); if (c && c !== st.hover) { st.hover = c; render(false); } }
+  function out(e) { if (e.pointerType && e.pointerType !== 'mouse') return; if (st.hover !== null) { st.hover = null; render(false); } }
+  if (strip) {
+    strip.addEventListener('pointerover', over); strip.addEventListener('pointerleave', out);
+    strip.addEventListener('focusin', function (e) { var c = codeOf(e.target); if (c) { st.pick = c; st.tap = false; render(false); } });
+    strip.addEventListener('keydown', function (e) {                                    // D26 (b): the preview ends before the focus moves
+      if (e.key === 'Tab' && st.pick !== null && !st.tap) { st.pick = null; render(false); } });
+    strip.addEventListener('focusout', function (e) { var t = e.relatedTarget;
+      if (st.press || (t && (strip.contains(t) || card.contains(t)))) return;          // D26 (c): a press inside the card keeps what it shows, on text too
+      if (st.pick !== null && !st.tap) { st.pick = null; render(false); } });
+    strip.addEventListener('click', function (e) {                                      // D12 (M2): a POINTER press that selected brings the results into view
+      var b = e.target && e.target.closest ? e.target.closest('.rstrip-btn') : null;
+      if (!b || e.detail === 0) return;                                                 // detail 0 = Enter / Space: the focus stays where it is
+      var c = b.getAttribute('data-region');
+      if (c !== 'all' && w.PVDirectory && w.PVDirectory.state && w.PVDirectory.state().region === c) reveal(); });
+    each.call(strip.querySelectorAll('.rstrip-btn'), function (b) {
+      var c = b.getAttribute('data-region'); if (known(c)) b.setAttribute('aria-describedby', 'wam-f-' + c); });
+  }
+  card.addEventListener('pointerdown', function () { st.press = true; });              // D26 (c)
+  d.addEventListener('pointerup', function () { st.press = false; }, true);
+  d.addEventListener('pointerdown', function (e) {                                      // a press elsewhere ends a focus preview
+    var t = e.target; if (st.pick === null || st.tap || card.contains(t) || (strip && strip.contains(t))) return;
+    st.pick = null; render(false); }, true);
+  card.addEventListener('focusin', function (e) { var k = false; try { k = e.target.matches(':focus-visible'); } catch (x) {} st.key = k; });
+  card.addEventListener('focusout', function (e) { var t = e.relatedTarget;
+    if (t && card.contains(t)) return;
+    st.key = false;
+    if (t && strip && strip.contains(t)) return;                                        // the strip's own focusin follows
+    if (st.pick !== null && !st.tap) st.pick = null;
+    render(false); });
+  card.addEventListener('toggle', function (e) { if (e.target && e.target.open === false) render(false); }, true);   // 'toggle' does not bubble
+  /* 「機長｜副操縦士」（P12.100）：押した方を区域の data-pos に（行の大きさ・見せる帯 ── 地図の色と光る層は WP-dmap-4 の CSS が同じ印を読む）。
+     2つそろっていなければ見せない（押しても何も起きないボタンを出さない） */
+  var sw = card.querySelector('.wam-pos'), pbs = sw ? list.call(sw.querySelectorAll('.wam-pb')) : [];
+  function setPos(p) {                                                                  // ('cap' | 'fo') -> void
+    if (p !== 'cap' && p !== 'fo') return;
+    if (sec.getAttribute('data-pos') !== p) sec.setAttribute('data-pos', p);
+    pbs.forEach(function (b) { var on = b.getAttribute('data-pos') === p ? 'true' : 'false'; if (b.getAttribute('aria-pressed') !== on) b.setAttribute('aria-pressed', on); });
+  }
+  if (sw && pbs.length === 2) {
+    pbs.forEach(function (b) { b.addEventListener('click', function () { setPos(b.getAttribute('data-pos')); }); });
+    setPos(sec.getAttribute('data-pos') === 'fo' ? 'fo' : 'cap');
+    sw.hidden = false;
+  }
+  var c0 = w.PVDirectory && w.PVDirectory.state ? w.PVDirectory.state().region : 'all';
+  st.committed = known(c0) ? c0 : 'all'; st.q = root.classList.contains('wd-q'); render(true);
+})(window, document);
