@@ -17,7 +17,7 @@
      b1 見えているカード ＝ 台帳の112社を一覧の並び（地域の順 → 一覧の行の順）で・社数「112社」／«112 airlines»・
         どの社名も語の途中で折れず切れていない（折れ目は空白・「・」の後ろ・「（」の前だけ ── WP-dd-9。390 は場面 first で）
      b2 地域のボタンを1つずつ押す → 見えているカード ＝ その地域の会社（集合）・社数・押したボタンだけ aria-pressed="true"
-     b3 FSC → 一覧の行の type が fsc の会社・LCC/ULCC → lcc・免税 → SALARY の taxFree
+     （b3 種類の絞り込み（FSC・LCC/ULCC・免税）は WP-dmap-7 で口ごと外した ── 無いことは assert-directory.mjs の G10 が見る）
      b4 レベリング比較 → 絞り込みの帯（#filter-bar）が消え、#lvl-wa-grid に4本の .lvl-col・カード一覧 → 戻る
      b5 テーマのボタンで data-theme が入れ替わる（もう1回で戻る）
      b6 地域のまとめ：アジアのボタンにマウスを載せる → カードが見せているのは wam-p-asia で、定義の行に台帳の社数・
@@ -47,16 +47,17 @@
         打っているあいだは地図と一緒に見えない（WP-dd-9）
      s4 レベリング比較を開いたまま打つ → カード一覧に戻る
    場面 scope（日英・390×680 のスマホ）── 地域を選んだまま別の地域の会社を打つ
-     欧州を選ぶ → 欄の中に「欧州」の札・「全日空」＋ Enter → カード0枚・見つからないの文は出さない・#wd-else のボタンは
+     欧州を選ぶ → 欄の中に「欧州」の札・「全日空」＋ Enter → 地域のボタンと結果の見出しが上の帯のすぐ下（ヘッダーの裏に無い・WP-dmap-7）・カード0枚・見つからないの文は出さない・#wd-else のボタンは
      「日本 1」の1つだけ（画面の中・横にずれない）・欧州の帯の数 ＝ 台帳で数えた当たり（0）→ 押す → 日本・ANA・欄はそのまま・
      history.length は増えない → 欧州 → 札を押す → すべて・先頭が ANA・見えている数 ＝ すべての数 → 欧州 ＋ «air» → 見えているのは
      欧州の会社だけ・社数 ＝ その数 → 欧州をもう1回 → 外れる
    場面 empty（日英・1440×900）── zzzz → 見つからないの文と「絞り込みを解除」・地域のボタンは出さない・社数は空 →
      「絞り込みを解除」→ 112社・欄は空・すべてが押されている・ボタンは隠れる
    場面 url（日英・1440×900）── 住所（WP-dd-6）
-     u1 7つの住所（?q=ana・?q=ana#list・?region=asia・?region=zz・?ref=ABCD1234・?q=ドイツ&region=europe&type=fsc・?view=range）で開く →
-        住所は1文字も変わらない・history.state は null（開いた時は履歴に触らない）・状態・欄・押した地域・種類が住所どおり・
-        見えているカード ＝ 台帳（地域・国・種類）／打った時と同じ（q）・zz は「すべて」・?view=range は絞り込みの帯が消え、
+     u1 8つの住所（?q=ana・?q=ana#list・?region=asia・?region=zz・?ref=ABCD1234・?q=ドイツ&region=europe&type=fsc・?type=taxfree#list・?view=range）で開く →
+        住所は1文字も変わらない（古い ?type= の2つだけは、type の鍵だけが消える ── ほかの鍵・# はそのまま。WP-dmap-7）・
+        history.state は null（開いた時は履歴に触らない）・状態・欄・押した地域が住所どおり・
+        見えているカード ＝ 台帳（地域・国）／打った時と同じ（q）・zz と ?type= は「すべて」（種類では絞らない）・?view=range は絞り込みの帯が消え、
         DOMContentLoaded のあと #lvl-wa-grid に4本の .lvl-col
      u2 «emirates» を本当に打つ → その場で絞り込まれ、欄にいるあいだ住所は変わらない → Enter → ?q=emirates・history.length は同じ
      u3 打って欄を離れる（Tab）→ ?q=emirates（change）・欄の消すボタン（空にして search）→ q が消える
@@ -88,7 +89,44 @@
      押した方が区域の data-pos・aria-pressed・見せる帯・地図の点の色・凡例の行を決める・カードの高さは変わらない・履歴と保存領域に書かない・
      キーボードでも押せる・組の読み上げの名前（職位／Rank）・台本なしでは見えない・狭い画面では地図の上の1行（中身は関数 mapPos の頭）
 
-   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,map-pos] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
+   地図の場面（WP-dmap-5 ＝ DM4 ＋ DM6・日英）── 組んだ形（WP-dmap-4）のとおり：区域の幅 1000px 以上は地図の右にカード・700〜999px は地図の下・
+   700px 未満は切り替え・地図・カード（カードは触れるか選ぶまで閉じている）。地図を指す・押すのは world-outline-probes.mjs の POINT_AT／SEA／PROBES を
+   toPage() で写した所。時計は Asia/Tokyo。どの場面も最後に quiet が空
+   場面 map-card（1440×900・1001×900・390×680 の指）
+     (1) 9つのボタンにマウス → 見せるカードはその地域・カードの箱（文書の上の x・y・幅・高さ）は9つとも同じ・離れると選んでいる地域
+     (2) 欧州を選んで「条件/出典」→「対象」＝ 欧州のカードの見えている社名（頭の旗を外す）ちょうど・対象掲載社数・換算の文・ほかに何も無い →
+         開いたまま別のボタンにマウス／フォーカス：カードはそのまま・そのボタンに is-hot → 別の地域を選ぶと閉じる →（1001・カードが地図の下）
+         「条件/出典」を開いたまま地図のアフリカを指し、キーボードで閉じる → すぐアフリカ（1440 では開いた「条件/出典」が面を高くし、閉じると
+         ボタンも地図も動いてマウスの下から外れる ── ページは正しく指しを外すので、ここは地図が動かない 1001 で見る）→
+         05b との継ぎ目（#pv-rp の中の開いた <details> もカードを止め、選ぶと閉じる）→ 北米のボタンにフォーカスしたまま定義の行を押す → 北米のまま
+     (3) #pv-rp の data-rp-region ＝ 見せている地域（マウス・フォーカス・選ぶ）・すべてと検索中は無い・「条件/出典」を開いたまま検索欄を空にすると戻る
+     (4) 古いページ（PV-DIRMAP の中身を抜いて <base> を足した写しを temporary screenshots/wam-old-{lang}.html に書き、終わったら消す）＋ 新しい台本：
+         止まらない・112社・欧州が選べる
+     (5) 390 指：開いたときカードは箱を持たない → Tab で欧州（開かない）→ Enter（開く・scrollTo を呼ばない・ボタンは画面の中）→
+         アジアを指で（結果の見出しの上端が画面の中）→ すべてを指で（開いたまま）
+   場面 map-keys（1440×900）── 検索欄から Tab で地域のボタンへ → 9つとも :focus-visible・その地域のカード・その地域の光る層（.wam-o … .wam-lit）の
+     opacity > 0（日本は丸も）→ Enter で選ぶ・スクロールしない／欧州を選んで Tab ×40・Shift+Tab ×40（<body> にも隠れた所にも <svg> の中にも
+     落ちない）／すべてから Shift+Tab → 欧州のカードの中 → 欧州の「条件/出典」／Tab で北米・マウスで「条件/出典」→ 北米の中が開く／
+     欧州の「条件/出典」にフォーカスしたまま setRegion('asia') → フォーカスはアジアの「条件/出典」→ 読み直す → region=asia（A13：履歴は積まない）
+   場面 map-fit（1001×900・390×680。ライト）── 7つの通貨（currency.js の RATES）× 9枚のカード：額が切れない・カードの中・職位の札と額が重ならない・
+     帯 72px 以上・凡例は面の中・横にはみ出さない・通貨を戻すと区域の字が1字も違わない・英語はドルで開き ¥ が無い／帯の点は会社の数・帯の両端と
+     平均の印とどの点も、書いた額と目盛の右端の割合の所（0.6px 以内）・最低／最高は台帳どおり／assert-header.mjs の WIDTHS × 円・ドルで横にはみ出さない／
+     ★1001・390 と WIDTHS で「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（onLand・WP-dmap-7）
+   場面 map-point（1440×900・マウス）── 開いたとき何も光らない（日本の丸はかすか）／8つの POINT_AT を指す → その地域・光る・海と Moscow では
+     そのまま・離れると戻る・カードの箱は動かない／押す → 選ぶ・opacity 1・結果の見出しが画面の中 → もう1回 → 外れる・動かない／
+     ★当たり（リードの決め・WP-dmap-5）：8地域とも、点の中心（POINT_AT にいちばん近い点）と点と点のあいだ（その点と右下の点のまんなか ＝ どの点の
+     中心からも 2.6・点の縁の外。点の並びは見本 sketch-v4 の決まりで、ここで形から作る）を押すとその地域が選ばれる・海（SEA）は何も選ばない
+     （押す前にマウスは海に置き、is-hot が無いのを待つ）／?region=europe で開くと欧州だけ光る
+   場面 map-tap（指・390×680・375×640・820×980）── 8つの POINT_AT に触れる → その地域を見せる・「この地域の航空会社を見る」が見える・選んでいる
+     地域と一覧はそのまま・カードは画面の中・カードの箱は8つとも同じ → そのボタン → 選ばれる・結果の見出し・フォーカスは #wd-rh-name・ボタンは消える →
+     地域のボタンを指で → すぐ選ばれ、結果の見出しの上端が画面の中／390 では地図の下の一言（クリックして選ぶ）を出さない・凡例は出ている（WP-dmap-7）
+   場面 map-first（assert-hero-fold.mjs の SIZES の8つ・iPad とスマホは指）── 測って印字（ヒーローの下端・区域・地図・地域のボタンの下端・#wd-rh）・
+     どの大きさでも検索欄が丸ごと画面の中で地図より上・何か打つと区域は箱を持たない。
+     ★D37（リードの決め 2026-10-25）：地図とカードの面（.wam-g）が丸ごと最初の1画面の中（#wd-rh は印字だけ）。組んだ形で収まらない大きさは
+       D37_OPEN（WP-dmap-7 が地図の上端と高さを変える）── そこでは「まだ収まらない」を数え、収まったら赤（外して数える）。関数 mapFirst の頭
+     ★8つの大きさ（指）で「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（onLand・WP-dmap-7）
+
+   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,map-pos,map-card,map-keys,map-fit,map-point,map-tap,map-first] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
      back が入る回は、ブラウザを新しい headless で立てる（'shell' は戻るの手元置き場を使わない：BackForwardCacheDisabledForDelegate）。
      どの回も、名前を引けるのは localhost と LIBS の4つだけ（--host-resolver-rules ＝ 門の外のもう1枚の網）
@@ -105,6 +143,8 @@ import { bring, open, LIBS } from './local-chain.mjs';
 import { SALARY } from './salary-data.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 import { SWITCH, EN_SWITCH } from './airline-rollout.mjs';
+import { POINT_AT, SEA, PROBES, toPage } from './world-outline-probes.mjs';
+import { SHAPES } from './world-outline.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -128,6 +168,54 @@ const H1 = { ja: '次のキャリアを、選択する', en: 'Choose your next c
 const PAGE_REL = { ja: 'world-airlines.html', en: 'en/world-airlines.html' };
 /** 地図の上の一言（もとは見出しの帯の1行の前半。WP-dd-9 で地図の枠の中へ移した。字はそのまま） */
 const HINT = { ja: '地図をクリックして地域を選択', en: 'Click the map to choose a region' };
+/** 地域のまとめのカードの字（シートの字 ＝ directory-map.mjs の WORDS と同じ。字そのものは assert-directory.mjs の M11 が見張る）：
+    指で地図に触れたあとのボタン・「条件/出典」の中の3つの見出し・対象掲載社数の書き方 */
+const GO = { ja: 'この地域の航空会社を見る', en: 'View airlines in this region' };
+const FOLD = { ja: ['対象', '対象掲載社数', '換算'], en: ['Airlines included', 'Number of airlines', 'Conversion'] };
+const COUNT_N = { ja: (n) => `${n}社`, en: (n) => `${n}` };
+
+/* ── 地図の点（WP-dmap-5 の「当たり」の行。リードの決め：点の中心と、点と点のあいだの1点。どちらでも選べる）──────────
+   点の並びは見本 sketch-v4 の決まり（WP-dmap-4 の報告 (9)）：横 5.2・縦 5.2 × 0.866 の六角の並び。行 r の y ＝ r1(3.4 + r × 縦)（いちばん上の行 3.4 ＝ 陸のいちばん北のすぐ下 ── WP-dmap-7。前は 2.6）、
+   その行の点 i の x ＝ r1((r が奇数なら 5.2、偶数なら 2.6) + i × 5.2)。点の太さ（直径）3.7。ここでは形（world-outline.mjs）から
+   自分で作る ── 地図の部品（directory-map.mjs）の答えは写さない。ページの点がこの決まりどおりかは assert-directory.mjs の M16 が見る。 */
+const DOT = { g: 5.2, row: 5.2 * 0.866, y0: 3.4 };
+const r1 = (v) => Math.round(v * 10) / 10;
+const RINGS = Object.fromEntries(Object.entries(SHAPES).map(([k, d]) => [k, String(d).split('M').filter((s) => s.trim()).map((s) => {
+  const n = s.replace(/[lz]/g, () => ' ').match(/-?\d+/g).map(Number), pts = [[n[0], n[1]]];
+  for (let i = 2; i + 1 < n.length; i += 2) { const p = pts[pts.length - 1]; pts.push([p[0] + n[i], p[1] + n[i + 1]]); }
+  return pts;
+})]));
+/** 形 k の中か（偶奇の数え方） */
+const inShape = (k, x, y) => {
+  let c = false;
+  for (const q of RINGS[k]) for (let i = 0, j = q.length - 1; i < q.length; j = i++) {
+    const [xi, yi] = q[i], [xj, yj] = q[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+};
+const onlyIn = (code, x, y) => inShape(code, x, y) && Object.keys(RINGS).every((k) => k === code || !inShape(k, x, y));
+/** 地域ごとに、POINT_AT のいちばん近くの点の中心 D と、点と点のあいだの1点 G（D と右下の点のまんなか ＝ 2つの点の中心から 2.6・
+    点の縁（半径 1.85）の外。点の行の線からも 2.25 離れていて、当たりの層の太い線（5.6）だけが答える所）。
+    D と左右・左下・右下の点がどれもその地域だけの形の中（G のまわりはその地域の点だけ）。日本は形が小さくてそういう所が無い ──
+    日本は目印の丸（当たりの層の円）が答えるので、D はその地域の中の点・G は D の右下とのまんなか */
+const DOTGAP = Object.fromEntries(REG8.map((code) => {
+  const p = POINT_AT[code], cand = [];
+  for (let r = 0; r1(DOT.y0 + r * DOT.row) < 440; r++) {
+    const y = r1(DOT.y0 + r * DOT.row), yn = r1(DOT.y0 + (r + 1) * DOT.row);
+    if (Math.abs(y - p[1]) > 20) continue;
+    for (let i = 0; r1((r % 2 ? DOT.g : DOT.g / 2) + i * DOT.g) < 1000; i++) {
+      const x = r1((r % 2 ? DOT.g : DOT.g / 2) + i * DOT.g);
+      if (Math.abs(x - p[0]) > 20 || !onlyIn(code, x, y)) continue;
+      const ring = [[r1(x + DOT.g), y], [r1(x - DOT.g), y], [r1(x + DOT.g / 2), yn], [r1(x - DOT.g / 2), yn]].every(([a, b]) => onlyIn(code, a, b));
+      cand.push({ ring, d: Math.hypot(x - p[0], y - p[1]), D: [x, y], G: [(x + r1(x + DOT.g / 2)) / 2, (y + yn) / 2] });
+    }
+  }
+  const pick = (xs) => xs.sort((a, b) => a.d - b.d)[0] || null;
+  const best = pick(cand.filter((c) => c.ring)) || (code === 'japan' ? pick(cand) : null);
+  if (!best) throw new Error(`当たりの行：${code} の点が POINT_AT の近くに無い`);
+  return [code, best];
+}));
 
 /* ── 読む（台帳）──────────────────────────────────────────── */
 /** 一覧の行（airlines-meta.js の window.PV_AIRLINES）。slug は PV_slugOf で */
@@ -144,7 +232,6 @@ const SLUGS = Object.keys(SALARY);
 const ORDER = SLUGS.slice().sort((a, b) => (REG8.indexOf(SALARY[a].region) - REG8.indexOf(SALARY[b].region))
   || ((POS.get(a) ?? 1e9) - (POS.get(b) ?? 1e9)));
 const inRegion = (code) => SLUGS.filter((s) => code === 'all' || SALARY[s].region === code);
-const listType = (s) => (ROW.get(s) || {}).type || '';
 /** ヘッダー検索の行（search.js の var DB = [ … ]; の中身）。slug を足して返す */
 function headerRows() {
   const src = read('search.js'), a = src.indexOf('var DB = ['), z = src.indexOf('window.PV_DB = DB;');
@@ -256,7 +343,8 @@ if (process.argv[1] && realOf(process.argv[1]) === realOf(fileURLToPath(import.m
 async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, 'map-pos': mapPos };
+  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, 'map-pos': mapPos,
+    'map-card': mapCard, 'map-keys': mapKeys, 'map-fit': mapFit, 'map-point': mapPoint, 'map-tap': mapTap, 'map-first': mapFirst };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   const unknown = want.filter((s) => !SCENES[s]);
   if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -375,20 +463,7 @@ async function main() {
       }
       await press(page, '#region-strip .rstrip-btn[data-region="all"]');
 
-      /* b3 種類（FSC・LCC/ULCC・免税 → すべて） */
-      const TYPES = [
-        ['fsc', 'FSC', SLUGS.filter((s) => listType(s) === 'fsc')],
-        ['lcc', 'LCC/ULCC', SLUGS.filter((s) => listType(s) === 'lcc')],
-        ['taxfree', '免税', SLUGS.filter((s) => SALARY[s].taxFree === true)],
-        ['all', 'すべて', SLUGS],
-      ];
-      for (const [t, name, exp] of TYPES) {
-        await press(page, `.ftype-btn[data-type="${t}"]`);
-        const on = await until(page, (t) => { const b = document.querySelector(`.ftype-btn[data-type="${t}"]`); return !!b && b.classList.contains('active'); }, t);
-        const v = await visible(page);
-        ok(on && exp.length > 0 && sameSet(v, exp) && v.length === exp.length,
-          T(`b3 ${name} → ${t === 'taxfree' ? 'SALARY の taxFree の' : t === 'all' ? '台帳の' : `一覧の行の type が ${t} の`}${exp.length}社`), J({ n: v.length }));
-      }
+      /* b3 種類の絞り込み（FSC・LCC/ULCC・免税）は WP-dmap-7 で口ごと外した（オーナー P12.114）。無いことは静的な G10（assert-directory.mjs）が見る */
 
       /* b4 レベリング比較 ⇄ カード一覧 */
       await press(page, '.view-btn[data-view="range"]');
@@ -677,13 +752,21 @@ async function main() {
       await type(page, Q);
       const hl0 = await page.evaluate(() => history.length);
       await page.keyboard.press('Enter');
-      /* Enter は結果の見出しを上の帯のすぐ下（86px）へ送る ── そこへ着くか、ページの底に着くまで待ってから、止まるのを待つ */
+      /* Enter は結果の見出しを上の帯（固定のヘッダー）のすぐ下へ送る。真上の地域のボタンも一緒に入るなら、ボタンから（WP-dmap-7・リード 2026-10-25：
+         種類の列が無くなってボタンは見出しの真上 ── 見出しだけを 86px に置くとボタンがヘッダーの裏に入る）。
+         ボタンの上端が 86px に着くか、ページの底に着くまで待ってから、止まるのを待つ */
       const arrived = await until(page, () => {
-        const r = document.getElementById('wd-rh').getBoundingClientRect(), maxY = document.documentElement.scrollHeight - window.innerHeight;
-        return Math.abs(r.top - 86) <= 2 || Math.abs(window.scrollY - maxY) <= 1;
+        const s = document.getElementById('region-strip').getBoundingClientRect(), maxY = document.documentElement.scrollHeight - window.innerHeight;
+        return Math.abs(s.top - 86) <= 2 || Math.abs(window.scrollY - maxY) <= 1;
       });
       await still(page);
-      ok(arrived, T('scope Enter → 結果の見出しが上の帯のすぐ下へ来る'), J(await page.evaluate(() => Math.round(document.getElementById('wd-rh').getBoundingClientRect().top))));
+      const at = await page.evaluate(() => {
+        const s = document.getElementById('region-strip').getBoundingClientRect(), r = document.getElementById('wd-rh').getBoundingClientRect();
+        const b = document.querySelector('#region-strip .rstrip-btn[aria-pressed="true"]'), c = b && b.getBoundingClientRect(), h = c && document.elementFromPoint(c.left + c.width / 2, c.top + c.height / 2);
+        return { strip: Math.round(s.top), rh: [Math.round(r.top), Math.round(r.bottom)], vh: window.innerHeight, hit: !!h && (h === b || b.contains(h)) };
+      });
+      ok(arrived && at.strip >= 84 && at.rh[0] >= at.strip && at.rh[1] <= at.vh && at.hit,
+        T('scope Enter → 地域のボタンと結果の見出しが上の帯のすぐ下・どちらもヘッダーの裏に無い（押してある欧州のボタンのまんなかに当たるのは、そのボタン）'), J(at));
       const v2 = await visible(page), e2 = await elseShown(), none2 = await shown(page, '#wd-none'), n2 = await stripN('europe');
       ok(v2.length === 0, T(`scope 欧州 ＋「${Q}」＋ Enter → カード0枚`), J(v2));
       ok(!none2, T('scope 見つからないの文（#wd-none）を出さない（会社は在る）'), J(none2));
@@ -714,6 +797,10 @@ async function main() {
       await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
       await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="europe"]') || {}).getAttribute?.('aria-pressed') === 'true');
       const e4 = await elseShown();
+      /* 欄の札は検索欄の中 ── Enter のあと欄は地域のボタンの上 ＝ 固定のヘッダーの裏（WP-dmap-7 の計り：欄 15〜69px・ヘッダーの下端 71px）。
+         画面の中なので page.click は動かさずにそこを押し、ヘッダーを押してしまう。読む人と同じく、押す前に欄をまんなかへ送る（地域のボタンは送らない ── Enter が見せている） */
+      await page.$eval('#wd-scope', (e) => e.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
+      await still(page);
       await press(page, '#wd-scope');
       const on4 = await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="all"]') || {}).getAttribute?.('aria-pressed') === 'true');
       const v4 = await visible(page), nAll = await stripN('all'), c4 = await chip();
@@ -774,7 +861,6 @@ async function main() {
   /* ── 住所と「戻る」の場面で使う道具（WP-dd-6）── */
   const fieldOf = (page) => page.evaluate(() => document.getElementById('search').value);
   const stateOf = (page) => page.evaluate(() => (window.PVDirectory ? window.PVDirectory.state() : null));
-  const typeOf = (page) => page.evaluate(() => [...document.querySelectorAll('.ftype-btn.active')].map((b) => b.dataset.type));
   const chipOf = (page) => page.evaluate(() => { const c = document.getElementById('wd-scope'); return c && getComputedStyle(c).display !== 'none' && c.getClientRects().length > 0 ? c.textContent : null; });
   const addr = (page) => page.evaluate(() => ({ href: location.href, search: location.search, hl: history.length, hs: history.state }));
   /* 見えているカードが v（DOM の順）と同じになるまで */
@@ -782,7 +868,7 @@ async function main() {
     .filter((a) => a.getClientRects().length > 0)
     .map((a) => a.getAttribute('href').replace(/^airlines\//, () => '').replace(/\.html$/, () => ''))) === JSON.stringify(v), v);
   const pressedIs = (page, code) => until(page, (c) => (document.querySelector(`#region-strip .rstrip-btn[data-region="${c}"]`) || {}).getAttribute?.('aria-pressed') === 'true', code);
-  const D0 = { q: '', region: 'all', type: 'all', view: 'card' };
+  const D0 = { q: '', region: 'all', view: 'card' };   // 状態は q・region・view の3つ（種類 type は WP-dmap-7 で無くなった）
   /* 別の文書（道の終わりが end）へ移って読み終わるまで。⚠️ waitForNavigation は使わない ── 押した時の住所の書き込み
      （replaceState ＝ 同じ文書の中の移り）でも返るので、まだ一覧のページにいるうちに先へ進んでしまう */
   const toDoc = async (page, end, act) => {
@@ -798,22 +884,24 @@ async function main() {
     const { page, st } = P;
     const go = async (href) => { await page.goto(href, { waitUntil: 'load', timeout: 60000 }); await ready(page); };
     try {
-      /* u1 7つの住所（期待する集合は台帳から） */
-      const DE = ofCountry('DE').filter((s) => SALARY[s].region === 'europe' && listType(s) === 'fsc');
+      /* u1 8つの住所（期待する集合は台帳から）。古い ?type=（種類の絞り込みの住所 ── WP-dmap-7 で口ごと外した）は、すべてとして開き、
+         住所から type の鍵だけが消える（ほかの鍵・# はそのまま・history.state は触らない）。種類では絞らない ＝ 見えるのはその地域・国の会社ぜんぶ */
+      const DE = ofCountry('DE').filter((s) => SALARY[s].region === 'europe');
       const ADDR = [
         ['?q=ana', { ...D0, q: 'ana' }, { typed: 'ana' }],
         ['?q=ana#list', { ...D0, q: 'ana' }, { typed: 'ana' }],
         ['?region=asia', { ...D0, region: 'asia' }, { exp: inRegion('asia') }],
         ['?region=zz', D0, { exp: ORDER }],
         ['?ref=ABCD1234', D0, { exp: ORDER }],
-        ['?q=%E3%83%89%E3%82%A4%E3%83%84&region=europe&type=fsc', { ...D0, q: 'ドイツ', region: 'europe', type: 'fsc' }, { exp: DE }],
+        ['?q=%E3%83%89%E3%82%A4%E3%83%84&region=europe&type=fsc', { ...D0, q: 'ドイツ', region: 'europe' }, { exp: DE, clean: '?q=%E3%83%89%E3%82%A4%E3%83%84&region=europe' }],
+        ['?type=taxfree#list', D0, { exp: ORDER, clean: '#list' }],
         ['?view=range', { ...D0, view: 'range' }, { range: true }],
       ];
       for (const [qs, want, how] of ADDR) {
         const href = plain + qs;
         await go(href);
-        const a = await addr(page), s = await stateOf(page), f = await fieldOf(page), pr = await pressed(page), ty = await typeOf(page);
-        let good = a.href === href && a.hs === null && same(s, want) && f === want.q && same(pr, [want.region]) && same(ty, [want.type]), ex = {};
+        const a = await addr(page), s = await stateOf(page), f = await fieldOf(page), pr = await pressed(page);
+        let good = a.href === plain + (how.clean ?? qs) && a.hs === null && same(s, want) && f === want.q && same(pr, [want.region]), ex = {};
         if (how.exp) {
           const v = await visible(page);
           ex = { n: v.length };
@@ -832,7 +920,7 @@ async function main() {
           await shot(page, 'url', lang, 'range');
         }
         const what = how.exp ? `${how.exp.length}社` : how.typed ? '打った時と同じカード（先頭が ANA）' : '絞り込みの帯が消え、#lvl-wa-grid に4本の .lvl-col';
-        ok(good, T(`u1 「${decodeURIComponent(qs)}」で開く → 住所はそのまま・history.state は null・状態・欄・地域・種類が住所どおり・${what}`), J({ a, s, f, pr, ty, ...ex }));
+        ok(good, T(`u1 「${decodeURIComponent(qs)}」で開く → ${how.clean !== undefined ? `すべて（種類では絞らない）・住所は type だけが消えて「${decodeURIComponent(how.clean) || '（鍵なし）'}」` : '住所はそのまま'}・history.state は null・状態・欄・地域が住所どおり・${what}`), J({ a, s, f, pr, ...ex }));
       }
 
       /* u2 本当に打つ → 欄にいるあいだは住所を書かない → Enter */
@@ -1332,6 +1420,749 @@ async function main() {
     } finally {
       await S.ctx.close().catch(() => {});
     }
+  }
+
+  /* ════ 地図の場面（WP-dmap-5 ＝ DM4 ＋ DM6）。組んだ形（WP-dmap-4）のとおりに歩く：区域の幅 1000px 以上 ＝ 地図の右にカード・
+     700〜999px ＝ 地図の下にカード・700px 未満 ＝ 切り替え・地図・カード（カードは地図に触れるか選ぶまで閉じている）。
+     地図を指す・押すのは toPage(svg.wam-svg の箱, ...POINT_AT[地域] / SEA)（形の箱のまんなかへは行かない）。時計は Asia/Tokyo ════ */
+  const tokyo = (page) => page.emulateTimezone('Asia/Tokyo');
+  const AWAY = [4, 200];   // 地域のボタンにも地図にもカードにも掛からない所（左の余白）── マウスを「離す」ときに置く
+  const BTN = (c) => `#region-strip .rstrip-btn[data-region="${c}"]`;
+  const LB = (c, lang) => REGION_LABEL[c][lang === 'en' ? 1 : 0];
+  /* 見せているカード（computed visibility が visible の .wam-panel の地域。ちょうど1枚のはず） */
+  const shownPanels = (page) => page.evaluate(() => [...document.querySelectorAll('#wa-sum .wam-panel')]
+    .filter((p) => getComputedStyle(p).visibility === 'visible').map((p) => p.dataset.region));
+  const isShown = (page, code, timeout = 20000) => page.waitForFunction((c) => {
+    const v = [...document.querySelectorAll('#wa-sum .wam-panel')].filter((p) => getComputedStyle(p).visibility === 'visible');
+    return v.length === 1 && v[0].dataset.region === c;
+  }, { timeout }, code).then(() => true, () => false);
+  /* カードの箱（文書の上の位置 ＝ スクロールしても変わらない）。箱が無ければ null */
+  const cardBox = (page) => page.evaluate(() => {
+    const c = document.getElementById('wa-sum');
+    if (!c || !c.getClientRects().length) return null;
+    const r = c.getBoundingClientRect();
+    return [Math.round(r.left), Math.round(r.top + window.scrollY), Math.round(r.width), Math.round(r.height)];
+  });
+  /* 光る層の opacity（地域ごと） */
+  const lightOf = (page) => page.evaluate(() => Object.fromEntries([...document.querySelectorAll('#wa-map-sec .wam-o')].map((o) => {
+    const q = (s) => { const e = o.querySelector(s); return e ? Number(getComputedStyle(e).opacity) : null; };
+    return [o.dataset.region, { lit: q('.wam-lit'), halo: q('.wam-halo'), ring: q('.wam-ring') }];
+  })));
+  const litWhere = (page, code, test) => until(page, (c, t) => {
+    const e = document.querySelector(`#wa-map-sec .wam-o[data-region="${c}"] .${t[0]}`);
+    const v = e ? Number(getComputedStyle(e).opacity) : NaN;
+    return t[1] === '>' ? v > t[2] : v === t[2];
+  }, code, test);
+  const regionNow = (page) => page.evaluate(() => window.PVDirectory.state().region);
+  const selectedIs = (page, code, timeout = 20000) => page.waitForFunction((c) => window.PVDirectory.state().region === c
+    && (document.querySelector(`#region-strip .rstrip-btn[data-region="${c}"]`) || {}).getAttribute?.('aria-pressed') === 'true', { timeout }, code).then(() => true, () => false);
+  /* 箱の中の位置 → ページの上の位置（いまの svg の箱で） */
+  /* toPage() は「svg の箱 ＝ 形の箱 0〜1000 × 0〜440」の写し。WP-dmap-7 から svg の viewBox は形の箱より上下に広い（北の上に海）ので、
+     viewBox が形の箱のどこに在るかを読み、形の箱 0〜440 が画面のどこに在るかの箱を作ってから toPage() に渡す（同じ写し方・同じ強さ） */
+  const boxPt = async (page, xy) => {
+    const r = await page.evaluate(() => {
+      const s = document.querySelector('#wa-map-sec .wam-svg'), b = s.getBoundingClientRect(), v = s.viewBox.baseVal;
+      return { left: b.left - (v.x / v.width) * b.width, top: b.top - (v.y / v.height) * b.height, width: (b.width * 1000) / v.width, height: (b.height * 440) / v.height };
+    });
+    return toPage(r, xy[0], xy[1]);
+  };
+  /* ★「機長｜副操縦士」の切り替えの箱に掛かる陸の点（WP-dmap-7・リード 2026-10-25 Q2：class A）── 700〜999px では切り替えが地図に重なる。
+     点はページそのものの点の列（svg の path[id^="wam-d-"] の d ＝「M x y h 長さ」、点は 5.2 ごと）から、半径はその path の線の太さの半分。
+     いまの svg の箱と viewBox で画面の位置へ写し、点の円が切り替えの箱に1px でも掛かれば数える。切り替えが見えない・点が読めないときも赤（0 個を測って通らない） */
+  const onLand = (page) => page.evaluate(() => {
+    const sw = document.querySelector('#wa-map-sec .wam-pos'), svg = document.querySelector('#wa-map-sec .wam-svg');
+    if (!sw || !svg || !sw.getClientRects().length || !svg.getClientRects().length) return { err: '切り替えか地図が見えない' };
+    const a = sw.getBoundingClientRect(), b = svg.getBoundingClientRect(), v = svg.viewBox.baseVal, sx = b.width / v.width, sy = b.height / v.height;
+    let dots = 0; const hit = [];
+    for (const p of svg.querySelectorAll('path[id^="wam-d-"]')) {
+      const d = p.getAttribute('d') || '', r = (parseFloat(getComputedStyle(p).strokeWidth) / 2) * sx;
+      if (/[^Mh\d.\s-]/.test(d) || !(r > 0)) return { err: `点の列が読めない（${p.id}）` };
+      for (const m of d.matchAll(/M(-?[\d.]+) (-?[\d.]+)h([\d.]+)/g)) {
+        const x0 = +m[1], y = +m[2], n = Math.floor(+m[3] / 5.2 + 1e-6) + 1;
+        for (let i = 0; i < n; i++) {
+          dots++;
+          const cx = b.left + (x0 + i * 5.2 - v.x) * sx, cy = b.top + (y - v.y) * sy;
+          const dx = Math.max(a.left - cx, 0, cx - a.right), dy = Math.max(a.top - cy, 0, cy - a.bottom);
+          if (dx * dx + dy * dy < r * r) hit.push(`${p.id.slice(6)} ${Math.round((x0 + i * 5.2) * 10) / 10},${y}`);
+        }
+      }
+    }
+    return dots < 1000 ? { err: `読めた点が ${dots} 個` } : { n: hit.length, hit: hit.slice(0, 4), sw: [Math.round(a.left), Math.round(a.top), Math.round(a.width), Math.round(a.height)], pos: getComputedStyle(sw).position };
+  });
+  const toTop = async (page) => { await still(page); await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' })); await still(page); };
+  const mapInView = async (page) => { await still(page); await page.evaluate(() => document.querySelector('#wa-map-sec .wam-map').scrollIntoView({ block: 'center', behavior: 'instant' })); await still(page); };
+  const shiftTab = async (page) => { await page.keyboard.down('Shift'); await page.keyboard.press('Tab'); await page.keyboard.up('Shift'); };
+  /* フォーカスの在り処 */
+  const act = (page) => page.evaluate(() => {
+    const a = document.activeElement;
+    if (!a || a === document.body) return { body: true };
+    const cls = a.getAttribute('class') || '';
+    return {
+      body: false, tag: a.tagName.toLowerCase(), id: a.id || '', cls, region: /\brstrip-btn\b/.test(cls) ? a.dataset.region : null,
+      fv: a.matches(':focus-visible'), box: a.getClientRects().length > 0, vis: getComputedStyle(a).visibility, inSvg: !!a.closest('svg'),
+      inSum: !!a.closest('#wa-sum'), summary: a.tagName === 'SUMMARY', panel: (a.closest('.wam-panel') || {}).id || null,
+    };
+  });
+  const rpRegion = (page) => page.evaluate(() => document.getElementById('pv-rp').getAttribute('data-rp-region'));
+  const rpIs = (page, v) => until(page, (v) => document.getElementById('pv-rp').getAttribute('data-rp-region') === v, v);
+  const hotBtn = (page, c) => until(page, (c) => document.querySelector(`#region-strip .rstrip-btn[data-region="${c}"]`).classList.contains('is-hot'), c);
+  const rhBox = (page) => page.evaluate(() => { const r = document.getElementById('wd-rh').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), vh: window.innerHeight }; });
+  /* 滑らかなスクロールのあとの形を待つ：その形になるまで待ち（上限つき）、スクロールが止まってからもう一度確かめる
+     （「2コマ同じ位置」だけで待つと、スクロールが始まる前に通ってしまう ── 820×980 で踏んだ） */
+  const settledOn = async (page, fn, ...args) => (await until(page, fn, ...args)) && (await still(page)) && page.evaluate(fn, ...args);
+  const inViewEl = (id, whole) => { const r = document.getElementById(id).getBoundingClientRect(); return r.top >= 0 && (whole ? r.bottom <= window.innerHeight : r.top < window.innerHeight); };
+  /* 要素のまんなかを押す・指す・指で触れる。先にその要素を画面のまんなかへ（固定のヘッダーの下に隠れた所を押さない）・
+     その点に当たるのがその要素（かその中）でなければ押さずに false（ヘッダーのリンクを押して別のページへ移る、を起こさない） */
+  const pointAt = (page, sel) => page.evaluate((sel) => {
+    const e = document.querySelector(sel);
+    if (!e) return null;
+    e.scrollIntoView({ block: 'center', behavior: 'instant' });
+    const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, h = document.elementFromPoint(x, y);
+    return h && (h === e || e.contains(h)) ? [x, y] : null;
+  }, sel);
+  const clickIn = async (page, sel) => { const p = await pointAt(page, sel); if (p) await page.mouse.click(...p); return !!p; };
+  const hoverIn = async (page, sel) => { const p = await pointAt(page, sel); if (p) await page.mouse.move(...p); return !!p; };
+  const tapIn = async (page, sel) => { const p = await pointAt(page, sel); if (p) await page.touchscreen.tap(...p); return !!p; };
+  /* 社名（一覧のカードの見えている名前から、頭の旗の絵文字を外したもの ＝「条件/出典」の「対象」が書く名前） */
+  const plainName = (t) => String(t || '').replace(/^[^\p{L}\p{N}]+\s/u, () => '');
+
+  /* 場面 map-card（DM4・日英）── 地域のまとめのカード：指す・選ぶ・「条件/出典」・05b との継ぎ目・#pv-rp の印・古いページ・スマホ */
+  async function mapCard(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], init: tokyo });
+    PAGES.push(P);
+    try {
+      const { page, st } = P;
+      /* (1) 9つのボタンにマウス：見せるのはその地域・カードの箱は動かない・離れると選んでいる地域 */
+      await page.mouse.move(...AWAY);
+      const b0 = await cardBox(page), bad1 = [];
+      for (const c of ['all', ...REG8]) {
+        const hv = await hoverIn(page, BTN(c));
+        const s1 = await isShown(page, c), b = await cardBox(page);
+        if (!hv || !s1 || !same(b, b0)) bad1.push({ c, hv, shown: await shownPanels(page), b });
+      }
+      await page.mouse.move(...AWAY);
+      const back1 = await isShown(page, 'all'), bEnd = await cardBox(page);
+      ok(!!b0 && bad1.length === 0 && back1 && same(bEnd, b0),
+        T('map-card (1) 1440：9つの地域のボタンにマウスを載せる → 見せるカードはその地域・カードの箱（x・y・幅・高さ）は前も最中も9つとも同じ・ボタンから離れると選んでいる地域（すべて）'), J({ b0, bad1, back1, bEnd }));
+      await shot(page, 'map-card', lang, '1-hover');
+
+      /* (2) 「条件/出典」 */
+      await page.focus(BTN('europe'));
+      await page.keyboard.press('Enter');
+      const selE = await selectedIs(page, 'europe');
+      const cE = await clickIn(page, '#wam-p-europe .wam-cond > summary');
+      const N = inRegion('europe').length;
+      const fold = await page.evaluate((slugs) => {
+        const d = document.querySelector('#wam-p-europe .wam-cond');
+        const rows = [...d.querySelectorAll('.wam-cl > div')];
+        return {
+          open: d.open, kids: [...d.children].map((e) => e.tagName.toLowerCase() + (e.getAttribute('class') ? '.' + e.getAttribute('class') : '')),
+          dts: rows.map((r) => (r.querySelector('dt') || {}).textContent), names: [...d.querySelectorAll('.wam-names li')].map((l) => l.textContent),
+          cards: slugs.map((s) => { const e = document.getElementById('wn-' + s); return e && e.getClientRects().length ? e.textContent : null; }),
+          count: rows[1] ? (rows[1].querySelector('dd') || {}).textContent : null, fx: rows[2] ? ((rows[2].querySelector('dd') || {}).textContent || '').trim() : '',
+        };
+      }, inRegion('europe'));
+      const cardNames = fold.cards.map(plainName);
+      ok(selE && cE && fold.open && same(fold.kids, ['summary', 'dl.wam-cl']) && same(fold.dts, FOLD[lang]) && fold.cards.every(Boolean)
+        && fold.names.length === N && sameSet(fold.names, cardNames) && fold.count === COUNT_N[lang](N) && fold.fx.length > 0,
+        T(`map-card (2) 欧州を選んで「条件/出典」を押す → 開く・「対象」は欧州の${N}枚のカードの見えている社名ちょうど・対象掲載社数「${COUNT_N[lang](N)}」・換算の文が在る・ほかには何も無い（${FOLD[lang].join('／')}の3つだけ）`),
+        J({ selE, open: fold.open, kids: fold.kids, dts: fold.dts, n: fold.names.length, onlyFold: fold.names.filter((x) => !cardNames.includes(x)), onlyCards: cardNames.filter((x) => !fold.names.includes(x)), count: fold.count, fx: fold.fx.slice(0, 60) }));
+      await shot(page, 'map-card', lang, '2-fold');
+      await hoverIn(page, BTN('asia'));
+      const hotA = await hotBtn(page, 'asia'), keepA = same(await shownPanels(page), ['europe']);
+      await page.mouse.move(...AWAY);
+      await page.focus(BTN('mideast'));
+      const hotM = await hotBtn(page, 'mideast'), keepM = same(await shownPanels(page), ['europe']);
+      ok(hotA && keepA && hotM && keepM, T('map-card (2) 開いたまま：別の地域のボタンにマウス（アジア）・フォーカス（中東）→ 見せるカードは欧州のまま・そのボタンに is-hot'), J({ hotA, keepA, hotM, keepM, shown: await shownPanels(page) }));
+      await page.keyboard.press('Enter');
+      const selM = await selectedIs(page, 'mideast');
+      const closed = await page.evaluate(() => document.querySelector('#wam-p-europe .wam-cond').open === false);
+      const showM = await isShown(page, 'mideast');
+      ok(selM && closed && showM, T('map-card (2) 別の地域（中東）を選ぶ → 欧州の「条件/出典」は閉じ、カードは中東'), J({ selM, closed, shown: await shownPanels(page) }));
+      /* 05b との継ぎ目：#pv-rp の中の開いた <details> もカードを止める・選ぶと閉じる */
+      await page.mouse.move(...AWAY);
+      const back2 = await isShown(page, 'mideast');
+      await page.evaluate(() => { const x = document.createElement('div'); x.id = 'wam-test-joint'; x.innerHTML = '<details open><summary>x</summary></details>'; document.getElementById('pv-rp').appendChild(x); });
+      await hoverIn(page, BTN('asia'));
+      const hotJ = await hotBtn(page, 'asia'), keepJ = same(await shownPanels(page), ['mideast']);
+      await page.mouse.move(...AWAY);
+      await page.focus(BTN('oceania'));
+      await page.keyboard.press('Enter');
+      const selO = await selectedIs(page, 'oceania');
+      const jClosed = await page.evaluate(() => document.querySelector('#wam-test-joint details').open === false);
+      const showO = await isShown(page, 'oceania');
+      await page.evaluate(() => document.getElementById('wam-test-joint').remove());
+      ok(back2 && hotJ && keepJ && selO && jClosed && showO, T('map-card (2) 05b との継ぎ目：#pv-rp に開いた <details> → マウスで指してもカードは入れ替わらない・地域を選ぶとその <details> は閉じ、カードは選んだ地域'),
+        J({ back2, hotJ, keepJ, selO, jClosed, shown: await shownPanels(page) }));
+      /* D26 (c)：フォーカスが北米のボタンにあるまま、カードの字（定義の行）を押す → 北米のまま */
+      await page.focus(BTN('us'));
+      const showU = await isShown(page, 'us');
+      const cU = await clickIn(page, '#wam-p-us .wam-def');
+      await settle(page);
+      const keepU = same(await shownPanels(page), ['us']);
+      ok(showU && cU && keepU, T('map-card (2) フォーカスを北米のボタンに置いたまま、カードの字（定義の行）を押す → 見せるカードは北米のまま（D26 c）'), J({ showU, cU, shown: await shownPanels(page) }));
+
+      /* (3) #pv-rp の data-rp-region */
+      await page.mouse.move(...AWAY);
+      await page.focus(BTN('all'));
+      await page.keyboard.press('Enter');
+      const selAll = await selectedIs(page, 'all');
+      await page.mouse.move(...AWAY);
+      const r0 = await rpIs(page, null);
+      await hoverIn(page, BTN('asia'));
+      const rH = await rpIs(page, 'asia');
+      await page.mouse.move(...AWAY);
+      const rOut = await rpIs(page, null);
+      await page.focus(BTN('japan'));
+      const rF = await rpIs(page, 'japan');
+      await page.keyboard.press('Enter');
+      const rS = (await selectedIs(page, 'japan')) && await rpIs(page, 'japan');
+      await page.focus(BTN('all'));
+      await page.keyboard.press('Enter');
+      const rAll = (await selectedIs(page, 'all')) && await rpIs(page, null);
+      await page.focus(BTN('europe'));
+      await page.keyboard.press('Enter');
+      const rE = (await selectedIs(page, 'europe')) && await rpIs(page, 'europe');
+      const fo = (await clickIn(page, '#wam-p-europe .wam-cond > summary')) && await until(page, () => document.querySelector('#wam-p-europe .wam-cond').open === true);
+      await type(page, 'x');
+      const rQ = await rpIs(page, null);
+      await type(page, '');
+      const rBack = await rpIs(page, 'europe');
+      ok(selAll && r0 && rH && rOut && rF && rS && rAll && rE && fo && rQ && rBack,
+        T('map-card (3) #pv-rp の data-rp-region ＝ 見せている地域（マウス・フォーカス・選ぶ）・すべてと検索中は無い・「条件/出典」を開いたまま検索欄を空にすると戻る'),
+        J({ selAll, r0, rH, rOut, rF, rS, rAll, rE, fo, rQ, rBack, now: await rpRegion(page) }));
+      const q = quiet(st, 'map-card');
+      ok(q.length === 0, T('map-card quiet(st, \'map-card\') が空（1440）'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+
+    /* (2) の続き：「条件/出典」をキーボードで閉じた時、マウスが指している地域をすぐ見せる。
+       組んだ形では 1440 のカードは地図の右にあり、開いた「条件/出典」が面を高くする ── 閉じると地域のボタンも地図も元の高さへ動き、
+       マウスはもうその上に無い（ページは正しくマウスの指しを外す）。だからここは 1001（カードは地図の下・地図は動かない）で、
+       マウスを地図のアフリカ（POINT_AT）に置いて確かめる */
+    const K = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 1001, h: 900, init: tokyo });
+    PAGES.push(K);
+    try {
+      const { page, st } = K;
+      await page.mouse.move(...AWAY);
+      await page.focus(BTN('mideast'));
+      await page.keyboard.press('Enter');
+      const selM = await selectedIs(page, 'mideast');
+      const openM = (await clickIn(page, '#wam-p-mideast .wam-cond > summary')) && await until(page, () => document.querySelector('#wam-p-mideast .wam-cond').open === true);
+      const onSum = await page.evaluate(() => { const a = document.activeElement; return !!a && a.tagName === 'SUMMARY' && !!a.closest('#wam-p-mideast'); });
+      await mapInView(page);
+      await page.mouse.move(...(await boxPt(page, POINT_AT.africa)));
+      const hotF = await litWhere(page, 'africa', ['wam-lit', '>', 0]), keepF = same(await shownPanels(page), ['mideast']);
+      await page.keyboard.press('Enter');
+      const showF = await isShown(page, 'africa');
+      ok(selM && openM && onSum && hotF && keepF && showF,
+        T('map-card (2) 1001：中東を選んで「条件/出典」を開いたまま、マウスを地図のアフリカに置く（光るのはアフリカ・カードは中東のまま）→ キーボード（Enter）で閉じる → すぐアフリカを見せる'),
+        J({ selM, openM, onSum, hotF, keepF, shown: await shownPanels(page) }));
+      const q = quiet(st, 'map-card');
+      ok(q.length === 0, T('map-card quiet(st, \'map-card\') が空（1001）'), J(q));
+    } finally {
+      await K.ctx.close().catch(() => {});
+    }
+
+    /* (4) 古いページ（地図とカードの塊の無い一覧）＋ 新しい台本 */
+    const OLD_DIR = path.join(ROOT, 'temporary screenshots'), OLD = path.join(OLD_DIR, `wam-old-${lang}.html`);
+    let O = null;
+    try {
+      fs.mkdirSync(OLD_DIR, { recursive: true });
+      const src = read(PAGE_REL[lang]);
+      const cut = src.replace(/<!--PV-DIRMAP-->[\s\S]*?<!--\/PV-DIRMAP-->/, () => '<!--PV-DIRMAP--><!--/PV-DIRMAP-->')
+        .replace(/<head[^>]*>/, (m) => `${m}<base href="${lang === 'en' ? '/en/' : '/'}">`);
+      if (cut === src || cut.includes('wa-map-sec')) throw new Error('古いページを作れない（塊の印が無い）');
+      fs.writeFileSync(OLD, cut);
+      O = await dirOpen(browser, L, { rel: `temporary%20screenshots/wam-old-${lang}.html`, init: tokyo });
+      PAGES.push(O);
+      const v0 = await visible(O.page);
+      await clickIn(O.page, BTN('europe'));
+      const selO = await until(O.page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="europe"]') || {}).getAttribute?.('aria-pressed') === 'true');
+      const v1 = await visible(O.page);
+      ok(O.st.errs.length === 0 && same(v0, ORDER) && selO && sameSet(v1, inRegion('europe')) && v1.length === inRegion('europe').length,
+        T('map-card (4) 古いページ（PV-DIRMAP の中身なし）＋ 新しい台本：スクリプトは止まらない・112社が並ぶ・地域のボタンで欧州が選べる'), J({ errs: O.st.errs, n0: v0.length, selO, n1: v1.length }));
+      const q4 = quiet(O.st, 'map-card (4)');
+      ok(q4.length === 0, T('map-card (4) quiet が空'), J(q4));
+    } finally {
+      if (O) await O.ctx.close().catch(() => {});
+      fs.rmSync(OLD, { force: true });
+    }
+
+    /* (5) スマホ（390×680・指）：開いたときカードは箱を持たない → Tab で欧州（開かない）→ Enter（開く・結果へは動かない・ボタンは画面の中）→
+       アジアを指で押す（アジア・結果の見出しが画面に入る）→ すべてを指で押す（開いたまま・すべて） */
+    const S = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 390, h: 680, touch: true,
+      init: async (page) => { await tokyo(page); await page.evaluateOnNewDocument(() => { const f = window.scrollTo; window.__wamTo = 0; window.scrollTo = function () { window.__wamTo++; return f.apply(window, arguments); }; }); } });
+    PAGES.push(S);
+    try {
+      const { page, st } = S;
+      const z0 = await cardBox(page), a0 = await rpRegion(page);
+      await page.focus(BTN('africa'));
+      await page.keyboard.press('Tab');
+      const onE = (await act(page)).region === 'europe';
+      const z1 = await cardBox(page), a1 = await rpRegion(page);
+      ok(z0 === null && a0 === null && onE && z1 === null && a1 === null, T('map-card (5) 390 指：開いたときカードは箱を持たず #pv-rp に地域の印も無い・Tab で欧州のボタンへ → まだ開かない・印も無い（フォーカスでは開かない）'), J({ z0, a0, onE, z1, a1 }));
+      const to0 = await page.evaluate(() => window.__wamTo);
+      await page.keyboard.press('Enter');
+      const openE = await isShown(page, 'europe');
+      await still(page);
+      const e = await page.evaluate(() => { const b = document.activeElement.getBoundingClientRect(); return { to: window.__wamTo, region: document.activeElement.dataset.region, top: b.top, bottom: b.bottom, vh: innerHeight }; });
+      const z2 = await cardBox(page);
+      ok(openE && !!z2 && e.to === to0 && e.region === 'europe' && e.top >= 0 && e.bottom <= e.vh + 1,
+        T('map-card (5) 390 Enter → カードが開いて欧州・結果の見出しへは動かさない（scrollTo を呼ばない）・押したボタンは画面の中（D26 e。1px 未満の端数は許す）'), J({ openE, z2, e, to0 }));
+      await tapIn(page, BTN('asia'));
+      const showA = await isShown(page, 'asia');
+      const rhIn = await settledOn(page, inViewEl, 'wd-rh', false), rh = await rhBox(page);
+      ok(showA && rhIn, T('map-card (5) 390 アジアのボタンを指で押す → カードはアジア・スクロールが止まったとき結果の見出しの上端が画面の中（D12）'), J({ showA, rh }));
+      await tapIn(page, BTN('all'));
+      const showAll = await isShown(page, 'all'), z3 = await cardBox(page);
+      ok(showAll && !!z3, T('map-card (5) 390 「すべて」を指で押す → カードは開いたまま、すべてを見せる'), J({ showAll, z3 }));
+      await shot(page, 'map-card', lang, '5-390');
+      const q = quiet(st, 'map-card');
+      ok(q.length === 0, T('map-card quiet(st, \'map-card\') が空（390）'), J(q));
+    } finally {
+      await S.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 map-keys（DM4 ＋ DM6・日英・1440×900）── キーボードで地域のボタン・フォーカスの決まり・光る層 */
+  async function mapKeys(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], init: tokyo });
+    PAGES.push(P);
+    try {
+      const { page, st } = P;
+      await page.mouse.move(...AWAY);
+      await page.focus('#search');
+      let n = 0, a = await act(page);
+      while (!(a.region === 'all') && n < 40) { await page.keyboard.press('Tab'); n++; a = await act(page); }
+      ok(a.region === 'all', T(`map-keys 検索欄から Tab ${n} 回で地域の「すべて」のボタン`), J({ n, a }));
+      /* part 1 ＋ part 2：9つのボタンを Tab で → :focus-visible・その地域を見せる・その地域の点が光る（日本は丸も）→ Enter で選ぶ・スクロールしない */
+      const y0 = await page.evaluate(() => window.scrollY), bad = [];
+      for (const [k, c] of ['all', ...REG8].entries()) {
+        if (k > 0) await page.keyboard.press('Tab');
+        const f = await act(page), sh = await isShown(page, c);
+        const lit = c === 'all' ? true : await litWhere(page, c, ['wam-lit', '>', 0]);
+        const ring = c === 'japan' ? await litWhere(page, c, ['wam-ring', '=', 1]) : true;
+        await page.keyboard.press('Enter');
+        const sel = await selectedIs(page, c), y = await page.evaluate(() => window.scrollY);
+        if (!(f.region === c && f.fv && sh && lit && ring && sel && y === y0)) bad.push({ c, f, sh, lit, ring, sel, y, y0, light: (await lightOf(page))[c] });
+      }
+      ok(bad.length === 0, T('map-keys part 1・2 9つの地域のボタンへ Tab → :focus-visible・見せるカードはその地域・その地域の点の光る層（.wam-o … .wam-lit）の opacity > 0（日本は丸も）→ Enter で選ぶ（aria-pressed・state().region）・window.scrollY は変わらない'), J(bad));
+      await shot(page, 'map-keys', lang, '1-latam');
+      /* 欧州を選んで、検索欄から Tab 40 回 → Shift+Tab 40 回：どの1回も <body> でない・箱がある・visible・地図の <svg> の中でない */
+      await page.focus(BTN('europe'));
+      await page.keyboard.press('Enter');
+      const selE = await selectedIs(page, 'europe');
+      await page.focus('#search');
+      const walk = [];
+      for (let i = 0; i < 80; i++) {
+        if (i < 40) await page.keyboard.press('Tab'); else await shiftTab(page);
+        const f = await act(page);
+        if (f.body || !f.box || f.vis !== 'visible' || f.inSvg) walk.push({ i, f });
+      }
+      ok(selE && walk.length === 0, T('map-keys 欧州を選んで検索欄から Tab ×40・Shift+Tab ×40：フォーカスはいつも <body> でなく、箱があり、visible で、地図の <svg> の中に入らない'), J(walk.slice(0, 4)));
+      /* すべてのボタンから Shift+Tab 1回 → 選んでいる欧州のカードの中・あと3回までに欧州の「条件/出典」 */
+      await page.focus(BTN('all'));
+      await shiftTab(page);
+      const s1 = await act(page), p1 = await isShown(page, 'europe');
+      let k = 0, s = s1;
+      while (!(s.summary && s.panel === 'wam-p-europe') && k < 3) { await shiftTab(page); k++; s = await act(page); }
+      ok(p1 && s1.inSum && s.summary && s.panel === 'wam-p-europe', T(`map-keys 欧州を選んだまま「すべて」のボタンから Shift+Tab → カードは欧州・フォーカスはカード（#wa-sum）の中・あと ${k} 回で欧州の「条件/出典」`), J({ p1, s1, k, s }));
+      /* 北米のボタンに Tab で（何も選ばずに）→ マウスで見せているカードの「条件/出典」を押す → 北米の中の <details> が開く */
+      await page.focus(BTN('all'));
+      await page.keyboard.press('Enter');
+      const selAll = await selectedIs(page, 'all');
+      await page.mouse.move(...AWAY);
+      await page.focus(BTN('europe'));
+      await page.keyboard.press('Tab');
+      const onUs = (await act(page)).region === 'us' && await isShown(page, 'us');
+      const cUs = await clickIn(page, '#wam-p-us .wam-cond > summary');
+      const openUs = cUs && await until(page, () => document.querySelector('#wam-p-us .wam-cond').open === true && document.querySelectorAll('#wa-sum details[open]').length === 1);
+      const stillUs = same(await shownPanels(page), ['us']);
+      ok(selAll && onUs && openUs && stillUs, T('map-keys 何も選ばずに Tab で北米のボタン → マウスで「条件/出典」を押す → 北米のカードの <details> が開く（カードは北米のまま）'), J({ selAll, onUs, openUs, shown: await shownPanels(page) }));
+      /* A13（地域ごとに履歴を積まない）：欧州を選び、欧州の「条件/出典」にフォーカス → PVDirectory.setRegion('asia') → アジアのカードの「条件/出典」へ → 読み直す → アジア */
+      await page.mouse.move(...AWAY);
+      await page.focus(BTN('europe'));
+      await page.keyboard.press('Enter');
+      const selE2 = await selectedIs(page, 'europe');
+      await page.focus('#wam-p-europe .wam-cond > summary');
+      await page.evaluate(() => window.PVDirectory.setRegion('asia'));
+      const fA = await until(page, () => { const x = document.activeElement; return !!x && x.tagName === 'SUMMARY' && !!x.closest('#wam-p-asia'); });
+      const pA = await isShown(page, 'asia');
+      ok(selE2 && fA && pA, T('map-keys 欧州の「条件/出典」にフォーカスしたまま、ほかの台本が setRegion(\'asia\') → カードはアジア・フォーカスはアジアの「条件/出典」（隠れた所に残らない）'), J({ selE2, fA, pA, act: await act(page) }));
+      await page.reload({ waitUntil: 'load', timeout: 60000 });
+      await ready(page);
+      const pR = await isShown(page, 'asia'), href = page.url();
+      ok(pR && /[?&]region=asia(&|$)/.test(href), T('map-keys 読み直す → 住所は region=asia・カードはアジア'), J({ pR, href: href.replace(L.base, () => '') }));
+      const q = quiet(st, 'map-keys');
+      ok(q.length === 0, T('map-keys quiet(st, \'map-keys\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 map-fit（DM4・ライト）── 7つの通貨 × 幅 1001・390 × 9枚のカード：額が切れない・カードの中・職位の札と重ならない・帯は 72px 以上・
+     帯の点と幅と平均の印は書いた額のとおりの所（0.6px 以内）・通貨を戻すと1字も違わない・英語はドルで開く（¥ なし）／
+     assert-header.mjs の10の幅 × 円・ドルで横にはみ出さない（区域の箱は画面の幅の中）／★1001・390 と10の幅で、切り替えの箱に陸の点が1つも掛からない（onLand） */
+  async function mapFit(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const CURS = [...(read('currency.js').match(/var RATES = \{([^}]*)\}/) || ['', ''])[1].matchAll(/([A-Z]{3}):/g)].map((m) => m[1]);
+    const WIDTHS = JSON.parse((read('assert-header.mjs').match(/const WIDTHS = (\[[\d,\s]+\]);/) || ['', '[]'])[1]);
+    ok(CURS.length === 7 && CURS.includes('JPY') && CURS.includes('USD') && WIDTHS.length === 10, T(`map-fit 通貨は currency.js の RATES から（${CURS.join('・')}）・幅は assert-header.mjs の WIDTHS から（${WIDTHS.join('・')}）`), J({ CURS, WIDTHS }));
+    const start = lang === 'en' ? 'USD' : 'JPY';
+    /* 9枚のカード（重なっていて、見えていない8枚も箱は持つ）と凡例の、額・札・帯の当てはまり */
+    const fit = (page) => page.evaluate(() => {
+      const bad = [], card = document.getElementById('wa-sum').getBoundingClientRect(), g = document.querySelector('#wa-map-sec .wam-g').getBoundingClientRect();
+      const inX = (r, b) => r.left >= b.left - 0.5 && r.right <= b.right + 0.5;
+      const px = (r) => `${Math.round(r.left)}〜${Math.round(r.right)}`;
+      let n = 0;
+      for (const p of document.querySelectorAll('#wa-sum .wam-panel')) {
+        const id = p.dataset.region;
+        for (const e of p.querySelectorAll('.wam-n, .wam-mm-v, .wam-w-v, .wam-ax span')) {
+          if (e.closest('.wam-ax span span')) continue;
+          n++;
+          const r = e.getBoundingClientRect();
+          if (e.scrollWidth > e.clientWidth) bad.push(`${id}「${e.textContent}」が切れている ${e.scrollWidth}/${e.clientWidth}`);
+          if (!inX(r, card)) bad.push(`${id}「${e.textContent}」がカードの外 ${px(r)}／${px(card)}`);
+        }
+        for (const row of p.querySelectorAll('.wam-row')) {
+          const k = row.querySelector('.wam-rk').getBoundingClientRect(), n = row.querySelector('.wam-n').getBoundingClientRect(), rr = row.getBoundingClientRect();
+          if (k.right > n.left + 0.5) bad.push(`${id} ${row.dataset.pos}：職位の札と額が重なる`);
+          if (!inX(k, rr) || !inX(n, rr)) bad.push(`${id} ${row.dataset.pos}：札か額が行の外`);
+        }
+        for (const t of p.querySelectorAll('.wam-track')) if (t.getBoundingClientRect().width < 72) bad.push(`${id}：帯が ${Math.round(t.getBoundingClientRect().width)}px（72 未満）`);
+      }
+      const keys = [...document.querySelectorAll('#wa-map-sec .wam-key > span')].filter((e) => e.getClientRects().length);
+      if (keys.length !== 2) bad.push(`見えている凡例の額が ${keys.length} 個（選んでいる職位の行の 2 のはず）`);
+      for (const e of keys) {
+        if (e.scrollWidth > e.clientWidth) bad.push(`凡例「${e.textContent}」が切れている`);
+        if (!inX(e.getBoundingClientRect(), g)) bad.push(`凡例「${e.textContent}」が面の外`);
+      }
+      const de = document.documentElement;
+      if (de.scrollWidth > de.clientWidth) bad.push(`ページが横にはみ出す ${de.scrollWidth}/${de.clientWidth}`);
+      /* 測った額の数（9枚 × (行の額 2 ＋ 帯 2本 × (最低・最高・幅・目盛の 0 と右端の 5))）＝ 108。0 個を測って通る、を起こさない */
+      if (n !== 9 * (2 + 2 * 5)) bad.push(`測った額が ${n} 個（108 のはず）`);
+      return bad;
+    });
+    /* 帯の絵（いまの通貨で。額は書いた字から：英語は焼いた span の data-jpy、日本語は「¥…万」）*/
+    const geo = (page) => page.evaluate(() => {
+      const man = (e) => { if (!e) return null; const s = e.querySelector('.pv-cur[data-jpy]'); if (s) return Number(s.dataset.jpy) / 10000; const m = /¥([\d,]+)万/.exec(e.textContent); return m ? Number(m[1].replace(/,/g, () => '')) : null; };
+      const out = [];
+      for (const p of document.querySelectorAll('#wa-sum .wam-panel')) for (const sp of p.querySelectorAll('.wam-sp')) {
+        const t = sp.querySelector('.wam-track'), tr = t.getBoundingClientRect(), band = t.querySelector('.wam-band').getBoundingClientRect(), mk = t.querySelector('.wam-mean').getBoundingClientRect();
+        out.push({
+          region: p.dataset.region, pos: sp.dataset.pos, tl: tr.left, tw: tr.width, ax: man(sp.querySelector('.wam-ax span:last-child')),
+          lo: man(sp.querySelector('.wam-lo .wam-mm-v')), hi: man(sp.querySelector('.wam-hi .wam-mm-v')), mean: man(p.querySelector(`.wam-row[data-pos="${sp.dataset.pos}"] .wam-n`)),
+          bl: band.left, br: band.right, mc: mk.left + mk.width / 2,
+          dots: [...t.querySelectorAll('i:not([class])')].map((i) => { const r = i.getBoundingClientRect(); return r.left + r.width / 2; }),
+        });
+      }
+      return out;
+    });
+    const geoBad = (G) => {
+      const bad = [];
+      if (G.length !== 18) bad.push(`帯が ${G.length} 本（9枚 × 2職位 ＝ 18 のはず）`);
+      for (const g of G) {
+        const at = (v) => g.tl + (v / g.ax) * g.tw, vals = inRegion(g.region).map((s) => SALARY[s][g.pos].avg).sort((a, b) => a - b);
+        const tag = `${g.region} ${g.pos}`;
+        if (![g.ax, g.lo, g.hi, g.mean].every((v) => typeof v === 'number' && v > 0)) { bad.push(`${tag}：額が読めない ${JSON.stringify([g.ax, g.lo, g.hi, g.mean])}`); continue; }
+        if (g.lo !== vals[0] || g.hi !== vals[vals.length - 1]) bad.push(`${tag}：最低／最高 ${g.lo}／${g.hi} ≠ 台帳 ${vals[0]}／${vals[vals.length - 1]}`);
+        if (Math.abs(g.bl - at(g.lo)) > 0.6) bad.push(`${tag}：帯の左端 ${g.bl.toFixed(1)} ≠ 最低の所 ${at(g.lo).toFixed(1)}`);
+        if (at(g.hi) - at(g.lo) >= 2 && Math.abs(g.br - at(g.hi)) > 0.6) bad.push(`${tag}：帯の右端 ${g.br.toFixed(1)} ≠ 最高の所 ${at(g.hi).toFixed(1)}`);
+        if (Math.abs(g.mc - at(g.mean)) > 0.6) bad.push(`${tag}：平均の印 ${g.mc.toFixed(1)} ≠ 平均の所 ${at(g.mean).toFixed(1)}`);
+        if (g.dots.length !== vals.length) bad.push(`${tag}：点が ${g.dots.length} 個（会社は ${vals.length} 社）`);
+        else { const d = g.dots.slice().sort((a, b) => a - b); vals.forEach((v, i) => { if (Math.abs(d[i] - at(v)) > 0.6) bad.push(`${tag}：${i + 1}番目の点 ${d[i].toFixed(1)} ≠ ${v}万の所 ${at(v).toFixed(1)}`); }); }
+      }
+      return bad;
+    };
+    const land = [];   // ★切り替えの箱に掛かる陸の点（onLand）── 1001・390 と10の幅で測り、最後に1行
+    for (const [w, h] of [[1001, 900], [390, 680]]) {
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w, h, init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        land.push({ w, ...(await onLand(page)) });
+        if (w < 700) {
+          await page.focus(BTN('europe'));
+          await page.keyboard.press('Enter');
+          await isShown(page, 'europe');
+        }
+        const cur0 = await page.evaluate(() => window.PVCurrency.get());
+        const text0 = await page.evaluate(() => document.getElementById('wa-map-sec').textContent);
+        const yen0 = lang === 'en' ? /¥/.test(await page.evaluate(() => document.getElementById('wa-map-sec').innerText)) : false;
+        if (lang === 'en') ok(cur0 === 'USD' && !yen0, T(`map-fit ${w}：英語のページはドルで開き、区域に ¥ が1字も無い`), J({ cur0, yen0 }));
+        const gb = geoBad(await geo(page));
+        ok(cur0 === start && gb.length === 0, T(`map-fit ${w}：9枚 × 2職位の帯 ── 点は会社の数だけ・帯の両端・平均の印・どの点も、書いた額と目盛の右端の割合の所（0.6px 以内）・最低／最高は台帳どおり`), J(gb.slice(0, 6)));
+        const bad = [];
+        for (const c of CURS) {
+          await page.evaluate((c) => window.PVCurrency.set(c), c);
+          const now = await page.evaluate(() => window.PVCurrency.get());
+          const f = await fit(page);
+          if (now !== c || f.length) bad.push({ c, now, f: f.slice(0, 4) });
+          await page.evaluate((c) => window.PVCurrency.set(c), start);
+          const back = await page.evaluate(() => document.getElementById('wa-map-sec').textContent);
+          if (back !== text0) bad.push({ c, back: '戻すと字が違う' });
+        }
+        ok(bad.length === 0, T(`map-fit ${w}：7つの通貨 × 9枚のカード ── どの額も切れず、カードの中・職位の札と額が重ならない・帯は 72px 以上・凡例は面の中・横にはみ出さない／${start} → ほか → ${start} で区域の字が1字も違わない`), J(bad.slice(0, 3)));
+        if (w === 390) await shot(page, 'map-fit', lang, '390-europe');
+        const q = quiet(st, 'map-fit');
+        ok(q.length === 0, T(`map-fit quiet(st, 'map-fit') が空（${w}）`), J(q));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+    /* 10の幅 × 円・ドル：横にはみ出さない・区域の箱は画面の幅の中 */
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], init: tokyo });
+    PAGES.push(P);
+    try {
+      const { page, st } = P;
+      const bad = [];
+      for (const w of WIDTHS) {
+        await page.setViewport({ width: w, height: 900, deviceScaleFactor: 1 });
+        await settle(page, 4);
+        land.push({ w, ...(await onLand(page)) });
+        for (const c of ['JPY', 'USD']) {
+          await page.evaluate((c) => window.PVCurrency.set(c), c);
+          const o = await page.evaluate(() => { const de = document.documentElement, s = document.getElementById('wa-map-sec').getBoundingClientRect(); return { sw: de.scrollWidth, cw: de.clientWidth, l: Math.round(s.left), r: Math.round(s.right) }; });
+          if (o.sw > o.cw || o.l < 0 || o.r > o.cw) bad.push({ w, c, ...o });
+        }
+      }
+      ok(bad.length === 0, T(`map-fit ${WIDTHS.length}の幅（${WIDTHS.join('・')}）× 円・ドル：ページが横にはみ出さない・地図の区域の箱は画面の幅の中`), J(bad));
+      const onl = land.filter((x) => x.err || x.n !== 0);
+      ok(land.length === 2 + WIDTHS.length && onl.length === 0,
+        T(`map-fit 1001・390 と${WIDTHS.length}の幅：「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（700〜999px は地図の左下の海の上）`), J(onl.length ? onl.slice(0, 4) : land.map((x) => `${x.w}:${x.pos}`)));
+      const q = quiet(st, 'map-fit');
+      ok(q.length === 0, T('map-fit quiet(st, \'map-fit\') が空（10の幅）'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 map-point（DM6・日英・1440×900・マウス）── 地図を指す・押す・光る層・当たりの層（点の中心と点と点のあいだ・海） */
+  async function mapPoint(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], init: tokyo });
+    PAGES.push(P);
+    try {
+      const { page, st } = P;
+      await page.mouse.move(...AWAY);
+      /* 開いたとき */
+      const rest = await page.evaluate(() => ({
+        marks: [...document.querySelectorAll('#wa-map-sec .is-on, #wa-map-sec .is-hot, #region-strip .is-on, #region-strip .is-hot')].map((e) => e.getAttribute('class')),
+        tip: !!document.getElementById('map-tooltip'),
+      }));
+      const L0 = await lightOf(page);
+      const lit0 = Object.entries(L0).filter(([, v]) => v.lit !== 0 || v.halo !== 0).map(([c]) => c);
+      ok(rest.marks.length === 0 && !rest.tip && Object.keys(L0).length === 8 && lit0.length === 0 && typeof L0.japan.ring === 'number' && L0.japan.ring < 1,
+        T('map-point 開いたとき（地域なし）：is-on / is-hot はどこにも無い・8地域の光る層（.wam-lit・.wam-halo）は opacity 0・日本の丸はかすか（1 未満）・#map-tooltip は無い'), J({ rest, lit0, ring: L0.japan && L0.japan.ring }));
+      /* 指す */
+      const b0 = await cardBox(page), badH = [];
+      for (const c of REG8) {
+        await page.mouse.move(...AWAY);
+        await page.mouse.move(...(await boxPt(page, POINT_AT[c])));
+        const sh = await isShown(page, c), li = await litWhere(page, c, ['wam-lit', '>', 0]), b = await cardBox(page);
+        await page.mouse.move(...(await boxPt(page, SEA)));
+        await settle(page);
+        const keep = same(await shownPanels(page), [c]);
+        if (!(sh && li && keep && same(b, b0))) badH.push({ c, sh, li, keep, b });
+      }
+      const mos = PROBES.find((p) => p[0] === 'neutral' && p[3] === 'Moscow');
+      await page.mouse.move(...(await boxPt(page, [mos[1], mos[2]])));
+      await settle(page);
+      const keepMos = same(await shownPanels(page), [REG8[REG8.length - 1]]);
+      await page.mouse.move(...AWAY);
+      const backAll = await isShown(page, 'all');
+      const go0 = await page.evaluate(() => document.getElementById('wa-go').getClientRects().length === 0);
+      ok(!!b0 && badH.length === 0 && keepMos && backAll && go0 && same(await cardBox(page), b0),
+        T('map-point 1440 マウスで8つの POINT_AT を指す → 見せるカードはその地域・その地域の点が光る（.wam-lit の opacity > 0）・海（SEA）へ動いても、どこにも入れない陸地（Moscow）へ動いてもそのまま・地図を離れると選んでいる地域（すべて）・カードの箱は最初から最後まで同じ・「' + GO[lang] + '」は箱を持たない'),
+        J({ badH, keepMos, backAll, go0 }));
+      await shot(page, 'map-point', lang, '1-point');
+      /* 押す（選ぶ）・もう1回（外す） */
+      const badC = [];
+      for (const c of REG8) {
+        await toTop(page);
+        await page.mouse.move(...AWAY);
+        await page.mouse.click(...(await boxPt(page, POINT_AT[c])));
+        const sel = await selectedIs(page, c), lit1 = await litWhere(page, c, ['wam-lit', '=', 1]);
+        const rhIn = await settledOn(page, inViewEl, 'wd-rh', true), rh = await rhBox(page);
+        await toTop(page);
+        const yB = await page.evaluate(() => window.scrollY);
+        await page.mouse.click(...(await boxPt(page, POINT_AT[c])));
+        const rel = await selectedIs(page, 'all');
+        await still(page);
+        const yA = await page.evaluate(() => window.scrollY);
+        if (!(sel && lit1 && rhIn && rel && yA === yB)) badC.push({ c, sel, lit1, rh, rel, yB, yA });
+      }
+      const tip = await page.evaluate(() => !!document.getElementById('map-tooltip'));
+      ok(badC.length === 0 && !tip, T('map-point 1440 8つの POINT_AT を押す → その地域が選ばれる（state().region・aria-pressed）・光る層の opacity 1・結果の見出しが画面の中 → もう1回押す → 外れて、スクロールしない・#map-tooltip は無い'), J({ badC, tip }));
+      /* 当たりの層（リードの決め・WP-dmap-5）：点の中心でも、点と点のあいだでも、その地域が選ばれる・海は何も選ばない。押す前にマウスは海（SEA）に置き、is-hot が無いのを待つ（A39） */
+      const badHit = [];
+      for (const c of REG8) {
+        for (const [kind, xy] of [['点の中心', DOTGAP[c].D], ['点と点のあいだ', DOTGAP[c].G]]) {
+          await toTop(page);
+          await page.mouse.move(...AWAY);
+          await page.mouse.move(...(await boxPt(page, SEA)));
+          const calm = await until(page, () => !document.querySelector('#wa-map-sec .wam-svg .is-hot'));
+          const [x, y] = await boxPt(page, xy);
+          const hit = await page.evaluate((x, y) => { const e = document.elementFromPoint(x, y); return e ? `${e.tagName.toLowerCase()}.${e.getAttribute('class') || ''}[${e.getAttribute('data-region') || ''}]` : null; }, x, y);
+          await page.mouse.click(x, y);
+          const sel = await selectedIs(page, c, 5000);
+          if (!calm || !sel) badHit.push({ c, kind, xy, hit, now: await regionNow(page) });
+          await page.evaluate(() => window.PVDirectory.setRegion('all'));
+          await selectedIs(page, 'all');
+        }
+      }
+      await toTop(page);
+      await page.mouse.move(...AWAY);
+      const [sx, sy] = await boxPt(page, SEA);
+      await page.mouse.move(sx, sy);
+      const ySea = await page.evaluate(() => window.scrollY);
+      const seaHit = await page.evaluate((x, y) => { const e = document.elementFromPoint(x, y); return e ? `${e.tagName.toLowerCase()}.${e.getAttribute('class') || ''}` : null; }, sx, sy);
+      await page.mouse.click(sx, sy);
+      await settle(page);
+      const sea = { now: await regionNow(page), pr: await pressed(page), y: await page.evaluate(() => window.scrollY), hit: seaHit };
+      ok(badHit.length === 0 && sea.now === 'all' && same(sea.pr, ['all']) && sea.y === ySea && sea.hit === 'svg.wam-svg',
+        T('map-point 当たり（点の地図）：8地域とも、点の中心を押しても、点と点のあいだ（どの点の中心からも 2.6・点の縁の外）を押してもその地域が選ばれる（当たりの層の太い透明な線・日本は丸）・海（SEA）を押しても何も選ばれず、スクロールもしない'),
+        J({ badHit, sea }));
+      const q = quiet(st, 'map-point');
+      ok(q.length === 0, T('map-point quiet(st, \'map-point\') が空'), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+    /* ?region=europe で開く → 欧州だけが光る */
+    const Q = await dirOpen(browser, L, { rel: PAGE_REL[lang], query: '?region=europe', init: tokyo });
+    PAGES.push(Q);
+    try {
+      const { page, st } = Q;
+      await page.mouse.move(...AWAY);
+      const oneLit = await until(page, () => [...document.querySelectorAll('#wa-map-sec .wam-o')]
+        .every((o) => Number(getComputedStyle(o.querySelector('.wam-lit')).opacity) === (o.dataset.region === 'europe' ? 1 : 0)));
+      const on = await page.evaluate(() => ({
+        sec: [...document.querySelectorAll('#wa-map-sec .is-on')].map((e) => `${(e.getAttribute('class') || '').split(' ')[0]}:${e.getAttribute('data-region')}`),
+        strip: [...document.querySelectorAll('#region-strip .is-on')].map((e) => e.dataset.region), hot: document.querySelectorAll('#wa-map-sec .is-hot, #region-strip .is-hot').length,
+      }));
+      ok(oneLit && sameSet(on.sec, ['wam-r:europe', 'wam-o:europe']) && on.sec.length === 2 && same(on.strip, ['europe']) && on.hot === 0,
+        T('map-point ?region=europe で開く → 光るのは欧州だけ（.wam-lit の opacity：欧州 1・ほか 0）・is-on は欧州の点の <g>・光る層の <g>・ボタンだけ'), J({ oneLit, on, light: await lightOf(page) }));
+      await shot(page, 'map-point', lang, '2-europe');
+      const q = quiet(st, 'map-point');
+      ok(q.length === 0, T('map-point quiet(st, \'map-point\') が空（?region=europe）'), J(q));
+    } finally {
+      await Q.ctx.close().catch(() => {});
+    }
+  }
+
+  /* 場面 map-tap（DM6・日英・指）── 390×680・375×640・820×980：地図に触れると見せるだけ・「この地域の航空会社を見る」で選ぶ・地域のボタンはすぐ選ぶ */
+  async function mapTap(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    for (const [w, h] of [[390, 680], [375, 640], [820, 980]]) {
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w, h, touch: true, init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        const z = await cardBox(page), bad = [];
+        if (w === 390) {
+          /* 指の画面では地図の下の一言（クリックして地域を選ぶ）を出さない ── 触れると見せるだけで、選ぶのは「この地域の航空会社を見る」
+             （WP-dmap-7・P2-a：本当でないことを言わない）。凡例はそのまま。マウスの画面で見えていることは場面 search の s3b */
+          const hint = await page.evaluate((t) => {
+            const p = document.querySelector('#wa-map-sec .wam-hint'), k = document.querySelector('#wa-map-sec .wam-key[data-pos="cap"]');
+            return { has: !!p && p.textContent === t, shown: !!p && p.getClientRects().length > 0, key: !!k && k.getClientRects().length > 0 };
+          }, HINT[lang]);
+          ok(hint.has && !hint.shown && hint.key, T(`map-tap 390 指：地図の下の一言「${HINT[lang]}」は出さない（触れると見せるだけ・選ぶのはボタン）・凡例は出ている`), J(hint));
+        }
+        let b0 = null;
+        for (const c of REG8) {
+          await mapInView(page);
+          await page.touchscreen.tap(...(await boxPt(page, POINT_AT[c])));
+          const sh = await isShown(page, c);
+          const cardIn = await settledOn(page, inViewEl, 'wa-sum', true);
+          const m = await page.evaluate(() => {
+            const g = document.getElementById('wa-go'), r = document.getElementById('wa-sum').getBoundingClientRect();
+            return { go: g.getClientRects().length > 0 ? g.textContent : null, top: Math.round(r.top), bottom: Math.round(r.bottom), vh: innerHeight, region: window.PVDirectory.state().region };
+          });
+          const v = await visible(page), pr = await pressed(page), b = await cardBox(page);
+          if (!b0) b0 = b;
+          if (!(sh && m.go === GO[lang] && m.region === 'all' && same(pr, ['all']) && same(v, ORDER) && cardIn && !!b && same(b, b0))) bad.push({ c, sh, cardIn, m, b, n: v.length, pr });
+        }
+        ok((w < 700 ? z === null : z !== null) && bad.length === 0,
+          T(`map-tap ${w}×${h} 指：8つの POINT_AT に触れる → 見せるカードはその地域・「${GO[lang]}」が見える・選んでいる地域（すべて）と一覧はそのまま・カードは画面の中（${w < 700 ? '開いたときは閉じていて、触れると開く' : '初めから開いている'}）・カードの箱は8つとも同じ`),
+          J({ z, b0, bad: bad.slice(0, 3) }));
+        if (w === 390) await shot(page, 'map-tap', lang, '390-latam');
+        const last = REG8[REG8.length - 1];
+        await tapIn(page, '#wa-go');
+        const selG = await selectedIs(page, last);
+        const gIn = await settledOn(page, inViewEl, 'wd-rh', true);
+        const g = await page.evaluate(() => { const r = document.getElementById('wd-rh').getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), vh: innerHeight, act: (document.activeElement || {}).id || '', gone: document.getElementById('wa-go').getClientRects().length === 0 }; });
+        ok(selG && gIn && g.act === 'wd-rh-name' && g.gone,
+          T(`map-tap ${w}×${h} 「${GO[lang]}」を指で押す → ${LB(last, lang)}が選ばれる・結果の見出しが画面の中・フォーカスは #wd-rh-name・ボタンは箱を持たない`), J({ selG, g }));
+        await tapIn(page, BTN('asia'));
+        const selA = await selectedIs(page, 'asia');
+        const tIn = await settledOn(page, inViewEl, 'wd-rh', false), t = await rhBox(page);
+        ok(selA && tIn, T(`map-tap ${w}×${h} 地域のボタン（アジア）を指で押す → すぐ選ばれ、スクロールが止まると結果の見出しの上端が画面の中`), J({ selA, t }));
+        const q = quiet(st, 'map-tap');
+        ok(q.length === 0, T(`map-tap quiet(st, 'map-tap') が空（${w}×${h}）`), J(q));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+  }
+
+  /* 場面 map-first（DM6・日英）── assert-hero-fold.mjs の8つの大きさ（バーを引いた実寸）で、開いた最初の1画面を測って印字する。
+     どの大きさでも：検索欄が丸ごと画面の中で、地図より上・何か打つと地図の区域は箱を持たない。
+     ★D37（リードの決め 2026-10-25 Q1 で付け替え）：地図とカードの面（.wam-g ＝ 切り替え・地図・地図の下の一言と凡例・カードを載せる1枚）が、
+       丸ごと最初の1画面の中（上端も下端も）。結果の見出し（#wd-rh）が画面の外なのは受け入れ（印字だけ）。地図の高さ 45% の線は外した。
+       組んだ形（WP-dmap-4）で収まらない大きさは D37_OPEN に名前で置く ── WP-dmap-7 が地図の上端と高さを変える。そこでは「まだ収まらない」を数え、
+       収まったら赤くなる（D37_OPEN から外して約束として数える ＝ 黙って開いたままにならない）。
+       WP-dmap-7：地図の上に海を足し（地図は 363 → 368px）、ヒーローの下（32 → 16px）と面の上下（20 → 14・10px）を詰めて、1440×780 と 375×640 が
+       丸ごと入った（1440×780 は面の下端 776／780）→ 外して数える。1024×690・1080×730 はカードが地図の下（区域 1000px 未満）で、面だけで約 650px ＝ まだ開いたまま */
+  const D37_OPEN = new Set(['1024x690', '1080x730']);
+  async function mapFirst(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    const SIZES = [...read('assert-hero-fold.mjs').matchAll(/\[(\d+),\s*(\d+),\s*'[^']*',\s*'(both|peek)'\]/g)].map((m) => ({ w: +m[1], h: +m[2], cls: m[3] }));
+    const REQUIRED = ['1440x780', '820x980', '1024x690', '390x680'];
+    ok(SIZES.length === 8 && [...REQUIRED, ...D37_OPEN].every((k) => SIZES.some((s) => `${s.w}x${s.h}` === k)), T(`map-first 大きさは assert-hero-fold.mjs の SIZES から8つ（${SIZES.map((s) => `${s.w}×${s.h} ${s.cls}`).join('・')}）・「必ず」の4つ（${REQUIRED.join('・')}）と D37_OPEN（${[...D37_OPEN].join('・')}）がその中に在る`), J(SIZES));
+    const rows = [], land = [];   // land ＝ ★切り替えの箱に掛かる陸の点（onLand）── 8つの大きさで測り、最後に1行
+    for (const s of SIZES) {
+      const touch = s.w < 1440;   // iPad とスマホの6つ
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: s.w, h: s.h, touch, init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        await page.evaluate(() => document.fonts && document.fonts.ready);
+        const m = await page.evaluate(() => {
+          const B = (sel) => { const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return null; const r = e.getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), right: Math.round(r.right), h: Math.round(r.height) }; };
+          return { vh: window.innerHeight, hero: B('#wa-hero'), search: B('#search'), sec: B('#wa-map-sec'), surf: B('#wa-map-sec .wam-g'), map: B('#wa-map-sec .wam-map'), foot: B('#wa-map-sec .wam-foot'), card: B('#wa-sum'), strip: B('#region-strip'), rh: B('#wd-rh') };
+        });
+        const k = `${s.w}x${s.h}`, req = REQUIRED.includes(k);
+        land.push({ k, ...(await onLand(page)) });
+        const searchOk =!!m.search && !!m.map && m.search.top >= 0 && m.search.bottom <= m.vh && m.search.bottom <= m.map.top;
+        await type(page, 'a');
+        const gone = await until(page, () => document.getElementById('wa-map-sec').getClientRects().length === 0);
+        await type(page, '');
+        ok(searchOk && gone, T(`map-first ${s.w}×${s.h}：検索欄が丸ごと画面の中で、地図より上・何か打つと地図の区域は箱を持たない`), J({ search: m.search, map: m.map, gone }));
+        const whole = !!m.surf && m.surf.top >= 0 && m.surf.bottom <= m.vh, open = D37_OPEN.has(k);
+        rows.push({ k, cls: s.cls, req, m, whole, open });
+        ok(open ? !whole : whole, T(open
+          ? `map-first ${s.w}×${s.h}${req ? '（必ず）' : ''}：組んだ形では地図とカードの面（.wam-g）が最初の1画面に収まらない ── D37_OPEN（WP-dmap-7 が地図の上端と高さを変える。収まったら D37_OPEN から外して数える）`
+          : `map-first ${s.w}×${s.h}${req ? '（必ず）' : ''}：地図とカードの面（.wam-g）が丸ごと最初の1画面の中（上端 ≥ 0・下端 ≤ 画面の高さ）`), J({ vh: m.vh, surf: m.surf, map: m.map, foot: m.foot, card: m.card }));
+        const q = quiet(st, 'map-first');
+        ok(q.length === 0, T(`map-first quiet(st, 'map-first') が空（${s.w}×${s.h}）`), J(q));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+    console.log(`  ── map-first の測った値（${lang}・px：画面の高さ｜ヒーローの下端｜区域の上〜下｜地図の上〜下（高さ・画面の%）｜面の上〜下｜地図の下の行の下端｜カード｜地域のボタンの下端｜結果の見出しの上〜下（印字だけ）｜面）`);
+    for (const r of rows) {
+      const { m } = r;
+      console.log(`     ${r.k.padEnd(9)} ${r.cls.padEnd(4)}${r.req ? '★' : ' '} vh ${m.vh}｜hero ${m.hero && m.hero.bottom}｜区域 ${m.sec && m.sec.top}〜${m.sec && m.sec.bottom}｜地図 ${m.map && m.map.top}〜${m.map && m.map.bottom}（${m.map && m.map.h}・${m.map ? Math.round((1000 * m.map.h) / m.vh) / 10 : '-'}%）｜面 ${m.surf && m.surf.top}〜${m.surf && m.surf.bottom}｜地図の下の行の下端 ${m.foot && m.foot.bottom}｜カード ${m.card ? `${m.card.top}〜${m.card.bottom}` : '箱なし'}｜ボタン下 ${m.strip && m.strip.bottom}｜#wd-rh ${m.rh && m.rh.top}〜${m.rh && m.rh.bottom}｜面 ${r.whole ? '✓ 丸ごと' : `✗ 下端が ${m.surf ? m.surf.bottom - m.vh : '-'}px 外`}${r.open ? '（D37_OPEN）' : ''}`);
+    }
+    const onl = land.filter((x) => x.err || x.n !== 0);
+    ok(land.length === SIZES.length && onl.length === 0,
+      T(`map-first ${SIZES.length}つの大きさ（iPad とスマホは指）：「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（700〜999px は地図の左下の海の上）`), J(onl.length ? onl.slice(0, 4) : land.map((x) => `${x.k}:${x.pos}`)));
+    const out = rows.filter((r) => !r.whole);
+    console.log(`  ── map-first：面が丸ごと最初の1画面に入る大きさ ${rows.length - out.length}／${rows.length}・入らない（D37_OPEN・WP-dmap-7）：${out.map((r) => `${r.k}${r.req ? '★' : ''}`).join('・') || 'なし'}`);
   }
 
   try {
