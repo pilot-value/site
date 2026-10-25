@@ -91,7 +91,8 @@
       "Bash(caffeinate:*)",
       "Bash(pgrep:*)",
       "Bash(uptime)",
-      "Bash(date:*)"
+      "Bash(date:*)",
+      "Bash"
     ],
     "deny": [
       "Bash(git checkout main)",
@@ -138,18 +139,19 @@
       "Bash(npm i:*)",
       "Bash(npm uninstall:*)",
       "Bash(node gen-fx-rates.mjs:*)",
-      "Bash(node gen-countries.mjs:*)",
       "Bash(node gen-new-airline.mjs:*)",
       "Bash(node db/usage.mjs:*)",
       "Bash(node db/eval-payslip.mjs:*)",
       "Bash(node translate-eval.mjs:*)",
       "Bash(node db/smoke-parse-payslip.mjs:*)",
-      "Bash(node check-sources.mjs --online)",
-      "Bash(node assert-jobs.mjs --online)",
-      "Bash(node assert-no-pii.mjs --live)",
-      "Bash(node assert-no-pii.mjs --history)",
       "Bash(node mail-bot/*.mjs:*)",
-      "Bash(node tweet-bot/*.mjs:*)"
+      "Bash(node tweet-bot/*.mjs:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git worktree remove:*)",
+      "Bash(sudo:*)",
+      "Bash(launchctl:*)",
+      "Bash(crontab:*)"
     ]
   },
   "hooks": {
