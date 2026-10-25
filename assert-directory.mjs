@@ -100,7 +100,8 @@ function want(I, slug, rank) {
   const est = { kind: 'est', yen: yen(avg), labelJa: `${w.ja} 推定年収`, labelEn: `${w.en} estimated salary` };
   if (!BASIS[slug]) return est;
   const tier = BASIS[slug][rank]?.tier || 'held';
-  if (tier === 'estimate') return est;
+  /* ★2026-10-25、台帳の card: 'estimate' の職位（エミレーツ）もカードは推定（salary-basis.mjs の cardFigure と同じ規則をここで独立に持つ） */
+  if (tier === 'estimate' || BASIS[slug][rank]?.card === 'estimate') return est;
   const f = figures(slug, rank).find((x) => YEARLY.has(x.key) && !x.training);
   if (!f) return tier === 'held' ? { kind: 'held', yen: null, labelJa: `${w.ja} 確認中`, labelEn: `${w.en} · Under review` } : est;
   const up = f.key === 'max_y';

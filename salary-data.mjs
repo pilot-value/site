@@ -137,7 +137,7 @@ export const SALARY = {
   'swiss':           { ja:'スイス インターナショナル エアラインズ', en:'Swiss International Air Lines (SWISS)', region:'europe', cap:{avg:4100, lo:3520, hi:5900}, fo:{avg:2500, lo:1850, hi:3400}, taxFree:false, conf:'medium' },
   'tap':             { ja:'TAPポルトガル航空', en:'TAP Air Portugal', region:'europe',                                           cap:{avg:2240, lo:1720, hi:3100}, fo:{avg:1120, lo:780, hi:1550}, taxFree:false, conf:'medium' },
   'virgin-atlantic': { ja:'ヴァージン・アトランティック航空', en:'Virgin Atlantic', region:'europe',                             cap:{avg:3600, lo:2830, hi:4600}, fo:{avg:1920, lo:1510, hi:2420}, taxFree:false, conf:'medium' },
-  'vueling':         { ja:'ブエリング航空', en:'Vueling Airlines', region:'europe',                                              cap:{avg:2690, lo:1830, hi:3060}, fo:{avg:1090, lo:690, hi:1530}, taxFree:false, conf:'medium' },
+  'vueling':         { ja:'ブエリング航空', en:'Vueling Airlines', region:'europe',                                              cap:{avg:2760, lo:1830, hi:3060}, fo:{avg:1150, lo:690, hi:1530}, taxFree:false, conf:'medium' },
   'wizz-air':        { ja:'ウィズ・エアー', en:'Wizz Air UK', region:'europe',                                                   cap:{avg:2400, lo:1860, hi:3300}, fo:{avg:1120, lo:720, hi:1720}, taxFree:false, conf:'medium' },
 
   // 米州・オセアニア

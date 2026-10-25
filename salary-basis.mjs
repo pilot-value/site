@@ -141,11 +141,20 @@ export const fxNote = (cur, lang = 'ja') => (lang === 'en'
              ⚠️ これを読むのは主要5社の会社ページの新しい塊だけ。ほかの107社と、
                 タイトル・FAQ・国別ページは今までどおり tier を読む（＝足しても1文字も変わらない）。
              est_note は、調べて出てきた食い違い（候補）。画面には出さない。
+     card    ★2026-10-25。'estimate' のとき、1つの額しか置けない場所（一覧のカード・airlines-meta.js の salary）に
+             会社の公表額ではなく**推定年収**（SALARY の avg）を出す。読むのは下の cardFigure() の1か所だけ。
+             会社ページの「会社が公表している金額」の一覧・FAQ・説明文は今までどおり groups を読む（変わらない）。
+             いま置いているのはエミレーツの機長・副操縦士だけ（下のエミレーツの節）。
    ──────────────────────────────────────────────────────────────── */
 export const BASIS = {
 
   /* ══ エミレーツ ══ 決定①（オーナー・2026-09-29）
-     「公式の現金給与と総待遇を両方掲載する。全社員の平均とは区別する」 */
+     「公式の現金給与と総待遇を両方掲載する。全社員の平均とは区別する」
+     決定②（オーナー・2026-10-25 ── 推定年収の見直し P12.105 の質問1＝③）
+     「エミレーツの推定年収は、会社公表の総待遇（社宅込み）ぜんぶ」。SALARY は機長 5,130万・副操縦士 3,900万
+     （AED 1,185,000／900,000）。1つの額しか置けない場所も、ほかの推定の会社と同じく「推定」としてこの額を出す
+     （card: 'estimate'）── 前は年間の現金給与（2,489万・公式募集例）を出していて、会社ページの推定と食い違っていた。
+     会社が公表している金額の一覧（groups）は決定①のまま両方とも載せる。 */
   'emirates': {
     cur: 'AED',
     tax: '非課税（UAE に個人所得税なし）',
@@ -179,6 +188,15 @@ export const BASIS = {
         { name: '直接入社機長', name_en: 'Direct entry captain', cash_y: 575000, cash_m: 48000, pkg_y: 1185000,
           req: '最低総飛行時間 7,000時間・英語能力証明レベル5以上' },
       ],
+      card: 'estimate',
+      est: {
+        basis: 'エミレーツ航空（Emirates Group Careers）の公式募集例「Pilots / Our role details — Direct Entry Captains」',
+        basis_en: 'Emirates (Emirates Group Careers) official posting, “Pilots / Our role details — Direct Entry Captains”',
+        method: '公式募集例の年間総待遇〈現金給与を含む〉をそのまま推定年収にしています。住宅・交通・学費・医療・保険・休暇航空券・会社の年金拠出等を含めた評価額で、全社員の平均ではありません。',
+        method_en: 'The official posting\u2019s total package, annual (includes the cash pay), is used as the estimate as it stands. It is a valuation that includes housing, transport, school fees, medical cover, insurance, leave tickets and the company pension contribution, and is not an all-staff average.',
+        as_of: '発行日の記載なし（2026年10月25日に確認）',
+        as_of_en: 'No publication date given (checked 25 October 2026)',
+      },
       held: { was: { avg: 3700, lo: 3350, hi: 5050 },
         why: '出所の記録が無い。salary-data.mjs は自ら「フリート全体の平均推計」と書いており、どの資料から作ったかが残っていない。出所台帳は「現金給与＋社宅の現物を年収と見ている可能性が高い」と推測しているが、推測は掲載根拠にならない。' },
     },
@@ -190,6 +208,15 @@ export const BASIS = {
         { name: '副操縦士・Enhanced', name_en: 'First officer, Enhanced', cash_y: 415000, cash_m: 34600, pkg_y: 935000,
           req: '総飛行時間 4,000時間以上（最大離陸重量20トン超のジェット）かつ最大離陸重量50トン超の多人数運航ジェットで2,000時間以上・英語能力証明レベル5以上' },
       ],
+      card: 'estimate',
+      est: {
+        basis: 'エミレーツ航空（Emirates Group Careers）の公式募集例「Pilots / Our role details — First Officers」',
+        basis_en: 'Emirates (Emirates Group Careers) official posting, “Pilots / Our role details — First Officers”',
+        method: '公式募集例の Standard の年間総待遇〈現金給与を含む〉をそのまま推定年収にしています。住宅・交通・学費・医療・保険・休暇航空券・会社の年金拠出等を含めた評価額で、全社員の平均ではありません。',
+        method_en: 'The official posting\u2019s Standard total package, annual (includes the cash pay), is used as the estimate as it stands. It is a valuation that includes housing, transport, school fees, medical cover, insurance, leave tickets and the company pension contribution, and is not an all-staff average.',
+        as_of: '発行日の記載なし（2026年10月25日に確認）',
+        as_of_en: 'No publication date given (checked 25 October 2026)',
+      },
       held: { was: { avg: 2800, lo: 2500, hi: 3350 },
         why: '機長と同じ理由（出所の記録が無い）。' },
     },
@@ -1098,7 +1125,11 @@ export function cardFigure(slug, rank = 'cap') {
      workflows/update-salary.md で SALARY を直した人は台帳を触らないので、
      題名と説明文だけが黙って旧値のまま残る。だから「推定である」ことだけ返し、
      金額は呼ぶ側が SALARY から取る。 */
-  if (tier === 'estimate') {
+  /* ★2026-10-25（オーナー：エミレーツの推定年収＝会社公表の総待遇ぜんぶ）。台帳に card: 'estimate' を置いた職位も推定を返す。
+       会社の公表額がある職位でも、推定年収そのものが会社の公表額から作られているときは、カードは推定を出して
+       会社ページ・比較の1枚と同じ額にする（公表額の一覧は会社ページに残る）。⚠️ 等級（tier）は変えない ──
+       変えると会社ページの「会社が公表している金額」の一覧と、その額の検査（check-salary.mjs）まで推定の扱いに落ちる。 */
+  if (tier === 'estimate' || BASIS[slug][rank]?.card === 'estimate') {
     return {
       held: false, estimate: true, man: null, up: false, yen: null,
       kindJa: TIERS.estimate.ja, kindEn: TIERS.estimate.en,

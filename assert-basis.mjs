@@ -317,7 +317,8 @@ for (const slug of Object.keys(BASIS)) {
     const f = (figures(slug, 'cap') || []).find((x) => YEARLY_CASH.has(x.key) && !x.training);
     /* ★2026-09-30、推定の社は台帳に掲載額が1件も無い（推定の金額は SALARY にある）。
          ここで f が無いことを「確認中」の証拠にすると、推定に戻した20社が全部落ちる。 */
-    const isEst = BASIS[slug].cap?.tier === 'estimate';
+    /* ★2026-10-25、台帳の card: 'estimate'（エミレーツ ── 推定年収＝会社公表の総待遇）も、カードには推定を出す社として見る（salary-basis.mjs の cardFigure と同じ規則） */
+    const isEst = BASIS[slug].cap?.tier === 'estimate' || BASIS[slug].cap?.card === 'estimate';
 
     if (isEst) {
       const want = yenMan(slug);
