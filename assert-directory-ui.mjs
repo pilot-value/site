@@ -128,7 +128,20 @@
        D37_OPEN（WP-dmap-7 が地図の上端と高さを変える）── そこでは「まだ収まらない」を数え、収まったら赤（外して数える）。関数 mapFirst の頭
      ★8つの大きさ（指）で「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（onLand・WP-dmap-7）
 
-   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,map-pos,map-card,map-keys,map-fit,map-point,map-tap,map-first] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
+   動かせる地図（WP-dmap-9・オーナー「地図自体を自分で動かせるようにしたい（windy みたいに）」）── 地図の層は1つの <g class="wam-z">。
+   倍率とずれはその transform を読み、拡大していても地図の上の点は zPt（その <g> の getScreenCTM）で写す。指は CDP の touch
+   場面 map-move（class B・1440×900 のマウスと 390×680 の指）── 開いたときのボタン（1440：拡大・縮小・全画面／390：全画面だけ）・押していない地図の
+     ホイールはページのスクロール・海を押す（フォーカス）→ 欧州の上でホイール → 拡大・欧州は指の下のまま・拡大していても指すと光る・つかんで動かす → ずれる・
+     選ばない・動かさずに押す → 選ぶ・元に戻す／拡大／縮小のボタン・キー（+ → 0）・ctrl ＋ ホイール・6倍で止まり、いちばん遠くまで動かしても枠の四隅は
+     地図の箱の中・拡大したまま「副操縦士」／390：2本の指で広げる → 拡大（ページは動かず・ページそのものも拡大しない・選ばない）・1本の指で上へ → ページが
+     スクロールし、地図は動かず、「2本の指で動かせます」が出る・拡大したまま触れる → 見せる（選ぶのはボタン）・元に戻す
+   場面 map-full（class B・390×680 の指と 1440×900 のマウス）── 全画面：開く（画面いっぱい・ページは止まる・履歴が1段・フォーカスは地図）・拡大して動かす・
+     欧州 → カードが画面の中（指 ＝ 地図の下の板・マウス ＝ 地図の右）・Esc で閉じる（スクロールはそのまま）・もう1回開いても積み増さない・戻るで閉じる・
+     北米 →「この地域の航空会社を見る」→ 閉じてから北米が選ばれ、住所は region=us・全画面の段は残らない
+   ★場面 map-strip（class A・390×680 と 768×1024 の指）── 地域の9つのボタンがどれも画面の中に丸ごと（帯は横にすべらない）・字が切れない（オーナー #8）
+   ★場面 head-name（class A・1440×900・ライトとダーク）── ログインしている会員の名前がサイトの緑の字で、ヘッダーの地とのコントラスト 4.5:1 以上（オーナー #18）
+
+   使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,map-pos,map-card,map-keys,map-fit,map-point,map-tap,map-first,map-move,map-full,map-strip,head-name] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
      back が入る回は、ブラウザを新しい headless で立てる（'shell' は戻るの手元置き場を使わない：BackForwardCacheDisabledForDelegate）。
      どの回も、名前を引けるのは localhost と LIBS の4つだけ（--host-resolver-rules ＝ 門の外のもう1枚の網）
@@ -170,6 +183,8 @@ const H1 = { ja: '次のキャリアを、選択する', en: 'Choose your next c
 const PAGE_REL = { ja: 'world-airlines.html', en: 'en/world-airlines.html' };
 /** 地図の上の一言（もとは見出しの帯の1行の前半。WP-dd-9 で地図の枠の中へ移した。字はそのまま） */
 const HINT = { ja: '地図をクリックして地域を選択', en: 'Click the map to choose a region' };
+/** 動かせる地図（WP-dmap-9）で、指で地図に触れた最初の1回だけ出る一言（シートの字 ＝ directory-map.mjs の WORDS.zoom.touch。字そのものは M11 が見張る） */
+const ZOOM_HINT = { ja: '2本の指で動かせます', en: 'Use two fingers to move the map' };
 /** 地域のまとめのカードの字（シートの字 ＝ directory-map.mjs の WORDS と同じ。字そのものは assert-directory.mjs の M11 が見張る）：
     指で地図に触れたあとのボタン・「条件/出典」の中の3つの見出し・対象掲載社数の書き方 */
 const GO = { ja: 'この地域の航空会社を見る', en: 'View airlines in this region' };
@@ -280,8 +295,8 @@ export function visible(page) {
 /** 一覧のページを、新しい窓（context）で開く。
     st.segs ＝ 主の枠が移るたびに { at: その時の st.calls の本数, dir: 一覧のページか }（quiet が「一覧が開いていたあいだの呼び出し」を切り分ける）
     st.http4 ＝ 手元の配信元が 4xx / 5xx で答えた要求 */
-export async function dirOpen(browser, L, { rel = 'world-airlines.html', query = '', w = 1440, h = 900, touch = false, theme = null, js = true, init = null } = {}) {
-  const o = await open(browser, L.base, { w, h, touch, theme });
+export async function dirOpen(browser, L, { rel = 'world-airlines.html', query = '', w = 1440, h = 900, touch = false, theme = null, js = true, init = null, who = null } = {}) {
+  const o = await open(browser, L.base, { w, h, touch, theme, who });   // who ＝ 手元の会員としてログインしておく（場面 head-name だけ）
   const { page, st } = o, origin = new URL(L.base).origin;
   if (init) await init(page);   // 最初の文書より先に置くもの（evaluateOnNewDocument など）
   st.segs = [];
@@ -346,7 +361,8 @@ async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
   const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, 'map-pos': mapPos,
-    'map-card': mapCard, 'map-keys': mapKeys, 'map-fit': mapFit, 'map-point': mapPoint, 'map-tap': mapTap, 'map-first': mapFirst };
+    'map-card': mapCard, 'map-keys': mapKeys, 'map-fit': mapFit, 'map-point': mapPoint, 'map-tap': mapTap, 'map-first': mapFirst,
+    'map-move': mapMove, 'map-full': mapFull, 'map-strip': mapStrip, 'head-name': headName };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
   const unknown = want.filter((s) => !SCENES[s]);
   if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
@@ -2192,6 +2208,330 @@ async function main() {
       T(`map-first ${SIZES.length}つの大きさ（iPad とスマホは指）：「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（700〜999px は地図の左下の海の上）`), J(onl.length ? onl.slice(0, 4) : land.map((x) => `${x.k}:${x.pos}`)));
     const out = rows.filter((r) => !r.whole);
     console.log(`  ── map-first：面が丸ごと最初の1画面に入る大きさ ${rows.length - out.length}／${rows.length}・入らない（D37_OPEN・WP-dmap-7）：${out.map((r) => `${r.k}${r.req ? '★' : ''}`).join('・') || 'なし'}`);
+  }
+
+  /* ════ 動かせる地図（WP-dmap-9・オーナー「地図はスマホで見ると小さいし、地図自体を自分で動かせるようにしたい（windy みたいに）」）════
+     地図の層は1つの <g class="wam-z">（動くのはその transform だけ）。拡大していても、地図の上の点は zPt（その <g> の getScreenCTM）で写す。
+     倍率と「ずれ」は transform を読む（台本の答えは読まない）。 */
+  const ztf = (page) => page.evaluate(() => {
+    const z = document.querySelector('#wa-map-sec .wam-z'), m = z && z.transform.baseVal.consolidate();
+    return m ? { a: Math.round(m.matrix.a * 1e3) / 1e3, e: Math.round(m.matrix.e * 10) / 10, f: Math.round(m.matrix.f * 10) / 10 } : { a: 1, e: 0, f: 0 };
+  });
+  const zPt = (page, xy) => page.evaluate((x, y) => { const m = document.querySelector('#wa-map-sec .wam-z').getScreenCTM(); return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]; }, xy[0], xy[1]);
+  const zoomedOver = (page, k) => until(page, (k) => { const z = document.querySelector('#wa-map-sec .wam-z'), m = z.transform.baseVal.consolidate(); return !!m && m.matrix.a > k; }, k);
+  /* ボタンの拡大・縮小・元に戻すは滑らかに動く（0.32 秒）── 地図の上の点を写す前に、動きが止まるのを待つ（2コマ続けて同じ位置） */
+  const steady = (page) => until(page, () => new Promise((res) => {
+    const z = document.querySelector('#wa-map-sec .wam-z'), m = () => { const c = z.getScreenCTM(); return [c.a, c.e, c.f].join(); }, a = m();
+    requestAnimationFrame(() => requestAnimationFrame(() => res(m() === a)));
+  }));
+  /* 枠の四隅（1px 内側）が、地図の箱（viewBox ＝ 点を描く箱）のどこを写しているか。どれも箱の中 ＝ 枠に空いた縁が無い */
+  const filled = (page) => page.evaluate(() => {
+    const svg = document.querySelector('#wa-map-sec .wam-svg'), v = svg.viewBox.baseVal, f = document.getElementById('wa-map').getBoundingClientRect();
+    const inv = svg.querySelector('.wam-z').getScreenCTM().inverse();
+    const c = [[f.left + 1, f.top + 1], [f.right - 1, f.top + 1], [f.left + 1, f.bottom - 1], [f.right - 1, f.bottom - 1]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(inv));
+    return { ok: c.every((p) => p.x >= v.x && p.x <= v.x + v.width && p.y >= v.y && p.y <= v.y + v.height), c: c.map((p) => [Math.round(p.x), Math.round(p.y)]), box: [v.x, v.y, v.width, v.height] };
+  });
+  const zButtons = (page) => page.evaluate(() => [...document.querySelectorAll('#wa-map-sec .wam-zb, #wa-map-sec .wam-zx')].filter((b) => b.getClientRects().length > 0).map((b) => b.dataset.z));
+  const mapMid = (page) => page.evaluate(() => { const r = document.getElementById('wa-map').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+  const lit = (page) => page.evaluate(() => document.querySelectorAll('#wa-map-sec .is-on').length);
+  /* 指（CDP の touch）：2本の指で広げる・1本の指で動かす（どちらも何コマかに分けて） */
+  const tp = (x, y, id) => ({ x, y, id, radiusX: 1, radiusY: 1, force: 1 });
+  const pinchOut = async (page, c, steps = 10, by = 8) => {
+    const s = await page.createCDPSession();
+    await s.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [tp(c[0] - 20, c[1], 0), tp(c[0] + 20, c[1], 1)] });
+    for (let i = 1; i <= steps; i++) await s.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [tp(c[0] - 20 - i * by, c[1], 0), tp(c[0] + 20 + i * by, c[1], 1)] });
+    await s.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await s.detach();
+  };
+  const swipe = async (page, c, dx, dy, steps = 10) => {
+    const s = await page.createCDPSession();
+    await s.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [tp(c[0], c[1], 0)] });
+    for (let i = 1; i <= steps; i++) await s.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [tp(c[0] + (dx * i) / steps, c[1] + (dy * i) / steps, 0)] });
+    await s.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await s.detach();
+  };
+  const fsState = (page) => page.evaluate(() => {
+    const sec = document.getElementById('wa-map-sec'), r = sec.getBoundingClientRect();
+    return { fs: sec.classList.contains('is-fs'), lock: document.documentElement.classList.contains('wam-lock'), hl: history.length, wamfs: !!(history.state && history.state.wamfs),
+      box: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)], vw: innerWidth, vh: innerHeight, act: (document.activeElement || {}).id || (document.activeElement && document.activeElement.getAttribute('data-z')) || '',
+      y: Math.round(scrollY), role: sec.getAttribute('role') };
+  });
+  const fsGone = (page) => until(page, () => !document.getElementById('wa-map-sec').classList.contains('is-fs') && !(history.state && history.state.wamfs));
+
+  /* 場面 map-move（class B・日英）── 1440×900 のマウスと 390×680 の指で、地図を拡大して動かす */
+  async function mapMove(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    {
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        await page.mouse.move(...AWAY);
+        const ui0 = await page.evaluate(() => ({ tab: document.getElementById('wa-map').getAttribute('tabindex'), zc: document.querySelector('#wa-map-sec .wam-zc').hidden }));
+        const b0 = await zButtons(page), t0 = await ztf(page);
+        ok(same(b0, ['in', 'out', 'fs']) && !ui0.zc && ui0.tab === '-1' && t0.a === 1 && t0.e === 0 && t0.f === 0,
+          T('map-move 1440 開いたとき：地図の左上に 拡大・縮小・全画面（元に戻すは1倍のあいだ・閉じるは全画面のあいだだけ）・倍率 1・地図は押すとフォーカスを持つ（tabindex -1 ＝ Tab では止まらない）'), J({ b0, ui0, t0 }));
+        /* ホイール：地図を押していない → ページがスクロールし、地図はそのまま */
+        const mid = await mapMid(page), y0 = await page.evaluate(() => window.scrollY);
+        await page.mouse.move(...mid);
+        await page.mouse.wheel({ deltaY: 240 });
+        const sc = await until(page, (y) => window.scrollY > y, y0);
+        await still(page);
+        const t1 = await ztf(page);
+        ok(sc && t1.a === 1, T('map-move 地図を押していないとき、地図の上でホイール → ページがスクロールする・地図は 1 倍のまま（ページのスクロールを奪わない）'), J({ y0, y: await page.evaluate(() => window.scrollY), t1 }));
+        await toTop(page);
+        /* 海を押す（何も選ばない）→ フォーカスは地図 → 欧州の点の上でホイール → 拡大・ページは動かない・欧州の点は指の下のまま */
+        await page.mouse.click(...(await boxPt(page, SEA)));
+        const foc = await page.evaluate(() => (document.activeElement || {}).id), y1 = await page.evaluate(() => window.scrollY);
+        const eu0 = await zPt(page, POINT_AT.europe);
+        await page.mouse.move(...eu0);
+        await page.mouse.wheel({ deltaY: -360 });
+        const zw = await zoomedOver(page, 1.2), y2 = await page.evaluate(() => window.scrollY), eu1 = await zPt(page, POINT_AT.europe), r1 = await regionNow(page);
+        ok(foc === 'wa-map' && zw && y2 === y1 && Math.hypot(eu1[0] - eu0[0], eu1[1] - eu0[1]) < 1 && r1 === 'all',
+          T('map-move 海を押す（何も選ばない）→ フォーカスは地図・欧州の点の上でホイール → 拡大（倍率 > 1.2）・ページは動かない・欧州の点は指したまま（1px 以内）'), J({ foc, t: await ztf(page), y1, y2, eu0, eu1, r1 }));
+        /* 指している地域は拡大していても光る（マウス） */
+        const hot = await litWhere(page, 'europe', ['wam-lit', '>', 0]);
+        /* つかんで動かす（欧州の点から）→ 地図がずれる・何も選ばない */
+        const tA = await ztf(page);
+        await page.mouse.move(...eu1);
+        await page.mouse.down();
+        for (let i = 1; i <= 8; i++) await page.mouse.move(eu1[0] + i * 12, eu1[1] + i * 6);
+        await page.mouse.up();
+        await settle(page);
+        const tB = await ztf(page), r2 = await regionNow(page), on2 = await lit(page), eu2 = await zPt(page, POINT_AT.europe);
+        ok(hot && tB.a === tA.a && tB.e > tA.e && tB.f > tA.f && Math.abs(eu2[0] - eu1[0] - 96) < 1.5 && Math.abs(eu2[1] - eu1[1] - 48) < 1.5 && r2 === 'all' && on2 === 0,
+          T('map-move 拡大したまま欧州を指すと光る → 欧州の点をつかんで右下へ 96×48px 動かす → 地図が同じだけずれる・倍率はそのまま・何も選ばない（つかんで離した点が欧州でも）'), J({ hot, tA, tB, eu1, eu2, r2, on2 }));
+        /* 動かさずに押す → 欧州を選ぶ（拡大したまま）→ 外す */
+        await page.mouse.click(...eu2);
+        const selE = await selectedIs(page, 'europe'), tC = await ztf(page);
+        await page.evaluate(() => window.PVDirectory.setRegion('all'));
+        await toTop(page);
+        ok(selE && tC.a === tB.a, T('map-move 拡大して動かしたあと、欧州の点を動かさずに押す → 欧州が選ばれる（倍率はそのまま）'), J({ selE, tC }));
+        /* ボタン：元に戻す → 1倍（transform が無い）・元に戻すは隠れ、フォーカスは地図へ／拡大 → 2倍・縮小 → 1倍 */
+        const shownZ = await zButtons(page);
+        await page.click('#wa-map-sec .wam-zb[data-z="reset"]');
+        const t3 = await ztf(page), b3 = await zButtons(page), a3 = await page.evaluate(() => (document.activeElement || {}).id);
+        await page.click('#wa-map-sec .wam-zb[data-z="in"]');
+        const t4 = await ztf(page), b4 = await zButtons(page);
+        await page.click('#wa-map-sec .wam-zb[data-z="out"]');
+        const t5 = await ztf(page), tf5 = await page.evaluate(() => document.querySelector('#wa-map-sec .wam-z').getAttribute('transform'));
+        ok(same(shownZ, ['in', 'out', 'reset', 'fs']) && t3.a === 1 && t3.e === 0 && same(b3, ['in', 'out', 'fs']) && a3 === 'wa-map' && t4.a === 2 && same(b4, ['in', 'out', 'reset', 'fs']) && t5.a === 1 && tf5 === null,
+          T('map-move ボタン：拡大しているあいだだけ「元に戻す」→ 押すと 1倍・隠れてフォーカスは地図へ／拡大 → 2倍・縮小 → 1倍（transform を書かない）'), J({ shownZ, t3, b3, a3, t4, b4, t5, tf5 }));
+        /* キー（地図にフォーカス）：+ → 2倍・→ → 左へずれる（右を見る）・0 → 1倍 */
+        await page.focus('#wa-map');
+        await page.keyboard.press('+');
+        const k1 = await ztf(page);
+        await page.keyboard.press('ArrowRight');
+        const k2 = await ztf(page);
+        await page.keyboard.press('0');
+        const k3 = await ztf(page), yk = await page.evaluate(() => window.scrollY);
+        ok(k1.a === 2 && k2.a === 2 && k2.e < k1.e && k3.a === 1 && k3.e === 0 && yk === 0, T('map-move キー（地図にフォーカス）：+ → 2倍・→ → 地図が左へずれる・0 → 1倍・ページは動かない'), J({ k1, k2, k3, yk }));
+        /* ctrl ＋ ホイール（トラックパッドのピンチ）は、地図にフォーカスが無くても地図を拡大する（ページの拡大にしない）*/
+        await page.evaluate(() => document.activeElement && document.activeElement.blur());
+        await page.mouse.move(...(await mapMid(page)));
+        await page.keyboard.down('Control');
+        await page.mouse.wheel({ deltaY: -60 });
+        await page.keyboard.up('Control');
+        const zc = await zoomedOver(page, 1.2), ac = await page.evaluate(() => (document.activeElement || {}).id || ''), yc = await page.evaluate(() => window.scrollY);
+        ok(zc && ac !== 'wa-map' && yc === 0, T('map-move ctrl ＋ ホイール（トラックパッドのピンチ）→ 地図にフォーカスが無くても地図が拡大する・ページは動かない'), J({ zc, ac, yc, t: await ztf(page) }));
+        await page.focus('#wa-map');
+        await page.keyboard.press('0');
+        /* 6倍で止まる・いちばん遠くまでつかんで動かしても、枠の四隅はどれも地図の箱の中（縁が空かない）── 右下へ・左上へ */
+        for (let i = 0; i < 4; i++) await page.keyboard.press('+');
+        await steady(page);
+        const k6 = await ztf(page), m6 = await mapMid(page);
+        const far = [];
+        for (const [dx, dy] of [[2400, 1600], [-4800, -3200]]) {
+          await page.mouse.move(...m6); await page.mouse.down();
+          for (let i = 1; i <= 12; i++) await page.mouse.move(m6[0] + (dx * i) / 12, m6[1] + (dy * i) / 12);
+          await page.mouse.up();
+          far.push({ dx, dy, t: await ztf(page), ...(await filled(page)) });
+        }
+        ok(k6.a === 6 && far.every((f) => f.ok && f.t.a === 6), T('map-move + を4回 → 6倍で止まる・いちばん遠くまで右下へ・左上へつかんで動かしても、枠の四隅はどれも地図の箱の中（縁が空かない）'), J({ k6, far }));
+        /* 「機長｜副操縦士」は拡大していても同じ：副操縦士 → data-pos fo・倍率とずれはそのまま → 機長 */
+        const tP = await ztf(page);
+        await page.click('#wa-map-sec .wam-pb[data-pos="fo"]');
+        const pf = await page.evaluate(() => document.getElementById('wa-map-sec').getAttribute('data-pos')), tQ = await ztf(page);
+        await page.click('#wa-map-sec .wam-pb[data-pos="cap"]');
+        ok(pf === 'fo' && same(tP, tQ), T('map-move 6倍のまま「副操縦士」を押す → 区域は副操縦士・地図の倍率とずれはそのまま'), J({ pf, tP, tQ }));
+        await shot(page, 'map-move', lang, '1440-6x');
+        const q = quiet(st, 'map-move');
+        ok(q.length === 0, T('map-move quiet(st, \'map-move\') が空（1440）'), J(q));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+    {
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: 390, h: 680, touch: true, init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        const b0 = await zButtons(page);
+        ok(same(b0, ['fs']), T('map-move 390 指：ページの中の地図のボタンは「全画面」だけ（拡大・縮小は2本の指・元に戻すは拡大しているあいだ）'), J(b0));
+        /* 2本の指で広げる（欧州のまわり）→ 拡大・ページは動かない・ページそのものは拡大しない・何も選ばない */
+        const y0 = await page.evaluate(() => window.scrollY), eu0 = await zPt(page, POINT_AT.europe);
+        await pinchOut(page, eu0);
+        const zp = await zoomedOver(page, 1.2);
+        const m = await page.evaluate(() => ({ y: window.scrollY, vv: window.visualViewport ? window.visualViewport.scale : 1, region: window.PVDirectory.state().region, open: document.getElementById('wa-map-sec').classList.contains('is-open') }));
+        ok(zp && m.y === y0 && m.vv === 1 && m.region === 'all' && !m.open, T('map-move 390 2本の指で広げる → 地図が拡大する（倍率 > 1.2）・ページはスクロールせず、ページそのものも拡大しない・何も選ばず、カードも開かない'), J({ t: await ztf(page), y0, ...m }));
+        await shot(page, 'map-move', lang, '390-pinch');
+        /* 1本の指で上へ → ページがスクロールする・地図はそのまま・「2本の指で動かせます」が1回だけ出る */
+        const tA = await ztf(page);
+        await swipe(page, await mapMid(page), 0, -120);
+        const sc = await until(page, (y) => window.scrollY > y, y0);
+        await still(page);
+        const tB = await ztf(page), hint = await page.evaluate(() => { const h = document.querySelector('#wa-map-sec .wam-zh'); return { on: h.classList.contains('is-on') || !h.hidden, text: h.textContent }; });
+        ok(sc && same(tA, tB) && hint.on && hint.text === ZOOM_HINT[lang], T(`map-move 390 1本の指で地図の上を上へ → ページがスクロールする・地図は動かない・「${ZOOM_HINT[lang]}」が出る`), J({ sc, tA, tB, hint }));
+        await toTop(page);
+        /* 動かさずに触れる（拡大したまま）→ その地域を見せる（いつもの指の決まり：選ぶのはボタン）→ 元に戻す → 1倍 */
+        const eu = await zPt(page, POINT_AT.europe);
+        await page.touchscreen.tap(...eu);
+        const sh = await isShown(page, 'europe');
+        await still(page);   // 開いたカードを画面に入れる滑らかなスクロールが止まってから（動いている最中のボタンを押さない）
+        const g = await page.evaluate(() => ({ go: document.getElementById('wa-go').getClientRects().length > 0, region: window.PVDirectory.state().region }));
+        const b1 = await zButtons(page);
+        await page.tap('#wa-map-sec .wam-zb[data-z="reset"]');
+        const t2 = await ztf(page);
+        ok(sh && g.go && g.region === 'all' && same(b1, ['reset', 'fs']) && t2.a === 1, T('map-move 390 拡大したまま欧州に触れる → 欧州を見せる・ボタンが出る・まだ選ばない／ボタンは「元に戻す」と「全画面」→ 元に戻す → 1倍'), J({ sh, g, b1, t2 }));
+        const q = quiet(st, 'map-move');
+        ok(q.length === 0, T('map-move quiet(st, \'map-move\') が空（390）'), J(q));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+  }
+
+  /* 場面 map-full（class B・日英）── 全画面：開く（履歴を1段）・動かす・地域を見せる（カードは画面の中）・Esc／戻るで閉じる・積み増さない・
+     「この地域の航空会社を見る」で閉じてから選ぶ（選んだ地域は住所に残る）。390×680 の指と 1440×900 のマウス */
+  async function mapFull(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    for (const [w, h, touch] of [[390, 680, true], [1440, 900, false]]) {
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w, h, touch, init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        const hit = (sel) => (touch ? page.tap(sel) : page.click(sel));
+        const at = (xy) => (touch ? page.touchscreen.tap(...xy) : page.mouse.click(...xy));
+        if (!touch) await page.mouse.move(...AWAY);
+        const s0 = await fsState(page);
+        await hit('#wa-map-sec .wam-zb[data-z="fs"]');
+        const opened = await until(page, () => document.getElementById('wa-map-sec').classList.contains('is-fs'));
+        const s1 = await fsState(page), b1 = await zButtons(page);
+        ok(opened && s1.lock && s1.hl === s0.hl + 1 && s1.wamfs && same(s1.box, [0, 0, s1.vw, s1.vh]) && s1.act === 'wa-map' && s1.role === 'dialog' && same(b1, ['in', 'out', 'close']),
+          T(`map-full ${w}×${h} 「全画面」→ 地図の区域が画面いっぱい・後ろのページは止まる・履歴が1段・フォーカスは地図・ボタンは 拡大・縮小・閉じる`), J({ s0, s1, b1 }));
+        /* 全画面で動かす：拡大 → ${touch ? '1本の指' : 'マウス'}でずらす → ずれる・ページは動かない */
+        await hit('#wa-map-sec .wam-zb[data-z="in"]');
+        const tA = await ztf(page), mid = await mapMid(page);
+        if (touch) await swipe(page, mid, 60, 30);
+        else { await page.mouse.move(...mid); await page.mouse.down(); for (let i = 1; i <= 6; i++) await page.mouse.move(mid[0] + i * 10, mid[1] + i * 5); await page.mouse.up(); }
+        const tB = await ztf(page), yB = await page.evaluate(() => window.scrollY);
+        ok(tA.a === 2 && tB.a === 2 && tB.e > tA.e && tB.f > tA.f && yB === s0.y, T(`map-full ${w}×${h} 全画面で拡大 → ${touch ? '1本の指' : 'マウス'}で右下へ → 地図がずれる・後ろのページは動かない`), J({ tA, tB, yB }));
+        await shot(page, 'map-full', lang, `${w}-moved`);
+        /* 元に戻して欧州を押す → 欧州のカード（画面の中）・ボタンが出る・まだ選ばない */
+        await hit('#wa-map-sec .wam-zb[data-z="reset"]');
+        await steady(page);
+        await at(await zPt(page, POINT_AT.europe));
+        const sh = await isShown(page, 'europe');
+        const c = await page.evaluate(() => {
+          const r = document.getElementById('wa-sum').getBoundingClientRect(), m = document.getElementById('wa-map').getBoundingClientRect(), g = document.getElementById('wa-go');
+          return { card: [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)], map: [Math.round(m.left), Math.round(m.top), Math.round(m.right), Math.round(m.bottom)], vh: innerHeight, vw: innerWidth,
+            go: g.getClientRects().length > 0 && g.getBoundingClientRect().bottom <= innerHeight, region: window.PVDirectory.state().region };
+        });
+        const place = touch ? c.card[1] >= c.map[3] - 1 : c.card[0] >= c.map[2] - 1;
+        ok(sh && c.go && c.region === 'all' && c.card[1] >= 0 && c.card[3] <= c.vh + 1 && c.card[0] >= 0 && c.card[2] <= c.vw && place,
+          T(`map-full ${w}×${h} 全画面で欧州を${touch ? '指で触れる' : '押す'} → 欧州のカードが画面の中（${touch ? '地図の下の板' : '地図の右'}）・「${GO[lang]}」が見える・まだ選ばない`), J({ sh, c }));
+        await shot(page, 'map-full', lang, `${w}-europe`);
+        /* Esc → 閉じる（履歴は戻る・前へ進む段は1つ残る）・スクロールは開く前のまま・フォーカスは「全画面」 */
+        await page.keyboard.press('Escape');
+        const gone1 = await fsGone(page), s2 = await fsState(page);
+        ok(gone1 && !s2.lock && s2.hl === s0.hl + 1 && s2.y === s0.y && s2.act === 'fs' && s2.role === null, T(`map-full ${w}×${h} Esc → 全画面が閉じる・履歴の段から降りる・スクロールは開く前のまま・フォーカスは「全画面」`), J(s2));
+        /* もう1回開く → 積み増さない（履歴の長さは同じ）→ 戻る（ブラウザの戻る）→ 閉じる */
+        await hit('#wa-map-sec .wam-zb[data-z="fs"]');
+        const re = await until(page, () => document.getElementById('wa-map-sec').classList.contains('is-fs'));
+        const s3 = await fsState(page);
+        await page.evaluate(() => history.back());
+        const gone2 = await fsGone(page), s4 = await fsState(page);
+        ok(re && s3.hl === s0.hl + 1 && s3.wamfs && gone2 && !s4.lock && s4.y === s0.y, T(`map-full ${w}×${h} もう1回「全画面」→ 履歴を積み増さない（長さは同じ）→ ブラウザの「戻る」→ 閉じる`), J({ s3, s4 }));
+        /* 開いて北米を押し、「この地域の航空会社を見る」→ 全画面が閉じてから北米が選ばれる・住所に region=us・全画面の段は残らない */
+        await hit('#wa-map-sec .wam-zb[data-z="fs"]');
+        await until(page, () => document.getElementById('wa-map-sec').classList.contains('is-fs'));
+        await at(await zPt(page, POINT_AT.us));
+        const shU = await isShown(page, 'us');
+        await hit('#wa-go');
+        const selU = await selectedIs(page, 'us'), gone3 = await fsGone(page), s5 = await fsState(page), href = page.url();
+        ok(shU && selU && gone3 && !s5.lock && /[?&]region=us(&|$)/.test(href) && s5.hl === s0.hl + 1, T(`map-full ${w}×${h} 全画面で北米 →「${GO[lang]}」→ 全画面が閉じ、北米が選ばれる・住所は region=us・全画面の段は残らない`), J({ shU, selU, s5, href: href.replace(L.base, () => '') }));
+        const q = quiet(st, 'map-full');
+        ok(q.length === 0, T(`map-full quiet(st, 'map-full') が空（${w}×${h}）`), J(q));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+  }
+
+  /* ★場面 map-strip（class A・日英）── オーナー #8「切れないようにして」：390・768（指）で、地域の9つのボタンがどれも画面の中に丸ごと
+     （横にすべる列ではない ＝ 帯の overflow-x が visible で、中身が帯の幅に入る）・ボタンの字が切れない */
+  async function mapStrip(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    for (const [w, h] of [[390, 680], [768, 1024]]) {
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w, h, touch: true, init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        const m = await page.evaluate(() => {
+          const s = document.getElementById('region-strip'), vw = document.documentElement.clientWidth;
+          const bs = [...s.querySelectorAll('.rstrip-btn')].map((b) => { const r = b.getBoundingClientRect(); return { c: b.dataset.region, l: Math.round(r.left * 10) / 10, r: Math.round(r.right * 10) / 10, t: Math.round(r.top), cut: b.scrollWidth > b.clientWidth + 1 }; });
+          return { ox: getComputedStyle(s).overflowX, sw: s.scrollWidth, cw: s.clientWidth, vw, n: bs.length, rows: new Set(bs.map((b) => b.t)).size, bad: bs.filter((b) => b.l < 0 || b.r > vw || b.cut) };
+        });
+        ok(m.n === 9 && m.ox === 'visible' && m.sw <= m.cw + 1 && m.bad.length === 0,
+          T(`map-strip ${w}×${h} 指：地域の9つのボタンがどれも画面の中に丸ごと（帯は横にすべらない ＝ overflow-x visible・中身 ${m.sw}px ≤ 帯 ${m.cw}px）・字が切れない（${m.rows} 行）`), J(m));
+        await shot(page, 'map-strip', lang, `${w}`);
+        const q = quiet(st, 'map-strip');
+        ok(q.length === 0, T(`map-strip quiet(st, 'map-strip') が空（${w}×${h}）`), J(q));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
+  }
+
+  /* ★場面 head-name（class A・日英）── オーナー #18「緑にしたら」：ログインしている会員の名前（ヘッダーの #nav-auth-btn が profile.html を指す）は
+     サイトの緑の字（--pv-accent-ink）で、ヘッダーの地とのコントラストが 4.5:1 以上（ライトとダーク）。地は、名前から上の要素の背景を
+     いちばん外（白い紙）から順に重ねて作る。手元の会員 a としてログインしておく */
+  const contrast = (page) => page.evaluate(() => {
+    const b = document.getElementById('nav-auth-btn');
+    const rgba = (s) => { const n = (String(s).match(/[\d.]+/g) || []).map(Number); return [n[0] || 0, n[1] || 0, n[2] || 0, n.length > 3 ? n[3] : 1]; };
+    const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+    const chain = [];
+    for (let e = b; e; e = e.parentElement) chain.unshift(rgba(getComputedStyle(e).backgroundColor));
+    let bg = [255, 255, 255];
+    for (const c of chain) bg = bg.map((v, i) => c[i] * c[3] + v * (1 - c[3]));
+    const fg = rgba(getComputedStyle(b).color), hi = Math.max(lum(fg), lum(bg)), lo = Math.min(lum(fg), lum(bg));
+    const probe = document.createElement('span');
+    probe.setAttribute('style', 'color:var(--pv-accent-ink)');
+    document.getElementById('main-nav').appendChild(probe);
+    const want = getComputedStyle(probe).color;
+    probe.remove();
+    return { href: b.getAttribute('href'), name: b.textContent, shown: b.getClientRects().length > 0, fg: getComputedStyle(b).color, want, bg: bg.map(Math.round), ratio: Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100, theme: document.documentElement.getAttribute('data-theme') };
+  });
+  async function headName(lang) {
+    const T = (s) => `[${lang}] ${s}`;
+    for (const theme of ['light', 'dark']) {
+      const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], who: 'a', theme, init: tokyo });
+      PAGES.push(P);
+      try {
+        const { page, st } = P;
+        const named = await until(page, () => { const b = document.getElementById('nav-auth-btn'); return !!b && /profile\.html$/.test(b.getAttribute('href') || ''); });
+        const m = await contrast(page);
+        ok(named && m.shown && m.theme === theme && m.fg === m.want && m.ratio >= 4.5,
+          T(`head-name ${theme}：ログインしている会員の名前「${m.name}」はサイトの緑の字（--pv-accent-ink ${m.want}）・ヘッダーの地とのコントラスト ${m.ratio}:1（4.5 以上）`), J(m));
+        await shot(page, 'head-name', lang, theme);
+        /* ログインしている会員には、どのページでも pv-session.js が「パイロットであることの確認」を同じログインのまま6時間に1回だけ聞く
+           （pv_proof_state ── CLAUDE.md「パイロットであることの確認」）。一覧の台本の呼び出しではないので、この場面だけ名指しで許す */
+        const q = quiet(st, 'head-name', { allow: ['pv_proof_state'] });
+        ok(q.length === 0, T(`head-name quiet(st, 'head-name') が空（${theme}・ログインしていても、一覧のページが呼ぶのは pv-session.js の確認の1本だけ）`), J({ q, calls: st.calls }));
+      } finally {
+        await P.ctx.close().catch(() => {});
+      }
+    }
   }
 
   try {

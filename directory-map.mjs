@@ -23,6 +23,10 @@
      <use> から受け継ぐので、光る層と当たりの層は自分の線を持てる）。光る層（<use>）は全部、いちばん上の <g class="wam-ol"> に入れる。
    ★ 当たり（指す・押す）は点ではなく <g class="wam-hl"> の太い透明な線（点と点のあいだも答える）。日本の丸が先・
      どこにも入れない陸地の透明な線（答えを持たない）がその次・8地域があと（それぞれの陸地が上に来て、自分の答えを持つ）。
+   ★ 動かせる地図（WP-dmap-9・オーナー「地図自体を自分で動かせるようにしたい（windy みたいに）」）：svg の層は全部1つの <g class="wam-z"> の中
+     （点・当たり・光る層が一緒に動く。動かすのは台本がその transform に書く1か所だけ ── 出荷は1倍 ＝ transform を書かない）。
+     地図の枠の左上に 拡大・縮小・元に戻す・全画面、右上に全画面の「閉じる」、まんなかに指の一言（どれも hidden で出荷。台本が動いた時だけ見せる）。
+     印は CSS の線だけで描く（地図の塊に2つ目の <svg> を置かない）。字は WORDS の zoom（シートの字）
    ★ 文字列の置き換えは関数形だけ（CLAUDE.md）。
    ════════════════════════════════════════════════════════════════ */
 import { SHAPES, JAPAN_MARK } from './world-outline.mjs';
@@ -106,6 +110,7 @@ export function toneOf(man, lo, hi) {
  *   on     選んだ地域・hot 指している地域（光る層）── 見本の絵だけが渡す。ページのブロックはどちらも無しで書く
  *   id     null のとき id="wa-map" を書かない（見本の絵のように、1枚に何枚も並べるとき）
  *   uid    <use> が指す id の後ろに付ける字（1枚に何枚も並べるとき、id がぶつからないように）
+ *   zoom   動かせる地図のボタンの字 { in, out, reset, fs, close, touch }（呼び手が esc した字）── ページのブロックだけが渡す。見本の絵は渡さない（ボタンを描かない）
  */
 export function mapBox(o) {
   const u = o.uid ?? '';
@@ -114,12 +119,14 @@ export function mapBox(o) {
   for (const p of ['cap', 'fo']) if (!Array.isArray(o.legend?.[p]) || o.legend[p].length !== 2 || !o.legend[p].every((s) => typeof s === 'string' && s)) throw new Error(`mapBox：凡例 ${p}`);
   if (typeof o.hint !== 'string' || !o.hint) throw new Error('mapBox：地図の下の一言が無い');
   for (const k of ['on', 'hot']) if (o[k] != null && !PAINT.includes(o[k])) throw new Error(`mapBox：${k}「${o[k]}」`);
+  if (o.zoom != null) for (const k of ZOOM_KEYS) if (typeof o.zoom[k] !== 'string' || !o.zoom[k]) throw new Error(`mapBox：動かすボタンの字 ${k}`);
   const st = (r) => (o.on === r ? ' is-on' : '') + (o.hot === r ? ' is-hot' : '');
   const J = JAPAN_MARK;
   const L = [];
   L.push('<div class="wam-mc">');
   L.push(`<div class="wam-map"${o.id === null ? '' : ' id="wa-map"'}>`);
   L.push(`<svg class="wam-svg" viewBox="${VIEWBOX}" aria-hidden="true" focusable="false">`);
+  L.push('<g class="wam-z">');   // 動かす層（WP-dmap-9）── この下の層が全部一緒に動く
   L.push(`<g class="wam-nl"><path id="wam-d-neutral${u}" d="${dotRuns(SHAPES.neutral)}"/></g>`);
   for (const r of PAINT) L.push(`<g class="wam-r${st(r)}" data-region="${r}" style="--c:${o.tones[r].c};--f:${o.tones[r].f}"><path class="wam-land" id="wam-d-${r}${u}" d="${dotRuns(SHAPES[r])}"/></g>`);
   /* 当たりの層：日本の丸が先（あとから重なるサハリンとアジアの陸地が、それぞれの答えを持つ） */
@@ -136,7 +143,15 @@ export function mapBox(o) {
     L.push(`<g class="wam-o${st(r)}" data-region="${r}"><use class="wam-halo" href="#wam-d-${r}${u}"/><use class="wam-lit" href="#wam-d-${r}${u}"/>${ring}</g>`);
   }
   L.push('</g>');
+  L.push('</g>');
   L.push('</svg>');
+  if (o.zoom != null) {
+    /* 動かせる地図のボタン（WP-dmap-9）。字は aria-label と title の2つ（印だけのボタン）。元に戻すは1倍のあいだ隠れている */
+    const Z = o.zoom, zb = (z, hid) => `<button type="button" class="wam-zb" data-z="${z}" aria-label="${Z[z]}" title="${Z[z]}"${hid ? ' hidden' : ''}></button>`;
+    L.push(`<div class="wam-zc" hidden>${zb('in')}${zb('out')}${zb('reset', true)}${zb('fs')}</div>`);
+    L.push(`<button type="button" class="wam-zx" data-z="close" aria-label="${Z.close}" title="${Z.close}" hidden></button>`);
+    L.push(`<p class="wam-zh" aria-hidden="true" hidden>${Z.touch}</p>`);
+  }
   L.push('</div>');
   /* 地図の下の1行：一言（左）と、選んでいる職位の凡例（右・8地域の平均のいちばん低い所〜高い所。CSS が区域の data-pos で片方を見せる） */
   L.push('<div class="wam-foot">');
@@ -161,19 +176,24 @@ const POS = ['cap', 'fo'];
     P12.101 の3語の英語 Lowest / Highest / Range（リード P12.109 で採用）。
     「機長｜副操縦士」の切り替え（P12.100）の2つのボタンの字は、行の札と同じ rank の字（新しい字を作らない）。
     その組の読み上げの名前（aria-label・画面には出ない）は「職位」／Rank（リード P12.112）。
-    地図の下の一言 hint は、いまの一覧が古い地図の上に出している字のまま（directory-data WP-dd-9 の字。新しい字ではない） */
+    地図の下の一言 hint は、いまの一覧が古い地図の上に出している字のまま（directory-data WP-dd-9 の字。新しい字ではない）。
+    zoom ＝ 動かせる地図（WP-dmap-9）のボタンの字と、指の一言（シートの WP-dmap-9 の wording の字。英語はオーナー #19「自然な英語」） */
 const WORDS = {
   ja: {
     all: 'すべて', k: '公開情報からの推定', def: (n) => `掲載${n}社の推定年収の平均`, rank: { cap: '機長', fo: '副操縦士' }, rankGroup: '職位',
     cond: '条件/出典', who: '対象', count: '対象掲載社数', countN: (n) => `${n}社`, fx: '換算', go: 'この地域の航空会社を見る',
     lo: '最低', hi: '最高', span: '幅', regionN: (l, n) => `${l} ${n}社`, hint: '地図をクリックして地域を選択',
+    zoom: { in: '拡大', out: '縮小', reset: '元に戻す', fs: '全画面', close: '閉じる', touch: '2本の指で動かせます' },
   },
   en: {
     all: 'All', k: 'Estimate from public information', def: (n) => `Mean of our estimates across ${n} airlines`, rank: { cap: 'Captain', fo: 'First Officer' }, rankGroup: 'Rank',
     cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Conversion', go: 'View airlines in this region',
     lo: 'Lowest', hi: 'Highest', span: 'Range', regionN: (l, n) => `${l} ${n}`, hint: 'Click the map to choose a region',
+    zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', fs: 'Full screen', close: 'Close', touch: 'Use two fingers to move the map' },
   },
 };
+/** 動かせる地図のボタンの字の鍵（mapBox が確かめる） */
+const ZOOM_KEYS = ['in', 'out', 'reset', 'fs', 'close', 'touch'];
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -271,7 +291,7 @@ export function mapSection(o) {
     '<noscript><style>.wam-map,.wam-key,.wam-hint,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}.wam-g{display:block!important}.wam-card{max-width:720px}</style></noscript>',
     '<div class="wam-g">',
     `<div class="wam-pos" role="group" aria-label="${esc(W.rankGroup)}" hidden>${POS.map((r) => `<button type="button" class="wam-pb" data-pos="${r}" aria-pressed="${r === 'cap'}">${esc(W.rank[r])}</button>`).join('')}</div>`,
-    mapBox({ tones, legend, hint: esc(W.hint) }),
+    mapBox({ tones, legend, hint: esc(W.hint), zoom: Object.fromEntries(ZOOM_KEYS.map((k) => [k, esc(W.zoom[k])])) }),
     '<aside class="wam-card" id="wa-sum">',
     '<div class="wam-cols">',
     '<div class="wam-panels">',
