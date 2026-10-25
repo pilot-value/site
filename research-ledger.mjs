@@ -23,6 +23,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "anchorage",
    "los-angeles",
    "portland",
+   "san-diego",
    "san-francisco",
    "seattle"
   ],
@@ -93,18 +94,31 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "seattle"
   ],
   "easyjet": [
+   "amsterdam",
    "barcelona",
+   "belfast",
    "berlin",
+   "birmingham",
+   "bordeaux",
    "bristol",
+   "crawley",
+   "edinburgh",
    "geneva",
+   "glasgow",
    "lisboa",
+   "liverpool",
    "luton",
    "lyon",
+   "malaga",
    "manchester",
    "milan",
+   "nantes",
+   "newcastle-upon-tyne",
+   "nice",
    "paris",
    "porto",
-   "rome"
+   "rome",
+   "southend-on-sea"
   ],
   "emirates": [
    "dubai"
@@ -210,7 +224,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "singapore"
   ],
   "solairus": [
-   "austin"
+   "austin",
+   "van-nuys"
   ],
   "southwest": [
    "atlanta",
@@ -273,6 +288,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "winnipeg"
   ],
   "wizz-air": [
+   "crawley",
    "london",
    "luton"
   ],
@@ -140420,11 +140436,109 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "天草市 / Amakusa",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の相場・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "駐車場代"
+      ]
+     },
+     "applies_to": {
+      "base": "天草市 / Amakusa",
+      "note_ja": "会社と街の対応は既存の拠点の記録 amx.base.base-axj（拠点の空港 AXJ）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "amakusa",
+     "company": "amx",
+     "cond_ja": "天草市 / Amakusa。英: Amakusa。原部屋表記「3DK」。アットホームが直近3か月の掲載物件から出した相場。天草市は掲載物件が少なく、間取りごとの相場が出ているのは3DKだけ（ワンルーム〜2LDK・3LDK は「-」）。平均か中央値かは書いていない。募集の額で成約の額ではない。",
+     "currency": "JPY",
+     "district": "天草市 / Amakusa",
+     "district_en": "Amakusa",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近3か月の掲載物件の値。ページに日付の表示が無い。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "間取り別の家賃相場 / 3DK",
+       "quote": "6万円",
+       "source_id": "src-athome-souba-amakusa",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "※当サイトに掲載した直近3ヶ月の物件情報をもとに相場を算出しています",
+       "source_id": "src-athome-souba-amakusa",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "※物件数が少ないときは、相場の算出ができない場合があります",
+       "source_id": "src-athome-souba-amakusa",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "bf3bca13ffcde841",
+     "id": "amx.living.rent-amakusa-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "天草市の家賃（3-Bed・アットホームの相場）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3DK",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "アットホーム株式会社",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-athome-souba-amakusa",
+       "source_type": "third_party_reference",
+       "title": "【アットホーム】天草市の家賃相場・賃料相場を調べる｜賃貸情報[賃貸マンション、賃貸アパート、貸家]や部屋探し",
+       "url": "https://www.athome.co.jp/chintai/souba/kumamoto/amakusa-city/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 60000
+     },
+     "value_text": {
+      "3bed": "6万円"
+     }
+    }
+   ],
    "towns": []
   },
   "amsterdam": {
    "airlines": [
+    "easyjet",
     "klm"
    ],
    "commute": [
@@ -140490,7 +140604,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Amsterdam",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Amsterdam の物件（Studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Amsterdam",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-ams（拠点の空港 AMS）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "amsterdam",
+     "company": "easyjet",
+     "cond_ja": "アムステルダム。英: Amsterdam。原部屋表記「Studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。同じ表の「Apartment €2,300」は寝室の数が書いていないので 1bed に使っていない。",
+     "currency": "EUR",
+     "district": "アムステルダム",
+     "district_en": "Amsterdam",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。ページの更新日は 2026-10-06。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Average rent in Amsterdam / Studio",
+       "quote": "€1,828",
+       "source_id": "src-housinganywhere-amsterdam-cost-of-living",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "Average rent in Amsterdam の文",
+       "quote": "average monthly rent in Amsterdam",
+       "source_id": "src-housinganywhere-amsterdam-cost-of-living",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "d078186fb6a05edd",
+     "id": "easyjet.living.rent-amsterdam-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "アムステルダムの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "seen": [
+      {
+       "company": "klm",
+       "id": "klm.living.rent-amsterdam-studio-2026-10",
+       "pack": "pvr-20261025-rent-europe"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-amsterdam-cost-of-living",
+       "source_type": "third_party_reference",
+       "title": "What's the cost of living in Amsterdam in 2026?",
+       "updated": "2026-10-06",
+       "url": "https://housinganywhere.com/blog/finance/amsterdam-cost-of-living"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1828
+     },
+     "value_text": {
+      "studio": "€1,828"
+     }
+    }
+   ],
    "towns": []
   },
   "anchorage": {
@@ -142533,6 +142750,308 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "belfast": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Belfast",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "July 2026",
+       "who": "Belfast rental area の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Belfast",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-bfs（拠点の空港 BFS）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "belfast",
+     "company": "easyjet",
+     "cond_ja": "ベルファスト。英: Belfast。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年7月の民間賃貸の平均月額（Belfast rental area の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ページは Belfast rental area（ベルファストの賃貸地域）の値で、北アイルランドの数字は2026年7月が最新。空港（Belfast International）は市の外に在る。基地と同じ名前の街の統計として置く。",
+     "currency": "GBP",
+     "district": "ベルファスト",
+     "district_en": "Belfast",
+     "domain": "living",
+     "effective": {
+      "from": "2026-07-01",
+      "note_ja": "統計の対象月（2026年7月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-07-31"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £839",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of July 2026 in Belfast rental area were:",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "1474cb913a52cde0",
+     "id": "easyjet.living.rent-belfast-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ベルファストの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "source_type": "government",
+       "title": "Housing prices in Belfast",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/N09000003/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 839
+     },
+     "value_text": {
+      "1bed": "£839"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "July 2026",
+       "who": "Belfast rental area の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Belfast",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-bfs（拠点の空港 BFS）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "belfast",
+     "company": "easyjet",
+     "cond_ja": "ベルファスト。英: Belfast。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年7月の民間賃貸の平均月額（Belfast rental area の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ページは Belfast rental area（ベルファストの賃貸地域）の値で、北アイルランドの数字は2026年7月が最新。空港（Belfast International）は市の外に在る。基地と同じ名前の街の統計として置く。",
+     "currency": "GBP",
+     "district": "ベルファスト",
+     "district_en": "Belfast",
+     "domain": "living",
+     "effective": {
+      "from": "2026-07-01",
+      "note_ja": "統計の対象月（2026年7月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-07-31"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £967",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of July 2026 in Belfast rental area were:",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "0474e073c27c059e",
+     "id": "easyjet.living.rent-belfast-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ベルファストの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "source_type": "government",
+       "title": "Housing prices in Belfast",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/N09000003/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 967
+     },
+     "value_text": {
+      "2bed": "£967"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "July 2026",
+       "who": "Belfast rental area の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Belfast",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-bfs（拠点の空港 BFS）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "belfast",
+     "company": "easyjet",
+     "cond_ja": "ベルファスト。英: Belfast。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年7月の民間賃貸の平均月額（Belfast rental area の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ページは Belfast rental area（ベルファストの賃貸地域）の値で、北アイルランドの数字は2026年7月が最新。空港（Belfast International）は市の外に在る。基地と同じ名前の街の統計として置く。",
+     "currency": "GBP",
+     "district": "ベルファスト",
+     "district_en": "Belfast",
+     "domain": "living",
+     "effective": {
+      "from": "2026-07-01",
+      "note_ja": "統計の対象月（2026年7月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-07-31"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £1,106",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of July 2026 in Belfast rental area were:",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "d0930e4b0b4f741e",
+     "id": "easyjet.living.rent-belfast-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ベルファストの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-belfast",
+       "source_type": "government",
+       "title": "Housing prices in Belfast",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/N09000003/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1106
+     },
+     "value_text": {
+      "3bed": "£1,106"
+     }
+    }
+   ],
+   "towns": []
+  },
   "bergen": {
    "airlines": [
     "sas"
@@ -142600,7 +143119,104 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Bergen",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（統計の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "SSB の賃貸市場調査の加重平均をそのまま写した",
+       "n": null,
+       "period": "2025",
+       "who": "ベルゲン市の賃貸住戸（1 room）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Bergen",
+      "note_ja": "会社と街の対応は既存の拠点の記録 sas.base.pub-link-bgo（拠点の空港 BGO）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "bergen",
+     "company": "sas",
+     "cond_ja": "ベルゲン。英: Bergen。原部屋表記「1 room」。ノルウェー統計局の賃貸市場調査（2025年）のベルゲン市の平均月額家賃。「1 room」は部屋が1つだけの住戸＝寝室が独立していないので studio に対応させた。「2 rooms」「3 rooms」は部屋の総数で寝室の数が決められないため、鍵を付けず出していない（型が判断できない）。調査の住戸の家賃で、募集の額ではない。",
+     "currency": "NOK",
+     "district": "ベルゲン",
+     "district_en": "Bergen",
+     "domain": "living",
+     "effective": {
+      "from": "2025",
+      "note_ja": "2025年の調査の値。",
+      "to": "2025"
+     },
+     "evidence": [
+      {
+       "locator": "CSV の行 Bergen municipality / 1 room",
+       "quote": "\"Bergen municipality\",\"1 room\",7510",
+       "source_id": "src-ssb-09895-bergen-2025",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "CSV の見出しの行",
+       "quote": "\"Average monthly rents 2025\"",
+       "source_id": "src-ssb-09895-bergen-2025",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "dd7124b0e4fc9c04",
+     "id": "sas.living.rent-bergen-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ベルゲンの家賃（Studio・SSB 平均月額）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "1 room",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Statistics Norway (SSB)",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ssb-09895-bergen-2025",
+       "source_type": "government",
+       "title": "09895: Rental market survey. Average rents per sqm (NOK), by price zone, number of rooms and year",
+       "updated": "2025-12-22",
+       "url": "https://data.ssb.no/api/pxwebapi/v2/tables/09895/data?lang=en&valueCodes[Soner2]=03&valueCodes[AntRom]=1,2,3&valueCodes[ContentsCode]=Husleie&valueCodes[Tid]=2025&outputFormat=csv&outputFormatParams=UseTexts"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 7510
+     },
+     "value_text": {
+      "studio": "7510"
+     }
+    }
+   ],
    "towns": [
     {
      "amount": null,
@@ -142806,6 +143422,412 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "1bed": "1 350",
       "2bed": "1 750",
       "3bed": "2 250"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "birmingham": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Birmingham",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Birmingham の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Birmingham",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-bhx（拠点の空港 BHX）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "birmingham",
+     "company": "easyjet",
+     "cond_ja": "バーミンガム。英: Birmingham。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Birmingham の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。空港の所在地は隣の Solihull。基地と同じ名前の街（Birmingham）の統計として置く。",
+     "currency": "GBP",
+     "district": "バーミンガム",
+     "district_en": "Birmingham",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £834",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Birmingham were:",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "3f31e56e67275608",
+     "id": "easyjet.living.rent-birmingham-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "バーミンガムの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "source_type": "government",
+       "title": "Housing prices in Birmingham",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000025/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 834
+     },
+     "value_text": {
+      "1bed": "£834"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Birmingham の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Birmingham",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-bhx（拠点の空港 BHX）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "birmingham",
+     "company": "easyjet",
+     "cond_ja": "バーミンガム。英: Birmingham。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Birmingham の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。空港の所在地は隣の Solihull。基地と同じ名前の街（Birmingham）の統計として置く。",
+     "currency": "GBP",
+     "district": "バーミンガム",
+     "district_en": "Birmingham",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £1,009",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Birmingham were:",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a2963f6217bd33bd",
+     "id": "easyjet.living.rent-birmingham-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "バーミンガムの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "source_type": "government",
+       "title": "Housing prices in Birmingham",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000025/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1009
+     },
+     "value_text": {
+      "2bed": "£1,009"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Birmingham の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Birmingham",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-bhx（拠点の空港 BHX）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "birmingham",
+     "company": "easyjet",
+     "cond_ja": "バーミンガム。英: Birmingham。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Birmingham の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。空港の所在地は隣の Solihull。基地と同じ名前の街（Birmingham）の統計として置く。",
+     "currency": "GBP",
+     "district": "バーミンガム",
+     "district_en": "Birmingham",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £1,141",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Birmingham were:",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "6c68f9e1cb0dc9ef",
+     "id": "easyjet.living.rent-birmingham-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "バーミンガムの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-birmingham",
+       "source_type": "government",
+       "title": "Housing prices in Birmingham",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000025/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1141
+     },
+     "value_text": {
+      "3bed": "£1,141"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "bordeaux": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Bordeaux",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Bordeaux の物件（Studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Bordeaux",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-bod（拠点の空港 BOD）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "bordeaux",
+     "company": "easyjet",
+     "cond_ja": "ボルドー。英: Bordeaux。原部屋表記「Studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。フランスの都市を並べた表の1行。同じ行の「Apartment」は寝室の数が書いていないので使っていない。ページに日付の表示が無い。",
+     "currency": "EUR",
+     "district": "ボルドー",
+     "district_en": "Bordeaux",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Average rent in France by city の表 / Bordeaux 行 / Studio 列",
+       "quote": "€614",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の前の文",
+       "quote": "average rent in France",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "e5c4ab74c11efb8d",
+     "id": "easyjet.living.rent-bordeaux-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ボルドーの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "source_type": "third_party_reference",
+       "title": "Cost of living in France: city by city comparison",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-france"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "studio": 614
+     },
+     "value_text": {
+      "studio": "€614"
      }
     }
    ],
@@ -146327,7 +147349,182 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Cologne",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Cologne の物件（a one-bedroom apartment）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Cologne",
+      "note_ja": "会社と街の対応は既存の拠点の記録 eurowings.base.pilot-cgn（拠点の空港 CGN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "cologne",
+     "company": "eurowings",
+     "cond_ja": "ケルン。英: Cologne。原部屋表記「a one-bedroom apartment」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。同じページの表では「Apartment」と書いている。",
+     "currency": "EUR",
+     "district": "ケルン",
+     "district_en": "Cologne",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。ページの更新日は 2026-10-06。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "冒頭の要点",
+       "quote": "Rent is your biggest expense: a room averages €799, a studio €1,250, and a one-bedroom apartment €1,490.",
+       "source_id": "src-housinganywhere-cost-of-living-cologne",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "4697da12e97977b5",
+     "id": "eurowings.living.rent-cologne-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ケルンの家賃（1-Bed・HousingAnywhere）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "a one-bedroom apartment",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-cologne",
+       "source_type": "third_party_reference",
+       "title": "The ultimate guide to the cost of living in Cologne",
+       "updated": "2026-10-06",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-cologne"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1490
+     },
+     "value_text": {
+      "1bed": "€1,490"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Cologne の物件（a studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Cologne",
+      "note_ja": "会社と街の対応は既存の拠点の記録 eurowings.base.pilot-cgn（拠点の空港 CGN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "cologne",
+     "company": "eurowings",
+     "cond_ja": "ケルン。英: Cologne。原部屋表記「a studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。",
+     "currency": "EUR",
+     "district": "ケルン",
+     "district_en": "Cologne",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。ページの更新日は 2026-10-06。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "冒頭の要点",
+       "quote": "Rent is your biggest expense: a room averages €799, a studio €1,250, and a one-bedroom apartment €1,490.",
+       "source_id": "src-housinganywhere-cost-of-living-cologne",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      }
+     ],
+     "h": "8e53b32bc0214a0c",
+     "id": "eurowings.living.rent-cologne-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ケルンの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "a studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-cologne",
+       "source_type": "third_party_reference",
+       "title": "The ultimate guide to the cost of living in Cologne",
+       "updated": "2026-10-06",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-cologne"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1250
+     },
+     "value_text": {
+      "studio": "€1,250"
+     }
+    }
+   ],
    "towns": [
     {
      "amount": null,
@@ -146628,6 +147825,330 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ]
+  },
+  "crawley": {
+   "airlines": [
+    "easyjet",
+    "wizz-air"
+   ],
+   "commute": [],
+   "name": "Crawley",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Crawley の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Crawley",
+      "note_ja": "会社と街の対応は既存の拠点の記録 wizz-air.base.c-uk-base-lgw（拠点の空港 LGW）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "crawley",
+     "company": "wizz-air",
+     "cond_ja": "クローリー。英: Crawley。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Crawley の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ロンドン・ガトウィック空港（LGW）が在る行政区（Crawley）の統計。ロンドンの統計ではない。",
+     "currency": "GBP",
+     "district": "クローリー",
+     "district_en": "Crawley",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £1,071",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Crawley were:",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c2eebafaf2f38d6d",
+     "id": "wizz-air.living.rent-crawley-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "クローリーの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "seen": [
+      {
+       "company": "easyjet",
+       "id": "easyjet.living.rent-crawley-1bed-2026-10",
+       "pack": "pvr-20261025-rent-europe"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "source_type": "government",
+       "title": "Housing prices in Crawley",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E07000226/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1071
+     },
+     "value_text": {
+      "1bed": "£1,071"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Crawley の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Crawley",
+      "note_ja": "会社と街の対応は既存の拠点の記録 wizz-air.base.c-uk-base-lgw（拠点の空港 LGW）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "crawley",
+     "company": "wizz-air",
+     "cond_ja": "クローリー。英: Crawley。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Crawley の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ロンドン・ガトウィック空港（LGW）が在る行政区（Crawley）の統計。ロンドンの統計ではない。",
+     "currency": "GBP",
+     "district": "クローリー",
+     "district_en": "Crawley",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £1,392",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Crawley were:",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "44e43f8254c0713a",
+     "id": "wizz-air.living.rent-crawley-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "クローリーの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "seen": [
+      {
+       "company": "easyjet",
+       "id": "easyjet.living.rent-crawley-2bed-2026-10",
+       "pack": "pvr-20261025-rent-europe"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "source_type": "government",
+       "title": "Housing prices in Crawley",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E07000226/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1392
+     },
+     "value_text": {
+      "2bed": "£1,392"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Crawley の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Crawley",
+      "note_ja": "会社と街の対応は既存の拠点の記録 wizz-air.base.c-uk-base-lgw（拠点の空港 LGW）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "crawley",
+     "company": "wizz-air",
+     "cond_ja": "クローリー。英: Crawley。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Crawley の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ロンドン・ガトウィック空港（LGW）が在る行政区（Crawley）の統計。ロンドンの統計ではない。",
+     "currency": "GBP",
+     "district": "クローリー",
+     "district_en": "Crawley",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £1,652",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Crawley were:",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "c41045e97888ede6",
+     "id": "wizz-air.living.rent-crawley-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "クローリーの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "seen": [
+      {
+       "company": "easyjet",
+       "id": "easyjet.living.rent-crawley-3bed-2026-10",
+       "pack": "pvr-20261025-rent-europe"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-crawley",
+       "source_type": "government",
+       "title": "Housing prices in Crawley",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E07000226/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1652
+     },
+     "value_text": {
+      "3bed": "£1,652"
+     }
+    }
+   ],
+   "towns": []
   },
   "dallas": {
    "airlines": [
@@ -149000,7 +150521,102 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Düsseldorf",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Düsseldorf の物件（Studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Düsseldorf",
+      "note_ja": "会社と街の対応は既存の拠点の記録 eurowings.base.pilot-dus（拠点の空港 DUS）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "dusseldorf",
+     "company": "eurowings",
+     "cond_ja": "デュッセルドルフ。英: Düsseldorf。原部屋表記「Studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。同じ表の「Apartment €1,300」は寝室の数が書いていないので 1bed に使っていない。",
+     "currency": "EUR",
+     "district": "デュッセルドルフ",
+     "district_en": "Düsseldorf",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。ページの更新日は 2026-10-06。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "家賃の表 / Studio",
+       "quote": "€1,150",
+       "source_id": "src-housinganywhere-cost-of-living-dusseldorf",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "家賃の表の前の文",
+       "quote": "below you can find average rent prices:",
+       "source_id": "src-housinganywhere-cost-of-living-dusseldorf",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "f16b1fec1961bae2",
+     "id": "eurowings.living.rent-dusseldorf-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "デュッセルドルフの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-dusseldorf",
+       "source_type": "third_party_reference",
+       "title": "Cost of living in Düsseldorf: An expat guide",
+       "updated": "2026-10-06",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-in-dusseldorf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1150
+     },
+     "value_text": {
+      "studio": "€1,150"
+     }
+    }
+   ],
    "towns": [
     {
      "amount": null,
@@ -149137,6 +150753,308 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ]
+  },
+  "edinburgh": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Edinburgh",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Lothian の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Edinburgh",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-edi（拠点の空港 EDI）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "edinburgh",
+     "company": "easyjet",
+     "cond_ja": "エディンバラ。英: Edinburgh。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Lothian の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。エディンバラのページだが、ページが出している値は Lothian（スコットランドの賃貸の地域区分）のもの。エディンバラ市だけの値ではない。",
+     "currency": "GBP",
+     "district": "エディンバラ",
+     "district_en": "Edinburgh",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £1,036",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Lothian were:",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "914459851c8c6a09",
+     "id": "easyjet.living.rent-edinburgh-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "エディンバラの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "source_type": "government",
+       "title": "Housing prices in Edinburgh",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/S12000036/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1036
+     },
+     "value_text": {
+      "1bed": "£1,036"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Lothian の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Edinburgh",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-edi（拠点の空港 EDI）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "edinburgh",
+     "company": "easyjet",
+     "cond_ja": "エディンバラ。英: Edinburgh。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Lothian の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。エディンバラのページだが、ページが出している値は Lothian（スコットランドの賃貸の地域区分）のもの。エディンバラ市だけの値ではない。",
+     "currency": "GBP",
+     "district": "エディンバラ",
+     "district_en": "Edinburgh",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £1,324",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Lothian were:",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f886ac90d58e495b",
+     "id": "easyjet.living.rent-edinburgh-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "エディンバラの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "source_type": "government",
+       "title": "Housing prices in Edinburgh",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/S12000036/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1324
+     },
+     "value_text": {
+      "2bed": "£1,324"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Lothian の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Edinburgh",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-edi（拠点の空港 EDI）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "edinburgh",
+     "company": "easyjet",
+     "cond_ja": "エディンバラ。英: Edinburgh。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Lothian の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。エディンバラのページだが、ページが出している値は Lothian（スコットランドの賃貸の地域区分）のもの。エディンバラ市だけの値ではない。",
+     "currency": "GBP",
+     "district": "エディンバラ",
+     "district_en": "Edinburgh",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £1,700",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Lothian were:",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "322816c815d3d5e2",
+     "id": "easyjet.living.rent-edinburgh-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "エディンバラの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-edinburgh",
+       "source_type": "government",
+       "title": "Housing prices in Edinburgh",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/S12000036/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1700
+     },
+     "value_text": {
+      "3bed": "£1,700"
+     }
+    }
+   ],
+   "towns": []
   },
   "edmonton": {
    "airlines": [
@@ -151081,6 +152999,308 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "glasgow": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Glasgow",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Greater Glasgow の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Glasgow",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-gla（拠点の空港 GLA）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "glasgow",
+     "company": "easyjet",
+     "cond_ja": "グラスゴー。英: Glasgow。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Greater Glasgow の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。グラスゴーのページだが、ページが出している値は Greater Glasgow（スコットランドの賃貸の地域区分）のもの。グラスゴー市だけの値ではない。",
+     "currency": "GBP",
+     "district": "グラスゴー",
+     "district_en": "Glasgow",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £845",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Greater Glasgow were:",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "f8a22387e7841107",
+     "id": "easyjet.living.rent-glasgow-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "グラスゴーの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "source_type": "government",
+       "title": "Housing prices in Glasgow",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/S12000049/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 845
+     },
+     "value_text": {
+      "1bed": "£845"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Greater Glasgow の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Glasgow",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-gla（拠点の空港 GLA）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "glasgow",
+     "company": "easyjet",
+     "cond_ja": "グラスゴー。英: Glasgow。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Greater Glasgow の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。グラスゴーのページだが、ページが出している値は Greater Glasgow（スコットランドの賃貸の地域区分）のもの。グラスゴー市だけの値ではない。",
+     "currency": "GBP",
+     "district": "グラスゴー",
+     "district_en": "Glasgow",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £1,091",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Greater Glasgow were:",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "9fe88591aeffc6f9",
+     "id": "easyjet.living.rent-glasgow-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "グラスゴーの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "source_type": "government",
+       "title": "Housing prices in Glasgow",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/S12000049/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1091
+     },
+     "value_text": {
+      "2bed": "£1,091"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Greater Glasgow の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Glasgow",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-gla（拠点の空港 GLA）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "glasgow",
+     "company": "easyjet",
+     "cond_ja": "グラスゴー。英: Glasgow。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Greater Glasgow の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。グラスゴーのページだが、ページが出している値は Greater Glasgow（スコットランドの賃貸の地域区分）のもの。グラスゴー市だけの値ではない。",
+     "currency": "GBP",
+     "district": "グラスゴー",
+     "district_en": "Glasgow",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £1,340",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Greater Glasgow were:",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "ee12c2120267ec53",
+     "id": "easyjet.living.rent-glasgow-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "グラスゴーの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-glasgow",
+       "source_type": "government",
+       "title": "Housing prices in Glasgow",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/S12000049/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1340
+     },
+     "value_text": {
+      "3bed": "£1,340"
+     }
+    }
+   ],
+   "towns": []
+  },
   "guam": {
    "airlines": [
     "united"
@@ -151148,7 +153368,392 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Guam",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "Guam",
+      "note_ja": "会社と街の対応は、台帳の暮らしの街 guam（united の調べの記録 united.living.publication-city-guam-ground-counter の街）。united には画面に出す拠点の空港の行がまだ無い。街の統計で、パイロット向けの資料ではない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "guam",
+     "company": "united",
+     "cond_ja": "グアム。英: Guam。原部屋表記「1 BR（fmr_1）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。Guam 全体の値。",
+     "currency": "USD",
+     "district": "グアム",
+     "district_en": "Guam",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=Guam（hud_area_name=Guam）/ 列 fmr_1",
+       "quote": "1117",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "a05dd4e1ce4950b0",
+     "id": "united.living.rent-guam-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "グアムの家賃（1-Bed・HUD FMR）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 BR（fmr_1）",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1117
+     },
+     "value_text": {
+      "1bed": "1117"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "Guam",
+      "note_ja": "会社と街の対応は、台帳の暮らしの街 guam（united の調べの記録 united.living.publication-city-guam-ground-counter の街）。united には画面に出す拠点の空港の行がまだ無い。街の統計で、パイロット向けの資料ではない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "guam",
+     "company": "united",
+     "cond_ja": "グアム。英: Guam。原部屋表記「2 BR（fmr_2）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。Guam 全体の値。",
+     "currency": "USD",
+     "district": "グアム",
+     "district_en": "Guam",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=Guam（hud_area_name=Guam）/ 列 fmr_2",
+       "quote": "1449",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "70146b3b5a02893c",
+     "id": "united.living.rent-guam-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "グアムの家賃（2-Bed・HUD FMR）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 BR（fmr_2）",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1449
+     },
+     "value_text": {
+      "2bed": "1449"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "Guam",
+      "note_ja": "会社と街の対応は、台帳の暮らしの街 guam（united の調べの記録 united.living.publication-city-guam-ground-counter の街）。united には画面に出す拠点の空港の行がまだ無い。街の統計で、パイロット向けの資料ではない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "guam",
+     "company": "united",
+     "cond_ja": "グアム。英: Guam。原部屋表記「3 BR（fmr_3）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。Guam 全体の値。",
+     "currency": "USD",
+     "district": "グアム",
+     "district_en": "Guam",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=Guam（hud_area_name=Guam）/ 列 fmr_3",
+       "quote": "2006",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "eb20f36fb660d23f",
+     "id": "united.living.rent-guam-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "グアムの家賃（3-Bed・HUD FMR）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 BR（fmr_3）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 2006
+     },
+     "value_text": {
+      "3bed": "2006"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "Guam",
+      "note_ja": "会社と街の対応は、台帳の暮らしの街 guam（united の調べの記録 united.living.publication-city-guam-ground-counter の街）。united には画面に出す拠点の空港の行がまだ無い。街の統計で、パイロット向けの資料ではない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "guam",
+     "company": "united",
+     "cond_ja": "グアム。英: Guam。原部屋表記「0 BR（fmr_0）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。Guam 全体の値。0 BR（寝室なし）を studio に対応させた。",
+     "currency": "USD",
+     "district": "グアム",
+     "district_en": "Guam",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=Guam（hud_area_name=Guam）/ 列 fmr_0",
+       "quote": "1009",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "dc3e548a04e75ccd",
+     "id": "united.living.rent-guam-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "グアムの家賃（Studio・HUD FMR）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "0 BR（fmr_0）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1009
+     },
+     "value_text": {
+      "studio": "1009"
+     }
+    }
+   ],
    "towns": []
   },
   "ha-noi": {
@@ -155605,6 +158210,308 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "liverpool": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Liverpool",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Liverpool の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Liverpool",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-lpl（拠点の空港 LPL）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "liverpool",
+     "company": "easyjet",
+     "cond_ja": "リバプール。英: Liverpool。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Liverpool の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。",
+     "currency": "GBP",
+     "district": "リバプール",
+     "district_en": "Liverpool",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £688",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Liverpool were:",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "831aa3c9d26b6c6e",
+     "id": "easyjet.living.rent-liverpool-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "リバプールの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "source_type": "government",
+       "title": "Housing prices in Liverpool",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000012/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 688
+     },
+     "value_text": {
+      "1bed": "£688"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Liverpool の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Liverpool",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-lpl（拠点の空港 LPL）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "liverpool",
+     "company": "easyjet",
+     "cond_ja": "リバプール。英: Liverpool。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Liverpool の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。",
+     "currency": "GBP",
+     "district": "リバプール",
+     "district_en": "Liverpool",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £840",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Liverpool were:",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "628bc028743b7933",
+     "id": "easyjet.living.rent-liverpool-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "リバプールの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "source_type": "government",
+       "title": "Housing prices in Liverpool",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000012/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 840
+     },
+     "value_text": {
+      "2bed": "£840"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Liverpool の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Liverpool",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-lpl（拠点の空港 LPL）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "liverpool",
+     "company": "easyjet",
+     "cond_ja": "リバプール。英: Liverpool。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Liverpool の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。",
+     "currency": "GBP",
+     "district": "リバプール",
+     "district_en": "Liverpool",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £967",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Liverpool were:",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "7ba041af3af8fd95",
+     "id": "easyjet.living.rent-liverpool-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "リバプールの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-liverpool",
+       "source_type": "government",
+       "title": "Housing prices in Liverpool",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000012/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 967
+     },
+     "value_text": {
+      "3bed": "£967"
+     }
+    }
+   ],
+   "towns": []
+  },
   "london": {
    "airlines": [
     "british-airways",
@@ -157846,6 +160753,106 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ]
+  },
+  "malaga": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Málaga",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Málaga",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-agp（拠点の空港 AGP）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "malaga",
+     "company": "easyjet",
+     "cond_ja": "マラガ。英: Málaga。原部屋表記「Studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。平均か中央値かは書いていない（「目安」）。同じ表の「Apartment」は寝室の数が書いていないので使っていない。",
+     "currency": "EUR",
+     "district": "マラガ",
+     "district_en": "Málaga",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。ページの更新日は 2026-10-06。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "1. Rental prices の表 / Studio",
+       "quote": "€1,215",
+       "source_id": "src-housinganywhere-cost-of-living-malaga",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の前の文",
+       "quote": "You can expect the following rents in Málaga in 2026",
+       "source_id": "src-housinganywhere-cost-of-living-malaga",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      }
+     ],
+     "h": "a20938de7121ed72",
+     "id": "easyjet.living.rent-malaga-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "マラガの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-malaga",
+       "source_type": "third_party_reference",
+       "title": "Cost of living in Málaga: What you can expect",
+       "updated": "2026-10-06",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-m%C3%A1laga"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1215
+     },
+     "value_text": {
+      "studio": "€1,215"
+     }
+    }
+   ],
+   "towns": []
   },
   "manchester": {
    "airlines": [
@@ -160319,6 +163326,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "nantes": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Nantes",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Nantes の物件（Studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Nantes",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-nte（拠点の空港 NTE）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "nantes",
+     "company": "easyjet",
+     "cond_ja": "ナント。英: Nantes。原部屋表記「Studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。フランスの都市を並べた表の1行。同じ行の「Apartment」は寝室の数が書いていないので使っていない。ページに日付の表示が無い。",
+     "currency": "EUR",
+     "district": "ナント",
+     "district_en": "Nantes",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Average rent in France by city の表 / Nantes 行 / Studio 列",
+       "quote": "€509",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の前の文",
+       "quote": "average rent in France",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "ffcada4047511723",
+     "id": "easyjet.living.rent-nantes-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ナントの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "source_type": "third_party_reference",
+       "title": "Cost of living in France: city by city comparison",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-france"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "studio": 509
+     },
+     "value_text": {
+      "studio": "€509"
+     }
+    }
+   ],
+   "towns": []
+  },
   "narita": {
    "airlines": [
     "airjapan",
@@ -162150,6 +165261,412 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "2bed": "$1,950",
       "3bed": "$2,300",
       "studio": "$1,400"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "newcastle-upon-tyne": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Newcastle upon Tyne",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Newcastle upon Tyne の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Newcastle upon Tyne",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-ncl（拠点の空港 NCL）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "newcastle-upon-tyne",
+     "company": "easyjet",
+     "cond_ja": "ニューカッスル・アポン・タイン。英: Newcastle upon Tyne。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Newcastle upon Tyne の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。",
+     "currency": "GBP",
+     "district": "ニューカッスル・アポン・タイン",
+     "district_en": "Newcastle upon Tyne",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £816",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Newcastle upon Tyne were:",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "d515ba5644aa5f0e",
+     "id": "easyjet.living.rent-newcastle-upon-tyne-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ニューカッスル・アポン・タインの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "source_type": "government",
+       "title": "Housing prices in Newcastle upon Tyne",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000021/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 816
+     },
+     "value_text": {
+      "1bed": "£816"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Newcastle upon Tyne の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Newcastle upon Tyne",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-ncl（拠点の空港 NCL）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "newcastle-upon-tyne",
+     "company": "easyjet",
+     "cond_ja": "ニューカッスル・アポン・タイン。英: Newcastle upon Tyne。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Newcastle upon Tyne の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。",
+     "currency": "GBP",
+     "district": "ニューカッスル・アポン・タイン",
+     "district_en": "Newcastle upon Tyne",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £1,010",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Newcastle upon Tyne were:",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "d785c1e87d583766",
+     "id": "easyjet.living.rent-newcastle-upon-tyne-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ニューカッスル・アポン・タインの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "source_type": "government",
+       "title": "Housing prices in Newcastle upon Tyne",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000021/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1010
+     },
+     "value_text": {
+      "2bed": "£1,010"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Newcastle upon Tyne の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Newcastle upon Tyne",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-ncl（拠点の空港 NCL）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "newcastle-upon-tyne",
+     "company": "easyjet",
+     "cond_ja": "ニューカッスル・アポン・タイン。英: Newcastle upon Tyne。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Newcastle upon Tyne の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。",
+     "currency": "GBP",
+     "district": "ニューカッスル・アポン・タイン",
+     "district_en": "Newcastle upon Tyne",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £1,199",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Newcastle upon Tyne were:",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "a4cc6b143b83e852",
+     "id": "easyjet.living.rent-newcastle-upon-tyne-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ニューカッスル・アポン・タインの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-newcastle-upon-tyne",
+       "source_type": "government",
+       "title": "Housing prices in Newcastle upon Tyne",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E08000021/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1199
+     },
+     "value_text": {
+      "3bed": "£1,199"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "nice": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Nice",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Nice の物件（Studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具",
+       "光熱費"
+      ]
+     },
+     "applies_to": {
+      "base": "Nice",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-nce（拠点の空港 NCE）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "nice",
+     "company": "easyjet",
+     "cond_ja": "ニース。英: Nice。原部屋表記「Studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。フランスの都市を並べた表の1行。同じ行の「Apartment」は寝室の数が書いていないので使っていない。ページに日付の表示が無い。",
+     "currency": "EUR",
+     "district": "ニース",
+     "district_en": "Nice",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Average rent in France by city の表 / Nice 行 / Studio 列",
+       "quote": "€766",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の前の文",
+       "quote": "average rent in France",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "25a5a81753a0bd18",
+     "id": "easyjet.living.rent-nice-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ニースの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-france",
+       "source_type": "third_party_reference",
+       "title": "Cost of living in France: city by city comparison",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-france"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "studio": 766
+     },
+     "value_text": {
+      "studio": "€766"
      }
     }
    ],
@@ -167311,6 +170828,433 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "san-diego": {
+   "airlines": [
+    "alaska-airlines"
+   ],
+   "commute": [],
+   "name": "San Diego",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "San Diego の掲載物件（1 bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "San Diego",
+      "note_ja": "会社と街の対応は既存の拠点の記録 alaska-airlines.base.r2-base-san（拠点の空港 SAN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-diego",
+     "company": "alaska-airlines",
+     "cond_ja": "サンディエゴ。英: San Diego。原部屋表記「1 bedroom」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。",
+     "currency": "USD",
+     "district": "サンディエゴ",
+     "district_en": "San Diego",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / 1 bedroom",
+       "quote": "$2,200",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "c9d73f0f6eba2da4",
+     "id": "alaska-airlines.living.rent-san-diego-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンディエゴの家賃（1-Bed・Zumper 掲載平均）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-san-diego",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in San Diego, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/san-diego-ca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 2200
+     },
+     "value_text": {
+      "1bed": "$2,200"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "San Diego の掲載物件（2 bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "San Diego",
+      "note_ja": "会社と街の対応は既存の拠点の記録 alaska-airlines.base.r2-base-san（拠点の空港 SAN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-diego",
+     "company": "alaska-airlines",
+     "cond_ja": "サンディエゴ。英: San Diego。原部屋表記「2 bedroom」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。",
+     "currency": "USD",
+     "district": "サンディエゴ",
+     "district_en": "San Diego",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / 2 bedroom",
+       "quote": "$2,975",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "96cd252b3367ce32",
+     "id": "alaska-airlines.living.rent-san-diego-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンディエゴの家賃（2-Bed・Zumper 掲載平均）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedroom",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-san-diego",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in San Diego, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/san-diego-ca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 2975
+     },
+     "value_text": {
+      "2bed": "$2,975"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "San Diego の掲載物件（3 bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "San Diego",
+      "note_ja": "会社と街の対応は既存の拠点の記録 alaska-airlines.base.r2-base-san（拠点の空港 SAN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-diego",
+     "company": "alaska-airlines",
+     "cond_ja": "サンディエゴ。英: San Diego。原部屋表記「3 bedroom」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。",
+     "currency": "USD",
+     "district": "サンディエゴ",
+     "district_en": "San Diego",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / 3 bedroom",
+       "quote": "$4,000",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "b1e58e67caa9ad61",
+     "id": "alaska-airlines.living.rent-san-diego-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンディエゴの家賃（3-Bed・Zumper 掲載平均）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-san-diego",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in San Diego, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/san-diego-ca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 4000
+     },
+     "value_text": {
+      "3bed": "$4,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "San Diego の掲載物件（Studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "San Diego",
+      "note_ja": "会社と街の対応は既存の拠点の記録 alaska-airlines.base.r2-base-san（拠点の空港 SAN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-diego",
+     "company": "alaska-airlines",
+     "cond_ja": "サンディエゴ。英: San Diego。原部屋表記「Studio」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。",
+     "currency": "USD",
+     "district": "サンディエゴ",
+     "district_en": "San Diego",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / Studio",
+       "quote": "$1,825",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-san-diego",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "7085e994cecdc924",
+     "id": "alaska-airlines.living.rent-san-diego-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンディエゴの家賃（Studio・Zumper 掲載平均）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-san-diego",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in San Diego, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/san-diego-ca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1825
+     },
+     "value_text": {
+      "studio": "$1,825"
+     }
+    }
+   ],
+   "towns": []
+  },
   "san-francisco": {
    "airlines": [
     "alaska-airlines",
@@ -167901,7 +171845,392 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "San Juan",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "San Juan",
+      "note_ja": "会社と街の対応は既存の拠点の記録 frontier.base.r2-base-sju（拠点の空港 SJU）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-juan",
+     "company": "frontier",
+     "cond_ja": "サンフアン。英: San Juan。原部屋表記「1 BR（fmr_1）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。San Juan Municipio の行の値で、San Juan-Guaynabo の HUD の地域全体で同じ額。",
+     "currency": "USD",
+     "district": "サンフアン",
+     "district_en": "San Juan",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=San Juan Municipio（hud_area_name=San Juan-Guaynabo, PR HUD Metro FMR Area）/ 列 fmr_1",
+       "quote": "604",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "2835305a4f06da56",
+     "id": "frontier.living.rent-san-juan-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンフアンの家賃（1-Bed・HUD FMR）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 BR（fmr_1）",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 604
+     },
+     "value_text": {
+      "1bed": "604"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "San Juan",
+      "note_ja": "会社と街の対応は既存の拠点の記録 frontier.base.r2-base-sju（拠点の空港 SJU）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-juan",
+     "company": "frontier",
+     "cond_ja": "サンフアン。英: San Juan。原部屋表記「2 BR（fmr_2）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。San Juan Municipio の行の値で、San Juan-Guaynabo の HUD の地域全体で同じ額。",
+     "currency": "USD",
+     "district": "サンフアン",
+     "district_en": "San Juan",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=San Juan Municipio（hud_area_name=San Juan-Guaynabo, PR HUD Metro FMR Area）/ 列 fmr_2",
+       "quote": "706",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "512ba2b4638c1ec8",
+     "id": "frontier.living.rent-san-juan-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンフアンの家賃（2-Bed・HUD FMR）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 BR（fmr_2）",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 706
+     },
+     "value_text": {
+      "2bed": "706"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "San Juan",
+      "note_ja": "会社と街の対応は既存の拠点の記録 frontier.base.r2-base-sju（拠点の空港 SJU）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-juan",
+     "company": "frontier",
+     "cond_ja": "サンフアン。英: San Juan。原部屋表記「3 BR（fmr_3）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。San Juan Municipio の行の値で、San Juan-Guaynabo の HUD の地域全体で同じ額。",
+     "currency": "USD",
+     "district": "サンフアン",
+     "district_en": "San Juan",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=San Juan Municipio（hud_area_name=San Juan-Guaynabo, PR HUD Metro FMR Area）/ 列 fmr_3",
+       "quote": "920",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "b25b670ef779389a",
+     "id": "frontier.living.rent-san-juan-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンフアンの家賃（3-Bed・HUD FMR）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 BR（fmr_3）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 920
+     },
+     "value_text": {
+      "3bed": "920"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（HUD の Fair Market Rent：光熱費込みの家賃の40パーセンタイルの推計・月額）。パイロットの給与・会社の手当ではない。",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": [
+       "FMR は家賃と光熱費の合計（gross rent）"
+      ]
+     },
+     "applies_to": {
+      "base": "San Juan",
+      "note_ja": "会社と街の対応は既存の拠点の記録 frontier.base.r2-base-sju（拠点の空港 SJU）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "san-juan",
+     "company": "frontier",
+     "cond_ja": "サンフアン。英: San Juan。原部屋表記「0 BR（fmr_0）」。HUD の FY 2027 Fair Market Rent（FMR）。FMR は標準的な質の賃貸住宅の「gross rent（家賃に光熱費を足した額）」の40パーセンタイルの推計で、平均でも中央値でもない。San Juan Municipio の行の値で、San Juan-Guaynabo の HUD の地域全体で同じ額。0 BR（寝室なし）を studio に対応させた。",
+     "currency": "USD",
+     "district": "サンフアン",
+     "district_en": "San Juan",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "FY 2027（米国の会計年度2027年）の FMR。HUD のページの効力日の表記が一つに決まらないので日付を書かない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "FY27_FMRs.xlsx / 行 countyname=San Juan Municipio（hud_area_name=San Juan-Guaynabo, PR HUD Metro FMR Area）/ 列 fmr_0",
+       "quote": "592",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "ページの説明の段落",
+       "quote": "are estimates of 40th percentile gross rents for standard quality units within a metropolitan area or nonmetropolitan county.",
+       "source_id": "src-hud-fmr-definition",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "a669df51dacb4222",
+     "id": "frontier.living.rent-san-juan-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サンフアンの家賃（Studio・HUD FMR）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "0 BR（fmr_0）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fy2027-fmr-county-level",
+       "source_type": "government",
+       "title": "FY 2027 Fair Market Rents – County Level Data (FY27_FMRs.xlsx)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr/fmr2027/FY27_FMRs.xlsx"
+      },
+      {
+       "published": null,
+       "publisher": "U.S. Department of Housing and Urban Development (HUD), Office of Policy Development and Research",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-hud-fmr-definition",
+       "source_type": "government",
+       "title": "HUD Fair Market Rents (40th Percentile Rents)",
+       "url": "https://www.huduser.gov/portal/datasets/fmr.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 592
+     },
+     "value_text": {
+      "studio": "592"
+     }
+    }
+   ],
    "towns": []
   },
   "sapporo": {
@@ -170437,6 +174766,308 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "southend-on-sea": {
+   "airlines": [
+    "easyjet"
+   ],
+   "commute": [],
+   "name": "Southend-on-Sea",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Southend-on-Sea の民間賃貸（One bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Southend-on-Sea",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-sen（拠点の空港 SEN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "southend-on-sea",
+     "company": "easyjet",
+     "cond_ja": "サウスエンド・オン・シー。英: Southend-on-Sea。原部屋表記「One bedroom」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Southend-on-Sea の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ロンドン・サウスエンド空港（SEN）の基地。ロンドンの統計ではない。",
+     "currency": "GBP",
+     "district": "サウスエンド・オン・シー",
+     "district_en": "Southend-on-Sea",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / One bedroom",
+       "quote": "One bedroom: £884",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Southend-on-Sea were:",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "7fd61e0cc21783eb",
+     "id": "easyjet.living.rent-southend-on-sea-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サウスエンド・オン・シーの家賃（1-Bed・ONS 平均月額）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "source_type": "government",
+       "title": "Housing prices in Southend-on-Sea",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E06000033/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 884
+     },
+     "value_text": {
+      "1bed": "£884"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Southend-on-Sea の民間賃貸（Two bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Southend-on-Sea",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-sen（拠点の空港 SEN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "southend-on-sea",
+     "company": "easyjet",
+     "cond_ja": "サウスエンド・オン・シー。英: Southend-on-Sea。原部屋表記「Two bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Southend-on-Sea の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ロンドン・サウスエンド空港（SEN）の基地。ロンドンの統計ではない。",
+     "currency": "GBP",
+     "district": "サウスエンド・オン・シー",
+     "district_en": "Southend-on-Sea",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Two bedrooms",
+       "quote": "Two bedrooms: £1,124",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Southend-on-Sea were:",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "51d70a749c9dfadc",
+     "id": "easyjet.living.rent-southend-on-sea-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サウスエンド・オン・シーの家賃（2-Bed・ONS 平均月額）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "source_type": "government",
+       "title": "Housing prices in Southend-on-Sea",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E06000033/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1124
+     },
+     "value_text": {
+      "2bed": "£1,124"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（民間賃貸の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ONS Price Index of Private Rents の公表平均をそのまま写した（こちらで計算していない）",
+       "n": null,
+       "period": "September 2026",
+       "who": "Southend-on-Sea の民間賃貸（Three bedrooms）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "管理費",
+       "光熱費",
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Southend-on-Sea",
+      "note_ja": "会社と街の対応は既存の拠点の記録 easyjet.base.r2b-pilot-map-sen（拠点の空港 SEN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "southend-on-sea",
+     "company": "easyjet",
+     "cond_ja": "サウスエンド・オン・シー。英: Southend-on-Sea。原部屋表記「Three bedrooms」。ONS の Price Index of Private Rents による2026年9月の民間賃貸の平均月額（Southend-on-Sea の値）。募集の額でも成約の額だけでもない統計の平均。管理費・光熱費を含むかはページに書いていない。ワンルーム（studio）の値はページに無い。ロンドン・サウスエンド空港（SEN）の基地。ロンドンの統計ではない。",
+     "currency": "GBP",
+     "district": "サウスエンド・オン・シー",
+     "district_en": "Southend-on-Sea",
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-01",
+      "note_ja": "統計の対象月（2026年9月）。取得日・更新日を対象月にしていない。",
+      "to": "2026-09-30"
+     },
+     "evidence": [
+      {
+       "locator": "Average rents by bedroom number / Three bedrooms",
+       "quote": "Three bedrooms: £1,371",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "supports": [
+        "value",
+        "condition"
+       ]
+      },
+      {
+       "locator": "同じ節の頭の文",
+       "quote": "By how many bedrooms there are in a property, average rents as of September 2026 in Southend-on-Sea were:",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      }
+     ],
+     "h": "81eff4289e16df70",
+     "id": "easyjet.living.rent-southend-on-sea-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "サウスエンド・オン・シーの家賃（3-Bed・ONS 平均月額）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Office for National Statistics",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-ons-housingpriceslocal-southend-on-sea",
+       "source_type": "government",
+       "title": "Housing prices in Southend-on-Sea",
+       "updated": "2026-10-21",
+       "url": "https://www.ons.gov.uk/visualisations/housingpriceslocal/E06000033/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1371
+     },
+     "value_text": {
+      "3bed": "£1,371"
+     }
+    }
+   ],
+   "towns": []
+  },
   "stockholm": {
    "airlines": [
     "sas"
@@ -170504,7 +175135,362 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Stockholm",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [
+       "charges",
+       "utilities"
+      ],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（統計の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ISRP/OECD と Eurostat が公表した丸めた平均をそのまま写した",
+       "n": null,
+       "period": "2025年の調査",
+       "who": "ストックホルムの選んだ地区の家具なしのアパート（不動産業者の調査）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Stockholm",
+      "note_ja": "会社と街の対応は既存の拠点の記録 sas.base.base-arn（拠点の空港 ARN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "stockholm",
+     "company": "sas",
+     "cond_ja": "ストックホルム。英: Stockholm。原部屋表記「Flats 1-bedroom」。2025年の調査による、選んだ地区（Östermalm・Kungsholmen・Vasastan・Södermalm・Norrmalm・Birkastan・Hammarby Sjöstad）の家具なしのアパートの平均月額家賃（SEK）。共益費・光熱費を除く。国際機関の職員向けの質の高い住宅の比較用で、街ぜんたいの平均でも、いま借りられる募集の額でもない。",
+     "currency": "SEK",
+     "district": "ストックホルム",
+     "district_en": "Stockholm",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "2025年の調査。都市ごとの調査の正確な日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "CURRENT MARKET RENTS の表（Spain から始まる2枚め）/ Sweden / Stockholm 行 / Flats 1-bedroom",
+       "quote": "23 350",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "同じ表の行の頭",
+       "quote": "Stockholm",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      },
+      {
+       "locator": "表の題",
+       "quote": "Average rent per month given in the local currency",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      },
+      {
+       "locator": "方法の説明",
+       "quote": "excluding charges and utilities",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      },
+      {
+       "locator": "調べた地区の一覧 / Stockholm / Flats",
+       "quote": "Östermalm, Kungsholmen, Vasastan, Södermalm, Norrmalm, Birkastan, Hammarby Sjöstad",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "dd808d317f5446a6",
+     "id": "sas.living.rent-stockholm-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ストックホルムの家賃（1-Bed・ISRP/Eurostat 平均）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "Flats 1-bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ISRP/OECD and Eurostat",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "source_type": "government",
+       "title": "MARKET RENTS 2025 — ISRP/OECD and Eurostat",
+       "url": "https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 23350
+     },
+     "value_text": {
+      "1bed": "23 350"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [
+       "charges",
+       "utilities"
+      ],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（統計の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ISRP/OECD と Eurostat が公表した丸めた平均をそのまま写した",
+       "n": null,
+       "period": "2025年の調査",
+       "who": "ストックホルムの選んだ地区の家具なしのアパート（不動産業者の調査）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Stockholm",
+      "note_ja": "会社と街の対応は既存の拠点の記録 sas.base.base-arn（拠点の空港 ARN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "stockholm",
+     "company": "sas",
+     "cond_ja": "ストックホルム。英: Stockholm。原部屋表記「Flats 2-bedroom」。2025年の調査による、選んだ地区（Östermalm・Kungsholmen・Vasastan・Södermalm・Norrmalm・Birkastan・Hammarby Sjöstad）の家具なしのアパートの平均月額家賃（SEK）。共益費・光熱費を除く。国際機関の職員向けの質の高い住宅の比較用で、街ぜんたいの平均でも、いま借りられる募集の額でもない。",
+     "currency": "SEK",
+     "district": "ストックホルム",
+     "district_en": "Stockholm",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "2025年の調査。都市ごとの調査の正確な日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "CURRENT MARKET RENTS の表（Spain から始まる2枚め）/ Sweden / Stockholm 行 / Flats 2-bedroom",
+       "quote": "29 200",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "同じ表の行の頭",
+       "quote": "Stockholm",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      },
+      {
+       "locator": "表の題",
+       "quote": "Average rent per month given in the local currency",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      },
+      {
+       "locator": "方法の説明",
+       "quote": "excluding charges and utilities",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      },
+      {
+       "locator": "調べた地区の一覧 / Stockholm / Flats",
+       "quote": "Östermalm, Kungsholmen, Vasastan, Södermalm, Norrmalm, Birkastan, Hammarby Sjöstad",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "49db8162edbbed65",
+     "id": "sas.living.rent-stockholm-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ストックホルムの家賃（2-Bed・ISRP/Eurostat 平均）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Flats 2-bedroom",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ISRP/OECD and Eurostat",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "source_type": "government",
+       "title": "MARKET RENTS 2025 — ISRP/OECD and Eurostat",
+       "url": "https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 29200
+     },
+     "value_text": {
+      "2bed": "29 200"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [
+       "charges",
+       "utilities"
+      ],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（統計の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "ISRP/OECD と Eurostat が公表した丸めた平均をそのまま写した",
+       "n": null,
+       "period": "2025年の調査",
+       "who": "ストックホルムの選んだ地区の家具なしのアパート（不動産業者の調査）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Stockholm",
+      "note_ja": "会社と街の対応は既存の拠点の記録 sas.base.base-arn（拠点の空港 ARN）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "stockholm",
+     "company": "sas",
+     "cond_ja": "ストックホルム。英: Stockholm。原部屋表記「Flats 3-bedroom」。2025年の調査による、選んだ地区（Östermalm・Kungsholmen・Vasastan・Södermalm・Norrmalm・Birkastan・Hammarby Sjöstad）の家具なしのアパートの平均月額家賃（SEK）。共益費・光熱費を除く。国際機関の職員向けの質の高い住宅の比較用で、街ぜんたいの平均でも、いま借りられる募集の額でもない。",
+     "currency": "SEK",
+     "district": "ストックホルム",
+     "district_en": "Stockholm",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "2025年の調査。都市ごとの調査の正確な日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "CURRENT MARKET RENTS の表（Spain から始まる2枚め）/ Sweden / Stockholm 行 / Flats 3-bedroom",
+       "quote": "35 700",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "同じ表の行の頭",
+       "quote": "Stockholm",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      },
+      {
+       "locator": "表の題",
+       "quote": "Average rent per month given in the local currency",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "period",
+        "condition"
+       ]
+      },
+      {
+       "locator": "方法の説明",
+       "quote": "excluding charges and utilities",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      },
+      {
+       "locator": "調べた地区の一覧 / Stockholm / Flats",
+       "quote": "Östermalm, Kungsholmen, Vasastan, Södermalm, Norrmalm, Birkastan, Hammarby Sjöstad",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "11e6f3f3e4ff8707",
+     "id": "sas.living.rent-stockholm-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ストックホルムの家賃（3-Bed・ISRP/Eurostat 平均）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Flats 3-bedroom",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ISRP/OECD and Eurostat",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-25",
+       "source_id": "src-eurostat-isrp-market-rents-2025",
+       "source_type": "government",
+       "title": "MARKET RENTS 2025 — ISRP/OECD and Eurostat",
+       "url": "https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 35700
+     },
+     "value_text": {
+      "3bed": "35 700"
+     }
+    }
+   ],
    "towns": [
     {
      "amount": null,
@@ -170634,7 +175620,200 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "name": "Stuttgart",
    "name_en": null,
-   "rents": [],
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [
+       "utilities"
+      ],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Stuttgart の物件（a furnished 1-bedroom apartment）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Stuttgart",
+      "note_ja": "会社と街の対応は既存の拠点の記録 eurowings.base.pilot-str（拠点の空港 STR）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "stuttgart",
+     "company": "eurowings",
+     "cond_ja": "シュトゥットガルト。英: Stuttgart。原部屋表記「a furnished 1-bedroom apartment」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。家具付き・光熱費込みと書いてある。",
+     "currency": "EUR",
+     "district": "シュトゥットガルト",
+     "district_en": "Stuttgart",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。ページの更新日は 2026-10-06。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Apartments in Stuttgart",
+       "quote": "a furnished 1-bedroom apartment in Stuttgart is around €1,560 per month.",
+       "source_id": "src-housinganywhere-cost-of-living-stuttgart",
+       "supports": [
+        "value",
+        "period"
+       ]
+      },
+      {
+       "locator": "家賃の表の前の文",
+       "quote": "average rental prices for furnished rooms, studios, and apartments in Stuttgart with utilities included",
+       "source_id": "src-housinganywhere-cost-of-living-stuttgart",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "985f6231730a5f0b",
+     "id": "eurowings.living.rent-stuttgart-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "シュトゥットガルトの家賃（1-Bed・HousingAnywhere）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "a furnished 1-bedroom apartment",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-stuttgart",
+       "source_type": "third_party_reference",
+       "title": "How much does it cost to live in Stuttgart, Germany?",
+       "updated": "2026-10-06",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-stuttgart"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1560
+     },
+     "value_text": {
+      "1bed": "€1,560"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [
+       "utilities"
+      ],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の目安・月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "HousingAnywhere の案内の値をそのまま写した（集計の期間・件数はページに書いていない）",
+       "n": null,
+       "period": null,
+       "who": "HousingAnywhere に掲載された Stuttgart の物件（a furnished studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "家具"
+      ]
+     },
+     "applies_to": {
+      "base": "Stuttgart",
+      "note_ja": "会社と街の対応は既存の拠点の記録 eurowings.base.pilot-str（拠点の空港 STR）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "stuttgart",
+     "company": "eurowings",
+     "cond_ja": "シュトゥットガルト。英: Stuttgart。原部屋表記「a furnished studio」。HousingAnywhere の生計費の案内に載っている家賃の目安（同社に掲載された家具付きが中心の中期の賃貸・学生や転勤者向け）。成約の額ではない。家具付き・光熱費込みと書いてある。",
+     "currency": "EUR",
+     "district": "シュトゥットガルト",
+     "district_en": "Stuttgart",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "集計の期間はページに書いていない。ページの更新日は 2026-10-06。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Studios in Stuttgart",
+       "quote": "a furnished studio in Stuttgart is around €860 per month.",
+       "source_id": "src-housinganywhere-cost-of-living-stuttgart",
+       "supports": [
+        "value",
+        "period"
+       ]
+      },
+      {
+       "locator": "家賃の表の前の文",
+       "quote": "average rental prices for furnished rooms, studios, and apartments in Stuttgart with utilities included",
+       "source_id": "src-housinganywhere-cost-of-living-stuttgart",
+       "supports": [
+        "condition"
+       ]
+      }
+     ],
+     "h": "fa59db17bad08ef3",
+     "id": "eurowings.living.rent-stuttgart-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "シュトゥットガルトの家賃（Studio・HousingAnywhere）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "a furnished studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-europe",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HousingAnywhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-housinganywhere-cost-of-living-stuttgart",
+       "source_type": "third_party_reference",
+       "title": "How much does it cost to live in Stuttgart, Germany?",
+       "updated": "2026-10-06",
+       "url": "https://housinganywhere.com/blog/finance/cost-of-living-stuttgart"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 860
+     },
+     "value_text": {
+      "studio": "€860"
+     }
+    }
+   ],
    "towns": [
     {
      "amount": null,
@@ -172253,6 +177432,433 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "$1,725"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "van-nuys": {
+   "airlines": [
+    "solairus"
+   ],
+   "commute": [],
+   "name": "Van Nuys",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "Van Nuys の掲載物件（1 bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "Van Nuys",
+      "note_ja": "会社と街の対応は既存の拠点の記録 solairus.base.r3na-vny-g700-account（拠点の空港 VNY）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "van-nuys",
+     "company": "solairus",
+     "cond_ja": "ヴァンナイズ。英: Van Nuys。原部屋表記「1 bedroom」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。ヴァンナイズはロサンゼルス市の中の地区で、ヴァンナイズ空港（VNY）が在る。台帳のロサンゼルス（Zumper のロサンゼルス市の値）とは別の行。",
+     "currency": "USD",
+     "district": "ヴァンナイズ",
+     "district_en": "Van Nuys",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / 1 bedroom",
+       "quote": "$1,820",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "cb876e9a0e87f292",
+     "id": "solairus.living.rent-van-nuys-1bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ヴァンナイズの家賃（1-Bed・Zumper 掲載平均）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-van-nuys",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Van Nuys, Los Angeles, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/los-angeles-ca/van-nuys"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1820
+     },
+     "value_text": {
+      "1bed": "$1,820"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "Van Nuys の掲載物件（2 bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "Van Nuys",
+      "note_ja": "会社と街の対応は既存の拠点の記録 solairus.base.r3na-vny-g700-account（拠点の空港 VNY）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "van-nuys",
+     "company": "solairus",
+     "cond_ja": "ヴァンナイズ。英: Van Nuys。原部屋表記「2 bedroom」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。ヴァンナイズはロサンゼルス市の中の地区で、ヴァンナイズ空港（VNY）が在る。台帳のロサンゼルス（Zumper のロサンゼルス市の値）とは別の行。",
+     "currency": "USD",
+     "district": "ヴァンナイズ",
+     "district_en": "Van Nuys",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / 2 bedroom",
+       "quote": "$2,495",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "80eb2aa6dc2dc0de",
+     "id": "solairus.living.rent-van-nuys-2bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ヴァンナイズの家賃（2-Bed・Zumper 掲載平均）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedroom",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-van-nuys",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Van Nuys, Los Angeles, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/los-angeles-ca/van-nuys"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 2495
+     },
+     "value_text": {
+      "2bed": "$2,495"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "Van Nuys の掲載物件（3 bedroom）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "Van Nuys",
+      "note_ja": "会社と街の対応は既存の拠点の記録 solairus.base.r3na-vny-g700-account（拠点の空港 VNY）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "van-nuys",
+     "company": "solairus",
+     "cond_ja": "ヴァンナイズ。英: Van Nuys。原部屋表記「3 bedroom」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。ヴァンナイズはロサンゼルス市の中の地区で、ヴァンナイズ空港（VNY）が在る。台帳のロサンゼルス（Zumper のロサンゼルス市の値）とは別の行。",
+     "currency": "USD",
+     "district": "ヴァンナイズ",
+     "district_en": "Van Nuys",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / 3 bedroom",
+       "quote": "$3,839",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "eca94d362ae9a6b2",
+     "id": "solairus.living.rent-van-nuys-3bed-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ヴァンナイズの家賃（3-Bed・Zumper 掲載平均）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-van-nuys",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Van Nuys, Los Angeles, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/los-angeles-ca/van-nuys"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 3839
+     },
+     "value_text": {
+      "3bed": "$3,839"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "街の家賃（掲載物件の平均月額）。パイロットの給与・会社の手当ではない。",
+      "population": {
+       "method": "Zumper が掲載物件から出した平均をそのまま写した",
+       "n": null,
+       "period": "直近30日（2026-10-25 更新）",
+       "who": "Van Nuys の掲載物件（Studio）"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": [
+       "光熱費",
+       "駐車場",
+       "敷金"
+      ]
+     },
+     "applies_to": {
+      "base": "Van Nuys",
+      "note_ja": "会社と街の対応は既存の拠点の記録 solairus.base.r3na-vny-g700-account（拠点の空港 VNY）。街の統計で、パイロット向けの資料ではない。乗員がそこに住んでいる・通っているとは言わない。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-25",
+     "city": "van-nuys",
+     "company": "solairus",
+     "cond_ja": "ヴァンナイズ。英: Van Nuys。原部屋表記「Studio」。Zumper の寝室の数ごとの Average rent（掲載物件の直近30日・毎日更新）。募集の額で成約の額ではない。光熱費・駐車場を含むかはページに書いていない。ヴァンナイズはロサンゼルス市の中の地区で、ヴァンナイズ空港（VNY）が在る。台帳のロサンゼルス（Zumper のロサンゼルス市の値）とは別の行。",
+     "currency": "USD",
+     "district": "ヴァンナイズ",
+     "district_en": "Van Nuys",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "直近30日の掲載物件の値（2026-10-25 更新）。対象の始まりの日は書いていない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "Bedroom counts / Average rent / Studio",
+       "quote": "$1,574",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "value"
+       ]
+      },
+      {
+       "locator": "表の下の注",
+       "quote": "Rent prices on this page are calculated on a rolling 30-day basis and updated daily.",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "condition",
+        "period"
+       ]
+      },
+      {
+       "locator": "ページの頭",
+       "quote": "Last updated on October 25, 2026",
+       "source_id": "src-zumper-van-nuys",
+       "supports": [
+        "period"
+       ]
+      }
+     ],
+     "h": "0747508eb4ef0798",
+     "id": "solairus.living.rent-van-nuys-studio-2026-10",
+     "imported_on": "2026-10-26",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "ヴァンナイズの家賃（Studio・Zumper 掲載平均）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261025-rent-others",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Zumper, Inc.",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-25",
+       "source_id": "src-zumper-van-nuys",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Van Nuys, Los Angeles, CA and Rent Price Trends",
+       "updated": "2026-10-25",
+       "url": "https://www.zumper.com/rent-research/los-angeles-ca/van-nuys"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1574
+     },
+     "value_text": {
+      "studio": "$1,574"
      }
     }
    ],
@@ -352812,6 +358418,77 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 1,
    "sha": "sha256:cf219e17e09d0836"
+  },
+  "pvr-20261025-rent-europe": {
+   "records": {
+    "easyjet.living.rent-amsterdam-studio-2026-10": "d078186fb6a05edd",
+    "easyjet.living.rent-belfast-1bed-2026-10": "1474cb913a52cde0",
+    "easyjet.living.rent-belfast-2bed-2026-10": "0474e073c27c059e",
+    "easyjet.living.rent-belfast-3bed-2026-10": "d0930e4b0b4f741e",
+    "easyjet.living.rent-birmingham-1bed-2026-10": "3f31e56e67275608",
+    "easyjet.living.rent-birmingham-2bed-2026-10": "a2963f6217bd33bd",
+    "easyjet.living.rent-birmingham-3bed-2026-10": "6c68f9e1cb0dc9ef",
+    "easyjet.living.rent-bordeaux-studio-2026-10": "e5c4ab74c11efb8d",
+    "easyjet.living.rent-crawley-1bed-2026-10": "fc3a2500e8b33c89",
+    "easyjet.living.rent-crawley-2bed-2026-10": "eb17d98a03828a38",
+    "easyjet.living.rent-crawley-3bed-2026-10": "882d230df2c1ee0c",
+    "easyjet.living.rent-edinburgh-1bed-2026-10": "914459851c8c6a09",
+    "easyjet.living.rent-edinburgh-2bed-2026-10": "f886ac90d58e495b",
+    "easyjet.living.rent-edinburgh-3bed-2026-10": "322816c815d3d5e2",
+    "easyjet.living.rent-glasgow-1bed-2026-10": "f8a22387e7841107",
+    "easyjet.living.rent-glasgow-2bed-2026-10": "9fe88591aeffc6f9",
+    "easyjet.living.rent-glasgow-3bed-2026-10": "ee12c2120267ec53",
+    "easyjet.living.rent-liverpool-1bed-2026-10": "831aa3c9d26b6c6e",
+    "easyjet.living.rent-liverpool-2bed-2026-10": "628bc028743b7933",
+    "easyjet.living.rent-liverpool-3bed-2026-10": "7ba041af3af8fd95",
+    "easyjet.living.rent-malaga-studio-2026-10": "a20938de7121ed72",
+    "easyjet.living.rent-nantes-studio-2026-10": "ffcada4047511723",
+    "easyjet.living.rent-newcastle-upon-tyne-1bed-2026-10": "d515ba5644aa5f0e",
+    "easyjet.living.rent-newcastle-upon-tyne-2bed-2026-10": "d785c1e87d583766",
+    "easyjet.living.rent-newcastle-upon-tyne-3bed-2026-10": "a4cc6b143b83e852",
+    "easyjet.living.rent-nice-studio-2026-10": "25a5a81753a0bd18",
+    "easyjet.living.rent-southend-on-sea-1bed-2026-10": "7fd61e0cc21783eb",
+    "easyjet.living.rent-southend-on-sea-2bed-2026-10": "51d70a749c9dfadc",
+    "easyjet.living.rent-southend-on-sea-3bed-2026-10": "81eff4289e16df70",
+    "eurowings.living.rent-cologne-1bed-2026-10": "4697da12e97977b5",
+    "eurowings.living.rent-cologne-studio-2026-10": "8e53b32bc0214a0c",
+    "eurowings.living.rent-dusseldorf-studio-2026-10": "f16b1fec1961bae2",
+    "eurowings.living.rent-stuttgart-1bed-2026-10": "985f6231730a5f0b",
+    "eurowings.living.rent-stuttgart-studio-2026-10": "fa59db17bad08ef3",
+    "klm.living.rent-amsterdam-studio-2026-10": "2f90ec57306fef78",
+    "sas.living.rent-bergen-studio-2026-10": "dd7124b0e4fc9c04",
+    "sas.living.rent-stockholm-1bed-2026-10": "dd808d317f5446a6",
+    "sas.living.rent-stockholm-2bed-2026-10": "49db8162edbbed65",
+    "sas.living.rent-stockholm-3bed-2026-10": "11e6f3f3e4ff8707",
+    "wizz-air.living.rent-crawley-1bed-2026-10": "c2eebafaf2f38d6d",
+    "wizz-air.living.rent-crawley-2bed-2026-10": "44e43f8254c0713a",
+    "wizz-air.living.rent-crawley-3bed-2026-10": "c41045e97888ede6"
+   },
+   "revision": 1,
+   "sha": "sha256:fd139ea903cc4252"
+  },
+  "pvr-20261025-rent-others": {
+   "records": {
+    "alaska-airlines.living.rent-san-diego-1bed-2026-10": "c9d73f0f6eba2da4",
+    "alaska-airlines.living.rent-san-diego-2bed-2026-10": "96cd252b3367ce32",
+    "alaska-airlines.living.rent-san-diego-3bed-2026-10": "b1e58e67caa9ad61",
+    "alaska-airlines.living.rent-san-diego-studio-2026-10": "7085e994cecdc924",
+    "amx.living.rent-amakusa-3bed-2026-10": "bf3bca13ffcde841",
+    "frontier.living.rent-san-juan-1bed-2026-10": "2835305a4f06da56",
+    "frontier.living.rent-san-juan-2bed-2026-10": "512ba2b4638c1ec8",
+    "frontier.living.rent-san-juan-3bed-2026-10": "b25b670ef779389a",
+    "frontier.living.rent-san-juan-studio-2026-10": "a669df51dacb4222",
+    "solairus.living.rent-van-nuys-1bed-2026-10": "cb876e9a0e87f292",
+    "solairus.living.rent-van-nuys-2bed-2026-10": "80eb2aa6dc2dc0de",
+    "solairus.living.rent-van-nuys-3bed-2026-10": "eca94d362ae9a6b2",
+    "solairus.living.rent-van-nuys-studio-2026-10": "0747508eb4ef0798",
+    "united.living.rent-guam-1bed-2026-10": "a05dd4e1ce4950b0",
+    "united.living.rent-guam-2bed-2026-10": "70146b3b5a02893c",
+    "united.living.rent-guam-3bed-2026-10": "eb20f36fb660d23f",
+    "united.living.rent-guam-studio-2026-10": "dc3e548a04e75ccd"
+   },
+   "revision": 1,
+   "sha": "sha256:cfe0403b1c7a67c0"
   },
   "pvr-city-rent": {
    "records": {

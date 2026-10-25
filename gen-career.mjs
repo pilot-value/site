@@ -66,6 +66,7 @@ import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc,
 import { EN as CO_EN } from './airline-facts.mjs';
 import { EN as LV_EN } from './living-facts.mjs';
 import { QUESTIONS } from './pv-conditions.mjs';
+import { researchCities } from './airline-rollout.mjs';
 import { qrMatrix } from './career-qr.mjs';
 import { curCore, bakeHtml } from './cur-core.mjs';
 
@@ -897,8 +898,9 @@ function rentRow(L, r, [k, l]) {
   if (!c) return '';
   return `<div><dt>${esc(l)}</dt><dd>${c.orig ? `<b class="pv-no-cur">${esc(c.orig)}</b><span>${esc(c.yen)}</span>` : `<b>${esc(c.yen)}</b>`}</dd></div>`;
 }
-/* 前提と出どころ。台帳の前提の鍵は、出し方の決まっているものだけ（知らない鍵が増えたら止まる）。 */
-const RENT_BASIS = ['what', 'period', 'caveat', 'per_month', 'currency', 'cols'];
+/* 前提と出どころ。台帳の前提の鍵は、出し方の決まっているものだけ（知らない鍵が増えたら止まる）。
+   scope ＝ 調べの台帳の街の、数字の範囲の断り（airline-display.mjs の CITY の1行。会社ページの暮らしの板の「出典」と同じ字）。 */
+const RENT_BASIS = ['what', 'period', 'caveat', 'per_month', 'currency', 'cols', 'scope'];
 function rentBasis(slug, L, rents) {
   for (const b of L.basis || []) if (!RENT_BASIS.includes(b.key)) throw new Error(`${slug}: 家賃の前提 ${b.key} の出し方が決まっていない`);
   const by = k => (L.basis || []).find(b => b.key === k)?.value || '';
@@ -907,9 +909,10 @@ function rentBasis(slug, L, rents) {
   else for (const r of rents) if (r.cond && !lines.includes(r.cond)) lines.push(r.cond);
   if (by('caveat')) lines.push(by('caveat'));
   if (by('per_month')) lines.push(by('per_month'));
+  if (by('scope')) lines.push(by('scope'));
   if (!lines.length) throw new Error(`${slug}: 家賃の前提が台帳に1つも無い`);
   const srcs = [];
-  for (const r of rents) if (!srcs.some(o => o.url === r.src.url)) srcs.push({ url: r.src.url, name: r.src.name, when: r.when });
+  for (const r of rents) if (!srcs.some(o => o.url === r.src.url)) srcs.push({ url: r.src.url, name: r.src.name, when: rentWhen(slug, L, r) });
   return `${lines.map(t => `<p>${esc(t)}</p>`).join('\n')}${L.cur === 'JPY' ? '' : `
 <p class="cr-fx pv-no-cur">${esc(fxNote(L.cur, LANG))}</p>`}
 <ul class="cr-srcs pv-no-cur">
@@ -949,24 +952,29 @@ ${placeCredits(shots.filter(([, p]) => p).map(([r, p]) => [r.name, p]))}
    2026-10-19 P12.65「エバー航空の事業所がある」→「EVA Airの事業所がある」）。箱の見出しの社名は見出しなので変えない。
    ⚠️ 2つの街を1つの表・1つの目盛に並べない（物差しが街ごとに違う）。箱の中に その街の物差し・出どころ・時点 を持つ。 */
 function rentBox(slug, shown) {
-  const L = living(slug);
+  const L = rentLiving(slug);
   const lead = L.rents.filter(r => r.lead);
   if (lead.length !== 1) throw new Error(`${slug}: 家賃の先頭の地域が${lead.length}つ（1つに決まらない）`);
   const r = lead[0];
   const rows = L.cols.map(c => rentRow(L, r, c)).filter(Boolean);
   if (!rows.length) throw new Error(`${slug}: 先頭の地域に家賃が1つも無い`);
+  const at = rentWhen(slug, L, r);
+  if (!at) throw new Error(`${slug}: 家賃の箱に時点が無い（${L.city}）`);
+  /* 調べの台帳の街は、地域の名前 ＝ 街の名前（見出しの横にもう出ている）── 同じ名前を2度言わない。
+     「ほかの街」は、会社ページの暮らしのタブにこの箱の街のほかの街が在る会社だけ（地域が2つ以上・拠点の街が2つ以上）。 */
+  const v = vw(slug), more = L.rents.length > 1 || (v.livings || []).length > 1;
   return `<article class="cr-rentb" data-airline="${slug}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}>
 <h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}<span>${esc(L.city)}</span></h3>
-<p class="cr-rentb-k"><span class="cr-tag">${esc(L.measure)}</span> ${esc(r.label)}${r.pick ? `<small>${esc(coText(slug, r.pick, LANG))}</small>` : ''}</p>
+<p class="cr-rentb-k"><span class="cr-tag">${esc(L.measure)}</span>${r.label === L.city ? '' : ` ${esc(r.label)}`}${r.pick ? `<small>${esc(coText(slug, r.pick, LANG))}</small>` : ''}</p>
 <dl class="cr-rent cr-rentb-l">
 ${rows.join('\n')}
 </dl>
-<p class="cr-rentb-s pv-no-cur">${esc(r.src.name)}<span>${esc(r.when)}</span></p>
+<p class="cr-rentb-s pv-no-cur">${esc(r.src.name)}<span>${esc(at)}</span></p>
 <details class="cr-more">
 <summary>${W.basis}</summary>
 ${rentBasis(slug, L, [r])}
 </details>
-${L.rents.length > 1 ? `<p class="cr-else cr-rentb-go"><a class="cr-link" href="${href.page(slug, 'life')}">${W.moreTowns}${IC.go}</a></p>` : ''}
+${more ? `<p class="cr-else cr-rentb-go"><a class="cr-link" href="${href.page(slug, 'life')}">${W.moreTowns}${IC.go}</a></p>` : ''}
 </article>`;
 }
 
@@ -975,27 +983,45 @@ ${L.rents.length > 1 ? `<p class="cr-else cr-rentb-go"><a class="cr-link" href="
    会社ページに家賃の額が在る会社（調べの台帳の街・1週あたり …… 比較の箱の決まりに合わないだけ）は data-held に並べる ＝ その会社には出さない
    （資料が在るのに「確認できていません」と言わない）。 */
 function rentNoneBox() {
-  const held = ALL.filter(s => !rentable(s) && (vw(s).living?.rents || []).some(r => Object.keys(r.value || {}).length));
+  const held = ALL.filter(s => !rentable(s) && livingsOf(s).some(L => (L.rents || []).some(r => Object.keys(r.value || {}).length)));
   return `<article class="cr-rentn" data-held="${held.join(' ')}" hidden>
 <h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i><b class="cr-rentn-n"></b></h3>
 <p class="cr-rentn-t">${W.rentNone}</p>
 </article>`;
 }
 
-/* 比較に家賃の箱を置ける会社 ＝ 会社ページと同じ読み口（viewOf().living）が、箱の決まりどおりの1か月あたりの家賃を持つ会社。
-   先行5社は今までどおり必ず置く（置けなければ rentBox が止まる）。ほかの会社は、決まりに合わない（調べの台帳の街 ── この箱は
-   「過去」「参考」の札を出さない／1週あたり／先頭の地域が1つに決まらない／前提の1行が無い …）なら箱を置かない ──
-   空の箱・「準備中」・断りの1行を比較に置かない。下の条件は living()・rentBox()・rentBasis() の止まる条件を問いの形にしたもの。 */
-function rentable(slug) {
-  if (FIVE.includes(slug)) return true;
-  const L = vw(slug).living;
-  if (!L || L.research || L.per !== 'month' || !L.measure || !L.city || !(L.rents || []).length) return false;
+/* 比較に家賃の箱を置ける会社 ＝ 会社ページと同じ読み口（viewOf() の暮らし）が、箱の決まりどおりの1か月あたりの家賃を持つ会社。
+   先行5社は今までどおり必ず置く（置けなければ rentBox が止まる）。ほかの会社は、決まりに合わない（1週あたり／先頭の地域が1つに
+   決まらない／前提の1行が無い／時点が無い …）なら箱を置かない ── 空の箱・「準備中」・断りの1行を比較に置かない。
+   ★2026-10-26 段階5 compare-all-15（P12.123）：調べの台帳の街も読む。箱に出す街は、会社ページの暮らしのタブと同じ並び（拠点の順）の
+     うち、決まりに合ういちばん上の街（いちばん上の拠点の街に家賃の資料が無い会社は、次の拠点の街）。調べの台帳の街の字は
+     airline-display.mjs の CITY に書いた街だけ ── この箱は「過去」「参考」「募集」の札を出さないので、そういう行の街には CITY を書かない
+     （assert-career.mjs が台帳の行の使い方を見る）。下の条件は living()・rentBox()・rentBasis() の止まる条件を問いの形にしたもの。 */
+const livingsOf = s => { const v = vw(s); return (v.livings && v.livings.length ? v.livings : [v.living]).filter(Boolean); };
+function boxable(slug, L) {
+  if (!L || L.per !== 'month' || !L.measure || !L.city || !(L.rents || []).length) return false;
   if ((L.basis || []).some(b => !RENT_BASIS.includes(b.key))) return false;
-  for (const x of L.rents) if (!x.name || (Object.keys(x.value || {}).length && (!x.when || !x.src?.url || !x.src?.name))) return false;
+  for (const x of L.rents) if (!x.name || (Object.keys(x.value || {}).length && (!rentWhen(slug, L, x) || !x.src?.url || !x.src?.name))) return false;
   const lead = L.rents.filter(x => x.lead);
   if (lead.length !== 1 || !L.cols.some(([k]) => rentCell(L.cur, lead[0].value[k]))) return false;
   const by = k => (L.basis || []).find(b => b.key === k)?.value || '';
-  return !!(by('what') || lead[0].cond || by('caveat') || by('per_month'));
+  return !!(by('what') || lead[0].cond || by('caveat') || by('per_month') || by('scope'));
+}
+function rentLiving(slug) {
+  if (FIVE.includes(slug)) return living(slug);
+  const L = livingsOf(slug).find(x => boxable(slug, x));
+  if (!L) throw new Error(`${slug}: 比較の家賃の箱に置ける街が無い`);
+  return L;
+}
+const rentable = slug => FIVE.includes(slug) || livingsOf(slug).some(L => boxable(slug, L));
+/* 家賃の時点。台帳の行の対象の期間（読み口の when）。調べの台帳の街で、資料に対象の期間が書いていない行は、資料を開いた日
+   （「…に開いた時点の表示」── living-facts.mjs の決まり「ページに日付が無いものは、開いた時点の表示」と同じ字）。開いた日の無い行は ''。 */
+function rentWhen(slug, L, r) {
+  if (r.when || !L.research) return r.when || '';
+  const c = researchCities(slug, L.airports.map(a => a.iata)).find(x => x.city === L.cityKey);
+  const day = c && c.rents.length ? ((c.rents[0].r.src || [])[0] || {}).retrieved : '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day || '')) return '';
+  return EN() ? `as shown when opened on ${atTextEn(day)}` : `${atText(day)}に開いた時点の表示`;
 }
 
 function deep(slug) {

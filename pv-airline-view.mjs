@@ -708,11 +708,11 @@ function researchCityLiving(slug, c, lang = 'ja') {
   /* 英語：街の名前は英語の名前（名前の下の1行は書かない ── 同じ名前を2度言わない） */
   const town = {
     key: c.city, name: en ? C.en : C.ja, sub: en ? '' : C.en, en: en ? '' : C.en, area: '', label: en ? C.en : C.ja,
-    iata: C.iata, pick: '', pickSrc: null, value, when: priced ? periodText(first.r, lang) : '',
+    iata: c.iata, pick: '', pickSrc: null, value, when: priced ? periodText(first.r, lang) : '',
     src: priced ? { name: first.src.name, url: first.src.url, kind: first.src.kind } : null, cond: '', quote: '', lead: true, way: null,
   };
   const commute = c.commute.map(({ r, d, src }, i) => ({
-    key: r.id, town: '', iata: C.iata, end: '', mode: d.mode || 'train', modes: [d.mode || 'train'], via: 'operator', line: '', from: '', to: '',
+    key: r.id, town: '', iata: c.iata, end: '', mode: d.mode || 'train', modes: [d.mode || 'train'], via: 'operator', line: '', from: '', to: '',
     kind: null, mins: null, ride: null, warn: '', label: d.label, value: d.value, orig: false, yen: '', cond: d.cond || '', when: '',
     src: { name: src.name, url: src.url, kind: src.kind }, checked: r.checked_at || '', pilot: true, fare: false, day: '', card: false, lead: i === 0,
   }));
@@ -721,7 +721,8 @@ function researchCityLiving(slug, c, lang = 'ja') {
     measure: priced ? (en ? cityEn(C, 'measure') : C.measure || '') : '',
     site: priced ? c.city : '', siteName: priced ? (en ? cityEn(C, 'site') : C.site || '') : '', stat: priced ? (first.r.amount || {}).stat || '' : '',
     cols, bars: [], words: {}, leadCol: cols.length ? cols[0][0] : '', beside: '', byTown: false, cardFamily: '',
-    airports: [{ iata: C.iata, to: en ? cityEn(C, 'airport') : C.airport }], ends: [], rents: [town], estates: [],
+    /* ★2026-10-26 段階5 compare-all-15：空港は、その会社の拠点の空港（c.iata ── 字の表の also の空港のときは、空港の呼び名の表 PLACES の名前） */
+    airports: [{ iata: c.iata, to: c.iata !== C.iata ? PLACES[c.iata][en ? 1 : 0] : en ? cityEn(C, 'airport') : C.airport }], ends: [], rents: [town], estates: [],
     basis: priced && C.scope ? [{ key: 'scope', value: en ? cityEn(C, 'scope') : C.scope }] : [], refs: [], commute, research: true,
   }, [], {});
 }
