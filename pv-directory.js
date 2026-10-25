@@ -257,11 +257,12 @@
     var qs = p.toString();
     return w.location.pathname + (qs ? '?' + qs : '') + w.location.hash;
   }
-  /* 地図の全画面（WP-dmap-9）と「会社を追加」の板（WP-dmap-10）が積んだ1段には wamfs・wdadd の印が在る。その段の上で書き直しても印を落とさない
-     （落とすと、開いたまま読み直した時に、その段が自分の段だと分からなくなる ＝ 開き直すたびに1段ずつ積み増す） */
+  /* 「会社を追加」の板（WP-dmap-10）が積んだ1段には wdadd の印が在る。その段の上で書き直しても印を落とさない
+     （落とすと、開いたまま読み直した時に、その段が自分の段だと分からなくなる ＝ 開き直すたびに1段ずつ積み増す）。
+     地図の全画面（WP-dmap-9）が積んでいた段は、WP-dmap-11 で全画面ごと外した（ページそのものが地図の画面） */
   function hs() {
     var s = { wd: 1, y: Math.round(w.scrollY || w.pageYOffset || 0), cmp: cmp.slice() };
-    try { var h = w.history.state; if (h && h.wamfs) s.wamfs = 1; if (h && h.wdadd) s.wdadd = 1; } catch (e) {}
+    try { var h = w.history.state; if (h && h.wdadd) s.wdadd = 1; } catch (e) {}
     return s;
   }
   /* 比べる社を書く ＝ 住所の cmp だけ（同じなら住所は触らない）と history.state */
@@ -496,7 +497,7 @@
     changed();
     try { AQ.focus({ preventScroll: true }); } catch (e) { AQ.focus(); }
   }
-  /* 狭い画面の「＋ 会社を追加」＝ 下から出る板（地図の全画面と同じ決まり：履歴は1段だけ・読み直しで残った段は使い回す・閉じる・Esc は自分で1回戻す ──
+  /* 狭い画面の「＋ 会社を追加」＝ 下から出る板（WP-dmap-9 の地図の全画面 ── WP-dmap-11 で外した ── と同じ決まり：履歴は1段だけ・読み直しで残った段は使い回す・閉じる・Esc は自分で1回戻す ──
      旗 backing を先に立てるので、戻った知らせはリストを古い段の cmp に戻さない） */
   function openAdd() {
     if (!TRAY || !AQ) return;
@@ -771,11 +772,16 @@
 /* ── 地図と地域のまとめ（directory-map）。金額を持たない・通信しない・保存しない・時計を使わない。 ── */
 /* 見せる地域 ＝ 指している（マウス）?? 選びかけ（キーボードのフォーカス・地図に指で触れた）?? 選んだ地域（一覧の地域 ＝ 'wd:change'）。
    カードは動かない（9枚を1つの升に重ねてある）。カードの中にフォーカスがある・「条件/出典」が開いているあいだは入れ替えない。
-   狭い画面のカードは、選んだ時（と地図に指で触れた時 ── WP-dmap-4）に開き、そのあと閉じない（is-open は足すだけ）。
+   狭い画面のカードは、選んだ時（と地図に指で触れた時 ── WP-dmap-4）に開く。WP-dmap-11 の直しから、開いたカードは地図の下の部分に重なる板
+   （区域 1000px 未満・pv-directory.css）で、読む人が閉じられる（板の × ・Esc）── 閉じたら、次に地図に触れるか地域を選ぶまで開かない。
+   ページを開いた時は、住所に地域があっても開かない（最初の1画面は世界全体 ── リードの追記。選んだ地域は光と切り替えの右の1〜2行で見える）。
+   ほかに is-open を外すものは無い（D27：選び直しても・「すべて」へ戻しても開いたまま）。
    ボタンを指・マウスで押して選んだら、結果の見出しを画面に入れる（キーボードで押したときはページを動かさない）。
    「機長｜副操縦士」の切り替え（P12.100）は区域の data-pos だけを書く（履歴にも保存領域にも書かない）。
    地図（.wam-svg）：マウスで指すと見せる・押すと選ぶ（もう1回で外れる）。指で触れると見せるだけで、「この地域の航空会社を見る」が選ぶ（WP-dmap-4）。
-   地図は動かせる（WP-dmap-9：拡大・移動・全画面）。動かした・ピンチした指やマウスは選ばない。全画面では押すと見せるだけ（選ぶのはボタン）。 */
+   地図は動かせる（WP-dmap-9：拡大・移動）。動かした・ピンチした指やマウスは選ばない。
+   WP-dmap-11（オーナー「最初にもう地図どん。windy みたいに」）：地図が最初の1画面を埋める（見た目は pv-directory.css の wam-stage）。
+   ページそのものが地図の画面なので、WP-dmap-9 の全画面は外した。 */
 (function (w, d) {
   'use strict';
   var sec = d.getElementById('wa-map-sec'); if (!sec) return;          // 古いページ＋新しい台本：何もしない
@@ -784,10 +790,11 @@
   var strip = d.getElementById('region-strip'), svg = sec.querySelector('.wam-svg'), root = d.documentElement;
   var each = Array.prototype.forEach, list = Array.prototype.slice;
   var panels = list.call(card.querySelectorAll('.wam-panel'));
-  var st = { committed: 'all', hover: null, pick: null, tap: false, key: false, q: false, via: '', press: false };
+  var st = { committed: 'all', hover: null, pick: null, tap: false, key: false, q: false, via: '', press: false, shut: true };
+  var sx = card.querySelector('.wam-sx'), mapEl = d.getElementById('wa-map');            // the sheet's close button (WP-dmap-11 repair)
   /* 動かせる地図（WP-dmap-9）：倍率 k・ずらし x y（箱の単位）・枠のまんなかの地図の点 q・動かしたか moved・つかんでいる drag・指 pin・
-     全画面の1段を積んだか owned・全画面を閉じてから選ぶ地域 after・指の一言を出したか hinted */
-  var Z = { k: 1, x: 0, y: 0, q: null, moved: false, drag: null, pin: null, owned: false, after: null, hinted: false };
+     指の一言を出したか hinted */
+  var Z = { k: 1, x: 0, y: 0, q: null, moved: false, drag: null, pin: null, hinted: false };
   var reduce = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion:reduce)').matches);
   function known(c) { return !!c && !!d.getElementById('wam-p-' + c); }                 // (code) -> boolean
   function codeOf(el) {                                                                 // (Element) -> code | null: region controls only
@@ -809,14 +816,34 @@
     marks().forEach(function (n) { var c = n.getAttribute('data-region');               // the lights always follow the pointing
       n.classList.toggle('is-on', c !== 'all' && c === st.committed);
       n.classList.toggle('is-hot', c !== 'all' && c === p && c !== st.committed); });
-    if (st.tap || st.committed !== 'all') sec.classList.add('is-open');                 // D27: a tap or a selection; never removed; focus / hover never open
+    if (!st.shut && (st.tap || st.committed !== 'all')) open();                        // D27: a tap or a selection; focus / hover never open; only the reader's close (shut) removes it
     if (!force && held()) return;                                                       // the card itself is held (D13)
     panels.forEach(function (x) { x.classList.toggle('is-shown', x.getAttribute('data-region') === p); });
     go.classList.toggle('is-off', !(st.tap && st.pick === p && p !== st.committed));
-    var pe = d.getElementById('wam-p-' + p);                                            // N3: a region only while ITS panel has a box
-    if (p === 'all' || !pe || !pe.getClientRects().length) mount.removeAttribute('data-rp-region');   // (a closed card on a phone shows only すべて ── WP-dmap-8)
+    var pe = d.getElementById('wam-p-' + p), whole = pe ? pe.querySelector('.wam-def') : null;   // N3: a region only while ITS panel is shown whole
+    if (p === 'all' || !whole || !whole.getClientRects().length) mount.removeAttribute('data-rp-region');   // (a closed card shows only its 1-2 line summary ── WP-dmap-8 / -11)
     else if (mount.getAttribute('data-rp-region') !== p) mount.setAttribute('data-rp-region', p);
     mend();
+  }
+  function open() { sec.classList.add('is-open'); }                                    // the narrow card becomes the sheet (pv-directory.css); the map frame does not move
+  function sheet() { return !!sx && sx.getClientRects().length > 0; }                  // -> boolean: the card is the sheet (its × is drawn only there)
+  /* 閉じる（板の × ・Esc）。次に地図に触れるか地域を選ぶまで開かない。キーで閉じた時にフォーカスが板の中なら地図へ（隠れた所に残さない）。
+     マウス・指で閉じた時は地図へ移さない（地図にフォーカスがあるとホイールが拡大になる）── 押したボタンからフォーカスを外すだけ */
+  function shut(viaKey) {
+    var a = d.activeElement, inCard = !!a && card.contains(a);
+    st.shut = true; st.tap = false; st.pick = null; st.key = false; closeFolds();
+    sec.classList.remove('is-open');
+    render(true);
+    if (inCard) { if (viaKey && mapEl) mapEl.focus({ preventScroll: true }); else if (a.blur) a.blur(); }
+  }
+  if (sx) {
+    sx.addEventListener('click', function (e) { shut(e.detail === 0); });                // detail 0 = Enter / Space
+    d.addEventListener('keydown', function (e) {                                        // Esc closes the sheet (the search field and the compare list keep their own Esc)
+      if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing || !sheet()) return;
+      var a = d.activeElement;
+      if (a && a !== d.body && !sec.contains(a) && !(strip && strip.contains(a))) return;
+      e.preventDefault(); shut(true);
+    });
   }
   function reveal() {                                                                   // the result heading into view, once
     var h = d.getElementById('wd-rh'); if (!h) return;
@@ -829,7 +856,7 @@
     var c = e.detail && e.detail.region; c = known(c) ? c : 'all';
     var q = root.classList.contains('wd-q'), back = st.q && !q; st.q = q;               // back = the section is displayed again
     var moved = c !== st.committed, was = sec.classList.contains('is-open');
-    if (moved) { st.committed = c; st.pick = null; st.tap = false; closeFolds(); }
+    if (moved) { st.committed = c; st.pick = null; st.tap = false; st.shut = false; closeFolds(); }
     render(moved || back);
     var a = d.activeElement;                                                            // D26 (e): a card that just opened above a focused button keeps it in view
     if (!was && sec.classList.contains('is-open') && a && strip && strip.contains(a)) a.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'auto' });
@@ -882,8 +909,8 @@
     svg.addEventListener('pointerover', over); svg.addEventListener('pointerleave', out);
     svg.addEventListener('click', function (e) {
       var c = codeOf(e.target); if (!c || Z.moved) return;                              // WP-dmap-9: a drag or a pinch never selects
-      if (st.via === 'touch' || st.via === 'pen' || isFs()) {                          // 3d: a tap shows, the button selects (full screen: any press)
-        closeFolds(); st.hover = null; st.pick = c; st.tap = true; render(true);
+      if (st.via === 'touch' || st.via === 'pen') {                                    // 3d: a tap shows, the button selects
+        closeFolds(); st.hover = null; st.pick = c; st.tap = true; st.shut = false; render(true);
         if (card.getBoundingClientRect().bottom > w.innerHeight) card.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'smooth' });
         return;
       }
@@ -891,32 +918,36 @@
     });
     go.addEventListener('click', function () {
       var c = st.pick; if (!c) return;
-      if (isFs()) { Z.after = c; fsClose(); return; }                                  // full screen closes first; then the region is chosen on the page's own step
       toHeading(); choose(c);
     });
     /* ── 動かせる地図（WP-dmap-9・オーナー「地図はスマホで見ると小さいし、地図自体を自分で動かせるようにしたい（windy みたいに）」）──
        地図の層（点・当たり・光る層）は1つの <g class="wam-z"> の中。動くのはその transform（translate ＋ scale・箱の単位）だけ。
-       倍率は 1〜6。動かした地図は枠を空けない（枠より大きい向きは縁まで・小さい向きはまんなか）。
+       倍率は 1〜6。動かした地図は、世界全体（1倍）の時の海の余白より広い縁を見せない ── 余白は倍率とともに減り、6倍では枠に縁を空けない
+       （WP-dmap-11 の fit。前は「枠より大きい向きは縁まで・小さい向きはまんなか」で、枠が世界より縦に長くなると指の下から地図がずれた）。
        マウス：つかんで動かす・ホイールは地図を押したあと（フォーカスが地図に在るあいだ）だけ ── ページのスクロールを奪わない
        （ctrl ＋ ホイール ＝ トラックパッドのピンチは、いつも地図）。
-       指：ページの中では2本の指（ピンチ・移動）。1本の指はページのスクロールのまま（最初の1回だけ、2本の指で動かせると言う）。
-       全画面では1本の指で動かす。押す ＝ 動かさずに離した時だけ（動かした・ピンチした指やマウスは選ばない）。
-       キー（地図かそのボタンにフォーカス）：+ − 矢印 0。
-       全画面：同じ地図（写しを作らない）が画面いっぱい。履歴を1段だけ積む（もう1回開いても積み増さない）。閉じる・Esc・戻るで閉じる。
-       全画面で地図を押すと、その地域のカードを見せる。選ぶのは「この地域の航空会社を見る」── 全画面を閉じてから選ぶ
-       （選んだ地域を全画面の段に書くと、閉じた時に消える）。時計・保存領域・通信は使わない。見た目は pv-directory.css */
+       指（WP-dmap-11 の決まり ── ページに閉じ込めない windy の形）：2本の指はいつも地図（ピンチ・移動）。1本の指は、1倍（世界が丸ごと見えていて
+       動かす先が無い）のあいだはページのスクロール（最初の1回だけ、2本の指で動かせると言う）・拡大しているあいだは地図を動かす
+       （CSS が .is-z の枠を touch-action:none にする）。そのあいだページは、地図の上下の帯（検索・切り替えの行・凡例・地域のボタン・結果の数）を
+       1本の指でなぞればスクロールする。元に戻す（1倍）でいつでもページの指へ戻る。
+       押す ＝ 動かさずに離した時だけ（動かした・ピンチした指やマウスは選ばない）。
+       キー（地図かそのボタンにフォーカス）：+ − 矢印 0。時計・保存領域・通信は使わない。見た目は pv-directory.css */
     var frame = d.getElementById('wa-map'), zg = svg.querySelector('.wam-z');
-    var zc = frame ? frame.querySelector('.wam-zc') : null, zx = frame ? frame.querySelector('.wam-zx') : null, zh = frame ? frame.querySelector('.wam-zh') : null;
+    var zc = frame ? frame.querySelector('.wam-zc') : null, zh = frame ? frame.querySelector('.wam-zh') : null;
     var zb = {}, ZMAX = 6, ZSTEP = 2;
     if (zc) each.call(zc.querySelectorAll('.wam-zb'), function (b) { zb[b.getAttribute('data-z')] = b; });
-    function isFs() { return sec.classList.contains('is-fs'); }
     function geo() {                                                                    // -> what the frame shows, in the map's units
       var b = svg.getBoundingClientRect(), v = svg.viewBox.baseVal;
       var s = Math.min(b.width / v.width, b.height / v.height) || 1, W = b.width / s, H = b.height / s;
       return { b: b, v: v, s: s, W: W, H: H, x0: v.x - (W - v.width) / 2, y0: v.y - (H - v.height) / 2 };
     }
-    function fit(t, k, a, len, a0, W) {                                                 // one axis: no empty edge; smaller than the frame = centred
-      return k * len <= W ? a0 + (W - k * len) / 2 - k * a : Math.min(a0 - k * a, Math.max(a0 + W - k * len - k * a, t));
+    /* one axis. WP-dmap-11: the frame now fills the screen, so on one axis it is longer than the world (at 1x the world sits in the middle
+       with a calm margin m0 of sea on both sides). An edge may show at most m = m0 x (6 - k) / 5 of that margin: the whole margin at 1x
+       (= centred), none at 6x (= no empty edge, as WP-dmap-9). Without it, a zoom near the world's top edge pulled the map away from under
+       the pointer / the fingers (centred until the map outgrew the frame, then pushed to the edge). */
+    function fit(t, k, a, len, a0, W) {                                                 // -> shift; the map never shows more empty edge than m
+      var m = Math.max(0, (W - len) / 2) * Math.max(0, (ZMAX - k) / (ZMAX - 1)), lo = a0 + W - k * len - m - k * a, hi = a0 + m - k * a;
+      return lo >= hi ? a0 + (W - k * len) / 2 - k * a : Math.min(hi, Math.max(lo, t));
     }
     function r4(v) { return Math.round(v * 1e4) / 1e4; }                              // 4 places: a scale cut to 2 places moved the point under the pointer (2 units at 2x)
     function put(k, x, y, glide, G) {                                                   // (scale, shift x, y) -> void; clamps, then writes the one transform
@@ -943,50 +974,18 @@
     }
     function zoomMid(f) { var b = svg.getBoundingClientRect(); zoomAt(Z.k * f, b.left + b.width / 2, b.top + b.height / 2, true); }
     function restore() { if (!Z.q) return; var G = geo(); put(Z.k, G.x0 + G.W / 2 - Z.k * Z.q[0], G.y0 + G.H / 2 - Z.k * Z.q[1], false, G); }
-    function hint() {                                                                   // once per page, on touch only, in the page only
-      if (!zh || Z.hinted || isFs()) return;
+    function hint() {                                                                   // once per page, on touch only
+      if (!zh || Z.hinted) return;
       Z.hinted = true; zh.hidden = false; zh.classList.add('is-on');
     }
-    /* 全画面（履歴は1段だけ。閉じる・Esc は自分で1回戻す ── 旗を先に落とすので、戻った知らせは何もしない） */
-    function later() { var c = Z.after; Z.after = null; if (c) { toHeading(); choose(c); } }
-    function fsOpen() {
-      if (isFs()) return;
-      try {
-        var s0 = w.history.state;
-        if (s0 && s0.wamfs) Z.owned = true;                                             // the step a reload left behind: use it (never two)
-        else {
-          if (s0 && s0.wd) w.history.replaceState(Object.assign({}, s0, { y: Math.round(w.pageYOffset || 0) }), '', w.location.href);
-          w.history.pushState(Object.assign({}, w.history.state, { wamfs: 1 }), '', w.location.href);
-          Z.owned = true;
-        }
-      } catch (x) { Z.owned = false; }
-      sec.classList.add('is-fs'); root.classList.add('wam-lock');
-      sec.setAttribute('role', 'dialog'); sec.setAttribute('aria-modal', 'true'); sec.setAttribute('aria-label', zb.fs.getAttribute('aria-label') || '');
-      zb.fs.hidden = true; if (zx) zx.hidden = false;
-      restore();
-      frame.focus({ preventScroll: true });
-    }
-    function fsClose() {
-      if (!isFs()) return;
-      sec.classList.remove('is-fs'); root.classList.remove('wam-lock');
-      sec.removeAttribute('role'); sec.removeAttribute('aria-modal'); sec.removeAttribute('aria-label');
-      zb.fs.hidden = false; if (zx) zx.hidden = true;
-      if (!Z.after && st.pick !== null) { st.pick = null; st.tap = false; render(true); }   // a region only looked at in full screen stays there: the page shows what it chose
-      restore();
-      if (!Z.after) zb.fs.focus({ preventScroll: true });
-      if (Z.owned) { Z.owned = false; try { w.history.back(); return; } catch (x) {} }
-      later();
-    }
-    if (frame && zg && zc && zb.fs && zb['in'] && zb.out && zb.reset) {
+    if (frame && zg && zc && zb['in'] && zb.out && zb.reset) {
       frame.setAttribute('tabindex', '-1');                                            // a press on the map gives it the focus (keys, wheel); Tab never stops here
       zc.hidden = false;
-      try { if (w.history.state && w.history.state.wamfs) Z.owned = true; } catch (x) {}
+      if (sx) sx.hidden = false;                                                       // the sheet exists only with the moving map (pv-directory.css wam-stage)
       put(1, 0, 0, false);
       zb['in'].addEventListener('click', function () { zoomMid(ZSTEP); });
       zb.out.addEventListener('click', function () { zoomMid(1 / ZSTEP); });
       zb.reset.addEventListener('click', function () { put(1, 0, 0, true); });
-      zb.fs.addEventListener('click', fsOpen);
-      if (zx) zx.addEventListener('click', fsClose);
       if (zh) zh.addEventListener('animationend', function () { zh.classList.remove('is-on'); zh.hidden = true; });
       /* マウス：つかんで動かす（4px 動くまでは押しただけ ＝ 離せば選ぶ） */
       frame.addEventListener('pointerdown', function (e) {
@@ -1007,7 +1006,7 @@
       });
       function dragEnd(e) { if (Z.drag && e.pointerId === Z.drag.id) { Z.drag = null; frame.classList.remove('is-drag'); } }
       w.addEventListener('pointerup', dragEnd); w.addEventListener('pointercancel', dragEnd);
-      /* 指：ページの中は2本の指だけ・全画面は1本でも */
+      /* 指：2本の指はいつも地図・1本の指は拡大しているあいだだけ地図（1倍はページのスクロール） */
       var two = function (e) { return [e.touches[0], e.touches[1]]; };
       var pinch = function (t) {
         var G = geo(), m = toMap(G, (t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2);
@@ -1018,7 +1017,7 @@
         if (e.target.closest && e.target.closest('button')) { Z.pin = null; return; }
         if (e.touches.length === 1) Z.moved = false;
         if (e.touches.length >= 2) { Z.moved = true; pinch(two(e)); }
-        else pan(e.touches[0], !isFs());
+        else pan(e.touches[0], Z.k <= 1);                                              // 1x: only look (the page scrolls)
       }, { passive: true });
       frame.addEventListener('touchmove', function (e) {
         var p = Z.pin; if (!p) return;
@@ -1040,13 +1039,13 @@
       }, { passive: false });
       frame.addEventListener('touchend', function (e) {
         if (e.touches.length >= 2) pinch(two(e));
-        else if (e.touches.length === 1 && isFs()) pan(e.touches[0], false);         // one finger left in full screen: it moves on from here
-        else Z.pin = null;                                                              // in the page, the page takes the finger that stays
+        else if (e.touches.length === 1 && Z.k > 1) pan(e.touches[0], false);         // one finger left while zoomed: it moves on from here
+        else Z.pin = null;                                                              // at 1x the page takes the finger that stays
       });
       frame.addEventListener('touchcancel', function () { Z.pin = null; });
-      /* ホイール：全画面・ctrl（ピンチ）・地図にフォーカスが在る時だけ。ほかはページのスクロールのまま */
+      /* ホイール：ctrl（ピンチ）・地図にフォーカスが在る時だけ。ほかはページのスクロールのまま */
       frame.addEventListener('wheel', function (e) {
-        if (!(isFs() || e.ctrlKey || frame.contains(d.activeElement))) return;
+        if (!(e.ctrlKey || frame.contains(d.activeElement))) return;
         e.preventDefault();
         var dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? svg.getBoundingClientRect().height : 1);
         zoomAt(Z.k * Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.002)), e.clientX, e.clientY, false);
@@ -1061,21 +1060,6 @@
         else if (a && Z.k > 1) { var G = geo(); put(Z.k, Z.x + a[0] * G.W * 0.15, Z.y + a[1] * G.H * 0.15, true, G); }
         else return;
         e.preventDefault();
-      });
-      /* 全画面のあいだ：Esc で閉じる・Tab は面の中を回る */
-      d.addEventListener('keydown', function (e) {
-        if (!isFs()) return;
-        if (e.key === 'Escape') { e.preventDefault(); fsClose(); return; }
-        if (e.key !== 'Tab') return;
-        var f = list.call(sec.querySelectorAll('button,summary,a[href]')).filter(seen), i = f.indexOf(d.activeElement);
-        if (!f.length) return;
-        if (e.shiftKey ? i <= 0 : (i < 0 || i === f.length - 1)) { e.preventDefault(); f[e.shiftKey ? f.length - 1 : 0].focus(); }
-      });
-      w.addEventListener('popstate', function (e) {                                     // Back: closes full screen; a step it left is reused
-        var fs = !!(e.state && e.state.wamfs);
-        if (fs && !isFs()) { Z.owned = true; return; }
-        if (!fs && isFs()) { Z.owned = false; fsClose(); }
-        if (!fs) later();
       });
       if (w.ResizeObserver) new w.ResizeObserver(function () { if (Z.k > 1) restore(); }).observe(frame);
     }

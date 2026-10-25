@@ -54,7 +54,7 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="../pv-tokens.css">
-<link rel="stylesheet" href="../pv-directory.css?v=ee0ba4e6">
+<link rel="stylesheet" href="../pv-directory.css?v=c4d2eba4">
 <noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -111,10 +111,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] ::-webkit-scrollbar-track{background:#f3f5f8}
 [data-theme="light"] ::-webkit-scrollbar-thumb{background:#c4cfdf}
 [data-theme="light"] .glass{background:rgba(255,255,255,.9)!important;border-color:rgba(0,0,0,.08)!important}
-/* Hero section */
-[data-theme="light"] #wa-hero{background:linear-gradient(180deg,#eef2f8 0%,#f3f5f8 70%)!important}
-[data-theme="light"] #wa-hero h1{background:linear-gradient(135deg,#0f172a 30%,#b5920a)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
-[data-theme="light"] #wa-hero .badge-pill{background:rgba(180,150,0,.1)!important;border-color:rgba(180,150,0,.25)!important;color:#a07800!important}
+/* Hero section: in WP-dmap-11 the hero became the search band over the map (its look is pv-directory.css's wam-stage block) */
 /* Airline cards */
 /* Card text */
 /* Tags */
@@ -240,13 +237,15 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   </div>
 </nav>
 
-<!-- ── HERO ───────────────────────────────────────────────────────── -->
-<div id="wa-hero" style="padding:110px 0 16px;background:linear-gradient(180deg,rgba(61,155,255,.05) 0%,transparent 70%);position:relative;overflow:hidden">
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(245,200,66,.04) 0%,transparent 70%);pointer-events:none"></div>
-  <div class="max-w-7xl mx-auto px-5 text-center relative">
-    <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);color:#f5c842;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">🌍 WORLD AIRLINES DATABASE</div>
-    <h1 style="font-size:clamp(2rem,5vw,3.2rem);font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 30%,#f5c842);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px">Choose your next career</h1>
-    <p style="color:#6b7d93;font-size:.95rem">Pay, hiring and training details for <!--PV-DIR-N-->112<!--/PV-DIR-N--> airlines</p>
+<!-- ── THE FIRST SCREEN (WP-dmap-11 · the owner: the map first, like Windy) ─────────────────────────
+     The map fills the screen: top band = the search (#wa-hero) · middle = the map (#wd-explore) · bottom band = the region buttons and
+     the result count (#filter-bar). The look lives in pv-directory.css (the wam-stage block; only while the script moves the map ──
+     without the script and while searching the parts stand one under the other as before).
+     The h1 stays the page's real heading, visually hidden (.wd-vh) at the start of the band. The airline count line moved below the map (.wd-lede) -->
+<div class="wd-stage" id="wd-stage">
+<div id="wa-hero">
+  <div class="wd-band">
+    <h1 class="wd-vh">Choose your next career</h1>
     <div class="wd-search" role="search">
       <svg class="wd-search-ic" width="20" height="20" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <input id="search" class="wd-search-in" type="search" name="q" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-controls="airline-grid" aria-label="Search by airline or country" placeholder="Search by airline or country"/>
@@ -299,8 +298,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </g>
 </g>
 </svg>
-<div class="wam-zc" hidden><button type="button" class="wam-zb" data-z="in" aria-label="Zoom in" title="Zoom in"></button><button type="button" class="wam-zb" data-z="out" aria-label="Zoom out" title="Zoom out"></button><button type="button" class="wam-zb" data-z="reset" aria-label="Reset" title="Reset" hidden></button><button type="button" class="wam-zb" data-z="fs" aria-label="Full screen" title="Full screen"></button></div>
-<button type="button" class="wam-zx" data-z="close" aria-label="Close" title="Close" hidden></button>
+<div class="wam-zc" hidden><button type="button" class="wam-zb" data-z="in" aria-label="Zoom in" title="Zoom in"></button><button type="button" class="wam-zb" data-z="out" aria-label="Zoom out" title="Zoom out"></button><button type="button" class="wam-zb" data-z="reset" aria-label="Reset" title="Reset" hidden></button></div>
 <p class="wam-zh" aria-hidden="true" hidden>Use two fingers to move the map</p>
 </div>
 <div class="wam-foot">
@@ -310,6 +308,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </div>
 <aside class="wam-card" id="wa-sum">
+<button type="button" class="wam-sx" aria-label="Close" title="Close" hidden></button>
 <div class="wam-cols">
 <div class="wam-panels">
 <section class="wam-panel is-shown" data-region="all" id="wam-p-all">
@@ -694,6 +693,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   <!-- Results heading (the row that filtered by airline type was removed in WP-dmap-7) -->
   <div class="wd-rh" id="wd-rh"><h2 class="wd-rh-name" id="wd-rh-name" tabindex="-1">All</h2><span class="wd-rh-n" id="result-count" role="status" aria-live="polite" data-fmt="{n} airlines" data-fmt-one="{n} airline"></span><button type="button" class="wd-clear" id="wd-clear" hidden>Clear filters</button></div>
 </div>
+</div>
+
+<!-- The airline count line (moved from the hero to below the map in WP-dmap-11; same words) -->
+<p class="wd-lede max-w-7xl mx-auto px-5">Pay, hiring and training details for <!--PV-DIR-N-->112<!--/PV-DIR-N--> airlines</p>
 
 <!-- ── VIEW TOGGLE ────────────────────────────────────────────────── -->
 <div class="max-w-7xl mx-auto px-5 mb-5">
@@ -1818,7 +1821,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- airlines-meta.js is the table of the leveling comparison (PVLeveling). The cards, region buttons and counts of this page are written by gen-directory.mjs. -->
 <script src="../airlines-meta.js"></script>
-<script src="../pv-directory.js?v=d96b249b"></script>
+<script src="../pv-directory.js?v=2ec06082"></script>
 <script>(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='../profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();</script>
 <script src="../airline-logos.js"></script>
 <script src="../salary-leveling.js"></script>
