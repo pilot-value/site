@@ -1110,6 +1110,14 @@ export const SOURCES = Object.freeze({
   'src-jetblue-pub-rent-city-fort-lauderdale': 'Zumper のフォートローダーデールの家賃の表',
   'src-american-publication-city-new-york-26': 'Zumper のニューヨークの家賃の表',
   'src-air-canada-pub-rent-city-toronto': 'Zumper のトロントの家賃の表',
+  /* ★2026-10-26 段階5 compare-all-15：新しく家賃の行が入った街の資料（同じ書き方。題が長い・題が数字の中身と食い違う資料は、どこの何の表かを書く） */
+  'src-porter-pub-rent-city-ottawa': 'Zumper のオタワの家賃の表',
+  'src-zumper-san-diego': 'Zumper のサンディエゴの家賃の表',
+  'src-zumper-van-nuys': 'Zumper のヴァンナイズ（ロサンゼルス）の家賃の表',
+  'src-hud-fy2027-fmr-county-level': '米国住宅都市開発省（HUD）「FY 2027 Fair Market Rents」（郡ごとの表）',
+  'src-eurostat-isrp-market-rents-2025': 'ISRP/OECD・ユーロスタット「MARKET RENTS 2025」',
+  'src-ssb-09895-bergen-2025': 'ノルウェー統計局（SSB）の賃貸市場調査の表 09895（2025年の平均の月額家賃）',
+  'src-athome-souba-amakusa': 'アットホーム「天草市の家賃相場」',
   'src-jetstar-r7-recheck-1': '西オーストラリア州不動産協会（REIWA）のパース都市圏の賃貸の市場データ',
   'src-solairus-na-transport-austin': 'CapMetro（オースティンの交通局）の空港への案内',
   'src-frontier-pub-transit-city-dallas': 'DFW 空港の公共交通の案内',
@@ -1220,6 +1228,13 @@ export const SOURCES_EN = Object.freeze({
   'src-jetblue-pub-rent-city-fort-lauderdale': 'Zumper Fort Lauderdale rent table',
   'src-american-publication-city-new-york-26': 'Zumper New York rent table',
   'src-air-canada-pub-rent-city-toronto': 'Zumper Toronto rent table',
+  'src-porter-pub-rent-city-ottawa': 'Zumper Ottawa rent table',
+  'src-zumper-san-diego': 'Zumper San Diego rent table',
+  'src-zumper-van-nuys': 'Zumper Van Nuys (Los Angeles) rent table',
+  'src-hud-fy2027-fmr-county-level': 'U.S. Department of Housing and Urban Development (HUD) “FY 2027 Fair Market Rents” (county-level data)',
+  'src-eurostat-isrp-market-rents-2025': 'ISRP/OECD and Eurostat “MARKET RENTS 2025”',
+  'src-ssb-09895-bergen-2025': 'Statistics Norway (SSB) rental market survey, table 09895 (average monthly rents, 2025)',
+  'src-athome-souba-amakusa': '“Typical rent in Amakusa City” on athome.co.jp',
   'src-jetstar-r7-recheck-1': 'Real Estate Institute of Western Australia (REIWA) Perth Metro rental market data',
   'src-solairus-na-transport-austin': 'CapMetro (Austin transit) airport information',
   'src-frontier-pub-transit-city-dallas': 'DFW Airport public transit information',
@@ -1254,6 +1269,8 @@ export const PUBLISHER_EN = Object.freeze({
   'IBEXエアラインズ': 'IBEX Airlines', 'アイベックスエアラインズ': 'IBEX Airlines', 'ジェイエア': 'J-AIR', '日本エアコミューター': 'Japan Air Commuter',
   '日本トランスオーシャン航空': 'Japan Transocean Air', 'オリエンタルエアブリッジ': 'Oriental Air Bridge', '琉球エアーコミューター': 'Ryukyu Air Commuter',
   '新中央航空': 'Shin Chuo Airlines', '新日本航空': 'Shin Nihon Airlines', '東邦航空': 'Toho Air Service', 'トキエア': 'Toki Air',
+  /* ★2026-10-26 段階5 compare-all-15：日本の会社の拠点の街の家賃の資料（LIFULL HOME'S）の発行元。無いと英語のページの出典のリンクの字が空になっていた */
+  'LIFULL': 'LIFULL',
 });
 const pubKey = p => String(p || '').replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/株式会社/g, '').replace(/[\s　]+/g, '').replace(/[（(][^）)]*[）)]$/, '');
 export const publisherEn = p => (/[ぁ-んァ-ヶ一-龥]/.test(String(p || '')) ? PUBLISHER_EN[pubKey(p)] || '' : String(p || ''));
@@ -1302,7 +1319,8 @@ export const NET = Object.freeze({
    rents … 家賃の行の ID（間取りの鍵ごと）。h … 家賃と移動の行ぜんぶの指紋（digest）。
    per   … 家賃の期間（資料の表が週あたり ＝ 'week'。台帳の per 欄には週が無いので、ここで言う）。
    measure … 何の額か（カードの見出しに入る短い字）。site … 資料の名前（短く）。
-   scope … 数字の範囲の断り（出典の「条件」に出す1行。資料の区域・何の物件か・間取りの数え方）。 */
+   scope … 数字の範囲の断り（出典の「条件」に出す1行。資料の区域・何の物件か・間取りの数え方）。
+   also  … 同じ街のもう1つの空港（その空港が拠点の会社にも、この街を出す。★2026-10-26 段階5 compare-all-15・リードの答え：ダラスの DAL だけ）。 */
 export const CITY = Object.freeze({
   brisbane: { h: 'fea01c5db19eb55c', ja: 'ブリスベン', en: 'Brisbane', iata: 'BNE', airport: 'ブリスベン空港', airport_en: 'Brisbane Airport',
     measure: '新規契約の家賃の中央値', site: 'クイーンズランド州 住宅賃貸局', per: 'week', measure_en: 'Median rent of new leases', site_en: 'Queensland Residential Tenancies Authority',
@@ -1317,55 +1335,59 @@ export const CITY = Object.freeze({
      家賃の行の無い街（石垣・天草）は字だけ（今までの「家賃の資料を確認できていません」）。 */
   izumisano: { h: '5ca9ff1264e569e8', ja: '泉佐野市', en: 'Izumisano', iata: 'KIX', airport: '関西国際空港', airport_en: 'Kansai International Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '泉佐野市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK',
-    scope_en: 'Market rent in Izumisano (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK' },
+    scope: '泉佐野市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Izumisano (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   kitakyushu: { h: '762e7d1eec0505f9', ja: '北九州市小倉北区', en: 'Kokurakita, Kitakyushu', iata: 'KKJ', airport: '北九州空港', airport_en: 'Kitakyushu Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '北九州市小倉北区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Kokurakita ward, Kitakyushu (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '北九州市小倉北区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Kokurakita ward, Kitakyushu (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   nagoya: { h: 'c2c8b21e02b0efc1', ja: '名古屋市中区', en: 'Naka, Nagoya', iata: 'NGO', airport: '中部国際空港', airport_en: 'Chubu Centrair International Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '名古屋市中区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Naka ward, Nagoya (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '名古屋市中区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Naka ward, Nagoya (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   fukuoka: { h: 'e03a883ce7f6f25c', ja: '福岡市博多区', en: 'Hakata, Fukuoka', iata: 'FUK', airport: '福岡空港', airport_en: 'Fukuoka Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '福岡市博多区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Hakata ward, Fukuoka (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '福岡市博多区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Hakata ward, Fukuoka (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   itami: { h: 'efdd19276bf20ca8', ja: '伊丹市', en: 'Itami', iata: 'ITM', airport: '大阪国際空港（伊丹）', airport_en: 'Osaka International Airport (Itami)',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '伊丹市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Itami (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '伊丹市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Itami (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   naha: { h: '831abc915bc77d47', ja: '那覇市', en: 'Naha', iata: 'OKA', airport: '那覇空港', airport_en: 'Naha Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '那覇市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Naha (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '那覇市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Naha (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   ishigaki: { h: '582a6c7fc9060fcc', ja: '石垣', en: 'Ishigaki', iata: 'ISG', airport: '石垣空港', airport_en: 'Ishigaki Airport' },
   sendai: { h: '99bde90fd1c6cb94', ja: '仙台市宮城野区', en: 'Miyagino, Sendai', iata: 'SDJ', airport: '仙台空港', airport_en: 'Sendai Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '仙台市宮城野区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Miyagino ward, Sendai (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '仙台市宮城野区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Miyagino ward, Sendai (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   kirishima: { h: '779f18916758fbb7', ja: '霧島市', en: 'Kirishima', iata: 'KOJ', airport: '鹿児島空港', airport_en: 'Kagoshima Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '霧島市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK',
-    scope_en: 'Market rent in Kirishima (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK' },
+    scope: '霧島市の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Kirishima (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   kobe: { h: 'c881442b4d3c5595', ja: '神戸市中央区', en: 'Chuo, Kobe', iata: 'UKB', airport: '神戸空港', airport_en: 'Kobe Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '神戸市中央区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Chuo ward, Kobe (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '神戸市中央区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Chuo ward, Kobe (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   niigata: { h: 'f3e36e60e36624a8', ja: '新潟市中央区', en: 'Chuo, Niigata', iata: 'KIJ', airport: '新潟空港', airport_en: 'Niigata Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '新潟市中央区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Chuo ward, Niigata (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
+    scope: '新潟市中央区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Chuo ward, Niigata (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   sapporo: { h: 'dec0087a282c5553', ja: '札幌市東区', en: 'Higashi, Sapporo', iata: 'OKD', airport: '札幌丘珠空港', airport_en: 'Sapporo Okadama Airport',
     measure: '家賃相場', site: 'LIFULL HOME\'S', per: 'month', measure_en: 'Market rent', site_en: 'LIFULL HOME’S',
-    scope: '札幌市東区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）。Studio は 1K・1-Bed は 1LDK・2-Bed は 2LDK・3-Bed は 3LDK',
-    scope_en: 'Market rent in Higashi ward, Sapporo (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents). Studio = 1K, 1-Bed = 1LDK, 2-Bed = 2LDK, 3-Bed = 3LDK' },
-  amakusa: { h: '02ffea6efac5f756', ja: '天草', en: 'Amakusa', iata: 'AXJ', airport: '天草空港', airport_en: 'Amakusa Airport' },
+    scope: '札幌市東区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
+    scope_en: 'Market rent in Higashi ward, Sapporo (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
+  /* ★2026-10-26 段階5 compare-all-15：家賃の行が入った（アットホームの天草市の家賃相場。相場が出ているのは 3DK だけ） */
+  amakusa: { h: '6ec7a46a80ffc3da', ja: '天草', en: 'Amakusa', iata: 'AXJ', airport: '天草空港', airport_en: 'Amakusa Airport',
+    measure: '家賃相場', site: 'アットホーム', per: 'month', measure_en: 'Market rent', site_en: 'athome.co.jp',
+    scope: '天草市の家賃相場（アットホームが直近3か月に掲載した物件から出した額。平均か中央値かは書かれていない。成約した家賃ではない）。掲載物件が少なく、相場が出ているのは 3-Bed だけ',
+    scope_en: 'Market rent in Amakusa City (athome.co.jp’s figure from properties listed in the last three months; whether it is an average or a median is not stated; not agreed rents). Few properties are listed, and only 3-Bed has a figure' },
   /* 全社へ広げる e（2026-10-22）：d2 の会社の拠点の街（台帳の家賃・移動の行が在る街だけ。1つの街に1つの空港・1つの資料）。
      空港は、その街に台帳の行で結ばれた会社の拠点の空港（台帳の拠点の行）。同じ街に拠点の空港が2つある会社では、家賃の行を持つ会社の拠点の空港
      （ダラス ＝ DFW：家賃の行はフロンティア航空の行。サウスウエスト航空の DAL には、この街の欄は出ない）。
      書かなかった街：オスロ（家賃の行の使い方が「募集」）・コペンハーゲン（家賃の行が物件1つの募集の例）・ティラナ（家賃の通貨 ALL の換算の
-     レートがサイトに無い）・デュッセルドルフとサンフアン（家賃の行が無く、移動の行も拠点の空港が決まらない ＝ 出せる行が無い）。 */
+     レートがサイトに無い）。デュッセルドルフとサンフアンは、家賃の行が入った 2026-10-26 に下の compare-all-15 の節で書いた。 */
   london: { h: '1a0c8c10427e2f8e', ja: 'ロンドン・ヒリンドン区', en: 'Hillingdon, London', iata: 'LHR', airport: 'ヒースロー空港', airport_en: 'Heathrow Airport',
     measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
     scope: 'ロンドンの行政区ヒリンドン（Hillingdon）の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。ロンドンぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
@@ -1400,16 +1422,16 @@ export const CITY = Object.freeze({
     scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Geneva, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
   barcelona: { h: '127c825b2f654520', ja: 'バルセロナ', en: 'Barcelona', iata: 'BCN', airport: 'バルセロナ・エル・プラット空港', airport_en: 'Barcelona–El Prat Airport',
     measure: '家具つきの募集家賃の中央値', site: 'HousingAnywhere', per: 'month', measure_en: 'Median asking rent (furnished)', site_en: 'HousingAnywhere',
-    scope: 'バルセロナで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのワンルーム（Studio）の募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
+    scope: 'バルセロナで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのStudioの募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
     scope_en: 'Median asking rent of furnished studios listed on HousingAnywhere (a mid-term rental platform) in Barcelona (Q3 2026 rent index). Mostly mid-term lets (for example, students); not agreed rents' },
   milan: { h: '1cdb0c82997ba6ed', ja: 'ミラノ', en: 'Milan', iata: 'MXP', airport: 'ミラノ・マルペンサ空港', airport_en: 'Milan Malpensa Airport',
     measure: '家具つきの募集家賃の中央値', site: 'HousingAnywhere', per: 'month', measure_en: 'Median asking rent (furnished)', site_en: 'HousingAnywhere',
-    scope: 'ミラノで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのワンルーム（Studio）の募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
+    scope: 'ミラノで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのStudioの募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
     scope_en: 'Median asking rent of furnished studios listed on HousingAnywhere (a mid-term rental platform) in Milan (Q3 2026 rent index). Mostly mid-term lets (for example, students); not agreed rents' },
   hamburg: { h: 'c1a23e717b2170d7', ja: 'ハンブルク', en: 'Hamburg', iata: 'HAM', airport: 'ハンブルク空港', airport_en: 'Hamburg Airport',
     measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
-    scope: 'HousingAnywhere の生活費の案内（2026年）に載った、ハンブルクのワンルーム（Studio）の平均の月額。集計の期間・件数は書かれていない。成約した家賃ではない',
-    scope_en: 'Average monthly rent of a studio in Hamburg from HousingAnywhere’s cost-of-living guide (2026). The period and number of listings are not stated; not agreed rents' },
+    scope: 'HousingAnywhere の生活費の案内（2026年）に載った、ハンブルクのStudioの平均の月額。集計の期間・件数は書かれていない。成約した家賃ではない',
+    scope_en: 'Average monthly rent of a Studio inHamburg from HousingAnywhere’s cost-of-living guide (2026). The period and number of listings are not stated; not agreed rents' },
   lisboa: { h: 'bad47c11babcf6f4', ja: 'リスボン', en: 'Lisbon', iata: 'LIS', airport: 'リスボン空港', airport_en: 'Lisbon Airport',
     measure: '長期賃貸の募集家賃の中央値', site: 'idealista', per: 'month', measure_en: 'Median asking rent (long-term lets)', site_en: 'idealista',
     scope: 'リスボン市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数',
@@ -1418,9 +1440,19 @@ export const CITY = Object.freeze({
     measure: '長期賃貸の募集家賃の中央値', site: 'idealista', per: 'month', measure_en: 'Median asking rent (long-term lets)', site_en: 'idealista',
     scope: 'ポルト市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数',
     scope_en: 'Median asking rent of one-bedroom (T1) long-term lets listed on idealista (a property portal) in the city of Porto. Not agreed rents. 1-Bed is the number of bedrooms' },
-  cologne: { h: '95c685aa66315183', ja: 'ケルン', en: 'Cologne', iata: 'CGN', airport: 'ケルン・ボン空港', airport_en: 'Cologne Bonn Airport' },
-  stockholm: { h: '698d8ca8be3003f2', ja: 'ストックホルム', en: 'Stockholm', iata: 'ARN', airport: 'ストックホルム・アーランダ空港', airport_en: 'Stockholm Arlanda Airport' },
-  bergen: { h: '7dddf60ca8b5c79c', ja: 'ベルゲン', en: 'Bergen', iata: 'BGO', airport: 'ベルゲン空港', airport_en: 'Bergen Airport' },
+  /* ★2026-10-26 段階5 compare-all-15：ケルン・ストックホルム・ベルゲンに家賃の行が入った（1つの街に1つの資料） */
+  cologne: { h: '2feb5146c013ae89', ja: 'ケルン', en: 'Cologne', iata: 'CGN', airport: 'ケルン・ボン空港', airport_en: 'Cologne Bonn Airport',
+    measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
+    scope: 'HousingAnywhere（中期の賃貸の掲載サイト）の生活費の案内（2026年10月6日更新）に載った、ケルンのStudioと寝室1つ（1-Bed）の平均の月額。家具つきが中心の中期の賃貸で、集計の期間・件数は書かれていない。成約した家賃ではない',
+    scope_en: 'Average monthly rent of a Studio anda one-bedroom flat (1-Bed) in Cologne from the cost-of-living guide of HousingAnywhere (a mid-term rental platform; updated 6 October 2026). Mostly furnished mid-term lets; the period and number of listings are not stated; not agreed rents' },
+  stockholm: { h: '672453b1c0aa1dff', ja: 'ストックホルム', en: 'Stockholm', iata: 'ARN', airport: 'ストックホルム・アーランダ空港', airport_en: 'Stockholm Arlanda Airport',
+    measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
+    scope: 'ストックホルムの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Stockholm, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  bergen: { h: 'da98a4e89fe1c20c', ja: 'ベルゲン', en: 'Bergen', iata: 'BGO', airport: 'ベルゲン空港', airport_en: 'Bergen Airport',
+    measure: '賃貸住宅の平均家賃', site: 'ノルウェー統計局（SSB）', per: 'month', measure_en: 'Average rent of rented dwellings', site_en: 'Statistics Norway (SSB)',
+    scope: 'ノルウェー統計局の賃貸市場調査（2025年）による、ベルゲン市の部屋が1つの住戸（Studio）の平均の月額。調べた住戸の家賃で、募集の額ではない。部屋が2つ・3つの住戸は寝室の数が分からないので出していない',
+    scope_en: 'Average monthly rent of one-room dwellings (Studio) in the municipality of Bergen, from Statistics Norway’s rental market survey (2025). Rents of surveyed dwellings, not asking rents. Two- and three-room dwellings are not shown because the number of bedrooms is not known' },
   atlanta: { h: '49b7de1ccf1d3c18', ja: 'アトランタ', en: 'Atlanta', iata: 'ATL', airport: 'アトランタ空港', airport_en: 'Atlanta airport',
     measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
     scope: 'アトランタの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
@@ -1429,7 +1461,8 @@ export const CITY = Object.freeze({
     measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
     scope: 'オースティンの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Austin (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
-  dallas: { h: 'd2e23efaecb44d49', ja: 'ダラス', en: 'Dallas', iata: 'DFW', airport: 'ダラス・フォートワース空港', airport_en: 'Dallas Fort Worth International Airport',
+  /* ★2026-10-26 段階5 compare-all-15：サウスウエスト航空の拠点はダラスの DAL（ラブフィールド）── 同じ街なので also に書く */
+  dallas: { h: 'd2e23efaecb44d49', ja: 'ダラス', en: 'Dallas', iata: 'DFW', also: ['DAL'], airport: 'ダラス・フォートワース空港', airport_en: 'Dallas Fort Worth International Airport',
     measure: '集合住宅の平均家賃', site: 'RentCafe（Yardi Matrix）', per: 'month', measure_en: 'Average apartment rent', site_en: 'RentCafe (Yardi Matrix)',
     scope: 'ダラスの50戸以上の集合住宅の、間取りごとの平均の家賃（RentCafe・Yardi Matrix の表。2026年9月30日の表示）。小さな物件を含む住宅ぜんたいの値ではない・成約した家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average rent by unit type in apartment buildings of 50 or more units in Dallas (RentCafe / Yardi Matrix table, as shown on 30 September 2026). Not a figure for all housing including small buildings; not agreed rents. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
@@ -1501,8 +1534,95 @@ export const CITY = Object.freeze({
     measure: 'ユニットの家賃の中央値', site: '西オーストラリア州不動産協会（REIWA）', per: 'week', measure_en: 'Median unit rent', site_en: 'Real Estate Institute of Western Australia (REIWA)',
     scope: 'パース都市圏（Perth Metro）のユニット（集合住宅）の、寝室の数ごとの週の家賃の中央値（3か月の移動の集計）。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Median weekly rent of units (apartments) in Perth Metro by number of bedrooms (rolling three-month figures). 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  /* ★2026-10-26 段階5 compare-all-15（P12.123）：拠点の街なのに家賃の行が無かった街の調べ（2つのパック・1つの街に1つの資料）と、家賃の行は
+     前から在ったのにこの表に行が無かった街（オタワ・ブリストル・リヨン）。空港は、その街に台帳の行で結ばれた会社の拠点の空港。
+     書かなかった街（行が在っても、この表に字を書かない ＝ 会社ページにも比較にも出ない）：
+       ニース・ボルドー・ナント（使い方が「参考」── 資料に日付が無い。暮らしの板も比較の箱も「参考」の札を出さない）・
+       オスロ（家賃の行の使い方が「募集」）・コペンハーゲン（家賃の行が物件1つの募集の例で、部屋の数は寝室の数ではない）・
+       ティラナ（家賃の通貨 ALL の換算のレートがサイトに無い）。
+     ブリスベン・シドニー・パースは週あたりの額のまま（1か月あたりに直さない）── 比較の家賃の箱には出ない。 */
+  crawley: { h: 'bff8101e99de69da', ja: 'クローリー', en: 'Crawley', iata: 'LGW', airport: 'ロンドン・ガトウィック空港', airport_en: 'London Gatwick Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'クローリー（Crawley）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。ガトウィック空港が在る行政区で、ロンドンの値ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Crawley local authority area, where Gatwick Airport is (ONS Price Index of Private Rents). Not a London figure. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  belfast: { h: '4083e4ff6b53d9fa', ja: 'ベルファスト', en: 'Belfast', iata: 'BFS', airport: 'ベルファスト国際空港', airport_en: 'Belfast International Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'ベルファストの賃貸地域（Belfast rental area）の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents。北アイルランドの値は2026年7月が最新）。空港は市の外に在る。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Belfast rental area (ONS Price Index of Private Rents; July 2026 is the latest figure for Northern Ireland). The airport is outside the city. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  birmingham: { h: 'e97ae123cdea793c', ja: 'バーミンガム', en: 'Birmingham', iata: 'BHX', airport: 'バーミンガム空港', airport_en: 'Birmingham Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'バーミンガム（Birmingham）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。空港は隣のソリハル（Solihull）に在る。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Birmingham local authority area (ONS Price Index of Private Rents). The airport is in neighbouring Solihull. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  edinburgh: { h: '3ae2d06127356656', ja: 'エディンバラ', en: 'Edinburgh', iata: 'EDI', airport: 'エディンバラ空港', airport_en: 'Edinburgh Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'エディンバラのページに載った、ロージアン（Lothian。スコットランドの賃貸の地域区分）の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。エディンバラ市だけの値ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in Lothian (a Scottish rental area), as given on the Edinburgh page of the ONS Price Index of Private Rents. Not a figure for the City of Edinburgh alone. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  glasgow: { h: '1dab281338fb3a87', ja: 'グラスゴー', en: 'Glasgow', iata: 'GLA', airport: 'グラスゴー空港', airport_en: 'Glasgow Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'グラスゴーのページに載った、グレーター・グラスゴー（Greater Glasgow。スコットランドの賃貸の地域区分）の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。グラスゴー市だけの値ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in Greater Glasgow (a Scottish rental area), as given on the Glasgow page of the ONS Price Index of Private Rents. Not a figure for the City of Glasgow alone. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  liverpool: { h: 'a8f683bbf7cad14f', ja: 'リバプール', en: 'Liverpool', iata: 'LPL', airport: 'リバプール・ジョン・レノン空港', airport_en: 'Liverpool John Lennon Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'リバプール（Liverpool）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Liverpool local authority area (ONS Price Index of Private Rents). 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'newcastle-upon-tyne': { h: '9a26307464e062e9', ja: 'ニューカッスル', en: 'Newcastle upon Tyne', iata: 'NCL', airport: 'ニューカッスル国際空港', airport_en: 'Newcastle International Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'ニューカッスル・アポン・タイン（Newcastle upon Tyne）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Newcastle upon Tyne local authority area (ONS Price Index of Private Rents). 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'southend-on-sea': { h: 'f2a3be89bf61b46a', ja: 'サウスエンド・オン・シー', en: 'Southend-on-Sea', iata: 'SEN', airport: 'ロンドン・サウスエンド空港', airport_en: 'London Southend Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'サウスエンド・オン・シー（Southend-on-Sea）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。ロンドンの値ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Southend-on-Sea local authority area (ONS Price Index of Private Rents). Not a London figure. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  bristol: { h: '4542dacd4f9cf51f', ja: 'ブリストル', en: 'Bristol', iata: 'BRS', airport: 'ブリストル空港', airport_en: 'Bristol Airport',
+    measure: '民間賃貸の平均家賃', site: '英国統計局（ONS）', per: 'month', measure_en: 'Average private rent', site_en: 'Office for National Statistics (ONS)',
+    scope: 'ブリストル（Bristol）の行政区域の民間賃貸の平均の月額（英国統計局の Price Index of Private Rents）。空港のまわりの地区の値ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly private rent in the Bristol local authority area (ONS Price Index of Private Rents). Not a figure for the area around the airport. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  lyon: { h: '889cebc555483d55', ja: 'リヨン', en: 'Lyon', iata: 'LYS', airport: 'リヨン・サンテグジュペリ空港', airport_en: 'Lyon–Saint Exupéry Airport',
+    measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
+    scope: 'リヨンの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Lyon, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  dusseldorf: { h: '2549f711c3291fab', ja: 'デュッセルドルフ', en: 'Düsseldorf', iata: 'DUS', airport: 'デュッセルドルフ空港', airport_en: 'Düsseldorf Airport',
+    measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
+    scope: 'HousingAnywhere（中期の賃貸の掲載サイト）の生活費の案内（2026年10月6日更新）に載った、デュッセルドルフのStudioの平均の月額。家具つきが中心の中期の賃貸で、集計の期間・件数は書かれていない。成約した家賃ではない',
+    scope_en: 'Average monthly rent of a Studio inDüsseldorf from the cost-of-living guide of HousingAnywhere (a mid-term rental platform; updated 6 October 2026). Mostly furnished mid-term lets; the period and number of listings are not stated; not agreed rents' },
+  stuttgart: { h: '83d85b0183e6b243', ja: 'シュトゥットガルト', en: 'Stuttgart', iata: 'STR', airport: 'シュトゥットガルト空港', airport_en: 'Stuttgart Airport',
+    measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
+    scope: 'HousingAnywhere（中期の賃貸の掲載サイト）の生活費の案内（2026年10月6日更新）に載った、シュトゥットガルトのStudioと家具つきの寝室1つ（1-Bed）の平均の月額（光熱費込みと書かれている）。集計の期間・件数は書かれていない。成約した家賃ではない',
+    scope_en: 'Average monthly rent of a Studio anda furnished one-bedroom flat (1-Bed) in Stuttgart from the cost-of-living guide of HousingAnywhere (a mid-term rental platform; updated 6 October 2026), stated as including utilities. The period and number of listings are not stated; not agreed rents' },
+  amsterdam: { h: '3d3b1adda6c121a3', ja: 'アムステルダム', en: 'Amsterdam', iata: 'AMS', airport: 'アムステルダム・スキポール空港', airport_en: 'Amsterdam Airport Schiphol',
+    measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
+    scope: 'HousingAnywhere（中期の賃貸の掲載サイト）の生活費の案内（2026年10月6日更新）に載った、アムステルダムのStudioの平均の月額。家具つきが中心の中期の賃貸で、集計の期間・件数は書かれていない。成約した家賃ではない',
+    scope_en: 'Average monthly rent of a Studio inAmsterdam from the cost-of-living guide of HousingAnywhere (a mid-term rental platform; updated 6 October 2026). Mostly furnished mid-term lets; the period and number of listings are not stated; not agreed rents' },
+  malaga: { h: '8a0cb667cb51ad7f', ja: 'マラガ', en: 'Málaga', iata: 'AGP', airport: 'マラガ・コスタ・デル・ソル空港', airport_en: 'Málaga–Costa del Sol Airport',
+    measure: '家賃の目安（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Typical rent (cost-of-living guide)', site_en: 'HousingAnywhere',
+    scope: 'HousingAnywhere（中期の賃貸の掲載サイト）の生活費の案内（2026年10月6日更新）に載った、マラガのStudioの2026年の家賃の目安の月額（平均か中央値かは書かれていない）。家具つきが中心の中期の賃貸。成約した家賃ではない',
+    scope_en: 'Typical monthly rent of a Studio inMálaga in 2026 from the cost-of-living guide of HousingAnywhere (a mid-term rental platform; updated 6 October 2026; whether it is an average or a median is not stated). Mostly furnished mid-term lets; not agreed rents' },
+  'san-diego': { h: '1e6a60a29ad8ff84', ja: 'サンディエゴ', en: 'San Diego', iata: 'SAN', airport: 'サンディエゴ国際空港', airport_en: 'San Diego International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'サンディエゴで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月25日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in San Diego (as shown on 25 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'van-nuys': { h: '78ed09f824f662f3', ja: 'ロサンゼルス・ヴァンナイズ', en: 'Van Nuys, Los Angeles', iata: 'VNY', airport: 'ヴァンナイズ空港', airport_en: 'Van Nuys Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'ロサンゼルス市の中の地区ヴァンナイズ（Van Nuys）で Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月25日の表示）。ロサンゼルス市ぜんたいの値ではない。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Van Nuys, a district of the City of Los Angeles (as shown on 25 October 2026). Not a figure for all of Los Angeles; not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  ottawa: { h: '7a316c61ad203b9a', ja: 'オタワ', en: 'Ottawa', iata: 'YOW', airport: 'オタワ国際空港', airport_en: 'Ottawa International Airport',
+    measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
+    scope: 'オタワで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Ottawa (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  guam: { h: 'd3785ab90af6e6fa', ja: 'グアム', en: 'Guam', iata: 'GUM', airport: 'グアム国際空港', airport_en: 'Guam International Airport',
+    measure: '公正市場家賃（FMR）', site: '米国住宅都市開発省（HUD）', per: 'month', measure_en: 'Fair Market Rent (FMR)', site_en: 'U.S. Department of Housing and Urban Development (HUD)',
+    scope: 'グアムぜんたいの、米国住宅都市開発省の2027会計年度の公正市場家賃（Fair Market Rent）。標準的な質の賃貸住宅の、家賃に光熱費を足した額（gross rent）の40パーセンタイルの推計で、平均でも中央値でもない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'HUD Fair Market Rent for fiscal year 2027 for all of Guam: an estimate of the 40th percentile of gross rent (rent plus utilities) for standard-quality rental housing, not an average or a median. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
+  'san-juan': { h: 'd48edebca9c72c7a', ja: 'サンフアン', en: 'San Juan', iata: 'SJU', airport: 'ルイス・ムニョス・マリン国際空港', airport_en: 'Luis Muñoz Marín International Airport',
+    measure: '公正市場家賃（FMR）', site: '米国住宅都市開発省（HUD）', per: 'month', measure_en: 'Fair Market Rent (FMR)', site_en: 'U.S. Department of Housing and Urban Development (HUD)',
+    scope: 'サンフアン（San Juan Municipio）の、米国住宅都市開発省の2027会計年度の公正市場家賃（Fair Market Rent。サンフアン・グアイナボの地域ぜんたいで同じ額）。標準的な質の賃貸住宅の、家賃に光熱費を足した額（gross rent）の40パーセンタイルの推計で、平均でも中央値でもない。1-Bed・2-Bed・3-Bed は寝室の数',
+    scope_en: 'HUD Fair Market Rent for fiscal year 2027 for San Juan Municipio (the same amount across the San Juan–Guaynabo area): an estimate of the 40th percentile of gross rent (rent plus utilities) for standard-quality rental housing, not an average or a median. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
 });
 
+/* 画面に出す使い方（airline-rollout.mjs の SHOWN と同じ4つ。あちらがこのファイルを読むので、ここでは写しを持つ）と、
+   check() の家賃の使い方の決まりの例外の街（上の CITY の ★compare-all-15 の注）。 */
+const RENT_USES = Object.freeze(['条件つき', '募集', '過去', '参考']);
+const RENT_PAST = Object.freeze(['brisbane', 'sydney']);
 /** 行の並びの指紋（ID と h。並びに依らない）。NET・CITY の h はこれ。 */
 export const digest = rows => crypto.createHash('sha256').update(rows.map(r => `${r.id}:${r.h}`).sort().join('\n')).digest('hex').slice(0, 16);
 
@@ -1785,6 +1905,16 @@ export function check(store) {
     if (!L) { bad.push({ what: 'CITY', id: city, why: '台帳に街が無い' }); continue; }
     const d = digest([...(L.rents || []), ...(L.commute || [])]);
     if (d !== C.h) bad.push({ what: 'CITY', id: city, why: `街の行が変わった（${C.h} → ${d}）── 字を読み直して h を付け直す` });
+    /* ★2026-10-26 段階5 compare-all-15：字を書いた街の、画面に出る家賃の行（読み口 pv-airline-view.mjs と同じ ── 出す使い方の行のうち、
+       先頭の行と同じ資料の行）は、使い方が「条件つき」。暮らしの板も比較の家賃の箱も、街の家賃に「参考」「過去」「募集」の札を出さない ──
+       そういう行の街（ニース・ボルドー・ナント・オスロ・コペンハーゲン）には字を書かない。
+       例外は RENT_PAST の2街だけ（2026-10-21 roll-c の決め b「週あたりのまま」で出している街。行の使い方は「過去」で、板に札が出ていない ──
+       比較の箱には出ない（週あたり）。直すかは別の判断）。家賃の行の在る街は、物差し・資料・数字の範囲の断りを持つ（額だけを出さない）。 */
+    const vis = (L.rents || []).filter(r => r.value && typeof r.value === 'object' && RENT_USES.includes(r.use));
+    const url0 = vis.length ? ((vis[0].src || [])[0] || {}).url : '';
+    const odd = vis.filter(r => ((r.src || [])[0] || {}).url === url0 && r.use !== '条件つき').map(r => `${r.id}（${r.use}）`);
+    if (odd.length && !RENT_PAST.includes(city)) bad.push({ what: 'CITY', id: city, why: `画面に出る家賃の行の使い方が「条件つき」ではない（${odd.join('・')}）── 札を出さない板に出すことになるので、この街に字を書かない` });
+    if (vis.length && !(C.measure && C.site && C.scope)) bad.push({ what: 'CITY', id: city, why: '家賃の行が在るのに、物差し・資料・数字の範囲の断りのどれかが無い' });
   }
   return bad;
 }

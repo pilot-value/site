@@ -51,6 +51,8 @@ import { frozenPrint, matrixPrint, qrMatrix } from './career-qr.mjs';
 /* 航空会社一覧の形（並び・地域 ── 台帳との突き合わせは assert-directory.mjs が持つ）と、投稿先だけの会社（年収を載せない会社）。 */
 import { model as dirModel, REGIONS as DIR_REGIONS } from './directory-model.mjs';
 import { OPS } from './airline-ops.mjs';
+import { researchCities } from './airline-rollout.mjs';
+import { atText, atTextEn } from './career-facts.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* 2026-10-21（P12.86-9）：開く先は PV_BASE で替えられる（serve-local の自分のポートで流すため。3000 は本番の DB につながる）。既定は今までどおり */
@@ -76,20 +78,31 @@ const DRAWN = s => ['cap', 'fo'].flatMap(r => [SALARY[s][r].avg, SALARY[s][r].hi
 const SCALE = (...list) => Math.ceil(Math.max(...list.filter(Boolean).flatMap(DRAWN)) / 1000) * 1000;
 /* 右端が額に合っているか（右端は 1,000万 の倍数・どの額も右端以下・いちばん大きい額との差は 1,000万 未満）。 */
 const fits = (top, ...list) => { const v = list.filter(Boolean).flatMap(DRAWN); return top > 0 && top % 1000 === 0 && v.every(x => x <= top) && top - Math.max(...v) < 1000; };
-/* 比較に家賃の箱を置ける会社。生成側の rentable() は読まずに、同じ決まり（読み口 viewOf().living が、箱の決まりどおりの
-   1か月あたりの家賃を持つ）をここで打ち直す。先行5社は必ず置く。 */
-const RENT_KEYS = ['what', 'period', 'caveat', 'per_month', 'currency', 'cols'];
-const boxable = s => {
-  if (FIVE.includes(s)) return true;
-  const L = viewOf(s).living;
-  if (!L || L.research || L.per !== 'month' || !L.measure || !L.city || !(L.rents || []).length) return false;
+/* 比較に家賃の箱を置ける会社。生成側の rentable() は読まずに、同じ決まり（読み口 viewOf() の暮らしが、箱の決まりどおりの
+   1か月あたりの家賃を持つ）をここで打ち直す。先行5社は必ず置く。
+   ★2026-10-26 段階5 compare-all-15（P12.123 ── 当て直し・強くした）：調べの台帳の街も読む。箱の街（BOXL）は、会社ページの暮らしのタブと
+   同じ並び（拠点の順）のうち、決まりに合ういちばん上の街。前提の鍵に scope（airline-display.mjs の CITY の数字の範囲の断り）が加わる。
+   時点（RENT_AT）は台帳の行の対象の期間・無ければ資料を開いた日（「…に開いた時点の表示」）── どちらも無い街は箱を持たない。 */
+const RENT_KEYS = ['what', 'period', 'caveat', 'per_month', 'currency', 'cols', 'scope'];
+const LIVS = (s, lang = 'ja') => { const v = viewOf(s, lang); return (v.livings && v.livings.length ? v.livings : [v.living]).filter(Boolean); };
+const RENT_AT = (s, L, r, lang = 'ja') => {
+  if (r.when || !L.research) return r.when || '';
+  const c = researchCities(s, L.airports.map(a => a.iata)).find(x => x.city === L.cityKey);
+  const day = ((((c && c.rents[0]) || {}).r || {}).src || [{}])[0].retrieved || '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return '';
+  return lang === 'en' ? `as shown when opened on ${atTextEn(day)}` : `${atText(day)}に開いた時点の表示`;
+};
+const boxOk = (s, L, lang = 'ja') => {
+  if (!L || L.per !== 'month' || !L.measure || !L.city || !(L.rents || []).length) return false;
   if ((L.basis || []).some(b => !RENT_KEYS.includes(b.key))) return false;
-  for (const x of L.rents) if (!x.name || (Object.keys(x.value || {}).length && (!x.when || !x.src?.url || !x.src?.name))) return false;
+  for (const x of L.rents) if (!x.name || (Object.keys(x.value || {}).length && (!RENT_AT(s, L, x, lang) || !x.src?.url || !x.src?.name))) return false;
   const lead = L.rents.filter(x => x.lead);
   if (lead.length !== 1 || !L.cols.some(([k]) => rentCell(L.cur, lead[0].value[k]))) return false;
   const by = k => (L.basis || []).find(b => b.key === k)?.value || '';
-  return !!(by('what') || lead[0].cond || by('caveat') || by('per_month'));
+  return !!(by('what') || lead[0].cond || by('caveat') || by('per_month') || by('scope'));
 };
+const BOXL = (s, lang = 'ja') => (FIVE.includes(s) ? viewOf(s, lang).living : LIVS(s, lang).find(L => boxOk(s, L, lang)) || null);
+const boxable = s => FIVE.includes(s) || !!BOXL(s);
 const RENTB = ALLK.filter(boxable);
 /* 比較に税の行を置く会社 ＝ 会社ページと同じ読み口が税の扱いを持つ会社。 */
 const TAXED = ALLK.filter(s => viewOf(s).pay.tax);
@@ -303,7 +316,8 @@ const GOS = [['pay', 'pay'], ['rev', 'reviews'], ['work', 'work'], ['ben', 'pay'
     const lab = feet.map(a => (attr(a, 'aria-labelledby') || '').split(' '));
     const labOk = lab.length === GOS.length && lab.every((l, i) => l.length === 2 && l[0] === `cr-cmp-h-${GOS[i][0]}` && l[1] === exp[i][0] && ids.has(l[0]) && ids.has(l[1]));
     const names = CMP.split(`class="cr-card-n" href="airlines/${s}.html"`).length - 1;
-    const boxed = RENTB.includes(s), more = boxed && viewOf(s).living.rents.length > 1;
+    /* ★2026-10-26 compare-all-15（当て直し・同じ強さ）：「ほかの街」は、箱の街の地域が2つ以上か、会社ページの暮らしのタブに拠点の街が2つ以上の会社 */
+    const boxed = RENTB.includes(s), more = boxed && (BOXL(s).rents.length > 1 || LIVS(s).length > 1);
     const used = [...new Set([...GOS.map(g => g[1]), ...(more ? ['life'] : [])])];
     const lack = tabs.size ? used.filter(t => !tabs.has(t)) : [];
     ok(same(got, exp) && words.every(w => w === name(s) + '詳しく') && labOk && names === (five ? 1 : 0) && !!P && !lack.length,
@@ -316,7 +330,7 @@ const GOS = [['pay', 'pay'], ['rev', 'reviews'], ['work', 'work'], ['ben', 'pay'
     const inBox = (box.match(/<a class="cr-link" href="[^"]*">[\s\S]*?<\/a>/g) || []).filter(a => strip(a) === 'ほかの街' && attr(a, 'href') === life);
     ok(more ? towns.length === 1 && inBox.length === 1 : towns.length === 0,
        `${name(s)}: 家賃の箱の「ほかの街」は、会社ページの暮らしのタブへ（${more ? 'その会社の箱の中に1本' : boxed ? '街が1つなので置かない' : '比較に箱が無いので置かない'}）`,
-       `比較に ${towns.length}本・箱の中に ${inBox.length}本（街 ${viewOf(s).living?.rents?.length ?? 0}）`);
+       `比較に ${towns.length}本・箱の中に ${inBox.length}本（地域 ${BOXL(s)?.rents?.length ?? 0}・拠点の街 ${LIVS(s).length}）`);
     expAir.push(...exp.map(e => e[1]), ...(five ? [`airlines/${s}.html`] : []), ...(more ? [life] : []));
   }
   const air = [...CMP.matchAll(/href="(airlines\/[^"]*)"/g)].map(m => m[1]);
@@ -907,7 +921,7 @@ head('掲載している全社（比較の材料）');
        最初は隠れている）。社名と置く列は career.js が並べた2社から決める（ブラウザの検査は T-A0b'）。
        会社ページに家賃の額が在る会社（比較の箱の決まりに合わないだけ）は data-held に並ぶ ＝ その会社には出さない ── 資料が在るのに「確認できていません」と
        言わない。data-held は、ここで台帳（viewOf().living）から作り直した組と同じ（生成側を借りない）。字は日英とも、会社ページに出ている字そのもの。 */
-    const HELD = ALLK.filter(s => !RENTB.includes(s) && ((viewOf(s).living || {}).rents || []).some(r => Object.keys(r.value || {}).length));
+    const HELD = ALLK.filter(s => !RENTB.includes(s) && LIVS(s).some(L => (L.rents || []).some(r => Object.keys(r.value || {}).length)));
     const nb = [...rentSec.matchAll(/<article class="cr-rentn"[^>]*>[\s\S]*?<\/article>/g)].map(m => m[0]);
     const held = nb.length ? ((nb[0].match(/ data-held="([^"]*)"/) || [])[1] || '').split(' ').filter(Boolean) : null;
     const RENT_NONE = { ja: '家賃の資料を確認できていません', en: 'We have not been able to confirm rent sources' };
@@ -917,6 +931,40 @@ head('掲載している全社（比較の材料）');
        && held !== null && same(sorted(held), sorted(HELD)) && Object.values(words).every(Boolean),
        `家賃の節の「資料を確認できていません」の箱は1つだけ（最初は隠れている・社名も会社の印も HTML に無い）・会社ページに家賃の額が在る${HELD.length}社（data-held）には出さない・字は日英とも会社ページの暮らしの板の字`,
        JSON.stringify({ n: nb.length, held, HELD, words }));
+  }
+
+  /* T-A6c（★2026-10-26 段階5 compare-all-15・P12.123）：先行5社のほかの会社の家賃の箱（調べの台帳の街も）── 箱の街は、会社ページの暮らしの
+     タブの並び（拠点の順）で決まりに合ういちばん上の街（BOXL）・箱ごとに時点（台帳の対象の期間か、資料を開いた日 ── 空の時点は無い）・
+     日本語と英語で同じ会社に箱が在り、同じ街・同じ額・同じ時点の言い方・箱の額はどれもその会社の会社ページの暮らしのタブの、その街のところに在る
+     （「ほかの街」の先で同じ額が読める。先行5社はブラウザの T-L7 が見る）。週あたりの街は箱にならない（BOXL は1か月あたりの街だけ）。 */
+  {
+    const boxOf = (H, s) => (H.match(new RegExp(`<article class="cr-rentb" data-airline="${s}"[\\s\\S]*?</article>`)) || [''])[0];
+    const txt = h => h.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const parts = b => [...b.matchAll(/<dd>([\s\S]*?)<\/dd>/g)].flatMap(m => [...m[1].matchAll(/<(?:b|span)[^>]*>([^<]*)<\/(?:b|span)>/g)].map(x => x[1].trim()));
+    const bCity = b => ((b.match(/<h3 class="cr-rentb-h">[\s\S]*?<span>([^<]*)<\/span><\/h3>/) || [])[1] || '');
+    const bWhen = b => ((b.match(/<p class="cr-rentb-s pv-no-cur">[^<]*<span>([^<]*)<\/span><\/p>/) || [])[1] || '');
+    const EN_BOX = [...EN_HTML.matchAll(/<article class="cr-rentb" data-airline="([^"]+)"/g)].map(m => m[1]);
+    const bad = [];
+    for (const s of RENTB.filter(x => !FIVE.includes(x))) {
+      const L = BOXL(s), E = BOXL(s, 'en'), r = L.rents.find(x => x.lead), re = E && E.rents.find(x => x.lead);
+      const bj = boxOf(CMP, s), be = boxOf(EN_HTML, s);
+      /* 額の突き合わせは調べの台帳の街（街の詳細に額の一覧が在る）。先行5社の台帳の街（東京）の額は棒の組の中 ── 先行5社はブラウザの T-L7 が見る */
+      const town = L.research ? (read(`airlines/${s}.html`).match(new RegExp(`<section class="pvg-td" id="pvg-town-${r.key}"[\\s\\S]*?</section>`)) || [''])[0] : '-';
+      const lack = L.research ? parts(bj).filter(v => !txt(town).includes(v)) : [];
+      const why = [
+        !bj && '日本語の箱が無い', !be && '英語の箱が無い', !E && '英語の読み口に箱の街が無い',
+        E && E.cityKey !== L.cityKey && `日英で街が違う（${L.cityKey} / ${E.cityKey}）`,
+        bCity(bj) !== L.city && `箱の街「${bCity(bj)}」≠ 暮らしのタブの、決まりに合ういちばん上の街「${L.city}」`,
+        L.per !== 'month' && `1か月あたりではない（${L.per}）`,
+        (!bWhen(bj) || bWhen(bj) !== RENT_AT(s, L, r)) && `日本語の時点「${bWhen(bj)}」≠「${RENT_AT(s, L, r)}」`,
+        re && (!bWhen(be) || bWhen(be) !== RENT_AT(s, E, re, 'en')) && `英語の時点「${bWhen(be)}」≠「${RENT_AT(s, E, re, 'en')}」`,
+        !town && `会社ページに街（${r.key}）のところが無い`, lack.length && `会社ページの街のところに無い額: ${lack.join(' ／ ')}`,
+      ].filter(Boolean);
+      if (why.length) bad.push(`${s}: ${why.join('・')}`);
+    }
+    ok(!bad.length && same(sorted(EN_BOX), sorted(RENTB)) && RENTB.length > FIVE.length,
+       `先行5社のほかの会社の家賃の箱 ${RENTB.length - FIVE.length}社：箱の街は暮らしのタブで決まりに合ういちばん上の街・時点は台帳の対象の期間か資料を開いた日（空の時点は無い）・日英で同じ会社に同じ街・額は会社ページの暮らしのタブのその街に在る`,
+       [...bad, `英語の箱 ${EN_BOX.length}・日本語の箱 ${RENTB.length}`].join('\n      '));
   }
 
   /* T-A8 重さ（P7.9）：全社ぶんの材料を持つ career.html の大きさに上限を置く。SIZE0 は全社ぶんを入れる前（dafc536 の career.html）・
@@ -943,7 +991,11 @@ head('掲載している全社（比較の材料）');
        比較の札に、先行5社のほかの会社の写真が出る ── 示すことが条件の写真（CC BY / BY-SA など）のクレジットを、会社ページと同じく作者と
        ライセンスのリンクで全社ぶん置き（外す道は無い）、カードの島の1枚目に写真の説明（alt）を足した。ROOM を広げるのはリードだけ。 */
     const LEAD122 = { raw: 25000, gz: 3584, tags: 0 };
-    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz, tags: up(GROW1.tags + 1550, 250) };
+    /* ★2026-10-26 P12.123：リードが ROOM を広げた（この作業 compare-all-15 の全部で 生の大きさ +30,000・gzip +3,584・要素 +256 ──
+       2026-10-26 にリードが +20,000・+3,000・0 から広げ直した）。先行5社のほかの会社の家賃の箱（調べの台帳の街も読む ── 拠点の街に
+       1か月あたりの家賃の在る会社ぜんぶ・32社）。ROOM を広げるのはリードだけ。 */
+    const LEAD123 = { raw: 30000, gz: 3584, tags: 256 };
+    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw + LEAD123.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz + LEAD123.gz, tags: up(GROW1.tags + 1550, 250) + LEAD123.tags };
     const bytes = fs.readFileSync(path.join(ROOT, PAGE));
     const now = { raw: bytes.length, gz: zlib.gzipSync(bytes).length, tags: (bytes.toString('utf8').match(/<[a-z]/g) || []).length };
     const kb = n => Math.round(n / 1024);
@@ -2322,7 +2374,9 @@ try {
          出さないことは、条件の無い写真の2社（united|american ── どちらも CC0）で見る。 */
       ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && gone(g.taxes) && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['delta']) && g.none === null],
       ['united', 'american', g => gone(g.credits)],
-      ['jal', 'peach', g => left(g.rents, 'jal') && g.wrap && g.none === null],
+      /* ★2026-10-26 段階5 compare-all-15（同じ強さの当て直し）：Peach は関西（泉佐野市）の家賃の箱を持つようになった ── 会社ページに家賃の額が在るのに
+         比較の箱の決まりに合わない会社は、週あたりの街の会社（カンタス航空・ジェットスター）だけ。 */
+      ['jal', 'qantas', g => left(g.rents, 'jal') && g.wrap && g.none === null],
       ['jal', 'ana', g => g.rents && g.rents.shown && !g.rents.only && g.rents.kids.length === 2 && g.none === null],
     ];
     for (const [a, b, want] of SCENES) {
@@ -3122,7 +3176,7 @@ try {
     ok(!/年額|1年あたり|年間|per year/i.test(got.plain), '箱の表に出ている字に 年額・1年あたり が無い（額は月額）', got.plain.match(/.{0,12}(?:年額|1年あたり|年間|per year).{0,12}/i)?.[0]);
     ok(!/安い|高い|割安|割高|お得|勝ち|負け|勝る|劣る|優位|差額|[\d.]\s*倍|より(?:安|高)/.test(got.text), '家賃の節に 安い・高い・差・倍 の語を書かない（街どうしを競わせない）', got.text.match(/.{0,12}(?:安い|高い|割安|割高|お得|勝ち|負け|勝る|劣る|優位|差額|[\d.]\s*倍|より(?:安|高)).{0,12}/)?.[0]);
     for (const s of RENTB) {
-      const L = viewOf(s).living, lead = L.rents.filter(r => r.lead), b = got.boxes.filter(x => x.slug === s);
+      const L = BOXL(s), lead = L.rents.filter(r => r.lead), b = got.boxes.filter(x => x.slug === s);
       ok(L.per === 'month' && lead.length === 1 && b.length === 1 && b[0].tag === 'ARTICLE' && b[0].dls === 1, `${name(s)}: 家賃は月額・箱は1つ・出す地域は台帳の先頭の1つ`, `per=${L.per} 先頭${lead.length} 箱${b.length}`);
       if (lead.length !== 1 || b.length !== 1) continue;
       const r = lead[0], x = b[0];
@@ -3131,12 +3185,13 @@ try {
         `${JSON.stringify(x.rows.map(o => [o.k, ...o.v]))} ≠ ${JSON.stringify(exp.map(o => [o.k, ...o.v]))}`);
       ok(x.rows.every(o => same(o.keep, L.cur === 'JPY' ? [false] : [true, false])), `${name(s)}: ${L.cur === 'JPY' ? '円の額は通貨の切り替えが読める' : '原貨の額は切り替えで動かない・円の額は切り替えが読める'}`, JSON.stringify(x.rows.map(o => o.keep)));
       /* 地域を選んだ理由（pick）は台帳の字のまま ── ただし社名だけは段階3の面の決まり（sayText。エバー航空 → 「EVA Airの事業所がある」） */
-      ok(x.city === norm(L.city) && x.measure === norm(L.measure) && x.k.includes(norm(r.label)) && (!r.pick || x.pick === norm(sayText(s, r.pick)))
+      /* ★compare-all-15：調べの台帳の街は 地域 ＝ 街（同じ名前を2度言わない ── 物差しの札だけ） */
+      ok(x.city === norm(L.city) && x.measure === norm(L.measure) && (r.label === L.city ? x.k === norm(L.measure) : x.k.includes(norm(r.label))) && (!r.pick || x.pick === norm(sayText(s, r.pick)))
         && (s !== 'eva-air' || x.pick === 'EVA Airの事業所がある'),
         `${name(s)}: 箱に その街（${L.city}）・物差し（${L.measure}）・地域（${r.label}） が書いてある${r.pick ? `・選んだ理由は「${sayText(s, r.pick)}」（社名は日本の会社は日本語・ほかは英語）` : ''}`,
         `「${x.city}」「${x.measure}」「${x.k}」「${x.pick}」`);
-      ok(x.src.includes(norm(r.src.name)) && x.when === norm(r.when) && x.links.includes(r.src.url) && x.more === '前提と出どころ',
-        `${name(s)}: 箱に 出どころ と 時点（${r.when}） が書いてあり、出どころへ行ける`, `「${x.src}」 ${x.links.join(' ')}`);
+      ok(x.src.includes(norm(r.src.name)) && !!x.when && x.when === norm(RENT_AT(s, L, r)) && x.links.includes(r.src.url) && x.more === '前提と出どころ',
+        `${name(s)}: 箱に 出どころ と 時点（${RENT_AT(s, L, r)}） が書いてあり、出どころへ行ける`, `「${x.src}」「${x.when}」 ${x.links.join(' ')}`);
     }
     /* 暮らしのタブ（深く作った会社）── 1つの街の中の地域を、全部にそろっている間取りだけで並べる。 */
     ok(same(got.towns.map(x => x.slug), DEEP), `「拠点の街」の節を持つのは深く作った会社だけ（${DEEP.join(', ')}）`, got.towns.map(x => x.slug).join(','));

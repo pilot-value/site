@@ -726,12 +726,13 @@ for (const s of ROLLED) {
   const order = starts.map(m => m[1]), want = v.livings.map(L => L.cityKey);
   const base = v.base.iata, baseOrder = v.livings.map(L => base.findIndex(c => L.airports.some(a => a.iata === c)));
   ok((order.length >= 1 || !v.livings.length) && same(order, want) && baseOrder.every((x, i) => x >= 0 && (!i || x > baseOrder[i - 1])), `E ${s}: 暮らしの街の欄は拠点の順（${order.join('・')}）`, `${order.join(',')} ／ 拠点 ${base.join(',')}`);
-  /* 見てよい空港は、台帳から（読み口の答えを使わない）：先行5社の台帳の街はその街の空港のうち会社の拠点の空港・調べの台帳の街は字の表（CITY）の空港。
+  /* 見てよい空港は、台帳から（読み口の答えを使わない）：先行5社の台帳の街はその街の空港のうち会社の拠点の空港・調べの台帳の街は字の表（CITY）の空港
+     （★2026-10-26 段階5 compare-all-15：同じ街のもう1つの空港 also も ── ダラスの DAL。どちらも会社の拠点の空港だけ）。
      家賃が無いかも台帳から（調べの台帳の街の家賃の行のうち、出してよい行が1つも無い）。 */
   const stray = [], noRent = [], said = [];
   starts.forEach((m, i) => {
     const key = m[1], L = v.livings[i], a = m.index, e = g.indexOf('</dl></details>\n</section>', a), sec = g.slice(a, e < 0 ? a : e);
-    const ports = LIVING[key] ? LIVING[key].airports.map(([c]) => c).filter(c => base.includes(c)) : CITY[key] ? [CITY[key].iata].filter(c => base.includes(c)) : [];
+    const ports = LIVING[key] ? LIVING[key].airports.map(([c]) => c).filter(c => base.includes(c)) : CITY[key] ? [CITY[key].iata, ...(CITY[key].also || [])].filter(c => base.includes(c)) : [];
     /* 欄の見出し（住むエリア・<街>・<空港>）と「＋パイロットに人気の街を追加」の面に渡す空港も、その会社の拠点の空港だけ
        （東京の欄に、スカイマークの拠点ではない成田を書かない。2026-10-21 全社へ広げる c の確かめで足した） */
     const hdr = (/<p class="pvg-askh">住むエリア<small>([^<]*)<\/small>/.exec(sec) || [])[1];

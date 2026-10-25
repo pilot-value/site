@@ -326,7 +326,7 @@ export function researchNetwork(slug, REGIONS, home = [], lang = 'ja') {
 export function researchCities(slug, bases, R = research(), CT = CITY, lang = 'ja') {
   const out = [];
   for (const iata of bases) {
-    const city = Object.keys(CT).find(c => CT[c].iata === iata && ((R.CITY_OF || {})[slug] || []).includes(c));
+    const city = Object.keys(CT).find(c => (CT[c].iata === iata || (CT[c].also || []).includes(iata)) && ((R.CITY_OF || {})[slug] || []).includes(c));
     const L = city && (R.LIVING || {})[city];
     if (!L || digest([...(L.rents || []), ...(L.commute || [])]) !== CT[city].h) continue;
     const rents = (L.rents || []).filter(r => !why(r) && r.value && typeof r.value === 'object' && srcOf(r));
