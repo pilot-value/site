@@ -13,7 +13,7 @@
    ★ 字はこのファイルの WORDS の1か所（日本語はオーナーの字・英語はリードが採った候補）。
 
    ★ 形は world-outline.mjs（生成物。import-world-outline.mjs が書く）から読む。ここで形を作らない・直さない。
-     点はその形から dotRuns() が切り出す（見本 sketch-v4 と同じ格子：横 5.2・縦 5.2 × 0.866 の六角の並び。点の中心が形の中に
+     点はその形から dotRuns() が切り出す（見本 sketch-v4 と同じ格子：横 5.2・縦 5.2 × 0.866 の六角の並び・最初の行は ROW0 ＝ 陸のいちばん北のすぐ下。点の中心が形の中に
      在るところにだけ丸ごと1つの点 ── 縁で半分に切れた点は描かない P12.100）。1つの行の隣り合う点は1本の「M x y h 長さ」に
      まとめ、丸い線端と stroke-dasharray:0 5.2 で点に描く（4,810 個の <circle> にすると 180KB になる）。
    ★ 緑の濃さは toneOf() の1か所：8地域の平均のいちばん低い所 0 〜 いちばん高い所 1 の間で連続（P12.99「色はもっと差をつけて」・
@@ -34,6 +34,15 @@ export const PAINT = ['us', 'latam', 'europe', 'africa', 'mideast', 'asia', 'oce
 /** 点の格子（見本 sketch-v4 と同じ）：横の間隔・行の間隔（箱の単位。箱は 1000 × 440）。点の大きさは pv-directory.css */
 export const GRID = 5.2;
 export const ROW = GRID * 0.866;
+/** 格子のいちばん上の行の y（箱の単位）＝ 陸のいちばん北（y 3 ＝ グリーンランドの北の端 83.6°N・エルズミーア島 83°N）の 0.4 下。
+    ★ WP-dmap-7（オーナー P12.113「地図の上が切れている」）：前は GRID / 2（2.6）＝ どの陸よりも上で、陸に点が乗る最初の行は 7.1（北緯 79.5 度）。
+      それより北（グリーンランドとエルズミーア島の北の端など）には点が1つも無く、いちばん上の行が北緯 79.5 度の太い横一列になって
+      「上が切り落とされた」ように見えていた。箱は北極まで在り、CSS も viewBox も何も切っていなかった ── 原因は格子の最初の行 */
+export const ROW0 = 3.4;
+/** 地図の箱（svg の viewBox）。形の箱（1000 × 440）の上に 8 を足し、下の 2 を削る（南は点の無い海だけ）＝ いちばん上といちばん下の点
+    （光る層の太さ込み）の外に、上 9.25・下 4.65 の余白。北の陸の上に海が少し見え、上の点が箱の縁に触れない（assert-directory.mjs の M21 が見る）。
+    ★ 縦横の比は pv-directory.css の .wam-map の aspect-ratio と同じ数（1000 / 446）にする */
+export const VIEWBOX = '0 -8 1000 446';
 const r1 = (v) => Math.round(v * 10) / 10;
 
 /** 形（M x y l dx dy … z）→ 輪の点の並び */
@@ -54,7 +63,7 @@ function inside(rings, px, py) {
   return c;
 }
 /**
- * 形 → 点の列の path の d。行 r（0 から）の y ＝ r1(GRID/2 + r × ROW)、その行の点 i の x ＝ r1((r が奇数なら GRID、偶数なら GRID/2) + i × GRID)。
+ * 形 → 点の列の path の d。行 r（0 から）の y ＝ r1(ROW0 + r × ROW)、その行の点 i の x ＝ r1((r が奇数なら GRID、偶数なら GRID/2) + i × GRID)。
  * 点 ＝ (x, y) が形の中。1つの行で i が続く点を「M{x} {y}h{r1((続く数 − 1) × GRID + 0.1)}」の1本にする
  * （+0.1 は線の終わりの点が丸めの誤差で落ちないための足し。次の点まで GRID 離れているので点は増えない）。
  * assert-directory.mjs の M16 が、このファイルを読まずに同じ決まりで作り直して突き合わせる。
@@ -65,7 +74,7 @@ export function dotRuns(d) {
   const rs = ringsOf(d);
   let out = '';
   for (let r = 0; ; r++) {
-    const y = r1(GRID / 2 + r * ROW);
+    const y = r1(ROW0 + r * ROW);
     if (y >= 440) break;
     let x0 = null, n = 0;
     const flush = () => { if (x0 !== null) out += `M${x0} ${y}h${r1((n - 1) * GRID + 0.1)}`; x0 = null; n = 0; };
@@ -110,7 +119,7 @@ export function mapBox(o) {
   const L = [];
   L.push('<div class="wam-mc">');
   L.push(`<div class="wam-map"${o.id === null ? '' : ' id="wa-map"'}>`);
-  L.push('<svg class="wam-svg" viewBox="0 0 1000 440" aria-hidden="true" focusable="false">');
+  L.push(`<svg class="wam-svg" viewBox="${VIEWBOX}" aria-hidden="true" focusable="false">`);
   L.push(`<g class="wam-nl"><path id="wam-d-neutral${u}" d="${dotRuns(SHAPES.neutral)}"/></g>`);
   for (const r of PAINT) L.push(`<g class="wam-r${st(r)}" data-region="${r}" style="--c:${o.tones[r].c};--f:${o.tones[r].f}"><path class="wam-land" id="wam-d-${r}${u}" d="${dotRuns(SHAPES[r])}"/></g>`);
   /* 当たりの層：日本の丸が先（あとから重なるサハリンとアジアの陸地が、それぞれの答えを持つ） */

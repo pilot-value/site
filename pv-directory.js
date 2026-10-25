@@ -9,7 +9,8 @@
      ¥・万・円の字・3けた以上の数・HTML を組み立てる書き方を入れない。
    ★ 地域のボタンの押した見た目は aria-pressed だけ（CSS の [aria-pressed="true"]）。ここは class も style も書かない。
    ★ 外から読む名前は window.PVDirectory と、変わるたびの 'wd:change'（document に。html.wd-q を付け外ししたあと）。
-   ★ 住所（?q=・region・type・view）と「戻る」は WP-dd-6。履歴に触るのは commit() と save() の2つだけ（どちらも replaceState）。
+   ★ 住所（?q=・region・view）と「戻る」は WP-dd-6。履歴に触るのは commit()・save() と、開いた時に古い ?type= を消す cleanType() の3つだけ（どれも replaceState）。
+   ★ 航空会社の種類（FSC・LCC/ULCC・免税）で絞る口は無い（WP-dmap-7・オーナー P12.114）。カードも種類を持たない。
    ★ 比べる印と盆（#wd-tray）は WP-dd-7。印を付ける・外すは history.state だけを書き直す（住所は変えない）。 */
 (function (w, d) {
   'use strict';
@@ -20,7 +21,7 @@
   var FIELD = $('search'), CNT = $('result-count'), RH = $('wd-rh-name'), RHBOX = $('wd-rh'), STRIPBOX = $('region-strip');
   var NOR = $('no-results'), NONE = $('wd-none'), RVIEW = $('range-view'), FBAR = $('filter-bar');
   var STRIP = all('#region-strip .rstrip-btn'), ELSE = all('#wd-else .wd-else-b'), SCOPES = [$('wd-scope'), $('wd-scope-e')].filter(Boolean);
-  var CLEARS = all('.wd-clear'), TYPES = all('.ftype-btn'), VIEWS = all('.view-btn');
+  var CLEARS = all('.wd-clear'), VIEWS = all('.view-btn');
   /* 打ったら地域を外すか（外さない。外す読み方はこの1つを true にするだけ） */
   var RELEASE_ON_TYPE = false;
   var coarse = function () { try { return w.matchMedia('(pointer:coarse)').matches; } catch (e) { return false; } };
@@ -69,7 +70,7 @@
   var CARDS = Array.prototype.slice.call(GRID.querySelectorAll('li[data-slug]')).map(function (li, i) {
     var a = function (n) { return li.getAttribute(n) || ''; };
     return {
-      li: li, slug: a('data-slug'), region: a('data-region'), type: a('data-type'), tax: a('data-tax') === '1',
+      li: li, slug: a('data-slug'), region: a('data-region'),
       lvl: a('data-lvl') === '1', two: a('data-two') === '1', i: i,
       codes: a('data-c').split(' ').filter(Boolean).map(compact),
       keys: a('data-k').split('|').filter(Boolean).map(function (k) { var S = spaced(k); return { S: S, C: S.replace(/ /g, function () { return ''; }), W: starts(S) }; }),
@@ -85,7 +86,7 @@
   }
 
   /* ── いまの状態 ─────────────────────────────────────────────── */
-  var st = { q: '', region: 'all', type: 'all', view: 'card' };
+  var st = { q: '', region: 'all', view: 'card' };
   var counts = { all: CARDS.length }, lastRegion = st.region;
 
   function apply() {
@@ -94,7 +95,7 @@
     CODES.forEach(function (c) { counts[c] = 0; });
     counts.all = 0;
     CARDS.forEach(function (c) {
-      var t = tier(c, Q), typeOk = st.type === 'all' || (st.type === 'taxfree' ? c.tax : c.type === st.type), hit = t >= 0 && typeOk;
+      var t = tier(c, Q), hit = t >= 0;
       if (hit) { counts.all++; counts[c.region] = (counts[c.region] || 0) + 1; }
       var on = hit && (st.region === 'all' || c.region === st.region);
       if (c.li.hidden === on) c.li.hidden = !on;
@@ -111,13 +112,12 @@
       if (b.getAttribute('aria-pressed') !== p) b.setAttribute('aria-pressed', p);
       if (el && el.textContent !== v) el.textContent = v;
     });
-    TYPES.forEach(function (b) { var on = b.getAttribute('data-type') === st.type; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     VIEWS.forEach(function (b) { var on = b.getAttribute('data-view') === st.view; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
     /* 結果の見出し ＝ 選んでいる地域の名前 ＋ 見えているカードの数（0 のときは数を書かない）＋ 絞り込みを解除 */
     if (RH) RH.textContent = labelOf(st.region);
     if (CNT) CNT.textContent = n ? fmt(n) : '';
     SCOPES.forEach(function (s) { s.hidden = st.region === 'all'; var l = s.querySelector('.wd-scope-l'); if (l) l.textContent = labelOf(st.region); });
-    var any = Q.C !== '' || st.region !== 'all' || st.type !== 'all';
+    var any = Q.C !== '' || st.region !== 'all';
     CLEARS.forEach(function (b) { b.hidden = !any; });
     /* 見つからないとき：どの地域にも無い ＝ 文（S5a）・ほかの地域にだけ在る ＝ その地域のボタン（S5b。文は出さない） */
     if (NONE) NONE.hidden = counts.all !== 0;
@@ -152,7 +152,7 @@
     tray();
     var c2 = {};
     for (var key in counts) if (Object.prototype.hasOwnProperty.call(counts, key)) c2[key] = counts[key];
-    var detail = { q: st.q, region: st.region, type: st.type, view: st.view, n: n, counts: c2 };
+    var detail = { q: st.q, region: st.region, view: st.view, n: n, counts: c2 };
     try { d.dispatchEvent(new CustomEvent('wd:change', { detail: detail })); } catch (e) {}
   }
 
@@ -165,11 +165,11 @@
     apply();
   }
   /* ── 住所と「戻る」（WP-dd-6）──────────────────────────────────
-     住所の鍵は q・region・type・view の4つ（既定は書かない・知らない値は無視）。開いたときは住所を書き換えない。
-     書くのは history.replaceState だけ ＝ 地域や種類を選び直しても履歴を積まない（このファイルは履歴を1段も足さない）。
-     書く時：Enter・Escape・欄の消すボタン（search）・欄の change・カードのリンクを押した時・pagehide・beforeunload・地域・種類・表示・解除。
+     住所の鍵は q・region・view の3つ（既定は書かない・知らない値は無視）。開いたときは住所を書き換えない ── ただ1つの例外は古い ?type=
+     （種類の絞り込みの住所。WP-dmap-7 で口ごと外した）：すべてとして開き、住所から type だけを消す（cleanType。ほかの鍵・# と history.state はそのまま）。
+     書くのは history.replaceState だけ ＝ 地域を選び直しても履歴を積まない（このファイルは履歴を1段も足さない）。
+     書く時：Enter・Escape・欄の消すボタン（search）・欄の change・カードのリンクを押した時・pagehide・beforeunload・地域・表示・解除。
      打つたび・時計・スクロールでは書かない。history.state ＝ {wd:1, y ＝ その時のスクロール, cmp ＝ 比べる印を付けた社}。 */
-  var TYPE_CODES = ['fsc', 'lcc', 'taxfree'];
   var cmp = [], LVL = null;
   var cardOf = function (slug) { for (var i = 0; i < CARDS.length; i++) if (CARDS[i].slug === slug) return CARDS[i]; return null; };
   /** history.state の cmp から、このページで印を付けられる社だけを1回ずつ、付けた順に、足せるあいだだけ（canAdd と同じ決まり） */
@@ -178,26 +178,34 @@
     (Array.isArray(a) ? a : []).forEach(function (s) { if (typeof s === 'string' && boxOf(s) && out.indexOf(s) < 0 && fits(out, s)) out.push(s); });
     return out;
   }
-  /** 住所から状態を読む（q は 80 字まで・region は地域のボタンの符号・type は fsc / lcc / taxfree・view は range。ほかは既定） */
+  /** 住所から状態を読む（q は 80 字まで・region は地域のボタンの符号・view は range。ほかは既定） */
   function read() {
     var p = null;
     try { p = new URLSearchParams(w.location.search); } catch (e) { p = null; }
-    var g = function (k) { return (p && p.get(k)) || ''; }, region = g('region'), type = g('type');
+    var g = function (k) { return (p && p.get(k)) || ''; }, region = g('region');
     return {
       q: g('q').slice(0, 80),
       region: CODES.indexOf(region) >= 0 ? region : 'all',
-      type: TYPE_CODES.indexOf(type) >= 0 ? type : 'all',
       view: g('view') === 'range' ? 'range' : 'card',
     };
   }
-  function same(a, b) { return a.q === b.q && a.region === b.region && a.type === b.type && a.view === b.view; }
-  /** 状態を書いた住所（ほかの鍵 ref・utm_* と # はそのまま残す） */
+  function same(a, b) { return a.q === b.q && a.region === b.region && a.view === b.view; }
+  /** 古い住所の ?type=（fsc・lcc・ulcc・taxfree …どの値でも）を消す。すべてとして開き、ほかの鍵と # と history.state はそのまま（WP-dmap-7） */
+  function cleanType() {
+    try {
+      var p = new URLSearchParams(w.location.search);
+      if (!p.has('type')) return;
+      p.delete('type');
+      var qs = p.toString();
+      w.history.replaceState(w.history.state, '', w.location.pathname + (qs ? '?' + qs : '') + w.location.hash);
+    } catch (e) {}
+  }
+  /** 状態を書いた住所（ほかの鍵 ref・utm_* と # はそのまま残す。古い type は書かない） */
   function url(s) {
     var p = new URLSearchParams(w.location.search);
     ['q', 'region', 'type', 'view'].forEach(function (k) { p.delete(k); });
     if (s.q !== '') p.set('q', s.q);
     if (s.region !== 'all') p.set('region', s.region);
-    if (s.type !== 'all') p.set('type', s.type);
     if (s.view !== 'card') p.set('view', s.view);
     var qs = p.toString();
     return w.location.pathname + (qs ? '?' + qs : '') + w.location.hash;
@@ -231,7 +239,7 @@
   /** 絞り込みを全部外す（検索欄も空に） */
   function clear() {
     if (FIELD) FIELD.value = '';
-    set({ q: '', region: 'all', type: 'all' });
+    set({ q: '', region: 'all' });
     commit();
   }
 
@@ -327,7 +335,11 @@
       if (e.isComposing || e.keyCode === 229) return;   // 変換を決める Enter は検索の Enter ではない
       if (e.key === 'Enter') {
         commit();
-        if (RHBOX) w.scrollTo(0, Math.max(0, RHBOX.getBoundingClientRect().top + w.pageYOffset - 86));   // 結果の見出しを、上の帯のすぐ下へ
+        if (RHBOX) {                                                                                        // 結果の見出しを、上の帯（固定のヘッダー）のすぐ下へ
+          var rb = RHBOX.getBoundingClientRect(), sb = STRIPBOX && STRIPBOX.getClientRects().length ? STRIPBOX.getBoundingClientRect() : null, ty = rb.top;
+          if (sb && sb.top < rb.top && rb.bottom - sb.top <= w.innerHeight - 86) ty = sb.top;               // 真上の地域のボタンも一緒に入るなら、ボタンから（ヘッダーの裏に置かない ── 地図の reveal() と同じ決め方・WP-dmap-7）
+          w.scrollTo(0, Math.max(0, ty + w.pageYOffset - 86));
+        }
         if (coarse()) FIELD.blur();                                                                         // スマホは鍵盤を閉じて結果を見せる
       } else if (e.key === 'Escape' && FIELD.value) {
         FIELD.value = '';
@@ -352,7 +364,6 @@
   CLEARS.forEach(function (b) {
     b.addEventListener('click', function () { clear(); if (FIELD && !coarse()) FIELD.focus(); });
   });
-  TYPES.forEach(function (b) { b.addEventListener('click', function () { set({ type: b.getAttribute('data-type') || 'all' }); commit(); }); });
   VIEWS.forEach(function (b) { b.addEventListener('click', function () { set({ view: b.getAttribute('data-view') === 'range' ? 'range' : 'card' }); commit(); }); });
   /* 比べる印を付ける・外す（足せないときは付けない）。住所は変えない */
   GRID.addEventListener('change', function (e) {
@@ -409,6 +420,7 @@
   if ('scrollRestoration' in w.history) { try { w.history.scrollRestoration = 'manual'; } catch (e) {} }
   var HS = null;
   try { HS = w.history.state; } catch (e) { HS = null; }
+  cleanType();
   st = read();
   if (FIELD) FIELD.value = st.q;
   if (HS && HS.wd) cmp = cmpOf(HS.cmp);
@@ -426,7 +438,7 @@
   /* 戻る（ブラウザの手元に置いてあった時 ＝ pageshow の persisted）は、離れた時のまま ── 何もしない */
 
   w.PVDirectory = {
-    state: function () { return { q: st.q, region: st.region, type: st.type, view: st.view }; },
+    state: function () { return { q: st.q, region: st.region, view: st.view }; },
     setRegion: setRegion,
     clear: clear,
     regions: function () { return STRIP.map(function (b) { var c = b.getAttribute('data-region'); return { code: c, label: b.getAttribute('data-label') || '', n: counts[c] || 0 }; }); },

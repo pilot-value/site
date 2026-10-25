@@ -71,12 +71,14 @@ export function cards(lang, M = model(), rule = CARD_RULE) {
     const line = (rank, f, pub) => `<p class="wd-fig${pub ? ' wd-fig-pub' : ''}" data-rank="${rank}"${pub ? ' data-pub="1"' : ''}>`
       + `<span class="wd-vh">${esc(hid)}</span>${esc(en ? f.labelEn : f.labelJa)}<b class="wd-v">${amount(f.yen)}</b></p>`;
     const figs = RANKS.flatMap((rank) => { const f = figure(A, rank, rule); return [line(rank, f, false), ...(f.extra ? [line(rank, f.extra, true)] : [])]; });
-    const tags = (A.type === 'fsc' ? '<span class="tag tag-blue">FSC</span>' : A.type === 'lcc' ? '<span class="tag tag-orange">LCC</span>' : '')
-      + (A.taxFree ? `<span class="tag tag-gold">${en ? 'Tax-free' : '免税'}</span>` : '')
+    /* 札は免税と提携だけ。FSC / LCC の札は付けない・種類（data-type）も免税（data-tax）もカードに書かない ── 種類で絞る口が無い
+       （WP-dmap-7・オーナー P12.114「スカイマークはLCCだろ。日本でさえこんなに正確にわかられないならもう分けなくっていいよ」「免税もいらないよ」）。
+       一覧の行（airlines-meta.js）の type はデータとして残るが、画面のどこも読まない */
+    const tags = (A.taxFree ? `<span class="tag tag-gold">${en ? 'Tax-free' : '免税'}</span>` : '')
       + (A.alliance ? `<span class="tag tag-gray">${esc(A.alliance[lang])}</span>` : '');
     const flag = A.show.flag ? `${esc(A.show.flag)} ` : '', second = en ? regionLabel[A.region] : A.show.en;
     return [
-      `<li class="wd-li" data-slug="${esc(slug)}" data-region="${esc(A.region)}" data-type="${esc(A.type)}" data-tax="${A.taxFree ? 1 : 0}" data-lvl="${A.lvl ? 1 : 0}" data-two="${!en && A.two ? 1 : 0}" data-c="${esc(A.codes.join(' '))}" data-k="${esc(A.keys.join('|'))}" style="--ac:${esc(A.color)};--pvg-c:${esc(A.color)}">`,
+      `<li class="wd-li" data-slug="${esc(slug)}" data-region="${esc(A.region)}" data-lvl="${A.lvl ? 1 : 0}" data-two="${!en && A.two ? 1 : 0}" data-c="${esc(A.codes.join(' '))}" data-k="${esc(A.keys.join('|'))}" style="--ac:${esc(A.color)};--pvg-c:${esc(A.color)}">`,
       `<a class="wd-go" href="${esc(A.href)}"><span class="wd-logo">${logoOf(A, page.up)}</span><span class="wd-names"><span class="wd-name" id="wn-${esc(slug)}">${flag}${esc(A.show[lang])}</span><span class="wd-meta"><span class="wd-sub">${esc(second)}</span><span class="wd-code">${esc(A.code)}</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>`,
       BARRIER,
       '<div class="wd-figs">',

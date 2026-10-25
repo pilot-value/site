@@ -101,7 +101,7 @@
 /* ── wam: 地図と地域のまとめ（directory-map の持ち場。地域のまとめの下の段 05b の規則は、この塊の後ろの自分の印の中）── */
 .wam{container-type:inline-size;container-name:wam;max-width:1280px;margin:0 auto var(--pv-s-2);padding:0 20px}
 /* 1枚の面（見本 sketch-v4 の地）：切り替え・地図・カードを載せる。広い画面は地図の右にカード（340px）・切り替えは面の右上、
-   700〜999px は地図の下にカード・切り替えは地図の右上、それより狭い画面は 切り替え → 地図 → カード（カードは選ぶか触れるまで閉じている） */
+   700〜999px は地図の下にカード・切り替えは地図の左下（海の上）、それより狭い画面は 切り替え → 地図 → カード（カードは選ぶか触れるまで閉じている） */
 .wam-g{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start;padding:12px;border:1px solid var(--pv-line);border-radius:var(--pv-r-lg);background:radial-gradient(120% 90% at 88% 0%,var(--pv-accent-soft) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,var(--pv-line-soft) 0%,transparent 60%),var(--pv-surface);box-shadow:0 1px 2px color-mix(in oklab,var(--pv-accent-dark) 7%,transparent),0 14px 36px -16px color-mix(in oklab,var(--pv-accent-dark) 22%,transparent)}
 [data-theme="dark"] .wam-g{box-shadow:var(--pv-shadow)}
 .wam-card{display:flex;flex-direction:column;gap:var(--pv-s-1);min-width:0;padding:12px 2px 0;border-top:1px solid var(--pv-line-soft);scroll-margin:86px 0 16px}
@@ -115,7 +115,7 @@
 @container wam (min-width:1000px){
   .wam-panel{display:block}
   .wam-panel .wam-sps{margin-top:6px}
-  .wam-g{grid-template-columns:minmax(0,1fr) 340px;grid-template-areas:"map sw" "map card";gap:10px 32px;padding:20px 24px 20px 18px}
+  .wam-g{grid-template-columns:minmax(0,1fr) 340px;grid-template-areas:"map sw" "map card";gap:10px 32px;padding:14px 24px 10px 18px}   /* 上下を詰めて、1440×780 で面が丸ごと最初の1画面に入る（WP-dmap-7） */
   .wam-mc{grid-area:map;align-self:center}
   .wam-card{grid-area:card;padding:0;border-top:0}
 }
@@ -176,7 +176,7 @@
 @container wam (max-width:699px){.wam[data-rest="none"]:not(.is-open) .wam-card{display:none}}
 @media (prefers-reduced-motion:reduce){.wam-go,.wam-cond > summary,.wam-cond > summary::after{transition:none}}
 /* 「機長｜副操縦士」の切り替え（P12.100）── hidden で出荷し、台本が動いたときだけ見せる。押した方（aria-pressed）が区域の data-pos を決める。
-   面の先頭の子（地図の上の1行）。区域が 700px 以上は面の右上に重ねる（見せても何もずれない）・1000px 以上は面の右上の升（カードの上）。
+   面の先頭の子（地図の上の1行）。区域が 700px 以上は地図の左下に重ねる（見せても何もずれない）・1000px 以上は面の右上の升（カードの上）。
    ダークでは押した方を緑の面と縁で塗る（字の色だけの違いにしない ── リード P12.112） */
 .wam-card{position:relative}
 .wam-pos{display:inline-flex;align-self:start;justify-self:start;gap:2px;padding:3px;border-radius:999px;background:var(--pv-bg-sub);box-shadow:inset 0 0 0 1px var(--pv-line)}
@@ -189,8 +189,11 @@
 [data-theme="dark"] .wam-pb[aria-pressed="true"]{background:var(--pv-accent-soft);box-shadow:inset 0 0 0 1px var(--pv-accent-line)}
 @media (pointer:coarse){.wam-pb{min-height:44px}}
 @media (prefers-reduced-motion:reduce){.wam-pb{transition:none}.wam-pb:active{transform:none}}
-@container wam (min-width:700px){.wam-pos{position:absolute;top:14px;right:14px;z-index:1}}
-@container wam (min-width:1000px){.wam-pos{position:static;grid-area:sw;justify-self:end}}
+/* 700〜999px：切り替えは地図の左下（南太平洋の空いた海の上・地図の下の一言のすぐ上）に重ねる ── 右上はシベリアの陸に掛かる（WP-dmap-7・リード 2026-10-25 Q1 (v)）。
+   下端 ＝ 地図の下の縁。3つに繋がっている：.wam-g の上の余白 14px（700px 以上の規則）・横の余白 2×16 ＋ 縁 2×1 ＝ 34px・地図の箱の比 1000 / 446（.wam-map）
+   ── どれかを変えたらここも直す（陸に掛かれば assert-directory-ui.mjs の map-fit／map-first が赤くなる） */
+@container wam (min-width:700px){.wam-pos{position:absolute;top:calc(14px + (100cqi - 34px) * .446);left:16px;transform:translateY(-100%);z-index:1}}
+@container wam (min-width:1000px){.wam-pos{position:static;grid-area:sw;justify-self:end;transform:none}}
 /* 地域の9つのボタン（DM3）── 見た目はここ1か所（NEED-10）。押した見た目は [aria-pressed="true"] だけ。820px までは下の規則が1本の横にすべる列にする */
 #region-strip{display:flex;gap:var(--pv-s-1);margin:0 0 var(--pv-s-2)}
 @media (min-width:821px){#region-strip{flex-wrap:wrap}}
@@ -212,7 +215,7 @@
 .wam{--wam-lo:var(--pv-accent-line);--wam-hi:var(--pv-accent-dark);--wam-glow:var(--pv-accent);--wam-aura:.2}
 [data-theme="dark"] .wam{--wam-hi:var(--pv-teal);--wam-glow:color-mix(in oklab,var(--pv-teal) 72%,var(--pv-ink));--wam-aura:.18}
 .wam-mc{min-width:0}
-.wam-map{aspect-ratio:1000 / 440;scroll-margin-top:86px}
+.wam-map{aspect-ratio:1000 / 446;scroll-margin-top:86px}   /* 地図の箱（directory-map.mjs の VIEWBOX）と同じ比 */
 .wam-svg{display:block;width:100%;height:100%;overflow:visible;-webkit-tap-highlight-color:transparent}
 /* 塗りの決まり（D10）：点の見た目は地域の <g> に付けて path が受け継ぐ。.wam-land を名指す規則で fill / stroke を決めない
    （<use> の写しがそれを持ってしまい、光る層・当たりの層が自分の線を持てなくなる） */
@@ -239,6 +242,8 @@
 /* 地図の下の1行：一言（左）と凡例（右）。凡例は選んでいる職位の1本だけ（8地域の平均のいちばん低い所〜高い所） */
 .wam-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 16px;margin-top:6px}
 .wam-hint{margin:0;font:500 12px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-3)}
+/* 指の画面では出さない：地図に触れると見せるだけで、選ぶのは「この地域の航空会社を見る」（pv-directory.js）＝「地図をクリックして地域を選択」は本当でない（WP-dmap-7） */
+@media (pointer:coarse){.wam-hint{display:none}}
 .wam-key{display:none;align-items:center;gap:8px;margin:0 0 0 auto;font:600 11px/1.4 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--pv-ink-2)}
 .wam[data-pos="cap"] .wam-key[data-pos="cap"],.wam[data-pos="fo"] .wam-key[data-pos="fo"]{display:inline-flex}
 .wam-kb{display:block;flex:none;width:72px;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--wam-lo),var(--wam-hi));background:linear-gradient(in oklab 90deg,var(--wam-lo),var(--wam-hi))}

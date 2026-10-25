@@ -17,7 +17,7 @@
      b1 見えているカード ＝ 台帳の112社を一覧の並び（地域の順 → 一覧の行の順）で・社数「112社」／«112 airlines»・
         どの社名も語の途中で折れず切れていない（折れ目は空白・「・」の後ろ・「（」の前だけ ── WP-dd-9。390 は場面 first で）
      b2 地域のボタンを1つずつ押す → 見えているカード ＝ その地域の会社（集合）・社数・押したボタンだけ aria-pressed="true"
-     b3 FSC → 一覧の行の type が fsc の会社・LCC/ULCC → lcc・免税 → SALARY の taxFree
+     （b3 種類の絞り込み（FSC・LCC/ULCC・免税）は WP-dmap-7 で口ごと外した ── 無いことは assert-directory.mjs の G10 が見る）
      b4 レベリング比較 → 絞り込みの帯（#filter-bar）が消え、#lvl-wa-grid に4本の .lvl-col・カード一覧 → 戻る
      b5 テーマのボタンで data-theme が入れ替わる（もう1回で戻る）
      b6 地域のまとめ：アジアのボタンにマウスを載せる → カードが見せているのは wam-p-asia で、定義の行に台帳の社数・
@@ -47,16 +47,17 @@
         打っているあいだは地図と一緒に見えない（WP-dd-9）
      s4 レベリング比較を開いたまま打つ → カード一覧に戻る
    場面 scope（日英・390×680 のスマホ）── 地域を選んだまま別の地域の会社を打つ
-     欧州を選ぶ → 欄の中に「欧州」の札・「全日空」＋ Enter → カード0枚・見つからないの文は出さない・#wd-else のボタンは
+     欧州を選ぶ → 欄の中に「欧州」の札・「全日空」＋ Enter → 地域のボタンと結果の見出しが上の帯のすぐ下（ヘッダーの裏に無い・WP-dmap-7）・カード0枚・見つからないの文は出さない・#wd-else のボタンは
      「日本 1」の1つだけ（画面の中・横にずれない）・欧州の帯の数 ＝ 台帳で数えた当たり（0）→ 押す → 日本・ANA・欄はそのまま・
      history.length は増えない → 欧州 → 札を押す → すべて・先頭が ANA・見えている数 ＝ すべての数 → 欧州 ＋ «air» → 見えているのは
      欧州の会社だけ・社数 ＝ その数 → 欧州をもう1回 → 外れる
    場面 empty（日英・1440×900）── zzzz → 見つからないの文と「絞り込みを解除」・地域のボタンは出さない・社数は空 →
      「絞り込みを解除」→ 112社・欄は空・すべてが押されている・ボタンは隠れる
    場面 url（日英・1440×900）── 住所（WP-dd-6）
-     u1 7つの住所（?q=ana・?q=ana#list・?region=asia・?region=zz・?ref=ABCD1234・?q=ドイツ&region=europe&type=fsc・?view=range）で開く →
-        住所は1文字も変わらない・history.state は null（開いた時は履歴に触らない）・状態・欄・押した地域・種類が住所どおり・
-        見えているカード ＝ 台帳（地域・国・種類）／打った時と同じ（q）・zz は「すべて」・?view=range は絞り込みの帯が消え、
+     u1 8つの住所（?q=ana・?q=ana#list・?region=asia・?region=zz・?ref=ABCD1234・?q=ドイツ&region=europe&type=fsc・?type=taxfree#list・?view=range）で開く →
+        住所は1文字も変わらない（古い ?type= の2つだけは、type の鍵だけが消える ── ほかの鍵・# はそのまま。WP-dmap-7）・
+        history.state は null（開いた時は履歴に触らない）・状態・欄・押した地域が住所どおり・
+        見えているカード ＝ 台帳（地域・国）／打った時と同じ（q）・zz と ?type= は「すべて」（種類では絞らない）・?view=range は絞り込みの帯が消え、
         DOMContentLoaded のあと #lvl-wa-grid に4本の .lvl-col
      u2 «emirates» を本当に打つ → その場で絞り込まれ、欄にいるあいだ住所は変わらない → Enter → ?q=emirates・history.length は同じ
      u3 打って欄を離れる（Tab）→ ?q=emirates（change）・欄の消すボタン（空にして search）→ q が消える
@@ -106,7 +107,8 @@
      欧州の「条件/出典」にフォーカスしたまま setRegion('asia') → フォーカスはアジアの「条件/出典」→ 読み直す → region=asia（A13：履歴は積まない）
    場面 map-fit（1001×900・390×680。ライト）── 7つの通貨（currency.js の RATES）× 9枚のカード：額が切れない・カードの中・職位の札と額が重ならない・
      帯 72px 以上・凡例は面の中・横にはみ出さない・通貨を戻すと区域の字が1字も違わない・英語はドルで開き ¥ が無い／帯の点は会社の数・帯の両端と
-     平均の印とどの点も、書いた額と目盛の右端の割合の所（0.6px 以内）・最低／最高は台帳どおり／assert-header.mjs の WIDTHS × 円・ドルで横にはみ出さない
+     平均の印とどの点も、書いた額と目盛の右端の割合の所（0.6px 以内）・最低／最高は台帳どおり／assert-header.mjs の WIDTHS × 円・ドルで横にはみ出さない／
+     ★1001・390 と WIDTHS で「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（onLand・WP-dmap-7）
    場面 map-point（1440×900・マウス）── 開いたとき何も光らない（日本の丸はかすか）／8つの POINT_AT を指す → その地域・光る・海と Moscow では
      そのまま・離れると戻る・カードの箱は動かない／押す → 選ぶ・opacity 1・結果の見出しが画面の中 → もう1回 → 外れる・動かない／
      ★当たり（リードの決め・WP-dmap-5）：8地域とも、点の中心（POINT_AT にいちばん近い点）と点と点のあいだ（その点と右下の点のまんなか ＝ どの点の
@@ -114,11 +116,12 @@
      （押す前にマウスは海に置き、is-hot が無いのを待つ）／?region=europe で開くと欧州だけ光る
    場面 map-tap（指・390×680・375×640・820×980）── 8つの POINT_AT に触れる → その地域を見せる・「この地域の航空会社を見る」が見える・選んでいる
      地域と一覧はそのまま・カードは画面の中・カードの箱は8つとも同じ → そのボタン → 選ばれる・結果の見出し・フォーカスは #wd-rh-name・ボタンは消える →
-     地域のボタンを指で → すぐ選ばれ、結果の見出しの上端が画面の中
+     地域のボタンを指で → すぐ選ばれ、結果の見出しの上端が画面の中／390 では地図の下の一言（クリックして選ぶ）を出さない・凡例は出ている（WP-dmap-7）
    場面 map-first（assert-hero-fold.mjs の SIZES の8つ・iPad とスマホは指）── 測って印字（ヒーローの下端・区域・地図・地域のボタンの下端・#wd-rh）・
      どの大きさでも検索欄が丸ごと画面の中で地図より上・何か打つと区域は箱を持たない。
      ★D37（リードの決め 2026-10-25）：地図とカードの面（.wam-g）が丸ごと最初の1画面の中（#wd-rh は印字だけ）。組んだ形で収まらない大きさは
        D37_OPEN（WP-dmap-7 が地図の上端と高さを変える）── そこでは「まだ収まらない」を数え、収まったら赤（外して数える）。関数 mapFirst の頭
+     ★8つの大きさ（指）で「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（onLand・WP-dmap-7）
 
    使い方: node assert-directory-ui.mjs [--scenes base,first,nojs,search,scope,empty,url,back,touch,card,map-pos,map-card,map-keys,map-fit,map-point,map-tap,map-first] [--lang ja,en] [--shots <リポジトリの外のフォルダ>]
      --shots  名前の付いた段ごとに PNG を1枚（<scene>-<lang>-<段>.png）
@@ -169,10 +172,10 @@ const FOLD = { ja: ['対象', '対象掲載社数', '換算'], en: ['Airlines in
 const COUNT_N = { ja: (n) => `${n}社`, en: (n) => `${n}` };
 
 /* ── 地図の点（WP-dmap-5 の「当たり」の行。リードの決め：点の中心と、点と点のあいだの1点。どちらでも選べる）──────────
-   点の並びは見本 sketch-v4 の決まり（WP-dmap-4 の報告 (9)）：横 5.2・縦 5.2 × 0.866 の六角の並び。行 r の y ＝ r1(2.6 + r × 縦)、
+   点の並びは見本 sketch-v4 の決まり（WP-dmap-4 の報告 (9)）：横 5.2・縦 5.2 × 0.866 の六角の並び。行 r の y ＝ r1(3.4 + r × 縦)（いちばん上の行 3.4 ＝ 陸のいちばん北のすぐ下 ── WP-dmap-7。前は 2.6）、
    その行の点 i の x ＝ r1((r が奇数なら 5.2、偶数なら 2.6) + i × 5.2)。点の太さ（直径）3.7。ここでは形（world-outline.mjs）から
    自分で作る ── 地図の部品（directory-map.mjs）の答えは写さない。ページの点がこの決まりどおりかは assert-directory.mjs の M16 が見る。 */
-const DOT = { g: 5.2, row: 5.2 * 0.866 };
+const DOT = { g: 5.2, row: 5.2 * 0.866, y0: 3.4 };
 const r1 = (v) => Math.round(v * 10) / 10;
 const RINGS = Object.fromEntries(Object.entries(SHAPES).map(([k, d]) => [k, String(d).split('M').filter((s) => s.trim()).map((s) => {
   const n = s.replace(/[lz]/g, () => ' ').match(/-?\d+/g).map(Number), pts = [[n[0], n[1]]];
@@ -195,8 +198,8 @@ const onlyIn = (code, x, y) => inShape(code, x, y) && Object.keys(RINGS).every((
     日本は目印の丸（当たりの層の円）が答えるので、D はその地域の中の点・G は D の右下とのまんなか */
 const DOTGAP = Object.fromEntries(REG8.map((code) => {
   const p = POINT_AT[code], cand = [];
-  for (let r = 0; r1(DOT.g / 2 + r * DOT.row) < 440; r++) {
-    const y = r1(DOT.g / 2 + r * DOT.row), yn = r1(DOT.g / 2 + (r + 1) * DOT.row);
+  for (let r = 0; r1(DOT.y0 + r * DOT.row) < 440; r++) {
+    const y = r1(DOT.y0 + r * DOT.row), yn = r1(DOT.y0 + (r + 1) * DOT.row);
     if (Math.abs(y - p[1]) > 20) continue;
     for (let i = 0; r1((r % 2 ? DOT.g : DOT.g / 2) + i * DOT.g) < 1000; i++) {
       const x = r1((r % 2 ? DOT.g : DOT.g / 2) + i * DOT.g);
@@ -226,7 +229,6 @@ const SLUGS = Object.keys(SALARY);
 const ORDER = SLUGS.slice().sort((a, b) => (REG8.indexOf(SALARY[a].region) - REG8.indexOf(SALARY[b].region))
   || ((POS.get(a) ?? 1e9) - (POS.get(b) ?? 1e9)));
 const inRegion = (code) => SLUGS.filter((s) => code === 'all' || SALARY[s].region === code);
-const listType = (s) => (ROW.get(s) || {}).type || '';
 /** ヘッダー検索の行（search.js の var DB = [ … ]; の中身）。slug を足して返す */
 function headerRows() {
   const src = read('search.js'), a = src.indexOf('var DB = ['), z = src.indexOf('window.PV_DB = DB;');
@@ -458,20 +460,7 @@ async function main() {
       }
       await press(page, '#region-strip .rstrip-btn[data-region="all"]');
 
-      /* b3 種類（FSC・LCC/ULCC・免税 → すべて） */
-      const TYPES = [
-        ['fsc', 'FSC', SLUGS.filter((s) => listType(s) === 'fsc')],
-        ['lcc', 'LCC/ULCC', SLUGS.filter((s) => listType(s) === 'lcc')],
-        ['taxfree', '免税', SLUGS.filter((s) => SALARY[s].taxFree === true)],
-        ['all', 'すべて', SLUGS],
-      ];
-      for (const [t, name, exp] of TYPES) {
-        await press(page, `.ftype-btn[data-type="${t}"]`);
-        const on = await until(page, (t) => { const b = document.querySelector(`.ftype-btn[data-type="${t}"]`); return !!b && b.classList.contains('active'); }, t);
-        const v = await visible(page);
-        ok(on && exp.length > 0 && sameSet(v, exp) && v.length === exp.length,
-          T(`b3 ${name} → ${t === 'taxfree' ? 'SALARY の taxFree の' : t === 'all' ? '台帳の' : `一覧の行の type が ${t} の`}${exp.length}社`), J({ n: v.length }));
-      }
+      /* b3 種類の絞り込み（FSC・LCC/ULCC・免税）は WP-dmap-7 で口ごと外した（オーナー P12.114）。無いことは静的な G10（assert-directory.mjs）が見る */
 
       /* b4 レベリング比較 ⇄ カード一覧 */
       await press(page, '.view-btn[data-view="range"]');
@@ -760,13 +749,21 @@ async function main() {
       await type(page, Q);
       const hl0 = await page.evaluate(() => history.length);
       await page.keyboard.press('Enter');
-      /* Enter は結果の見出しを上の帯のすぐ下（86px）へ送る ── そこへ着くか、ページの底に着くまで待ってから、止まるのを待つ */
+      /* Enter は結果の見出しを上の帯（固定のヘッダー）のすぐ下へ送る。真上の地域のボタンも一緒に入るなら、ボタンから（WP-dmap-7・リード 2026-10-25：
+         種類の列が無くなってボタンは見出しの真上 ── 見出しだけを 86px に置くとボタンがヘッダーの裏に入る）。
+         ボタンの上端が 86px に着くか、ページの底に着くまで待ってから、止まるのを待つ */
       const arrived = await until(page, () => {
-        const r = document.getElementById('wd-rh').getBoundingClientRect(), maxY = document.documentElement.scrollHeight - window.innerHeight;
-        return Math.abs(r.top - 86) <= 2 || Math.abs(window.scrollY - maxY) <= 1;
+        const s = document.getElementById('region-strip').getBoundingClientRect(), maxY = document.documentElement.scrollHeight - window.innerHeight;
+        return Math.abs(s.top - 86) <= 2 || Math.abs(window.scrollY - maxY) <= 1;
       });
       await still(page);
-      ok(arrived, T('scope Enter → 結果の見出しが上の帯のすぐ下へ来る'), J(await page.evaluate(() => Math.round(document.getElementById('wd-rh').getBoundingClientRect().top))));
+      const at = await page.evaluate(() => {
+        const s = document.getElementById('region-strip').getBoundingClientRect(), r = document.getElementById('wd-rh').getBoundingClientRect();
+        const b = document.querySelector('#region-strip .rstrip-btn[aria-pressed="true"]'), c = b && b.getBoundingClientRect(), h = c && document.elementFromPoint(c.left + c.width / 2, c.top + c.height / 2);
+        return { strip: Math.round(s.top), rh: [Math.round(r.top), Math.round(r.bottom)], vh: window.innerHeight, hit: !!h && (h === b || b.contains(h)) };
+      });
+      ok(arrived && at.strip >= 84 && at.rh[0] >= at.strip && at.rh[1] <= at.vh && at.hit,
+        T('scope Enter → 地域のボタンと結果の見出しが上の帯のすぐ下・どちらもヘッダーの裏に無い（押してある欧州のボタンのまんなかに当たるのは、そのボタン）'), J(at));
       const v2 = await visible(page), e2 = await elseShown(), none2 = await shown(page, '#wd-none'), n2 = await stripN('europe');
       ok(v2.length === 0, T(`scope 欧州 ＋「${Q}」＋ Enter → カード0枚`), J(v2));
       ok(!none2, T('scope 見つからないの文（#wd-none）を出さない（会社は在る）'), J(none2));
@@ -797,6 +794,10 @@ async function main() {
       await press(page, '#region-strip .rstrip-btn[data-region="europe"]');
       await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="europe"]') || {}).getAttribute?.('aria-pressed') === 'true');
       const e4 = await elseShown();
+      /* 欄の札は検索欄の中 ── Enter のあと欄は地域のボタンの上 ＝ 固定のヘッダーの裏（WP-dmap-7 の計り：欄 15〜69px・ヘッダーの下端 71px）。
+         画面の中なので page.click は動かさずにそこを押し、ヘッダーを押してしまう。読む人と同じく、押す前に欄をまんなかへ送る（地域のボタンは送らない ── Enter が見せている） */
+      await page.$eval('#wd-scope', (e) => e.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
+      await still(page);
       await press(page, '#wd-scope');
       const on4 = await until(page, () => (document.querySelector('#region-strip .rstrip-btn[data-region="all"]') || {}).getAttribute?.('aria-pressed') === 'true');
       const v4 = await visible(page), nAll = await stripN('all'), c4 = await chip();
@@ -857,7 +858,6 @@ async function main() {
   /* ── 住所と「戻る」の場面で使う道具（WP-dd-6）── */
   const fieldOf = (page) => page.evaluate(() => document.getElementById('search').value);
   const stateOf = (page) => page.evaluate(() => (window.PVDirectory ? window.PVDirectory.state() : null));
-  const typeOf = (page) => page.evaluate(() => [...document.querySelectorAll('.ftype-btn.active')].map((b) => b.dataset.type));
   const chipOf = (page) => page.evaluate(() => { const c = document.getElementById('wd-scope'); return c && getComputedStyle(c).display !== 'none' && c.getClientRects().length > 0 ? c.textContent : null; });
   const addr = (page) => page.evaluate(() => ({ href: location.href, search: location.search, hl: history.length, hs: history.state }));
   /* 見えているカードが v（DOM の順）と同じになるまで */
@@ -865,7 +865,7 @@ async function main() {
     .filter((a) => a.getClientRects().length > 0)
     .map((a) => a.getAttribute('href').replace(/^airlines\//, () => '').replace(/\.html$/, () => ''))) === JSON.stringify(v), v);
   const pressedIs = (page, code) => until(page, (c) => (document.querySelector(`#region-strip .rstrip-btn[data-region="${c}"]`) || {}).getAttribute?.('aria-pressed') === 'true', code);
-  const D0 = { q: '', region: 'all', type: 'all', view: 'card' };
+  const D0 = { q: '', region: 'all', view: 'card' };   // 状態は q・region・view の3つ（種類 type は WP-dmap-7 で無くなった）
   /* 別の文書（道の終わりが end）へ移って読み終わるまで。⚠️ waitForNavigation は使わない ── 押した時の住所の書き込み
      （replaceState ＝ 同じ文書の中の移り）でも返るので、まだ一覧のページにいるうちに先へ進んでしまう */
   const toDoc = async (page, end, act) => {
@@ -881,22 +881,24 @@ async function main() {
     const { page, st } = P;
     const go = async (href) => { await page.goto(href, { waitUntil: 'load', timeout: 60000 }); await ready(page); };
     try {
-      /* u1 7つの住所（期待する集合は台帳から） */
-      const DE = ofCountry('DE').filter((s) => SALARY[s].region === 'europe' && listType(s) === 'fsc');
+      /* u1 8つの住所（期待する集合は台帳から）。古い ?type=（種類の絞り込みの住所 ── WP-dmap-7 で口ごと外した）は、すべてとして開き、
+         住所から type の鍵だけが消える（ほかの鍵・# はそのまま・history.state は触らない）。種類では絞らない ＝ 見えるのはその地域・国の会社ぜんぶ */
+      const DE = ofCountry('DE').filter((s) => SALARY[s].region === 'europe');
       const ADDR = [
         ['?q=ana', { ...D0, q: 'ana' }, { typed: 'ana' }],
         ['?q=ana#list', { ...D0, q: 'ana' }, { typed: 'ana' }],
         ['?region=asia', { ...D0, region: 'asia' }, { exp: inRegion('asia') }],
         ['?region=zz', D0, { exp: ORDER }],
         ['?ref=ABCD1234', D0, { exp: ORDER }],
-        ['?q=%E3%83%89%E3%82%A4%E3%83%84&region=europe&type=fsc', { ...D0, q: 'ドイツ', region: 'europe', type: 'fsc' }, { exp: DE }],
+        ['?q=%E3%83%89%E3%82%A4%E3%83%84&region=europe&type=fsc', { ...D0, q: 'ドイツ', region: 'europe' }, { exp: DE, clean: '?q=%E3%83%89%E3%82%A4%E3%83%84&region=europe' }],
+        ['?type=taxfree#list', D0, { exp: ORDER, clean: '#list' }],
         ['?view=range', { ...D0, view: 'range' }, { range: true }],
       ];
       for (const [qs, want, how] of ADDR) {
         const href = plain + qs;
         await go(href);
-        const a = await addr(page), s = await stateOf(page), f = await fieldOf(page), pr = await pressed(page), ty = await typeOf(page);
-        let good = a.href === href && a.hs === null && same(s, want) && f === want.q && same(pr, [want.region]) && same(ty, [want.type]), ex = {};
+        const a = await addr(page), s = await stateOf(page), f = await fieldOf(page), pr = await pressed(page);
+        let good = a.href === plain + (how.clean ?? qs) && a.hs === null && same(s, want) && f === want.q && same(pr, [want.region]), ex = {};
         if (how.exp) {
           const v = await visible(page);
           ex = { n: v.length };
@@ -915,7 +917,7 @@ async function main() {
           await shot(page, 'url', lang, 'range');
         }
         const what = how.exp ? `${how.exp.length}社` : how.typed ? '打った時と同じカード（先頭が ANA）' : '絞り込みの帯が消え、#lvl-wa-grid に4本の .lvl-col';
-        ok(good, T(`u1 「${decodeURIComponent(qs)}」で開く → 住所はそのまま・history.state は null・状態・欄・地域・種類が住所どおり・${what}`), J({ a, s, f, pr, ty, ...ex }));
+        ok(good, T(`u1 「${decodeURIComponent(qs)}」で開く → ${how.clean !== undefined ? `すべて（種類では絞らない）・住所は type だけが消えて「${decodeURIComponent(how.clean) || '（鍵なし）'}」` : '住所はそのまま'}・history.state は null・状態・欄・地域が住所どおり・${what}`), J({ a, s, f, pr, ...ex }));
       }
 
       /* u2 本当に打つ → 欄にいるあいだは住所を書かない → Enter */
@@ -1457,10 +1459,38 @@ async function main() {
   const selectedIs = (page, code, timeout = 20000) => page.waitForFunction((c) => window.PVDirectory.state().region === c
     && (document.querySelector(`#region-strip .rstrip-btn[data-region="${c}"]`) || {}).getAttribute?.('aria-pressed') === 'true', { timeout }, code).then(() => true, () => false);
   /* 箱の中の位置 → ページの上の位置（いまの svg の箱で） */
+  /* toPage() は「svg の箱 ＝ 形の箱 0〜1000 × 0〜440」の写し。WP-dmap-7 から svg の viewBox は形の箱より上下に広い（北の上に海）ので、
+     viewBox が形の箱のどこに在るかを読み、形の箱 0〜440 が画面のどこに在るかの箱を作ってから toPage() に渡す（同じ写し方・同じ強さ） */
   const boxPt = async (page, xy) => {
-    const r = await page.evaluate(() => { const b = document.querySelector('#wa-map-sec .wam-svg').getBoundingClientRect(); return { left: b.left, top: b.top, width: b.width, height: b.height }; });
+    const r = await page.evaluate(() => {
+      const s = document.querySelector('#wa-map-sec .wam-svg'), b = s.getBoundingClientRect(), v = s.viewBox.baseVal;
+      return { left: b.left - (v.x / v.width) * b.width, top: b.top - (v.y / v.height) * b.height, width: (b.width * 1000) / v.width, height: (b.height * 440) / v.height };
+    });
     return toPage(r, xy[0], xy[1]);
   };
+  /* ★「機長｜副操縦士」の切り替えの箱に掛かる陸の点（WP-dmap-7・リード 2026-10-25 Q2：class A）── 700〜999px では切り替えが地図に重なる。
+     点はページそのものの点の列（svg の path[id^="wam-d-"] の d ＝「M x y h 長さ」、点は 5.2 ごと）から、半径はその path の線の太さの半分。
+     いまの svg の箱と viewBox で画面の位置へ写し、点の円が切り替えの箱に1px でも掛かれば数える。切り替えが見えない・点が読めないときも赤（0 個を測って通らない） */
+  const onLand = (page) => page.evaluate(() => {
+    const sw = document.querySelector('#wa-map-sec .wam-pos'), svg = document.querySelector('#wa-map-sec .wam-svg');
+    if (!sw || !svg || !sw.getClientRects().length || !svg.getClientRects().length) return { err: '切り替えか地図が見えない' };
+    const a = sw.getBoundingClientRect(), b = svg.getBoundingClientRect(), v = svg.viewBox.baseVal, sx = b.width / v.width, sy = b.height / v.height;
+    let dots = 0; const hit = [];
+    for (const p of svg.querySelectorAll('path[id^="wam-d-"]')) {
+      const d = p.getAttribute('d') || '', r = (parseFloat(getComputedStyle(p).strokeWidth) / 2) * sx;
+      if (/[^Mh\d.\s-]/.test(d) || !(r > 0)) return { err: `点の列が読めない（${p.id}）` };
+      for (const m of d.matchAll(/M(-?[\d.]+) (-?[\d.]+)h([\d.]+)/g)) {
+        const x0 = +m[1], y = +m[2], n = Math.floor(+m[3] / 5.2 + 1e-6) + 1;
+        for (let i = 0; i < n; i++) {
+          dots++;
+          const cx = b.left + (x0 + i * 5.2 - v.x) * sx, cy = b.top + (y - v.y) * sy;
+          const dx = Math.max(a.left - cx, 0, cx - a.right), dy = Math.max(a.top - cy, 0, cy - a.bottom);
+          if (dx * dx + dy * dy < r * r) hit.push(`${p.id.slice(6)} ${Math.round((x0 + i * 5.2) * 10) / 10},${y}`);
+        }
+      }
+    }
+    return dots < 1000 ? { err: `読めた点が ${dots} 個` } : { n: hit.length, hit: hit.slice(0, 4), sw: [Math.round(a.left), Math.round(a.top), Math.round(a.width), Math.round(a.height)], pos: getComputedStyle(sw).position };
+  });
   const toTop = async (page) => { await still(page); await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' })); await still(page); };
   const mapInView = async (page) => { await still(page); await page.evaluate(() => document.querySelector('#wa-map-sec .wam-map').scrollIntoView({ block: 'center', behavior: 'instant' })); await still(page); };
   const shiftTab = async (page) => { await page.keyboard.down('Shift'); await page.keyboard.press('Tab'); await page.keyboard.up('Shift'); };
@@ -1778,7 +1808,7 @@ async function main() {
 
   /* 場面 map-fit（DM4・ライト）── 7つの通貨 × 幅 1001・390 × 9枚のカード：額が切れない・カードの中・職位の札と重ならない・帯は 72px 以上・
      帯の点と幅と平均の印は書いた額のとおりの所（0.6px 以内）・通貨を戻すと1字も違わない・英語はドルで開く（¥ なし）／
-     assert-header.mjs の10の幅 × 円・ドルで横にはみ出さない（区域の箱は画面の幅の中） */
+     assert-header.mjs の10の幅 × 円・ドルで横にはみ出さない（区域の箱は画面の幅の中）／★1001・390 と10の幅で、切り替えの箱に陸の点が1つも掛からない（onLand） */
   async function mapFit(lang) {
     const T = (s) => `[${lang}] ${s}`;
     const CURS = [...(read('currency.js').match(/var RATES = \{([^}]*)\}/) || ['', ''])[1].matchAll(/([A-Z]{3}):/g)].map((m) => m[1]);
@@ -1850,11 +1880,13 @@ async function main() {
       }
       return bad;
     };
+    const land = [];   // ★切り替えの箱に掛かる陸の点（onLand）── 1001・390 と10の幅で測り、最後に1行
     for (const [w, h] of [[1001, 900], [390, 680]]) {
       const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w, h, init: tokyo });
       PAGES.push(P);
       try {
         const { page, st } = P;
+        land.push({ w, ...(await onLand(page)) });
         if (w < 700) {
           await page.focus(BTN('europe'));
           await page.keyboard.press('Enter');
@@ -1893,6 +1925,7 @@ async function main() {
       for (const w of WIDTHS) {
         await page.setViewport({ width: w, height: 900, deviceScaleFactor: 1 });
         await settle(page, 4);
+        land.push({ w, ...(await onLand(page)) });
         for (const c of ['JPY', 'USD']) {
           await page.evaluate((c) => window.PVCurrency.set(c), c);
           const o = await page.evaluate(() => { const de = document.documentElement, s = document.getElementById('wa-map-sec').getBoundingClientRect(); return { sw: de.scrollWidth, cw: de.clientWidth, l: Math.round(s.left), r: Math.round(s.right) }; });
@@ -1900,6 +1933,9 @@ async function main() {
         }
       }
       ok(bad.length === 0, T(`map-fit ${WIDTHS.length}の幅（${WIDTHS.join('・')}）× 円・ドル：ページが横にはみ出さない・地図の区域の箱は画面の幅の中`), J(bad));
+      const onl = land.filter((x) => x.err || x.n !== 0);
+      ok(land.length === 2 + WIDTHS.length && onl.length === 0,
+        T(`map-fit 1001・390 と${WIDTHS.length}の幅：「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（700〜999px は地図の左下の海の上）`), J(onl.length ? onl.slice(0, 4) : land.map((x) => `${x.w}:${x.pos}`)));
       const q = quiet(st, 'map-fit');
       ok(q.length === 0, T('map-fit quiet(st, \'map-fit\') が空（10の幅）'), J(q));
     } finally {
@@ -2029,6 +2065,15 @@ async function main() {
       try {
         const { page, st } = P;
         const z = await cardBox(page), bad = [];
+        if (w === 390) {
+          /* 指の画面では地図の下の一言（クリックして地域を選ぶ）を出さない ── 触れると見せるだけで、選ぶのは「この地域の航空会社を見る」
+             （WP-dmap-7・P2-a：本当でないことを言わない）。凡例はそのまま。マウスの画面で見えていることは場面 search の s3b */
+          const hint = await page.evaluate((t) => {
+            const p = document.querySelector('#wa-map-sec .wam-hint'), k = document.querySelector('#wa-map-sec .wam-key[data-pos="cap"]');
+            return { has: !!p && p.textContent === t, shown: !!p && p.getClientRects().length > 0, key: !!k && k.getClientRects().length > 0 };
+          }, HINT[lang]);
+          ok(hint.has && !hint.shown && hint.key, T(`map-tap 390 指：地図の下の一言「${HINT[lang]}」は出さない（触れると見せるだけ・選ぶのはボタン）・凡例は出ている`), J(hint));
+        }
         let b0 = null;
         for (const c of REG8) {
           await mapInView(page);
@@ -2071,14 +2116,16 @@ async function main() {
      ★D37（リードの決め 2026-10-25 Q1 で付け替え）：地図とカードの面（.wam-g ＝ 切り替え・地図・地図の下の一言と凡例・カードを載せる1枚）が、
        丸ごと最初の1画面の中（上端も下端も）。結果の見出し（#wd-rh）が画面の外なのは受け入れ（印字だけ）。地図の高さ 45% の線は外した。
        組んだ形（WP-dmap-4）で収まらない大きさは D37_OPEN に名前で置く ── WP-dmap-7 が地図の上端と高さを変える。そこでは「まだ収まらない」を数え、
-       収まったら赤くなる（D37_OPEN から外して約束として数える ＝ 黙って開いたままにならない） */
-  const D37_OPEN = new Set(['1440x780', '1024x690', '1080x730', '375x640']);
+       収まったら赤くなる（D37_OPEN から外して約束として数える ＝ 黙って開いたままにならない）。
+       WP-dmap-7：地図の上に海を足し（地図は 363 → 368px）、ヒーローの下（32 → 16px）と面の上下（20 → 14・10px）を詰めて、1440×780 と 375×640 が
+       丸ごと入った（1440×780 は面の下端 776／780）→ 外して数える。1024×690・1080×730 はカードが地図の下（区域 1000px 未満）で、面だけで約 650px ＝ まだ開いたまま */
+  const D37_OPEN = new Set(['1024x690', '1080x730']);
   async function mapFirst(lang) {
     const T = (s) => `[${lang}] ${s}`;
     const SIZES = [...read('assert-hero-fold.mjs').matchAll(/\[(\d+),\s*(\d+),\s*'[^']*',\s*'(both|peek)'\]/g)].map((m) => ({ w: +m[1], h: +m[2], cls: m[3] }));
     const REQUIRED = ['1440x780', '820x980', '1024x690', '390x680'];
     ok(SIZES.length === 8 && [...REQUIRED, ...D37_OPEN].every((k) => SIZES.some((s) => `${s.w}x${s.h}` === k)), T(`map-first 大きさは assert-hero-fold.mjs の SIZES から8つ（${SIZES.map((s) => `${s.w}×${s.h} ${s.cls}`).join('・')}）・「必ず」の4つ（${REQUIRED.join('・')}）と D37_OPEN（${[...D37_OPEN].join('・')}）がその中に在る`), J(SIZES));
-    const rows = [];
+    const rows = [], land = [];   // land ＝ ★切り替えの箱に掛かる陸の点（onLand）── 8つの大きさで測り、最後に1行
     for (const s of SIZES) {
       const touch = s.w < 1440;   // iPad とスマホの6つ
       const P = await dirOpen(browser, L, { rel: PAGE_REL[lang], w: s.w, h: s.h, touch, init: tokyo });
@@ -2091,7 +2138,8 @@ async function main() {
           return { vh: window.innerHeight, hero: B('#wa-hero'), search: B('#search'), sec: B('#wa-map-sec'), surf: B('#wa-map-sec .wam-g'), map: B('#wa-map-sec .wam-map'), foot: B('#wa-map-sec .wam-foot'), card: B('#wa-sum'), strip: B('#region-strip'), rh: B('#wd-rh') };
         });
         const k = `${s.w}x${s.h}`, req = REQUIRED.includes(k);
-        const searchOk = !!m.search && !!m.map && m.search.top >= 0 && m.search.bottom <= m.vh && m.search.bottom <= m.map.top;
+        land.push({ k, ...(await onLand(page)) });
+        const searchOk =!!m.search && !!m.map && m.search.top >= 0 && m.search.bottom <= m.vh && m.search.bottom <= m.map.top;
         await type(page, 'a');
         const gone = await until(page, () => document.getElementById('wa-map-sec').getClientRects().length === 0);
         await type(page, '');
@@ -2112,6 +2160,9 @@ async function main() {
       const { m } = r;
       console.log(`     ${r.k.padEnd(9)} ${r.cls.padEnd(4)}${r.req ? '★' : ' '} vh ${m.vh}｜hero ${m.hero && m.hero.bottom}｜区域 ${m.sec && m.sec.top}〜${m.sec && m.sec.bottom}｜地図 ${m.map && m.map.top}〜${m.map && m.map.bottom}（${m.map && m.map.h}・${m.map ? Math.round((1000 * m.map.h) / m.vh) / 10 : '-'}%）｜面 ${m.surf && m.surf.top}〜${m.surf && m.surf.bottom}｜地図の下の行の下端 ${m.foot && m.foot.bottom}｜カード ${m.card ? `${m.card.top}〜${m.card.bottom}` : '箱なし'}｜ボタン下 ${m.strip && m.strip.bottom}｜#wd-rh ${m.rh && m.rh.top}〜${m.rh && m.rh.bottom}｜面 ${r.whole ? '✓ 丸ごと' : `✗ 下端が ${m.surf ? m.surf.bottom - m.vh : '-'}px 外`}${r.open ? '（D37_OPEN）' : ''}`);
     }
+    const onl = land.filter((x) => x.err || x.n !== 0);
+    ok(land.length === SIZES.length && onl.length === 0,
+      T(`map-first ${SIZES.length}つの大きさ（iPad とスマホは指）：「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（700〜999px は地図の左下の海の上）`), J(onl.length ? onl.slice(0, 4) : land.map((x) => `${x.k}:${x.pos}`)));
     const out = rows.filter((r) => !r.whole);
     console.log(`  ── map-first：面が丸ごと最初の1画面に入る大きさ ${rows.length - out.length}／${rows.length}・入らない（D37_OPEN・WP-dmap-7）：${out.map((r) => `${r.k}${r.req ? '★' : ''}`).join('・') || 'なし'}`);
   }
