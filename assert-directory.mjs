@@ -1545,6 +1545,22 @@ const onBlock = (I, lang, id, fn) => {
   const before = I.page[lang]; I.page[lang] = before.replace(re, (c) => fn(c));
   if (I.page[lang] === before) throw new Error(`${lang} ${id} が変わらない`);
 };
+/* M9・M20 の壊し方の額と濃さは台帳（SALARY）から作る。手で打った字は年収を直すたびに古くなり「壊し方が当たらない」になる
+   （2026-10-25 の推定年収の更新で ¥3,030万・--c:0.42 がそうなった）。作り方は一覧と同じ：地域の平均 ＝ mean10・
+   濃さ ＝ 8地域の平均のいちばん低い所 0 〜 いちばん高い所 1（directory-map.mjs の toneOf と同じ式を、ここで独立に持つ） */
+const toneMap = (I, r, swap = {}) => {
+  const v = Object.fromEntries(REG8.map((c) => [c, swap[c] ?? mean10(I, regionSlugs(I, c), r)])), lo = Math.min(...Object.values(v)), hi = Math.max(...Object.values(v));
+  return { lo, hi, t: Object.fromEntries(REG8.map((c) => [c, Math.round(((v[c] - lo) / (hi - lo)) * 100) / 100])) };
+};
+/** M9：カードの額の平均（cm）と推定の平均（em）が違い、cm に描き直すと地図の濃さか凡例も動く、最初の地域のマス（機長が先・REG8 の順） */
+const m9Cell = (I) => {
+  const cardMan = (s, r) => { const w = want(I, s, r); const m = w.yen ? /([\d,]+)万/.exec(w.yen) : null; return m ? num(m[1]) : I.ledger[s][r].avg; };
+  for (const r of ['cap', 'fo']) for (const code of REG8) {
+    const sl = regionSlugs(I, code), em = mean10(I, sl, r), cm = Math.round(sl.reduce((a, s) => a + cardMan(s, r), 0) / sl.length / 10) * 10;
+    if (cm !== em && !same(toneMap(I, r), toneMap(I, r, { [code]: cm }))) return { code, r, em, cm };
+  }
+  throw new Error('カードの額の平均と推定の平均が違い、描き直すと地図の濃さも動く地域のマスが無い');
+};
 const ROWS = [
   ['A1', (I) => { I.files.delete('en/airlines/solairus.html'); }, 'A', ['A1']],
   ['A2', (I) => { I.ledger.qantas.region = 'canada'; }, 'A', ['A2']],
@@ -1664,10 +1680,12 @@ const ROWS = [
   ['M7c', (I) => onPanel(I, 'ja', 'europe', (c) => c.replace(/(<div class="wam-hi">[\s\S]*?<ul class="wam-who"><li>)[^<]*/, (_, a) => a + SALARY.aegean.ja)), 'M', ['M7']],
   /* A36：日本のページの文の1つ目（<head> の説明ではなく本文の文）を直す */
   ['M8', (I) => { I.map.japan = I.map.japan.replace('機長の推定年収の平均が¥1,850万（', () => '機長の推定年収の平均が¥1,860万（'); }, 'M', ['M8']],
-  /* 中東の機長をカードの額の平均（¥2,780万）で描き直す（平均の印もそれに合わせる）── 数が台帳と違う（M7）・カードの平均を出している（M9）・
-     地図の中東の濃さ（--c）が出ている数と合わなくなる（M20 ── WP-dmap-4 から。A35 a：{M7, M9} → {M7, M9, M20}） */
-  ['M9', (I) => onPanel(I, 'ja', 'mideast', (c) => sub(sub(c, '<b class="wam-n">¥3,030万</b>', '<b class="wam-n">¥2,780万</b>'),
-    `<i class="wam-mean" style="left:${widthOf(3030, axOf(I).cap)}">`, `<i class="wam-mean" style="left:${widthOf(2780, axOf(I).cap)}">`)), 'M', ['M7', 'M9', 'M20']],
+  /* 地域の1マス（m9Cell：いまの台帳では中東の機長）をカードの額の平均で描き直す（平均の印もそれに合わせる）── 数が台帳と違う（M7）・
+     カードの平均を出している（M9）・地図のその地域の濃さが出ている数と合わなくなる（M20 ── WP-dmap-4 から。A35 a：{M7, M9} → {M7, M9, M20}）。
+     額は台帳から作る（WP-dmap-5：手で打った ¥3,030万 が年収の更新で古くなった） */
+  ['M9', (I) => { const { code, r, em, cm } = m9Cell(I), ax = axOf(I)[r];
+    onPanel(I, 'ja', code, (c) => sub(sub(c, `<b class="wam-n">${yen(em)}</b>`, `<b class="wam-n">${yen(cm)}</b>`),
+      `<i class="wam-mean" style="left:${widthOf(em, ax)}">`, `<i class="wam-mean" style="left:${widthOf(cm, ax)}">`)); }, 'M', ['M7', 'M9', 'M20']],
   ['M10', (I) => onPanel(I, 'ja', 'europe', (c) => c.replace(/(<div class="wam-sp" data-pos="cap">[\s\S]*?<i class="wam-band" style="--a:[^;]*;--b:)[^"]*/, (_, a) => `${a}52.00%`)), 'M', ['M10']],
   ['M10b', (I) => { I.map.view.SCALE_STEP = 500; }, 'M', ['M10']],
   ['M11', (I) => onPanel(I, 'ja', 'europe', (c) => sub(c, '</dl>\n</details>', '</dl>\n<p class="wam-note">x</p>\n</details>')), 'M', ['M11']],
@@ -1690,8 +1708,10 @@ const ROWS = [
   /* 地図の形（M16 B）：点の path に fill を書く／欧州の点の列を1本消す（形と合わない点の地図）── 日英どちらも同じ形に直す */
   ['M16', (I) => { I.page.ja = I.page.ja.replace(/(<path class="wam-land" id="wam-d-europe")/, (_, a) => `${a} fill="#fff"`); }, 'M', ['M16']],
   ['M16b', (I) => { for (const lang of ['ja', 'en']) I.page[lang] = I.page[lang].replace(/(id="wam-d-europe" d=")M[\d.]+ [\d.]+h[\d.]+/, (_, a) => a); }, 'M', ['M16']],
-  /* 地図の濃さと凡例（M20 A）：欧州の機長の濃さを書き換える（日英とも）／凡例の機長のいちばん高い額を書き換える */
-  ['M20', (I) => { for (const lang of ['ja', 'en']) I.page[lang] = sub(I.page[lang], 'data-region="europe" style="--c:0.42;', 'data-region="europe" style="--c:0.43;'); }, 'M', ['M20']],
+  /* 地図の濃さと凡例（M20 A）：欧州の機長の濃さを 0.01 ずらす（日英とも。いまの濃さは台帳から作る ── WP-dmap-5：手で打った 0.42 が古くなった）／
+     凡例の機長のいちばん高い額を書き換える */
+  ['M20', (I) => { const c = toneMap(I, 'cap').t.europe, b = c >= 1 ? 0.99 : Math.round(c * 100 + 1) / 100;
+    for (const lang of ['ja', 'en']) I.page[lang] = sub(I.page[lang], `data-region="europe" style="--c:${c};`, `data-region="europe" style="--c:${b};`); }, 'M', ['M20']],
   ['M20b', (I) => { I.page.ja = sub(I.page.ja, '<i class="wam-kb"></i><span>¥4,110万</span>', '<i class="wam-kb"></i><span>¥4,120万</span>'); }, 'M', ['M20']],
   /* 国の帯（M17）：1つのリンクを消す／帯を #wd-explore の中（動かす前の場所）へ戻す */
   ['M17', (I) => { I.page.ja = sub(I.page.ja, '<a href="countries/ireland.html">🇮🇪 アイルランド<i>2社</i></a>', ''); }, 'M', ['M17']],
