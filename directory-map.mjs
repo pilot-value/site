@@ -1,6 +1,15 @@
 /* ════════════════════════════════════════════════════════════════
-   directory-map.mjs ── 航空会社一覧の地図（8つの地域の形・名前の札・凡例）の HTML を作る（段階5・地図の区域）。
-   いまは mapBox() と toneOf() だけ（DM1。見本の絵 import-world-outline.mjs --sketch が呼ぶ）。カードとボタンは WP-dmap-2 から足す。
+   directory-map.mjs ── 航空会社一覧の地図（8つの地域の形・名前の札・凡例）と、地域のまとめのカードの HTML を作る（段階5・地図の区域）。
+   mapBox() と toneOf() は DM1（見本の絵 import-world-outline.mjs --sketch が呼ぶ）。WP-dmap-2 から mapSection()（gen-directory.mjs の
+   PV-DIRMAP の中身 ＝ 9枚のカード：すべて ＋ 8地域）と axisOf()。地図の箱をページに入れるのは WP-dmap-4（オーナーが選んだ点の地図・P12.100）。
+
+   ★ カードの額は地域の推定年収の平均（directory-model.mjs の regionMean ＝ 掲載している会社の推定の平均）と、
+     その職位の「散らばり」（P12.101：1社に1つの点・いちばん低い会社からいちばん高い会社までの帯・平均の印・最低／最高の額と会社・幅）。
+     どの額も o.bake() を通す（英語のページはドルの span に焼く）。属性に額を書かない。
+   ★ 帯の目盛の右端は axisOf() の1か所（会社ページと同じ決め方 ＝ pv-airline-view.mjs の scaleTop。決まった上限は持たない ── P12.104）。
+   ★ 社名は2つの <ul> の <li> の中だけ（条件/出典の「対象」と、最低／最高の会社）。その <li> に職位の語を入れない
+     （check-salary.mjs は社名から職位の語と額へ跨いで読む。</li> を跨いだ読みは捨てる ── 社名を <li> に閉じ込めれば、地域の額を会社の額と読まない）。
+   ★ 字はこのファイルの WORDS の1か所（日本語はオーナーの字・英語はリードが採った候補）。
 
    ★ 形は world-outline.mjs（生成物。import-world-outline.mjs が書く）から読む。ここで形を作らない・直さない。
    ★ 緑の濃さの段は toneOf() の1か所：段 k ＝ min(AX/1000 − 1, floor(地域の機長の推定年収の平均 / 1000))。
@@ -11,6 +20,8 @@
    ★ 文字列の置き換えは関数形だけ（CLAUDE.md）。
    ════════════════════════════════════════════════════════════════ */
 import { SHAPES, LABELS, JAPAN_MARK } from './world-outline.mjs';
+import { widthOf } from './pv-bars.mjs';
+import { scaleTop } from './pv-airline-view.mjs';
 
 /** 塗る順（あとのものが上）。日本はいちばん上の地域 */
 export const PAINT = ['us', 'latam', 'europe', 'africa', 'mideast', 'asia', 'oceania', 'japan'];
@@ -68,4 +79,127 @@ export function mapBox(o) {
   L.push(`<p class="wam-key" aria-hidden="true"><svg class="wam-sw" viewBox="0 0 ${STEPS * 10} 10" focusable="false">${sw}</svg><span>${o.key}</span></p>`);
   L.push('</div>');
   return L.join('\n');
+}
+
+/* ── 地域のまとめのカード（WP-dmap-2）────────────────────────────────────────── */
+
+/** 狭い画面（区域の幅 700px 未満）で、地域を指す・選ぶ前からカードが場所を取るか（P7.4・D27）。
+    'none' ＝ 取らない（出荷はこれ）／'card' ＝ いつも出す。区域の data-rest に書く */
+export const NARROW_REST = 'none';
+
+/** 職位（この順で2行。帯は選んだ職位の1本を見せる ── 区域の data-pos。出荷は機長） */
+const POS = ['cap', 'fo'];
+
+/** カードの字（★ここ1か所）。日本語 ＝ オーナーの字（D18）と P12.101 の「最低」「最高」「幅」。
+    英語 ＝ リードが採った候補（P12.86-3：C-1〜C-5・C-7・C-9。職位は directory-model.mjs の札と同じ C2）と、
+    P12.101 の3語の候補（Lowest / Highest / Range ── リードの決め待ち。決まった字はここだけ直す） */
+const WORDS = {
+  ja: {
+    all: 'すべて', k: '公開情報からの推定', def: (n) => `掲載${n}社の推定年収の平均`, rank: { cap: '機長', fo: '副操縦士' },
+    cond: '条件/出典', who: '対象', count: '対象掲載社数', countN: (n) => `${n}社`, fx: '換算', go: 'この地域の航空会社を見る',
+    lo: '最低', hi: '最高', span: '幅', regionN: (l, n) => `${l} ${n}社`,
+  },
+  en: {
+    all: 'All', k: 'Estimate from public information', def: (n) => `Mean of our estimates across ${n} airlines`, rank: { cap: 'Captain', fo: 'First Officer' },
+    cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Conversion', go: 'View airlines in this region',
+    lo: 'Lowest', hi: 'Highest', span: 'Range', regionN: (l, n) => `${l} ${n}`,
+  },
+};
+
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/**
+ * 帯の目盛の右端（万円・職位ごと）。会社ページと同じ決め方 ＝ pv-airline-view.mjs の scaleTop（描く額のいちばん大きいものを、
+ * 次の 1,000万の刻みへ切り上げる。決まった上限は持たない ── P12.104「MAX7000万はおかしい」）。
+ * 数えるのは、掲載している全社のその職位の推定年収（avg）と、その幅の上の額（hi）。すべて ＋ 8地域で1本
+ * （地域どうしの帯の長さを比べられるように）。会員の額を帯にする日（地域のまとめの下の段・05b）は、その額もここへ数える。
+ *   ledger ＝ salary-data.mjs の SALARY（呼び手が渡す。このファイルは年収の台帳を import しない）
+ */
+export const axisOf = (ledger, rank) => scaleTop(Object.values(ledger).flatMap((d) => [d[rank].avg, d[rank].hi]));
+
+/**
+ * PV-DIRMAP の中身（gen-directory.mjs が両方のページに書く）。
+ *   o = { lang, M（directory-model.mjs の model()）, ledger（SALARY）, regionMean(code, rank), bake(text) → string, fxNote（換算の文）, show }
+ *   show 'card' ＝ カードだけ（地図の箱は WP-dmap-4 で入る。ほかの値はまだ作らない＝止まる）
+ * 9枚のカード（すべて ＋ 8地域。すべてだけ is-shown）は1つの升に重ねる（高さが入れ替わらない）。台本なしでは9枚とも縦に並び、
+ * 帯は機長と副操縦士の2本とも見える（<noscript> の規則）。#pv-rp は地域のまとめの下の段（05b）が入る口 ── ここは何も書かない。
+ */
+export function mapSection(o) {
+  const W = WORDS[o.lang];
+  if (!W) throw new Error(`mapSection：知らない言語「${o.lang}」`);
+  if (o.show !== 'card') throw new Error(`mapSection：show「${o.show}」（地図の箱は WP-dmap-4 で入る）`);
+  if (typeof o.fxNote !== 'string' || !o.fxNote) throw new Error('mapSection：換算の文が無い');
+  const M = o.M, yen = (m) => o.bake(`¥${m.toLocaleString('en-US')}万`);
+  const AX = Object.fromEntries(POS.map((r) => [r, axisOf(o.ledger, r)]));
+  const at = (v, ax) => { const w = widthOf(v, ax); if (w === null || v > ax) throw new Error(`mapSection：額 ${v} が帯（0〜${ax}）に載らない`); return w; };
+  const meanOf = (g, r) => { const m = o.regionMean(g.code, r); if (!(typeof m === 'number' && m > 0)) throw new Error(`mapSection：${g.code} ${r} の平均「${m}」`); return m; };
+  const groups = [{ code: 'all', label: W.all, slugs: M.slugs, n: M.n },
+    ...M.regions.map((r) => ({ code: r.code, label: r[o.lang], slugs: r.slugs, n: r.n }))];
+
+  /* その職位の散らばり：1社に1つの点（安い順）・最低〜最高の帯・平均の印・最低／最高の額と会社（同じ額の会社は全部）・幅 */
+  const spread = (g, r) => {
+    const ax = AX[r], vals = g.slugs.map((s) => ({ s, v: M.airlines[s][r].est.man }));
+    if (!vals.length) throw new Error(`mapSection：${g.code} に会社が無い`);
+    for (const x of vals) if (!(typeof x.v === 'number' && x.v > 0)) throw new Error(`mapSection：${x.s} ${r} の推定「${x.v}」`);
+    const lo = Math.min(...vals.map((x) => x.v)), hi = Math.max(...vals.map((x) => x.v));
+    const who = (v) => `<ul class="wam-who">${vals.filter((x) => x.v === v).map((x) => `<li>${esc(M.airlines[x.s][o.lang])}</li>`).join('')}</ul>`;
+    /* 点は class を持たない <i>（1地域に最大112個 × 2職位 × 2回 ── 字数を食わないように。見た目は .wam-track > i） */
+    const dots = vals.slice().sort((a, b) => a.v - b.v).map((x) => `<i style="left:${at(x.v, ax)}"></i>`).join('');
+    return [
+      `<div class="wam-sp" data-pos="${r}">`,
+      `<p class="wam-sp-rk">${esc(W.rank[r])}</p>`,
+      `<div class="wam-track" style="--wam-n:${ax / 1000}" aria-hidden="true"><i class="wam-band" style="--a:${at(lo, ax)};--b:${at(hi, ax)}"></i>${dots}<i class="wam-mean" style="left:${at(meanOf(g, r), ax)}"></i></div>`,
+      `<p class="wam-ax" aria-hidden="true"><span>0</span><span>${yen(ax)}</span></p>`,
+      '<div class="wam-mm">',
+      `<div class="wam-lo"><span class="wam-mm-k">${esc(W.lo)}</span><b class="wam-mm-v">${yen(lo)}</b>${who(lo)}</div>`,
+      `<div class="wam-hi"><span class="wam-mm-k">${esc(W.hi)}</span><b class="wam-mm-v">${yen(hi)}</b>${who(hi)}</div>`,
+      '</div>',
+      `<p class="wam-w"><span class="wam-w-k">${esc(W.span)}</span><b class="wam-w-v">${yen(hi - lo)}</b></p>`,
+      '</div>',
+    ].join('\n');
+  };
+
+  const panel = (g) => {
+    const names = g.code === 'all'
+      ? M.regions.map((r) => `<li>${esc(W.regionN(r[o.lang], r.n))}</li>`)
+      : g.slugs.map((s) => `<li>${esc(M.airlines[s].show[o.lang])}</li>`);
+    return [
+      `<section class="wam-panel${g.code === 'all' ? ' is-shown' : ''}" data-region="${g.code}" id="wam-p-${g.code}">`,
+      `<h2 class="wam-h">${esc(g.label)}</h2>`,
+      `<div class="wam-est" id="wam-f-${g.code}">`,
+      `<p class="wam-k">${esc(W.k)}</p>`,
+      `<p class="wam-def">${esc(W.def(g.n))}</p>`,
+      ...POS.map((r) => `<p class="wam-row" data-pos="${r}"><span class="wam-rk">${esc(W.rank[r])}</span><b class="wam-n">${yen(meanOf(g, r))}</b></p>`),
+      '</div>',
+      '<div class="wam-sps">',
+      ...POS.map((r) => spread(g, r)),
+      '</div>',
+      '<details class="wam-cond">',
+      `<summary>${esc(W.cond)}</summary>`,
+      '<dl class="wam-cl">',
+      `<div><dt>${esc(W.who)}</dt><dd><ul class="wam-names">${names.join('')}</ul></dd></div>`,
+      `<div><dt>${esc(W.count)}</dt><dd>${esc(W.countN(g.n))}</dd></div>`,
+      `<div><dt>${esc(W.fx)}</dt><dd>${esc(o.fxNote)}</dd></div>`,
+      '</dl>',
+      '</details>',
+      '</section>',
+    ].join('\n');
+  };
+
+  return [
+    `<div class="wam" id="wa-map-sec" data-rest="${NARROW_REST}" data-pos="cap">`,
+    '<noscript><style>.wam-map,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}</style></noscript>',
+    '<div class="wam-g">',
+    '<aside class="wam-card" id="wa-sum">',
+    '<div class="wam-cols">',
+    '<div class="wam-panels">',
+    ...groups.map(panel),
+    '</div>',
+    `<div class="wam-slot"><div id="pv-rp" class="pv-rp" data-axis-jpy="${Math.max(AX.cap, AX.fo) * 10000}" hidden></div></div>`,
+    '</div>',
+    `<button type="button" class="wam-go is-off" id="wa-go">${esc(W.go)}</button>`,
+    '</aside>',
+    '</div>',
+    '</div>',
+  ].join('\n');
 }

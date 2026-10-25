@@ -54,7 +54,7 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="../pv-tokens.css">
-<link rel="stylesheet" href="../pv-directory.css?v=1b96c5ac">
+<link rel="stylesheet" href="../pv-directory.css?v=a6c1d3ef">
 <noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -372,6 +372,372 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   </div>
 </section>
 <!--/PV-CBAND-->
+<!--PV-DIRMAP-->
+<div class="wam" id="wa-map-sec" data-rest="none" data-pos="cap">
+<noscript><style>.wam-map,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}</style></noscript>
+<div class="wam-g">
+<aside class="wam-card" id="wa-sum">
+<div class="wam-cols">
+<div class="wam-panels">
+<section class="wam-panel is-shown" data-region="all" id="wam-p-all">
+<h2 class="wam-h">All</h2>
+<div class="wam-est" id="wam-f-all">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 112 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="25000000" data-orig="¥2,500万">$157K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="14200000" data-orig="¥1,420万">$89K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:9.78%;--b:70.22%"></i><i style="left:9.78%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:13.89%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:17.22%"></i><i style="left:17.22%"></i><i style="left:17.22%"></i><i style="left:17.78%"></i><i style="left:17.78%"></i><i style="left:17.78%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:19.11%"></i><i style="left:20.00%"></i><i style="left:20.56%"></i><i style="left:20.56%"></i><i style="left:20.56%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.78%"></i><i style="left:22.78%"></i><i style="left:23.33%"></i><i style="left:23.89%"></i><i style="left:23.89%"></i><i style="left:24.22%"></i><i style="left:24.89%"></i><i style="left:24.89%"></i><i style="left:25.56%"></i><i style="left:25.56%"></i><i style="left:26.11%"></i><i style="left:26.11%"></i><i style="left:26.67%"></i><i style="left:26.67%"></i><i style="left:26.67%"></i><i style="left:26.67%"></i><i style="left:27.22%"></i><i style="left:27.78%"></i><i style="left:27.78%"></i><i style="left:27.78%"></i><i style="left:28.89%"></i><i style="left:28.89%"></i><i style="left:29.44%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.56%"></i><i style="left:30.78%"></i><i style="left:31.11%"></i><i style="left:32.22%"></i><i style="left:32.22%"></i><i style="left:32.78%"></i><i style="left:32.78%"></i><i style="left:33.33%"></i><i style="left:33.33%"></i><i style="left:33.89%"></i><i style="left:33.89%"></i><i style="left:34.44%"></i><i style="left:36.67%"></i><i style="left:36.67%"></i><i style="left:36.67%"></i><i style="left:37.33%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:38.22%"></i><i style="left:39.22%"></i><i style="left:40.00%"></i><i style="left:40.00%"></i><i style="left:41.11%"></i><i style="left:41.11%"></i><i style="left:41.11%"></i><i style="left:44.00%"></i><i style="left:44.22%"></i><i style="left:45.56%"></i><i style="left:46.67%"></i><i style="left:47.78%"></i><i style="left:53.56%"></i><i style="left:54.44%"></i><i style="left:65.89%"></i><i style="left:68.44%"></i><i style="left:70.22%"></i><i class="wam-mean" style="left:27.78%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="8800000" data-orig="¥880万">$55K</span></b><ul class="wam-who"><li>Batik Air</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="63200000" data-orig="¥6,320万">$398K</span></b><ul class="wam-who"><li>United Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="54400000" data-orig="¥5,440万">$342K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:7.17%;--b:64.50%"></i><i style="left:7.17%"></i><i style="left:8.33%"></i><i style="left:10.00%"></i><i style="left:11.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.17%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.67%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.67%"></i><i style="left:14.67%"></i><i style="left:15.00%"></i><i style="left:15.83%"></i><i style="left:15.83%"></i><i style="left:15.83%"></i><i style="left:15.83%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:17.17%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:18.00%"></i><i style="left:18.33%"></i><i style="left:18.33%"></i><i style="left:18.33%"></i><i style="left:18.50%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i style="left:20.83%"></i><i style="left:20.83%"></i><i style="left:20.83%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.50%"></i><i style="left:22.50%"></i><i style="left:22.50%"></i><i style="left:23.00%"></i><i style="left:23.33%"></i><i style="left:23.33%"></i><i style="left:23.33%"></i><i style="left:24.17%"></i><i style="left:24.67%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.00%"></i><i style="left:25.17%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:26.50%"></i><i style="left:28.33%"></i><i style="left:28.33%"></i><i style="left:28.33%"></i><i style="left:28.50%"></i><i style="left:29.17%"></i><i style="left:29.17%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i style="left:30.17%"></i><i style="left:30.83%"></i><i style="left:31.50%"></i><i style="left:31.67%"></i><i style="left:32.00%"></i><i style="left:32.50%"></i><i style="left:33.33%"></i><i style="left:34.17%"></i><i style="left:35.00%"></i><i style="left:37.33%"></i><i style="left:38.33%"></i><i style="left:40.00%"></i><i style="left:40.00%"></i><i style="left:41.67%"></i><i style="left:43.17%"></i><i style="left:43.50%"></i><i style="left:46.67%"></i><i style="left:47.50%"></i><i style="left:50.00%"></i><i style="left:57.33%"></i><i style="left:58.50%"></i><i style="left:64.50%"></i><i class="wam-mean" style="left:23.67%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="4300000" data-orig="¥430万">$27K</span></b><ul class="wam-who"><li>Batik Air</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="38700000" data-orig="¥3,870万">$243K</span></b><ul class="wam-who"><li>United Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="34400000" data-orig="¥3,440万">$216K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>Japan 26</li><li>Asia 26</li><li>Middle East 9</li><li>Africa 4</li><li>Europe 25</li><li>North America 14</li><li>Oceania 4</li><li>Latin America 4</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>112</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="japan" id="wam-p-japan">
+<h2 class="wam-h">Japan</h2>
+<div class="wam-est" id="wam-f-japan">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 26 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="18500000" data-orig="¥1,850万">$116K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="11300000" data-orig="¥1,130万">$71K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:13.33%;--b:30.00%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:13.89%"></i><i style="left:14.44%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:16.67%"></i><i style="left:17.78%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:18.89%"></i><i style="left:21.11%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:22.22%"></i><i style="left:23.33%"></i><i style="left:26.11%"></i><i style="left:26.67%"></i><i style="left:27.78%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i class="wam-mean" style="left:20.56%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b><ul class="wam-who"><li>Toho Air Service</li><li>Shin Nihon Airlines</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="27000000" data-orig="¥2,700万">$170K</span></b><ul class="wam-who"><li>All Nippon Airways (ANA)</li><li>Japan Airlines (JAL)</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:12.50%;--b:30.00%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:12.50%"></i><i style="left:13.33%"></i><i style="left:13.33%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:14.17%"></i><i style="left:15.83%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:16.67%"></i><i style="left:17.50%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:20.00%"></i><i style="left:20.83%"></i><i style="left:20.83%"></i><i style="left:21.67%"></i><i style="left:21.67%"></i><i style="left:22.50%"></i><i style="left:23.33%"></i><i style="left:24.17%"></i><i style="left:25.00%"></i><i style="left:30.00%"></i><i style="left:30.00%"></i><i class="wam-mean" style="left:18.83%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="7500000" data-orig="¥750万">$47K</span></b><ul class="wam-who"><li>Shin Chuo Airlines (Shin Nichi Aviation)</li><li>Toho Air Service</li><li>Shin Nihon Airlines</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="18000000" data-orig="¥1,800万">$113K</span></b><ul class="wam-who"><li>All Nippon Airways (ANA)</li><li>Japan Airlines (JAL)</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>All Nippon Airways</li><li>Japan Airlines</li><li>Skymark Airlines</li><li>ZIPAIR Tokyo</li><li>Peach Aviation</li><li>Jetstar Japan</li><li>Spring Japan</li><li>J-AIR</li><li>Japan Transocean Air</li><li>Japan Air Commuter</li><li>Ryukyu Air Commuter</li><li>Hokkaido Air System</li><li>ANA Wings</li><li>AirJapan</li><li>AIRDO</li><li>Solaseed Air</li><li>StarFlyer</li><li>Fuji Dream Airlines</li><li>IBEX Airlines</li><li>Toki Air</li><li>Oriental Air Bridge</li><li>Amakusa Airlines</li><li>Shin Central Air</li><li>Toho Air Service</li><li>Daiichi Aviation</li><li>Shin Nihon Airlines</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>26</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="asia" id="wam-p-asia">
+<h2 class="wam-h">Asia</h2>
+<div class="wam-est" id="wam-f-asia">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 26 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="21900000" data-orig="¥2,190万">$138K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="11600000" data-orig="¥1,160万">$73K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:9.78%;--b:40.00%"></i><i style="left:9.78%"></i><i style="left:14.44%"></i><i style="left:14.44%"></i><i style="left:16.67%"></i><i style="left:17.22%"></i><i style="left:17.22%"></i><i style="left:17.78%"></i><i style="left:20.00%"></i><i style="left:20.56%"></i><i style="left:20.56%"></i><i style="left:21.11%"></i><i style="left:21.11%"></i><i style="left:22.22%"></i><i style="left:22.78%"></i><i style="left:22.78%"></i><i style="left:24.22%"></i><i style="left:26.11%"></i><i style="left:27.22%"></i><i style="left:32.22%"></i><i style="left:32.78%"></i><i style="left:32.78%"></i><i style="left:33.89%"></i><i style="left:33.89%"></i><i style="left:34.44%"></i><i style="left:37.78%"></i><i style="left:40.00%"></i><i class="wam-mean" style="left:24.33%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="8800000" data-orig="¥880万">$55K</span></b><ul class="wam-who"><li>Batik Air</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="36000000" data-orig="¥3,600万">$226K</span></b><ul class="wam-who"><li>Cathay Pacific</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="27200000" data-orig="¥2,720万">$171K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:7.17%;--b:40.00%"></i><i style="left:7.17%"></i><i style="left:8.33%"></i><i style="left:10.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.00%"></i><i style="left:12.50%"></i><i style="left:14.67%"></i><i style="left:15.83%"></i><i style="left:16.67%"></i><i style="left:17.50%"></i><i style="left:17.50%"></i><i style="left:18.33%"></i><i style="left:18.33%"></i><i style="left:18.50%"></i><i style="left:19.17%"></i><i style="left:19.17%"></i><i style="left:20.83%"></i><i style="left:24.67%"></i><i style="left:25.00%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:26.50%"></i><i style="left:30.83%"></i><i style="left:32.50%"></i><i style="left:40.00%"></i><i class="wam-mean" style="left:19.33%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="4300000" data-orig="¥430万">$27K</span></b><ul class="wam-who"><li>Batik Air</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="24000000" data-orig="¥2,400万">$151K</span></b><ul class="wam-who"><li>Cathay Pacific</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="19700000" data-orig="¥1,970万">$124K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>Korean Air</li><li>Asiana Airlines</li><li>EVA Air</li><li>China Airlines</li><li>StarLux Airlines</li><li>Thai Airways</li><li>Malaysia Airlines</li><li>Garuda Indonesia</li><li>Vietnam Airlines</li><li>Philippine Airlines</li><li>AirAsia</li><li>Scoot</li><li>IndiGo</li><li>Air India</li><li>Air China</li><li>China Southern</li><li>China Eastern</li><li>Hainan Airlines</li><li>VietJet Air</li><li>Bamboo Airways</li><li>HK Express</li><li>Batik Air</li><li>Royal Brunei</li><li>Singapore Airlines</li><li>Cathay Pacific</li><li>Root Aviation</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>26</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="mideast" id="wam-p-mideast">
+<h2 class="wam-h">Middle East</h2>
+<div class="wam-est" id="wam-f-mideast">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 9 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="30300000" data-orig="¥3,030万">$191K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="19200000" data-orig="¥1,920万">$121K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:18.89%;--b:47.78%"></i><i style="left:18.89%"></i><i style="left:27.78%"></i><i style="left:30.00%"></i><i style="left:31.11%"></i><i style="left:32.22%"></i><i style="left:36.67%"></i><i style="left:37.78%"></i><i style="left:41.11%"></i><i style="left:47.78%"></i><i class="wam-mean" style="left:33.67%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b><ul class="wam-who"><li>Royal Jordanian</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="43000000" data-orig="¥4,300万">$271K</span></b><ul class="wam-who"><li>Riyadh Air</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="26000000" data-orig="¥2,600万">$164K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:15.00%;--b:50.00%"></i><i style="left:15.00%"></i><i style="left:23.33%"></i><i style="left:25.00%"></i><i style="left:25.83%"></i><i style="left:30.00%"></i><i style="left:34.17%"></i><i style="left:38.33%"></i><i style="left:46.67%"></i><i style="left:50.00%"></i><i class="wam-mean" style="left:32.00%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="9000000" data-orig="¥900万">$57K</span></b><ul class="wam-who"><li>Royal Jordanian</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="30000000" data-orig="¥3,000万">$189K</span></b><ul class="wam-who"><li>Riyadh Air</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="21000000" data-orig="¥2,100万">$132K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>Emirates</li><li>Qatar Airways</li><li>Etihad Airways</li><li>Riyadh Air</li><li>Saudia</li><li>Oman Air</li><li>Gulf Air</li><li>Kuwait Airways</li><li>Royal Jordanian</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>9</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="africa" id="wam-p-africa">
+<h2 class="wam-h">Africa</h2>
+<div class="wam-est" id="wam-f-africa">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 4 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="14900000" data-orig="¥1,490万">$94K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="8000000" data-orig="¥800万">$50K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:14.44%;--b:17.78%"></i><i style="left:14.44%"></i><i style="left:16.67%"></i><i style="left:17.22%"></i><i style="left:17.78%"></i><i class="wam-mean" style="left:16.56%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b><ul class="wam-who"><li>South African Airways (SAA)</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="16000000" data-orig="¥1,600万">$101K</span></b><ul class="wam-who"><li>Ethiopian Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="3000000" data-orig="¥300万">$19K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:12.00%;--b:14.67%"></i><i style="left:12.00%"></i><i style="left:12.50%"></i><i style="left:14.17%"></i><i style="left:14.67%"></i><i class="wam-mean" style="left:13.33%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="7200000" data-orig="¥720万">$45K</span></b><ul class="wam-who"><li>South African Airways (SAA)</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="8800000" data-orig="¥880万">$55K</span></b><ul class="wam-who"><li>Ethiopian Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="1600000" data-orig="¥160万">$10K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>Ethiopian Airlines</li><li>South African Airways</li><li>Kenya Airways</li><li>EgyptAir</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>4</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="europe" id="wam-p-europe">
+<h2 class="wam-h">Europe</h2>
+<div class="wam-est" id="wam-f-europe">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 25 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="26000000" data-orig="¥2,600万">$164K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="14300000" data-orig="¥1,430万">$90K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:14.44%;--b:45.56%"></i><i style="left:14.44%"></i><i style="left:15.56%"></i><i style="left:15.56%"></i><i style="left:19.11%"></i><i style="left:20.56%"></i><i style="left:22.22%"></i><i style="left:23.89%"></i><i style="left:23.89%"></i><i style="left:24.89%"></i><i style="left:24.89%"></i><i style="left:26.67%"></i><i style="left:27.78%"></i><i style="left:28.89%"></i><i style="left:28.89%"></i><i style="left:29.44%"></i><i style="left:30.00%"></i><i style="left:30.56%"></i><i style="left:30.78%"></i><i style="left:33.33%"></i><i style="left:38.22%"></i><i style="left:39.22%"></i><i style="left:40.00%"></i><i style="left:44.00%"></i><i style="left:44.22%"></i><i style="left:45.56%"></i><i class="wam-mean" style="left:28.89%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="13000000" data-orig="¥1,300万">$82K</span></b><ul class="wam-who"><li>Aegean Airlines</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="41000000" data-orig="¥4,100万">$258K</span></b><ul class="wam-who"><li>Swiss International Air Lines (SWISS)</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="28000000" data-orig="¥2,800万">$176K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:11.00%;--b:43.17%"></i><i style="left:11.00%"></i><i style="left:12.17%"></i><i style="left:12.67%"></i><i style="left:15.83%"></i><i style="left:17.17%"></i><i style="left:18.00%"></i><i style="left:18.33%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:18.67%"></i><i style="left:19.17%"></i><i style="left:20.00%"></i><i style="left:23.00%"></i><i style="left:23.33%"></i><i style="left:25.00%"></i><i style="left:25.83%"></i><i style="left:25.83%"></i><i style="left:28.33%"></i><i style="left:28.50%"></i><i style="left:30.17%"></i><i style="left:31.50%"></i><i style="left:32.00%"></i><i style="left:37.33%"></i><i style="left:41.67%"></i><i style="left:43.17%"></i><i class="wam-mean" style="left:23.83%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="6600000" data-orig="¥660万">$42K</span></b><ul class="wam-who"><li>Aegean Airlines</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="25900000" data-orig="¥2,590万">$163K</span></b><ul class="wam-who"><li>British Airways</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="19300000" data-orig="¥1,930万">$121K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>Turkish Airlines</li><li>Lufthansa</li><li>Air France</li><li>KLM</li><li>British Airways</li><li>Virgin Atlantic</li><li>SWISS</li><li>Austrian Airlines</li><li>Finnair</li><li>SAS</li><li>Iberia</li><li>TAP Air Portugal</li><li>ITA Airways</li><li>Aer Lingus</li><li>LOT Polish Airlines</li><li>Aegean Airlines</li><li>Icelandair</li><li>Norwegian</li><li>Ryanair</li><li>easyJet</li><li>Eurowings</li><li>Vueling</li><li>Wizz Air</li><li>AirX Charter Ltd</li><li>Eagle Jet International, Inc.</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>25</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="us" id="wam-p-us">
+<h2 class="wam-h">North America</h2>
+<div class="wam-est" id="wam-f-us">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 14 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="41100000" data-orig="¥4,110万">$259K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="23100000" data-orig="¥2,310万">$145K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:26.67%;--b:70.22%"></i><i style="left:26.67%"></i><i style="left:30.00%"></i><i style="left:33.33%"></i><i style="left:36.67%"></i><i style="left:37.33%"></i><i style="left:37.78%"></i><i style="left:37.78%"></i><i style="left:41.11%"></i><i style="left:46.67%"></i><i style="left:53.56%"></i><i style="left:54.44%"></i><i style="left:65.89%"></i><i style="left:68.44%"></i><i style="left:70.22%"></i><i class="wam-mean" style="left:45.67%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="24000000" data-orig="¥2,400万">$151K</span></b><ul class="wam-who"><li>Solairus Aviation</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="63200000" data-orig="¥6,320万">$398K</span></b><ul class="wam-who"><li>United Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="39200000" data-orig="¥3,920万">$247K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:22.50%;--b:64.50%"></i><i style="left:22.50%"></i><i style="left:25.17%"></i><i style="left:28.33%"></i><i style="left:28.33%"></i><i style="left:29.17%"></i><i style="left:30.00%"></i><i style="left:31.67%"></i><i style="left:33.33%"></i><i style="left:40.00%"></i><i style="left:43.50%"></i><i style="left:47.50%"></i><i style="left:57.33%"></i><i style="left:58.50%"></i><i style="left:64.50%"></i><i class="wam-mean" style="left:38.50%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="13500000" data-orig="¥1,350万">$85K</span></b><ul class="wam-who"><li>Porter Airlines</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="38700000" data-orig="¥3,870万">$243K</span></b><ul class="wam-who"><li>United Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="25200000" data-orig="¥2,520万">$159K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>Delta Air Lines</li><li>United Airlines</li><li>American Airlines</li><li>Southwest Airlines</li><li>Alaska Airlines</li><li>JetBlue</li><li>Spirit Airlines</li><li>Frontier Airlines</li><li>Allegiant Air</li><li>Air Canada</li><li>WestJet</li><li>Porter Airlines</li><li>Breeze Airways</li><li>Solairus Aviation</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>14</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="oceania" id="wam-p-oceania">
+<h2 class="wam-h">Oceania</h2>
+<div class="wam-est" id="wam-f-oceania">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 4 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="27800000" data-orig="¥2,780万">$175K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="15600000" data-orig="¥1,560万">$98K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:18.89%;--b:41.11%"></i><i style="left:18.89%"></i><i style="left:26.67%"></i><i style="left:36.67%"></i><i style="left:41.11%"></i><i class="wam-mean" style="left:30.89%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b><ul class="wam-who"><li>Fiji Airways</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="37000000" data-orig="¥3,700万">$233K</span></b><ul class="wam-who"><li>Qantas</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="20000000" data-orig="¥2,000万">$126K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:17.50%;--b:35.00%"></i><i style="left:17.50%"></i><i style="left:22.50%"></i><i style="left:29.17%"></i><i style="left:35.00%"></i><i class="wam-mean" style="left:26.00%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b><ul class="wam-who"><li>Fiji Airways</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="21000000" data-orig="¥2,100万">$132K</span></b><ul class="wam-who"><li>Qantas</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>Qantas</li><li>Air New Zealand</li><li>Fiji Airways</li><li>Jetstar Airways</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>4</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+<section class="wam-panel" data-region="latam" id="wam-p-latam">
+<h2 class="wam-h">Latin America</h2>
+<div class="wam-est" id="wam-f-latam">
+<p class="wam-k">Estimate from public information</p>
+<p class="wam-def">Mean of our estimates across 4 airlines</p>
+<p class="wam-row" data-pos="cap"><span class="wam-rk">Captain</span><b class="wam-n"><span class="pv-cur" data-jpy="20500000" data-orig="¥2,050万">$129K</span></b></p>
+<p class="wam-row" data-pos="fo"><span class="wam-rk">First Officer</span><b class="wam-n"><span class="pv-cur" data-jpy="10500000" data-orig="¥1,050万">$66K</span></b></p>
+</div>
+<div class="wam-sps">
+<div class="wam-sp" data-pos="cap">
+<p class="wam-sp-rk">Captain</p>
+<div class="wam-track" style="--wam-n:9" aria-hidden="true"><i class="wam-band" style="--a:18.89%;--b:25.56%"></i><i style="left:18.89%"></i><i style="left:21.11%"></i><i style="left:25.56%"></i><i style="left:25.56%"></i><i class="wam-mean" style="left:22.78%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="90000000" data-orig="¥9,000万">$566K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="17000000" data-orig="¥1,700万">$107K</span></b><ul class="wam-who"><li>Avianca</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="23000000" data-orig="¥2,300万">$145K</span></b><ul class="wam-who"><li>Aeromexico</li><li>Copa Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="6000000" data-orig="¥600万">$38K</span></b></p>
+</div>
+<div class="wam-sp" data-pos="fo">
+<p class="wam-sp-rk">First Officer</p>
+<div class="wam-track" style="--wam-n:6" aria-hidden="true"><i class="wam-band" style="--a:14.17%;--b:20.00%"></i><i style="left:14.17%"></i><i style="left:15.83%"></i><i style="left:20.00%"></i><i style="left:20.00%"></i><i class="wam-mean" style="left:17.50%"></i></div>
+<p class="wam-ax" aria-hidden="true"><span>0</span><span><span class="pv-cur" data-jpy="60000000" data-orig="¥6,000万">$377K</span></span></p>
+<div class="wam-mm">
+<div class="wam-lo"><span class="wam-mm-k">Lowest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="8500000" data-orig="¥850万">$53K</span></b><ul class="wam-who"><li>Avianca</li></ul></div>
+<div class="wam-hi"><span class="wam-mm-k">Highest</span><b class="wam-mm-v"><span class="pv-cur" data-jpy="12000000" data-orig="¥1,200万">$75K</span></b><ul class="wam-who"><li>Aeromexico</li><li>Copa Airlines</li></ul></div>
+</div>
+<p class="wam-w"><span class="wam-w-k">Range</span><b class="wam-w-v"><span class="pv-cur" data-jpy="3500000" data-orig="¥350万">$22K</span></b></p>
+</div>
+</div>
+<details class="wam-cond">
+<summary>Conditions / Sources</summary>
+<dl class="wam-cl">
+<div><dt>Airlines included</dt><dd><ul class="wam-names"><li>LATAM Airlines</li><li>Avianca</li><li>Aeromexico</li><li>Copa Airlines</li></ul></dd></div>
+<div><dt>Number of airlines</dt><dd>4</dd></div>
+<div><dt>Conversion</dt><dd>Approximate fixed rates (as of Aug 2026). Figures are indicative.</dd></div>
+</dl>
+</details>
+</section>
+</div>
+<div class="wam-slot"><div id="pv-rp" class="pv-rp" data-axis-jpy="90000000" hidden></div></div>
+</div>
+<button type="button" class="wam-go is-off" id="wa-go">View airlines in this region</button>
+</aside>
+</div>
+</div>
+<!--/PV-DIRMAP-->
 <div class="max-w-7xl mx-auto px-5 mb-6">
   <div class="map-wrapper">
     <p class="wd-map-hint">Click the map to choose a region</p>

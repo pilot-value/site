@@ -8,6 +8,7 @@
      PV-DIR-ELSE     見つからないときの、地域の8つのボタン（どれも hidden で出荷。社数は台本が当たりの数に書き換えてから見せる）
      PV-DIR-N        社数（何か所でも）
      PV-DIR-LD       ItemList の構造化データ
+     PV-DIRMAP       地域のまとめ（9枚のカード：すべて ＋ 8地域の推定年収の平均と散らばり・条件/出典）── 中身は directory-map.mjs の mapSection
      id="pc-…"       古い地図のピンの社数（地図が在るあいだ）
      ASSETS          一覧が読む部品の ?v=（中身の指紋）
    ★ 何度流しても同じ（2回目は「変更なし」）。
@@ -25,9 +26,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { model, figure, twoSlugs, tickOf, CARD_RULE, REGIONS, ALL, RANKS } from './directory-model.mjs';
+import { model, figure, twoSlugs, tickOf, regionMean, CARD_RULE, REGIONS, ALL, RANKS } from './directory-model.mjs';
 import { curCore, bakeText } from './cur-core.mjs';
 import { logoHtml } from './airline-logo.mjs';
+import { SALARY } from './salary-data.mjs';
+import { mapSection } from './directory-map.mjs';
 
 export * from './directory-model.mjs';
 
@@ -124,6 +127,19 @@ export function itemList(lang, M = model()) {
 </script>`;
 }
 
+/** 換算の文（通貨のメニューと同じ字）。currency.js の AS_OF と NOTE をそのまま評価する（cur-core.mjs と同じやり方。字をここに打たない） */
+export function fxNote(lang) {
+  const src = fs.readFileSync(path.join(ROOT, 'currency.js'), 'utf8');
+  const a = /^\s*var AS_OF\s*=.*;$/m.exec(src), n = /^\s*var NOTE\s*=\s*\{[\s\S]*?^\s*\};/m.exec(src);
+  if (!a || !n) throw new Error('currency.js の形が変わった（var AS_OF / var NOTE が読めない）');
+  const out = new Function(`${a[0]}\n${n[0]}\nreturn NOTE[${JSON.stringify(lang)}](AS_OF[${JSON.stringify(lang)}]);`)();
+  if (typeof out !== 'string' || !out) throw new Error(`currency.js に「${lang}」の換算の文が無い`);
+  return out;
+}
+
+/** 地域のまとめに地図の箱を入れるか（'card' ＝ まだ入れない）。地図は WP-dmap-4 で入り、この定数はそこで消える（D23） */
+const SHOW = 'card';
+
 /** 書く塊。別の区域は1行足して、ページに <!--ID--> / <!--/ID--> を置く（どの id も「手で書いた社数」の検査から外れる） */
 export const BLOCKS = [
   { id: 'PV-DIR-LD', build: itemList },
@@ -131,6 +147,7 @@ export const BLOCKS = [
   { id: 'PV-DIR-REGIONS', build: strip },
   { id: 'PV-DIR-ELSE', build: elseRow },
   { id: 'PV-DIR-CARDS', build: cards },
+  { id: 'PV-DIRMAP', build: (lang, M) => mapSection({ lang, M, ledger: SALARY, regionMean, bake: bakeOf(lang), fxNote: fxNote(lang), show: SHOW }) },
 ];
 /** ?v= を書く部品（両方のページが読むこと） */
 export const ASSETS = ['pv-directory.css', 'pv-directory.js'];
