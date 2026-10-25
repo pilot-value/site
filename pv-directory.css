@@ -73,34 +73,129 @@
 #lvl-wa-tip.wd-calm{display:none}
 @media (pointer:coarse){.wd-scope,.wd-clear,.wd-else-b{min-height:44px}}
 @media (prefers-reduced-motion:reduce){.wd-scope,.wd-clear,.wd-else-b{transition:none}}
-/* 比べる印（足もとの段の右・44px の高さで押せる）と、印を付けた社の盆（画面の下に貼りつく）── WP-dd-7（DJ） */
-.wd-cmp{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-right:-8px;padding:0 8px;border-radius:var(--pv-r-sm);font-size:.78rem;font-weight:700;color:var(--pv-ink-2);cursor:pointer;user-select:none;transition:transform .18s var(--pv-ease)}
-.wd-cmp-i{width:18px;height:18px;margin:0;accent-color:var(--pv-accent)}
-.wd-cmp:hover{color:var(--pv-ink)}
-.wd-cmp-i:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+/* 比べる印（カードの足もとの右）── WP-dmap-10：小さなチェックから、はっきりした切り替えのボタンへ（押す前「＋ 比較」・押した後「✓ 比較中」。
+   押したかは aria-pressed、見える字はこの規則が入れ替える）。押せる高さは 44px・見える丸い札は 32px（::before が描く）。
+   足せない時（aria-disabled）は灰色に加えて、なぜかを持つ（aria-describedby ＝ 比較リストの決まりの行・title ── 台本が書く） */
+.wd-cmp{position:relative;isolation:isolate;flex:none;display:inline-flex;align-items:center;min-height:44px;margin-right:-2px;padding:0 12px;border:0;background:none;color:var(--pv-ink-2);font:inherit;font-size:.78rem;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .18s var(--pv-ease)}
+.wd-cmp::before{content:"";position:absolute;inset:6px 0;z-index:-1;border:1px solid var(--pv-line);border-radius:999px;background:var(--pv-surface)}
+.wd-cmp-on{display:none}
+.wd-cmp[aria-pressed="true"]{color:var(--pv-accent-ink)}
+.wd-cmp[aria-pressed="true"]::before{border-color:var(--pv-accent-line);background:var(--pv-accent-soft)}
+.wd-cmp[aria-pressed="true"] .wd-cmp-on{display:inline}
+.wd-cmp[aria-pressed="true"] .wd-cmp-off{display:none}
+.wd-cmp:hover{color:var(--pv-ink);transform:translateY(-1px)}
+.wd-cmp:hover::before{border-color:var(--pv-accent-line)}
+.wd-cmp[aria-pressed="true"]:hover{color:var(--pv-accent-ink)}
+.wd-cmp:focus-visible{outline:none}
+.wd-cmp:focus-visible::before{outline:2px solid var(--pv-accent);outline-offset:2px}
 .wd-cmp:active{transform:scale(.97)}
-.wd-cmp-i:disabled{cursor:not-allowed}
-.wd-cmp:has(.wd-cmp-i:disabled){opacity:.45;cursor:not-allowed}
-.wd-tray{position:sticky;bottom:var(--pv-s-2);z-index:40;display:flex;align-items:center;flex-wrap:wrap;gap:var(--pv-s-1);margin-top:var(--pv-s-2);padding:10px 12px;background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow-lift)}
-.wd-tray[hidden],.wd-tray-two[hidden],.wd-tray-lvl[hidden]{display:none}
-.wd-tray-n{font-size:.8rem;font-weight:700;color:var(--pv-ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
-/* 社名の札は1行のまま横に並べ、入りきらなければ横にすべらせる（地域の帯と同じ。折り返すとスマホで盆が画面の半分を覆う） */
-.wd-tray-list{flex:1;min-width:0;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.wd-tray-list::-webkit-scrollbar{display:none}
-/* 続きが在る側の端をうすく消す（地域の帯と同じ決まり。台本が data-edge に l・r を書く ── WP-dmap-8 D3） */
-.wd-tray-list[data-edge="r"]{-webkit-mask-image:linear-gradient(90deg,black calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,black calc(100% - 32px),transparent)}
-.wd-tray-list[data-edge="l"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 32px);mask-image:linear-gradient(90deg,transparent,black 32px)}
-.wd-tray-list[data-edge="l r"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 32px,black calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,transparent,black 32px,black calc(100% - 32px),transparent)}
-.wd-tray-list button{flex:none;display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink-2);font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
-.wd-tray-two,.wd-tray-lvl{flex:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:var(--pv-r-sm);border:1px solid var(--pv-accent-dark);background:var(--pv-accent-dark);color:#fff;font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
-/* 狭い画面は2段：上 ＝ 何社目か・社名の札／下 ＝ ボタン（1つなら横いっぱい・2つなら並べる） */
-@media (max-width:640px){.wd-tray{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);align-items:center}.wd-tray-list{grid-column:2/-1}.wd-tray-two{grid-column:1/-1}.wd-tray-two:has(+ .wd-tray-lvl:not([hidden])){grid-column:1/3}.wd-tray-lvl{grid-column:1/-1}.wd-tray.is-two .wd-tray-lvl{grid-column:3}.wd-tray-two,.wd-tray-lvl{min-width:0;white-space:normal;text-align:center;line-height:1.2;padding:4px 10px}}
-.wd-tray.is-two .wd-tray-lvl{background:var(--pv-surface);border-color:var(--pv-line);color:var(--pv-ink)}
-.wd-tray-list button:hover,.wd-tray-two:hover,.wd-tray-lvl:hover{transform:translateY(-1px)}
-.wd-tray-list button:focus-visible,.wd-tray-two:focus-visible,.wd-tray-lvl:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
-.wd-tray-list button:active,.wd-tray-two:active,.wd-tray-lvl:active{transform:translateY(0) scale(.97)}
-@media (pointer:coarse){.wd-tray-list button,.wd-tray-two,.wd-tray-lvl{min-height:44px}}
-@media (prefers-reduced-motion:reduce){.wd-cmp,.wd-tray-list button,.wd-tray-two,.wd-tray-lvl{transition:none}}
+.wd-cmp[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.wd-cmp[aria-disabled="true"]:hover,.wd-cmp[aria-disabled="true"]:active{color:var(--pv-ink-2);transform:none}
+.wd-cmp[aria-disabled="true"]:hover::before{border-color:var(--pv-line)}
+/* 比較リスト（#wd-tray）── WP-dmap-10（オーナー：チェックを付けた会社は右に社名が出る・検索で絞って足せる）。行と候補は台本が作る。
+   狭い画面（〜1000px）：画面の下に貼りつく盆（1社から）。畳んだ形 ＝ 1行（題・何社目か・次の1手だけ）／開いた形（is-open）＝ 行・欄を開くボタン・
+   決まりの行・2つのボタン。「＋ 会社を追加」は下から出る板（is-adding：決まりの行・欄と候補だけ）。広い画面（1001px〜）：カードの右に貼りつくリスト
+   （#wd-body.is-list。台本が付ける ＝ 台本が動かない時はカードが横いっぱいのまま）。0社でも出て、欄はいつもリストの中 */
+.wd-tray{position:sticky;bottom:var(--pv-s-2);z-index:40;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin-top:var(--pv-s-2);padding:6px 8px 6px 14px;background:var(--pv-surface);border:1px solid var(--pv-line);border-radius:var(--pv-r);box-shadow:var(--pv-shadow-lift)}
+.wd-tray[hidden],.wd-cl-close[hidden],.wd-cl-empty[hidden],.wd-cl-opts[hidden],.wd-cl-none[hidden],.wd-cl-why[hidden]{display:none}
+.wd-cl-head{position:relative;display:flex;align-items:center;gap:8px;min-width:0;min-height:44px}
+.wd-cl-tt{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;min-width:0}
+.wd-cl-h{margin:0;font-size:.9rem;font-weight:800;letter-spacing:-.01em;line-height:1.3;color:var(--pv-ink);white-space:nowrap}
+.wd-tray-n{font-size:.8rem;font-weight:700;line-height:1.3;color:var(--pv-ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wd-cl-fold,.wd-cl-close,.wd-cl-x{flex:none;display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:999px;background:none;color:var(--pv-ink-2);cursor:pointer;transition:transform .18s var(--pv-ease)}
+.wd-cl-fold,.wd-cl-close{margin-left:auto}
+.wd-cl-fold::after{content:"";position:absolute;inset:0}   /* 題の行のどこを押しても開く・畳む */
+.wd-cl-fold svg{transition:transform .22s var(--pv-ease)}
+.wd-tray.is-open .wd-cl-fold svg{transform:rotate(180deg)}
+.wd-cl-close,.wd-cl-x{position:relative}
+.wd-cl-close::before,.wd-cl-close::after,.wd-cl-x::before,.wd-cl-x::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:1.6px;border-radius:1px;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)}
+.wd-cl-close::after,.wd-cl-x::after{transform:translate(-50%,-50%) rotate(-45deg)}
+.wd-cl-fold:hover,.wd-cl-close:hover{color:var(--pv-ink);background:var(--pv-surface-2)}
+.wd-cl-x{color:var(--pv-ink-3)}
+.wd-cl-x:hover{color:var(--pv-ink);background:var(--pv-surface)}
+.wd-cl-body{grid-column:1 / -1;display:flex;flex-direction:column;gap:10px;min-height:0}
+.wd-cl-empty{margin:0;font-size:.8rem;line-height:1.6;color:var(--pv-ink-2);word-break:keep-all;overflow-wrap:anywhere}
+.wd-tray-list{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.wd-tray-list:empty{display:none}
+/* 行と候補の頭はカードと同じ2段：上 ＝ ロゴ（左）と ×／略号（右）・下 ＝ 社名。社名に行の横幅を全部渡す
+   （ロゴの横に並べていた頃は、リストの幅で「シンガポール航／空」「キャセイパシフィッ／ク」と語の途中で折れ、国旗だけが1行目に残っていた）。
+   社名の折り方はカードの社名（.wd-name）と同じ決まり ＝ keep-all・最後の手は「…」・行末の「）」を詰めて測らない */
+.wd-cl-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"logo x" "t t";align-items:center;gap:4px 8px;padding:8px 4px 8px 10px;border-radius:var(--pv-r-sm);background:var(--pv-surface-2)}
+.wd-logo.wd-cl-logo{grid-area:logo;height:24px}
+.wd-logo.wd-cl-logo .pvg-logo{--lg-h:24px;padding:2px 5px}
+.wd-cl-row > .wd-cl-x{grid-area:x;margin:-6px 0}   /* 押せる広さ（36px）はそのまま・上の段の高さはロゴの 24px */
+.wd-cl-t{grid-area:t;display:flex;flex-direction:column;gap:2px;min-width:0;padding-right:6px}
+.wd-cl-name{min-width:0;font-size:.84rem;font-weight:700;line-height:1.35;color:var(--pv-ink);word-break:keep-all;overflow-wrap:normal;text-spacing-trim:space-all;overflow:hidden;text-overflow:ellipsis}
+.wd-cl-note{font-size:.72rem;line-height:1.45;color:var(--pv-ink-3);word-break:keep-all;overflow-wrap:anywhere}
+/* 会社を足す欄（ページの検索と同じ道具で候補を出す。字は 16px を下げない ── iOS が拡大して戻らない） */
+.wd-cl-add{display:flex;flex-direction:column;gap:6px;min-height:0}
+.wd-cl-q{box-sizing:border-box;width:100%;min-height:44px;padding:0 12px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface);color:var(--pv-ink);font:inherit;font-size:16px;line-height:1.4;outline:none;appearance:none;-webkit-appearance:none}
+.wd-cl-q::placeholder{color:var(--pv-ink-3)}
+.wd-cl-q:hover{border-color:var(--pv-accent-line)}
+.wd-cl-q:focus,.wd-cl-q:focus-visible{border-color:var(--pv-accent);box-shadow:0 0 0 3px var(--pv-accent-soft)}
+.wd-cl-opts{margin:0;padding:4px;list-style:none;max-height:272px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface);box-shadow:var(--pv-shadow)}
+.wd-cl-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"logo oc" "name name";align-items:center;gap:3px 8px;min-height:40px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:transform .14s var(--pv-ease)}
+.wd-cl-opt > .wd-cl-name{grid-area:name}
+.wd-cl-opt:hover{background:var(--pv-surface-2)}
+.wd-cl-opt[aria-selected="true"]{background:var(--pv-accent-soft)}
+.wd-cl-opt:active{transform:scale(.99)}
+.wd-cl-opt[aria-disabled="true"]{cursor:default}
+.wd-cl-opt[aria-disabled="true"]:not(.is-on){opacity:.5;cursor:not-allowed}
+.wd-cl-oc{grid-area:oc;font-size:.7rem;font-weight:700;color:var(--pv-ink-3);white-space:nowrap}
+.wd-cl-opt.is-on .wd-cl-oc{color:var(--pv-accent-ink)}
+.wd-cl-none{margin:0;padding:4px 2px;font-size:.8rem;line-height:1.5;color:var(--pv-ink-3)}
+/* 決まりの行（ページに1つ）と、段の無い社の理由。押せない物を押すと強める（is-ping。次に何か変わると戻る） */
+.wd-cl-rule,.wd-cl-why{margin:0;font-size:.74rem;line-height:1.55;color:var(--pv-ink-3);word-break:keep-all;overflow-wrap:anywhere}
+.wd-cl-rule.is-ping,.wd-cl-why.is-ping{font-weight:700;color:var(--pv-ink)}
+/* 2つのボタン（と、狭い画面の「＋ 会社を追加」）。押せない時は灰色の面（aria-disabled。「航空会社を比較」は行き先も外れる） */
+.wd-cl-acts{display:flex;align-items:center;gap:8px;min-width:0}
+.wd-cl-open,.wd-tray-two,.wd-tray-lvl{flex:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink);font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+.wd-tray-two,.wd-tray-lvl{border-color:var(--pv-accent-dark);background:var(--pv-accent-dark);color:#fff}
+.wd-tray.is-two .wd-tray-lvl{border-color:var(--pv-line);background:var(--pv-surface);color:var(--pv-ink)}
+.wd-tray .wd-tray-two[aria-disabled="true"],.wd-tray .wd-tray-lvl[aria-disabled="true"]{border-color:var(--pv-line-soft);background:var(--pv-surface-2);color:var(--pv-ink-3);cursor:not-allowed}
+.wd-cl-open:hover,.wd-tray-two:not([aria-disabled="true"]):hover,.wd-tray-lvl:not([aria-disabled="true"]):hover{transform:translateY(-1px)}
+.wd-cl-open:focus-visible,.wd-tray-two:focus-visible,.wd-tray-lvl:focus-visible,.wd-cl-fold:focus-visible,.wd-cl-close:focus-visible,.wd-cl-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wd-cl-open:active,.wd-tray-two:not([aria-disabled="true"]):active,.wd-tray-lvl:not([aria-disabled="true"]):active,.wd-cl-fold:active,.wd-cl-close:active,.wd-cl-x:active{transform:scale(.96)}
+@media (pointer:coarse){.wd-cl-open,.wd-tray-two,.wd-tray-lvl{min-height:44px}.wd-cl-close,.wd-cl-x{width:44px;height:44px}.wd-cl-row > .wd-cl-x{margin:-10px 0}.wd-cl-opt{min-height:48px}}
+@media (max-width:1000px){
+  .wd-tray:not(.is-open):not(.is-adding) .wd-cl-body{display:none}
+  .wd-tray:not(.is-open):not(.is-adding) .wd-cl-acts > :not(.is-main){display:none}
+  .wd-tray:not(.is-adding) .wd-cl-add{display:none}
+  .wd-tray.is-open{padding:6px 12px 12px 14px}
+  .wd-tray.is-open .wd-cl-head,.wd-tray.is-open .wd-cl-acts{grid-column:1 / -1}
+  .wd-tray.is-open .wd-cl-body{max-height:min(44vh,340px);overflow:auto;overscroll-behavior:contain}
+  .wd-tray.is-open .wd-cl-acts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .wd-tray.is-open .wd-cl-open{grid-column:1 / -1}
+  .wd-tray.is-open .wd-cl-acts > *{min-width:0;padding:4px 10px;white-space:normal;text-align:center;line-height:1.2}
+  /* 下から出る板（決まりの行・欄と候補だけ）。ページは後ろで止める（html.wd-lock）。暗い幕は ::before・板の地は ::after（幕が板の地の上に来ない並び） */
+  .wd-tray.is-adding{position:fixed;top:12vh;right:0;bottom:0;left:0;z-index:260;display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:0;padding:8px 16px calc(16px + env(safe-area-inset-bottom));border:0;border-radius:var(--pv-r-lg) var(--pv-r-lg) 0 0;background:transparent;box-shadow:none;animation:wd-cl-in .2s var(--pv-ease)}
+  .wd-tray.is-adding::before{content:"";position:fixed;inset:0;z-index:-1;background:color-mix(in oklab,var(--pv-navy) 55%,transparent)}
+  .wd-tray.is-adding::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:var(--pv-surface);box-shadow:var(--pv-shadow-lift)}
+  .wd-tray.is-adding .wd-cl-body,.wd-tray.is-adding .wd-cl-add{flex:1;min-height:0;max-height:none}   /* 候補は板の下まで（開いた盆の高さの上限を板に持ち込まない） */
+  .wd-tray.is-adding :is(.wd-cl-empty,.wd-tray-list,.wd-cl-acts,.wd-cl-fold){display:none}
+  /* 決まりの行は板の中でも出す（欄の上）。押せない候補を指で押すと、ここが強まり、段の無い社なら理由の行も出る
+     （板の中で隠していた頃は、灰色の候補を押しても何も起きなかった ── 指には title が出ない） */
+  .wd-tray.is-adding :is(.wd-cl-rule,.wd-cl-why){order:-1}
+  .wd-tray.is-adding .wd-cl-opts{flex:0 1 auto;max-height:none;min-height:0}
+}
+@media (min-width:1001px){
+  #wd-body.is-list{display:grid;grid-template-columns:minmax(0,1fr) 296px;column-gap:var(--pv-s-3);align-items:start}
+  #wd-body.is-list > #airline-grid,#wd-body.is-list > #no-results{grid-column:1}
+  #wd-body.is-list > #wd-tray{grid-column:2;grid-row:1 / span 2;position:sticky;top:88px;bottom:auto;display:flex;flex-direction:column;align-items:stretch;gap:12px;max-height:calc(100vh - 104px);margin:0;padding:16px}
+  .wd-cl-fold,.wd-cl-open,.wd-cl-close{display:none}
+  .wd-cl-body{overflow:auto;overscroll-behavior:contain;margin:0 -6px;padding:2px 6px}
+  .wd-cl-acts{display:grid;gap:8px}
+  .wd-cl-acts .wd-tray-two,.wd-cl-acts .wd-tray-lvl{min-height:44px}
+}
+/* 1001〜1279px（左のメニューが出てカードの箱がいちばん狭い幅）はリストを少し細く・カードの最小幅を少し小さく ＝ カードは2列のまま
+   （リストを足す前は3列。リストに 296px を渡すと1列になっていた） */
+@media (min-width:1001px) and (max-width:1279px){
+  #wd-body.is-list{grid-template-columns:minmax(0,1fr) 264px;column-gap:var(--pv-s-2)}
+  #wd-body.is-list > #airline-grid{grid-template-columns:repeat(auto-fill,minmax(232px,1fr))}
+}
+@keyframes wd-cl-in{from{opacity:0}}
+html.wd-lock{overflow:hidden;overflow-anchor:none}
+@media (prefers-reduced-motion:reduce){.wd-cmp,.wd-cl-fold,.wd-cl-fold svg,.wd-cl-close,.wd-cl-x,.wd-cl-opt,.wd-cl-open,.wd-tray-two,.wd-tray-lvl{transition:none}.wd-tray.is-adding{animation:none}}
 /* /PV-DIR-DATA */
 /* ── wam: 地図と地域のまとめ（directory-map の持ち場。地域のまとめの下の段 05b の規則は、この塊の後ろの自分の印の中）── */
 .wam{container-type:inline-size;container-name:wam;max-width:1280px;margin:0 auto var(--pv-s-2);padding:0 20px}
@@ -231,7 +326,8 @@
 #region-strip .rstrip-btn[aria-pressed="true"] .rstrip-n{color:#fff;opacity:.8}
 @media (max-width:820px){#region-strip{flex-wrap:wrap;gap:6px}#region-strip .rstrip-btn{flex:none;min-height:40px;padding:0 10px;gap:5px;font-size:12.5px}}
 /* 横にすべる帯の端（WP-dmap-8 D2）：続きが在る側の端をうすく消す（字は足さない）。どちらの端かは台本が data-edge に書く（l・r・l r）。
-   WP-dmap-9 から地域のボタンはどの幅でも折り返す（すべらない ＝ 台本は data-edge を書かない）。盆の社名の札の列（.wd-tray-list）は今もこの決まり（PV-DIR-DATA の中） */
+   WP-dmap-9 から地域のボタンはどの幅でも折り返す（すべらない ＝ 台本は data-edge を書かない）。盆の社名の札の列（.wd-tray-list）も WP-dmap-10 で
+   縦に並ぶ行になった（すべらない）── この3行は、帯が横にすべる形に戻った時のために残してある */
 #region-strip[data-edge="r"]{-webkit-mask-image:linear-gradient(90deg,black calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,black calc(100% - 40px),transparent)}
 #region-strip[data-edge="l"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 40px);mask-image:linear-gradient(90deg,transparent,black 40px)}
 #region-strip[data-edge="l r"]{-webkit-mask-image:linear-gradient(90deg,transparent,black 40px,black calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,black 40px,black calc(100% - 40px),transparent)}

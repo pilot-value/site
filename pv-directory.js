@@ -9,9 +9,10 @@
      ¥・万・円の字・3けた以上の数・HTML を組み立てる書き方を入れない。
    ★ 地域のボタンの押した見た目は aria-pressed だけ（CSS の [aria-pressed="true"]）。ここは class も style も書かない。
    ★ 外から読む名前は window.PVDirectory と、変わるたびの 'wd:change'（document に。html.wd-q を付け外ししたあと）。
-   ★ 住所（?q=・region・view）と「戻る」は WP-dd-6。履歴に触るのは commit()・save() と、開いた時に古い ?type= を消す cleanType() の3つだけ（どれも replaceState）。
+   ★ 住所（?q=・region・view・cmp）と「戻る」は WP-dd-6。履歴に触るのは commit()・save() と、開いた時に古い ?type= を消す cleanType() の3つ
+     （どれも replaceState）と、狭い画面の「会社を追加」の板が積む1段（openAdd() の pushState・閉じると戻す）だけ。
    ★ 航空会社の種類（FSC・LCC/ULCC・免税）で絞る口は無い（WP-dmap-7・オーナー P12.114）。カードも種類を持たない。
-   ★ 比べる印と盆（#wd-tray）は WP-dd-7。印を付ける・外すは history.state だけを書き直す（住所は変えない）。 */
+   ★ 比べる印と比較リスト（#wd-tray）は WP-dd-7 → WP-dmap-10。印を付ける・外すは住所の cmp だけを書き直す（save()）。 */
 (function (w, d) {
   'use strict';
   var GRID = d.getElementById('airline-grid');
@@ -159,8 +160,9 @@
   }
 
   /* ── 横にすべる列の端と、折り返す帯の行（WP-dmap-8）──────────────────────────
-     地域のボタンの帯（820px まで）と盆の社名の札の列は、入りきらなければ横にすべる。続きが在る側を data-edge に書き（l・r・l r。
-     すべらない時は書かない）、CSS がその端をうすく消す（字は足さない）。帯が折り返す幅（821px から）で、そのままでは2行になる時だけ
+     横にすべる列は、入りきらなければ続きが在る側を data-edge に書き（l・r・l r。すべらない時は書かない）、CSS がその端をうすく消す（字は足さない）。
+     いまはすべる列が無い（地域のボタンは WP-dmap-9 から折り返し、比較リストの行は WP-dmap-10 から縦に並ぶ）が、道具は残してある。
+     帯が折り返す幅（821px から）で、そのままでは2行になる時だけ
      is-bal を付ける（CSS が5つ目の後ろで行を変える ＝ 最後の行に1つだけ残らない）。見た目を決めるのは CSS（ここは属性と class を1つずつ書くだけ） */
   function edge(el) {
     if (!el) return;
@@ -196,10 +198,19 @@
      （種類の絞り込みの住所。WP-dmap-7 で口ごと外した）：すべてとして開き、住所から type だけを消す（cleanType。ほかの鍵・# と history.state はそのまま）。
      書くのは history.replaceState だけ ＝ 地域を選び直しても履歴を積まない（このファイルは履歴を1段も足さない）。
      書く時：Enter・Escape・欄の消すボタン（search）・欄の change・カードのリンクを押した時・pagehide・beforeunload・地域・表示・解除。
-     打つたび・時計・スクロールでは書かない。history.state ＝ {wd:1, y ＝ その時のスクロール, cmp ＝ 比べる印を付けた社}。 */
+     打つたび・時計・スクロールでは書かない。history.state ＝ {wd:1, y ＝ その時のスクロール, cmp ＝ 比べる印を付けた社}。
+     ★ WP-dmap-10：比べる社も住所に書く ── cmp（付けた順・空白区切り ＝ ?cmp=jal+ana）。読み直し・共有した住所で同じリストに戻る。
+       印を付け外しした時は住所の cmp だけを書き直す（save()。ほかの鍵はそのまま）。開いた時は今までどおり住所を書き換えない
+       （知らない社や重なりがあっても、次に書く時まで直さない）。住所に cmp が無ければ history.state の cmp（前からの読み方）。 */
   var cmp = [], LVL = null;
   var cardOf = function (slug) { for (var i = 0; i < CARDS.length; i++) if (CARDS[i].slug === slug) return CARDS[i]; return null; };
-  /** history.state の cmp から、このページで印を付けられる社だけを1回ずつ、付けた順に、足せるあいだだけ（canAdd と同じ決まり） */
+  /** 住所の cmp（slug の並び。鍵が無ければ null） */
+  function urlCmp() {
+    try { var p = new URLSearchParams(w.location.search); return p.has('cmp') ? String(p.get('cmp') || '').split(' ').filter(Boolean) : null; } catch (e) { return null; }
+  }
+  /** 住所の cmp が今の cmp と同じか（鍵が無いのは「0社」と同じ） */
+  function cmpSame() { var u = urlCmp(); return u ? u.length > 0 && u.join(' ') === cmp.join(' ') : cmp.length === 0; }
+  /** 住所（または history.state）の cmp から、このページで印を付けられる社だけを1回ずつ、付けた順に、足せるあいだだけ（canAdd と同じ決まり） */
   function cmpOf(a) {
     var out = [];
     (Array.isArray(a) ? a : []).forEach(function (s) { if (typeof s === 'string' && boxOf(s) && out.indexOf(s) < 0 && fits(out, s)) out.push(s); });
@@ -227,27 +238,36 @@
       w.history.replaceState(w.history.state, '', w.location.pathname + (qs ? '?' + qs : '') + w.location.hash);
     } catch (e) {}
   }
-  /** 状態を書いた住所（ほかの鍵 ref・utm_* と # はそのまま残す。古い type は書かない） */
+  /** 状態を書いた住所（ほかの鍵 ref・utm_* と # はそのまま残す。古い type は書かない。比べる社 cmp は最後に） */
   function url(s) {
     var p = new URLSearchParams(w.location.search);
-    ['q', 'region', 'type', 'view'].forEach(function (k) { p.delete(k); });
+    ['q', 'region', 'type', 'view', 'cmp'].forEach(function (k) { p.delete(k); });
     if (s.q !== '') p.set('q', s.q);
     if (s.region !== 'all') p.set('region', s.region);
     if (s.view !== 'card') p.set('view', s.view);
+    if (cmp.length) p.set('cmp', cmp.join(' '));
     var qs = p.toString();
     return w.location.pathname + (qs ? '?' + qs : '') + w.location.hash;
   }
-  /* 地図の全画面（WP-dmap-9）が積んだ1段には wamfs の印が在る。その段の上で書き直しても印を落とさない
-     （落とすと、全画面のまま読み直した時に、その段が全画面の段だと分からなくなる ＝ 開き直すたびに1段ずつ積み増す） */
+  /** 今の住所の cmp だけを書き直した住所（ほかの鍵と # はそのまま） */
+  function urlCmpOnly() {
+    var p = new URLSearchParams(w.location.search);
+    p.delete('cmp');
+    if (cmp.length) p.set('cmp', cmp.join(' '));
+    var qs = p.toString();
+    return w.location.pathname + (qs ? '?' + qs : '') + w.location.hash;
+  }
+  /* 地図の全画面（WP-dmap-9）と「会社を追加」の板（WP-dmap-10）が積んだ1段には wamfs・wdadd の印が在る。その段の上で書き直しても印を落とさない
+     （落とすと、開いたまま読み直した時に、その段が自分の段だと分からなくなる ＝ 開き直すたびに1段ずつ積み増す） */
   function hs() {
     var s = { wd: 1, y: Math.round(w.scrollY || w.pageYOffset || 0), cmp: cmp.slice() };
-    try { if (w.history.state && w.history.state.wamfs) s.wamfs = 1; } catch (e) {}
+    try { var h = w.history.state; if (h && h.wamfs) s.wamfs = 1; if (h && h.wdadd) s.wdadd = 1; } catch (e) {}
     return s;
   }
-  /* 住所はそのまま、history.state だけ書き直す */
-  function save() { try { w.history.replaceState(hs(), '', w.location.href); } catch (e) {} }
+  /* 比べる社を書く ＝ 住所の cmp だけ（同じなら住所は触らない）と history.state */
+  function save() { try { w.history.replaceState(hs(), '', cmpSame() ? w.location.href : urlCmpOnly()); } catch (e) {} }
   /* 住所に書く（状態が住所と同じなら住所は触らない） */
-  function commit() { try { w.history.replaceState(hs(), '', same(read(), st) ? w.location.href : url(st)); } catch (e) {} }
+  function commit() { try { w.history.replaceState(hs(), '', same(read(), st) && cmpSame() ? w.location.href : url(st)); } catch (e) {} }
   /** 戻ってきた時のスクロール。今・DOMContentLoaded のあとの1コマ・load の3回。読む人が押した・回した・触った・打ったら、もう動かさない */
   function restoreY(y) {
     y = Math.round(Number(y) || 0);
@@ -276,17 +296,26 @@
     commit();
   }
 
-  /* ── 比べる印と盆（WP-dd-7 ＝ E11 DJ ＋ DK の「2社まで」）────────────────────
-     印（.wd-cmp-i。付けるカードは gen-directory.mjs の tickOf が決める）を付けた社を、付けた順に cmp へ。5社まで。
-     機種の段（data-lvl）の無い社が入るときは2社まで（T6）。印を付け外ししても住所は変えない（history.state だけ ＝ save()）。
-     盆（#wd-tray）＝ 何社目か・付けた社（押すと外れる）・2社とも2社比較で出せる社（data-two）なら「航空会社を比較」（日本語のページだけ在る）・
-     どの社も機種の段を持つなら「レベリング比較」（図へは段を持つ社だけを渡す）。
-     ★ 盆の社名は createElement ＋ textContent で作る（HTML の字を組み立てない）。 */
+  /* ── 比べる印と比較リスト（WP-dd-7 の印と盆を、WP-dmap-10 で作り直した ── オーナー「膨大な量の航空会社がある中で、カードにチェックつけるだけしか
+     方法ないのキツくない？何らかの方法でカードを絞れて（検索とか）でチェックをつけた会社は右に会社名がでるとか？」）─────────────
+     比べる社は cmp（付けた順）。決まりは今までどおり：5社まで・機種の段（data-lvl）の無い社が入るときは2社まで（T6）。
+     足す口は3つ ── カードの「＋ 比較」（button.wd-cmp・aria-pressed。付けるカードは gen-directory.mjs の tickOf が決める）／
+     リストの欄（#wd-cl-q。ページの検索と同じ道具 query・tier・同じ鍵。地域では絞らない）／住所の cmp。
+     リスト（#wd-tray）＝ 題・何社目か・行（ロゴ・社名・外す ×）・欄・決まりの行・「航空会社を比較」（ちょうど2社で、2社とも data-two）・
+     「レベリング比較」（2〜5社で、どの社も機種の段を持つ）。押せない物（足せない印・そろっていないボタン・足せない候補）は灰色にするだけでなく、
+     なぜかを持つ（aria-describedby ＝ 決まりの行 #wd-cl-rule・段の無い社の理由 #wd-cl-why ／ title。押すと、その行を強める）。
+     広い画面（1001px から）はカードの右に貼りつくリスト（0社でも出る）。狭い画面は画面の下の盆（1社から）で、1行に畳め（次の1手だけ）、
+     欄は「＋ 会社を追加」で下から出る板（履歴を1段 ── 戻る・Esc・閉じる・幕を押すで閉じる。足した社はそのまま）。
+     ★ リストの行と候補の社名・ロゴは、カードの物を写す（createElement ＋ textContent ＋ cloneNode。HTML の字を組み立てない）。
+     ★ 字はページの物だけ（gen-directory.mjs の WORDS・LIST が書く。外すの字 data-rm・付けたの字 data-on）。ここに言葉を書かない。 */
   var MAX = 5;
-  var TRAY = $('wd-tray'), TRAY_N = $('wd-tray-n'), TRAY_LIST = $('wd-tray-list'), TRAY_TWO = $('wd-tray-two'), TRAY_LVL = $('wd-tray-lvl');
-  /* 「航空会社を比較」の出荷のままの行き先（2社がそろっていない時はここへ戻す ＝ 隠れたリンクに前の2社を残さない ── WP-dd-9） */
-  var TWO_HREF = TRAY_TWO ? TRAY_TWO.getAttribute('href') : null;
-  var TICKS = all('#airline-grid .wd-cmp-i');
+  var BODY = $('wd-body'), TRAY = $('wd-tray'), TRAY_N = $('wd-tray-n'), TRAY_LIST = $('wd-tray-list'), TRAY_TWO = $('wd-tray-two'), TRAY_LVL = $('wd-tray-lvl');
+  var FOLD = $('wd-cl-fold'), SHUT = $('wd-cl-close'), OPEN = $('wd-cl-open'), EMPTY = $('wd-cl-empty'), RULE = $('wd-cl-rule'), WHY = $('wd-cl-why');
+  var AQ = $('wd-cl-q'), OPTS = $('wd-cl-opts'), ANONE = $('wd-cl-none');
+  var TICKS = all('#airline-grid button.wd-cmp');
+  var WIDE = null;
+  try { WIDE = w.matchMedia('(min-width:1001px)'); } catch (e) { WIDE = null; }
+  function wide() { return !!(WIDE && WIDE.matches); }
   function boxOf(slug) { for (var i = 0; i < TICKS.length; i++) if (TICKS[i].value === slug) return TICKS[i]; return null; }
   function lvl(slug) { var c = cardOf(slug); return !!c && c.lvl; }
   function two(slug) { var c = cardOf(slug); return !!c && c.two; }
@@ -294,48 +323,207 @@
   function fits(list, slug) { return list.length < (list.concat([slug]).every(lvl) ? MAX : 2); }
   function limit() { return cmp.every(lvl) ? MAX : 2; }
   function canAdd(slug) { return fits(cmp, slug); }
-  /** 印の見た目 ＝ cmp（付いている・もう足せない印は押せない） */
+  /** 足せない理由の行（段の無い社 ＝ その理由と決まり・ほか ＝ 決まり） */
+  function whyOf(slug) { return lvl(slug) ? 'wd-cl-rule' : 'wd-cl-why wd-cl-rule'; }
+  /** 押せない形（ids ＝ なぜかを書いた行の id。'' ＝ 理由は書かない）／押せる形（ids ＝ null） */
+  function offState(el, ids) {
+    if (!el) return;
+    var put = function (k, v) { if (v == null) { if (el.hasAttribute(k)) el.removeAttribute(k); } else if (el.getAttribute(k) !== v) el.setAttribute(k, v); };
+    var t = ids ? ids.split(' ').map(function (id) { var x = $(id); return x ? x.textContent : ''; }).filter(Boolean).join('\n') : '';
+    put('aria-disabled', ids == null ? null : 'true');
+    put('aria-describedby', ids || null);
+    put('title', t || null);
+  }
+  /** 印の見た目 ＝ cmp（付いている ＝ aria-pressed・もう足せない ＝ 押せない形となぜか） */
   function sync() {
     TICKS.forEach(function (b) {
-      var on = cmp.indexOf(b.value) >= 0, off = !on && !canAdd(b.value);
-      if (b.checked !== on) b.checked = on;
-      if (b.disabled !== off) b.disabled = off;
+      var on = cmp.indexOf(b.value) >= 0, p = on ? 'true' : 'false';
+      if (b.getAttribute('aria-pressed') !== p) b.setAttribute('aria-pressed', p);
+      offState(b, !on && !canAdd(b.value) ? whyOf(b.value) : null);
     });
   }
-  /** 盆（印が1つも無い・レベリング比較を見ているあいだは隠す） */
+  /* 押せない物を押した ＝ なぜかを見せる（決まりの行を強める・段の無い社ならその理由の行も出す。狭い画面で畳んでいれば開く）。何か変わると戻る */
+  function ping(ids) {
+    if (!TRAY || TRAY.hidden) return;
+    if (!wide() && !adding) foldTray(true);
+    if (RULE) RULE.classList.add('is-ping');
+    if (WHY && ids && ids.indexOf('wd-cl-why') >= 0) { WHY.hidden = false; WHY.classList.add('is-ping'); }
+  }
+  function unping() {
+    if (RULE) RULE.classList.remove('is-ping');
+    if (WHY) { WHY.hidden = true; WHY.classList.remove('is-ping'); }
+  }
+  /* 狭い画面の盆の開け閉め（広い画面ではいつも開いた形 ＝ この印は読まない）。⚠️ 名前を fold にしない ── 検索の道具 fold を上書きして検索が止まる */
+  var opened = false;
+  function foldTray(open) {
+    opened = !!open;
+    if (TRAY) TRAY.classList.toggle('is-open', opened);
+    if (FOLD && FOLD.getAttribute('aria-expanded') !== String(opened)) FOLD.setAttribute('aria-expanded', String(opened));
+  }
+  /** カードのロゴの札の写し（無ければ空の入れ物）と社名（カードの wn- の字） */
+  function logoOf(s) {
+    var c = cardOf(s), lg = c ? c.li.querySelector('.wd-logo .pvg-logo') : null, box = d.createElement('span');
+    box.className = 'wd-logo wd-cl-logo';
+    if (lg) box.appendChild(lg.cloneNode(true));
+    return box;
+  }
+  function nameOf(s) { var n = $('wn-' + s); return n ? n.textContent : s; }
+  /** リストの1行（ロゴ・社名・段の無い社ならその理由・外す ×） */
+  function row(s) {
+    var li = d.createElement('li'), t = d.createElement('span'), name = d.createElement('span'), x = d.createElement('button');
+    var rm = (TRAY && TRAY.getAttribute('data-rm')) || '';
+    li.className = 'wd-cl-row'; li.setAttribute('data-slug', s);
+    t.className = 'wd-cl-t';
+    name.className = 'wd-cl-name'; name.textContent = nameOf(s);
+    t.appendChild(name);
+    if (!lvl(s) && WHY) { var note = d.createElement('span'); note.className = 'wd-cl-note'; note.textContent = WHY.textContent; t.appendChild(note); }
+    x.type = 'button'; x.className = 'wd-cl-x'; x.setAttribute('data-slug', s);
+    x.setAttribute('aria-label', (rm ? rm + ' ' : '') + name.textContent);
+    if (rm) x.title = rm;
+    li.appendChild(logoOf(s)); li.appendChild(t); li.appendChild(x);
+    return li;
+  }
+  /** リスト（#wd-tray）の今 ＝ cmp と表示（カード一覧の時だけ・広い画面は0社でも・狭い画面は1社から） */
   function tray() {
     if (!TRAY) return;
-    var show = cmp.length > 0 && st.view === 'card';
+    var n = cmp.length, card = st.view === 'card', show = card && (n > 0 || wide());
+    if (BODY) BODY.classList.toggle('is-list', card);
+    if (!show && adding) shut(true);
     if (TRAY.hidden === show) TRAY.hidden = !show;
+    if (!show && opened) foldTray(false);
     if (TRAY_N) {
-      var t = (TRAY.getAttribute('data-fmt') || '{n} / {m}').replace('{n}', function () { return String(cmp.length); }).replace('{m}', function () { return String(limit()); });
+      var t = (TRAY.getAttribute('data-fmt') || '{n} / {m}').replace('{n}', function () { return String(n); }).replace('{m}', function () { return String(limit()); });
       if (TRAY_N.textContent !== t) TRAY_N.textContent = t;
     }
+    if (EMPTY && EMPTY.hidden !== n > 0) EMPTY.hidden = n > 0;
     if (TRAY_LIST) {
-      var now = Array.prototype.map.call(TRAY_LIST.children, function (b) { return b.getAttribute('data-slug'); });
+      var now = Array.prototype.map.call(TRAY_LIST.children, function (li) { return li.getAttribute('data-slug'); });
       if (now.join(' ') !== cmp.join(' ')) {
         while (TRAY_LIST.firstChild) TRAY_LIST.removeChild(TRAY_LIST.firstChild);
-        cmp.forEach(function (s) {
-          var b = d.createElement('button'), n = $('wn-' + s);
-          b.type = 'button';
-          b.setAttribute('data-slug', s);
-          b.setAttribute('aria-pressed', 'true');
-          b.textContent = n ? n.textContent : s;
-          TRAY_LIST.appendChild(b);
-        });
-        /* 札の列はいつも1社目から見せる（右の端へ送ると、スマホで1社目の札が左の端で切れていた ── WP-dd-9）。入りきらない分は横にすべらせる */
-        TRAY_LIST.scrollLeft = 0;
+        cmp.forEach(function (s) { TRAY_LIST.appendChild(row(s)); });
       }
-      edge(TRAY_LIST);
     }
-    var pair = cmp.length === 2 && two(cmp[0]) && two(cmp[1]);
+    var pair = n === 2 && two(cmp[0]) && two(cmp[1]), lv = n >= 2 && cmp.every(lvl), noLvl = !cmp.every(lvl);
+    /* 「航空会社を比較」：2社がそろうまでは行き先を外す（隠れたリンクにも前の2社を残さない ── WP-dd-9 の約束を、外すことで守る） */
     if (TRAY_TWO) {
-      if (TRAY_TWO.hidden === pair) TRAY_TWO.hidden = !pair;
-      var href = pair ? 'career.html?view=compare&a=' + encodeURIComponent(cmp[0]) + '&b=' + encodeURIComponent(cmp[1]) : TWO_HREF;
-      if (href != null && TRAY_TWO.getAttribute('href') !== href) TRAY_TWO.setAttribute('href', href);
+      var href = pair ? 'career.html?view=compare&a=' + encodeURIComponent(cmp[0]) + '&b=' + encodeURIComponent(cmp[1]) : null;
+      if (href) {
+        if (TRAY_TWO.getAttribute('href') !== href) TRAY_TWO.setAttribute('href', href);
+        if (TRAY_TWO.hasAttribute('role')) TRAY_TWO.removeAttribute('role');
+      } else {
+        if (TRAY_TWO.hasAttribute('href')) TRAY_TWO.removeAttribute('href');
+        if (TRAY_TWO.getAttribute('role') !== 'link') TRAY_TWO.setAttribute('role', 'link');
+      }
+      offState(TRAY_TWO, pair ? null : (n > 2 ? 'wd-cl-rule' : ''));
     }
+    offState(TRAY_LVL, lv ? null : (noLvl ? 'wd-cl-why' : ''));
     TRAY.classList.toggle('is-two', !!TRAY_TWO && pair);
-    if (TRAY_LVL) { var lv = cmp.length >= 1 && cmp.every(lvl); if (TRAY_LVL.hidden === lv) TRAY_LVL.hidden = !lv; }
+    /* 狭い画面で畳んだ時に出す次の1手（2社がそろえば「航空会社を比較」・レベリング比較ができれば「レベリング比較」・ほかは「＋ 会社を追加」） */
+    var main = pair ? TRAY_TWO : (lv ? TRAY_LVL : OPEN);
+    [TRAY_TWO, TRAY_LVL, OPEN].forEach(function (x) { if (x) x.classList.toggle('is-main', x === main); });
+  }
+  function changed() { unping(); sync(); tray(); save(); if (OPTS && !OPTS.hidden) paint(); }
+
+  /* ── リストの欄（ページの検索と同じ道具 query／tier・同じ鍵 ＝ カードの data-c／data-k。並びもページの検索と同じ：ぴったり同じ物を先に・あとはページの
+     並び。地域では絞らない ＝ どの地域を見ていても全社から足せる。候補はカードに「＋ 比較」の在る社だけ）── */
+  var hits = [], act = -1, adding = false, owned = false, backing = false;
+  function find(raw) {
+    var Q = query(raw), first = [], rest = [];
+    if (Q.C === '') return [];
+    CARDS.forEach(function (c) {
+      if (!boxOf(c.slug)) return;
+      var t = tier(c, Q);
+      if (t === 0) first.push(c.slug); else if (t > 0) rest.push(c.slug);
+    });
+    return first.concat(rest);
+  }
+  function codeOf(s) { var c = cardOf(s), el = c ? c.li.querySelector('.wd-code') : null; return el ? el.textContent : ''; }
+  /** 候補の1行（ロゴ・社名・略号か「付けた」の字） */
+  function opt(s) {
+    var li = d.createElement('li'), name = d.createElement('span'), tail = d.createElement('span');
+    li.id = 'wd-cl-o-' + s; li.className = 'wd-cl-opt'; li.setAttribute('role', 'option'); li.setAttribute('data-slug', s);
+    name.className = 'wd-cl-name'; name.textContent = nameOf(s);
+    tail.className = 'wd-cl-oc';
+    li.appendChild(logoOf(s)); li.appendChild(name); li.appendChild(tail);
+    return li;
+  }
+  /** 候補の今（付けた ＝ 「付けた」の字・押せない形／足せない ＝ 押せない形となぜか／いま選んでいる ＝ aria-selected） */
+  function paint() {
+    if (!OPTS || !AQ) return;
+    var on = (TRAY && TRAY.getAttribute('data-on')) || '';
+    Array.prototype.forEach.call(OPTS.children, function (li, k) {
+      var s = li.getAttribute('data-slug'), got = cmp.indexOf(s) >= 0, tail = li.lastChild, want = got ? on : codeOf(s), sel = k === act ? 'true' : 'false';
+      if (tail && tail.textContent !== want) tail.textContent = want;
+      li.classList.toggle('is-on', got);
+      offState(li, got ? '' : (canAdd(s) ? null : whyOf(s)));
+      if (li.getAttribute('aria-selected') !== sel) li.setAttribute('aria-selected', sel);
+    });
+    var cur = act >= 0 ? OPTS.children[act] : null;
+    if (cur) {
+      AQ.setAttribute('aria-activedescendant', cur.id);
+      var r = cur.getBoundingClientRect(), b = OPTS.getBoundingClientRect();
+      if (r.top < b.top) OPTS.scrollTop -= b.top - r.top; else if (r.bottom > b.bottom) OPTS.scrollTop += r.bottom - b.bottom;
+    } else if (AQ.hasAttribute('aria-activedescendant')) AQ.removeAttribute('aria-activedescendant');
+  }
+  /** 候補を作り直す（字が変わった時）。いま選んでいるのは、足せるいちばん上の候補 */
+  function opts() {
+    if (!OPTS || !AQ) return;
+    var next = find(AQ.value);
+    if (next.join(' ') !== hits.join(' ')) {
+      hits = next;
+      while (OPTS.firstChild) OPTS.removeChild(OPTS.firstChild);
+      hits.forEach(function (s) { OPTS.appendChild(opt(s)); });
+    }
+    act = -1;
+    for (var k = 0; k < hits.length; k++) if (cmp.indexOf(hits[k]) < 0 && canAdd(hits[k])) { act = k; break; }
+    paint();
+  }
+  /** 候補を見せる・隠す（打った字があって当たりが無ければ「見つからない」の1行） */
+  function setOpen(on) {
+    if (!OPTS || !AQ) return;
+    var typed = query(AQ.value).C !== '', show = !!on && typed && hits.length > 0, none = !!on && typed && hits.length === 0;
+    if (OPTS.hidden === show) OPTS.hidden = !show;
+    if (ANONE && ANONE.hidden === none) ANONE.hidden = !none;
+    if (AQ.getAttribute('aria-expanded') !== String(show)) AQ.setAttribute('aria-expanded', String(show));
+  }
+  /** 候補から足す（付けた社・足せない社は足さない ── 足せない時はなぜかを見せる）。欄は空に戻し、フォーカスは欄のまま（続けて足せる） */
+  function pick(s) {
+    if (!s || cmp.indexOf(s) >= 0) return;
+    if (!canAdd(s)) { ping(whyOf(s)); return; }
+    cmp.push(s);
+    AQ.value = '';
+    opts(); setOpen(false);
+    changed();
+    try { AQ.focus({ preventScroll: true }); } catch (e) { AQ.focus(); }
+  }
+  /* 狭い画面の「＋ 会社を追加」＝ 下から出る板（地図の全画面と同じ決まり：履歴は1段だけ・読み直しで残った段は使い回す・閉じる・Esc は自分で1回戻す ──
+     旗 backing を先に立てるので、戻った知らせはリストを古い段の cmp に戻さない） */
+  function openAdd() {
+    if (!TRAY || !AQ) return;
+    if (wide()) { AQ.focus(); return; }
+    if (adding) return;
+    try {
+      var s0 = w.history.state;
+      if (s0 && s0.wdadd) owned = true;
+      else { save(); w.history.pushState(Object.assign({}, w.history.state, { wdadd: 1 }), '', w.location.href); owned = true; }
+    } catch (e) { owned = false; }
+    adding = true;
+    TRAY.classList.add('is-adding'); d.documentElement.classList.add('wd-lock');
+    TRAY.setAttribute('role', 'dialog'); TRAY.setAttribute('aria-modal', 'true');
+    TRAY.setAttribute('aria-label', AQ.getAttribute('aria-label') || ''); TRAY.removeAttribute('aria-labelledby');
+    if (SHUT) SHUT.hidden = false;
+    AQ.value = ''; opts(); setOpen(false);
+    try { AQ.focus({ preventScroll: true }); } catch (e) { AQ.focus(); }
+  }
+  function shut(quietly) {
+    if (!adding) return;
+    adding = false;
+    TRAY.classList.remove('is-adding'); d.documentElement.classList.remove('wd-lock');
+    TRAY.setAttribute('role', 'region'); TRAY.removeAttribute('aria-modal'); TRAY.removeAttribute('aria-label'); TRAY.setAttribute('aria-labelledby', 'wd-cl-h');
+    if (SHUT) SHUT.hidden = true;
+    setOpen(false);
+    if (!quietly && OPEN && OPEN.getClientRects().length) { try { OPEN.focus({ preventScroll: true }); } catch (e) { OPEN.focus(); } }
+    if (owned) { owned = false; backing = true; try { w.history.back(); } catch (e) { backing = false; } }
   }
 
   /* ── Salary leveling grid：index と同一の Levels.fyi 型カラムを共有モジュール PVLeveling にマウント ── */
@@ -399,33 +587,91 @@
     b.addEventListener('click', function () { clear(); if (FIELD && !coarse()) FIELD.focus(); });
   });
   VIEWS.forEach(function (b) { b.addEventListener('click', function () { set({ view: b.getAttribute('data-view') === 'range' ? 'range' : 'card' }); commit(); }); });
-  /* 比べる印を付ける・外す（足せないときは付けない）。住所は変えない */
-  GRID.addEventListener('change', function (e) {
-    var b = e.target;
-    if (!b || !b.classList || !b.classList.contains('wd-cmp-i')) return;
+  /* カードの「＋ 比較」を押す ＝ 付ける・外す（足せない時は付けず、なぜかを見せる）。住所は cmp だけ書き直す */
+  GRID.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('button.wd-cmp') : null;
+    if (!b || !GRID.contains(b)) return;
     var s = b.value, i = cmp.indexOf(s);
-    if (b.checked) { if (i < 0 && canAdd(s)) cmp.push(s); else if (i < 0) b.checked = false; }
-    else if (i >= 0) cmp.splice(i, 1);
-    sync(); tray(); save();
+    if (i >= 0) cmp.splice(i, 1);
+    else if (canAdd(s)) cmp.push(s);
+    else { ping(whyOf(s)); return; }
+    changed();
   });
   /* 横にすべる列の端（WP-dmap-8）：すべらせた時・画面の幅が変わった時・書体が届いた時に測り直す */
-  [STRIPBOX, TRAY_LIST].forEach(function (el) { if (el) el.addEventListener('scroll', function () { edge(el); }, { passive: true }); });
-  function remeasure() { balance(); edge(STRIPBOX); edge(TRAY_LIST); }
+  if (STRIPBOX) STRIPBOX.addEventListener('scroll', function () { edge(STRIPBOX); }, { passive: true });
+  function remeasure() { balance(); edge(STRIPBOX); }
   w.addEventListener('resize', remeasure, { passive: true });
   w.addEventListener('load', remeasure, { once: true });
   try { if (d.fonts && d.fonts.ready) d.fonts.ready.then(remeasure, function () {}); } catch (e) {}
-  /* 盆の社名を押す ＝ その社の印を外す（押せる場所は次の社名へ。最後の1社なら、その社の印へ） */
+  /* リストの × ＝ その社を外す（押せる場所は次の行の ×。最後の1社なら欄、欄が見えなければその社の印へ） */
   if (TRAY_LIST) TRAY_LIST.addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('button[data-slug]') : null;
+    var b = e.target && e.target.closest ? e.target.closest('button.wd-cl-x') : null;
     if (!b) return;
     var s = b.getAttribute('data-slug'), i = cmp.indexOf(s);
     if (i < 0) return;
     cmp.splice(i, 1);
-    sync(); tray(); save();
-    var next = TRAY_LIST.children[Math.min(i, TRAY_LIST.children.length - 1)], box = boxOf(s);
+    changed();
+    var xs = TRAY_LIST.querySelectorAll('button.wd-cl-x'), next = xs[Math.min(i, xs.length - 1)], box = boxOf(s);
     if (next) next.focus();
+    else if (AQ && AQ.getClientRects().length) AQ.focus();
     else if (box && box.getClientRects().length) box.focus();
   });
+  /* 狭い画面の盆：題の行で開く・畳む／「＋ 会社を追加」で板／板の「閉じる」・幕を押す・Esc で閉じる（Tab は板の中を回る） */
+  if (FOLD) FOLD.addEventListener('click', function () { foldTray(!opened); });
+  if (OPEN) OPEN.addEventListener('click', openAdd);
+  if (SHUT) SHUT.addEventListener('click', function () { shut(); });
+  if (TRAY) TRAY.addEventListener('click', function (e) { if (adding && e.target === TRAY && e.clientY < TRAY.getBoundingClientRect().top) shut(); });
+  d.addEventListener('keydown', function (e) {
+    if (!adding) return;
+    if (e.key === 'Escape') { e.preventDefault(); shut(); return; }
+    if (e.key !== 'Tab') return;
+    var f = Array.prototype.slice.call(TRAY.querySelectorAll('button,input,[role="option"][tabindex]')).filter(function (el) { return !el.hidden && el.getClientRects().length > 0; });
+    var i = f.indexOf(d.activeElement);
+    if (!f.length) return;
+    if (e.shiftKey ? i <= 0 : (i < 0 || i === f.length - 1)) { e.preventDefault(); f[e.shiftKey ? f.length - 1 : 0].focus(); }
+  });
+  /* 欄：打つたびに候補・↑↓ で選ぶ・Enter で足す・Esc で候補を閉じる（もう1回で字を消す。板の中では板を閉じる）。候補はマウスでも指でも押せる */
+  if (AQ && OPTS) {
+    AQ.addEventListener('input', function () { opts(); setOpen(true); });
+    AQ.addEventListener('focus', function () { if (AQ.value) { opts(); setOpen(true); } });
+    AQ.addEventListener('blur', function () { if (!adding) setOpen(false); });
+    AQ.addEventListener('keydown', function (e) {
+      if (e.isComposing || e.keyCode === 229) return;   // 変換を決める Enter は足す Enter ではない
+      var n = hits.length;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!n) return;
+        e.preventDefault();
+        setOpen(true);
+        act = e.key === 'ArrowDown' ? (act + 1) % n : (act <= 0 ? n - 1 : act - 1);
+        paint();
+      } else if (e.key === 'Enter') {
+        if (OPTS.hidden || !n) return;
+        e.preventDefault();
+        if (act >= 0) { pick(hits[act]); return; }
+        for (var k = 0; k < n; k++) if (cmp.indexOf(hits[k]) < 0) { ping(whyOf(hits[k])); return; }   // どの候補も足せない ＝ なぜかを見せる（付けた社だけなら何もしない）
+      } else if (e.key === 'Escape') {
+        if (adding) return;                                // 板は document の聞き手が閉じる
+        if (!OPTS.hidden || (ANONE && !ANONE.hidden)) { e.preventDefault(); setOpen(false); }
+        else if (AQ.value) { e.preventDefault(); AQ.value = ''; opts(); }
+      }
+    });
+    OPTS.addEventListener('mousedown', function (e) { e.preventDefault(); });   // 押しても欄からフォーカスを外さない（スマホの鍵盤も閉じない）
+    OPTS.addEventListener('click', function (e) {
+      var li = e.target && e.target.closest ? e.target.closest('li[data-slug]') : null;
+      if (li) pick(li.getAttribute('data-slug'));
+    });
+  }
+  /* 「航空会社を比較」がそろっていない時に押した ＝ なぜかを見せる（行き先が無いので移らない） */
+  if (TRAY_TWO) TRAY_TWO.addEventListener('click', function (e) {
+    if (TRAY_TWO.getAttribute('aria-disabled') !== 'true') return;
+    e.preventDefault();
+    ping(TRAY_TWO.getAttribute('aria-describedby') || '');
+  });
+  /* 画面の幅が広い／狭いをまたいだ（板を開いたまま広くなったら閉じる・広い画面は0社でもリストを出す） */
+  if (WIDE) {
+    var onWide = function () { if (wide() && adding) shut(true); tray(); };
+    try { WIDE.addEventListener('change', onWide); } catch (e) { try { WIDE.addListener(onWide); } catch (x) {} }
+  }
   /* 盆の「レベリング比較」＝ 印を付けた社だけの図へ（行きの一方だけ。図の中の会社選びはそのまま使える）。表示の切り替えの帯を画面の上へ */
   /* 盆のボタンを押した直後、押した所の下に図が来ると、ブラウザはマウスが動いていなくても「図の上に来た」と知らせて
      図の吹き出しが開いてしまう。押した点から本当に動くか、キーか指で触れるまで、吹き出しを隠したままにする（WP-dd-9） */
@@ -443,7 +689,7 @@
   }
   if (TRAY_LVL) TRAY_LVL.addEventListener('click', function (e) {
     var slugs = cmp.slice();
-    if (!slugs.length || !slugs.every(lvl)) return;
+    if (slugs.length < 2 || !slugs.every(lvl)) { ping(TRAY_LVL.getAttribute('aria-describedby') || ''); return; }   // 2〜5社・どの社も機種の段
     calm(e);
     set({ view: 'range' });
     commit();
@@ -463,14 +709,27 @@
   cleanType();
   st = read();
   if (FIELD) FIELD.value = st.q;
-  if (HS && HS.wd) cmp = cmpOf(HS.cmp);
+  var UC = urlCmp();
+  if (UC) cmp = cmpOf(UC);                     // 住所の cmp（共有した住所・読み直し）
+  else if (HS && HS.wd) cmp = cmpOf(HS.cmp);   // 前からの読み方（住所に cmp が無い時）
+  try { if (HS && HS.wdadd) owned = true; } catch (e) {}   // 「会社を追加」の板を開いたまま読み直した時に残った1段（次に開く時に使い回す ＝ 積み増さない）
   apply();
   restoreY(HS && HS.wd && HS.y);
-  /* ページの中の # の移動（このページの履歴の中を行き来した時）は、住所を読み直す */
+  /* ページの中の # の移動（このページの履歴の中を行き来した時）は、住所を読み直す。
+     ただし「会社を追加」の板の1段が外れた時（閉じる・Esc・戻る）は、リストを今のまま残す（その下の段の cmp は板を開く前の古い物 ──
+     読み直さず、今の cmp をその段の住所と history.state に書く） */
   w.addEventListener('popstate', function (e) {
-    var s = e.state && e.state.wd ? e.state : null;
+    var s = e.state && e.state.wd ? e.state : null, add = !!(e.state && e.state.wdadd);
+    if (backing || (adding && !add)) {
+      backing = false;
+      if (adding) { owned = false; shut(true); }
+      save();
+      return;
+    }
+    if (add && !adding) owned = true;          // 進むで板の段へ来た：次に開く時に使い回す
     st = read();
-    if (s) cmp = cmpOf(s.cmp);
+    var u = urlCmp();
+    if (u) cmp = cmpOf(u); else if (s) cmp = cmpOf(s.cmp);
     if (FIELD) FIELD.value = st.q;
     apply();
     if (s) { try { w.scrollTo({ top: s.y || 0, left: 0, behavior: 'instant' }); } catch (x) { w.scrollTo(0, s.y || 0); } }

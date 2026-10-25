@@ -10,6 +10,7 @@
      PV-DIR-LD       ItemList の構造化データ
      PV-DIRMAP       地図と地域のまとめ（点で描く地図・「機長｜副操縦士」・9枚のカード：すべて ＋ 8地域の推定年収の平均と散らばり・
                      条件/出典）── 中身は directory-map.mjs の mapSection
+     PV-DIR-LIST     比較リスト（#wd-tray。WP-dmap-10：題・何社目か・行の入れ物・会社を足す欄・決まりの行・2つのボタン。行と候補は台本が作る）
      id="pc-…"       古い地図のピンの社数（古い地図は WP-dmap-4 で消えた。ピンが無ければ何もしない）
      ASSETS          一覧が読む部品の ?v=（中身の指紋）
    ★ 何度流しても同じ（2回目は「変更なし」）。
@@ -54,12 +55,53 @@ const BARRIER = '<!--wd>-->';
 /** ロゴの札（airline-logo.mjs の1か所が描く）。一覧は112社が1枚に並ぶので、見えるまで絵を読まない（loading="lazy"） */
 const logoOf = (A, up) => logoHtml({ slug: A.slug, color: A.color }, { up }).replace('<img ', () => '<img loading="lazy" ');
 
-/* カードの字（★ここ1か所）。cmp ＝ 比べる印の字（候補 C1。リード P12.86-3 で採った「比較」／«Compare»） */
-const WORDS = { cmp: { ja: '比較', en: 'Compare' } };
-/** 比べる印（tickOf が付けると決めたカードだけ）。社名（wn-）と印の字（wc-）の2つで名乗る。リンク（a.wd-go）の外・足もとの段の右 */
+/* カードの字（★ここ1か所）。cmp ＝ 比べる印の読み上げの字（候補 C1。リード P12.86-3 で採った「比較」／«Compare»）。
+   off／on ＝ 印の見える字（WP-dmap-10・シートの字：押す前「＋ 比較」・押した後「✓ 比較中」）。on は比較リストの候補の「付けた」印にも使う */
+const WORDS = { cmp: { ja: '比較', en: 'Compare' }, off: { ja: '＋ 比較', en: '+ Compare' }, on: { ja: '✓ 比較中', en: '✓ Added' } };
+/** 比べる印（tickOf が付けると決めたカードだけ）。WP-dmap-10 で小さなチェックから切り替えのボタンへ（aria-pressed。押した形は台本が書く）。
+    読み上げの名前は社名（wn-）と印の字（wc- ＝「比較」）の2つで、押したかどうかは aria-pressed が伝える ── 見える字（「＋ 比較」／「✓ 比較中」）は
+    CSS が aria-pressed で入れ替えるだけ（読み上げには出さない）。リンク（a.wd-go）の外・足もとの段の右 */
 const tick = (A, lang) => (tickOf(A, lang)
-  ? `<label class="wd-cmp"><input type="checkbox" class="wd-cmp-i" value="${esc(A.slug)}" aria-labelledby="wn-${esc(A.slug)} wc-${esc(A.slug)}"><span id="wc-${esc(A.slug)}">${esc(WORDS.cmp[lang])}</span></label>`
+  ? `<button type="button" class="wd-cmp" value="${esc(A.slug)}" aria-pressed="false" aria-labelledby="wn-${esc(A.slug)} wc-${esc(A.slug)}">`
+    + `<span class="wd-cmp-off" aria-hidden="true">${esc(WORDS.off[lang])}</span><span class="wd-cmp-on" aria-hidden="true">${esc(WORDS.on[lang])}</span>`
+    + `<span class="wd-vh" id="wc-${esc(A.slug)}">${esc(WORDS.cmp[lang])}</span></button>`
   : '');
+
+/* 比較リストの字（★ここ1か所。WP-dmap-10・シートの字。fmt・two・lvl・none は前からページに在った字）。
+   rule ＝ 決まりの行（ページに1つだけ。押せないボタンの「なぜ」も、台本がこの行を aria-describedby で指す）・
+   why ＝ 機種の段（fleet）の無い社がレベリング比較に入らない理由（その社の行に台本が写す）・close ＝ 地図の全画面の「閉じる」と同じ字 */
+const LIST = {
+  ja: { h: '比較リスト', fmt: '{n} / {m} 社', add: '会社を追加', open: '＋ 会社を追加', empty: 'カードの「＋ 比較」か、下の欄から追加できます',
+    rule: '比較は2社・レベリング比較は5社まで', why: '機材の区分が無いため、レベリング比較には入りません', rm: '外す', close: '閉じる',
+    none: '該当する航空会社が見つかりませんでした', two: '航空会社を比較', lvl: 'レベリング比較' },
+  en: { h: 'Compare list', fmt: '{n} / {m} airlines', add: 'Add an airline', open: '+ Add an airline', empty: 'Use “+ Compare” on a card, or add one below',
+    rule: 'Compare: 2 airlines · Leveling: up to 5', why: 'No aircraft class, so it can’t join the leveling comparison', rm: 'Remove', close: 'Close',
+    none: 'No airlines matched your search', two: 'Compare airlines', lvl: 'Leveling Comparison' },
+};
+const CHEVRON = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/** 比較リスト（#wd-tray）。行（#wd-tray-list）と候補（#wd-cl-opts）は空で出荷し、台本がカードの社名とロゴを写して作る。
+    台本が動かないときは <noscript> がリストごと隠す（.wd-tray）。「航空会社を比較」の行き先は、そのページから見た career.html?view=compare
+    （2社がそろうまで台本が行き先を外す） */
+export function listPanel(lang) {
+  const W = LIST[lang], e = (k) => esc(W[k]);
+  return [
+    `<div class="wd-tray" id="wd-tray" role="region" aria-labelledby="wd-cl-h" data-fmt="${e('fmt')}" data-rm="${e('rm')}" data-on="${esc(WORDS.on[lang])}" hidden>`,
+    `<div class="wd-cl-head"><div class="wd-cl-tt"><h2 class="wd-cl-h" id="wd-cl-h">${e('h')}</h2><span class="wd-tray-n" id="wd-tray-n" role="status" aria-live="polite"></span></div>`
+      + `<button type="button" class="wd-cl-fold" id="wd-cl-fold" aria-expanded="false" aria-controls="wd-cl-body" aria-labelledby="wd-cl-h">${CHEVRON}</button>`
+      + `<button type="button" class="wd-cl-close" id="wd-cl-close" aria-label="${e('close')}" title="${e('close')}" hidden></button></div>`,
+    '<div class="wd-cl-body" id="wd-cl-body">',
+    `<p class="wd-cl-empty" id="wd-cl-empty">${e('empty')}</p>`,
+    '<ul class="wd-tray-list" id="wd-tray-list"></ul>',
+    `<div class="wd-cl-add"><input type="text" class="wd-cl-q" id="wd-cl-q" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="wd-cl-opts" autocomplete="off" spellcheck="false" placeholder="${e('add')}" aria-label="${e('add')}">`
+      + `<ul class="wd-cl-opts" id="wd-cl-opts" role="listbox" aria-label="${e('add')}" hidden></ul><p class="wd-cl-none" id="wd-cl-none" hidden>${e('none')}</p></div>`,
+    `<p class="wd-cl-rule" id="wd-cl-rule">${e('rule')}</p>`,
+    `<p class="wd-cl-why" id="wd-cl-why" hidden>${e('why')}</p>`,
+    '</div>',
+    `<div class="wd-cl-acts"><button type="button" class="wd-cl-open" id="wd-cl-open">${e('open')}</button>`
+      + `<a class="wd-tray-two" id="wd-tray-two" href="career.html?view=compare">${e('two')}</a><button type="button" class="wd-tray-lvl" id="wd-tray-lvl">${e('lvl')}</button></div>`,
+    '</div>',
+  ].join('\n');
+}
 
 /** 112社のカード。★2026-10-25 英語の EN-9：英語のカードも data-two ＝ 2社比較（en/career.html）で出せる会社（前は英語だけ 0） */
 export function cards(lang, M = model(), rule = CARD_RULE) {
@@ -149,6 +191,7 @@ export const BLOCKS = [
   { id: 'PV-DIR-ELSE', build: elseRow },
   { id: 'PV-DIR-CARDS', build: cards },
   { id: 'PV-DIRMAP', build: (lang, M) => mapSection({ lang, M, ledger: SALARY, regionMean, bake: bakeOf(lang), fxNote: fxNote(lang) }) },
+  { id: 'PV-DIR-LIST', build: (lang) => listPanel(lang) },
 ];
 /** ?v= を書く部品（両方のページが読むこと） */
 export const ASSETS = ['pv-directory.css', 'pv-directory.js'];
