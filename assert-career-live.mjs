@@ -34,6 +34,8 @@
      ・口コミの鍵のある人は、会社のマスの中でほかの人の投稿を本文のまま新しい順にスクロールして読める（5件ずつ・キーボードで）。
        ゲスト・給与の鍵だけの会員には本文が1字も出ない（返事に植えた本文の列も読まない）・読む人が替わったら消える（場面 revkey）。
      ・[B] 欄の「やり直す」のあと、待つあいだに読み手が動いた先からフォーカスを引き戻さない（場面 refocus）。
+     ・色の近い2社（★2026-10-25 WP-compare-all-12）：生きた欄の2社が並ぶ札でも、右の会社の点だけ輪。決まりは比較の画面の data-near の1つ
+       （年収の板と同じ）・左の会社と色の離れた2社には付かない・入れ替えると右の会社へ（場面 near）。
      給与の区域（cmp-pay ── 比較の「提出された年収」。返事の材料は cmp-stubs.mjs の payFix）
      ・鍵の無い人（ゲスト・会員・期限切れ）には、会社ごとの件数だけ。行・額・板を描かず、返事に植えた列は画面にも保存領域にも出ない。
        中央値（pv_company_pay）も DEEP PAY も聞かない。錠の1行と入口（Give & Get）は1つずつ・「ログイン」はゲストにだけ（場面 pay-lock）。
@@ -1933,6 +1935,64 @@ scene('mixfail', '比較の回答：片方の会社が読めなくても、も�
     const F = await faces3(page);
     ok(!!F.W && F.W.state === 'off' && F.W.text === '準備中' && F.Q.state === 'off' && F.Q.h === 0 && F.P.state === 'off' && F.P.text === '準備中',
       `（${size}）月の働き方「準備中」・すぐ下の欄は高さ 0・待遇「準備中」`, J({ W: F.W && [F.W.state, F.W.text], Q: F.Q && [F.Q.state, F.Q.h], P: F.P && [F.P.state, F.P.text] }));
+  }
+});
+
+/* ★2026-10-25 WP-compare-all-12（P12.110 の続き）：色の近い2社（エミレーツ｜JAL ── どちらも赤）は、生きた欄の会社の札でも色のほかで見分けられる。
+   決まりは比較の画面の data-near の1つ（career.js が年収の板のために立てる ── ここでも、輪を描く career.css でも、色の近さを測り直さない）。
+   右の会社（並びの2つ目）の札の点だけ輪（地が透明・inset の縁）── 2列の見出し（提出された年収・口コミの評価）・会社ごとに上下の形（月の働き方・待遇）・
+   口コミの要約の右の列の、どの形でも。左の会社と、色の離れた2社（JAL｜ユナイテッド）には付かない。入れ替えると輪も右の会社へ移る。
+   ⚠️ 会社ごとに上下の形で、1社だけの欄（月の働き方のすぐ下の回答 ── 開いていない会社は並べない）は、位置で右の会社と分からないので測らない
+   （その欄の札は、名前の横の点のまま）。2社が並ぶ欄だけを測り、その欄が5つの欄ぜんぶに在ることを確かめる。 */
+scene('near', '色の近い2社：生きた欄の会社の札も、右の会社の点だけ輪（決まりは比較の画面の data-near の1つ・左の会社と色の離れた2社には付かない・入れ替えると右の会社へ）', 'mock', async () => {
+  const stub = {
+    pv_pay_rows: payReply(H.payFix.open([PRF('emirates')], [PRF('jal'), PRF('united')])),
+    pv_reviews: reviewsBy({ emirates: FIX.JAL, jal: FIX.ANA, united: FIX.TWO }),
+    pv_review_summary: sumBy({ emirates: SUM_OPEN('EK'), jal: SUM_OPEN('JAL'), united: SUM_OPEN('UA') }),
+    pv_work_view: byCo({ emirates: WORK_OPEN, jal: PLANT_W, united: WORK_OPEN }),
+    pv_contrib_facts: byCo({ emirates: FACT_OPEN, jal: PLANT_F, united: FACT_OPEN }),
+    pv_contrib_give: () => ({ status: 200, body: GIVE }),
+  };
+  const KINDS5 = ['cmp-pay', 'cmp-stars', 'cmp-summary', 'cmp-work', 'cmp-facts'];
+  const face = (page) => page.evaluate((KINDS5) => {
+    const V = document.querySelector('#cr [data-view="compare"]');
+    const CO = (() => { try { return JSON.parse(document.getElementById('crc-data').textContent).airlines || {}; } catch (e) { return {}; } })();
+    const slugOf = (t) => Object.keys(CO).find((k) => CO[k] && CO[k].ja === t) || '?';
+    const seen = (e) => !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden';
+    const dot = (co) => { const s = getComputedStyle(co, '::before');
+      return /inset/.test(s.boxShadow) && s.backgroundColor === 'rgba(0, 0, 0, 0)' ? 'ring' : !/inset/.test(s.boxShadow) && s.backgroundColor !== 'rgba(0, 0, 0, 0)' ? 'fill' : 'other'; };
+    const tags = [];
+    for (const b of V.querySelectorAll('.crl[data-live^="cmp-"]')) {
+      const kind = b.getAttribute('data-live');
+      for (const co of b.querySelectorAll('.crl-co')) {
+        if (!seen(co)) continue;
+        /* 2社が並ぶ形だけ：2列の見出し・要約の列・2つの列のある上下の形（1社だけの上下の形は測らない ── 上の注記） */
+        const split = co.parentElement.closest('.crl-split');
+        if (split && split.querySelectorAll(':scope > .crl-split-c').length < 2) { tags.push({ kind, s: slugOf(co.textContent.trim()), lone: true }); continue; }
+        if (!co.parentElement.matches('.crl-cmp-head, .crl-split-c, .crl-sum2-c')) continue;
+        tags.push({ kind, s: slugOf(co.textContent.trim()), dot: dot(co) });
+      }
+    }
+    return { near: V.hasAttribute('data-near'), tags, kinds: KINDS5.map((k) => [k, [...new Set(tags.filter((t) => t.kind === k && !t.lone).map((t) => t.s))]]) };
+  }, KINDS5);
+  const ready = async (page, want) => {
+    for (const k of KINDS5) if (!(await settled(page, k, want))) return false;
+    return settled3(page, want);                    // 回答の欄は2つ（すぐ下の回答と待遇）── 両方とも
+  };
+  for (const size of ['pc', 'sp']) {
+    const { page } = await open(size, { who: 'pay', url: PAIR_URL('emirates', 'jal'), stub });
+    for (const [a, b, near] of [['emirates', 'jal', true], ['jal', 'emirates', true], ['jal', 'united', false]]) {
+      if (a !== 'emirates' || b !== 'jal') await page.evaluate((a, b) => window.PVCareer.replace({ view: 'compare', a, b }), a, b);
+      ok(await ready(page, `${a}|${b}`), `（${size}）${a}|${b}：5つの欄が読み終わった`);
+      const F = await face(page);
+      const judged = F.tags.filter((t) => !t.lone);
+      const wrong = judged.filter((t) => t.dot !== (near && t.s === b ? 'ring' : 'fill'));
+      const every = F.kinds.every(([, ss]) => ss.includes(a) && ss.includes(b));
+      ok(F.near === near && judged.length > 0 && !wrong.length && every && judged.every((t) => t.s === a || t.s === b),
+        `（${size}）${a}|${b}${near ? '（近い）' : '（遠い）'}：生きた欄の2社が並ぶ札（提出された年収・口コミの評価・要約・月の働き方・待遇）で、${near ? `右の会社（${b}）の点だけ輪・左は塗り` : 'どちらの点も塗り（輪は無い）'}`,
+        J({ near: F.near, wrong: wrong.slice(0, 4), kinds: F.kinds, n: judged.length }));
+      if (a === 'emirates') await shots(page, size);
+    }
   }
 });
 

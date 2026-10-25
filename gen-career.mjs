@@ -291,7 +291,9 @@ ${ALL.map(s => {
   const a = `<a class="cr-link cr-go" id="cr-go-${key}-${s}" href="${href.page(s, tab)}" aria-labelledby="cr-cmp-h-${key} cr-go-${key}-${s}" data-airline="${s}" style="--cr-co:${color(s)}"${hide}><i class="cr-dot" aria-hidden="true"></i><span class="cr-go-n">${esc(name(s))}</span><span class="cr-go-t">${GO_WORD}</span>${IC.go}</a>`;
   if (!tax) return a;
   const t = tax(s);
-  return `<span class="cr-go cr-ft" data-airline="${s}"${hide}>${a}${t ? `<span class="cr-tx"><span class="cr-vh">${esc(name(s))}</span>${esc(t)}</span>` : ''}</span>`;
+  /* ★2026-10-25 WP-compare-all-12：2列の板（〜999px）では税の扱いの字を2行で切る（career.css）── 字は削らず、同じ字を入れ物の title にも置く
+     （税の字は押した手をリンクへ通すので、乗せたときに出るのは入れ物の title）。 */
+  return `<span class="cr-go cr-ft" data-airline="${s}"${t ? ` title="${esc(t)}"` : ''}${hide}>${a}${t ? `<span class="cr-tx"><span class="cr-vh">${esc(name(s))}</span>${esc(t)}</span>` : ''}</span>`;
 }).join('\n')}
 </p>`;
 
@@ -929,12 +931,14 @@ function compare() {
   /* 「会社が公表している金額」の箱（.cr-cards）は、並べた2社のどちらにも一覧が無ければ描かない（空の箱・「公表なし」を置かない ──
      2026-10-22 LEAD AMENDMENT・P12.91-7）。片方に在れば、もう片方は社名だけ。選び直したときは career.js の pair() が同じ決まりで決める。 */
   const pubs = Object.fromEntries(FIVE.map(s => [s, pub(s, 'h3')]));
-  /* 札の中身（略号かロゴ・社名・「選び直せる」印）は写真の箱（.cr-opt-p）の中 ── 広い画面では1行に並べる（★2026-10-25 P12.106・career.css）。 */
+  /* 札の中身（略号かロゴ・社名・「選び直せる」印）は写真の箱（.cr-opt-p）の中 ── 広い画面では1行に並べる（★2026-10-25 P12.106・career.css）。
+     ★WP-compare-all-12：写真の無い札の ▼ は2か所に置き、画面に出すのはいつも1つ（352px からは社名の中 ── 写真の札と同じ所・
+     351px まではロゴの段 ── 写真の札が略号の札の中に印を移すのと同じ段。どちらを出すかは career.css）。 */
   const side = (id, label, chosen) => `<div class="cr-side" data-side="${id}">
 ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(s)}"${s === chosen ? '' : ' hidden'}>
 <span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}<span class="cr-opt-n">${esc(name(s))}${IC.down}</span></span>
 </div>`).join('\n')}
-<div class="cr-opt cr-opt-x" data-airline="" hidden><span class="cr-opt-p"><span class="cr-opt-lg">${IC.down}</span><span class="cr-opt-n"><span class="cr-opt-t"></span></span></span></div>
+<div class="cr-opt cr-opt-x" data-airline="" hidden><span class="cr-opt-p"><span class="cr-opt-lg">${IC.down}</span><span class="cr-opt-n"><span class="cr-opt-t"></span>${IC.down}</span></span></div>
 <button type="button" class="cr-pickb" id="cr-open-${id}" data-label="${label}" aria-label="${label} ${esc(name(chosen))}" aria-haspopup="dialog"></button>
 <span class="cr-ring" aria-hidden="true"></span>
 </div>`;

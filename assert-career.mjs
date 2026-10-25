@@ -771,7 +771,9 @@ head('掲載している全社（比較の材料）');
     /* ★2026-10-25 段階5 compare-all-11（P12.110）：リードが認めた幅（この作業に gzip で 2,048 まで）のうち、使った 600（色の近さを測る座標 data-lab ×全社と、
        右の列の目盛の写し）。ROOM そのものは変えない。 */
     const GRANT11 = { raw: 0, gz: 600, tags: 0 };
-    const ROOM = { raw: up(GROW1.raw + 250000, 25000), gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz, tags: up(GROW1.tags + 1550, 250) };
+    /* ★2026-10-25 段階5 compare-all-12：同じ幅の残り（1,448）のうち 150（税の扱いの字を2列の板で2行に切ったときの、入れ物の title ×25社）。 */
+    const GRANT12 = { raw: 0, gz: 150, tags: 0 };
+    const ROOM = { raw: up(GROW1.raw + 250000, 25000), gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz, tags: up(GROW1.tags + 1550, 250) };
     const bytes = fs.readFileSync(path.join(ROOT, PAGE));
     const now = { raw: bytes.length, gz: zlib.gzipSync(bytes).length, tags: (bytes.toString('utf8').match(/<[a-z]/g) || []).length };
     const kb = n => Math.round(n / 1024);
@@ -1447,7 +1449,7 @@ try {
          ★2026-10-25 オーナー P12.110（WP-compare-all-11・同じ強さの当て直し ── リード L2）：スマホ（〜759px）の比較の年収の板は2列（左の会社｜右の会社）。
          同じ目盛 ＝ 土台が全部同じ幅・同じ会社の土台は同じ列（左の会社が左・右の会社が右）。左の列の目盛は見えている1本の .cr-axis、右の列は
          そのすぐ後ろの写し .cr-axis2（字も同じ）── どちらも両端がその列の土台に合っている。ほかの画面と広い画面は今までどおり（写しは出ない）。 */
-      const two = w < 760 && q.includes('view=compare');
+      const two = w < 1000 && q.includes('view=compare');   // ★WP-compare-all-12：2列は 999px まで（タブレットも）
       const t0 = bars[0] || { tl: 0, tr: 0 };
       const cols = two ? [...new Set(bars.map(b => b.s))].map(s => bars.filter(b => b.s === s)) : [bars];
       const t1 = two && cols[1] ? cols[1][0] : null;
@@ -1937,7 +1939,8 @@ try {
        a) 写真の無い会社の札（.cr-opt-x）の社名は正本の字（SALARY の ja）・2行まで（374px 以下は3行まで）。語の途中で折れるのは、その1語だけで
           社名の箱より長いときだけ（語の切れ目 ＝「・」の後ろ・空白・「（」の前。行は字ごとの四角で数え、1語の幅は同じ字の写しを折らずに札の中に
           置いて測る）。そういう社名は大きさごとに LONG に集めて出す ── 390px と 1001px では1つも無いこと。
-       b) その札の「選び直せる」印（.cr-opt-lg の ▼）はちょうど1つ・社名の字とロゴの段が、まんなかの入れ替えボタン（丸）に掛からない・
+       b) その札の「選び直せる」印（札の中の ▼ ── ★WP-compare-all-12 から 352px 以上は社名の中・351px まではロゴの段）はちょうど1つ・
+          社名の字とロゴの段とその ▼ が、まんなかの入れ替えボタン（丸）に掛からない・
           札にロゴが在る・2枚の札の高さが同じ（±1px）。
        c) 先行5社のほかの会社の年収の行の社名（.cr-row-co）と「詳しく」の社名（.cr-go-n）は 2行まで（374px 以下は3行まで）・はみ出さない・
           その行の額（.cr-row-v）が行の外へ出ない（先行5社は上の1行の検査）。
@@ -2002,11 +2005,19 @@ try {
           const cs = chars(t), lines = linesOf(cs), box = n.getBoundingClientRect().width;
           if (lines > most) bad.push(`${s}: 札の社名 ${lines}行`);
           for (const wd of inner(cs)) { if (widthOf(n, t, wd) > box + 0.5) long.push(s); else bad.push(`${s}: 札の社名が語の途中で折れる（「${wd}」は箱 ${Math.round(box)}px に入る）`); }
-          const marks = [...lg.querySelectorAll('.cr-ic')].filter(on).length;
-          if (marks !== 1) bad.push(`${s}: 「選び直せる」印 ${marks}つ`);
+          /* ★2026-10-25 WP-compare-all-12（同じ強さの当て直し ── リード L2）：写真の無い札の ▼ は2か所（ロゴの段と社名の中）に在り、出すのは
+             幅で1つ（352px からは社名の後ろ ── 写真の札と同じ所・351px まではロゴの段）。前はロゴの段の中だけを数えていた ── いまは札の中で
+             見えている ▼ をちょうど1つ。その ▼ も、入れ替えボタンに掛からないか測る。 */
+          const ics = [...o.querySelectorAll('.cr-ic')].filter(on);
+          if (ics.length !== 1) bad.push(`${s}: 「選び直せる」印 ${ics.length}つ`);
           if (!lg.querySelector('.pvg-logo')) bad.push(`${s}: 札にロゴが無い`);
           if (!sw) { bad.push('入れ替えボタンが無い'); continue; }
-          const over = [...cs.filter(x => x.r).map(x => ['社名', hit(x.r)]), ['ロゴの段', hit(lg.getBoundingClientRect())]].filter(x => x[1] > 0);
+          /* ロゴの段は広い画面では display:contents（箱を持たない ── 箱で測ると何も測らずに通る）。箱が無いときは、段の中の見えている部品を
+             1つずつ測る。部品が1つも見えなければ赤。 */
+          const lgParts = lg.getClientRects().length ? [lg] : [...lg.children].filter(on);
+          if (!lgParts.length) bad.push(`${s}: ロゴの段の部品が見えない`);
+          const over = [...cs.filter(x => x.r).map(x => ['社名', hit(x.r)]), ...lgParts.map(e => ['ロゴの段', hit(e.getBoundingClientRect())]),
+            ...ics.map(e => ['印', hit(e.getBoundingClientRect())])].filter(x => x[1] > 0);
           if (over.length) bad.push(`${s}: 入れ替えボタンが${[...new Set(over.map(x => x[0]))].join('・')}に掛かる（${Math.round(Math.max(...over.map(x => x[1])) * 10) / 10}px）`);
         }
       }
@@ -2263,7 +2274,8 @@ try {
   head('比較の最初の1画面（PC とスマホ）と行の札（推定年収は見出しに1回）');
   {
     const { page: p, close: c } = await open('?view=compare&a=jal&b=united', 1440, 900);
-    for (const [w, h] of [[1440, 900], [1280, 800], [1001, 700], [390, 680], [375, 667], [360, 640], [320, 568]]) {
+    /* ★2026-10-25 WP-compare-all-12：タブレット（768×1024・820×1180 ── スマホと同じ2列の板）でも、2枚の札・年収の板の全部・「提出された年収」の見出しの頭。 */
+    for (const [w, h] of [[1440, 900], [1280, 800], [1001, 700], [820, 1180], [768, 1024], [390, 680], [375, 667], [360, 640], [320, 568]]) {
       await p.setViewport({ width: w, height: h });
       await p.evaluate(() => window.scrollTo(0, 0));
       await settle(p);
@@ -2314,7 +2326,7 @@ try {
       }, OTHER);
       const g1 = await chips();
       ok(g1.rows.length === 4 && g1.rows.filter(r => r.kind).length === 1 && g1.rows.every(r => r.shown && r.inRow && r.word === (r.kind ? OTHER : EST)) && g1.tg === 1 && g1.tgShown === 0,
-         `${w}px 推定でない種類の行が見えている板（ページの上の写し）：4行とも自分の札（「${OTHER}」と「${EST}」）を、その行${w < 760 ? '（2列の欄）' : ''}の中に見せ、見出しの1行「推定年収」は出さない`, JSON.stringify(g1));
+         `${w}px 推定でない種類の行が見えている板（ページの上の写し）：4行とも自分の札（「${OTHER}」と「${EST}」）を、その行${w < 1000 ? '（2列の欄）' : ''}の中に見せ、見出しの1行「推定年収」は出さない`, JSON.stringify(g1));
       await p.evaluate(word => {
         const r = document.querySelector('#cr .cr-view[data-view="compare"] .cr-pair[data-role="cap"] .cr-row[data-kind]');
         delete r.dataset.kind;

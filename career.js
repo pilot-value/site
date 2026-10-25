@@ -222,7 +222,8 @@
       });
       /* ★2026-10-25 P12.110（WP-compare-all-11）：写真の無い札が出ているあいだ2枚とも高くする印（.cr-pick の is-x）は外した ── 札の高さは中身なりで、
          2枚は同じ行の高さにそろう（career.css）。 */
-      each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-rentb, .cr-credit, .cr-go'), function (el) {
+      /* ★2026-10-25 WP-compare-all-12：税の行の箱（.cr-taxes）は WP-compare-all-10 で無くなった（税の扱いの字は年収の板の足の .cr-go の中）── 名前を外した。 */
+      each(cmp.querySelectorAll('.cr-row, .cr-card, .cr-rentb, .cr-credit, .cr-go'), function (el) {
         var s = el.dataset.airline;
         el.hidden = s !== a && s !== b;
       });
@@ -259,7 +260,7 @@
          読み上げと Tab の順が画面と食い違う。
          同じ会社の要素が続けて在っても、まとめて順のまま運ぶ。
          家賃の箱（.cr-rentbs）も同じ ── 街ごとの箱を、選んだ順に置き直すだけ。 */
-      each(cmp.querySelectorAll('.cr-pair, .cr-taxes, .cr-cards, .cr-rentbs, .cr-credits, .cr-gos'), function (box) {
+      each(cmp.querySelectorAll('.cr-pair, .cr-cards, .cr-rentbs, .cr-credits, .cr-gos'), function (box) {
         var ea = [], eb = null;
         each(box.children, function (el) {
           if (el.dataset.airline === a) ea.push(el);
@@ -267,7 +268,7 @@
         });
         if (eb) ea.forEach(function (el) { box.insertBefore(el, eb); });
         /* 2社とも中身の無い入れ物は、見出しごと出さない。片方だけのときは、その会社の列に置いたままにする（もう片方の列は空ける）。 */
-        if (box.matches && box.matches('.cr-taxes, .cr-cards, .cr-rentbs, .cr-credits')) {
+        if (box.matches && box.matches('.cr-cards, .cr-rentbs, .cr-credits')) {
           var n = 0, one = null;
           each(box.children, function (el) { if (el.dataset && el.dataset.airline && !el.hidden) { n++; one = one || el; } });
           box.hidden = n === 0;
@@ -564,7 +565,8 @@
       if (!o) return;
       var c = o.el.style.getPropertyValue('--cr-co');
       if (c) x.style.setProperty('--cr-co', c); else x.style.removeProperty('--cr-co');
-      /* ロゴは選ぶ面の1行のものを写す（名前・色・ロゴだけ。額は写さない）。印（▼）は札の上の段のロゴの右。 */
+      /* ロゴは選ぶ面の1行のものを写す（名前・色・ロゴだけ。額は写さない）。印（▼）は札に置いたまま（ロゴの段と社名の中 ── 出すのはいつも1つ。
+         どちらを出すかは career.css。★WP-compare-all-12：352px からは社名の後ろ・351px まではロゴの右）。社名の字は .cr-opt-t だけを書き換える。 */
       var lg = x.querySelector('.cr-opt-lg'), src = o.el.querySelector('.pvg-logo'), old = lg.querySelector('.pvg-logo');
       if (old) lg.removeChild(old);
       if (src) lg.insertBefore(src.cloneNode(true), lg.firstChild);
