@@ -28,6 +28,24 @@ process.stdin.on('end', () => {
       'この Mac はブラウザを何本も同時に開くと固まって再起動する）。\n');
     process.exit(2);
   }
+  // ★2026-10-25：rm -rf は確認なしで通す（オーナー「bash とか重要じゃないものはおれの許可いらない」・助手が試しの写しを消すのに毎回使う）。
+  //   代わりに、取り返しのつかない消し方だけをここで断る：/・ホーム・ユーザーの置き場・Mac の芯の置き場・. / .. / *・.git・プロジェクトの根。
+  const DANGER = new Set(['/', '/*', '~', '~/', '~/*', '$HOME', '${HOME}', '$HOME/', '$HOME/*', '.', './', '..', '../', '*', '.*', '.git', '.git/',
+    '$CLAUDE_PROJECT_DIR', '${CLAUDE_PROJECT_DIR}', '$CLAUDE_PROJECT_DIR/']);
+  const coreDir = (t) => /^\/(Users|System|Library|Applications|private|usr|bin|sbin|etc|var|opt|Volumes)\/?$/.test(t) || /^\/Users\/[^/]+\/?(\*)?$/.test(t)
+    || /^\/Users\/[^/]+\/(Documents|Desktop|Library|Downloads)\/?(\*)?$/.test(t);
+  const rmBad = cmd.split(/\n|;|&&|\|\||\|/).some((seg) => {
+    const m = seg.match(/^\s*(?:sudo\s+|command\s+|exec\s+|nohup\s+)?rm\s+(.*)$/);
+    if (!m) return false;
+    const toks = (m[1].match(/"[^"]*"|'[^']*'|\S+/g) || []).map((t) => t.replace(/^["']|["']$/g, ''));
+    if (!toks.some((t) => /^-[A-Za-z]*[rR]/.test(t) || t === '--recursive')) return false;
+    return toks.filter((t) => !t.startsWith('-')).some((t) => DANGER.has(t) || coreDir(t.replace(/\/+$/, '/') ) || coreDir(t));
+  });
+  if (rmBad) {
+    process.stderr.write('この rm は使えません：リポジトリの根・ホーム・Mac の芯の置き場・. / .. / * / .git をまとめて消す形です（2026-10-25 の見張り）。' +
+      '消すのは自分が作った写しや一時フォルダだけに、名前を書いて。\n');
+    process.exit(2);
+  }
   if (!bad) process.exit(0);
   process.stderr.write(`${bad[1]} は使えません（2026-10-23 の決まり・.claude/hooks/block-mass-kill.mjs）。` +
     '自分が起こしたサーバーは kill <起こしたときの番号> で止める（起こすときに & echo $! > pidfile）。' +
