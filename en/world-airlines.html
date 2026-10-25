@@ -54,7 +54,7 @@
      アプリのナビで、アプリ画面16枚の左ドロワーへ畳んだ（app-nav.js / app-nav.css）。
      pv-tokens.css だけ残す ── --pv-* の定義だけなので、このページの見た目は1pxも変わらない。 -->
 <link rel="stylesheet" href="../pv-tokens.css">
-<link rel="stylesheet" href="../pv-directory.css?v=f86af473">
+<link rel="stylesheet" href="../pv-directory.css?v=0eb29b67">
 <noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box}
@@ -76,51 +76,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:#0a0c0f}
 ::-webkit-scrollbar-thumb{background:#18212f;border-radius:3px}
-
-/* ── MAP ────────────────────────────────────────────────────────── */
-.map-wrapper{position:relative;width:100%;max-width:1100px;margin:0 auto;user-select:none}
-#world-svg{width:100%;height:auto;display:block;border-radius:18px;overflow:visible}
-
-/* backdrop land (Russia/Greenland — decorative only) */
-.bd-land{fill:#0d1a28;stroke:#1a2d42;stroke-width:.5}
-
-/* interactive regions */
-.rgn{
-  fill:rgba(255,255,255,.025);
-  stroke:rgba(255,255,255,.12);
-  stroke-width:.8;
-  cursor:pointer;
-  transition:fill .25s,stroke .25s,filter .25s;
-}
-.rgn:hover{
-  stroke-width:1.5;
-  filter:var(--glow);
-}
-.rgn.active{
-  stroke-width:2;
-  filter:var(--glow-bright);
-}
-
-/* region-specific colors via CSS variables */
-.r-us    { --c:200,16,46;    --glow:drop-shadow(0 0 8px rgba(200,16,46,.7));   --glow-bright:drop-shadow(0 0 14px rgba(200,16,46,1)); }
-.r-latam { --c:245,200,66;   --glow:drop-shadow(0 0 8px rgba(245,200,66,.7));  --glow-bright:drop-shadow(0 0 14px rgba(245,200,66,1)); }
-.r-europe{ --c:95,176,255;   --glow:drop-shadow(0 0 8px rgba(95,176,255,.7));  --glow-bright:drop-shadow(0 0 14px rgba(95,176,255,1)); }
-.r-africa{ --c:76,175,80;    --glow:drop-shadow(0 0 8px rgba(76,175,80,.7));   --glow-bright:drop-shadow(0 0 14px rgba(76,175,80,1)); }
-.r-mideast{--c:239,192,80;   --glow:drop-shadow(0 0 8px rgba(239,192,80,.7));  --glow-bright:drop-shadow(0 0 14px rgba(239,192,80,1)); }
-.r-asia  { --c:249,115,22;   --glow:drop-shadow(0 0 8px rgba(249,115,22,.7));  --glow-bright:drop-shadow(0 0 14px rgba(249,115,22,1)); }
-.r-japan { --c:61,155,255;   --glow:drop-shadow(0 0 8px rgba(61,155,255,.9));  --glow-bright:drop-shadow(0 0 14px rgba(61,155,255,1)); }
-.r-oceania{--c:238,100,80;   --glow:drop-shadow(0 0 8px rgba(238,100,80,.7));  --glow-bright:drop-shadow(0 0 14px rgba(238,100,80,1)); }
-
-.rgn:hover  { fill:rgba(var(--c),.1);  stroke:rgba(var(--c),.6); }
-.rgn.active { fill:rgba(var(--c),.18); stroke:rgba(var(--c),.9); }
-
-/* SVG label pins */
-.pin-circle{transition:r .2s,fill .2s,stroke .2s}
-.pin-text{font-family:'Inter',sans-serif;font-size:8px;font-weight:700;fill:#fff;pointer-events:none;text-anchor:middle;dominant-baseline:middle;paint-order:stroke fill;stroke:rgba(10,20,35,.45);stroke-width:2.2px;stroke-linejoin:round}
-.pin-count{font-family:'Inter',sans-serif;font-size:6.5px;font-weight:600;pointer-events:none;text-anchor:middle;dominant-baseline:middle;paint-order:stroke fill;stroke:rgba(10,20,35,.45);stroke-width:2px;stroke-linejoin:round}
-.pin-group{cursor:pointer;transition:transform .2s}
-.pin-group:hover .pin-circle,.pin-group.active .pin-circle{r:14}
-.pin-group.active .pin-circle{filter:drop-shadow(0 0 6px rgba(255,255,255,.6))}
 
 /* ── AIRLINE CARDS ──────────────────────────────────────────────── */
 .ac-code{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;letter-spacing:.01em}
@@ -145,8 +100,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 .glass{background:rgba(17,22,32,.7);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.07);border-radius:16px}
 .fade-up{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s cubic-bezier(.16,1,.3,1)}
 .fade-up.visible{opacity:1;transform:translateY(0)}
-@keyframes pulse-ring{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.6);opacity:0}}
-.pulse-ring{animation:pulse-ring 2s ease-out infinite}
 
 /* ── THEME TOGGLE ──────────────────────────────────────────────── */
 .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s,border-color .2s;flex-shrink:0}
@@ -171,11 +124,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] #wa-hero{background:linear-gradient(180deg,#eef2f8 0%,#f3f5f8 70%)!important}
 [data-theme="light"] #wa-hero h1{background:linear-gradient(135deg,#0f172a 30%,#b5920a)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}
 [data-theme="light"] #wa-hero .badge-pill{background:rgba(180,150,0,.1)!important;border-color:rgba(180,150,0,.25)!important;color:#a07800!important}
-/* Map: light ocean + wrapper */
-[data-theme="light"] #world-svg rect:first-of-type{fill:#c8dff5!important}
-[data-theme="light"] .map-wrapper{background:#dce8f5;border-radius:16px}
-/* Map tooltip */
-[data-theme="light"] #map-tooltip{background:rgba(255,255,255,.97)!important;border-color:rgba(0,0,0,.12)!important;color:#0f172a!important}
 /* Airline cards */
 /* Search bar */
 [data-theme="light"] .search-wrap{background:rgba(255,255,255,.92);border-color:rgba(0,0,0,.09)}
@@ -325,10 +273,53 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div id="wd-explore">
 <!--PV-DIRMAP-->
 <div class="wam" id="wa-map-sec" data-rest="none" data-pos="cap">
-<noscript><style>.wam-map,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}</style></noscript>
+<noscript><style>.wam-map,.wam-key,.wam-hint,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}.wam-g{display:block!important}.wam-card{max-width:720px}</style></noscript>
 <div class="wam-g">
+<div class="wam-pos" role="group" aria-label="Rank" hidden><button type="button" class="wam-pb" data-pos="cap" aria-pressed="true">Captain</button><button type="button" class="wam-pb" data-pos="fo" aria-pressed="false">First Officer</button></div>
+<div class="wam-mc">
+<div class="wam-map" id="wa-map">
+<svg class="wam-svg" viewBox="0 0 1000 440" aria-hidden="true" focusable="false">
+<g class="wam-nl"><path id="wam-d-neutral" d="M379.6 7.1h83.3M676 7.1h5.3M397.8 11.6h62.5M605.8 11.6h5.3M663 11.6h36.5M746.2 11.6h5.3M400.4 16.1h57.3M598 16.1h0.1M629.2 16.1h0.1M650 16.1h83.3M397.8 20.6h52.1M626.6 20.6h171.7M156 25.1h0.1M400.4 25.1h36.5M561.6 25.1h15.7M587.6 25.1h0.1M598 25.1h41.7M650 25.1h192.5M148.2 29.6h10.5M397.8 29.6h26.1M564.2 29.6h0.1M579.8 29.6h270.5M400.4 34.1h15.7M561.6 34.1h296.5M403 38.6h5.3M564.2 38.6h265.3M839.8 38.6h15.7M561.6 43.1h260.1M842.4 43.1h0.1M559 47.6h239.3M839.8 47.6h5.3M561.6 52.1h234.1M842.4 52.1h10.5M548.6 56.6h0.1M569.4 56.6h72.9M657.8 56.6h135.3M845 56.6h5.3M572 61.1h62.5M676 61.1h93.7M780 61.1h36.5M852.8 61.1h0.1M579.8 65.6h31.3M621.4 65.6h15.7M683.8 65.6h36.5M730.6 65.6h36.5M787.8 65.6h26.1M855.4 65.6h0.1M592.8 70.1h15.7M696.8 70.1h5.3M722.8 70.1h0.1M748.8 70.1h20.9M795.6 70.1h31.3M595.4 74.7h10.5M803.4 74.7h26.1M592.8 79.2h20.9M816.4 79.2h5.3M590.2 83.7h20.9M819 83.7h5.3M598 88.2h10.5M816.4 88.2h5.3M611 92.7h5.3"/></g>
+<g class="wam-r" data-region="us" style="--c:1;--f:1"><path class="wam-land" id="wam-d-us" d="M306.8 7.1h0.1M322.4 7.1h0.1M332.8 7.1h31.3M293.8 11.6h5.3M309.4 11.6h0.1M319.8 11.6h0.1M330.2 11.6h5.3M351 11.6h5.3M275.6 16.1h0.1M286 16.1h5.3M301.6 16.1h5.3M317.2 16.1h10.5M338 16.1h10.5M195 20.6h20.9M283.4 20.6h20.9M319.8 20.6h5.3M340.6 20.6h26.1M182 25.1h104.1M296.4 25.1h0.1M306.8 25.1h20.9M338 25.1h0.1M353.6 25.1h0.1M364 25.1h10.5M174.2 29.6h150.9M356.2 29.6h5.3M371.8 29.6h0.1M156 34.1h0.1M176.8 34.1h135.3M327.6 34.1h0.1M338 34.1h0.1M358.8 34.1h5.3M163.8 38.6h140.5M335.4 38.6h15.7M161.2 43.1h15.7M187.2 43.1h0.1M202.8 43.1h98.9M338 43.1h15.7M364 43.1h0.1M169 47.6h0.1M215.8 47.6h83.3M335.4 47.6h31.3M156 52.1h0.1M213.2 52.1h93.7M338 52.1h26.1M215.8 56.6h98.9M330.2 56.6h41.7M213.2 61.1h98.9M327.6 61.1h46.9M215.8 65.6h98.9M325 65.6h41.7M208 70.1h0.1M218.4 70.1h124.9M369.2 70.1h0.1M215.8 74.7h119.7M345.8 74.7h0.1M366.6 74.7h5.3M213.2 79.2h130.1M374.4 79.2h0.1M210.6 83.7h140.5M202.8 88.2h130.1M343.2 88.2h0.1M200.2 92.7h124.9M197.6 97.2h124.9M195 101.7h119.7M197.6 106.2h114.5M195 110.7h109.3M197.6 115.2h109.3M200.2 119.7h98.9M202.8 124.2h93.7M215.8 128.7h0.1M226.2 128.7h62.5M228.8 133.2h36.5M280.8 133.2h5.3M241.8 137.7h5.3M288.6 137.7h0.1M239.2 142.2h5.3M286 142.2h0.1M241.8 146.7h0.1M283.4 146.7h5.3M286 151.2h0.1"/></g>
+<g class="wam-r" data-region="latam" style="--c:0.21;--f:0.17"><path class="wam-land" id="wam-d-latam" d="M200.2 128.7h10.5M221 128.7h0.1M208 133.2h15.7M210.6 137.7h26.1M202.8 142.2h0.1M213.2 142.2h20.9M205.4 146.7h0.1M215.8 146.7h20.9M202.8 151.2h0.1M213.2 151.2h26.1M205.4 155.7h0.1M215.8 155.7h20.9M218.4 160.2h15.7M280.8 160.2h5.3M221 164.7h15.7M218.4 169.2h15.7M260 169.2h0.1M291.2 169.2h5.3M221 173.7h15.7M257.4 173.7h5.3M304.2 173.7h5.3M223.6 178.2h36.5M236.6 182.7h20.9M249.6 187.2h20.9M252.2 191.7h15.7M260 196.2h10.5M267.8 200.7h0.1M265.2 205.2h0.1M296.4 205.2h20.9M283.4 209.7h0.1M293.8 209.7h36.5M275.6 214.3h0.1M286 214.3h46.9M288.6 218.8h46.9M286 223.3h62.5M288.6 227.8h67.7M286 232.3h67.7M283.4 236.8h72.9M280.8 241.3h78.1M278.2 245.8h83.3M280.8 250.3h93.7M283.4 254.8h98.9M275.6 259.3h114.5M278.2 263.8h119.7M280.8 268.3h119.7M283.4 272.8h119.7M286 277.3h114.5M288.6 281.8h109.3M291.2 286.3h104.1M288.6 290.8h104.1M291.2 295.3h98.9M293.8 299.8h98.9M301.6 304.3h88.5M309.4 308.8h83.3M312 313.3h78.1M314.6 317.8h72.9M312 322.3h72.9M314.6 326.8h72.9M317.2 331.3h62.5M314.6 335.8h57.3M317.2 340.3h52.1M314.6 344.8h57.3M317.2 349.3h52.1M319.8 353.8h46.9M317.2 358.4h46.9M319.8 362.9h41.7M317.2 367.4h41.7M319.8 371.9h31.3M317.2 376.4h36.5M319.8 380.9h31.3M322.4 385.4h20.9M319.8 389.9h26.1M327.6 394.4h10.5M325 398.9h15.7M327.6 403.4h10.5M325 407.9h15.7M327.6 412.4h15.7M330.2 416.9h10.5M332.8 421.4h10.5M335.4 425.9h10.5M343.2 430.4h5.3"/></g>
+<g class="wam-r" data-region="europe" style="--c:0.42;--f:0.42"><path class="wam-land" id="wam-d-europe" d="M520 7.1h15.7M538.2 20.6h0.1M548.6 20.6h5.3M530.4 25.1h26.1M455 29.6h15.7M527.8 29.6h15.7M553.8 29.6h5.3M462.8 34.1h0.1M520 34.1h15.7M546 34.1h10.5M512.2 38.6h20.9M548.6 38.6h10.5M514.8 43.1h20.9M491.4 47.6h0.1M527.8 47.6h5.3M553.8 47.6h0.1M488.8 52.1h0.1M520 52.1h0.1M530.4 52.1h0.1M546 52.1h10.5M486.2 56.6h10.5M538.2 56.6h0.1M553.8 56.6h10.5M483.6 61.1h0.1M494 61.1h5.3M514.8 61.1h52.1M491.4 65.6h10.5M512.2 65.6h62.5M504.4 70.1h83.3M491.4 74.7h98.9M499.2 79.2h83.3M501.8 83.7h67.7M579.8 83.7h0.1M499.2 88.2h15.7M525.2 88.2h5.3M540.8 88.2h26.1M481 92.7h20.9M522.6 92.7h10.5M548.6 92.7h15.7M600.6 92.7h5.3M483.6 97.2h15.7M535.6 97.2h5.3M551.2 97.2h36.5M603.2 97.2h15.7M481 101.7h15.7M522.6 101.7h0.1M553.8 101.7h0.1M569.4 101.7h52.1M478.4 106.2h15.7M556.4 106.2h0.1M566.8 106.2h41.7M486.2 110.7h5.3M569.4 110.7h31.3M611 110.7h0.1"/></g>
+<g class="wam-r" data-region="africa" style="--c:0;--f:0"><path class="wam-land" id="wam-d-africa" d="M517.4 110.7h10.5M499.2 115.2h26.1M486.2 119.7h36.5M478.4 124.2h46.9M475.8 128.7h62.5M553.8 128.7h10.5M478.4 133.2h109.3M475.8 137.7h109.3M468 142.2h119.7M465.4 146.7h119.7M462.8 151.2h124.9M460.2 155.7h130.1M457.6 160.2h135.3M455 164.7h140.5M457.6 169.2h140.5M460.2 173.7h140.5M457.6 178.2h145.7M455 182.7h150.9M457.6 187.2h150.9M455 191.7h156.1M457.6 196.2h156.1M460.2 200.7h156.1M462.8 205.2h176.9M465.4 209.7h171.7M468 214.3h166.5M470.6 218.8h166.5M473.2 223.3h26.1M514.8 223.3h119.7M517.4 227.8h0.1M527.8 227.8h104.1M530.4 232.3h98.9M527.8 236.8h93.7M530.4 241.3h88.5M527.8 245.8h88.5M525.2 250.3h88.5M533 254.8h78.1M535.6 259.3h72.9M538.2 263.8h67.7M535.6 268.3h67.7M538.2 272.8h67.7M540.8 277.3h67.7M538.2 281.8h67.7M540.8 286.3h67.7M538.2 290.8h67.7M535.6 295.3h72.9M634.4 295.3h0.1M533 299.8h72.9M631.8 299.8h5.3M535.6 304.3h72.9M624 304.3h10.5M533 308.8h67.7M621.4 308.8h10.5M535.6 313.3h57.3M624 313.3h5.3M538.2 317.8h52.1M621.4 317.8h10.5M540.8 322.3h52.1M618.8 322.3h10.5M538.2 326.8h52.1M616.2 326.8h10.5M540.8 331.3h52.1M618.8 331.3h5.3M543.4 335.8h41.7M621.4 335.8h0.1M540.8 340.3h41.7M543.4 344.8h41.7M546 349.3h36.5M548.6 353.8h26.1M551.2 358.4h20.9M548.6 362.9h20.9M551.2 367.4h5.3"/></g>
+<g class="wam-r" data-region="mideast" style="--c:0.59;--f:0.74"><path class="wam-land" id="wam-d-mideast" d="M613.6 106.2h5.3M605.8 110.7h0.1M616.2 110.7h10.5M637 110.7h10.5M592.8 115.2h57.3M595.4 119.7h57.3M592.8 124.2h57.3M590.2 128.7h62.5M592.8 133.2h62.5M595.4 137.7h26.1M637 137.7h20.9M592.8 142.2h31.3M639.6 142.2h20.9M600.6 146.7h31.3M652.6 146.7h10.5M603.2 151.2h31.3M660.4 151.2h0.1M605.8 155.7h41.7M608.4 160.2h46.9M605.8 164.7h52.1M613.6 169.2h41.7M616.2 173.7h36.5M613.6 178.2h36.5M621.4 182.7h20.9M618.8 187.2h20.9M621.4 191.7h10.5"/></g>
+<g class="wam-r" data-region="asia" style="--c:0.27;--f:0.24"><path class="wam-land" id="wam-d-asia" d="M647.4 56.6h5.3M639.6 61.1h31.3M774.8 61.1h0.1M616.2 65.6h0.1M642.2 65.6h36.5M725.4 65.6h0.1M772.2 65.6h10.5M613.6 70.1h78.1M707.2 70.1h10.5M728 70.1h15.7M774.8 70.1h15.7M611 74.7h187.3M618.8 79.2h192.5M626.6 83.7h187.3M624 88.2h187.3M631.8 92.7h182.1M634.4 97.2h182.1M631.8 101.7h161.3M803.4 101.7h10.5M634.4 106.2h156.1M811.2 106.2h5.3M652.6 110.7h150.9M819 110.7h5.3M655.2 115.2h145.7M821.6 115.2h5.3M657.8 119.7h145.7M655.2 124.2h150.9M657.8 128.7h150.9M660.4 133.2h150.9M663 137.7h150.9M665.6 142.2h150.9M668.2 146.7h145.7M665.6 151.2h0.1M681.2 151.2h130.1M683.8 155.7h130.1M686.4 160.2h52.1M748.8 160.2h57.3M821.6 160.2h0.1M689 164.7h41.7M751.4 164.7h36.5M798.2 164.7h0.1M696.8 169.2h31.3M754 169.2h31.3M699.4 173.7h26.1M756.6 173.7h26.1M798.2 173.7h0.1M702 178.2h20.9M759.2 178.2h26.1M832 178.2h0.1M704.6 182.7h15.7M761.8 182.7h31.3M829.4 182.7h0.1M702 187.2h15.7M769.6 187.2h26.1M704.6 191.7h10.5M772.2 191.7h26.1M834.6 191.7h0.1M707.2 196.2h10.5M780 196.2h15.7M832 196.2h0.1M709.8 200.7h5.3M772.2 200.7h0.1M787.8 200.7h10.5M845 200.7h0.1M712.4 205.2h5.3M790.4 205.2h5.3M715 209.7h0.1M772.2 209.7h0.1M839.8 209.7h0.1M722.8 214.3h0.1M774.8 214.3h0.1M842.4 214.3h5.3M725.4 218.8h0.1M777.4 218.8h0.1M824.2 218.8h0.1M845 218.8h0.1M780 223.3h0.1M821.6 223.3h5.3M767 227.8h5.3M782.6 227.8h0.1M819 227.8h5.3M774.8 232.3h0.1M785.2 232.3h0.1M816.4 232.3h5.3M777.4 236.8h10.5M813.8 236.8h10.5M780 241.3h5.3M806 241.3h20.9M837.2 241.3h5.3M782.6 245.8h0.1M803.4 245.8h20.9M855.4 245.8h0.1M780 250.3h5.3M806 250.3h15.7M832 250.3h5.3M868.4 250.3h0.1M884 250.3h0.1M782.6 254.8h10.5M808.6 254.8h10.5M871 254.8h0.1M881.4 254.8h5.3M785.2 259.3h5.3M832 259.3h5.3M873.6 259.3h15.7M793 263.8h0.1M839.8 263.8h0.1M886.6 263.8h0.1M795.6 268.3h0.1M884 268.3h5.3M803.4 272.8h10.5M886.6 272.8h0.1M847.6 277.3h0.1"/></g>
+<g class="wam-r" data-region="oceania" style="--c:0.49;--f:0.5"><path class="wam-land" id="wam-d-oceania" d="M891.8 254.8h0.1M894.4 259.3h5.3M891.8 263.8h10.5M894.4 268.3h10.5M930.8 268.3h0.1M891.8 272.8h15.7M889.2 277.3h5.3M910 277.3h0.1M912.6 281.8h0.1M860.6 290.8h10.5M891.8 290.8h0.1M858 295.3h10.5M889.2 295.3h0.1M845 299.8h20.9M891.8 299.8h0.1M837.2 304.3h36.5M889.2 304.3h5.3M834.6 308.8h41.7M886.6 308.8h5.3M832 313.3h62.5M824.2 317.8h72.9M816.4 322.3h83.3M808.6 326.8h93.7M806 331.3h93.7M803.4 335.8h98.9M800.8 340.3h104.1M803.4 344.8h98.9M800.8 349.3h98.9M803.4 353.8h93.7M800.8 358.4h93.7M798.2 362.9h20.9M845 362.9h41.7M795.6 367.4h5.3M847.6 367.4h36.5M850.2 371.9h26.1M938.6 371.9h0.1M852.8 376.4h20.9M850.2 380.9h5.3M865.8 380.9h0.1M938.6 380.9h5.3M930.8 385.4h5.3M855.4 389.9h0.1M923 389.9h5.3M852.8 394.4h5.3M915.2 394.4h5.3M907.4 398.9h5.3M899.6 403.4h5.3M897 407.9h0.1"/></g>
+<g class="wam-r" data-region="japan" style="--c:0.14;--f:0.22"><path class="wam-land" id="wam-d-japan" d="M842.4 88.2h5.3M839.8 92.7h5.3M847.6 106.2h0.1M850.2 110.7h0.1M847.6 115.2h5.3M834.6 119.7h0.1M845 119.7h0.1M837.2 124.2h0.1"/></g>
+<g class="wam-hl">
+<circle class="wam-hit wam-hit-t" data-region="japan" cx="846" cy="111" r="63"/>
+<circle class="wam-hit" data-region="japan" cx="846" cy="111" r="40"/>
+<use class="wam-hit wam-hit-n" href="#wam-d-neutral"/>
+<use class="wam-hit" data-region="us" href="#wam-d-us"/>
+<use class="wam-hit" data-region="latam" href="#wam-d-latam"/>
+<use class="wam-hit" data-region="europe" href="#wam-d-europe"/>
+<use class="wam-hit" data-region="africa" href="#wam-d-africa"/>
+<use class="wam-hit" data-region="mideast" href="#wam-d-mideast"/>
+<use class="wam-hit" data-region="asia" href="#wam-d-asia"/>
+<use class="wam-hit" data-region="oceania" href="#wam-d-oceania"/>
+<use class="wam-hit" data-region="japan" href="#wam-d-japan"/>
+</g>
+<g class="wam-ol">
+<g class="wam-o" data-region="us"><use class="wam-halo" href="#wam-d-us"/><use class="wam-lit" href="#wam-d-us"/></g>
+<g class="wam-o" data-region="latam"><use class="wam-halo" href="#wam-d-latam"/><use class="wam-lit" href="#wam-d-latam"/></g>
+<g class="wam-o" data-region="europe"><use class="wam-halo" href="#wam-d-europe"/><use class="wam-lit" href="#wam-d-europe"/></g>
+<g class="wam-o" data-region="africa"><use class="wam-halo" href="#wam-d-africa"/><use class="wam-lit" href="#wam-d-africa"/></g>
+<g class="wam-o" data-region="mideast"><use class="wam-halo" href="#wam-d-mideast"/><use class="wam-lit" href="#wam-d-mideast"/></g>
+<g class="wam-o" data-region="asia"><use class="wam-halo" href="#wam-d-asia"/><use class="wam-lit" href="#wam-d-asia"/></g>
+<g class="wam-o" data-region="oceania"><use class="wam-halo" href="#wam-d-oceania"/><use class="wam-lit" href="#wam-d-oceania"/></g>
+<g class="wam-o" data-region="japan"><use class="wam-halo" href="#wam-d-japan"/><use class="wam-lit" href="#wam-d-japan"/><circle class="wam-ring" cx="846" cy="111" r="26"/></g>
+</g>
+</svg>
+</div>
+<div class="wam-foot">
+<p class="wam-hint" aria-hidden="true">Click the map to choose a region</p>
+<p class="wam-key" data-pos="cap" aria-hidden="true"><span><span class="pv-cur" data-jpy="14900000" data-orig="¥1,490万">$94K</span></span><i class="wam-kb"></i><span><span class="pv-cur" data-jpy="41100000" data-orig="¥4,110万">$259K</span></span></p>
+<p class="wam-key" data-pos="fo" aria-hidden="true"><span><span class="pv-cur" data-jpy="8000000" data-orig="¥800万">$50K</span></span><i class="wam-kb"></i><span><span class="pv-cur" data-jpy="23100000" data-orig="¥2,310万">$145K</span></span></p>
+</div>
+</div>
 <aside class="wam-card" id="wa-sum">
-<div class="wam-pos" role="group" hidden><button type="button" class="wam-pb" data-pos="cap" aria-pressed="true">Captain</button><button type="button" class="wam-pb" data-pos="fo" aria-pressed="false">First Officer</button></div>
 <div class="wam-cols">
 <div class="wam-panels">
 <section class="wam-panel is-shown" data-region="all" id="wam-p-all">
@@ -690,291 +681,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </div>
 <!--/PV-DIRMAP-->
-<div class="max-w-7xl mx-auto px-5 mb-6">
-  <div class="map-wrapper">
-    <p class="wd-map-hint">Click the map to choose a region</p>
-    <!-- SVG World Map -->
-    <svg id="world-svg" viewBox="0 0 1000 480" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!-- Ocean gradient -->
-        <radialGradient id="ocean-bg" cx="45%" cy="35%" r="75%">
-          <stop offset="0%" stop-color="#08142a"/>
-          <stop offset="100%" stop-color="#030810"/>
-        </radialGradient>
-        <!-- Region glow filters -->
-        <filter id="f-us"     x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#c8102e" flood-opacity=".6" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="f-latam"  x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#f5c842" flood-opacity=".6" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="f-europe" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#5fb0ff" flood-opacity=".6" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="f-africa" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#4caf50" flood-opacity=".6" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="f-mideast" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#efc050" flood-opacity=".6" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="f-asia"   x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#f97316" flood-opacity=".6" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="f-japan"  x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceAlpha" stdDeviation="6" result="b"/><feFlood flood-color="#3d9bff" flood-opacity=".8" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <filter id="f-oceania" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#ee6450" flood-opacity=".6" result="c"/><feComposite in="c" in2="b" operator="in" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      </defs>
-
-      <!-- Ocean background -->
-      <rect width="1000" height="480" fill="url(#ocean-bg)" rx="18"/>
-
-      <!-- Grid lines -->
-      <g stroke="rgba(255,255,255,.04)" stroke-width=".5" fill="none">
-        <!-- Latitude lines -->
-        <line x1="0" y1="96"  x2="1000" y2="96"/>
-        <line x1="0" y1="192" x2="1000" y2="192"/>
-        <line x1="0" y1="288" x2="1000" y2="288"/>
-        <line x1="0" y1="384" x2="1000" y2="384"/>
-        <!-- Longitude lines -->
-        <line x1="125"  y1="0" x2="125"  y2="480"/>
-        <line x1="250"  y1="0" x2="250"  y2="480"/>
-        <line x1="375"  y1="0" x2="375"  y2="480"/>
-        <line x1="500"  y1="0" x2="500"  y2="480"/>
-        <line x1="625"  y1="0" x2="625"  y2="480"/>
-        <line x1="750"  y1="0" x2="750"  y2="480"/>
-        <line x1="875"  y1="0" x2="875"  y2="480"/>
-      </g>
-      <!-- Equator (slightly more visible) -->
-      <line x1="0" y1="242" x2="1000" y2="242" stroke="rgba(255,255,255,.1)" stroke-width=".8" stroke-dasharray="6,6"/>
-      <!-- Tropics -->
-      <line x1="0" y1="174" x2="1000" y2="174" stroke="rgba(255,255,255,.05)" stroke-width=".5" stroke-dasharray="3,6"/>
-      <line x1="0" y1="310" x2="1000" y2="310" stroke="rgba(255,255,255,.05)" stroke-width=".5" stroke-dasharray="3,6"/>
-
-      <!-- ── BACKDROP LAND (non-interactive) ── -->
-      <!-- Russia / Siberia -->
-      <path class="bd-land" d="M 365,6 L 430,2 L 560,5 L 650,20 L 700,10 L 780,14 L 870,8 L 950,18 L 980,40 L 970,70 L 920,85 L 870,72 L 820,88 L 800,75 L 750,90 L 710,80 L 680,95 L 640,82 L 600,95 L 565,82 L 520,90 L 490,78 L 450,88 L 410,72 L 380,82 L 360,65 L 350,45 Z"/>
-      <!-- Greenland -->
-      <path class="bd-land" d="M 285,6 L 330,4 L 355,16 L 358,40 L 340,52 L 310,48 L 290,36 L 278,20 Z"/>
-      <!-- Central Asia -->
-      <path class="bd-land" d="M 550,90 L 605,78 L 640,82 L 680,95 L 710,80 L 750,90 L 800,75 L 820,88 L 840,100 L 810,116 L 790,108 L 760,120 L 720,110 L 685,118 L 650,108 L 610,115 L 575,108 L 548,118 Z"/>
-
-      <!-- ── NORTH AMERICA ── -->
-      <g class="map-region-group" data-region="us">
-        <path class="rgn r-us" id="rgn-us" d="
-          M 38,38 C 68,16 162,8 248,18
-          L 304,30 L 346,58 L 356,90
-          L 343,124 L 363,136 L 348,172
-          L 320,190 L 292,203
-          L 265,195 L 242,213
-          L 211,218 L 176,209
-          L 153,216 L 126,209
-          L 99,216 L 74,204
-          L 51,178 L 31,148
-          L 20,106 C 22,80 30,56 38,38
-        "/>
-        <!-- Alaska islands -->
-        <path class="rgn r-us" d="M 20,55 L 48,48 L 60,58 L 44,68 Z"/>
-      </g>
-
-      <!-- ── SOUTH/CENTRAL AMERICA ── -->
-      <g class="map-region-group" data-region="latam">
-        <path class="rgn r-latam" id="rgn-latam" d="
-          M 211,218 L 242,213 L 265,195
-          L 292,203 L 299,227
-          L 283,261 L 269,297
-          L 275,340 L 258,380
-          L 231,418 L 204,434
-          L 181,418 L 169,380
-          L 174,338 L 182,296
-          L 191,255 L 201,228 Z
-        "/>
-        <!-- Caribbean / Central America -->
-        <path class="rgn r-latam" d="M 240,214 L 262,208 L 270,220 L 258,228 L 242,224 Z"/>
-      </g>
-
-      <!-- ── EUROPE ── -->
-      <g class="map-region-group" data-region="europe">
-        <path class="rgn r-europe" id="rgn-europe" d="
-          M 463,62 C 476,44 496,30 526,18
-          L 550,14 L 580,22 L 600,40
-          L 608,64 L 598,88 L 606,106
-          L 600,120 L 578,128
-          L 554,120 L 540,130
-          L 512,124 L 487,109
-          L 468,94 L 462,76 Z
-        "/>
-        <!-- British Isles -->
-        <path class="rgn r-europe" d="M 457,44 L 474,38 L 478,54 L 465,60 L 454,52 Z"/>
-        <!-- Iceland -->
-        <path class="rgn r-europe" d="M 416,22 L 438,18 L 448,30 L 434,36 L 418,32 Z"/>
-        <!-- Scandinavia extra -->
-        <path class="rgn r-europe" d="M 526,18 L 550,14 L 568,8 L 576,18 L 560,28 L 545,24 Z"/>
-      </g>
-
-      <!-- ── AFRICA ── -->
-      <g class="map-region-group" data-region="africa">
-        <path class="rgn r-africa" id="rgn-africa" d="
-          M 392,162 L 448,164 L 487,157
-          L 524,148 L 546,166
-          L 556,205 L 554,247
-          L 560,290 L 536,340
-          L 502,378 L 464,396
-          L 426,390 L 399,364
-          L 381,323 L 373,277
-          L 381,242 L 371,197
-          L 378,174 Z
-        "/>
-        <!-- Madagascar -->
-        <path class="rgn r-africa" d="M 568,280 L 578,268 L 584,286 L 580,306 L 568,298 Z"/>
-      </g>
-
-      <!-- ── MIDDLE EAST ── -->
-      <g class="map-region-group" data-region="mideast">
-        <path class="rgn r-mideast" id="rgn-mideast" d="
-          M 600,120 L 606,106 L 598,88
-          L 618,80 L 652,86
-          L 688,104 L 718,130
-          L 730,162 L 712,190
-          L 687,204 L 661,212
-          L 634,204 L 608,192
-          L 592,174 L 590,150
-          L 596,134 Z
-        "/>
-        <!-- Arabian Peninsula south -->
-        <path class="rgn r-mideast" d="M 612,192 L 634,204 L 661,212 L 672,230 L 655,248 L 630,244 L 610,228 L 598,210 Z"/>
-      </g>
-
-      <!-- ── ASIA (China, India, Korea, Taiwan, SEA) ── -->
-      <g class="map-region-group" data-region="asia">
-        <!-- Main Asia: China + surrounding -->
-        <path class="rgn r-asia" id="rgn-asia" d="
-          M 688,104 L 718,92 L 756,80
-          L 800,76 L 836,90
-          L 848,118 L 843,150
-          L 858,250 L 842,286
-          L 812,305 L 775,302
-          L 740,284 L 720,262
-          L 700,244 L 681,224
-          L 661,212 L 687,204
-          L 712,190 L 730,162
-          L 718,130 Z
-        "/>
-        <!-- India subcontinent -->
-        <path class="rgn r-asia" d="
-          M 688,104 L 718,130 L 730,162
-          L 712,190 L 687,204 L 661,212
-          L 649,232 L 634,256 L 618,266
-          L 598,252 L 586,228 L 581,204
-          L 592,174 L 590,150
-          L 596,134 L 600,120 L 620,112 L 652,86 L 688,104 Z
-        "/>
-        <!-- Southeast Asia -->
-        <path class="rgn r-asia" d="
-          M 740,284 L 775,302 L 808,306
-          L 830,320 L 820,342
-          L 795,354 L 762,348
-          L 738,330 L 720,308
-          L 718,290 L 720,262 L 740,284 Z
-        "/>
-        <!-- Korean peninsula -->
-        <path class="rgn r-asia" d="M 808,132 L 826,126 L 836,140 L 828,156 L 810,155 L 803,142 Z"/>
-        <!-- Taiwan -->
-        <path class="rgn r-asia" d="M 832,178 L 840,172 L 846,182 L 840,192 L 832,188 Z"/>
-        <!-- Sri Lanka -->
-        <path class="rgn r-asia" d="M 632,262 L 638,256 L 643,264 L 638,272 L 630,268 Z"/>
-      </g>
-
-      <!-- ── JAPAN ── -->
-      <g class="map-region-group" data-region="japan">
-        <!-- Honshu -->
-        <path class="rgn r-japan" id="rgn-japan" d="
-          M 836,112 L 862,107 L 882,122
-          L 879,152 L 862,174
-          L 838,180 L 818,158
-          L 814,132 Z
-        "/>
-        <!-- Kyushu -->
-        <path class="rgn r-japan" d="M 828,174 L 842,170 L 847,182 L 838,190 L 825,183 Z"/>
-        <!-- Hokkaido -->
-        <path class="rgn r-japan" d="M 856,98 L 874,92 L 884,102 L 878,114 L 860,114 Z"/>
-      </g>
-
-      <!-- ── OCEANIA ── -->
-      <g class="map-region-group" data-region="oceania">
-        <!-- Australia -->
-        <path class="rgn r-oceania" id="rgn-oceania" d="
-          M 784,334 L 865,316
-          L 930,330 L 971,362
-          L 974,410 L 944,438
-          L 880,452 L 817,440
-          L 779,410 L 771,374 Z
-        "/>
-        <!-- New Zealand -->
-        <path class="rgn r-oceania" d="M 963,400 L 978,384 L 992,400 L 984,422 L 965,422 Z"/>
-        <!-- Papua New Guinea -->
-        <path class="rgn r-oceania" d="M 844,310 L 870,302 L 888,310 L 882,324 L 856,322 Z"/>
-      </g>
-
-      <!-- ── REGION LABEL PINS ── -->
-      <!-- North America -->
-      <g class="pin-group" data-region="us" transform="translate(188,118)">
-        <circle class="pulse-ring" r="11" fill="none" stroke="rgba(200,16,46,.5)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="11" fill="rgba(200,16,46,.25)" stroke="rgba(200,16,46,.8)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18">N. America</text>
-        <text class="pin-count" y="20" fill="#ff8888" id="pc-us">14 airlines</text>
-      </g>
-
-      <!-- South America -->
-      <g class="pin-group" data-region="latam" transform="translate(220,328)">
-        <circle class="pulse-ring" r="11" fill="none" stroke="rgba(245,200,66,.5)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="11" fill="rgba(245,200,66,.2)" stroke="rgba(245,200,66,.8)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18">Latin America</text>
-        <text class="pin-count" y="20" fill="#f5c842" id="pc-latam">4 airlines</text>
-      </g>
-
-      <!-- Europe -->
-      <g class="pin-group" data-region="europe" transform="translate(532,86)">
-        <circle class="pulse-ring" r="11" fill="none" stroke="rgba(95,176,255,.5)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="11" fill="rgba(95,176,255,.2)" stroke="rgba(95,176,255,.8)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18">Europe</text>
-        <text class="pin-count" y="20" fill="#5fb0ff" id="pc-europe">25 airlines</text>
-      </g>
-
-      <!-- Africa -->
-      <g class="pin-group" data-region="africa" transform="translate(466,272)">
-        <circle class="pulse-ring" r="11" fill="none" stroke="rgba(76,175,80,.5)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="11" fill="rgba(76,175,80,.2)" stroke="rgba(76,175,80,.8)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18">Africa</text>
-        <text class="pin-count" y="20" fill="#4caf50" id="pc-africa">4 airlines</text>
-      </g>
-
-      <!-- Middle East -->
-      <g class="pin-group" data-region="mideast" transform="translate(654,158)">
-        <circle class="pulse-ring" r="11" fill="none" stroke="rgba(239,192,80,.5)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="11" fill="rgba(239,192,80,.2)" stroke="rgba(239,192,80,.8)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18">Middle East</text>
-        <text class="pin-count" y="20" fill="#efc050" id="pc-mideast">9 airlines</text>
-      </g>
-
-      <!-- Asia -->
-      <g class="pin-group" data-region="asia" transform="translate(752,188)">
-        <circle class="pulse-ring" r="11" fill="none" stroke="rgba(249,115,22,.5)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="11" fill="rgba(249,115,22,.2)" stroke="rgba(249,115,22,.8)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18">Asia</text>
-        <text class="pin-count" y="20" fill="#fb923c" id="pc-asia">26 airlines</text>
-      </g>
-
-      <!-- Japan -->
-      <g class="pin-group" data-region="japan" transform="translate(852,145)">
-        <circle class="pulse-ring" r="10" fill="none" stroke="rgba(61,155,255,.6)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="10" fill="rgba(61,155,255,.25)" stroke="rgba(61,155,255,.9)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18" style="font-size:7px">Japan</text>
-        <text class="pin-count" y="20" fill="#5fb0ff" id="pc-japan">26 airlines</text>
-      </g>
-
-      <!-- Oceania -->
-      <g class="pin-group" data-region="oceania" transform="translate(866,388)">
-        <circle class="pulse-ring" r="11" fill="none" stroke="rgba(238,100,80,.5)" stroke-width="1.5"/>
-        <circle class="pin-circle" r="11" fill="rgba(238,100,80,.2)" stroke="rgba(238,100,80,.8)" stroke-width="1.5"/>
-        <text class="pin-text" y="-18">Oceania</text>
-        <text class="pin-count" y="20" fill="#ee8060" id="pc-oceania">4 airlines</text>
-      </g>
-
-      <!-- Map caption -->
-      <text x="988" y="474" fill="rgba(255,255,255,.2)" font-size="7" font-family="Inter,sans-serif" text-anchor="end">Click the map to filter by region</text>
-    </svg>
-
-    <!-- Tooltip (appears on region hover) -->
-    <div id="map-tooltip" style="position:absolute;pointer-events:none;background:rgba(10,14,24,.92);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 14px;font-size:.8rem;font-weight:600;white-space:nowrap;opacity:0;transition:opacity .15s;z-index:50;transform:translate(-50%,-140%)"></div>
-  </div>
-</div>
 </div>
 
 <!-- ── FILTER BAR ─────────────────────────────────────────────────── -->
@@ -2118,7 +1824,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <!-- airlines-meta.js is the table of the leveling comparison (PVLeveling). The cards, region buttons and counts of this page are written by gen-directory.mjs. -->
 <script src="../airlines-meta.js"></script>
-<script src="../pv-directory.js?v=4fe3afb4"></script>
+<script src="../pv-directory.js?v=5f93b846"></script>
 <script>(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='../profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();</script>
 <script src="../airline-logos.js"></script>
 <script src="../salary-leveling.js"></script>

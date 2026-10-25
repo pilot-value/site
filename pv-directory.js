@@ -78,7 +78,6 @@
   var CODES = STRIP.map(function (b) { return b.getAttribute('data-region'); });
   var btnOf = function (code) { for (var i = 0; i < STRIP.length; i++) if (STRIP[i].getAttribute('data-region') === code) return STRIP[i]; return null; };
   var labelOf = function (code) { var b = btnOf(code); return b ? b.getAttribute('data-label') || '' : ''; };
-  var total = function (code) { return CARDS.filter(function (c) { return code === 'all' || c.region === code; }).length; };
   /** 社数の字（data-fmt。英語ページの1社だけ data-fmt-one ＝ «1 airline»） */
   function fmt(n) {
     var one = CNT && CNT.getAttribute('data-fmt-one'), f = (n === 1 && one) ? one : ((CNT && CNT.getAttribute('data-fmt')) || '{n}');
@@ -297,40 +296,6 @@
     if (TRAY_LVL) { var lv = cmp.length >= 1 && cmp.every(lvl); if (TRAY_LVL.hidden === lv) TRAY_LVL.hidden = !lv; }
   }
 
-  /* ── 古い地図（#world-svg・ピン・吹き出しを知っているのはここだけ）───────── */
-  function oldMap() {
-    var tip = $('map-tooltip');
-    all('.map-region-group, .pin-group').forEach(function (el) {
-      var rid = el.getAttribute('data-region'), btn = btnOf(rid);
-      if (!btn) return;
-      var rc = btn.getAttribute('data-rc') || '';
-      el.addEventListener('mouseenter', function () {
-        if (!tip) return;
-        tip.textContent = btn.getAttribute('data-emoji') + ' ' + btn.getAttribute('data-label') + '  ' + fmt(total(rid));
-        tip.style.color = rc; tip.style.borderColor = rc + '44'; tip.style.opacity = '1';
-      });
-      el.addEventListener('mousemove', function (e) {
-        /* 吹き出しは地図の枠（.map-wrapper）の中で置く ＝ 枠から測る（地図の上に一言の行が在っても、指の所に出る ── WP-dd-9） */
-        var box = tip && (tip.offsetParent || $('world-svg'));
-        if (!tip || !box) return;
-        var r = box.getBoundingClientRect();
-        tip.style.left = (e.clientX - r.left) + 'px'; tip.style.top = (e.clientY - r.top) + 'px';
-      });
-      el.addEventListener('mouseleave', function () { if (tip) tip.style.opacity = '0'; });
-      el.addEventListener('click', function () { setRegion(rid); GRID.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-    });
-    STRIP.forEach(function (b) { var el = $('pc-' + b.getAttribute('data-region')); if (el) el.textContent = fmt(total(b.getAttribute('data-region'))); });
-    function paint(id) {
-      all('.map-region-group').forEach(function (g) {
-        var on = id === 'all' || id === g.getAttribute('data-region');
-        Array.prototype.forEach.call(g.querySelectorAll('.rgn'), function (p) { p.classList.toggle('active', on); });
-      });
-      all('.pin-group').forEach(function (pg) { pg.classList.toggle('active', id === 'all' || id === pg.getAttribute('data-region')); });
-    }
-    d.addEventListener('wd:change', function (e) { paint(e.detail && e.detail.region || 'all'); });
-    all('.rgn').forEach(function (p) { p.classList.add('active'); });
-  }
-
   /* ── Salary leveling grid：index と同一の Levels.fyi 型カラムを共有モジュール PVLeveling にマウント ── */
   var waLvlMounted = false, waLvlWait = false;
   // レンジタブ初回表示時に1回だけマウント（隠れた要素での display:none 初期化差異を回避）。
@@ -447,7 +412,6 @@
   st = read();
   if (FIELD) FIELD.value = st.q;
   if (HS && HS.wd) cmp = cmpOf(HS.cmp);
-  oldMap();
   apply();
   restoreY(HS && HS.wd && HS.y);
   /* ページの中の # の移動（このページの履歴の中を行き来した時）は、住所を読み直す */
@@ -499,13 +463,13 @@
    狭い画面のカードは、選んだ時（と地図に指で触れた時 ── WP-dmap-4）に開き、そのあと閉じない（is-open は足すだけ）。
    ボタンを指・マウスで押して選んだら、結果の見出しを画面に入れる（キーボードで押したときはページを動かさない）。
    「機長｜副操縦士」の切り替え（P12.100）は区域の data-pos だけを書く（履歴にも保存領域にも書かない）。
-   地図の形（.wam-svg）を指す・押す聞き手は WP-dmap-4（いまの svg は null）。 */
+   地図（.wam-svg）：マウスで指すと見せる・押すと選ぶ（もう1回で外れる）。指で触れると見せるだけで、「この地域の航空会社を見る」が選ぶ（WP-dmap-4）。 */
 (function (w, d) {
   'use strict';
   var sec = d.getElementById('wa-map-sec'); if (!sec) return;          // 古いページ＋新しい台本：何もしない
   var card = d.getElementById('wa-sum'), go = d.getElementById('wa-go'), mount = d.getElementById('pv-rp');
   if (!card || !go || !mount) return;
-  var strip = d.getElementById('region-strip'), svg = sec.querySelector('.wam-svg'), root = d.documentElement;   // svg: null before DM5a
+  var strip = d.getElementById('region-strip'), svg = sec.querySelector('.wam-svg'), root = d.documentElement;
   var each = Array.prototype.forEach, list = Array.prototype.slice;
   var panels = list.call(card.querySelectorAll('.wam-panel'));
   var st = { committed: 'all', hover: null, pick: null, tap: false, key: false, q: false, via: '', press: false };
@@ -541,7 +505,9 @@
   function reveal() {                                                                   // the result heading into view, once
     var h = d.getElementById('wd-rh'); if (!h) return;
     var b = h.getBoundingClientRect(); if (b.top >= 86 && b.bottom <= w.innerHeight) return;
-    w.scrollTo({ top: w.pageYOffset + b.top - 86, behavior: reduce ? 'instant' : 'smooth' });
+    var top = w.pageYOffset + b.top - 86, s = strip ? strip.getBoundingClientRect() : null;
+    if (s && s.top < b.top && b.bottom - s.top <= w.innerHeight - 86) top = w.pageYOffset + s.top - 86;   // WP-dmap-4: the region buttons stay in view above the results when both fit
+    w.scrollTo({ top: top, behavior: reduce ? 'instant' : 'smooth' });
   }
   d.addEventListener('wd:change', function (e) {
     var c = e.detail && e.detail.region; c = known(c) ? c : 'all';
@@ -583,9 +549,35 @@
     if (st.pick !== null && !st.tap) st.pick = null;
     render(false); });
   card.addEventListener('toggle', function (e) { if (e.target && e.target.open === false) render(false); }, true);   // 'toggle' does not bubble
-  /* 「機長｜副操縦士」（P12.100）：押した方を区域の data-pos に（行の大きさ・見せる帯 ── 地図の色と光る層は WP-dmap-4 の CSS が同じ印を読む）。
-     2つそろっていなければ見せない（押しても何も起きないボタンを出さない） */
-  var sw = card.querySelector('.wam-pos'), pbs = sw ? list.call(sw.querySelectorAll('.wam-pb')) : [];
+  if (svg) {                                                                            // DM5a: the shapes point and select like the buttons
+    function toHeading() {                                                              // where the focus goes after the go-button
+      var h = d.getElementById('wd-rh-name') || d.getElementById('wd-rh'); if (!h) return;
+      if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+    }
+    function choose(c) {                                                                // (code) -> void; the directory selects
+      closeFolds(); st.pick = null; st.tap = false;
+      if (w.PVDirectory && w.PVDirectory.setRegion) {
+        w.PVDirectory.setRegion(c);                                                     // answers with 'wd:change', synchronously
+        if (w.PVDirectory.state().region === c) reveal();                               // not after a release
+      } else { st.committed = c; render(true); reveal(); }
+    }
+    svg.addEventListener('pointerdown', function (e) { st.via = e.pointerType || 'mouse'; });
+    svg.addEventListener('pointerover', over); svg.addEventListener('pointerleave', out);
+    svg.addEventListener('click', function (e) {
+      var c = codeOf(e.target); if (!c) return;
+      if (st.via === 'touch' || st.via === 'pen') {                                    // 3d: a tap shows, the button selects
+        closeFolds(); st.hover = null; st.pick = c; st.tap = true; render(true);
+        if (card.getBoundingClientRect().bottom > w.innerHeight) card.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'smooth' });
+        return;
+      }
+      choose(c);
+    });
+    go.addEventListener('click', function () { var c = st.pick; if (!c) return; toHeading(); choose(c); });
+  }
+  /* 「機長｜副操縦士」（P12.100）：押した方を区域の data-pos に（カードの行の大きさ・見せる帯・地図の濃さ・凡例 ── どれも CSS が同じ印を読む）。
+     切り替えは面の先頭（カードの外）。2つそろっていなければ見せない（押しても何も起きないボタンを出さない） */
+  var sw = sec.querySelector('.wam-pos'), pbs = sw ? list.call(sw.querySelectorAll('.wam-pb')) : [];
   function setPos(p) {                                                                  // ('cap' | 'fo') -> void
     if (p !== 'cap' && p !== 'fo') return;
     if (sec.getAttribute('data-pos') !== p) sec.setAttribute('data-pos', p);

@@ -956,6 +956,8 @@ const RINGS_SEEN = { neutral: 13, us: 34, latam: 11, europe: 15, africa: 2, mide
 const OUTLINE_CEIL = 19000;
 /** 色を読む点（欧州）が欧州の形の縁から離れているべき距離（箱の単位。A30） */
 const EU_CLEAR = 10;
+/** PV-DIRMAP の塊の重さの上限（1ページ・バイト。M2 の DM5a の行） */
+const DIRMAP_CEIL = 64000;
 /** pv-directory.js の終わりの、地図と地域のまとめの台本の塊の印（WP-dmap-3 の E6。この行からファイルの終わりまでが M15 の読む字） */
 const MAP_SCRIPT = '/* ── 地図と地域のまとめ（directory-map）';
 
@@ -1032,6 +1034,12 @@ function secM(I) {
     if (total > OUTLINE_CEIL) p.M2.push(`形の重さ ${total} バイトが上限 ${OUTLINE_CEIL} を超えた`);
     if (O.META.bytes !== total) p.M2.push(`META.bytes ${O.META.bytes} ≠ 形の字数の和 ${total}`);
     info.M2 = `形の重さ ${total.toLocaleString('en-US')} / ${OUTLINE_CEIL.toLocaleString('en-US')} バイト`;
+    /* WP-dmap-4（DM5a）から：PV-DIRMAP の塊（地図 ＋ カード）は1ページ 64,000 バイトまで */
+    for (const lang of ['ja', 'en']) {
+      const b = blockOf(I.page[lang], 'PV-DIRMAP'), n = b ? Buffer.byteLength(b.text) : null;
+      if (n === null) p.M2.push(`${PAGE_REL[lang]}：PV-DIRMAP が無い`);
+      else { if (n > DIRMAP_CEIL) p.M2.push(`${PAGE_REL[lang]}：PV-DIRMAP ${n} バイトが上限 ${DIRMAP_CEIL} を超えた`); info.M2 += `・PV-DIRMAP ${lang} ${n.toLocaleString('en-US')}`; }
+    }
     /* M3 国の割り振り：会社の国の符号は、その会社の地域の MEMBERS か NO_SHAPE に在る */
     const M = O.MEMBERS || {}, NS = new Set(O.NO_SHAPE || []), inMembers = new Set(Object.values(M).flat());
     const used = new Map();   // 符号 → 地域の集合
@@ -1089,7 +1097,7 @@ function secM(I) {
     if (!Array.isArray(I.map.files)) p.M5.push('git ls-files が読めない');
     else for (const f of I.map.files.filter((f) => /\.geojson$/i.test(f))) p.M5.push(`${f} が git に入っている`);
   }
-  return [...Object.keys(p).map((id) => R(id, p[id], info[id] || '')), ...secMcard(I), ...secMdm3(I)];
+  return [...Object.keys(p).map((id) => R(id, p[id], info[id] || '')), ...secMcard(I), ...secMdm3(I), ...secMdm4(I)];
 }
 
 /* ── M7〜M14 地域のまとめのカード（PV-DIRMAP）。ページは unbake した字を読む（英語の額は data-orig の円の字に戻る）──── */
@@ -1098,11 +1106,12 @@ function secM(I) {
     ここに打った字が正（書き換えに対する杭） */
 const MAP_WORD = {
   ja: { k: '公開情報からの推定', def: '掲載{N}社の推定年収の平均', cond: '条件/出典', dt: ['対象', '対象掲載社数', '換算'], go: 'この地域の航空会社を見る',
-        lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社' },
+        lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社', group: '職位', hint: '地図をクリックして地域を選択' },
   en: { k: 'Estimate from public information', def: 'Mean of our estimates across {N} airlines', cond: 'Conditions / Sources',
         dt: ['Airlines included', 'Number of airlines', 'Conversion'], go: 'View airlines in this region',
-        lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}' },
+        lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}', group: 'Rank', hint: 'Click the map to choose a region' },
 };
+/* group ＝「機長｜副操縦士」の組の読み上げの名前（リード P12.112）。hint ＝ 地図の下の一言（いまの一覧の字のまま・directory-data WP-dd-9 の字） */
 /** 散らばりの帯の目盛の刻み（P12.104「次の 1,000万の刻みへ」。会社ページの SCALE_STEP と同じであること） */
 const MAP_STEP = 1000;
 /** 帯の目盛の右端（職位ごと）＝ 帯が描く額（掲載全社の推定 avg）のいちばん大きいものを次の刻みへ。幅の上の額（hi）は帯に描かないので数えない（リード P12.109） */
@@ -1230,11 +1239,15 @@ function secMcard(I) {
     const B = blocks[lang];
     const go = /<button type="button" class="wam-go is-off" id="wa-go">([^<]*)<\/button>/.exec(B);
     if (!go || unesc(go[1]) !== W.go) p.M11.push(`${rel}：「${go?.[1]}」／「${W.go}」`);
-    /* 「機長｜副操縦士」の切り替え（P12.100・リード P12.109）：カードの先頭に1つ・ボタン2つ・字は行の札と同じ（新しい字を作らない）・
-       hidden で出荷（台本が動いたときだけ見せる）・押してある方 ＝ 区域の data-pos（機長） */
-    const SW = `<div class="wam-pos" role="group" hidden><button type="button" class="wam-pb" data-pos="cap" aria-pressed="true">${RW.cap[lang]}</button>`
+    /* 「機長｜副操縦士」の切り替え（P12.100・リード P12.109）：面（.wam-g）の先頭に1つ・地図の列の前・ボタン2つ・字は行の札と同じ（新しい字を作らない）・
+       組の読み上げの名前は「職位」／Rank（リード P12.112）・hidden で出荷（台本が動いたときだけ見せる）・押してある方 ＝ 区域の data-pos（機長）。
+       WP-dmap-4 でカードの先頭から面の先頭へ移った（スマホでは地図の上に立つ） */
+    const SW = `<div class="wam-pos" role="group" aria-label="${MAP_WORD[lang].group}" hidden><button type="button" class="wam-pb" data-pos="cap" aria-pressed="true">${RW.cap[lang]}</button>`
       + `<button type="button" class="wam-pb" data-pos="fo" aria-pressed="false">${RW.fo[lang]}</button></div>`;
-    if (B.split('class="wam-pos"').length !== 2 || !B.includes(`<aside class="wam-card" id="wa-sum">\n${SW}\n`)) p.M11.push(`${rel}：「機長｜副操縦士」の切り替えが決まりの形でない（${(/<div class="wam-pos"[^\n]*/.exec(B)?.[0] ?? '無い').slice(0, 120)}）`);
+    if (B.split('class="wam-pos"').length !== 2 || !B.includes(`<div class="wam-g">\n${SW}\n<div class="wam-mc">`)) p.M11.push(`${rel}：「機長｜副操縦士」の切り替えが決まりの形でない（${(/<div class="wam-pos"[^\n]*/.exec(B)?.[0] ?? '無い').slice(0, 120)}）`);
+    /* 地図の下の一言（いまの一覧の字のまま・WP-dd-9）：1つ・同じ字 */
+    const hints = [...B.matchAll(/<p class="wam-hint" aria-hidden="true">([^<]*)<\/p>/g)].map((m) => unesc(m[1]));
+    if (hints.length !== 1 || hints[0] !== W.hint || B.split('class="wam-hint"').length !== 2) p.M11.push(`${rel}：地図の下の一言「${hints.join('｜')}」／「${W.hint}」`);
     if (!/<div class="wam" id="wa-map-sec" data-rest="[a-z]+" data-pos="cap">/.test(B)) p.M11.push(`${rel}：区域の data-pos が機長で出ていない（切り替えの押してある方と違う）`);
     const plain = B.replace(/<span class="wam-mm-k">(?:最低|最高|Lowest|Highest)<\/span>/g, () => '');
     for (const w of [...MAP_FORBID, '最高', '最低', 'highest', 'lowest']) if (plain.toLowerCase().includes(w.toLowerCase())) p.M11.push(`${rel}：「${w}」が在る`);
@@ -1243,6 +1256,7 @@ function secMcard(I) {
       const tag = t[1].toLowerCase(), attrs = [...t[2].matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)="([^"]*)"/g)];
       for (const [, k, v] of attrs) {
         if (k === 'data-axis-jpy' || (tag === 'span' && /class="pv-cur"/.test(t[2]) && (k === 'data-jpy' || k === 'data-orig'))) continue;
+        if (tag === 'svg' && k === 'viewBox' && v === '0 0 1000 440') continue;   // 地図の箱の大きさ（額ではない ── WP-dmap-4）
         if (/[万¥$]|\d{4}/.test(v)) p.M12.push(`${rel}：<${tag}> の ${k}="${v.slice(0, 30)}" に額`);
       }
     }
@@ -1384,6 +1398,131 @@ function secMdm3(I) {
   return Object.keys(p).map((id) => R(id, p[id], info[id] || ''));
 }
 
+/* ── M16・M20 地図（WP-dmap-4：点で描く地図・光る層・当たりの層・凡例。古い地図は消えた）──────────────── */
+/** 塗る順（あとのものが上）── 当たりの層でも同じ順（あとの地域の陸地が上に来て、自分の答えを持つ） */
+const PAINT8 = ['us', 'latam', 'europe', 'africa', 'mideast', 'asia', 'oceania', 'japan'];
+const r1 = (v) => Math.round(v * 10) / 10;
+const ROW_H = 5.2 * 0.866;
+/** 偶奇の数え方（見本 sketch-v4 の式。点がちょうど辺の上にあるときもこの式の答え ── 0 でない巻き数とは辺の上の8点で答えが違う） */
+const insideEO = (rings, px, py) => {
+  let c = false;
+  for (const q of rings) for (let i = 0, j = q.length - 1; i < q.length; j = i++) {
+    const [xi, yi] = q[i], [xj, yj] = q[j];
+    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+};
+/** 形 → 点の列（決まり：行 r の y ＝ r1(2.6 + r × ROW_H)（ROW_H ＝ 5.2 × 0.866 を先に掛けた数）・その行の点 i の x ＝ r1((r が奇数なら 5.2・偶数なら 2.6) + i × 5.2)・
+    点 ＝ (x, y) が形の中（偶奇）・1つの行で続く点を「M{x} {y}h{r1((続く数 − 1) × 5.2 + 0.1)}」の1本に）。directory-map.mjs を読まずにここで作る */
+const RUNS = new Map();   // 形の字 → 点の列（同じ形を何度も作り直さない ── --selftest は行ごとに M を流す）
+const runsOf = (d) => {
+  if (RUNS.has(d)) return RUNS.get(d);
+  const rs = ringsOf(d); let out = '';
+  for (let r = 0; r1(2.6 + r * ROW_H) < 440; r++) {
+    const y = r1(2.6 + r * ROW_H), xs = [];
+    for (let i = 0; r1((r % 2 ? 5.2 : 2.6) + i * 5.2) < 1000; i++) { const x = r1((r % 2 ? 5.2 : 2.6) + i * 5.2); if (insideEO(rs, x, y)) xs.push(i); }
+    for (let k = 0; k < xs.length;) { let e = k; while (e + 1 < xs.length && xs[e + 1] === xs[e] + 1) e++; out += `M${r1((r % 2 ? 5.2 : 2.6) + xs[k] * 5.2)} ${y}h${r1((e - k) * 5.2 + 0.1)}`; k = e + 1; }
+  }
+  RUNS.set(d, out);
+  return out;
+};
+/** pv-directory.css の地図の塊（印の間）。印が1組でなければ null */
+const mapCssOf = (css) => { const a = String(css).split('/* ── wam-map ── */'), z = String(css).split('/* ── /wam-map ── */'); return a.length === 2 && z.length === 2 && a[1].includes('/* ── /wam-map ── */') ? a[1].slice(0, a[1].indexOf('/* ── /wam-map ── */')) : null; };
+/** 規則（セレクタ → 中身）。@media / @container の中も1つずつ */
+const rulesOf = (css) => [...String(css).replace(/\/\*[\s\S]*?\*\//g, () => '').matchAll(/([^{}@]+)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
+function secMdm4(I) {
+  const p = { M16: [], M20: [] }, info = {};
+  const O = I.map?.outline, J = O?.JAPAN_MARK || {};
+  /* ── M16 B 地図の形（静的）── */
+  const css = mapCssOf(I.css);
+  if (!O?.SHAPES) p.M16.push('world-outline.mjs が読めない');
+  for (const lang of ['ja', 'en']) {
+    const rel = PAGE_REL[lang], b = blockOf(I.page[lang], 'PV-DIRMAP'), B = b ? b.text : '';
+    if (!b) { p.M16.push(`${rel}：PV-DIRMAP が無い`); continue; }
+    const SVG = '<svg class="wam-svg" viewBox="0 0 1000 440" aria-hidden="true" focusable="false">';
+    if (B.split('<svg').length !== 2 || !B.includes(`<div class="wam-mc">\n<div class="wam-map" id="wa-map">\n${SVG}\n`)) { p.M16.push(`${rel}：地図の svg が1つ・.wam-mc > .wam-map#wa-map の中でない`); continue; }
+    const s = B.slice(B.indexOf(SVG), B.indexOf('</svg>') + 6);
+    for (const w of ['tabindex', '<a ', '<a>', '<text']) if (s.includes(w)) p.M16.push(`${rel}：地図に「${w}」`);
+    for (const w of ['is-on', 'is-hot']) if (B.includes(w)) p.M16.push(`${rel}：出荷する塊に「${w}」（光るのは台本が付けたときだけ）`);
+    if (B.includes('wam-lbl')) p.M16.push(`${rel}：地図に地域の名前の札（.wam-lbl）が在る（P12.99：大陸の名前は地図に書かない）`);
+    for (const t of s.matchAll(/<path\b([^>]*)>/g)) if (/\s(fill|stroke|style)=/.test(t[1])) p.M16.push(`${rel}：<path> に fill / stroke / style（${t[1].slice(0, 50)}）`);
+    /* 点：どこにも入れない陸地 ＋ 8地域の d ＝ 形からここで作り直した点の列（見本と同じ格子・丸ごとの点だけ） */
+    const nl = /<g class="wam-nl"><path id="wam-d-neutral" d="([^"]*)"\/><\/g>/.exec(s);
+    if (!nl) p.M16.push(`${rel}：どこにも入れない陸地の点（g.wam-nl）が無い`);
+    else if (O?.SHAPES && nl[1] !== runsOf(O.SHAPES.neutral)) p.M16.push(`${rel}：どこにも入れない陸地の点が形と合わない`);
+    const regs = [...s.matchAll(/<g class="wam-r" data-region="([a-z]+)" style="--c:[^;"]*;--f:[^;"]*"><path class="wam-land" id="wam-d-\1" d="([^"]*)"\/><\/g>/g)];
+    if (!same(regs.map((m) => m[1]), PAINT8) || (s.match(/class="wam-r[ "]/g) || []).length !== 8) p.M16.push(`${rel}：地域の <g> が塗る順の8つちょうどでない（${regs.map((m) => m[1]).join(',')}）`);
+    for (const m of regs) if (O?.SHAPES && m[2] !== runsOf(O.SHAPES[m[1]])) p.M16.push(`${rel}：${m[1]} の点が形と合わない`);
+    /* 当たりの層：日本の丸2つが先・どこにも入れない陸地（答えなし）・8地域。光る層 g.wam-ol は svg のいちばん後ろの子で、<use> と日本の輪は全部その中 */
+    const HL = ['<g class="wam-hl">', `<circle class="wam-hit wam-hit-t" data-region="japan" cx="${J.cx}" cy="${J.cy}" r="${J.rTouch}"/>`,
+      `<circle class="wam-hit" data-region="japan" cx="${J.cx}" cy="${J.cy}" r="${J.rHit}"/>`, '<use class="wam-hit wam-hit-n" href="#wam-d-neutral"/>',
+      ...PAINT8.map((r) => `<use class="wam-hit" data-region="${r}" href="#wam-d-${r}"/>`), '</g>'].join('\n');
+    const OL = ['<g class="wam-ol">', ...PAINT8.map((r) => `<g class="wam-o" data-region="${r}"><use class="wam-halo" href="#wam-d-${r}"/><use class="wam-lit" href="#wam-d-${r}"/>${r === 'japan' ? `<circle class="wam-ring" cx="${J.cx}" cy="${J.cy}" r="${J.rRing}"/>` : ''}</g>`), '</g>', '</svg>'].join('\n');
+    if (!s.includes(`\n${HL}\n${OL}`) || !s.endsWith(OL)) p.M16.push(`${rel}：当たりの層（g.wam-hl）と光る層（g.wam-ol ＝ svg の最後の子）が決まりの形でない`);
+    if ((s.match(/<use\b/g) || []).length !== 1 + 8 + 16) p.M16.push(`${rel}：<use> が ${(s.match(/<use\b/g) || []).length} 個（当たり 9 ＋ 光る層 16）`);
+    /* 台本なし：地図・凡例・一言を出さない（押しても何も起きない地図を出さない ── A38） */
+    const ns = /<noscript><style>([^{]*)\{display:none!important\}/.exec(B);
+    if (!ns || !['.wam-map', '.wam-key', '.wam-hint'].every((c) => ns[1].split(',').includes(c))) p.M16.push(`${rel}：塊の <noscript> の規則が .wam-map・.wam-key・.wam-hint を隠していない`);
+    /* DM5b：古い地図は消えた（directory-data の <head> の noscript の字 '.map-wrapper,' は数えない ── A27） */
+    for (const w of ['world-svg', 'map-tooltip', 'pulse-ring', 'pin-group', 'id="f-', 'class="map-wrapper"']) if (I.page[lang].includes(w)) p.M16.push(`${rel}：古い地図の「${w}」が残っている`);
+  }
+  const js = I.assets?.['pv-directory.js'] || '';
+  for (const w of ['oldMap', 'map-tooltip']) if (js.includes(w)) p.M16.push(`pv-directory.js に古い地図の「${w}」`);
+  if (/\.wam-[a-z-]+\s*\{/.test(I.map?.importer || '')) p.M16.push('import-world-outline.mjs に地図の規則（.wam-…{）が残っている（D25：見た目は pv-directory.css の1か所）');
+  if (css === null) p.M16.push('pv-directory.css に地図の塊（/* ── wam-map ── */ … /* ── /wam-map ── */）が1組無い');
+  else {
+    if (!(I.css.indexOf('/* ── /wam-map ── */') < I.css.indexOf('.wam-slot{'))) p.M16.push('地図の塊が .wam-slot{ の前に無い');
+    for (const h of css.match(/#[0-9a-fA-F]{3,8}\b/g) || []) if (h.toLowerCase() !== '#fff') p.M16.push(`地図の塊に色の直書き ${h}`);
+    if (/transition:\s*all/.test(css)) p.M16.push('地図の塊に transition:all');
+    if (/filter|drop-shadow/.test(css)) p.M16.push('地図の塊に filter / drop-shadow（光は前もって描いた層の opacity だけ ── P12.102）');
+    const R = rulesOf(css);
+    for (const r of R) {
+      if (/:hover/.test(r.sel) && /\.wam-(r|o|hit|hl|land)\b/.test(r.sel)) p.M16.push(`地図の形に :hover の規則（${r.sel}）── 指した見た目は台本の is-hot だけ`);
+      if (/\.wam-land\b/.test(r.sel) && /(^|;)\s*(fill|stroke)[a-z-]*\s*:/.test(r.body)) p.M16.push(`.wam-land を名指す規則が塗りを決めている（${r.sel}）── D10`);
+      for (const t of r.body.matchAll(/transition:([^;]*)/g)) if (!/^\s*(none|opacity|transform)\b/.test(t[1]) || /,/.test(t[1])) p.M16.push(`地図の塊の transition が opacity / transform だけでない（${r.sel}）`);
+    }
+    if (!/@media \(prefers-reduced-motion:reduce\)\{\.wam-halo,\.wam-lit,\.wam-ring\{transition:none\}\}/.test(css)) p.M16.push('光る層の「動きを減らす」の規則が無い');
+  }
+  info.M16 = O?.SHAPES ? `点 ${Object.values(O.SHAPES).reduce((a, d) => a + [...runsOf(d).matchAll(/h([\d.]+)/g)].reduce((x, m) => x + Math.round((Number(m[1]) - 0.1) / 5.2) + 1, 0), 0)} 個（9つの形）` : '';
+
+  /* ── M20 A 濃さと凡例 ＝ カードに出している数（8地域の平均）。台本は濃さに触らない ── */
+  const pg = pagesOf(I);
+  for (const lang of ['ja', 'en']) {
+    const rel = PAGE_REL[lang], b = blockOf(pg[lang], 'PV-DIRMAP');
+    if (!b) { p.M20.push(`${rel}：PV-DIRMAP が無い`); continue; }
+    const C = readCard(b.text), N = (code, r) => manOf(C[code]?.rows[r]?.n);
+    const span = Object.fromEntries(['cap', 'fo'].map((r) => { const v = REG8.map((c) => N(c, r)); return [r, v.every((x) => typeof x === 'number') ? [Math.min(...v), Math.max(...v)] : null]; }));
+    for (const r of ['cap', 'fo']) if (!span[r] || !(span[r][1] > span[r][0])) p.M20.push(`${rel} ${r}：8地域の平均が読めない`);
+    const gs = Object.fromEntries([...b.text.matchAll(/<g class="wam-r" data-region="([a-z]+)" style="--c:([^;"]*);--f:([^;"]*)">/g)].map((m) => [m[1], { cap: m[2], fo: m[3] }]));
+    for (const code of REG8) for (const r of ['cap', 'fo']) {
+      const got = gs[code]?.[r], sp = span[r], n = N(code, r);
+      if (!sp || typeof n !== 'number') continue;
+      const want = Math.round(((n - sp[0]) / (sp[1] - sp[0])) * 100) / 100;
+      if (got === undefined || !/^(0|1|0\.\d{1,2})$/.test(got) || Number(got) !== want) p.M20.push(`${rel} ${code}：${r === 'cap' ? '--c' : '--f'}「${got}」／カードの ${yen(n)} から ${want}（${yen(sp[0])}〜${yen(sp[1])}）`);
+    }
+    if ((b.text.match(/class="wam-r[ "]/g) || []).length !== 8 || Object.keys(gs).length !== 8) p.M20.push(`${rel}：濃さを持つ地域の <g> が8つでない`);
+    if (/<g class="wam-nl"[^>]*style=/.test(b.text)) p.M20.push(`${rel}：どこにも入れない陸地に濃さ`);
+    /* 凡例：選べる職位ごとに1行・いちばん低い平均〜高い平均の額だけ（字も順位も持たない） */
+    const keys = [...b.text.matchAll(/<p class="wam-key" data-pos="(cap|fo)" aria-hidden="true"><span>([^<]*)<\/span><i class="wam-kb"><\/i><span>([^<]*)<\/span><\/p>/g)];
+    if (!same(keys.map((k) => k[1]), ['cap', 'fo']) || b.text.split('class="wam-key"').length !== 3) p.M20.push(`${rel}：凡例が職位ごとの2行（機長・副操縦士）でない`);
+    for (const [, r, lo, hi] of keys) if (span[r] && (manOf(lo) !== span[r][0] || manOf(hi) !== span[r][1])) p.M20.push(`${rel} ${r}：凡例 ${lo}〜${hi}／8地域の平均 ${yen(span[r][0])}〜${yen(span[r][1])}`);
+  }
+  if (css !== null) {
+    const R = rulesOf(css), has = (sel, body) => R.some((r) => r.sel === sel && r.body.replace(/\s/g, () => '') === body);
+    if (!has('.wam[data-pos="cap"] .wam-r', '--t:var(--c)') || !has('.wam[data-pos="fo"] .wam-r', '--t:var(--f)')) p.M20.push('pv-directory.css：区域の data-pos が --c（機長）／--f（副操縦士）を選ぶ2つの規則が無い');
+    if (!has('.wam[data-pos="cap"] .wam-key[data-pos="cap"],.wam[data-pos="fo"] .wam-key[data-pos="fo"]', 'display:inline-flex')) p.M20.push('pv-directory.css：凡例が選んだ職位の行だけを見せる規則が無い');
+    const wr = R.find((r) => r.sel === '.wam-r');
+    if (!wr || !/stroke:color-mix\(in oklab,var\(--wam-hi\) calc\(var\(--t,\.5\) \* 100%\),var\(--wam-lo\)\)/.test(wr.body)) p.M20.push('pv-directory.css：地域の点の色が --wam-lo 〜 --wam-hi を --t で混ぜていない');
+    const tk = (sel) => R.find((r) => r.sel === sel)?.body || '';
+    if (!/--wam-lo:var\(--pv-accent-line\)/.test(tk('.wam')) || !/--wam-hi:var\(--pv-accent-dark\)/.test(tk('.wam')) || !/--wam-hi:var\(--pv-teal\)/.test(tk('[data-theme="dark"] .wam'))) p.M20.push('pv-directory.css：濃さの両端がサイトの緑（--pv-accent-line → --pv-accent-dark・ダークは --pv-teal）でない');
+    const nlr = tk('.wam-nl');
+    if (!nlr || /accent|--wam-/.test(nlr)) p.M20.push('pv-directory.css：どこにも入れない陸地の点が灰色でない（緑の濃さを持たない）');
+  }
+  const sc = I.map?.script || '';
+  for (const w of ['--c', '--f', 'setProperty', '.style', 'wam-t']) if (sc.includes(w)) p.M20.push(`台本に「${w}」（台本は地図の濃さに触らない）`);
+  return Object.keys(p).map((id) => R(id, p[id], info[id] || ''));
+}
+
 const SECTIONS = { A: secA, B: secB, C: secC, D: secD, E: secE, F: secF, G: secG, H: secH, W: secW, L: secL, M: secM };
 const runScope = (I, scope) => [...scope].flatMap((l) => SECTIONS[l](I));
 
@@ -1510,6 +1649,8 @@ const ROWS = [
   /* M) 地図と地域のまとめ（directory-map）── 輪郭（M1〜M5） */
   ['M1', (I) => { const x = ' M0 0l1 0l0 1z'; I.map.outline.SHAPES.neutral += x; I.map.outline.META.bytes += x.length; }, 'M', ['M1']],
   ['M2', (I) => { I.map.outline.META.bytes += 1; }, 'M', ['M2']],
+  /* DM5a：PV-DIRMAP の塊が 64,000 バイトを超える */
+  ['M2b', (I) => { I.page.ja = sub(I.page.ja, '<!--PV-DIRMAP-->\n', `<!--PV-DIRMAP-->\n<!--${'x'.repeat(70000)}-->\n`); }, 'M', ['M2']],
   ['M3', (I) => { const M = I.map.outline.MEMBERS; M.europe = M.europe.filter((c) => c !== 'TR'); M.mideast.push('TR'); }, 'M', ['M3']],
   ['M4', (I) => { const r = I.map.probes.PROBES.find((x) => x[3] === 'Paris'); r[0] = 'asia'; }, 'M', ['M4']],
   /* A30：Kyiv は欧州の縁から 5.4 単位（選んだときの外枠の線にかかる） */
@@ -1522,9 +1663,10 @@ const ROWS = [
   ['M7c', (I) => onPanel(I, 'ja', 'europe', (c) => c.replace(/(<div class="wam-hi">[\s\S]*?<ul class="wam-who"><li>)[^<]*/, (_, a) => a + SALARY.aegean.ja)), 'M', ['M7']],
   /* A36：日本のページの文の1つ目（<head> の説明ではなく本文の文）を直す */
   ['M8', (I) => { I.map.japan = I.map.japan.replace('機長の推定年収の平均が¥1,850万（', () => '機長の推定年収の平均が¥1,860万（'); }, 'M', ['M8']],
-  /* 中東の機長をカードの額の平均（¥2,780万）で描き直す（平均の印もそれに合わせる）── 数が台帳と違う（M7）・カードの平均を出している（M9） */
+  /* 中東の機長をカードの額の平均（¥2,780万）で描き直す（平均の印もそれに合わせる）── 数が台帳と違う（M7）・カードの平均を出している（M9）・
+     地図の中東の濃さ（--c）が出ている数と合わなくなる（M20 ── WP-dmap-4 から。A35 a：{M7, M9} → {M7, M9, M20}） */
   ['M9', (I) => onPanel(I, 'ja', 'mideast', (c) => sub(sub(c, '<b class="wam-n">¥3,030万</b>', '<b class="wam-n">¥2,780万</b>'),
-    `<i class="wam-mean" style="left:${widthOf(3030, axOf(I).cap)}">`, `<i class="wam-mean" style="left:${widthOf(2780, axOf(I).cap)}">`)), 'M', ['M7', 'M9']],
+    `<i class="wam-mean" style="left:${widthOf(3030, axOf(I).cap)}">`, `<i class="wam-mean" style="left:${widthOf(2780, axOf(I).cap)}">`)), 'M', ['M7', 'M9', 'M20']],
   ['M10', (I) => onPanel(I, 'ja', 'europe', (c) => c.replace(/(<div class="wam-sp" data-pos="cap">[\s\S]*?<i class="wam-band" style="--a:[^;]*;--b:)[^"]*/, (_, a) => `${a}52.00%`)), 'M', ['M10']],
   ['M10b', (I) => { I.map.view.SCALE_STEP = 500; }, 'M', ['M10']],
   ['M11', (I) => onPanel(I, 'ja', 'europe', (c) => sub(c, '</dl>\n</details>', '</dl>\n<p class="wam-note">x</p>\n</details>')), 'M', ['M11']],
@@ -1533,7 +1675,10 @@ const ROWS = [
   ['M14', (I) => onPanel(I, 'ja', 'europe', (c) => sub(c, '<h2 class="wam-h">欧州</h2>', `<h2 class="wam-h">欧州 ${SALARY.lufthansa.ja}</h2>`)), 'M', ['M14']],
   /* 「機長｜副操縦士」の切り替え：字を書き換える／hidden を外す（台本が動かないときに押しても何も起きないボタンが出る）── WP-dmap-3 */
   ['M11b', (I) => onBlock(I, 'ja', 'PV-DIRMAP', (b) => sub(b, 'aria-pressed="false">副操縦士</button>', 'aria-pressed="false">副操縦士の平均</button>')), 'M', ['M11']],
-  ['M11c', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, '<div class="wam-pos" role="group" hidden>', '<div class="wam-pos" role="group">')), 'M', ['M11']],
+  ['M11c', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, '<div class="wam-pos" role="group" aria-label="Rank" hidden>', '<div class="wam-pos" role="group" aria-label="Rank">')), 'M', ['M11']],
+  /* 組の読み上げの名前（リード P12.112）を消す／地図の下の一言を書き換える（WP-dmap-4） */
+  ['M11d', (I) => onBlock(I, 'ja', 'PV-DIRMAP', (b) => sub(b, ' aria-label="職位"', '')), 'M', ['M11']],
+  ['M11e', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, '>Click the map to choose a region</p>', '>Click to choose</p>')), 'M', ['M11']],
   /* 台本の塊（M15 A）：保存領域・05b の口に書き込む・カードの額の数（欧州の機長の最低 ¥1,300万） */
   ['M15', (I) => { I.map.script += "\nlocalStorage.getItem('x');"; }, 'M', ['M15']],
   ['M15b', (I) => { I.map.script += "\nmount.setAttribute('hidden','');"; }, 'M', ['M15']],
@@ -1541,6 +1686,12 @@ const ROWS = [
   /* 地域のボタンの形（M15 B）：生成した HTML に style／押した見た目の規則を2つ目 */
   ['M15c', (I) => onBlock(I, 'ja', 'PV-DIR-REGIONS', (b) => sub(b, 'data-region="japan" data-rc', 'data-region="japan" style="--rc:#3d9bff" data-rc')), 'M', ['M15']],
   ['M15d', (I) => { I.css = sub(I.css, '/* ── /wam ── */', '#region-strip .rstrip-btn[aria-pressed="true"]{color:var(--rc)}\n/* ── /wam ── */'); }, 'M', ['M15']],
+  /* 地図の形（M16 B）：点の path に fill を書く／欧州の点の列を1本消す（形と合わない点の地図）── 日英どちらも同じ形に直す */
+  ['M16', (I) => { I.page.ja = I.page.ja.replace(/(<path class="wam-land" id="wam-d-europe")/, (_, a) => `${a} fill="#fff"`); }, 'M', ['M16']],
+  ['M16b', (I) => { for (const lang of ['ja', 'en']) I.page[lang] = I.page[lang].replace(/(id="wam-d-europe" d=")M[\d.]+ [\d.]+h[\d.]+/, (_, a) => a); }, 'M', ['M16']],
+  /* 地図の濃さと凡例（M20 A）：欧州の機長の濃さを書き換える（日英とも）／凡例の機長のいちばん高い額を書き換える */
+  ['M20', (I) => { for (const lang of ['ja', 'en']) I.page[lang] = sub(I.page[lang], 'data-region="europe" style="--c:0.42;', 'data-region="europe" style="--c:0.43;'); }, 'M', ['M20']],
+  ['M20b', (I) => { I.page.ja = sub(I.page.ja, '<i class="wam-kb"></i><span>¥4,110万</span>', '<i class="wam-kb"></i><span>¥4,120万</span>'); }, 'M', ['M20']],
   /* 国の帯（M17）：1つのリンクを消す／帯を #wd-explore の中（動かす前の場所）へ戻す */
   ['M17', (I) => { I.page.ja = sub(I.page.ja, '<a href="countries/ireland.html">🇮🇪 アイルランド<i>2社</i></a>', ''); }, 'M', ['M17']],
   ['M17b', (I) => {

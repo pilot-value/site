@@ -8,8 +8,9 @@
      PV-DIR-ELSE     見つからないときの、地域の8つのボタン（どれも hidden で出荷。社数は台本が当たりの数に書き換えてから見せる）
      PV-DIR-N        社数（何か所でも）
      PV-DIR-LD       ItemList の構造化データ
-     PV-DIRMAP       地域のまとめ（9枚のカード：すべて ＋ 8地域の推定年収の平均と散らばり・条件/出典）── 中身は directory-map.mjs の mapSection
-     id="pc-…"       古い地図のピンの社数（地図が在るあいだ）
+     PV-DIRMAP       地図と地域のまとめ（点で描く地図・「機長｜副操縦士」・9枚のカード：すべて ＋ 8地域の推定年収の平均と散らばり・
+                     条件/出典）── 中身は directory-map.mjs の mapSection
+     id="pc-…"       古い地図のピンの社数（古い地図は WP-dmap-4 で消えた。ピンが無ければ何もしない）
      ASSETS          一覧が読む部品の ?v=（中身の指紋）
    ★ 何度流しても同じ（2回目は「変更なし」）。
    ★ String.replace は関数形（$ を特殊記号にしない）。
@@ -138,9 +139,6 @@ export function fxNote(lang) {
   return out;
 }
 
-/** 地域のまとめに地図の箱を入れるか（'card' ＝ まだ入れない）。地図は WP-dmap-4 で入り、この定数はそこで消える（D23） */
-const SHOW = 'card';
-
 /** 書く塊。別の区域は1行足して、ページに <!--ID--> / <!--/ID--> を置く（どの id も「手で書いた社数」の検査から外れる） */
 export const BLOCKS = [
   { id: 'PV-DIR-LD', build: itemList },
@@ -148,7 +146,7 @@ export const BLOCKS = [
   { id: 'PV-DIR-REGIONS', build: strip },
   { id: 'PV-DIR-ELSE', build: elseRow },
   { id: 'PV-DIR-CARDS', build: cards },
-  { id: 'PV-DIRMAP', build: (lang, M) => mapSection({ lang, M, ledger: SALARY, regionMean, bake: bakeOf(lang), fxNote: fxNote(lang), show: SHOW }) },
+  { id: 'PV-DIRMAP', build: (lang, M) => mapSection({ lang, M, ledger: SALARY, regionMean, bake: bakeOf(lang), fxNote: fxNote(lang) }) },
 ];
 /** ?v= を書く部品（両方のページが読むこと） */
 export const ASSETS = ['pv-directory.css', 'pv-directory.js'];
