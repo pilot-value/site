@@ -470,7 +470,7 @@ function buildEnBasis(slug) {
         + `A total package that includes housing and school fees divided by twelve is not a monthly salary.`
       : `We do not publish a monthly figure for ${name}. An annual figure divided by twelve is not what lands in a given month — what you are paid moves with the hours you fly.`;
   };
-  items.push({ q: `What is ${name} pilot salary per month?`, aHtml: monthly(manM), aLd: monthly(usd) });
+  items.push({ q: `What is the ${name} pilot salary per month?`, aHtml: monthly(manM), aLd: monthly(usd) });
 
   const Y_KEYS = ['cash_y', 'pkg_y', 'max_y', 'target_y', 'cash_y_over', 'reward_y', 'month_x'];
   const scale = (f) => {
@@ -492,7 +492,7 @@ function buildEnBasis(slug) {
     const tax = `Every figure on this page is gross, before income tax. `
       + `Take-home depends on where you are resident and on your own deductions, so no single percentage applies, and we do not publish one. `
       + `Airlines based in countries with no personal income tax — the UAE, Qatar, Saudi Arabia — leave more of the same gross figure in your hand.`;
-    items.push({ q: `Is ${name} pilot salary before or after tax?`, aHtml: tax, aLd: tax });
+    items.push({ q: `Is the ${name} pilot salary before or after tax?`, aHtml: tax, aLd: tax });
   }
   return items;
 }
@@ -510,7 +510,7 @@ function buildEnExtra(slug) {
   const monthly = `Dividing our estimated annual figures by 12, ${name} captains earn about {CAP} a month and first officers about {FO}. `
     + `What actually lands each month moves with block hours flown, and where an annual bonus is paid the regular monthly figure sits lower with a spike in the bonus month.`;
   items.push({
-    q: `What is ${name} pilot salary per month?`,
+    q: `What is the ${name} pilot salary per month?`,
     aHtml: monthly.replace('{CAP}', manM(capM)).replace('{FO}', manM(foM)),
     aLd: monthly.replace('{CAP}', usd(capM)).replace('{FO}', usd(foM)),
   });
@@ -536,7 +536,7 @@ function buildEnExtra(slug) {
       + `Take-home depends on where you are resident and on your own deductions, so no single percentage applies. `
       + `Airlines based in countries with no personal income tax — the UAE, Qatar, Saudi Arabia — leave more of the same gross figure in your hand.`;
     items.push({
-      q: `Is ${name} pilot salary before or after tax?`,
+      q: `Is the ${name} pilot salary before or after tax?`,
       aHtml: tax.replace('{CAP}', manM(cap.avg)).replace('{FO}', manM(fo.avg)),
       aLd: tax.replace('{CAP}', usd(cap.avg)).replace('{FO}', usd(fo.avg)),
     });
