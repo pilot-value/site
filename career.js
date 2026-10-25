@@ -208,7 +208,6 @@
     /* 比較の2社を入れ替える。全社ぶんが全部 HTML に在り、見せる2社を選ぶ（と、2社の目盛で棒の長さを決め直す）だけ。 */
     function pair(a, b) {
       /* 写真の札は先行5社だけ。ほかの会社は、写真の無い会社の札（.cr-opt-x ── 1側に1枚）に、選ぶ面のその会社の社名・色・ロゴを写す。 */
-      var anyX = false;
       each(cmp.querySelectorAll('.cr-side'), function (side) {
         var want = side.dataset.side === 'a' ? a : b;
         var hit = false, x = null;
@@ -217,12 +216,12 @@
           o.hidden = o.dataset.airline !== want;
           if (!o.hidden) hit = true;
         });
-        if (x) { plate(x, hit ? null : pkOf[want]); if (!hit) anyX = true; }
+        if (x) plate(x, hit ? null : pkOf[want]);
         var p = pkOf[want], n = p && p.el.querySelector('.cr-pk-n'), ob = openB[side.dataset.side];
         if (ob && n) ob.setAttribute('aria-label', ob.dataset.label + ' ' + n.textContent.replace(/\s+/g, ' ').trim());
       });
-      /* 写真の無い札が出ているあいだは、2枚とも高くする（社名が、まんなかの入れ替えボタンの帯より下に収まる ── career.css）。 */
-      var pick = cmp.querySelector('.cr-pick'); if (pick) pick.classList.toggle('is-x', anyX);
+      /* ★2026-10-25 P12.110（WP-compare-all-11）：写真の無い札が出ているあいだ2枚とも高くする印（.cr-pick の is-x）は外した ── 札の高さは中身なりで、
+         2枚は同じ行の高さにそろう（career.css）。 */
       each(cmp.querySelectorAll('.cr-row, .cr-taxes .cr-tax, .cr-card, .cr-rentb, .cr-credit, .cr-go'), function (el) {
         var s = el.dataset.airline;
         el.hidden = s !== a && s !== b;
@@ -231,11 +230,18 @@
          gen-career.mjs が決めた額）の大きいほう。2社は必ず同じ目盛。棒の長さは、行の額（data-man）をその右端で割った割合（％の字にするのは
          ブラウザの数の書き方 ── 小数2けた）。目盛の字と刻みの数は、HTML に右端ごとに置いてある1本から選ぶ（額も刻みの幅もここに持たない）。 */
       var PCT = { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false };
-      var top = 0;
+      var top = 0, lab = {};
       each(cmp.querySelectorAll('.cr-pair .cr-row'), function (r) {
         var v = Number(r.dataset.scale);
         if ((r.dataset.airline === a || r.dataset.airline === b) && v > top) top = v;
+        if ((r.dataset.airline === a || r.dataset.airline === b) && r.dataset.lab) lab[r.dataset.airline] = r.dataset.lab.split(' ').map(Number);
       });
+      /* 色の近い2社（★2026-10-25 オーナー P12.110 ── WP-compare-all-11）：2社の会社の色の座標（機長の行の data-lab ── gen-career.mjs が会社の色を
+         OKLab に直して書いた数）の距離が、HTML の data-near-max より小さいときだけ data-near を立てる。立っているあいだ、右の会社（並びの2つ目）の
+         点・棒・札の色の線に、色のほかの手がかりが付く（career.css）。色の式も組み合わせの一覧もここに持たない（差を測るだけ）。 */
+      var la = lab[a], lb = lab[b], nearMax = Number(cmp.getAttribute('data-near-max')) || 0;
+      var near = !!(la && lb && la.length === 3 && lb.length === 3) && Math.sqrt(Math.pow(la[0] - lb[0], 2) + Math.pow(la[1] - lb[1], 2) + Math.pow(la[2] - lb[2], 2)) < nearMax;
+      if (near) cmp.setAttribute('data-near', ''); else cmp.removeAttribute('data-near');
       var line = null;
       each(cmp.querySelectorAll('.cr-panel .cr-axis[data-scale]'), function (x) {
         x.hidden = Number(x.dataset.scale) !== top;

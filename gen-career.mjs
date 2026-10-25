@@ -182,6 +182,25 @@ const kline = (c, mark) => `<span class="cr-tag"${mark ? ` data-main-tag="${mark
 
 /* 目盛の字（0・まんなか・右端）。比較の板では右端ごとに1本ずつ置く（attrs ＝ data-scale・data-div・hidden）。 */
 const axis = (top, attrs = '') => `<div class="cr-axis"${attrs} aria-hidden="true"><span>0</span><span>${yen(top / 2)}</span><span>${yen(top)}</span></div>`;
+/* 比較の板の目盛の写し（★2026-10-25 オーナー P12.110「スマホの画面も比較の年収のカードデカすぎるだろ」── WP-compare-all-11）。スマホでは
+   年収の板が上の2枚の札と同じ2列（左の会社｜右の会社）になり、棒も列ごとに並ぶ ── 右の列の棒の下にも、同じ目盛の字を置く。
+   右端ごとの1本（.cr-axis）のすぐ後ろに1つずつ。見せるかどうかは career.css が決める（すぐ前の1本が見えているときだけ・スマホだけ）。
+   ⚠️ .cr-axis の中に字を足さない・同じ class にしない（保存するカード career-card.js が .cr-axis の子を全部読む・目盛の検査が1本ずつ数える）。 */
+const axisCopy = top => `<div class="cr-axis2" aria-hidden="true"><span>0</span><span>${yen(top / 2)}</span><span>${yen(top)}</span></div>`;
+/* 色の近い2社（★同じ P12.110 ── 色の近い2社は、色のほかでも見分けられる）：会社の色（airlines-meta.js）を OKLab に直し、2社の距離が NEAR より
+   小さいときだけ、右の会社の点・棒・札の色の線に色のほかの手がかりを付ける（決めるのは career.js・見た目は career.css）。組み合わせの一覧は持たない。
+   OKLab の座標は、ここで作って比較の行（機長の行）の data-lab に書く（L・a・b を 100 倍して丸めた整数 ── career.js は数の式を持たず、2社の
+   座標の差を測るだけ）。NEAR も同じ 100 倍の目盛（比較の画面の data-near-max）。10 ＝ 赤どうし（エミレーツ｜JAL 約3・スイス｜TAP 約8）は入り、
+   赤と青（JAL｜ユナイテッド 約34）は入らない。 */
+export const NEAR = 10;
+const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+export function labOf(slug) {
+  const h = color(slug), [r, g, b] = [1, 3, 5].map(i => lin(parseInt(h.slice(i, i + 2), 16)));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b),
+    s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]
+    .map(x => Math.round(x * 100) || 0);
+}
 /* 目盛の刻みの数（.cr-track の線 ＝ 1,000万ごと）。画面の囲み（section）の style に置く。 */
 const div = top => `--cr-div:${top / SCALE_STEP}`;
 
@@ -895,7 +914,8 @@ const REVIEW_CATS = (() => {
 function row(slug, rank, label, shown) {
   const c = cell(slug, rank);
   if (!TIERS[c.kind] || TIERS[c.kind].ja !== c.tag) throw new Error(`${slug}/${rank}: 金額の種類「${c.kind}」と札「${c.tag}」が合わない`);
-  const attrs = `data-airline="${slug}"${c.kind === 'estimate' ? '' : ` data-kind="${c.kind}"`} data-scale="${scaleOf(slug)}" style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
+  const lab = rank === ROLES[0][0] ? ` data-lab="${labOf(slug).join(' ')}"` : '';   // 色の近さを測る座標は機長の行にだけ（上の NEAR）
+  const attrs = `data-airline="${slug}"${c.kind === 'estimate' ? '' : ` data-kind="${c.kind}"`} data-scale="${scaleOf(slug)}"${lab} style="--cr-co:${color(slug)}"${shown ? '' : ' hidden'}`;
   return `<div class="cr-row" ${attrs}>
 <div class="cr-row-h"><span class="cr-row-co"><i class="cr-dot" aria-hidden="true"></i>${esc(name(slug))}</span><span class="cr-vh">${label}</span><b class="cr-row-v">${esc(c.text)}</b></div>
 <div class="cr-row-k">${kline(c)}</div>
@@ -920,7 +940,7 @@ ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(
 </div>`;
   /* 目盛の字は、ありうる右端（全社の目盛）ごとに1本。見せるのは並べた2社の1本だけ（career.js が選ぶ）。 */
   const ax = pairScale(...PAIR), scales = [...new Set(ALL.map(scaleOf))].sort((x, y) => x - y);
-  return `<section class="cr-view cr-cmp" data-view="compare" style="${div(ax)}" hidden>
+  return `<section class="cr-view cr-cmp" data-view="compare" data-near-max="${NEAR}" style="${div(ax)}" hidden>
 ${back()}
 <h1 class="cr-h1 cr-cmp-h" tabindex="-1">航空会社を比較</h1>
 <div class="cr-pick">
@@ -934,7 +954,7 @@ ${ROLES.map(([r, l]) => `<h3 class="cr-role">${l}</h3>
 <div class="cr-pair" data-role="${r}">
 ${ALL.map(s => row(s, r, l, on(s))).join('\n')}
 </div>`).join('\n')}
-${scales.map(t => axis(t, ` data-scale="${t}" data-div="${t / SCALE_STEP}"${t === ax ? '' : ' hidden'}`)).join('\n')}
+${scales.map(t => `${axis(t, ` data-scale="${t}" data-div="${t / SCALE_STEP}"${t === ax ? '' : ' hidden'}`)}\n${axisCopy(t)}`).join('\n')}
 ${gos('pay', 'pay', s => VIEW[s].pay.tax || '')}
 </div>
 <div class="cr-sec cr-subpay" data-kind="submitted">
