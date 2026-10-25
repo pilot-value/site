@@ -146,7 +146,6 @@
       "Bash(node db/smoke-parse-payslip.mjs:*)",
       "Bash(node mail-bot/*.mjs:*)",
       "Bash(node tweet-bot/*.mjs:*)",
-      "Bash(rm -rf:*)",
       "Bash(git branch -D:*)",
       "Bash(git worktree remove:*)",
       "Bash(sudo:*)",
