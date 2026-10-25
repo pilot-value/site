@@ -37,8 +37,8 @@ export const SALARY = {
   'fda':               { ja:'フジドリームエアラインズ（FDA）', en:'Fuji Dream Airlines (FDA)', region:'japan',                   cap:{avg:1600, lo:1400, hi:1800}, fo:{avg:850,  lo:700,  hi:1050}, taxFree:false, conf:'low' },
 
   // ── 中東・アジア太平洋 ──────────────────────────────────
-  'emirates':          { ja:'エミレーツ', en:'Emirates', region:'mideast',                                                       cap:{avg:3700, lo:3350, hi:5050}, fo:{avg:2800, lo:2500, hi:3350}, taxFree:true,  conf:'high' },
-  'qantas':            { ja:'カンタス航空', en:'Qantas', region:'oceania',                                                       cap:{avg:3700, lo:3120, hi:5400}, fo:{avg:2100, lo:1660, hi:3120}, taxFree:false, conf:'medium' },
+  'emirates':          { ja:'エミレーツ', en:'Emirates', region:'mideast',                                                       cap:{avg:5130, lo:3350, hi:5130}, fo:{avg:3900, lo:2500, hi:4050}, taxFree:true,  conf:'high' },
+  'qantas':            { ja:'カンタス航空', en:'Qantas', region:'oceania',                                                       cap:{avg:3700, lo:3120, hi:5400}, fo:{avg:2140, lo:1660, hi:3120}, taxFree:false, conf:'medium' },
   'cathay-pacific':    { ja:'キャセイパシフィック', en:'Cathay Pacific', region:'asia',                                          cap:{avg:3600, lo:3000, hi:5650}, fo:{avg:2400, lo:1800, hi:3230}, taxFree:false, conf:'medium' },
   'singapore-airlines':{ ja:'シンガポール航空', en:'Singapore Airlines', region:'asia',                                          cap:{avg:3400, lo:2750, hi:4150}, fo:{avg:1850, lo:1100, hi:2280}, taxFree:false, conf:'medium' },
   'etihad':            { ja:'エティハド航空', en:'Etihad Airways', region:'mideast',                                             cap:{avg:3400, lo:3000, hi:6000}, fo:{avg:2300, lo:1900, hi:3100}, taxFree:true,  conf:'medium' },
@@ -59,7 +59,7 @@ export const SALARY = {
   'air-france':        { ja:'エールフランス', en:'Air France', region:'europe',                                                  cap:{avg:3530, lo:2750, hi:6020}, fo:{avg:1810, lo:1200, hi:2920}, taxFree:false, conf:'low' },
   'lufthansa':         { ja:'ルフトハンザ', en:'Lufthansa', region:'europe',                                                     cap:{avg:3440, lo:2490, hi:4320}, fo:{avg:1890, lo:1260, hi:3010}, taxFree:false, conf:'medium' },
   'air-canada':        { ja:'エア・カナダ', en:'Air Canada', region:'us',                                                        cap:{avg:3360, lo:2490, hi:4260}, fo:{avg:1510, lo:580,  hi:2200}, taxFree:false, conf:'medium' },
-  'british-airways':   { ja:'ブリティッシュ・エアウェイズ', en:'British Airways', region:'europe',                               cap:{avg:3980, lo:3320, hi:5710}, fo:{avg:2590, lo:2300, hi:3400}, taxFree:false, conf:'medium' },
+  'british-airways':   { ja:'ブリティッシュ・エアウェイズ', en:'British Airways', region:'europe',                               cap:{avg:3980, lo:3320, hi:5710}, fo:{avg:2810, lo:2300, hi:3910}, taxFree:false, conf:'medium' },
 
   // ── 第2バッチ：地方・中小・海外中堅（79社） ─────────────────
   // 日本の地方・子会社・GA
@@ -121,7 +121,7 @@ export const SALARY = {
   'aegean':          { ja:'エーゲ航空', en:'Aegean Airlines', region:'europe',                                                   cap:{avg:1300, lo:1030, hi:1550}, fo:{avg:660, lo:480, hi:780}, taxFree:false, conf:'medium' },
   'aer-lingus':      { ja:'エア・リンガス', en:'Aer Lingus', region:'europe',                                                    cap:{avg:2750, lo:2150, hi:4100}, fo:{avg:1700, lo:1240, hi:2600}, taxFree:false, conf:'medium' },
   'austrian':        { ja:'オーストリア航空', en:'Austrian Airlines', region:'europe',                                           cap:{avg:2600, lo:2000, hi:3300}, fo:{avg:1550, lo:1240, hi:2050}, taxFree:false, conf:'medium' },
-  'easyjet':         { ja:'イージージェット', en:'easyJet', region:'europe',                                                     cap:{avg:2700, lo:2300, hi:3600}, fo:{avg:1500, lo:1210, hi:1980}, taxFree:false, conf:'medium' },
+  'easyjet':         { ja:'イージージェット', en:'easyJet', region:'europe',                                                     cap:{avg:2990, lo:2300, hi:3600}, fo:{avg:1500, lo:1210, hi:1980}, taxFree:false, conf:'medium' },
   // Eurowings: VC（Vereinigung Cockpit）協約の等級表（2024年1月／+7%反映）が根拠。
   //   FO 1等級 €74,090.50 → 14等級 €124,822.64 ／ 機長 1等級 €119,784.16 → 23等級 €202,253.79。
   //   以後の年次改定は等級表の金額が公開されていないため上乗せしない（低め側で置く）。@¥172/EUR。
@@ -129,15 +129,15 @@ export const SALARY = {
   'finnair':         { ja:'フィンエアー', en:'Finnair', region:'europe',                                                         cap:{avg:3000, lo:2400, hi:3900}, fo:{avg:1550, lo:1150, hi:2300}, taxFree:false, conf:'medium' },
   'iberia':          { ja:'イベリア航空', en:'Iberia', region:'europe',                                                          cap:{avg:2600, lo:2150, hi:3400}, fo:{avg:1380, lo:1000, hi:1890}, taxFree:false, conf:'medium' },
   'icelandair':      { ja:'アイスランド航空', en:'Icelandair', region:'europe',                                                  cap:{avg:2150, lo:1720, hi:2600}, fo:{avg:1200, lo:950, hi:1550}, taxFree:false, conf:'medium' },
-  'ita-airways':     { ja:'ITAエアウェイズ', en:'ITA Airways', region:'europe',                                                  cap:{avg:2150, lo:1890, hi:2500}, fo:{avg:1120, lo:780, hi:1460}, taxFree:false, conf:'medium' },
+  'ita-airways':     { ja:'ITAエアウェイズ', en:'ITA Airways', region:'europe',                                                  cap:{avg:2150, lo:1890, hi:2500}, fo:{avg:1350, lo:780, hi:1880}, taxFree:false, conf:'medium' },
   'lot':             { ja:'LOTポーランド航空', en:'LOT Polish Airlines', region:'europe',                                        cap:{avg:1400, lo:1150, hi:1650}, fo:{avg:730, lo:590, hi:860}, taxFree:false, conf:'medium' },
-  'norwegian':       { ja:'ノルウェー・エアシャトル', en:'Norwegian Air Shuttle (Norwegian)', region:'europe',                   cap:{avg:2000, lo:1430, hi:2700}, fo:{avg:1100, lo:720, hi:1650}, taxFree:false, conf:'medium' },
-  'ryanair':         { ja:'ライアンエアー', en:'Ryanair', region:'europe',                                                       cap:{avg:2240, lo:1450, hi:3100}, fo:{avg:1030, lo:650, hi:1460}, taxFree:false, conf:'medium' },
+  'norwegian':       { ja:'ノルウェー・エアシャトル', en:'Norwegian Air Shuttle (Norwegian)', region:'europe',                   cap:{avg:2210, lo:1430, hi:2700}, fo:{avg:1130, lo:720, hi:1650}, taxFree:false, conf:'medium' },
+  'ryanair':         { ja:'ライアンエアー', en:'Ryanair', region:'europe',                                                       cap:{avg:2800, lo:1450, hi:3100}, fo:{avg:1480, lo:650, hi:1530}, taxFree:false, conf:'medium' },
   'sas':             { ja:'スカンジナビア航空', en:'SAS Scandinavian Airlines', region:'europe',                                 cap:{avg:2650, lo:2220, hi:3170}, fo:{avg:1150, lo:740, hi:1500}, taxFree:false, conf:'medium' },
   'swiss':           { ja:'スイス インターナショナル エアラインズ', en:'Swiss International Air Lines (SWISS)', region:'europe', cap:{avg:4100, lo:3520, hi:5900}, fo:{avg:2500, lo:1850, hi:3400}, taxFree:false, conf:'medium' },
   'tap':             { ja:'TAPポルトガル航空', en:'TAP Air Portugal', region:'europe',                                           cap:{avg:2240, lo:1720, hi:3100}, fo:{avg:1120, lo:780, hi:1550}, taxFree:false, conf:'medium' },
   'virgin-atlantic': { ja:'ヴァージン・アトランティック航空', en:'Virgin Atlantic', region:'europe',                             cap:{avg:3600, lo:2830, hi:4600}, fo:{avg:1920, lo:1510, hi:2420}, taxFree:false, conf:'medium' },
-  'vueling':         { ja:'ブエリング航空', en:'Vueling Airlines', region:'europe',                                              cap:{avg:1720, lo:1200, hi:2400}, fo:{avg:950, lo:690, hi:1380}, taxFree:false, conf:'medium' },
+  'vueling':         { ja:'ブエリング航空', en:'Vueling Airlines', region:'europe',                                              cap:{avg:2690, lo:1830, hi:3060}, fo:{avg:1090, lo:690, hi:1530}, taxFree:false, conf:'medium' },
   'wizz-air':        { ja:'ウィズ・エアー', en:'Wizz Air UK', region:'europe',                                                   cap:{avg:2400, lo:1860, hi:3300}, fo:{avg:1120, lo:720, hi:1720}, taxFree:false, conf:'medium' },
 
   // 米州・オセアニア
@@ -151,7 +151,7 @@ export const SALARY = {
   'fiji-airways':    { ja:'フィジー・エアウェイズ', en:'Fiji Airways', region:'oceania',                                         cap:{avg:1700, lo:1400, hi:2400}, fo:{avg:1050, lo:800,  hi:1600}, taxFree:false, conf:'low' },
   'frontier':        { ja:'フロンティア航空', en:'Frontier Airlines', region:'us',                                               cap:{avg:3300, lo:2600, hi:4300}, fo:{avg:1750, lo:1100, hi:2200}, taxFree:false, conf:'medium' },
   'jetblue':         { ja:'ジェットブルー航空', en:'JetBlue Airways', region:'us',                                               cap:{avg:4200, lo:3500, hi:4700}, fo:{avg:2400, lo:1500, hi:3000}, taxFree:false, conf:'medium' },
-  'jetstar':         { ja:'ジェットスター航空', en:'Jetstar Airways (Jetstar)', region:'oceania',                                cap:{avg:2400, lo:1900, hi:3100}, fo:{avg:1350, lo:950,  hi:1750}, taxFree:false, conf:'medium' },
+  'jetstar':         { ja:'ジェットスター航空', en:'Jetstar Airways (Jetstar)', region:'oceania',                                cap:{avg:3100, lo:3010, hi:3640}, fo:{avg:1810, lo:1680, hi:2230}, taxFree:false, conf:'medium' },
   'latam':           { ja:'LATAM航空', en:'LATAM Airlines', region:'latam',                                                      cap:{avg:1900, lo:1200, hi:2700}, fo:{avg:950,  lo:550,  hi:1500}, taxFree:false, conf:'low' },
   'porter':          { ja:'ポーター航空', en:'Porter Airlines', region:'us',                                                     cap:{avg:2700, lo:2300, hi:3200}, fo:{avg:1350, lo:1000, hi:1700}, taxFree:false, conf:'medium' },
   'spirit':          { ja:'スピリット航空', en:'Spirit Airlines', region:'us',                                                   cap:{avg:3700, lo:2900, hi:4700}, fo:{avg:2000, lo:1300, hi:3000}, taxFree:false, conf:'medium' },

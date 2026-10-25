@@ -277,11 +277,13 @@ export const SOURCES = {
   //    check-sources.mjs がこの2社を「出所ゼロ」として警告し続けるのが正しい状態。
 
   // ── 中東 ──────────────────────────────────────────────────────────
-  // ★2026-09-26、エミレーツの一次資料が出た（下）。それまでここには
-  //   「一次資料が出てこない場合、conf を medium に落とすことを検討する」と書いてあった。
-  //   資料は出たが、まだ status:'candidate' のままにしてある ── 理由は下の note。
-  //   candidate のあいだ check-sources.mjs は emirates を「出所ゼロ」として警告し続ける。
-  //   それが今の正しい状態（オーナーが「年収に社宅の現物を含めるか」を決めるまで）。
+  // ★2026-09-26、エミレーツの一次資料が出た（下）。2026-10-24 までは status:'candidate' のままだった
+  //   （「年収に社宅の現物を含めるか」がサイト全体の定義として決まっていなかったため）。
+  // ★2026-10-25、オーナーが決めた（見直し案 P12.105 の質問1＝③）：推定年収＝会社が1年に払うものすべて。
+  //   エミレーツは会社公表の「総待遇」（社宅込み）をそのまま推定年収にする。
+  //   → SALARY を cap avg 3,700→5,130・hi 5,050→5,130／fo avg 2,800→3,900・hi 3,350→4,050 に直し、
+  //     2件とも in_use に上げた（同じ日に公式ページを開き直して、金額と「総待遇」の定義の文を確かめた）。
+  //   ⚠️ lo（機長3,350・副操縦士2,500）は前の値のまま（下げる向きは動かさない＝オーナーの決まり2）。資料の裏づけは無い。
   'emirates': [
     {
       rank:        'cap',
@@ -289,27 +291,26 @@ export const SOURCES = {
       name:        'Emirates Group Careers — Pilots / Our role details（Direct Entry Captains）',
       url:         'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=direct-entry-captains',
       published_at:null,
-      accessed_at: '2026-09-26',
+      accessed_at: '2026-10-25',
       value_orig:  '機長。Annual pay & benefits AED 1,185,000（USD 320,000）／'
-                 + 'Annual take home cash AED 575,000（USD 155,000）／'
-                 + 'Monthly take home cash AED 48,000（USD 13,000）。'
+                 + 'Annual take home cash AED 575,000（USD 155,000・annualised basic salary & flying pay）／'
+                 + 'Monthly take home cash AED 48,000（USD 13,000・monthly basic & 85 hrs flying pay）。'
                  + '社宅は現物で AED 290,000（USD 80,000）相当。最低総飛行時間 7000+、ELP 5 以上。',
-      quote:       'Annual take home cash',
-      status:      'candidate',
-      note:        '⚠️ このページは金額を3つの意味で出しており、取り違えると2倍ずれる。'
-                 + '(1) Annual take home cash＝"annualised basic salary & flying pay"（月85時間の乗務を前提）。'
-                 + '(2) Annual pay & benefits＝(1)に社宅・学費・医療・航空券・年金を足した総額で、'
-                 + '「employee, spouse and 2 eligible children」を前提にした値。'
-                 + '(3) 社宅そのものの金額。'
-                 + '円に直すと（fx-rates.mjs の USD 158.95）'
-                 + '(1)＝約2,464万円・(2)＝約5,086万円・(1)+(3)＝約3,735万円。'
-                 + 'SALARY の cap は 3,350〜5,050万（avg 3,700万）なので、'
-                 + '(1) 単独では下に外れ、(1)+(3) がほぼ avg に一致する。'
-                 + '＝いまの SALARY は「現金＋社宅の現物」を年収と見ている可能性が高い。'
-                 + '★ status を in_use に上げない。上げた瞬間に check-sources.mjs の'
-                 + '「conf:high なのに出所ゼロ」警告が消えるが、'
-                 + '「年収に社宅の現物を含めるか」はサイト全体の定義の問題で、まだ決まっていない'
-                 + '（給与レポートの年収は総支給＝現金）。workflows/update-salary.md で判断する。',
+      quote:       'Enjoy a tax-free total package comprising of take home cash, schooling, medical, insurance, '
+                 + 'annual leave tickets, housing and transport plus our Provident (pension) scheme employer contribution.',
+      status:      'in_use',
+      note:        '★ cap.avg と cap.hi（どちらも 5,130万）の根拠。AED 1,185,000 × 43.2825（fx-rates.mjs）＝ 約5,129万円 → 10万円単位で 5,130万。'
+                 + '2026-10-25 のオーナー承認の見直し（P12.105・推定年収＝会社が1年に払うものすべて／エミレーツは総待遇ぜんぶ＝社宅込み）。'
+                 + '数えたもの＝総待遇の全部：年間の現金（基本給＋月85時間の飛行手当）AED 575,000・会社の villa（現物・光熱費込み）AED 290,000・'
+                 + '残り AED 320,000（送迎・学費手当〈子1人あたり初等 AED 52,250／中等 AED 79,750・最大3人〉・医療・保険・休暇の航空券・'
+                 + 'Provident Fund の会社拠出〈基本給の12%〉。項目ごとの額は非公表）。'
+                 + '⚠️ 総待遇は「employee, spouse and 2 eligible children」を前提にした評価額で、現物（社宅・医療・航空券）を含む。'
+                 + '独身の人・子どもの無い人が実際に受け取る価値はこれより小さい。全機長の平均でも保証でもない（会社の募集例）。'
+                 + '利益配分（条件つき・率の公表なし）は入っていない。'
+                 + '金額の行は "Annual pay & benefits / AED 1,185,000"（2026-10-25 に原ページを開いて確認）。'
+                 + '⚠️ cap.lo（3,350万）は前の値のまま（資料の裏づけ無し）。年間の現金だけなら AED 575,000 ＝ 約2,489万円で、'
+                 + '会社ページ・一覧のカードはこの額を「公式募集例の現金給与」として別に出している（salary-basis.mjs）。'
+                 + '2026-10-24 までの SALARY（avg 3,700万）は出所の記録が無かった。',
     },
     {
       rank:        'fo',
@@ -317,7 +318,7 @@ export const SOURCES = {
       name:        'Emirates Group Careers — Pilots / Our role details（First Officers）',
       url:         'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=first-officers',
       published_at:null,
-      accessed_at: '2026-09-26',
+      accessed_at: '2026-10-25',
       value_orig:  '副操縦士（standard package）。Annual pay & benefits AED 900,000（USD 245,000）／'
                  + 'Annual take home cash AED 385,000（USD 105,000）／'
                  + 'Monthly take home cash AED 32,100（USD 8,750）。'
@@ -325,12 +326,19 @@ export const SOURCES = {
                  + 'AED 34,600（USD 9,600）で、条件は総飛行時間 4,000時間以上（>20T ジェット）かつ'
                  + 'MTOW>50T の多人数運航ジェットで 2,000時間以上・ELP 5 以上。'
                  + '社宅は現物で AED 225,000（USD 61,310）相当。最低総飛行時間 2000+、ELP 4 以上。',
-      quote:       'Annual take home cash',
-      status:      'candidate',
-      note:        '機長側と同じ理由で candidate（上の note を参照）。'
-                 + '円に直すと Annual take home cash＝約1,669万円・'
-                 + 'Annual pay & benefits＝約3,894万円・現金＋社宅＝約2,643万円。'
-                 + 'SALARY の fo は 2,500〜3,350万（avg 2,800万）で、ここでも現金＋社宅が近い。',
+      quote:       'Enjoy a tax-free total package comprising of take home cash, schooling, medical, insurance, '
+                 + 'annual leave tickets, housing and transport plus our Provident (pension) scheme employer contribution. '
+                 + 'Based on employee, spouse and 2 eligible children.',
+      status:      'in_use',
+      note:        '★ fo.avg（3,900万）＝ standard の総待遇 AED 900,000 × 43.2825 ＝ 約3,895万円。'
+                 + '★ fo.hi（4,050万）＝ enhanced の総待遇 AED 935,000 ＝ 約4,047万円（経験条件を満たす副操縦士だけの額）。'
+                 + '2026-10-25 のオーナー承認の見直し（機長の行と同じ定義：総待遇ぜんぶ＝社宅込み）。'
+                 + '数えたもの＝総待遇の全部（現金 AED 385,000／415,000・社宅の現物 AED 225,000・残り AED 290,000／295,000＝送迎・学費手当・医療・保険・'
+                 + '休暇の航空券・Provident Fund の会社拠出。項目ごとの額は非公表）。'
+                 + '⚠️ 本人・配偶者・子2人を前提にした評価額で、現物を含む。全副操縦士の平均でも保証でもない（会社の募集例）。'
+                 + '金額の行は "Annual pay & benefits / AED 900,000"・Enhanced "AED 935,000"（2026-10-25 に原ページを開いて確認）。'
+                 + '⚠️ fo.lo（2,500万）は前の値のまま（資料の裏づけ無し）。現金だけなら standard AED 385,000 ＝ 約1,666万円。'
+                 + '2026-10-24 までの SALARY（avg 2,800万）は出所の記録が無かった。',
     },
   ],
 
@@ -403,6 +411,9 @@ export const SOURCES = {
   //   ⚠️ 金額はどれも「2026年8月に入社した人のキャリア例」。乗務手当（FPS・TAFB・DOA/NIA）を含み、
   //      年 713 ブロック時間＋有給の 72 時間を飛んだ前提。平均・保証・上限ではない。税引前後の記載なし。
   //   円は fx-rates.mjs の GBP 216.76（AS_OF 2026-08-22）で直した。
+  // ★2026-10-25、オーナー承認の見直し（推定年収＝会社が1年に払うものすべて）で副操縦士だけ作り直した：
+  //   fo avg 2,590→2,810万（短距離 SFO 4年目の給与例＋会社の年金拠出15%）・hi 3,400→3,910万（長距離 SFO 18年目＋15%）。
+  //   機長は同じ作り方だと下がる（3,980→3,900万）ので今のまま。下の2026-10-25 の2行を見る。
   'british-airways': [
     {
       rank:        'fo',
@@ -436,7 +447,9 @@ export const SOURCES = {
                  + '乗務手当の前提は上と同じ（年 713 ブロック時間＋holiday pay 72時間）。税引前後の記載なし。',
       quote:       '£156,789',
       status:      'candidate',
-      note:        '★ fo.hi（3,400万）の根拠。£156,789 × 216.76 ＝ 約3,399万円 → 3,400万。'
+      note:        '★2026-10-25 から fo.hi は 3,910万（この £156,789 に会社の年金拠出 15% を足した £180,307 ＝ 約3,908万円。下の 2026-10-25 の行）。'
+                 + '以下はその前（2026-10-20〜24）の記録。'
+                 + '★ fo.hi（3,400万）の根拠。£156,789 × 216.76 ＝ 約3,399万円 → 3,400万。'
                  + '調査パックの記録 british-airways.pay.r6-aug2026-lh-sfo-18years'
                  + '（場所: 物理6–7頁 / 左欄 Long-haul Line Captain・Long-haul Senior First Officer）。'
                  + '同じ額は Short Haul の PDF 物理4頁の左欄にも載っているが、そちらは「as of June 2026」で'
@@ -458,7 +471,9 @@ export const SOURCES = {
                  + '17件の単純平均 £119,504（合計 £2,031,565）。',
       quote:       '£112,858',
       status:      'candidate',
-      note:        '★ fo.avg（2,590万）の根拠。£119,504 × 216.76 ＝ 約2,590万円。'
+      note:        '★2026-10-25 から fo.avg はこの17件の平均ではない（2,590万→2,810万。下の 2026-10-25 の行＝短距離 SFO 4年目＋会社の年金拠出15%）。'
+                 + '以下はその前（2026-10-20〜24）の記録。'
+                 + '★ fo.avg（2,590万）の根拠。£119,504 × 216.76 ＝ 約2,590万円。'
                  + '調査パックの記録 british-airways.pay.r6-aug2026-sh-sfo-example-y1〜y7・'
                  + 'r6-aug2026-lh-sfo-example-y1〜y7・r6-branch-lhfo-y8・r6-aug2026-lh-sfo-18years・'
                  + 'r6-a320-branch-lhsfo-y6（quote は各欄の金額そのもの。ここには1件目だけ写した）。'
@@ -469,6 +484,47 @@ export const SOURCES = {
                  + 'この単純平均を置いた。例は入社1〜8年目に偏っていて（18年目は1件だけ）、人数で重みづけもしていない。'
                  + '調査パック自身も「会社平均へまとめない」「平均として扱わない」と書いている。'
                  + 'PDF を開いて確かめるまで candidate のまま。',
+    },
+    /* ★2026-10-25（オーナー承認の見直し P12.105 ── 推定年収＝会社が1年に払うものすべて＝会社の年金拠出も数える）。
+         fo.avg 2,590→2,810万・fo.hi 3,400→3,910万。lo（2,300万）は前の値のまま。
+         機長は同じ作り方だと 3,980→3,900万に下がるので、オーナーの決まり（下がる向きは動かさない）で今のまま ＝
+         機長の avg は年金拠出を含まない4件の平均・副操縦士は含む、と作り方が揃っていない（承知のうえ）。 */
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'British Airways — Short Haul Pilot Recruitment Pack 2026（募集 Ref 11673 の添付 PDF）物理4頁 PILOT PAY ── SH Senior First Officer 4年目の給与例',
+      url:         'https://apply.ba.com/jobs/vacancy/direct-entry-pilot---a320-type-rated-pilot--uk-licence-holder-11673-heathrow-airport-london/11692/description/ajaxaction/downloadfile/?id=5002339',
+      published_at:null,
+      accessed_at: '2026-10-25',
+      value_orig:  'SH SFO Year 4 £112,858/年（会社の給与例・FPS £15,778・TAFB £10,180・DOA/NIA £900 を含む・'
+                 + '年 713 ブロック時間＋holiday pay 72時間の前提）。同じ PDF の Pension 欄「6% employee contribution gives 15% employer contribution」。'
+                 + '15% を足すと £129,787。',
+      quote:       '£112,858',
+      status:      'candidate',
+      note:        '★ fo.avg（2,810万）の根拠。£112,858 × 1.15 ＝ £129,787 × 216.76 ＝ 約2,813万円 → 2,810万。'
+                 + '短距離（ナローボディ）副操縦士の1〜7年目の給与例のまんなか＝4年目を代表にし、会社の年金拠出 15%（BAPP）を足した。'
+                 + '数えたもの＝給与例の全額（基本給＋FPS・TAFB・DOA/NIA の乗務手当）＋会社の年金拠出 15%。賞与・利益配分は資料に無く入っていない。'
+                 + '⚠️ 15% は本人が 6% を拠出したとき（求人の共通欄では加入時の初期設定が本人2%・会社7%）。'
+                 + 'BAPP の対象給与の定義は未公表で、乗務手当が対象外なら年金分は約 £4,029（約87万円）小さい。'
+                 + '⚠️ 会社の給与例であって、在籍者全員の号俸表・平均・保証ではない。'
+                 + '調査パック（ChatGPT・2026-10-20）の読み。£112,858 の欄は PDF の中で画像になっていて、こちら（2026-10-25）は'
+                 + '文字として読めなかった（Pension の文は読めた）ので candidate のまま。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'British Airways — Direct Entry Pilot A320 Type Rated（careers.ba.com・Ref 22348）の福利厚生欄 ＋ 募集 PDF 2つの Pension 欄',
+      url:         'https://careers.ba.com/en/job/heathrow/direct-entry-pilot-a320-type-rated-pilot-uk-licence-holder/22348/92677578928',
+      published_at:null,
+      accessed_at: '2026-10-25',
+      value_orig:  '会社の年金拠出 最大15%（本人が6%拠出したとき）。加入時の初期設定は本人2%・会社7%。',
+      quote:       'Company pension scheme (up to 15% employer contribution)',
+      status:      'in_use',
+      note:        '★ fo.avg・fo.hi に足した「会社の年金拠出 15%」の根拠（金額ではなく率）。同じページに'
+                 + '"Enrolled at 2% employee contributions and 7% employer with an option to increase." とあり、'
+                 + 'Short Haul と Senior First Officer の募集 PDF の Pension 欄はどちらも "6% employee contribution gives 15% employer contribution"'
+                 + '（2026-10-25 に3つとも開いて文を確認）。'
+                 + '⚠️ 15% は上限側（本人が 6% を出す人）。初期設定のままなら 7%。',
     },
     {
       rank:        'cap',
@@ -528,6 +584,228 @@ export const SOURCES = {
                  + '（29年の1件が平均を押し上げている。3件だけなら約 £157,233 ＝ 約3,408万円）。'
                  + '⚠️ BA Cityflyer（別会社・E190・募集 11323）の機長の額は入れていない。'
                  + '調査パック自身も「平均として扱わない」と書いている。PDF を開いて確かめるまで candidate のまま。',
+    },
+  ],
+
+  // ★2026-10-25（オーナー承認の見直し P12.105）── 下の欧州5社とオセアニア2社は、労働協約の給与表（スペイン官報 BOE・
+  //   ポルトガル労働公報 BTE・豪州 Fair Work Commission の承認原本・イタリアの組合が公開した写し）から推定年収を作り直した。
+  //   決まり：推定年収＝会社が1年に払うものすべて（オーナー 2026-10-24）。ただし資料に額や回数が無いもの（乗務時間による上乗せ・
+  //   手当・年金拠出の率など）は足していない＝どれも下限寄り。月額しか無い表は、協約が支払回数を書いている会社だけ
+  //   月額×その回数（質問5＝②）。新しい資料で数字が**下がる**職位・レンジの端は動かしていない（質問2＝①）。
+  //   円は fx-rates.mjs（AS_OF 2026-08-22）の EUR 185.69・AUD 113.88 で直し、10万円単位に丸めた。
+  //   原本は 2026-10-25 にこちらで開いて、表の行と条文を確かめた（PDF は read-source-pdf.mjs、イタリアの写しは画像のページを目で読んだ）。
+  'ryanair': [
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'BOE-A-2023-15123 Convenio colectivo de Pilotos de Ryanair DAC en España ── Anexo 1 Escala salarial 2026（機長・13段）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2023-15123',
+      published_at:'2023-06-28',
+      accessed_at: '2026-10-25',
+      value_orig:  'Anexo 1・2026年の機長の表（Total bruto anual・€）: Año 1 139.599 … Año 7 150.831（Salario base 105.350 ＋ '
+                 + 'Retribución por sectores 35.131 ＋ Otros 10.350）… Año 13 156.625。「Otros」は機長の手当 年€6.000 と有給29日分の支払い。'
+                 + '会社の年金拠出は 7.5.1 で機長 年最大€8.000（本人も同額を拠出する任意の制度）。',
+      quote:       'Año 7 | 105.350 | 35.131 | 10.350 | 41,33 | 150.831 … Ingresos brutos indicativos basados en 850 SBH, no garantizados.',
+      status:      'in_use',
+      note:        '★ cap.avg（2,800万）の根拠。13段のまんなか Año 7 €150,831 × 185.69 ＝ 約2,801万円。'
+                 + '数えたもの＝基本給・区間手当（年850ブロック時間の前提）・Otros（年€6,000の手当と有給の支払い）。'
+                 + '入れていないもの＝任意の会社年金拠出（最大€8,000・本人の同額拠出が条件。足すと約2,950万）、'
+                 + '新任機長の最初の24か月の減額（5.6）。850時間は保証ではなく協約の参考の前提。'
+                 + 'スペイン拠点の Ryanair DAC 直接雇用・通年フルタイムだけの表（英国・アイルランドなど他国の契約は別）。'
+                 + 'cap.lo（1,450万）・cap.hi（3,100万）は前の値のまま（表の端 €139,599＝約2,592万／€156,625＝約2,908万はその中）。'
+                 + '2026-10-24 までの SALARY（avg 2,240万）は出所の記録が無かった。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'BOE-A-2023-15123 Convenio colectivo de Pilotos de Ryanair DAC en España ── Anexo 2 Primer Oficial 2026 ＋ 7.5.1（年金拠出）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2023-15123',
+      published_at:'2023-06-28',
+      accessed_at: '2026-10-25',
+      value_orig:  'Anexo 2・Primer Oficial 2026: Salario base 54.800 ＋ Retribución por sectores (850 h) 14.875 ＋ Otros 9.850 ＝ Total bruto anual €79.525。'
+                 + 'Primer Oficial Junior €59.378（年の区分なし）。7.5.1: 副操縦士の会社年金拠出 年最大€3.000（本人も同額）。',
+      quote:       '2026 | 54.800 | 14.875 | 9.850 | 17,50 | 79.525 … (3.000 euros Ryanair / 3.000 euros primer oficial)',
+      status:      'in_use',
+      note:        '★ fo.avg（1,480万）＝ €79,525 × 185.69 ＝ 約1,477万円。'
+                 + '★ fo.hi（1,530万）＝ €79,525 ＋ 会社年金拠出の上限 €3,000 ＝ €82,525 ＝ 約1,532万円（拠出は本人の同額拠出が条件の任意の制度なので、上の端にだけ足した）。'
+                 + '数えたもの＝基本給・区間手当（850時間の前提・保証なし）・Otros（年€5,500の手当と有給の支払い）。'
+                 + 'fo.lo（650万）は前の値のまま（表の Junior FO €59,378＝約1,103万はその上）。スペイン拠点の直接雇用だけ。'
+                 + '2026-10-24 までの SALARY（avg 1,030万）は出所の記録が無かった。',
+    },
+  ],
+  'vueling': [
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'BOE-A-2026-5693 IV Convenio colectivo de Vueling Airlines, SA y sus tripulantes pilotos ── ANEXO A Tablas salariales（Comandantes）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2026-5693',
+      published_at:'2026-03-11',
+      accessed_at: '2026-10-25',
+      value_orig:  'ANEXO A Comandantes・Total bruto fijo Anual（基本給＋特別給の按分＋機長責任手当）: NIVEL 4 €98.292,24 ／ NIVEL 3 €114.277,38 ／ '
+                 + 'NIVEL 2 €128.670,92 ／ NIVEL 1 €144.809,97 ／ NIVEL 1A €150.609,62 ／ NIVEL 1B €157.602,37 ／ NIVEL 1C €164.596,32。'
+                 + '同じ表の別の欄に Paga prod. trimestral（四半期の生産性手当）年額 NIVEL 1 €3.591,23 など。',
+      quote:       'NIVEL 1 | 104.570,78 | 8.714,23 | 20.687,14 | 1.723,93 | 19.552,05 | 1.629,34 | 144.809,97',
+      status:      'in_use',
+      note:        '★ cap.avg（2,690万）＝ 7段のまんなか NIVEL 1 €144,809.97 × 185.69 ＝ 約2,689万円。'
+                 + '★ cap.lo（1,830万）＝ NIVEL 4（約1,825万）／cap.hi（3,060万）＝ NIVEL 1C（約3,056万）。'
+                 + '数えたもの＝固定の年額（Total bruto fijo）だけ。入れていないもの＝乗務の変動給・夜間手当（額の資料が無い）と、'
+                 + '同じ表に載っている四半期の生産性手当（NIVEL 1 で年€3,591.23。足すと約2,760万）＝下限寄り。'
+                 + '⚠️ 表の対象年の記載が無く、毎年さかのぼって見直す条項がある。NIVEL は給与の段で勤続年数とは限らない。スペインの契約だけ。'
+                 + '2026-10-24 までの SALARY（avg 1,720万）は出所の記録が無かった。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'BOE-A-2026-5693 IV Convenio colectivo de Vueling Airlines, SA y sus tripulantes pilotos ── ANEXO A Tablas salariales（Copilotos）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2026-5693',
+      published_at:'2026-03-11',
+      accessed_at: '2026-10-25',
+      value_orig:  'ANEXO A Copilotos・Total bruto fijo Anual: NIVEL 6 €17.897,67 ／ NIVEL 5 €37.731,75 ／ NIVEL 4 €52.355,56 ／ NIVEL 3 €58.757,73 ／ '
+                 + 'NIVEL 2 €66.928,07 ／ NIVEL 1 €74.031,77 ／ NIVEL 1A €79.016,54 ／ NIVEL 1B €82.210,47。'
+                 + 'Paga prod. trimestral 年額 NIVEL 3 €2.942,18 など（別の欄）。',
+      quote:       'NIVEL 3 | 50.363,76 | 4.196,98 | 8.393,96 | 699,50 | 58.757,73',
+      status:      'in_use',
+      note:        '★ fo.avg（1,090万）＝ 8段のまんなか（下から4段目）NIVEL 3 €58,757.73 × 185.69 ＝ 約1,091万円。'
+                 + '★ fo.hi（1,530万）＝ NIVEL 1B（約1,527万）。fo.lo（690万）は前の値のまま'
+                 + '（表の下端 NIVEL 6 €17,897.67＝約332万は訓練中・1,600時間以下の段、NIVEL 5 は約701万）。'
+                 + '固定の年額だけ（変動給・夜間・四半期の生産性手当〈NIVEL 3 で年€2,942.18〉は入れていない）＝下限寄り。スペインの契約だけ。'
+                 + '2026-10-24 までの SALARY（avg 950万）は出所の記録が無かった。',
+    },
+  ],
+  'easyjet': [
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'Acordo de empresa entre a EasyJet Airline Company Limited e o SPAC（Boletim do Trabalho e Emprego n.º 29/2026）── Anexo I Salário anual básico',
+      url:         'https://bte.dgcp.mtsss.gov.pt/documentos/2026/29/01240156.pdf',
+      published_at:'2026-08-08',
+      accessed_at: '2026-10-25',
+      value_orig:  'Anexo I・2026-02-01 から: Comandante (CPT) €160.999,74（final gross annual basic salary）。'
+                 + '本文13-: 年間基本給は14回払い（うち2回は休暇手当とクリスマス手当）。',
+      quote:       'Comandante (CPT) Captain (CPT) 160 999,74 € final gross annual basic salary',
+      status:      'in_use',
+      note:        '★ cap.avg（2,990万）＝ €160,999.74 × 185.69 ＝ 約2,990万円。表は等級の無い1つの額。'
+                 + '数えたもの＝年間基本給だけ。入れていないもの＝区間ごとの日当（nominal sector €85.84・年の区間数の資料が無い）、'
+                 + '賞与（機長は年間基本給の最大20%・目標10%・会社の裁量 ── 同じ協約の賞与の条文）、年金＝下限寄り。'
+                 + 'ポルトガル拠点の SPAC 代表パイロットだけ（easyJet の主力の英国などの契約は別）。'
+                 + 'cap.lo（2,300万）・cap.hi（3,600万）と副操縦士は前の値のまま（副操縦士は今回の見直しの対象外）。'
+                 + '2026-10-24 までの SALARY（avg 2,700万）は出所の記録が無かった。',
+    },
+  ],
+  'ita-airways': [
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'Accordo integrativo di secondo livello ITA Airways（2026-07-22 署名）── Tabella A SETTEMBRE 2026（PILOTI – MEDIO RAGGIO／LUNGO RAGGIO）・組合 FAST が公開した写し',
+      url:         'https://sindacatofast.it/areacon/compartoaereo/sites/default/files/FAST%20-%20Accordo%202%C2%B0%20Livello%20-%2022.07.2026%20-%20fir_compresse%20d%20%281%29.pdf',
+      published_at:'2026-07-23',
+      accessed_at: '2026-10-25',
+      value_orig:  'Tabella A（同じ職務で12か月以上）・列見出し「Stip.Base x 14 mens」「I.V.M.G. x 14 mens」（月額・年14回）。'
+                 + 'PILOTI – MEDIO RAGGIO 年次13: 1.174,45 ＋ 4.004,22 ／ PILOTI – LUNGO RAGGIO 年次0: 912,42 ＋ 2.753,72・年次27: 1.580,80 ＋ 5.647,23（€）。'
+                 + 'I.V.M.G. は月30時間ぶんの乗務手当を含む最低保証の飛行手当。',
+      quote:       'SETTEMBRE 2026 PILOTI - MEDIO RAGGIO … Stip.Base x 14 mens | I.V.M.G. x 14 mens … 13 | 1.174,45 | 4.004,22',
+      status:      'in_use',
+      note:        '★ fo.avg（1,350万）＝（€1,174.45 ＋ €4,004.22）× 14 ＝ €72,501.38 × 185.69 ＝ 約1,346万円（年次0〜27のまんなか・中距離）。'
+                 + '★ fo.hi（1,880万）＝ 長距離 年次27（€1,580.80 ＋ €5,647.23）× 14 ＝ €101,192.42 ＝ 約1,879万円。'
+                 + '月額×14 は、表の列見出しが支払回数（x 14 mens）を書いているから（オーナーの質問5の答え＝②）。'
+                 + '入れていないもの＝月30時間を超える乗務手当（IVO・時間の資料が無い）・日当・退職積立（TFR）・会社年金・一時金＝下限寄り。'
+                 + 'fo.lo（780万）は前の値のまま（表の下端 長距離 年次0 €51,325.96＝約953万はその上）。'
+                 + '機長は同じ作り方だと 2,150→1,960万に下がるので動かしていない。'
+                 + '⚠️ 写しはスキャンした画像の PDF で文字の層が無い。2026-10-25 にページの画像を目で読んで値を確かめた。',
+    },
+  ],
+  'norwegian': [
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'BOE-A-2024-24738 II Convenio colectivo de pilotos de Norwegian Air Resources Spain SL ── Anexo C 1.02 ＋ Tabla C.1（2025年の基本月給）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2024-24738',
+      published_at:'2024-11-27',
+      accessed_at: '2026-10-25',
+      value_orig:  'Tabla C.1 Salario base mensual 2025（€・特別給2回の按分を含む）: CPT level 1 8.784,34 ／ level 5 9.928,67 ／ level 10 11.529,58。'
+                 + 'Anexo C 1.02: 年間基本給を12回に按分して払い、特別給2回を含む。',
+      quote:       '1.02 Pagas extraordinarias: El salario base anual se abonará prorrateado en doce mensualidades incluyéndose las dos (2) pagas extraordinarias.',
+      status:      'in_use',
+      note:        '★ cap.avg（2,210万）＝ level 5（1〜10のまんなか）€9,928.67 × 12 ＝ €119,144.04 × 185.69 ＝ 約2,212万円。'
+                 + '月額×12 は、協約 1.02 が「年額を12回に按分（特別給2回を含む）」と書いているから（質問5＝②）。表の行は「5 | CPT | 9.734,33 | 9.928,67」（2024年・2025年）。'
+                 + '入れていないもの＝乗務時間あたりの変動給（BLH）・毎月の定額の手当・会社の年金拠出（月か年かの記載なし）・2026年の物価改定（前年の物価で1〜3%）＝下限寄り。'
+                 + 'cap.lo（1,430万）・cap.hi（2,700万）は前の値のまま（表の端 level 1＝約1,957万／level 10＝約2,569万はその中）。'
+                 + 'スペイン法人 Norwegian Air Resources Spain SL の操縦士だけ・2025年の表。'
+                 + '2026-10-24 までの SALARY（avg 2,000万）は出所の記録が無かった。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'BOE-A-2024-24738 II Convenio colectivo de pilotos de Norwegian Air Resources Spain SL ── Anexo C 1.02 ＋ Tabla C.1（2025年の基本月給）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2024-24738',
+      published_at:'2024-11-27',
+      accessed_at: '2026-10-25',
+      value_orig:  'Tabla C.1 Salario base mensual 2025: FO level 1 3.570,65 ／ level 5 5.080,48 ／ level 10 5.631,08（€・特別給の按分を含む）。',
+      quote:       '5 | FO | 4.981,19 | 5.080,48',
+      status:      'in_use',
+      note:        '★ fo.avg（1,130万）＝ level 5 €5,080.48 × 12 ＝ €60,965.76 × 185.69 ＝ 約1,132万円（12回は機長の行と同じ 1.02 の条文）。'
+                 + '変動給・手当・年金拠出・2026年の改定は入れていない＝下限寄り。'
+                 + 'fo.lo（720万）・fo.hi（1,650万）は前の値のまま（表の端 level 1＝約796万／level 10＝約1,255万はその中）。'
+                 + '2026-10-24 までの SALARY（avg 1,100万）は出所の記録が無かった。',
+    },
+  ],
+
+  // ── オセアニア ────────────────────────────────────────────────────
+  'qantas': [
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'Qantas Airways Limited Pilots (Short Haul) Enterprise Agreement 2024（AE528955・Fair Work Commission 承認の原本）── cl 27.3.3',
+      url:         'https://www.fwc.gov.au/documents/agreements/approved/ae528955.pdf',
+      published_at:'2025-05-09',
+      accessed_at: '2026-10-25',
+      value_orig:  'cl 27.3.3 副操縦士の年額給与（1/09/2026 から・豪ドル）: Year 1 $178,532.46 ／ Year 2 $183,357.65 ／ Year 3 $188,182.84 ／ '
+                 + 'Year 4 $193,008.09 ／ Year 5 $197,833.29。',
+      quote:       '27.3.3 The annual salaries for First Officers at each year and rank level under this Agreement will be as set out in the following table … '
+                 + '1 /09/ 2026 $178,532.46 $183,357.65 $188,182.84 $193,008.09 $197,833.29',
+      status:      'in_use',
+      note:        '★ fo.avg（2,140万）＝ Year 3（1〜5年のまんなか）AUD 188,182.84 × 113.88 ＝ 約2,143万円。'
+                 + '入れていないもの＝会社の superannuation（27.8.5 は「法定の率以上」とだけ書き、率が無い）・保証の時間を超えた乗務の分・手当＝下限寄り。'
+                 + '短距離（B737/A320 系）の協約だけ（長距離の協約は今回の資料に無い）。年次は副操縦士として路線に出てからの年数。'
+                 + 'fo.lo（1,660万）・fo.hi（3,120万）は前の値のまま。'
+                 + '機長は同じ協約だけだと 3,700→3,250万に下がるので動かしていない。',
+    },
+  ],
+  'jetstar': [
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'Jetstar Airways Pilots Enterprise Agreement 2026（AE533389・Fair Work Commission 承認の原本）── Table 1 Narrow Body Captain／Table 3 Wide Body Captain',
+      url:         'https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf',
+      published_at:'2026-07-15',
+      accessed_at: '2026-10-25',
+      value_orig:  'Base Salary（年額・01-Jul-26 の欄）: Table 1 Narrow Body Captain Level 1 $264,335 ／ Level 2 $272,265 ／ Level 3 $280,433 ／ Level 4 $280,433。'
+                 + 'Table 3 Wide Body Captain Level 1 $301,341 ／ Level 2 $310,382 ／ Level 3・4 $319,296。表の記号は $（豪州の協約＝豪ドルと読んだ）。',
+      quote:       'The first Base Salary rates of this Agreement, as contained in Tables 1 to 5 below, will take effect from 1 July 2026. … '
+                 + 'Table 1 – Narrow Body Captain … 01 - Jul - 26 $264,335 $272,265 $280,433 $280,433',
+      status:      'in_use',
+      note:        '★ cap.avg（3,100万）＝ 狭胴機長 Level 2（機長として2〜4年目）AUD 272,265 × 113.88 ＝ 約3,101万円。'
+                 + '★ cap.lo（3,010万）＝ 狭胴 Level 1（約3,010万）／cap.hi（3,640万）＝ 広胴 Level 3・4（約3,636万）。'
+                 + '数えたもの＝年額の Base Salary（41.1.5：休暇手当の加算などの伝統的な手当を組み込んだ額）。'
+                 + '入れていないもの＝41.8 の手当・EFA・会社の superannuation（率の資料が無い）＝下限寄り。'
+                 + '既存のパイロットは移行の特則があり、年数だけで Level は決まらない。'
+                 + '2026-10-24 までの SALARY（avg 2,400万）は出所の記録が無かった。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'Jetstar Airways Pilots Enterprise Agreement 2026（AE533389・Fair Work Commission 承認の原本）── Table 2 Narrow Body First Officer／Table 4 Wide Body First Officer',
+      url:         'https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf',
+      published_at:'2026-07-15',
+      accessed_at: '2026-10-25',
+      value_orig:  'Base Salary（年額・01-Jul-26 の欄）: Table 2 Narrow Body First Officer Level 1 $147,234 ／ Level 2 $158,601 ／ Level 3 $171,818 ／ Level 4 $171,818。'
+                 + 'Table 4 Wide Body First Officer Level 2 $180,805 ／ Level 3・4 $195,873。',
+      quote:       'Table 2 – Narrow Body First Officer … 01 - Jul - 26 $147,234 $158,601 $171,818 $171,818',
+      status:      'in_use',
+      note:        '★ fo.avg（1,810万）＝ 狭胴副操縦士 Level 2 AUD 158,601 × 113.88 ＝ 約1,806万円。'
+                 + '★ fo.lo（1,680万）＝ 狭胴 Level 1（約1,677万）／fo.hi（2,230万）＝ 広胴 Level 3・4（約2,231万）。'
+                 + '年額の Base Salary だけ（手当・superannuation は入れていない）＝下限寄り。'
+                 + '2026-10-24 までの SALARY（avg 1,350万）は出所の記録が無かった。',
     },
   ],
 

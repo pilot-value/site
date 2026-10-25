@@ -118,6 +118,18 @@ grep -rn "2,700万" airlines/*.html index.html world-airlines.html
 `gen-en-manifest.mjs` → `seo-normalize.mjs` を必ず続ける（流さないと左メニューが消える・英語の金額が円に戻る）。
 レンジ（`lo` / `hi`）が動いたら、共有用の画像も `node gen-og-images.mjs a-<slug>`（国なら `c-<国コード>`）で作り直す。
 
+**2026-10-25（9社をまとめて直した回）に分かったこと**：
+- 会社ページは今は大半が生成物。`gen-airline-glance.mjs`（上の塊・日英）→ `gen-faq.mjs`（FAQ と FAQPage。英語は本文の問から組み直す）
+  → `bake-en-currency.mjs` → `seo-normalize.mjs`（題名・説明・英語の Article）の順で、ほかのページは1文字も変わらない
+  （使い捨ての写しで確かめた）。`gen-faq.mjs` の「107枚に追加」の表示は毎回出る ── 焼き直したあとに差分が残るのは直した会社だけ。
+- それでも手で直すもの：日本語の Article の `headline`/`description` と `PV-SRC`（日英）、英語の FAQ の「captain / first officer pay is estimated at about …」の2問、
+  英語の会社ページの比較表の行（セルの書き方が3種類ある・社名が短い形〈"Jetstar Airways"〉の行もある）、
+  `airlines/gaishi-vs-nikkei.html`（日英。**表は推定の高い順** ── 行の位置ごと動かす）、`pilot-salary-guide.html` の地域の行（並べた3社の lo 最小〜hi 最大）、`airlines-meta.js`。
+- 1社の `avg` が動くと「世界112社の平均」が動き、**国別・地域の全118枚**が変わる（`gen-countries.mjs` の連鎖で直す）。OG 画像は `default`（中東の機長＝エミレーツ）と、
+  機長の `avg` が動いた国の `c-` も焼き直す（画像には平均も出ている）。`a-jetstar` は `a-jetstar-japan` にも当たるので `a-jetstar-ja.jpg` のように絞る。
+- STALE に入れる旧値が、新しい値や他社の額と同じ字になることがある（ジェットスター航空の旧 hi 3,100万＝新 avg・イージージェットの旧 2,700万＝ANA・JAL）。
+  入れたあと、HEAD のページなら引っかかり・いまのページは引っかからないことを確かめる。
+
 置換後、取りこぼしゼロを確認：
 ```bash
 grep -rn "2,700万" airlines/*.html index.html world-airlines.html   # 0件になるはず
