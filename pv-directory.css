@@ -73,18 +73,6 @@
 #lvl-wa-tip.wd-calm{display:none}
 @media (pointer:coarse){.wd-scope,.wd-clear,.wd-else-b{min-height:44px}}
 @media (prefers-reduced-motion:reduce){.wd-scope,.wd-clear,.wd-else-b{transition:none}}
-/* PV-DIR-STRIP ── 地域ボタンの見た目（DH から directory-map の DM3 まで。DM3 はこの印の中を丸ごと消して自分の持ち場で書く） */
-#region-strip .rstrip-n{font-size:.68rem;opacity:.65}
-#region-strip .rstrip-btn[aria-pressed="true"]{color:var(--rc);border-color:var(--rc);border-color:color-mix(in srgb,var(--rc) 33%,transparent);background:color-mix(in srgb,var(--rc) 9%,transparent)}
-/* 明るい画面では地域の色そのままの字が白地に溶ける（黄色の「すべて」「中南米」「中東」）。字だけ文字色へ半分寄せて読めるように */
-[data-theme="light"] #region-strip .rstrip-btn[aria-pressed="true"]{color:color-mix(in srgb,var(--rc) 50%,var(--pv-ink))}
-#region-strip .rstrip-btn:hover{transform:translateY(-1px)}
-#region-strip .rstrip-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
-#region-strip .rstrip-btn:active{transform:scale(.97)}
-@media (max-width:820px){#region-strip{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}#region-strip::-webkit-scrollbar{display:none}#region-strip .rstrip-btn{flex:none;min-height:40px}}
-@media (pointer:coarse){#region-strip .rstrip-btn{min-height:44px}}
-@media (prefers-reduced-motion:reduce){#region-strip .rstrip-btn:hover,#region-strip .rstrip-btn:active{transform:none}}
-/* /PV-DIR-STRIP */
 /* 比べる印（足もとの段の右・44px の高さで押せる）と、印を付けた社の盆（画面の下に貼りつく）── WP-dd-7（DJ） */
 .wd-cmp{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-right:-8px;padding:0 8px;border-radius:var(--pv-r-sm);font-size:.78rem;font-weight:700;color:var(--pv-ink-2);cursor:pointer;user-select:none;transition:transform .18s var(--pv-ease)}
 .wd-cmp-i{width:18px;height:18px;margin:0;accent-color:var(--pv-accent)}
@@ -110,3 +98,151 @@
 @media (pointer:coarse){.wd-tray-list button,.wd-tray-two,.wd-tray-lvl{min-height:44px}}
 @media (prefers-reduced-motion:reduce){.wd-cmp,.wd-tray-list button,.wd-tray-two,.wd-tray-lvl{transition:none}}
 /* /PV-DIR-DATA */
+/* ── wam: 地図と地域のまとめ（directory-map の持ち場。地域のまとめの下の段 05b の規則は、この塊の後ろの自分の印の中）── */
+.wam{container-type:inline-size;container-name:wam;max-width:1280px;margin:0 auto var(--pv-s-2);padding:0 20px}
+/* 1枚の面（見本 sketch-v4 の地）：切り替え・地図・カードを載せる。広い画面は地図の右にカード（340px）・切り替えは面の右上、
+   700〜999px は地図の下にカード・切り替えは地図の右上、それより狭い画面は 切り替え → 地図 → カード（カードは選ぶか触れるまで閉じている） */
+.wam-g{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start;padding:12px;border:1px solid var(--pv-line);border-radius:var(--pv-r-lg);background:radial-gradient(120% 90% at 88% 0%,var(--pv-accent-soft) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,var(--pv-line-soft) 0%,transparent 60%),var(--pv-surface);box-shadow:0 1px 2px color-mix(in oklab,var(--pv-accent-dark) 7%,transparent),0 14px 36px -16px color-mix(in oklab,var(--pv-accent-dark) 22%,transparent)}
+[data-theme="dark"] .wam-g{box-shadow:var(--pv-shadow)}
+.wam-card{display:flex;flex-direction:column;gap:var(--pv-s-1);min-width:0;padding:12px 2px 0;border-top:1px solid var(--pv-line-soft);scroll-margin:86px 0 16px}
+/* 700〜999px：カードは地図の下・中は2列（額の行｜散らばり）── 横いっぱいに伸ばすと、札と額が 700px 離れる */
+@container wam (min-width:700px){
+  .wam-g{padding:14px 16px}
+  .wam-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px;align-content:start}
+  .wam-h,.wam-cond{grid-column:1 / -1}
+  .wam-panel .wam-sps{margin-top:0}
+}
+@container wam (min-width:1000px){
+  .wam-panel{display:block}
+  .wam-panel .wam-sps{margin-top:6px}
+  .wam-g{grid-template-columns:minmax(0,1fr) 340px;grid-template-areas:"map sw" "map card";gap:10px 32px;padding:20px 24px 20px 18px}
+  .wam-mc{grid-area:map;align-self:center}
+  .wam-card{grid-area:card;padding:0;border-top:0}
+}
+.wam-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,252px),1fr));gap:var(--pv-s-1) var(--pv-s-2);align-items:start;min-width:0}
+.wam-panels{display:grid;min-width:0}
+.wam-panel{grid-area:1 / 1;min-width:0;visibility:hidden}   /* 9枚を1つの升に重ねる＝カードの高さが入れ替わらない */
+.wam-panel.is-shown{visibility:visible}
+.wam-h{margin:0;font:800 18px/1.3 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.01em;color:var(--pv-ink)}
+.wam-k{margin:4px 0 0;font:700 11px/1.4 Inter,'Noto Sans JP',sans-serif;letter-spacing:.04em;color:var(--pv-blue-ink)}
+.wam-def{margin:2px 0 6px;font-size:12px;line-height:1.5;color:var(--pv-ink-3)}
+.wam-row{display:flex;align-items:baseline;justify-content:space-between;gap:var(--pv-s-1);margin:0;padding:2px 0}
+.wam-rk{min-width:0;font:600 13px/1.25 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-2)}
+.wam-n{font:700 17px/1.2 Inter,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--pv-ink-2);white-space:nowrap}
+/* 選んだ職位（区域の data-pos）の行を大きく・その職位の帯だけを見せる */
+.wam[data-pos="cap"] .wam-row[data-pos="cap"] .wam-rk,.wam[data-pos="fo"] .wam-row[data-pos="fo"] .wam-rk{font-weight:700;color:var(--pv-ink)}
+.wam[data-pos="cap"] .wam-row[data-pos="cap"] .wam-n,.wam[data-pos="fo"] .wam-row[data-pos="fo"] .wam-n{font-size:28px;font-weight:800;letter-spacing:-.03em;color:var(--pv-accent-ink)}
+/* 帯2本も1つの升に重ねる（職位を替えてもカードの高さが変わらない）。見せる1本は visibility:inherit ＝ 隠れたカードの中では隠れたまま */
+.wam-sps{display:grid;min-width:0;margin:6px 0 4px}
+.wam-sp{grid-area:1 / 1;min-width:0;visibility:hidden}
+.wam[data-pos="cap"] .wam-sp[data-pos="cap"],.wam[data-pos="fo"] .wam-sp[data-pos="fo"]{visibility:inherit}
+.wam-sp-rk{display:none;margin:8px 0 0;font:700 12px/1.3 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-2)}   /* 台本なしで帯が2本並ぶときだけ出る */
+/* 散らばりの帯（P12.101）：0 から始まる1本の目盛（右端は axisOf）・1,000万ごとの線・最低〜最高の帯・1社に1つの点・平均の印 */
+.wam-track{position:relative;display:block;height:12px;margin:10px 0 4px;border-radius:999px;background:linear-gradient(90deg,var(--pv-line) 1px,transparent 1px) 0 0/calc(100% / var(--wam-n,7)) 100% repeat-x,var(--pv-bg-sub)}
+.wam-track > i{position:absolute;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--pv-accent-ink);box-shadow:0 0 0 1.5px var(--pv-surface)}   /* 1社の点 */
+.wam-track > .wam-band{top:1px;bottom:1px;left:var(--a);width:calc(var(--b) - var(--a));min-width:2px;height:auto;margin:0;border-radius:999px;background:var(--pv-accent-line);box-shadow:none}
+.wam-track > .wam-mean{top:-4px;bottom:-4px;width:2px;height:auto;margin:0 0 0 -1px;border-radius:2px;background:var(--pv-ink);box-shadow:none}
+.wam-ax{display:flex;justify-content:space-between;margin:0;font:500 10px/1.4 Inter,sans-serif;font-variant-numeric:tabular-nums;color:var(--pv-ink-3)}
+.wam-mm{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--pv-s-2);margin-top:6px}
+.wam-lo,.wam-hi{display:flex;flex-direction:column;min-width:0}
+.wam-hi{align-items:flex-end;text-align:right}
+.wam-mm-k{font-size:11px;line-height:1.4;color:var(--pv-ink-3)}
+.wam-mm-v{font:800 15px/1.25 Inter,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em;color:var(--pv-ink);white-space:nowrap}
+.wam-who{margin:2px 0 0;padding:0;list-style:none;font-size:11.5px;line-height:1.45;color:var(--pv-ink-2)}
+.wam-who li{display:inline}
+.wam-who li + li::before{content:'・';color:var(--pv-ink-3)}
+.wam-w{display:flex;align-items:baseline;gap:6px;margin:8px 0 0;font-size:12px;line-height:1.4;color:var(--pv-ink-3)}
+.wam-w-v{font-weight:700;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.wam-cond > summary{display:inline-flex;align-items:center;gap:4px;min-height:32px;list-style:none;cursor:pointer;font:600 12px/1 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-2);transition:opacity .18s var(--pv-ease)}
+.wam-cond > summary::-webkit-details-marker{display:none}
+.wam-cond > summary::after{content:'';width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .18s var(--pv-ease)}
+.wam-cond[open] > summary::after{transform:translateY(1px) rotate(225deg)}
+.wam-cond > summary:hover{color:var(--pv-accent-ink)}
+.wam-cond > summary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:4px}
+.wam-cond > summary:active{opacity:.7}
+@media (pointer:coarse){.wam-cond > summary{min-height:44px}}
+.wam-cl{margin:4px 0 8px;font-size:12px;line-height:1.6;color:var(--pv-ink-2)}
+.wam-cl dt{margin-top:6px;font-weight:700;color:var(--pv-ink-3)}
+.wam-cl dd{margin:0}
+.wam-names{margin:0;padding:0;list-style:none}
+.wam-names li{display:inline}
+.wam-names li + li::before{content:'・';color:var(--pv-ink-3)}
+.wam-go{min-height:44px;padding:0 16px;border:1px solid var(--pv-accent-line);border-radius:var(--pv-r-sm);background:var(--pv-surface);color:var(--pv-accent-ink);font:700 14px/1 Inter,'Noto Sans JP',sans-serif;cursor:pointer;transition:transform .18s var(--pv-ease)}
+.wam-go:hover{background:var(--pv-accent-soft)}
+.wam-go:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wam-go:active{transform:scale(.98)}
+.wam-go.is-off{display:none}
+@media not all and (any-pointer:coarse){.wam-go{display:none}}
+@container wam (max-width:699px){.wam[data-rest="none"]:not(.is-open) .wam-card{display:none}}
+@media (prefers-reduced-motion:reduce){.wam-go,.wam-cond > summary,.wam-cond > summary::after{transition:none}}
+/* 「機長｜副操縦士」の切り替え（P12.100）── hidden で出荷し、台本が動いたときだけ見せる。押した方（aria-pressed）が区域の data-pos を決める。
+   面の先頭の子（地図の上の1行）。区域が 700px 以上は面の右上に重ねる（見せても何もずれない）・1000px 以上は面の右上の升（カードの上）。
+   ダークでは押した方を緑の面と縁で塗る（字の色だけの違いにしない ── リード P12.112） */
+.wam-card{position:relative}
+.wam-pos{display:inline-flex;align-self:start;justify-self:start;gap:2px;padding:3px;border-radius:999px;background:var(--pv-bg-sub);box-shadow:inset 0 0 0 1px var(--pv-line)}
+.wam-pos[hidden]{display:none}
+.wam-pb{min-height:32px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--pv-ink-2);font:600 12.5px/1 Inter,'Noto Sans JP',sans-serif;white-space:nowrap;cursor:pointer;transition:transform .18s var(--pv-ease)}
+.wam-pb:hover{color:var(--pv-ink)}
+.wam-pb:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.wam-pb:active{transform:scale(.97)}
+.wam-pb[aria-pressed="true"]{background:var(--pv-surface);color:var(--pv-accent-ink);box-shadow:var(--pv-shadow)}
+[data-theme="dark"] .wam-pb[aria-pressed="true"]{background:var(--pv-accent-soft);box-shadow:inset 0 0 0 1px var(--pv-accent-line)}
+@media (pointer:coarse){.wam-pb{min-height:44px}}
+@media (prefers-reduced-motion:reduce){.wam-pb{transition:none}.wam-pb:active{transform:none}}
+@container wam (min-width:700px){.wam-pos{position:absolute;top:14px;right:14px;z-index:1}}
+@container wam (min-width:1000px){.wam-pos{position:static;grid-area:sw;justify-self:end}}
+/* 地域の9つのボタン（DM3）── 見た目はここ1か所（NEED-10）。押した見た目は [aria-pressed="true"] だけ。820px までは下の規則が1本の横にすべる列にする */
+#region-strip{display:flex;gap:var(--pv-s-1);margin:0 0 var(--pv-s-2)}
+@media (min-width:821px){#region-strip{flex-wrap:wrap}}
+#region-strip .rstrip-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--pv-line);border-radius:999px;background:var(--pv-surface);color:var(--pv-ink-2);font:600 13px/1 Inter,'Noto Sans JP',sans-serif;white-space:nowrap;cursor:pointer;transition:transform .18s var(--pv-ease)}
+#region-strip .rstrip-n{font-weight:500;font-size:12px;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+#region-strip .rstrip-btn:hover,#region-strip .rstrip-btn.is-hot{border-color:var(--pv-accent-line);background:var(--pv-accent-soft);color:var(--pv-ink)}
+#region-strip .rstrip-btn:hover{transform:translateY(-1px)}
+#region-strip .rstrip-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+#region-strip .rstrip-btn:active{transform:scale(.97)}
+#region-strip .rstrip-btn[aria-pressed="true"]{border-color:var(--pv-accent-dark);background:var(--pv-accent-dark);color:#fff}
+#region-strip .rstrip-btn[aria-pressed="true"] .rstrip-n{color:#fff;opacity:.8}
+@media (max-width:820px){#region-strip{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}#region-strip::-webkit-scrollbar{display:none}#region-strip .rstrip-btn{flex:none;min-height:40px}}
+@media (pointer:coarse){#region-strip .rstrip-btn{min-height:44px}}
+@media (prefers-reduced-motion:reduce){#region-strip .rstrip-btn{transition:none}#region-strip .rstrip-btn:hover,#region-strip .rstrip-btn:active{transform:none}}
+/* ── wam-map ── */
+/* 点で描く地図（P12.100・見本 sketch-v4）。色は pv-tokens.css だけ（ライトとダークの両方）：淡い緑 --wam-lo 〜 濃い緑 --wam-hi。
+   ダークでは高い方ほど明るい緑（--pv-teal）＝ 光って見える。光る層の色 --wam-glow（ダークはいちばん高い地域より明るくするため、
+   --pv-teal に文字の色 --pv-ink を少し混ぜる）・まわりの光の濃さ --wam-aura */
+.wam{--wam-lo:var(--pv-accent-line);--wam-hi:var(--pv-accent-dark);--wam-glow:var(--pv-accent);--wam-aura:.2}
+[data-theme="dark"] .wam{--wam-hi:var(--pv-teal);--wam-glow:color-mix(in oklab,var(--pv-teal) 72%,var(--pv-ink));--wam-aura:.18}
+.wam-mc{min-width:0}
+.wam-map{aspect-ratio:1000 / 440;scroll-margin-top:86px}
+.wam-svg{display:block;width:100%;height:100%;overflow:visible;-webkit-tap-highlight-color:transparent}
+/* 塗りの決まり（D10）：点の見た目は地域の <g> に付けて path が受け継ぐ。.wam-land を名指す規則で fill / stroke を決めない
+   （<use> の写しがそれを持ってしまい、光る層・当たりの層が自分の線を持てなくなる） */
+.wam-r{fill:none;stroke:var(--wam-hi);stroke:color-mix(in oklab,var(--wam-hi) calc(var(--t,.5) * 100%),var(--wam-lo));stroke-width:3.7;stroke-linecap:round;stroke-dasharray:0 5.2;pointer-events:none}
+.wam[data-pos="cap"] .wam-r{--t:var(--c)}
+.wam[data-pos="fo"] .wam-r{--t:var(--f)}
+.wam-nl{fill:none;stroke:var(--pv-ink-3);stroke-opacity:.22;stroke-width:3.1;stroke-linecap:round;stroke-dasharray:0 5.2;pointer-events:none}
+/* 当たり（点と点のあいだも答える太い透明な線）。日本の大きい丸は指のときだけ */
+.wam-hit{fill:transparent;stroke:none;pointer-events:all;cursor:pointer}
+.wam-hl use{fill:none;stroke:transparent;stroke-width:5.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:stroke}
+.wam-hl .wam-hit-n{cursor:auto}
+.wam-hit-t{pointer-events:none}
+@media (pointer:coarse){.wam-hit-t{pointer-events:all}}
+/* 光る層（P12.102）：指した・押した・選んだ地域の点が明るくなり、まわりがほのかに光る。動くのは opacity だけ */
+.wam-ol{pointer-events:none}
+.wam-halo,.wam-lit{fill:none;opacity:0;pointer-events:none;stroke-linecap:round;stroke-linejoin:round;transition:opacity .45s var(--pv-ease)}
+.wam-halo{stroke:var(--wam-glow);stroke-opacity:var(--wam-aura);stroke-width:11}
+.wam-lit{stroke:var(--wam-glow);stroke-width:4.3;stroke-dasharray:0 5.2}
+.wam-o.is-hot .wam-halo,.wam-o.is-hot .wam-lit{opacity:.8}
+.wam-svg:has(.wam-hit:active) .wam-o.is-hot .wam-lit{opacity:1}
+.wam-o.is-on .wam-halo,.wam-o.is-on .wam-lit{opacity:1}
+.wam-ring{fill:none;stroke:var(--pv-accent-ink);stroke-width:1;stroke-dasharray:2 3;opacity:.45;pointer-events:none;transition:opacity .45s var(--pv-ease)}
+.wam-o.is-hot .wam-ring,.wam-o.is-on .wam-ring{opacity:1}
+/* 地図の下の1行：一言（左）と凡例（右）。凡例は選んでいる職位の1本だけ（8地域の平均のいちばん低い所〜高い所） */
+.wam-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 16px;margin-top:6px}
+.wam-hint{margin:0;font:500 12px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-3)}
+.wam-key{display:none;align-items:center;gap:8px;margin:0 0 0 auto;font:600 11px/1.4 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--pv-ink-2)}
+.wam[data-pos="cap"] .wam-key[data-pos="cap"],.wam[data-pos="fo"] .wam-key[data-pos="fo"]{display:inline-flex}
+.wam-kb{display:block;flex:none;width:72px;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--wam-lo),var(--wam-hi));background:linear-gradient(in oklab 90deg,var(--wam-lo),var(--wam-hi))}
+@media (prefers-reduced-motion:reduce){.wam-halo,.wam-lit,.wam-ring{transition:none}}
+/* ── /wam-map ── */
+.wam-slot{display:none;min-width:0}
+/* ── /wam ── */

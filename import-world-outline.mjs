@@ -111,46 +111,6 @@ const LABEL_AT = {
 const JAPAN_MARK = { at: [138, 37], rHit: 40, rTouch: 63, rRing: 26 };
 /** 見本の絵の地域の名前（一覧のページの名前のまま ── いまは directory-model.mjs の REGIONS が持つ。WP-dd-2 が REGION_CFG から移した）。--sketch だけ */
 const SKETCH_NAMES = { us: '北米', latam: '中南米', europe: '欧州', africa: 'アフリカ', mideast: '中東', asia: 'アジア', japan: '日本', oceania: 'オセアニア' };
-/** 地図の見た目（E8 の「map」の部分・P12.89 の緑の段・外枠・凡例・名前の札）。--sketch だけが使う。
-    DM5a でこのまま pv-directory.css の wam-map の印の間へ移し、この定数は消す（そのあとの --sketch はそちらを読む）。
-    ★ 塗りの決まり（D10）：段は地域の <g> に付けて path が受け継ぐ。.wam-land を名指す規則で fill / fill-opacity / stroke を決めない
-      （<use> の写しがそれを持ってしまい、外枠にならない）。 */
-const MAP_CSS = `/* ── wam-map ── */
-.wam-map{position:relative;container-type:inline-size;container-name:wam-map;aspect-ratio:1000 / 440;overflow:hidden;border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-bg-sub);scroll-margin-top:86px}
-.wam-svg{display:block;width:100%;height:100%}
-.wam-r{stroke:var(--pv-surface);stroke-width:1;cursor:pointer}
-.wam-t0{fill:var(--pv-accent-ink);fill-opacity:.30}
-.wam-t1{fill:var(--pv-accent-ink);fill-opacity:.40}
-.wam-t2{fill:var(--pv-accent-ink);fill-opacity:.50}
-.wam-t3{fill:var(--pv-accent-ink);fill-opacity:.60}
-.wam-t4{fill:var(--pv-accent-ink);fill-opacity:.70}
-.wam-t5{fill:var(--pv-accent-ink);fill-opacity:.80}
-.wam-t6{fill:var(--pv-accent-ink);fill-opacity:.90}
-.wam-nl{fill:var(--pv-ink-3);fill-opacity:.30;stroke:var(--pv-surface);stroke-width:1;vector-effect:non-scaling-stroke}
-.wam-land,.wam-lit{vector-effect:non-scaling-stroke}
-.wam-hit{fill:transparent;stroke:none;pointer-events:all;cursor:pointer}
-.wam-hit-t{pointer-events:none}
-@media (pointer:coarse){.wam-hit-t{pointer-events:all}}
-.wam-ol{pointer-events:none}
-.wam-halo,.wam-lit{fill:none;opacity:0;pointer-events:none;stroke-linejoin:round;vector-effect:non-scaling-stroke;transition:opacity .18s var(--pv-ease)}
-.wam-halo{stroke:var(--pv-surface);stroke-width:4}
-.wam-lit{stroke:var(--pv-ink);stroke-width:2}
-.wam-o.is-hot .wam-halo,.wam-o.is-hot .wam-lit{opacity:.6}
-.wam-svg:has(.wam-r:active) .wam-o.is-hot .wam-lit{opacity:.8}
-.wam-o.is-on .wam-halo,.wam-o.is-on .wam-lit{opacity:1}
-.wam-ring{fill:none;stroke:var(--pv-ink);stroke-width:2;vector-effect:non-scaling-stroke;opacity:0;pointer-events:none;transition:opacity .18s var(--pv-ease)}
-.wam-o.is-hot .wam-ring,.wam-o.is-on .wam-ring{opacity:1}
-.wam-lbl{position:absolute;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;text-align:center;font:700 12px/1.15 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink);background:var(--pv-surface);padding:1px 4px;border-radius:4px}
-.wam-lbl-l{transform:translate(0,-50%);text-align:left}
-@container wam-map (max-width:479px){.wam-lbl{font-size:11px}}
-@container wam-map (max-width:299px){.wam-lbl{font-size:10px;line-height:1.05}}
-.wam-mc{min-width:0}
-.wam-key{display:flex;align-items:center;gap:6px;margin:6px 0 0;font:600 11px/1.4 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-2)}
-.wam-sw{display:block;flex:none;width:70px;height:10px;border-radius:2px;overflow:hidden;background:var(--pv-bg-sub)}
-@container wam (min-width:700px){.wam-g{grid-template-columns:minmax(0,min(56%,520px)) minmax(0,1fr)}}
-@container wam (min-width:790px){.wam-g{grid-template-columns:minmax(0,520px) minmax(554px,1fr)}}
-@media (prefers-reduced-motion:reduce){.wam-halo,.wam-lit,.wam-ring{transition:none}}
-/* ── /wam-map ── */`;
 
 /** 塗る順（あとのものが上）。neutral は先に1本の path で描く */
 const REGIONS = ['us', 'latam', 'europe', 'africa', 'mideast', 'asia', 'oceania', 'japan'];
@@ -345,34 +305,15 @@ const LABELS = Object.fromEntries(REGIONS.map(r => {
 }));
 const [JX, JY] = project(...JAPAN_MARK.at);
 
-/* ── 見本の絵の段：地域ごとの機長の推定年収の平均（万円・10万円で丸める）と、0〜AX の共通の目盛 ── */
-// 見本の絵だけ。ページの段は mapSection が regionMean から作り、M20 が見張る
-const capsOf = r => Object.values(SALARY).filter(s => s.region === r).map(s => s.cap.avg);
-const MEAN = Object.fromEntries(REGIONS.map(r => [r, Math.round(capsOf(r).reduce((a, b) => a + b, 0) / capsOf(r).length / 10) * 10]));
-const AX = Math.ceil(Math.max(...Object.values(SALARY).flatMap(s => [s.cap.avg, s.fo.avg])) / 1000) * 1000;
-
-/* ── 色の段の表（pv-tokens.css の値から計算・ライトとダーク）── */
-const TOK = fs.readFileSync(path.join(ROOT, 'pv-tokens.css'), 'utf8');
-const block = (open) => { const i = TOK.indexOf(open); if (i < 0) die(`pv-tokens.css に ${open} が無い`); return TOK.slice(i, TOK.indexOf('}', i)); };
-const tok = (blk, name) => { const m = blk.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`)); return m ? m[1] : null; };
-const LIGHT = block(':root{'), DARK = block('[data-theme="dark"]{');
-const THEME = {
-  light: { ink: tok(LIGHT, '--pv-accent-ink'), sea: tok(LIGHT, '--pv-bg-sub'), grey: tok(LIGHT, '--pv-ink-3') },
-  dark: { ink: tok(DARK, '--pv-accent-ink') ?? tok(LIGHT, '--pv-accent-ink'), sea: tok(DARK, '--pv-bg-sub'), grey: tok(DARK, '--pv-ink-3') },
-};
-for (const [th, T] of Object.entries(THEME)) for (const [k, v] of Object.entries(T)) if (!v) die(`pv-tokens.css の ${th} に色 ${k} が読めない`);
-
-/* 見本の絵の作業の行（数字はここで作る・手で打たない）。段 k ＝ min(AX/1000 − 1, floor(平均 / 1000))。--sketch は toneOf() で作り直して突き合わせる */
-const TONE = Object.fromEntries(REGIONS.map(r => [r, Math.min(AX / 1000 - 1, Math.floor(MEAN[r] / 1000))]));
-const ORDER_JA = ['japan', 'asia', 'mideast', 'africa', 'europe', 'us', 'oceania', 'latam'];   // 一覧の地域の並び（順位ではない）
-const band = k => (k === 0 ? '1,000万円未満' : `${(k * 1000).toLocaleString('en-US')}万円台`);
-const LINE = `段は1,000万円ごと（0〜${AX.toLocaleString('en-US')}万円の共通の目盛）。いま ${[...new Set(Object.values(TONE))].sort((a, b) => a - b)
-  .map(k => `${band(k)}＝${ORDER_JA.filter(r => TONE[r] === k).map(r => SKETCH_NAMES[r]).join('・')}`).join('／')}。`;
-const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-const hex = c => `#${c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
-const over = (fg, bg, a) => rgb(fg).map((v, i) => v * a + rgb(bg)[i] * (1 - a));
-const lum = c => { const l = c.map(v => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
-const ratio = (c1, c2) => { const a = lum(c1), b = lum(c2); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
+/* ── 見本の絵の濃さ：地域ごとの推定年収の平均（万円・10万円で丸める）。濃さ ＝ 8地域の平均のいちばん低い所 0 〜 高い所 1（P12.99・P12.100）── */
+// 見本の絵と下の表だけ。ページの濃さは mapSection が regionMean から作り、M20 が見張る。色は pv-directory.css の地図の塊（D25）
+const payMean = (r, k) => { const v = Object.values(SALARY).filter(s => s.region === r).map(s => s[k].avg); return Math.round(v.reduce((a, b) => a + b, 0) / v.length / 10) * 10; };
+const MEAN = Object.fromEntries(['cap', 'fo'].map(k => [k, Object.fromEntries(REGIONS.map(r => [r, payMean(r, k)]))]));
+const SPAN = Object.fromEntries(['cap', 'fo'].map(k => [k, [Math.min(...Object.values(MEAN[k])), Math.max(...Object.values(MEAN[k]))]]));
+const tOf = (k, r) => Math.round(((MEAN[k][r] - SPAN[k][0]) / (SPAN[k][1] - SPAN[k][0])) * 100) / 100;
+const yenOf = m => `¥${m.toLocaleString('en-US')}万`;
+/* 見本の絵の作業の行（数字はここで作る・手で打たない）。--sketch は toneOf() で作り直して突き合わせる */
+const LINE = `濃さは8地域の平均のいちばん低い所〜高い所の間で連続（機長 ${yenOf(SPAN.cap[0])}〜${yenOf(SPAN.cap[1])}・副操縦士 ${yenOf(SPAN.fo[0])}〜${yenOf(SPAN.fo[1])}）。`;
 
 /* ── COLOR_AT から、その地域の形の縁までの距離（箱の単位）と、形の中に在るか ── */
 const segDist = (px, py, [ax, ay], [bx, by]) => {
@@ -406,18 +347,8 @@ console.log(`離れた片（大きな片から ${FAR} 度より遠い）: ${farP
 for (const q of farParts) console.log(`   ${q.who} (${q.lon}, ${q.lat}) → ${q.reg}：${q.fate ?? '★扱いが決まっていない'}`);
 console.log(`180度の線で落とした片（規則6）: ${dropped180.join(' / ') || 'なし'}`);
 console.log(`\n重さ: 9つの形で ${TOTAL.toLocaleString('en-US')} バイト（上限 ${CEIL.toLocaleString('en-US')}）`);
-console.log(`\n色の段（緑 --pv-accent-ink を、海 --pv-bg-sub の上に 0.30 + 0.10 × 段 の濃さで）・目盛は 0〜${AX.toLocaleString('en-US')}万円・${AX / 1000} 段`);
-for (const th of ['light', 'dark']) {
-  const T = THEME[th];
-  console.log(`  ${th}：緑 ${T.ink}・海 ${T.sea}`);
-  for (let k = 0; k < AX / 1000; k++) {
-    const c = over(T.ink, T.sea, 0.30 + 0.10 * k);
-    const who = REGIONS.filter(r => Math.min(AX / 1000 - 1, Math.floor(MEAN[r] / 1000)) === k).map(r => `${SKETCH_NAMES[r]} ${MEAN[r].toLocaleString('en-US')}`);
-    console.log(`    段 ${k}（${(0.30 + 0.10 * k).toFixed(2)}）${hex(c)}・海との差 ${ratio(c, rgb(T.sea)).toFixed(2)} : 1${who.length ? '・' + who.join(' / ') : ''}`);
-  }
-  const g = over(T.grey, T.sea, 0.30);
-  console.log(`    どこにも入れない陸地（--pv-ink-3 を 0.30）${hex(g)}・海との差 ${ratio(g, rgb(T.sea)).toFixed(2)} : 1`);
-}
+console.log('\n緑の濃さ（淡い --pv-accent-line → 濃い --pv-accent-dark・ダークは --pv-teal。8地域の平均のいちばん低い所 0 〜 高い所 1）');
+for (const k of ['cap', 'fo']) console.log(`  ${k === 'cap' ? '機長' : '副操縦士'}：${REGIONS.map(r => `${SKETCH_NAMES[r]} ${MEAN[k][r].toLocaleString('en-US')}→${tOf(k, r)}`).join(' / ')}`);
 console.log(`\n見本の作業の行: ${LINE}`);
 console.log('\nCOLOR_AT（色を読む点）から、その地域の形の縁までの距離（箱の単位）:');
 for (const r of REGIONS) {
@@ -477,23 +408,24 @@ else { fs.writeFileSync(OUT, TEXT); console.log(`\n✓ world-outline.mjs を書�
 /* ── 10 見本の絵（--sketch）：地図の部品は directory-map.mjs の mapBox() をそのまま呼ぶ ── */
 if (SKETCH) {
   const { mapBox, toneOf } = await import(pathToFileURL(path.join(ROOT, 'directory-map.mjs')).href);
-  const tones = Object.fromEntries(REGIONS.map(r => [r, toneOf(MEAN[r], AX)]));
-  for (const r of REGIONS) if (tones[r] !== TONE[r]) die(`toneOf() と作業の行の段が違う（${r}: ${tones[r]} / ${TONE[r]}）`);
-  const KEY = '濃いほど機長の推定年収が高い';
+  const tones = Object.fromEntries(REGIONS.map(r => [r, { c: toneOf(MEAN.cap[r], ...SPAN.cap), f: toneOf(MEAN.fo[r], ...SPAN.fo) }]));
+  for (const r of REGIONS) if (tones[r].c !== tOf('cap', r) || tones[r].f !== tOf('fo', r)) die(`toneOf() と表の濃さが違う（${r}）`);
+  const legend = { cap: SPAN.cap.map(yenOf), fo: SPAN.fo.map(yenOf) };
   const NS_JA = [['HK', '香港'], ['SG', 'シンガポール'], ['MT', 'マルタ'], ['BH', 'バーレーン']];
   const noShape = [...NS_JA.filter(([c]) => NO_SHAPE.includes(c)).map(([, n]) => n), ...NO_SHAPE.filter(c => !NS_JA.some(([k]) => k === c))].join('・');
-  const box = (o) => mapBox({ names: SKETCH_NAMES, tones, key: KEY, id: null, ...o });
+  const box = (o, pos = 'cap') => `<div class="wam" data-pos="${pos}" style="padding:0">${mapBox({ tones, legend, hint: '地図をクリックして地域を選択', id: null, ...o })}</div>`;
   const html = `<!doctype html>
 <html lang="ja" data-theme="light"><head><meta charset="utf-8"><title>wam sketch</title>
 <link rel="stylesheet" href="../pv-tokens.css">
+<link rel="stylesheet" href="../pv-directory.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
 <style>
 body{margin:0;padding:32px 40px;background:var(--pv-bg);color:var(--pv-ink);font-family:Inter,'Noto Sans JP',sans-serif}
 .sk{margin:0 0 40px}.sk-t{margin:0 0 8px;font-size:14px;font-weight:700}.sk-p{margin:4px 0;font-size:13px;line-height:1.7}
 .sk-1{width:1200px}.sk-2{width:520px}.sk-3{width:350px}.sk-4{width:241px}
-${MAP_CSS}
 </style></head><body>
 <div class="sk sk-1"><p class="sk-t">1 地域の分け方と色（緑が濃いほど、その地域の機長の推定年収の平均が高い。灰色＝どの地域にも入れない陸地）</p>${box({ uid: '-1' })}</div>
+<div class="sk sk-1"><p class="sk-t">1b 副操縦士で塗った同じ地図</p>${box({ uid: '-1b' }, 'fo')}</div>
 <div class="sk sk-2"><p class="sk-t">2 画面での見た目（PC・幅520px）── 欧州＝選んだ地域、日本＝指している地域</p>${box({ on: 'europe', hot: 'japan', uid: '-2' })}</div>
 <div data-theme="dark" style="background:var(--pv-bg);color:var(--pv-ink);padding:16px;margin:0 0 40px;width:fit-content"><div class="sk-2"><p class="sk-t">2b 同じ地図・暗い表示</p>${box({ on: 'europe', hot: 'japan', uid: '-2b' })}</div></div>
 <div class="sk sk-3"><p class="sk-t">3 スマホでの大きさ（幅350px）</p>${box({ on: 'europe', hot: 'japan', uid: '-3' })}</div>
