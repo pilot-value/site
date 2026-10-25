@@ -1127,12 +1127,15 @@ function secM(I) {
     ここに打った字が正（書き換えに対する杭） */
 const MAP_WORD = {
   ja: { k: '公開情報からの推定', def: '掲載{N}社の推定年収の平均', cond: '条件/出典', dt: ['対象', '対象掲載社数', '換算'], go: 'この地域の航空会社を見る',
-        lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社', group: '職位', hint: '地図をクリックして地域を選択' },
+        lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社', group: '職位', hint: '地図をクリックして地域を選択',
+        zoom: { in: '拡大', out: '縮小', reset: '元に戻す', fs: '全画面', close: '閉じる', touch: '2本の指で動かせます' } },
   en: { k: 'Estimate from public information', def: 'Mean of our estimates across {N} airlines', cond: 'Conditions / Sources',
         dt: ['Airlines included', 'Number of airlines', 'Conversion'], go: 'View airlines in this region',
-        lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}', group: 'Rank', hint: 'Click the map to choose a region' },
+        lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}', group: 'Rank', hint: 'Click the map to choose a region',
+        zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', fs: 'Full screen', close: 'Close', touch: 'Use two fingers to move the map' } },
 };
-/* group ＝「機長｜副操縦士」の組の読み上げの名前（リード P12.112）。hint ＝ 地図の下の一言（いまの一覧の字のまま・directory-data WP-dd-9 の字） */
+/* group ＝「機長｜副操縦士」の組の読み上げの名前（リード P12.112）。hint ＝ 地図の下の一言（いまの一覧の字のまま・directory-data WP-dd-9 の字）。
+   zoom ＝ 動かせる地図（WP-dmap-9）のボタンの字と指の一言（シートの WP-dmap-9 の wording の字。ほかの字を足さない） */
 /** 散らばりの帯の目盛の刻み（P12.104「次の 1,000万の刻みへ」。会社ページの SCALE_STEP と同じであること） */
 const MAP_STEP = 1000;
 /** 帯の目盛の右端（職位ごと）＝ 帯が描く額（掲載全社の推定 avg）のいちばん大きいものを次の刻みへ。幅の上の額（hi）は帯に描かないので数えない（リード P12.109） */
@@ -1269,6 +1272,13 @@ function secMcard(I) {
     /* 地図の下の一言（いまの一覧の字のまま・WP-dd-9）：1つ・同じ字 */
     const hints = [...B.matchAll(/<p class="wam-hint" aria-hidden="true">([^<]*)<\/p>/g)].map((m) => unesc(m[1]));
     if (hints.length !== 1 || hints[0] !== W.hint || B.split('class="wam-hint"').length !== 2) p.M11.push(`${rel}：地図の下の一言「${hints.join('｜')}」／「${W.hint}」`);
+    /* 動かせる地図のボタン（WP-dmap-9）：地図の枠の中・svg のすぐ後ろに、拡大・縮小・元に戻す（1倍のあいだ隠れている）・全画面の組（台本が動くまで hidden）、
+       全画面の「閉じる」（hidden）、指の一言（hidden・読み上げない）。字は aria-label と title に同じ字 ＝ シートの字だけ */
+    const ZW = W.zoom, zbt = (z, hid) => `<button type="button" class="wam-zb" data-z="${z}" aria-label="${ZW[z]}" title="${ZW[z]}"${hid ? ' hidden' : ''}></button>`;
+    const ZC = `</svg>\n<div class="wam-zc" hidden>${zbt('in')}${zbt('out')}${zbt('reset', true)}${zbt('fs')}</div>\n`
+      + `<button type="button" class="wam-zx" data-z="close" aria-label="${ZW.close}" title="${ZW.close}" hidden></button>\n`
+      + `<p class="wam-zh" aria-hidden="true" hidden>${ZW.touch}</p>\n</div>\n<div class="wam-foot">`;
+    if (B.split('class="wam-zc"').length !== 2 || B.split('class="wam-zx"').length !== 2 || B.split('class="wam-zh"').length !== 2 || !B.includes(ZC)) p.M11.push(`${rel}：地図を動かすボタンが決まりの形・字でない（${(/<div class="wam-zc"[^\n]*/.exec(B)?.[0] ?? '無い').slice(0, 140)}）`);
     if (!/<div class="wam" id="wa-map-sec" data-rest="[a-z]+" data-pos="cap">/.test(B)) p.M11.push(`${rel}：区域の data-pos が機長で出ていない（切り替えの押してある方と違う）`);
     const plain = B.replace(/<span class="wam-mm-k">(?:最低|最高|Lowest|Highest)<\/span>/g, () => '');
     for (const w of [...MAP_FORBID, '最高', '最低', 'highest', 'lowest']) if (plain.toLowerCase().includes(w.toLowerCase())) p.M11.push(`${rel}：「${w}」が在る`);
@@ -1467,6 +1477,8 @@ function secMdm4(I) {
     const SVG = SVG_RE.exec(B)?.[0] ?? '<svg class="wam-svg"';
     if (B.split('<svg').length !== 2 || !B.includes(`<div class="wam-mc">\n<div class="wam-map" id="wa-map">\n${SVG}\n`)) { p.M16.push(`${rel}：地図の svg が1つ・.wam-mc > .wam-map#wa-map の中でない`); continue; }
     const s = B.slice(B.indexOf(SVG), B.indexOf('</svg>') + 6);
+    /* WP-dmap-9：地図の層は全部、svg のただ1つの子 <g class="wam-z">（点・当たり・光る層が一緒に動く。動かす transform はここにだけ・出荷は1倍 ＝ transform なし） */
+    if (!s.startsWith(`${SVG}\n<g class="wam-z">\n<g class="wam-nl">`) || s.split('class="wam-z"').length !== 2) p.M16.push(`${rel}：地図の層が svg のただ1つの子 <g class="wam-z">（transform なし）の中でない`);
     for (const w of ['tabindex', '<a ', '<a>', '<text']) if (s.includes(w)) p.M16.push(`${rel}：地図に「${w}」`);
     for (const w of ['is-on', 'is-hot']) if (B.includes(w)) p.M16.push(`${rel}：出荷する塊に「${w}」（光るのは台本が付けたときだけ）`);
     if (B.includes('wam-lbl')) p.M16.push(`${rel}：地図に地域の名前の札（.wam-lbl）が在る（P12.99：大陸の名前は地図に書かない）`);
@@ -1478,12 +1490,13 @@ function secMdm4(I) {
     const regs = [...s.matchAll(/<g class="wam-r" data-region="([a-z]+)" style="--c:[^;"]*;--f:[^;"]*"><path class="wam-land" id="wam-d-\1" d="([^"]*)"\/><\/g>/g)];
     if (!same(regs.map((m) => m[1]), PAINT8) || (s.match(/class="wam-r[ "]/g) || []).length !== 8) p.M16.push(`${rel}：地域の <g> が塗る順の8つちょうどでない（${regs.map((m) => m[1]).join(',')}）`);
     for (const m of regs) if (O?.SHAPES && m[2] !== runsOf(O.SHAPES[m[1]])) p.M16.push(`${rel}：${m[1]} の点が形と合わない`);
-    /* 当たりの層：日本の丸2つが先・どこにも入れない陸地（答えなし）・8地域。光る層 g.wam-ol は svg のいちばん後ろの子で、<use> と日本の輪は全部その中 */
+    /* 当たりの層：日本の丸2つが先・どこにも入れない陸地（答えなし）・8地域。光る層 g.wam-ol は動かす層 g.wam-z のいちばん後ろの子
+       （WP-dmap-9 までは svg のいちばん後ろの子 ── 層を1つの <g> で包んだだけ。同じ強さ）で、<use> と日本の輪は全部その中 */
     const HL = ['<g class="wam-hl">', `<circle class="wam-hit wam-hit-t" data-region="japan" cx="${J.cx}" cy="${J.cy}" r="${J.rTouch}"/>`,
       `<circle class="wam-hit" data-region="japan" cx="${J.cx}" cy="${J.cy}" r="${J.rHit}"/>`, '<use class="wam-hit wam-hit-n" href="#wam-d-neutral"/>',
       ...PAINT8.map((r) => `<use class="wam-hit" data-region="${r}" href="#wam-d-${r}"/>`), '</g>'].join('\n');
-    const OL = ['<g class="wam-ol">', ...PAINT8.map((r) => `<g class="wam-o" data-region="${r}"><use class="wam-halo" href="#wam-d-${r}"/><use class="wam-lit" href="#wam-d-${r}"/>${r === 'japan' ? `<circle class="wam-ring" cx="${J.cx}" cy="${J.cy}" r="${J.rRing}"/>` : ''}</g>`), '</g>', '</svg>'].join('\n');
-    if (!s.includes(`\n${HL}\n${OL}`) || !s.endsWith(OL)) p.M16.push(`${rel}：当たりの層（g.wam-hl）と光る層（g.wam-ol ＝ svg の最後の子）が決まりの形でない`);
+    const OL = ['<g class="wam-ol">', ...PAINT8.map((r) => `<g class="wam-o" data-region="${r}"><use class="wam-halo" href="#wam-d-${r}"/><use class="wam-lit" href="#wam-d-${r}"/>${r === 'japan' ? `<circle class="wam-ring" cx="${J.cx}" cy="${J.cy}" r="${J.rRing}"/>` : ''}</g>`), '</g>', '</g>', '</svg>'].join('\n');
+    if (!s.includes(`\n${HL}\n${OL}`) || !s.endsWith(OL)) p.M16.push(`${rel}：当たりの層（g.wam-hl）と光る層（g.wam-ol ＝ g.wam-z の最後の子・g.wam-z ＝ svg の最後の子）が決まりの形でない`);
     if ((s.match(/<use\b/g) || []).length !== 1 + 8 + 16) p.M16.push(`${rel}：<use> が ${(s.match(/<use\b/g) || []).length} 個（当たり 9 ＋ 光る層 16）`);
     /* 台本なし：地図・凡例・一言を出さない（押しても何も起きない地図を出さない ── A38） */
     const ns = /<noscript><style>([^{]*)\{display:none!important\}/.exec(B);
@@ -1776,6 +1789,8 @@ const ROWS = [
   /* 組の読み上げの名前（リード P12.112）を消す／地図の下の一言を書き換える（WP-dmap-4） */
   ['M11d', (I) => onBlock(I, 'ja', 'PV-DIRMAP', (b) => sub(b, ' aria-label="職位"', '')), 'M', ['M11']],
   ['M11e', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, '>Click the map to choose a region</p>', '>Click to choose</p>')), 'M', ['M11']],
+  /* 動かせる地図のボタンの字（WP-dmap-9）：英語の「全画面」の字を1つだけ変える */
+  ['M11f', (I) => onBlock(I, 'en', 'PV-DIRMAP', (b) => sub(b, 'aria-label="Full screen" title="Full screen"', 'aria-label="Fullscreen" title="Full screen"')), 'M', ['M11']],
   /* 台本の塊（M15 A）：保存領域・05b の口に書き込む・カードの額の数（欧州の機長の最低 ¥1,300万） */
   ['M15', (I) => { I.map.script += "\nlocalStorage.getItem('x');"; }, 'M', ['M15']],
   ['M15b', (I) => { I.map.script += "\nmount.setAttribute('hidden','');"; }, 'M', ['M15']],

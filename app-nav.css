@@ -417,6 +417,13 @@ body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
   .mr-side-sub+.mr-side-sub{margin-top:2px}
 }
 
+/* ══ 6) ヘッダーのログイン中の名前（WP-dmap-9・オーナー「緑にしたら」）════════════════
+   ログインしている会員の名前（#nav-auth-btn が profile.html を指している時）は、サイトの緑の字 --pv-accent-ink
+   （ライト #067563 ＝ ヘッダーの地に 5:1 超・ダーク #2bb59a）。前はライトでも金（#f5c842）で、明るい地に溶けていた。
+   ★金はページごとの台本が style に直に書いている（トップ・一覧・コミュニティの名前を出す数行、会社ページの airline-base.js）。
+     台本は直さず、ここ1か所の規則で上書きする（!important ＝ style の直書きに勝つため。どのページもこのファイルを読む） */
+#nav-auth-btn[href$="profile.html"]{color:var(--pv-accent-ink)!important}
+
 /* 動きを減らす設定のとき。★ 要素を display:none にしない
    （トップページで実際に踏んだ罠。中身ごと消える）。
    ⚠️ visibility の遅延だけは残す。0s にすると閉じている板が
