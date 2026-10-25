@@ -36,6 +36,8 @@
      ・[B] 欄の「やり直す」のあと、待つあいだに読み手が動いた先からフォーカスを引き戻さない（場面 refocus）。
      ・色の近い2社（★2026-10-25 WP-compare-all-12）：生きた欄の2社が並ぶ札でも、右の会社の点だけ輪。決まりは比較の画面の data-near の1つ
        （年収の板と同じ）・左の会社と色の離れた2社には付かない・入れ替えると右の会社へ（場面 near）。
+     ・比較の札の写真（★2026-10-26 WP-compare-all-14・P12.122）：先行5社のほかの会社も台帳の1枚目（説明つき）・選び直すと絵ごと替わる・
+       写真の無い会社はロゴの札・示すことが条件の写真のクレジットは並べた2社のぶんだけリンクつきで見え、頭の字は見えている数（場面 plates）。
      給与の区域（cmp-pay ── 比較の「提出された年収」。返事の材料は cmp-stubs.mjs の payFix）
      ・鍵の無い人（ゲスト・会員・期限切れ）には、会社ごとの件数だけ。行・額・板を描かず、返事に植えた列は画面にも保存領域にも出ない。
        中央値（pv_company_pay）も DEEP PAY も聞かない。錠の1行と入口（Give & Get）は1つずつ・「ログイン」はゲストにだけ（場面 pay-lock）。
@@ -2036,6 +2038,114 @@ scene('rvwide', '口コミのカード：390 は2社を上下に全幅（字の�
     ok(F.length === 2 && F.every((c) => c.shown && !c.head && c.text.length > 0) && F[0].t === F[1].t && F[1].l > F[0].l,
       '[B]（1440）口コミのカードは今までどおり2列（同じ高さに左右・マスの頭の札は出さない）', J(F));
   }
+});
+
+/* ★2026-10-25 WP-compare-all-14（絵の本 #13）：比較の生きた欄の会社の札（.crl-co）は、社名が折れる長い会社（スイス インターナショナル エアラインズ）でも
+   色の点の横に社名の1語目が来る（点だけが1行目に残らない）。[B] 360 と 390・日本語と英語で1回ずつ見る（壊す証明は持たない）。 */
+scene('cohead', '比較の会社の札：社名が長くて折れても、色の点と社名の1語目は同じ行（360・390／日本語・英語）', 'mock', async () => {
+  const stub = { pv_reviews: reviewsBy({ swiss: [], tap: [] }) };
+  const heads = (page) => page.evaluate(() => {
+    const out = [];
+    for (const co of document.querySelectorAll('#cr [data-view="compare"] .crl .crl-co')) {
+      const n = co.querySelector('.crl-co-n'), t = n && n.firstChild;
+      if (!t || !co.getClientRects().length || !n.getClientRects().length) continue;
+      const r = document.createRange(); r.setStart(t, 0); r.setEnd(t, 1);
+      const c = r.getBoundingClientRect(), b = co.getBoundingClientRect(), lines = n.getClientRects().length > 1 || n.getBoundingClientRect().height > 1.5 * parseFloat(getComputedStyle(n).lineHeight);
+      out.push({ name: n.textContent.trim(), dy: Math.round(c.top - b.top), dx: Math.round(c.left - b.left), lines });
+    }
+    return out;
+  });
+  const bad = [], seen = [];
+  for (const [size, w] of [['s360', 360], ['sp', 390]]) {
+    for (const lang of ['ja', 'en']) {
+      const { page } = await open(size, { url: (lang === 'en' ? '/en' : '') + PAIR_URL('swiss', 'tap'), stub });
+      if (!(await settled(page, 'cmp-stars', 'swiss|tap'))) { bad.push(`${w} ${lang}: 口コミの欄が読み終わらない`); continue; }
+      const H2 = await heads(page);
+      seen.push({ w, lang, n: H2.length, wrapped: H2.filter((h) => h.lines).map((h) => h.name) });
+      if (H2.length < 2) bad.push(`${w} ${lang}: 会社の札が ${H2.length}枚`);
+      for (const h of H2) if (h.dy > 4 || h.dx < 8) bad.push(`${w} ${lang}「${h.name}」: 1字目が点の横に無い（上から ${h.dy}px・左から ${h.dx}px）`);
+    }
+  }
+  ok(!bad.length && seen.some((s) => s.wrapped.length), '[B]（360・390／日本語・英語）swiss|tap：会社の札は、社名が折れても色の点と社名の1語目が同じ行', J({ bad: bad.slice(0, 6), seen }));
+});
+
+/* ══ 比較の札の写真とクレジット（★2026-10-26 段階5 compare-all-14・P12.122）══════════════════════════════
+   [A] 先行5社のほかの会社でも、台帳に写真の在る会社は、比較の札（写真の無い会社の札 .cr-opt-x）の地にその会社の1枚目の写真が出る ──
+   道と説明は台帳どおり（説明は先行5社の札と同じ「会社名の 機種」／ "Name Aircraft"）・読み終わって見えている・社名とロゴは今までどおり。
+   選び直すと絵ごと替わる（前の会社の写真を次の会社の札に残さない）。台帳に写真の無い会社は写真を置かない（ロゴの札）。
+   写真を出したら、示すことが条件の写真のクレジット（作者 → 出所・ライセンス → その頁のリンク・別の窓）が見えている ── 並べた2社のぶんだけ・
+   並べた順。頭の字は見えているクレジットの数（英語は1つなら Photo・2つなら Photos）。2社とも条件の無い写真（CC0）か写真の無い会社なら、
+   クレジットの段ごと出さない。札は選ぶ面で選び直す（人が押すのと同じ道）。日本語・英語 × 390・1440。
+   答え合わせの字は台帳（airline-photos.mjs）と正本（SALARY）から作る（ページの島は読まない）。 */
+scene('plates', '比較の札の写真（先行5社のほかの会社も台帳の1枚目・説明つき・選び直すと替わる・写真の無い会社はロゴの札）と、並べた2社のクレジット（リンクつき・頭の字は見えている数）', 'mock', async () => {
+  const P = await import('./airline-photos.mjs');
+  const { SALARY } = await import('./salary-data.mjs');
+  const FIVE5 = (await import('./gen-career.mjs')).FIVE;
+  const need = (s) => !!P.primary(s) && P.needsCredit(P.primary(s));
+  const read1 = (page) => page.evaluate(() => {
+    const V = document.querySelector('#cr [data-view="compare"]');
+    const on = (el) => !!el && el.getClientRects().length > 0;
+    const sides = [...V.querySelectorAll('.cr-side')].map((sd) => [...sd.querySelectorAll('.cr-opt')].filter(on).map((o) => {
+      const ims = [...o.querySelectorAll('.cr-opt-p img')].filter((i) => !i.closest('.pvg-logo')), im = ims[0] || null;
+      return { s: o.dataset.airline, x: o.classList.contains('cr-opt-x'), ph: o.classList.contains('is-ph'), n: ims.length,
+        src: im && im.getAttribute('src'), alt: im && im.getAttribute('alt'), seen: !!im && on(im) && im.complete && im.naturalWidth > 0,
+        name: ((o.querySelector('.cr-opt-t') || o.querySelector('.cr-opt-n') || {}).textContent || '').trim(), logo: !!o.querySelector('.cr-opt-lg .pvg-logo') };
+    }));
+    const box = V.querySelector('.cr-credits'), shown = on(box);
+    return { sides, shown,
+      cr: shown ? [...box.querySelectorAll('.cr-credit')].filter(on).map((e) => ({ s: e.dataset.airline,
+        links: [...e.querySelectorAll('a')].filter(on).map((a) => [a.getAttribute('href'), a.textContent.trim(), a.target, a.rel]) })) : [],
+      heads: shown ? [...box.querySelectorAll('[data-n]')].filter(on).map((h) => [h.dataset.n, h.textContent.trim()]) : [] };
+  });
+  /* 札の写真が読み終わるまで待つ（時間では待たない）。並べた2社の札になっていることも条件 */
+  const ready = (page, a, b) => until(page, ([a, b]) => {
+    const vis = [...document.querySelectorAll('#cr [data-view="compare"] .cr-side')].map((sd) => [...sd.querySelectorAll('.cr-opt')].find((o) => o.getClientRects().length));
+    return vis.length === 2 && !!vis[0] && !!vis[1] && vis[0].dataset.airline === a && vis[1].dataset.airline === b
+      && vis.every((o) => [...o.querySelectorAll('.cr-opt-p img')].every((i) => i.complete));
+  }, [a, b]);
+  const judge = (lang, g, a, b) => {
+    const bad = [], UP = lang === 'en' ? '../' : '';
+    [a, b].forEach((s, i) => {
+      const o = (g.sides[i] || [])[0], p = P.primary(s), nm = SALARY[s][lang];
+      if (!o || g.sides[i].length !== 1 || o.s !== s) { bad.push(`${s}: 札 ${J(g.sides[i])}`); return; }
+      if (o.name !== nm) bad.push(`${s}: 札の社名「${o.name}」`);
+      if (FIVE5.includes(s) ? o.x : !o.x || !o.logo) bad.push(`${s}: 札の形（写真の無い会社の札 ${o.x}・ロゴ ${o.logo}）`);
+      if (!p) { if (o.n || o.ph) bad.push(`${s}: 台帳に写真の無い会社に写真（${o.src}）`); return; }
+      const alt = lang === 'ja' ? `${nm}の ${p.aircraft}` : `${nm} ${p.aircraft}`;
+      if (o.n !== 1 || o.src !== UP + P.src(p) || o.alt !== alt || !o.seen || (o.x && !o.ph)) bad.push(`${s}: 札の写真 ${J({ n: o.n, src: o.src, alt: o.alt, seen: o.seen, ph: o.ph })}（台帳 ${UP + P.src(p)}・「${alt}」）`);
+    });
+    const want = [a, b].filter(need), k = want.length;
+    if (g.shown !== k > 0) bad.push(`クレジットの段が${g.shown ? '出ている' : '出ていない'}（条件のある写真 ${k}枚）`);
+    if (J(g.cr.map((c) => c.s)) !== J(want)) bad.push(`見えているクレジット ${J(g.cr.map((c) => c.s))}（並べた2社のうち条件のある写真の会社 ${J(want)}）`);
+    for (const c of g.cr) {
+      const p = P.primary(c.s);
+      if (p && J(c.links) !== J([[p.source, p.author, '_blank', 'noopener'], [p.licence_url, p.licence, '_blank', 'noopener']])) bad.push(`${c.s}: クレジットのリンク ${J(c.links)}`);
+    }
+    if (k) {
+      const h = g.heads[0];
+      const word = !h ? false : lang === 'ja' ? h[1].startsWith('写真') : k === 1 ? /^Photo(?: |$)/.test(h[1]) : /^Photos(?: |$)/.test(h[1]);
+      if (g.heads.length !== 1 || h[0] !== (k === 1 ? '1' : '2') || !word) bad.push(`頭の字 ${J(g.heads)}（見えているクレジット ${k}）`);
+    }
+    return bad;
+  };
+  const STEPS = [['united', 'delta', null], ['emirates', 'jal', ['emirates', 'jal']], ['solairus', 'united', ['solairus', 'united']]];
+  const bad = STEPS.map(() => []), seen = [];
+  for (const size of ['sp', 'pc']) {
+    for (const lang of ['ja', 'en']) {
+      const { page } = await open(size, { url: (lang === 'en' ? '/en' : '') + PAIR_URL('united', 'delta') });
+      for (let i = 0; i < STEPS.length; i++) {
+        const [a, b, pick] = STEPS[i];
+        if (pick) { await H.choose(page, 'a', pick[0]); await H.choose(page, 'b', pick[1]); }
+        if (!(await ready(page, a, b))) { bad[i].push(`${size} ${lang} ${a}|${b}: 札が並ばない・写真が読み終わらない`); continue; }
+        const g = await read1(page);
+        bad[i].push(...judge(lang, g, a, b).map((x) => `${size} ${lang} ${a}|${b} ${x}`));
+        seen.push(`${size}/${lang}/${a}|${b}: ${g.sides.map((l) => (l[0] ? `${l[0].s}${l[0].n ? '+写真' : ''}` : '-')).join('・')} ／ ${g.cr.map((c) => c.s).join('・') || 'クレジットなし'} ／ ${g.heads.map((h) => h[1]).join('') || '-'}`);
+      }
+    }
+  }
+  ok(!bad[0].length, 'united|delta（先行5社のほかの2社）：2枚とも札の地に台帳の1枚目の写真（説明つき・読めている）と社名とロゴ・見えているクレジットは条件のある写真の delta だけ（リンクつき）・頭の字は1つぶん（英語は Photo）', J({ bad: bad[0].slice(0, 6), seen }));
+  ok(!bad[1].length, '選ぶ面で emirates|jal に選び直すと、左の札の写真がエミレーツの1枚目に替わる（前の会社の写真が残らない）・右は先行5社の写真の札・クレジットは2社ぶんを並べた順に・頭の字は2つぶん（英語は Photos）', J({ bad: bad[1].slice(0, 6) }));
+  ok(!bad[2].length, 'solairus|united：台帳に写真の無い会社の札は写真なし（ロゴの札）・united は写真つき・2社とも条件のある写真が無いので、クレジットの段ごと出さない', J({ bad: bad[2].slice(0, 6) }));
 });
 
 /* ══ REAL LOCAL：ブラウザの「戻る」で手元から戻った比較（L7・2026-10-23）══════════════════════════════

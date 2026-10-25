@@ -95,6 +95,9 @@
   /* カードに描く社名（いまの言葉の名前）と、その下に添える英語の名前（英語のカードは添えない ── 同じ名前を2度言わない） */
   var nameOf = function (a) { return (LANG === 'en' ? a.en : a.ja) || ''; };
   var subOf = function (a) { return LANG === 'en' ? '' : a.en || ''; };
+  /* 欄の名前の後ろに社名を添える形（「写真（エミレーツ）」）。★2026-10-25 WP-compare-all-14（絵の本 #15）：社名がもう括弧で終わる会社
+     （日本航空（JAL）・Swiss International Air Lines (SWISS)）は、括弧をもう1組重ねず「・」でつなぐ（「写真（日本航空（JAL））」にしない）。 */
+  var tagged = function (head, t) { return /[)）]$/.test(t) ? head + WORD.mid + t : head + WORD.lp + t + WORD.rp; };
 
   var cr = document.getElementById('cr');
   var root = document.getElementById('crc-root');
@@ -829,15 +832,15 @@
     if (two) ui.selB.value = S.b;
     Array.prototype.forEach.call(ui.selA.options, function (o) { o.disabled = false; });
     Array.prototype.forEach.call(ui.selB.options, function (o) { o.disabled = o.value === S.a; });
-    ui.fPa.label.textContent = WORD.pic + (two ? WORD.lp + nameOf(AIR[S.a]) + WORD.rp : '');
+    ui.fPa.label.textContent = two ? tagged(WORD.pic, nameOf(AIR[S.a])) : WORD.pic;
     thumbs(ui.thA, S.a, S.p, function (i) { S.p = i; changed(); });
     ui.fPa.box.hidden = (AIR[S.a].photos || []).length < 2;
     ui.fPb.box.hidden = !two || (AIR[S.b].photos || []).length < 2;
     if (two) {
-      ui.fPb.label.textContent = WORD.pic + WORD.lp + nameOf(AIR[S.b]) + WORD.rp;
+      ui.fPb.label.textContent = tagged(WORD.pic, nameOf(AIR[S.b]));
       thumbs(ui.thB, S.b, S.q, function (i) { S.q = i; changed(); });
     }
-    ui.cv.setAttribute('aria-label', WORD.preview + WORD.lp + nameOf(AIR[S.a]) + (two ? WORD.mid + nameOf(AIR[S.b]) : '') + WORD.rp);
+    ui.cv.setAttribute('aria-label', tagged(WORD.preview, nameOf(AIR[S.a]) + (two ? WORD.mid + nameOf(AIR[S.b]) : '')));
   }
 
   /* ── 住所（選び直しは履歴を積まない） ─────────────────────────────────── */

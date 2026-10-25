@@ -1165,6 +1165,34 @@ for (const s of FIVE) {
     }
   }
 }
+/* ★2026-10-25 段階5 compare-all-14（先行5社のほかの102社にも写真）：新しい会社ページの全部（日本語と英語）── 写真は台帳（airline-photos.mjs）の
+   1枚目だけ・ファイルが在る。作者名とライセンス名を示すことが使う条件の写真（CC0 のほか）には、作者・出所・ライセンスのリンクが写真のすぐ下に付き、
+   CC0 には何も足さない。台帳に写真の無い会社は写真を置かない。 */
+head('会社ページの写真とクレジット（新しい会社ページの全部・日英）');
+{
+  const bad = [];
+  let nPh = 0, nCr = 0;
+  for (const s of GLANCE) {
+    const ph = primary(s);
+    for (const [file, up] of [[pageOf(s), '../'], [`en/airlines/${s}.html`, '../../']]) {
+      const html = read(file), figs = [...html.matchAll(/<figure class="pvg-photo">([\s\S]*?)<\/figure>/g)].map(m => m[1]);
+      if (!ph) { if (figs.length) bad.push(`${file}: 台帳に写真が無いのに写真が在る`); continue; }
+      const img = figs.length === 1 ? one(figs[0], /<img src="([^"]*)"/) : null, cap = figs.length === 1 ? one(figs[0], /<figcaption>([\s\S]*?)<\/figcaption>/) : null;
+      if (figs.length !== 1 || img !== `${up}assets/airlines/${ph.file}-480.jpg` || !fs.existsSync(path.join(ROOT, `assets/airlines/${ph.file}-480.jpg`)) || !fs.existsSync(path.join(ROOT, `assets/airlines/${ph.file}.jpg`))) {
+        bad.push(`${file}: 写真が台帳の1枚目ではない・ファイルが無い（${figs.length}枚・${img}）`); continue;
+      }
+      nPh++;
+      if (!needsCredit(ph)) { if (cap != null) bad.push(`${file}: 条件の無い写真（CC0）にクレジットを足している`); continue; }
+      const t = cap == null ? '' : text(cap).replace(/&#39;/g, () => "'");
+      if (cap == null || !t.includes(ph.author) || !t.includes(ph.licence) || !cap.includes(`href="${ph.source.replace(/&/g, () => '&amp;')}"`) || !cap.includes(`href="${ph.licence_url}"`)) bad.push(`${file}: 作者・出所・ライセンスが写真の下に無い（${t.slice(0, 80)}）`);
+      else nCr++;
+    }
+  }
+  ok(GLANCE.length >= 100 && !bad.length && nPh > 2 * FIVE.length,
+     `新しい会社ページ ${GLANCE.length}社×日英：写真は台帳の1枚目（${nPh}枚）・示すことが条件の写真 ${nCr}枚に作者・出所・ライセンスのリンク・CC0 には何も足さない・写真の無い会社には置かない`,
+     bad.slice(0, 8).join(' ／ ') + (bad.length > 8 ? ` ほか${bad.length - 8}件` : ''));
+}
+
 for (const f of ['airline-conditions.html', 'career.html', 'pay-report.html', 'actual-pay.html', 'login.html']) ok(fs.existsSync(path.join(ROOT, f)), `行き先のファイルが在る: ${f}`);
 
 ok(same([...linkedTopicOnly].sort(), TOPIC_ONLY), '「その話題の入口からだけ出す」質問（4問）は、全部このページに入口が在る', `${[...linkedTopicOnly].sort()} ／ 台帳 ${TOPIC_ONLY}`);
@@ -2939,7 +2967,16 @@ function LIB() {
     const q = s => { const e = document.querySelector(s); if (!e || !on(e)) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top + scrollY, w: r.width, h: r.height, b: r.bottom + scrollY }; };
     /* amt ＝ 推定年収の額（機長・副操縦士）の下端。最初の1画面に入っていると約束しているもの */
     const amt = $$('.pvg-pay .pvg-rank .pvg-big').filter(on).map(e => e.getBoundingClientRect().bottom + scrollY);
-    return { co: q('.pvg-co'), pay: q('.pvg-pay'), rp: q('#pvg-realpay'), rv: q('#pvg-score'),
+    /* own ＝ その箱の中身の丈。align-self:start を一瞬だけ当てて測り、style 属性ごと元へ戻す（描き直しの前に戻すので、画面も見張りも動かない）。
+       ★2026-10-26 WP-compare-all-14（絵の本 #12）：横に並ぶ 給与の1枚｜評価スコア が、隣の丈まで伸びていないかを見るため。 */
+    const card = s => {
+      const b = q(s); if (!b) return null;
+      const e = document.querySelector(s), was = e.getAttribute('style');
+      e.style.alignSelf = 'start'; b.own = e.getBoundingClientRect().height;
+      if (was === null) e.removeAttribute('style'); else e.setAttribute('style', was);
+      return b;
+    };
+    return { co: q('.pvg-co'), pay: card('.pvg-pay'), rp: q('#pvg-realpay'), rv: card('#pvg-score'),
              work: q('.pvg [data-cell="work"]'), benefits: q('.pvg [data-cell="benefits"]'), living: q('.pvg [data-cell="living"]'),
              amt: amt.length ? Math.max(...amt) : null, vh: innerHeight };
   };
@@ -3181,8 +3218,11 @@ function shapeBad(sh, kind) {
     bad.push(`提出された年収が、給与の1枚の中・推定年収の額の下に無い（額の下端 ${Math.round(amt || 0)}・一覧の頭 ${Math.round(rp.y)}）`);
   }
   if (kind === 'row') {
-    /* 評価スコアのカードは、0件の時だけ中身の高さ（給与の1枚より低い）。点数が在る時は給与の1枚と同じ高さ。 */
-    if (!(near(pay.y, rv.y, 2) && pay.x + pay.w <= rv.x + 1 && rv.h <= pay.h + 2)) bad.push(`給与｜評価スコア が、頭をそろえて横に並んでいない（高さ ${Math.round(pay.h)}・${Math.round(rv.h)}）`);
+    /* ★2026-10-26 WP-compare-all-14（絵の本 #12）：給与の1枚と評価スコアは、頭をそろえて横に並び、どちらも中身の丈（隣の丈まで伸ばさない）。
+       0件の時も点数が在る時も同じ。伸ばすと、給与の1枚の畳んだ説明（.pvg-paydt の margin-top:auto）が底へ押され、「REAL PAY で全部見る」の
+       下が大きく空く ── 空きは底ではなく途中にできるので、下端の空きでは見ない。箱の丈を、その箱の中身の丈（G.shape の own）と比べる。 */
+    if (!(near(pay.y, rv.y, 2) && pay.x + pay.w <= rv.x + 1)) bad.push(`給与｜評価スコア が、頭をそろえて横に並んでいない（頭 ${Math.round(pay.y)}・${Math.round(rv.y)}）`);
+    if (!(near(pay.h, pay.own) && near(rv.h, rv.own))) bad.push(`給与｜評価スコア が中身の丈でない ── 隣の丈まで伸びている（給与 ${Math.round(pay.h)}／中身 ${Math.round(pay.own)}・評価スコア ${Math.round(rv.h)}／中身 ${Math.round(rv.own)}）`);
     if (!cells.every(c => near(c.y, work.y) && near(c.h, work.h))) bad.push(`横に並ぶ 勤務・待遇・暮らし の高さがそろっていない（${cells.map(c => Math.round(c.h)).join('・')}）`);
     if (!cells.every((c, i) => !i || cells[i - 1].x + cells[i - 1].w <= c.x + 1)) bad.push('左から 勤務 → 待遇 → 暮らし の順でない');
   } else {
