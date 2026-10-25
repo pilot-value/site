@@ -1304,7 +1304,7 @@ export const WORDS = Object.freeze({
     leases: n => pl(n, 'lease', 'leases'),
     baseCity: 'Base city', leadRent: (name, area, col, measure) => `${name}${area ? ` (${area})` : ''} · ${measure}, ${col}`, rentByTown: 'Rent by town and sources',
     photoBy: (c, a, l) => `Photo (${c}): ${a} / ${l}`, photoAlt: (n, a) => `${n} ${a}`,
-    fleet: 'Fleet', fleetTypes: 'Types listed in the airline’s materials', types: n => pl(n, 'type', 'types'), coMore: 'Company details', figures: n => pl(n, 'figure', 'figures'), company: 'Company',
+    fleet: 'Fleet', fleetTypes: 'Types listed in the airline’s materials', types: n => pl(n, 'type', 'types'), coMore: 'Company details', figures: n => pl(n, 'number', 'numbers'), company: 'Company',
     rvCta: Object.freeze({ ...RV_CTA_EN }), anonFree: 'Anonymous · free', score: 'Pilot rating scores',
     jobsPage: 'Airline’s careers page', jobs: 'Jobs', jobsNone: 'We have not been able to confirm vacancies the airline publishes.',
     seasonal: 'Seasonal', hotelsTips: 'Hotels &amp; tips', base: 'Base', stay: 'Layovers',
@@ -1327,7 +1327,7 @@ export const WORDS = Object.freeze({
     askHead: n => `<span>Tell us one thing</span> <span>about ${n}.</span>`,
     askNote: 'You can save just one answer. Answers are anonymous and appear on the airline page once three pilots have answered an item.',
     gotAns: 'Answers so far', qCount: n => pl(n, 'question', 'questions'), qMore: n => `${n} more`, reviews: 'Reviews',
-    rvCount: 'Member posts <b data-pvg-n="posts">—</b><span data-pvg-quotes hidden> · quotes from public sources <b data-pvg-n="quotes">—</b></span>',
+    rvCount: 'Member posts: <b data-pvg-n="posts">—</b><span data-pvg-quotes hidden> · quotes from public sources: <b data-pvg-n="quotes">—</b></span>',
     glanceLabel: n => `${n}: pay, duty, benefits and living`,
   }),
 });
@@ -1681,6 +1681,17 @@ function inLang(lang, fn) {
   LANG = lang; W = WORDS[lang]; UP = lang === 'en' ? '../../' : '../'; PUP = '../';
   try { return fn(); } finally { [LANG, W, UP, PUP] = was; }
 }
+/* 上の帯の右の箱（JAL の日本語のページの帯と同じ字）。帯が1つだけ在り・箱が無いときだけ、帯の中の最後の </div>（帯の中身の箱の閉じ）の前に足す。 */
+export const NAV_BOX = '<div class="flex items-center gap-3">\n<button id="theme-toggle" class="theme-toggle" aria-label="ダーク/ライト切替"></button>\n</div>\n';
+function navBox(slug, html) {
+  const a = html.indexOf('<nav id="main-nav">'), b = a < 0 ? -1 : html.indexOf('</nav>', a);
+  if (a < 0 || b < 0 || html.indexOf('<nav id="main-nav">', a + 1) >= 0) throw new Error(`${slug}: 上の帯（<nav id="main-nav">）が1つに決まらない`);
+  const nav = html.slice(a, b);
+  if (nav.includes('<div class="flex items-center gap-3">')) return html;
+  const c = nav.lastIndexOf('</div>');
+  if (c < 0) throw new Error(`${slug}: 上の帯の中身の箱の閉じが無い`);
+  return html.slice(0, a + c) + NAV_BOX + html.slice(a + c);
+}
 /** 1社のページを書き直す。lang 'en' ＝ 英語のページ（en/airlines/{slug}.html の中身を渡す）。 */
 export function build(slug, html, lang = 'ja') {
   return inLang(lang, () => buildIn(slug, html));
@@ -1700,9 +1711,15 @@ function buildIn(slug, html) {
   else { a = once(html, '<div class="hero-airline"', '社名の行'); b = once(html, BOX, '本文の箱'); }
   const old = html.slice(a, b);
   const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(old), sub = /<p class="text-muted[^"]*">([^<]*—[^<]*)<\/p>/.exec(old);
+  /* ★2026-10-25 WP-compare-all-13 F5：日本語のページの h1 が英語の社名のまま（スカイマーク・キャセイほか13社 ── 古い生成の名残）なら、
+     h1 は正本の日本語の社名（SALARY の ja）・英語の社名は副題の左へ（JAL のページと同じ形「Japan Airlines — ワンワールド加盟」）。
+     正本の ja そのものが英字の会社（ZIPAIR Tokyo・Peach Aviation・AirJapan）は h1 をそのまま運ぶ。2回めからは日本語の h1 を読む ＝ 運ぶだけ。
+     <title>・説明・JSON-LD は変えない（seo-normalize.mjs の持ち物）。 */
+  const swap = !!h1 && !en && !JA_TEXT.test(h1[1]) && JA_TEXT.test(SALARY[slug].ja);
   /* 英語のページ：副題に「—」が無い会社（キャセイ・エティハド・エバーなど ── 英語の副題は1つの文）は、先行5社も左に正本の英語の社名。
      右（今のページの字）は運ばない ── 「Japan's second-largest」「5-star service」のような、資料で確かめていない言い方が多い。 */
-  const left = sub ? sub[1].split('—')[0].trim()
+  const left = swap ? h1[1].trim()
+    : sub ? sub[1].split('—')[0].trim()
     : en ? esc(SALARY[slug].en)
     : !v.rollout ? null
     : old.startsWith(H0) ? (/<p class="text-muted pvg-sub">([^<]*)<\/p>/.exec(old) || [])[1] ?? null
@@ -1711,7 +1728,7 @@ function buildIn(slug, html) {
   const right = tagline(v);
   /* 英語のページで右の台帳の言葉が無いとき、左だけ（＝ 英語の社名）は h1 と同じ名前の繰り返しになるので、副題は空（2回めは空の1行を読む） */
   const subText = right || (!v.rollout && !en) ? `${left} — ${esc(right)}` : en ? '' : left;
-  const heroText = `${H0}\n${baked(hero(v, { h1: h1[1].trim(), sub: subText }))}\n${H1}`;
+  const heroText = `${H0}\n${baked(hero(v, { h1: swap ? esc(SALARY[slug].ja) : h1[1].trim(), sub: subText }))}\n${H1}`;
   html = html.slice(0, a) + heroText + (old.startsWith(H0) ? '' : '\n\n') + html.slice(b);
 
   /* 2) 見た目（左メニューの <link> の塊の直前。あちらは </head> の直前に居続ける） */
@@ -1731,6 +1748,10 @@ function buildIn(slug, html) {
   });
   /* 5) 印。これが在るページだけ、星を実投稿だけで出す */
   html = html.replace(/<body\b[^>]*>/, m => (m.includes('data-pv-glance=') ? m : m.replace(/>$/, () => ' data-pv-glance="1">')));
+  /* 5b) 上の帯の右の箱（★2026-10-25 WP-compare-all-13 F4）。検索（search.js）とログイン・会員の名前（airline-base.js）は、この箱
+         （<div class="flex items-center gap-3">）に後から入る ＝ 箱を持たない帯には、どちらも出ない（スカイマークほか日本語の11社がそうだった）。
+         箱の無い日本語の帯にだけ、JAL の帯と同じ箱（中にテーマの切替）を1つ足す。箱の在る帯（先行5社ほか）は1文字も触らない。英語の帯は全部が箱を持つ。 */
+  if (!en) html = navBox(slug, html);
   /* 6) 下に残っている古い節を、タブへ振り分ける（タブを持つページだけ。持たないページからは印を外す）。
         見るのは管理ブロックより後ろの、いちばん外側の節だけ。印は開きタグに1つ ＝ 何度流しても同じ。 */
   const end = html.indexOf('<!--/PV-GLANCE-->');

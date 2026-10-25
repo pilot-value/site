@@ -846,6 +846,21 @@ head('掲載している全社（比較の材料）');
        && wraps.length === 1 && /^<div class="cr-sec cr-rents" data-wrap>$/.test(wraps[0]) && !said.length && !!rentSec && !!cardSec && !live.length,
        '比較のカードは先行5社に1枚ずつ（公表額の一覧は機長・副操縦士の公表額が在る会社だけ）・家賃の箱・税の行は、台帳に中身が在る会社にだけ在る（無い会社に空の箱も断りも置かない）',
        JSON.stringify({ cards, taxes: taxes.length, rents, wraps, said: said.slice(0, 4), rentSec: !!rentSec, cardSec: !!cardSec, live }));
+    /* ★2026-10-25 WP-compare-all-13 F2（当て直し・同じ強さ）：家賃の箱が片方の会社にだけ在るとき、もう片方の列は空けずに、会社ページの暮らしの板と
+       同じ1行（「家賃の資料を確認できていません」）を出す ── 箱は家賃の節に1つだけ（.cr-rentn ── 会社ごとの箱を足さない・社名を HTML に書かない・
+       最初は隠れている）。社名と置く列は career.js が並べた2社から決める（ブラウザの検査は T-A0b'）。
+       会社ページに家賃の額が在る会社（比較の箱の決まりに合わないだけ）は data-held に並ぶ ＝ その会社には出さない ── 資料が在るのに「確認できていません」と
+       言わない。data-held は、ここで台帳（viewOf().living）から作り直した組と同じ（生成側を借りない）。字は日英とも、会社ページに出ている字そのもの。 */
+    const HELD = ALLK.filter(s => !RENTB.includes(s) && ((viewOf(s).living || {}).rents || []).some(r => Object.keys(r.value || {}).length));
+    const nb = [...rentSec.matchAll(/<article class="cr-rentn"[^>]*>[\s\S]*?<\/article>/g)].map(m => m[0]);
+    const held = nb.length ? ((nb[0].match(/ data-held="([^"]*)"/) || [])[1] || '').split(' ').filter(Boolean) : null;
+    const RENT_NONE = { ja: '家賃の資料を確認できていません', en: 'We have not been able to confirm rent sources' };
+    const words = { ja: (nb[0] || '').includes(`<p class="cr-rentn-t">${RENT_NONE.ja}</p>`), en: EN_HTML.split(`<p class="cr-rentn-t">${RENT_NONE.en}</p>`).length === 2,
+      jaCo: read('airlines/united.html').includes(`>${RENT_NONE.ja}</p>`), enCo: read('en/airlines/united.html').includes(`>${RENT_NONE.en}</p>`) };
+    ok(nb.length === 1 && / hidden>/.test(nb[0].split('\n')[0]) && !/data-airline=/.test(nb[0]) && /<b class="cr-rentn-n"><\/b>/.test(nb[0])
+       && held !== null && same(sorted(held), sorted(HELD)) && Object.values(words).every(Boolean),
+       `家賃の節の「資料を確認できていません」の箱は1つだけ（最初は隠れている・社名も会社の印も HTML に無い）・会社ページに家賃の額が在る${HELD.length}社（data-held）には出さない・字は日英とも会社ページの暮らしの板の字`,
+       JSON.stringify({ n: nb.length, held, HELD, words }));
   }
 
   /* T-A8 重さ（P7.9）：全社ぶんの材料を持つ career.html の大きさに上限を置く。SIZE0 は全社ぶんを入れる前（dafc536 の career.html）・
@@ -862,7 +877,13 @@ head('掲載している全社（比較の材料）');
     const GRANT11 = { raw: 0, gz: 600, tags: 0 };
     /* ★2026-10-25 段階5 compare-all-12：同じ幅の残り（1,448）のうち 150（税の扱いの字を2列の板で2行に切ったときの、入れ物の title ×25社）。 */
     const GRANT12 = { raw: 0, gz: 150, tags: 0 };
-    const ROOM = { raw: up(GROW1.raw + 250000, 25000), gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz, tags: up(GROW1.tags + 1550, 250) };
+    /* ★2026-10-25 段階5 compare-all-13：同じ幅の残り（1,298）のうち 150（家賃の箱の無い列の「資料を確認できていません」の箱1つと、その箱を出さない会社の並び data-held）。
+       この作業の前の HEAD（a61b3699）で、すでに上限の 34 下まで来ていた（英語の EN-9 の合流のぶん）。リードが認めた（P12.118・2026-10-25）。 */
+    const GRANT13 = { raw: 0, gz: 150, tags: 0 };
+    /* ★2026-10-25 P12.118：リードが ROOM を gzip で 4,096 広げた（次の作業 WP-14 / 15 で career.html に写真のクレジットと家賃の行が入る）。
+       ROOM を広げるのはリードだけ。 */
+    const LEAD118 = { raw: 0, gz: 4096, tags: 0 };
+    const ROOM = { raw: up(GROW1.raw + 250000, 25000), gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz, tags: up(GROW1.tags + 1550, 250) };
     const bytes = fs.readFileSync(path.join(ROOT, PAGE));
     const now = { raw: bytes.length, gz: zlib.gzipSync(bytes).length, tags: (bytes.toString('utf8').match(/<[a-z]/g) || []).length };
     const kb = n => Math.round(n / 1024);
@@ -2214,23 +2235,34 @@ try {
          「箱が見えている」＝ 税の扱いの字が1つでも見えている・kids ＝ 字の見えている会社の1行（並びの順）。 */
       const taxes = (() => { const ks = [...V.querySelectorAll('.cr-ft')].filter(e => vis(e) && vis(e.querySelector('.cr-tx')));
         return { shown: ks.length > 0, only: null, mid: 0, kids: ks.map(e => ({ s: e.dataset.airline })) }; })();
-      return { cards: one('.cr-cards'), rents: one('.cr-rentbs'), wrap: vis(V.querySelector('.cr-rents[data-wrap]')), taxes, credits: one('.cr-credits') };
+      /* ★WP-compare-all-13 F2：家賃の箱の無い会社の列の「資料を確認できていません」の箱（見えている時だけ）── 誰のぶん・社名・字・列（家賃の節の中点の左か右か） */
+      const nb = V.querySelector('.cr-rentbs > .cr-rentn'), nbox = V.querySelector('.cr-rentbs');
+      const none = nb && vis(nb) ? (() => { const r = nb.getBoundingClientRect(), B = nbox.getBoundingClientRect();
+        return { s: nb.getAttribute('data-none'), name: nb.querySelector('.cr-rentn-n').textContent, t: nb.querySelector('.cr-rentn-t').textContent,
+          side: r.right <= B.left + B.width / 2 + 1 ? 'a' : r.left >= B.left + B.width / 2 - 1 ? 'b' : '?' }; })() : null;
+      return { cards: one('.cr-cards'), rents: one('.cr-rentbs'), wrap: vis(V.querySelector('.cr-rents[data-wrap]')), taxes, credits: one('.cr-credits'), none };
     });
     const right = (x, s) => !!x && x.shown && x.only === 'b' && x.kids.length === 1 && x.kids[0].s === s && x.kids[0].l >= x.mid - 1;
     const left = (x, s) => !!x && x.shown && x.only === 'a' && x.kids.length === 1 && x.kids[0].s === s && x.kids[0].r <= x.mid + 1;
     const gone = x => !!x && !x.shown;
+    /* もう片方の列：その会社の名前と、会社ページの暮らしの板と同じ1行（家賃の箱の無い列に置く）。null ＝ 出さない（2社とも箱が在る・
+       2社とも無い・会社ページに家賃の額が在る会社 ── 資料が在るのに「確認できていません」と言わない）。 */
+    const noneAt = (g, s, side) => !!g.none && g.none.s === s && g.none.name === name(s) && g.none.t === '家賃の資料を確認できていません' && g.none.side === side;
     const SCENES = [
-      ['emirates', 'jal', g => right(g.rents, 'jal') && g.wrap && gone(g.cards) && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['emirates', 'jal']) && !g.taxes.only],
-      ['jal', 'united', g => left(g.rents, 'jal') && g.wrap && gone(g.cards)],
-      ['emirates', 'cathay-pacific', g => right(g.cards, 'cathay-pacific') && right(g.rents, 'cathay-pacific')],
-      ['cathay-pacific', 'united', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific')],
-      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && gone(g.taxes) && gone(g.credits)],
+      ['emirates', 'jal', g => right(g.rents, 'jal') && g.wrap && gone(g.cards) && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['emirates', 'jal']) && !g.taxes.only
+        && noneAt(g, 'emirates', 'a')],
+      ['jal', 'united', g => left(g.rents, 'jal') && g.wrap && gone(g.cards) && noneAt(g, 'united', 'b')],
+      ['emirates', 'cathay-pacific', g => right(g.cards, 'cathay-pacific') && right(g.rents, 'cathay-pacific') && noneAt(g, 'emirates', 'a')],
+      ['cathay-pacific', 'united', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific') && noneAt(g, 'united', 'b')],
+      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && gone(g.taxes) && gone(g.credits) && g.none === null],
+      ['jal', 'peach', g => left(g.rents, 'jal') && g.wrap && g.none === null],
+      ['jal', 'ana', g => g.rents && g.rents.shown && !g.rents.only && g.rents.kids.length === 2 && g.none === null],
     ];
     for (const [a, b, want] of SCENES) {
       await go(p, `?view=compare&a=${a}&b=${b}`);
       await settle(p);
       const g = await boxes();
-      ok(want(g), `${a}|${b}: 公表額の一覧が片方の会社にだけ在るときは、その会社の列に置く・2社とも無いときは見出しごと出さない（家賃の箱・節・税・クレジットも）`,
+      ok(want(g), `${a}|${b}: 公表額の一覧が片方の会社にだけ在るときは、その会社の列に置く・2社とも無いときは見出しごと出さない（家賃の箱・節・税・クレジットも）・家賃の箱の無い会社の列には会社ページと同じ「家賃の資料を確認できていません」（会社ページに家賃の額が在る会社には出さない）`,
          JSON.stringify(g));
     }
     await c();
@@ -2461,7 +2493,11 @@ try {
       const side = sd => { const o = [...V.querySelectorAll(`.cr-side[data-side="${sd}"] .cr-opt`)].find(x => !x.hidden); return o ? { s: o.dataset.airline, edge: getComputedStyle(o).borderBottomStyle } : null; };
       const per = s => {
         const fills = [...V.querySelectorAll('.cr-pair .cr-row:not([hidden]) .cr-fill')].filter(f => f.closest('.cr-row').dataset.airline === s).map(f => getComputedStyle(f));
-        const dots = [...V.querySelectorAll(':is(.cr-pair, .cr-gos) > [data-airline]:not([hidden]) .cr-dot')].filter(d => d.closest(':is(.cr-pair, .cr-gos) > [data-airline]').dataset.airline === s).map(d => getComputedStyle(d));
+        /* ★WP-compare-all-13 F2：家賃の節の点も（その会社の家賃の箱か、その会社の「資料を確認できていません」の箱 ── 見えているものだけ） */
+        const rent = [...V.querySelectorAll('.cr-rentbs > .cr-rentb:not([hidden]), .cr-rentbs > .cr-rentn:not([hidden])')]
+          .filter(b => b.getClientRects().length > 0 && (b.dataset.airline || b.getAttribute('data-none')) === s).map(b => b.querySelector('.cr-dot')).filter(Boolean);
+        const dots = [...V.querySelectorAll(':is(.cr-pair, .cr-gos) > [data-airline]:not([hidden]) .cr-dot')].filter(d => d.closest(':is(.cr-pair, .cr-gos) > [data-airline]').dataset.airline === s)
+          .concat(rent).map(d => getComputedStyle(d));
         return { fills: fills.length, hollow: fills.filter(x => /inset/.test(x.boxShadow)).length, stripe: fills.filter(x => /repeating-linear-gradient/.test(x.backgroundImage)).length,
           dots: dots.length, ring: dots.filter(x => /inset/.test(x.boxShadow) && x.backgroundColor === 'rgba(0, 0, 0, 0)').length };
       };
@@ -2481,7 +2517,7 @@ try {
         seen.push(`${a}|${b}${want ? '（近い）' : ''}`);
         if (!right) bad.push(`${a}|${b} 距離 ${r3(dist(a, b))}: ${JSON.stringify(g)}`);
       }
-      ok(!bad.length, `${w}px 色の近い2社だけ、右の会社の札の線は破線・棒は縁取り・点は輪（斜線の模様は使わない）── 左の会社と、色の離れた2社には何も付かない（${seen.join('・')}）`, bad.slice(0, 3).join('\n      '));
+      ok(!bad.length, `${w}px 色の近い2社だけ、右の会社の札の線は破線・棒は縁取り・点は輪（家賃の節の点も ── 斜線の模様は使わない）── 左の会社と、色の離れた2社には何も付かない（${seen.join('・')}）`, bad.slice(0, 3).join('\n      '));
     }
     await c();
   }

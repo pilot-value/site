@@ -283,12 +283,39 @@ var PV_SEARCH_L10N = {
     wrap.appendChild(box);
     document.body.appendChild(dd);   // outside nav to avoid Safari backdrop-filter containment
     right.insertBefore(wrap, right.firstChild);
+    authLink(right);
 
     btn.addEventListener('click', openSearch);
     document.getElementById('pv-search-close').addEventListener('click', closeSearch);
     document.getElementById('pv-search-input').addEventListener('input', onInput);
     document.getElementById('pv-search-input').addEventListener('keydown', onKeydown);
     document.addEventListener('click', onOutside);
+  }
+
+  /* 英語の会社ページの上の帯の「Login」（ログイン済みなら会員の名前）── ★2026-10-25 WP-compare-all-13 F4。
+     日本語の会社ページは airline-base.js が同じ箱に足す。英語の会社ページは airline-base.js を読まないので、ログインしていても名前が
+     どこにも出ていなかった。形と決め方は airline-base.js と同じ（氏名が無ければメールの @ より前・名は最初の語・狭い画面では出さない）。
+     足すのは「英語の会社ページ（<body data-airline>）で、まだ無いとき」だけ（ほかのページの帯は今までどおり）。 */
+  function authLink(right) {
+    if (!IS_EN || !document.body || !document.body.hasAttribute('data-airline') || document.getElementById('nav-auth-btn')) return;
+    var a = document.createElement('a'), nm = '';
+    a.id = 'nav-auth-btn';
+    try {
+      var u = JSON.parse(localStorage.getItem('pv_user') || 'null');
+      nm = (u && (u.name || String(u.email || '').split('@')[0])) || '';
+    } catch (e) { nm = ''; }
+    if (nm) {
+      a.href = pageHref('profile.html');
+      a.textContent = nm.replace(/[\s　].*/, () => '');
+      a.className = 'hidden md:inline-flex';
+      a.style.cssText = 'font-size:.82rem;font-weight:700;color:#f5c842;padding:7px 0;text-decoration:none;letter-spacing:.01em';
+    } else {
+      a.href = pageHref('login.html');
+      a.textContent = T('ログイン');
+      a.className = 'btn-ghost hidden md:inline-flex';
+      a.style.cssText = 'font-size:.82rem;padding:7px 14px';
+    }
+    right.insertBefore(a, right.querySelector('a.btn-ghost') || right.querySelector('#pv-ham-btn'));
   }
 
   function positionDD() {

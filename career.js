@@ -283,6 +283,7 @@
             box.hidden = !any;
           }
           if (n === 1) box.setAttribute('data-only', one.dataset.airline === a ? 'a' : 'b'); else box.removeAttribute('data-only');
+          if (box.classList.contains('cr-rentbs')) rentNone(box, n === 1 ? one.dataset.airline : null, a, b);
           var wrap = box.closest ? box.closest('[data-wrap]') : null;
           if (wrap) wrap.hidden = n === 0;
         }
@@ -558,6 +559,24 @@
       if (hasSheet && sheet.open) { if (sheet.close) sheet.close(); else sheet.removeAttribute('open'); }
       root.classList.remove('cr-sheeting');
       turn = null;
+    }
+    /* 家賃の箱が片方の会社にだけ在るとき（only ＝ 箱の在る会社）、もう片方の会社の列に「資料を確認できていません」の箱（.cr-rentn ── HTML に1つ）
+       ★2026-10-25 WP-compare-all-13 F2。社名と色は選ぶ面のその会社の1行から写す（字は作らない）。置く所は、左の会社なら箱の前・右の会社なら
+       箱の後ろ（読む順 ＝ 画面の順）。会社ページに家賃の額が在る会社（data-held）には出さない ── 資料が在るのに「無い」と言わない。 */
+    function rentNone(box, only, a, b) {
+      var x = box.querySelector('.cr-rentn');
+      if (!x) return;
+      var s = only ? (only === a ? b : a) : null, held = (x.getAttribute('data-held') || '').split(' ');
+      var p = s && held.indexOf(s) < 0 ? pkOf[s] : null, n = p && p.el.querySelector('.cr-pk-n');
+      x.hidden = !n;
+      if (!n) { x.removeAttribute('data-none'); return; }
+      x.setAttribute('data-none', s);
+      x.querySelector('.cr-rentn-n').textContent = n.textContent;
+      var c = p.el.style.getPropertyValue('--cr-co');
+      if (c) x.style.setProperty('--cr-co', c); else x.style.removeProperty('--cr-co');
+      var at = null;
+      if (s === a) each(box.children, function (el) { if (!at && el.dataset && el.dataset.airline === only) at = el; });
+      box.insertBefore(x, at);                      // 右の会社のぶん（at が無い）は箱の最後へ
     }
     function plate(x, o) {                          // x: .cr-opt-x、o: 選ぶ面の1件（無ければ隠す）
       x.hidden = !o;

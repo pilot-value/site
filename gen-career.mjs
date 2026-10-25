@@ -143,6 +143,8 @@ export const WORDS = Object.freeze({
     destsOf: n => `${n}の就航地`, seasonal: '季節便', maps: 'Google マップで開く', hotels: 'ホテル',
     first: '1社目', second: '2社目', swap: '2社を入れ替える', realPay: '提出された年収', rentCmp: '拠点の街の家賃', perMonth: '1か月あたり',
     benCmp: '待遇', close: '閉じる', search: '航空会社名・国名で検索', none: '該当する航空会社が見つかりませんでした',
+    /* ★WP-compare-all-13 F2：会社ページの暮らしの板の字（gen-airline-glance.mjs の WORDS.rentNone）の写し ── 1文字も変えない */
+    rentNone: '家賃の資料を確認できていません',
   }),
   en: Object.freeze({
     sep: ' · ', slash: ' / ', paren: x => ` (${x})`, kv: (k, v) => `${k}: ${v}`, introJoin: ' ',
@@ -166,6 +168,7 @@ export const WORDS = Object.freeze({
     destsOf: n => `${n} destinations`, seasonal: 'Seasonal', maps: 'View on Google Maps', hotels: 'Hotels',
     first: 'First airline', second: 'Second airline', swap: 'Swap the two airlines', realPay: 'Submitted pay', rentCmp: 'Rent in the base city', perMonth: 'per month',
     benCmp: 'Benefits', close: 'Close', search: 'Search by airline or country', none: 'No airlines matched your search',
+    rentNone: 'We have not been able to confirm rent sources',
   }),
 });
 /** WORDS の検査：ja と en の鍵がどの深さでも同じ・同じ種類（字／関数／表）・en の字（関数は呼んだ答え）に日本語の字が無い・空でない。
@@ -961,6 +964,18 @@ ${L.rents.length > 1 ? `<p class="cr-else cr-rentb-go"><a class="cr-link" href="
 </article>`;
 }
 
+/* 家賃の箱が片方の会社にだけ在るとき、もう片方の列に出す箱（★2026-10-25 WP-compare-all-13 F2 ── 空けていた列）。字は会社ページの
+   暮らしの板と同じ1行（W.rentNone）だけ。箱は1つ ── 社名と色は career.js が選ぶ面のその会社の1行から写し、置く列も career.js が決める。
+   会社ページに家賃の額が在る会社（調べの台帳の街・1週あたり …… 比較の箱の決まりに合わないだけ）は data-held に並べる ＝ その会社には出さない
+   （資料が在るのに「確認できていません」と言わない）。 */
+function rentNoneBox() {
+  const held = ALL.filter(s => !rentable(s) && (vw(s).living?.rents || []).some(r => Object.keys(r.value || {}).length));
+  return `<article class="cr-rentn" data-held="${held.join(' ')}" hidden>
+<h3 class="cr-rentb-h"><i class="cr-dot" aria-hidden="true"></i><b class="cr-rentn-n"></b></h3>
+<p class="cr-rentn-t">${W.rentNone}</p>
+</article>`;
+}
+
 /* 比較に家賃の箱を置ける会社 ＝ 会社ページと同じ読み口（viewOf().living）が、箱の決まりどおりの1か月あたりの家賃を持つ会社。
    先行5社は今までどおり必ず置く（置けなければ rentBox が止まる）。ほかの会社は、決まりに合わない（調べの台帳の街 ── この箱は
    「過去」「参考」の札を出さない／1週あたり／先頭の地域が1つに決まらない／前提の1行が無い …）なら箱を置かない ──
@@ -1172,6 +1187,7 @@ ${gos('reviews', 'rev')}
 <h2 class="cr-h2">${W.rentCmp}<span class="cr-h2-s">${W.perMonth}</span></h2>
 <div class="cr-rentbs">
 ${ALL.filter(rentable).map(s => rentBox(s, on(s))).join('\n')}
+${rentNoneBox()}
 </div>
 </div>
 <div class="cr-sec cr-cmp-work">

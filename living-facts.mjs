@@ -852,7 +852,7 @@ export const EN = Object.freeze({
   'いつの・どの数字か': 'Which figures, from when',
   '出どころの断り': 'The source’s caveat',
   '列の分け方': 'How the columns are split',
-  'アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安': 'A typical-rent estimate by At Home, based on the average rent of properties listed on At Home',
+  'アットホームに載っている物件の平均家賃をもとに、アットホームが出した相場の目安': 'A typical-rent estimate by athome.co.jp, based on the average rent of properties listed on athome.co.jp',
   '直近3か月に掲載された物件': 'Properties listed in the last 3 months',
   '物件が少ないときは相場を出せないことがあり、相場のしぼり込み条件は物件の検索条件と一致しないことがある':
     'When there are few properties no figure may be given, and the filters for the figures may not match the property search filters',
@@ -921,7 +921,7 @@ export const EN = Object.freeze({
   'このルートには制限のある道路または私道を通る箇所があります。': 'This route has restricted usage or private roads.',
   /* 条件（cond_ja） */
   'アットホームに載った直近3か月の物件の平均家賃をもとにした、相場の目安。成約した家賃ではない。物件種別・駅からの徒歩・築年数は、ページを開いたままの表示（先頭の「すべて」）。管理費を含むか・広さ・更新の日付は、ページに書いていない':
-    'A typical-rent estimate based on the average rent of properties listed on At Home over the last 3 months; not agreed rents. Property type, walk from the station and building age were left as the page opened (the first option, “All”). The page does not say whether management fees are included, the floor area or the update date',
+    'A typical-rent estimate based on the average rent of properties listed on athome.co.jp over the last 3 months; not agreed rents. Property type, walk from the station and building age were left as the page opened (the first option, “All”). The page does not say whether management fees are included, the floor area or the update date',
   'SUUMO に登録された賃貸物件の賃料から、SUUMO が独自に集計した相場。成約した家賃ではない。マンション・間取りの組ごと。管理費を含むかはページに書いていない':
     'Typical rent calculated by SUUMO from the rents of rental properties registered on SUUMO; not agreed rents. Apartments, by group of layouts. The page does not say whether management fees are included',
   'Google マップが表示した目安の時間（「すぐに出発」で調べた時点の表示）。出発地と着く場所は行の名前のとおりで、家の玄関からの時間ではない。「徒歩込み」は、歩く区間を含むことを画面で確かめた合計。「経路の合計」は、経路の合計として表示された時間で、歩く区間を含むかは表示から確かめられていない。車は運転の時間で、降りたあとは含まない。時間帯・交通の状況・運行の時刻で変わる':
@@ -955,9 +955,9 @@ export const EN = Object.freeze({
   '片道・1人。運賃表は駅の組ごとに数字が1つあるだけで、通貨の字も、直達車と普通車の区別も無い。第2ターミナル駅も同じ額':
     'One way, per person. The fare table gives one number per pair of stations, with no currency and no difference between express and commuter trains. The same fare applies to Terminal 2 Station',
   /* 出どころの名前（題は “…”。日本語の題は英語に言い直し、英語の題は原文のまま、中国語の題は原文に英語を添える） */
-  'アットホーム「品川駅の家賃相場」': 'At Home, “Typical rent around Shinagawa Station”',
-  'アットホーム「豊洲駅の家賃相場」': 'At Home, “Typical rent around Toyosu Station”',
-  'アットホーム「横浜駅の家賃相場」': 'At Home, “Typical rent around Yokohama Station”',
+  'アットホーム「品川駅の家賃相場」': '“Typical rent around Shinagawa Station” on athome.co.jp',
+  'アットホーム「豊洲駅の家賃相場」': '“Typical rent around Toyosu Station” on athome.co.jp',
+  'アットホーム「横浜駅の家賃相場」': '“Typical rent around Yokohama Station” on athome.co.jp',
   '京急電鉄の羽田空港アクセス案内「Fare and Time Search」': 'Keikyu Haneda Airport access guide, “Fare and Time Search”',
   '東京空港交通「お台場・有明エリア ⇔ 羽田空港」': 'Airport Transport Service (Airport Limousine), “Odaiba and Ariake area ⇔ Haneda Airport”',
   'SUUMO「東京都の家賃相場情報」': 'SUUMO, “Typical rents in Tokyo”',
@@ -988,7 +988,7 @@ export const EN = Object.freeze({
   '桃園市政府の観光案内「Taoyuan Airport MRT」': 'Taoyuan City Government travel guide, “Taoyuan Airport MRT”',
   /* 家賃の出どころの名前（SITES）と、出どころの種類（SRC_KINDS） */
   '591租屋網': '591 Rent',
-  'アットホーム': 'At Home',
+  'アットホーム': 'athome.co.jp',
   '不動産ポータルの公表': 'Published by the property portal',
   '政府の公表': 'Published by the government',
   '鉄道・空港の運営会社の公表': 'Published by the rail or airport operator',

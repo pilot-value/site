@@ -179,6 +179,9 @@
 .pvg-pay > .pvg-hd .pvg-ico{width:24px;height:24px;border-radius:8px}
 /* いちばん狭い画面（320px）では、給与の見出しの絵を外して税の札に幅を渡す（札の字を「…」で切らない） */
 @container pvg (max-width:289.98px){ .pvg-pay > .pvg-hd .pvg-ico{display:none} }
+/* ★2026-10-25 WP-compare-all-13 F3：税の札の字を「…」で切らない（英語の「Tax-free (no personal income tax in the UAE)」・オマーンの長い字が
+   スマホで途中から消えていた）。入りきらない字は札の中で折り返す（字は1つも削らない）。角の丸みは1行の札の高さの半分 ＝ 1行の札の見た目は今までと同じ。 */
+.pvg-pay > .pvg-hd .pvg-chip{flex:0 1 auto;min-width:0;border-radius:11px;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;text-wrap:pretty}
 .pvg-ranks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px;margin-top:4px}
 /* 職位の名前が「◯◯の推定年収」まで言う（額の真上で、何の額かが読める）。
    誰の推定かの1行は、広い欄でだけ棒の下に出す ── スマホの最初の1画面は 給与 → 勤務 → 待遇 → 暮らし で埋まるので、
