@@ -572,15 +572,20 @@ for (const p of PLACES) {
   const bad = LEDGER.filter(p => !p.source || !p.author || !p.licence || !p.aircraft
     || (needsCredit(p) && (!/^https:\/\//.test(p.licence_url || '') || !p.changes)));
   ok(!bad.length, '台帳の全部の写真に 出所・作者・ライセンス・機種 が在る', bad.map(p => p.file).join(', '));
-  /* ライセンスは、使う条件を確かめてある3種だけ（名前とリンクが対）。
-     知らないライセンスや書き間違いは「示す条件あり」に倒れるが、商用不可・改変不可はそもそも使えない。 */
+  /* ライセンスは、使う条件を確かめてある種類だけ（名前とリンクが対）。
+     知らないライセンスや書き間違いは「示す条件あり」に倒れるが、商用不可・改変不可はそもそも使えない。
+     ★2026-10-25 段階5 compare-all-14（先行5社のほかの102社の写真・同じ強さの当て直し）：3種 → 6種。CC BY 2.0・CC BY-SA 4.0 と
+     Public domain（作者が権利を放棄した写真。出どころの印が2つ ── どちらかのリンクとだけ対）を足した。どれも商用と改変ができる。 */
   const LICENCES = {
     'CC0': 'https://creativecommons.org/publicdomain/zero/1.0/deed.en',
     'CC BY 4.0': 'https://creativecommons.org/licenses/by/4.0',
     'CC BY-SA 2.0': 'https://creativecommons.org/licenses/by-sa/2.0',
+    'CC BY 2.0': 'https://creativecommons.org/licenses/by/2.0',
+    'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0',
   };
-  const odd = LEDGER.filter(p => LICENCES[p.licence] !== p.licence_url);
-  ok(!odd.length, '台帳のライセンスは条件を確かめてある3種だけ（名前とリンクが対）', odd.map(p => `${p.file}: ${p.licence}`).join(', '));
+  const PD = ['https://creativecommons.org/publicdomain/mark/1.0/', 'https://commons.wikimedia.org/wiki/Template:PD-self'];
+  const odd = LEDGER.filter(p => !(p.licence === 'Public domain' ? PD.includes(p.licence_url) : Object.hasOwn(LICENCES, p.licence) && LICENCES[p.licence] === p.licence_url));
+  ok(!odd.length, '台帳のライセンスは条件を確かめてある6種だけ（名前とリンクが対）', odd.map(p => `${p.file}: ${p.licence}`).join(', '));
   ok(LEDGER.every(p => needsCredit(p) === (p.licence !== 'CC0')), 'クレジットを出さなくてよいのは CC0 だけ');
   ok(FIVE.every(s => primary(s)), '先行5社すべてに写真が在る');
 
@@ -622,6 +627,57 @@ for (const p of PLACES) {
   }
   ok(imgs.length > 0 && !off.length, `HTML の写真 ${imgs.length}か所が全部台帳どおり`, off.join('\n      '));
   ok(!/data:image\/(?:jpe?g|png|webp)/.test(BLOCK), '写真を文字にして埋め込んでいない');
+}
+
+/* T-C5（★2026-10-26 段階5 compare-all-14・P12.122）：比較の札は、先行5社のほかの会社でも台帳の1枚目の写真を出す（career.js がカードの島から
+   置く）。写真を出すなら、示すことが条件の写真のクレジットが同じページに在ること（CC BY / BY-SA の使う条件 ── 外す道は無い）。日英の2枚で：
+     a) 比較の段のクレジット（.cr-credits ── 1つ）に、台帳に写真の在る会社のうち示すことが条件の写真の会社がちょうど1つずつ。社名（正本の字）・
+        作者（出所へのリンク）・ライセンス（その名前の頁へのリンク）の順で、どちらも別の窓で開く。条件の無い写真（CC0）の会社は置かない。
+        見えているのは並べた2社（PAIR）のぶんだけ。
+     b) 頭の字は2つ（data-n="1" と "2" ── 英語は Photo / Photos・日本語は同じ字）で、見えているのは並べた2社のクレジットの数のほう。
+     c) カードの島の1枚目の写真に説明（alt）が在り、字は先行5社の写真の札と同じ形（「会社名の 機種」／ "Name Aircraft"）。2枚目からは持たない。 */
+{
+  const bad = [];
+  const un = t => t.replace(/&quot;/g, () => '"').replace(/&lt;/g, () => '<').replace(/&gt;/g, () => '>').replace(/&amp;/g, () => '&');
+  const want = ALLK.filter(s => primary(s) && needsCredit(primary(s)));
+  for (const [lang, h] of [['ja', HTML], ['en', EN_HTML]]) {
+    const nm = s => SALARY[s][lang];
+    const sec = h.split('data-view="compare"')[1]?.split('data-view="card"')[0] || '';
+    const ps = [...sec.matchAll(/<p class="cr-credits">([\s\S]*?)<\/p>/g)].map(m => m[1]);
+    if (ps.length !== 1) { bad.push(`${lang}: 比較のクレジットの段 ${ps.length}つ`); continue; }
+    const spans = [...ps[0].matchAll(/<span class="cr-credit" data-airline="([^"]+)"( hidden)?>([\s\S]*?)<\/span>/g)].map(m => ({ s: m[1], hidden: !!m[2], body: m[3] }));
+    const got = spans.map(x => x.s);
+    if (!same([...got].sort(), [...want].sort()) || new Set(got).size !== got.length)
+      bad.push(`${lang}: クレジットの会社 ${got.length}（条件のある写真の会社 ${want.length}）── 欠け ${want.filter(s => !got.includes(s)).join(', ') || 'なし'}・余り ${got.filter(s => !want.includes(s)).join(', ') || 'なし'}`);
+    for (const x of spans) {
+      const p = primary(x.s);
+      if (!p) continue;
+      const links = [...x.body.matchAll(/<a href="([^"]*)" target="_blank" rel="noopener">([^<]*)<\/a>/g)].map(m => [un(m[1]), un(m[2])]);
+      const label = un(x.body.split('<a ')[0]).trim();
+      if (label !== nm(x.s)) bad.push(`${lang} ${x.s}: 社名「${label}」`);
+      if (!same(links, [[p.source, p.author], [p.licence_url, p.licence]]) || (x.body.match(/<a /g) || []).length !== 2) bad.push(`${lang} ${x.s}: 作者とライセンスのリンク ${JSON.stringify(links)}`);
+      if (x.hidden === PAIR.includes(x.s)) bad.push(`${lang} ${x.s}: ${x.hidden ? '並べた2社なのに隠れている' : '並べていないのに見えている'}`);
+    }
+    const heads = [...ps[0].matchAll(/<span data-n="([12])"( hidden)?>([^<]*)<\/span>/g)].map(m => ({ n: Number(m[1]), hidden: !!m[2], t: m[3] }));
+    const k = PAIR.filter(s => want.includes(s)).length;
+    const words = heads.length === 2 && heads[0].n === 1 && heads[1].n === 2
+      && (lang === 'ja' ? heads[0].t === heads[1].t && heads[0].t.startsWith('写真')
+        : /^Photo(?: |$)/.test(heads[0].t) && heads[1].t === `Photos${heads[0].t.slice(5)}`);
+    if (!words || heads.filter(x => !x.hidden).length !== 1 || heads.find(x => !x.hidden).n !== (k === 1 ? 1 : 2)) bad.push(`${lang}: 頭の字 ${JSON.stringify(heads)}（並べた2社のクレジット ${k}）`);
+    let isle = null;
+    try { isle = JSON.parse((h.match(/<script type="application\/json" id="crc-data">([\s\S]*?)<\/script>/) || [])[1] || 'null').airlines; } catch { isle = null; }
+    if (!isle) { bad.push(`${lang}: カードの島が読めない`); continue; }
+    for (const s of ALLK) {
+      const ph = (isle[s] || {}).photos || [], p = primary(s);
+      if (!p) { if (ph.length) bad.push(`${lang} ${s}: 台帳に無い写真が島に在る`); continue; }
+      const alt = lang === 'ja' ? `${nm(s)}の ${p.aircraft}` : `${nm(s)} ${p.aircraft}`;
+      if (!ph[0] || ph[0].alt !== alt) bad.push(`${lang} ${s}: 島の1枚目の説明「${ph[0] ? ph[0].alt : '（写真が無い）'}」`);
+      if (ph.slice(1).some(x => 'alt' in x)) bad.push(`${lang} ${s}: 2枚目からも説明を持つ`);
+    }
+  }
+  ok(want.length > FIVE.length && !bad.length,
+     `比較の札に写真を出す会社の、示すことが条件の写真のクレジット（${want.length}社）が日英の比較の段に1つずつ（社名・作者と出所・ライセンスのリンク）・見えているのは並べた2社だけ・頭の字は見えているクレジットの数・カードの島の1枚目に写真の説明`,
+     bad.slice(0, 8).join('\n      '));
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -883,7 +939,11 @@ head('掲載している全社（比較の材料）');
     /* ★2026-10-25 P12.118：リードが ROOM を gzip で 4,096 広げた（次の作業 WP-14 / 15 で career.html に写真のクレジットと家賃の行が入る）。
        ROOM を広げるのはリードだけ。 */
     const LEAD118 = { raw: 0, gz: 4096, tags: 0 };
-    const ROOM = { raw: up(GROW1.raw + 250000, 25000), gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz, tags: up(GROW1.tags + 1550, 250) };
+    /* ★2026-10-26 P12.122 / P12.122b：リードが ROOM を広げた（この作業 compare-all-14 の全部で 生の大きさ +25,000・gzip +3,584）。
+       比較の札に、先行5社のほかの会社の写真が出る ── 示すことが条件の写真（CC BY / BY-SA など）のクレジットを、会社ページと同じく作者と
+       ライセンスのリンクで全社ぶん置き（外す道は無い）、カードの島の1枚目に写真の説明（alt）を足した。ROOM を広げるのはリードだけ。 */
+    const LEAD122 = { raw: 25000, gz: 3584, tags: 0 };
+    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz, tags: up(GROW1.tags + 1550, 250) };
     const bytes = fs.readFileSync(path.join(ROOT, PAGE));
     const now = { raw: bytes.length, gz: zlib.gzipSync(bytes).length, tags: (bytes.toString('utf8').match(/<[a-z]/g) || []).length };
     const kb = n => Math.round(n / 1024);
@@ -2195,17 +2255,20 @@ try {
     await c();
   }
 
-  /* R4（★2026-10-25 段階5 compare-all-4・CA-3b1 ── 状態を1回だけ見る）：写真の無い会社どうし（united|delta）を直に開くと、2枚とも写真の無い会社の
+  /* R4（★2026-10-25 段階5 compare-all-4・CA-3b1 ── 状態を1回だけ見る）：先行5社のほかの会社どうし（united|delta）を直に開くと、2枚とも写真の無い会社の
      札（その会社の社名とロゴ）で、年収の行はその2社。投稿先だけの会社（OPS ── 年収を載せない会社。台帳から読む）と知らない名前の住所は、
-     既定の2社へ直る（住所も直る）。 */
-  head('写真の無い会社どうし・比較に出せない会社の住所');
+     既定の2社へ直る（住所も直る）。
+     ★2026-10-26 段階5 compare-all-14（P12.122・強めた当て直し）：2社とも台帳に写真が在るようになった ── その札の地に、その会社の台帳の1枚目の写真
+     （career.js がカードの島から置く）。写真の説明・選び直し・写真の無い会社・クレジットは assert-career-live.mjs の場面 plates が日英 × 2つの大きさで見る。 */
+  head('先行5社のほかの会社どうし・比較に出せない会社の住所');
   {
     const { page: p, close: c } = await open('?view=compare&a=united&b=delta', 1280, 800);
     const plates = () => p.evaluate(() => [...document.querySelectorAll('#cr .cr-cmp .cr-side')].map(sd => [...sd.querySelectorAll('.cr-opt')]
-      .filter(o => o.getClientRects().length).map(o => [o.classList.contains('cr-opt-x'), o.dataset.airline, (o.querySelector('.cr-opt-t') || {}).textContent || '', !!o.querySelector('.cr-opt-lg .pvg-logo')])));
+      .filter(o => o.getClientRects().length).map(o => [o.classList.contains('cr-opt-x'), o.dataset.airline, (o.querySelector('.cr-opt-t') || {}).textContent || '', !!o.querySelector('.cr-opt-lg .pvg-logo'),
+        [...o.querySelectorAll('.cr-opt-p img')].filter(i => !i.closest('.pvg-logo')).map(i => i.getAttribute('src')).join(' ')])));
     const g = await shown(p), pl = await plates();
-    ok(same(pl, [[[true, 'united', name('united'), true]], [[true, 'delta', name('delta'), true]]]) && same(g.rows, ROLES.map(() => ['united', 'delta'])),
-       '写真の無い2社を並べると、2枚とも写真の無い会社の札（社名とロゴ）・年収の行はその2社', JSON.stringify({ plates: pl, rows: g.rows }));
+    ok(same(pl, [[[true, 'united', name('united'), true, photoSrc(primary('united'))]], [[true, 'delta', name('delta'), true, photoSrc(primary('delta'))]]]) && same(g.rows, ROLES.map(() => ['united', 'delta'])),
+       '先行5社のほかの2社を並べると、2枚とも写真の無い会社の札（社名とロゴ）で、地にその会社の台帳の1枚目の写真・年収の行はその2社', JSON.stringify({ plates: pl, rows: g.rows }));
     const OPS0 = Object.keys(OPS)[0];
     await go(p, `?view=compare&a=${OPS0}&b=zzz`);
     const q = await search(p), g2 = await shown(p);
@@ -2254,7 +2317,11 @@ try {
       ['jal', 'united', g => left(g.rents, 'jal') && g.wrap && gone(g.cards) && noneAt(g, 'united', 'b')],
       ['emirates', 'cathay-pacific', g => right(g.cards, 'cathay-pacific') && right(g.rents, 'cathay-pacific') && noneAt(g, 'emirates', 'a')],
       ['cathay-pacific', 'united', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific') && noneAt(g, 'united', 'b')],
-      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && gone(g.taxes) && gone(g.credits) && g.none === null],
+      /* ★2026-10-26 段階5 compare-all-14（P12.122・同じ強さの当て直し）：united と delta に台帳の写真が付いた ── united は CC0（クレジットを出さない）・
+         delta は示すことが条件の写真（Public domain）なので、写真のクレジットは delta の1つだけが見える。2社とも条件のある写真が無いときに段ごと
+         出さないことは、条件の無い写真の2社（united|american ── どちらも CC0）で見る。 */
+      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && gone(g.taxes) && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['delta']) && g.none === null],
+      ['united', 'american', g => gone(g.credits)],
       ['jal', 'peach', g => left(g.rents, 'jal') && g.wrap && g.none === null],
       ['jal', 'ana', g => g.rents && g.rents.shown && !g.rents.only && g.rents.kids.length === 2 && g.none === null],
     ];
@@ -2287,11 +2354,14 @@ try {
   /* 深い会社（DEEP）の、タブ・就航地・詳細・カードの画面。 */
   const DEEP_VIEWS = DEEP.flatMap(s => [`?airline=${s}&tab=work`, `?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`,
     `?airline=${s}&d=cap-est`, `?airline=${s}&d=fo-est`, `?view=compare&a=${s}&b=jal`, `?view=card&a=${s}&b=jal`, `?view=card&a=${s}`]);
-  /* 写真の無い会社の札と、概要を持たない会社のカード（全社を開けるようにしたあと）。写真の検査には入れない（写真が無い）。 */
+  /* 写真の無い会社の札と、概要を持たない会社のカード（全社を開けるようにしたあと）。
+     ★2026-10-26 段階5 compare-all-14（P12.122）：写真の無い会社の札にも、台帳に写真の在る会社は写真が出る（career.js）── 比較の2つは下の写真の検査にも入れる。 */
   const WIDE_VIEWS = ['?view=compare&a=united&b=delta', '?view=compare&a=jal&b=united', '?view=card&a=united'];
   const VIEWS = [...OLD_VIEWS, ...DEEP_VIEWS, ...WIDE_VIEWS];
-  /* 写真の出る画面（詳細とカードは、ここでは見ない ── 詳細に写真は無く、カードの写真は画像の中へ描く）。 */
-  const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`])];
+  /* 写真の出る画面（詳細とカードは、ここでは見ない ── 詳細に写真は無く、カードの写真は画像の中へ描く）。
+     ★2026-10-26（P12.122）：先行5社のほかの会社の札の写真（CC0 と Public domain の united|delta・CC BY の emirates と先行5社の jal・CC BY の2社 skymark|qantas）。 */
+  const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`]),
+    ...WIDE_VIEWS.filter(q => q.startsWith('?view=compare')), '?view=compare&a=emirates&b=jal', '?view=compare&a=skymark&b=qantas'];
   /* 押せるものの種類。ここに無い形のものが増えたら落とす（hover / active を付け忘れる）。 */
   const MAIN = '.cr-tile, .cr-back, .cr-btn, .cr-swap, .cr-pickb, .cr-pk, .cr-sheet-x, summary, .cr-link, .cr-card-n, '
     + '.cr-tab, a.cr-bar, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn, .pv-gg';
@@ -2928,6 +2998,25 @@ try {
          'カードに描かれる字と絵は、公開の一覧に在るものだけ（WORD・社名・略号・額と札・目盛・評価・住所の切れ端・写真のクレジット・台帳の写真）',
          JSON.stringify({ up, drawn: text.length, img: img.length, bad: bad.slice(0, 6), addrLeft: left }).slice(0, 600));
     }
+
+    /* T-C4（★2026-10-25 段階5 compare-all-14・絵の本 #15）：写真の欄の名前（と、カードの見本の読み上げの名前）に、括弧が2重にならない。
+       社名がもう括弧で終わる2社（日本航空（JAL）・全日本空輸（ANA）── どちらも写真が2枚 ＝ 欄が2つとも見える）を並べて、日本語と英語で見る。 */
+    for (const [file, lang] of [[PAGE, 'ja'], [PAGE_EN, 'en']]) {
+      const { page: pg, close } = await open('?view=card&a=jal&b=ana', 390, 680, { path: file });
+      await ready(pg);
+      const up = await cardsUp(pg, 2);
+      const got = up ? await pg.evaluate(() => ({
+        legends: [...document.querySelectorAll('#crc-root fieldset')].filter(f => f.querySelector('.crc-ph') && f.getClientRects().length)
+          .map(f => f.querySelector('legend').textContent),
+        aria: (document.querySelector('#crc-root canvas') || { getAttribute: () => '' }).getAttribute('aria-label') || '',
+      })) : null;
+      await close();
+      const names = ['jal', 'ana'].map(s => SALARY[s][lang]);
+      const twice = t => /[)）]\s*[)）]/.test(t);
+      const even = t => (t.match(/[(（]/g) || []).length === (t.match(/[)）]/g) || []).length;
+      ok(!!got && got.legends.length === 2 && got.legends.every((l, i) => l.includes(names[i]) && !twice(l) && even(l)) && names.every(n => got.aria.includes(n)) && !twice(got.aria) && even(got.aria),
+         `${file}：写真の欄の名前に括弧が2重にならない（社名が括弧で終わる ${names.join('・')}）`, JSON.stringify(got));
+    }
   }
 
   /* ── ②（続き）会社が公表した額は、一覧の中にだけ ─────────────── */
@@ -3128,9 +3217,10 @@ try {
       ok(!extra.length, `${at}: 条件の無い写真（CC0）には何も足していない`, extra.join(', '));
       ok(g.links.every(l => used.some(ph => ph.source === l[0] || ph.licence_url === l[0])), `${at}: 出ていない写真のクレジットが無い`);
       ok(g.links.every(l => l[2] === '_blank' && /noopener/.test(l[3])), `${at}: クレジットのリンクは別の窓で開く`);
-      /* クレジットの中に、台帳に無い文言が無い。 */
+      /* クレジットの中に、台帳に無い文言が無い。
+         ★2026-10-26（P12.122・同じ強さの当て直し）：比較のクレジットの頭の社名は、先行5社のほかの会社も出る ── 正本の社名（SALARY の ja）を全社ぶん。 */
       let rest = g.text;
-      for (const w of [...LEDGER.flatMap(x => [x.author, x.licence, x.aircraft]), ...PLACES.flatMap(x => [x.author, x.licence]), ...g.towns, ...CHANGES, ...FIVE.map(name), '写真']
+      for (const w of [...LEDGER.flatMap(x => [x.author, x.licence, x.aircraft]), ...PLACES.flatMap(x => [x.author, x.licence]), ...g.towns, ...CHANGES, ...ALLK.map(name), '写真']
         .filter(Boolean).sort((a, b) => b.length - a.length)) rest = rest.split(w).join('');
       rest = rest.replace(/[\s（）／]/g, '');
       ok(rest === '', `${at}: クレジットの中に台帳に無い文言が無い`, `残り「${rest}」`);

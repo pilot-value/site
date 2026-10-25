@@ -752,7 +752,12 @@ for (const s of ROLLED) {
   ok((starts.length >= 1 || !v.livings.length) && !said.length, `E ${s}: 街の欄の見出しと「街を追加」の面が言う空港は、その会社の拠点の空港だけ`, said.slice(0, 5).join(' ／ '));
   ok(!noRent.length, `E ${s}: 家賃の行の無い街は、今までの「家賃の資料を確認できていません」（ほかの街の数字で埋めない）`, noRent.join(','));
   /* 会社の1枚（写真の無い形）と「よくある質問」 */
-  ok(/<article class="pvg-card pvg-co pvg-co-np"/.test(g) || (!SAMPLES.includes(s) && !v.company.profile.length && !v.company.scale.length && !v.company.fleet.length && !v.company.photo), `E ${s}: 写真の無い会社の1枚が在る（L7・会社の数字か機材が1つでも在れば）`);
+  /* ★2026-10-25 段階5 compare-all-14（同じ強さの当て直し）：先行5社のほかの102社にも写真が入った。写真の在る会社は、会社の1枚の頭が台帳の1枚目の写真
+     （写真の無い形 pvg-co-np ではない）・写真の無い会社は今までどおり写真の無い形。どちらも、会社の数字か機材か写真が1つでも在れば1枚が在る。 */
+  const coCard = v.company.photo
+    ? g.includes(`<article class="pvg-card pvg-co" data-pvg-pane="overview">\n<figure class="pvg-photo"><img src="../assets/airlines/${v.company.photo.file}-480.jpg"`) && !/<article class="pvg-card pvg-co pvg-co-np"/.test(g)
+    : /<article class="pvg-card pvg-co pvg-co-np"/.test(g);
+  ok(coCard || (!SAMPLES.includes(s) && !v.company.profile.length && !v.company.scale.length && !v.company.fleet.length && !v.company.photo), `E ${s}: 会社の1枚が在る（写真の在る会社は台帳の写真つき・無い会社は写真の無い形 ── L7・会社の数字か機材か写真が1つでも在れば）`);
   /* L6（2026-10-21 d1）：残した古い節・社名の行・題と説明の「一番・最古・唯一・第N位」は、支える資料が在るもの（airline-claims.mjs の SUPPORTED）だけ */
   {
     const left = claimsLeft(s, b);

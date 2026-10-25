@@ -318,6 +318,9 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 /* 写真の無い会社の札。地はサイトの紺・会社の色を左上からにじませる。上の段にロゴと「選び直せる」印、下に社名（行の幅ぜんぶ）。 */
 .cr-opt-x .cr-opt-p{background:radial-gradient(120% 150% at 0% 0%, color-mix(in srgb, var(--cr-co) 52%, var(--pv-navy)) 0%, var(--pv-navy) 66%)}
 .cr-opt-x .cr-opt-p::before{display:none}
+/* ★2026-10-26 段階5 compare-all-14（P12.122）：台帳に写真の在る会社は、この札の地にその会社の写真（career.js が置く・is-ph）。写真の札と同じく、
+   社名の側を紺で沈めて白い字を読めるようにする（沈め方は写真の札の ::before ── 幅ごとの向きもそのまま）。 */
+.cr-opt-x.is-ph .cr-opt-p::before{display:block}
 .cr-opt-lg{position:absolute;z-index:1;left:8px;top:10px;display:flex;align-items:center;gap:6px;color:var(--cr-on)}
 .cr-opt-lg .cr-ic{flex:none;width:13px;height:13px}
 .cr-opt-lg .pvg-logo{--lg-h:24px;max-width:72px}
@@ -494,6 +497,14 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 .cr-cmp[data-near] .crl-split-c + .crl-split-c > .crl-co::before,
 .cr-cmp[data-near] .crl-sum2-c[data-col="2"] > .crl-co::before,
 .cr-cmp[data-near] .crl-rate-rv > .crl-cmp-sc + .crl-cmp-sc > .crl-co::before{background:transparent;box-shadow:inset 0 0 0 2px var(--crl-co,var(--pv-ink-3))}
+/* ★2026-10-25 WP-compare-all-14（絵の本 #13）：同じ札（.crl-co）で、社名が折れる長い会社（スイス インターナショナル エアラインズ）でも、
+   色の点だけが1行目に残らない ── 社名の塊（.crl-co-n）の幅は「いちばん長い1語」から始めて残りの行を埋める（width:min-content ＋ 伸びる）。
+   点の横に1語が入る限り、社名は点の右で語の切れ目ごとに折れる。点は1行目の高さのまんなか。
+   1語が点の横に入らない時だけ、今までどおり社名ごと次の行へ（語の途中で折らない・字を小さくしない ── career-live.css の決まりのまま）。
+   ⚠️ career-live.css には書かない（上と同じ理由 ── 会社ページ 222枚の ?v=）。 */
+.cr-cmp .crl .crl-co{align-items:flex-start}
+.cr-cmp .crl .crl-co::before{margin-top:calc((1.4em - 8px) / 2)}
+.cr-cmp .crl .crl-co-n{flex:1 1 auto;width:min-content}
 /* 拠点の街の家賃の箱の点にも同じ輪（★2026-10-25 WP-compare-all-13 F2 ── エミレーツ｜JAL では、家賃の欄だけ JAL の点が塗りのままで、
    エミレーツの箱に見えた）。決まりは上と同じ data-near の1つ。箱は career.js が左の会社・右の会社の順に置き直すので、見えている2つめの箱
    （家賃の箱か、下の「資料を確認できていません」の箱）が右の会社。右の会社にだけ箱が在り左の会社に箱を出さない時（data-only="b"）は、その1つ。 */

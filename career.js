@@ -207,7 +207,8 @@
 
     /* 比較の2社を入れ替える。全社ぶんが全部 HTML に在り、見せる2社を選ぶ（と、2社の目盛で棒の長さを決め直す）だけ。 */
     function pair(a, b) {
-      /* 写真の札は先行5社だけ。ほかの会社は、写真の無い会社の札（.cr-opt-x ── 1側に1枚）に、選ぶ面のその会社の社名・色・ロゴを写す。 */
+      /* 写真の札は先行5社だけ。ほかの会社は、写真の無い会社の札（.cr-opt-x ── 1側に1枚）に、選ぶ面のその会社の社名・色・ロゴを写す
+         （★2026-10-26 P12.122：台帳に写真の在る会社は、その1枚目を札の地に置く ── 下の plate()）。 */
       each(cmp.querySelectorAll('.cr-side'), function (side) {
         var want = side.dataset.side === 'a' ? a : b;
         var hit = false, x = null;
@@ -283,6 +284,9 @@
             box.hidden = !any;
           }
           if (n === 1) box.setAttribute('data-only', one.dataset.airline === a ? 'a' : 'b'); else box.removeAttribute('data-only');
+          /* 写真のクレジットの頭の字は、見えているクレジットの数で言う（★2026-10-26 P12.122 ── 英語の Photo / Photos。HTML に2つの字が在り、
+             見せるのは1つ。字は作らない）。 */
+          if (box.classList.contains('cr-credits')) each(box.querySelectorAll('[data-n]'), function (h) { h.hidden = (h.dataset.n === '1') !== (n === 1); });
           if (box.classList.contains('cr-rentbs')) rentNone(box, n === 1 ? one.dataset.airline : null, a, b);
           var wrap = box.closest ? box.closest('[data-wrap]') : null;
           if (wrap) wrap.hidden = n === 0;
@@ -590,6 +594,29 @@
       if (old) lg.removeChild(old);
       if (src) lg.insertBefore(src.cloneNode(true), lg.firstChild);
       x.querySelector('.cr-opt-t').textContent = o.el.querySelector('.cr-pk-n').textContent;
+      /* ★2026-10-26 段階5 compare-all-14（P12.122）：台帳に写真の在る会社は、その1枚目を札の地に置く（先行5社の写真の札と同じ置き方 ──
+         写真は札の下地・高さは中身なり）。絵の道・大きさ・説明（alt）は、このページのカードの島（#crc-data ── gen-career.mjs が台帳から書く）
+         から読むだけ（字も額も持たない）。会社が替わったら絵ごと置き直す（前の会社の写真を、次の会社の名前の下に残さない）。
+         写真のクレジットは HTML に全社ぶん在り、並べた2社のものだけ見える（pair()）。写真の無い会社は今までどおりロゴの札。 */
+      var ph = photoOf(o.slug), pp = x.querySelector('.cr-opt-p'), im = pp.firstElementChild;
+      if (im && im.tagName !== 'IMG') im = null;
+      if (im && (!ph || im.getAttribute('src') !== ph.src)) { pp.removeChild(im); im = null; }
+      if (ph && !im) {
+        im = document.createElement('img');
+        im.alt = ph.alt; im.width = ph.w; im.height = ph.h; im.loading = 'lazy'; im.decoding = 'async';
+        im.src = ph.src;
+        pp.insertBefore(im, pp.firstChild);
+      }
+      x.classList.toggle('is-ph', !!ph);
+    }
+    /* カードの島（#crc-data）の、その会社の1枚目の写真（道・大きさ・説明が全部そろっているときだけ）。島は1回だけ読む。 */
+    var isle = null;
+    function photoOf(s) {
+      if (!isle) {
+        try { isle = JSON.parse(document.getElementById('crc-data').textContent).airlines || {}; } catch (e) { isle = {}; }
+      }
+      var a = isle[s], p = a && a.photos && a.photos[0];
+      return p && p.src && p.alt && p.w && p.h ? p : null;
     }
     /* 検索の欄の字で、選ぶ面の会社を絞る（航空会社一覧と同じ決まり：何も打っていなければ HTML の並び・地域の見出しつき。
        打っていれば見出しを隠し、略号か呼び名とぴったり同じ会社を先頭へ・あとは HTML の並び）。1社も無いときだけ、一覧と同じ1行を出す。 */

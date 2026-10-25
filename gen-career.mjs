@@ -411,7 +411,13 @@ function credits(items, withName, shown) {
     const hide = shown && !shown.includes(slug) ? ' hidden' : '';
     return `<span class="cr-credit" data-airline="${slug}"${hide}>${label}<a href="${esc(p.source)}" target="_blank" rel="noopener">${esc(p.author)}</a>${W.slash}<a href="${esc(p.licence_url)}" target="_blank" rel="noopener">${esc(p.licence)}</a>${same ? '' : W.paren(esc(chg(p)))}</span>`;
   });
-  return list.length ? `<p class="cr-credits">${W.photos(same ? esc(chg(one)) : '', list.length)} ${list.join(' ')}</p>` : '';
+  const c = same ? esc(chg(one)) : '';
+  /* ★2026-10-26 段階5 compare-all-14（P12.122）：比較の段（shown が在る ── 全社ぶんを置き、並べた2社のぶんだけ見せる）の頭の字は、
+     見えているクレジットの数で言う（英語の Photo / Photos）。2つの字を置き、見せるのは1つ（選び直したら career.js の pair() が選ぶ ──
+     字は作らない）。日本語は同じ字が2つ（日英で骨組みをそろえる）。 */
+  const k = shown ? need.filter(([s]) => shown.includes(s)).length : list.length;
+  const top = shown ? [1, 2].map(n => `<span data-n="${n}"${(n === 1) === (k === 1) ? '' : ' hidden'}>${W.photos(c, n)}</span>`).join('') : W.photos(c, list.length);
+  return list.length ? `<p class="cr-credits">${top} ${list.join(' ')}</p>` : '';
 }
 
 /* ── 住所と記号 ─────────────────────────────────────────────────── */
@@ -1145,7 +1151,10 @@ function compare() {
   const pubs = Object.fromEntries(FIVE.map(s => [s, pub(s, 'h3')]));
   /* 札の中身（略号かロゴ・社名・「選び直せる」印）は写真の箱（.cr-opt-p）の中 ── 広い画面では1行に並べる（★2026-10-25 P12.106・career.css）。
      ★WP-compare-all-12：写真の無い札の ▼ は2か所に置き、画面に出すのはいつも1つ（352px からは社名の中 ── 写真の札と同じ所・
-     351px まではロゴの段 ── 写真の札が略号の札の中に印を移すのと同じ段。どちらを出すかは career.css）。 */
+     351px まではロゴの段 ── 写真の札が略号の札の中に印を移すのと同じ段。どちらを出すかは career.css）。
+     ★2026-10-26 段階5 compare-all-14（P12.122）：先行5社のほかの会社でも、台帳に写真の在る会社は、この札の地にその会社の1枚目の写真を
+     career.js が置く（絵の道・大きさ・説明はカードの島 #crc-data から ── 下の cardData()）。写真のクレジットは、写真の在る全社ぶんを下の段に
+     置き（並べた2社のものだけ見える）、示すことが条件の写真には必ず作者とライセンスのリンクが付く（会社ページと同じ形）。 */
   const side = (id, label, chosen) => `<div class="cr-side" data-side="${id}">
 ${FIVE.map(s => `<div class="cr-opt" data-airline="${s}" style="--cr-co:${color(s)}"${s === chosen ? '' : ' hidden'}>
 <span class="cr-opt-p">${photo(s, '(min-width: 900px) 500px, 46vw', false)}${badge(s)}<span class="cr-opt-n">${esc(name(s))}${IC.down}</span></span>
@@ -1208,7 +1217,7 @@ ${pubs[s]}
 </div>`).join('\n')}
 </div>
 <p class="cr-else cr-cmp-card"><a class="cr-link" id="cr-to-card" href="${href.card(PAIR[0], PAIR[1])}" data-go>${W.card}${IC.go}</a></p>
-${credits(FIVE.map(s => [s, shot(s)]), true, PAIR)}
+${credits(ALL.filter(s => primary(s)).map(s => [s, shot(s)]), true, PAIR)}
 <script type="application/json" id="crl-cats">${JSON.stringify(reviewCats()).replace(/</g, () => '\\u003c')}</script>
 </section>`;
 }
@@ -1235,8 +1244,11 @@ export function cardData() {
     airlines[s] = {
       ja: SALARY[s].ja, en: SALARY[s].en, code: code(s), color: color(s), url, g: RJ[dir().airlines[s].region],
       qr: qrMatrix(url).map(r => r.join('')),
-      /* クレジットは「示すことが使う条件」の写真にだけ入れる（要らない写真は空）。 */
-      photos: (PHOTOS[s] || []).map(p => ({ src: UP + photoSrc(p), w: p.w, h: p.h, credit: needsCredit(p) ? `${p.author} / ${p.licence}` : '' })),
+      /* クレジットは「示すことが使う条件」の写真にだけ入れる（要らない写真は空）。
+         ★2026-10-26 段階5 compare-all-14（P12.122）：1枚目には写真の説明（alt）も ── 比較の札（career.js）が、先行5社の札と同じ説明
+         （「会社名の 機種」）で写真を置くため。career.js は字を作らない。 */
+      photos: (PHOTOS[s] || []).map((p, i) => ({ src: UP + photoSrc(p), w: p.w, h: p.h, credit: needsCredit(p) ? `${p.author} / ${p.licence}` : '',
+        ...(i ? {} : { alt: W.photoAlt(name(s), p.aircraft) }) })),
     };
     if (!airlines[s].en) throw new Error(`${s}: SALARY に英語の社名が無い`);
   }

@@ -1027,7 +1027,9 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-stats > div[data-long] dd b{font-size:16px}
   .pvg-got .crl-facts{grid-template-columns:repeat(4,minmax(0,1fr))}
   .pvg-topics{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .pvg-payrow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  /* ★2026-10-25 WP-compare-all-14（絵の本 #12）：給与の1枚と評価の1枚は、それぞれ中身の丈（隣の丈まで伸ばさない）。
+     伸ばすと、給与の1枚の畳んだ説明（.pvg-dt の margin-top:auto）が底へ押され、「REAL PAY で全部見る」の下が大きく空いていた。 */
+  .pvg-payrow{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
   .pvg-payrow:has(.pvg-rv-in > .crl[data-live="score"][data-state="empty"]) > .pvg-rv-card{align-self:start}
   .pvg-top{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"work ben live" "panel panel panel"}
   .pvg-trio{display:contents}
