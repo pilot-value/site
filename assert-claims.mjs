@@ -280,5 +280,143 @@ console.log('\n── D) ログインせずに出した人の鍵と回線の印�
     !keyTable || seenN.every(([, n]) => n === 1), seenN.map(([rel, n]) => `${rel}: ${n} か所`).join(' ／ '));
 }
 
+/* ════════════════════════════════════════════════════════════════
+   E) 会社ページの「よくある質問」が、出どころの無い数を言っていない（2026-10-26 WP-compare-all-16）
+
+   ★CLAUDE.md「数字を盛らない。確認できない数値を推測で埋めない」。英語の見直し（EN-11b）の検査役が、会社ページの古い
+     「よくある質問」の答え（画面の字と FAQPage の構造化データの両方）に、出どころの無い数が3種類残っているのを見つけた。
+       ・応募条件の答えの「（目安）」「(guideline)」の飛行時間（約60社）── 当サイトが置いた目安で、会社の募集の数ではない
+       ・比較の答えの「日本は所得税 約33%」（22社）── 累進課税を1つの率では言えない・出どころも無い
+       ・2026-09-30 に画面から外した推定年収の幅（lo〜hi）を、答えだけがまだ言っている
+   見る範囲 ＝ 会社ページ（SALARY の会社の airlines/{slug}.html と en/airlines/{slug}.html）の「よくある質問」の答えのぜんぶ
+   （画面の <details>・スターラックスの script の faqs・FAQPage の答え）。比較の読み物（…-hikaku・ana-vs-… など）は見ない。
+     E1  日本の税を1つの率（%）で言わない
+     E2  「目安」「(guideline)」「(guide)」の付いた数を書かない
+     E3  応募条件の飛行時間（応募条件の答えの「N hours」・どの答えでも「N時間以上」「N+ hours」「at least N hours」「Min…」）は、
+         その会社の台帳（research-ledger.mjs の FACTS・salary-basis.mjs の BASIS・salary-sources.mjs の SOURCES）に
+         時間の数として在るものだけ
+     E4  新しい形の会社ページ（SWITCH）の答えに、その会社の推定年収の幅（機長の lo〜hi・副操縦士の lo〜hi・副操縦士の lo〜機長の hi）
+         が無い ── ページが幅を出していないので、答えだけが幅を言うと、ページに無い数を言うことになる（gen-faq.mjs は幅を書かない）。
+         SWITCH の外（古い形のスピリット航空）は手で書いた答えと表が今も幅を出しているので、ここでは見ない
+   ※ 数を足すときは、先に台帳へ出どころつきで入れる（入れてから答えに書く）。ここを緩めて通さない。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── E) 会社ページの「よくある質問」が、出どころの無い数を言っていない ─────');
+{
+  const { SALARY } = await import('./salary-data.mjs');
+  const { SWITCH } = await import('./airline-rollout.mjs');
+  const { BASIS } = await import('./salary-basis.mjs');
+  const { SOURCES } = await import('./salary-sources.mjs');
+  const { LEDGER } = await import('./research-ledger.mjs');
+  const { unbake, curCore } = await import('./cur-core.mjs');
+  const C_EN = await curCore('USD', 'en');
+  const txt = (s) => String(s).replace(/<span[^>]*class="[^"]*text-muted text-xl[^"]*"[^>]*>[\s\S]*?<\/span>/g, () => '').replace(/<[^>]*>/g, () => ' ')
+    .replace(/&amp;/g, () => '&').replace(/&quot;/g, () => '"').replace(/&nbsp;/g, () => ' ').replace(/\s+/g, () => ' ').trim();
+  /* 1枚の答えのぜんぶ（画面の字は unbake で元の円の字へ・構造化データはそのまま） */
+  const answers = (rel) => {
+    const raw = readFileSync(path.join(ROOT, rel), 'utf8'), html = unbake(raw), out = [];
+    const at = html.search(/<h2[^>]*>[^<]*(?:よくある質問|Frequently Asked Questions)[^<]*<\/h2>/);
+    if (at >= 0) for (const m of html.slice(at).matchAll(/<details[^>]*>([\s\S]*?)<\/details>/g)) {
+      const s = m[1].match(/<summary[^>]*>([\s\S]*?)<\/summary>/); if (!s) continue;
+      out.push({ where: '画面', q: txt(s[1]), a: txt(m[1].slice(s.index + s[0].length)) });
+    }
+    for (const m of html.matchAll(/\{\s*q:\s*"((?:[^"\\]|\\.)*)"\s*,\s*a:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)) out.push({ where: '画面（script）', q: m[1], a: m[2] });
+    for (const m of raw.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      let j; try { j = JSON.parse(m[1]); } catch { continue; }
+      for (const x of (Array.isArray(j) ? j : [j])) if (x && x['@type'] === 'FAQPage') for (const it of x.mainEntity || []) out.push({ where: 'FAQPage', q: String(it.name || ''), a: String(it.acceptedAnswer?.text || '') });
+    }
+    return out;
+  };
+  const num = (s) => String(s).replace(/(\d),\s?(?=\d{3}\b)/g, (_, d) => d);
+  /* その会社の台帳に「時間」として在る数（字の中の「N時間」「N hours」「Nh」・単位が時間の行の値） */
+  const ledgerHours = (slug) => {
+    const set = new Set();
+    const allNums = (v) => {
+      if (v == null) return;
+      if (typeof v === 'object') { for (const x of Object.values(v)) allNums(x); return; }
+      for (const m of num(v).matchAll(/\d+/g)) set.add(m[0]);
+    };
+    const walk = (v) => {
+      if (v == null) return;
+      /* 台帳の字は乗員の略語でも書く（「5000TT・1000PIC」＝総飛行5,000時間・機長1,000時間／「command150」＝機長として150時間） */
+      if (typeof v === 'string') {
+        for (const m of num(v).matchAll(/(\d+)\s*(?:\+\s*)?(?:時間|hours?\b|hrs?\b|h\b|H\b|TT\b|PIC\b)|(?:command|PIC|TT)\s*(\d+)/g)) set.add(m[1] || m[2]);
+        return;
+      }
+      if (typeof v !== 'object') return;
+      /* 単位が時間の行は、値そのもの（数・字・数の組）も時間の数 */
+      if (!Array.isArray(v) && /hour|時間/i.test(String(v.unit || ''))) { allNums(v.value); allNums(v.value_text); }
+      for (const x of Object.values(v)) walk(x);
+    };
+    walk((LEDGER.FACTS || {})[slug]); walk(BASIS[slug]); walk(SOURCES[slug]);
+    return set;
+  };
+  const JP_RATE = /(?:Japan|日本)[^.。]{0,60}?\d+(?:\.\d+)?\s*[%％]|\d+(?:\.\d+)?\s*[%％][^.。]{0,60}?(?:Japan|日本)/;
+  const GUIDE = /\d[\d,]*[^。.;]{0,25}(?:目安|\(guideline\)|\(guide\))|目安[^。.;]{0,6}\d/i;
+  const HOURS = /(\d[\d,]*)\s*(?:\+\s*)?(?:hours?\b|hrs?\b|h\b|時間)/g;
+  const REQ_CTX = /以上|\+|at least|or more|\bmin(?:imum|\.)?\b/i;
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, (c) => '\\' + c);
+  /* 円の額の書き方（「¥2,490万」「2,490万円」「¥24.9M」）を1つの正規表現の部品にする */
+  const yenRe = (v) => `(?:¥?${esc(Math.round(v).toLocaleString('en-US'))}万円?|¥${esc(String(Math.round(v) / 100))}M)`;
+  const bad = { E1: [], E2: [], E3: [], E4: [] };
+  let nAns = 0, nHours = 0;
+  for (const slug of Object.keys(SALARY)) {
+    const d = SALARY[slug], led = ledgerHours(slug);
+    const pairs = [[d.cap.lo, d.cap.hi], [d.fo.lo, d.fo.hi], [d.fo.lo, d.cap.hi]];
+    const rangeRe = pairs.flatMap(([lo, hi]) => [
+      new RegExp(`${yenRe(lo)}\\s*(?:〜|~|～|–|-|to)\\s*${yenRe(hi)}`),
+      new RegExp(`${esc(C_EN.fmt(lo * 10000))}\\s*(?:–|-|to)\\s*${esc(C_EN.fmt(hi * 10000))}`)]);
+    for (const rel of [`airlines/${slug}.html`, `en/airlines/${slug}.html`]) {
+      let list; try { list = answers(rel); } catch { continue; }
+      for (const { where, q, a } of list) {
+        nAns++;
+        const at = `${rel}（${where}）「${q.slice(0, 40)}」`;
+        if (JP_RATE.test(a)) bad.E1.push(`${at}: ${a.match(JP_RATE)[0]}`);
+        if (GUIDE.test(a)) bad.E2.push(`${at}: ${a.match(GUIDE)[0]}`);
+        const reqQ = /requirements to become/i.test(q);
+        for (const m of a.matchAll(HOURS)) {
+          const ctx = a.slice(Math.max(0, m.index - 25), m.index + m[0].length + 12);
+          if (!reqQ && !REQ_CTX.test(ctx)) continue;
+          nHours++;
+          if (!led.has(num(m[1]))) bad.E3.push(`${at}: 「${m[0]}」（台帳に無い）`);
+        }
+        if (SWITCH.includes(slug)) for (const re of rangeRe) if (re.test(a)) { bad.E4.push(`${at}: ${a.match(re)[0]}`); break; }
+      }
+    }
+  }
+  ok(`E1 会社ページの「よくある質問」${nAns} 件の答えに、日本の税を1つの率で言う字が無い`, !bad.E1.length, bad.E1.slice(0, 6).join(' ／ '));
+  ok('E2 会社ページの「よくある質問」の答えに、「目安」「(guideline)」の付いた数が無い', !bad.E2.length, bad.E2.slice(0, 6).join(' ／ '));
+  ok(`E3 応募条件の飛行時間（${nHours} か所）は、どれもその会社の台帳に時間として在る数`, nHours > 0 && !bad.E3.length, bad.E3.slice(0, 8).join(' ／ '));
+  ok('E4 新しい形の会社ページ（SWITCH）の答えに、推定年収の幅（lo〜hi）が無い（ページが幅を出していない）', !bad.E4.length, bad.E4.slice(0, 6).join(' ／ '));
+}
+
+/* ════════════════════════════════════════════════════════════════
+   F) 英語の会社ページと比較の1枚は、米国のつづりで書く（2026-10-26 WP-compare-all-16 T4）
+
+   英語の見直し（EN-11b）の検査役：英語のページの15枚で licence／license が1枚の中で混ざっていた（台帳の英語は英国式・
+   古い節は米国式）。サイトの英語は米国式にそろえる（license・program・center）。
+   見る範囲 ＝ en/airlines/*.html と en/career.html の、画面の字と構造化データの字（属性・コメント・style・script は見ない）。
+   ★資料の題（かぎかっこ “…” や引用符の中）と、名前そのもの（下の PROPER）は、その資料・その名前のつづりのまま残す。
+     PROPER に足してよいのは「固有の名前」だけ（制度・建物・会社の名前）。ふつうの語を足して通さない。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── F) 英語の会社ページと比較の1枚は、米国のつづり（license・program・center）で書く ─────');
+{
+  const PROPER = ['Future Pilot Programme', 'Cadet Pilot Programme', 'Cadet Pilot Training Programme', 'Assessment Centre', 'Centre for Aviation'];
+  const UK = /\b(?:licen[c]es?|programmes?|centres?)\b/i;
+  const pages = [...readdirSync(path.join(ROOT, 'en/airlines')).filter((f) => f.endsWith('.html')).map((f) => `en/airlines/${f}`), 'en/career.html'];
+  const hits = [];
+  for (const rel of pages) {
+    const raw = readFileSync(path.join(ROOT, rel), 'utf8');
+    const ld = [...raw.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => m[1].replace(/“[^”]*”|\\"(?:[^"\\]|\\.)*?\\"/g, () => ' '));
+    const vis = raw.replace(/<!--[\s\S]*?-->/g, () => ' ').replace(/<style\b[\s\S]*?<\/style>/g, () => ' ').replace(/<script\b[\s\S]*?<\/script>/g, () => ' ')
+      .replace(/<[^>]+>/g, () => ' ').replace(/&quot;/g, () => '"').replace(/“[^”]*”|"[^"<>{}]*"/g, () => ' ');
+    for (let t of [vis, ...ld]) {
+      for (const p of PROPER) t = t.split(p).join(' ');
+      const m = t.match(UK);
+      if (m) hits.push(`${rel}: …${t.slice(Math.max(0, m.index - 40), m.index + 30).replace(/\s+/g, () => ' ')}…`);
+    }
+  }
+  ok(`F ${pages.length} 枚の英語のページに、引用の外の licence・programme・centre が無い`, !hits.length, hits.slice(0, 8).join(' ／ '));
+}
+
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
 process.exit(fail ? 1 : 0);
