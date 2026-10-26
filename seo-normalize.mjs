@@ -192,12 +192,12 @@ const COPY = {
   },
   /* 概要と2社比較の1枚（2026-10-03）。★2026-10-25 英語の EN-9 で英語版（en/career.html）を置いた（JA_ONLY から外した）。
      タブの名前は career.js が画面ごとに差し替える（後ろの「 | PILOT VALUE」はそのまま使う）。
-     英語の題は航空会社一覧の英語の見出し（オーナーの字 «Choose your next career»）。 */
+     ★2026-10-26（P12.130）：入口の画面を外したので、題は「航空会社を比較」／«Compare airlines»（比較の画面の名前）。 */
   'career.html': {
-    ja: { t: '次のキャリアを、選択する。',
-          d: '航空会社の概要と2社の比較。機長と副操縦士の年収を同じ目盛の棒で見比べられます。会社が公表している金額と応募条件も載せています。' },
-    en: { t: 'Choose your next career',
-          d: 'Airline overviews and a two-airline comparison. See captain and first officer pay as bars on the same scale, with the pay figures airlines publish and their requirements.' },
+    ja: { t: '航空会社を比較',
+          d: '2社の機長と副操縦士の推定年収を、同じ目盛の棒で見比べられます。会社が公表している金額・応募条件・拠点の家賃も並べています。' },
+    en: { t: 'Compare airlines',
+          d: 'Compare two airlines side by side: captain and first officer estimated pay as bars on the same scale, with the pay figures airlines publish, their requirements and base rents.' },
   },
   'world-jobs.html': {
     ja: { t: 'パイロット求人（掲載停止中）',
