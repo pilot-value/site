@@ -383,7 +383,10 @@ const gateState = () => ({
      会社ページが全部新しい形になったら、この節ごと見直す。
    ★2026-10-23（英語の EN-7）英語の見本も同じ理由で ANA からエミレーツへ替えた。英語の先行5社と見本の2社の英語のページも
      新しい形になり、ANA の英語のページから錠前の節が無くなった（エミレーツの英語のページは EN-8 まで古い形・錠前が在る）。 */
-for (const [lang, url] of [['ja', '/airlines/emirates.html'], ['en', '/en/airlines/emirates.html']]) {
+/* ★2026-10-27：2026-10-26 の compare-all-21 で、先行5社のほかの会社ページからも古い節を外した（錠前の節も一緒に消えた）。
+     古い形のまま残っているのはスピリット航空のページ（日英）だけなので、見本をスピリット航空にした。
+     スピリット航空を外すとき（オーナーの決め・未実行）は、錠前の節そのものが無くなる ── この節ごと外す。 */
+for (const [lang, url] of [['ja', '/airlines/spirit.html'], ['en', '/en/airlines/spirit.html']]) {
   console.log(`\n════ 航空会社ページ（${lang}）— 年収枠は明細でしか開かない ════`);
   ok(/class="premium-gate[^"]*"[^>]*data-gate-key="salary_detail"/.test(read(url.slice(1))),
      '見本のページに旧い錠前（年収枠）が在る ── 無ければ見本を替える', url);
