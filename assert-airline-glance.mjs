@@ -63,7 +63,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・rated・tabs・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・topbar-in・contrast）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・rated・tabs・hero・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・topbar-in・contrast）
      node assert-airline-glance.mjs --scenes contrast --only spirit,vueling   会社ページ全部の明るい色の読める濃さ（--only で会社を絞れる。日英とも）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
@@ -5015,7 +5015,7 @@ function tabSee(exp) {
     /* いま画面に入っている古い節が、薄いまま（現れる動きの手前で）残っていないか。画面より下の節は、寄った時に現れる */
     faded: all('.glass.fade-up').filter(e => { if (!vis(e)) return false; const r = e.getBoundingClientRect(); return r.top < innerHeight - 40 && r.bottom > 40 && +getComputedStyle(e).opacity < 0.9; }).length,
     bar: box(bar), acts: all('.pvg-hero .pvg-acts .pvg-btn').map(e => ({ t: e.textContent.replace(/\s+/g, ' ').trim(), r: box(e) })),
-    name: box(q('.pvg-hero h1')), add: box(q('.pvg-tabbar .pvg-add')),
+    name: box(q('.pvg-hero h1')), who: box(q('.pvg-hero .pvg-who')), add: box(q('.pvg-tabbar .pvg-add')),
     sheet: !root || root.hidden ? null : {
       title: (root.querySelector('.pvc-title') || {}).textContent || '',
       tiles: [...root.querySelectorAll('[data-pvc-tile]')].filter(vis).map(t => t.getAttribute('data-pvc-tile')),
@@ -5109,11 +5109,20 @@ async function runTabs(browser, s, [w, h]) {
       else if (!r.bar || !r.name) bad.push('タブの帯か社名が見えていない');
       else {
         if (!(Math.max(save.r.b, cmp.r.b) <= r.bar.y + 1)) bad.push('2つのボタンが、タブの帯より上に無い');
-        if (!(Math.min(save.r.y, cmp.r.y) < r.name.b + 60 && Math.max(save.r.b, cmp.r.b) > r.name.y - 60)) bad.push('2つのボタンが、社名の近くに無い');
-        if (w >= 700 ? !(near(save.r.y, cmp.r.y, 2) && save.r.x + save.r.w <= cmp.r.x + 1) : !(near(save.r.x, cmp.r.x, 2) && save.r.b <= cmp.r.y + 1)) bad.push(`2つのボタンが${w >= 700 ? '横' : '縦'}に並んでいない`);
+        /* ★2026-10-26（P12.132）：2つのボタンは、社名の箱（社名と拠点・星。.pvg-who）のすぐ右か、すぐ下の1行に横に並ぶ。
+           前の約束は「社名から 60px 以内・幅 700 未満は縦に2つ」── 狭い画面で社名の右に縦に並べたせいで、330px の画面で社名が5字ずつの列になった。
+           幅 700 未満は、いつも社名の箱のすぐ下（横に半分ずつ）・1001 から上は今までどおり右・そのあいだは、社名の箱が細くなるなら下。 */
+        if (!r.who) bad.push('社名の箱（.pvg-who）が見えていない');
+        else {
+          const beside = [save, cmp].every(b => b.r.x >= r.who.x + r.who.w - 1 && b.r.y < r.who.b && b.r.b > r.who.y);
+          const below = [save, cmp].every(b => b.r.y >= r.who.b - 1 && b.r.y - r.who.b <= 14);
+          if (!(w < 700 ? below : w >= 1001 ? beside : beside || below)) bad.push(`2つのボタンが、社名の箱の${w < 700 ? 'すぐ下' : w >= 1001 ? '右' : 'すぐ右かすぐ下'}に無い`);
+          if (w < 700 && !(near(save.r.w, cmp.r.w, 1) && near(save.r.x, r.who.x, 1) && near(cmp.r.x + cmp.r.w, r.who.x + r.who.w, 1))) bad.push('幅 700 未満で、2つのボタンが社名の箱の幅を半分ずつ使っていない');
+        }
+        if (!(near(save.r.y, cmp.r.y, 2) && save.r.x + save.r.w <= cmp.r.x + 1)) bad.push('2つのボタンが横に並んでいない（左に「カードを保存」）');
         if (!(r.add && r.add.y >= r.bar.y - 1 && r.add.b <= r.bar.b + 1)) bad.push('「情報を追加」が、タブの帯の中に無い');
       }
-      ok(!bad.length, `${tag}: タブは 概要・給与・待遇・口コミ・勤務・訓練・暮らし・家族・ステイ先 の順／社名のそば・タブより上に「カードを保存」「他社と比較」（${w >= 700 ? '横' : '縦'}並び）`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: タブは 概要・給与・待遇・口コミ・勤務・訓練・暮らし・家族・ステイ先 の順／タブより上・社名の箱の${w < 700 ? 'すぐ下の1行' : w >= 1001 ? '右' : 'すぐ右かすぐ下'}に「カードを保存」「他社と比較」（横並び）`, bad.join(' ／ '));
     }
     /* ── 1) 6つのタブを順に押す ── */
     const m1 = [], m1Saw = new Set();
@@ -5646,6 +5655,93 @@ async function runTabs(browser, s, [w, h]) {
       }
       ok(!bad.length, `${tag}: 集計の口は、ページを1回開くごとに1回だけ呼ぶ（6つのタブを全部開いても増えない）── 送るのは、このページの会社と、並べ替えた重なりの無い質問の並び（多くて 120）`, bad.join(' ／ '));
     }
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* ══════════════════════════════════════════════════════════════════
+   場面 hero（--scenes hero）── 社名の行の並び（2026-10-26 オーナー「会社名がケータイ画面とか細くなると縦長になるの直して」P12.132）
+   前は狭い画面で社名の右に2つのボタンが縦に並び、330px の画面で社名が5字ずつの列になって7行に折れた（ジェットスター）。
+   いまは社名と拠点・星の箱（.pvg-who）がボタンより先に横幅を取る（幅 700 未満はボタンがいつも下の1行・広い画面は入らなければ下の行）。
+   見るのは、社名のいちばん長い会社（日英それぞれ、ブラウザで1行の幅を測って選んだ）と短い会社（JAL）× 幅 320・700・1440
+   （何も選んでいない・評価の無い人。サーバーは偽物）:
+     ・社名の欄（h1）が 8字ぶん（8em）以上 ── 社名を1行で書いてもそれより短ければ、その幅以上
+     ・社名の行は、最後の行のほかは3字以上（1〜2字ずつの列にならない）
+     ・2つのボタンが、社名・略号の札・拠点と星の行に重ならない／ページが横にあふれない
+     ・「評価未取得」「Not rated yet」が途中で折れない（1行）
+     ・ボタンは横に2つ ── 幅 700 未満は社名の箱の下の行、1440 は社名の箱の右（今までの並び）、どの幅でも右か下のどちらか */
+const HERO_PAGES = [['ja', 'jetstar'], ['ja', 'eagle-jet'], ['ja', 'swiss'], ['ja', 'jal'], ['en', 'jetstar'], ['en', 'shin-central'], ['en', 'swiss'], ['en', 'jal']];
+const HERO_W = [[320, 568], [700, 900], [1440, 820]];
+/* ページの中で動く（外の変数を1つも使わない）。 */
+function heroSee() {
+  const q = s => document.querySelector(s);
+  const box = e => { if (!e || !e.getClientRects().length) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, r: r.right, b: r.bottom }; };
+  /* 字ごとの位置を読んで、同じ高さの字を1行にまとめる（空白は数えない） */
+  const lines = el => {
+    if (!el) return null;
+    const out = []; let top = null;
+    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let t = tw.nextNode(); t; t = tw.nextNode()) for (let i = 0; i < t.length; i++) {
+      if (/\s/.test(t.data[i])) continue;
+      const g = document.createRange(); g.setStart(t, i); g.setEnd(t, i + 1);
+      const rc = [...g.getClientRects()].find(x => x.width > 0); if (!rc) continue;
+      if (top === null || Math.abs(rc.top - top) > rc.height / 2) { out.push(''); top = rc.top; }
+      out[out.length - 1] += t.data[i];
+    }
+    return out;
+  };
+  const h1 = q('.pvg-hero h1'), cnt = q('.pvg-hero .crl-cnt');
+  if (!h1) return null;
+  /* 社名を1行で書いた時の幅（同じ字の形で、折り返さずに測る） */
+  const cs = getComputedStyle(h1), s = document.createElement('span');
+  s.textContent = h1.textContent;
+  s.style.cssText = `position:absolute;left:-9999px;top:0;white-space:nowrap;font:${cs.font};letter-spacing:${cs.letterSpacing}`;
+  document.body.appendChild(s);
+  const one = s.getBoundingClientRect().width;
+  s.remove();
+  return {
+    h1: box(h1), fs: parseFloat(cs.fontSize), one, lines: lines(h1), name: h1.textContent,
+    cnt: lines(cnt), cntText: cnt ? cnt.textContent : null,
+    who: box(q('.pvg-hero .pvg-who')), code: box(q('.pvg-hero .pvg-code')), meta: box(q('.pvg-hero .pvg-meta')),
+    btns: [...document.querySelectorAll('.pvg-hero .pvg-acts .pvg-btn')].map(box),
+    over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  };
+}
+function heroBad(r, w) {
+  if (!r || !r.h1 || !r.who) return ['社名か社名の箱（.pvg-who）が見えていない'];
+  const bad = [], N = 8 * r.fs;
+  if (r.h1.w + 0.5 < Math.min(N, r.one)) bad.push(`社名の欄が ${Math.round(r.h1.w)}px（8字ぶん ${Math.round(N)}px・社名を1行で書くと ${Math.round(r.one)}px）`);
+  if (r.lines.slice(0, -1).some(l => [...l].length < 3)) bad.push(`社名が、最後の行のほかに3字未満の行で折れている（${r.lines.join('｜')}）`);
+  const hit = (a, b) => !!a && !!b && a.x < b.r - 0.5 && b.x < a.r - 0.5 && a.y < b.b - 0.5 && b.y < a.b - 0.5;
+  for (const [nm, b] of [['社名', r.h1], ['略号の札', r.code], ['拠点と星の行', r.meta]]) if (r.btns.some(x => hit(x, b))) bad.push(`ボタンが${nm}に重なる`);
+  if (r.over > 0) bad.push(`ページが横に ${r.over}px あふれる`);
+  if (!r.cnt || r.cnt.length !== 1) bad.push(`「${r.cntText}」が ${r.cnt ? r.cnt.length : 0}行（1行でない）`);
+  if (r.btns.length !== 2 || r.btns.some(b => !b)) bad.push('2つのボタンが見えていない');
+  else {
+    const [a, b] = r.btns;
+    if (!(Math.abs(a.y - b.y) <= 2 && a.r <= b.x + 1)) bad.push('2つのボタンが横に並んでいない');
+    const below = r.btns.every(x => x.y >= r.who.b - 1), beside = r.btns.every(x => x.x >= r.who.r - 1 && x.y < r.who.b && x.b > r.who.y);
+    if (w < 700 && !below) bad.push('幅 700 未満で、ボタンが社名の箱の下の行に無い');
+    else if (w >= 1001 && !beside) bad.push('広い画面で、ボタンが社名の箱の右に無い（今までの並び）');
+    else if (!below && !beside) bad.push('ボタンが社名の箱の右にも下にも無い');
+  }
+  return bad;
+}
+async function runHero(browser, lang, s, [w, h]) {
+  const tag = `${s}・${lang} ${w}（社名の行）`;
+  const { ctx, p, ready } = await open(browser, s, w, h, 'empty');
+  try {
+    if (lang === 'en') {
+      await p.goto(`${BASE}/en/airlines/${s}.html`, { waitUntil: 'load', timeout: 60000 });
+      await p.waitForFunction(SETTLED).catch(() => { /* 落ち着かないことは、下の行が「評価未取得」の行で知らせる */ });
+      await p.evaluate(() => document.fonts.ready.then(() => true));
+    }
+    const r = await p.evaluate(heroSee);
+    ok(ready && !heroBad(r, w).length,
+      `${tag}: 社名の欄は 8字ぶん以上・1〜2字の行が無い／ボタンは${w < 700 ? '社名の箱の下の行' : w >= 1001 ? '社名の箱の右' : '社名の箱の右か下'}に横に2つ・重ならない・横にあふれない／「${r && r.cntText}」は1行`,
+      ready ? heroBad(r, w).join(' ／ ') + (r ? `（${r.lines.join('｜')}）` : '') : '開けない');
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -8416,6 +8512,8 @@ try {
   if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => [390, 1440].includes(x[0]))) for (const m of Object.keys(THIN)) work.push(() => runRatedThin(browser, s, v, m));
   if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRatedOpenMax(browser, s, v));
   if (wantS('tabs')) for (const s of ONLY) for (const v of [...VIEWS.filter(x => TABS_W.includes(x[0])), ...TABS_EXTRA]) work.push(() => runTabs(browser, s, v));
+  /* 社名の行（場面 hero）。見る会社は HERO_PAGES（主要5社の外も。--only では絞らない）・幅は --sizes で絞れる */
+  if (wantS('hero')) for (const [lang, s] of HERO_PAGES) for (const v of HERO_W.filter(x => !WANT_W || WANT_W.includes(x[0]))) work.push(() => runHero(browser, lang, s, v));
   if (wantS('stay')) {
     /* 幅を絞った回（--sizes）は、その幅で流す（一度だけ別の幅を見る時に、ここを書き換えなくてよい）。 */
     const vs = WANT_W ? VIEWS : VIEWS.filter(x => STAY_W.includes(x[0]));

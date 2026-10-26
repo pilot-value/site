@@ -13,6 +13,8 @@
   background:none!important;overflow:visible;
 }
 .pvg-hero .pvg-id{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+/* 社名と、その下の拠点・星は1つの箱（ボタンの列はこの箱の右か下 ── 下の「タブのある会社ページ」の ★2026-10-26） */
+.pvg-hero .pvg-who{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
 .pvg-hero .pvg-name{
   display:grid;grid-template-columns:minmax(0,auto) auto 1fr;align-items:center;column-gap:10px;row-gap:2px;
   padding-left:12px;border-left:3px solid var(--pvg-c,var(--pv-accent));
@@ -47,6 +49,8 @@
 /* 星と実件数。0件のときは言葉を畳み、「匿名で口コミを書く」だけを残す（見本の点数を混ぜない） */
 .pvg-hero .crl{display:flex;align-items:center;gap:10px;font-size:13px;line-height:1.4}
 .pvg-hero .crl[data-state="empty"] .crl-msg{display:none}
+/* 「評価未取得」「n件の評価」は語の途中で折らない（狭い画面で「評価未取｜得」と割れていた） */
+.pvg-hero .crl .crl-cnt{white-space:nowrap}
 .pvg-hero .crl .crl-score{margin:0}
 .pvg-hero .crl .crl-foot{margin:0;padding:0;border:0}
 .pvg-hero .crl .crl-link{position:relative;min-height:26px;font-size:12.5px}
@@ -84,12 +88,12 @@
   .hero-airline.pvg-hero{padding:92px 0 12px!important}
   .hero-airline.pvg-hero h1{font-size:26px!important}
   .pvg-hero .pvg-id{grid-template-columns:minmax(0,1fr) auto;column-gap:24px;row-gap:6px;align-items:center}
-  .pvg-hero .pvg-acts{grid-column:2;grid-row:1/span 2;grid-template-columns:auto auto;align-self:center}
+  .pvg-hero .pvg-acts{grid-column:2;grid-row:1;grid-template-columns:auto auto;align-self:center}
   .pvg-hero .pvg-sub{font-size:13px}
 }
 @media (max-width:640px){
   .hero-airline.pvg-hero{padding:78px 0 2px!important}
-  .pvg-hero .pvg-id{gap:4px}
+  .pvg-hero .pvg-id,.pvg-hero .pvg-who{gap:4px}
   /* スマホでは1行に入りきらず途中で切れるので出さない（同じ中身は下の「会社」の欄に在る）。
      ⚠️ 要素は消さない ── airline-base.js が検索向けの説明をここから読む */
   .pvg-hero .pvg-sub{display:none}
@@ -1102,6 +1106,28 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-hero-t .pvg-code{grid-column:3;grid-row:1;align-self:start;justify-self:start;margin-top:4px;font-size:12px;line-height:20px;padding:1px 8px}
 .pvg-hero-t .pvg-name > .pvg-sub{grid-column:2 / -1;grid-row:2}
 .pvg-hero-t .pvg-meta{padding-left:0}
+/* ★社名の行の並び（2026-10-26 オーナー「会社名がケータイ画面とか細くなると縦長になるの直して」P12.132）。
+   前は狭い画面で、社名の右に2つのボタンが縦に並び、330px の画面で社名が5字ずつの列になって7行に折れた（ジェットスター）。
+   いまは、社名と拠点・星の箱（.pvg-who）がボタンより先に横幅を取る:
+   ・700px から：折り返す並び。社名の箱は 480px より細くならない（＝ ロゴがいちばん広い会社でも社名に 10字ぶん。
+     iPad の縦（768〜820px）ではボタンが下の行へ回る ── 420px にしていたあいだ、長い社名がそこで4行に折れた。
+     上げすぎると 1001px（左メニューで箱がいちばん狭い 809px）でもボタンが下へ回る ── 809 − 24 − ボタン 272 ＝ 513px が上限）。
+     〜1000px では、社名の折れない切れ目のいちばん長いものも1行に入る（min-width:auto ＝ 中身の最小幅。下の minmax(min-content,…) がそれを箱へ渡す）。
+     入らなければ、ボタンが社名の箱の下の行へ回る ── 画面の幅ではなく箱の幅で決まる。
+     入るとき（1001・1440 の会社ページはどれも）は、今までと同じ位置（社名の箱 ＝ 箱の幅 − ボタン − 24px）。
+   ・スマホ（〜699px）：下の @media で、ボタンはいつも社名の箱の下の1行。
+   ・〜1000px では、社名を語の切れ目（空白・「・」のあと・括弧の前）でだけ折る（就航地の街の名前と同じ keep-all）。1行に入らない長い語だけ、入る所で折る
+     （break-word は中身の最小幅を変えない ＝ 上の「切れ目が入る幅」の計算が狂わない。anywhere にしない）。
+     1001px から上は今までの折り方のまま（社名の長い会社の 1001px の絵を今日と同じにする。そこでは社名の欄が十分に広い）。
+     ロゴの列は max-content ── 社名の列が切れ目の幅から始まると、ロゴの列と残りの幅を分け合ってロゴが縮んだ（琉球エアーコミューター 117 → 102px）。 */
+.pvg-hero-t .pvg-id{display:flex;flex-wrap:wrap;align-items:center;column-gap:24px;row-gap:12px}
+.pvg-hero-t .pvg-who{flex:1 1 480px}
+.pvg-hero-t .pvg-acts{flex:none}
+.pvg-hero-t .pvg-acts:empty{display:none}
+@media (max-width:1000.98px){
+  .pvg-hero-t .pvg-name{grid-template-columns:max-content minmax(min-content,auto) 1fr}
+  .hero-airline.pvg-hero-t h1{word-break:keep-all;overflow-wrap:break-word}
+}
 /* ロゴの札：白い地に元の縦横比のまま（トップのレベリング図と同じ描き方）。ロゴの絵は白い地の上で描かれているので、暗い色の画面でも白
    （この白はトークンに無い）。読めなかったとき・ロゴの無い会社は、同じ大きさの会社の色の四角に頭文字。
    1行めの真ん中にそろえる（社名の行の高さ 1.2em と札の高さの差の半分だけ上へ）。 */
@@ -1133,11 +1159,11 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-hero-t .pvg-btn-cmp{--pvg-on:white;color:var(--pvg-on);background:var(--pv-accent-dark);border-color:var(--pv-accent-dark)}
 .pvg-hero-t .pvg-btn-cmp:hover{background:var(--pv-accent-dark)}
 @media (max-width:699.98px){
-  /* スマホ：社名の右に縦に2つ */
-  .pvg-hero-t .pvg-id{grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:center}
-  .pvg-hero-t .pvg-acts{grid-column:2;grid-row:1/span 2;grid-template-columns:minmax(0,1fr);gap:10px;align-self:center}
+  /* スマホ：2つのボタンは、いつも社名の箱の下の1行に横に半分ずつ（社名と拠点・星に横幅をぜんぶ渡す。上の ★2026-10-26） */
+  .pvg-hero-t .pvg-id{display:grid;grid-template-columns:minmax(0,1fr);row-gap:10px}
+  .pvg-hero-t .pvg-acts{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .pvg-hero-t .pvg-btn{min-height:36px;padding:0 12px;font-size:12px}
-  .pvg-hero-t .pvg-btn::before{content:"";position:absolute;inset:-6px 0}   /* 見える丈は 36px・押せる丈は 46px（枠の外へ 5px ずつ ＝ 2つのボタンの間 10px をちょうど分け合う） */
+  .pvg-hero-t .pvg-btn::before{content:"";position:absolute;inset:-6px 0}   /* 見える丈は 36px・押せる丈は 46px（枠の外へ上下 5px ずつ ＝ 上の拠点・星の行とのあいだ 10px を分け合う） */
   .hero-airline.pvg-hero-t h1{font-size:20px!important}
   .pvg-hero-t .pvg-name{grid-template-columns:auto minmax(0,1fr);column-gap:10px}
   .pvg-hero-t .pvg-code{grid-column:2;grid-row:2;margin-top:0;font-size:12px;line-height:18px}
@@ -1145,6 +1171,12 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   /* 読めなかった時の「いま読み出せません｜やり直す」は、入らなければ2行にする。
      1行のままだと、〜351px の画面で「やり直す」が右の2つのボタンの下へもぐって押せなかった */
   .pvg-hero-t .crl[data-state="error"]{flex-wrap:wrap;gap:4px 8px}
+}
+/* いちばん狭い画面（〜359px）だけ、社名を 18px に。切れ目の無い10字の社名（キャセイパシフィック）が1行に入る
+   （20px のままだと 320px の画面で「キャセイパシフィッ｜ク」と、最後の1字だけが次の行へ落ちた） */
+@media (max-width:359.98px){
+  .hero-airline.pvg-hero-t h1{font-size:18px!important}
+  .pvg-hero-t .pvg-logo{font-size:18px}   /* ロゴの札の高さの中心を、社名の1行めの中心に合わせたまま（.pvg-logo の margin-top は em） */
 }
 
 /* タブの帯（ヘッダーのすぐ下に貼り付く） */
