@@ -295,10 +295,10 @@ const asks = (slug, list, head = W.answerAnon) =>
 function hero(v, keep) {
   const iata = v.base.iata.length ? `${v.base.city ? ' ' : ''}<b>${v.base.iata.map(esc).join(W.codes)}</b>` : '';
   const t = tabbed(v.slug);
-  /* タブを持つページは見本の並び：左に「カードを保存」・右に「他社と比較」（狭い画面では上下）。その下にタブの帯。
+  /* タブを持つページは見本の並び：左に「カードを保存」・右に「他社と比較」（狭い画面では社名の下の1行に横に2つ）。その下にタブの帯。
      ★ 2つとも行き先は career.html。career.html が持っていない会社（gen-career.mjs の FIVE に無い会社）には出さない
-       （押すと、その会社の無い画面へ行く）。そのときも空の箱は置く ── 狭い画面の社名の行は「社名｜ボタンの列」の2列で、
-       箱が無いと拠点と星の行がボタンの列へ入り、社名が1字ずつ折れる（pv-glance.css は直さない ＝ 先行5社の ?v= が動かない）。
+       （押すと、その会社の無い画面へ行く）。そのときも空の箱は置く（中身が無ければ pv-glance.css が隠す）。
+       ★2026-10-26 から拠点と星の行は社名の箱（.pvg-who）の中 ＝ ボタンの列へ入ることはない。
        拠点を確かめられていない会社には、拠点の1行を出さない。 */
   /* 英語のページは、英語の比較のページ（en/career.html）ができるまで出さない（cmpOn・CMP_EN）── 空の箱だけを置く */
   const acts = !cmpOn(v.slug) ? ''
@@ -308,15 +308,18 @@ function hero(v, keep) {
     : `<a class="pvg-btn" href="${href.compare(v.slug)}">${W.compareShort}</a>
 <a class="pvg-btn pvg-btn-ghost" href="${href.card(v.slug)}">${W.makeCard}</a>`;
   const where = v.base.city || v.base.iata.length ? `<span class="pvg-base">${IC.pin}${esc(v.base.city)}${iata}</span>\n` : '';
+  /* 社名と拠点・星は1つの箱（.pvg-who）。ボタンはその右か、社名が細い列に押し込まれるなら下の行（pv-glance.css。★2026-10-26 P12.132） */
   return `<div class="hero-airline pvg-hero${t ? ' pvg-hero-t' : ''}" style="--pvg-c:${esc(v.color)}">
 <div class="max-w-7xl mx-auto px-6">
 <div class="pvg-id">
+<div class="pvg-who">
 <div class="pvg-name">
 ${logoHtml(v, { up: UP })}<h1>${keep.h1}</h1><span class="pvg-code">${esc(v.code)}</span>
 <p class="text-muted pvg-sub">${keep.sub}</p>
 </div>
 <div class="pvg-meta">
 ${where}${live('stars', { airline: v.slug })}
+</div>
 </div>${acts ? `
 <div class="pvg-acts">
 ${acts}
