@@ -141,17 +141,20 @@
      地図の面がヘッダーの下から画面の下の縁までを埋め、上の帯（検索欄）・右のボタンの列・下の帯（地域のボタンと結果の数）が最初の1画面の中・地図は1倍
      （日本にも寄らない ＝ 世界全体）・陸の点は丸ごと上の帯と下の帯のあいだ。前からの約束（検索欄が地図より上・打つと区域は箱を持たない・見出しは
      #wa-hero の中の本当の見出し）と onLand（切り替えの箱と拡大・縮小のボタンに陸の点が掛からない）も同じ大きさで。?region=europe で開いても板は開かず
-     世界全体（WP-dmap-11 の直し）。測った値を印字する。関数 mapFirst の頭
+     世界全体（WP-dmap-11 の直し）。測った値を印字する。関数 mapFirst の頭。
+     ★WP-dmap-12：スマホ（幅 700 未満の大きさ ＝ 区域 700px 未満）だけ、地図は 1.4〜1.6倍で、目印（ニューヨーク・ロンドン・カイロ・デリー・東京）が見える地図の中・
+     ボタンの下でもない（1倍でも 3倍でも赤）。?region=europe の 390×680 は住所に地域が無い時と同じ最初の形
 
    動かせる地図（WP-dmap-9・オーナー「地図自体を自分で動かせるようにしたい（windy みたいに）」）── 地図の層は1つの <g class="wam-z">。
    倍率とずれはその transform を読み、拡大していても地図の上の点は zPt（その <g> の getScreenCTM）で写す。指は CDP の touch
    場面 map-move（class B・1440×900 のマウスと 390×680 の指）── 開いたときのボタン（どちらも右上の 拡大・縮小 ── WP-dmap-11 で全画面を外した）・押していない地図の
      ホイールはページのスクロール・海を押す（フォーカス）→ 欧州の上でホイール → 拡大・欧州は指の下のまま・拡大していても指すと光る・つかんで動かす → ずれる・
      選ばない・動かさずに押す → 選ぶ・元に戻す／拡大／縮小のボタン・キー（+ → 0）・ctrl ＋ ホイール・6倍で止まり、いちばん遠くまで動かしても枠の四隅は
-     地図の箱の中・拡大したまま「副操縦士」／390（★WP-dmap-11 W6 の指の決まり）：1倍のあいだ1本の指で上へ → ページがスクロールし、地図は動かず、
-     「2本の指で動かせます」が出る・2本の指で広げる → 拡大（ページは動かず・ページそのものも拡大しない・選ばない）・拡大しているあいだ1本の指でなぞる →
-     地図が同じだけ動く（ページは動かない）・拡大したまま下の帯をなぞる → ページがスクロールする・拡大したまま触れる → 見せる（選ぶのはボタン）・
-     元に戻す → 1倍 → 1本の指はまたページのスクロール
+     地図の箱の中・拡大したまま「副操縦士」／390（★WP-dmap-11 W6 の指の決まり → ★WP-dmap-12 で付け替え：スマホの最初の形は少し寄せてある ＝ 拡大しているあいだ）：
+     最初の形で1本の指でなぞる → 地図が同じだけ動く（ページは動かず・一言は出ない）→ 元に戻す → 開いた時と同じ最初の形・2本の指で広げる → さらに拡大
+     （ページは動かず・ページそのものも拡大しない・選ばない）・拡大しているあいだ1本の指でなぞる → 地図が同じだけ動く（ページは動かない）・拡大したまま
+     下の帯をなぞる → ページがスクロールする・拡大したまま触れる → 見せる（選ぶのはボタン）・縮小で1倍 → 1本の指で上へ → ページがスクロールし、地図は動かず、
+     「2本の指で動かせます」が出る → 元に戻す → 最初の形
    （場面 map-full ── WP-dmap-9 の全画面 ── は WP-dmap-11 で全画面ごと外した：ページそのものが地図の画面（シート W3）。外したことは assert-directory.mjs の M11 が見る）
    ★場面 map-strip（class A・390×680 と 768×1024 の指）── 地域の9つのボタンがどれも画面の中に丸ごと（帯は横にすべらない）・字が切れない（オーナー #8）
    ★場面 head-name（class A・1440×900・ライトとダーク）── ログインしている会員の名前がサイトの緑の字で、ヘッダーの地とのコントラスト 4.5:1 以上（オーナー #18）
@@ -1866,10 +1869,12 @@ async function main() {
      viewBox が形の箱のどこに在るかを読み、形の箱 0〜440 が画面のどこに在るかの箱を作ってから toPage() に渡す（同じ写し方・同じ強さ）。
      ★WP-dmap-11 で付け替えた（同じ強さ）：地図の枠が画面を埋めるようになり、svg の箱と描いた地図の縦横の比が違う（世界は箱のまんなかに丸ごと
      ＝ 上下か左右に海の帯）。svg の箱から比例で写すと、帯のぶんだけずれた所を押す。svg そのものの写し（getScreenCTM ── viewBox と
-     まんなか寄せを含む・拡大の <g> は含まない ＝ 1倍の地図の上の位置）で形の箱を作る */
+     まんなか寄せを含む・拡大の <g> は含まない ＝ 1倍の地図の上の位置）で形の箱を作る。
+     ★WP-dmap-12 で付け替えた（同じ強さ）：スマホは最初から少し寄せた形（1.4倍）。拡大の <g class="wam-z"> の写し（svg の写し × その transform ──
+     1倍なら svg の写しと同じ）で、いま本当に描いている所を押す */
   const boxPt = async (page, xy) => {
     const r = await page.evaluate(() => {
-      const m = document.querySelector('#wa-map-sec .wam-svg').getScreenCTM();
+      const m = document.querySelector('#wa-map-sec .wam-z').getScreenCTM();
       return { left: m.e, top: m.f, width: 1000 * m.a, height: 440 * m.d };
     });
     return toPage(r, xy[0], xy[1]);
@@ -2575,14 +2580,29 @@ async function main() {
              （下の帯は地図の枠より下で、下端 ≤ 画面の高さ）・ページは横にはみ出さない
          (c) 地図は1倍（g.wam-z に transform が無い ── 日本へも、読む人の場所へも、前に見た所へも寄らない。リードの追記「最初は世界全体」）
          (d) 陸の点（9つの点の列の箱 ＋ 点の半径）が丸ごと、地図の枠の中で、上の帯と切り替えの行より下・凡例と下の帯より上
+         ★WP-dmap-12（オーナー「スマホの地図もう少し拡大しよう。地球全部見えなくていい。」）で、区域 700px 未満（スマホ ＝ 幅 700 未満の大きさ）の (c)(d) を付け替えた：
+         (c) 地図は 1.4〜1.6倍（g.wam-z の transform の倍率・回さない）── 1倍でも 3倍でも赤
+         (d) 陸の目印 PHONE_SPOTS（アメリカの東 ＝ ニューヨーク・ロンドン・カイロ・デリー・東京）が、点の半径ぶん内側で、見える地図の中（地図の枠の中で、上の帯と
+             切り替えの行より下・凡例と下の帯より上）・右上の拡大・縮小のボタンの下でもない。タブレット・PC の (c)(d) はそのまま（1倍・陸が丸ごと）
        class B（前からの約束）：検索欄が丸ごと画面の中で地図より上・何か打つと地図の区域は箱を持たない・見出し（h1）はページに1つで #wa-hero の中・
          オーナーの字のまま・読み上げる（aria-hidden でも display:none でもない）・画面では見えない形（1px の .wd-vh）
        ★onLand（WP-dmap-7 の class A）：「機長｜副操縦士」の切り替えの箱に陸の点が1つも掛からない（大きさの集合を広げた）── WP-dmap-11 の直しで、
          地図の右上の拡大・縮小のボタンの箱も数える
-       ★WP-dmap-11 の直し（class A）：住所に地域がある時（?region=europe・390×680 と 1024×690）も、開いた時に板（開いたカード）は開かず、地図は1倍・陸の点は丸ごと見える地図の中 */
+       ★WP-dmap-11 の直し（class A）：住所に地域がある時（?region=europe・390×680 と 1024×690）も、開いた時に板（開いたカード）は開かず、地図は1倍・陸の点は丸ごと見える地図の中
+         （★WP-dmap-12：390×680 は、住所に地域が無い時と同じ最初の形（同じ transform ── 欧州へ寄らない）・目印は見える地図の中） */
   const PROMISE = ['390x680', '375x667', '360x640', '1440x900', '1280x800', '1024x690'];
-  /** 開いた時の最初の1画面（地図の面・帯・枠・陸の点の外の縁）── どれも画面の上の位置（px） */
-  const firstScreen = (page) => page.evaluate(() => {
+  /** ★WP-dmap-12：スマホの最初の形で見える地図の中に必ず在る陸の目印（箱の単位）。地名の経緯度を Equal Earth（中心の経線 0）で写したもの
+      （world-outline-probes.mjs と同じ式。カイロとデリーはそのファイルの PROBES の点）。倍率の幅はシートの pins の字 */
+  const PROBE_AT = (name) => { const p = PROBES.find((q) => q[3] === name); if (!p) throw new Error(`PROBES に ${name} が無い`); return [p[1], p[2]]; };
+  const PHONE_SPOTS = {
+    'New York': [318.6, 98.6],     // 74.0 W 40.7 N（アメリカの東）
+    London: [499.7, 65.7],         // 0.1 W 51.5 N
+    Cairo: PROBE_AT('Cairo'), Delhi: PROBE_AT('Delhi'),
+    Tokyo: [852.7, 115.1],         // 139.7 E 35.7 N
+  };
+  const PHONE_K = [1.4, 1.6];
+  /** 開いた時の最初の1画面（地図の面・帯・枠・陸の点の外の縁）── どれも画面の上の位置（px）。★WP-dmap-12：倍率・区域の中身の幅・目印の位置も */
+  const firstScreen = (page) => page.evaluate((SPOTS) => {
     const B = (e) => { if (!e || !e.getClientRects().length) return null; const r = e.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; };
     const svg = document.querySelector('#wa-map-sec .wam-svg'), z = svg && svg.querySelector('.wam-z'), M = z ? z.getScreenCTM() : null;
     let land = null, n = 0;
@@ -2600,10 +2620,23 @@ async function main() {
       frame: B(document.getElementById('wa-map')), foot: B(document.querySelector('#wa-map-sec .wam-foot')), bar: B(document.getElementById('filter-bar')), rh: B(document.getElementById('wd-rh')),
       btns: [...document.querySelectorAll('#wa-map-sec .wam-zb')].filter((b) => b.getClientRects().length).map((b) => ({ z: b.dataset.z, ...B(b) })),
       land, n, tf: z ? z.getAttribute('transform') : '?',
+      zm: (() => { const c = z && z.transform.baseVal.consolidate(); return c ? [c.matrix.a, c.matrix.b, c.matrix.c, c.matrix.d] : [1, 0, 0, 1]; })(),
+      cw: (() => { const s = document.getElementById('wa-map-sec'), c = s && getComputedStyle(s); return s ? s.clientWidth - parseFloat(c.paddingLeft) - parseFloat(c.paddingRight) : null; })(),
+      rad: M ? (parseFloat(getComputedStyle(svg.querySelector('path[id^="wam-d-"]')).strokeWidth) / 2) * M.a : null,
+      spots: M ? Object.fromEntries(Object.entries(SPOTS).map(([k, [x, y]]) => [k, [M.a * x + M.c * y + M.e, M.b * x + M.d * y + M.f]])) : null,
       h1: { n: h1s.length, inHero: !!h1 && !!h1.closest('#wa-hero'), text: h1 ? h1.textContent : null, disp: cs && cs.display, vis: cs && cs.visibility, hidden: !!h1 && (h1.closest('[aria-hidden="true"]') !== null),
         w: h1 ? Math.round(h1.getBoundingClientRect().width) : null, h: h1 ? Math.round(h1.getBoundingClientRect().height) : null },
     };
-  });
+  }, PHONE_SPOTS);
+  /** ★WP-dmap-12：スマホの最初の形の (c)(d) ── 外れた理由の並び（空 ＝ 通る）。top / bot ＝ 見える地図の上下の縁 */
+  const phoneView = (m, top, bot) => {
+    const why = [], [a, b, c, d] = m.zm, r = m.rad || 0;
+    if (!(m.tf !== null && a >= PHONE_K[0] - 1e-3 && a <= PHONE_K[1] + 1e-3 && Math.abs(a - d) < 1e-6 && Math.abs(b) < 1e-6 && Math.abs(c) < 1e-6)) why.push(`c：スマホの最初の形が ${PHONE_K[0]}〜${PHONE_K[1]}倍でない（${m.tf}）`);
+    const miss = !m.spots || !m.frame ? ['?'] : Object.entries(m.spots).filter(([, [x, y]]) => !(x >= m.frame.left + r && x <= m.frame.right - r && y >= top + r && y <= bot - r)
+      || m.btns.some((q) => x >= q.left - r && x <= q.right + r && y >= q.top - r && y <= q.bottom + r)).map(([k, [x, y]]) => `${k} ${Math.round(x)},${Math.round(y)}`);
+    if (m.n !== 9 || !(r > 0) || miss.length) why.push(`d：目印が見える地図の中に無い（${miss.join('・')}・上 ${Math.round(top)}・下 ${Math.round(bot)}・点の列 ${m.n}）`);
+    return why;
+  };
   async function mapFirst(lang) {
     const T = (s) => `[${lang}] ${s}`;
     const FOLD = [...read('assert-hero-fold.mjs').matchAll(/\[(\d+),\s*(\d+),\s*'[^']*',\s*'(both|peek)'\]/g)].map((m) => `${m[1]}x${m[2]}`);
@@ -2628,11 +2661,16 @@ async function main() {
         if (!m.bar || !m.frame || m.bar.top < m.frame.bottom - 0.5 || m.bar.bottom > m.vh + 0.5) why.push('b：下の帯が地図の枠より下で画面の中に無い');
         if (m.btns.length < 2 || !m.frame || m.btns.some((b) => b.top < m.frame.top - 0.5 || b.bottom > m.frame.bottom + 0.5 || b.left < m.frame.left - 0.5 || b.right > m.frame.right + 0.5)) why.push('b：右のボタンの列が地図の枠の中に無い');
         if (m.sw > m.vw) why.push(`b：ページが横にはみ出す ${m.sw}/${m.vw}`);
-        /* (c) 1倍 */
-        if (m.tf !== null) why.push(`c：地図が1倍でない（${m.tf}）`);
-        /* (d) 陸の点の外の縁が、枠の中・上の帯と切り替えの行の下・凡例と下の帯の上 */
         const L0 = m.land, top = Math.max(m.frame ? m.frame.top : 0, m.hero ? m.hero.bottom : 0, m.pos ? m.pos.bottom : 0), bot = Math.min(m.frame ? m.frame.bottom : 0, m.foot ? m.foot.top : Infinity, m.bar ? m.bar.top : Infinity);
-        if (m.n !== 9 || !L0 || !m.frame || L0.top < top - 0.5 || L0.bottom > bot + 0.5 || L0.left < m.frame.left - 0.5 || L0.right > m.frame.right + 0.5) why.push(`d：陸の点が見える地図の中に丸ごと無い（陸 ${L0 && [L0.top, L0.bottom, L0.left, L0.right].map(Math.round).join(',')}・上 ${Math.round(top)}・下 ${Math.round(bot)}・点の列 ${m.n}）`);
+        const phone = s.w < 700;   // ★WP-dmap-12：区域 700px 未満 ＝ スマホの最初の形（区域の中身の幅がその側か、も見る）
+        if (m.cw == null || (m.cw < 700) !== phone) why.push(`c：区域の中身の幅 ${m.cw}px が ${phone ? 'スマホ（700 未満）' : 'タブレット・PC（700 以上）'}の側でない`);
+        if (phone) why.push(...phoneView(m, top, bot));
+        else {
+          /* (c) 1倍 */
+          if (m.tf !== null) why.push(`c：地図が1倍でない（${m.tf}）`);
+          /* (d) 陸の点の外の縁が、枠の中・上の帯と切り替えの行の下・凡例と下の帯の上 */
+          if (m.n !== 9 || !L0 || !m.frame || L0.top < top - 0.5 || L0.bottom > bot + 0.5 || L0.left < m.frame.left - 0.5 || L0.right > m.frame.right + 0.5) why.push(`d：陸の点が見える地図の中に丸ごと無い（陸 ${L0 && [L0.top, L0.bottom, L0.left, L0.right].map(Math.round).join(',')}・上 ${Math.round(top)}・下 ${Math.round(bot)}・点の列 ${m.n}）`);
+        }
         /* 前からの約束：検索欄が丸ごと画面の中で地図より上・見出し */
         const searchOk = !!m.search && !!m.frame && m.search.top >= 0 && m.search.bottom <= m.vh && m.search.bottom <= m.frame.top;
         const h = m.h1, h1Ok = h.n === 1 && h.inHero && h.text === H1[lang] && h.disp !== 'none' && h.vis !== 'hidden' && !h.hidden && h.w <= 1 && h.h <= 1;
@@ -2641,7 +2679,7 @@ async function main() {
         await type(page, '');
         rows.push({ ...s, m });
         if (why.length) bad.push({ k: s.k, why, m: { vh: m.vh, hdr: m.hdr, stage: m.stage && Math.round(m.stage.bottom), hero: m.hero && Math.round(m.hero.bottom), frame: m.frame && [m.frame.top, m.frame.bottom].map(Math.round), bar: m.bar && [m.bar.top, m.bar.bottom].map(Math.round), tf: m.tf } });
-        ok(why.length === 0, T(`map-first ${s.w}×${s.h}${s.req ? '（約束）' : ''}${touch ? '・指' : ''}：★地図の面がヘッダーの下から画面の下の縁まで・上の帯・右のボタン・下の帯が最初の1画面の中・地図は1倍・陸の点は丸ごと上の帯と下の帯のあいだ（WP-dmap-11）`), J(why));
+        ok(why.length === 0, T(`map-first ${s.w}×${s.h}${s.req ? '（約束）' : ''}${touch ? '・指' : ''}：★地図の面がヘッダーの下から画面の下の縁まで・上の帯・右のボタン・下の帯が最初の1画面の中・${phone ? `地図は ${PHONE_K[0]}〜${PHONE_K[1]}倍・目印（${Object.keys(PHONE_SPOTS).join('・')}）は見える地図の中でボタンの下でもない（WP-dmap-12）` : '地図は1倍・陸の点は丸ごと上の帯と下の帯のあいだ（WP-dmap-11）'}`), J(why));
         ok(searchOk && gone && h1Ok, T(`map-first ${s.w}×${s.h}：検索欄が丸ごと画面の中で地図より上・何か打つと地図の区域は箱を持たない・見出し「${H1[lang]}」は #wa-hero の中の本当の見出し（読み上げる・画面では見えない形）`), J({ search: m.search, frame: m.frame, gone, h1: h }));
         if (s.req) await shot(page, 'map-first', lang, s.k);
         const q = quiet(st, 'map-first');
@@ -2650,10 +2688,10 @@ async function main() {
         await P.ctx.close().catch(() => {});
       }
     }
-    console.log(`  ── map-first の測った値（${lang}・px：画面の高さ｜ヘッダーの下｜上の帯の下｜切り替えの行の下｜地図の枠の上〜下（高さ）｜陸の上〜下｜凡例の上｜下の帯の上〜下｜面の下）`);
+    console.log(`  ── map-first の測った値（${lang}・px：画面の高さ｜ヘッダーの下｜上の帯の下｜切り替えの行の下｜地図の枠の上〜下（高さ）｜陸の上〜下｜凡例の上｜下の帯の上〜下｜面の下｜倍率）`);
     for (const r of rows) {
       const { m } = r, R = (v) => (v == null ? '-' : Math.round(v));
-      console.log(`     ${r.k.padEnd(9)}${r.req ? '★' : ' '} vh ${m.vh}｜hdr ${R(m.hdr)}｜帯 ${R(m.hero && m.hero.bottom)}｜行 ${R(m.pos && m.pos.bottom)}｜枠 ${R(m.frame && m.frame.top)}〜${R(m.frame && m.frame.bottom)}（${R(m.frame && m.frame.bottom - m.frame.top)}）｜陸 ${R(m.land && m.land.top)}〜${R(m.land && m.land.bottom)}｜凡例 ${R(m.foot && m.foot.top)}｜下の帯 ${R(m.bar && m.bar.top)}〜${R(m.bar && m.bar.bottom)}｜面 ${R(m.stage && m.stage.bottom)}`);
+      console.log(`     ${r.k.padEnd(9)}${r.req ? '★' : ' '} vh ${m.vh}｜hdr ${R(m.hdr)}｜帯 ${R(m.hero && m.hero.bottom)}｜行 ${R(m.pos && m.pos.bottom)}｜枠 ${R(m.frame && m.frame.top)}〜${R(m.frame && m.frame.bottom)}（${R(m.frame && m.frame.bottom - m.frame.top)}）｜陸 ${R(m.land && m.land.top)}〜${R(m.land && m.land.bottom)}｜凡例 ${R(m.foot && m.foot.top)}｜下の帯 ${R(m.bar && m.bar.top)}〜${R(m.bar && m.bar.bottom)}｜面 ${R(m.stage && m.stage.bottom)}｜${Math.round(m.zm[0] * 100) / 100}倍`);
     }
     const onl = land.filter((x) => x.err || x.n !== 0);
     ok(land.length === SIZES.length && onl.length === 0,
@@ -2673,12 +2711,15 @@ async function main() {
         const m = await firstScreen(page), k = await closedCard(page), region = await regionNow(page);
         const top = Math.max(m.frame ? m.frame.top : 0, m.hero ? m.hero.bottom : 0, m.pos ? m.pos.bottom : 0), bot = Math.min(m.frame ? m.frame.bottom : 0, m.foot ? m.foot.top : Infinity, m.bar ? m.bar.top : Infinity);
         const L0 = m.land, inMap = m.n === 9 && !!L0 && L0.top >= top - 0.5 && L0.bottom <= bot + 0.5;
-        if (!(region === 'europe' && !k.open && isClosed(k, 'europe') && m.tf === null && inMap && quiet(st, 'map-first').length === 0)) atLoad.push({ w, h, region, k, tf: m.tf, land: L0 && [L0.top, L0.bottom].map(Math.round), top: Math.round(top), bot: Math.round(bot) });
+        /* ★WP-dmap-12：スマホ（390×680）は、住所に地域が無い時と同じ最初の形（同じ transform ── 欧州へ寄らない）で、目印は見える地図の中 */
+        const plain = w < 700 ? (rows.find((r) => r.k === `${w}x${h}`) || {}).m : null, pv = w < 700 ? phoneView(m, top, bot) : [];
+        const view = w < 700 ? !!plain && m.tf !== null && m.tf === plain.tf && pv.length === 0 : m.tf === null && inMap;
+        if (!(region === 'europe' && !k.open && isClosed(k, 'europe') && view && quiet(st, 'map-first').length === 0)) atLoad.push({ w, h, region, k, tf: m.tf, plain: plain ? plain.tf : null, pv, land: L0 && [L0.top, L0.bottom].map(Math.round), top: Math.round(top), bot: Math.round(bot) });
       } finally {
         await P.ctx.close().catch(() => {});
       }
     }
-    ok(atLoad.length === 0, T('map-first ?region=europe で開く（390×680・1024×690・指）→ 欧州が選ばれていても板は開かない（切り替えの右の1〜2行は欧州）・地図は1倍・陸の点は丸ごと見える地図の中（WP-dmap-11 の直し・リードの追記）'), J(atLoad));
+    ok(atLoad.length === 0, T('map-first ?region=europe で開く（390×680・1024×690・指）→ 欧州が選ばれていても板は開かない（切り替えの右の1〜2行は欧州）・1024×690 の地図は1倍・陸の点は丸ごと見える地図の中（WP-dmap-11 の直し・リードの追記）・390×680 は住所に地域が無い時と同じ最初の形（欧州へ寄らない・目印は見える地図の中 ── WP-dmap-12）'), J(atLoad));
   }
 
   /* ════ 動かせる地図（WP-dmap-9・オーナー「地図はスマホで見ると小さいし、地図自体を自分で動かせるようにしたい（windy みたいに）」）════
@@ -2831,27 +2872,34 @@ async function main() {
       PAGES.push(P);
       try {
         const { page, st } = P;
-        const b0 = await zButtons(page);
-        ok(same(b0, ['in', 'out']), T('map-move 390 指：地図の右上に 拡大・縮小 の丸いボタン（元に戻すは拡大しているあいだだけ・全画面は WP-dmap-11 で外した ── ページそのものが地図の画面）'), J(b0));
-        /* ★WP-dmap-11 W6（class B）── 指の決まり（ページに閉じ込めない windy の形）：
-           (1) 1倍のあいだは、1本の指で地図の上をなぞるとページがスクロールする（世界が丸ごと見えていて、動かす先が無い）・地図は動かない・一言が出る
-           (2) 2本の指はいつも地図（広げると拡大）
+        const b0 = await zButtons(page), t0 = await ztf(page);
+        ok(same(b0, ['in', 'out']) && t0.a >= PHONE_K[0] && t0.a <= PHONE_K[1], T(`map-move 390 指：開いた時は少し寄せた最初の形（WP-dmap-12：${PHONE_K[0]}〜${PHONE_K[1]}倍）・地図の右上に 拡大・縮小 の丸いボタン（元に戻すは最初の形と違うあいだだけ ── 最初の形で押しても何も変わらない・全画面は WP-dmap-11 で外した）`), J({ b0, t0 }));
+        /* ★WP-dmap-11 W6 → ★WP-dmap-12 で付け替えた（class B）── 指の決まり（ページに閉じ込めない windy の形）。スマホの最初の形は拡大しているあいだ：
+           (1) 最初の形で、1本の指で地図をなぞると地図が動く（ページはスクロールしない・何も選ばない・一言は出ない）→ 元に戻す → 開いた時と同じ最初の形
+           (2) 2本の指はいつも地図（広げるとさらに拡大）
            (3) 拡大しているあいだは、1本の指で地図をなぞると地図が動く（ページはスクロールしない・何も選ばない）
            (4) 拡大したままでも、下の帯（地域のボタンの列）を1本の指でなぞればページがスクロールする（地図はそのまま・ボタンは押されない）
-           (5) 動かさずに触れる → 見せる（選ぶのはボタン）・元に戻す → 1倍 → 1本の指はまたページのスクロール */
-        const y0 = await page.evaluate(() => window.scrollY), t0 = await ztf(page);
-        await swipe(page, await mapMid(page), 0, -120);
-        const sc = await until(page, (y) => window.scrollY > y, y0);
-        await still(page);
-        const t1 = await ztf(page), hint = await page.evaluate(() => { const h = document.querySelector('#wa-map-sec .wam-zh'); return { on: h.classList.contains('is-on') || !h.hidden, text: h.textContent }; });
-        ok(sc && same(t0, t1) && t1.a === 1 && hint.on && hint.text === ZOOM_HINT[lang], T(`map-move 390 (1) 1倍のあいだ、1本の指で地図の上を上へ → ページがスクロールする・地図は動かない・「${ZOOM_HINT[lang]}」が出る`), J({ sc, t0, t1, hint }));
+           (5) 動かさずに触れる → 見せる（選ぶのはボタン）・縮小で1倍 → 1本の指はページのスクロール（世界が丸ごと見えていて、動かす先が無い）・一言が出る →
+               元に戻す → 最初の形（1倍ではない） */
+        const hintNow = (page) => page.evaluate(() => { const h = document.querySelector('#wa-map-sec .wam-zh'); return { on: h.classList.contains('is-on') || !h.hidden, text: h.textContent }; });
+        const y0 = await page.evaluate(() => window.scrollY), e0 = await zPt(page, POINT_AT.europe);
+        await swipe(page, await mapMid(page), 60, 0);
+        await settle(page);
+        const t1 = await ztf(page), e1 = await zPt(page, POINT_AT.europe), b1m = await zButtons(page), hint1 = await hintNow(page);
+        const s1 = await page.evaluate(() => ({ y: window.scrollY, region: window.PVDirectory.state().region, open: document.getElementById('wa-map-sec').classList.contains('is-open') }));
+        ok(t1.a === t0.a && Math.abs(e1[0] - e0[0] - 60) < 1.5 && Math.abs(e1[1] - e0[1]) < 1.5 && s1.y === y0 && s1.region === 'all' && !s1.open && !hint1.on && same(b1m, ['in', 'out', 'reset']),
+          T('map-move 390 (1) 最初の形（拡大しているあいだ）で、1本の指で地図を右へ 60px なぞる → 地図が同じだけずれる（倍率はそのまま）・ページはスクロールしない・何も選ばない・一言は出ない・元に戻すが出る'), J({ t0, t1, e0, e1, s1, hint1, b1m }));
+        await page.tap('#wa-map-sec .wam-zb[data-z="reset"]');
+        await steady(page);
+        const t1r = await ztf(page), b1r = await zButtons(page), a1r = await page.evaluate(() => (document.activeElement || {}).id);
+        ok(same(t1r, t0) && same(b1r, ['in', 'out']) && a1r === 'wa-map', T('map-move 390 (1) 元に戻す → 開いた時と同じ最初の形（1倍ではない）・元に戻すは隠れ、フォーカスは地図へ'), J({ t0, t1r, b1r, a1r }));
         await toTop(page);
         /* (2) 2本の指で広げる（欧州のまわり）→ 拡大・ページは動かない・ページそのものは拡大しない・何も選ばない */
         const y1 = await page.evaluate(() => window.scrollY), eu0 = await zPt(page, POINT_AT.europe);
         await pinchOut(page, eu0);
-        const zp = await zoomedOver(page, 1.2);
+        const zp = await zoomedOver(page, t0.a + 0.2);
         const m = await page.evaluate(() => ({ y: window.scrollY, vv: window.visualViewport ? window.visualViewport.scale : 1, region: window.PVDirectory.state().region, open: document.getElementById('wa-map-sec').classList.contains('is-open'), ta: getComputedStyle(document.getElementById('wa-map')).touchAction }));
-        ok(zp && m.y === y1 && m.vv === 1 && m.region === 'all' && !m.open && m.ta === 'none', T('map-move 390 (2) 2本の指で広げる → 地図が拡大する（倍率 > 1.2）・ページはスクロールせず、ページそのものも拡大しない・何も選ばず、カードも開かない・地図の枠は指を全部もらう（touch-action:none）'), J({ t: await ztf(page), m }));
+        ok(zp && m.y === y1 && m.vv === 1 && m.region === 'all' && !m.open && m.ta === 'none', T('map-move 390 (2) 2本の指で広げる → 地図がさらに拡大する（倍率 > 最初の倍率 ＋ 0.2）・ページはスクロールせず、ページそのものも拡大しない・何も選ばず、カードも開かない・地図の枠は指を全部もらう（touch-action:none）'), J({ t: await ztf(page), m }));
         await shot(page, 'map-move', lang, '390-pinch');
         /* (3) 拡大したまま、1本の指で地図をなぞる（左上へ 60×40px）→ 地図が同じだけずれる・ページは動かない・何も選ばない */
         const tA = await ztf(page), eA = await zPt(page, POINT_AT.europe), yA = await page.evaluate(() => window.scrollY);
@@ -2868,7 +2916,7 @@ async function main() {
         const tC = await ztf(page), r4 = await regionNow(page);
         ok(sc4 && same(tB, tC) && r4 === 'all', T('map-move 390 (4) 拡大したまま、下の帯（地域のボタンの列）を1本の指で上へなぞる → ページがスクロールする（ページに閉じ込めない）・地図はそのまま・ボタンは押されない'), J({ sc4, tB, tC, r4, bar }));
         await toTop(page);
-        /* (5) 動かさずに触れる（拡大したまま）→ その地域を見せる（いつもの指の決まり：選ぶのはボタン）→ 元に戻す → 1倍 → 1本の指はまたページのスクロール */
+        /* (5) 動かさずに触れる（拡大したまま）→ その地域を見せる（いつもの指の決まり：選ぶのはボタン）→ 縮小で1倍 → 1本の指はページのスクロール → 元に戻す → 最初の形 */
         const eu = await zPt(page, POINT_AT.europe);
         await page.touchscreen.tap(...eu);
         const sh = await isShown(page, 'europe');
@@ -2879,16 +2927,25 @@ async function main() {
         const x5 = (await sheetNow(page)).x;
         if (x5) await page.touchscreen.tap(...x5);
         const shut5 = !!x5 && await until(page, () => !document.getElementById('wa-map-sec').classList.contains('is-open'));
-        await page.tap('#wa-map-sec .wam-zb[data-z="reset"]');
-        const t2 = await ztf(page);
+        /* ★WP-dmap-12：元に戻すは最初の形（1.4倍）へ戻す ── 1倍（世界全体）へは縮小で行く */
+        for (let i = 0; i < 4 && (await page.evaluate(() => document.querySelector('#wa-map-sec .wam-z').getAttribute('transform'))) !== null; i++) {
+          await page.tap('#wa-map-sec .wam-zb[data-z="out"]');
+          await steady(page);
+        }
+        const t2 = await ztf(page), tf2 = await page.evaluate(() => document.querySelector('#wa-map-sec .wam-z').getAttribute('transform')), b2 = await zButtons(page);
         await toTop(page);
         const y5 = await page.evaluate(() => window.scrollY);
         await swipe(page, await mapMid(page), 0, -80);
         const sc5 = await until(page, (y) => window.scrollY > y, y5);
         await still(page);
-        const t3 = await ztf(page);
-        ok(sh && g.go && g.region === 'all' && same(b1, ['in', 'out', 'reset']) && shut5 && t2.a === 1 && sc5 && t3.a === 1 && t3.e === 0 && t3.f === 0,
-          T('map-move 390 (5) 拡大したまま欧州に触れる → 欧州を見せる・ボタンが出る・まだ選ばない／ボタンは 拡大・縮小・元に戻す → 板を閉じる → 元に戻す → 1倍 → 1本の指で地図の上をなぞるとまたページがスクロールする'), J({ sh, g, b1, shut5, t2, sc5, t3 }));
+        const t3 = await ztf(page), hint5 = await hintNow(page);
+        await toTop(page);
+        await page.tap('#wa-map-sec .wam-zb[data-z="reset"]');
+        await steady(page);
+        const t6 = await ztf(page), b6 = await zButtons(page);
+        ok(sh && g.go && g.region === 'all' && same(b1, ['in', 'out', 'reset']) && shut5 && t2.a === 1 && tf2 === null && same(b2, ['in', 'out', 'reset']) && sc5 && t3.a === 1 && t3.e === 0 && t3.f === 0
+          && hint5.on && hint5.text === ZOOM_HINT[lang] && same(t6, t0) && same(b6, ['in', 'out']),
+          T(`map-move 390 (5) 拡大したまま欧州に触れる → 欧州を見せる・ボタンが出る・まだ選ばない／ボタンは 拡大・縮小・元に戻す → 板を閉じる → 縮小で1倍（transform を書かない・元に戻すは出たまま）→ 1本の指で地図の上をなぞるとページがスクロールし、地図は動かず「${ZOOM_HINT[lang]}」が出る → 元に戻す → 開いた時と同じ最初の形（元に戻すは隠れる ── WP-dmap-12）`), J({ sh, g, b1, shut5, t2, tf2, b2, sc5, t3, hint5, t6, b6 }));
         const q = quiet(st, 'map-move');
         ok(q.length === 0, T('map-move quiet(st, \'map-move\') が空（390）'), J(q));
       } finally {
