@@ -3268,7 +3268,7 @@ const EN_READERS = [
     pv_town_board: () => enOk({ state: 'give' }),
     pv_reviews: () => enOk({ unlocked: false, rows: EN_REV_LOCKED }),
     pv_review_summary: () => enOk({ state: 'locked' }),
-  }, want: ['Your pay-data access has ended', 'Opens when you answer 5 items about your own airline', 'Fill in what is missing about pay and conditions at Japan Airlines (JAL)',
+  }, want: ['Your pay-data access has ended', 'Opens when you answer 5 items about your own airline', 'Fill in the gaps on pay and conditions at Japan Airlines (JAL)',
     'Items you have answered: 1 / 5', 'Answer anonymously', '2 ratings', 'October 2026', 'Training is thorough and the instructors',
     'Opens when you post a review', 'The summary opens when you post a review'] },
   { key: 'open', who: 'pilot', stub: {
@@ -3283,9 +3283,9 @@ const EN_READERS = [
     pv_reviews: () => enOk({ unlocked: true, rows: EN_REV_OPEN }),
     pv_review_summary: () => enOk({ state: 'open', n: 3, as_of: '2026-10-01', good: [{ text: 'Thorough training.', cat: 'training' }], concern: [{ text: 'Long duty days.', cat: 'wlb' }] }),
   }, want: ['2 submissions', '5–10 yrs in rank', 'Under 5 yrs at airline', 'See all in REAL PAY', 'Notes from members', 'Monthly duty', 'Your post',
-    'Bars and figures show the middle half of the answers', 'Scale: hours 0–240, days and nights 0–31', 'Off the scale', 'Not enough data', 'Most common',
+    'Bars and figures show the middle 50% of answers', 'Scale: hours 0–240, days and nights 0–31', 'Off the scale', 'Not enough data', 'Most common',
     'Median', '8 days / month', 'The employee, Spouse or partner', 'September 2026', '4 members', 'Popular places to live', 'Shinagawa', '3 members',
-    'Good points', 'Points to mind', 'Review summary', 'AI summary', 'From 3 member reviews', 'Updated 2026-10-01', 'Training is thorough and fair.'],
+    'Good points', 'Concerns', 'Review summary', 'AI summary', 'From 3 member reviews', 'Updated 2026-10-01', 'Training is thorough and fair.'],
   attrs: ['This figure is far outside the published range for this airline and position.', 'See the reviews behind this summary'] },
   { key: 'fail', who: 'a', stub: {
     pv_pay_rows: () => EN_FAIL, pv_work_view: () => EN_FAIL, pv_contrib_facts: () => EN_FAIL, pv_contrib_notes: () => EN_FAIL,

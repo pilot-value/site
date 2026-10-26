@@ -1159,7 +1159,7 @@ const MAP_WORD = {
         lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社', group: '職位', hint: '地図をクリックして地域を選択',
         zoom: { in: '拡大', out: '縮小', reset: '元に戻す', touch: '2本の指で動かせます' }, close: '閉じる' },
   en: { k: 'Estimate from public information', def: 'Mean of our estimates across {N} airlines', cond: 'Conditions / Sources',
-        dt: ['Airlines included', 'Number of airlines', 'Conversion'], go: 'View airlines in this region',
+        dt: ['Airlines included', 'Number of airlines', 'Exchange rates'], go: 'View airlines in this region',
         lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}', group: 'Rank', hint: 'Click the map to choose a region',
         zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close' },
 };

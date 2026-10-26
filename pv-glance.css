@@ -475,6 +475,9 @@
 .pvg-ev{margin-top:6px}
 .pvg-evl{display:grid;gap:10px;padding:2px 0 10px}
 .pvg-evl > div{display:grid;grid-template-columns:3em minmax(0,1fr);gap:10px}
+/* 英語のページ（2026-10-26 WP-en-11a）：見出しの字（Conditions・Getting there・Reference）が 3em の列に収まらず、中身の字に重なっていた
+   （easyJet の家賃の板・390）。英語では見出しを上・中身をその下に置く。日本語のページの並びは今までどおり（:lang(en) の中だけ） */
+.pvg-evl:lang(en) > div{grid-template-columns:minmax(0,1fr);gap:2px}
 .pvg-evl dt{font-size:12px;font-weight:700;letter-spacing:.08em;line-height:1.6;color:var(--pv-ink-2)}
 .pvg-evl dd{min-width:0;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
 .pvg-evl dd.pvg-srcs,.pvg-evl dd > .pvg-notes{margin-top:0!important}

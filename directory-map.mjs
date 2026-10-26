@@ -193,7 +193,7 @@ const WORDS = {
   },
   en: {
     all: 'All', k: 'Estimate from public information', def: (n) => `Mean of our estimates across ${n} airlines`, rank: { cap: 'Captain', fo: 'First Officer' }, rankGroup: 'Rank',
-    cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Conversion', go: 'View airlines in this region',
+    cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Exchange rates', go: 'View airlines in this region',
     lo: 'Lowest', hi: 'Highest', span: 'Range', regionN: (l, n) => `${l} ${n}`, hint: 'Click the map to choose a region',
     zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close',
   },

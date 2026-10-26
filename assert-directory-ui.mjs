@@ -203,7 +203,7 @@ const ZOOM_HINT = { ja: '2本の指で動かせます', en: 'Use two fingers to 
 /** 地域のまとめのカードの字（シートの字 ＝ directory-map.mjs の WORDS と同じ。字そのものは assert-directory.mjs の M11 が見張る）：
     指で地図に触れたあとのボタン・「条件/出典」の中の3つの見出し・対象掲載社数の書き方 */
 const GO = { ja: 'この地域の航空会社を見る', en: 'View airlines in this region' };
-const FOLD = { ja: ['対象', '対象掲載社数', '換算'], en: ['Airlines included', 'Number of airlines', 'Conversion'] };
+const FOLD = { ja: ['対象', '対象掲載社数', '換算'], en: ['Airlines included', 'Number of airlines', 'Exchange rates'] };
 const COUNT_N = { ja: (n) => `${n}社`, en: (n) => `${n}` };
 /** 区域 1000px 未満で下から出る板（開いたカード）の閉じるボタンの字（WP-dmap-11 の直し ── 比較リストの閉じるボタンと同じ字。字そのものは M11 が見張る） */
 const CLOSE = { ja: '閉じる', en: 'Close' };
@@ -1134,7 +1134,7 @@ async function main() {
   const CL = {
     ja: { h: '比較リスト', add: '会社を追加', open: '＋ 会社を追加', rule: '比較は2社・レベリング比較は5社まで', why: '機材の区分が無いため、レベリング比較には入りません',
       rm: '外す', off: '＋ 比較', on: '✓ 比較中', close: '閉じる', empty: 'カードの「＋ 比較」か、下の欄から追加できます' },
-    en: { h: 'Compare list', add: 'Add an airline', open: '+ Add an airline', rule: 'Compare: 2 airlines · Leveling: up to 5', why: 'No aircraft class, so it can’t join the leveling comparison',
+    en: { h: 'Compare list', add: 'Add an airline', open: '+ Add an airline', rule: 'Compare: 2 airlines · Leveling: up to 5', why: 'No fleet category, so it can’t be added to the leveling comparison',
       rm: 'Remove', off: '+ Compare', on: '✓ Added', close: 'Close', empty: 'Use “+ Compare” on a card, or add one below' },
   };
   /* 押せないはずの印（ここで台帳から）：付いていない印のうち、足すと決まり（どの社も fleet を持てば5社・持たない社が入れば2社）を超える社。
