@@ -298,7 +298,7 @@ button.crl-rv-more{appearance:none;-webkit-appearance:none;justify-self:start;ma
 .crl[data-live="cmp-stars"] > .crl-msg + .crl-cmp{margin-top:8px}
 /* ── 比較の6角形（2社を同じ形・同じ色で）──
    線と面は会社ページ（pv-glance.css の .pvg .crl-radar-*）と同じ値の写し。片方だけ直すと黙って別物になる。
-   点数で塗れない会社は、会社ページと同じ 3.0 の淡い面（is-ph ── 線の色を薄く敷いただけ。数字は置かない）。
+   点数で塗れない会社は、会社ページと同じ 3.0 の面（is-ph）。★2026-10-26 オーナー：色は点数のある面と同じ・点の丸と数字は置かない。
    既定は狭い箱の形：上に図、下に6分類の名前と点数を1行ずつ。欄が広いとき（560px〜）だけ、会社ページと同じ「図のまわりに名前」
    （名前は古いページの言葉 ──「給与・報酬の納得度」まで ── なので、会社ページと同じく左右の列を 76px に広げる）。
    ⚠️ 既定を広い形にしない。箱の幅で測れないブラウザは既定のまま出る（狭い箱で名前が図に重ならない）。 */
@@ -309,7 +309,7 @@ button.crl-rv-more{appearance:none;-webkit-appearance:none;justify-self:start;ma
 .crl-cmp .crl-radar-axis{stroke:var(--pv-line);stroke-width:1;vector-effect:non-scaling-stroke}
 .crl-cmp .crl-radar-shape{fill:var(--pv-gold-soft);stroke:var(--pv-star);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .crl-cmp .crl-radar-dot{fill:var(--pv-star)}
-.crl-cmp .crl-radar-shape.is-ph{fill:var(--pv-line);fill-opacity:.6;stroke:var(--pv-ink-3);stroke-opacity:.35;stroke-width:1.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.crl-cmp .crl-radar-shape.is-ph{fill:var(--pv-gold-soft);stroke:var(--pv-star);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .crl-cmp .crl-radar-l{display:flex;flex-wrap:wrap;align-items:baseline;align-items:last baseline;justify-content:space-between;gap:0 8px;min-width:0;font-size:12px;line-height:1.5;color:var(--pv-ink-2)}
 /* 名前は残りの幅いっぱい・入らない時は名前の折れてよい所（<wbr>）で折れて、点数は同じ行の右に残る（「ワークライフ／バランス 4.3」・2026-10-25） */
 .crl-cmp .crl-radar-l span{flex:1 1 0;min-width:0;word-break:keep-all;overflow-wrap:anywhere}
