@@ -114,7 +114,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 /** その会社・その職位のカードに出るべき金額と札（assert-basis.mjs の I と同じ決め方を、ここで作る） */
 function want(I, slug, rank) {
   const w = RW[rank], avg = I.ledger[slug][rank].avg;
-  const est = { kind: 'est', yen: yen(avg), labelJa: `${w.ja} 推定年収`, labelEn: `${w.en} estimated salary` };
+  const est = { kind: 'est', yen: yen(avg), labelJa: `${w.ja} 推定年収`, labelEn: `${w.en} · Est. annual pay` };
   if (!BASIS[slug]) return est;
   const tier = BASIS[slug][rank]?.tier || 'held';
   /* ★2026-10-25、台帳の card: 'estimate' の職位（エミレーツ）もカードは推定（salary-basis.mjs の cardFigure と同じ規則をここで独立に持つ） */
@@ -401,7 +401,7 @@ function secE(I) {
     const A = M.airlines[s]; if (!A) continue;
     let e, d; try { e = I.fn.figure(A, rank, 'estimate-for-five'); d = I.fn.figure(A, rank); } catch (x) { p5.push(`${s} ${rank}：${x.message}`); continue; }
     if (LEAD.includes(s)) {
-      const w = want(I, s, rank), est = { kind: 'est', yen: yen(I.ledger[s][rank].avg), labelJa: `${RW[rank].ja} 推定年収`, labelEn: `${RW[rank].en} estimated salary` };
+      const w = want(I, s, rank), est = { kind: 'est', yen: yen(I.ledger[s][rank].avg), labelJa: `${RW[rank].ja} 推定年収`, labelEn: `${RW[rank].en} · Est. annual pay` };
       const main = w.kind === 'held' ? w : est;
       for (const k of ['kind', 'yen', 'labelJa', 'labelEn']) if (e[k] !== main[k]) p5.push(`${s} ${rank}：主の ${k}「${e[k]}」／「${main[k]}」`);
       const wx = w.kind === 'pub' ? { yen: w.yen, labelJa: w.labelJa, labelEn: w.labelEn } : null;

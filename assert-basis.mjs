@@ -368,7 +368,7 @@ for (const slug of Object.keys(BASIS)) {
      ★「平均」を名乗る札が1枚でも出たら落とす。推定の社の札がここで「平均年収」に戻ると、
        推定を出している100社以上が黙って「平均」を名乗る（画面は普通に出るので、見ても気づけない）。 */
   for (const [p, dflt, ng, en] of [['world-airlines.html', '機長 推定年収', '平均', false],
-                                   ['en/world-airlines.html', 'Captain estimated salary', 'average', true]]) {
+                                   ['en/world-airlines.html', 'Captain · Est. annual pay', 'average', true]]) {
     const html = fs.readFileSync(path.join(ROOT, p), 'utf8');
     const cards = [...html.matchAll(/<li class="wd-li"[^>]*data-slug="([^"]+)"[\s\S]*?<\/li>/g)];
     if (cards.length !== Object.keys(SALARY).length) bad(p, `会社カードが ${cards.length} 枚（台帳は ${Object.keys(SALARY).length} 社）`);

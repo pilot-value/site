@@ -36,7 +36,7 @@
     rej:      'Reject',
     pending:  'Waiting',
     good:     'Good points',
-    concern:  'Points to mind',
+    concern:  'Concerns',
     none:     'Nothing is waiting',
     off:      'Not connected yet',
     err:      'Could not load',

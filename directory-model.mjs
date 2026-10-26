@@ -131,7 +131,10 @@ export function figure(A, rank, rule = CARD_RULE) {
   if (rule !== 'published-first' && rule !== 'estimate-for-five') throw new Error(`figure：知らない決め方「${rule}」`);
   const F = A[rank], w = RANK_WORD[rank], sub = F.sub;
   if (F.held) return { kind: 'held', yen: null, labelJa: `${w.ja} 確認中`, labelEn: `${w.en} · Under review`, sub, extra: null };
-  const est = { kind: 'est', yen: `¥${F.est.man.toLocaleString('en-US')}万`, labelJa: `${w.ja} 推定年収`, labelEn: `${w.en} estimated salary`, sub, extra: null };
+  /* ★2026-10-26 英語の EN-11c：英語の札は会社ページ・2社比較と同じ言葉（estimated annual pay）を、カードの「職位 · 種類」の形で短く。
+     「Estimated annual pay」と書き切ると、ドルの表示でも 320px と 1001px（箱がいちばん狭い）で副操縦士の札が2行に折れる
+     （Est. ならドルは全幅で1行。円・AED の長い額で折れるのは前の「estimated salary」と同じだけ）。平均とは名乗らない */
+  const est = { kind: 'est', yen: `¥${F.est.man.toLocaleString('en-US')}万`, labelJa: `${w.ja} 推定年収`, labelEn: `${w.en} · Est. annual pay`, sub, extra: null };
   if (!F.pub) return est;
   const pub = { kind: 'pub', yen: F.pub.yen, labelJa: `${w.ja} ${F.pub.kindJa}`, labelEn: `${w.en} · ${F.pub.kindEn}`, sub, extra: null };
   if (rule === 'estimate-for-five' && A.five) return { ...est, extra: { yen: pub.yen, labelJa: pub.labelJa, labelEn: pub.labelEn } };
