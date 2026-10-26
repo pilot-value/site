@@ -3285,7 +3285,7 @@ const EN_READERS = [
   }, want: ['2 submissions', '5–10 yrs in rank', 'Under 5 yrs at airline', 'See all in REAL PAY', 'Notes from members', 'Monthly duty', 'Your post',
     'Bars and figures show the middle 50% of answers', 'Scale: hours 0–240, days and nights 0–31', 'Off the scale', 'Not enough data', 'Most common',
     'Median', '8 days / month', 'The employee, Spouse or partner', 'September 2026', '4 members', 'Popular places to live', 'Shinagawa', '3 members',
-    'Good points', 'Concerns', 'Review summary', 'AI summary', 'From 3 member reviews', 'Updated 2026-10-01', 'Training is thorough and fair.'],
+    'Good points', 'Concerns', 'Review summary', 'AI summary', 'From 3 member reviews', 'Updated 1 October 2026', 'Training is thorough and fair.'],
   attrs: ['This figure is far outside the published range for this airline and position.', 'See the reviews behind this summary'] },
   { key: 'fail', who: 'a', stub: {
     pv_pay_rows: () => EN_FAIL, pv_work_view: () => EN_FAIL, pv_contrib_facts: () => EN_FAIL, pv_contrib_notes: () => EN_FAIL,

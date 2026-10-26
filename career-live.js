@@ -232,7 +232,12 @@
     sumLock: 'The summary opens when you post a review',
     sumAi: 'AI summary',
     sumFrom: function (n) { return 'From ' + n + (n === 1 ? ' member review' : ' member reviews'); },
-    sumWhen: function (d) { return 'Updated ' + d; },
+    /* ★2026-10-26 EN-11c：英語は月の名前で「Updated 1 October 2026」（英語ページのほかの日付と同じ「日 月 年」の形）。
+       月の名前は上の MONTHS_EN だけから ── ブラウザの言語の設定（toLocaleDateString など）では作らない。形の違う字はそのまま */
+    sumWhen: function (d) {
+      var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d), mo = m && MONTHS_EN[Number(m[2]) - 1];
+      return 'Updated ' + (mo && Number(m[3]) >= 1 && Number(m[3]) <= 31 ? Number(m[3]) + ' ' + mo + ' ' + m[1] : d);
+    },
     sumFew: 'Too few reviews yet for a summary',
     sumNone: 'No review summary yet',
     sumOff: 'Not available yet',
