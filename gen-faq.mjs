@@ -127,6 +127,10 @@ const BASE = SALARY.ana.cap.avg;
    ⚠️ 平均でない数字を「平均」と呼ばない（呼び方は TIERS の1か所）。           */
 const RANK_JA = { cap: '機長', fo: '副操縦士' };
 const RANK_EN = { cap: 'captains', fo: 'first officers' };
+/* ★2026-10-26（WP-compare-all-17）英語の冠詞は音で決める（「a official posting」と書いていた）。
+   等級の英語（salary-basis.mjs の TIERS）は official・estimated・average・under review が母音の音 → an ／
+   job・past・self-reported・modelled は子音の音 → a。uni-（united・university）は u でも子音の音なので a のまま。 */
+const aOrAn = (w) => (/^(?:[aeio]|un(?!i))/i.test(w) ? 'an' : 'a');
 const hasBasis = (slug) => !!BASIS[slug];
 const isHeldRank = (slug, rank) => BASIS[slug]?.[rank]?.tier === 'held';
 /** 平均として書いていい会社か（等級を決めていない＝今までどおり SALARY を書く）。 */
@@ -487,7 +491,7 @@ function buildEnBasis(slug) {
       if (r.tier === 'estimate') { parts.push(EST_EN(slug, name, RANK_EN[rank], f, rank)); continue; }
       if (r.tier === 'held') { parts.push(HELD_EN(slug, name, RANK_EN[rank])); continue; }
       const y = figEn(slug, rank, f, Y_KEYS);
-      if (y) parts.push(`For ${RANK_EN[rank]} we publish a ${TIERS[r.tier].en.toLowerCase()} rather than an average — ${y}. This is not an all-staff average.`);
+      if (y) parts.push(`For ${RANK_EN[rank]} we publish ${aOrAn(TIERS[r.tier].en)} ${TIERS[r.tier].en.toLowerCase()} rather than an average — ${y}. This is not an all-staff average.`);
     }
     if (b.notes_en?.[0] && !CREW_NOTE.test(b.notes_en[0])) parts.push(b.notes_en[0]);
     if (acc) parts.push(`Source checked ${acc}; yen figures are converted for comparison at the rate held as of ${FX_AS_OF}, not a live rate.`);

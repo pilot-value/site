@@ -8,6 +8,8 @@
      B) 画面に出る数 ── HTML に数字を直書きし、JS が一度も書き換えない
      C) ホテルの欄のまわりの言い方 ── 見る人・足す人の決まりと違うことを書く（2026-10-16）
      D) ログインせずに出した人の控えの鍵と回線の印 ── 個人データのページに書いていない（2026-10-17）
+     E) 会社ページの出どころの無い数（日本の税の1つの率・目安の数・台帳に無い飛行時間・推定年収の幅）（2026-10-26）
+     F) 英語のページの英国式のつづり／G) 英語の会社ページの「よくある質問」の冠詞（2026-10-26）
 
    ※ どちらも 2026-09-20 にオーナーの指摘で見つかった。経緯は各節の頭にある。
 
@@ -299,8 +301,22 @@ console.log('\n── D) ログインせずに出した人の鍵と回線の印�
          が無い ── ページが幅を出していないので、答えだけが幅を言うと、ページに無い数を言うことになる（gen-faq.mjs は幅を書かない）。
          SWITCH の外（古い形のスピリット航空）は手で書いた答えと表が今も幅を出しているので、ここでは見ない
    ※ 数を足すときは、先に台帳へ出どころつきで入れる（入れてから答えに書く）。ここを緩めて通さない。
+
+   ★2026-10-26（WP-compare-all-17）E2 と E3 を「よくある質問」の外へ広げた ── 同じページの上の段（古い「募集要項」の枠・
+     「訓練・審査」の札など、手で書いた所）が「機長5,000h以上（目安）」と言ったまま、下の答えだけが「確認できていません」になっていた。
+     見る所 ＝ 会社ページのぜんぶ（画面の字・構造化データのすべての字・スターラックスの script の faqs）。
+       E2  「（目安）」「(guideline)」「(guide)」「目安：」の札は、ページのどこにも書かない（生成器の「ひと目で」の段も含めて）。
+           数に付いた「目安」「guideline」は、生成器の「ひと目で」の段（<!--PV-GLANCE-->）の外で見る ── あの段の「目安」は
+           airline-display.mjs が台帳の行から書く資料の言葉（「京急が示す目安」「Google マップが表示した目安の時間」「相場の目安」・
+           会社が公表した「目安年次」「機長への昇格の目安」）で、出どころがその場に付いている（台帳との突き合わせは airline-display.mjs --check）
+       E3  応募条件の飛行時間 ──「以上」「最低」「必要」「資格」「+」「at least」「minimum」「required」「R-ATP」などの近くの
+           N時間・N h・N hours・N flight hours・N factored hours・N-hour（幅は両端とも）── は、その会社の台帳に時間として在る数だけ。
+           1日・月・週あたりの時間（機体の稼働・月の乗務時間）は応募条件ではないので見ない。
+           米国の「1,500時間ルール」は法律の名前とその説明で、会社の募集の数ではない（WP-16 と同じく残す。近くに上の語が無いので当たらない）
    ════════════════════════════════════════════════════════════════ */
-console.log('\n── E) 会社ページの「よくある質問」が、出どころの無い数を言っていない ─────');
+console.log('\n── E) 会社ページ（「よくある質問」とページのほかの所）が、出どころの無い数を言っていない ─────');
+/* G（英語の冠詞）が同じ「よくある質問」の読み方を使う */
+let faqOf = null;
 {
   const { SALARY } = await import('./salary-data.mjs');
   const { SWITCH } = await import('./airline-rollout.mjs');
@@ -324,6 +340,22 @@ console.log('\n── E) 会社ページの「よくある質問」が、出ど�
       let j; try { j = JSON.parse(m[1]); } catch { continue; }
       for (const x of (Array.isArray(j) ? j : [j])) if (x && x['@type'] === 'FAQPage') for (const it of x.mainEntity || []) out.push({ where: 'FAQPage', q: String(it.name || ''), a: String(it.acceptedAnswer?.text || '') });
     }
+    return out;
+  };
+  faqOf = answers;
+  /* ページのぜんぶの字（WP-17）。withGlance が false なら、生成器の「ひと目で」の段を外して読む */
+  const GLANCE_BLOCK = /<!--PV-GLANCE-->[\s\S]*?<!--\/PV-GLANCE-->/g;
+  const pageTexts = (rel, withGlance) => {
+    let raw = readFileSync(path.join(ROOT, rel), 'utf8');
+    if (!withGlance) raw = raw.replace(GLANCE_BLOCK, () => ' ');
+    const html = unbake(raw), out = [];
+    const strs = (v, acc) => { if (typeof v === 'string') acc.push(v); else if (v && typeof v === 'object') for (const x of Object.values(v)) strs(x, acc); return acc; };
+    for (const m of raw.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      let j; try { j = JSON.parse(m[1]); } catch { continue; }
+      for (const s of strs(j, [])) out.push({ where: '構造化データ', t: s });
+    }
+    for (const m of html.matchAll(/\{\s*q:\s*"((?:[^"\\]|\\.)*)"\s*,\s*a:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)) out.push({ where: '画面（script）', t: `${m[1]} ${m[2]}` });
+    out.push({ where: '画面', t: txt(html.replace(/<!--[\s\S]*?-->/g, () => ' ').replace(/<style\b[\s\S]*?<\/style>/g, () => ' ').replace(/<script\b[\s\S]*?<\/script>/g, () => ' ')) });
     return out;
   };
   const num = (s) => String(s).replace(/(\d),\s?(?=\d{3}\b)/g, (_, d) => d);
@@ -354,11 +386,19 @@ console.log('\n── E) 会社ページの「よくある質問」が、出ど�
   const GUIDE = /\d[\d,]*[^。.;]{0,25}(?:目安|\(guideline\)|\(guide\))|目安[^。.;]{0,6}\d/i;
   const HOURS = /(\d[\d,]*)\s*(?:\+\s*)?(?:hours?\b|hrs?\b|h\b|時間)/g;
   const REQ_CTX = /以上|\+|at least|or more|\bmin(?:imum|\.)?\b/i;
+  /* ページのぜんぶを見るときの形（WP-17）。数の頭は英字の続き（B777・A320）でないこと */
+  const LABEL = /（\s*目安|\(\s*目安|目安\s*[：:]|\(\s*(?:guidelines?|guide)\s*\)/i;
+  const GUIDE_PAGE = /(?<![A-Za-z\d])\d[\d,.]*[^。.;]{0,25}(?:目安|\bguidelines?\b|\(guide\))|(?:目安|\bguidelines?\b|\(guide\))[^。.;]{0,12}(?<![A-Za-z\d])\d/i;
+  const HOURS_PAGE = /(?<![A-Za-z\d.,])(\d[\d,]*)(?:\s*(?:〜|~|～|–|-|to)\s*(\d[\d,]*))?\s*(?:\+\s*)?(?:(?:total\s+|factored\s+|flight\s+|flying\s+){0,2}hours?\b|hrs?\b|h\b|時間|ファクタードアワー|-hours?\b)/g;
+  /* 「min」だけは分（15 min）と同じ字なので、minimum・min.・Min Hours の形に限る */
+  const REQ_PAGE = /以上|最低|\+|＋|at least|or more|\bmin(?:imum\b|\.|\s+(?:flight\s+)?hours?\b)|必要|要件|条件|資格|required|requires?|requirements?|asks? for|licen[cs]e|\bR?-?ATPL?\b/i;
+  const RATE_BEFORE = /(?:1日|一日|毎日|月間?|毎月|暦月|週|年間)\s*(?:に|あたり|平均|に平均|の|平均で)?\s*$/;
+  const RATE_AFTER = /^\s*(?:\+\s*)?(?:\/\s*(?:day|month|week|year|日|月|週)|(?:a|per|each)\s+(?:calendar\s+)?(?:day|month|week|year)|あたり)/i;
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, (c) => '\\' + c);
   /* 円の額の書き方（「¥2,490万」「2,490万円」「¥24.9M」）を1つの正規表現の部品にする */
   const yenRe = (v) => `(?:¥?${esc(Math.round(v).toLocaleString('en-US'))}万円?|¥${esc(String(Math.round(v) / 100))}M)`;
   const bad = { E1: [], E2: [], E3: [], E4: [] };
-  let nAns = 0, nHours = 0;
+  let nAns = 0, nHours = 0, nPage = 0;
   for (const slug of Object.keys(SALARY)) {
     const d = SALARY[slug], led = ledgerHours(slug);
     const pairs = [[d.cap.lo, d.cap.hi], [d.fo.lo, d.fo.hi], [d.fo.lo, d.cap.hi]];
@@ -381,11 +421,27 @@ console.log('\n── E) 会社ページの「よくある質問」が、出ど�
         }
         if (SWITCH.includes(slug)) for (const re of rangeRe) if (re.test(a)) { bad.E4.push(`${at}: ${a.match(re)[0]}`); break; }
       }
+      /* ページのぜんぶ（WP-17）── 札の「（目安）」は「ひと目で」の段も含めて・数に付いた「目安」はその段の外で・応募条件の飛行時間はぜんぶで */
+      for (const { where, t } of pageTexts(rel, true)) {
+        const lb = t.match(LABEL);
+        if (lb) bad.E2.push(`${rel}（${where}・札）: …${t.slice(Math.max(0, lb.index - 24), lb.index + 16)}…`);
+        for (const m of t.matchAll(HOURS_PAGE)) {
+          const before = t.slice(Math.max(0, m.index - 25), m.index), after = t.slice(m.index + m[0].length, m.index + m[0].length + 12);
+          if (!REQ_PAGE.test(before + m[0] + after)) continue;
+          if (RATE_BEFORE.test(t.slice(Math.max(0, m.index - 8), m.index)) || RATE_AFTER.test(after)) continue;
+          nPage++;
+          for (const n of [m[1], m[2]].filter(Boolean)) if (!led.has(num(n))) bad.E3.push(`${rel}（${where}）: 「${m[0]}」（台帳に無い）`);
+        }
+      }
+      for (const { where, t } of pageTexts(rel, false)) {
+        const g = t.match(GUIDE_PAGE);
+        if (g) bad.E2.push(`${rel}（${where}）: ${g[0]}`);
+      }
     }
   }
   ok(`E1 会社ページの「よくある質問」${nAns} 件の答えに、日本の税を1つの率で言う字が無い`, !bad.E1.length, bad.E1.slice(0, 6).join(' ／ '));
-  ok('E2 会社ページの「よくある質問」の答えに、「目安」「(guideline)」の付いた数が無い', !bad.E2.length, bad.E2.slice(0, 6).join(' ／ '));
-  ok(`E3 応募条件の飛行時間（${nHours} か所）は、どれもその会社の台帳に時間として在る数`, nHours > 0 && !bad.E3.length, bad.E3.slice(0, 8).join(' ／ '));
+  ok('E2 会社ページのどこにも（「よくある質問」の答え・募集要項の枠・訓練の札・構造化データ）、「目安」「(guideline)」の付いた数が無い', !bad.E2.length, bad.E2.slice(0, 6).join(' ／ '));
+  ok(`E3 応募条件の飛行時間（よくある質問 ${nHours} か所・ページのぜんぶ ${nPage} か所）は、どれもその会社の台帳に時間として在る数`, nHours > 0 && nPage > 0 && !bad.E3.length, bad.E3.slice(0, 8).join(' ／ '));
   ok('E4 新しい形の会社ページ（SWITCH）の答えに、推定年収の幅（lo〜hi）が無い（ページが幅を出していない）', !bad.E4.length, bad.E4.slice(0, 6).join(' ／ '));
 }
 
@@ -397,12 +453,16 @@ console.log('\n── E) 会社ページの「よくある質問」が、出ど�
    見る範囲 ＝ en/airlines/*.html と en/career.html の、画面の字と構造化データの字（属性・コメント・style・script は見ない）。
    ★資料の題（かぎかっこ “…” や引用符の中）と、名前そのもの（下の PROPER）は、その資料・その名前のつづりのまま残す。
      PROPER に足してよいのは「固有の名前」だけ（制度・建物・会社の名前）。ふつうの語を足して通さない。
+   ★2026-10-26（WP-compare-all-17）見る範囲を en/ の HTML のぜんぶ（en/index.html・国・地域・一覧のページを含む）へ広げた
+     ── トップの英語の答えに「cadet programme」が3つ残っていた。
    ════════════════════════════════════════════════════════════════ */
-console.log('\n── F) 英語の会社ページと比較の1枚は、米国のつづり（license・program・center）で書く ─────');
+console.log('\n── F) 英語のページ（en/ のぜんぶ）は、米国のつづり（license・program・center）で書く ─────');
 {
   const PROPER = ['Future Pilot Programme', 'Cadet Pilot Programme', 'Cadet Pilot Training Programme', 'Assessment Centre', 'Centre for Aviation'];
   const UK = /\b(?:licen[c]es?|programmes?|centres?)\b/i;
-  const pages = [...readdirSync(path.join(ROOT, 'en/airlines')).filter((f) => f.endsWith('.html')).map((f) => `en/airlines/${f}`), 'en/career.html'];
+  const walkEn = (d) => readdirSync(path.join(ROOT, d), { withFileTypes: true })
+    .flatMap((e) => (e.isDirectory() ? walkEn(`${d}/${e.name}`) : e.name.endsWith('.html') ? [`${d}/${e.name}`] : []));
+  const pages = walkEn('en');
   const hits = [];
   for (const rel of pages) {
     const raw = readFileSync(path.join(ROOT, rel), 'utf8');
@@ -415,7 +475,31 @@ console.log('\n── F) 英語の会社ページと比較の1枚は、米国の
       if (m) hits.push(`${rel}: …${t.slice(Math.max(0, m.index - 40), m.index + 30).replace(/\s+/g, () => ' ')}…`);
     }
   }
-  ok(`F ${pages.length} 枚の英語のページに、引用の外の licence・programme・centre が無い`, !hits.length, hits.slice(0, 8).join(' ／ '));
+  ok(`F ${pages.length} 枚の英語のページ（en/ のぜんぶ）に、引用の外の licence・programme・centre が無い`, pages.includes('en/index.html') && pages.length > 122 && !hits.length, hits.slice(0, 8).join(' ／ '));
+}
+
+/* ════════════════════════════════════════════════════════════════
+   G) 英語の会社ページの「よくある質問」の冠詞は、音で決める（2026-10-26 WP-compare-all-17 T3）
+
+   EN-11b の検査役：英語の問が32社で「What are the requirements to become a Air Canada pilot?」になっていた（古い一括生成の型の名残）。
+   生成器 gen-faq.mjs も等級の名前の前で「we publish a official posting」と書いていた。
+   ★母音の音で始まる語の前は an（an Air Canada・an Emirates・an easyJet・an IndiGo・an ITA・an IBEX・an Oman Air・an HK Express）。
+     子音の音で始まる語の前は a のまま（a oneworld・a European・a United・a US・a UK）── one・once・eu・uni・U＋大文字は外して見る。
+   見る範囲 ＝ en/airlines/{slug}.html（SALARY の会社）の「よくある質問」の問と答え（画面の <details> と FAQPage）。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── G) 英語の会社ページの「よくある質問」の冠詞が、音に合っている ─────');
+{
+  const { SALARY } = await import('./salary-data.mjs');
+  const ART = /\b[Aa] (?!(?:[Oo]n[ec]|[Ee]u|[Uu]ni|U[A-Z]))(?:[AEIOaeio]|[Uu]n|HK\b)[\w’-]*/g;
+  const hits = []; let nItems = 0;
+  for (const slug of Object.keys(SALARY)) {
+    const rel = `en/airlines/${slug}.html`;
+    for (const { where, q, a } of faqOf(rel)) {
+      nItems++;
+      for (const [k, t] of [['問', q], ['答え', a]]) for (const m of t.matchAll(ART)) hits.push(`${rel}（${where}・${k}）: …${t.slice(Math.max(0, m.index - 30), m.index + 30)}…`);
+    }
+  }
+  ok(`G 英語の会社ページの「よくある質問」${nItems} 件の問と答えに、音に合わない冠詞（a Air・a Emirates・a easyJet・a official…）が無い`, nItems > 0 && !hits.length, hits.slice(0, 8).join(' ／ '));
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
