@@ -1043,13 +1043,16 @@ scene('side', '比較の片側だけ読めない：読めた側はそのまま�
 
 /* ══ leak ═══════════════════════════════════════════════════════ */
 /* 会員 c。どの読みも「開いた」答えを返し、その答えに印を植える（口コミの本文・抜粋・要約の点・提出された年収の額と中央値・
-   会員の回答 ＝ 月の勤務の値と待遇の答え）。1つの文書の中で、5社の概要（エティハドは評価・口コミ・REAL PAY・月の勤務・待遇の欄が在る）・
-   エティハドのステイ先の画面1つ・比較 JAL｜ANA とエティハド｜キャセイを PVCareer.go で見せる（欄が埋まるのは、その文書で見せた画面だけ）。
+   会員の回答 ＝ 月の勤務の値と待遇の答え）。1つの文書の中で、エティハドのステイ先の画面1つ・比較 JAL｜ANA とエティハド｜キャセイを
+   PVCareer.go で見せる（欄が埋まるのは、その文書で見せた画面だけ）。
+   ★2026-10-26 P12.130（WP-compare-all-22 ── 当て直し・同じ強さ）：前は 5社の概要（エティハドは「概要」と「勤務・訓練」のタブ）も見せた。
+   会社の概要の画面は無い ── 植えた印は全種類、比較の2組とステイ先で出る（前提の行がそれを確かめる）。カードは全部、比較の行から読む。
    前提：植えた印が全種類、その文書の画面に出た（出なければこの場面は落ちることができない ── 赤で止める）。
    そのあと同じ文書で、カードを JAL｜ANA・エティハド｜キャセイ・5社1社ずつ、2つのデザインで描かせる：
      書き留めた字（fillText / strokeText）に、植えた印・提出された年収の額・中央値・要約や口コミの字・会員の回答の値が1つも無い／
      PVCareerCard.model() にも無い／描いた絵は #crc-data の写真か '(canvas)' だけ。
-   inLive：JAL の概要の推定年収の前に <div class="crl"><b data-main="cap">ZZ給与ZZ</b></div> を置いても、カードは推定年収のまま（ZZ を描かない）。
+   inLive：比較の JAL の機長の行の前に、生きた欄の形の行（<div class="crl"><div class="cr-row" data-airline="jal">…ZZ給与ZZ…</div></div>）を
+   置いても、カードは推定年収のまま（ZZ を描かない ── ★P12.130 当て直し：前は JAL の概要の推定年収の前に <b data-main="cap">）。
    ★段（history.state）── 2026-10-23 LEAD AMENDMENT「段の k・t」：開いた欄の高さは段に届かない。比較 JAL｜ANA で、
      (a) 目印（ANA の「ほかの街」）より上の開いた欄（提出された年収）が 400px 長くなっても、同じ目印の同じ高さで書かれた段は1文字も同じ
      (b) 上の帯の線が開いた欄（口コミ）の中に在るとき、その欄が線より下で 400px 長くなっても、段は1文字も同じ。
@@ -1151,7 +1154,7 @@ const grow = (page, kind, px) => page.evaluate((sel, px) => {
 const unGrow = (page) => page.evaluate(() => { document.querySelectorAll('[data-probe-grow]').forEach((d) => d.remove()); });
 
 scene('leak', 'カードの画像と材料に、生きた欄の中身（口コミの本文・抜粋・要約・提出された年収・会員の回答）が入らない・開いた欄の高さは段（history.state）に届かない', async () => {
-  const { page, st } = await open('pc', { who: 'c', url: '/career.html?airline=jal', stub: leakStub(), before: CARD_BEFORE });
+  const { page, st } = await open('pc', { who: 'c', url: '/career.html?view=compare&a=jal&b=ana', stub: leakStub(), before: CARD_BEFORE });
   const M = { body: ['jal', 'ana', 'etihad'].map(LEAK.body), clip: LEAK.clip, sum: ['jal', 'ana', 'etihad', CX].map(LEAK.sum), work: LEAK_WORK_T, fact: LEAK_FACT_T, note: LEAK.note };
   const seenAll = { body: new Set(), clip: false, sum: new Set(), work: false, fact: false, note: false, amt: new Set(), med: new Set() };
   const views = [];
@@ -1164,18 +1167,8 @@ scene('leak', 'カードの画像と材料に、生きた欄の中身（口コ�
     seenAll.clip = seenAll.clip || s.clip; seenAll.work = seenAll.work || s.work; seenAll.fact = seenAll.fact || s.fact; seenAll.note = seenAll.note || s.note;
   };
   await page.waitForFunction(() => !!(window.PVCareer && window.PVCareer.go), { timeout: 15000 });
-  /* 5社の概要（エティハドは「概要」と「勤務・訓練」のタブ）→ エティハドのステイ先 → 比較2組 */
+  /* エティハドのステイ先 → 比較2組（★P12.130：5社の概要は無い） */
   const stays = await page.evaluate(() => [...document.querySelectorAll('#cr .cr-view[data-view="stay"][data-airline="etihad"]')].map((v) => v.getAttribute('data-stay')));
-  for (const s of LEAK_FIVE) {
-    await goView(page, { view: 'airline', airline: s });
-    await viewSettled(page);
-    await take(`概要:${s}`);
-    if (s === 'etihad') {
-      await goView(page, { view: 'airline', airline: s, tab: 'work' });
-      await viewSettled(page);
-      await take('概要:etihad#work');
-    }
-  }
   if (stays.length) {
     await goView(page, { view: 'stay', airline: 'etihad', stay: stays[0] });
     await viewSettled(page);
@@ -1235,20 +1228,21 @@ scene('leak', 'カードの画像と材料に、生きた欄の中身（口コ�
   const badImg = drawn.img.filter((u) => !pics.includes(u));
   ok(drawn.img.length > 0 && !badImg.length, `描いた絵（${drawn.img.length}枚）は #crc-data の写真か '(canvas)' だけ`, badImg.slice(0, 4).join(' ／ '));
 
-  /* inLive：JAL の概要の推定年収（静かな字）の前に、生きた欄の形の ZZ を置いても、カードは推定年収のまま */
-  await goView(page, { view: 'airline', airline: 'jal' });
+  /* inLive：比較の JAL の機長の行（静かな字）の前に、生きた欄の形の ZZ の行を置いても、カードは推定年収のまま
+     （★P12.130 当て直し：カードは全社、比較の行を読む ── 前は JAL の概要の推定年収の前に置いた） */
+  await goView(page, { view: 'compare', a: 'jal', b: 'ana' });
   const est = await page.evaluate((zz) => {
-    const v = document.querySelector('#cr .cr-view[data-view="airline"][data-airline="jal"]');
-    const m = v && [...v.querySelectorAll('[data-main="cap"]')].find((x) => !x.closest('.crl'));
+    const v = document.querySelector('#cr .cr-view[data-view="compare"]');
+    const r = v && [...v.querySelectorAll('.cr-pair[data-role="cap"] .cr-row[data-airline="jal"]')].find((x) => !x.closest('.crl'));
+    const m = r && r.querySelector('.cr-row-v');
     if (!m) return null;
     const z = document.createElement('div');
     z.className = 'crl';
-    const b = document.createElement('b');
-    b.setAttribute('data-main', 'cap');
-    b.textContent = zz;
-    z.appendChild(b);
-    m.parentElement.parentElement.insertBefore(z, m.parentElement);
-    return { text: m.textContent.replace(/\s+/g, ' ').trim(), first: v.querySelector('[data-main="cap"]').textContent };
+    const fake = r.cloneNode(true);
+    fake.querySelector('.cr-row-v').textContent = zz;
+    z.appendChild(fake);
+    r.parentElement.insertBefore(z, r);
+    return { text: m.textContent.replace(/\s+/g, ' ').trim(), first: v.querySelector('.cr-pair[data-role="cap"] .cr-row[data-airline="jal"] .cr-row-v').textContent };
   }, LEAK.live);
   const n0 = (await page.evaluate(() => window.__drawn.text.length));
   await goView(page, { view: 'card', a: 'jal', b: null });
@@ -1257,7 +1251,7 @@ scene('leak', 'カードの画像と材料に、生きた欄の中身（口コ�
   const newT = await page.evaluate((n) => window.__drawn.text.slice(n), n0);
   ok(!!est && est.first === LEAK.live && upJ && !!mJ && mJ.cards[0].roles.cap && mJ.cards[0].roles.cap.text === est.text
     && newT.includes(est.text) && !newT.some((s) => s.includes(LEAK.live)) && !J(mJ).includes(LEAK.live),
-    `inLive：JAL の概要の推定年収の前に、生きた欄の形（.crl）の「${LEAK.live}」を置いても、カードは推定年収（${est && est.text}）のまま ── ZZ を描かない・材料にも無い`,
+    `inLive：比較の JAL の機長の行の前に、生きた欄の形（.crl）の行「${LEAK.live}」を置いても、カードは推定年収（${est && est.text}）のまま ── ZZ を描かない・材料にも無い`,
     J({ est, up: upJ, cap: mJ && mJ.cards[0].roles.cap, zz: newT.filter((s) => s.includes('ZZ')) }));
 
   /* ★段（history.state）：開いた欄の高さは段に届かない（2026-10-23 LEAD AMENDMENT「段の k・t」） */

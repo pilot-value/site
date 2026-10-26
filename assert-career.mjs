@@ -53,6 +53,8 @@ import { model as dirModel, REGIONS as DIR_REGIONS } from './directory-model.mjs
 import { OPS } from './airline-ops.mjs';
 import { researchCities } from './airline-rollout.mjs';
 import { atText, atTextEn } from './career-facts.mjs';
+/* 拠点の街の家賃の棒（★P12.131）の円の額は、サイトの1つの為替の表（円の行の字と同じ）から作り直す */
+import { JPY_PER } from './fx-rates.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* 2026-10-21（P12.86-9）：開く先は PV_BASE で替えられる（serve-local の自分のポートで流すため。3000 は本番の DB につながる）。既定は今までどおり */
@@ -155,9 +157,10 @@ ok(BLOCK.length > 0, '管理ブロックが在る');
    無い会社（JAL・ANA ── 運航乗務員の平均を外したあと）は一覧ごと出さない ＝「公表なし」の行をこの1枚のどこにも書かない。
    どの会社に在るかは、生成側を読まずに台帳（figures）から作り直す。 */
 const WITH_PUB = FIVE.filter(s => ['cap', 'fo'].some(r => figures(s, r).some(f => !f.training)));
-ok(!/公表なし|class="cr-none"/.test(BLOCK) && (BLOCK.match(/class="cr-pub"/g) || []).length === WITH_PUB.length * 2,
-   `「会社が公表している金額」の一覧は、機長・副操縦士の公表額が在る${WITH_PUB.length}社（${WITH_PUB.map(name).join('・')}）にだけ・概要と比較に1つずつ（「公表なし」の行をどこにも書かない）`,
-   `一覧 ${(BLOCK.match(/class="cr-pub"/g) || []).length}（あるべき ${WITH_PUB.length * 2}）／「公表なし」${(BLOCK.match(/公表なし/g) || []).length}か所`);
+/* ★2026-10-26 P12.130（WP-compare-all-22 ── 当て直し・同じ強さ）：会社の概要の画面は無い ＝ 一覧は比較の中に1社1つ（前は 概要と比較に1つずつ）。 */
+ok(!/公表なし|class="cr-none"/.test(BLOCK) && (BLOCK.match(/class="cr-pub"/g) || []).length === WITH_PUB.length,
+   `「会社が公表している金額」の一覧は、機長・副操縦士の公表額が在る${WITH_PUB.length}社（${WITH_PUB.map(name).join('・')}）にだけ・比較に1つずつ（「公表なし」の行をどこにも書かない）`,
+   `一覧 ${(BLOCK.match(/class="cr-pub"/g) || []).length}（あるべき ${WITH_PUB.length}）／「公表なし」${(BLOCK.match(/公表なし/g) || []).length}か所`);
 /* 管理ブロックの外に金額が1つも無い（手で足した額は、正本を直しても動かない）。 */
 const OUTSIDE = noTagCmt(HTML.replace(BLOCK, () => '')).replace(/<(script|style)\b[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ');
 ok(!/[¥$]\s?\d|\d\s*万/.test(OUTSIDE), '管理ブロックの外に金額が無い', (OUTSIDE.match(/.{0,12}(?:[¥$]\s?\d|\d\s*万).{0,12}/) || [''])[0]);
@@ -238,7 +241,7 @@ ok(!/prefers-color-scheme/.test(CSSC), 'prefers-color-scheme を書いていな�
   const need = [
     '.cr a:focus-visible', '.cr button:focus-visible', '.cr summary:focus-visible', '.cr-pickb:focus-visible', '.cr-pk:hover', '.cr-pk:active',
     '.cr-sheet-x:hover', '.cr-sheet-x:active',
-    '.cr-tile:hover', '.cr-tile:active', '.cr-back:hover', '.cr-back:active', '.cr-btn:hover', '.cr-btn:active',
+    '.cr-back:hover', '.cr-back:active', '.cr-btn:hover', '.cr-btn:active',
     '.cr-link:hover', '.cr-link:active', '.cr-card-n:hover', '.cr-card-n:active',
     '.cr-swap:hover', '.cr-swap:active', '.cr-side:hover', '.cr-side:active',
     'summary:hover', 'summary:active', '.cr-credits a:hover', '.cr-credits a:active',
@@ -253,7 +256,72 @@ ok(!/prefers-color-scheme/.test(CSSC), 'prefers-color-scheme を書いていな�
    ══════════════════════════════════════════════════════════════════ */
 head('文言');
 const TEXT = noTagCmt(BLOCK).replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ');
-ok(/次のキャリアを、\s*選択する。/.test(TEXT), '入口の見出しは「次のキャリアを、選択する。」');
+/* ★2026-10-26 オーナー P12.130（WP-compare-all-22 ── 当て直し・強くした）：前は「入口の見出しは『次のキャリアを、選択する。』」。
+   入口（見出しの写真と会社のカード）と会社の概要の画面は無くなった ── 会社を選ぶのは航空会社一覧だけ。
+   E4-a 日英の2枚とも、入口の見出し・写真・カード（cr-home・cr-lead・cr-tile）も、会社の概要（data-view="airline"・主表示の目印 data-main）も持たない。
+   E4-b 送り先は HTML が持つ（#cr の data-list ＝ 航空会社一覧・data-page ＝ 会社ページ・data-tabs ＝ タブを持つ会社ページの全部に在るタブ ──
+        この検査が会社ページのファイルから作り直す）。住所に airline= も view= も無いときに先に送る頭の1行は、ページの頭の cr-boot の1行と同じ決め方の裏返し。
+        台本の動かない・career.js が届かないブラウザには、一覧へのリンク1本（#cr-off ── 白い画面にしない）。 */
+head('入口は航空会社一覧（会社の概要は会社ページ）');
+{
+  const EN_H = fs.existsSync(path.join(ROOT, PAGE_EN)) ? read(PAGE_EN) : '';
+  const blkOf = h => (h.match(/<!--PV-CAREER-->([\s\S]*)<!--\/PV-CAREER-->/) || [])[1] || '';
+  const OLD = [/class="cr-view cr-home"/, /class="cr-lead"/, /class="cr-tiles?[\s"]/, /data-view="(?:home|airline)"/, /\sdata-main(?:-tag|-bar)?="/, /次のキャリアを/, /Choose your\s*(?:<br\/>)?\s*next career/];
+  const left = [[PAGE, blkOf(HTML)], [PAGE_EN, blkOf(EN_H)]].flatMap(([p, b]) => (b ? OLD.filter(re => re.test(b)).map(re => `${p}: ${re}`) : [`${p}: 管理ブロックが無い`]));
+  ok(!left.length, '日英の2枚とも、入口（見出し・写真・会社のカード）も会社の概要の画面（data-view="airline"・主表示の目印）も持たない', left.join(' ／ '));
+  const tabsOf = s => new Set([...read(`airlines/${s}.html`).matchAll(/ data-pvg-tab="([a-z]+)"/g)].map(m => m[1]));
+  const tabbed = ALLK.map(tabsOf).filter(x => x.size), common = tabbed.length ? [...tabbed[0]].filter(x => tabbed.every(y => y.has(x))) : [];
+  const head0 = HTML.match(/<script>if\(\/\[\?&\]\(airline\|view\)=\/\.test\(location\.search\)\)document\.documentElement\.classList\.add\('cr-boot'\);<\/script>/);
+  const want = `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}" data-list="world-airlines.html" data-page="airlines/{s}.html" data-tabs="${common.join(' ')}">
+<script>if(!/[?&](airline|view)=/.test(location.search))location.replace('world-airlines.html')</script>
+<p class="cr-else" id="cr-off"><a class="cr-link" href="world-airlines.html">`;
+  const top = [[PAGE, blkOf(HTML), '航空会社を選ぶ'], [PAGE_EN, unbake(blkOf(EN_H)), 'Choose an airline']]
+    .filter(([, b, w]) => !b.startsWith(`\n${want}${w}<svg`)).map(([p]) => p);
+  ok(common.includes('stay') && common.includes('pay') && !!head0 && !!EN_H.includes(head0[0]) && !top.length,
+     `#cr の頭：送り先（航空会社一覧・会社ページ・会社ページの全部に在るタブ ${common.join(' ')}）・住所に airline= も view= も無いときに先に一覧へ送る1行（頭の cr-boot の1行と同じ決め方）・台本が動かないときの一覧へのリンク（日英）`,
+     `${top.join('・') || ''}${head0 ? '' : '（頭の cr-boot の1行が読めない）'}`);
+}
+/* E4-c 消した画面（入口 ＝ 住所だけの career.html・会社の概要 ＝ 就航地も詳細も持たない ?airline=）を指すリンクが、サイトのどこにも無い。
+   見るのは リポジトリの全部の HTML の href（そのページから見た住所に直して、career.html か en/career.html を指すもの）と、
+   ブラウザが読む JS（.js ── コメントを外して）の中の career.html を含む字。よい形は4つだけ ──
+   比較（view=compare）・会社つきのカード（view=card&a=）・就航地（airline=…&stay=）・詳細（airline=…&d=）。
+   JS の、いまの住所をそのまま連れていく形（'career.html' + location.search ── ログインの戻り先）と、ファイルの名前の一覧（lang-toggle.js の EN_PAGES）は住所を作らない。 */
+{
+  const okQ = q => { const p = new URLSearchParams(q);
+    return (p.get('view') === 'compare') || (p.get('view') === 'card' && !!p.get('a')) || (!!p.get('airline') && (p.has('stay') || p.has('d'))); };
+  const bad = [];
+  /* 見る所は assert-links.mjs と同じ置き場（ページの在るフォルダ）。 */
+  const inDirs = ext => ['.', 'airlines', 'countries', 'en', 'en/airlines', 'en/countries'].flatMap(d => (fs.existsSync(path.join(ROOT, d))
+    ? fs.readdirSync(path.join(ROOT, d)).filter(x => x.endsWith(ext)).map(x => (d === '.' ? x : `${d}/${x}`)) : [])).sort();
+  const pages = inDirs('.html');
+  let seen = 0;
+  for (const p of pages) {
+    const h = read(p);
+    if (!h.includes('career.html')) continue;
+    for (const m of h.matchAll(/\shref="([^"]*career\.html[^"]*)"/g)) {
+      const u = new URL(m[1].replace(/&amp;/g, '&'), `https://x.test/${p}`);
+      if (u.origin !== 'https://x.test' || !/^\/(?:en\/)?career\.html$/.test(u.pathname)) continue;
+      seen++;
+      if (!okQ(u.search)) bad.push(`${p}: ${m[1]}`);
+    }
+  }
+  const jsFiles = inDirs('.js');
+  let lits = 0;
+  for (const f of jsFiles) {
+    const src = read(f);
+    if (!src.includes('career.html')) continue;
+    const code = noJsCmt(src).replace(/var EN_PAGES = new Set\(\[[\s\S]*?\]\)/, ' ');
+    for (const m of code.matchAll(/(['"`])((?:(?!\1)[^\\\n])*career\.html(?:(?!\1)[^\\\n])*)\1(\s*\+\s*location\.search)?/g)) {
+      lits++;
+      const s = m[2], i = s.indexOf('career.html'), q = s.slice(i + 'career.html'.length);
+      if (m[3] && q === '') continue;                                  // いまの住所をそのまま連れていく
+      if (!(q.startsWith('?') && okQ(q.replace(/\{[a-z]+\}/g, 'x')) || /^\?view=(?:compare|card)&a=$/.test(q))) bad.push(`${f}: ${s}`);
+    }
+  }
+  ok(seen > 0 && lits > 0 && !bad.length,
+     `消した画面（入口・会社の概要）を指すリンクが無い ── HTML ${pages.length}枚の href ${seen}本・JS の字 ${lits}か所は、比較・会社つきのカード・就航地・詳細のどれか`,
+     bad.slice(0, 6).join(' ／ '));
+}
 ok(!/平均年収/.test(TEXT), '「平均年収」と書かない（推定を平均と呼ばない）');
 ok(!/公式(?:サイト)?では(?:ない|ありません|ございません)|非公式|公式のものでは/.test(TEXT), '「公式ではない」の断りを置かない（オーナー判断 2026-10-03）');
 ok(!/(?<![\d,.])0\s*万円|¥\s?0万/.test(TEXT), '「0万円」を出さない');
@@ -462,9 +530,10 @@ head('英語の1枚（en/career.html）');
   const shown = [...noScript(EB).replace(/<[^>]*>/g, '\n').split('\n'), ...[...noScript(EB).matchAll(/\s(?:alt|title|aria-label|placeholder|data-label)="([^"]*)"/g)].map(m => m[1])];
   const jaLeft = [...new Set(shown.map(clean).map(s => s.trim()).filter(s => s && JA_RE.test(s)))];
   ok(!!EB && !jaLeft.length, `${PAGE_EN} の見える字と alt・title・aria-label・placeholder に日本語の字が無い（写真の作者名・“…” の中の原文の題を除く）`, jaLeft.slice(0, 6).join(' ／ '));
-  /* 額：英語の1枚の額は、焼いた span を戻すと日本語の1枚と同じ並びの同じ字（比較の行・概要の大きい額・目盛）。どれも SALARY の推定 */
+  /* 額：英語の1枚の額は、焼いた span を戻すと日本語の1枚と同じ並びの同じ字（比較の行・数字の詳細の額・目盛）。どれも SALARY の推定
+     ★2026-10-26 P12.130（当て直し・同じ強さ）：前は「概要の大きい額」（data-main）。会社の概要の画面は無い ── 1社の額は数字の詳細（エティハドの2つ）。 */
   const vals = (t, re) => [...t.matchAll(re)].map(m => m[1]);
-  const ROW_V = /<b class="cr-row-v">([^<]*)<\/b>/g, MAIN_V = /data-main="(?:cap|fo)">([^<]*)<\/b>/g, AX = /<div class="cr-axis"[^>]*><span>0<\/span><span>([^<]*)<\/span><span>([^<]*)<\/span>/g;
+  const ROW_V = /<b class="cr-row-v">([^<]*)<\/b>/g, MAIN_V = /<b class="cr-det-v">([^<]*)<\/b>/g, AX = /<div class="cr-axis"[^>]*><span>0<\/span><span>([^<]*)<\/span><span>([^<]*)<\/span>/g;
   const jr = vals(JB, ROW_V), er = vals(EU, ROW_V), jm = vals(JB, MAIN_V), em = vals(EU, MAIN_V);
   const axes = t => [...t.matchAll(AX)].map(m => m[1] + '|' + m[2]);
   /* 職位の板（.cr-pair）ごとに切って、その中の行を読む（行は板の中にだけ在る ── 次の板の頭まで） */
@@ -472,7 +541,7 @@ head('英語の1枚（en/career.html）');
     return [...seg.matchAll(/<div class="cr-row" data-airline="([^"]+)"[\s\S]*?<b class="cr-row-v">([^<]*)<\/b>/g)].map(x => [r, x[1], x[2]]); });
   const badRow = rowsOf(EU).filter(([r, s, v]) => v !== yen(SALARY[s][r].avg));
   ok(jr.length === 2 * ALLK.length && same(jr, er) && jm.length > 0 && same(jm, em) && same(axes(JB), axes(EU)) && !badRow.length && rowsOf(EU).length === 2 * ALLK.length,
-     `${PAGE_EN} の額（比較の行 ${er.length}・概要の大きい額 ${em.length}・目盛）は、ドルの span を戻すと日本語の1枚と同じ字 ── どれも SALARY の推定`,
+     `${PAGE_EN} の額（比較の行 ${er.length}・数字の詳細の額 ${em.length}・目盛）は、ドルの span を戻すと日本語の1枚と同じ字 ── どれも SALARY の推定`,
      JSON.stringify({ rows: [jr.length, er.length], main: [jm, em], bad: badRow.slice(0, 4) }));
   /* 焼き残しが無い：焼いた span を戻してから焼き直すと、1文字も違わない（＝ どの円の額も HTML の時点でドルの span ── bake-en-currency.mjs を流しても変わらない） */
   const C_EN = await curCore('USD', 'en');
@@ -793,7 +862,7 @@ head('掲載している全社（比較の材料）');
        `${bad.slice(0, 4).join(' ／ ')}${bad.length > 4 ? ` ほか${bad.length - 4}` : ''}`);
 
     /* 棒の目盛（画面ごと・決まった上限なし ── ★2026-10-24 オーナー P12.104）：
-       a) 1社の画面（概要・詳細・エティハドのタブ）は、囲みの刻みの数（--cr-div）と、中の目盛の字が、その会社の右端。
+       a) 1社の画面（数字の詳細 ── ★2026-10-26 P12.130 から会社の概要とタブの画面は無い）は、囲みの刻みの数（--cr-div）と、中の目盛の字が、その会社の右端。
        b) 比較：囲みの刻みの数と、見えている目盛の1本が、既定の2社をあわせた右端。目盛の字は、ありうる右端（掲載している全社の右端）ごとに
           1本ずつ・小さい順・刻みの数（data-div）つきで、見えているのは既定の2社の1本だけ（選び直したら career.js が見せる1本を替える）。
        c) この1枚に、全部の画面で1本の目盛（.cr の刻みの数）が無い。
@@ -809,7 +878,7 @@ head('掲載している全社（比較の材料）');
       if (!(top === SCALE(s) && fits(top, s))) sbad.push(`${s}: 刻み ${n}（あるべき ${SCALE(s) / 1000}）`);
       if (!ax.length || !ax.every(a => same(a.labels, labelsOf(SCALE(s))) && !a.scale && !a.hidden)) sbad.push(`${s}: 目盛 ${JSON.stringify(ax.map(a => a.labels))}`);
     }
-    if (one.length !== FIVE.length + DEEP.length * ROLES.length) sbad.push(`1社の画面 ${one.length}`);
+    if (one.length !== DEEP.length * ROLES.length) sbad.push(`1社の画面 ${one.length}（あるべき 数字の詳細 ${DEEP.length * ROLES.length}）`);
     const cmpTop = +(((CMP.match(/^<section class="cr-view cr-cmp"[^>]*style="[^"]*--cr-div:(\d+)"/) || [])[1]) || 0) * 1000;
     if (!(cmpTop === SCALE(...PAIR) && fits(cmpTop, ...PAIR))) sbad.push(`比較の刻み ${cmpTop / 1000}（あるべき ${SCALE(...PAIR) / 1000}）`);
     const cax = axesIn(elementAt(CMP, CMP.indexOf('<div class="cr-panel"'))), WANT = [...new Set(ALLK.map(s => SCALE(s)))].sort((a, b) => a - b);
@@ -995,7 +1064,12 @@ head('掲載している全社（比較の材料）');
        2026-10-26 にリードが +20,000・+3,000・0 から広げ直した）。先行5社のほかの会社の家賃の箱（調べの台帳の街も読む ── 拠点の街に
        1か月あたりの家賃の在る会社ぜんぶ・32社）。ROOM を広げるのはリードだけ。 */
     const LEAD123 = { raw: 30000, gz: 3584, tags: 256 };
-    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw + LEAD123.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz + LEAD123.gz, tags: up(GROW1.tags + 1550, 250) + LEAD123.tags };
+    /* ★2026-10-26 P12.131：リードが ROOM を広げた（この作業 compare-all-22 の R1・R2 ── 拠点の街の家賃の棒：生の大きさ +12,000・gzip +1,500・要素 +200）。
+       測った値：棒（行ごとに1つの <i> ── 日英とも98本）と刻みの data-step で、日本語の career.html は 生 +7,747・gzip +879・要素 +98（英語は +7,747・+886・+98）。
+       同じ作業の前半（入口と会社の概要の画面を外した ── P12.130）で先に 生 −61,538・gzip −9,517・要素 −1,026（英語は −62,823・−9,028・−1,061）空いている。
+       ROOM を広げるのはリードだけ。 */
+    const LEAD131 = { raw: 12000, gz: 1500, tags: 200 };
+    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw + LEAD123.raw + LEAD131.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz + LEAD123.gz + LEAD131.gz, tags: up(GROW1.tags + 1550, 250) + LEAD123.tags + LEAD131.tags };
     const bytes = fs.readFileSync(path.join(ROOT, PAGE));
     const now = { raw: bytes.length, gz: zlib.gzipSync(bytes).length, tags: (bytes.toString('utf8').match(/<[a-z]/g) || []).length };
     const kb = n => Math.round(n / 1024);
@@ -1379,33 +1453,18 @@ try {
       basis: !!root.querySelector('.cr-basis'),
     });
     const out = {};
-    for (const sec of document.querySelectorAll('#cr .cr-view[data-view="airline"]')) {
-      const s = sec.dataset.airline;
-      const o = out[s] = {
-        h1: t(sec.querySelector('.cr-h1')), ov: {}, cmp: {}, cmpN: {}, pubs: sec.querySelectorAll('.cr-pub').length,
-        tax: t(sec.querySelector('.cr-pay .cr-tax')), pub: pub(sec.querySelector('.cr-pub')),
+    /* ★2026-10-24 段階5 compare-all-1（E5.1 R0）：比較は全社ぶんの行・税の行を持つ。
+       ★2026-10-26 P12.130（当て直し・同じ強さ）：会社の概要の画面は無い。1社の額は数字の詳細（DEEP の会社 ── 職位ごとの1画面）が持つ
+       （前は 概要の大きい額か押せる棒）。どちらも中身は同じ：社名・職位・推定の額・「推定」の札・棒。 */
+    const at = s => out[s] || (out[s] = { det: {}, cmp: {}, cmpN: {}, pub: null });
+    for (const sec of document.querySelectorAll('#cr .cr-view[data-view="detail"]')) {
+      const vh = [...sec.querySelectorAll('.cr-det-n .cr-vh')].map(t), v = sec.querySelector('.cr-det-v');
+      at(sec.dataset.airline).det[sec.dataset.d.split('-')[0]] = {
+        name: vh[0] || null, role: vh[1] || null, v: t(v), look: v ? v.dataset.look || '' : '',
+        tag: t(sec.querySelector('.cr-det-k .cr-tag')), sub: t(sec.querySelector('.cr-det-k .cr-sub')) || '',
+        bar: bar(sec.querySelector('.cr-det-top .cr-fill')), href: null,
       };
-      /* 本命の行は、会社の形で2通り ── 押せる棒（詳細を持つ会社）か、大きい額＋小さい棒。
-         どちらも中身は同じ：社名・職位・推定の額・「推定」の札・棒。 */
-      for (const a of sec.querySelectorAll('a.cr-bar[data-role]')) {
-        const v = a.querySelector('.cr-bar-v');
-        o.ov[a.dataset.role] = {
-          name: t(a.querySelector('.cr-vh')), role: t(a.querySelector('.cr-bar-r')), v: t(v), look: v ? v.dataset.look || '' : '',
-          tag: t(a.querySelector('.cr-tag')), sub: t(a.querySelector('.cr-sub')) || '',
-          bar: bar(a.querySelector('.cr-fill')), href: a.getAttribute('href'),
-        };
-      }
-      for (const n of sec.querySelectorAll('.cr-num')) {
-        const v = n.querySelector('.cr-num-v');
-        o.ov[n.dataset.role] = {
-          name: t(n.querySelector('.cr-vh')), role: t(n.querySelector('.cr-num-r')), v: t(v), look: v ? v.dataset.look || '' : '',
-          tag: t(n.querySelector('.cr-tag')), sub: t(n.querySelector('.cr-sub')) || '',
-          bar: bar(sec.querySelector('.cr-mini .cr-fill.is-' + n.dataset.role)), href: null,
-        };
-      }
     }
-    /* ★2026-10-24 段階5 compare-all-1（E5.1 R0）：比較は全社ぶんの行・税の行を持つ（概要を持つのは先行5社だけ）── 概要の無い会社の入れ物もここで作る。 */
-    const at = s => out[s] || (out[s] = { h1: null, ov: {}, cmp: {}, cmpN: {}, pubs: 0, tax: null, pub: null });
     for (const pair of document.querySelectorAll('#cr .cr-cmp .cr-pair')) {
       for (const row of pair.querySelectorAll('.cr-row')) {
         const vh = [...row.querySelectorAll('.cr-vh')].map(t);
@@ -1444,7 +1503,8 @@ try {
     };
   });
 
-  ok(same(dom.order, FIVE), '概要は先行5社ぶん', dom.order.join(', '));
+  /* ★2026-10-26 P12.130（当て直し）：前は「概要は先行5社ぶん」。1社を見るのは会社ページ ── この1枚に会社の概要の画面は1つも無い。 */
+  ok(same(dom.order, []), '会社の概要の画面は1つも無い（1社を見るのは会社ページ）', dom.order.join(', '));
   ok(same(dom.def, PAIR), '比較を社名なしで開いたときの2社', dom.def.join(' × '));
 
   /* 額の作り直し。本命の額は、5社とも・どちらの職位も推定年収（SALARY の avg）。
@@ -1454,20 +1514,21 @@ try {
     return Number.isFinite(avg) && avg > 0 ? { man: avg, text: yen(avg), tag: TIERS.estimate.ja } : null;
   };
 
-  /* 棒の目盛（★2026-10-24 オーナー P12.104）：概要はその会社の右端・比較の行は、並べている2社なら2社をあわせた右端・隠れている行はその会社の右端。 */
+  /* 棒の目盛（★2026-10-24 オーナー P12.104）：詳細はその会社の右端・比較の行は、並べている2社なら2社をあわせた右端・隠れている行はその会社の右端。 */
   const topAt = (s, where) => (where === '比較' && dom.pair.includes(s) ? SCALE(...dom.pair) : SCALE(s));
   const mans = [];
   for (const s of FIVE) {
     for (const [r, label] of ROLES) {
       const who = `${name(s)} ${label}`;
-      const w = want(s, r), a = dom.co[s].ov[r], b = dom.co[s].cmp[r];
-      if (!w || !a || !b) { ok(false, `${who}: 推定年収が出ている（概要と比較）`, `正本 ${JSON.stringify(w)} ／ 概要 ${JSON.stringify(a)} ／ 比較 ${JSON.stringify(b)}`); continue; }
+      /* 1社の画面（数字の詳細）を持つのは DEEP の会社だけ ── ほかの会社は比較の行だけを見る（会社ページの額との突き合わせは下の「会社ページ・比較・カード」） */
+      const w = want(s, r), deep = DEEP.includes(s), a = deep ? dom.co[s].det[r] : null, b = dom.co[s].cmp[r];
+      if (!w || (deep && !a) || !b) { ok(false, `${who}: 推定年収が出ている（${deep ? '詳細と比較' : '比較'}）`, `正本 ${JSON.stringify(w)} ／ 詳細 ${JSON.stringify(a)} ／ 比較 ${JSON.stringify(b)}`); continue; }
       mans.push(w.man);
-      ok(a.v === w.text && b.v === w.text, `${who} ＝ ${w.text}（SALARY の avg・概要と比較で同じ）`, `概要「${a.v}」／比較「${b.v}」`);
+      ok((!a || a.v === w.text) && b.v === w.text, `${who} ＝ ${w.text}（SALARY の avg・${deep ? '詳細と比較で同じ' : '比較'}）`, `詳細「${a && a.v}」／比較「${b.v}」`);
       ok(cell(s, r).man === w.man && cell(s, r).text === w.text, `${who}: 生成側も同じ額を持っている`, JSON.stringify(cell(s, r)));
-      ok(a.name === name(s) && a.role === label && b.name === name(s) && b.role === label, `${who}: 社名と職位が額のそばに在る`);
+      ok((!a || (a.name === name(s) && a.role === label)) && b.name === name(s) && b.role === label, `${who}: 社名と職位が額のそばに在る`);
       ok(dom.co[s].cmpN[r] === 1, `${who}: 比較の年収の行は1本だけ（公表額の行を並べていない）`, `${dom.co[s].cmpN[r]}本`);
-      for (const [where, x] of [['概要', a], ['比較', b]]) {
+      for (const [where, x] of [...(a ? [['詳細', a]] : []), ['比較', b]]) {
         ok(x.tag === w.tag, `${who}（${where}）: 札は「${w.tag}」`, `「${x.tag}」`);
         ok(x.look !== 'held' && !/確認中/.test(x.v + x.tag + x.sub), `${who}（${where}）: 年収を「確認中」と出していない`, `「${x.v}」 look=${x.look}`);
         /* 推定の額に、公表額の印（〜・超・上限・斜線）を付けない ── 付くと、推定が求人の額の顔になる。 */
@@ -1476,16 +1537,10 @@ try {
         ok(!!x.bar && /%$/.test(x.bar.w) && Math.abs(parseFloat(x.bar.w) - w.man / topAt(s, where) * 100) < 0.01,
            `${who}（${where}）: 棒の長さが額に比例（目盛 0〜${yen(topAt(s, where))}）`, x.bar && x.bar.w);
       }
-      ok(a.tag === b.tag && a.sub === b.sub, `${who}: 札と一言が概要と比較で同じ`);
-      if (DEEP.includes(s)) {
-        const href = `${PAGE}?airline=${s}&d=${r}-est`;
-        ok(a.href === href, `${who}: 概要の行から、その推定の詳細へ行ける`, String(a.href));
-      }
+      if (a) ok(a.tag === b.tag && a.sub === b.sub, `${who}: 札と一言が詳細と比較で同じ`);
       ok(b.href === null, `${who}: 比較の行は入口にしない（どの会社も）`, String(b.href));
     }
-    ok(dom.co[s].h1 === name(s), `${name(s)}: 見出しが社名`);
-    ok(dom.co[s].tax === BASIS[s].tax && dom.co[s].cmpTax === BASIS[s].tax,
-       `${name(s)}: 税の扱いが台帳どおり（概要と比較）`, `${dom.co[s].tax} ／ ${dom.co[s].cmpTax}`);
+    ok(dom.co[s].cmpTax === BASIS[s].tax, `${name(s)}: 税の扱いが台帳どおり（比較）`, String(dom.co[s].cmpTax));
   }
 
   /* 目盛。0 から・全部の棒が入る・いちばん近い 1,000万 の倍数・どの画面も同じ。
@@ -1510,7 +1565,7 @@ try {
     if (!(dom.pair.length === 2 && shown.length === 1 && shown[0].scale === SCALE(...dom.pair) && shown[0].div * 1000 === shown[0].scale && fits(shown[0].scale, ...dom.pair)))
       bad.push(`比較：並べた2社 ${dom.pair.join('・')} ／ 見えている目盛 ${shown.map(a => `${a.scale}（刻み ${a.div}）`).join(',') || 'なし'}`);
     if (dom.div) bad.push(`全部の画面で1本の刻み（.cr の --cr-div:${dom.div}）`);
-    ok(!bad.length && dom.axes.length >= FIVE.length + 1, `目盛は 0 から・画面ごと（概要・詳細はその会社の右端・比較は並べた2社をあわせた右端 ${yen(SCALE(...dom.pair))}）── 決まった上限なし`,
+    ok(!bad.length && dom.axes.length >= DEEP.length * ROLES.length + 1, `目盛は 0 から・画面ごと（詳細はその会社の右端・比較は並べた2社をあわせた右端 ${yen(SCALE(...dom.pair))}）── 決まった上限なし`,
        bad.slice(0, 6).join(' ／ '));
   }
 
@@ -1587,28 +1642,27 @@ try {
       tag: TIERS[BASIS[s][r].tier].ja, group: f.group, kind: f.kind, amount: upTo(f.key) + f.text + tail(f.key),
       orig: f.cur === 'JPY' ? '' : `${upTo(f.key)}${f.cur} ${f.amount.toLocaleString('en-US')}${tail(f.key) ? ' ' + tail(f.key) : ''}`,
     })));
-    const got = dom.co[s].pub;
+    /* ★2026-10-26 P12.130（当て直し・同じ強さ）：会社の概要の画面は無い ── 一覧は比較のカードの中だけ（前は 概要と比較のカードの2つを突き合わせた）。 */
+    const got = dom.co[s].card;
     /* ★2026-10-21 リード P12.91-7：機長・副操縦士の公表額が無い会社（JAL・ANA）は、一覧そのものを出さない
        （「公表なし」の行も、見出しも・前提も・出どころも無い）。 */
     if (!exp.length) {
-      ok(dom.co[s].pubs === 0 && dom.co[s].cardPubs === 0 && !got && !dom.co[s].card,
-         `${name(s)}: 機長・副操縦士の公表額が無いので、「会社が公表している金額」の一覧を出さない（概要にも比較のカードにも）`,
-         `概要 ${dom.co[s].pubs} ／ 比較 ${dom.co[s].cardPubs}`);
+      ok(!dom.co[s].cardPubs && !got,
+         `${name(s)}: 機長・副操縦士の公表額が無いので、「会社が公表している金額」の一覧を出さない（比較のカードに）`,
+         `比較 ${dom.co[s].cardPubs}`);
       continue;
     }
-    if (!got) { ok(false, `${name(s)}: 概要に「会社が公表している金額」の一覧が在る`); continue; }
-    ok(dom.co[s].pubs === 1 && dom.co[s].cardPubs === 1, `${name(s)}: 一覧は概要に1つ・比較のカードに1つ`, `概要 ${dom.co[s].pubs} ／ 比較 ${dom.co[s].cardPubs}`);
+    if (!got) { ok(false, `${name(s)}: 比較のカードに「会社が公表している金額」の一覧が在る`); continue; }
+    ok(dom.co[s].cardPubs === 1, `${name(s)}: 一覧は比較のカードに1つ`, `比較 ${dom.co[s].cardPubs}`);
     /* 1行ごとに、誰の額か（区分）・何の額か（種類の名前）・札が付いている。 */
     ok(got.rows.every(x => x.tag && x.group && x.kind), `${name(s)}: 公表額の全部の行に、札・区分・種類の名前が付いている`,
        got.rows.filter(x => !(x.tag && x.group && x.kind)).map(x => JSON.stringify(x)).join(' ／ '));
     /* 上限の印は3つで1組 ── 「〜」（下の検査）・斜線の印・「上限」の字。上限でない行には斜線を付けない。 */
-    ok(got.marks.every(m => m.hatch === (/上限/.test(m.kind) ? 1 : 0) && m.max === /上限/.test(m.kind)) && got.loose === 0
-       && same(dom.co[s].card.marks, got.marks) && dom.co[s].card.loose === 0,
-       `${name(s)}: 斜線の印は「上限」の行にだけ・1つずつ（概要と比較のカード）`, JSON.stringify(got.marks));
+    ok(got.marks.every(m => m.hatch === (/上限/.test(m.kind) ? 1 : 0) && m.max === /上限/.test(m.kind)) && got.loose === 0,
+       `${name(s)}: 斜線の印は「上限」の行にだけ・1つずつ（比較のカード）`, JSON.stringify(got.marks));
     ok(same(got.rows, exp), `${name(s)}: 台帳の ${exp.length}件がそのまま出ている（札・区分・名前・額・原貨）`,
        `画面 ${JSON.stringify(got.rows)}\n      台帳 ${JSON.stringify(exp)}`);
     ok(got.none === null, `${name(s)}: 「公表なし」と書いていない`);
-    ok(same(dom.co[s].card, got), `${name(s)}: 比較のカードと概要で同じ中身`);
     /* 上限の額は、一覧でも「〜」と「上限」の字が対（原貨の額にも「〜」）。 */
     ok(got.rows.every(x => x.amount.startsWith('〜') === /上限/.test(x.kind) && (!x.orig || x.orig.startsWith('〜') === /上限/.test(x.kind))),
        `${name(s)}: 一覧の上限の額には「〜」と「上限」の字がそろっている`, got.rows.map(x => `${x.kind} ${x.amount} ${x.orig}`).join(' ／ '));
@@ -1627,10 +1681,13 @@ try {
   /* ── ③ 描かれた棒 ───────────────────────────────────────────── */
   head('棒（描かれた長さ）');
   for (const [w, h] of [[390, 680], [1280, 800]]) {
-    /* 比較は 2社×2職位＝4本、概要は 機長・副操縦士＝2本。どれも推定年収の棒。
-       概要は5社とも測る。1社しか見ていなかった頃は、ほかの会社の棒が1本ずれても通っていた（2026-10-04）。
-       求人の上限を持つのはエティハドだけ ── 斜線の印が在るのは、エティハドの入る画面の公表額の一覧だけ。 */
-    for (const [q, n, capped] of [['?view=compare&a=etihad&b=eva-air', 4, true], ...FIVE.map(x => [`?airline=${x}`, 2, x === 'etihad'])]) {
+    /* 比較は 2社×2職位＝4本、数字の詳細は1本。どれも推定年収の棒。
+       先行5社は全部測る。1社しか見ていなかった頃は、ほかの会社の棒が1本ずれても通っていた（2026-10-04）。
+       ★2026-10-26 P12.130（当て直し・同じ強さ）：前は 5社の概要（2本ずつ）。会社の概要の画面は無い ── 5社は比較の3組で全部の棒を測り、
+       1社の画面は数字の詳細（エティハドの機長・副操縦士）。
+       求人の上限を持つのはエティハドだけ ── 斜線の印が在るのは、エティハドの入る画面の公表額の一覧だけ（数字の詳細は一覧を持たない）。 */
+    for (const [q, n, capped] of [['?view=compare&a=etihad&b=eva-air', 4, true], ['?view=compare&a=jal&b=ana', 4, false], ['?view=compare&a=cathay-pacific&b=jal', 4, false],
+      ...DEEP.flatMap(x => ROLES.map(([r]) => [`?airline=${x}&d=${r}-est`, 1, false]))]) {
       await page.setViewport({ width: w, height: h });
       await go(page, q);
       await settle(page);
@@ -1771,24 +1828,21 @@ try {
   }
 
   /* ── ⑤ 住所と「戻る」 ────────────────────────────────────────── */
+  /* ★2026-10-26 オーナー P12.130（WP-compare-all-22 ── 当て直し・同じ強さ）：前は 入口 → 会社の概要 → 「他社と比較」→ 比較 → カード と歩き、
+     戻るで 概要・入口へ帰った（その間の題名・焦点・履歴の段数・見ていた位置も）。入口と会社の概要は無い ── 歩くのは 比較 ⇄ カード
+     （題名・焦点・履歴の段数・見ていた位置）と、比較の「航空会社を選ぶ」・カードの「戻る」の行き先（E3）。 */
   head('住所・戻る・進む');
   await page.setViewport({ width: 390, height: 680 });
-  await go(page, '');
-  ok(await view(page) === 'home' && await search(page) === '', '入口が開く');
+  await go(page, '?view=compare&a=jal&b=cathay-pacific');
   const SUFFIX = ' | PILOT VALUE';
-  ok(await page.title() === '次のキャリアを、選択する。' + SUFFIX, '入口の題名', await page.title());
-  const len0 = await page.evaluate(() => history.length);
-
-  await page.click('.cr-tile[href$="airline=jal"]');
-  ok(await until(page, '?airline=jal') && await view(page) === 'airline:jal', '会社を押すと概要が開く（住所が変わる）', await search(page));
-  ok(await page.title() === name('jal') + SUFFIX, '題名が社名になる', await page.title());
-  ok(await page.evaluate(() => document.activeElement === document.querySelector('#cr .cr-view:not([hidden]) .cr-h1')), '見出しへ焦点が移る（読み上げが新しい画面を読む）');
-  ok(await page.evaluate(() => history.length) === len0 + 1 && await page.evaluate(() => scrollY) === 0, '履歴が1段増え、画面の頭から始まる');
-
-  await page.click('#cr .cr-view:not([hidden]) .cr-btn');
-  ok(await until(page, '?view=compare&a=jal&b=cathay-pacific') && await view(page) === 'compare', '「他社と比較」で、この会社を1社目に置いて開く', await search(page));
+  ok(await view(page) === 'compare' && await page.title() === '航空会社を比較' + SUFFIX, '比較を開くと、題名は比較の見出し', `${await view(page)} ／ ${await page.title()}`);
   const len2 = await page.evaluate(() => history.length);
-  ok(len2 === len0 + 2, '履歴がもう1段増える');
+  /* E3：比較の「航空会社を選ぶ」（字は前のまま）は航空会社一覧へ（career.html の外 ── data-go を持たない）。並べている2社を一覧の比べる社
+     （?cmp= ── 一覧が住所から読む・付けた順・空白区切り）に連れていく。選び直し・入れ替えのたびに書き直す。 */
+  const backOf = () => page.$eval('#cr .cr-view:not([hidden]) .cr-back', a => ({ href: a.getAttribute('href'), go: a.hasAttribute('data-go'), id: a.id, t: a.textContent.trim() }));
+  const backIs = async (a, b, label) => { const g = await backOf();
+    ok(same(g, { href: `world-airlines.html?cmp=${a}+${b}`, go: false, id: 'cr-back', t: '航空会社を選ぶ' }), label, JSON.stringify(g)); };
+  await backIs('jal', 'cathay-pacific', '比較の「航空会社を選ぶ」は航空会社一覧へ・並べている2社を一覧の比べる社に連れていく（jal・cathay-pacific）');
 
   /* いま並んでいる2社（上から・左から）。 */
   const shown = (pg = page) => pg.evaluate(() => {
@@ -1866,6 +1920,7 @@ try {
   await page.click('#cr-swap');
   ok(await until(page, '?view=compare&a=etihad&b=jal'), '入れ替えると住所も入れ替わる', await search(page));
   await pairOk('etihad', 'jal', '入れ替えた順に並ぶ');
+  await backIs('etihad', 'jal', '選び直し・入れ替えのあとの「航空会社を選ぶ」は、いま並べている2社をその順で連れていく（etihad・jal）');
   ok(await page.evaluate(() => history.length) === len2, '選び直しと入れ替えは履歴を積まない（戻る1回で出られる）');
 
   /* 社名の行き先は「属性」で見る。比較から1段積む動きは「カードを保存」で見る ── 社名は career.html の外へ出るので、
@@ -1882,50 +1937,55 @@ try {
   await page.goBack();
   ok(await until(page, '?view=compare&a=etihad&b=jal') && await view(page) === 'compare', '戻ると、選び直したままの比較に戻る', await search(page));
   await pairOk('etihad', 'jal', '戻ったあとも同じ2社・同じ順');
-  await page.goBack();
-  ok(await until(page, '?airline=jal') && await view(page) === 'airline:jal', 'もう1回戻ると会社の概要');
-  await page.goBack();
-  ok(await until(page, '') && await view(page) === 'home', 'もう1回戻ると入口');
-  ok(await page.title() === '次のキャリアを、選択する。' + SUFFIX, '題名も入口に戻る', await page.title());
+  ok(await page.title() === '航空会社を比較' + SUFFIX, '題名も比較に戻る', await page.title());
+  /* E3：2社のカードの「戻る」（字は前のまま）は、来た比較（同じ2社・同じ順）へ ── この1枚の中（data-go）・1段積む。 */
   await page.goForward();
-  ok(await until(page, '?airline=jal') && await view(page) === 'airline:jal', '進むと会社の概要');
+  ok(await until(page, '?view=card&a=etihad&b=jal') && await view(page) === 'card', '進むとカードに戻る', await search(page));
+  const cb = () => page.$eval('#crc-back', a => ({ href: a.getAttribute('href'), go: a.hasAttribute('data-go'), t: a.textContent.trim() }));
+  ok(same(await cb(), { href: `/${PAGE}?view=compare&a=etihad&b=jal`, go: true, t: '戻る' }), '2社のカードの「戻る」は、来た比較（同じ2社・同じ順）へ', JSON.stringify(await cb()));
+  await page.click('#crc-back');
+  ok(await until(page, '?view=compare&a=etihad&b=jal') && await view(page) === 'compare' && await page.evaluate(() => window.__crSameDoc === 1)
+     && await page.evaluate(() => history.length) === len2 + 2, 'カードの「戻る」で、その2社の比較が同じ文書の中で開く', `${await search(page)} ／ 履歴 ${await page.evaluate(() => history.length)}`);
+  await pairOk('etihad', 'jal', '  └ 同じ2社・同じ順');
+  /* 1社のカード（会社ページの「カードを保存」から来る）の「戻る」は航空会社一覧へ（比較から来ていない）。 */
+  await page.evaluate(() => window.PVCareer.go({ view: 'card', a: 'etihad' }));
+  ok(await until(page, '?view=card&a=etihad') && same(await cb(), { href: 'world-airlines.html', go: true, t: '戻る' }), '1社のカードの「戻る」は航空会社一覧へ', JSON.stringify(await cb()));
 
-  /* 戻ったとき、見ていた位置に戻る（画面を差し替えるので、ブラウザ任せでは戻らない）。 */
-  await go(page, '');
+  /* 戻ったとき、見ていた位置に戻る（画面を差し替えるので、ブラウザ任せでは戻らない）── 比較 ⇄ カード（前は 入口 ⇄ 概要）。 */
+  await go(page, '?view=compare&a=jal&b=ana');
   const y0 = await page.evaluate(() => { const y = Math.min(240, document.documentElement.scrollHeight - innerHeight); scrollTo(0, y); return scrollY; });
-  ok(y0 >= 100, '入口は 390×680 で下へ送れる高さがある', String(y0));
-  await page.evaluate(() => document.querySelector('.cr-tile[href$="airline=ana"]').click());
-  ok(await until(page, '?airline=ana') && await page.evaluate(() => scrollY) === 0, '下のほうで会社を押しても、概要は頭から');
+  ok(y0 >= 100, '比較は 390×680 で下へ送れる高さがある', String(y0));
+  await page.evaluate(() => document.getElementById('cr-to-card').click());
+  ok(await until(page, '?view=card&a=jal&b=ana') && await page.evaluate(() => scrollY) === 0, '下のほうで「カードを保存」を押しても、カードは頭から');
   await page.goBack();
-  await until(page, '');
+  await until(page, '?view=compare&a=jal&b=ana');
   ok(await page.waitForFunction(y => Math.abs(scrollY - y) <= 1, { timeout: 5000 }, y0).then(() => true, () => false),
      '戻ると、見ていた位置に戻る', `${await page.evaluate(() => scrollY)} / ${y0}`);
   /* ブラウザの「戻る」で出た画面にも、進むと同じ位置で戻る
      （出るときに位置を残す間が無いので、送り終えるたびに残してある）。 */
   await page.goForward();
-  await until(page, '?airline=ana');
+  await until(page, '?view=card&a=jal&b=ana');
   const y1 = await page.evaluate(() => { const y = Math.min(300, document.documentElement.scrollHeight - innerHeight); scrollTo(0, y); return scrollY; });
   const kept = await keptAt(page);
-  ok(y1 >= 100 && kept, '概要を下へ送ると、その位置がいまの段に残る', `${y1} / ${JSON.stringify(await page.evaluate(() => history.state))}`);
+  ok(y1 >= 100 && kept, 'カードを下へ送ると、その位置がいまの段に残る', `${y1} / ${JSON.stringify(await page.evaluate(() => history.state))}`);
   await page.goBack();
-  await until(page, '');
+  await until(page, '?view=compare&a=jal&b=ana');
   await page.goForward();
-  await until(page, '?airline=ana');
+  await until(page, '?view=card&a=jal&b=ana');
   ok(await page.waitForFunction(y => Math.abs(scrollY - y) <= 1, { timeout: 5000 }, y1).then(() => true, () => false),
      '戻るで出た画面へ進むと、見ていた位置に戻る', `${await page.evaluate(() => scrollY)} / ${y1}`);
 
-  /* 直接開く。知らない会社・知らない画面は入口へ。同じ会社を2つは選べない。 */
+  /* 直接開く。同じ会社を2つは選べない。（知らない会社・知らない画面・会社の住所は、下の E1 ── ★P12.130 から入口が無く、よそへ送る） */
   const DIRECT = [
-    ['?airline=eva-air', '?airline=eva-air', 'airline:eva-air', '会社を直接開ける'],
     ['?view=compare&a=ana&b=eva-air', '?view=compare&a=ana&b=eva-air', 'compare', '比較を直接開ける'],
     ['?view=compare', `?view=compare&a=${PAIR[0]}&b=${PAIR[1]}`, 'compare', '社名なしの比較は既定の2社'],
     ['?view=compare&a=cathay-pacific', '?view=compare&a=cathay-pacific&b=jal', 'compare', '片方だけ決まっていれば、相手は既定のうち別のほう'],
     ['?view=compare&b=jal', '?view=compare&a=cathay-pacific&b=jal', 'compare', '2社目だけ決まっていても同じ'],
     ['?view=compare&a=ana&b=ana', `?view=compare&a=ana&b=${PAIR[1]}`, 'compare', '同じ会社を2つは選べない'],
     ['?view=compare&a=nope&b=zzz', `?view=compare&a=${PAIR[0]}&b=${PAIR[1]}`, 'compare', '知らない会社は既定の2社へ'],
-    ['?airline=nope', '', 'home', '知らない会社は入口へ'],
-    ['?airline=', '', 'home', '空の会社は入口へ'],
-    ['?view=zzz', '', 'home', '知らない画面は入口へ'],
+    ['?airline=etihad&stay=NRT', '?airline=etihad&stay=NRT', 'stay:etihad', '就航地を直接開ける'],
+    ['?airline=etihad&stay=nrt', '?airline=etihad&stay=NRT', 'stay:etihad', '就航地の符号は大文字にそろえる'],
+    ['?airline=etihad&d=fo-est', '?airline=etihad&d=fo-est', 'detail:etihad', '数字の詳細を直接開ける'],
   ];
   for (const [q, exp, v, label] of DIRECT) {
     await go(page, q);
@@ -1935,22 +1995,72 @@ try {
   }
   await close();
 
-  /* career.js が届かなくても、入口は読める（見えないまま固まらない）。 */
+  /* E1（★2026-10-26 オーナー P12.130 ── 新しい約束・class A）：在る画面の住所でなければ、よそへ送る ── 履歴を積まずに（location.replace ──
+     戻るは、その前に居たページへ。career.html へ跳ね返らない）。日本語のページは日本語の一覧・会社ページ、英語のページは英語のもの。
+     前に居たページ（PRE）→ その住所 → 送られた先（path と #）を見て、戻るで PRE に出る（＝ career.html の段が残っていない）。 */
   {
-    const { page: p, close: c } = await open('?airline=jal', 390, 680, { block: '/career.js' });
-    const st = await p.evaluate(() => {
-      const h = document.querySelector('#cr .cr-home .cr-h1');
-      return { boot: document.documentElement.classList.contains('cr-boot'), vis: getComputedStyle(h).visibility, box: h.getClientRects().length };
-    });
-    ok(!st.boot && st.vis === 'visible' && st.box > 0, 'career.js が届かなくても入口が見える', JSON.stringify(st));
+    const PRE = '/privacy.html';
+    const AWAY = [
+      [PAGE, '', '/world-airlines.html', '住所だけ（前の入口）は航空会社一覧へ'],
+      [PAGE, '?ref=x', '/world-airlines.html', '知らない引数だけの住所も航空会社一覧へ'],
+      [PAGE, '?view=zzz', '/world-airlines.html', '知らない画面は航空会社一覧へ'],
+      [PAGE, '?view=card', '/world-airlines.html', '会社の無いカードは航空会社一覧へ'],
+      [PAGE, '?view=card&a=nope', '/world-airlines.html', '知らない会社のカードは航空会社一覧へ'],
+      [PAGE, '?airline=nope', '/world-airlines.html', '知らない会社は航空会社一覧へ'],
+      [PAGE, '?airline=', '/world-airlines.html', '空の会社は航空会社一覧へ'],
+      [PAGE, '?airline=eva-air', '/airlines/eva-air.html', '会社の住所（前の会社の概要）は、その会社のページへ'],
+      [PAGE, '?airline=etihad&tab=work', '/airlines/etihad.html#work', '会社ページに同じタブが在れば、そのタブへ'],
+      [PAGE, '?airline=etihad&tab=top', '/airlines/etihad.html', '会社ページに無いタブ（前の概要の top）は、会社ページの頭へ'],
+      [PAGE, '?airline=etihad&stay=XXX', '/airlines/etihad.html#stay', '知らない就航地は、会社ページのステイ先へ'],
+      [PAGE, '?airline=etihad&d=cap-max', '/airlines/etihad.html', '無くした詳細の住所は、会社ページへ'],
+      [PAGE_EN, '', '/en/world-airlines.html', '英語：住所だけは英語の航空会社一覧へ'],
+      [PAGE_EN, '?view=card', '/en/world-airlines.html', '英語：会社の無いカードは英語の航空会社一覧へ'],
+      [PAGE_EN, '?airline=jal', '/en/airlines/jal.html', '英語：会社の住所は英語の会社ページへ'],
+      [PAGE_EN, '?airline=etihad&tab=life', '/en/airlines/etihad.html#life', '英語：同じタブが在れば、そのタブへ'],
+    ];
+    const notes = [];
+    for (const [pg, q, want, label] of AWAY) {
+      /* 1件ごとに新しいタブ（前の件の「進む」の段が残ると、段の数を数え違える） */
+      const { page: p, close: c } = await open('', 390, 680, { path: PRE.slice(1), errs: notes });
+      const at = () => p.evaluate(() => location.pathname + location.search + location.hash).catch(() => '（読めない）');
+      const n0 = await p.evaluate(() => history.length);
+      await p.goto(`${BASE}/${pg}${q}`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+      const got = await p.waitForFunction(w => location.pathname + location.search + location.hash === w && document.readyState !== 'loading', { timeout: 15000 }, want).then(() => true, () => false);
+      const n1 = got ? await p.evaluate(() => history.length) : -1, where = await at();
+      await p.goBack({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      const back = await p.waitForFunction(w => location.pathname === w, { timeout: 15000 }, PRE).then(() => true, () => false);
+      ok(got && n1 === n0 + 1 && back, `${label}（${pg}${q} → ${want}・履歴を積まない ── 戻ると前のページ）`,
+         `着いた先 ${where}・履歴 ${n0} → ${n1}（あるべき ${n0 + 1}）・戻る → ${await at()}`);
+      await c();
+    }
+    if (notes.length) console.log(`  ・送られた先のページの控え（そのページの検査が見る）：${[...new Set(notes)].slice(0, 4).join(' ／ ')}`);
+  }
+
+  /* 台本が動かない・career.js が届かないときも、白い画面にしない ── 航空会社一覧へのリンク1本（#cr-off）が見える（★P12.130 当て直し：
+     前は「career.js が届かなくても入口が見える」）。届いたときは、そのリンクは出ない。 */
+  {
+    const offOf = pp => pp.evaluate(() => { const a = document.querySelector('#cr-off a');
+      return { boot: document.documentElement.classList.contains('cr-boot'), box: a ? a.getClientRects().length : 0, vis: a ? getComputedStyle(a).visibility : '', href: a ? a.getAttribute('href') : '' }; });
+    const { page: p, close: c } = await open('?view=compare&a=jal&b=ana', 390, 680, { block: '/career.js', path: PAGE });
+    await p.waitForFunction(() => !document.documentElement.classList.contains('cr-boot'), { timeout: 15000 }).catch(() => {});
+    const st = await offOf(p);
+    ok(!st.boot && st.vis === 'visible' && st.box > 0 && st.href === 'world-airlines.html', 'career.js が届かなくても、航空会社一覧へのリンクが見える（白い画面にしない）', JSON.stringify(st));
     await c();
+    const { page: p2, close: c2 } = await open('?view=compare&a=jal&b=ana', 390, 680, { js: false, path: PAGE });
+    const st2 = await offOf(p2);
+    ok(st2.vis === 'visible' && st2.box > 0 && st2.href === 'world-airlines.html', '台本が動かないブラウザでも、航空会社一覧へのリンクが見える', JSON.stringify(st2));
+    await c2();
+    const { page: p3, close: c3 } = await open('?view=compare&a=jal&b=ana', 390, 680);
+    const st3 = await offOf(p3);
+    ok(st3.box === 0, 'career.js が動けば、そのリンクは出ない（比較だけ）', JSON.stringify(st3));
+    await c3();
   }
 
   /* ── ⑥ 通貨 ─────────────────────────────────────────────────── */
   head('通貨の切り替え');
   {
     const { page: p, close: c } = await open('?view=compare&a=etihad&b=eva-air');
-    /* 額の字が入る所の全部 ── 推定年収（概要・比較・詳細）・目盛・会社が公表した額・家賃の円額。
+    /* 額の字が入る所の全部 ── 推定年収（比較・詳細）・目盛・会社が公表した額・家賃の円額。
        家賃は、円の街は太字そのものが円額・外貨の街は太字が原貨（pv-no-cur ＝ 変えない）で、その下が円額。 */
     const MONEY = '#cr .cr-num-v, #cr .cr-bar-v, #cr .cr-row-v, #cr .cr-det-v, #cr .cr-axis span:not(:first-child), #cr .cr-fig dd b, #cr .cr-rent dd b:not(.pv-no-cur), #cr .cr-rent dd span';
     const snap = () => p.evaluate(sel => ({
@@ -1958,12 +2068,13 @@ try {
       all: (() => { const c = document.getElementById('cr').cloneNode(true); c.querySelectorAll('.crl, [data-view="card"]').forEach(e => e.remove()); return c.textContent; })(),
       keep: [...document.querySelectorAll('#cr .pv-no-cur')].map(e => e.textContent),
       money: [...document.querySelectorAll(sel)].map(e => e.textContent.trim()),
-      /* 概要の額（推定年収）。会社の形で置き場所が2通りあるが、どちらも本命の額（data-main）。 */
-      ov: Object.fromEntries([...document.querySelectorAll('#cr .cr-view[data-view="airline"] :is(.cr-num, a.cr-bar)[data-role] [data-main]')]
-        .map(n => [n.closest('.cr-view').dataset.airline + '/' + n.closest('[data-role]').dataset.role, n.textContent.trim()])),
+      /* 1社の画面の額（推定年収）── ★2026-10-26 P12.130（当て直し・同じ強さ）：前は 会社の概要の大きい額（data-main）。概要の画面は無い ──
+         1社の額は数字の詳細（DEEP の会社の職位ごとの1画面）。 */
+      ov: Object.fromEntries([...document.querySelectorAll('#cr .cr-view[data-view="detail"] .cr-det-v')]
+        .map(n => [n.closest('.cr-view').dataset.airline + '/' + n.closest('.cr-view').dataset.d.split('-')[0], n.textContent.trim()])),
       cmp: Object.fromEntries([...document.querySelectorAll('#cr .cr-cmp .cr-row')].map(r => [r.dataset.airline + '/' + r.closest('.cr-pair').dataset.role, r.querySelector('.cr-row-v').textContent.trim()])),
-      /* 会社が公表した額（概要の一覧）。上限の「〜」と下限の「超」は、通貨を変えても残らなければならない。 */
-      pub: Object.fromEntries([...document.querySelectorAll('#cr .cr-view[data-view="airline"]')].map(v => [v.dataset.airline,
+      /* 会社が公表した額（比較のカードの一覧 ── ★P12.130 当て直し：前は 概要の一覧）。上限の「〜」と下限の「超」は、通貨を変えても残らなければならない。 */
+      pub: Object.fromEntries([...document.querySelectorAll('#cr .cr-cmp .cr-card[data-airline]')].map(v => [v.dataset.airline,
         [...v.querySelectorAll('.cr-pub .cr-fig dd b')].map(b => b.textContent.trim())])),
       /* 推定の額そのもの。公表額の印（〜・超）が付いてはいけない。 */
       est: [...document.querySelectorAll('#cr [data-main], #cr .cr-row-v, #cr .cr-det-v')].map(e => e.textContent.trim()),
@@ -1980,9 +2091,9 @@ try {
       ok(done && !left.length, `${cur}: 額が全部切り替わる（${s.money.length}か所）`, left.slice(0, 4).join(' / '));
       ok(same(s.keep, jpy.keep), `${cur}: 原貨の額・為替の注記・出どころは変わらない`);
       const differ = Object.keys(s.ov).filter(k => s.ov[k] !== s.cmp[k]);
-      /* ★2026-10-24 段階5 compare-all-1（E5.1 P3）：比較は全社ぶんの行を持つ ── 概要の額は比較の中に同じ額で在り、比較の行は全社ぶん読めている */
-      ok(Object.keys(s.ov).every(k => k in s.cmp) && Object.keys(s.cmp).length === ALLK.length * ROLES.length && !differ.length, `${cur}: 概要と比較で同じ額`, differ.map(k => `${k} ${s.ov[k]} / ${s.cmp[k]}`).join(' ／ '));
-      ok(Object.keys(s.ov).length === FIVE.length * ROLES.length, `${cur}: 5社とも・どちらの職位も推定の額が出ている`, Object.keys(s.ov).join(', '));
+      /* ★2026-10-24 段階5 compare-all-1（E5.1 P3）：比較は全社ぶんの行を持つ ── 1社の画面の額は比較の中に同じ額で在り、比較の行は全社ぶん読めている */
+      ok(Object.keys(s.ov).every(k => k in s.cmp) && Object.keys(s.cmp).length === ALLK.length * ROLES.length && !differ.length, `${cur}: 数字の詳細と比較で同じ額`, differ.map(k => `${k} ${s.ov[k]} / ${s.cmp[k]}`).join(' ／ '));
+      ok(Object.keys(s.ov).length === DEEP.length * ROLES.length, `${cur}: 数字の詳細は、どちらの職位も推定の額が出ている`, Object.keys(s.ov).join(', '));
       const up = s.pub.etihad || [], over = s.pub['eva-air'] || [];
       ok(up.length === ROLES.length && up.every(t => t.startsWith('〜')) && over.length === 1 && over[0].endsWith('超'),
          `${cur}: 公表額の上限の「〜」と下限の「超」が残る`, `${up.join(' / ')} ／ ${over.join(' / ')}`);
@@ -2010,8 +2121,10 @@ try {
     const AXIS_GAP = 8;
     const tightAt = Object.fromEntries(WIDTHS.map(w => [w, []]));
     /* 家賃の額も同じ ── 外貨の街は原貨と円額が上下に並び、幅のある額（HKD 15,800〜18,500）は字数が多い。
-       比較の家賃の箱（.cr-rentb）と、暮らしのタブの街（.cr-town）の両方を測る。 */
-    const FIT_VIEWS = [...FIVE.map(s => `?airline=${s}`), ...DEEP.map(s => `?airline=${s}&tab=life`), '?view=compare&a=etihad&b=eva-air', '?view=compare&a=cathay-pacific&b=ana'];
+       比較の家賃の箱（.cr-rentb）を測る。
+       ★2026-10-26 P12.130（当て直し・同じ強さ）：前は 5社の概要とエティハドの暮らしのタブ（街の .cr-town）も測った。概要の画面は無い ──
+       5社は比較の3組で全部の額（年収・公表額・家賃の箱）を測り、1社の画面は数字の詳細。 */
+    const FIT_VIEWS = [...DEEP.map(s => `?airline=${s}&d=cap-est`), '?view=compare&a=etihad&b=eva-air', '?view=compare&a=cathay-pacific&b=ana', '?view=compare&a=jal&b=etihad'];
     for (const q of FIT_VIEWS) {
       await go(p, q);
       for (const w of WIDTHS) {
@@ -2027,6 +2140,11 @@ try {
               const k = wide(d.querySelector('dt'));
               return [...d.querySelectorAll('dd > *')].some(x => { const v = wide(x); return v.top < k.bottom - 1 && v.bottom > k.top + 1 && v.left < k.right - 0.5; });
             }).map(d => `家賃の名前と額が重なる「${d.textContent.replace(/\s+/g, ' ').trim()}」`);
+            /* ★2026-10-26 P12.131（R3）：家賃の棒は箱の中（はみ出さない）・額の字の下（重ならない）── どの幅・どの通貨でも */
+            const rbar = [...V.querySelectorAll('.cr-rentb .cr-rbar')].filter(x => x.getClientRects().length).filter(x => {
+              const r = x.getBoundingClientRect(), box = x.closest('.cr-rentb').getBoundingClientRect(), dd = x.parentElement.querySelector('dd').getBoundingClientRect();
+              return r.left < box.left - 0.5 || r.right > box.right + 0.5 || r.top < dd.bottom - 0.5 || r.width < 1;
+            }).map(x => `家賃の棒が箱の外か額の字に重なる（${x.closest('.cr-rentb').dataset.airline}）`);
             return [...V.querySelectorAll(':is(.cr-num-v, .cr-bar-v, .cr-row-v, .cr-fig b, .cr-rent dd b, .cr-rent dd span)')]
               .filter(e => e.getClientRects().length)
               .filter(e => {
@@ -2034,7 +2152,7 @@ try {
                 return t.left < box.left - 0.5 || t.right > box.right + 0.5 || t.right > innerWidth + 0.5 || (e.matches('.cr-num-v') && t.width > e.clientWidth + 0.5);
               })
               .map(e => `${e.className || e.tagName.toLowerCase()}「${e.textContent.trim()}」`)
-              .concat(over)
+              .concat(over, rbar)
               .concat(document.documentElement.scrollWidth > document.documentElement.clientWidth ? ['横に溢れる'] : []);
           });
           if (cut.length) cutAt[w].push(`${cur} ${q}: ${cut.join(', ')}`);
@@ -2057,7 +2175,7 @@ try {
         }
       }
     }
-    for (const w of WIDTHS) ok(!cutAt[w].length, `${w}px: どの通貨でも額（年収・公表額・家賃）が切れない・重ならない・横に溢れない（${curs.length + 1}通貨 × ${FIT_VIEWS.length}画面）`, cutAt[w].join('\n      '));
+    for (const w of WIDTHS) ok(!cutAt[w].length, `${w}px: どの通貨でも額（年収・公表額・家賃）が切れない・重ならない・家賃の棒は箱の中で額の下・横に溢れない（${curs.length + 1}通貨 × ${FIT_VIEWS.length}画面）`, cutAt[w].join('\n      '));
     for (const w of WIDTHS) ok(!tightAt[w].length, `${w}px: どの通貨でも目盛の字どうしがくっつかない（あいだ ${AXIS_GAP}px 以上）・両端の字が出ている`, tightAt[w].join('\n      '));
 
     /* 比較の画面の、写真のカードと棒の行。
@@ -2335,7 +2453,7 @@ try {
      （2026-10-22 LEAD AMENDMENT。先行5社のうち一覧を持たない会社のカードは社名だけ）。1280×800。 */
   head('片方の会社にだけ在る箱は、その会社の列（2社とも無ければ見出しごと出さない）');
   {
-    const { page: p, close: c } = await open('', 1280, 800);
+    const { page: p, close: c } = await open('?view=compare', 1280, 800);   // ★P12.130：住所だけの career.html は一覧へ送られる
     const boxes = () => p.evaluate(() => {
       const V = document.querySelector('#cr .cr-view[data-view="compare"]');
       const vis = el => !!el && el.getClientRects().length > 0;
@@ -2404,9 +2522,10 @@ try {
   }
 
   head('大きさ（溢れ・最初の1画面・字・押す場所）');
-  const OLD_VIEWS = ['', ...FIVE.map(s => `?airline=${s}`), '?view=compare', '?view=compare&a=etihad&b=eva-air'];
-  /* 深い会社（DEEP）の、タブ・就航地・詳細・カードの画面。 */
-  const DEEP_VIEWS = DEEP.flatMap(s => [`?airline=${s}&tab=work`, `?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`,
+  /* ★2026-10-26 P12.130（当て直し・同じ強さ）：前は 入口と5社の概要も測った。入口と会社の概要の画面は無い ── 5社は比較の3組で全部の札・行を測る。 */
+  const OLD_VIEWS = ['?view=compare', '?view=compare&a=etihad&b=eva-air', '?view=compare&a=jal&b=ana', '?view=compare&a=cathay-pacific&b=etihad'];
+  /* 深い会社（DEEP）の、就航地・詳細・カードの画面（★P12.130：概要のタブ ── 勤務・待遇／暮らし・ステイ ── は無い）。 */
+  const DEEP_VIEWS = DEEP.flatMap(s => [`?airline=${s}&stay=NRT`,
     `?airline=${s}&d=cap-est`, `?airline=${s}&d=fo-est`, `?view=compare&a=${s}&b=jal`, `?view=card&a=${s}&b=jal`, `?view=card&a=${s}`]);
   /* 写真の無い会社の札と、概要を持たない会社のカード（全社を開けるようにしたあと）。
      ★2026-10-26 段階5 compare-all-14（P12.122）：写真の無い会社の札にも、台帳に写真の在る会社は写真が出る（career.js）── 比較の2つは下の写真の検査にも入れる。 */
@@ -2414,14 +2533,14 @@ try {
   const VIEWS = [...OLD_VIEWS, ...DEEP_VIEWS, ...WIDE_VIEWS];
   /* 写真の出る画面（詳細とカードは、ここでは見ない ── 詳細に写真は無く、カードの写真は画像の中へ描く）。
      ★2026-10-26（P12.122）：先行5社のほかの会社の札の写真（CC0 と Public domain の united|delta・CC BY の emirates と先行5社の jal・CC BY の2社 skymark|qantas）。 */
-  const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&tab=life`, `?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`]),
+  const PHOTO_VIEWS = [...OLD_VIEWS, ...DEEP.flatMap(s => [`?airline=${s}&stay=NRT`, `?view=compare&a=${s}&b=jal`]),
     ...WIDE_VIEWS.filter(q => q.startsWith('?view=compare')), '?view=compare&a=emirates&b=jal', '?view=compare&a=skymark&b=qantas'];
   /* 押せるものの種類。ここに無い形のものが増えたら落とす（hover / active を付け忘れる）。 */
   const MAIN = '.cr-tile, .cr-back, .cr-btn, .cr-swap, .cr-pickb, .cr-pk, .cr-sheet-x, summary, .cr-link, .cr-card-n, '
     + '.cr-tab, a.cr-bar, .cr-ent, .cr-ask, .cr-dest, .cr-job, .crl-cta, .crl-link, .crl-retry, .crs-act, .crs-ent, .crc-opt, .crc-sel, .crc-th, .crc-btn, .pv-gg';
   const INLINE = '.cr-credits a, .cr-srcs a';
   for (const [w, h] of [[320, 568], [390, 680], [768, 1024], [1280, 800]]) {
-    const { page: p, close: c } = await open('', w, h);
+    const { page: p, close: c } = await open('?view=compare', w, h);
     const bad = [], past = [];
     /* 測る範囲（ROOT）。既定は見えている画面。★2026-10-25 段階5 compare-all-3（R2）：比較の画面では、1社目の札を押して開いた
        選ぶ面（'#cr-sheet' ── どの画面の外にも在る #cr の子）も同じ物差しで測る。面では最初の1画面と年収の箱は測らない（null）。 */
@@ -2664,7 +2783,9 @@ try {
     ok(!/data-look="held"|\sdata-lim[=\s>-]/.test(BLOCK), 'career.html に「保留」の印（data-look="held"）と、推定に重ねる上限（data-lim）が無い');
     ok(!noJsCmt(read('career-card.js')).includes(WORD) && !JSC.includes(WORD), 'カードを描く JS・見せ方の JS は「確認中」の字を持たない（字は全部 HTML から読む）');
 
-    const { page: p, close: c } = await open(`?airline=${FIVE[0]}`);
+    /* ★2026-10-26 P12.130（当て直し・同じ強さ）：前は 1社目の概要を開いて、概要・比較・詳細の欄を数えた。会社の概要の画面は無い ── 欄は比較と詳細の2つ
+       （主表示の目印 data-main は1つも無い）。わざと汚すのも比較の行。 */
+    const { page: p, close: c } = await open('?view=compare');
     /* b) 年収の額と札の欄を全部拾う（見えていない画面のぶんも）。探す道具は、下でわざと汚して効き目を確かめる。 */
     const heldAt = () => p.evaluate(WORD => [...document.querySelectorAll('#cr [data-main], #cr [data-main-tag], #cr .cr-row-v, #cr .cr-row-k, #cr .cr-det-v, #cr .cr-det-k')]
       .filter(e => !e.closest('.crl') && e.textContent.includes(WORD)).map(e => e.className)
@@ -2676,29 +2797,20 @@ try {
     }));
     const found = await heldAt();
     /* ★2026-10-24 段階5 compare-all-1（E5.1 P1）：比較の行は全社ぶん（224 ── 数は正本から） */
-    ok(n0.main === FIVE.length * ROLES.length && n0.rows === ALLK.length * ROLES.length && n0.det === DEEP.length * ROLES.length && !found.length,
-      `年収の欄 ${n0.main + n0.rows + n0.det}か所（概要・比較・詳細）のどれも「確認中」でない`, `概要${n0.main} 比較${n0.rows} 詳細${n0.det} ／ ${found.join(', ')}`);
-    await p.evaluate(WORD => { const b = document.querySelector('#cr [data-main]'); b.dataset.keep = b.textContent; b.textContent = WORD; }, WORD);
+    ok(n0.main === 0 && n0.rows === ALLK.length * ROLES.length && n0.det === DEEP.length * ROLES.length && !found.length,
+      `年収の欄 ${n0.rows + n0.det}か所（比較・詳細）のどれも「確認中」でない`, `主表示の目印${n0.main} 比較${n0.rows} 詳細${n0.det} ／ ${found.join(', ')}`);
+    await p.evaluate(WORD => { const b = document.querySelector('#cr .cr-row-v'); b.dataset.keep = b.textContent; b.textContent = WORD; }, WORD);
     const caught = await heldAt();
-    await p.evaluate(() => { const b = document.querySelector('#cr [data-main][data-keep]'); b.textContent = b.dataset.keep; delete b.dataset.keep; });
-    ok(caught.length === 1 && !(await heldAt()).length, 'わざと概要の年収を「確認中」に戻すと、この検査が拾う（このブラウザの中だけ。配っているファイルは触らない）', caught.join(', '));
+    await p.evaluate(() => { const b = document.querySelector('#cr .cr-row-v[data-keep]'); b.textContent = b.dataset.keep; delete b.dataset.keep; });
+    ok(caught.length === 1 && !(await heldAt()).length, 'わざと比較の年収を「確認中」に戻すと、この検査が拾う（このブラウザの中だけ。配っているファイルは触らない）', caught.join(', '));
 
     /* c) 推定年収の説明 ── 根拠が台帳に在る職位（est.backed）だけ 根拠・算出方法・時点。
           無い職位は1行だけ（根拠・幅・件数・時点を作らない）。対象は「機種の指定なし」。 */
     const info = await p.evaluate(() => {
       const t = el => (el ? el.textContent.replace(/\s+/g, ' ').trim() : null);
       const rows = dl => (dl ? [...dl.querySelectorAll('.cr-fact')].map(f => [t(f.querySelector('dt')), t(f.querySelector('dd'))]) : null);
-      const notes = {};
-      for (const v of document.querySelectorAll('#cr .cr-view[data-view="airline"]')) {
-        const all = v.querySelectorAll('details.cr-est'), d = all[0];
-        notes[v.dataset.airline] = !d ? null : {
-          n: all.length, sum: t(d.querySelector('summary')), inPub: !!d.closest('.cr-pub'),
-          parts: [...d.querySelectorAll('.cr-est-r')].map(q => ({
-            role: t(q.firstChild), target: t(q.querySelector('span')),
-            rows: rows(q.nextElementSibling && q.nextElementSibling.matches('dl.cr-facts') ? q.nextElementSibling : null),
-          })),
-        };
-      }
+      /* ★P12.130：概要の中の「推定年収について」（詳細を持たない会社の折り畳み）は、概要の画面ごと無い ── 1つも無いことを数える。 */
+      const notes = document.querySelectorAll('#cr details.cr-est').length;
       const det = [...document.querySelectorAll('#cr .cr-view[data-view="detail"]')].map(v => {
         const f = v.querySelectorAll('.cr-fill');
         return {
@@ -2721,7 +2833,7 @@ try {
         ROLES.map(([r]) => `${viewOf(s).pay[r].est.man}/${avg(s, r)}`).join(' '));
       if (DEEP.includes(s)) {
         const mine = info.det.filter(x => x.slug === s);
-        ok(info.notes[s] === null && same(mine.map(x => x.d), ROLES.map(([r]) => `${r}-est`)),
+        ok(info.notes === 0 && same(mine.map(x => x.d), ROLES.map(([r]) => `${r}-est`)),
           `${name(s)}: 推定年収の詳細は職位ごとに1枚（${ROLES.map(([r]) => `d=${r}-est`).join('・')}）。求人の上限だけの画面は持たない`, mine.map(x => x.d).join(','));
         for (const [i, [r, l]] of ROLES.entries()) {
           const x = mine[i];
@@ -2734,21 +2846,14 @@ try {
           ok(same(x.rows, [['対象', `${l}${TARGET}`], ...estRows(s, r)]), `${name(s)} ${l}の詳細: 対象は「${TARGET}」・${why(s, r)}`, JSON.stringify(x.rows));
           ok(same(x.links, [[`${PAGE}?airline=${s}&d=${other[0]}-est`, `${other[1]}の推定年収`]]), `${name(s)} ${l}の詳細: もう一方の職位の推定へ行ける`, JSON.stringify(x.links));
         }
-      } else {
-        const x = info.notes[s];
-        ok(!!x && x.n === 1 && x.sum === '推定年収について' && !x.inPub && same(x.parts.map(q => q.role), ROLES.map(([, l]) => l)) && x.parts.every(q => q.target === TARGET),
-          `${name(s)}: 「推定年収について」は1つ・職位ごと・対象は「${TARGET}」・公表額の一覧の外`, JSON.stringify(x && { n: x.n, sum: x.sum, parts: x.parts.map(q => [q.role, q.target]) }));
-        if (!x) continue;
-        for (const [i, [r, l]] of ROLES.entries()) ok(!!x.parts[i] && same(x.parts[i].rows, estRows(s, r)), `${name(s)} ${l}: ${why(s, r)}`, JSON.stringify(x.parts[i] && x.parts[i].rows));
       }
     }
+    ok(info.notes === 0, 'career.html に「推定年収について」の折り畳み（会社の概要の中のもの）が無い ── 推定の説明は会社ページと数字の詳細', String(info.notes));
     const backed = FIVE.flatMap(s => ROLES.filter(([r]) => viewOf(s).pay[r].est.backed).map(([, l]) => `${name(s)} ${l}`));
     console.log(`    根拠が台帳に在る推定: ${backed.join('・') || 'なし'}`);
 
-    /* d) 無くした住所（求人の上限だけの詳細）は、その会社の概要へ落ち着く。 */
+    /* d) 推定年収の詳細の住所（★P12.130：無くした住所 d=cap-max は、会社の概要ではなく会社ページへ送る ── 上の E1 が見る）。 */
     for (const s of DEEP) {
-      await go(p, `?airline=${s}&d=cap-max`);
-      ok(await view(p) === `airline:${s}`, `?airline=${s}&d=cap-max（無くした住所）は ${name(s)} の概要を出す`, await view(p));
       await go(p, `?airline=${s}&d=cap-est`);
       ok(await view(p) === `detail:${s}`, `?airline=${s}&d=cap-est は推定年収の詳細を出す`, await view(p));
     }
@@ -3116,8 +3221,8 @@ try {
       const hit = [...crewHit(out.inside), ...crewHit(out.outside), ...(out.data ? crewHit(out.data) : [])];
       ok(CREW.length >= 1 && !hit.length, `機長と副操縦士を分けない額（運航乗務員の平均 ${CREW.length}件）は、一覧の中にも外にも無い（P12.77）`, hit.join(', '));
     }
-    ok(out.pubs === WITH_PUB.length * 2 && same(out.heads, ['会社が公表している金額']) && out.figs > 0 && out.figs === out.figsIn,
-      `一覧は概要と比較に1つずつ（${out.pubs}）・見出しは全部「会社が公表している金額」・額の行（${out.figs}）は一覧の中だけ`, `${out.heads.join(' / ')} ／ 行 ${out.figs}・うち一覧の中 ${out.figsIn}`);
+    ok(out.pubs === WITH_PUB.length && same(out.heads, ['会社が公表している金額']) && out.figs > 0 && out.figs === out.figsIn,
+      `一覧は比較に1社1つ（${out.pubs} ── ★P12.130 から会社の概要の画面は無い）・見出しは全部「会社が公表している金額」・額の行（${out.figs}）は一覧の中だけ`, `${out.heads.join(' / ')} ／ 行 ${out.figs}・うち一覧の中 ${out.figsIn}`);
     ok(out.scale === 0 && out.estIn === 0, '一覧の中に 棒・目盛・推定の欄 を置いていない（公表額を推定と同じ物差しに乗せない）', `棒・目盛 ${out.scale} ／ 推定の欄 ${out.estIn}`);
     /* わざと公表額を推定の欄へ写して、赤くなることを確かめる（写すのは複製のほう。画面も配っているファイルも触らない）。 */
     const planted = await p.evaluate(v => {
@@ -3135,8 +3240,11 @@ try {
   head('家賃（1か月あたり・街ごとに別の箱）');
   {
     /* ★2026-10-06 オーナー決定「家賃は月額で表示・比較し、条件の揃わない街を同じ目盛で競わせない」。
-       比較の画面は、会社ごとに 拠点の街の箱を1つずつ。箱の中に その街の物差し（何の家賃か）・出どころ・時点 を持つ。
-       2つの街を1つの表・1つの目盛に並べない。額は読み口（pv-airline-view.mjs の living）の月額をそのまま。 */
+       比較の画面は、会社ごとに 拠点の街の箱を1つずつ。箱の中に その街の物差し（何の家賃か）・出どころ・時点 を持つ。額は読み口（pv-airline-view.mjs の
+       living）の月額をそのまま。
+       ★2026-10-26 オーナー P12.131「比較の拠点の家賃はちゃんと棒グラフ書いてね」（当て直し・強くした）：前は「2つの街を1つの表・1つの目盛に並べない」。
+       この画面ではオーナーの言葉に替わった ── 箱は会社ごとのまま、間取りの行ごとの棒だけが、並べた2つの箱で1本の長さの物差し（円に直した額）を使う
+       （下の R4）。年収の棒・目盛の字・表は家賃の節に置かない。 */
     const norm = x => String(x == null ? '' : x).replace(/\s+/g, ' ').trim();
     const cellOf = (L, v) => { const k = rentCell(L.cur, v); return k ? (k.orig ? [norm(k.orig), norm(k.yen)] : [norm(k.yen)]) : null; };
     const PAIR_Q = ['etihad', 'cathay-pacific'];
@@ -3172,7 +3280,7 @@ try {
     /* ★2026-10-24 段階5 compare-all-1（E5.1 P4）：箱は、比較に家賃の箱を置ける会社（RENTB ── この検査が台帳から作り直す・先行5社は必ず入る）に1つずつ */
     ok(got.secs === 1 && got.all === RENTB.length && /1か月あたり/.test(got.h2 || ''), `比較の家賃の節は1つ・箱は会社ごとに1つ（${got.all}）・見出しに「1か月あたり」`, `節${got.secs} 箱${got.all}「${got.h2}」`);
     ok(same(got.boxes.filter(b => b.shown).map(b => b.slug), PAIR_Q), '見えている箱は、並べている2社のぶんだけ（選んだ順）', got.boxes.filter(b => b.shown).map(b => b.slug).join(','));
-    ok(got.scale === 0, '2つの街を 同じ目盛・同じ表・年収の棒 に並べていない（箱を分ける）', `${got.scale}個`);
+    ok(got.scale === 0, '家賃の節に 年収の棒・目盛の字・表 を置かない（箱は会社ごと ── 家賃の棒は下の R4 の円の物差し）', `${got.scale}個`);
     ok(!/年額|1年あたり|年間|per year/i.test(got.plain), '箱の表に出ている字に 年額・1年あたり が無い（額は月額）', got.plain.match(/.{0,12}(?:年額|1年あたり|年間|per year).{0,12}/i)?.[0]);
     ok(!/安い|高い|割安|割高|お得|勝ち|負け|勝る|劣る|優位|差額|[\d.]\s*倍|より(?:安|高)/.test(got.text), '家賃の節に 安い・高い・差・倍 の語を書かない（街どうしを競わせない）', got.text.match(/.{0,12}(?:安い|高い|割安|割高|お得|勝ち|負け|勝る|劣る|優位|差額|[\d.]\s*倍|より(?:安|高)).{0,12}/)?.[0]);
     for (const s of RENTB) {
@@ -3193,25 +3301,87 @@ try {
       ok(x.src.includes(norm(r.src.name)) && !!x.when && x.when === norm(RENT_AT(s, L, r)) && x.links.includes(r.src.url) && x.more === '前提と出どころ',
         `${name(s)}: 箱に 出どころ と 時点（${RENT_AT(s, L, r)}） が書いてあり、出どころへ行ける`, `「${x.src}」「${x.when}」 ${x.links.join(' ')}`);
     }
-    /* 暮らしのタブ（深く作った会社）── 1つの街の中の地域を、全部にそろっている間取りだけで並べる。 */
-    ok(same(got.towns.map(x => x.slug), DEEP), `「拠点の街」の節を持つのは深く作った会社だけ（${DEEP.join(', ')}）`, got.towns.map(x => x.slug).join(','));
-    for (const x of got.towns) {
-      const s = x.slug, L = viewOf(s).living;
-      const rooms = L.cols.filter(([k]) => L.rents.every(r => cellOf(L, r.value[k])));
-      const exp = L.rents.map(r => ({ n: norm(r.name), rows: rooms.map(([k, l]) => ({ k: norm(l), v: cellOf(L, r.value[k]) })) }));
-      ok(/1か月あたり/.test(x.h) && x.tag === norm(L.measure) && rooms.length > 0 && rooms.every(([, l]) => x.h.includes(norm(l))) && x.scale === 0,
-        `${name(s)} 暮らし: 家賃の見出しに「1か月あたり」・物差し（${L.measure}）・間取り（${rooms.map(q => q[1]).join('・')}）。目盛も表も無い`, `「${x.h}」`);
-      ok(same(x.list.map(o => ({ n: o.n, rows: o.rows.map(q => ({ k: q.k, v: q.v })) })), exp), `${name(s)} 暮らし: ${exp.length}地域の家賃は台帳の月額どおり`,
-        `${JSON.stringify(x.list.map(o => [o.n, ...o.rows.map(q => q.v.join(' '))]))} ≠ ${JSON.stringify(exp.map(o => [o.n, ...o.rows.map(q => q.v.join(' '))]))}`);
-      ok(x.more === '家賃の前提と出どころ', `${name(s)} 暮らし: 家賃の前提と出どころを開ける`, String(x.more));
+    /* 暮らしのタブ（深く作った会社の概要の中）── ★2026-10-26 P12.130（当て直し）：会社の概要の画面ごと無い。街の家賃の全部は会社ページの暮らしのタブ
+       （比較の箱の「ほかの街」の先 ── 上の「比較の『詳しく』と『ほかの街』」が行き先を見る）。この1枚に「拠点の街」の節が1つも無いこと。 */
+    ok(!got.towns.length, '「拠点の街」の節（会社の概要の暮らしのタブ）は、この1枚に無い', got.towns.map(x => x.slug).join(','));
+
+    /* R4（★2026-10-26 オーナー P12.131 ── class A）：拠点の街の家賃の棒。
+       a) 出荷の HTML（日英）：箱の行ごとに棒がちょうど1本（aria-hidden）・data-yen はその行の月額を円に直した額（円の街はその額・外貨の街は × fx-rates.mjs の
+          JPY_PER ── 円の行の字と同じ1つの表。この検査が台帳から作り直す）・長さ（--w）は 既定の2社の箱はその2社をあわせた物差し・ほかの箱はその箱だけの
+          物差し。右端 ＝ いちばん大きい行を RSTEP（10万円）の次の倍数へ切り上げた額（刻みは入れ物の data-step）。
+       b) 画面：並べた2社の箱の棒は、2つの箱で1本の物差し ── 円の値 ÷ 右端 ＝ --w・描かれた長さ ＝ 土台の幅 × --w。円の街と外貨の街／外貨どうし／
+          片方の会社にだけ箱の組／選び直し・入れ替えのあと／通貨を替えても長さは同じ（円が物差し）。字は前のまま（上の「家賃の額は台帳の月額どおり」）。 */
+    const RSTEP = 100000;
+    const yenRow = (L, v) => (L.cur === 'JPY' ? Math.round(v) : Math.round(v * JPY_PER[L.cur]));
+    const boxYen = s => { const L = BOXL(s), r = L.rents.find(x => x.lead); return L.cols.filter(([k]) => rentCell(L.cur, r.value[k])).map(([k]) => yenRow(L, r.value[k])); };
+    const rtop = list => Math.ceil(Math.max(...list.flatMap(boxYen)) / RSTEP) * RSTEP;
+    {
+      const bad = [];
+      for (const [pg, H] of [[PAGE, HTML], [PAGE_EN, read(PAGE_EN)]]) {
+        const B = (H.match(/<!--PV-CAREER-->([\s\S]*)<!--\/PV-CAREER-->/) || [])[1] || '';
+        if ((B.match(/<div class="cr-rentbs" data-step="(\d+)">/) || [])[1] !== String(RSTEP)) bad.push(`${pg}: 刻み（data-step）が ${RSTEP} でない`);
+        for (const s of RENTB) {
+          const box = (B.match(new RegExp(`<article class="cr-rentb" data-airline="${s}"[\\s\\S]*?</article>`)) || [''])[0];
+          const rows = [...box.matchAll(/<div><dt>[^<]*<\/dt><dd>[\s\S]*?<\/dd>(<i class="cr-rbar"[^>]*><\/i>)?<\/div>/g)];
+          const bars = rows.map(m => m[1] || '').map(x => ({ aria: /aria-hidden="true"/.test(x), yen: +((x.match(/ data-yen="(\d+)"/) || [])[1] || 0), w: parseFloat((x.match(/--w:([\d.]+)%/) || [])[1] || 'NaN') }));
+          const want = boxYen(s), top = PAIR.includes(s) ? rtop(PAIR.filter(x => RENTB.includes(x))) : rtop([s]);
+          const allBars = (box.match(/class="cr-rbar"/g) || []).length;
+          if (!rows.length || allBars !== rows.length || bars.some(x => !x.aria) || !same(bars.map(x => x.yen), want)
+            || bars.some(x => !(Math.abs(x.w - x.yen / top * 100) < 0.006)) || !(top % RSTEP === 0 && top >= Math.max(...want) && top - Math.max(...want) < RSTEP))
+            bad.push(`${pg} ${s}: 行 ${rows.length}・棒 ${allBars}・円 ${bars.map(x => x.yen).join('/')}（あるべき ${want.join('/')}）・長さ ${bars.map(x => x.w).join('/')}（右端 ${top}）`);
+        }
+      }
+      ok(!bad.length, `R4-a 家賃の箱 ${RENTB.length}社 × 日英：行ごとに棒が1本・円の額はサイトの為替の表で台帳から・長さは既定の2社（${PAIR.join('・')}）はあわせた物差し・ほかはその箱の物差し（刻み ${RSTEP} 円）`,
+        bad.slice(0, 6).join('\n      '));
     }
+    const rbars = () => p.evaluate(() => [...document.querySelectorAll('#cr .cr-view[data-view="compare"] .cr-rentb')].filter(b => b.getClientRects().length).map(b => ({
+      s: b.dataset.airline,
+      rows: [...b.querySelectorAll('dl.cr-rent > div')].map(d => {
+        const x = d.querySelector('.cr-rbar'), r = x ? x.getBoundingClientRect() : null, fill = x ? parseFloat(getComputedStyle(x, '::before').width) : NaN;
+        return { yen: x ? Number(x.dataset.yen) : 0, w: x ? parseFloat(x.style.getPropertyValue('--w')) : NaN, fill, track: r ? r.width : 0, n: d.querySelectorAll('.cr-rbar').length };
+      }),
+    })));
+    const rbarBad = (got, want) => {
+      const why = [], all = got.flatMap(x => x.rows);
+      if (!same(got.map(x => x.s), want)) why.push(`見えている箱 ${got.map(x => x.s).join(',')}（あるべき ${want.join(',')}）`);
+      const top = want.length ? rtop(want) : 0;
+      for (const x of got) for (const r of x.rows) {
+        if (r.n !== 1) why.push(`${x.s}: 行の棒が ${r.n}本`);
+        else if (!(Math.abs(r.w - r.yen / top * 100) < 0.01) || Math.abs(r.fill - r.track * r.w / 100) > 1) why.push(`${x.s}: ¥${r.yen} の棒 ${r.w}%・描いた ${Math.round(r.fill)}/${Math.round(r.track)}（右端 ${top}）`);
+      }
+      if (!all.length) why.push('棒が1本も無い');
+      return why;
+    };
+    for (const [a, b, want, label] of [
+      ['jal', 'cathay-pacific', ['jal', 'cathay-pacific'], '円の街と外貨の街（東京・香港）'],
+      ['etihad', 'british-airways', ['etihad', 'british-airways'], '外貨の街どうし（アブダビ・ロンドン）'],
+      ['jal', 'united', ['jal'], '片方の会社にだけ箱（ユナイテッドは「資料を確認できていません」）── その箱だけの物差し'],
+      ['alaska-airlines', 'peach', ['alaska-airlines', 'peach'], '大きい額の街と小さい額の街（シアトル・大阪）'],
+    ]) {
+      await go(p, `?view=compare&a=${a}&b=${b}`);
+      const why = rbarBad(await rbars(), want);
+      ok(!why.length, `R4-b ${a}｜${b}：${label} ── 並べた箱の棒は1本の円の物差し（右端 ¥${(want.length ? rtop(want) : 0).toLocaleString('en-US')}）`, why.join(' ／ '));
+    }
+    /* 選び直し・入れ替え（履歴を積まない同じ画面の中）でも物差しを決め直す・通貨を替えても長さは同じ */
+    await go(p, '?view=compare&a=etihad&b=british-airways');
+    await choose(p, 'b', 'peach');
+    ok(!rbarBad(await rbars(), ['etihad', 'peach']).length, 'R4-b 選び直す（etihad｜british-airways → etihad｜peach）と、棒の物差しを新しい2社で決め直す', rbarBad(await rbars(), ['etihad', 'peach']).join(' ／ '));
+    await p.click('#cr-swap');
+    await p.waitForFunction(() => /a=peach&b=etihad/.test(location.search), { timeout: 5000 }).catch(() => {});
+    ok(!rbarBad(await rbars(), ['peach', 'etihad']).length, 'R4-b 入れ替えても、同じ物差しで並ぶ（左の会社が左）', rbarBad(await rbars(), ['peach', 'etihad']).join(' ／ '));
+    const before = JSON.stringify((await rbars()).map(x => x.rows.map(r => [r.w, Math.round(r.fill)])));
+    await p.evaluate(() => window.PVCurrency.set('USD'));
+    await p.waitForFunction(() => [...document.querySelectorAll('#cr .cr-rentb:not([hidden]) .cr-rent dd span, #cr .cr-rentb:not([hidden]) .cr-rent dd b:not(.pv-no-cur)')].every(e => !/万円/.test(e.textContent)), { timeout: 5000 }).catch(() => {});
+    const after = JSON.stringify((await rbars()).map(x => x.rows.map(r => [r.w, Math.round(r.fill)])));
+    await p.evaluate(() => window.PVCurrency.set('JPY'));
+    ok(before === after && before.length > 4, 'R4-b 通貨を USD に替えても、棒の長さは1つも変わらない（円が物差し・字だけが替わる）', `${before} → ${after}`);
     await c();
   }
 
   /* ── ⑧ 写真とクレジット（画面） ─────────────────────────────── */
   head('写真とクレジット（画面）');
   {
-    const { page: p, close: c } = await open('');
+    const { page: p, close: c } = await open('?view=compare');
     const CHANGES = [...new Set([...LEDGER, ...PLACES].map(x => x.changes).filter(Boolean))];
     for (const q of PHOTO_VIEWS) {
       await go(p, q);
@@ -3422,7 +3592,9 @@ try {
       for (const el of document.querySelectorAll('[alt], [title], [aria-label], [placeholder]')) if (on(el)) for (const a of ['alt', 'title', 'aria-label', 'placeholder']) if (el.hasAttribute(a)) out.push(el.getAttribute(a));
       return out;
     });
-    const VIEWS_EN = ['', '?airline=jal', '?airline=etihad', '?airline=etihad&tab=work', '?airline=etihad&tab=life', '?airline=etihad&stay=NRT', '?airline=etihad&d=cap-est',
+    /* ★2026-10-26 P12.130（当て直し・同じ強さ）：前は 入口・会社の概要・エティハドのタブも開いた。入口と会社の概要の画面は無い（英語の住所も英語の一覧・会社ページへ送る ── 上の E1）。
+       先行5社は 比較の2組（jal・cathay-pacific ／ etihad・eva-air）と ana のカードで全部開く。 */
+    const VIEWS_EN = ['?view=compare', '?view=compare&a=etihad&b=eva-air', '?view=card&a=ana', '?airline=etihad&stay=NRT', '?airline=etihad&d=cap-est',
       '?view=compare&a=jal&b=united', '?view=compare&a=emirates&b=jal', '?view=compare&a=swiss&b=tap'];
     const MONEY_NAMES = '.cr-num-v, .cr-bar-v, .cr-row-v, .cr-fig b, .cr-tile-n, .cr-opt-n, .cr-hero-n, .cr-row-co, .cr-pk-n, .cr-pk-c, .cr-go-n, .cr-tx, .cr-role, .cr-tgt';
     const cutOf = p => p.evaluate(sel => {
@@ -3438,7 +3610,7 @@ try {
       return { over: document.documentElement.scrollWidth - document.documentElement.clientWidth, cut: out };
     }, MONEY_NAMES);
     for (const [w, h] of [[390, 680], [1440, 900]]) {
-      const { page: p, close: c } = await open('', w, h, { path: PAGE_EN });
+      const { page: p, close: c } = await open('?view=compare', w, h, { path: PAGE_EN });
       await ready(p);
       const jaBad = [], cut = [];
       for (const q of VIEWS_EN) {

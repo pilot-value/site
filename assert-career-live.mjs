@@ -13,7 +13,8 @@
      ・比較の評価は会社ページと同じ数（星・点数・「n件の評価」、次の行に「会員の投稿 n件」）。点の低い投稿も数える（場面 rate）。
      ・点数の無い会社・投稿の無い会社に、0 も空の星も置かない（場面 unrated）。
      ・片方の会社が読めなくても、もう片方は出す。やり直すのは読めなかった方だけ（場面 side）。
-     ・1社の概要（career.html?airline=…）も同じ数え方（場面 overview）。
+     ・1社の概要（career.html?airline=…）は無い ── 1社の評価の欄を career.html に置かない（場面 overview ── ★2026-10-26 P12.130 当て直し。
+       住所は会社ページへ送る ── assert-career.mjs の E1）。
      ・比較の口コミの要約（cmp-summary）：読む人の1行は枠に1回だけ ── ゲストは「ログインが必要です」と「ログイン」1つ（評価の読み込みを
        待たない・場面 sumlogin）、口コミの鍵の無い会員は「要約は口コミの投稿で開きます」だけ・リンク0・返事に植えた点は画面にも保存領域にも
        出ない・給与の鍵では開かない（場面 sumkey）。別のタブで読む人が替わったら、前の人の文を1字も残さず次の人の顔へ（場面 sumtwo・static S9）。
@@ -691,31 +692,17 @@ scene('side', '片方の会社が読めなくても、もう片方は出す（�
   }
 });
 
-/* 1社の概要（career.html?airline=…）も、会社ページと同じ数え方：星の横は評価件数、その下の行が口コミ件数 */
-const overview = (page) => page.evaluate(() => {
-  const b = document.querySelector('#cr .crl[data-live="stars"][data-airline="etihad"]');
-  if (!b) return null;
-  const score = b.querySelector('.crl-score'), posts = b.querySelector('.crl-posts');
-  return { state: b.getAttribute('data-state'), text: b.innerText, cnt: (b.querySelector('.crl-cnt') || {}).textContent || null,
-    posts: posts ? posts.textContent : null, next: !!(score && posts && score.nextElementSibling === posts),
-    outline: b.querySelectorAll('.crl-stars[data-none]').length, filled: b.querySelectorAll('.crl-stars:not([data-none])').length };
-});
-const overviewDone = (page) => until(page, () => {
-  const b = document.querySelector('#cr .crl[data-live="stars"][data-airline="etihad"]');
-  return !!b && b.getAttribute('data-for') === 'etihad' && !['idle', 'loading'].includes(b.getAttribute('data-state'));
-});
-scene('overview', '1社の概要の評価も同じ数え方（「n件の評価」の下に「会員の投稿 n件」）', 'mock', async () => {
-  const { page } = await open('pc', { url: '/career.html?airline=etihad', stub: { pv_reviews: reviewsBy({ etihad: FIX.JAL }) } });
-  ok(await overviewDone(page), '概要の評価の欄が読み終わった');
-  const o = await overview(page);
-  ok(!!o && o.cnt === '2件の評価' && o.posts === '会員の投稿 3件' && o.next && o.filled === 1,
-    '星と点数の横に「2件の評価」、その下の行に「会員の投稿 3件」', JSON.stringify(o));
-  ok(!!o && !OLD_COUNT.test(o.text), '昔の「口コミ 3件」が無い', o && o.text);
-  const e = await open('pc', { url: '/career.html?airline=etihad', stub: { pv_reviews: reviewsBy({ etihad: FIX.EVA }) } });
-  ok(await overviewDone(e.page), '（点数の無い投稿だけ）概要の評価の欄が読み終わった');
-  const u = await overview(e.page);
-  ok(!!u && u.outline === 1 && u.filled === 0 && u.cnt === '評価未取得' && u.posts === '会員の投稿 2件' && u.next,
-    '点数の無い投稿だけなら、輪郭の星（1社だけで立っている）・「評価未取得」・その下に「会員の投稿 2件」', JSON.stringify(u));
+/* 1社の概要（career.html?airline=…）── ★2026-10-26 オーナー P12.130（WP-compare-all-22 ── 当て直し）：前は「1社の概要の評価も同じ数え方」を
+   画面で見た（エティハドの概要の星の欄）。会社の概要の画面は無くなった（住所は会社ページへ送る ── assert-career.mjs の E1）。
+   比較の数え方が会社ページと同じことは場面 rate と static が見る。ここで見るのは、1社の生きた欄（星・口コミ・REAL PAY・月の勤務・会員の回答）が
+   日英の2枚のどこにも戻っていないこと ── 戻ると、会社ページと別の数え方の欄が、誰にも見えない画面で黙って読み込みを始める。 */
+scene('overview', '1社の概要は無い：1社の生きた欄（星・口コミ・REAL PAY・月の勤務・会員の回答）を career.html に置かない（日英）', 'static', async () => {
+  for (const p of ['career.html', 'en/career.html']) {
+    const h = read(p);
+    const one = [...h.matchAll(/<div class="crl" data-live="(stars|reviews|realpay|work|fact)"[^>]*>/g)].map((m) => m[1]);
+    ok(h.includes('data-live="cmp-stars"') && !one.length && !/data-view="airline"/.test(h),
+      `${p}: 1社の生きた欄が1つも無い（在るのは比較の欄だけ）・会社の概要の画面も無い`, one.join(','));
+  }
 });
 
 /* ══ 比較の口コミの要約（cmp-summary）と、口コミの鍵のある人の読む枠 ══════════════
@@ -1792,7 +1779,9 @@ scene('keys', '比較の回答：1社1回の読み（pv_contrib_facts）が、2�
   ok(calls.every((c) => Array.isArray(c.p.keys) && JSON.stringify([...new Set(c.p.keys)].sort()) === JSON.stringify(want) && c.p.keys.length === want.length),
     `どちらの読みも、聞く質問はちょうど CMP_KEYS の勤務・訓練 ${CK.work.length} と給与・待遇 ${CK.pay.length}（${want.length}）`,
     J(calls.map((c) => ({ n: c.p && c.p.keys && c.p.keys.length, extra: (c.p.keys || []).filter((k) => !want.includes(k)), missing: want.filter((k) => !(c.p.keys || []).includes(k)) }))));
-  ok(cards.length > 0 && cards.every((k) => want.includes(k)), `ページの話題のカードの質問（${new Set(cards).size}）も、その中に在る`, cards.filter((k) => !want.includes(k)).join(','));
+  /* ★2026-10-26 P12.130（当て直し）：前は「ページの話題のカード（エティハドの概要の 勤務・待遇 のタブ）の質問も、その中に在る」。会社の概要の画面ごと、
+     話題のカードは無い ── 1社1回の読みが聞くのは2つの欄の質問だけ（上の行）・ページに1社の集計の欄が1つも無いこと。 */
+  ok(cards.length === 0, `ページに話題のカードの欄（data-live="fact"）が無い（会社の概要は無い）`, [...new Set(cards)].join(','));
   const F = await faces3(page);
   ok(!!F.Q && F.Q.state === 'open' && F.Q.grid && F.Q.text.includes(labelOf(WK)) && F.Q.text.includes(ansOf(WK)) && !F.Q.text.includes(labelOf(PK)),
     `月の働き方の下の欄は、その答えから勤務・訓練の質問を描く（「${labelOf(WK)}」${ansOf(WK)}）`, J(F.Q && [F.Q.state, F.Q.text.slice(0, 200)]));

@@ -1,6 +1,9 @@
 /* career.html の本文を書く（2026-10-03・2026-10-04 に深い画面を足した）。
- * 入口・会社の概要・2社の比較を1枚に入れる。エティハド航空だけ、その先（タブ・その数字自身の詳細・
- * 就航地・カード保存の器）まで持つ ── どの会社が深い画面を持つかは下の DEEP の1か所。
+ * 2社の比較とカード保存の器を1枚に入れる。エティハド航空だけ、その数字自身の詳細と就航地の画面も持つ
+ * ── どの会社が深い画面を持つかは下の DEEP の1か所。
+ * ★2026-10-26 オーナー P12.130（WP-compare-all-22）「このページいらなくない？」：入口（見出しと会社のカード）と会社の概要の画面は無い。
+ *   会社を選ぶのは航空会社一覧（world-airlines.html）・1社を見るのは会社ページ。住所だけで開いた・知らない住所は航空会社一覧へ、
+ *   ?airline={slug} は会社ページへ送る（履歴を積まない ── 下の build() の頭の1行と career.js の away()）。
  *
  *   node gen-career.mjs           career.html の <!--PV-CAREER-->…<!--/PV-CAREER--> と ?v= を書く
  *   node gen-career.mjs --check   書かずに比べるだけ（古ければ 1 で終わる）
@@ -17,7 +20,7 @@
  *
  * ★大きい額と棒は、5社とも・機長も副操縦士も「推定年収」（2026-10-06 オーナー判断）。
  *     読み口は会社ページと同じ pv-airline-view.mjs の1か所 ── ここで決め直さない（2つの画面がずれない）。
- *     年収を「確認中」と出さない。概要・比較・詳細・カードの全部が cell() の答えだけを使う。
+ *     年収を「確認中」と出さない。比較・詳細・カードの全部が cell() の答えだけを使う。
  *   ⚠️ 会社が公表した額（求人の上限・目標年収・下限・乗員全体の平均）を、棒にも大きい額にも入れない。
  *      置き場は「会社が公表している金額」の一覧だけ（pub()）。誰の額か（内訳の名前）・何の額か（種類）・
  *      額・出どころを一緒に出す。推定と公表額を同じ目盛に並べない。
@@ -27,22 +30,21 @@
  *   ⚠️ 推定の根拠を作らない。台帳に根拠が記録してある職位（est.backed）だけ 根拠・算出方法・時点 を出し、
  *      無い職位は1行だけ（EST_PLAIN）。幅・件数・時点を足さない。
  *
- * ★家賃は1か月あたり。街どうしを同じ目盛に並べない（比較では、会社ごとの箱に その街の物差し・出どころ・時点 を付ける）。
+ * ★家賃は1か月あたり。比較では、会社ごとの箱に その街の物差し・出どころ・時点 を付ける。
+ *   ★2026-10-26 オーナー P12.131「比較の拠点の家賃はちゃんと棒グラフ書いてね」：箱は会社ごとのまま、間取りの行の棒だけは
+ *     並べた2つの箱で1本の物差し（円に直した額 ── 下の rentBox）。
  *
  * ★比較の読む順は 年収 → 提出された年収 → 口コミ → 家賃 → 月の働き方 → 待遇 → 内訳（公表額）。順は assert-career.mjs が見ている。
  *
- * ★主表示には目印を付ける（5社とも）。カード保存はこの DOM の字を読む。
- *     data-main="cap|fo"      額（textContent が画面の額そのまま）
- *     data-main-tag="cap|fo"  札（「推定」）
- *     data-main-bar="cap|fo"  棒（style の --w がその会社の目盛での長さ・data-man が額（万円））
- *   ⚠️ 概要の中にだけ付ける。比較・詳細には付けない（1社の中で1つずつ）。
- *   ⚠️ 公表額の一覧には付けない（カードの大きい額は推定だけ）。
+ * ★カード保存は、比較の行（.cr-row）の字・札・棒の額を読む（career-card.js）。
+ *   ★2026-10-26 P12.130：会社の概要の画面と、その中の主表示の目印（data-main・data-main-tag・data-main-bar）は無くなった。
+ *   ⚠️ 公表額の一覧はカードに載せない（カードの大きい額は推定だけ）。
  *
  * ★生きた欄（.crl）は空で出荷する。数・星・件数をここで書かない（career-live.js がサーバーの答えで埋める）。
  *
  * ★check-salary.mjs が読める形で書く。額の行は「社名 → 職位 → 金額」をこの順に、
  *   間に数字を挟まずに置く（あちらの GAP は24個まで・数字で切れる。「A320」は額の後ろ）。
- *   概要では社名を・比較では職位を、画面上は隠している（読み上げには残る）。
+ *   比較では職位を、画面上は隠している（読み上げには残る）。
  *   ⚠️ 行の中に「手取」「月額」「税引」「パッケージ」などの語を足さない。
  *      あちらはその語が近くにある金額を「年額ではない」とみなして**黙って照合から外す**。
  *
@@ -61,7 +63,7 @@ import { viewOf, rentCell, coText, LEAD as LEAD_FIVE, scaleOf, scaleTop, width, 
 import { model, REGIONS } from './directory-model.mjs';
 import { logoHtml } from './airline-logo.mjs';
 import { PHOTOS, primary, needsCredit, src as photoSrc, SMALL_W } from './airline-photos.mjs';
-import { FACTS, atText, introText, valueText, EN as CF_EN, twin, twinOf, valueTextEn, atTextEn, introTextEn, JA_CHARS } from './career-facts.mjs';
+import { FACTS, atText, EN as CF_EN, twin, twinOf, atTextEn, JA_CHARS } from './career-facts.mjs';
 import { primary as placeShot, needsCredit as placeNeedsCredit, src as placeSrc, SMALL_W as PLACE_SMALL_W, EN as PL_EN, subjectEn, changesEn } from './place-photos.mjs';
 import { EN as CO_EN } from './airline-facts.mjs';
 import { EN as LV_EN } from './living-facts.mjs';
@@ -69,6 +71,7 @@ import { QUESTIONS } from './pv-conditions.mjs';
 import { researchCities } from './airline-rollout.mjs';
 import { qrMatrix } from './career-qr.mjs';
 import { curCore, bakeHtml } from './cur-core.mjs';
+import { JPY_PER } from './fx-rates.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -76,15 +79,13 @@ export const PAGE = 'career.html';
 /* ★2026-10-25 英語の EN-9：同じ1枚の英語（en/career.html）。中身は日本語と同じ部品・同じ並び・同じ数字で、字だけ英語（下の WORDS.en）。
    英語の頭（<head>・左のメニュー）はそのファイルが持つ ── ここが書くのは日本語と同じ PV-CAREER の印のあいだと ?v= だけ。 */
 export const PAGE_EN = `en/${PAGE}`;
-/* 先行5社。並びは入口のタイルの順。（正本は airline-rollout.mjs の LEAD。ここに並びを打たない） */
+/* 先行5社。（正本は airline-rollout.mjs の LEAD。ここに並びを打たない） */
 export const FIVE = LEAD_FIVE;
-/* 深い画面（タブ・詳細・就航地）を持つ会社。ほかは段1の概要のまま。 */
+/* 数字の詳細と就航地の画面を持つ会社（★2026-10-26 P12.130：会社の概要とタブの画面は無い ── 1社を見るのは会社ページ）。 */
 export const DEEP = ['etihad'];
 /* 比較を社名なしで開いたときの2社。 */
 export const PAIR = ['jal', 'cathay-pacific'];
 export const ROLES = [['cap', '機長'], ['fo', '副操縦士']];
-/* 概要のタブ。住所は top だけ tab= を持たない。 */
-export const TABS = [['top', '概要'], ['work', '勤務・待遇'], ['life', '暮らし・ステイ']];
 /* その数字自身の詳細（d=cap-est・d=fo-est）。在るのは推定だけ ── 公表額は一覧（pub()）が持つ。 */
 export const KINDS = [['est', '推定年収']];
 /* 「会社が公表している金額」に並べる区分。訓練生は入れない（年収の比較ではない）。
@@ -123,24 +124,17 @@ const C_EN = await curCore('USD', 'en');
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const WORDS = Object.freeze({
   ja: Object.freeze({
-    sep: '・', slash: '／', paren: x => `（${x}）`, kv: (k, v) => `${k}：${v}`, introJoin: '',
+    slash: '／', paren: x => `（${x}）`,
     rank: Object.freeze({ cap: '機長', fo: '副操縦士' }),
-    tabs: Object.freeze({ top: '概要', work: '勤務・待遇', life: '暮らし・ステイ' }),
     est: '推定年収', estOf: l => `${l}の推定年収`, estTarget: '機種の指定なし',
     estPlain: '当サイトの推定（公開情報からの推計）。根拠の資料はまだ記録していません。',
-    estL: '推定', basisL: '根拠', methodL: '算出方法', asOfL: '時点', target: '対象', estAbout: '推定年収について',
+    estL: '推定', basisL: '根拠', methodL: '算出方法', asOfL: '時点', target: '対象',
     photoAlt: (n, a) => `${n}の ${a}`, photos: (c, n) => `写真${c ? `（${c}）` : ''}`,
     back: '航空会社を選ぶ', backCard: '戻る', go: '詳しく', moreTowns: 'ほかの街',
     srcAt: (a, c) => `適用時点：${a} ／ 確認日：${c}`, req: '応募条件', basis: '前提と出どころ', pubH: '会社が公表している金額',
     up: Object.freeze({ max: y => `〜${y}`, over: y => `${y} 超`, from: y => `${y} から` }),
-    h1: '次のキャリアを、<br/>選択する。', cmpAll: '航空会社を比較', others: 'ほかの航空会社を見る', cmp: '他社と比較',
-    pay: '年収', revJobs: '口コミ・募集を見る',
-    topic: Object.freeze({ taxi: '通勤タクシー・クルーバス', 'staff-travel': '社員向け航空券', upgrade: '機長昇格' }), asksH: '匿名で答える',
-    asOf: t => `${t} 時点`, org: '会社', fleet: '機材の内訳', srcs: '出どころ',
-    jobs: '募集', posted: (p, d) => `${p}・${d} 掲載`, open: d => `${d}に公開中を確認`,
-    bens: '公表されている待遇', inst: '教官の求人（A320）に書かれている手当',
-    town: '拠点の街', rentH: r => `家賃（${r}・1か月あたり）`, rentBasis: '家賃の前提と出どころ',
-    reviews: '口コミ', card: 'カードを保存', work: '月の働き方', payAnon: '匿名で給与を提出する', dests: '就航地',
+    cmpAll: '航空会社を比較', pay: '年収',
+    reviews: '口コミ', card: 'カードを保存', work: '月の働き方',
     destsOf: n => `${n}の就航地`, seasonal: '季節便', maps: 'Google マップで開く', hotels: 'ホテル',
     first: '1社目', second: '2社目', swap: '2社を入れ替える', realPay: '提出された年収', rentCmp: '拠点の街の家賃', perMonth: '1か月あたり',
     benCmp: '待遇', close: '閉じる', search: '航空会社名・国名で検索', none: '該当する航空会社が見つかりませんでした',
@@ -148,24 +142,17 @@ export const WORDS = Object.freeze({
     rentNone: '家賃の資料を確認できていません',
   }),
   en: Object.freeze({
-    sep: ' · ', slash: ' / ', paren: x => ` (${x})`, kv: (k, v) => `${k}: ${v}`, introJoin: ' ',
+    slash: ' / ', paren: x => ` (${x})`,
     rank: Object.freeze({ cap: 'Captain', fo: 'First Officer' }),
-    tabs: Object.freeze({ top: 'Overview', work: 'Duty &amp; benefits', life: 'Life &amp; layovers' }),
     est: 'Estimated annual pay', estOf: l => `${l}: estimated annual pay`, estTarget: 'Not type-specific',
     estPlain: 'Our estimate (from public information). We have not yet recorded the source documents.',
-    estL: 'Estimate', basisL: 'Basis', methodL: 'Method', asOfL: 'As of', target: 'Covers', estAbout: 'About this estimate',
+    estL: 'Estimate', basisL: 'Basis', methodL: 'Method', asOfL: 'As of', target: 'Covers',
     photoAlt: (n, a) => `${n} ${a}`, photos: (c, n) => `${n === 1 ? 'Photo' : 'Photos'}${c ? ` (${c})` : ''}`,
     back: 'Choose an airline', backCard: 'Back', go: 'Details', moreTowns: 'Other towns',
     srcAt: (a, c) => `${a} · checked ${c}`, req: 'Requirements', basis: 'Basis and sources', pubH: 'Pay published by the airline',
     up: Object.freeze({ max: y => `up to ${y}`, over: y => `over ${y}`, from: y => `from ${y}` }),
-    h1: 'Choose your<br/>next career', cmpAll: 'Compare airlines', others: 'See other airlines', cmp: 'Compare',
-    pay: 'Pay', revJobs: 'See reviews and jobs',
-    topic: Object.freeze({ taxi: 'Commuting and taxis', 'staff-travel': 'Staff Travel', upgrade: 'Upgrade to captain' }), asksH: 'Answer anonymously',
-    asOf: t => `as of ${t}`, org: 'Company', fleet: 'Fleet', srcs: 'Sources',
-    jobs: 'Jobs', posted: (p, d) => `${p} · posted ${d}`, open: d => `Confirmed open on ${d}`,
-    bens: 'Benefits published by the airline', inst: 'Allowances in the A320 instructor posting',
-    town: 'Base city', rentH: r => `Rent (${r}, per month)`, rentBasis: 'Rent basis and sources',
-    reviews: 'Reviews', card: 'Save card', work: 'Monthly duty', payAnon: 'Add your pay anonymously', dests: 'Destinations',
+    cmpAll: 'Compare airlines', pay: 'Pay',
+    reviews: 'Reviews', card: 'Save card', work: 'Monthly duty',
     destsOf: n => `${n} destinations`, seasonal: 'Seasonal', maps: 'View on Google Maps', hotels: 'Hotels',
     first: 'First airline', second: 'Second airline', swap: 'Swap the two airlines', realPay: 'Submitted pay', rentCmp: 'Rent in the base city', perMonth: 'per month',
     benCmp: 'Benefits', close: 'Close', search: 'Search by airline or country', none: 'No airlines matched your search',
@@ -228,17 +215,6 @@ function enOf(s, where = '') {
   if (Object.hasOwn(LEDGER_EN, t)) { LEDGER_USED.add(t); return LEDGER_EN[t]; }
   throw new Error(`英語の比較のページ：英語の対が無い字${where ? `（${where}）` : ''} ── ${t}`);
 }
-/* 台帳の行 x の項目 f（'ja'・'cond_ja'・'city_ja' …）の、いまの言葉の字。英語は行の英語の欄 → 台帳の英語の表（career-facts.mjs の twin）。 */
-const fld = (x, f) => (EN() ? (twin(CF_EN, x, f) || enOf(x[f], `${x.key || x.iata || ''}.${f}`)) : x[f]);
-/* 日付（at）の字。日本語は atText・英語は atTextEn */
-const atX = at => (EN() ? atTextEn(at) : atText(at));
-/* 値の字（数と単位・字）。英語は valueTextEn（単位の英語が無ければ止める） */
-const valX = x => {
-  if (!EN()) return valueText(x);
-  const e = valueTextEn(CF_EN, x);
-  if (typeof e !== 'string' || !e) return enOf(x.value, `${x.key || ''}.value`);
-  return e;
-};
 /* 英語の日付（2026-10-04 → 4 October 2026）。 */
 const dayEn = iso => String(iso || '').replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${+d} ${MONTHS_EN[+mo - 1]} ${y}`);
 
@@ -321,7 +297,7 @@ export function cell(slug, rank) {
 /* 目盛の右端（★2026-10-24 オーナー P12.104「年収はもっと高い人もいるだろうからMAX7000万はおかしい」）。決まった上限は持たない。
    決め方は会社ページと同じ1か所（pv-airline-view.mjs の scaleOf / scaleTop）── 画面に描く額のいちばん大きいもの（推定・その幅の上の額・
    会社が公表している額）を、次の 1,000万 の刻みへ切り上げる。
-     1社の画面（概要・詳細・エティハドのタブ）… その会社の目盛（会社ページと同じ右端）。
+     1社の画面（数字の詳細 ── ★2026-10-26 P12.130 から会社の概要とタブの画面は無い）… その会社の目盛（会社ページと同じ右端）。
      比較 … 並べた2社で1本（2社の目盛の大きいほう ── 2社は必ず同じ目盛）。HTML は既定の2社（PAIR）の目盛で描いておき、
             選び直したら career.js が、行の額（data-man）と会社の目盛（data-scale）から長さを決め直す（額をスクリプトに持たない）。
             目盛の字は、ありうる右端（全社の scaleOf）ごとに1本ずつ比較の板に置き、career.js は見せる1本を選ぶだけ
@@ -331,10 +307,10 @@ const pairScale = (a, b) => scaleTop([scaleOf(a), scaleOf(b)]);
 for (const s of FIVE) for (const [r] of ROLES) width(cell(s, r).man, scaleOf(s));
 
 /* 棒の長さは width()（目盛 top に対する％。会社ページと同じ関数）。data-man は額（万円 ── 比較を選び直したとき・カードを描くときに、
-   並べた2社の目盛で長さを決め直すため）。mark は目印（概要の中だけ）。 */
-const fill = (c, top, extra, mark) => `<i class="cr-fill${extra ? ' ' + extra : ''}"${mark ? ` data-main-bar="${mark}"` : ''} data-man="${c.man}" style="--w:${width(c.man, top)}"></i>`;
+   並べた2社の目盛で長さを決め直すため）。★2026-10-26 P12.130：主表示の目印（data-main-bar・data-main-tag）を付けていた会社の概要の画面は無い。 */
+const fill = (c, top) => `<i class="cr-fill" data-man="${c.man}" style="--w:${width(c.man, top)}"></i>`;
 /* 札（「推定」）。 */
-const kline = (c, mark) => `<span class="cr-tag"${mark ? ` data-main-tag="${mark}"` : ''}>${esc(c.tag)}</span>`;
+const kline = c => `<span class="cr-tag">${esc(c.tag)}</span>`;
 
 /* 目盛の字（0・まんなか・右端）。比較の板では右端ごとに1本ずつ置く（attrs ＝ data-scale・data-div・hidden）。 */
 const axis = (top, attrs = '') => `<div class="cr-axis"${attrs} aria-hidden="true"><span>0</span><span>${yen(top / 2)}</span><span>${yen(top)}</span></div>`;
@@ -360,20 +336,6 @@ export function labOf(slug) {
 /* 目盛の刻みの数（.cr-track の線 ＝ 1,000万ごと）。画面の囲み（section）の style に置く。 */
 const div = top => `--cr-div:${top / SCALE_STEP}`;
 
-/* 概要の1マス（大きい数字）。社名は画面では隠してある（読み上げと check-salary.mjs のため）。 */
-function num(slug, rank, label) {
-  const c = cell(slug, rank);
-  return `<div class="cr-num" data-role="${rank}"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-num-r">${label}</span><b class="cr-num-v" data-main="${rank}">${esc(c.text)}</b><span class="cr-num-k">${kline(c, rank)}</span></div>`;
-}
-
-/* 概要の小さい棒。数字は上の2マスが持っているので、ここは形だけ（読み上げない）。 */
-function mini(slug) {
-  return `<div class="cr-mini" aria-hidden="true">
-${ROLES.map(([r]) => `<div class="cr-mini-row"><span class="cr-mini-l">${W.rank[r]}</span><span class="cr-track">${fill(cell(slug, r), scaleOf(slug), 'is-' + r, r)}</span></div>`).join('\n')}
-${axis(scaleOf(slug))}
-</div>`;
-}
-
 /* ── 写真 ───────────────────────────────────────────────────────── */
 function img(p, alt, sizes, eager) {
   return `<img src="${UP}${photoSrc(p)}" srcset="${UP}${photoSrc(p, true)} ${SMALL_W}w, ${UP}${photoSrc(p)} ${p.w}w" sizes="${sizes}" width="${p.w}" height="${p.h}" alt="${esc(alt)}"${eager ? '' : ' loading="lazy"'} decoding="async"/>`;
@@ -392,11 +354,6 @@ const chg = p => {
   return e;
 };
 const badge = slug => `<span class="cr-code">${esc(code(slug))}</span>`;
-
-/* 入口のいちばん上の1枚。各社の1枚目とは別の写真を使う（同じ写真が2回出ない）。 */
-const LEAD_SLUG = 'etihad';
-const LEAD = (PHOTOS[LEAD_SLUG] || []).find(p => p.file === 'etihad-b787');
-if (!LEAD) throw new Error('airline-photos.mjs に入口の写真（etihad-b787）が無い');
 
 /* 作者名とライセンス名を示すことが使う条件の写真にだけ出す。
    items = [[slug, 写真], …]。withName のときは社名を頭に付ける
@@ -427,9 +384,10 @@ function credits(items, withName, shown) {
 const PAGE_TABS = {};
 const pageTabs = s => (PAGE_TABS[`${LANG}:${s}`] ||= new Set([...fs.readFileSync(path.join(ROOT, EN() ? 'en' : '', 'airlines', `${s}.html`), 'utf8').matchAll(/ data-pvg-tab="([a-z]+)"/g)].map(m => m[1])));
 const href = {
-  home: PAGE,
-  airline: s => `${PAGE}?airline=${s}`,
-  tab: (s, t) => `${PAGE}?airline=${s}` + (t === TABS[0][0] ? '' : `&amp;tab=${t}`),
+  /* ★2026-10-26 P12.130：会社を選ぶ所 ＝ 航空会社一覧（どちらの言葉も、そのページから見た同じ字 ── en/career.html からは en/world-airlines.html）。
+     比較の「航空会社を選ぶ」はここへ・いま並べている2社を一覧の比べる社（?cmp= ── 一覧が住所から読む）に連れていく（career.js の pair()）。 */
+  list: 'world-airlines.html',
+  listCmp: (a, b) => `world-airlines.html?cmp=${a}+${b}`,
   stay: (s, iata) => `${PAGE}?airline=${s}&amp;stay=${iata}`,
   detail: (s, d) => `${PAGE}?airline=${s}&amp;d=${d}`,
   compare: (a, b) => `${PAGE}?view=compare` + (a ? `&amp;a=${a}&amp;b=${b}` : ''),
@@ -445,8 +403,9 @@ const href = {
   },
 };
 const ic = d => `<svg class="cr-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
-const IC = { back: ic('M15 6l-6 6 6 6'), go: ic('M5 12h14M13 6l6 6-6 6'), down: ic('M6 9l6 6 6-6'), swap: ic('M7 8h11l-3-3M17 16H6l3 3'), next: ic('M9 6l6 6-6 6'), x: ic('M6 6l12 12M18 6L6 18') };
-const back = () => `<a class="cr-back" href="${href.home}" data-go>${IC.back}${W.back}</a>`;
+const IC = { back: ic('M15 6l-6 6 6 6'), go: ic('M5 12h14M13 6l6 6-6 6'), down: ic('M6 9l6 6 6-6'), swap: ic('M7 8h11l-3-3M17 16H6l3 3'), x: ic('M6 6l12 12M18 6L6 18') };
+/* 比較の「航空会社を選ぶ」（★2026-10-26 P12.130）：航空会社一覧へ（career.html の外 ── data-go を付けない）。 */
+const back = () => `<a class="cr-back" id="cr-back" href="${href.listCmp(...PAIR)}">${IC.back}${W.back}</a>`;
 /* 比較の節の下に置く、会社ごとの入口（その会社のページの該当タブへ）。掲載している全社ぶん置いて、選ばれた2社だけ見せる（career.js の pair()）。
    読み上げの名前は「節の見出し ＋ 社名 ＋ 詳しく」（aria-labelledby。字は足さない）。
    ⚠️ data-go を付けない（career.html の外へ出る）。額・職位の字をこの中に書かない（check-salary.mjs の並びを崩さない）。 */
@@ -499,7 +458,7 @@ const srcRow = (slug, s) => {
 /* 額の頭と尻の言い添え（求人の上限 ＝ max・下限 ＝ over / from）。日本語の原貨の字（「〜AED 674,029」「USD 100,000 超」）と、英語の額の字はこれ。 */
 const upKey = key => (/^max_/.test(key) ? 'max' : /_over$/.test(key) ? 'over' : /_from$/.test(key) ? 'from' : '');
 
-/* tag は見出しの段（概要では h2・比較では社名の下なので h3）。 */
+/* tag は見出しの段（比較では社名の下なので h3）。 */
 function pub(slug, tag) {
   const B = BASIS[slug] || {};
   const groups = pubGroups(slug);
@@ -558,7 +517,6 @@ export const EST_PLAIN = '当サイトの推定（公開情報からの推計）
 export const EST_TARGET = '機種の指定なし';
 if (WORDS.ja.estPlain !== EST_PLAIN || WORDS.ja.estTarget !== EST_TARGET || WORDS.ja.est !== KINDS[0][1]) throw new Error('gen-career.mjs の WORDS.ja が EST_PLAIN・EST_TARGET・KINDS と違う');
 for (const [r, l] of ROLES) if (WORDS.ja.rank[r] !== l) throw new Error(`gen-career.mjs の WORDS.ja.rank.${r} が ROLES と違う`);
-for (const [t, l] of TABS) if (WORDS.ja.tabs[t] !== l) throw new Error(`gen-career.mjs の WORDS.ja.tabs.${t} が TABS と違う`);
 function estRows(slug, rank) {
   const e = vw(slug).pay[rank].est;
   if (!e.backed) return [[W.estL, esc(W.estPlain)]];
@@ -568,82 +526,8 @@ function estRows(slug, rank) {
 const facts = rows => `<dl class="cr-facts">
 ${rows.map(([k, v]) => `<div class="cr-fact"><dt>${k}</dt><dd>${v}</dd></div>`).join('\n')}
 </dl>`;
-/* 概要の中の折り畳み（詳細の画面を持たない会社）。職位ごとに1かたまり。 */
-function estNote(slug) {
-  return `<details class="cr-more cr-est">
-<summary>${W.estAbout}</summary>
-${ROLES.map(([r]) => `<p class="cr-est-r">${W.rank[r]}<span>${W.estTarget}</span></p>
-${facts(estRows(slug, r))}`).join('\n')}
-</details>`;
-}
-
-/* ── 入口 ───────────────────────────────────────────────────────── */
-function home() {
-  const tiles = FIVE.map(s => `<a class="cr-tile" href="${href.airline(s)}" data-go style="--cr-co:${color(s)}">
-<span class="cr-tile-p">${photo(s, '(min-width: 760px) 330px, 46vw', true)}${badge(s)}</span>
-<span class="cr-tile-n">${esc(name(s))}</span>
-</a>`).join('\n');
-  return `<section class="cr-view cr-home" data-view="home">
-<div class="cr-lead">
-${img(LEAD, W.photoAlt(name(LEAD_SLUG), LEAD.aircraft), '(min-width: 1100px) 1040px, 100vw', true)}
-<h1 class="cr-h1" tabindex="-1">${W.h1}</h1>
-</div>
-<div class="cr-tiles">
-${tiles}
-<a class="cr-tile cr-tile-cmp" href="${href.compare()}" data-go>
-<span class="cr-tile-g" aria-hidden="true"><i></i><i></i></span>
-<span class="cr-tile-n">${W.cmpAll}${IC.go}</span>
-</a>
-</div>
-<p class="cr-else"><a class="cr-link" href="world-airlines.html">${W.others}${IC.go}</a></p>
-${credits([[LEAD_SLUG, LEAD], ...FIVE.map(s => [s, shot(s)])], true)}
-</section>`;
-}
-
-/* 「他社と比較」は、この会社を1社目に置いて開く。相手は既定の2社のうち、この会社でないほう。 */
-const rival = slug => (slug === PAIR[0] ? PAIR[1] : PAIR[0]);
-
-/* ── 概要（段1の4社） ───────────────────────────────────────────── */
-function overview(slug) {
-  if (DEEP.includes(slug)) return deep(slug);
-  return `<section class="cr-view cr-co" data-view="airline" data-airline="${slug}" style="--cr-co:${color(slug)};${div(scaleOf(slug))}" hidden>
-<div class="cr-top">
-${back()}
-<a class="cr-btn" href="${href.compare(slug, rival(slug))}" data-go>${W.cmp}</a>
-</div>
-<div class="cr-cols">
-<figure class="cr-hero">
-${photo(slug, '(min-width: 900px) 500px, 100vw', false)}
-${badge(slug)}
-<h1 class="cr-h1 cr-hero-n" tabindex="-1">${esc(name(slug))}</h1>
-</figure>
-<div class="cr-pay">
-<h2 class="cr-pay-h">${W.pay}</h2>
-<div class="cr-nums">
-${ROLES.map(([r]) => num(slug, r, W.rank[r])).join('\n')}
-</div>
-${mini(slug)}
-<p class="cr-tax">${esc(vw(slug).pay.tax)}</p>
-${estNote(slug)}
-</div>
-</div>
-${pub(slug, 'h2')}
-<p class="cr-else"><a class="cr-link" href="airlines/${slug}.html">${W.revJobs}${IC.go}</a></p>
-${credits([[slug, shot(slug)]], false)}
-</section>`;
-}
-
-/* ── 概要（DEEP の会社）── 写真 → タブ → パネル ───────────────── */
-/* 額と棒の1行（推定年収）。行ぜんたいが、その数字自身の詳細への入口（数字も棒も同じ先へ行く）。 */
-function bar(slug, rank, label) {
-  const c = cell(slug, rank);
-  return `<a class="cr-bar cr-bar-est" data-role="${rank}" href="${href.detail(slug, `${rank}-est`)}" data-go>
-<span class="cr-bar-h"><span class="cr-vh">${esc(name(slug))}</span><span class="cr-bar-r">${label}</span><b class="cr-bar-v" data-main="${rank}">${esc(c.text)}</b><span class="cr-bar-k">${kline(c, rank)}</span>${IC.next}</span>
-<span class="cr-track" aria-hidden="true">${fill(c, scaleOf(slug), '', rank)}</span>
-</a>`;
-}
-
-/* 話題ごとのカード（勤務・待遇）。答えの欄（生きた欄）と、その質問へ直接行く入口。
+/* 話題（会社ページの「情報を追加」の面の話題 ── gen-airline-glance.mjs が TOPICS と askGroup を読む）。
+   ★2026-10-26 P12.130：この1枚の話題ごとのカード（エティハドの概要の 勤務・待遇 のタブ）は、概要の画面ごと無くなった。
    ★質問の鍵をここに書き写さない。待遇アンケートの質問の一覧（pv-conditions.mjs）から、鍵の頭で拾う
      ── 質問が分かれたり名前が変わったりしても、入口の先が無くなることがない
      （2026-10-04、タクシーとクルーバスを別々の質問に分けた回に、書き写した鍵が3つ消えて生成が止まった）。
@@ -719,29 +603,6 @@ export const TOPICS = TOPIC_DEFS.map(([id, title, tp]) => {
   return [id, title, asks];
 });
 
-/* 質問の入口。会社ページの「情報を追加」の面を、その質問の前で開く（ログインなしで答えられる）。
-   会社ページを持たない会社・面で答えられない質問は、今までどおり質問の画面へ。 */
-const askHref = (slug, key) => (FIVE.includes(slug) && askGroup(key)
-  ? `airlines/${slug}.html?add=${askGroup(key)}&amp;aq=${key}`
-  : `airline-conditions.html?airline=${slug}&amp;q=${key}`);
-/* 英語の入口の字は、質問の台帳の英語（pv-conditions.mjs の en.label ── 英語の会社ページ・質問の画面と同じ字）。無ければ止める。 */
-const askEn = id => {
-  const q = QUESTIONS.find(x => x.id === id), t = q && q.en && q.en.label;
-  if (!t) throw new Error(`英語の比較のページ：質問 ${id} に英語の名前（en.label）が無い（pv-conditions.mjs）`);
-  return t;
-};
-function topic(slug, [id, title, asks]) {
-  if (WORDS.ja.topic[id] !== title) throw new Error(`gen-career.mjs の WORDS.ja.topic.${id} が TOPIC_DEFS と違う`);
-  return `<article class="cr-topic" data-topic="${id}">
-<h2 class="cr-h2">${W.topic[id]}</h2>
-${live('fact', { airline: slug, keys: asks.map(a => a[0]).join(',') })}
-<p class="cr-asks-h">${W.asksH}</p>
-<ul class="cr-asks">
-${asks.map(([key, label]) => `<li><a class="cr-ask" href="${askHref(slug, key)}">${esc(EN() ? askEn(key) : label)}${IC.go}</a></li>`).join('\n')}
-</ul>
-</article>`;
-}
-
 /* 就航地（出どころつきの台帳）。「就航地」と呼ぶ ── 泊まるかどうかは台帳に無い。 */
 function destinations(slug) {
   const list = FACTS[slug]?.destinations;
@@ -761,114 +622,6 @@ const cityOf = d => {
   return d.city_en;
 };
 const countryOf = d => (EN() ? twin(CF_EN, d, 'country_ja') || placeCountryEn(d.iata) || enOf(d.country_ja, `就航地 ${d.iata} の国`) : d.country_ja);
-/* 出どころは、同じもの（同じ資料・同じ時点）を1回だけ言う。 */
-function destSources(slug) {
-  const out = [];
-  for (const d of destinations(slug)) {
-    if (!out.some(x => x.url === d.src.url && x.at === d.at)) out.push({ url: d.src.url, name: d.src.name, at: d.at });
-  }
-  return `<ul class="cr-srcs pv-no-cur">
-${out.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(EN() ? enOf(s.name, '就航地の出どころ') : s.name)}</a><span>${W.asOf(esc(atX(s.at)))}</span></li>`).join('\n')}
-</ul>`;
-}
-
-/* ── 会社・募集・公表されている待遇・拠点の街（DEEP の会社）────────────
-   ★字も数字も career-facts.mjs（出どころつきの台帳）から機械で出す。ここで作文しない・数字を打たない。
-   ★条件（cond_ja）のある数字は、条件の文と必ず一緒に出す。「◯◯時点」に出すのは at（as_of ではない）。
-   見た目は career-sec.css（.cr-org*・.cr-job*・.cr-ben*・.cr-town*・.cr-rent*・.cr-sv*）。 */
-/* 英語：日付まで在る・半期（「4 October 2026」「H1 2026」）なら「as of …」（日本語の「…日 時点」「…期 時点」と同じ決まり） */
-const when = at => { const t = atX(at); return t ? ((EN() ? /^\d+ [A-Z]|^H[12] / : /日$|期$/).test(t) ? W.asOf(t) : t) : ''; };
-/* 出どころの一覧。同じ資料は1回だけ。extra は [資料の中身を言う字, 項目] の組（発表の日つきで出すもの）。 */
-function srcList(items) {
-  const out = [];
-  for (const x of items) {
-    if (!x?.src?.url || !x.src.name) throw new Error(`出どころの無い項目がある（career-facts.mjs）: ${x?.key}`);
-    if (!out.some(o => o.url === x.src.url)) out.push({ url: x.src.url, name: x.src.name, at: x.at });
-  }
-  return `<ul class="cr-srcs pv-no-cur">
-${out.map(o => `<li><a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(EN() ? enOf(o.name, '出どころ') : o.name)}</a>${o.at ? `<span>${esc(when(o.at))}</span>` : ''}</li>`).join('\n')}
-</ul>`;
-}
-/* 台帳の値の字。金額（cur つき）は元の通貨の記号を頭に付ける（valueText は通貨を出さない）。 */
-const factValue = x => (x.cur && typeof x.value === 'number' ? `${x.cur} ${x.value.toLocaleString('en-US')}` : valX(x));
-
-/* 会社（歴史と規模の短い紹介＋紹介文に出ていない数字の札）。 */
-const ORG_NUMS = ['fleet_avg_age', 'network_destinations', 'pilots_joined_year', 'pilot_promotions_year'];
-function org(slug) {
-  const F = FACTS[slug];
-  const intro = EN() ? introTextEn(slug) : introText(slug);
-  if (!Array.isArray(intro) || !intro.length) throw new Error(`${slug}: career-facts.mjs に紹介文が無い`);
-  if (intro.some(i => !i.text)) throw new Error(`${slug}: 紹介文の英語が台帳の項目で埋まらない（career-facts.mjs の EN）`);
-  const used = new Set(intro.flatMap(i => i.uses));
-  const all = [...F.profile, F.base, ...F.scale];
-  const by = k => { const x = all.find(i => i.key === k); if (!x) throw new Error(`${slug}: 台帳に ${k} が無い`); return x; };
-  /* 紹介文で言った数字を、札でもう一度言わない。 */
-  for (const k of ORG_NUMS) if (used.has(k)) throw new Error(`${slug}: ${k} は紹介文に出ている（札に重ねない）`);
-  const nums = ORG_NUMS.map(by);
-  const owners = F.profile.filter(x => /^owner_/.test(x.key));
-  return `<div class="cr-sec cr-org">
-<h2 class="cr-h2">${W.org}</h2>
-<p class="cr-org-p pv-no-cur">${intro.map(i => esc(i.text)).join(W.introJoin)}</p>
-<ul class="cr-org-nums pv-no-cur">
-${nums.map(x => `<li class="cr-org-num"><b>${esc(valX(x))}</b><span>${esc(fld(x, 'ja'))}</span><small>${[x.cond_ja ? fld(x, 'cond_ja') : '', when(x.at)].filter(Boolean).map(esc).join(W.sep)}</small></li>`).join('\n')}
-</ul>
-<details class="cr-more">
-<summary>${W.fleet}</summary>
-<ul class="cr-org-fleet pv-no-cur">
-${F.fleet.map(x => `<li><span>${esc(fld(x, 'ja'))}</span><b>${esc(valX(x))}</b></li>`).join('\n')}
-</ul>
-<p>${esc(when(F.fleet[0].at))}</p>
-</details>
-<details class="cr-more">
-<summary>${W.srcs}</summary>
-${owners.length ? `<ul class="cr-notes pv-no-cur">
-${owners.map(x => `<li>${W.kv(esc(fld(x, 'ja')), esc(valX(x)))}</li>`).join('\n')}
-</ul>
-` : ''}${srcList([...[...used].map(by), ...nums, ...F.fleet, ...owners])}
-</details>
-</div>`;
-}
-
-/* 募集（公開中を確かめた求人だけ。国籍の限定がある枠 jobs_restricted は並べない）。 */
-function jobs(slug) {
-  const list = FACTS[slug].jobs || [];
-  if (!list.length) return '';
-  for (const j of list) if (!/^https:\/\//.test(j.url || '') || !j.ja || !j.posted || !j.as_of) throw new Error(`${slug}: 求人 ${j.key} の形が違う（career-facts.mjs）`);
-  return `<div class="cr-sec cr-jobs">
-<h2 class="cr-h2">${W.jobs}</h2>
-<ul class="cr-job-l">
-${list.map(j => `<li><a class="cr-job" href="${esc(j.url)}" target="_blank" rel="noopener"><span class="cr-job-n">${esc(fld(j, 'ja'))}</span><span class="cr-job-m pv-no-cur">${W.posted(esc(fld(j, 'place_ja')), esc(atX(j.posted)))}</span>${IC.go}</a></li>`).join('\n')}
-</ul>
-<p class="cr-job-at pv-no-cur">${W.open(esc(atX(list[0].as_of)))}</p>
-</div>`;
-}
-
-/* 公表されている待遇。教官の求人1件だけに書かれている額は、折り畳みの中に分ける（会社どうしの比較には使わない）。 */
-function benefits(slug) {
-  const list = FACTS[slug].benefits || [];
-  const item = x => `<div class="cr-ben-i"><dt>${esc(fld(x, 'ja'))}</dt><dd><b class="pv-no-cur">${esc(factValue(x))}</b>${x.cond_ja ? `<small>${esc(fld(x, 'cond_ja'))}</small>` : ''}</dd></div>`;
-  const main = list.filter(x => x.scope === 'all');
-  const inst = list.filter(x => x.scope === 'instructor');
-  if (main.length + inst.length !== list.length) throw new Error(`${slug}: 待遇に、出し場所の決まっていない区分がある（career-facts.mjs の scope）`);
-  if (!main.length) return '';
-  return `<div class="cr-sec cr-bens">
-<h2 class="cr-h2">${W.bens}</h2>
-<dl class="cr-ben">
-${main.map(item).join('\n')}
-</dl>
-${inst.length ? `<details class="cr-more">
-<summary>${W.inst}</summary>
-<dl class="cr-ben">
-${inst.map(item).join('\n')}
-</dl>
-</details>
-` : ''}<details class="cr-more">
-<summary>${W.srcs}</summary>
-${srcList(list)}
-</details>
-</div>`;
-}
-
 /* 就航地・街の写真（place-photos.mjs）。示すことが条件の写真には、作者名とライセンス名を付ける。 */
 function placeImg(p, sizes) {
   return `<img src="${UP}${placeSrc(p)}" srcset="${UP}${placeSrc(p, true)} ${PLACE_SMALL_W}w, ${UP}${placeSrc(p)} ${p.w}w" sizes="${sizes}" width="${p.w}" height="${p.h}" alt="${esc(EN() ? subjectEn(p) || enOf(p.subject, '写真の説明') : p.subject)}" loading="lazy" decoding="async"/>`;
@@ -883,7 +636,10 @@ function placeCredits(items) {
 /* ── 家賃（1か月あたり）── 読み口は会社ページと同じ viewOf().living と rentCell() ──────────
    ★額は元の通貨が正本・円は比較用の換算。台帳が1年あたりの街は、読み口がもう12で割っている
      （その断りは台帳の per_month の1文。ここで割り算をしない）。
-   ★街どうしを同じ目盛に並べない。棒も表も作らない ── 街ごとに 物差し（何の家賃か）・出どころ・時点 を付ける。 */
+   ★街ごとに 物差し（何の家賃か）・出どころ・時点 を付ける（箱は会社ごと）。
+   ★2026-10-26 オーナー P12.131「比較の拠点の家賃はちゃんと棒グラフ書いてね」：間取りの行ごとに棒を1本。長さは、その行の月額を円に直した額
+     （円の行が使う換算と同じ1つの為替の表 ── fx-rates.mjs の JPY_PER。2つめのレートを持たない）を、並べた2つの箱で1本の物差し（右端 ＝ 2つの箱の
+     いちばん大きい行を RENT_STEP の倍数へ切り上げた額）で測った割合。棒は絵だけ（aria-hidden）── 額の字は前のまま・新しい数も字も「平均」も足さない。 */
 function living(slug) {
   const L = vw(slug).living;
   if (!L?.rents?.length) throw new Error(`${slug}: 家賃が台帳に無い（pv-airline-view.mjs）`);
@@ -892,11 +648,29 @@ function living(slug) {
   for (const r of L.rents) if (!r.name || (Object.keys(r.value).length && (!r.when || !r.src?.url || !r.src?.name))) throw new Error(`${slug}: 家賃 ${r.key} に名前・時点・出どころのどれかが無い`);
   return L;
 }
-/* 家賃の1マス。元の通貨（円の街は無い）と、円の額。 */
-function rentRow(L, r, [k, l]) {
+/* 棒の物差しの刻み（円）。右端は 0 からいちばん大きい行までを、この刻みの次の倍数へ切り上げた額（年収の目盛が 1,000万 の倍数へ切り上げるのと同じ決め方）。
+   career.js は額を持たない ── 刻みは家賃の箱の入れ物（.cr-rentbs）の data-step から読む。 */
+const RENT_STEP = 100000;
+/* 家賃の1行の、円に直した額（円の街はその額・外貨の街は × JPY_PER）。幅の額（lo〜hi）は棒の決め方が決まっていない ── 止める（作らない）。 */
+function rentYenOf(L, v) {
+  if (Array.isArray(v)) throw new Error(`家賃の箱の行に幅の額（${v.join('〜')}）── 棒の長さの決め方が決まっていない（P12.131）`);
+  if (typeof v !== 'number' || !(v > 0)) return 0;
+  if (L.cur === 'JPY') return Math.round(v);
+  if (!(L.cur in JPY_PER)) throw new Error(`換算レートの無い通貨: ${L.cur}`);
+  return Math.round(v * JPY_PER[L.cur]);
+}
+/* 箱（の会社）たちの棒の右端（円）。 */
+const rentTop = slugs => {
+  const v = slugs.flatMap(s => { const L = rentLiving(s), r = L.rents.find(x => x.lead); return L.cols.map(([k]) => (rentCell(L.cur, r.value[k]) ? rentYenOf(L, r.value[k]) : 0)); }).filter(n => n > 0);
+  if (!v.length) throw new Error(`家賃の棒に入れる額が無い（${slugs.join('・')}）`);
+  return Math.ceil(Math.max(...v) / RENT_STEP) * RENT_STEP;
+};
+/* 家賃の1マス。元の通貨（円の街は無い）と、円の額。その下に、円に直した額の棒（top ＝ その箱の物差しの右端）。 */
+function rentRow(L, r, [k, l], top) {
   const c = rentCell(L.cur, r.value[k], LANG);
   if (!c) return '';
-  return `<div><dt>${esc(l)}</dt><dd>${c.orig ? `<b class="pv-no-cur">${esc(c.orig)}</b><span>${esc(c.yen)}</span>` : `<b>${esc(c.yen)}</b>`}</dd></div>`;
+  const y = rentYenOf(L, r.value[k]);
+  return `<div><dt>${esc(l)}</dt><dd>${c.orig ? `<b class="pv-no-cur">${esc(c.orig)}</b><span>${esc(c.yen)}</span>` : `<b>${esc(c.yen)}</b>`}</dd><i class="cr-rbar" aria-hidden="true" data-yen="${y}" style="--w:${width(y, top)}"></i></div>`;
 }
 /* 前提と出どころ。台帳の前提の鍵は、出し方の決まっているものだけ（知らない鍵が増えたら止まる）。
    scope ＝ 調べの台帳の街の、数字の範囲の断り（airline-display.mjs の CITY の1行。会社ページの暮らしの板の「出典」と同じ字）。 */
@@ -920,43 +694,20 @@ ${srcs.map(o => `<li><a href="${esc(o.url)}" target="_blank" rel="noopener">${es
 </ul>`;
 }
 
-/* 拠点の街（暮らしのタブ）。地域を横に見られるのは、全部の地域にそろっている間取りだけ（台帳から機械で選ぶ）。 */
-function town(slug) {
-  const F = FACTS[slug], L = living(slug);
-  const rooms = L.cols.filter(([k]) => L.rents.every(r => rentCell(L.cur, r.value[k])));
-  if (!rooms.length) throw new Error(`${slug}: 全部の地域にそろっている間取りが無い`);
-  const shots = L.rents.map(r => [r, placeShot(r.key)]);
-  return `<div class="cr-sec cr-towns">
-<h2 class="cr-h2">${W.town}</h2>
-<p class="cr-town-base pv-no-cur">${esc(fld(F.base, 'city_ja'))}<span class="cr-stay-c">${esc(F.base.iata)}</span><span class="cr-town-ap">${esc(valX(F.base))}</span></p>
-<h3 class="cr-town-h">${W.rentH(rooms.map(r => esc(r[1])).join(W.sep))}<span class="cr-tag">${esc(L.measure)}</span></h3>
-<ul class="cr-town-l">
-${shots.map(([r, p]) => `<li class="cr-town">
-${p ? `<span class="cr-town-p">${placeImg(p, '(min-width: 700px) 240px, 46vw')}</span>` : ''}
-<span class="cr-town-n">${esc(r.name)}</span>
-<dl class="cr-rent">
-${rooms.map(c => rentRow(L, r, c)).join('\n')}
-</dl>
-</li>`).join('\n')}
-</ul>
-<details class="cr-more">
-<summary>${W.rentBasis}</summary>
-${rentBasis(slug, L, L.rents)}
-</details>
-${placeCredits(shots.filter(([, p]) => p).map(([r, p]) => [r.name, p]))}
-</div>`;
-}
-
 /* 比較の中の、1社ぶんの家賃の箱。その会社の拠点の街の、台帳がいちばん先に挙げる地域（lead）だけ。
    地域を選んだ理由（pick）の中の社名は、会社ページの暮らしの板と同じ決まり（coText：日本の会社は日本語・ほかは英語。
    2026-10-19 P12.65「エバー航空の事業所がある」→「EVA Airの事業所がある」）。箱の見出しの社名は見出しなので変えない。
-   ⚠️ 2つの街を1つの表・1つの目盛に並べない（物差しが街ごとに違う）。箱の中に その街の物差し・出どころ・時点 を持つ。 */
+   ★2026-10-26 オーナー P12.131「比較の拠点の家賃はちゃんと棒グラフ書いてね」── 前の決まり「2つの街を1つの表・1つの目盛に並べない（物差しが
+   街ごとに違う）」は、この画面ではオーナーの言葉に替わった：箱は会社ごとのまま・箱の中に その街の物差し（何の家賃か）・出どころ・時点 を持つ。
+   間取りの行の棒だけが、並べた2つの箱で1本の長さの物差し（円に直した額）を使う。HTML は既定の2社（PAIR）の箱をその2社の物差しで・ほかの箱は
+   その箱だけの物差しで描いておき、選び直したら career.js の pair() が並べた2社の物差しで長さを決め直す（片方にだけ箱が在れば、その箱だけで）。 */
 function rentBox(slug, shown) {
   const L = rentLiving(slug);
   const lead = L.rents.filter(r => r.lead);
   if (lead.length !== 1) throw new Error(`${slug}: 家賃の先頭の地域が${lead.length}つ（1つに決まらない）`);
   const r = lead[0];
-  const rows = L.cols.map(c => rentRow(L, r, c)).filter(Boolean);
+  const top = rentTop(shown ? PAIR.filter(rentable) : [slug]);
+  const rows = L.cols.map(c => rentRow(L, r, c, top)).filter(Boolean);
   if (!rows.length) throw new Error(`${slug}: 先頭の地域に家賃が1つも無い`);
   const at = rentWhen(slug, L, r);
   if (!at) throw new Error(`${slug}: 家賃の箱に時点が無い（${L.city}）`);
@@ -1024,85 +775,14 @@ function rentWhen(slug, L, r) {
   return EN() ? `as shown when opened on ${atTextEn(day)}` : `${atText(day)}に開いた時点の表示`;
 }
 
-function deep(slug) {
-  const top = `<div class="cr-tabp" data-tab="top">
-<div class="cr-pay cr-pay-deep">
-<h2 class="cr-pay-h">${W.pay}</h2>
-<div class="cr-bars">
-${ROLES.map(([r]) => bar(slug, r, W.rank[r])).join('\n')}
-${axis(scaleOf(slug))}
-</div>
-<p class="cr-tax">${esc(vw(slug).pay.tax)}</p>
-</div>
-${pub(slug, 'h2')}
-${org(slug)}
-<div class="cr-sec">
-<h2 class="cr-h2">${W.reviews}</h2>
-${live('stars', { airline: slug })}
-${live('reviews', { airline: slug })}
-</div>
-<div class="cr-sec">
-<h2 class="cr-h2">REAL PAY</h2>
-${live('realpay', { airline: slug })}
-</div>
-${jobs(slug)}
-<p class="cr-else"><a class="cr-link" href="airlines/${slug}.html">${W.revJobs}${IC.go}</a></p>
-<div class="cr-ents">
-${TABS.slice(1).map(([t]) => `<a class="cr-ent" href="${href.tab(slug, t)}" data-go>${W.tabs[t]}${IC.go}</a>`).join('\n')}
-<a class="cr-ent" href="${href.card(slug)}" data-go>${W.card}${IC.go}</a>
-</div>
-</div>`;
-
-  const work = `<div class="cr-tabp" data-tab="work" hidden>
-<div class="cr-sec">
-<h2 class="cr-h2">${W.work}</h2>
-${live('work', { airline: slug })}
-<p class="cr-else"><a class="cr-link" href="pay-report.html?airline=${slug}">${W.payAnon}${IC.go}</a></p>
-</div>
-${benefits(slug)}
-<div class="cr-topics">
-${TOPICS.map(t => topic(slug, t)).join('\n')}
-</div>
-</div>`;
-
-  const life = `<div class="cr-tabp" data-tab="life" hidden>
-${town(slug)}
-<div class="cr-sec">
-<h2 class="cr-h2">${W.dests}</h2>
-<ul class="cr-dests">
-${destinations(slug).map(d => `<li><a class="cr-dest" href="${href.stay(slug, d.iata)}" data-go><span class="cr-dest-n">${esc(cityOf(d))}</span><span class="cr-dest-c">${d.iata}</span></a></li>`).join('\n')}
-</ul>
-${destSources(slug)}
-</div>
-</div>`;
-
-  return `<section class="cr-view cr-co cr-deep" data-view="airline" data-airline="${slug}" style="--cr-co:${color(slug)};${div(scaleOf(slug))}" hidden>
-<div class="cr-top">
-${back()}
-<a class="cr-btn" href="${href.compare(slug, rival(slug))}" data-go>${W.cmp}</a>
-</div>
-<figure class="cr-hero">
-${photo(slug, '(min-width: 1100px) 1040px, 100vw', false)}
-${badge(slug)}
-<h1 class="cr-h1 cr-hero-n" tabindex="-1">${esc(name(slug))}</h1>
-</figure>
-<nav class="cr-tabs" aria-label="${esc(name(slug))}">
-${TABS.map(([t], i) => `<a class="cr-tab" href="${href.tab(slug, t)}" data-go data-tab="${t}"${i ? '' : ' aria-current="page"'}>${W.tabs[t]}</a>`).join('\n')}
-</nav>
-${top}
-${work}
-${life}
-${credits([[slug, shot(slug)]], false)}
-</section>`;
-}
-
-/* ── その数字自身の詳細（d=cap-est・d=fo-est）── 推定年収の 対象・根拠（在れば）── */
+/* ── その数字自身の詳細（d=cap-est・d=fo-est）── 推定年収の 対象・根拠（在れば）──
+   ★2026-10-26 P12.130：「戻る」（社名）は会社ページの 給与・待遇 のタブへ（会社の概要の画面は無い ── career.html の外なので data-go を付けない）。 */
 function detail(slug, rank, label) {
   const c = cell(slug, rank);
   const hid = `<span class="cr-vh">${esc(name(slug))}</span><span class="cr-vh">${label}</span>`;
   const other = ROLES.find(([r]) => r !== rank);
   return `<section class="cr-view cr-det" data-view="detail" data-airline="${slug}" data-d="${rank}-est" style="--cr-co:${color(slug)};${div(scaleOf(slug))}" hidden>
-<a class="cr-back" href="${href.airline(slug)}" data-go>${IC.back}${esc(name(slug))}</a>
+<a class="cr-back" href="${href.page(slug, 'pay')}">${IC.back}${esc(name(slug))}</a>
 <h1 class="cr-h1 cr-det-h" tabindex="-1"><span class="cr-vh">${esc(name(slug))} </span>${W.estOf(label)}</h1>
 <div class="cr-det-top cr-det-est">
 <p class="cr-det-n">${hid}<b class="cr-det-v">${esc(c.text)}</b> <span class="cr-det-k">${kline(c)}</span></p>
@@ -1114,14 +794,15 @@ ${facts([[W.target, `${label}<small>${W.estTarget}</small>`], ...estRows(slug, r
 </section>`;
 }
 
-/* ── 就航地の1画面（器）── 中に乗員ホテルの生きた欄 ───────────── */
+/* ── 就航地の1画面（器）── 中に乗員ホテルの生きた欄 ─────────────
+   ★2026-10-26 P12.130：「戻る」（◯◯の就航地）は会社ページの ステイ先 のタブへ（career.html の外なので data-go を付けない）。 */
 function stay(slug, d) {
   /* 写真は台帳に在る先だけ（無い先・保留の先は写真なし）。地図は検索の住所（都市と空港の3レター）。 */
   const p = placeShot(d.iata);
   if (!d.city_en) throw new Error(`${slug}: 就航地 ${d.iata} に英語の都市名が無い（地図の検索に使う）`);
   const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${d.city_en} ${d.iata}`)}`;
   return `<section class="cr-view cr-stay" data-view="stay" data-airline="${slug}" data-stay="${d.iata}" style="--cr-co:${color(slug)}" hidden>
-<a class="cr-back" href="${href.tab(slug, 'life')}" data-go>${IC.back}${W.destsOf(esc(name(slug)))}</a>
+<a class="cr-back" href="${href.page(slug, 'stay')}">${IC.back}${W.destsOf(esc(name(slug)))}</a>
 ${p ? `<figure class="cr-sv-p">${placeImg(p, '(min-width: 1100px) 1040px, 100vw')}</figure>
 ` : ''}<h1 class="cr-h1 cr-stay-h" tabindex="-1"><span class="cr-vh">${esc(name(slug))} </span>${esc(cityOf(d))}<span class="cr-stay-c">${d.iata}</span></h1>
 <p class="cr-stay-n">${esc(countryOf(d))}${d.seasonal ? `<span class="cr-sv-tag">${W.seasonal}</span>` : ''}</p>
@@ -1220,7 +901,7 @@ ${gos('reviews', 'rev')}
 </div>
 <div class="cr-sec cr-rents" data-wrap>
 <h2 class="cr-h2">${W.rentCmp}<span class="cr-h2-s">${W.perMonth}</span></h2>
-<div class="cr-rentbs">
+<div class="cr-rentbs" data-step="${RENT_STEP}">
 ${ALL.filter(rentable).map(s => rentBox(s, on(s))).join('\n')}
 ${rentNoneBox()}
 </div>
@@ -1280,11 +961,13 @@ export function cardData() {
   }
   return { host: HOST, airlines };
 }
+/* 「戻る」の先（★2026-10-26 P12.130）：来た比較（2社のカード ＝ その2社の比較）・1社のカードは航空会社一覧。HTML は一覧を書いておき、
+   カードを開くたび・選び直すたびに career.js の show() が書き直す（比較の先は career.html の中 ＝ data-go のまま）。 */
 function card() {
   /* JSON の中の < は、HTML が </script> と読み違えないように逃がす。 */
   const json = JSON.stringify(cardData()).replace(/</g, () => '\\u003c');
   return `<section class="cr-view cr-cardv" data-view="card" hidden>
-<a class="cr-back" id="crc-back" href="${href.home}" data-go>${IC.back}${W.backCard}</a>
+<a class="cr-back" id="crc-back" href="${href.list}" data-go>${IC.back}${W.backCard}</a>
 <h1 class="cr-h1 cr-cardv-h" tabindex="-1">${W.card}</h1>
 <div id="crc-root"></div>
 <script type="application/json" id="crc-data">${json}</script>
@@ -1311,11 +994,26 @@ ${REGIONS.map(R => { const ss = choice().filter(s => dir().airlines[s].region ==
 </dialog>`;
 }
 
+/* 送り先（★2026-10-26 P12.130）：入口と会社の概要の画面は無い。在る画面の住所でなければ、career.js（away()）が履歴を積まずに送る ──
+   一覧（data-list）・会社ページ（data-page の {s} が会社 ── 頼まれたタブ（tab=）が会社ページのタブ（data-tabs ＝ 全社のページが持つタブ）に
+   在れば # を付ける・知らない就航地はステイ先のタブ）。
+   住所に airline= も view= も無いときは、一覧へ送るのを読み込みの頭の1行で先にやる（重いページを描いてから送らない）。
+   ⚠️ この1行の決め方は、ページの頭の cr-boot の1行（/[?&](airline|view)=/ ── その住所のあいだだけ career.js が決めるまで本文を隠す）の裏返し。
+      片方だけ直さない（直すと、本文が隠れたまま・一瞬見えてから送られる のどちらか）。
+   台本が動かない・career.js が届かないときは、一覧へのリンク1本（#cr-off ── 字は比較の「航空会社を選ぶ」と同じ）── 白い画面にしない。
+   career.js は動き出したらまずこれを隠す（住所に airline= か view= が在るあいだは、頭の cr-boot が決まるまで本文ごと隠しているので一瞬も見えない）。 */
+/* タブの無い今までの形のページ（いまはスピリット）は数えない ── あちらは # を読まない（その名前の要素も無い）ので、ページの頭が開く。 */
+const PTABS = () => {
+  const sets = ALL.map(pageTabs).filter(s => s.size);
+  const all = sets.length ? [...sets[0]].filter(t => sets.every(s => s.has(t))) : [];
+  if (!all.includes('stay')) throw new Error('会社ページにステイ先のタブ（stay）が無い会社が在る（就航地の「戻る」の先が無くなる）');
+  return all.join(' ');
+};
 export function build() {
   career();
-  return `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}">
-${home()}
-${FIVE.map(overview).join('\n')}
+  return `<div class="cr" id="cr" data-a="${PAIR[0]}" data-b="${PAIR[1]}" data-list="${href.list}" data-page="airlines/{s}.html" data-tabs="${PTABS()}">
+<script>if(!/[?&](airline|view)=/.test(location.search))location.replace('${href.list}')</script>
+<p class="cr-else" id="cr-off"><a class="cr-link" href="${href.list}">${W.back}${IC.go}</a></p>
 ${DEEP.flatMap(s => ROLES.map(([r]) => detail(s, r, W.rank[r]))).join('\n')}
 ${DEEP.flatMap(s => destinations(s).map(d => stay(s, d))).join('\n')}
 ${compare()}

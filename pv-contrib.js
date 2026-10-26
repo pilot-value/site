@@ -1429,7 +1429,7 @@
 
   /* ── 項目の一覧 ─────────────────────────────────────────── */
   /* ホテル・ステイの札の字は、ここに書いたまま（assert-claims.mjs がこの形をそのまま読む）。英語は T.en の stayT・stayQ（renderList が選ぶ）。
-     ほかの画面の住所は、英語の面では en/ の下（en/career.html は英語の比較の回が作る。英語の会社ページはステイ先のタブを持つので、
+     ほかの画面の住所は、英語の面では en/ の下（英語の会社ページ。英語の会社ページはステイ先のタブを持つので、
      ふだんはタブへ切り替えるだけで、この住所へは行かない）。 */
   var TILES = [
     { k: 'work', t: TX.tileWork, q: TX.qWork, view: 'work' },
@@ -1439,7 +1439,8 @@
     { k: 'roster', t: TX.gRoster, q: TX.qRoster, view: 'roster' },
     { k: 'career', t: TX.gCareer, q: TX.qCareer, view: 'career' },
     { k: 'benefits', t: TX.gBenefits, q: TX.qBenefits, view: 'benefits' },
-    { k: 'stay', t: 'ホテル・ステイ', q: '就航地ごと', tab: 'stay', href: (LANG === 'en' ? 'en/' : '') + 'career.html?airline={s}&tab=life' }
+    /* ★2026-10-26 P12.130（WP-compare-all-22）：career.html の会社の概要は無くなった ── ほかの会社のぶんは、その会社のページのステイ先のタブへ */
+    { k: 'stay', t: 'ホテル・ステイ', q: '就航地ごと', tab: 'stay', href: (LANG === 'en' ? 'en/' : '') + 'airlines/{s}.html#stay' }
   ];
   /* このページが「ステイ先」のタブを持っているか（持っていれば、ほかの画面へ送り出さない）。
      ほかの会社について開いているあいだ（CO）は、持っていないことにする ── このページのタブは、このページの会社のもの。 */
