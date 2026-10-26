@@ -52,6 +52,7 @@
    ── 書かない数字 ──────────────────────────────────────────
    ・課税国の手取り額（税率を推測で埋めることになる）
    ・SSOT に無い機種別・年次別の内訳
+   ・推定年収の幅（lo〜hi）── 会社ページは幅を出していないので、答えにも書かない（2026-10-26・下の import の注）
 
    実行: node gen-faq.mjs
         node gen-faq.mjs --dry
@@ -69,6 +70,11 @@ import { NO_FAQ } from './gen-airline-glance.mjs';
 /* 英語の会社ページを新しい形で書く会社（2026-10-23 英語の EN-7）。先行5社の英語のページも、日本語と同じく「よくある質問」を置かない
    （リード P12.92「英語の先行5社は日本語に従う」）。下の英語の輪で、NO_FAQ の会社のうち英語のページが新しい形になった会社を飛ばす。 */
 import { EN_SWITCH } from './airline-rollout.mjs';
+/* ★2026-10-26（リード WP-compare-all-16「答えの数は、ページが出している数と同じ・出どころの無い数は書かない」）
+   推定年収の幅（SALARY の lo〜hi）は、2026-09-30 に画面から外した（平均をやめて推定年収に統一）。会社ページは推定年収の額だけを出し、
+   幅をどこにも出していない ── 答えだけが幅を言うと、ページに無い数を言うことになる。なので、ここが書く答えには幅を書かない（どの会社も）。
+   ⚠️ 「古い形のページ（スピリット航空）だけ幅を書く」と SWITCH で分けない。分けると、会社を新しい形へ切り替えた日にだけ答えの字が変わり、
+      切り替えのたびに gen-faq.mjs を流し直さないと答えが古いまま残る（assert-rollout.mjs の D が赤くなって、試しで分かった）。 */
 /* 英語の新しい会社ページの FAQPage の額（2026-10-23 英語の EN-8・リード「額は全部ひとつの通貨の道 ── cur-core／CUR.fmt」）。
    下の英語の輪で、新しい形の英語のページは構造化データを本文の問と答えから組み直す（日本語の「本文→LD」と同じ向き）。
    答えの中の円の字（焼いた span は unbake で元の円の字へ）を、読む人に見えるドルの字（currency.js の fmt）にする。 */
@@ -228,20 +234,21 @@ const HELD_EN = (slug, name, nm) => {
    ⚠️ 弁解を書かない（2026-09-30 指摘④「いいわけの部分いらないから削除」）。
       「なぜ平均と呼べないか」「資料が取れたら載せ直す」は書かない。
       推定であることと、数字が上下する理由だけ書く。
-   ⚠️ 「会社は給与を公表していません」と書かない（オーナー経由のレビュー・指摘1）。 */
+   ⚠️ 「会社は給与を公表していません」と書かない（オーナー経由のレビュー・指摘1）。
+   ★2026-10-26 幅（lo〜hi）は書かない（上の import の注）。 */
 const EST_JA = (slug, name, nm, rank) => {
   const d = SALARY[slug], r = d[rank];
-  return `${name}の${nm}の年収は、当サイトの推定で約${man(r.avg)}です（幅はおおむね${man(r.lo)}〜${man(r.hi)}）。`
+  return `${name}の${nm}の年収は、当サイトの推定で約${man(r.avg)}です。`
     + `公開情報から当サイトが推計した金額で、${name}が公表した金額ではありません。`
     + (d.taxFree ? `所在国に個人所得税が無いため、この金額が手取りに近くなります。` : `いずれも税引き前の金額です。`)
     + `機種・在籍年数・乗務する路線によって上下します。`;
 };
 const EST_EN = (slug, name, nm, fmt, rank) => {
   const d = SALARY[slug], r = d[rank];
-  return `We estimate annual pay for ${name} ${nm} at about ${fmt(r.avg)}, with a range of roughly ${fmt(r.lo)}–${fmt(r.hi)}. `
+  return `We estimate annual pay for ${name} ${nm} at about ${fmt(r.avg)}. `
     + `That is our own estimate from public information, not a figure ${name} publishes. `
     + (d.taxFree ? `There is no personal income tax where the airline is based, so this is close to take-home. ` : `These are gross figures, before income tax. `)
-    + `Where you sit inside the range is set by the aircraft type, years of service and the routes you fly.`;
+    + `The actual figure moves with the aircraft type, years of service and the routes you fly.`;
 };
 
 function buildJaBasis(slug) {
@@ -360,7 +367,7 @@ function buildJa(slug) {
   const items = [
     {
       q: `${name}の機長の年収はいくらですか？`,
-      a: `${name}の機長（Captain）の年収は、当サイトの推定で${man(cap.avg)}です（レンジ${man(cap.lo)}〜${man(cap.hi)}）。`
+      a: `${name}の機長（Captain）の年収は、当サイトの推定で${man(cap.avg)}です。`
         + (d.taxFree
           ? `${country ? country.ja : '所在国'}は個人所得税が無いため、この金額がそのまま手取りに近くなります。`
           : `いずれも税引き前の金額です。`)
@@ -368,7 +375,7 @@ function buildJa(slug) {
     },
     {
       q: `${name}の副操縦士の年収はいくらですか？`,
-      a: `${name}の副操縦士（First Officer）の年収は、当サイトの推定で${man(fo.avg)}です（レンジ${man(fo.lo)}〜${man(fo.hi)}）。`
+      a: `${name}の副操縦士（First Officer）の年収は、当サイトの推定で${man(fo.avg)}です。`
         + `機長との差は${man(gap)}、倍率にすると約${ratio}倍です（どちらも当サイトの推定どうしの比較）。`
         + `副操縦士の年収は在籍年数とともに上がり、機長昇格で大きく段が変わります。`,
     },
@@ -517,12 +524,13 @@ function buildEnExtra(slug) {
 
   /* 給与表はページ内にある（"Pay Scale by Seniority"）。その段差を数字で言う。
      ★2026-10-23 英語の EN-8：新しい形の英語のページ（EN_SWITCH）には、もう年次の表が無い（gen-airline-glance.mjs が LEGACY_EN の
-       「Pay Scale by Seniority」を外す）。在りもしない表を指さない ── 最後の1文は、まだ古い形の英語のページにだけ書く。 */
+       「Pay Scale by Seniority」を外す）。在りもしない表を指さない ── 最後の1文は、まだ古い形の英語のページにだけ書く。
+     ★2026-10-26 幅（FO の lo 〜 機長の hi）も書かない（上の import の注）。古い形のページの1文も「同じ幅」を指さない言い方にした。 */
   const scale = `We estimate ${name} first officers at {FO} and captains at {CAP} — a step of about {GAP}, or roughly ${ratio}×. `
-    + `The full range runs {FOLO} to {CAPHI}, and where you sit inside it is set by seniority, type rating and the routes you fly.`
-    + (EN_SWITCH.includes(slug) ? '' : ` The seniority table on this page breaks the same range into career stages.`);
+    + `The actual figure moves with seniority, type rating and the routes you fly.`
+    + (EN_SWITCH.includes(slug) ? '' : ` The seniority table on this page breaks pay into career stages.`);
   const fill = (f) => scale.replace('{FO}', f(fo.avg)).replace('{CAP}', f(cap.avg))
-    .replace('{GAP}', f(cap.avg - fo.avg)).replace('{FOLO}', f(fo.lo)).replace('{CAPHI}', f(cap.hi));
+    .replace('{GAP}', f(cap.avg - fo.avg));
   items.push({
     q: `What is the ${name} pilot pay scale?`,
     aHtml: fill(manM), aLd: fill(usd),

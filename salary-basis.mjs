@@ -178,7 +178,7 @@ export const BASIS = {
     notes_en: [
       'The cash figure is the airline’s own "take home cash". It is a recruitment example built on basic pay plus a flying allowance for 85 hours a month.',
       'The total package is a valuation that already contains that cash figure plus housing, transport, school fees, medical cover, insurance, leave tickets and the company pension contribution.',
-      'The total package is modelled on the pilot, a spouse and two eligible children.',
+      'The total package is modeled on the pilot, a spouse and two eligible children.',
       'Enhanced applies to first officers who meet a set experience and licensing bar. It is not a figure common to all first officers.',
       'None of these figures is an all-staff average, a guaranteed minimum, or any individual’s final take-home pay.',
     ],
@@ -640,7 +640,7 @@ export const BASIS = {
       'このほかに別の代理店（VOR Holdings）が2013年に出した機長の広告があり、月額 USD 18,000〜20,000（手取りと明記）・月160時間超は1時間 USD 225 と書かれています。13年前の資料です。',
     ],
     notes_en: [
-      'These are not the airline\u2019s own figures. They come from an agency posting from 2019, and the posting itself says it summarises "the new DRAFT contract elements". They are not current terms.',
+      'These are not the airline\u2019s own figures. They come from an agency posting from 2019, and the posting itself says it summarizes "the new DRAFT contract elements". They are not current terms.',
       'The monthly figure rises by year of service (USD 19,000 in year one, 19,000 in year two, 20,000 in year three, 21,000 in year four). Joining without the type rating starts at USD 18,000.',
       'On top of the monthly figure there is a USD 6,000 annual safety and operation award and a USD 10,000 annual housing allowance.',
       'It assumes 80 block hours a month, a Guangzhou base and a four-year renewable contract. The posting does not say whether the figure is before or after tax.',
@@ -688,7 +688,7 @@ export const BASIS = {
     ],
     notes_en: [
       'The airline has a pay and benefits page for pilots on its own recruitment site, and it states no amount at all. It says only that pay is made up of fixed salary, flight duty allowance, bonuses, other allowances and an annual incentive, and that the level is high within the industry. The page carries no publication date and no effective date.',
-      'The cadet selection notices on the same site (the newest from 2025-11-04) and the cadet programme brief (2023-10-20) state no amount either. The only line that touches money says the company bears the training cost while the family bears the tuition, with no figure.',
+      'The cadet selection notices on the same site (the newest from 2025-11-04) and the cadet program brief (2023-10-20) state no amount either. The only line that touches money says the company bears the training cost while the family bears the tuition, with no figure.',
       'Warning: agency postings quoting figures such as USD 18,200 a month for a B777 captain are for Air China Cargo, a separate company. We do not treat them as figures for captains on the passenger side.',
       'In the material we have checked, we found no document stating annual or monthly pay for captains or first officers. If one appears, we will add it here with its subject and its date.',
     ],
@@ -800,7 +800,7 @@ export const BASIS = {
       'The average is for flight crew as a whole, captains and first officers together; the filing does not break it out by rank.',
       'It is not a figure for All Nippon Airways alone: it combines three group airlines, All Nippon Airways, ANA Wings and Air Japan, as the note to the table states.',
       'The table does not say whether trainees are counted, or whether bonuses and non-standard pay are included.',
-      'The trainee figure is the starting pay for the airline’s own ab-initio cadet programme. It is not a figure for captains or first officers.',
+      'The trainee figure is the starting pay for the airline’s own ab-initio cadet program. It is not a figure for captains or first officers.',
       'The trainee figure is the basic monthly amount only. Family, housing and night-work allowances and three bonus payments a year are listed as payable, with no amounts given.',
       'The airline labels the trainee figure "planned for FY2026, updated 16 March 2026". It is not a confirmed figure for those joining in FY2027.',
       'The posting does not say whether the trainee figure is before or after tax.',
@@ -861,7 +861,7 @@ export const BASIS = {
       'This is the average for flight crew as a whole, captains and first officers together; the filing does not break it out by rank.',
       'It covers the JAL group on a consolidated basis, not Japan Airlines alone — the filing says so in its note.',
       'The airline states the method: cash-equivalent pay within consolidated personnel costs, divided by the average headcount on the books during the year. That is a pre-tax basis. The note does not say whether bonuses and allowances are included.',
-      'The trainee figure is the starting monthly pay for a flight-crew trainee, not a figure for captains or first officers. Anyone who holds or has held a commercial pilot licence cannot apply to the airline’s own ab-initio cadet programme.',
+      'The trainee figure is the starting monthly pay for a flight-crew trainee, not a figure for captains or first officers. Anyone who holds or has held a commercial pilot license cannot apply to the airline’s own ab-initio cadet program.',
       'About 50 places are offered for FY2027 across graduate and career intake, with around ten days off a month once flying.',
     ],
     crew: { tier: 'observed_mean',
@@ -1001,7 +1001,7 @@ export const BASIS = {
     ],
     notes_en: [
       'This is not salary. The airline calls it a "challenge allowance" and says it is paid for about 24 months to support living costs during overseas training.',
-      'It applies to trainees before they hold a licence, on an initial two-year fixed-term contract. It is not a figure for captains or first officers.',
+      'It applies to trainees before they hold a license, on an initial two-year fixed-term contract. It is not a figure for captains or first officers.',
       'Training costs fall on the trainee. The airline states training costs of about 14.6 million yen (FY2022 actual), with a partner bank loan available; Peach covers the later domestic phase in full.',
       'A bonus is listed as payable with no amount. The posting does not say whether the figure is before or after tax.',
       'The FY2023 intake is closed, and the terms are not stated as applying to the next round.',
