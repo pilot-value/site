@@ -256,9 +256,10 @@ for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
      （英語のページから見た道は ../../）。読んでよいページの集合に足すのは、その英語のページだけ。 */
 {
   const want = createHash('sha256').update(readFileSync(path.join(ROOT, 'pv-proof-offer.js'))).digest('hex').slice(0, 8);
-  const HOTEL = ['career.html', ...SWITCH.map((slug) => `airlines/${slug}.html`), ...EN_SWITCH.map((slug) => `en/airlines/${slug}.html`)];
+  // en/career.html（EN-9・2026-10-25）は career.html と同じページを英語で書き出したもので、同じホテルの欄を持つ。
+  const HOTEL = ['career.html', 'en/career.html', ...SWITCH.map((slug) => `airlines/${slug}.html`), ...EN_SWITCH.map((slug) => `en/airlines/${slug}.html`)];
   for (const page of HOTEL) {
-    const h = read(page), pre = page.startsWith('en/airlines/') ? '../../' : page.startsWith('airlines/') ? '../' : '';
+    const h = read(page), pre = '../'.repeat(page.split('/').length - 1);
     const e = (s) => s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
     const m = [...h.matchAll(new RegExp('<script src="' + e(pre + 'pv-proof-offer.js') + '\\?v=([0-9a-f]+)"></script>', 'g'))];
     const iP = h.indexOf('"' + pre + 'pv-proof-offer.js?v='), iS = h.indexOf('"' + pre + 'career-stay.js?v=');

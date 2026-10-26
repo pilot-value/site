@@ -184,6 +184,12 @@ const ALLOW = [
     if (fileAllow.some((a) => a[1] === null)) continue;
     strip(f, read(f)).split('\n').forEach((line, i) => {
       if (!DUR.test(line) || !CTX.test(line)) return;
+      // 会社ページの中身は長い1行で書き出される（2026-10-26）。離れた別々の文
+      // （「病気休暇は年30日まで」と、別の欄の「access」）を組にしないよう、期間の語の前後 80 字に
+      // 文脈の語があるときだけ数える。短い行はこれまでどおり（行全体が窓に入る）。
+      const near = [...line.matchAll(new RegExp(DUR.source, 'gi'))].some((m) =>
+        CTX.test(line.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80)));
+      if (!near) return;
       if (fileAllow.some((a) => line.includes(a[1]))) return;
       hits.push(`${f}:${i + 1}  ${line.trim().slice(0, 120)}`);
     });
