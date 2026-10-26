@@ -929,12 +929,26 @@
        指（WP-dmap-11 の決まり ── ページに閉じ込めない windy の形）：2本の指はいつも地図（ピンチ・移動）。1本の指は、1倍（世界が丸ごと見えていて
        動かす先が無い）のあいだはページのスクロール（最初の1回だけ、2本の指で動かせると言う）・拡大しているあいだは地図を動かす
        （CSS が .is-z の枠を touch-action:none にする）。そのあいだページは、地図の上下の帯（検索・切り替えの行・凡例・地域のボタン・結果の数）を
-       1本の指でなぞればスクロールする。元に戻す（1倍）でいつでもページの指へ戻る。
+       1本の指でなぞればスクロールする。1倍へ戻せば（PC・タブレットは元に戻す・スマホは縮小）ページの指へ戻る。
+       最初の形（WP-dmap-12・オーナー「スマホの地図もう少し拡大しよう。地球全部見えなくていい。」）：区域 700px 未満（スマホ）は少し寄せた形
+       （HOME ── 下）＝ 拡大しているあいだなので、最初から1本の指は地図を動かす（ページは上下の帯でスクロールする）。タブレット・PC は世界全体（1倍）。
+       元に戻す ＝ その最初の形（スマホでは 1倍ではない）。元に戻すのボタンは最初の形のあいだだけ隠れる（押しても何も変わらないため）。
        押す ＝ 動かさずに離した時だけ（動かした・ピンチした指やマウスは選ばない）。
        キー（地図かそのボタンにフォーカス）：+ − 矢印 0。時計・保存領域・通信は使わない。見た目は pv-directory.css */
     var frame = d.getElementById('wa-map'), zg = svg.querySelector('.wam-z');
     var zc = frame ? frame.querySelector('.wam-zc') : null, zh = frame ? frame.querySelector('.wam-zh') : null;
     var zb = {}, ZMAX = 6, ZSTEP = 2;
+    /* スマホの最初の形（WP-dmap-12）：1.4倍・地図の点 at（箱の単位 ＝ 東経 40 度・北緯 25 度。Equal Earth）が枠のまんなか ── アメリカの東半分・欧州・
+       アフリカ・中東・アジア・日本・オーストラリアが入り、アメリカの西と太平洋の端は切れる。決まった定数（日本だけ・読む人の場所・前に見た所へは寄らない）。
+       東経 30 度でなく 40 度：右上の拡大・縮小のボタンの左の縁（1倍で箱の x 865 ── pv-directory.css の .wam-zc）は、1.4倍・東経 30 度だと x 840 に来て
+       日本とカムチャツカの点（陸の東の端 x 858 ＋ 点の半径）に掛かる（WP-dmap-11 の直しの決まり：ボタンの下に陸の点を置かない）。40 度でその縁は x 868。
+       1.4倍：日本をボタンから外したまま北米が形で見える上限（1.5倍では日本を外すと x 290 より西が切れ、北米は東の端だけになる）。
+       縦：世界の高さが枠に入る時は世界をまんなかに・入らない時は北緯 25 度をまんなかに。どちらも地図の箱の外の海は見せない（fit の f ＝ 0） */
+    var HOME = { k: 1.4, at: [607, 152] };
+    function phone() {                                                                  // -> boolean: 区域（.wam の中身の幅）が 700px 未満 ＝ pv-directory.css の @container wam の段
+      var cs = w.getComputedStyle(sec);
+      return sec.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) < 700;
+    }
     if (zc) each.call(zc.querySelectorAll('.wam-zb'), function (b) { zb[b.getAttribute('data-z')] = b; });
     function geo() {                                                                    // -> what the frame shows, in the map's units
       var b = svg.getBoundingClientRect(), v = svg.viewBox.baseVal;
@@ -945,9 +959,14 @@
        with a calm margin m0 of sea on both sides). An edge may show at most m = m0 x (6 - k) / 5 of that margin: the whole margin at 1x
        (= centred), none at 6x (= no empty edge, as WP-dmap-9). Without it, a zoom near the world's top edge pulled the map away from under
        the pointer / the fingers (centred until the map outgrew the frame, then pushed to the edge). */
-    function fit(t, k, a, len, a0, W) {                                                 // -> shift; the map never shows more empty edge than m
-      var m = Math.max(0, (W - len) / 2) * Math.max(0, (ZMAX - k) / (ZMAX - 1)), lo = a0 + W - k * len - m - k * a, hi = a0 + m - k * a;
+    function fit(t, k, a, len, a0, W, f) {                                              // -> shift; the map never shows more empty edge than m (f: share of m0; default by k)
+      var m = Math.max(0, (W - len) / 2) * (f == null ? Math.max(0, (ZMAX - k) / (ZMAX - 1)) : f), lo = a0 + W - k * len - m - k * a, hi = a0 + m - k * a;
       return lo >= hi ? a0 + (W - k * len) / 2 - k * a : Math.min(hi, Math.max(lo, t));
+    }
+    function homeOf(G) {                                                                // -> the first view { k, x, y } for this frame (WP-dmap-12)
+      if (!phone()) return { k: 1, x: 0, y: 0 };
+      var k = HOME.k;
+      return { k: k, x: fit(G.x0 + G.W / 2 - k * HOME.at[0], k, G.v.x, G.v.width, G.x0, G.W, 0), y: fit(G.y0 + G.H / 2 - k * HOME.at[1], k, G.v.y, G.v.height, G.y0, G.H, 0) };
     }
     function r4(v) { return Math.round(v * 1e4) / 1e4; }                              // 4 places: a scale cut to 2 places moved the point under the pointer (2 units at 2x)
     function put(k, x, y, glide, G) {                                                   // (scale, shift x, y) -> void; clamps, then writes the one transform
@@ -959,9 +978,11 @@
       if (k === 1 && Math.abs(Z.x) < 1e-3 && Math.abs(Z.y) < 1e-3) { Z.x = 0; Z.y = 0; zg.removeAttribute('transform'); }
       else zg.setAttribute('transform', 'translate(' + r4(Z.x) + ' ' + r4(Z.y) + ') scale(' + r4(k) + ')');
       frame.classList.toggle('is-z', k > 1);
+      var h = homeOf(G);
+      Z.home = Math.abs(k - h.k) < 1e-3 && Math.abs(Z.x - h.x) < 1e-2 && Math.abs(Z.y - h.y) < 1e-2;   // the first view (PC: = 1x)
       if (zb.reset) {
-        if (k === 1 && d.activeElement === zb.reset) frame.focus({ preventScroll: true });   // the focus never stays on a hidden button
-        zb.reset.hidden = k === 1;
+        if (Z.home && d.activeElement === zb.reset) frame.focus({ preventScroll: true });   // the focus never stays on a hidden button
+        zb.reset.hidden = Z.home;
       }
       if (zb['in']) zb['in'].setAttribute('aria-disabled', String(k >= ZMAX));
       if (zb.out) zb.out.setAttribute('aria-disabled', String(k <= 1));
@@ -973,6 +994,7 @@
       put(k, u[0] - k * qx, u[1] - k * qy, glide, G);
     }
     function zoomMid(f) { var b = svg.getBoundingClientRect(); zoomAt(Z.k * f, b.left + b.width / 2, b.top + b.height / 2, true); }
+    function home(glide) { var G = geo(), h = homeOf(G); put(h.k, h.x, h.y, glide, G); }   // the first view (at load, 元に戻す, the key 0)
     function restore() { if (!Z.q) return; var G = geo(); put(Z.k, G.x0 + G.W / 2 - Z.k * Z.q[0], G.y0 + G.H / 2 - Z.k * Z.q[1], false, G); }
     function hint() {                                                                   // once per page, on touch only
       if (!zh || Z.hinted) return;
@@ -982,10 +1004,10 @@
       frame.setAttribute('tabindex', '-1');                                            // a press on the map gives it the focus (keys, wheel); Tab never stops here
       zc.hidden = false;
       if (sx) sx.hidden = false;                                                       // the sheet exists only with the moving map (pv-directory.css wam-stage)
-      put(1, 0, 0, false);
+      home(false);
       zb['in'].addEventListener('click', function () { zoomMid(ZSTEP); });
       zb.out.addEventListener('click', function () { zoomMid(1 / ZSTEP); });
-      zb.reset.addEventListener('click', function () { put(1, 0, 0, true); });
+      zb.reset.addEventListener('click', function () { home(true); });
       if (zh) zh.addEventListener('animationend', function () { zh.classList.remove('is-on'); zh.hidden = true; });
       /* マウス：つかんで動かす（4px 動くまでは押しただけ ＝ 離せば選ぶ） */
       frame.addEventListener('pointerdown', function (e) {
@@ -1056,12 +1078,12 @@
         var k = e.key, a = { ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[k];
         if (k === '+' || k === '=') zoomMid(ZSTEP);
         else if (k === '-' || k === '_') zoomMid(1 / ZSTEP);
-        else if (k === '0') put(1, 0, 0, true);
+        else if (k === '0') home(true);
         else if (a && Z.k > 1) { var G = geo(); put(Z.k, Z.x + a[0] * G.W * 0.15, Z.y + a[1] * G.H * 0.15, true, G); }
         else return;
         e.preventDefault();
       });
-      if (w.ResizeObserver) new w.ResizeObserver(function () { if (Z.k > 1) restore(); }).observe(frame);
+      if (w.ResizeObserver) new w.ResizeObserver(function () { if (Z.home) home(false); else if (Z.k > 1) restore(); }).observe(frame);   // the first view follows the frame (a phone turned: 1x ⇄ HOME)
     }
   }
   /* 「機長｜副操縦士」（P12.100）：押した方を区域の data-pos に（カードの行の大きさ・見せる帯・地図の濃さ・凡例 ── どれも CSS が同じ印を読む）。
