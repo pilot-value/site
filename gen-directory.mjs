@@ -75,7 +75,7 @@ const LIST = {
     rule: '比較は2社・レベリング比較は5社まで', why: '機材の区分が無いため、レベリング比較には入りません', rm: '外す', close: '閉じる',
     none: '該当する航空会社が見つかりませんでした', two: '航空会社を比較', lvl: 'レベリング比較' },
   en: { h: 'Compare list', fmt: '{n} / {m} airlines', add: 'Add an airline', open: '+ Add an airline', empty: 'Use “+ Compare” on a card, or add one below',
-    rule: 'Compare: 2 airlines · Leveling: up to 5', why: 'No aircraft class, so it can’t join the leveling comparison', rm: 'Remove', close: 'Close',
+    rule: 'Compare: 2 airlines · Leveling: up to 5', why: 'No fleet category, so it can’t be added to the leveling comparison', rm: 'Remove', close: 'Close',
     none: 'No airlines matched your search', two: 'Compare airlines', lvl: 'Leveling Comparison' },
 };
 const CHEVRON = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
