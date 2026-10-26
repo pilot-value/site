@@ -1,25 +1,27 @@
 /* career.js — career.html の画面の切り替えだけ
- * （入口／会社の概要とタブ／就航地／数字の詳細／2社の比較／カード保存）。
+ * （就航地／数字の詳細／2社の比較／カード保存）。
  *
  * ★金額を1つも持たない。数字は全部 HTML に書いてある（gen-career.mjs が SSOT から書く）。
- *   ここがやるのは「どれを見せるか」だけ ＝ このファイルが落ちても、入口はそのまま読める。
- *   （★2026-10-24 ただ1つの例外：比較を選び直したとき、並べた2社の目盛で棒の長さを決め直す ── 額と目盛の右端は HTML から読む）
+ *   ここがやるのは「どれを見せるか」だけ。
+ *   （★2026-10-24 ただ1つの例外：比較を選び直したとき、並べた2社の目盛で棒の長さを決め直す ── 額と目盛の右端は HTML から読む。
+ *     ★2026-10-26 P12.131：拠点の街の家賃の棒も同じ ── 円に直した額（data-yen）と刻み（data-step）は HTML から読む）
  *   通貨の切り替えは currency.js がいつもどおり HTML の表記を直す（ここは関わらない）。
  *
  * 住所：
- *   career.html                                  入口
- *   career.html?airline={slug}                   会社の概要
- *   career.html?airline={slug}&tab={work|life}   概要の中のタブ（タブを持つ会社だけ）
  *   career.html?airline={slug}&stay={IATA}       就航地
  *   career.html?airline={slug}&d={cap-est|fo-est} 数字の詳細（推定年収）
  *   career.html?view=compare&a={slug}&b={slug}   2社の比較
  *   career.html?view=card&a={slug}[&b={slug}]    カード保存
- * どの会社がタブ・就航地・詳細を持つかは、ここに書かない。HTML に在る画面だけを開く
- * （在る画面の一覧 ＝ section.cr-view と div.cr-tabp）。
- * 知らない値は、いちばん近い画面へ落とす（知らない就航地 → 就航地の一覧・知らないタブ → 概要・
- * 知らない会社 → 入口）。同じ会社を2つは選べない。
+ * どの会社が就航地・詳細を持つかは、ここに書かない。HTML に在る画面だけを開く（在る画面の一覧 ＝ section.cr-view）。
+ * 同じ会社を2つは選べない。
+ * ★2026-10-26 オーナー P12.130（WP-compare-all-22）「このページいらなくない？」：入口と会社の概要の画面は無い。在る画面の住所でなければ、
+ *   履歴を積まずに（location.replace ── 戻るで跳ね返らない）送る（away()）：
+ *     住所だけ・知らない住所・会社の無いカード・知らない会社 → 航空会社一覧（#cr の data-list）
+ *     ?airline={slug}（就航地も詳細も無い・知らない詳細）      → その会社のページ（data-page）。tab= が会社ページのタブ（data-tabs）に在れば # を付ける
+ *     ?airline={slug}&stay={知らない就航地}                   → その会社のページのステイ先のタブ
+ *   住所に airline= も view= も無いときは、HTML の頭の1行が先に送る（ここまで読み込まない）。
  *
- * 戻る・進む：画面を移るたびに履歴へ1段積む。同じ画面の中の選び直し（タブ・比較の2社と入れ替え・
+ * 戻る・進む：画面を移るたびに履歴へ1段積む。同じ画面の中の選び直し（比較の2社と入れ替え・
  * カードの会社）は積まない（戻るを何度も押さないと出られない画面にしない）。
  * 見ていた位置は、送り終えるたびにその段へ残す（戻っても進んでも同じ場所に出る）。
  *
@@ -35,29 +37,29 @@
   function boot() {
     var cr = document.getElementById('cr');
     if (!cr) return;
+    /* 台本が動かない・このファイルが届かないときだけの、航空会社一覧へのリンク（★2026-10-26 P12.130）。動き出したら、まず隠す。 */
+    var off = document.getElementById('cr-off');
+    if (off) off.hidden = true;
 
     var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
     var views = cr.querySelectorAll('.cr-view');
 
     /* 在る画面の一覧（HTML から拾う）。 */
-    var slugs = [], tabs = {}, stays = {}, dets = {};
+    var stays = {}, dets = {};
     each(views, function (v) {
       var d = v.dataset, s = d.airline;
-      if (d.view === 'airline') {
-        slugs.push(s);
-        tabs[s] = [];
-        each(v.querySelectorAll('.cr-tabp'), function (p) { tabs[s].push(p.dataset.tab); });
-      }
       if (d.view === 'stay') (stays[s] = stays[s] || []).push(d.stay);
       if (d.view === 'detail') (dets[s] = dets[s] || []).push(d.d);
     });
     var has = function (list, x) { return !!list && list.indexOf(x) >= 0; };
-    var known = function (s) { return has(slugs, s); };
-    /* 比較の行が在る会社 ＝ このページが額を持っている会社。カードはこの会社なら開ける。 */
+    /* 比較の行が在る会社 ＝ このページが額を持っている会社（＝ 会社ページの在る会社）。カードはこの会社なら開ける。 */
     var listed = [];
     each(cr.querySelectorAll('.cr-cmp .cr-pair[data-role="cap"] .cr-row'), function (r) { listed.push(r.dataset.airline); });
     var canCard = function (s) { return has(listed, s); };
-    var canPair = function (s) { return hasSheet ? !!pkOf[s] : known(s); };   // CA-3a: 選ぶ面に在る会社
+    var canPair = function (s) { return hasSheet ? !!pkOf[s] : canCard(s); };   // CA-3a: 選ぶ面に在る会社
+    /* 送り先（★2026-10-26 P12.130 ── 字は HTML から。ここに住所を持たない）。 */
+    var LIST = cr.getAttribute('data-list') || '', PAGEOF = cr.getAttribute('data-page') || '';
+    var PTABS = (cr.getAttribute('data-tabs') || '').split(' ').filter(Boolean);
 
     var DEF = { a: cr.dataset.a, b: cr.dataset.b };
     var cmp = cr.querySelector('.cr-view[data-view="compare"]');
@@ -137,7 +139,6 @@
     /* 状態 → 住所の ? から後ろ。 */
     function query(st) {
       var e = encodeURIComponent;
-      if (st.view === 'airline') return '?airline=' + e(st.airline) + (st.tab && st.tab !== 'top' ? '&tab=' + e(st.tab) : '');
       if (st.view === 'stay') return '?airline=' + e(st.airline) + '&stay=' + e(st.stay);
       if (st.view === 'detail') return '?airline=' + e(st.airline) + '&d=' + e(st.d);
       if (st.view === 'compare') return '?view=compare&a=' + e(st.a) + '&b=' + e(st.b);
@@ -145,6 +146,19 @@
       return '';
     }
     function url(st) { return location.pathname + query(st); }
+    /* この1枚に無い画面（★2026-10-26 P12.130）：'list' ＝ 航空会社一覧・'page' ＝ 会社ページ（tab ＝ 会社ページのタブ・無ければ頭）。
+       送り先の住所（このページから見た字 ── 英語のページなら英語の一覧・英語の会社ページ）。 */
+    var gone = function (st) { return !!st && (st.view === 'list' || st.view === 'page'); };
+    function away(st) {
+      if (st.view !== 'page') return LIST;
+      return PAGEOF.replace('{s}', function () { return encodeURIComponent(st.airline); }) + (st.tab ? '#' + st.tab : '');
+    }
+    /* 送る。住所を開いた・戻る／進むで来た ＝ 履歴を積まない（replace）。この1枚の中のリンク・PVCareer.go から ＝ ふつうのリンクと同じ（push）。 */
+    function leave(st, push) {
+      cr.hidden = true;                         // 送るまでのあいだ、空の画面の部品を見せない
+      if (push) { location.href = away(st); return; }
+      try { location.replace(away(st)); } catch (e) { location.href = away(st); }
+    }
     /* いまの住所を正しい形へ直すときは、ここが知らない引数（ほかの部品のもの）を落とさない。 */
     function mend(st) {
       var out = new URLSearchParams(query(st));
@@ -157,19 +171,19 @@
     function read(q) {
       var st, air = q.get('airline'), view = q.get('view');
       if (air !== null) {
-        if (!known(air)) return blank('home');
-        st = blank('airline');
+        if (!canCard(air)) return blank('list');
+        st = blank('page');
         st.airline = air;
         var stay = q.get('stay'), d = q.get('d'), tab = q.get('tab');
         if (stay !== null) {
           stay = stay.toUpperCase();
           if (has(stays[air], stay)) { st.view = 'stay'; st.stay = stay; return st; }
-          /* 知らない就航地 → 就航地の一覧が在るタブ。 */
-          if (stays[air]) tab = 'life';
+          /* 知らない就航地 → 会社ページの ステイ先 のタブ（就航地の一覧が在る所）。 */
+          tab = 'stay';
         } else if (d !== null && has(dets[air], d)) {
           st.view = 'detail'; st.d = d; return st;
         }
-        if (tabs[air].length) st.tab = has(tabs[air], tab) ? tab : tabs[air][0];
+        st.tab = has(PTABS, tab) ? tab : null;
         return st;
       }
       if (view === 'compare' || view === 'card') {
@@ -179,7 +193,7 @@
         var b = can(qb) && qb !== a ? qb : null;
         st = blank(view);
         if (view === 'card') {
-          if (!a) return blank('home');
+          if (!a) return blank('list');
         } else {
           if (!a) a = DEF.a !== b ? DEF.a : DEF.b;
           if (!b) b = DEF.b !== a ? DEF.b : DEF.a;
@@ -187,7 +201,7 @@
         st.a = a; st.b = b;
         return st;
       }
-      return blank('home');
+      return blank('list');
     }
     /* fix は「住所のほうを直す必要がある」の印（この画面の鍵だけを比べる。ほかの鍵は見ない）。 */
     function parse(search) {
@@ -257,6 +271,19 @@
           if (m > 0) f.style.setProperty('--w', (m / top).toLocaleString('en-US', PCT));
         });
       }
+      /* 拠点の街の家賃の棒（★2026-10-26 オーナー P12.131「比較の拠点の家賃はちゃんと棒グラフ書いてね」）：並べた2社の箱で1本の物差し ──
+         右端は、2社の箱の行の円に直した額（data-yen ── gen-career.mjs がサイトの1つの為替の表で書いた数）のいちばん大きいものを、
+         刻み（.cr-rentbs の data-step）の次の倍数へ切り上げた額。箱が片方の会社にだけ在れば、その箱の行だけで決まる。
+         通貨を切り替えても長さは変わらない（円が物差し ── 字は currency.js が直す）。字は1つも作らない（棒は絵だけ）。 */
+      var rb = cmp.querySelector('.cr-rentbs'), step = rb ? Number(rb.getAttribute('data-step')) || 0 : 0, rtop = 0, rbars = [];
+      if (rb && step > 0) {
+        each(rb.querySelectorAll('.cr-rentb'), function (box) {
+          if (box.dataset.airline !== a && box.dataset.airline !== b) return;
+          each(box.querySelectorAll('.cr-rbar[data-yen]'), function (x) { var v = Number(x.dataset.yen); if (v > rtop) rtop = v; rbars.push(x); });
+        });
+        rtop = Math.ceil(rtop / step) * step;
+        if (rtop > 0) rbars.forEach(function (x) { x.style.setProperty('--w', (Number(x.dataset.yen) / rtop).toLocaleString('en-US', PCT)); });
+      }
       /* 並びは置き場所そのものを入れ替える。見た目の順だけ変えると、
          読み上げと Tab の順が画面と食い違う。
          同じ会社の要素が続けて在っても、まとめて順のまま運ぶ。
@@ -295,6 +322,10 @@
       /* カード保存への入口は、いま並べている2社を連れていく（HTML には既定の2社が書いてある）。 */
       var to = document.getElementById('cr-to-card');
       if (to) to.setAttribute('href', to.getAttribute('href').split('?')[0] + query({ view: 'card', a: a, b: b }));
+      /* 「航空会社を選ぶ」も、いま並べている2社を航空会社一覧の比べる社（住所の cmp ── 一覧が読む形：付けた順・空白区切り）に連れていく
+         （★2026-10-26 P12.130）。 */
+      var bk = document.getElementById('cr-back');
+      if (bk) bk.setAttribute('href', bk.getAttribute('href').split('?')[0] + '?' + new URLSearchParams({ cmp: a + ' ' + b }).toString());
     }
 
     var state = null, shown = null;
@@ -316,23 +347,16 @@
         v.hidden = !on;
         if (on) cur = v;
       });
-      var label = '';
-      if (cur && st.view === 'airline' && st.tab) {
-        each(cur.querySelectorAll('.cr-tabp'), function (p) { p.hidden = p.dataset.tab !== st.tab; });
-        each(cur.querySelectorAll('.cr-tab'), function (t) {
-          if (t.dataset.tab === st.tab) {
-            t.setAttribute('aria-current', 'page');
-            if (st.tab !== 'top') label = ' ' + t.textContent.replace(/\s+/g, ' ').trim();
-          } else t.removeAttribute('aria-current');
-        });
-      }
       if (st.view === 'compare') pair(st.a, st.b);
+      /* カードの「戻る」（★2026-10-26 P12.130）：2社のカードはその2社の比較へ（この1枚の中 ── data-go）・1社のカードは航空会社一覧へ。 */
+      var cb = st.view === 'card' && document.getElementById('crc-back');
+      if (cb) cb.setAttribute('href', st.b ? url({ view: 'compare', a: st.a, b: st.b }) : LIST);
       var moved = cur !== shown;
       shown = cur;
       var h = cur && cur.querySelector('.cr-h1');
       if (h) {
-        document.title = h.textContent.replace(/\s+/g, ' ').trim() + label + SUFFIX;
-        /* 画面が替わったときだけ見出しへ。タブの切替では、押したタブに焦点を残す。 */
+        document.title = h.textContent.replace(/\s+/g, ' ').trim() + SUFFIX;
+        /* 画面が替わったときだけ見出しへ（同じ画面の中の選び直しでは、押した所に焦点を残す）。 */
         if (focus && moved) h.focus({ preventScroll: true });
       }
       try { cr.dispatchEvent(new CustomEvent('cr:show', { detail: copy() })); } catch (e) {}
@@ -502,12 +526,12 @@
     /* 同じ画面の中の選び直しか（履歴を積まない）。 */
     function same(st) {
       if (!state || st.view !== state.view) return false;
-      if (st.view === 'airline') return st.airline === state.airline;
       return st.view === 'compare' || st.view === 'card';
     }
 
     /* 画面を移る（履歴へ1段積んで、頭から見せる）。 */
     function go(st) {
+      if (gone(st)) return leave(st, true);
       letGo();
       clearTimeout(tick);
       keep();                                   // 戻ってきたときの位置を、いまの段に残す
@@ -517,21 +541,11 @@
     }
     /* 同じ画面の中で選び直す（履歴は積まない・位置は動かさない）。 */
     function swapIn(st) {
+      if (gone(st)) return leave(st);
       clearTimeout(tick);
       try { history.replaceState({ y: window.scrollY }, '', url(st)); } catch (e) {}
       show(st, true);
     }
-    /* タブを替えたあと：写真とタブはそのままの場所に残す。
-       タブより下まで読んでいたときだけ、タブの並びを画面の頭へ戻す（新しい中身を頭から読める）。 */
-    function settle() {
-      var nav = shown && shown.querySelector('.cr-tabs');
-      if (!nav) return;
-      var edge = (bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0) + 8;
-      var top = nav.getBoundingClientRect().top;
-      if (top < edge) window.scrollTo(0, Math.max(0, window.scrollY + top - edge));
-      keep();
-    }
-
     cr.addEventListener('click', function (e) {
       var a = e.target.closest ? e.target.closest('a[data-go]') : null;
       if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -540,15 +554,15 @@
       e.preventDefault();
       var st = parse(u.search);
       if (!same(st)) return go(st);
-      var tabbed = st.view === 'airline' && st.tab !== state.tab;
       swapIn(st);
-      if (tabbed) settle();
     });
 
     window.addEventListener('popstate', function (e) {
       closeSheet();
       clearTimeout(tick);                       // 前の画面の位置を、移った先の段へ書かない
-      show(parse(location.search), true);
+      var st = parse(location.search);
+      if (gone(st)) return leave(st);           // 前の版の段（入口・会社の概要）へ戻ってきた
+      show(st, true);
       restore(e.state);
     });
 
@@ -709,6 +723,7 @@
     window.addEventListener('pagehide', keep);
 
     var first = parse(location.search);
+    if (gone(first)) return leave(first);
     if (first.fix) history.replaceState(history.state, '', mend(first));
     show(first, false);
     if (history.state) restore(history.state);

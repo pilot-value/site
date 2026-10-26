@@ -1,4 +1,5 @@
-/* career.css — 入口・会社の概要とタブ・就航地・数字の詳細・2社の比較・カード保存の枠（career.html だけが読む）。
+/* career.css — 就航地・数字の詳細・2社の比較・カード保存の枠（career.html だけが読む）。
+ * ★2026-10-26 P12.130：入口の画面（見出しの写真・会社のカード）は無い ── その見た目も外した。
  *
  * ・色は pv-tokens.css のトークンだけ。ここに色の値を直書きしない
  *   （ダークは [data-theme="dark"] がトークンごと差し替える。ここでは何もしない）。
@@ -45,51 +46,11 @@
         background:var(--pv-surface);border:1px solid var(--pv-accent-line);color:var(--pv-accent-ink);
         font-size:12px;font-weight:700;line-height:1.5}
 
-/* ── 入口 ─────────────────────────────────────────────────────── */
-.cr-lead{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:flex-end;
-         min-height:208px;padding:22px 20px;border-radius:var(--pv-r-lg);
-         background:var(--pv-navy);box-shadow:var(--pv-shadow-lift)}
-.cr-lead img{position:absolute;inset:0;z-index:-3;width:100%;height:100%;object-fit:cover;object-position:72% 50%}
-/* 左から紺を掛けて、見出しの下地にする。 */
-.cr-lead::before{content:"";position:absolute;inset:0;z-index:-2;background:
-  radial-gradient(110% 90% at 0% 100%, color-mix(in srgb, var(--pv-navy) 90%, transparent) 0%, transparent 62%),
-  radial-gradient(70% 80% at 100% 0%, color-mix(in srgb, var(--pv-blue) 22%, transparent) 0%, transparent 60%),
-  linear-gradient(90deg, color-mix(in srgb, var(--pv-navy) 90%, transparent) 0%,
-                         color-mix(in srgb, var(--pv-navy) 56%, transparent) 44%,
-                         color-mix(in srgb, var(--pv-navy) 6%, transparent) 100%)}
-.cr-lead::after{content:"";position:absolute;inset:0;z-index:-1;mix-blend-mode:multiply;
-                background:var(--cr-grain), color-mix(in srgb, var(--pv-navy) 26%, transparent)}
-.cr-home .cr-h1{color:var(--cr-on);font-size:clamp(28px, 7.6vw, 52px)}
-
-.cr-tiles{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px;margin-top:16px}
-.cr-tile{position:relative;display:flex;flex-direction:column;border-radius:var(--pv-r-lg);
-         background:var(--pv-surface);border:1px solid var(--pv-line);box-shadow:var(--pv-shadow);
-         color:var(--pv-ink);text-decoration:none;transition:transform .28s var(--pv-ease)}
-/* 浮いたときの影は別の面に持たせて、不透明度だけを動かす。 */
-.cr-tile::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-                box-shadow:var(--pv-shadow-lift);opacity:0;transition:opacity .28s var(--pv-ease)}
-.cr-tile-p{position:relative;isolation:isolate;display:block;overflow:hidden;aspect-ratio:3/2;
-           border-radius:calc(var(--pv-r-lg) - 1px) calc(var(--pv-r-lg) - 1px) 0 0;background:var(--pv-surface-2)}
-.cr-tile-p img,.cr-opt-p img,.cr-hero img{display:block;width:100%;height:100%;object-fit:cover}
-.cr-tile-p::before,.cr-opt-p::before,.cr-hero::before{content:"";position:absolute;inset:0;pointer-events:none}
-.cr-tile-p::before{background:linear-gradient(0deg, color-mix(in srgb, var(--pv-navy) 46%, transparent) 0%, transparent 46%)}
-.cr-tile-p::after,.cr-opt-p::after,.cr-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+/* 写真の箱（比較の札・概要の写真）。 */
+.cr-opt-p img,.cr-hero img{display:block;width:100%;height:100%;object-fit:cover}
+.cr-opt-p::before,.cr-hero::before{content:"";position:absolute;inset:0;pointer-events:none}
+.cr-opt-p::after,.cr-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
   mix-blend-mode:multiply;background:color-mix(in srgb, var(--pv-navy) 14%, transparent)}
-.cr-tile-n{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;
-           padding:8px 12px;font-size:14px;font-weight:700;line-height:1.3;letter-spacing:-.01em}
-.cr .cr-tile:focus-visible{border-radius:var(--pv-r-lg)}
-
-/* 6枚目＝比較の入口。写真の代わりに、2本の棒の形。 */
-.cr-tile-cmp{background:var(--pv-navy);border-color:var(--cr-hair);color:var(--cr-on);isolation:isolate;overflow:hidden}
-.cr-tile-cmp::before{content:"";position:absolute;inset:0;z-index:-1;background:
-  radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--pv-blue) 26%, transparent), transparent 70%),
-  radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--pv-accent) 22%, transparent), transparent 70%),
-  var(--cr-grain)}
-.cr-tile-g{display:flex;flex-direction:column;justify-content:center;gap:10px;aspect-ratio:3/2;padding:0 16px}
-.cr-tile-g i{display:block;height:14px;border-radius:5px}
-.cr-tile-g i:first-child{width:82%;background:linear-gradient(90deg, var(--pv-accent), color-mix(in srgb, var(--pv-accent) 52%, white))}
-.cr-tile-g i:last-child{width:58%;background:linear-gradient(90deg, var(--pv-blue-ink), var(--pv-blue))}
-.cr-tile-cmp .cr-tile-n{color:var(--cr-on)}
 
 .cr-else{margin-top:14px}
 .cr-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;
@@ -522,6 +483,18 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
    が 320px で画面の外へ 4px 出ていた ＝ assert-header.mjs の「ページが横に溢れていない」が赤。この作業の前の HEAD から）。字は削らない。
    1行の札の見た目は今までと同じ（角の丸みは1行の札の高さの半分）。 */
 .cr-rentb-k .cr-tag{max-width:100%;white-space:normal;border-radius:11px}
+/* 拠点の街の家賃の棒（★2026-10-26 オーナー P12.131「比較の拠点の家賃はちゃんと棒グラフ書いてね」）：間取りの行ごとに、額の下に1本。
+   長さは HTML の --w（並べた2つの箱で1本の物差し ── 円に直した額。選び直すたびに career.js が決め直す）。色はその会社の色（--cr-co ──
+   年収の棒と同じ仲間。箱は明るい面なので白へ寄せすぎない）。絵だけ（aria-hidden）── 額の字は上の行のまま。目盛の字は置かない（新しい数を出さない）。 */
+.cr-rentb-l .cr-rbar{grid-column:1 / -1;position:relative;display:block;height:8px;margin-top:6px;border-radius:4px;overflow:hidden;
+  background-color:color-mix(in srgb, var(--pv-ink) 7%, transparent)}
+.cr-rentb-l .cr-rbar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w);border-radius:inherit;
+  background:linear-gradient(90deg, var(--cr-co), color-mix(in srgb, var(--cr-co) 62%, white));
+  transform-origin:left center;animation:cr-grow .8s var(--pv-ease) .1s backwards}
+/* 色の近い2社：右の会社の箱の棒にも、年収の棒と同じ手がかり（薄い色に縁取り ── 上の data-near の決まりの1つ）。 */
+.cr-cmp[data-near] .cr-rentbs > :is(.cr-rentb, .cr-rentn):not([hidden]) ~ .cr-rentb:not([hidden]) .cr-rbar::before,
+.cr-cmp[data-near] .cr-rentbs[data-only="b"] > .cr-rentb:not([hidden]) .cr-rbar::before{
+  background:color-mix(in srgb, var(--cr-co) 28%, transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cr-co) 72%, white)}
 /* 口コミのカード（抜粋・本文）は、スマホ（〜759px）では2社を上下に全幅で並べる（★2026-10-25 WP-compare-all-13 F1 ── 半分の幅では
    1行が数文字で折れて縦に長くなっていた）。どちらの会社のカードかは、マスの頭の札（career-live.js の rvCell ── 列の頭と同じ社名の札）が言う。
    カードの無い会社のマス（空のマス）は出さない（その会社の「投稿はまだありません」は、すぐ上の評価のマスが言っている）。
@@ -673,9 +646,7 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 
 /* ── 指で触れない端末だけ、乗せたときの動き ─────────────────────── */
 @media (hover:hover){
-  .cr-tile:hover{transform:translateY(-3px)}
-  .cr-tile:hover::after{opacity:1}
-  .cr-tile:hover .cr-ic,.cr-link:hover .cr-ic,.cr-card-n:hover .cr-ic{transform:translateX(3px)}
+  .cr-link:hover .cr-ic,.cr-card-n:hover .cr-ic{transform:translateX(3px)}
   .cr-back:hover .cr-ic{transform:translateX(-3px)}
   .cr-btn:hover{transform:translateY(-1px)}
   .cr-side:hover{transform:translateY(-2px)}
@@ -693,7 +664,6 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 /* ── 押したときの沈み ──────────────────────────────────────────────
    ⚠️ 上の「乗せたとき」より後ろに置く。同じ強さなので、前に置くと
    マウスで押しているあいだも乗せたときの形が勝ち、押した手応えが消える。 */
-.cr-tile:active{transform:scale(.985)}
 .cr-btn:active{transform:scale(.97)}
 .cr-side:active{transform:scale(.985)}
 .cr-swap:active{transform:rotate(180deg) scale(.92)}
@@ -704,18 +674,8 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 /* ── 広い画面 ─────────────────────────────────────────────────── */
 @media (min-width:760px){
   .cr-gos{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px}
-  .cr-lead{min-height:300px;padding:40px}
-  /* 広い画面では写真を右へ寄せ、左は紺のまま見出しの場所にする。 */
-  .cr-lead img{left:auto;right:0;width:64%;object-position:50% 46%}
-  .cr-lead::before{background:
-    radial-gradient(70% 80% at 100% 0%, color-mix(in srgb, var(--pv-blue) 20%, transparent) 0%, transparent 60%),
-    linear-gradient(90deg, var(--pv-navy) 0%, var(--pv-navy) 36%,
-                           color-mix(in srgb, var(--pv-navy) 64%, transparent) 52%,
-                           color-mix(in srgb, var(--pv-navy) 6%, transparent) 86%)}
   .cr-hero{height:248px}
   .cr-hero-n{font-size:28px}
-  .cr-tiles{grid-template-columns:repeat(3, minmax(0,1fr));gap:16px;margin-top:20px}
-  .cr-tile-n{min-height:52px;padding:10px 16px;font-size:15px}
   .cr-hero .cr-code{top:16px;left:16px}
   /* 比較の見出しまわりは詰める（字は同じ・空きだけ減らす ── P12.106）。戻るのリンクは押せる高さ 44px のまま。 */
   .cr-cmp > .cr-back{margin-bottom:-6px}
@@ -786,6 +746,6 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 }
 
 @media (prefers-reduced-motion:reduce){
-  .cr-view,.cr-fill{animation:none}
+  .cr-view,.cr-fill,.cr-rbar::before{animation:none}
   .cr *,.cr *::before,.cr *::after{transition:none}
 }

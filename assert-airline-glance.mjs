@@ -1712,7 +1712,9 @@ head('集計の欄が聞く質問（出荷した HTML の data-keys）');
     const tags = live => [...html.matchAll(/<div class="crl"[^>]*>/g)].map(m => m[0]).filter(t => t.includes(` data-live="${live}"`));
     const keysOf = tag => ((/\bdata-keys="([^"]*)"/.exec(tag) || [])[1] || '').split(',').map(k => k.trim()).filter(Boolean);
     const facts = tags('fact'), cmp = tags('cmp-facts');
-    if (!facts.length) faults.push('集計の欄が1つも無い');
+    /* ★2026-10-26 P12.130（WP-compare-all-22 ── 当て直し）：career.html（own）は会社の概要の画面を持たない ── 1社の集計の欄（data-live="fact"）は
+       1つも無く、集計の欄は2社を並べる欄だけ（前は「エティハドの概要の話題のカードに在る」）。会社ページは今までどおり1つ以上。 */
+    if (own ? facts.length : !facts.length) faults.push(own ? `1社の集計の欄が ${facts.length}つ在る（会社の概要は無い）` : '集計の欄が1つも無い');
     /* 欄の書き方が変わって、上の読み方から漏れた欄が無いこと（字としての数と合う） */
     if (html.split('data-live="fact"').length - 1 !== facts.length) faults.push(`集計の欄を ${facts.length}つ読んだが、ページには data-live="fact" が ${html.split('data-live="fact"').length - 1}か所在る`);
     for (const [i, tag] of facts.entries()) {
@@ -1727,7 +1729,7 @@ head('集計の欄が聞く質問（出荷した HTML の data-keys）');
   };
   for (const [name, html, own] of [...FIVE.map(s => [`${s}`, PAGES[s], false]), ['career.html', read('career.html'), true]]) {
     const f = judge(html, QID, 120, own);
-    ok(!f.length, `${name}: 集計の欄は、どれも聞く質問を持つ・質問はどれも台帳に在る・1ページで 120 まで${own ? '・2社を並べる欄は2つで、その質問も台帳に在る（合わせて 120 まで）' : ''}`, f.slice(0, 6).join(' ／ '));
+    ok(!f.length, `${name}: 集計の欄は、どれも聞く質問を持つ・質問はどれも台帳に在る・1ページで 120 まで${own ? '・1社の集計の欄は無く、2社を並べる欄は2つで、その質問も台帳に在る（合わせて 120 まで）' : ''}`, f.slice(0, 6).join(' ／ '));
   }
 }
 
