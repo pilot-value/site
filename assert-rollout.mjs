@@ -16,8 +16,8 @@
         空港までの移動は、その会社の拠点の空港の行だけ（同じ街のほかの会社の空港の行を出さない）／日付の無い過去の行は出さない／
         過去・参考の行は「過去」「参考」の札つき（過去は日付も）でだけ出て、カードの1行めにも小さい2行にもならない（107社の読み口で）
         カードの字に、調べた側の字（label_ja・cond_ja）が無い（107社の読み口で・L1）／airline-display.mjs の字は台帳の今の行と合っている（古い字は出ない）
-     C  今のページの古い節（107枚ぜんぶ）が台帳に在る。先行5社ではない会社では「よくある質問」と検索向けの読み物を外さない。
-        外すのは、新しい部品がその話を出せるときだけ。どの会社も読み口（viewOf）が通る。
+     C  今のページの古い節（107枚ぜんぶ）が台帳に在る。先行5社ではない会社では「よくある質問」を外さず、ほかの古い節は全部外す
+        （2026-10-26 オーナー「昔の内容はもういらないでしょ」「よくある質問だけ残す」── 新しい部品の用意を待たない）。どの会社も読み口（viewOf）が通る。
      D  写しの中で3社（ブリティッシュ・エアウェイズ、フィジー航空・ニュージーランド航空 ＝ 台帳に過去・参考の行がある会社。d1・d2 の途中でも切り替えない3社）を切り替えて流す:
         2回めは「✓ 変更なし」／「よくある質問」と FAQPage が同じ字で残る／<head> は部品の <link> の塊のほかは同じ／
         海外の評判のカードの部品を読んだまま／残す節は残り外す節は無い／推定年収は SALARY・乗員全体の平均は出ない／
@@ -46,6 +46,8 @@
         部品・ページへの道（../../・../）は在るファイルを指す／「Compare」は en/career.html ができるまで出さない／
         h1 と <head>（部品の塊のほか）は今のページのまま・先行5社ではない会社は「よくある質問」と FAQPage が同じ字で残る・
         古い節は英語の見出しの台帳（LEGACY_EN）のとおり残る・外れる
+     G  リポジトリの会社ページ（日本語・英語の全部）の新しい部品より下は、先行5社ではない会社では「よくある質問」の節1つだけ
+        （本文の箱の中の最後・FAQPage つき）、先行5社では何も無い（2026-10-26 オーナー「昔の内容はもういらないでしょ」「よくある質問だけ残す」）
    使い方: node assert-rollout.mjs
    ═══════════════════════════════════════════════════════════════════ */
 import fs from 'node:fs';
@@ -58,7 +60,7 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS, figures } from './salary-basis.mjs';
 import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf, EN_SWITCH } from './airline-rollout.mjs';
 import { GLANCE, viewOf, checkViewEn } from './pv-airline-view.mjs';
-import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, legacyPlan, legacyAct, legacyReady, LOGOS, logoHtml, WORDS, checkWords, CMP_EN } from './gen-airline-glance.mjs';
+import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, LEGACY_EN, legacyPlan, legacyAct, LOGOS, logoHtml, WORDS, checkWords, CMP_EN } from './gen-airline-glance.mjs';
 import { PHOTOS as PLACE_PHOTOS } from './place-photos.mjs';
 import { PHOTOS as AIRLINE_PHOTOS } from './airline-photos.mjs';
 import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck, jpPlaceEn } from './airline-display.mjs';
@@ -375,7 +377,7 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
 
 /* ═══ C) 古い節の台帳（107枚ぜんぶ）・どの会社も読み口が通る ═══ */
 {
-  const unknown = [], faqDrop = [], keepDrop = [], wrong = [], view = [];
+  const unknown = [], faqDrop = [], kept = [], wrong = [], view = [];
   for (const s of ALL) {
     let v;
     try { v = viewOf(s); if (!/^#[0-9a-fA-F]{6}$/.test(v.color) || !/^[A-Z0-9]{2,4}$/.test(v.code) || v.pay.cap.est.man !== SALARY[s].cap.avg || v.pay.fo.est.man !== SALARY[s].fo.avg) view.push(s); }
@@ -384,43 +386,45 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
     for (const p of legacyPlan(s, ORIG[s], v)) {
       if (!p.row) { unknown.push(`${s}:${p.title}`); continue; }
       if (/よくある質問/.test(p.title) && p.act !== 'keep') faqDrop.push(s);
-      if (p.row.state === 'keep' && p.act !== 'keep') keepDrop.push(`${s}:${p.title}`);
-      /* 外すのは needs の全部が出せるときだけ（ここで作り直して突き合わせる） */
-      const want = p.row.state === 'keep' || p.row.rest === 'keep' ? 'keep' : p.row.rest === 'drop' ? 'drop'
-        : (p.row.needs || []).length && p.row.needs.every(n => legacyReady[n](v)) ? 'drop' : 'keep';
+      /* ★2026-10-26（オーナー P12.129）残すのは見出しが「よくある質問」の節だけ。台帳の行の印（rest）ではなく見出しの字で、ここで作り直して突き合わせる */
+      const want = /よくある質問/.test(p.title) ? 'keep' : 'drop';
+      if (p.act === 'keep' && want === 'drop') kept.push(`${s}:${p.title}`);
       if (want !== p.act) wrong.push(`${s}:${p.title}=${p.act}`);
     }
   }
   ok(!view.length, `C どの会社（${ALL.length}社）も読み口（viewOf）が通る ── 色・略号が読め、推定年収は SALARY の avg`, view.join(' ／ '));
   ok(!unknown.length, `C 先行5社ではない会社のページ（${OTHER.length}枚）の古い節は、どれも台帳（LEGACY・LEGACY_REST）に在る`, unknown.join(' ／ '));
   ok(!faqDrop.length, 'C 先行5社ではない会社では「よくある質問」を外さない', faqDrop.join(','));
-  ok(!keepDrop.length && LEGACY_REST.filter(r => r.state === 'keep').length >= 4, 'C 検索向けの読み物（「…vs ANA —」「…の実態」「…に転職するには」ほか）は外さない', keepDrop.join(' ／ '));
-  ok(!wrong.length, 'C 古い節を外すのは、新しい部品がその話を出せるとき（needs の全部）だけ', wrong.slice(0, 6).join(' ／ '));
+  /* ★2026-10-26 当て直し（L2 ── 弱めていない）：前は「検索向けの読み物（…vs ANA —・…の実態・…に転職するには ほか）は外さない」。
+     オーナー「昔の内容はもういらないでしょ」で、いまは「よくある質問」のほかに残す古い節が1つも無い（台帳の「残す」の行も無い） */
+  ok(!kept.length && [...LEGACY_REST, ...LEGACY_EN].every(r => r.state !== 'keep'), 'C 先行5社ではない会社で残す古い節は「よくある質問」だけ（検索向けの読み物・採用区分の表も外す）── 台帳にも「残す」の行が無い', kept.join(' ／ '));
+  ok(!wrong.length, 'C 先行5社ではない会社の古い節は、見出しが「よくある質問」の節だけが残り、ほかは全部外れる（新しい部品の用意を待たない）', wrong.slice(0, 6).join(' ／ '));
   const lead = LEAD.flatMap(s => LEGACY.map(r => [s, r, legacyAct({ slug: s }, r)])).filter(([, r, a]) => a !== (r.state === 'keep' ? 'keep' : 'drop'));
   ok(!lead.length, 'C 先行5社の古い節の決め方は今までどおり（keep 以外は外す・「よくある質問」も外す）', lead.map(([s, r]) => `${s}:${r.name}`).join(','));
-  /* 2026-10-21 d1（リード「古い節を外すのは、新しいページが同じ話を言えるときだけ」）── 話題ごとに、ほかの話の行だけでは外れない。
-     作り物の読み口（先行5社ではない会社の形）で見る：ほかの話の公表だけが在る → 残す／同じ話の公表が在る → 外す。 */
+  /* ★2026-10-26 当て直し（L2）：2026-10-21 d1 の「話題ごとに、同じ話の公表が在るときだけ外す」は、オーナーの判断（P12.129）で
+     「新しい部品が何を出していても外す」になった。同じ10通りの作り物の読み口（先行5社ではない会社の形）で、どの読み口でも
+     「よくある質問」のほかの行は外れ、「よくある質問」の行は残ることを見る。台帳の全部の行（日本語・ほかの会社だけ・英語）も同じ。 */
   {
     const fake = (work = [], benefits = [], jobs = []) => ({ slug: 'zz-fake', rollout: true, work, benefits, jobs, company: { intro: [], fleet: [], profile: [], scale: [] } });
     const F = (key, tag = '') => ({ key, label: key, value: 'x', tag, src: { kind: 'company' } });
-    const row = name => [...LEGACY, ...LEGACY_REST].find(r => r.name === name);
-    const act = (name, v) => legacyAct(v, row(name));
-    const cases = [
-      ['訓練・昇格・審査', fake([F('annual_days_off'), F('roster_pattern'), F('working_time')], [F('commuting'), F('staff_travel')]), 'keep', '休日・ロスターの型・勤務時間・通勤・Staff Travel の公表だけ'],
-      ['訓練・昇格・審査', fake([F('training_location', '過去')]), 'keep', '訓練の場所の行が過去の札つきだけ'],
-      ['訓練・昇格・審査', fake([F('annual_days_off'), F('training_location')]), 'drop', '訓練の場所の公表が在る'],
-      ['訓練・昇格・審査', fake([F('upgrade_years')]), 'drop', '昇格の公表が在る'],
-      ['福利厚生・待遇', fake([F('annual_days_off')]), 'keep', '勤務の公表だけ'],
-      ['福利厚生・待遇', fake([], [F('medical')]), 'drop', '待遇の公表が在る'],
-      ['募集要項・採用情報', fake([F('annual_days_off')], [F('medical')]), 'keep', '募集の行が無い'],
-      ['募集要項・採用情報', fake([], [], [F('entry_open')]), 'drop', '募集の行が在る'],
-      ['応募要件の目安', fake([], [], [F('entry_open'), F('pilot_employment')]), 'keep', '募集の受付・雇用の形の行だけ（応募の要件ではない）'],
-      ['応募要件の目安', fake([], [], [F('requirements')]), 'drop', '応募の要件の行が在る'],
+    const views = [
+      ['休日・ロスターの型・勤務時間・通勤・Staff Travel の公表だけ', fake([F('annual_days_off'), F('roster_pattern'), F('working_time')], [F('commuting'), F('staff_travel')])],
+      ['訓練の場所の行が過去の札つきだけ', fake([F('training_location', '過去')])],
+      ['訓練の場所の公表が在る', fake([F('annual_days_off'), F('training_location')])],
+      ['昇格の公表が在る', fake([F('upgrade_years')])],
+      ['勤務の公表だけ', fake([F('annual_days_off')])],
+      ['待遇の公表が在る', fake([], [F('medical')])],
+      ['募集の行が無い', fake([F('annual_days_off')], [F('medical')])],
+      ['募集の行が在る', fake([], [], [F('entry_open')])],
+      ['募集の受付・雇用の形の行だけ', fake([], [], [F('entry_open'), F('pilot_employment')])],
+      ['応募の要件の行が在る', fake([], [], [F('requirements')])],
     ];
-    const bad = cases.filter(([n, v, want]) => !row(n) || act(n, v) !== want).map(([n, , want, why]) => `${n}（${why}）→ ${want} のはずが ${row(n) ? act(n, cases.find(c => c[0] === n && c[3] === why)[1]) : '台帳に無い'}`);
-    ok(!bad.length, `C 古い節は話題ごとに、同じ話の公表が在るときだけ外す（${cases.length}通り：訓練・昇格／福利厚生／募集要項／応募要件）`, bad.join(' ／ '));
-    /* 実際のページ：a2 で休日の行だけで消えたスカイマークの「訓練・昇格システム」は、残っている（昇格・訓練の公表が無い） */
-    ok(/<h2 class="text-2xl font-bold mb-6">訓練・昇格システム<\/h2>/.test(ORIG.skymark) && !legacyReady.career(viewOf('skymark')), 'C スカイマークの古い節「訓練・昇格システム」は残っている（新しいページに昇格・訓練の公表が無い）');
+    const FAQ_ROW = r => !!r.h2 && /よくある質問|Frequently Asked Questions/.test(r.h2.source);
+    const rows = [...LEGACY, ...LEGACY_REST, ...LEGACY_EN];
+    const bad = views.flatMap(([why, v]) => rows.filter(r => legacyAct(v, r) !== (FAQ_ROW(r) ? 'keep' : 'drop')).map(r => `${r.name}（${why}）→ ${legacyAct(v, r)}`));
+    ok(rows.filter(FAQ_ROW).length === 2 && !bad.length, `C 先行5社ではない会社では、新しい部品が何を出していても（${views.length}通りの読み口 × 台帳の ${rows.length}行）「よくある質問」の行だけが残り、ほかの行は外れる`, bad.slice(0, 6).join(' ／ '));
+    /* 実際のページ：前は残していたスカイマークの「訓練・昇格システム」（新しいページに昇格・訓練の公表が無い）も、いまは外れている。「よくある質問」は残る */
+    ok(!/<h2\b[^>]*>訓練・昇格システム<\/h2>/.test(ORIG.skymark) && /<h2\b[^>]*>[^<]*よくある質問/.test(ORIG.skymark), 'C スカイマークの古い節「訓練・昇格システム」は外れ、「よくある質問」は残っている');
   }
 }
 
@@ -510,24 +514,12 @@ try {
     const lost = plan.filter(p => p.act === 'keep' && !below.includes(p.title)).map(p => p.title);
     const left = plan.filter(p => p.act === 'drop' && below.includes(p.title)).map(p => p.title);
     ok(plan.some(p => p.act === 'keep') && !lost.length && !left.length, `D ${s}: 残すと決めた古い節は残り（${plan.filter(p => p.act === 'keep').length}）、外すと決めた節は無い（${plan.filter(p => p.act === 'drop').length}）`, `残らなかった: ${lost.join('・')} ／ 残った: ${left.join('・')}`);
-    /* 外した節の話を、新しいページが本当に出しているか（生成器の legacyReady を使わず、出来上がったページの字で見る） */
     const cellOf = id => cellOf2(g, id);
-    const SHOWS = {
-      pay: () => /<article class="pvg-card pvg-pay"/.test(g) && /<p class="pvg-big">/.test(g),
-      intro: () => /data-pvg-about="lead"/.test(g),
-      fleet: () => /class="pvg-fleet"/.test(g),
-      network: () => /id="pvg-st-list"/.test(g),
-      work: () => !!cellOf('work') && !cellOf('work').includes('会社が公表している勤務の条件を確認できていません'),
-      benefits: () => !!cellOf('benefits') && !cellOf('benefits').includes('会社が公表している待遇を確認できていません'),
-      jobs: () => /<article class="pvg-card pvg-jobs"/.test(g) && !g.includes('会社が公表している募集を確認できていません。'),
-      compare: () => /pvg-btn-cmp/.test(block(b, 'PV-HERO')),
-      /* 勤務・訓練の「昇格・訓練」の面に、公表の一覧が在る（「会社の公表は確認できていません」ではない） */
-      career: () => { const m = /<section class="pvg-sf" data-sf="career"[\s\S]*?<\/section>/.exec(g); return !!m && /<div class="pvg-sf-pub">/.test(m[0]); },
-      req: () => /<article class="pvg-card pvg-jobs"/.test(g) && !g.includes('会社が公表している募集を確認できていません。'),
-    };
-    /* rest:'drop'（出してはいけない額を載せた節 ── P12.77）は、新しい部品を待たずに外す（理由は台帳の rest_why） */
-    const early = plan.filter(p => p.act === 'drop' && p.row.rest !== 'drop' && !(p.row.needs || []).every(n => SHOWS[n] && SHOWS[n]())).map(p => `${p.title}（${p.row.needs}）`);
-    ok(!early.length, `D ${s}: 外した古い節の話は、新しいページが出している（出していない話の節は外していない）`, early.join(' ／ '));
+    /* ★2026-10-26 当て直し（L2 ── 弱めていない）：前は「外した古い節の話は、新しいページが出している（出していない話の節は外していない）」。
+       オーナー（P12.129）「昔の内容はもういらないでしょ」「よくある質問だけ残す」で、新しい部品の用意を待たずに外す決め方になった。
+       いまは、切り替えたページの新しい部品より下の見出しが「よくある質問」の1つだけ ── 古い節は1つも残らず、「よくある質問」は残る
+       （台帳の決め方 plan を使わず、出来上がったページの字で見る） */
+    ok(below.length === 1 && /よくある質問/.test(below[0]) && plan.some(p => p.act === 'drop'), `D ${s}: 新しい部品より下の見出しは「よくある質問」の1つだけ（外した古い節 ${plan.filter(p => p.act === 'drop').length}）`, below.join(' ／ '));
     /* 過去・参考の行の、調べた側の字はページに無い（出るのは airline-display.mjs の字と札だけ）。
        勤務・待遇のカードの1行め（見出し）は条件つきの行か、無ければ今までの字 */
     const wl = wordlessOf(s), seen = wl.filter(r => g.includes(htmlEsc(r.label_ja)));
@@ -1085,6 +1077,41 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
     }));
   }
   ok(townPairs > 0 && !split.length, `F 英語の新しい会社ページの「街を追加」の面の街の名前（${townPairs}か所）は、日本語のページの同じ街と同じか、サーバの街の候補の種でその街の別の書き方（英語のページで出した投稿が別の街に割れない）`, split.slice(0, 6).join(' ／ '));
+}
+/* ═══ G) 新しい部品の下は「よくある質問」だけ（2026-10-26 オーナー「昔の内容はもういらないでしょ」「よくある質問だけ残す」P12.129）═══
+   リポジトリの会社ページ（SWITCH の日本語・英語の全部）を読むだけ。生成器の台帳（legacyPlan）は使わず、出来上がったページの字で見る。
+   新しい部品の管理ブロックの後ろ（<!--/PV-GLANCE-->）から <footer> の前までに在ってよいもの ＝
+     先行5社ではない会社 … 見出しが「よくある質問」／「Frequently Asked Questions」の節がちょうど1つ（S）と、本文の箱の閉じ（</div>）だけ。
+                          節は箱の中の最後（S が </div> より前）。スターラックスの日本語だけは、その節を描く script（J・faq-list）が箱の後ろに在ってよい
+     先行5社            … 本文の箱の閉じ（</div>）だけ（「よくある質問」も置かない）
+   覚え書き（<!-- … -->）と空白は数えない。それ以外の字・塊（古い節・帯・錠前の箱…）が1つでも在れば赤。
+   FAQPage（構造化データ）は、先行5社ではない会社に在り・先行5社に無い。 */
+{
+  const bad = [];
+  let nPages = 0;
+  for (const lang of ['ja', 'en']) for (const s of (lang === 'en' ? EN_SWITCH : SWITCH)) {
+    const h = lang === 'en' ? ORIG_EN[s] : ORIG[s], lead = LEAD.includes(s), tag = `${lang} ${s}`;
+    const a = h.indexOf('<!--/PV-GLANCE-->'), f = h.indexOf('<footer', a);
+    if (a < 0 || f < 0) { bad.push(`${tag}: 管理ブロックの終わりか <footer> が無い`); continue; }
+    nPages++;
+    let t = h.slice(a + '<!--/PV-GLANCE-->'.length, f), faqs = 0;
+    for (;;) {
+      const m = /<div class="glass p-8 fade-up"[^>]*>/.exec(t);
+      if (!m) break;
+      const e = divTo(t, m.index), sec = t.slice(m.index, e);
+      const isFaq = /<h2\b[^>]*>[^<]*(?:よくある質問|Frequently Asked Questions)/.test(sec) && !/<div class="glass p-8 fade-up"/.test(sec.slice(1));
+      if (isFaq) faqs++;
+      t = t.slice(0, m.index) + (isFaq ? '\u0001S\u0001' : '\u0001X\u0001') + t.slice(e);
+    }
+    t = t.replace(/<script>(?:(?!<\/script>)[\s\S])*?getElementById\('faq-list'\)[\s\S]*?<\/script>/g, () => '\u0001J\u0001').replace(/<!--[\s\S]*?-->/g, () => '').replace(/\s+/g, () => '');
+    const want = lead ? ['</div>'] : ['\u0001S\u0001</div>', ...(lang === 'ja' && s === 'starlux' ? ['\u0001S\u0001</div>\u0001J\u0001'] : [])];
+    if (!want.includes(t)) bad.push(`${tag}: ${t.replace(/\u0001/g, () => '¦').slice(0, 160)}`);
+    const ldFaq = /"@type":"FAQPage"/.test([...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n'));
+    if (lead ? ldFaq || faqs : !ldFaq || faqs !== 1) bad.push(`${tag}: 「よくある質問」の節 ${faqs}・FAQPage ${ldFaq ? '在る' : '無い'}`);
+  }
+  ok(nPages === SWITCH.length + EN_SWITCH.length && !bad.length,
+    `G 会社ページ（日本語 ${SWITCH.length}枚・英語 ${EN_SWITCH.length}枚）の新しい部品より下は、先行5社ではない会社では「よくある質問」の節1つだけ（本文の箱の中の最後の節・FAQPage つき）、先行5社では何も無い（「よくある質問」も FAQPage も無い）`,
+    bad.slice(0, 6).join(' ／ '));
 }
 ok(sha(ALL.map(s => read(pageOf(s))).join('\u0000')) === REPO_SHA, 'リポジトリの会社ページは、この検査で1バイトも変わっていない');
 ok(sha(ALL.map(s => (fs.existsSync(path.join(HERE, pageOf(s, 'en'))) ? read(pageOf(s, 'en')) : '')).join('\u0000')) === REPO_SHA_EN, 'リポジトリの英語の会社ページも、この検査で1バイトも変わっていない');

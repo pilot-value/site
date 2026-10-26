@@ -674,7 +674,13 @@ console.log('\n── H) 会社ページの手で書いた所が、出どころ�
   }
   ok(`H1 会社ページ ${nPages} 枚の手で書いた所に、外した型の数（機数・税率・レグ数・審査の回数・賞与の月数・休暇の日数・席数・就航地の数・既知の例）が戻っていない`, nPages === Object.keys(SALARY).length * 2 && !bad.H1.length, bad.H1.slice(0, 8).join(' ／ '));
   ok(`H2 手で書いた所の概数・下限つきの数（${nApprox} か所）は、どれもその会社の台帳に同じ数が在る`, nApprox > 0 && !bad.H2.length, bad.H2.slice(0, 8).join(' ／ '));
-  ok(`H3 設立の年（${nFound} か所・本文と欄）は、どれもその会社の台帳の設立の年と同じ`, nFound > 0 && !bad.H3.length, bad.H3.slice(0, 8).join(' ／ '));
+  /* ★2026-10-26 当て直し（L2 ── 弱めていない。WP-compare-all-21）：設立の年を書いていた古い節（概要・会社の欄）は、オーナー「昔の内容は
+     もういらないでしょ」で全部外れ、手で書いた所に設立の年はいま1か所も無い（0 か所は正しい）。前の「0 か所なら赤」（見つける形が壊れて
+     空振りしていないか）は、見つける形そのものを見本の字で試す形に置き換えた ── 日本語の言い方2つ・英語の言い方1つ・設立の欄1つを、それぞれちょうど1つ掴む */
+  const H3_SAMPLE = [['1996年11月12日設立', FOUND], ['2002年に設立', FOUND], ['Founded in 1985 as', FOUND],
+    ['<div><div class="text-xs text-muted uppercase tracking-widest mb-1">設立</div><div class="font-semibold">1996年</div></div>', CELL]];
+  const h3Shape = H3_SAMPLE.every(([s, re]) => [...s.matchAll(new RegExp(re.source, 'g'))].length === 1);
+  ok(`H3 設立の年（${nFound} か所・本文と欄）は、どれもその会社の台帳の設立の年と同じ（見つける形は見本の字 ${H3_SAMPLE.length} つで試してある）`, h3Shape && !bad.H3.length, bad.H3.slice(0, 8).join(' ／ '));
   ok('H4 退職年齢の欄は、台帳に年齢の行がある会社（ZIPAIR）にだけ在る', !bad.H4.length, bad.H4.slice(0, 8).join(' ／ '));
   ok(`H5 免許・審査の当局の名前（${nAuth} か所）は、その会社の国のもの（ほかの国の名前は許す言い回しの中だけ）・別の会社（エチオピア航空）の文が無い`, nAuth > 0 && !bad.H5.length, bad.H5.slice(0, 8).join(' ／ '));
 }

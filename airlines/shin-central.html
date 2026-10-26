@@ -98,7 +98,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <script src="../pv-session.js"></script>
 <script src="premium-auth-lock.js"></script>
 <style data-pv-light>/* PV-LIGHT: 明るい色の画面で、この会社の色の字を同じ色合いの読める濃さにする（暗い色の画面には効かない）。patch-airline-pages.mjs が書く・手で直さない。 */
-[data-theme="light"] [style="color:#4477bb" i],[data-theme="light"] [style^="color:#4477bb;" i],[data-theme="light"] [style*=";color:#4477bb;" i],[data-theme="light"] [style$=";color:#4477bb" i]{color:#3669ab!important}
 [data-theme="light"] .section-badge{color:#27599b!important}
 [data-theme="light"] .tag-navy2{color:#255798!important}
 </style>
@@ -363,118 +362,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </section>
 <!--/PV-GLANCE-->
 
-  <!-- Section 1: Overview -->
-  <div class="glass p-8 fade-up" data-pvg-pane="overview">
-    <div class="section-badge mb-4">航空会社の概要</div>
-    <h2 class="text-2xl font-bold mb-4">新中央航空について</h2>
-    <div class="grid lg:grid-cols-2 gap-8">
-      <div>
-        <p class="text-muted leading-relaxed mb-4">新中央航空は独立系のコミューター航空会社です。東京都調布市にある調布飛行場を拠点に、大島・新島・神津島・三宅島など伊豆諸島の各島へのコミューター路線を運航しています。セスナ208Bグランドキャラバンと、DHC-6ツインオターという小型機を使用した少人数輸送が特徴です。</p>
-        <p class="text-muted leading-relaxed">東京都島嶼部の住民の生活交通として、伊豆諸島を支え続けてきた歴史ある航空会社です。羽田や成田ではなく調布飛行場という都市型小型飛行場を拠点とすることも独自性の一つ。小型機での飛行経験はパイロットとして高い技量形成に貢献します。</p>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div><div class="text-xs text-muted uppercase tracking-widest mb-1">本社</div><div class="font-semibold">調布市（東京都）</div></div>
-        
-        <div><div class="text-xs text-muted uppercase tracking-widest mb-1">拠点空港</div><div class="font-semibold">調布飛行場（CHO）</div></div>
-        <div><div class="text-xs text-muted uppercase tracking-widest mb-1">グループ</div><div class="font-semibold">独立系</div></div>
-        <div><div class="text-xs text-muted uppercase tracking-widest mb-1">航空会社種別</div><div class="font-semibold">FSC（コミューター小型機）</div></div>
-        <div><div class="text-xs text-muted uppercase tracking-widest mb-1">就航先</div><div class="font-semibold">伊豆諸島（大島・新島等）</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 3: Operations -->
-  <div class="glass p-8 fade-up" data-pvg-pane="overview">
-    <div class="section-badge mb-4">運航環境</div>
-    <h2 class="text-2xl font-bold mb-6">フライト環境・路線</h2>
-    <div class="grid md:grid-cols-2 gap-6">
-      <div>
-        <h3 class="font-semibold mb-3" style="color:#4477bb">主要路線（調布発着）</h3>
-        <ul class="space-y-2 text-sm text-muted">
-          <li class="flex items-start gap-2"><span style="color:#4477bb" class="mt-0.5">✦</span>調布↔大島</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb" class="mt-0.5">✦</span>調布↔新島</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb" class="mt-0.5">✦</span>調布↔神津島</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb" class="mt-0.5">✦</span>調布↔三宅島</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb" class="mt-0.5">✦</span>島嶼間の接続路線</li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="font-semibold mb-3 text-accent">小型機運航の特性</h3>
-        <ul class="space-y-2 text-sm text-muted">
-          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✦</span>小型機での精密飛行</li>
-          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✦</span>海上飛行・山岳地形の島への着陸技術</li>
-          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✦</span>調布飛行場の特殊空域・管制対応</li>
-          <li class="flex items-start gap-2"><span class="text-accent mt-0.5">✦</span>気象変化への即時対応・引き返し判断</li>
-        </ul>
-      </div>
-    </div>
-    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="stat-card text-center"><div class="font-bold" style="color:#4477bb">C208B Grand Caravan</div><div class="text-xs text-muted mt-1">単発ターボプロップ</div></div>
-      <div class="stat-card text-center"><div class="font-bold" style="color:#34d399">DHC-6 Twin Otter</div><div class="text-xs text-muted mt-1">双発ターボプロップ</div></div>
-      <div class="stat-card text-center"><div class="font-bold" style="color:#fb923c">調布拠点</div><div class="text-xs text-muted mt-1">CHO ハブ</div></div>
-      <div class="stat-card text-center"><div class="font-bold text-accent">伊豆諸島</div><div class="text-xs text-muted mt-1">島民の生活路線</div></div>
-    </div>
-  </div>
-
-  <!-- Section 4: Training -->
-  <div class="glass p-8 fade-up" data-pvg-pane="overview">
-    <div class="section-badge mb-4">訓練環境</div>
-    <h2 class="text-2xl font-bold mb-6">訓練・昇格システム</h2>
-    <div class="grid md:grid-cols-2 gap-4">
-      <div class="info-card"><div class="font-semibold mb-2" style="color:#4477bb">C208B・DHC-6 型式訓練</div><div class="text-sm text-muted">セスナ208Bグランドキャラバン（単発）とDHC-6ツインオター（双発）の型式訓練を実施。小型機ならではの精密な手動操縦技術と機体システムを深く習得します。</div></div>
-      <div class="info-card"><div class="font-semibold mb-2" style="color:#4477bb">海上・島嶼飛行訓練</div><div class="text-sm text-muted">伊豆諸島の複雑な地形（山岳・急峻な地形）と海上気象への対処訓練。小さな飛行場への精密アプローチ・短距離離着陸（STOL）技術を磨きます。</div></div>
-      <div class="info-card"><div class="font-semibold mb-2" style="color:#4477bb">調布飛行場特別訓練</div><div class="text-sm text-muted">首都圏の特殊空域（横田管制区・東京空域）での飛行訓練。調布飛行場の特殊な運用規則・管制通信手順を習得します。</div></div>
-      <div class="info-card"><div class="font-semibold mb-2" style="color:#4477bb">機長昇格と定期審査</div><div class="text-sm text-muted">小型機での豊富な飛行経験が機長としての基礎技量を形成。定期プロフィシェンシーチェックで継続的な安全水準を維持します。</div></div>
-    </div>
-  </div>
-
-  <!-- Section 5: Benefits -->
-  <div class="glass p-8 fade-up" data-pvg-pane="overview">
-    <div class="section-badge mb-4">福利厚生</div>
-    <h2 class="text-2xl font-bold mb-6">福利厚生・待遇</h2>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="info-card"><div class="text-2xl mb-2">✈️</div><div class="font-semibold mb-1">航空券割引</div><div class="text-sm text-muted">本人・家族向け割引航空券。伊豆諸島への日帰りや宿泊旅行を身近に楽しめる。</div></div>
-      <div class="info-card"><div class="text-2xl mb-2">🌊</div><div class="font-semibold mb-1">伊豆諸島・東京近郊</div><div class="text-sm text-muted">調布（東京都）拠点で首都圏生活を享受。伊豆諸島の豊かな自然・美しい海へもアクセス良好。</div></div>
-      <div class="info-card"><div class="text-2xl mb-2">🏥</div><div class="font-semibold mb-1">健康保険・医療</div><div class="text-sm text-muted">健康保険組合加入。パイロット専門の健康管理サポート。ライセンス喪失保険完備。</div></div>
-      <div class="info-card"><div class="text-2xl mb-2">🏦</div><div class="font-semibold mb-1">退職金・年金</div><div class="text-sm text-muted">退職金制度完備。安定した独立系企業。</div></div>
-      <div class="info-card"><div class="text-2xl mb-2">✈️</div><div class="font-semibold mb-1">小型機キャリアの強み</div><div class="text-sm text-muted">小型機での豊富な飛行経験はパイロットとしての基礎技量向上に貢献。将来の大型機移行への土台にもなる。</div></div>
-      <div class="info-card"><div class="text-2xl mb-2">📚</div><div class="font-semibold mb-1">訓練費用支援</div><div class="text-sm text-muted">型式訓練費用は新中央航空負担。小型機の資格取得・維持費用も支援制度あり。</div></div>
-    </div>
-  </div>
-
-  <!-- Section 6: Recruitment -->
-  <div class="glass p-8 fade-up" style="border-color:rgba(0,48,135,.2)" data-pvg-pane="overview">
-    <div class="flex items-center gap-3 mb-6">
-      <div class="section-badge">2026年3月現在</div>
-      <span class="tag tag-navy2">新中央航空採用</span>
-    </div>
-    <h2 class="text-2xl font-bold mb-6">募集要項</h2>
-    <div class="space-y-5">
-      <div class="glass-raised p-6">
-        <div class="flex items-start justify-between mb-3">
-          <div><div class="font-bold text-lg">新中央航空 パイロット採用</div><div class="text-muted text-sm">副操縦士（F/O）/ 機長（Captain）— 経験者採用</div></div>
-          <span class="tag tag-gray">要公式サイト確認</span>
-        </div>
-        <div class="grid md:grid-cols-3 gap-4 mb-4">
-          <div><div class="text-xs text-muted uppercase tracking-widest mb-1">応募資格</div><div class="text-sm">事業用操縦士免許（単発または多発・計器）保有者</div></div>
-          <div><div class="text-xs text-muted uppercase tracking-widest mb-1">勤務地</div><div class="text-sm">調布飛行場（東京都調布市）</div></div>
-          <div><div class="text-xs text-muted uppercase tracking-widest mb-1">英語要件</div><div class="text-sm">航空英語能力証明 Level 4以上</div></div>
-        </div>
-        <div class="text-xs text-muted">※ 採用状況は時期により変動します。新中央航空公式サイトにてご確認ください。小型機経験者・伊豆諸島路線への情熱を持つ方を優遇。</div>
-      </div>
-      <div class="glass-raised p-6">
-        <div class="font-bold text-lg mb-2">応募要件（一般）</div>
-        <ul class="space-y-2 text-sm text-muted">
-          <li class="flex items-start gap-2"><span style="color:#4477bb">✦</span>事業用操縦士技能証明（飛行機 単発または多発陸上）以上</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb">✦</span>計器飛行証明保有（望ましい）</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb">✦</span>航空身体検査第一種合格</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb">✦</span>英語力（航空英語能力証明 Level 4以上）</li>
-          <li class="flex items-start gap-2"><span style="color:#4477bb">✦</span>離島・コミューター路線への使命感とチームワーク</li>
-        </ul>
-      </div>
-    </div>
-    <div class="mt-6"><a href="https://www.central-air.co.jp/recruit.html" target="_blank" rel="noopener" class="btn-primary">新中央航空採用ページへ <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M9 3h4v4M13 3l-7 7M5 5H3v8h8v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
-  </div>
 <!--PV-FAQ-->
 <div class="glass p-8 fade-up" data-pvg-pane="overview">
   <div class="section-badge mb-4">よくある質問</div>
