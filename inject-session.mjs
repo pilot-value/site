@@ -10,13 +10,14 @@
      head で先に終わらせる必要がある。
 
    ・pv-session.js はルート直下。サブディレクトリからは相対パスで参照する
-   ・既に入っているページはスキップ（何度実行しても同じ結果）
+   ・中身の指紋を版として付ける。既存の参照も更新する（何度実行しても同じ結果）
    ・"temporary screenshots/" は本番ページではないので対象外
 
    実行: node inject-session.mjs
 ════════════════════════════════════════════════════════════════ */
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'node:crypto';
 
 const dirs = {
   '.':              'pv-session.js',
@@ -27,7 +28,8 @@ const dirs = {
   './en/countries': '../../pv-session.js',
 };
 
-const MARKER = /src="[^"]*pv-session\.js"/;
+const MARKER = /src="[^"]*pv-session\.js(?:\?[^"]*)?"/;
+const VERSION = createHash('sha256').update(fs.readFileSync('pv-session.js')).digest('hex').slice(0, 8);
 
 let updated = 0, already = 0, skipped = 0;
 
@@ -38,12 +40,18 @@ for (const [dir, rel] of Object.entries(dirs)) {
     const fp = path.join(dir, entry);
     let html = fs.readFileSync(fp, 'utf8');
 
-    if (MARKER.test(html)) { already++; continue; }
+    if (MARKER.test(html)) {
+      const next = html.replace(MARKER, () => `src="${rel}?v=${VERSION}"`);
+      if (next === html) { already++; continue; }
+      fs.writeFileSync(fp, next, 'utf8');
+      updated++;
+      continue;
+    }
 
     const idx = html.lastIndexOf('</head>');
     if (idx === -1) { skipped++; console.log('  ! </head>なし:', fp); continue; }
 
-    const tag = `<script src="${rel}"></script>\n`;
+    const tag = `<script src="${rel}?v=${VERSION}"></script>\n`;
     html = html.slice(0, idx) + tag + html.slice(idx);
     fs.writeFileSync(fp, html, 'utf8');
     updated++;
@@ -51,6 +59,6 @@ for (const [dir, rel] of Object.entries(dirs)) {
 }
 
 console.log('\n=== pv-session.js 注入完了 ===');
-console.log(`✓ 注入: ${updated}ページ`);
+console.log(`✓ 更新: ${updated}ページ`);
 console.log(`- 既存: ${already}ページ`);
 console.log(`- スキップ: ${skipped}ページ`);

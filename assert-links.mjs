@@ -237,6 +237,14 @@ show('Inter を指定しているのに読み込んでいない（端末の既�
      320px では 27px 外へ出て、PC では副のボタンが左の列の外へ 45〜134px 出る）。
      lp.js は付けていない（この回は直していない。直して組み合わせが要るようになったら足す）。 */
 const STAMPS = [
+  /* 証明要求の最新確認。全ページの共有セッション処理にも指紋を付ける。
+     pv-session.js を直したら node inject-session.mjs で参照をそろえる。 */
+  { pages: [...doc].filter(([, d]) => /src="[^"]*pv-session\.js(?:\?[^"]*)?"/.test(d.html))
+      .map(([page]) => {
+        const rel = path.posix.relative(path.posix.dirname(page), '.');
+        return [page, rel ? rel + '/' : ''];
+      }),
+    files: ['pv-session.js'] },
   { pages: [['actual-pay.html', ''], ['en/actual-pay.html', '../']],
     files: ['actual-pay.css', 'ap-preview.js', 'actual-pay.js'] },
   { pages: [['index.html', ''], ['en/index.html', '../']],

@@ -5,7 +5,8 @@
 
      A) 出す相手を間違えない
         未ログインには何も読み込まない（通信ゼロ）／止まっていない会員には出さない・
-        聞くのは1回だけ／止まっている会員には、次のページから**聞く前に**出る
+        聞くのは各ページ1回／後から止まった会員には次のページで最新の要求を出す／
+        止まっている会員には、次のページから**聞く前に**出る
      B) 板の約束
         閉じる手段が無い（×・外・ESC）／下のページを触れない／オーナーが挙げた4つの例が
         出ている／**確認後の画像の扱いを書いていない**（オーナー指示）／
@@ -154,10 +155,11 @@ for (const dir of ['', '/en']) {
     ok(asks(sv) === 1, '止まっていない会員：聞くのは1回だけ', sv.hits);
     ok(sv.auth[0] === 'Bearer ' + TOKEN, '聞くときは本人のトークンを添える', sv.auth[0]);
     sv.hits.length = 0;
+    sv.state = { state: 'required', again: false };
     await page.goto(BASE + DEEP, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => !!window.PVSession);
-    ok(await page.$('script[src*="pv-proof.js"]') === null && asks(sv) === 0,
-       '止まっていない会員：次のページでは聞き直さない（読み込みもしない）', sv.hits);
+    await page.waitForSelector('#pvpf-back.is-in');
+    ok(asks(sv) === 1 && (await proofKey(page)).s === 'required',
+       '後から止まった会員：古い許可の写しがあっても次のページで最新の要求を出す', sv.hits);
     await page.close();
   }
   {
@@ -324,8 +326,9 @@ for (const dir of ['', '/en']) {
     await until(page, () => {
       let s = '';
       try { s = JSON.parse(localStorage.getItem('pv_proof') || '{}').s; } catch (e) {}
+      const nav = performance.getEntriesByType('navigation')[0];
       return s === 'ok' && document.readyState === 'complete' && !document.getElementById('pvpf-back')
-          && !document.querySelector('script[src*="pv-proof.js"]');   // 読み直した後のページ
+          && nav && nav.type === 'reload';   // 承認後に読み直したページ
     });
     const after = await page.evaluate(() => ({
       inert: [...document.body.children].filter((e) => e.hasAttribute('inert')).length,
