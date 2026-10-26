@@ -41,6 +41,7 @@ import { axisEnd } from './pv-bars.mjs';
 import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities } from './airline-rollout.mjs';
 import { REGIONS, PLACES, networkOf, placeCountry } from './airline-destinations.mjs';
 import { countryEn } from './airline-display.mjs';
+import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -680,7 +681,8 @@ export function viewOf(slug, lang = 'ja') {
      暮らし      拠点の空港ごとの街（拠点の並びの順・先頭 ＝ いちばん上の拠点）。拠点の空港が先行5社の台帳の街の空港なら、その街の1組
                  （東京 ＝ アットホーム。その会社の拠点の空港の行だけにしぼる）。そうでなければ調べの台帳の街（CITY に字が在る街だけ）。
                  家賃の行の無い街は、今までの「家賃の資料を確認できていません」。ほかの街の数字で埋めない。
-   紹介文（intro）は、組み立てる型が台帳に無いので作らない（[]）。作り物の字・0 で埋めない。 */
+   紹介文（intro）は、台帳に紹介文の型が無いので、このページにもう出ている値だけを決まった型にはめる（下の rowsIntro）。
+   作り物の字・0 で埋めない。 */
 const ROOM = [['studio', 'studio', 'Studio'], ['1bed', 'bed1', '1-Bed'], ['2bed', 'bed2', '2-Bed'], ['3bed', 'bed3', '3-Bed']];
 /* 家賃の対象の期間（2026-07-01〜2026-09-30 → 2026年7〜9月）。月の頭から月の終わりまでの行だけ。ほかは対象の始まりの日付の字。 */
 function periodText(r, lang = 'ja') {
@@ -759,6 +761,7 @@ function rolloutView(slug, lang = 'ja') {
     ? { city: R.base.city, country: R.base.country, iata: R.base.iata, text: R.base.city || R.base.iata[0], rows: rows(R.base.rows) }
     : { city: '', country: '', iata: [], text: '', rows: [] };
   const livings = livingsOf(slug, base.iata, T);
+  const profile = rows(R.profile), fleet = rows(R.fleet);
   return {
     slug, name: en ? S.en : S.ja, ...metaOf(slug), rollout: true, ...(en ? { lang } : {}),
     base,
@@ -771,7 +774,7 @@ function rolloutView(slug, lang = 'ja') {
     work: rows(R.work), benefits: rows(R.benefits), living: livings[0] || null, livings,
     /* 拠点の空港は就航地の一覧に入れない。拠点が街だけの会社は、その街の空港（airline-rollout.mjs の base.home）も入れない（2026-10-21 d1） */
     network: (n => (en ? networkEn(n, false) : n))(researchNetwork(slug, REGIONS, [...base.iata, ...((R.base && R.base.home) || [])], lang)),
-    company: { profile: rows(R.profile), scale: rows(R.scale), fleet: rows(R.fleet), photo: primary(slug), intro: [] },
+    company: { profile, scale: rows(R.scale), fleet, photo: primary(slug), intro: rowsIntro(slug, lang, { profile, fleet, base }) },
     jobs: rows(R.jobs),
     held: R.held,
   };
@@ -786,6 +789,62 @@ function introOf(slug, lang = 'ja') {
   if (!list.length) throw new Error(`${slug}: 台帳に紹介文が無い`);
   for (const s of list) if (!s.text) throw new Error(`${slug}: 紹介文が台帳の項目で埋まらない（${s.uses.join('・')}）`);
   return list;
+}
+
+/* ── 先行5社ではない会社の、会社のカードのいちばん上の短い紹介（★2026-10-26 段階5 compare-all-20）──────────────
+   オーナー「各航空会社ページの会社概要は空白になるくらいなら少しは説明入れたら？簡潔でいい（開いたら詳しく出ればいいけど）」。
+   台帳に紹介文の型が無い会社なので、**そのページにもう出ている値だけ**を決まった型にはめる（手で書いた字・作り物の字は入れない）:
+     国        airline-countries.mjs（ページの国）。ほかの値が無くても「〈国〉の航空会社。」の1文は必ず在る（国の分からない会社は作らない）
+     本社      会社の数字の本社の行（都市か国）。国と同じ字なら「〈国〉に本社を置く」の1文にまとめる
+     設立      会社の数字の設立の行（founded）
+     航空連合  会社の数字の航空連合の行（alliance）── 台帳に行が在るときだけ。一覧のカードの札（airlines-meta.js）は出どころが無いので使わない
+     拠点      ページの拠点（社名の行の拠点・暮らしの街と同じ v.base）。「〜にパイロットの拠点がある」── ここで全部とは言わない（4つめから「など」）
+     機材      会社の資料に載っている型式（機数は書かない・4つめから「など」）。字はカードの札と同じ短い形
+   過去・参考の札の付いた行は使わない。数字は行の値のほかに書かない。順位・飾り・LCC/FSC の字は書かない（書いたら止める）。
+   航空会社ではない会社（airlines-meta.js の種類がチャーター・ビジネスジェット・紹介）は「運航会社」と言う。
+   uses ＝ 文が言った会社の数字の鍵（カードの4つの値に、同じ項目を並べ直さない）。rows ＝ この型で組んだ紹介の印
+   ⚠️ この紹介は「◯◯について」の古い節の代わりにはならない（gen-airline-glance.mjs の legacyReady.intro は台帳の紹介文だけを数える）。 */
+const ROWS_BANNED = /第.位|最大|最古|有数|屈指|フラッグ|国営|政府系|急成長|名門|一流|老舗|年収|給与|定年|退職|大手|人気|格安|LCC|FSC/i;
+const ROWS_BANNED_EN = /\b(largest|biggest|oldest|leading|top|No\.\s*1|best|premier|flagship|state-owned|government-owned|fast-growing|prestigious|salary|pay|major|popular|low[- ]cost|budget|legacy|LCC|FSC)\b/i;
+/* 機材の札と同じ短い形（gen-airline-glance.mjs の shortType と同じ決まり） */
+const typeShort = (s, en) => (en
+  ? String(s).replace(/^Boeing\s*/, () => 'B').replace(/^Airbus\s*/, () => '').replace(/^Embraer\s*/, () => 'E')
+  : String(s).replace(/^ボーイング\s*/, () => 'B').replace(/^エアバス\s*/, () => '').replace(/^エンブラエル\s*/, () => 'E'));
+/* 空港の字：街の名前（空港の呼び名の表 PLACES）＋3字。「東京（羽田）」は「東京・羽田（HND）」（括弧を重ねない）。名前の無い空港は3字だけ */
+const portJa = c => (PLACES[c] ? `${String(PLACES[c][0]).replace(/（([^（）]+)）$/, (_, y) => `・${y}`)}（${c}）` : c);
+const portEn = c => (PLACES[c] ? `${PLACES[c][1]} (${c})` : c);
+/* 日本語の並べ方：機材は「・」、空港は「、」（空港の名前が「東京・羽田」のように「・」を持つので、区切りと見分ける） */
+const listJa = (xs, sep = '・') => (xs.length > 3 ? `${xs.slice(0, 3).join(sep)}など` : xs.join(sep));
+const listEn = xs => { const a = xs.slice(0, 3); return a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : a[0]; };
+export function rowsIntro(slug, lang, { profile, fleet, base }) {
+  const en = lang === 'en', C = BY_CODE[AIRLINE_COUNTRY[slug]];
+  if (!C) return [];
+  const m = META.find(x => x.file === `airlines/${slug}.html`) || {};
+  const noun = ['fsc', 'lcc'].includes(m.type) ? (en ? 'Airline' : '航空会社') : (en ? 'Operator' : '運航会社');
+  const row = k => profile.find(f => f.key === k && !f.tag && String(f.value ?? '').trim());
+  const hq = row('headquarters_city') || row('headquarters_country'), founded = row('founded'), alliance = row('alliance');
+  const land = en ? C.en : C.ja, landIn = en ? C.enIn || C.en : C.ja;
+  const co = [], uses = [];
+  if (hq && String(hq.value) === land) co.push(en ? `${noun} headquartered in ${landIn}.` : `${land}に本社を置く${noun}。`);
+  else if (hq) co.push(en ? `${noun} based in ${landIn}. Headquarters: ${hq.value}.` : `${hq.value}に本社を置く${land}の${noun}。`);
+  else co.push(en ? `${noun} based in ${landIn}.` : `${land}の${noun}。`);
+  if (hq) uses.push(hq.key);
+  if (founded) { co.push(en ? `Founded ${founded.value}.` : `設立は${founded.value}。`); uses.push(founded.key); }
+  if (alliance) { co.push(en ? `Alliance: ${alliance.value}.` : `航空連合は${alliance.value}。`); uses.push(alliance.key); }
+  const ops = [];
+  const ports = base.iata.length ? base.iata.map(en ? portEn : portJa) : String(base.city || '').split(en ? ', ' : '・').filter(Boolean);
+  if (ports.length) ops.push(en ? (ports.length === 1 ? `Has a pilot base ${base.iata.length ? 'at' : 'in'} ${ports[0]}.` : `Pilot bases include ${listEn(ports)}.`)
+    : `${listJa(ports, '、')}にパイロットの拠点がある。`);
+  const types = [...new Set(fleet.filter(f => !f.tag).map(f => typeShort(f.label, en)))];
+  if (types.length) ops.push(en ? `Fleet includes the ${listEn(types)}.` : `機材には${listJa(types)}がある。`);
+  const out = [{ text: co.join(en ? ' ' : ''), uses, rows: true }];
+  if (ops.length) out.push({ text: ops.join(en ? ' ' : ''), uses: [], rows: true });
+  for (const s of out) {
+    const bad = s.text.match(en ? ROWS_BANNED_EN : ROWS_BANNED);
+    if (bad) throw new Error(`${slug}: 会社の紹介に書かない言い方（${bad[0]}）── ${s.text}`);
+    if (en && JA_CHARS.test(s.text)) throw new Error(`${slug}: 英語の会社の紹介に日本語の字 ── ${s.text}`);
+  }
+  return out;
 }
 
 /** 英語の読み口の検査：SWITCH の全社の英語の読み口が、対の欠けで止まらずに作れる・VIEW_EN の行はどれも使われている。

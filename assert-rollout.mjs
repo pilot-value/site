@@ -32,6 +32,9 @@
         乗員全体の平均の話をしている年収の根拠の注を出さない（P12.77）・
         台帳の本社・年間休日の行（a2 の置き場）は字の表の字で会社の欄・勤務の欄に出る（本社は1行）・
         「よくある質問」と FAQPage が在る
+     E2 会社のカードのいちばん上の短い紹介（2026-10-26 compare-all-20）: 国の分かる会社のページ（日英）には空でない紹介がちょうど1つ・
+        先行5社ではない会社の紹介は、そのページの国・「会社情報」の表・社名の行の拠点・機材の札から組み直した字と同じ・言った項目を4つの値に
+        並べ直さない・順位や LCC/FSC の字が無い・国の分からない会社には作らない・古い「◯◯について」の節の代わりに数えない
      F  英語の会社ページ（2026-10-23 英語の EN-6 ── 生成器が英語を話す／EN-7 ── 先行5社と見本の2社の英語のページを新しい形で書いた）:
         生成器の字（WORDS）は日本語と英語で鍵・形が同じ・英語の字に日本語の字が無い（壊した写しを渡すと赤い）／
         英語の読み口（viewOf(slug, 'en')）が SWITCH の全社で対の欠けなく作れて、読み口の英語の表に使われない行が無い／
@@ -69,6 +72,7 @@ import { unsupported as claimsLeft, claimsIn } from './airline-claims.mjs';
 import { curCore } from './cur-core.mjs';
 import { LIVING } from './living-facts.mjs';
 import { PLACES, US_STATE, sharedNames } from './airline-destinations.mjs';
+import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 let pass = 0, failN = 0;
@@ -708,7 +712,10 @@ for (const s of ROLLED) {
     const hqWant = hqRows.find(r => r.key === 'headquarters_city') || hqRows[0];
     const dayRows = (F.work || []).filter(r => r.key === 'annual_days_off' && okRow(r) && r.src[0].publisher_kind === 'airline' && r.use === '条件つき');
     const miss = [];
-    if (hqWant && !co.includes(`<dt>本社</dt><dd>${htmlEsc(say(hqWant).value)}</dd>`)) miss.push(`会社の欄に「本社 ${say(hqWant).value}」が無い`);
+    /* ★2026-10-26 段階5 compare-all-20（同じ強さの当て直し ── リード L2）：本社は、開かずに見える所に出る ── 4つの値の行か、
+       カードのいちばん上の短い紹介（data-pvg-about="rows"）の「〈本社〉に本社を置く」。下の「会社情報」の表の1行は今までどおり */
+    const rowsAbout = htmlText((/<p class="pvg-about" data-pvg-about="rows">([^<]*)<\/p>/.exec(co) || ['', ''])[1]);
+    if (hqWant && !co.includes(`<dt>本社</dt><dd>${htmlEsc(say(hqWant).value)}</dd>`) && !rowsAbout.includes(`${say(hqWant).value}に本社を置く`)) miss.push(`会社の欄に「本社 ${say(hqWant).value}」が無い`);
     /* 本社は1行（国と街の2行にしない）。会社の1枚の表（開かずに見える値・開いた「会社情報」の表）ごとに数える ── 2026-10-21 d1：
        会社の数字から「会社全体の制度」の札を外したので、2つの表の「本社」が同じ字になった（前は札の有無で表面の1行だけを数えていた） */
     const hqPer = [...co.matchAll(/<dl class="pvg-[a-z]+">[\s\S]*?<\/dl>/g)].map(m => (m[0].match(/<dt>本社<\/dt>/g) || []).length);
@@ -845,6 +852,77 @@ for (const s of ROLLED) {
 ok(A2N.hq >= 1 && A2N.days >= 1, `E 切り替えた会社に、a2 の置き場の行が在る（本社 ${A2N.hq}行・年間休日 ${A2N.days}行 ── 上の段が空振りしない）`);
 ok(A2N.pr >= 1, `E 切り替えた会社のページに、過去・参考の行が在る（${A2N.pr}行 ── 上の札の段が空振りしない）`);
 ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「募集」の札の行が在る（${O1N.n}か所 ── 上の O-1 の段が空振りしない）`);
+/* ═══ E2) 会社のカードのいちばん上の短い紹介（★2026-10-26 段階5 compare-all-20 ── オーナー「各航空会社ページの会社概要は空白になるくらいなら
+   少しは説明入れたら？簡潔でいい（開いたら詳しく出ればいいけど）」）═══
+   RULING O の A(3)（画面の字が本当か）。先行5社ではない会社の紹介は、そのページにもう出ている値だけを決まった型にはめた字
+   （pv-airline-view.mjs の rowsIntro）。ここは生成側の関数を呼ばずに、**出来上がったページの字から** 同じ型で組み直して突き合わせる:
+     国（airline-countries.mjs）・「会社情報」の表の 本社／設立／航空連合 の行（過去・参考の札の無い行）・社名の行の拠点（空港の名前は PLACES）・機材の札。
+   ほかに: 国の分かる会社のページ（日英）には会社のカードが在り、その中に空でない紹介がちょうど1つ・数字の一覧と「会社情報」より上
+   （先行5社は台帳の紹介 lead・ほかは rows）／紹介が言った項目を、開かずに見える4つの値に並べ直さない／順位・飾り・LCC/FSC の字が無い／
+   国の分からない会社には作らない／この短い紹介は「◯◯について」の古い節の代わりに数えない（legacyReady.intro ── 古い節は残る）。 */
+{
+  const BAN_JA = /第.位|最大|最古|有数|屈指|フラッグ|国営|政府系|急成長|名門|一流|老舗|年収|給与|定年|退職|大手|人気|格安|LCC|FSC/i;
+  const BAN_EN = /\b(largest|biggest|oldest|leading|top|No\.\s*1|best|premier|flagship|state-owned|government-owned|fast-growing|prestigious|salary|pay|major|popular|low[- ]cost|budget|legacy|LCC|FSC)\b/i;
+  const meta = read('airlines-meta.js');
+  const typeOf = s => (new RegExp(`file:'airlines/${s}\\.html'[^}]*?type:'([a-z]+)'`).exec(meta) || [])[1] || '';
+  const unq = t => t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const LBL = { ja: ['本社', '設立', '航空連合'], en: ['Headquarters', 'Founded', 'Alliance'] };
+  const coOf = h => (h.match(/<article class="pvg-card pvg-co[^"]*"[^>]*>[\s\S]*?\n<\/article>/) || [''])[0];
+  /* ページの字から組み直す。返すのは { text, said（文が言った表の名前）} */
+  const rebuild = (s, h, lang) => {
+    const en = lang === 'en', C = BY_CODE[AIRLINE_COUNTRY[s]], co = coOf(h), stats = {};
+    for (const m of (co.match(/<dl class="pvg-stats">[\s\S]*?<\/dl>/) || [''])[0].matchAll(/<div(?: data-[a-z]+)?><dt>([^<]*)<\/dt><dd><b>([^<]*)<\/b>/g)) if (!(m[1] in stats)) stats[m[1]] = unq(m[2]);
+    const [kHq, kFo, kAl] = LBL[lang], hq = stats[kHq], fo = stats[kFo], al = stats[kAl];
+    const noun = ['fsc', 'lcc'].includes(typeOf(s)) ? (en ? 'Airline' : '航空会社') : (en ? 'Operator' : '運航会社');
+    const land = en ? C.en : C.ja, landIn = en ? C.enIn || C.en : C.ja;
+    const said = [hq && kHq, fo && kFo, al && kAl].filter(Boolean);
+    const a = [hq === land ? (en ? `${noun} headquartered in ${landIn}.` : `${land}に本社を置く${noun}。`)
+      : hq ? (en ? `${noun} based in ${landIn}. Headquarters: ${hq}.` : `${hq}に本社を置く${land}の${noun}。`) : (en ? `${noun} based in ${landIn}.` : `${land}の${noun}。`)];
+    if (fo) a.push(en ? `Founded ${fo}.` : `設立は${fo}。`);
+    if (al) a.push(en ? `Alliance: ${al}.` : `航空連合は${al}。`);
+    /* 拠点：社名の行の拠点（空港の3字が在れば空港ごと・無ければ街の名前） */
+    const base = (block(h, 'PV-HERO').match(/<span class="pvg-base">([\s\S]*?)<\/span>\n/) || ['', ''])[1].replace(/<svg[\s\S]*?<\/svg>/, '');
+    const codes = (/<b>([^<]*)<\/b>/.exec(base) || ['', ''])[1].split(en ? ' · ' : '・').filter(Boolean);
+    const ports = codes.length ? codes.map(c => (PLACES[c] ? (en ? `${PLACES[c][1]} (${c})` : `${String(PLACES[c][0]).replace(/（([^（）]+)）$/, (m, y) => `・${y}`)}（${c}）`) : c))
+      : unq(base.replace(/<[^>]*>/g, '')).trim().split(en ? ', ' : '・').filter(Boolean);
+    const types = [...new Set([...((co.match(/<ul class="pvg-chips">([\s\S]*?)<\/ul>/) || ['', ''])[1]).matchAll(/<li title="[^"]*">([^<]*)<\/li>/g)].map(m => unq(m[1])))];
+    const three = (xs, sep) => (en ? (xs.length > 1 ? `${xs.slice(0, 3).slice(0, -1).join(', ')} and ${xs.slice(0, 3).slice(-1)[0]}` : xs[0]) : xs.length > 3 ? `${xs.slice(0, 3).join(sep)}など` : xs.join(sep));
+    const b = [];
+    if (ports.length) b.push(en ? (ports.length === 1 ? `Has a pilot base ${codes.length ? 'at' : 'in'} ${ports[0]}.` : `Pilot bases include ${three(ports)}.`) : `${three(ports, '、')}にパイロットの拠点がある。`);
+    if (types.length) b.push(en ? `Fleet includes the ${three(types)}.` : `機材には${three(types, '・')}がある。`);
+    return { text: [...a, ...b].join(en ? ' ' : ''), said };
+  };
+  const bad = { box: [], text: [], said: [], ban: [], none: [] };
+  let boxes = 0, rowsN = 0;
+  for (const s of ALL) for (const lang of ['ja', 'en']) {
+    const h = lang === 'en' ? ORIG_EN[s] : ORIG[s], swi = lang === 'en' ? EN_SWITCH.includes(s) : SWITCH.includes(s);
+    if (!h || !swi) continue;
+    const co = coOf(h), where = `${s}${lang === 'en' ? '(en)' : ''}`, known = !!AIRLINE_COUNTRY[s];
+    const abouts = [...co.matchAll(/<p class="pvg-about" data-pvg-about="([a-z]+)">([^<]*)<\/p>/g)];
+    if (!known) { if (abouts.length || /data-pvg-about="rows"/.test(h)) bad.none.push(where); continue; }
+    boxes++;
+    const kind = LEAD.includes(s) ? 'lead' : 'rows', at = co.indexOf('<p class="pvg-about"');
+    const after = ['<dl class="pvg-keys">', '<details class="pvg-dt pvg-co-more">'].map(t => co.indexOf(t)).filter(i => i >= 0);
+    if (!co || abouts.length !== 1 || abouts[0][1] !== kind || !abouts[0][2].trim() || after.some(i => i < at)) { bad.box.push(`${where}: ${abouts.length}つ ${abouts.map(m => m[1]).join(',')}`); continue; }
+    if (kind !== 'rows') continue;
+    rowsN++;
+    const got = unq(abouts[0][2]), w = rebuild(s, h, lang);
+    if (got !== w.text) bad.text.push(`${where}: 画面「${got}」／組み直し「${w.text}」`);
+    const keys = [...((co.match(/<dl class="pvg-keys">([\s\S]*?)<\/dl>/) || ['', ''])[1]).matchAll(/<dt>([^<]*)<\/dt>/g)].map(m => m[1]);
+    const again = keys.filter(k => w.said.includes(k));
+    if (again.length) bad.said.push(`${where}: ${again.join('・')}`);
+    const word = got.match(lang === 'en' ? BAN_EN : BAN_JA);
+    if (word) bad.ban.push(`${where}: ${word[0]}`);
+  }
+  const roll = SWITCH.filter(s => !LEAD.includes(s) && AIRLINE_COUNTRY[s]);
+  ok(boxes >= 2 * roll.length + 2 * LEAD.length && !bad.box.length, `E2 国の分かる会社のページ（日英 ${boxes}枚）の会社のカードに、空でない紹介がちょうど1つ・数字の一覧と「会社情報」より上（先行5社は台帳の紹介・ほかは短い紹介）`, bad.box.slice(0, 6).join(' ／ '));
+  ok(rowsN >= 2 * roll.length && !bad.text.length, `E2 短い紹介（${rowsN}枚）の字は、そのページの国・「会社情報」の表の本社／設立／航空連合・社名の行の拠点・機材の札から組み直した字と同じ（ほかの字・作り物の値が無い）`, bad.text.slice(0, 4).join(' ／ '));
+  ok(!bad.said.length, 'E2 短い紹介が言った項目（本社・設立・航空連合）を、開かずに見える4つの値に並べ直していない', bad.said.slice(0, 6).join(' ／ '));
+  ok(!bad.ban.length, 'E2 短い紹介に、順位・飾り・LCC/FSC・年収の字が無い', bad.ban.slice(0, 6).join(' ／ '));
+  ok(!bad.none.length, 'E2 国の分からない会社（紹介エージェント・多国籍チャーター）には紹介を作らない', bad.none.join(' ／ '));
+  const counted = [...roll.flatMap(s => [viewOf(s), viewOf(s, 'en')]).filter(v => legacyReady.intro(v)).map(v => v.slug), ...LEAD.filter(s => !legacyReady.intro(viewOf(s)))];
+  ok(!counted.length, 'E2 短い紹介は「◯◯について」の古い節の代わりに数えない（legacyReady.intro は台帳の紹介文の先行5社だけ ── 古い節は残る）', counted.slice(0, 6).join(','));
+}
 /* A 年収の図（トップ・会社一覧）の会社選びに、機種の段が当てはまらない運航会社を出さない（2026-10-21 roll-c 点検 T5）。
    airlines-meta.js の type が charter / agent / bizjet の会社は、図が R・N・W の段を描くと事実と違う。 */
 {
