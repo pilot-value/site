@@ -14,11 +14,12 @@
 // ・SWITCH に無い会社のページには1文字も触らない。印は <body data-pv-glance="1">。
 //   ★ 先行5社（LEAD）は今までの決め方のまま。ほかの会社（全社へ広げる b・2026-10-21）は、今のページより格を下げない:
 //     「よくある質問」・海外の評判のカード（airline-reviews-*.js）・検索向けの字（<head>）は消さない。
-//     下に残っている古い節は、新しい部品が同じ話を出せるときだけ外す（出せないときは、その場所に残す ── LEGACY の needs）。
+//     ★2026-10-26 オーナー「昔の内容はもういらないでしょ」「よくある質問だけ残す」（P12.129）：下に残っている古い節は、
+//       「よくある質問」のほかは全部外す（新しい部品が同じ話を出せるかどうかを待たない ── legacyAct）。「よくある質問」がページの最後の節。
 // ・英語版（en/airlines/{slug}.html）も同じ部品で書ける（2026-10-23 英語の EN-6）。書くのは airline-rollout.mjs の EN_SWITCH の会社だけ
 //   （いまは空 ＝ 英語のページは1枚も書かない）。字は下の WORDS（日本語と英語の対・同じ鍵）だけ、数字は viewOf(slug, 'en')、
 //   額は日本語と同じ円の字をドルの span に焼いて書く（bake-en-currency.mjs と同じ焼き方 ── あとで流しても1文字も変わらない）。
-//   古い節は英語の見出しの台帳（LEGACY_EN）で、日本語と同じ決め方（needs・keep・止める）。「他社と比較」は en/career.html が
+//   古い節は英語の見出しの台帳（LEGACY_EN）で、日本語と同じ決め方（legacyAct・止める）。「他社と比較」は en/career.html が
 //   できるまで出さない（CMP_EN ── EN-9 が入れる）。⚠️ 日本語のページは1文字も変えない（WORDS.ja は今までの字そのもの）。
 //
 // ⚠️ pv-glance.css／pv-glance.js／career-live.css／career-live.js を直したら流し直す
@@ -141,7 +142,8 @@ const pane = (slug, names) => (tabbed(slug) ? ` data-pvg-pane="${names}"` : '');
 /* 勤務・待遇・暮らしの板が、自分のタブでは開いたまま本文になる（pv-glance.js の OPEN と同じ対） */
 const CELL_TAB = { work: 'work', benefits: 'pay', living: 'life' };
 /* 今のページの下に残っている古い節の行き先（見出しの言葉で決める。当たらない節は概要）。
-   ★2026-10-09 残す節はもう無い（「よくある質問」もオーナーの判断で節ごと外した）。下の LEGACY が全部外す。
+   ★2026-10-09 先行5社に残す節はもう無い（「よくある質問」もオーナーの判断で節ごと外した）。下の LEGACY が全部外す。
+   ★2026-10-26 ほかの会社に残るのも「よくある質問」の1つだけ（オーナー P12.129 ── legacyAct）。行き先は今までどおり「概要」。
    この表は、あとで節を残すと決めたときの行き先の置き場として残してある（空なら全部「概要」）。 */
 const OLD_PANE = [];
 const oldPane = h2 => (OLD_PANE.find(([re]) => re.test(h2)) || [, 'overview'])[1];
@@ -837,7 +839,7 @@ function companyCard(v) {
         古い機数・路線数、資料で確かめていない訓練地や退職年齢が入っていた（2026-10-07 までは、その字を1文字も変えずに運んでいた）。
      歴史・規模・拠点が分かる字は、開かなくても読める場所に置く（4つの数字だけで会社紹介を済ませない）。 */
   /* ★2026-10-26 段階5 compare-all-20：先行5社ではない会社の短い紹介（pv-airline-view.mjs の rowsIntro ── ページに出ている値だけを型にはめた字）は
-     data-pvg-about="rows"。台帳の紹介文（"lead"）とは別の印（古い「◯◯について」の節の代わりにはならない ── legacyReady.intro） */
+     data-pvg-about="rows"。台帳の紹介文（"lead"）とは別の印 */
   const lead = `<p class="pvg-about" data-pvg-about="${c.intro.some(s => s.rows) ? 'rows' : 'lead'}">${c.intro.map(s => esc(s.text)).join(W.introJoin)}</p>`;
   /* 見本の「会社概要」── ページのいちばん上に置く小さな1枚。写真は小さく（主役にしない）、
      見えている値は4つまで。紹介文がもう言った項目は並べない（同じ話を上下に2度出さない）。
@@ -1427,111 +1429,89 @@ function divEnd(html, i) {
      退職年齢・「数百倍」の倍率）。新しい部品に出るのは台帳の値だけ。
    ★ この表に無い節がページの下に在ったら、止める（黙って残さない・黙って消さない）。節を足したら、ここに1行足す。
    ⚠️ 何度流しても同じ。写しを作らない（assert-airline-glance.mjs はこの表を import して使う）。
-   ★ 先行5社ではない会社（全社へ広げる b・2026-10-21）── 今のページより格を下げない:
-       needs     … 外してよいのは、新しい部品がその話を出せるときだけ（needs の全部が legacyReady() で出せる）。出せなければ、その場所に残す。
-       rest:'keep' … 先行5社だけの判断で外した節。ほかの会社では残す（rest_why ＝ 理由）。
-       rest:'drop' … ほかの会社でも、新しい部品の用意を待たずに外す節（rest_why ＝ 理由。出してはいけない額を載せている節）。
+   ★ 先行5社ではない会社（2026-10-26 オーナー「昔の内容はもういらないでしょ」「よくある質問だけ残す」P12.129）:
+       rest:'keep' … 残すのはこの行の節（「よくある質問」）だけ。先行5社だけの判断で外した節（rest_why ＝ 理由）。
+       ほかの行の節は、state にかかわらず全部外す（新しい部品が同じ話を出せるかどうかを待たない ── legacyAct）。
+       ＝ 新しい部品の下は「よくある質問」だけになり、それがページの最後の節（<footer> の前）。
      ほかの会社のページにしか無い見出しは、下の LEGACY_REST（形は同じ）。 */
 export const LEGACY = [
   /* 住所 #kyuyo-konkyo は、新しい給与の1枚の中へ移る（同じ住所を1ページに2つ置けない）＝ どの会社でも外す（給与の1枚はどの会社にも在る） */
-  { name: '会社が公表している金額（出どころの表）', id: 'kyuyo-konkyo', state: 'merged', to: '給与の1枚の「この金額は誰の・何を含んだ・いつの金額か」（住所の #kyuyo-konkyo もそこ）', needs: ['pay'] },
-  { name: '◯◯について', h2: /について$/, state: 'merged', to: '会社の1枚の紹介文（台帳の項目から組み立てる）', needs: ['intro'] },
-  { name: 'フライト環境・路線・機材', h2: /フライト環境|路線・機材/, state: 'merged', to: '会社の1枚（機材・路線や就航地の数）／ステイ先（公式の就航地の一覧）', needs: ['fleet', 'network'] },
-  /* ★同じ話を出せるときだけ外す（2026-10-21 リード d1）：訓練の節の代わりになるのは「昇格・訓練」の公表（訓練・昇格・審査の行）だけ。
-     勤務のほかの行（休日・ロスターの型・通勤など）が在っても、訓練の話は出せない（a2 でスカイマークの節が休日の行で消えた）。 */
-  { name: '訓練・昇格・審査', h2: /訓練・昇格|訓練・審査/, state: 'merged', to: '勤務・訓練の「昇格・訓練」（会社が公表している条件）／募集', needs: ['career'] },
-  { name: '福利厚生・待遇', h2: /福利厚生/, state: 'merged', to: '待遇（会社が公表している条件）', needs: ['benefits'] },
-  { name: '募集要項・採用情報', h2: /募集要項|採用情報/, state: 'merged', to: '募集の1枚（会社の募集ページへの入口つき）', needs: ['jobs'] },
-  { name: '他社の年収のカード', h2: /と他社の比較|他社との比較/, state: 'drop', to: '社名の横の「他社と比較」', needs: ['compare'] },
+  { name: '会社が公表している金額（出どころの表）', id: 'kyuyo-konkyo', state: 'merged', to: '給与の1枚の「この金額は誰の・何を含んだ・いつの金額か」（住所の #kyuyo-konkyo もそこ）' },
+  { name: '◯◯について', h2: /について$/, state: 'merged', to: '会社の1枚の紹介文（台帳の項目から組み立てる）' },
+  { name: 'フライト環境・路線・機材', h2: /フライト環境|路線・機材/, state: 'merged', to: '会社の1枚（機材・路線や就航地の数）／ステイ先（公式の就航地の一覧）' },
+  { name: '訓練・昇格・審査', h2: /訓練・昇格|訓練・審査/, state: 'merged', to: '勤務・訓練の「昇格・訓練」（会社が公表している条件）／募集' },
+  { name: '福利厚生・待遇', h2: /福利厚生/, state: 'merged', to: '待遇（会社が公表している条件）' },
+  { name: '募集要項・採用情報', h2: /募集要項|採用情報/, state: 'merged', to: '募集の1枚（会社の募集ページへの入口つき）' },
+  { name: '他社の年収のカード', h2: /と他社の比較|他社との比較/, state: 'drop', to: '社名の横の「他社と比較」' },
   /* ほかの会社では、比べている額が機長と副操縦士を分けない運航乗務員の平均（スカイマーク）── どの会社のページにも出さない（P12.77） */
-  { name: '2社の比較表', h2: /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/, state: 'drop', to: '社名の横の「他社と比較」', needs: ['compare'],
-    rest: 'drop', rest_why: '比べている額が、機長と副操縦士を分けない運航乗務員の平均（P12.77 ── 画面に出さない）' },
+  { name: '2社の比較表', h2: /比べられるところだけ|ANA vs JAL パイロット年収 詳細比較表/, state: 'drop', to: '社名の横の「他社と比較」' },
   /* ★2026-10-09 ANA だけに在った錠前つきの節。金額は1つも入っておらず（「機種ごとの金額は出していません」）、
      中身は資料で確かめていない機材の配置の話だった。残すと、給与のタブに昔の形の錠前（橙の四角いボタン）が
      新しい Give & Get と並んで出る ＝ 先行5社で形が1つにならない。錠前の箱ごと外す（dropLegacy）。 */
-  { name: '機種別・路線別の年収差（錠前つき）', h2: /年収差/, state: 'drop', to: '会社の1枚の機材（台帳の機数）。機種ごとの金額は会社が公表しておらず、当サイトも出していない', needs: ['pay'] },
+  { name: '機種別・路線別の年収差（錠前つき）', h2: /年収差/, state: 'drop', to: '会社の1枚の機材（台帳の機数）。機種ごとの金額は会社が公表しておらず、当サイトも出していない' },
   /* ★2026-10-09 オーナーの判断「節ごと外そう」。それまでは残して、台帳と食い違う答えだけ直していた。
      画面から外すので、検索向けの印（JSON-LD の FAQPage）も一緒に外す（dropFaq）── 画面に無い質問と答えを
      検索エンジンにだけ渡さない。gen-faq.mjs はタブを持つ会社ページ（TABBED）を飛ばす ＝ 流しても戻らない。 */
   { name: 'よくある質問', h2: /よくある質問/, state: 'drop', to: '置かない（オーナーの判断）。同じ話は、給与の1枚・募集の1枚・勤務と待遇の板に、資料で確かめた値で出ている',
-    rest: 'keep', rest_why: '外したのは先行5社だけのオーナーの判断。ほかの会社では残す（gen-faq.mjs が今までどおり書き直す・検索向けの FAQPage も残す）' },
+    rest: 'keep', rest_why: '外したのは先行5社だけのオーナーの判断。ほかの会社では残す ── 古い節で残すのはこれだけ（オーナー 2026-10-26「よくある質問だけ残す」。gen-faq.mjs が今までどおり書き直す・検索向けの FAQPage も残す）' },
 ];
 /* 先行5社のページには無く、ほかの会社のページにだけ在る見出し（2026-10-21 に107枚の見出しを全部読んで並べた）。
    ★ 先行5社には当てない（先行5社の見出しは LEGACY だけで決まる ＝ 今までと1文字も同じ）。 */
 export const LEGACY_REST = [
   /* 「パイロット年収（2026年3月・推定）」「パイロット推定年収（…）」「パイロット年収 — …」── 推定年収の表（幅つき）。
      新しい給与の1枚がどの会社にも推定年収を出す。幅（lo〜hi）は 2026-09-30 に公開の画面から外した（オーナー）。 */
-  { name: '推定年収の表（幅つき）', h2: /^パイロット(?:推定)?年収/, state: 'merged', to: '給与の1枚（職位ごとの推定年収）', needs: ['pay'] },
-  /* 応募の要件の節の代わりになるのは、募集の1枚に出る応募の要件の行だけ（募集の受付の状態・雇用の形では要件の話にならない） */
-  { name: '応募要件の目安', h2: /^応募要件の目安$/, state: 'merged', to: '募集の1枚の応募の要件（会社の募集ページへの入口つき）', needs: ['req'] },
-  { name: '転職の手引き', h2: /に転職するには$/, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い' },
+  { name: '推定年収の表（幅つき）', h2: /^パイロット(?:推定)?年収/, state: 'merged', to: '給与の1枚（職位ごとの推定年収）' },
+  { name: '応募要件の目安', h2: /^応募要件の目安$/, state: 'merged', to: '募集の1枚の応募の要件（会社の募集ページへの入口つき）' },
+  /* ★2026-10-21〜10-25 は「検索向けの読み物」として残していた節。2026-10-26 オーナー「昔の内容はもういらないでしょ」で外す */
+  { name: '転職の手引き', h2: /に転職するには$/, state: 'drop', to: '置かない（オーナー 2026-10-26）' },
   /* 本文の箱の後ろ（<footer> の前）に在る、検索向けの読み物の節（seo-content-expand.mjs・seo-phase2.mjs が入れたもの。7社） */
-  { name: 'ANA との比べ（検索向けの読み物）', h2: / vs ANA — /, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い（会社ページは他社の額を並べない）' },
-  { name: '勤務・暮らしの実態（検索向けの読み物）', h2: /勤務の実態$|生活の実態$|勤務と日本勤務/, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い' },
-  { name: '米国の年収の読み物', h2: /^なぜ米国パイロットの年収は/, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い' },
-  { name: '採用区分ごとの給与・待遇', h2: /^採用区分ごとの給与・待遇/, state: 'keep', why: '会社の募集の例を採用区分ごとに書いた表（エミレーツ）。新しい部品は年収の根拠の台帳の額しか出さない' },
+  { name: 'ANA との比べ（検索向けの読み物）', h2: / vs ANA — /, state: 'drop', to: '置かない（オーナー 2026-10-26）。比べるのは社名の横の「他社と比較」' },
+  { name: '勤務・暮らしの実態（検索向けの読み物）', h2: /勤務の実態$|生活の実態$|勤務と日本勤務/, state: 'drop', to: '置かない（オーナー 2026-10-26）' },
+  { name: '米国の年収の読み物', h2: /^なぜ米国パイロットの年収は/, state: 'drop', to: '置かない（オーナー 2026-10-26）' },
+  { name: '採用区分ごとの給与・待遇', h2: /^採用区分ごとの給与・待遇/, state: 'drop', to: '置かない（オーナー 2026-10-26）。年収は給与の1枚（年収の根拠の台帳の額）' },
+  /* 節の形でない帯（スターラックス）。見出しは h3 の言葉 */
+  { name: '採用試験ガイドへの案内の帯（スターラックス）', h2: /^採用試験6日間の完全ガイド/, state: 'drop', to: '置かない（オーナー 2026-10-26）' },
 ];
 /* 英語のページ（en/airlines/）の古い節（2026-10-23 英語の EN-6。SWITCH の111枚の見出しを全部読んで並べた ── 31種類）。
-   ★決め方は日本語と同じ1つ（legacyAct）：先行5社は keep 以外を外す・ほかの会社は rest と needs。表に無い節が在れば止める。
+   ★決め方は日本語と同じ1つ（legacyAct）：先行5社は keep 以外を外す・ほかの会社は「よくある質問」（rest:'keep'）だけを残す。表に無い節が在れば止める。
    ★1行は、日本語の表のどの行と同じ話か（ja ＝ その行の name）を持つ ── 日本語のページで残す節は、英語でも残す。
    英語のページだけに在る節（「Pay Scale by Seniority」＝ 推定の幅から作った年次の表・「Comparing STARLUX with ANA and JAL」）は理由を書く。 */
 export const LEGACY_EN = [
-  { name: 'The … publishes（年収の根拠の節）', ja: '会社が公表している金額（出どころの表）', id: 'kyuyo-konkyo', state: 'merged', to: '給与の1枚の「Whose pay …」（住所の #kyuyo-konkyo もそこ）', needs: ['pay'] },
-  { name: 'About …', ja: '◯◯について', h2: /^About /, state: 'merged', to: '会社の1枚の紹介文', needs: ['intro'] },
-  { name: 'Routes & Fleet', ja: 'フライト環境・路線・機材', h2: /^Routes (?:&amp;|&) Fleet$/, state: 'merged', to: '会社の1枚（機材）／ステイ先（就航地の一覧）', needs: ['fleet', 'network'] },
-  { name: 'Training & Checkrides', ja: '訓練・昇格・審査', h2: /^Training (?:&amp;|&) Checkrides$/, state: 'merged', to: '勤務・訓練の「昇格・訓練」', needs: ['career'] },
-  { name: 'Pilot Benefits & Allowances', ja: '福利厚生・待遇', h2: /^Pilot Benefits (?:&amp;|&) Allowances$/, state: 'merged', to: '待遇（会社が公表している条件）', needs: ['benefits'] },
-  { name: 'Pilot Hiring & Requirements', ja: '募集要項・採用情報', h2: /^Pilot Hiring (?:&amp;|&) Requirements/, state: 'merged', to: '募集の1枚', needs: ['jobs'] },
-  { name: 'Pilot Requirements', ja: '応募要件の目安', h2: /^Pilot Requirements$/, state: 'merged', to: '募集の1枚の応募の要件', needs: ['req'] },
-  { name: '… vs other … carriers（他社の年収のカード）', ja: '他社の年収のカード', h2: / vs (?:the )?other .+ carriers$/, state: 'drop', to: '社名の横の「Compare」', needs: ['compare'] },
-  { name: '… vs ANA ／ … vs JAL（先行5社の2社の比べ）', ja: '他社の年収のカード', h2: / vs (?:ANA|JAL)$/, state: 'drop', to: '社名の横の「Compare」', needs: ['compare'] },
-  { name: 'Skymark, JAL and ANA — only what can be compared', ja: '2社の比較表', h2: /^Skymark, JAL and ANA — only what can be compared$/, state: 'drop', to: '社名の横の「Compare」', needs: ['compare'],
-    rest: 'drop', rest_why: '比べている額が、機長と副操縦士を分けない運航乗務員の平均（P12.77 ── 画面に出さない）' },
-  { name: '推定年収の表（Pilot salary … / Estimated pilot salary …）', ja: '推定年収の表（幅つき）', h2: /^(?:Estimated pilot salary|Pilot salary) \(/, state: 'merged', to: '給与の1枚（職位ごとの推定年収）', needs: ['pay'] },
+  { name: 'The … publishes（年収の根拠の節）', ja: '会社が公表している金額（出どころの表）', id: 'kyuyo-konkyo', state: 'merged', to: '給与の1枚の「Whose pay …」（住所の #kyuyo-konkyo もそこ）' },
+  { name: 'About …', ja: '◯◯について', h2: /^About /, state: 'merged', to: '会社の1枚の紹介文' },
+  { name: 'Routes & Fleet', ja: 'フライト環境・路線・機材', h2: /^Routes (?:&amp;|&) Fleet$/, state: 'merged', to: '会社の1枚（機材）／ステイ先（就航地の一覧）' },
+  { name: 'Training & Checkrides', ja: '訓練・昇格・審査', h2: /^Training (?:&amp;|&) Checkrides$/, state: 'merged', to: '勤務・訓練の「昇格・訓練」' },
+  { name: 'Pilot Benefits & Allowances', ja: '福利厚生・待遇', h2: /^Pilot Benefits (?:&amp;|&) Allowances$/, state: 'merged', to: '待遇（会社が公表している条件）' },
+  { name: 'Pilot Hiring & Requirements', ja: '募集要項・採用情報', h2: /^Pilot Hiring (?:&amp;|&) Requirements/, state: 'merged', to: '募集の1枚' },
+  { name: 'Pilot Requirements', ja: '応募要件の目安', h2: /^Pilot Requirements$/, state: 'merged', to: '募集の1枚の応募の要件' },
+  { name: '… vs other … carriers（他社の年収のカード）', ja: '他社の年収のカード', h2: / vs (?:the )?other .+ carriers$/, state: 'drop', to: '社名の横の「Compare」' },
+  { name: '… vs ANA ／ … vs JAL（先行5社の2社の比べ）', ja: '他社の年収のカード', h2: / vs (?:ANA|JAL)$/, state: 'drop', to: '社名の横の「Compare」' },
+  { name: 'Skymark, JAL and ANA — only what can be compared', ja: '2社の比較表', h2: /^Skymark, JAL and ANA — only what can be compared$/, state: 'drop', to: '社名の横の「Compare」' },
+  { name: '推定年収の表（Pilot salary … / Estimated pilot salary …）', ja: '推定年収の表（幅つき）', h2: /^(?:Estimated pilot salary|Pilot salary) \(/, state: 'merged', to: '給与の1枚（職位ごとの推定年収）' },
   /* 英語のページだけの節：推定の幅（lo〜hi）を年次の段に切った表（「est.」）。日本語のページでは同じ表が推定年収の表の中に在り、一緒に外した。
      幅は 2026-09-30 に公開の画面から外した（オーナー）── 同じ話（推定年収）を新しい給与の1枚が出す */
-  { name: 'Pay Scale by Seniority ／ by Step', ja: '推定年収の表（幅つき）', h2: /^Pay Scale by (?:Seniority|Step)$/, state: 'merged', to: '給与の1枚（職位ごとの推定年収）', needs: ['pay'] },
-  { name: 'Pay and package by hiring route', ja: '採用区分ごとの給与・待遇', h2: /^Pay and package by hiring route/, state: 'keep', why: '会社の募集の例を採用区分ごとに書いた表（エミレーツ）。新しい部品は年収の根拠の台帳の額しか出さない' },
+  { name: 'Pay Scale by Seniority ／ by Step', ja: '推定年収の表（幅つき）', h2: /^Pay Scale by (?:Seniority|Step)$/, state: 'merged', to: '給与の1枚（職位ごとの推定年収）' },
+  { name: 'Pay and package by hiring route', ja: '採用区分ごとの給与・待遇', h2: /^Pay and package by hiring route/, state: 'drop', to: '置かない（オーナー 2026-10-26）。年収は給与の1枚（年収の根拠の台帳の額）' },
   /* 英語のページだけの節（スターラックス）：3社の推定年収を並べた検索向けの読み物。日本語の「ANA との比べ（検索向けの読み物）」と同じ扱い */
-  { name: 'Comparing STARLUX with ANA and JAL', ja: 'ANA との比べ（検索向けの読み物）', h2: /^Comparing STARLUX with ANA and JAL$/, state: 'keep', why: '検索向けの読み物。新しい部品に同じ話が無い（会社ページは他社の額を並べない）' },
+  { name: 'Comparing STARLUX with ANA and JAL', ja: 'ANA との比べ（検索向けの読み物）', h2: /^Comparing STARLUX with ANA and JAL$/, state: 'drop', to: '置かない（オーナー 2026-10-26）。比べるのは社名の横の「Compare」' },
+  /* 節の形でない帯（スターラックス）。見出しは h3 の言葉 */
+  { name: 'STARLUX Career Guide（採用試験ガイドへの案内の帯）', ja: '採用試験ガイドへの案内の帯（スターラックス）', h2: /^The Complete 6-Day Selection Guide/, state: 'drop', to: '置かない（オーナー 2026-10-26）' },
   { name: 'Frequently Asked Questions', ja: 'よくある質問', h2: /^Frequently Asked Questions$/, state: 'drop', to: '置かない（先行5社の日本語と同じ ── リード P12.92）',
-    rest: 'keep', rest_why: '外したのは先行5社だけ。ほかの会社では残す（gen-faq.mjs が書き直す・検索向けの FAQPage も残す）' },
+    rest: 'keep', rest_why: '外したのは先行5社だけ。ほかの会社では残す ── 古い節で残すのはこれだけ（オーナー 2026-10-26「よくある質問だけ残す」。gen-faq.mjs が書き直す・検索向けの FAQPage も残す）' },
 ];
-/* 新しい部品がその話を出せるか（ほかの会社の古い節を外してよいか）。needs の名前はここの鍵だけ。
-   ★鍵ごとに話題が1つ（2026-10-21 リード d1「古い節を外すのは、新しいページが同じ話を言えるときだけ」）。
-     career … 勤務・訓練の「昇格・訓練」の面に出る今の公表（訓練の場所・昇格・審査・訓練費の返還）
-     req    … 募集の1枚に出る応募の要件の行（要件・資格・応募できる人）
-   assert-rollout.mjs が話題ごとに、ほかの話の行だけでは外れないことを見ている。 */
-export const CAREER_FACTS = Object.freeze([...SURFACES.find(S => S.id === 'career').facts]);
-export const REQ_KEY = /requirement|qualification|eligibility/;
-export const legacyReady = {
-  pay: () => true,                                     // 給与の1枚はどの会社にも在る（推定年収は SALARY）
-  /* 台帳の紹介文だけを数える（★2026-10-26 compare-all-20：ページの値を型にはめた短い紹介 rows は、古い節の歴史の話を言えない） */
-  intro: v => v.company.intro.some(s => !s.rows),
-  fleet: v => v.company.fleet.length > 0,
-  network: v => !!networkOf(v.slug),
-  /* 外してよいのは今の公表が在るときだけ（過去・参考の札つきの行だけでは、今の節の代わりにならない ── 全社へ広げる c） */
-  work: v => workAll(v).some(f => v.work.includes(f) && !f.tag),   // 勤務そのものの公表（待遇から移した通勤・Staff Travel だけでは、訓練の節の代わりにならない）
-  career: v => workAll(v).some(f => CAREER_FACTS.includes(f.key) && !f.tag),   // 昇格・訓練の今の公表（休日・ロスターの型だけでは訓練の話にならない）
-  req: v => v.jobs.some(f => REQ_KEY.test(f.key) && !f.tag),
-  benefits: v => v.benefits.some(f => !f.tag),
-  jobs: v => v.jobs.some(f => !f.tag),
-  /* 「他社と比較」の行き先（career.html）がその会社を持っている。英語のページは、英語の比較のページ（en/career.html）ができるまで出せない（CMP_EN） */
-  compare: v => CAREER.includes(v.slug) && (v.lang !== 'en' || CMP_EN),
-};
-/* 残す節（keep）を先に当てる ── 「◯◯についてよくある質問」のような見出しを、外す側の行が先に掴まないように */
 const legacyHit = (r, h2, tag) => (r.id ? new RegExp('\\bid="' + r.id + '"').test(tag) : r.h2.test(h2));
 /* 英語のページ（いま書いている言葉が英語）は英語の見出しの台帳（LEGACY_EN）だけ */
 const legacyRows = slug => (LANG === 'en' ? LEGACY_EN : LEAD.includes(slug) ? LEGACY : [...LEGACY, ...LEGACY_REST]);
-const legacyOf = (h2, tag, slug) => { const T = legacyRows(slug); return T.find(r => r.state === 'keep' && legacyHit(r, h2, tag)) || T.find(r => legacyHit(r, h2, tag)); };
-/* その節を外すか残すか。先行5社は今までどおり（keep 以外は外す）。ほかの会社は rest と needs で決める。 */
+/* 残す節を先に当てる ── 残す行（keep・ほかの会社では「よくある質問」）の見出しを、外す側の行が先に掴まないように
+   （「スカイマークの採用情報 よくある質問」のような見出しが「募集要項・採用情報」の行に掴まれて、「よくある質問」が外れることが無いように） */
+const legacyOf = (h2, tag, slug) => { const T = legacyRows(slug); return T.find(r => r.state === 'keep' && legacyHit(r, h2, tag)) || T.find(r => r.rest === 'keep' && legacyHit(r, h2, tag)) || T.find(r => legacyHit(r, h2, tag)); };
+/* その節を外すか残すか ── 決めるのはここの1か所だけ。
+   先行5社は今までどおり（keep 以外は外す）。
+   ほかの会社は「よくある質問」（rest:'keep' の行）だけを残し、ほかの古い節は state にかかわらず全部外す
+   （2026-10-26 オーナー「昔の内容はもういらないでしょ」「よくある質問だけ残す」P12.129 ── それまでは、新しい部品が同じ話を出せるときだけ外していた）。 */
 export function legacyAct(v, r) {
-  if (r.state === 'keep') return 'keep';
-  if (LEAD.includes(v.slug)) return 'drop';
-  if (r.rest === 'keep') return 'keep';
-  if (r.rest === 'drop') return 'drop';
-  for (const n of r.needs || []) if (!legacyReady[n]) throw new Error(`古い節の台帳：needs の「${n}」を legacyReady が知らない（${r.name}）`);
-  return (r.needs || []).length && r.needs.every(n => legacyReady[n](v)) ? 'drop' : 'keep';
+  if (LEAD.includes(v.slug)) return r.state === 'keep' ? 'keep' : 'drop';
+  return r.rest === 'keep' ? 'keep' : 'drop';
 }
 /* 外す節の見出し（検査が「ページに残っていない」ことを見るのに使う） */
 export const DROP_H2 = new RegExp(LEGACY.filter(r => r.state !== 'keep' && r.h2).map(r => r.h2.source).join('|'));
@@ -1579,12 +1559,16 @@ function dropFaq(html) {
 export function legacyPlan(slug, html, v, lang = 'ja') {
   return inLang(lang, () => legacyPlanIn(slug, html, v || viewOf(slug, lang)));
 }
+/* 管理ブロックより下の古い節の見つけ方（legacyPlan と dropLegacy が同じものを使う）。節 ＝ <div class="glass p-8 fade-up">（見出しは h2）。
+   ★2026-10-26 帯 ＝ <div class="fade-up" style=…>（見出しは h3。スターラックスの日英だけに在った、採用試験ガイドへの案内）も古い節に数える ──
+     「よくある質問」のほかは全部外す（legacyAct）ので、節の形でない古い塊も見落とさない。台帳の行は見出しの言葉で掴む（帯は h3 の言葉）。 */
+const OLD_SEC = /<div class="(glass p-8 )?fade-up"[^>]*>/g;
+const oldTitle = (m, sec) => { const h = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(sec) || (m[1] ? null : /<h3\b[^>]*>([\s\S]*?)<\/h3>/.exec(sec)); return h ? h2Text(h[1]).trim() : ''; };
 function legacyPlanIn(slug, html, v) {
   const end = html.indexOf('<!--/PV-GLANCE-->'), from = end >= 0 ? end : html.indexOf(BOX);
   const out = [];
-  for (const m of html.slice(from).matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)) {
-    const a = from + m.index, sec = html.slice(a, divEnd(html, a));
-    const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(sec), title = h2 ? h2Text(h2[1]).trim() : '';
+  for (const m of html.slice(from).matchAll(OLD_SEC)) {
+    const a = from + m.index, sec = html.slice(a, divEnd(html, a)), title = oldTitle(m, sec);
     const row = legacyOf(title, m[0], slug);
     out.push({ title, row, act: row ? legacyAct(v, row) : null });
   }
@@ -1595,9 +1579,8 @@ function dropLegacy(slug, html, v) {
   for (;;) {
     const end = html.indexOf('<!--/PV-GLANCE-->');
     let hit = null;
-    for (const m of html.slice(end).matchAll(/<div class="glass p-8 fade-up"[^>]*>/g)) {
-      const a = end + m.index, sec = html.slice(a, divEnd(html, a));
-      const h2 = /<h2\b[^>]*>([\s\S]*?)<\/h2>/.exec(sec), title = h2 ? h2Text(h2[1]).trim() : '';
+    for (const m of html.slice(end).matchAll(OLD_SEC)) {
+      const a = end + m.index, sec = html.slice(a, divEnd(html, a)), title = oldTitle(m, sec);
       const row = legacyOf(title, m[0], slug);
       if (!row) throw new Error(slug + (LANG === 'en' ? '（英語のページ）: 古い節の台帳（LEGACY_EN）' : ': 古い節の台帳（LEGACY・LEGACY_REST）') + 'に無い節が、ページの下に在る（' + (title || '見出しなし') + '）');
       if (legacyAct(v, row) === 'drop') { hit = a; break; }
@@ -1613,6 +1596,25 @@ function dropLegacy(slug, html, v) {
     if (before) a = before.index;
     if (after) b += after[0].length;
     html = html.slice(0, a).replace(/\s*$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
+  }
+}
+/* 残した節（ほかの会社の「よくある質問」）を、本文の箱の最後へ（★2026-10-26 オーナー P12.129「よくある質問だけ残す」）。
+   本文の箱の外（<footer> の前）に書かれていた「よくある質問」（seo-content-expand.mjs が箱の後ろに足した日本語のページ）は、
+   古い節を外したあと箱の外にぽつんと残り、新しい部品と幅も左右の端も揃わない（箱の外には幅の上限と余白が無い）。
+   箱の中の最後（新しい部品のすぐ後ろ）へ、前の覚え書き（<!-- FAQ -->）ごと移す。中身は1文字も変えない。
+   箱の中に在るページ（ほかの全部）は何もしない ＝ 2回めからは何もしない。 */
+function keptIntoBox(html) {
+  for (;;) {
+    const s = once(html, BOX, '本文の箱'), e = divEnd(html, s), foot = html.indexOf('<footer', e);
+    const at = foot < 0 ? -1 : html.slice(e, foot).search(OLD_SEC);
+    if (at < 0) return html;
+    let a = e + at;
+    const b = divEnd(html, a), before = NOTE_BEFORE.exec(html.slice(e, a));
+    if (before) a = e + before.index;
+    const piece = html.slice(a, b).replace(/^\s+/, () => '');
+    html = html.slice(0, a).replace(/\s*$/, () => '') + '\n\n' + html.slice(b).replace(/^\s*\n/, () => '');
+    const close = divEnd(html, s) - '</div>'.length;
+    html = html.slice(0, close).replace(/\s*$/, () => '') + '\n\n' + piece + '\n\n' + html.slice(close);
   }
 }
 /* 副題：「—」の左（社名のもう1つの書き方。airline-base.js が読む）は今のページの字のまま運ぶ。
@@ -1743,6 +1745,8 @@ function buildIn(slug, html) {
   /* 3) 本文の箱の先頭。そのあと、下に残っている古い節を台帳（LEGACY）のとおりに外す */
   html = block(html, 'PV-GLANCE', baked(glance(v)), h => once(h, BOX, '本文の箱') + BOX.length + 1);
   if (tabbed(slug)) html = dropLegacy(slug, html, v);
+  /* 3b) 残した「よくある質問」は本文の箱の最後（新しい部品のすぐ後ろ・ページの最後の節）── 先行5社には残す節が無い（1文字も変えない） */
+  if (tabbed(slug) && !LEAD.includes(slug)) html = keptIntoBox(html);
   /* 4) 部品の JS（口コミの部品より後 ＝ app-nav.js の塊の直前。あちらは </body> の直前に居続ける） */
   html = blockBefore(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js, PROOF.js, SUGGEST.js, STAY.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
     const m = NAV_JS.exec(h);
