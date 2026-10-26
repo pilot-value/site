@@ -9,7 +9,8 @@
      C) ホテルの欄のまわりの言い方 ── 見る人・足す人の決まりと違うことを書く（2026-10-16）
      D) ログインせずに出した人の控えの鍵と回線の印 ── 個人データのページに書いていない（2026-10-17）
      E) 会社ページの出どころの無い数（日本の税の1つの率・目安の数・台帳に無い飛行時間・推定年収の幅）（2026-10-26）
-     F) 英語のページの英国式のつづり／G) 英語の会社ページの「よくある質問」の冠詞（2026-10-26）
+     F) 英語のページの英国式のつづり／G) 英語のページの冠詞（2026-10-26）
+     H) 会社ページの手で書いた所（生成器の段の外）の出どころの無い数（機数・税率・設立の年・概数…）（2026-10-26）
 
    ※ どちらも 2026-09-20 にオーナーの指摘で見つかった。経緯は各節の頭にある。
 
@@ -391,7 +392,8 @@ let faqOf = null;
   const GUIDE_PAGE = /(?<![A-Za-z\d])\d[\d,.]*[^。.;]{0,25}(?:目安|\bguidelines?\b|\(guide\))|(?:目安|\bguidelines?\b|\(guide\))[^。.;]{0,12}(?<![A-Za-z\d])\d/i;
   const HOURS_PAGE = /(?<![A-Za-z\d.,])(\d[\d,]*)(?:\s*(?:〜|~|～|–|-|to)\s*(\d[\d,]*))?\s*(?:\+\s*)?(?:(?:total\s+|factored\s+|flight\s+|flying\s+){0,2}hours?\b|hrs?\b|h\b|時間|ファクタードアワー|-hours?\b)/g;
   /* 「min」だけは分（15 min）と同じ字なので、minimum・min.・Min Hours の形に限る */
-  const REQ_PAGE = /以上|最低|\+|＋|at least|or more|\bmin(?:imum\b|\.|\s+(?:flight\s+)?hours?\b)|必要|要件|条件|資格|required|requires?|requirements?|asks? for|licen[cs]e|\bR?-?ATPL?\b/i;
+  /* ★WP-18：募集要項の行（「募集要項では、総飛行3,500時間…」「asks captains for…」「asked for…」）も応募条件として見る */
+  const REQ_PAGE = /以上|最低|\+|＋|at least|or more|\bmin(?:imum\b|\.|\s+(?:flight\s+)?hours?\b)|必要|要件|条件|資格|募集要項|required|requires?|requirements?|ask(?:s|ed)? (?:[a-z]+ )?for|licen[cs]e|\bR?-?ATPL?\b/i;
   const RATE_BEFORE = /(?:1日|一日|毎日|月間?|毎月|暦月|週|年間)\s*(?:に|あたり|平均|に平均|の|平均で)?\s*$/;
   const RATE_AFTER = /^\s*(?:\+\s*)?(?:\/\s*(?:day|month|week|year|日|月|週)|(?:a|per|each)\s+(?:calendar\s+)?(?:day|month|week|year)|あたり)/i;
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, (c) => '\\' + c);
@@ -486,11 +488,15 @@ console.log('\n── F) 英語のページ（en/ のぜんぶ）は、米国の
    ★母音の音で始まる語の前は an（an Air Canada・an Emirates・an easyJet・an IndiGo・an ITA・an IBEX・an Oman Air・an HK Express）。
      子音の音で始まる語の前は a のまま（a oneworld・a European・a United・a US・a UK）── one・once・eu・uni・U＋大文字は外して見る。
    見る範囲 ＝ en/airlines/{slug}.html（SALARY の会社）の「よくある質問」の問と答え（画面の <details> と FAQPage）。
+   ★2026-10-26（WP-compare-all-18 S4）見る範囲を en/ の HTML のぜんぶへ広げた ── 画面の字・<title>・検索向けの説明文（meta の
+     description・og・twitter）・構造化データのすべての字。説明文が「We estimate a Air India captain」「a All Nippon Airways」、本文が
+     「a LHCC」のまま残っていた。頭字語を1字ずつ読む語（HK・LHCC・SAS）も母音の音で始まる＝ an。
+     かぎかっこ “…” の中（資料の題）は、その資料のつづりのまま残すので見ない。
    ════════════════════════════════════════════════════════════════ */
-console.log('\n── G) 英語の会社ページの「よくある質問」の冠詞が、音に合っている ─────');
+console.log('\n── G) 英語のページ（en/ のぜんぶ）の冠詞が、音に合っている ─────');
 {
   const { SALARY } = await import('./salary-data.mjs');
-  const ART = /\b[Aa] (?!(?:[Oo]n[ec]|[Ee]u|[Uu]ni|U[A-Z]))(?:[AEIOaeio]|[Uu]n|HK\b)[\w’-]*/g;
+  const ART = /\b[Aa] (?!(?:[Oo]n[ec]|[Ee]u|[Uu]ni|U[A-Z]))(?:[AEIOaeio]|[Uu]n|(?:HK|LHCC|SAS)\b)[\w’-]*/g;
   const hits = []; let nItems = 0;
   for (const slug of Object.keys(SALARY)) {
     const rel = `en/airlines/${slug}.html`;
@@ -499,7 +505,178 @@ console.log('\n── G) 英語の会社ページの「よくある質問」の�
       for (const [k, t] of [['問', q], ['答え', a]]) for (const m of t.matchAll(ART)) hits.push(`${rel}（${where}・${k}）: …${t.slice(Math.max(0, m.index - 30), m.index + 30)}…`);
     }
   }
-  ok(`G 英語の会社ページの「よくある質問」${nItems} 件の問と答えに、音に合わない冠詞（a Air・a Emirates・a easyJet・a official…）が無い`, nItems > 0 && !hits.length, hits.slice(0, 8).join(' ／ '));
+  /* en/ のぜんぶ（S4）── 画面の字・題名・説明文・構造化データ */
+  const walkEn = (d) => readdirSync(path.join(ROOT, d), { withFileTypes: true })
+    .flatMap((e) => (e.isDirectory() ? walkEn(`${d}/${e.name}`) : e.name.endsWith('.html') ? [`${d}/${e.name}`] : []));
+  const strs = (v, acc) => { if (typeof v === 'string') acc.push(v); else if (v && typeof v === 'object') for (const x of Object.values(v)) strs(x, acc); return acc; };
+  const pages = walkEn('en'); let nMeta = 0;
+  for (const rel of pages) {
+    const raw = readFileSync(path.join(ROOT, rel), 'utf8'), texts = [];
+    for (const m of raw.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) { try { texts.push(['構造化データ', strs(JSON.parse(m[1]), []).join(' ¦ ')]); } catch { /* 読めない塊は B 以外では見ない */ } }
+    for (const m of raw.matchAll(/<meta\b[^>]*\b(?:name|property)="(?:description|og:description|og:title|twitter:description|twitter:title)"[^>]*\bcontent="([^"]*)"/g)) { nMeta++; texts.push(['説明文', m[1]]); }
+    const tt = raw.match(/<title>([^<]*)<\/title>/); if (tt) texts.push(['題名', tt[1]]);
+    texts.push(['画面', raw.replace(/<!--[\s\S]*?-->/g, () => ' ').replace(/<style\b[\s\S]*?<\/style>/g, () => ' ').replace(/<script\b[\s\S]*?<\/script>/g, () => ' ')
+      .replace(/<[^>]+>/g, () => ' ').replace(/&quot;/g, () => '"').replace(/&amp;/g, () => '&')]);
+    for (const [where, t0] of texts) {
+      const t = t0.replace(/“[^”]*”/g, () => ' ');
+      for (const m of t.matchAll(ART)) hits.push(`${rel}（${where}）: …${t.slice(Math.max(0, m.index - 30), m.index + 30).replace(/\s+/g, () => ' ')}…`);
+    }
+  }
+  ok(`G 英語のページ ${pages.length} 枚（画面の字・題名・説明文 ${nMeta} か所・構造化データ。会社ページの「よくある質問」${nItems} 件を含む）に、音に合わない冠詞（a Air・a All Nippon・a LHCC・a official…）が無い`,
+    nItems > 0 && pages.includes('en/index.html') && pages.length > 122 && nMeta > 0 && !hits.length, hits.slice(0, 8).join(' ／ '));
+}
+
+/* ════════════════════════════════════════════════════════════════
+   H) 会社ページの手で書いた所（生成器の段の外）が、出どころの無い数を言っていない（2026-10-26 WP-compare-all-18 S1・S5）
+
+   ★CLAUDE.md「数字を盛らない。確認できない数値を推測で埋めない」。WP-16（よくある質問）と WP-17（募集要項の枠）のあと、同じページの
+     ほかの手で書いた所（概要・路線と機材・訓練・福利厚生・米国の高給の理由の札・検索向けの説明文の出どころ）に、最初の一括生成の型が
+     置いた数が残っていた ── 46社に「約200機」の形の機数、24社に「最高45%」の税率、10社に「年2〜4ヶ月分」の賞与と「年間20〜30日」の休暇、
+     ピーチの「1機あたり1日10時間以上」、カタールの「月間75時間の飛行時間保証」、ユナイテッドの「$417/h × 900h」、米国4社の「日本の3〜5倍・
+     月80〜90時間」、ウィズエアの「平均3.5〜5年」、台帳と食い違う設立の年（ソラシドエアの2002年 ⇔ 台帳の1997年など）。どれも台帳に無い数で、
+     外した（言い換えの数は作らない）。
+   見る所 ＝ 会社ページ（SALARY の会社）の生成器の段（<!--PV-X-->…<!--/PV-X-->）の外の画面の字・構造化データ（FAQPage を除く。答えは E が見る）・
+   スターラックスの script の faqs ・検索向けの説明文の出どころ（PV-SEO の中の <!--PV-SRC …-->）。
+     H1  外した型の数が戻っていない（既知の例と、型の言い回し：「通常N〜Nレグ」「年N〜N回の」「年N〜Nヶ月分」「年間N〜N日」「最大N〜N%のマッチング」
+         「$N〜N/時間」「最高N%」の税率・席数・「N都市以上」の形の就航地の数・「N–N days」「1–2x per year」「once or twice a year」…）。
+         残してよいのは台帳の会社概要に在る席数（ジェイエア・天草エアライン）と、台帳の資料の題に在る数（KLM「over 160 destinations」）と、
+         同じ文に名前を並べた数（SAS の3か国）だけ。
+         ★数字ではなく字で書いた数も同じ（2026-10-26 WP-18 の検品：ウィズエアの日本語「年2回実施」・ブエリングの英語「One to two checks
+         per year」・LATAM の説明文の出どころ「across six countries」が、数字だけを探した1回目をすり抜けていた）── 審査の近くの「年N回」、
+         「one to two checks」「two times a year」の形の回数、「six countries」「三カ国」の形の国・都市・路線の数
+     H2  概数・下限つきの数（約N・~N・approx./about/around/roughly N・N以上・N超・N+・N程度）は、その会社の台帳の字に同じ数が在る
+         （金額・英語の等級 ICAO Level・年は見ない ── 金額は check-salary.mjs と台帳の換算が見る）
+     H3  設立の年（「N年設立」「N年に…設立」「founded / established (in) N」・設立の欄）は、その会社の台帳の設立の年（research-ledger の
+         profile.founded）と同じ。台帳に無い会社は書かない
+     H4  退職年齢の欄は、台帳に年齢の行がある会社（ZIPAIR：60〜65歳は契約社員）にだけ在る
+     H5  免許・審査の当局の名前は、その会社の国のものだけ（sheet の S3。2026-10-26 WP-18 の検品）。最初の一括生成の型が、メキシコ・
+         コロンビア・パナマ・チリの4社に「ANAC/Aerocivil/DGAC等…FAA/EASA準拠」、スペイン・イタリア・オランダ・ポーランド・英国の5社に
+         「CAA UK/DGAC/LBA等」、ケニア・南アフリカに「ECAA/SACAA/KCAA」とエチオピア航空の文、ニュージーランド・フィジー・ジェットスターに
+         「CASA/CAA NZ」、英国の2社に EASA、ベトジェットに「DGCA」、スターラックスに「CAAC TW」を置いていた。台帳に当局の言い方が在る
+         会社はその言い方（ウィズエアUK・英国航空の UK CAA、ケニアの KCAA、南アフリカの SACAA）、無い会社は外した（推測で置き換えない）。
+         「その会社の国のもの」は airline-countries.mjs の国の当局（auth）と、米国の FAA の制度の名前・英国の UK CAA・NZ の CAA NZ・
+         カナダの Transport Canada。ほかの国の当局の名前が残ってよいのは、下の許す表の言い回し（読む人の免許の書き換え・英国の会社の
+         EASA からの書き換え・easyJet の EU の子会社・欧州のチャーター・台帳の募集例の FAA 型式限定・その国の当局の名前）の中だけ
+   ※ 数を足すときは、先に台帳へ出どころつきで入れる。ここを緩めて通さない（下の許す表に足してよいのは、台帳に在る数か、名前を並べた数だけ）。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── H) 会社ページの手で書いた所が、出どころの無い数を言っていない ─────');
+{
+  const { SALARY } = await import('./salary-data.mjs');
+  const { unbake } = await import('./cur-core.mjs');
+  const { LEDGER } = await import('./research-ledger.mjs');
+  const { why } = await import('./airline-rollout.mjs');
+  const { BASIS } = await import('./salary-basis.mjs');
+  const { SOURCES } = await import('./salary-sources.mjs');
+  /* 手で書いた所 ＝ 生成器の段を外す（PV-SEO の中の PV-SRC だけは残す）・style と script を外す（FAQPage 以外の構造化データとスターラックスの faqs は残す） */
+  const hand = (raw) => raw.replace(/<!--(PV-[A-Z0-9-]+)-->[\s\S]*?<!--\/\1-->/g, (m) => { const s = m.match(/<!--PV-SRC [\s\S]*?-->/); return ` ${s ? s[0] : ''} `; })
+    .replace(/<style\b[\s\S]*?<\/style>/g, () => ' ')
+    .replace(/<script\b[\s\S]*?<\/script>/g, (m) => (/faqs/.test(m) || (/ld\+json/.test(m) && !/"FAQPage"/.test(m)) ? m : ' '));
+  const text = (h) => unbake(h).replace(/<!--PV-SRC([\s\S]*?)-->/g, (m, a) => ` ${a} `).replace(/<!--[\s\S]*?-->/g, () => ' ').replace(/<[^>]+>/g, () => ' ')
+    .replace(/&quot;/g, () => '"').replace(/&amp;/g, () => '&').replace(/&#39;/g, () => "'").replace(/\s+/g, () => ' ');
+  const KNOWN = [/1機あたり1日10時間|10h\+\/day/, /月間75時間の飛行時間保証|75h\/month guaranteed/, /月75時間超過分/, /\$417\/h|× ?900h/, /日本の3〜5倍|月80〜90時間/,
+    /平均3\.5〜5年|average of 3\.5–5 years/, /約4,000人の日本人/, /1日最大1,000便|1,000\+ daily departures/,
+    /通常\d+〜\d+レグ|\d+\s?(?:–|-|to)\s?\d+ (?:legs|sectors)/, /年\d+〜\d+回の|\d+–\dx per year|\d+–\d times (?:a|per) year|once or twice a year|one to two times (?:a|per) year/,
+    /(?:Check|チェック|審査|OPC|LPC)[^。.]{0,40}?年\d+回|\b(?:[Oo]ne|[Tt]wo|[Tt]hree)(?: to (?:two|three|four))? (?:checks?|times) (?:per|a) year/,
+    /\b(?:[Tt]wo|[Tt]hree|[Ff]our|[Ff]ive|[Ss]ix|[Ss]even|[Ee]ight|[Nn]ine|[Tt]en|[Dd]ozens of) (?:countries|nations|cities|routes|destinations)\b|[二三四五六七八九十]+(?:カ国|か国|ヶ国|都市|路線)/,
+    /（年\d+〜\d+ヶ月分|\d+–\d+ months' pay/, /年間\d+〜\d+日|\d+\s?(?:–|-|to)\s?\d+ days(?: per year)?\b/, /最大\d+〜\d+%のマッチング|up to \d+–\d+%/,
+    /\$\d+〜\d+\/時間|\$\d+–\d+ per hour/, /（最高\d+(?:\.\d+)?%|最高\d+(?:\.\d+)?%（|\((?:up to|max|top rate|federal top rate|top federal rate) \d+(?:\.\d+)?%/, /\d+席|\d+[- ]seats?\b|\(\d+ seats/,
+    /\d+(?:〜\d+)?(?:都市|カ国|路線)(?:以上|超)?|\d+\+? (?:cities|countries|routes|destinations)\b|more than \d+ (?:cities|countries|routes|destinations)/];
+  /* 許す表（台帳に在る数・名前を並べた数だけ） */
+  const ALLOW_SEATS = { 'j-air': ['76', '95'], amx: ['48'] };
+  const ALLOW_COUNT = { klm: ['160都市以上', 'more than 160 cities'], sas: ['3カ国', 'three countries'] };
+  const ALLOW_APPROX = { spirit: ['25+ yrs'] };   // 古い形のページの年次の表の段（上の年収の幅から組んだ「推定」と表に書いてある）
+  /* H5 免許・審査の当局の名前。その会社の国のもの ＝ airline-countries.mjs の auth（EU の国は EASA）＋ 下の OWN_EXTRA */
+  const { AIRLINE_COUNTRY, BY_CODE } = await import('./airline-countries.mjs');
+  const AUTH = /\b(?:FAA|EASA|JCAB|CAAK|MOLIT|CASA|CAA ?NZ|CAA New Zealand|UK CAA|CAA UK|DGAC|LBA|ANAC|Aerocivil|AFAC|GCAA|GACA|QCAA|BCAA|ECAA|SACAA|KCAA|DGCA|CAAC|CAAS|CAAT|CAAP|CAAV|CAAM|HKCAD|Transport Canada|TCCA|SHGM|CARC|CAAF|ENAC|AESA|ULC|R-ATP|Part[- ]1(?:21|35|42)|Check Airman)\b/g;
+  const OWN_EXTRA = { US: ['FAA', 'R-ATP', 'Part 121', 'Part 135', 'Part 142', 'Check Airman'], GB: ['UK CAA', 'CAA UK'], NZ: ['CAA NZ', 'CAA New Zealand'], CA: ['Transport Canada', 'TCCA'] };
+  const ownAuth = (cc) => new Set([BY_CODE[cc]?.auth, ...(OWN_EXTRA[cc] || [])].filter(Boolean));
+  /* 許す言い回し（ほかの国の当局の名前が、その言い回しの中でだけ残ってよい） */
+  /* H5 の続き：アフリカの型がケニア・南アフリカに置いていた、別の会社（エチオピア航空）の文 */
+  const OTHER_AIRLINE = /エチオピア航空は自社(?:訓練センター|養成)|Ethiopian Airlines (?:operates its own in-house|relies mainly on in-house)/g;
+  const ALLOW_AUTH = {
+    qantas: ['JCAB-to-CASA'],                                   // 読む人（日本の免許）の書き換え
+    'british-airways': ['conversion from EASA'], 'virgin-atlantic': ['converted from EASA'],   // 英国の会社の、EASA からの書き換え
+    easyjet: ['UK CAA/EASA ATPL', 'UK CAA / EASA ATPL'],         // 同じページが書く EU の子会社（easyJet Europe）
+    'eagle-jet': ['EASA'],                                       // 欧州のチャーター（国は特定できない）
+    saudia: ['FAA type rating'],                                 // 年収の台帳の 2005 年の募集例（BASIS）
+    iberia: ['AESA-issued'], vueling: ['AESA-approved'], 'ita-airways': ['ENAC-certified'], lot: ['ULC-certified'], tap: ['ANAC-approved'],   // その国の当局
+  };
+  /* その会社の台帳の字のぜんぶ。単位を別の欄に持つ行（値 38・単位「機」）は「38機」の形も足す（数と単位を並べて照らすため） */
+  const ledText = (slug) => {
+    const unitOf = Object.values((LEDGER.FACTS || {})[slug] || {}).flat().filter((r) => r.unit)
+      .flatMap((r) => [...String(r.value_text ?? r.value ?? '').replace(/(\d),(?=\d{3})/g, (_, d) => d).matchAll(/\d+(?:\.\d+)?/g)].map((x) => `${x[0]}${r.unit}`));
+    return [JSON.stringify((LEDGER.FACTS || {})[slug] || {}), JSON.stringify(BASIS[slug] || {}), JSON.stringify(SOURCES[slug] || {}),
+      ...['SOURCES', 'LIVING', 'NETWORK'].map((k) => JSON.stringify((LEDGER[k] || {})[slug] || {})), ...unitOf].join(' ').replace(/(\d),(?=\d{3})/g, (_, d) => d);
+  };
+  /* 単位の組（ページの数の後ろの単位 → 台帳で同じ数の隣に在るべき単位） */
+  const UNITS = [['機|aircraft|planes?'], ['都市|cities|destinations'], ['路線|routes?'], ['か国|カ国|ヶ国|countries'], ['日|days?'], ['時間|h|hrs?|hours?'],
+    ['%|％|percent'], ['年|years?|yrs?'], ['歳'], ['人|名|pilots?|people'], ['席|seats?|人乗り'], ['ヶ月|か月|カ月|months?'], ['週|weeks?'], ['回|times'], ['便|flights|departures']]
+    .map(([u]) => [new RegExp(`^(?:${u})(?![a-z])`, 'i'), u]);
+  const founded = (slug) => {
+    const ys = new Set();
+    for (const r of Object.values((LEDGER.FACTS || {})[slug] || {}).flat()) {
+      if (r.key !== 'founded' || why(r)) continue;
+      const v = String(r.value || r.value_text || ''), g = v.match(/(1[89]\d\d|20\d\d)/), h = v.match(/平成(\d+)年/), s = v.match(/昭和(\d+)/);
+      ys.add(g ? g[1] : h ? String(1988 + +h[1]) : s ? String(1925 + +s[1]) : '');
+    }
+    return ys;
+  };
+  const APPROX = /(?:約|およそ|概ね|おおむね|~|approx\.?|approximately|about|around|roughly|nearly)\s?(\d[\d,.]*)\s*([^\s\d。.,;:）)]{0,10})|(\d[\d,.]*)\s*(以上|超|\+|強|程度)/gi;
+  const MONEY_AFTER = /^(?:万|円|M\b|K\b)/;
+  const FOUND = /((?:19|20)\d\d)年([^。<]{0,30}?)(?:設立|創業|創立)|(?:[Ff]ounded|[Ee]stablished)(?: in| on)?(?: \d{1,2} \w+)? ((?:19|20)\d\d)/g;
+  const CELL = /<div><div class="text-xs text-muted uppercase tracking-widest mb-1">([^<]*)<\/div><div class="[^"]*">([\s\S]*?)<\/div><\/div>/g;
+  const bad = { H1: [], H2: [], H3: [], H4: [], H5: [] }; let nApprox = 0, nFound = 0, nPages = 0, nAuth = 0;
+  for (const slug of Object.keys(SALARY)) {
+    const L = ledText(slug), F = founded(slug), OWN = ownAuth(AIRLINE_COUNTRY[slug]);
+    for (const rel of [`airlines/${slug}.html`, `en/airlines/${slug}.html`]) {
+      const h = hand(readFileSync(path.join(ROOT, rel), 'utf8')), t = text(h); nPages++;
+      for (const re of KNOWN) for (const m of t.matchAll(new RegExp(re.source, 'g'))) {
+        if (/席|seat/.test(m[0]) && (ALLOW_SEATS[slug] || []).some((n) => m[0].includes(n))) continue;
+        if ((ALLOW_COUNT[slug] || []).some((a) => a.includes(m[0]) || t.slice(m.index, m.index + a.length).includes(a))) continue;
+        bad.H1.push(`${rel}: …${t.slice(Math.max(0, m.index - 20), m.index + m[0].length + 10)}…`);
+      }
+      for (const m of t.matchAll(APPROX)) {
+        const n = (m[1] || m[3]).replace(/,/g, () => '').replace(/\.$/, () => '');
+        const at = m.index + m[0].indexOf(m[1] || m[3]);
+        if (m[1] && MONEY_AFTER.test(m[2] || '')) continue;
+        if (/(?:¥|\$|USD|AED|SAR|GBP|EUR|HK\$|NTD|OMR|BHD)\s?$/.test(t.slice(Math.max(0, at - 5), at))) continue;
+        if (/(?:Level|レベル|ICAO)\s?$/.test(t.slice(Math.max(0, at - 14), at))) continue;
+        if (/^(?:19|20)\d\d$/.test(n)) continue;
+        if ((ALLOW_APPROX[slug] || []).some((a) => t.slice(m.index, m.index + a.length) === a)) continue;
+        nApprox++;
+        /* 単位が付いていれば、台帳でも同じ数がその単位と並んでいること（「約200機」は台帳の「A330-200」では通らない） */
+        const after = t.slice(at + (m[1] || m[3]).length, at + (m[1] || m[3]).length + 30).replace(/^\s*(?:以上|超|\+|強|程度)?\s*/, () => '').replace(/^(?:(?:total|flight|flying|factored)\s+)+/i, () => '');
+        const u = UNITS.find(([re]) => re.test(after));
+        const N = n.replace('.', () => '\\.');
+        const has = u ? new RegExp(`(?<![\\d.])${N}(?!\\d)\\s*(?:\\+|以上|超|程度)?\\s*(?:(?:total|flight|flying|factored|civil aviation)\\s*)*(?:${u[1]})|(?:${u[1]})[^\\d"]{0,10}(?<![\\d.])${N}(?!\\d)`, 'i').test(L)
+          : new RegExp(`(?<![\\d.])${N}(?!\\d)`).test(L);
+        if (!has) bad.H2.push(`${rel}: 「${m[0].trim()}」（台帳に${u ? '同じ単位で' : ''}無い） …${t.slice(Math.max(0, m.index - 24), m.index + m[0].length + 8)}…`);
+      }
+      for (const m of t.matchAll(FOUND)) {
+        if (m[2] && /就航|破綻|刷新|運航開始|加盟|上場|申請|撤退|統合/.test(m[2])) continue;
+        nFound++; const y = m[1] || m[3];
+        if (!F.has(y)) bad.H3.push(`${rel}: ${y}（台帳 ${[...F].join('/') || 'なし'}） …${t.slice(Math.max(0, m.index - 16), m.index + 36)}…`);
+      }
+      for (const m of h.matchAll(CELL)) {
+        const label = m[1], v = m[2].replace(/<[^>]*>/g, () => '');
+        if (/^(?:設立|Founded|設立・就航|Founded \/ Launched)$/.test(label)) { nFound++; const y = (v.match(/(?:19|20)\d\d/) || [''])[0]; if (!F.has(y)) bad.H3.push(`${rel}（${label}の欄）: ${v}（台帳 ${[...F].join('/') || 'なし'}）`); }
+        if (/^(?:退職年齢|Ret\. Age|Retirement Age)$/.test(label) && slug !== 'zipair') bad.H4.push(`${rel}（${label}の欄）: ${v}`);
+      }
+      for (const m of t.matchAll(AUTH)) {
+        nAuth++;
+        const k = m[0].replace(/^CAA ?NZ$/, () => 'CAA NZ').replace(/^Part[- ]/, () => 'Part ');
+        if (OWN.has(k)) continue;
+        if ((ALLOW_AUTH[slug] || []).some((p) => p.includes(m[0]) && t.slice(Math.max(0, m.index - p.length), m.index + m[0].length + p.length).includes(p))) continue;
+        bad.H5.push(`${rel}: 「${m[0]}」（${AIRLINE_COUNTRY[slug] || '国なし'}） …${t.slice(Math.max(0, m.index - 30), m.index + m[0].length + 20)}…`);
+      }
+      if (slug !== 'ethiopian-airlines') for (const m of t.matchAll(OTHER_AIRLINE)) bad.H5.push(`${rel}: 別の会社の文 …${t.slice(m.index, m.index + m[0].length + 20)}…`);
+    }
+  }
+  ok(`H1 会社ページ ${nPages} 枚の手で書いた所に、外した型の数（機数・税率・レグ数・審査の回数・賞与の月数・休暇の日数・席数・就航地の数・既知の例）が戻っていない`, nPages === Object.keys(SALARY).length * 2 && !bad.H1.length, bad.H1.slice(0, 8).join(' ／ '));
+  ok(`H2 手で書いた所の概数・下限つきの数（${nApprox} か所）は、どれもその会社の台帳に同じ数が在る`, nApprox > 0 && !bad.H2.length, bad.H2.slice(0, 8).join(' ／ '));
+  ok(`H3 設立の年（${nFound} か所・本文と欄）は、どれもその会社の台帳の設立の年と同じ`, nFound > 0 && !bad.H3.length, bad.H3.slice(0, 8).join(' ／ '));
+  ok('H4 退職年齢の欄は、台帳に年齢の行がある会社（ZIPAIR）にだけ在る', !bad.H4.length, bad.H4.slice(0, 8).join(' ／ '));
+  ok(`H5 免許・審査の当局の名前（${nAuth} か所）は、その会社の国のもの（ほかの国の名前は許す言い回しの中だけ）・別の会社（エチオピア航空）の文が無い`, nAuth > 0 && !bad.H5.length, bad.H5.slice(0, 8).join(' ／ '));
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
