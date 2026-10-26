@@ -836,7 +836,9 @@ function companyCard(v) {
      ⚠️ 手で書いた紹介文をここへ戻さない。作り直す前のページの字には「日本第2位」「日本最大」のような順位、
         古い機数・路線数、資料で確かめていない訓練地や退職年齢が入っていた（2026-10-07 までは、その字を1文字も変えずに運んでいた）。
      歴史・規模・拠点が分かる字は、開かなくても読める場所に置く（4つの数字だけで会社紹介を済ませない）。 */
-  const lead = `<p class="pvg-about" data-pvg-about="lead">${c.intro.map(s => esc(s.text)).join(W.introJoin)}</p>`;
+  /* ★2026-10-26 段階5 compare-all-20：先行5社ではない会社の短い紹介（pv-airline-view.mjs の rowsIntro ── ページに出ている値だけを型にはめた字）は
+     data-pvg-about="rows"。台帳の紹介文（"lead"）とは別の印（古い「◯◯について」の節の代わりにはならない ── legacyReady.intro） */
+  const lead = `<p class="pvg-about" data-pvg-about="${c.intro.some(s => s.rows) ? 'rows' : 'lead'}">${c.intro.map(s => esc(s.text)).join(W.introJoin)}</p>`;
   /* 見本の「会社概要」── ページのいちばん上に置く小さな1枚。写真は小さく（主役にしない）、
      見えている値は4つまで。紹介文がもう言った項目は並べない（同じ話を上下に2度出さない）。
      数え方と時点・全部の数字・機材・出どころは「会社情報」を開いた中に在る
@@ -1504,7 +1506,8 @@ export const CAREER_FACTS = Object.freeze([...SURFACES.find(S => S.id === 'caree
 export const REQ_KEY = /requirement|qualification|eligibility/;
 export const legacyReady = {
   pay: () => true,                                     // 給与の1枚はどの会社にも在る（推定年収は SALARY）
-  intro: v => v.company.intro.length > 0,
+  /* 台帳の紹介文だけを数える（★2026-10-26 compare-all-20：ページの値を型にはめた短い紹介 rows は、古い節の歴史の話を言えない） */
+  intro: v => v.company.intro.some(s => !s.rows),
   fleet: v => v.company.fleet.length > 0,
   network: v => !!networkOf(v.slug),
   /* 外してよいのは今の公表が在るときだけ（過去・参考の札つきの行だけでは、今の節の代わりにならない ── 全社へ広げる c） */
