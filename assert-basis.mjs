@@ -79,8 +79,10 @@ const AUDIT_23 = [
 
 /* 監査の対象ではないが、同じ扱いに揃えた会社（関連・追加対象）。
    ここに入れた社は「23社」の数には入れない。消すためのリストではない。
-   ★2026-10-27 lufthansa ── 機長の推定に、報道の根拠・算出方法・時点（est）を添えるために台帳へ足した（WP-compare-all-24・P12.133）。 */
-const EXTRA = ['j-air', 'malaysia-airlines', 'lufthansa'];
+   ★2026-10-27 lufthansa ── 機長の推定に、報道の根拠・算出方法・時点（est）を添えるために台帳へ足した（WP-compare-all-24・P12.133）。
+   ★2026-10-29 給与表から作り直した11社 ── 推定に根拠・算出方法・時点（est）を添えるために台帳へ足した（WP-compare-all-26・オーナー OK「11社ぜんぶ」）。 */
+const EXTRA = ['j-air', 'malaysia-airlines', 'lufthansa',
+  'delta', 'united', 'american', 'southwest', 'alaska-airlines', 'jetblue', 'air-canada', 'qantas', 'jetstar', 'iberia', 'tap'];
 
 let fail = 0, warn = 0, ok = 0;
 const bad = (f, msg) => { fail++; console.log(`❌ ${f}\n   ${msg}`); };

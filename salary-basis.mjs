@@ -1056,6 +1056,311 @@ export const BASIS = {
     },
     fo: { tier: 'estimate' },
   },
+
+  /* ══ 給与表から作り直した11社 ══ ★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）。
+     米国6社・エア・カナダ・カンタス・ジェットスター・イベリア・TAP。額は salary-data.mjs、出どころの記録と計算の内訳は salary-sources.mjs。
+     ここに置くのは、推定に添える 根拠・算出方法・時点（est）と画面に出す出どころだけ。会社の公表額は無い（groups なし）＝ どの職位も「推定」。
+     オーナーの決まり（2026-10-29）：機長＝最上段（米国は12年目）・いちばん多い機材／副操縦士＝6年目。時給 × 年間の時間（豪州は年俸）＋ 利益配分 ＋
+       会社の年金拠出。日当は「家を離れている時間」の資料がある会社だけ（ジェットスター・TAP）。最低保証の時間で出して今より低くなる値は下げない。
+     ⚠️ サウスウエスト・アラスカ・ジェットブルーの副操縦士と、イベリアの副操縦士は、推定年収そのものは前の値のまま（算出方法の文がそう言う）。
+     ⚠️ 第三者の資料（報道・まとめ記事・第三者のサイトに置かれた協約の写し）には secondary を付ける。組合・官報・公正労働委員会の資料には付けない。
+     ⚠️ cur は置いていない（画面に出す外貨の額は無い ＝ 換算の断り書きを出さない）。tax は置く（gen-faq.mjs の税の問がこの字を読む）。 */
+  'delta': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'ALPA デルタ支部（Delta MEC）', pub_en: 'ALPA Delta MEC', name: 'pilot contract COMPARISON',
+        as_of: '2026年1月1日の時給（2025年夏時点の資料）', as_of_en: 'Pay rates effective 1 January 2026', accessed: '2026-10-29',
+        url: 'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf' },
+      { pub: 'airlinepilothiring.net（協約の写し）', pub_en: 'airlinepilothiring.net (copy of the contract)', name: 'Delta Pilot Working Agreement 2023 — Section 3 Compensation',
+        as_of: '2026年1月の時給表', as_of_en: 'Pay table effective January 2026', accessed: '2026-10-29', secondary: true,
+        url: 'https://airlinepilothiring.net/TentativeAgreements/2023Delta.pdf' },
+      { pub: 'デルタ航空（SEC 提出書類）', pub_en: 'Delta Air Lines (SEC filing)', name: '2026 Proxy Statement (DEF 14A)',
+        as_of: '2026-05-08 掲載', accessed: '2026-10-29',
+        url: 'https://www.sec.gov/Archives/edgar/data/27904/000130817926000345/dal014970-def14a.htm' },
+      { pub: 'Paddle Your Own Kanoo', pub_en: 'Paddle Your Own Kanoo', name: 'American Airlines Flight Attendants Furious Over 0.3% Profit-Sharing Bonus Amid Operational Meltdown',
+        as_of: '2026-01-27 掲載', accessed: '2026-10-29', secondary: true,
+        url: 'https://www.paddleyourownkanoo.com/2026/01/27/american-airlines-flight-attendants-furious-over-0-3-profit-sharing-bonus-amid-operational-meltdown/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（2026年1月1日の時給・月の時間・会社の年金拠出）と、利益配分の報道（2026年1月）・デルタ航空の株主総会資料（2026年5月）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (pay rates effective 1 January 2026, monthly hours and the company 401(k) contribution), plus a news report on profit sharing (January 2026) and Delta’s 2026 proxy statement (May 2026)',
+      method: '12年目の機長（A321・737-900）の時給 $390.30 に、会社が組む月の時間 73〜78時間のまん中（年906時間）を掛け、2025年分の利益配分 8.9% と会社の年金拠出 18% を足しています。幅は、1年目の B717 の機長から12年目の広胴機の機長までです。日当は入れていません（家を離れている時間の資料が無いため）。',
+      method_en: 'A year-12 A321/737-900 captain’s rate of $390.30 an hour, times the middle of Delta’s 73–78 hour monthly line value (906 hours a year), plus 8.9% profit sharing for 2025 and the 18% company 401(k) contribution. The range runs from a year-1 B717 captain to a year-12 widebody captain. Per diem is not included (no source for time away from base).',
+      as_of: '2026年1月の時給・2025年分の利益配分', as_of_en: 'Pay rates from January 2026; profit sharing for 2025',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: '協約（2023年）の2026年1月の時給表（第三者のサイトに置かれた写し）と、パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」・利益配分の報道',
+      basis_en: 'The 2023 pilot contract’s January 2026 pay table (a copy hosted by a third-party site), ALPA Delta MEC’s “pilot contract COMPARISON” and a news report on profit sharing',
+      method: '6年目の副操縦士（A321・737-900）の時給 $242.91 に年906時間を掛け、利益配分 8.9% と会社の年金拠出 18% を足しています。$242.91 は協約の表の $238.12 に、表の12年目と組合資料の2026年1月の12年目の差と同じ 2.01% を掛けた額です。幅は、1年目から12年目の広胴機の副操縦士までです。日当は入れていません。',
+      method_en: 'A year-6 A321/737-900 first officer’s rate of $242.91 an hour times 906 hours a year, plus 8.9% profit sharing and the 18% company 401(k) contribution. $242.91 is the contract table’s $238.12 raised by the same 2.01% that separates the table’s year-12 rate from the union’s January 2026 year-12 rate. The range runs from year 1 to a year-12 widebody first officer. Per diem is not included.',
+      as_of: '2026年1月の時給・2025年分の利益配分', as_of_en: 'Pay rates from January 2026; profit sharing for 2025',
+    } },
+  },
+
+  'united': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'ALPA ユナイテッド支部（United MEC）', pub_en: 'ALPA United MEC', name: 'United Pilot Agreement 2023 (redline) — Pay Rates January 2026',
+        as_of: '2026年1月の時給表', as_of_en: 'Pay table effective January 2026', accessed: '2026-10-29',
+        url: 'https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-01-redline.pdf' },
+      { pub: 'ALPA デルタ支部（Delta MEC）', pub_en: 'ALPA Delta MEC', name: 'pilot contract COMPARISON',
+        as_of: '2026年1月1日の時給（2025年夏時点の資料）', as_of_en: 'Pay rates effective 1 January 2026', accessed: '2026-10-29',
+        url: 'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf' },
+      { pub: 'Paddle Your Own Kanoo', pub_en: 'Paddle Your Own Kanoo', name: 'American Airlines Flight Attendants Furious Over 0.3% Profit-Sharing Bonus Amid Operational Meltdown',
+        as_of: '2026-01-27 掲載', accessed: '2026-10-29', secondary: true,
+        url: 'https://www.paddleyourownkanoo.com/2026/01/27/american-airlines-flight-attendants-furious-over-0-3-profit-sharing-bonus-amid-operational-meltdown/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'ユナイテッド航空のパイロットの協約 UPA 2023（2026年1月の時給表）、パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（月の保証・会社の年金拠出）、利益配分の報道（2026年1月）',
+      basis_en: 'United’s pilot contract, UPA 2023 (January 2026 pay table), ALPA Delta MEC’s “pilot contract COMPARISON” (monthly guarantee and company 401(k) contribution) and a news report on profit sharing (January 2026)',
+      method: '12年目の機長（737-800・A320）の時給 $388.27 に、月の最低保証 70時間（年840時間）を掛け、利益配分 4.5% と会社の年金拠出 18% を足しています。幅の下は1年目です。上端は前の値のままです（最低保証の時間で出すと今より低くなるため）。日当は入れていません（家を離れている時間の資料が無いため）。',
+      method_en: 'A year-12 737-800/A320 captain’s rate of $388.27 an hour, times the 70-hour monthly minimum guarantee (840 hours a year), plus 4.5% profit sharing and the 18% company 401(k) contribution. The bottom of the range is year 1; the top is unchanged (on the minimum guarantee it would come out below today’s figure). Per diem is not included (no source for time away from base).',
+      as_of: '2026年1月の時給・2025年分の利益配分', as_of_en: 'Pay rates from January 2026; profit sharing for 2025',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'ユナイテッド航空のパイロットの協約 UPA 2023（2026年1月の時給表）、パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」、利益配分の報道（2026年1月）',
+      basis_en: 'United’s pilot contract, UPA 2023 (January 2026 pay table), ALPA Delta MEC’s “pilot contract COMPARISON” and a news report on profit sharing (January 2026)',
+      method: '6年目の副操縦士（737-800・A320）の時給 $241.75 に、月の最低保証 70時間（年840時間）を掛け、利益配分 4.5% と会社の年金拠出 18% を足しています。幅は、1年目から12年目の広胴機の副操縦士までです。日当は入れていません。',
+      method_en: 'A year-6 737-800/A320 first officer’s rate of $241.75 an hour, times the 70-hour monthly minimum guarantee (840 hours a year), plus 4.5% profit sharing and the 18% company 401(k) contribution. The range runs from year 1 to a year-12 widebody first officer. Per diem is not included.',
+      as_of: '2026年1月の時給・2025年分の利益配分', as_of_en: 'Pay rates from January 2026; profit sharing for 2025',
+    } },
+  },
+
+  'american': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'ALPA デルタ支部（Delta MEC）', pub_en: 'ALPA Delta MEC', name: 'pilot contract COMPARISON',
+        as_of: '2026年1月1日の時給（2025年夏時点の資料）', as_of_en: 'Pay rates effective 1 January 2026', accessed: '2026-10-29',
+        url: 'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf' },
+      { pub: 'aerocrewnews.com（協約案の写し）', pub_en: 'aerocrewnews.com (copy of the agreement)', name: 'American Airlines / APA 2023 Tentative Agreement — Full Pay Tables',
+        as_of: '2026年5月2日の時給表', as_of_en: 'Pay table effective 2 May 2026', accessed: '2026-10-29', secondary: true,
+        url: 'https://aerocrewnews.com/wp-content/uploads/2023/07/American-Airlines-TA.pdf' },
+      { pub: 'Paddle Your Own Kanoo', pub_en: 'Paddle Your Own Kanoo', name: 'American Airlines Flight Attendants Furious Over 0.3% Profit-Sharing Bonus Amid Operational Meltdown',
+        as_of: '2026-01-27 掲載', accessed: '2026-10-29', secondary: true,
+        url: 'https://www.paddleyourownkanoo.com/2026/01/27/american-airlines-flight-attendants-furious-over-0-3-profit-sharing-bonus-amid-operational-meltdown/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（2026年1月1日の時給・月の保証・会社の年金拠出）と、協約案（2023年）の時給表（第三者のサイトに置かれた写し）・利益配分の報道（2026年1月）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (pay rates effective 1 January 2026, monthly guarantee and company 401(k) contribution), the 2023 tentative agreement’s pay tables (a copy hosted by a third-party site) and a news report on profit sharing (January 2026)',
+      method: '12年目の機長（狭胴機・737/A320 系）の時給 $390.30 に、月の最低保証 77時間（年924時間）を掛け、利益配分 0.3% と会社の年金拠出 18% を足しています。幅の下は1年目です。上端は前の値のままです（最低保証の時間で出すと今より低くなるため）。日当は入れていません（家を離れている時間の資料が無いため）。',
+      method_en: 'A year-12 narrowbody (737/A320 family) captain’s rate of $390.30 an hour, times the 77-hour monthly minimum (924 hours a year), plus 0.3% profit sharing and the 18% company 401(k) contribution. The bottom of the range is year 1; the top is unchanged (on the minimum it would come out below today’s figure). Per diem is not included (no source for time away from base).',
+      as_of: '2026年1月の時給・2025年分の利益配分', as_of_en: 'Pay rates from January 2026; profit sharing for 2025',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: '協約案（2023年）の2026年5月の時給表（第三者のサイトに置かれた写し）と、パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」・利益配分の報道',
+      basis_en: 'The 2023 tentative agreement’s May 2026 pay table (a copy hosted by a third-party site), ALPA Delta MEC’s “pilot contract COMPARISON” and a news report on profit sharing',
+      method: '6年目の副操縦士（狭胴機）の時給 $242.91 に年924時間を掛け、利益配分 0.3% と会社の年金拠出 18% を足しています。$242.91 は協約案の表の $238.12 に、表の12年目と組合資料の2026年1月の12年目の差と同じ 2.01% を掛けた額です。幅は、1年目から12年目の広胴機の副操縦士までです。日当は入れていません。',
+      method_en: 'A year-6 narrowbody first officer’s rate of $242.91 an hour times 924 hours a year, plus 0.3% profit sharing and the 18% company 401(k) contribution. $242.91 is the agreement table’s $238.12 raised by the same 2.01% that separates the table’s year-12 rate from the union’s January 2026 year-12 rate. The range runs from year 1 to a year-12 widebody first officer. Per diem is not included.',
+      as_of: '2026年の時給・2025年分の利益配分', as_of_en: 'Pay rates from 2026; profit sharing for 2025',
+    } },
+  },
+
+  'southwest': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'ALPA デルタ支部（Delta MEC）', pub_en: 'ALPA Delta MEC', name: 'pilot contract COMPARISON',
+        as_of: '2026年1月1日の時給（2025年夏時点の資料）', as_of_en: 'Pay rates effective 1 January 2026', accessed: '2026-10-29',
+        url: 'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（2026年1月1日の時給・月の保証・利益配分・会社の年金拠出）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (pay rates effective 1 January 2026, monthly guarantee, profit sharing and company retirement contribution)',
+      method: '12年目の機長（737）の時給 $394.27 に、保証の TFP を時間に直した年918時間を掛け、利益配分 1.10%（2024年分）と会社の年金拠出 20% を足しています。幅は前の値のままです（下は1年目の表が無く、上は最低保証の時間で出すと今より低くなるため）。日当は入れていません（家を離れている時間の資料が無いため）。',
+      method_en: 'A year-12 737 captain’s rate of $394.27 an hour, times the guaranteed TFP converted to hours (918 hours a year), plus 1.10% profit sharing (for 2024) and the 20% company retirement contribution (401(k) and MBCBP). The range is unchanged (there is no year-1 table for the bottom, and the top would come out lower on the minimum guarantee). Per diem is not included (no source for time away from base).',
+      as_of: '2026年1月の時給・2024年分の利益配分', as_of_en: 'Pay rates from January 2026; profit sharing for 2024',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（幅の上端だけ。推定年収そのものの出どころの記録はありません）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (for the top of the range only; there is no record of where the estimate itself came from)',
+      method: '推定年収は前の値のままです（6年目の副操縦士の時給が、どの資料にも無いため）。幅の上端は、12年目の副操縦士の時給 $275.99 に年918時間を掛け、利益配分 1.10% と会社の年金拠出 20% を足した額です。',
+      method_en: 'The estimate is unchanged (no source gives a year-6 first officer rate). The top of the range is a year-12 first officer’s rate of $275.99 an hour times 918 hours a year, plus 1.10% profit sharing and the 20% company retirement contribution.',
+      as_of: '幅の上端は2026年1月の時給', as_of_en: 'Top of the range: pay rates from January 2026',
+    } },
+  },
+
+  'alaska-airlines': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'ALPA デルタ支部（Delta MEC）', pub_en: 'ALPA Delta MEC', name: 'pilot contract COMPARISON',
+        as_of: '2026年1月1日の時給（2025年夏時点の資料）', as_of_en: 'Pay rates effective 1 January 2026', accessed: '2026-10-29',
+        url: 'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（2026年1月1日の時給・月の保証・利益配分・会社の年金拠出）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (pay rates effective 1 January 2026, monthly guarantee, profit sharing and company 401(k) contribution)',
+      method: '12年目の機長（737）の時給 $375.74 に、月の最低保証 75時間（年900時間）を掛け、利益配分 11.48%（2024年分）と会社の年金拠出 17% を足しています。幅の上端も同じ額です。下は前の値のままです（1年目の表が無いため）。日当は入れていません（家を離れている時間の資料が無いため）。',
+      method_en: 'A year-12 737 captain’s rate of $375.74 an hour, times the 75-hour monthly minimum guarantee (900 hours a year), plus 11.48% profit sharing (for 2024) and the 17% company 401(k) contribution. The top of the range is the same figure; the bottom is unchanged (there is no year-1 table). Per diem is not included (no source for time away from base).',
+      as_of: '2026年1月の時給・2024年分の利益配分', as_of_en: 'Pay rates from January 2026; profit sharing for 2024',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（幅の上端だけ。推定年収そのものの出どころの記録はありません）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (for the top of the range only; there is no record of where the estimate itself came from)',
+      method: '推定年収は前の値のままです（副操縦士の年次ごとの時給が公開されていないため）。幅の上端は、12年目の副操縦士の時給 $259.75 に年900時間を掛け、利益配分 11.48% と会社の年金拠出 17% を足した額です。',
+      method_en: 'The estimate is unchanged (first officer rates by year are not published). The top of the range is a year-12 first officer’s rate of $259.75 an hour times 900 hours a year, plus 11.48% profit sharing and the 17% company 401(k) contribution.',
+      as_of: '幅の上端は2026年1月の時給', as_of_en: 'Top of the range: pay rates from January 2026',
+    } },
+  },
+
+  'jetblue': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'ALPA デルタ支部（Delta MEC）', pub_en: 'ALPA Delta MEC', name: 'pilot contract COMPARISON',
+        as_of: '2026年1月1日の時給（2025年夏時点の資料）', as_of_en: 'Pay rates effective 1 January 2026', accessed: '2026-10-29',
+        url: 'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（2026年1月1日の時給・月の時間・会社の年金拠出）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (pay rates effective 1 January 2026, monthly hours and company 401(k) contribution)',
+      method: '12年目の機長（A321）の時給 $359.40 に、会社が組む月の目標 74〜86時間のまん中（年960時間）を掛け、会社の年金拠出 17% を足しています（この資料に2024年の利益配分の率はありません）。幅の上端も同じ額です。下は前の値のままです（1年目の表が無いため）。日当は入れていません（家を離れている時間の資料が無いため）。',
+      method_en: 'A year-12 A321 captain’s rate of $359.40 an hour, times the middle of JetBlue’s 74–86 hour monthly bid target (960 hours a year), plus the 17% company 401(k) contribution (the source gives no 2024 profit-sharing rate). The top of the range is the same figure; the bottom is unchanged (there is no year-1 table). Per diem is not included (no source for time away from base).',
+      as_of: '2026年1月の時給', as_of_en: 'Pay rates from January 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'パイロット組合 ALPA デルタ支部の「pilot contract COMPARISON」（幅の上端だけ。推定年収そのものの出どころの記録はありません）',
+      basis_en: 'ALPA Delta MEC, “pilot contract COMPARISON” (for the top of the range only; there is no record of where the estimate itself came from)',
+      method: '推定年収は前の値のままです（6年目の副操縦士の時給が、このサイトが使える資料に無いため）。幅の上端は、12年目の副操縦士の時給 $248.45 に年960時間を掛け、会社の年金拠出 17% を足した額です。',
+      method_en: 'The estimate is unchanged (no source we can use gives a year-6 first officer rate). The top of the range is a year-12 first officer’s rate of $248.45 an hour times 960 hours a year, plus the 17% company 401(k) contribution.',
+      as_of: '幅の上端は2026年1月の時給', as_of_en: 'Top of the range: pay rates from January 2026',
+    } },
+  },
+
+  'air-canada': {
+    tax: '課税（カナダ）', tax_en: 'Taxed (Canada)',
+    src: [
+      { pub: 'Flight Trainers', pub_en: 'Flight Trainers', name: 'Air Canada Pilot Salary',
+        as_of: '2026-09-21 掲載', accessed: '2026-10-29', secondary: true,
+        url: 'https://flighttrainers.ca/air-canada-pilot-salary/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'Flight Trainers の記事「Air Canada Pilot Salary」（2026年9月21日。2026年9月30日からの時給表を載せた解説で、会社や組合の公表ではありません）',
+      basis_en: 'Flight Trainers, “Air Canada Pilot Salary”, 21 September 2026 (an explainer carrying the pay rates effective 30 September 2026 — not published by the airline or the union)',
+      method: '12年目の機長（A320・737）の時給 C$337.33 に航法手当 C$17.09 を足し、年900時間の保証を掛けています。幅は、1年目の A220 の機長から12年目の 777 の機長までです。会社の年金・利益配分と日当は、額の資料が無いので入れていません。',
+      method_en: 'A year-12 A320/737 captain’s rate of C$337.33 an hour plus C$17.09 nav pay, times the 900-hour annual guarantee. The range runs from a year-1 A220 captain to a year-12 777 captain. The company pension, profit sharing and per diem are not included (no source for the amounts).',
+      as_of: '2026年9月30日からの時給', as_of_en: 'Pay rates effective 30 September 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'Flight Trainers の記事「Air Canada Pilot Salary」（2026年9月21日。2026年9月30日からの時給表を載せた解説で、会社や組合の公表ではありません）',
+      basis_en: 'Flight Trainers, “Air Canada Pilot Salary”, 21 September 2026 (an explainer carrying the pay rates effective 30 September 2026 — not published by the airline or the union)',
+      method: '6年目の副操縦士（A320・737）の時給 C$182.62 に航法手当 C$8.55 を足し、年900時間の保証を掛けています。幅は、1年目から12年目の 777 の副操縦士までです。会社の年金・利益配分と日当は、額の資料が無いので入れていません。',
+      method_en: 'A year-6 A320/737 first officer’s rate of C$182.62 an hour plus C$8.55 nav pay, times the 900-hour annual guarantee. The range runs from year 1 to a year-12 777 first officer. The company pension, profit sharing and per diem are not included (no source for the amounts).',
+      as_of: '2026年9月30日からの時給', as_of_en: 'Pay rates effective 30 September 2026',
+    } },
+  },
+
+  'qantas': {
+    tax: '課税（オーストラリア）', tax_en: 'Taxed (Australia)',
+    src: [
+      { pub: 'オーストラリア公正労働委員会（Fair Work Commission）', pub_en: 'Fair Work Commission (Australia)', name: 'Qantas Airways Limited Pilots (Short Haul) Enterprise Agreement 2024 (AE528955)',
+        as_of: '2026年9月1日からの年俸', as_of_en: 'Salaries from 1 September 2026', accessed: '2026-10-29',
+        url: 'https://www.fwc.gov.au/documents/agreements/approved/ae528955.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'カンタス航空の短距離のパイロットの労働協約 AE528955（オーストラリアの公正労働委員会が承認・2026年9月1日からの年俸）',
+      basis_en: 'Qantas Short Haul pilots’ enterprise agreement AE528955 (approved by the Fair Work Commission; salaries from 1 September 2026)',
+      method: '短距離（737・A320）の機長の最上段 Year 6 の年俸 A$307,241 に、法律で決まった会社の年金拠出 12%（上限まで）を足しています。幅の下は Year 1 です。上端は前の値のままです（長距離の協約の表を開けていないため）。家を離れた時間ごとの手当は入れていません。',
+      method_en: 'The top short-haul (737/A320) captain step, Year 6, at A$307,241 a year, plus the 12% superannuation guarantee (up to the cap). The bottom of the range is Year 1; the top is unchanged (we have not opened the long-haul agreement’s tables). Travel allowance for time away from base is not included.',
+      as_of: '2026年9月1日からの年俸', as_of_en: 'Salaries from 1 September 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'カンタス航空の短距離のパイロットの労働協約 AE528955（オーストラリアの公正労働委員会が承認・2026年9月1日からの年俸）',
+      basis_en: 'Qantas Short Haul pilots’ enterprise agreement AE528955 (approved by the Fair Work Commission; salaries from 1 September 2026)',
+      method: '短距離の副操縦士の最上段 Year 5（副操縦士として4年を終えると上がる段で、6年目はここ）の年俸 A$197,833 に、法律で決まった会社の年金拠出 12% を足しています。幅の下は Year 1 です。上端は前の値のままです（長距離の協約の表を開けていないため）。家を離れた時間ごとの手当は入れていません。',
+      method_en: 'The top short-haul first officer step, Year 5 (reached after four years in the seat, so a year-6 first officer sits here), at A$197,833 a year, plus the 12% superannuation guarantee. The bottom of the range is Year 1; the top is unchanged (we have not opened the long-haul agreement’s tables). Travel allowance for time away from base is not included.',
+      as_of: '2026年9月1日からの年俸', as_of_en: 'Salaries from 1 September 2026',
+    } },
+  },
+
+  'jetstar': {
+    tax: '課税（オーストラリア）', tax_en: 'Taxed (Australia)',
+    src: [
+      { pub: 'オーストラリア公正労働委員会（Fair Work Commission）', pub_en: 'Fair Work Commission (Australia)', name: 'Jetstar Airways Pilots Enterprise Agreement 2026 (AE533389)',
+        as_of: '2026年7月1日からの年俸', as_of_en: 'Salaries from 1 July 2026', accessed: '2026-10-29',
+        url: 'https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf' },
+      { pub: 'パイロット組合 AFAP', pub_en: 'AFAP (pilots’ union)', name: 'Jetstar EA 2025 Update #36 — Details of In-Principle agreement',
+        as_of: '2026-03-31 掲載', accessed: '2026-10-29',
+        url: 'https://8ce06ce48b.sdkhosting.net/pub/dw7a/z1swde28/kxg/lav/cbv/Details%20of%20In-Principle%20agreement.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'ジェットスター航空のパイロットの労働協約 AE533389（オーストラリアの公正労働委員会が承認・2026年7月1日からの年俸）と、パイロット組合 AFAP の説明資料（2026年3月31日）',
+      basis_en: 'Jetstar pilots’ enterprise agreement AE533389 (approved by the Fair Work Commission; salaries from 1 July 2026) and the AFAP’s explanatory note (31 March 2026)',
+      method: '狭胴機の機長の最上段（Level 3・4）の年俸 A$280,433 に、法律で決まった会社の年金拠出 12%（上限まで）と、日帰りの乗務の手当（1時間 A$8.39 × 年600時間。600時間は組合資料にある会社のデータ）を足しています。幅は Level 1 から広胴機の最上段までで、同じ手当を足しています。泊まりの手当は入れていません（時間の資料が無いため）。',
+      method_en: 'The top narrowbody captain step (Level 3/4), A$280,433 a year, plus the 12% superannuation guarantee (up to the cap) and domestic travel allowance (A$8.39 an hour × 600 hours a year; the 600 hours are Jetstar data quoted by the AFAP). The range runs from Level 1 to the top widebody step, with the same allowance added. Overnight allowance is not included (no source for the hours).',
+      as_of: '2026年7月1日からの年俸', as_of_en: 'Salaries from 1 July 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'ジェットスター航空のパイロットの労働協約 AE533389（オーストラリアの公正労働委員会が承認・2026年7月1日からの年俸）と、パイロット組合 AFAP の説明資料（2026年3月31日）',
+      basis_en: 'Jetstar pilots’ enterprise agreement AE533389 (approved by the Fair Work Commission; salaries from 1 July 2026) and the AFAP’s explanatory note (31 March 2026)',
+      method: '6年目の副操縦士（狭胴機の Level 3。協約では「4年を終えてから6年目まで」）の年俸 A$171,818 に、法律で決まった会社の年金拠出 12% と、日帰りの乗務の手当（1時間 A$8.39 × 年600時間）を足しています。幅は Level 1 から広胴機の最上段までです。泊まりの手当は入れていません。',
+      method_en: 'A year-6 first officer (narrowbody Level 3, which the agreement gives from the end of year 4 through year 6) at A$171,818 a year, plus the 12% superannuation guarantee and domestic travel allowance (A$8.39 an hour × 600 hours a year). The range runs from Level 1 to the top widebody step. Overnight allowance is not included.',
+      as_of: '2026年7月1日からの年俸', as_of_en: 'Salaries from 1 July 2026',
+    } },
+  },
+
+  'iberia': {
+    tax: '課税（スペイン）', tax_en: 'Taxed (Spain)',
+    src: [
+      { pub: 'スペイン官報（BOE）', pub_en: 'Boletín Oficial del Estado (BOE)', name: 'BOE-A-2026-14409 — tablas salariales 2025 del X Convenio colectivo de Iberia LAE y sus tripulantes pilotos',
+        as_of: '2026-07-02 掲載', accessed: '2026-10-29',
+        url: 'https://www.boe.es/boe/dias/2026/07/02/pdfs/BOE-A-2026-14409.pdf' },
+      { pub: 'スペイン官報（BOE）', pub_en: 'Boletín Oficial del Estado (BOE)', name: 'BOE-A-2022-23017 — X Convenio colectivo de Iberia LAE y sus tripulantes pilotos',
+        as_of: '2022-12-28 掲載', accessed: '2026-10-29',
+        url: 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2022-23017' },
+      { pub: 'スペイン官報（BOE）', pub_en: 'Boletín Oficial del Estado (BOE)', name: 'BOE-A-2024-25500 — modificación del X Convenio (pilotos de Iberia)',
+        as_of: '2024-12-06 掲載', accessed: '2026-10-29',
+        url: 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-25500' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'スペイン官報（BOE）に載ったイベリア航空のパイロットの労働協約（2022年）と、その改定（2024年）・2025年の給与表（2026年7月掲載）',
+      basis_en: 'Iberia’s pilot collective agreement as published in Spain’s official gazette (BOE, 2022), its 2024 amendment and the 2025 pay tables (published July 2026)',
+      method: '段4（勤続15〜16年ほど）・短中距離の機長の月額 €8,955 を年15回受け取る形にし、年1回の手当、利益配分（運航の目標に左右されない 2.71%）、会社の年金拠出を足しています。乗務は月70時間の保証で計算しています（＝下限）。幅の上端は、最上段・長距離の機長です。下は前の値のままです（保証の時間で出すと今より低くなるため）。日当は入れていません（日数の資料が無いため）。',
+      method_en: 'A level-4 short/medium-haul captain (around 15–16 years of service) at €8,955 a month, paid 15 times a year, plus the yearly items, profit sharing (the 2.71% not tied to operational targets) and the company pension contributions, with flying worked out on the 70-hour monthly guarantee (a floor). The top of the range is a top-level long-haul captain; the bottom is unchanged (it would come out lower on the guarantee). Per diem is not included (no source for the number of days).',
+      as_of: '2025年の給与表（2026年7月掲載）', as_of_en: '2025 pay tables (published July 2026)',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'スペイン官報（BOE）に載ったイベリア航空のパイロットの労働協約（2022年）と、その改定（2024年）・2025年の給与表（2026年7月掲載）',
+      basis_en: 'Iberia’s pilot collective agreement as published in Spain’s official gazette (BOE, 2022), its 2024 amendment and the 2025 pay tables (published July 2026)',
+      method: '推定年収は前の値のままです。協約の表（段8・勤続加算2回 ＝ 6年目ごろ）を月70時間の保証で計算すると、今の値より低くなるためです（保証の時間で出した額では下げません）。幅の上端は、長距離の副操縦士の段3（年15回の月額に同じ手当・利益配分・年金を足した額）です。日当は入れていません（日数の資料が無いため）。',
+      method_en: 'The estimate is unchanged: worked out from the agreement’s tables (level 8 with two seniority steps, around year 6) on the 70-hour monthly guarantee, it comes out below today’s figure, and we do not lower a figure on the guarantee alone. The top of the range is a level-3 long-haul first officer (15 monthly payments plus the same items, profit sharing and pension). Per diem is not included (no source for the number of days).',
+      as_of: '2025年の給与表（2026年7月掲載）', as_of_en: '2025 pay tables (published July 2026)',
+    } },
+  },
+
+  'tap': {
+    tax: '課税（ポルトガル）', tax_en: 'Taxed (Portugal)',
+    src: [
+      { pub: 'ポルトガル労働公報（BTE）', pub_en: 'Boletim do Trabalho e Emprego (BTE)', name: 'BTE n.º 29/2023 — Acordo de empresa entre a TAP e o SPAC (revisão global)',
+        as_of: '2023-08-08 掲載', accessed: '2026-10-29',
+        url: 'https://bte.dgcp.mtsss.gov.pt/completos/2023/bte29_2023.pdf' },
+      { pub: 'ポルトガル労働公報（BTE）', pub_en: 'Boletim do Trabalho e Emprego (BTE)', name: 'BTE n.º 16/2024 — Acordo de empresa TAP / SPAC (alteração)',
+        as_of: '2024-04-29 掲載', accessed: '2026-10-29',
+        url: 'https://bte.dgcp.mtsss.gov.pt/completos/2024/bte16_2024.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'ポルトガル労働公報（BTE）に載った TAP とパイロット組合 SPAC の労働協約（2023年）と、その一部改定（2024年）',
+      basis_en: 'The TAP–SPAC pilot company agreement as published in Portugal’s labour bulletin (BTE, 2023) and its 2024 partial amendment',
+      method: '在籍16年・機長6年（＋2024年の1年加算）の機長の月額を2026年の水準（2023年の表 × 1.0612）にして年14回受け取る形にし、協約が給与と書く乗務の日当の最低（1日 €270 × 月5日 × 11か月）と会社の年金拠出 6% を足しています。副操縦士の年数も職務の年数に数えています。幅は、機長になったばかりの人から、在籍31年・広胴機の機長までです。',
+      method_en: 'A captain with 16 years at TAP and 6 years in command (plus the extra year granted in 2024), monthly pay brought to 2026 levels (2023 table × 1.0612) and paid 14 times a year, plus the minimum per diem the agreement treats as pay (€270 a day × 5 days a month × 11 months) and the 6% company pension contribution. Years as a first officer are counted toward years in function. The range runs from a newly upgraded captain to a widebody captain with 31 years at TAP.',
+      as_of: '2023年の表を2026年の水準に直した額', as_of_en: '2023 tables brought to 2026 levels',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'ポルトガル労働公報（BTE）に載った TAP とパイロット組合 SPAC の労働協約（2023年）と、その一部改定（2024年）',
+      basis_en: 'The TAP–SPAC pilot company agreement as published in Portugal’s labour bulletin (BTE, 2023) and its 2024 partial amendment',
+      method: '6年目の副操縦士（OP3・在籍7年）の月額を2026年の水準にして年14回受け取る形にし、協約が給与と書く乗務の日当の最低（1日 €202.50 × 月5日 × 11か月）と会社の年金拠出 6% を足しています。幅は、1年目（OP1）から在籍16年・広胴機の副操縦士までです。',
+      method_en: 'A year-6 first officer (OP3, 7 years at TAP) with monthly pay brought to 2026 levels and paid 14 times a year, plus the minimum per diem the agreement treats as pay (€202.50 a day × 5 days a month × 11 months) and the 6% company pension contribution. The range runs from year 1 (OP1) to a widebody first officer with 16 years at TAP.',
+      as_of: '2023年の表を2026年の水準に直した額', as_of_en: '2023 tables brought to 2026 levels',
+    } },
+  },
 };
 
 /* ── 読む側のための小物 ───────────────────────────────────────── */
