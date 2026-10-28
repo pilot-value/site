@@ -57,7 +57,7 @@ export const SALARY = {
   'southwest':         { ja:'サウスウエスト航空', en:'Southwest Airlines', region:'us',                                          cap:{avg:4820, lo:4140, hi:7110}, fo:{avg:2610, lo:1660, hi:4030}, taxFree:false, conf:'medium' },
   'klm':               { ja:'KLMオランダ航空', en:'KLM Royal Dutch Airlines', region:'europe',                                   cap:{avg:3960, lo:3030, hi:5810}, fo:{avg:2240, lo:1380, hi:4370}, taxFree:false, conf:'medium' },
   'air-france':        { ja:'エールフランス', en:'Air France', region:'europe',                                                  cap:{avg:3530, lo:2750, hi:6020}, fo:{avg:1810, lo:1200, hi:2920}, taxFree:false, conf:'low' },
-  'lufthansa':         { ja:'ルフトハンザ', en:'Lufthansa', region:'europe',                                                     cap:{avg:3440, lo:2490, hi:4320}, fo:{avg:1890, lo:1260, hi:3010}, taxFree:false, conf:'medium' },
+  'lufthansa':         { ja:'ルフトハンザ', en:'Lufthansa', region:'europe',                                                     cap:{avg:3900, lo:2490, hi:4320}, fo:{avg:1890, lo:1260, hi:3010}, taxFree:false, conf:'medium' },
   'air-canada':        { ja:'エア・カナダ', en:'Air Canada', region:'us',                                                        cap:{avg:3360, lo:2490, hi:4260}, fo:{avg:1510, lo:580,  hi:2200}, taxFree:false, conf:'medium' },
   'british-airways':   { ja:'ブリティッシュ・エアウェイズ', en:'British Airways', region:'europe',                               cap:{avg:3980, lo:3320, hi:5710}, fo:{avg:2810, lo:2300, hi:3910}, taxFree:false, conf:'medium' },
 
