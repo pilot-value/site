@@ -143,6 +143,10 @@ export const SOURCES = {
   //    SALARY の avg はフリート全体・全年次の平均推計なので、この資料が直接支えるのは
   //    レンジ（lo–hi）の上端側であって avg ではない。年収換算（年間乗務時間 × ドル円）は
   //    台帳では行わない（DATA-PROVENANCE.md 2.「原通貨・原単位のまま」）。
+  // ★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）── 米国6社・エア・カナダ・カンタス・ジェットスター・イベリア・TAP の
+  //   推定年収を、時給 × 年間の時間（豪州は年俸）＋ 利益配分 ＋ 会社の年金拠出（＋ 時間の資料がある会社だけ日当）で作り直した。
+  //   上の「12年目の料率は年収の根拠ではない」は 2026-08-09 の考え方。今は表の時給に年間の時間を掛けて年収にしている（各行の note）。
+  //   作り直す前の行は消さずに status:'stale' にしてある。
   'delta': [
     {
       rank:        'cap',
@@ -155,8 +159,9 @@ export const SOURCES = {
                  + '内訳: 広胴 $465.13／B-767-300ER・B-757・A-321neo $389.34／A-321・B-737-900 $375.28／'
                  + 'A-320・A-319・B-737-800 $373.33／A-220-300 $360.24／A-220-100 $345.50／B-717 $335.95',
       quote:       '12-Year Captain rates, effective January 1, 2025',
-      status:      'in_use',
-      note:        'PDF原本を取得し、フォントの ToUnicode CMap を解いて表を機械抽出・列を座標で確定（2026-08-09）。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + 'PDF原本を取得し、フォントの ToUnicode CMap を解いて表を機械抽出・列を座標で確定（2026-08-09）。'
                  + '同ページの注記「2) No rate set at Delta for A-350-1000, B-777-300/X, B-787-10 or B-737-MAX10/MAX9/MAX8」より、'
                  + 'これらの機種に Delta の料率は存在しない。'
                  + 'published_at は資料に明示が無いので null（本文は "The data in this comparison is current through summer 2025."、'
@@ -173,11 +178,77 @@ export const SOURCES = {
                  + '内訳: 広胴 $317.73／B-767-300ER・B-757・A-321neo $265.92／A-321・B-737-900 $256.33／'
                  + 'A-320・A-319・B-737-800 $254.99／A-220-300 $246.05／A-220-100 $235.97／B-717 $229.43',
       quote:       '12-Year First Officer rates, effective January 1, 2025',
-      status:      'in_use',
-      note:        '同上（p.26）。副操縦士は機長のおよそ 68%（$317.73 / $465.13）で、'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + '同上（p.26）。副操縦士は機長のおよそ 68%（$317.73 / $465.13）で、'
                  + 'SALARY の fo.avg / cap.avg の比（3,510 / 6,160 ≒ 57%）より高い。'
                  + '⚠️ これは矛盾ではない。この表は12年目のみ、SALARY は全年次の平均で、'
                  + '副操縦士側に低年次が多く含まれるため比が下がる。数値は動かさない。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'pilot contract COMPARISON（Delta MEC Negotiating Committee／ALPA Economic & Financial Analysis Dept.） ── p.27 広胴機・p.33 A-321 の12年目の時給（1/1/2026）、p.47 月の保証、p.72 会社の年金拠出',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '12年目・1/1/2026・時間あたり: 機長 広胴（B-777 / B-787 / A-350-900）$483.74・A-321 $390.30／副操縦士 広胴 $330.44・A-321 $266.58。'
+                 + 'p.47 月の保証 65:00・TLV of 73:00–78:00。p.72 Defined Contribution 18% contribution。',
+      quote:       'Captain 1/1/2025 1/1/2026 1/1/2027 1/1/2028 Delta $375.28 $390.30 $390.30 $390.30 … 12-Year Rates: A-321 ／ '
+                 + 'Delta 65:00 … TLV of 73:00–78:00 ／ Delta Traditional plan terminated/frozen MBCBP 18% contribution',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg（7,220万）＝ A-321・B-737-900 の12年目の機長 $390.30 × 年906時間（TLV 73〜78時間のまん中 75.5時間 × 12）＝ $353,612 に、'
+                 + '2025年分の利益配分 8.9%（下の報道。株主総会資料の「ほぼ9%」と合う）と会社の年金拠出 18%（給与＋利益配分に対して）を足した $454,398 × 158.95 ＝ 約7,223万円。'
+                 + '★ cap.hi（8,950万）＝ 広胴の機長12年目 $483.74 で同じ計算。fo.hi（6,110万）＝ 広胴の副操縦士12年目 $330.44 で同じ計算。'
+                 + 'cap.lo・fo.avg・fo.lo は下の協約の写しの年次の表から。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。'
+                 + '2026-10-29 に原本を取り直して表を読んだ（2025年1月の12年目の時給の行は stale）。',
+    },
+    {
+      rank:        'all',
+      source_type: 'third_party_reference',
+      name:        'Delta Air Lines Pilot Working Agreement 2023（PWA。第三者のサイト airlinepilothiring.net に置かれた協約の写し）── Section 3 の時給表（January 1, 2026）',
+      url:         'https://airlinepilothiring.net/TentativeAgreements/2023Delta.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '時間あたり・2026年1月の表: 機長 A-321・B-737-900 12年目 $382.60・1年目 $350.96／B-717 1年目 $314.48／広胴 12年目 $474.20。'
+                 + '副操縦士 A-321・B-737-900 12年目 $261.32・6年目 $238.12／1年目 $123.04（どの機材も）／広胴 12年目 $323.92。',
+      quote:       'Captain 12 11 10 9 8 7 6 5 4 3 2 1 … B-737-900 382.60 … 350.96 … B-717 342.49 … 314.48 … Section-Compensation … January ,2026 … '
+                 + 'First Officer 12 11 10 9 8 7 6 5 4 3 2 1 … B-737-900 261.32 258.92 256.57 253.12 250.43 244.78 238.12 … 123.04',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '⚠️ 第三者のサイトに置かれた写し（組合・会社の公式の置き場ではない）。中身は協約そのもの。2026-10-29 にこの URL から取り直した PDF の表を座標つきで読んだ。'
+                 + '★ この表の12年目と、上の組合資料の 1/1/2026 の12年目の比が、広胴（$483.74 / $474.20）・A-321 の機長（$390.30 / $382.60）・副操縦士（$266.58 / $261.32、$330.44 / $323.92）で同じ 1.0201。'
+                 + '同じ上げ幅がどの年次にも掛かっていると読み、6年目と1年目にも掛けた。'
+                 + '★ fo.avg（4,500万）＝ 6年目 $238.12 × 1.0201 ＝ $242.91 × 年906時間 ＋ 利益配分 8.9% ＋ 年金 18%（約4,501万）。'
+                 + 'この $242.91 は、ユナイテッドの公式の表（2026年1月）の A321・737-900 の6年目と1セントまで同じ。'
+                 + '★ cap.lo（5,940万）＝ B-717 の1年目 $314.48 × 1.0201 ＝ $320.81 で同じ計算。fo.lo（2,320万）＝ 1年目 $123.04 × 1.0201 ＝ $125.52 で同じ計算。',
+    },
+    {
+      rank:        'all',
+      source_type: 'regulatory_filing',
+      name:        'Delta Air Lines 2026 Proxy Statement（SEC に提出した DEF 14A）── Proxy Statement Summary',
+      url:         'https://www.sec.gov/Archives/edgar/data/27904/000130817926000345/dal014970-def14a.htm',
+      published_at:'2026-05-08',
+      accessed_at: '2026-10-29',
+      value_orig:  '2025年分の利益配分: 総額 $1.3 billion・対象の社員の稼ぎのほぼ9%（nearly 9%）。',
+      quote:       'For 2025, Delta rewarded eligible employees with $1.3 billion in profit sharing payments … equating to nearly 9% of each eligible employee’s earnings',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '利益配分の率の会社の資料。計算に使った 8.9% は下の報道の数字で、この「ほぼ9%」と合う。published_at は株主総会の通知の日。',
+    },
+    {
+      rank:        'all',
+      source_type: 'third_party_reference',
+      name:        'Paddle Your Own Kanoo「American Airlines Flight Attendants Furious Over 0.3% Profit-Sharing Bonus Amid Operational Meltdown」（報道）',
+      url:         'https://www.paddleyourownkanoo.com/2026/01/27/american-airlines-flight-attendants-furious-over-0-3-profit-sharing-bonus-amid-operational-meltdown/',
+      published_at:'2026-01-27',
+      accessed_at: '2026-10-29',
+      value_orig:  'デルタの2025年分の利益配分 8.9%（総額 $1.3 billion）。',
+      quote:       'Delta announced a total profit-sharing fund of $1.3 billion, equating to an 8.9% payout per eligible worker',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '⚠️ 報道（二次情報）。対象の社員ごとの率で、パイロットの給与にも同じ率で掛けた。',
     },
   ],
 
@@ -205,8 +276,9 @@ export const SOURCES = {
       value_orig:  'United 12年目機長・時間あたり $465.13（A-350-900 / B-777 / B-787 / B-767-400ER）〜 $373.33（A-320・A-319・B-737-MAX8/800/700）。'
                  + '中間: B-767-300ER・B-757・A-321xlr・A-321neo $389.34／B-737-MAX10・MAX9・B-737-900 $375.28',
       quote:       '12-Year Captain rates, effective January 1, 2025',
-      status:      'in_use',
-      note:        'PDF原本から機械抽出。United の Pay Rate 欄は x=533（座標で列を確定）。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + 'PDF原本から機械抽出。United の Pay Rate 欄は x=533（座標で列を確定）。'
                  + '⚠️ 他組合（Delta MEC）が作った比較表なので、当該組合の UPA 2023 原本より一段落ちる。'
                  + '原本 Section 3 が読めたらそちらを in_use にし、こちらは stale に落とす。',
     },
@@ -220,8 +292,52 @@ export const SOURCES = {
       value_orig:  'United 12年目副操縦士・時間あたり $317.73（広胴）〜 $254.99（A-320・A-319・B-737-MAX8/800/700）。'
                  + '中間: B-767-300ER・B-757・A-321xlr・A-321neo $265.92／B-737-MAX10・MAX9・B-737-900 $256.33',
       quote:       '12-Year First Officer rates, effective January 1, 2025',
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + '同上（p.26・x=533）。UPA 2023 原本が読めたら stale に落とす。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'United Pilot Agreement 2023 redline（UPA 2023・ALPA の配信CDN）── Captain / First Officer Pay Rates January 2026 Bid Period',
+      url:         'https://d2r1lrrqctgamh.cloudfront.net/UAL/TA/upa23-2023-09-01-redline.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '時間あたり・2026年1月: 機長 737-Max8・A320/A320neo 1年目 $356.46・12年目 $388.27／副操縦士 737-Max8・A320/A320neo 1年目 $125.52・6年目 $241.75・12年目 $265.19。',
+      quote:       'Captain Pay Rates January 2026 Bid Period … 737-Max8 $356.46 … $388.27 … '
+                 + 'First Officer Pay Rates January 2026 Bid Period … 737-Max8 $125.52 $192.22 $224.85 $230.32 $235.86 $241.75 … $265.19',
       status:      'in_use',
-      note:        '同上（p.26・x=533）。UPA 2023 原本が読めたら stale に落とす。',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '当該組合の協約（修正の印つきの版）。2026-10-29 にこの URL から取り直した PDF の表を座標つきで読んだ。'
+                 + '★ cap.avg（6,390万）＝ 12年目 $388.27 × 年840時間（月の保証 70時間 × 12 ＝ 下限）＋ 利益配分 4.5%（下の報道）＋ 会社の年金拠出 18%（約6,389万）。'
+                 + '★ cap.lo（5,870万）＝ 1年目 $356.46 で同じ計算。fo.avg（3,980万）＝ 6年目 $241.75 で同じ計算。fo.lo（2,070万）＝ 1年目 $125.52 で同じ計算。'
+                 + 'cap.hi（8,530万）は前の値のまま（保証の時間で出すと約7,960万で、今より低くなるので下げない ── オーナーの決まり）。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'pilot contract COMPARISON（Delta MEC Negotiating Committee／ALPA Economic & Financial Analysis Dept.） ── p.27 広胴機の12年目の時給（1/1/2026）、p.47 月の保証、p.72 会社の年金拠出（United 欄）',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  'United 12年目・1/1/2026・時間あたり: 機長 広胴 $483.74／副操縦士 広胴 $330.44。p.47 月の保証 70:00。p.72 Defined Contribution 18% contribution。',
+      quote:       'United $465.13 $483.74 $498.25 $498.25 … United $317.73 $330.44 $340.35 $340.35 ／ United 70:00 ／ United Traditional plan terminated MBCBP 18% contribution',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ fo.hi（5,440万）＝ 広胴の副操縦士12年目 $330.44 × 年840時間 ＋ 4.5% ＋ 18%。月の保証 70時間と年金の率もこの資料から。',
+    },
+    {
+      rank:        'all',
+      source_type: 'third_party_reference',
+      name:        'Paddle Your Own Kanoo「American Airlines Flight Attendants Furious Over 0.3% Profit-Sharing Bonus Amid Operational Meltdown」（報道）',
+      url:         'https://www.paddleyourownkanoo.com/2026/01/27/american-airlines-flight-attendants-furious-over-0-3-profit-sharing-bonus-amid-operational-meltdown/',
+      published_at:'2026-01-27',
+      accessed_at: '2026-10-29',
+      value_orig:  'ユナイテッドの利益配分 年の賃金の約4.5%。',
+      quote:       'United Airlines announced a profit-sharing bonus equivalent to around 4.5% of annual wages.',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '⚠️ 報道（二次情報）。パイロットの給与にも同じ率で掛けた。',
     },
   ],
 
@@ -250,8 +366,9 @@ export const SOURCES = {
       value_orig:  'American 12年目機長・時間あたり $465.13（B-777 / B-787）〜 $375.28（A-321・A-320・A-319・B-737-MAX8・B-737-800）。'
                  + '中間: A-321neo・B-737-MAX10 $389.34。B-737-MAX9 に American の料率は無い（United 欄のみ）',
       quote:       '12-Year Captain rates, effective January 1, 2025',
-      status:      'in_use',
-      note:        'PDF原本から機械抽出。American の Pay Rate 欄は x=384（座標で列を確定）。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + 'PDF原本から機械抽出。American の Pay Rate 欄は x=384（座標で列を確定）。'
                  + '⚠️ 他組合（Delta MEC）が作った比較表。APA（当該組合）公式の料率表が取れたら置き換える。',
     },
     {
@@ -264,8 +381,151 @@ export const SOURCES = {
       value_orig:  'American 12年目副操縦士・時間あたり $317.73（B-777 / B-787）〜 $256.33（A-321・A-320・A-319・B-737-MAX8・B-737-800）。'
                  + '中間: A-321neo・B-737-MAX10 $265.92。B-737-MAX9 に American の料率は無い（United 欄のみ）',
       quote:       '12-Year First Officer rates, effective January 1, 2025',
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + '同上（p.26・x=384）。APA 公式の料率表が取れたら置き換える。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'pilot contract COMPARISON（Delta MEC Negotiating Committee／ALPA Economic & Financial Analysis Dept.） ── p.27 広胴機・p.35 B-737-800 の12年目の時給（1/1/2026）、p.47 月の保証、p.72 会社の年金拠出（American 欄）',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  'American 12年目・1/1/2026・時間あたり: 機長 広胴 $483.74・B-737-800 $390.30／副操縦士 広胴 $330.44・B-737-800 $266.58。'
+                 + 'p.47 月の保証「Greater of lower limit of ALV or 65 hours」・「Lines built 84 ALV ± 7 hrs」（＝下限 77時間）。p.72 18% contribution。',
+      quote:       'American $465.13 $483.74 $498.25 $498.25 … American $375.28 $390.30 $402.01 $402.01 … 12-Year Rates: B-737-800 ／ '
+                 + 'American Greater of lower limit of ALV or 65 hours … Lines built 84 ALV ± 7 hrs ／ American Traditional plan frozen MBCBP 18% contribution',
       status:      'in_use',
-      note:        '同上（p.26・x=384）。APA 公式の料率表が取れたら置き換える。',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg（6,780万）＝ 12年目の機長 $390.30 × 年924時間（ALV の下限 77時間 × 12 ＝ 下限）＋ 利益配分 0.3%（下の報道）＋ 会社の年金拠出 18%（約6,783万）。'
+                 + '★ fo.hi（5,740万）＝ 広胴の副操縦士12年目 $330.44 で同じ計算。'
+                 + 'cap.hi（8,600万）は前の値のまま（保証の時間で出すと約8,410万で、今より低くなるので下げない）。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。',
+    },
+    {
+      rank:        'all',
+      source_type: 'third_party_reference',
+      name:        'American Airlines / APA 2023 Tentative Agreement（第三者のサイト aerocrewnews.com に置かれた協約案の写し）── Full Pay Tables Effective May 02, 2026',
+      url:         'https://aerocrewnews.com/wp-content/uploads/2023/07/American-Airlines-TA.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '時間あたり・2026年5月2日の表: 機長 A320・A319・A321 1年目 $350.96・12年目 $382.60／副操縦士 A320・A319・A321 6年目 $238.12・1年目 $123.04。',
+      quote:       'Full Pay Tables Effective May 02, 2026 … A320 $350.96 … $382.60 … A320Neo $123.04 $189.21 $221.41 $226.76 $232.21 $238.12',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '⚠️ 第三者のサイトに置かれた写し（組合の公式の置き場ではない）。中身は協約案（2023年に批准された）。2026-10-29 にこの URL から取り直した PDF の表を座標つきで読んだ。'
+                 + '★ 上の組合資料の 1/1/2026 の12年目（$390.30）とこの表の12年目（$382.60）の比 1.0201 を、デルタの協約の表と同じように6年目と1年目にも掛けた。'
+                 + '★ fo.avg（4,220万）＝ 6年目 $238.12 × 1.0201 ＝ $242.91 × 年924時間 ＋ 0.3% ＋ 18%。cap.lo（6,220万）＝ 1年目 $350.96 × 1.0201 ＝ $358.02 で同じ計算。'
+                 + 'fo.lo（2,180万）＝ 1年目 $123.04 × 1.0201 ＝ $125.52 で同じ計算。',
+    },
+    {
+      rank:        'all',
+      source_type: 'third_party_reference',
+      name:        'Paddle Your Own Kanoo「American Airlines Flight Attendants Furious Over 0.3% Profit-Sharing Bonus Amid Operational Meltdown」（報道）',
+      url:         'https://www.paddleyourownkanoo.com/2026/01/27/american-airlines-flight-attendants-furious-over-0-3-profit-sharing-bonus-amid-operational-meltdown/',
+      published_at:'2026-01-27',
+      accessed_at: '2026-10-29',
+      value_orig:  'アメリカンの利益配分 0.3%（対象の稼ぎに対して）。',
+      quote:       'discovered that their profit-sharing bonus would be just 0.3% of their eligible earnings.',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '⚠️ 報道（二次情報）。客室乗務員の記事の文だが、同じ利益配分の制度の率としてパイロットにも掛けた。',
+    },
+  ],
+  'southwest': [
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'pilot contract COMPARISON（Delta MEC Negotiating Committee／ALPA Economic & Financial Analysis Dept.） ── p.35 B-737-800 の12年目の時給（1/1/2026）、p.45 利益配分、p.47 月の保証、p.72 会社の年金拠出（Southwest 欄）',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  'Southwest 12年目・1/1/2026・時間あたり: 機長 B-737-800 $394.27／副操縦士 $275.99。p.45 2024年の利益配分 1.10%（パイロットの給与に対する率）。'
+                 + 'p.47 月の保証 77:28（89 TFP・31日の期間。30日は 87 TFP・28/29日は 84 TFP）。p.72 2% contribution to MBCBP ＋ 18% contribution [20% total with 401(k) and MBCBP]。',
+      quote:       'Southwest $379.10 $394.27 $401.04 $423.37 … Southwest $265.37 $275.99 $287.03 $296.36 … 12-Year Rates: B-737-800 ／ '
+                 + '2024 10.04 1.50 7.64 1.10 11.48 Historical Profit Sharing / BONUS Payout as a Percentage of Pilot Pay ／ '
+                 + 'Based on 89 TFP in a 31-day bid period converted to hours (87 TFP or 75:43 in 30-day bid period, 84 TFP or 73:06 in 28/29-day bid period) ／ '
+                 + 'Southwest 2% contribution to MBCBP … 18% contribution [20% total with 401(k) and MBCBP]',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg（6,970万）＝ 12年目の機長 $394.27 × 年918時間（保証の TFP を時間に直した年の合計 ＝ 下限）＋ 利益配分 1.10% ＋ 会社の年金拠出 20%（約6,970万）。'
+                 + '★ fo.hi（4,880万）＝ 12年目の副操縦士 $275.99 で同じ計算。'
+                 + '⚠️ 副操縦士の6年目の時給はどの資料にも無い（この資料にあるのは「6年目は機長の 68%」という比だけで、機長の6年目の時給が無い）→ fo.avg（2,610万）は前の値のまま（出所の記録なし）。'
+                 + 'cap.hi（7,110万）・cap.lo（4,140万）・fo.lo（1,660万）は前の値のまま（hi は保証の時間で出すと 6,970万で今より低い・lo は1年目の表が無い）。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'Travelohlic「Highest Paid Airline Pilots in the World」（給与のまとめ記事）',
+      url:         'https://travelohlic.com/highest-paid-airline-pilots-world-salary-rankings/',
+      published_at:'2026-09-21',
+      accessed_at: '2026-10-29',
+      value_orig:  'サウスウエストの2026年の最上段の機長 $343.14/TFP・時間に直すと約 $394.27。',
+      quote:       'Southwest Airlines | $343.14/TFP, about $394.27/hour equivalent | $354,841 equivalent',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '⚠️ まとめ記事（二次情報）。上の組合資料の $394.27 と同じ額であることの確かめにだけ使った（計算には使っていない）。',
+    },
+  ],
+  'alaska-airlines': [
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'pilot contract COMPARISON（Delta MEC Negotiating Committee／ALPA Economic & Financial Analysis Dept.） ── p.35 B-737-800 の12年目の時給（1/1/2026）、p.45 利益配分、p.47 月の保証、p.72 会社の年金拠出（Alaska 欄）',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  'Alaska 12年目・1/1/2026・時間あたり: 機長 $375.74／副操縦士 $259.75。p.45 2024年の利益配分 11.48%。p.47 月の保証 75:00。'
+                 + 'p.72 Pilots hired 1/1/10 and after: 17% contribution。',
+      quote:       'Alaska $361.29 $375.74 $390.77 $390.77 … Alaska $249.76 $259.75 $270.14 $270.14 ／ '
+                 + '2024 10.04 1.50 7.64 1.10 11.48 Historical Profit Sharing / BONUS Payout as a Percentage of Pilot Pay ／ Alaska 75:00 ／ Pilots hired 1/1/10 and after: 17% contribution',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg ＝ cap.hi（6,910万）＝ 12年目の機長 $375.74 × 年900時間（月の保証 75時間 × 12 ＝ 下限）＋ 利益配分 11.48%（2024年分）＋ 会社の年金拠出 17%（約6,910万）。'
+                 + '★ fo.hi（4,770万）＝ 12年目の副操縦士 $259.75 で同じ計算。'
+                 + '⚠️ 副操縦士の年次ごとの時給は公開されていない（この資料にあるのは「6年目は機長の 66%」という比だけ）→ fo.avg（2,850万）は前の値のまま（出所の記録なし）。'
+                 + 'cap.lo（3,800万）・fo.lo（1,700万）は前の値のまま（1年目の表が無い）。アラスカ航空とハワイアン航空の統合後の協約は入っていない。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。',
+    },
+  ],
+  'jetblue': [
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'pilot contract COMPARISON（Delta MEC Negotiating Committee／ALPA Economic & Financial Analysis Dept.） ── p.33 A-321 の12年目の時給（1/1/2026）、p.47 月の保証と目標、p.72 会社の年金拠出（JetBlue 欄）',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  'JetBlue 12年目・1/1/2026・時間あたり: 機長 A-321 $359.40／副操縦士 $248.45。p.47 月の保証 70:00・「74:00–86:00 hour bid target range」。p.72 17% contribution。',
+      quote:       'JetBlue $359.40 $359.40 $359.40 $359.40 … JetBlue $248.45 $248.45 $248.45 $248.45 … 12-Year Rates: A-321 ／ '
+                 + 'JetBlue 70:00 … Pre-month ± 7 hours of published bid target (74:00–86:00 hour bid target range) ／ JetBlue n/a 17% contribution',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg ＝ cap.hi（6,420万）＝ 12年目の機長 $359.40 × 年960時間（会社が組む月の目標 74〜86時間のまん中 80時間 × 12）＋ 会社の年金拠出 17%（約6,420万）。'
+                 + 'この資料の利益配分の表に、ジェットブルーの2024年の率は無い（足していない）。'
+                 + '★ fo.hi（4,440万）＝ 12年目の副操縦士 $248.45 で同じ計算。'
+                 + '⚠️ 副操縦士の6年目の時給は、このサイトが使わない資料にしか無い → fo.avg（2,400万）は前の値のまま（出所の記録なし）。'
+                 + 'cap.lo（3,500万）・fo.lo（1,500万）は前の値のまま（1年目の表が無い）。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。',
+    },
+  ],
+  'air-canada': [
+    {
+      rank:        'all',
+      source_type: 'third_party_reference',
+      name:        'Flight Trainers「Air Canada Pilot Salary」（給与の解説記事・2026年9月30日からの時給表）',
+      url:         'https://flighttrainers.ca/air-canada-pilot-salary/',
+      published_at:'2026-09-21',
+      accessed_at: '2026-10-29',
+      value_orig:  '時間あたり・カナダドル・2026年9月30日から: 機長 12年目 A320/737 $337.33・777 $459.25／1年目 A220 $296.23。'
+                 + '副操縦士 6年目 A320/737 $182.62／1年目 $94.62（どの機材も）／12年目 777 $298.51。Nav Pay（狭胴機だけ）機長 $17.09・副操縦士 $8.55。年900時間の保証。',
+      quote:       'hourly rates effective September 30, 2026 … It’s $17.09 an hour for captains, $8.55 for first officers and $5.13 for relief pilots. … '
+                 + 'the contract guarantees the year adds up to at least 900 hours whether you flew them or not.',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '⚠️ 第三者の解説記事（二次情報・組合や会社の資料ではない）。2026-10-29 に記事を開いて、表と文を確かめた。'
+                 + '★ cap.avg（3,680万）＝（12年目 A320/737 $337.33 ＋ Nav Pay $17.09）× 年900時間 ＝ C$318,978 × 115.49 ＝ 約3,684万円。'
+                 + '★ cap.lo（3,260万）＝（A220 の1年目 $296.23 ＋ $17.09）× 900／cap.hi（4,770万）＝ 777 の12年目 $459.25 × 900。'
+                 + '★ fo.avg（1,990万）＝（6年目 A320/737 $182.62 ＋ $8.55）× 900／fo.lo（980万）＝ 1年目 $94.62 × 900／fo.hi（3,100万）＝ 777 の12年目 $298.51 × 900。'
+                 + '入れていないもの＝会社の年金・利益配分（額の資料が無い）・日当＝下寄り。900時間は保証（下限）。',
     },
   ],
 
@@ -680,6 +940,94 @@ export const SOURCES = {
                  + '2026-10-24 までの SALARY（avg 950万）は出所の記録が無かった（10-25 の1回目は固定の年額だけで 1,090万）。',
     },
   ],
+  'iberia': [
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'BOE-A-2026-14409 Resolución de 22 de junio de 2026 ── X Convenio colectivo de Iberia LAE, SA, Operadora y sus tripulantes pilotos の2025年の給与表',
+      url:         'https://www.boe.es/boe/dias/2026/07/02/pdfs/BOE-A-2026-14409.pdf',
+      published_at:'2026-07-02',
+      accessed_at: '2026-10-29',
+      value_orig:  '2025年の表（月額・ユーロ）: Sueldo base 1.216,94（全段）／Prima razón viaje garantizada（70 horas）段1D 4.641,82〜段11.1 202,77／'
+                 + 'Prima de responsabilidad de comandante 2.751,68（短中距離）・2.974,83（長距離）／copiloto 167,78／Prima de productividad 機長 918,32・副操縦士 648,26 ほか。'
+                 + '2025年の会社の EBIT/INGRESOS 18,8 %。',
+      quote:       'Resolución de 22 de junio de 2026, de la Dirección General de Trabajo, por la que se registran y publican las tablas salariales para el año 2025 del X Convenio colectivo de Iberia LAE, SA, Operadora y sus tripulantes pilotos. … '
+                 + 'Sueldo base. 1.216,94 … En concreto, en el año 2025 ascendió a 18,8 %',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg（2,770万）＝ 段4（勤続15〜16年）・短中距離・勤続加算5回の月額 €8,954.85 × 年15回 ＋ 年1回の分 ＋ 利益配分 2.71% ＋ 会社の年金拠出 ＝ €148,891 × 185.69 ＝ 約2,765万円。'
+                 + '★ cap.hi（3,980万）＝ 段1D・勤続加算12回・長距離（約3,976万）。fo.hi（2,120万）＝ 長距離の副操縦士 段3・勤続加算5回（約2,115万）。'
+                 + 'cap.lo（2,150万）・fo.avg（1,380万）・fo.lo（1,000万）は前の値のまま（月70時間の保証で出すと 1,960万・1,140万・520万で、今より低くなるので下げない）。'
+                 + '入れていないもの＝日当（国内 139.08・国外 122.55ユーロ/日。日数の資料が無い）・保証を超えた乗務の分＝下限寄り。2026-10-29 に原本を取り直して読んだ。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'BOE-A-2022-23017 X Convenio colectivo de Iberia LAE, SA, Operadora y sus tripulantes pilotos（協約の本文）',
+      url:         'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2022-23017',
+      published_at:'2022-12-28',
+      accessed_at: '2026-10-29',
+      value_orig:  '基本給・保証の乗務手当・生産性手当・補足手当は年15回（12か月＋7月・12月＋決算の4月）。機長責任手当は15回・副操縦士手当は14回。勤続3年ごとに基本給の0.8%（最大12回）。月70時間の保証。',
+      quote:       'Esta prima se abonará en 15 pagas anuales. … Esta prima se abonará en 14 pagas anuales. … '
+                 + 'un 0,8 por 100 del sueldo base de su nivel por cada tres años de servicio a la compañía, hasta un máximo de 12 trienios. … '
+                 + 'La prima por razón de viaje garantizada corresponderá a 70 horas a precio de la hora base de vuelo.',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '支給の回数・勤続の加算・保証の時間の根拠。2026-10-29 に題と掲載日をこの URL で確かめ、条文は 2026-10-27 に同じ URL から取った本文で読んだ。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'BOE-A-2024-25500 Resolución de 26 de noviembre de 2024（X Convenio の改定 ── 利益配分と年金の拠出）',
+      url:         'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-25500',
+      published_at:'2024-12-06',
+      accessed_at: '2026-10-29',
+      value_orig:  '利益配分（2024〜2027年）: グループの EBIT/INGRESOS が12%以上で 1.85%、航空会社の率に応じた追加あり。'
+                 + '年金: Fondo Mutual 会社 1%＋追加 7,9%（年14回）・Fondo Social de Vuelo 会社 4,7%。',
+      quote:       'el sistema anual de participación en beneficios vendrá determinado por el ratio EBIT/INGRESOS del Grupo Iberia … '
+                 + 'la Compañía cotizará un 7,9 % sobre la Base de cálculo mencionada … Esta cotización supone el 4,7 por 100 para cada una de las partes sobre la Base de cálculo mencionada.',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '利益配分は、2025年分の 1.85%＋追加 2.15% のうち、運航の目標に左右されない分だけ（計 2.71%。最大 4.0%）を数えた。年金は Fondo Mutual 8.9%（14回）と Fondo Social de Vuelo 4.7%（回数の記載なし → 12回で計算）。',
+    },
+  ],
+  'tap': [
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'Boletim do Trabalho e Emprego n.º 29/2023 ── Acordo de empresa entre a Transportes Aéreos Portugueses, SA e o SPAC - Sindicato dos Pilotos da Aviação Civil - Revisão global',
+      url:         'https://bte.dgcp.mtsss.gov.pt/completos/2023/bte29_2023.pdf',
+      published_at:'2023-08-08',
+      accessed_at: '2026-10-29',
+      value_orig:  'Tabela A-3.1（月額・ユーロ・2023年）: CTE（機長）8 125,00／OP3（4年以上）6 050,00／OP3（10年超・補足つき）6 500,00／OP2 5 200,00／OP1 4 420,00。'
+                 + 'VE ＝ VB の 2%（職務の年数ごと）・VS ＝ VB の 1,5%（在籍の年数ごと）。VB は毎年1月に 2%。年14回。'
+                 + 'Tabela A-3.2 per diem A: CTE 300,00（WB/LC-NB）・270,00（MC-NB）／OP 225,00・202,50。月に最低5日。年金（contribuição definida）7,5%・うち TAP が 80%。',
+      quote:       'CTE 8 125,00 € … OP3 (com antiguidade de serviço igual ou superior a 4 anos) 6 050,00 € … 2 % do VB 1,5 % do VB … '
+                 + 'os valores referentes a VB previstos na tabela anterior são atualizados a 1 de janeiro de cada ano em 2 %. … CTE 300,00 € 270,00 € 180,00 € OP 225,00 € 202,50 € 135,00 € … '
+                 + 'O regime instituído é de contribuição definida no montante de 7,5 % da remuneração de base … e incide 14 vezes por ano. A TAP suporta 80 % da contribuição definida',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg（3,830万）＝ 在籍16年・機長6年（＋2024年の1年加算）・副操縦士の9年も職務の年数に数えた機長の月額 €12,882（2023年の表 × 1.0612）× 14 ＋ 乗務の日当の最低（€270 × 月5日 × 11か月）'
+                 + '＋ 会社の年金拠出 6%（7.5% の 80%）＝ €206,019 × 185.69 ＝ 約3,826万円（副操縦士の年数を数えないと 3,510万）。'
+                 + '★ cap.lo（3,270万）＝ 機長になったばかり・在籍9年／cap.hi（5,100万）＝ 在籍31年・広胴。'
+                 + '★ fo.avg（2,370万）＝ 6年目の副操縦士 ＝ OP3（4年以上）・在籍7年 €7,865 × 14 ＋ 日当の最低（€202.50 × 55日）＋ 年金 6% ＝ €127,852（約2,374万）。fo.lo（1,500万）＝ OP1 の1年目／fo.hi（3,160万）＝ OP3（10年超・補足つき）・在籍16年・広胴。'
+                 + '★ 日当は、協約が「給与」（prestação retributiva）と書いている乗務の日当で、月5日の保証の分だけ（下限）。入れていないもの＝利益条件つきの +1%・年の上限を超えた乗務の分。'
+                 + '原本（11MB）は自動取得の上限を超えるので、2026-10-27 にこの URL（旧 bte.gep.msess.gov.pt から転送）から取った本文で条文を読んだ。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'Boletim do Trabalho e Emprego n.º 16/2024 ── Acordo de empresa TAP / SPAC - Alteração（1.ª revisão parcial）',
+      url:         'https://bte.dgcp.mtsss.gov.pt/completos/2024/bte16_2024.pdf',
+      published_at:'2024-04-29',
+      accessed_at: '2026-10-29',
+      value_orig:  '2024年と2025年の 2% の上げは、それぞれ12月から。2024年1月1日から SPAC の組合員は在籍（senioridade）と職務の年数（anuidade técnica）が1年ずつ加わる。',
+      quote:       'as atualizações previstas para os anos de 2024 e 2025 apenas entram em vigor em dezembro de 2024 e 2025 … passam a ter direito a mais uma senioridade … e a mais uma anuidade técnica',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '2026年の表を 2023年の表 × 1.0612（2% × 3回）とし、在籍と職務の年数に1年を足した根拠。2026-10-29 にこの URL から取り直した PDF（2026-10-27 の写しとバイト単位で同じ）で確かめた。',
+    },
+  ],
   'easyjet': [
     {
       rank:        'cap',
@@ -800,12 +1148,59 @@ export const SOURCES = {
                  + 'Year 4 $193,008.09 ／ Year 5 $197,833.29。',
       quote:       '27.3.3 The annual salaries for First Officers at each year and rank level under this Agreement will be as set out in the following table … '
                  + '1 /09/ 2026 $178,532.46 $183,357.65 $188,182.84 $193,008.09 $197,833.29',
-      status:      'in_use',
-      note:        '★ fo.avg（2,140万）＝ Year 3（1〜5年のまんなか）AUD 188,182.84 × 113.88 ＝ 約2,143万円。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + '★ fo.avg（2,140万）＝ Year 3（1〜5年のまんなか）AUD 188,182.84 × 113.88 ＝ 約2,143万円。'
                  + '入れていないもの＝会社の superannuation（27.8.5 は「法定の率以上」とだけ書き、率が無い）・保証の時間を超えた乗務の分・手当＝下限寄り。'
                  + '短距離（B737/A320 系）の協約だけ（長距離の協約は今回の資料に無い）。年次は副操縦士として路線に出てからの年数。'
                  + 'fo.lo（1,660万）・fo.hi（3,120万）は前の値のまま。'
                  + '機長は同じ協約だけだと 3,700→3,250万に下がるので動かしていない。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'Qantas Airways Limited Pilots (Short Haul) Enterprise Agreement 2024（AE528955・Fair Work Commission 承認の原本）── cl 27.2.3',
+      url:         'https://www.fwc.gov.au/documents/agreements/approved/ae528955.pdf',
+      published_at:'2025-05-09',
+      accessed_at: '2026-10-29',
+      value_orig:  'cl 27.2.3 機長の年額給与（1/09/2026 から・豪ドル）: Year 1 $270,503.73 ／ Year 2 $277,814.63 ／ Year 3 $285,125.52 ／ Year 4 $292,436.50 ／ Year 5 $299,747.41 ／ Year 6 $307,241.10。',
+      quote:       '27.2.3 The annual salaries for Captains at each year and rank level under this Agreement will be as set out in the following table … '
+                 + '1/09/2026 $270,503.73 $277,814.63 $285,125.52 $292,436.50 $299,747.41 $307,241.10',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg（3,870万）＝ 最上段 Year 6 AUD 307,241.10 ＋ 法定の年金 12%（年 A$270,830 までの給与に対して ＝ A$32,500）＝ A$339,741 × 113.88 ＝ 約3,869万円。'
+                 + '★ cap.lo（3,450万）＝ Year 1 $270,503.73 ＋ 12%。cap.hi（5,400万）は前の値のまま（長距離の協約の表は開けていない）。'
+                 + '入れていないもの＝家を離れた時間ごとの手当（時間の資料が教官の最低保証しか無い）・保証を超えた乗務の分＝下限寄り。'
+                 + 'FWC のサイトは自動取得を断る（2026-10-29 も 403）ので、原本の写し（sources-raw/）の表で確かめた。短距離（B737/A320 系）の協約だけ。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'Qantas Airways Limited Pilots (Short Haul) Enterprise Agreement 2024（AE528955・Fair Work Commission 承認の原本）── cl 27.3.3',
+      url:         'https://www.fwc.gov.au/documents/agreements/approved/ae528955.pdf',
+      published_at:'2025-05-09',
+      accessed_at: '2026-10-29',
+      value_orig:  'cl 27.3.3 副操縦士の年額給与（1/09/2026 から・豪ドル）: Year 1 $178,532.46 ／ Year 2 $183,357.65 ／ Year 3 $188,182.84 ／ Year 4 $193,008.09 ／ Year 5 $197,833.29。',
+      quote:       '27.3.3 The annual salaries for First Officers at each year and rank level under this Agreement will be as set out in the following table … '
+                 + '1 /09/ 2026 $178,532.46 $183,357.65 $188,182.84 $193,008.09 $197,833.29',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ fo.avg（2,520万）＝ 6年目の副操縦士 ＝ 表の最上段 Year 5（副操縦士として4年を終えると上がり、その先の段は無い）AUD 197,833.29 ＋ 法定の年金 12% ＝ A$221,573 × 113.88 ＝ 約2,523万円。'
+                 + '★ fo.lo（2,280万）＝ Year 1 $178,532.46 ＋ 12%。fo.hi（3,120万）は前の値のまま（長距離の協約は開けていない）。'
+                 + '入れていないもの＝家を離れた時間ごとの手当・保証を超えた乗務の分＝下限寄り（2026-10-25 の Year 3 の行は stale）。',
+    },
+    {
+      rank:        'all',
+      source_type: 'government',
+      name:        'Australian Taxation Office（ATO）「Maximum contribution base」',
+      url:         'https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/what-payments-are-qualifying-earnings/maximum-contributions-base',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '2026–27年度の最大の拠出の基準 A$270,830（年）。法定の年金（super guarantee）の率 12%。',
+      quote:       'For 2026–27, the maximum contribution base is $270,830.',
+      status:      'candidate',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '法定の年金 12% を掛ける給与の上限。⚠️ ATO のページは自動取得を断る（2026-10-29 も 403）。引用の文は、ATO のページの検索結果の表示でだけ見た ＝ 本文を開いて確かめていないので candidate。',
     },
   ],
   'jetstar': [
@@ -820,8 +1215,9 @@ export const SOURCES = {
                  + 'Table 3 Wide Body Captain Level 1 $301,341 ／ Level 2 $310,382 ／ Level 3・4 $319,296。表の記号は $（豪州の協約＝豪ドルと読んだ）。',
       quote:       'The first Base Salary rates of this Agreement, as contained in Tables 1 to 5 below, will take effect from 1 July 2026. … '
                  + 'Table 1 – Narrow Body Captain … 01 - Jul - 26 $264,335 $272,265 $280,433 $280,433',
-      status:      'in_use',
-      note:        '★ cap.avg（3,100万）＝ 狭胴機長 Level 2（機長として2〜4年目）AUD 272,265 × 113.88 ＝ 約3,101万円。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + '★ cap.avg（3,100万）＝ 狭胴機長 Level 2（機長として2〜4年目）AUD 272,265 × 113.88 ＝ 約3,101万円。'
                  + '★ cap.lo（3,010万）＝ 狭胴 Level 1（約3,010万）／cap.hi（3,640万）＝ 広胴 Level 3・4（約3,636万）。'
                  + '数えたもの＝年額の Base Salary（41.1.5：休暇手当の加算などの伝統的な手当を組み込んだ額）。'
                  + '入れていないもの＝41.8 の手当・EFA・会社の superannuation（率の資料が無い）＝下限寄り。'
@@ -838,11 +1234,74 @@ export const SOURCES = {
       value_orig:  'Base Salary（年額・01-Jul-26 の欄）: Table 2 Narrow Body First Officer Level 1 $147,234 ／ Level 2 $158,601 ／ Level 3 $171,818 ／ Level 4 $171,818。'
                  + 'Table 4 Wide Body First Officer Level 2 $180,805 ／ Level 3・4 $195,873。',
       quote:       'Table 2 – Narrow Body First Officer … 01 - Jul - 26 $147,234 $158,601 $171,818 $171,818',
-      status:      'in_use',
-      note:        '★ fo.avg（1,810万）＝ 狭胴副操縦士 Level 2 AUD 158,601 × 113.88 ＝ 約1,806万円。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-26 で、この会社の数字を新しい給与表から作り直した（同じ会社の下の新しい行）。この行の値は今の数字を支えていない。'
+                 + '★ fo.avg（1,810万）＝ 狭胴副操縦士 Level 2 AUD 158,601 × 113.88 ＝ 約1,806万円。'
                  + '★ fo.lo（1,680万）＝ 狭胴 Level 1（約1,677万）／fo.hi（2,230万）＝ 広胴 Level 3・4（約2,231万）。'
                  + '年額の Base Salary だけ（手当・superannuation は入れていない）＝下限寄り。'
                  + '2026-10-24 までの SALARY（avg 1,350万）は出所の記録が無かった。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'Jetstar Airways Pilots Enterprise Agreement 2026（AE533389・Fair Work Commission 承認の原本）── Table 1 / Table 3 Captain、cl 61.3.2 DTA',
+      url:         'https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf',
+      published_at:'2026-07-15',
+      accessed_at: '2026-10-29',
+      value_orig:  'Base Salary（年額・01-Jul-26）: 狭胴機長 Level 1 $264,335 ／ Level 2 $272,265 ／ Level 3・4 $280,433。広胴機長 Level 3・4 $319,296。'
+                 + 'cl 61.3.2 DTA の1時間あたり ＝ 表の合計 $201.35 ÷ 24（朝 $37.85・昼 $53.45・夜 $75.00・雑費 $35.05）。',
+      quote:       'Table 1 – Narrow Body Captain … 01 - Jul - 26 $264,335 $272,265 $280,433 $280,433 … '
+                 + '61.3.2. The DTA hourly rate will be calculated by adding up the allowances in the following table and dividing by 24: … Total $ 201.35',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ cap.avg（3,620万）＝ 狭胴機長の最上段 Level 3・4 AUD 280,433 ＋ 法定の年金 12%（A$270,830 まで ＝ A$32,500）＋ DTA（$201.35 ÷ 24 × 年600時間 ＝ A$5,034。600時間は下の組合資料）＝ A$317,966 × 113.88 ＝ 約3,621万円。'
+                 + '★ cap.lo（3,430万）＝ Level 1 $264,335 ＋ 12% ＋ 同じ DTA。cap.hi（4,060万）＝ 広胴の Level 3・4 $319,296 ＋ 12%（上限まで）＋ 同じ DTA。'
+                 + '入れていないもの＝泊まりの手当（ODTA・時間の資料が無い）・Highline・保証を超えた乗務・会社の業績賞与＝下限寄り。'
+                 + 'FWC のサイトは自動取得を断るので、原本の写し（sources-raw/）の表と条文で確かめた（2026-10-25 の Level 2 の行は stale）。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'Jetstar Airways Pilots Enterprise Agreement 2026（AE533389・Fair Work Commission 承認の原本）── Table 2 / Table 4 First Officer、cl 41.2.3',
+      url:         'https://www.fwc.gov.au/documents/agreements/approved/ae533389.pdf',
+      published_at:'2026-07-15',
+      accessed_at: '2026-10-29',
+      value_orig:  'Base Salary（年額・01-Jul-26）: 狭胴副操縦士 Level 1 $147,234 ／ Level 2 $158,601 ／ Level 3・4 $171,818。広胴副操縦士 Level 3・4 $195,873。'
+                 + 'cl 41.2.3: Level 3 ＝ 副操縦士として4年を終えてから6年目まで。',
+      quote:       'Table 2 – Narrow Body First Officer … 01 - Jul - 26 $147,234 $158,601 $171,818 $171,818 … '
+                 + '(c) Level 3 FO - After the Pilot has completed 4 years’ service as a Narrow Body FO up to and including their 6th year.',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '★ fo.avg（2,250万）＝ 6年目の副操縦士 ＝ Level 3（cl 41.2.3。額は Level 4 と同じ）AUD 171,818 ＋ 法定の年金 12% ＋ DTA A$5,034 ＝ A$197,470 × 113.88 ＝ 約2,249万円。'
+                 + '★ fo.lo（1,940万）＝ Level 1 $147,234 ＋ 12% ＋ 同じ DTA。fo.hi（2,560万）＝ 広胴の Level 3・4 $195,873 ＋ 12% ＋ 同じ DTA。'
+                 + '入れていないものは機長の行と同じ（2026-10-25 の Level 2 の行は stale）。',
+    },
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'AFAP「Jetstar EA 2025 Update #36 - Details of In-principle Agreement」の添付資料（Details of In-Principle agreement）',
+      url:         'https://8ce06ce48b.sdkhosting.net/pub/dw7a/z1swde28/kxg/lav/cbv/Details%20of%20In-Principle%20agreement.pdf',
+      published_at:'2026-03-31',
+      accessed_at: '2026-10-29',
+      value_orig:  'DTA（日帰りの乗務の手当）の平均 ＝ パイロット1人あたり年600時間（ジェットスターが出したデータ）。',
+      quote:       'when average DTA is also taken into account, (600 hours per pilot per year based on data provided by Jetstar and an allowance Virgin pilots do not receive)',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + '組合（AFAP）の資料。掲載日は AFAP の Update #36 のページ（2026年3月31日）。2026-10-29 に添付の PDF を取り直して文を確かめた。'
+                 + '★ DTA の年の時間（600時間）にだけ使った。額は協約の cl 61.3.2。',
+    },
+    {
+      rank:        'all',
+      source_type: 'government',
+      name:        'Australian Taxation Office（ATO）「Maximum contribution base」',
+      url:         'https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/what-payments-are-qualifying-earnings/maximum-contributions-base',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '2026–27年度の最大の拠出の基準 A$270,830（年）。法定の年金（super guarantee）の率 12%。',
+      quote:       'For 2026–27, the maximum contribution base is $270,830.',
+      status:      'candidate',
+      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+                 + 'カンタスの行と同じ（ATO のページは 403。検索結果の表示でだけ見た ＝ candidate）。',
     },
   ],
 

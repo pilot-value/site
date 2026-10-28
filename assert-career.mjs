@@ -2490,7 +2490,11 @@ try {
       /* ★2026-10-26 段階5 compare-all-14（P12.122・同じ強さの当て直し）：united と delta に台帳の写真が付いた ── united は CC0（クレジットを出さない）・
          delta は示すことが条件の写真（Public domain）なので、写真のクレジットは delta の1つだけが見える。2社とも条件のある写真が無いときに段ごと
          出さないことは、条件の無い写真の2社（united|american ── どちらも CC0）で見る。 */
-      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && gone(g.taxes) && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['delta']) && g.none === null],
+      /* ★2026-10-29 段階5 compare-all-26（同じ強さの当て直し）：united と delta に税の扱い（課税（米国））が付いた ── 2社とも税の字が並びの順に出る。
+         2社とも税の扱いを持たないときに税の字を出さないことは、税の扱いの無い2社（klm|air-france）で見る。 */
+      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['united', 'delta']) && !g.taxes.only
+        && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['delta']) && g.none === null],
+      ['klm', 'air-france', g => gone(g.taxes)],
       ['united', 'american', g => gone(g.credits)],
       /* ★2026-10-26 段階5 compare-all-15（同じ強さの当て直し）：Peach は関西（泉佐野市）の家賃の箱を持つようになった ── 会社ページに家賃の額が在るのに
          比較の箱の決まりに合わない会社は、週あたりの街の会社（カンタス航空・ジェットスター）だけ。 */
