@@ -1033,7 +1033,9 @@ export const BASIS = {
      会社の公表額は無い（groups なし）＝ 機長・副操縦士とも「推定」のまま。ここに置くのは、機長の推定に添える 根拠・算出方法・時点（est）と、その記事だけ。
      ⚠️ 記事は額の出どころを「Eine aktuelle Analyse」「Quellen」としか書いていない（会社・組合の資料名は無い）＝ 報道の印（secondary）を付ける。
      ⚠️ cur と tax は置いていない。画面に出す外貨の額が無い（cur を置くと換算の断り書きが出る）・税の札は今までどおり出さない。
-     副操縦士は今までどおり（出どころの記録なし）。 */
+     副操縦士は今までどおり（出どころの記録なし）。
+     ★2026-10-28（オーナー判断 P12.134「ルフトの上限もあげよう」）── 機長の幅の上端も同じ記事の「上位の職 約€260,000」に合わせた
+       （4,320万 → 4,830万）。算出方法に、そのことを1文だけ足した。 */
   'lufthansa': {
     src: [
       { pub: 'MARES', pub_en: 'MARES', name: 'Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich',
@@ -1046,8 +1048,8 @@ export const BASIS = {
       est: {
         basis: 'MARES の記事「Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich」（2026年9月4日。ルフトハンザのパイロットの給与を紹介した報道で、会社の公表ではありません）',
         basis_en: 'MARES, “Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich”, 4 September 2026 (a press report on Lufthansa pilot pay — not published by the airline)',
-        method: '記事は、長距離の機長は年20万ユーロを超え、上位の職では約26万ユーロと書いています。推定年収は、その20万ユーロを少し上回る額に置いています。',
-        method_en: 'The article says long-haul captains earn more than EUR 200,000 a year and that top positions reach about EUR 260,000. The estimate is set just above EUR 200,000.',
+        method: '記事は、長距離の機長は年20万ユーロを超え、上位の職では約26万ユーロと書いています。推定年収は、その20万ユーロを少し上回る額に置いています。幅の上端は、その約26万ユーロに置いています。',
+        method_en: 'The article says long-haul captains earn more than EUR 200,000 a year and that top positions reach about EUR 260,000. The estimate is set just above EUR 200,000. The top of the range is set at about EUR 260,000.',
         as_of: '2026年9月',
         as_of_en: 'September 2026',
       },
