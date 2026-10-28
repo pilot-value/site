@@ -761,7 +761,9 @@ export const SOURCES = {
   ],
 
   // ★2026-10-27（オーナー判断 P12.133「ルフトハンザの機長 1」）── 2026年の報道の額から機長の推定年収を 3,440万 → 3,900万 に上げた。
-  //   円は fx-rates.mjs（AS_OF 2026-08-22）の EUR 185.69 で直した。レンジ（lo / hi）は動かしていない。
+  //   円は fx-rates.mjs（AS_OF 2026-08-22）の EUR 185.69 で直した。
+  // ★2026-10-28（オーナー判断 P12.134「ルフトの上限もあげよう」）── 同じ記事の「上位の職 約€260,000」に合わせて、
+  //   機長のレンジの上端（cap.hi）を 4,320万 → 4,830万 に上げた。下端（cap.lo）と副操縦士は動かしていない。
   'lufthansa': [
     {
       rank:        'cap',
@@ -769,17 +771,19 @@ export const SOURCES = {
       name:        'MARES「Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich」（MARES Redaktion・報道）',
       url:         'https://joinmares.com/artikel/lufthansa-piloten-verdienen-2026-bis-300-000-euro-jaehrlich',
       published_at:'2026-09-04',
-      accessed_at: '2026-10-27',
-      value_orig:  '長距離の機長 年 €200,000 超（mehr als 200.000 Euro）・上位の職 年 約€260,000（etwa 260.000 Euro）。'
+      accessed_at: '2026-10-28',
+      value_orig:  '長距離の機長 年 €200,000 超（mehr als 200.000 Euro）・上位の職（Spitzenpositionen）年 約€260,000（etwa 260.000 Euro）。'
                  + '同じ記事の別の文：最上位の年次の機長の固定給の上限 €281,300・手当込みで €300,000 超／副操縦士の初年度の年間基本給 €88,600。',
       quote:       'Insbesondere Kapitäne auf Langstreckenflügen verdienen mehr als 200.000 Euro. In Spitzenpositionen werden etwa 260.000 Euro genannt.',
       status:      'in_use',
       note:        '★ cap.avg（3,900万）＝ オーナーの判断。€210,000 × 185.69 ＝ 約3,900万円 ＝ 記事の「長距離の機長は €200,000 超」（約3,714万円）の少し上。'
-                 + '上位の職の約€260,000（約4,828万円）は、全機長の推定には入れていない（今の cap.hi 4,320万より上。レンジは動かさない指示のため前の値のまま）。'
+                 + '★ cap.hi（4,830万）＝ 記事の「上位の職（Spitzenpositionen）は約€260,000」× 185.69 ＝ 約4,828万円 → 10万円単位で 4,830万'
+                 + '（2026-10-28 オーナー判断 P12.134。2026-10-27 までの cap.hi 4,320万は出所の記録が無かった）。'
+                 + '上位の職の額は、全機長の推定（avg）には入れていない ＝ レンジの上端だけを支える。'
                  + '⚠️ 報道（二次情報・会社の公表ではない）。記事は数字の出どころを「Eine aktuelle Analyse」「Quellen」としか書いていない。'
                  + 'Vereinigung Cockpit の名前は「労働協約と組合の交渉が基本給・手当・勤務時間を決める」という説明の文にだけ出る（額の文には無い）。'
-                 + '2026-10-27 に記事を開いて、引用の2文が本文（Gehaltsbänder der Kernmarke im Detail）に在ることを確かめた。'
-                 + 'cap.lo（2,490万）・cap.hi（4,320万）と副操縦士は前の値のまま。2026-10-26 までの SALARY（avg 3,440万）は出所の記録が無かった。',
+                 + '2026-10-27 と 2026-10-28 に記事を開いて、引用の2文が本文（Gehaltsbänder der Kernmarke im Detail）に在ることを確かめた。'
+                 + 'cap.lo（2,490万）と副操縦士は前の値のまま（出所の記録なし）。2026-10-26 までの SALARY（avg 3,440万）は出所の記録が無かった。',
     },
   ],
 
