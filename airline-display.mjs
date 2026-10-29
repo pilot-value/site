@@ -1520,22 +1520,22 @@ export const CITY = Object.freeze({
     scope: '北九州市小倉北区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
     scope_en: 'Market rent in Kokurakita ward, Kitakyushu (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   /* ★2026-10-29 オーナーの訂正「家賃は拠点の近くで富裕層に人気の住宅地」：CHINTAI の覚王山駅の相場に（前の LIFULL HOME'S の行は台帳に残る・出さない） */
-  nagoya: { h: 'd8a8187e6b57b358', ja: '名古屋市千種区（覚王山）', en: 'Kakuozan, Chikusa, Nagoya', url: 'https://www.chintai.net/aichi/ensen/000007966/rent/', iata: 'NGO', airport: '中部国際空港', airport_en: 'Chubu Centrair International Airport',
+  nagoya: { h: 'd8a8187e6b57b358', ja: '覚王山（名古屋市千種区）', en: 'Kakuozan, Chikusa, Nagoya', url: 'https://www.chintai.net/aichi/ensen/000007966/rent/', iata: 'NGO', airport: '中部国際空港', airport_en: 'Chubu Centrair International Airport',
     measure: '募集家賃の平均', site: 'CHINTAI', per: 'month', measure_en: 'Average asking rent', site_en: 'CHINTAI',
     scope: '覚王山駅（名古屋市千種区）から徒歩20分以内の、CHINTAI に掲載中の賃貸物件の平均の月額（2026年10月29日の表示）。管理費・駐車場代は含まない。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of rentals listed on CHINTAI within a 20-minute walk of Kakuozan Station (Chikusa ward, Nagoya), as shown on 29 October 2026. Excludes management fees and parking. Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
   /* ★2026-10-29 オーナーの訂正「家賃は拠点の近くで富裕層に人気の住宅地」：CHINTAI の大濠公園駅の相場に（前の LIFULL HOME'S の行は台帳に残る・出さない） */
-  fukuoka: { h: 'eeb9155e35319f0f', ja: '福岡市中央区（大濠公園）', en: 'Ohori Park, Chuo, Fukuoka', url: 'https://www.chintai.net/fukuoka/ensen/000008861/rent/', iata: 'FUK', airport: '福岡空港', airport_en: 'Fukuoka Airport',
+  fukuoka: { h: 'eeb9155e35319f0f', ja: '大濠公園（福岡市中央区）', en: 'Ohori Park, Chuo, Fukuoka', url: 'https://www.chintai.net/fukuoka/ensen/000008861/rent/', iata: 'FUK', airport: '福岡空港', airport_en: 'Fukuoka Airport',
     measure: '募集家賃の平均', site: 'CHINTAI', per: 'month', measure_en: 'Average asking rent', site_en: 'CHINTAI',
     scope: '大濠公園駅（福岡市中央区）から徒歩20分以内の、CHINTAI に掲載中の賃貸物件の平均の月額（2026年10月29日の表示）。管理費・駐車場代は含まない。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of rentals listed on CHINTAI within a 20-minute walk of Ohori-Koen Station (Chuo ward, Fukuoka), as shown on 29 October 2026. Excludes management fees and parking. Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
   /* ★2026-10-29 オーナーの訂正「家賃は拠点の近くで富裕層に人気の住宅地」：CHINTAI の千里中央駅の相場に（前の LIFULL HOME'S の行は台帳に残る・出さない） */
-  itami: { h: '38a2d76ddd9e5f0d', ja: '豊中市（千里中央）', en: 'Senri-Chuo, Toyonaka', url: 'https://www.chintai.net/osaka/ensen/000008180/rent/', iata: 'ITM', airport: '大阪国際空港（伊丹）', airport_en: 'Osaka International Airport (Itami)',
+  itami: { h: '38a2d76ddd9e5f0d', ja: '千里中央（豊中市）', en: 'Senri-Chuo, Toyonaka', url: 'https://www.chintai.net/osaka/ensen/000008180/rent/', iata: 'ITM', airport: '大阪国際空港（伊丹）', airport_en: 'Osaka International Airport (Itami)',
     measure: '募集家賃の平均', site: 'CHINTAI', per: 'month', measure_en: 'Average asking rent', site_en: 'CHINTAI',
     scope: '千里中央駅（大阪府豊中市）から徒歩20分以内の、CHINTAI に掲載中の賃貸物件の平均の月額（2026年10月29日の表示）。管理費・駐車場代は含まない。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of rentals listed on CHINTAI within a 20-minute walk of Senri-Chuo Station (Toyonaka, Osaka), as shown on 29 October 2026. Excludes management fees and parking. Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
   /* ★2026-10-29 オーナーの訂正「家賃は拠点の近くで富裕層に人気の住宅地」：CHINTAI のおもろまち駅の相場に（前の LIFULL HOME'S の行は台帳に残る・出さない） */
-  naha: { h: '033ab6aafdb33dc3', ja: '那覇市（おもろまち）', en: 'Omoromachi, Naha', url: 'https://www.chintai.net/okinawa/ensen/000010762/rent/', iata: 'OKA', airport: '那覇空港', airport_en: 'Naha Airport',
+  naha: { h: '033ab6aafdb33dc3', ja: 'おもろまち（那覇市）', en: 'Omoromachi, Naha', url: 'https://www.chintai.net/okinawa/ensen/000010762/rent/', iata: 'OKA', airport: '那覇空港', airport_en: 'Naha Airport',
     measure: '募集家賃の平均', site: 'CHINTAI', per: 'month', measure_en: 'Average asking rent', site_en: 'CHINTAI',
     scope: 'おもろまち駅（那覇市）から徒歩20分以内の、CHINTAI に掲載中の賃貸物件の平均の月額（2026年10月21日の表示）。管理費・駐車場代は含まない。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of rentals listed on CHINTAI within a 20-minute walk of Omoromachi Station (Naha), as shown on 21 October 2026. Excludes management fees and parking. Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
@@ -1557,7 +1557,7 @@ export const CITY = Object.freeze({
     scope: '新潟市中央区の家賃相場（LIFULL HOME\'S が掲載物件のデータから独自に出した額。管理費・駐車場代は含まない。成約した家賃ではない）',
     scope_en: 'Market rent in Chuo ward, Niigata (LIFULL HOME’S’s own figure from listed properties; excludes management fees and parking; not agreed rents)' },
   /* ★2026-10-29 オーナーの訂正「家賃は拠点の近くで富裕層に人気の住宅地」：CHINTAI の円山公園駅の相場に（前の LIFULL HOME'S の行は台帳に残る・出さない） */
-  sapporo: { h: '0b396135f79ba12a', ja: '札幌市中央区（円山公園）', en: 'Maruyama Park, Chuo, Sapporo', url: 'https://www.chintai.net/hokkaido/ensen/000006661/rent/', iata: 'OKD', airport: '札幌丘珠空港', airport_en: 'Sapporo Okadama Airport',
+  sapporo: { h: '0b396135f79ba12a', ja: '円山公園（札幌市中央区）', en: 'Maruyama Park, Chuo, Sapporo', url: 'https://www.chintai.net/hokkaido/ensen/000006661/rent/', iata: 'OKD', airport: '札幌丘珠空港', airport_en: 'Sapporo Okadama Airport',
     measure: '募集家賃の平均', site: 'CHINTAI', per: 'month', measure_en: 'Average asking rent', site_en: 'CHINTAI',
     scope: '円山公園駅（札幌市中央区）から徒歩20分以内の、CHINTAI に掲載中の賃貸物件の平均の月額（2026年10月29日の表示）。管理費・駐車場代は含まない。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of rentals listed on CHINTAI within a 20-minute walk of Maruyama-Koen Station (Chuo ward, Sapporo), as shown on 29 October 2026. Excludes management fees and parking. Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
