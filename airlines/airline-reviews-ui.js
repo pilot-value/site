@@ -480,6 +480,19 @@
     return t ? rvEsc(t) : '';
   }
 
+  /* ★2026-10-29 オーナー「口コミは最初の80文字は見せて。他はぼかして」。鍵の無い行は、80字より先の本文がサーバから来ない
+     （ぼかす本文が手元に無い）。なので**字を持たない灰色の行**をぼかした影絵を置く（vote.js の ghost と同じ形）＝外しても読めない。
+     行数は残りの字数で1〜3行。残りは サーバの n（7欄の本文の合計字数。字数は本文ではない）− 見せた字数。
+     ⚠️ ここに本文を入れない（影絵は字を持たない）。 */
+  function ghostHTML(r) {
+    var shown = String(r.clipText || '').replace(/…$/, '').length;
+    var rest = r.total != null ? r.total - shown : (/…$/.test(r.clipText || '') ? 60 : 0);
+    if (!(rest > 0)) return '';
+    var lines = Math.min(3, Math.ceil(rest / 50)), h = '';
+    for (var i = 0; i < lines; i++) h += '<i style="width:' + (i === lines - 1 ? 46 + (rest % 40) : 100) + '%"></i>';
+    return '<span class="rv-ghost" aria-hidden="true">' + h + '</span>';
+  }
+
   /* 本文がサーバから来ていない行の面。ぼかす本文が手元に無いので、
      書かれたカテゴリの名前だけを出す（REAL PAY の「実数は返さないが
      帯と項目名は出す」と同じ形）。カテゴリを出さないと、未解放の人の
@@ -566,7 +579,7 @@
       '      </div>' : '') + '\n' +
       '      ' + salaryTableHTML(r, locked && idx >= 1) + '\n' +
       '      <div class="rv-comment" id="' + uid + '_text">' +
-             (r.serverLocked ? (snipHTML(r.clipText) + srvLockHTML(r.catKeys))
+             (r.serverLocked ? (snipHTML(r.clipText) + ghostHTML(r) + srvLockHTML(r.catKeys))
                              : preview + (hasMore && !locked ? '…' : '') +
                                (locked ? lockedTailHTML(tail) : '')) + '</div>\n' +
       // 未解放で原文トグルを出すと、翻訳元の全文がその場で読めてしまいゲートが素通しになる。
@@ -810,6 +823,8 @@
       /* ★鍵の無い行に付く「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。
            本文（comment）とは別の入れ物のまま運ぶ ── 混ぜると錠前の面ごと消える。 */
       clipText: body.clipText || '',
+      // 7欄の本文の合計字数（サーバの n。鍵の有無にかかわらず来る・本文ではない）。影絵の行数に使う
+      total: (typeof r.n === 'number' && r.n >= 0) ? r.n : null,
       // 総額の優先順位：総額(annual_salary) ＞ 成分合算(基本給+乗務手当+賞与) ＞ 月給×12+賞与
       // ※1件の自己申告を本人の成分から合算するのは可（円のブレンド禁止は複数人平均への制約）
       salaryTotal: r.annual_salary ? r.annual_salary

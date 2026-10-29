@@ -253,6 +253,9 @@ h1 span{-webkit-text-fill-color:currentColor;background:none}
    ぼかす本文がそもそも手元に無いので、書かれたカテゴリの名前だけを出す。
    ⚠️ community.html / en/community.html は airline-base.css を読まないので、
       同じクラス名・同じ値をあちらのインライン <style> に複製してある。 */
+/* ★2026-10-29 鍵の無い会員の口コミ：80字より先の影絵（字を持たない灰色の行をぼかしたもの・airline-reviews-ui.js の ghostHTML） */
+.rv-ghost{display:block;margin:4px 0 2px;filter:blur(3px);opacity:.55;pointer-events:none;user-select:none}
+.rv-ghost i{display:block;height:9px;margin:9px 0;border-radius:5px;background:linear-gradient(90deg,rgba(148,163,184,.95),rgba(148,163,184,.3))}
 .rv-srv-lock{
   margin-top:10px;padding:12px 14px;border-radius:10px;
   background:rgba(107,125,147,.08);border:1px solid rgba(107,125,147,.18);
