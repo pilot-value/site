@@ -30,9 +30,9 @@
       「差がつくポイント」も「トレードオフ」も出ない＝素通しで緑になる。
    2. あちらは既に700行を超えている。
 
-   ★2枚にまたがる不変条件（DEEP PAY への入口が**決めた所にだけ在る**こと ── REAL PAY の
-     見出しのタブの日英と、行を押すと出る面のボタンの3本。2026-10-11 に公開するまでは
-     「対の外から1本も生えていない」だった）は assert-deep-pay.mjs ① に置いてある。
+   ★2枚にまたがる不変条件（DEEP PAY への入口が**決めた所にだけ在る**こと ── 2026-10-11〜10-28 は
+     REAL PAY の見出しのタブの日英と、行を押すと出る面のボタンの3本。2026-10-29 に DEEP PAY も
+     閉じてからは「対の外から1本も生えていない」）は assert-deep-pay.mjs ① に置いてある。
      ここには書かない（2か所で同じことを見張ると、片方だけ緩めたときに気づけない）。
      ★この画面（会社比較）へは、今も対の外から直に繋がない。出した日に入るのは DEEP PAY の
        概要から ── ただし 2026-10-12 から閉じているあいだ、その入口も描かれない
@@ -1596,9 +1596,13 @@ async function open(lang, payload, theme, sel, expect, width, opt) {
     window['ga-disable-G-3XYF69VQ3X'] = true;
     localStorage.setItem('pv-theme', t);
   }, theme || 'light');
-  /* ★試験用の口の印（上の注）。shipped のときだけ置かない。 */
+  /* ★試験用の口の印（上の注）。shipped のときだけ置かない。
+     ★2026-10-29 から DEEP PAY（概要）も閉じている（deep-pay.js の DEEP_OPEN）。概要を同じ偽サーバで
+       開く筋書き（§2e の f「2つの画面で印は1つ」）のために、概要の印（__PV_DEEP_OPEN）も一緒に置く。
+       効くのは deep-pay.js の deepOpen() だけ（この画面は deep-pay.js を読まない）。
+       字面と閉じた姿は assert-deep-pay.mjs の ⓪・§2h。 */
   if (!o.shipped) {
-    await page.evaluateOnNewDocument((v) => { window.__PV_COMPARE_OPEN = v; },
+    await page.evaluateOnNewDocument((v) => { window.__PV_COMPARE_OPEN = v; window.__PV_DEEP_OPEN = true; },
                                      ('flag' in o) ? o.flag : true);
   }
   await page.evaluateOnNewDocument(FAKE, payload);
@@ -1851,14 +1855,30 @@ const CLOSED_MARK = 'pv_deep_was_locked';     // クラッカーの印の鍵（�
         ok(errs.length === 0, `${tag}: JS のエラーが出ない`, errs.join(' / '));
 
         // ── 押すと着く（本物のマウスで。言語ごとに1回）──
+        /* ★2026-10-29 から DEEP PAY も消してある（本番は 404・手元では deep-pay.js が字を描かずに
+             REAL PAY へ replace で移る ── assert-deep-pay.mjs の ⓪・§2h）。だから押すと、DEEP PAY を
+             通って REAL PAY に着く。リンクの字と行き先（deep-pay.html）は上で見たまま変えていない。 */
         if (theme === 'light' && who === '開いている会員') {
           await sizeTo(page, 1360, 900);
+          const real = (lang === 'en' ? '/en/' : '/') + 'actual-pay.html';
+          const n0 = navs.length;
           await Promise.all([
             page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {}),
             page.click('#dc-root .dc-closed a')
           ]);
-          const landed = await page.evaluate(() => location.pathname);
-          ok(landed === home, `${tag}: ★★リンクを押すと、その言語の DEEP PAY に着く`, landed);
+          for (let i = 0; i < 3; i++) {
+            try {
+              await page.waitForFunction((p) => location.pathname === p, { timeout: 20000 }, real);
+              break;
+            } catch (e) { /* 移る途中で文書が入れ替わった ── 待ち直す */ }
+          }
+          const landed = await page.evaluate(() => location.pathname).catch(() => 'threw');
+          /* 着いた先の REAL PAY は住所の後ろを書き換える（同じ文書の中の移動）── 同じ住所が続く分は1つに畳む。 */
+          const hops = navs.slice(n0).map((u) => new URL(u).pathname);
+          const via = hops.filter((p, i) => i === 0 || p !== hops[i - 1]).join(' → ');
+          ok(via === home + ' → ' + real && landed === real,
+             `${tag}: ★★リンクを押すと、その言語の DEEP PAY を通って REAL PAY に着く（DEEP PAY は消してある）`,
+             `${via} / 着いた先 ${landed}`);
         }
         await jars.pop().close().catch(() => {});
       }

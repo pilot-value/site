@@ -60,13 +60,14 @@ const CFG = win.PVRoadmap;
 console.log('\n── 設定ファイル ─────────────────────────');
 ok('window.PVRoadmap がある', !!CFG);
 
-const MILE = [100, 500, 1000, 2000, 5000];
-ok('段は 100 / 500 / 1,000 / 2,000 / 5,000',
+/* ★2026-10-29、100人の段（題「DEEP PAY」）を外した（DEEP PAY を本番から消した日）。 */
+const MILE = [500, 1000, 2000, 5000];
+ok('段は 500 / 1,000 / 2,000 / 5,000',
    JSON.stringify(CFG.milestones) === JSON.stringify(MILE), JSON.stringify(CFG.milestones));
 
 /* ★roadmap.js は config が読めなかったときのために同じ配列を持っている。
    片方だけ直すと、config が落ちた画面だけ違う段を出す。 */
-const jsMile = (JS.match(/\[\s*100,\s*500,\s*1000,\s*2000,\s*5000\s*\]/) || [])[0];
+const jsMile = (JS.match(/\[\s*500,\s*1000,\s*2000,\s*5000\s*\]/) || [])[0];
 ok('roadmap.js の控えの段が config と同じ', !!jsMile, '見つからない');
 
 ok('段ごとの文言が全部ある',

@@ -127,6 +127,7 @@ for (const dir of ['', '/en']) {
       hash:  new URL(a.getAttribute('href'), location.href).hash,
       later: (b.querySelector('.pvgf-later') || {}).textContent || '',
       text:  b.textContent || '',
+      deep:  b.querySelectorAll('a[href*="deep-pay"]').length,
       locks: document.querySelectorAll('.mr-side-lk').length,
       textOnly: window.PV_GATES_TEXT_ONLY === true,
       overflow: document.body.style.overflow,
@@ -147,7 +148,11 @@ for (const dir of ['', '/en']) {
   const painted = (c) => !!c && c !== 'transparent' && !/,\s*0\)$/.test(c);
 
   ok(got.title.trim() === WANT.title, `${L}: 見出しは「${WANT.title}」`, got.title);
-  ok(got.rows === 3, `${L}: Give → Get が3段`, got.rows);
+  /* ★2026-10-29、DEEP PAY を閉じた（オーナー指示「閉鎖するからみんなのページから消して」）。
+       表から DEEP PAY の段が消えて、REAL PAY と VERIFIED PAY の2段になった。 */
+  ok(got.rows === 2, `${L}: Give → Get は2段（REAL PAY と VERIFIED PAY）`, got.rows);
+  ok(!/DEEP PAY/.test(got.text) && got.deep === 0,
+     `${L}: ★★板に DEEP PAY の段も、DEEP PAY へのリンクも無い`, got.text.slice(0, 120));
   ok(got.press === 0, `${L}: ★表の札は1つも押せない（下にもう1枚パネルを開かせない）`, got.press);
   ok(got.pill === WANT.pill, `${L}: ★REAL PAY の札は「開く条件」`, got.pill);
   ok(!WANT.open.test(got.text), `${L}: ★「いま開きます」と書かない`, got.text.slice(0, 120));
