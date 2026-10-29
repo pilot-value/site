@@ -66,7 +66,7 @@ import { GLANCE, viewOf, checkViewEn } from './pv-airline-view.mjs';
 import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, LEGACY_EN, legacyPlan, legacyAct, LOGOS, logoHtml, WORDS, checkWords, CMP_EN } from './gen-airline-glance.mjs';
 import { PHOTOS as PLACE_PHOTOS } from './place-photos.mjs';
 import { PHOTOS as AIRLINE_PHOTOS } from './airline-photos.mjs';
-import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck, jpPlaceEn } from './airline-display.mjs';
+import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck, jpPlaceEn, ITEM, fleetJa } from './airline-display.mjs';
 import { whenText } from './airline-facts.mjs';
 import { logoHtml as sharedLogo, measureAll } from './airline-logo.mjs';
 import { LOGO_SIZES } from './airline-logo-sizes.mjs';
@@ -333,6 +333,37 @@ const hasText = (hay, t) => {
 const sourceWord = (r, t) => !!r && (r.evidence || []).some(e => String(e.quote || '').includes(t));
 /* 就航地の行の名前が、サイトの空港の呼び名の表（PLACES）の名前の語（「New Chitose」は「Sapporo (New Chitose)」の語）なら、それはサイトの表の字（カードの英語名はその表から出る） */
 const placeWord = (r, t) => !!r && typeof r.value === 'string' && !!PLACES[r.value] && [PLACES[r.value][0], PLACES[r.value][1]].some(n => hasText(String(n), t));
+/* 調べた側の項目の名前（label_ja）が、サイトがその同じ項目に使っている名前と1文字も違わないなら、それはサイトの字（2026-10-29 WP-28）。
+   調べた側が、受け渡しの決まりの項目名やサイトの名前をそのまま書いてきた行（「運航している機材」「社員の航空券」「B737-800」）。
+   サイトの名前は3つだけ ── 項目の言い方の表（ITEM）のその項目の名前／LINES がその項目（同じ key）の行に書いた名前／
+   機材の行なら、サイトの型式の字（fleetJa）を札の短い形（ボーイング → B など。gen-airline-glance.mjs の shortType と同じ）にしたもの。
+   label_ja と完全に同じときだけ。cond_ja・値の文・別の項目の名前・名前の一部や言い足しは今までどおり赤い。 */
+let LINE_LABELS = null;
+const lineLabels = key => (LINE_LABELS ??= (() => {
+  const m = new Map(), st = research();
+  for (const F of Object.values(st.FACTS || {})) for (const rows of Object.values(F)) for (const r of rows || []) {
+    const L = LINES[r.id];
+    if (L && L.label) m.set(r.key, (m.get(r.key) || new Set()).add(L.label));
+  }
+  return m;
+})()).get(key) || new Set();
+const shortJa = t => String(t).replace(/^ボーイング\s*/, () => 'B').replace(/^エアバス\s*/, () => '').replace(/^エンブラエル\s*/, () => 'E');
+const siteLabel = (r, t) => !!r && t === r.label_ja
+  && ((!!ITEM[r.key] && ITEM[r.key].label === t) || lineLabels(r.key).has(t) || (!!fleetJa(r) && shortJa(fleetJa(r)) === t));
+{
+  const st = lineLabels('staff_travel').has('社員の航空券');
+  ok(siteLabel({ key: 'fleet_total', label_ja: '運航している機材' }, '運航している機材')
+     && st && siteLabel({ key: 'staff_travel', label_ja: '社員の航空券' }, '社員の航空券')
+     && siteLabel({ key: 'b737_800', label_ja: 'B737-800', value: 'B737-800' }, 'B737-800')
+     && !siteLabel({ key: 'annual_leave', label_ja: '運航している機材' }, '運航している機材')
+     && !siteLabel({ key: 'annual_leave', label_ja: '社員の航空券' }, '社員の航空券')
+     && !siteLabel({ key: 'fleet_total', label_ja: '運航している機材の総数' }, '運航している機材の総数')
+     && !siteLabel({ key: 'b737_800', label_ja: 'B737-800の機数', value: 'B737-800' }, 'B737-800の機数')
+     && !siteLabel({ key: 'b737_800', label_ja: 'B737-800', value: 'A320' }, 'B737-800')
+     && !siteLabel({ key: 'fleet_total', label_ja: '機材', cond_ja: '運航している機材' }, '運航している機材'),
+    'B/D/E L1 の例外（サイトの名前）は、その同じ項目にサイトが使う名前と完全に同じ label_ja だけ ── 別の項目・言い足し・型式の違う行・cond_ja は例外にならない',
+    `staff_travel の LINES の名前 ${st ? '在る' : '無い'}`);
+}
 /* ページの字（タグを外す ＝ 属性の中の字を数えない） */
 const textOf = h => h.replace(/<[^>]*>/g, ' ').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 /* L1 で見る字：出どころの欄（<p|dd class="pvg-srcs">）を除いたページの字（2026-10-21 d1・L1 の当て直し・同じ強さ）。
@@ -346,7 +377,7 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
     const byId = new Map(rowsOf(s).map(r => [r.id, r])), v = V[s];
     for (const f of [...v.work, ...v.benefits, ...v.jobs, ...v.company.profile, ...v.company.scale, ...v.company.fleet, ...v.base.rows]) {
       const r = byId.get(f.id), card = [f.label, f.value, f.cond].map(String).join('\n');
-      for (const t of r ? RESEARCHER(r) : ['(台帳に無い行)']) if (card.includes(t) && !sourceWord(r, t)) hit.push(`${s}:${f.id}「${t.slice(0, 24)}」`);
+      for (const t of r ? RESEARCHER(r) : ['(台帳に無い行)']) if (card.includes(t) && !sourceWord(r, t) && !siteLabel(r, t)) hit.push(`${s}:${f.id}「${t.slice(0, 24)}」`);
     }
   }
   ok(!hit.length, `B カードの字（${OTHER.length}社の読み口）に、調べた側の字（label_ja・cond_ja・調べた側の値の文）が無い（L1）`, hit.slice(0, 5).join(' ／ '));
@@ -497,7 +528,7 @@ try {
     ok(/<!--PV-HERO-->/.test(b) && g && /data-pv-glance="1"/.test(b) && /id="pvg-tabs"/.test(b), `D ${s}: 新しい会社ページの塊とタブが在る`);
     ok(/<div class="pvg-name">\n<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span><h1>/.test(block(b, 'PV-HERO')), `D ${s}: 社名（h1）のすぐ左にロゴの札`);
     {
-      const gt = cardText(g), rs = rowsOf(s).filter(r => !why(r)), seen = rs.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
+      const gt = cardText(g), rs = rowsOf(s).filter(r => !why(r)), seen = rs.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t) && !siteLabel(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
       ok(!seen.length, `D ${s}: 新しい部品の字に、調べた側の字（label_ja・cond_ja・調べた側の値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
       const v = viewOf(s), pr = [...v.work, ...v.benefits, ...v.jobs, ...v.company.profile, ...v.company.scale].filter(f => f.use === '過去' || f.use === '参考');
       const untagged = pr.filter(f => !g.includes(`${htmlEsc(f.label)}${f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : ''}<span class="pvg-tag pvg-tag-q" data-use="${f.use}">${f.use}</span>`));
@@ -644,7 +675,7 @@ for (const s of ROLLED) {
   /* L1：調べた側の字が新しい部品に無い（会社の事実・就航地・暮らしの街の行ぜんぶ） */
   const R2 = research(), cities = (R2.CITY_OF || {})[s] || [];
   const all = [...rowsOf(s), ...(((R2.NETWORK || {})[s] || {}).list || []), ...cities.flatMap(c => ['rents', 'commute'].flatMap(k => ((R2.LIVING || {})[c] || {})[k] || []))];
-  const gt = cardText(g), seen = all.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
+  const gt = cardText(g), seen = all.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t) && !siteLabel(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
   ok(all.length >= (SAMPLES.includes(s) ? 5 : 1) && !seen.length, `E ${s}: 新しい部品の字に、調べた側の字（台帳の ${all.length}行の label_ja・cond_ja・値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
   const big = [...g.matchAll(/<p class="pvg-big">([^<]*)<\/p>/g)].map(m => m[1]);
   ok(same(big, ['cap', 'fo'].map(r => `¥${SALARY[s][r].avg.toLocaleString('en-US')}万`)), `E ${s}: 推定年収は SALARY の avg（機長・副操縦士）`, big.join(' ／ '));

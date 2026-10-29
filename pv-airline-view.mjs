@@ -167,6 +167,13 @@ export const NET_EN = Object.freeze({
   'グアム': 'Guam', 'チェコ': 'Czech Republic', 'デンマーク': 'Denmark', 'ベルギー': 'Belgium',
   'ロシア': 'Russia', 'イスラエル': 'Israel', 'シリア': 'Syria', 'セーシェル': 'Seychelles', 'タンザニア': 'Tanzania', 'チュニジア': 'Tunisia',
   'モロッコ': 'Morocco', 'レバノン': 'Lebanon',
+  /* ★2026-10-29 WP-28：調べの台帳の就航地（ChatGPT の1回目）が画面に出す国・地域・州（使われる分だけ） */
+  'プエルトリコ': 'Puerto Rico', 'アルバ': 'Aruba', 'ベリーズ': 'Belize', 'ケイマン諸島': 'Cayman Islands', 'キューバ': 'Cuba', 'コスタリカ': 'Costa Rica', 'ジャマイカ': 'Jamaica',
+  'バハマ': 'Bahamas', 'タークス・カイコス諸島': 'Turks and Caicos Islands', 'ドミニカ共和国': 'Dominican Republic', 'アメリカ領ヴァージン諸島': 'US Virgin Islands',
+  'シント・マールテン': 'Sint Maarten', 'バミューダ': 'Bermuda', 'アンティグア・バーブーダ': 'Antigua and Barbuda', 'バルバドス': 'Barbados', 'キュラソー': 'Curaçao', 'ガイアナ': 'Guyana',
+  'グレナダ': 'Grenada', 'グアテマラ': 'Guatemala', 'エクアドル': 'Ecuador', 'トリニダード・トバゴ': 'Trinidad and Tobago', 'ホンジュラス': 'Honduras',
+  'セントクリストファー・ネイビス': 'Saint Kitts and Nevis', 'セントビンセント・グレナディーン': 'Saint Vincent and the Grenadines', 'セントルシア': 'Saint Lucia',
+  'ニューハンプシャー州': 'New Hampshire',
 });
 /** 地域の英語の名前（airline-destinations.mjs の REGIONS の鍵ごと）。 */
 export const REGION_EN = Object.freeze({ japan: 'Japan', asia: 'Asia', oceania: 'Oceania', 'north-america': 'North America',
@@ -186,7 +193,8 @@ function enOf(s, where = '') {
 const countryOfEn = ja => (ja ? countryEn(ja) || enOf(ja, '国の名前') : '');
 /** 就航地のカード・都市の面の国の字（英語）。米国の州が付く空港は「United States, California」（airline-destinations.mjs の placeCountry と同じ決まり） */
 export function placeCountryEn(iata) {
-  const [c, st] = String(placeCountry(iata) || '').split('・');
+  /* 州は末尾の「・…州」だけ（国の名前そのものに「・」が入る国が在る ── トリニダード・トバゴ・ボスニア・ヘルツェゴビナ など。2026-10-29） */
+  const m = String(placeCountry(iata) || '').match(/^(.*?)(?:・([^・]+州))?$/), c = m[1], st = m[2];
   return [countryOfEn(c), st ? enOf(st, '州の名前') : ''].filter(Boolean).join(', ');
 }
 /* 載せていない空港の理由（日付の入る2つの型は、日付を英語の日付にして読む） */
