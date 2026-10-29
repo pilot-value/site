@@ -68,6 +68,7 @@ export const SQL_FILES = [
   'db/towns.sql',
   'db/towns.generated.sql',
   'db/contrib.sql',
+  'db/ask-own-airline.sql', // 戻ってきた会員に「〇〇のこと、ひとつ教えて。」（2026-10-30）。contrib.sql・reviews-gate.sql・airline-conditions.sql のあと
   'db/hotel-suggest.sql',   // ホテルの名前の候補（Google）の月 10,000 回の数え札。ほかのファイルに頼らない（2026-10-19）
 ];
 

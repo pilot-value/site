@@ -166,7 +166,49 @@ export const SETTINGS = {
 
   /* レポートが描かれてからモーダルを出すまで。0だと結果を読む前に被さる。 */
   modal_delay_ms:     700,
+
+  /* 戻ってきた会員に聞く板「〇〇のこと、ひとつ教えて。」（下の ASK・2026-10-30 オーナー指示）。
+     ★間隔はサーバ（profiles.ask_prompt_at）で数える ＝ スマホとパソコンで二重に出ない。 */
+  ask_interval_hours:  48,   // 板を開いてから、次に開いてよいまで（2日に1回）
+  ask_limit:            3,   // 1回の板で聞く問数（言った数で必ず終わる）
 };
+
+/* ── 戻ってきた会員に聞く質問と、その順番（2026-10-30 オーナー指示）──────────
+   「登録したパイロットが戻ってきたとき、2日に1回、自分の会社について3問。
+     大事で、まだ埋まっていない質問から。3人以上が同じような答えなら、いったん次の質問へ。
+     大事な順は 勤務 → 通勤・タクシー → 休暇・手当 → staff travel。その中でも大事なことだけ。」
+   ★聞く順の正本はこの並び1つだけ。gen-conditions.mjs が DB の ask_rank（1, 2, …）へ写し、
+     db/ask-own-airline.sql の pv_ask_next がこの順で選ぶ。
+   ★子（parent を持つ質問）は、本人が親に該当する答えをしたときだけ出る（今の質問と同じ決まり）。
+     子は親のすぐ後ろに置く ＝ 親に「ある」と答えた直後に、その中身を聞ける。
+   ★ここに無い質問は、この板では聞かない（給与の後の1問・会社ページの「情報を追加」・質問の一覧では今までどおり聞く）。
+     聞かないもの：意見の質問・細かい続き（希望休の日数・Bidding の範囲・Reserve の日数・病休の日数・
+     着陸手当の額・バス・タクシーの上限・staff travel の回数や費用）・キャリア節・Peer Support。
+   ⚠️ 通貨つきの数値・明細行・話題の入口だけの質問・意見の質問は置けない（gen-conditions.mjs が止める）。 */
+export const ASK = [
+  // 勤務
+  'days_off_request',
+  'schedule_bidding',
+  'reserve_duty',
+  'reserve_location',          // ↳ reserve_duty
+  'roster_lead_days',
+  'roster_changes',
+  // 通勤・タクシー
+  'commuting_transport',
+  'commuting_transport_method', // ↳ commuting_transport（複数選ぶ）
+  'commuting_taxi_where',       // ↳ commuting_transport_method
+  'commuting_taxi_cost',        // ↳ commuting_transport_method
+  // 休暇・手当
+  'annual_leave_days',
+  'sick_leave',
+  'landing_pay',
+  'ground_duty_pay',
+  // staff travel
+  'staff_travel',
+  'staff_travel_booking',       // ↳ staff_travel
+  'staff_travel_family',        // ↳ staff_travel
+  'staff_travel_cabin',         // ↳ staff_travel
+];
 
 /* 質問の形（kind）
      choice … 1つ選ぶ

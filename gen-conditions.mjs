@@ -9,7 +9,7 @@
    実行: node gen-conditions.mjs
 ════════════════════════════════════════════════════════════════ */
 import { writeFileSync } from 'fs';
-import { SECTIONS, QUESTIONS, SETTINGS, UNKNOWN, TEXT_MAX, LINES_MAX, LINE_NAME_MAX } from './pv-conditions.mjs';
+import { SECTIONS, QUESTIONS, SETTINGS, ASK, UNKNOWN, TEXT_MAX, LINES_MAX, LINE_NAME_MAX } from './pv-conditions.mjs';
 
 const KINDS = ['choice', 'multi', 'num', 'lines'];
 const TIERS = ['A', 'B', 'C'];   // A から先に埋める（横断比較に効く順）
@@ -28,7 +28,8 @@ const CODE_RE = /^[a-z][a-z0-9_]{0,39}$/;  // 選択肢コード（'no' 'fo' の
    窓が0や負だと同じ質問が延々と出る。問数が大きいと「10秒」という約束が嘘になる。 */
 {
   const need = ['answer_reask_days', 'unknown_reask_days', 'skip_reask_days',
-                'initial_limit', 'recurring_limit', 'profile_limit', 'modal_delay_ms'];
+                'initial_limit', 'recurring_limit', 'profile_limit', 'modal_delay_ms',
+                'ask_interval_hours', 'ask_limit'];
   for (const k of Object.keys(SETTINGS)) {
     if (!need.includes(k)) throw new Error(`SETTINGS: 知らない項目 → ${k}（DB 側にも足すこと）`);
   }
@@ -49,6 +50,9 @@ const CODE_RE = /^[a-z][a-z0-9_]{0,39}$/;  // 選択肢コード（'no' 'fo' の
     throw new Error('SETTINGS: 2回目以降のほうが初回より多い（負担が増える向きの設定になっている）');
   }
   if (SETTINGS.modal_delay_ms > 5000) throw new Error('SETTINGS.modal_delay_ms: 5秒を超えると、もう画面を離れている');
+  /* 戻ってきた会員に聞く板。1日より短いと「来るたびに出る」になる。 */
+  if (SETTINGS.ask_interval_hours < 24) throw new Error('SETTINGS.ask_interval_hours: 24 時間以上にする（来るたびに出る板にしない）');
+  if (SETTINGS.ask_limit < 1 || SETTINGS.ask_limit > 5) throw new Error('SETTINGS.ask_limit: 1〜5 の範囲で（1回の板で聞く問数）');
 }
 
 {
@@ -255,6 +259,32 @@ if (!micros.length) throw new Error('micro の質問が1つも無い（提出直
   }
 }
 
+/* ── 戻ってきた会員に聞く質問（ASK）が、板で聞ける形か ─────────────────
+   板（pv-conditions.js の askReturn）が描けるのは、1つ選ぶ・複数選ぶ・通貨なしの数字の3つだけ。
+   ★ここで止めないと、板が描けない質問を DB が選び、その人の2日に1回が黙って空振りする。 */
+const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
+{
+  if (!Array.isArray(ASK) || !ASK.length) throw new Error('ASK: 1問も無い');
+  ASK.forEach((id, i) => {
+    const q = seen.get(id);
+    if (!q) throw new Error(`ASK[${i}]: 質問に無い id → ${id}`);
+    if (askRank.has(id)) throw new Error(`ASK: 重複 → ${id}`);
+    if (q.topicOnly) throw new Error(`ASK[${id}]: 話題の入口だけの質問は置けない`);
+    if (q.isOpinion) throw new Error(`ASK[${id}]: 意見の質問は置けない（会社の事実ではない）`);
+    if (!['choice', 'multi', 'num'].includes(q.kind)) throw new Error(`ASK[${id}]: 板で聞けない形 → ${q.kind}`);
+    if (q.currency) throw new Error(`ASK[${id}]: 通貨つきの数字は板で聞けない`);
+    if (q.rangeLow) throw new Error(`ASK[${id}]: 対になる額は板で聞けない`);
+    /* 子は親より後ろ。親が ASK に無いと、本人が親に答える道がこの板の中に無い */
+    if (q.parent && !askRank.has(q.parent)) {
+      throw new Error(`ASK[${id}]: 親（${q.parent}）が ASK の前のほうに無い`);
+    }
+    askRank.set(id, i + 1);
+  });
+  /* 親を持たない質問が問数より少ないと、初めての人に約束の問数を出せない */
+  const roots = ASK.filter((id) => !seen.get(id).parent).length;
+  if (roots < SETTINGS.ask_limit) throw new Error(`ASK: 親の無い質問が ${roots} 問しか無い（${SETTINGS.ask_limit} 問以上いる）`);
+}
+
 // ── ブラウザ用 JSON ───────────────────────────────────────────
 {
   const json = {
@@ -387,6 +417,9 @@ alter table public.pv_condition_questions add column if not exists spec jsonb no
 alter table public.pv_condition_questions add column if not exists boost smallint not null default 0;
 alter table public.pv_condition_questions add column if not exists topic text;
 alter table public.pv_condition_questions add column if not exists topic_only boolean not null default false;
+-- 戻ってきた会員に聞く順（2026-10-30・pv-conditions.mjs の ASK）。null ＝ その板では聞かない。
+--   読むのは db/ask-own-airline.sql の pv_ask_next だけ。
+alter table public.pv_condition_questions add column if not exists ask_rank smallint;
 
 -- 検品の一部は DB 側にも置く。SSOT を通さず手で1行入れられたときに効く。
 -- ★毎回 drop してから付け直す。「無ければ作る」だと、条件を変えて流し直したときに
@@ -421,7 +454,7 @@ on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.
 -- ★親は子より先に入れる（自己参照の外部キー）。並び順は pv-conditions.mjs の並びそのまま。
 insert into public.pv_condition_questions
   (id, version, section, kind, tier, micro, priority, boost, is_opinion, parent, parent_when,
-   topic, topic_only,
+   topic, topic_only, ask_rank,
    choice_codes, num_min, num_max, has_currency, has_note, spec, label_ja, label_en) values
 ${rows(QUESTIONS, [
   (x) => q(x.id),
@@ -437,6 +470,7 @@ ${rows(QUESTIONS, [
   (x) => arr(x.parentWhen),
   (x) => q(x.topic),
   (x) => bool(x.topicOnly),
+  (x) => num(askRank.get(x.id)),
   (x) => arr(x.choices && x.choices.map((c) => c.code)),
   (x) => num(x.num && x.num.min),
   (x) => num(x.num && x.num.max),
@@ -451,7 +485,7 @@ on conflict (id) do update set
   tier = excluded.tier, micro = excluded.micro, priority = excluded.priority,
   boost = excluded.boost, is_opinion = excluded.is_opinion,
   parent = excluded.parent, parent_when = excluded.parent_when,
-  topic = excluded.topic, topic_only = excluded.topic_only,
+  topic = excluded.topic, topic_only = excluded.topic_only, ask_rank = excluded.ask_rank,
   choice_codes = excluded.choice_codes, num_min = excluded.num_min, num_max = excluded.num_max,
   has_currency = excluded.has_currency, has_note = excluded.has_note, spec = excluded.spec,
   label_ja = excluded.label_ja, label_en = excluded.label_en, active = true;
@@ -511,6 +545,7 @@ select
   (select count(*) from public.pv_condition_questions where active and micro)      as 直後に出せる質問,
   (select count(*) from public.pv_condition_questions where active and tier = 'A') as tier_a,
   (select count(*) from public.pv_condition_questions where active and boost > 0) as 最初の3問,
+  (select count(*) from public.pv_condition_questions where active and ask_rank is not null) as 戻った人に聞く質問,
   (select count(*) from public.pv_condition_settings)                             as 設定;
 `;
   writeFileSync(new URL('./db/conditions.generated.sql', import.meta.url), sql);
