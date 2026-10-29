@@ -473,7 +473,7 @@
   /* ── B. 最新の口コミ（流れる帯。トップの .hero-mq と同じ作り）───────────── */
   var FEED_N = 9, STRIP_N = 12;
   /* 帯に出す口コミ。鍵のある人は全文（pv_reviews）から・鍵の無い人は pv_vote_latest（80字）から。
-     pv_vote_latest がまだ無い（SQL を貼る前）・読めないときは、今までの並び（9件・40字）に戻る。 */
+     pv_vote_latest がまだ無い（SQL を貼る前）・読めないときは、今までの並び（9件・先頭の1欄の80字）に戻る。 */
   function stripItems() {
     var open = items.filter(function (it) { return it.kind === 'server' && !it.body.locked; });
     if (open.length) {   // 足切りはサーバー（pv_vote_latest）と同じ：本文が合わせて20字以上（空白を除く）
