@@ -1350,3 +1350,18 @@ CLAUDE.md 側にあり、ここにあるのは **各検査が何を約束して�
     - **2-D（ログインなしの口コミ）が落ちた** ── 預ける口（`submit_review_pending`）・引き取る口（`claim_review_pending`）・
       端末の預かり証（`pv_review_claim`・同じタブの続きだけ）のどれか。**引き取りに失敗したら出し直させない**（2重になる）。
       SQL を貼る前の本番では預ける口が無いので、フォームは今までどおりログインの壁に戻る（`window.__pvReviewGate`）。
+28. `node db/test-ask-own-airline.mjs` / `node assert-ask.mjs` — **戻ってきた会員に「〇〇のこと、ひとつ教えて。」**（2026-10-30）。
+    オーナー指示で、給与か口コミを出した会員に、2日に1回・自分の会社について3問を聞く板を足した。
+    全体の地図は [CLAUDE.md](../CLAUDE.md) の「戻ってきた会員に聞く板」。ここは**落ちたときに何が壊れているか**だけ。
+    - **「3人が同じ答え → その質問は出ない」が落ちた** ── `pv_ask_next` から `and q.id <> all(v_filled)` が消えたか、
+      `pv_ask_filled` の線（3人以上 かつ 過半数・数字は ±10%）を変えた。⚠️ **画面は普通に動いたまま**、埋まった質問を聞き続ける。
+    - **「公開の集計は今までどおり」が落ちた** ── `pv_condition_ans()`（数える行の決まり）を直した。あれは
+      公開の集計（`airline_condition_facts`）と「埋まった」の判定の**両方**が呼ぶ。片方のために変えると、もう片方も動く。
+    - **「初めての人には ask_rank の順に…」が落ちた** ── `pv-conditions.mjs` の `ASK` を直して `node gen-conditions.mjs` を
+      流していないか、`db/conditions.generated.sql` を貼っていない（手元の検査は生成物を読む）。
+    - **「未ログイン → 読み込みもしない」「48時間の窓の中 → 読み込みもしない」が落ちた** ── `pv-session.js` の `askDue` が
+      端末の写し（`pv_ask`）を見る前に読み込むようになった。⚠️ 430枚の全ページで、会員の通信が毎回1本増える。
+    - **「範囲の外は送らない」「欄の字は 16px 以上」が落ちた** ── 板（`pv-conditions.js` の `step`）の数字の欄を直した。
+      16px 未満にすると iPhone が欄に入った瞬間に画面を拡大する。
+    - ⚠️ `pv-session.js` を直したら `node inject-session.mjs`（430枚の `?v=`）、`pv-conditions.js` を直したら4枚の `?v=` を付け替える
+      （`assert-conditions.mjs` の版スタンプが教える）。

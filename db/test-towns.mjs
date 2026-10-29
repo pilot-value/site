@@ -1193,7 +1193,8 @@ console.log('\n▼ TB11 db/contrib.sql の無い DB では、一覧は止まり�
   await db2.waitReady;
   await db2.exec(`set timezone = 'UTC'`);
   await db2.exec(BOOT_SQL);
-  for (const f of FILES.filter((x) => x !== 'db/contrib.sql')) await db2.exec(read(f));
+  /* contrib.sql に頼るファイル（db/ask-own-airline.sql・2026-10-30）も一緒に外す。残すと、そのファイルの関所が止める */
+  for (const f of FILES.filter((x) => x !== 'db/contrib.sql' && x !== 'db/ask-own-airline.sql')) await db2.exec(read(f));
   const [air, base] = mainsOf(SEED)[0];
   const q = async (d, fn) => {
     await d.exec(`set role anon`);
