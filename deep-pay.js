@@ -140,6 +140,48 @@
   'use strict';
   if (!w || !d) return;
 
+  /* ══ ★★DEEP PAY は消してある（2026-10-29・オーナー指示「deep pay は一時会員には見せない。
+       閉鎖するからみんなのページから消して」「準備中じゃなくて消して。みんなが見えないように」）══
+     ・**本番では、このページそのものを配っていない**（_config.yml の exclude ── 日英の住所を開くと 404）。
+       このファイルも deep-pay.css も、会社比較の2本も同じ（どのページも読まない）。
+     ・入口も全部外した（REAL PAY の見出しのタブ・行の面のボタン・3段の表の段・ロードマップの3行）。
+     ・ここ（DEEP_OPEN が false）は、手元で開いたときと、exclude が外れたときの受け皿。
+       **「準備中」の板は出さない**（オーナー指示）── 何も描かずに REAL PAY へ移して、そこで終わる。
+       セッションを待たない・pv_deep_pay() を1回も呼ばない・保存領域を読まない／書かない・
+       試験用の入口（PVDeepPay）も生やさない。誰が来ても同じ（未ログイン・会員・運営）。
+     ・本体（この下ぜんぶ）とサーバ（db/deep-pay.sql）には1文字も手を入れていない。
+     ★開け直す日 ── _config.yml の DEEP PAY の塊を消す／この定数を true に／入口を git の 2026-10-29 の
+       直前の版から戻す（actual-pay.html の日英のタブ・actual-pay.js の面のボタン・pv-gates.js の段・
+       roadmap-config.js の3行）／2本の検査（assert-deep-pay*.mjs）の「閉じている」の節を書き換える／?v= を付け替える。
+     ⚠️ これは門ではない。数字を守っているのは今までどおりサーバだけ。 */
+  var DEEP_OPEN = false;
+  /* ★試験用の口。**手元の確認用サーバ（localhost / 127.0.0.1）で開いたときだけ**、検査と撮影の道具が
+       先に置いた印（window.__PV_DEEP_OPEN = true）で本体を動かせる（閉じているあいだも腐らせないため）。
+     ⚠️ 本番の住所では、印が在っても**必ず false**。住所の後ろの字・保存領域・Cookie では開かない。
+        条件を足さない・緩めない（compareOpen() と同じ形）。 */
+  function deepOpen() {
+    if (DEEP_OPEN) return true;
+    try {
+      return w.__PV_DEEP_OPEN === true &&
+        /^(?:localhost|127\.0\.0\.1)$/.test(w.location.hostname);
+    } catch (e) { return false; }
+  }
+  /* 閉じているあいだ ── 器（#dp-root）を空にして REAL PAY へ移す。**字を1つも描かない。**
+     ★replace で移す（履歴に DEEP PAY を残さない＝「戻る」で戻ってこない）。
+     ★行き先は相対のまま（/en/ から開けば /en/actual-pay.html に解ける）。 */
+  function leave() {
+    var root = d.getElementById('dp-root');
+    if (root) root.innerHTML = '';
+    try { w.location.replace('actual-pay.html'); } catch (e) {}
+  }
+  if (!deepOpen()) {
+    /* ★後ろで読まれる出し直しのお願い（pv-pay-fix.js）にも本人を渡さない（会社比較と同じ）。
+         移るまでのあいだに、会員向けの通信も控えも起こさない。 */
+    w.PV_SESSION = Promise.resolve(null);
+    leave();
+    return;
+  }
+
   var V = w.PVViz;
   if (!V) return;                       // pay-viz.js が先に要る（HTML の順序）
   var esc = V.esc, num = V.num, fmt = V.fmt;

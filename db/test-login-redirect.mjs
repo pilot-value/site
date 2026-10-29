@@ -118,9 +118,11 @@ for (const dir of ['', '/en']) {
       return {
         path: new URL(b.dataset.href || b.dataset.fallback || '', location.href).pathname,
         cta: b.textContent, lead: txt('success-lead'), later: txt('success-later'),
-        // Give → Get の3段。段が3つ出ていること、そして**押せる札が1つも無い**こと
+        // Give → Get の表。段が2つ出ていること、そして**押せる札が1つも無い**こと
         // （inPanel を渡し忘れると DEEP の札がボタンになり、この画面に無いパネルを開こうとする）
+        // ★2026-10-29 に DEEP PAY を閉じて、表は REAL PAY と VERIFIED PAY の2段になった
         give: document.querySelectorAll('#success-give .pv-give-r').length,
+        giveDeep: /DEEP PAY/.test((document.getElementById('success-give') || {}).textContent || ''),
         givePress: document.querySelectorAll('#success-give button.pv-give-p').length,
         pill: ((document.querySelector('#success-give .pv-give-r.is-live .pv-give-p')
                 || {}).textContent || '').trim(),
@@ -130,9 +132,9 @@ for (const dir of ['', '/en']) {
     ok([got.cta, got.lead].every((t) => t && t.includes(exp.word)) && got.later === exp.later,
        `${desc}  見出し・ボタン・あとでの3行が「${exp.word}」で揃っている`,
        [got.cta, got.lead, got.later]);
-    ok(got.give === 3 && got.givePress === 0,
-       `${desc}  Give → Get の3段が出て、押せる札が1つも無い`,
-       [got.give, got.givePress]);
+    ok(got.give === 2 && !got.giveDeep && got.givePress === 0,
+       `${desc}  Give → Get の2段（DEEP PAY の段は無い）が出て、押せる札が1つも無い`,
+       [got.give, got.giveDeep, got.givePress]);
     /* ★「いま開きます」と書かない（2026-09-15 オーナー指示）。まだ出していない人には
          もう見られると読めてしまう。札には**開くための条件**を書く。 */
     ok(got.pill === (dir ? 'Share pay to unlock' : '給与提出で解放'),
