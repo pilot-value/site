@@ -69,8 +69,8 @@ const WRITERS = [
   'pv-reunlock.js',
   'submit-review.html',
   'en/submit-review.html',
-  'community.html',
-  'en/community.html',
+  /* 2026-10-29 Vote の作り直しで、口コミ一覧（日英）の読み書きは vote.js の1本へ移った */
+  'vote.js',
   'airlines/starlux-tenshoku.html',
   'en/airlines/starlux-tenshoku.html',
   /* 2026-09-07 追加 ── 本文をサーバ側で止めたので、鍵を持っているかを
@@ -226,7 +226,7 @@ console.log('\n════ ⑥ 本文はサーバ側で止まる ════')
 
   /* 読み手は全部「唯一の口」を通る。select('*') は表ぜんぶの権限を要求するので、
      鍵の SQL を貼った瞬間に画面が丸ごと落ちる（1件も出なくなる）。 */
-  const DOORS = ['community.html', 'en/community.html',
+  const DOORS = ['vote.js',   // 口コミ一覧（日英）の読み口（2026-10-29 から）
                  'airlines/airline-reviews-ui.js', 'en/airlines/en-airline-reviews.js'];
   for (const f of DOORS) {
     const body = strip(f, read(f));
@@ -238,6 +238,10 @@ console.log('\n════ ⑥ 本文はサーバ側で止まる ════')
        全部この抜粋を描いていること。1枚だけ直すと、日本語ページでは先頭40字が
        読めて英語ページでは1文字も読めない、という食い違いが黙って残る。 */
     ok(body.includes('clipText'), `★${f} が鍵の無い行にも抜粋を1つ描く`);
+  }
+  /* 口コミ一覧の日英が、その1本を本当に読んでいるか（読まなければ上の照合は空振りになる） */
+  for (const f of ['community.html', 'en/community.html']) {
+    ok(/<script src="(\.\.\/)?vote\.js(\?v=[0-9a-f]+)?"><\/script>/.test(read(f)), `${f} が vote.js を読んでいる`);
   }
   {
     const ri = strip('review-i18n.js', read('review-i18n.js'));
