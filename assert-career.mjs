@@ -995,7 +995,8 @@ head('掲載している全社（比較の材料）');
     const held = nb.length ? ((nb[0].match(/ data-held="([^"]*)"/) || [])[1] || '').split(' ').filter(Boolean) : null;
     const RENT_NONE = { ja: '家賃の資料を確認できていません', en: 'We have not been able to confirm rent sources' };
     const words = { ja: (nb[0] || '').includes(`<p class="cr-rentn-t">${RENT_NONE.ja}</p>`), en: EN_HTML.split(`<p class="cr-rentn-t">${RENT_NONE.en}</p>`).length === 2,
-      jaCo: read('airlines/united.html').includes(`>${RENT_NONE.ja}</p>`), enCo: read('en/airlines/united.html').includes(`>${RENT_NONE.en}</p>`) };
+      jaCo: read('airlines/american.html').includes(`>${RENT_NONE.ja}</p>`), enCo: read('en/airlines/american.html').includes(`>${RENT_NONE.en}</p>`) };
+    /* ★2026-10-29：ユナイテッド航空はデンバーの拠点と家賃が台帳につながり、家賃の箱を持つようになった ── 家賃の無い会社の見本はアメリカン航空 */
     ok(nb.length === 1 && / hidden>/.test(nb[0].split('\n')[0]) && !/data-airline=/.test(nb[0]) && /<b class="cr-rentn-n"><\/b>/.test(nb[0])
        && held !== null && same(sorted(held), sorted(HELD)) && Object.values(words).every(Boolean),
        `家賃の節の「資料を確認できていません」の箱は1つだけ（最初は隠れている・社名も会社の印も HTML に無い）・会社ページに家賃の額が在る${HELD.length}社（data-held）には出さない・字は日英とも会社ページの暮らしの板の字`,
@@ -2484,15 +2485,17 @@ try {
     const SCENES = [
       ['emirates', 'jal', g => right(g.rents, 'jal') && g.wrap && gone(g.cards) && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['emirates', 'jal']) && !g.taxes.only
         && noneAt(g, 'emirates', 'a')],
-      ['jal', 'united', g => left(g.rents, 'jal') && g.wrap && gone(g.cards) && noneAt(g, 'united', 'b')],
+      /* ★2026-10-29：家賃の箱の無い会社の見本を united → american（ユナイテッド航空はデンバーの家賃の箱を持つようになった） */
+      ['jal', 'american', g => left(g.rents, 'jal') && g.wrap && gone(g.cards) && noneAt(g, 'american', 'b')],
       ['emirates', 'cathay-pacific', g => right(g.cards, 'cathay-pacific') && right(g.rents, 'cathay-pacific') && noneAt(g, 'emirates', 'a')],
-      ['cathay-pacific', 'united', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific') && noneAt(g, 'united', 'b')],
+      ['cathay-pacific', 'american', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific') && noneAt(g, 'american', 'b')],
       /* ★2026-10-26 段階5 compare-all-14（P12.122・同じ強さの当て直し）：united と delta に台帳の写真が付いた ── united は CC0（クレジットを出さない）・
          delta は示すことが条件の写真（Public domain）なので、写真のクレジットは delta の1つだけが見える。2社とも条件のある写真が無いときに段ごと
          出さないことは、条件の無い写真の2社（united|american ── どちらも CC0）で見る。 */
       /* ★2026-10-29 段階5 compare-all-26（同じ強さの当て直し）：united と delta に税の扱い（課税（米国））が付いた ── 2社とも税の字が並びの順に出る。
          2社とも税の扱いを持たないときに税の字を出さないことは、税の扱いの無い2社（klm|air-france）で見る。 */
-      ['united', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['united', 'delta']) && !g.taxes.only
+      /* ★2026-10-29：家賃も公表額も無い2社の見本を united|delta → american|delta（アメリカン航空も CC0 の写真・課税（米国）── 同じ強さ） */
+      ['american', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['american', 'delta']) && !g.taxes.only
         && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['delta']) && g.none === null],
       ['klm', 'air-france', g => gone(g.taxes)],
       ['united', 'american', g => gone(g.credits)],
@@ -3359,7 +3362,7 @@ try {
     for (const [a, b, want, label] of [
       ['jal', 'cathay-pacific', ['jal', 'cathay-pacific'], '円の街と外貨の街（東京・香港）'],
       ['etihad', 'british-airways', ['etihad', 'british-airways'], '外貨の街どうし（アブダビ・ロンドン）'],
-      ['jal', 'united', ['jal'], '片方の会社にだけ箱（ユナイテッドは「資料を確認できていません」）── その箱だけの物差し'],
+      ['jal', 'american', ['jal'], '片方の会社にだけ箱（アメリカンは「資料を確認できていません」）── その箱だけの物差し'],
       ['alaska-airlines', 'peach', ['alaska-airlines', 'peach'], '大きい額の街と小さい額の街（シアトル・大阪）'],
     ]) {
       await go(p, `?view=compare&a=${a}&b=${b}`);
