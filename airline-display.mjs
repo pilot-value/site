@@ -1357,6 +1357,8 @@ export const PUBLISHER_EN = Object.freeze({
   '新中央航空': 'Shin Chuo Airlines', '新日本航空': 'Shin Nihon Airlines', '東邦航空': 'Toho Air Service', 'トキエア': 'Toki Air',
   /* ★2026-10-26 段階5 compare-all-15：日本の会社の拠点の街の家賃の資料（LIFULL HOME'S）の発行元。無いと英語のページの出典のリンクの字が空になっていた */
   'LIFULL': 'LIFULL',
+  /* ★2026-10-29：富裕層の住む地区の家賃（CHINTAI の駅の相場）の発行元。無いと英語のページの家賃の箱が出ない（出典の字が空になる） */
+  'CHINTAI': 'CHINTAI',
 });
 const pubKey = p => String(p || '').replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/株式会社/g, '').replace(/[\s　]+/g, '').replace(/[（(][^）)]*[）)]$/, '');
 export const publisherEn = p => (/[ぁ-んァ-ヶ一-龥]/.test(String(p || '')) ? PUBLISHER_EN[pubKey(p)] || '' : String(p || ''));
