@@ -230,6 +230,10 @@
 /* ⚠️ 会社ページには、FAQ の「＋」を「×」にするための決まり（details[open] summary span を45度回す）が元からある。
    ここの見出しの字まで回ってしまうので、.pvg の中では打ち消す（あちらより強く書く）。 */
 .pvg details[open] > summary span,.pvg-hero details[open] > summary span{transform:none;transition:none}
+/* ★2026-10-29 同じ決まりは display:inline-block も付ける ── 開いた話題の札（広い箱）で、名前と「質問 N問」が横に並んで1つの字に見えていた
+   （「勤務スケジュール質問 10問」）。札の名前は1行・その下に小さい字、の形に戻す（閉じた札と同じ形）。 */
+.pvg details[open] > summary .pvg-tp-n{display:block}
+.pvg details[open] > summary .pvg-tp-m{display:flex}
 .pvg-dt > summary:hover,.pvg-topic > summary:hover{color:var(--pv-accent-dark)}
 .pvg-dt > summary:focus-visible,.pvg-topic > summary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .pvg-dt > summary:active,.pvg-topic > summary:active{opacity:.75}
