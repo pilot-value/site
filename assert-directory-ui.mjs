@@ -14,7 +14,7 @@
      スクリプトの止まり（st.errs）と、手元の配信元からの 4xx も落ちる。
 
    場面 base（日英・1440×900）
-     b1 見えているカード ＝ 台帳の112社を一覧の並び（地域の順 → 一覧の行の順）で・社数「112社」／«112 airlines»・
+     b1 見えているカード ＝ 台帳の112社を一覧の並び（英語の社名の A→Z ── 2026-10-29）で・社数「112社」／«112 airlines»・
         どの社名も語の途中で折れず切れていない（折れ目は空白・「・」の後ろ・「（」の前だけ ── WP-dd-9。390 は場面 first で）
      b2 地域のボタンを1つずつ押す → 見えているカード ＝ その地域の会社（集合）・社数・押したボタンだけ aria-pressed="true"
      （b3 種類の絞り込み（FSC・LCC/ULCC・免税）は WP-dmap-7 で口ごと外した ── 無いことは assert-directory.mjs の G10 が見る）
@@ -1260,7 +1260,8 @@ async function main() {
       const c7 = await until(page, () => document.querySelectorAll('#lvl-wa-grid .lvl-col').length === 2);
       ok(c7 && sameSet(await pickOn(page), ['jal', 'ana']), T('card 読み直す（住所は view=range のまま）→ また印の2社だけの図（.lvl-col 2本）'), J({ k: await lvlCols(page), pk: await pickOn(page) }));
       await page.click('.view-btn[data-view="card"]');
-      await until(page, () => !document.getElementById('wd-tray').hidden);
+      /* 盆が本当に描かれるまで待つ（hidden が外れた直後は、まだ箱を持たない瞬間がある ── 2026-10-29 に混んだ回で踏んだ） */
+      await until(page, () => { const t = document.getElementById('wd-tray'); return !t.hidden && getComputedStyle(t).display !== 'none' && t.getClientRects().length > 0; });
       const t8 = await trayOf(page);
       ok(t8.shown && sameSet(t8.checked, ['jal', 'ana']) && same(t8.chips.map((c) => c.s), ['jal', 'ana']) && t8.n === fmt(2, 5),
         T(`card カード一覧に戻る → 印は jal と ana のまま・盆「${fmt(2, 5)}」（付けた順）`), J(t8));
@@ -2541,7 +2542,7 @@ async function main() {
             const gone = await until(page, () => !document.getElementById('wa-map-sec').classList.contains('is-open'));
             if (xOnly) { if (!gone) sheetBad.push({ c, gone }); continue; }   // 次の地域に触れるために閉じるだけ
             const f2 = await frameNow(page), k = await closedCard(page), still = await regionNow(page);
-            if (!(gone && isClosed(k, c) && still === c && same(f0, f2))) sheetBad.push({ c, gone, f0, f2, k, still });
+            if (!(gone && isClosed({ ...k, inRow: true }, c) && still === c && same(f0, f2))) sheetBad.push({ c, gone, f0, f2, k, still });   // 行の高さは「すべて」の時だけ見る（z8）
           }
         }
         if (xOnly) {
