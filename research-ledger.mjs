@@ -1256,6 +1256,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "aer-lingus": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "Aer Lingus Limited、2023年実績；同社操縦士向け年金制度。補足: PDF p49 / note24。for its pilots と明記。一般社員向けDC schemeと区別。公開日不明空欄、2023年度資料。会社総拠出額を一人当たり額として採らない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Irish Airlines (Pilots) Superannuation Scheme",
+       "source_id": "src-iairgroup-com-8f023b54",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e53c94086edf64c6",
+     "id": "aer-lingus.benefits.pension.fc605ae3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Aer Lingus Limited",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-iairgroup-com-8f023b54",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report and Financial Statements 2023",
+       "url": "https://www.iairgroup.com/media/5yclhy4r/aer-lingus-annual-report-2023.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Irish Airlines (Pilots) Superannuation Scheme",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -1646,6 +1699,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "aeromexico": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "Grupo Aeromexicoの全従業員に適用する勤続退職給付（操縦士も従業員に含む）；2025年度。補足: PDF p253 / Note22はseniority premiums are provided to all employees と明記。会社による実施の記載で、一般法規からの推測ではない。法定勤続手当であり、任意の個人年金や全社員の確定給付年金加入を意味しない。退職・解雇等の条件は同節参照。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-04-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "seniority premiums",
+       "source_id": "src-ir-aeromexico-com-2104b6ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3439b1a97ef269c4",
+     "id": "aeromexico.benefits.pension.873306a5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2026-04-30",
+       "publisher": "Grupo Aeromexico",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ir-aeromexico-com-2104b6ad",
+       "source_type": "regulatory_filing",
+       "title": "Form 20-F filed 2026-04-30",
+       "url": "https://ir.aeromexico.com/static-files/9d7bfa71-2e8c-4d8a-8c20-6322a8549a62"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "seniority premiums",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -2443,6 +2549,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-canada",
+     "cond_ja": "Air Canada全社員向けFAQの福利厚生案内；操縦士限定の率・加入条件は未確認。補足: 確認日に公開中の現行採用FAQ、What benefits does Air Canada offer to its employees? のEmployees at Air Canada enjoy...を採用。発行・更新日表示なし。個々の操縦士の適用制度詳細へ一般化しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "pension plans",
+       "source_id": "src-careers-aircanada-com-ea8a4d74",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dec189eb8677ada3",
+     "id": "air-canada.benefits.pension.a70fcbfe",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-aircanada-com-ea8a4d74",
+       "source_type": "official_package",
+       "title": "FAQs / employee benefits",
+       "url": "https://careers.aircanada.com/ca/en/faqs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "pension plans",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -15379,6 +15536,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "alaska-airlines",
+     "cond_ja": "Alaska seniority listの操縦士、2022年契約で導入予定のPreferential Bidding System；TA要約とその後の批准を照合。補足: PDF p7–8、PBS節。NavBlueのseniority順割当。2022年資料の現行性は2026-10-29現在の会社操縦士採用ページ https://careers.alaskaair.com/career-opportunities/pilots/alaska-hawaiian-airlines/ がratified in 2022の契約を案内していることで確認。会社の2022-10-17批准発表 https://news.alaskaair.com/company/alaska-airlines-pilots-ratify-new-contract/ を照合。開始実施日を確定せず導入合意の事実に限定、Hawaiian旧seniority listへは広げない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PBS",
+       "source_id": "src-alata-alpa-org-42e86307",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b2fbf29c1d72ec0c",
+     "id": "alaska-airlines.work.roster-pattern.5ff7078c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ALPA Alaska",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alata-alpa-org-42e86307",
+       "source_type": "union_cba",
+       "title": "2022 TA Executive Summary",
+       "url": "https://alata.alpa.org/Portals/63/Documents/public/executive-summary.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PBS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
      "cond_ja": "有給病気休暇の通常月次積立。補足: p68積立、p69支給。長期病欠から復帰時のrapid reaccrualは別条件。",
      "currency": null,
      "domain": "work",
@@ -25322,6 +25530,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "asiana": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "asiana",
+     "cond_ja": "2025年事業報告; Asiana Airlines単体の従業員退職年金制度; 操縦士を含む社員一般; 個人の加入区分・給付条件は未掲載。補足: 取引所公開の会社提出資料、個別財務諸表2.22③퇴직급여。韓国語の原制度名をvalueに保持。確定拠出と確定給付を別行に分けた。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-03-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "당사의 퇴직연금제도는 확정기여제도와 확정급여제도로 구분됩니다.",
+       "source_id": "src-kind-krx-co-kr-c85dccc0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a7ae12bad7ceb5b5",
+     "id": "asiana.benefits.pension.8b3e4a8e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-asiana",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2026-03-18",
+       "publisher": "Asiana Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kind-krx-co-kr-c85dccc0",
+       "source_type": "official_package",
+       "title": "2025 사업보고서",
+       "url": "https://kind.krx.co.kr/external/2026/03/18/001412/20260318006564/11011.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "확정급여제도",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "asiana",
+     "cond_ja": "2025年事業報告; Asiana Airlines単体の従業員退職年金制度; 操縦士を含む社員一般; 個人の加入区分・給付条件は未掲載。補足: 取引所公開の会社提出資料、個別財務諸表2.22③퇴직급여。韓国語の原制度名をvalueに保持。確定拠出と確定給付を別行に分けた。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-03-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "당사의 퇴직연금제도는 확정기여제도와 확정급여제도로 구분됩니다.",
+       "source_id": "src-kind-krx-co-kr-c85dccc0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cda524d4fc43a78d",
+     "id": "asiana.benefits.pension.b285adbb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-asiana",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2026-03-18",
+       "publisher": "Asiana Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kind-krx-co-kr-c85dccc0",
+       "source_type": "official_package",
+       "title": "2025 사업보고서",
+       "url": "https://kind.krx.co.kr/external/2026/03/18/001412/20260318006564/11011.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "확정기여제도",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -26020,6 +26332,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "PIT/A320 Screeningと会社選考の旅費・宿泊費は会社負担なし",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlinesの現役Bordpersonal（操縦士を含む）の企業年金；確定拠出型。補足: PDF p4、1.2。現役乗務員は2012-07-01以降すべて確定拠出型と、2023年最終版が説明。旧年受給者向け改定の表題だが採用値は現役制度についての明示文。2024-01-01発効は発行日とせず、発行日不明空欄。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "beitragsorientierte",
+       "source_id": "src-vida-at-788088bd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8be6b9dbcbaf984",
+     "id": "austrian.benefits.pension.28ed4118",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-788088bd",
+       "source_type": "union_cba",
+       "title": "PÄKV-2023, FINAL 16.10.2023",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/KV-luftfahrt-pensionszusage-AUA-2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "beitragsorientierte",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -26525,6 +26888,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；Homebaseで割り当てる暦年休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1のim Kalenderjahr欄。年休の日数から作った値ではない。発行・署名日不明のため空欄。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "130",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dafa9380e0839059",
+     "id": "austrian.work.annual-days-off.2132a3d8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "annual_days_off",
+     "label_ja": "年間の休日",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "year",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 130,
+     "value_text": "130"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "hire_route": "Ready Entry",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
@@ -26577,6 +26991,414 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 3,
      "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；3月、Homebaseで割り当てる休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1、月別表のセル。FINAL日付は2024-10-14だが発行・署名日を特定せず空欄。日数は表から転記、計算なし。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "11",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "29a74dd71029f3b8",
+     "id": "austrian.work.days-off.1357f92c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；11～12月の各月、Homebaseで割り当てる休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1、月別表のセル。FINAL日付は2024-10-14だが発行・署名日を特定せず空欄。日数は表から転記、計算なし。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "12",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "99544fc625dd3c14",
+     "id": "austrian.work.days-off.4d5428fe",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；1月、Homebaseで割り当てる休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1、月別表のセル。FINAL日付は2024-10-14だが発行・署名日を特定せず空欄。日数は表から転記、計算なし。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "11",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e3a6ce108b396ced",
+     "id": "austrian.work.days-off.4e99e11d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；2月（28日）、Homebaseで割り当てる休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1、月別表のセル。FINAL日付は2024-10-14だが発行・署名日を特定せず空欄。日数は表から転記、計算なし。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "10",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "170855a35702e6c7",
+     "id": "austrian.work.days-off.6a4ffbf0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；2月（29日）、Homebaseで割り当てる休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1、月別表のセル。FINAL日付は2024-10-14だが発行・署名日を特定せず空欄。日数は表から転記、計算なし。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "11",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "91dc004857ee66df",
+     "id": "austrian.work.days-off.99f1181b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；4～9月の各月、Homebaseで割り当てる休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1、月別表のセル。FINAL日付は2024-10-14だが発行・署名日を特定せず空欄。日数は表から転記、計算なし。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "10",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "87f345aa5c302c3f",
+     "id": "austrian.work.days-off.b052f8cd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；10月、Homebaseで割り当てる休日；協約の割当権利枠（上限値ではない）。補足: PDF p5（本文3頁）§6 / 21.1、月別表のセル。FINAL日付は2024-10-14だが発行・署名日を特定せず空欄。日数は表から転記、計算なし。 原文は休日割当を受ける権利を表し、月・四半期・暦年の権利枠を並記する。月別値から年の値を計算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "11",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "05391c2fa2774880",
+     "id": "austrian.work.days-off.b85b6f9c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "Austrian Airlines GroupのOS-KV-2015適用Bordpersonal（操縦士を含む）；2024-04-01改定、2026-12-31まで解約禁止；ER（長距離）勤務期間の連続勤務日上限。労使事業所協定で14日超も可。補足: PDF p5（本文3頁）§5 / 16.1。固定14onパターンの意味ではなく勤務期間の上限。6日超期間には別途滞在先での非勤務暦日を配置する16.2がある。発行日不明。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "14",
+       "source_id": "src-vida-at-bea29876",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a7554c56c30dfed",
+     "id": "austrian.work.roster-pattern.9e1f4d25",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vida-at-bea29876",
+       "source_type": "union_cba",
+       "title": "Austrian OS-KV-2015 Änderung, FINAL 14.10.2024",
+       "url": "https://www.vida.at/content/dam/vida/downloads/kv-vertr%C3%A4ge/luft-schiffverkehr/alt/KV-luftfahrt-Bord-aenderungen-2025.pdf"
+      }
+     ],
+     "unit": "days/period",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "14"
     }
    ]
   },
@@ -27174,6 +27996,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "HAN",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "bamboo-airways",
+     "cond_ja": "現行の会社採用サイト; 操縦士を含む社員一般と家族向け; 券種・枚数は未掲載。補足: 現行表示のCOMPETITIVE BENEFITSを実読。福利厚生欄と同じページの対象部門にFlight Crew Division・Pilotがあり、社員一般制度として採用。FLC関連の古い記述も併存し、FLCの休泊特典は現行性不明で不採用。更新日不明。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BAV air tickets",
+       "source_id": "src-talent-bambooairways-com-3d710e2f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f23dee3038665c19",
+     "id": "bamboo-airways.benefits.staff-travel.18f6bd97",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261029-cg-bamboo-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Bamboo Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-talent-bambooairways-com-3d710e2f",
+       "source_type": "official_package",
+       "title": "Careers",
+       "url": "https://talent.bambooairways.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BAV air tickets",
      "value_text": null
     }
    ],
@@ -28147,6 +29022,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Indonesia",
      "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "Batik Air Indonesia（ID）; OM-A 7.4.1 RDO; 連続7日間中、最低24連続時間を全勤務から解放。補足: PDF p16（本文p9）; RDO配置上の最低連続休息。固定の乗務日数は示さず、月・年間休日に換算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-01-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "at least 24 consecutive hours within any 7 consecutive days.",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2989a9b0d37eac8f",
+     "id": "batik-air.work.roster-pattern.07fb7e03",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-01-08",
+       "publisher": "KNKT",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "source_type": "government",
+       "title": "KNKT.24.01.02.04 Final Investigation Report",
+       "url": "https://knkt.go.id/Repo/Files/Laporan/Penerbangan/2024/KNKT.24.01.02.04-Final-Report.pdf"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 24,
+     "value_text": "24"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "Batik Air Indonesia（ID）; 2024年事故当時の同社OM-A 7.2; calendar monthの操縦士最大飛行時間。補足: PDF p15（本文p8）; 会社OM-Aからの引用表。一般法の上限だけを転記した行ではない。勤務時間FDT欄はNILであり110は飛行時間FT。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-01-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "In any calendar month 110 Hrs. NIL",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b45dbc3fc517a04",
+     "id": "batik-air.work.working-time.0b9ce9e5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-01-08",
+       "publisher": "KNKT",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "source_type": "government",
+       "title": "KNKT.24.01.02.04 Final Investigation Report",
+       "url": "https://knkt.go.id/Repo/Files/Laporan/Penerbangan/2024/KNKT.24.01.02.04-Final-Report.pdf"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 110,
+     "value_text": "110"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "Batik Air Indonesia（ID）; 2024年事故当時の同社OM-A 7.2; 任意の12暦月の操縦士最大飛行時間。補足: PDF p15（本文p8）; 会社OM-AのSCHEDULING CUMULATIVE FLIGHT TIME LIMITATIONS表。暦年への換算はしない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-01-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "In any 12 Calendar month 1,050 Hrs NIL",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c48489891cf9d3d8",
+     "id": "batik-air.work.working-time.f1c208ca",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-01-08",
+       "publisher": "KNKT",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "source_type": "government",
+       "title": "KNKT.24.01.02.04 Final Investigation Report",
+       "url": "https://knkt.go.id/Repo/Files/Laporan/Penerbangan/2024/KNKT.24.01.02.04-Final-Report.pdf"
+      }
+     ],
+     "unit": "hours/12 calendar months",
+     "use": "条件つき",
+     "value": 1050,
+     "value_text": "1,050"
     }
    ]
   },
@@ -35982,11 +37012,115 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "国内飛行院校・国外航校で飛行技術専門訓練。具体校/空港は未掲載。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集; A350型式保有機長; Shanghai Flight Department; 連続乗務日数; 募集有効期限2024-05-31。補足: 2026-10-29に通常ブラウザーで本文・公開日・募集期限を実読。2026年の現行契約条件との同一性は未確認。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "21 consecutive working days per month",
+       "source_id": "src-job-ceair-com-953e84fb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e0cb952ec82cc2a9",
+     "id": "china-eastern.work.roster-pattern-cap.df43f849",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-953e84fb",
+       "source_type": "official_package",
+       "title": "Airplane Captain Recruitment 2023–2024",
+       "url": "https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D"
+      }
+     ],
+     "unit": "working days",
+     "use": "条件つき",
+     "value": 21,
+     "value_text": "21"
     }
    ]
   },
   "china-southern": {
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-southern",
+     "cond_ja": "中国南方航空股份有限公司の2025年员工福利体系・专属福利の公表。操縦士専用制度ではなく会社の社員向け福利厚生として記録。補足: PDF63頁（印刷121–122頁の見開き、福利体系は122頁）を直接取得し実読。提供される社員福利として明記し、特定の他職種だけの事例ではない。報告範囲はPDF3頁で中国南方航空股份有限公司を主体とし、集团に拡張する個別指標は区別すると説明。全員が無条件で利用可能という保証や操縦士別の規則までは未掲載。社員向け通勤シャトルの制度名。運行地区・操縦士限定条件・無料か否かは原文にないため補わない。 公表日はPDF中で確定できず空欄。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "通勤班车",
+       "source_id": "src-hkexnews-hk-0a0208c2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e3fd0b60263ada30",
+     "id": "china-southern.benefits.commuting.f639ae5a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261029-cg-china-southern",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "中国南方航空股份有限公司 –2025年可持续发展（ESG）报告 / 福利体系",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hkexnews-hk-0a0208c2",
+       "source_type": "official_package",
+       "title": "中国南方航空股份有限公司 –2025年可持续发展（ESG）报告 / 福利体系",
+       "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0331/2026033100282_c.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "通勤班车",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -36459,6 +37593,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "深圳市区各站点到航站楼区域机组班车",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-southern",
+     "cond_ja": "中国南方航空股份有限公司の2025年员工福利体系・专属福利の公表。操縦士専用制度ではなく会社の社員向け福利厚生として記録。補足: PDF63頁（印刷121–122頁の見開き、福利体系は122頁）を直接取得し実読。提供される社員福利として明記し、特定の他職種だけの事例ではない。報告範囲はPDF3頁で中国南方航空股份有限公司を主体とし、集团に拡張する個別指標は区別すると説明。全員が無条件で利用可能という保証や操縦士別の規則までは未掲載。社員向け優待航空券の制度名。無償航空券、回数、対象家族、予約優先度は原文にないため補わない。 公表日はPDF中で確定できず空欄。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "职优机票",
+       "source_id": "src-hkexnews-hk-0a0208c2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a35e56170274f08a",
+     "id": "china-southern.benefits.staff-travel.7a921a81",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261029-cg-china-southern",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "中国南方航空股份有限公司 –2025年可持续发展（ESG）报告 / 福利体系",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hkexnews-hk-0a0208c2",
+       "source_type": "official_package",
+       "title": "中国南方航空股份有限公司 –2025年可持续发展（ESG）报告 / 福利体系",
+       "url": "https://www.hkexnews.hk/listedco/listconews/sehk/2026/0331/2026033100282_c.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "职优机票",
      "value_text": null
     }
    ],
@@ -38423,6 +39608,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "copa-airlines",
+     "cond_ja": "Copa Holdings年報が会社のパナマ法に基づく退職・勤続給付を説明。EligibilityはAll employees（操縦士含む）。パナマ法適用雇用者の範囲。補足: 会社が実施・拠出している制度を会社年報の明示で確認。Copa AirlinesのUNPAC操縦士協約と、ColombiaのAeroRepúblicaの制度を区別。会社全体の年金引当額や給付額を操縦士一人当たりに使わず、制度名だけ採用。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-02-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Seniority premium plan",
+       "source_id": "src-ir-copaair-com-85306ee8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "79a67dad902ff46e",
+     "id": "copa-airlines.benefits.pension.fd5d9723",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-copa-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2026-02-26",
+       "publisher": "Copa Holdings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ir-copaair-com-85306ee8",
+       "source_type": "regulatory_filing",
+       "title": "2025 Form20-F / Employee benefits",
+       "url": "https://ir.copaair.com/node/17341/html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Seniority premium plan",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -52790,6 +54026,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "on-site healthcare services",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "2023年報の従業員一般の退職給付。支払額・資格は本人契約又は労働協約に従う。補足: 議会公式サイト公開の会社年報現物を実読。勤続年数に応じ、契約又は協約で定める支払を受けると説明。海外代理店雇用者や全パイロットに同一給付を約束するものではない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "retirement plan",
+       "source_id": "src-parliament-gov-fj-9f1bfed8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "830fc6da95e816ea",
+     "id": "fiji-airways.benefits.pension.388dba44",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Fiji Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-parliament-gov-fj-9f1bfed8",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2023 Financial Statements",
+       "url": "https://www.parliament.gov.fj/wp-content/uploads/2024/08/Fiji-Airways-Annual-Report-2023-1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "retirement plan",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -58448,6 +59735,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": "操縦士についてRetirement Award Disbursement Programを提供すると説明。給付率・対象給与・計算式・全雇用区分への適用は未掲載で、現金年収へ加算しない。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "2025年; Garuda Indonesiaの操縦士を含む社員と家族の健康保険; 眼鏡・出産の保障も含む; 個別保障額は未掲載。補足: PDF p173（本文173）福利厚生列挙でemployees and their familiesと明示。一般法の医療保険だけから推定していない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Health insurance",
+       "source_id": "src-garuda-indonesia-com-c0efa202",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4cc6b0f7ea14e2c0",
+     "id": "garuda-indonesia.benefits.medical.24849ec8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Garuda Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-garuda-indonesia-com-c0efa202",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report 2025",
+       "url": "https://www.garuda-indonesia.com/static/content/dam/garuda/hubungan-investor/SR_GARUDA%202025_120526_FINAL.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Health insurance",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "2025年; Garuda Indonesia操縦士専用の退職表彰給付プログラム; 職務特性・適用規程に従う。補足: PDF p271（本文271）にSpecifically for pilotsと明記。一般社員年金から操縦士への推定ではない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Retirement Award Disbursement Program",
+       "source_id": "src-garuda-indonesia-com-1ef1ae5d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "493c3301d63b47bf",
+     "id": "garuda-indonesia.benefits.pension.6aa7185e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Garuda Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-garuda-indonesia-com-1ef1ae5d",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2025",
+       "url": "https://www.garuda-indonesia.com/static/content/dam/garuda/hubungan-investor/AR-GARUDA-2025_Final.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Retirement Award Disbursement Program",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "2025年; Garuda Indonesia社員がHCISで取得する優待航空券; 操縦士を含む社員一般; 券種・枚数は未掲載。補足: PDF p274（本文274）Human Capital Information Systemに社員優待航空券の取得機能を明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "employee discount tickets",
+       "source_id": "src-garuda-indonesia-com-1ef1ae5d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3d2c51cceb6b2f0c",
+     "id": "garuda-indonesia.benefits.staff-travel.cde5516d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Garuda Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-garuda-indonesia-com-1ef1ae5d",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2025",
+       "url": "https://www.garuda-indonesia.com/static/content/dam/garuda/hubungan-investor/AR-GARUDA-2025_Final.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "employee discount tickets",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -59696,6 +61136,326 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度パイロット合同採用・HAC欄; 年次有給休暇の公表範囲の下限。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF4頁。原文は年間１０～２０日。勤続年数別の対応は未記載。全角数字を原文どおり保存。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "１０",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bee721fa16dd044f",
+     "id": "hac.benefits.annual-leave-fo.2e5e1d42",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "副操縦士の年次休暇",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "１０",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度パイロット合同採用・HAC欄; 年次有給休暇の公表範囲の上限。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF4頁。原文は年間１０～２０日。勤続年数別の対応は未記載。全角数字を原文どおり保存。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "２０",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "af5ed0863bca7c85",
+     "id": "hac.benefits.annual-leave-fo.4fb9dde6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "副操縦士の年次休暇",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "２０",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度パイロット合同採用・HAC欄; 通勤費。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF4頁。額・上限は未公表。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "当社規程により支給",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "09d32dead4d8be0c",
+     "id": "hac.benefits.commuting-fo.5b69ff87",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "副操縦士の通勤の手当・送迎",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "当社規程により支給",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度パイロット合同採用・HAC欄; 寮施設の有無。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF4頁の寮施設欄。住宅手当の不存在を意味しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "なし",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "30b62afccd4c0478",
+     "id": "hac.benefits.housing-fo.93916fcb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "副操縦士の住宅手当・社宅",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "なし",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度パイロット合同採用・HAC欄; 副操縦士候補生。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF4頁。JAC欄の厚生年金等をHAC欄へ転用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "健康保険組合加入",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8df96701dac5c4f3",
+     "id": "hac.benefits.medical-fo.6251d84d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "副操縦士の医療の保険・補助",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "健康保険組合加入",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度パイロット合同採用・HAC欄; 副操縦士候補生。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF4頁。割引率や対象家族は未公表。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "社員優待搭乗制度",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a2ccb00aac99ac35",
+     "id": "hac.benefits.staff-travel-fo.b5b42b86",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "副操縦士の社員の航空券",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "社員優待搭乗制度",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -59928,6 +61688,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度パイロット合同採用・HAC欄; 副操縦士候補生。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF4頁。休日の項目であり年次有給休暇とは別。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "120",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "98b328bf7cc67fd4",
+     "id": "hac.work.annual-days-off-fo.b0e87806",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "annual_days_off",
+     "label_ja": "副操縦士の年間の休日",
+     "pack": "pvr-20261029-cg-hac",
+     "per": "year",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 120,
+     "value_text": "120"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -59985,6 +61798,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "hainan-airlines": {
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "hainan-airlines",
+     "cond_ja": "2025年; 海南航空控股の職員住宅積立基金への拠出; 住宅手当・無料社宅とは区別。補足: 本文p155「应付职工薪酬」の住宅積立基金に当期実際の拠出が記載される。操縦士独自の拠出額は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "住房公积金",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "818b97bdc3b098cc",
+     "id": "hainan-airlines.benefits.housing.d8ef751c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "住宅手当・社宅",
+     "pack": "pvr-20261029-cg-hainan-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "海南航空控股股份有限公司",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "source_type": "official_package",
+       "title": "2025年年度报告",
+       "url": "https://www.hnair.com/guanyuhaihang/tzzgx/cwbg/202604/P020260420522378332480.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "住房公积金",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "hainan-airlines",
+     "cond_ja": "2025年; 海南航空控股の操縦士を含む社員向け補足医療保険; 個別補償額・資格は未掲載。補足: 本文p11の企業福利厚生。一般法の制度だけではなく同社の実際の福利厚生実施説明。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "商业补充医疗保险",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3973a49685a5d31c",
+     "id": "hainan-airlines.benefits.medical.eab4c798",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-hainan-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "海南航空控股股份有限公司",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "source_type": "official_package",
+       "title": "2025年年度报告",
+       "url": "https://www.hnair.com/guanyuhaihang/tzzgx/cwbg/202604/P020260420522378332480.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "商业补充医疗保险",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -60095,6 +62010,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "過去",
      "value": "従業員割引航空券、空勤/特別区分/海外派遣従業員向け探親航空券を説明。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "hainan-airlines",
+     "cond_ja": "2025年; 本会社の職員が加入する社会基本養老保険; 同社が毎月拠出; 操縦士を含む職員一般制度。補足: 本文p115「本公司职工参加了…社会基本养老保险」と会社実施を明記。国の一般制度だけから加入を推測していない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "社会基本养老保险",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de86242a411c7aa9",
+     "id": "hainan-airlines.benefits.pension.ad2e7b11",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-hainan-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "海南航空控股股份有限公司",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "source_type": "official_package",
+       "title": "2025年年度报告",
+       "url": "https://www.hnair.com/guanyuhaihang/tzzgx/cwbg/202604/P020260420522378332480.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "社会基本养老保险",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "hainan-airlines",
+     "cond_ja": "2025年; 海南航空控股の操縦士を含む社員に提供する企業福利厚生; 個別利用資格・枚数は未掲載。補足: 本文p11「全方位开展员工关爱工作」。連結子会社も含む報告範囲。特定外国人機長契約の条件とは区別。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "优惠机票",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5b749a2a31d073d2",
+     "id": "hainan-airlines.benefits.staff-travel.d55b3674",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261029-cg-hainan-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "海南航空控股股份有限公司",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hnair-com-a6ac5d38",
+       "source_type": "official_package",
+       "title": "2025年年度报告",
+       "url": "https://www.hnair.com/guanyuhaihang/tzzgx/cwbg/202604/P020260420522378332480.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "优惠机票",
      "value_text": null
     }
    ],
@@ -61838,6 +63855,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 150,
      "value_text": "150"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "iberia",
+     "cond_ja": "操縦士本人のFondo Mutualへの基礎拠出率。協約Anexo1,Fの基準額に対する率、Nivel11対象外。補足: 2024改定協約art.138.3–4。操縦士の補完社会保障のFondo Mutual / Loreto Mutua等への拠出。退職後65歳未満の継続拠出・Reserve対象の規定も同節に記載。率の合算や給与額の作成なし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-12-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 %",
+       "source_id": "src-boe-es-c2717bf2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f93dc1e92f703d6c",
+     "id": "iberia.benefits.pension.6eaa55db",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-iberia",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2024-12-06",
+       "publisher": "BOE-A-2024-25500",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-boe-es-c2717bf2",
+       "source_type": "government",
+       "title": "Modificación X Convenio Iberia / pilotos, art.138.4",
+       "url": "https://boe.es/diario_boe/txt.php?id=BOE-A-2024-25500&lang=es"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "iberia",
+     "cond_ja": "会社のFondo Mutualへの基礎拠出率。協約Anexo1,Fの基準額に対する率、Nivel11対象外。補足: 2024改定協約art.138.3–4。操縦士の補完社会保障のFondo Mutual / Loreto Mutua等への拠出。退職後65歳未満の継続拠出・Reserve対象の規定も同節に記載。率の合算や給与額の作成なし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-12-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 %",
+       "source_id": "src-boe-es-c2717bf2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5ba3674bc0ab0456",
+     "id": "iberia.benefits.pension.c5196af0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-iberia",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2024-12-06",
+       "publisher": "BOE-A-2024-25500",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-boe-es-c2717bf2",
+       "source_type": "government",
+       "title": "Modificación X Convenio Iberia / pilotos, art.138.4",
+       "url": "https://boe.es/diario_boe/txt.php?id=BOE-A-2024-25500&lang=es"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
     },
     {
      "amount": null,
@@ -63958,6 +66077,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "icelandair": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "icelandair",
+     "cond_ja": "IcelandairのFÍA協約適用・EFÍA加入操縦士に限定した基金の加入者本人拠出率（対象給与に対する率）。他協約・未加入者には広げない。補足: FÍA公式 https://www.fia.is/styrkir-sjodir/eftirlaunasjodur/ がEFÍAを案内。現行基金ページの拠出率を転記。2026規約 https://www.arionbanki.is/library/Skrar/Samthykktir/Sam%C3%BEykktir%20EFI%CC%81A%202026.pdf §3.1/3.5/9.1 はFÍA協約を労働条件の基礎とする操縦士・契約に基金加入を明記する者が対象。基金公開役員候補自己紹介がIcelandair現役操縦士を明記し同社との関係も確認。基金一般の率であり会社独自の追加拠出を意味しない。現行ページは発行日表示なし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4%",
+       "source_id": "src-arionbanki-is-2e5367a8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7ef94cc736dd4adf",
+     "id": "icelandair.benefits.pension.58ceda90",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-icelandair",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "EFÍA / Arion Banki",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-arionbanki-is-2e5367a8",
+       "source_type": "official_package",
+       "title": "Um EFÍA（FÍAが案内する年金基金）",
+       "url": "https://www.arionbanki.is/efia/um-efia/"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "icelandair",
+     "cond_ja": "IcelandairのFÍA協約適用・EFÍA加入操縦士に限定した基金の合計最低拠出率（対象給与に対する率）。他協約・未加入者には広げない。補足: FÍA公式 https://www.fia.is/styrkir-sjodir/eftirlaunasjodur/ がEFÍAを案内。現行基金ページの拠出率を転記。2026規約 https://www.arionbanki.is/library/Skrar/Samthykktir/Sam%C3%BEykktir%20EFI%CC%81A%202026.pdf §3.1/3.5/9.1 はFÍA協約を労働条件の基礎とする操縦士・契約に基金加入を明記する者が対象。基金公開役員候補自己紹介がIcelandair現役操縦士を明記し同社との関係も確認。基金一般の率であり会社独自の追加拠出を意味しない。現行ページは発行日表示なし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "20%",
+       "source_id": "src-arionbanki-is-2e5367a8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e50681a5b3ef35a",
+     "id": "icelandair.benefits.pension.6eb1b3b0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-icelandair",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "EFÍA / Arion Banki",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-arionbanki-is-2e5367a8",
+       "source_type": "official_package",
+       "title": "Um EFÍA（FÍAが案内する年金基金）",
+       "url": "https://www.arionbanki.is/efia/um-efia/"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 20,
+     "value_text": "20"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "icelandair",
+     "cond_ja": "IcelandairのFÍA協約適用・EFÍA加入操縦士に限定した基金の雇用主拠出率（対象給与に対する率）。他協約・未加入者には広げない。補足: FÍA公式 https://www.fia.is/styrkir-sjodir/eftirlaunasjodur/ がEFÍAを案内。現行基金ページの拠出率を転記。2026規約 https://www.arionbanki.is/library/Skrar/Samthykktir/Sam%C3%BEykktir%20EFI%CC%81A%202026.pdf §3.1/3.5/9.1 はFÍA協約を労働条件の基礎とする操縦士・契約に基金加入を明記する者が対象。基金公開役員候補自己紹介がIcelandair現役操縦士を明記し同社との関係も確認。基金一般の率であり会社独自の追加拠出を意味しない。現行ページは発行日表示なし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "16%",
+       "source_id": "src-arionbanki-is-2e5367a8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d699bf0bc93f591c",
+     "id": "icelandair.benefits.pension.f18ba78b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-icelandair",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "EFÍA / Arion Banki",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-arionbanki-is-2e5367a8",
+       "source_type": "official_package",
+       "title": "Um EFÍA（FÍAが案内する年金基金）",
+       "url": "https://www.arionbanki.is/efia/um-efia/"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 16,
+     "value_text": "16"
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -64575,6 +66849,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "FY2024–25; InterGlobe Aviation単体従業員向け確定拠出; 操縦士を含む社員一般; 適格資格・法令による。補足: 本文164。会社が当局へ拠出していることを明記。一般法の存在だけから会社加入を推測していない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "provident fund contributions",
+       "source_id": "src-nsearchives-nseindia-com-2e043bb6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb07642a486acc5e",
+     "id": "indigo.benefits.pension.de1edc0b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "InterGlobe Aviation Limited",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-nsearchives-nseindia-com-2e043bb6",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2024-25",
+       "url": "https://nsearchives.nseindia.com/annual_reports/AR_27116_INDIGO_2024_2025_A_26072025103933.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "provident fund contributions",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "FY2024–25; InterGlobe Aviation単体の適格従業員向け確定給付退職制度; 退職・死亡・雇用終了時等の一時金; 勤続資格条件あり。補足: 本文164。原文がfive yearsと綴るため勤続5年を数値valueには採用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "gratuity",
+       "source_id": "src-nsearchives-nseindia-com-2e043bb6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2d7dd1c759f9e7ab",
+     "id": "indigo.benefits.pension.e416620b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "InterGlobe Aviation Limited",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-nsearchives-nseindia-com-2e043bb6",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2024-25",
+       "url": "https://nsearchives.nseindia.com/annual_reports/AR_27116_INDIGO_2024_2025_A_26072025103933.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "gratuity",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "employer": "IndiGo",
       "note_ja": "自社pilot administration担当の職務説明でpilotへの支援を特定。輸送担当10351はcrew一般の補助文脈であり、全pilotの住宅送迎資格を確定する根拠には使用しない。",
       "pilot_specific": true,
@@ -64651,6 +67027,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "パイロット管理担当の職務として業務移動の航空券・ホテル・交通の手配が記載されている。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "現行採用サイト; IndiGo社員と適格家族; 国内線・国際線の空席待ち優待券; 操縦士を含む社員一般。補足: 正式wwwの現行会社採用サイトをrootが通常ブラウザーで実読。6E Benefits→Travel with your loved ones→View moreの表示本文（AX modal210）で原文を確認。更新日不明のため日付空欄。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "unlimited discounted standby tickets",
+       "source_id": "src-goindigo-in-fcdbf86b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "10aa74bc0284fb38",
+     "id": "indigo.benefits.staff-travel.be101714",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-goindigo-in-fcdbf86b",
+       "source_type": "official_package",
+       "title": "Life at IndiGo, 6E Benefits",
+       "url": "https://www.goindigo.in/careers/lifeatindigo.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "unlimited discounted standby tickets",
      "value_text": null
     }
    ],
@@ -66038,6 +68465,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "j-air",
+     "cond_ja": "2023年度副操縦士候補生; 公共交通機関; 事業所・居住地間の直線距離20kmが対象限度。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF3頁。早朝・深夜に公共交通機関が利用できない場合はタクシー利用可。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "通勤費を支給",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "20c157ab60c3d682",
+     "id": "j-air.benefits.commuting-fo.3f4d31b6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "副操縦士の通勤の手当・送迎",
+     "pack": "pvr-20261029-cg-j-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "通勤費を支給",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "j-air",
+     "cond_ja": "2023年度副操縦士候補生; 自家用車通勤; 大阪国際空港中心の半径20kmが対象限度。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF3頁。通勤制度の種類。金額は公表なし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "燃料費および補助費（定額）",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "48ad7d3a547d2734",
+     "id": "j-air.benefits.commuting-fo.ba887d23",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "副操縦士の通勤の手当・送迎",
+     "pack": "pvr-20261029-cg-j-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "燃料費および補助費（定額）",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "employer": "J-Air (J-AIR)",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
@@ -66255,6 +68788,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "寮制度あり",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "j-air",
+     "cond_ja": "2023年度パイロット合同採用・J-AIR欄の福利厚生。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF3頁。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "日本航空健康保険組合",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0f17c0e0fa34fe9c",
+     "id": "j-air.benefits.medical-fo.2ff23ef6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "副操縦士の医療の保険・補助",
+     "pack": "pvr-20261029-cg-j-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "日本航空健康保険組合",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "j-air",
+     "cond_ja": "全社員の健康経営; 2025年までの施策実績; インフルエンザ予防接種。補足: 2026年開始のVision2035と2030年に向けた施策を掲載する現行会社ページを直接取得・実読。対象は全社員で、操縦士専用保険とは扱わない。発行日不明。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "費用補助",
+       "source_id": "src-jair-co-jp-716bc730",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c9ef9dd432d96bdb",
+     "id": "j-air.benefits.medical.ac2ab9eb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-j-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ジェイエア",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jair-co-jp-716bc730",
+       "source_type": "official_package",
+       "title": "J-AIR健康経営の活動状況",
+       "url": "https://www.jair.co.jp/j-air-health-management/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "費用補助",
      "value_text": null
     },
     {
@@ -66983,6 +69620,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "過去",
      "value": "日本国内および海外の訓練施設",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "j-air",
+     "cond_ja": "2023年度パイロット合同採用・J-AIR欄; 土日祝日・深夜早朝・年末年始を含み、宿泊勤務あり。補足: 2023年9月の会社共同原資料を実読。発行日は月までしかないため空欄。2024年2月以降入社の副操縦士候補生向けであり、2026年の全経験者条件を保証しない。 PDF3頁。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "変則勤務",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0cec5227cec9b243",
+     "id": "j-air.work.roster-pattern-fo.d4bc4c3e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "副操縦士のロスターの型",
+     "pack": "pvr-20261029-cg-j-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "変則勤務",
      "value_text": null
     }
    ]
@@ -72967,6 +75657,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年。グループと全従業員が拠出する確定拠出制度。補足: 原文はGroup and all its employees。法の一般規定だけではなく、この会社による実際の加入・拠出方針の記述。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "National Social Security Fund",
+       "source_id": "src-corporate-kenya-airways-com-60809ee2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "66c2b4c16f571071",
+     "id": "kenya-airways.benefits.pension.326f5ed9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways PLC",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-corporate-kenya-airways-com-60809ee2",
+       "source_type": "regulatory_filing",
+       "title": "Integrated Report and Audited Financial Statements 2025, p.77",
+       "url": "https://corporate.kenya-airways.com/contentassets/0160e07788564ab39cbed32da21839b2/annual-report-2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "National Social Security Fund",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年。permanent employees（無期雇用の従業員）一般の確定拠出型基金。会社と従業員が拠出。補足: 操縦士専用の制度ではなく会社全体の恒久雇用者制度。海外代理店契約者への適用を断定しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Staff Provident Fund",
+       "source_id": "src-corporate-kenya-airways-com-60809ee2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0aecbc04cbe799ba",
+     "id": "kenya-airways.benefits.pension.d67f6b7e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways PLC",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-corporate-kenya-airways-com-60809ee2",
+       "source_type": "regulatory_filing",
+       "title": "Integrated Report and Audited Financial Statements 2025, p.77",
+       "url": "https://corporate.kenya-airways.com/contentassets/0160e07788564ab39cbed32da21839b2/annual-report-2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Staff Provident Fund",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": false,
       "rank": "all_staff"
@@ -75282,6 +78074,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "2025報告書の社員福利厚生制度; 社宅提供; 操縦士を含む社員向け一般制度; 個別入居資格は未掲載。補足: PDF p71（本文71）の복리후생 제도。職員の職種内訳には運航部門を含む。報告対象2024年、一部2025上期。発行日は日まで特定できないため空欄。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "사택제공",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6bc7e489dd21c36d",
+     "id": "korean-air.benefits.housing.38231e2a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "住宅手当・社宅",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Korean Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "source_type": "official_package",
+       "title": "대한항공 ESG보고서 2025",
+       "url": "https://kr.img.news.koreanair.com/wp-content/uploads/2025/06/2025-ESG-%EB%B3%B4%EA%B3%A0%EC%84%9C.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "사택제공",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "2025報告書の社員福利厚生制度; 住宅購入・伝貰保証金資金融資; 操縦士を含む社員向け一般制度; 個別融資条件は未掲載。補足: PDF p71（本文71）。社宅とは別制度。報告対象2024年、一部2025上期。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "주택 구입 및 전세자금 융자",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ebf33d033910870",
+     "id": "korean-air.benefits.housing.e6045546",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "住宅手当・社宅",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Korean Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "source_type": "official_package",
+       "title": "대한항공 ESG보고서 2025",
+       "url": "https://kr.img.news.koreanair.com/wp-content/uploads/2025/06/2025-ESG-%EB%B3%B4%EA%B3%A0%EC%84%9C.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "주택 구입 및 전세자금 융자",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "2025報告書の社員福利厚生制度; 健康保険加入; 操縦士を含む社員向け一般制度。補足: PDF p71（本文71）; 給付額・補償上限は未掲載。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "건강보험 가입",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c83474c07877fadb",
+     "id": "korean-air.benefits.medical.1729c751",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Korean Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "source_type": "official_package",
+       "title": "대한항공 ESG보고서 2025",
+       "url": "https://kr.img.news.koreanair.com/wp-content/uploads/2025/06/2025-ESG-%EB%B3%B4%EA%B3%A0%EC%84%9C.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "건강보험 가입",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "全社員向け個人年金への月額支援; 原文の만원は万ウォン; 5만원を50000 KRWへ換算しない。補足: PDF p71（本文71）; 原文が全社員と明記しているため操縦士を含む。給与額ではなく年金拠出支援。報告対象2024年、一部2025上期。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5만원",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "05d92f5c3d72c8dd",
+     "id": "korean-air.benefits.pension.a3aeaada",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Korean Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "source_type": "official_package",
+       "title": "대한항공 ESG보고서 2025",
+       "url": "https://kr.img.news.koreanair.com/wp-content/uploads/2025/06/2025-ESG-%EB%B3%B4%EA%B3%A0%EC%84%9C.pdf"
+      }
+     ],
+     "unit": "만원",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "hire_route": "Rishworth expatriate Pilot contract",
       "note_ja": "同ページKorean Air Terms & Conditions / expat flight crew / whilst flying for Korean Airに対象を限定。法的雇用主体は確定しない。",
       "pilot_specific": true,
@@ -77041,6 +80037,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "参考",
      "value": "月11連続在宅日と、別枠の月3移動日を説明。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "業務外の疾病・傷病等が発生した対象社員に必要な有給休暇を付与; 日数・給与継続率は未掲載。補足: PDF p73（本文73）「임직원 재충전 기회 부여」。対象事由に업무외 질병/상병が含まれる。全社員制度の記述として採用し、操縦士独自の病休枠とは区別。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "유급휴가를",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "63a684c7fb4f25d8",
+     "id": "korean-air.work.sick-leave.574d856a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "sick_leave",
+     "label_ja": "有給の病気休暇",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Korean Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kr-img-news-koreanair-com-65b8c22f",
+       "source_type": "official_package",
+       "title": "대한항공 ESG보고서 2025",
+       "url": "https://kr.img.news.koreanair.com/wp-content/uploads/2025/06/2025-ESG-%EB%B3%B4%EA%B3%A0%EC%84%9C.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "유급휴가",
+     "value_text": null
     }
    ]
   },
@@ -77617,6 +80664,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；本人希望による年休分割時の1区間。最大2区間、会社が時期を決定。補足: PDF p33、3.7.5。分割休暇1区間の明示日数。年間合計は原文に直接数値がなく、掛け算で作成しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "15",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9241365d561d118d",
+     "id": "latam.benefits.annual-leave.ab0da816",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "days/segment",
+     "use": "条件つき",
+     "value": 15,
+     "value_text": "15"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；現役・乗務割当中の勤務開始前／終了後の国内通勤航空券。相互取扱・空席待ち条件。補足: PDF p31、3.6.2とp42、Anexo I §1–4。休暇・休職・退職者対象外。通常の私用社員旅行とは分け、勤務への移動に限定。表記は目次の原文。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Passe livre",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "671cb82eddb29bdf",
+     "id": "latam.benefits.commuting.1d01ff71",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Passe livre",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -79576,6 +82725,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；任意参加の月9休日プログラム。通常の最低休日を示す値ではない。補足: PDF p30、3.4.12。参加は60日前、離脱は90日前申出。9休日で公表された月だけ制度の対象。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "9 (nove) folgas",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "673a9637e9df1b40",
+     "id": "latam.work.days-off.b6059511",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-latam",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 9,
+     "value_text": "9"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "contract": "ACT Aeronautas Pilotos 2025–2027",
       "employer": "TAM LINHAS AÉREAS S/A",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
@@ -79741,6 +82941,414 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "参考",
      "value": "週44hの勤務上限。飛行時間の最大はWB100h/28日・1000h/365日、A32F/Embraer90h/28日・900h/365日。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；月単位ロスター。公表は05日前。補足: PDF p22、3.3.5。月次の計画ロスター公表規則。固定勤務サイクルの日数は示さない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "escalas mensais",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "968a889a7b5942f9",
+     "id": "latam.work.roster-pattern.f2c58d7a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "escalas mensais",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；INSSによる病欠時の会社差額補助の対象期間上限。補足: PDF p13、3.1.10。社会保障給付と在職時固定給との差額への補助。180日の全額給与保障ではない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "180",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f42011f268ae2a6d",
+     "id": "latam.work.sick-leave.09bee3ce",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "sick_leave",
+     "label_ja": "有給の病気休暇",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 180,
+     "value_text": "180"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；INSS病欠時、在職時固定給とINSS給付との差額の補助率、180日まで。補足: PDF p13、3.1.10。固定給そのものの50%とは異なる。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "50%",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "385a54d37c3842bc",
+     "id": "latam.work.sick-leave.7d4fc11e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "sick_leave",
+     "label_ja": "有給の病気休暇",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 50,
+     "value_text": "50"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；労災によるINSS病欠時、在職時固定給とINSS給付との差額の補助率、180日まで。補足: PDF p13、3.1.10。労災に限る差額補助。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "100%",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "307c9c06404d3b78",
+     "id": "latam.work.sick-leave.fc5eee75",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "sick_leave",
+     "label_ja": "有給の病気休暇",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "%",
+     "use": "条件つき",
+     "value": 100,
+     "value_text": "100"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；Wide Body、連続28日間の飛行時間上限。補足: PDF p27、3.3.17。契約が明示する機材別上限。月暦・暦年へ換算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "100h",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3424d8ef4e1fecc0",
+     "id": "latam.work.working-time.145bf9d4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "hours/28days",
+     "use": "条件つき",
+     "value": 100,
+     "value_text": "100"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；Airbus-A32F / Embraer、連続28日間の飛行時間上限。補足: PDF p27、3.3.17。契約が明示する機材別上限。月暦・暦年へ換算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "90h",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1588e24dc6a8e9dd",
+     "id": "latam.work.working-time.9ec37f6e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "hours/28days",
+     "use": "条件つき",
+     "value": 90,
+     "value_text": "90"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；Wide Body、連続365日間の飛行時間上限。補足: PDF p27、3.3.17。契約が明示する機材別上限。月暦・暦年へ換算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1000h",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b93f91172ed55685",
+     "id": "latam.work.working-time.bba23c94",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "hours/365days",
+     "use": "条件つき",
+     "value": 1000,
+     "value_text": "1000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Brasil（TAM Linhas Aéreas S.A.）操縦士協約、2025-12-01～2027-11-30；Airbus-A32F / Embraer、連続365日間の飛行時間上限。補足: PDF p27、3.3.17。契約が明示する機材別上限。月暦・暦年へ換算しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "900h",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1b58875396aab022",
+     "id": "latam.work.working-time.d81760a6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-12-12",
+       "publisher": "SNA / TAM Linhas Aéreas S.A.",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-49a74f89",
+       "source_type": "union_cba",
+       "title": "ACT Aeronautas Pilotos 2025/2027",
+       "url": "https://www.aeronautas.org.br/wp-content/uploads/2025/12/20251209-ACT-Aeronautas-Pilotos-25-27_v13-site.pdf"
+      }
+     ],
+     "unit": "hours/365days",
+     "use": "条件つき",
+     "value": 900,
+     "value_text": "900"
     }
    ]
   },
@@ -81146,6 +84754,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": "LufthansaとLufthansa Cargoの企業年金について会社の協議提案を受諾",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "lufthansa",
+     "cond_ja": "Lufthansa Classic / Lufthansa本体の操縦士；制度の存在。金額・拠出率は未確認。補足: 本文はClassicの企業年金が操縦士に提供されると明記。CityLine向け賃上げは別段落なので混ぜない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-03-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "company pension scheme",
+       "source_id": "src-newsroom-lufthansagroup-com-17183945",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "25b64b2a00bd6b18",
+     "id": "lufthansa.benefits.pension.0d9ab1f8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-lufthansa",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2026-03-11",
+       "publisher": "Lufthansa",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-lufthansagroup-com-17183945",
+       "source_type": "official_package",
+       "title": "Michael Niggemann on the VC strike announcement",
+       "url": "https://newsroom.lufthansagroup.com/en/lufthansa-executive-board-member-michael-niggemann-on-the-strike-announcement-by-the-vereinigung-cockpit-union/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "company pension scheme",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -81371,6 +85030,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "malaysia-airlines": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2024年; Malaysia Airlinesを含むMAG社員向け早期退職制度; 申請・退職時期等の資格条件あり; 操縦士独自制度ではない。補足: 本文46 Employee Benefits。原文のthree monthsを3に変換しないため、制度名のみ採用。給付の月数や金額はこの行に入れない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MAG Early Retirement Application (MYRA)",
+       "source_id": "src-malaysiaaviationgroup-com-my-26dd538a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2e693fb80632ed80",
+     "id": "malaysia-airlines.benefits.pension.e9db7b19",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaaviationgroup-com-my-26dd538a",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report 2024",
+       "url": "https://malaysiaaviationgroup.com.my/content/dam/mag/en/sustainability/sustainability-publications/sustainability-reports/MAG-SUSTAINABILITY-REPORT-2024.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAG Early Retirement Application (MYRA)",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -83418,6 +87130,167 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "orc": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "2023年機長要員募集; 各種手当に通勤手当を列挙; 金額非公表。補足: ORC作成原資料のPDF1頁を実読。応募締切2023年10月20日、2024年2月以降入社。機長認定前は嘱託、合格後正社員登用。発行日の明示なし。2026年現在の全職員条件とは扱わない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "通勤",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a4add5004c18534b",
+     "id": "orc.benefits.commuting-cap.e55ac772",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "機長の通勤の手当・送迎",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "通勤",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "2023年機長要員募集; 各種手当に住居手当を列挙; 金額非公表。補足: ORC作成原資料のPDF1頁を実読。応募締切2023年10月20日、2024年2月以降入社。機長認定前は嘱託、合格後正社員登用。発行日の明示なし。2026年現在の全職員条件とは扱わない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "住居",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "df0c55a5ddd5ab02",
+     "id": "orc.benefits.housing-cap.def7aed8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "機長の住宅手当・社宅",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "住居",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "2023年機長要員募集; 退職金制度の仕組み。補足: ORC作成原資料のPDF1頁を実読。応募締切2023年10月20日、2024年2月以降入社。機長認定前は嘱託、合格後正社員登用。発行日の明示なし。2026年現在の全職員条件とは扱わない。 適用の詳細・受給額は未公表。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "中小企業退職金共済制度加入",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "514c2bad8f460e04",
+     "id": "orc.benefits.pension-cap.8f426328",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "機長の年金・退職金の制度",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "中小企業退職金共済制度加入",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -83758,6 +87631,167 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Japan",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "2023年機長要員募集; 年間休日。補足: ORC作成原資料のPDF1頁を実読。応募締切2023年10月20日、2024年2月以降入社。機長認定前は嘱託、合格後正社員登用。発行日の明示なし。2026年現在の全職員条件とは扱わない。 全角数字を原文どおり保存。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "１１４",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e3254ada9e34d8a7",
+     "id": "orc.work.annual-days-off-cap.30d6839a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "annual_days_off",
+     "label_ja": "機長の年間の休日",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "１１４",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "2023年機長要員募集; 月間休日の範囲の下限。補足: ORC作成原資料のPDF1頁を実読。応募締切2023年10月20日、2024年2月以降入社。機長認定前は嘱託、合格後正社員登用。発行日の明示なし。2026年現在の全職員条件とは扱わない。 原文は８～１０日／月。全角数字を保存。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "８",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1613a7d3cd834bfa",
+     "id": "orc.work.days-off-cap.7ac9cec5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "機長の休日（月）",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "８",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "2023年機長要員募集; 月間休日の範囲の上限。補足: ORC作成原資料のPDF1頁を実読。応募締切2023年10月20日、2024年2月以降入社。機長認定前は嘱託、合格後正社員登用。発行日の明示なし。2026年現在の全職員条件とは扱わない。 原文は８～１０日／月。全角数字を保存。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "１０",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "07d5bb55fd6bfd4b",
+     "id": "orc.work.days-off-cap.d1a040f1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "機長の休日（月）",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "１０",
      "value_text": null
     }
    ]
@@ -85106,6 +89140,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "philippine-airlines": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "philippine-airlines",
+     "cond_ja": "2025年; PAL Group社員一般（操縦士を含む）; SSS以外の退職基金; 個別条件はCompany Policyによる。補足: 統合PDF p217（Sustainability Report本文70）Employee Benefits表のY・Based on Company Policyを確認。PAL単体の操縦士退職年齢・給付算式は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Retirement Fund",
+       "source_id": "src-phi-com-ph-a747ee82",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e24d28634d1a37f4",
+     "id": "philippine-airlines.benefits.pension.b377669a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-philippine-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PAL Holdings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-phi-com-ph-a747ee82",
+       "source_type": "regulatory_filing",
+       "title": "2025 Annual Report and Sustainability Report",
+       "url": "https://phi.com.ph/wp-content/uploads/bsk-pdf-manager/2026/04/PAL-Holdings-Inc_17A_Dec-2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Retirement Fund",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "philippine-airlines",
+     "cond_ja": "2025年; PAL Group社員一般（操縦士を含む）と適格扶養家族; 個別券種・枚数は未掲載。補足: 統合PDF p217（Sustainability Report本文70）にPAL Group employeesのbenefitsと明記。PAL Expressを含むグループ共通記述でありPAL単体操縦士追加特典とは区別。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "travel privileges",
+       "source_id": "src-phi-com-ph-a747ee82",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88d7320b857f7658",
+     "id": "philippine-airlines.benefits.staff-travel.f8b03380",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261029-cg-philippine-airlines",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PAL Holdings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-phi-com-ph-a747ee82",
+       "source_type": "regulatory_filing",
+       "title": "2025 Annual Report and Sustainability Report",
+       "url": "https://phi.com.ph/wp-content/uploads/bsk-pdf-manager/2026/04/PAL-Holdings-Inc_17A_Dec-2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "travel privileges",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -88885,6 +93023,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Doha",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "qatar-airways",
+     "cond_ja": "FY2025/26。心理部門が客室乗務員・パイロット・技術者に行うメンタル面の支援。補足: パイロットを対象者として明記した医療・健康支援サービスのみを記録。医療保険の保障額・本人負担割合を示すものではない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "peer support programmes",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-580a3ef0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "04790b19472ce695",
+     "id": "qatar-airways.benefits.medical.036d62a0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-qatar-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Qatar Airways Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-580a3ef0",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2025/26, Our People p.36",
+       "url": "https://d21buns5ku92am.cloudfront.net/69647/documents/62720-1779272567-QR%20Group%20-%20Annual%20report%202025-26_EN-2a26d3.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "peer support programmes",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "qatar-airways",
+     "cond_ja": "FY2025/26。グループの従業員一般に対する退職時給付。勤続期間・契約条件による。補足: 本文はグループが従業員に給付し、雇用期間終了時に支払う制度を説明。操縦士固有の給付額ではない。決算日を発行日にしていない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "end of service benefits",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-497fb0b4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3ad65d8f43f47156",
+     "id": "qatar-airways.benefits.pension.080d4499",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-qatar-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Qatar Airways Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-497fb0b4",
+       "source_type": "official_package",
+       "title": "Consolidated Financial Statements year ended 31 March 2026, p.32",
+       "url": "https://d21buns5ku92am.cloudfront.net/69647/documents/62698-1779203702-Qatar%20Airways%20Group%20Q.C.S.C%20-%20English%20-%20Consolidated%20-%20March%202026-9c5f47.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "end of service benefits",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "qatar-airways",
+     "cond_ja": "FY2025/26。GCC（湾岸協力会議）国籍のグループ従業員について政府年金基金へ会社が拠出。外国人一般へ拡張しない。補足: 会社全体の国籍別制度。原文でGCC employeesと明記。拠出率・個別操縦士の支給額は未公表。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Government Pension Fund",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-497fb0b4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0aac951a51b61bae",
+     "id": "qatar-airways.benefits.pension.574c6965",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-qatar-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Qatar Airways Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-497fb0b4",
+       "source_type": "official_package",
+       "title": "Consolidated Financial Statements year ended 31 March 2026, p.32",
+       "url": "https://d21buns5ku92am.cloudfront.net/69647/documents/62698-1779203702-Qatar%20Airways%20Group%20Q.C.S.C%20-%20English%20-%20Consolidated%20-%20March%202026-9c5f47.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Government Pension Fund",
      "value_text": null
     }
    ],
@@ -96453,6 +100746,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "saudia": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "saudia",
+     "cond_ja": "Saudiaの従業員一般・家族・退職者向け。2024-03-06開始、原文one yearの保険契約。現在の継続は未確認。補足: 保険提供会社自身による2024-01-11の証券取引所開示を実読。契約獲得日は2024-01-10、適用開始日は2024-03-06で、これらを発行日と混同しない。パイロット専用の保険金額・免責・国籍別条件は非開示。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-01-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "health insurance services",
+       "source_id": "src-saudiexchange-sa-85ef5288",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ba24da79ac309523",
+     "id": "saudia.benefits.medical.3140da47",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-saudia",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": "2024-01-11",
+       "publisher": "Bupa Arabia for Cooperative Insurance",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-saudiexchange-sa-85ef5288",
+       "source_type": "official_package",
+       "title": "Saudi Exchange issuer announcement, contract award with Saudia",
+       "url": "https://www.saudiexchange.sa/wps/portal/saudiexchange/newsandreports/issuer-news/issuer-announcements/issuer-announcements-details/!ut/p/z1/lZFPT4NAEMU_Sw-cZwDZXb2tNW5pWilSFPZiBpsgZvkTs2r49q56ai1NndskvzfvvQxoKEB39NHUZJu-I-P2UrOnSDIMFgITXGznyDBTLN8K_yYO4XEfEGvFML2TaRLwCNUDgv6XHrNNhOntZh2u8B4VsvP0ODHyDH-9jyTykrsEy2sVr2QoGD8EjlQ8MPnb4Qc4FfJkzIBBRm9Quqp8Ekod9H3nuW8H6sZsbKveQCkCH2EJujZ99fvPF2uHKw89tLSjz3fjOXvqujlZKPxpIN5Bwd0gDG2eF9jErxdUiTE0tZzNvgAgLb-P/dz/d5/L0lHSkovd0RNQUZrQUVnQSEhLzROVkUvZW4!/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "health insurance services",
+     "value_text": null
+    }
+   ],
    "jobs": [
     {
      "amount": null,
@@ -96943,6 +101289,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "SINGAPORE",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "FY2024–25; ScootがMindNationを通じて全社員に提供するメンタルヘルス相談支援; 操縦士を含む; 医療保険の保障条件とは区別。補足: 本文108。Scootのall employeesが対象と明示される。直前のSIA Employee Health BenefitsはScootに転用しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "live counsellor support",
+       "source_id": "src-singaporeair-com-4ce33fc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bc0a1da6dfb8cd05",
+     "id": "scoot.benefits.medical.7ef29c9e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-singaporeair-com-4ce33fc3",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report FY2024/25",
+       "url": "https://www.singaporeair.com/content/dam/sia/web-assets/pdfs/about-us/information-for-investors/annual-report/sustainabilityreport2425.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "live counsellor support",
      "value_text": null
     }
    ],
@@ -103332,6 +107731,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "south-african-airways": {
    "benefits": [
     {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "FY2025。会社の全従業員向けに導入した医療補助・保険制度。加入状況は職種別でない。補足: 南アフリカ国会公式サイト公開の会社発行年報を実読。FY23導入、年報では大多数の職員が補助又は保険を利用と説明。パイロット全員が同じ保険プランとは断定しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "medical aid and medical insurance",
+       "source_id": "src-parliament-gov-za-e6b70578",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7bc1156adee0c3a9",
+     "id": "south-african-airways.benefits.medical.172e8cf9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-parliament-gov-za-e6b70578",
+       "source_type": "regulatory_filing",
+       "title": "Integrated Annual Report year ended 31 March 2025, p.138",
+       "url": "https://www.parliament.gov.za/storage/app/media/Docs/ann_rep/01dx3n75csegmeetwbm5ajbo6fy6unqove.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "medical aid and medical insurance",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "パイロットの医療補助。2024年11月に会社が実施したと2025-03-18記事で記録する歴史値。2026年10月現在の水準は未確認。補足: 会社が11月に実施した水準。組合は当時の包括提示を拒否してストライキへ進んだと同じ文脈にあり、後の最終合意額・現行額とは断定しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-03-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "R4,000 monthly",
+       "source_id": "src-flysaa-com-975533e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ea7eab030afe1b8f",
+     "id": "south-african-airways.benefits.medical.daa6877f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-03-18",
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-975533e6",
+       "source_type": "official_package",
+       "title": "Newsroom, 18 March 2025 pilot negotiation summary",
+       "url": "https://www.flysaa.com/about-us/leading-carrier/media-center/media-releases/newsroom"
+      }
+     ],
+     "unit": "ZAR",
+     "use": "条件つき",
+     "value": 4000,
+     "value_text": "4,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "FY2025。SAA全従業員が加入資格を持つ確定拠出型基金。補足: 同節でAll employees of SAA are eligible membersと明記。旧加入者の閉鎖済み確定給付基金とは区別する。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Transnet Retirement Fund",
+       "source_id": "src-parliament-gov-za-e6b70578",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b07e5929fc6073d4",
+     "id": "south-african-airways.benefits.pension.ffc6992e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-parliament-gov-za-e6b70578",
+       "source_type": "regulatory_filing",
+       "title": "Integrated Annual Report year ended 31 March 2025, p.138",
+       "url": "https://www.parliament.gov.za/storage/app/media/Docs/ann_rep/01dx3n75csegmeetwbm5ajbo6fy6unqove.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Transnet Retirement Fund",
+     "value_text": null
+    },
+    {
      "amount": {
       "assumed_hours": null,
       "excludes": [],
@@ -103468,6 +108020,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "過去",
      "value": "会社の2025年3月最終提案説明は独立した子6枚ID75、親6枚ID75、12枚ID90、条件付き配偶者年1回確約ID00往復を記載",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "FY2025。現職従業員と退職者一般の割引航空券。空席待ちで、有償旅客が優先。補足: 券面額の一部負担がある制度。2025年3月最終提案の家族券の枚数は確定本文との一致を立証できず採用していない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "standby",
+       "source_id": "src-parliament-gov-za-e6b70578",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c93011f7b86817c3",
+     "id": "south-african-airways.benefits.staff-travel.6b5eeb52",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 4,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-parliament-gov-za-e6b70578",
+       "source_type": "regulatory_filing",
+       "title": "Integrated Annual Report year ended 31 March 2025, p.138",
+       "url": "https://www.parliament.gov.za/storage/app/media/Docs/ann_rep/01dx3n75csegmeetwbm5ajbo6fy6unqove.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "standby",
      "value_text": null
     }
    ],
@@ -103867,6 +108470,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 14,
      "value_text": "14"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "2024年12月のストライキ停止交渉で合意した月間duty-free days。休暇取得による調整あり。補足: 同記事は休暇取得に応じたDFD控除と病休がDFDに重なった際の返還も記載。年間へ換算しない。2025年3月最終提案の未確定項目とは別の、December 2024 agreements欄。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-03-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "10 DFDs per month",
+       "source_id": "src-flysaa-com-975533e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62ecbafa37e13804",
+     "id": "south-african-airways.work.days-off.ac507cdf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": "month",
+     "rev": 4,
+     "src": [
+      {
+       "published": "2025-03-18",
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-975533e6",
+       "source_type": "official_package",
+       "title": "Newsroom, 18 March 2025 pilot negotiation summary",
+       "url": "https://www.flysaa.com/about-us/leading-carrier/media-center/media-releases/newsroom"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
     }
    ]
   },
@@ -535937,6 +540593,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-aer-lingus": {
    "records": {
+    "aer-lingus.benefits.pension.fc605ae3": "e53c94086edf64c6",
     "aer-lingus.destinations.operated-airport.05d95dda": "9c2417e19d720100",
     "aer-lingus.destinations.operated-airport.0ff14942": "5dead9c1a239d144",
     "aer-lingus.destinations.operated-airport.1d9047ce": "e3f976b7a1730a71",
@@ -535964,11 +540621,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aer-lingus.profile.headquarters-city.11e6a307": "20b8ec0a038cebd2",
     "aer-lingus.profile.headquarters-country.6ff893d9": "72228cb7403b5613"
    },
-   "revision": 1,
-   "sha": "sha256:9c39bedc86f23555"
+   "revision": 4,
+   "sha": "sha256:76349c92b2d62029"
   },
   "pvr-20261029-cg-aeromexico": {
    "records": {
+    "aeromexico.benefits.pension.873306a5": "3439b1a97ef269c4",
     "aeromexico.fleet.boeing-737-800.0f858f53": "6cb35669672d33ea",
     "aeromexico.fleet.boeing-737-max-8.7254b617": "f239546f3a3e90f1",
     "aeromexico.fleet.boeing-737-max-9.7566051b": "3f0a17463a828dd8",
@@ -535982,8 +540640,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aeromexico.profile.headquarters-country.aeb618a1": "3744875ff0c2921e",
     "aeromexico.scale.fleet-total.414d544b": "b6a8593ddf38cb6e"
    },
-   "revision": 1,
-   "sha": "sha256:e595899c629ad418"
+   "revision": 4,
+   "sha": "sha256:c74f8a7d033e9b45"
   },
   "pvr-20261029-cg-air-canada": {
    "records": {
@@ -535991,6 +540649,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-canada.base.pilot-base-city.1d5170d7": "3ea77c0a893afe51",
     "air-canada.base.pilot-base-city.787f5b7d": "fdfa38c58f66e2f8",
     "air-canada.base.pilot-base-city.7bd7f651": "05e97749d7b3d2e7",
+    "air-canada.benefits.pension.a70fcbfe": "dec189eb8677ada3",
     "air-canada.destinations.operated-airport.0352b5ba": "27cf350b492251ab",
     "air-canada.destinations.operated-airport.10065658": "2c0b0d69f023141a",
     "air-canada.destinations.operated-airport.2348ce2c": "fb072479d4f4afcf",
@@ -536019,8 +540678,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-canada.profile.founded.f09b5206": "28e2982d1a7e425b",
     "air-canada.scale.pilots.728730db": "efd743d26368fb86"
    },
-   "revision": 1,
-   "sha": "sha256:4f3046e10bc7a2e6"
+   "revision": 4,
+   "sha": "sha256:ff824361d895ce6a"
   },
   "pvr-20261029-cg-air-china": {
    "records": {
@@ -536315,10 +540974,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "alaska-airlines.scale.pilots.ba5d9ba5": "a2d0ee5bc5930c59",
     "alaska-airlines.work.days-off.12fb6db9": "2c9bfe56bf18767a",
     "alaska-airlines.work.days-off.c47b0a40": "80ce2626916c0604",
+    "alaska-airlines.work.roster-pattern.5ff7078c": "b2fbf29c1d72ec0c",
     "alaska-airlines.work.sick-leave.0a3595bc": "f5af88996714046a"
    },
-   "revision": 2,
-   "sha": "sha256:d92c43d9fe25f1b5"
+   "revision": 4,
+   "sha": "sha256:22983238bfbe8494"
   },
   "pvr-20261029-cg-allegiant": {
    "records": {
@@ -536761,6 +541421,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-asiana": {
    "records": {
+    "asiana.benefits.pension.8b3e4a8e": "a7ae12bad7ceb5b5",
+    "asiana.benefits.pension.b285adbb": "cda524d4fc43a78d",
     "asiana.destinations.operated-airport.04b9d40e": "357ea98baec51826",
     "asiana.destinations.operated-airport.07ae5c7e": "cb0552cb73954123",
     "asiana.destinations.operated-airport.09c8ca86": "81e6be310604c694",
@@ -536821,11 +541483,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "asiana.profile.headquarters-city.91747c83": "9be9afc64a0c84cd",
     "asiana.profile.headquarters-country.37c3c060": "e4c09f9e9abef5f3"
    },
-   "revision": 1,
-   "sha": "sha256:256643294d767123"
+   "revision": 4,
+   "sha": "sha256:c095b9f848d2213f"
   },
   "pvr-20261029-cg-austrian": {
    "records": {
+    "austrian.benefits.pension.28ed4118": "b8be6b9dbcbaf984",
     "austrian.destinations.operated-airport.27b4e8aa": "39af41dcfb580ecd",
     "austrian.destinations.operated-airport.43d3dd5d": "9cb9fc8a0a91ce78",
     "austrian.destinations.operated-airport.a64cfd40": "ce915a33066a94b2",
@@ -536834,10 +541497,19 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "austrian.destinations.operated-airport.edbcb639": "10902340fbc60def",
     "austrian.profile.founded.a4b6dd54": "b5722e9b808298d8",
     "austrian.profile.headquarters-city.5a4d5e84": "832d9f211a6a0eee",
-    "austrian.profile.headquarters-country.ab25081f": "20f3fc0a558d61f7"
+    "austrian.profile.headquarters-country.ab25081f": "20f3fc0a558d61f7",
+    "austrian.work.annual-days-off.2132a3d8": "dafa9380e0839059",
+    "austrian.work.days-off.1357f92c": "29a74dd71029f3b8",
+    "austrian.work.days-off.4d5428fe": "99544fc625dd3c14",
+    "austrian.work.days-off.4e99e11d": "e3a6ce108b396ced",
+    "austrian.work.days-off.6a4ffbf0": "170855a35702e6c7",
+    "austrian.work.days-off.99f1181b": "91dc004857ee66df",
+    "austrian.work.days-off.b052f8cd": "87f345aa5c302c3f",
+    "austrian.work.days-off.b85b6f9c": "05391c2fa2774880",
+    "austrian.work.roster-pattern.9e1f4d25": "8a7554c56c30dfed"
    },
-   "revision": 2,
-   "sha": "sha256:4e67e2a194cd638b"
+   "revision": 4,
+   "sha": "sha256:f1e56ec01a91822e"
   },
   "pvr-20261029-cg-avianca": {
    "records": {
@@ -536869,13 +541541,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "bamboo-airways.base.pilot-base-city.e2e68ba0": "a73a34de3cc9a252",
     "bamboo-airways.base.pilot-base.75f3bcf1": "5846b92ee0df328d",
     "bamboo-airways.base.pilot-base.d94bad74": "093de565242af707",
+    "bamboo-airways.benefits.staff-travel.18f6bd97": "f23dee3038665c19",
     "bamboo-airways.profile.founded.856bcae1": "ff3152169fa5eb83",
     "bamboo-airways.profile.headquarters-city.f4d6069f": "515332d5e7e44e29",
     "bamboo-airways.profile.headquarters-country.4cc80274": "202d1ac344317731",
     "bamboo-airways.profile.headquarters-country.721228cd": "45166cfc75660556"
    },
-   "revision": 2,
-   "sha": "sha256:002d5275915b2558"
+   "revision": 4,
+   "sha": "sha256:71a1b41995bc0c89"
   },
   "pvr-20261029-cg-batik-air": {
    "records": {
@@ -536904,10 +541577,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "batik-air.destinations.operated-airport.fabab9e0": "4b54c153075ebd30",
     "batik-air.profile.founded.42a101ee": "94197b4ed2382e02",
     "batik-air.profile.headquarters-city.96771ff6": "1fc86cb5aa743e09",
-    "batik-air.profile.headquarters-country.89a262b9": "c7a29b2cea13e88a"
+    "batik-air.profile.headquarters-country.89a262b9": "c7a29b2cea13e88a",
+    "batik-air.work.roster-pattern.07fb7e03": "2989a9b0d37eac8f",
+    "batik-air.work.working-time.0b9ce9e5": "2b45dbc3fc517a04",
+    "batik-air.work.working-time.f1c208ca": "c48489891cf9d3d8"
    },
-   "revision": 3,
-   "sha": "sha256:bde081e4c807e3c4"
+   "revision": 4,
+   "sha": "sha256:26bfc32d4f903be0"
   },
   "pvr-20261029-cg-breeze-airways": {
    "records": {
@@ -537114,18 +541790,21 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "china-eastern.profile.founded.6955179c": "f7ab981aa5e27621",
     "china-eastern.profile.headquarters-city.96291f7a": "e3a0c93b9df08f85",
     "china-eastern.profile.headquarters-country.084a074f": "fc5ba74d7c441c0b",
-    "china-eastern.scale.pilots.d059e3d9": "2bb46345dc4cf4ce"
+    "china-eastern.scale.pilots.d059e3d9": "2bb46345dc4cf4ce",
+    "china-eastern.work.roster-pattern-cap.df43f849": "e0cb952ec82cc2a9"
    },
-   "revision": 3,
-   "sha": "sha256:b63b45b1596f3cd9"
+   "revision": 4,
+   "sha": "sha256:eb11d47a51b0ebd8"
   },
   "pvr-20261029-cg-china-southern": {
    "records": {
+    "china-southern.benefits.commuting.f639ae5a": "e3fd0b60263ada30",
     "china-southern.benefits.housing.61fcf801": "515c9c2175e83265",
     "china-southern.benefits.medical.c2e4faad": "ace09563f5313bce",
     "china-southern.benefits.medical.dd49f1f0": "9fd98cbb1ddd0b04",
     "china-southern.benefits.pension.b1485702": "5050bb3c0e94d961",
     "china-southern.benefits.pension.f9e4fbad": "5da44eea4a9c3476",
+    "china-southern.benefits.staff-travel.7a921a81": "a35e56170274f08a",
     "china-southern.destinations.operated-airport.0937a771": "e8692f6f0c5626a9",
     "china-southern.destinations.operated-airport.1bd79a55": "2991c2cd746e012b",
     "china-southern.destinations.operated-airport.5b2f033d": "20bd90953f43068c",
@@ -537134,12 +541813,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "china-southern.profile.founded.bfbe7941": "7ed3dd2a4aa14445",
     "china-southern.scale.pilots.b9919443": "8a835ae68d3b1fd8"
    },
-   "revision": 1,
-   "sha": "sha256:18f8e1ca98c61ff0"
+   "revision": 4,
+   "sha": "sha256:afc1912eab012b93"
   },
   "pvr-20261029-cg-copa-airlines": {
    "records": {
     "copa-airlines.base.pilot-base-fo.f17fc46b": "8f84b4deb66afff4",
+    "copa-airlines.benefits.pension.fd5d9723": "79a67dad902ff46e",
     "copa-airlines.destinations.operated-airport.1cea75dd": "9a79bf688898308a",
     "copa-airlines.destinations.operated-airport.1e8b3125": "b2f0b06fa9ff5944",
     "copa-airlines.destinations.operated-airport.36b39a66": "59076ffe1b043a2d",
@@ -537161,8 +541841,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "copa-airlines.destinations.operated-airport.c2a0ad29": "30426479d4d9f75a",
     "copa-airlines.profile.founded.2c85381d": "775a0fb6d89ba830"
    },
-   "revision": 3,
-   "sha": "sha256:5b17199fe5f5ec27"
+   "revision": 4,
+   "sha": "sha256:f7c5016e9e0b0ee1"
   },
   "pvr-20261029-cg-daiichi-air": {
    "records": {
@@ -537667,6 +542347,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "fiji-airways.base.pilot-base-city-cap.5c932f09": "be837a4fa066446e",
     "fiji-airways.benefits.medical.cf37345d": "e101ffd006691f45",
+    "fiji-airways.benefits.pension.388dba44": "830fc6da95e816ea",
     "fiji-airways.destinations.operated-airport.405d16f2": "5f37d3464e9996dc",
     "fiji-airways.destinations.operated-airport.527224e2": "5935a9bfeff24a9a",
     "fiji-airways.destinations.operated-airport.5a841c2a": "81e539bb0ef65f57",
@@ -537683,8 +542364,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "fiji-airways.profile.headquarters-city.66040943": "94112f14e54a75f4",
     "fiji-airways.profile.headquarters-country.31273e9d": "65a7663c0a69f3d0"
    },
-   "revision": 3,
-   "sha": "sha256:bb2394cfd276528b"
+   "revision": 4,
+   "sha": "sha256:e83c6e8a9f75c29e"
   },
   "pvr-20261029-cg-finnair": {
    "records": {
@@ -537821,6 +542502,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-garuda-indonesia": {
    "records": {
+    "garuda-indonesia.benefits.medical.24849ec8": "4cc6b0f7ea14e2c0",
+    "garuda-indonesia.benefits.pension.6aa7185e": "493c3301d63b47bf",
+    "garuda-indonesia.benefits.staff-travel.cde5516d": "3d2c51cceb6b2f0c",
     "garuda-indonesia.destinations.operated-airport.10a30b70": "0b131039cbc22f28",
     "garuda-indonesia.destinations.operated-airport.14c9e04d": "bb010649c560e63b",
     "garuda-indonesia.destinations.operated-airport.1728d412": "38b1d0ea03d4f70e",
@@ -537839,8 +542523,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "garuda-indonesia.destinations.operated-airport.f5debb99": "e3a9986c91b900f2",
     "garuda-indonesia.profile.founded.bd0d7a62": "e606956066e229aa"
    },
-   "revision": 2,
-   "sha": "sha256:63284b7280145179"
+   "revision": 4,
+   "sha": "sha256:55b45ba6cd53c975"
   },
   "pvr-20261029-cg-gulf-air": {
    "records": {
@@ -537860,6 +542544,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "hac.base.pilot-base-city.da7085e2": "576ea0d07fc071fa",
     "hac.base.pilot-base.ed26c004": "016e59811315c1d1",
+    "hac.benefits.annual-leave-fo.2e5e1d42": "bee721fa16dd044f",
+    "hac.benefits.annual-leave-fo.4fb9dde6": "af5ed0863bca7c85",
+    "hac.benefits.commuting-fo.5b69ff87": "09d32dead4d8be0c",
+    "hac.benefits.housing-fo.93916fcb": "30b62afccd4c0478",
+    "hac.benefits.medical-fo.6251d84d": "8df96701dac5c4f3",
+    "hac.benefits.staff-travel-fo.b5b42b86": "a2ccb00aac99ac35",
     "hac.destinations.operated-airport.31e1e7fc": "9f5407b6db2ce320",
     "hac.destinations.operated-airport.79acde01": "cd8d8d8f2a1d3774",
     "hac.destinations.operated-airport.8320e257": "467dd66ab78e4360",
@@ -537868,13 +542558,18 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "hac.destinations.operated-airport.a59722ec": "8e4de14f0111cd98",
     "hac.destinations.operated-airport.abbac6e8": "af644ac9f6273474",
     "hac.destinations.operated-airport.d6c71cbd": "8fedbb810ef8d68e",
-    "hac.destinations.operated-airport.fd07886b": "e155eececf035bbf"
+    "hac.destinations.operated-airport.fd07886b": "e155eececf035bbf",
+    "hac.work.annual-days-off-fo.b0e87806": "98b328bf7cc67fd4"
    },
-   "revision": 1,
-   "sha": "sha256:c8a9eee40ad75f7e"
+   "revision": 4,
+   "sha": "sha256:d18e39e12fb41d48"
   },
   "pvr-20261029-cg-hainan-airlines": {
    "records": {
+    "hainan-airlines.benefits.housing.d8ef751c": "818b97bdc3b098cc",
+    "hainan-airlines.benefits.medical.eab4c798": "3973a49685a5d31c",
+    "hainan-airlines.benefits.pension.ad2e7b11": "de86242a411c7aa9",
+    "hainan-airlines.benefits.staff-travel.d55b3674": "5b749a2a31d073d2",
     "hainan-airlines.destinations.operated-airport.492337e4": "adbad27eca9ae249",
     "hainan-airlines.destinations.operated-airport.6278cdb0": "1cf46fa098b48e74",
     "hainan-airlines.destinations.operated-airport.d70ab345": "a26dd4287ab290ec",
@@ -537883,8 +542578,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "hainan-airlines.profile.headquarters-city.4793868f": "312f8e135a9c4365",
     "hainan-airlines.profile.headquarters-country.4bfe3999": "044cf615b4ce325d"
    },
-   "revision": 1,
-   "sha": "sha256:3dbdfc356c11a029"
+   "revision": 4,
+   "sha": "sha256:6a2dba28c17693c9"
   },
   "pvr-20261029-cg-hong-kong-express": {
    "records": {
@@ -537940,6 +542635,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "iberia.benefits.commuting.4eebe9e4": "6ade3fb0bfb4d9ca",
     "iberia.benefits.loss-of-licence.c4f5b02e": "21469d0587ef7f6b",
     "iberia.benefits.medical.025c22ff": "57f435291a082e27",
+    "iberia.benefits.pension.6eaa55db": "f93dc1e92f703d6c",
+    "iberia.benefits.pension.c5196af0": "5ba3674bc0ab0456",
     "iberia.benefits.staff-travel.3dd0ee44": "377866015770fb26",
     "iberia.benefits.staff-travel.ba21cbd2": "fd11cbe33cef89f2",
     "iberia.destinations.operated-airport.0902f5ff": "6e99d1d6dc9a9003",
@@ -537979,11 +542676,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "iberia.work.working-time.da78b4ed": "c1156388362d4b22",
     "iberia.work.working-time.df9589fd": "5c70621c9d602551"
    },
-   "revision": 1,
-   "sha": "sha256:04eb04154ae51707"
+   "revision": 4,
+   "sha": "sha256:d3144520839ed985"
   },
   "pvr-20261029-cg-icelandair": {
    "records": {
+    "icelandair.benefits.pension.58ceda90": "7ef94cc736dd4adf",
+    "icelandair.benefits.pension.6eb1b3b0": "9e50681a5b3ef35a",
+    "icelandair.benefits.pension.f18ba78b": "d699bf0bc93f591c",
     "icelandair.destinations.operated-airport.043d9d3d": "e92e8007fffcb2fc",
     "icelandair.destinations.operated-airport.0622abbd": "32b3837789cc3a3a",
     "icelandair.destinations.operated-airport.1d5e8b57": "264191523e08aa8d",
@@ -538003,11 +542703,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "icelandair.profile.headquarters-city.a6ebd09b": "f452542aff2f9a18",
     "icelandair.profile.headquarters-country.ec2f324d": "c6224a931db595c1"
    },
-   "revision": 1,
-   "sha": "sha256:2db2abfe509de58d"
+   "revision": 4,
+   "sha": "sha256:9b0d6fce9c12304e"
   },
   "pvr-20261029-cg-indigo": {
    "records": {
+    "indigo.benefits.pension.de1edc0b": "fb07642a486acc5e",
+    "indigo.benefits.pension.e416620b": "2d7dd1c759f9e7ab",
+    "indigo.benefits.staff-travel.be101714": "10aa74bc0284fb38",
     "indigo.destinations.operated-airport.46025c60": "7de9435a993bd840",
     "indigo.destinations.operated-airport.54f32156": "ddf16d90a114f474",
     "indigo.destinations.operated-airport.60ddf888": "04245750b259ea5d",
@@ -538019,8 +542722,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "indigo.profile.headquarters-city.2bccea62": "55a96241bb581191",
     "indigo.profile.headquarters-country.9930fca4": "84c5c5cab5606e30"
    },
-   "revision": 2,
-   "sha": "sha256:ee2f90ef92ed62aa"
+   "revision": 4,
+   "sha": "sha256:d613c7e3643afb02"
   },
   "pvr-20261029-cg-ita-airways": {
    "records": {
@@ -538043,7 +542746,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "j-air.base.pilot-base.fa79c4f6": "c4119394af5ed99d",
     "j-air.benefits.annual-leave.ff877da2": "a5dae79d6684b176",
+    "j-air.benefits.commuting-fo.3f4d31b6": "20c157ab60c3d682",
+    "j-air.benefits.commuting-fo.ba887d23": "48ad7d3a547d2734",
     "j-air.benefits.housing.147c6fc9": "320cf5bbc4a05f2e",
+    "j-air.benefits.medical-fo.2ff23ef6": "0f17c0e0fa34fe9c",
+    "j-air.benefits.medical.ac2ab9eb": "c9ef9dd432d96bdb",
     "j-air.benefits.staff-travel.04827c5a": "5482f724e9a509c8",
     "j-air.destinations.operated-airport.0a0ea1a2": "f8c7ab714025615c",
     "j-air.destinations.operated-airport.25137198": "71dfd371234d05ac",
@@ -538073,10 +542780,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "j-air.destinations.operated-airport.ea85ea51": "732e98f660a2f8ae",
     "j-air.destinations.operated-airport.f9f19f67": "7908442b5850cd93",
     "j-air.destinations.operated-airport.fcd2aa3a": "b2d66d656de63699",
-    "j-air.work.annual-days-off.c5a47a73": "4694df97df15f46c"
+    "j-air.work.annual-days-off.c5a47a73": "4694df97df15f46c",
+    "j-air.work.roster-pattern-fo.d4bc4c3e": "0cec5227cec9b243"
    },
-   "revision": 1,
-   "sha": "sha256:04f442ed8eba1bbe"
+   "revision": 4,
+   "sha": "sha256:4552575902c5569d"
   },
   "pvr-20261029-cg-jac": {
    "records": {
@@ -538298,12 +543006,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "pvr-20261029-cg-kenya-airways": {
    "records": {
     "kenya-airways.base.pilot-base-city-fo.8e6b0098": "4e0f5964f475610a",
+    "kenya-airways.benefits.pension.326f5ed9": "66c2b4c16f571071",
+    "kenya-airways.benefits.pension.d67f6b7e": "0aecbc04cbe799ba",
     "kenya-airways.destinations.operated-airport.5f66f093": "c44c2d5f77e48f23",
     "kenya-airways.destinations.operated-airport.ae27941c": "d914b41bc1bbf1bf",
     "kenya-airways.profile.founded.c8e18316": "477b3068a8cbb0b5"
    },
-   "revision": 3,
-   "sha": "sha256:ac123d6756a725ca"
+   "revision": 4,
+   "sha": "sha256:f0fd0144cfe27d3c"
   },
   "pvr-20261029-cg-klm": {
    "records": {
@@ -538346,6 +543056,10 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "pvr-20261029-cg-korean-air": {
    "records": {
     "korean-air.base.pilot-base-city.4588ff40": "9f64c36b31aff63a",
+    "korean-air.benefits.housing.38231e2a": "6bc7e489dd21c36d",
+    "korean-air.benefits.housing.e6045546": "8ebf33d033910870",
+    "korean-air.benefits.medical.1729c751": "c83474c07877fadb",
+    "korean-air.benefits.pension.a3aeaada": "05d92f5c3d72c8dd",
     "korean-air.benefits.staff-travel.4f2bb1ed": "a30589c7d3c36c2d",
     "korean-air.destinations.operated-airport.0e0f3610": "c24f0c6c3d295561",
     "korean-air.destinations.operated-airport.11dcb708": "559d27bd747dc250",
@@ -538363,10 +543077,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "korean-air.living.rent-1bed.a1d629d6": "b95572c2eb161300",
     "korean-air.living.rent-2bed.f740ca87": "93fa04229b7417cf",
     "korean-air.living.rent-3bed.c90e3693": "4be5a7184dbe16e8",
-    "korean-air.profile.founded.ac4597fc": "a4dee88590e5f1f7"
+    "korean-air.profile.founded.ac4597fc": "a4dee88590e5f1f7",
+    "korean-air.work.sick-leave.574d856a": "63a684c7fb4f25d8"
    },
-   "revision": 3,
-   "sha": "sha256:cefb48e72234d2a6"
+   "revision": 4,
+   "sha": "sha256:ef244f40f8b2f4dc"
   },
   "pvr-20261029-cg-kuwait-airways": {
    "records": {
@@ -538416,6 +543131,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "latam.base.pilot-base.ab5a2832": "278fb3c428edc023",
     "latam.base.pilot-base.d969a978": "e7c59c6be804933f",
+    "latam.benefits.annual-leave.ab0da816": "9241365d561d118d",
+    "latam.benefits.commuting.1d01ff71": "671cb82eddb29bdf",
     "latam.benefits.medical.fcf114ec": "10cc4a638536c199",
     "latam.benefits.pension.59af5597": "f9912784f19eac09",
     "latam.benefits.staff-travel.15fcd926": "8b1f6a84f34f6cd2",
@@ -538442,10 +543159,19 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "latam.profile.headquarters-city.14757808": "589bb9cdd5344efe",
     "latam.profile.headquarters-country.52635e06": "4e373adf6e33eb1e",
     "latam.scale.fleet-total.154843c0": "158f65f5613ff7a8",
-    "latam.scale.pilots.cf199d15": "6c42f64a600714bc"
+    "latam.scale.pilots.cf199d15": "6c42f64a600714bc",
+    "latam.work.days-off.b6059511": "673a9637e9df1b40",
+    "latam.work.roster-pattern.f2c58d7a": "968a889a7b5942f9",
+    "latam.work.sick-leave.09bee3ce": "f42011f268ae2a6d",
+    "latam.work.sick-leave.7d4fc11e": "385a54d37c3842bc",
+    "latam.work.sick-leave.fc5eee75": "307c9c06404d3b78",
+    "latam.work.working-time.145bf9d4": "3424d8ef4e1fecc0",
+    "latam.work.working-time.9ec37f6e": "1588e24dc6a8e9dd",
+    "latam.work.working-time.bba23c94": "b93f91172ed55685",
+    "latam.work.working-time.d81760a6": "1b58875396aab022"
    },
-   "revision": 3,
-   "sha": "sha256:136821037c052824"
+   "revision": 4,
+   "sha": "sha256:2f250cb340d4f06c"
   },
   "pvr-20261029-cg-lot": {
    "records": {
@@ -538477,6 +543203,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-lufthansa": {
    "records": {
+    "lufthansa.benefits.pension.0d9ab1f8": "25b64b2a00bd6b18",
     "lufthansa.destinations.operated-airport.044d46d2": "61ab68c615ffae6e",
     "lufthansa.destinations.operated-airport.061bf9a3": "d05aebd9eda127a1",
     "lufthansa.destinations.operated-airport.0c4399a2": "8e9e9b56766ea7ae",
@@ -538501,11 +543228,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "lufthansa.profile.founded.766170ab": "5ab60525de7c435b",
     "lufthansa.scale.pilots.394376c8": "c7ccf41fd1d2186a"
    },
-   "revision": 1,
-   "sha": "sha256:8ff79db3bc88af5d"
+   "revision": 4,
+   "sha": "sha256:9934fbc316979052"
   },
   "pvr-20261029-cg-malaysia-airlines": {
    "records": {
+    "malaysia-airlines.benefits.pension.e9db7b19": "2e693fb80632ed80",
     "malaysia-airlines.destinations.not-operated-airport.dbf46b0d": "9221ec0d9c2a16cd",
     "malaysia-airlines.destinations.operated-airport.0485f6ad": "ade7128b6b745deb",
     "malaysia-airlines.destinations.operated-airport.083cc9e6": "e316d757f83aa5c8",
@@ -538524,8 +543252,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "malaysia-airlines.profile.headquarters-city.488be4a2": "3f3106bc757e3095",
     "malaysia-airlines.profile.headquarters-country.7609c090": "8949a05d1b64ea3d"
    },
-   "revision": 2,
-   "sha": "sha256:a17b71c10dd48468"
+   "revision": 4,
+   "sha": "sha256:6c4d6c8e31bfa057"
   },
   "pvr-20261029-cg-norwegian": {
    "records": {
@@ -538569,6 +543297,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-orc": {
    "records": {
+    "orc.benefits.commuting-cap.e55ac772": "a4add5004c18534b",
+    "orc.benefits.housing-cap.def7aed8": "df0c55a5ddd5ab02",
+    "orc.benefits.pension-cap.8f426328": "514c2bad8f460e04",
     "orc.destinations.operated-airport.02052eda": "044fb7ae0f9ec0fc",
     "orc.destinations.operated-airport.1186ae25": "3c528139a112b001",
     "orc.destinations.operated-airport.247e872e": "ef662442705a5a31",
@@ -538577,10 +543308,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "orc.destinations.operated-airport.80c91bf7": "143b7e07b789852a",
     "orc.destinations.operated-airport.9077f4e0": "48215aaa1bbbfde1",
     "orc.destinations.operated-airport.f03dea2b": "86064768167207c2",
-    "orc.destinations.operated-airport.faea3281": "b5903cc566bc0def"
+    "orc.destinations.operated-airport.faea3281": "b5903cc566bc0def",
+    "orc.work.annual-days-off-cap.30d6839a": "e3254ada9e34d8a7",
+    "orc.work.days-off-cap.7ac9cec5": "1613a7d3cd834bfa",
+    "orc.work.days-off-cap.d1a040f1": "07d5bb55fd6bfd4b"
    },
-   "revision": 1,
-   "sha": "sha256:f47d3f851167fae2"
+   "revision": 4,
+   "sha": "sha256:86908d550b86efc8"
   },
   "pvr-20261029-cg-peach": {
    "records": {
@@ -538617,6 +543351,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-philippine-airlines": {
    "records": {
+    "philippine-airlines.benefits.pension.b377669a": "e24d28634d1a37f4",
+    "philippine-airlines.benefits.staff-travel.f8b03380": "88d7320b857f7658",
     "philippine-airlines.destinations.operated-airport.0a6345bf": "5e88447d43dbef22",
     "philippine-airlines.destinations.operated-airport.20c82b00": "6dfbb0d5b89b2ec7",
     "philippine-airlines.destinations.operated-airport.60cf7b4a": "aed963d89072701e",
@@ -538635,8 +543371,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "philippine-airlines.profile.headquarters-country.e798968c": "cd0477d6132cbd3d",
     "philippine-airlines.scale.fleet-total.50bbed66": "2c804addb3350d5a"
    },
-   "revision": 1,
-   "sha": "sha256:2eaffd23ae7444fc"
+   "revision": 4,
+   "sha": "sha256:cc426ccd901c1070"
   },
   "pvr-20261029-cg-porter": {
    "records": {
@@ -538686,6 +543422,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "pvr-20261029-cg-qatar-airways": {
    "records": {
     "qatar-airways.base.pilot-base-city-fo.f485379e": "06a3400efe64d692",
+    "qatar-airways.benefits.medical.036d62a0": "04790b19472ce695",
+    "qatar-airways.benefits.pension.080d4499": "3ad65d8f43f47156",
+    "qatar-airways.benefits.pension.574c6965": "0aac951a51b61bae",
     "qatar-airways.destinations.not-operated-airport.2d9da513": "ccd2e572f95b2632",
     "qatar-airways.destinations.not-operated-airport.4f4c0397": "a456887671796128",
     "qatar-airways.destinations.not-operated-airport.a2fe3233": "ae6f5e010a4bbd2a",
@@ -538699,8 +543438,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "qatar-airways.destinations.operated-airport.e077bade": "df5841ed7c602daf",
     "qatar-airways.profile.founded.2ddbc26b": "3d69c2e4b7c0edf1"
    },
-   "revision": 3,
-   "sha": "sha256:48d39142bafa8d2f"
+   "revision": 4,
+   "sha": "sha256:d22465d9fdd9b949"
   },
   "pvr-20261029-cg-rac": {
    "records": {
@@ -539027,6 +543766,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-saudia": {
    "records": {
+    "saudia.benefits.medical.3140da47": "ba24da79ac309523",
     "saudia.destinations.operated-airport.2f4bf1c2": "795130fde4531914",
     "saudia.destinations.operated-airport.3187881c": "f3ba6f31f77fc927",
     "saudia.destinations.operated-airport.4fe4f4e7": "903e4d43f90d3985",
@@ -539037,12 +543777,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "saudia.profile.headquarters-country.fc93c348": "fe4df4de8398bfe0",
     "saudia.scale.fleet-total.ade5cee7": "53a2c17d09d2aad1"
    },
-   "revision": 2,
-   "sha": "sha256:5c0c0536d6a56885"
+   "revision": 4,
+   "sha": "sha256:739534a148313ac9"
   },
   "pvr-20261029-cg-scoot": {
    "records": {
     "scoot.base.pilot-base-city-fo.953f0935": "0cb99c8434ed34b1",
+    "scoot.benefits.medical.7ef29c9e": "bc0a1da6dfb8cd05",
     "scoot.destinations.not-operated-airport.d6773d29": "26429645663c4d8e",
     "scoot.destinations.operated-airport.03906f83": "d21c7438f70db07a",
     "scoot.destinations.operated-airport.055cb6c2": "95b23eed28f2e7a3",
@@ -539133,8 +543874,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "scoot.profile.headquarters-city.6e0d3e7c": "9ef76a2b119f1a1e",
     "scoot.profile.headquarters-country.55af8154": "88da1ea2971e09ad"
    },
-   "revision": 3,
-   "sha": "sha256:ca1b7cf7362e852a"
+   "revision": 4,
+   "sha": "sha256:feba0a3dd7a58f0e"
   },
   "pvr-20261029-cg-singapore-airlines": {
    "records": {
@@ -539194,6 +543935,10 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-south-african-airways": {
    "records": {
+    "south-african-airways.benefits.medical.172e8cf9": "7bc1156adee0c3a9",
+    "south-african-airways.benefits.medical.daa6877f": "ea7eab030afe1b8f",
+    "south-african-airways.benefits.pension.ffc6992e": "b07e5929fc6073d4",
+    "south-african-airways.benefits.staff-travel.6b5eeb52": "c93011f7b86817c3",
     "south-african-airways.destinations.operated-airport.0458bbaf": "51bb75e24c3b9c55",
     "south-african-airways.destinations.operated-airport.05ef3588": "6252cd836269dc39",
     "south-african-airways.destinations.operated-airport.12d07eab": "cce210c807a9a230",
@@ -539212,10 +543957,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "south-african-airways.destinations.operated-airport.e40fe94e": "a3e9069483f31908",
     "south-african-airways.destinations.operated-airport.eabbedd9": "8a120479adcddc24",
     "south-african-airways.destinations.operated-airport.fe63f879": "c15c1f0387cddc94",
-    "south-african-airways.profile.founded.0399c19f": "2fe462fb4c7425e1"
+    "south-african-airways.profile.founded.0399c19f": "2fe462fb4c7425e1",
+    "south-african-airways.work.days-off.ac507cdf": "62ecbafa37e13804"
    },
-   "revision": 2,
-   "sha": "sha256:6ffd98caf9929d0d"
+   "revision": 4,
+   "sha": "sha256:c1012104b71ae750"
   },
   "pvr-20261029-cg-southwest": {
    "records": {
