@@ -66,7 +66,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "vienna"
   ],
   "bamboo-airways": [
-   "ha-noi"
+   "ha-noi",
+   "ho-chi-minh-city"
   ],
   "breeze-airways": [
    "akron-canton",
@@ -163,11 +164,17 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "san-juan",
    "tampa"
   ],
+  "hac": [
+   "sapporo"
+  ],
   "iberia": [
    "madrid"
   ],
   "ibex": [
    "sendai"
+  ],
+  "indigo": [
+   "gurugram"
   ],
   "ita-airways": [
    "rome"
@@ -208,6 +215,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "helsinki",
    "oslo"
   ],
+  "oman-air": [
+   "muscat"
+  ],
+  "orc": [
+   "fukuoka",
+   "omura"
+  ],
   "peach": [
    "izumisano",
    "narita"
@@ -222,6 +236,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "brisbane",
    "melbourne",
    "sydney"
+  ],
+  "qatar-airways": [
+   "doha"
   ],
   "riyadh-air": [
    "riyadh"
@@ -270,6 +287,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "tap": [
    "lisbon",
    "porto"
+  ],
+  "thai-airways": [
+   "bangkok"
   ],
   "toki-air": [
    "kobe",
@@ -927,6 +947,642 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN A320型式保有副操縦士、締切2026-12-31、応募用免許・医療は有効であること；最低レベル。補足: 現行の個別求人本文とApply now・締切を実読。発行日表示なし。総時間にA320限定500hを転用せず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "40c94339c6808b7a",
+     "id": "aegean.jobs.fo-english-fo.3c39602b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "Type Rated First Officers for A320",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；最低。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "abee193c0336f046",
+     "id": "aegean.jobs.fo-english-fo.9f6706cd",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "source_type": "job_posting",
+       "title": "Non Type Rated First Officers A320 & ATR42/72",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-First-Officers-A320-%26amp%3B-ATR-4272/1345969155"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；EASA CPL(A)+ATPL学科修了とのOR。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA ATPL(A)",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d32132c0c263a556",
+     "id": "aegean.jobs.fo-license-fo.05582683",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "source_type": "job_posting",
+       "title": "Non Type Rated First Officers A320 & ATR42/72",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-First-Officers-A320-%26amp%3B-ATR-4272/1345969155"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA ATPL(A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；ATPL(A)学科修了が付帯。EASA ATPL(A)とのOR。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA CPL(A)",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4e7192982bb6e6f1",
+     "id": "aegean.jobs.fo-license-fo.73358fc2",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "source_type": "job_posting",
+       "title": "Non Type Rated First Officers A320 & ATR42/72",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-First-Officers-A320-%26amp%3B-ATR-4272/1345969155"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA CPL(A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN A320型式保有副操縦士、締切2026-12-31、応募用免許・医療は有効であること；A320 Type Ratingも有効であること。補足: 現行の個別求人本文とApply now・締切を実読。発行日表示なし。総時間にA320限定500hを転用せず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA ATPL(A)",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "af90f0aa37de8693",
+     "id": "aegean.jobs.fo-license-fo.c8e92203",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "Type Rated First Officers for A320",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA ATPL(A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；有効。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "abe9ab933a179447",
+     "id": "aegean.jobs.fo-medical-fo.4ef9a591",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "source_type": "job_posting",
+       "title": "Non Type Rated First Officers A320 & ATR42/72",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-First-Officers-A320-%26amp%3B-ATR-4272/1345969155"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Class 1",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN A320型式保有副操縦士、締切2026-12-31、応募用免許・医療は有効であること；有効な医療証明。補足: 現行の個別求人本文とApply now・締切を実読。発行日表示なし。総時間にA320限定500hを転用せず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "68896e64162dbeca",
+     "id": "aegean.jobs.fo-medical-fo.f6532d2a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "Type Rated First Officers for A320",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Class 1",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；最低、飛行機のPIC時間。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "70",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9b1a7b3ae411ba86",
+     "id": "aegean.jobs.fo-pic-hours-fo.0f00d34f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_pic_hours",
+     "label_ja": "副操縦士の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "source_type": "job_posting",
+       "title": "Non Type Rated First Officers A320 & ATR42/72",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-First-Officers-A320-%26amp%3B-ATR-4272/1345969155"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 70,
+     "value_text": "70"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；居住/就労資格。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "unrestricted right to live and work in the EU",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed42a9971f7e1a6d",
+     "id": "aegean.jobs.fo-right-to-work-fo.2c4d1b78",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "source_type": "job_posting",
+       "title": "Non Type Rated First Officers A320 & ATR42/72",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-First-Officers-A320-%26amp%3B-ATR-4272/1345969155"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "unrestricted right to live and work in the EU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN A320型式保有副操縦士、締切2026-12-31、応募用免許・医療は有効であること；EUでの居住/就労資格。補足: 現行の個別求人本文とApply now・締切を実読。発行日表示なし。総時間にA320限定500hを転用せず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "unrestricted right to live and work in the EU",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9b4a4495e4675165",
+     "id": "aegean.jobs.fo-right-to-work-fo.8b89e9f6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "Type Rated First Officers for A320",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "unrestricted right to live and work in the EU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；A320型式未保有応募の区分。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Non-Type Rated",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1b6a1f429d14e50d",
+     "id": "aegean.jobs.fo-type-rating-fo.b39e91db",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-7ea00f4b",
+       "source_type": "job_posting",
+       "title": "Non Type Rated First Officers A320 & ATR42/72",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-First-Officers-A320-%26amp%3B-ATR-4272/1345969155"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Non-Type Rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN A320型式保有副操縦士、締切2026-12-31、応募用免許・医療は有効であること；有効な型式。500時間はA320 Family限定経験であり総時間ではない。補足: 現行の個別求人本文とApply now・締切を実読。発行日表示なし。総時間にA320限定500hを転用せず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "941139bd51649938",
+     "id": "aegean.jobs.fo-type-rating-fo.ddc5d244",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "Type Rated First Officers for A320",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A320",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "A320",
        "ATR42/72"
@@ -1424,6 +2080,536 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "過去",
      "value": "2025-02-10で当該募集期間終了",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；最低、英語に堪能。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e1aed916f7824b5f",
+     "id": "aer-lingus.jobs.fo-english-fo.1d721e7f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": "EASA ELP level",
+     "use": "募集",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；有効なEASA発行免許。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49a3995c1bd33718",
+     "id": "aer-lingus.jobs.fo-license-fo.11e955e4",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；有効な医療証明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA Class 1",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "92660c5e658290ae",
+     "id": "aer-lingus.jobs.fo-medical-fo.abb0e390",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA Class 1",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；EU/Irelandでの居住・就労資格。補足: 過去のNobox原求人。国籍だけを条件とする表示ではなく、居住/就労資格の文言そのもの。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Eligible to live and work in the EU/Ireland",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7b4197e8c15b07e4",
+     "id": "aer-lingus.jobs.fo-right-to-work-fo.0c62e3f9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Eligible to live and work in the EU/Ireland",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；最低総飛行時間。補足: 原求人は1500 hours total time、別に500h on Airbus。限定経験500hを総時間へ転用しない。会社公式2025募集投稿からNobox応募サイトへの経路も確認。公開日不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a3c1812894c74ba6",
+     "id": "aer-lingus.jobs.fo-total-hours-fo.77beea6d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；有効なAirbus型式。列記された5型式のいずれか1つというOR条件。補足: any of the following Airbus Ratingsを別行で記録。すべてを同時に保有する要件ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4fc3d61b67da7322",
+     "id": "aer-lingus.jobs.fo-type-rating-fo.238d2888",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A320",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；有効なAirbus型式。列記された5型式のいずれか1つというOR条件。補足: any of the following Airbus Ratingsを別行で記録。すべてを同時に保有する要件ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A330",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c34a9f8634d49f83",
+     "id": "aer-lingus.jobs.fo-type-rating-fo.23a0947f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A330",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；有効なAirbus型式。列記された5型式のいずれか1つというOR条件。補足: any of the following Airbus Ratingsを別行で記録。すべてを同時に保有する要件ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A380",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec11f2308b0a4702",
+     "id": "aer-lingus.jobs.fo-type-rating-fo.3fd1df57",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A380",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；有効なAirbus型式。列記された5型式のいずれか1つというOR条件。補足: any of the following Airbus Ratingsを別行で記録。すべてを同時に保有する要件ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A350",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2d457510ec404913",
+     "id": "aer-lingus.jobs.fo-type-rating-fo.9669cf33",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A350",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aer-lingus",
+     "cond_ja": "過去、締切2025-10-06。NoboxはAer Lingus専属採用パートナーと原求人で明記。Aer Lingus本体DublinのAirbus副操縦士；有効なAirbus型式。列記された5型式のいずれか1つというOR条件。補足: any of the following Airbus Ratingsを別行で記録。すべてを同時に保有する要件ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A340",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e1f4369c6f1f17f4",
+     "id": "aer-lingus.jobs.fo-type-rating-fo.f9cf2e30",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-aer-lingus",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Nobox",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ie-linkedin-com-0f8e1a59",
+       "source_type": "job_posting",
+       "title": "Airbus Rated First Officers for Aer Lingus",
+       "url": "https://ie.linkedin.com/jobs/view/airbus-rated-first-officers-at-nobox-4307647575"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A340",
      "value_text": null
     }
    ],
@@ -2010,6 +3196,377 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "過去2026年10月B737 NG/MAX副操縦士; 下限。補足: 過去求人。登録2026-10-23～2026-10-26、確認時Cerrada。Aeroméxico本体B737、Connect E190は除外。ASPA Secretaría de Trabajoの原募集。発行日は明示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "18 años",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26669a9702427c09",
+     "id": "aeromexico.jobs.fo-age-fo.29543ba0",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ASPA de México",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "source_type": "union_cba",
+       "title": "Boeing 737 NG/MAX Primer Oficial (octubre 2026)",
+       "url": "https://aspatrabajo.org.mx/convocatorias/primer-oficial-b737-ng-max-oct-2026"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 18,
+     "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "過去2026年10月B737 NG/MAX副操縦士; 上限56歳11か月の月成分。補足: 過去求人。登録2026-10-23～2026-10-26、確認時Cerrada。Aeroméxico本体B737、Connect E190は除外。ASPA Secretaría de Trabajoの原募集。発行日は明示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "11 meses",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "442f194415b80d6a",
+     "id": "aeromexico.jobs.fo-age-fo.76a664b1",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ASPA de México",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "source_type": "union_cba",
+       "title": "Boeing 737 NG/MAX Primer Oficial (octubre 2026)",
+       "url": "https://aspatrabajo.org.mx/convocatorias/primer-oficial-b737-ng-max-oct-2026"
+      }
+     ],
+     "unit": "months",
+     "use": "募集",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "過去2026年10月B737 NG/MAX副操縦士; 上限56歳11か月の年成分。補足: 過去求人。登録2026-10-23～2026-10-26、確認時Cerrada。Aeroméxico本体B737、Connect E190は除外。ASPA Secretaría de Trabajoの原募集。発行日は明示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "56 años con 11 meses",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "410314ddf3557cf6",
+     "id": "aeromexico.jobs.fo-age-fo.9d7ccf8d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ASPA de México",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "source_type": "union_cba",
+       "title": "Boeing 737 NG/MAX Primer Oficial (octubre 2026)",
+       "url": "https://aspatrabajo.org.mx/convocatorias/primer-oficial-b737-ng-max-oct-2026"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 56,
+     "value_text": "56"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "過去2026年10月B737 NG/MAX副操縦士; 二者択一の免許; 有効な免許本体が必要、anexos不可。補足: 過去求人。登録2026-10-23～2026-10-26、確認時Cerrada。Aeroméxico本体B737、Connect E190は除外。ASPA Secretaría de Trabajoの原募集。発行日は明示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TPI",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "480e283e20feb83f",
+     "id": "aeromexico.jobs.fo-license-fo.5500cbfe",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ASPA de México",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "source_type": "union_cba",
+       "title": "Boeing 737 NG/MAX Primer Oficial (octubre 2026)",
+       "url": "https://aspatrabajo.org.mx/convocatorias/primer-oficial-b737-ng-max-oct-2026"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "TPI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "過去2026年10月B737 NG/MAX副操縦士; 二者択一の免許; 有効な免許本体が必要、anexos不可。補足: 過去求人。登録2026-10-23～2026-10-26、確認時Cerrada。Aeroméxico本体B737、Connect E190は除外。ASPA Secretaría de Trabajoの原募集。発行日は明示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Piloto Aviador Comercial",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "78450c7706987e7f",
+     "id": "aeromexico.jobs.fo-license-fo.c52bf1e5",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ASPA de México",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "source_type": "union_cba",
+       "title": "Boeing 737 NG/MAX Primer Oficial (octubre 2026)",
+       "url": "https://aspatrabajo.org.mx/convocatorias/primer-oficial-b737-ng-max-oct-2026"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Piloto Aviador Comercial",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "過去2026年10月B737 NG/MAX副操縦士; 出生によるメキシコ国籍。補足: 過去求人。登録2026-10-23～2026-10-26、確認時Cerrada。Aeroméxico本体B737、Connect E190は除外。ASPA Secretaría de Trabajoの原募集。発行日は明示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Nacionalidad mexicana por nacimiento",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bd1a50e4db828e4b",
+     "id": "aeromexico.jobs.fo-right-to-work-fo.8d7a9d3d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ASPA de México",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "source_type": "union_cba",
+       "title": "Boeing 737 NG/MAX Primer Oficial (octubre 2026)",
+       "url": "https://aspatrabajo.org.mx/convocatorias/primer-oficial-b737-ng-max-oct-2026"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "mexicana por nacimiento",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aeromexico",
+     "cond_ja": "過去2026年10月B737 NG/MAX副操縦士; 最低総飛行時間; 別途jet/turboprop条件あり。補足: 過去求人。登録2026-10-23～2026-10-26、確認時Cerrada。Aeroméxico本体B737、Connect E190は除外。ASPA Secretaría de Trabajoの原募集。発行日は明示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,800 horas de vuelo",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c739d067e87c11cd",
+     "id": "aeromexico.jobs.fo-total-hours-fo.356db004",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-aeromexico",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ASPA de México",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aspatrabajo-org-mx-039f64c1",
+       "source_type": "union_cba",
+       "title": "Boeing 737 NG/MAX Primer Oficial (octubre 2026)",
+       "url": "https://aspatrabajo.org.mx/convocatorias/primer-oficial-b737-ng-max-oct-2026"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1800,
+     "value_text": "1,800"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -3687,6 +5244,273 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "AirbusA321",
      "value_text": null
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-canada",
+     "cond_ja": "求人38766; current Group 1 Multi-engine Instrument Ratingも必要。補足: 過去求人。ページ本文はThis job posting is no longer activeと明記。同じ公式HTMLのapplication/ld+jsonのJobPosting.descriptionをHTML復号して実読。JSON-LD datePosted=2026-10-28、内部dateCreated=2026-02-13だが発行日を確定せず空欄。現行postingには採用しない。採用先はAir Canada本体。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Canadian Airline Transport Pilot Licence (ATPL)",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "70bb4a1650cbcf6d",
+     "id": "air-canada.jobs.fo-license-fo.91ab043e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "source_type": "job_posting",
+       "title": "Pilot (for non AC-Express Pilots only) 38766, original HTML JobPosting data",
+       "url": "https://careers.aircanada.com/ca/en/job/AIPACICA38766EXTERNALENCA/Pilot-for-non-AC-Express-Pilots-only"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Canadian Airline Transport Pilot Licence (ATPL)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-canada",
+     "cond_ja": "求人38766; Category 1 medical certificateの会社/Transport Canada身体・視力要件に合格可能。補足: 過去求人。ページ本文はThis job posting is no longer activeと明記。同じ公式HTMLのapplication/ld+jsonのJobPosting.descriptionをHTML復号して実読。JSON-LD datePosted=2026-10-28、内部dateCreated=2026-02-13だが発行日を確定せず空欄。現行postingには採用しない。採用先はAir Canada本体。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Category 1 medical certificate",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "afa8737edb4635fd",
+     "id": "air-canada.jobs.fo-medical-fo.bf0ef714",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "source_type": "job_posting",
+       "title": "Pilot (for non AC-Express Pilots only) 38766, original HTML JobPosting data",
+       "url": "https://careers.aircanada.com/ca/en/job/AIPACICA38766EXTERNALENCA/Pilot-for-non-AC-Express-Pilots-only"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-canada",
+     "cond_ja": "求人38766; 必須条件欄に記載の旅券要件; 国籍を別途推定しない。補足: 過去求人。ページ本文はThis job posting is no longer activeと明記。同じ公式HTMLのapplication/ld+jsonのJobPosting.descriptionをHTML復号して実読。JSON-LD datePosted=2026-10-28、内部dateCreated=2026-02-13だが発行日を確定せず空欄。現行postingには採用しない。採用先はAir Canada本体。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Canadian passport",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "81843433c5530e6b",
+     "id": "air-canada.jobs.fo-right-to-work-fo.63534f0e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "source_type": "job_posting",
+       "title": "Pilot (for non AC-Express Pilots only) 38766, original HTML JobPosting data",
+       "url": "https://careers.aircanada.com/ca/en/job/AIPACICA38766EXTERNALENCA/Pilot-for-non-AC-Express-Pilots-only"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Canadian passport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-canada",
+     "cond_ja": "求人38766; カナダで就労できる資格が必要、就労許可等の取得は応募者責任。補足: 過去求人。ページ本文はThis job posting is no longer activeと明記。同じ公式HTMLのapplication/ld+jsonのJobPosting.descriptionをHTML復号して実読。JSON-LD datePosted=2026-10-28、内部dateCreated=2026-02-13だが発行日を確定せず空欄。現行postingには採用しない。採用先はAir Canada本体。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "eligible to work in Canada",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e0d578e5035690c7",
+     "id": "air-canada.jobs.fo-right-to-work-fo.694ba718",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "source_type": "job_posting",
+       "title": "Pilot (for non AC-Express Pilots only) 38766, original HTML JobPosting data",
+       "url": "https://careers.aircanada.com/ca/en/job/AIPACICA38766EXTERNALENCA/Pilot-for-non-AC-Express-Pilots-only"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Canada",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-canada",
+     "cond_ja": "求人38766の新規採用共通条件; 国内線FO又は長距離Relief Pilotで入社; 最低fixed wing飛行時間。補足: 過去求人。ページ本文はThis job posting is no longer activeと明記。同じ公式HTMLのapplication/ld+jsonのJobPosting.descriptionをHTML復号して実読。JSON-LD datePosted=2026-10-28、内部dateCreated=2026-02-13だが発行日を確定せず空欄。現行postingには採用しない。採用先はAir Canada本体。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2000 hours of fixed wing flying time",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b1598ebf07c0f3bb",
+     "id": "air-canada.jobs.fo-total-hours-fo.835882af",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "source_type": "job_posting",
+       "title": "Pilot (for non AC-Express Pilots only) 38766, original HTML JobPosting data",
+       "url": "https://careers.aircanada.com/ca/en/job/AIPACICA38766EXTERNALENCA/Pilot-for-non-AC-Express-Pilots-only"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2000"
     }
    ],
    "profile": [
@@ -11065,6 +12889,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airjapan",
+     "cond_ja": "Air Japan B787／CReW仲介の海外契約経路。日本在住者向け直接採用と別経路。direct-entry captain。総時間は原文in excess ofの厳密下限。JCAB・Non-JCABの双方に同値。補足: 原採用仲介会社の自社要件。公開JSONのmainContentと同じ応答内のcollection.updatedOnで更新日を確認。通常Web表示と公開JSONに本文の版差があるため、この行は公開JSON版に限定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-05-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "6,000 hours",
+       "source_id": "src-crewresourcesworldwide-com-7dd3a22a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62c24eddd7dfe76e",
+     "id": "airjapan.jobs.cap-total-hours-cap.b0183374",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-airjapan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-05-07",
+       "publisher": "Crew Resources Worldwide",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-crewresourcesworldwide-com-7dd3a22a",
+       "source_type": "third_party_reference",
+       "title": "AJX CAP Minimums（公開JSON）",
+       "url": "https://crewresourcesworldwide.com/ajxcapmins?format=json"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 6000,
+     "value_text": "6,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airjapan",
+     "cond_ja": "Air Japan B787／CReW仲介の海外契約経路。日本在住者向け直接採用と別経路。direct-entry captain。公開JSONのJCAB ATPL保有機長経路に記載。B787型式そのものの必須条件とは記載されていない。補足: 原採用仲介会社の自社要件。公開JSONのmainContentと同じ応答内のcollection.updatedOnで更新日を確認。通常Web表示と公開JSONに本文の版差があるため、この行は公開JSON版に限定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-05-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Command Jet Type Rating",
+       "source_id": "src-crewresourcesworldwide-com-7dd3a22a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "723e1147f5e2b691",
+     "id": "airjapan.jobs.cap-type-rating-cap.ade28a73",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-airjapan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-05-07",
+       "publisher": "Crew Resources Worldwide",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-crewresourcesworldwide-com-7dd3a22a",
+       "source_type": "third_party_reference",
+       "title": "AJX CAP Minimums（公開JSON）",
+       "url": "https://crewresourcesworldwide.com/ajxcapmins?format=json"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Command Jet Type Rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airjapan",
+     "cond_ja": "Air Japan B787／CReW仲介の海外契約経路。日本在住者向け直接採用と別経路。first officer。総時間は原文in excess ofの厳密下限。補足: 原採用仲介会社の自社要件。公開JSONのmainContentと同じ応答内のcollection.updatedOnで更新日を確認。通常Web表示と公開JSONに本文の版差があるため、この行は公開JSON版に限定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,000 hours",
+       "source_id": "src-crewresourcesworldwide-com-7451eb3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc71abe6ff21c585",
+     "id": "airjapan.jobs.fo-total-hours-fo.c953ee3b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-airjapan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-04-17",
+       "publisher": "Crew Resources Worldwide",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-crewresourcesworldwide-com-7451eb3f",
+       "source_type": "third_party_reference",
+       "title": "AJX First Officer Minimum Requirements（公開JSON）",
+       "url": "https://crewresourcesworldwide.com/ajxnonatpl?format=json"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airjapan",
+     "cond_ja": "Air Japan B787／CReW仲介の海外契約経路。日本在住者向け直接採用と別経路。first officer。公開JSON版はICAO ATPLと計器飛行資格も必要。SIC/Co-pilot Jet Type Ratingsも可。B787型式そのものの必須条件とは記載されていない。補足: 原採用仲介会社の自社要件。公開JSONのmainContentと同じ応答内のcollection.updatedOnで更新日を確認。通常Web表示と公開JSONに本文の版差があるため、この行は公開JSON版に限定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Jet Aircraft Type Rating",
+       "source_id": "src-crewresourcesworldwide-com-7451eb3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc2c97231008ddc0",
+     "id": "airjapan.jobs.fo-type-rating-fo.67b84436",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-airjapan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-04-17",
+       "publisher": "Crew Resources Worldwide",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-crewresourcesworldwide-com-7451eb3f",
+       "source_type": "third_party_reference",
+       "title": "AJX First Officer Minimum Requirements（公開JSON）",
+       "url": "https://crewresourcesworldwide.com/ajxnonatpl?format=json"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Jet Aircraft Type Rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "cap"
@@ -11586,6 +13622,536 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Challenger CL604/605のTRI/TRE募集を掲載",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "Captain - Challenger CL604/605／EU／Full-time。5以上。補足: 過去。会社本人の原広告を実読、No longer accepting applications。相対表示1 month agoで2023年以降は確認できるが正確な掲載日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Level 5",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e6561aeb7a7016c8",
+     "id": "airx-charter.jobs.cap-english-cap.94be85c2",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AirX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "source_type": "job_posting",
+       "title": "Captain - Challenger CL604/605（会社本人名義LinkedIn広告）",
+       "url": "https://www.linkedin.com/jobs/view/captain-challenger-cl604-605-at-airx-4408498524"
+      }
+     ],
+     "unit": "ELP_level",
+     "use": "募集",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "Captain - Challenger CL604/605／EU／Full-time。有効なEASA ATPL。補足: 過去。会社本人の原広告を実読、No longer accepting applications。相対表示1 month agoで2023年以降は確認できるが正確な掲載日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA ATPL",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62044f08ef0135a0",
+     "id": "airx-charter.jobs.cap-license-cap.647554ce",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AirX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "source_type": "job_posting",
+       "title": "Captain - Challenger CL604/605（会社本人名義LinkedIn広告）",
+       "url": "https://www.linkedin.com/jobs/view/captain-challenger-cl604-605-at-airx-4408498524"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "Captain - Challenger CL604/605／EU／Full-time。有効なEASA Class 1。補足: 過去。会社本人の原広告を実読、No longer accepting applications。相対表示1 month agoで2023年以降は確認できるが正確な掲載日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f263faa7497f53a3",
+     "id": "airx-charter.jobs.cap-medical-cap.1e7a0e3b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AirX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "source_type": "job_posting",
+       "title": "Captain - Challenger CL604/605（会社本人名義LinkedIn広告）",
+       "url": "https://www.linkedin.com/jobs/view/captain-challenger-cl604-605-at-airx-4408498524"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "Captain - Challenger CL604/605／EU／Full-time。Challenger CL604/605での機長時間下限。補足: 過去。会社本人の原広告を実読、No longer accepting applications。相対表示1 month agoで2023年以降は確認できるが正確な掲載日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500 hours flight time as Captain",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "301938e7cb47eceb",
+     "id": "airx-charter.jobs.cap-pic-hours-cap.fdd77fb8",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AirX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "source_type": "job_posting",
+       "title": "Captain - Challenger CL604/605（会社本人名義LinkedIn広告）",
+       "url": "https://www.linkedin.com/jobs/view/captain-challenger-cl604-605-at-airx-4408498524"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "Captain - Challenger CL604/605／EU／Full-time。総飛行時間下限。補足: 過去。会社本人の原広告を実読、No longer accepting applications。相対表示1 month agoで2023年以降は確認できるが正確な掲載日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2500 hours total flight time",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2cfc43e01fad8fa5",
+     "id": "airx-charter.jobs.cap-total-hours-cap.d97579cc",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AirX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-4f4b0c88",
+       "source_type": "job_posting",
+       "title": "Captain - Challenger CL604/605（会社本人名義LinkedIn広告）",
+       "url": "https://www.linkedin.com/jobs/view/captain-challenger-cl604-605-at-airx-4408498524"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2500,
+     "value_text": "2500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "First Officer - A340／Full-Time／会社公開ATSの勤務地EU（Malta）。ELP5以上。補足: datePostedとjobOpeningStatus=Openを公式求人公開データで確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Level 5 or higher",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ab3b813ad0c437e5",
+     "id": "airx-charter.jobs.fo-english-fo.61b1be86",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-17",
+       "publisher": "AirX Charter",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "source_type": "job_posting",
+       "title": "First Officer - A340（公式BambooHR原データ）",
+       "url": "https://airx.bamboohr.com/careers/185/detail"
+      }
+     ],
+     "unit": "ELP_level",
+     "use": "募集",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "First Officer - A340／Full-Time／会社公開ATSの勤務地EU（Malta）。有効なEASA ATPL。補足: datePostedとjobOpeningStatus=Openを公式求人公開データで確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA ATPL",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cad8d4e5fb92e479",
+     "id": "airx-charter.jobs.fo-license-fo.d6ab8748",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-17",
+       "publisher": "AirX Charter",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "source_type": "job_posting",
+       "title": "First Officer - A340（公式BambooHR原データ）",
+       "url": "https://airx.bamboohr.com/careers/185/detail"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "First Officer - A340／Full-Time／会社公開ATSの勤務地EU（Malta）。有効なClass 1。補足: datePostedとjobOpeningStatus=Openを公式求人公開データで確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1 Medical",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3e59bd3054f9b520",
+     "id": "airx-charter.jobs.fo-medical-fo.3efdadc9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-17",
+       "publisher": "AirX Charter",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "source_type": "job_posting",
+       "title": "First Officer - A340（公式BambooHR原データ）",
+       "url": "https://airx.bamboohr.com/careers/185/detail"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "First Officer - A340／Full-Time／会社公開ATSの勤務地EU（Malta）。総飛行時間の下限。別途マルチパイロット1000時間、A340で500時間が必要。補足: datePostedとjobOpeningStatus=Openを公式求人公開データで確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2000 hrs",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "07c0c4120aa4d868",
+     "id": "airx-charter.jobs.fo-total-hours-fo.1187722e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-17",
+       "publisher": "AirX Charter",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "source_type": "job_posting",
+       "title": "First Officer - A340（公式BambooHR原データ）",
+       "url": "https://airx.bamboohr.com/careers/185/detail"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "airx-charter",
+     "cond_ja": "First Officer - A340／Full-Time／会社公開ATSの勤務地EU（Malta）。有効型式、直近6か月内の実飛行が必要。補足: datePostedとjobOpeningStatus=Openを公式求人公開データで確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current A340 type-rating.",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fbad7358a92409c3",
+     "id": "airx-charter.jobs.fo-type-rating-fo.fb383d15",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-airx-charter",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-17",
+       "publisher": "AirX Charter",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-airx-bamboohr-com-13b8f5a0",
+       "source_type": "job_posting",
+       "title": "First Officer - A340（公式BambooHR原データ）",
+       "url": "https://airx.bamboohr.com/careers/185/detail"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A340",
      "value_text": null
     }
    ],
@@ -15012,6 +17578,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "alaska-airlines",
+     "cond_ja": "Alaska Seniority List; strong written/verbal communication skills; ICAO等級は明記なし。補足: 公式個別求人ページの公開配信JSONから実際のiCIMS応募先へ進み、同サイトが指定する本文iframeをGET/Webで実読。Alaska Seniority List節のみ要件に採用しHawaiian別リストを混在させない。Apply表示と締切2026-12-31を確認。必須最少PIC時間は未記載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "English",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "19bb260d5e8b588d",
+     "id": "alaska-airlines.jobs.fo-english-fo.09e6f321",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines/Hawaiian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "source_type": "job_posting",
+       "title": "First Officer, requisition 2026-21163",
+       "url": "https://pilotjobs-alaskaair.icims.com/jobs/21163/first-officer---alaska-airlines-hawaiian-airlines/job?in_iframe=1"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "English",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
      "cond_ja": "Instrument-Airplane; ATPwritten。補足: 更新日不明。現行Alaska Seniority List Requirements。Hawaiian別条件は除外。",
      "currency": null,
      "domain": "jobs",
@@ -15108,6 +17727,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "First Class FAA Medical Certificate",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "Alaska Seniority List; turbine PIC; Preferred（優遇条件）であり必須最少時間ではない。補足: 公式個別求人ページの公開配信JSONから実際のiCIMS応募先へ進み、同サイトが指定する本文iframeをGET/Webで実読。Alaska Seniority List節のみ要件に採用しHawaiian別リストを混在させない。Apply表示と締切2026-12-31を確認。必須最少PIC時間は未記載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500 hours of turbine PIC time",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51dbbfbffa37f135",
+     "id": "alaska-airlines.jobs.fo-pic-hours-fo.b600824b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_pic_hours",
+     "label_ja": "副操縦士の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines/Hawaiian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "source_type": "job_posting",
+       "title": "First Officer, requisition 2026-21163",
+       "url": "https://pilotjobs-alaskaair.icims.com/jobs/21163/first-officer---alaska-airlines-hawaiian-airlines/job?in_iframe=1"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
     },
     {
      "amount": null,
@@ -32574,6 +35246,432 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; 応募時の最低年齢。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "23 years old",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "85c0607ffd98274c",
+     "id": "breeze-airways.jobs.fo-age-fo.88dcf89c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 23,
+     "value_text": "23"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; read/write/speak/understandの能力が必要; ICAO等級は明記なし。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "English",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a2e5258b392b5c1b",
+     "id": "breeze-airways.jobs.fo-english-fo.e8553a92",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "English",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; 二者択一; Commercialはmulti engine/instrument ratings、ATP未保有ならATP written completedも必要。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Commercial Pilot Certificate",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3a634063a4e92b1f",
+     "id": "breeze-airways.jobs.fo-license-fo.1abbeb64",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Commercial Pilot Certificate",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; 二者択一; Commercialはmulti engine/instrument ratings、ATP未保有ならATP written completedも必要。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FAA ATP Certificate",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "067e48fbd4003c1d",
+     "id": "breeze-airways.jobs.fo-license-fo.90538a09",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "FAA ATP Certificate",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; current FAA Medical Certificate; 原文First-Classを数字へ変換しない。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First-Class",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f998e70292ae6783",
+     "id": "breeze-airways.jobs.fo-medical-fo.3b06ebb0",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First-Class",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; 最低fixed wing PIC。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "250 hours fixed wing PIC",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88c4afb2743e2deb",
+     "id": "breeze-airways.jobs.fo-pic-hours-fo.eaba55cb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_pic_hours",
+     "label_ja": "副操縦士の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 250,
+     "value_text": "250"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; Immigration Reform Act of 1986が定義する米国就労許可が必要。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "United States",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eeda02266daab17e",
+     "id": "breeze-airways.jobs.fo-right-to-work-fo.12652501",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "United States",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "Airbus A220直接採用FO; 原文1,500+; simulator/Flight Engineer時間を除外。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,500+ hours total time",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4afbdd0075a94cb",
+     "id": "breeze-airways.jobs.fo-total-hours-fo.0fc616d3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-23",
+       "publisher": "Breeze Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flybreeze-wd503-myworkdayjobs-com-a633de16",
+       "source_type": "job_posting",
+       "title": "Airbus A220 First Officer JR100367 (public Workday job data)",
+       "url": "https://flybreeze.wd503.myworkdayjobs.com/wday/cxs/flybreeze/Breeze_Airways/job/Airbus-A220-First-Officer_JR100367"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1,500"
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -34475,6 +37573,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "right to live and work in the UK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "british-airways",
+     "cond_ja": "British Airways本体、Senior First Officer直接採用。relevant aeroplane typeの有効型式が必要。CS-25等の複数操縦士ターボジェット、又は10 tonnes以上/19席超の複数操縦士ターボプロップ。型式がUK免許上にある必要はないがUK免許は保持。補足: 会社名義の原求人を実読。3,000ではなく原文3000時間は該当機材限定経験で総時間へ転用しない。Cityflyer/Euroflyer機長条件は不採用。公開日は1週間前の相対表示のみで空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current type rating",
+       "source_id": "src-uk-linkedin-com-94539177",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8fbb2aae4e81a26b",
+     "id": "british-airways.jobs.fo-type-rating-fo.35cd0729",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-british-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "British Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-uk-linkedin-com-94539177",
+       "source_type": "job_posting",
+       "title": "Direct Entry Pilot, Senior First Officer, UK CAA licence holder（会社名義LinkedIn原求人）",
+       "url": "https://uk.linkedin.com/jobs/view/direct-entry-pilot-senior-first-officer-uk-caa-licence-holder-at-british-airways-4471873955"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Current type rating",
      "value_text": null
     }
    ],
@@ -36633,6 +39784,483 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; 最大55歳; under55とは記載なし。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "maximum age 55",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9158e6583385f7cc",
+     "id": "china-eastern.jobs.cap-age-cap.07cc24f1",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 55,
+     "value_text": "55"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; 最低ICAO level4 ELP。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "level 4",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "13564081fffbf3e7",
+     "id": "china-eastern.jobs.cap-english-cap.e828b953",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; 有効・制限なし; FAA/EASA又はCAACの有効免許も必要。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICAO ATPL",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a5976b5600b293a2",
+     "id": "china-eastern.jobs.cap-license-cap.ea8996ff",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ICAO ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; 有効な航空身体検査Class I; ローマ数字を1に変換しない。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class I",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f50d49a02d8535c9",
+     "id": "china-eastern.jobs.cap-medical-cap.6ac4ec28",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "I",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; A350でのPIC最低時間; 当該機種でPIC recurrent training/proficiency check経験も必要。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500+",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5588f0230c86e792",
+     "id": "china-eastern.jobs.cap-pic-hours-cap.21868517",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; group II aircraftのPIC最低時間。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,000+",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5af784d21475b4a5",
+     "id": "china-eastern.jobs.cap-pic-hours-cap.f9505d6c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; 中国と外交関係を持つ国の出身者であること。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "diplomatic relations with China",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ad94064818439c62",
+     "id": "china-eastern.jobs.cap-right-to-work-cap.7244c859",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "diplomatic relations with China",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; 総飛行時間の最低値。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5,500+",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e69a6bf209992270",
+     "id": "china-eastern.jobs.cap-total-hours-cap.494801fd",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5500,
+     "value_text": "5,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去募集2023–2024; China Eastern Airlines本体; A350型式保有direct entry captain; Shanghai Flight Department; 締切2024-05-31; 有効かつcurrentのA350型式保持が必要; 原文表記350を保持。補足: 会社公開求人APIをGETで取得。公式ページ https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D の参照JSに記された詳細取得先。原文HTMLのGB18030バイト配列を文字コードどおり復号して実読。Active_Status=3・期限経過であり現行求人とは扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "350 Type rating",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "57e9d36f147cd509",
+     "id": "china-eastern.jobs.cap-type-rating-cap.c72cd354",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-9c8de5a0",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024 / public job detail data",
+       "url": "https://job.ceair.com/Ashx/EnJob.ashx?active=GetEnPositionDetailListByPosID&positionId=4203"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "350 Type rating",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -44332,6 +47960,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "EU旅券保有かつEASA免許保有の低経験pilot向け",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eagle-jet",
+     "cond_ja": "Eagle Jet仲介／雇用主は社名非公表の欧州EASA提携航空会社。A320 FO経験又は雇用プログラムであり、Eagle Jetの直接雇用求人ではない。European EASA Frozen ATPLの保有が必要。補足: 2026年現行サイトからリンクされたプログラム原文を実読。訓練・経験提供と雇用は選択的表現のため雇用保証と扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA Frozen ATPL",
+       "source_id": "src-eaglejet-net-9009e690",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7dd701b56e1675e2",
+     "id": "eagle-jet.jobs.fo-license-fo.1e2c9dd5",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eaglejet-net-9009e690",
+       "source_type": "job_posting",
+       "title": "EASA A320 First Officer Experience & Employment",
+       "url": "https://www.eaglejet.net/EASA-A320.asp"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA Frozen ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eagle-jet",
+     "cond_ja": "A320 European EASAプログラム／雇用主は社名非公表の提携航空会社。参加区分がEU旅券保有者と明示。補足: 2026年現行サイトの当該プログラムへの分類見出しを確認。全プログラム共通の国籍条件へ一般化しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EU Passport Holders",
+       "source_id": "src-eaglejet-net-20be9744",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "98ed2134e9237f3f",
+     "id": "eagle-jet.jobs.fo-right-to-work-fo.bc98c353",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eaglejet-net-20be9744",
+       "source_type": "job_posting",
+       "title": "Our Airline First Officer Programs",
+       "url": "https://www.eaglejet.net/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EU Passport Holders",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eagle-jet",
+     "cond_ja": "Eagle Jet仲介／雇用主は社名非公表の欧州EASA提携航空会社。A320 FO経験又は雇用プログラムであり、Eagle Jetの直接雇用求人ではない。最低総飛行時間なし。0時間とは数値化しない。補足: 2026年現行サイトからリンクされたプログラム原文を実読。訓練・経験提供と雇用は選択的表現のため雇用保証と扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "No Minimum Flight Time Requirement",
+       "source_id": "src-eaglejet-net-9009e690",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "072d1663a8c6bc27",
+     "id": "eagle-jet.jobs.fo-total-hours-fo.7c6ccf75",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eaglejet-net-9009e690",
+       "source_type": "job_posting",
+       "title": "EASA A320 First Officer Experience & Employment",
+       "url": "https://www.eaglejet.net/EASA-A320.asp"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "No Minimum Flight Time Requirement",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eagle-jet",
+     "cond_ja": "Eagle Jet仲介／雇用主は社名非公表の欧州EASA提携航空会社。A320 FO経験又は雇用プログラムであり、Eagle Jetの直接雇用求人ではない。型式未保有で参加可。ただし提携ATOのA320型式訓練を先に修了する経路。補足: 2026年現行サイトからリンクされたプログラム原文を実読。訓練・経験提供と雇用は選択的表現のため雇用保証と扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Non-type rated pilots",
+       "source_id": "src-eaglejet-net-9009e690",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26bb3a1831891caa",
+     "id": "eagle-jet.jobs.fo-type-rating-fo.3b6496f5",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eaglejet-net-9009e690",
+       "source_type": "job_posting",
+       "title": "EASA A320 First Officer Experience & Employment",
+       "url": "https://www.eaglejet.net/EASA-A320.asp"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Non-type rated",
+     "value_text": null
     }
    ],
    "profile": [
@@ -49784,6 +53624,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "emirates",
+     "cond_ja": "Emirates direct entry captain; 現行の公式求人; Dubai; A350採用; any Airbus FBW (A320/A330/A340/A350/A380)におけるPIC最低時間; Airbus FBWはA220を除外。補足: 公開求人JSON原文のFor A350区分を実読。FO時間や総時間ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-05-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,000",
+       "source_id": "src-emiratesgroupcareers-com-f63aea63",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0d68031e41d2e523",
+     "id": "emirates.jobs.cap-pic-hours-cap.39cfa6f9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-emirates",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-05-28",
+       "publisher": "Emirates Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-emiratesgroupcareers-com-f63aea63",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain / public job data",
+       "url": "https://www.emiratesgroupcareers.com/api/v1/jobs/186"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "emirates",
+     "cond_ja": "Emirates direct entry captain; 現行の公式求人; Dubai; A380採用; Airbus FBW wide-body (A330/A340/A350/A380)におけるPIC最低時間; Airbus FBWはA220を除外。補足: 公開求人JSON原文のFor A380区分を実読。FO時間や総時間ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-05-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,000",
+       "source_id": "src-emiratesgroupcareers-com-f63aea63",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ceaa7a1212c0ceb0",
+     "id": "emirates.jobs.cap-pic-hours-cap.6cc9d400",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-emirates",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-05-28",
+       "publisher": "Emirates Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-emiratesgroupcareers-com-f63aea63",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain / public job data",
+       "url": "https://www.emiratesgroupcareers.com/api/v1/jobs/186"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "emirates",
      "cond_ja": "direct entry captain。補足: 更新日不明。Apply Nowを掲載する現行公式採用ページ。",
      "currency": null,
      "domain": "jobs",
@@ -49827,6 +53773,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 7000,
      "value_text": "7000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "emirates",
+     "cond_ja": "Emirates direct entry captain; 現行の公式求人; Dubai; 現在運航している機種の型式資格を保持し免許に付記すること; Emirates入社後の配属機種の型式を既に持つこととは同一でない。補足: 公式検索ページの公開JS search.jsが参照する/api/v1/jobs/186をGETで実読。会社求人ページ https://www.emiratesgroupcareers.com/search-and-apply/186 の提出書類欄に明記。FOのFrozen ATPLルートはCPLとATPL理論試験合格証を提出する別選択肢がある。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-05-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "type-rating",
+       "source_id": "src-emiratesgroupcareers-com-f63aea63",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9ef6d66e310415e8",
+     "id": "emirates.jobs.cap-type-rating-cap.68a50a0a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-emirates",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-05-28",
+       "publisher": "Emirates Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-emiratesgroupcareers-com-f63aea63",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain / public job data",
+       "url": "https://www.emiratesgroupcareers.com/api/v1/jobs/186"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "type-rating",
+     "value_text": null
     },
     {
      "amount": null,
@@ -50039,6 +54038,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 2000,
      "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "emirates",
+     "cond_ja": "Emirates direct entry first_officer; 現行の公式求人; Dubai; 現在運航している機種の型式資格を保持し免許に付記すること; Emirates入社後の配属機種の型式を既に持つこととは同一でない。補足: 公式検索ページの公開JS search.jsが参照する/api/v1/jobs/5をGETで実読。会社求人ページ https://www.emiratesgroupcareers.com/search-and-apply/5 の提出書類欄に明記。FOのFrozen ATPLルートはCPLとATPL理論試験合格証を提出する別選択肢がある。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-05-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "type-rating",
+       "source_id": "src-emiratesgroupcareers-com-9a514617",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f6d1365d62a549a7",
+     "id": "emirates.jobs.fo-type-rating-fo.105c35b6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-emirates",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-05-28",
+       "publisher": "Emirates Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-emiratesgroupcareers-com-9a514617",
+       "source_type": "job_posting",
+       "title": "First Officer / public job data",
+       "url": "https://www.emiratesgroupcareers.com/api/v1/jobs/5"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "type-rating",
+     "value_text": null
     }
    ],
    "profile": [
@@ -52856,6 +56908,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowings GmbH本体、副操縦士、A320、HAM/DUS/CGN/STR、無期フルタイム；最低。別にドイツ語B2が必要。補足: 会社公式Cockpitページからcareer.aeroへ遷移し求人原本を実読。Eurowings Europe Limited機長求人は別法人のため不採用。1.000hrsは経験賃金評価で最低総時間としない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-career-aero-1e40d4d6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75bbb2f82e1b8424",
+     "id": "eurowings.jobs.fo-english-fo.a4dd8f7e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings GmbH",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-career-aero-1e40d4d6",
+       "source_type": "job_posting",
+       "title": "First Officer A320 family HAM/DUS/CGN/STR",
+       "url": "https://www.career.aero/eurowings/en/job/show/id/3826"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowings GmbH本体、副操縦士、A320、HAM/DUS/CGN/STR、無期フルタイム；ドイツ発行、ATPL Credit付帯、EASA ATPL(A)とのOR。補足: 会社公式Cockpitページからcareer.aeroへ遷移し求人原本を実読。Eurowings Europe Limited機長求人は別法人のため不採用。1.000hrsは経験賃金評価で最低総時間としない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPL (A)",
+       "source_id": "src-career-aero-1e40d4d6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4996ac31c2e2e62b",
+     "id": "eurowings.jobs.fo-license-fo.19156c8f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings GmbH",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-career-aero-1e40d4d6",
+       "source_type": "job_posting",
+       "title": "First Officer A320 family HAM/DUS/CGN/STR",
+       "url": "https://www.career.aero/eurowings/en/job/show/id/3826"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL (A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowings GmbH本体、副操縦士、A320、HAM/DUS/CGN/STR、無期フルタイム；ドイツ発行、CPL(A)+ATPL CreditとのOR。補足: 会社公式Cockpitページからcareer.aeroへ遷移し求人原本を実読。Eurowings Europe Limited機長求人は別法人のため不採用。1.000hrsは経験賃金評価で最低総時間としない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA ATPL (A)",
+       "source_id": "src-career-aero-1e40d4d6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bb1c99af2036f5b0",
+     "id": "eurowings.jobs.fo-license-fo.4f1642f9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings GmbH",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-career-aero-1e40d4d6",
+       "source_type": "job_posting",
+       "title": "First Officer A320 family HAM/DUS/CGN/STR",
+       "url": "https://www.career.aero/eurowings/en/job/show/id/3826"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA ATPL (A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowings GmbH本体、副操縦士、A320、HAM/DUS/CGN/STR、無期フルタイム；ドイツ発行、陰性薬物検査付帯。補足: 会社公式Cockpitページからcareer.aeroへ遷移し求人原本を実読。Eurowings Europe Limited機長求人は別法人のため不採用。1.000hrsは経験賃金評価で最低総時間としない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Medical Class I",
+       "source_id": "src-career-aero-1e40d4d6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de9fb15b134d9f5a",
+     "id": "eurowings.jobs.fo-medical-fo.56f8dc58",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings GmbH",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-career-aero-1e40d4d6",
+       "source_type": "job_posting",
+       "title": "First Officer A320 family HAM/DUS/CGN/STR",
+       "url": "https://www.career.aero/eurowings/en/job/show/id/3826"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Medical Class I",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -52907,6 +57171,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "型式保有/非保有FOの募集タイトルを掲載確認",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowings GmbH本体、副操縦士、A320、HAM/DUS/CGN/STR、無期フルタイム；EU市民権。居住/労働許可とのOR。補足: 会社公式Cockpitページからcareer.aeroへ遷移し求人原本を実読。Eurowings Europe Limited機長求人は別法人のため不採用。1.000hrsは経験賃金評価で最低総時間としない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EU-Staatsbürgerschaft",
+       "source_id": "src-career-aero-1e40d4d6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f279b21fd6a3505a",
+     "id": "eurowings.jobs.fo-right-to-work-fo.13e4bc12",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings GmbH",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-career-aero-1e40d4d6",
+       "source_type": "job_posting",
+       "title": "First Officer A320 family HAM/DUS/CGN/STR",
+       "url": "https://www.career.aero/eurowings/en/job/show/id/3826"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EU-Staatsbürgerschaft",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowings GmbH本体、副操縦士、A320、HAM/DUS/CGN/STR、無期フルタイム；居住/労働許可。EU市民権とのOR。補足: 会社公式Cockpitページからcareer.aeroへ遷移し求人原本を実読。Eurowings Europe Limited機長求人は別法人のため不採用。1.000hrsは経験賃金評価で最低総時間としない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aufenthalts- und Arbeitsgenehmigung",
+       "source_id": "src-career-aero-1e40d4d6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4204f10dfeb9ccc3",
+     "id": "eurowings.jobs.fo-right-to-work-fo.326f482e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings GmbH",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-career-aero-1e40d4d6",
+       "source_type": "job_posting",
+       "title": "First Officer A320 family HAM/DUS/CGN/STR",
+       "url": "https://www.career.aero/eurowings/en/job/show/id/3826"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aufenthalts- und Arbeitsgenehmigung",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowings GmbH本体、副操縦士、A320、HAM/DUS/CGN/STR、無期フルタイム；型式未保有区分で応募可。補足: 会社公式Cockpitページからcareer.aeroへ遷移し求人原本を実読。Eurowings Europe Limited機長求人は別法人のため不採用。1.000hrsは経験賃金評価で最低総時間としない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "non type-rated",
+       "source_id": "src-career-aero-1e40d4d6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5603d300e3925744",
+     "id": "eurowings.jobs.fo-type-rating-fo.1d328a15",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings GmbH",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-career-aero-1e40d4d6",
+       "source_type": "job_posting",
+       "title": "First Officer A320 family HAM/DUS/CGN/STR",
+       "url": "https://www.career.aero/eurowings/en/job/show/id/3826"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "non type-rated",
      "value_text": null
     }
    ],
@@ -53732,6 +58155,324 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fda",
+     "cond_ja": "【他社経験者】機長候補／定期便運航会社のジェット乗務経験が必要／名古屋・静岡ベース。TOEIC下限。補足: 公式募集ページが読み込む公開求人本文データ。updateDateTimeを採用、entryIsOpenFlg=1を確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TOEIC650以上",
+       "source_id": "src-ats-entry-backend-hito-link-jp-96a541ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "488fd7ebe75cfaa2",
+     "id": "fda.jobs.cap-english-cap.f1577174",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-fda",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "フジドリームエアラインズ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ats-entry-backend-hito-link-jp-96a541ad",
+       "source_type": "job_posting",
+       "title": "公式HITO-Link求人 100104",
+       "url": "https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100104"
+      }
+     ],
+     "unit": "TOEIC",
+     "use": "募集",
+     "value": 650,
+     "value_text": "650"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fda",
+     "cond_ja": "【他社経験者】機長候補／定期便運航会社のジェット乗務経験が必要／名古屋・静岡ベース。陸上多発、計器飛行証明も必要。補足: 公式募集ページが読み込む公開求人本文データ。updateDateTimeを採用、entryIsOpenFlg=1を確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "事業用操縦士技能証明（陸上多発）",
+       "source_id": "src-ats-entry-backend-hito-link-jp-96a541ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c53f59650b903ea8",
+     "id": "fda.jobs.cap-license-cap.b860b000",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-fda",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "フジドリームエアラインズ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ats-entry-backend-hito-link-jp-96a541ad",
+       "source_type": "job_posting",
+       "title": "公式HITO-Link求人 100104",
+       "url": "https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100104"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "事業用操縦士技能証明",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fda",
+     "cond_ja": "【他社経験者】機長候補／定期便運航会社のジェット乗務経験が必要／名古屋・静岡ベース。補足: 公式募集ページが読み込む公開求人本文データ。updateDateTimeを採用、entryIsOpenFlg=1を確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "第1種航空身体検査証明",
+       "source_id": "src-ats-entry-backend-hito-link-jp-96a541ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "474237a715f90c68",
+     "id": "fda.jobs.cap-medical-cap.634b031a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-fda",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "フジドリームエアラインズ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ats-entry-backend-hito-link-jp-96a541ad",
+       "source_type": "job_posting",
+       "title": "公式HITO-Link求人 100104",
+       "url": "https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100104"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fda",
+     "cond_ja": "【他社経験者】副操縦士候補／定期便運航会社のジェット乗務経験が必要／名古屋・静岡ベース。TOEIC下限。補足: 公式募集ページが読み込む公開求人本文データ。updateDateTimeを採用、entryIsOpenFlg=1を確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-10-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TOEIC650以上",
+       "source_id": "src-ats-entry-backend-hito-link-jp-9eef4765",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "917eed151f7610bd",
+     "id": "fda.jobs.fo-english-fo.36380f39",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-fda",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-10-07",
+       "publisher": "フジドリームエアラインズ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ats-entry-backend-hito-link-jp-9eef4765",
+       "source_type": "job_posting",
+       "title": "公式HITO-Link求人 100103",
+       "url": "https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100103"
+      }
+     ],
+     "unit": "TOEIC",
+     "use": "募集",
+     "value": 650,
+     "value_text": "650"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fda",
+     "cond_ja": "【他社経験者】副操縦士候補／定期便運航会社のジェット乗務経験が必要／名古屋・静岡ベース。陸上多発、計器飛行証明も必要。補足: 公式募集ページが読み込む公開求人本文データ。updateDateTimeを採用、entryIsOpenFlg=1を確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-10-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "事業用操縦士技能証明（陸上多発）",
+       "source_id": "src-ats-entry-backend-hito-link-jp-9eef4765",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "58896dbeaa254347",
+     "id": "fda.jobs.fo-license-fo.5b83bca6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-fda",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-10-07",
+       "publisher": "フジドリームエアラインズ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ats-entry-backend-hito-link-jp-9eef4765",
+       "source_type": "job_posting",
+       "title": "公式HITO-Link求人 100103",
+       "url": "https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100103"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "事業用操縦士技能証明",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fda",
+     "cond_ja": "【他社経験者】副操縦士候補／定期便運航会社のジェット乗務経験が必要／名古屋・静岡ベース。補足: 公式募集ページが読み込む公開求人本文データ。updateDateTimeを採用、entryIsOpenFlg=1を確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-10-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "第1種航空身体検査証明",
+       "source_id": "src-ats-entry-backend-hito-link-jp-9eef4765",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed05a48947d777a7",
+     "id": "fda.jobs.fo-medical-fo.a4797d84",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-fda",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-10-07",
+       "publisher": "フジドリームエアラインズ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ats-entry-backend-hito-link-jp-9eef4765",
+       "source_type": "job_posting",
+       "title": "公式HITO-Link求人 100103",
+       "url": "https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100103"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -54912,6 +59653,642 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "online",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330契約機長; Level 5以上; 原文はEnglish Language Proficiency。補足: Fiji AirwaysのDirect Entry Command契約求人。原採用代理店の公開求人HTML/一覧内Job_Descriptionを実読。Date_Opened=2024-05-01、Publish=true、本文Currently accepting expressions of interest。日付は原求人日として記録し発行日は空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Level 5 or Above",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f3956bec1c106ced",
+     "id": "fiji-airways.jobs.cap-english-cap.c7098499",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-05-01",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "English proficiency level",
+     "use": "募集",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "Fiji Airways B737 Max契約機長; current and valid。補足: Fiji Airwaysの直採用相当DECを仲介する契約求人。Pacific Aircrew Services自身の公開求人一覧のjobs.Job_Descriptionを実読。Date_Opened=2023-06-01、Publish=true。会社公式求人一覧では同条件を確認できず原採用代理店を使用。Date_Openedを発行日へ自動転用せず空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICAO ATPL",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "81b891d8ff2e28f5",
+     "id": "fiji-airways.jobs.cap-license-cap.e876ec4e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "source_type": "third_party_reference",
+       "title": "Boeing 737 Max Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606011/Boeing-737-Max-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ICAO ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "Fiji Airways B737 Max契約機長; 免許発行当局と同じ当局のcurrent証明; 原文Oneを数字化しない。補足: Fiji Airwaysの直採用相当DECを仲介する契約求人。Pacific Aircrew Services自身の公開求人一覧のjobs.Job_Descriptionを実読。Date_Opened=2023-06-01、Publish=true。会社公式求人一覧では同条件を確認できず原採用代理店を使用。Date_Openedを発行日へ自動転用せず空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class One Medical",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f8ec34ad7ae68e9c",
+     "id": "fiji-airways.jobs.cap-medical-cap.7263cfcc",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "source_type": "third_party_reference",
+       "title": "Boeing 737 Max Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606011/Boeing-737-Max-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Class One Medical",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330契約機長; タービン機PIC最低時間。補足: Fiji AirwaysのDirect Entry Command契約求人。原採用代理店の公開求人HTML/一覧内Job_Descriptionを実読。Date_Opened=2024-05-01、Publish=true、本文Currently accepting expressions of interest。日付は原求人日として記録し発行日は空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2,000 hours PIC",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "14b13026e9287c3c",
+     "id": "fiji-airways.jobs.cap-pic-hours-cap.15293e1c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-05-01",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330契約機長; A330上PICの第一代替; またはA320/340 PIC 3,000＋A330/A350型式。補足: Fiji AirwaysのDirect Entry Command契約求人。原採用代理店の公開求人HTML/一覧内Job_Descriptionを実読。Date_Opened=2024-05-01、Publish=true、本文Currently accepting expressions of interest。日付は原求人日として記録し発行日は空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,000 hours PIC on A330",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4f1be4099b45b947",
+     "id": "fiji-airways.jobs.cap-pic-hours-cap.a318dc60",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-05-01",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "Fiji Airways B737 Max契約機長; B737 NG/Max上の最低PIC。補足: Fiji Airwaysの直採用相当DECを仲介する契約求人。Pacific Aircrew Services自身の公開求人一覧のjobs.Job_Descriptionを実読。Date_Opened=2023-06-01、Publish=true。会社公式求人一覧では同条件を確認できず原採用代理店を使用。Date_Openedを発行日へ自動転用せず空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500 hours PIC on B737 NG/Max",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9f85c7f9e26a5a64",
+     "id": "fiji-airways.jobs.cap-pic-hours-cap.c95efd0d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "source_type": "third_party_reference",
+       "title": "Boeing 737 Max Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606011/Boeing-737-Max-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330契約機長; A320/340上PICの第二代替; A330/A350現有型式が必要。補足: Fiji AirwaysのDirect Entry Command契約求人。原採用代理店の公開求人HTML/一覧内Job_Descriptionを実読。Date_Opened=2024-05-01、Publish=true、本文Currently accepting expressions of interest。日付は原求人日として記録し発行日は空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,000 hours PIC A320/340",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b1888586f30a2ce2",
+     "id": "fiji-airways.jobs.cap-pic-hours-cap.f2f4ca2a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2024-05-01",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "Fiji Airways B737 Max契約機長; 最低総時間。補足: Fiji Airwaysの直採用相当DECを仲介する契約求人。Pacific Aircrew Services自身の公開求人一覧のjobs.Job_Descriptionを実読。Date_Opened=2023-06-01、Publish=true。会社公式求人一覧では同条件を確認できず原採用代理店を使用。Date_Openedを発行日へ自動転用せず空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,500 hours total time",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7e1ca18e7e591791",
+     "id": "fiji-airways.jobs.cap-total-hours-cap.58046d7b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "source_type": "third_party_reference",
+       "title": "Boeing 737 Max Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606011/Boeing-737-Max-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3500,
+     "value_text": "3,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "Fiji Airways B737 Max契約機長; 現有型式資格が必要。補足: Fiji Airwaysの直採用相当DECを仲介する契約求人。Pacific Aircrew Services自身の公開求人一覧のjobs.Job_Descriptionを実読。Date_Opened=2023-06-01、Publish=true。会社公式求人一覧では同条件を確認できず原採用代理店を使用。Date_Openedを発行日へ自動転用せず空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B737 NG/Max rating",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a8cc231102b06b21",
+     "id": "fiji-airways.jobs.cap-type-rating-cap.192bf70d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "source_type": "third_party_reference",
+       "title": "Boeing 737 Max Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606011/Boeing-737-Max-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B737 NG/Max rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330契約FO; current and valid。補足: Fiji Airways契約FOの原採用代理店公開求人一覧Job_Descriptionを実読。Date_Opened=2024-04-30、Publish=true。3000 total jet等は限定経験であり総TTへ転用しない。会社公式で同条件を確認できず使用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICAO ATPL",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7abb416fa4589f15",
+     "id": "fiji-airways.jobs.fo-license-fo.b461e218",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 First Officer",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ICAO ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330契約FO; ATPLと同じ発行当局; Oneを数字化しない。補足: Fiji Airways契約FOの原採用代理店公開求人一覧Job_Descriptionを実読。Date_Opened=2024-04-30、Publish=true。3000 total jet等は限定経験であり総TTへ転用しない。会社公式で同条件を確認できず使用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class One Medical",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "31b31dc44196521b",
+     "id": "fiji-airways.jobs.fo-medical-fo.8f4950ae",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 First Officer",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Class One Medical",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330契約FO; current型式が必要; A320/340経験者のCCQ/自己取得代替は本文条件に従う。補足: Fiji Airways契約FOの原採用代理店公開求人一覧Job_Descriptionを実読。Date_Opened=2024-04-30、Publish=true。3000 total jet等は限定経験であり総TTへ転用しない。会社公式で同条件を確認できず使用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A330 / A350 Type rating",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "842cdb552834b59e",
+     "id": "fiji-airways.jobs.fo-type-rating-fo.586338ec",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 First Officer",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A330 / A350 Type rating",
      "value_text": null
     },
     {
@@ -61570,6 +66947,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "現在募集なしと掲載",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度JALグループ合同採用／運航乗務員訓練生（副操縦士候補生）。日本免許、計器飛行・無線資格、指定養成機関等の在籍条件あり。定期航空会社での乗務経験者は対象外。補足: 過去。文書内2023年9月公表、日不明のためpublished_dateは空。参加会社名と共通資格、会社別雇用条件を照合。免許保有者採用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "事業用（多発）操縦士技能証明",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2fd68714283f96d9",
+     "id": "hac.jobs.fo-license-fo.4be6d3de",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "事業用（多発）操縦士技能証明",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "hac",
+     "cond_ja": "2023年度JALグループ合同採用／運航乗務員訓練生（副操縦士候補生）。日本免許、計器飛行・無線資格、指定養成機関等の在籍条件あり。定期航空会社での乗務経験者は対象外。補足: 過去。文書内2023年9月公表、日不明のためpublished_dateは空。参加会社名と共通資格、会社別雇用条件を照合。免許保有者採用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "第 1 種航空身体検査証明",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bcbe1ea0ed3ae123",
+     "id": "hac.jobs.fo-medical-fo.992958b1",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-hac",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
     }
    ],
    "profile": [
@@ -65902,6 +71385,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "2026年10月30日必着、2027年4月1日以降入社予定",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "ibex",
+     "cond_ja": "副操縦士要員（未経験者）／免許保有者向けCRJ-700副操縦士任用訓練、無免許自社養成ではない。相当する語学力との選択条件。補足: 現行募集、締切2026-10-30、入社2027-04-01以降。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TOEIC600点以上",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b04dacd869058cba",
+     "id": "ibex.jobs.fo-english-fo.f4436cbe",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-ibex",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "IBEX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "source_type": "job_posting",
+       "title": "副操縦士要員（未経験者）",
+       "url": "https://www.ibexair.co.jp/recruit/recruitment/career/detail-co-mpilot.html"
+      }
+     ],
+     "unit": "TOEIC",
+     "use": "募集",
+     "value": 600,
+     "value_text": "600"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "ibex",
+     "cond_ja": "副操縦士要員（未経験者）／免許保有者向けCRJ-700副操縦士任用訓練、無免許自社養成ではない。日本国発給・計器飛行証明と無線資格も必要。補足: 現行募集、締切2026-10-30、入社2027-04-01以降。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "多発事業用操縦士技能証明",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d287fa878f07f807",
+     "id": "ibex.jobs.fo-license-fo.b1e98487",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-ibex",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "IBEX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "source_type": "job_posting",
+       "title": "副操縦士要員（未経験者）",
+       "url": "https://www.ibexair.co.jp/recruit/recruitment/career/detail-co-mpilot.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "多発事業用操縦士技能証明",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "ibex",
+     "cond_ja": "副操縦士要員（未経験者）／免許保有者向けCRJ-700副操縦士任用訓練、無免許自社養成ではない。当該基準への適合が必要。補足: 現行募集、締切2026-10-30、入社2027-04-01以降。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "第一種航空身体検査基準",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dfdcc1a2cac64b4a",
+     "id": "ibex.jobs.fo-medical-fo.631f9fb3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-ibex",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "IBEX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "source_type": "job_posting",
+       "title": "副操縦士要員（未経験者）",
+       "url": "https://www.ibexair.co.jp/recruit/recruitment/career/detail-co-mpilot.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "第一種",
+     "value_text": null
     }
    ],
    "profile": [
@@ -67237,6 +72879,483 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; Max Age60; 最大60歳。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "60",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "30198cb9fa7b45ef",
+     "id": "indigo.jobs.cap-age-cap.a4fa0b37",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 60,
+     "value_text": "60"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; 有効なDGCA-issued ATPLが必要。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b9da6d7e1b4f43e4",
+     "id": "indigo.jobs.cap-license-cap.3145a3df",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; 有効なClass1 Medicalが必要。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "231d7d12afcbcdfd",
+     "id": "indigo.jobs.cap-medical-cap.a0fb64be",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; 同じNTR機長広告のTurbo-Prop PIC欄に記載された最低時間; scheduled operator運航、MTOW > 15000kgの当該機体; JetとTurbo-Prop両欄の代替/併課関係は原文で明示されず、双方必須又はいずれかでよいとは断定しない。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2000",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1d4e436c1612cc5b",
+     "id": "indigo.jobs.cap-pic-hours-cap.2eb5d07b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; 同じNTR機長広告のJet PIC欄に記載された最低時間; scheduled operator運航、MTOW > 15000kgの当該機体; JetとTurbo-Prop両欄の代替/併課関係は原文で明示されず、双方必須又はいずれかでよいとは断定しない。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "00d3b1a2f7e0480b",
+     "id": "indigo.jobs.cap-pic-hours-cap.71e87eeb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; Indian national又はOCI Holdersの選択肢。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Indian national",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c1bfc84e60fbd6b7",
+     "id": "indigo.jobs.cap-right-to-work-cap.06453132",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Indian national",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; Indian national又はOCI Holdersの選択肢。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "OCI Holders",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f984a96505f83b9b",
+     "id": "indigo.jobs.cap-right-to-work-cap.c019584c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "OCI Holders",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; 総飛行時間minimum3000。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3000",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a2faaaee10365ab",
+     "id": "indigo.jobs.cap-total-hours-cap.8c7413ba",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; A320の型式非保有者向け採用; 別途multi-engine endorsement等は必要。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Non-Type Rated",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "19a59cfaa997459a",
+     "id": "indigo.jobs.cap-type-rating-cap.3ba27625",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-29",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-in-linkedin-com-83a557da",
+       "source_type": "job_posting",
+       "title": "A320 Captain - Non Type Rated [company-published LinkedIn advert]",
+       "url": "https://in.linkedin.com/jobs/view/a320-captain-non-type-rated-at-indigo-interglobe-aviation-ltd-4473232305"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Non-Type Rated",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -69285,6 +75404,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": "FO発令まで有期契約、発令後正社員",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "j-air",
+     "cond_ja": "2023年度JALグループ合同採用／運航乗務員訓練生（副操縦士候補生）。日本免許、計器飛行・無線資格、指定養成機関等の在籍条件あり。定期航空会社での乗務経験者は対象外。補足: 過去。文書内2023年9月公表、日不明のためpublished_dateは空。参加会社名と共通資格、会社別雇用条件を照合。免許保有者採用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "事業用（多発）操縦士技能証明",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "77805021b3c9ad96",
+     "id": "j-air.jobs.fo-license-fo.73e82934",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-j-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "事業用（多発）操縦士技能証明",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "j-air",
+     "cond_ja": "2023年度JALグループ合同採用／運航乗務員訓練生（副操縦士候補生）。日本免許、計器飛行・無線資格、指定養成機関等の在籍条件あり。定期航空会社での乗務経験者は対象外。補足: 過去。文書内2023年9月公表、日不明のためpublished_dateは空。参加会社名と共通資格、会社別雇用条件を照合。免許保有者採用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "第 1 種航空身体検査証明",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "22039a039ddef1c4",
+     "id": "j-air.jobs.fo-medical-fo.0698e7ba",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-j-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用チーム",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "official_package",
+       "title": "2023年度合同採用募集要項",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
     }
    ],
    "profile": [
@@ -74126,6 +80351,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar-japan",
+     "cond_ja": "A320機長／上記総時間と併せたPIC最低値。補足: 過去。求人充足済み。原採用仲介会社の更新済み広告。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1000 PIC hours",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7dd09705cc308bbe",
+     "id": "jetstar-japan.jobs.cap-pic-hours-cap.c23ac77a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-jetstar-japan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-09-01",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "source_type": "third_party_reference",
+       "title": "Jetstar Japan Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/jetstar-japan"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar-japan",
+     "cond_ja": "A320／JCAB免許保有者対象の仲介求人。総飛行時間最低値。補足: 過去。原採用仲介会社の自社広告。JSON-LD dateModifiedを採用。全ポジション充足済みと明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4000 hours Total Flight Time",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fe7e071c01bcdc26",
+     "id": "jetstar-japan.jobs.cap-total-hours-cap.e1c7ce25",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-jetstar-japan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-09-01",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "source_type": "third_party_reference",
+       "title": "Jetstar Japan Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/jetstar-japan"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 4000,
+     "value_text": "4000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar-japan",
+     "cond_ja": "A320／型式保有者・未保有者の両方を対象とする広告。JCAB免許は別途必要。補足: 過去。求人充足済み。型式未保有者可という明示のみを採用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "type rated and non-type rated",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d45c0998d1cf181b",
+     "id": "jetstar-japan.jobs.cap-type-rating-cap.2a2d2226",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-jetstar-japan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-09-01",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "source_type": "third_party_reference",
+       "title": "Jetstar Japan Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/jetstar-japan"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "non-type rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "employer": "Jetstar Japan",
       "hire_route": "FOUG一般公募",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
@@ -74338,6 +80722,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "第一種航空身体検査証明",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar-japan",
+     "cond_ja": "A320／JCAB免許保有者対象の仲介求人。原文のTotal Flight Time (Jet)。ジェット機の総飛行時間という限定を保持。補足: 過去。原採用仲介会社の自社広告。JSON-LD dateModifiedを採用。全ポジション充足済みと明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "650 hours Total Flight Time",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1cc55614fd215715",
+     "id": "jetstar-japan.jobs.fo-total-hours-fo.351bccf7",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-jetstar-japan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-09-01",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "source_type": "third_party_reference",
+       "title": "Jetstar Japan Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/jetstar-japan"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 650,
+     "value_text": "650"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar-japan",
+     "cond_ja": "A320／型式保有者・未保有者の両方を対象とする広告。JCAB免許は別途必要。補足: 過去。求人充足済み。型式未保有者可という明示のみを採用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "type rated and non-type rated",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fce04da64ff86829",
+     "id": "jetstar-japan.jobs.fo-type-rating-fo.a2b6c622",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-jetstar-japan",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-09-01",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "source_type": "third_party_reference",
+       "title": "Jetstar Japan Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/jetstar-japan"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "non-type rated",
      "value_text": null
     },
     {
@@ -75101,6 +81591,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "jta",
+     "cond_ja": "2026年度B737機長候補者／航空英語能力証明レベル4以上は尚可。優遇条件であり必須ではない。補足: 過去。2026-09-30締切。最低必須レベルとしては採用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "航空英語能力証明レベル4以上",
+       "source_id": "src-jta-okinawa-com-3ee185cd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "44e8ba879aad0edc",
+     "id": "jta.jobs.cap-english-cap.13cb5276",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-jta",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JTA",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jta-okinawa-com-3ee185cd",
+       "source_type": "job_posting",
+       "title": "2026年度運航乗務職（機長候補者）",
+       "url": "https://jta-okinawa.com/recruit/joblist/"
+      }
+     ],
+     "unit": "航空英語能力証明_level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -76278,6 +82821,483 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; 求人構造化項目maxAgeの上限; 資格本文には年齢の再記載なし。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "55",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d2d07b76b05ac3ee",
+     "id": "kenya-airways.jobs.fo-age-fo.49a91863",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 55,
+     "value_text": "55"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; 求人構造化項目minAgeの下限; 資格本文には年齢の再記載なし。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "18",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7d035883475e9174",
+     "id": "kenya-airways.jobs.fo-age-fo.83d2b7cb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 18,
+     "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; level 4以上。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "level 4 or above",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "958d20b1933061c9",
+     "id": "kenya-airways.jobs.fo-english-fo.e0b91138",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": "KCAA English proficiency level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; KCAAが発行する有効免許; CPL/ATPLの二者択一; 別途IR等が必要。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPL",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7220e153d9b42a63",
+     "id": "kenya-airways.jobs.fo-license-fo.098d3b68",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; KCAAが発行する有効免許; CPL/ATPLの二者択一; 別途IR等が必要。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c622b74e051a0be8",
+     "id": "kenya-airways.jobs.fo-license-fo.d5b399b5",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; 原文のClass one medical certificate; oneを数字化しない。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class one",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4317df2d7198daac",
+     "id": "kenya-airways.jobs.fo-medical-fo.2396ef0b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Class one",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; ケニア国籍要件; howToApplyにもNairobiで居住/就労できる資格が必要と記載。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kenyan citizen",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a50b20d6fbff20d",
+     "id": "kenya-airways.jobs.fo-right-to-work-fo.74a09b7c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Kenyan citizen",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; simulatorを除外; 雇用資格の最低時間。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum 250 flight hours",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6eb53c0410e2fc9b",
+     "id": "kenya-airways.jobs.fo-total-hours-fo.34646095",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 250,
+     "value_text": "250"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "2025年First Officer; simulatorを除外; 面接資格の最低時間。補足: 過去求人。公式個別求人ページが参照する公開GETを原JSから同定して本文を実読。createdAt=2025-07-28、expirationDate=2025-12-31T20:59:00で期限経過。作成日時を発行日へ転用せず空欄。自社養成募集ではなく免許保有者のFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum 200 flight hours",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3b058c3be67a0cd3",
+     "id": "kenya-airways.jobs.fo-total-hours-fo.662aa5f6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-api-irec-prod-kenya-airways-com-ba2098cb",
+       "source_type": "job_posting",
+       "title": "First Officer, original public job details API",
+       "url": "https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 200,
+     "value_text": "200"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -79539,6 +86559,377 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; 入社時60歳未満; 60は厳密上限で60歳を含めない; 59へ算出しない。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Under 60",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb5d34b00770ba17",
+     "id": "korean-air.jobs.cap-age-cap.0fe6036d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-13",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / B787 Captains",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 60,
+     "value_text": "60"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; ICAO英語レベル最低5。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Level 5",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1ebd56b62464d4fb",
+     "id": "korean-air.jobs.cap-english-cap.bf0eadcf",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-13",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / B787 Captains",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; multi-crew commercial jetの合計PIC最低時間。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2500+",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f9823899eee14eb9",
+     "id": "korean-air.jobs.cap-pic-hours-cap.21fed949",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-13",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / B787 Captains",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2500,
+     "value_text": "2500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; B787のPIC最低1000hルート; 代替ルートはB787機長500h＋B787FO1000h。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1000+",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1e7d5613f6056356",
+     "id": "korean-air.jobs.cap-pic-hours-cap.31bb59f6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-13",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / B787 Captains",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; 代替ルートのB787機長最低500h; 同時にB787FO1000h必要; このFO時間はPICに含めない。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e27da04af1c63c32",
+     "id": "korean-air.jobs.cap-pic-hours-cap.dbaa9055",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-13",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / B787 Captains",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; 総飛行時間の最低値; 別途multi-crew commercial jet5000h必要だが総TTへ混同しない。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "7000+",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db5ab2e7dc97c212",
+     "id": "korean-air.jobs.cap-total-hours-cap.fc1e92c5",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-13",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / B787 Captains",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 7000,
+     "value_text": "7000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; 有効なB787型式保持が必要。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B787 Type Rating",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bf2714d3176fa09d",
+     "id": "korean-air.jobs.cap-type-rating-cap.297d7058",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-11-13",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / B787 Captains",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B787 Type Rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -82405,6 +89796,379 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": 2,
      "value_text": "2"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "過去LATAM Brasil FO; ICAO 4以上; 応募時有効かつ雇用時1年以上残存。補足: 過去募集。2025-11-06受付開始、copiloto締切2025-11-16、2026年入社予定。LATAM BrasilのA319/A320/A321向け。記者名・日時と会社HR責任者の説明がある業界報道を使用。会社Trabalhe Conoscoはcarreras.latam.comへ転送しJS要求/403で原募集を取得不可。会社原公表資料とは呼ばない。客室乗務員欄の18歳を操縦士へ流用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICAO 4 ou Superior",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3908cb4535c51e7d",
+     "id": "latam.jobs.fo-english-fo.dc8edac6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-10-29",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "source_type": "third_party_reference",
+       "title": "Pedro Menezes, Latam Brasil vai contratar novos comissários e copilotos; veja requisitos",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/10/latam-lanca-novo-processo-seletivo-para-comissarios-e-copilotos-veja-requisitos_222941.html"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "過去LATAM Brasil FO; 別途IFRA・CCT de PLAが必要。補足: 過去募集。2025-11-06受付開始、copiloto締切2025-11-16、2026年入社予定。LATAM BrasilのA319/A320/A321向け。記者名・日時と会社HR責任者の説明がある業界報道を使用。会社Trabalhe Conoscoはcarreras.latam.comへ転送しJS要求/403で原募集を取得不可。会社原公表資料とは呼ばない。客室乗務員欄の18歳を操縦士へ流用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Piloto Comercial de Avião",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc89440acd7c0366",
+     "id": "latam.jobs.fo-license-fo.d416d439",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-10-29",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "source_type": "third_party_reference",
+       "title": "Pedro Menezes, Latam Brasil vai contratar novos comissários e copilotos; veja requisitos",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/10/latam-lanca-novo-processo-seletivo-para-comissarios-e-copilotos-veja-requisitos_222941.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Piloto Comercial de Avião",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "過去LATAM Brasil FO; 応募時有効かつ雇用時6か月以上残存; primeiraを数字化しない。補足: 過去募集。2025-11-06受付開始、copiloto締切2025-11-16、2026年入社予定。LATAM BrasilのA319/A320/A321向け。記者名・日時と会社HR責任者の説明がある業界報道を使用。会社Trabalhe Conoscoはcarreras.latam.comへ転送しJS要求/403で原募集を取得不可。会社原公表資料とは呼ばない。客室乗務員欄の18歳を操縦士へ流用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CMA de primeira classe",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec68dda22a2ae07a",
+     "id": "latam.jobs.fo-medical-fo.3f8ce407",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-10-29",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "source_type": "third_party_reference",
+       "title": "Pedro Menezes, Latam Brasil vai contratar novos comissários e copilotos; veja requisitos",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/10/latam-lanca-novo-processo-seletivo-para-comissarios-e-copilotos-veja-requisitos_222941.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CMA de primeira classe",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "過去LATAM Brasil FO; 有効ブラジル旅券要件; B1/B2米国ビザは優遇条件。補足: 過去募集。2025-11-06受付開始、copiloto締切2025-11-16、2026年入社予定。LATAM BrasilのA319/A320/A321向け。記者名・日時と会社HR責任者の説明がある業界報道を使用。会社Trabalhe Conoscoはcarreras.latam.comへ転送しJS要求/403で原募集を取得不可。会社原公表資料とは呼ばない。客室乗務員欄の18歳を操縦士へ流用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Passaporte brasileiro válido",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c60b70ebbd56cbf3",
+     "id": "latam.jobs.fo-right-to-work-fo.4fd1f1da",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-10-29",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "source_type": "third_party_reference",
+       "title": "Pedro Menezes, Latam Brasil vai contratar novos comissários e copilotos; veja requisitos",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/10/latam-lanca-novo-processo-seletivo-para-comissarios-e-copilotos-veja-requisitos_222941.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Passaporte brasileiro válido",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "過去LATAM Brasil A320ファミリーFO; 最低飛行機総飛行時間。補足: 過去募集。2025-11-06受付開始、copiloto締切2025-11-16、2026年入社予定。LATAM BrasilのA319/A320/A321向け。記者名・日時と会社HR責任者の説明がある業界報道を使用。会社Trabalhe Conoscoはcarreras.latam.comへ転送しJS要求/403で原募集を取得不可。会社原公表資料とは呼ばない。客室乗務員欄の18歳を操縦士へ流用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "150 horas totais de voo",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b919e630652e35be",
+     "id": "latam.jobs.fo-total-hours-fo.7a4ce9e9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-10-29",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "source_type": "third_party_reference",
+       "title": "Pedro Menezes, Latam Brasil vai contratar novos comissários e copilotos; veja requisitos",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/10/latam-lanca-novo-processo-seletivo-para-comissarios-e-copilotos-veja-requisitos_222941.html"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 150,
+     "value_text": "150"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "過去LATAM Brasil FO; MLTE又はTipoの二者択一の第二代替。特定A320/E-Jet保有はdiferencial（優遇）欄。補足: 過去募集。2025-11-06受付開始、copiloto締切2025-11-16、2026年入社予定。LATAM BrasilのA319/A320/A321向け。記者名・日時と会社HR責任者の説明がある業界報道を使用。会社Trabalhe Conoscoはcarreras.latam.comへ転送しJS要求/403で原募集を取得不可。会社原公表資料とは呼ばない。客室乗務員欄の18歳を操縦士へ流用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Tipo",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c841b57dc9443e61",
+     "id": "latam.jobs.fo-type-rating-fo.0b85df57",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-10-29",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "source_type": "third_party_reference",
+       "title": "Pedro Menezes, Latam Brasil vai contratar novos comissários e copilotos; veja requisitos",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/10/latam-lanca-novo-processo-seletivo-para-comissarios-e-copilotos-veja-requisitos_222941.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Tipo",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "過去LATAM Brasil FO; MLTE又はTipoの二者択一の第一代替。MLTEは多発機資格でありA320型式保有と同義にはしない。補足: 過去募集。2025-11-06受付開始、copiloto締切2025-11-16、2026年入社予定。LATAM BrasilのA319/A320/A321向け。記者名・日時と会社HR責任者の説明がある業界報道を使用。会社Trabalhe Conoscoはcarreras.latam.comへ転送しJS要求/403で原募集を取得不可。会社原公表資料とは呼ばない。客室乗務員欄の18歳を操縦士へ流用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MLTE",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "68b6e3464385c714",
+     "id": "latam.jobs.fo-type-rating-fo.3712fe53",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-10-29",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-panrotas-com-br-447b6455",
+       "source_type": "third_party_reference",
+       "title": "Pedro Menezes, Latam Brasil vai contratar novos comissários e copilotos; veja requisitos",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/10/latam-lanca-novo-processo-seletivo-para-comissarios-e-copilotos-veja-requisitos_222941.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "MLTE",
+     "value_text": null
     }
    ],
    "profile": [
@@ -87407,6 +95171,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "固定翼の機長要員／国内定期航空運送事業者での乗務経験。国土交通省航空局発行の資格。補足: 過去。応募締切２０２３年１０月２０日、入社２０２４年２月以降。発行日の日付は本文にないため空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "定期運送用操縦士技能証明",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "152b9ec5abe465d8",
+     "id": "orc.jobs.cap-license-cap.7305f850",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "定期運送用操縦士技能証明",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "固定翼の機長要員／国内定期航空運送事業者での乗務経験。国土交通省航空局発行の資格。補足: 過去。応募締切２０２３年１０月２０日、入社２０２４年２月以降。発行日の日付は本文にないため空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "第 1 種航空身体検査証明書",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7c71448bbe4f1017",
+     "id": "orc.jobs.cap-medical-cap.789650a8",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "orc",
+     "cond_ja": "固定翼機長要員／DHC8限定保有者は尚可。型式保有は優遇条件であり必須ではない。補足: 過去。2023年募集。型式未保有不可とは記載していない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ＤＨＣ８限定保有者は尚可",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4efc80a138f2b37e",
+     "id": "orc.jobs.cap-type-rating-cap.5bb31505",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-orc",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "オリエンタルエアブリッジ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "official_package",
+       "title": "運航乗務員 機長要員募集要項（JAPA掲載原資料）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ＤＨＣ８",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "employer": "Oriental Air Bridge (ORC)",
       "hire_route": "防災ヘリ回転翼",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
@@ -88370,6 +96293,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "peach",
+     "cond_ja": "Peach機長／TR／応募時年齢の厳密上限：60歳未満。雇用区分はpermanent contract。補足: 原採用仲介会社の自社求人。JSON-LD更新日。会社ページに応募年齢の記載がないため補完。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Below 60 years old",
+       "source_id": "src-fci-aero-5e2f1018",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b058342a5b78ddb0",
+     "id": "peach.jobs.cap-age-cap.4aeea870",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-peach",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-30",
+       "publisher": "Flight Crew International",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fci-aero-5e2f1018",
+       "source_type": "third_party_reference",
+       "title": "Peach Aviation – NTR Captains",
+       "url": "https://fci.aero/jobs/peach-aviation-ntr-captains-437031/"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 60,
+     "value_text": "60"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "peach",
+     "cond_ja": "Peach機長／NTR／応募時年齢の厳密上限：58歳未満。雇用区分はpermanent contract。補足: 原採用仲介会社の自社求人。JSON-LD更新日。会社ページに応募年齢の記載がないため補完。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Below 58 years old",
+       "source_id": "src-fci-aero-5e2f1018",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "98bc2dfe1a67d20d",
+     "id": "peach.jobs.cap-age-cap.eac96e08",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-peach",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-30",
+       "publisher": "Flight Crew International",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fci-aero-5e2f1018",
+       "source_type": "third_party_reference",
+       "title": "Peach Aviation – NTR Captains",
+       "url": "https://fci.aero/jobs/peach-aviation-ntr-captains-437031/"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 58,
+     "value_text": "58"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "peach",
      "cond_ja": "以上。",
      "currency": null,
      "domain": "jobs",
@@ -88678,6 +96707,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 4000,
      "value_text": "4000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "peach",
+     "cond_ja": "A320機長／Non-JCAB経路。A320の代替条件。補足: A320未保有でも他のジェット型式で応募可。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320 or other jet type rating",
+       "source_id": "src-flypeach-com-8bf3676b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4981a815d65ae61b",
+     "id": "peach.jobs.cap-type-rating-cap.af938c29",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-peach",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Peach Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flypeach-com-8bf3676b",
+       "source_type": "job_posting",
+       "title": "Pilot recruitment - Current vacancies",
+       "url": "https://www.flypeach.com/en/fm/recruting/how_to_apply_for_a_position"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "other jet type rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "peach",
+     "cond_ja": "A320機長／Non-JCAB経路。A320または他のジェット型式が必要であり、A320限定必須という意味ではない。補足: 会社現行求人を実読。代替の他ジェット型式も可。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320 or other jet type rating",
+       "source_id": "src-flypeach-com-8bf3676b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f920edaffc82b2c1",
+     "id": "peach.jobs.cap-type-rating-cap.dfd201bf",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-peach",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Peach Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flypeach-com-8bf3676b",
+       "source_type": "job_posting",
+       "title": "Pilot recruitment - Current vacancies",
+       "url": "https://www.flypeach.com/en/fm/recruting/how_to_apply_for_a_position"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A320",
+     "value_text": null
     },
     {
      "amount": null,
@@ -95197,6 +103332,801 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。厳密上限、56歳未満。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "below 56",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2584afd2614ee70b",
+     "id": "root-aviation.jobs.cap-age-cap.c83a85a4",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 56,
+     "value_text": "56"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。5以上。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5 and above",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "16653b64b2dab5a5",
+     "id": "root-aviation.jobs.cap-english-cap.5eeb3726",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": "ELP",
+     "use": "募集",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICAO ATPL",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bfe9268912756dbc",
+     "id": "root-aviation.jobs.cap-license-cap.5124bbeb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ICAO ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First class Medical",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c8edce76d5d48422",
+     "id": "root-aviation.jobs.cap-medical-cap.378b4e5b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First class",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。B737NG PIC下限。別途ME PIC2000時間。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500 PIC",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "27cf60646e0997ee",
+     "id": "root-aviation.jobs.cap-pic-hours-cap.2d32e3c6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。MEでのPIC下限。別途B737NG PIC1500時間。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2000 PIC",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3f44bd44f14ccb47",
+     "id": "root-aviation.jobs.cap-pic-hours-cap.2ea9e135",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主Central Airlines／B777 PIC／Shenzhen, China／長期契約。雇用契約の直接・派遣別は未記載。締切記載なし。Dubai/Parisの面接月日は年不明のため応募期限へ転用しない。補足: 確認日に求人本文と応募欄を実読。職位・機種・拠点都市を特定できる代表求人。中東B737求人は所在都市非公表のためpostingへ採録しないが、応募要件は別行に採録。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B777 Captain Jobs at Central Airlines",
+       "source_id": "src-rootaviation-com-dbeac484",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "71a01bd73f6fbd4f",
+     "id": "root-aviation.jobs.cap-posting-cap.965a573d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-dbeac484",
+       "source_type": "job_posting",
+       "title": "B777 Captain Jobs at Central Airlines",
+       "url": "https://rootaviation.com/b777-captains-central"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B777 Captain Jobs at Central Airlines",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。総飛行時間下限。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5000",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e8876e77f525e560",
+     "id": "root-aviation.jobs.cap-total-hours-cap.ebd57df4",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5000,
+     "value_text": "5000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、機長。B737型式が必要。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B737 type rating",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "28ccc69eb001fb4e",
+     "id": "root-aviation.jobs.cap-type-rating-cap.e5bfccab",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-b11e3d4a",
+       "source_type": "job_posting",
+       "title": "B737 NG Captains- Middle East",
+       "url": "https://rootaviation.com/b737-capts-me"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B737",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、フルタイム移住型副操縦士。5以上。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "level 5",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9280458612c4f180",
+     "id": "root-aviation.jobs.fo-english-fo.dc86d262",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "source_type": "job_posting",
+       "title": "B737 First Officers- Middle East",
+       "url": "https://rootaviation.com/b737-fo-middle-east"
+      }
+     ],
+     "unit": "ELP",
+     "use": "募集",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、フルタイム移住型副操縦士。EASA発給ATPLの経路。FAA ATPLとの代替選択。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FAA/EASA ATPL",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "130e2aaa62d56324",
+     "id": "root-aviation.jobs.fo-license-fo.0a04d291",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "source_type": "job_posting",
+       "title": "B737 First Officers- Middle East",
+       "url": "https://rootaviation.com/b737-fo-middle-east"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、フルタイム移住型副操縦士。FAA発給ATPLの経路。EASA ATPLとの代替選択。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FAA/EASA ATPL",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "16696ec7b1a8ac2d",
+     "id": "root-aviation.jobs.fo-license-fo.2fb4cfc3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "source_type": "job_posting",
+       "title": "B737 First Officers- Middle East",
+       "url": "https://rootaviation.com/b737-fo-middle-east"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、フルタイム移住型副操縦士。EU旅券保有が必要。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EU passport",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "899a815b795cd8b2",
+     "id": "root-aviation.jobs.fo-right-to-work-fo.5fb14829",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "source_type": "job_posting",
+       "title": "B737 First Officers- Middle East",
+       "url": "https://rootaviation.com/b737-fo-middle-east"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EU passport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、フルタイム移住型副操縦士。総時間下限、別途B737NG SIC1000時間。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2000 hours TT",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b2aeae45ea5d595e",
+     "id": "root-aviation.jobs.fo-total-hours-fo.7e620006",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "source_type": "job_posting",
+       "title": "B737 First Officers- Middle East",
+       "url": "https://rootaviation.com/b737-fo-middle-east"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "root-aviation",
+     "cond_ja": "Root Aviation仲介／雇用主は社名非公表の中東航空会社／direct hire、長期契約、フルタイム移住型副操縦士。currentが必要。補足: 仲介会社自身の現在表示する原求人と応募欄を確認。文書の公表・更新日は不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B737 type rating",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "81e9b8a9956dfe14",
+     "id": "root-aviation.jobs.fo-type-rating-fo.35c9c691",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-root-aviation",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Root Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rootaviation-com-67c6349f",
+       "source_type": "job_posting",
+       "title": "B737 First Officers- Middle East",
+       "url": "https://rootaviation.com/b737-fo-middle-east"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B737",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -100160,6 +109090,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "sas",
+     "cond_ja": "SAS A320直接機長、Copenhagen/Stockholm；最低経験の原文+表記を保持して条件へ記録；MTOW55.0T超の航空機のPIC、原文1,000+。カンマを保持。補足: 機長時間の機材重量条件を省略しない。E195/SAS LinkやLondon Heathrow/SAS Connectの求人条件を混ぜない。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,000+",
+       "source_id": "src-careers-sasgroup-net-dc2fd270",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "193d04d2da9aa17d",
+     "id": "sas.jobs.cap-pic-hours-cap.b24829e1",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-sas",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SAS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-sasgroup-net-dc2fd270",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain A320 in Copenhagen & Stockholm",
+       "url": "https://careers.sasgroup.net/job/Kastrup-DIRECT-ENTRY-CAPTAIN-A320-IN-COPENHAGEN-%26-STOCKHOLM/1289110201/"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "sas",
+     "cond_ja": "SAS A320直接機長、Copenhagen/Stockholm；最低経験の原文+表記を保持して条件へ記録；Total Time、原文4,000+。カンマを保持。補足: 現行個別原求人のMinimum Flight Time Requirements。2,000+jet/high-speed turbopropは別の機材限定条件で総時間へ転用しない。発行日表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4,000+",
+       "source_id": "src-careers-sasgroup-net-dc2fd270",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eacfea2f0bde8b73",
+     "id": "sas.jobs.cap-total-hours-cap.262f4fb4",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-sas",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SAS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-sasgroup-net-dc2fd270",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain A320 in Copenhagen & Stockholm",
+       "url": "https://careers.sasgroup.net/job/Kastrup-DIRECT-ENTRY-CAPTAIN-A320-IN-COPENHAGEN-%26-STOCKHOLM/1289110201/"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 4000,
+     "value_text": "4,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
       "pilot_specific": true,
       "rank": "fo"
@@ -101522,6 +110558,748 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain B787; 2026 Singapore Assessment Centre; 最低ICAO英語レベル4。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "54f9a845c389f968",
+     "id": "scoot.jobs.cap-english-cap.69e68d2e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-12",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "source_type": "job_posting",
+       "title": "Direct Entry B787 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-b787-captain-2026-singapore-assessment-centre-at-scoot-4393270375"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain A320; 2026 Singapore Assessment Centre; 最低ICAO英語レベル4。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6244a552fa75f69e",
+     "id": "scoot.jobs.cap-english-cap.cef2cd8d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "source_type": "job_posting",
+       "title": "Direct Entry A320 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-a320-captain-2026-singapore-assessment-centre-at-scoot-4142985597"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain B787; 2026 Singapore Assessment Centre; CAAS-issued ICAO ATPLが必要; 外国ATPLはCAAS ATPLへの転換と6か月有効IR/PPCの条件。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0ba1bf7792654845",
+     "id": "scoot.jobs.cap-license-cap.7c7baf7b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-12",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "source_type": "job_posting",
+       "title": "Direct Entry B787 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-b787-captain-2026-singapore-assessment-centre-at-scoot-4393270375"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain A320; 2026 Singapore Assessment Centre; CAAS-issued ICAO ATPLが必要; 外国ATPLはCAAS ATPLへの転換と6か月有効IR/PPCの条件。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "40fa0666563c6159",
+     "id": "scoot.jobs.cap-license-cap.c51c13f3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "source_type": "job_posting",
+       "title": "Direct Entry A320 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-a320-captain-2026-singapore-assessment-centre-at-scoot-4142985597"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain B787; 2026 Singapore Assessment Centre; 最低PIC時間; P1 U/S除外; 商業定期航空輸送のmulti-engine jet・multi-crew認証機。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2,000",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "effe1bb7e6ed004e",
+     "id": "scoot.jobs.cap-pic-hours-cap.13b12394",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-12",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "source_type": "job_posting",
+       "title": "Direct Entry B787 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-b787-captain-2026-singapore-assessment-centre-at-scoot-4393270375"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain A320; 2026 Singapore Assessment Centre; 最低PIC時間; P1 U/S除外; 商業定期航空輸送のmulti-engine jet・multi-crew認証機。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,000",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dccb5d98e14b4b7b",
+     "id": "scoot.jobs.cap-pic-hours-cap.f4f83243",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "source_type": "job_posting",
+       "title": "Direct Entry A320 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-a320-captain-2026-singapore-assessment-centre-at-scoot-4142985597"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain B787; 2026 Singapore Assessment Centre; Total Fixed Wings Flight Time（FO）又はTotal Flight Hours（captain）が原文の値を超えること（strict >）; MTMA 5,700 kg以上の対象機による総時間のみ; その他の機体の全TTではない。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5,000",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "57ec9a2db0807cff",
+     "id": "scoot.jobs.cap-total-hours-cap.a898e1b6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-12",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "source_type": "job_posting",
+       "title": "Direct Entry B787 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-b787-captain-2026-singapore-assessment-centre-at-scoot-4393270375"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5000,
+     "value_text": "5,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain A320; 2026 Singapore Assessment Centre; Total Fixed Wings Flight Time（FO）又はTotal Flight Hours（captain）が原文の値を超えること（strict >）; MTMA 5,700 kg以上の対象機による総時間のみ; その他の機体の全TTではない。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,500",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cdd93796c335e620",
+     "id": "scoot.jobs.cap-total-hours-cap.f70ab370",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "source_type": "job_posting",
+       "title": "Direct Entry A320 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-a320-captain-2026-singapore-assessment-centre-at-scoot-4142985597"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3500,
+     "value_text": "3,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain B787; 2026 Singapore Assessment Centre; 当該型式を保持する機長の採用。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B787 Type-Rated",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e3c4e0696e77198",
+     "id": "scoot.jobs.cap-type-rating-cap.7dcec052",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-12",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "source_type": "job_posting",
+       "title": "Direct Entry B787 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-b787-captain-2026-singapore-assessment-centre-at-scoot-4393270375"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B787 Type-Rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry captain A320; 2026 Singapore Assessment Centre; 当該型式を保持する機長の採用。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320 Type-Rated",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "007dad4650f0a507",
+     "id": "scoot.jobs.cap-type-rating-cap.d92e6ecc",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "source_type": "job_posting",
+       "title": "Direct Entry A320 Captain 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-a320-captain-2026-singapore-assessment-centre-at-scoot-4142985597"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A320 Type-Rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry first_officer; 2026 Singapore Assessment Centre; 最低ICAO英語レベル4。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6418fac72c34eea0",
+     "id": "scoot.jobs.fo-english-fo.ce30bc11",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-18",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-first-officer-2026-singapore-assessment-centre-at-scoot-4142982718"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry first_officer; 2026 Singapore Assessment Centre; CAAS-issued ICAO CPL(A)又はATPL(A)の選択肢; 外国免許の場合CAAS転換と6か月有効IR/PPCの条件。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL(A)",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6ea826e993ea10e8",
+     "id": "scoot.jobs.fo-license-fo.054b192e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-18",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-first-officer-2026-singapore-assessment-centre-at-scoot-4142982718"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL(A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry first_officer; 2026 Singapore Assessment Centre; CAAS-issued ICAO CPL(A)又はATPL(A)の選択肢; 外国免許の場合CAAS転換と6か月有効IR/PPCの条件。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPL(A)",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0f0984c633d25441",
+     "id": "scoot.jobs.fo-license-fo.5f09b205",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-18",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-first-officer-2026-singapore-assessment-centre-at-scoot-4142982718"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL(A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot本体; direct entry first_officer; 2026 Singapore Assessment Centre; Total Fixed Wings Flight Time（FO）又はTotal Flight Hours（captain）が原文の値を超えること（strict >）; MTMA 5700 kg以上の対象機による総時間のみ; その他の機体の全TTではない。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "371e0468816a2f61",
+     "id": "scoot.jobs.fo-total-hours-fo.d0f6cb1d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-10-18",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer 2026 [Scoot company-published LinkedIn advert]",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-first-officer-2026-singapore-assessment-centre-at-scoot-4142982718"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -105432,6 +115210,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "2027年4月1日または会社指定時期",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "skymark",
+     "cond_ja": "B737他社経験者／TOEIC650点以上との選択条件。英検2級以上程度。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "英検2級以上程度",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e91721a7f4bad363",
+     "id": "skymark.jobs.fo-english-fo.62144438",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-skymark",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "スカイマーク",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "source_type": "job_posting",
+       "title": "B737副操縦士候補者(他社経験者)",
+       "url": "https://hrmos.co/pages/skymark/jobs/0000045"
+      }
+     ],
+     "unit": "EIKEN_grade",
+     "use": "募集",
+     "value": 2,
+     "value_text": "2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "skymark",
+     "cond_ja": "B737他社経験者／英検2級以上程度との選択条件。TOEIC下限。補足: 同等条件の英検経路は別行。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TOEIC650点以上",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "173f5ed0610d500c",
+     "id": "skymark.jobs.fo-english-fo.94f38d13",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-skymark",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "スカイマーク",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "source_type": "job_posting",
+       "title": "B737副操縦士候補者(他社経験者)",
+       "url": "https://hrmos.co/pages/skymark/jobs/0000045"
+      }
+     ],
+     "unit": "TOEIC",
+     "use": "募集",
+     "value": 650,
+     "value_text": "650"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "skymark",
+     "cond_ja": "B737副操縦士候補者（他社経験者）／国内他社の定期航空運送事業者における総飛行時間500時間以上。補足: 会社ニュース内の現行リンクから実読。2027年3月以降入社、随時募集。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "総飛行時間500時間以上",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4133e412f3ed1b69",
+     "id": "skymark.jobs.fo-total-hours-fo.02a03e41",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-skymark",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "スカイマーク",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "source_type": "job_posting",
+       "title": "B737副操縦士候補者(他社経験者)",
+       "url": "https://hrmos.co/pages/skymark/jobs/0000045"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
     }
    ],
    "profile": [
@@ -112147,6 +122084,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "A320限定保有の副操縦士候補者、機長候補者",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "starflyer",
+     "cond_ja": "A320型式限定保有・副操縦士経験者／正社員採用は60歳未満（定年による）。補足: 公式採用トップの2026年9月18日募集開始案内と現行募集本文を照合。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "60歳未満",
+       "source_id": "src-starflyer-jp-df7d3a21",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0d304bafe536d1ba",
+     "id": "starflyer.jobs.fo-age-fo.9a02086c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-starflyer",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-18",
+       "publisher": "スターフライヤー",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-starflyer-jp-df7d3a21",
+       "source_type": "job_posting",
+       "title": "副操縦士候補者 中途募集要項",
+       "url": "https://www.starflyer.jp/recruit/recruitment/professionals/co-pilot/"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 60,
+     "value_text": "60"
     }
    ],
    "profile": [
@@ -114523,6 +124513,483 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；GAVに基づく最大年齢。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "56",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5a4d1300daf6dd4a",
+     "id": "swiss.jobs.fo-age-fo.445548ee",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 56,
+     "value_text": "56"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；最低。別にドイツ語C1条件。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7f04f3f8c8cc27c0",
+     "id": "swiss.jobs.fo-english-fo.73717c10",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": "ICAO level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；EASA Part-FCL；ATPL(A)学科修了が付帯、ATPL(A)又はMPLとのOR。補足: 現行の会社原求人を実読。一般ページのab initio条件は転用しない。公表日は1週間前の相対表示のみで空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPL(A)/IR",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "19cc0ee2fe71d67f",
+     "id": "swiss.jobs.fo-license-fo.27576f40",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL(A)/IR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；EASA Part-FCL；CPL(A)/IR+ATPL(A)学科又はMPLとのOR。補足: 現行の会社原求人を実読。一般ページのab initio条件は転用しない。公表日は1週間前の相対表示のみで空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL(A)",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a6f71ceb8b7b980f",
+     "id": "swiss.jobs.fo-license-fo.2c062ac3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL(A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；EASA Part-FCL；ATPL(A)又はCPL(A)/IR+ATPL学科とのOR。補足: 現行の会社原求人を実読。一般ページのab initio条件は転用しない。公表日は1週間前の相対表示のみで空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MPL",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e23b6d10ac8a9ae2",
+     "id": "swiss.jobs.fo-license-fo.30b6fc95",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "MPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；医療証明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "50ab6c243baae59c",
+     "id": "swiss.jobs.fo-medical-fo.e45a7c55",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Class 1",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；EU-27旅券、スイス国籍又はEFTA旅券とのOR。補足: 原文の国籍/旅券資格を記録。資格から他地域の就労権を推定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EU-27",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0103bea8c16425b4",
+     "id": "swiss.jobs.fo-right-to-work-fo.1c7fd8b4",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EU-27",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；EFTA旅券、スイス国籍又はEU-27旅券とのOR。補足: 原文の国籍/旅券資格を記録。資格から他地域の就労権を推定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EFTA",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec99b6e4e1e9bfbf",
+     "id": "swiss.jobs.fo-right-to-work-fo.3e61b0b9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EFTA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
+     "cond_ja": "SWISS本体、Direct Entry First Officer A320、Kloten/Zurich、現行表示；スイス国籍、EU-27又はEFTA旅券とのOR。補足: 原文の国籍/旅券資格を記録。資格から他地域の就労権を推定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Schweizerische Staatsangehörigkeit",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8b3890ba2d1e7d67",
+     "id": "swiss.jobs.fo-right-to-work-fo.b0e9f781",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-swiss",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ch-linkedin-com-3b62a27f",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer A320（会社名義LinkedIn原求人）",
+       "url": "https://ch.linkedin.com/jobs/view/direct-entry-first-officer-a320-100%25-all-genders-at-swiss-international-air-lines-4258850825"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Schweizerische Staatsangehörigkeit",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "swiss",
      "cond_ja": "Direct Entry。補足: 更新日不明。現行Direct + Ready Entry採用条件。",
      "currency": null,
      "domain": "jobs",
@@ -116185,6 +126652,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "当該カテゴリーには対応募集なし、OficialPilotoの自発応募は受け付けないとの表示",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "tap",
+     "cond_ja": "TAP Air Portugal、Oficiais Piloto（会社英語採用分類First Officer）、2026年9月選考の過去の応募要件；最低レベル。Portuguese/English能力も必要。補足: 過去。記事がTAPの応募要件を出所と明記し、原規程へリンク。原規程で5/6は加点条件、最低4とは区別して報道を出所に記録。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-kiosquedaaviacao-pt-3d72ab6e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "849b0bb98b8bb66a",
+     "id": "tap.jobs.fo-english-fo.70de37e6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-tap",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-26",
+       "publisher": "Kiosque da Aviação",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kiosquedaaviacao-pt-3d72ab6e",
+       "source_type": "third_party_reference",
+       "title": "TAP abre recrutamento, 2026-09-26",
+       "url": "https://kiosquedaaviacao.pt/tap-air-portugal-abre-recrutamento-para-oficiais-piloto-de-aviacao-comercial/"
+      }
+     ],
+     "unit": "English aeronáutico level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "tap",
+     "cond_ja": "TAP Air Portugal、Oficiais Piloto（会社英語採用分類First Officer）、2026年9月選考の過去の応募要件；申請時から雇用契約署名まで有効。非ANAC免許はOPCまでにANACへ移管。補足: 会社原規程§3.4–3.5。原職名はOficiais Piloto、外部から免許保有者も応募対象。自社養成課程への入学条件ではない。発行日不明、REF日付を発行日にしない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA CPL (A)",
+       "source_id": "src-publish-p133109-e1368204-adobeaemcloud-c-68590125",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cad6f2ba63ccd191",
+     "id": "tap.jobs.fo-license-fo.2e62f81c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-tap",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "TAP",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-publish-p133109-e1368204-adobeaemcloud-c-68590125",
+       "source_type": "job_posting",
+       "title": "REGULAMENTO Concurso REF.OP23set2026",
+       "url": "https://publish-p133109-e1368204.adobeaemcloud.com/content/dam/tap-institucional/media/pdfs/23-sep26/Regulamento_Concurso_PNT_2026_2027.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA CPL (A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "tap",
+     "cond_ja": "TAP Air Portugal、Oficiais Piloto（会社英語採用分類First Officer）、2026年9月選考の過去の応募要件；申請時から雇用契約署名まで有効。補足: 過去の2026選考の原規程§3.4。2027年末までの入社訓練を対象とするが応募受付の現行性は別。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EASA Classe 1",
+       "source_id": "src-publish-p133109-e1368204-adobeaemcloud-c-68590125",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f0991bfefd41aa80",
+     "id": "tap.jobs.fo-medical-fo.b745c194",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-tap",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "TAP",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-publish-p133109-e1368204-adobeaemcloud-c-68590125",
+       "source_type": "job_posting",
+       "title": "REGULAMENTO Concurso REF.OP23set2026",
+       "url": "https://publish-p133109-e1368204.adobeaemcloud.com/content/dam/tap-institucional/media/pdfs/23-sep26/Regulamento_Concurso_PNT_2026_2027.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA Classe 1",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "tap",
+     "cond_ja": "TAP Air Portugal、Oficiais Piloto（会社英語採用分類First Officer）、2026年9月選考の過去の応募要件；最低飛行時間。記事は機材を限定せずに最低経験を記す。補足: 過去。会社の原規程へ直リンクして定義されたTAP応募要件を報道。原告知は受付終了後に本文取得できず、原規程はlicense/medicalだけを確認。原求人の公表値と断定しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500",
+       "source_id": "src-kiosquedaaviacao-pt-3d72ab6e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "21b4319cf846cc34",
+     "id": "tap.jobs.fo-total-hours-fo.26fdecac",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-tap",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-09-26",
+       "publisher": "Kiosque da Aviação",
+       "publisher_kind": "media",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kiosquedaaviacao-pt-3d72ab6e",
+       "source_type": "third_party_reference",
+       "title": "TAP abre recrutamento, 2026-09-26",
+       "url": "https://kiosquedaaviacao.pt/tap-air-portugal-abre-recrutamento-para-oficiais-piloto-de-aviacao-comercial/"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
     }
    ],
    "profile": [
@@ -124491,6 +135170,642 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; CPL又はATPLの選択肢ATPL; Valid IR and Aircraft Ratingも必要。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d601f790e7ddc326",
+     "id": "vietjet.jobs.cap-license-cap.614c07da",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; CPL又はATPLの選択肢CPL; Valid IR and Aircraft Ratingも必要。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPL",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6bb29b0732643c59",
+     "id": "vietjet.jobs.cap-license-cap.d04a2eea",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; 有効なClass1身体検査証明。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9ee1ae6583342833",
+     "id": "vietjet.jobs.cap-medical-cap.b0dc9673",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; multi-crew航空機PIC最低時間; PICUS除外。補足: 過去要件。機種別PIC時間と全機種PIC時間の対象を区別。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "84345044b1aeec79",
+     "id": "vietjet.jobs.cap-pic-hours-cap.69105729",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; A320F PIC最低時間; PICUS除外。補足: 過去要件。機種別PIC時間と全機種PIC時間の対象を区別。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db3e60d5280a6e16",
+     "id": "vietjet.jobs.cap-pic-hours-cap.a5280cc3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; All aircraft（機長）/All A/C–TFT（副操縦士）の総飛行時間最低値。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4000",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "71d47c735bf70fb6",
+     "id": "vietjet.jobs.cap-total-hours-cap.7adef455",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 4000,
+     "value_text": "4000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; current A320F型式保持が必要。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320F TR",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a62ab5212974ed7",
+     "id": "vietjet.jobs.cap-type-rating-cap.1d658507",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A320F TR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者副操縦士; CPL又はATPLの選択肢CPL; Valid IR and Aircraft Ratingも必要。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPL",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d0268c2079182c0d",
+     "id": "vietjet.jobs.fo-license-fo.743b15ac",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者副操縦士; CPL又はATPLの選択肢ATPL; Valid IR and Aircraft Ratingも必要。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f4233b29d5a9fdbd",
+     "id": "vietjet.jobs.fo-license-fo.7afe7829",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者副操縦士; 有効なClass1身体検査証明。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "96caf212cbf1b06a",
+     "id": "vietjet.jobs.fo-medical-fo.4c81d6a0",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者副操縦士; All aircraft（機長）/All A/C–TFT（副操縦士）の総飛行時間最低値。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4000",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3a78d84032f54bc8",
+     "id": "vietjet.jobs.fo-total-hours-fo.5c66f27a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 4000,
+     "value_text": "4000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者副操縦士; current A320F型式保持が必要。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320F TR",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f410266049010f7e",
+     "id": "vietjet.jobs.fo-type-rating-fo.fda15402",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2025-02-14",
+       "publisher": "VietJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "A320/A321F PILOT - Sky Career Day 2025",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A320F TR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -125845,6 +137160,909 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 男性は58歳未満; 58を含まない。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "58",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8f2a8367737ffced",
+     "id": "vietnam-airlines.jobs.cap-age-cap.daef4776",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 58,
+     "value_text": "58"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 女性は53歳未満; 53を含まない。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "53",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e882d66bd232a17e",
+     "id": "vietnam-airlines.jobs.cap-age-cap.f5d3b841",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_age",
+     "label_ja": "機長の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 53,
+     "value_text": "53"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 有効なELPレベル4以上; 資料表記ELPを保持。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4d8ab93cc82d0d8a",
+     "id": "vietnam-airlines.jobs.cap-english-cap.b771ade3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_english",
+     "label_ja": "機長の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "ELP level",
+     "use": "募集",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 有効なATPL; ATPL必須。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8efb5de460a6041b",
+     "id": "vietnam-airlines.jobs.cap-license-cap.1f401afb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 有効なClass1身体検査証明。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fdfbf1d3318a848d",
+     "id": "vietnam-airlines.jobs.cap-medical-cap.94d2deab",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_medical",
+     "label_ja": "機長の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 全機種合計PIC最低時間。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2000",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "275fe9909c806ba0",
+     "id": "vietnam-airlines.jobs.cap-pic-hours-cap.1897afd9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; A350のPIC最低時間。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1000",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de55bff049941b08",
+     "id": "vietnam-airlines.jobs.cap-pic-hours-cap.6606143a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_pic_hours",
+     "label_ja": "機長の応募に要る機長としての時間",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 応募締切は掲載なし; 当日専用ページで募集・Apply now/contactの表示を実読; オファー又は入社保証とは異なる。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。 会社による直接掲載とは断定しない。原一覧に他のパイロット求人もあるが、本行は代表求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Vietnam Airlines A350 Captains",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f23166d065319490",
+     "id": "vietnam-airlines.jobs.cap-posting-cap.45ba1426",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Vietnam Airlines A350 Captains",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 最低総飛行時間。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5000",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "12473e54e447134c",
+     "id": "vietnam-airlines.jobs.cap-total-hours-cap.82fcf431",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5000,
+     "value_text": "5000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・A350 captain; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 有効なA350型式保持が必要; OPCは開始日から少なくとも2か月有効。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A350",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62543d8a5698960c",
+     "id": "vietnam-airlines.jobs.cap-type-rating-cap.64f51d5c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "A350",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・B787 first_officer; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 男性は58歳未満; 58を含まない。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "58",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "aedf2a2f0c93d165",
+     "id": "vietnam-airlines.jobs.fo-age-fo.593c5121",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 58,
+     "value_text": "58"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・B787 first_officer; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 女性は53歳未満; 53を含まない。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "53",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5946040e4c63a329",
+     "id": "vietnam-airlines.jobs.fo-age-fo.c3c79a4f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_age",
+     "label_ja": "副操縦士の応募の年齢の条件",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "years",
+     "use": "募集",
+     "value": 53,
+     "value_text": "53"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・B787 first_officer; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; ATPLに代わる選択肢; 有効なB787型式も必要。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPL with Frozen ATPL",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2bd43fdd4826a63b",
+     "id": "vietnam-airlines.jobs.fo-license-fo.7502d225",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL with Frozen ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・B787 first_officer; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 有効なATPL; CPL with Frozen ATPLも代替選択肢。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a8a734686d8e16ae",
+     "id": "vietnam-airlines.jobs.fo-license-fo.9b9b2adc",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・B787 first_officer; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 有効なClass1身体検査証明。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9acca15cb737517a",
+     "id": "vietnam-airlines.jobs.fo-medical-fo.53352366",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・B787 first_officer; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 最低総飛行時間。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a15617bd9c5e6032",
+     "id": "vietnam-airlines.jobs.fo-total-hours-fo.7fe337c6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "Vietnam Airlines本体・B787 first_officer; Rishworthが直接仲介する外国人契約; Hanoi又はHo Chi Minh City; 2026年募集; 有効なB787型式保持が必要; OPCは開始日から少なくとも2か月有効。補足: 公式会社の具体的経験者要件が見つからず、当該仲介会社の原広告を実読。JSON-LD dateModified=2026-01-19。個別求人URLはJS検証要求又は空応答のため、現行広告詳細を埋め込むこの専用ページを根拠とする。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B787",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "141b4372fc715bf3",
+     "id": "vietnam-airlines.jobs.fo-type-rating-fo.1de71e02",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B787",
+     "value_text": null
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -126893,6 +139111,271 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "UK Class One Medical",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "virgin-atlantic",
+     "cond_ja": "Virgin Atlantic経験者副操縦士/上級副操縦士向け採用ページ。英国就労権未保有者について、会社がSkilled Worker visa費用負担を目指すと明記。ビザ交付や雇用の保証ではない。補足: 本文Visa節とFirst Officer/Senior First Officer要件を実読。existing right to workの一律必須とはせず、明記された支援経路だけを記録。現行保守ページだが発行日表示なし。機長直接採用は行わないと同ページに明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Skilled Worker visa",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75346526910ba473",
+     "id": "virgin-atlantic.jobs.fo-right-to-work-fo.632afed2",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-virgin-atlantic",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Virgin Atlantic",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "source_type": "job_posting",
+       "title": "Pilot Jobs, Visa",
+       "url": "https://careers.virginatlantic.com/pilots?region=/index.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Skilled Worker visa",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "virgin-atlantic",
+     "cond_ja": "Virgin Atlantic Airbus First Officer；最低。A320/A330/A350/A380を現在又は過去に操縦。列挙型式のtotal flying timeで、500時間はうち1型式。cruise pilotだけの時間は除外。補足: 公式Pilot Jobsの当該機種・職位欄にtotal flying timeと明示。全航空機の無限定TTではなく列挙型式内の総時間。数値と桁区切りは原文のまま。現行保守ページ、発行日不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,500",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9a3975138bf0bcef",
+     "id": "virgin-atlantic.jobs.fo-total-hours-fo.19f47022",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-virgin-atlantic",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Virgin Atlantic",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "source_type": "job_posting",
+       "title": "Pilot Jobs, Visa",
+       "url": "https://careers.virginatlantic.com/pilots?region=/index.html"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "virgin-atlantic",
+     "cond_ja": "Virgin Atlantic Boeing First Officer；最低。737/747/757/767/777/787を過去3年以内に操縦。列挙型式のtotal flying timeで、500時間はcurrent on type。cruise pilotだけの時間は除外。補足: 公式Pilot Jobsの当該機種・職位欄にtotal flying timeと明示。全航空機の無限定TTではなく列挙型式内の総時間。数値と桁区切りは原文のまま。現行保守ページ、発行日不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d5c6e231afb78b37",
+     "id": "virgin-atlantic.jobs.fo-total-hours-fo.1a1fee4c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-virgin-atlantic",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Virgin Atlantic",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "source_type": "job_posting",
+       "title": "Pilot Jobs, Visa",
+       "url": "https://careers.virginatlantic.com/pilots?region=/index.html"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "virgin-atlantic",
+     "cond_ja": "Virgin Atlantic Boeing Senior First Officer；最低。737/747/757/767/777/787を過去3年以内に操縦。列挙型式のtotal flying timeで、500時間はcurrent on type。cruise pilotだけの時間は除外。補足: 公式Pilot Jobsの当該機種・職位欄にtotal flying timeと明示。全航空機の無限定TTではなく列挙型式内の総時間。数値と桁区切りは原文のまま。現行保守ページ、発行日不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3000",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e399c3fa3f9b2d22",
+     "id": "virgin-atlantic.jobs.fo-total-hours-fo.b1d02c6d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-virgin-atlantic",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Virgin Atlantic",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "source_type": "job_posting",
+       "title": "Pilot Jobs, Visa",
+       "url": "https://careers.virginatlantic.com/pilots?region=/index.html"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "virgin-atlantic",
+     "cond_ja": "Virgin Atlantic Airbus Senior First Officer；最低。A320/A330/A350/A380を現在又は過去に操縦。列挙型式のtotal flying timeで、500時間はうち1型式。cruise pilotだけの時間は除外。補足: 公式Pilot Jobsの当該機種・職位欄にtotal flying timeと明示。全航空機の無限定TTではなく列挙型式内の総時間。数値と桁区切りは原文のまま。現行保守ページ、発行日不明。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3000",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "727f500aabd96447",
+     "id": "virgin-atlantic.jobs.fo-total-hours-fo.c1e3964a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261029-cg-virgin-atlantic",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Virgin Atlantic",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "source_type": "job_posting",
+       "title": "Pilot Jobs, Visa",
+       "url": "https://careers.virginatlantic.com/pilots?region=/index.html"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3000"
     },
     {
      "amount": null,
@@ -129326,6 +141809,271 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "westjet",
+     "cond_ja": "過去2026年B737直接採用FO; oral/written proficiency; 等級は未記載。補足: 過去募集。求人サイトJobs.caがWestJetのOriginal job postingとして掲載、Posted Jun 23, 2026/Expired Aug 1, 2026を明記。公式WestJet Pilot CareersからDayforceに接続したが求人本文を取得不可、公開GETも401。原文再掲部分だけを使用し、同サイトの自動要約・分類（internship/Master等）は使わない。Encore Q400条件を混在させない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "English",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "225c96a95bcee7cd",
+     "id": "westjet.jobs.fo-english-fo.d669148f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_english",
+     "label_ja": "副操縦士の応募に要る英語の能力",
+     "pack": "pvr-20261029-cg-westjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "Jobs.ca",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "source_type": "third_party_reference",
+       "title": "WestJet, WestJet - B737 - Pilot - First Officer (Original job posting)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-c41792141b4e"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "English",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "westjet",
+     "cond_ja": "過去2026年B737直接採用FO; valid ATPLが必須。補足: 過去募集。求人サイトJobs.caがWestJetのOriginal job postingとして掲載、Posted Jun 23, 2026/Expired Aug 1, 2026を明記。公式WestJet Pilot CareersからDayforceに接続したが求人本文を取得不可、公開GETも401。原文再掲部分だけを使用し、同サイトの自動要約・分類（internship/Master等）は使わない。Encore Q400条件を混在させない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Transport Canada Airline Transport Pilot Licence (ATPL)",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "95ee70cee621b53e",
+     "id": "westjet.jobs.fo-license-fo.1955585a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261029-cg-westjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "Jobs.ca",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "source_type": "third_party_reference",
+       "title": "WestJet, WestJet - B737 - Pilot - First Officer (Original job posting)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-c41792141b4e"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Transport Canada Airline Transport Pilot Licence (ATPL)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "westjet",
+     "cond_ja": "過去2026年B737直接採用FO; 有効Transport Canada Class 1 Medical Certificate。補足: 過去募集。求人サイトJobs.caがWestJetのOriginal job postingとして掲載、Posted Jun 23, 2026/Expired Aug 1, 2026を明記。公式WestJet Pilot CareersからDayforceに接続したが求人本文を取得不可、公開GETも401。原文再掲部分だけを使用し、同サイトの自動要約・分類（internship/Master等）は使わない。Encore Q400条件を混在させない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Class 1 Medical Certificate",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2f7e33bcc9e3ae31",
+     "id": "westjet.jobs.fo-medical-fo.6510e212",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_medical",
+     "label_ja": "副操縦士の応募に要る身体検査の級",
+     "pack": "pvr-20261029-cg-westjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "Jobs.ca",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "source_type": "third_party_reference",
+       "title": "WestJet, WestJet - B737 - Pilot - First Officer (Original job posting)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-c41792141b4e"
+      }
+     ],
+     "unit": "class",
+     "use": "募集",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "westjet",
+     "cond_ja": "過去2026年B737直接採用FO; カナダ国籍又は永住資格の二者択一。補足: 過去募集。求人サイトJobs.caがWestJetのOriginal job postingとして掲載、Posted Jun 23, 2026/Expired Aug 1, 2026を明記。公式WestJet Pilot CareersからDayforceに接続したが求人本文を取得不可、公開GETも401。原文再掲部分だけを使用し、同サイトの自動要約・分類（internship/Master等）は使わない。Encore Q400条件を混在させない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Canadian citizenship",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "135f5dbf8e1671fe",
+     "id": "westjet.jobs.fo-right-to-work-fo.2b5c494e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-westjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "Jobs.ca",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "source_type": "third_party_reference",
+       "title": "WestJet, WestJet - B737 - Pilot - First Officer (Original job posting)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-c41792141b4e"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Canadian citizenship",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "westjet",
+     "cond_ja": "過去2026年B737直接採用FO; カナダ国籍又は永住資格の二者択一。補足: 過去募集。求人サイトJobs.caがWestJetのOriginal job postingとして掲載、Posted Jun 23, 2026/Expired Aug 1, 2026を明記。公式WestJet Pilot CareersからDayforceに接続したが求人本文を取得不可、公開GETも401。原文再掲部分だけを使用し、同サイトの自動要約・分類（internship/Master等）は使わない。Encore Q400条件を混在させない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "permanent resident status",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ddb985096844a430",
+     "id": "westjet.jobs.fo-right-to-work-fo.3c4ad00c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261029-cg-westjet",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "Jobs.ca",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "source_type": "third_party_reference",
+       "title": "WestJet, WestJet - B737 - Pilot - First Officer (Original job posting)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-c41792141b4e"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "permanent resident status",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "westjet",
      "cond_ja": "WestJet mainline；Encore除外。補足: 更新日不明。現行公式WestJet mainline Technical requirements。",
      "currency": null,
      "domain": "jobs",
@@ -131384,6 +144132,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1500,
      "value_text": "1,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "zipair",
+     "cond_ja": "副操縦士要員／事業用操縦士技能証明で応募する経路。型式名・B787限定の必須有無は明記なし。補足: 公式現行採用資料。画像化された1頁を目視確認。ATPL経路にはこの括弧条件を転用しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "型式限定",
+       "source_id": "src-zipairtokyo-com-224a2b87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5ce9a87d97b8e8bc",
+     "id": "zipair.jobs.fo-type-rating-fo.38f54fbd",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261029-cg-zipair",
+     "per": null,
+     "rev": 5,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ZIPAIR Tokyo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zipairtokyo-com-224a2b87",
+       "source_type": "job_posting",
+       "title": "運航乗務員募集要項（現行2609版）",
+       "url": "https://www.zipairtokyo.com/ja/recruit/pdf/zipair_pilot_2609.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "型式限定",
+     "value_text": null
     }
    ],
    "profile": [
@@ -187082,6 +199883,321 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "bangkok": {
+   "airlines": [
+    "thai-airways"
+   ],
+   "commute": [],
+   "name": "Bangkok",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Bangkok",
+      "note_ja": "街「Bangkok」は同じ表の本社の都市（1 の headquarters_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 THB の国（タイ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "bangkok",
+     "company": "thai-airways",
+     "cond_ja": "英: undefined。原部屋表記「1 Bedroom」。数字の種類: Khlong Tan Nuea, Watthana, Bangkok（Thonglor/Ekkamai周辺）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=3,327。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの現行Bangkok住宅案内 https://www.savills.co.th/find-a-property/property-selection/residential-2024.aspx でThonglorの洗練された住宅・カフェ等の生活環境を実読し、当該周辺のコンド住宅地区を選定。 共用対象company_id=thai-airways。",
+     "currency": "THB",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "35,300",
+       "source_id": "src-fazwaz-com-da31df36",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4777c8cb44416919",
+     "id": "thai-airways.living.rent-1bed.8f8de920",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 Bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-thai-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-com-da31df36",
+       "source_type": "third_party_reference",
+       "title": "Khlong Tan Nuea, Watthana, Bangkok / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.com/condo-for-rent/thailand/bangkok/watthana/khlong-tan-nuea"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 35300
+     },
+     "value_text": {
+      "1bed": "35,300"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Bangkok",
+      "note_ja": "街「Bangkok」は同じ表の本社の都市（1 の headquarters_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 THB の国（タイ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "bangkok",
+     "company": "thai-airways",
+     "cond_ja": "英: undefined。原部屋表記「2 Bedrooms」。数字の種類: Khlong Tan Nuea, Watthana, Bangkok（Thonglor/Ekkamai周辺）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=2,976。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの現行Bangkok住宅案内 https://www.savills.co.th/find-a-property/property-selection/residential-2024.aspx でThonglorの洗練された住宅・カフェ等の生活環境を実読し、当該周辺のコンド住宅地区を選定。 共用対象company_id=thai-airways。",
+     "currency": "THB",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "65,500",
+       "source_id": "src-fazwaz-com-da31df36",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a28ab789b17e4ff2",
+     "id": "thai-airways.living.rent-2bed.7d75b74b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 Bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-thai-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-com-da31df36",
+       "source_type": "third_party_reference",
+       "title": "Khlong Tan Nuea, Watthana, Bangkok / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.com/condo-for-rent/thailand/bangkok/watthana/khlong-tan-nuea"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 65500
+     },
+     "value_text": {
+      "2bed": "65,500"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Bangkok",
+      "note_ja": "街「Bangkok」は同じ表の本社の都市（1 の headquarters_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 THB の国（タイ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "bangkok",
+     "company": "thai-airways",
+     "cond_ja": "英: undefined。原部屋表記「3 Bedrooms」。数字の種類: Khlong Tan Nuea, Watthana, Bangkok（Thonglor/Ekkamai周辺）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=1,108。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの現行Bangkok住宅案内 https://www.savills.co.th/find-a-property/property-selection/residential-2024.aspx でThonglorの洗練された住宅・カフェ等の生活環境を実読し、当該周辺のコンド住宅地区を選定。 共用対象company_id=thai-airways。",
+     "currency": "THB",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "103,000",
+       "source_id": "src-fazwaz-com-da31df36",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b61a9f13f86dd8c0",
+     "id": "thai-airways.living.rent-3bed.3707d298",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 Bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-thai-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-com-da31df36",
+       "source_type": "third_party_reference",
+       "title": "Khlong Tan Nuea, Watthana, Bangkok / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.com/condo-for-rent/thailand/bangkok/watthana/khlong-tan-nuea"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 103000
+     },
+     "value_text": {
+      "3bed": "103,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Bangkok",
+      "note_ja": "街「Bangkok」は同じ表の本社の都市（1 の headquarters_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 THB の国（タイ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "bangkok",
+     "company": "thai-airways",
+     "cond_ja": "英: undefined。原部屋表記「Studio」。数字の種類: Khlong Tan Nuea, Watthana, Bangkok（Thonglor/Ekkamai周辺）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=225。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの現行Bangkok住宅案内 https://www.savills.co.th/find-a-property/property-selection/residential-2024.aspx でThonglorの洗練された住宅・カフェ等の生活環境を実読し、当該周辺のコンド住宅地区を選定。 共用対象company_id=thai-airways。",
+     "currency": "THB",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "27,200",
+       "source_id": "src-fazwaz-com-da31df36",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "85dbf439ca346aa1",
+     "id": "thai-airways.living.rent-studio.d5c0ddb5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-thai-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-com-da31df36",
+       "source_type": "third_party_reference",
+       "title": "Khlong Tan Nuea, Watthana, Bangkok / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.com/condo-for-rent/thailand/bangkok/watthana/khlong-tan-nuea"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "studio": 27200
+     },
+     "value_text": {
+      "studio": "27,200"
+     }
+    }
+   ],
+   "towns": []
+  },
   "barcelona": {
    "airlines": [
     "easyjet",
@@ -189953,6 +203069,158 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "$1,308"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Calgary",
+      "note_ja": "街「Calgary」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "calgary",
+     "company": "westjet",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「3 bedroom（原データbedキー=3_BED）」。数字の種類: Calgary, AB・Mission地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.3_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=6。物件種別キー=AFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：Tourism Calgaryの現行案内で歴史的住宅・川沿い公園・上質な商業や食のある環境を確認して候補選定（https://www.visitcalgary.com/plan-and-stay/itineraries-and-travel-inspiration/mission-neighbourhood-guide）。CMHCの広域Southwestゾーンを代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=westjet。調査対象拠点都市=Calgary。都市根拠：westjet 既存2で確認した操縦士拠点 Calgary (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"3_BED\"\":{\"\"average_rent\"\":2731.83\"",
+       "source_id": "src-zumper-com-e9d7e7dc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a0320fd7762bb588",
+     "id": "westjet.living.rent-3bed.ef2011ea",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom（原データbedキー=3_BED）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-westjet",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-e9d7e7dc",
+       "source_type": "third_party_reference",
+       "title": "Mission, Calgary, AB Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/calgary-ab/mission"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 2731.83
+     },
+     "value_text": {
+      "3bed": "2731.83"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Calgary",
+      "note_ja": "街「Calgary」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "calgary",
+     "company": "westjet",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「Studio（原データbedキー=STUDIO）」。数字の種類: Calgary, AB・Mission地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.STUDIO.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=12。物件種別キー=AFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：Tourism Calgaryの現行案内で歴史的住宅・川沿い公園・上質な商業や食のある環境を確認して候補選定（https://www.visitcalgary.com/plan-and-stay/itineraries-and-travel-inspiration/mission-neighbourhood-guide）。CMHCの広域Southwestゾーンを代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=westjet。調査対象拠点都市=Calgary。都市根拠：westjet 既存2で確認した操縦士拠点 Calgary (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"STUDIO\"\":{\"\"average_rent\"\":1305.17\"",
+       "source_id": "src-zumper-com-e9d7e7dc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dffdce182d5810c1",
+     "id": "westjet.living.rent-studio.a4e4a07a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio（原データbedキー=STUDIO）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-westjet",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-e9d7e7dc",
+       "source_type": "third_party_reference",
+       "title": "Mission, Calgary, AB Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/calgary-ab/mission"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1305.17
+     },
+     "value_text": {
+      "studio": "1305.17"
      }
     }
    ],
@@ -195107,6 +208375,245 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "doha": {
+   "airlines": [
+    "qatar-airways"
+   ],
+   "commute": [],
+   "name": "Doha",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Doha",
+      "note_ja": "街「Doha」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 QAR の国（カタール）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "doha",
+     "company": "qatar-airways",
+     "cond_ja": "英: undefined。原部屋表記「one-bedroom apartments」。数字の種類: The Pearl Island, Doha。家具: undefined。補足: 資料時点Q4 2025。Knight Frank自身が地区別の月額平均として公表。原リリースと新規に見つけた調査PDFを実読。選定理由は同社が最高賃料帯・生活利便性を重視する既成住宅地区、premium demandと説明しているため。Studioは同資料に掲載なし。 共用対象company_id=qatar-airways。",
+     "currency": "QAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "8,440",
+       "source_id": "src-knightfrank-ae-c34b271a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "96220798d3947b84",
+     "id": "qatar-airways.living.rent-1bed.f6e255af",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "one-bedroom apartments",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-qatar-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-01-27",
+       "publisher": "Knight Frank",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knightfrank-ae-c34b271a",
+       "source_type": "third_party_reference",
+       "title": "Qatar Real Estate Market Review Q4 2025 / 27 January 2026 release",
+       "url": "https://www.knightfrank.ae/newsroom/article/2026/1/qatar-real-estate-market-review-q4-2025"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 8440
+     },
+     "value_text": {
+      "1bed": "8,440"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Doha",
+      "note_ja": "街「Doha」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 QAR の国（カタール）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "doha",
+     "company": "qatar-airways",
+     "cond_ja": "英: undefined。原部屋表記「two-bedroom apartments」。数字の種類: The Pearl Island, Doha。家具: undefined。補足: 資料時点Q4 2025。Knight Frank自身が地区別の月額平均として公表。原リリースと新規に見つけた調査PDFを実読。選定理由は同社が最高賃料帯・生活利便性を重視する既成住宅地区、premium demandと説明しているため。Studioは同資料に掲載なし。 共用対象company_id=qatar-airways。",
+     "currency": "QAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "11,645",
+       "source_id": "src-knightfrank-ae-c34b271a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a35bafceb8b37a72",
+     "id": "qatar-airways.living.rent-2bed.3709899b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "two-bedroom apartments",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-qatar-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-01-27",
+       "publisher": "Knight Frank",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knightfrank-ae-c34b271a",
+       "source_type": "third_party_reference",
+       "title": "Qatar Real Estate Market Review Q4 2025 / 27 January 2026 release",
+       "url": "https://www.knightfrank.ae/newsroom/article/2026/1/qatar-real-estate-market-review-q4-2025"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 11645
+     },
+     "value_text": {
+      "2bed": "11,645"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Doha",
+      "note_ja": "街「Doha」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 QAR の国（カタール）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "doha",
+     "company": "qatar-airways",
+     "cond_ja": "英: undefined。原部屋表記「three-bedroom apartments」。数字の種類: The Pearl Island, Doha。家具: undefined。補足: 資料時点Q4 2025。Knight Frank自身が地区別の月額平均として公表。原リリースと新規に見つけた調査PDFを実読。選定理由は同社が最高賃料帯・生活利便性を重視する既成住宅地区、premium demandと説明しているため。Studioは同資料に掲載なし。 共用対象company_id=qatar-airways。",
+     "currency": "QAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "15,500",
+       "source_id": "src-knightfrank-ae-c34b271a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c94139445ca9bff0",
+     "id": "qatar-airways.living.rent-3bed.0b2b353b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "three-bedroom apartments",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-qatar-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-01-27",
+       "publisher": "Knight Frank",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knightfrank-ae-c34b271a",
+       "source_type": "third_party_reference",
+       "title": "Qatar Real Estate Market Review Q4 2025 / 27 January 2026 release",
+       "url": "https://www.knightfrank.ae/newsroom/article/2026/1/qatar-real-estate-market-review-q4-2025"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 15500
+     },
+     "value_text": {
+      "3bed": "15,500"
+     }
+    }
+   ],
+   "towns": []
+  },
   "dubai": {
    "airlines": [
     "emirates"
@@ -196913,6 +210420,158 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": {
       "3bed": "$1,986"
      }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Edmonton",
+      "note_ja": "街「Edmonton」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "edmonton",
+     "company": "westjet",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「3 bedroom（原データbedキー=3_BED）」。数字の種類: Edmonton, AB・Oliver地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.3_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=8。物件種別キー=AFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：都心・河谷への利便性と集合住宅の選択肢を持つ住宅地区として候補選定。Oliverの全住宅が高級という意味ではなく、高級物件だけの平均でもない。CMHC Downtown又はUniversityゾーンをこの地区単独値に代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 2026-10-22更新の記名仲介会社John Carle / Homes & Gardens Real Estate Limitedが職業人に選ばれる地区と高級コンドから手頃なStudioまでの混在を説明（https://www.johncarle.com/edmonton/oliver）。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=westjet。調査対象拠点都市=Edmonton。都市根拠：westjet 既存2で確認した操縦士拠点 Edmonton (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"3_BED\"\":{\"\"average_rent\"\":2568.45\"",
+       "source_id": "src-zumper-com-80670e2a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ebf78fd5018338af",
+     "id": "westjet.living.rent-3bed.6b38141f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom（原データbedキー=3_BED）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-westjet",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-80670e2a",
+       "source_type": "third_party_reference",
+       "title": "Oliver, Edmonton, AB Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/edmonton-ab/oliver"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 2568.45
+     },
+     "value_text": {
+      "3bed": "2568.45"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Edmonton",
+      "note_ja": "街「Edmonton」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "edmonton",
+     "company": "westjet",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「Studio（原データbedキー=STUDIO）」。数字の種類: Edmonton, AB・Oliver地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.STUDIO.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=17。物件種別キー=AFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：都心・河谷への利便性と集合住宅の選択肢を持つ住宅地区として候補選定。Oliverの全住宅が高級という意味ではなく、高級物件だけの平均でもない。CMHC Downtown又はUniversityゾーンをこの地区単独値に代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 2026-10-22更新の記名仲介会社John Carle / Homes & Gardens Real Estate Limitedが職業人に選ばれる地区と高級コンドから手頃なStudioまでの混在を説明（https://www.johncarle.com/edmonton/oliver）。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=westjet。調査対象拠点都市=Edmonton。都市根拠：westjet 既存2で確認した操縦士拠点 Edmonton (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"STUDIO\"\":{\"\"average_rent\"\":1096.54\"",
+       "source_id": "src-zumper-com-80670e2a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a371deab48a8af7e",
+     "id": "westjet.living.rent-studio.9342b81a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio（原データbedキー=STUDIO）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-westjet",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-80670e2a",
+       "source_type": "third_party_reference",
+       "title": "Oliver, Edmonton, AB Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/edmonton-ab/oliver"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1096.54
+     },
+     "value_text": {
+      "studio": "1096.54"
+     }
     }
    ],
    "towns": []
@@ -198087,7 +211746,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "fukuoka": {
    "airlines": [
-    "ana-wings"
+    "ana-wings",
+    "orc"
    ],
    "commute": [
     {
@@ -198515,6 +212175,334 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "6.98万円"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・1LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Fukuoka",
+      "note_ja": "街「Fukuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "fukuoka",
+     "company": "orc",
+     "cond_ja": "英: undefined。原部屋表記「1LDK」。数字の種類: 福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=orc。調査対象拠点都市=Fukuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウス自社の地域取材は、大濠エリアの公園西側に邸宅が並ぶ街並みと、高級住宅地としての人気を担当者の実名コメントで記録する。2026年地価公示の国交省鑑定評価書も大濠1丁目の住宅地域を高級住宅地と明記し、質の高い住宅地区という評価は一致する。ただしCHINTAIの大濠公園駅平均を大濠1丁目の地区平均と同一視してはならない。 https://www.sekisuihouse.co.jp/gm/grandememory/fukuoka/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1LDK 10.00万円",
+       "source_id": "src-chintai-net-a553f2c6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2036c5f2c6e4a742",
+     "id": "orc.living.rent-1bed.43eb8670",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1LDK",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-orc",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a553f2c6",
+       "source_type": "third_party_reference",
+       "title": "大濠公園駅の家賃相場",
+       "url": "https://www.chintai.net/fukuoka/ensen/000008861/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 100000
+     },
+     "value_text": {
+      "1bed": "10.00万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・2LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Fukuoka",
+      "note_ja": "街「Fukuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "fukuoka",
+     "company": "orc",
+     "cond_ja": "英: undefined。原部屋表記「2LDK」。数字の種類: 福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=orc。調査対象拠点都市=Fukuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウス自社の地域取材は、大濠エリアの公園西側に邸宅が並ぶ街並みと、高級住宅地としての人気を担当者の実名コメントで記録する。2026年地価公示の国交省鑑定評価書も大濠1丁目の住宅地域を高級住宅地と明記し、質の高い住宅地区という評価は一致する。ただしCHINTAIの大濠公園駅平均を大濠1丁目の地区平均と同一視してはならない。 https://www.sekisuihouse.co.jp/gm/grandememory/fukuoka/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2LDK 18.00万円",
+       "source_id": "src-chintai-net-a553f2c6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d37c5af95fd3962b",
+     "id": "orc.living.rent-2bed.b97f2e12",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2LDK",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-orc",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a553f2c6",
+       "source_type": "third_party_reference",
+       "title": "大濠公園駅の家賃相場",
+       "url": "https://www.chintai.net/fukuoka/ensen/000008861/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 180000
+     },
+     "value_text": {
+      "2bed": "18.00万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "population": {
+       "method": "福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・3LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Fukuoka",
+      "note_ja": "街「Fukuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "fukuoka",
+     "company": "orc",
+     "cond_ja": "英: undefined。原部屋表記「3LDK」。数字の種類: 福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=orc。調査対象拠点都市=Fukuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウス自社の地域取材は、大濠エリアの公園西側に邸宅が並ぶ街並みと、高級住宅地としての人気を担当者の実名コメントで記録する。2026年地価公示の国交省鑑定評価書も大濠1丁目の住宅地域を高級住宅地と明記し、質の高い住宅地区という評価は一致する。ただしCHINTAIの大濠公園駅平均を大濠1丁目の地区平均と同一視してはならない。 https://www.sekisuihouse.co.jp/gm/grandememory/fukuoka/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3LDK 21.85万円",
+       "source_id": "src-chintai-net-a553f2c6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e5fce750ac815d41",
+     "id": "orc.living.rent-3bed.3371ad45",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3LDK",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-orc",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a553f2c6",
+       "source_type": "third_party_reference",
+       "title": "大濠公園駅の家賃相場",
+       "url": "https://www.chintai.net/fukuoka/ensen/000008861/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 218500
+     },
+     "value_text": {
+      "3bed": "21.85万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "population": {
+       "method": "福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・ワンルーム(1R)"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Fukuoka",
+      "note_ja": "街「Fukuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "fukuoka",
+     "company": "orc",
+     "cond_ja": "英: undefined。原部屋表記「ワンルーム(1R)」。数字の種類: 福岡市中央区・大濠公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=orc。調査対象拠点都市=Fukuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウス自社の地域取材は、大濠エリアの公園西側に邸宅が並ぶ街並みと、高級住宅地としての人気を担当者の実名コメントで記録する。2026年地価公示の国交省鑑定評価書も大濠1丁目の住宅地域を高級住宅地と明記し、質の高い住宅地区という評価は一致する。ただしCHINTAIの大濠公園駅平均を大濠1丁目の地区平均と同一視してはならない。 https://www.sekisuihouse.co.jp/gm/grandememory/fukuoka/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ワンルーム(1R) 7.15万円",
+       "source_id": "src-chintai-net-a553f2c6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bdf8abbd5b0198db",
+     "id": "orc.living.rent-studio.e39aef58",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "ワンルーム(1R)",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-orc",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a553f2c6",
+       "source_type": "third_party_reference",
+       "title": "大濠公園駅の家賃相場",
+       "url": "https://www.chintai.net/fukuoka/ensen/000008861/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 71500
+     },
+     "value_text": {
+      "studio": "7.15万"
      }
     }
    ],
@@ -199684,7 +213672,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "gurugram": {
    "airlines": [
-    "air-india"
+    "air-india",
+    "indigo"
    ],
    "commute": [],
    "name": "Gurugram",
@@ -199745,6 +213734,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "pack": "pvr-20261029-cg-air-india",
      "per": "month",
      "rev": 1,
+     "seen": [
+      {
+       "company": "indigo",
+       "id": "indigo.living.rent-2bed.dc8b7a87",
+       "pack": "pvr-20261029-cg-indigo"
+      }
+     ],
      "src": [
       {
        "published": null,
@@ -199821,6 +213817,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "pack": "pvr-20261029-cg-air-india",
      "per": "month",
      "rev": 1,
+     "seen": [
+      {
+       "company": "indigo",
+       "id": "indigo.living.rent-3bed.79f4502f",
+       "pack": "pvr-20261029-cg-indigo"
+      }
+     ],
      "src": [
       {
        "published": null,
@@ -201114,6 +215117,321 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "ho-chi-minh-city": {
+   "airlines": [
+    "bamboo-airways"
+   ],
+   "commute": [],
+   "name": "HO CHI MINH CITY",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "HO CHI MINH CITY",
+      "note_ja": "街「HO CHI MINH CITY」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 VND の国（ベトナム）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "ho-chi-minh-city",
+     "company": "bamboo-airways",
+     "cond_ja": "英: undefined。原部屋表記「1 Bedroom」。数字の種類: Thao Dien, District 2, Ho Chi Minh City（資料の地区表記）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=573。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの2026年HCMC住宅地区案内 https://www.savills.com.vn/blog/article/236584/vietnam-eng/where-to-live-in-hcmc.aspx を実読し、Thao Dienを含む旧2区東部の対象を海外駐在家族・国際的専門職・ゆとりある現地世帯と説明するため選定。 共用対象company_id=bamboo-airways,vietnam-airlines。",
+     "currency": "VND",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "18,400,000",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "44b52cd8db4440c7",
+     "id": "bamboo-airways.living.rent-1bed.6d9efcaa",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 Bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-bamboo-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "source_type": "third_party_reference",
+       "title": "Thao Dien, District 2, Ho Chi Minh City / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.vn/condo-for-rent/vietnam/ho-chi-minh-city/district-2/thao-dien"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 18400000
+     },
+     "value_text": {
+      "1bed": "18,400,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "HO CHI MINH CITY",
+      "note_ja": "街「HO CHI MINH CITY」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 VND の国（ベトナム）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "ho-chi-minh-city",
+     "company": "bamboo-airways",
+     "cond_ja": "英: undefined。原部屋表記「2 Bedrooms」。数字の種類: Thao Dien, District 2, Ho Chi Minh City（資料の地区表記）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=2,338。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの2026年HCMC住宅地区案内 https://www.savills.com.vn/blog/article/236584/vietnam-eng/where-to-live-in-hcmc.aspx を実読し、Thao Dienを含む旧2区東部の対象を海外駐在家族・国際的専門職・ゆとりある現地世帯と説明するため選定。 共用対象company_id=bamboo-airways,vietnam-airlines。",
+     "currency": "VND",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "63,400,000",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ae9af6f853c1b87c",
+     "id": "bamboo-airways.living.rent-2bed.70e49549",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 Bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-bamboo-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "source_type": "third_party_reference",
+       "title": "Thao Dien, District 2, Ho Chi Minh City / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.vn/condo-for-rent/vietnam/ho-chi-minh-city/district-2/thao-dien"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 63400000
+     },
+     "value_text": {
+      "2bed": "63,400,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "HO CHI MINH CITY",
+      "note_ja": "街「HO CHI MINH CITY」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 VND の国（ベトナム）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "ho-chi-minh-city",
+     "company": "bamboo-airways",
+     "cond_ja": "英: undefined。原部屋表記「3 Bedrooms」。数字の種類: Thao Dien, District 2, Ho Chi Minh City（資料の地区表記）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=2,279。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの2026年HCMC住宅地区案内 https://www.savills.com.vn/blog/article/236584/vietnam-eng/where-to-live-in-hcmc.aspx を実読し、Thao Dienを含む旧2区東部の対象を海外駐在家族・国際的専門職・ゆとりある現地世帯と説明するため選定。 共用対象company_id=bamboo-airways,vietnam-airlines。",
+     "currency": "VND",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "121,000,000",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cb36f6ff8e49fd92",
+     "id": "bamboo-airways.living.rent-3bed.e596c9f6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 Bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-bamboo-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "source_type": "third_party_reference",
+       "title": "Thao Dien, District 2, Ho Chi Minh City / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.vn/condo-for-rent/vietnam/ho-chi-minh-city/district-2/thao-dien"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 121000000
+     },
+     "value_text": {
+      "3bed": "121,000,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "HO CHI MINH CITY",
+      "note_ja": "街「HO CHI MINH CITY」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 VND の国（ベトナム）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "ho-chi-minh-city",
+     "company": "bamboo-airways",
+     "cond_ja": "英: undefined。原部屋表記「Studio」。数字の種類: Thao Dien, District 2, Ho Chi Minh City（資料の地区表記）。家具: undefined。補足: 2026-10-29に地域別コンド集計表を実読。発行/更新日は未表示、採用平均表固有のas-of日も不明なのでpublished_dateは空欄。現行維持の根拠は同じ統計節のlatest rental ratesという表示と現在の掲載件数・区分別View件数であり、閲覧日を更新日とは扱わない。公開GETの同地域ページHTMLにあるas at2026-10-29は別の掲載件数/中央値ウィジェットの時点で、採用平均表の日付として流用しない。全体の中央値とは別のAvg. Monthly Rent寝室別表を採用。算式の独立検証は行っていない。対象は同社掲載のコンド、当該区分の表示標本数=92。現地通貨表示のweb本文を根拠とし、GETで自動表示されたJPYの数値は不採用。Studioと1bedの逆転や大きい値も公表どおりで独自補正/再平均はしない。Savillsの2026年HCMC住宅地区案内 https://www.savills.com.vn/blog/article/236584/vietnam-eng/where-to-live-in-hcmc.aspx を実読し、Thao Dienを含む旧2区東部の対象を海外駐在家族・国際的専門職・ゆとりある現地世帯と説明するため選定。 共用対象company_id=bamboo-airways,vietnam-airlines。",
+     "currency": "VND",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "8,660,000",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "38cb6408ce4ec83b",
+     "id": "bamboo-airways.living.rent-studio.9a42eae3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-bamboo-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FazWaz",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-fazwaz-vn-ee8fc1ad",
+       "source_type": "third_party_reference",
+       "title": "Thao Dien, District 2, Ho Chi Minh City / Condo Rental Market Prices, Avg. Monthly Rent",
+       "url": "https://www.fazwaz.vn/condo-for-rent/vietnam/ho-chi-minh-city/district-2/thao-dien"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "studio": 8660000
+     },
+     "value_text": {
+      "studio": "8,660,000"
+     }
+    }
+   ],
+   "towns": []
+  },
   "houston": {
    "airlines": [
     "southwest",
@@ -202241,6 +216559,334 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "6.53万円"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・1LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Itami",
+      "note_ja": "街「Itami」は--city j-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "itami",
+     "company": "j-air",
+     "cond_ja": "英: undefined。原部屋表記「1LDK」。数字の種類: 豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=j-air。調査対象拠点都市=Osaka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大手マンションデベロッパー7社によるMAJOR7の2025年『住んでみたい街（駅名）』関西圏ランキングに千里中央が12位として掲載。住宅地としての人気の根拠に用い、高所得層だけの支持とは断定しない。豊中市の現行地区計画では千里中央地区は新千里東町1・2丁目と新千里西町1丁目の各一部に位置し、計画開発された千里ニュータウンの中心で、商業・業務・住宅等が複合する地区とされる。 https://www.tokyu-land.co.jp/news/uploads/d5a5da8c43c24a5f6891d08c7769ec96fbf2a043.pdf 。伊丹空港側の住宅候補。駅徒歩圏の集計であり、豊中市域だけに絞った統計とは断定しない。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1LDK 8.30万円",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62be1e0fa755ad2b",
+     "id": "j-air.living.rent-1bed.a6be14a1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1LDK",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-j-air",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "source_type": "third_party_reference",
+       "title": "千里中央駅の家賃相場",
+       "url": "https://www.chintai.net/osaka/ensen/000008180/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 83000
+     },
+     "value_text": {
+      "1bed": "8.30万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・2LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Itami",
+      "note_ja": "街「Itami」は--city j-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "itami",
+     "company": "j-air",
+     "cond_ja": "英: undefined。原部屋表記「2LDK」。数字の種類: 豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=j-air。調査対象拠点都市=Osaka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大手マンションデベロッパー7社によるMAJOR7の2025年『住んでみたい街（駅名）』関西圏ランキングに千里中央が12位として掲載。住宅地としての人気の根拠に用い、高所得層だけの支持とは断定しない。豊中市の現行地区計画では千里中央地区は新千里東町1・2丁目と新千里西町1丁目の各一部に位置し、計画開発された千里ニュータウンの中心で、商業・業務・住宅等が複合する地区とされる。 https://www.tokyu-land.co.jp/news/uploads/d5a5da8c43c24a5f6891d08c7769ec96fbf2a043.pdf 。伊丹空港側の住宅候補。駅徒歩圏の集計であり、豊中市域だけに絞った統計とは断定しない。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2LDK 9.50万円",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "02c2dc537337d6ca",
+     "id": "j-air.living.rent-2bed.8a7f62fb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2LDK",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-j-air",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "source_type": "third_party_reference",
+       "title": "千里中央駅の家賃相場",
+       "url": "https://www.chintai.net/osaka/ensen/000008180/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 95000
+     },
+     "value_text": {
+      "2bed": "9.50万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "population": {
+       "method": "豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・3LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Itami",
+      "note_ja": "街「Itami」は--city j-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "itami",
+     "company": "j-air",
+     "cond_ja": "英: undefined。原部屋表記「3LDK」。数字の種類: 豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=j-air。調査対象拠点都市=Osaka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大手マンションデベロッパー7社によるMAJOR7の2025年『住んでみたい街（駅名）』関西圏ランキングに千里中央が12位として掲載。住宅地としての人気の根拠に用い、高所得層だけの支持とは断定しない。豊中市の現行地区計画では千里中央地区は新千里東町1・2丁目と新千里西町1丁目の各一部に位置し、計画開発された千里ニュータウンの中心で、商業・業務・住宅等が複合する地区とされる。 https://www.tokyu-land.co.jp/news/uploads/d5a5da8c43c24a5f6891d08c7769ec96fbf2a043.pdf 。伊丹空港側の住宅候補。駅徒歩圏の集計であり、豊中市域だけに絞った統計とは断定しない。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3LDK 12.00万円",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "017aca3c8defc5fa",
+     "id": "j-air.living.rent-3bed.773c39f5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3LDK",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-j-air",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "source_type": "third_party_reference",
+       "title": "千里中央駅の家賃相場",
+       "url": "https://www.chintai.net/osaka/ensen/000008180/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 120000
+     },
+     "value_text": {
+      "3bed": "12.00万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "population": {
+       "method": "豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・ワンルーム(1R)"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Itami",
+      "note_ja": "街「Itami」は--city j-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "itami",
+     "company": "j-air",
+     "cond_ja": "英: undefined。原部屋表記「ワンルーム(1R)」。数字の種類: 豊中市を中心とする千里中央駅周辺（駅徒歩20分の集計圏）、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=j-air。調査対象拠点都市=Osaka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大手マンションデベロッパー7社によるMAJOR7の2025年『住んでみたい街（駅名）』関西圏ランキングに千里中央が12位として掲載。住宅地としての人気の根拠に用い、高所得層だけの支持とは断定しない。豊中市の現行地区計画では千里中央地区は新千里東町1・2丁目と新千里西町1丁目の各一部に位置し、計画開発された千里ニュータウンの中心で、商業・業務・住宅等が複合する地区とされる。 https://www.tokyu-land.co.jp/news/uploads/d5a5da8c43c24a5f6891d08c7769ec96fbf2a043.pdf 。伊丹空港側の住宅候補。駅徒歩圏の集計であり、豊中市域だけに絞った統計とは断定しない。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ワンルーム(1R) 4.40万円",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "526724e71590d27c",
+     "id": "j-air.living.rent-studio.dc75b812",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "ワンルーム(1R)",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-j-air",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-a5f73fc3",
+       "source_type": "third_party_reference",
+       "title": "千里中央駅の家賃相場",
+       "url": "https://www.chintai.net/osaka/ensen/000008180/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 44000
+     },
+     "value_text": {
+      "studio": "4.40万"
      }
     }
    ],
@@ -209475,6 +224121,245 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": {
       "studio": "$1,495"
      }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Montréal",
+      "note_ja": "街「Montréal」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "montreal",
+     "company": "air-canada",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「3 bedroom（原データbedキー=3_BED）」。数字の種類: Montréal, QC・Outremont地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.3_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=15。物件種別キー=AFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：Tourisme Montréalの現行地区案内が富裕な住宅地と説明（https://www.mtl.org/en/experience/tale-two-mountains）。CMHCのCôte-des-Neiges/Mont-Royal/Outremont複合ゾーンをOutremont単独に代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=air-canada,westjet。調査対象拠点都市=Montréal。都市根拠：air-canada 既存2で確認した操縦士拠点 Montréal (https://www.alpa.org/supporting-pilots/pilot-groups/air-canada) / westjet 既存2で確認した操縦士拠点 Montréal (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"3_BED\"\":{\"\"average_rent\"\":2465.05\"",
+       "source_id": "src-zumper-com-4378bbf0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1752774853dd9bc7",
+     "id": "air-canada.living.rent-3bed.87e1a711",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom（原データbedキー=3_BED）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-4378bbf0",
+       "source_type": "third_party_reference",
+       "title": "Outremont, Montréal, QC Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/montreal-qc/outremont"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 2465.05
+     },
+     "value_text": {
+      "3bed": "2465.05"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Montréal",
+      "note_ja": "街「Montréal」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "montreal",
+     "company": "air-canada",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「Studio（原データbedキー=STUDIO）」。数字の種類: Montréal, QC・Outremont地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.STUDIO.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=13。物件種別キー=AFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：Tourisme Montréalの現行地区案内が富裕な住宅地と説明（https://www.mtl.org/en/experience/tale-two-mountains）。CMHCのCôte-des-Neiges/Mont-Royal/Outremont複合ゾーンをOutremont単独に代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=air-canada,westjet。調査対象拠点都市=Montréal。都市根拠：air-canada 既存2で確認した操縦士拠点 Montréal (https://www.alpa.org/supporting-pilots/pilot-groups/air-canada) / westjet 既存2で確認した操縦士拠点 Montréal (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"STUDIO\"\":{\"\"average_rent\"\":1400.16\"",
+       "source_id": "src-zumper-com-4378bbf0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "54ec9962408e83ff",
+     "id": "air-canada.living.rent-studio.e27d231a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio（原データbedキー=STUDIO）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-4378bbf0",
+       "source_type": "third_party_reference",
+       "title": "Outremont, Montréal, QC Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/montreal-qc/outremont"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1400.16
+     },
+     "value_text": {
+      "studio": "1400.16"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "muscat": {
+   "airlines": [
+    "oman-air"
+   ],
+   "commute": [],
+   "name": "Muscat",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Muscat",
+      "note_ja": "街「Muscat」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 OMR の国（オマーン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "muscat",
+     "company": "oman-air",
+     "cond_ja": "英: undefined。原部屋表記「two-bedroom apartment」。数字の種類: Al Mouj, Muscat。家具: undefined。補足: SavillsのQ1 2026調査による平均月額。先にQ2 2025の709 OMRも実読した後、より新しい2026会社発表の710 OMRを確認したため採用。Al Moujを賃料premium・最も需要の高い住宅地と同社が説明しており選定。1/3-bedroomとStudioは同発表に未掲載なので別の資料を混ぜない。 共用対象company_id=oman-air。",
+     "currency": "OMR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-04-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "710",
+       "source_id": "src-savills-om-991182be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a6fe50147e1aeba9",
+     "id": "oman-air.living.rent-2bed.e0dde5ab",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "two-bedroom apartment",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-oman-air",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-04-29",
+       "publisher": "Savills Oman",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-savills-om-991182be",
+       "source_type": "third_party_reference",
+       "title": "Oman Property Market Q1 2026, 29 April 2026 release",
+       "url": "https://www.savills.om/insight-and-opinion/news/390852/oman-property-market-shows-resilience-in-q1-2026-as-transaction-values-rise-18.4-"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 710
+     },
+     "value_text": {
+      "2bed": "710"
+     }
     }
    ],
    "towns": []
@@ -210155,6 +225040,334 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "3bed": "16.61万円",
       "studio": "6.01万円"
      }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・1LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nagoya",
+      "note_ja": "街「Nagoya」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "nagoya",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「1LDK」。数字の種類: 名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Nagoya（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウスの覚王山住宅地紹介（掲載情報2024年10月時点）は人気の居住区・高級住宅街として説明。https://www.sekisuihouse.co.jp/gm/grandememory/nagoya/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1LDK 10.10万円",
+       "source_id": "src-chintai-net-af010c6e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8978679f02fa9f89",
+     "id": "fda.living.rent-1bed.7d037108",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1LDK",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-af010c6e",
+       "source_type": "third_party_reference",
+       "title": "覚王山駅の家賃相場",
+       "url": "https://www.chintai.net/aichi/ensen/000007966/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 101000
+     },
+     "value_text": {
+      "1bed": "10.10万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・2LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nagoya",
+      "note_ja": "街「Nagoya」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "nagoya",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「2LDK」。数字の種類: 名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Nagoya（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウスの覚王山住宅地紹介（掲載情報2024年10月時点）は人気の居住区・高級住宅街として説明。https://www.sekisuihouse.co.jp/gm/grandememory/nagoya/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2LDK 14.50万円",
+       "source_id": "src-chintai-net-af010c6e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7aef1858ca9dbbf6",
+     "id": "fda.living.rent-2bed.c66f6d4a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2LDK",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-af010c6e",
+       "source_type": "third_party_reference",
+       "title": "覚王山駅の家賃相場",
+       "url": "https://www.chintai.net/aichi/ensen/000007966/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 145000
+     },
+     "value_text": {
+      "2bed": "14.50万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "population": {
+       "method": "名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・3LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nagoya",
+      "note_ja": "街「Nagoya」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "nagoya",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「3LDK」。数字の種類: 名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Nagoya（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウスの覚王山住宅地紹介（掲載情報2024年10月時点）は人気の居住区・高級住宅街として説明。https://www.sekisuihouse.co.jp/gm/grandememory/nagoya/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3LDK 15.10万円",
+       "source_id": "src-chintai-net-af010c6e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "99a2683728a52c31",
+     "id": "fda.living.rent-3bed.3d5a2dea",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3LDK",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-af010c6e",
+       "source_type": "third_party_reference",
+       "title": "覚王山駅の家賃相場",
+       "url": "https://www.chintai.net/aichi/ensen/000007966/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 151000
+     },
+     "value_text": {
+      "3bed": "15.10万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "population": {
+       "method": "名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・ワンルーム(1R)"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nagoya",
+      "note_ja": "街「Nagoya」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "nagoya",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「ワンルーム(1R)」。数字の種類: 名古屋市千種区・覚王山駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Nagoya（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：積水ハウスの覚王山住宅地紹介（掲載情報2024年10月時点）は人気の居住区・高級住宅街として説明。https://www.sekisuihouse.co.jp/gm/grandememory/nagoya/story-area/ 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ワンルーム(1R) 5.10万円",
+       "source_id": "src-chintai-net-af010c6e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "12ced13d8441b302",
+     "id": "fda.living.rent-studio.cfc434ec",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "ワンルーム(1R)",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-af010c6e",
+       "source_type": "third_party_reference",
+       "title": "覚王山駅の家賃相場",
+       "url": "https://www.chintai.net/aichi/ensen/000007966/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 51000
+     },
+     "value_text": {
+      "studio": "5.10万"
+     }
     }
    ],
    "towns": []
@@ -210554,6 +225767,334 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "6.95万円"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・1LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Naha",
+      "note_ja": "街「Naha」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "naha",
+     "company": "jta",
+     "cond_ja": "英: undefined。原部屋表記「1LDK」。数字の種類: 那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=jta,rac。調査対象拠点都市=Naha（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大和ハウス工業・タカラレーベンの自社発表は、おもろまち4丁目を再開発された那覇新都心の中枢と位置づけ、大型商業施設、公園、交通、文化・行政・医療施設がそろい、商業とレジデンスが融合する街区と説明する。開発・住環境の質を地区選定の根拠とする。個別販売物件の設備を地区全体の属性に転用しない。 https://www.daiwahouse.co.jp/about/release/house/20250327182853.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。4間取りすべて同じ2026-10-21更新の実読版に統一。2026-10-29の直接GET版には3LDKの数値がなく、異なる更新時点を混在させない。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1LDK 11.50万円",
+       "source_id": "src-chintai-net-03dab82a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "67602c4c7ded7ef0",
+     "id": "jta.living.rent-1bed.4ef934ac",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1LDK",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-jta",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-03dab82a",
+       "source_type": "third_party_reference",
+       "title": "おもろまち駅の家賃相場",
+       "url": "https://www.chintai.net/okinawa/ensen/000010762/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 115000
+     },
+     "value_text": {
+      "1bed": "11.50万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・2LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Naha",
+      "note_ja": "街「Naha」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "naha",
+     "company": "jta",
+     "cond_ja": "英: undefined。原部屋表記「2LDK」。数字の種類: 那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=jta,rac。調査対象拠点都市=Naha（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大和ハウス工業・タカラレーベンの自社発表は、おもろまち4丁目を再開発された那覇新都心の中枢と位置づけ、大型商業施設、公園、交通、文化・行政・医療施設がそろい、商業とレジデンスが融合する街区と説明する。開発・住環境の質を地区選定の根拠とする。個別販売物件の設備を地区全体の属性に転用しない。 https://www.daiwahouse.co.jp/about/release/house/20250327182853.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。4間取りすべて同じ2026-10-21更新の実読版に統一。2026-10-29の直接GET版には3LDKの数値がなく、異なる更新時点を混在させない。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2LDK 12.25万円",
+       "source_id": "src-chintai-net-03dab82a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "71aff9778740a9d1",
+     "id": "jta.living.rent-2bed.9e287f82",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2LDK",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-jta",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-03dab82a",
+       "source_type": "third_party_reference",
+       "title": "おもろまち駅の家賃相場",
+       "url": "https://www.chintai.net/okinawa/ensen/000010762/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 122500
+     },
+     "value_text": {
+      "2bed": "12.25万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "population": {
+       "method": "那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・3LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Naha",
+      "note_ja": "街「Naha」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "naha",
+     "company": "jta",
+     "cond_ja": "英: undefined。原部屋表記「3LDK」。数字の種類: 那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=jta,rac。調査対象拠点都市=Naha（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大和ハウス工業・タカラレーベンの自社発表は、おもろまち4丁目を再開発された那覇新都心の中枢と位置づけ、大型商業施設、公園、交通、文化・行政・医療施設がそろい、商業とレジデンスが融合する街区と説明する。開発・住環境の質を地区選定の根拠とする。個別販売物件の設備を地区全体の属性に転用しない。 https://www.daiwahouse.co.jp/about/release/house/20250327182853.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。4間取りすべて同じ2026-10-21更新の実読版に統一。2026-10-29の直接GET版には3LDKの数値がなく、異なる更新時点を混在させない。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3LDK 14.30万円",
+       "source_id": "src-chintai-net-03dab82a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75d9fd12a1824830",
+     "id": "jta.living.rent-3bed.de226c52",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3LDK",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-jta",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-03dab82a",
+       "source_type": "third_party_reference",
+       "title": "おもろまち駅の家賃相場",
+       "url": "https://www.chintai.net/okinawa/ensen/000010762/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 143000
+     },
+     "value_text": {
+      "3bed": "14.30万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "population": {
+       "method": "那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・ワンルーム(1R)"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Naha",
+      "note_ja": "街「Naha」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "naha",
+     "company": "jta",
+     "cond_ja": "英: undefined。原部屋表記「ワンルーム(1R)」。数字の種類: 那覇市・新都心のおもろまち駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=jta,rac。調査対象拠点都市=Naha（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大和ハウス工業・タカラレーベンの自社発表は、おもろまち4丁目を再開発された那覇新都心の中枢と位置づけ、大型商業施設、公園、交通、文化・行政・医療施設がそろい、商業とレジデンスが融合する街区と説明する。開発・住環境の質を地区選定の根拠とする。個別販売物件の設備を地区全体の属性に転用しない。 https://www.daiwahouse.co.jp/about/release/house/20250327182853.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。4間取りすべて同じ2026-10-21更新の実読版に統一。2026-10-29の直接GET版には3LDKの数値がなく、異なる更新時点を混在させない。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ワンルーム(1R) 7.10万円",
+       "source_id": "src-chintai-net-03dab82a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8833071991d8ff18",
+     "id": "jta.living.rent-studio.b7a19de0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "ワンルーム(1R)",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-jta",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-03dab82a",
+       "source_type": "third_party_reference",
+       "title": "おもろまち駅の家賃相場",
+       "url": "https://www.chintai.net/okinawa/ensen/000010762/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 71000
+     },
+     "value_text": {
+      "studio": "7.10万"
      }
     }
    ],
@@ -213889,6 +229430,263 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "2bed": "$2,695",
       "3bed": "$3,295",
       "studio": "$1,626"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "omura": {
+   "airlines": [
+    "orc"
+   ],
+   "commute": [],
+   "name": "Omura",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "大村市・新大村駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・1LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Omura",
+      "note_ja": "街「Omura」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "omura",
+     "company": "orc",
+     "cond_ja": "英: undefined。原部屋表記「1LDK」。数字の種類: 大村市・新大村駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=orc。調査対象拠点都市=Omura（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大和ハウス2023-05-30の新大村駅前SAKURA MIRAI SHIN ŌMURA開発発表で住宅・生活商業・交通を一体化した新街区を確認。https://www.daiwahouse.co.jp/about/release/house/20230529182226.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1LDK 5.90万円",
+       "source_id": "src-chintai-net-2b664788",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9a483a955c217f8b",
+     "id": "orc.living.rent-1bed.514d09f5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1LDK",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-orc",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-2b664788",
+       "source_type": "third_party_reference",
+       "title": "新大村駅の家賃相場",
+       "url": "https://www.chintai.net/nagasaki/ensen/000020519/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 59000
+     },
+     "value_text": {
+      "1bed": "5.90万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "大村市・新大村駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・2LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Omura",
+      "note_ja": "街「Omura」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "omura",
+     "company": "orc",
+     "cond_ja": "英: undefined。原部屋表記「2LDK」。数字の種類: 大村市・新大村駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=orc。調査対象拠点都市=Omura（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大和ハウス2023-05-30の新大村駅前SAKURA MIRAI SHIN ŌMURA開発発表で住宅・生活商業・交通を一体化した新街区を確認。https://www.daiwahouse.co.jp/about/release/house/20230529182226.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2LDK 6.30万円",
+       "source_id": "src-chintai-net-2b664788",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f5e53e87ab7c77f4",
+     "id": "orc.living.rent-2bed.74aa8ff6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2LDK",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-orc",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-2b664788",
+       "source_type": "third_party_reference",
+       "title": "新大村駅の家賃相場",
+       "url": "https://www.chintai.net/nagasaki/ensen/000020519/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 63000
+     },
+     "value_text": {
+      "2bed": "6.30万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "population": {
+       "method": "大村市・新大村駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・ワンルーム(1R)"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Omura",
+      "note_ja": "街「Omura」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "omura",
+     "company": "orc",
+     "cond_ja": "英: undefined。原部屋表記「ワンルーム(1R)」。数字の種類: 大村市・新大村駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=orc。調査対象拠点都市=Omura（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：大和ハウス2023-05-30の新大村駅前SAKURA MIRAI SHIN ŌMURA開発発表で住宅・生活商業・交通を一体化した新街区を確認。https://www.daiwahouse.co.jp/about/release/house/20230529182226.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ワンルーム(1R) 4.20万円",
+       "source_id": "src-chintai-net-2b664788",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5dcd84cf9586cb61",
+     "id": "orc.living.rent-studio.f0ddcea8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "ワンルーム(1R)",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-orc",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-2b664788",
+       "source_type": "third_party_reference",
+       "title": "新大村駅の家賃相場",
+       "url": "https://www.chintai.net/nagasaki/ensen/000020519/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 42000
+     },
+     "value_text": {
+      "studio": "4.20万"
      }
     }
    ],
@@ -217457,6 +233255,310 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": {
       "studio": "$1,550"
      }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Providence",
+      "note_ja": "街「Providence」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 USD の国（アメリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "providence",
+     "company": "breeze-airways",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「1 bedroom（原データbedキー=1_BED）」。数字の種類: Providence, RI・Blackstone地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.1_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=20。物件種別キー=AFR,CFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：地区案内が良好な住宅地として紹介。市の現行Most Expensive表にも掲載（https://www.apartments.com/rent-market-trends/providence-ri/）。操縦士本人の居住人気を調べたものではない。 共用対象company_id=breeze-airways。調査対象拠点都市=Providence。都市根拠：breeze-airways 既存2で確認した操縦士拠点 Providence (https://www.alpa.org/supporting-pilots/pilot-groups/breeze-airways)。",
+     "currency": "USD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"1_BED\"\":{\"\"average_rent\"\":2075.33\"",
+       "source_id": "src-zumper-com-ffba6821",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f021893679fa38bc",
+     "id": "breeze-airways.living.rent-1bed.913420bb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom（原データbedキー=1_BED）",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-ffba6821",
+       "source_type": "third_party_reference",
+       "title": "Blackstone, Providence, RI Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/providence-ri/blackstone"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 2075.33
+     },
+     "value_text": {
+      "1bed": "2075.33"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Providence",
+      "note_ja": "街「Providence」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 USD の国（アメリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "providence",
+     "company": "breeze-airways",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「2 bedroom（原データbedキー=2_BED）」。数字の種類: Providence, RI・Blackstone地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.2_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=8。物件種別キー=AFR,CFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：地区案内が良好な住宅地として紹介。市の現行Most Expensive表にも掲載（https://www.apartments.com/rent-market-trends/providence-ri/）。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 共用対象company_id=breeze-airways。調査対象拠点都市=Providence。都市根拠：breeze-airways 既存2で確認した操縦士拠点 Providence (https://www.alpa.org/supporting-pilots/pilot-groups/breeze-airways)。",
+     "currency": "USD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"2_BED\"\":{\"\"average_rent\"\":2477.5\"",
+       "source_id": "src-zumper-com-ffba6821",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "689af7a5acbc8111",
+     "id": "breeze-airways.living.rent-2bed.46d0a828",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedroom（原データbedキー=2_BED）",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-ffba6821",
+       "source_type": "third_party_reference",
+       "title": "Blackstone, Providence, RI Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/providence-ri/blackstone"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 2477.5
+     },
+     "value_text": {
+      "2bed": "2477.5"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Providence",
+      "note_ja": "街「Providence」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 USD の国（アメリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "providence",
+     "company": "breeze-airways",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「3 bedroom（原データbedキー=3_BED）」。数字の種類: Providence, RI・Blackstone地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.3_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=10。物件種別キー=AFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：地区案内が良好な住宅地として紹介。市の現行Most Expensive表にも掲載（https://www.apartments.com/rent-market-trends/providence-ri/）。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 共用対象company_id=breeze-airways。調査対象拠点都市=Providence。都市根拠：breeze-airways 既存2で確認した操縦士拠点 Providence (https://www.alpa.org/supporting-pilots/pilot-groups/breeze-airways)。",
+     "currency": "USD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"3_BED\"\":{\"\"average_rent\"\":3711.54\"",
+       "source_id": "src-zumper-com-ffba6821",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a6fc4a2cc307aea5",
+     "id": "breeze-airways.living.rent-3bed.b21559a7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom（原データbedキー=3_BED）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-ffba6821",
+       "source_type": "third_party_reference",
+       "title": "Blackstone, Providence, RI Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/providence-ri/blackstone"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 3711.54
+     },
+     "value_text": {
+      "3bed": "3711.54"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Providence",
+      "note_ja": "街「Providence」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 USD の国（アメリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "providence",
+     "company": "breeze-airways",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「Studio（原データbedキー=STUDIO）」。数字の種類: Providence, RI・Blackstone地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.STUDIO.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=8。物件種別キー=AFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：地区案内が良好な住宅地として紹介。市の現行Most Expensive表にも掲載（https://www.apartments.com/rent-market-trends/providence-ri/）。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 共用対象company_id=breeze-airways。調査対象拠点都市=Providence。都市根拠：breeze-airways 既存2で確認した操縦士拠点 Providence (https://www.alpa.org/supporting-pilots/pilot-groups/breeze-airways)。",
+     "currency": "USD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"STUDIO\"\":{\"\"average_rent\"\":1556.25\"",
+       "source_id": "src-zumper-com-ffba6821",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ee5105d0e9d0343",
+     "id": "breeze-airways.living.rent-studio.6e73bd3f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio（原データbedキー=STUDIO）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-ffba6821",
+       "source_type": "third_party_reference",
+       "title": "Blackstone, Providence, RI Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/providence-ri/blackstone"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1556.25
+     },
+     "value_text": {
+      "studio": "1556.25"
+     }
     }
    ],
    "towns": []
@@ -219878,6 +235980,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "sapporo": {
    "airlines": [
+    "hac",
     "toki-air"
    ],
    "commute": [
@@ -220012,6 +236115,334 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "name": "札幌市東区 / Higashi, Sapporo",
    "name_en": null,
    "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・1LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Sapporo",
+      "note_ja": "街「Sapporo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "sapporo",
+     "company": "hac",
+     "cond_ja": "英: undefined。原部屋表記「1LDK」。数字の種類: 札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=hac。調査対象拠点都市=Sapporo（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：住友不動産ステップの自社駅周辺案内は、円山公園駅周辺を緑豊かで落ち着いた雰囲気、交通利便性もあり高級住宅エリアとして知られると明記する。営業担当の地区説明、掲載不動産の所在地と併せて実在の居住地区を説明している。 https://www.stepon.co.jp/town/sapporo/1083_040.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1LDK 6.50万円",
+       "source_id": "src-chintai-net-dbf453d4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b78dd0520ddf413",
+     "id": "hac.living.rent-1bed.4c63ac22",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1LDK",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-hac",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-dbf453d4",
+       "source_type": "third_party_reference",
+       "title": "円山公園駅の家賃相場",
+       "url": "https://www.chintai.net/hokkaido/ensen/000006661/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 65000
+     },
+     "value_text": {
+      "1bed": "6.50万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・2LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Sapporo",
+      "note_ja": "街「Sapporo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "sapporo",
+     "company": "hac",
+     "cond_ja": "英: undefined。原部屋表記「2LDK」。数字の種類: 札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=hac。調査対象拠点都市=Sapporo（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：住友不動産ステップの自社駅周辺案内は、円山公園駅周辺を緑豊かで落ち着いた雰囲気、交通利便性もあり高級住宅エリアとして知られると明記する。営業担当の地区説明、掲載不動産の所在地と併せて実在の居住地区を説明している。 https://www.stepon.co.jp/town/sapporo/1083_040.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2LDK 9.90万円",
+       "source_id": "src-chintai-net-dbf453d4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e64eaf3d9ea4e4f9",
+     "id": "hac.living.rent-2bed.a120cb37",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2LDK",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-hac",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-dbf453d4",
+       "source_type": "third_party_reference",
+       "title": "円山公園駅の家賃相場",
+       "url": "https://www.chintai.net/hokkaido/ensen/000006661/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 99000
+     },
+     "value_text": {
+      "2bed": "9.90万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "population": {
+       "method": "札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・3LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Sapporo",
+      "note_ja": "街「Sapporo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "sapporo",
+     "company": "hac",
+     "cond_ja": "英: undefined。原部屋表記「3LDK」。数字の種類: 札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=hac。調査対象拠点都市=Sapporo（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：住友不動産ステップの自社駅周辺案内は、円山公園駅周辺を緑豊かで落ち着いた雰囲気、交通利便性もあり高級住宅エリアとして知られると明記する。営業担当の地区説明、掲載不動産の所在地と併せて実在の居住地区を説明している。 https://www.stepon.co.jp/town/sapporo/1083_040.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3LDK 13.50万円",
+       "source_id": "src-chintai-net-dbf453d4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f148cdde6e1f2c99",
+     "id": "hac.living.rent-3bed.ff36c91f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3LDK",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-hac",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-dbf453d4",
+       "source_type": "third_party_reference",
+       "title": "円山公園駅の家賃相場",
+       "url": "https://www.chintai.net/hokkaido/ensen/000006661/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 135000
+     },
+     "value_text": {
+      "3bed": "13.50万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "population": {
+       "method": "札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・ワンルーム(1R)"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Sapporo",
+      "note_ja": "街「Sapporo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "sapporo",
+     "company": "hac",
+     "cond_ja": "英: undefined。原部屋表記「ワンルーム(1R)」。数字の種類: 札幌市中央区・円山公園駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=hac。調査対象拠点都市=Sapporo（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：住友不動産ステップの自社駅周辺案内は、円山公園駅周辺を緑豊かで落ち着いた雰囲気、交通利便性もあり高級住宅エリアとして知られると明記する。営業担当の地区説明、掲載不動産の所在地と併せて実在の居住地区を説明している。 https://www.stepon.co.jp/town/sapporo/1083_040.html 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ワンルーム(1R) 3.60万円",
+       "source_id": "src-chintai-net-dbf453d4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "22a3d3ff549fd7f7",
+     "id": "hac.living.rent-studio.c2c87b6e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "ワンルーム(1R)",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-hac",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-dbf453d4",
+       "source_type": "third_party_reference",
+       "title": "円山公園駅の家賃相場",
+       "url": "https://www.chintai.net/hokkaido/ensen/000006661/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 36000
+     },
+     "value_text": {
+      "studio": "3.60万"
+     }
+    },
     {
      "amount": {
       "assumed_hours": null,
@@ -221695,6 +238126,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "pack": "pvr-20261029-cg-korean-air",
      "per": "month",
      "rev": 3,
+     "seen": [
+      {
+       "company": "korean-air",
+       "id": "korean-air.living.rent-1bed.6766bf93",
+       "pack": "pvr-20261029-cg-korean-air"
+      }
+     ],
      "src": [
       {
        "published": null,
@@ -221771,6 +238209,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "pack": "pvr-20261029-cg-korean-air",
      "per": "month",
      "rev": 3,
+     "seen": [
+      {
+       "company": "korean-air",
+       "id": "korean-air.living.rent-2bed.f2026390",
+       "pack": "pvr-20261029-cg-korean-air"
+      }
+     ],
      "src": [
       {
        "published": null,
@@ -221847,6 +238292,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "pack": "pvr-20261029-cg-korean-air",
      "per": "month",
      "rev": 3,
+     "seen": [
+      {
+       "company": "korean-air",
+       "id": "korean-air.living.rent-3bed.d49b9077",
+       "pack": "pvr-20261029-cg-korean-air"
+      }
+     ],
      "src": [
       {
        "published": null,
@@ -222196,6 +238648,334 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "1bed": "8.64万円",
       "2bed": "12.41万円",
       "studio": "7.39万円"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・1LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Shizuoka",
+      "note_ja": "街「Shizuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "shizuoka",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「1LDK」。数字の種類: 静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Shizuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：静岡市の土地利用審査会資料は、新静岡セノバ周辺の葵区鷹匠エリアについて専門店集積による商業地のブランド化が進み、生活利便性からマンション需要も旺盛と説明。住宅需要と都市的な生活環境を伴う地区選定の根拠になる。富裕層との直接の記載はなく、その属性は断定しない。 https://www.city.shizuoka.lg.jp/documents/8408/r7kaigisiryou.pdf 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1LDK 7.00万円",
+       "source_id": "src-chintai-net-3524129f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b191a669f2bc6703",
+     "id": "fda.living.rent-1bed.05285696",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1LDK",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-3524129f",
+       "source_type": "third_party_reference",
+       "title": "新静岡駅の家賃相場",
+       "url": "https://www.chintai.net/sizuoka/ensen/000007808/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 70000
+     },
+     "value_text": {
+      "1bed": "7.00万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・2LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Shizuoka",
+      "note_ja": "街「Shizuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "shizuoka",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「2LDK」。数字の種類: 静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Shizuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：静岡市の土地利用審査会資料は、新静岡セノバ周辺の葵区鷹匠エリアについて専門店集積による商業地のブランド化が進み、生活利便性からマンション需要も旺盛と説明。住宅需要と都市的な生活環境を伴う地区選定の根拠になる。富裕層との直接の記載はなく、その属性は断定しない。 https://www.city.shizuoka.lg.jp/documents/8408/r7kaigisiryou.pdf 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2LDK 7.50万円",
+       "source_id": "src-chintai-net-3524129f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed69d8657744035b",
+     "id": "fda.living.rent-2bed.eb6676ad",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2LDK",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-3524129f",
+       "source_type": "third_party_reference",
+       "title": "新静岡駅の家賃相場",
+       "url": "https://www.chintai.net/sizuoka/ensen/000007808/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 75000
+     },
+     "value_text": {
+      "2bed": "7.50万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "population": {
+       "method": "静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・3LDK"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Shizuoka",
+      "note_ja": "街「Shizuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "shizuoka",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「3LDK」。数字の種類: 静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Shizuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：静岡市の土地利用審査会資料は、新静岡セノバ周辺の葵区鷹匠エリアについて専門店集積による商業地のブランド化が進み、生活利便性からマンション需要も旺盛と説明。住宅需要と都市的な生活環境を伴う地区選定の根拠になる。富裕層との直接の記載はなく、その属性は断定しない。 https://www.city.shizuoka.lg.jp/documents/8408/r7kaigisiryou.pdf 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3LDK 8.80万円",
+       "source_id": "src-chintai-net-3524129f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f028d052a71777b",
+     "id": "fda.living.rent-3bed.56490160",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3LDK",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-3524129f",
+       "source_type": "third_party_reference",
+       "title": "新静岡駅の家賃相場",
+       "url": "https://www.chintai.net/sizuoka/ensen/000007808/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 88000
+     },
+     "value_text": {
+      "3bed": "8.80万"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "population": {
+       "method": "静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃",
+       "n": null,
+       "period": null,
+       "who": "undefined・ワンルーム(1R)"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Shizuoka",
+      "note_ja": "街「Shizuoka」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JPY の国（日本）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "shizuoka",
+     "company": "fda",
+     "cond_ja": "英: undefined。原部屋表記「ワンルーム(1R)」。数字の種類: 静岡市葵区・鷹匠を含む新静岡駅周辺、駅徒歩20分以内、建物種別の追加指定なし、掲載募集物件の平均月額家賃。家具: undefined。補足: 共用company_id=fda。調査対象拠点都市=Shizuoka（前回2の都市一覧、未判明時は本社都市を引継ぎ）。管理費・駐車場代等を除く。地区の全住民・高所得者だけの居住賃料や高級物件だけの平均ではない。地区選定：静岡市の土地利用審査会資料は、新静岡セノバ周辺の葵区鷹匠エリアについて専門店集積による商業地のブランド化が進み、生活利便性からマンション需要も旺盛と説明。住宅需要と都市的な生活環境を伴う地区選定の根拠になる。富裕層との直接の記載はなく、その属性は断定しない。 https://www.city.shizuoka.lg.jp/documents/8408/r7kaigisiryou.pdf 。万円から円への表記統一はユーザーが明示許可。平均の再計算はしていない。月額の定義は同じCHINTAIの現行 https://www.chintai.net/initial_cost/ の「毎月の賃料」を照合。",
+     "currency": "JPY",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ワンルーム(1R) 4.70万円",
+       "source_id": "src-chintai-net-3524129f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e16dfb8da2b5cf90",
+     "id": "fda.living.rent-studio.62b21aeb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "ワンルーム(1R)",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-fda",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "株式会社CHINTAI",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-chintai-net-3524129f",
+       "source_type": "third_party_reference",
+       "title": "新静岡駅の家賃相場",
+       "url": "https://www.chintai.net/sizuoka/ensen/000007808/rent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 47000
+     },
+     "value_text": {
+      "studio": "4.70万"
      }
     }
    ],
@@ -225315,6 +242095,158 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": {
       "studio": "$1,725"
      }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Toronto",
+      "note_ja": "街「Toronto」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "toronto",
+     "company": "air-canada",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「3 bedroom（原データbedキー=3_BED）」。数字の種類: Toronto, ON・Yorkville地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.3_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=7。物件種別キー=AFR,CFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：上質な住宅・商業が集中するYorkvilleを候補選定。古い広域Toronto Centralゾーンを当該地区値に代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 Destination Torontoの2025-10-29記事で高級な地区・落ち着いた住宅街の環境を実読（https://www.destinationtoronto.com/leisure-blog/post/guide-to-yorkville/）。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=air-canada,westjet。調査対象拠点都市=Toronto。都市根拠：air-canada 既存2で確認した操縦士拠点 Toronto (https://www.alpa.org/supporting-pilots/pilot-groups/air-canada) / westjet 既存2で確認した操縦士拠点 Toronto (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"3_BED\"\":{\"\"average_rent\"\":6761.25\"",
+       "source_id": "src-zumper-com-14e71096",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e80524dca50e23a",
+     "id": "air-canada.living.rent-3bed.080b65b1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom（原データbedキー=3_BED）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-14e71096",
+       "source_type": "third_party_reference",
+       "title": "Yorkville, Toronto, ON Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/toronto-on/yorkville"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 6761.25
+     },
+     "value_text": {
+      "3bed": "6761.25"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Toronto",
+      "note_ja": "街「Toronto」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "toronto",
+     "company": "air-canada",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「Studio（原データbedキー=STUDIO）」。数字の種類: Toronto, ON・Yorkville地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.STUDIO.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=16。物件種別キー=AFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：上質な住宅・商業が集中するYorkvilleを候補選定。古い広域Toronto Centralゾーンを当該地区値に代用しない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 Destination Torontoの2025-10-29記事で高級な地区・落ち着いた住宅街の環境を実読（https://www.destinationtoronto.com/leisure-blog/post/guide-to-yorkville/）。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=air-canada,westjet。調査対象拠点都市=Toronto。都市根拠：air-canada 既存2で確認した操縦士拠点 Toronto (https://www.alpa.org/supporting-pilots/pilot-groups/air-canada) / westjet 既存2で確認した操縦士拠点 Toronto (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"STUDIO\"\":{\"\"average_rent\"\":1976.19\"",
+       "source_id": "src-zumper-com-14e71096",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "beb2956bbf65647c",
+     "id": "air-canada.living.rent-studio.68b8d945",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio（原データbedキー=STUDIO）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-14e71096",
+       "source_type": "third_party_reference",
+       "title": "Yorkville, Toronto, ON Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/toronto-on/yorkville"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 1976.19
+     },
+     "value_text": {
+      "studio": "1976.19"
+     }
     }
    ],
    "towns": []
@@ -226238,6 +243170,158 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "$2,005"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Vancouver",
+      "note_ja": "街「Vancouver」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "vancouver",
+     "company": "air-canada",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「3 bedroom（原データbedキー=3_BED）」。数字の種類: Vancouver, BC・Kerrisdale地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.3_BED.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=8。物件種別キー=AFR,HFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：Destination Vancouverの現行案内が樹木の多いWest-sideの住宅地・村落的な住環境を紹介（https://www.destinationvancouver.com/neighbourhoods/kerrisdale）。CMHC Westside/Kerrisdaleは複数地区を含むため単独Kerrisdale値として使わない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=air-canada,westjet。調査対象拠点都市=Vancouver。都市根拠：air-canada 既存2で確認した操縦士拠点 Vancouver (https://www.alpa.org/supporting-pilots/pilot-groups/air-canada) / westjet 既存2で確認した操縦士拠点 Vancouver (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"3_BED\"\":{\"\"average_rent\"\":3817.7\"",
+       "source_id": "src-zumper-com-f465bade",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8017b3a2a1278ab8",
+     "id": "air-canada.living.rent-3bed.0cad093e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom（原データbedキー=3_BED）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-f465bade",
+       "source_type": "third_party_reference",
+       "title": "Kerrisdale, Vancouver, BC Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/vancouver-bc/kerrisdale"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 3817.7
+     },
+     "value_text": {
+      "3bed": "3817.7"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・Studio）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Vancouver",
+      "note_ja": "街「Vancouver」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CAD の国（カナダ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "vancouver",
+     "company": "air-canada",
+     "cond_ja": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24。原部屋表記「Studio（原データbedキー=STUDIO）」。数字の種類: Vancouver, BC・Kerrisdale地区。家具: undefined。補足: 公開HTMLに埋め込まれた原データ rentResearchDetail.data.rentalData.data.bed.STUDIO.average_rent を計算・丸め・通貨換算せず転記。data_snapshot_date=2026-10-24。元ページは過去30日の掲載賃料を用いると説明。平均と中央値を別フィールドで公表しており、画面のAverage表に表示されたmedian_rentやmonthly_median_rentは不採用。原データcount=11。物件種別キー=AFR（全住宅種別の当該寝室平均、特定の高級物件だけの平均ではない）。published_dateは原データのdata_snapshot_date=2026-10-24という資料時点を記載。一般の記事発行日は未確認で、ページのLast updated onの閲覧日表示とは区別した。資料内のカナダ/米国の現地ドル建て月額を使用。選定根拠：Destination Vancouverの現行案内が樹木の多いWest-sideの住宅地・村落的な住環境を紹介（https://www.destinationvancouver.com/neighbourhoods/kerrisdale）。CMHC Westside/Kerrisdaleは複数地区を含むため単独Kerrisdale値として使わない。操縦士本人の居住人気を調べたものではない。 標本は20件未満であり地区内の全賃貸住宅を代表する統計とは限らない。 先にCMHC 2025の当該都市原表を実読したが、3 Bedroom +を厳密3寝室に使わず、複合的な広域ゾーンを当該地区単独平均へ置き換えない。 共用対象company_id=air-canada,westjet。調査対象拠点都市=Vancouver。都市根拠：air-canada 既存2で確認した操縦士拠点 Vancouver (https://www.alpa.org/supporting-pilots/pilot-groups/air-canada) / westjet 既存2で確認した操縦士拠点 Vancouver (https://www.alpa.org/supporting-pilots/pilot-groups/westjet-airlines)。",
+     "currency": "CAD",
+     "district": "掲載募集賃料の平均月額、rolling 30 days、snapshot 2026-10-24",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"STUDIO\"\":{\"\"average_rent\"\":2077.92\"",
+       "source_id": "src-zumper-com-f465bade",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6e825327d7dc5b27",
+     "id": "air-canada.living.rent-studio.5150c02b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（Studio）",
+     "layout": {
+      "studio": {
+       "pack_key": "studio",
+       "term": "Studio（原データbedキー=STUDIO）",
+       "word": "Studio"
+      }
+     },
+     "pack": "pvr-20261029-cg-air-canada",
+     "per": "month",
+     "rev": 6,
+     "src": [
+      {
+       "published": "2026-10-24",
+       "publisher": "Zumper",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-zumper-com-f465bade",
+       "source_type": "third_party_reference",
+       "title": "Kerrisdale, Vancouver, BC Rent Research（公開HTML埋込 average_rent）",
+       "url": "https://www.zumper.com/rent-research/vancouver-bc/kerrisdale"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "studio": 2077.92
+     },
+     "value_text": {
+      "studio": "2077.92"
      }
     }
    ],
@@ -540584,12 +557668,24 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aegean.destinations.not-operated-airport.eb1eac05": "fddfdcd464773ed5",
     "aegean.destinations.operated-airport.19b47e8b": "1d8148b330dec288",
     "aegean.destinations.operated-airport.4917177a": "9ab75eb6f8a1cff6",
+    "aegean.jobs.fo-english-fo.3c39602b": "40c94339c6808b7a",
+    "aegean.jobs.fo-english-fo.9f6706cd": "abee193c0336f046",
+    "aegean.jobs.fo-license-fo.05582683": "d32132c0c263a556",
+    "aegean.jobs.fo-license-fo.73358fc2": "4e7192982bb6e6f1",
+    "aegean.jobs.fo-license-fo.c8e92203": "af90f0aa37de8693",
+    "aegean.jobs.fo-medical-fo.4ef9a591": "abe9ab933a179447",
+    "aegean.jobs.fo-medical-fo.f6532d2a": "68896e64162dbeca",
+    "aegean.jobs.fo-pic-hours-fo.0f00d34f": "9b1a7b3ae411ba86",
+    "aegean.jobs.fo-right-to-work-fo.2c4d1b78": "ed42a9971f7e1a6d",
+    "aegean.jobs.fo-right-to-work-fo.8b89e9f6": "9b4a4495e4675165",
+    "aegean.jobs.fo-type-rating-fo.b39e91db": "1b6a1f429d14e50d",
+    "aegean.jobs.fo-type-rating-fo.ddc5d244": "941139bd51649938",
     "aegean.profile.founded.4dceab89": "2561730eabc249e1",
     "aegean.profile.headquarters-city.237882cb": "aebd4d68504e0c5f",
     "aegean.profile.headquarters-country.c64e8498": "0d43db4d96752e29"
    },
-   "revision": 3,
-   "sha": "sha256:ef3c05e7a63a083d"
+   "revision": 5,
+   "sha": "sha256:3db581061f8d586b"
   },
   "pvr-20261029-cg-aer-lingus": {
    "records": {
@@ -540614,6 +557710,16 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aer-lingus.destinations.operated-airport.da3bf847": "eab5b860e1a5b17f",
     "aer-lingus.destinations.operated-airport.f04a47f3": "d09f530d3e29c1f8",
     "aer-lingus.destinations.operated-airport.f36c04f3": "352f5defa692529f",
+    "aer-lingus.jobs.fo-english-fo.1d721e7f": "e1aed916f7824b5f",
+    "aer-lingus.jobs.fo-license-fo.11e955e4": "49a3995c1bd33718",
+    "aer-lingus.jobs.fo-medical-fo.abb0e390": "92660c5e658290ae",
+    "aer-lingus.jobs.fo-right-to-work-fo.0c62e3f9": "7b4197e8c15b07e4",
+    "aer-lingus.jobs.fo-total-hours-fo.77beea6d": "a3c1812894c74ba6",
+    "aer-lingus.jobs.fo-type-rating-fo.238d2888": "4fc3d61b67da7322",
+    "aer-lingus.jobs.fo-type-rating-fo.23a0947f": "c34a9f8634d49f83",
+    "aer-lingus.jobs.fo-type-rating-fo.3fd1df57": "ec11f2308b0a4702",
+    "aer-lingus.jobs.fo-type-rating-fo.9669cf33": "2d457510ec404913",
+    "aer-lingus.jobs.fo-type-rating-fo.f9cf2e30": "e1f4369c6f1f17f4",
     "aer-lingus.living.rent-1bed.1d7a8479": "55be5c194706f3aa",
     "aer-lingus.living.rent-2bed.40783427": "5f2fef8f0d377134",
     "aer-lingus.living.rent-3bed.583707b0": "5658d65075d32521",
@@ -540621,8 +557727,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aer-lingus.profile.headquarters-city.11e6a307": "20b8ec0a038cebd2",
     "aer-lingus.profile.headquarters-country.6ff893d9": "72228cb7403b5613"
    },
-   "revision": 4,
-   "sha": "sha256:76349c92b2d62029"
+   "revision": 5,
+   "sha": "sha256:a173cc0f21ff6635"
   },
   "pvr-20261029-cg-aeromexico": {
    "records": {
@@ -540632,6 +557738,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aeromexico.fleet.boeing-737-max-9.7566051b": "3f0a17463a828dd8",
     "aeromexico.fleet.boeing-787-8.66bf69a7": "55a97137b3e754b8",
     "aeromexico.fleet.boeing-787-9.68e6b5d9": "2ac8a9202ee495d9",
+    "aeromexico.jobs.fo-age-fo.29543ba0": "26669a9702427c09",
+    "aeromexico.jobs.fo-age-fo.76a664b1": "442f194415b80d6a",
+    "aeromexico.jobs.fo-age-fo.9d7ccf8d": "410314ddf3557cf6",
+    "aeromexico.jobs.fo-license-fo.5500cbfe": "480e283e20feb83f",
+    "aeromexico.jobs.fo-license-fo.c52bf1e5": "78450c7706987e7f",
+    "aeromexico.jobs.fo-right-to-work-fo.8d7a9d3d": "bd1a50e4db828e4b",
+    "aeromexico.jobs.fo-total-hours-fo.356db004": "c739d067e87c11cd",
     "aeromexico.living.rent-1bed.3793c17e": "482c489ece11c02f",
     "aeromexico.living.rent-2bed.ffc9bbfb": "547c46bbeeeb3f9d",
     "aeromexico.living.rent-3bed.fd2e2d1d": "9dce8f8c91bf3a9f",
@@ -540640,8 +557753,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aeromexico.profile.headquarters-country.aeb618a1": "3744875ff0c2921e",
     "aeromexico.scale.fleet-total.414d544b": "b6a8593ddf38cb6e"
    },
-   "revision": 4,
-   "sha": "sha256:c74f8a7d033e9b45"
+   "revision": 5,
+   "sha": "sha256:f9246d87c78f38c4"
   },
   "pvr-20261029-cg-air-canada": {
    "records": {
@@ -540675,11 +557788,22 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-canada.destinations.operated-airport.fd392825": "60c176dc20859224",
     "air-canada.destinations.operated-airport.fe269efd": "470e9de98546c8cf",
     "air-canada.destinations.operated-airport.fe9d4ae1": "4600979541ec1b4c",
+    "air-canada.jobs.fo-license-fo.91ab043e": "70bb4a1650cbcf6d",
+    "air-canada.jobs.fo-medical-fo.bf0ef714": "afa8737edb4635fd",
+    "air-canada.jobs.fo-right-to-work-fo.63534f0e": "81843433c5530e6b",
+    "air-canada.jobs.fo-right-to-work-fo.694ba718": "e0d578e5035690c7",
+    "air-canada.jobs.fo-total-hours-fo.835882af": "b1598ebf07c0f3bb",
+    "air-canada.living.rent-3bed.080b65b1": "9e80524dca50e23a",
+    "air-canada.living.rent-3bed.0cad093e": "8017b3a2a1278ab8",
+    "air-canada.living.rent-3bed.87e1a711": "1752774853dd9bc7",
+    "air-canada.living.rent-studio.5150c02b": "6e825327d7dc5b27",
+    "air-canada.living.rent-studio.68b8d945": "beb2956bbf65647c",
+    "air-canada.living.rent-studio.e27d231a": "54ec9962408e83ff",
     "air-canada.profile.founded.f09b5206": "28e2982d1a7e425b",
     "air-canada.scale.pilots.728730db": "efd743d26368fb86"
    },
-   "revision": 4,
-   "sha": "sha256:ff824361d895ce6a"
+   "revision": 6,
+   "sha": "sha256:c4615dd28eaa2430"
   },
   "pvr-20261029-cg-air-china": {
    "records": {
@@ -540824,19 +557948,33 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "airjapan.jobs.cap-medical-cap.4298c8e7": "0a7f86781cc13a42",
     "airjapan.jobs.cap-pic-hours-cap.a38f3a41": "a23cc1f3ce8f80cc",
     "airjapan.jobs.cap-pic-hours-cap.c47a8100": "bcc6def0a3a94ea4",
-    "airjapan.jobs.cap-right-to-work-cap.c17f37f6": "c5a13a02e5606a55"
+    "airjapan.jobs.cap-right-to-work-cap.c17f37f6": "c5a13a02e5606a55",
+    "airjapan.jobs.cap-total-hours-cap.b0183374": "62c24eddd7dfe76e",
+    "airjapan.jobs.cap-type-rating-cap.ade28a73": "723e1147f5e2b691",
+    "airjapan.jobs.fo-total-hours-fo.c953ee3b": "cc71abe6ff21c585",
+    "airjapan.jobs.fo-type-rating-fo.67b84436": "cc2c97231008ddc0"
    },
-   "revision": 3,
-   "sha": "sha256:156820d6b6ac877c"
+   "revision": 5,
+   "sha": "sha256:5d8eab70fea22423"
   },
   "pvr-20261029-cg-airx-charter": {
    "records": {
+    "airx-charter.jobs.cap-english-cap.94be85c2": "e6561aeb7a7016c8",
+    "airx-charter.jobs.cap-license-cap.647554ce": "62044f08ef0135a0",
+    "airx-charter.jobs.cap-medical-cap.1e7a0e3b": "f263faa7497f53a3",
+    "airx-charter.jobs.cap-pic-hours-cap.fdd77fb8": "301938e7cb47eceb",
+    "airx-charter.jobs.cap-total-hours-cap.d97579cc": "2cfc43e01fad8fa5",
+    "airx-charter.jobs.fo-english-fo.61b1be86": "ab3b813ad0c437e5",
+    "airx-charter.jobs.fo-license-fo.d6ab8748": "cad8d4e5fb92e479",
+    "airx-charter.jobs.fo-medical-fo.3efdadc9": "3e59bd3054f9b520",
+    "airx-charter.jobs.fo-total-hours-fo.1187722e": "07c0c4120aa4d868",
+    "airx-charter.jobs.fo-type-rating-fo.fb383d15": "fbad7358a92409c3",
     "airx-charter.profile.founded.9469b44d": "008ad11e3c82d67a",
     "airx-charter.profile.headquarters-city.0c5bdf42": "c038cd705e756c53",
     "airx-charter.profile.headquarters-country.ce97f45f": "06cb355d1682e7e3"
    },
-   "revision": 1,
-   "sha": "sha256:6a6166d4cac3ca4c"
+   "revision": 5,
+   "sha": "sha256:b12258514aa28202"
   },
   "pvr-20261029-cg-alaska-airlines": {
    "records": {
@@ -540965,8 +558103,10 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "alaska-airlines.fleet.b737-900er-2026-06-30-actual-fleet-alask.4b163004": "64b92dcd4d8dd67b",
     "alaska-airlines.fleet.b787-9-2026-06-30-actual-fleet-alaska-ai.9a903cce": "46e7422aa2a758a4",
     "alaska-airlines.jobs.fo-age-fo.195dc720": "5e54430d5c48e656",
+    "alaska-airlines.jobs.fo-english-fo.09e6f321": "19bb260d5e8b588d",
     "alaska-airlines.jobs.fo-license-fo.42256625": "c85720a54379809f",
     "alaska-airlines.jobs.fo-medical-fo.edeee3ad": "185523924dc338d9",
+    "alaska-airlines.jobs.fo-pic-hours-fo.b600824b": "51dbbfbffa37f135",
     "alaska-airlines.jobs.fo-right-to-work-fo.d2cab5bf": "90ba665a113f6225",
     "alaska-airlines.jobs.fo-total-hours-fo.952dfffc": "df796e734b513474",
     "alaska-airlines.profile.founded.b152e356": "b7f4323224b52cfe",
@@ -540977,8 +558117,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "alaska-airlines.work.roster-pattern.5ff7078c": "b2fbf29c1d72ec0c",
     "alaska-airlines.work.sick-leave.0a3595bc": "f5af88996714046a"
    },
-   "revision": 4,
-   "sha": "sha256:22983238bfbe8494"
+   "revision": 5,
+   "sha": "sha256:606a70f44a5aeed1"
   },
   "pvr-20261029-cg-allegiant": {
    "records": {
@@ -541542,13 +558682,17 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "bamboo-airways.base.pilot-base.75f3bcf1": "5846b92ee0df328d",
     "bamboo-airways.base.pilot-base.d94bad74": "093de565242af707",
     "bamboo-airways.benefits.staff-travel.18f6bd97": "f23dee3038665c19",
+    "bamboo-airways.living.rent-1bed.6d9efcaa": "44b52cd8db4440c7",
+    "bamboo-airways.living.rent-2bed.70e49549": "ae9af6f853c1b87c",
+    "bamboo-airways.living.rent-3bed.e596c9f6": "cb36f6ff8e49fd92",
+    "bamboo-airways.living.rent-studio.9a42eae3": "38cb6408ce4ec83b",
     "bamboo-airways.profile.founded.856bcae1": "ff3152169fa5eb83",
     "bamboo-airways.profile.headquarters-city.f4d6069f": "515332d5e7e44e29",
     "bamboo-airways.profile.headquarters-country.4cc80274": "202d1ac344317731",
     "bamboo-airways.profile.headquarters-country.721228cd": "45166cfc75660556"
    },
-   "revision": 4,
-   "sha": "sha256:71a1b41995bc0c89"
+   "revision": 6,
+   "sha": "sha256:b0471a6ab9dae3f6"
   },
   "pvr-20261029-cg-batik-air": {
    "records": {
@@ -541695,10 +558839,22 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "breeze-airways.destinations.operated-airport.f5b660f5": "c20a9f741a2df046",
     "breeze-airways.destinations.operated-airport.fa14528c": "b010c15bdb63bc23",
     "breeze-airways.destinations.operated-airport.fd3ecf6e": "431a877dd83087f0",
+    "breeze-airways.jobs.fo-age-fo.88dcf89c": "85c0607ffd98274c",
+    "breeze-airways.jobs.fo-english-fo.e8553a92": "a2e5258b392b5c1b",
+    "breeze-airways.jobs.fo-license-fo.1abbeb64": "3a634063a4e92b1f",
+    "breeze-airways.jobs.fo-license-fo.90538a09": "067e48fbd4003c1d",
+    "breeze-airways.jobs.fo-medical-fo.3b06ebb0": "f998e70292ae6783",
+    "breeze-airways.jobs.fo-pic-hours-fo.eaba55cb": "88c4afb2743e2deb",
+    "breeze-airways.jobs.fo-right-to-work-fo.12652501": "eeda02266daab17e",
+    "breeze-airways.jobs.fo-total-hours-fo.0fc616d3": "b4afbdd0075a94cb",
+    "breeze-airways.living.rent-1bed.913420bb": "f021893679fa38bc",
+    "breeze-airways.living.rent-2bed.46d0a828": "689af7a5acbc8111",
+    "breeze-airways.living.rent-3bed.b21559a7": "a6fc4a2cc307aea5",
+    "breeze-airways.living.rent-studio.6e73bd3f": "8ee5105d0e9d0343",
     "breeze-airways.profile.founded.6b191274": "8746cea6fcbc32b7"
    },
-   "revision": 3,
-   "sha": "sha256:e11908a149e6a052"
+   "revision": 6,
+   "sha": "sha256:eb69f5d7893bfc2b"
   },
   "pvr-20261029-cg-british-airways": {
    "records": {
@@ -541747,11 +558903,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "british-airways.jobs.fo-license-fo.8ee8a496": "2f18b7f739242c96",
     "british-airways.jobs.fo-medical-fo.470f96ba": "7ee556dffd34f970",
     "british-airways.jobs.fo-right-to-work-fo.225ec556": "f9aa5a8c2f0c1be4",
+    "british-airways.jobs.fo-type-rating-fo.35cd0729": "8fbb2aae4e81a26b",
     "british-airways.profile.founded.5304d8ef": "565f3bd0069d1d93",
     "british-airways.scale.pilots.c3b596b8": "5602a53a577eefbe"
    },
-   "revision": 1,
-   "sha": "sha256:ce7661994935aa4c"
+   "revision": 5,
+   "sha": "sha256:7173dfda294a602d"
   },
   "pvr-20261029-cg-china-airlines": {
    "records": {
@@ -541787,14 +558944,23 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "china-eastern.destinations.operated-airport.7cac39d6": "5f8917162af0b2ab",
     "china-eastern.destinations.operated-airport.b6b1a81e": "3cef46d95164112b",
     "china-eastern.destinations.operated-airport.b876fa76": "0d8bb020ac3063af",
+    "china-eastern.jobs.cap-age-cap.07cc24f1": "9158e6583385f7cc",
+    "china-eastern.jobs.cap-english-cap.e828b953": "13564081fffbf3e7",
+    "china-eastern.jobs.cap-license-cap.ea8996ff": "a5976b5600b293a2",
+    "china-eastern.jobs.cap-medical-cap.6ac4ec28": "f50d49a02d8535c9",
+    "china-eastern.jobs.cap-pic-hours-cap.21868517": "5588f0230c86e792",
+    "china-eastern.jobs.cap-pic-hours-cap.f9505d6c": "5af784d21475b4a5",
+    "china-eastern.jobs.cap-right-to-work-cap.7244c859": "ad94064818439c62",
+    "china-eastern.jobs.cap-total-hours-cap.494801fd": "e69a6bf209992270",
+    "china-eastern.jobs.cap-type-rating-cap.c72cd354": "57e9d36f147cd509",
     "china-eastern.profile.founded.6955179c": "f7ab981aa5e27621",
     "china-eastern.profile.headquarters-city.96291f7a": "e3a0c93b9df08f85",
     "china-eastern.profile.headquarters-country.084a074f": "fc5ba74d7c441c0b",
     "china-eastern.scale.pilots.d059e3d9": "2bb46345dc4cf4ce",
     "china-eastern.work.roster-pattern-cap.df43f849": "e0cb952ec82cc2a9"
    },
-   "revision": 4,
-   "sha": "sha256:eb11d47a51b0ebd8"
+   "revision": 5,
+   "sha": "sha256:19f7fa79c3cc0f7e"
   },
   "pvr-20261029-cg-china-southern": {
    "records": {
@@ -542118,6 +559284,10 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-eagle-jet": {
    "records": {
+    "eagle-jet.jobs.fo-license-fo.1e2c9dd5": "7dd701b56e1675e2",
+    "eagle-jet.jobs.fo-right-to-work-fo.bc98c353": "98ed2134e9237f3f",
+    "eagle-jet.jobs.fo-total-hours-fo.7c6ccf75": "072d1663a8c6bc27",
+    "eagle-jet.jobs.fo-type-rating-fo.3b6496f5": "26bb3a1831891caa",
     "eagle-jet.living.rent-1bed.630ff7e2": "6657eae6b009d1ea",
     "eagle-jet.living.rent-2bed.8b51910a": "cc1c0a81ef294b31",
     "eagle-jet.living.rent-3bed.bdc07cc0": "25c953acb2d6e4b9",
@@ -542125,8 +559295,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "eagle-jet.profile.headquarters-city.87bd81b8": "e7e8767436831d7b",
     "eagle-jet.profile.headquarters-country.879df810": "85d5c8b8929954c9"
    },
-   "revision": 2,
-   "sha": "sha256:2f16bc9b7be4e499"
+   "revision": 5,
+   "sha": "sha256:13f6671f23e7ec74"
   },
   "pvr-20261029-cg-easyjet": {
    "records": {
@@ -542301,16 +559471,20 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "emirates.jobs.cap-english-cap.792ffd37": "47e951b82c93a1ef",
     "emirates.jobs.cap-license-cap.3737e2c5": "f82c24b69ce430e5",
     "emirates.jobs.cap-medical-cap.d0b33abc": "c5e3b3fa60ef62fc",
+    "emirates.jobs.cap-pic-hours-cap.39cfa6f9": "0d68031e41d2e523",
+    "emirates.jobs.cap-pic-hours-cap.6cc9d400": "ceaa7a1212c0ceb0",
     "emirates.jobs.cap-total-hours-cap.f630ac1f": "0383d322468104e0",
+    "emirates.jobs.cap-type-rating-cap.68a50a0a": "9ef6d66e310415e8",
     "emirates.jobs.fo-english-fo.bd142b73": "53337e30a2349e73",
     "emirates.jobs.fo-license-fo.ab382bda": "c9dd7a2945b94922",
     "emirates.jobs.fo-medical-fo.a344ce83": "3182032480ad3f8c",
     "emirates.jobs.fo-total-hours-fo.cea51db3": "4481d5fa91dc2e25",
+    "emirates.jobs.fo-type-rating-fo.105c35b6": "f6d1365d62a549a7",
     "emirates.profile.founded.a62e7cc1": "fc16f236d6c56edc",
     "emirates.scale.pilots.feca7a26": "ef62a7b4d602b648"
    },
-   "revision": 1,
-   "sha": "sha256:af15263a4901af3e"
+   "revision": 5,
+   "sha": "sha256:c435e5f00eca6b74"
   },
   "pvr-20261029-cg-ethiopian-airlines": {
    "records": {
@@ -542338,10 +559512,37 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "eurowings.destinations.operated-airport.75557777": "a88f36bb7315687f",
     "eurowings.destinations.operated-airport.b0cecaeb": "4c70f02bc65c8030",
     "eurowings.destinations.operated-airport.ea736164": "59d6f5c6bf14bfdc",
+    "eurowings.jobs.fo-english-fo.a4dd8f7e": "75bbb2f82e1b8424",
+    "eurowings.jobs.fo-license-fo.19156c8f": "4996ac31c2e2e62b",
+    "eurowings.jobs.fo-license-fo.4f1642f9": "bb1c99af2036f5b0",
+    "eurowings.jobs.fo-medical-fo.56f8dc58": "de9fb15b134d9f5a",
+    "eurowings.jobs.fo-right-to-work-fo.13e4bc12": "f279b21fd6a3505a",
+    "eurowings.jobs.fo-right-to-work-fo.326f482e": "4204f10dfeb9ccc3",
+    "eurowings.jobs.fo-type-rating-fo.1d328a15": "5603d300e3925744",
     "eurowings.profile.founded.8e12e67b": "3e331ce2ad0281be"
    },
-   "revision": 2,
-   "sha": "sha256:ff1a67db44b55bf2"
+   "revision": 5,
+   "sha": "sha256:67f667bdae88d0d2"
+  },
+  "pvr-20261029-cg-fda": {
+   "records": {
+    "fda.jobs.cap-english-cap.f1577174": "488fd7ebe75cfaa2",
+    "fda.jobs.cap-license-cap.b860b000": "c53f59650b903ea8",
+    "fda.jobs.cap-medical-cap.634b031a": "474237a715f90c68",
+    "fda.jobs.fo-english-fo.36380f39": "917eed151f7610bd",
+    "fda.jobs.fo-license-fo.5b83bca6": "58896dbeaa254347",
+    "fda.jobs.fo-medical-fo.a4797d84": "ed05a48947d777a7",
+    "fda.living.rent-1bed.05285696": "b191a669f2bc6703",
+    "fda.living.rent-1bed.7d037108": "8978679f02fa9f89",
+    "fda.living.rent-2bed.c66f6d4a": "7aef1858ca9dbbf6",
+    "fda.living.rent-2bed.eb6676ad": "ed69d8657744035b",
+    "fda.living.rent-3bed.3d5a2dea": "99a2683728a52c31",
+    "fda.living.rent-3bed.56490160": "5f028d052a71777b",
+    "fda.living.rent-studio.62b21aeb": "e16dfb8da2b5cf90",
+    "fda.living.rent-studio.cfc434ec": "12ced13d8441b302"
+   },
+   "revision": 6,
+   "sha": "sha256:5020233a55b8bfca"
   },
   "pvr-20261029-cg-fiji-airways": {
    "records": {
@@ -542360,12 +559561,24 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "fiji-airways.fleet.airbus-a350-900.3b6ba59f": "20017373c473acc1",
     "fiji-airways.fleet.boeing-737-800-ng.a408f368": "443784b61ea248b6",
     "fiji-airways.fleet.boeing-737-max-8.80f337c3": "4ebe92f634367ae8",
+    "fiji-airways.jobs.cap-english-cap.c7098499": "f3956bec1c106ced",
+    "fiji-airways.jobs.cap-license-cap.e876ec4e": "81b891d8ff2e28f5",
+    "fiji-airways.jobs.cap-medical-cap.7263cfcc": "f8ec34ad7ae68e9c",
+    "fiji-airways.jobs.cap-pic-hours-cap.15293e1c": "14b13026e9287c3c",
+    "fiji-airways.jobs.cap-pic-hours-cap.a318dc60": "4f1be4099b45b947",
+    "fiji-airways.jobs.cap-pic-hours-cap.c95efd0d": "9f85c7f9e26a5a64",
+    "fiji-airways.jobs.cap-pic-hours-cap.f2f4ca2a": "b1888586f30a2ce2",
+    "fiji-airways.jobs.cap-total-hours-cap.58046d7b": "7e1ca18e7e591791",
+    "fiji-airways.jobs.cap-type-rating-cap.192bf70d": "a8cc231102b06b21",
+    "fiji-airways.jobs.fo-license-fo.b461e218": "7abb416fa4589f15",
+    "fiji-airways.jobs.fo-medical-fo.8f4950ae": "31b31dc44196521b",
+    "fiji-airways.jobs.fo-type-rating-fo.586338ec": "842cdb552834b59e",
     "fiji-airways.profile.founded.5064e47a": "edee699b6c18dd99",
     "fiji-airways.profile.headquarters-city.66040943": "94112f14e54a75f4",
     "fiji-airways.profile.headquarters-country.31273e9d": "65a7663c0a69f3d0"
    },
-   "revision": 4,
-   "sha": "sha256:e83c6e8a9f75c29e"
+   "revision": 5,
+   "sha": "sha256:b1e72ffba1afccfd"
   },
   "pvr-20261029-cg-finnair": {
    "records": {
@@ -542559,10 +559772,16 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "hac.destinations.operated-airport.abbac6e8": "af644ac9f6273474",
     "hac.destinations.operated-airport.d6c71cbd": "8fedbb810ef8d68e",
     "hac.destinations.operated-airport.fd07886b": "e155eececf035bbf",
+    "hac.jobs.fo-license-fo.4be6d3de": "2fd68714283f96d9",
+    "hac.jobs.fo-medical-fo.992958b1": "bcbe1ea0ed3ae123",
+    "hac.living.rent-1bed.4c63ac22": "0b78dd0520ddf413",
+    "hac.living.rent-2bed.a120cb37": "e64eaf3d9ea4e4f9",
+    "hac.living.rent-3bed.ff36c91f": "f148cdde6e1f2c99",
+    "hac.living.rent-studio.c2c87b6e": "22a3d3ff549fd7f7",
     "hac.work.annual-days-off-fo.b0e87806": "98b328bf7cc67fd4"
    },
-   "revision": 4,
-   "sha": "sha256:d18e39e12fb41d48"
+   "revision": 6,
+   "sha": "sha256:2bde8c2f5c81e91c"
   },
   "pvr-20261029-cg-hainan-airlines": {
    "records": {
@@ -542679,6 +559898,15 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "revision": 4,
    "sha": "sha256:d3144520839ed985"
   },
+  "pvr-20261029-cg-ibex": {
+   "records": {
+    "ibex.jobs.fo-english-fo.f4436cbe": "b04dacd869058cba",
+    "ibex.jobs.fo-license-fo.b1e98487": "d287fa878f07f807",
+    "ibex.jobs.fo-medical-fo.631f9fb3": "dfdcc1a2cac64b4a"
+   },
+   "revision": 5,
+   "sha": "sha256:bc4867e7e40bfe44"
+  },
   "pvr-20261029-cg-icelandair": {
    "records": {
     "icelandair.benefits.pension.58ceda90": "7ef94cc736dd4adf",
@@ -542718,12 +559946,23 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "indigo.fleet.a320-neo.85e45107": "7eee3adaecdc04b6",
     "indigo.fleet.a321-freighter.82311961": "19b3a29b69ec8949",
     "indigo.fleet.a321xlr.527f6029": "bb94287a301c8f84",
+    "indigo.jobs.cap-age-cap.a4fa0b37": "30198cb9fa7b45ef",
+    "indigo.jobs.cap-license-cap.3145a3df": "b9da6d7e1b4f43e4",
+    "indigo.jobs.cap-medical-cap.a0fb64be": "231d7d12afcbcdfd",
+    "indigo.jobs.cap-pic-hours-cap.2eb5d07b": "1d4e436c1612cc5b",
+    "indigo.jobs.cap-pic-hours-cap.71e87eeb": "00d3b1a2f7e0480b",
+    "indigo.jobs.cap-right-to-work-cap.06453132": "c1bfc84e60fbd6b7",
+    "indigo.jobs.cap-right-to-work-cap.c019584c": "f984a96505f83b9b",
+    "indigo.jobs.cap-total-hours-cap.8c7413ba": "8a2faaaee10365ab",
+    "indigo.jobs.cap-type-rating-cap.3ba27625": "19a59cfaa997459a",
+    "indigo.living.rent-2bed.dc8b7a87": "98843d4063a1c37a",
+    "indigo.living.rent-3bed.79f4502f": "a86f37a0cf5d694b",
     "indigo.profile.founded.5290e7d4": "4df6377ddbe1a5ae",
     "indigo.profile.headquarters-city.2bccea62": "55a96241bb581191",
     "indigo.profile.headquarters-country.9930fca4": "84c5c5cab5606e30"
    },
-   "revision": 4,
-   "sha": "sha256:d613c7e3643afb02"
+   "revision": 6,
+   "sha": "sha256:0a50c0f48f0dc77e"
   },
   "pvr-20261029-cg-ita-airways": {
    "records": {
@@ -542780,11 +560019,17 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "j-air.destinations.operated-airport.ea85ea51": "732e98f660a2f8ae",
     "j-air.destinations.operated-airport.f9f19f67": "7908442b5850cd93",
     "j-air.destinations.operated-airport.fcd2aa3a": "b2d66d656de63699",
+    "j-air.jobs.fo-license-fo.73e82934": "77805021b3c9ad96",
+    "j-air.jobs.fo-medical-fo.0698e7ba": "22039a039ddef1c4",
+    "j-air.living.rent-1bed.a6be14a1": "62be1e0fa755ad2b",
+    "j-air.living.rent-2bed.8a7f62fb": "02c2dc537337d6ca",
+    "j-air.living.rent-3bed.773c39f5": "017aca3c8defc5fa",
+    "j-air.living.rent-studio.dc75b812": "526724e71590d27c",
     "j-air.work.annual-days-off.c5a47a73": "4694df97df15f46c",
     "j-air.work.roster-pattern-fo.d4bc4c3e": "0cec5227cec9b243"
    },
-   "revision": 4,
-   "sha": "sha256:4552575902c5569d"
+   "revision": 6,
+   "sha": "sha256:4dd335872fd07b53"
   },
   "pvr-20261029-cg-jac": {
    "records": {
@@ -542974,12 +560219,17 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-jetstar-japan": {
    "records": {
+    "jetstar-japan.jobs.cap-pic-hours-cap.c23ac77a": "7dd09705cc308bbe",
+    "jetstar-japan.jobs.cap-total-hours-cap.e1c7ce25": "fe7e071c01bcdc26",
+    "jetstar-japan.jobs.cap-type-rating-cap.2a2d2226": "d45c0998d1cf181b",
     "jetstar-japan.jobs.fo-english-fo.7bbf9e7e": "9f904ed9771be825",
     "jetstar-japan.jobs.fo-license-fo.3a6ffdaa": "78c0a3a04424a4db",
-    "jetstar-japan.jobs.fo-medical-fo.86635223": "5939b3a222bc236a"
+    "jetstar-japan.jobs.fo-medical-fo.86635223": "5939b3a222bc236a",
+    "jetstar-japan.jobs.fo-total-hours-fo.351bccf7": "1cc55614fd215715",
+    "jetstar-japan.jobs.fo-type-rating-fo.a2b6c622": "fce04da64ff86829"
    },
-   "revision": 1,
-   "sha": "sha256:a9452a7aa998a86f"
+   "revision": 5,
+   "sha": "sha256:32c0c1d0940a2775"
   },
   "pvr-20261029-cg-jta": {
    "records": {
@@ -542995,13 +560245,18 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "jta.destinations.operated-airport.b9ec0845": "92b75a1e33e37a8d",
     "jta.destinations.operated-airport.c0045d56": "40de82049e0eb6fb",
     "jta.destinations.operated-airport.d345b3e2": "c4f9373bf1913875",
+    "jta.jobs.cap-english-cap.13cb5276": "44e8ba879aad0edc",
     "jta.jobs.cap-license-cap.f25c9017": "7796ea3b8407a579",
     "jta.jobs.cap-medical-cap.3eaa296e": "b7d33388398afef6",
     "jta.jobs.cap-pic-hours-cap.f7e95218": "18aac3d6199be443",
-    "jta.jobs.cap-type-rating-cap.82486710": "d8c3d75e8b69c939"
+    "jta.jobs.cap-type-rating-cap.82486710": "d8c3d75e8b69c939",
+    "jta.living.rent-1bed.4ef934ac": "67602c4c7ded7ef0",
+    "jta.living.rent-2bed.9e287f82": "71aff9778740a9d1",
+    "jta.living.rent-3bed.de226c52": "75d9fd12a1824830",
+    "jta.living.rent-studio.b7a19de0": "8833071991d8ff18"
    },
-   "revision": 1,
-   "sha": "sha256:7d87da3daafe51c8"
+   "revision": 6,
+   "sha": "sha256:f1bef086314fd3ed"
   },
   "pvr-20261029-cg-kenya-airways": {
    "records": {
@@ -543010,10 +560265,19 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "kenya-airways.benefits.pension.d67f6b7e": "0aecbc04cbe799ba",
     "kenya-airways.destinations.operated-airport.5f66f093": "c44c2d5f77e48f23",
     "kenya-airways.destinations.operated-airport.ae27941c": "d914b41bc1bbf1bf",
+    "kenya-airways.jobs.fo-age-fo.49a91863": "d2d07b76b05ac3ee",
+    "kenya-airways.jobs.fo-age-fo.83d2b7cb": "7d035883475e9174",
+    "kenya-airways.jobs.fo-english-fo.e0b91138": "958d20b1933061c9",
+    "kenya-airways.jobs.fo-license-fo.098d3b68": "7220e153d9b42a63",
+    "kenya-airways.jobs.fo-license-fo.d5b399b5": "c622b74e051a0be8",
+    "kenya-airways.jobs.fo-medical-fo.2396ef0b": "4317df2d7198daac",
+    "kenya-airways.jobs.fo-right-to-work-fo.74a09b7c": "8a50b20d6fbff20d",
+    "kenya-airways.jobs.fo-total-hours-fo.34646095": "6eb53c0410e2fc9b",
+    "kenya-airways.jobs.fo-total-hours-fo.662aa5f6": "3b058c3be67a0cd3",
     "kenya-airways.profile.founded.c8e18316": "477b3068a8cbb0b5"
    },
-   "revision": 4,
-   "sha": "sha256:f0fd0144cfe27d3c"
+   "revision": 5,
+   "sha": "sha256:adcefe5f4e1a0c38"
   },
   "pvr-20261029-cg-klm": {
    "records": {
@@ -543074,14 +560338,24 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "korean-air.destinations.operated-airport.dea4d132": "cf0a21e9fee3673e",
     "korean-air.destinations.operated-airport.e433a532": "f1707d633719eb4f",
     "korean-air.destinations.operated-airport.fc63e1ae": "3872b7d1c8870f00",
+    "korean-air.jobs.cap-age-cap.0fe6036d": "fb5d34b00770ba17",
+    "korean-air.jobs.cap-english-cap.bf0eadcf": "1ebd56b62464d4fb",
+    "korean-air.jobs.cap-pic-hours-cap.21fed949": "f9823899eee14eb9",
+    "korean-air.jobs.cap-pic-hours-cap.31bb59f6": "1e7d5613f6056356",
+    "korean-air.jobs.cap-pic-hours-cap.dbaa9055": "e27da04af1c63c32",
+    "korean-air.jobs.cap-total-hours-cap.fc1e92c5": "db5ab2e7dc97c212",
+    "korean-air.jobs.cap-type-rating-cap.297d7058": "bf2714d3176fa09d",
+    "korean-air.living.rent-1bed.6766bf93": "edabd4ac850bf290",
     "korean-air.living.rent-1bed.a1d629d6": "b95572c2eb161300",
+    "korean-air.living.rent-2bed.f2026390": "7b5fbdae95ce8361",
     "korean-air.living.rent-2bed.f740ca87": "93fa04229b7417cf",
     "korean-air.living.rent-3bed.c90e3693": "4be5a7184dbe16e8",
+    "korean-air.living.rent-3bed.d49b9077": "e8b7e8e790dcc785",
     "korean-air.profile.founded.ac4597fc": "a4dee88590e5f1f7",
     "korean-air.work.sick-leave.574d856a": "63a684c7fb4f25d8"
    },
-   "revision": 4,
-   "sha": "sha256:ef244f40f8b2f4dc"
+   "revision": 6,
+   "sha": "sha256:e77fbf546ee0dc7c"
   },
   "pvr-20261029-cg-kuwait-airways": {
    "records": {
@@ -543155,6 +560429,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "latam.fleet.boeing-777-300er.6cce58f7": "e2a9edd6ba8451bf",
     "latam.fleet.boeing-787-8.248f689d": "f63e4c8fb3a0d402",
     "latam.fleet.boeing-787-9.551d6fb7": "36c3e7e5c9714505",
+    "latam.jobs.fo-english-fo.dc8edac6": "3908cb4535c51e7d",
+    "latam.jobs.fo-license-fo.d416d439": "cc89440acd7c0366",
+    "latam.jobs.fo-medical-fo.3f8ce407": "ec68dda22a2ae07a",
+    "latam.jobs.fo-right-to-work-fo.4fd1f1da": "c60b70ebbd56cbf3",
+    "latam.jobs.fo-total-hours-fo.7a4ce9e9": "b919e630652e35be",
+    "latam.jobs.fo-type-rating-fo.0b85df57": "c841b57dc9443e61",
+    "latam.jobs.fo-type-rating-fo.3712fe53": "68b6e3464385c714",
     "latam.profile.founded.522c03ab": "5d23cb01389e4bbf",
     "latam.profile.headquarters-city.14757808": "589bb9cdd5344efe",
     "latam.profile.headquarters-country.52635e06": "4e373adf6e33eb1e",
@@ -543170,8 +560451,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "latam.work.working-time.bba23c94": "b93f91172ed55685",
     "latam.work.working-time.d81760a6": "1b58875396aab022"
    },
-   "revision": 4,
-   "sha": "sha256:2f250cb340d4f06c"
+   "revision": 5,
+   "sha": "sha256:8c4de07c67c2f7f0"
   },
   "pvr-20261029-cg-lot": {
    "records": {
@@ -543289,11 +560570,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "oman-air.benefits.staff-travel.7d00230d": "805ffc62cbaee848",
     "oman-air.destinations.operated-airport.134c6cff": "d36034c8eb12e521",
     "oman-air.destinations.operated-airport.b1e4d593": "7d412e239511c6b7",
+    "oman-air.living.rent-2bed.e0dde5ab": "a6fe50147e1aeba9",
     "oman-air.profile.founded.baebabd9": "7d4dbdace86164f2",
     "oman-air.scale.fleet-total.b47d46a0": "63a9823acc775c1a"
    },
-   "revision": 3,
-   "sha": "sha256:f1291f634c3f65c4"
+   "revision": 6,
+   "sha": "sha256:2f1b1f74a975cadc"
   },
   "pvr-20261029-cg-orc": {
    "records": {
@@ -543309,12 +560591,22 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "orc.destinations.operated-airport.9077f4e0": "48215aaa1bbbfde1",
     "orc.destinations.operated-airport.f03dea2b": "86064768167207c2",
     "orc.destinations.operated-airport.faea3281": "b5903cc566bc0def",
+    "orc.jobs.cap-license-cap.7305f850": "152b9ec5abe465d8",
+    "orc.jobs.cap-medical-cap.789650a8": "7c71448bbe4f1017",
+    "orc.jobs.cap-type-rating-cap.5bb31505": "4efc80a138f2b37e",
+    "orc.living.rent-1bed.43eb8670": "2036c5f2c6e4a742",
+    "orc.living.rent-1bed.514d09f5": "9a483a955c217f8b",
+    "orc.living.rent-2bed.74aa8ff6": "f5e53e87ab7c77f4",
+    "orc.living.rent-2bed.b97f2e12": "d37c5af95fd3962b",
+    "orc.living.rent-3bed.3371ad45": "e5fce750ac815d41",
+    "orc.living.rent-studio.e39aef58": "bdf8abbd5b0198db",
+    "orc.living.rent-studio.f0ddcea8": "5dcd84cf9586cb61",
     "orc.work.annual-days-off-cap.30d6839a": "e3254ada9e34d8a7",
     "orc.work.days-off-cap.7ac9cec5": "1613a7d3cd834bfa",
     "orc.work.days-off-cap.d1a040f1": "07d5bb55fd6bfd4b"
    },
-   "revision": 4,
-   "sha": "sha256:86908d550b86efc8"
+   "revision": 6,
+   "sha": "sha256:2988fb9372285e5d"
   },
   "pvr-20261029-cg-peach": {
    "records": {
@@ -543339,15 +560631,19 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "peach.destinations.operated-airport.e310bcfe": "7d4f3af1b0516762",
     "peach.destinations.operated-airport.ee096485": "8cd37ec343a487ee",
     "peach.destinations.operated-airport.ef0c6392": "03d2f200ac1ccfc9",
+    "peach.jobs.cap-age-cap.4aeea870": "b058342a5b78ddb0",
+    "peach.jobs.cap-age-cap.eac96e08": "98bc2dfe1a67d20d",
     "peach.jobs.cap-english-cap.08906212": "4f9fe857d3921581",
     "peach.jobs.cap-license-cap.b137496d": "67425d9045a9e0ab",
     "peach.jobs.cap-medical-cap.e9d9188f": "75374de2e6308e73",
     "peach.jobs.cap-pic-hours-cap.c7f9f819": "f8a93e49a050282e",
     "peach.jobs.cap-pic-hours-cap.c955d8be": "436eb7056d46660f",
-    "peach.jobs.cap-total-hours-cap.47291f89": "dbcbea47d1d8e81c"
+    "peach.jobs.cap-total-hours-cap.47291f89": "dbcbea47d1d8e81c",
+    "peach.jobs.cap-type-rating-cap.af938c29": "4981a815d65ae61b",
+    "peach.jobs.cap-type-rating-cap.dfd201bf": "f920edaffc82b2c1"
    },
-   "revision": 1,
-   "sha": "sha256:0e7b3b992ec2dd41"
+   "revision": 5,
+   "sha": "sha256:fb4ddc254fc4f795"
   },
   "pvr-20261029-cg-philippine-airlines": {
    "records": {
@@ -543436,10 +560732,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "qatar-airways.destinations.operated-airport.b772435a": "cfe5b049dc795698",
     "qatar-airways.destinations.operated-airport.c5863934": "1fb2999a450cc5d1",
     "qatar-airways.destinations.operated-airport.e077bade": "df5841ed7c602daf",
+    "qatar-airways.living.rent-1bed.f6e255af": "96220798d3947b84",
+    "qatar-airways.living.rent-2bed.3709899b": "a35bafceb8b37a72",
+    "qatar-airways.living.rent-3bed.0b2b353b": "c94139445ca9bff0",
     "qatar-airways.profile.founded.2ddbc26b": "3d69c2e4b7c0edf1"
    },
-   "revision": 4,
-   "sha": "sha256:d22465d9fdd9b949"
+   "revision": 6,
+   "sha": "sha256:553fb9cd9e588e81"
   },
   "pvr-20261029-cg-rac": {
    "records": {
@@ -543477,11 +560776,26 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-root-aviation": {
    "records": {
+    "root-aviation.jobs.cap-age-cap.c83a85a4": "2584afd2614ee70b",
+    "root-aviation.jobs.cap-english-cap.5eeb3726": "16653b64b2dab5a5",
+    "root-aviation.jobs.cap-license-cap.5124bbeb": "bfe9268912756dbc",
+    "root-aviation.jobs.cap-medical-cap.378b4e5b": "c8edce76d5d48422",
+    "root-aviation.jobs.cap-pic-hours-cap.2d32e3c6": "27cf60646e0997ee",
+    "root-aviation.jobs.cap-pic-hours-cap.2ea9e135": "3f44bd44f14ccb47",
+    "root-aviation.jobs.cap-posting-cap.965a573d": "71a01bd73f6fbd4f",
+    "root-aviation.jobs.cap-total-hours-cap.ebd57df4": "e8876e77f525e560",
+    "root-aviation.jobs.cap-type-rating-cap.e5bfccab": "28ccc69eb001fb4e",
+    "root-aviation.jobs.fo-english-fo.dc86d262": "9280458612c4f180",
+    "root-aviation.jobs.fo-license-fo.0a04d291": "130e2aaa62d56324",
+    "root-aviation.jobs.fo-license-fo.2fb4cfc3": "16696ec7b1a8ac2d",
+    "root-aviation.jobs.fo-right-to-work-fo.5fb14829": "899a815b795cd8b2",
+    "root-aviation.jobs.fo-total-hours-fo.7e620006": "b2aeae45ea5d595e",
+    "root-aviation.jobs.fo-type-rating-fo.35c9c691": "81e9b8a9956dfe14",
     "root-aviation.profile.headquarters-city.94e27015": "41bd0f9871be6bc1",
     "root-aviation.profile.headquarters-country.8df167c3": "462b9ef1dc2a1258"
    },
-   "revision": 1,
-   "sha": "sha256:e4c71e64d79ca493"
+   "revision": 5,
+   "sha": "sha256:8346444c58034288"
   },
   "pvr-20261029-cg-royal-brunei": {
    "records": {
@@ -543751,6 +561065,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "sas.destinations.operated-airport.f3ffe078": "504eafde778dbf28",
     "sas.destinations.operated-airport.f87c1451": "028022d2ddda446f",
     "sas.destinations.operated-airport.fa53cc72": "b46c9833e60a154e",
+    "sas.jobs.cap-pic-hours-cap.b24829e1": "193d04d2da9aa17d",
+    "sas.jobs.cap-total-hours-cap.262f4fb4": "eacfea2f0bde8b73",
     "sas.jobs.fo-english-fo.91618eca": "c65d8331cdc535d0",
     "sas.jobs.fo-english-fo.ad45a900": "33b8ab60dc4afa4b",
     "sas.jobs.fo-license-fo.5fd68f1c": "8a195781bef119bf",
@@ -543761,8 +561077,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "sas.profile.headquarters-city.bade2b8d": "7c16d67bcb2ac0b3",
     "sas.profile.headquarters-country.8c54b603": "b052bb143e0b5cfe"
    },
-   "revision": 1,
-   "sha": "sha256:0bb88122d29c7cc9"
+   "revision": 5,
+   "sha": "sha256:2393c81ec7db5234"
   },
   "pvr-20261029-cg-saudia": {
    "records": {
@@ -543870,12 +561186,26 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "scoot.destinations.operated-airport.f86e5b17": "1d4bb1278663a108",
     "scoot.destinations.operated-airport.fef2d3a4": "770874a4c58c136b",
     "scoot.destinations.operated-airport.ff1136a9": "4cfcc805d2c40038",
+    "scoot.jobs.cap-english-cap.69e68d2e": "54f9a845c389f968",
+    "scoot.jobs.cap-english-cap.cef2cd8d": "6244a552fa75f69e",
+    "scoot.jobs.cap-license-cap.7c7baf7b": "0ba1bf7792654845",
+    "scoot.jobs.cap-license-cap.c51c13f3": "40fa0666563c6159",
+    "scoot.jobs.cap-pic-hours-cap.13b12394": "effe1bb7e6ed004e",
+    "scoot.jobs.cap-pic-hours-cap.f4f83243": "dccb5d98e14b4b7b",
+    "scoot.jobs.cap-total-hours-cap.a898e1b6": "57ec9a2db0807cff",
+    "scoot.jobs.cap-total-hours-cap.f70ab370": "cdd93796c335e620",
+    "scoot.jobs.cap-type-rating-cap.7dcec052": "5e3c4e0696e77198",
+    "scoot.jobs.cap-type-rating-cap.d92e6ecc": "007dad4650f0a507",
+    "scoot.jobs.fo-english-fo.ce30bc11": "6418fac72c34eea0",
+    "scoot.jobs.fo-license-fo.054b192e": "6ea826e993ea10e8",
+    "scoot.jobs.fo-license-fo.5f09b205": "0f0984c633d25441",
+    "scoot.jobs.fo-total-hours-fo.d0f6cb1d": "371e0468816a2f61",
     "scoot.profile.founded.6725db36": "f029d0861a2bb56c",
     "scoot.profile.headquarters-city.6e0d3e7c": "9ef76a2b119f1a1e",
     "scoot.profile.headquarters-country.55af8154": "88da1ea2971e09ad"
    },
-   "revision": 4,
-   "sha": "sha256:feba0a3dd7a58f0e"
+   "revision": 5,
+   "sha": "sha256:30fc6c0af04d9598"
   },
   "pvr-20261029-cg-singapore-airlines": {
    "records": {
@@ -543907,10 +561237,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "skymark.jobs.cap-license-cap.53f5fa44": "4ae78760e3cc3e80",
     "skymark.jobs.cap-medical-cap.a7cf7fd1": "8fdfdbd60e8314ae",
-    "skymark.jobs.cap-pic-hours-cap.4c387bf5": "7d869eeb7e5705fc"
+    "skymark.jobs.cap-pic-hours-cap.4c387bf5": "7d869eeb7e5705fc",
+    "skymark.jobs.fo-english-fo.62144438": "e91721a7f4bad363",
+    "skymark.jobs.fo-english-fo.94f38d13": "173f5ed0610d500c",
+    "skymark.jobs.fo-total-hours-fo.02a03e41": "4133e412f3ed1b69"
    },
-   "revision": 1,
-   "sha": "sha256:e0e3ffd04112e1eb"
+   "revision": 5,
+   "sha": "sha256:59f07e429f5b078f"
   },
   "pvr-20261029-cg-solairus": {
    "records": {
@@ -544121,10 +561454,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "starflyer.jobs.cap-license-cap.6436fa8f": "3970ed1ab01a46f0",
     "starflyer.jobs.cap-medical-cap.57ccb3d1": "d33d1a9c921f9a95",
     "starflyer.jobs.cap-pic-hours-cap.ad792f5c": "32662ab9212b53c6",
-    "starflyer.jobs.cap-type-rating-cap.fbd03428": "206828041b39e555"
+    "starflyer.jobs.cap-type-rating-cap.fbd03428": "206828041b39e555",
+    "starflyer.jobs.fo-age-fo.9a02086c": "0d304bafe536d1ba"
    },
-   "revision": 1,
-   "sha": "sha256:9536ade64d92f0e8"
+   "revision": 5,
+   "sha": "sha256:cfcd534bebf29f57"
   },
   "pvr-20261029-cg-starlux": {
    "records": {
@@ -544192,14 +561526,23 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "swiss.fleet.a330-300.8305f710": "212f7d30746d85ed",
     "swiss.fleet.a340-300.8dd8cdc6": "8562509913414bea",
     "swiss.fleet.a350-900.4e6b9af5": "06e3effd771f1ade",
+    "swiss.jobs.fo-age-fo.445548ee": "5a4d1300daf6dd4a",
+    "swiss.jobs.fo-english-fo.73717c10": "7f04f3f8c8cc27c0",
+    "swiss.jobs.fo-license-fo.27576f40": "19cc0ee2fe71d67f",
+    "swiss.jobs.fo-license-fo.2c062ac3": "a6f71ceb8b7b980f",
+    "swiss.jobs.fo-license-fo.30b6fc95": "e23b6d10ac8a9ae2",
+    "swiss.jobs.fo-medical-fo.e45a7c55": "50ab6c243baae59c",
+    "swiss.jobs.fo-right-to-work-fo.1c7fd8b4": "0103bea8c16425b4",
+    "swiss.jobs.fo-right-to-work-fo.3e61b0b9": "ec99b6e4e1e9bfbf",
+    "swiss.jobs.fo-right-to-work-fo.b0e9f781": "8b3890ba2d1e7d67",
     "swiss.jobs.fo-type-rating-fo.2829aa2a": "04a9fcf8db1aacb8",
     "swiss.profile.founded.7966e7de": "5410f3c5040a5020",
     "swiss.profile.headquarters-city.b371fb4a": "adf2c4a3865e60e3",
     "swiss.profile.headquarters-country.8a9061ad": "a8f885c5a24cf673",
     "swiss.scale.fleet-total.da94a795": "e849a8e110ea0306"
    },
-   "revision": 1,
-   "sha": "sha256:5dd3ab989d188993"
+   "revision": 5,
+   "sha": "sha256:d3a99de4f205eff9"
   },
   "pvr-20261029-cg-tap": {
    "records": {
@@ -544215,6 +561558,10 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "tap.destinations.operated-airport.9e03e01f": "2800d1f136ee0eee",
     "tap.destinations.operated-airport.a0c6ea7a": "31ae63ef73344bf4",
     "tap.destinations.operated-airport.da3ab0d5": "92b754a1b965334a",
+    "tap.jobs.fo-english-fo.70de37e6": "849b0bb98b8bb66a",
+    "tap.jobs.fo-license-fo.2e62f81c": "cad6f2ba63ccd191",
+    "tap.jobs.fo-medical-fo.b745c194": "f0991bfefd41aa80",
+    "tap.jobs.fo-total-hours-fo.26fdecac": "21b4319cf846cc34",
     "tap.living.rent-1bed.4302d602": "a5c0a1aa9bdc05a2",
     "tap.living.rent-2bed.da1ea930": "8380f98ac36ef5da",
     "tap.living.rent-3bed.79edd094": "1cdbd8bedb50ba41",
@@ -544222,8 +561569,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "tap.profile.headquarters-city.5bb0d1f4": "a00dbbe9a13cd3b1",
     "tap.profile.headquarters-country.a1d3e5a7": "35d684600e64af94"
    },
-   "revision": 3,
-   "sha": "sha256:d16ca3fe66736a7b"
+   "revision": 5,
+   "sha": "sha256:5370360d4ed4e1c3"
   },
   "pvr-20261029-cg-thai-airways": {
    "records": {
@@ -544234,12 +561581,16 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "thai-airways.benefits.staff-travel.d9d0d114": "d5d8a94f9118d582",
     "thai-airways.destinations.operated-airport.3227eae9": "727e62379a5f3471",
     "thai-airways.destinations.operated-airport.81072656": "38e996c3b705314f",
+    "thai-airways.living.rent-1bed.8f8de920": "4777c8cb44416919",
+    "thai-airways.living.rent-2bed.7d75b74b": "a28ab789b17e4ff2",
+    "thai-airways.living.rent-3bed.3707d298": "b61a9f13f86dd8c0",
+    "thai-airways.living.rent-studio.d5c0ddb5": "85dbf439ca346aa1",
     "thai-airways.profile.founded.695b8228": "02a03fc00da737b2",
     "thai-airways.profile.headquarters-city.d8343f7f": "9bdf9231c15137f0",
     "thai-airways.profile.headquarters-country.ffa72f9e": "98b653f0cfe985f2"
    },
-   "revision": 1,
-   "sha": "sha256:15664cc4bf0321b0"
+   "revision": 6,
+   "sha": "sha256:d6e1d523804020bd"
   },
   "pvr-20261029-cg-toho-air": {
    "records": {
@@ -544571,13 +561922,25 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "vietjet.fleet.airbus-a321ceo.e328d62b": "a41d1191af08d643",
     "vietjet.fleet.airbus-a321neo.f41bd48c": "a7f98ea5bd478d4d",
     "vietjet.fleet.airbus-a330.856c242a": "9436322b479912ed",
+    "vietjet.jobs.cap-license-cap.614c07da": "d601f790e7ddc326",
+    "vietjet.jobs.cap-license-cap.d04a2eea": "6bb29b0732643c59",
+    "vietjet.jobs.cap-medical-cap.b0dc9673": "9ee1ae6583342833",
+    "vietjet.jobs.cap-pic-hours-cap.69105729": "84345044b1aeec79",
+    "vietjet.jobs.cap-pic-hours-cap.a5280cc3": "db3e60d5280a6e16",
+    "vietjet.jobs.cap-total-hours-cap.7adef455": "71d47c735bf70fb6",
+    "vietjet.jobs.cap-type-rating-cap.1d658507": "8a62ab5212974ed7",
+    "vietjet.jobs.fo-license-fo.743b15ac": "d0268c2079182c0d",
+    "vietjet.jobs.fo-license-fo.7afe7829": "f4233b29d5a9fdbd",
+    "vietjet.jobs.fo-medical-fo.4c81d6a0": "96caf212cbf1b06a",
+    "vietjet.jobs.fo-total-hours-fo.5c66f27a": "3a78d84032f54bc8",
+    "vietjet.jobs.fo-type-rating-fo.fda15402": "f410266049010f7e",
     "vietjet.profile.founded.078ef45f": "ee51e0eb2cba847d",
     "vietjet.profile.headquarters-city.dbeaa614": "4ed66c0aeb79c676",
     "vietjet.profile.headquarters-country.aa4fffa6": "565056de34650d34",
     "vietjet.scale.fleet-total.9dfe108f": "a1de533cc52bb5d0"
    },
-   "revision": 2,
-   "sha": "sha256:fd73b8964a88960c"
+   "revision": 5,
+   "sha": "sha256:a55b0bca0cd11cd5"
   },
   "pvr-20261029-cg-vietnam-airlines": {
    "records": {
@@ -544591,12 +561954,29 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "vietnam-airlines.destinations.operated-airport.b08e6e5a": "fe6d3ff1e3555bcd",
     "vietnam-airlines.destinations.operated-airport.bc2936cc": "9a7b851de5170b6f",
     "vietnam-airlines.destinations.operated-airport.ff432855": "5e9def5d9c26e9e7",
+    "vietnam-airlines.jobs.cap-age-cap.daef4776": "8f2a8367737ffced",
+    "vietnam-airlines.jobs.cap-age-cap.f5d3b841": "e882d66bd232a17e",
+    "vietnam-airlines.jobs.cap-english-cap.b771ade3": "4d8ab93cc82d0d8a",
+    "vietnam-airlines.jobs.cap-license-cap.1f401afb": "8efb5de460a6041b",
+    "vietnam-airlines.jobs.cap-medical-cap.94d2deab": "fdfbf1d3318a848d",
+    "vietnam-airlines.jobs.cap-pic-hours-cap.1897afd9": "275fe9909c806ba0",
+    "vietnam-airlines.jobs.cap-pic-hours-cap.6606143a": "de55bff049941b08",
+    "vietnam-airlines.jobs.cap-posting-cap.45ba1426": "f23166d065319490",
+    "vietnam-airlines.jobs.cap-total-hours-cap.82fcf431": "12473e54e447134c",
+    "vietnam-airlines.jobs.cap-type-rating-cap.64f51d5c": "62543d8a5698960c",
+    "vietnam-airlines.jobs.fo-age-fo.593c5121": "aedf2a2f0c93d165",
+    "vietnam-airlines.jobs.fo-age-fo.c3c79a4f": "5946040e4c63a329",
+    "vietnam-airlines.jobs.fo-license-fo.7502d225": "2bd43fdd4826a63b",
+    "vietnam-airlines.jobs.fo-license-fo.9b9b2adc": "a8a734686d8e16ae",
+    "vietnam-airlines.jobs.fo-medical-fo.53352366": "9acca15cb737517a",
+    "vietnam-airlines.jobs.fo-total-hours-fo.7fe337c6": "a15617bd9c5e6032",
+    "vietnam-airlines.jobs.fo-type-rating-fo.1de71e02": "141b4372fc715bf3",
     "vietnam-airlines.profile.founded.c5ba88c7": "9d214b25d902dfce",
     "vietnam-airlines.profile.headquarters-city.a02fe0bf": "6f37528034448c38",
     "vietnam-airlines.profile.headquarters-country.4aeebb32": "048afbe76a1b6777"
    },
-   "revision": 3,
-   "sha": "sha256:5e5dae05db2f77fa"
+   "revision": 5,
+   "sha": "sha256:86849a996726790d"
   },
   "pvr-20261029-cg-virgin-atlantic": {
    "records": {
@@ -544617,11 +561997,16 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "virgin-atlantic.jobs.fo-english-fo.5b8f6d1d": "3efc3914ffabfe93",
     "virgin-atlantic.jobs.fo-license-fo.94099566": "ee86082c50fbe327",
     "virgin-atlantic.jobs.fo-medical-fo.f496b597": "dc031ca5cba13e19",
+    "virgin-atlantic.jobs.fo-right-to-work-fo.632afed2": "75346526910ba473",
+    "virgin-atlantic.jobs.fo-total-hours-fo.19f47022": "9a3975138bf0bcef",
+    "virgin-atlantic.jobs.fo-total-hours-fo.1a1fee4c": "d5c6e231afb78b37",
+    "virgin-atlantic.jobs.fo-total-hours-fo.b1d02c6d": "e399c3fa3f9b2d22",
+    "virgin-atlantic.jobs.fo-total-hours-fo.c1e3964a": "727f500aabd96447",
     "virgin-atlantic.jobs.fo-type-rating-fo.0da8a280": "08d303b2fd72e5ca",
     "virgin-atlantic.profile.founded.1adaebc8": "311a371e739fd214"
    },
-   "revision": 1,
-   "sha": "sha256:62150c89d6a53fff"
+   "revision": 5,
+   "sha": "sha256:07dd010ba2e7a366"
   },
   "pvr-20261029-cg-vueling": {
    "records": {
@@ -544679,13 +562064,22 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "westjet.destinations.operated-airport.f1e8c35c": "d1a3fe692f59074f",
     "westjet.destinations.operated-airport.f7a856c2": "f24471868627c133",
     "westjet.destinations.operated-airport.ffa3c686": "03a6181675b921d0",
+    "westjet.jobs.fo-english-fo.d669148f": "225c96a95bcee7cd",
+    "westjet.jobs.fo-license-fo.1955585a": "95ee70cee621b53e",
+    "westjet.jobs.fo-medical-fo.6510e212": "2f7e33bcc9e3ae31",
+    "westjet.jobs.fo-right-to-work-fo.2b5c494e": "135f5dbf8e1671fe",
+    "westjet.jobs.fo-right-to-work-fo.3c4ad00c": "ddb985096844a430",
     "westjet.jobs.fo-total-hours-fo.cdaafd4a": "f90b190dca8058cf",
+    "westjet.living.rent-3bed.6b38141f": "ebf78fd5018338af",
+    "westjet.living.rent-3bed.ef2011ea": "a0320fd7762bb588",
+    "westjet.living.rent-studio.9342b81a": "a371deab48a8af7e",
+    "westjet.living.rent-studio.a4e4a07a": "dffdce182d5810c1",
     "westjet.profile.founded.b3208603": "1f3fb6bcd5060514",
     "westjet.profile.headquarters-city.c3ff37cc": "6a6f9e59a74c39b7",
     "westjet.profile.headquarters-country.7a5a1ace": "b138f924b33c63e0"
    },
-   "revision": 1,
-   "sha": "sha256:c4b1d79a5575e5c1"
+   "revision": 6,
+   "sha": "sha256:1760b26bdca75b69"
   },
   "pvr-20261029-cg-wizz-air": {
    "records": {
@@ -544708,10 +562102,11 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "zipair.jobs.fo-license-fo.24205482": "cabca5fbccac2d23",
     "zipair.jobs.fo-license-fo.c9d6594e": "3a0beef1ad961559",
     "zipair.jobs.fo-medical-fo.c162f557": "a1bd7cd04851511c",
-    "zipair.jobs.fo-total-hours-fo.92494b3f": "c367546ee1d44e19"
+    "zipair.jobs.fo-total-hours-fo.92494b3f": "c367546ee1d44e19",
+    "zipair.jobs.fo-type-rating-fo.38f54fbd": "5ce9a87d97b8e8bc"
    },
-   "revision": 1,
-   "sha": "sha256:74a6e0541fd71d9c"
+   "revision": 5,
+   "sha": "sha256:d7896569f41f528f"
   },
   "pvr-city-rent": {
    "records": {

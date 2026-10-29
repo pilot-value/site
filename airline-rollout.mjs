@@ -336,7 +336,9 @@ export function researchCities(slug, bases, R = research(), CT = CITY, lang = 'j
     const city = Object.keys(CT).find(c => (CT[c].iata === iata || (CT[c].also || []).includes(iata)) && ((R.CITY_OF || {})[slug] || []).includes(c));
     const L = city && (R.LIVING || {})[city];
     if (!L || digest([...(L.rents || []), ...(L.commute || [])]) !== CT[city].h) continue;
-    const rents = (L.rents || []).filter(r => !why(r) && r.value && typeof r.value === 'object' && srcOf(r));
+    /* ★2026-10-29：街の字（CITY）が資料の住所（url）を持つときは、その資料の行だけ（1つの街に2つの資料が在るとき、どちらを出すかを字の表で決める ──
+       オーナーの訂正「家賃は拠点の近くで富裕層に人気の住宅地」で、街全体の相場の行の隣に地区の相場の行が入った。前の行は台帳に残る） */
+    const rents = (L.rents || []).filter(r => !why(r) && r.value && typeof r.value === 'object' && srcOf(r) && (!CT[city].url || ((r.src || [])[0] || {}).url === CT[city].url));
     /* 英語（lang 'en'）は、移動の行の字も資料の名前も英語の対（対の無い行は出さない）。街の字は C の *_en */
     const commute = (L.commute || []).filter(r => !why(r, { commute: true, bases: [iata] }) && say(r) && srcOf(r) && (lang !== 'en' || say(r, 'en')))
       .map(r => ({ r, d: say(r, lang), src: srcOf(r, lang) }));
