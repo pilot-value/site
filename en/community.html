@@ -154,7 +154,7 @@
 </script>
 <!--/PV-3P-->
 <script src="../pv-session.js?v=e4e2424c"></script>
-  <link rel="stylesheet" href="../vote.css?v=68b38609">
+  <link rel="stylesheet" href="../vote.css?v=13d6bbf5">
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../pv-tokens.css">
@@ -210,7 +210,6 @@
     <div class="flex items-center gap-3">
       <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark / light mode"></button>
       <a id="nav-auth-btn" href="login.html" class="btn-ghost" style="font-size:.82rem;padding:7px 14px">Log in</a>
-      <a href="submit-review.html" class="btn-orange py-2 px-5 text-sm">Post a review anonymously</a>
     </div>
   </div>
 </nav>
@@ -232,11 +231,10 @@
       <h2 class="vt-title" id="vt-latest-h">Latest reviews<span id="unlock-badge" class="vt-unlock" style="display:none">🔓 Reviews unlocked</span></h2>
       <div class="vt-sec-actions">
         <a class="vt-link" href="#all">See all reviews<svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
-        <div class="vt-car-btns"><button type="button" class="vt-icon-btn" id="vt-prev" aria-label="Previous review" aria-controls="review-feed"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><button type="button" class="vt-icon-btn" id="vt-next" aria-label="Next review" aria-controls="review-feed"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>
       </div>
     </div>
-    <div class="vt-car" id="review-feed" role="region" aria-label="Latest reviews" tabindex="0"></div>
-    <div class="vt-dots" id="vt-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <!-- 流れる帯（トップの .hero-mq と同じ作り）。#review-feed は本物の1組だけ ── 写しは vote.js が兄弟に足す -->
+    <div class="vt-mq" id="vt-mq" role="region" aria-label="Latest reviews"><div class="vt-mq-track" id="vt-mq-track"><div class="vt-mq-set" id="review-feed"></div></div></div>
     <p class="vt-status" id="vt-feed-status"></p>
     <div id="vt-gate-slot"></div>
   </section>
@@ -250,7 +248,7 @@
       </div>
     </div>
     <div class="vt-co-grid" id="vt-co-grid"></div>
-    <p class="vt-foot"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span>Bars show the middle 50% of answers. Flight time and duty time are hours per month; layover nights are nights away from base per month.</span></p>
+    <p class="vt-foot"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span>Bars show the middle 50% of answers over the last 12 months (per month). Flight time and duty time are hours; layover nights are nights away from base. The scale is the same for every airline: hours 0–240, nights 0–31.</span></p>
   </section>
   <section class="vt-sec vt-privacy" aria-labelledby="vt-pv-h">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 3 7.6 7 8.5 4-.9 7-4.1 7-8.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
@@ -367,7 +365,7 @@ document.getElementById('theme-toggle').addEventListener('click', function() {
 <script src="../lang-toggle.js"></script>
 <script src="../currency.js"></script>
 <script src="../airline-logos.js"></script>
-<script src="../vote.js?v=b4718977"></script>
+<script src="../vote.js?v=32485441"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
 <script src="../app-nav.js"></script>

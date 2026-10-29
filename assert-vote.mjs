@@ -91,7 +91,8 @@ const uid = (k) => MEMBERS.find((m) => m.key === k).id;
 const H = (x) => createHash('sha256').update(x).digest('hex');
 /* 作り物の口コミ。末尾に「目印」を付ける ── 先頭40字の抜粋には入らない位置。鍵の無い画面に出たら漏れ。 */
 const TAIL = (i) => `【末尾の目印${i}】`;
-const pad = '（手元の検査用の作り物の文です。実在の投稿ではありません）';
+/* 目印は80字より先に置く（流れるカードは先頭80字まで見せる・2026-10-29 オーナー決定） */
+const pad = '（手元の検査用の作り物の文です。実在の投稿ではありません）' + 'です'.repeat(30);
 const REV = [
   ['ana', 'fo', '5-10', [4, 3, 4, 3, 4, 4], 3, { wlb: '勤務表が出るのは月末近く。' + pad, salary: '乗務手当で手取りに波がある。' + pad, mgmt: '勤務表をもう少し早く。' + pad }, 0, 'b'],
   ['ana', 'captain', '15-20', [4, 4, 5, 3, 4, 5], null, { training: '定期審査は準備の負担もあるが見直す機会になる。' + pad, culture: '質問しやすい雰囲気。' + pad }, 1, null],
@@ -100,9 +101,11 @@ const REV = [
   ['singapore', 'captain', '10-15', [4, 4, 4, 3, 4, 4], null, { training: '訓練部門の教官の質が高い。' + pad }, 4, null],
 ];
 const tails = [];
+const LENS = [];   // 1件ずつの本文の文字数（7欄の合計）＝ カードの「全 N 文字」の正解
 for (const [i, r] of REV.entries()) {
   const [air, pos, ten, s, mg, c, ago, who] = r;
   for (const k of Object.keys(c)) { const t = TAIL(i + k); c[k] = c[k] + t; tails.push(t); }
+  LENS.push(Object.values(c).reduce((x, y) => x + y.trim().length, 0));
   const hash = who ? (await db.query(`select public.pv_review_hash($1::uuid, $2) h`, [uid(who), air])).rows[0].h : H('vote-assert-' + i);
   await db.query(
     `insert into public.reviews_v2 (proof_hash, airline, "position", tenure_bucket, culture_score, salary_score, benefits_score, wlb_score, ops_score, training_score, mgmt_score,
@@ -192,9 +195,28 @@ console.log('\n════ 2-A. 未ログイン（鍵なし）════');
   const rr = REV.filter((r) => r[0] === 'ana').map((r) => r[3].filter((x) => x > 0)).map((a) => a.reduce((x, y) => x + y, 0) / a.length);
   const want = (rr.reduce((x, y) => x + y, 0) / rr.length).toFixed(1);
   ok(v.ana === want && /口コミ 3件/.test(v.anaN || ''), `ANA の総合評価は ${want}・口コミ 3件（点数は誰にでも見える列）`, J(v));
-  ok(!leaks(await html(page)).length, '★ホームのどこにも、先頭40字より先の本文が無い', leaks(await html(page)).join(' '));
+  ok(!leaks(await html(page)).length, '★ホームのどこにも、先頭80字より先の本文が無い', leaks(await html(page)).join(' '));
+  const strip = await page.evaluate(() => ({
+    n: document.querySelectorAll('#review-feed .vt-rc').length,
+    clones: document.querySelectorAll('#vt-mq-track > .vt-mq-set[data-clone]').length,
+    hidden: [...document.querySelectorAll('#vt-mq-track > .vt-mq-set[data-clone]')].every((e) => e.getAttribute('aria-hidden') === 'true' && [...e.querySelectorAll('a')].every((a) => a.tabIndex === -1)),
+    anim: getComputedStyle(document.getElementById('vt-mq-track')).animationName,
+    stars: [...document.querySelectorAll('#review-feed .vt-rc')].every((c) => c.querySelector('.vt-rc-stars .vt-stars')),
+    ghosts: document.querySelectorAll('#review-feed .vt-ghost').length,
+    ghostText: [...document.querySelectorAll('.vt-ghost')].map((g) => g.textContent).join(''),
+    lens: [...document.querySelectorAll('#review-feed .vt-rc-len')].map((e) => Number(e.textContent.replace(/[^0-9]/g, ''))),
+    ex: [...document.querySelectorAll('#review-feed .vt-rc-ex')].map((e) => e.textContent.replace(/…$/, '').length),
+    cta: !!document.querySelector('#main-nav .btn-orange'),
+  }));
+  ok(strip.n === REV.length && strip.n <= 12 && strip.clones >= 1 && strip.hidden && strip.anim === 'vt-mq',
+     '最新の口コミは流れる帯（12件まで・写しは読み上げにもタブにも入らない）', J(strip));
+  ok(strip.stars, 'どのカードにも星が出る');
+  ok(strip.ex.every((x) => x <= 80) && strip.ex.some((x) => x > 40), 'カードは先頭80字まで見せる（40字より多く・80字を超えない）', J(strip.ex));
+  ok(strip.ghosts >= 1 && strip.ghostText === '', '★ぼかしは字を持たない影絵（本物の字は届いていない）', J({ g: strip.ghosts, t: strip.ghostText.slice(0, 40) }));
+  ok(J([...strip.lens].sort((a, b) => a - b)) === J([...LENS].sort((a, b) => a - b)), '「全 N 文字」は投稿全体（7欄の合計）の文字数', J({ got: strip.lens, want: LENS }));
+  ok(!strip.cta, 'ヘッダー右上のオレンジ「匿名で口コミを投稿」は無い');
   /* 引き出しを全部開いても、項目で絞っても出ない */
-  const keys = await page.evaluate(() => [...document.querySelectorAll('#review-feed [data-review^="c"], #review-feed [data-review^="r"]')].map((a) => a.dataset.review));
+  const keys = await page.evaluate(() => [...document.querySelectorAll('#review-feed [data-review]')].map((a) => a.dataset.review));
   let worst = [];
   for (const k of keys) {
     await page.evaluate((k) => { location.hash = '#review/' + k; }, k);
@@ -224,13 +246,15 @@ console.log('\n════ 2-B. 運営（本文も勤務も開いている）�
   const { page, ctx, errs } = await open('/community.html', { who: 'op' });
   const rowOf = (slug) => page.evaluate((slug) => [...document.querySelectorAll(`.vt-co[data-slug="${slug}"] .vt-wr`)].map((r) => ({
     k: r.dataset.work, v: r.querySelector('.vt-wv').textContent.replace(/\s+/g, ' ').trim(), track: !!r.querySelector('.vt-track'), fill: !!r.querySelector('.vt-fill'),
-    scale: r.querySelector('.vt-scale') ? r.querySelector('.vt-scale').textContent : '',
+    scale: r.dataset.scale || '',
   })), slug);
   const fo = await rowOf('ana');
   const want = (x) => (x ? (x.lo === x.hi ? String(x.lo) : `${x.lo}–${x.hi}`) : null);
   const exp = ['block_hours', 'duty_hours', 'stay_nights'].map((k) => want(work.by.fo[k]));
   ok(work.state === 'open' && fo.length === 3 && fo.every((r, i) => exp[i] && r.v.startsWith(exp[i]) && r.fill), 'ANA 副操縦士の3本はサーバーの幅のまま', J({ fo, exp }));
-  ok(fo[0].scale === '0240時間' && fo[1].scale === '0240時間' && fo[2].scale === '031泊', '目盛は 0〜240時間・0〜240時間・0〜31泊', J(fo.map((r) => r.scale)));
+  ok(fo[0].scale === '0-240' && fo[1].scale === '0-240' && fo[2].scale === '0-31', '目盛は 0〜240時間・0〜240時間・0〜31泊（会社どうしで同じ）', J(fo.map((r) => r.scale)));
+  const widths = await page.evaluate(() => [...document.querySelectorAll('.vt-co[data-slug="ana"] .vt-track')].map((t) => Math.round(t.getBoundingClientRect().width)));
+  ok(widths.length === 3 && new Set(widths).size === 1, '★3本の帯の長さ（目盛の幅）は同じ ── 幅の字数で伸び縮みしない', J(widths));
   await page.click('[data-role="cap"]');
   const cap = await rowOf('ana');
   ok(cap[1].v === '未取得' && !cap[1].track && cap[0].v.startsWith(want(work.by.cap.block_hours)), '機長に切り替えると機長の数だけ（拘束時間は回答が無いので「未取得」・棒なし）', J(cap));
@@ -252,30 +276,27 @@ console.log('\n════ 2-B. 運営（本文も勤務も開いている）�
   await page.evaluate(() => history.back());
   await page.waitForFunction(() => !document.getElementById('vt-dialog').open);
 
-  /* 動き（1本）：前へ送る → 押す → Esc ／ × ／ 戻る */
-  await page.click('#vt-next');
-  await page.waitForFunction(() => document.getElementById('review-feed').scrollLeft > 50, { timeout: 5000 });
-  await new Promise((r) => setTimeout(r, 400));   // なめらかに送る動きが止まるまで（位置を読むのはそのあと）
-  await page.waitForFunction(() => { const c = document.getElementById('review-feed'); const a = c.scrollLeft; return new Promise((res) => setTimeout(() => res(c.scrollLeft === a), 150)); });
-  const before = await page.evaluate(() => ({ L: history.length, x: document.getElementById('review-feed').scrollLeft, y: scrollY }));
-  const pick = await page.evaluate(() => {
-    const c = document.getElementById('review-feed'), box = c.getBoundingClientRect();
-    const a = [...c.querySelectorAll('.vt-rc')].find((e) => { const r = e.getBoundingClientRect(); return r.left >= box.left - 1 && r.right <= box.right + 1; });
-    return a.dataset.review;
-  });
+  /* 動き（1本）：流れる帯のカードを押す → Esc ／ × ／ 戻る。開いている間は帯が止まる。 */
+  await page.evaluate(() => window.scrollTo(0, 120));
+  await page.waitForFunction(() => Math.abs(scrollY - 120) < 2 || document.documentElement.scrollHeight <= innerHeight + 120);
+  const before = await page.evaluate(() => ({ L: history.length, y: scrollY }));
+  const pick = await page.evaluate(() => document.querySelector('#review-feed .vt-rc').dataset.review);
   for (const how of ['Esc', '×', '戻る']) {
-    await page.click(`#review-feed [data-review="${pick}"]`);
+    await page.evaluate((k) => document.querySelector('#review-feed [data-review="' + k + '"]').click(), pick);
     await page.waitForFunction(() => document.getElementById('vt-dialog').open);
     const L1 = await page.evaluate(() => history.length);
+    const paused = await page.evaluate(() => getComputedStyle(document.getElementById('vt-mq-track')).animationPlayState);
     if (how === 'Esc') await page.keyboard.press('Escape');
     else if (how === '×') await page.click('#vt-dialog [data-close]');
     else await page.goBack();
     await page.waitForFunction(() => !document.getElementById('vt-dialog').open, { timeout: 5000 });
-    await new Promise((r) => setTimeout(r, 120));
-    const after = await page.evaluate(() => ({ L: history.length, hash: location.hash, x: document.getElementById('review-feed').scrollLeft, y: scrollY,
-      focus: document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.review : null, lock: document.documentElement.classList.contains('vt-lock') }));
-    ok(after.hash === '' && after.L === L1 && after.focus === pick && Math.abs(after.x - before.x) < 2 && Math.abs(after.y - before.y) < 2 && !after.lock,
-       `${how}で閉じる → 履歴は増えない・押したカードにフォーカス・カルーセルとスクロールの位置はそのまま`, J({ before, L1, after }));
+    await page.waitForFunction((k) => document.activeElement && document.activeElement.dataset && document.activeElement.dataset.review === k, { timeout: 3000 }, pick).catch(() => {});
+    const after = await page.evaluate(() => ({ L: history.length, hash: location.hash, y: scrollY,
+      focus: document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.review : null,
+      inFeed: !!(document.activeElement && document.activeElement.closest('#review-feed')),
+      lock: document.documentElement.classList.contains('vt-lock') }));
+    ok(after.hash === '' && after.L === L1 && after.focus === pick && after.inFeed && Math.abs(after.y - before.y) < 2 && !after.lock && paused === 'paused',
+       `${how}で閉じる → 履歴は増えない・押したカードにフォーカス・スクロールの位置はそのまま（開いている間は帯が止まる）`, J({ before, L1, paused, after }));
   }
   /* 直に開いた住所（#review/…）から閉じても、1段も増えない */
   await page.goto(BASE + '/community.html#review/' + key, { waitUntil: 'domcontentloaded' });
@@ -345,10 +366,11 @@ console.log('\n════ 2-C. いろいろな状態 ════');
     h1: document.querySelector('h1').textContent,
     labels: [...document.querySelectorAll('.vt-co[data-slug="ana"] .vt-wl')].map((e) => e.textContent),
     href: document.querySelector('.vt-co[data-slug="ana"] .vt-co-main').getAttribute('href'),
-    scale: [...document.querySelectorAll('.vt-co[data-slug="ana"] .vt-scale')].map((e) => e.textContent),
+    scale: [...document.querySelectorAll('.vt-co[data-slug="ana"] .vt-wr')].map((e) => e.dataset.scale),
+    cta: !!document.querySelector('#main-nav .btn-orange'),
   }));
   ok(v.h1 === 'Vote' && J(v.labels) === J(['Flight time', 'Duty time', 'Layover nights']) && v.href === 'airlines/ana.html#reviews'
-     && J(v.scale) === J(['0240 h', '0240 h', '031 nights']), '英語ページ：見出し Vote・3本の名前と目盛・英語の会社ページへ', J(v));
+     && J(v.scale) === J(['0-240', '0-240', '0-31']) && !v.cta, '英語ページ：見出し Vote・3本の名前と目盛・英語の会社ページへ・オレンジのボタンは無い', J(v));
   ok(!errs.length, '英語ページの中でエラーが出ない', errs.join(' / '));
   await ctx.close();
 }

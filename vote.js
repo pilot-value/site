@@ -38,7 +38,7 @@
       ten: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
       pos: { captain: '機長', fo: '副操縦士', cadet: '訓練生', former: '元乗務員' },
       cat: { culture: '企業文化', salary: '給与', benefits: '福利厚生', wlb: 'ワークライフバランス', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
-      radar: [['企業文化'], ['給与'], ['福利厚生'], ['ワークライフ', 'バランス'], ['運航環境'], ['訓練環境']],
+      radar: [['企業文化'], ['給与'], ['福利厚生'], ['ワークライフバランス'], ['運航環境'], ['訓練環境']],
       radarTitle: 'パイロットによる6項目の評価', radarNone: '評価データがありません', radarAxis: 'すべての軸は0から5です。',
       lockedBody: '本文は、口コミを1件出した方だけが読めます。',
       unlockBtn: '匿名で口コミを投稿して解放する',
@@ -57,9 +57,9 @@
       coFail: 'いま読み出せません', off: '準備中',
       workHead: '月の勤務', recent: '直近12か月', roles: { fo: '副操縦士', cap: '機長' },
       work: [
-        { k: 'block_hours', label: 'Flight Time', title: '乗務時間（ブロックタイム）', unit: '時間／月', axis: '時間', max: 240 },
-        { k: 'duty_hours', label: '勤務時間', title: '勤務・拘束時間', unit: '時間／月', axis: '時間', max: 240 },
-        { k: 'stay_nights', label: 'ステイ日数', title: '基地の外で泊まった泊数', unit: '泊／月', axis: '泊', max: 31 }
+        { k: 'block_hours', label: 'Flight Time', title: '乗務時間（ブロックタイム）', unit: '時間／月', u: '時間', axis: '時間', max: 240 },
+        { k: 'duty_hours', label: '勤務時間', title: '勤務・拘束時間', unit: '時間／月', u: '時間', axis: '時間', max: 240 },
+        { k: 'stay_nights', label: 'ステイ日数', title: '基地の外で泊まった泊数', unit: '泊／月', u: '泊', axis: '泊', max: 31 }
       ],
       none: '未取得',
       barLabel: function (f, v, over) { return f.title + '、回答のまんなか半分の幅は' + v + f.unit + '。目盛は0から' + f.max + f.axis + (over ? '、一部は目盛の外です' : '') + '。'; },
@@ -76,6 +76,7 @@
       allCo: 'すべての航空会社', allCat: 'すべての項目', allRole: 'すべての職位',
       more: 'さらに表示',
       live: function (n) { return n + '件の口コミが見つかりました'; },
+      chars: function (n) { return '全 ' + Number(n).toLocaleString('ja-JP') + ' 文字'; },
       info: [
         '会社カードの評価は、その会社に投稿された口コミの6項目（企業文化・給与・福利厚生・ワークライフバランス・運航環境・訓練環境）の平均です。経営陣への提案は含みません。',
         '月の勤務の棒は、直近12か月の回答を1人ずつ月の平均にしてから、人どうしのまんなか半分（25〜75%）の幅を示します。機長と副操縦士は分けて数え、各項目に3人以上の回答が集まったときだけ出します。',
@@ -90,7 +91,7 @@
       ten: { '1-5': '1–5 years', '5-10': '5–10 years', '10-15': '10–15 years', '15-20': '15–20 years', '20+': '20+ years' },
       pos: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee', former: 'Former crew' },
       cat: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life balance', ops: 'Flight operations', training: 'Training', mgmt: 'Suggestions for management' },
-      radar: [['Culture'], ['Pay'], ['Benefits'], ['Work-life', 'balance'], ['Operations'], ['Training']],
+      radar: [['Culture'], ['Pay'], ['Benefits'], ['Work-life balance'], ['Operations'], ['Training']],
       radarTitle: 'Pilot ratings on six areas', radarNone: 'No rating data yet', radarAxis: 'Every axis runs from 0 to 5.',
       lockedBody: 'Only pilots who have shared one review can read the full text.',
       unlockBtn: 'Post a review anonymously to unlock',
@@ -109,9 +110,9 @@
       coFail: 'We cannot load this right now', off: 'Not available yet',
       workHead: 'Monthly duty', recent: 'Last 12 months', roles: { fo: 'First Officer', cap: 'Captain' },
       work: [
-        { k: 'block_hours', label: 'Flight time', title: 'Block hours (flight time)', unit: 'h / month', axis: ' h', max: 240 },
-        { k: 'duty_hours', label: 'Duty time', title: 'Duty hours', unit: 'h / month', axis: ' h', max: 240 },
-        { k: 'stay_nights', label: 'Layover nights', title: 'Nights away from base', unit: 'nights / month', axis: ' nights', max: 31 }
+        { k: 'block_hours', label: 'Flight time', title: 'Block hours (flight time)', unit: 'h / month', u: 'h', axis: ' h', max: 240 },
+        { k: 'duty_hours', label: 'Duty time', title: 'Duty hours', unit: 'h / month', u: 'h', axis: ' h', max: 240 },
+        { k: 'stay_nights', label: 'Layover nights', title: 'Nights away from base', unit: 'nights / month', u: 'nights', axis: ' nights', max: 31 }
       ],
       none: 'Not enough data',
       barLabel: function (f, v, over) { return f.title + ': the middle half of answers is ' + v + ' ' + f.unit + '. Scale 0 to ' + f.max + f.axis + (over ? '; part of it is off the scale' : '') + '.'; },
@@ -128,6 +129,7 @@
       allCo: 'All airlines', allCat: 'All items', allRole: 'All positions',
       more: 'Show more',
       live: function (n) { return n + (n === 1 ? ' review found' : ' reviews found'); },
+      chars: function (n) { return Number(n).toLocaleString('en-US') + ' characters in total'; },
       info: [
         'An airline’s rating is the average of the six rated areas in its reviews (culture, pay, benefits, work-life balance, flight operations and training). Suggestions for management are not included.',
         'Each duty bar takes every respondent’s monthly average over the last 12 months, then shows the middle half (25th–75th percentile) across people. Captains and First Officers are counted separately, and a figure appears only once at least three people have answered it.',
@@ -287,7 +289,21 @@
     var srv = (serverRows || []).map(fromServer);
     items = localItems().concat(srv, seedItems());   // 並びは今までと同じ：この端末 → サーバー → 見本
   }
-  function byKey(k) { for (var i = 0; i < items.length; i++) if (items[i].key === k) return items[i]; return null; }
+  /* 流れるカード（pv_vote_latest・新しい12件・1欄80字・文字数 n）。2026-10-29 オーナー決定。
+     届くのは各欄の先頭80字だけ ── 80字より先の本文は端末に1文字も来ない。 */
+  var latest = { s: 'loading', items: [] };
+  function fromLatest(r, i) {
+    var slug = slugOf(r.airline);
+    var t = Date.parse(r.created_at || '');
+    return { key: 'v' + (isFinite(t) ? t.toString(36) : String(i)) + '-' + slug.replace(/[^a-z0-9-]/g, ''), kind: 'latest',
+             slug: slug, code: r.airline || '', pos: r.position || '', ten: tenText(r.tenure_bucket),
+             date: ym(r.created_at), row: r, body: w.PVReviewI18n.pick(r), n: num(r.n) };
+  }
+  function byKey(k) {
+    var all = items.concat(latest.items);
+    for (var i = 0; i < all.length; i++) if (all[i].key === k) return all[i];
+    return null;
+  }
 
   /* 1件の総合評価（6項目のうち点のある分の平均。経営陣への提案は入れない） */
   function rowAvg(r) {
@@ -302,36 +318,56 @@
     return null;
   }
   function origOf(b, k) { var o = b.origCats || []; for (var i = 0; i < o.length; i++) if (o[i].k === k) return o[i].text; return ''; }
+  /* 本文の文字数（7欄の合計）。サーバーの n が正。無い古い返事・見本は手元の字から数える。 */
+  function lenOf(it) {
+    if (it.n != null) return it.n;
+    if (it.row && num(it.row.n) != null) return it.row.n;
+    if (it.kind === 'seed' || it.kind === 'local') return it.text.length;
+    if (it.kind === 'server' && !it.body.locked) {
+      return KEYS.reduce(function (s, k) { return s + String((it.row && it.row[k + '_comment']) || '').trim().length; }, 0);
+    }
+    return null;
+  }
+  /* ぼかしの影絵。**字を持たない灰色の行**を blur したもの（本物の字は届いていないので、外しても読めない）。
+     行数は残りの字数で1〜3行。 */
+  function ghost(rest) {
+    if (!(rest > 0)) return '';
+    var lines = Math.min(3, Math.ceil(rest / 50)), h = '';
+    for (var i = 0; i < lines; i++) h += '<i style="width:' + (i === lines - 1 ? 46 + (rest % 40) : 100) + '%"></i>';
+    return '<span class="vt-ghost" aria-hidden="true">' + h + '</span>';
+  }
 
-  /* カードに出す1つの欄。本文は書かれたまま（要約・題名・言い換えを足さない）。 */
+  /* カードに出す1つの欄。本文は書かれたまま（要約・題名・言い換えを足さない）。
+     返す shown ＝ 画面に出した字数（ぼかしの行数を決めるため）。 */
   function excerpt(it, want) {
-    if (it.kind !== 'server') {
+    if (it.kind === 'seed' || it.kind === 'local') {
       var t = it.text;
       if (!isUnlocked()) {
         var v = safeCut(t, Math.max(30, Math.ceil(t.length / 8)));
-        if (t.length > v) return { tag: '', html: esc(t.slice(0, v)) + '<span class="vt-blur" aria-hidden="true">' + esc(t.slice(v)) + '</span>' };
+        if (t.length > v) return { tag: '', html: esc(t.slice(0, v)) + '<span class="vt-blur" aria-hidden="true">' + esc(t.slice(v)) + '</span>', shown: t.length };
       }
-      return { tag: '', html: esc(t) };
+      return { tag: '', html: esc(t), shown: t.length };
     }
     var b = it.body;
-    if (b.locked) {
+    if (it.kind === 'server' && b.locked) {
       var cats = (it.row && it.row.cats) || [];
       var k = want || b.clipKey || cats[0] || '';
       var clip = (b.clipText && b.clipKey === k) ? b.clipText : '';
-      return { tag: k ? (T.cat[k] || '') : '', html: clip ? esc(clip) : null };
+      return { tag: k ? (T.cat[k] || '') : '', html: clip ? esc(clip) : null, shown: clip.replace(/…$/, '').length, locked: true };
     }
     var c = firstCat(b, want);
-    if (!c) return { tag: '', html: '' };
+    if (!c) return { tag: '', html: '', shown: 0 };
     var tr = b.translated && origOf(b, c.k) && origOf(b, c.k) !== c.text;
-    return { tag: T.cat[c.k] || '', html: esc(c.text), tr: tr };
+    var cut = it.kind === 'latest' && /…$/.test(c.text);   // 80字で切ってある欄
+    return { tag: T.cat[c.k] || '', html: esc(c.text), tr: tr, shown: c.text.replace(/…$/, '').length, locked: it.kind === 'latest', cut: cut };
   }
   function searchText(it) {
     var n = nameOf(it.slug, it.code);
     var parts = [it.slug, n.main, n.sub, posText(it.pos)];
-    if (it.kind !== 'server') {
+    if (it.kind === 'seed' || it.kind === 'local') {
       var t = it.text;
       parts.push(isUnlocked() ? t : t.slice(0, safeCut(t, Math.max(30, Math.ceil(t.length / 8)))));
-    } else if (it.body.locked) parts.push(it.body.clipText || '');
+    } else if (it.kind === 'server' && it.body.locked) parts.push(it.body.clipText || '');
     else (it.body.cats || []).forEach(function (c) { parts.push(c.text); });
     return norm(parts.join(' '));
   }
@@ -339,8 +375,8 @@
     if (f.co && it.slug !== f.co) return false;
     if (f.role && it.pos !== f.role) return false;
     if (f.cat) {
-      if (it.kind !== 'server') return false;              // 見本・端末の投稿は項目に分かれていない
-      if (it.body.locked) { if (((it.row && it.row.cats) || []).indexOf(f.cat) < 0) return false; }
+      if (it.kind === 'seed' || it.kind === 'local') return false;   // 見本・端末の投稿は項目に分かれていない
+      if (it.kind === 'server' && it.body.locked) { if (((it.row && it.row.cats) || []).indexOf(f.cat) < 0) return false; }
       else if (!firstCat(it.body, f.cat)) return false;
     }
     if (f.q && searchText(it).indexOf(f.q) < 0) return false;
@@ -351,6 +387,8 @@
     var n = nameOf(it.slug, it.code);
     var ex = excerpt(it, want);
     var meta = esc(posText(it.pos)) + ' · ' + esc(T.tenure(it.ten));
+    var avg = (it.kind === 'seed' || it.kind === 'local') ? (it.rating ? Math.min(5, it.rating) : null) : rowAvg(it.row);
+    var total = lenOf(it);
     var tags = '';
     if (ex.tag || ex.tr) {
       tags = '<span class="vt-rc-tags">' + (ex.tag ? '<span class="vt-tag">' + esc(ex.tag) + '</span>' : '') +
@@ -358,13 +396,17 @@
     }
     var body = (ex.html === null)
       ? '<p class="vt-rc-ex is-locked">🔒 ' + esc(T.lockedBody) + '</p>'
-      : (ex.html ? '<p class="vt-rc-ex">' + ex.html + '</p>' : '');
+      : (ex.html ? '<p class="vt-rc-ex' + (ex.locked ? ' is-cut' : '') + '">' + ex.html + '</p>' : '');
+    /* 鍵の無い人：見せた字より先が残っていれば、字を持たない影絵を置く */
+    if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
     return '<a class="vt-rc' + (list ? ' is-list' : '') + '" href="#review/' + it.key + '" data-review="' + it.key + '">' +
       '<span class="vt-rc-top">' + logo(it.slug, n.main) +
         '<span class="vt-rc-brand"><span class="vt-rc-name">' + esc(n.main) + '</span><span class="vt-rc-meta">' + meta + '</span></span>' +
         '<time class="vt-rc-date"' + (it.date.iso ? ' datetime="' + it.date.iso + '"' : '') + '>' + esc(it.date.t) + '</time></span>' +
+      (avg ? '<span class="vt-rc-stars">' + stars(avg) + '<b>' + avg.toFixed(1) + '</b></span>' : '') +
       tags + body +
-      '<span class="vt-rc-read">' + esc(T.read) + ico('arrow') + '</span></a>';
+      '<span class="vt-rc-foot"><span class="vt-rc-read">' + esc(T.read) + ico('arrow') + '</span>' +
+        (total ? '<span class="vt-rc-len">' + esc(T.chars(total)) + '</span>' : '') + '</span></a>';
   }
 
   /* ── 状態 ───────────────────────────────────────────────── */
@@ -372,20 +414,36 @@
   var view = null;
   var sb = null;
 
-  /* ── B. 最新の口コミ ───────────────────────────────────────── */
-  var FEED_N = 9;
+  /* ── B. 最新の口コミ（流れる帯。トップの .hero-mq と同じ作り）───────────── */
+  var FEED_N = 9, STRIP_N = 12;
+  /* 帯に出す口コミ。鍵のある人は全文（pv_reviews）から・鍵の無い人は pv_vote_latest（80字）から。
+     pv_vote_latest がまだ無い（SQL を貼る前）・読めないときは、今までの並び（9件・40字）に戻る。 */
+  function stripItems() {
+    var open = items.filter(function (it) { return it.kind === 'server' && !it.body.locked; });
+    if (open.length) {
+      return open.filter(function (it) { var c = firstCat(it.body); return c && c.text.replace(/\s/g, '').length >= 20; }).slice(0, STRIP_N);
+    }
+    if (latest.s === 'ok' && latest.items.length) return latest.items;
+    return items.slice(0, FEED_N);
+  }
+  function calm() { return !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches); }
   function renderFeed() {
-    var box = $('review-feed'), st = $('vt-feed-status');
+    var box = $('review-feed'), st = $('vt-feed-status'), mq = $('vt-mq');
     if (!box) return;
-    if (feed.s === 'loading') {
+    if (feed.s === 'loading' || latest.s === 'loading') {
       box.innerHTML = '<div class="vt-skel"></div><div class="vt-skel"></div><div class="vt-skel"></div>';
       box.setAttribute('aria-busy', 'true');
+      flow(false);
       if (st) st.innerHTML = '';
       return;
     }
     box.removeAttribute('aria-busy');
-    var list = items.filter(function (it) { return matches(it, { q: state.q }); });
-    var shown = list.slice(0, state.q ? 12 : FEED_N);
+    var list = state.q ? items.concat(latest.items).filter(function (it) { return matches(it, { q: state.q }); }) : stripItems();
+    if (state.q) {                                   // 同じ口コミが2つの形で入っているので、検索の答えは1つにまとめる
+      var seen = {};
+      list = list.filter(function (it) { var k = it.slug + '|' + it.date.t + '|' + it.pos + '|' + it.ten; if (seen[k]) return false; seen[k] = 1; return true; });
+    }
+    var shown = list.slice(0, STRIP_N);
     if (!shown.length) {
       box.innerHTML = state.q
         ? '<div class="vt-empty"><strong>' + esc(T.noFound) + '</strong>' + esc(T.noFoundSub) +
@@ -394,31 +452,36 @@
     } else {
       box.innerHTML = shown.map(function (it) { return card(it, '', false); }).join('');
     }
-    box.scrollLeft = 0;
     if (st) st.innerHTML = feed.s === 'error'
       ? esc(T.feedFail) + ' <button type="button" class="vt-retry" data-retry="feed">' + esc(T.retry) + '</button>' : '';
     rescanMoney(box);
-    carSync();
+    if (mq) mq.classList.toggle('is-static', !!state.q || shown.length < 2);
+    flow(!state.q && shown.length >= 2);
     if (state.q) say(T.live(list.length));
   }
-  function carSync() {
-    var c = $('review-feed'); if (!c) return;
-    var max = c.scrollWidth - c.clientWidth;
-    var p = $('vt-prev'), n = $('vt-next');
-    if (p) p.disabled = c.scrollLeft < 5;
-    if (n) n.disabled = c.scrollLeft >= max - 5;
-    var dots = $('vt-dots');
-    if (dots) {
-      var on = max > 0 ? Math.round(c.scrollLeft / max * 2) : 0;
-      Array.prototype.forEach.call(dots.children, function (el, i) { el.classList.toggle('is-on', i === on); });
+  /* 流す。トラック ＝ [本物の1組][写し…]。写しは読み上げにもタブ移動にも入れない（aria-hidden・tabindex=-1）。
+     前半と後半を同じ幅にして translate3d(-50%) で継ぎ目なく回す（速さは 20px/秒・トップと同じ）。
+     ⚠️ 写しは #review-feed の外（兄弟）に置く ── #review-feed の中身は本物の1組だけ（assert-unlock が数えている）。 */
+  function flow(on) {
+    var track = $('vt-mq-track'), box = $('review-feed'), mq = $('vt-mq');
+    if (!track || !box) return;
+    Array.prototype.slice.call(track.querySelectorAll('.vt-mq-set[data-clone]')).forEach(function (n) { n.remove(); });
+    track.style.animationDuration = '';
+    track.classList.remove('is-on');
+    if (!on || calm() || !mq) return;
+    var one = box.getBoundingClientRect().width;
+    if (!(one > 0)) return;
+    var reps = Math.max(1, Math.ceil(mq.clientWidth / one));
+    for (var i = 0; i < reps * 2 - 1; i++) {
+      var c = box.cloneNode(true);
+      c.removeAttribute('id');
+      c.setAttribute('data-clone', '1');
+      c.setAttribute('aria-hidden', 'true');
+      Array.prototype.forEach.call(c.querySelectorAll('a,button'), function (a) { a.setAttribute('tabindex', '-1'); });
+      track.appendChild(c);
     }
-  }
-  function carStep(dir) {
-    var c = $('review-feed'), first = c && c.querySelector('.vt-rc');
-    if (!first) return;
-    var gap = parseFloat(getComputedStyle(c).columnGap) || 16;
-    var calm = w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    c.scrollBy({ left: dir * (first.getBoundingClientRect().width + gap), behavior: calm ? 'auto' : 'smooth' });
+    track.style.animationDuration = Math.max(20, Math.round(one * reps / 20)) + 's';
+    track.classList.add('is-on');
   }
   /* 鍵の壁（#gate-panel）と解放中の印（#unlock-badge）。id と出し方は assert-unlock.mjs が見ている。 */
   function syncGate() {
@@ -443,7 +506,7 @@
       var done = false;
       var t = setTimeout(function () { if (!done) { done = true; res({ error: { code: 'timeout' } }); } }, 15000);
       try {
-        Promise.resolve(sb.rpc(name, { p: p || {} })).then(function (r) { if (!done) { done = true; clearTimeout(t); res(r || { error: {} }); } },
+        Promise.resolve(p === undefined ? sb.rpc(name) : sb.rpc(name, { p: p || {} })).then(function (r) { if (!done) { done = true; clearTimeout(t); res(r || { error: {} }); } },
           function (e) { if (!done) { done = true; clearTimeout(t); res({ error: e || {} }); } });
       } catch (e) { done = true; clearTimeout(t); res({ error: e || {} }); }
     });
@@ -481,8 +544,10 @@
       Object.keys(CO).forEach(paintCo);
     });
   }
+  /* 6軸のレーダー（小さい会社カード用・2026-10-29 第2回）。字は図に対して大きめ（小さく出しても 11px 以上）。
+     点の無い角は描かない（0 で埋めない）── 6つそろわなければ図の中に「評価データがありません」。 */
   function radarSVG(vals) {
-    var cx = 180, cy = 150, R = 84;
+    var cx = 160, cy = 118, R = 62;
     function pt(i, r) { var a = -Math.PI / 2 + i * Math.PI / 3; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; }
     function ps(list) { return list.map(function (p) { return p[0].toFixed(2) + ',' + p[1].toFixed(2); }).join(' '); }
     var g = '';
@@ -490,19 +555,17 @@
     for (var i = 0; i < 6; i++) { var e = pt(i, R); g += '<line class="rd-grid" x1="' + cx + '" y1="' + cy + '" x2="' + e[0].toFixed(2) + '" y2="' + e[1].toFixed(2) + '"/>'; }
     var shape = vals
       ? '<polygon class="rd-shape" points="' + ps(vals.map(function (v, k) { return pt(k, R * Math.min(5, v) / 5); })) + '"/>' +
-        vals.map(function (v, k) { var p = pt(k, R * Math.min(5, v) / 5); return '<circle class="rd-dot" cx="' + p[0].toFixed(2) + '" cy="' + p[1].toFixed(2) + '" r="3.4"/>'; }).join('')
-      : '<text class="rd-none" x="180" y="155" text-anchor="middle">' + esc(T.radarNone) + '</text>';
-    var POS = [[180, 21, 'middle'], [274, 88, 'start'], [274, 207, 'start'], [180, 274, 'middle'], [86, 207, 'end'], [86, 88, 'end']];
+        vals.map(function (v, k) { var p = pt(k, R * Math.min(5, v) / 5); return '<circle class="rd-dot" cx="' + p[0].toFixed(2) + '" cy="' + p[1].toFixed(2) + '" r="3"/>'; }).join('')
+      : '<text class="rd-none" x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle">' + esc(T.radarNone) + '</text>';
+    var POS = [[160, 20, 'middle'], [228, 80, 'start'], [228, 150, 'start'], [160, 204, 'middle'], [92, 150, 'end'], [92, 80, 'end']];
     var labels = POS.map(function (p, k) {
       var lines = T.radar[k];
-      var lab = lines.length > 1
-        ? '<text class="rd-label" x="' + p[0] + '" y="' + p[1] + '" text-anchor="' + p[2] + '"><tspan x="' + p[0] + '">' + esc(lines[0]) + '</tspan><tspan x="' + p[0] + '" dy="19">' + esc(lines[1]) + '</tspan></text>'
-        : '<text class="rd-label" x="' + p[0] + '" y="' + p[1] + '" text-anchor="' + p[2] + '">' + esc(lines[0]) + '</text>';
+      var lab = '<text class="rd-label" x="' + p[0] + '" y="' + p[1] + '" text-anchor="' + p[2] + '">' + esc(lines.join('')) + '</text>';
       var val = vals ? vals[k].toFixed(1) : '—';
-      return lab + '<text class="rd-val" x="' + p[0] + '" y="' + (p[1] + (lines.length > 1 ? 39 : 21)) + '" text-anchor="' + p[2] + '">' + val + '</text>';
+      return lab + '<text class="rd-val" x="' + p[0] + '" y="' + (p[1] + 18) + '" text-anchor="' + p[2] + '">' + val + '</text>';
     }).join('');
     var desc = T.radar.map(function (l, k) { return l.join('') + ' ' + (vals ? vals[k].toFixed(1) : '—'); }).join(EN ? ', ' : '、') + (EN ? '. ' : '。') + T.radarAxis;
-    return '<svg class="vt-radar" viewBox="0 0 360 330" role="img" aria-label="' + esc(T.radarTitle + (EN ? ': ' : '：') + desc) + '" preserveAspectRatio="xMidYMid meet">' +
+    return '<svg class="vt-radar" viewBox="0 0 320 230" role="img" aria-label="' + esc(T.radarTitle + (EN ? ': ' : '：') + desc) + '" preserveAspectRatio="xMidYMid meet">' +
       '<g aria-hidden="true">' + g + shape + labels + '</g></svg>';
   }
   function sumHTML(slug) {
@@ -519,13 +582,15 @@
     if (!r || r.s !== 'ok') return radarSVG(null).replace(esc(T.radarNone), r && r.s === 'error' ? esc(T.coFail) : esc(T.loading));
     return radarSVG(r.R && r.R.ratings ? r.R.ratings : null);
   }
+  /* 月の勤務は1行ずつ：名前・帯・幅（単位つき）。目盛は 時間 0〜240・泊 0〜31 で固定（注に1回だけ書く）。
+     値の無い項目は「未取得」で、帯を描かない（0 で埋めない）。 */
   function rowsHTML(by) {
     return T.work.map(function (f) {
       var x = by && by[f.k];
       var lo = num(x && x.lo), hi = num(x && x.hi);
       var lab = '<span class="vt-wl" title="' + esc(f.title) + '">' + esc(f.label) + '</span>';
       if (lo === null || hi === null || lo < 0 || hi < lo) {
-        return '<div class="vt-wr is-none" data-work="' + f.k + '"><div class="vt-wr-head">' + lab + '<span class="vt-wv">' + esc(T.none) + '</span></div></div>';
+        return '<div class="vt-wr is-none" data-work="' + f.k + '">' + lab + '<span class="vt-wv">' + esc(T.none) + '</span></div>';
       }
       var a = Math.max(0, Math.min(lo / f.max * 100, 100)), b = Math.max(0, Math.min(hi / f.max * 100, 100));
       var v = lo === hi ? show1(lo) : show1(lo) + '–' + show1(hi);
@@ -534,10 +599,9 @@
         ? '<span class="vt-fill" style="left:' + a.toFixed(3) + '%;width:' + (b - a).toFixed(3) + '%"></span>' +
           '<span class="vt-cap" style="left:' + a.toFixed(3) + '%"></span><span class="vt-cap" style="left:calc(' + b.toFixed(3) + '% - 2px)"></span>'
         : '';
-      return '<div class="vt-wr' + (over ? ' is-over' : '') + '" data-work="' + f.k + '"><div class="vt-wr-head">' + lab +
-        '<span class="vt-wv">' + v + ' <span class="vt-wu">' + esc(f.unit) + '</span></span></div>' +
-        '<div class="vt-track" role="img" aria-label="' + esc(T.barLabel(f, v, over)) + '">' + seg + (over ? '<span class="vt-over" aria-hidden="true">›</span>' : '') + '</div>' +
-        '<div class="vt-scale" aria-hidden="true"><span>0</span><span>' + f.max + esc(f.axis) + '</span></div></div>';
+      return '<div class="vt-wr' + (over ? ' is-over' : '') + '" data-work="' + f.k + '" data-scale="0-' + f.max + '">' + lab +
+        '<span class="vt-track" role="img" aria-label="' + esc(T.barLabel(f, v, over)) + '">' + seg + (over ? '<span class="vt-over" aria-hidden="true">›</span>' : '') + '</span>' +
+        '<span class="vt-wv">' + v + '<span class="vt-wu">' + esc(f.u) + '</span></span></div>';
     }).join('');
   }
   function workHTML(slug) {
@@ -650,7 +714,11 @@
     var sc = k === 'mgmt' ? null : num(Number(r && r[k + '_score']));
     var score = (sc && sc > 0) ? '<span class="vt-d-score">' + stars(Math.min(5, sc)) + '<span>' + Math.min(5, sc).toFixed(1) + ' / 5</span></span>' : '';
     var p;
-    if (b.locked) {
+    if (it.kind === 'latest') {
+      var lc = firstCat(b, k);
+      if (!lc) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
+      else p = '<p>' + esc(lc.text) + '</p>' + (/…$/.test(lc.text) ? ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>' : '');
+    } else if (b.locked) {
       var written = ((r && r.cats) || []).indexOf(k) >= 0;
       if (!written) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
       else if (b.clipText && b.clipKey === k) p = '<p>' + esc(b.clipText) + '</p><p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
@@ -668,7 +736,7 @@
   }
   function drawerHTML(it) {
     var n = nameOf(it.slug, it.code), co = hasPage(it.slug);
-    var avg = it.kind === 'server' ? rowAvg(it.row) : (it.rating ? Math.min(5, it.rating) : null);
+    var avg = (it.kind === 'server' || it.kind === 'latest') ? rowAvg(it.row) : (it.rating ? Math.min(5, it.rating) : null);
     var html = '<div class="vt-d-head"><span>' + esc(T.drawerHead) + '</span>' +
       '<button type="button" class="vt-d-close" data-close aria-label="' + esc(T.close) + '">' + ico('close') + '</button></div>' +
       '<div class="vt-d-body"><div class="vt-d-top">' + logo(it.slug, n.main) +
@@ -677,9 +745,9 @@
       '<div class="vt-d-sum">' + (avg ? '<span>' + esc(T.overall) + '</span><b class="vt-rn">' + avg.toFixed(1) + '</b>' + stars(avg) : '') +
       (co ? '<a class="vt-link" href="' + coHref(it.slug, 'reviews') + '">' + esc(T.coReviews) + ico('arrow') + '</a>' : '') + '</div>';
     var locked;
-    if (it.kind === 'server') {
+    if (it.kind === 'server' || it.kind === 'latest') {
       html += KEYS.map(function (k) { return sectionHTML(it, k); }).join('');
-      locked = it.body.locked;
+      locked = it.kind === 'latest' || it.body.locked;
     } else {
       var t = it.text, open = isUnlocked();
       var v = open ? t.length : safeCut(t, Math.max(30, Math.ceil(t.length / 8)));
@@ -690,7 +758,7 @@
       html += '<div class="vt-d-gate"><p>' + esc(T.lockedBody) + '<br><a class="vt-gate-login" href="' + esc(loginHref()) + '">' + esc(T.gateLogin) + '</a></p>' +
         '<a class="vt-btn" href="submit-review.html' + (co ? '?airline=' + it.slug : '') + '">' + ico('pen') + esc(T.unlockBtn) + '</a></div>';
     }
-    html += '<div class="vt-d-foot"><span>' + (it.kind === 'server' ? T.avgNote : '') + '</span>' +
+    html += '<div class="vt-d-foot"><span>' + (it.kind === 'server' || it.kind === 'latest' ? T.avgNote : '') + (lenOf(it) ? '<br>' + esc(T.chars(lenOf(it))) : '') + '</span>' +
       (co ? '<a class="vt-btn-line" href="' + coHref(it.slug, 'reviews') + '">' + esc(T.openCo) + ico('ext') + '</a>' : '') + '</div></div>';
     return html;
   }
@@ -698,7 +766,7 @@
     var dlg = $('vt-dialog'); if (!dlg) return;
     var it = byKey(key);
     if (!it) {
-      if (feed.s === 'loading') { M.pending = key; return; }
+      if (feed.s === 'loading' || latest.s === 'loading') { M.pending = key; return; }
       M.pending = '';
       history.replaceState(null, '', location.pathname + location.search + (M.ret || ''));
       if (M.open) closeDialog();
@@ -794,6 +862,16 @@
       if (M.pending) openReview(M.pending);
     });
   }
+  /* 流れるカード（pv_vote_latest）。無い（SQL を貼る前）・読めないときは今までの並びに戻る（stripItems）。 */
+  function loadLatest() {
+    latest = { s: 'loading', items: [] };
+    return (sb ? rpc('pv_vote_latest') : Promise.resolve({ error: {} })).then(function (res) {
+      var rows = res && !res.error && Array.isArray(res.data) ? res.data : null;
+      latest = rows ? { s: 'ok', items: rows.map(fromLatest) } : { s: isOff(res && res.error) ? 'off' : 'error', items: [] };
+      if (view === 'home') renderFeed();
+      if (M.pending) openReview(M.pending);
+    });
+  }
   function loadPopular() {
     popular = { s: 'loading', slugs: [], days: 28 };
     return getJSON(ROOT + 'vote-popular.json').then(function (j) {
@@ -813,9 +891,7 @@
       }
       var b = t.closest && t.closest('button');
       if (!b) return;
-      if (b.id === 'vt-prev') carStep(-1);
-      else if (b.id === 'vt-next') carStep(1);
-      else if (b.hasAttribute('data-close')) { if (b.closest('#vt-info')) $('vt-info').close(); else closeReview(); }
+      if (b.hasAttribute('data-close')) { if (b.closest('#vt-info')) $('vt-info').close(); else closeReview(); }
       else if (b.hasAttribute('data-role')) setRole(b.getAttribute('data-role'));
       else if (b.hasAttribute('data-clear') || b.hasAttribute('data-q-clear')) { setQuery(''); var q = d.querySelector((view === 'all' ? '#vt-all' : '#vt-home') + ' [data-q]'); if (q) q.focus(); }
       else if (b.id === 'vt-more') { state.limit += 60; renderAll(); }
@@ -848,9 +924,14 @@
         state.limit = 60; renderAll();
       });
     });
-    var car = $('review-feed'), raf = 0;
-    if (car) car.addEventListener('scroll', function () { if (!raf) raf = w.requestAnimationFrame(function () { raf = 0; carSync(); }); }, { passive: true });
-    w.addEventListener('resize', function () { carSync(); }, { passive: true });
+    var raf = 0;
+    /* 幅が変わったら写しの数を数え直す（狭い→広いで帯が途切れないように） */
+    var lastW = w.innerWidth;
+    w.addEventListener('resize', function () {
+      if (Math.abs(w.innerWidth - lastW) < 40) return;
+      lastW = w.innerWidth; clearTimeout(raf);
+      raf = setTimeout(function () { if (view === 'home') renderFeed(); }, 200);
+    }, { passive: true });
     var dlg = $('vt-dialog');
     if (dlg) {
       dlg.addEventListener('cancel', function (e) { e.preventDefault(); closeReview(); });   // Esc
@@ -874,6 +955,7 @@
       .then(function () {
         if (view === 'home') { renderFeed(); renderCompanies(); }
         loadPopular();
+        loadLatest();
         loadFeed();
       });
   }
