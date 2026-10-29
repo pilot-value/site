@@ -1283,14 +1283,17 @@ export const SOURCE_URL_EN = Object.freeze({
 export const NET = Object.freeze({
   /* 2026-10-21 a2：茨城（IBR）・下地島（SHI）の行が入った（空港の呼び名を足したため）── どちらも同じ夏ダイヤの時刻表の行。basis はそのまま正しい */
   skymark: { h: '4862cf7b58b503ef', basis: '2026年夏ダイヤ（6月1日〜10月24日）の時刻表で、スカイマークが自社便を飛ばしている空港。拠点の空港は入れていません。', basis_en: 'Airports Skymark serves with its own flights in the summer 2026 timetable (1 June – 24 October). Base airports are not included.' },
-  /* ⚠️ いまの台帳の行は SYD の1つだけで、SYD はカンタスの拠点（本拠地は一覧に入れない）── 画面には就航地の一覧が出ない（2026-10-21）。 */
-  qantas: { h: '965d1d7ace2efd6f', basis: 'カンタス航空の機材の紹介（A321XLR）に行き先として載っている空港', basis_en: 'Airports listed as destinations on Qantas’s fleet page (A321XLR)' },
+  /* ⚠️ いまの台帳の行は SYD の1つだけで、SYD はカンタスの拠点（本拠地は一覧に入れない）── 画面には就航地の一覧が出なかった（2026-10-21）。
+     2026-10-29 に米国発着の国際線の行（BTS）が入り、拠点を外しても6空港が残るので一覧が出るようになった。 */
+  /* 2026-10-29 WP-28：ChatGPT の1回目の調べ（2026-10-29）の就航地の行が入った ── 出どころが増えたので basis を書き直して h を付け直した */
+  qantas: { h: 'b4a81551e34cb5c2', basis: '米国運輸省（BTS）の2026年7月の運航実績で、カンタス航空の定期旅客便が飛んだ米国発着の国際線の区間に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports on international segments to and from the US flown by Qantas scheduled passenger flights in the US DOT (BTS) July 2026 traffic data. Base airports are not included.' },
   /* 全社へ広げる d1（2026-10-21）：日本の会社。拠点の分かる会社だけ（拠点の空港を就航地として並べない ── 拠点の行が台帳に無い
      スプリング・ジャパン・北海道エアシステム・ジェイエア・日本トランスオーシャン航空・オリエンタルエアブリッジ・琉球エアーコミューター・
      新中央航空は、拠点が分かるまで一覧を出さない）。 */
   'zipair': { h: 'f251284f4ea688c9', basis: 'ZIPAIR の基本情報（運航路線）に、自社の定期便の行き先として載っている空港。拠点の空港は入れていません。', basis_en: 'Airports listed as scheduled destinations in ZIPAIR’s basic information (routes). Base airports are not included.' },
   'jetstar-japan': { h: 'b44f15f72cb27c79', basis: '2026年夏期の運航スケジュール（2026年1月27日の発表）に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in the summer 2026 schedule (announced 27 January 2026). Base airports are not included.' },
-  'peach': { h: '8939c481e9c38f32', basis: 'Peach の路線・時刻表に載っている空港（運休中と書かれた空港は入れていません）。拠点の空港は入れていません。', basis_en: 'Airports in Peach’s routes and timetables (airports marked as suspended are not included). Base airports are not included.' },
+  /* 2026-10-29 WP-28：ChatGPT の1回目の調べ（2026-10-29）の就航地の行が入った ── 出どころが増えたので basis を書き直して h を付け直した */
+  'peach': { h: 'd35e3cdb85b29fba', basis: 'Peach の路線・時刻表と、2026年冬ダイヤ（2026年10月25日〜2027年3月27日）の全路線の販売開始のお知らせに載っている空港（運休中と書かれた空港は入れていません）。拠点の空港は入れていません。', basis_en: 'Airports in Peach’s routes and timetables and in its announcement of winter 2026 sales for all routes (25 October 2026 – 27 March 2027); airports marked as suspended are not included. Base airports are not included.' },
   'solaseed': { h: '200dbe001e75a1e2', basis: 'ソラシドエアの時刻表・就航路線に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in Solaseed Air’s timetables and routes. Base airports are not included.' },
   'airdo': { h: 'aef2e57fbcfdca07', basis: 'AIRDO の運航路線・就航地の案内に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in AIRDO’s route and destination guide. Base airports are not included.' },
   'starflyer': { h: 'e04fff1794cdabec', basis: 'スターフライヤーの国内線時刻表に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in StarFlyer’s domestic timetable. Base airports are not included.' },
@@ -1304,15 +1307,19 @@ export const NET = Object.freeze({
   /* 全社へ広げる d1 の続き（2026-10-21）：アジアの会社。拠点の分かる会社だけ（シンガポール航空・アシアナ航空・香港エクスプレス・スクートなどは
      就航地の行が台帳に在っても、拠点の行が無い ── 拠点が分かるまで一覧を出さない）。ロイヤルブルネイ航空は拠点の街（バンダルスリブガワン）は
      分かるが、その街の空港が空港の呼び名の表（PLACES）に無い ＝ 拠点の空港を一覧から外せると確かめられないので、一覧を出さない。 */
-  'china-eastern': { h: '4642bffece3e697b', basis: '中部国際空港の国際線の時刻表（2026年10月1日〜24日）に、中国東方航空の便が載っている空港。拠点の街（上海）の空港は入れていません。', basis_en: 'Airports with China Eastern flights in Chubu Centrair’s international timetable (1–24 October 2026). Airports of the base city (Shanghai) are not included.' },
+  /* 2026-10-29 WP-28：ChatGPT の1回目の調べ（2026-10-29）の就航地の行が入った ── 出どころが増えたので basis を書き直して h を付け直した */
+  'china-eastern': { h: '87d04dbb4ed3372c', basis: '中部国際空港の国際線の時刻表（2026年10月1日〜24日）に中国東方航空の便が載っている空港と、米国運輸省（BTS）の2026年7月の運航実績で中国東方航空の定期旅客便が飛んだ米国発着の国際線の区間に載っている空港。拠点の街（上海）の空港は入れていません。', basis_en: 'Airports with China Eastern flights in Chubu Centrair’s international timetable (1–24 October 2026), and airports on international segments to and from the US flown by China Eastern scheduled passenger flights in the US DOT (BTS) July 2026 traffic data. Airports of the base city (Shanghai) are not included.' },
   /* 全社へ広げる d2（2026-10-22）：拠点の空港の行が在り、その会社の資料（路線・空港の案内）で拠点のほかに行き先が残る会社だけ。
      出さない会社：拠点の分からない会社（KLM・エールフランス・ルフトハンザ・アイスランド航空 など）／拠点の行が一部だけで、残る行き先に
      その会社の本当の基地が混ざりうる会社（フロンティア航空・ブエリング航空・アラスカ航空）／1便のニュースや1つの空港の案内だけの会社
      （ブリティッシュ・エアウェイズ・スカンジナビア航空・ヴァージン・アトランティック航空・ジェットスター航空）／行の使い方が「過去」で
      日付の無い行が多い会社（LOT ポーランド航空）。 */
-  'austrian': { h: '56091721449bc691', basis: 'オーストリア航空の2026年夏ダイヤの発表に、北米の長距離の行き先として載っている空港。拠点の空港は入れていません。', basis_en: 'Airports listed as North American long-haul destinations in Austrian Airlines’ 2026 summer schedule announcement. Base airports are not included.' },
-  'southwest': { h: '584480381c4f2cde', basis: 'サウスウエスト航空の空港の案内に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in Southwest Airlines’ airport information. Base airports are not included.' },
-  'jetblue': { h: '29741a984d702e72', basis: 'ジェットブルー航空の空港の案内に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in JetBlue’s airport information. Base airports are not included.' },
+  /* 2026-10-29 WP-28b：ChatGPT の追加の調べ1で、公式の運航スケジュール（Flightplan）の自社便の行が入った ── basis を書き直して h を付け直した */
+  'austrian': { h: 'fc83f82a9434c516', basis: 'オーストリア航空の2026年夏ダイヤの発表に北米の長距離の行き先として載っている空港と、公式の運航スケジュール（2026年10月29日に確認）にオーストリア航空が自社で飛ばす便として載っている空港。拠点の空港は入れていません。', basis_en: 'Airports listed as North American long-haul destinations in Austrian Airlines’ 2026 summer schedule announcement, and airports served by flights Austrian Airlines operates itself in its official flight plan (checked 29 October 2026). Base airports are not included.' },
+  /* 2026-10-29 WP-28：ChatGPT の1回目の調べ（2026-10-29）の就航地の行が入った ── 出どころが増えたので basis を書き直して h を付け直した */
+  'southwest': { h: '890f7df34860a8b0', basis: 'サウスウエスト航空の空港の案内と、公式の路線図（2026年10月29日に確認）に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in Southwest Airlines’ airport information and official route map (checked 29 October 2026). Base airports are not included.' },
+  /* 2026-10-29 WP-28：ChatGPT の1回目の調べ（2026-10-29）の就航地の行が入った ── 出どころが増えたので basis を書き直して h を付け直した */
+  'jetblue': { h: 'ca64de5b43a9125f', basis: 'ジェットブルー航空の空港の案内に載っている空港と、米国運輸省（BTS）の2026年7月の運航実績（国内線・国際線）でジェットブルー航空の定期旅客便が飛んだ空港。拠点の空港は入れていません。', basis_en: 'Airports in JetBlue’s airport information, and airports served by JetBlue scheduled passenger flights in the US DOT (BTS) July 2026 traffic data (domestic and international). Base airports are not included.' },
 });
 
 /* ── 暮らしの街（CITY）── 調べの台帳の街（拠点の空港ごと）。先行5社の台帳に在る街（東京など）はここに書かない（そちらを使う）。
@@ -1412,7 +1419,8 @@ export const CITY = Object.freeze({
     measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
     scope: 'パリの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Paris, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
-  rome: { h: 'a06647bbe19925f2', ja: 'ローマ', en: 'Rome', iata: 'FCO', airport: 'フィウミチーノ空港', airport_en: 'Rome Fiumicino Airport',
+  /* 2026-10-29 WP-28：同じ資料（Market Rents 2025）の 2-Bed・3-Bed の行が ITA エアウェイズの調べからも入った（額は今の行と同じ）── 字はそのまま正しい */
+  rome: { h: '42a9333d516b3f26', ja: 'ローマ', en: 'Rome', iata: 'FCO', airport: 'フィウミチーノ空港', airport_en: 'Rome Fiumicino Airport',
     measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
     scope: 'ローマの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Rome, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
