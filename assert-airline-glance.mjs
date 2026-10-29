@@ -2400,7 +2400,8 @@ const factRowsOf = (p, sel) => p.evaluate(sel => {
    ここへ出してある。呼ぶのは、開いた返事を返す場面だけ（GM9）。4つの ok は、runRows に在った時の字のまま。 */
 async function digestRowsOk(p, tag, sel, keys) {
   const rows = await factRowsOf(p, sel);
-  const want = FACT_ROWS.filter(f => keys.includes(f.question_id)).sort((a, b) => keys.indexOf(a.question_id) - keys.indexOf(b.question_id));
+  /* ★2026-10-29 話題を6つにして「ひとつ教えて」の欄が休暇・手当の質問も指す ── 待遇の板の見本（BEN_ROWS）も、欄が持つ質問なら行に出る */
+  const want = [...FACT_ROWS, ...BEN_ROWS].filter(f => keys.includes(f.question_id)).sort((a, b) => keys.indexOf(a.question_id) - keys.indexOf(b.question_id));
   /* 行の中身。出す行は、検査用の行のうち「出さない」（want.none）のほか全部・欄が持つ質問の並びのまま。
      r1 行の数（いちばん多い答えが並んだ行も、消さずに「回答が分かれています」で出す）・r6 出さない行の質問の字が、どの行にも無い。
      r2〜r8 は factRowBad。 */
@@ -3876,7 +3877,7 @@ async function runRows(browser, s, [w, h, kind]) {
       if (want.length !== FACT_ROWS.length) bad.push(`検査用の ${FACT_ROWS.length}行のうち、欄が持つ質問は ${want.length}行`);
       if (/\d\s*問/.test(got.text)) bad.push('「集まった回答」の欄に「◯問」と書いてある');
       if (got.stray) bad.push(`回答の行が、欄の外に ${got.stray}つ`);
-      if (got.plates.length !== 4) bad.push(`話題の札 ${got.plates.length}枚`);
+      if (got.plates.length !== ASK_N) bad.push(`話題の札 ${got.plates.length}枚`);
       for (const t of got.plates) {
         if (!t.on) bad.push(`札「${t.text.slice(0, 12)}」が見えていない`);
         if (/回答|\d\s*[人件]/.test(t.text)) bad.push(`札に回答の数が入っている「${t.text}」`);
@@ -7641,7 +7642,9 @@ async function runGive(browser, s, [w, h]) {
            集計・月の勤務・補足の口を1回ずつだけ呼ぶ（答えるカードの口は呼ばない）。欄は鍵の形でなくなり、答えるカードは1枚も残らない。
            概要へ戻ると「集まった回答」に行が出ている（集計の口は、もう呼ばない）。ページは読み込み直されていない（置いた印が残っている）。 */
     {
-      const bad = [], rowsWant = FACT_ROWS.filter(f => !f.want.none).length, at = await goTab('work');
+      /* 概要の「集まった回答」に出る行 ＝ 見本の行のうち、その欄（出荷した HTML の data-keys）が持つ質問で、出さない行（want.none）でないもの */
+      const askKeys = (one(askCardOf(PART[s].glance), / data-keys="([^"]*)"/) || '').split(',').filter(Boolean);
+      const bad = [], rowsWant = [...FACT_ROWS, ...BEN_ROWS].filter(f => !f.want.none && askKeys.includes(f.question_id)).length, at = await goTab('work');
       await ev(() => { window.__pvgKeep = 'kept'; });
       const n0 = calls();
       seen.give = null; seen.mode = 'giveOpen';
@@ -7861,7 +7864,7 @@ async function runGiveOpen(browser, s, [w, h]) {
       if (want.length !== FACT_ROWS.length) bad.push(`検査用の ${FACT_ROWS.length}行のうち、欄が持つ質問は ${want.length}行`);
       if (/\d\s*問/.test(got.text)) bad.push('「集まった回答」の欄に「◯問」と書いてある');
       if (got.stray) bad.push(`回答の行が、欄の外に ${got.stray}つ`);
-      if (got.plates.length !== 4) bad.push(`話題の札 ${got.plates.length}枚`);
+      if (got.plates.length !== ASK_N) bad.push(`話題の札 ${got.plates.length}枚`);
       for (const t of got.plates) {
         if (!t.on) bad.push(`札「${t.text.slice(0, 12)}」が見えていない`);
         if (/回答|\d\s*[人件]/.test(t.text)) bad.push(`札に回答の数が入っている「${t.text}」`);
