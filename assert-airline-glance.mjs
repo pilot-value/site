@@ -5335,14 +5335,23 @@ async function runTabs(browser, s, [w, h]) {
           const i = document.getElementById('pvg-st-q');
           i.value = q; i.dispatchEvent(new Event('input', { bubbles: true }));
           const on = [...document.querySelectorAll('#pvg-st-list > li')].filter(li => !li.hidden).map(li => li.querySelector('.pvg-city').getAttribute('data-city'));
-          return { on, n: document.querySelector('#pvg-stay [data-pvg-stn]').textContent, none: !document.querySelector('#pvg-stay .pvg-st-none').hidden };
+          const order = [...document.querySelectorAll('#pvg-st-list > li')].map(li => li.querySelector('.pvg-city').getAttribute('data-city'));
+          const all = document.querySelector('#pvg-stay .pvg-st-all'), btn = all && all.querySelector('[data-pvg-stall]');
+          return { on, order, n: document.querySelector('#pvg-stay [data-pvg-stn]').textContent, none: !document.querySelector('#pvg-stay .pvg-st-none').hidden,
+            fold: parseInt(document.getElementById('pvg-st-list').getAttribute('data-pvg-fold') || '0', 10) || 0, stall: !!all && !all.hidden, opened: !!btn && btn.getAttribute('aria-expanded') === 'true' };
         }, q);
         /* ⚠️ 「全部」は画面の並びで持つ。台帳の並び（地域ごと）と画面の並び（地域ごと・写真の在る都市が先）は別物で、
               台帳の並びと比べていた版は、正しい画面で必ず赤くなった（別の目の読み直しで見つかった。流す前だった）。
               中身（どの空港が出ているか）だけを台帳と突き合わせる。 */
+        /* ★2026-10-29 一覧は最初の F 枚（data-pvg-fold・24）で畳む（オーナー「最初の24枚だけ出して「すべて見る」ボタンで開く」）。
+           カードは全部 DOM に在り、F 枚より先は隠すだけ。字で探す・地域の札では畳まない（全部から探す）。開いたあとは全部のまま。
+           ⚠️ 以前の版はここで「全部見えている」を見ていて、畳む動きが効いていない（pv-glance.js の unfold の名前のぶつかり）のに緑だった。 */
         const first = await seek('');
-        const all = first.on;
-        if (!same([...all].sort(), net.list.map(d => d.iata).sort())) bad.push('何も打っていないのに、台帳の空港が全部は出ていない');
+        const all = first.order;
+        if (!same([...all].sort(), net.list.map(d => d.iata).sort())) bad.push('一覧に、台帳の空港が全部は入っていない');
+        const folded = first.fold > 0 && all.length > first.fold && !first.opened;
+        if (!(same(first.on, folded ? all.slice(0, first.fold) : all) && first.n === String(all.length) && first.stall === folded && !first.none))
+          bad.push(`何も打っていない一覧が違う（${folded ? `最初の${first.fold}枚と「すべて見る」` : '全部'}のはず ── 見えている ${first.on.length}枚・数「${first.n}」・ボタン ${first.stall ? 'あり' : 'なし'}）`);
         const br = net.list.find(d => /（.+）/.test(d.city)), ac = net.list.find(d => /[^\x00-\x7f]/.test(d.en));
         const pn = net.list.find(d => /[.,'\-]/.test(d.en));
         if (pn) {
@@ -5365,7 +5374,13 @@ async function runTabs(browser, s, [w, h]) {
         const zz = await seek('zzzz');
         if (!(zz.on.length === 0 && zz.none && zz.n === '0')) bad.push('どれにも当たらない字で、「見つかりません」が出ない');
         const back = await seek('');
-        if (!(same(back.on, all) && back.n === String(all.length) && !back.none)) bad.push('字を消しても、全部のカードに戻らない（並びが変わる）');
+        if (!(same(back.on, first.on) && back.n === String(all.length) && back.stall === first.stall && !back.none)) bad.push('字を消しても、打つ前の一覧に戻らない（並びか、畳んだ形が変わる）');
+        if (folded) {
+          const got = await p.evaluate(() => { document.querySelector('#pvg-stay [data-pvg-stall]').click();
+            const on = [...document.querySelectorAll('#pvg-st-list > li')].filter(li => !li.hidden).map(li => li.querySelector('.pvg-city').getAttribute('data-city'));
+            return { on, stall: !document.querySelector('#pvg-stay .pvg-st-all').hidden }; });
+          if (!(same(got.on, all) && !got.stall)) bad.push(`「すべて見る」を押しても全部にならない（${got.on.length}枚・ボタン ${got.stall ? '残る' : '消える'}）`);
+        }
       }
       /* 鍵の無い人が都市を行き来しても、同じ都市を取りに行くのは1回だけ（「見られない」の答えは持っておく）。
          ほかの都市の答えで捨ててよいのは、開いていた答えだけ ── 全部捨てていた頃は、戻るたびに待ちの絵が出て問い合わせが増えた。 */
@@ -6385,7 +6400,7 @@ async function runStayStall(browser, s, [w, h]) {
 /* ── 就航地の一覧：探す字と地域の札は「戻る」と読み直しで残る（場面 find）──
    打つ・地域の札を押す → 都市を開く → 読み直す →「‹ 就航地」：同じカード・同じ並び・同じ数・押した札・欄の字・同じ位置（2px 以内）。
    一覧の上で読み直しても、同じカード・数・札・欄（読み直したあとの位置はブラウザが決める ＝ 見ない）。
-   住所で直接開いた都市から「‹ 就航地」は、全部の一覧（戻すものが無い）。打っても札を押しても、履歴の段は増えない（書き換えるだけ）。
+   住所で直接開いた都市から「‹ 就航地」は、何も打っていない一覧（戻すものが無い）── 24枚より多い会社は最初の24枚と「すべて見る」（その都市が25枚目より先なら開いた形）。打っても札を押しても、履歴の段は増えない（書き換えるだけ）。
    狭い幅の1回だけ（FIND_W）。幅を絞った回（--sizes）は、その幅で流す。 */
 const FIND_W = [390];
 async function runFind(browser, s, [w, h]) {
@@ -6400,6 +6415,9 @@ async function runFind(browser, s, [w, h]) {
       n: ((box && box.querySelector('[data-pvg-stn]')) || {}).textContent || '',
       pill: box ? [...box.querySelectorAll('[data-pvg-rg][aria-pressed="true"]')].map(b => b.getAttribute('data-pvg-rg')).join(',') : '',
       q: (document.getElementById('pvg-st-q') || {}).value, y: Math.round(window.scrollY), all: lis.length, len: history.length,
+      order: lis.map(li => { const a = li.querySelector('.pvg-city[data-city]'); return a ? a.getAttribute('data-city') : '?'; }),
+      fold: (l => (l ? parseInt(l.getAttribute('data-pvg-fold') || '0', 10) || 0 : 0))(document.getElementById('pvg-st-list')),
+      stall: !!(box && box.querySelector('.pvg-st-all')) && !box.querySelector('.pvg-st-all').hidden,
     };
   });
   /* 位置が5コマ続けて同じになるまで待つ（時間では待たない。5秒で諦める）。 */
@@ -6473,11 +6491,12 @@ async function runFind(browser, s, [w, h]) {
       await p.goto(`${url}#stay-${code}`, { waitUntil: 'load', timeout: 60000 });
       if (!(await K.slotIs(code, 'locked'))) direct.push(`#stay-${code} が詳細で開かない`);
       else if (!((await K.tap('#pvg-city [data-pvg-cityback]')) && (await K.list()))) direct.push('「‹ 就航地」で一覧に戻らない');
-      else { const r = await read(); if (!(r.all > 0 && r.cards.length === r.all && r.n === String(r.all) && r.pill === '' && r.q === '')) direct.push(`戻った一覧 ── ${show(r)}（全部の ${r.all}枚・札「すべて」・欄は空のはず）`); }
+      else { const r = await read(); const folded = r.fold > 0 && r.all > r.fold && r.order.indexOf(code) < r.fold;   // 25枚目より先の都市から戻ったら、そのカードが見えるよう開いた形
+        if (!(r.all > 0 && JSON.stringify(r.cards) === JSON.stringify(folded ? r.order.slice(0, r.fold) : r.order) && r.stall === folded && r.n === String(r.all) && r.pill === '' && r.q === '')) direct.push(`戻った一覧 ── ${show(r)}（${folded ? `最初の${r.fold}枚と「すべて見る」` : `全部の ${r.all}枚`}・札「すべて」・欄は空のはず）`); }
     }
     ok(!grow.length, `${tag}: 探す欄に打っても地域の札を押しても、履歴の段は増えない（書き換えるだけ）`, grow.join(' ／ '));
     ok(!back.length, `${tag}: 打って地域の札を押す → 都市 → 読み直す →「‹ 就航地」── 同じカード・同じ並び・同じ数・押した札・欄の字・同じ位置（2px 以内）／一覧の上で読み直しても同じ一覧`, back.join(' ／ '));
-    ok(!direct.length, `${tag}: 住所で直接開いた都市から「‹ 就航地」── 全部の一覧（札「すべて」・欄は空）`, direct.join(' ／ '));
+    ok(!direct.length, `${tag}: 住所で直接開いた都市から「‹ 就航地」── 何も打っていない一覧（畳む会社は最初の24枚と「すべて見る」・札「すべて」・欄は空）`, direct.join(' ／ '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {

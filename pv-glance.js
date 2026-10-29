@@ -285,10 +285,12 @@
   function cityCard(code) {
     var c = stList && /^[A-Z]{3}$/.test(code || '') ? stList.querySelector('.pvg-city[data-city="' + code + '"]') : null;
     /* 畳んだ先の街を開いた・そこから戻った：一覧を開いてから返す（隠れたカードには戻れない） */
-    if (c && stFold && c.parentNode && c.parentNode.hidden) unfold();
+    if (c && stFold && c.parentNode && c.parentNode.hidden) showAllCities();
     return c;
   }
-  function unfold() {
+  /* ⚠️ 名前を unfold にしない（2026-10-29 に踏んだ）── 上の unfold(el)（畳んだ説明の箱を開ける）と同じ名前にすると、
+     あとの宣言が前を上書きし、#kyuyo-konkyo などへ飛んでも説明が開かなくなる（画面は普通に動いたまま）。 */
+  function showAllCities() {
     stFold = 0;
     if (stAll) { var b = stAll.querySelector('[data-pvg-stall]'); if (b) b.setAttribute('aria-expanded', 'true'); }
     filterCities();
@@ -540,7 +542,7 @@
     var all = t.closest('[data-pvg-stall]');
     if (all && stayBox && stayBox.contains(all)) {
       var first = stItems[stFold] || null;
-      unfold();
+      showAllCities();
       /* ボタンは消える ── 開いた最初のカードへ（キーボードで続きから読める） */
       if (first) quiet(first.querySelector('.pvg-city'));
       return;

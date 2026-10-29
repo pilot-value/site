@@ -727,6 +727,10 @@
 .pvg .pvg-st-teaser > .pvg-askh{flex-wrap:wrap;margin:8px 0!important}
 .pvg .pvg-st-more{margin-top:12px}
 .pvg-st-more > .pvg-btn{width:100%}
+/* ★2026-10-29 幅いっぱいのボタンは字を折り返す（.pvg-btn は nowrap）。英語の「See the destinations we confirmed (35 airports)」が
+   320 の画面で4px はみ出し、ページごと横に揺れていた（ジェットスター・スイス）。 */
+.pvg-st-more > .pvg-btn,.pvg-st-all > .pvg-btn{white-space:normal;text-align:center;line-height:1.35;padding-block:8px;gap:6px}
+.pvg-st-more > .pvg-btn svg,.pvg-st-all > .pvg-btn svg{flex-shrink:0}
 .pvg-cgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .pvg-cgrid > li{display:flex;min-width:0}
 .pvg-cgrid > li[hidden]{display:none}
