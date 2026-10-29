@@ -267,6 +267,10 @@ const STAMPS = [
     files: ['deep-pay.css', 'deep-pay.js'] },
   { pages: [['deep-pay-compare.html', ''], ['en/deep-pay-compare.html', '../']],
     files: ['deep-pay.css', 'deep-pay-compare.css', 'deep-pay-compare.js'] },
+  /* ★2026-10-29 Vote（口コミ一覧の作り直し）。本文は vote.js が組み、vote.css が形を付ける（対で動く）。
+     直したら、出た値を日英2枚に写す。 */
+  { pages: [['community.html', ''], ['en/community.html', '../']],
+    files: ['vote.css', 'vote.js'] },
 ];
 const stampIssues = [];
 for (const { pages, files } of STAMPS) {

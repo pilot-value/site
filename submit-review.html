@@ -269,7 +269,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
     </div>
 
     <!-- Form -->
-    <div id="form-wrap" style="display:none">
+    <div id="form-wrap">
 
       <!-- Step bar -->
       <div class="step-bar">
@@ -743,6 +743,23 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         </div>
       </div>
 
+      <!-- ── ログインせずに出したとき（預かった）──────────────────
+           ★2026-10-29 オーナー指示「口コミはログインなしでもかけるように（給与提出と同じ構造）」。
+           預かっただけでは何も開かない（給与と同じ）。ログインして戻ると claimReviews() が本人の口コミにする。 -->
+      <div id="step-pending" class="card text-center" style="display:none">
+        <div style="font-size:2.2rem;margin-bottom:10px">✅</div>
+        <h2 class="text-2xl font-extrabold mb-3">口コミを預かりました</h2>
+        <p class="text-sm mb-2"><strong class="text-text">完了まであと1ステップです。</strong></p>
+        <p class="text-muted text-sm mb-6">ログイン（または登録）すると、この口コミがあなたの投稿になり、<br>全社の口コミが読めるようになります。メールアドレスは投稿データに含まれません。</p>
+        <a id="pending-login" href="login.html?next=submit-review.html" class="btn-orange justify-center">ログインして完了する →</a>
+      </div>
+      <!-- 引き取れなかったとき（通信が落ちた）。新しく出し直させない（2重にしない）。 -->
+      <div id="claim-retry" class="card text-center" style="display:none">
+        <h2 class="text-xl font-bold mb-2">口コミの引き取りに失敗しました</h2>
+        <p class="text-muted text-sm mb-5">預かった口コミはサーバーに残っています。通信の具合を確かめて、もう一度お試しください。</p>
+        <button type="button" class="btn-orange justify-center" onclick="location.reload()">もう一度試す</button>
+      </div>
+
     </div><!-- /form-wrap -->
   </div>
 </main>
@@ -788,11 +805,99 @@ let currentUserId = null;
   };
   let session = null;
   try { ({ data: { session } } = await _sb.auth.getSession()); } catch (e) { session = null; }
-  if (!session) { showGate(); return; }
+  /* ★2026-10-29 ログインしていなくてもフォームは書ける（送ると預かりに入る）。
+     壁（showGate）は、預かりの口がまだサーバーに無いとき（SQL を貼る前）だけ使う。 */
+  window.__pvReviewGate = showGate;
+  if (!session) return;
   currentUserId = session.user.id;
   document.getElementById('login-gate').style.display = 'none';
   document.getElementById('form-wrap').style.display = '';
+  claimReviews(session.user.id);
 })();
+
+// ── ログインせずに出した口コミの預かり（2026-10-29）────────────────────────
+// 給与の預かり（pv-claim-pending.js）と同じ考え方：預かり証は端末に置き、
+// **同じタブの続き**のときだけ引き取る（共用の端末で、次の人が前の人の口コミを自分の物にしない）。
+const REVIEW_CLAIM_KEY = 'pv_review_claim';
+function readClaims() {
+  try { const a = JSON.parse(localStorage.getItem(REVIEW_CLAIM_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+function writeClaims(a) {
+  try { if (a.length) localStorage.setItem(REVIEW_CLAIM_KEY, JSON.stringify(a.slice(-5))); else localStorage.removeItem(REVIEW_CLAIM_KEY); } catch (e) {}
+}
+function rememberClaim(token) {
+  const tab = (window.PVPayLocal && window.PVPayLocal.markTab) ? window.PVPayLocal.markTab() : '';
+  const a = readClaims().filter(x => x && x.t !== token && Date.now() - Number(x.ts || 0) < 30 * 864e5);
+  a.push({ t: token, ts: Date.now(), own: 'anon', tab: tab });
+  writeClaims(a);
+}
+function ownsClaim(x) {
+  if (!x || typeof x.t !== 'string' || !/^[0-9a-f]{16,200}$/.test(x.t)) return false;
+  if (Date.now() - Number(x.ts || 0) >= 30 * 864e5) return false;
+  if (window.PVPayLocal && window.PVPayLocal.owns) return window.PVPayLocal.owns(x.own, 'anon', x.ts, x.tab);
+  return Date.now() - Number(x.ts || 0) <= 60 * 60 * 1000;
+}
+function showPending() {
+  [1,2,3].forEach(i => { const s = document.getElementById('step' + i); if (s) s.style.display = 'none'; });
+  const bar = document.querySelector('.step-bar'); if (bar) bar.style.display = 'none';
+  const link = document.getElementById('pending-login');
+  if (link) link.href = 'login.html?next=' + encodeURIComponent('submit-review.html' + location.search);
+  document.getElementById('step-pending').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function showUnlocked() {
+  const exp = String((window.PVUnlock && window.PVUnlock.reviewUntil) ? window.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
+  localStorage.setItem('pv_unlock_expiry', exp);
+  [1,2,3].forEach(i => { const s = document.getElementById('step' + i); if (s) s.style.display = 'none'; });
+  const bar = document.querySelector('.step-bar'); if (bar) bar.style.display = 'none';
+  document.getElementById('step-pending').style.display = 'none';
+  document.getElementById('step-success').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (window.PVConfetti && window.PVConfetti.badge) window.PVConfetti.badge(document.getElementById('step-success'));
+  try { if (typeof window.PVConfetti === 'function') window.PVConfetti(); } catch (e) {}
+}
+/* ログインして戻ってきたら、このタブで預けた口コミを本人の口コミにする。
+   ★「無い」「済み」「切れた」は捨てる。通信が落ちたものだけ残して、やり直しの板を出す
+     （新しく出し直させない＝2重にしない）。 */
+async function claimReviews(uid) {
+  const all = readClaims();
+  const mine = all.filter(ownsClaim);
+  if (!uid || !mine.length) return;
+  let won = false, failed = false;
+  const keep = all.filter(x => !mine.includes(x));
+  for (const x of mine) {
+    try {
+      const { data, error } = await _sb.rpc('claim_review_pending', { p_token: x.t });
+      if (error) { failed = true; keep.push(x); continue; }
+      if (data && data.ok) won = true;
+    } catch (e) { failed = true; keep.push(x); }
+  }
+  writeClaims(keep);
+  if (won) {
+    try { if (typeof gtag === 'function') { gtag('event', 'review_submit', { method: 'claim' }); gtag('event', 'unlock', { method: 'review_claim' }); } } catch (e) {}
+    showUnlocked();
+  } else if (failed) {
+    [1,2,3].forEach(i => { const s = document.getElementById('step' + i); if (s) s.style.display = 'none'; });
+    document.getElementById('claim-retry').style.display = '';
+  }
+}
+/* 未ログインで送る：預かりの口へ。返るのは預かり証だけ。 */
+async function submitPending(v) {
+  const p = {
+    airline: effectiveAirline(v), position: v.pos, tenure_bucket: v.tenure, age_bucket: v.age,
+    fleet: v.fleet || null, job_role: v.jobRole || null, lang: 'ja',
+  };
+  for (const k of CAT_KEYS) { p[k + '_score'] = v.cats[k].score || null; p[k + '_comment'] = v.cats[k].comment || null; }
+  const { data, error } = await _sb.rpc('submit_review_pending', { p });
+  if (error) {
+    const code = String(error.code || ''), msg = String(error.message || '');
+    if (code === 'PGRST202' || code === '42883' || /submit_review_pending/.test(msg) && /not find|could not|does not exist/i.test(msg)) return { off: true };
+    return { err: error };
+  }
+  if (!data || !data.ok || !data.claim_token) return { err: new Error('no token') };
+  return { token: data.claim_token };
+}
+
 
 // ── URL ?airline= で会社を自動選択 ────────────────────────────
 (function(){
@@ -1364,9 +1469,25 @@ async function submitReview() {
       } catch (e) {}
     }
     if (!uid) {
-      document.getElementById('login-gate').style.display = '';
-      document.getElementById('form-wrap').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      /* ★2026-10-29 未ログインは預かりへ（submit_review_pending）。ハッシュは作らない（持ち主はまだ居ない）。 */
+      const r = await submitPending(v);
+      if (r.off) {
+        /* 預かりの口がまだサーバーに無い（SQL を貼る前）ときだけ、今までどおりログインの壁に戻す */
+        if (window.__pvReviewGate) window.__pvReviewGate();
+        else { document.getElementById('login-gate').style.display = ''; document.getElementById('form-wrap').style.display = 'none'; }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (r.err) {
+        const code = String(r.err.code || '');
+        showFormAlert(err, code === '54000' ? 'しばらくしてからもう一度お試しください。' : String(r.err.message || 'error').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])));
+        btn.disabled = false;
+        btn.textContent = '投稿して解放する 🔓';
+        return;
+      }
+      rememberClaim(r.token);
+      try { if (typeof gtag === 'function') gtag('event', 'review_pending', { airline: effectiveAirline(v) || '' }); } catch (e) {}
+      showPending();
       return;
     }
     currentUserId = uid;

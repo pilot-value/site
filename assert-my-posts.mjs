@@ -99,8 +99,15 @@ console.log('\n════ ソース ════');
   for (const f of ['submit-review.html', 'en/submit-review.html']) {
     const raw = read('./' + f);
     const s = nohtml(raw);
-    ok(raw.includes('<div id="form-wrap" style="display:none">'),
-       `${f} のフォームは既定で閉じている（通ったときだけ出す）`);
+    /* ★2026-10-29 オーナー指示「口コミはログインなしでもかけるように（給与提出と同じ構造）」。
+       フォームは誰にでも開いている。未ログインの送信は預かりの口（submit_review_pending）へ行き、
+       ハッシュは作らない（持ち主はまだ居ない）。表（reviews_v2）へ直に入れるのはログインしている道だけ。 */
+    ok(raw.includes('<div id="form-wrap">'), `${f} のフォームは誰にでも開いている（ログインなしで書ける）`);
+    const anon = (s.match(/if \(!uid\) \{[\s\S]*?\n    \}\n    currentUserId = uid;/) || [''])[0];
+    ok(/submitPending\(v\)/.test(anon) && !/makeProofHash|from\('reviews_v2'\)/.test(anon),
+       `★${f} は未ログインの送信を預かりへ回し、ハッシュも表への書き込みも作らない`);
+    ok(s.includes("_sb.rpc('submit_review_pending'") && s.includes("_sb.rpc('claim_review_pending'"),
+       `${f} は預ける口と引き取る口の両方を使う`);
     ok(/try \{ \(\{ data: \{ session \} \} = await _sb\.auth\.getSession\(\)\); \} catch \(e\) \{ session = null; \}/.test(s),
        `${f} が getSession の例外を握る（例外でフォームが開いたままにならない）`);
     ok(s.includes("if (!userId) throw new Error('not signed in')"),

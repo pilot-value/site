@@ -11,6 +11,7 @@
      contacts            … お問い合わせ（返信先を投稿者のメールに設定）
      pay_reports         … 給与レポート（★金額は載せない）
      pay_reports_pending … 会員登録せずに出した給与レポート（預かり）
+     pv_review_pending   … ログインせずに出した口コミ（預かり・一覧には掲載中）
      airline_conditions  … 待遇アンケートの回答（1問＝1通）
 
    ★ 金額をメールに載せないのは決めごと。給与レポートは user_id を持たない設計で
@@ -366,6 +367,45 @@ async function buildPayReportPending(id: string): Promise<Mail | null> {
   };
 }
 
+/* ── pv_review_pending ────────────────────────────────────── */
+/* ログインせずに出した口コミ（db/review-pending.sql・2026-10-29）。
+   ★オーナー決定「預かった時点で一覧に出す」── 載った瞬間に人目に触れるので、
+     品質の判定と抜粋は新着口コミ（buildReview）と同じものを付ける。
+   ★預かり証（claim_token）と回線の控え（ip_day_hash）は SELECT しない。 */
+async function buildReviewPending(id: string): Promise<Mail | null> {
+  const select = ['id', 'airline', 'position', 'age_bucket', 'tenure_bucket', 'fleet', 'job_role',
+    'orig_lang', 'created_at', ...CAT_KEYS.map((k) => `${k}_comment`)].join(',');
+  const r = await sbSelect('pv_review_pending', id, select);
+  if (!r) return null;
+
+  const comments = CAT_KEYS.map((k) => String(r[`${k}_comment`] ?? '').trim()).filter(Boolean);
+  const combined = comments.join(' ');
+  const qText = assessReviewQuality(combined);
+  const q = qText.ok ? assessReviewSet(comments) : qText;
+  const excerpt = combined.slice(0, 200);
+  const flag = q.ok
+    ? '<span style="color:#15803d">問題なし</span>'
+    : `<span style="color:#b91c1c;font-weight:700">⚠️ ${esc(q.reason)} — 内容をご確認ください</span>`;
+
+  return {
+    subject: `【PILOT VALUE】口コミ（登録前の預かり）— ${r.airline ?? '不明'}${q.ok ? '' : '（要確認）'}`,
+    html: shell('ログインせずに出された口コミが1件あります',
+      `${esc(r.created_at)} に出されました。<b>口コミ一覧にはもう載っています</b>（預かった時点で出す決まり）。`
+      + 'ログインして引き取られると「新着口コミ」の通知がもう1通届きます。',
+      table(
+        row('航空会社', esc(r.airline)) +
+        row('職位 / 年代', `${esc(POS[r.position] ?? r.position ?? '—')} / ${esc(r.age_bucket ?? '—')}`) +
+        row('在籍', esc(r.tenure_bucket ?? '—')) +
+        row('機種 / 区分', `${esc(r.fleet ?? '—')} / ${esc(roles(null, r.job_role))}`) +
+        row('言語', esc(r.orig_lang === 'en' ? '英語' : '日本語')) +
+        row('記入カテゴリ', `${comments.length} / ${CAT_KEYS.length}`) +
+        row('品質チェック', flag) +
+        row('本文抜粋', esc(excerpt) + (combined.length > 200 ? '…' : '')) +
+        row('状態', '登録待ち（一覧には掲載中）'),
+      )),
+  };
+}
+
 /* ── airline_conditions ───────────────────────────────────── */
 /* 待遇アンケート。1問答えるごとに1行入るので、1問ごとに1通届く。
    ★ スキップの行では送らない。skipped_at が立っていて答えの列は全部 null
@@ -543,7 +583,7 @@ async function buildRequestComment(id: string): Promise<Mail | null> {
 
 /* 手元の検査（assert-admin-notify.mjs）が実体をそのまま動かせるように出す。
    translate-review/index.ts と同じ形。Deno 側では無害。 */
-export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildCondition, buildRequest,
+export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildReviewPending, buildCondition, buildRequest,
          buildRequestComment };
 
 async function send(mail: Mail, idemKey: string) {
@@ -599,6 +639,7 @@ Deno.serve(async (req) => {
     contacts: buildContact,
     pay_reports: buildPayReport,
     pay_reports_pending: buildPayReportPending,
+    pv_review_pending: buildReviewPending,
     airline_conditions: buildCondition,
     pv_requests: buildRequest,
     pv_request_comments: buildRequestComment,

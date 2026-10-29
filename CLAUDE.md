@@ -425,6 +425,42 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `node shot-actual-pay.mjs`（タブはどの場面でもいちばん上に写る）。**円だけで確かめない**（通貨を名指しして1枚撮る）。
 理由と経緯は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 20 番と「DEEP PAY の解放条件」。
 
+## Vote（口コミ一覧・[community.html](community.html)・2026-10-29 作り直し）
+
+オーナーの Vote の試作を完成形として作り直した。**読む順を作り替えない** ──
+見出し「Vote」→ 検索 → 最新の口コミ（横に送るカード）→ よく見られている会社（評価の6軸レーダー＋月の勤務3本）。
+
+- **本文は [vote.js](vote.js)（日英1本）が描き、[vote.css](vote.css) が形を付ける。** HTML は骨組みだけ。ヘッダー・左メニュー・足元・言語・通貨・テーマは今のまま。
+- 口コミは `PVReviewI18n.fetchRows` → `pv_reviews()` のまま。**鍵の無い人には本文が届かない**（項目名と先頭40字だけ）。ぼかしで隠さない。
+- 口コミのカードを押すと、同じ投稿の7項目を引き出しで読む。経営陣への提案は総合評価に入れない。表示名は「勤務年数」。
+- **会社カードは既存の会社ページ（`#reviews` / `#work`）へ直接飛ぶ**（オーナー判断）。会社ページは触っていない。
+  評価は `career-live.js` の `realRated()` の**写し**で数える（同じ数になる。写しのずれは assert-vote が落とす）。
+  月の勤務は `pv_work_view()` の 25〜75% をそのまま・目盛は 0〜240 時間／0〜31 泊で固定・機長と副操縦士は切替。
+- **よく見られている会社の並びは [vote-popular.json](vote-popular.json) だけ**（[gen-vote-popular.mjs](gen-vote-popular.mjs) が GA4 の閲覧数から書く・閲覧数そのものは書かない）。
+  ⚠️ 評価順・件数順で代用しない。⚠️ GA4 を叩くので check.mjs に入れない。**月に1回は流し直す。**
+- 見本の口コミ14件（`SEED_REVIEWS`）はオーナー判断で残した。会社カードの評価・件数には入れない。
+- 上の帯（口コミ件数・掲載社数）と `totalReviewCount()` はページごと無くなった。件数は「すべての口コミ」の「新着順 · N件」だけ（今までと同じ3つを数える）。
+- ★第2回（2026-10-29）：**最新の口コミはトップの口コミの帯と同じ大きさで流れる**（幅 304px・狭い画面 268px）。
+  鍵の無い人には `pv_vote_latest()`（**新しい12件・1件で80字**・オーナー決定でトップの6件とは別に開けた）の先頭80字＋**字を持たない影絵のぼかし**＋「全 N 文字」（投稿全体）。
+  ⚠️ ぼかしの下に本物の字を置かない（80字より先は端末に届いていない）。一覧と会社ページの鍵の無い抜粋は40字のまま。
+  ★80字は**投稿の頭から項目の順に、項目をまたいで**詰める（SQL の `pv_review_fill` と `vote.js` の `stripBody` の2か所・2つ目からの項目は名前つき）。
+  1欄で止める形に戻さない（最初の欄が短い投稿が10字ほどで終わる・2026-10-29 オーナー指摘）。
+  ヘッダー右上のオレンジ「匿名で口コミを投稿」は Vote の日英だけ外した。会社カードは小さく（PC 3列・iPad 縦 2列・スマホ 1列）。
+
+## ログインなしの口コミ（2026-10-29・給与提出と同じ「預かり → 引き取り」）
+
+- **書く口**：[db/review-pending.sql](db/review-pending.sql) の `submit_review_pending`（未ログイン・形をサーバーでも確かめる・同じ回線1日5件）。
+  **表** `pv_review_pending` と読む側は [db/reviews-gate.sql](db/reviews-gate.sql)（**貼る順はこちらが先**）。
+- **預かった時点で一覧に出る**（オーナー決定）── `pv_reviews` / `pv_vote_latest` が引き取っていない預かりを混ぜる（`pending: true`）。本文の規則は普通の口コミと同じ。
+  ⚠️ トップの `pv_review_voices` には混ぜていない。
+- **預かっただけでは何も開かない**。同じタブの続きでログインして戻ると、[submit-review.html](submit-review.html) の `claimReviews()` が
+  `claim_review_pending` を呼び、本人の口コミ（`reviews_v2`・`proof_hash` はサーバーの式）になって鍵が開く。預かり証は端末の `pv_review_claim`（URL に載せない）。
+  同じ会社の口コミがもうある人は入れずに引き取り済み（1社1件）。
+- 管理者通知：`notify-admin` の `pv_review_pending`（品質の判定と抜粋つき）。**Edge Function の Deploy と webhook の SQL はオーナー作業。**
+- 見るもの：`node db/test-review-pending.mjs`（SQL）／`node assert-vote.mjs` の 2-D（画面の通し）／`node assert-my-posts.mjs`（フォームの形）。
+
+見るもの: `node assert-vote.mjs`（落ちたときの「なぜ」は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 27 番）。
+
 ## デプロイ前チェック
 
 **`node check.mjs` 1本で全部走る。** 中で並列に回すので、手で1本ずつ流すより速い。
@@ -433,8 +469,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 |---|---|---|
 | `node check.mjs fast` | 静的検査＋ネット不要の単体（21本）| 2秒 |
 | `node check.mjs sql` | PGlite の SQL テスト（19本）| 80秒 |
-| `node check.mjs web` | Puppeteer の画面検査（27本）| 7分半 |
-| `node check.mjs all` | 全部（67本）| 10分 |
+| `node check.mjs web` | Puppeteer の画面検査（28本）| 7分半 |
+| `node check.mjs all` | 全部（68本）| 10分 |
 | `node check.mjs` | 既定 ＝ `fast` ＋ `sql`（画面を触っていない回はこれで足りる）| 80秒 |
 
 - 画面・CSS・共有 JS を触ったら `web` か `all` まで流す。
@@ -483,6 +519,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-roadmap.mjs` | ROADMAP & REQUESTS ── **匿名が解けない**（一覧の SQL が `author_hash` に触れない）・要望の本文が `textContent` で入る・**日英の文言の鍵が完全に同じ**・区分と状態の白リストが SQL と画面で一致・取れないときに 0 で埋めない・hex と `prefers-color-scheme` の直書きが無い |
 | `assert-career.mjs` | 概要と2社比較の1枚 ── **画面の額が正本と一致**（生成側の関数を呼ばずに作り直して照合）・概要と比較で同じ額・**上限の印（〜・斜線・「上限」の字）が3つそろう**・棒が 0 から始まり描かれた長さが額に比例・住所ごとに直接開ける／戻る・進むで同じ画面と同じ位置・選び直しは履歴を積まない・通貨を切り替えて円に戻すと1文字も違わない・年収が最初の1画面に入る・**どの幅でも・どの通貨でも額が切れない／目盛の字がくっつかない**（広い側も測る。箱がいちばん狭いのは 1001px）・**狭い画面で社名が語の途中で折れない／入れ替えボタンが社名と略号の札に掛からない**・**示すことが条件の写真にクレジットが付いている**・写真に撮影情報が残っていない |
 | `db/test-requests.mjs` | 要望と ♡ の SQL ── ハッシュが外へ出ない・**1人1票**・管理者しか状態を変えられない・隠した行が一般ユーザーの `total` にも出ない・文字数と連投の制限がサーバ側で効く |
+| `assert-vote.mjs` | Vote（口コミ一覧）── **鍵の無い人に、届けると決めた字（流れるカードは80字・一覧は40字）より先の本文が出ない**（ホーム・項目の絞り込み・引き出しのどこからも）・**ぼかしの影絵に字が無い**・「全 N 文字」が投稿全体の字数・**ログインなしで書いて預け、ログインで引き取ると鍵が開く**・会社カードの評価が会社ページと同じ数え方（`realRated()` の写しが1文字もずれていない）・月の勤務はサーバーの幅のまま・無い項目は「未取得」で棒なし・目盛は 0〜240／0〜31・並びは `vote-popular.json` の順・引き出しを閉じても履歴が増えない・行き先は会社ページの `#reviews` / `#work` と本当の slug |
 | `assert-claims.mjs` | サイトが**本当のことだけ**を言っているか ── A)「画像は送らない」と書かない（**本当は送っている。**端末を出ないのは*枠の外*と*塗った部分*だけ）・正しい説明が送る直前の確認画面と `personal-data.html` に在る／B) 画面に出る数を HTML に直書きしない（JS が書き換える欄は「—」で出荷・日英で欄の集合が同じ・掲載社数は `SALARY` と一致）|
 | `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙・JSON-LD の更新日）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
@@ -495,7 +532,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 （検査のほうが正しいことがほとんど）。その画面を触るときも先に読む。
 
 ⚠️ **`check.mjs` に入れていないもの**（ネット・本番DB・課金があるため。必要な回だけ手で流す）──
-`gen-fx-rates.mjs`（レート取り直し・半年に一度）/ `db/usage.mjs`（本番DBを読む）/
+`gen-fx-rates.mjs`（レート取り直し・半年に一度）/ `gen-vote-popular.mjs`（Vote の人気の並び・GA4・月に一度）/ `db/usage.mjs`（本番DBを読む）/
 `db/eval-payslip.mjs`（$0.32）/ `translate-eval.mjs`（課金）/
 `check-sources.mjs --online` / `assert-jobs.mjs --online` /
 `assert-no-pii.mjs --live`（push 後に必ず）/ `assert-no-pii.mjs --history`（履歴を触ったとき）。

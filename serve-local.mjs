@@ -53,6 +53,7 @@ export const SQL_FILES = [
   'db/conditions.generated.sql',
   'db/airline-conditions.sql',
   'db/reviews-gate.sql',
+  'db/review-pending.sql',   // ログインなしの口コミの預かり（2026-10-29）。表は reviews-gate.sql、書く口はこちら
   'db/review-summary.sql',
   'db/deep-pay.sql',
   'db/requests.sql',

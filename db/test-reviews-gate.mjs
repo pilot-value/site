@@ -317,7 +317,7 @@ await asUser(1);
   ok(ana.culture_comment === LONG_A, '★出した人には本文が丸ごと返る（切らない）');
   ok(ana.translations && ana.translations.en, '訳文も返る（言語切替が動く）');
   ok(ana.clip === undefined,
-     '★鍵を持つ人には抜粋を付けない（全文が在るのに40字も並べない）',
+     '★鍵を持つ人には抜粋を付けない（全文が在るのに80字も並べない）',
      JSON.stringify(ana.clip || null));
   ok(ana.proof_hash === undefined, '鍵を持つ人にも proof_hash は返さない');
 }
