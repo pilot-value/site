@@ -279,8 +279,11 @@ const depthAt = (h, i) => (h.slice(0, i).match(/<div\b/g) || []).length - (h.sli
 /* 「ひとつ教えて」のカードと、その中の話題（札＝<summary> の中身・質問の並び＝その下）。 */
 const askCardOf = g => one(g, /<article class="pvg-card pvg-askc"[^>]*>([\s\S]*?)\n<\/article>/) || '';
 const topicsOf = g => [...askCardOf(g).matchAll(/<details class="pvg-topic" data-topic="([a-z-]+)">\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/g)].map(m => ({ id: m[1], sum: m[2], body: m[3] }));
-/* 話題の並びと名前（オーナーの指定：勤務／通勤・タクシー／Staff Travel／機長昇格）。 */
-const ASK_TOPICS = [['work', '勤務'], ['taxi', '通勤・タクシー'], ['staff-travel', 'Staff Travel'], ['upgrade', '機長昇格']];
+/* 話題の並びと名前（オーナーの指定：勤務／通勤・タクシー／Staff Travel／機長昇格）。
+   ★2026-10-29 オーナー「全部出そう。勤務スケジュール、休暇・手当、訓練・キャリアも」── 「情報を追加」の面の話題を全部。
+   前の「勤務」（希望休など4問 ＝ 勤務スケジュールの質問）は、面と同じ名前の「勤務スケジュール」になって10問ぜんぶを並べる。 */
+const ASK_TOPICS = [['roster', '勤務スケジュール'], ['taxi', '通勤・タクシー'], ['staff-travel', 'Staff Travel'], ['upgrade', '機長昇格'], ['career', '訓練・キャリア'], ['benefits', '休暇・手当']];
+const ASK_N = ASK_TOPICS.length;
 /* 「情報を追加」の面の絵（pv-contrib.js の ICONS）。面のファイルの字から切り出して読む ── ここに写しを持たない
    （写しを持つと、面の絵が変わっても、この検査は古い写しと比べて緑のまま）。読めなければ空 ＝ 下の突き合わせが落ちる。 */
 const SHEET_ICONS = (() => {
@@ -858,12 +861,12 @@ for (const s of FIVE) {
     const card = askCardOf(P.glance), tps = topicsOf(P.glance);
     const names = tps.map(t => text(one(t.sum, /<span class="pvg-tp-n">([\s\S]*?)<\/span>/) || ''));
     ok(same(tps.map(t => t.id), ASK_TOPICS.map(x => x[0])) && same(names, ASK_TOPICS.map(x => x[1])),
-       `${s}: 話題の札は ${ASK_TOPICS.map(x => x[1]).join(' → ')} の4枚で、札の名前がその話題の名前`, tps.map((t, i) => `${t.id}「${names[i]}」`).join(' '));
+       `${s}: 話題の札は ${ASK_TOPICS.map(x => x[1]).join(' → ')} の${ASK_N}枚で、札の名前がその話題の名前`, tps.map((t, i) => `${t.id}「${names[i]}」`).join(' '));
     const qs = tps.map(t => [text(one(t.sum, /<span class="pvg-tp-q">([\s\S]*?)<\/span>/) || ''), (t.body.match(/<li\b/g) || []).length]);
-    ok(tps.length === 4 && qs.every(([q, n]) => n > 0 && q === `質問 ${n}問`), `${s}: 札の「質問 N問」は、その話題に並ぶ質問の数そのもの（単位は「問」。回答の数ではない）`, qs.map(([q, n]) => `「${q}」行 ${n}`).join(' '));
+    ok(tps.length === ASK_N && qs.every(([q, n]) => n > 0 && q === `質問 ${n}問`), `${s}: 札の「質問 N問」は、その話題に並ぶ質問の数そのもの（単位は「問」。回答の数ではない）`, qs.map(([q, n]) => `「${q}」行 ${n}`).join(' '));
     const icoOf = h => one(h, /^<span class="pvg-ico" aria-hidden="true"><svg\b[^>]*><path d="([^"]+)"\/><\/svg><\/span>/) || '';
     const pics = [...tps.map(t => icoOf(t.sum)), icoOf(one(card, /<a class="pvg-topic pvg-topic-a" href="#pvg-stay">([\s\S]*?)<\/a>/) || '')];
-    ok(pics.length === 5 && pics.every(Boolean) && new Set(pics).size === 5, `${s}: 話題の札の絵は4つとも違い、ホテル・レストランの絵とも違う（色だけで見分けさせない）`, pics.map(d => d.slice(0, 14)).join(' ／ '));
+    ok(pics.length === ASK_N + 1 && pics.every(Boolean) && new Set(pics).size === ASK_N + 1, `${s}: 話題の札の絵は${ASK_N}つとも違い、ホテル・レストランの絵とも違う（色だけで見分けさせない）`, pics.map(d => d.slice(0, 14)).join(' ／ '));
     {
       /* 札の絵は、その札の質問が開く面（「情報を追加」）の、同じ話題の絵と同じ ── 札を押した先で、別の絵に変わらない。
          どの面を開くかは、札の下の質問の行（data-pvc-open）を読む。行が無い札・面が2つの札・面に絵が無い話題は、飛ばさずに落とす。 */
@@ -879,7 +882,24 @@ for (const s of FIVE) {
           bad.push(`${t.id}: 面の「${views[0]}」の絵と ${i + 1}字めから違う（札「${a.slice(Math.max(0, i - 10), i + 10)}」／面「${b.slice(Math.max(0, i - 10), i + 10)}」）`);
         }
       }
-      ok(tps.length === 4 && !bad.length, `${s}: 話題の札の絵は、その札の質問が開く面（「情報を追加」）の、同じ話題の絵と同じ`, bad.join(' ／ '));
+      ok(tps.length === ASK_N && !bad.length, `${s}: 話題の札の絵は、その札の質問が開く面（「情報を追加」）の、同じ話題の絵と同じ`, bad.join(' ／ '));
+    }
+    {
+      /* ★2026-10-29：札の下に並ぶ質問は、その札が開く面（「情報を追加」）の話題で答えられる質問ぜんぶ ── 1問も落とさない・ほかの話題の質問を混ぜない・
+         同じ質問を2つの札に並べない。額の質問（通貨つき）だけは並べない（親の質問に答えた先で面が聞く・上の「集まった回答」は通貨を付けずに出す）。
+         期待する組は、ここで台帳（pv-conditions.mjs）から作り直す（生成側の関数を借りない）。 */
+      const bad = [], seen = new Map();
+      for (const t of tps) {
+        const views = [...new Set([...t.body.matchAll(/ data-pvc-open="([^"]*)"/g)].map(m => m[1]))];
+        const rows = [...t.body.matchAll(/ data-pvc-q="([a-z0-9_]+)"/g)].map(m => m[1]);
+        const want = ASKABLE.filter(id => groupOf(id) === views[0] && !MONEY_Q.includes(id));
+        const lost = want.filter(id => !rows.includes(id)), extra = rows.filter(id => !want.includes(id));
+        if (lost.length) bad.push(`${t.id}: 並んでいない質問 ${lost.join(' ')}`);
+        if (extra.length) bad.push(`${t.id}: ほかの話題か額の質問 ${extra.join(' ')}`);
+        if (new Set(rows).size !== rows.length) bad.push(`${t.id}: 同じ質問が2行`);
+        for (const id of rows) { if (seen.has(id)) bad.push(`${id}: 札「${seen.get(id)}」と「${t.id}」の両方に在る`); seen.set(id, t.id); }
+      }
+      ok(tps.length === ASK_N && !bad.length, `${s}: 札の下に並ぶ質問は、その札が開く面の話題で答えられる質問ぜんぶ（額の質問だけ除く・2つの札に同じ質問を並べない）`, bad.join(' ／ '));
     }
     {
       /* 見出し「◯◯のこと、ひとつ教えて。」── 字はこのまま、2つのかたまり（狭い画面で折れるのは、そのあいだだけ）。
@@ -896,7 +916,7 @@ for (const s of FIVE) {
         if (/[0-9０-９]/.test(rest)) bad.push(`${t.id}: 「質問 N問」の外に数字（${rest}）`);
         if (/class="[^"]*\bcrl\b|data-live=|data-pvg-n|<a\b|<button\b|<small\b/.test(t.sum)) bad.push(`${t.id}: 実データの欄・数を入れる口・押せるもの・古い小さい字`);
       }
-      ok(tps.length === 4 && !bad.length, `${s}: 話題の札に、回答の数も実データの欄も書いていない（札の数字は「質問 N問」の1つだけ）`, bad.join(' ／ '));
+      ok(tps.length === ASK_N && !bad.length, `${s}: 話題の札に、回答の数も実データの欄も書いていない（札の数字は「質問 N問」の1つだけ）`, bad.join(' ／ '));
     }
     {
       const got = one(card, /<div class="pvg-got">([\s\S]*?)<\/div><\/div>/) || '';
@@ -904,7 +924,7 @@ for (const s of FIVE) {
       const keys = slot ? (one(slot[1], / data-keys="([^"]*)"/) || '').split(',').filter(Boolean) : [];
       const asked = [...new Set(tps.flatMap(t => [...t.body.matchAll(/ data-pvc-q="([a-z0-9_]+)"/g)].map(m => m[1])))];
       ok(card.split('data-live="fact"').length === 2 && !!slot && keys.length > 0 && same([...keys].sort(), [...asked].sort()),
-         `${s}: 回答の数が出るのは「集まった回答」の欄1つだけ ── 「—」で出荷し、4つの話題の質問を全部指している`, `欄 ${card.split('data-live="fact"').length - 1}つ・指す質問 ${keys.length}・並ぶ質問 ${asked.length}`);
+         `${s}: 回答の数が出るのは「集まった回答」の欄1つだけ ── 「—」で出荷し、${ASK_N}つの話題の質問を全部指している`, `欄 ${card.split('data-live="fact"').length - 1}つ・指す質問 ${keys.length}・並ぶ質問 ${asked.length}`);
     }
   }
 
@@ -3339,11 +3359,12 @@ function scoreBad(s, sc, slots, rows, sum) {
    row  ＝ 同じ行の札は高さも、その下の質問の頭もそろう・行は端から端まで札で埋まる・「ホテル・レストラン」は1行ぜんぶ。
    fit  ＝ 札は押せる高さ・名前が札からはみ出さない。
    tile ＝ 「ホテル・レストラン」の矢印は右端・左の絵は箱のまんなか。
-   1行の札の数：狭い画面は1・広い画面は2・中身の箱が 1040px 以上で4（pv-glance.css の写し）。 */
-const PLATE_COLS = { col: 1, side: 2, row: 4 };
+   1行の札の数：狭い画面は1・広い画面は2・中身の箱が 1040px 以上で3（pv-glance.css の写し）。
+   ★2026-10-29 話題が6つになった（勤務スケジュール・訓練・キャリア・休暇・手当を足した）── 広い箱は4列 → 3列（3つずつ2段・余りの段を作らない）。 */
+const PLATE_COLS = { col: 1, side: 2, row: 3 };
 function plateBad(pl, kind) {
   const B = { rank: [], face: [], row: [], fit: [], tile: [] }, near = (a, b) => Math.abs(a - b) <= 1;
-  if (pl.topics.length !== 4 || !pl.grid || pl.topics.some(t => !t.sum || !t.name || !t.q)) {
+  if (pl.topics.length !== ASK_N || !pl.grid || pl.topics.some(t => !t.sum || !t.name || !t.q)) {
     for (const k of Object.keys(B)) B[k].push(`話題の札・名前・質問の行のどれかが測れない（札 ${pl.topics.length}枚）`);
     return B;
   }
@@ -3371,7 +3392,7 @@ function plateBad(pl, kind) {
   const rows = [];
   for (const t of pl.topics) { const r = rows.find(x => near(x[0].sum.y, t.sum.y)); if (r) r.push(t); else rows.push([t]); }
   const cols = PLATE_COLS[kind];
-  if (!same(rows.map(r => r.length), Array.from({ length: 4 / cols }, () => cols))) B.row.push(`1行に ${rows.map(r => r.length).join('・')}枚（${cols}枚ずつのはず）`);
+  if (!same(rows.map(r => r.length), Array.from({ length: Math.ceil(ASK_N / cols) }, (_, i) => Math.min(cols, ASK_N - i * cols)))) B.row.push(`1行に ${rows.map(r => r.length).join('・')}枚（${cols}枚ずつのはず）`);
   for (const r of rows) {
     const who = r.map(t => t.id).join('・');
     if (!r.every(t => near(t.sum.h, r[0].sum.h))) B.row.push(`${who}: 札の高さ ${r.map(t => Math.round(t.sum.h)).join('・')}px`);
@@ -3391,7 +3412,7 @@ const PLATE_WORDS = Object.fromEntries(FIVE.map(s => [s, topicsOf(PART[s].glance
 async function plateWords(p, s, tag) {
   const st = await p.waitForFunction(() => { const c = document.querySelector('.pvg-askc .crl[data-live="fact"]'); return !!c && !/^(idle|loading)$/.test(c.dataset.state) && c.dataset.state; }, { timeout: 8000 }).then(h => h.jsonValue(), () => null);
   const now = await p.evaluate(() => [...document.querySelectorAll('.pvg-askc details.pvg-topic > summary')].map(x => x.textContent));
-  ok(!!st && now.length === 4 && same(now, PLATE_WORDS[s]), `${tag}: 話題の札の字は、出荷した HTML と1文字も違わない（回答の欄がどう変わっても、札に数字や知らせが入らない）`, `回答の欄 ${st || '落ち着かない'}／${now.join('｜')}`);
+  ok(!!st && now.length === ASK_N && same(now, PLATE_WORDS[s]), `${tag}: 話題の札の字は、出荷した HTML と1文字も違わない（回答の欄がどう変わっても、札に数字や知らせが入らない）`, `回答の欄 ${st || '落ち着かない'}／${now.join('｜')}`);
 }
 const press = async h => { await h.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })); await h.click(); };
 /* 質問の行に触れたまま押して、押しているあいだ縮んでいるかを測る（縮んでいれば ''・縮まなければ理由）。
