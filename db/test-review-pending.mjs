@@ -141,7 +141,7 @@ const sum = (x) => Object.entries(x).filter(([k]) => /_comment$/.test(k)).reduce
   ok(!!p, '★預かった口コミが鍵の無い人の一覧に出る（pending の印つき）');
   ok(p && !Object.keys(p).some((k) => /_comment$/.test(k)) && !J(p).includes(MARK) && !('id' in p) && !('claim_token' in p) && !('ip_day_hash' in p),
      '★鍵の無い人には本文・番号・預かり証・回線の控えを返さない', J(p || {}).slice(0, 200));
-  ok(p && p.clip && p.clip.k === 'culture' && p.clip.o.length <= 41, '抜粋は先頭の1欄・40字まで（普通の口コミと同じ）', J(p && p.clip));
+  ok(p && p.clip && p.clip.k === 'culture' && p.clip.o.length <= 81, '抜粋は先頭の1欄・80字まで（普通の口コミと同じ。2026-10-29 オーナー「口コミは最初の80文字は見せて」で40字から）', J(p && p.clip));
   ok(p && p.n === want, `本文の文字数 n（7欄の合計）＝ ${want}`, J(p && p.n));
   await asUser(9);
   const r9 = await list();
