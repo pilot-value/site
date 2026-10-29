@@ -18,8 +18,20 @@
      ページのどの script よりも先に window.__PV_COMPARE_OPEN = true を置く。deep-pay.js の
      compareOpen() が localhost で開いたときだけ読む印で、本番の住所では効かない。
 
+   ★★2026-10-29（オーナー指示「閉鎖するからみんなのページから消して」「準備中じゃなくて消して。
+     みんなが見えないように」）── DEEP PAY そのものも消してある。本番では配っていない（_config.yml の
+     exclude ＝ 404）。手元で配っているファイルのまま開くと、字を1つも描かずに REAL PAY へ移る（scene: closed）。
+     それ以外の scene は、閉じているあいだも**手元でだけ**本体を動かして撮る ── ページのどの
+     script よりも先に window.__PV_DEEP_OPEN = true を置く（deep-pay.js の deepOpen() が、
+     localhost で開いたときだけ読む印。本番の住所では効かない）＝ full 以下の絵は
+     「開け直す日にこう出る」の確認で、いま本番に出ている絵ではない。
+
    実行: node shot-deep.mjs <scene> <lang> <theme> <幅> [通貨] [h=高さ] [cmp] [open]
-     scene: full  … 全部そろった状態（モックと同じ配置。既定）
+     scene: closed… 印を置かずに開く（＝配っているファイルのまま）。DEEP PAY は何も描かずに
+                    REAL PAY へ replace で移るので、**写るのは着いた先の REAL PAY**。撮ったあとの
+                    「消してある:」の行で、移った道・DEEP PAY に居たあいだ rpc を1本も呼ばなかったこと・
+                    器が空のまま離れたこと・「準備中」の字が無いことを字でも確かめられる。
+            full  … 全部そろった状態（モックと同じ配置。既定）
                     ★2026-10-12 から、賞与の目印（head.bonus_est）が立った姿 ── 年収と
                       Pay / Block Hour のカードに札「平均賞与を使った推計」・KPI の下に注記が1行。
             day1  … 現実の初日。KPI は3枚中1枚・給与構成は出ない・
@@ -164,6 +176,10 @@ const page = (await browser.pages())[0] || await browser.newPage();
 if (!open) await page.setViewport({ width: vw, height: winH });
 
 page.on('pageerror', (e) => console.log('❌ page error:', e.message));
+/* ★closed だけが読む（2026-10-29）── いちばん外の枠が着いた住所と、DEEP PAY を離れる瞬間の控え。 */
+const navs = [], leaveLog = [];
+page.on('framenavigated', (fr) => { if (fr === page.mainFrame()) navs.push(new URL(fr.url()).pathname); });
+page.on('console', (m) => { const t = m.text(); if (t.startsWith('__PVLEAVE__')) leaveLog.push(t.slice(11)); });
 
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。
    CDN の supabase-js に上書きさせない目的は defineProperty で達成する。 */
@@ -171,6 +187,19 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
   localStorage.setItem('pv-theme', theme);
   /* ★cmp を付けた回だけ、会社比較へのカードを手元で出す印を置く（2026-10-12）。 */
   if (cmp) window.__PV_COMPARE_OPEN = true;
+  /* ★DEEP PAY は閉じている（2026-10-29）。closed のほかの scene は、手元でだけ本体を動かす
+     印を置く（冒頭の注）。⚠️ closed には置かない ── あの scene は「配っているファイルのまま」を撮る。 */
+  if (scene !== 'closed') window.__PV_DEEP_OPEN = true;
+  /* ★closed だけ：DEEP PAY を離れる瞬間の中身を、控えとして1行だけ窓の外へ渡す（下の「消してある:」の行）。
+       移った先の REAL PAY では何もしない。保存領域には何も書かない。 */
+  if (scene === 'closed' && /\/deep-pay\.html$/.test(location.pathname)) {
+    window.addEventListener('pagehide', () => {
+      const root = document.getElementById('dp-root');
+      console.log('__PVLEAVE__' + JSON.stringify({ rpc: window.__shotRpc, hist: history.length,
+        root: root ? root.innerHTML : null,
+        soon: /準備中|coming soon/i.test(document.body ? document.body.innerText : '') }));
+    });
+  }
   /* ★撮影で解析に足あとを残さない（2026-10-11）。ページは load のあと gtag を読むので、
      立てておかないと、撮るたびに localhost の閲覧が本物の GA4 に1件ずつ入る
      （検査の側 ── assert-*.mjs ── は前からこの1行を立てている）。 */
@@ -513,14 +542,30 @@ await page.evaluateOnNewDocument((scene, theme, lang, cur, cmp) => {
   });
 }, scene, theme, lang, cur, cmp);
 
-await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+/* ★closed は読み込みの途中で REAL PAY へ移るので、最初の住所の読み込みが途中で切れても止めない
+   （着いたかどうかは下の待ちと「消してある:」の行が言う）。 */
+const going = page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+if (scene === 'closed') await going.catch(() => {}); else await going;
 /* ★時間で待たない（混んだ回に嘘の結果が出る）。「描き終わった」条件で待つ。
    ★<h1> は 2026-10-11 から HTML に静的に在る（REAL PAY ⇄ DEEP PAY のタブ）ので、
-     1つめはすぐ通る。描き終わりを捕まえているのは2つめ（骨組みが消える）。 */
-await page.waitForFunction(
-  () => !!document.querySelector('#dp-hd h1'), { timeout: 15000 });
-await page.waitForFunction(
-  () => !document.querySelector('#dp-kpi .mr-skel'), { timeout: 15000 });
+     1つめはすぐ通る。描き終わりを捕まえているのは2つめ（骨組みが消える）。
+   ★closed（2026-10-29）は別 ── DEEP PAY は何も描かずに REAL PAY へ移る。着いた先の読み込みが
+     終わるまで待つ（移る途中で文書が入れ替わると待ちが切れるので、数回まで待ち直す）。 */
+if (scene === 'closed') {
+  const real = (lang === 'en' ? '/en/' : '/') + 'actual-pay.html';
+  for (let i = 0; i < 3; i++) {
+    try {
+      await page.waitForFunction((p) => location.pathname === p && document.readyState === 'complete',
+                                 { timeout: 15000 }, real);
+      break;
+    } catch (e) { /* 待ち直す */ }
+  }
+} else {
+  await page.waitForFunction(
+    () => !!document.querySelector('#dp-hd h1'), { timeout: 15000 });
+  await page.waitForFunction(
+    () => !document.querySelector('#dp-kpi .mr-skel'), { timeout: 15000 });
+}
 
 if (PICK) {
   const IDS = { airline: 'dp-pk-air', position: 'dp-pk-pos', fleet: 'dp-pk-flt' };
@@ -759,7 +804,8 @@ const ghost = await page.evaluate(() => {
   return { on: true, blurred, blur: getComputedStyle(g).filter, chars: g.textContent.length,
            inert: g.inert === true, hidden: g.getAttribute('aria-hidden') };
 });
-{
+/* ★closed は着いた先の REAL PAY を写すので、影絵の見張りは当てない（あちらの伏せた一覧は別の検査）。 */
+if (scene !== 'closed') {
   const shut = ['lock', 'det', 'det0', 'goal', 'anon'].includes(scene);
   if (ghost.on)
     console.log(`${shut && ghost.chars === 0 && ghost.inert && ghost.hidden === 'true' && ghost.blurred === 1 ? '✓' : '❌'} 影絵: `
@@ -767,6 +813,26 @@ const ghost = await page.evaluate(() => {
       + `・ぼかしの効いた要素 ${ghost.blurred}` + (shut ? '' : '  ← 閉じていない scene に影絵が在る'));
   else if (shut) console.log('❌ 影絵が無い（閉じた scene なのに、板の後ろに何も出ていない）');
   else if (ghost.blurred) console.log(`❌ 開いた scene に、ぼかしの効いた要素が ${ghost.blurred} つ在る`);
+}
+
+/* ★closed（2026-10-29）だけ：移った道・DEEP PAY に居たあいだ聞きに行かなかったこと・器が空のまま
+   離れたこと・「準備中」の字が無いことを、絵（＝着いた先の REAL PAY）と一緒に字でも出す。
+   見本の会員は「開いている会員」── その人も移る。 */
+if (scene === 'closed') {
+  let L = null;
+  try { L = leaveLog.length === 1 ? JSON.parse(leaveLog[0]) : null; } catch (e) { L = null; }
+  const c = await page.evaluate(() => ({ hist: history.length,
+    mark: localStorage.getItem('pv_deep_was_locked'),
+    soon: /準備中|coming soon/i.test(document.body ? document.body.innerText : '') }));
+  const real = (lang === 'en' ? '/en/' : '/') + 'actual-pay.html';
+  /* 着いた先の REAL PAY は、住所の後ろを書き換える（同じ文書の中の移動）── 同じ住所が続く分は1つに畳む。 */
+  const via = navs.filter((p, i) => i === 0 || p !== navs[i - 1]).join(' → ');
+  const good = !!L && via === url.replace('http://localhost:3000', '') + ' → ' + real
+    && L.rpc === 0 && L.root === '' && !L.soon && !c.soon && L.hist === c.hist && c.mark === null;
+  console.log(`${good ? '✓' : '❌'} 消してある: ${via}`
+    + (L ? `・履歴 ${L.hist}→${c.hist}（${L.hist === c.hist ? 'replace' : '積んだ'}）・DEEP PAY の上で rpc ${L.rpc} 回`
+         + `・器は${L.root === '' ? '空' : '空でない'}のまま離れた` : '・離れる瞬間の控えが無い')
+    + `・「準備中」の字は${(L && L.soon) || c.soon ? '在る' : '無い'}・クラッカーの印は${c.mark === null ? '無い' : '在る'}`);
 }
 
 /* ★anon（ログインしていない人）だけ：聞きに行かなかったこと・よそへ運ばれなかったこと・端末に

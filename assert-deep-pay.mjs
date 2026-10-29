@@ -46,6 +46,24 @@
      ⚠️ 出す日は、2つの JS の定数を**一緒に** true にして、① の辺の集合・§3・§7・§3h を
         「開いている」に書き換える（手順は assert-deep-pay-compare.mjs の冒頭）。
 
+   ★★2026-10-29（オーナー指示「deep pay は一時会員には見せない。閉鎖するからみんなのページから
+     消して」「準備中じゃなくて消して。みんなが見えないように」）── DEEP PAY そのものも**消してある**
+     （一時的に。いずれ開け直す）──
+       ・本番では DEEP PAY の8本（日英の2画面・JS・CSS）を配っていない（_config.yml の exclude ＝ 404）。
+       ・手元で開いたときの受け皿は deep-pay.js のいちばん上の定数 DEEP_OPEN（false）── 字を1つも
+         描かずに REAL PAY へ replace で移る。誰が来ても同じ・サーバに1本も聞かない・端末に何も書かない。
+       ・入口は全部外した（REAL PAY の見出しのタブ・行の面のボタン・3段の表の段・ロードマップの行）
+         ＝ 対の外から DEEP PAY へ繋がる線は**0本**（①）。
+     この検査は2つの姿を見る ──
+       ・**配っているファイルのまま** … ⓪（字面）と §2h（実物）。
+       ・**開け直す日に動く本体** … それ以外ぜんぶ（前からの約束。1つも緩めていない）。
+         手元の確認用サーバでだけ効く試験用の口（deepOpen。印は window.__PV_DEEP_OPEN = true）で
+         動かして、今までどおり全部を通す（下の open() が、渡さなければ必ず印を置く）。
+     ⚠️ 開け直す日にやること ── _config.yml の DEEP PAY の塊を消す／DEEP_OPEN を true に／
+        ⓪ と §2h を消すか「開いている」に書き換える／
+        ① の辺の集合を戻す（REAL PAY のタブの日英・面のボタンの3本）・pv-gates.js の段を live に／
+        open() の印を外す（置いたままでも動くが、要らなくなる）。
+
    ★左メニューに段を足す日にやること（この検査を書き換える前に、この順で）──
      1. patch-side-nav.mjs の一覧に deep を **href:'deep-pay.html' で**足す
         （前の形 ── href が空・soon:true ── で足さない。押しても何も起きない段になる）。
@@ -62,8 +80,9 @@
 
    見るのは9つ：
 
-     ① 入口は決めた所にだけ在る（REAL PAY のタブと、行の面のボタン。左メニューにも
-        3段の表にも無い・sitemap にも出ない）。タブそのものの形は ①-b と §0。
+     ① 入口は決めた所にだけ在る（2026-10-29 から閉じているので**0本**。開いていたあいだは
+        REAL PAY のタブと、行の面のボタン。左メニューにも 3段の表にも無い・sitemap にも出ない）。
+        タブそのものの形は ①-b と §0（§0 は試験用の口で開いた本体の、DEEP PAY の側のタブ）。
      ② ぼかしで隠していない
         pv-gates.js の冒頭のとおり「隠すのではなく、最初から渡さない」。
         ★2026-10-11（オーナー判断「DEEP PAY でまだ開かない人には給与詳細を提出させる。
@@ -238,6 +257,119 @@ const jsC  = decomment(JS);
 const cssC = decomment(CSS);
 
 // ════════════════════════════════════════════════════════════════
+// ⓪ DEEP PAY は消してある（字面。2026-10-29・オーナー指示）
+// ════════════════════════════════════════════════════════════════
+/* 「閉鎖するからみんなのページから消して」「準備中じゃなくて消して。みんなが見えないように」。
+   本番では DEEP PAY の8本を配っていない（_config.yml の exclude ＝ 住所を直に開いても 404）。
+   手元で開いたとき（と exclude が外れたとき）の受け皿は deep-pay.js の頭 ── 字を1つも描かずに
+   REAL PAY へ replace で移る。実物は下のブラウザの §2h。見るのは5つ：
+     a) 定数 DEEP_OPEN が false のまま（代入は1か所・読むのは deepOpen() の1か所）。
+     b) 閉じている枝が、本体の**どの行よりも前**で終わる ── 'use strict' のすぐ後ろに在るのは
+        定数・手元かどうかの見分け・leave()・「閉じていれば移って戻る」だけ（字ごと固定）。
+     c) 試験用の口（deepOpen）は、**手元の住所でしか効かない**。取り出して住所と印の表で実行する。
+     d) leave() が描く字は0 ── 器（#dp-root）を空にして、相対の actual-pay.html へ replace するだけ。
+        取り出して実行する。「準備中」「coming soon」の字は deep-pay.js のどこにも無い。
+     e) _config.yml の exclude に、DEEP PAY の8本がそろって入っている（本番から消えている）。
+   ⚠️ 開け直す日は、_config.yml の DEEP PAY の塊を消して、ここ（e）も外す。 */
+console.log('\n════ ⓪ 消してある（字面）════');
+{
+  const norm = (t) => decomment(t).replace(/\s+/g, ' ').trim();
+  const count = (re, s) => (s.match(re) || []).length;
+  /* 見分けの決まった字（compareOpen と同じ形）と、移る道の決まった字。1文字でも違えば落ちる。 */
+  const OPEN_FN = 'function deepOpen() { if (DEEP_OPEN) return true; try { '
+    + 'return w.__PV_DEEP_OPEN === true && /^(?:localhost|127\\.0\\.0\\.1)$/.test(w.location.hostname); '
+    + '} catch (e) { return false; } }';
+  const LEAVE_FN = "function leave() { var root = d.getElementById('dp-root'); if (root) root.innerHTML = ''; "
+    + "try { w.location.replace('actual-pay.html'); } catch (e) {} }";
+  const GUARD = 'if (!deepOpen()) { w.PV_SESSION = Promise.resolve(null); leave(); return; }';
+
+  // ── a) 定数 ──
+  ok(/^  var DEEP_OPEN = false;$/m.test(JS) && count(/\bDEEP_OPEN\s*=(?!=)/g, jsC) === 1
+     && count(/\bDEEP_OPEN\b/g, jsC) === 2,
+     '★★deep-pay.js の DEEP_OPEN は false（配っているファイルで、DEEP PAY は閉じている）。代入は1か所・読むのは deepOpen() の1か所',
+     `代入 ${count(/\bDEEP_OPEN\s*=(?!=)/g, jsC)} / 字 ${count(/\bDEEP_OPEN\b/g, jsC)}`);
+
+  // ── b) 閉じている枝は、本体のどの行よりも前で終わる ──
+  const i0 = jsC.indexOf("'use strict';"), i1 = jsC.indexOf('var V = w.PVViz;');
+  const head = (i0 >= 0 && i1 > i0) ? jsC.slice(i0, i1) : '';
+  const leaveSrc = cutFn(JS, 'leave');
+  ok(head.length > 0 && norm(head) === ["'use strict';", 'if (!w || !d) return;', 'var DEEP_OPEN = false;',
+                                        OPEN_FN, LEAVE_FN, GUARD].join(' '),
+     '★★本体より前に在るのは、定数・見分け・leave()・「閉じていれば移って戻る」だけ（字ごと固定）',
+     norm(head).slice(-160));
+  ok(!/\.rpc\b|\bfetch\b|[sS]torage|\bsb0?\b|\.auth\b|\bawait\b|\.then\b|cookie|addEventListener|setTimeout|setInterval|PVDeepPay|PVGates|PVClaimPending|PVViz|PVCurrency|\bparty\w*\(|\block\w*\(|\bghost\w*\(|\bboot\(|\bload\(|\brender\(/.test(head),
+     '★★その手前に、サーバ・通信・保存領域・セッションを待つ字・試験用の入口・本体の描き手が1つも無い',
+     (head.match(/[^\n]*(?:\.rpc\b|\bfetch\b|[sS]torage|\.auth\b|\bawait\b|\.then\b|cookie|addEventListener|PVDeepPay)[^\n]*/) || [''])[0].trim().slice(0, 90));
+  ok(count(/\bdeepOpen\(/g, jsC) === 2 && count(/\bleave\(/g, jsC) === 2
+     && count(/\bPV_SESSION\s*=(?!=)/g, jsC) === 1 && count(/__PV_DEEP_OPEN/g, jsC) === 1,
+     '★見分けと leave() を使うのは、その1か所だけ（本体の側からは呼ばない・印を読むのは見分けの中の1回だけ）',
+     `deepOpen ${count(/\bdeepOpen\(/g, jsC)} / leave ${count(/\bleave\(/g, jsC)} / 印 ${count(/__PV_DEEP_OPEN/g, jsC)}`);
+  ok(jsC.indexOf('w.PVDeepPay =') > i1 && count(/w\.PVDeepPay\s*=/g, jsC) === 1,
+     '★試験用の入口（PVDeepPay）は本体の側に在る ＝ 閉じているあいだは生えない');
+
+  // ── c) 試験用の口は、手元の住所でしか効かない ──
+  const openSrc = cutFn(JS, 'deepOpen');
+  ok(norm(openSrc) === OPEN_FN, '★★deepOpen() が決まった字のまま（条件を足していない・緩めていない）',
+     norm(openSrc).slice(0, 160));
+  const runOpen = (win) => {
+    try { return new Function('w', 'var DEEP_OPEN = false;\n' + openSrc + '\nreturn deepOpen();')(win); }
+    catch (e) { return 'threw: ' + e.message; }
+  };
+  const at = (host, flag) => runOpen({ __PV_DEEP_OPEN: flag, location: { hostname: host } });
+  ok(at('localhost', true) === true && at('127.0.0.1', true) === true,
+     '★手元の住所（localhost / 127.0.0.1）で印を置けば、本体が動く（この検査と撮影の道具が使う口）',
+     `${at('localhost', true)} / ${at('127.0.0.1', true)}`);
+  const HOSTS_NO = ['pilot-value.com', 'www.pilot-value.com', 'localhost.pilot-value.com',
+                    'pilot-value.com.localhost', 'notlocalhost', 'localhost.', '127.0.0.1.nip.io',
+                    '127.0.0.10', '0.0.0.0', '[::1]', 'localhost:3000', ''];
+  const leak = HOSTS_NO.filter((h) => at(h, true) !== false);
+  ok(leak.length === 0, `★★本番の住所・似せた住所（${HOSTS_NO.length} 通り）では、印が在っても必ず false`, leak.join(' '));
+  const loose = ['true', 1, 'yes', {}, [], null, undefined, 0, false].filter((v) => at('localhost', v) !== false);
+  ok(loose.length === 0, '★★手元の住所でも、印が true そのものでなければ false', JSON.stringify(loose));
+  ok(runOpen({ __PV_DEEP_OPEN: true }) === false && runOpen(null) === false
+     && runOpen({ __PV_DEEP_OPEN: true, location: null }) === false,
+     '★住所が読めない窓では false（投げない・開く側へ倒さない）');
+
+  // ── d) leave() は字を描かずに移るだけ ──
+  ok(norm(leaveSrc) === LEAVE_FN, '★★leave() が決まった字のまま（器を空にして、REAL PAY へ replace するだけ）',
+     norm(leaveSrc).slice(0, 160));
+  const runLeave = (has, throws) => {
+    const root = { innerHTML: '<x>前の中身</x>' }, ids = [], moves = [];
+    const doc = { getElementById: (id) => { ids.push(id); return (has && id === 'dp-root') ? root : null; } };
+    const win = { location: { replace: (u) => { moves.push(u); if (throws) throw new Error('blocked'); } } };
+    let why = '';
+    try { new Function('w', 'd', leaveSrc + '\nleave();')(win, doc); } catch (e) { why = String(e && e.message); }
+    return { html: root.innerHTML, ids: ids.join(','), moves: moves.join(','), why };
+  };
+  {
+    const r = runLeave(true, false);
+    ok(r.html === '' && r.ids === 'dp-root' && r.moves === 'actual-pay.html' && !r.why,
+       '★★実行すると、器（#dp-root）は空・描いた字は0・移る先は相対の actual-pay.html（replace で1回）',
+       JSON.stringify(r));
+    const n = runLeave(false, false), t = runLeave(true, true);
+    ok(n.moves === 'actual-pay.html' && !n.why && t.html === '' && !t.why,
+       '★器が無いページでも移る・移る道が投げても止まらない（投げ返さない）', JSON.stringify([n, t]));
+  }
+  ok(!/準備中|coming soon/i.test(jsC) && !/dp-closed/.test(jsC + cssC),
+     '★★「準備中」「coming soon」の字も、前の板（.dp-closed）も、deep-pay.js / deep-pay.css に1つも無い');
+
+  // ── e) 本番から消えている ──
+  /* ★_config.yml の exclude は除外リスト方式。書いた住所だけが GitHub Pages から配られなくなる。
+       見るのは「exclude: の下の `  - 名前` の行」だけ（コメントの字では通さない）。 */
+  {
+    const cfg = read('_config.yml');
+    const m = /^exclude:\s*\n((?:[ \t]*(?:-[^\n]*|#[^\n]*)?\n)+)/m.exec(cfg);
+    const items = m ? [...m[1].matchAll(/^[ \t]+-[ \t]+(\S+)[ \t]*$/gm)].map((x) => x[1]) : [];
+    const EIGHT = ['deep-pay.html', 'deep-pay-compare.html', 'en/deep-pay.html', 'en/deep-pay-compare.html',
+                   'deep-pay.js', 'deep-pay.css', 'deep-pay-compare.js', 'deep-pay-compare.css'];
+    const miss = EIGHT.filter((f) => !items.includes(f));
+    ok(items.length > 8 && miss.length === 0,
+       '★★_config.yml の exclude に DEEP PAY の8本がそろって入っている（本番では日英の住所を開いても 404。開け直す日に外す）',
+       miss.length ? '足りない: ' + miss.join(' ') : `exclude の行 ${items.length}`);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
 // ① 入口は決めた所にだけ在る（2026-10-11 に公開）
 // ════════════════════════════════════════════════════════════════
 console.log('\n════ ① 入口（決めた所にだけ在る・黙って増えない）════');
@@ -276,8 +408,11 @@ console.log('\n════ ① 入口（決めた所にだけ在る・黙って
   const soon = gates.match(/state:\s*'soon'/g) || [];
   ok(soon.length === 1 && /key:\s*'verified',\s*state:\s*'soon'/.test(gates),
      '★pv-gates.js の soon はちょうど1つ（VERIFIED だけ）', `今 ${soon.length}`);
-  ok(/key:\s*'deep',\s*state:\s*'live'/.test(gates) && /key:\s*'real',\s*state:\s*'live'/.test(gates),
-     '★pv-gates.js の deep が live（REAL PAY と同じ強さで名前が出る）');
+  /* ★2026-10-29、DEEP PAY を閉じた日に deep の段を 'off'（表に描かない）にした。
+       開け直す日は 'live' に戻して、ここも戻す。 */
+  ok(/key:\s*'deep',\s*state:\s*'off'/.test(gates) && /key:\s*'real',\s*state:\s*'live'/.test(gates)
+     && /if \(tier\.state === 'off'\) return '';/.test(cutFn(gates, 'giveGetHTML')),
+     '★pv-gates.js の deep は off（閉じているあいだ、3段の表に DEEP PAY の段を描かない）');
   ok(!/deep-pay/.test(gates), '★★pv-gates.js に DEEP PAY への住所が1つも無い（3段の表は入口ではない）',
      (gates.match(/[^\n]*deep-pay[^\n]*/) || [''])[0].trim().slice(0, 90));
   ok(!/data-pv-give/.test(gates) && !/<button[^>]*pv-give-p/.test(gates),
@@ -349,12 +484,14 @@ console.log('\n════ ① 入口（決めた所にだけ在る・黙って
   ok(seenHtml > 300 && seenJs > 20, '（前置き）入口を探す網が、画面と JS を実際に読んでいる',
      `HTML ${seenHtml} 枚 / JS ${seenJs} 本`);
 
-  const ENTRANCES = ['actual-pay.html → deep-pay.html',
-                     'actual-pay.js → deep-pay.html',
-                     'en/actual-pay.html → deep-pay.html'];
+  /* ★★2026-10-29、DEEP PAY を閉じた（冒頭の注）。対の外から繋がる線は**0本**。
+       開いていたあいだの3本（actual-pay.html → deep-pay.html／en/actual-pay.html → deep-pay.html／
+       actual-pay.js → deep-pay.html）は、開け直す日にここへ戻す。
+     ⚠️ 網は緩めていない ── 1本でも生えたら、どこから生えたかを字で出して落ちる。 */
+  const ENTRANCES = [];
   ok(outside.slice().sort().join(' / ') === ENTRANCES.join(' / '),
-     '★★対の外から DEEP PAY へ繋がる線は、ちょうど3本（REAL PAY のタブの日英・行の面のボタン）',
-     outside.slice().sort().join(' / ') || '（1本も無い）');
+     '★★対の外から DEEP PAY へ繋がる線は0本（閉じているあいだ。REAL PAY のタブも面のボタンも外した）',
+     outside.slice().sort().join(' / '));
   ok(!outside.some((e) => /deep-pay-compare\.html$/.test(e)),
      '★会社比較へは、対の外から直に繋がない');
   /* ── 対の中の線 ── 2026-10-12（オーナー判断「会社比較はまだ出さないでよ」）から、
@@ -444,6 +581,17 @@ const TAB_LABEL = { ja: 'REAL PAY と DEEP PAY の切り替え', en: 'Switch bet
   ok(headFn.length > 0 && !/\.innerHTML\s*=/.test(headFn) && /insertAdjacentHTML\('beforeend'/.test(headFn)
      && /querySelector\('\.dp-cond'\)/.test(headFn) && /removeChild\(/.test(headFn),
      '★★head() は #dp-hd を丸ごと書き換えない（前の条件の1行を外して、新しい1行を後ろへ足すだけ）');
+  /* ★2026-10-29、REAL PAY の側（actual-pay.html の日英）からタブの DEEP PAY を外した。
+       見出しの器（#ap-hd）に在るのは REAL PAY の <h1> 1つだけで、DEEP PAY の字もリンクも無い
+       （行き先が無いことそのものは ① の辺の集合が見ている。ここは「タブの片割れが残っていない」）。 */
+  for (const f of ['actual-pay.html', 'en/actual-pay.html']) {
+    const html = nohtmlcomment(read(f));
+    const i = html.indexOf('id="ap-hd"');
+    const hd = i < 0 ? '' : html.slice(i, html.indexOf('</div>\n      </div>', i));
+    ok(hd.length > 0 && /<h1 class="pv-paytab is-on">REAL PAY<\/h1>/.test(hd)
+       && !/DEEP PAY|deep-pay|<a\b|<nav\b|aria-current/.test(hd),
+       `${f}: ★★REAL PAY の見出しに DEEP PAY のタブが無い（REAL PAY の <h1> 1つだけ）`, hd.replace(/\s+/g, ' ').slice(0, 160));
+  }
   /* ★会社比較にはタブを置いていない（あちらは DEEP PAY の中の1枚）。 */
   for (const f of ['deep-pay-compare.html', 'en/deep-pay-compare.html']) {
     ok(!/pv-paytab/.test(nohtmlcomment(read(f))), `${f}: ★タブを置いていない（会社比較は変えていない）`);
@@ -1430,14 +1578,24 @@ console.log('\n════ ⑭ ログインしていない人（字面）══
        assert-deep-pay-compare.mjs の ⓪ が固定しているので、ここでは**その関数だけを抜いて**
        から、今までどおり見る。
        ⚠️ 「location.hostname なら可」のように字で緩めない（別の関数に書いた日に通ってしまう）。 */
+  /* ★2026-10-29、あと2つ入った ── deepOpen()（DEEP PAY を閉じている回の、同じ形の見分け）と、
+       leave()（閉じているあいだ、字を描かずに REAL PAY へ replace で移る。オーナー指示「準備中じゃなくて消して」）。
+       どちらも字は ⓪ が固定している。3つの関数を抜いてから、今までどおり見る ──
+       人をよそへ運ぶのは leave() の1か所だけで、行き先は REAL PAY。
+       ⚠️ 本体の側（ログインしていない人・読み込めなかった回）は、今までどおり運ばない。 */
   {
     const openC = decomment(cutFn(JS, 'compareOpen'));
-    const rest = openC ? jsC.replace(openC, () => ' ') : jsC;
-    ok(openC.length > 0 && count(/\blocation\b/g, jsC) === 1 && count(/\blocation\b/g, openC) === 1
-       && /w\.location\.hostname\b/.test(openC)
+    const deepC = decomment(cutFn(JS, 'deepOpen'));
+    const leaveC = decomment(cutFn(JS, 'leave'));
+    const rest = (openC && deepC && leaveC)
+      ? jsC.replace(openC, () => ' ').replace(deepC, () => ' ').replace(leaveC, () => ' ') : jsC;
+    ok(openC.length > 0 && deepC.length > 0 && leaveC.length > 0 && count(/\blocation\b/g, jsC) === 3
+       && count(/\blocation\b/g, openC) === 1 && /w\.location\.hostname\b/.test(openC)
+       && count(/\blocation\b/g, deepC) === 1 && /w\.location\.hostname\b/.test(deepC)
+       && count(/\blocation\b/g, leaveC) === 1 && /w\.location\.replace\('actual-pay\.html'\)/.test(leaveC)
        && !/\blocation\b|history\s*\.|window\.open\s*\(/.test(rest),
-       '★★deep-pay.js は、人をよそへ運ばない（location・history・window.open という字が無い。'
-       + '在るのは compareOpen() が hostname を読む1つだけ）',
+       '★★deep-pay.js が人をよそへ運ぶのは、閉じているあいだの leave()（REAL PAY へ replace）の1か所だけ。'
+       + 'ほかに location の字が在るのは compareOpen() と deepOpen() が hostname を読む1つずつだけ',
        `location の字 ${count(/\blocation\b/g, jsC)} 個`);
   }
 
@@ -2029,7 +2187,15 @@ async function drawn(page) {
      cmp    … true なら、会社比較を動かす試験用の口の印を置いてから開く（2026-10-12。
               window.__PV_COMPARE_OPEN = true。手元の住所でだけ効く ── 冒頭の注）。
               ★**渡さなければ置かない** ＝ この検査は、配っているファイルのままの DEEP PAY を見る
-                （会社比較へのカードは出ない）。使うのは §2f の f と §3h だけ。 */
+                （会社比較へのカードは出ない）。使うのは §2f の f と §3h だけ。
+   ★2026-10-29、DEEP PAY そのものを閉じた（冒頭の注）。**渡さなければ、DEEP PAY の試験用の口の印を
+     置いてから開く**（window.__PV_DEEP_OPEN = true。手元の住所でだけ効く）＝ ほかの節は、今までと
+     1行も変えずに「開け直す日に動く本体」を見ている。閉じた姿を見る §2h だけが次を使う ──
+     shipped … true なら印を置かない ＝ **配っているファイルのまま**開く。deep-pay.js は字を描かずに
+              REAL PAY へ replace で移るので、描き終わりは待たず、REAL PAY に着いて通信が静まるまで待つ。
+   ★返す値に3つ足した（2026-10-29。§2h だけが読む）── reqAt / errAt ＝ reqs / errs の1つずつが、
+     いちばん外の枠が何回着いたあとに起きたか（1 ＝ DEEP PAY の上・2 ＝ 移った先）。
+     logs ＝ ページが '__PVLEAVE__' で始めて書いた控え（DEEP PAY を離れる瞬間の中身。DEEP_LEAVE_REPORT）。 */
 async function open(lang, payload, theme, pick, opt) {
   const o = opt || {};
   const jar = o.jar || await browser.createBrowserContext();
@@ -2038,9 +2204,10 @@ async function open(lang, payload, theme, pick, opt) {
   await page.setViewport({ width: 1360, height: 1200 });
   if (o.reduce) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
   for (const [fn, arg] of (o.first || [])) await page.evaluateOnNewDocument(fn, arg);
-  const errs = [], reqs = [], navs = [];
-  page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
+  const errs = [], reqs = [], navs = [], reqAt = [], errAt = [], logs = [];
+  page.on('pageerror', (e) => { errs.push(String(e.message).slice(0, 140)); errAt.push(navs.length); });
   page.on('framenavigated', (fr) => { if (fr === page.mainFrame()) navs.push(fr.url()); });
+  page.on('console', (m) => { const t = m.text(); if (t.startsWith('__PVLEAVE__')) logs.push(t.slice(11)); });
   /* ★外の網を1本も引かない。CDN（supabase-js）は parser-blocking なので、
      混んだ回や回線の悪い回に DOMContentLoaded ごと遅れて**嘘の赤**が出る
      （実測：新しい窓を3つ続けて開くと、3つ目の goto が 15秒で落ちた）。
@@ -2050,6 +2217,7 @@ async function open(lang, payload, theme, pick, opt) {
   page.on('request', (r) => {
     const u = r.url();
     reqs.push(u);
+    reqAt.push(navs.length);
     if (u.startsWith(BASE)) return r.continue();
     if (/supabase-js|cdn\.jsdelivr/.test(u))
       return r.respond({ status: 200, contentType: 'application/javascript', body: '' });
@@ -2062,9 +2230,27 @@ async function open(lang, payload, theme, pick, opt) {
     localStorage.setItem('pv-theme', t);
   }, theme || 'light');
   if (o.cmp) await page.evaluateOnNewDocument(() => { window.__PV_COMPARE_OPEN = true; });
+  if (!o.shipped) await page.evaluateOnNewDocument(() => { window.__PV_DEEP_OPEN = true; });
   await page.evaluateOnNewDocument(FAKE, payload);
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay.html') + (o.tail || ''),
-                  { waitUntil: 'domcontentloaded', timeout: 30000 });
+  const goto = page.goto(BASE + (lang === 'en' ? '/en/' : '/') + (o.file || 'deep-pay.html') + (o.tail || ''),
+                         { waitUntil: 'domcontentloaded', timeout: 30000 });
+  /* ★配っているファイルのまま開く回（§2h）。DEEP PAY は字を描かずに REAL PAY へ移る ── 移った先に
+       着いて、読み込みが終わり、通信が静まるまで待つ。移る途中で文書が入れ替わると待ちが切れるので、
+       数回まで待ち直す。⚠️ 時間切れでも投げない ── 着かなかった回は、このあとの検査が「どこに居たか」を字で言う。 */
+  if (o.shipped) {
+    await goto.catch(() => {});
+    const home = (lang === 'en' ? '/en/' : '/') + 'actual-pay.html';
+    for (let i = 0; i < 3; i++) {
+      try {
+        await page.waitForFunction((p) => location.pathname === p && document.readyState === 'complete',
+                                   { timeout: 20000 }, home);
+        break;
+      } catch (e) { /* 待っている途中で文書が入れ替わった ── 待ち直す */ }
+    }
+    await page.waitForNetworkIdle({ idleTime: 400, timeout: 20000 }).catch(() => {});
+    return { page, errs, reqs, navs, reqAt, errAt, logs };
+  }
+  await goto;
   /* ★時間で待たない。描き終わりは drawn() が「骨組みが消えた」で捕まえる（上の注）。
      ★__hold（答えを止めた見本）は待たない ── 骨組みが残っていることを見る筋書きなので、
        ここで待つと必ず時間切れになる。
@@ -2073,7 +2259,7 @@ async function open(lang, payload, theme, pick, opt) {
   if (!(payload && payload.__hold)) await drawn(page);
   /* ★選ぶまで何も出ない（2026-08-30）。配置を見る筋書きはここで区分を選ぶ。 */
   if (pick) await choose(page, pick);
-  return { page, errs, reqs, navs };
+  return { page, errs, reqs, navs, reqAt, errAt, logs };
 }
 
 /* 区分を選ぶ。★選択肢が生えるのを待ってから値を入れる。語彙（pv-vocab.json /
@@ -4055,6 +4241,113 @@ for (const lang of ['ja', 'en']) {
     ok(s.rpc.pv_deep_pay === 1 && errs.length === 0,
        `${tag}: 聞いたのは1回・JS のエラーが出ない`, JSON.stringify(s.rpc) + errs.join(' / '));
     await jars.pop().close().catch(() => {});
+  }
+}
+
+// ── 2h. DEEP PAY は消してある（2026-10-29・オーナー指示「準備中じゃなくて消して。みんなが見えないように」）──
+/* ★★本番では DEEP PAY を配っていない（_config.yml の exclude ── ⓪ の e）。ここは手元で
+   **配っているファイルのまま**（試験用の口の印を置かずに）開いたときの受け皿を、実物で見る。字面は ⓪。
+   誰が来ても同じ ── ログインしていない人／まだ開いていない会員／開いている会員。日英とも：
+     移る   … その言語の REAL PAY（actual-pay.html）に着く。いちばん外の枠が着いたのは
+              DEEP PAY → REAL PAY の2回だけ（ログイン画面などへ寄り道しない）。
+              replace で移る ＝ 履歴の長さが DEEP PAY に居たときと同じ（「戻る」で戻ってこない）。
+     描かない … DEEP PAY を離れる瞬間（pagehide）の器（#dp-root）は空。「準備中」「coming soon」の字は、
+              DEEP PAY の上にも、着いた REAL PAY にも無い。影絵・錠前の板・紙吹雪・選ぶ欄は一瞬も出ない。
+              試験用の入口（PVDeepPay）も生えていない。
+     聞かない … **DEEP PAY に居たあいだ**、rpc を1本も呼ばない（離れる瞬間の窓の中の数と、窓の外の
+              通信の住所の両方）。着いた先の REAL PAY 自身の通信は数えない（いちばん外の枠が何回
+              着いたあとの通信かで分ける ── open() の reqAt）。
+     書かない … DEEP PAY を離れる瞬間の保存領域が、ページの script が動く前と**1文字も変わらない**
+              （着いた先の REAL PAY が書くものは、比べる時点に入らない）。
+   ★網が空振りでないことは、§2g（開いた本体で、同じ __wire の会員が窓の外の記録に掛かる）と同じ網。
+   ⚠️ 窓は見終わったらすぐ閉じる（溜めると、この Mac では混んで嘘の赤が出る）。 */
+/* 紙吹雪・影絵・錠前の板・選ぶ欄が**一瞬でも**出たかを、ページのどの script よりも先から数える。 */
+const DEEP_CLOSED_POP = function () {
+  window.__flash = 0;
+  new MutationObserver(() => {
+    if (document.querySelector('.dp-pop, .dp-ghost, .dp-stage, .dp-msg--lock, .dp-msg, #dp-root select')) window.__flash++;
+  }).observe(document, { childList: true, subtree: true });
+};
+/* DEEP PAY を離れる瞬間（pagehide）の中身を、控えとして窓の外へ1行で渡す（console ── open() の logs）。
+   ★DEEP PAY の文書でだけ動く（移った先の REAL PAY では何もしない）。保存領域には何も書かない。 */
+const DEEP_LEAVE_REPORT = function () {
+  if (!/\/deep-pay\.html$/.test(location.pathname)) return;
+  window.addEventListener('pagehide', () => {
+    const root = document.getElementById('dp-root');
+    console.log('__PVLEAVE__' + JSON.stringify({
+      path: location.pathname, hist: history.length,
+      root: root ? root.innerHTML : null,
+      text: document.body ? document.body.innerText : '',
+      api: typeof window.PVDeepPay,
+      rpc: window.__rpc || null, args: window.__rpcArgs || null, from: window.__from,
+      dump: window.__dump ? window.__dump() : null, ls0: window.__ls0 || null,
+      writes: (window.__writes || []).slice(),
+      flash: window.__flash
+    }));
+  });
+};
+const SOON = /準備中|coming soon/i;
+{
+  const WHO = [
+    ['ログインしていない人', clone(ANON)],
+    ['まだ開いていない会員', Object.assign(clone(LOCK), { __wire: true })],
+    ['開いている会員', Object.assign(clone(FULL), { __wire: true })]
+  ];
+  for (const lang of ['ja', 'en']) {
+    const path = (lang === 'en' ? '/en/' : '/') + 'deep-pay.html';
+    const home = (lang === 'en' ? '/en/' : '/') + 'actual-pay.html';
+    for (const [who, payload] of WHO) {
+      const tag = `${lang}/消してある/${who}`;
+      const { page, errs, reqs, navs, reqAt, errAt, logs } = await open(lang, payload, 'light', null,
+        { shipped: true,
+          first: [[ANON_WATCH, anonSeed(lang, 'light')], [DEEP_CLOSED_POP, null], [DEEP_LEAVE_REPORT, null]] });
+      const land = await page.evaluate(() => ({ path: location.pathname, hist: history.length,
+        text: document.body ? document.body.innerText : '' })).catch((e) => ({ path: 'threw: ' + e.message }));
+      let r = null;
+      try { r = logs.length === 1 ? JSON.parse(logs[0]) : null; } catch (e) { r = null; }
+      /* いちばん外の枠が着いた住所（パスだけ）。★着いた先の REAL PAY は住所の後ろを書き換える
+           （同じ文書の中の移動）ので、同じ住所が続く分は1つに畳む。 */
+      const paths = navs.map((u) => new URL(u).pathname);
+      const route = paths.filter((p, i) => i === 0 || p !== paths[i - 1]);
+      /* DEEP PAY の上の通信 ＝ 枠が REAL PAY に着く**前**に出たもの（reqAt は、その通信の時点で枠が着いた回数）。 */
+      const cut = paths.indexOf(home);
+      const onDeep = reqs.filter((u, i) => cut < 0 || reqAt[i] <= cut);
+      const w = wires(onDeep);
+
+      // ── 移る ──
+      ok(land.path === home && route.join(' → ') === path + ' → ' + home && w.login.length === 0,
+         `${tag}: ★★字を描かずに、その言語の REAL PAY（${home}）へ移る（寄り道しない）`,
+         `着いた先 ${land.path} / 枠が着いた住所 ${route.join(' → ')}`);
+      ok(!!r && r.path === path && land.hist === r.hist,
+         `${tag}: ★★replace で移る（履歴の長さが DEEP PAY に居たときと同じ ＝「戻る」で DEEP PAY に戻らない）`,
+         r ? `DEEP PAY で ${r.hist} / REAL PAY で ${land.hist}` : `離れる瞬間の控えが ${logs.length} 件`);
+
+      // ── 描かない ──
+      ok(!!r && r.root === '' && r.api === 'undefined' && r.flash === 0,
+         `${tag}: ★★離れる瞬間の器（#dp-root）は空・影絵も錠前の板も紙吹雪も選ぶ欄も一瞬も出ていない・試験用の入口が生えていない`,
+         r ? `器 ${JSON.stringify((r.root || '').slice(0, 60))} / 途中で出た ${r.flash} / 入口 ${r.api}` : '控えが無い');
+      ok(!!r && !SOON.test(r.text) && !SOON.test(land.text || ''),
+         `${tag}: ★★「準備中」「coming soon」の字が、DEEP PAY の上にも、着いた REAL PAY にも無い`,
+         r ? ((r.text.match(/[^\n]*(?:準備中|coming soon)[^\n]*/i) || (land.text || '').match(/[^\n]*(?:準備中|coming soon)[^\n]*/i) || [''])[0]) : '控えが無い');
+
+      // ── 聞かない ──
+      ok(!!r && Object.keys(r.rpc || { x: 1 }).length === 0 && (r.args || [0]).length === 0 && r.from === 0,
+         `${tag}: ★★DEEP PAY に居たあいだ、rpc を1本も呼ばない（pv_deep_pay も、ほかの名前も。表も引かない）`,
+         r ? JSON.stringify(r.rpc) + ' / from ' + r.from : '控えが無い');
+      ok(onDeep.length > 0 && w.rpc.length === 0 && w.api.length === 0 && w.odd.length === 0 && w.give.length === 0,
+         `${tag}: ★★窓の外から数えても、DEEP PAY に居たあいだ /rpc/ の入った通信が0本・サーバの API へも0本・行き先が増えていない`
+         + `（DEEP PAY の上の通信 ${onDeep.length} 本）`,
+         w.rpc.concat(w.api, w.odd, w.give).join(' '));
+
+      // ── 書かない ──
+      ok(!!r && typeof r.ls0 === 'string' && r.dump === r.ls0
+         && r.writes.every((k) => CHROME_KEYS.includes(k)),
+         `${tag}: ★★離れる瞬間の保存領域が、ページの script が動く前と1文字も変わらない（書きに行った鍵はページの部品が前から書くものだけ）`,
+         r ? `前 ${r.ls0} / 後 ${r.dump} / 触った鍵 ${[...new Set(r.writes)].join(' ')}` : '控えが無い');
+      const errDeep = errs.filter((e, i) => cut < 0 || errAt[i] <= cut);
+      ok(errDeep.length === 0, `${tag}: DEEP PAY の上で JS のエラーが出ない`, errDeep.join(' / '));
+      await jars.pop().close().catch(() => {});
+    }
   }
 }
 

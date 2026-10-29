@@ -31,6 +31,18 @@ exclude:
   - package.json
   - package-lock.json
 
+  # ★DEEP PAY を本番から消した（2026-10-29 オーナー指示「準備中じゃなくて消して。みんなが見えないように」）。
+  #   住所を直に開いても 404。この8本を読むのはこの4枚のページだけ（ほかのページは1本も読まない）。
+  #   ファイルはリポジトリに残す ── 開け直す日に、この塊を消す（手順は workflows/deploy-checklist.md の 20 番）。
+  - deep-pay.html
+  - deep-pay-compare.html
+  - en/deep-pay.html
+  - en/deep-pay-compare.html
+  - deep-pay.js
+  - deep-pay.css
+  - deep-pay-compare.js
+  - deep-pay-compare.css
+
 # ── 除外してはいけないもの（削ると本番が壊れる。確認済み）────────────────
 #   *.js              currency.js / salary-leveling.js / payslip.js ほか
 #                     ＋ airlines/airline-base.js, airline-reviews-ui.js, premium-auth-lock.js

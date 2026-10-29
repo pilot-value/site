@@ -34,6 +34,7 @@
              drawer   ★行を押して開いた面（2026-09-03）。その1人ぶんの帯が出る
              drawer-lock ★自分の内訳をまだ出していない人が同じ面を開いたところ
                          （報酬の内訳が閉じている。帯は**サーバから届いていない**）
+             rows-lock ★同じ人たちの一覧（2026-10-29）。閉じている行にも色の帯と区分の名前（％なし）
              far      ★公開年収から大きく外れた本人申告の行（2026-09-19）。2行目の出典の横に ⚠
              far-drawer ★その行を押して開いた面（金額の下に1文）。row=0 は同じ会社・職位の
                          ほかの記録の中に ⚠ が出るところ
@@ -468,6 +469,10 @@ const SCENES = {
                           give: { basic: true, detailed: false, full: false,
                                   payslip: false } },
                    open: 0 },
+  /* ★同じ人たちの一覧（2026-10-29）。閉じている行にも色の帯と区分の名前が出る（％は出ない）。 */
+  'rows-lock': { pay: { ok: true, state: 'open', rows: DRAWER_LOCK, stats: ST(14, 9),
+                        give: { basic: true, detailed: false, full: false,
+                                payslip: false } } },
   /* ★出し直しのお願い（2026-10-05）。手取りが総支給より多い月が2つある会員。
        板に出るのは対象月と社名だけ。⚠️ 数字は作り物（会員が入れた額をここへ写さない）。 */
   fix: { pay: { ok: true, state: 'open', rows: ROWS, stats: ST(17, 13) }, mine: FIX_MINE },

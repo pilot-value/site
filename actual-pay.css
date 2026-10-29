@@ -266,7 +266,7 @@
      見出し6語・件数・約束の言い回しを見ている既存の検査に1つも触らない。
    ★語は JS の辞書から**本物の要素**として入る（content:attr() ではない）。
      CSS に日本語を直書きしないため＝英語版がそのまま効く。 */
-.ap-cl,.ap-cbh,.ap-cb,.ap-cb-l,.ap-shn{display:none}
+.ap-cl,.ap-cbh,.ap-cb,.ap-cb-l{display:none}
 
 /* セルの中の見出し語（「年収」「月あたり」）。カードには表の見出し行が無い。 */
 .ap-cl{font-size:.64rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
@@ -299,6 +299,33 @@
   font-variant-numeric:tabular-nums}
 .ap-cb-d{flex:none;display:inline-block;width:8px;height:8px;margin-right:6px;
   border-radius:999px;background:var(--pv-orange)}
+
+/* 閉じている行の帯（2026-10-29）── 面の .ap-dw-lk-b と同じ見え方。
+   ★幅は**全員同じ作り物**（その人の割合ではない）。値は面の :nth-child と同じ数。
+   ★名前が2つに満たない行は灰色の骨組み（is-real が付かない）。 */
+.ap-cb--lk .ap-cb-s{flex:2 1 0}
+.ap-cb--lk.is-real .ap-cb-s:nth-child(1){flex:6 1 0}
+.ap-cb--lk.is-real .ap-cb-s:nth-child(2){flex:4 1 0}
+.ap-cb--lk.is-real .ap-cb-s:nth-child(3){flex:3 1 0}
+.ap-cb--lk:not(.is-real){opacity:.55}
+.ap-cb--lk:not(.is-real) .ap-cb-s{background:var(--pv-line)}
+.ap-cb--lk:not(.is-real) .ap-cb-s:nth-child(1){flex:5 1 0}
+.ap-cb--lk:not(.is-real) .ap-cb-s:nth-child(2){flex:3 1 0}
+.ap-cb--lk:not(.is-real) .ap-cb-s:nth-child(3){flex:2 1 0}
+.ap-cb--lk:not(.is-real) .ap-cb-s:nth-child(4){flex:1 1 0}
+/* 錠前の印。★svg にしない（表の中の svg は検査が「図の生え直し」として数えている）。 */
+.ap-cb-lk{flex:none;position:relative;display:inline-block;width:8px;height:6px;
+  margin:3px 6px 0 0;border-radius:1.5px;background:var(--pv-ink-3)}
+.ap-cb-lk::before{content:'';position:absolute;left:1.5px;bottom:5px;width:5px;height:4px;
+  box-sizing:border-box;border:1.5px solid var(--pv-ink-3);border-bottom:0;
+  border-radius:3px 3px 0 0}
+
+/* 広い幅の表で、年収の下に置く帯（2026-10-29・オーナー指示「パソコン画面にも出して」）。
+   ★中身はカードと同じ部品（.ap-cb / .ap-cb-l）。狭い幅では下の @media が伏せる。 */
+.ap-wb{display:block;width:168px;margin:7px 0 0 auto}
+.ap-wb .ap-cb{display:flex;height:6px;margin-bottom:5px}
+.ap-wb .ap-cb-l{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:1px 8px;
+  margin-bottom:0;font-size:.66rem;line-height:1.55}
 /* その内訳が概算だと断る1行。表の下に1つだけ置く（面では .ap-dw-stn が同じことを言う）。
    ⚠️ ％を出すなら、この1行を必ず同じ画面に置く。片方だけ消さない。 */
 .ap-shn{margin:12px 2px 0;font-size:.68rem;line-height:1.7;color:var(--pv-ink-3);
@@ -854,6 +881,8 @@
   .ap-cb-l{display:flex;flex-wrap:wrap;margin-bottom:0;gap:2px 8px;min-width:0}
   /* 「ほか3区分」── 名前を出すのは最大の1つだけ、残りは数だけ言う。 */
   .ap-cb-m{flex:none}
+  /* ★広い幅の帯（年収の下）は伏せる。カードの帯は5列目の段にそのまま在る。 */
+  .ap-wb{display:none}
   .ap-vf-no{padding:2px 7px;font-size:.62rem}
   .ap-shn{display:block;margin-top:10px}
   /* ★触る端末では hover が貼り付いたまま残る。押した色を作らない。 */
