@@ -105,6 +105,8 @@
       askHead: function (name) { return [(name || 'あなたの会社') + 'のこと、', 'ひとつ教えて。']; },
       next: '次へ',
       multiHint: 'あてはまるものを全部選んでください。',
+      /* 1つの塊にする（「の続き」だけが次の行へ落ちないように。長い質問は塊の中で折り返す） */
+      followUp: function (label) { return ['「' + label + '」の続き']; },
       numBad: function (min, max) { return [min + '〜' + max + ' の数字で', '入れてください。']; },
       /* マイページの二次導線。★勝手に質問を出さない。押した人にだけ開く */
       ctaTitle: function (name) { return (name ? name + ' の' : '') + '待遇情報'; },
@@ -159,6 +161,7 @@
       askHead: function (name) { return ['Tell us one thing about ' + (name || 'your airline') + '.']; },
       next: 'Next',
       multiHint: 'Choose all that apply.',
+      followUp: function (label) { return ['Follow-up to:', '“' + label + '”']; },
       numBad: function (min, max) { return ['Please enter a number', 'from ' + min + ' to ' + max + '.']; },
       ctaTitle: function (name) { return 'Working conditions' + (name ? ' at ' + name : ''); },
       ctaSub: ['There are questions you have not answered yet.', 'Even one helps the next pilot.'],
@@ -299,6 +302,8 @@
     '.pvc-num{font-size:16px;width:132px}',
     '.pvc-unit{font-size:.82rem;font-weight:700;color:#6b7d93}',
     '.pvc-go{display:flex;justify-content:flex-end;margin-top:16px}',
+    '.pvc-ctx{font-size:.74rem;font-weight:700;line-height:1.6;color:#6b7d93;margin-top:14px}',
+    '.pvc-ctx + .pvc-q{margin-top:6px}',
     /* 終わりは静かに。紙吹雪もゲーム感も出さない */
     '.pvc-done{font-size:.95rem;font-weight:700;line-height:1.75;color:#34d399;padding:16px 0 10px}',
     '.pvc-warn{font-size:.8rem;line-height:1.7;color:#f5c842;margin-top:14px}',
@@ -625,7 +630,8 @@
       ? lines(T.again(labelOf(q, it.mine_code)))
       : esc(q[L].label);
     var helpText = (!it.reconfirm && q[L] && q[L].help) ? q[L].help : '';
-    if (mode === 'multi') helpText = helpText ? helpText + ' ' + T.multiHint : T.multiHint;
+    /* 複数選ぶ：説明が無い質問にだけ「全部選んでください」を添える（説明に同じことが書いてある質問で二重にしない） */
+    if (mode === 'multi' && !helpText) helpText = T.multiHint;
     var help = helpText ? '<div class="pvc-help">' + esc(helpText) + '</div>' : '';
     var step = this.items.length > 1
       ? '<span class="pvc-step">' + esc(T.step(this.i + 1, this.items.length)) + '</span>' : '<span></span>';
@@ -654,8 +660,12 @@
       ? '<div class="pvc-go"><button type="button" class="pvc-btn" data-next disabled>' + esc(T.next) + '</button></div>'
       : '';
 
+    /* 続きの質問は、親の質問を小さく上に添える（2日後の板の1問目に来ても、何の続きか分かるように） */
+    var ctxLine = (!it.reconfirm && it.parentLabel)
+      ? '<div class="pvc-ctx">' + lines(T.followUp(it.parentLabel)) + '</div>' : '';
+
     this.body.innerHTML =
-      '<div class="pvc-q">' + head + '</div>' + help + numHtml + optsHtml + goHtml +
+      ctxLine + '<div class="pvc-q">' + head + '</div>' + help + numHtml + optsHtml + goHtml +
       '<div class="pvc-foot">' + step +
         '<button type="button" class="pvc-skip">' + esc(T.skip) + '</button>' +
       '</div>';
@@ -977,7 +987,9 @@
             if ((q.kind === 'choice' || q.kind === 'multi') && !(q.choices && q.choices.length)) continue;
             if (q.kind === 'num' && !q.num) continue;
             if (q.kind !== 'choice' && q.kind !== 'multi' && q.kind !== 'num') continue;
-            out.push({ q: q, mine_code: q.kind === 'choice' ? (qs[i].mine_code || null) : null });
+            var par = q.parent && bank.byId[q.parent];
+            out.push({ q: q, mine_code: q.kind === 'choice' ? (qs[i].mine_code || null) : null,
+                       parentLabel: par && par[L] ? par[L].label : '' });
           }
           return out;
         };
