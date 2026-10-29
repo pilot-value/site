@@ -140,6 +140,59 @@
   'use strict';
   if (!w || !d) return;
 
+  /* ══ ★★DEEP PAY は閉じている（2026-10-29・オーナー指示「deep pay は一時会員には見せない。
+       閉鎖するからみんなのページから消して」）══
+     2026-10-12 に公開した画面を、一時的に閉じた。会社比較（deep-pay-compare.js の COMPARE_OPEN）と同じ形 ──
+     ・DEEP_OPEN が false のあいだ、このファイルは下の closedBoard() を1回呼んで**そこで終わる**。
+       セッションを待たない・pv_deep_pay() を1回も呼ばない・保存領域を読まない／書かない・
+       影絵もクラッカーも出さない・試験用の入口（PVDeepPay）も生やさない。
+       ログインしていない人・会員・運営 ── 誰が来ても、同じ板が1枚出るだけ。
+     ・入口も全部外した（REAL PAY の見出しのタブ・行の面のボタン・3段の表の段・ロードマップの2行）。
+     ・本体（この下ぜんぶ）とサーバ（db/deep-pay.sql）には1文字も手を入れていない。
+     ★開け直す日 ── この定数を true に／入口を戻す（git の 2026-10-29 の直前の版から：
+       actual-pay.html の日英のタブ・actual-pay.js の面のボタン・pv-gates.js の段・
+       roadmap-config.js の2行）／2本の検査（assert-deep-pay*.mjs）の「閉じている」の節を書き換える／
+       ?v= を付け替える。
+     ⚠️ これは門ではない。数字を守っているのは今までどおりサーバだけ。
+        ここは「いま見せない画面を描かない」だけ。 */
+  var DEEP_OPEN = false;
+  /* ★試験用の口。**手元の確認用サーバ（localhost / 127.0.0.1）で開いたときだけ**、検査と撮影の道具が
+       先に置いた印（window.__PV_DEEP_OPEN = true）で本体を動かせる（閉じているあいだも腐らせないため）。
+     ⚠️ 本番の住所では、印が在っても**必ず false**。住所の後ろの字・保存領域・Cookie では開かない。
+        条件を足さない・緩めない（compareOpen() と同じ形）。 */
+  function deepOpen() {
+    if (DEEP_OPEN) return true;
+    try {
+      return w.__PV_DEEP_OPEN === true &&
+        /^(?:localhost|127\.0\.0\.1)$/.test(w.location.hostname);
+    } catch (e) { return false; }
+  }
+  /* 閉じているあいだの板。題とリンクの2つの字だけ（会社比較の板と同じ形。**文を足さない**）。
+     ★器（#dp-root）の中身を、この板1枚に置き換える ── タブ・選ぶ欄・カードの器ごと無くなる。
+     ★行き先は REAL PAY（相対のまま。/en/ から踏めば /en/actual-pay.html に解ける）。
+     ⚠️ ここは下の T / esc より**前**に走る。字も絵もこの関数の中に直に持つ。 */
+  function closedBoard() {
+    var en = d.documentElement.getAttribute('lang') === 'en';
+    var root = d.getElementById('dp-root');
+    if (!root) return;
+    root.innerHTML = '<div class="dp-msg dp-closed">' +
+      '<h1 class="dp-msg-t">' +
+        (en ? 'DEEP PAY is coming soon' : 'DEEP PAY は準備中です') + '</h1>' +
+      '<a class="dp-more-b dp-more-b--on dp-closed-go" href="actual-pay.html">' +
+        '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" ' +
+        'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M15 5 8 12l7 7"/></svg>' +
+        (en ? 'Back to REAL PAY' : 'REAL PAY に戻る') + '</a>' +
+      '</div>';
+  }
+  if (!deepOpen()) {
+    /* ★後ろで読まれる出し直しのお願い（pv-pay-fix.js）にも本人を渡さない（会社比較と同じ）。
+         閉じているあいだ、この画面は誰に対しても同じ1枚 ── 会員向けの通信も控えも起こさない。 */
+    w.PV_SESSION = Promise.resolve(null);
+    closedBoard();
+    return;
+  }
+
   var V = w.PVViz;
   if (!V) return;                       // pay-viz.js が先に要る（HTML の順序）
   var esc = V.esc, num = V.num, fmt = V.fmt;

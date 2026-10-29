@@ -305,6 +305,9 @@
   letter-spacing:-.01em}
 .dp-msg-t svg{width:18px;height:18px;flex:none;color:var(--pv-ink-3)}
 .dp-msg-s{margin-top:8px;font-size:.8rem;line-height:1.75;color:var(--pv-ink-2)}
+/* ★閉じているあいだの板（2026-10-29・deep-pay.js の closedBoard）。会社比較の .dc-closed と同じ寸法。 */
+.dp-closed{max-width:520px}
+.dp-closed-go{margin-top:16px}
 /* ★錠前の板の行は1行ずつ <p> にした（2026-10-11。前は1つの <p> を <br> で割っていた）。
      「答えきっていない」の行のすぐ下へ一覧を挟むため。続く行は間を空けない
      ＝ <br> で割っていた頃と同じ行送りのまま。 */

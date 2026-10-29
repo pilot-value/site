@@ -173,11 +173,7 @@
            カードでは**いちばん大きい区分だけ**名前と％を出し、残りは数だけ言う。
            全区分の名前と％は、行を押すと出る面（ap-dw-list）に今までどおり全部ある。 */
       cbMore: 'ほか{n}区分',
-      /* 主 ── DEEP PAY へのリンク（2026-10-11 に DEEP PAY を公開した。行き先は下の DEEP_URL）。
-           前は左メニューと同じ門（pv-gates.js の説明パネル）を開くボタンだった。
-           ★字は変えていない。 */
-      dwGo: '他社と比較する → DEEP PAY',
-      /* 副 ── 出す側へ戻す。消さずに順位だけ下げる。 */
+      /* 面のボタン ── 出す側へ戻す。★2026-10-29 に DEEP PAY を閉じて、副から主に上がった。 */
       dwCta: 'あなたの給与情報を匿名で追加',
       /* ★報酬の内訳の門（2026-09-03・オーナー指示）。
            自分の内訳を出した人だけが、他人の内訳を見られる（Give & Get）。
@@ -292,7 +288,6 @@
       fN: '{n} rows',
       cBh: 'Block',
       cbMore: '+{n} more',
-      dwGo: 'Compare with other airlines → DEEP PAY',
       dwCta: 'Add your pay anonymously',
       lockPT: 'Pay breakdowns are shared between the pilots who share their own',
       lockPS: 'Answer three things — base pay, flight time guarantee / duty allowance, '
@@ -355,14 +350,9 @@
        「くわしく入れる」を開いたところまで進めてくれる（あちらは書き足していない）。
      ★相対のまま。/en/ から踏めば /en/pay-report.html に解ける。 */
   var DETAIL_URL = 'pay-report.html#pay-detail';
-  /* ★DEEP PAY（2026-10-11 に公開）。行を押すと出る面の主のボタンの行き先。
-     ★相対のまま。/en/ から踏めば /en/deep-pay.html に解ける。
-     ⚠️ **この住所を書いてよい JS は、DEEP PAY の2本のほかはこのファイルだけ。**
-        assert-deep-pay.mjs の ① が、DEEP PAY へ繋がる辺の集合をちょうどで固定している
-        （見出しのタブ ＝ actual-pay.html の日英 ／ この1本）。3本目を足すとあちらが赤くなる。
-     ⚠️ ここで「開く条件」を言わない・人数を出さない。まだ開かない人には、
-        DEEP PAY の画面が何が残っているかを見せる。 */
-  var DEEP_URL = 'deep-pay.html';
+  /* ★DEEP PAY への行き先は、2026-10-29 にこのファイルから外した（DEEP PAY を閉じた）。
+     ⚠️ ここに DEEP PAY の住所を書き戻さない。assert-deep-pay.mjs の ① が、閉じているあいだ
+        DEEP PAY へ繋がる線が**1本も無い**ことを見ている。開け直す日の手順は deep-pay.js の DEEP_OPEN の注。 */
 
   /* 門から給与フォームへ渡す「戻り先」。
      ⚠️ **URL に載せない。** クエリでもハッシュでも、他人の年収がアドレス欄に出て
@@ -773,7 +763,9 @@
               セルの中に置いて広い幅では伏せる。CSS に日本語を直書きしないため、
               content:attr() ではなく本物の要素にしてある（英語版がそのまま効く）。 */
          + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thAmt) + '</span>'
-         +   '<span class="ap-amt">' + esc(money(r.annual_usd)) + '</span></td>'
+         +   '<span class="ap-amt">' + esc(money(r.annual_usd)) + '</span>'
+         /* ★広い幅の内訳の帯（2026-10-29）。年収の下に置く＝この額の中身だと読める。 */
+         +   wideCompHTML(r) + '</td>'
          /* ★月あたりは画面の年収を12で割っただけ。新しい情報は1つも増えていない。 */
          + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
          +   '<span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
@@ -797,9 +789,9 @@
     /* ★表は幅いっぱい。図は無い（2026-08-24 に外した）。
        ★ foot（何が載っていないかの1文）は表の下。あれは説明ではなく約束で、
          消すと「機種はどこ？」に答えるものが画面から無くなる。 */
-    /* ★概算だと断る1行。カードでは内訳バーが行ごとに出るので、
-         その約束をこの1枚で引き受ける（10枚のカードに10回書かない）。
-         広い幅では出ない（バーはカードにしか無い）。 */
+    /* ★概算だと断る1行。内訳バーは行ごとに出るので、
+         その約束をこの1枚で引き受ける（10行に10回書かない）。
+         ★2026-10-29 から広い幅にもバーと％が出る＝この1行も広い幅で出す（％と断りは必ず同じ画面）。 */
     box.innerHTML = h + '<p class="ap-shn">' + esc(T.dwShare) + '</p>'
                   + '<p class="ap-foot">' + esc(T.foot) + '</p>';
     renderStats();
@@ -1108,12 +1100,19 @@
       + esc(v) + '<span class="ap-cbh-u">' + esc(T.wkU.bh) + '</span></span>';
   }
 
-  /* カードの内訳バー＋凡例。
-     ★閉じている行（paylock）には**1文字も出さない**。あちらの幅は作り物なので、
-       ％にしたら発明した数字を公開することになる（payHTML のコメントを読む）。
-     ★区分が1つだけの行も出さない。「100%」は数えていないのと同じ。 */
+  /* 一覧の内訳バー＋凡例。
+     ★2026-10-29（オーナー指示「iPhone の一覧に棒グラフが出ない」「パソコン画面にも出して」）、
+       広い幅の表にも出すようにした。同じ中身を2か所に置く ── 狭い幅は5列目（カードの下の段）、
+       広い幅は年収の下（wideCompHTML）。どちらを見せるかは CSS が決める。
+     ★閉じている行（paylock）は、面と同じく**色と区分の名前だけ**（cardLockHTML）。
+       ％は1文字も出さない。あちらの幅は作り物なので、％にしたら発明した数字を公開することになる
+       （payHTML のコメントを読む）。
+     ★区分が1つだけの開いた行は出さない。「100%」は数えていないのと同じ。
+     ★内訳がそもそも無い行（pay も paylock も無い）にも出さない ── 何も書いていない人の投稿を
+       「何か隠されている」と読ませない（db/pay-rows.sql の paylock の注と同じ理由）。 */
   function cardCompHTML(r) {
-    if (r.paylock || !r.pay || r.pay.length < 2) return '';
+    if (r.paylock) return cardLockHTML(r.paylock);
+    if (!r.pay || r.pay.length < 2) return '';
     var mid = r.pay.map(segMid), wsum = 0;
     mid.forEach(function (m) { wsum += m; });
     var sh = shareInts(mid, wsum);
@@ -1141,6 +1140,45 @@
             + '</span>'
           : '')
       + '</span>';
+  }
+
+  /* 閉じている行の帯（2026-10-29）。面の payLockHTML と同じ材料・同じ見え方。
+     ★来ているのは区分の**名前だけ**（サーバの並び＝固定順のまま。大きい順に並べ替えない）。
+       幅は CSS の :nth-child が持つ**全員同じ作り物**（.ap-cb--lk）。％は出さない。
+     ★名前が2つに満たない行（paylock === true・知らない語だけ）は灰色の骨組み（面と同じ）。
+     ★錠前の印は CSS で描く（表の中に svg を足さない ── 検査が図の生え直しとして数えている）。
+     ⚠️ サーバから来た語をそのまま class に流さない。T.seg が白名簿。 */
+  function cardLockHTML(keys) {
+    var ks = [], n, bar = '';
+    if (keys && keys.length && typeof keys !== 'boolean') {
+      for (n = 0; n < keys.length; n++) {
+        if (typeof keys[n] === 'string' && T.seg && T.seg[keys[n]]) ks.push(keys[n]);
+      }
+    }
+    var real = ks.length > 1;
+    if (real) {
+      for (n = 0; n < ks.length; n++) bar += '<i class="ap-cb-s ' + segCls(ks[n]) + '"></i>';
+    } else {
+      for (n = 0; n < 4; n++) bar += '<i class="ap-cb-s"></i>';
+    }
+    return '<span class="ap-cb ap-cb--lk' + (real ? ' is-real' : '') + '" aria-hidden="true">'
+      + bar + '</span>'
+      + '<span class="ap-cb-l"><span class="ap-cb-i">'
+      +   '<i class="ap-cb-lk" aria-hidden="true"></i>'
+      +   (real ? esc(segName(ks[0])) : '') + '</span>'
+      + (real
+          ? '<span class="ap-cb-m">'
+            + esc(T.cbMore.replace('{n}', function () { return String(ks.length - 1); }))
+            + '</span>'
+          : '')
+      + '</span>';
+  }
+
+  /* 広い幅の表で、年収の下に置く帯（2026-10-29）。中身はカードと同じ1つ（cardCompHTML）。
+     ★狭い幅では CSS が伏せる（.ap-wb）。カードの側は5列目にそのまま在る。 */
+  function wideCompHTML(r) {
+    var h = cardCompHTML(r);
+    return h ? '<span class="ap-wb">' + h + '</span>' : '';
   }
 
   /* 閉じている「報酬の内訳」（2026-09-03 その3・オーナー指示
@@ -1384,19 +1422,16 @@
       /* ★「同じ会社・職位のほかの記録」は伏せた面では出さない。あれは金額を
            並べる節で、伏せた行には並べる数が無い（simHTML は money() を呼ぶ）。 */
       + (mk ? '' : simHTML(r))
-      /* ★主 ── 他社と比べる。DEEP PAY への**ただのリンク**（2026-10-11 に公開）。
-           止めない・自分で location を書かない ── 真ん中クリックも「新しいタブで開く」も
-           そのまま効く。pv-gates.js の有無にも依らない（前は門の部品が要った）。 */
+      /* ★ボタンは1つ ── 出す側へ戻す。
+           ★2026-10-29、主に在った「他社と比較する → DEEP PAY」を外した（オーナー指示
+             「DEEP PAY は一時会員には見せない。閉鎖するからみんなのページから消して」）。
+             それまで副だった「あなたの給与情報を匿名で追加」が主（橙）に上がった。
+             戻すときは git の 2026-10-29 の直前の版から（DEEP PAY を開け直す日に）。 */
       + (pv || mk
-          /* ★プレビューと伏せた面は DEEP PAY へ送らない（鍵の無い人なので、行っても
-               開かない）。行き先は1つだけ ── 給与を出す画面。 */
+          /* ★プレビューと伏せた面は今までどおり。行き先は1つだけ ── 給与を出す画面。 */
           ? '<a class="ap-dw-cta" data-ap-cta="detail" href="' + PAY_URL + '">'
             + esc(T.lockC) + '</a>'
-          : '<a class="ap-dw-cta" href="' + DEEP_URL + '">' + esc(T.dwGo) + '</a>')
-      /* ★副 ── 出す側へ戻す。消さずに順位だけ下げる。
-           ★伏せた面では出さない ── 上の主 CTA と行き先が同じで、同じ画面への
-             ボタンが2つ並ぶ。 */
-      + (pv || mk ? '' : '<a class="ap-dw-cta2" href="' + PAY_URL + '">' + esc(T.dwCta) + '</a>')
+          : '<a class="ap-dw-cta" href="' + PAY_URL + '">' + esc(T.dwCta) + '</a>')
       /* ★下の1行（「匿名化のため帯で表示しています」）もプレビューでは出さない。
            あれは**誰かが出した数字をどう扱っているか**の説明で、作り物の5行に
            付けると「この金額も誰かの投稿を匿名化したもの」と読める。

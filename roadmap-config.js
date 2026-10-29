@@ -136,17 +136,9 @@ window.PVRoadmap = {
       en: { t: 'Where your pay sits',
             d: 'Your position within published ranges. No leaderboards.' } },
 
-    /* ★2026-10-12 オーナー判断「会社比較はまだ出さないでよ」。ここは 2026-09-01 の日付で
-       done に並んでいたが、その日に会員が辿れる入口は1本も無く（作っただけで、入口を
-       置いていなかった）、いまは画面そのものを閉じてある（deep-pay-compare.js の COMPARE_OPEN）。
-       **出していないものを done に書かない**（上の①）。予定の札までにする・月を書かない（上の⑥）。
-       字は前のまま（1文字も変えていない）。
-       ⚠️ 出した日に done へ戻す。日付はその日（git log と揃える）── 2026-09-01 に戻さない。 */
-    { id: 'deep-pay-compare', state: 'planned',
-      ja: { t: 'DEEP PAY に会社比較',
-            d: '2社を並べて、支給の構成まで比べられる。' },
-      en: { t: 'Company comparison in DEEP PAY',
-            d: 'Two airlines side by side, down to composition.' } },
+    /* ★2026-10-29、'deep-pay-compare'（予定の札「DEEP PAY に会社比較」）を外した。
+       DEEP PAY そのものを閉じた日（オーナー指示「閉鎖するからみんなのページから消して」）。
+       開け直す日に戻すなら git の 2026-10-29 の直前の版から（字は1文字も変えずに）。 */
 
     { id: 'apple-login', state: 'considering',
       ja: { t: 'Apple でログイン',
@@ -155,15 +147,9 @@ window.PVRoadmap = {
             d: 'If more pilots outside Japan ask for it.' } },
 
     /* ── ここから下は出し終わったもの（最近のアップデートに出る）── */
-    /* ★DEEP PAY を公開（2026-10-11 オーナー判断）。入口は REAL PAY の見出しのタブ。
-       ⚠️ date は**本番へ出た日**（上の①）。push の日がずれたら、この1行の日付を直す
-          （画面に出るのは年と月だけ）。
-       ⚠️ 開く条件・人数をここに書かない（条件を言うのは DEEP PAY の画面だけ）。 */
-    { id: 'deep-pay', state: 'done', date: '2026-10-12',
-      ja: { t: 'DEEP PAY を公開',
-            d: '会社・職位・機材ごとに、年収の中央値・給与構成・働き方をまとめて見られます。' },
-      en: { t: 'DEEP PAY is live',
-            d: 'Median pay, pay mix and workload by airline, rank and fleet.' } },
+    /* ★2026-10-29、'deep-pay'（「DEEP PAY を公開」2026-10-12）を外した。DEEP PAY を閉じたので、
+       「最近のアップデート」に出すと今は無いものを出したと言うことになる（上の①）。
+       ⚠️ goals の n:100 の段（DEEP PAY）はオーナーの文なので触っていない。 */
 
     { id: 'hikaku-asia', state: 'done', date: '2026-10-02',
       ja: { t: '台湾・湾岸・アジアの航空会社を比べるページ',
