@@ -376,16 +376,36 @@ export const BASIS = {
 
   /* ══ チャイナエアライン ══ 公式は英語版・中文版とも金額ゼロ。
      中文版の「按飛時經驗支薪」が給与に触れた唯一の文で、それでも金額が無い。 */
+  /* ★2026-10-29（オーナー OK・Gemini の年収の調べ 2回目）── 報道の年額で作り直した（機長 2,000万 → 3,500万・副操縦士 1,100万 → 1,500万）。
+     額は salary-data.mjs、出どころの記録は salary-sources.mjs。会社も組合も額を出していない＝ 報道の印（secondary）を付ける。
+     前の held（出所の記録が無かった旧値 2,000万・1,100万）は、根拠の付いた推定に置き換えたので外した（旧値は salary-sources.mjs の note に残してある）。 */
   'china-airlines': {
     cur: 'USD',
-    tax: '課税（台湾）',
-    src: [],
+    tax: '課税（台湾）', tax_en: 'Taxed (Taiwan)',
+    src: [
+      { pub: '鏡週刊（Mirror Media）', pub_en: 'Mirror Media (Taiwan)', name: '【長榮不罷工內幕2】', name_en: 'Inside EVA Air’s no-strike deal, part 2',
+        as_of: '2024-02-05 掲載', as_of_en: 'Published 5 February 2024', accessed: '2026-10-29', secondary: true,
+        url: 'https://www.mirrormedia.mg/story/20240205inv013' },
+      { pub: '經濟日報（udn）', pub_en: 'Economic Daily News (udn)', name: '華航、長榮航機師 300萬起跳', name_en: 'China Airlines and EVA Air pilots start from TWD 3 million',
+        as_of: '2026-03-08 掲載', as_of_en: 'Published 8 March 2026', accessed: '2026-10-29', secondary: true,
+        url: 'https://money.udn.com/money/story/5612/9366097' },
+    ],
     notes: [],
     notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 2000, lo: 1500, hi: 2450 },
-      why: '公式の採用ページ（英語版・中文版）に金額が1件も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 1100, lo: 700, hi: 1280 },
-      why: '機長と同じ理由。' } },
+    cap: { tier: 'estimate', est: {
+      basis: '台湾の週刊誌・鏡週刊の調査記事（2024年2月）。会社と組合は金額を公表していません',
+      basis_en: 'An investigative piece in Taiwan’s Mirror Media (February 2024). Neither the airline nor the union publishes pay figures',
+      method: '記事の「ベテランの機長は年 700萬台湾ドル以上」に置いています。幅は同じ記事の「機長は 480萬台湾ドルから・多く飛ぶ人は 800萬台湾ドル超」です。この一文は台湾の大手の機長に共通の話として書かれています。その後の賞与・昇給と日当は入れていません。',
+      method_en: 'Set at the article’s “senior captains earn TWD 7 million or more a year”. The range follows the same article: captains start from TWD 4.8 million, and those who fly the most exceed TWD 8 million. The article states this for captains at Taiwan’s major carriers in general. Later bonuses, pay rises and per diem are not included.',
+      as_of: '2024年2月', as_of_en: 'February 2024',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: '經濟日報の記事（2026年3月）。会社と組合は金額を公表していません',
+      basis_en: 'An Economic Daily News article (March 2026). Neither the airline nor the union publishes pay figures',
+      method: '記事の「訓練を終えて副操縦士として乗り始めると年 300萬台湾ドル以上」に置いています。6年目の額の資料が無いため、乗り始めの額で示しています（低めの見積もり）。幅の下は前の値のままです。',
+      method_en: 'Set at the article’s “once trained and flying the line, first officers earn TWD 3 million or more a year”. There is no source for a year-6 figure, so this is the starting figure (a conservative estimate). The bottom of the range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
   },
 
   /* ══ スターラックス ══ ★2026-09-30 オーナー指摘③
@@ -1026,6 +1046,95 @@ export const BASIS = {
     cap: { tier: 'estimate', held: { was: { avg: 2500, lo: 2200, hi: 3100 },
       why: '公式の募集要項の給与の節が「当社規程により支給。詳細については、選考における面接時に説明します。」で金額が無い。非上場で有価証券報告書も無い。レンジの出所の記録も無い。' } },
     fo: { tier: 'estimate', held: { was: { avg: 1500, lo: 1200, hi: 1900 }, why: '機長と同じ理由。' } },
+  },
+
+  /* ══ KLM・スイス・オーストリア ══ ★2026-10-29（オーナー OK・Gemini の年収の調べ 2回目「01-欧州の大手5社」）。
+     額は salary-data.mjs、出どころの記録と計算の内訳は salary-sources.mjs。会社の公表額は無い（groups なし）＝ どの職位も「推定」。
+     ★KLM はオーナーの決め（2026-10-29「上乗せなし。他にどれくらい増えるのか書いてね」）── 年齢に応じた現金の手当3つ
+       （明細の 2590・2591 ＝ 年金の代わりの手当／1085 ＝ levensloop）は推定年収に入れず、増える額を算出方法の文に書く。
+       機長は B737 と長距離の最上段の真ん中（オーナー「その真ん中で詳細は会社ページにかこう」）。副操縦士は入社23歳・6年目と仮に置いた。
+     ⚠️ 第三者のサイトに置かれた協約の写し・報道・利用者が書き込む表には secondary を付ける。
+     ⚠️ 円額をここに書かない（ユーロ・フランのまま）。 */
+  'klm': {
+    tax: '課税（オランダ）', tax_en: 'Taxed (Netherlands)',
+    src: [
+      { pub: 'KLM とパイロット組合 VNV の労働協約（第三者のサイトに置かれた写し）', pub_en: 'KLM–VNV pilot collective agreement (copy hosted on a third-party site)',
+        name: 'CAO voor KLM-vliegers op vleugelvliegtuigen — versie april 2026',
+        as_of: '2026年4月版', as_of_en: 'April 2026 version', accessed: '2026-10-29', secondary: true,
+        url: 'https://content.helloflex.com/PublicCaoDocument/0fb8eccb-870b-4327-baf3-ebabc85649f3/downloadcao.pdf' },
+      { pub: 'KLM パイロットの年金基金（Pensioenfonds Vliegend Personeel KLM）', pub_en: 'KLM pilots’ pension fund (Pensioenfonds Vliegend Personeel KLM)',
+        name: 'Premieverdeling waarbij werkgever en werknemer beide bijdragen',
+        as_of: '2026年1月1日の表', as_of_en: 'Rates effective 1 January 2026', accessed: '2026-10-29',
+        url: 'https://klmvliegendfonds.nl/onze-regelingen/pensioenopbouw/pensioen-opbouwen-de-basispensioenregeling/hoe-bouwt-u-basispensioen-op/premieverdeling-waarbij-werkgever-en-werknemer-beide-bijdragen' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'KLM とパイロット組合 VNV の労働協約（2026年4月版）の給与の式と、KLM パイロットの年金基金の掛け金の表（2026年）',
+      basis_en: 'The pay formula in the KLM–VNV pilot collective agreement (April 2026 version) and the KLM pilots’ pension fund contribution table (2026)',
+      method: 'B737 の機長の最上段（年 €322,490）と、長距離機（B777・B787・A330・A350）の機長の最上段（年 €391,398）の真ん中です。どちらも月給の12か月分に、休暇手当 8%・年末手当 8.33%・年金の掛け金の手当 11%・会社の年金拠出 3.2% を足した額です。'
+            + 'ほかに、年齢に応じて毎月払われる現金の手当が3つあります（年金の積み立ての代わりに払われる2つと levensloop）。推定年収には入れていませんが、52歳の機長では年に約 €133,700（B737）〜€169,400（長距離）増えます。'
+            + '利益配分と日当も、直近の支給の資料が無いため入れていません。幅の上端は長距離の機長の最上段、下は前の値のままです。',
+      method_en: 'The midpoint between a top-scale B737 captain (€322,490 a year) and a top-scale long-haul captain on the B777, B787, A330 or A350 (€391,398 a year). Both are 12 months’ salary plus the 8% holiday allowance, the 8.33% year-end payment, the 11% pension contribution allowance and the 3.2% company pension contribution. '
+            + 'On top of this, three age-related cash allowances are paid monthly (two paid in place of pension accrual, plus levensloop). They are not included in the estimate, but at age 52 they add about €133,700 (B737) to €169,400 (long-haul) a year. '
+            + 'Profit sharing and per diem are not included, as there is no source for recent payouts. The top of the range is a top-scale long-haul captain; the bottom is unchanged.',
+      as_of: '2026年4月版の協約', as_of_en: 'April 2026 agreement',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'KLM とパイロット組合 VNV の労働協約（2026年4月版）の給与の式と、KLM パイロットの年金基金の掛け金の表（2026年）',
+      basis_en: 'The pay formula in the KLM–VNV pilot collective agreement (April 2026 version) and the KLM pilots’ pension fund contribution table (2026)',
+      method: '入社23歳・6年目（29歳）と仮に置き、B737 の副操縦士（年 €143,330）と長距離機の副操縦士（年 €187,180）の真ん中にしています。どちらも機長と同じく、月給の12か月分に休暇手当・年末手当・年金の掛け金の手当・会社の年金拠出を足した額です。実際の額は入社の年齢と席次で変わります。'
+            + '年齢に応じた現金の手当3つは推定年収に入れていませんが、29歳では年に約 €31,300 増えます。利益配分と日当も入れていません。幅の上端は長距離の副操縦士の最上段、下は前の値のままです。',
+      method_en: 'Assumes joining at 23 and being in year 6 (age 29), and takes the midpoint between a B737 first officer (€143,330 a year) and a long-haul first officer (€187,180 a year). As for captains, both are 12 months’ salary plus the holiday allowance, year-end payment, pension contribution allowance and company pension contribution. Actual pay depends on age at joining and seniority. '
+            + 'The three age-related cash allowances are not included, but at age 29 they add about €31,300 a year. Profit sharing and per diem are not included either. The top of the range is a top-scale long-haul first officer; the bottom is unchanged.',
+      as_of: '2026年4月版の協約', as_of_en: 'April 2026 agreement',
+    } },
+  },
+
+  'swiss': {
+    tax: '課税（スイス）', tax_en: 'Taxed (Switzerland)',
+    src: [
+      { pub: 'Blick', pub_en: 'Blick', name: 'Die Swiss findet keine Piloten',
+        as_of: '2025-11-08 掲載', as_of_en: 'Published 8 November 2025', accessed: '2026-10-29', secondary: true,
+        url: 'https://www.blick.ch/wirtschaft/die-swiss-findet-keine-piloten/yb068hb' },
+      { pub: 'PilotJobsNetwork（利用者が書き込む表）', pub_en: 'PilotJobsNetwork (user-contributed table)', name: 'Swiss International Air Lines',
+        as_of: '2025-06-23 更新', as_of_en: 'Updated 23 June 2025', accessed: '2026-10-29', secondary: true,
+        url: 'https://www.pilotjobsnetwork.com/jobs/Swiss_International_Air_Lines' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'スイス紙 Blick の記事（2025年11月）と、労働協約（GAV 2023）から写したとされる給与表',
+      basis_en: 'An article in the Swiss paper Blick (November 2025) and a pay table said to be copied from the collective agreement (GAV 2023)',
+      method: '記事の「長く勤めた機長は年 220,000 スイスフラン」に置いています。給与表の最上段（27年目 219,956 フラン）も同じ額です。年金・業績の上乗せ・日当は、資料が足りず入れていません。何時間飛んでも給与は同じとされています。幅は前の値のままです。',
+      method_en: 'Set at the article’s “long-serving captains earn CHF 220,000 a year”. The top step of the pay table (year 27, CHF 219,956) matches. Pension, performance bonuses and per diem are not included, as the sources are not enough. Pay is reported to be the same regardless of hours flown. The range is unchanged.',
+      as_of: '2025年11月', as_of_en: 'November 2025',
+    } },
+    fo: { tier: 'estimate' },
+  },
+
+  'austrian': {
+    tax: '課税（オーストリア）', tax_en: 'Taxed (Austria)',
+    src: [
+      { pub: 'オーストリア航空の乗務員の労働協約', pub_en: 'Austrian Airlines cabin and cockpit crew collective agreement',
+        name: 'Kollektivvertrag für das Bordpersonal der Austrian Airlines（Gehaltstabellen gültig ab 01.01.2026）',
+        name_en: 'Kollektivvertrag für das Bordpersonal der Austrian Airlines (pay tables valid from 1 January 2026)',
+        as_of: '2026年1月からの給与表（2026年6月の変更を含む）', as_of_en: 'Pay tables from 1 January 2026 (including the June 2026 changes)', accessed: '2026-10-29',
+        url: 'https://www.kollektivvertrag.at/volltext?doc-set-id=SI-2022_de' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'オーストリア航空の乗務員の労働協約（2026年1月からの給与表）',
+      basis_en: 'The Austrian Airlines crew collective agreement (pay tables from January 2026)',
+      method: 'Mainline の機長の最上段（29年目）の月の総額 €17,093.51 を、協約どおり年14回（6月と11月の特別支給を含む）受け取る形にし、会社の年金拠出 5%（15年目から）を足しています。幅の下は1年目の機長です。業績に連動する配分と日当は、直近の支給の資料が無いため入れていません。',
+      method_en: 'A top-step Mainline captain (year 29) at €17,093.51 gross a month, paid 14 times a year as the agreement sets out (including the June and November special payments), plus the 5% company pension contribution (from year 15). The bottom of the range is a first-year captain. Profit-linked pay and per diem are not included, as there is no source for recent payouts.',
+      as_of: '2026年1月からの給与表', as_of_en: 'Pay tables from January 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'オーストリア航空の乗務員の労働協約（2026年1月からの給与表）',
+      basis_en: 'The Austrian Airlines crew collective agreement (pay tables from January 2026)',
+      method: '副操縦士の6年目の月の総額 €7,754.06 を年14回受け取る形にし、会社の年金拠出 4% を足しています。幅は1年目から29年目までです。業績に連動する配分と日当は入れていません。',
+      method_en: 'A year-6 first officer at €7,754.06 gross a month, paid 14 times a year, plus the 4% company pension contribution. The range runs from year 1 to year 29. Profit-linked pay and per diem are not included.',
+      as_of: '2026年1月からの給与表', as_of_en: 'Pay tables from January 2026',
+    } },
   },
 
   /* ══ ルフトハンザ ══ ★2026-10-27（オーナー判断 P12.133「ルフトハンザの機長 1」）。

@@ -855,6 +855,100 @@ export const SOURCES = {
   //   月額×その回数（質問5＝②）。新しい資料で数字が**下がる**職位・レンジの端は動かしていない（質問2＝①）。
   //   円は fx-rates.mjs（AS_OF 2026-08-22）の EUR 185.69・AUD 113.88 で直し、10万円単位に丸めた。
   //   原本は 2026-10-25 にこちらで開いて、表の行と条文を確かめた（PDF は read-source-pdf.mjs、イタリアの写しは画像のページを目で読んだ）。
+  /* ★2026-10-29（オーナー OK・Gemini の年収の調べ 2回目「01-欧州の大手5社」）── 新しく足した2社。
+     どちらも 2026-10-29 までの SALARY は出所の記録が無かった。 */
+  'klm': [
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'CAO voor KLM-vliegers op vleugelvliegtuigen VERSIE APRIL 2026（helloflex に置かれた写し）＋ Pensioenfonds Vliegend Personeel KLM「Premieverdeling」',
+      url:         'https://content.helloflex.com/PublicCaoDocument/0fb8eccb-870b-4327-baf3-ebabc85649f3/downloadcao.pdf',
+      published_at:null,   // 「VERSIE APRIL 2026」── 日は書いていない
+      accessed_at: '2026-10-29',
+      value_orig:  '月給 S = (L + P + F + 198,03) × A（A 3,9993・2025-01-01）。L + P は上限 3.050。F 機長 B737 1.900・B777/787/A330/A350 3.000。'
+                 + '最上段の月給 B737 €20,589・長距離 €24,988。10.2 休暇手当 12か月分の8%・10.11 年末手当 8,33%・10.9(6) 年金の掛け金の手当 11%・'
+                 + '会社の年金拠出 3,2%（基金の表：総掛け金 17,2% のうち本人 14,0%）。',
+      quote:       'S = (L + P + F + 198,03) x A ／ A 3,9993 per 1 januari 2025 ／ L + P ten hoogste 3.050 ／ F gezagvoerder B-737 1.900・B-777/787/A330/A350 3.000 ／ 10.2 8% van 12 maal ／ 10.11 8,33% ／ 10.9(6) 11%',
+      status:      'in_use',
+      note:        '★2026-10-29（オーナー OK・Gemini の年収の調べ 2回目）cap.avg 3,960万 → 6,630万・hi 5,810万 → 7,270万（lo 3,030万は前の値のまま）。'
+                 + '平均＝(B737 最上段 €322,490 ＋ 長距離の最上段 €391,398) ÷ 2 ＝ €356,944 × 185.69（fx-rates.mjs 2026-08-22）＝ 約6,628万円（オーナー「その真ん中」）。'
+                 + '各＝月給 × 12 × (1 ＋ 8% ＋ 8,33% ＋ 11% ＋ 3,2%)。上＝長距離の最上段の基本 €391,398（約7,268万）。'
+                 + '★入れていないもの（オーナー 2026-10-29「上乗せなし。他にどれくらい増えるのか書いてね」）：年齢に応じた現金の手当3つ ── '
+                 + '明細の 2590・2591（Pensioenpremietoelage 1・2 ＝ 年金の積み立ての率を下げた代わりの税引き前の現金。協約 10.9(10)・基金の2026年の表）と '
+                 + '1085（levensloop・協約 10.9(8)）。52歳の段で B737 年 €133,679・長距離 €169,368（いちばん大きいのは長距離・57歳 €186,351）。'
+                 + '利益配分（営業利益率しだいで 0〜20%）と日当も直近の支給の資料が無く入れていない。原本の PDF はリポジトリに置かない（sources-raw/）。'
+                 + '2026-10-29 までの SALARY は出所の記録が無かった。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'CAO voor KLM-vliegers op vleugelvliegtuigen VERSIE APRIL 2026（同上）',
+      url:         'https://content.helloflex.com/PublicCaoDocument/0fb8eccb-870b-4327-baf3-ebabc85649f3/downloadcao.pdf',
+      published_at:null,   // 「VERSIE APRIL 2026」── 日は書いていない
+      accessed_at: '2026-10-29',
+      value_orig:  'L = 2,5 × 満年齢の月数・P = 1/12 × 70 × 勤続の暦月。F 副操縦士 短距離の席次の段 550・600・800・1.000・1.050／長距離 1.500。'
+                 + '入社23歳・6年目（29歳）＝ L 870 ＋ P 420。月給 B737（F 800）€9,151・長距離 €11,950。',
+      quote:       'L = 2,5 x volle leeftijdsmaanden ／ P = 1/12 x 70 per volle kalendermaand ／ F blok V 550・600・800・1.000・1.050 ／ eerste officier lange afstand 1.500',
+      status:      'in_use',
+      note:        '★2026-10-29 fo.avg 2,240万 → 3,070万・hi 4,370万 → 5,520万（lo 1,380万は前の値のまま）。'
+                 + '平均＝入社23歳・6年目と仮に置き（オーナー「よい」）、(B737 F 800 €143,330 ＋ 長距離 €187,180) ÷ 2 ＝ €165,255 × 185.69 ＝ 約3,069万円。'
+                 + 'F 800 は短距離の副操縦士の席次の段 600・800・1.000 のまんなか。上＝長距離の副操縦士の最上段（L+P 3.050）の基本 €297,433（約5,523万）。'
+                 + '入れていないもの：年齢に応じた現金の手当3つ（29歳の段で年 €31,274・B737 €24,337〜長距離 €38,212）・利益配分・日当。'
+                 + '実際の額は入社の年齢と席次で変わる。',
+    },
+  ],
+  'swiss': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'Blick「Die Swiss findet keine Piloten」（Raphael Rauch）／PilotJobsNetwork の SWISS の表（GAV 2023 から・利用者が書き込む表）',
+      url:         'https://www.blick.ch/wirtschaft/die-swiss-findet-keine-piloten/yb068hb',
+      published_at:'2025-11-08',
+      accessed_at: '2026-10-29',
+      value_orig:  '長く勤めた機長 年 CHF 220,000（Blick）。PilotJobsNetwork の表は機長の最上段 CHF 219,956（27年目・2025-06-23 更新）。',
+      quote:       "Swiss-Kapitäne, die lang genug dabei sind, kassieren sogar 220'000 Franken.",
+      status:      'in_use',
+      note:        '★2026-10-29 cap.avg 4,100万 → 4,370万 ＝ CHF 220,000 × 198.46（fx-rates.mjs 2026-08-22）＝ 約4,366万円（10万円刻み）。'
+                 + '最上段の機長の年額。年金（率の意味が資料に無い）・業績の上乗せ（直近の支給の資料なし）・日当は含めていない。残業代の無い会社。'
+                 + 'cap.lo（3,520万）・cap.hi（5,900万）は前の値のまま。PilotJobsNetwork は利用者が書き込む表なので、同じ額を支えるだけ（単独では採らない）。'
+                 + '副操縦士は6年目が CHF 109,234（約2,168万）で今の 2,500万より下がるので据え置き（下がる会社は下げない・オーナー 2026-10-25）。',
+    },
+  ],
+  'austrian': [
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'Kollektivvertrag für das Bordpersonal der Austrian Airlines（konsolidierte Fassung・Gehaltstabellen gültig ab 01.01.2026・Änderungen Beilage vom 09.06.2026）',
+      url:         'https://www.kollektivvertrag.at/volltext?doc-set-id=SI-2022_de',
+      published_at:'2026-06-09',
+      accessed_at: '2026-10-29',
+      value_orig:  '56.2.3 Mainline-PIC: Dienstjahr 1 Gesamtbezug €9.143,05／Dienstjahr 29 €17.093,51（月の総額）。44.1 年2回の特別支給（6月30日・11月30日）＝年14回。'
+                 + '52.1 会社の年金拠出 4%（15年目から 5%）。',
+      quote:       '56.2.3 Mainline-PIC Dienstjahr 29 Gesamtbezug 17.093,51 ／ 44.1 Bruttomonatsgehalt als Sonderzahlung am 30. Juni … am 30. November ／ 52.1 4%, für Piloten ab dem 15. Dienstjahr 5%',
+      status:      'candidate',
+      note:        '★2026-10-29 cap.avg 2,600万 → 4,670万・lo 2,000万 → 2,470万・hi 3,300万 → 4,670万。'
+                 + '平均＝最上段（29年目）€17,093.51 × 14回 × 1.05（会社の年金拠出）＝ €251,275 × 185.69 ＝ 約4,666万円。'
+                 + '下＝1年目 €9,143.05 × 14 × 1.04 ＝ €133,123（約2,472万）。上＝最上段（平均と同じ）。'
+                 + '⚠️ 協約のサイトは機械の読み取りを断る（406）ため、本文はこちらで一度も開けていない。引用は Gemini のもの。'
+                 + 'オーナーの判断（2026-10-29「引用信じていいよ」）で採用した ── in_use に上げるのは、本文を開いて表の額を目視してから。'
+                 + '利益配分・日当は資料が無く含めていない。2026-10-29 までの SALARY は出所の記録が無かった。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'Kollektivvertrag für das Bordpersonal der Austrian Airlines（同上・56.2.1 First Officer）',
+      url:         'https://www.kollektivvertrag.at/volltext?doc-set-id=SI-2022_de',
+      published_at:'2026-06-09',
+      accessed_at: '2026-10-29',
+      value_orig:  '56.2.1 First Officer: Dienstjahr 1 Gesamtbezug €6.485,22／Dienstjahr 6 €7.754,06／Dienstjahr 29 €10.719,39（月の総額）。年14回・会社の年金拠出 4%（15年目から 5%）。',
+      quote:       '56.2.1 First Officer Dienstjahr 6 Gesamtbezug 7.754,06 ／ Dienstjahr 1 6.485,22 ／ Dienstjahr 29 10.719,39',
+      status:      'candidate',
+      note:        '★2026-10-29 fo.avg 1,550万 → 2,100万・lo 1,240万 → 1,750万・hi 2,050万 → 2,930万。'
+                 + '平均＝6年目 €7,754.06 × 14回 × 1.04 ＝ €112,899 × 185.69 ＝ 約2,096万円（副操縦士の代表は6年目・オーナー 2026-10-29）。'
+                 + '下＝1年目 €6,485.22 × 14 × 1.04 ＝ €94,425（約1,753万）。上＝29年目 €10,719.39 × 14 × 1.05 ＝ €157,575（約2,926万）。'
+                 + '⚠️ 本文は未確認・引用は Gemini のもの（上の機長の行と同じ扱い）。',
+    },
+  ],
   'ryanair': [
     {
       rank:        'cap',
@@ -1642,6 +1736,36 @@ export const SOURCES = {
        パイロットの年収として流用しないために置いている（starlux と同じ扱い）。       */
 
   'china-airlines': [
+    /* ★2026-10-29（オーナー OK・Gemini の年収の調べ 2回目「02-アジアの大手7社」）── 会社も組合も額を出していないので、報道の年額で組んだ（確かさは低）。 */
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '鏡週刊（Mirror Media）【長榮不罷工內幕2】（劉志原）',
+      url:         'https://www.mirrormedia.mg/story/20240205inv013',
+      published_at:'2024-02-05',
+      accessed_at: '2026-10-29',
+      value_orig:  '正機師（機長）の年収 TWD 4,800,000 から・ベテランは TWD 7,000,000 以上・多く飛ぶ人は TWD 8,000,000 超。',
+      quote:       '正機師年薪都在480萬元起跳，若是資深正機師，可領到年薪700萬元以上，少數正機師飛得比較多，年薪破800萬元',
+      status:      'in_use',
+      note:        '★2026-10-29 cap.avg 2,000万 → 3,500万・lo 1,500万 → 2,400万・hi 2,450万 → 4,000万（10万円刻み）。'
+                 + '平均＝ベテランの機長 TWD 7,000,000 × 4.9966（fx-rates.mjs 2026-08-22）＝ 約3,498万円（オーナー 2026-10-29「ベテラン」）。'
+                 + '下＝起点 480萬（約2,398万）・上＝「破800萬」（約3,997万）。'
+                 + '⚠️ 台湾の大手3社に共通の一文で、チャイナエアラインだけの額ではない。会社も組合も額を出していないので確かさは低（conf: low のまま）。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '經濟日報（udn）「華航、長榮航機師 300萬起跳」（黃淑惠）',
+      url:         'https://money.udn.com/money/story/5612/9366097',
+      published_at:'2026-03-08',
+      accessed_at: '2026-10-29',
+      value_orig:  '訓練を終えて乗務を始めた副操縦士の年収 TWD 3,000,000 以上。',
+      quote:       '完成受訓考上執照上線後，年薪300萬元以上',
+      status:      'in_use',
+      note:        '★2026-10-29 fo.avg 1,100万 → 1,500万・hi 1,280万 → 1,500万（lo 700万は前の値のまま）。'
+                 + 'TWD 3,000,000 × 4.9966 ＝ 約1,499万円。乗り始めの額（「以上」）なので、6年目の代表としては低めの見積もり。'
+                 + '会社も組合も額を出していないので確かさは低。',
+    },
     {
       rank:        'all',
       source_type: 'job_posting',

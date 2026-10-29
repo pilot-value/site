@@ -46,7 +46,7 @@ export const SALARY = {
   'korean-air':        { ja:'大韓航空', en:'Korean Air', region:'asia',                                                          cap:{avg:2450, lo:1850, hi:2750}, fo:{avg:1250, lo:950,  hi:1430}, taxFree:false, conf:'medium' },
   'asiana':            { ja:'アシアナ航空', en:'Asiana Airlines', region:'asia',                                                 cap:{avg:2180, lo:1650, hi:2450}, fo:{avg:1110, lo:840,  hi:1270}, taxFree:false, conf:'low'    },
   'starlux':           { ja:'スターラックス', en:'STARLUX Airlines', region:'asia',                                              cap:{avg:3100, lo:2750, hi:3900}, fo:{avg:1950, lo:1850, hi:2050}, taxFree:false, conf:'medium' },
-  'china-airlines':    { ja:'チャイナエアライン', en:'China Airlines', region:'asia',                                            cap:{avg:2000, lo:1500, hi:2450}, fo:{avg:1100, lo:700,  hi:1280}, taxFree:false, conf:'low' },
+  'china-airlines':    { ja:'チャイナエアライン', en:'China Airlines', region:'asia',                                            cap:{avg:3500, lo:2400, hi:4000}, fo:{avg:1500, lo:700,  hi:1500}, taxFree:false, conf:'low' },
   'thai-airways':      { ja:'タイ国際航空', en:'Thai Airways International', region:'asia',                                      cap:{avg:1850, lo:1500, hi:2420}, fo:{avg:880,  lo:660,  hi:1140}, taxFree:false, conf:'medium' },
   'eva-air':           { ja:'エバー航空', en:'EVA Air', region:'asia',                                                           cap:{avg:2950, lo:2500, hi:4000}, fo:{avg:1590, lo:1300, hi:1850}, taxFree:false, conf:'medium' },
 
@@ -58,7 +58,7 @@ export const SALARY = {
   'delta':             { ja:'デルタ航空', en:'Delta Air Lines', region:'us',                                                     cap:{avg:7220, lo:5940, hi:8950}, fo:{avg:4500, lo:2320, hi:6110}, taxFree:false, conf:'high' },
   'american':          { ja:'アメリカン航空', en:'American Airlines', region:'us',                                               cap:{avg:6780, lo:6220, hi:8600}, fo:{avg:4220, lo:2180, hi:5740}, taxFree:false, conf:'high' },
   'southwest':         { ja:'サウスウエスト航空', en:'Southwest Airlines', region:'us',                                          cap:{avg:6970, lo:4140, hi:7110}, fo:{avg:2610, lo:1660, hi:4880}, taxFree:false, conf:'medium' },
-  'klm':               { ja:'KLMオランダ航空', en:'KLM Royal Dutch Airlines', region:'europe',                                   cap:{avg:3960, lo:3030, hi:5810}, fo:{avg:2240, lo:1380, hi:4370}, taxFree:false, conf:'medium' },
+  'klm':               { ja:'KLMオランダ航空', en:'KLM Royal Dutch Airlines', region:'europe',                                   cap:{avg:6630, lo:3030, hi:7270}, fo:{avg:3070, lo:1380, hi:5520}, taxFree:false, conf:'medium' },
   'air-france':        { ja:'エールフランス', en:'Air France', region:'europe',                                                  cap:{avg:3530, lo:2750, hi:6020}, fo:{avg:1810, lo:1200, hi:2920}, taxFree:false, conf:'low' },
   'lufthansa':         { ja:'ルフトハンザ', en:'Lufthansa', region:'europe',                                                     cap:{avg:3900, lo:2490, hi:4830}, fo:{avg:1890, lo:1260, hi:3010}, taxFree:false, conf:'medium' },
   'air-canada':        { ja:'エア・カナダ', en:'Air Canada', region:'us',                                                        cap:{avg:3680, lo:3260, hi:4770}, fo:{avg:1990, lo:980,  hi:3100}, taxFree:false, conf:'medium' },
@@ -123,7 +123,7 @@ export const SALARY = {
   // 欧州
   'aegean':          { ja:'エーゲ航空', en:'Aegean Airlines', region:'europe',                                                   cap:{avg:1300, lo:1030, hi:1550}, fo:{avg:660, lo:480, hi:780}, taxFree:false, conf:'medium' },
   'aer-lingus':      { ja:'エア・リンガス', en:'Aer Lingus', region:'europe',                                                    cap:{avg:2750, lo:2150, hi:4100}, fo:{avg:1700, lo:1240, hi:2600}, taxFree:false, conf:'medium' },
-  'austrian':        { ja:'オーストリア航空', en:'Austrian Airlines', region:'europe',                                           cap:{avg:2600, lo:2000, hi:3300}, fo:{avg:1550, lo:1240, hi:2050}, taxFree:false, conf:'medium' },
+  'austrian':        { ja:'オーストリア航空', en:'Austrian Airlines', region:'europe',                                           cap:{avg:4670, lo:2470, hi:4670}, fo:{avg:2100, lo:1750, hi:2930}, taxFree:false, conf:'medium' },
   'easyjet':         { ja:'イージージェット', en:'easyJet', region:'europe',                                                     cap:{avg:2990, lo:2300, hi:3600}, fo:{avg:1500, lo:1210, hi:1980}, taxFree:false, conf:'medium' },
   // Eurowings: VC（Vereinigung Cockpit）協約の等級表（2024年1月／+7%反映）が根拠。
   //   FO 1等級 €74,090.50 → 14等級 €124,822.64 ／ 機長 1等級 €119,784.16 → 23等級 €202,253.79。
@@ -141,7 +141,7 @@ export const SALARY = {
   //   副操縦士 avg 1,480 → 1,530（Primer Oficial 2026 ＋ 会社の年金拠出）。下の端・上の端は動かしていない。出所は salary-sources.mjs。
   'ryanair':         { ja:'ライアンエアー', en:'Ryanair', region:'europe',                                                       cap:{avg:3060, lo:1450, hi:3100}, fo:{avg:1530, lo:650, hi:1530}, taxFree:false, conf:'medium' },
   'sas':             { ja:'スカンジナビア航空', en:'SAS Scandinavian Airlines', region:'europe',                                 cap:{avg:2650, lo:2220, hi:3170}, fo:{avg:1150, lo:740, hi:1500}, taxFree:false, conf:'medium' },
-  'swiss':           { ja:'スイス インターナショナル エアラインズ', en:'Swiss International Air Lines (SWISS)', region:'europe', cap:{avg:4100, lo:3520, hi:5900}, fo:{avg:2500, lo:1850, hi:3400}, taxFree:false, conf:'medium' },
+  'swiss':           { ja:'スイス インターナショナル エアラインズ', en:'Swiss International Air Lines (SWISS)', region:'europe', cap:{avg:4370, lo:3520, hi:5900}, fo:{avg:2500, lo:1850, hi:3400}, taxFree:false, conf:'medium' },
   'tap':             { ja:'TAPポルトガル航空', en:'TAP Air Portugal', region:'europe',                                           cap:{avg:3830, lo:3270, hi:5100}, fo:{avg:2370, lo:1500, hi:3160}, taxFree:false, conf:'medium' },
   'virgin-atlantic': { ja:'ヴァージン・アトランティック航空', en:'Virgin Atlantic', region:'europe',                             cap:{avg:3600, lo:2830, hi:4600}, fo:{avg:1920, lo:1510, hi:2420}, taxFree:false, conf:'medium' },
   'vueling':         { ja:'ブエリング航空', en:'Vueling Airlines', region:'europe',                                              cap:{avg:2760, lo:1830, hi:3060}, fo:{avg:1150, lo:690, hi:1530}, taxFree:false, conf:'medium' },
