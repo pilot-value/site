@@ -714,7 +714,7 @@ for (const s of ROLLED) {
   /* 見る範囲：一覧が在るはずの会社は就航地の板から都市の面のホテルの前まで（都市の面の「公式の就航地」の字も見る）・無いはずの会社は板だけ */
   const net = v.network, sa = g.indexOf('<article class="pvg-card pvg-stay"'), sh = g.indexOf('<div class="crl" data-live="hotels"', sa);
   const st = sa < 0 ? '' : g.slice(sa, wantNet.length && sh > sa ? sh : g.indexOf('</article>', sa));
-  const n = net ? net.list.length : 0, codes = [...st.matchAll(/<ul class="pvg-cgrid" id="pvg-st-list">([\s\S]*?)<\/ul>/g)].flatMap(m => [...m[1].matchAll(/data-city="([A-Z]{3})"/g)].map(x => x[1]));
+  const n = net ? net.list.length : 0, codes = [...st.matchAll(/<ul class="pvg-cgrid" id="pvg-st-list"(?: data-pvg-fold="\d+")?>([\s\S]*?)<\/ul>/g)].flatMap(m => [...m[1].matchAll(/data-city="([A-Z]{3})"/g)].map(x => x[1]));
   const shownHome = [...st.matchAll(/data-city="([A-Z]{3})"/g)].map(x => x[1]).filter(c => homes.includes(c));
   /* ★2026-10-29 オーナー「就航地を画面に出す会社を広げる」：拠点の分からない会社にも一覧を出す。そのときは拠点の空港を外せないので、
      出典の条件（NET の basis）で「拠点の空港は入れていません」と言わない（言えば嘘）。拠点の分かる会社は今までどおり、拠点の空港を一覧に入れない。 */
@@ -724,6 +724,11 @@ for (const s of ROLLED) {
   if (wantNet.length && NET[s]) {
     ok(!!net && net.partial && n === wantNet.length && same([...codes].sort(), [...wantNet].sort()) && st.includes(`調べで確かめた就航地・${n}空港・${dateJa(net.at)}時点です。`) && st.includes(`調べで確かめた就航地を見る（${n}空港）`)
       && !/会社全体の就航地|公式の就航地/.test(st), `E ${s}: 就航地は「調べで確かめた就航地・${wantNet.length}空港・日付」と言い、「会社全体の就航地」「公式の就航地」と言わない（一覧も台帳の ${wantNet.length}空港）`, `一覧 ${codes.join(',')} ／ 台帳 ${wantNet.join(',')}`);
+    /* ★2026-10-29 オーナー「最初の24枚だけ出して「すべて見る」で開く」：24枚より多い一覧は畳む印（data-pvg-fold）と「すべて見る（n空港）」の
+       ボタンを持つ。カードは全部 HTML に在る（畳むのは pv-glance.js ── JS の無い読み手・検索には全部見える）。24枚以下は畳まない。 */
+    const folded = /<ul class="pvg-cgrid" id="pvg-st-list" data-pvg-fold="24">/.test(st), allBtn = /data-pvg-stall[^>]*>(?:すべて見る（|Show all \()/.test(st);
+    ok(n > 24 ? folded && allBtn && st.includes(`すべて見る（${n}空港）`) && codes.length === n : !folded && !allBtn && !/data-pvg-fold/.test(st),
+      `E ${s}: 24枚より多い就航地の一覧は「すべて見る（n空港）」で畳む（カードは全部 HTML に在る）・24枚以下は畳まない（いま ${n}空港）`, `畳む印 ${folded}・ボタン ${allBtn}・カード ${codes.length}`);
   } else {
     ok(!net && st.includes('就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。') && !codes.length && !/調べで確かめた就航地|会社全体の就航地|公式の就航地/.test(st),
       `E ${s}: 拠点のほかに就航地が無い（台帳の ${fromLedger.length}空港はどれも拠点）── 一覧を置かず、今までの「…確認してから開きます。」`, `読み口 ${net ? net.list.map(d => d.iata).join(',') : 'null'} ／ 一覧 ${codes.join(',')}`);

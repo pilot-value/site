@@ -197,6 +197,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "klm": [
    "amsterdam"
   ],
+  "korean-air": [
+   "seoul"
+  ],
   "lot": [
    "warsaw"
   ],
@@ -353,6 +356,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
  "CORRECTIONS": [],
  "FACTS": {
   "aegean": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "A320 Captain操縦士求人の実勤務地欄 Location: Athens International Airport, Building 57, Spata。Spataは勤務地住所に明記された実所在地。補足: スパタ（アテネ国際空港の所在地域）。操縦士の勤務地欄の都市・地域名を原文同字で記録。会社紹介欄の一般的なbased in Athensを操縦士基地として代用していない。締切2026-12-31の現行求人、公開日自体は未記載。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Location: Athens International Airport, Building 57, Spata",
+       "source_id": "src-jobs-aegeanair-com-407b9860",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4745749c1e3758ba",
+     "id": "aegean.base.pilot-base-city-cap.83692499",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "機長のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-aegeanair-com-407b9860",
+       "source_type": "job_posting",
+       "title": "Non-Type Rated Captains for A320",
+       "url": "https://jobs.aegeanair.com/job/Non-Type-Rated-Captains-for-A320/1353411555/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Spata",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -4286,6 +4344,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "air-france": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-france",
+     "cond_ja": "2025-10-17 Air France操縦士協定のbase Paris（第2章、Corse便のplanning条項）。補足: パリ。公的原ページと公開DOCXを実際に取得・実読。第2章のDesserte de la Corse avec maintien de la déviation Air France concernant la base Parisに明記。資料はフランス語だがParisは英語と綴りが同じで原文同字。別途読んだ2024年AF/TO協定のParis条項はTransavia向けであるためこちらのAir France本人の2025年協定を根拠に採用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "base Paris",
+       "source_id": "src-legifrance-gouv-fr-56a4f74d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f614d064e37802b4",
+     "id": "air-france.base.pilot-base-city.69a42285",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-air-france",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-11-11",
+       "publisher": "Légifrance",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-legifrance-gouv-fr-56a4f74d",
+       "source_type": "government",
+       "title": "Mesures accompagnement Pilotes base planning Orly, T09325064816",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000052557163"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Paris",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-france",
+     "cond_ja": "2025-10-17締結の操縦士協定に明記された移転先base planning。協定は2029-03-31まで。補足: 公的原ページを実際のChromeで開き、公開DOCXを取得して本文を実読。第1章第2条のRapprochement de la base CDGと操縦士の新勤務先CDGを明記。旧Orly基地の閉鎖に伴う移転協定であり、ORYを2026年現在の基地として自動継続しない。URLは本文DOCXを提供する公的原ページ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "base CDG",
+       "source_id": "src-legifrance-gouv-fr-56a4f74d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "607b6e8b0d4b9d12",
+     "id": "air-france.base.pilot-base.20c9e32b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-air-france",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-11-11",
+       "publisher": "Légifrance",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-legifrance-gouv-fr-56a4f74d",
+       "source_type": "government",
+       "title": "Mesures accompagnement Pilotes base planning Orly, T09325064816",
+       "url": "https://www.legifrance.gouv.fr/acco/id/ACCOTEXT000052557163"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CDG",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -5899,6 +6061,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "air-india": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-india",
+     "cond_ja": "2025-06-12のAir India B787-8（VT-ANB）運航乗務員2名の所属基地。補足: ムンバイ。予備報告PDF13頁の§12 Accident FlightでPICとCo-pilot双方の所属基地を明記。2025年公表（正確な発行日は本資料から未確認）。2026年10月の全基地一覧ではない。空港BOMへ変換しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Both pilots were based at Mumbai",
+       "source_id": "src-aaib-gov-in-22e54a40",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e8e870827aedd0ec",
+     "id": "air-india.base.pilot-base-city.91a768c0",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-air-india",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AAIB",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aaib-gov-in-22e54a40",
+       "source_type": "government",
+       "title": "Preliminary Report: Air India Boeing 787-8 VT-ANB",
+       "url": "https://aaib.gov.in/Reports/2025/Accident/Preliminary%20Report%20VT-ANB.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Mumbai",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -6967,6 +7182,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "air-new-zealand": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "air-new-zealand",
+     "cond_ja": "Expression of Interest – Jet Fleet Pilotの勤務地欄。B787/B777 Second Officer、A320/A321 First Officerの外部募集。補足: オークランド。公式求人のLocation欄（本文89–91行相当）を実読。採用試験会場がAucklandという別段落は拠点証拠に使わず、職務自体の勤務地欄を採用。ターボプロップの別求人はa number of bases around the countryとするが基地名は列挙せず、全基地の一覧としては扱わない。空港名/コードは未確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Auckland, NZ",
+       "source_id": "src-careers-airnewzealand-co-nz-49acf7a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "668272e0e743ac85",
+     "id": "air-new-zealand.base.pilot-base-city.f277485f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-air-new-zealand",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air New Zealand Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-airnewzealand-co-nz-49acf7a5",
+       "source_type": "job_posting",
+       "title": "Expression of Interest, Jet Fleet Pilot (jid-171)",
+       "url": "https://careers.airnewzealand.co.nz/job/expression-of-interest-jet-fleet-pilot-in-auckland-nz-jid-171"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Auckland",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -9517,6 +9785,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "airjapan": {
    "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "airjapan",
+     "cond_ja": "2025年12月現在の海外契約パイロット向けCommuting Base。Narita/Haneda両空港をまとめた東京圏という資料上の定義。補足: 東京。会社公式の日本語操縦士勤務地資料を優先確認したうえで、英語のbaseの街表記は実際に契約を扱うLongreach自身の2025年12月版を採用。正確な発行日は不明のためpublished_date空欄。成田空港の所在地自治体を東京都とする意味ではない。給与等は今回の調査値に含めない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Commuting Base: Narita and Haneda airports, Tokyo, Japan",
+       "source_id": "src-longreachaviation-com-92941e13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9b4d47d69c65173f",
+     "id": "airjapan.base.pilot-base-city.66896ccc",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-airjapan",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Longreach Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-longreachaviation-com-92941e13",
+       "source_type": "third_party_reference",
+       "title": "Air Japan Conditions, Current as of December 2025",
+       "url": "https://www.longreachaviation.com/wp-content/uploads/2026/01/Air-Japan-Conditions-Dec25.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Tokyo",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -15933,6 +16252,1128 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Indianapolis International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "IND",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e07bf2640d755f2d",
+     "id": "allegiant.base.pilot-base.045bf70e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "IND",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Savannah/Hilton Head International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SAV",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb51a7bf9d195c01",
+     "id": "allegiant.base.pilot-base.1144506d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SAV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Nashville International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BNA",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ae3360815349bbd3",
+     "id": "allegiant.base.pilot-base.18ccbc70",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BNA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Des Moines International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DSM",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4b4654ae516a6550",
+     "id": "allegiant.base.pilot-base.2d4f97da",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DSM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Provo Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PVU",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7612da0f0447e004",
+     "id": "allegiant.base.pilot-base.2ff4c252",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PVU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Cincinnati/Northern Kentucky International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CVG",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3f1780bfd4459ddb",
+     "id": "allegiant.base.pilot-base.34bf38bb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CVG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Asheville Regional Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AVL",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "66f679442b33a314",
+     "id": "allegiant.base.pilot-base.4b9e9380",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AVL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Harry Reid International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LAS",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6fddc7890bba33c9",
+     "id": "allegiant.base.pilot-base.4be40fdf",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LAS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Pittsburgh International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PIT",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a3622f166a28d002",
+     "id": "allegiant.base.pilot-base.581f70a8",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PIT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "McGhee Tyson Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TYS",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eb6fd27c8050ada2",
+     "id": "allegiant.base.pilot-base.59ea1271",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TYS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Sarasota Bradenton International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SRQ",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f6466ab5ba66d8ec",
+     "id": "allegiant.base.pilot-base.5b025d27",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SRQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Orlando Sanford International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SFB",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a5a849f67ba9e30b",
+     "id": "allegiant.base.pilot-base.6dc92bc1",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SFB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "St. Petersburg-Clearwater International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PIE",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d2ef57a0a9bbc39d",
+     "id": "allegiant.base.pilot-base.6f12da21",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PIE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Destin-Fort Walton Beach Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VPS",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b2f960bc3f4d6a6e",
+     "id": "allegiant.base.pilot-base.716613b4",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VPS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Appleton International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATW",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "00ab01652a7220b0",
+     "id": "allegiant.base.pilot-base.73fcc8da",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ATW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "BLI crew base；2026年11月閉鎖予定（2026-10-29時点）。補足: 空港運営当局がcrew baseをpilots/flight attendantsの恒常配置地点と定義し、BLI基地を2026年11月に閉鎖予定と明記。調査日2026-10-29では将来予定。運航便が残ることとcrew baseの閉鎖を区別。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BLI",
+       "source_id": "src-portofbellingham-com-562cbd5b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7d4514f3ea824899",
+     "id": "allegiant.base.pilot-base.778ddf86",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Port of Bellingham",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-portofbellingham-com-562cbd5b",
+       "source_type": "government",
+       "title": "Allegiant crew base closure notice",
+       "url": "https://portofbellingham.com/m/newsflash/Home/Detail/461"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BLI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Lehigh Valley International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ABE",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6ba16cc20411d9ac",
+     "id": "allegiant.base.pilot-base.89810688",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ABE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Flint Bishop International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FNT",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e5bc1737238e75ae",
+     "id": "allegiant.base.pilot-base.9c1cbfb0",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FNT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Punta Gorda Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PGD",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e5518b5bcfa77372",
+     "id": "allegiant.base.pilot-base.a1818e6a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PGD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Mesa Gateway Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AZA",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f1ea9c5cd5d0732f",
+     "id": "allegiant.base.pilot-base.ae64ebb6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AZA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Gerald R. Ford International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "GRR",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e150d1f854ce2984",
+     "id": "allegiant.base.pilot-base.b472bdfc",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GRR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "allegiant",
+     "cond_ja": "Fort Lauderdale-Hollywood International Airport；2026-02-01基地空港表と現行操縦士基地地図を照合。補足: 空港コード資料を引用。操縦士基地の別根拠は現行Pilot Careers Our Bases（https://www.allegiantair.jobs/careers/pilots/ ）の22地点と、空港正式名を列挙する2025 Form10-K・2026-02-01時点表（https://www.sec.gov/Archives/edgar/data/1362468/000136246826000008/algt-20251231.htm 、紙面p.34）。同社のcrewが毎日帰る基地地図を年報の基地空港表で照合。都市だけからIATAを逆算していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FLL",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "22607d028e220372",
+     "id": "allegiant.base.pilot-base.cb9ee902",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-allegiant",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-allegiantair-com-a9769b10",
+       "source_type": "job_posting",
+       "title": "Airports (code identity) + 2025 Form 10-K / Pilot Careers (base evidence)",
+       "url": "https://www.allegiantair.com/airports"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FLL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "base": "BLI",
       "pilot_specific": true
      },
@@ -17432,6 +18873,518 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "american": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: シャーロット。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Charlotte",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "051b2f1c8dab0f52",
+     "id": "american.base.pilot-base-city.04cf2f69",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Charlotte",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: フィラデルフィア。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Philadelphia",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8997d04598221f11",
+     "id": "american.base.pilot-base-city.4ad74699",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Philadelphia",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: ボストン。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boston",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f9a207496c8e49c",
+     "id": "american.base.pilot-base-city.799cb13f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Boston",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: マイアミ。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Miami",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5af8773f5c133bca",
+     "id": "american.base.pilot-base-city.8f03c106",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Miami",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: ダラス／フォートワース。原文の都市・都市圏表記を保持。Dallas/Fort Worthは共同ドミサイルの都市圏ラベルで、2つの独立基地へ分割しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Dallas/Fort Worth",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ae64412b70b0370c",
+     "id": "american.base.pilot-base-city.a2ac86f3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Dallas/Fort Worth",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: ニューヨーク。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "New York",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "25f1291809f1a83b",
+     "id": "american.base.pilot-base-city.ab15246c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "New York",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: ワシントンD.C.。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Washington, DC",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5230a957462cffe4",
+     "id": "american.base.pilot-base-city.ad97b628",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Washington, DC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: ロサンゼルス。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Los Angeles",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2ddd24228191d1a8",
+     "id": "american.base.pilot-base-city.ca8eba18",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Los Angeles",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: フェニックス。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Phoenix",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8034b46b7f94ce99",
+     "id": "american.base.pilot-base-city.e5aab62a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Phoenix",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "american",
+     "cond_ja": "現行APA Domicilesメニューの都市表記。補足: シカゴ。現行の操縦士組合ドミサイルメニューを実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Chicago",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e292a289f0c4ed1",
+     "id": "american.base.pilot-base-city.f1fe233c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-american",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allied Pilots Association",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-alliedpilots-org-751e59fc",
+       "source_type": "union_cba",
+       "title": "Domiciles",
+       "url": "https://www.alliedpilots.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Chicago",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -25886,6 +27839,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": "Jakarta",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "Batik Air Indonesia（ID）; 2024年1月調査時のOM-A; CGK/HLPのhome base。補足: ジャカルタ。政府事故報告が運航マニュアルの乗務員基地表記を直接引用。2026年10月の全配置一覧ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-01-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Home base (Jakarta / CGK)",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c7d7df0b708bcde2",
+     "id": "batik-air.base.pilot-base-city.1798bb52",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-01-08",
+       "publisher": "KNKT",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "source_type": "government",
+       "title": "KNKT.24.01.02.04 Final Investigation Report",
+       "url": "https://knkt.go.id/Repo/Files/Laporan/Penerbangan/2024/KNKT.24.01.02.04-Final-Report.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Jakarta",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "Batik Air Indonesia（ID）; 2024年1月調査時のOM-A; flight crew home base。補足: PDF16頁（印刷頁9）§1.5.1.1の乗務時間・休息規定。表紙と運航者節でBatik Air Indonesiaを特定。マレーシアODではない。2026年10月の全配置一覧ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-01-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Home base (Jakarta / CGK)",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d80797e1bad71338",
+     "id": "batik-air.base.pilot-base.203f3b5a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-01-08",
+       "publisher": "KNKT",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "source_type": "government",
+       "title": "KNKT.24.01.02.04 Final Investigation Report",
+       "url": "https://knkt.go.id/Repo/Files/Laporan/Penerbangan/2024/KNKT.24.01.02.04-Final-Report.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "Batik Air Indonesia（ID）; 2024年1月調査時のOM-A; flight crew home base。補足: PDF16頁（印刷頁9）§1.5.1.1の乗務時間・休息規定。表紙と運航者節でBatik Air Indonesiaを特定。マレーシアODではない。2026年10月の全配置一覧ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-01-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Home base (Jakarta / HLP)",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "458060f5b8e0fad7",
+     "id": "batik-air.base.pilot-base.dda69c9b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-01-08",
+       "publisher": "KNKT",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-knkt-go-id-aeebc8d5",
+       "source_type": "government",
+       "title": "KNKT.24.01.02.04 Final Investigation Report",
+       "url": "https://knkt.go.id/Repo/Files/Laporan/Penerbangan/2024/KNKT.24.01.02.04-Final-Report.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HLP",
+     "value_text": null
     }
    ],
    "profile": [
@@ -26605,6 +28711,669 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Hartford",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: CAK の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CAK",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "28c762f73b54d69a",
+     "id": "breeze-airways.base.pilot-base.11e9de96",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CAK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: VRB の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VRB",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d3300527a3d93a9e",
+     "id": "breeze-airways.base.pilot-base.1e59dabc",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VRB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: BDL の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BDL",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7e02fa4a22fb572e",
+     "id": "breeze-airways.base.pilot-base.20e2ff55",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BDL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: ORF の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ORF",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6559ce6d8f05e752",
+     "id": "breeze-airways.base.pilot-base.2789552c",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ORF",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: CHS の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CHS",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "828cf44e604a1bdd",
+     "id": "breeze-airways.base.pilot-base.52d244a8",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CHS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: PVU の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PVU",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eb7c490be2a4713f",
+     "id": "breeze-airways.base.pilot-base.6607ef9f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PVU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: RDU の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RDU",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1bfff1d81743439d",
+     "id": "breeze-airways.base.pilot-base.a46cdcfd",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RDU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: MCO の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MCO",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0fa3a61ada0021db",
+     "id": "breeze-airways.base.pilot-base.a883b4db",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MCO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: TPA の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TPA",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a1cc020b09246ee7",
+     "id": "breeze-airways.base.pilot-base.d0ba2677",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TPA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: PVD の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PVD",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c2041ab457d5dc07",
+     "id": "breeze-airways.base.pilot-base.dfd87e44",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PVD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: FLL の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FLL",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc61e1edb57ce9d2",
+     "id": "breeze-airways.base.pilot-base.e4ad77ad",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FLL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: RSW の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RSW",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "511638d56776edfa",
+     "id": "breeze-airways.base.pilot-base.f8ec70f4",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RSW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "breeze-airways",
+     "cond_ja": "現行Breeze MEC AboutのBase見出し；空港正式名付き。補足: 同資料は13 basesと明記。Base: MSY の直下に空港名を表示。CAK見出しの重複は1空港に集約。RSW欄の都市名Orlandoという誤記は都市根拠に採用せず、Southwest Florida International Airportとコードのみを利用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MSY",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1fe00649ea10aafc",
+     "id": "breeze-airways.base.pilot-base.fe0dbac3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-breeze-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Breeze ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-mxy-alpa-org-ccdfed3f",
+       "source_type": "union_cba",
+       "title": "Fair Contract / About",
+       "url": "https://mxy.alpa.org/Fair-Contract/About"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MSY",
      "value_text": null
     },
     {
@@ -32617,6 +35386,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "上海",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "china-eastern",
+     "cond_ja": "過去のA350機長募集; base欄; 募集期限2024-05-31。補足: 上海。Chromeの通常表示で動的本文を実読。branchはShanghai Flight Department。現在の募集・全機材の配置を示すものではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SHANGHAI",
+       "source_id": "src-job-ceair-com-953e84fb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fbe8bdb8542b9f23",
+     "id": "china-eastern.base.pilot-base-city-cap.678f3a12",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "機長のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-china-eastern",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2023-09-05",
+       "publisher": "China Eastern",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-job-ceair-com-953e84fb",
+       "source_type": "job_posting",
+       "title": "Airplane Captain Recruitment 2023–2024",
+       "url": "https://job.ceair.com/global/positionDetails.html?positionId=NDIwMw%3D%3D"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SHANGHAI",
+     "value_text": null
     }
    ],
    "benefits": [
@@ -35491,6 +38313,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "copa-airlines",
+     "cond_ja": "B737 First Officer求人12380の実勤務地；2026-02-10～2027-01-01掲載。補足: 同一workLocationのAddressLine1はAeropuerto Internacional de Tocumen, Ave. Domingo Díaz.、TownOrCityはPanamá。公式求人UI：https://ejom.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/12380 。国名だけの所在地ではなく、操縦士求人の実空港勤務地を採用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-02-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aeropuerto PTY",
+       "source_id": "src-ejom-fa-us6-oraclecloud-com-8fc5034f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8f84b4deb66afff4",
+     "id": "copa-airlines.base.pilot-base-fo.f17fc46b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "副操縦士のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-copa-airlines",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-02-10",
+       "publisher": "Copa Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ejom-fa-us6-oraclecloud-com-8fc5034f",
+       "source_type": "job_posting",
+       "title": "First Officer 12380, official Oracle recruiting API",
+       "url": "https://ejom.fa.us6.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails?onlyData=true&expand=all&finder=ById;Id=12380,siteNumber=CX_1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PTY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "base": "Ciudad de Panamá",
       "hire_route": "ArgentinianFOrecruitment",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
@@ -36900,6 +39775,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "A330 Captain（330A）の既存baseカテゴリー；手引き改訂2025-10-20。補足: Standby Rotations節は既存330Aカテゴリーをcurrently NYC, DTW, MSP, or SEAと明記。仮定のATL330Aや、A330 baseがないというSLC/LAXの否定例は根拠に使わない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MSP",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "913ba1bc9e9dbec5",
+     "id": "delta.base.pilot-base-cap.a6627aeb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "機長のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MSP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "A330 Captain（330A）の既存baseカテゴリー；手引き改訂2025-10-20。補足: Standby Rotations節は既存330Aカテゴリーをcurrently NYC, DTW, MSP, or SEAと明記。仮定のATL330Aや、A330 baseがないというSLC/LAXの否定例は根拠に使わない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DTW",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fd2b48633274b596",
+     "id": "delta.base.pilot-base-cap.e500a5fd",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "機長のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DTW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "A330 Captain（330A）の既存baseカテゴリー；手引き改訂2025-10-20。補足: Standby Rotations節は既存330Aカテゴリーをcurrently NYC, DTW, MSP, or SEAと明記。仮定のATL330Aや、A330 baseがないというSLC/LAXの否定例は根拠に使わない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SEA",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a408921047818792",
+     "id": "delta.base.pilot-base-cap.edb9c8f9",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "機長のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SEA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "pilot_specific": true
      },
      "checked_at": "2026-10-29",
@@ -37303,6 +40337,414 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "New York",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "LAX co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はLAX baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ONT",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "54a9936455ed0c68",
+     "id": "delta.base.pilot-base.4578a66e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ONT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "LAX co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はLAX baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LGB",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "154c11a938d60717",
+     "id": "delta.base.pilot-base.5410478a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LGB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "LAX co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はLAX baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BUR",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3a7a31a68165e850",
+     "id": "delta.base.pilot-base.6d14f81d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BUR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "NYC co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はNYC baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LGA",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9446c528f6493e35",
+     "id": "delta.base.pilot-base.8a792d22",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LGA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "NYC co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はNYC baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EWR",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c041f13ad230a157",
+     "id": "delta.base.pilot-base.9887e692",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "EWR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "LAX co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はLAX baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LAX",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ae121fa0955567c9",
+     "id": "delta.base.pilot-base.9c87e75e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LAX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "NYC co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はNYC baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "JFK",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "79319fcc19cc0d37",
+     "id": "delta.base.pilot-base.acf16e15",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "JFK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "delta",
+     "cond_ja": "LAX co-terminal baseのStandby Rotation発着対象空港；独立domicileを意味しない。補足: 同節はLAX baseに属するco-terminalを原文で列挙。条件付きの待機ローテーションで使用し得る空港。各空港を別個の常設pilot domicileと数えない。都市集合コードNYCを空港値にしていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SNA",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c01af5549e4da123",
+     "id": "delta.base.pilot-base.bbaf970e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-delta",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-10-20",
+       "publisher": "Delta MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-dal-alpa-org-4098fbd1",
+       "source_type": "union_cba",
+       "title": "Scheduling Reference Handbook, printed p.286 / PDF p.289",
+       "url": "https://dal.alpa.org/Portals/1/Documents/committees/scheduling/public/scheduling-reference-handbook.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SNA",
      "value_text": null
     }
    ],
@@ -49242,6 +52684,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "fiji-airways": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "fiji-airways",
+     "cond_ja": "A350/A330機長; 募集はexpressions of interest; Nadi domicileの選択肢。補足: ナンディ。Fiji Airways公式の現行採用一覧で基地を確定できず、契約採用会社自身の求人を使用。公開求人HTML内のjobsデータを復号し、雇用先Fiji Airways・Date_Openedと本文を実読。空港NANへ変換しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Nadi Domicile Option available",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "be837a4fa066446e",
+     "id": "fiji-airways.base.pilot-base-city-cap.5c932f09",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "機長のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-fiji-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2024-05-01",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Nadi",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -50404,6 +53901,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "finnair": {
    "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "finnair",
+     "cond_ja": "2023-05-19会社発表のFinnair pilotsのhome base。Qantas wet-lease乗務を行う操縦士の説明。補足: ヘルシンキ。会社発表本文を実際のChromeで実読。Finnair pilotsがHelsinki発でSingapore/Bangkok経由の乗務を行い同じhome baseへ戻ると明記。客室乗務員のSingapore/Bangkok基地と混同しない。2023年発表時点の範囲であり、Qantas wet-lease期間を2026年現在まで延長して記さない。Helsinkiという都市からHEL等の空港を推定しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-05-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "their home base in Helsinki",
+       "source_id": "src-company-finnair-com-a00ea539",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2f3ed65e52d88bfe",
+     "id": "finnair.base.pilot-base-city.f436a936",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-finnair",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2023-05-19",
+       "publisher": "Finnair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-company-finnair-com-a00ea539",
+       "source_type": "job_posting",
+       "title": "Finnair to lease two A330 aircraft to oneworld partner Qantas",
+       "url": "https://company.finnair.com/en/media-centre/all-releases/news?id=E5CB61C9FB6518CF"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Helsinki",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -51945,6 +55493,312 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Denver",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "frontier",
+     "cond_ja": "Cincinnati/Northern Kentucky crew base; pilot staffing specified。補足: 操縦士を含むcrew baseと空港を同一発表で特定。現行Pilot Careersの基地都市一覧にも同都市を確認：https://www.flyfrontier.com/careers/pilot/ 。就航先リストから作ったbaseではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-05-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CVG",
+       "source_id": "src-news-flyfrontier-com-ef7a8b0e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7909f81a2ea6e8c4",
+     "id": "frontier.base.pilot-base.2ce5e869",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-frontier",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2024-05-15",
+       "publisher": "Frontier Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-news-flyfrontier-com-ef7a8b0e",
+       "source_type": "job_posting",
+       "title": "official pilot/crew-base announcement",
+       "url": "https://news.flyfrontier.com/frontier-airlines-opens-crew-base-at-cincinnatinorthern-kentucky-international-airport/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CVG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "frontier",
+     "cond_ja": "Cleveland Hopkins crew base; pilot staffing specified。補足: 操縦士を含むcrew baseと空港を同一発表で特定。現行Pilot Careersの基地都市一覧にも同都市を確認：https://www.flyfrontier.com/careers/pilot/ 。就航先リストから作ったbaseではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-03-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CLE",
+       "source_id": "src-news-flyfrontier-com-fb9419d0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3d6ecd72d8cdbd92",
+     "id": "frontier.base.pilot-base.540acab0",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-frontier",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2024-03-14",
+       "publisher": "Frontier Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-news-flyfrontier-com-fb9419d0",
+       "source_type": "job_posting",
+       "title": "official pilot/crew-base announcement",
+       "url": "https://news.flyfrontier.com/frontier-airlines-opens-crew-base-at-cleveland-hopkins-international-airport/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CLE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "frontier",
+     "cond_ja": "Chicago pilot base serving both O’Hare and Midway。補足: 操縦士を含むcrew baseと空港を同一発表で特定。現行Pilot Careersの基地都市一覧にも同都市を確認：https://www.flyfrontier.com/careers/pilot/ 。就航先リストから作ったbaseではない。 2023年発表の開設予定は2024年5月。現行募集はChicago基地を掲載するが、空港別再編の最新明示は未確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-11-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ORD",
+       "source_id": "src-news-flyfrontier-com-4106427d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7811a37c7999b3c3",
+     "id": "frontier.base.pilot-base.7e6c8adb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-frontier",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2023-11-21",
+       "publisher": "Frontier Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-news-flyfrontier-com-4106427d",
+       "source_type": "job_posting",
+       "title": "official pilot/crew-base announcement",
+       "url": "https://news.flyfrontier.com/frontier-airlines-to-re-open-pilot-base-in-chicago/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ORD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "frontier",
+     "cond_ja": "Atlanta crew base including pilots。補足: 操縦士を含むcrew baseと空港を同一発表で特定。現行Pilot Careersの基地都市一覧にも同都市を確認：https://www.flyfrontier.com/careers/pilot/ 。就航先リストから作ったbaseではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-02-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATL",
+       "source_id": "src-news-flyfrontier-com-c4e85af7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2062a1a0126d99e4",
+     "id": "frontier.base.pilot-base.9e4c08d3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-frontier",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-02-27",
+       "publisher": "Frontier Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-news-flyfrontier-com-c4e85af7",
+       "source_type": "job_posting",
+       "title": "official pilot/crew-base announcement",
+       "url": "https://news.flyfrontier.com/atlantas-fastest-growing-airline-announces-major-expansion-increasing-departures-by-40-percent-year-over-year-and-adding-a-number-of-exciting-new-destinations-including-aruba-and-honduras/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ATL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "frontier",
+     "cond_ja": "Luis Muñoz Marín crew base; pilot staffing specified。補足: 操縦士を含むcrew baseと空港を同一発表で特定。現行Pilot Careersの基地都市一覧にも同都市を確認：https://www.flyfrontier.com/careers/pilot/ 。就航先リストから作ったbaseではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-06-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SJU",
+       "source_id": "src-news-flyfrontier-com-68bfe6d1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9232055a496d14e8",
+     "id": "frontier.base.pilot-base.b25c9d8a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-frontier",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2024-06-05",
+       "publisher": "Frontier Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-news-flyfrontier-com-68bfe6d1",
+       "source_type": "job_posting",
+       "title": "official pilot/crew-base announcement",
+       "url": "https://news.flyfrontier.com/frontier-airlines-opens-crew-base-at-luis-munoz-marin-international-airport/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SJU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "frontier",
+     "cond_ja": "Chicago pilot base serving both O’Hare and Midway。補足: 操縦士を含むcrew baseと空港を同一発表で特定。現行Pilot Careersの基地都市一覧にも同都市を確認：https://www.flyfrontier.com/careers/pilot/ 。就航先リストから作ったbaseではない。 2023年発表の開設予定は2024年5月。現行募集はChicago基地を掲載するが、空港別再編の最新明示は未確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-11-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MDW",
+       "source_id": "src-news-flyfrontier-com-4106427d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ac48338da4eb7ea",
+     "id": "frontier.base.pilot-base.f7870cb0",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-frontier",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2023-11-21",
+       "publisher": "Frontier Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-news-flyfrontier-com-4106427d",
+       "source_type": "job_posting",
+       "title": "official pilot/crew-base announcement",
+       "url": "https://news.flyfrontier.com/frontier-airlines-to-re-open-pilot-base-in-chicago/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MDW",
      "value_text": null
     },
     {
@@ -56913,6 +60767,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "hong-kong-express": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "現行掲載の操縦士求人; Job Location: Hong Kong SAR; Department: Cockpit。補足: 香港。ユーザーが許可した操縦士求人の勤務地として採用。空港名・空港コードは掲載されておらずHKGへ変換しない。職名はSecond Officerのためpositionは職位全体の勤務地情報としてall。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Location: Hong Kong SAR",
+       "source_id": "src-careers-hkexpress-com-39059056",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e4a3e6d20a5e347",
+     "id": "hong-kong-express.base.pilot-base-city.f310a410",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-09-03",
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-hkexpress-com-39059056",
+       "source_type": "job_posting",
+       "title": "Second Officer, job 497914",
+       "url": "https://careers.hkexpress.com/en/job/497914/second-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Hong Kong",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -65682,6 +69589,312 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）; 2026年5月; Narrowbody操縦士基地。補足: メルボルン。新協約案の勤務条件説明。実在する操縦士基地の説明として採用し、全基地の網羅は未確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-05-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Melbourne and Sydney based Narrowbody pilots",
+       "source_id": "src-afap-org-au-4d689caa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b69a249c2ba40b61",
+     "id": "jetstar.base.pilot-base-city.8d417c96",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-05-26",
+       "publisher": "AFAP",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-afap-org-au-4d689caa",
+       "source_type": "union_cba",
+       "title": "Jetstar EA 2025 Update #41 - Carer's Arrangements",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/2306/jetstar-ea-2025-update-41-carers-arrangements"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Melbourne",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）; 2026年5月; Narrowbody操縦士基地。補足: シドニー。新協約案の勤務条件説明。実在する操縦士基地の説明として採用し、全基地の網羅は未確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-05-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Melbourne and Sydney based Narrowbody pilots",
+       "source_id": "src-afap-org-au-4d689caa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "757785d4f4ccd49b",
+     "id": "jetstar.base.pilot-base-city.9c5d47fd",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-05-26",
+       "publisher": "AFAP",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-afap-org-au-4d689caa",
+       "source_type": "union_cba",
+       "title": "Jetstar EA 2025 Update #41 - Carer's Arrangements",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/2306/jetstar-ea-2025-update-41-carers-arrangements"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Sydney",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）; 2024-09-02開設の操縦士基地。補足: パース。操縦士基地の開設は明記されるが、都市名から空港PERへは自動変換していない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-09-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "a new base in Perth for up to 60 pilots",
+       "source_id": "src-files-jetstar-com-b2fba644",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f688978a38631e63",
+     "id": "jetstar.base.pilot-base-city.e0808673",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2024-09-02",
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-files-jetstar-com-b2fba644",
+       "source_type": "job_posting",
+       "title": "Perth expansion and pilot base opening",
+       "url": "https://files.jetstar.com/api/public/content/2024-jetstars-perth-expansion-continues-with-its-third-new-asia-service-to-take-off-and-new-pilot-and-aircraft-base-opening"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Perth",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）; 2026年5月; Narrowbody操縦士基地。補足: 同一資料の前後段落がMelbourne/Sydneyを操縦士基地として明記。新協約案の育児勤務条項の説明で、当時の既存基地を示す。網羅一覧ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-05-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MEL and SYD",
+       "source_id": "src-afap-org-au-4d689caa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "79cf9a61a58e046d",
+     "id": "jetstar.base.pilot-base.543c0bb8",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-05-26",
+       "publisher": "AFAP",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-afap-org-au-4d689caa",
+       "source_type": "union_cba",
+       "title": "Jetstar EA 2025 Update #41 - Carer's Arrangements",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/2306/jetstar-ea-2025-update-41-carers-arrangements"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SYD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）; 2024年11月; Widebody操縦士基地。補足: 本文が当該WB操縦士基地への恒久配置転換を説明。2026年10月の完全な配置状況まではこの資料で確認できない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-11-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WB CNS base will remain operational",
+       "source_id": "src-afap-org-au-f1eea326",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1a80ccd50276f342",
+     "id": "jetstar.base.pilot-base.9579c204",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2024-11-08",
+       "publisher": "AFAP",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-afap-org-au-f1eea326",
+       "source_type": "union_cba",
+       "title": "Clarification on FSO 110/24 - Pilot Vacancies and Base Transfers",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/768/afap-jetstar-update-clarification-on-fso-11024-pilot-vacancies-and-base-transfers"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CNS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）; 2026年5月; Narrowbody操縦士基地。補足: 同一資料の前後段落がMelbourne/Sydneyを操縦士基地として明記。新協約案の育児勤務条項の説明で、当時の既存基地を示す。網羅一覧ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-05-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MEL and SYD",
+       "source_id": "src-afap-org-au-4d689caa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6755e8219fb7d356",
+     "id": "jetstar.base.pilot-base.a41d09ea",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-05-26",
+       "publisher": "AFAP",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-afap-org-au-4d689caa",
+       "source_type": "union_cba",
+       "title": "Jetstar EA 2025 Update #41 - Carer's Arrangements",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/2306/jetstar-ea-2025-update-41-carers-arrangements"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MEL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "Airbus A321LR"
       ],
@@ -68695,6 +72908,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "kenya-airways": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "kenya-airways",
+     "cond_ja": "First Officerの正社員求人。2025-12-31締切の募集で明示された勤務拠点、現ページはExpired。補足: ナイロビ。Web抽出本文が空だったため、通常ブラウザで公式求人本文全体を実読。How To ApplyにThe Job is based in Kenya Airways Nairobiと明記。確認時点の採用継続や全パイロット基地の一覧とは解釈せず、当該募集時点の副操縦士勤務地。空港名/コードは本文にないためNBOやWILに変換しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kenya Airways Nairobi",
+       "source_id": "src-careers-kenya-airways-com-0a6e9797",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4e0f5964f475610a",
+     "id": "kenya-airways.base.pilot-base-city-fo.8e6b0098",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "副操縦士のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-kenya-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-kenya-airways-com-0a6e9797",
+       "source_type": "job_posting",
+       "title": "First Officer",
+       "url": "https://careers.kenya-airways.com/anonymous/listing/9cc26f51-1967-4fac-ab39-41269b506fd3/details?division=7f4b2df9-2649-4e4d-a510-22a6fdc0b518"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Nairobi",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -69450,6 +73718,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "klm": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "klm",
+     "cond_ja": "操縦士のstandby duty呼出時の実勤務・出勤空港。通常の所属基地の全一覧とは区別。Amsterdamは空港の都市呼称・都市圏であり、空港住所の自治体名を断定しない。補足: アムステルダム。二つの公式資料を実読照合。操縦士の実勤務空港はKLMのCockpit FAQ https://careers.klm.com/en/faq/cockpit/ のHow far can I live from Schiphol Airport?とstandby dutyの回答に明記。07:00前の呼出は60分以内、それ以降は90分以内にSchipholへ出勤する条件であり、面接・医療検査・訓練の会場ではない。原FAQにコードがないため公式Finnair英語空港案内の名称/都市/AMSを照合。quoteとurlは同一の案内原文。両資料の公表日不明、現行維持ページ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Amsterdam Airport Schiphol (AMS)",
+       "source_id": "src-finnair-com-f428379e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b329eb3467fb763d",
+     "id": "klm.base.pilot-base-city.bfee4f61",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-klm",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Finnair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-finnair-com-f428379e",
+       "source_type": "job_posting",
+       "title": "Amsterdam Airport Schiphol code; KLM pilot standby-duty FAQ cross-check",
+       "url": "https://www.finnair.com/en/destinations/europe/netherlands/amsterdam"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Amsterdam",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "klm",
+     "cond_ja": "操縦士のstandby duty呼出時の実勤務・出勤空港。通常の所属基地の全一覧とは区別。補足: アムステルダム。二つの公式資料を実読照合。操縦士の実勤務空港はKLMのCockpit FAQ https://careers.klm.com/en/faq/cockpit/ のHow far can I live from Schiphol Airport?とstandby dutyの回答に明記。07:00前の呼出は60分以内、それ以降は90分以内にSchipholへ出勤する条件であり、面接・医療検査・訓練の会場ではない。原FAQにコードがないため公式Finnair英語空港案内の名称/都市/AMSを照合。quoteとurlは同一の案内原文。両資料の公表日不明、現行維持ページ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Amsterdam Airport Schiphol (AMS)",
+       "source_id": "src-finnair-com-f428379e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4a2a20e28187998b",
+     "id": "klm.base.pilot-base.21b95465",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-klm",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Finnair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-finnair-com-f428379e",
+       "source_type": "job_posting",
+       "title": "Amsterdam Airport Schiphol code; KLM pilot standby-duty FAQ cross-check",
+       "url": "https://www.finnair.com/en/destinations/europe/netherlands/amsterdam"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AMS",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -70853,6 +75225,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "korean-air": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "korean-air",
+     "cond_ja": "外国人操縦士の通勤型契約におけるoperating base。補足: ソウル。公式採用サイトを別途確認したうえで、契約採用会社自身のFAQを使用。更新日は公開HTMLのdateModified。本文にはCOVIDに伴う採用停止の記述も残るため、採用再開の確認として扱わない。任意の通勤先home baseとは区別。ICN/GMPを自動推定しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-02-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Seoul is your operating base for duty days",
+       "source_id": "src-rishworthaviation-com-c0a8445e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9f64c36b31aff63a",
+     "id": "korean-air.base.pilot-base-city.4588ff40",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-02-08",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-c0a8445e",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Frequently Asked Questions",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs/korean-air-frequently-asked-questions"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Seoul",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -73087,6 +77512,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "latam": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Airlines Brasil（TAM Linhas Aéreas）の契約上の操縦士拠点空港。補足: 現物PDF p.1 §3はpilotosの訓練、p.2 §5は勤務開始終了のAeroporto de sua base contratual、§7はGRU/CGHとの送迎を明記。翌日記事もsuas bases nos aeroportos de Congonhas e Guarulhosと明記：https://aeronautas.org.br/latam-sna-requer-transporte-para-treinamento-dos-tripulantes-e-contabilizacao-do-tempo-de-deslocamento-na-jornada-de-trabalho/ 。書簡の番号39/2024と本文日付2025の差は原文どおり、日付は本文の2025-02-04。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-02-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Guarulhos (GRU)",
+       "source_id": "src-aeronautas-org-br-a94918e1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "278fb3c428edc023",
+     "id": "latam.base.pilot-base.ab5a2832",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-02-04",
+       "publisher": "SNA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-a94918e1",
+       "source_type": "union_cba",
+       "title": "LATAM simulator transport / contractual airport-base letter, 4 February 2025",
+       "url": "https://aeronautas.org.br/wp-content/uploads/2025/02/2025.02.04-OF.-PRES.-no-39.2025-SNA-LATAM-Horarios-das-Vans-CAE.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GRU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "latam",
+     "cond_ja": "LATAM Airlines Brasil（TAM Linhas Aéreas）の契約上の操縦士拠点空港。補足: 現物PDF p.1 §3はpilotosの訓練、p.2 §5は勤務開始終了のAeroporto de sua base contratual、§7はGRU/CGHとの送迎を明記。翌日記事もsuas bases nos aeroportos de Congonhas e Guarulhosと明記：https://aeronautas.org.br/latam-sna-requer-transporte-para-treinamento-dos-tripulantes-e-contabilizacao-do-tempo-de-deslocamento-na-jornada-de-trabalho/ 。書簡の番号39/2024と本文日付2025の差は原文どおり、日付は本文の2025-02-04。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-02-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Congonhas (CGH)",
+       "source_id": "src-aeronautas-org-br-a94918e1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e7c59c6be804933f",
+     "id": "latam.base.pilot-base.d969a978",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-latam",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2025-02-04",
+       "publisher": "SNA",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aeronautas-org-br-a94918e1",
+       "source_type": "union_cba",
+       "title": "LATAM simulator transport / contractual airport-base letter, 4 February 2025",
+       "url": "https://aeronautas.org.br/wp-content/uploads/2025/02/2025.02.04-OF.-PRES.-no-39.2025-SNA-LATAM-Horarios-das-Vans-CAE.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGH",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -77350,6 +81879,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "Oslo",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "norwegian",
+     "cond_ja": "2025-07-02 Pilot Open Day案内、2024年開設の操縦士基地。補足: リガ。2025年採用イベントの会社原稿を実読。基地に35人のpilotsがいるとの記述を確認し、単なるイベント会場の都市とは区別。イベント日は明記されるが発行日ではないためpublished_date空欄。Riga空港ホテルという会場名だけからRIXを基地空港にしない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "our Riga base",
+       "source_id": "src-careers-norwegian-com-9a29bd17",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "82268d02030686a4",
+     "id": "norwegian.base.pilot-base-city.3e3279a6",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-norwegian",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Norwegian",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-norwegian-com-9a29bd17",
+       "source_type": "job_posting",
+       "title": "Open day Riga Pilots",
+       "url": "https://careers.norwegian.com/content/Open-day-Riga-Pilots/?locale=en_GB&previewLink=true&referrerSave=false"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Riga",
+     "value_text": null
     }
    ],
    "benefits": [
@@ -78290,6 +82870,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "oman-air": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "oman-air",
+     "cond_ja": "Oman Air自身のFirst Officer B737求人4384019256の勤務地表記。補足: マスカット。Oman Air公式採用サイトは本文が取得できないため、会社自身が掲載したLinkedInの操縦士求人を新たに開き、公開HTML原文のtitle/descriptionにある職種と勤務地を実読。第三者による勤務地推定記事は用いない。公開日不明のため空欄。空港MCTを都市名から補わず、全機種の基地とは断定しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Muscat, Masqaţ, Oman",
+       "source_id": "src-linkedin-com-eeb25622",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c281634d32b17bca",
+     "id": "oman-air.base.pilot-base-city-fo.1e268213",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "副操縦士のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-oman-air",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Oman Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-eeb25622",
+       "source_type": "job_posting",
+       "title": "First Officer B737 (official employer LinkedIn posting)",
+       "url": "https://www.linkedin.com/jobs/view/4384019256/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Muscat",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -81480,6 +86115,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
+     "cond_ja": "現行First Officer求人5320の実勤務地；Billy Bishop Toronto City Airport。補足: 公式募集の公開HTML内jobDescriptionConfigを実読。Location欄は空港正式名とIATAを列挙。base/domicile語はないため、今回ユーザーが認めた操縦士の実勤務地として採用。募集開始2026-09-14、更新2026-10-27。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "YTZ",
+       "source_id": "src-careers-flyporter-com-f37b00ca",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9346bff6713718d8",
+     "id": "porter.base.pilot-base-fo.a3428090",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "副操縦士のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-flyporter-com-f37b00ca",
+       "source_type": "job_posting",
+       "title": "First Officer Dash 8 (5320)",
+       "url": "https://careers.flyporter.com/jobs/5320"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YTZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
+     "cond_ja": "現行First Officer求人5320の実勤務地；Ottawa Macdonald-Cartier International Airport。補足: 公式募集の公開HTML内jobDescriptionConfigを実読。Location欄は空港正式名とIATAを列挙。base/domicile語はないため、今回ユーザーが認めた操縦士の実勤務地として採用。募集開始2026-09-14、更新2026-10-27。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "YOW",
+       "source_id": "src-careers-flyporter-com-f37b00ca",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "efe4e46d2a1e4180",
+     "id": "porter.base.pilot-base-fo.b33721f2",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "副操縦士のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-flyporter-com-f37b00ca",
+       "source_type": "job_posting",
+       "title": "First Officer Dash 8 (5320)",
+       "url": "https://careers.flyporter.com/jobs/5320"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YOW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
+     "cond_ja": "現行First Officer求人5312の実勤務地；Toronto Pearson International Airport。補足: 公式募集の公開HTML内jobDescriptionConfigを実読。Location欄は空港正式名とIATAを列挙。base/domicile語はないため、今回ユーザーが認めた操縦士の実勤務地として採用。募集開始2026-07-20、更新2026-10-13。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "YYZ",
+       "source_id": "src-careers-flyporter-com-9a696acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f523f1798be936c6",
+     "id": "porter.base.pilot-base-fo.f5e2b143",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "副操縦士のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Porter",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-flyporter-com-9a696acf",
+       "source_type": "job_posting",
+       "title": "First Officer - Embraer E195-E2 (Toronto) YYZ",
+       "url": "https://careers.flyporter.com/careers-home/jobs/5312?lang=en-us"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YYZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "DHC-8-400"
       ],
@@ -84039,6 +88833,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "qatar-airways": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "qatar-airways",
+     "cond_ja": "Type Rated First Officer Boeingの実勤務地欄 Location: Qatar-Doha。応募締切2027-01-31。補足: ドーハ。新規の会社自身が掲載する操縦士求人本文を実読。Job familyはPilots & Flight Operations。勤務地の都市を原文同字で記録。面接会場・本社の都市ではない。現行応募求人、公開日は記載なし。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Location: Qatar-Doha",
+       "source_id": "src-qa-linkedin-com-d510ac04",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "06a3400efe64d692",
+     "id": "qatar-airways.base.pilot-base-city-fo.f485379e",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "副操縦士のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-qatar-airways",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Qatar Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-qa-linkedin-com-d510ac04",
+       "source_type": "job_posting",
+       "title": "Type Rated First Officer Boeing (official company job on LinkedIn)",
+       "url": "https://qa.linkedin.com/jobs/view/type-rated-first-officer-boeing-at-qatar-airways-4479924490"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Doha",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -85531,6 +90380,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
        "source_type": "job_posting",
        "title": "Direct Entry Captain B787 / ID2024-1123",
        "url": "https://pilots-riyadhair.icims.com/jobs/1123/direct-entry-captain-b787/job?in_iframe=1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Riyadh",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "First Officer A321の勤務拠点。この職位のbased inを明記。補足: リヤド。新規に会社公式操縦士求人の原文を実読。Location SA-Riyadhだけでなく本文でも当該操縦士職位がbased in Riyadhと明記。King Khalid空港名やRUHはこの求人にないため推定しない。無日付の現行募集原稿。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "This position is based in Riyadh",
+       "source_id": "src-pilots-riyadhair-icims-com-09d0e713",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e2a259ad5694b80b",
+     "id": "riyadh-air.base.pilot-base-city-fo.ce593bd3",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "副操縦士のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-pilots-riyadhair-icims-com-09d0e713",
+       "source_type": "job_posting",
+       "title": "First Officer A321",
+       "url": "https://pilots-riyadhair.icims.com/jobs/5434/first-officer-a321/job?in_iframe=1"
       }
      ],
      "unit": null,
@@ -87349,6 +92251,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "royal-jordanian": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "royal-jordanian",
+     "cond_ja": "A320 Captain (Type Rated)求人JB5496790のJob Location。2026-10-19掲載、2026-12-18締切。補足: アンマン。操縦士の当該求人に紐づく勤務地欄を実読。会社の一般的なハブ説明や本社所在地から代用していない。空港名はこの欄に記載なし。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Job Location Amman, Jordan",
+       "source_id": "src-careers-royaljordanian-com-ec568179",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8801428abea4af1b",
+     "id": "royal-jordanian.base.pilot-base-city-cap.ef0825f2",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "機長のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-royal-jordanian",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-10-19",
+       "publisher": "Royal Jordanian",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-royaljordanian-com-ec568179",
+       "source_type": "job_posting",
+       "title": "A320 Captain (Type Rated), JB5496790",
+       "url": "https://careers.royaljordanian.com/en/jordan/jobs/a320-captain-type-rated-5496790/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Amman",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -91934,6 +96891,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "scoot": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "現行掲載の操縦士求人; Job outlineの勤務地分類Singapore HQ; Flight Crew (Experienced)。補足: シンガポール。Chromeで求人本文・投稿日・勤務地ラベルを実読。求人検索のLocation分類と照合した勤務地で、別節にある面接会場からの推定ではない。空港SINへ変換しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-05-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SINGAPORE HQ",
+       "source_id": "src-careers-flyscoot-com-817b068b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0cb99c8434ed34b1",
+     "id": "scoot.base.pilot-base-city-fo.953f0935",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "副操縦士のパイロットの拠点の街",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-05-22",
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-careers-flyscoot-com-817b068b",
+       "source_type": "job_posting",
+       "title": "Direct Entry First Officer 2026, R0004820",
+       "url": "https://careers.flyscoot.com/job-detail/R0004820"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SINGAPORE",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -105291,6 +110303,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "tap",
+     "cond_ja": "TAP操縦士協約2023、Regulamento de Bases Operacionais / cláusula 19ªのPorto基地。補足: ポルト。新規に政府掲載の2023年操縦士協約PDFを取得しp75–76（BTE p336–337）を実読。comandantes / oficiais pilotosのPorto配置を明記。資料はポルトガル語だがPortoは英語と綴りが同じで原文同字。都市だけなのでOPO等の空港へ変換しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-08-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "base operacional do Porto",
+       "source_id": "src-files-diariodarepublica-pt-7c035a21",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9982545324d21730",
+     "id": "tap.base.pilot-base-city.e6fcd752",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-tap",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2023-08-08",
+       "publisher": "Boletim do Trabalho e Emprego 29/2023",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-files-diariodarepublica-pt-7c035a21",
+       "source_type": "government",
+       "title": "TAP / SPAC collective agreement",
+       "url": "https://files.diariodarepublica.pt/bases_especiais/regtrab/2023/08/08/220186744.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Porto",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "contract": "TAP–SPACAE2023",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
@@ -111442,6 +116505,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "united",
+     "cond_ja": "現行MEC役員紹介：787 Captainの実所属base。補足: Brian Noyes機長の現在の所属を記載。機長1名の事実であり、全機材・副操縦士の配置を示すものではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "787 Captain based in IAH",
+       "source_id": "src-ual-alpa-org-973fd894",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8990b297309d3bbd",
+     "id": "united.base.pilot-base-cap.7cad91eb",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "機長のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-united",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ual-alpa-org-973fd894",
+       "source_type": "union_cba",
+       "title": "Our Leadership",
+       "url": "https://ual.alpa.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "IAH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-10-29",
+     "company": "united",
+     "cond_ja": "現行MEC役員紹介：Captainの実所属base。補足: Brian Bunkers機長の現在の所属を記載。機長1名の事実であり、全機材・副操縦士の配置を示すものではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LAS based Captain",
+       "source_id": "src-ual-alpa-org-973fd894",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a474dc2d721f07a8",
+     "id": "united.base.pilot-base-cap.d4c80130",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "機長のパイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-united",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United ALPA MEC",
+       "publisher_kind": "union",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ual-alpa-org-973fd894",
+       "source_type": "union_cba",
+       "title": "Our Leadership",
+       "url": "https://ual.alpa.org/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LAS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "pilot_specific": true
      },
      "checked_at": "2026-10-29",
@@ -111998,6 +117167,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Guam",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "united",
+     "cond_ja": "現行Pilot-PILOT2024求人：Other Locations。補足: 公式Pilot-PILOT2024募集の公開HTML内求人データを実読。Primary LocationはDEN - Denver、Other LocationsはORD - Chicago - O%27Hare / SFO - San Francisco Airport。操縦士の実勤務地を採用する今回の追加条件に従う。全domicile一覧ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ORD",
+       "source_id": "src-ual-pro-taleo-net-15a69490",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed4a1d16c5429012",
+     "id": "united.base.pilot-base.44036b27",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-united",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ual-pro-taleo-net-15a69490",
+       "source_type": "job_posting",
+       "title": "Pilot-PILOT2024 (Taleo)",
+       "url": "https://ual-pro.taleo.net/careersection/10260/jobdetail.ftl?job=PILOT2024&lang=en"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ORD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "united",
+     "cond_ja": "現行Pilot-PILOT2024求人：Primary Location。補足: 公式Pilot-PILOT2024募集の公開HTML内求人データを実読。Primary LocationはDEN - Denver、Other LocationsはORD - Chicago - O%27Hare / SFO - San Francisco Airport。操縦士の実勤務地を採用する今回の追加条件に従う。全domicile一覧ではない。 DENは空港運営者 https://www.flydenver.com/ のDenver International Airport / DEN表記と照合。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DEN",
+       "source_id": "src-ual-pro-taleo-net-15a69490",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "228d675df1bafdba",
+     "id": "united.base.pilot-base.7fd64c1a",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-united",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ual-pro-taleo-net-15a69490",
+       "source_type": "job_posting",
+       "title": "Pilot-PILOT2024 (Taleo)",
+       "url": "https://ual-pro.taleo.net/careersection/10260/jobdetail.ftl?job=PILOT2024&lang=en"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DEN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "united",
+     "cond_ja": "現行Pilot-PILOT2024求人：Other Locations。補足: 公式Pilot-PILOT2024募集の公開HTML内求人データを実読。Primary LocationはDEN - Denver、Other LocationsはORD - Chicago - O%27Hare / SFO - San Francisco Airport。操縦士の実勤務地を採用する今回の追加条件に従う。全domicile一覧ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SFO",
+       "source_id": "src-ual-pro-taleo-net-15a69490",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a81e3accaa6ac9ea",
+     "id": "united.base.pilot-base.a7e83397",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-united",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ual-pro-taleo-net-15a69490",
+       "source_type": "job_posting",
+       "title": "Pilot-PILOT2024 (Taleo)",
+       "url": "https://ual-pro.taleo.net/careersection/10260/jobdetail.ftl?job=PILOT2024&lang=en"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SFO",
      "value_text": null
     }
    ],
@@ -114835,6 +120157,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026年操縦士募集; A350機長/B787副操縦士等のbase。補足: ハノイ。会社2025年次報告書・公式求人検索で個別基地を確定できず、航空会社の長期契約採用会社自身の求人を使用。更新日は公開HTMLのdateModified。Hanoiにある採用担当者の所在地を根拠にしたものではない。空港へ変換しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hanoi or Ho Chi Minh City base",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f353b5702641bfb3",
+     "id": "vietnam-airlines.base.pilot-base-city.ba4fa80b",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Hanoi",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026年操縦士募集; A350機長/B787副操縦士等のbase。補足: ホーチミン市。会社2025年次報告書・公式求人検索で個別基地を確定できず、航空会社の長期契約採用会社自身の求人を使用。更新日は公開HTMLのdateModified。Hanoiにある採用担当者の所在地を根拠にしたものではない。空港へ変換しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-01-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hanoi or Ho Chi Minh City base",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d89d004fada744e0",
+     "id": "vietnam-airlines.base.pilot-base-city.df3a99ed",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-01-19",
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-10-29",
+       "source_id": "src-rishworthaviation-com-064e40a6",
+       "source_type": "third_party_reference",
+       "title": "Vietnam Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/vietnam-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Ho Chi Minh City",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "A320"
       ],
@@ -117160,6 +122584,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
        "source_type": "government",
        "title": "BOE-A-2026-5693 — IV Convenio colectivo de Vueling Airlines, SA, y sus tripulantes pilotos",
        "url": "https://www.boe.es/eli/es/res/2026/02/25/(6)"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BCN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "vueling",
+     "cond_ja": "Vueling操縦士協約のbase Barcelona。上のBCNと対応する都市表記。補足: バルセロナ。新規協約の7.6.2.1.2.6に原文で基地都市を明記。資料はスペイン語だがBarcelonaは英語でも同じ綴り。職種はtripulantes pilotosで、2024年の客室乗務員/Staff協約を混ぜていない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-03-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "base Barcelona",
+       "source_id": "src-boe-es-20cd0d37",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a091717c818ba98",
+     "id": "vueling.base.pilot-base-city.45bc7f8d",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261029-cg-vueling",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-03-11",
+       "publisher": "BOE-A-2026-5693",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-boe-es-20cd0d37",
+       "source_type": "government",
+       "title": "IV Convenio colectivo de Vueling Airlines y sus tripulantes pilotos",
+       "url": "https://www.boe.es/eli/es/res/2026/02/25/%286%29"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Barcelona",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-10-29",
+     "company": "vueling",
+     "cond_ja": "IV Convenio colectivo de Vueling Airlines y sus tripulantes pilotos（2025–2028）に明記する操縦士基地。補足: バルセロナ。新規の2026年官報掲載操縦士協約を実際に取得・実読。7.6.2.1.2.6の操縦士の季節的派遣に関する規定にBCN基地を明記。路線や客室乗務員協約からの推定ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-03-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "pilotos de base BCN",
+       "source_id": "src-boe-es-20cd0d37",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49930b60605bc62b",
+     "id": "vueling.base.pilot-base.3127989f",
+     "imported_on": "2026-10-29",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261029-cg-vueling",
+     "per": null,
+     "rev": 3,
+     "src": [
+      {
+       "published": "2026-03-11",
+       "publisher": "BOE-A-2026-5693",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-boe-es-20cd0d37",
+       "source_type": "government",
+       "title": "IV Convenio colectivo de Vueling Airlines y sus tripulantes pilotos",
+       "url": "https://www.boe.es/eli/es/res/2026/02/25/%286%29"
       }
      ],
      "unit": null,
@@ -211445,6 +216971,245 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "5.53万円"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "seoul": {
+   "airlines": [
+    "korean-air"
+   ],
+   "commute": [],
+   "name": "Seoul",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Seoul",
+      "note_ja": "街「Seoul」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KRW の国（韓国）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "seoul",
+     "company": "korean-air",
+     "cond_ja": "英: undefined。原部屋表記「1-bedroom flats」。数字の種類: Seoulの調査対象住宅地区: UN village, Hannam-dong, Itaewon-dong, Bangbae-dong, Seongbuk-dong。家具: undefined。補足: 2025年調査（日は非公表）、版は1/2026。対象は良好～非常に良好な住宅地の家具なし住戸、管理費・光熱費除外。専門職・海外駐在者向けという資料の定義を地区選定の根拠とした。市全体の平均ではない。値は原資料の現地通貨表を転記し、換算していない。 共用対象company_id=korean-air,asiana。 都市根拠: korean-air: 本社所在地を代用 Seoul (https://www.koreanair.com/contents/footer/terms-and-policies/terms-of-use) / asiana: 1で確認した本社所在地を代用 Seoul (https://find-and-update.company-information.service.gov.uk/company/FC021587)。",
+     "currency": "KRW",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2 744 000",
+       "source_id": "src-ec-europa-eu-99b53702",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b95572c2eb161300",
+     "id": "korean-air.living.rent-1bed.a1d629d6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1-bedroom flats",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": "month",
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "OECD ISRP / Eurostat",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ec-europa-eu-99b53702",
+       "source_type": "government",
+       "title": "Market Rents 2025, Average rent per month",
+       "url": "https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b?t=1766065004758"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 2744000
+     },
+     "value_text": {
+      "1bed": "2 744 000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Seoul",
+      "note_ja": "街「Seoul」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KRW の国（韓国）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "seoul",
+     "company": "korean-air",
+     "cond_ja": "英: undefined。原部屋表記「2-bedroom flats」。数字の種類: Seoulの調査対象住宅地区: UN village, Hannam-dong, Itaewon-dong, Bangbae-dong, Seongbuk-dong。家具: undefined。補足: 2025年調査（日は非公表）、版は1/2026。対象は良好～非常に良好な住宅地の家具なし住戸、管理費・光熱費除外。専門職・海外駐在者向けという資料の定義を地区選定の根拠とした。市全体の平均ではない。値は原資料の現地通貨表を転記し、換算していない。 共用対象company_id=korean-air,asiana。 都市根拠: korean-air: 本社所在地を代用 Seoul (https://www.koreanair.com/contents/footer/terms-and-policies/terms-of-use) / asiana: 1で確認した本社所在地を代用 Seoul (https://find-and-update.company-information.service.gov.uk/company/FC021587)。",
+     "currency": "KRW",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4 083 000",
+       "source_id": "src-ec-europa-eu-99b53702",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "93fa04229b7417cf",
+     "id": "korean-air.living.rent-2bed.f740ca87",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2-bedroom flats",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": "month",
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "OECD ISRP / Eurostat",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ec-europa-eu-99b53702",
+       "source_type": "government",
+       "title": "Market Rents 2025, Average rent per month",
+       "url": "https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b?t=1766065004758"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 4083000
+     },
+     "value_text": {
+      "2bed": "4 083 000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Seoul",
+      "note_ja": "街「Seoul」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KRW の国（韓国）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "seoul",
+     "company": "korean-air",
+     "cond_ja": "英: undefined。原部屋表記「3-bedroom flats」。数字の種類: Seoulの調査対象住宅地区: UN village, Hannam-dong, Itaewon-dong, Bangbae-dong, Seongbuk-dong。家具: undefined。補足: 2025年調査（日は非公表）、版は1/2026。対象は良好～非常に良好な住宅地の家具なし住戸、管理費・光熱費除外。専門職・海外駐在者向けという資料の定義を地区選定の根拠とした。市全体の平均ではない。値は原資料の現地通貨表を転記し、換算していない。 共用対象company_id=korean-air,asiana。 都市根拠: korean-air: 本社所在地を代用 Seoul (https://www.koreanair.com/contents/footer/terms-and-policies/terms-of-use) / asiana: 1で確認した本社所在地を代用 Seoul (https://find-and-update.company-information.service.gov.uk/company/FC021587)。",
+     "currency": "KRW",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "6 069 000",
+       "source_id": "src-ec-europa-eu-99b53702",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4be5a7184dbe16e8",
+     "id": "korean-air.living.rent-3bed.c90e3693",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3-bedroom flats",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-korean-air",
+     "per": "month",
+     "rev": 3,
+     "src": [
+      {
+       "published": null,
+       "publisher": "OECD ISRP / Eurostat",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ec-europa-eu-99b53702",
+       "source_type": "government",
+       "title": "Market Rents 2025, Average rent per month",
+       "url": "https://ec.europa.eu/eurostat/documents/6939681/0/Booklet_2026_rents_2025_e_Final.pdf/d2cd0065-f017-16a7-dfa2-7dad9d6fa84b?t=1766065004758"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 6069000
+     },
+     "value_text": {
+      "3bed": "6 069 000"
      }
     }
    ],
@@ -530159,6 +535924,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-aegean": {
    "records": {
+    "aegean.base.pilot-base-city-cap.83692499": "4745749c1e3758ba",
     "aegean.destinations.not-operated-airport.eb1eac05": "fddfdcd464773ed5",
     "aegean.destinations.operated-airport.19b47e8b": "1d8148b330dec288",
     "aegean.destinations.operated-airport.4917177a": "9ab75eb6f8a1cff6",
@@ -530166,8 +535932,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "aegean.profile.headquarters-city.237882cb": "aebd4d68504e0c5f",
     "aegean.profile.headquarters-country.c64e8498": "0d43db4d96752e29"
    },
-   "revision": 2,
-   "sha": "sha256:162fddbf39ffcf72"
+   "revision": 3,
+   "sha": "sha256:ef3c05e7a63a083d"
   },
   "pvr-20261029-cg-aer-lingus": {
    "records": {
@@ -530277,6 +536043,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-air-france": {
    "records": {
+    "air-france.base.pilot-base-city.69a42285": "f614d064e37802b4",
+    "air-france.base.pilot-base.20c9e32b": "607b6e8b0d4b9d12",
     "air-france.destinations.operated-airport.152895f8": "c4aa81e6b304bfb8",
     "air-france.destinations.operated-airport.1c6f600d": "edf37370b1781e5b",
     "air-france.destinations.operated-airport.1d516a4d": "d0315a77e6a87224",
@@ -530314,11 +536082,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-france.profile.headquarters-city.91201d67": "98e371304c370cc5",
     "air-france.profile.headquarters-country.43ca3aff": "8a60291ff50bf40f"
    },
-   "revision": 1,
-   "sha": "sha256:4af1164b62065a9c"
+   "revision": 3,
+   "sha": "sha256:daf78c7db58615af"
   },
   "pvr-20261029-cg-air-india": {
    "records": {
+    "air-india.base.pilot-base-city.91a768c0": "e8e870827aedd0ec",
     "air-india.fleet.airbus-a319.1c88a6ec": "3426a5681f36d5fe",
     "air-india.fleet.airbus-a320ceo.8a8316a7": "04b3b4cc0f11c963",
     "air-india.fleet.airbus-a320neo.cb77a71d": "c89301aa09c51694",
@@ -530335,11 +536104,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-india.profile.headquarters-country.ed749d45": "1c18e05d23c2803a",
     "air-india.scale.fleet-total.b3b6df49": "f42bb7b8d9f7a8c8"
    },
-   "revision": 1,
-   "sha": "sha256:fa72c237beea6fe5"
+   "revision": 3,
+   "sha": "sha256:2a375a2930d07a56"
   },
   "pvr-20261029-cg-air-new-zealand": {
    "records": {
+    "air-new-zealand.base.pilot-base-city.f277485f": "668272e0e743ac85",
     "air-new-zealand.destinations.operated-airport.3411b80a": "862989cd6c764942",
     "air-new-zealand.destinations.operated-airport.3745b60e": "a21edab999e49739",
     "air-new-zealand.destinations.operated-airport.4e44ac12": "250f9e9a822b9b7c",
@@ -530357,8 +536127,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-new-zealand.profile.headquarters-country.4e93385b": "b2f461c3e539e422",
     "air-new-zealand.scale.fleet-total.263087f5": "fa3130f6804c1c59"
    },
-   "revision": 1,
-   "sha": "sha256:f4b94291301cfc58"
+   "revision": 3,
+   "sha": "sha256:ce768f68cbfefe99"
   },
   "pvr-20261029-cg-airasia": {
    "records": {
@@ -530387,6 +536157,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-airjapan": {
    "records": {
+    "airjapan.base.pilot-base-city.66896ccc": "9b4d47d69c65173f",
     "airjapan.destinations.operated-airport.4b1e0049": "d4d87169f2179573",
     "airjapan.destinations.operated-airport.7713c7dd": "27d60e500af942d2",
     "airjapan.jobs.cap-english-cap.ddd200ab": "728df7f69354a866",
@@ -530396,8 +536167,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "airjapan.jobs.cap-pic-hours-cap.c47a8100": "bcc6def0a3a94ea4",
     "airjapan.jobs.cap-right-to-work-cap.c17f37f6": "c5a13a02e5606a55"
    },
-   "revision": 1,
-   "sha": "sha256:717b97ef47959629"
+   "revision": 3,
+   "sha": "sha256:156820d6b6ac877c"
   },
   "pvr-20261029-cg-airx-charter": {
    "records": {
@@ -530566,6 +536337,28 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "allegiant.base.pilot-base-city.e92e6f0f": "a4d8afd1cf8e4f1b",
     "allegiant.base.pilot-base-city.eb78ed0d": "0655b07fa6ecdb0f",
     "allegiant.base.pilot-base-city.fd83535e": "78cbb38fde4c4d3a",
+    "allegiant.base.pilot-base.045bf70e": "e07bf2640d755f2d",
+    "allegiant.base.pilot-base.1144506d": "fb51a7bf9d195c01",
+    "allegiant.base.pilot-base.18ccbc70": "ae3360815349bbd3",
+    "allegiant.base.pilot-base.2d4f97da": "4b4654ae516a6550",
+    "allegiant.base.pilot-base.2ff4c252": "7612da0f0447e004",
+    "allegiant.base.pilot-base.34bf38bb": "3f1780bfd4459ddb",
+    "allegiant.base.pilot-base.4b9e9380": "66f679442b33a314",
+    "allegiant.base.pilot-base.4be40fdf": "6fddc7890bba33c9",
+    "allegiant.base.pilot-base.581f70a8": "a3622f166a28d002",
+    "allegiant.base.pilot-base.59ea1271": "eb6fd27c8050ada2",
+    "allegiant.base.pilot-base.5b025d27": "f6466ab5ba66d8ec",
+    "allegiant.base.pilot-base.6dc92bc1": "a5a849f67ba9e30b",
+    "allegiant.base.pilot-base.6f12da21": "d2ef57a0a9bbc39d",
+    "allegiant.base.pilot-base.716613b4": "b2f960bc3f4d6a6e",
+    "allegiant.base.pilot-base.73fcc8da": "00ab01652a7220b0",
+    "allegiant.base.pilot-base.778ddf86": "7d4514f3ea824899",
+    "allegiant.base.pilot-base.89810688": "6ba16cc20411d9ac",
+    "allegiant.base.pilot-base.9c1cbfb0": "e5bc1737238e75ae",
+    "allegiant.base.pilot-base.a1818e6a": "e5518b5bcfa77372",
+    "allegiant.base.pilot-base.ae64ebb6": "f1ea9c5cd5d0732f",
+    "allegiant.base.pilot-base.b472bdfc": "e150d1f854ce2984",
+    "allegiant.base.pilot-base.cb9ee902": "22607d028e220372",
     "allegiant.destinations.operated-airport.07e6a22d": "1d021ac2d16d3fee",
     "allegiant.destinations.operated-airport.0c8ad43a": "f40f91fab6c597b5",
     "allegiant.destinations.operated-airport.105a0e1b": "ed59a005606fcd94",
@@ -530709,11 +536502,21 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "allegiant.profile.founded.5a45a1db": "8a033f5f9f42a1d7",
     "allegiant.scale.fleet-total.ad09b2f5": "4fd71bd5cf2f5cb4"
    },
-   "revision": 1,
-   "sha": "sha256:6c904c97b864451c"
+   "revision": 3,
+   "sha": "sha256:c2bdf454053b8270"
   },
   "pvr-20261029-cg-american": {
    "records": {
+    "american.base.pilot-base-city.04cf2f69": "051b2f1c8dab0f52",
+    "american.base.pilot-base-city.4ad74699": "8997d04598221f11",
+    "american.base.pilot-base-city.799cb13f": "5f9a207496c8e49c",
+    "american.base.pilot-base-city.8f03c106": "5af8773f5c133bca",
+    "american.base.pilot-base-city.a2ac86f3": "ae64412b70b0370c",
+    "american.base.pilot-base-city.ab15246c": "25f1291809f1a83b",
+    "american.base.pilot-base-city.ad97b628": "5230a957462cffe4",
+    "american.base.pilot-base-city.ca8eba18": "2ddd24228191d1a8",
+    "american.base.pilot-base-city.e5aab62a": "8034b46b7f94ce99",
+    "american.base.pilot-base-city.f1fe233c": "9e292a289f0c4ed1",
     "american.destinations.operated-airport.03090b05": "024f76a07ff67ba9",
     "american.destinations.operated-airport.063e3d5e": "c26a0abbd8d38e18",
     "american.destinations.operated-airport.06719ae8": "3449077c3af63f38",
@@ -530942,8 +536745,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "american.profile.founded.948bf46a": "44227ac3e14990a9",
     "american.scale.pilots.365359c6": "fc1e21164be10ff8"
    },
-   "revision": 1,
-   "sha": "sha256:2c750faf65b0d0d6"
+   "revision": 3,
+   "sha": "sha256:5b003a7aab1f55a6"
   },
   "pvr-20261029-cg-amx": {
    "records": {
@@ -531076,6 +536879,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-batik-air": {
    "records": {
+    "batik-air.base.pilot-base-city.1798bb52": "c7d7df0b708bcde2",
+    "batik-air.base.pilot-base.203f3b5a": "d80797e1bad71338",
+    "batik-air.base.pilot-base.dda69c9b": "458060f5b8e0fad7",
     "batik-air.destinations.operated-airport.074030c5": "9727cb889d6b3ded",
     "batik-air.destinations.operated-airport.17f53cce": "5cc59134ae6d6896",
     "batik-air.destinations.operated-airport.24a53eb1": "be2f9979a1ea6938",
@@ -531100,8 +536906,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "batik-air.profile.headquarters-city.96771ff6": "1fc86cb5aa743e09",
     "batik-air.profile.headquarters-country.89a262b9": "c7a29b2cea13e88a"
    },
-   "revision": 2,
-   "sha": "sha256:085d82697a19798f"
+   "revision": 3,
+   "sha": "sha256:bde081e4c807e3c4"
   },
   "pvr-20261029-cg-breeze-airways": {
    "records": {
@@ -531116,6 +536922,19 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "breeze-airways.base.pilot-base-city.cc33fc56": "7ba9d49196ccabd7",
     "breeze-airways.base.pilot-base-city.ec17eb80": "14642f3e2cc08da2",
     "breeze-airways.base.pilot-base-city.ecb705be": "08a7916a6cd9974d",
+    "breeze-airways.base.pilot-base.11e9de96": "28c762f73b54d69a",
+    "breeze-airways.base.pilot-base.1e59dabc": "d3300527a3d93a9e",
+    "breeze-airways.base.pilot-base.20e2ff55": "7e02fa4a22fb572e",
+    "breeze-airways.base.pilot-base.2789552c": "6559ce6d8f05e752",
+    "breeze-airways.base.pilot-base.52d244a8": "828cf44e604a1bdd",
+    "breeze-airways.base.pilot-base.6607ef9f": "eb7c490be2a4713f",
+    "breeze-airways.base.pilot-base.a46cdcfd": "1bfff1d81743439d",
+    "breeze-airways.base.pilot-base.a883b4db": "0fa3a61ada0021db",
+    "breeze-airways.base.pilot-base.d0ba2677": "a1cc020b09246ee7",
+    "breeze-airways.base.pilot-base.dfd87e44": "c2041ab457d5dc07",
+    "breeze-airways.base.pilot-base.e4ad77ad": "cc61e1edb57ce9d2",
+    "breeze-airways.base.pilot-base.f8ec70f4": "511638d56776edfa",
+    "breeze-airways.base.pilot-base.fe0dbac3": "1fe00649ea10aafc",
     "breeze-airways.destinations.operated-airport.00198d8d": "ff615f51cf001596",
     "breeze-airways.destinations.operated-airport.0240cd38": "8cac67b9d36a7ca4",
     "breeze-airways.destinations.operated-airport.04e4c4dc": "18b85051ffb7364b",
@@ -531202,8 +537021,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "breeze-airways.destinations.operated-airport.fd3ecf6e": "431a877dd83087f0",
     "breeze-airways.profile.founded.6b191274": "8746cea6fcbc32b7"
    },
-   "revision": 1,
-   "sha": "sha256:1bb7524f402a836c"
+   "revision": 3,
+   "sha": "sha256:e11908a149e6a052"
   },
   "pvr-20261029-cg-british-airways": {
    "records": {
@@ -531285,6 +537104,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-china-eastern": {
    "records": {
+    "china-eastern.base.pilot-base-city-cap.678f3a12": "fbe8bdb8542b9f23",
     "china-eastern.benefits.medical.d4b242ce": "3eecc9d7afba4385",
     "china-eastern.benefits.pension.f4d7c446": "26c4b36b0ebb73da",
     "china-eastern.destinations.operated-airport.7995ce8d": "32519f180e517cda",
@@ -531296,8 +537116,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "china-eastern.profile.headquarters-country.084a074f": "fc5ba74d7c441c0b",
     "china-eastern.scale.pilots.d059e3d9": "2bb46345dc4cf4ce"
    },
-   "revision": 1,
-   "sha": "sha256:59ec3a6333bf22a3"
+   "revision": 3,
+   "sha": "sha256:b63b45b1596f3cd9"
   },
   "pvr-20261029-cg-china-southern": {
    "records": {
@@ -531319,6 +537139,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-copa-airlines": {
    "records": {
+    "copa-airlines.base.pilot-base-fo.f17fc46b": "8f84b4deb66afff4",
     "copa-airlines.destinations.operated-airport.1cea75dd": "9a79bf688898308a",
     "copa-airlines.destinations.operated-airport.1e8b3125": "b2f0b06fa9ff5944",
     "copa-airlines.destinations.operated-airport.36b39a66": "59076ffe1b043a2d",
@@ -531340,8 +537161,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "copa-airlines.destinations.operated-airport.c2a0ad29": "30426479d4d9f75a",
     "copa-airlines.profile.founded.2c85381d": "775a0fb6d89ba830"
    },
-   "revision": 1,
-   "sha": "sha256:d1cd8f53805b06f4"
+   "revision": 3,
+   "sha": "sha256:5b17199fe5f5ec27"
   },
   "pvr-20261029-cg-daiichi-air": {
    "records": {
@@ -531355,6 +537176,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-delta": {
    "records": {
+    "delta.base.pilot-base-cap.a6627aeb": "913ba1bc9e9dbec5",
+    "delta.base.pilot-base-cap.e500a5fd": "fd2b48633274b596",
+    "delta.base.pilot-base-cap.edb9c8f9": "a408921047818792",
     "delta.base.pilot-base-city.023d096b": "9d26b6a81efc1cce",
     "delta.base.pilot-base-city.30ce5944": "f8fd2b195e5a69ae",
     "delta.base.pilot-base-city.3cd2e7f4": "9b1092df36027834",
@@ -531363,6 +537187,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "delta.base.pilot-base-city.b06f856a": "6f6699903d2b5610",
     "delta.base.pilot-base-city.c333048a": "d340703c727a3ff4",
     "delta.base.pilot-base-city.c906558a": "dba36e38f8a4d73e",
+    "delta.base.pilot-base.4578a66e": "54a9936455ed0c68",
+    "delta.base.pilot-base.5410478a": "154c11a938d60717",
+    "delta.base.pilot-base.6d14f81d": "3a7a31a68165e850",
+    "delta.base.pilot-base.8a792d22": "9446c528f6493e35",
+    "delta.base.pilot-base.9887e692": "c041f13ad230a157",
+    "delta.base.pilot-base.9c87e75e": "ae121fa0955567c9",
+    "delta.base.pilot-base.acf16e15": "79319fcc19cc0d37",
+    "delta.base.pilot-base.bbaf970e": "c01af5549e4da123",
     "delta.destinations.operated-airport.00c0d24c": "26b06dab1e1e004a",
     "delta.destinations.operated-airport.00c7cdf4": "df60010ec1508183",
     "delta.destinations.operated-airport.05d3d4d4": "ae6fb0d32c19d012",
@@ -531601,8 +537433,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "delta.profile.founded.f6528aa0": "4275290e2ae310e1",
     "delta.scale.pilots.42ccd015": "2334e20c5774887a"
    },
-   "revision": 1,
-   "sha": "sha256:5021d91036bebbef"
+   "revision": 3,
+   "sha": "sha256:84632e28efe93e12"
   },
   "pvr-20261029-cg-eagle-jet": {
    "records": {
@@ -531833,6 +537665,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-fiji-airways": {
    "records": {
+    "fiji-airways.base.pilot-base-city-cap.5c932f09": "be837a4fa066446e",
     "fiji-airways.benefits.medical.cf37345d": "e101ffd006691f45",
     "fiji-airways.destinations.operated-airport.405d16f2": "5f37d3464e9996dc",
     "fiji-airways.destinations.operated-airport.527224e2": "5935a9bfeff24a9a",
@@ -531850,11 +537683,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "fiji-airways.profile.headquarters-city.66040943": "94112f14e54a75f4",
     "fiji-airways.profile.headquarters-country.31273e9d": "65a7663c0a69f3d0"
    },
-   "revision": 1,
-   "sha": "sha256:26563bca180124e9"
+   "revision": 3,
+   "sha": "sha256:bb2394cfd276528b"
   },
   "pvr-20261029-cg-finnair": {
    "records": {
+    "finnair.base.pilot-base-city.f436a936": "2f3ed65e52d88bfe",
     "finnair.destinations.operated-airport.0b46f6f4": "3a36b7584586936f",
     "finnair.destinations.operated-airport.0ea723d6": "bd7dfae1a3f94558",
     "finnair.destinations.operated-airport.38038cd9": "0eae35b359052d5d",
@@ -531869,8 +537703,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "finnair.profile.headquarters-city.b146ba01": "c4f1e0eff52a7754",
     "finnair.profile.headquarters-country.9a52776d": "8dc57cbf5ff2f808"
    },
-   "revision": 1,
-   "sha": "sha256:d71504a72c648f72"
+   "revision": 3,
+   "sha": "sha256:9273b9d0d391a948"
   },
   "pvr-20261029-cg-frontier": {
    "records": {
@@ -531887,6 +537721,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "frontier.base.pilot-base-city.cee67991": "c9ba07ed95527a4a",
     "frontier.base.pilot-base-city.dfc7bf96": "b211b357b036ec47",
     "frontier.base.pilot-base-city.fb69a609": "0bbc5d7a7fa48272",
+    "frontier.base.pilot-base.2ce5e869": "7909f81a2ea6e8c4",
+    "frontier.base.pilot-base.540acab0": "3d6ecd72d8cdbd92",
+    "frontier.base.pilot-base.7e6c8adb": "7811a37c7999b3c3",
+    "frontier.base.pilot-base.9e4c08d3": "2062a1a0126d99e4",
+    "frontier.base.pilot-base.b25c9d8a": "9232055a496d14e8",
+    "frontier.base.pilot-base.f7870cb0": "8ac48338da4eb7ea",
     "frontier.destinations.operated-airport.004a60fc": "9cbc5332212117c3",
     "frontier.destinations.operated-airport.02cdb268": "e52657157fe9d306",
     "frontier.destinations.operated-airport.04f55c43": "32b31d12e4fc6ac3",
@@ -531976,8 +537816,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "frontier.destinations.operated-airport.fed6bd2c": "ba0c8bcdc68a19b7",
     "frontier.profile.founded.e45e1515": "ff953f2a8adce898"
    },
-   "revision": 1,
-   "sha": "sha256:821219fc4c24a853"
+   "revision": 3,
+   "sha": "sha256:5bbfe9a43ea55f98"
   },
   "pvr-20261029-cg-garuda-indonesia": {
    "records": {
@@ -532048,6 +537888,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-hong-kong-express": {
    "records": {
+    "hong-kong-express.base.pilot-base-city.f310a410": "5e4a3e6d20a5e347",
     "hong-kong-express.destinations.operated-airport.0860f8c2": "6c355321e2c14690",
     "hong-kong-express.destinations.operated-airport.12859091": "f282b5d11c4f3cca",
     "hong-kong-express.destinations.operated-airport.13f8c6d4": "fc84d63e7f15c578",
@@ -532090,8 +537931,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "hong-kong-express.profile.headquarters-country.e6c6a0f8": "1cdcb54a3e24eb90",
     "hong-kong-express.scale.fleet-total.01ddebad": "1a718e1ff6e0f9a7"
    },
-   "revision": 2,
-   "sha": "sha256:d05dee4663b45aea"
+   "revision": 3,
+   "sha": "sha256:ed6d293d24485950"
   },
   "pvr-20261029-cg-iberia": {
    "records": {
@@ -532365,6 +538206,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-jetstar": {
    "records": {
+    "jetstar.base.pilot-base-city.8d417c96": "b69a249c2ba40b61",
+    "jetstar.base.pilot-base-city.9c5d47fd": "757785d4f4ccd49b",
+    "jetstar.base.pilot-base-city.e0808673": "f688978a38631e63",
+    "jetstar.base.pilot-base.543c0bb8": "79cf9a61a58e046d",
+    "jetstar.base.pilot-base.9579c204": "1a80ccd50276f342",
+    "jetstar.base.pilot-base.a41d09ea": "6755e8219fb7d356",
     "jetstar.destinations.operated-airport.033fa32d": "bf3832978d3fc268",
     "jetstar.destinations.operated-airport.0569c2d7": "0f3d269800d6270c",
     "jetstar.destinations.operated-airport.05fd6621": "ddbc93ccbf553216",
@@ -532414,8 +538261,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "jetstar.profile.headquarters-city.6ea0028c": "d743da0672ef681d",
     "jetstar.profile.headquarters-country.3152f32d": "55deae23c8024ab9"
    },
-   "revision": 2,
-   "sha": "sha256:2f9cf95566d89af2"
+   "revision": 3,
+   "sha": "sha256:f74e25fb3e8cd044"
   },
   "pvr-20261029-cg-jetstar-japan": {
    "records": {
@@ -532450,15 +538297,18 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-kenya-airways": {
    "records": {
+    "kenya-airways.base.pilot-base-city-fo.8e6b0098": "4e0f5964f475610a",
     "kenya-airways.destinations.operated-airport.5f66f093": "c44c2d5f77e48f23",
     "kenya-airways.destinations.operated-airport.ae27941c": "d914b41bc1bbf1bf",
     "kenya-airways.profile.founded.c8e18316": "477b3068a8cbb0b5"
    },
-   "revision": 1,
-   "sha": "sha256:47270cdec34e2ea0"
+   "revision": 3,
+   "sha": "sha256:ac123d6756a725ca"
   },
   "pvr-20261029-cg-klm": {
    "records": {
+    "klm.base.pilot-base-city.bfee4f61": "b329eb3467fb763d",
+    "klm.base.pilot-base.21b95465": "4a2a20e28187998b",
     "klm.destinations.operated-airport.118b6c81": "e13c06a14b5ffb7d",
     "klm.destinations.operated-airport.327315b7": "b5813b6f32d82220",
     "klm.destinations.operated-airport.35b0e206": "b72c04495c70a747",
@@ -532490,11 +538340,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "klm.profile.headquarters-country.59938be7": "50e7f07dfb5d5f25",
     "klm.scale.pilots.798c7586": "db816096b8a738f8"
    },
-   "revision": 1,
-   "sha": "sha256:16ead580d10a9997"
+   "revision": 3,
+   "sha": "sha256:95b38845d130a60d"
   },
   "pvr-20261029-cg-korean-air": {
    "records": {
+    "korean-air.base.pilot-base-city.4588ff40": "9f64c36b31aff63a",
     "korean-air.benefits.staff-travel.4f2bb1ed": "a30589c7d3c36c2d",
     "korean-air.destinations.operated-airport.0e0f3610": "c24f0c6c3d295561",
     "korean-air.destinations.operated-airport.11dcb708": "559d27bd747dc250",
@@ -532509,10 +538360,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "korean-air.destinations.operated-airport.dea4d132": "cf0a21e9fee3673e",
     "korean-air.destinations.operated-airport.e433a532": "f1707d633719eb4f",
     "korean-air.destinations.operated-airport.fc63e1ae": "3872b7d1c8870f00",
+    "korean-air.living.rent-1bed.a1d629d6": "b95572c2eb161300",
+    "korean-air.living.rent-2bed.f740ca87": "93fa04229b7417cf",
+    "korean-air.living.rent-3bed.c90e3693": "4be5a7184dbe16e8",
     "korean-air.profile.founded.ac4597fc": "a4dee88590e5f1f7"
    },
-   "revision": 1,
-   "sha": "sha256:f255318fb7ce1d98"
+   "revision": 3,
+   "sha": "sha256:cefb48e72234d2a6"
   },
   "pvr-20261029-cg-kuwait-airways": {
    "records": {
@@ -532560,6 +538414,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-latam": {
    "records": {
+    "latam.base.pilot-base.ab5a2832": "278fb3c428edc023",
+    "latam.base.pilot-base.d969a978": "e7c59c6be804933f",
     "latam.benefits.medical.fcf114ec": "10cc4a638536c199",
     "latam.benefits.pension.59af5597": "f9912784f19eac09",
     "latam.benefits.staff-travel.15fcd926": "8b1f6a84f34f6cd2",
@@ -532588,8 +538444,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "latam.scale.fleet-total.154843c0": "158f65f5613ff7a8",
     "latam.scale.pilots.cf199d15": "6c42f64a600714bc"
    },
-   "revision": 1,
-   "sha": "sha256:3b1203a37f7904cf"
+   "revision": 3,
+   "sha": "sha256:136821037c052824"
   },
   "pvr-20261029-cg-lot": {
    "records": {
@@ -532673,6 +538529,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-norwegian": {
    "records": {
+    "norwegian.base.pilot-base-city.3e3279a6": "82268d02030686a4",
     "norwegian.destinations.operated-airport.01903f37": "0dd01c28125a5f3c",
     "norwegian.destinations.operated-airport.11d6f214": "00b49d7a6c4436e8",
     "norwegian.destinations.operated-airport.26677fb8": "f727b86b2cb46ac0",
@@ -532694,11 +538551,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "norwegian.profile.headquarters-country.491882f7": "ffd81655e2dcc73c",
     "norwegian.scale.fleet-total.f995e8f4": "b82190e7ae3936cc"
    },
-   "revision": 1,
-   "sha": "sha256:797e26b4bfc214dc"
+   "revision": 3,
+   "sha": "sha256:39ea839aca94e572"
   },
   "pvr-20261029-cg-oman-air": {
    "records": {
+    "oman-air.base.pilot-base-city-fo.1e268213": "c281634d32b17bca",
     "oman-air.benefits.medical.86375472": "9286543fc45c8726",
     "oman-air.benefits.staff-travel.7d00230d": "805ffc62cbaee848",
     "oman-air.destinations.operated-airport.134c6cff": "d36034c8eb12e521",
@@ -532706,8 +538564,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "oman-air.profile.founded.baebabd9": "7d4dbdace86164f2",
     "oman-air.scale.fleet-total.b47d46a0": "63a9823acc775c1a"
    },
-   "revision": 2,
-   "sha": "sha256:605812d63ac69b2a"
+   "revision": 3,
+   "sha": "sha256:f1291f634c3f65c4"
   },
   "pvr-20261029-cg-orc": {
    "records": {
@@ -532786,6 +538644,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "porter.base.pilot-base-city.249068d5": "520c65b0ef7f1e26",
     "porter.base.pilot-base-city.821ed0e2": "e8e9c810cb2624d2",
     "porter.base.pilot-base-city.f3d6c73d": "8d57a8d60d40628b",
+    "porter.base.pilot-base-fo.a3428090": "9346bff6713718d8",
+    "porter.base.pilot-base-fo.b33721f2": "efe4e46d2a1e4180",
+    "porter.base.pilot-base-fo.f5e2b143": "f523f1798be936c6",
     "porter.destinations.operated-airport.45d3f26f": "c873fda575d3a9af",
     "porter.destinations.operated-airport.505af32d": "b5bebc25bcdd5f47",
     "porter.fleet.de-havilland-dash-8-400-fleet-2026-10-29.fa4134eb": "7b28a350f21024a9",
@@ -532803,8 +538664,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "porter.profile.headquarters-city.89276a17": "c94bcfdc6a17a4cd",
     "porter.profile.headquarters-country.8a328a41": "b8ae2ee9cfa624d4"
    },
-   "revision": 2,
-   "sha": "sha256:7055daabba57c71c"
+   "revision": 3,
+   "sha": "sha256:c5e8aadb6a1a5558"
   },
   "pvr-20261029-cg-qantas": {
    "records": {
@@ -532824,6 +538685,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-qatar-airways": {
    "records": {
+    "qatar-airways.base.pilot-base-city-fo.f485379e": "06a3400efe64d692",
     "qatar-airways.destinations.not-operated-airport.2d9da513": "ccd2e572f95b2632",
     "qatar-airways.destinations.not-operated-airport.4f4c0397": "a456887671796128",
     "qatar-airways.destinations.not-operated-airport.a2fe3233": "ae6f5e010a4bbd2a",
@@ -532837,8 +538699,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "qatar-airways.destinations.operated-airport.e077bade": "df5841ed7c602daf",
     "qatar-airways.profile.founded.2ddbc26b": "3d69c2e4b7c0edf1"
    },
-   "revision": 1,
-   "sha": "sha256:a856e7a1ebc2d22e"
+   "revision": 3,
+   "sha": "sha256:48d39142bafa8d2f"
   },
   "pvr-20261029-cg-rac": {
    "records": {
@@ -532859,6 +538721,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-riyadh-air": {
    "records": {
+    "riyadh-air.base.pilot-base-city-fo.ce593bd3": "e2a259ad5694b80b",
     "riyadh-air.destinations.operated-airport.247800f7": "dc4b91d0ceb4d836",
     "riyadh-air.destinations.operated-airport.5d4279c4": "c7627c2c4d721084",
     "riyadh-air.destinations.operated-airport.5f65b6ff": "204b5367fb1b7ebe",
@@ -532870,8 +538733,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "riyadh-air.profile.headquarters-city.db011c4d": "fcc1e9c8c11a9211",
     "riyadh-air.profile.headquarters-country.5e5611b5": "3d0e64a5bfd15725"
    },
-   "revision": 2,
-   "sha": "sha256:542cf33b1eef126a"
+   "revision": 3,
+   "sha": "sha256:7890207c1b6dd569"
   },
   "pvr-20261029-cg-root-aviation": {
    "records": {
@@ -532900,6 +538763,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-royal-jordanian": {
    "records": {
+    "royal-jordanian.base.pilot-base-city-cap.ef0825f2": "8801428abea4af1b",
     "royal-jordanian.destinations.operated-airport.2ec26226": "baf795fff47b52ad",
     "royal-jordanian.destinations.operated-airport.31ee7075": "30c6565979014aa5",
     "royal-jordanian.destinations.operated-airport.45dde40d": "05349e11010b739a",
@@ -532910,8 +538774,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "royal-jordanian.profile.headquarters-city.12548a70": "92f2c4e72697221b",
     "royal-jordanian.profile.headquarters-country.ee7f0da5": "7e1de3580934844f"
    },
-   "revision": 1,
-   "sha": "sha256:59daab401c082e56"
+   "revision": 3,
+   "sha": "sha256:321f7860642e7510"
   },
   "pvr-20261029-cg-ryanair": {
    "records": {
@@ -533178,6 +539042,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-scoot": {
    "records": {
+    "scoot.base.pilot-base-city-fo.953f0935": "0cb99c8434ed34b1",
     "scoot.destinations.not-operated-airport.d6773d29": "26429645663c4d8e",
     "scoot.destinations.operated-airport.03906f83": "d21c7438f70db07a",
     "scoot.destinations.operated-airport.055cb6c2": "95b23eed28f2e7a3",
@@ -533268,8 +539133,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "scoot.profile.headquarters-city.6e0d3e7c": "9ef76a2b119f1a1e",
     "scoot.profile.headquarters-country.55af8154": "88da1ea2971e09ad"
    },
-   "revision": 2,
-   "sha": "sha256:c8ca31512cc2f950"
+   "revision": 3,
+   "sha": "sha256:ca1b7cf7362e852a"
   },
   "pvr-20261029-cg-singapore-airlines": {
    "records": {
@@ -533592,6 +539457,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-tap": {
    "records": {
+    "tap.base.pilot-base-city.e6fcd752": "9982545324d21730",
     "tap.destinations.operated-airport.100ab509": "00229bb85f56f87f",
     "tap.destinations.operated-airport.2c5eac8f": "7a9d4234328c1eff",
     "tap.destinations.operated-airport.32a467fd": "2489c31b80c012e1",
@@ -533610,8 +539476,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "tap.profile.headquarters-city.5bb0d1f4": "a00dbbe9a13cd3b1",
     "tap.profile.headquarters-country.a1d3e5a7": "35d684600e64af94"
    },
-   "revision": 1,
-   "sha": "sha256:a9b1227f76ed50c2"
+   "revision": 3,
+   "sha": "sha256:d16ca3fe66736a7b"
   },
   "pvr-20261029-cg-thai-airways": {
    "records": {
@@ -533681,6 +539547,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-united": {
    "records": {
+    "united.base.pilot-base-cap.7cad91eb": "8990b297309d3bbd",
+    "united.base.pilot-base-cap.d4c80130": "a474dc2d721f07a8",
     "united.base.pilot-base-city.0d06fcdd": "14ad73afd04180df",
     "united.base.pilot-base-city.2aab62c4": "ef863e71a1f72429",
     "united.base.pilot-base-city.457972be": "1a27389dd0df419d",
@@ -533692,6 +539560,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "united.base.pilot-base-city.d78142a1": "ca81d29ce82ae06e",
     "united.base.pilot-base-city.d9eb65f1": "536c1f055bd6f621",
     "united.base.pilot-base-city.f3d9c56d": "8e40ab97b2bccd3e",
+    "united.base.pilot-base.44036b27": "ed4a1d16c5429012",
+    "united.base.pilot-base.7fd64c1a": "228d675df1bafdba",
+    "united.base.pilot-base.a7e83397": "a81e3accaa6ac9ea",
     "united.destinations.operated-airport.0022cd45": "f597800e73f457cd",
     "united.destinations.operated-airport.02f809b4": "601058ad469cb387",
     "united.destinations.operated-airport.0427c0fb": "cb618862dc0dc2fa",
@@ -533940,8 +539811,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "united.destinations.operated-airport.ff1f7e70": "13b7117991feb5fc",
     "united.scale.pilots.438b2f52": "46770b7e51135caf"
    },
-   "revision": 1,
-   "sha": "sha256:9f1966bd39180a01"
+   "revision": 3,
+   "sha": "sha256:1718462e20c935fb"
   },
   "pvr-20261029-cg-vietjet": {
    "records": {
@@ -533964,6 +539835,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-vietnam-airlines": {
    "records": {
+    "vietnam-airlines.base.pilot-base-city.ba4fa80b": "f353b5702641bfb3",
+    "vietnam-airlines.base.pilot-base-city.df3a99ed": "d89d004fada744e0",
     "vietnam-airlines.benefits.pension.4043307b": "18b9b714508cb75e",
     "vietnam-airlines.destinations.operated-airport.0e031dde": "dde1f6297a82c9ac",
     "vietnam-airlines.destinations.operated-airport.1b3850b8": "514a2f85e9e67ab6",
@@ -533976,8 +539849,8 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "vietnam-airlines.profile.headquarters-city.a02fe0bf": "6f37528034448c38",
     "vietnam-airlines.profile.headquarters-country.4aeebb32": "048afbe76a1b6777"
    },
-   "revision": 2,
-   "sha": "sha256:ab3b29f71f5ac3d3"
+   "revision": 3,
+   "sha": "sha256:5e5dae05db2f77fa"
   },
   "pvr-20261029-cg-virgin-atlantic": {
    "records": {
@@ -534006,14 +539879,16 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-vueling": {
    "records": {
+    "vueling.base.pilot-base-city.45bc7f8d": "0a091717c818ba98",
+    "vueling.base.pilot-base.3127989f": "49930b60605bc62b",
     "vueling.destinations.operated-airport.c2948411": "ada509e03836b133",
     "vueling.profile.founded.f7fd22f8": "e66445a069a38fa0",
     "vueling.profile.headquarters-city.43ddb8d9": "1b1a080513a93cb3",
     "vueling.profile.headquarters-country.30d72311": "22aa770a8fc5b48a",
     "vueling.scale.fleet-total.7d9248c6": "9e4e146c680ddff0"
    },
-   "revision": 1,
-   "sha": "sha256:8f0dba2125aead42"
+   "revision": 3,
+   "sha": "sha256:97401e1d5251c079"
   },
   "pvr-20261029-cg-westjet": {
    "records": {

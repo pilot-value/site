@@ -963,7 +963,10 @@ ${v.jobs.length ? factList(v.jobs) + sources(v.jobs, true, true) : `<p class="pv
      ホテル名・住所・写真は、サーバーが確認済みのパイロットにだけ返す（career-stay.js。HTML には1文字も無い）。
    ・概要には一部だけ（地域ごとに1つずつ）。同じカードを2度出さないよう、全部の一覧は概要では隠す（pv-glance.css）。 */
 const CITY_SIZES = '(min-width: 1100px) 250px, (min-width: 700px) 30vw, 46vw';
-const TEASER = 6;                                  // 概要に出す枚数の上限（幅ごとの枚数は pv-glance.css の .pvg-cteaser）
+const TEASER = 6;
+/* ステイの一覧を最初に見せる枚数（2026-10-29 オーナー「最初の24枚だけ出して「すべて見る」で開く」）。これより多い会社だけ畳む。
+   カードは全部 HTML に置く（検索・JS の無い読み手には全部見える）── 畳むのは pv-glance.js。地域か探す字で絞ったら全部出す。 */
+const ST_FOLD = 24;                                  // 概要に出す枚数の上限（幅ごとの枚数は pv-glance.css の .pvg-cteaser）
 /* 街の名前に、折れてよい所を <wbr> で渡す。
    pv-glance.css が街の名前を word-break:keep-all にしている ＝ ブラウザが自分で折るのは「・」のあとと括弧の前だけ。
    それだけだと、狭いカード（6〜9字ぶん）に入らない名前は入る所で切れて、最後の1字だけが次の行へ落ちる
@@ -1077,10 +1080,11 @@ ${cityTeaser(list, net.regions).map(cityCard).join('\n')}
 <div class="pvg-st-rg" role="group" aria-label="${W.byRegion}">${pills}</div>
 </div>
 <p class="pvg-st-n"><span>${W.airports(`<b data-pvg-stn>${n}</b>`)}</span>${official}</p>
-<ul class="pvg-cgrid" id="pvg-st-list">
+<ul class="pvg-cgrid" id="pvg-st-list"${n > ST_FOLD ? ` data-pvg-fold="${ST_FOLD}"` : ''}>
 ${list.map(cityCard).join('\n')}
 </ul>
-<p class="pvg-quiet pvg-st-none" hidden>${W.findNone}</p>
+${n > ST_FOLD ? `<p class="pvg-st-all" hidden><button type="button" class="pvg-btn pvg-btn-ghost" data-pvg-stall aria-controls="pvg-st-list" aria-expanded="false">${W.showAll(n)}${IC.down}</button></p>
+` : ''}<p class="pvg-quiet pvg-st-none" hidden>${W.findNone}</p>
 ${evidence}
 </div>
 ${credits}
@@ -1250,6 +1254,7 @@ export const WORDS = Object.freeze({
     netHeld: '載せていない空港', netChecked: (d, partial) => `${d}に${partial ? '調べで' : '公式の資料で'}確認`, all: 'すべて', stays: '就航地・ステイ',
     teaser: '就航地の一部<small>地域ごとに順に。人気の順ではありません</small>',
     seeAll: (n, partial) => `${partial ? '調べで確かめた就航地を見る' : '就航地をすべて見る'}（${n}空港）`,
+    showAll: n => `すべて見る（${n}空港）`,
     findL: '都市・空港コードで探す', findPh: '都市・空港コード', byRegion: '地域で絞る', airports: b => `${b}空港`,
     findNone: '当てはまる就航地がありません。都市名か空港の3字で探せます。', dests: '就航地',
     cdNote: (partial, name) => `${partial ? '調べで確かめた就航地です' : `${name}の公式の就航地です`}。あなたの機種・ベースからの運航や宿泊があるとは限りません。`,
@@ -1323,6 +1328,7 @@ export const WORDS = Object.freeze({
     netHeld: 'Airports not listed', netChecked: (d, partial) => `Checked ${partial ? 'in our research' : 'in official sources'} on ${d}`, all: 'All', stays: 'Destinations &amp; layovers',
     teaser: 'Some destinations<small>Grouped by region, not by popularity</small>',
     seeAll: (n, partial) => `${partial ? 'See the destinations we confirmed' : 'See all destinations'} (${pl(n, 'airport', 'airports')})`,
+    showAll: n => `Show all (${pl(n, 'airport', 'airports')})`,
     findL: 'Search by city or airport code', findPh: 'City or airport code', byRegion: 'Filter by region', airports: b => `${b} airports`,
     findNone: 'No matching destinations. Search by city name or three-letter airport code.', dests: 'Destinations',
     cdNote: (partial, name) => `${partial ? 'A destination confirmed in our research' : `One of ${name}’s official destinations`}. Your fleet or base may not fly here, and crews may not lay over here.`,
