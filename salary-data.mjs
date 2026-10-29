@@ -128,14 +128,18 @@ export const SALARY = {
   // Eurowings: VC（Vereinigung Cockpit）協約の等級表（2024年1月／+7%反映）が根拠。
   //   FO 1等級 €74,090.50 → 14等級 €124,822.64 ／ 機長 1等級 €119,784.16 → 23等級 €202,253.79。
   //   以後の年次改定は等級表の金額が公開されていないため上乗せしない（低め側で置く）。@¥172/EUR。
-  'eurowings':       { ja:'ユーロウイングス', en:'Eurowings', region:'europe',                                                  cap:{avg:2770, lo:2060, hi:3480}, fo:{avg:1710, lo:1270, hi:2150}, taxFree:false, conf:'medium' },
+  //   ★2026-10-29（オーナー OK「年収OK」・WP-compare-all-27）機長の幅の上の端だけ 3,480 → 3,760（報道の最上段 €202,300 × 185.69）。
+  //     平均・下の端・副操縦士は動かしていない。出所は salary-sources.mjs。
+  'eurowings':       { ja:'ユーロウイングス', en:'Eurowings', region:'europe',                                                  cap:{avg:2770, lo:2060, hi:3760}, fo:{avg:1710, lo:1270, hi:2150}, taxFree:false, conf:'medium' },
   'finnair':         { ja:'フィンエアー', en:'Finnair', region:'europe',                                                         cap:{avg:3000, lo:2400, hi:3900}, fo:{avg:1550, lo:1150, hi:2300}, taxFree:false, conf:'medium' },
   'iberia':          { ja:'イベリア航空', en:'Iberia', region:'europe',                                                          cap:{avg:2770, lo:2150, hi:3980}, fo:{avg:1380, lo:1000, hi:2120}, taxFree:false, conf:'medium' },
   'icelandair':      { ja:'アイスランド航空', en:'Icelandair', region:'europe',                                                  cap:{avg:2150, lo:1720, hi:2600}, fo:{avg:1200, lo:950, hi:1550}, taxFree:false, conf:'medium' },
   'ita-airways':     { ja:'ITAエアウェイズ', en:'ITA Airways', region:'europe',                                                  cap:{avg:2150, lo:1890, hi:2500}, fo:{avg:1350, lo:780, hi:1880}, taxFree:false, conf:'medium' },
   'lot':             { ja:'LOTポーランド航空', en:'LOT Polish Airlines', region:'europe',                                        cap:{avg:1400, lo:1150, hi:1650}, fo:{avg:730, lo:590, hi:860}, taxFree:false, conf:'medium' },
   'norwegian':       { ja:'ノルウェー・エアシャトル', en:'Norwegian Air Shuttle (Norwegian)', region:'europe',                   cap:{avg:2210, lo:1430, hi:2700}, fo:{avg:1130, lo:720, hi:1650}, taxFree:false, conf:'medium' },
-  'ryanair':         { ja:'ライアンエアー', en:'Ryanair', region:'europe',                                                       cap:{avg:2800, lo:1450, hi:3100}, fo:{avg:1480, lo:650, hi:1530}, taxFree:false, conf:'medium' },
+  // ★2026-10-29（オーナー OK「年収OK」・WP-compare-all-27）Ryanair: 機長 avg 2,800 → 3,060（スペインの協約 2026年の表の最上段 Año 13 ＋ 会社の年金拠出）／
+  //   副操縦士 avg 1,480 → 1,530（Primer Oficial 2026 ＋ 会社の年金拠出）。下の端・上の端は動かしていない。出所は salary-sources.mjs。
+  'ryanair':         { ja:'ライアンエアー', en:'Ryanair', region:'europe',                                                       cap:{avg:3060, lo:1450, hi:3100}, fo:{avg:1530, lo:650, hi:1530}, taxFree:false, conf:'medium' },
   'sas':             { ja:'スカンジナビア航空', en:'SAS Scandinavian Airlines', region:'europe',                                 cap:{avg:2650, lo:2220, hi:3170}, fo:{avg:1150, lo:740, hi:1500}, taxFree:false, conf:'medium' },
   'swiss':           { ja:'スイス インターナショナル エアラインズ', en:'Swiss International Air Lines (SWISS)', region:'europe', cap:{avg:4100, lo:3520, hi:5900}, fo:{avg:2500, lo:1850, hi:3400}, taxFree:false, conf:'medium' },
   'tap':             { ja:'TAPポルトガル航空', en:'TAP Air Portugal', region:'europe',                                           cap:{avg:3830, lo:3270, hi:5100}, fo:{avg:2370, lo:1500, hi:3160}, taxFree:false, conf:'medium' },

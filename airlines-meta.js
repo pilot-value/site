@@ -88,7 +88,7 @@
 {code:'A3',  name:'エーゲ航空',             en:'Aegean Airlines',       region:'eu_lcc', color:'#00539C',salary:'¥1,300万',file:'airlines/aegean.html',fleet:'n',           flag:'🇬🇷',type:'lcc',taxfree:false,alliance:'スターアライアンス'},
 {code:'FI',  name:'アイスランド航空',       en:'Icelandair',            region:'eu_lcc', color:'#003087',salary:'¥2,150万',file:'airlines/icelandair.html',fleet:'nw',       flag:'🇮🇸',type:'lcc',taxfree:false,alliance:''},
 {code:'DY',  name:'ノルウェー エア',        en:'Norwegian',             region:'eu_lcc', color:'#D41819',salary:'¥2,210万',file:'airlines/norwegian.html',fleet:'n',        flag:'🇳🇴',type:'lcc',taxfree:false,alliance:''},
-{code:'FR',  name:'ライアンエアー',         en:'Ryanair',               region:'eu_lcc', color:'#073590',salary:'¥2,800万',file:'airlines/ryanair.html',fleet:'n',          flag:'🇮🇪',type:'lcc',taxfree:false,alliance:''},
+{code:'FR',  name:'ライアンエアー',         en:'Ryanair',               region:'eu_lcc', color:'#073590',salary:'¥3,060万',file:'airlines/ryanair.html',fleet:'n',          flag:'🇮🇪',type:'lcc',taxfree:false,alliance:''},
 {code:'U2',  name:'イージージェット',       en:'easyJet',               region:'eu_lcc', color:'#FF6600',salary:'¥2,990万',file:'airlines/easyjet.html',fleet:'n',          flag:'🇬🇧',type:'lcc',taxfree:false,alliance:''},
 {code:'EW',  name:'ユーロウイングス',       en:'Eurowings',             region:'eu_lcc', color:'#8F174F',salary:'¥2,770万',file:'airlines/eurowings.html',fleet:'n',        flag:'🇩🇪',type:'lcc',taxfree:false,alliance:''},
 {code:'VY',  name:'ヴエリング航空',         en:'Vueling',               region:'eu_lcc', color:'#FFCC00',salary:'¥2,760万',file:'airlines/vueling.html',fleet:'n',          flag:'🇪🇸',type:'lcc',taxfree:false,alliance:''},

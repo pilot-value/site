@@ -867,8 +867,9 @@ export const SOURCES = {
                  + 'Retribución por sectores 35.131 ＋ Otros 10.350）… Año 13 156.625。「Otros」は機長の手当 年€6.000 と有給29日分の支払い。'
                  + '会社の年金拠出は 7.5.1 で機長 年最大€8.000（本人も同額を拠出する任意の制度）。',
       quote:       'Año 7 | 105.350 | 35.131 | 10.350 | 41,33 | 150.831 … Ingresos brutos indicativos basados en 850 SBH, no garantizados.',
-      status:      'in_use',
-      note:        '★ cap.avg（2,800万）の根拠。13段のまんなか Año 7 €150,831 × 185.69 ＝ 約2,801万円。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-27 で、機長の推定年収を同じ表の最上段 Año 13 ＋ 会社の年金拠出で作り直した（同じ会社の下の新しい行）。この行の値（Año 7）は今の数字を支えていない。'
+                 + '★ cap.avg（2,800万）の根拠。13段のまんなか Año 7 €150,831 × 185.69 ＝ 約2,801万円。'
                  + '数えたもの＝基本給・区間手当（年850ブロック時間の前提）・Otros（年€6,000の手当と有給の支払い）。'
                  + '入れていないもの＝任意の会社年金拠出（最大€8,000・本人の同額拠出が条件。足すと約2,950万）、'
                  + '新任機長の最初の24か月の減額（5.6）。850時間は保証ではなく協約の参考の前提。'
@@ -886,12 +887,63 @@ export const SOURCES = {
       value_orig:  'Anexo 2・Primer Oficial 2026: Salario base 54.800 ＋ Retribución por sectores (850 h) 14.875 ＋ Otros 9.850 ＝ Total bruto anual €79.525。'
                  + 'Primer Oficial Junior €59.378（年の区分なし）。7.5.1: 副操縦士の会社年金拠出 年最大€3.000（本人も同額）。',
       quote:       '2026 | 54.800 | 14.875 | 9.850 | 17,50 | 79.525 … (3.000 euros Ryanair / 3.000 euros primer oficial)',
-      status:      'in_use',
-      note:        '★ fo.avg（1,480万）＝ €79,525 × 185.69 ＝ 約1,477万円。'
+      status:      'stale',
+      note:        '★2026-10-29 stale ── WP-compare-all-27 で、副操縦士の推定年収にも会社の年金拠出を入れて作り直した（同じ会社の下の新しい行）。この行の fo.avg（1,480万）は今の数字を支えていない。'
+                 + '★ fo.avg（1,480万）＝ €79,525 × 185.69 ＝ 約1,477万円。'
                  + '★ fo.hi（1,530万）＝ €79,525 ＋ 会社年金拠出の上限 €3,000 ＝ €82,525 ＝ 約1,532万円（拠出は本人の同額拠出が条件の任意の制度なので、上の端にだけ足した）。'
                  + '数えたもの＝基本給・区間手当（850時間の前提・保証なし）・Otros（年€5,500の手当と有給の支払い）。'
                  + 'fo.lo（650万）は前の値のまま（表の Junior FO €59,378＝約1,103万はその上）。スペイン拠点の直接雇用だけ。'
                  + '2026-10-24 までの SALARY（avg 1,030万）は出所の記録が無かった。',
+    },
+    /* ★2026-10-29（オーナー OK「年収OK」・WP-compare-all-27）── 新しい資料ではなく、上の2行と同じ協約の表に今の決まり
+       （機長＝最上段・副操縦士＝6年目・会社の年金拠出も数える。2026-10-29 の11社の作り直しと同じ）を当て直した。
+       2026-10-29 に BOE の本文を開いて、下の2行の引用の行と 7.5.1 の文を確かめた。 */
+    {
+      rank:        'cap',
+      source_type: 'union_cba',
+      name:        'BOE-A-2023-15123 Convenio colectivo de Pilotos de Ryanair DAC en España ── Anexo 1 Escala salarial 2026（機長・最上段 Año 13）＋ 7.5.1（年金拠出）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2023-15123',
+      published_at:'2023-06-28',
+      accessed_at: '2026-10-29',
+      value_orig:  'Anexo 1・2026年の機長の表 Año 13: Salario base 110.150 ＋ Retribución por sectores (850 h) 36.125 ＋ Otros 10.350 ＝ Total bruto anual €156.625'
+                 + '（SBH あたり 42,50）。7.5.1: 機長の年金の拠出は合計 年最大€16.000（会社 €8.000 ／ 機長 €8.000）。',
+      quote:       'Año 13 | 110.150 | 36.125 | 10.350 | 42,50 | 156.625 … Ingresos brutos indicativos basados en 850 SBH, no garantizados. … '
+                 + '(8.000 euros Ryanair / 8.000 euros comandante)',
+      status:      'in_use',
+      note:        '★ cap.avg（3,060万）＝ 最上段 Año 13 €156,625 ＋ 会社の年金拠出 €8,000 ＝ €164,625 × 185.69 ＝ 約3,057万円 → 3,060万。'
+                 + '数えたもの＝基本給・区間手当（年850ブロック時間の前提・保証なし）・Otros（機長の手当と有給の支払い）・会社の年金拠出（本人も同額を出すときに会社が出す任意の制度）。'
+                 + '入れていないもの＝日当（資料なし）・新任機長の最初の24か月の減額（5.6）。年金を入れないと Año 13 だけで約2,908万。'
+                 + 'スペイン拠点の Ryanair DAC 直接雇用・通年フルタイムだけの表（英国・アイルランドなど他国の契約は別）。'
+                 + 'cap.lo（1,450万）・cap.hi（3,100万）は前の値のまま。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'union_cba',
+      name:        'BOE-A-2023-15123 Convenio colectivo de Pilotos de Ryanair DAC en España ── Anexo 2 Primer Oficial 2026 ＋ 7.5.1（年金拠出）',
+      url:         'https://www.boe.es/buscar/doc.php?id=BOE-A-2023-15123',
+      published_at:'2023-06-28',
+      accessed_at: '2026-10-29',
+      value_orig:  'Anexo 2・Primer Oficial 2026: Salario base 54.800 ＋ Retribución por sectores (850 h) 14.875 ＋ Otros 9.850 ＝ Total bruto anual €79.525'
+                 + '（副操縦士の表は年次の段が1つだけ）。Primer Oficial Junior €59.378（年の区分なし）。7.5.1: 副操縦士の年金の拠出は合計 年最大€6.000（会社 €3.000 ／ 副操縦士 €3.000）。',
+      quote:       '2026 | 54.800 | 14.875 | 9.850 | 17,50 | 79.525 … (3.000 euros Ryanair / 3.000 euros primer oficial)',
+      status:      'in_use',
+      note:        '★ fo.avg（1,530万）＝ fo.hi（1,530万）＝ Primer Oficial 2026 €79,525 ＋ 会社の年金拠出 €3,000 ＝ €82,525 × 185.69 ＝ 約1,532万円 → 1,530万。'
+                 + '副操縦士の表は1段だけなので、6年目もこの額。機長と同じ作り方（会社の年金拠出を平均にも入れる）にそろえた。'
+                 + '入れていないもの＝日当（資料なし）。fo.lo（650万）は前の値のまま。スペイン拠点の直接雇用だけ。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'job_posting',
+      name:        'Ryanair Careers — Direct Entry Pilots（会社の採用ページ）',
+      url:         'https://careers.ryanair.com/pilots/direct-entry-pilots/',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '機長は1年目で最大 年 £155,500 ／ €165,000（Direct Entry Captain）。',
+      quote:       'Captains can earn up to £155,500/€165,000 p.a. in year 1!',
+      status:      'in_use',
+      note:        '水準の確かめだけ（推定年収の根拠ではない）。€165,000 × 185.69 ＝ 約3,064万円で、上の協約から出した cap.avg 3,060万とほぼ同じ水準。'
+                 + '「最大」「1年目」の額で、何を含むかは書いていない（同じページの別の行に「Outstanding earnings potential (including guaranteed min. hours for contractors)」）。'
+                 + 'ページに日付は無い（フッター 2025 ©）。2026-10-29 に開いて文を確かめた。',
     },
   ],
   'vueling': [
@@ -1132,6 +1184,29 @@ export const SOURCES = {
                  + 'Vereinigung Cockpit の名前は「労働協約と組合の交渉が基本給・手当・勤務時間を決める」という説明の文にだけ出る（額の文には無い）。'
                  + '2026-10-27 と 2026-10-28 に記事を開いて、引用の2文が本文（Gehaltsbänder der Kernmarke im Detail）に在ることを確かめた。'
                  + 'cap.lo（2,490万）と副操縦士は前の値のまま（出所の記録なし）。2026-10-26 までの SALARY（avg 3,440万）は出所の記録が無かった。',
+    },
+  ],
+
+  // ★2026-10-29（オーナー OK「年収OK」・WP-compare-all-27）── ユーロウイングスの機長のレンジの上端（cap.hi）を 3,480万 → 3,760万 に上げた。
+  //   報道の「最上段は年 €202,300」を上の端として置いた。平均（cap.avg 2,770万）・下の端・副操縦士は動かしていない。
+  //   円は fx-rates.mjs（AS_OF 2026-08-22）の EUR 185.69 で直した。
+  'eurowings': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'inFranken.de「Lufthansa-Pilotengehalt: Das verdienen Co-Piloten und Kapitäne」（Elisabeth von Sydow・報道）',
+      url:         'https://www.infranken.de/ratgeber/karriere-geld/lufthansa-pilotengehalt-co-piloten-kapitaene-einkommen-flugzeugtyp-karriereweg-ausbildung-tmr-1-art-6355825',
+      published_at:'2026-06-02',
+      accessed_at: '2026-10-29',
+      value_orig:  'ユーロウイングスのパイロットの最上段（höchste Gehaltsstufe）年 €202,300。'
+                 + '同じ段落の別の文：経験なしで入るユーロウイングスのパイロット 年 €70,200（月 €5,850）。',
+      quote:       'Die höchste Gehaltsstufe bei Eurowings liegt für Piloten bei 202.300 Euro im Jahr.',
+      status:      'in_use',
+      note:        '★ cap.hi（3,760万）の根拠。最上段 €202,300 × 185.69 ＝ 約3,757万円 → 3,760万。'
+                 + 'cap.avg（2,770万）・cap.lo（2,060万）・副操縦士はこの記事に基づいていない（前の値のまま）＝最上段の額は上の端だけを支える。'
+                 + '⚠️ 表の年は確かめられていない（aero.de 2024-05-01 の記事の下の読者コメントに「2024年1月から Kapitän Stufe 23 = 202.253,79€」とあり、ほぼ同じ額＝2024年の表の可能性がある。2025・2026年の上げ幅は掛けていない）。'
+                 + '⚠️ 報道（二次情報・会社の公表ではない）。段落は「Laut RTL」で始まる（その文はルフトハンザの初任給）が、ユーロウイングスの2文そのものには出どころの名前が無い。'
+                 + '日当・時間外・会社の年金は入っていない（資料なし）。2026-10-29 に記事を開いて、引用の文と日付（02.06.2026）を確かめた。',
     },
   ],
 
