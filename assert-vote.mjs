@@ -375,6 +375,68 @@ console.log('\n════ 2-C. いろいろな状態 ════');
   await ctx.close();
 }
 
+/* ═══ 2-D. ログインせずに口コミを出す → 預かり → 同じタブでログイン → 引き取り（2026-10-29）═══ */
+console.log('\n════ 2-D. ログインなしの口コミ（預かり → 引き取り）════');
+{
+  const ctx = await browser.createBrowserContext();
+  const page = await ctx.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(String(e.message)));
+  await page.setViewport({ width: 1100, height: 900 });
+  await page.evaluateOnNewDocument(() => { if (!sessionStorage.getItem('s0')) { sessionStorage.setItem('s0', '1'); localStorage.setItem('pv_local_ui', '0'); } });
+  await page.goto(BASE + '/submit-review.html', { waitUntil: 'networkidle0', timeout: 45000 });
+  const open0 = await page.evaluate(() => ({ form: getComputedStyle(document.getElementById('form-wrap')).display, gate: getComputedStyle(document.getElementById('login-gate')).display }));
+  ok(open0.form !== 'none' && open0.gate === 'none', 'ログインしていなくても口コミのフォームが開いている', J(open0));
+  /* 作り物の口コミ（実在の投稿ではない） */
+  await page.evaluate(() => {
+    const sel = document.getElementById('f-airline'); sel.value = 'zipair'; sel.dispatchEvent(new Event('change'));
+    const r = document.querySelector('input[name="f-pos"][value="fo"]'); r.checked = true; r.dispatchEvent(new Event('change'));
+    document.getElementById('f-tenure').value = '1-5';
+    document.getElementById('f-age').value = '30-34';
+    for (const k of ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training']) document.querySelector(`.star-group[data-cat="${k}"]`).dataset.score = '4';
+    document.getElementById('fc-culture').value = '社内の雰囲気は落ち着いていて、先輩にも相談しやすいです。若い会社なので意見が通りやすく、運航乗務員の声が経営に届く場面も多いと感じます。一方で制度の変更が早く、慣れるまでは少し戸惑いました。';
+    document.getElementById('fc-wlb').value = '勤務表は月の中旬に出るので、翌月の予定は立てやすいほうです。長距離の後は休養日がきちんと入り、繁忙期以外は希望休も通りやすいです。家族との時間は以前の会社より取れています。';
+    document.getElementById('fc-ops').value = '機材は新しく整備の状態も良いので安心して乗務できます。運航管理との連絡は丁寧で、天候の悪い日も判断の材料がそろっています。成田の混雑する時間帯は地上で待つことが多いです。';
+    document.getElementById('fc-salary').value = '基本給は同業の中では標準的ですが、乗務手当が月ごとの飛行時間で変わるので手取りには波があります。賞与は会社の業績しだいで、去年は少し増えました。';
+  });
+  await page.evaluate(() => goStep(2));
+  await page.evaluate(() => goStep(3));
+  await page.evaluate(() => submitReview());
+  await page.waitForFunction(() => getComputedStyle(document.getElementById('step-pending')).display !== 'none'
+    || [...document.querySelectorAll('[id^="err"]')].some((e) => e.textContent.trim()), { timeout: 15000 });
+  const sent = await page.evaluate(() => ({ pending: getComputedStyle(document.getElementById('step-pending')).display !== 'none',
+    claims: JSON.parse(localStorage.getItem('pv_review_claim') || '[]').length,
+    unlock: Number(localStorage.getItem('pv_unlock_expiry') || 0) > Date.now(),
+    err: [...document.querySelectorAll('[id^="err"]')].map((e) => e.textContent.trim()).filter(Boolean) }));
+  const held = (await db.query(`select count(*)::int n from public.pv_review_pending where airline = 'zipair' and claimed_at is null`)).rows[0].n;
+  ok(sent.pending && sent.claims === 1 && !sent.unlock && held === 1, '★未ログインで出すと預かりに入り「あと1ステップ」が出る・まだ鍵は開かない', J({ sent, held }));
+  const anon = await rpc(null, 'pv_reviews', { airline: 'zipair' });
+  const pr = (anon.rows || []).find((x) => x.pending === true);
+  ok(!!pr && !Object.keys(pr).some((k) => /_comment$/.test(k)), '★預かった口コミは一覧に出る（鍵の無い人には本文を返さない）', J(pr || {}).slice(0, 160));
+  /* 同じタブでログイン（手元の会員 c）→ フォームへ戻る */
+  const s = await login('c');
+  await page.evaluate((s) => {
+    const now = String(Date.now());
+    localStorage.setItem('sb-local-auth-token', JSON.stringify(s.session));
+    localStorage.setItem('pv_user', JSON.stringify(s.pv_user));
+    localStorage.setItem('pv_last_active', now); localStorage.setItem('pv_session_start', now);
+    const at = Date.parse((s.session.user || {}).last_sign_in_at || '');
+    localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
+  }, s);
+  await page.goto(BASE + '/submit-review.html', { waitUntil: 'networkidle0', timeout: 45000 });
+  await page.waitForFunction(() => getComputedStyle(document.getElementById('step-success')).display !== 'none'
+    || getComputedStyle(document.getElementById('claim-retry')).display !== 'none', { timeout: 15000 });
+  const done = await page.evaluate(() => ({ success: getComputedStyle(document.getElementById('step-success')).display !== 'none',
+    unlock: Number(localStorage.getItem('pv_unlock_expiry') || 0) > Date.now(), claims: localStorage.getItem('pv_review_claim') }));
+  const h = (await db.query(`select public.pv_review_hash($1::uuid, 'zipair') h`, [uid('c')])).rows[0].h;
+  const mine = (await db.query(`select count(*)::int n from public.reviews_v2 where proof_hash = $1`, [h])).rows[0].n;
+  const left = (await db.query(`select count(*)::int n from public.pv_review_pending where airline = 'zipair' and claimed_at is null`)).rows[0].n;
+  ok(done.success && done.unlock && !done.claims && mine === 1 && left === 0,
+     '★同じタブでログインして戻ると、本人の口コミになり鍵が開く（預かりは引き取り済み＝一覧に2回出ない）', J({ done, mine, left }));
+  ok(!errs.length, 'フォームの中でエラーが出ない', errs.join(' / '));
+  await ctx.close();
+}
+
 await browser.close();
 await srv.close();
 fs.rmSync(DIRDB, { recursive: true, force: true });

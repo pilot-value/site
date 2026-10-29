@@ -18,6 +18,7 @@
 --   contacts / profiles / reviews_v2   … お問い合わせ・新規会員・新着口コミ
 --   pay_reports                        … 給与レポート（★金額はメールに載せない）
 --   pay_reports_pending                … 会員登録せずに出した給与レポート（預かり）
+--   pv_review_pending                  … ログインせずに出した口コミ（預かり・2026-10-29）
 --   airline_conditions                 … 待遇アンケートの回答（1問＝1通）
 --   pv_requests                        … ROADMAP & REQUESTS の要望
 --                                        （★pv_request_likes は入れない。
@@ -66,11 +67,12 @@ begin
                 'ダッシュボードの Database Webhooks 画面から作ってください。';
   end if;
 
-  -- ── 8本作る ───────────────────────────────────────────────
+  -- ── 9本作る ───────────────────────────────────────────────
   -- ⚠️ pv_request_likes は入れない。♡ を1押しするたびにメールが飛ぶ。
   foreach tbl in array array['contacts', 'profiles', 'reviews_v2',
                              'pay_reports', 'pay_reports_pending', 'airline_conditions',
-                             'pv_requests', 'pv_request_comments'] loop
+                             'pv_requests', 'pv_request_comments',
+                             'pv_review_pending'] loop   -- 2026-10-29 ログインせずに出した口コミ（db/review-pending.sql）
     hook := 'notify_admin_' || tbl;
 
     -- 対象テーブルが無ければ飛ばす（contacts 未作成のまま流した場合など）。

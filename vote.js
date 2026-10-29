@@ -389,9 +389,11 @@
     var meta = esc(posText(it.pos)) + ' · ' + esc(T.tenure(it.ten));
     var avg = (it.kind === 'seed' || it.kind === 'local') ? (it.rating ? Math.min(5, it.rating) : null) : rowAvg(it.row);
     var total = lenOf(it);
+    /* 星と項目名は1行にまとめる（カードを低くする・2026-10-29 iPhone で大きすぎ）。 */
     var tags = '';
-    if (ex.tag || ex.tr) {
-      tags = '<span class="vt-rc-tags">' + (ex.tag ? '<span class="vt-tag">' + esc(ex.tag) + '</span>' : '') +
+    if (avg || ex.tag || ex.tr) {
+      tags = '<span class="vt-rc-tags">' + (avg ? '<span class="vt-rc-stars">' + stars(avg) + '<b>' + avg.toFixed(1) + '</b></span>' : '') +
+        (ex.tag ? '<span class="vt-tag">' + esc(ex.tag) + '</span>' : '') +
         (ex.tr ? w.PVReviewI18n.noteHTML(it.body.from) : '') + '</span>';
     }
     var body = (ex.html === null)
@@ -403,10 +405,30 @@
       '<span class="vt-rc-top">' + logo(it.slug, n.main) +
         '<span class="vt-rc-brand"><span class="vt-rc-name">' + esc(n.main) + '</span><span class="vt-rc-meta">' + meta + '</span></span>' +
         '<time class="vt-rc-date"' + (it.date.iso ? ' datetime="' + it.date.iso + '"' : '') + '>' + esc(it.date.t) + '</time></span>' +
-      (avg ? '<span class="vt-rc-stars">' + stars(avg) + '<b>' + avg.toFixed(1) + '</b></span>' : '') +
       tags + body +
       '<span class="vt-rc-foot"><span class="vt-rc-read">' + esc(T.read) + ico('arrow') + '</span>' +
         (total ? '<span class="vt-rc-len">' + esc(T.chars(total)) + '</span>' : '') + '</span></a>';
+  }
+
+  /* 流れる帯のカード（トップの口コミの帯と同じ大きさ：幅 304px・狭い画面 268px）。
+     2026-10-29 オーナー「landing page と同じくらいにしろ」。
+     中身の順：項目名・星 → 本文（鍵の無い人は先頭80字＋影絵1行）→ 会社・職位・勤務年数・年月・全 N 文字。 */
+  function mini(it) {
+    var n = nameOf(it.slug, it.code);
+    var ex = excerpt(it, '');
+    var avg = (it.kind === 'seed' || it.kind === 'local') ? (it.rating ? Math.min(5, it.rating) : null) : rowAvg(it.row);
+    var total = lenOf(it);
+    var head = '<span class="vt-rc-tags">' + (ex.tag ? '<span class="vt-tag">' + esc(ex.tag) + '</span>' : '') +
+      (ex.tr ? w.PVReviewI18n.noteHTML(it.body.from) : '') +
+      (avg ? '<span class="vt-rc-stars">' + stars(avg) + '<b>' + avg.toFixed(1) + '</b></span>' : '') + '</span>';
+    var body = (ex.html === null)
+      ? '<span class="vt-rc-ex is-locked">🔒 ' + esc(T.lockedBody) + '</span>'
+      : '<span class="vt-rc-ex' + (ex.locked ? ' is-cut' : '') + '">' + ex.html + '</span>';
+    if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
+    var who = [n.main, posText(it.pos), T.tenure(it.ten), it.date.t].join(' · ');
+    return '<a class="vt-rc vt-mini" href="#review/' + it.key + '" data-review="' + it.key + '">' + head + body +
+      '<span class="vt-mini-meta"><span class="vt-mini-who">' + esc(who) + '</span>' +
+      (total ? '<span class="vt-rc-len">' + esc(T.chars(total)) + '</span>' : '') + '</span></a>';
   }
 
   /* ── 状態 ───────────────────────────────────────────────── */
@@ -450,7 +472,7 @@
           '<br><button type="button" class="vt-btn-line" data-clear>' + esc(T.clear) + '</button></div>'
         : '<div class="vt-empty"><strong>' + esc(T.noReviews) + '</strong></div>';
     } else {
-      box.innerHTML = shown.map(function (it) { return card(it, '', false); }).join('');
+      box.innerHTML = shown.map(mini).join('');
     }
     if (st) st.innerHTML = feed.s === 'error'
       ? esc(T.feedFail) + ' <button type="button" class="vt-retry" data-retry="feed">' + esc(T.retry) + '</button>' : '';

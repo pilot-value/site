@@ -132,8 +132,23 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 .vt-mq:hover .vt-mq-track,.vt-mq:focus-within .vt-mq-track,html.vt-lock .vt-mq-track{animation-play-state:paused}
 @keyframes vt-mq{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 .vt-mq-set{display:flex;gap:14px;padding-right:14px}
-.vt-mq .vt-rc{width:304px;flex:none;min-height:296px}
-.vt-mq .vt-skel{width:304px;flex:none}
+.vt-mq .vt-rc{width:304px;flex:none}
+.vt-mq .vt-skel{width:304px;flex:none;min-height:150px}
+/* トップの口コミの帯と同じ大きさ・同じ密度（幅 304px・狭い画面 268px・本文 12px）。 */
+.vt-rc.vt-mini{padding:12px 14px 11px;border-radius:14px;min-height:0}
+.vt-mini .vt-rc-tags{flex-wrap:nowrap;margin-bottom:7px;min-width:0}
+.vt-mini .vt-tag{font-size:10.5px;padding:3px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.vt-mini .vt-rc-stars{margin-left:auto;flex:none;font-size:11px}
+.vt-mini .vt-rc-stars .vt-stars{font-size:11.5px}
+.vt-mini .vt-rc-ex{display:-webkit-box;font-size:12px;line-height:1.55;min-height:4.65em;-webkit-line-clamp:4;color:var(--vt-body-text)}
+.vt-mini .vt-rc-ex.is-cut{display:block;-webkit-line-clamp:unset;overflow:visible}
+.vt-mini .vt-rc-ex.is-locked{font-size:11.5px}
+.vt-mini .vt-ghost{margin-top:2px}
+.vt-mini .vt-ghost i{height:7px;margin:4px 0}
+.vt-mini .vt-ghost i:nth-child(n+2){display:none}
+.vt-mini-meta{display:flex;align-items:flex-end;gap:8px;margin-top:auto;padding-top:8px;font-size:10.5px;line-height:1.45;color:var(--vt-muted)}
+.vt-mini-who{flex:1;min-width:0;overflow-wrap:anywhere}
+.vt-mini .vt-rc-len{font-size:10.5px}
 /* 検索中・1件だけ・「動きを減らす」設定：流さずに横へ送れる並びにする */
 .vt-mq.is-static{overflow-x:auto;-webkit-mask-image:none;mask-image:none;scrollbar-width:thin}
 .vt-mq.is-static .vt-mq-track{animation:none}
@@ -161,7 +176,7 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 .vt-rc-ex{font-size:14px;line-height:1.95;letter-spacing:.08px;margin:0;color:var(--vt-body-text);display:-webkit-box;-webkit-line-clamp:4;
   -webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .vt-rc-ex.is-locked{color:var(--vt-muted);font-size:13px}
-.vt-rc-stars{display:flex;align-items:center;gap:6px;margin:-6px 0 10px;font-size:12px;color:var(--vt-ink)}
+.vt-rc-stars{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--vt-ink)}
 .vt-rc-stars b{font-weight:700;font-variant-numeric:tabular-nums}
 .vt-rc-stars .vt-stars{font-size:13px;letter-spacing:0}
 .vt-rc-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px}
@@ -170,7 +185,8 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 /* ぼかしの影絵 ── 字を持たない灰色の行（本物の字は端末に届いていない）。 */
 .vt-ghost{display:block;margin-top:6px;filter:blur(3px);opacity:.55;pointer-events:none;user-select:none}
 .vt-ghost i{display:block;height:9px;margin:9px 0;border-radius:5px;background:linear-gradient(90deg,var(--vt-muted),var(--vt-line))}
-.vt-rc-ex.is-cut{-webkit-line-clamp:3}
+/* 80字で切った欄は全部見せる（80字以上は届いていない＝これ以上長くならない） */
+.vt-rc-ex.is-cut{display:block;-webkit-line-clamp:unset;overflow:visible}
 .vt-rc-read{display:flex;align-items:center;gap:6px;color:var(--vt-jade-ink);font-size:12px;font-weight:700;margin-top:auto;padding-top:16px}
 .vt-rc-read .vt-ico{width:14px;height:14px}
 /* 見本の口コミ・この端末の投稿は、鍵が無い人に先頭だけ素で見せ、残りをぼかす（本文は DOM に残す＝今までと同じ）。 */
@@ -376,12 +392,18 @@ html[lang^="en"] .vt{--vt-wlw:86px;--vt-wvw:84px}
   .vt-title{font-size:20px;gap:8px;letter-spacing:-.5px}.vt-title::before{height:19px;width:3px}
   .vt-sec-actions .vt-link{font-size:12px;gap:3px}
   .vt-mq{margin-right:-16px;margin-left:-16px}
-  .vt-mq .vt-rc,.vt-mq .vt-skel{width:268px;min-height:290px}
-  .vt-rc{padding:17px}
-  .vt-rc-top{gap:10px;margin-bottom:15px}
-  .vt-rc .vt-logo{width:42px;height:40px;padding:6px}
-  .vt-rc-name{font-size:15px}
-  .vt-rc-ex{font-size:14px;line-height:1.85}
+  /* 狭い画面はトップと同じ 268px（2026-10-29 オーナー「landing page と同じくらいに」） */
+  .vt-mq .vt-rc,.vt-mq .vt-skel{width:268px}
+  .vt-rc.vt-mini{padding:12px 13px 11px}
+  .vt-rc{padding:14px}
+  .vt-rc-top{gap:9px;margin-bottom:10px}
+  .vt-rc .vt-logo{width:34px;height:34px;padding:5px;border-radius:8px}
+  .vt-rc-name{font-size:14px}
+  .vt-rc-meta{font-size:10.5px;margin-top:1px}
+  .vt-rc-tags{margin-bottom:6px}
+  .vt-rc-ex{font-size:13px;line-height:1.6}
+  .vt-ghost i{height:7px;margin:7px 0}
+  .vt-rc-foot{padding-top:8px}
   .vt-sec-sub{font-size:11px;margin-left:11px}
   .vt-co-tools>.vt-link{display:none}
   .vt-co-grid{gap:14px}

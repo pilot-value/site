@@ -621,7 +621,8 @@ const aStart = sql.indexOf('foreach tbl in array array[');
 const aBlock = sql.slice(aStart, sql.indexOf('] loop', aStart));
 const tables = [...aBlock.matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]).sort();
 
-ck('ビルダーを8つ持っている', builders.length === 8, builders.join(', '));
+/* 2026-10-29 pv_review_pending（ログインせずに出した口コミの預かり）を足して9つ。 */
+ck('ビルダーを9つ持っている', builders.length === 9, builders.join(', '));
 ck('index.ts の builders と db/notify-admin-webhooks.sql の表が同じ',
    JSON.stringify(builders) === JSON.stringify(tables),
    `builders: ${builders.join(', ')}\n      webhooks: ${tables.join(', ')}`);
