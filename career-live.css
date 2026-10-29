@@ -408,6 +408,20 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-sum2{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
 .crl-sum2-c{display:grid;gap:8px;align-content:start;min-width:0}
 .crl-sum2-c .crl-sum-li{min-height:0;padding:6px 0}
+/* ★2026-10-29 オーナー「比較の口コミの要約が読みづらい。文ではなく、枠？視覚的に読みづらい」── 会社ごとに1つの枠・その中で「良い点」と
+   「気になる点」を印（＋ 緑／！ 橙）つきの見出しで分け、1点ずつを左に色の帯を持つ小さな枠に入れる（線で区切った文の続きにしない）。
+   文はサーバーの要約のまま（1文字も変えない・並べ替えない）。静かな1行（data-quiet）の出し入れは上の規則のまま */
+.crl-sum2-c:not([data-quiet]){gap:12px;padding:14px;border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface-2)}
+.crl-sum2-c:not([data-quiet]) > .crl-co{padding:0 0 10px;border-bottom:1px solid var(--pv-line-soft);font-size:14px;color:var(--pv-ink)}
+.crl-sum2-c .crl-sum-col{display:grid;gap:6px}
+.crl-sum2-c .crl-sum-h{gap:8px;margin:0;font-size:13px}
+.crl-sum2-c .crl-sum-h::before{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pv-accent-soft);color:var(--pv-accent-ink);font:800 13px/1 Inter,sans-serif;content:'＋'}
+.crl-sum2-c .crl-sum-col[data-kind="concern"] .crl-sum-h::before{background:var(--pv-orange-soft);color:var(--pv-orange-ink);content:'！'}
+.crl-sum2-c .crl-sum-ul{display:grid;gap:6px}
+.crl-sum2-c .crl-sum-li{padding:8px 12px;border:1px solid var(--pv-line-soft);border-left:3px solid var(--pv-accent);border-radius:8px;background:var(--pv-surface);font-size:14px;line-height:1.65}
+.crl-sum2-c .crl-sum-li:first-child{border-top:1px solid var(--pv-line-soft)}
+.crl-sum2-c .crl-sum-col[data-kind="concern"] .crl-sum-li{border-left-color:var(--pv-orange)}
+.crl-sum2-c .crl-sum-by{margin:0}
 @supports (container-type:inline-size){
   .crl[data-live="cmp-summary"]{container-type:inline-size}
   @container (min-width:560px){
@@ -461,6 +475,54 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-more-s:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){.crl-more-s .crl-ic{transition:none}}
 .crl-def{margin:10px 0 0;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
+/* ── 昇格後の年数ごとの年収の図（比較の「提出された年収」・career-live.js の ydBlock・2026-10-29）──
+   y は 0 からの1本の目盛（2つの図で同じ）・横の線は薄く・段の境は点線。点は 10px（会社の色・地の色の輪 2px）、押せる広さは 24px。
+   点を指す・押すと（指はタップ）額の札が出る。札は枠の外へ出ない向きに置く（左の2段は左寄せ・右の2段は右寄せ） */
+.crl-yd{container-type:inline-size;padding:0 0 12px;border-bottom:1px solid var(--pv-line)}
+.crl-yd-lg{display:flex;flex-wrap:wrap;gap:4px 16px;margin:6px 0 0}
+.cr-cmp .crl .crl-yd-lg > .crl-co{align-items:center}
+.cr-cmp .crl .crl-yd-lg > .crl-co::before{margin-top:0}
+.cr-cmp .crl .crl-yd-lg > .crl-co > .crl-co-n{flex:0 1 auto;width:auto}
+.crl-yd-figs{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:10px}
+@container (min-width:560px){.crl-yd-figs{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 28px}}
+.crl-yd-f{margin:0;min-width:0}
+.crl-yd-h{margin:0 0 8px;font:700 13px/1.4 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-yd-plot{display:grid;grid-template-columns:60px minmax(0,1fr);column-gap:8px}
+.crl-yd-y{position:relative;height:168px}
+.crl-yd-t{position:absolute;right:0;transform:translateY(50%);font:500 10.5px/1 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;color:var(--pv-ink-3);white-space:nowrap}
+.crl-yd-a{position:relative;height:168px}
+.crl-yd-g{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--pv-line-soft)}
+.crl-yd-g:first-of-type{border-top-color:var(--pv-line)}
+.crl-yd-s{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--pv-line-soft)}
+.crl-yd-d{position:absolute;z-index:1;width:24px;height:24px;margin:0 0 -12px -12px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.crl-yd-d::before{content:'';position:absolute;left:7px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--crl-co,var(--pv-ink-3));box-shadow:0 0 0 2px var(--pv-surface);transition:transform .18s var(--pv-ease)}
+.crl-yd-d::after{content:attr(data-tip);position:absolute;bottom:26px;left:50%;z-index:2;box-sizing:border-box;width:max-content;max-width:200px;padding:6px 10px;border-radius:8px;background:var(--pv-ink);color:var(--pv-bg);font:600 12px/1.45 Inter,'Noto Sans JP',sans-serif;text-align:left;white-space:normal;box-shadow:0 6px 18px -8px color-mix(in oklab,var(--pv-ink) 60%,transparent);opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,4px);transition:opacity .16s var(--pv-ease),transform .16s var(--pv-ease)}
+.crl-yd-d[data-edge="l"]::after{left:0;transform:translate(0,4px)}
+.crl-yd-d[data-edge="r"]::after{left:auto;right:0;transform:translate(0,4px)}
+.crl-yd-d:is(:hover,:focus)::after{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.crl-yd-d[data-edge]:not([data-edge="c"]):is(:hover,:focus)::after{transform:translate(0,0)}
+.crl-yd-d:is(:hover,:focus){z-index:3}
+.crl-yd-d:hover::before{transform:scale(1.3)}
+.crl-yd-d:active::before{transform:scale(.9)}
+.crl-yd-d:focus{outline:none}
+.crl-yd-d:focus-visible::before{box-shadow:0 0 0 2px var(--pv-surface),0 0 0 4px var(--pv-accent)}
+.crl-yd-x{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:8px 0 0 68px;font:500 10.5px/1.3 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-3);text-align:center}
+.crl-yd-x > span{min-width:0;overflow-wrap:anywhere}
+.crl-yd-ax{margin:4px 0 0 68px;font-size:11px;line-height:1.4;color:var(--pv-ink-3);text-align:center}
+.crl-yd-tt{margin:12px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-yd-note{margin:8px 0 0;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
+@media (prefers-reduced-motion:reduce){.crl-yd-d::before,.crl-yd-d::after{transition:none}}
+/* 1件ずつの数字は畳む（押すと開く ── 2026-10-29 オーナー「給与の詳細（提出した）数字は押したら出てくる形にして」） */
+.crl-pay-fold{margin-top:12px}
+.crl-pay-fold-s{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;padding:0 16px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface-2);color:var(--pv-accent-ink);font:700 14px/1.35 Inter,'Noto Sans JP',sans-serif;list-style:none;cursor:pointer;transition:transform .18s var(--pv-ease)}
+.crl-pay-fold-s::-webkit-details-marker{display:none}
+.crl-pay-fold-s .crl-ic{flex:none;transition:transform .18s var(--pv-ease)}
+.crl-pay-fold[open] > .crl-pay-fold-s .crl-ic{transform:rotate(180deg)}
+@media (hover:hover){.crl-pay-fold-s:hover{border-color:var(--pv-accent-line);background:var(--pv-accent-soft)}}
+.crl-pay-fold-s:active{transform:scale(.99)}
+.crl-pay-fold-s:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.crl-pay-fold[open] > .crl-pay-fold-s{margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){.crl-pay-fold-s,.crl-pay-fold-s .crl-ic{transition:none}}
 .crl-agg{padding:0 0 12px;border-bottom:1px solid var(--pv-line)}
 .crl-agg[hidden]{display:none}
 .crl-agg-h{margin:12px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}

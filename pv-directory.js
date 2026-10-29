@@ -310,7 +310,7 @@
      ★ リストの行と候補の社名・ロゴは、カードの物を写す（createElement ＋ textContent ＋ cloneNode。HTML の字を組み立てない）。
      ★ 字はページの物だけ（gen-directory.mjs の WORDS・LIST が書く。外すの字 data-rm・付けたの字 data-on）。ここに言葉を書かない。 */
   var MAX = 5;
-  var BODY = $('wd-body'), TRAY = $('wd-tray'), TRAY_N = $('wd-tray-n'), TRAY_LIST = $('wd-tray-list'), TRAY_TWO = $('wd-tray-two'), TRAY_LVL = $('wd-tray-lvl');
+  var BODY = $('wd-body'), TRAY = $('wd-tray'), TRAY_N = $('wd-tray-n'), TRAY_CH = $('wd-tray-chips'), TRAY_LIST = $('wd-tray-list'), TRAY_TWO = $('wd-tray-two'), TRAY_LVL = $('wd-tray-lvl');
   var FOLD = $('wd-cl-fold'), SHUT = $('wd-cl-close'), OPEN = $('wd-cl-open'), EMPTY = $('wd-cl-empty'), RULE = $('wd-cl-rule'), WHY = $('wd-cl-why');
   var AQ = $('wd-cl-q'), OPTS = $('wd-cl-opts'), ANONE = $('wd-cl-none');
   var TICKS = all('#airline-grid button.wd-cmp');
@@ -397,6 +397,16 @@
       if (TRAY_N.textContent !== t) TRAY_N.textContent = t;
     }
     if (EMPTY && EMPTY.hidden !== n > 0) EMPTY.hidden = n > 0;
+    if (TRAY_CH && TRAY_CH.getAttribute('data-for') !== cmp.join(' ')) {             // 畳んだ盆の略号の札（見た目だけ ── 読み上げは行と数）
+      while (TRAY_CH.firstChild) TRAY_CH.removeChild(TRAY_CH.firstChild);
+      cmp.forEach(function (s) {
+        var c = cardOf(s), ch = d.createElement('span');
+        ch.className = 'wd-tray-chip'; ch.textContent = codeOf(s) || nameOf(s);
+        if (c && c.li.style.getPropertyValue('--ac')) ch.style.setProperty('--ac', c.li.style.getPropertyValue('--ac'));
+        TRAY_CH.appendChild(ch);
+      });
+      TRAY_CH.setAttribute('data-for', cmp.join(' '));
+    }
     if (TRAY_LIST) {
       var now = Array.prototype.map.call(TRAY_LIST.children, function (li) { return li.getAttribute('data-slug'); });
       if (now.join(' ') !== cmp.join(' ')) {
@@ -785,8 +795,8 @@
 (function (w, d) {
   'use strict';
   var sec = d.getElementById('wa-map-sec'); if (!sec) return;          // 古いページ＋新しい台本：何もしない
-  var card = d.getElementById('wa-sum'), go = d.getElementById('wa-go'), mount = d.getElementById('pv-rp');
-  if (!card || !go || !mount) return;
+  var card = d.getElementById('wa-sum'), mount = d.getElementById('pv-rp');
+  if (!card || !mount) return;
   var strip = d.getElementById('region-strip'), svg = sec.querySelector('.wam-svg'), root = d.documentElement;
   var each = Array.prototype.forEach, list = Array.prototype.slice;
   var panels = list.call(card.querySelectorAll('.wam-panel'));
@@ -819,7 +829,6 @@
     if (!st.shut && (st.tap || st.committed !== 'all')) open();                        // D27: a tap or a selection; focus / hover never open; only the reader's close (shut) removes it
     if (!force && held()) return;                                                       // the card itself is held (D13)
     panels.forEach(function (x) { x.classList.toggle('is-shown', x.getAttribute('data-region') === p); });
-    go.classList.toggle('is-off', !(st.tap && st.pick === p && p !== st.committed));
     var pe = d.getElementById('wam-p-' + p), whole = pe ? pe.querySelector('.wam-def') : null;   // N3: a region only while ITS panel is shown whole
     if (p === 'all' || !whole || !whole.getClientRects().length) mount.removeAttribute('data-rp-region');   // (a closed card shows only its 1-2 line summary ── WP-dmap-8 / -11)
     else if (mount.getAttribute('data-rp-region') !== p) mount.setAttribute('data-rp-region', p);
@@ -893,32 +902,27 @@
     render(false); });
   card.addEventListener('toggle', function (e) { if (e.target && e.target.open === false) render(false); }, true);   // 'toggle' does not bubble
   if (svg) {                                                                            // DM5a: the shapes point and select like the buttons
-    function toHeading() {                                                              // where the focus goes after the go-button
-      var h = d.getElementById('wd-rh-name') || d.getElementById('wd-rh'); if (!h) return;
-      if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
-      h.focus({ preventScroll: true });
-    }
-    function choose(c) {                                                                // (code) -> void; the directory selects
+    function choose(c, stay) {                                                          // (code, boolean) -> void; the directory selects
       closeFolds(); st.pick = null; st.tap = false;
       if (w.PVDirectory && w.PVDirectory.setRegion) {
         w.PVDirectory.setRegion(c);                                                     // answers with 'wd:change', synchronously
-        if (w.PVDirectory.state().region === c) reveal();                               // not after a release
-      } else { st.committed = c; render(true); reveal(); }
+        if (!stay && w.PVDirectory.state().region === c) reveal();                      // not after a release
+      } else { st.committed = c; render(true); if (!stay) reveal(); }
     }
     svg.addEventListener('pointerdown', function (e) { st.via = e.pointerType || 'mouse'; });
     svg.addEventListener('pointerover', over); svg.addEventListener('pointerleave', out);
     svg.addEventListener('click', function (e) {
       var c = codeOf(e.target); if (!c || Z.moved) return;                              // WP-dmap-9: a drag or a pinch never selects
-      if (st.via === 'touch' || st.via === 'pen') {                                    // 3d: a tap shows, the button selects
-        closeFolds(); st.hover = null; st.pick = c; st.tap = true; st.shut = false; render(true);
+      /* ★2026-10-29 オーナー「大陸をタッチした時に平均給与表示されるのいいけど表示が大きすぎるのと、自動で下のカードはその大陸に絞られるようにして」──
+         指で触れたら、その場で選ぶ（下のカードがその地域に絞られる・もう1回で「すべて」── マウスと同じ）。前の「触れると見せるだけ・
+         『この地域の航空会社を見る』で選ぶ」（3d）はやめ、そのボタンも外した。指ではページを動かさない（地図と、小さくした板の額が見えたまま ──
+         絞った結果は地域のボタンと結果の数の行が言う）。板の形は pv-directory.css の「板（is-open）」の規則 */
+      if (st.via === 'touch' || st.via === 'pen') {
+        st.hover = null; st.shut = false; choose(c, true);
         if (card.getBoundingClientRect().bottom > w.innerHeight) card.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'smooth' });
         return;
       }
       choose(c);
-    });
-    go.addEventListener('click', function () {
-      var c = st.pick; if (!c) return;
-      toHeading(); choose(c);
     });
     /* ── 動かせる地図（WP-dmap-9・オーナー「地図はスマホで見ると小さいし、地図自体を自分で動かせるようにしたい（windy みたいに）」）──
        地図の層（点・当たり・光る層）は1つの <g class="wam-z"> の中。動くのはその transform（translate ＋ scale・箱の単位）だけ。

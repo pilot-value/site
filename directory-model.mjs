@@ -118,8 +118,10 @@ export function model() {
     }
     airlines[slug] = A;
   }
-  const idx = (s) => REGIONS.findIndex((r) => r.code === SALARY[s].region);
-  const slugs = Object.keys(SALARY).sort((a, b) => (idx(a) - idx(b)) || (rowOf.get(a).i - rowOf.get(b).i));
+  /* ★2026-10-29 オーナー「航空会社ページのカードはa-z 順にして」── 並びは英語の社名（一覧の行の en ＝ カードの2行目・英語のカードの社名）の
+     A→Z だけ。日英で同じ並び・地域で絞っても A→Z のまま（地域の slugs はこの並びを絞っただけ）。同じ名前は slug の順 */
+  const az = (s) => String(rowOf.get(s).r.en || '');
+  const slugs = Object.keys(SALARY).sort((a, b) => az(a).localeCompare(az(b), 'en', { sensitivity: 'base' }) || (a < b ? -1 : a > b ? 1 : 0));
   const regions = REGIONS.map((r) => { const sl = slugs.filter((s) => SALARY[s].region === r.code); return { ...r, slugs: sl, n: sl.length }; });
   MEMO = { n: slugs.length, slugs, airlines, regions };
   return MEMO;

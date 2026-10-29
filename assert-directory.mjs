@@ -130,10 +130,10 @@ function want(I, slug, rank) {
 /** 万円の平均を10万円で丸める（地域ページ・countries.html と同じ） */
 const mean10 = (I, slugs, rank) => Math.round(slugs.reduce((a, s) => a + I.ledger[s][rank].avg, 0) / slugs.length / 10) * 10;
 const regionSlugs = (I, code) => Object.keys(I.ledger).filter((s) => code === 'all' || I.ledger[s].region === code);
-/** 一覧の並び（地域の順 → 一覧の行の順）。ここで台帳と一覧の行から作る */
+/** 一覧の並び（英語の社名 ＝ 一覧の行の en の A→Z。同じ名前は slug の順 ── 2026-10-29 オーナー「a-z 順にして」）。ここで台帳と一覧の行から作る */
 function orderOf(I) {
-  const pos = new Map(I.list.map((r, i) => [r.slug, i]));
-  return Object.keys(I.ledger).sort((a, b) => (REG8.indexOf(I.ledger[a].region) - REG8.indexOf(I.ledger[b].region)) || ((pos.get(a) ?? 1e9) - (pos.get(b) ?? 1e9)));
+  const en = new Map(I.list.map((r) => [r.slug, String(r.en || '')]));
+  return Object.keys(I.ledger).sort((a, b) => (en.get(a) ?? '').localeCompare(en.get(b) ?? '', 'en', { sensitivity: 'base' }) || (a < b ? -1 : a > b ? 1 : 0));
 }
 /** 国の表の旗（国が決まらない会社は ''） */
 const flagOf = (I, slug) => (I.byCode[I.country[slug]] || {}).flag || '';
@@ -337,13 +337,13 @@ const figsOf = (html) => [...String(html).matchAll(/<p class="wd-fig[^"]*" data-
 function secE(I) {
   const ids = ['E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7'];
   if (!I.M || !I.fn.figure) return ids.map((id) => R(id, [I.err || '一覧の形が読めない']));
-  const M = I.M, S = Object.keys(I.ledger), out = [], pos = new Map(I.list.map((r, i) => [r.slug, i]));
+  const M = I.M, S = Object.keys(I.ledger), out = [];
   const rowOf = (s) => I.list.find((r) => r.slug === s), hOf = (s) => I.header.find((h) => h.slug === s);
   /* E1 並び・地域の社数 */
-  const order = [...S].sort((a, b) => (REG8.indexOf(I.ledger[a].region) - REG8.indexOf(I.ledger[b].region)) || ((pos.get(a) ?? 1e9) - (pos.get(b) ?? 1e9)));
+  const order = orderOf(I);
   const p1 = [];
   if (M.n !== S.length) p1.push(`n = ${M.n}／SALARY ${S.length}`);
-  if (!same(M.slugs, order)) p1.push('slugs が並び（地域の順 → 一覧の行の順）と違う');
+  if (!same(M.slugs, order)) p1.push('slugs が並び（英語の社名の A→Z）と違う');
   if (!same((M.regions || []).map((r) => r.code), REG8)) p1.push(`地域の並び ${(M.regions || []).map((r) => r.code).join(',')}`);
   let sum = 0;
   for (const r of M.regions || []) {
@@ -473,7 +473,7 @@ function secF(I) {
     const h = U[lang], C = cardsOf(h), en = lang === 'en', rel = PAGE_REL[lang];
     /* F1 枚数と並び */
     if (C.length !== N) p.F1.push(`${rel}：カード ${C.length} 枚／台帳 ${N} 社`);
-    if (!same(C.map((c) => c.slug), order)) p.F1.push(`${rel}：カードの並びが台帳の並び（地域の順 → 一覧の行の順）と違う`);
+    if (!same(C.map((c) => c.slug), order)) p.F1.push(`${rel}：カードの並びが英語の社名の A→Z と違う`);
     /* F2 1枚ずつ */
     for (const c of C) {
       const r = rowOf.get(c.slug), d = I.ledger[c.slug];
@@ -858,7 +858,7 @@ function offered(html) {
   return [...s.slice(a, z).matchAll(/<button type="button" class="cr-pk" data-airline="([^"]*)"/g)].map((m) => m[1]);
 }
 /** 比べる印の字（シートの字 ── WP-dmap-10：見える字 off／on・読み上げの字 say ＝ 前からの「比較」／«Compare»。ここに書いた字が正） */
-const TOGGLE = { ja: { off: '＋ 比較', on: '✓ 比較中', say: '比較' }, en: { off: '+ Compare', on: '✓ Added', say: 'Compare' } };
+const TOGGLE = { ja: { off: '＋ 比較に追加', on: '✓ 比較中', say: '比較' }, en: { off: '+ Add to compare', on: '✓ Added', say: 'Compare' } };   // 2026-10-29「わかりづらい」で字を足した
 /** 比較リストの決まりの行（シートの字 ── WP-dmap-10。書いた2つの数 ＝ 台本の決まり：段の無い社が入れば 2 社・どの社も段を持てば MAX 社） */
 const LIST_RULE = { ja: '比較は2社・レベリング比較は5社まで', en: 'Compare: 2 airlines · Leveling: up to 5' };
 /** 比べる印（自己検査で印を足すときだけ使う。ページの印は gen-directory.mjs が書く） */
@@ -918,7 +918,7 @@ function secH(I) {
     const cardsB = blockOf(U[lang], 'PV-DIR-CARDS'), trayB = divById(U[lang], 'wd-tray');
     if (cardsB && cardsB.text.includes('career.html')) p.H5.push(`${PAGE_REL[lang]}：カード（PV-DIR-CARDS）が career.html を指す（2社を送るのは盆だけ）`);
     const to = trayB ? [...trayB.text.matchAll(/<a class="wd-tray-two" id="wd-tray-two" href="([^"]*)"/g)].map((m) => m[1]) : [];
-    if (!same(to, ['career.html?view=compare'])) p.H5.push(`${PAGE_REL[lang]}：盆（#wd-tray）の「${lang === 'ja' ? '航空会社を比較' : 'Compare airlines'}」が、そのページから見た career.html?view=compare を1本だけ指していない（${to.join(' ') || '無い'}）`);
+    if (!same(to, ['career.html?view=compare'])) p.H5.push(`${PAGE_REL[lang]}：盆（#wd-tray）の「${lang === 'ja' ? '2社を比較' : 'Compare 2 airlines'}」が、そのページから見た career.html?view=compare を1本だけ指していない（${to.join(' ') || '無い'}）`);
   }
   /* H6 比較リスト（WP-dmap-10・class A：画面の主張が本当）── 決まりの行（#wd-cl-rule）が各ページにちょうど1つで、字はシートの字（LIST_RULE）、
      書いた2つの数（2・5）＝ 台本の決まり（pv-directory.js の fits：機種の段の無い社が入れば 2 社・どの社も段を持てば MAX 社）。
@@ -1291,8 +1291,8 @@ function secMcard(I) {
     }
     /* M11 ボタン・禁じた字 */
     const B = blocks[lang];
-    const go = /<button type="button" class="wam-go is-off" id="wa-go">([^<]*)<\/button>/.exec(B);
-    if (!go || unesc(go[1]) !== W.go) p.M11.push(`${rel}：「${go?.[1]}」／「${W.go}」`);
+    /* 「この地域の航空会社を見る」は 2026-10-29 に外した（オーナー「自動で下のカードはその大陸に絞られるようにして」── 指で触れたらその場で選ぶ）。戻さない */
+    if (/id="wa-go"|class="wam-go/.test(B)) p.M11.push(`${rel}：外した「この地域の航空会社を見る」（#wa-go）が残っている`);
     /* 「機長｜副操縦士」の切り替え（P12.100・リード P12.109）：面（.wam-g）の先頭に1つ・地図の列の前・ボタン2つ・字は行の札と同じ（新しい字を作らない）・
        組の読み上げの名前は「職位」／Rank（リード P12.112）・hidden で出荷（台本が動いたときだけ見せる）・押してある方 ＝ 区域の data-pos（機長）。
        WP-dmap-4 でカードの先頭から面の先頭へ移った（スマホでは地図の上に立つ） */
@@ -1787,7 +1787,7 @@ const ROWS = [
   ['H5e', (I) => onCard(I, 'en', 'jal', (c) => c.replace('data-two="1"', () => 'data-two="0"')), 'H', ['H4', 'H5']],
   ['H4f', (I) => onCard(I, 'en', 'spirit', (c) => c.replace(/(<div class="wd-foot">[\s\S]*?)(<\/div>)/, (_, a, z) => a + tickHtml('spirit', 'en') + z)), 'H', ['H4']],
   /* WP-dmap-10：盆は比較リスト（PV-DIR-LIST）になり、「航空会社を比較」は hidden を持たずに出荷する（2社がそろうまで台本が行き先を外す） */
-  ['H5t', (I) => { I.page.en = sub(I.page.en, '<a class="wd-tray-two" id="wd-tray-two" href="career.html?view=compare">Compare airlines</a>', ''); }, 'H', ['H5']],
+  ['H5t', (I) => { I.page.en = sub(I.page.en, '<a class="wd-tray-two" id="wd-tray-two" href="career.html?view=compare">Compare 2 airlines</a>', ''); }, 'H', ['H5']],
   /* H6（class A）：決まりの行の数を変える（台本は5社のまま）／台本の決まりを変える（字は5社のまま）／「なぜ」が指す行を消す */
   ['H6a', (I) => { I.page.ja = sub(I.page.ja, '>比較は2社・レベリング比較は5社まで</p>', '>比較は2社・レベリング比較は6社まで</p>'); }, 'H', ['H6']],
   ['H6b', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], 'var MAX = 5;', 'var MAX = 6;'); }, 'H', ['H6']],

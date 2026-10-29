@@ -457,6 +457,8 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
 .cr-cmp[data-near] .crl-cmp-head > .crl-co + .crl-co::before,
 .cr-cmp[data-near] .crl-split-c + .crl-split-c > .crl-co::before,
 .cr-cmp[data-near] .crl-sum2-c[data-col="2"] > .crl-co::before,
+.cr-cmp[data-near] .crl-yd-lg > .crl-co + .crl-co::before,
+.cr-cmp[data-near] .crl-yd-d[data-col="2"]::before,
 .cr-cmp[data-near] .crl-rate-rv > .crl-cmp-sc + .crl-cmp-sc > .crl-co::before{background:transparent;box-shadow:inset 0 0 0 2px var(--crl-co,var(--pv-ink-3))}
 /* ★2026-10-25 WP-compare-all-14（絵の本 #13）：同じ札（.crl-co）で、社名が折れる長い会社（スイス インターナショナル エアラインズ）でも、
    色の点だけが1行目に残らない ── 社名の塊（.crl-co-n）の幅は「いちばん長い1語」から始めて残りの行を埋める（width:min-content ＋ 伸びる）。
