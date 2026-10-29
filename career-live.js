@@ -1453,13 +1453,65 @@
       medBack(box, tok, agg, rb || h);
     });
   }
+  KIND['cmp-pay'] = function (box, ids) {
+    var keep = foldsOpen(box), keepAll = !!box.querySelector('details.crl-pay-fold[open]');
+    return Promise.all([payRows(), dict()]).then(function (r) {
+      var pay = r[0], D = r[1], A = ofCo(pay.rows, ids[0]), B = ofCo(pay.rows, ids[1]);
+      var g = cmpGrid(ids), none = !A.length && !B.length;
+      if (!pay.open) {
+        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
+        var feet = foot([cmpPayEntry(), pay.who === 'guest' ? loginLink() : null]);
+        if (none) return view('empty', [g, feet]);
+        return view('locked', [g, lockLine(pay.who === 'expired' ? T.payExpired : T.payLock), feet]);
+      }
+      if (none) {
+        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
+        return view('empty', [g]);
+      }
+      var agg = aggBlock();
+      g.appendChild(agg);                           // 会社の札の下・図と畳んだ行の上
+      var yd = ydBlock(A, B, ids);
+      if (yd) g.appendChild(yd);
+      /* ★2026-10-29 オーナー「給与の詳細（提出した）数字は押したら出てくる形にして」── 1件ずつの行は畳む（押すと開く）。
+         通貨を替えて描き直しても、開けたものは開けたまま（keepAll） */
+      var fold = el('details', 'crl-pay-fold'), fs = el('summary', 'crl-pay-fold-s'), rowsG = el('div', 'crl-cmp crl-pay-rows'), shown = 0;
+      payRanks(A, B).forEach(function (pos) {
+        var a = A.filter(function (x) { return (x.pos || '') === pos; }), b = B.filter(function (x) { return (x.pos || '') === pos; });
+        var named = T.workPos.some(function (p) { return p[0] === pos; });
+        if (!a.length && !b.length && !named) return;
+        shown += a.length + b.length;
+        var name = rankName(pos, D);
+        if (name) { var h = el('h3', 'crl-pr-h', name); h.setAttribute('data-pos', pos); rowsG.appendChild(h); }
+        var row = cmpRow(rowsG, null, payCell(a, ids[0], pos, D, keep), payCell(b, ids[1], pos, D, keep)) || rowsG.lastChild;
+        row.setAttribute('data-rows', pos);
+      });
+      fs.appendChild(el('span', '', T.payOpen(shown)));
+      fs.appendChild(icon('down', 14));
+      fold.appendChild(fs);
+      fold.appendChild(rowsG);
+      var def = el('p', 'crl-def', T.payDef);
+      def.setAttribute('data-def', 'rows');
+      fold.appendChild(def);
+      if (keepAll) fold.open = true;
+      g.appendChild(fold);
+      aggFill(agg, ids, box);                       // 待たない（行はすぐ出る。中央値は答えが来たら器に入る）
+      return view('open', [g]);
+    }, function (e) {
+      /* 読めなかった時も、給与の入口は残す（この面でただ1つの入口。読み手が誰かは分からないので「ログイン」は出さない） */
+      var feet = foot([cmpPayEntry()]);
+      if (e && e.crl === 'off') return view('off', [msg(T.off), feet]);
+      return view('error', [msg(T.err), retryBtn(), feet]);
+    });
+  };
+
   /* ── 昇格後の年数ごとの年収（比較の「提出された年収」の図 ── 2026-10-29 オーナー「CAP,COPの年次ごとの給与分布のグラフを入れたほうが」）──
      材料は、いま開いている読み手に届いた行（pv_pay_rows の open）だけ ＝ 下の「提出された数字」と同じ行・同じ額（有効数字2桁）。新しく聞かない・
      作らない・足さない。閉じた読み手には額が届いていないので、図そのものを作らない（ぼかした絵も置かない）。
      ★x は昇格後の年数の5段（ten・tenk 'r'）だけ。在籍年数しか無い古い行（tenk 's'）は同じ目盛に置かない（「昇格後」と名乗らせない ── 行の札と同じ決まり）。
      ★y は2社・2職位で1本の目盛（0 から・機長と副操縦士で同じ）── 図どうしで高さが比べられる。目盛の字は PVCurrency の表記。
      ★1つの点 ＝ 1件の提出。点を押すと（指はタップ）その額の札が出る。会社の色は札（.crl-co）と同じ。色の近い2社は右の会社が輪（career.css の data-near）。
-     ★人数・平均・中央値をここで数えない（中央値はサーバーの pv_company_pay の1か所） */
+     ★人数・平均・中央値をここで数えない（中央値はサーバーの pv_company_pay の1か所）。ここでの計算は、点を置く位置と目盛の刻みだけ。
+       そのため給与の区画（var PAY_TOP から ── 足さない・並べ替えない・計算しない区画。assert-career.mjs）の外に置いてある。呼ぶのは開いた答えの KIND['cmp-pay'] だけ */
   var YD_BANDS = 5;
   function ydNice(v) {                              // 目盛の刻み（1・2・2.5・5 × 10^k）
     var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10)), m = v / p;
@@ -1546,57 +1598,6 @@
     wrap.appendChild(note);
     return wrap;
   }
-  KIND['cmp-pay'] = function (box, ids) {
-    var keep = foldsOpen(box), keepAll = !!box.querySelector('details.crl-pay-fold[open]');
-    return Promise.all([payRows(), dict()]).then(function (r) {
-      var pay = r[0], D = r[1], A = ofCo(pay.rows, ids[0]), B = ofCo(pay.rows, ids[1]);
-      var g = cmpGrid(ids), none = !A.length && !B.length;
-      if (!pay.open) {
-        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
-        var feet = foot([cmpPayEntry(), pay.who === 'guest' ? loginLink() : null]);
-        if (none) return view('empty', [g, feet]);
-        return view('locked', [g, lockLine(pay.who === 'expired' ? T.payExpired : T.payLock), feet]);
-      }
-      if (none) {
-        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
-        return view('empty', [g]);
-      }
-      var agg = aggBlock();
-      g.appendChild(agg);                           // 会社の札の下・図と畳んだ行の上
-      var yd = ydBlock(A, B, ids);
-      if (yd) g.appendChild(yd);
-      /* ★2026-10-29 オーナー「給与の詳細（提出した）数字は押したら出てくる形にして」── 1件ずつの行は畳む（押すと開く）。
-         通貨を替えて描き直しても、開けたものは開けたまま（keepAll） */
-      var fold = el('details', 'crl-pay-fold'), fs = el('summary', 'crl-pay-fold-s'), rowsG = el('div', 'crl-cmp crl-pay-rows'), shown = 0;
-      payRanks(A, B).forEach(function (pos) {
-        var a = A.filter(function (x) { return (x.pos || '') === pos; }), b = B.filter(function (x) { return (x.pos || '') === pos; });
-        var named = T.workPos.some(function (p) { return p[0] === pos; });
-        if (!a.length && !b.length && !named) return;
-        shown += a.length + b.length;
-        var name = rankName(pos, D);
-        if (name) { var h = el('h3', 'crl-pr-h', name); h.setAttribute('data-pos', pos); rowsG.appendChild(h); }
-        var row = cmpRow(rowsG, null, payCell(a, ids[0], pos, D, keep), payCell(b, ids[1], pos, D, keep)) || rowsG.lastChild;
-        row.setAttribute('data-rows', pos);
-      });
-      fs.appendChild(el('span', '', T.payOpen(shown)));
-      fs.appendChild(icon('down', 14));
-      fold.appendChild(fs);
-      fold.appendChild(rowsG);
-      var def = el('p', 'crl-def', T.payDef);
-      def.setAttribute('data-def', 'rows');
-      fold.appendChild(def);
-      if (keepAll) fold.open = true;
-      g.appendChild(fold);
-      aggFill(agg, ids, box);                       // 待たない（行はすぐ出る。中央値は答えが来たら器に入る）
-      return view('open', [g]);
-    }, function (e) {
-      /* 読めなかった時も、給与の入口は残す（この面でただ1つの入口。読み手が誰かは分からないので「ログイン」は出さない） */
-      var feet = foot([cmpPayEntry()]);
-      if (e && e.crl === 'off') return view('off', [msg(T.off), feet]);
-      return view('error', [msg(T.err), retryBtn(), feet]);
-    });
-  };
-
   /* ── 口コミ（実投稿だけ）──────────────────────────────── */
 
   /* ── 評価スコア（会社ページ）──────────────────────────────

@@ -839,7 +839,7 @@ const slotFace = (page) => page.evaluate(() => {
     return x ? [...x.querySelectorAll('.crl-lock')].filter(vis).map((l) => `${(l.closest('.crl [data-airline]') || { getAttribute: () => '' }).getAttribute('data-airline') || ''}:${l.textContent.trim()}`) : null; };
   const pay = V.querySelector('.crl[data-live="cmp-pay"]');
   return { face: [...V.querySelectorAll('.crl[data-live]')].map((x) => `${x.getAttribute('data-live')}${x.getAttribute('data-quiet') ? '(quiet)' : ''}:${x.getAttribute('data-state')}`).join(' '),
-    pay: lock('cmp-pay'), work: lock('cmp-work'), payText: pay ? pay.innerText : '' };
+    pay: lock('cmp-pay'), work: lock('cmp-work'), payText: pay ? pay.textContent : '' };   // 2026-10-29：1件ずつの額は畳んだ中（押すと出る）── 欄の中の字で見る（錠の顔に額が1つも無いことは、この方が厳しい）
 });
 
 scene('readers', '読む人6つ（ゲスト・pilot・a・c・pay・期限切れ）× JAL｜ANA：欄の顔・口コミの本文は口コミの鍵のある人だけ・顔 a・b と入口・会社ページと同じ公開の数', async () => {

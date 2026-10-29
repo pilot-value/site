@@ -1084,10 +1084,18 @@ const PAY = ['pv_pay_rows', 'pv_company_pay'];
 const PRF = H.payRowFix;
 const payReply = (body) => () => ({ status: 200, body });
 const PAY_SEL = '#cr [data-view="compare"] .crl[data-live="cmp-pay"]';
+/* 1件ずつの行の畳み（2026-10-29 から閉じて出る）を開く。開いていれば何もしない */
+const openPayFold = async (page) => {
+  const S = `${PAY_SEL} details.crl-pay-fold`;
+  if (await page.evaluate((s) => { const d = document.querySelector(s); return !d || d.open; }, S)) return;
+  await page.click(`${S} > summary`);
+  await page.waitForFunction((s) => { const d = document.querySelector(s); return !!d && d.open; }, { timeout: 10000 }, S).catch(() => {});
+};
 const W_PAY = {
   lock: '給与の提出で開きます', expired: '年収データの解放が切れています', empty: 'まだ記録がありません', gg: 'Give & Get',
   ggMain: '全ての給与情報を解放する', all: 'REAL PAY で全部見る', median: '中央値', none: '未取得',
   more: (n) => `続きを見る（全${n}件）`,
+  open: (n) => `提出された数字を見る（${n}件）`,   // 2026-10-29：1件ずつの行は畳んだ中
   c2: 'REAL PAY と同じ一覧（直近24か月の提出）。月の支給額を年に直した額と、口コミに書かれた年収の両方が入っています。',
   c3: (from, to, floor) => `中央値は、給与を提出した人ごとのまんなかの額から出しています（給与の月が${from}〜${to}のもの・${floor}人以上の区分だけ）。`
     + '口コミに書かれた年収と、登録前に預かった提出は入りません。',
@@ -1138,6 +1146,7 @@ const payFace = (page) => page.evaluate((SEL) => {
   return {
     state: b.getAttribute('data-state'), text: b.innerText || '', html: b.outerHTML,
     rows: b.querySelectorAll('li.crl-row').length, amt: b.querySelectorAll('.crl-amt').length, plate: b.querySelectorAll('.crl-plate').length,
+    yd: b.querySelectorAll('.crl-yd, .crl-yd-d').length,   // 昇格後の年数ごとの年収の図（開いた人だけ）
     lock: [...b.querySelectorAll('p.crl-lock')].map(tx),
     entry: [...b.querySelectorAll('a[href^="pay-report.html"]')].map((a) => ({ cls: a.className, k: tx(a.querySelector('.crl-cta-k')),
       m: tx(a.querySelector('.crl-cta-m')), h: Math.round(a.getBoundingClientRect().height) })),
@@ -1192,8 +1201,8 @@ scene('pay-lock', '給与：鍵の無い人には会社ごとの件数だけ（�
   ok(asked.length === 0, '[M1 a] 鍵の無い人の画面からは、中央値（pv_company_pay）も DEEP PAY（pv_deep_pay）も聞かない', asked.join(','));
   /* M1 b 形：行・額・板が無い・会社ごとの件数・錠の1行と入口が1つずつ・ゲストの「ログイン」は今の2社へ戻る */
   const C = F ? F.cells : [];
-  ok(!!F && F.rows === 0 && F.amt === 0 && F.plate === 0, '[M1 b] 欄に行（li.crl-row）も額の箱（.crl-amt）も板（.crl-plate）も無い',
-    JSON.stringify(F && { rows: F.rows, amt: F.amt, plate: F.plate }));
+  ok(!!F && F.rows === 0 && F.amt === 0 && F.plate === 0 && F.yd === 0, '[M1 b] 欄に行（li.crl-row）も額の箱（.crl-amt）も板（.crl-plate）も年数ごとの図（.crl-yd ── 額が届いていない）も無い',
+    JSON.stringify(F && { rows: F.rows, amt: F.amt, plate: F.plate, yd: F.yd }));
   ok(C.length === 2 && C[0].co === 'jal' && C[0].count === '3件の提出' && C[1].co === 'ana' && C[1].count === '1件の提出',
     '[M1 b] 会社ごとに、返ってきた行の本数だけ（JAL「3件の提出」・ANA「1件の提出」）', JSON.stringify(C.map((c) => [c.co, c.count, c.msg])));
   ok(!!F && JSON.stringify(F.lock) === JSON.stringify([W_PAY.lock]), `[M1 b] 錠の1行は欄に1つ「${W_PAY.lock}」`, JSON.stringify(F && F.lock));
@@ -1229,6 +1238,20 @@ scene('pay-open', '給与：鍵の開いた人には職位ごとの2社の列・
   const B = [PRF('ana', { annual_usd: 314159 }), PRF('ana', { annual_usd: 141421, verified: true }), PRF('ana', { pos: 'fo', annual_usd: 161803 })];
   const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), before: PAY_WATCH, stub: { pv_pay_rows: payReply(H.payFix.open(A, B)) } });
   ok(await payDone(page, 'jal|ana'), '（鍵の開いた人）給与の欄が読み終わった');
+  /* ★2026-10-29 オーナー「給与の詳細（提出した）数字は押したら出てくる形にして、CAP,COPの年次ごとの給与分布のグラフを」──
+     1件ずつの行は閉じた畳みの中（開くまで1行も見えない）・畳みの字は行の数・畳みの上に昇格後の年数ごとの図（機長・副操縦士・点は行と同じ数） */
+  const fold0 = await page.evaluate((SEL) => {
+    const b = document.querySelector(SEL), d = b && b.querySelector('details.crl-pay-fold');
+    if (!d) return null;
+    const rows = [...b.querySelectorAll('li.crl-row')], yd = b.querySelector('.crl-yd');
+    return { open: d.open, s: (d.querySelector(':scope > summary') || {}).textContent, rows: rows.length, seen: rows.filter((n) => n.checkVisibility()).length,
+      inFold: rows.every((n) => d.contains(n)), ydAbove: !!yd && !!(yd.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING),
+      figs: yd ? [...yd.querySelectorAll('.crl-yd-f')].map((f) => `${f.dataset.pos}:${f.querySelectorAll('.crl-yd-d').length}`) : [] };
+  }, PAY_SEL);
+  ok(!!fold0 && !fold0.open && fold0.s === W_PAY.open(10) && fold0.rows === 10 && fold0.seen === 0 && fold0.inFold && fold0.ydAbove
+      && JSON.stringify(fold0.figs) === JSON.stringify(['cap:9', 'fo:1']),
+    `[M4] ★1件ずつの行は閉じた畳み「${W_PAY.open(10)}」の中（開くまで見えない）・その上に年数ごとの図（機長 9点・副操縦士 1点）`, JSON.stringify(fold0));
+  await openPayFold(page);
   const F = await payFace(page);
   const cell = (co, pos) => (F ? F.cells.find((c) => c.co === co && c.pos === pos) : null) || {};
   const [JC, JF, AC, AF] = [cell('jal', 'cap'), cell('jal', 'fo'), cell('ana', 'cap'), cell('ana', 'fo')];
@@ -1285,11 +1308,13 @@ scene('pay-open', '給与：鍵の開いた人には職位ごとの2社の列・
     const b = document.querySelector(SEL);
     if (!b) return null;
     const focus = [...b.querySelectorAll('a[href], button, summary, select, input, textarea, [tabindex]')];
-    return { ctl: b.querySelectorAll('select, input, textarea').length, buttons: [...b.querySelectorAll('button')].filter((x) => !x.matches('.crl-retry')).length,
-      kinds: [...new Set(focus.map((x) => x.tagName.toLowerCase()))], pos: focus.filter((x) => x.tabIndex > 0).length };
+    const dot = (x) => x.matches('.crl-yd-d');   // 年数ごとの図の点（押すと額の札が出るだけ ── 2026-10-29）
+    return { ctl: b.querySelectorAll('select, input, textarea').length, buttons: [...b.querySelectorAll('button')].filter((x) => !x.matches('.crl-retry') && !dot(x)).length,
+      kinds: [...new Set(focus.filter((x) => !dot(x)).map((x) => x.tagName.toLowerCase()))], pos: focus.filter((x) => x.tabIndex > 0).length,
+      dots: [...b.querySelectorAll('.crl-yd-d')].every((x) => x.type === 'button' && !!x.closest('.crl-yd') && /\S/.test(x.getAttribute('aria-label') || '')) };
   }, PAY_SEL);
   ok(!!ctl && ctl.ctl === 0, '[M9] 開いた欄に、選ぶ欄も入力欄も無い（REAL PAY の機材の絞り込みは戻さない）', JSON.stringify(ctl));
-  ok(!!ctl && ctl.buttons === 0 && ctl.pos === 0 && ctl.kinds.every((x) => x === 'a' || x === 'summary'),
+  ok(!!ctl && ctl.buttons === 0 && ctl.pos === 0 && ctl.kinds.every((x) => x === 'a' || x === 'summary') && ctl.dots,
     '[M9][B] 押せるのは要約とリンクだけ（やり直しのほかのボタンは無い・読む順を飛ばす tabindex も無い）', JSON.stringify(ctl));
   await shots(page, 'pc');
   /* M4b（B）職位の書いていない行は、どのマスにも入らない／口コミに書かれた年収の行（機種も年数も無い）は、空の1行目を作らない */
@@ -1541,6 +1566,7 @@ scene('pay-fit', '給与：通貨を替えても通信しない・円のほか�
     stub: { pv_pay_rows: payReply(H.payFix.open(A, B)), pv_company_pay: payReply(MED) } });
   ok((await payDone(page, 'jal|ana')) && (await medDrawn(page, DEF_P2)), '（390・円）給与の欄と中央値が出た');
   const SUM = `${PAY_SEL} .crl-pc[data-airline="jal"][data-pos="cap"] > details.crl-more > summary`;
+  await openPayFold(page);
   await page.click(SUM);
   const fit = () => page.evaluate((SEL) => {
     const b = document.querySelector(SEL), ag = b && b.querySelector('.crl-agg');

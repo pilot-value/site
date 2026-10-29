@@ -1197,7 +1197,7 @@ head('掲載している全社（比較の材料）');
     }
     const heads = SHEET.filter(x => x.g), want = DIR_REGIONS.filter(R => M.slugs.some(s => M.airlines[s].region === R.code));
     const li = (SHEET_L.match(/<li\b/g) || []).length;
-    ok(PK.length > 0 && li === SHEET.length && same(PK.map(x => x.s), M.slugs) && same(sorted(M.slugs), sorted(ALLK))
+    ok(PK.length > 0 && li === SHEET.length && same(PK.map(x => x.s), M.regions.flatMap(r => r.slugs)) && same(sorted(M.slugs), sorted(ALLK))   /* 地域の見出しごとに、その中は一覧と同じ A→Z（2026-10-29） */
        && same(heads.map(x => x.h), want.map(R => R.ja)) && same(heads.map(x => x.g), want.map(R => R.code)) && !bad.length,
        '比較の選ぶ面は、航空会社一覧と同じ会社・同じ並び・同じ地域',
        JSON.stringify({ li, read: SHEET.length, entries: PK.length, firstOff: PK.findIndex((x, i) => x.s !== M.slugs[i]), heads: heads.map(x => x.h), bad: bad.slice(0, 6) }));
