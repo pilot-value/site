@@ -703,10 +703,11 @@ for (const s of ROLLED) {
      ★本拠地（その会社の拠点の空港）は一覧に入れない ── 先行5社と同じ（airline-destinations.mjs の home・db/stays.sql「本拠地は入れない」）。
      出してよい空港は台帳から数える（読み口の答えを使わない）：就航地の行のうち why を通り PLACES に在る3字から、台帳の拠点の行の3字を引いた残り。
      残りが無い会社は、今までの「…確認してから開きます。」で一覧を置かない（カンタスの1空港 SYD は拠点だった）。 */
-  /* 拠点：台帳の拠点の空港の行（出せる使い方）。空港の行が無く拠点の街の行だけの会社は、その街の空港（PLACES の街の名前が同じ空港 ── 2026-10-21 d1） */
+  /* 拠点：台帳の拠点の空港の行（出せる使い方）と、拠点の街の行の街の空港（PLACES の街の名前が同じ空港 ── 2026-10-21 d1。2026-10-29 から両方） */
   const baseRows = (((R2.FACTS || {})[s] || {}).base || []).filter(r => SHOWN.includes(r.use));
   const homeIata = [...new Set(baseRows.map(r => String(r.value)).filter(c => /^[A-Z]{3}$/.test(c)))];
-  const homeCity = homeIata.length ? [] : [...new Set(baseRows.filter(r => r.key === 'pilot_base_city').map(r => say(r)).filter(Boolean).map(d => d.value))];
+  /* ★2026-10-29：空港の行と街の行の両方を拠点に数える（空港の行が一部だけの会社でも、拠点の街の空港を就航地に並べない ── アレジアント航空のアレンタウン ABE） */
+  const homeCity = [...new Set(baseRows.filter(r => r.key === 'pilot_base_city').map(r => say(r)).filter(Boolean).map(d => d.value))];
   const homes = [...homeIata, ...Object.entries(PLACES).filter(([, p]) => homeCity.includes(String(p[0]).replace(/（.*$/, ''))).map(([c]) => c)];
   const fromLedger = [...new Set((((R2.NETWORK || {})[s] || {}).list || []).filter(r => !why(r)).map(r => r.value).filter(c => typeof c === 'string' && PLACES[c]))];
   const wantNet = fromLedger.filter(c => !homes.includes(c));
@@ -715,8 +716,11 @@ for (const s of ROLLED) {
   const st = sa < 0 ? '' : g.slice(sa, wantNet.length && sh > sa ? sh : g.indexOf('</article>', sa));
   const n = net ? net.list.length : 0, codes = [...st.matchAll(/<ul class="pvg-cgrid" id="pvg-st-list">([\s\S]*?)<\/ul>/g)].flatMap(m => [...m[1].matchAll(/data-city="([A-Z]{3})"/g)].map(x => x[1]));
   const shownHome = [...st.matchAll(/data-city="([A-Z]{3})"/g)].map(x => x[1]).filter(c => homes.includes(c));
-  ok((homes.length > 0 || !net) && !shownHome.length && !(net && net.list.some(d => homes.includes(d.iata))),
-    `E ${s}: 就航地の一覧に、その会社の拠点の空港（${homes.join('・')}）が無い（本拠地は一覧に入れない ── 先行5社と同じ）`, `出ている拠点 ${[...new Set(shownHome)].join(',')}`);
+  /* ★2026-10-29 オーナー「就航地を画面に出す会社を広げる」：拠点の分からない会社にも一覧を出す。そのときは拠点の空港を外せないので、
+     出典の条件（NET の basis）で「拠点の空港は入れていません」と言わない（言えば嘘）。拠点の分かる会社は今までどおり、拠点の空港を一覧に入れない。 */
+  const saysNoBase = /拠点の空港は入れていません|Base airports are not included/.test(`${(NET[s] || {}).basis || ''} ${(NET[s] || {}).basis_en || ''}`);
+  ok((homes.length > 0 || !net || !saysNoBase) && !shownHome.length && !(net && net.list.some(d => homes.includes(d.iata))),
+    `E ${s}: 就航地の一覧に、その会社の拠点の空港（${homes.join('・') || '台帳に拠点の行なし'}）が無い（本拠地は一覧に入れない ── 先行5社と同じ）／拠点の分からない会社の出典は「拠点の空港は入れていません」と言わない`, `出ている拠点 ${[...new Set(shownHome)].join(',')}${!homes.length && net && saysNoBase ? ' ／ 拠点が分からないのに basis が「入れていません」' : ''}`);
   if (wantNet.length && NET[s]) {
     ok(!!net && net.partial && n === wantNet.length && same([...codes].sort(), [...wantNet].sort()) && st.includes(`調べで確かめた就航地・${n}空港・${dateJa(net.at)}時点です。`) && st.includes(`調べで確かめた就航地を見る（${n}空港）`)
       && !/会社全体の就航地|公式の就航地/.test(st), `E ${s}: 就航地は「調べで確かめた就航地・${wantNet.length}空港・日付」と言い、「会社全体の就航地」「公式の就航地」と言わない（一覧も台帳の ${wantNet.length}空港）`, `一覧 ${codes.join(',')} ／ 台帳 ${wantNet.join(',')}`);

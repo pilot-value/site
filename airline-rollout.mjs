@@ -285,6 +285,13 @@ function factsJa(slug, R) {
     const home = Object.entries(PLACES).filter(([, p]) => cities.includes(String(p[0]).replace(/（.*$/, ''))).map(([c]) => c);
     out.base = { iata: [], city: cities.join('・'), country: '', rows: cityRows.map(([, f]) => f), home };
   }
+  /* ★就航地の一覧から外す拠点の空港（2026-10-29 オーナー「就航地を画面に出す会社を広げる」）。画面に「拠点」と出せる行（上の base）だけでなく、
+     台帳の拠点の行（出せる使い方）が言っている空港は全部外す ── 資料の種類や「参考」の札で拠点の1行を出さない会社でも、その空港を就航地として並べない。
+     空港の行と、街の行の街の空港（PLACES の街の名前が同じ空港）の両方。数え方は assert-rollout.mjs の E「拠点の空港が無い」と同じ。拠点としては出さない。 */
+  const rawBase = (F.base || []).filter(r => SHOWN.includes(r.use));
+  const rawIata = [...new Set(rawBase.map(r => String(r.value)).filter(c => /^[A-Z]{3}$/.test(c)))];
+  const rawCity = [...new Set(rawBase.filter(r => r.key === 'pilot_base_city').map(r => say(r)).filter(Boolean).map(d => d.value))];
+  out.homeAll = [...rawIata, ...Object.entries(PLACES).filter(([, p]) => rawCity.includes(String(p[0]).replace(/（.*$/, ''))).map(([c]) => c)];
   return out;
 }
 
