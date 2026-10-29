@@ -251,6 +251,9 @@
   var stN = stayBox ? stayBox.querySelector('[data-pvg-stn]') : null;
   var stNone = stayBox ? stayBox.querySelector('.pvg-st-none') : null;
   var stRg = '', cityAt = '';
+  /* 長い一覧は最初の data-pvg-fold 枚だけ（2026-10-29）。地域か探す字で絞っているあいだは全部・「すべて見る」で開いたら閉じない */
+  var stFold = stList ? parseInt(stList.getAttribute('data-pvg-fold') || '0', 10) || 0 : 0;
+  var stAll = stayBox ? stayBox.querySelector('.pvg-st-all') : null;
   /* 探す字とカードの鍵（data-q）を同じ形にそろえる：全角・半角、大文字・小文字、欧文の飾り（ü → u）を区別しない。
      ⚠️ gen-airline-glance.mjs の searchKey と同じ式（片方だけ変えると、打った字がカードに当たらなくなる）。
         飾りを外すのは欧文だけ（かなの濁点まで外すと「バリ」と「ハリ」が同じになる）。
@@ -268,18 +271,29 @@
   }
   function filterCities() {
     var words = norm(stQ ? stQ.value : '').split(/\s+/).filter(Boolean), n = 0;
+    var fold = stFold && !stRg && !words.length ? stFold : 0;
     stItems.forEach(function (li) {
       var q = li.getAttribute('data-q') || '';
       var on = (!stRg || li.getAttribute('data-rg') === stRg) && words.every(function (x) { return q.indexOf(x) >= 0; });
-      li.hidden = !on;
+      li.hidden = !on || (fold > 0 && n >= fold);
       if (on) n++;
     });
+    if (stAll) stAll.hidden = !(fold > 0 && n > fold);
     if (stN) stN.textContent = String(n);
     if (stNone) stNone.hidden = n > 0;
   }
   function cityCard(code) {
-    return stList && /^[A-Z]{3}$/.test(code || '') ? stList.querySelector('.pvg-city[data-city="' + code + '"]') : null;
+    var c = stList && /^[A-Z]{3}$/.test(code || '') ? stList.querySelector('.pvg-city[data-city="' + code + '"]') : null;
+    /* 畳んだ先の街を開いた・そこから戻った：一覧を開いてから返す（隠れたカードには戻れない） */
+    if (c && stFold && c.parentNode && c.parentNode.hidden) unfold();
+    return c;
   }
+  function unfold() {
+    stFold = 0;
+    if (stAll) { var b = stAll.querySelector('[data-pvg-stall]'); if (b) b.setAttribute('aria-expanded', 'true'); }
+    filterCities();
+  }
+  if (stFold) filterCities();
   function textOf(box, sel) {
     var el = box.querySelector(sel);
     return el ? el.textContent : '';
@@ -523,6 +537,14 @@
       return;
     }
     if (cityBox && t.closest('[data-pvg-cityback]') && cityBox.contains(t)) { closeCity(); return; }
+    var all = t.closest('[data-pvg-stall]');
+    if (all && stayBox && stayBox.contains(all)) {
+      var first = stItems[stFold] || null;
+      unfold();
+      /* ボタンは消える ── 開いた最初のカードへ（キーボードで続きから読める） */
+      if (first) quiet(first.querySelector('.pvg-city'));
+      return;
+    }
     var rg = t.closest('[data-pvg-rg]');
     if (rg && stayBox && stayBox.contains(rg)) {
       stRg = rg.getAttribute('data-pvg-rg') || '';

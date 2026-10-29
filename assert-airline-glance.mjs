@@ -1219,7 +1219,7 @@ for (const s of FIVE) {
     wh: [one(m[6], /<img [^>]*\bwidth="(\d+)"/), one(m[6], /<img [^>]*\bheight="(\d+)"/)].map(Number),
     none: /<span class="pvg-town-ph is-none">/.test(m[6]),
   }));
-  const list = cardsIn(one(G, /<ul class="pvg-cgrid" id="pvg-st-list">([\s\S]*?)\n<\/ul>/) || '');
+  const list = cardsIn(one(G, /<ul class="pvg-cgrid" id="pvg-st-list"(?: data-pvg-fold="\d+")?>([\s\S]*?)\n<\/ul>/) || '');
   const tease = cardsIn(one(G, /<ul class="pvg-cgrid pvg-cteaser">([\s\S]*?)\n<\/ul>/) || '');
   const want = new Map(net.list.map(d => [d.iata, d]));
   const got = list.map(c => c.iata);
