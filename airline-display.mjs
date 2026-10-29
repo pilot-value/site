@@ -1314,7 +1314,8 @@ export const NET = Object.freeze({
      その会社の本当の基地が混ざりうる会社（フロンティア航空・ブエリング航空・アラスカ航空）／1便のニュースや1つの空港の案内だけの会社
      （ブリティッシュ・エアウェイズ・スカンジナビア航空・ヴァージン・アトランティック航空・ジェットスター航空）／行の使い方が「過去」で
      日付の無い行が多い会社（LOT ポーランド航空）。 */
-  'austrian': { h: '56091721449bc691', basis: 'オーストリア航空の2026年夏ダイヤの発表に、北米の長距離の行き先として載っている空港。拠点の空港は入れていません。', basis_en: 'Airports listed as North American long-haul destinations in Austrian Airlines’ 2026 summer schedule announcement. Base airports are not included.' },
+  /* 2026-10-29 WP-28b：ChatGPT の追加の調べ1で、公式の運航スケジュール（Flightplan）の自社便の行が入った ── basis を書き直して h を付け直した */
+  'austrian': { h: 'fc83f82a9434c516', basis: 'オーストリア航空の2026年夏ダイヤの発表に北米の長距離の行き先として載っている空港と、公式の運航スケジュール（2026年10月29日に確認）にオーストリア航空が自社で飛ばす便として載っている空港。拠点の空港は入れていません。', basis_en: 'Airports listed as North American long-haul destinations in Austrian Airlines’ 2026 summer schedule announcement, and airports served by flights Austrian Airlines operates itself in its official flight plan (checked 29 October 2026). Base airports are not included.' },
   /* 2026-10-29 WP-28：ChatGPT の1回目の調べ（2026-10-29）の就航地の行が入った ── 出どころが増えたので basis を書き直して h を付け直した */
   'southwest': { h: '890f7df34860a8b0', basis: 'サウスウエスト航空の空港の案内と、公式の路線図（2026年10月29日に確認）に載っている空港。拠点の空港は入れていません。', basis_en: 'Airports in Southwest Airlines’ airport information and official route map (checked 29 October 2026). Base airports are not included.' },
   /* 2026-10-29 WP-28：ChatGPT の1回目の調べ（2026-10-29）の就航地の行が入った ── 出どころが増えたので basis を書き直して h を付け直した */

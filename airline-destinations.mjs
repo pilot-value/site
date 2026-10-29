@@ -527,6 +527,11 @@ export const RESEARCH_PLACES = Object.freeze({
   MRU: ['モーリシャス', 'Mauritius', 'モーリシャス', 'middle-east-africa'],
   NBJ: ['ルアンダ', 'Luanda', 'アンゴラ', 'middle-east-africa'],
   TNR: ['アンタナナリボ', 'Antananarivo', 'マダガスカル', 'middle-east-africa'],
+  /* ── 2026-10-29 WP-28b：ChatGPT の追加の調べ1（就航地）の記録が名前を書いていた空港（ガルーダ・インドネシア航空・マレーシア航空・ベトナム航空の路線の資料）。英語は記録の字 ── */
+  /* asia */
+  GTO: ['ゴロンタロ', 'Gorontalo', 'インドネシア', 'asia'],
+  JHB: ['ジョホールバル', 'Johor Bahru', 'マレーシア', 'asia'],
+  VII: ['ヴィン', 'Vinh', 'ベトナム', 'asia'],
 });
 
 /* ── 記録が空港の3字だけを書いた空港（2026-10-24・リード「調べてあるものを会社ページに出す」）──────────────────────────────
@@ -945,6 +950,55 @@ export const CODE_PLACES = Object.freeze({
   TTU: ['テトゥアン', 'Tetouan', 'モロッコ', 'middle-east-africa'],
   TUU: ['タブーク', 'Tabuk', 'サウジアラビア', 'middle-east-africa'],
   YNB: ['ヤンブー', 'Yanbu', 'サウジアラビア', 'middle-east-africa'],
+  /* ── 2026-10-29 WP-28b：ChatGPT の追加の調べ1（就航地）の記録が3字だけを書いた空港（ジェットスター航空・バティック・エア・スクートなどの路線の資料）。
+     BDO は記録が空港の名前（Husein Sastranegara）だけを書いていて街の名前が無いので、こちら。GUF と DJT は上の決まりのとおり足さない。LJU（イージージェット）は記録が二次情報だけで台帳に入らなかったので足していない ── */
+  /* asia */
+  AAP: ['サマリンダ', 'Samarinda', 'インドネシア', 'asia'],
+  AMQ: ['アンボン', 'Ambon', 'インドネシア', 'asia'],
+  BDO: ['バンドン', 'Bandung', 'インドネシア', 'asia'],
+  BHU: ['バーヴナガル', 'Bhavnagar', 'インド', 'asia'],
+  BTH: ['バタム', 'Batam', 'インドネシア', 'asia'],
+  BUU: ['ムアラブンゴ', 'Muara Bungo', 'インドネシア', 'asia'],
+  DMK: ['バンコク（ドンムアン）', 'Bangkok Don Mueang', 'タイ', 'asia'],
+  HLP: ['ジャカルタ（ハリム）', 'Jakarta Halim', 'インドネシア', 'asia'],
+  KJT: ['クルタジャティ', 'Kertajati', 'インドネシア', 'asia'],
+  KMG: ['昆明', 'Kunming', '中国', 'asia'],
+  KOE: ['クパン', 'Kupang', 'インドネシア', 'asia'],
+  KWE: ['貴陽', 'Guiyang', '中国', 'asia'],
+  LUW: ['ルウク', 'Luwuk', 'インドネシア', 'asia'],
+  NBX: ['ナビレ', 'Nabire', 'インドネシア', 'asia'],
+  NMI: ['ナビムンバイ', 'Navi Mumbai', 'インド', 'asia'],
+  SOC: ['ソロ（スラカルタ）', 'Solo', 'インドネシア', 'asia'],
+  TJQ: ['タンジュンパンダン（ブリトゥン島）', 'Tanjung Pandan', 'インドネシア', 'asia'],
+  TKG: ['バンダルランプン', 'Bandar Lampung', 'インドネシア', 'asia'],
+  TMC: ['タンボラカ', 'Tambolaka', 'インドネシア', 'asia'],
+  USM: ['サムイ島', 'Koh Samui', 'タイ', 'asia'],
+  /* oceania */
+  AVV: ['メルボルン（アバロン）', 'Melbourne Avalon', 'オーストラリア', 'oceania'],
+  AYQ: ['エアーズロック（ウルル）', 'Ayers Rock', 'オーストラリア', 'oceania'],
+  BNK: ['バリナ・バイロン', 'Ballina Byron', 'オーストラリア', 'oceania'],
+  BQB: ['バッセルトン', 'Busselton', 'オーストラリア', 'oceania'],
+  CNS: ['ケアンズ', 'Cairns', 'オーストラリア', 'oceania'],
+  DRW: ['ダーウィン', 'Darwin', 'オーストラリア', 'oceania'],
+  HBA: ['ホバート', 'Hobart', 'オーストラリア', 'oceania'],
+  HLZ: ['ハミルトン', 'Hamilton', 'ニュージーランド', 'oceania'],
+  HVB: ['ハービーベイ', 'Hervey Bay', 'オーストラリア', 'oceania'],
+  LST: ['ローンセストン', 'Launceston', 'オーストラリア', 'oceania'],
+  MCY: ['サンシャインコースト', 'Sunshine Coast', 'オーストラリア', 'oceania'],
+  NTL: ['ニューカッスル（オーストラリア）', 'Newcastle', 'オーストラリア', 'oceania'],
+  OOL: ['ゴールドコースト', 'Gold Coast', 'オーストラリア', 'oceania'],
+  PPP: ['プロサーパイン', 'Proserpine', 'オーストラリア', 'oceania'],
+  TSV: ['タウンズビル', 'Townsville', 'オーストラリア', 'oceania'],
+  VLI: ['ポートビラ', 'Port Vila', 'バヌアツ', 'oceania'],
+  /* europe */
+  FLR: ['フィレンツェ', 'Florence', 'イタリア', 'europe'],
+  LIN: ['ミラノ（リナーテ）', 'Milan Linate', 'イタリア', 'europe'],
+  SAW: ['イスタンブール（サビハ・ギョクチェン）', 'Istanbul Sabiha Gokcen', 'トルコ', 'europe'],
+  /* middle-east-africa */
+  GBE: ['ハボローネ', 'Gaborone', 'ボツワナ', 'middle-east-africa'],
+  PLZ: ['グケベルハ（ポートエリザベス）', 'Gqeberha', '南アフリカ', 'middle-east-africa'],
+  VFA: ['ヴィクトリアフォールズ', 'Victoria Falls', 'ジンバブエ', 'middle-east-africa'],
+  WDH: ['ウィントフック', 'Windhoek', 'ナミビア', 'middle-east-africa'],
 });
 const OVERLAP = Object.keys(RESEARCH_PLACES).filter(k => k in PLACES);
 for (const [k, v] of Object.entries(RESEARCH_PLACES)) if (!(k in PLACES)) PLACES[k] = v;

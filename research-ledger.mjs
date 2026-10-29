@@ -105,6 +105,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "salt-lake-city",
    "seattle"
   ],
+  "eagle-jet": [
+   "pembroke-pines"
+  ],
   "easyjet": [
    "amsterdam",
    "barcelona",
@@ -13034,6 +13037,618 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "A321-200neo。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 A321-200neo行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "18",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dd981d9b9f3b38e7",
+     "id": "alaska-airlines.fleet.a321-200neo-2026-06-30-actual-fleet-alas.098e659d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "a321_200neo_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_",
+     "label_ja": "機種ごとの機数（A321-200neo。2026-06-30 Actual Fleet。Alaska Airlines…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 18,
+     "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "A330-200。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 A330-200行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "24",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b9ed21fc05e02436",
+     "id": "alaska-airlines.fleet.a330-200-2026-06-30-actual-fleet-alaska.37636114",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "a330_200_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_haw",
+     "label_ja": "機種ごとの機数（A330-200。2026-06-30 Actual Fleet。Alaska Airlines FA…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 24,
+     "value_text": "24"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "A330-300 Freighters。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 A330-300 Freighters行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "10",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b6ac0661a5b2b186",
+     "id": "alaska-airlines.fleet.a330-300-freighters-2026-06-30-actual-fl.0a03de79",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "a330_300_freighters_2026_06_30_actual_fleet_alaska_airlines_",
+     "label_ja": "機種ごとの機数（A330-300 Freighters。2026-06-30 Actual Fleet。Alaska …",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B717-200。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B717-200行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "19",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "095efa6e828c1bda",
+     "id": "alaska-airlines.fleet.b717-200-2026-06-30-actual-fleet-alaska.f49e3970",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b717_200_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_haw",
+     "label_ja": "機種ごとの機数（B717-200。2026-06-30 Actual Fleet。Alaska Airlines FA…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 19,
+     "value_text": "19"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B737-700。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B737-700行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "11",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2360126b91b17b4b",
+     "id": "alaska-airlines.fleet.b737-700-2026-06-30-actual-fleet-alaska.73f987a0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b737_700_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_haw",
+     "label_ja": "機種ごとの機数（B737-700。2026-06-30 Actual Fleet。Alaska Airlines FA…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B737-700 Freighters。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B737-700 Freighters行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5ed525a23c4542f0",
+     "id": "alaska-airlines.fleet.b737-700-freighters-2026-06-30-actual-fl.f799e1cb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b737_700_freighters_2026_06_30_actual_fleet_alaska_airlines_",
+     "label_ja": "機種ごとの機数（B737-700 Freighters。2026-06-30 Actual Fleet。Alaska …",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B737-8。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B737-8行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "20",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "87bd437ef2acda1e",
+     "id": "alaska-airlines.fleet.b737-8-2026-06-30-actual-fleet-alaska-ai.7b5c13c3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b737_8_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_hawai",
+     "label_ja": "機種ごとの機数（B737-8。2026-06-30 Actual Fleet。Alaska Airlines FAA単…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 20,
+     "value_text": "20"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B737-800。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B737-800行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "59",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "61403d96e7c2086d",
+     "id": "alaska-airlines.fleet.b737-800-2026-06-30-actual-fleet-alaska.0b0386f8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b737_800_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_haw",
+     "label_ja": "機種ごとの機数（B737-800。2026-06-30 Actual Fleet。Alaska Airlines FA…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 59,
+     "value_text": "59"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B737-800 Freighters。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B737-800 Freighters行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "06be1fc99f29bcfa",
+     "id": "alaska-airlines.fleet.b737-800-freighters-2026-06-30-actual-fl.79adc4f1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b737_800_freighters_2026_06_30_actual_fleet_alaska_airlines_",
+     "label_ja": "機種ごとの機数（B737-800 Freighters。2026-06-30 Actual Fleet。Alaska …",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 2,
+     "value_text": "2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B737-9。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B737-9行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "80",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "24a500794a09014d",
+     "id": "alaska-airlines.fleet.b737-9-2026-06-30-actual-fleet-alaska-ai.20b4b80c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b737_9_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_hawai",
+     "label_ja": "機種ごとの機数（B737-9。2026-06-30 Actual Fleet。Alaska Airlines FAA単…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 80,
+     "value_text": "80"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B737-900ER。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B737-900ER行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "79",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "64b92dcd4d8dd67b",
+     "id": "alaska-airlines.fleet.b737-900er-2026-06-30-actual-fleet-alask.4b163004",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b737_900er_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_h",
+     "label_ja": "機種ごとの機数（B737-900ER。2026-06-30 Actual Fleet。Alaska Airlines …",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 79,
+     "value_text": "79"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "B787-9。2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 B787-9行。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "46e7422aa2a758a4",
+     "id": "alaska-airlines.fleet.b787-9-2026-06-30-actual-fleet-alaska-ai.9a903cce",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "b787_9_2026_06_30_actual_fleet_alaska_airlines_faa_aoc_hawai",
+     "label_ja": "機種ごとの機数（B787-9。2026-06-30 Actual Fleet。Alaska Airlines FAA単…",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "Boeing787-9"
       ],
@@ -14232,6 +14847,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "alaska-airlines",
+     "cond_ja": "2026-06-30 Actual Fleet。Alaska Airlines FAA単一AOC、Hawaiianブランド含む、旅客機・貨物機含む、Horizon/SkyWest等別AOC除く。補足: 新規に2026年第2四半期Form 10-QのFleet表（印刷p28）を実読。Actual Fleet / June 30, 2026列の数値セルをそのまま引用。予想・将来受領・発注列ではない。2025年10-Kは2025-10-29にAlaska/HawaiianがAlaskaのFAA運航証明へ統合と明記。公開日は特定できず空欄、報告対象は2026年。 Total Mainline Fleet行。Air Group全体422は採用しない。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "330",
+       "source_id": "src-sec-gov-9498c74a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8943fd238dc20876",
+     "id": "alaska-airlines.scale.fleet-total.dd737e9c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261029-cg-alaska-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-sec-gov-9498c74a",
+       "source_type": "official_package",
+       "title": "Form 10-Q, quarter ended June 30, 2026",
+       "url": "https://www.sec.gov/Archives/edgar/data/766421/000076642126000041/alk-20260630.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 330,
+     "value_text": "330"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -24847,6 +25513,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "bamboo-airways",
+     "cond_ja": "2026-03-17の会社本社でのMOU署名記事。補足: 公式ホームのNews本文を実読。日付のある2026年本社言及を採用。無日付の採用サイトはHo Chi Minh City、2025年EGM通知の登記住所はQuy Nhonであり、登記住所と業務上の本社言及を区別。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-03-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bamboo Airways’ headquarters in Hanoi",
+       "source_id": "src-bambooairways-com-089b3421",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "515332d5e7e44e29",
+     "id": "bamboo-airways.profile.headquarters-city.f4d6069f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261029-cg-bamboo-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-03-18",
+       "publisher": "Bamboo Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-bambooairways-com-089b3421",
+       "source_type": "official_package",
+       "title": "Bamboo Airways and BAA Training Vietnam Sign MOU to Strengthen Pilot Training Cooperation",
+       "url": "https://bambooairways.com/vn/en"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Hanoi",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "bamboo-airways",
      "cond_ja": "補足: 公式採用サイトにHead Quaterと記載。公式本体ホーム掲載の2026年3月記事ではheadquarters in Hanoiとあり都市が競合するため、都市はnot_foundとする。",
      "currency": null,
      "domain": "profile",
@@ -24874,6 +25591,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "pack": "pvr-20261029-cg-bamboo-airways",
      "per": null,
      "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Bamboo Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-talent-bambooairways-com-3d710e2f",
+       "source_type": "official_package",
+       "title": "Careers",
+       "url": "https://talent.bambooairways.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Vietnam",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "bamboo-airways",
+     "cond_ja": "会社採用サイトの本社住所・国名表記。補足: 公式現行採用サイトを再実読し国名だけを原文採用。同住所の都市は無日付で、2026-03-18本体記事のHanoiとは異なるため都市は新しい日付の本体記事を採用。国名を都市名から推定していない。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ho Chi Minh City, Vietnam",
+       "source_id": "src-talent-bambooairways-com-3d710e2f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "45166cfc75660556",
+     "id": "bamboo-airways.profile.headquarters-country.721228cd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_country",
+     "label_ja": "本社の国",
+     "pack": "pvr-20261029-cg-bamboo-airways",
+     "per": null,
+     "rev": 2,
      "src": [
       {
        "published": null,
@@ -38885,6 +39653,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "EU旅券保有かつEASA免許保有の低経験pilot向け",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "eagle-jet",
+     "cond_ja": "会社公式Founded欄。補足: 現行維持の会社公式自己記載。プロフィール本文でも1996年以来の事業と説明。新規Sunbiz登記のDate Filedは09/22/1997であり、同一の年とはせず、会社自身の創業年を記録。公表日表示なし。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1996",
+       "source_id": "src-linkedin-com-5b86a716",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4de6cdac2a54448",
+     "id": "eagle-jet.profile.founded.c7ebb3cf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-5b86a716",
+       "source_type": "official_package",
+       "title": "Official LinkedIn",
+       "url": "https://www.linkedin.com/company/eagle-jet-international-inc"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1996",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "eagle-jet",
+     "cond_ja": "会社公式Headquarters欄。補足: 現行維持の会社公式プロフィール。原ページのWebsiteはeaglejet.com。新規確認したFlorida Sunbizの現行ACTIVE法人P97000082496の本店住所も同市。公表日表示なし。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pembroke Pines, Florida",
+       "source_id": "src-linkedin-com-5b86a716",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e7e8767436831d7b",
+     "id": "eagle-jet.profile.headquarters-city.87bd81b8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-5b86a716",
+       "source_type": "official_package",
+       "title": "Official LinkedIn",
+       "url": "https://www.linkedin.com/company/eagle-jet-international-inc"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Pembroke Pines",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "eagle-jet",
+     "cond_ja": "会社公式Primary住所の国コード表記。補足: 新規に会社公式LinkedInのPrimary住所を実読。住所末尾の国コードUSを資料どおり記録し、United Statesというフルスペルには展開しない。公式HeadquartersはPembroke Pines, Floridaであり、同じ市のPrimary住所。同社Websiteはeaglejet.com。現行維持プロフィール・公表日表示なし。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pembroke Pines, Florida 33029, US",
+       "source_id": "src-linkedin-com-5b86a716",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "85d5c8b8929954c9",
+     "id": "eagle-jet.profile.headquarters-country.879df810",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_country",
+     "label_ja": "本社の国",
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-linkedin-com-5b86a716",
+       "source_type": "official_package",
+       "title": "Official LinkedIn",
+       "url": "https://www.linkedin.com/company/eagle-jet-international-inc"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "US",
      "value_text": null
     }
    ],
@@ -54310,6 +55233,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "A320neo",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "gulf-air",
+     "cond_ja": "Boeing 787（細別機種は原文に明記なし）。2025-11-18。補足: 新規にメーカーとGulf Airの公式共同発表を実読。発注分・オプションを除きin serviceの明記分だけ。A320neo familyの別時点数と足し合わせない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "With 10 787 airplanes in service",
+       "source_id": "src-investors-boeing-com-9bd62dd5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a51ca88f1f6cb8c3",
+     "id": "gulf-air.fleet.boeing-787-2025-11-18.be6efc0e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "boeing_787_2025_11_18",
+     "label_ja": "機種ごとの機数（Boeing 787（細別機種は原文に明記なし）。2025-11-18）",
+     "pack": "pvr-20261029-cg-gulf-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2025-11-18",
+       "publisher": "Boeing / Gulf Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-investors-boeing-com-9bd62dd5",
+       "source_type": "official_package",
+       "title": "Gulf Air Increases Boeing 787 Dreamliner Order",
+       "url": "https://investors.boeing.com/investors/news/press-release-details/2025/Gulf-Air-Increases-Boeing-787-Dreamliner-Order/default.aspx"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10 787"
     }
    ],
    "jobs": [
@@ -54654,6 +55628,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Bahrain",
      "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "gulf-air",
+     "cond_ja": "2024年業績のGulf Air単体。資料公表2025-02-17。補足: 新規に親会社の公式業績発表本文を取得して実読。対象は本文の航空会社Gulf Airでありグループ全社の合算ではない。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2025-02-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "bringing the total fleet size to 42.",
+       "source_id": "src-gulfairgroup-bh-dac4f145",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f0481044a853d146",
+     "id": "gulf-air.scale.fleet-total.61f6acdb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261029-cg-gulf-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2025-02-17",
+       "publisher": "Gulf Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-gulfairgroup-bh-dac4f145",
+       "source_type": "official_package",
+       "title": "Gulf Air Group announces 2024 performance",
+       "url": "https://www.gulfairgroup.bh/media-center/gulf-air-group-announces-2024-performance-driven-by-network-expansion-passenger-growth-and-strategic-partnerships/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 42,
+     "value_text": "42"
     }
    ],
    "work": [
@@ -56480,6 +57507,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "HKCAD受入可能な有効MultiEngineICAOCPL/IR（250時間以上）またはHKCAD承認IntegratedCourseCPL、Class1/ICAO4等。",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "現行約款Article 2.6のprincipal business address。補足: 実際のブラウザでArticle 2を展開して全文を実読。香港のTung Chung地域。principal business addressの都市・街の表記を記録し、空港名から推定しない。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-07-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Tung Chung",
+       "source_id": "src-hkexpress-com-4dd83d69",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8afb6915788b4fa",
+     "id": "hong-kong-express.profile.headquarters-city.e053da73",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-07-28",
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hkexpress-com-4dd83d69",
+       "source_type": "official_package",
+       "title": "Terms and Conditions Of Carriage",
+       "url": "https://www.hkexpress.com/Legal-and-Privacy/Conditions-of-Carriage-for-Passengers-and-Baggage"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Tung Chung",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "現行約款Article 2.6のprincipal business address。補足: 主権国家への置換はせず、本社所在地の国・地域表記を記録。実際のブラウザでArticle 2を展開して実読。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-07-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hong Kong SAR",
+       "source_id": "src-hkexpress-com-4dd83d69",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1cdcb54a3e24eb90",
+     "id": "hong-kong-express.profile.headquarters-country.e6c6a0f8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_country",
+     "label_ja": "本社の国",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-07-28",
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hkexpress-com-4dd83d69",
+       "source_type": "official_package",
+       "title": "Terms and Conditions Of Carriage",
+       "url": "https://www.hkexpress.com/Legal-and-Privacy/Conditions-of-Carriage-for-Passengers-and-Baggage"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Hong Kong SAR",
      "value_text": null
     }
    ],
@@ -59892,6 +61023,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "indigo",
+     "cond_ja": "IndiGo運航法人InterGlobe Aviation Limitedの設立。補足: 新規にNSE掲載の会社年報PDFを取得してStandalone financial statementsのCompany Informationを実読（印刷p156）。会社自身のincorporatedの記述。2006年の運航開始とは区別。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2025-07-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "January 13, 2004",
+       "source_id": "src-nsearchives-nseindia-com-2e043bb6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4df6377ddbe1a5ae",
+     "id": "indigo.profile.founded.5290e7d4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "InterGlobe Aviation Limited",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-nsearchives-nseindia-com-2e043bb6",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2024-25",
+       "url": "https://nsearchives.nseindia.com/annual_reports/AR_27116_INDIGO_2024_2025_A_26072025103933.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2004",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
      "cond_ja": "corporate office。補足: 会社が証券取引所へ提出した公式資料。",
      "currency": null,
      "domain": "profile",
@@ -60610,6 +61792,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "ita-airways",
+     "cond_ja": "Italia Trasporto Aereo S.p.A.の法人設立年。補足: 新規に公式モデルPDFのp7を実読。原文の日付を別書式の日付に変換せず、含まれる年だけを記録。2021年運航開始、前身Alitaliaの創業とは区別。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2024-02-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Company incorporated on 11/11/2020",
+       "source_id": "src-ita-airways-com-15d8d822",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e7015923e2c43cb5",
+     "id": "ita-airways.profile.founded.3028da82",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261029-cg-ita-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-02-27",
+       "publisher": "ITA Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ita-airways-com-15d8d822",
+       "source_type": "official_package",
+       "title": "Organisation, Management and Control Model",
+       "url": "https://www.ita-airways.com/content/dam/ita/files/EN/fly/ita-world/societ%C3%A0-trasparente/2025/ITA-Airways-Organisation-Management-and-Control-Model.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2020",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -65362,6 +66595,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Collingwood",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways Pty LtdのHeadquarters。補足: 新規に会社自身の採用原稿を実読。Entity: Jetstar Airways Pty Ltd、本文にHeadquarters in Docklandsと明記。締切2026-11-08で現行募集と確認。発行日自体は記載なし。同一法人の現行CASA AOC登録もDOCKLANDS Vic / Australia。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Headquarters in Docklands",
+       "source_id": "src-jobs-smartrecruiters-com-0d7d0dff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d743da0672ef681d",
+     "id": "jetstar.profile.headquarters-city.6ea0028c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Airways Pty Ltd",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jobs-smartrecruiters-com-0d7d0dff",
+       "source_type": "official_package",
+       "title": "Crewing Officer",
+       "url": "https://jobs.smartrecruiters.com/QantasGroup/6000000001520502-crewing-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Docklands",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways Pty Ltdの本社と一致するCASA AOC登録所在地。補足: 新規にCASAの現行AOC登録のDOCKLANDS Vic / Australiaを実読。別の2026年会社採用原稿 https://jobs.smartrecruiters.com/QantasGroup/6000000001520502-crewing-officer は同一法人Entity: Jetstar Airways Pty LtdのHeadquarters in Docklandsを明記。両資料で本社と登録所在地の一致を照合し、国名はこの原資料のAustraliaをそのまま記録。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-05-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Australia",
+       "source_id": "src-casa-gov-au-e12c3592",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "55deae23c8024ab9",
+     "id": "jetstar.profile.headquarters-country.3152f32d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_country",
+     "label_ja": "本社の国",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-05-07",
+       "publisher": "CASA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-casa-gov-au-e12c3592",
+       "source_type": "government",
+       "title": "All air operators, JETSTAR AIRWAYS PTY LIMITED",
+       "url": "https://www.casa.gov.au/licences-and-certificates/air-operators/all-air-operators?page=36"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Australia",
      "value_text": null
     }
    ],
@@ -80685,6 +82020,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
+     "cond_ja": "De Havilland Dash 8-400。公式現行Fleetページ、2026-10-29確認。補足: 新規に公式機材ページのNumber of aircraft in fleet行を実際のブラウザで実読。2026-10-26公式就航発表にもDash 8-400全29機の改装と記載。原ページにAOC別見出しはないため、29をブランド総機数やPACLのEmbraer機数に転用しない。無日付の現行維持ページ。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "29",
+       "source_id": "src-flyporter-com-d7b743cd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7b28a350f21024a9",
+     "id": "porter.fleet.de-havilland-dash-8-400-fleet-2026-10-29.fa4134eb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "de_havilland_dash_8_400_fleet_2026_10_29",
+     "label_ja": "機種ごとの機数（De Havilland Dash 8-400。公式現行Fleetページ、2026-10-29確認）",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyporter-com-d7b743cd",
+       "source_type": "official_package",
+       "title": "Our Fleet: Dash 8-400",
+       "url": "https://www.flyporter.com/en-us/about-porter/our-fleet/dash-8-400"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 29,
+     "value_text": "29"
+    }
+   ],
    "jobs": [
     {
      "amount": null,
@@ -81223,6 +82611,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "porter",
+     "cond_ja": "Porter Airlines本社、2026-10-26公式リリース。補足: 公式ページを実際のブラウザで実読。別に2025年DOTへのPACL自己提出書類にも同市のprincipal officeを確認。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Headquartered in Toronto",
+       "source_id": "src-flyporter-com-e463e10f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c347b22a2c7d17bf",
+     "id": "porter.profile.headquarters-city.772b510a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyporter-com-e463e10f",
+       "source_type": "official_package",
+       "title": "Porter Airlines launches Chicago O’Hare flights from Toronto’s Billy Bishop",
+       "url": "https://www.flyporter.com/en-us/about-porter/media-centre/news-details?title=Porter+Airlines+launches+ChicagoOHare+flights+from+Torontos+Billy+Bishop+2026+10"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Toronto",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
      "cond_ja": "補足: 公表日不明の会社公式LinkedInのFounded/Headquarters欄。現行維持ページの例外。",
      "currency": null,
      "domain": "profile",
@@ -81265,6 +82704,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Toronto",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
+     "cond_ja": "Porter Airlines Inc.とPorter Airlines (Canada) Limitedの会社公式連絡住所。補足: 公式Privacy Policyを実際のブラウザで実読。両運航法人への適用を明記し、250 Yonge Street, Suite 2800 Toronto, Ontarioの住所に続く国名を原文採用。2025年DOT自己提出書類のPACL principal officeもCanada。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-05-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Canada M5B 2L7",
+       "source_id": "src-flyporter-com-286989cd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8ae2ee9cfa624d4",
+     "id": "porter.profile.headquarters-country.8a328a41",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_country",
+     "label_ja": "本社の国",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-05-13",
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyporter-com-286989cd",
+       "source_type": "official_package",
+       "title": "Privacy Policy",
+       "url": "https://www.flyporter.com/en-us/privacy"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Canada",
      "value_text": null
     }
    ]
@@ -90242,6 +91732,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "saudia",
+     "cond_ja": "会社原プレスリリースのMedia Center / Saudi Arabian Airlines Headquarters住所。補足: 新規にSource: Saudia Airlinesと明記された会社原プレスリリースを実読。末尾のMedia Center / Saudi Arabian Airlines Headquartersに続く住所。独立した報道や無日付の第三者住所ページではなく会社自身の配信原稿。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2025-02-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Jeddah 21231, Kingdom of Saudi Arabia",
+       "source_id": "src-globenewswire-com-f6617720",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d748bf84e064ecb6",
+     "id": "saudia.profile.headquarters-city.3a1d3d46",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261029-cg-saudia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2025-02-04",
+       "publisher": "Saudia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-globenewswire-com-f6617720",
+       "source_type": "official_package",
+       "title": "Saudia Advancing Saudi Vision 2030 with Major Milestones",
+       "url": "https://www.globenewswire.com/news-release/2025/02/04/3020685/0/en/saudia-advancing-saudi-vision-2030-with-major-milestones.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Jeddah",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "saudia",
      "cond_ja": "補足: 公表日不明の会社公式LinkedInのFounded/Headquarters欄。現行維持ページの例外。",
      "currency": null,
      "domain": "profile",
@@ -90285,6 +91826,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "JEDDAH",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "saudia",
+     "cond_ja": "会社原プレスリリースのMedia Center / Saudi Arabian Airlines Headquarters住所。補足: 新規にSource: Saudia Airlinesと明記された会社原プレスリリースを実読。末尾のMedia Center / Saudi Arabian Airlines Headquartersに続く住所。独立した報道や無日付の第三者住所ページではなく会社自身の配信原稿。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2025-02-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kingdom of Saudi Arabia",
+       "source_id": "src-globenewswire-com-f6617720",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fe4df4de8398bfe0",
+     "id": "saudia.profile.headquarters-country.fc93c348",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "headquarters_country",
+     "label_ja": "本社の国",
+     "pack": "pvr-20261029-cg-saudia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2025-02-04",
+       "publisher": "Saudia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-globenewswire-com-f6617720",
+       "source_type": "official_package",
+       "title": "Saudia Advancing Saudi Vision 2030 with Major Milestones",
+       "url": "https://www.globenewswire.com/news-release/2025/02/04/3020685/0/en/saudia-advancing-saudi-vision-2030-with-major-milestones.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Kingdom of Saudi Arabia",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "saudia",
+     "cond_ja": "2026-01-14現在・About Saudia節のSaudia単体。補足: 新規にAir India公式掲載の両社共同プレスリリースPDFを実読（p2）。About Saudiaのcurrently operatesを採用。Air Indiaの機材やSaudia Group・flyadealの合算を転用していない。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-01-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "fleet with 149 aircraft.",
+       "source_id": "src-airindia-com-41b3cd57",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "53a2c17d09d2aad1",
+     "id": "saudia.scale.fleet-total.ade5cee7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261029-cg-saudia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-01-14",
+       "publisher": "Saudia / Air India",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-airindia-com-41b3cd57",
+       "source_type": "official_package",
+       "title": "Saudia and Air India Sign Codeshare Agreement",
+       "url": "https://www.airindia.com/content/dam/air-india/newsroom/press-releases/pdf/Press-Release-Saudia-and-Air-India-Sign-Codeshare-Agreement-14-Jan-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 149,
+     "value_text": "149"
     }
    ]
   },
@@ -118106,6 +119751,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "wizz-air",
+     "cond_ja": "AIRBUS A321 200N（CAA原型式区分）。Wizz Air UK Ltd単体、quarter ended Aug 2026。補足: 新規にCAA August 2026 Airlines DataのTable 8.2を実読。WIZZ AIR UK LTDのAircraft in Service at Qrt Ended Aug 2026列。注(d)は航空会社自身の機材のみ、sub-charterを除く。2026-10-22時点でAugust data completeとされるが公開日そのものではないためpublished_date空欄。quoteは対応する数値セルをそのまま転記。 AIRBUS A321 200N行の該当セル。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "21",
+       "source_id": "src-caa-co-uk-c19a1b4c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b116ddc1ce97756c",
+     "id": "wizz-air.fleet.airbus-a321-200n-caa-wizz-air-uk-ltd-qua.83df99ac",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "airbus_a321_200n_caa_wizz_air_uk_ltd_quarter_ended_aug_2026",
+     "label_ja": "機種ごとの機数（AIRBUS A321 200N（CAA原型式区分）。Wizz Air UK Ltd単体、quarte…",
+     "pack": "pvr-20261029-cg-wizz-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "UK Civil Aviation Authority",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-caa-co-uk-c19a1b4c",
+       "source_type": "government",
+       "title": "August 2026 Airline Data, Table 8.2",
+       "url": "https://www.caa.co.uk/Documents/Download/26876/92cd1351-e7c2-4356-854f-60ccff38f097/4891"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 21,
+     "value_text": "21"
+    }
+   ],
    "jobs": [
     {
      "amount": null,
@@ -118284,6 +119982,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "checked_at": "2026-10-29",
      "company": "wizz-air",
+     "cond_ja": "Wizz Air UK Limited（10982241）の法人設立年。補足: 新規に会社自己提出の年報PDFを取得し、画像の印刷p1（PDF p3）のPrincipal Activities欄を目視実読。会社自身の記述。Hungary等の別AOCの創業年や2018年のUK運航開始と区別。published_dateはCompanies House提出日。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-01-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The Company was incorporated on 26 September 2017",
+       "source_id": "src-find-and-update-company-information-serv-2f7c1bf2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db1b48c03522d087",
+     "id": "wizz-air.profile.founded.20e5f6a2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261029-cg-wizz-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-01-05",
+       "publisher": "Wizz Air UK Limited",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-find-and-update-company-information-serv-2f7c1bf2",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report and Financial Statements, year ended 31 March 2025",
+       "url": "https://find-and-update.company-information.service.gov.uk/company/10982241/filing-history/MzQ5NjU1OTcxOGFkaXF6a2N4/document?format=pdf&download=0"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2017",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "wizz-air",
      "cond_ja": "補足: Wizz Air UK単体の登記上の本店。ハンガリーの親会社と区別。現行政府登記。",
      "currency": null,
      "domain": "profile",
@@ -118378,6 +120127,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "United Kingdom",
      "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "wizz-air",
+     "cond_ja": "Wizz Air UK Ltd単体。Aircraft in Service at quarter ended Aug 2026。W6/W4等他AOCを除く。補足: 新規にCAA August 2026 Airlines DataのTable 8.2を実読。WIZZ AIR UK LTDのAircraft in Service at Qrt Ended Aug 2026列。注(d)は航空会社自身の機材のみ、sub-charterを除く。2026-10-22時点でAugust data completeとされるが公開日そのものではないためpublished_date空欄。quoteは対応する数値セルをそのまま転記。 Total行の該当セル。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "21",
+       "source_id": "src-caa-co-uk-c19a1b4c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5a2fe4ca8a43d6b9",
+     "id": "wizz-air.scale.fleet-total.e0d1158a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261029-cg-wizz-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "UK Civil Aviation Authority",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-caa-co-uk-c19a1b4c",
+       "source_type": "government",
+       "title": "August 2026 Airline Data, Table 8.2",
+       "url": "https://www.caa.co.uk/Documents/Download/26876/92cd1351-e7c2-4356-854f-60ccff38f097/4891"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 21,
+     "value_text": "21"
     }
    ],
    "work": [
@@ -203420,6 +205222,263 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "pembroke-pines": {
+   "airlines": [
+    "eagle-jet"
+   ],
+   "commute": [],
+   "name": "Pembroke Pines",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "population": {
+       "method": "Pembroke Lakes, Pembroke Pines, FL 地区内アパート平均",
+       "n": null,
+       "period": null,
+       "who": "2026-10・1 BR"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Pembroke Pines",
+      "note_ja": "街「Pembroke Pines」は同じ表の本社の都市（1 の headquarters_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "pembroke-pines",
+     "company": "eagle-jet",
+     "cond_ja": "2026-10。英: 2026-10。原部屋表記「1 BR」。数字の種類: Pembroke Lakes, Pembroke Pines, FL 地区内アパート平均。家具: undefined。補足: 資料時点2026-10（更新日の年月日のうち日が不明のためpublished_date空欄）。上質地区の選定根拠：Apartments.com地区案内のaffluent表示（https://www.apartments.com/local-guide/pembroke-lakes-pembroke-pines-fl/）。家賃はCoStar GroupのMarket Trend reportsに基づく公表平均。地区内アパートの平均で、高級物件に限定した平均ではない。桁区切りカンマを除去。 共用対象company_id=eagle-jet。 都市根拠: eagle-jet: 本社所在地を代用 Pembroke Pines (https://www.eaglejet.net/ContactUs.asp)。",
+     "currency": "USD",
+     "district": "2026-10",
+     "district_en": "2026-10",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$2,054/month",
+       "source_id": "src-apartments-com-5faed695",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6657eae6b009d1ea",
+     "id": "eagle-jet.living.rent-1bed.630ff7e2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 BR",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": "month",
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Apartments.com (CoStar Group)",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-apartments-com-5faed695",
+       "source_type": "third_party_reference",
+       "title": "Pembroke Lakes Area Guide Rent Trends",
+       "url": "https://www.apartments.com/local-guide/pembroke-lakes-pembroke-pines-fl/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 2054
+     },
+     "value_text": {
+      "1bed": "2,054"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "population": {
+       "method": "Pembroke Lakes, Pembroke Pines, FL 地区内アパート平均",
+       "n": null,
+       "period": null,
+       "who": "2026-10・2 BR"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Pembroke Pines",
+      "note_ja": "街「Pembroke Pines」は同じ表の本社の都市（1 の headquarters_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "pembroke-pines",
+     "company": "eagle-jet",
+     "cond_ja": "2026-10。英: 2026-10。原部屋表記「2 BR」。数字の種類: Pembroke Lakes, Pembroke Pines, FL 地区内アパート平均。家具: undefined。補足: 資料時点2026-10（更新日の年月日のうち日が不明のためpublished_date空欄）。上質地区の選定根拠：Apartments.com地区案内のaffluent表示（https://www.apartments.com/local-guide/pembroke-lakes-pembroke-pines-fl/）。家賃はCoStar GroupのMarket Trend reportsに基づく公表平均。地区内アパートの平均で、高級物件に限定した平均ではない。桁区切りカンマを除去。 共用対象company_id=eagle-jet。 都市根拠: eagle-jet: 本社所在地を代用 Pembroke Pines (https://www.eaglejet.net/ContactUs.asp)。",
+     "currency": "USD",
+     "district": "2026-10",
+     "district_en": "2026-10",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$2,460/month",
+       "source_id": "src-apartments-com-5faed695",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc1c0a81ef294b31",
+     "id": "eagle-jet.living.rent-2bed.8b51910a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 BR",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": "month",
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Apartments.com (CoStar Group)",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-apartments-com-5faed695",
+       "source_type": "third_party_reference",
+       "title": "Pembroke Lakes Area Guide Rent Trends",
+       "url": "https://www.apartments.com/local-guide/pembroke-lakes-pembroke-pines-fl/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 2460
+     },
+     "value_text": {
+      "2bed": "2,460"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "population": {
+       "method": "Pembroke Lakes, Pembroke Pines, FL 地区内アパート平均",
+       "n": null,
+       "period": null,
+       "who": "2026-10・3 BR"
+      },
+      "stat": "average",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Pembroke Pines",
+      "note_ja": "街「Pembroke Pines」は同じ表の本社の都市（1 の headquarters_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "city": "pembroke-pines",
+     "company": "eagle-jet",
+     "cond_ja": "2026-10。英: 2026-10。原部屋表記「3 BR」。数字の種類: Pembroke Lakes, Pembroke Pines, FL 地区内アパート平均。家具: undefined。補足: 資料時点2026-10（更新日の年月日のうち日が不明のためpublished_date空欄）。上質地区の選定根拠：Apartments.com地区案内のaffluent表示（https://www.apartments.com/local-guide/pembroke-lakes-pembroke-pines-fl/）。家賃はCoStar GroupのMarket Trend reportsに基づく公表平均。地区内アパートの平均で、高級物件に限定した平均ではない。桁区切りカンマを除去。 共用対象company_id=eagle-jet。 都市根拠: eagle-jet: 本社所在地を代用 Pembroke Pines (https://www.eaglejet.net/ContactUs.asp)。",
+     "currency": "USD",
+     "district": "2026-10",
+     "district_en": "2026-10",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$2,978/month",
+       "source_id": "src-apartments-com-5faed695",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "25c953acb2d6e4b9",
+     "id": "eagle-jet.living.rent-3bed.bdc07cc0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 BR",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261029-cg-eagle-jet",
+     "per": "month",
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Apartments.com (CoStar Group)",
+       "publisher_kind": "portal",
+       "retrieved": "2026-10-29",
+       "source_id": "src-apartments-com-5faed695",
+       "source_type": "third_party_reference",
+       "title": "Pembroke Lakes Area Guide Rent Trends",
+       "url": "https://www.apartments.com/local-guide/pembroke-lakes-pembroke-pines-fl/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 2978
+     },
+     "value_text": {
+      "3bed": "2,978"
+     }
+    }
+   ],
+   "towns": []
+  },
   "perth": {
    "airlines": [
     "jetstar"
@@ -215906,6 +217965,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   }
  },
  "NETWORK": {
+  "aegean": {
+   "held": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "就航前: Damascus International Airportへ2026-12-02開始予定（冬期便、終了日非公表）。補足: quoteとurlは一つの公式路線ページに表示されたコード対のみ。実運航会社と開始日/再開日は2026-10-06のAEGEAN公式発表 https://en.about.aegeanair.com/media-center/press-releases/2026/aegean-launches-new-direct-route-between-athens-and-damascus/ を実読して確認（Athens–Dubaiは2026-10-23再開、Damascus International Airportは2026-12-02就航前）。公式発表と https://flights.aegeanair.com/en/flights-from-athens-to-damascus の空港コードを2源照合。発売中の就航前便を現在の自社運航空港へ入れない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATH–DAM",
+       "source_id": "src-flights-aegeanair-com-65110a28",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fddfdcd464773ed5",
+     "id": "aegean.destinations.not-operated-airport.eb1eac05",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "not_operated_airport",
+     "label_ja": "就航地に数えない空港（理由つき）",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flights-aegeanair-com-65110a28",
+       "source_type": "official_package",
+       "title": "Official route page airport-code notation",
+       "url": "https://flights.aegeanair.com/en/flights-from-athens-to-damascus"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAM",
+     "value_text": null
+    }
+   ],
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN自社直行便、Athens–Dubaiを2026-10-23再開。補足: quoteとurlは一つの公式路線ページに表示されたコード対のみ。実運航会社と開始日/再開日は2026-10-06のAEGEAN公式発表 https://en.about.aegeanair.com/media-center/press-releases/2026/aegean-launches-new-direct-route-between-athens-and-damascus/ を実読して確認（Athens–Dubaiは2026-10-23再開、Damascus International Airportは2026-12-02就航前）。航空会社公式発表の自社直行路線と同社公式路線の空港表記を2源照合。コード資料 https://flights.aegeanair.com/en/flights-from-athens-to-dubai は実際に開き、ATH–DXB, 29/10/2026等の表記を確認。運賃一覧だけで実運航会社を決めていない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATH–DXB",
+       "source_id": "src-flights-aegeanair-com-98f69b09",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1d8148b330dec288",
+     "id": "aegean.destinations.operated-airport.19b47e8b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flights-aegeanair-com-98f69b09",
+       "source_type": "official_package",
+       "title": "Official route page airport-code notation",
+       "url": "https://flights.aegeanair.com/en/flights-from-athens-to-dubai"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ATH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "aegean",
+     "cond_ja": "AEGEAN自社直行便、Athens–Dubaiを2026-10-23再開。補足: quoteとurlは一つの公式路線ページに表示されたコード対のみ。実運航会社と開始日/再開日は2026-10-06のAEGEAN公式発表 https://en.about.aegeanair.com/media-center/press-releases/2026/aegean-launches-new-direct-route-between-athens-and-damascus/ を実読して確認（Athens–Dubaiは2026-10-23再開、Damascus International Airportは2026-12-02就航前）。航空会社公式発表の自社直行路線と同社公式路線の空港表記を2源照合。コード資料 https://flights.aegeanair.com/en/flights-from-athens-to-dubai は実際に開き、ATH–DXB, 29/10/2026等の表記を確認。運賃一覧だけで実運航会社を決めていない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATH–DXB",
+       "source_id": "src-flights-aegeanair-com-98f69b09",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9ab75eb6f8a1cff6",
+     "id": "aegean.destinations.operated-airport.4917177a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-aegean",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flights-aegeanair-com-98f69b09",
+       "source_type": "official_package",
+       "title": "Official route page airport-code notation",
+       "url": "https://flights.aegeanair.com/en/flights-from-athens-to-dubai"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DXB",
+     "value_text": null
+    }
+   ]
+  },
   "aer-lingus": {
    "list": [
     {
@@ -221152,6 +223370,367 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "AKL",
+     "value_text": null
+    }
+   ]
+  },
+  "airasia": {
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "airasia",
+     "cond_ja": "Thai AirAsia (FD); 2026-10-01からSuvarnabhumi国内定期旅客便。補足: 対象はAirAsia Group。実運航AOCを条件に明記し、AK/QZ/FDを同一航空会社と誤認しない。運賃だけからの販売先抽出はしない。定期便の開始日とプロモーション旅行終了日を区別し、販促期間末を路線廃止日と決めない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-08-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BKK",
+       "source_id": "src-newsroom-airasia-com-51d69c07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a19c1abd3e65b14f",
+     "id": "airasia.destinations.operated-airport.0f641ea3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-airasia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-08-27",
+       "publisher": "AirAsia Group Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-51d69c07",
+       "source_type": "official_package",
+       "title": "AOC-specific official passenger schedule",
+       "url": "https://newsroom.airasia.com/news/airasia-ramps-up-domestic-flights-to-full-capacity-ahead-of-year-end-high-season"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BKK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "airasia",
+     "cond_ja": "Indonesia AirAsia (QZ); 2026-03-20からDPS–DAD。補足: 対象はAirAsia Group。実運航AOCを条件に明記し、AK/QZ/FDを同一航空会社と誤認しない。運賃だけからの販売先抽出はしない。定期便の開始日とプロモーション旅行終了日を区別し、販促期間末を路線廃止日と決めない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-01-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DAD",
+       "source_id": "src-newsroom-airasia-com-34a7de17",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "89f67d542ea5975f",
+     "id": "airasia.destinations.operated-airport.23a5fead",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-airasia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-01-09",
+       "publisher": "AirAsia Group Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-34a7de17",
+       "source_type": "official_package",
+       "title": "AOC-specific official passenger schedule",
+       "url": "https://newsroom.airasia.com/news/2026/1/9/indonesia-airasia-launches-direct-balida-nang-route-strengthening-regional-tourism-connectivity-in-southeast-asia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "airasia",
+     "cond_ja": "AirAsia Malaysia (AK); 2026-05-22からKUL–WUH週4便。補足: 対象はAirAsia Group。実運航AOCを条件に明記し、AK/QZ/FDを同一航空会社と誤認しない。運賃だけからの販売先抽出はしない。定期便の開始日とプロモーション旅行終了日を区別し、販促期間末を路線廃止日と決めない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-03-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WUH",
+       "source_id": "src-newsroom-airasia-com-dede5ca9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "141f29177116b6fe",
+     "id": "airasia.destinations.operated-airport.be6f14c5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-airasia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-03-02",
+       "publisher": "AirAsia Group Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-dede5ca9",
+       "source_type": "official_package",
+       "title": "AOC-specific official passenger schedule",
+       "url": "https://newsroom.airasia.com/news/airasia-reaffirms-china-market-dominance-in-malaysia-with-resumption-of-kuala-lumpur-wuhan-route"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "WUH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "airasia",
+     "cond_ja": "AirAsia Malaysia (AK); 2026-03-13からKUL–BTH毎日。補足: 対象はAirAsia Group。実運航AOCを条件に明記し、AK/QZ/FDを同一航空会社と誤認しない。運賃だけからの販売先抽出はしない。定期便の開始日とプロモーション旅行終了日を区別し、販促期間末を路線廃止日と決めない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-02-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KUL",
+       "source_id": "src-newsroom-airasia-com-c05ea9e3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e8cf6c4ff38f805",
+     "id": "airasia.destinations.operated-airport.c5f281e2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-airasia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-02-25",
+       "publisher": "AirAsia Group Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-c05ea9e3",
+       "source_type": "official_package",
+       "title": "AOC-specific official passenger schedule",
+       "url": "https://newsroom.airasia.com/news/airasia-set-to-boost-trade-and-tourism-in-batam-enhancing-regional-connectivity-between-malaysia-and-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KUL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "airasia",
+     "cond_ja": "Indonesia AirAsia (QZ); 2026-03-20からDPS–DAD。補足: 対象はAirAsia Group。実運航AOCを条件に明記し、AK/QZ/FDを同一航空会社と誤認しない。運賃だけからの販売先抽出はしない。定期便の開始日とプロモーション旅行終了日を区別し、販促期間末を路線廃止日と決めない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-01-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DPS",
+       "source_id": "src-newsroom-airasia-com-34a7de17",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3d08a33e8c625987",
+     "id": "airasia.destinations.operated-airport.eb0bbb0b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-airasia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-01-09",
+       "publisher": "AirAsia Group Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-34a7de17",
+       "source_type": "official_package",
+       "title": "AOC-specific official passenger schedule",
+       "url": "https://newsroom.airasia.com/news/2026/1/9/indonesia-airasia-launches-direct-balida-nang-route-strengthening-regional-tourism-connectivity-in-southeast-asia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DPS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "airasia",
+     "cond_ja": "Thai AirAsia (FD); 2026-10-01からの第4四半期国内線増強。補足: 対象はAirAsia Group。実運航AOCを条件に明記し、AK/QZ/FDを同一航空会社と誤認しない。運賃だけからの販売先抽出はしない。定期便の開始日とプロモーション旅行終了日を区別し、販促期間末を路線廃止日と決めない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-08-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DMK",
+       "source_id": "src-newsroom-airasia-com-51d69c07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bdbec68ade72e9a0",
+     "id": "airasia.destinations.operated-airport.eb168533",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-airasia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-08-27",
+       "publisher": "AirAsia Group Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-51d69c07",
+       "source_type": "official_package",
+       "title": "AOC-specific official passenger schedule",
+       "url": "https://newsroom.airasia.com/news/airasia-ramps-up-domestic-flights-to-full-capacity-ahead-of-year-end-high-season"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DMK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "airasia",
+     "cond_ja": "AirAsia Malaysia (AK); 2026-03-13からKUL–BTH毎日。補足: 対象はAirAsia Group。実運航AOCを条件に明記し、AK/QZ/FDを同一航空会社と誤認しない。運賃だけからの販売先抽出はしない。定期便の開始日とプロモーション旅行終了日を区別し、販促期間末を路線廃止日と決めない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-02-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BTH",
+       "source_id": "src-newsroom-airasia-com-c05ea9e3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4eb2ad73c50bb721",
+     "id": "airasia.destinations.operated-airport.ed44dec6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-airasia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-02-25",
+       "publisher": "AirAsia Group Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-c05ea9e3",
+       "source_type": "official_package",
+       "title": "AOC-specific official passenger schedule",
+       "url": "https://newsroom.airasia.com/news/airasia-set-to-boost-trade-and-tourism-in-batam-enhancing-regional-connectivity-between-malaysia-and-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BTH",
      "value_text": null
     }
    ]
@@ -257501,6 +260080,312 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "現行掲載の週次定期旅客便; OS201/203の自社便カード。補足: Flightplanの個々のカードを確認。Operated by: BT/EN/LH等の別運航会社明記カードを採用せず、自社が既定のOS便カードを使用。日付別の使用航空会社変更・季節限定期間は未確定。FRA/MUC/ZRHは自社2026-08-04の冬期運航増強発表でも補強: https://www.austrianairlines.ag/en/2026/08/04/austrian-airlines-half-year-result-2026-middle-east-crisis-hits-austrian-airlines-hard/ 。GRZ路線廃止は空港全体の不就航へ推測拡大しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VIE",
+       "source_id": "src-austrian-com-92b71f07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39af41dcfb580ecd",
+     "id": "austrian.destinations.operated-airport.27b4e8aa",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-austrian-com-92b71f07",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.austrian.com/lhg/at/en/o-d/cy-cy/vienna-frankfurt"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VIE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "現行掲載の週次定期旅客便; OS331/333の自社便カード。補足: Flightplanの個々のカードを確認。Operated by: BT/EN/LH等の別運航会社明記カードを採用せず、自社が既定のOS便カードを使用。日付別の使用航空会社変更・季節限定期間は未確定。FRA/MUC/ZRHは自社2026-08-04の冬期運航増強発表でも補強: https://www.austrianairlines.ag/en/2026/08/04/austrian-airlines-half-year-result-2026-middle-east-crisis-hits-austrian-airlines-hard/ 。GRZ路線廃止は空港全体の不就航へ推測拡大しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LHR",
+       "source_id": "src-austrian-com-f131b3d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9cb9fc8a0a91ce78",
+     "id": "austrian.destinations.operated-airport.43d3dd5d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-austrian-com-f131b3d3",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.austrian.com/lhg/at/en/o-d/cy-cy/vienna-london"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LHR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "現行掲載の週次定期旅客便; OS131/133の自社便カード。補足: Flightplanの個々のカードを確認。Operated by: BT/EN/LH等の別運航会社明記カードを採用せず、自社が既定のOS便カードを使用。日付別の使用航空会社変更・季節限定期間は未確定。FRA/MUC/ZRHは自社2026-08-04の冬期運航増強発表でも補強: https://www.austrianairlines.ag/en/2026/08/04/austrian-airlines-half-year-result-2026-middle-east-crisis-hits-austrian-airlines-hard/ 。GRZ路線廃止は空港全体の不就航へ推測拡大しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ZRH",
+       "source_id": "src-austrian-com-e85ec598",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ce915a33066a94b2",
+     "id": "austrian.destinations.operated-airport.a64cfd40",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-austrian-com-e85ec598",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.austrian.com/lhg/at/en/o-d/cy-cy/vienna-zurich"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ZRH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "現行掲載の週次定期旅客便; OS201/203の自社便カード。補足: Flightplanの個々のカードを確認。Operated by: BT/EN/LH等の別運航会社明記カードを採用せず、自社が既定のOS便カードを使用。日付別の使用航空会社変更・季節限定期間は未確定。FRA/MUC/ZRHは自社2026-08-04の冬期運航増強発表でも補強: https://www.austrianairlines.ag/en/2026/08/04/austrian-airlines-half-year-result-2026-middle-east-crisis-hits-austrian-airlines-hard/ 。GRZ路線廃止は空港全体の不就航へ推測拡大しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FRA",
+       "source_id": "src-austrian-com-92b71f07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e3e90403eeced9b",
+     "id": "austrian.destinations.operated-airport.b521c319",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-austrian-com-92b71f07",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.austrian.com/lhg/at/en/o-d/cy-cy/vienna-frankfurt"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FRA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "現行掲載の週次定期旅客便; OS361/363の自社便カード。補足: Flightplanの個々のカードを確認。Operated by: BT/EN/LH等の別運航会社明記カードを採用せず、自社が既定のOS便カードを使用。日付別の使用航空会社変更・季節限定期間は未確定。FRA/MUC/ZRHは自社2026-08-04の冬期運航増強発表でも補強: https://www.austrianairlines.ag/en/2026/08/04/austrian-airlines-half-year-result-2026-middle-east-crisis-hits-austrian-airlines-hard/ 。GRZ路線廃止は空港全体の不就航へ推測拡大しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CDG",
+       "source_id": "src-austrian-com-b92f697d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1bbc110d2c694691",
+     "id": "austrian.destinations.operated-airport.ccd723a2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-austrian-com-b92f697d",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.austrian.com/lhg/at/en/o-d/cy-cy/vienna-paris"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CDG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "austrian",
+     "cond_ja": "現行掲載の週次定期旅客便; OS181/183の自社便カード。補足: Flightplanの個々のカードを確認。Operated by: BT/EN/LH等の別運航会社明記カードを採用せず、自社が既定のOS便カードを使用。日付別の使用航空会社変更・季節限定期間は未確定。FRA/MUC/ZRHは自社2026-08-04の冬期運航増強発表でも補強: https://www.austrianairlines.ag/en/2026/08/04/austrian-airlines-half-year-result-2026-middle-east-crisis-hits-austrian-airlines-hard/ 。GRZ路線廃止は空港全体の不就航へ推測拡大しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MUC",
+       "source_id": "src-austrian-com-e06c92f6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "10902340fbc60def",
+     "id": "austrian.destinations.operated-airport.edbcb639",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-austrian",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-austrian-com-e06c92f6",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.austrian.com/lhg/at/en/o-d/cy-cy/vienna-munich"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MUC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "employer": "Austrian Airlines",
       "note_ja": "この記録の資料公表者・見出し・運航本文により対象ブランド又は運航会社を限定。法律上の雇用主体や乗員個別契約の確認ではない。AOC未特定はcond_jaとholdに明記。",
       "pilot_specific": false
@@ -258852,6 +261737,1030 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "PEI",
+     "value_text": null
+    }
+   ]
+  },
+  "batik-air": {
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LUW",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9727cb889d6b3ded",
+     "id": "batik-air.destinations.operated-airport.074030c5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LUW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NBX",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5cc59134ae6d6896",
+     "id": "batik-air.destinations.operated-airport.17f53cce",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NBX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; Shuttle Flight対象の定期旅客路線。補足: 公式の2024-04-25更新本文を公開GETで実読。表にAirline IDと往復区間を明記。Batik Air Malaysia（OD）ではない。現在公開の対象路線表。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2024-04-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KNO",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "be2f9979a1ea6938",
+     "id": "batik-air.destinations.operated-airport.24a53eb1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-04-25",
+       "publisher": "Batik Air Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "source_type": "official_package",
+       "title": "Shuttle Flight on Batik Air Indonesia flights",
+       "url": "https://help.batikair.com/article/upgrade-from-economy-to-business-service-class/793"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KNO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "UPG",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9659ac7ed1eabb1c",
+     "id": "batik-air.destinations.operated-airport.2aa2893c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "UPG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TMC",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1545204273abf1fe",
+     "id": "batik-air.destinations.operated-airport.30502b41",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TMC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AMQ",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "835167073a2a81b7",
+     "id": "batik-air.destinations.operated-airport.3d61da0e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AMQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; Shuttle Flight対象の定期旅客路線。補足: 公式の2024-04-25更新本文を公開GETで実読。表にAirline IDと往復区間を明記。Batik Air Malaysia（OD）ではない。現在公開の対象路線表。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2024-04-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "YIA",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "94cc3bed413b40b5",
+     "id": "batik-air.destinations.operated-airport.4573a2a9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-04-25",
+       "publisher": "Batik Air Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "source_type": "official_package",
+       "title": "Shuttle Flight on Batik Air Indonesia flights",
+       "url": "https://help.batikair.com/article/upgrade-from-economy-to-business-service-class/793"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YIA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BPN",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2441c41996850804",
+     "id": "batik-air.destinations.operated-airport.45c862fc",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BPN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KOE",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "92d87d141bb846d5",
+     "id": "batik-air.destinations.operated-airport.52560f0e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KOE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MDC",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9306ae563af450ea",
+     "id": "batik-air.destinations.operated-airport.54111957",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MDC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; Shuttle Flight対象の定期旅客路線。補足: 公式の2024-04-25更新本文を公開GETで実読。表にAirline IDと往復区間を明記。Batik Air Malaysia（OD）ではない。現在公開の対象路線表。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2024-04-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SUB",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e7fc71960775fe83",
+     "id": "batik-air.destinations.operated-airport.6b44ac70",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-04-25",
+       "publisher": "Batik Air Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "source_type": "official_package",
+       "title": "Shuttle Flight on Batik Air Indonesia flights",
+       "url": "https://help.batikair.com/article/upgrade-from-economy-to-business-service-class/793"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SUB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; Shuttle Flight対象の定期旅客路線。補足: 公式の2024-04-25更新本文を公開GETで実読。表にAirline IDと往復区間を明記。Batik Air Malaysia（OD）ではない。現在公開の対象路線表。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2024-04-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CGK",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f11cb0f0c156a672",
+     "id": "batik-air.destinations.operated-airport.7c98e19a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-04-25",
+       "publisher": "Batik Air Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "source_type": "official_package",
+       "title": "Shuttle Flight on Batik Air Indonesia flights",
+       "url": "https://help.batikair.com/article/upgrade-from-economy-to-business-service-class/793"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AAP",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a1a82a69c5437b49",
+     "id": "batik-air.destinations.operated-airport.89793da7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AAP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TKG",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9655da37fbc2bbf5",
+     "id": "batik-air.destinations.operated-airport.8bbb8d7c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TKG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BUU",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "008c052e4c301e19",
+     "id": "batik-air.destinations.operated-airport.b83c0eb8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BUU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HLP",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cb7ee4e8533ee7fb",
+     "id": "batik-air.destinations.operated-airport.d63e42c6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HLP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; 2025/2026年に開始の公開定期ダイヤ; UFN表記の継続便を優先。補足: 公開代理店ページをHTTP200で読取。Batik Air Indonesiaと見出しに書かれた区間のコードだけ採用し、Lion Air（JT）、Wings Air（IW）、Super Air Jet（IU）は除外。2026年UFNのUPG–MDC、CGK–TKG/BUU/LUW、AMQ–NBX、DPS–KOE/TMC、2025年のSUB–AAP、CGK–PDG、HLP–BPNを確認。更新日不明・現行掲載。BanjarmasinのBDJ/BPN表記が食い違う区間は採用しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PDG",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "383e555f9978fc48",
+     "id": "batik-air.destinations.operated-airport.ef811701",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-agentapi-lionair-co-id-92ec493c",
+       "source_type": "official_package",
+       "title": "Public Agent Portal, Batik Air Indonesia route schedules",
+       "url": "https://agentapi.lionair.co.id/LionAirAgentsPortal/Home"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PDG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; Shuttle Flight対象の定期旅客路線。補足: 公式の2024-04-25更新本文を公開GETで実読。表にAirline IDと往復区間を明記。Batik Air Malaysia（OD）ではない。現在公開の対象路線表。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2024-04-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SRG",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f8f43c5f7b169b5",
+     "id": "batik-air.destinations.operated-airport.f021fc98",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-04-25",
+       "publisher": "Batik Air Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "source_type": "official_package",
+       "title": "Shuttle Flight on Batik Air Indonesia flights",
+       "url": "https://help.batikair.com/article/upgrade-from-economy-to-business-service-class/793"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SRG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; Shuttle Flight対象の定期旅客路線。補足: 公式の2024-04-25更新本文を公開GETで実読。表にAirline IDと往復区間を明記。Batik Air Malaysia（OD）ではない。現在公開の対象路線表。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2024-04-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DPS",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cdd8cbde5fea70a1",
+     "id": "batik-air.destinations.operated-airport.f711d674",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-04-25",
+       "publisher": "Batik Air Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "source_type": "official_package",
+       "title": "Shuttle Flight on Batik Air Indonesia flights",
+       "url": "https://help.batikair.com/article/upgrade-from-economy-to-business-service-class/793"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DPS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "batik-air",
+     "cond_ja": "PT Batik Air Indonesia（ID）; Shuttle Flight対象の定期旅客路線。補足: 公式の2024-04-25更新本文を公開GETで実読。表にAirline IDと往復区間を明記。Batik Air Malaysia（OD）ではない。現在公開の対象路線表。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2024-04-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SOC",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4b54c153075ebd30",
+     "id": "batik-air.destinations.operated-airport.fabab9e0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-batik-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2024-04-25",
+       "publisher": "Batik Air Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-help-batikair-com-ae69c7a6",
+       "source_type": "official_package",
+       "title": "Shuttle Flight on Batik Air Indonesia flights",
+       "url": "https://help.batikair.com/article/upgrade-from-economy-to-business-service-class/793"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SOC",
      "value_text": null
     }
    ]
@@ -281122,6 +285031,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "CAI",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "egyptair",
+     "cond_ja": "2026-10-25〜2027-03-27冬期掲載中のKuwait International Airport発着; MSR。補足: MSR自社便が当空港を発着することは同一空港公式時刻表の現在有効レコードで確認。IATAコードだけは実読した公式 https://www.gulfair.com/ の公開__NEXT_DATA__内『KWI - Kuwait International Airport』で同定。quoteは補助資料のコード文字列、発着空港名とIATAの2源照合。空港自体を都市名から推測していない。 原運航資料: https://www.kuwaitairport.gov.kw/api/filterAirlineTime、読み取りPOST Airline=MSR, pubid=13, SearchText空、現在有効レコード。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"KWI\"\"\"",
+       "source_id": "src-gulfair-com-411df097",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7b9b16774b061d41",
+     "id": "egyptair.destinations.operated-airport.1fec8f06",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-egyptair",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-gulfair-com-411df097",
+       "source_type": "official_package",
+       "title": "Official public airport identity data (Kuwait International Airport)",
+       "url": "https://www.gulfair.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KWI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "egyptair",
+     "cond_ja": "EGYPTAIRのCairo–Los Angeles新規直行旅客便、Terminal B発着。補足: quoteとurlはLAX Official Site / Los Angeles International Airportという空港同定資料のみ。自社運航根拠はEGYPTAIRの2026-05-25公式発表 https://www.egyptair.com/en/about-egyptair/news-and-press/Pages/EGYPTAIR%20New%20Operations%20from%20Los%20Angeles%20Intl%20Airport%20Terminal%20B.aspx のnew direct service between Cairo and Los Angeles International AirportとTerminal B発着記載。会社の実読本文はnew direct serviceのoperationとTerminal Bを明記。IATA同定は実際に開いた空港公式 https://www.flylax.com/ の『LAX Official Site | Welcome to Los Angeles International Airport』から。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LAX",
+       "source_id": "src-flylax-com-f66f4456",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "431af8d0bd26c700",
+     "id": "egyptair.destinations.operated-airport.3c24bc52",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-egyptair",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Los Angeles World Airports",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flylax-com-f66f4456",
+       "source_type": "government",
+       "title": "LAX official airport identity",
+       "url": "https://www.flylax.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LAX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "egyptair",
+     "cond_ja": "2026-10-25〜2027-03-27の掲載便; Egypt Air、MSR610、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:MSR,AirlinePage:0,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"CAI\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3e2bbdfab1cc3c9f",
+     "id": "egyptair.destinations.operated-airport.cc9e573d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-egyptair",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CAI",
+     "value_text": null
     }
    ]
   },
@@ -289050,6 +293112,214 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "eurowings": {
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowingsブランドの自社定期旅客; 2026/27冬期路線発表の出発空港と照合。補足: 二つの会社一次資料を照合。運航確認：https://newscloud.eurowings.com/en/winter-flight-schedule-202627-eurowings-expands-its-choice-of-direct-connections/ （2026-09-30）でBerlin/Cologne-Bonn/Dusseldorf/Hamburg発の自社直行便を明記。IATAはurlの空港名/コード原文。Discover Airlines（4Y）は含めない。AOC別・wet lease別の全路線配分は未網羅。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BER",
+       "source_id": "src-eurowings-com-69857048",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8d9a44d6bca3cb50",
+     "id": "eurowings.destinations.operated-airport.5da303b5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eurowings-com-69857048",
+       "source_type": "official_package",
+       "title": "Check-in airport information",
+       "url": "https://www.eurowings.com/en/information/at-the-airport/checking-in-everything-you-need-to-know.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BER",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowingsブランドの自社定期旅客; 2026/27冬期路線発表の出発空港と照合。補足: 二つの会社一次資料を照合。運航確認：https://newscloud.eurowings.com/en/winter-flight-schedule-202627-eurowings-expands-its-choice-of-direct-connections/ （2026-09-30）でBerlin/Cologne-Bonn/Dusseldorf/Hamburg発の自社直行便を明記。IATAはurlの空港名/コード原文。Discover Airlines（4Y）は含めない。AOC別・wet lease別の全路線配分は未網羅。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DUS",
+       "source_id": "src-eurowings-com-69857048",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a88f36bb7315687f",
+     "id": "eurowings.destinations.operated-airport.75557777",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eurowings-com-69857048",
+       "source_type": "official_package",
+       "title": "Check-in airport information",
+       "url": "https://www.eurowings.com/en/information/at-the-airport/checking-in-everything-you-need-to-know.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DUS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowingsブランドの自社定期旅客; 2026/27冬期路線発表の出発空港と照合。補足: 二つの会社一次資料を照合。運航確認：https://newscloud.eurowings.com/en/winter-flight-schedule-202627-eurowings-expands-its-choice-of-direct-connections/ （2026-09-30）でBerlin/Cologne-Bonn/Dusseldorf/Hamburg発の自社直行便を明記。IATAはurlの空港名/コード原文。Discover Airlines（4Y）は含めない。AOC別・wet lease別の全路線配分は未網羅。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HAM",
+       "source_id": "src-eurowings-com-69857048",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4c70f02bc65c8030",
+     "id": "eurowings.destinations.operated-airport.b0cecaeb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eurowings-com-69857048",
+       "source_type": "official_package",
+       "title": "Check-in airport information",
+       "url": "https://www.eurowings.com/en/information/at-the-airport/checking-in-everything-you-need-to-know.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "eurowings",
+     "cond_ja": "Eurowingsブランドの自社定期旅客; 2026/27冬期路線発表の出発空港と照合。補足: 二つの会社一次資料を照合。運航確認：https://newscloud.eurowings.com/en/winter-flight-schedule-202627-eurowings-expands-its-choice-of-direct-connections/ （2026-09-30）でBerlin/Cologne-Bonn/Dusseldorf/Hamburg発の自社直行便を明記。IATAはurlの空港名/コード原文。Discover Airlines（4Y）は含めない。AOC別・wet lease別の全路線配分は未網羅。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CGN",
+       "source_id": "src-eurowings-com-69857048",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "59d6f5c6bf14bfdc",
+     "id": "eurowings.destinations.operated-airport.ea736164",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-eurowings",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eurowings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-eurowings-com-69857048",
+       "source_type": "official_package",
+       "title": "Check-in airport information",
+       "url": "https://www.eurowings.com/en/information/at-the-airport/checking-in-everything-you-need-to-know.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGN",
+     "value_text": null
+    }
+   ]
+  },
   "fda": {
    "list": [
     {
@@ -296307,8 +300577,930 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "garuda-indonesia": {
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Medan。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA182 / CI9784と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Kualanamu Internasional（KABUPATEN DELI SERDANG）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"KNO\"\",\"\"NamaBandara\"\":\"\"Kualanamu Internasional\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b131039cbc22f28",
+     "id": "garuda-indonesia.destinations.operated-airport.10a30b70",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KNO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Pontianak。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA500 / CI9690と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Supadio（KABUPATEN KUBU RAYA）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"PNK\"\",\"\"NamaBandara\"\":\"\"Supadio\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bb010649c560e63b",
+     "id": "garuda-indonesia.destinations.operated-airport.14c9e04d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PNK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Surabaya。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA304 / CI9668と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Juanda（KABUPATEN SIDOARJO）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"SUB\"\",\"\"NamaBandara\"\":\"\"Juanda\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "38b1d0ea03d4f70e",
+     "id": "garuda-indonesia.destinations.operated-airport.1728d412",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SUB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Bandar Lampung。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA072 / CI9678と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Radin Inten II（KABUPATEN LAMPUNG SELATAN）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"TKG\"\",\"\"NamaBandara\"\":\"\"Radin Inten II\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c21082021cb10573",
+     "id": "garuda-indonesia.destinations.operated-airport.427c2df2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TKG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "Bandung / Husein Sastranegara。2026-08-14再開のDenpasar往復定期旅客便GA334、週4便。補足: 2資料の同定。運航根拠は2026-08-14の航空当局公式発表=https://hubud.kemenhub.go.id/berita/4870 。Garuda自社のGA334 / Boeing 737-800N / 162席 / 週4便を明記し、後日開始のCitilink・Super Air Jetとは分けている。空港コードは公開JSONのHusein Sastranegara / KOTA BANDUNGから確認。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"BDO\"\",\"\"NamaBandara\"\":\"\"Husein Sastranegara\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dfcf04b57f51af13",
+     "id": "garuda-indonesia.destinations.operated-airport.440d827c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BDO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Sultan Hasanuddin。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA604 / CI8612と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Sultan Hasanuddin（KABUPATEN MAROS）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"UPG\"\",\"\"NamaBandara\"\":\"\"Sultan Hasanuddin\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "059fd27d3131d3a8",
+     "id": "garuda-indonesia.destinations.operated-airport.58085e5b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "UPG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Sydney。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA712 / CI9692と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。同じPDF最終頁の都市・空港コード対応表でIATAを確認。引用はコードの表セル。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SYD",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "496f11c9c72cc056",
+     "id": "garuda-indonesia.destinations.operated-airport.58592b18",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 timetable Issue 1 / Garuda Indonesia operated flights",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SYD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Kota Pekanbaru。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA172 / CI9796と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Sultan Syarif Kasim II（KOTA PEKANBARU）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"PKU\"\",\"\"NamaBandara\"\":\"\"Sultan Syarif Kasim II\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "12510ce433847916",
+     "id": "garuda-indonesia.destinations.operated-airport.5f59ce1c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PKU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Jakarta。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA204 / CI9760と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。同じPDF最終頁の都市・空港コード対応表でIATAを確認。引用はコードの表セル。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CGK",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c67759ffa4b68061",
+     "id": "garuda-indonesia.destinations.operated-airport.6c2f16e0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 timetable Issue 1 / Garuda Indonesia operated flights",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Singapore。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA824 / CI9694と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。同じPDF最終頁の都市・空港コード対応表でIATAを確認。引用はコードの表セル。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SIN",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "63dcfc9c7105ec80",
+     "id": "garuda-indonesia.destinations.operated-airport.82bee85f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 timetable Issue 1 / Garuda Indonesia operated flights",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SIN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Yogyakarta。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA204 / CI9760と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Yogyakarta（KABUPATEN KULON PROGO）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"YIA\"\",\"\"NamaBandara\"\":\"\"Yogyakarta\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e19385f9ec7ff6df",
+     "id": "garuda-indonesia.destinations.operated-airport.9317c029",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YIA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "Gorontalo。2026-09-08に運航正常化を公表したGaruda IndonesiaのJakarta往復の商業旅客便。補足: 同じ公式記事でGaruda Indonesiaの旅客便とRimbun Airの貨物便を別記。定期ダイヤに復帰と記す。charterや貨物から推定していない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-09-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Gorontalo (GTO)",
+       "source_id": "src-hubud-kemenhub-go-id-3d298131",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b43123e0292993bb",
+     "id": "garuda-indonesia.destinations.operated-airport.b3bf7aa2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-09-08",
+       "publisher": "Indonesia DGCA / Djalaluddin Airport",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-3d298131",
+       "source_type": "government",
+       "title": "Jakarta–Gorontalo運航正常化",
+       "url": "https://hubud.kemenhub.go.id/upbu/djalaluddin/kategori/berita/berita/bandara-soekarno-hatta-kembali-normal-operasional-penerbangan-rute-jakarta-gorontalo-pp-pulih-sepenuhnya-h4k3l/print"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GTO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Balikpapan。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA560 / CI8606と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Sultan Aji Muhammad Sulaiman（KOTA BALIKPAPAN）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"BPN\"\",\"\"NamaBandara\"\":\"\"Sultan Aji Muhammad Sulaiman\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "52ce317fd7ca36e0",
+     "id": "garuda-indonesia.destinations.operated-airport.d6f99d3f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BPN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Melbourne。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA716 / CI9776と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。同じPDF最終頁の都市・空港コード対応表でIATAを確認。引用はコードの表セル。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MEL",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d5c2bcb8c2812bcb",
+     "id": "garuda-indonesia.destinations.operated-airport.d9ebccdb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 timetable Issue 1 / Garuda Indonesia operated flights",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MEL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Semarang。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA232 / CI9770と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。コード引用元は航空当局の公開JSON。Jenderal Ahmad Yani（KOTA SEMARANG）を時刻表の同名空港と照合。空港コード対応資料単独を運航根拠にはしていない。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"IATA\"\":\"\"SRG\"\",\"\"NamaBandara\"\":\"\"Jenderal Ahmad Yani\"\"\"",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2c5fb6244d94af98",
+     "id": "garuda-indonesia.destinations.operated-airport.e4233c3e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-hubud-kemenhub-go-id-f9556b06",
+       "source_type": "government",
+       "title": "IATA対応データ / Bandung–Denpasar定期便再開公表",
+       "url": "https://hubud.kemenhub.go.id/api/bandara-map"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SRG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "garuda-indonesia",
+     "cond_ja": "冬ダイヤ2026-10-25～2027-03-27の定期旅客便。Denpasar Bali。実運航はGaruda Indonesia (GA)。CI便名は販売コードシェアであり運航会社の代用としていない。補足: 2資料の同定：今冬の中華航空公式旅客時刻表PDF第15–16頁（紙面26–29頁）のGA349 / CI9691と路線見出しを実読・画像確認。PDFにはCI 8601-9799 operated by Garuda Indonesia(GA)と明記。運航根拠URL=https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf 。同じPDF最終頁の都市・空港コード対応表でIATAを確認。引用はコードの表セル。全路線の網羅表ではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DPS",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e3a9986c91b900f2",
+     "id": "garuda-indonesia.destinations.operated-airport.f5debb99",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-garuda-indonesia",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 timetable Issue 1 / Garuda Indonesia operated flights",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DPS",
+     "value_text": null
+    }
+   ]
+  },
   "gulf-air": {
    "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "gulf-air",
+     "cond_ja": "2026-10-25〜2027-03-27冬期掲載中のKuwait International Airport発着; GFA。補足: GFA自社便が当空港を発着することは同一空港公式時刻表の現在有効レコードで確認。IATAコードだけは実読した公式 https://www.gulfair.com/ の公開__NEXT_DATA__内『KWI - Kuwait International Airport』で同定。quoteは補助資料のコード文字列、発着空港名とIATAの2源照合。空港自体を都市名から推測していない。 原運航資料: https://www.kuwaitairport.gov.kw/api/filterAirlineTime、読み取りPOST Airline=GFA, pubid=13, SearchText空、現在有効レコード。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"KWI\"\"\"",
+       "source_id": "src-gulfair-com-411df097",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7ab39f122dfd5fb6",
+     "id": "gulf-air.destinations.operated-airport.7f7d74c7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-gulf-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-gulfair-com-411df097",
+       "source_type": "official_package",
+       "title": "Official public airport identity data (Kuwait International Airport)",
+       "url": "https://www.gulfair.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KWI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "gulf-air",
+     "cond_ja": "2026-10-25〜2027-03-27の掲載便; Gulf Air、GFA215、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:GFA,AirlinePage:0,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"BAH\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "87e4989dd8cfaea3",
+     "id": "gulf-air.destinations.operated-airport.b1ba06ec",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-gulf-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BAH",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -298017,6 +303209,1740 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "hong-kong-express": {
    "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "OKA",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6c355321e2c14690",
+     "id": "hong-kong-express.destinations.operated-airport.0860f8c2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "OKA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CJU",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f282b5d11c4f3cca",
+     "id": "hong-kong-express.destinations.operated-airport.12859091",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CJU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KHH",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fc84d63e7f15c578",
+     "id": "hong-kong-express.destinations.operated-airport.13f8c6d4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KHH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NGB",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "40669dac68da0164",
+     "id": "hong-kong-express.destinations.operated-airport.144f7ced",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NGB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CZX",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "286c4367e9d7eece",
+     "id": "hong-kong-express.destinations.operated-airport.1c05a591",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CZX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BKK",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "766a2c622473879b",
+     "id": "hong-kong-express.destinations.operated-airport.24484eb0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BKK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HKG",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de83e99e7f7f443a",
+     "id": "hong-kong-express.destinations.operated-airport.40610d37",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HKG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PUS",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5471218bf9388b85",
+     "id": "hong-kong-express.destinations.operated-airport.40d41125",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PUS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TAE",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c250c15384ca8c7e",
+     "id": "hong-kong-express.destinations.operated-airport.411f3908",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TAE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PQC",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cad9e03f4e8e3188",
+     "id": "hong-kong-express.destinations.operated-airport.420daf05",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PQC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SDJ",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ba866ca3b9dcde3",
+     "id": "hong-kong-express.destinations.operated-airport.46f95721",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SDJ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PKX",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ef07fe9122d3fb02",
+     "id": "hong-kong-express.destinations.operated-airport.4ab93e50",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PKX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BKI",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51f77320b0ec197a",
+     "id": "hong-kong-express.destinations.operated-airport.6a9f2307",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BKI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RMQ",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cdefa02c7c782389",
+     "id": "hong-kong-express.destinations.operated-airport.71a275c4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RMQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SYX",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d180f8d6368f7aaa",
+     "id": "hong-kong-express.destinations.operated-airport.751b22d4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SYX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HAN",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e31f7e9fc447aa1d",
+     "id": "hong-kong-express.destinations.operated-airport.774b42b8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HND",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f3d1a2f418a609a9",
+     "id": "hong-kong-express.destinations.operated-airport.89d74a28",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HND",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MNL",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "99a6c221e05945ef",
+     "id": "hong-kong-express.destinations.operated-airport.8f195650",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MNL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NGO",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88f114c25748fa21",
+     "id": "hong-kong-express.destinations.operated-airport.9946d2e3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NGO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICN",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f74090ee25143324",
+     "id": "hong-kong-express.destinations.operated-airport.9dc1a069",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ICN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NRT",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2c2ba3576c7b196c",
+     "id": "hong-kong-express.destinations.operated-airport.a5b17e40",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NRT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SZB",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a84ab5451d0f09b",
+     "id": "hong-kong-express.destinations.operated-airport.b3682b4c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SZB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TAK",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8224d1353d9cb720",
+     "id": "hong-kong-express.destinations.operated-airport.bf2a83bf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TAK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HIJ",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "08991465fb4f2f5e",
+     "id": "hong-kong-express.destinations.operated-airport.bf82a8cd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HIJ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KIX",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d5b15e58bf1c221d",
+     "id": "hong-kong-express.destinations.operated-airport.c460d813",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KIX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CNX",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "445e666619be2cd1",
+     "id": "hong-kong-express.destinations.operated-airport.c9075c34",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CNX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DAD",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b7c890f485903563",
+     "id": "hong-kong-express.destinations.operated-airport.cee91293",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CRK",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5280791ba52b8c38",
+     "id": "hong-kong-express.destinations.operated-airport.d0a1574a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CRK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HKT",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d3b7aae3d6667312",
+     "id": "hong-kong-express.destinations.operated-airport.da117fa1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HKT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TPE",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2ea6138453b739cb",
+     "id": "hong-kong-express.destinations.operated-airport.e0758121",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TPE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "YIW",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3c5e4458c2790aac",
+     "id": "hong-kong-express.destinations.operated-airport.f0536f24",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YIW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FUK",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b26b40d6680d97ba",
+     "id": "hong-kong-express.destinations.operated-airport.f1c49ca9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FUK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KMQ",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "106b71d814fea22a",
+     "id": "hong-kong-express.destinations.operated-airport.f6693d14",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KMQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "hong-kong-express",
+     "cond_ja": "香港エクスプレス（UO）自社定期旅客; 2026-09公式路線図のScheduled Flightと照合。補足: 二つの一次資料を照合。自社定期便確認：https://www.hkexpress.com/destinations/route-map （Chromeで2026-09画像を実読・保存、凡例Scheduled Flight）。IATAはurlのHKE Station列の原文。地図にないKWEは除外。新地図にあるHFE/WUX/ISGはコード・運航期間の追加照合が未完なので採用せず。資料日付はファイル名だけで本文に発行日記載がないためpublished_date空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PEN",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1df9e043ecdc7ca2",
+     "id": "hong-kong-express.destinations.operated-airport.f748cbcd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-hong-kong-express",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-edge-hkexpress-com-194f3ab6",
+       "source_type": "official_package",
+       "title": "Baggage Services Contact Details (All Stations), 20260212",
+       "url": "https://edge.hkexpress.com/media/general/baggage%20contact%20list/HKE%20Baggage%20Services%20Contact%20Details%20%28All%20Stations%29%2020260212.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PEN",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -305542,8 +312468,522 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "indigo": {
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "2026-10-25〜2027-03-27の掲載便; IndiGo Airlines、IGO1235、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:IGO,AirlinePage:0,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"HYD\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7de9435a993bd840",
+     "id": "indigo.destinations.operated-airport.46025c60",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HYD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "2026-10-25〜2027-03-27冬期掲載中のKuwait International Airport発着; IGO。補足: IGO自社便が当空港を発着することは同一空港公式時刻表の現在有効レコードで確認。IATAコードだけは実読した公式 https://www.gulfair.com/ の公開__NEXT_DATA__内『KWI - Kuwait International Airport』で同定。quoteは補助資料のコード文字列、発着空港名とIATAの2源照合。空港自体を都市名から推測していない。 原運航資料: https://www.kuwaitairport.gov.kw/api/filterAirlineTime、読み取りPOST Airline=IGO, pubid=13, SearchText空、現在有効レコード。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"KWI\"\"\"",
+       "source_id": "src-gulfair-com-411df097",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ddf16d90a114f474",
+     "id": "indigo.destinations.operated-airport.54f32156",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-gulfair-com-411df097",
+       "source_type": "official_package",
+       "title": "Official public airport identity data (Kuwait International Airport)",
+       "url": "https://www.gulfair.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KWI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "2026-03-29から14便/週、IndiGo自社ATR、Navi Mumbai–Bhavnagar。補足: 自社運航・開始日はIndiGoの2026-02-25公式旅客便時刻表から。コード同定はAAI公式May-2026 Dehradun flight scheduleのAirport Code欄とNavi Mumbaiの対応、および6E便のNMI表記を実読: https://www.aai.aero/sites/default/files/flight_schedule/Flight%20Schedule%20for%20the%20month%20of%20May-26.pdf 。このAAI資料の2026-10-24までの旧時刻を現行時刻として転記しない。今冬の全網・全路線の継続状況は未確認。 原運航資料: https://www.goindigo.in/press-releases/indigo-strengthens-network-in-gujarat.html?loginPopup=true 。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NMI",
+       "source_id": "src-aai-aero-3c87aebf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "04245750b259ea5d",
+     "id": "indigo.destinations.operated-airport.60ddf888",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airports Authority of India",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-aai-aero-3c87aebf",
+       "source_type": "government",
+       "title": "Dehradun May 2026 flight schedule, airport-code identity",
+       "url": "https://www.aai.aero/sites/default/files/flight_schedule/Flight%20Schedule%20for%20the%20month%20of%20May-26.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NMI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "indigo",
+     "cond_ja": "2026-03-29から14便/週、IndiGo自社ATR、6E7022/7082/7021/7081。補足: 公式本文はBhavnagar (BHU)を明記し、同社ATRで運航すると明記。開始日が過去の開放期間の公式時刻表であり、2026年冬期の全網継続状況は未確認。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-02-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BHU",
+       "source_id": "src-goindigo-in-be44ab52",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d9f8a22120cc44dd",
+     "id": "indigo.destinations.operated-airport.a35079d1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-indigo",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-02-25",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-goindigo-in-be44ab52",
+       "source_type": "official_package",
+       "title": "Bhavnagar–Navi Mumbai official timetable, 25 February 2026",
+       "url": "https://www.goindigo.in/press-releases/indigo-strengthens-network-in-gujarat.html?loginPopup=true"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BHU",
+     "value_text": null
+    }
+   ]
+  },
   "ita-airways": {
    "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "ita-airways",
+     "cond_ja": "現行掲載の週次定期旅客便; AZ1675、ITA自社便カード。補足: 実際に読めたFlightplanに記載された空港コード。自社便カードと別運航会社表示を確認し、公式の自社Network節 https://www.ita-airways.com/it/it/world-of-ita-airways/discover-ita-airways/network の路線とも照合。ページ一般のpartner便注意書きを無視した全販売先の取り込みはせず、PAR/MIL等の都市集合コードは除外。日付ごとの航空会社・季節期間は未網羅。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FLR",
+       "source_id": "src-ita-airways-com-54ab4f8b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "68b55ce1b82942d0",
+     "id": "ita-airways.destinations.operated-airport.104e17bf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-ita-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ITA Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ita-airways-com-54ab4f8b",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.ita-airways.com/lhg/it/en/o-d/cy-cy/rome-florence"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FLR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "ita-airways",
+     "cond_ja": "現行掲載の週次定期旅客便; AZ59、ITA自社便カード。補足: 実際に読めたFlightplanに記載された空港コード。自社便カードと別運航会社表示を確認し、公式の自社Network節 https://www.ita-airways.com/it/it/world-of-ita-airways/discover-ita-airways/network の路線とも照合。ページ一般のpartner便注意書きを無視した全販売先の取り込みはせず、PAR/MIL等の都市集合コードは除外。日付ごとの航空会社・季節期間は未網羅。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MAD",
+       "source_id": "src-ita-airways-com-edc646da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "92864d8c904985e7",
+     "id": "ita-airways.destinations.operated-airport.55161f8b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-ita-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ITA Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ita-airways-com-edc646da",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.ita-airways.com/lhg/it/en/o-d/cy-cy/madrid-rome"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "ita-airways",
+     "cond_ja": "現行掲載の週次定期旅客便; AZ317、ITA自社便カード。補足: 実際に読めたFlightplanに記載された空港コード。自社便カードと別運航会社表示を確認し、公式の自社Network節 https://www.ita-airways.com/it/it/world-of-ita-airways/discover-ita-airways/network の路線とも照合。ページ一般のpartner便注意書きを無視した全販売先の取り込みはせず、PAR/MIL等の都市集合コードは除外。日付ごとの航空会社・季節期間は未網羅。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CDG",
+       "source_id": "src-ita-airways-com-15bf7576",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b58ad072ac8d2beb",
+     "id": "ita-airways.destinations.operated-airport.5a96abdb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-ita-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ITA Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ita-airways-com-15bf7576",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.ita-airways.com/lhg/it/en/o-d/cy-cy/paris-rome"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CDG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "ita-airways",
+     "cond_ja": "現行掲載の週次定期旅客便; AZ2014、ITA自社便カード。補足: 実際に読めたFlightplanに記載された空港コード。自社便カードと別運航会社表示を確認し、公式の自社Network節 https://www.ita-airways.com/it/it/world-of-ita-airways/discover-ita-airways/network の路線とも照合。ページ一般のpartner便注意書きを無視した全販売先の取り込みはせず、PAR/MIL等の都市集合コードは除外。日付ごとの航空会社・季節期間は未網羅。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LIN",
+       "source_id": "src-ita-airways-com-58b2a01d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bb05a51d11e4bb42",
+     "id": "ita-airways.destinations.operated-airport.8c5c8138",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-ita-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ITA Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ita-airways-com-58b2a01d",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.ita-airways.com/lhg/it/en/o-d/cy-cy/rome-milan"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LIN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "ita-airways",
+     "cond_ja": "現行掲載の週次定期旅客便; AZ317、ITA自社便カード。補足: 実際に読めたFlightplanに記載された空港コード。自社便カードと別運航会社表示を確認し、公式の自社Network節 https://www.ita-airways.com/it/it/world-of-ita-airways/discover-ita-airways/network の路線とも照合。ページ一般のpartner便注意書きを無視した全販売先の取り込みはせず、PAR/MIL等の都市集合コードは除外。日付ごとの航空会社・季節期間は未網羅。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FCO",
+       "source_id": "src-ita-airways-com-15bf7576",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b1c75e0a2011ce8e",
+     "id": "ita-airways.destinations.operated-airport.b70b0df7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-ita-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ITA Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ita-airways-com-15bf7576",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.ita-airways.com/lhg/it/en/o-d/cy-cy/paris-rome"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FCO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "ita-airways",
+     "cond_ja": "現行掲載の週次定期旅客便; AZ1263、ITA自社便カード。補足: 実際に読めたFlightplanに記載された空港コード。自社便カードと別運航会社表示を確認し、公式の自社Network節 https://www.ita-airways.com/it/it/world-of-ita-airways/discover-ita-airways/network の路線とも照合。ページ一般のpartner便注意書きを無視した全販売先の取り込みはせず、PAR/MIL等の都市集合コードは除外。日付ごとの航空会社・季節期間は未網羅。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NAP",
+       "source_id": "src-ita-airways-com-5b9b022b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "58c57cd7f0974a40",
+     "id": "ita-airways.destinations.operated-airport.bdc27629",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-ita-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ITA Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-ita-airways-com-5b9b022b",
+       "source_type": "official_package",
+       "title": "Official Flightplan",
+       "url": "https://www.ita-airways.com/lhg/it/en/o-d/cy-cy/rome-naples"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NAP",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -315374,6 +322814,2046 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PER",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bf3832978d3fc268",
+     "id": "jetstar.destinations.operated-airport.033fa32d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PER",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HVB",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0f3d269800d6270c",
+     "id": "jetstar.destinations.operated-airport.0569c2d7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HVB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DPS",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ddbc93ccbf553216",
+     "id": "jetstar.destinations.operated-airport.05fd6621",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DPS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RAR",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a01d37fe9b80d8e1",
+     "id": "jetstar.destinations.operated-airport.065c0312",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RAR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CHC",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9f2b16dd1b54e2e6",
+     "id": "jetstar.destinations.operated-airport.0fd82aa0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CHC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MEL",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7ea8ff1c84a99815",
+     "id": "jetstar.destinations.operated-airport.199f792d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MEL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PPP",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4f925cbd70d36b44",
+     "id": "jetstar.destinations.operated-airport.1de77c43",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PPP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SGN",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db31b1256dcd9a91",
+     "id": "jetstar.destinations.operated-airport.1e95a27f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SGN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ZQN",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "183465b842a0dbad",
+     "id": "jetstar.destinations.operated-airport.23622fdc",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ZQN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DUD",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "24057edcd1c2f830",
+     "id": "jetstar.destinations.operated-airport.2414d571",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DUD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AKL",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1183c40cd30ffce2",
+     "id": "jetstar.destinations.operated-airport.30bd7e88",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AKL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HKT",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ae2dc967c11e0e4",
+     "id": "jetstar.destinations.operated-airport.39aa8116",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HKT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICN",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "385bf1267a05b9d3",
+     "id": "jetstar.destinations.operated-airport.5e68c028",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ICN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LST",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "18531f3dea666233",
+     "id": "jetstar.destinations.operated-airport.5e73b188",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LST",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SIN",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1c3ec3cb9bd87740",
+     "id": "jetstar.destinations.operated-airport.6534a177",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SIN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AVV",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f6c29614fce2467d",
+     "id": "jetstar.destinations.operated-airport.6f808a49",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AVV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HLZ",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f5f0e4285b6e1103",
+     "id": "jetstar.destinations.operated-airport.755b41f8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HLZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VLI",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "33c8d019c5cd4125",
+     "id": "jetstar.destinations.operated-airport.7e0ea19f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VLI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "OOL",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "02c49ec219802a73",
+     "id": "jetstar.destinations.operated-airport.7f33caa4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "OOL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DRW",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fbece8efe92f3178",
+     "id": "jetstar.destinations.operated-airport.89f83c75",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DRW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HBA",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9c9172b90bbe2cca",
+     "id": "jetstar.destinations.operated-airport.8a7c3dd0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HBA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BKK",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3cae93447dbe256b",
+     "id": "jetstar.destinations.operated-airport.932452c4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BKK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MNL",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "34178199965d4eda",
+     "id": "jetstar.destinations.operated-airport.94a3328a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MNL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ADL",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7fcb040976f4c173",
+     "id": "jetstar.destinations.operated-airport.961c469e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ADL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MCY",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9759ba42ba86ca05",
+     "id": "jetstar.destinations.operated-airport.9bc22ae2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MCY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NRT",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c5fd58fc00d8b26f",
+     "id": "jetstar.destinations.operated-airport.a2cecd59",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NRT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WLG",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e7cc8dcbb5f2369a",
+     "id": "jetstar.destinations.operated-airport.ab6f13dd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "WLG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CMB",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8f81205ed13991d0",
+     "id": "jetstar.destinations.operated-airport.ae7134dc",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CMB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NTL",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d173f988e8aac77f",
+     "id": "jetstar.destinations.operated-airport.b730820c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NTL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CBR",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51f76e774e638d37",
+     "id": "jetstar.destinations.operated-airport.bba75599",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CBR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AYQ",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "92817aafed0996ae",
+     "id": "jetstar.destinations.operated-airport.c2371a96",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AYQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WSI",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e7b74b8c58184eea",
+     "id": "jetstar.destinations.operated-airport.c3df74f1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "WSI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TSV",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a3b4b9857d7f6d2a",
+     "id": "jetstar.destinations.operated-airport.c9a41e2d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TSV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SYD",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "96432b98f0f4a12a",
+     "id": "jetstar.destinations.operated-airport.cd385ab6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SYD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KIX",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "889b9e9899290289",
+     "id": "jetstar.destinations.operated-airport.d2810f4a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KIX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NAN",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fc47600315ca9384",
+     "id": "jetstar.destinations.operated-airport.e43510d0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BQB",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c697dbf8ae0f29d6",
+     "id": "jetstar.destinations.operated-airport.e9000497",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BQB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BNK",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "628cfc8432c1edbe",
+     "id": "jetstar.destinations.operated-airport.f6a5dfa6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BNK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BNE",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b492e270f9a9ff6b",
+     "id": "jetstar.destinations.operated-airport.f7de798a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BNE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Airways（JQ）自社定期旅客; 2026公式路線図の橙色実線で確認。補足: 二つの一次資料を照合。運航確認：https://files.jetstar.com/api/public/content/Jetstar-route-map （Master2026）をPDF描画して目視、橙色=Operated by Jetstar Airways (JQ)、青色GK便は除外。IATAはurlの空港名/コード対応表原文。JQだけの空港を採用。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CNS",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "21214c26c65cfb4e",
+     "id": "jetstar.destinations.operated-airport.fd9e676b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-jetstar",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-jetstar-com-a85daaa1",
+       "source_type": "official_package",
+       "title": "Airports and terminals (IATA code table)",
+       "url": "https://www.jetstar.com/au/en/help/airports-and-terminals"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CNS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": false
      },
@@ -319138,6 +328618,1893 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "LHR",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-29〜2027-03-26の掲載便; Kuwait Airways、KAC391、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:9,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"DRoute1\"\":\"\"KTM\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "50181816af7b5ac1",
+     "id": "kuwait-airways.destinations.operated-airport.03d0ba22",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KTM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-26〜2026-10-31の掲載便; Kuwait Airways、KAC676、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:15,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"DXB\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "753e15763b6e920b",
+     "id": "kuwait-airways.destinations.operated-airport.076a1319",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DXB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-12-02の掲載便; Kuwait Airways、KAC134、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:20,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"MAD\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "97362dd2210232d2",
+     "id": "kuwait-airways.destinations.operated-airport.0a1622c0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-26〜2026-11-07の掲載便; Kuwait Airways、KAC354、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:27,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"BLR\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c2c1d8888ebb707f",
+     "id": "kuwait-airways.destinations.operated-airport.171d2794",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BLR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-29〜2026-10-30の掲載便; Kuwait Airways、KAC205、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:25,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"DRoute1\"\":\"\"ISB\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b27b84a75ac856f",
+     "id": "kuwait-airways.destinations.operated-airport.187a0432",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ISB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-30の掲載便; Kuwait Airways、KAC168、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:20,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"CDG\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8bce4479f8a0a1d1",
+     "id": "kuwait-airways.destinations.operated-airport.1cfeea4e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CDG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-26〜2026-11-06の掲載便; Kuwait Airways、KAC162、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:28,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"GVA\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "77d0798a47e5cfc3",
+     "id": "kuwait-airways.destinations.operated-airport.209d89e2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GVA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-27〜2027-02-02の掲載便; Kuwait Airways、KAC408、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:24,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"HKT\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dce4716bb98937c9",
+     "id": "kuwait-airways.destinations.operated-airport.27e93a99",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HKT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-28〜2026-11-08の掲載便; Kuwait Airways、KAC420、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:24,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"CAN\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "33859295cdb4da3c",
+     "id": "kuwait-airways.destinations.operated-airport.28b5a093",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-30の掲載便; Kuwait Airways、KAC342、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:20,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"MAA\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d6bd31ec5d6ce41e",
+     "id": "kuwait-airways.destinations.operated-airport.2b9351a9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-26〜2026-11-03の掲載便; Kuwait Airways、KAC156、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:15,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"IST\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "42127892cf530c71",
+     "id": "kuwait-airways.destinations.operated-airport.30b1c890",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "IST",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-29〜2026-11-05の掲載便; Kuwait Airways、KAC792、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:23,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"MED\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "573e3492f6c92980",
+     "id": "kuwait-airways.destinations.operated-airport.30e26bc3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MED",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-12-31の掲載便; Kuwait Airways、KAC286、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:14,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"DAC\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7f4304fc569f6ddd",
+     "id": "kuwait-airways.destinations.operated-airport.4d613573",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-09の掲載便; Kuwait Airways、KAC412、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:19,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"BKK\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e51a00d40159068",
+     "id": "kuwait-airways.destinations.operated-airport.4dd04829",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BKK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-29〜2026-11-06の掲載便; Kuwait Airways、KAC503、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:23,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"DRoute1\"\":\"\"BEY\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3e44f107150a5ca8",
+     "id": "kuwait-airways.destinations.operated-airport.5e84b442",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BEY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-26〜2026-11-05の掲載便; Kuwait Airways、KAC158、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:27,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"SAW\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "968aeb241f234837",
+     "id": "kuwait-airways.destinations.operated-airport.5f4b752f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SAW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-26〜2026-11-07の掲載便; Kuwait Airways、KAC114、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:27,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"MAN\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51580259248520ca",
+     "id": "kuwait-airways.destinations.operated-airport.74ed4de6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-12-28の掲載便; Kuwait Airways、KAC348、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:17,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"AMD\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4d9cd97efb4ee170",
+     "id": "kuwait-airways.destinations.operated-airport.79d14d66",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AMD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2027-03-27の掲載便; Kuwait Airways、KAC552、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:14,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"DAM\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec07731719060d97",
+     "id": "kuwait-airways.destinations.operated-airport.7a4a8e83",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-12の掲載便; Kuwait Airways、KAC418、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:20,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"MNL\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88072d825b2fe0a1",
+     "id": "kuwait-airways.destinations.operated-airport.7cb5beb5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MNL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-08の掲載便; Kuwait Airways、KAC374、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:19,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"HYD\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3292d3af7065afcd",
+     "id": "kuwait-airways.destinations.operated-airport.98939cc3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HYD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-10-31の掲載便; Kuwait Airways、KAC776、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:18,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"RUH\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f2c9f29bb443c083",
+     "id": "kuwait-airways.destinations.operated-airport.9d6c8d64",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RUH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-02の掲載便; Kuwait Airways、KAC616、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:24,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"BAH\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "221d29b85f737984",
+     "id": "kuwait-airways.destinations.operated-airport.b21c6182",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BAH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-06の掲載便; Kuwait Airways、KAC135、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:19,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"BCN\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "86e4448dc55f6f03",
+     "id": "kuwait-airways.destinations.operated-airport.ba2147f8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BCN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-12-21の掲載便; Kuwait Airways、KAC202、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:17,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"LHE\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "47b0def52f737c80",
+     "id": "kuwait-airways.destinations.operated-airport.be8fff41",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LHE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-04の掲載便; Kuwait Airways、KAC171、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:19,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"DRoute1\"\":\"\"FRA\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "187b2c308fd7104c",
+     "id": "kuwait-airways.destinations.operated-airport.ca3a8209",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FRA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-01の掲載便; Kuwait Airways、KAC364、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:18,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"CMB\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e53f8133783c43ac",
+     "id": "kuwait-airways.destinations.operated-airport.caf7675f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CMB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-12-06の掲載便; Kuwait Airways、KAC128、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:17,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"AMS\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f3b059d044c52004",
+     "id": "kuwait-airways.destinations.operated-airport.cfb1f2b4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AMS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2027-03-27冬期掲載中のKuwait International Airport発着; KAC。補足: KAC自社便が当空港を発着することは同一空港公式時刻表の現在有効レコードで確認。IATAコードだけは実読した公式 https://www.gulfair.com/ の公開__NEXT_DATA__内『KWI - Kuwait International Airport』で同定。quoteは補助資料のコード文字列、発着空港名とIATAの2源照合。空港自体を都市名から推測していない。 原運航資料: https://www.kuwaitairport.gov.kw/api/filterAirlineTime、読み取りPOST Airline=KAC, pubid=13, SearchText空、現在有効レコード。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"KWI\"\"\"",
+       "source_id": "src-gulfair-com-411df097",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f2b66d69ffcba9cd",
+     "id": "kuwait-airways.destinations.operated-airport.dec978e8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-gulfair-com-411df097",
+       "source_type": "official_package",
+       "title": "Official public airport identity data (Kuwait International Airport)",
+       "url": "https://www.gulfair.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KWI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-29の掲載便; Kuwait Airways、KAC332、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:21,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"TRV\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "15d8f39cd4e3b208",
+     "id": "kuwait-airways.destinations.operated-airport.e1aa5ecf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TRV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2027-03-27の掲載便; Kuwait Airways、KAC786、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:15,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"JED\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9db13160c9ee4573",
+     "id": "kuwait-airways.destinations.operated-airport.e1d08144",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "JED",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-26〜2026-11-08の掲載便; Kuwait Airways、KAC382、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:17,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"DEL\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72fb4b63555edaff",
+     "id": "kuwait-airways.destinations.operated-airport.e43f6ebc",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DEL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-12-31の掲載便; Kuwait Airways、KAC102、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:14,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"LHR\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "09526cd44f90b2d0",
+     "id": "kuwait-airways.destinations.operated-airport.e91759a7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LHR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-04の掲載便; Kuwait Airways、KAC171、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:19,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"MUC\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "851f8d81ff3de869",
+     "id": "kuwait-airways.destinations.operated-airport.f577e75d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MUC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2027-01-01の掲載便; Kuwait Airways、KAC304、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:14,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"BOM\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b3b73bfe24385a79",
+     "id": "kuwait-airways.destinations.operated-airport.f9ad2ed9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BOM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2027-01-01の掲載便; Kuwait Airways、KAC358、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:14,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"COK\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75b7d027b3c68fc9",
+     "id": "kuwait-airways.destinations.operated-airport.fa7af822",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "COK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "kuwait-airways",
+     "cond_ja": "2026-10-25〜2026-11-01の掲載便; Kuwait Airways、KAC564、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:KAC,AirlinePage:18,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"AMM\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b45c4fc2c76a218c",
+     "id": "kuwait-airways.destinations.operated-airport.fb81d222",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-kuwait-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AMM",
+     "value_text": null
     }
    ]
   },
@@ -322212,6 +333579,726 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "malaysia-airlines": {
+   "held": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "就航前／再開前: 2026-12-02再開予定、最終運航1998年の後に今回再開。補足: 2026-10-29確認時点では就航前。将来の販売中路線を現運航空港に混ぜない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-09-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PUS",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9221ec0d9c2a16cd",
+     "id": "malaysia-airlines.destinations.not-operated-airport.dbf46b0d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "not_operated_airport",
+     "label_ja": "就航地に数えない空港（理由つき）",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "source_type": "official_package",
+       "title": "Network Growth, 4 September 2026",
+       "url": "https://www.malaysiaairlines.com/content/mag/en/MAG-media-centre/news-releases/2026/mag-network-growth-and-catering-expansion-2026.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PUS",
+     "value_text": null
+    }
+   ],
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-07-01〜2027-03-31旅行対象; Malaysia Airlines-operated、partner codeshare excluded。補足: 単なる運賃表示は採用せず、Malaysia Airlines-operatedの出発空港指定と具体的なoperated-sector例を採用。CTSの例はJAL運航とされるが、それだけでCTS全体を同社不就航とは判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DAD",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ade7128b6b745deb",
+     "id": "malaysia-airlines.destinations.operated-airport.0485f6ad",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "source_type": "official_package",
+       "title": "VIB 2026 official operated-sector terms",
+       "url": "https://www.malaysiaairlines.com/vn/en/cug/vib-exclusive.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-07-01〜2027-03-31旅行対象; Malaysia Airlines-operated、partner codeshare excluded。補足: 単なる運賃表示は採用せず、Malaysia Airlines-operatedの出発空港指定と具体的なoperated-sector例を採用。CTSの例はJAL運航とされるが、それだけでCTS全体を同社不就航とは判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HAN",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e316d757f83aa5c8",
+     "id": "malaysia-airlines.destinations.operated-airport.083cc9e6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "source_type": "official_package",
+       "title": "VIB 2026 official operated-sector terms",
+       "url": "https://www.malaysiaairlines.com/vn/en/cug/vib-exclusive.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI9405(MH1057)/CI9430(MH1038) operated by Malaysia Airlines。補足: quoteとurlは空港名/IATA同定資料のみ。現在のMH実運航根拠は https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf の公開GET現物Issue1、2026-10-25〜2027-03-27、紙面40–41頁、CI9405(MH1057)/CI9430(MH1038)、CI9402–9527 operated by Malaysia Airlines凡例。公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 空港コードの同定資料: https://www.malaysiaairlines.com/content/mag/en/MAG-media-centre/news-releases/2026/jeddah-madinah-cancellation-until-17-oct-26.html 。同記事のJED/MED一時欠航（10月12〜17日）は今回の現行KUL-JHB運航判定に流用せず。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Johor Bahru (JHB)",
+       "source_id": "src-malaysiaairlines-com-aa1488f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c48b43455f2e2028",
+     "id": "malaysia-airlines.destinations.operated-airport.414cbdf9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-aa1488f9",
+       "source_type": "official_package",
+       "title": "Johor Bahru airport code in October 2026 notice",
+       "url": "https://www.malaysiaairlines.com/content/mag/en/MAG-media-centre/news-releases/2026/jeddah-madinah-cancellation-until-17-oct-26.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "JHB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-07-01〜2027-03-31旅行対象; Malaysia Airlines-operated、partner codeshare excluded。補足: 単なる運賃表示は採用せず、Malaysia Airlines-operatedの出発空港指定と具体的なoperated-sector例を採用。CTSの例はJAL運航とされるが、それだけでCTS全体を同社不就航とは判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SGN",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3511d8feb80feca0",
+     "id": "malaysia-airlines.destinations.operated-airport.471127bf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "source_type": "official_package",
+       "title": "VIB 2026 official operated-sector terms",
+       "url": "https://www.malaysiaairlines.com/vn/en/cug/vib-exclusive.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SGN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI9426(MH1162)/CI9403(MH1143) operated by Malaysia Airlines。補足: 公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 紙面40–41頁のMH運航凡例と路線表、紙面54–55頁のPenang/PEN対応を照合。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PEN",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "70b3cb897507885c",
+     "id": "malaysia-airlines.destinations.operated-airport.4a4ee6b3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 Timetable Issue 1, Malaysia Airlines section",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PEN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI9440(MH2544)/CI9429(MH2543) operated by Malaysia Airlines。補足: quoteとurlは空港名/IATA同定資料のみ。現在のMH実運航根拠は https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf の公開GET現物Issue1、2026-10-25〜2027-03-27、紙面40–41頁、CI9440(MH2544)/CI9429(MH2543)、CI9402–9527 operated by Malaysia Airlines凡例。公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 空港コードだけを別公式資料の同名空港表示で照合: https://newsroom.airasia.com/news/airasia-inaugurates-two-new-routes-to-pontianak-solidifying-its-presence-in-kalimantan-indonesia （2025-09-12、Kuching International AirportとFlight Schedule between Kuching (KCH)を明記）。他社便からMH運航を推測したものではない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2025-09-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kuching (KCH)",
+       "source_id": "src-newsroom-airasia-com-90cbfa3d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1706a0d43782ea9d",
+     "id": "malaysia-airlines.destinations.operated-airport.717c25fe",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2025-09-12",
+       "publisher": "AirAsia Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-newsroom-airasia-com-90cbfa3d",
+       "source_type": "official_package",
+       "title": "Kuching airport code in official flight schedule",
+       "url": "https://newsroom.airasia.com/news/airasia-inaugurates-two-new-routes-to-pontianak-solidifying-its-presence-in-kalimantan-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KCH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-07-01〜2027-03-31旅行対象; Malaysia Airlines-operated、partner codeshare excluded。補足: 単なる運賃表示は採用せず、Malaysia Airlines-operatedの出発空港指定と具体的なoperated-sector例を採用。CTSの例はJAL運航とされるが、それだけでCTS全体を同社不就航とは判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KIX",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f81e03d01de79eee",
+     "id": "malaysia-airlines.destinations.operated-airport.90512ee5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "source_type": "official_package",
+       "title": "VIB 2026 official operated-sector terms",
+       "url": "https://www.malaysiaairlines.com/vn/en/cug/vib-exclusive.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KIX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "Malaysia Airlines; FUKは2026-09-02再開、BNEは2026-10-25増便、SUBは既存便増便を2026-11-01予定。補足: 本文はMalaysia Airlinesの自社便・機材とFireflyの別事業を区分。SUBの増便前の既存14便も明記。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-09-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BNE",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ddb8bbc657393fe8",
+     "id": "malaysia-airlines.destinations.operated-airport.976b0e3b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "source_type": "official_package",
+       "title": "Network Growth, 4 September 2026",
+       "url": "https://www.malaysiaairlines.com/content/mag/en/MAG-media-centre/news-releases/2026/mag-network-growth-and-catering-expansion-2026.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BNE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "Malaysia Airlines; FUKは2026-09-02再開、BNEは2026-10-25増便、SUBは既存便増便を2026-11-01予定。補足: 本文はMalaysia Airlinesの自社便・機材とFireflyの別事業を区分。SUBの増便前の既存14便も明記。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-09-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FUK",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bbf4849f064fd137",
+     "id": "malaysia-airlines.destinations.operated-airport.a55ac884",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "source_type": "official_package",
+       "title": "Network Growth, 4 September 2026",
+       "url": "https://www.malaysiaairlines.com/content/mag/en/MAG-media-centre/news-releases/2026/mag-network-growth-and-catering-expansion-2026.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FUK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026年旅行対象; Narita–KUL operated by Malaysia Airlines。補足: 公式規約の明記された自社運航sector例。コードシェア便除外条項を同時に確認。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NRT",
+       "source_id": "src-malaysiaairlines-com-27f2b906",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "891a778e23d4c2f6",
+     "id": "malaysia-airlines.destinations.operated-airport.b71f510a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-27f2b906",
+       "source_type": "official_package",
+       "title": "Manchester United Maybank 2026 terms",
+       "url": "https://www.malaysiaairlines.com/my/en/cug/mbb-my-man-utd.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NRT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI9424/9425(MH366/367) operated by Malaysia Airlines。補足: 公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 Taipei Taoyuan–Kuala LumpurのCI9424/9425を紙面8–11頁の運航凡例で確認、コードは紙面54–55頁。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TPE",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e8cab88a387099e4",
+     "id": "malaysia-airlines.destinations.operated-airport.d5c7bfd3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 Timetable Issue 1, Malaysia Airlines section",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TPE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "Malaysia Airlines; FUKは2026-09-02再開、BNEは2026-10-25増便、SUBは既存便増便を2026-11-01予定。補足: 本文はMalaysia Airlinesの自社便・機材とFireflyの別事業を区分。SUBの増便前の既存14便も明記。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-09-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SUB",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "77cacbb5c6d9484e",
+     "id": "malaysia-airlines.destinations.operated-airport.db8349ec",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-9eb4bed0",
+       "source_type": "official_package",
+       "title": "Network Growth, 4 September 2026",
+       "url": "https://www.malaysiaairlines.com/content/mag/en/MAG-media-centre/news-releases/2026/mag-network-growth-and-catering-expansion-2026.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SUB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "malaysia-airlines",
+     "cond_ja": "2026-07-01〜2027-03-31旅行対象; Malaysia Airlines-operated、partner codeshare excluded。補足: 単なる運賃表示は採用せず、Malaysia Airlines-operatedの出発空港指定と具体的なoperated-sector例を採用。CTSの例はJAL運航とされるが、それだけでCTS全体を同社不就航とは判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KUL",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1e072511c1eb272f",
+     "id": "malaysia-airlines.destinations.operated-airport.f82f9411",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-malaysia-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-malaysiaairlines-com-efd65803",
+       "source_type": "official_package",
+       "title": "VIB 2026 official operated-sector terms",
+       "url": "https://www.malaysiaairlines.com/vn/en/cug/vib-exclusive.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KUL",
+     "value_text": null
+    }
+   ]
+  },
   "norwegian": {
    "list": [
     {
@@ -322845,6 +334932,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
        "source_type": "official_package",
        "title": "Flights From Muscat (MCT) To Salalah (SLL)",
        "url": "https://services.omanair.com/om/en/flights/flights-from-Muscat-to-Salalah"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MCT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "oman-air",
+     "cond_ja": "2026-10-25〜2027-03-27冬期掲載中のKuwait International Airport発着; OMA。補足: OMA自社便が当空港を発着することは同一空港公式時刻表の現在有効レコードで確認。IATAコードだけは実読した公式 https://www.gulfair.com/ の公開__NEXT_DATA__内『KWI - Kuwait International Airport』で同定。quoteは補助資料のコード文字列、発着空港名とIATAの2源照合。空港自体を都市名から推測していない。 原運航資料: https://www.kuwaitairport.gov.kw/api/filterAirlineTime、読み取りPOST Airline=OMA, pubid=13, SearchText空、現在有効レコード。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"KWI\"\"\"",
+       "source_id": "src-gulfair-com-411df097",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d36034c8eb12e521",
+     "id": "oman-air.destinations.operated-airport.134c6cff",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-oman-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-gulfair-com-411df097",
+       "source_type": "official_package",
+       "title": "Official public airport identity data (Kuwait International Airport)",
+       "url": "https://www.gulfair.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KWI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "oman-air",
+     "cond_ja": "2026-10-25〜2027-03-27の掲載便; Oman Air、OMA647、定期旅客時刻表。補足: 空港公式の公開時刻表検索を実行。読み取りAPI https://www.kuwaitairport.gov.kw/api/filterAirlineTime、POST {Airline:OMA,AirlinePage:0,pubid:13,SearchText:''}。Alcode・会社名・発着便番号・機種・週次曜日・SFrom/STillを同一レコードで確認。2026-10-29が適用期間内、かつ当日以前の該当運航曜日がある明細だけ採用。別月だけの将来明細やDRoute2/3だけの点からは推測しない。資料は各便時刻の適用期間を示すが、路線そのものが季節便かは明示せず、年間運航とは断定しない。 UI入口: https://www.kuwaitairport.gov.kw/en/flights-info/airlines-and-flights/flights-timetable/。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"\"\"ARoute1\"\":\"\"MCT\"\"\"",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7d412e239511c6b7",
+     "id": "oman-air.destinations.operated-airport.b1e4d593",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-oman-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait International Airport / DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-10-29",
+       "source_id": "src-kuwaitairport-gov-kw-4731405d",
+       "source_type": "government",
+       "title": "Official winter timetable (operating airline identified)",
+       "url": "https://www.kuwaitairport.gov.kw/api/filterAirlineTime"
       }
      ],
      "unit": null,
@@ -326065,6 +338254,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "YYZ",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
+     "cond_ja": "Porter Airlines; 2026-10-26就航のYTZ–ORD自社定期旅客; Dash 8-400。補足: 同チームの実読担当が通常Chromeで本文を確認：YTZ-ORD is operated on the 78-seat De Havilland Dash 8-400 aircraft。毎日2往復。American Airlinesの接続先は加えない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "YTZ",
+       "source_id": "src-flyporter-com-e463e10f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c873fda575d3a9af",
+     "id": "porter.destinations.operated-airport.45d3f26f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyporter-com-e463e10f",
+       "source_type": "official_package",
+       "title": "Porter Airlines launches Chicago O’Hare flights from Toronto’s Billy Bishop",
+       "url": "https://www.flyporter.com/en-us/about-porter/media-centre/news-details?title=Porter+Airlines+launches+ChicagoOHare+flights+from+Torontos+Billy+Bishop+2026+10"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YTZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "porter",
+     "cond_ja": "Porter Airlines; 2026-10-26就航のYTZ–ORD自社定期旅客; Dash 8-400。補足: 同チームの実読担当が通常Chromeで本文を確認：YTZ-ORD is operated on the 78-seat De Havilland Dash 8-400 aircraft。毎日2往復。American Airlinesの接続先は加えない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ORD",
+       "source_id": "src-flyporter-com-e463e10f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b5bebc25bcdd5f47",
+     "id": "porter.destinations.operated-airport.505af32d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-porter",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyporter-com-e463e10f",
+       "source_type": "official_package",
+       "title": "Porter Airlines launches Chicago O’Hare flights from Toronto’s Billy Bishop",
+       "url": "https://www.flyporter.com/en-us/about-porter/media-centre/news-details?title=Porter+Airlines+launches+ChicagoOHare+flights+from+Torontos+Billy+Bishop+2026+10"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ORD",
+     "value_text": null
     }
    ]
   },
@@ -328326,6 +340617,367 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "OGN",
+     "value_text": null
+    }
+   ]
+  },
+  "riyadh-air": {
+   "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "2026-10-25 onward; 終了日非公表、6路線の発着をAl Qassimへ臨時変更、Riyadhとの陸上バス接続。補足: 公式Riyadh Air自身の案内を実読。対象6路線の空港コードとAl Qassim Airport (ELQ)を同一本文に明記。現行Where We Flyにも継続中のELQ運航・無料バス案内を確認: https://www.riyadhair.com/en/plan-book/where-we-fly 。『via』をRUHからの航空便乗継とは解さず、ELQ空港で搭乗する案内に従う。RUH全体の運休は判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DAC",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dc4b91d0ceb4d836",
+     "id": "riyadh-air.destinations.operated-airport.247800f7",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "source_type": "official_package",
+       "title": "Flights Via Al Qassim From 25 October 2026",
+       "url": "https://www.riyadhair.com/en/travel-update/ruh-elq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "2026-10-25 onward; 終了日非公表、6路線の発着をAl Qassimへ臨時変更、Riyadhとの陸上バス接続。補足: 公式Riyadh Air自身の案内を実読。対象6路線の空港コードとAl Qassim Airport (ELQ)を同一本文に明記。現行Where We Flyにも継続中のELQ運航・無料バス案内を確認: https://www.riyadhair.com/en/plan-book/where-we-fly 。『via』をRUHからの航空便乗継とは解さず、ELQ空港で搭乗する案内に従う。RUH全体の運休は判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LHR",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c7627c2c4d721084",
+     "id": "riyadh-air.destinations.operated-airport.5d4279c4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "source_type": "official_package",
+       "title": "Flights Via Al Qassim From 25 October 2026",
+       "url": "https://www.riyadhair.com/en/travel-update/ruh-elq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LHR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "2026-10-25 onward; 終了日非公表、6路線の発着をAl Qassimへ臨時変更、Riyadhとの陸上バス接続。補足: 公式Riyadh Air自身の案内を実読。対象6路線の空港コードとAl Qassim Airport (ELQ)を同一本文に明記。現行Where We Flyにも継続中のELQ運航・無料バス案内を確認: https://www.riyadhair.com/en/plan-book/where-we-fly 。『via』をRUHからの航空便乗継とは解さず、ELQ空港で搭乗する案内に従う。RUH全体の運休は判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CAI",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "204b5367fb1b7ebe",
+     "id": "riyadh-air.destinations.operated-airport.5f65b6ff",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "source_type": "official_package",
+       "title": "Flights Via Al Qassim From 25 October 2026",
+       "url": "https://www.riyadhair.com/en/travel-update/ruh-elq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CAI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "2026-10-25 onward; 終了日非公表、6路線の発着をAl Qassimへ臨時変更、Riyadhとの陸上バス接続。補足: 公式Riyadh Air自身の案内を実読。対象6路線の空港コードとAl Qassim Airport (ELQ)を同一本文に明記。現行Where We Flyにも継続中のELQ運航・無料バス案内を確認: https://www.riyadhair.com/en/plan-book/where-we-fly 。『via』をRUHからの航空便乗継とは解さず、ELQ空港で搭乗する案内に従う。RUH全体の運休は判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ELQ",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8223c97a1d73bf32",
+     "id": "riyadh-air.destinations.operated-airport.6b4f69cf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "source_type": "official_package",
+       "title": "Flights Via Al Qassim From 25 October 2026",
+       "url": "https://www.riyadhair.com/en/travel-update/ruh-elq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ELQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "2026-10-25 onward; 終了日非公表、6路線の発着をAl Qassimへ臨時変更、Riyadhとの陸上バス接続。補足: 公式Riyadh Air自身の案内を実読。対象6路線の空港コードとAl Qassim Airport (ELQ)を同一本文に明記。現行Where We Flyにも継続中のELQ運航・無料バス案内を確認: https://www.riyadhair.com/en/plan-book/where-we-fly 。『via』をRUHからの航空便乗継とは解さず、ELQ空港で搭乗する案内に従う。RUH全体の運休は判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "JED",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "59a370d2ec9b7750",
+     "id": "riyadh-air.destinations.operated-airport.8da95431",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "source_type": "official_package",
+       "title": "Flights Via Al Qassim From 25 October 2026",
+       "url": "https://www.riyadhair.com/en/travel-update/ruh-elq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "JED",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "2026-10-25 onward; 終了日非公表、6路線の発着をAl Qassimへ臨時変更、Riyadhとの陸上バス接続。補足: 公式Riyadh Air自身の案内を実読。対象6路線の空港コードとAl Qassim Airport (ELQ)を同一本文に明記。現行Where We Flyにも継続中のELQ運航・無料バス案内を確認: https://www.riyadhair.com/en/plan-book/where-we-fly 。『via』をRUHからの航空便乗継とは解さず、ELQ空港で搭乗する案内に従う。RUH全体の運休は判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LHE",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d345509a9b5aa844",
+     "id": "riyadh-air.destinations.operated-airport.a4c63354",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "source_type": "official_package",
+       "title": "Flights Via Al Qassim From 25 October 2026",
+       "url": "https://www.riyadhair.com/en/travel-update/ruh-elq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LHE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "riyadh-air",
+     "cond_ja": "2026-10-25 onward; 終了日非公表、6路線の発着をAl Qassimへ臨時変更、Riyadhとの陸上バス接続。補足: 公式Riyadh Air自身の案内を実読。対象6路線の空港コードとAl Qassim Airport (ELQ)を同一本文に明記。現行Where We Flyにも継続中のELQ運航・無料バス案内を確認: https://www.riyadhair.com/en/plan-book/where-we-fly 。『via』をRUHからの航空便乗継とは解さず、ELQ空港で搭乗する案内に従う。RUH全体の運休は判定しない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ISB",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "733bd07116459956",
+     "id": "riyadh-air.destinations.operated-airport.a830566e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-riyadh-air",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-riyadhair-com-89675eaa",
+       "source_type": "official_package",
+       "title": "Flights Via Al Qassim From 25 October 2026",
+       "url": "https://www.riyadhair.com/en/travel-update/ruh-elq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ISB",
      "value_text": null
     }
    ]
@@ -340865,7 +353517,4395 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "scoot": {
+   "held": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "運休中; TR796/TR797 Singapore–Jeddah; 2026-09-30告知更新、2026-12-02まで。補足: 二つの会社一次資料を照合。IATA引用はurlの原文。運休確認：https://www.flyscoot.com/zh/announcements-beta/advisory-on-scoot-flights-affected-by-the-geopolitical-situation-in-the-middle-east （実読、Due to the geopolitical situation ... cancelled until 2 December 2026、TR796/TR797を明記）。今後の再開を運航中に扱わず、2026-08マップ掲載だけで肯定しない。運休告知の最終更新は2026-09-30、IATA対応ページの更新日は不明。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Jeddah (JED)",
+       "source_id": "src-flyscoot-com-d34b7b9e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26429645663c4d8e",
+     "id": "scoot.destinations.not-operated-airport.d6773d29",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "not_operated_airport",
+     "label_ja": "就航地に数えない空港（理由つき）",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-d34b7b9e",
+       "source_type": "official_package",
+       "title": "Jeddah airport-code flight page; Jeddah cancellation advisory",
+       "url": "https://www.flyscoot.com/flights/en/flights-from-jeddah-to-tokyo"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "JED",
+     "value_text": null
+    }
+   ],
    "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DPS",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d21c7438f70db07a",
+     "id": "scoot.destinations.operated-airport.03906f83",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DPS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HKG",
+       "source_id": "src-flyscoot-com-87079d54",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "95b23eed28f2e7a3",
+     "id": "scoot.destinations.operated-airport.055cb6c2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-87079d54",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-hong-kong"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HKG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CXR",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "43cded6b055dc513",
+     "id": "scoot.destinations.operated-airport.05f95079",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-vietnam"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CXR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KNO",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f53b0e66cc93b6b8",
+     "id": "scoot.destinations.operated-airport.0766cb17",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KNO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図掲載。補足: 二つの一次資料を照合。運航確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図でTaipeiを目視。コードはurlの原文。Narita/Bangkok発のScoot搭乗手続きと台北行きを明記。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TPE",
+       "source_id": "src-flyscoot-com-1d88d5e9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3cc24d6ba61de7cc",
+     "id": "scoot.destinations.operated-airport.0fbc27b2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-1d88d5e9",
+       "source_type": "official_package",
+       "title": "Airport & Online Check-In Information",
+       "url": "https://www.flyscoot.com/en/plan/before-you-fly/checking-in"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TPE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CJB",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8986c00704c9eedd",
+     "id": "scoot.destinations.operated-airport.10a0e1ad",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-india"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CJB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PLM",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7c1eb0b47e72b3c1",
+     "id": "scoot.destinations.operated-airport.14dd5c37",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PLM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LOP",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "103fe31fb6155f05",
+     "id": "scoot.destinations.operated-airport.1579ed50",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LOP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SIN",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2135d0e1850b0cc9",
+     "id": "scoot.destinations.operated-airport.1601470e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SIN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KIX",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ab6bff0e9bde3d61",
+     "id": "scoot.destinations.operated-airport.1a3be09f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-japan"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KIX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CAN",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ecac78bbb0592f38",
+     "id": "scoot.destinations.operated-airport.1c72d10b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATH",
+       "source_id": "src-flyscoot-com-b757dbfe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4ad0eb34f0f44fe0",
+     "id": "scoot.destinations.operated-airport.23883716",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-b757dbfe",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-greece"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ATH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CTS",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0454258031d69b8c",
+     "id": "scoot.destinations.operated-airport.23fc1709",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-japan"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CTS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "YIA",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ae0edbfda19a5489",
+     "id": "scoot.destinations.operated-airport.246e6f79",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YIA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HKT",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "07ba5432cb369de9",
+     "id": "scoot.destinations.operated-airport.29132dd0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-thailand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HKT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KUL",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72fcea3c2502dc2f",
+     "id": "scoot.destinations.operated-airport.355d5930",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KUL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "IPH",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a9922c4236dd6792",
+     "id": "scoot.destinations.operated-airport.37ee8f46",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "IPH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CGK",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fbf378727e0c6ac6",
+     "id": "scoot.destinations.operated-airport.3b255b6f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CSX",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5968e9d8ed71103c",
+     "id": "scoot.destinations.operated-airport.3b64eaec",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CSX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TAO",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de3d4062b7f4cbc1",
+     "id": "scoot.destinations.operated-airport.3c305105",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TAO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CNX",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ac165b9f560a2f23",
+     "id": "scoot.destinations.operated-airport.3ea729e3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-thailand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CNX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MDC",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "628da10defe9e806",
+     "id": "scoot.destinations.operated-airport.3eeda8e8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MDC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SHE",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c52430a4113450be",
+     "id": "scoot.destinations.operated-airport.417e07d1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SHE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SZB",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ca3eadea8bc06c84",
+     "id": "scoot.destinations.operated-airport.496a4db6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SZB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SUB",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "48e77f59cf0332aa",
+     "id": "scoot.destinations.operated-airport.4991e2f2",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SUB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SWA",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "60b685c31ca812bc",
+     "id": "scoot.destinations.operated-airport.50bbbcd9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SWA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MAA",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "728ab8fed89a910f",
+     "id": "scoot.destinations.operated-airport.50d4be50",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-india"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MKZ",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8d5bb7a21a0e3b5a",
+     "id": "scoot.destinations.operated-airport.565ef701",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MKZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PEN",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a8576e2379f2e4b3",
+     "id": "scoot.destinations.operated-airport.5b927d63",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PEN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VIE",
+       "source_id": "src-flyscoot-com-b0926e4e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "64c0d75af913ed23",
+     "id": "scoot.destinations.operated-airport.5ec5b844",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-b0926e4e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-austria"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VIE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CEB",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6b99c976182b1a2b",
+     "id": "scoot.destinations.operated-airport.61536f0d",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-philippines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CEB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LGK",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6084b5f4ab029500",
+     "id": "scoot.destinations.operated-airport.6287bb96",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LGK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DAD",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "836296aa888548aa",
+     "id": "scoot.destinations.operated-airport.62e4f58c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-vietnam"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ILO",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e152794403d09279",
+     "id": "scoot.destinations.operated-airport.67e01e83",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-philippines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ILO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BPN",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51c20444918c1a34",
+     "id": "scoot.destinations.operated-airport.68e4dff8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BPN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TJQ",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f6988935630e228f",
+     "id": "scoot.destinations.operated-airport.6a34d11b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TJQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PKU",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ac1e345fa59b020",
+     "id": "scoot.destinations.operated-airport.6f1a903c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PKU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PER",
+       "source_id": "src-flyscoot-com-7ff611b2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d7d541081f862b9d",
+     "id": "scoot.destinations.operated-airport.70503a0b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-7ff611b2",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-australia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PER",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WUH",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db5da6b49a98321a",
+     "id": "scoot.destinations.operated-airport.72e275f0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "WUH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SYD",
+       "source_id": "src-flyscoot-com-7ff611b2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8b5149c3fae2b7fe",
+     "id": "scoot.destinations.operated-airport.7346ab49",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-7ff611b2",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-australia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SYD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NNG",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9a6927c06c21464d",
+     "id": "scoot.destinations.operated-airport.79083459",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NNG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PNK",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c1bd2b9ce0b8009a",
+     "id": "scoot.destinations.operated-airport.7a8eaeff",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PNK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "USM",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "93a28e7089256220",
+     "id": "scoot.destinations.operated-airport.7af5d189",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-thailand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "USM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MNL",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0f452043c8319ef8",
+     "id": "scoot.destinations.operated-airport.7df7a913",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-philippines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MNL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TRZ",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1f042bf1aa25a53a",
+     "id": "scoot.destinations.operated-airport.80c7a607",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-india"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TRZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HAK",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "06ebbe6ead90fc30",
+     "id": "scoot.destinations.operated-airport.82a29f0b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KBV",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0923295da26ed0cd",
+     "id": "scoot.destinations.operated-airport.85182a01",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-thailand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KBV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BKK",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a36c847c28189036",
+     "id": "scoot.destinations.operated-airport.8781a18e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-thailand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BKK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SRG",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e0e7c11a37ecfa07",
+     "id": "scoot.destinations.operated-airport.893a9836",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SRG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TRV",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f4f877ce597ac5b4",
+     "id": "scoot.destinations.operated-airport.89736809",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-india"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TRV",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "UPG",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "36f707e99e49c986",
+     "id": "scoot.destinations.operated-airport.8a8a11a0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "UPG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HGH",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc34ff999cf28c18",
+     "id": "scoot.destinations.operated-airport.8f6034ce",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HGH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KWE",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ffa97c36bdc8e4a5",
+     "id": "scoot.destinations.operated-airport.92326062",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KWE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VTE",
+       "source_id": "src-flyscoot-com-e109a04d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "93bc86f48b55dbc7",
+     "id": "scoot.destinations.operated-airport.979fbe4f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e109a04d",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-laos"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VTE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "XIY",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "382ec9be42f1c23a",
+     "id": "scoot.destinations.operated-airport.9c34d634",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "XIY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LBJ",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9ca8c61a46f73a73",
+     "id": "scoot.destinations.operated-airport.9e20df92",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LBJ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NKG",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a002ce69feee33a8",
+     "id": "scoot.destinations.operated-airport.a0a47edd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NKG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HDY",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ad81570112ae70f0",
+     "id": "scoot.destinations.operated-airport.a0efc9d3",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-thailand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HDY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BKI",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4205b039b18190d",
+     "id": "scoot.destinations.operated-airport.a165d95e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BKI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KMG",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "757cfdb73aed0ee2",
+     "id": "scoot.destinations.operated-airport.a338ca3c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KMG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PQC",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d4f83f1532a9182e",
+     "id": "scoot.destinations.operated-airport.ace0197c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-vietnam"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PQC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ICN",
+       "source_id": "src-flyscoot-com-c9eb2124",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c0419cfec6065b08",
+     "id": "scoot.destinations.operated-airport.b0d825e8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-c9eb2124",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-south-korea"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ICN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TSN",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c0a6e8b5e38e19a9",
+     "id": "scoot.destinations.operated-airport.b8282c66",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TSN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VTZ",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c40cbfe329fb1c8a",
+     "id": "scoot.destinations.operated-airport.baffcc02",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-india"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VTZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HAN",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "aee0f40baae980d2",
+     "id": "scoot.destinations.operated-airport.bd42342e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-vietnam"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SBW",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fed7f42dc634b917",
+     "id": "scoot.destinations.operated-airport.bf48b283",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SBW",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HND",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a3fd97a5c40bc15",
+     "id": "scoot.destinations.operated-airport.c0a15adb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-japan"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HND",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NRT",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6dd133e43c916024",
+     "id": "scoot.destinations.operated-airport.c4aa6b6f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-japan"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NRT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CEI",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "24141d964c36c2fe",
+     "id": "scoot.destinations.operated-airport.d019e41a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-20dc051e",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-thailand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CEI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FOC",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b11f6209c88850b8",
+     "id": "scoot.destinations.operated-airport.d1acb238",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FOC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CGO",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1cae03bce65a6c9b",
+     "id": "scoot.destinations.operated-airport.d44c6cbd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-0275cc3b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KBR",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "10e2b0ab17836e12",
+     "id": "scoot.destinations.operated-airport.d7a3dbd4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KBR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KJT",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a26f72fd36d36035",
+     "id": "scoot.destinations.operated-airport.e0ff7fd1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KJT",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CRK",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "127db063487ba136",
+     "id": "scoot.destinations.operated-airport.e2d08ba6",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-philippines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CRK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MFM",
+       "source_id": "src-flyscoot-com-8f51cd24",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c2c9f07c1341ee0d",
+     "id": "scoot.destinations.operated-airport.e754cdaf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-8f51cd24",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-macau-sar-china"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MFM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CJU",
+       "source_id": "src-flyscoot-com-c9eb2124",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "80a8333f131cb07c",
+     "id": "scoot.destinations.operated-airport.ebafa5bb",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-c9eb2124",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-south-korea"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CJU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KCH",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1e52e6a3a89e5158",
+     "id": "scoot.destinations.operated-airport.ed3fa42c",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KCH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MYY",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62b0e21b08bee702",
+     "id": "scoot.destinations.operated-airport.efd1d738",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MYY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SGN",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e651edd3e38d0bd2",
+     "id": "scoot.destinations.operated-airport.f11f97c8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-6a37a14c",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-vietnam"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SGN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "OKA",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d15ba64ac847c3a4",
+     "id": "scoot.destinations.operated-airport.f4d8e6ea",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5cfe1724",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-japan"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "OKA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MEL",
+       "source_id": "src-flyscoot-com-7ff611b2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d655dfee074894ec",
+     "id": "scoot.destinations.operated-airport.f66add6f",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-7ff611b2",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-australia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MEL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KUA",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "65caa02542c2f105",
+     "id": "scoot.destinations.operated-airport.f7f097cd",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-e7d40c35",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-malaysia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KUA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATQ",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1d4bb1278663a108",
+     "id": "scoot.destinations.operated-airport.f86e5b17",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-8050e85b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-india"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ATQ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DVO",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "770874a4c58c136b",
+     "id": "scoot.destinations.operated-airport.fef2d3a4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-1c5a8892",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-philippines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DVO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "scoot",
+     "cond_ja": "Scoot Tigerair Pte Ltd（TR）自社定期旅客; 2026-08公式路線図と現行公開便案内を照合。補足: 二つの一次資料を照合。自社運航の確認：https://www.flyscoot.com/en/discover/plan-your-next-trip/destination-map の2026-08地図（凡例Flights Operated By Scoot）を実際に目視。IATA引用はurlの便案内原文から。接続候補の拡張による路線推定は行わず地図掲載空港と照合。更新日不明・現行掲載。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PDG",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4cfcc805d2c40038",
+     "id": "scoot.destinations.operated-airport.ff1136a9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-scoot",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scoot",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flyscoot-com-5aafe09b",
+       "source_type": "official_package",
+       "title": "current published flight destinations",
+       "url": "https://www.flyscoot.com/flights/en/flights-to-indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PDG",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -350062,6 +367102,924 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "JNB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-DAR。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DAR",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51bb75e24c3b9c55",
+     "id": "south-african-airways.destinations.operated-airport.0458bbaf",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-MRU。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "MRU",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6252cd836269dc39",
+     "id": "south-african-airways.destinations.operated-airport.05ef3588",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MRU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-ACC。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "JNB",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cce210c807a9a230",
+     "id": "south-african-airways.destinations.operated-airport.12d07eab",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "JNB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-GRU。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "GRU",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2c4091090b6d48bc",
+     "id": "south-african-airways.destinations.operated-airport.1516a1dc",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GRU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-LOS。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LOS",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f514cde924370b7f",
+     "id": "south-african-airways.destinations.operated-airport.339807b8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LOS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-VFA。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "VFA",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a139bec189d11df",
+     "id": "south-african-airways.destinations.operated-airport.5f1a3a65",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VFA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-FIH。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FIH",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88a87fbb81368343",
+     "id": "south-african-airways.destinations.operated-airport.80767151",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FIH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 ACC-ABJ。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ABJ",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "925bbccf1df4f846",
+     "id": "south-african-airways.destinations.operated-airport.8690f801",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ABJ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-HRE。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HRE",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "71bb63edffa06b01",
+     "id": "south-african-airways.destinations.operated-airport.9224f6c0",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HRE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-DUR。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DUR",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bc47499043b400eb",
+     "id": "south-african-airways.destinations.operated-airport.9ad05cc4",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DUR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-WDH。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WDH",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "93253e3e5cb79425",
+     "id": "south-african-airways.destinations.operated-airport.9d794323",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "WDH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-PER。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PER",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "46af12c9fdc96678",
+     "id": "south-african-airways.destinations.operated-airport.b1eaaa77",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PER",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-PLZ。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "PLZ",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8c5ca09e1e28aa53",
+     "id": "south-african-airways.destinations.operated-airport.bc8932b1",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "PLZ",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-LUN。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LUN",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "df31ff593db24e39",
+     "id": "south-african-airways.destinations.operated-airport.bd082608",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LUN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-ACC。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ACC",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1f04585fd2d30946",
+     "id": "south-african-airways.destinations.operated-airport.de6e9ea5",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ACC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-FBM。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FBM",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a3e9069483f31908",
+     "id": "south-african-airways.destinations.operated-airport.e40fe94e",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FBM",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-GBE。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "GBE",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a120479adcddc24",
+     "id": "south-african-airways.destinations.operated-airport.eabbedd9",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GBE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "south-african-airways",
+     "cond_ja": "公式Flight Schedulesページで現行掲載の2026-08-14版、SAA自社定期旅客便。補足: 公式 https://www.flysaa.com/plan-book/travel-information/flight-schedules のリンクを追い、公開GETでPDF現物を取得・全文読取。対応路線 JNB-CPT。MRU/PERは夏・冬双方の時刻を掲載しており、冬期時刻表という理由だけで季節路線とは判定しない。2026-08-17/18の時刻変更注記を含む。版の有効開始日と資料公表日を区別しpublished_dateは空欄。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CPT",
+       "source_id": "src-flysaa-com-532e832c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c15c1f0387cddc94",
+     "id": "south-african-airways.destinations.operated-airport.fe63f879",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-south-african-airways",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-flysaa-com-532e832c",
+       "source_type": "official_package",
+       "title": "Current linked Flight Schedule, effective 14 August 2026",
+       "url": "https://www.flysaa.com/documents/d/south-african-airways/south-african-airways-flight-schedule-effective-14-august-2026-1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CPT",
      "value_text": null
     }
    ]
@@ -376719,6 +394677,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": false
      },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "Vietjet Air（VJ）自社定期旅客; 2026-08-17からのジャカルタ便運航案内。補足: VJ855/VJ854 SGN–CGK、VJ929/VJ928 HAN–CGKを便番号と共に明記。Thai Vietjet（VZ）の便ではない。更新日不明。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SGN",
+       "source_id": "src-vietjetair-com-68dc86ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "73b3aa829a1b592c",
+     "id": "vietjet.destinations.operated-airport.0d41deea",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vietjet Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vietjetair-com-68dc86ce",
+       "source_type": "official_package",
+       "title": "Jakarta terminal-change operational notice",
+       "url": "https://www.vietjetair.com/en/pages/important-notice-of-terminal-change-at-soekarno-hatta-international-airport-jakarta-cgk-1786518688242"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SGN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "Vietjet Air（VJ）自社定期旅客; 2026-08-17からのジャカルタ便運航案内。補足: VJ855/VJ854 SGN–CGK、VJ929/VJ928 HAN–CGKを便番号と共に明記。Thai Vietjet（VZ）の便ではない。更新日不明。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CGK",
+       "source_id": "src-vietjetair-com-68dc86ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6e771b4a68eb5dbf",
+     "id": "vietjet.destinations.operated-airport.0e8f9880",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vietjet Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vietjetair-com-68dc86ce",
+       "source_type": "official_package",
+       "title": "Jakarta terminal-change operational notice",
+       "url": "https://www.vietjetair.com/en/pages/important-notice-of-terminal-change-at-soekarno-hatta-international-airport-jakarta-cgk-1786518688242"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CGK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietjet",
+     "cond_ja": "Vietjet Air（VJ）自社定期旅客; 2026-08-17からのジャカルタ便運航案内。補足: VJ855/VJ854 SGN–CGK、VJ929/VJ928 HAN–CGKを便番号と共に明記。Thai Vietjet（VZ）の便ではない。更新日不明。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HAN",
+       "source_id": "src-vietjetair-com-68dc86ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a9d4afc171f3da07",
+     "id": "vietjet.destinations.operated-airport.133177fc",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietjet",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vietjet Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vietjetair-com-68dc86ce",
+       "source_type": "official_package",
+       "title": "Jakarta terminal-change operational notice",
+       "url": "https://www.vietjetair.com/en/pages/important-notice-of-terminal-change-at-soekarno-hatta-international-airport-jakarta-cgk-1786518688242"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
      "checked_at": "2026-10-19",
      "company": "vietjet",
      "cond_ja": "英: Chubu Centrair International Airport。空港運営者の2026-10-01更新・10月1日〜24日の時刻表でベトジェットエア VJ921をセントレア発の最初の区間に確認。乗継都市やコードシェア先を自社運航へ展開しない。期間後の継続・日別実績・ステイ有無は未確定。",
@@ -376788,6 +394899,363 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "vietnam-airlines": {
    "list": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI8796(VN106)、CI8754–8996 operated by Vietnam Airlines。補足: 公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 紙面48–51頁の運航便・VN運航凡例と紙面54–55頁のコード表を照合。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SGN",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dde1f6297a82c9ac",
+     "id": "vietnam-airlines.destinations.operated-airport.0e031dde",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 Timetable Issue 1, Vietnam Airlines operated section",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SGN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI8796(VN106)、CI8754–8996 operated by Vietnam Airlines。補足: 公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 紙面48–51頁の運航便・VN運航凡例と紙面54–55頁のコード表を照合。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DAD",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "514a2f85e9e67ab6",
+     "id": "vietnam-airlines.destinations.operated-airport.1b3850b8",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 Timetable Issue 1, Vietnam Airlines operated section",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI8780(VN1350)、CI8754–8996 operated by Vietnam Airlines。補足: quoteとurlは同定資料の原文だけ。現在の自社定期旅客運航根拠は https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf の公開GET現物Issue1、2026-10-25〜2027-03-27、紙面50–51頁、CI8754–8996 operated by Vietnam Airlines凡例。公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 コードはVietnam Airlines公式のTên - Mã sân bay欄（空港名・空港コード）を実読して同定: https://www.vietnamairlines.com/vi-vn/v%C3%A9-m%C3%A1y-bay-t%E1%BB%AB-vinh-%C4%91%E1%BA%BFn-nha-trang 。Cam RanhはNha Trang市との混同を避け、原時刻表のCAM RANHと公式Cam Ranh空港のコードを照合。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cam Ranh - CXR",
+       "source_id": "src-vietnamairlines-com-afb303e3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "129eb413866c113f",
+     "id": "vietnam-airlines.destinations.operated-airport.31ce4529",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vietnam Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vietnamairlines-com-afb303e3",
+       "source_type": "official_package",
+       "title": "Official airport-name / airport-code table (Tên - Mã sân bay)",
+       "url": "https://www.vietnamairlines.com/vi-vn/v%C3%A9-m%C3%A1y-bay-t%E1%BB%AB-vinh-%C4%91%E1%BA%BFn-nha-trang"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CXR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI9570/9571(VN570/571) operated by Vietnam Airlines。補足: 公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 紙面8–11頁のSGN–Taipei Taoyuanと運航凡例、紙面54–55頁のTPE表示を照合。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "TPE",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d337a951b4f00114",
+     "id": "vietnam-airlines.destinations.operated-airport.a7f6549b",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 Timetable Issue 1, Vietnam Airlines operated section",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TPE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI9027(VN581)、CI9587(VN587)等 operated by Vietnam Airlines。補足: 公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 紙面18–21頁のKaohsiung–SGN/HAN、CI9026/9027/9586/9587 operated by Vietnam Airlines凡例と、紙面54–55頁のKaohsiung/KHHを照合。凡例の範囲外のCI9028/9029/9584/9585は判定根拠に使わない。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KHH",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fe6d3ff1e3555bcd",
+     "id": "vietnam-airlines.destinations.operated-airport.b08e6e5a",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 Timetable Issue 1, Vietnam Airlines operated section",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KHH",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI8756(VN1266)、CI8754–8996 operated by Vietnam Airlines。補足: quoteとurlは同定資料の原文だけ。現在の自社定期旅客運航根拠は https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf の公開GET現物Issue1、2026-10-25〜2027-03-27、紙面50–51頁、CI8754–8996 operated by Vietnam Airlines凡例。公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 コードはVietnam Airlines公式のTên - Mã sân bay欄（空港名・空港コード）を実読して同定: https://www.vietnamairlines.com/vi-vn/v%C3%A9-m%C3%A1y-bay-t%E1%BB%AB-vinh-%C4%91%E1%BA%BFn-nha-trang 。Cam RanhはNha Trang市との混同を避け、原時刻表のCAM RANHと公式Cam Ranh空港のコードを照合。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Vinh - VII",
+       "source_id": "src-vietnamairlines-com-afb303e3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9a7b851de5170b6f",
+     "id": "vietnam-airlines.destinations.operated-airport.bc2936cc",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vietnam Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-vietnamairlines-com-afb303e3",
+       "source_type": "official_package",
+       "title": "Official airport-name / airport-code table (Tên - Mã sân bay)",
+       "url": "https://www.vietnamairlines.com/vi-vn/v%C3%A9-m%C3%A1y-bay-t%E1%BB%AB-vinh-%C4%91%E1%BA%BFn-nha-trang"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "VII",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-10-29",
+     "company": "vietnam-airlines",
+     "cond_ja": "2026-10-25〜2027-03-27; CI8857(VN157)、CI8754–8996 operated by Vietnam Airlines。補足: 公開GET保存現物 Issue 1、表紙2026-10-25〜2027-03-27を使用。web抽出はIssue 1Aであるため数表を混在させない。実運航MH/VNを明記したCI販売コードの便を、その実運航会社に帰属。 紙面48–51頁の運航便・VN運航凡例と紙面54–55頁のコード表を照合。",
+     "currency": null,
+     "domain": "destinations",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HAN",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e9def5d9c26e9e7",
+     "id": "vietnam-airlines.destinations.operated-airport.ff432855",
+     "imported_on": "2026-10-29",
+     "info_kind": "published_policy",
+     "key": "operated_airport",
+     "label_ja": "自社で運航している空港",
+     "pack": "pvr-20261029-cg-vietnam-airlines",
+     "per": null,
+     "rev": 2,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-10-29",
+       "source_id": "src-cms-externalcontent-prod-s3-ap-northeast-e611eb90",
+       "source_type": "official_package",
+       "title": "Winter 2026/27 Timetable Issue 1, Vietnam Airlines operated section",
+       "url": "https://cms-externalcontent-prod.s3.ap-northeast-1.amazonaws.com/ci/Prepare%20for%20the%20fly/CI-timetable.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAN",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -511691,12 +530159,15 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-aegean": {
    "records": {
+    "aegean.destinations.not-operated-airport.eb1eac05": "fddfdcd464773ed5",
+    "aegean.destinations.operated-airport.19b47e8b": "1d8148b330dec288",
+    "aegean.destinations.operated-airport.4917177a": "9ab75eb6f8a1cff6",
     "aegean.profile.founded.4dceab89": "2561730eabc249e1",
     "aegean.profile.headquarters-city.237882cb": "aebd4d68504e0c5f",
     "aegean.profile.headquarters-country.c64e8498": "0d43db4d96752e29"
    },
-   "revision": 1,
-   "sha": "sha256:255f2e1b68bb1bbf"
+   "revision": 2,
+   "sha": "sha256:162fddbf39ffcf72"
   },
   "pvr-20261029-cg-aer-lingus": {
    "records": {
@@ -511891,11 +530362,18 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-airasia": {
    "records": {
+    "airasia.destinations.operated-airport.0f641ea3": "a19c1abd3e65b14f",
+    "airasia.destinations.operated-airport.23a5fead": "89f67d542ea5975f",
+    "airasia.destinations.operated-airport.be6f14c5": "141f29177116b6fe",
+    "airasia.destinations.operated-airport.c5f281e2": "9e8cf6c4ff38f805",
+    "airasia.destinations.operated-airport.eb0bbb0b": "3d08a33e8c625987",
+    "airasia.destinations.operated-airport.eb168533": "bdbec68ade72e9a0",
+    "airasia.destinations.operated-airport.ed44dec6": "4eb2ad73c50bb721",
     "airasia.profile.founded.792af618": "7b04c079bf7cd727",
     "airasia.scale.fleet-total.4aee97b9": "01e2b54d4955739c"
    },
-   "revision": 1,
-   "sha": "sha256:22c4c9c8b4b2ab9c"
+   "revision": 2,
+   "sha": "sha256:aa0816976dfa5f52"
   },
   "pvr-20261029-cg-airdo": {
    "records": {
@@ -512044,19 +530522,32 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "alaska-airlines.destinations.operated-airport.f7d3c9e2": "3706c0923bc181d1",
     "alaska-airlines.destinations.operated-airport.f82f1982": "f500bd4673c0ff81",
     "alaska-airlines.destinations.operated-airport.fb55d53a": "6ba25a64f38f24a3",
+    "alaska-airlines.fleet.a321-200neo-2026-06-30-actual-fleet-alas.098e659d": "dd981d9b9f3b38e7",
+    "alaska-airlines.fleet.a330-200-2026-06-30-actual-fleet-alaska.37636114": "b9ed21fc05e02436",
+    "alaska-airlines.fleet.a330-300-freighters-2026-06-30-actual-fl.0a03de79": "b6ac0661a5b2b186",
+    "alaska-airlines.fleet.b717-200-2026-06-30-actual-fleet-alaska.f49e3970": "095efa6e828c1bda",
+    "alaska-airlines.fleet.b737-700-2026-06-30-actual-fleet-alaska.73f987a0": "2360126b91b17b4b",
+    "alaska-airlines.fleet.b737-700-freighters-2026-06-30-actual-fl.f799e1cb": "5ed525a23c4542f0",
+    "alaska-airlines.fleet.b737-8-2026-06-30-actual-fleet-alaska-ai.7b5c13c3": "87bd437ef2acda1e",
+    "alaska-airlines.fleet.b737-800-2026-06-30-actual-fleet-alaska.0b0386f8": "61403d96e7c2086d",
+    "alaska-airlines.fleet.b737-800-freighters-2026-06-30-actual-fl.79adc4f1": "06be1fc99f29bcfa",
+    "alaska-airlines.fleet.b737-9-2026-06-30-actual-fleet-alaska-ai.20b4b80c": "24a500794a09014d",
+    "alaska-airlines.fleet.b737-900er-2026-06-30-actual-fleet-alask.4b163004": "64b92dcd4d8dd67b",
+    "alaska-airlines.fleet.b787-9-2026-06-30-actual-fleet-alaska-ai.9a903cce": "46e7422aa2a758a4",
     "alaska-airlines.jobs.fo-age-fo.195dc720": "5e54430d5c48e656",
     "alaska-airlines.jobs.fo-license-fo.42256625": "c85720a54379809f",
     "alaska-airlines.jobs.fo-medical-fo.edeee3ad": "185523924dc338d9",
     "alaska-airlines.jobs.fo-right-to-work-fo.d2cab5bf": "90ba665a113f6225",
     "alaska-airlines.jobs.fo-total-hours-fo.952dfffc": "df796e734b513474",
     "alaska-airlines.profile.founded.b152e356": "b7f4323224b52cfe",
+    "alaska-airlines.scale.fleet-total.dd737e9c": "8943fd238dc20876",
     "alaska-airlines.scale.pilots.ba5d9ba5": "a2d0ee5bc5930c59",
     "alaska-airlines.work.days-off.12fb6db9": "2c9bfe56bf18767a",
     "alaska-airlines.work.days-off.c47b0a40": "80ce2626916c0604",
     "alaska-airlines.work.sick-leave.0a3595bc": "f5af88996714046a"
    },
-   "revision": 1,
-   "sha": "sha256:a8c7af804eb56d61"
+   "revision": 2,
+   "sha": "sha256:d92c43d9fe25f1b5"
   },
   "pvr-20261029-cg-allegiant": {
    "records": {
@@ -512532,12 +531023,18 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-austrian": {
    "records": {
+    "austrian.destinations.operated-airport.27b4e8aa": "39af41dcfb580ecd",
+    "austrian.destinations.operated-airport.43d3dd5d": "9cb9fc8a0a91ce78",
+    "austrian.destinations.operated-airport.a64cfd40": "ce915a33066a94b2",
+    "austrian.destinations.operated-airport.b521c319": "9e3e90403eeced9b",
+    "austrian.destinations.operated-airport.ccd723a2": "1bbc110d2c694691",
+    "austrian.destinations.operated-airport.edbcb639": "10902340fbc60def",
     "austrian.profile.founded.a4b6dd54": "b5722e9b808298d8",
     "austrian.profile.headquarters-city.5a4d5e84": "832d9f211a6a0eee",
     "austrian.profile.headquarters-country.ab25081f": "20f3fc0a558d61f7"
    },
-   "revision": 1,
-   "sha": "sha256:3914da379d592a10"
+   "revision": 2,
+   "sha": "sha256:4e67e2a194cd638b"
   },
   "pvr-20261029-cg-avianca": {
    "records": {
@@ -512570,19 +531067,41 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "bamboo-airways.base.pilot-base.75f3bcf1": "5846b92ee0df328d",
     "bamboo-airways.base.pilot-base.d94bad74": "093de565242af707",
     "bamboo-airways.profile.founded.856bcae1": "ff3152169fa5eb83",
-    "bamboo-airways.profile.headquarters-country.4cc80274": "202d1ac344317731"
+    "bamboo-airways.profile.headquarters-city.f4d6069f": "515332d5e7e44e29",
+    "bamboo-airways.profile.headquarters-country.4cc80274": "202d1ac344317731",
+    "bamboo-airways.profile.headquarters-country.721228cd": "45166cfc75660556"
    },
-   "revision": 1,
-   "sha": "sha256:0c51d20945098959"
+   "revision": 2,
+   "sha": "sha256:002d5275915b2558"
   },
   "pvr-20261029-cg-batik-air": {
    "records": {
+    "batik-air.destinations.operated-airport.074030c5": "9727cb889d6b3ded",
+    "batik-air.destinations.operated-airport.17f53cce": "5cc59134ae6d6896",
+    "batik-air.destinations.operated-airport.24a53eb1": "be2f9979a1ea6938",
+    "batik-air.destinations.operated-airport.2aa2893c": "9659ac7ed1eabb1c",
+    "batik-air.destinations.operated-airport.30502b41": "1545204273abf1fe",
+    "batik-air.destinations.operated-airport.3d61da0e": "835167073a2a81b7",
+    "batik-air.destinations.operated-airport.4573a2a9": "94cc3bed413b40b5",
+    "batik-air.destinations.operated-airport.45c862fc": "2441c41996850804",
+    "batik-air.destinations.operated-airport.52560f0e": "92d87d141bb846d5",
+    "batik-air.destinations.operated-airport.54111957": "9306ae563af450ea",
+    "batik-air.destinations.operated-airport.6b44ac70": "e7fc71960775fe83",
+    "batik-air.destinations.operated-airport.7c98e19a": "f11cb0f0c156a672",
+    "batik-air.destinations.operated-airport.89793da7": "a1a82a69c5437b49",
+    "batik-air.destinations.operated-airport.8bbb8d7c": "9655da37fbc2bbf5",
+    "batik-air.destinations.operated-airport.b83c0eb8": "008c052e4c301e19",
+    "batik-air.destinations.operated-airport.d63e42c6": "cb7ee4e8533ee7fb",
+    "batik-air.destinations.operated-airport.ef811701": "383e555f9978fc48",
+    "batik-air.destinations.operated-airport.f021fc98": "5f8f43c5f7b169b5",
+    "batik-air.destinations.operated-airport.f711d674": "cdd8cbde5fea70a1",
+    "batik-air.destinations.operated-airport.fabab9e0": "4b54c153075ebd30",
     "batik-air.profile.founded.42a101ee": "94197b4ed2382e02",
     "batik-air.profile.headquarters-city.96771ff6": "1fc86cb5aa743e09",
     "batik-air.profile.headquarters-country.89a262b9": "c7a29b2cea13e88a"
    },
-   "revision": 1,
-   "sha": "sha256:6030e57aba8b85e9"
+   "revision": 2,
+   "sha": "sha256:085d82697a19798f"
   },
   "pvr-20261029-cg-breeze-airways": {
    "records": {
@@ -513085,6 +531604,18 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "revision": 1,
    "sha": "sha256:5021d91036bebbef"
   },
+  "pvr-20261029-cg-eagle-jet": {
+   "records": {
+    "eagle-jet.living.rent-1bed.630ff7e2": "6657eae6b009d1ea",
+    "eagle-jet.living.rent-2bed.8b51910a": "cc1c0a81ef294b31",
+    "eagle-jet.living.rent-3bed.bdc07cc0": "25c953acb2d6e4b9",
+    "eagle-jet.profile.founded.c7ebb3cf": "b4de6cdac2a54448",
+    "eagle-jet.profile.headquarters-city.87bd81b8": "e7e8767436831d7b",
+    "eagle-jet.profile.headquarters-country.879df810": "85d5c8b8929954c9"
+   },
+   "revision": 2,
+   "sha": "sha256:2f16bc9b7be4e499"
+  },
   "pvr-20261029-cg-easyjet": {
    "records": {
     "easyjet.profile.founded.952b2b13": "4aea0fa9fce7b6f7",
@@ -513097,12 +531628,15 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-egyptair": {
    "records": {
+    "egyptair.destinations.operated-airport.1fec8f06": "7b9b16774b061d41",
+    "egyptair.destinations.operated-airport.3c24bc52": "431af8d0bd26c700",
+    "egyptair.destinations.operated-airport.cc9e573d": "3e2bbdfab1cc3c9f",
     "egyptair.profile.founded.9fa6726b": "a1ed8a37be809eee",
     "egyptair.profile.headquarters-city.5d2bff2d": "b71e3b02f5f7e6ec",
     "egyptair.profile.headquarters-country.5fbffb33": "a1c0ac39d0330e16"
    },
-   "revision": 1,
-   "sha": "sha256:bedbddf50cb084ef"
+   "revision": 2,
+   "sha": "sha256:300ce6d1fedd8db1"
   },
   "pvr-20261029-cg-emirates": {
    "records": {
@@ -513288,10 +531822,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-eurowings": {
    "records": {
+    "eurowings.destinations.operated-airport.5da303b5": "8d9a44d6bca3cb50",
+    "eurowings.destinations.operated-airport.75557777": "a88f36bb7315687f",
+    "eurowings.destinations.operated-airport.b0cecaeb": "4c70f02bc65c8030",
+    "eurowings.destinations.operated-airport.ea736164": "59d6f5c6bf14bfdc",
     "eurowings.profile.founded.8e12e67b": "3e331ce2ad0281be"
    },
-   "revision": 1,
-   "sha": "sha256:ce19ad001915b4f0"
+   "revision": 2,
+   "sha": "sha256:ff1a67db44b55bf2"
   },
   "pvr-20261029-cg-fiji-airways": {
    "records": {
@@ -513443,20 +531981,40 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-garuda-indonesia": {
    "records": {
+    "garuda-indonesia.destinations.operated-airport.10a30b70": "0b131039cbc22f28",
+    "garuda-indonesia.destinations.operated-airport.14c9e04d": "bb010649c560e63b",
+    "garuda-indonesia.destinations.operated-airport.1728d412": "38b1d0ea03d4f70e",
+    "garuda-indonesia.destinations.operated-airport.427c2df2": "c21082021cb10573",
+    "garuda-indonesia.destinations.operated-airport.440d827c": "dfcf04b57f51af13",
+    "garuda-indonesia.destinations.operated-airport.58085e5b": "059fd27d3131d3a8",
+    "garuda-indonesia.destinations.operated-airport.58592b18": "496f11c9c72cc056",
+    "garuda-indonesia.destinations.operated-airport.5f59ce1c": "12510ce433847916",
+    "garuda-indonesia.destinations.operated-airport.6c2f16e0": "c67759ffa4b68061",
+    "garuda-indonesia.destinations.operated-airport.82bee85f": "63dcfc9c7105ec80",
+    "garuda-indonesia.destinations.operated-airport.9317c029": "e19385f9ec7ff6df",
+    "garuda-indonesia.destinations.operated-airport.b3bf7aa2": "b43123e0292993bb",
+    "garuda-indonesia.destinations.operated-airport.d6f99d3f": "52ce317fd7ca36e0",
+    "garuda-indonesia.destinations.operated-airport.d9ebccdb": "d5c2bcb8c2812bcb",
+    "garuda-indonesia.destinations.operated-airport.e4233c3e": "2c5fb6244d94af98",
+    "garuda-indonesia.destinations.operated-airport.f5debb99": "e3a9986c91b900f2",
     "garuda-indonesia.profile.founded.bd0d7a62": "e606956066e229aa"
    },
-   "revision": 1,
-   "sha": "sha256:3786712d1b8fb3f9"
+   "revision": 2,
+   "sha": "sha256:63284b7280145179"
   },
   "pvr-20261029-cg-gulf-air": {
    "records": {
+    "gulf-air.destinations.operated-airport.7f7d74c7": "7ab39f122dfd5fb6",
+    "gulf-air.destinations.operated-airport.b1ba06ec": "87e4989dd8cfaea3",
+    "gulf-air.fleet.boeing-787-2025-11-18.be6efc0e": "a51ca88f1f6cb8c3",
     "gulf-air.profile.founded.d565ef9e": "fa4362ba9ffa97b2",
     "gulf-air.profile.headquarters-city.5e7dd3f2": "c38deb17b3cfddec",
     "gulf-air.profile.headquarters-country.8f7988b6": "ce4999d72d8339c5",
+    "gulf-air.scale.fleet-total.61f6acdb": "f0481044a853d146",
     "gulf-air.work.sick-leave.d1a3cd62": "7436f8ea10e5592b"
    },
-   "revision": 1,
-   "sha": "sha256:f88ac8c0e2b70b46"
+   "revision": 2,
+   "sha": "sha256:ed2a5fd50d654f13"
   },
   "pvr-20261029-cg-hac": {
    "records": {
@@ -513490,14 +532048,50 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-hong-kong-express": {
    "records": {
+    "hong-kong-express.destinations.operated-airport.0860f8c2": "6c355321e2c14690",
+    "hong-kong-express.destinations.operated-airport.12859091": "f282b5d11c4f3cca",
+    "hong-kong-express.destinations.operated-airport.13f8c6d4": "fc84d63e7f15c578",
+    "hong-kong-express.destinations.operated-airport.144f7ced": "40669dac68da0164",
+    "hong-kong-express.destinations.operated-airport.1c05a591": "286c4367e9d7eece",
+    "hong-kong-express.destinations.operated-airport.24484eb0": "766a2c622473879b",
+    "hong-kong-express.destinations.operated-airport.40610d37": "de83e99e7f7f443a",
+    "hong-kong-express.destinations.operated-airport.40d41125": "5471218bf9388b85",
+    "hong-kong-express.destinations.operated-airport.411f3908": "c250c15384ca8c7e",
+    "hong-kong-express.destinations.operated-airport.420daf05": "cad9e03f4e8e3188",
+    "hong-kong-express.destinations.operated-airport.46f95721": "8ba866ca3b9dcde3",
+    "hong-kong-express.destinations.operated-airport.4ab93e50": "ef07fe9122d3fb02",
+    "hong-kong-express.destinations.operated-airport.6a9f2307": "51f77320b0ec197a",
+    "hong-kong-express.destinations.operated-airport.71a275c4": "cdefa02c7c782389",
+    "hong-kong-express.destinations.operated-airport.751b22d4": "d180f8d6368f7aaa",
+    "hong-kong-express.destinations.operated-airport.774b42b8": "e31f7e9fc447aa1d",
+    "hong-kong-express.destinations.operated-airport.89d74a28": "f3d1a2f418a609a9",
+    "hong-kong-express.destinations.operated-airport.8f195650": "99a6c221e05945ef",
+    "hong-kong-express.destinations.operated-airport.9946d2e3": "88f114c25748fa21",
+    "hong-kong-express.destinations.operated-airport.9dc1a069": "f74090ee25143324",
+    "hong-kong-express.destinations.operated-airport.a5b17e40": "2c2ba3576c7b196c",
+    "hong-kong-express.destinations.operated-airport.b3682b4c": "8a84ab5451d0f09b",
+    "hong-kong-express.destinations.operated-airport.bf2a83bf": "8224d1353d9cb720",
+    "hong-kong-express.destinations.operated-airport.bf82a8cd": "08991465fb4f2f5e",
+    "hong-kong-express.destinations.operated-airport.c460d813": "d5b15e58bf1c221d",
+    "hong-kong-express.destinations.operated-airport.c9075c34": "445e666619be2cd1",
+    "hong-kong-express.destinations.operated-airport.cee91293": "b7c890f485903563",
+    "hong-kong-express.destinations.operated-airport.d0a1574a": "5280791ba52b8c38",
+    "hong-kong-express.destinations.operated-airport.da117fa1": "d3b7aae3d6667312",
+    "hong-kong-express.destinations.operated-airport.e0758121": "2ea6138453b739cb",
+    "hong-kong-express.destinations.operated-airport.f0536f24": "3c5e4458c2790aac",
+    "hong-kong-express.destinations.operated-airport.f1c49ca9": "b26b40d6680d97ba",
+    "hong-kong-express.destinations.operated-airport.f6693d14": "106b71d814fea22a",
+    "hong-kong-express.destinations.operated-airport.f748cbcd": "1df9e043ecdc7ca2",
     "hong-kong-express.fleet.a320-200.042a2dcd": "bc42bd5163d2f044",
     "hong-kong-express.fleet.a320-200neo.55cdd132": "63a25587b9842314",
     "hong-kong-express.fleet.a321-200.98f05eb0": "aac12b5dd4e594f8",
     "hong-kong-express.fleet.a321-200neo.f43b47e8": "a58c8158f7fb9699",
+    "hong-kong-express.profile.headquarters-city.e053da73": "b8afb6915788b4fa",
+    "hong-kong-express.profile.headquarters-country.e6c6a0f8": "1cdcb54a3e24eb90",
     "hong-kong-express.scale.fleet-total.01ddebad": "1a718e1ff6e0f9a7"
    },
-   "revision": 1,
-   "sha": "sha256:f177288e60385edb"
+   "revision": 2,
+   "sha": "sha256:d05dee4663b45aea"
   },
   "pvr-20261029-cg-iberia": {
    "records": {
@@ -513573,24 +532167,36 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-indigo": {
    "records": {
+    "indigo.destinations.operated-airport.46025c60": "7de9435a993bd840",
+    "indigo.destinations.operated-airport.54f32156": "ddf16d90a114f474",
+    "indigo.destinations.operated-airport.60ddf888": "04245750b259ea5d",
+    "indigo.destinations.operated-airport.a35079d1": "d9f8a22120cc44dd",
     "indigo.fleet.a320-neo.85e45107": "7eee3adaecdc04b6",
     "indigo.fleet.a321-freighter.82311961": "19b3a29b69ec8949",
     "indigo.fleet.a321xlr.527f6029": "bb94287a301c8f84",
+    "indigo.profile.founded.5290e7d4": "4df6377ddbe1a5ae",
     "indigo.profile.headquarters-city.2bccea62": "55a96241bb581191",
     "indigo.profile.headquarters-country.9930fca4": "84c5c5cab5606e30"
    },
-   "revision": 1,
-   "sha": "sha256:49a465e9287c033f"
+   "revision": 2,
+   "sha": "sha256:ee2f90ef92ed62aa"
   },
   "pvr-20261029-cg-ita-airways": {
    "records": {
+    "ita-airways.destinations.operated-airport.104e17bf": "68b55ce1b82942d0",
+    "ita-airways.destinations.operated-airport.55161f8b": "92864d8c904985e7",
+    "ita-airways.destinations.operated-airport.5a96abdb": "b58ad072ac8d2beb",
+    "ita-airways.destinations.operated-airport.8c5c8138": "bb05a51d11e4bb42",
+    "ita-airways.destinations.operated-airport.b70b0df7": "b1c75e0a2011ce8e",
+    "ita-airways.destinations.operated-airport.bdc27629": "58c57cd7f0974a40",
     "ita-airways.living.rent-2bed.3e318b06": "b4906110e5b21883",
     "ita-airways.living.rent-3bed.a5eafd81": "2c978b112266f245",
+    "ita-airways.profile.founded.3028da82": "e7015923e2c43cb5",
     "ita-airways.profile.headquarters-city.81c4c695": "7cc98e555f156d8c",
     "ita-airways.profile.headquarters-country.f2968063": "46622bbce2284053"
    },
-   "revision": 1,
-   "sha": "sha256:368fd1d3f27d8a47"
+   "revision": 2,
+   "sha": "sha256:bc2b8ccaa1efbed9"
   },
   "pvr-20261029-cg-j-air": {
    "records": {
@@ -513759,15 +532365,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-jetstar": {
    "records": {
+    "jetstar.destinations.operated-airport.033fa32d": "bf3832978d3fc268",
+    "jetstar.destinations.operated-airport.0569c2d7": "0f3d269800d6270c",
+    "jetstar.destinations.operated-airport.05fd6621": "ddbc93ccbf553216",
+    "jetstar.destinations.operated-airport.065c0312": "a01d37fe9b80d8e1",
+    "jetstar.destinations.operated-airport.0fd82aa0": "9f2b16dd1b54e2e6",
+    "jetstar.destinations.operated-airport.199f792d": "7ea8ff1c84a99815",
+    "jetstar.destinations.operated-airport.1de77c43": "4f925cbd70d36b44",
+    "jetstar.destinations.operated-airport.1e95a27f": "db31b1256dcd9a91",
+    "jetstar.destinations.operated-airport.23622fdc": "183465b842a0dbad",
+    "jetstar.destinations.operated-airport.2414d571": "24057edcd1c2f830",
+    "jetstar.destinations.operated-airport.30bd7e88": "1183c40cd30ffce2",
+    "jetstar.destinations.operated-airport.39aa8116": "8ae2dc967c11e0e4",
+    "jetstar.destinations.operated-airport.5e68c028": "385bf1267a05b9d3",
+    "jetstar.destinations.operated-airport.5e73b188": "18531f3dea666233",
+    "jetstar.destinations.operated-airport.6534a177": "1c3ec3cb9bd87740",
+    "jetstar.destinations.operated-airport.6f808a49": "f6c29614fce2467d",
+    "jetstar.destinations.operated-airport.755b41f8": "f5f0e4285b6e1103",
+    "jetstar.destinations.operated-airport.7e0ea19f": "33c8d019c5cd4125",
+    "jetstar.destinations.operated-airport.7f33caa4": "02c49ec219802a73",
+    "jetstar.destinations.operated-airport.89f83c75": "fbece8efe92f3178",
+    "jetstar.destinations.operated-airport.8a7c3dd0": "9c9172b90bbe2cca",
+    "jetstar.destinations.operated-airport.932452c4": "3cae93447dbe256b",
+    "jetstar.destinations.operated-airport.94a3328a": "34178199965d4eda",
+    "jetstar.destinations.operated-airport.961c469e": "7fcb040976f4c173",
+    "jetstar.destinations.operated-airport.9bc22ae2": "9759ba42ba86ca05",
+    "jetstar.destinations.operated-airport.a2cecd59": "c5fd58fc00d8b26f",
+    "jetstar.destinations.operated-airport.ab6f13dd": "e7cc8dcbb5f2369a",
+    "jetstar.destinations.operated-airport.ae7134dc": "8f81205ed13991d0",
+    "jetstar.destinations.operated-airport.b730820c": "d173f988e8aac77f",
+    "jetstar.destinations.operated-airport.bba75599": "51f76e774e638d37",
+    "jetstar.destinations.operated-airport.c2371a96": "92817aafed0996ae",
+    "jetstar.destinations.operated-airport.c3df74f1": "e7b74b8c58184eea",
+    "jetstar.destinations.operated-airport.c9a41e2d": "a3b4b9857d7f6d2a",
+    "jetstar.destinations.operated-airport.cd385ab6": "96432b98f0f4a12a",
+    "jetstar.destinations.operated-airport.d2810f4a": "889b9e9899290289",
+    "jetstar.destinations.operated-airport.e43510d0": "fc47600315ca9384",
+    "jetstar.destinations.operated-airport.e9000497": "c697dbf8ae0f29d6",
+    "jetstar.destinations.operated-airport.f6a5dfa6": "628cfc8432c1edbe",
+    "jetstar.destinations.operated-airport.f7de798a": "b492e270f9a9ff6b",
+    "jetstar.destinations.operated-airport.fd9e676b": "21214c26c65cfb4e",
     "jetstar.fleet.airbus-a320neo.ebeeeca2": "d37132421257c2da",
     "jetstar.fleet.airbus-a321.ee46e5d1": "b400f6a35182b748",
     "jetstar.fleet.airbus-a321neo-lr.8b01c631": "6aa5de8b07355c3e",
     "jetstar.fleet.boeing-787-8.f3c9895f": "aa87f6b683fe97bc",
     "jetstar.profile.founded.6ea63e4d": "19ded5ef0afc8cf8",
-    "jetstar.profile.headquarters-city.40d30eab": "718fb333c34bdaaa"
+    "jetstar.profile.headquarters-city.40d30eab": "718fb333c34bdaaa",
+    "jetstar.profile.headquarters-city.6ea0028c": "d743da0672ef681d",
+    "jetstar.profile.headquarters-country.3152f32d": "55deae23c8024ab9"
    },
-   "revision": 1,
-   "sha": "sha256:a89fd524a219d545"
+   "revision": 2,
+   "sha": "sha256:2f9cf95566d89af2"
   },
   "pvr-20261029-cg-jetstar-japan": {
    "records": {
@@ -513868,10 +532516,47 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-kuwait-airways": {
    "records": {
+    "kuwait-airways.destinations.operated-airport.03d0ba22": "50181816af7b5ac1",
+    "kuwait-airways.destinations.operated-airport.076a1319": "753e15763b6e920b",
+    "kuwait-airways.destinations.operated-airport.0a1622c0": "97362dd2210232d2",
+    "kuwait-airways.destinations.operated-airport.171d2794": "c2c1d8888ebb707f",
+    "kuwait-airways.destinations.operated-airport.187a0432": "2b27b84a75ac856f",
+    "kuwait-airways.destinations.operated-airport.1cfeea4e": "8bce4479f8a0a1d1",
+    "kuwait-airways.destinations.operated-airport.209d89e2": "77d0798a47e5cfc3",
+    "kuwait-airways.destinations.operated-airport.27e93a99": "dce4716bb98937c9",
+    "kuwait-airways.destinations.operated-airport.28b5a093": "33859295cdb4da3c",
+    "kuwait-airways.destinations.operated-airport.2b9351a9": "d6bd31ec5d6ce41e",
+    "kuwait-airways.destinations.operated-airport.30b1c890": "42127892cf530c71",
+    "kuwait-airways.destinations.operated-airport.30e26bc3": "573e3492f6c92980",
+    "kuwait-airways.destinations.operated-airport.4d613573": "7f4304fc569f6ddd",
+    "kuwait-airways.destinations.operated-airport.4dd04829": "9e51a00d40159068",
+    "kuwait-airways.destinations.operated-airport.5e84b442": "3e44f107150a5ca8",
+    "kuwait-airways.destinations.operated-airport.5f4b752f": "968aeb241f234837",
+    "kuwait-airways.destinations.operated-airport.74ed4de6": "51580259248520ca",
+    "kuwait-airways.destinations.operated-airport.79d14d66": "4d9cd97efb4ee170",
+    "kuwait-airways.destinations.operated-airport.7a4a8e83": "ec07731719060d97",
+    "kuwait-airways.destinations.operated-airport.7cb5beb5": "88072d825b2fe0a1",
+    "kuwait-airways.destinations.operated-airport.98939cc3": "3292d3af7065afcd",
+    "kuwait-airways.destinations.operated-airport.9d6c8d64": "f2c9f29bb443c083",
+    "kuwait-airways.destinations.operated-airport.b21c6182": "221d29b85f737984",
+    "kuwait-airways.destinations.operated-airport.ba2147f8": "86e4448dc55f6f03",
+    "kuwait-airways.destinations.operated-airport.be8fff41": "47b0def52f737c80",
+    "kuwait-airways.destinations.operated-airport.ca3a8209": "187b2c308fd7104c",
+    "kuwait-airways.destinations.operated-airport.caf7675f": "e53f8133783c43ac",
+    "kuwait-airways.destinations.operated-airport.cfb1f2b4": "f3b059d044c52004",
+    "kuwait-airways.destinations.operated-airport.dec978e8": "f2b66d69ffcba9cd",
+    "kuwait-airways.destinations.operated-airport.e1aa5ecf": "15d8f39cd4e3b208",
+    "kuwait-airways.destinations.operated-airport.e1d08144": "9db13160c9ee4573",
+    "kuwait-airways.destinations.operated-airport.e43f6ebc": "72fb4b63555edaff",
+    "kuwait-airways.destinations.operated-airport.e91759a7": "09526cd44f90b2d0",
+    "kuwait-airways.destinations.operated-airport.f577e75d": "851f8d81ff3de869",
+    "kuwait-airways.destinations.operated-airport.f9ad2ed9": "b3b73bfe24385a79",
+    "kuwait-airways.destinations.operated-airport.fa7af822": "75b7d027b3c68fc9",
+    "kuwait-airways.destinations.operated-airport.fb81d222": "b45c4fc2c76a218c",
     "kuwait-airways.profile.founded.2c2e348a": "fe411856ff3e7fac"
    },
-   "revision": 1,
-   "sha": "sha256:1bdf9d0fdafe4209"
+   "revision": 2,
+   "sha": "sha256:d94752a4af39461b"
   },
   "pvr-20261029-cg-latam": {
    "records": {
@@ -513965,12 +532650,26 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-malaysia-airlines": {
    "records": {
+    "malaysia-airlines.destinations.not-operated-airport.dbf46b0d": "9221ec0d9c2a16cd",
+    "malaysia-airlines.destinations.operated-airport.0485f6ad": "ade7128b6b745deb",
+    "malaysia-airlines.destinations.operated-airport.083cc9e6": "e316d757f83aa5c8",
+    "malaysia-airlines.destinations.operated-airport.414cbdf9": "c48b43455f2e2028",
+    "malaysia-airlines.destinations.operated-airport.471127bf": "3511d8feb80feca0",
+    "malaysia-airlines.destinations.operated-airport.4a4ee6b3": "70b3cb897507885c",
+    "malaysia-airlines.destinations.operated-airport.717c25fe": "1706a0d43782ea9d",
+    "malaysia-airlines.destinations.operated-airport.90512ee5": "f81e03d01de79eee",
+    "malaysia-airlines.destinations.operated-airport.976b0e3b": "ddb8bbc657393fe8",
+    "malaysia-airlines.destinations.operated-airport.a55ac884": "bbf4849f064fd137",
+    "malaysia-airlines.destinations.operated-airport.b71f510a": "891a778e23d4c2f6",
+    "malaysia-airlines.destinations.operated-airport.d5c7bfd3": "e8cab88a387099e4",
+    "malaysia-airlines.destinations.operated-airport.db8349ec": "77cacbb5c6d9484e",
+    "malaysia-airlines.destinations.operated-airport.f82f9411": "1e072511c1eb272f",
     "malaysia-airlines.profile.founded.7bbffff8": "6fba25ecdcf97f02",
     "malaysia-airlines.profile.headquarters-city.488be4a2": "3f3106bc757e3095",
     "malaysia-airlines.profile.headquarters-country.7609c090": "8949a05d1b64ea3d"
    },
-   "revision": 1,
-   "sha": "sha256:b9082e9b72797cd4"
+   "revision": 2,
+   "sha": "sha256:a17b71c10dd48468"
   },
   "pvr-20261029-cg-norwegian": {
    "records": {
@@ -514002,11 +532701,13 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "oman-air.benefits.medical.86375472": "9286543fc45c8726",
     "oman-air.benefits.staff-travel.7d00230d": "805ffc62cbaee848",
+    "oman-air.destinations.operated-airport.134c6cff": "d36034c8eb12e521",
+    "oman-air.destinations.operated-airport.b1e4d593": "7d412e239511c6b7",
     "oman-air.profile.founded.baebabd9": "7d4dbdace86164f2",
     "oman-air.scale.fleet-total.b47d46a0": "63a9823acc775c1a"
    },
-   "revision": 1,
-   "sha": "sha256:28511dac5b16a64a"
+   "revision": 2,
+   "sha": "sha256:605812d63ac69b2a"
   },
   "pvr-20261029-cg-orc": {
    "records": {
@@ -514085,6 +532786,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "porter.base.pilot-base-city.249068d5": "520c65b0ef7f1e26",
     "porter.base.pilot-base-city.821ed0e2": "e8e9c810cb2624d2",
     "porter.base.pilot-base-city.f3d6c73d": "8d57a8d60d40628b",
+    "porter.destinations.operated-airport.45d3f26f": "c873fda575d3a9af",
+    "porter.destinations.operated-airport.505af32d": "b5bebc25bcdd5f47",
+    "porter.fleet.de-havilland-dash-8-400-fleet-2026-10-29.fa4134eb": "7b28a350f21024a9",
     "porter.jobs.cap-license-cap.965a6533": "e1a41deb3bef3b47",
     "porter.jobs.cap-pic-hours-cap.5ae52787": "7c4c17417cbe85ab",
     "porter.jobs.cap-pic-hours-cap.83020e3f": "7e3fd0ca35720fbf",
@@ -514095,10 +532799,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "porter.jobs.fo-right-to-work-fo.e0e43dda": "6020e7b190ecb372",
     "porter.jobs.fo-total-hours-fo.2077d9fa": "75d9be1633e95988",
     "porter.profile.founded.b335626f": "25d8f3de54e76d9f",
-    "porter.profile.headquarters-city.89276a17": "c94bcfdc6a17a4cd"
+    "porter.profile.headquarters-city.772b510a": "c347b22a2c7d17bf",
+    "porter.profile.headquarters-city.89276a17": "c94bcfdc6a17a4cd",
+    "porter.profile.headquarters-country.8a328a41": "b8ae2ee9cfa624d4"
    },
-   "revision": 1,
-   "sha": "sha256:8fa6830bb26be726"
+   "revision": 2,
+   "sha": "sha256:7055daabba57c71c"
   },
   "pvr-20261029-cg-qantas": {
    "records": {
@@ -514153,12 +532859,19 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-riyadh-air": {
    "records": {
+    "riyadh-air.destinations.operated-airport.247800f7": "dc4b91d0ceb4d836",
+    "riyadh-air.destinations.operated-airport.5d4279c4": "c7627c2c4d721084",
+    "riyadh-air.destinations.operated-airport.5f65b6ff": "204b5367fb1b7ebe",
+    "riyadh-air.destinations.operated-airport.6b4f69cf": "8223c97a1d73bf32",
+    "riyadh-air.destinations.operated-airport.8da95431": "59a370d2ec9b7750",
+    "riyadh-air.destinations.operated-airport.a4c63354": "d345509a9b5aa844",
+    "riyadh-air.destinations.operated-airport.a830566e": "733bd07116459956",
     "riyadh-air.profile.founded.8819af8a": "416a289dabfdfd50",
     "riyadh-air.profile.headquarters-city.db011c4d": "fcc1e9c8c11a9211",
     "riyadh-air.profile.headquarters-country.5e5611b5": "3d0e64a5bfd15725"
    },
-   "revision": 1,
-   "sha": "sha256:4854c0b77711f578"
+   "revision": 2,
+   "sha": "sha256:542cf33b1eef126a"
   },
   "pvr-20261029-cg-root-aviation": {
    "records": {
@@ -514455,19 +533168,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "saudia.destinations.operated-airport.4fe4f4e7": "903e4d43f90d3985",
     "saudia.destinations.operated-airport.95e2f9c8": "c8b0d3329e3c48de",
     "saudia.profile.founded.154cf89e": "c39cbe34583fabb3",
-    "saudia.profile.headquarters-city.5636b532": "9aad909dcb620171"
+    "saudia.profile.headquarters-city.3a1d3d46": "d748bf84e064ecb6",
+    "saudia.profile.headquarters-city.5636b532": "9aad909dcb620171",
+    "saudia.profile.headquarters-country.fc93c348": "fe4df4de8398bfe0",
+    "saudia.scale.fleet-total.ade5cee7": "53a2c17d09d2aad1"
    },
-   "revision": 1,
-   "sha": "sha256:a5af454ef37f99ad"
+   "revision": 2,
+   "sha": "sha256:5c0c0536d6a56885"
   },
   "pvr-20261029-cg-scoot": {
    "records": {
+    "scoot.destinations.not-operated-airport.d6773d29": "26429645663c4d8e",
+    "scoot.destinations.operated-airport.03906f83": "d21c7438f70db07a",
+    "scoot.destinations.operated-airport.055cb6c2": "95b23eed28f2e7a3",
+    "scoot.destinations.operated-airport.05f95079": "43cded6b055dc513",
+    "scoot.destinations.operated-airport.0766cb17": "f53b0e66cc93b6b8",
+    "scoot.destinations.operated-airport.0fbc27b2": "3cc24d6ba61de7cc",
+    "scoot.destinations.operated-airport.10a0e1ad": "8986c00704c9eedd",
+    "scoot.destinations.operated-airport.14dd5c37": "7c1eb0b47e72b3c1",
+    "scoot.destinations.operated-airport.1579ed50": "103fe31fb6155f05",
+    "scoot.destinations.operated-airport.1601470e": "2135d0e1850b0cc9",
+    "scoot.destinations.operated-airport.1a3be09f": "ab6bff0e9bde3d61",
+    "scoot.destinations.operated-airport.1c72d10b": "ecac78bbb0592f38",
+    "scoot.destinations.operated-airport.23883716": "4ad0eb34f0f44fe0",
+    "scoot.destinations.operated-airport.23fc1709": "0454258031d69b8c",
+    "scoot.destinations.operated-airport.246e6f79": "ae0edbfda19a5489",
+    "scoot.destinations.operated-airport.29132dd0": "07ba5432cb369de9",
+    "scoot.destinations.operated-airport.355d5930": "72fcea3c2502dc2f",
+    "scoot.destinations.operated-airport.37ee8f46": "a9922c4236dd6792",
+    "scoot.destinations.operated-airport.3b255b6f": "fbf378727e0c6ac6",
+    "scoot.destinations.operated-airport.3b64eaec": "5968e9d8ed71103c",
+    "scoot.destinations.operated-airport.3c305105": "de3d4062b7f4cbc1",
+    "scoot.destinations.operated-airport.3ea729e3": "ac165b9f560a2f23",
+    "scoot.destinations.operated-airport.3eeda8e8": "628da10defe9e806",
+    "scoot.destinations.operated-airport.417e07d1": "c52430a4113450be",
+    "scoot.destinations.operated-airport.496a4db6": "ca3eadea8bc06c84",
+    "scoot.destinations.operated-airport.4991e2f2": "48e77f59cf0332aa",
+    "scoot.destinations.operated-airport.50bbbcd9": "60b685c31ca812bc",
+    "scoot.destinations.operated-airport.50d4be50": "728ab8fed89a910f",
+    "scoot.destinations.operated-airport.565ef701": "8d5bb7a21a0e3b5a",
+    "scoot.destinations.operated-airport.5b927d63": "a8576e2379f2e4b3",
+    "scoot.destinations.operated-airport.5ec5b844": "64c0d75af913ed23",
+    "scoot.destinations.operated-airport.61536f0d": "6b99c976182b1a2b",
+    "scoot.destinations.operated-airport.6287bb96": "6084b5f4ab029500",
+    "scoot.destinations.operated-airport.62e4f58c": "836296aa888548aa",
+    "scoot.destinations.operated-airport.67e01e83": "e152794403d09279",
+    "scoot.destinations.operated-airport.68e4dff8": "51c20444918c1a34",
+    "scoot.destinations.operated-airport.6a34d11b": "f6988935630e228f",
+    "scoot.destinations.operated-airport.6f1a903c": "8ac1e345fa59b020",
+    "scoot.destinations.operated-airport.70503a0b": "d7d541081f862b9d",
+    "scoot.destinations.operated-airport.72e275f0": "db5da6b49a98321a",
+    "scoot.destinations.operated-airport.7346ab49": "8b5149c3fae2b7fe",
+    "scoot.destinations.operated-airport.79083459": "9a6927c06c21464d",
+    "scoot.destinations.operated-airport.7a8eaeff": "c1bd2b9ce0b8009a",
+    "scoot.destinations.operated-airport.7af5d189": "93a28e7089256220",
+    "scoot.destinations.operated-airport.7df7a913": "0f452043c8319ef8",
+    "scoot.destinations.operated-airport.80c7a607": "1f042bf1aa25a53a",
+    "scoot.destinations.operated-airport.82a29f0b": "06ebbe6ead90fc30",
+    "scoot.destinations.operated-airport.85182a01": "0923295da26ed0cd",
+    "scoot.destinations.operated-airport.8781a18e": "a36c847c28189036",
+    "scoot.destinations.operated-airport.893a9836": "e0e7c11a37ecfa07",
+    "scoot.destinations.operated-airport.89736809": "f4f877ce597ac5b4",
+    "scoot.destinations.operated-airport.8a8a11a0": "36f707e99e49c986",
+    "scoot.destinations.operated-airport.8f6034ce": "cc34ff999cf28c18",
+    "scoot.destinations.operated-airport.92326062": "ffa97c36bdc8e4a5",
+    "scoot.destinations.operated-airport.979fbe4f": "93bc86f48b55dbc7",
+    "scoot.destinations.operated-airport.9c34d634": "382ec9be42f1c23a",
+    "scoot.destinations.operated-airport.9e20df92": "9ca8c61a46f73a73",
+    "scoot.destinations.operated-airport.a0a47edd": "a002ce69feee33a8",
+    "scoot.destinations.operated-airport.a0efc9d3": "ad81570112ae70f0",
+    "scoot.destinations.operated-airport.a165d95e": "b4205b039b18190d",
+    "scoot.destinations.operated-airport.a338ca3c": "757cfdb73aed0ee2",
+    "scoot.destinations.operated-airport.ace0197c": "d4f83f1532a9182e",
+    "scoot.destinations.operated-airport.b0d825e8": "c0419cfec6065b08",
+    "scoot.destinations.operated-airport.b8282c66": "c0a6e8b5e38e19a9",
+    "scoot.destinations.operated-airport.baffcc02": "c40cbfe329fb1c8a",
+    "scoot.destinations.operated-airport.bd42342e": "aee0f40baae980d2",
+    "scoot.destinations.operated-airport.bf48b283": "fed7f42dc634b917",
+    "scoot.destinations.operated-airport.c0a15adb": "0a3fd97a5c40bc15",
+    "scoot.destinations.operated-airport.c4aa6b6f": "6dd133e43c916024",
+    "scoot.destinations.operated-airport.d019e41a": "24141d964c36c2fe",
+    "scoot.destinations.operated-airport.d1acb238": "b11f6209c88850b8",
+    "scoot.destinations.operated-airport.d44c6cbd": "1cae03bce65a6c9b",
+    "scoot.destinations.operated-airport.d7a3dbd4": "10e2b0ab17836e12",
+    "scoot.destinations.operated-airport.e0ff7fd1": "a26f72fd36d36035",
+    "scoot.destinations.operated-airport.e2d08ba6": "127db063487ba136",
+    "scoot.destinations.operated-airport.e754cdaf": "c2c9f07c1341ee0d",
+    "scoot.destinations.operated-airport.ebafa5bb": "80a8333f131cb07c",
+    "scoot.destinations.operated-airport.ed3fa42c": "1e52e6a3a89e5158",
+    "scoot.destinations.operated-airport.efd1d738": "62b0e21b08bee702",
+    "scoot.destinations.operated-airport.f11f97c8": "e651edd3e38d0bd2",
+    "scoot.destinations.operated-airport.f4d8e6ea": "d15ba64ac847c3a4",
+    "scoot.destinations.operated-airport.f66add6f": "d655dfee074894ec",
+    "scoot.destinations.operated-airport.f7f097cd": "65caa02542c2f105",
+    "scoot.destinations.operated-airport.f86e5b17": "1d4bb1278663a108",
+    "scoot.destinations.operated-airport.fef2d3a4": "770874a4c58c136b",
+    "scoot.destinations.operated-airport.ff1136a9": "4cfcc805d2c40038",
     "scoot.profile.founded.6725db36": "f029d0861a2bb56c",
     "scoot.profile.headquarters-city.6e0d3e7c": "9ef76a2b119f1a1e",
     "scoot.profile.headquarters-country.55af8154": "88da1ea2971e09ad"
    },
-   "revision": 1,
-   "sha": "sha256:bcb080b27425b312"
+   "revision": 2,
+   "sha": "sha256:c8ca31512cc2f950"
   },
   "pvr-20261029-cg-singapore-airlines": {
    "records": {
@@ -514527,10 +533329,28 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-south-african-airways": {
    "records": {
+    "south-african-airways.destinations.operated-airport.0458bbaf": "51bb75e24c3b9c55",
+    "south-african-airways.destinations.operated-airport.05ef3588": "6252cd836269dc39",
+    "south-african-airways.destinations.operated-airport.12d07eab": "cce210c807a9a230",
+    "south-african-airways.destinations.operated-airport.1516a1dc": "2c4091090b6d48bc",
+    "south-african-airways.destinations.operated-airport.339807b8": "f514cde924370b7f",
+    "south-african-airways.destinations.operated-airport.5f1a3a65": "0a139bec189d11df",
+    "south-african-airways.destinations.operated-airport.80767151": "88a87fbb81368343",
+    "south-african-airways.destinations.operated-airport.8690f801": "925bbccf1df4f846",
+    "south-african-airways.destinations.operated-airport.9224f6c0": "71bb63edffa06b01",
+    "south-african-airways.destinations.operated-airport.9ad05cc4": "bc47499043b400eb",
+    "south-african-airways.destinations.operated-airport.9d794323": "93253e3e5cb79425",
+    "south-african-airways.destinations.operated-airport.b1eaaa77": "46af12c9fdc96678",
+    "south-african-airways.destinations.operated-airport.bc8932b1": "8c5ca09e1e28aa53",
+    "south-african-airways.destinations.operated-airport.bd082608": "df31ff593db24e39",
+    "south-african-airways.destinations.operated-airport.de6e9ea5": "1f04585fd2d30946",
+    "south-african-airways.destinations.operated-airport.e40fe94e": "a3e9069483f31908",
+    "south-african-airways.destinations.operated-airport.eabbedd9": "8a120479adcddc24",
+    "south-african-airways.destinations.operated-airport.fe63f879": "c15c1f0387cddc94",
     "south-african-airways.profile.founded.0399c19f": "2fe462fb4c7425e1"
    },
-   "revision": 1,
-   "sha": "sha256:d70976b8c1daeb91"
+   "revision": 2,
+   "sha": "sha256:6ffd98caf9929d0d"
   },
   "pvr-20261029-cg-southwest": {
    "records": {
@@ -515127,6 +533947,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "vietjet.benefits.medical.afa1df06": "5a29d75380c06e43",
     "vietjet.benefits.staff-travel.7808f4c8": "7bb14cc215f76704",
+    "vietjet.destinations.operated-airport.0d41deea": "73b3aa829a1b592c",
+    "vietjet.destinations.operated-airport.0e8f9880": "6e771b4a68eb5dbf",
+    "vietjet.destinations.operated-airport.133177fc": "a9d4afc171f3da07",
     "vietjet.fleet.airbus-a320ceo.5d1c2868": "800a18d82e2e5186",
     "vietjet.fleet.airbus-a321ceo.e328d62b": "a41d1191af08d643",
     "vietjet.fleet.airbus-a321neo.f41bd48c": "a7f98ea5bd478d4d",
@@ -515136,18 +533959,25 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "vietjet.profile.headquarters-country.aa4fffa6": "565056de34650d34",
     "vietjet.scale.fleet-total.9dfe108f": "a1de533cc52bb5d0"
    },
-   "revision": 1,
-   "sha": "sha256:b94110e0f732313e"
+   "revision": 2,
+   "sha": "sha256:fd73b8964a88960c"
   },
   "pvr-20261029-cg-vietnam-airlines": {
    "records": {
     "vietnam-airlines.benefits.pension.4043307b": "18b9b714508cb75e",
+    "vietnam-airlines.destinations.operated-airport.0e031dde": "dde1f6297a82c9ac",
+    "vietnam-airlines.destinations.operated-airport.1b3850b8": "514a2f85e9e67ab6",
+    "vietnam-airlines.destinations.operated-airport.31ce4529": "129eb413866c113f",
+    "vietnam-airlines.destinations.operated-airport.a7f6549b": "d337a951b4f00114",
+    "vietnam-airlines.destinations.operated-airport.b08e6e5a": "fe6d3ff1e3555bcd",
+    "vietnam-airlines.destinations.operated-airport.bc2936cc": "9a7b851de5170b6f",
+    "vietnam-airlines.destinations.operated-airport.ff432855": "5e9def5d9c26e9e7",
     "vietnam-airlines.profile.founded.c5ba88c7": "9d214b25d902dfce",
     "vietnam-airlines.profile.headquarters-city.a02fe0bf": "6f37528034448c38",
     "vietnam-airlines.profile.headquarters-country.4aeebb32": "048afbe76a1b6777"
    },
-   "revision": 1,
-   "sha": "sha256:6e0621e66365f573"
+   "revision": 2,
+   "sha": "sha256:ab3b29f71f5ac3d3"
   },
   "pvr-20261029-cg-virgin-atlantic": {
    "records": {
@@ -515238,11 +534068,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "pvr-20261029-cg-wizz-air": {
    "records": {
+    "wizz-air.fleet.airbus-a321-200n-caa-wizz-air-uk-ltd-qua.83df99ac": "b116ddc1ce97756c",
+    "wizz-air.profile.founded.20e5f6a2": "db1b48c03522d087",
     "wizz-air.profile.headquarters-city.db60817d": "a3c27c03ae45b91a",
-    "wizz-air.profile.headquarters-country.2971738c": "ee088460ed3e7c4a"
+    "wizz-air.profile.headquarters-country.2971738c": "ee088460ed3e7c4a",
+    "wizz-air.scale.fleet-total.e0d1158a": "5a2fe4ca8a43d6b9"
    },
-   "revision": 1,
-   "sha": "sha256:d5d5e455477076ec"
+   "revision": 2,
+   "sha": "sha256:76fae32e366e0fd5"
   },
   "pvr-20261029-cg-zipair": {
    "records": {
