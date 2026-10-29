@@ -134,6 +134,8 @@ export const NET_EN = Object.freeze({
   'Etihad Airways 公式「Destinations」': 'Etihad Airways official, “Destinations”', 'EVA Air 公式「Worldwide Airports」': 'EVA Air official, “Worldwide Airports”',
   /* 載せていない空港の理由 */
   '運休中（再開の計画が公表されていない）': 'Suspended (no plan to resume has been announced)', '運休中': 'Suspended',
+  /* 調べの台帳の就航地の行の理由（airline-rollout.mjs の why ── 2026-10-29 就航地を出す会社を広げてから英語のページに出る） */
+  '過去の話なのに日付が無い': 'Past information without a date',
   '運休中・空港を公式ページで特定できない': 'Suspended; the airport cannot be identified on the official page', '就航を延期': 'Launch postponed',
   'グループ会社（HAC）と提携会社（FDA）だけが運航': 'Flown only by a group airline (HAC) and a partner (FDA)',
   'グループ会社（HAC）だけが運航': 'Flown only by a group airline (HAC)', 'グループ会社（JAC）だけが運航': 'Flown only by a group airline (JAC)',
@@ -168,12 +170,21 @@ export const NET_EN = Object.freeze({
   'ロシア': 'Russia', 'イスラエル': 'Israel', 'シリア': 'Syria', 'セーシェル': 'Seychelles', 'タンザニア': 'Tanzania', 'チュニジア': 'Tunisia',
   'モロッコ': 'Morocco', 'レバノン': 'Lebanon',
   /* ★2026-10-29 WP-28：調べの台帳の就航地（ChatGPT の1回目）が画面に出す国・地域・州（使われる分だけ） */
-  'プエルトリコ': 'Puerto Rico', 'アルバ': 'Aruba', 'ベリーズ': 'Belize', 'ケイマン諸島': 'Cayman Islands', 'キューバ': 'Cuba', 'コスタリカ': 'Costa Rica', 'ジャマイカ': 'Jamaica',
-  'バハマ': 'Bahamas', 'タークス・カイコス諸島': 'Turks and Caicos Islands', 'ドミニカ共和国': 'Dominican Republic', 'アメリカ領ヴァージン諸島': 'US Virgin Islands',
-  'シント・マールテン': 'Sint Maarten', 'バミューダ': 'Bermuda', 'アンティグア・バーブーダ': 'Antigua and Barbuda', 'バルバドス': 'Barbados', 'キュラソー': 'Curaçao', 'ガイアナ': 'Guyana',
-  'グレナダ': 'Grenada', 'グアテマラ': 'Guatemala', 'エクアドル': 'Ecuador', 'トリニダード・トバゴ': 'Trinidad and Tobago', 'ホンジュラス': 'Honduras',
+  'カザフスタン': 'Kazakhstan', 'ミャンマー': 'Myanmar', 'ルーマニア': 'Romania', 'ルクセンブルク': 'Luxembourg', 'ガーナ': 'Ghana',
+  'コンゴ民主共和国': 'Democratic Republic of the Congo', 'ジンバブエ': 'Zimbabwe', 'ナイジェリア': 'Nigeria', 'ラオス': 'Laos', 'プエルトリコ': 'Puerto Rico', 'ペルー': 'Peru',
+  'ブラジル': 'Brazil', 'クロアチア': 'Croatia', 'フェロー諸島': 'Faroe Islands', 'グリーンランド': 'Greenland', 'アルバ': 'Aruba', 'ベリーズ': 'Belize', 'アルゼンチン': 'Argentina',
+  'ケイマン諸島': 'Cayman Islands', 'キューバ': 'Cuba', 'コスタリカ': 'Costa Rica', 'ジャマイカ': 'Jamaica', 'バハマ': 'Bahamas', 'タークス・カイコス諸島': 'Turks and Caicos Islands',
+  'ドミニカ共和国': 'Dominican Republic', 'アメリカ領ヴァージン諸島': 'US Virgin Islands', 'シント・マールテン': 'Sint Maarten', 'キプロス': 'Cyprus', 'コートジボワール': 'Côte d’Ivoire',
+  'アルジェリア': 'Algeria', 'イラク': 'Iraq', 'ギニア': 'Guinea', 'セネガル': 'Senegal', 'ウガンダ': 'Uganda', 'イラン': 'Iran', 'ザンビア': 'Zambia', 'モーリシャス': 'Mauritius',
+  'アンゴラ': 'Angola', 'マダガスカル': 'Madagascar', 'モンゴル': 'Mongolia', 'ハンガリー': 'Hungary', 'サモア': 'Samoa', 'キリバス': 'Kiribati',
+  'マーシャル諸島': 'Marshall Islands', 'アメリカ領サモア': 'American Samoa', 'フランス領ポリネシア': 'French Polynesia', 'クック諸島': 'Cook Islands', 'パラオ': 'Palau',
+  '北マリアナ諸島': 'Northern Mariana Islands', 'ミクロネシア連邦': 'Micronesia', 'バミューダ': 'Bermuda', 'アンティグア・バーブーダ': 'Antigua and Barbuda', 'バルバドス': 'Barbados',
+  'ボネール': 'Bonaire', 'キュラソー': 'Curaçao', 'マルティニーク': 'Martinique', 'ガイアナ': 'Guyana', 'グレナダ': 'Grenada', 'グアテマラ': 'Guatemala', 'エクアドル': 'Ecuador',
+  'ニカラグア': 'Nicaragua', 'トリニダード・トバゴ': 'Trinidad and Tobago', 'グアドループ': 'Guadeloupe', 'ホンジュラス': 'Honduras', 'エルサルバドル': 'El Salvador',
   'セントクリストファー・ネイビス': 'Saint Kitts and Nevis', 'セントビンセント・グレナディーン': 'Saint Vincent and the Grenadines', 'セントルシア': 'Saint Lucia',
-  'ニューハンプシャー州': 'New Hampshire',
+  'ボスニア・ヘルツェゴビナ': 'Bosnia and Herzegovina', 'ブルガリア': 'Bulgaria', 'スロバキア': 'Slovakia', 'セルビア': 'Serbia', 'リトアニア': 'Lithuania', 'ラトビア': 'Latvia',
+  'モンテネグロ': 'Montenegro', 'エストニア': 'Estonia', 'トーゴ': 'Togo', 'バヌアツ': 'Vanuatu', 'ボツワナ': 'Botswana', 'ナミビア': 'Namibia', 'カリフォルニア州': 'California',
+  'ニューハンプシャー州': 'New Hampshire', 'フロリダ州': 'Florida', 'コロラド州': 'Colorado',
 });
 /** 地域の英語の名前（airline-destinations.mjs の REGIONS の鍵ごと）。 */
 export const REGION_EN = Object.freeze({ japan: 'Japan', asia: 'Asia', oceania: 'Oceania', 'north-america': 'North America',
@@ -211,7 +222,8 @@ function heldWhyEn(t) {
 function networkEn(n, lead) {
   if (!n) return null;
   const regions = n.regions.map(r => ({ ...r, label: REGION_EN[r.key] || enOf(r.label, '地域の名前') }));
-  if (!lead) return { ...n, regions };
+  /* 調べの就航地（先行5社でない会社）も、載せていない空港の理由は英語に（2026-10-29 就航地を出す会社を広げて LOT の「過去の話なのに日付が無い」が出た） */
+  if (!lead) return { ...n, regions, held: n.held.map(h => ({ ...h, why: heldWhyEn(h.why) })) };
   return { ...n, regions, src: n.src.map(x => ({ ...x, name: enOf(x.name, '就航地の出どころ') })), basis: enOf(n.basis, '就航地の一覧の前提'),
     list: n.list.map(d => ({ ...d, city: d.en, country: countryOfEn(d.country) })),
     held: n.held.map(h => ({ ...h, name: PLACES[h.key] ? PLACES[h.key][1] : enOf(h.name, '載せていない空港'), why: heldWhyEn(h.why) })) };
@@ -781,7 +793,7 @@ function rolloutView(slug, lang = 'ja') {
     },
     work: rows(R.work), benefits: rows(R.benefits), living: livings[0] || null, livings,
     /* 拠点の空港は就航地の一覧に入れない。拠点が街だけの会社は、その街の空港（airline-rollout.mjs の base.home）も入れない（2026-10-21 d1） */
-    network: (n => (en ? networkEn(n, false) : n))(researchNetwork(slug, REGIONS, [...base.iata, ...((R.base && R.base.home) || [])], lang)),
+    network: (n => (en ? networkEn(n, false) : n))(researchNetwork(slug, REGIONS, [...new Set([...base.iata, ...((R.base && R.base.home) || []), ...(R.homeAll || [])])], lang)),
     company: { profile, scale: rows(R.scale), fleet, photo: primary(slug), intro: rowsIntro(slug, lang, { profile, fleet, base }) },
     jobs: rows(R.jobs),
     held: R.held,
