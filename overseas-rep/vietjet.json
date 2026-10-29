@@ -1,0 +1,50 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "副操縦士の口コミ2件とも組織の腐敗を批判している。3年超在籍の1件は「腐敗した官僚組織」と経営の対応の遅さを挙げつつ、ベトナムの航空会社では有力な選択肢だとする。5年超の1件は「極めて腐敗した会社」と書き、主任パイロットが経営側に従うことも批判している。",
+      "en": "Both first officer reviews criticize corruption. One, from a pilot with more than three years at the company, cites a \"corrupt bureaucracy\" and slow management responses yet still calls VietJet a strong option among Vietnamese carriers. The other, with more than five years, calls it an \"extremely corrupt company\" and says chief pilots simply side with management."
+    },
+    "salary": {
+      "ja": "給与については悪くないという声が2件ある。パイロットの1件はベトナムで暮らすには「給与は妥当だ」とし、5年超在籍の副操縦士も「給与はまずまずだ」と書く。一方で機長の口コミ1件は、給与の支払いが遅れることを不満に挙げている。",
+      "en": "Two reviews say pay is acceptable: one pilot says the \"salary is decent\" for living in Vietnam, and a first officer with more than five years says the \"salary is ok.\" A captain's review, however, complains about delayed salary payments."
+    },
+    "benefits": {
+      "ja": "福利厚生の評価は分かれる。3年超在籍の副操縦士は「まずまずの福利厚生」があるとし、5年超の副操縦士は給与以外に「福利厚生なし」と書いている。機長の口コミ1件は、家族への支援が足りないことも不満に挙げている。",
+      "en": "Views on benefits are split. A first officer with more than three years describes the benefits as decent, while one with more than five years says that beyond salary there are \"no benefits.\" A captain also complains of poor support for families."
+    },
+    "wlb": {
+      "ja": "機長の口コミは「長い乗務」と上限近くまで働くこと、頻繁な勤務予定の変更を不満に挙げ、勤務ローテーションが悪くなったとも書いている。副操縦士の口コミ1件も、休息が短く予定が突然変わると訴えている。",
+      "en": "A captain complains of \"long duties,\" flying close to the limits and frequent roster changes, and says rotations have gotten worse. A first officer's review likewise describes short rest periods and sudden schedule changes."
+    },
+    "ops": {
+      "ja": "整備の評価は分かれる。副操縦士の1件は「整備は冗談のようだ」と書き、不具合を抱えた機体の割り当てや、技術的理由の目的地変更でも処分があると訴える。一方、元機長の1件は比較的新しい機材と適切な整備を評価している。空港の混雑で遅延が多いという声もある。",
+      "en": "Opinions on maintenance differ. One first officer says maintenance is \"like a joke,\" citing aircraft assigned with defects and disciplinary action even for diversions made for technical reasons, while a former captain credits a relatively new fleet and proper maintenance. Another pilot points to frequent delays caused by airport congestion."
+    },
+    "training": {
+      "ja": "2件とも訓練に否定的だ。元機長は「安っぽいサーカス」という言葉を使い、訓練部門と主任パイロットの資質を厳しく批判し、昇格や教官の任命が勤続順より金銭に左右されると訴える。ハノイの副操縦士は「訓練も最善とはいえないかもしれない」とし、人脈がないと先が見えにくいと書く。",
+      "en": "Both reviews are negative on training. A former captain uses the words \"cheap circus\" in sharply criticizing the training department and the caliber of chief pilots, and alleges that upgrades and instructor appointments depend more on money than seniority. A Hanoi first officer says \"training might not be the best\" and that career prospects are unclear without connections."
+    }
+  },
+  "sources": [
+    {
+      "title": "Glassdoor – Vietjet Air – It is alright",
+      "url": "https://www.glassdoor.sg/Reviews/Employee-Review-Vietjet-Air-E1014082-RVW94737300.htm"
+    },
+    {
+      "title": "Glassdoor – Vietjet Air – Stay Away",
+      "url": "https://www.glassdoor.co.uk/Reviews/Employee-Review-Vietjet-Air-E1014082-RVW93282445.htm"
+    },
+    {
+      "title": "Glassdoor – Vietjet Air – Share info for vietjet",
+      "url": "https://www.glassdoor.com/Reviews/Employee-Review-Vietjet-Air-E1014082-RVW93897249.htm"
+    },
+    {
+      "title": "PilotsGlobal – Vietjet Air – Overwork / Corruption airline / Circus",
+      "url": "https://pilotsglobal.com/airlines/vietjet-air/pilot-reviews"
+    },
+    {
+      "title": "Glassdoor – Vietjet Air – Work here only as a Captain",
+      "url": "https://www.glassdoor.sg/Reviews/Employee-Review-Vietjet-Air-E1014082-RVW88599001.htm"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "3件の口コミとも職場の雰囲気を評価している。パイロットの1件は互いに助け合う「家庭的な雰囲気」を挙げ、クアラルンプールの副操縦士2件は「楽しく親しみやすい」文化だとする。ただ副操縦士の1件は、ごく小さなミスでもメールや報告が来るので注意が必要だとも書いている。",
+      "en": "All three reviews are positive about the atmosphere. One pilot describes a \"family type atmosphere\" where many people try to help one another, and two Kuala Lumpur first officers call the culture fun and friendly. One of them cautions, however, that even very minor mistakes can bring emails and reports."
+    },
+    "benefits": {
+      "ja": "「AirAsia Malaysia」と題したパイロットの口コミは、同僚の助け合いを高く評価する一方、欠点として「乏しい福利厚生」を挙げている。長い勤務時間と最低限の休日も合わせて不満としており、人の面と待遇の面で評価が分かれている。",
+      "en": "A pilot review titled \"AirAsia Malaysia\" speaks highly of colleagues but lists \"poor benefits\" as a downside, along with long hours and minimal days off, so it is positive on the people and negative on the package."
+    },
+    "wlb": {
+      "ja": "パイロットの口コミ1件は、勤務時間が長く、休みは「最低限の休日」しかないことを欠点に挙げている。同じ口コミは同僚が互いに助け合う雰囲気を長所としており、職場の人間関係とは別に、勤務の重さへの不満を示している。",
+      "en": "One pilot review lists long working hours and \"minimum days off\" as drawbacks. The same reviewer praises colleagues' willingness to help one another, so the complaint is about the workload rather than the people."
+    },
+    "training": {
+      "ja": "クアラルンプールの副操縦士の口コミは、追加の訓練が必要な訓練生に対して会社は「訓練生に非常に協力的」で、懲罰を中心にした対応ではないと評価している。学ぶ段階での支援の姿勢を長所に挙げ、入社を勧めている。",
+      "en": "A Kuala Lumpur first officer says the company is very helpful with trainees who need additional training and that its approach isn't punitive. The reviewer counts that supportive stance as a strength and recommends joining."
+    }
+  },
+  "sources": [
+    {
+      "title": "Glassdoor – AirAsia – AirAsia Malaysia",
+      "url": "https://www.glassdoor.co.uk/Reviews/Employee-Review-AirAsia-E318753-RVW94530625.htm"
+    },
+    {
+      "title": "Indeed – AirAsia – Funad Workplace",
+      "url": "https://malaysia.indeed.com/cmp/Airasia/reviews/funad-workplace?id=05ec23c0dd117486&uid=509e084b330de29a150dafbf43a38803"
+    },
+    {
+      "title": "Indeed – AirAsia – Fun and Friendly Culture",
+      "url": "https://malaysia.indeed.com/cmp/Airasia/reviews/fun-and-friendly-culture?id=5a5bb917da367905&uid=71c8a2a0b11d6cdb8b6446126a2d0017"
+    }
+  ]
+}

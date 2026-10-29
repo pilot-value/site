@@ -1,0 +1,42 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "機長の口コミは、とても良い同僚に恵まれ今も懐かしいとしつつ、管理については「硬直的な管理」だと評価し、会社で払った犠牲は見返りに見合わなかったと振り返る。B777/787の機長の口コミも、必要なときに管理職がつかまらず連絡が難しいと書いている。",
+      "en": "One captain says the colleagues were excellent and are still missed, but describes \"rigid management\" and feels the sacrifices made were not matched by the rewards. A B777/787 line captain also says managers are hard to reach when you need them."
+    },
+    "salary": {
+      "ja": "機長の口コミ2件とも給与に不満がある。B777/787のライン機長はパンデミック以降「給与と福利厚生が低下してきている」と書き、もう1件の機長も「低い給与」を短所に挙げる。ただ前者は、会社そのものはよい職場だとしている。",
+      "en": "Both captain reviews are unhappy with pay. A B777/787 line captain writes that \"salary and benefits are getting lower\" since the pandemic, and another captain lists \"low salary\" as a con. The first, however, still rates the company itself as a good place to work."
+    },
+    "benefits": {
+      "ja": "B777/787のライン機長の口コミは、パンデミック以降「福利厚生が低下してきている」と述べている。会社そのものはよい職場と評価する一方、必要なときに管理職が見つからず、意思疎通が難しい点も問題に挙げている。",
+      "en": "A B777/787 line captain says \"benefits are getting lower\" since the pandemic. While rating the company as a good employer overall, the reviewer also says managers are hard to find when needed and communication is difficult."
+    },
+    "wlb": {
+      "ja": "機長の口コミ2件で見方が分かれる。1件は会社の安定と「月に10日の休日」を長所としつつ、実際の勤務は慌ただしく、割り当てどおりに乗務できないと書く。もう1件は勤務予定が厳しく「仕事と私生活のバランスがない」としている。",
+      "en": "The two captain reviews differ. One values the company's stability and \"10 days off per month,\" but says the actual schedule is hectic and you can't fly the roster as assigned. The other cites a demanding schedule and says there is no work-life balance at all."
+    },
+    "ops": {
+      "ja": "副操縦士の口コミは、勤務予定を組む部門に不正があると主張し、便が飛ぶ限り「管理職は会社の規則や国際的な法規を無視する」と批判している。勤務予定の管理と規則の順守について、強い不信を示した内容だ。",
+      "en": "A first officer alleges irregularities in the crew scheduling department and claims that, as long as flights operate, \"managers disregard company and international laws.\" The review expresses deep distrust of how scheduling and compliance are handled."
+    }
+  },
+  "sources": [
+    {
+      "title": "Indeed – Ethiopian Airlines Captain review",
+      "url": "https://www.indeed.com/cmp/Ethiopian-Airlines/reviews/very-stressful-place-to-work?id=f20d561440e23c4d"
+    },
+    {
+      "title": "Indeed – Ethiopian Airlines Line Captain review",
+      "url": "https://www.indeed.com/cmp/Ethiopian-Airlines/reviews/good-experience-in-overall?id=87af9c81445c31e4"
+    },
+    {
+      "title": "Glassdoor – Ethiopian Air Captain review",
+      "url": "https://www.glassdoor.co.in/Reviews/Employee-Review-Ethiopian-Air-E33364-RVW99682373.htm"
+    },
+    {
+      "title": "Glassdoor – Ethiopian Air First Officer review",
+      "url": "https://www.glassdoor.com/Reviews/Employee-Review-Ethiopian-Air-E33364-RVW84007900.htm"
+    }
+  ]
+}

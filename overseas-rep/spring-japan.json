@@ -1,0 +1,22 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "元機長の口コミが2件あり、どちらも外国人パイロットの扱いに厳しい。1件は「小規模で親しみがある」職場としつつ外国人には排他的で、JALから出向した経営陣は帰任を優先していると書く。もう1件は、経営陣が英語を話さず、英語の窓口を通す連絡にも「偏り」があると批判している。",
+      "en": "Two reviews from former captains are both critical of how foreign pilots are treated. One describes a small, personal workplace that is nonetheless closed to foreigners and says managers seconded from JAL are focused on going back. The other says management doesn't speak English and that communication routed through English-speaking staff shows \"bias.\""
+    },
+    "benefits": {
+      "ja": "元機長の口コミは、自宅から通うコミューティング契約は用意されていないと書いている。以前の制度でも移動はエコノミークラスだったとし、通勤の支援を期待して入社することには否定的な見方を示している。",
+      "en": "A former captain writes that no commuting contract is offered and that even under the earlier arrangement, commuting travel was in economy. The reviewer is skeptical of joining in the expectation of commuting support."
+    },
+    "wlb": {
+      "ja": "元機長の口コミは、ワークライフバランスが悪く、勤務予定も休暇も当てにできないと評価している。コミューティング契約も無いため、自宅から通う働き方や私生活の時間を重視する人には入社を勧めないとしている。",
+      "en": "A former captain rates work-life balance poorly, saying you can count on neither a schedule nor time off. With no commuting contract either, the reviewer advises against joining if commuting from home or protecting personal time matters to you."
+    }
+  },
+  "sources": [
+    {
+      "title": "PilotsGlobal – Spring Airlines Japan",
+      "url": "https://pilotsglobal.com/airlines/spring-airlines-japan/pilot-reviews"
+    }
+  ]
+}

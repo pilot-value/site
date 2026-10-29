@@ -726,13 +726,14 @@
   /* PV_OVERSEAS_LIST:BEGIN */
   var PV_OVERSEAS = [
     'aegean', 'aer-lingus', 'aeromexico', 'air-canada', 'air-china', 'air-france', 'air-india', 'air-new-zealand',
-    'alaska-airlines', 'allegiant', 'american', 'austrian', 'avianca', 'breeze-airways', 'british-airways', 'cathay-pacific',
-    'china-eastern', 'china-southern', 'copa-airlines', 'delta', 'easyjet', 'emirates', 'etihad', 'eva-air',
-    'finnair', 'frontier', 'garuda-indonesia', 'gulf-air', 'iberia', 'icelandair', 'indigo', 'ita-airways',
-    'jetblue', 'klm', 'korean-air', 'latam', 'lot', 'lufthansa', 'malaysia-airlines', 'norwegian',
-    'oman-air', 'porter', 'qantas', 'qatar-airways', 'riyadh-air', 'ryanair', 'sas', 'saudia',
-    'singapore-airlines', 'southwest', 'spirit', 'starlux', 'swiss', 'tap', 'thai-airways', 'turkish-airlines',
-    'united', 'virgin-atlantic', 'vueling', 'westjet', 'wizz-air'
+    'airasia', 'alaska-airlines', 'allegiant', 'american', 'austrian', 'avianca', 'batik-air', 'breeze-airways',
+    'british-airways', 'cathay-pacific', 'china-eastern', 'china-southern', 'copa-airlines', 'delta', 'easyjet', 'egyptair',
+    'emirates', 'ethiopian-airlines', 'etihad', 'eva-air', 'finnair', 'frontier', 'garuda-indonesia', 'gulf-air',
+    'hong-kong-express', 'iberia', 'icelandair', 'indigo', 'ita-airways', 'jetblue', 'klm', 'korean-air',
+    'latam', 'lot', 'lufthansa', 'malaysia-airlines', 'norwegian', 'oman-air', 'porter', 'qantas',
+    'qatar-airways', 'riyadh-air', 'ryanair', 'sas', 'saudia', 'singapore-airlines', 'solairus', 'southwest',
+    'spirit', 'spring-japan', 'starlux', 'swiss', 'tap', 'thai-airways', 'turkish-airlines', 'united',
+    'vietjet', 'virgin-atlantic', 'vueling', 'westjet', 'wizz-air'
   ];
   /* PV_OVERSEAS_LIST:END */
   var pvOverseasRec = null, pvOverseasFetched = false;

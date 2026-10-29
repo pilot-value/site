@@ -1,0 +1,38 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "ジャカルタのラインパイロットの口コミは、一緒に働く客室乗務員の人柄を長所に挙げる。一方で会社については「いつも合意を破った」と書き、契約上の取り決めが守られないことがストレスだと述べている。",
+      "en": "A line pilot in Jakarta praises the cabin crew colleagues but says the company \"always broke the agreement,\" describing its failure to honor contractual commitments as a source of stress."
+    },
+    "salary": {
+      "ja": "ジャカルタのラインパイロットの口コミは、給与の「不規則な支払い」を不満に挙げている。また機長の口コミ1件は、新しく導入された業績手当には支給の条件が付いていると書いており、どちらも支払われ方に関する声だ。",
+      "en": "A Jakarta line pilot complains of irregular salary payments, and a captain notes that a newly introduced performance allowance comes with conditions attached. Both comments are about how pay is delivered rather than its level."
+    },
+    "benefits": {
+      "ja": "機長の口コミは「家族も対象となる保険」を長所に挙げ、経験を早く積める点も評価している。ただ同じ口コミは休日の不足を題に掲げており、待遇の良い面と勤務の厳しさを分けて書いている。",
+      "en": "A captain lists \"insurance including for your family members\" as a plus, along with the chance to build experience quickly. The same review, though, is titled \"Lack of day off,\" keeping the good parts of the package separate from the strain of the schedule."
+    },
+    "wlb": {
+      "ja": "機長の口コミ2件とも休みの取りにくさを挙げている。1件は休日が足りず家族と過ごす時間が少ないとし、子どもの誕生日に出した休暇の希望を別の日に変えられた、予定の変更が多く私生活の計画が立てにくいと書く。もう1件も「休暇を取りづらい」と述べている。",
+      "en": "Both captain reviews point to difficulty getting time off. One cites too few days off and little family time, says a leave request for a child's birthday was moved to another date, and finds frequent roster changes make personal plans hard. The other simply says \"Leave difficult to get.\""
+    },
+    "ops": {
+      "ja": "機長の口コミは「多様な就航先」を長所に挙げ、新人パイロットが経験を積みやすく、飛行時間も早く増やせる環境だと評価している。同じ口コミは、休暇の取りにくさや業績手当の条件を短所としている。",
+      "en": "A captain highlights the \"variety of destinations\" and says newer pilots can gain experience and build hours quickly there, while listing hard-to-get leave and the conditions on the new performance allowance as downsides."
+    }
+  },
+  "sources": [
+    {
+      "title": "Indeed – Batik Air – bad",
+      "url": "https://id.indeed.com/cmp/Batik-Air/reviews/bad?id=390aafcc7d9e1554&uid=20528dd280f4632d8ceb67474faee9f8"
+    },
+    {
+      "title": "Glassdoor – Batik Air – Lack of day off",
+      "url": "https://www.glassdoor.co.uk/Reviews/Employee-Review-Batik-Air-E2940028-RVW87030555.htm"
+    },
+    {
+      "title": "Glassdoor – Batik Air – Difficult to get leave",
+      "url": "https://www.glassdoor.co.uk/Reviews/Employee-Review-Batik-Air-E2940028-RVW94456300.htm"
+    }
+  ]
+}

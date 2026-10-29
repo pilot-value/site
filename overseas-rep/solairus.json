@@ -1,0 +1,30 @@
+{
+  "cats": {
+    "culture": {
+      "ja": "機長の口コミは、会社は社員の成功を望み「100％支えてくれる」と高く評価する。一方、4年勤めたというパイロットは、本社はあまり干渉しないが働きやすさは担当の主任パイロット次第で、機体のオーナーと話し合うべき問題では会社がパイロットを十分に支えないと書いている。",
+      "en": "A captain rates the company highly, saying it wants its people to succeed and is \"behind you 100%.\" A pilot who reports four years there says headquarters mostly leaves you alone, but that much depends on your chief pilot and that the company doesn't back pilots well on issues that need to be taken up with aircraft owners."
+    },
+    "salary": {
+      "ja": "ヒューストンのパイロットの口コミは、給与は「妥当から高め」だと評価している。完璧な会社ではないと断ったうえでの評価で、拠点が広く分散していても乗員を支える人員と仕組みを整える努力があるとも述べている。",
+      "en": "A Houston-based pilot describes pay as \"fair to high,\" while acknowledging the company isn't perfect, and credits it with building the staff and systems to support crews spread across many locations."
+    },
+    "benefits": {
+      "ja": "ヒューストンのパイロットの口コミは「優れた福利厚生」を長所に挙げ、会社は手抜きをしないと述べている。完璧な会社ではないとしながらも、給与と合わせて待遇面を前向きに評価した内容だ。",
+      "en": "A Houston-based pilot lists \"great benefits\" among the positives and says the company doesn't cut corners. While not calling it a perfect employer, the review is positive on pay and benefits overall."
+    }
+  },
+  "sources": [
+    {
+      "title": "Indeed – SOLAIRUS Aviation – Great place to work for",
+      "url": "https://www.indeed.com/cmp/Solairus-Aviation/reviews/great-place-to-work-for?id=8864d0b901fd598e&uid=c4568ce69b8dc0bbe7a9e43bffa05c0b"
+    },
+    {
+      "title": "Indeed – SOLAIRUS Aviation – Good and Bad",
+      "url": "https://www.indeed.com/cmp/Solairus-Aviation/reviews/good-and-bad?id=154f81050039b537&uid=219c95c372f318097b6ba20340a8efe2"
+    },
+    {
+      "title": "Indeed – SOLAIRUS Aviation – Great Company",
+      "url": "https://www.indeed.com/cmp/Solairus-Aviation/reviews/great-company?id=c114217a668dbfa9&uid=41e369fb5b341abf8b6446126a2d0017"
+    }
+  ]
+}
