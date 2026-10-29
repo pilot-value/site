@@ -487,11 +487,49 @@ comment on function public.pv_review_voices() is
 -- 開け方を、Vote の流れるカードだけ **12件** に広げた。カードは先頭80字だけ見せ、
 -- 残りはぼかし、投稿全体の文字数（n）を出す。ぼかしの下に本物の字は置かない
 -- （＝80字より先はここから1文字も返さない。画面のぼかしは字を持たない影絵）。
---   ・足切り・切り方・訳文の扱いは 6. と同じ（最初の欄が20字以上・80字で切る・訳も80字）。
+--   ★80字は **1件で** 数える（2026-10-29 オーナー指摘「80文字までなのに10文字くらいで終わる」）。
+--     投稿の頭から項目の順（企業文化 → 給与 → 福利厚生 → WLB → 運航 → 訓練 → 経営陣への提案）に
+--     続けて80字まで詰める（pv_review_fill）。最初の欄が短い投稿も80字まで出る。
+--     80字に入らなかった欄の本文は返さず、書かれた欄の名前だけ cats で返す（引き出しが「コメントなし」と言わないため）。
+--     訳文も言語ごとに同じ決まりで80字まで。
+--   ・足切りは「本文が合わせて20字以上」（空白を除く）。80字の切り方・「…」は 6. と同じ。
 --   ・引き取っていない預かり（3-b）も混ぜる（2026-10-29 オーナー決定「預かった時点で一覧に出す」）。
 --   ・id は鍵を持つ人にだけ（6. と同じ）。鍵を持つ人の画面は pv_reviews の全文を使う。
 -- ⚠️ 件数も字数もここの数字だけ。トップ（6.）は 6件のまま触らない。一覧（4.）の鍵の無い抜粋は 40字のまま。
 -- ════════════════════════════════════════════════════════════════
+
+/* 項目の順に、合わせて budget 字まで詰める（2026-10-29）。
+   j の (項目名 || suffix) を読み、{項目名 || suffix: 切った本文} を返す。
+   ・前の欄までで使った字数を引いた残りで切る（切り方は pv_review_clip ＝ 最後の1字が「…」）。
+   ・残りが8字に満たなくなったら、そこで止める（「あ…」のような切れ端を出さない）。
+   ・空の欄は飛ばす（字数に数えない）。
+   ★誰にも grant しない（pv_vote_latest の中からだけ使う）。 */
+create or replace function public.pv_review_fill(j jsonb, suffix text, budget int)
+returns jsonb
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  with f as (
+    select k.key, k.ord,
+           btrim(regexp_replace(
+             regexp_replace(coalesce(j ->> (k.key || suffix), ''), '\\[nrt]', ' ', 'g'),
+             '\s+', ' ', 'g')) as v
+      from unnest(array['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'])
+           with ordinality as k(key, ord)
+  ), c as (
+    select f.key, f.v,
+           budget - coalesce(sum(char_length(f.v)) over (order by f.ord
+                      rows between unbounded preceding and 1 preceding), 0) as room
+      from f
+     where f.v <> ''
+  )
+  select coalesce(jsonb_object_agg(c.key || suffix, public.pv_review_clip(c.v, c.room::int)), '{}'::jsonb)
+    from c
+   where c.room >= 8
+$fn$;
+revoke all on function public.pv_review_fill(jsonb, text, int) from public, anon, authenticated;
+
 create or replace function public.pv_vote_latest()
 returns jsonb
 language sql
@@ -511,14 +549,10 @@ as $fn$
   ), pick as (
     select s.*
       from src s
-     where length(regexp_replace(coalesce(
-             nullif(btrim(s.j ->> 'culture_comment'),  ''),
-             nullif(btrim(s.j ->> 'salary_comment'),   ''),
-             nullif(btrim(s.j ->> 'benefits_comment'), ''),
-             nullif(btrim(s.j ->> 'wlb_comment'),      ''),
-             nullif(btrim(s.j ->> 'ops_comment'),      ''),
-             nullif(btrim(s.j ->> 'training_comment'), ''),
-             nullif(btrim(s.j ->> 'mgmt_comment'),     ''), ''), '\s', '', 'g')) >= 20
+     where length(regexp_replace(concat_ws('',
+             s.j ->> 'culture_comment', s.j ->> 'salary_comment', s.j ->> 'benefits_comment',
+             s.j ->> 'wlb_comment', s.j ->> 'ops_comment', s.j ->> 'training_comment',
+             s.j ->> 'mgmt_comment'), '\s', '', 'g')) >= 20
      order by s.at desc nulls last
      limit 12
   )
@@ -537,23 +571,19 @@ as $fn$
            'orig_lang',        pick.j -> 'orig_lang',
            'pending',          pick.j -> 'pending',
            'n',                public.pv_review_len(pick.j),
-           'culture_comment',  public.pv_review_clip(pick.j ->> 'culture_comment',  80),
-           'salary_comment',   public.pv_review_clip(pick.j ->> 'salary_comment',   80),
-           'benefits_comment', public.pv_review_clip(pick.j ->> 'benefits_comment', 80),
-           'wlb_comment',      public.pv_review_clip(pick.j ->> 'wlb_comment',      80),
-           'ops_comment',      public.pv_review_clip(pick.j ->> 'ops_comment',      80),
-           'training_comment', public.pv_review_clip(pick.j ->> 'training_comment', 80),
-           'mgmt_comment',     public.pv_review_clip(pick.j ->> 'mgmt_comment',     80),
+           /* 書かれた欄の名前（80字に入らず本文を返さない欄も含む）。 */
+           'cats',             (select coalesce(jsonb_agg(k.key order by k.ord), '[]'::jsonb)
+                                  from unnest(array['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'])
+                                       with ordinality as k(key, ord)
+                                 where btrim(coalesce(pick.j ->> (k.key || '_comment'), '')) <> ''),
            'translations',
              case when jsonb_typeof(pick.j -> 'translations') = 'object' then (
-               select jsonb_object_agg(l.key, (
-                        select jsonb_object_agg(c.key,
-                                 to_jsonb(public.pv_review_clip(c.value #>> '{}', 80)))
-                          from jsonb_each(l.value) c
-                         where jsonb_typeof(l.value) = 'object'))
-                 from jsonb_each(pick.j -> 'translations') l)
+               select jsonb_object_agg(l.key, public.pv_review_fill(l.value, '', 80))
+                 from jsonb_each(pick.j -> 'translations') l
+                where jsonb_typeof(l.value) = 'object')
              end
-         )) order by pick.at desc nulls last), '[]'::jsonb)
+         )) || public.pv_review_fill(pick.j, '_comment', 80)     -- 本文：頭から項目の順に、1件で80字まで
+         order by pick.at desc nulls last), '[]'::jsonb)
     from pick
 $fn$;
 
@@ -561,7 +591,7 @@ revoke all on function public.pv_vote_latest() from public;
 grant execute on function public.pv_vote_latest() to anon, authenticated;
 
 comment on function public.pv_vote_latest() is
-  'Vote の流れるカード。新しい12件・1欄80字まで・本文の文字数 n。2026-10-29 オーナー決定で開けた穴（トップの6件とは別）。';
+  'Vote の流れるカード。新しい12件・1件80字まで（頭から項目の順に詰める）・本文の文字数 n。2026-10-29 オーナー決定で開けた穴（トップの6件とは別）。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -679,14 +709,19 @@ select '⑥ 預かり（pv_review_pending）に直接触れる口',
             else '❌ 表に直接触れる（ポリシーか権限が残っている）' end
 union all
 /* ★⑦ Vote の流れるカード（2026-10-29 オーナー決定・12件・80字）。 */
-select '⑦ Vote の流れるカード（12件まで・1欄80字まで）',
+select '⑦ Vote の流れるカード（12件まで・1件80字まで）',
        (with v as (select x from jsonb_array_elements(public.pv_vote_latest()) x)
         select case
           when (select count(*) from v) = 0 then '⚠️ 口コミがまだ無い（入ってから見る）'
           when (select count(*) from v) > 12 then '❌ 12件を超えている'
-          when exists (select 1 from v, jsonb_each_text(v.x) e
-                        where e.key like '%_comment' and length(e.value) > 80)
-            then '❌ 80字を超えている欄がある'
+          when exists (select 1 from v
+                        where (select coalesce(sum(length(e.value)), 0) from jsonb_each_text(v.x) e
+                                where e.key like '%_comment') > 80)
+            then '❌ 1件で80字を超えている'
+          when exists (select 1 from v, jsonb_each(coalesce(v.x -> 'translations', '{}'::jsonb)) l
+                        where jsonb_typeof(l.value) = 'object'
+                          and (select coalesce(sum(length(t.value)), 0) from jsonb_each_text(l.value) t) > 80)
+            then '❌ 訳文が1件で80字を超えている'
           when exists (select 1 from v where not jsonb_exists(v.x, 'n')) then '❌ 文字数（n）が無い行がある'
-          else '✅ 12件まで・80字まで・文字数つき'
+          else '✅ 12件まで・1件80字まで・文字数つき'
         end);

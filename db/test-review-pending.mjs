@@ -131,6 +131,8 @@ console.log('\n▼ 2. 預かった口コミは一覧に出る（本文の規則�
 // ════════════════════════════════════════════════════════════
 const list = async () => (await one(`select public.pv_reviews('{"limit":500}'::jsonb) r`)).r;
 const latest = async () => (await one(`select public.pv_vote_latest() v`)).v;
+/* 1件の本文（*_comment）の字数の合計 ── 流れるカードは1件で80字まで（項目をまたいで数える） */
+const sum = (x) => Object.entries(x).filter(([k]) => /_comment$/.test(k)).reduce((s, [, t]) => s + String(t).length, 0);
 {
   await asAnon();
   const r = await list();
@@ -164,15 +166,39 @@ console.log('\n▼ 3. 流れるカード（pv_vote_latest）は12件・80字・�
   await db.query(`insert into public.reviews_v2(proof_hash, airline, culture_comment) values('short','jal','短い')`);
   await asAnon();
   const v = await latest();
-  const long = v.filter((x) => Object.entries(x).some(([k, s]) => /_comment$/.test(k) && String(s).length > 80));
+  const long = v.filter((x) => sum(x) > 80);
   ok(v.length === 12, `12件だけ返る（${v.length}件）`);
-  ok(!long.length && !J(v).includes(MARK), '★どの欄も80字まで（80字より先は1文字も返らない）', J(long[0] || {}).slice(0, 120));
-  ok(!v.some((x) => x.culture_comment === '短い'), '最初の欄が20字に満たない口コミは出さない（トップと同じ足切り）');
+  ok(!long.length && !J(v).includes(MARK), '★1件で80字まで（項目をまたいで数える・80字より先は1文字も返らない）', J(long[0] || {}).slice(0, 120));
+  ok(!v.some((x) => x.culture_comment === '短い'), '本文が合わせて20字に満たない口コミは出さない');
   ok(v.every((x) => Number.isInteger(x.n) && x.n > 0), 'どの行にも文字数 n がある');
   const top = (await one(`select public.pv_review_voices() v`)).v;
   ok(top.length === 6, `★トップの抜粋は6件のまま（${top.length}件）`);
   await asUser(9);
   ok((await latest()).every((x) => x.id), '鍵のある人には番号（id）が付く（画面が全文と突き合わせる）');
+}
+{
+  /* ★2026-10-29 オーナー指摘「80文字までなのに10文字くらいで終わる」── 最初の欄が短くても、次の欄へ続けて80字まで */
+  await asOwner();
+  const SHORT = 'すごく良い、美しい、気に入っている、素晴らしい';                     // 23字
+  const h = (await one(`select public.pv_review_hash($1::uuid,$2) h`, [uid(300), 'jal'])).h;
+  await db.query(`insert into public.reviews_v2(proof_hash, airline, culture_score, culture_comment, salary_comment, wlb_comment, training_comment, translations, created_at)
+                  values($1,'jal',5,$2,$3,$4,$5,$6::jsonb, now() + interval '1 minute')`,
+    [h, SHORT, '基本給は同業の中では標準的で、乗務手当が月ごとに変わる。' + 'い'.repeat(60) + MARK, '勤務の話。' + 'う'.repeat(40) + MARK, '訓練の話。' + MARK,
+     J({ en: { culture: 'Really good, beautiful, love it, wonderful.', salary: 'Base pay is about average; flight pay changes month to month. ' + 'x'.repeat(80) + MARK } })]);
+  await asAnon();
+  const x = (await latest()).find((r) => r.culture_comment === SHORT);
+  const en = (x && x.translations && x.translations.en) || {};
+  const enSum = Object.values(en).reduce((s, t) => s + String(t).length, 0);
+  ok(x && x.culture_comment === SHORT && String(x.salary_comment || '').startsWith('基本給は同業') && String(x.salary_comment).endsWith('…'),
+     '★最初の欄が短い投稿は、次の欄（給与）へ続けて出す（給与の欄は残りの字数で切れて「…」）', J(x || {}).slice(0, 240));
+  ok(x && sum(x) === 80 && !('wlb_comment' in x) && !('training_comment' in x) && !J(x).includes(MARK),
+     '★合わせてちょうど80字・80字に入らなかった欄（勤務・訓練）は本文を返さない', J(x || {}).slice(0, 240));
+  ok(x && J(x.cats) === J(['culture', 'salary', 'wlb', 'training']),
+     '書かれた欄の名前（cats）は全部返す ── 引き出しが「コメントなし」と言わないため', J(x && x.cats));
+  ok(en.culture && en.salary && enSum === 80 && !J(en).includes(MARK), '★訳文も同じ決まりで、言語ごとに合わせて80字まで', J(en));
+  /* 後片付け（このあとの件数の確認を変えない） */
+  await asOwner();
+  await db.query(`delete from public.reviews_v2 where proof_hash = $1`, [h]);
 }
 
 // ════════════════════════════════════════════════════════════

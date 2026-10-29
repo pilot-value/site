@@ -361,6 +361,38 @@
     var cut = it.kind === 'latest' && /…$/.test(c.text);   // 80字で切ってある欄
     return { tag: T.cat[c.k] || '', html: esc(c.text), tr: tr, shown: c.text.replace(/…$/, '').length, locked: it.kind === 'latest', cut: cut };
   }
+  /* 流れるカードの本文：投稿の頭から項目の順（KEYS）に、合わせて80字まで続けて出す。
+     2026-10-29 オーナー指摘「80文字までなのに10文字くらいで終わっているカードがある」── 最初の1項目しか出していなかった。
+     2つ目からの項目は、文の前に項目名を小さく置く。鍵の無い人に届くのは、サーバーが同じ決まりで切った80字だけ
+     （pv_review_fill。ここで切るのは鍵のある人の全文と、古いサーバーの「1欄80字」の返事のとき）。
+     返す more ＝ 80字より先に本文が残っている（鍵の無い人には影絵・鍵のある人には「…」）。 */
+  var STRIP_CHARS = 80;
+  function stripBody(it) {
+    var b = it.body, list = b.cats || [], written = (it.row && it.row.cats) || [];
+    var room = STRIP_CHARS, html = '', shown = 0, tag = '', tr = false, cut = false, last = -1, i;
+    function catOf(k) { for (var m = 0; m < list.length; m++) if (list[m].k === k && list[m].text) return list[m]; return null; }
+    for (i = 0; i < KEYS.length; i++) {
+      var c = catOf(KEYS[i]);
+      if (!c) continue;
+      if (room < 8 || cut) break;
+      last = i;
+      var t = c.text, srv = /…$/.test(t);
+      if (srv) t = t.replace(/…$/, '');
+      var take = t;
+      if (t.length > room - (srv ? 1 : 0)) { take = t.slice(0, safeCut(t, room - 1)); cut = true; }
+      else if (srv) cut = true;
+      var o = origOf(b, c.k);
+      if (b.translated && o && o !== c.text) tr = true;
+      if (!html) tag = T.cat[c.k] || '';
+      else html += ' <b class="vt-mini-k">' + esc(T.cat[c.k] || '') + '</b>';
+      html += esc(take);
+      shown += take.length; room -= take.length;
+    }
+    var more = cut;   // 見せた欄より後ろに、届いた欄か「書かれた」欄（80字に入らず本文の来ていない欄）があれば続きがある
+    for (var j = last + 1; !more && j < KEYS.length; j++) if (catOf(KEYS[j]) || written.indexOf(KEYS[j]) >= 0) more = true;
+    if (more) html += '…';
+    return { tag: tag, html: html, tr: tr, shown: shown, locked: it.kind === 'latest', more: more, strip: true };
+  }
   function searchText(it) {
     var n = nameOf(it.slug, it.code);
     var parts = [it.slug, n.main, n.sub, posText(it.pos)];
@@ -415,7 +447,8 @@
      中身の順：項目名・星 → 本文（鍵の無い人は先頭80字＋影絵1行）→ 会社・職位・勤務年数・年月・全 N 文字。 */
   function mini(it) {
     var n = nameOf(it.slug, it.code);
-    var ex = excerpt(it, '');
+    var full = it.kind === 'latest' || (it.kind === 'server' && !it.body.locked);
+    var ex = full ? stripBody(it) : excerpt(it, '');
     var avg = (it.kind === 'seed' || it.kind === 'local') ? (it.rating ? Math.min(5, it.rating) : null) : rowAvg(it.row);
     var total = lenOf(it);
     var head = '<span class="vt-rc-tags">' + (ex.tag ? '<span class="vt-tag">' + esc(ex.tag) + '</span>' : '') +
@@ -423,8 +456,9 @@
       (avg ? '<span class="vt-rc-stars">' + stars(avg) + '<b>' + avg.toFixed(1) + '</b></span>' : '') + '</span>';
     var body = (ex.html === null)
       ? '<span class="vt-rc-ex is-locked">🔒 ' + esc(T.lockedBody) + '</span>'
-      : '<span class="vt-rc-ex' + (ex.locked ? ' is-cut' : '') + '">' + ex.html + '</span>';
-    if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
+      : '<span class="vt-rc-ex' + (ex.locked || ex.strip ? ' is-cut' : '') + '">' + ex.html + '</span>';
+    if (ex.strip) { if (ex.locked && ex.more) body += ghost(Math.max(20, (total || 0) - ex.shown)); }
+    else if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
     var who = [n.main, posText(it.pos), T.tenure(it.ten), it.date.t].join(' · ');
     return '<a class="vt-rc vt-mini" href="#review/' + it.key + '" data-review="' + it.key + '">' + head + body +
       '<span class="vt-mini-meta"><span class="vt-mini-who">' + esc(who) + '</span>' +
@@ -442,8 +476,10 @@
      pv_vote_latest がまだ無い（SQL を貼る前）・読めないときは、今までの並び（9件・40字）に戻る。 */
   function stripItems() {
     var open = items.filter(function (it) { return it.kind === 'server' && !it.body.locked; });
-    if (open.length) {
-      return open.filter(function (it) { var c = firstCat(it.body); return c && c.text.replace(/\s/g, '').length >= 20; }).slice(0, STRIP_N);
+    if (open.length) {   // 足切りはサーバー（pv_vote_latest）と同じ：本文が合わせて20字以上（空白を除く）
+      return open.filter(function (it) {
+        return (it.body.cats || []).map(function (c) { return c.text; }).join('').replace(/\s/g, '').length >= 20;
+      }).slice(0, STRIP_N);
     }
     if (latest.s === 'ok' && latest.items.length) return latest.items;
     return items.slice(0, FEED_N);
@@ -737,9 +773,11 @@
     var score = (sc && sc > 0) ? '<span class="vt-d-score">' + stars(Math.min(5, sc)) + '<span>' + Math.min(5, sc).toFixed(1) + ' / 5</span></span>' : '';
     var p;
     if (it.kind === 'latest') {
-      var lc = firstCat(b, k);
-      if (!lc) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
-      else p = '<p>' + esc(lc.text) + '</p>' + (/…$/.test(lc.text) ? ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>' : '');
+      /* 届いているのは投稿の頭から80字だけ。80字に入らなかった欄は、書かれていれば影絵と錠前（cats が名前だけ運ぶ） */
+      var lc = firstCat(b, k), wrote = ((r && r.cats) || []).indexOf(k) >= 0;
+      if (lc) p = '<p>' + esc(lc.text) + '</p>' + (/…$/.test(lc.text) ? ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>' : '');
+      else if (wrote) p = ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
+      else p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
     } else if (b.locked) {
       var written = ((r && r.cats) || []).indexOf(k) >= 0;
       if (!written) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';

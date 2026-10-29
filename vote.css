@@ -143,6 +143,8 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 .vt-mini .vt-rc-ex{display:-webkit-box;font-size:12px;line-height:1.55;min-height:4.65em;-webkit-line-clamp:4;color:var(--vt-body-text)}
 .vt-mini .vt-rc-ex.is-cut{display:block;-webkit-line-clamp:unset;overflow:visible}
 .vt-mini .vt-rc-ex.is-locked{font-size:11.5px}
+/* 2つ目からの項目名（本文は項目をまたいで80字まで続く・2026-10-29） */
+.vt-mini-k{font-weight:700;font-size:10.5px;letter-spacing:.2px;color:var(--vt-ink-2);margin:0 3px 0 4px}
 .vt-mini .vt-ghost{margin-top:2px}
 .vt-mini .vt-ghost i{height:7px;margin:4px 0}
 .vt-mini .vt-ghost i:nth-child(n+2){display:none}

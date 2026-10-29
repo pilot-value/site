@@ -99,12 +99,15 @@ const REV = [
   ['ana', 'fo', '1-5', [3, 3, 4, 2, 4, 4], null, { ops: '機材の更新が進んでいる。' + pad }, 2, null],
   ['jal', 'captain', '10-15', [4, 4, 4, 4, 4, 4], null, { salary: '基本給と乗務手当のバランスは悪くない。' + pad }, 0, null],
   ['singapore', 'captain', '10-15', [4, 4, 4, 3, 4, 4], null, { training: '訓練部門の教官の質が高い。' + pad }, 4, null],
+  /* ★2026-10-29 オーナー指摘「80文字までなのに10文字くらいで終わる」── 最初の欄が短い投稿（企業文化 23字）。
+     カードは次の欄（給与）へ続けて80字まで出す。勤務の欄は80字に入らない（本文は届かず、引き出しは錠前）。 */
+  ['jal', 'fo', '1-5', [5, 5, 5, 4, 4, 4], null, { culture: 'すごく良い、美しい、気に入っている、素晴らしい', salary: '基本給は同業の中では標準的で、乗務手当で波がある。' + pad, wlb: '勤務表は月の中旬に出る。' + pad }, 1, null],
 ];
 const tails = [];
 const LENS = [];   // 1件ずつの本文の文字数（7欄の合計）＝ カードの「全 N 文字」の正解
 for (const [i, r] of REV.entries()) {
   const [air, pos, ten, s, mg, c, ago, who] = r;
-  for (const k of Object.keys(c)) { const t = TAIL(i + k); c[k] = c[k] + t; tails.push(t); }
+  for (const k of Object.keys(c)) { if (c[k].length < 60) continue; const t = TAIL(i + k); c[k] = c[k] + t; tails.push(t); }   // 目印は80字より先に（短い欄には付けない）
   LENS.push(Object.values(c).reduce((x, y) => x + y.trim().length, 0));
   const hash = who ? (await db.query(`select public.pv_review_hash($1::uuid, $2) h`, [uid(who), air])).rows[0].h : H('vote-assert-' + i);
   await db.query(
@@ -205,13 +208,22 @@ console.log('\n════ 2-A. 未ログイン（鍵なし）════');
     ghosts: document.querySelectorAll('#review-feed .vt-ghost').length,
     ghostText: [...document.querySelectorAll('.vt-ghost')].map((g) => g.textContent).join(''),
     lens: [...document.querySelectorAll('#review-feed .vt-rc-len')].map((e) => Number(e.textContent.replace(/[^0-9]/g, ''))),
-    ex: [...document.querySelectorAll('#review-feed .vt-rc-ex')].map((e) => e.textContent.replace(/…$/, '').length),
+    /* 見せた本文の字数（2つ目からの項目名と、その前の空白は数えない） */
+    ex: [...document.querySelectorAll('#review-feed .vt-rc-ex')].map((e) => {
+      const c = e.cloneNode(true);
+      c.querySelectorAll('.vt-mini-k').forEach((k) => { const p = k.previousSibling; if (p && p.nodeType === 3) p.textContent = p.textContent.replace(/ $/, ''); k.remove(); });
+      return c.textContent.replace(/…$/, '').length;
+    }),
+    short: (() => { const e = [...document.querySelectorAll('#review-feed .vt-rc')].find((a) => a.textContent.includes('すごく良い、美しい'));
+      return e ? { text: e.querySelector('.vt-rc-ex').textContent, k: [...e.querySelectorAll('.vt-mini-k')].map((x) => x.textContent), ghost: !!e.querySelector('.vt-ghost'), key: e.dataset.review } : null; })(),
     cta: !!document.querySelector('#main-nav .btn-orange'),
   }));
   ok(strip.n === REV.length && strip.n <= 12 && strip.clones >= 1 && strip.hidden && strip.anim === 'vt-mq',
      '最新の口コミは流れる帯（12件まで・写しは読み上げにもタブにも入らない）', J(strip));
   ok(strip.stars, 'どのカードにも星が出る');
   ok(strip.ex.every((x) => x <= 80) && strip.ex.some((x) => x > 40), 'カードは先頭80字まで見せる（40字より多く・80字を超えない）', J(strip.ex));
+  ok(strip.short && J(strip.short.k) === J(['給与']) && strip.short.text.includes('基本給は同業') && strip.short.text.replace('給与', '').length >= 75 && strip.short.ghost,
+     '★最初の項目が短い投稿も、次の項目（「給与」の名前つき）へ続けて80字近くまで出す・その先は影絵', J(strip.short));
   ok(strip.ghosts >= 1 && strip.ghostText === '', '★ぼかしは字を持たない影絵（本物の字は届いていない）', J({ g: strip.ghosts, t: strip.ghostText.slice(0, 40) }));
   ok(J([...strip.lens].sort((a, b) => a - b)) === J([...LENS].sort((a, b) => a - b)), '「全 N 文字」は投稿全体（7欄の合計）の文字数', J({ got: strip.lens, want: LENS }));
   ok(!strip.cta, 'ヘッダー右上のオレンジ「匿名で口コミを投稿」は無い');
@@ -224,6 +236,10 @@ console.log('\n════ 2-A. 未ログイン（鍵なし）════');
     const h = await page.evaluate(() => document.getElementById('vt-dialog').innerHTML);
     worst = worst.concat(leaks(h));
     if (!/本文は、口コミを1件出した方だけが読めます/.test(h)) worst.push('錠前の文が無い:' + k);
+    if (strip.short && k === strip.short.key) {   // 80字に入らなかった勤務の欄：本文は届いていないが「コメントなし」とは言わない
+      const wlb = await page.evaluate(() => document.querySelectorAll('#vt-dialog .vt-d-sec')[3].innerHTML);
+      if (/この項目へのコメントはありません/.test(wlb) || !/🔒/.test(wlb) || !/vt-ghost/.test(wlb)) worst.push('80字に入らなかった欄が「コメントなし」:' + wlb.slice(0, 120));
+    }
     await page.evaluate(() => history.back());
     await page.waitForFunction(() => !document.getElementById('vt-dialog').open, { timeout: 5000 });
   }
