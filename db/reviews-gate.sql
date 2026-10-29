@@ -30,6 +30,9 @@
 --   返るのは **新しい6件・1欄あたり80字まで**（画面に出るのは今までどおり4枚）。
 --   今までは30件ぶんの**全文**が
 --   誰にでも返っていたので、穴は今より小さくなる。
+-- ★2026-10-29 Vote の流れるカード（6-b pv_vote_latest）だけ、オーナー決定で **新しい12件・80字** に広げた。
+-- ★2026-10-29 ログインせずに出した口コミの預かり（3-b pv_review_pending）。一覧には預かった時点で出る。
+--   書く口は db/review-pending.sql（**このファイルのあと**に貼る）。
 --
 -- 流す順番 … db/airlines.generated.sql → db/pay-rows.sql → **このファイル**
 -- 何度流しても同じ結果になる（create or replace ＋ 権限の入れ直し）。
@@ -143,6 +146,86 @@ comment on function public.pv_has_review_key() is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 3-b. pv_review_pending — ログインせずに出した口コミの預かり（2026-10-29）
+--
+-- オーナー指示「口コミはログインなしでもかけるようにして（給与提出と同じ構造）」。
+-- 給与の預かり（db/pay-report-pending.sql の pay_reports_pending）と同じ形：
+--   書く → その場でここに預かる → あとでログイン → 本人の口コミ（reviews_v2）へ移す。
+-- ★オーナー決定（2026-10-29）「預かった時点で一覧に出す」── 下の pv_reviews と
+--   pv_vote_latest は、引き取っていない預かりも普通の口コミと同じ規則で混ぜて返す
+--   （鍵の無い人に本文を返さない規則も同じ）。引き取った行は混ぜない＝2回出さない。
+-- ★預かっただけでは、出した本人にも何も開かない（給与と同じ）。鍵は引き取ったときに開く。
+--
+-- 表はここ（読む側の関数と同じファイル）に置く。書く口（submit / claim）は
+-- db/review-pending.sql。⚠️ 貼る順は このファイル → db/review-pending.sql。
+--
+-- 列は口コミと同じ名前にしてある（to_jsonb でそのまま一覧の行の形になる）。
+-- ⚠️ reviews_v2 に列を足さない（CLAUDE.md）。預かりは別の表。
+-- ⚠️ ポリシーを1本も作らない・anon / authenticated から全部取り上げる。
+--    出入口は submit_review_pending / claim_review_pending と、読む側の関数だけ。
+-- ════════════════════════════════════════════════════════════════
+create table if not exists public.pv_review_pending (
+  id               uuid primary key default gen_random_uuid(),
+  created_at       timestamptz not null default now(),
+  -- 預かり証（サーバが作る）。これを持つ人だけが、あとで自分の口コミにできる。
+  claim_token      text not null unique,
+  -- 本人の口コミへ移した時刻。移したあとも行は残す（出したのに登録しなかった人を数えるため）。
+  claimed_at       timestamptz,
+  -- 荒らし避けの計数用。IP そのものは持たない（db/pay-report-pending.sql の説明と同じ）。
+  ip_day_hash      text,
+  airline          text not null,
+  "position"       text,
+  tenure_bucket    text,
+  age_bucket       text,
+  fleet            text,
+  job_role         text,
+  culture_score    integer, salary_score integer, benefits_score integer,
+  wlb_score        integer, ops_score    integer, training_score integer, mgmt_score integer,
+  culture_comment  text, salary_comment text, benefits_comment text,
+  wlb_comment      text, ops_comment    text, training_comment text, mgmt_comment text,
+  -- 書いた画面の言語（ja / en）。訳は引き取ったあと（reviews_v2 に入ったとき）に付く。
+  orig_lang        text not null default 'ja'
+);
+
+comment on table public.pv_review_pending is
+  'ログインせずに出した口コミの預かり。引き取るまでは本人にも何も開かない。'
+  '一覧（pv_reviews / pv_vote_latest）には預かった時点で出る（2026-10-29 オーナー決定）。';
+
+create index if not exists pv_review_pending_unclaimed_idx
+  on public.pv_review_pending (created_at) where claimed_at is null;
+create index if not exists pv_review_pending_ipday_idx
+  on public.pv_review_pending (ip_day_hash) where ip_day_hash is not null;
+
+alter table public.pv_review_pending enable row level security;
+revoke all on public.pv_review_pending from anon, authenticated;
+do $pend$
+declare p record;
+begin
+  for p in select policyname from pg_policies
+            where schemaname = 'public' and tablename = 'pv_review_pending' loop
+    execute format('drop policy %I on public.pv_review_pending', p.policyname);
+  end loop;
+end
+$pend$;
+
+/* 口コミ1件の本文の文字数（7欄の合計・前後の空白は数えない）。
+   Vote のカードの「全 N 文字」（2026-10-29 オーナー指示）。行は to_jsonb の形で受ける
+   （口コミの行と預かりの行が同じ形になるので、1つの式で両方を数えられる）。
+   ★誰にも grant しない（読む側の関数の中からだけ使う）。 */
+create or replace function public.pv_review_len(j jsonb)
+returns int
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select coalesce(sum(char_length(btrim(j ->> k))), 0)::int
+    from unnest(array['culture_comment', 'salary_comment', 'benefits_comment', 'wlb_comment',
+                      'ops_comment', 'training_comment', 'mgmt_comment']) k
+$fn$;
+revoke all on function public.pv_review_len(jsonb) from public, anon, authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 4. pv_reviews — 口コミの一覧（本文は鍵を持つ人にだけ）
 --
 -- 引数 p（全部省略可）
@@ -196,28 +279,42 @@ begin
     select public.pv_review_hash(v_uid, c) as h
       from public.pv_review_codes() c
      where v_mine and v_uid is not null
-  ), pick as (
-    select r.*
+  ), src as (
+    /* ★口コミの行と、引き取っていない預かり（3-b）を同じ形にそろえる（2026-10-29）。
+         預かりの行は自分の口コミ（mine）には入らない（誰のものか、まだ決まっていない）。
+         pending: true の印だけ付く。⚠️ 預かり証・時刻・回線の控えは落としてから混ぜる。 */
+    select to_jsonb(r) as j, r.created_at as at, r.airline as air, r.proof_hash as ph
       from public.reviews_v2 r
-     where (v_air  is null or r.airline = v_air)
-       and (v_airs is null or r.airline = any (v_airs))
-       and (not v_mine or r.proof_hash in (select h from mine))
-     order by r.created_at desc nulls last
+    union all
+    select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash')
+             || jsonb_build_object('pending', true),
+           q.created_at, q.airline, null::text
+      from public.pv_review_pending q
+     where q.claimed_at is null
+  ), pick as (
+    select s.*
+      from src s
+     where (v_air  is null or s.air = v_air)
+       and (v_airs is null or s.air = any (v_airs))
+       and (not v_mine or s.ph in (select h from mine))
+     order by s.at desc nulls last
      limit v_limit
   )
   select coalesce(jsonb_agg(z.j order by z.ord), '[]'::jsonb)
     into v_rows
     from (
-      select row_number() over (order by pick.created_at desc nulls last) as ord,
-             (case when v_open then to_jsonb(pick) - 'proof_hash'
-                   when v_mine then to_jsonb(pick) - 'proof_hash' - v_hide
+      select row_number() over (order by pick.at desc nulls last) as ord,
+             (case when v_open then pick.j - 'proof_hash'
+                   when v_mine then pick.j - 'proof_hash' - v_hide
                    /* ★鍵の無い人には口コミの番号（id）も返さない（2026-10-17）。
                         要約の番号（pv_review_summary の ids）と同じく、本文を読める人と
                         自分の口コミ（mine）にだけ。画面は鍵の無い行の id を使っていない。
                       ⚠️ v_hide に 'id' を足さない ── v_hide は 7. の表の権限と同じ表で、
                          assert-unlock が2つの一致を見ている。 */
-                   else to_jsonb(pick) - 'proof_hash' - v_hide - 'id' end)
-             || jsonb_build_object('cats', to_jsonb(ck.a))
+                   else pick.j - 'proof_hash' - v_hide - 'id' end)
+             /* n ＝ 7欄の本文の文字数の合計（前後の空白は数えない）。鍵の有無にかかわらず返す
+                （2026-10-29 オーナー指示「合計の文字数も表示」。字数は本文ではない）。 */
+             || jsonb_build_object('cats', to_jsonb(ck.a), 'n', ck.n)
              /* ★鍵の無い人へ「先頭の1欄だけ40字」を渡す（2026-09-16 オーナー指示
                   「いまは1文字も見れないので、最初の1行だけ読めるように」）。
                   出すのは ck.a[1] ＝ KEYS 順で**最初に書かれている欄**の1つだけ。
@@ -234,13 +331,14 @@ begin
                      else jsonb_build_object('clip', jsonb_build_object(
                        'k', ck.a[1],
                        'o', public.pv_review_clip(
-                              to_jsonb(pick) ->> (ck.a[1] || '_comment'), 41),
+                              pick.j ->> (ck.a[1] || '_comment'), 41),
                        't', coalesce((
                               select jsonb_object_agg(l.key,
                                        to_jsonb(public.pv_review_clip(
                                          l.value ->> ck.a[1], 41)))
-                                from jsonb_each(coalesce(pick.translations,
-                                                         '{}'::jsonb)) l
+                                from jsonb_each(case when jsonb_typeof(pick.j -> 'translations') = 'object'
+                                                     then pick.j -> 'translations'
+                                                     else '{}'::jsonb end) l
                                where jsonb_typeof(l.value) = 'object'
                                  and nullif(l.value ->> ck.a[1], '') is not null
                             ), '{}'::jsonb)))
@@ -250,14 +348,15 @@ begin
                   ⚠️ 並び順は review-i18n.js の KEYS と同じでなければならない。
                      あちらを並べ替えると、抜粋に出る欄が黙って変わる。 */
              lateral (select array_remove(array[
-                  case when btrim(coalesce(pick.culture_comment,  '')) <> '' then 'culture'  end,
-                  case when btrim(coalesce(pick.salary_comment,   '')) <> '' then 'salary'   end,
-                  case when btrim(coalesce(pick.benefits_comment, '')) <> '' then 'benefits' end,
-                  case when btrim(coalesce(pick.wlb_comment,      '')) <> '' then 'wlb'      end,
-                  case when btrim(coalesce(pick.ops_comment,      '')) <> '' then 'ops'      end,
-                  case when btrim(coalesce(pick.training_comment, '')) <> '' then 'training' end,
-                  case when btrim(coalesce(pick.mgmt_comment,     '')) <> '' then 'mgmt'     end
-                ], null) as a) ck
+                  case when btrim(coalesce(pick.j ->> 'culture_comment',  '')) <> '' then 'culture'  end,
+                  case when btrim(coalesce(pick.j ->> 'salary_comment',   '')) <> '' then 'salary'   end,
+                  case when btrim(coalesce(pick.j ->> 'benefits_comment', '')) <> '' then 'benefits' end,
+                  case when btrim(coalesce(pick.j ->> 'wlb_comment',      '')) <> '' then 'wlb'      end,
+                  case when btrim(coalesce(pick.j ->> 'ops_comment',      '')) <> '' then 'ops'      end,
+                  case when btrim(coalesce(pick.j ->> 'training_comment', '')) <> '' then 'training' end,
+                  case when btrim(coalesce(pick.j ->> 'mgmt_comment',     '')) <> '' then 'mgmt'     end
+                ], null) as a,
+                public.pv_review_len(pick.j) as n) ck
     ) z;
 
   return jsonb_build_object('ok', true, 'unlocked', v_open, 'rows', v_rows);
@@ -270,7 +369,7 @@ grant execute on function public.pv_reviews(jsonb) to anon, authenticated;
 comment on function public.pv_reviews(jsonb) is
   '口コミの一覧。本文（7つの *_comment と translations）は鍵を持つ人にだけ返す。'
   '鍵の無い人には clip（先頭の1欄・40字まで）を1つだけ添える。'
-  'proof_hash は誰にも返さない。';
+  'proof_hash は誰にも返さない。本文の文字数 n は誰にでも返す。引き取っていない預かりも混ぜる（pending: true）。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -314,7 +413,9 @@ revoke all on function public.pv_review_clip(text, int) from public, anon, authe
 --   ・訳文（translations）も同じ80字で切る。切らないと英語の行から全文が漏れる。
 --   ・proof_hash は返さない。
 --
--- ⚠️ これは意図して開けてある唯一の穴。広げない（件数も字数もここの数字だけ）。
+-- ⚠️ これは意図して開けてある穴。広げない（件数も字数もここの数字だけ）。
+--    ★2026-10-29 オーナー決定で、Vote の流れるカード用に 6-b（pv_vote_latest・12件・80字）を別に開けた。
+--      こちら（トップ）は 6件・80字のまま。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_review_voices()
 returns jsonb
@@ -380,6 +481,90 @@ comment on function public.pv_review_voices() is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 6-b. pv_vote_latest — Vote（community.html）の流れるカード（2026-10-29）
+--
+-- オーナー決定（2026-10-29）「最新12件・80字」── トップの抜粋（6. の 6件・80字）と同じ
+-- 開け方を、Vote の流れるカードだけ **12件** に広げた。カードは先頭80字だけ見せ、
+-- 残りはぼかし、投稿全体の文字数（n）を出す。ぼかしの下に本物の字は置かない
+-- （＝80字より先はここから1文字も返さない。画面のぼかしは字を持たない影絵）。
+--   ・足切り・切り方・訳文の扱いは 6. と同じ（最初の欄が20字以上・80字で切る・訳も80字）。
+--   ・引き取っていない預かり（3-b）も混ぜる（2026-10-29 オーナー決定「預かった時点で一覧に出す」）。
+--   ・id は鍵を持つ人にだけ（6. と同じ）。鍵を持つ人の画面は pv_reviews の全文を使う。
+-- ⚠️ 件数も字数もここの数字だけ。トップ（6.）は 6件のまま触らない。一覧（4.）の鍵の無い抜粋は 40字のまま。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_vote_latest()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  with src as (
+    select to_jsonb(r) - 'proof_hash' as j, r.created_at as at
+      from public.reviews_v2 r
+    union all
+    select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash')
+             || jsonb_build_object('pending', true),
+           q.created_at
+      from public.pv_review_pending q
+     where q.claimed_at is null
+  ), pick as (
+    select s.*
+      from src s
+     where length(regexp_replace(coalesce(
+             nullif(btrim(s.j ->> 'culture_comment'),  ''),
+             nullif(btrim(s.j ->> 'salary_comment'),   ''),
+             nullif(btrim(s.j ->> 'benefits_comment'), ''),
+             nullif(btrim(s.j ->> 'wlb_comment'),      ''),
+             nullif(btrim(s.j ->> 'ops_comment'),      ''),
+             nullif(btrim(s.j ->> 'training_comment'), ''),
+             nullif(btrim(s.j ->> 'mgmt_comment'),     ''), ''), '\s', '', 'g')) >= 20
+     order by s.at desc nulls last
+     limit 12
+  )
+  select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+           'id',               case when public.pv_has_review_key() then pick.j -> 'id' end,
+           'airline',          pick.j -> 'airline',
+           'position',         pick.j -> 'position',
+           'tenure_bucket',    pick.j -> 'tenure_bucket',
+           'created_at',       pick.j -> 'created_at',
+           'culture_score',    pick.j -> 'culture_score',
+           'salary_score',     pick.j -> 'salary_score',
+           'benefits_score',   pick.j -> 'benefits_score',
+           'wlb_score',        pick.j -> 'wlb_score',
+           'ops_score',        pick.j -> 'ops_score',
+           'training_score',   pick.j -> 'training_score',
+           'orig_lang',        pick.j -> 'orig_lang',
+           'pending',          pick.j -> 'pending',
+           'n',                public.pv_review_len(pick.j),
+           'culture_comment',  public.pv_review_clip(pick.j ->> 'culture_comment',  80),
+           'salary_comment',   public.pv_review_clip(pick.j ->> 'salary_comment',   80),
+           'benefits_comment', public.pv_review_clip(pick.j ->> 'benefits_comment', 80),
+           'wlb_comment',      public.pv_review_clip(pick.j ->> 'wlb_comment',      80),
+           'ops_comment',      public.pv_review_clip(pick.j ->> 'ops_comment',      80),
+           'training_comment', public.pv_review_clip(pick.j ->> 'training_comment', 80),
+           'mgmt_comment',     public.pv_review_clip(pick.j ->> 'mgmt_comment',     80),
+           'translations',
+             case when jsonb_typeof(pick.j -> 'translations') = 'object' then (
+               select jsonb_object_agg(l.key, (
+                        select jsonb_object_agg(c.key,
+                                 to_jsonb(public.pv_review_clip(c.value #>> '{}', 80)))
+                          from jsonb_each(l.value) c
+                         where jsonb_typeof(l.value) = 'object'))
+                 from jsonb_each(pick.j -> 'translations') l)
+             end
+         )) order by pick.at desc nulls last), '[]'::jsonb)
+    from pick
+$fn$;
+
+revoke all on function public.pv_vote_latest() from public;
+grant execute on function public.pv_vote_latest() to anon, authenticated;
+
+comment on function public.pv_vote_latest() is
+  'Vote の流れるカード。新しい12件・1欄80字まで・本文の文字数 n。2026-10-29 オーナー決定で開けた穴（トップの6件とは別）。';
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 7. ★本題 ── 表から本文を直接読めなくする
 --
 -- ⚠️ 列だけを revoke しても効かない。PostgreSQL は「表ぜんぶの SELECT」と
@@ -420,7 +605,7 @@ $gate$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 8. 検算 ── 流したあと、この結果を見る（5行。④ だけ列数の報告で、ほかは ✅）
+-- 8. 検算 ── 流したあと、この結果を見る（7行。④ だけ列数の報告で、ほかは ✅）
 -- ════════════════════════════════════════════════════════════════
 select '① 本文の列に残っている読み取り権限（anon）' as 項目,
        case when count(*) = 0 then '✅ なし（これが正しい）'
@@ -481,4 +666,27 @@ select '⑤ 鍵の無い人に返る形（抜粋は先頭の1欄だけ・40字�
                         where (q.r #>> '{clip,k}') is distinct from (q.r #>> '{cats,0}'))
             then '❌ 先頭の欄ではない所から抜粋している'
           else '✅ 抜粋は先頭の1欄だけ・40字まで・本文は1文字も返らない'
+        end)
+union all
+/* ★⑥ 預かりの表（2026-10-29）。ポリシーを1本でも足すと、預かった本文が表から誰でも読める。 */
+select '⑥ 預かり（pv_review_pending）に直接触れる口',
+       case when (select count(*) from pg_policies
+                   where schemaname = 'public' and tablename = 'pv_review_pending') = 0
+             and not exists (select 1 from information_schema.role_table_grants
+                              where table_schema = 'public' and table_name = 'pv_review_pending'
+                                and grantee in ('anon', 'authenticated'))
+            then '✅ なし（入口は関数だけ）'
+            else '❌ 表に直接触れる（ポリシーか権限が残っている）' end
+union all
+/* ★⑦ Vote の流れるカード（2026-10-29 オーナー決定・12件・80字）。 */
+select '⑦ Vote の流れるカード（12件まで・1欄80字まで）',
+       (with v as (select x from jsonb_array_elements(public.pv_vote_latest()) x)
+        select case
+          when (select count(*) from v) = 0 then '⚠️ 口コミがまだ無い（入ってから見る）'
+          when (select count(*) from v) > 12 then '❌ 12件を超えている'
+          when exists (select 1 from v, jsonb_each_text(v.x) e
+                        where e.key like '%_comment' and length(e.value) > 80)
+            then '❌ 80字を超えている欄がある'
+          when exists (select 1 from v where not jsonb_exists(v.x, 'n')) then '❌ 文字数（n）が無い行がある'
+          else '✅ 12件まで・80字まで・文字数つき'
         end);

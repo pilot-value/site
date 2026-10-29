@@ -59,6 +59,8 @@ const SQL = [
         pv_sig2 / pv_band_grid / pv_band と shelf の写しを本物の pv_pay_rows() と
         突き合わせているのがここで、消すと shelf の腐りに誰も気づかなくなる。 */
   ['db/test-pay-preview.mjs', 3], ['db/test-proof.mjs', 8],
+  /* 2026-10-29 ログインなしの口コミの預かり・Vote の流れるカード（12件・80字）・本文の文字数 */
+  ['db/test-review-pending.mjs', 5],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。
