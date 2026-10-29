@@ -101,6 +101,8 @@ const WEB = [
      （単独では 109・90・18）。⚠️ その回は機械が混んでいて、上の古い秒数の検査も2026-09-11 より長く出ていた
      （assert-jp 210・assert-pay-rows 354 など）。表をまとめて測り直すときに、この3つも一緒に直す。 */
   ['assert-towns.mjs', 199], ['assert-keep.mjs', 164], ['assert-proof-offer.mjs', 31],
+  /* 2026-10-29 Vote（口コミ一覧の作り直し）。手元の使い捨ての保存先を OS が選ぶ番号で立てる。単独で約17秒。 */
+  ['assert-vote.mjs', 17],
 ];
 
 const argv = process.argv.slice(2);
