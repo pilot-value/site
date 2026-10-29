@@ -125,7 +125,10 @@
      ⚠️ 並びを変えない。文言（T.tiers）と同じ番号で引いている。 */
   var TIERS = [
     { key: 'real',     state: 'live' },
-    { key: 'deep',     state: 'live' },
+    /* ★2026-10-29、DEEP PAY を閉じた（オーナー指示「閉鎖するからみんなのページから消して」）。
+         'off' の段は表に描かない（下の giveGetHTML）。文言（T.tiers）は番号をそろえるために残す。
+         開け直す日に 'live' へ戻す。 */
+    { key: 'deep',     state: 'off' },
     { key: 'verified', state: 'soon' }
   ];
   function isSoon(key) {
@@ -188,6 +191,8 @@
         openPanel）が true を渡し続けているので、受け口だけ残してある。 */
   function giveGetHTML(inPanel) {
     var rows = TIERS.map(function (tier, i) {
+      /* ★閉じている段（'off'）は行ごと描かない（2026-10-29 から DEEP PAY）。 */
+      if (tier.state === 'off') return '';
       var t = T.tiers[i];
       var live = tier.state === 'live';
       var p = pill(tier, live);

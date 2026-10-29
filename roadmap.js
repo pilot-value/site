@@ -46,7 +46,7 @@
   var LANG = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
   var CFG  = w.PVRoadmap || {};
   var MILE = (CFG.milestones && CFG.milestones.length) ? CFG.milestones.slice()
-                                                       : [100, 500, 1000, 2000, 5000];
+                                                       : [500, 1000, 2000, 5000];   // ★2026-10-29 に100人の段（DEEP PAY）を外した
   /* 右カラムの一覧は縦に長くできない（左の図と高さを揃えて1画面に収める）。
      ★全件はブラウザへ投げない。足りなければ「さらに読む」で継ぎ足す。 */
   var PAGE = 4;

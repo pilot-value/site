@@ -54,7 +54,7 @@
   <link rel="stylesheet" href="app-nav.css">
   <!-- この画面だけの見た目（.ap-*）。
        ★pay-viz.css は読まない。この画面にドーナツは無い（内訳は DEEP PAY の担当）。 -->
-  <link rel="stylesheet" href="actual-pay.css?v=0ca4dad1">
+  <link rel="stylesheet" href="actual-pay.css?v=12104086">
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -151,22 +151,18 @@
     </nav>
 
     <main class="mr-main">
-      <!-- ★REAL PAY ⇄ DEEP PAY のタブ（2026-10-11 オーナー指示「上の REAL PAY の横に
-             DEEP PAY の入り口作って。タブみたいな形に」）。**これが DEEP PAY への入口。**
-           ★HTML に静的に置く（JS が動く前から見えている・押せる）。actual-pay.js は
-             この器（#ap-hd）をもう書き換えない ── 書き換えると入口ごと消える。
-           ★h1 はこの画面に1つだけ ── いま居る側（REAL PAY）がそれ。もう片方はただのリンク。
-             deep-pay.html は逆（DEEP PAY が h1・REAL PAY がリンク）。**並びは2枚で同じ**
-             （REAL PAY が左）── 画面を替えたときにタブの位置が入れ替わらない。
-           ★ここに「開く条件」も人数も書かない。まだ開かない人には DEEP PAY の画面が言う。
-           ★見た目（.pv-paytabs / .pv-paytab）は actual-pay.css と deep-pay.css に**同じ塊**で在る。
-           ⚠️ DEEP PAY へ繋がる線は、このタブ（日英）と、行を押すと出る面のボタン
-              （actual-pay.js）だけ。assert-deep-pay.mjs の ① がその集合を固定している。 -->
+      <!-- ★見出し（2026-10-29 から REAL PAY の1つだけ）。
+             2026-10-11〜10-29 は「REAL PAY ｜ DEEP PAY」のタブで、DEEP PAY への入口だった。
+             DEEP PAY を閉じた日に（オーナー指示「閉鎖するからみんなのページから消して」）、
+             DEEP PAY のリンクを外した。見た目（.pv-paytabs / .pv-paytab）は残してある
+             ── actual-pay.css と deep-pay.css に**同じ塊**で在る。
+           ★HTML に静的に置く。actual-pay.js はこの器（#ap-hd）を書き換えない。
+           ⚠️ DEEP PAY へのリンクを書き戻さない（assert-deep-pay.mjs の ① が、閉じているあいだ
+              DEEP PAY へ繋がる線が1本も無いことを見ている）。開け直す日は deep-pay.js の DEEP_OPEN の注。 -->
       <div class="mr-hd" id="ap-hd">
-        <nav class="pv-paytabs" aria-label="REAL PAY と DEEP PAY の切り替え">
-          <h1 class="pv-paytab is-on" aria-current="page">REAL PAY</h1>
-          <a class="pv-paytab" href="deep-pay.html">DEEP PAY</a>
-        </nav>
+        <div class="pv-paytabs">
+          <h1 class="pv-paytab is-on">REAL PAY</h1>
+        </div>
       </div>
 
       <!-- どちらも、実際に行がある区分だけが並ぶ（actual-pay.js が rows から作る）。
@@ -289,7 +285,7 @@
      指紋を付けておけば、中身が変われば URL も変わる＝古いほうを読みに行けない。
      ⚠️ この3つを直したら指紋も変わる。検査が落ちたら出た値を日英2枚に写す。 -->
 <script src="ap-preview.js?v=27f09a64"></script>
-<script src="actual-pay.js?v=c6f39e4b"></script>
+<script src="actual-pay.js?v=45a2a262"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。
      ★未ログインの人・問題の無い人には何も出さない（線と、通信を増やさない工夫は pv-pay-fix.js の冒頭）。
      ★この画面の PV_SESSION と sb を借りるので、それより**後**に読む。
