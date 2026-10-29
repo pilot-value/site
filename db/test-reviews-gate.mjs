@@ -255,18 +255,18 @@ await asAnon();
                               || x.translations !== undefined);
   ok(bad.length === 0, '★本文の鍵そのものが JSON に無い（ぼかしではなく不在）',
      bad.length ? JSON.stringify(bad[0]).slice(0, 160) : '');
-  /* ★2026-09-16、オーナー指示で「先頭の1欄だけ40字」を返すことにした。
+  /* ★2026-09-16、オーナー指示で「先頭の1欄だけ40字」を返すことにした（★2026-10-29 オーナー「最初の80文字は見せて」で80字に）。
        ここは元は「本文の断片がどこにも紛れ込んでいない」1本だった ── 渡すと
        決めた40字と、渡さないと決めた残りを、**3つに割って**引き継ぐ。
      ⚠️ ana の行で見る（本文のある欄が3つある唯一の行）。jal は先頭の欄が
         wlb なので、そちらでは「い」が正しく出る。 */
   const ana0 = r.rows.find(x => x.airline === 'ana');
   ok(!!(ana0 && ana0.clip) && ana0.clip.k === 'culture'
-     && ana0.clip.o === LONG_A.slice(0, 40) + '…',
-     '★先頭の欄は40字まで出る（読めるのはきっかり40字）',
+     && ana0.clip.o === LONG_A.slice(0, 80) + '…',
+     '★先頭の欄は80字まで出る（読めるのはきっかり80字・2026-10-29 に40字から）',
      JSON.stringify(ana0 && ana0.clip || {}).slice(0, 160));
-  ok(!JSON.stringify(ana0).includes('あ'.repeat(38)),
-     '★★41字目から先は1文字も出ない');
+  ok(!JSON.stringify(ana0).includes('あ'.repeat(78)),   // 抜粋は「ここは」＋77字＋「…」── 78字続けば81字目から先が漏れている
+     '★★81字目から先は1文字も出ない');
   ok(!JSON.stringify(ana0).includes('い'),
      '★★★抜粋が出るのは最初に書かれた欄だけ（2欄目は1文字も出ない）',
      JSON.stringify(ana0).slice(0, 200));
@@ -274,13 +274,13 @@ await asAnon();
      '★★抜粋の鍵の名前が _comment で終わっていない'
      + '（終わると review-i18n.js が「鍵を持っている」と誤判定して錠前ごと消える）',
      Object.keys(ana0).join(','));
-  ok(ana0.clip.t && ana0.clip.t.en === LONG_A.slice(0, 40) + '…',
-     '★訳文の側も同じ40字で切る（英語面から全文が漏れない）',
+  ok(ana0.clip.t && ana0.clip.t.en === LONG_A.slice(0, 80) + '…',
+     '★訳文の側も同じ80字で切る（英語面から全文が漏れない）',
      JSON.stringify(ana0.clip.t || {}).slice(0, 160));
   /* ★「先頭」は culture 固定ではなく、その行で**最初に書かれている**欄。 */
   const jal0 = r.rows.find(x => x.airline === 'jal');
   ok(!!(jal0 && jal0.clip) && jal0.clip.k === 'wlb'
-     && jal0.clip.o === LONG_B.slice(0, 40) + '…',
+     && jal0.clip.o === LONG_B.slice(0, 80) + '…',
      '★先頭は culture 固定ではない（その行で最初に書かれた欄）',
      JSON.stringify(jal0 && jal0.clip || {}).slice(0, 160));
   ok(r.rows.every(x => x.proof_hash === undefined),

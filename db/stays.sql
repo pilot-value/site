@@ -1630,8 +1630,9 @@ comment on function public.pv_stay_rev(public.pv_stay_places) is
 -- ★ 載っていない空港に運営が「追加」すると、どのページにも出ない公開の行ができてしまう（3字の打ち間違い）。
 --   ＝ 5 の足す口は、publish:true のときだけ、ここに無い空港を bad_iata で止める（何も書かない）。
 --   会員・未ログインの足す口と、publish を添えない運営の足す口は、今までどおり（確認待ちで入り、運営が見る）。
--- ⚠️ airline-destinations.mjs・調べの台帳の就航地・airline-display.mjs の NET を直したら、ここも直す。db/test-stays.mjs が両方を突き合わせる（食い違うと赤くなる）。
---    会社を足すときは1行（'<会社の符号>', の行）を足す。並びは airline-destinations.mjs と同じ。
+-- ⚠️ 中身は手で書かない ── node gen-stay-network.mjs が書く（2026-10-29 から。96社に広げたとき手の写しを直し忘れた）。
+--    airline-destinations.mjs・調べの台帳の就航地・airline-display.mjs の NET を直したら流す。db/test-stays.mjs と assert-generated.mjs が突き合わせる。
+--    40社ずつ || でつないでいるのは、Postgres の関数が引数を100個（＝50社）までしか受け取らないため。
 create or replace function public.pv_stay_network()
 returns jsonb
 language sql
@@ -1670,9 +1671,9 @@ as $fn$
       ELQ AMM BAH BEY CAI CMN DAM DMM DOH JED JNB KWI MED MCT NBO RUH SLL SEZ TLV RSI
       TUN ZNZ
     ', E' \n'), '\s+'),
-    /* ── 先行5社ではない会社（2026-10-21 全社へ広げる d1）：会社ページの「ステイ先」に並ぶ調べで確かめた就航地
-       （pv-airline-view.mjs の viewOf(slug).network の list ＝ airline-rollout.mjs の researchNetwork。拠点の空港は入れない）。
-       一覧の無い会社（拠点が分からない・拠点のほかに残らない・字がまだ無い）は書かない。 ── */
+    'qantas', regexp_split_to_array(btrim('
+      AKL SFO HNL LAX DFW JFK
+    ', E' \n'), '\s+'),
     'skymark', regexp_split_to_array(btrim('
       CTS FUK IBR KOJ NGO NGS OKA SDJ SHI UKB
     ', E' \n'), '\s+'),
@@ -1683,10 +1684,13 @@ as $fn$
       AKJ CTS FUK KCZ KIX KMI KMJ KOJ MYJ NGO NGS OIT OKA TAK
     ', E' \n'), '\s+'),
     'peach', regexp_split_to_array(btrim('
-      CTS FUK HND OKA
+      CTS FUK HND OKA NGS NGO ISG KOJ SDJ KMI ASJ BKK PVG TPE ICN SIN HKG GMP KHH
     ', E' \n'), '\s+'),
     'solaseed', regexp_split_to_array(btrim('
       FUK ISG KMI KMJ KOJ NGO NGS OIT OKA UKB
+    ', E' \n'), '\s+'),
+    'spring-japan', regexp_split_to_array(btrim('
+      CTS HIJ HKD NGO PEK HRB TSN PVG
     ', E' \n'), '\s+'),
     'airdo', regexp_split_to_array(btrim('
       AKJ CTS FUK HKD KUH MMB NGO OBO SDJ UKB
@@ -1697,6 +1701,9 @@ as $fn$
     'fda', regexp_split_to_array(btrim('
       AOJ CTS FUK GAJ HNA KIJ KMJ KOJ MMJ OKD SDJ UKB
     ', E' \n'), '\s+'),
+    'airjapan', regexp_split_to_array(btrim('
+      SIN
+    ', E' \n'), '\s+'),
     'amx', regexp_split_to_array(btrim('
       FUK ITM KMJ
     ', E' \n'), '\s+'),
@@ -1706,27 +1713,345 @@ as $fn$
     'daiichi-air', regexp_split_to_array(btrim('
       AGJ HTR TRA
     ', E' \n'), '\s+'),
+    'hac', regexp_split_to_array(btrim('
+      AXT HKD KUH MMB MSJ OIR RIS SHB
+    ', E' \n'), '\s+'),
     'ibex', regexp_split_to_array(btrim('
       CTS FKS FUK HIJ ITM KIJ MYJ NGO OIT
+    ', E' \n'), '\s+'),
+    'j-air', regexp_split_to_array(btrim('
+      AOJ AXT FUK GAJ HKD HND KIJ KMI MSJ SDJ UBJ OKI TKS MMB OBO MYJ KOJ KCZ OIT KMJ
+      HNA CTS IZO TKN ASJ NGS SHM
     ', E' \n'), '\s+'),
     'jac', regexp_split_to_array(btrim('
       ASJ FUK ITM IZO KKX KUM MYJ OKA OKE OKI RNJ TJH TKN TNE
     ', E' \n'), '\s+'),
+    'jta', regexp_split_to_array(btrim('
+      ITM UEO KIX HND ISG FUK NGO MMY KMQ OKJ TPE
+    ', E' \n'), '\s+'),
+    'orc', regexp_split_to_array(btrim('
+      AXT FUJ FUK IKI KMI KMQ NGO NGS TSJ
+    ', E' \n'), '\s+'),
+    'rac', regexp_split_to_array(btrim('
+      ISG KTD MMD MMY OGN RNJ TRA UEO OKA
+    ', E' \n'), '\s+'),
+    'shin-central', regexp_split_to_array(btrim('
+      MYE OIM
+    ', E' \n'), '\s+'),
     'toho-air', regexp_split_to_array(btrim('
       HAC MYE OIM
     ', E' \n'), '\s+'),
-    'china-eastern', regexp_split_to_array(btrim('
-      NGO
+    'singapore-airlines', regexp_split_to_array(btrim('
+      NGO KIX SIN BKK BLR BOM CAN CGK CMB COK DAD DEL DPS HAN HKG HKT HYD ICN KNO KTI
+      MAA MLE MNL PEN PVG RGN SGN SUB TPE ADL BNE MEL PER BCN MAD CDG FRA MXP JNB
     ', E' \n'), '\s+'),
-    /* 2026-10-22 全社へ広げる d2：ヨーロッパ・アメリカ大陸の会社（同じ決まり ── 拠点の空港の行が在り、拠点のほかに行き先が残る会社だけ） */
+    'korean-air', regexp_split_to_array(btrim('
+      NGO GUM ORD HNL SEA IAD BOS SFO ATL LAS LAX JFK DFW
+    ', E' \n'), '\s+'),
+    'asiana', regexp_split_to_array(btrim('
+      KMI SDJ HND NGO FUK NRT UKB KIX OKA CTS MNL XIY UBN YNZ ICN PVG HAN CKG CSX KTI
+      CRK HKT HGH CAN CGQ TPE TAS CGK BKK YNJ TSN ALA HKG NKG SZX SGN DAD DLC PEK HRB
+      TFU SIN SYD SEA SFO JFK LAX BCN FCO PRG CDG IST LHR MXP FRA BUD
+    ', E' \n'), '\s+'),
+    'starlux', regexp_split_to_array(btrim('
+      KMJ NGO UKB FUK NRT SDJ SHI CTS HKD OKA TAK KIX KUL RMQ HAN TPE HKG CEB CGK MFM
+      PQC DAD BKK SGN MNL DPS CNX SIN CRK PUS LAX ONT SFO PHX SEA PRG
+    ', E' \n'), '\s+'),
+    'china-airlines', regexp_split_to_array(btrim('
+      NGO TPE PHX ONT SEA JFK SFO LAX
+    ', E' \n'), '\s+'),
+    'thai-airways', regexp_split_to_array(btrim('
+      NGO BKK AMS
+    ', E' \n'), '\s+'),
+    'air-china', regexp_split_to_array(btrim('
+      SZX PEK SFO IAD LAX JFK OTP ZAG
+    ', E' \n'), '\s+'),
+    'china-eastern', regexp_split_to_array(btrim('
+      NGO LAX JFK SFO
+    ', E' \n'), '\s+'),
+    'china-southern', regexp_split_to_array(btrim('
+      WUH CAN CSX LAX JFK SFO ADD
+    ', E' \n'), '\s+'),
+    'hainan-airlines', regexp_split_to_array(btrim('
+      PEK CKG SEA BOS MAN
+    ', E' \n'), '\s+'),
+    'airasia', regexp_split_to_array(btrim('
+      BKK DAD WUH KUL DPS DMK BTH
+    ', E' \n'), '\s+'),
+    'batik-air', regexp_split_to_array(btrim('
+      LUW NBX KNO UPG TMC AMQ YIA BPN KOE MDC SUB AAP TKG BUU PDG SRG DPS SOC
+    ', E' \n'), '\s+')
+  ) || jsonb_build_object(
+    'garuda-indonesia', regexp_split_to_array(btrim('
+      KNO PNK SUB TKG BDO UPG PKU CGK SIN YIA GTO BPN SRG DPS SYD MEL
+    ', E' \n'), '\s+'),
+    'hong-kong-express', regexp_split_to_array(btrim('
+      OKA SDJ HND NGO NRT TAK HIJ KIX FUK KMQ CJU KHH NGB CZX BKK PUS TAE PQC PKX BKI
+      RMQ SYX HAN MNL ICN SZB CNX DAD CRK HKT TPE YIW PEN WUX
+    ', E' \n'), '\s+'),
+    'indigo', regexp_split_to_array(btrim('
+      HYD NMI BHU KWI
+    ', E' \n'), '\s+'),
+    'malaysia-airlines', regexp_split_to_array(btrim('
+      KIX FUK NRT DAD HAN JHB SGN PEN KCH TPE SUB KUL BNE
+    ', E' \n'), '\s+'),
+    'philippine-airlines', regexp_split_to_array(btrim('
+      NGO MNL GUM JFK SFO HNL LAX SEA
+    ', E' \n'), '\s+'),
+    'scoot', regexp_split_to_array(btrim('
+      KIX CTS HND NRT OKA DPS HKG CXR KNO TPE CJB PLM LOP CAN YIA HKT KUL IPH CGK CSX
+      TAO CNX MDC SHE SZB SUB SWA MAA MKZ PEN CEB LGK DAD ILO BPN TJQ PKU WUH NNG PNK
+      USM MNL TRZ HAK KBV BKK SRG TRV UPG HGH KWE VTE XIY LBJ NKG HDY BKI KMG PQC ICN
+      TSN VTZ HAN SBW CEI FOC CGO KBR KJT CRK MFM CJU KCH MYY SGN KUA ATQ DVO PDG PER
+      SYD MEL ATH VIE JED
+    ', E' \n'), '\s+'),
+    'vietjet', regexp_split_to_array(btrim('
+      NGO SGN CGK HAN
+    ', E' \n'), '\s+'),
+    'vietnam-airlines', regexp_split_to_array(btrim('
+      NGO CXR TPE KHH VII
+    ', E' \n'), '\s+'),
+    'royal-brunei', regexp_split_to_array(btrim('
+      SIN KUL
+    ', E' \n'), '\s+'),
+    'emirates', regexp_split_to_array(btrim('
+      KIX HND NRT SIN BKK SKT TPE CEB HYD PEW DEL CAN DPS SAI KTI ISB SZX HKG HAN TRV
+      AMD BOM KHI PVG CMB CRK HKT PEK ICN MAA KUL BLR MLE CCU COK LHE DAD SGN DAC MNL
+      CGK HGH CHC AKL SYD PER MEL ADL BNE IAH DFW LAX SEA EWR YYZ JFK ORD MIA YUL BOS
+      IAD SFO MCO EZE MEX BOG GRU GIG BUD MAN EDI FCO ARN MLA VIE LED DME AMS MXP LYS
+      CDG MUC BRU FRA ZRH ATH DUS WAW CPH HEL LGW NCL BLQ MAD LIS VCE DUB STN LCA GLA
+      LHR PRG NCE GVA BCN OSL IST BHX HAM CAI IKA CKY EBB DSS BAH LOS ACC BGW LUN CMN
+      TNR CPT NBJ TUN DUR NBO JNB KWI MRU MED MCT DAM RUH DAR AMM HRE JED ABJ BSR DMM
+      SEZ BEY ALG ADD
+    ', E' \n'), '\s+'),
+    'qatar-airways', regexp_split_to_array(btrim('
+      KUL HKT MLE YUL LHR ELQ ZNZ
+    ', E' \n'), '\s+'),
+    'gulf-air', regexp_split_to_array(btrim('
+      KUL KWI BAH
+    ', E' \n'), '\s+'),
+    'kuwait-airways', regexp_split_to_array(btrim('
+      KTM BLR ISB HKT CAN MAA DAC BKK AMD MNL HYD LHE CMB TRV DEL BOM COK LHR MAD CDG
+      GVA IST SAW MAN BCN FRA AMS MUC KWI DXB MED BEY DAM RUH BAH JED AMM
+    ', E' \n'), '\s+'),
+    'oman-air', regexp_split_to_array(btrim('
+      KWI
+    ', E' \n'), '\s+'),
+    'riyadh-air', regexp_split_to_array(btrim('
+      DAC LHE ISB LHR CAI ELQ JED
+    ', E' \n'), '\s+'),
+    'royal-jordanian', regexp_split_to_array(btrim('
+      JFK DFW ORD DTW IAD
+    ', E' \n'), '\s+'),
+    'saudia', regexp_split_to_array(btrim('
+      IAD JFK RUH JED DMM ELQ MED
+    ', E' \n'), '\s+'),
+    'egyptair', regexp_split_to_array(btrim('
+      LAX CAI KWI
+    ', E' \n'), '\s+'),
+    'ethiopian-airlines', regexp_split_to_array(btrim('
+      EWR ORD ATL JFK IAD ADD LFW
+    ', E' \n'), '\s+'),
+    'kenya-airways', regexp_split_to_array(btrim('
+      JFK EDL KIS MBA
+    ', E' \n'), '\s+'),
+    'south-african-airways', regexp_split_to_array(btrim('
+      PER GRU CPT JNB DAR MRU LOS VFA FIH ABJ HRE DUR WDH PLZ LUN ACC FBM GBE
+    ', E' \n'), '\s+'),
+    'klm', regexp_split_to_array(btrim('
+      IAH LAX ORD PDX BOS SFO MSP SAN JFK ATL IAD AUS SLC MIA LAS
+    ', E' \n'), '\s+'),
+    'air-france', regexp_split_to_array(btrim('
+      PPT MSP DTW PHX DFW SFO SEA MIA ATL IAH MCO LAX ORD IAD DEN RDU LAS EWR JFK BOS
+      PTP
+    ', E' \n'), '\s+'),
+    'lufthansa', regexp_split_to_array(btrim('
+      AUS JFK SFO SEA ATL RDU DEN CLT ORD DFW BOS LAX SAN MIA EWR IAH DTW STL IAD MUC
+      FRA
+    ', E' \n'), '\s+'),
+    'british-airways', regexp_split_to_array(btrim('
+      JFK MCO BWI ORD SFO CVG TPA PHX AUS BNA MSY LAS IAH EWR SEA DFW PDX LAX PIT PHL
+      BOS IAD ATL MIA SAN STL DEN LGW
+    ', E' \n'), '\s+'),
+    'turkish-airlines', regexp_split_to_array(btrim('
+      SIN MIA DFW LAX SFO DTW BOS EWR IAD ORD ATL JFK IAH SEA DEN IST
+    ', E' \n'), '\s+'),
+    'aegean', regexp_split_to_array(btrim('
+      ATH DXB
+    ', E' \n'), '\s+'),
+    'aer-lingus', regexp_split_to_array(btrim('
+      CLE IAD BOS DEN ORD SEA LAX MCO JFK PIT BDL MSP IND PHL SFO EWR RDU BNA SNN DUB
+    ', E' \n'), '\s+'),
     'austrian', regexp_split_to_array(btrim('
-      BOS EWR JFK LAX ORD
+      BOS EWR JFK LAX ORD LHR ZRH FRA CDG MUC
+    ', E' \n'), '\s+'),
+    'eurowings', regexp_split_to_array(btrim('
+      BER
+    ', E' \n'), '\s+'),
+    'finnair', regexp_split_to_array(btrim('
+      HND NRT LAX SEA ORD JFK DFW
+    ', E' \n'), '\s+'),
+    'iberia', regexp_split_to_array(btrim('
+      JFK MIA BOS SFO LAX DFW IAD MCO ORD EWR SJU
+    ', E' \n'), '\s+'),
+    'icelandair', regexp_split_to_array(btrim('
+      BWI BNA MSP RDU BOS DEN SEA EWR IAD PIT PDX MCO ORD JFK YHZ YVR YYZ KEF AGP ALC
+      AMS ARN BCN BER BGO BRU CDG CPH DUB EDI FAE FAO FCO FRA GDN GLA GOH HEL LGW LHR
+      LIS LPA MAN MUC MXP NCE OSL PRG RKV TFS ZRH
+    ', E' \n'), '\s+'),
+    'ita-airways', regexp_split_to_array(btrim('
+      IAH FLR MAD CDG LIN FCO NAP
+    ', E' \n'), '\s+'),
+    'lot', regexp_split_to_array(btrim('
+      JFK LAX EWR MIA ORD SFO KRK RZE ARN BRU CDG FCO IST LHR MXP ORY OSL
+    ', E' \n'), '\s+'),
+    'norwegian', regexp_split_to_array(btrim('
+      BGO TOS SVG CPH BLL TRD ARN LGW AAL
+    ', E' \n'), '\s+'),
+    'ryanair', regexp_split_to_array(btrim('
+      ZAZ AAR SPU CPH OSL SCQ CFU PMI DUB FCO FSC PED BRU ABZ MAH AMS DLM MRS TSF VRN
+      AOI BRE CGN FAO TRN ALC REU SZY HHN SVQ RDZ TFS BZG LPA INI BIQ NCE ARN LEI ZAG
+      HEL GLA CIA FMO PMO IAS TLS GDN JSI KGS SDR MXP PMF SNN GOT EDI NUE GOA DLE ACE
+      PUY BOJ PSA DBV JMK LCJ CCF PVK EGC EFL NQY CRV HER TPS ORK OSR FUE PIK TRF BTS
+      OLB VNO LUZ KRK LIG BOH MAD CAG BGY WRO BCN MMX FNC PIS BHX GRO BRI SZG FRL PRG
+      SZZ PLQ TRS SOF HAM EIN PGF EXT KLX BNX ATH MAN OPO CRL VIT RJK BFS RZE BVA KTW
+      KIR PDV RVN BVE XCR AGP GNB RMI LUX LDY NAP TGD KUN NCL VLC BJV EMA TUF MLA FKB
+      VST CWL PSR LDE VAR STN OTP RHO NOC WMI RMU BZR KLU KSC BLQ VXO POZ BDS LIL ZAD
+      JTR LIS MME BSL LGW BUD ZTH BRQ SKG CUF VCE LCA PFO CLJ NRN LBA PEG CTA FMM LTN
+      IBZ LRH LPL PAD AHO VIE FNI RIX BRS CDT SUF BER NTE CHQ TLL ESU NDR FEZ AMM RBA
+      OUD TNG RAK TTU OZZ AGA
+    ', E' \n'), '\s+'),
+    'sas', regexp_split_to_array(btrim('
+      ICN LAX SFO ORD JFK SEA BOS ATL IAD EWR
+    ', E' \n'), '\s+'),
+    'swiss', regexp_split_to_array(btrim('
+      ICN ORD SFO EWR BOS IAD LAX MIA JFK GVA ZRH
+    ', E' \n'), '\s+'),
+    'tap', regexp_split_to_array(btrim('
+      MIA JFK SFO IAD BOS ORD LAX EWR CWB GIG TER LIS
+    ', E' \n'), '\s+')
+  ) || jsonb_build_object(
+    'virgin-atlantic', regexp_split_to_array(btrim('
+      ICN MCO LAX BOS SFO JFK SEA IAD LAS ATL MIA TPA EDI
+    ', E' \n'), '\s+'),
+    'vueling', regexp_split_to_array(btrim('
+      BIO PMO TRN
+    ', E' \n'), '\s+'),
+    'united', regexp_split_to_array(btrim('
+      NRT HND KIX NGO PEK SIN HKG DEL ICN PVG MNL TPE ROR TKK MAJ YAP AKL SPN BNE SYD
+      PPT MEL EWR MIA PIT SBA FAT BIL YUL IND CID MFR ATW SAT XNA DTW PDX EGE FLL LEX
+      YYC MKE BFL RIC CVG AUS MSP TUS RNO ALB MFE MSY KOA BOS CMH ATL BWI RDM MSN BUR
+      PNS FAI MSO DRO BDL SDF SAN BGR MDT SJC TPA FAR PSP SAV JAC SLC PSC EUG BOI GRR
+      RDU MTJ CLT ANC BZN OMA YOW ROC BNA GSP LIT MEM BDA EYW OGG MRY ICT HDN BUF ONT
+      HNL BHM AVL CHS FSD PWM COS MAF GTF OKC GEG YEG LIH SEA JAX TYS ECP SMF IDA RAP
+      TUL SRQ SNA PHL RSW ABQ PBI STL MCI YYZ DFW GJT SBP MYR ELP DSM BTV TVC FCA SYR
+      YVR DAY ORF PHX LGA PUJ BJX SAL SXM NAS UVF XPL BGI LIM GCM PTY RTB BON GDL MTY
+      ANU SJD GEO BZE SLP LIR SAP SJO STI MBJ CUN EZE PLS SJU STT MID QRO MEX MGA CUR
+      AUA POS GRU PVR SDQ GUA TQO POP MDE GIG BQN BOG CZM VER UIO PMO MXP FAO EDI PDL
+      BER MAD ATH PMI LIS FCO GVA NCE GLA BRU NAP DUB KEF BRI ZRH GOH FNC MUC SCQ BCN
+      CDG SNN DBV LHR BIO OPO AMS AGP VCE SPU FRA LOS ACC JNB CPT
+    ', E' \n'), '\s+'),
+    'delta', regexp_split_to_array(btrim('
+      HND ICN PVG HKG TPE MEL SYD ANC FAI HNL KOA LIH OGG TPA JNU ABQ HPN MSO MDT ICT
+      GEG SAN ORD MSN BOI ALB SAV BUF GSO XNA AUS LAS FLL SRQ SYR GRB TRI PHX IAD MSY
+      DFW SMF IAH SDF BIL CAE SFO ATW CSG BWI MKE CHA AVL VPS PDX TVC PVD ECP BGR IDA
+      FSD SGF SAT FAR JAN OMA CHO YYC MCI RDU STL OKC TUL IND CLT BNA PHL MIA ROC CVG
+      AGS LEX BZN RNO JAX HSV PWM HOU RIC BDA FCA JAC TUS PIT ELP BTV TLH PSC DSM DEN
+      CHS BDL DCA MYR SJC EYW YYZ DAL DAB BHM DAY CID ORF BIS RSW COS YVR LIT MOB GNV
+      ABE RAP ROA CLE MDW YUL GRR GPT GSP PBI TYS MEM PNS MLB CMH MCO ILM BTR CTG SJU
+      RTB BGI AUA KIN STT EZE PUJ SJD SJO SAL BOG HAV PTY LIR BZE MTY BON GCM PLS CUR
+      ANU MBJ SXM GUA GDL PVR GIG NAS SCL SDQ TQO UIO SVD GND GRU STI LIM MEX SAP STX
+      SKB UVF CUN BCN FCO NCE CDG LHR MUC ARN MLA EDI OPO CPH CTA PRG OLB NAP BER SNN
+      ATH FRA KEF ZRH MXP VCE MAD BRU DUB LIS AMS ACC CPT LOS DSS JNB
+    ', E' \n'), '\s+'),
+    'american', regexp_split_to_array(btrim('
+      NRT HND PVG ICN DEL SYD HNL RDU FCA CLE BWI ONT PIT MSP SLC SEA BUR YYZ AVP SAN
+      CHA GSO MEM PWM RSW SJC FLG PVD GUC FAT CMH STL JAC SRQ BNA PSP ANC FLL OMA MSO
+      PVU BTV EGE ORF JAX IND MKE SAV MSY LAS RNO TPA CHS CVG MFE YVR SBP GSP MSN ROC
+      VPS YHZ IAH ATL RIC KOA YYC BZN MCO BDL YUL AVL ILM ALB PBI OKC DTW DEN ABQ BUF
+      OGG MYR SMF EYW ELP SDF TUL SNA GEG XNA TVC PNS SYR LIH MRY GRR MTJ BHM MDT TYS
+      AUS PDX BGR HSV TUS FSD DSM STS ICT COS CID SBA MCI ECP BFL BOI SFO SAT BDA AMA
+      PLS MEX OAX NAS BGI HAV CMW AUA ANU SDQ KIN SLP XPL GND MZT PTY CTG SCU CUN BOG
+      MDE RTB MBJ SJO DGO PUJ GEO UVF SXM STT SAP LIM SKB SVD CUR BAQ FPO CLO PTP SJU
+      QRO TQO GIG STI HOG FDF SJD GYE MLM GRU UIO CZM LIR LRM BON GDL SNU STX GUA VRA
+      BJX SCL GCM MGA POS BZE MID MTY SAL POP PVR EZE PRG MAD ZRH MUC FCO VCE BUD AMS
+      FRA ATH NAP NCE CPH EDI LIS BCN LHR CDG MXP DUB
     ', E' \n'), '\s+'),
     'southwest', regexp_split_to_array(btrim('
-      BOS SLC
+      BOS SLC BHM RIC ABQ GRR ANC VPS DSM GSP MEM PDX CLT MHT PHL MTJ SAV SDF JAX FAT
+      SNA CMH LGA ICT RSW CLE ROC OMA LIH CRP TYS PVD SFO LIT BUF BUR STL IND ELP CHS
+      JAN CVG PWM DCA HNL PSP MKE ECP MCI ALB STS BDL ONT SRQ TPA PIT COS SAN TUS SMF
+      MYR OGG AMA MAF ISP ORF SBA BOI HDN KOA EUG BZN LBB RDU ITO RNO SAT OKC SEA PNS
+      SJC MIA TUL MSP GEG DTW FLL MSY LGB HRL LIR BZE PVR CUN SXM SJD STT SJO GCM PUJ
+      AUA SJU PLS MBJ NAS HAV
+    ', E' \n'), '\s+'),
+    'air-canada', regexp_split_to_array(btrim('
+      DEN SFO SMF SEA JAX SNA SAT EWR IAH DFW LAX LGA ORD RDU IAD AUS YYC MIA BOS BNA
+      MCO SAN
+    ', E' \n'), '\s+'),
+    'alaska-airlines', regexp_split_to_array(btrim('
+      NRT HND KIX ICN RAR PPG PPT SYD CDV SLC DLG LAS RNO KTN DTW OTZ ATL OGG STL FAI
+      BRW SNA SCC CHS BOI LGB JFK KOA SAT YYZ PAE TUS CMH STS JNU ONT FAT GEG PSG RDU
+      PSP BET SBA HNL BZN AKN IND TPA BUR PIT DCA MCI ITO IAH PHL MIA MCO LIH ADK YAK
+      CVG GST BNA ADQ WRG PHX MSY MKE SIT MSO EWR OKC IAD ABQ OAK BOS MSP OME FLL ORD
+      AUS DFW SJC BWI OMA DEN SMF CLE PVR SJO GDL SJD LIR GUA BZE ZIH FCO LHR KEF
+    ', E' \n'), '\s+'),
+    'allegiant', regexp_split_to_array(btrim('
+      ACY ALB AUS BGR BIL BIS BLV BMI BOI BOS BUR BZN CAE CAK CHA CHS CID CKB COS COU
+      DAY DEN ELM EUG EVV EWR EYW FAR FAT FCA FSD FWA GEG GFK GRI GSO GSP GTF HGR HOU
+      HSV HTS IAD IAG ICT IDA JAX LCK LEX LIT LRD LSE MCI MCO MDT MDW MEM MFE MFR MLB
+      MLI MOT MRY MSO MSY MYR OKC OMA ORF PBG PDX PHL PHX PIA PSC PSM PVD RAP RFD RIC
+      ROA ROC RSW SBN SCK SDF SGF SHV SMX SNA SPI STC SWF SYR TOL TRI TTN TUL TVC USA
+      XNA PBI
+    ', E' \n'), '\s+'),
+    'breeze-airways', regexp_split_to_array(btrim('
+      ACY ALB BGR BHM BTV CMH DAB EYW HVN ISP JAX MEM MHT MSN SDF SWF LAN TWF GPT PIT
+      SFO BRO LNK SAN HPN EWN ERI SRQ MYR IAD GSO AVP ILM SNA SPI EWR CVG EVV TRI HSV
+      OGD LAS OGS PNS LNS DEN GSP SBD PWM ACV TLH PBI ROC SBN SYR LAX SAT RIC DFW PHX
+      RDM SBY PSM GJT BUR SAV XNA NAS CUN PUJ
+    ', E' \n'), '\s+'),
+    'frontier', regexp_split_to_array(btrim('
+      BOS BUF DTW FLL IAH RDU BNA RNO MSN ISP XNA SMF BDL IAD MYR LAX FSD SLC PDX MCI
+      CID CRP STL JAX SAT DSM SAN AUS LIT TYS CMH PIT ELP ONT TTN RSW JFK PBI OKC SNA
+      IND BWI RIC CLT EWR MKE LGA SEA BOI SFO OMA GRR ORF MSY MEM FAR MSP DCA BUR SJC
+      PNS CUN SXM PSE PUJ MBJ SAL SAP BQN STI SJO SDQ GUA
     ', E' \n'), '\s+'),
     'jetblue', regexp_split_to_array(btrim('
-      AUS BDL BUF DCA SFO
+      AUS BDL BUF DCA SFO DEN PWM ORF SAV RSW PDX HPN RDU DAB MSY CLT SYR CLE DFW ROC
+      TPA BNA SAN ATL MHT PHX VRB CHS YVR LAS ALB VPS RNO PHL HYA ONT MKE JAX EWR RIC
+      ORH MVY BZN PIT SMF SLC TVC ILM ACK PVD ORD PQI DTW BDA SEA ABQ BWI BUR SRQ IAH
+      ISP PBI LGA SDQ KIN STT STX GEO PSE GND NAS ANU CTG SJU SKB PUJ SJD CUR GCM MBJ
+      BQN GUA SJO SVD POP POS SAP LIR PLS UVF CUN BGI MDE STI SXM GYE AUA MAD BCN DUB
+      AMS LHR MXP LGW CDG EDI
+    ', E' \n'), '\s+'),
+    'porter', regexp_split_to_array(btrim('
+      ORD
+    ', E' \n'), '\s+'),
+    'westjet', regexp_split_to_array(btrim('
+      IAH LAX PSP AUS FLL BOS SLC ORD RSW BNA SEA OGG YQR SFO TPA PDX HNL YHZ DTW SAN
+      PHX MCO DEN ANC JFK SNA MSP IAD LAS ATL YXE KEF
+    ', E' \n'), '\s+'),
+    'aeromexico', regexp_split_to_array(btrim('
+      MEX
+    ', E' \n'), '\s+'),
+    'avianca', regexp_split_to_array(btrim('
+      BOS FLL TPA DFW MIA JFK IAD MCO ORD BOG LIM SJU MDE CLO BAQ PEI
+    ', E' \n'), '\s+'),
+    'copa-airlines', regexp_split_to_array(btrim('
+      DEN SAN LAX LAS MIA AUS SFO BOS RDU IAD ORD ATL BWI FLL TPA JFK MCO SJU
+    ', E' \n'), '\s+'),
+    'latam', regexp_split_to_array(btrim('
+      MIA MCO JFK LAX SCL EZE PUJ
+    ', E' \n'), '\s+'),
+    'air-new-zealand', regexp_split_to_array(btrim('
+      CHC DUD WLG ZQN LAX SFO HNL IAH JFK
+    ', E' \n'), '\s+'),
+    'fiji-airways', regexp_split_to_array(btrim('
+      CXI APW DFW SFO LAX HNL
+    ', E' \n'), '\s+'),
+    'jetstar', regexp_split_to_array(btrim('
+      NRT KIX DPS SGN HKT ICN SIN BKK MNL CMB HVB RAR CHC PPP ZQN DUD AKL LST HLZ VLI
+      OOL DRW HBA ADL MCY WLG NTL CBR AYQ WSI TSV NAN BQB BNK BNE
     ', E' \n'), '\s+')
   );
 $fn$;
@@ -1734,7 +2059,7 @@ $fn$;
 revoke all on function public.pv_stay_network() from public, anon, authenticated;
 
 comment on function public.pv_stay_network() is
-  '会社ごとの就航地（会社ページの「ステイ先」に並ぶ空港の3字。airline-destinations.mjs の写し）。運営の「追加」（足す口の publish:true）が、その場で公開で入れてよい空港の一覧。誰にも配らない（足す口と、運営だけが読む 10-e が呼ぶ）。';
+  '会社ごとの就航地（会社ページの「ステイ先」に並ぶ空港の3字。gen-stay-network.mjs が書く）。運営の「追加」（足す口の publish:true）が、その場で公開で入れてよい空港の一覧。誰にも配らない（足す口と、運営だけが読む 10-e が呼ぶ）。';
 
 
 -- ════════════════════════════════════════════════════════════════

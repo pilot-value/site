@@ -769,7 +769,7 @@ function renderReviews(filter) {
     const snip = r.serverLocked ? (r.clipText || '') : '';
     const L = comment.length;
     // 切れ目が金額トークンの内側に落ちないよう pvSafeCut で後ろへずらす（上のコメント参照）
-    const visible = pvSafeCut(comment, Math.max(30, Math.ceil(L / 8)));
+    const visible = pvSafeCut(comment, Math.min(L, 80));   // ★2026-10-29：先頭80字（airline-reviews-ui.js の previewLen と同じ式）
     const cut = locked && !r.serverLocked && L > visible;   // 短い本文に空のぼかし帯を出さない
     const bodyText = cut ? comment.slice(0, visible) : comment;
     const chipsHTML = (r.catNames && r.catNames.length)

@@ -727,6 +727,14 @@ function researchCityLiving(slug, c, lang = 'ja') {
   }
   for (const m of ROOM) if (value[m[1]] != null) cols.push([m[1], m[2]]);
   const priced = cols.length > 0;
+  /* ★2026-10-29 オーナー「家賃は1bed・2・3bedでそれぞれ棒グラフに」（03 の暮らしの決め「家賃は横棒で一目で比べる。1LDK/2LDK/3LDK の切替」を、
+     調べの台帳の街にも）：棒は寝室の在る間取り（1-Bed・2-Bed・3-Bed）だけ・先頭は 1-Bed。棒の名前は、資料の間取りの言い方（行の layout の term）が
+     引用か、調べた側が写した原文の表記（cond_ja の「原部屋表記」）に在るときだけ（gate の決まりはそのまま） */
+  const said = {}, quotes = [];
+  for (const { r } of same) { for (const [k, x] of Object.entries(r.layout || {})) if (x && x.term) said[k] = x.term; quotes.push(...(r.evidence || []).map(e => e.quote || ''), r.cond_ja || ''); }
+  /* 言い方が確かめられない間取り（行に layout の term が無い・引用にも原文の表記にも無い）は棒にしない ── 1つも無ければ今までどおり棒なし */
+  const bars = cols.map(c => c[0]).filter(k => k !== 'studio' && said[k] && quotes.some(q => q.includes(said[k])));
+  const words = Object.fromEntries(cols.filter(c => bars.includes(c[0])));
   /* 英語：街の名前は英語の名前（名前の下の1行は書かない ── 同じ名前を2度言わない） */
   const town = {
     key: c.city, name: en ? C.en : C.ja, sub: en ? '' : C.en, en: en ? '' : C.en, area: '', label: en ? C.en : C.ja,
@@ -741,12 +749,12 @@ function researchCityLiving(slug, c, lang = 'ja') {
   return gate(slug, {
     cityKey: c.city, city: en ? C.en : C.ja, cur: priced ? first.r.currency : '', per: priced ? C.per || 'month' : 'month',
     measure: priced ? (en ? cityEn(C, 'measure') : C.measure || '') : '',
-    site: priced ? c.city : '', siteName: priced ? (en ? cityEn(C, 'site') : C.site || '') : '', stat: priced ? (first.r.amount || {}).stat || '' : '',
-    cols, bars: [], words: {}, leadCol: cols.length ? cols[0][0] : '', beside: '', byTown: false, cardFamily: '',
+    site: priced ? c.city : '', siteName: priced ? (en ? cityEn(C, 'site') : C.site || '') : '', stat: priced ? (s => (s === 'average' ? 'mean' : s))((first.r.amount || {}).stat || '') : '',   // 取り込みの道具の average ＝ 台帳の mean（BAR_STATS の言い方）
+    cols, bars, words, leadCol: bars.includes('bed1') ? 'bed1' : (bars[0] || (cols.length ? cols[0][0] : '')), beside: '', byTown: false, cardFamily: '',
     /* ★2026-10-26 段階5 compare-all-15：空港は、その会社の拠点の空港（c.iata ── 字の表の also の空港のときは、空港の呼び名の表 PLACES の名前） */
     airports: [{ iata: c.iata, to: c.iata !== C.iata ? PLACES[c.iata][en ? 1 : 0] : en ? cityEn(C, 'airport') : C.airport }], ends: [], rents: [town], estates: [],
     basis: priced && C.scope ? [{ key: 'scope', value: en ? cityEn(C, 'scope') : C.scope }] : [], refs: [], commute, research: true,
-  }, [], {});
+  }, quotes, said);
 }
 /* 先行5社の台帳の街を、その会社の拠点の空港の分だけにしぼって使う。 */
 function leadCityFor(slug, key, bases, T = TX_JA) {

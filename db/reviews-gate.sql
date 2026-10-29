@@ -227,18 +227,18 @@ begin
                    判定している。そこに触れる名前で返すと、錠前の UI ごと外れて
                    **全文が出ている扱い**になる（本文は空なので、画面は
                    「口コミが空っぽ」という顔で静かに壊れる）。
-                ⚠️ 41 は pv_review_clip の作法 ── 超えたら n-1 字＋「…」＝
-                   **読めるのはきっかり40字**。トップページの80字とは別の数字で、
-                   あちらは触らない。 */
+                ⚠️ 81 は pv_review_clip の作法 ── 超えたら n-1 字＋「…」＝
+                   **読めるのはきっかり80字**（★2026-10-29 オーナー「口コミは最初の80文字は見せて。他はぼかして」で40字から）。
+                   トップページの80字と同じ数になったが、別の関数・別の決まり。 */
              || case when v_open or ck.a[1] is null then '{}'::jsonb
                      else jsonb_build_object('clip', jsonb_build_object(
                        'k', ck.a[1],
                        'o', public.pv_review_clip(
-                              to_jsonb(pick) ->> (ck.a[1] || '_comment'), 41),
+                              to_jsonb(pick) ->> (ck.a[1] || '_comment'), 81),
                        't', coalesce((
                               select jsonb_object_agg(l.key,
                                        to_jsonb(public.pv_review_clip(
-                                         l.value ->> ck.a[1], 41)))
+                                         l.value ->> ck.a[1], 81)))
                                 from jsonb_each(coalesce(pick.translations,
                                                          '{}'::jsonb)) l
                                where jsonb_typeof(l.value) = 'object'
@@ -269,7 +269,7 @@ grant execute on function public.pv_reviews(jsonb) to anon, authenticated;
 
 comment on function public.pv_reviews(jsonb) is
   '口コミの一覧。本文（7つの *_comment と translations）は鍵を持つ人にだけ返す。'
-  '鍵の無い人には clip（先頭の1欄・40字まで）を1つだけ添える。'
+  '鍵の無い人には clip（先頭の1欄・80字まで）を1つだけ添える。'
   'proof_hash は誰にも返さない。';
 
 
@@ -459,7 +459,7 @@ union all
      SQL Editor は auth.uid() が null ＝ pv_has_review_key() が false なので、
      ここで呼ぶと「鍵の無い人が見る画面」と同じ答えが返る。
    ⚠️ 本文のある行だけを見る（cats が空の行には抜粋が付かないのが正しい）。 */
-select '⑤ 鍵の無い人に返る形（抜粋は先頭の1欄だけ・40字まで）',
+select '⑤ 鍵の無い人に返る形（抜粋は先頭の1欄だけ・80字まで）',
        (with q as (
           select x as r
             from jsonb_array_elements(
@@ -475,8 +475,8 @@ select '⑤ 鍵の無い人に返る形（抜粋は先頭の1欄だけ・40字�
                         where jsonb_exists(q.r, 'culture_comment')
                            or jsonb_exists(q.r, 'translations'))
             then '❌ 本文か訳文がそのまま返っている'
-          when exists (select 1 from q where length(q.r #>> '{clip,o}') > 41)
-            then '❌ 抜粋が40字を超えている'
+          when exists (select 1 from q where length(q.r #>> '{clip,o}') > 81)
+            then '❌ 抜粋が80字を超えている'
           when exists (select 1 from q
                         where (q.r #>> '{clip,k}') is distinct from (q.r #>> '{cats,0}'))
             then '❌ 先頭の欄ではない所から抜粋している'

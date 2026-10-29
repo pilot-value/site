@@ -65,6 +65,9 @@ const GENERATORS = [
   ['gen-career.mjs',      'career.html と en/career.html（概要と2社比較の1枚・日英の2枚）'],
   /* 2026-10-18（WP-close-a）。会社ページの暮らしのカードの街を直したのに流し忘れると、サーバの街の候補の種だけ古いまま残る。 */
   ['gen-towns.mjs',       'db/towns.generated.sql（暮らしのカードの街 → サーバの街の候補の種）'],
+  /* 2026-10-29。就航地を出す会社を 19 → 96社に広げたとき、db/stays.sql の手で写した一覧（運営の「追加」が公開で入れてよい空港）を
+     直し忘れた。SQL の検査（db/test-stays.mjs の ★N1）でしか分からず、DB を触らない回の push 前には流れない ＝ ここでも見る。 */
+  ['gen-stay-network.mjs', 'db/stays.sql の pv_stay_network()（運営の「追加」が公開で入れてよい空港）'],
 ];
 
 // どれも読まない重いもの。展開しないぶん速くなる。
