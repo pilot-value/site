@@ -145,6 +145,9 @@ export const fxNote = (cur, lang = 'ja') => (lang === 'en'
              会社の公表額ではなく**推定年収**（SALARY の avg）を出す。読むのは下の cardFigure() の1か所だけ。
              会社ページの「会社が公表している金額」の一覧・FAQ・説明文は今までどおり groups を読む（変わらない）。
              いま置いているのはエミレーツの機長・副操縦士だけ（下のエミレーツの節）。
+     pay_tax ★2026-10-30。資料の額が税引き前でないとき：'net'（手取りと書いてある）／'unknown'（税引き前か手取りか書いていない）。
+             無ければ税引き前。読むのは gen-faq.mjs の PAY_TAX の1か所（FAQ が「すべて税引き前」と言い切らないため）。
+             ⚠️ 税率で手取り ⇄ 税引き前を作り直さない（推測を数字にすることになる）。
    ──────────────────────────────────────────────────────────────── */
 export const BASIS = {
 
@@ -732,11 +735,12 @@ export const BASIS = {
   'china-eastern': {
     cur: 'USD',
     tax: '課税（中国）',
+    pay_tax: 'unknown',
     src: [
       { pub: '人材会社 Asia Pacific Aviation Services Limited（APAS・香港）が出した求人', pub_en: 'A vacancy posted by the recruitment agency Asia Pacific Aviation Services Limited (APAS, Hong Kong)',
         name: 'China Eastern Airlines - A330 Captains（上海基地・3年契約・更新可）',
         as_of: 'ページに日付の記載が1つも無い（Internet Archive の保存では 2025-06-17 から同じ金額）',
-        accessed: '2026-09-29',
+        accessed: '2026-10-30',
         url: 'https://www.apasnet.com/Jobs/detail.aspx?u=28&JobType=0' },
     ],
     notes: [
@@ -762,8 +766,17 @@ export const BASIS = {
         { name: '機長 A330（上海基地・暦月75時間・3年契約）', name_en: 'Captain, A330 (Shanghai base, 75 hours a calendar month, three-year contract)', cash_m: 19500, pkg_y: 300000,
           req: 'A330 の型式限定・総 PIC 5,500時間以上・うち当該型式 500時間以上・中国と国交のある国の国籍' },
       ],
+      card: 'estimate',
+      est: {
+        basis: '人材会社 APAS（香港）が出した中国東方の A330 機長の求人',
+        basis_en: 'A posting by the recruitment agency APAS (Hong Kong) for A330 captains at China Eastern',
+        method: '求人の「年間総待遇 US$300,000（月給・年次賞与・住宅手当・追加の航空手当）」をそのまま推定年収にしています。外国人パイロット向けの契約（上海基地・3年契約）の額で、中国人の社員の給与表ではありません。税引き前か後かは書かれていません。幅の下は前の値のままです。',
+        method_en: 'The posting’s “annual salary package of USD 300,000 (monthly pay, annual bonus, living allowance and extra air travel allowance)” is used as the estimate as it stands. It is a contract for foreign pilots (Shanghai base, three years), not China Eastern’s own staff pay scale. It does not say whether the figure is before or after tax. The bottom of the range is unchanged.',
+        as_of: 'ページに日付の記載なし（2026年10月30日に確認）',
+        as_of_en: 'No date given on the page (checked 30 October 2026)',
+      },
       held: { was: { avg: 2900, lo: 2100, hi: 4600 },
-        why: '会社の公表は金額ゼロ（採用サイトにパイロットの募集自体が無い）。金額があるのは人材会社の求人1本（A330 機長・日付なし）だけで、年額の平均・レンジを支える資料は無い。' } },
+        why: '（2026-10-30 まで）会社の公表は金額ゼロ（採用サイトにパイロットの募集自体が無い）。金額があるのは人材会社の求人1本（A330 機長・日付なし）だけで、年額の平均・レンジを支える資料は無い。2026-10-30 にオーナーの判断（代理店の求人を使ってよい）でこの求人の年額を推定年収にした。' } },
     fo: { tier: 'estimate', held: { was: { avg: 1480, lo: 980, hi: 2100 },
       why: '副操縦士の金額はどの資料にも無い（人材会社の求人も機長だけ）。' } },
   },
@@ -1468,6 +1481,129 @@ export const BASIS = {
       method: '6年目の副操縦士（OP3・在籍7年）の月額を2026年の水準にして年14回受け取る形にし、協約が給与と書く乗務の日当の最低（1日 €202.50 × 月5日 × 11か月）と会社の年金拠出 6% を足しています。幅は、1年目（OP1）から在籍16年・広胴機の副操縦士までです。',
       method_en: 'A year-6 first officer (OP3, 7 years at TAP) with monthly pay brought to 2026 levels and paid 14 times a year, plus the minimum per diem the agreement treats as pay (€202.50 a day × 5 days a month × 11 months) and the 6% company pension contribution. The range runs from year 1 (OP1) to a widebody first officer with 16 years at TAP.',
       as_of: '2023年の表を2026年の水準に直した額', as_of_en: '2023 tables brought to 2026 levels',
+    } },
+  },
+  /* ★2026-10-30（オーナー OK・Gemini の年収の調べ 2回目の続き）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'royal-jordanian': {
+    cur: 'USD',
+    pay_tax: 'net',
+    src: [
+      { pub: '採用代理店 Brookfield Aviation（英国）が出した求人', pub_en: 'A vacancy posted by the recruitment agency Brookfield Aviation (UK)',
+        name: 'A320 Captains – Royal Jordanian (Amman, Jordan)', name_en: 'A320 Captains – Royal Jordanian (Amman, Jordan)',
+        as_of: '2026-02-09 掲載', as_of_en: 'Posted 9 February 2026', accessed: '2026-10-30',
+        url: 'https://www.brookfieldav.com/jobs/a320-captains-%E2%80%93-royal-jordanian-(amman%2C-jordan)' },
+      { pub: '採用代理店 Brookfield Aviation（英国）が出した求人', pub_en: 'A vacancy posted by the recruitment agency Brookfield Aviation (UK)',
+        name: 'A320 First Officers Required – Royal Jordanian (Amman, Jordan)', name_en: 'A320 First Officers Required – Royal Jordanian (Amman, Jordan)',
+        as_of: '2026-02-03 掲載', as_of_en: 'Posted 3 February 2026', accessed: '2026-10-30',
+        url: 'https://www.brookfieldav.com/jobs/a320-first-officers-required-%E2%80%93-royal-jordanian-(amman%2C-jordan)' },
+    ],
+    notes: [
+      '⚠️ 会社の公表ではありません。英国の採用代理店が出している求人の掲載額です。',
+      '額は手取り（NET）で、Brookfield と結ぶ12か月（更新可）の契約です。宿泊（5つ星ホテル）・送迎・帰国の航空券・医療保険は現物で支給され、額は書かれていません。',
+    ],
+    notes_en: [
+      'These are not the airline’s own figures. They are the amounts stated in postings by a recruitment agency in the UK.',
+      'The amounts are take-home (net), on a 12-month renewable contract with Brookfield. Accommodation (a five-star hotel), transport, flights home and medical insurance are provided in kind, with no stated value.',
+    ],
+    cap: { tier: 'offer_posting',
+      groups: [
+        { name: '機長 A320（アンマン・Brookfield との12か月契約・手取り）', name_en: 'Captain, A320 (Amman, 12-month Brookfield contract, net)', month: 12300, months: 12 },
+      ],
+      card: 'estimate',
+      est: {
+        basis: '採用代理店 Brookfield Aviation（英国）が出したロイヤル・ヨルダンの A320 機長の求人（2026年2月）',
+        basis_en: 'A posting by the recruitment agency Brookfield Aviation (UK) for A320 captains at Royal Jordanian (February 2026)',
+        method: '求人の「月 US$12,300（手取り）」を、12か月の契約の月数で年額にしています。Brookfield と結ぶ外国人パイロット向けの契約の一律の額で、ロイヤル・ヨルダンの社員の給与表ではありません。手取りの額なので、税引き前ならこれより大きくなります。現物の宿泊・送迎・航空券・医療保険は入れていません。幅の下は前の値のままです。',
+        method_en: 'The posting’s “USD 12,300 net per month” is turned into a yearly figure over the 12 months of the contract. It is a single rate for foreign pilots on a contract with Brookfield, not Royal Jordanian’s own staff pay scale. As it is a take-home figure, the pre-tax amount would be higher. Accommodation, transport, flights home and medical insurance provided in kind are not included. The bottom of the range is unchanged.',
+        as_of: '2026年2月', as_of_en: 'February 2026',
+      } },
+    fo: { tier: 'offer_posting',
+      groups: [
+        { name: '副操縦士 A320（アンマン・Brookfield との12か月契約・手取り）', name_en: 'First officer, A320 (Amman, 12-month Brookfield contract, net)', month: 8500, months: 12 },
+      ],
+      card: 'estimate',
+      est: {
+        basis: '採用代理店 Brookfield Aviation（英国）が出したロイヤル・ヨルダンの A320 副操縦士の求人（2026年2月）',
+        basis_en: 'A posting by the recruitment agency Brookfield Aviation (UK) for A320 first officers at Royal Jordanian (February 2026)',
+        method: '求人の「月 US$8,500（手取り）」を、12か月の契約の月数で年額にしています。総飛行 1,500時間（うち A320 の副操縦士 500時間）以上の人に一律の額で、6年目の額ではありません。手取りの額なので、税引き前ならこれより大きくなります。現物の宿泊・送迎・航空券・医療保険は入れていません。幅の下は前の値のままです。',
+        method_en: 'The posting’s “USD 8,500 net per month” is turned into a yearly figure over the 12 months of the contract. It is a single rate for anyone with 1,500 flight hours, including 500 hours as an A320 first officer, not a year-6 figure. As it is a take-home figure, the pre-tax amount would be higher. Accommodation, transport, flights home and medical insurance provided in kind are not included. The bottom of the range is unchanged.',
+        as_of: '2026年2月', as_of_en: 'February 2026',
+      } },
+  },
+  'aer-lingus': {
+    tax: '課税（アイルランド）', tax_en: 'Taxed (Ireland)',
+    src: [
+      { pub: 'The Irish Times', pub_en: 'The Irish Times', name: 'Aer Lingus pilot pay row heading for Labour Court', name_en: 'Aer Lingus pilot pay row heading for Labour Court',
+        as_of: '2024-02-21 掲載', as_of_en: 'Published 21 February 2024', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.irishtimes.com/business/2024/02/21/aer-lingus-pilot-pay-row-heading-for-labour-court/' },
+      { pub: 'The Standard（PA 通信）', pub_en: 'The Standard (PA)', name: 'Aer Lingus pilots’ industrial action', name_en: 'Aer Lingus pilots’ industrial action',
+        as_of: '2024-06-21 掲載', as_of_en: 'Published 21 June 2024', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.standard.co.uk/news/uk/aer-lingus-government-ireland-b1165905.html' },
+      { pub: 'RTÉ', pub_en: 'RTÉ', name: 'Aer Lingus accepts Labour Court recommendation on pay', name_en: 'Aer Lingus accepts Labour Court recommendation on pay',
+        as_of: '2024-07-08 掲載', as_of_en: 'Published 8 July 2024', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.rte.ie/news/business/2024/0708/1458716-aer-lingus-ialpa/' },
+      { pub: 'Irish Examiner', pub_en: 'Irish Examiner', name: 'Aer Lingus pilots vote to accept 17.75% pay rise', name_en: 'Aer Lingus pilots vote to accept 17.75% pay rise',
+        as_of: '2024-07-23 掲載', as_of_en: 'Published 23 July 2024', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.irishexaminer.com/news/arid-41442025.html' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'アイルランド紙 The Irish Times の記事（2024年2月）と、2024年7月に会社と組合員が受け入れた労働裁判所の昇給の勧告（RTÉ・Irish Examiner の報道）',
+      basis_en: 'An article in The Irish Times (February 2024) and the Labour Court pay award accepted by the airline and by the pilots in July 2024 (reported by RTÉ and the Irish Examiner)',
+      method: '記事の「勤続20年の機長は年 23万9,000ユーロ」に、その後の昇給（2023年1月〜2026年7月の8回で計17.75%）を掛けています。勧告は前の給与表を1本の表に作り直すとも書いているため、近い値です。幅の上は PA 通信（2024年6月）の「最上段の待遇は年金などの価値を含めて約28万7,000ユーロ」に同じ率を掛けた額です。会社の年金拠出と日当は、資料で確かめられず入れていません。幅の下は前の値のままです。',
+      method_en: 'Set at the article’s “captains who reach year 20 can earn €239,000”, raised by the later pay award (17.75% in eight steps from January 2023 to July 2026). The award also replaced the previous pay scales with a single scale, so this is an approximation. The top of the range is PA’s “top pay package of around €287,000, including the value of pensions and other benefits” (June 2024), raised by the same rate. The company pension contribution and per diem could not be confirmed from the sources and are not included. The bottom of the range is unchanged.',
+      as_of: '2024年2月（昇給は2026年7月まで）', as_of_en: 'February 2024 (pay rises through July 2026)',
+    } },
+    fo: { tier: 'estimate' },
+  },
+  'finnair': {
+    tax: '課税（フィンランド）', tax_en: 'Taxed (Finland)',
+    src: [
+      { pub: 'Suomenmaa（STT 通信の記事）', pub_en: 'Suomenmaa (STT news agency report)', name: 'Palta: Tällaisia summia Finnairin lentäjät tienaavat', name_en: 'Palta: this is what Finnair pilots earn',
+        as_of: '2024-12-18 掲載', as_of_en: 'Published 18 December 2024', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.suomenmaa.fi/uutiset/palta-tallaisia-summia-finnairin-lentajat-tienaavat-tyonantajapuoli-pitaa-vaatimuksia-kohtuuttomina/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'フィンエアー側の雇用者団体 Palta が、2024年12月の協約交渉の中で公表した額（STT 通信の報道）',
+      basis_en: 'Figures published by Palta, the employers’ association on Finnair’s side, during the December 2024 pay talks (reported by the STT news agency)',
+      method: 'Palta の「機長の平均は年 20万ユーロ強」に置いています。手当を含み、乗務の日当は含みません。機長全体の平均で、最上段の額ではありません。幅の上は同じ記事の「機長に払われた最大は年 約34万ユーロ」です。会社の上乗せの年金とその後の昇給は入れていません。幅の下は前の値のままです。',
+      method_en: 'Set at Palta’s “the average captain earns a little over €200,000 a year”. It includes allowances but not per diem. It is the average across all captains, not the top of the scale. The top of the range is the same article’s “the most paid to a captain is about €340,000 a year”. Any extra company pension and later pay rises are not included. The bottom of the range is unchanged.',
+      as_of: '2024年12月', as_of_en: 'December 2024',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'フィンエアー側の雇用者団体 Palta が、2024年12月の協約交渉の中で公表した額（STT 通信の報道）',
+      basis_en: 'Figures published by Palta, the employers’ association on Finnair’s side, during the December 2024 pay talks (reported by the STT news agency)',
+      method: 'Palta の「副操縦士の平均は年 10万ユーロ弱」に置いています（10万ユーロを超えないよう切り下げ）。手当を含み、日当は含みません。副操縦士全体の平均で、6年目の額ではありません。幅は前の値のままです。',
+      method_en: 'Set at Palta’s “the average first officer earns just under €100,000 a year” (rounded down so as not to exceed €100,000). It includes allowances but not per diem. It is the average across all first officers, not a year-6 figure. The range is unchanged.',
+      as_of: '2024年12月', as_of_en: 'December 2024',
+    } },
+  },
+  'wizz-air': {
+    tax: '課税（英国）', tax_en: 'Taxed (United Kingdom)',
+    pay_tax: 'unknown',
+    src: [
+      { pub: 'Irish Examiner（ウィズ・エアーの発表の報道）', pub_en: 'Irish Examiner (report of a Wizz Air announcement)', name: 'Wizz Air offers free pilot training as it announces recruitment drive in Ireland', name_en: 'Wizz Air offers free pilot training as it announces recruitment drive in Ireland',
+        as_of: '2025-10-15 掲載', as_of_en: 'Published 15 October 2025', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.irishexaminer.com/business/companies/arid-41724570.html' },
+      { pub: '採用代理店 FCI が出した求人', pub_en: 'A vacancy posted by the recruitment agency FCI', name: 'A320 TR / NTR First Officers – UK Nationals – Wizz Air', name_en: 'A320 TR / NTR First Officers – UK Nationals – Wizz Air',
+        as_of: 'ページに日付の記載なし', as_of_en: 'No date given on the page', accessed: '2026-10-30',
+        url: 'https://fci.aero/jobs/a320-tr-ntr-first-officers-uk-nationals-wizz-air-immediate-assessments-373113/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'ウィズ・エアーが2025年10月の訓練生の募集で示した額（Irish Examiner の報道）',
+      basis_en: 'Figures Wizz Air gave when announcing its cadet recruitment in October 2025 (reported by the Irish Examiner)',
+      method: '会社の「機長に昇格すると年 最大20万ポンド」を、最上段の額として置いています。給与表の段の額ではなく、税引き前か手取りかは書かれていません。3年勤めた機長への引き留めの賞与（一部の基地・1回だけ）と年金は入れていません。幅の下は前の値のままです。',
+      method_en: 'Set at the company’s “up to £200,000 a year on promotion to captain”, used as the top-of-scale figure. It is not a step on a pay scale, and it is not stated whether it is before or after tax. The retention bonus for captains after three years (some bases, paid once) and the pension are not included. The bottom of the range is unchanged.',
+      as_of: '2025年10月', as_of_en: 'October 2025',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: '同じ発表（Irish Examiner の報道）と、採用代理店 FCI の英国の副操縦士の求人',
+      basis_en: 'The same announcement (reported by the Irish Examiner) and a UK first officer posting by the recruitment agency FCI',
+      method: '会社の「副操縦士の資格を取って2年後に年 9万ポンド」に置いています。FCI の求人にも「年の手取りの見込み 9万ポンド」とあります。6年目ではなく2年後の額です（低めの見積もり）。ランダム勤務を選んだ人の上乗せ（月 最大800ポンド）・引き留めの賞与・年金は入れていません。幅の下は前の値のままです。',
+      method_en: 'Set at the company’s “£90,000 a year two years after qualifying as a first officer”. The FCI posting also states an “expected annual take-home salary of £90,000”. It is a two-year figure, not year 6 (a conservative estimate). The extra pay for choosing a random roster (up to £800 a month), the retention bonus and the pension are not included. The bottom of the range is unchanged.',
+      as_of: '2025年10月', as_of_en: 'October 2025',
     } },
   },
 };

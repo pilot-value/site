@@ -240,18 +240,28 @@ const HELD_EN = (slug, name, nm) => {
       推定であることと、数字が上下する理由だけ書く。
    ⚠️ 「会社は給与を公表していません」と書かない（オーナー経由のレビュー・指摘1）。
    ★2026-10-26 幅（lo〜hi）は書かない（上の import の注）。 */
+/* ★2026-10-30 資料の額が税引き前でない会社（salary-basis.mjs の BASIS[slug].pay_tax）。
+   'net' ＝ 手取りと書いてある（ロイヤル・ヨルダンの代理店の求人）／'unknown' ＝ 税引き前か手取りか書いていない。
+   無ければ今までどおり「税引き前」。⚠️ 税率で額面と手取りを行き来させない。 */
+const PAY_TAX = (slug) => BASIS[slug]?.pay_tax || 'gross';
+const TAX_JA = (slug, name) => (PAY_TAX(slug) === 'net'
+  ? `このページの${name}の額は、資料に書かれた手取り（NET）の額です。税引き前の額は資料に書かれていません。`
+  : `このページの${name}の額は、税引き前か手取りかが資料に書かれていません。`);
+const TAX_EN = (slug, name) => (PAY_TAX(slug) === 'net'
+  ? `The ${name} figures on this page are take-home (net) amounts as stated in the source; the pre-tax amount is not given. `
+  : `The sources do not say whether the ${name} figures on this page are before or after tax. `);
 const EST_JA = (slug, name, nm, rank) => {
   const d = SALARY[slug], r = d[rank];
   return `${name}の${nm}の年収は、当サイトの推定で約${man(r.avg)}です。`
     + `公開情報から当サイトが推計した金額で、${name}が公表した金額ではありません。`
-    + (d.taxFree ? `所在国に個人所得税が無いため、この金額が手取りに近くなります。` : `いずれも税引き前の金額です。`)
+    + (d.taxFree ? `所在国に個人所得税が無いため、この金額が手取りに近くなります。` : PAY_TAX(slug) !== 'gross' ? TAX_JA(slug, name) : `いずれも税引き前の金額です。`)
     + `機種・在籍年数・乗務する路線によって上下します。`;
 };
 const EST_EN = (slug, name, nm, fmt, rank) => {
   const d = SALARY[slug], r = d[rank];
   return `We estimate annual pay for ${name} ${nm} at about ${fmt(r.avg)}. `
     + `That is our own estimate from public information, not a figure ${name} publishes. `
-    + (d.taxFree ? `There is no personal income tax where the airline is based, so this is close to take-home. ` : `These are gross figures, before income tax. `)
+    + (d.taxFree ? `There is no personal income tax where the airline is based, so this is close to take-home. ` : PAY_TAX(slug) !== 'gross' ? TAX_EN(slug, name) : `These are gross figures, before income tax. `)
     + `The actual figure moves with the aircraft type, years of service and the routes you fly.`;
 };
 
@@ -319,6 +329,10 @@ function buildJaBasis(slug) {
     a: `${cja}には個人所得税が無いため、${name}の現金給与は税を引かれずそのまま受け取れます。${b.tax}。`
       + `日本の航空会社の年収は税引き前の金額なので、同じ額面でも手元に残る金額は変わります。`
       + `なお日本の居住者判定など個人の税務は別途確認が必要です。`,
+  } : PAY_TAX(slug) !== 'gross' ? {
+    q: `${name}のパイロットの給与は税引き前ですか？`,
+    a: TAX_JA(slug, name) + (b.tax ? `${b.tax}。` : '')
+      + `手取りは居住国・扶養・各種控除で変わるため、一律の割合で額面と手取りを行き来させることはできません。`,
   } : {
     q: `${name}のパイロットの給与は税引き前ですか？`,
     a: `このページに載せている金額はすべて税引き前（額面）です。${b.tax}。`
@@ -352,6 +366,8 @@ function buildJaBasis(slug) {
         + (noCmp.length ? `${noCmp.join('と')}は、対象や含むものが違う金額どうしになるため、差額・倍率は出していません。` : '')
         + (d.taxFree
           ? `${name}の所在国には個人所得税が無く、ANA・JALの金額は税引き前なので、手取りで比べると差はさらに広がります。`
+          : PAY_TAX(slug) === 'net' ? `${name}の額は手取り、ANA・JALの額は税引き前です。`
+          : PAY_TAX(slug) === 'unknown' ? `${name}の額は税引き前か手取りかが資料に書かれていません。ANA・JALの額は税引き前です。`
           : `いずれも税引き前の金額どうしの比較です。`),
     });
   }
@@ -500,7 +516,7 @@ function buildEnBasis(slug) {
   items.push({ q: `What is the ${name} pilot pay scale?`, aHtml: scale(manM), aLd: scale(usd) });
 
   if (!d.taxFree) {
-    const tax = `Every figure on this page is gross, before income tax. `
+    const tax = (PAY_TAX(slug) !== 'gross' ? TAX_EN(slug, name) : `Every figure on this page is gross, before income tax. `)
       + `Take-home depends on where you are resident and on your own deductions, so no single percentage applies, and we do not publish one. `
       + `Airlines based in countries with no personal income tax — the UAE, Qatar, Saudi Arabia — leave more of the same gross figure in your hand.`;
     items.push({ q: `Is the ${name} pilot salary before or after tax?`, aHtml: tax, aLd: tax });
