@@ -520,6 +520,8 @@ for (const s of FIVE) {
     for (const f of [m.cap, m.co].filter(Boolean)) want.push({ kind: KIND[f.key], rank: rk, role: rkJa, label: LABEL[f.key], value: f.text, orig: f.orig });
   }
   if (crew.length) want.push({ kind: 'crew', rank: '', role: '', label: `${crew[0].who}全体の平均`, value: yen(crew[0].man), orig: '' });
+  /* ★2026-10-30 オーナー「訓練生の給料の部分も、金額以外はプルダウンにして」── 訓練生の入社時の額は表に出す（区分の名前を太字で） */
+  for (const t of traineeModel(s)) want.push({ kind: 'trainee', rank: '', role: t.group, label: '', value: t.text, orig: '' });
   if (!want.length) { ok(!T.pub && !/pvg-pub/.test(top), `${s}: 台帳に公表額が無ければ、一覧を置かない`); }
   else if (!T.pub) ok(false, `${s}: 「会社が公表している金額」の一覧が在る`);
   else {
@@ -532,7 +534,7 @@ for (const s of FIVE) {
     /* 印：上限は「〜」・下限は「超」。ほかの額には付けない。 */
     ok(T.rows.every(r => r.value.startsWith('〜') === (r.kind === 'cap') && r.value.endsWith('超') === (r.kind === 'over')),
        `${s}: 上限の額には「〜」・下限の額には「超」（ほかの額には付けない）`, T.rows.map(r => `${r.kind}:${r.value}`).join(' '));
-    ok(T.rows.every(r => r.spoken.includes(nameOf(s)) && (r.kind === 'crew' ? !r.role && r.spoken.includes('機長と副操縦士をあわせた') : RANKS.some(([rk, ja]) => rk === r.rank && ja === r.role))),
+    ok(T.rows.every(r => r.spoken.includes(nameOf(s)) && (r.kind === 'crew' ? !r.role && r.spoken.includes('機長と副操縦士をあわせた') : r.kind === 'trainee' ? !r.rank && /訓練生|自社養成/.test(r.role) : RANKS.some(([rk, ja]) => rk === r.rank && ja === r.role))),
        `${s}: 行ごとに社名と職位が読める（乗員全体の平均は「機長と副操縦士をあわせた」と読む）`, T.rows.map(r => `${r.spoken}${r.role}`).join(' ／ '));
     /* 前提：全部の行で同じなら一覧の下に1回・違えば行ごと。どの行にも付く。 */
     const noteOf = r => r.own || T.pub.shared;
@@ -582,7 +584,7 @@ for (const s of FIVE) {
     }
   }
   for (const c of crewModel(s)) want.push([`${c.who}全体の平均`, yen(c.man), '']);
-  for (const t of traineeModel(s)) want.push([t.group, t.text, '']);
+  /* ★2026-10-30 訓練生の額は給与の欄の表に移した（プルダウンの中ではくり返さない） */
   const got = rows.map(r => [r.dt, r.b, r.orig]);
   const srt = a => a.map(x => JSON.stringify(x)).sort();
   ok(same(srt(got), srt(want)), `${s}: 説明の一覧の額は、台帳に在る額と1つずつ合う`,
