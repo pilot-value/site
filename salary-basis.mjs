@@ -296,7 +296,7 @@ export const BASIS = {
         url: 'https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer' },
       /* g4 src */
       { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
-        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [
@@ -1055,7 +1055,7 @@ export const BASIS = {
         url: 'https://www.skymark.co.jp/ja/company/recruit/saiyo/recruit/' },
       /* g4 src */
       { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
-        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [
@@ -1106,7 +1106,7 @@ export const BASIS = {
         url: 'https://www.jair.co.jp/about/recruit/pilot/apply02.html' },
       /* g4 src */
       { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
-        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [
@@ -1148,7 +1148,7 @@ export const BASIS = {
     src: [
       /* g4 src */
       { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
-        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ], notes: [], notes_en: [],
     cap: { from: 'members', /* g4 cap */ est: {
@@ -2093,7 +2093,7 @@ export const BASIS = {
     src: [
       /* g4 src */
       { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
-        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [], notes_en: [],
@@ -2118,7 +2118,7 @@ export const BASIS = {
     src: [
       /* g4 src */
       { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
-        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [], notes_en: [],
@@ -2137,7 +2137,7 @@ export const BASIS = {
     src: [
       /* g4 src */
       { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
-        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [], notes_en: [],
