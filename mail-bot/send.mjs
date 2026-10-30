@@ -78,6 +78,30 @@ if (!['welcome', 'digest', 'announce', 'founding', 'realpay', 'update', 'renewal
 if (!SUPABASE_URL || !SERVICE_KEY) { console.error('❌ SUPABASE_URL / SUPABASE_SERVICE_KEY 未設定'); process.exit(1); }
 if (!DRY && !RESEND_KEY) { console.error('❌ RESEND_API_KEY 未設定（実送信には必須）'); process.exit(1); }
 
+/* ── 配信を断った人の名簿（全員宛てのお知らせからも外す） ──
+   email_opt_in を落とすだけでは、登録者全員に送るお知らせ
+   （founding / realpay / update / renewal）はまだ届く。そこまで止めるための名簿。
+   置き場は mail-bot/.mail-block（gitignore 済み・iCloud の Claude-Backup に退避）。
+   1行に1アドレス・# から後ろはコメント・大文字小文字は区別しない。
+   ★アドレスをこのスクリプトに書かない（公開リポジトリ＝pilot-value.com から誰でも読める）。
+   ★名簿のファイルが無いときは会員への実送信を止める。新しい Mac で戻し忘れると、
+     断った人に黙って届くため。空のファイルは「誰も断っていない」として通す。
+     自分宛ての下見（--to=）と送らない回は名簿が無くても動く。 */
+const BLOCK_FILE = join(__dir, '.mail-block');
+const BLOCKED = existsSync(BLOCK_FILE)
+  ? new Set(readFileSync(BLOCK_FILE, 'utf8').split('\n')
+      .map(s => s.replace(/#.*/, '').trim().toLowerCase()).filter(Boolean))
+  : null;
+const isBlocked = (email) => !!BLOCKED && BLOCKED.has(String(email ?? '').trim().toLowerCase());
+if (!DRY && !toArg && BLOCKED === null) {
+  console.error('❌ mail-bot/.mail-block（配信を断った人の名簿）がありません。');
+  console.error('   断った人に届いてしまうので止めます（送信は取り消せません）。');
+  console.error('   iCloud の Claude-Backup/latest/repo-lists/mail-bot.mail-block から戻してください。');
+  console.error('   断った人がいないなら、空のファイルを置けば通ります。');
+  process.exit(1);
+}
+if (toArg && isBlocked(toArg)) { console.error('❌ --to= の宛先は配信を断った人です。送りません。'); process.exit(1); }
+
 const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
 const POS = { captain:'機長', fo:'副操縦士', cadet:'訓練生' };
 
@@ -89,13 +113,23 @@ async function sbSelect(table, select, filters = []) {
     headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY }
   });
   if (!res.ok) throw new Error(`${table} REST ${res.status}: ${await res.text()}`);
-  return res.json();
+  const rows = await res.json();
+  if (table !== 'profiles') return rows;
+  /* 送り先は全部ここ（profiles）から選ぶので、断った人はここで1回外す。
+     email を取らずに読むと外せないので、その形は通さない。 */
+  if (!/\bemail\b/.test(select)) throw new Error('profiles を読むときは email を含める（配信を断った人を外せないため）');
+  const kept = rows.filter(r => !isBlocked(r.email));
+  /* 人数だけ出す。宛先は出さない。 */
+  if (kept.length < rows.length) console.log(`  （配信を断った ${rows.length - kept.length} 名を除外）`);
+  return kept;
 }
 
 /* opt = { text, headers, idempotencyKey, replyTo } — どれも任意。
    idempotencyKey は「同じ鍵の2回目は送らない」を Resend 側に約束させるもの。
    途中で落ちて流し直したとき、既に届いた人へ二通目が飛ばない。 */
 async function sendEmail(to, subject, html, opt = {}) {
+  /* 最後の関所。--only= や --to= で名指ししても、断った宛先には送らない。 */
+  if (isBlocked(to)) { console.log('  ⏭ 配信を断った宛先なので送りません'); return { blocked: true }; }
   if (DRY) return { dry: true };
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',

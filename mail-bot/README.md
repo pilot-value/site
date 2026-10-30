@@ -288,6 +288,26 @@ node mail-bot/send.mjs digest  --backfill # 初回：直近7日ぶんをまと�
 - `digest` は既定で**前回実行以降**（初回は直近7日）の新着口コミを、`email_opt_in=true` の全員へ。
 - 状態：`.send-state.json`（`lastWelcomeAt` / `lastDigestAt`）。
 
+### 「もう送らないで」と言われた人を外す（2026-10-30）
+2つやる。片方だけだと、どこかのメールがまだ届く。
+
+1. **DB の旗を落とす**（Supabase の SQL Editor）── 週の新着まとめ（自動配信）・お知らせ・月次リマインドが止まる。
+   ```sql
+   update public.profiles set email_opt_in = false, mail_optin = false
+    where lower(email) = '<その人のアドレス>'
+   returning name, email, email_opt_in, mail_optin;
+   ```
+2. **`mail-bot/.mail-block` に1行足す** ── 登録者全員に送るお知らせ（`founding` / `realpay` / `update` / `renewal`）は
+   旗を見ないので、こちらで外す。1行1アドレス・`#` から後ろはコメント・大文字小文字は区別しない。
+   `send.mjs` は会員を読んだ時点で外し（「配信を断った N 名を除外」と人数だけ出る）、送る直前にももう1回見る
+   （`--only=` や `--to=` で名指ししても送らない）。
+
+- ⚠️ **アドレスをコードやこの README に書かない**（公開リポジトリ）。名簿は gitignore 済み。
+- ⚠️ **名簿のファイルが無いと、会員への実送信は止まる**（新しい Mac で戻し忘れると、断った人に黙って届くため）。
+  iCloud の `Claude-Backup/latest/repo-lists/mail-bot.mail-block` から戻す。断った人がいないなら空のファイルでよい。
+  送らない回と自分宛ての下見（`--to=`）は名簿が無くても動く。
+- 名簿は `backup-claude.command` が iCloud へ退避している。
+
 ### 一度だけのお知らせ（send.mjs announce）
 
 給与レポートを公開したことを、登録済みの会員に1通だけ知らせる。
