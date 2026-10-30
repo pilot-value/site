@@ -1363,5 +1363,14 @@ CLAUDE.md 側にあり、ここにあるのは **各検査が何を約束して�
       端末の写し（`pv_ask`）を見る前に読み込むようになった。⚠️ 430枚の全ページで、会員の通信が毎回1本増える。
     - **「範囲の外は送らない」「欄の字は 16px 以上」が落ちた** ── 板（`pv-conditions.js` の `step`）の数字の欄を直した。
       16px 未満にすると iPhone が欄に入った瞬間に画面を拡大する。
+    - **「100 ドル・100 ユーロ・100 ポンド → 出す」が落ちた** ── `pv_ask_filled` が額を通貨ごとに分けなくなった
+      （`a` の `cur` か、`med` / `near` の通貨の突き合わせを外した）。⚠️ 円とドルの数字を並べて「そろった」と判定し、
+      着陸手当の額・日当を誰にも聞かなくなる。**画面は普通に動いたまま。**
+    - **「通貨を選ばずに次へ → 送らない」「通貨を選ぶ欄が空で出る」が落ちた** ── 板の額の欄（`step` の `pvc-cur`）を直した。
+      空で出さないと、選んでいない人の額に一覧の先頭の通貨が黙って付く（質問の一覧の画面で 2026-10-09 まで起きていた形）。
+    - **「この板に無い補足を言わない」が落ちた** ── 説明に補足のことを書いた質問を ASK に足したのに、`askHelp` を持たせていない。
+    - ⚠️ 質問を足したら（一覧に出る質問の数が動いたら）、`db/test-conditions.mjs` の固定の数・`roadmap-config.js` の「待遇アンケート（N問）」・
+      会社ページ（`node gen-airline-glance.mjs`）・`node gen-career.mjs`・`node gen-datemod.mjs`・`node gen-sitemap.mjs` を一緒に直す
+      （2026-10-30 に日当の3問を足したとき、`assert-rollout.mjs` と `assert-generated.mjs` が教えた）。
     - ⚠️ `pv-session.js` を直したら `node inject-session.mjs`（430枚の `?v=`）、`pv-conditions.js` を直したら4枚の `?v=` を付け替える
-      （`assert-conditions.mjs` の版スタンプが教える）。
+      （`assert-conditions.mjs` の版スタンプが教える）。430枚を書き換えたら、コミットの前に `node gen-datemod.mjs` と `node gen-sitemap.mjs` も流す。

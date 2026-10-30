@@ -480,17 +480,25 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 - **決めるのは全部サーバ** ── [db/ask-own-airline.sql](db/ask-own-airline.sql) の `pv_ask_next`。会社は最新の給与、無ければ最新の口コミ
   （一覧外の会社・止めた会員には聞かない）。2日は `profiles.ask_prompt_at`（板を開いた時刻）で数える ＝ 端末をまたいで1回。
-- **聞く質問と順番の正本は [pv-conditions.mjs](pv-conditions.mjs) の `ASK`**（18問）。`node gen-conditions.mjs` が DB の `ask_rank` へ写す。
+- **聞く質問と順番の正本は [pv-conditions.mjs](pv-conditions.mjs) の `ASK`**（22問）。`node gen-conditions.mjs` が DB の `ask_rank` へ写す。
+  ★2026-10-30 オーナー指示で、着陸手当の1回あたりの額と日当（出るか・国内線の1日の額・国際線の1日の額）を足した。
+  額は**通貨と一緒に**聞く（板に「通貨を選ぶ」欄。空で出す＝勝手に通貨を付けない。同じ板の次の額は本人がさっき選んだ通貨）。
   子の質問は親のすぐ後ろ（本人が親に該当する答えをしたときだけ、同じ板の中で続けて聞く）。
 - **「埋まった」＝ 3人以上が同じ答え かつ 答えた人の過半数**（数字は中央の値から ±10%・最低1刻み）。`pv_ask_filled` の1か所。
+  ⚠️ **額は同じ通貨どうしでしか比べない**（100 ドル・100 ユーロ・100 ポンドは「そろった」にしない。壊す証明あり）。
   数える行は公開の集計と同じ `pv_condition_ans()`（[db/airline-conditions.sql](db/airline-conditions.sql) でビューから切り出した）。写しを作らない。
 - **ほかの人の人数を返さない**（返すのは質問の id だけ）。
-- 板は [pv-conditions.js](pv-conditions.js) の `askReturn`（待遇の質問と同じ板）。**この板だけ**数字の欄と「複数選ぶ」を描く。
+- 板は [pv-conditions.js](pv-conditions.js) の `askReturn`（待遇の質問と同じ板）。**この板だけ**数字の欄・通貨の欄・「複数選ぶ」を描く。
+  この板には補足の欄が無いので、補足に触れる説明の質問は `askHelp`（その板だけの説明）を持たせる（例：乗務以外の業務の手当）。
   出してよいページかは [pv-session.js](pv-session.js) の `askDue` の1か所 ── 端末の写し `pv_ask` の時刻を過ぎるまで**通信ゼロ**。
   同じページに板は1枚（パイロット確認 → Give & Get → この板）。出さない画面は `ASK_SKIP`。
 - サーバ呼び出しは `PVSession.rpc`（pv-proof.js から移した。ページの sb → 生きたトークンで fetch → lazyOk のときだけ supabase-js）。
 - **貼る順** ── `db/conditions.generated.sql` → `db/airline-conditions.sql`（ビューを作り直す）→ `db/ask-own-airline.sql`（末尾の検算4行が ✅）。
   SQL が先・push が後（貼る前は `pv_ask_next` が無い ＝ 板は黙って出ず、端末は12時間後にもう一度聞く）。
+
+- ⚠️ **手元の検査用サーバ（[serve-local.mjs](serve-local.mjs)）は、ふだん会員にこの板を出さない**（会員の「最後に板を開いた時刻」を先へ置いて立ち上げる）。
+  出すと、ログインした会員のどのページにも板が重なり、ほかの画面の検査の操作をふさぐ（2026-10-30 に `assert-contrib`・`assert-career-live` が実際に落ちた）。
+  板を手元で見るときだけ `node serve-local.mjs --ask-board`（`start({ askBoard: true })`）。
 
 見るもの: `node db/test-ask-own-airline.mjs`（誰に・順番・埋まった線・48時間・壊す証明）／`node assert-ask.mjs`（画面の通し）。
 

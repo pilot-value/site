@@ -339,6 +339,17 @@ export async function start(opt = {}) {
     if (m.verified) await db.query(`update public.profiles set verify_level = 1 where id = $1 and verify_level is distinct from 1`, [m.id]);
     if (m.operator) await db.query(`insert into public.pv_admins (user_id, note) values ($1, '運営（手元）') on conflict (user_id) do nothing`, [m.id]);
   }
+  /* 戻ってきた会員に聞く板（db/ask-own-airline.sql・2026-10-30）は、手元ではふだん出さない。
+     出すと、ログインした会員のどのページにも 1.5 秒後に板が重なり、ほかの画面の検査の操作をふさぐ
+     （assert-contrib の「情報を追加」・assert-career-live の会員の場面が、実際にそれで落ちた）。
+     板そのものを手元で見るときだけ start({ askBoard: true }) で立ち上げる（板の検査は assert-ask.mjs が別に見ている）。
+     やり方は本番と同じ道 ── 会員の「最後に板を開いた時刻」を先へ置く ＝ サーバが「まだ」と答え、画面は聞きに来なくなる。 */
+  const askCol = (await db.query(`select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'profiles' and column_name = 'ask_prompt_at'`)).rows.length;
+  if (askCol) {
+    await db.query(`update public.profiles set ask_prompt_at = ${opt.askBoard ? 'null' : `now() + interval '10 years'`}
+                     where id = any($1::uuid[])`, [MEMBERS.map((m) => m.id)]);
+  }
   /* ステイ情報（db/stays.sql の約束 1）を見てよい人。★手元だけの模擬:
      owner: true の会員（'op'）＝ オーナー、verified: true の会員（'pilot'）＝ そのオーナーが承認した人。
      本番のオーナーの行は、オーナーが SQL Editor で自分のメールアドレスを入れたときだけ入る（このファイルは本番に触らない）。 */
@@ -806,6 +817,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const srv = await start({
       port: Number(val('--port') || process.env.PV_LOCAL_PORT || 3100),
       host: val('--host'), dir: val('--db'), reset: argv.includes('--reset'),
+      askBoard: argv.includes('--ask-board'),   // 戻ってきた会員に聞く板を、手元の会員にも出す
     });
     console.log(`  手元のサーバー ${srv.url}（本番とは通信しない・メールのコードは ${OTP}）`);
     const stop = () => srv.close().then(() => process.exit(0), () => process.exit(1));
