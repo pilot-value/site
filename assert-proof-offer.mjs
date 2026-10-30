@@ -45,13 +45,17 @@ const cut = (text, k, to = k.to, drop = k.drop || 0) => { const i = text.indexOf
   const j = text.indexOf(to, i); return j < 0 ? null : text.slice(i, j + to.length - drop).replace(/\n+$/, ''); };
 const MAIN_TO = { K4: ['\n  /* ── 板 ─', '\n  /* ── 板 ─'.length], K5: ['\n  function open() {', '\n  function open() {'.length] };
 const hasMain = existsSync(path.join(ROOT, 'pv-proof.js'));     // main を取り込んだあと
+/* サーバとの行き来（K3・K3b）は 2026-10-30 に pv-proof.js から pv-session.js の PVSession.rpc へ移した（中身は1文字も変えていない）。
+   比べる先はいまの置き場所。 */
+const HOME = { K3: 'pv-session.js', K3b: 'pv-session.js' };
 for (const k of KS) {
   const mine = cut(POP, k);
   ok(mine && sha(mine) === k.sha, `★${k.id} は pv-proof.js（main）の切り出しと1文字も違わない${k.swap ? '（クラス名の頭だけ pvpo-）' : ''}`, mine ? sha(mine) : 'not found');
   if (hasMain) {
-    const m = read('pv-proof.js'); const [to, dr] = MAIN_TO[k.id] || [k.to, 0];
+    const src = HOME[k.id] || 'pv-proof.js';
+    const m = read(src); const [to, dr] = MAIN_TO[k.id] || [k.to, 0];
     const t = cut(m, k, to, dr); const tt = t && k.swap ? t.split('pvpf-').join('pvpo-') : t;
-    ok(tt === mine, `★（取り込み後）${k.id} は、いまの pv-proof.js と同じ（片方だけ直していない）`);
+    ok(tt === mine, `★（取り込み後）${k.id} は、いまの ${src} と同じ（片方だけ直していない）`);
   }
 }
 const code = POP.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');

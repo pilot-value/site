@@ -166,7 +166,56 @@ export const SETTINGS = {
 
   /* レポートが描かれてからモーダルを出すまで。0だと結果を読む前に被さる。 */
   modal_delay_ms:     700,
+
+  /* 戻ってきた会員に聞く板「〇〇のこと、ひとつ教えて。」（下の ASK・2026-10-30 オーナー指示）。
+     ★間隔はサーバ（profiles.ask_prompt_at）で数える ＝ スマホとパソコンで二重に出ない。 */
+  ask_interval_hours:  48,   // 板を開いてから、次に開いてよいまで（2日に1回）
+  ask_limit:            3,   // 1回の板で聞く問数（言った数で必ず終わる）
 };
+
+/* ── 戻ってきた会員に聞く質問と、その順番（2026-10-30 オーナー指示）──────────
+   「登録したパイロットが戻ってきたとき、2日に1回、自分の会社について3問。
+     大事で、まだ埋まっていない質問から。3人以上が同じような答えなら、いったん次の質問へ。
+     大事な順は 勤務 → 通勤・タクシー → 休暇・手当 → staff travel。その中でも大事なことだけ。」
+   ★聞く順の正本はこの並び1つだけ。gen-conditions.mjs が DB の ask_rank（1, 2, …）へ写し、
+     db/ask-own-airline.sql の pv_ask_next がこの順で選ぶ。
+   ★子（parent を持つ質問）は、本人が親に該当する答えをしたときだけ出る（今の質問と同じ決まり）。
+     子は親のすぐ後ろに置く ＝ 親に「ある」と答えた直後に、その中身を聞ける。
+   ★ここに無い質問は、この板では聞かない（給与の後の1問・会社ページの「情報を追加」・質問の一覧では今までどおり聞く）。
+     聞かないもの：意見の質問・細かい続き（希望休の日数・Bidding の範囲・Reserve の日数・病休の日数・
+     着陸手当が一定額でない人の低いほう・高いほうの額・バス・タクシーの上限・staff travel の回数や費用）・
+     キャリア節・Peer Support。
+   ★2026-10-30 オーナー指示で足した：着陸手当の1回あたりの額・日当（パーディアム）が出るか・国内線と国際線の1日の額。
+     額は通貨と一緒に聞く（板に通貨を選ぶ欄が出る）。
+   ⚠️ 対になる額（rangeLow）・明細行・話題の入口だけの質問・意見の質問は置けない（gen-conditions.mjs が止める）。 */
+export const ASK = [
+  // 勤務
+  'days_off_request',
+  'schedule_bidding',
+  'reserve_duty',
+  'reserve_location',          // ↳ reserve_duty
+  'roster_lead_days',
+  'roster_changes',
+  // 通勤・タクシー
+  'commuting_transport',
+  'commuting_transport_method', // ↳ commuting_transport（複数選ぶ）
+  'commuting_taxi_where',       // ↳ commuting_transport_method
+  'commuting_taxi_cost',        // ↳ commuting_transport_method
+  // 休暇・手当
+  'annual_leave_days',
+  'sick_leave',
+  'landing_pay',
+  'landing_pay_amount',         // ↳ landing_pay（1回あたり一定額の人だけ・通貨つき）
+  'per_diem',
+  'per_diem_domestic',          // ↳ per_diem（通貨つき）
+  'per_diem_international',     // ↳ per_diem（通貨つき）
+  'ground_duty_pay',
+  // staff travel
+  'staff_travel',
+  'staff_travel_booking',       // ↳ staff_travel
+  'staff_travel_family',        // ↳ staff_travel
+  'staff_travel_cabin',         // ↳ staff_travel
+];
 
 /* 質問の形（kind）
      choice … 1つ選ぶ
@@ -720,9 +769,12 @@ export const QUESTIONS = [
        ★micro にしない。1タップで終わらせると note が空のまま埋まる。 */
     tier: 'C', micro: false, priority: 56, note: true,
     ja: { label: '乗務以外の会社業務に、手当や勤務時間上の補償がありますか？',
-          help: '会議・訓練担当・事務など、乗務でない業務に対する扱いです。「地上業務1時間＝乗務◯時間相当」のような換算がある場合は、補足に書いてください。' },
+          help: '会議・訓練担当・事務など、乗務でない業務に対する扱いです。「地上業務1時間＝乗務◯時間相当」のような換算がある場合は、補足に書いてください。',
+          /* 戻ってきた会員に聞く板には補足の欄が無い ＝ 「補足に書いて」を言わない（askHelp はその板だけが使う） */
+          askHelp: '会議・訓練担当・事務など、乗務でない業務に対する扱いです。' },
     en: { label: 'Is non-flying company work compensated, in pay or in duty credit?',
-          help: 'Meetings, training duties, office work. If ground time converts into credited flying time at some ratio, please describe it in the note.' },
+          help: 'Meetings, training duties, office work. If ground time converts into credited flying time at some ratio, please describe it in the note.',
+          askHelp: 'Meetings, training duties, office work.' },
     choices: [
       { code: 'yes',          ja: 'はい',         en: 'Yes' },
       { code: 'case_by_case', ja: 'ケースによる', en: 'Case by case' },
@@ -1102,6 +1154,49 @@ export const QUESTIONS = [
       { code: 'self_full',    ja: '本人が全額（運行だけ会社）',           en: 'You pay all of it (the company only runs it)' },
       { code: UNKNOWN,        ja: 'わからない',                           en: "Don't know" },
     ],
+  },
+  /* ── 日当（パーディアム）（2026-10-30 オーナー指示「1日あたりのパーディアムを聞いて。国内線、国際線」）──
+     ★親で「出るか・どちらに出るか」を聞き、出る側の額だけを聞く（国際線しか飛ばない会社の人に国内線の額を聞かない）。
+     ★額は通貨と一緒に聞く。下限は 1 ＝ 0 を「答えた」として保存させない（出ない人は親で「出ない」）。
+     ★見本の額を help に書かない（会社ごとに違う。書いた額に答えが引っぱられる）。
+     ★micro にしない（提出直後の1問枠は今のまま）。
+     ★並びの最後に置く（priority を詰め直すと、ほかの質問の番号が全部動くため）。一覧の画面では待遇の節の最後に出る。 */
+  {
+    id: 'per_diem', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'B', micro: false, priority: 75,
+    ja: { label: '乗務の日当（パーディアム）は出ますか？',
+          help: 'ステイ先での食事代などとして、乗務の日数や時間に応じて出る手当です。' },
+    en: { label: 'Is per diem paid on trips?',
+          help: 'A daily allowance for meals and expenses away from base, paid by trip days or hours.' },
+    choices: [
+      { code: 'both',      ja: '国内線・国際線とも出る', en: 'Yes — domestic and international' },
+      { code: 'intl_only', ja: '国際線だけ出る',         en: 'International only' },
+      { code: 'dom_only',  ja: '国内線だけ出る',         en: 'Domestic only' },
+      { code: 'no',        ja: '出ない',                 en: 'No' },
+      { code: UNKNOWN,     ja: 'わからない',             en: "Don't know" },
+    ],
+  },
+  {
+    id: 'per_diem_domestic', version: 1, section: 'benefits', kind: 'num',
+    tier: 'B', micro: false, priority: 76,
+    parent: 'per_diem', parentWhen: ['both', 'dom_only'],
+    currency: true,
+    num: { min: 1, max: 10000000, step: 0.01, ja: '（1日あたり）', en: '(per day)' },
+    ja: { label: '国内線の日当は1日いくらですか？',
+          help: '国内線の乗務で1日あたりに出る額です。時間で計算される場合は、1日分の目安で構いません。' },
+    en: { label: 'Domestic per diem: how much per day?',
+          help: 'The amount paid per day on domestic trips. If it is paid by the hour, a rough daily figure is fine.' },
+  },
+  {
+    id: 'per_diem_international', version: 1, section: 'benefits', kind: 'num',
+    tier: 'B', micro: false, priority: 77,
+    parent: 'per_diem', parentWhen: ['both', 'intl_only'],
+    currency: true,
+    num: { min: 1, max: 10000000, step: 0.01, ja: '（1日あたり）', en: '(per day)' },
+    ja: { label: '国際線の日当は1日いくらですか？',
+          help: '国際線の乗務で1日あたりに出る額です。行き先で変わる場合は、いちばんよく行く行き先の額で構いません。' },
+    en: { label: 'International per diem: how much per day?',
+          help: 'The amount paid per day on international trips. If it varies by destination, use the one you fly to most.' },
   },
 ];
 
