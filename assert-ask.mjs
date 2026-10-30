@@ -197,6 +197,42 @@ ok(!(await page.$('[data-pvc]')) && server.seen === 0, '板を出さない・pv_
 const rec3 = await page.evaluate(() => { try { return JSON.parse(localStorage.getItem('pv_ask')); } catch { return null; } });
 ok(!!rec3 && Math.abs(rec3.n - Date.parse(later)) < 2000, 'サーバの言う時刻まで、この端末から聞きに行かない', rec3);
 
+console.log('\n════ ⑦ 額（通貨つき）── 着陸手当の額・日当（2026-10-30） ════');
+{
+  const Q_AMT = 'landing_pay_amount', Q_AMT2 = 'per_diem_domestic', Q_GD = 'ground_duty_pay';
+  for (const id of [Q_AMT, Q_AMT2, Q_GD]) if (!BY[id]) ok(false, `質問 ${id} が無い`);
+  reset({ next: { ok: true, due: true, airline: 'jal', name_ja: 'JAL', name_en: 'Japan Airlines',
+                  questions: [{ id: Q_AMT, kind: 'num', mine_code: null }, { id: Q_AMT2, kind: 'num', mine_code: null },
+                              { id: Q_GD, kind: 'choice', mine_code: null }] } });
+  await visit('/world-airlines.html', GAVE);
+  ok(await board(), '額の質問でも板が出る（通貨の一覧が読めた）');
+  const nCur = JSON.parse(readFileSync(new URL('./pv-vocab.json', import.meta.url), 'utf8')).currencies.length;
+  const cur0 = await page.$eval('.pvc-cur', (el) => ({ v: el.value, first: el.options[0].textContent, n: el.options.length,
+                                                      fs: parseFloat(getComputedStyle(el).fontSize) })).catch(() => null);
+  ok(!!cur0 && cur0.v === '' && cur0.first === '通貨を選ぶ' && cur0.n === nCur + 1,
+     `通貨を選ぶ欄が空で出る（勝手に通貨を付けない）・選択肢は ${nCur} 通貨`, cur0);
+  ok(!!cur0 && cur0.fs >= 16, `通貨の欄の字は 16px 以上（${cur0 && cur0.fs}px）`, cur0);
+  await page.type('.pvc-num', '1500');
+  await page.click('[data-next]');
+  await page.waitForSelector('.pvc-warn', { timeout: 3000 }).catch(() => {});
+  ok(/通貨を選んでください/.test(await text('.pvc-warn') || '') && server.submits.length === 0,
+     '通貨を選ばずに「次へ」→ 送らずに「通貨を選んでください。」', [await text('.pvc-warn'), server.submits.length]);
+  await page.select('.pvc-cur', 'JPY');
+  await page.click('[data-next]');
+  await page.waitForFunction(() => document.querySelector('.pvc-step') && document.querySelector('.pvc-step').textContent.trim() === '2 / 3', { timeout: 5000 }).catch(() => {});
+  ok(J(server.submits[0] && server.submits[0].answers) === J([{ question_id: Q_AMT, num: 1500, currency: 'JPY' }]),
+     '額と選んだ通貨をいっしょに保存（1500 JPY）', server.submits[0]);
+  ok(await page.$eval('.pvc-cur', (el) => el.value).catch(() => null) === 'JPY', '同じ板の次の額は、さっき本人が選んだ通貨（JPY）で出る');
+  await page.type('.pvc-num', '3000.5');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelector('.pvc-step') && document.querySelector('.pvc-step').textContent.trim() === '3 / 3', { timeout: 5000 }).catch(() => {});
+  ok(J(server.submits[1] && server.submits[1].answers) === J([{ question_id: Q_AMT2, num: 3000.5, currency: 'JPY' }]),
+     '小数の額（3000.5 JPY）も保存', server.submits[1]);
+  const help = await text('.pvc-help');
+  ok(help === BY[Q_GD].ja.askHelp && !/補足/.test(help || ''), 'この板に無い「補足」を説明で言わない（askHelp を出す）', help);
+  await page.keyboard.press('Escape');
+}
+
 console.log('\n════ 英語 ════');
 reset();
 await visit('/en/world-airlines.html', GAVE);

@@ -157,7 +157,7 @@
       again: function (label) { return ['You previously answered "' + label + '".', 'Is that still the case?']; },
       same: 'Still the same',
       changed: 'It changed',
-      dunno: 'I do not know',
+      dunno: "Don't know",
       askHead: function (name) { return ['Tell us one thing about ' + (name || 'your airline') + '.']; },
       next: 'Next',
       multiHint: 'Choose all that apply.',
@@ -300,6 +300,8 @@
     '.pvc-numrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px}',
     /* 16px 未満だと iPhone が欄に入った瞬間に画面を拡大する */
     '.pvc-num{font-size:16px;width:132px}',
+    /* 額の質問：通貨を選ぶ欄は1行ぜんぶ（「USD — 米ドル」が欄の中で切れないように）。額と単位と「次へ」は次の行 */
+    '.pvc-numrow .pvc-cur{flex:1 1 100%;font-size:16px}',
     '.pvc-unit{font-size:.82rem;font-weight:700;color:#6b7d93}',
     '.pvc-go{display:flex;justify-content:flex-end;margin-top:16px}',
     '.pvc-ctx{font-size:.74rem;font-weight:700;line-height:1.6;color:#6b7d93;margin-top:14px}',
@@ -629,7 +631,10 @@
     var head = it.reconfirm
       ? lines(T.again(labelOf(q, it.mine_code)))
       : esc(q[L].label);
-    var helpText = (!it.reconfirm && q[L] && q[L].help) ? q[L].help : '';
+    /* 戻ってきた会員に聞く板には補足の欄が無い ＝ その板用の説明（askHelp）があればそちらを出す */
+    var hq = q[L] || {};
+    var helpText = it.reconfirm ? ''
+      : ((this.trigger === 'return_visit' && hq.askHelp) || hq.help || '');
     /* 複数選ぶ：説明が無い質問にだけ「全部選んでください」を添える（説明に同じことが書いてある質問で二重にしない） */
     if (mode === 'multi' && !helpText) helpText = T.multiHint;
     var help = helpText ? '<div class="pvc-help">' + esc(helpText) + '</div>' : '';
@@ -647,8 +652,14 @@
     var numHtml = '';
     if (mode === 'num') {
       var nm = q.num || {};
+      /* 額（通貨つき）は通貨と一緒に聞く。同じ板で前に選んだ通貨があれば、それを選んだ形で出す（本人が選んだ通貨だけ） */
       numHtml = '<div class="pvc-numrow">' +
-          '<input type="number" class="pvcf-num pvc-num" inputmode="numeric"' +
+          (q.currency
+            ? '<select class="pvcf-sel pvc-cur" data-cur aria-label="' + esc(T.fullCur) + '">' +
+                curOptions(this.lastCur || '') + '</select>'
+            : '') +
+          '<input type="number" class="pvcf-num pvc-num" inputmode="' +
+            (Number(nm.step || 1) < 1 ? 'decimal' : 'numeric') + '"' +
             (nm.min != null ? ' min="' + esc(nm.min) + '"' : '') +
             (nm.max != null ? ' max="' + esc(nm.max) + '"' : '') +
             ' step="' + esc(nm.step || 1) + '" aria-label="' + esc(q[L].label) + '">' +
@@ -673,10 +684,12 @@
     var btns = this.body.querySelectorAll('.pvc-opt');
     var next = this.body.querySelector('[data-next]');
     var input = this.body.querySelector('.pvc-num');
+    var cur = this.body.querySelector('.pvc-cur');
     var all = function () {
       var a = Array.prototype.slice.call(btns);
       if (next) a.push(next);
       if (input) a.push(input);
+      if (cur) a.push(cur);
       return a;
     };
     Array.prototype.forEach.call(btns, function (b) {
@@ -718,9 +731,12 @@
         var stepN = Number(nm2.step || 1);
         var offStep = stepN > 0 && Math.abs(v / stepN - Math.round(v / stepN)) > 1e-9;
         if (v < lo || v > hi || offStep) { self.warn(T.numBad(nm2.min, nm2.max)); input.focus(); return; }
-        self.send({ num: v }, all(), null);
+        /* 通貨を選んでいない額は送らない（サーバも bad_currency で受け取らない） */
+        if (cur && !cur.value) { self.warn([T.fullCurNeed]); cur.focus(); return; }
+        self.send(cur ? { num: v, currency: cur.value } : { num: v }, all(), null);
       };
       input.addEventListener('input', function () { next.disabled = read() == null; self.warn(null); });
+      if (cur) cur.addEventListener('change', function () { self.warn(null); });
       input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') { e.preventDefault(); submit(); }
       });
@@ -735,7 +751,8 @@
        読み位置が飛ぶ（aria-live が読み上げるので移す必要も無い）。
        数字の質問は欄へ（打ち始められるように）。 */
     if (this.i === 0) {
-      if (input) input.focus();
+      if (cur && !cur.value) cur.focus();
+      else if (input) input.focus();
       else if (btns[0]) btns[0].focus();
     }
   };
@@ -766,6 +783,7 @@
       .then(function (res) {
         if (res.error || !res.data || res.data.saved !== 1) throw new Error('not saved');
         self.answered++;
+        if (a.currency) self.lastCur = a.currency;
         self.evt(a.code === UNKNOWN ? 'condition_unknown' : 'condition_answered');
         self.advance();
       })
@@ -983,7 +1001,7 @@
           var out = [];
           for (var i = 0; i < (qs || []).length && out.length < want; i++) {
             var q = bank.byId[qs[i].id];
-            if (!q || q.currency) continue;
+            if (!q || q.rangeLow) continue;
             if ((q.kind === 'choice' || q.kind === 'multi') && !(q.choices && q.choices.length)) continue;
             if (q.kind === 'num' && !q.num) continue;
             if (q.kind !== 'choice' && q.kind !== 'multi' && q.kind !== 'num') continue;
@@ -993,11 +1011,21 @@
           }
           return out;
         };
+        /* 額の質問は通貨の一覧が要る。読めなければ、その質問だけ今回は聞かない */
+        var withCur = function (list) {
+          if (!list.some(function (x) { return x.q.currency; })) return Promise.resolve(list);
+          return loadVocab().then(function (v) {
+            if (v && v.currencies && v.currencies.length) return list;
+            return list.filter(function (x) { return !x.q.currency; });
+          });
+        };
         return call('pv_ask_next', { p: { limit: lim } }).then(function (res) {
           var g = res.data;
           if (res.error || !g || !g.ok) return no('fail');
           if (!g.due) return no(g.why || 'wait', g.next_at);
-          var items = toItems(g.questions, lim);
+          return withCur(toItems(g.questions, lim)).then(function (items) { return show(g, items); });
+        });
+        function show(g, items) {
           if (!items.length) return no('done');
           if (busy()) return no('busy');
           var name = airlineNameOf(g.airline, null) || (L === 'en' ? g.name_en : g.name_ja) || '';
@@ -1014,8 +1042,9 @@
               return call('pv_ask_next', { p: { cont: true, limit: need, not: shown } }).then(function (r) {
                 var n = r.data;
                 if (r.error || !n || !n.ok) return;                 // 聞き直せない ＝ 最初の残りのまま
-                var more = n.due ? toItems(n.questions, need) : [];
-                m.items = m.items.slice(0, m.i + 1).concat(more);   // 聞くことが尽きたら、ここで終わる
+                return withCur(n.due ? toItems(n.questions, need) : []).then(function (more) {
+                  m.items = m.items.slice(0, m.i + 1).concat(more);   // 聞くことが尽きたら、ここで終わる
+                });
               });
             }
           };
@@ -1023,7 +1052,7 @@
           return call('pv_ask_seen', {}).then(function (r) {
             return { shown: true, next_at: (r.data && r.data.next_at) || null };
           });
-        });
+        }
       }).catch(function () { return no('fail'); });
     } catch (e) { return Promise.resolve(no('fail')); }
   }
@@ -1136,6 +1165,18 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) { _vocab = j || {}; return _vocab; })
       .catch(function () { _vocab = {}; return _vocab; });
+  }
+
+  /* 通貨の選択肢（質問の一覧の画面と、戻ってきた会員に聞く板の2か所が使う）。
+     ★先頭は空の選択肢（「通貨を選ぶ」）。これが無いと、何も選んでいない人の額に
+       一覧のいちばん上の通貨が黙って付いて保存される（2026-10-09 まで、そうなっていた）。 */
+  function curOptions(sel) {
+    var list = (_vocab && _vocab.currencies) || [];
+    return '<option value=""' + (sel ? '' : ' selected') + '>' + esc(T.fullCurPick) + '</option>' +
+           list.map(function (c) {
+      return '<option value="' + esc(c.code) + '"' + (c.code === sel ? ' selected' : '') + '>' +
+             esc(c.code + ' — ' + (c[L] || '')) + '</option>';
+    }).join('');
   }
 
   /* この人の会社を決める。?airline= が最優先、次に本人の最新の給与レポート。
@@ -1432,17 +1473,6 @@
       }
       sel.value = cur;
       lent[q.id] = sel.value === cur;
-    }
-
-    /* ★先頭は空の選択肢（「通貨を選ぶ」）。これが無いと、何も選んでいない人の額に
-         一覧のいちばん上の通貨が黙って付いて保存される（2026-10-09 まで、そうなっていた）。 */
-    function curOptions(sel) {
-      var list = (_vocab && _vocab.currencies) || [];
-      return '<option value=""' + (sel ? '' : ' selected') + '>' + esc(T.fullCurPick) + '</option>' +
-             list.map(function (c) {
-        return '<option value="' + esc(c.code) + '"' + (c.code === sel ? ' selected' : '') + '>' +
-               esc(c.code + ' — ' + (c[L] || '')) + '</option>';
-      }).join('');
     }
 
     /* 1問ぶんの見た目。kind ごとに出すものが違う。

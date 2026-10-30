@@ -147,8 +147,8 @@ const answer = async (who, airline, answers) => {
   await db.exec(`update public.profiles set cond_answers_today = 0`);
 };
 
-const AIR = (await many(`select code from public.pv_airlines where code <> 'other' and active order by code limit 12`)).map((r) => r.code);
-const [A_PAY, A_REV, A_F, A_SPLIT, A_UNK, A_NUM, A_NUM2, A_MULTI, A_SEEN, A_KID, A_BREAK, A_OLD] = AIR;
+const AIR = (await many(`select code from public.pv_airlines where code <> 'other' and active order by code limit 15`)).map((r) => r.code);
+const [A_PAY, A_REV, A_F, A_SPLIT, A_UNK, A_NUM, A_NUM2, A_MULTI, A_SEEN, A_KID, A_BREAK, A_OLD, A_CUR, A_CUR2, A_CUR3] = AIR;
 const ASK = (await many(`select id, kind, parent from public.pv_condition_questions
                           where active and ask_rank is not null order by ask_rank`));
 const ASK_IDS = ASK.map((q) => q.id);
@@ -213,8 +213,8 @@ console.log('\n▼ 2. 順番と、表に無い質問');
     if (!g.due) break;
     const q = g.questions[0];
     all.add(q.id);
-    const def = await one(`select kind, choice_codes, num_min from public.pv_condition_questions where id = $1`, [q.id]);
-    const a = def.kind === 'num' ? { question_id: q.id, num: Number(def.num_min) + 5 }
+    const def = await one(`select kind, choice_codes, num_min, has_currency from public.pv_condition_questions where id = $1`, [q.id]);
+    const a = def.kind === 'num' ? { question_id: q.id, num: Number(def.num_min) + 5, ...(def.has_currency ? { currency: 'USD' } : {}) }
             : def.kind === 'multi' ? { question_id: q.id, codes: [def.choice_codes[0]] }
             : { question_id: q.id, code: def.choice_codes[0] };
     await answer(m, A_PAY, [a]);
@@ -254,6 +254,33 @@ console.log('\n▼ 3. 埋まった質問は出さない（3人以上・過半数
   ok(!(await askNum(A_NUM)).includes(NUMQ), `数字（${NUMQ}）が 20・21・19 → 近い（±10%）ので出さない`);
   for (const v of [10, 20, 30]) await answer(await member(), A_NUM2, [{ question_id: NUMQ, num: v }]);
   ok((await askNum(A_NUM2)).includes(NUMQ), `数字（${NUMQ}）が 10・20・30 → ばらばらなので出す`);
+
+  /* 額（通貨つき）：同じ通貨どうしでしか比べない（2026-10-30 着陸手当の額・日当を足した） */
+  const MONEY = new Set((await many(`select id from public.pv_condition_questions where has_currency`)).map((r) => r.id));
+  const CQ = ASK.find((q) => q.kind === 'num' && MONEY.has(q.id) && q.parent
+    && ASK.find((x) => x.id === q.parent && !x.parent && x.kind === 'choice'));
+  ok(!!CQ, `板で聞く額の質問がある（${CQ && CQ.id}）`);
+  if (CQ) {
+    const link = await one(`select parent, parent_when from public.pv_condition_links where question_id = $1 order by 1 limit 1`, [CQ.id]);
+    const say = async (airline, num, currency) => answer(await member(), airline, [{ question_id: link.parent, code: link.parent_when[0] },
+                                                                 { question_id: CQ.id, num, currency }]);
+    const askCur = async (airline) => {
+      const m = await member(); await paid(m, airline);
+      await answer(m, airline, [{ question_id: link.parent, code: link.parent_when[0] }]);
+      /* 前の質問で3問の枠が埋まらないよう、この質問より前は全部「板で出した」ことにする */
+      return ids(await next(m, { cont: true, limit: 5, not: ASK_IDS.slice(0, ASK_IDS.indexOf(CQ.id)) }));
+    };
+    ok((await askCur(A_CUR)).includes(CQ.id), `まだ誰も答えていない会社では、額（${CQ.id}）が出る（下の「出さない」が空振りでない印）`);
+    for (const v of [100, 104, 97]) await say(A_CUR, v, 'USD');
+    ok(!(await askCur(A_CUR)).includes(CQ.id), `額（${CQ.id}）が 100・104・97 ドル → 近いので出さない`);
+    for (const c of ['USD', 'EUR', 'GBP']) await say(A_CUR2, 100, c);
+    ok((await askCur(A_CUR2)).includes(CQ.id), '額が 100 ドル・100 ユーロ・100 ポンド → 数字は同じでも通貨が違うので出す（通貨を混ぜない）');
+    for (const v of [10000, 10200, 9900]) await say(A_CUR3, v, 'JPY');
+    for (const v of [70, 71]) await say(A_CUR3, v, 'USD');
+    ok(!(await askCur(A_CUR3)).includes(CQ.id), '額が 円で3人そろう＋ドルが2人 → 3人以上・5人の過半数なので出さない');
+    await say(A_CUR3, 72, 'USD');
+    ok((await askCur(A_CUR3)).includes(CQ.id), '額が 円3人・ドル3人に割れた → また出す');
+  }
 
   /* 複数選ぶ：親に「ある」と答えた3人が同じ形を選ぶ */
   const MQ = ASK.find((q) => q.kind === 'multi');
@@ -354,6 +381,28 @@ console.log('\n▼ 7. 壊す証明（「埋まった」を外すと、3人同じ
   await db.exec(src);
   const m2 = await member(); await paid(m2, A_F);
   ok(!ids(await next(m2)).includes(Q1), '戻したら、また出ない');
+}
+
+console.log('\n▼ 7b. 壊す証明（額を通貨ごとに分けるのをやめると、100 ドル・100 ユーロ・100 ポンドが「そろった」になる）');
+{
+  const src = read(MINE);
+  /* 通貨を全部「無し」にして、額の行も数える ＝ 円もドルも1つの塊で比べる形 */
+  const cut = src.replace(/c\.answer_currency::text as cur/, () => 'null::text as cur')
+                 .replace(/\n\s+and \(a\.cur is not null or not a\.has_currency\)/, () => '');
+  ok(cut !== src, '通貨で分けている行が見つかった');
+  await db.exec(cut);
+  const MONEY = new Set((await many(`select id from public.pv_condition_questions where has_currency`)).map((r) => r.id));
+  const CQ = ASK.find((q) => q.kind === 'num' && MONEY.has(q.id) && q.parent
+    && ASK.find((x) => x.id === q.parent && !x.parent && x.kind === 'choice'));
+  const link = await one(`select parent, parent_when from public.pv_condition_links where question_id = $1 order by 1 limit 1`, [CQ.id]);
+  const before = { cont: true, limit: 5, not: ASK_IDS.slice(0, ASK_IDS.indexOf(CQ.id)) };
+  const m = await member(); await paid(m, A_CUR2);
+  await answer(m, A_CUR2, [{ question_id: link.parent, code: link.parent_when[0] }]);
+  ok(!ids(await next(m, before)).includes(CQ.id), '通貨で分けるのをやめたら、通貨の違う 100 が「そろった」になった ＝ 上の ✅ はこの分け方が効いている');
+  await db.exec(src);
+  const m2 = await member(); await paid(m2, A_CUR2);
+  await answer(m2, A_CUR2, [{ question_id: link.parent, code: link.parent_when[0] }]);
+  ok(ids(await next(m2, before)).includes(CQ.id), '戻したら、また出る');
 }
 
 console.log('\n▼ 8. 公開の集計は今までどおり（ビューを関数に切り出した）');

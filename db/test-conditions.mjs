@@ -89,9 +89,10 @@ ok(Number(qm.l) === LISTED.length && LISTED.length + TOPIC_ONLY.length === QUEST
      （4問のどれかから外しても）一緒に動いて緑のまま ＝ 「N／48 を動かさない」をどこも見ていなかった。
      一覧に出る質問を本当に足した回は、この1行と、48 を字で持っている所を一緒に直す
      （assert-admin-notify.mjs・roadmap-config.js・workflows/deploy-checklist.md）。
-   ★2026-10-09、着陸手当の額と数え方の5問を足して 43 → 48 にした（見るのは ㉑）。 */
-ok(LISTED.length === 48 && TOPIC_ONLY.length === 4,
-  '   ★一覧に出る質問は 48・話題の入口からだけ出る質問は 4（ここだけ数字で固定）',
+   ★2026-10-09、着陸手当の額と数え方の5問を足して 43 → 48 にした（見るのは ㉑）。
+   ★2026-10-30、日当（パーディアム）の3問を足して 48 → 51 にした（オーナー指示・戻ってきた会員に聞く板）。 */
+ok(LISTED.length === 51 && TOPIC_ONLY.length === 4,
+  '   ★一覧に出る質問は 51・話題の入口からだけ出る質問は 4（ここだけ数字で固定）',
   `一覧 ${LISTED.length}・入口だけ ${TOPIC_ONLY.length}`);
 ok(Number(qm.m) === QUESTIONS.filter((q) => q.micro).length,
   `★（1問だけ出せる）${QUESTIONS.filter((q) => q.micro).length} → ${qm.m}`);

@@ -80,6 +80,8 @@ for (const q of QUESTIONS) {
   for (const l of ['ja', 'en']) {
     if (!q[l] || !q[l].label) throw new Error(`${at}: ${l}.label が無い`);
     if (typeof q[l].help !== 'string') throw new Error(`${at}: ${l}.help は文字列（不要なら ''）`);
+    if (q[l].askHelp != null && (typeof q[l].askHelp !== 'string' || !q[l].askHelp))
+      throw new Error(`${at}: ${l}.askHelp は空でない文字列（戻ってきた会員に聞く板だけが使う説明）`);
   }
   if (!Number.isInteger(q.priority)) throw new Error(`${at}: priority が整数でない`);
   /* 優先順位を重複させない。同点だと DB 側の order by が不定になり、
@@ -272,7 +274,6 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
     if (q.topicOnly) throw new Error(`ASK[${id}]: 話題の入口だけの質問は置けない`);
     if (q.isOpinion) throw new Error(`ASK[${id}]: 意見の質問は置けない（会社の事実ではない）`);
     if (!['choice', 'multi', 'num'].includes(q.kind)) throw new Error(`ASK[${id}]: 板で聞けない形 → ${q.kind}`);
-    if (q.currency) throw new Error(`ASK[${id}]: 通貨つきの数字は板で聞けない`);
     if (q.rangeLow) throw new Error(`ASK[${id}]: 対になる額は板で聞けない`);
     /* 子は親より後ろ。親が ASK に無いと、本人が親に答える道がこの板の中に無い */
     if (q.parent && !askRank.has(q.parent)) {
@@ -303,6 +304,8 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
         ja: { label: q.ja.label, help: q.ja.help || '' },
         en: { label: q.en.label, help: q.en.help || '' },
       };
+      /* 戻ってきた会員に聞く板だけが使う説明（その板に無い欄のことを言わないため） */
+      for (const l of ['ja', 'en']) if (q[l].askHelp) o[l].askHelp = q[l].askHelp;
       if (q.parent) { o.parent = q.parent; o.parentWhen = q.parentWhen; }
       if (q.choices) o.choices = q.choices.map((c) => ({ code: c.code, ja: c.ja, en: c.en }));
       if (q.num) o.num = { min: q.num.min, max: q.num.max, step: q.num.step, ja: q.num.ja, en: q.num.en };

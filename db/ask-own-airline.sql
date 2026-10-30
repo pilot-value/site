@@ -21,6 +21,8 @@
 -- 「埋まった」の線（2026-10-30 オーナー承認）── その会社で答えた人のうち
 --   1つ選ぶ・複数選ぶ … いちばん多い答えが3人以上 かつ 答えた人の過半数
 --   数字             … 中央の値から ±10%（最低でも1刻み＝1日）に3人以上 かつ 過半数
+--   額（通貨つき）   … 同じ通貨どうしで、中央の値から ±10% に3人以上 かつ 答えた人（全通貨）の過半数
+--                      （着陸手当の額・日当。2026-10-30 オーナー指示で板に足した）
 --   ★数える行は公開の集計（airline_condition_facts）と同じ pv_condition_ans()。写しを作らない。
 --   ★割れたら（2対2）埋まっていない＝聞き続ける。後から割れれば、また聞く側に戻る（「いったん」）。
 --
@@ -106,8 +108,14 @@ language sql
 stable
 set search_path = public, extensions
 as $fn$
+  -- cur … 額の通貨（通貨つきの質問だけ）。額は同じ通貨どうしでしか比べない（円とドルの数字を並べない）。
+  --        行は 1人1質問で1行（airline_conditions の unique (proof_hash, question_id)）なので、突き合わせても増えない。
   with a as (
-    select x.* from public.pv_condition_ans() x where x.airline = p_airline
+    select x.*, c.answer_currency::text as cur
+      from public.pv_condition_ans() x
+      join public.airline_conditions c
+        on c.proof_hash = x.proof_hash and c.question_id = x.question_id
+     where x.airline = p_airline
   ),
   q as (
     select q.id, q.kind,
@@ -136,22 +144,27 @@ as $fn$
               from picked group by question_id, code) t
      group by t.question_id
   ),
-  -- 数字：中央の値の近く（±10%・最低でも1刻み）にいる人数
+  -- 数字：中央の値の近く（±10%・最低でも1刻み）にいる人数。
+  --   額（通貨つき）は通貨ごとに中央の値を取り、いちばん人の多い通貨の塊で数える。
+  --   通貨の無い質問は cur が null の塊1つ（今までと同じ）。
   med as (
-    select a.question_id,
+    select a.question_id, a.cur,
            percentile_cont(0.5) within group (order by a.answer_num) as m
       from a
-     where a.answer_num is not null and not a.has_currency
-     group by a.question_id
+     where a.answer_num is not null
+       and (a.cur is not null or not a.has_currency)
+     group by a.question_id, a.cur
   ),
   near as (
-    select a.question_id, count(distinct a.proof_hash) as k
-      from a
-      join med on med.question_id = a.question_id
-      join q   on q.id = a.question_id
-     where a.answer_num is not null and not a.has_currency
-       and abs(a.answer_num::float8 - med.m) <= greatest(abs(med.m) * 0.10, q.step::float8)
-     group by a.question_id
+    select t.question_id, max(t.k) as k
+      from (select a.question_id, a.cur, count(distinct a.proof_hash) as k
+              from a
+              join med on med.question_id = a.question_id and med.cur is not distinct from a.cur
+              join q   on q.id = a.question_id
+             where a.answer_num is not null
+               and abs(a.answer_num::float8 - med.m) <= greatest(abs(med.m) * 0.10, q.step::float8)
+             group by a.question_id, a.cur) t
+     group by t.question_id
   )
   select q.id
     from q
