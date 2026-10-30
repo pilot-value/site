@@ -250,17 +250,19 @@ const TAX_JA = (slug, name) => (PAY_TAX(slug) === 'net'
 const TAX_EN = (slug, name) => (PAY_TAX(slug) === 'net'
   ? `The ${name} figures on this page are take-home (net) amounts as stated in the source; the pre-tax amount is not given. `
   : `The sources do not say whether the ${name} figures on this page are before or after tax. `);
+/* ★2026-10-30 会員の中央値を推定にした職位（salary-basis.mjs の BASIS[slug][rank].from === 'members'）。「公開情報からの推計」と書かない。 */
+const FROM_MEMBERS = (slug, rank) => BASIS[slug]?.[rank]?.from === 'members';
 const EST_JA = (slug, name, nm, rank) => {
   const d = SALARY[slug], r = d[rank];
   return `${name}の${nm}の年収は、当サイトの推定で約${man(r.avg)}です。`
-    + `公開情報から当サイトが推計した金額で、${name}が公表した金額ではありません。`
+    + (FROM_MEMBERS(slug, rank) ? `PILOT VALUE に給与を出してくれた${name}の${nm}の年収の中央値です。` : `公開情報から当サイトが推計した金額で、${name}が公表した金額ではありません。`)
     + (d.taxFree ? `所在国に個人所得税が無いため、この金額が手取りに近くなります。` : PAY_TAX(slug) !== 'gross' ? TAX_JA(slug, name) : `いずれも税引き前の金額です。`)
     + `機種・在籍年数・乗務する路線によって上下します。`;
 };
 const EST_EN = (slug, name, nm, fmt, rank) => {
   const d = SALARY[slug], r = d[rank];
   return `We estimate annual pay for ${name} ${nm} at about ${fmt(r.avg)}. `
-    + `That is our own estimate from public information, not a figure ${name} publishes. `
+    + (FROM_MEMBERS(slug, rank) ? `That is the median of the annual pay ${name} ${nm} have submitted to PILOT VALUE. ` : `That is our own estimate from public information, not a figure ${name} publishes. `)
     + (d.taxFree ? `There is no personal income tax where the airline is based, so this is close to take-home. ` : PAY_TAX(slug) !== 'gross' ? TAX_EN(slug, name) : `These are gross figures, before income tax. `)
     + `The actual figure moves with the aircraft type, years of service and the routes you fly.`;
 };
@@ -296,7 +298,7 @@ function buildJaBasis(slug) {
        ⚠️ 「平均」と書かない。運航乗務員・訓練生はこの問に来ない（上は cap/fo だけ）。 */
     const est = d[rank]
       ? `当サイトの推定では${nm}の年収は約${man(d[rank].avg)}です`
-        + `（公開情報からの推計で、${name}が公表した金額ではありません）。`
+        + (FROM_MEMBERS(slug, rank) ? `（PILOT VALUE に給与を出してくれた会員の年収の中央値）。` : `（公開情報からの推計で、${name}が公表した金額ではありません）。`)
       : '';
     items.push({
       q,

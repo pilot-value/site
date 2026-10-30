@@ -231,6 +231,7 @@ export const BASIS = {
      副操縦士だけ公式に金額がある。機長の金額はどの公式ページにも無い
      （Cadet / Second Officer / First Officer の3職位しか載っていない）。 */
   'cathay-pacific': {
+    pay_tax: 'unknown',
     cur: 'HKD',
     tax: '課税（香港）',
     src: [
@@ -239,6 +240,10 @@ export const BASIS = {
         as_of: '2026年1月時点（脚注 "Latest figures as of Jan 2026, subject to periodic review"）',
         accessed: '2026-09-26',
         url: 'https://careers.cathaypacific.com/en/careers/our-teams/pilot/pilot-detail-page' },
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Cathay Pacific Pilot Salary in 2026', name_en: 'Cathay Pacific Pilot Salary in 2026',
+        as_of: '2026-04-20 掲載', as_of_en: 'Published 20 April 2026', accessed: '2026-10-29', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/04/20/cathay-pacific-pilot-salary-2026/' },
     ],
     notes: [
       '目標年収（Target Annual Salary）は、会社が定める目標ブロックアワーを飛んだ場合の金額です。保証額ではありません。',
@@ -263,7 +268,13 @@ export const BASIS = {
       held: { was: { avg: 2400, lo: 1800, hi: 3230 },
         why: '公式の目標年収 HKD 964,646 は約1,956万円で、このレンジの下寄りに入るだけ。レンジと平均そのものを支える資料は無い。' },
     },
-    cap: {
+    cap: { /* g4 cap */ est: {
+        basis: 'Aviation A2Z の記事「Cathay Pacific Pilot Salary in 2026」（2026年4月）',
+        basis_en: 'The Aviation A2Z article “Cathay Pacific Pilot Salary in 2026” (April 2026)',
+        method: '記事の「経験を積んだ機長は、特に A350・B777 の長距離機で、年の総額が HKD 2,500,000〜3,800,000 に上がる（基本給・長距離の手当・乗務手当などを含む）」の下の端 HKD 2,500,000 を使っています。税引き前か手取りかは書かれていません。幅の上は HKD 3,800,000 です。幅の下は前の値のままです。',
+        method_en: 'Set at the lower end, HKD 2,500,000, of the article’s “with increased seniority, particularly on long-haul fleets such as the Airbus A350 and Boeing 777, captains often see total annual earnings rise to between HKD 2,500,000 and HKD 3,800,000 per year”, which it says include base salary, long-haul allowances, duty pay and additional operational incentives. It does not say whether the figures are before or after tax. The top of the range is HKD 3,800,000. The bottom of the range is unchanged.',
+        as_of: '2026年4月', as_of_en: 'April 2026',
+      },
       tier: 'estimate',
       est_status: 'unconfirmed',
       est_why: '会社は機長の金額をどこにも出していない。見つかったのは報道（基本給の最上位の月額）と匿名の投稿サイトだけで、年収の算出方法が立たない。',
@@ -283,6 +294,10 @@ export const BASIS = {
       { pub: 'エティハド航空（SmartRecruiters・ref 80372）', pub_en: 'Etihad Airways (SmartRecruiters, ref 80372)', name: 'First Officer A320',
         as_of: '2026-07-31 掲載', accessed: '2026-09-26',
         url: 'https://jobs.smartrecruiters.com/EtihadAirways5/744000140889248-first-officer' },
+      /* g4 src */
+      { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
+        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [
       '「最大（up to）」の額で、月75時間の乗務を前提としています。75時間は上限に近い飛び方なので、普通の月の実額はこれより下がります。',
@@ -307,7 +322,13 @@ export const BASIS = {
       held: { was: { avg: 3400, lo: 3000, hi: 6000 },
         why: '求人の上限 AED 674,029 は約2,917万円で、このレンジの下端をわずかに下回る。レンジと平均そのものを支える資料は無い。' },
     },
-    fo: {
+    fo: { from: 'members', /* g4 fo */ est: {
+        basis: 'PILOT VALUE にエティハド航空の副操縦士が出した給与（直近24か月）',
+        basis_en: 'Pay submitted to PILOT VALUE by Etihad Airways first officers (past 24 months)',
+        method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+        method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+      },
       tier: 'offer_posting',
       groups: [
         { name: '副操縦士 A320（求人の上限）', name_en: 'First officer, A320 (top of the advertised range)', max_y: 513732,
@@ -364,8 +385,8 @@ export const BASIS = {
     cap: {
       tier: 'estimate',
       est: {
-        basis: '鏡週刊 2024年2月6日の報道（会社の公表ではありません）',
-        basis_en: 'Mirror Media, 6 February 2024 (press report — not published by the airline)',
+        basis: '鏡週刊 2024年2月6日の報道',
+        basis_en: 'Mirror Media, 6 February 2024 (press report)',
         method: '同紙が書く機長の年収（500万元から・経験の長い機長は700万元以上）の幅の、ほぼ中央に置いています。',
         method_en: 'Set near the middle of the range the report gives for captains: from NTD 5 million a year, and NTD 7 million or more for senior captains.',
         as_of: '2024年2月',
@@ -396,15 +417,15 @@ export const BASIS = {
     notes: [],
     notes_en: [],
     cap: { tier: 'estimate', est: {
-      basis: '台湾の週刊誌・鏡週刊の調査記事（2024年2月）。会社と組合は金額を公表していません',
-      basis_en: 'An investigative piece in Taiwan’s Mirror Media (February 2024). Neither the airline nor the union publishes pay figures',
+      basis: '台湾の週刊誌・鏡週刊の調査記事（2024年2月）',
+      basis_en: 'An investigative piece in Taiwan’s Mirror Media (February 2024)',
       method: '記事の「ベテランの機長は年 700萬台湾ドル以上」に置いています。幅は同じ記事の「機長は 480萬台湾ドルから・多く飛ぶ人は 800萬台湾ドル超」です。この一文は台湾の大手の機長に共通の話として書かれています。その後の賞与・昇給と日当は入れていません。',
       method_en: 'Set at the article’s “senior captains earn TWD 7 million or more a year”. The range follows the same article: captains start from TWD 4.8 million, and those who fly the most exceed TWD 8 million. The article states this for captains at Taiwan’s major carriers in general. Later bonuses, pay rises and per diem are not included.',
       as_of: '2024年2月', as_of_en: 'February 2024',
     } },
     fo: { tier: 'estimate', est: {
-      basis: '經濟日報の記事（2026年3月）。会社と組合は金額を公表していません',
-      basis_en: 'An Economic Daily News article (March 2026). Neither the airline nor the union publishes pay figures',
+      basis: '經濟日報の記事（2026年3月）',
+      basis_en: 'An Economic Daily News article (March 2026)',
       method: '記事の「訓練を終えて副操縦士として乗り始めると年 300萬台湾ドル以上」に置いています。6年目の額の資料が無いため、乗り始めの額で示しています（低めの見積もり）。幅の下は前の値のままです。',
       method_en: 'Set at the article’s “once trained and flying the line, first officers earn TWD 3 million or more a year”. There is no source for a year-6 figure, so this is the starting figure (a conservative estimate). The bottom of the range is unchanged.',
       as_of: '2026年3月', as_of_en: 'March 2026',
@@ -454,12 +475,24 @@ export const BASIS = {
   /* ══ シンガポール航空 ══ 機長・副操縦士の求人に「報酬」の節そのものが無い。
      金銭に触れるのは "more than just a competitive salary" だけで金額なし。 */
   'singapore-airlines': {
+    pay_tax: 'unknown',
     cur: 'USD',
     tax: '課税（シンガポール）',
-    src: [],
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Singapore Airlines Pilot Salary in 2025', name_en: 'Singapore Airlines Pilot Salary in 2025',
+        as_of: '2025-12-13 掲載', as_of_en: 'Published 13 December 2025', accessed: '2026-10-29', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2025/12/13/singapore-airlines-pilot-salary-in-2025/' },
+    ],
     notes: [],
     notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 3400, lo: 2750, hi: 4150 },
+    cap: { /* g4 cap */ est: {
+        basis: 'Aviation A2Z の記事「Singapore Airlines Pilot Salary in 2025」（2025年12月）',
+        basis_en: 'The Aviation A2Z article “Singapore Airlines Pilot Salary in 2025” (December 2025)',
+        method: '記事の「経験を積んだ機長の年収は SGD 285,000〜355,000（機材・路線・訓練や審査の役割による）」の真ん中 SGD 320,000 を使っています。利益配分の賞与と、中央積立基金（CPF）への会社の拠出は足していません。税引き前か手取りかは書かれていません。幅の上は SGD 355,000 です。幅の下は前の値のままです。',
+        method_en: 'Set at the midpoint, SGD 320,000, of the article’s “with increased seniority, yearly captain earnings typically range from SGD 285,000 to SGD 355,000, depending on the fleet type, route mix, and any additional duties”. The profit-sharing bonus and the employer’s CPF contribution are not added. It does not say whether the figures are before or after tax. The top of the range is SGD 355,000. The bottom of the range is unchanged.',
+        as_of: '2025年12月', as_of_en: 'December 2025',
+      }, tier: 'estimate', held: { was: { avg: 3400, lo: 2750, hi: 4150 },
       why: '公式の採用ページに報酬の節そのものが無く、金額の記載が1件も無い。レンジの出所の記録も無い。' } },
     fo: { tier: 'estimate', held: { was: { avg: 1850, lo: 1100, hi: 2280 },
       why: '機長と同じ理由。' } },
@@ -468,14 +501,32 @@ export const BASIS = {
   /* ══ ガルフ・エア ══ パイロットの募集そのものが1件も無い（2026-09-26 時点）。
      ＝公式には金額も応募要件も存在しない。数字を埋めない。 */
   'gulf-air': {
+    pay_tax: 'unknown',
     cur: 'USD',
     tax: '非課税（バーレーンに個人所得税なし）',
-    src: [],
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Gulf Air | Pilot Careers, Pay, Fleet & Work-Life Guide', name_en: 'Gulf Air | Pilot Careers, Pay, Fleet & Work-Life Guide',
+        as_of: '2026-06-08 掲載', as_of_en: 'Published 8 June 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/gulf-air' },
+    ],
     notes: [],
     notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 2700, lo: 2300, hi: 3300 },
+    cap: { /* g4 cap */ est: {
+        basis: 'Ready For Take-Off Book のガルフ・エアのページ「Gulf Air | Pilot Careers, Pay, Fleet & Work-Life Guide」（2026年6月）',
+        basis_en: 'Ready For Take-Off Book’s Gulf Air page, “Gulf Air | Pilot Careers, Pay, Fleet & Work-Life Guide” (June 2026)',
+        method: '表「総待遇の見込み（非課税）」の「A320 の機長（若手）年 約 US$190,000〜255,000」と「787 のベテラン機長 年 約 US$255,000〜340,000」の真ん中どうしの真ん中 US$260,000 を使っています。A320 のベテランの段は表にありません。幅の上は US$340,000 です。幅の下は前の値のままです。',
+        method_en: 'Set at US$260,000, the midpoint between the middles of two steps in the “Estimated Total Package (Tax-Free)” table: “Captain (junior, A320) ~$190,000 – $255,000” and “Captain (senior, 787 widebody) ~$255,000 – $340,000” a year. The table has no senior A320 step. The top of the range is US$340,000. The bottom of the range is unchanged.',
+        as_of: '2026年6月', as_of_en: 'June 2026',
+      }, tier: 'estimate', held: { was: { avg: 2700, lo: 2300, hi: 3300 },
       why: 'パイロットの募集が1件も無く、公式に金額が存在しない。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 1500, lo: 1250, hi: 1850 },
+    fo: { /* g4 fo */ est: {
+        basis: 'Ready For Take-Off Book のガルフ・エアのページ「Gulf Air | Pilot Careers, Pay, Fleet & Work-Life Guide」（2026年6月）',
+        basis_en: 'Ready For Take-Off Book’s Gulf Air page, “Gulf Air | Pilot Careers, Pay, Fleet & Work-Life Guide” (June 2026)',
+        method: '同じ表の「経験のある副操縦士（A320／787）年 約 US$145,000〜190,000」の真ん中 US$167,500 を、6年目の額として使っています（その前の段は「最初の数年」）。幅の上は US$190,000 です。幅の下は前の値のままです。',
+        method_en: 'Set at the midpoint, US$167,500, of the same table’s “First Officer (senior, A320 / 787) ~$145,000 – $190,000” a year, used as the year-6 figure (the step before it covers the first years on the line). The top of the range is US$190,000. The bottom of the range is unchanged.',
+        as_of: '2026年6月', as_of_en: 'June 2026',
+      }, tier: 'estimate', held: { was: { avg: 1500, lo: 1250, hi: 1850 },
       why: '機長と同じ理由。' } },
   },
 
@@ -489,14 +540,35 @@ export const BASIS = {
         カタール航空の文書に行き当たらない。★ここは触らないこと（オーナー明示指示）。
         「子3人まで」はサウディアの2005年広告の条件なので、カタールに当てはめない。 */
   'qatar-airways': {
+    pay_tax: 'unknown',
     cur: 'QAR',
     tax: '非課税（カタールに個人所得税なし）',
-    src: [],
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Qatar Airways Pilot Salary in 2026', name_en: 'Qatar Airways Pilot Salary in 2026',
+        as_of: '2026-10-18 掲載', as_of_en: 'Published 18 October 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/10/18/qatar-airways-pilot-salary-2026/' },
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Qatar Airways | Pilot Pay, Rosters, Fleet & Benefits', name_en: 'Qatar Airways | Pilot Pay, Rosters, Fleet & Benefits',
+        as_of: '2026-05-19 掲載', as_of_en: 'Published 19 May 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/qatar-airways' },
+    ],
     notes: [],
     notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 2900, lo: 2600, hi: 4800 },
+    cap: { /* g4 cap */ est: {
+        basis: 'Ready For Take-Off Book のカタール航空のページ「Qatar Airways | Pilot Pay, Rosters, Fleet & Benefits」（2026年5月）',
+        basis_en: 'Ready For Take-Off Book’s Qatar Airways page, “Qatar Airways | Pilot Pay, Rosters, Fleet & Benefits” (May 2026)',
+        method: '機長の「年の現金の総額の見込み 約 US$139,000〜250,000」のうち、「乗務時間の多い広胴機のベテラン機長は US$250,000 に近づく」の US$250,000 を使っています。住宅手当と交通手当は足していません。幅は前の値のままです。',
+        method_en: 'Set at US$250,000 from the captain’s “estimated annual cash gross ~US$139,000 to 250,000”, where the page says “senior widebody Captains with high block hours can approach US$250,000”. Housing and transport allowances are not added. The range is unchanged.',
+        as_of: '2026年5月', as_of_en: 'May 2026',
+      }, tier: 'estimate', held: { was: { avg: 2900, lo: 2600, hi: 4800 },
       why: '公式・過去の公式求人・第三者掲示のすべてで金額が0件。レンジの出所の記録も無い。加えてページ内で「住宅・教育手当を含めた実質パッケージ2,900万」なのに含まないはずのレンジ上限が4,800万で、同じページの中で矛盾している。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 2050, lo: 1850, hi: 2700 },
+    fo: { /* g4 fo */ est: {
+        basis: 'Aviation A2Z の記事「Qatar Airways Pilot Salary in 2026」（2026年10月）',
+        basis_en: 'The Aviation A2Z article “Qatar Airways Pilot Salary in 2026” (October 2026)',
+        method: '記事の「副操縦士の年収は QAR 360,000〜660,000（入社したばかりは下の端・長距離機の経験者は上）」の真ん中 QAR 510,000 を使っています。記事に年数ごとの段は無く、6年目の額ではありません。住宅手当は足していません。幅の上は QAR 660,000 です。幅の下は前の値のままです。',
+        method_en: 'Set at the midpoint, QAR 510,000, of the article’s “first officers at Qatar Airways typically earn between QAR 360,000 and QAR 660,000 per year”, with new first officers near the lower end and experienced long-haul pilots higher. The article gives no steps by year, so this is not a year-6 figure. Housing allowance is not added. The top of the range is QAR 660,000. The bottom of the range is unchanged.',
+        as_of: '2026年10月', as_of_en: 'October 2026',
+      }, tier: 'estimate', held: { was: { avg: 2050, lo: 1850, hi: 2700 },
       why: '機長と同じ理由。' } },
   },
 
@@ -510,6 +582,10 @@ export const BASIS = {
         name: 'Oman Air Pilot Recruitment — B737 NG First Officers / Direct Entry Captain',
         as_of: '2017-06-28 掲載（★ページに「募集終了」と書かれている）', accessed: '2026-09-29',
         url: 'https://www.flightdeckfriend.com/job/oman-air-b737-first-officers/' },
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Oman Air | Pilot Careers, Pay, Benefits & Roster Guide', name_en: 'Oman Air | Pilot Careers, Pay, Benefits & Roster Guide',
+        as_of: '2026-05-04 掲載', as_of_en: 'Published 4 May 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/oman-air' },
     ],
     notes: [
       '2017年の、しかも募集終了済みの広告です。現在の水準ではありません。',
@@ -527,7 +603,13 @@ export const BASIS = {
       'No assumed monthly flying hours are stated, and the advert does not say whether the figure is before or after tax.',
       'The type is the B737 NG, the contract two years renewable, and the currency is pounds sterling.',
     ],
-    cap: {
+    cap: { card: 'estimate', /* g4 cap */ est: {
+        basis: 'Ready For Take-Off Book のオマーン航空のページ「Oman Air | Pilot Careers, Pay, Benefits & Roster Guide」（2026年5月）',
+        basis_en: 'Ready For Take-Off Book’s Oman Air page, “Oman Air | Pilot Careers, Pay, Benefits & Roster Guide” (May 2026)',
+        method: '表の年額の見込み（税引き前）の「737 の中堅の機長 約 US$160,000〜185,000」と「787 のベテラン機長 約 US$190,000〜230,000」の真ん中どうしの真ん中 US$191,250 を使っています。737 のベテランの段は表にありません。幅の上は US$230,000 です。幅の下は前の値のままです。',
+        method_en: 'Set at US$191,250, the midpoint between the middles of “Captain, mid-seniority (737) ~$160,000 to $185,000” and “Senior Captain (787) ~$190,000 to $230,000” in the table’s annual gross estimates. The table has no senior 737 step. The top of the range is US$230,000. The bottom of the range is unchanged.',
+        as_of: '2026年5月', as_of_en: 'May 2026',
+      },
       tier: 'past_ad',
       groups: [
         { name: '機長 B737 NG（2017年・募集終了）', name_en: 'Captain, B737 NG (2017 advert, no longer open)', reward_y: 90000,
@@ -536,7 +618,13 @@ export const BASIS = {
       held: { was: { avg: 2500, lo: 2100, hi: 3000 },
         why: '2017年の広告の約1,951万円がこのレンジの下端を下回る。レンジと平均そのものを支える資料は無い。' },
     },
-    fo: {
+    fo: { card: 'estimate', /* g4 fo */ est: {
+        basis: 'Ready For Take-Off Book のオマーン航空のページ「Oman Air | Pilot Careers, Pay, Benefits & Roster Guide」（2026年5月）',
+        basis_en: 'Ready For Take-Off Book’s Oman Air page, “Oman Air | Pilot Careers, Pay, Benefits & Roster Guide” (May 2026)',
+        method: '表の年額の見込み（税引き前）の「ベテランの副操縦士（737／787）約 US$85,000〜100,000」の真ん中 US$92,500 を、6年目の額として使っています（その前の段は「3〜5年目」）。幅は前の値のままです。',
+        method_en: 'Set at the midpoint, US$92,500, of “F/O Senior (737/787) ~$85,000 to $100,000” in the table’s annual gross estimates, used as the year-6 figure (the step before it is “F/O Year 3 to 5”). The range is unchanged.',
+        as_of: '2026年5月', as_of_en: 'May 2026',
+      },
       tier: 'past_ad',
       groups: [
         { name: '副操縦士 B737 NG（2017年・募集終了）', name_en: 'First officer, B737 NG (2017 advert, no longer open)', reward_y: 65000,
@@ -602,12 +690,30 @@ export const BASIS = {
         報告書の表は事業部門×性別までしか割っておらず、運航乗務職の行は構造として存在しない。
      ⚠️ 操縦士の労働組合は一般職の組合と別で、2026-09 時点で調停申請の段階。賃金表は公表されていない。 */
   'korean-air': {
+    pay_tax: 'unknown',
     cur: 'KRW',
     tax: '課税（韓国・6〜45%）',
-    src: [], notes: [], notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 2450, lo: 1850, hi: 2750 },
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Korean Air Pilot Salary in 2026', name_en: 'Korean Air Pilot Salary in 2026',
+        as_of: '2026-04-11 掲載', as_of_en: 'Published 11 April 2026', accessed: '2026-10-29', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/04/11/korean-air-pilot-salary-2026/' },
+    ], notes: [], notes_en: [],
+    cap: { /* g4 cap */ est: {
+        basis: 'Aviation A2Z の記事「Korean Air Pilot Salary in 2026」（2026年4月）',
+        basis_en: 'The Aviation A2Z article “Korean Air Pilot Salary in 2026” (April 2026)',
+        method: '記事の「国際線の手当・乗務手当などを含めた機長の年の総額は KRW 210,000,000〜240,000,000」の真ん中 KRW 225,000,000 を使っています。税引き前か手取りかは書かれていません。幅は前の値のままです。',
+        method_en: 'Set at the midpoint, KRW 225,000,000, of the article’s “including international allowances, flight pay, and additional operational earnings, total annual compensation usually reaches between KRW 210,000,000 and KRW 240,000,000”. It does not say whether the figures are before or after tax. The range is unchanged.',
+        as_of: '2026年4月', as_of_en: 'April 2026',
+      }, tier: 'estimate', held: { was: { avg: 2450, lo: 1850, hi: 2750 },
       why: '公式の求人・採用サイト全26ページ・有価証券報告書のすべてで、パイロットの金額が0件。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 1250, lo: 950, hi: 1430 }, why: '機長と同じ理由。' } },
+    fo: { /* g4 fo */ est: {
+        basis: 'Aviation A2Z の記事「Korean Air Pilot Salary in 2026」（2026年4月）',
+        basis_en: 'The Aviation A2Z article “Korean Air Pilot Salary in 2026” (April 2026)',
+        method: '記事の「乗務手当・長距離の手当などを含めた副操縦士の年の総額は KRW 100,000,000〜125,000,000」の真ん中 KRW 112,500,000 を使っています。記事に年数ごとの段は無く、6年目の額ではありません。税引き前か手取りかは書かれていません。幅は前の値のままです。',
+        method_en: 'Set at the midpoint, KRW 112,500,000, of the article’s “when additional earnings such as flight pay, long-haul allowances, and duty-related incentives are included, total annual income usually rises to between KRW 100,000,000 and KRW 125,000,000”. The article gives no steps by year, so this is not a year-6 figure. It does not say whether the figures are before or after tax. The range is unchanged.',
+        as_of: '2026年4月', as_of_en: 'April 2026',
+      }, tier: 'estimate', held: { was: { avg: 1250, lo: 950, hi: 1430 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ タイ国際航空 ══ 公式の2026年募集に金額ゼロ。
@@ -630,10 +736,25 @@ export const BASIS = {
         エア・インディア本体の運航乗務の求人は現在1本も出ていない。
      ⚠️ 「₹85 lakh〜₹1.8 crore」等はすべて第三者の推計。会社の資料に対応する原文は無い。 */
   'air-india': {
+    pay_tax: 'unknown',
     cur: 'INR',
     tax: '課税（インド）',
-    src: [], notes: [], notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 1550, lo: 1100, hi: 2000 },
+    src: [
+      /* g4 src */
+      { pub: 'The Times of India', pub_en: 'The Times of India', name: 'Past tense, eye on future: Air India hikes pilots’ pay by 8% to 15%', name_en: 'Past tense, eye on future: Air India hikes pilots’ pay by 8% to 15%',
+        as_of: '2026-08-07 掲載', as_of_en: 'Published 7 August 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://timesofindia.indiatimes.com/india/past-tense-eye-on-future-air-india-hikes-pilots-pay-by-8-to-15/articleshow/133036959.cms' },
+      { pub: 'Business Standard', pub_en: 'Business Standard', name: 'Air India announces salary hike, annual performance bonus for pilots', name_en: 'Air India announces salary hike, annual performance bonus for pilots',
+        as_of: '2024-05-23 掲載', as_of_en: 'Published 23 May 2024', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.business-standard.com/companies/news/air-india-announces-fixed-monthly-salary-hike-performance-bonus-for-pilots-124052301551_1.html' },
+    ], notes: [], notes_en: [],
+    cap: { /* g4 cap */ est: {
+        basis: 'The Times of India の記事（2026年8月・エア・インディアの昇給の報道）と、Business Standard の記事（2024年5月・年の業績賞与の報道）',
+        basis_en: 'An article in The Times of India on Air India’s pay rise (August 2026) and a Business Standard article on its annual performance bonus (May 2024)',
+        method: '記事の「月 約55時間飛ぶ上級機長（senior commander）は月 Rs 8.3 lakh」を12倍し、2024年に始まった年の業績賞与（評価3の上級機長 Rs 1.8 lakh）を足しています。広胴機の手当と宿泊の手当は足していません。税引き前か手取りかは書かれていません。幅は前の値のままです。',
+        method_en: 'Set at the article’s “a senior commander flying for about 55 hours in a month will get Rs 8.3 lakh” × 12, plus the annual performance bonus introduced in 2024 (Rs 1.8 lakh for a senior commander rated 3, “meets expectations”). The widebody allowance and layover allowances are not added. It does not say whether the figures are before or after tax. The range is unchanged.',
+        as_of: '2026年8月（業績賞与は2024年5月の報道）', as_of_en: 'August 2026 (performance bonus as reported in May 2024)',
+      }, tier: 'estimate', held: { was: { avg: 1550, lo: 1100, hi: 2000 },
       why: '会社名義の求人4本すべてで金額が0件。レンジの出所の記録も無い。' } },
     fo: { tier: 'estimate', held: { was: { avg: 720, lo: 540, hi: 900 }, why: '機長と同じ理由。' } },
   },
@@ -654,7 +775,7 @@ export const BASIS = {
         url: 'https://www.chinaaviationjob.com/a330-captain-china-southern/' },
     ],
     notes: [
-      '⚠️ 会社の公表ではありません。代理店が2019年に出した求人で、広告自身が「新しい契約の草案に基づく要約」と断っています。現在の条件ではありません。',
+      '代理店が2019年に出した求人で、広告自身が「新しい契約の草案に基づく要約」と断っています。現在の条件ではありません。',
       '月額は年次で上がります（1年目 USD 19,000・2年目 19,000・3年目 20,000・4年目 21,000）。型式未保有での入社は1年目が USD 18,000 です。',
       'この月額のほかに、年 USD 6,000 の安全運航賞と年 USD 10,000 の住宅手当が別建てで付きます。',
       '前提は月間ブロック80時間、基地は広州、契約は4年・更新可。税引き前か後かの記載はありません。',
@@ -663,7 +784,7 @@ export const BASIS = {
       'このほかに別の代理店（VOR Holdings）が2013年に出した機長の広告があり、月額 USD 18,000〜20,000（手取りと明記）・月160時間超は1時間 USD 225 と書かれています。13年前の資料です。',
     ],
     notes_en: [
-      'These are not the airline\u2019s own figures. They come from an agency posting from 2019, and the posting itself says it summarizes "the new DRAFT contract elements". They are not current terms.',
+      'These figures come from an agency posting from 2019, and the posting itself says it summarizes "the new DRAFT contract elements". They are not current terms.',
       'The monthly figure rises by year of service (USD 19,000 in year one, 19,000 in year two, 20,000 in year three, 21,000 in year four). Joining without the type rating starts at USD 18,000.',
       'On top of the monthly figure there is a USD 6,000 annual safety and operation award and a USD 10,000 annual housing allowance.',
       'It assumes 80 block hours a month, a Guangzhou base and a four-year renewable contract. The posting does not say whether the figure is before or after tax.',
@@ -744,7 +865,7 @@ export const BASIS = {
         url: 'https://www.apasnet.com/Jobs/detail.aspx?u=28&JobType=0' },
     ],
     notes: [
-      '⚠️ 会社の公表ではありません。香港の人材会社が出している求人の掲載額です。求人のページには日付が1つも書かれていません（Internet Archive の保存では 2025-06-17 の時点から同じ金額です）。',
+      '香港の人材会社が出している求人の掲載額です。求人のページには日付が1つも書かれていません（Internet Archive の保存では 2025-06-17 の時点から同じ金額です）。',
       '前提は暦月あたり75時間・上海基地・3年契約（更新可）・21日勤務10日休み・年次有給15日。条件は A330 の型式限定と、PIC 5,500時間以上（うち当該型式 500時間以上）です。',
       '年間総待遇 USD 300,000 は月額を含んだ額です。内訳は月額 19,500×12＝234,000、住宅手当 年30,000、追加の航空手当 年12,000、年次賞与 年24,000 で、合計がちょうど 300,000 になります（求人に内訳の計算は書かれていないため、こちらで検算しました）。月額と二重に数える数字ではありません。',
       '住宅手当（月 USD 2,500）と追加の航空手当（月 USD 1,000）は、最初の3か月の訓練期間の後から付きます。年次賞与は月 USD 2,000 相当を契約年度の末にまとめて支払うと書かれています。',
@@ -753,7 +874,7 @@ export const BASIS = {
       '副操縦士の求人はありません。副操縦士の金額は、会社側にも人材会社側にも見つかりませんでした。',
     ],
     notes_en: [
-      'These are not the airline’s own figures. They are the amounts stated in a posting by a recruitment company in Hong Kong. The posting page carries no date at all (Internet Archive snapshots show the same figures from 2025-06-17 onwards).',
+      'These are the amounts stated in a posting by a recruitment company in Hong Kong. The posting page carries no date at all (Internet Archive snapshots show the same figures from 2025-06-17 onwards).',
       'It assumes 75 hours per calendar month, a Shanghai base, a three-year renewable contract, 21 days on and 10 days off, and 15 days of annual leave. The requirements are an A330 type rating and 5,500 hours of PIC time, of which 500 hours on type.',
       'The annual figure of USD 300,000 includes the monthly pay. Its parts are 19,500 x 12 = 234,000 of monthly pay, 30,000 of housing allowance, 12,000 of extra air travel allowance and 24,000 of annual bonus, which come to exactly 300,000 (the posting does not show this arithmetic; we checked it ourselves). It is not a figure to be counted twice with the monthly pay.',
       'The housing allowance (USD 2,500 a month) and the extra air travel allowance (USD 1,000 a month) start after the first three months of training. The annual bonus is stated as USD 2,000 a month, paid in one sum at the end of the contract year.',
@@ -932,6 +1053,10 @@ export const BASIS = {
       { pub: 'スカイマーク株式会社（採用サイト）', pub_en: 'Skymark Airlines Inc. (recruitment site)', name: '自社養成パイロット訓練生 募集要項',
         as_of: '掲載時点の記載なし', accessed: '2026-09-29',
         url: 'https://www.skymark.co.jp/ja/company/recruit/saiyo/recruit/' },
+      /* g4 src */
+      { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
+        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [
       'これは機長と副操縦士をあわせた運航乗務員290名の平均です。機長だけ・副操縦士だけの平均は公表されていません。',
@@ -957,7 +1082,13 @@ export const BASIS = {
         req: 'TOEIC 750点以上または IELTS Overall 6.0以上・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可' }] },
     cap: { tier: 'estimate', held: { was: { avg: 1900, lo: 1600, hi: 2300 },
       why: '会社が公表しているのは機長と副操縦士をあわせた運航乗務員全体の平均で、職位別の平均は公表されていない。経験者採用の求人は「給与 非公開」「当社規程による」で金額が無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 950, lo: 700, hi: 1200 }, why: '機長と同じ理由。' } },
+    fo: { from: 'members', /* g4 fo */ est: {
+        basis: 'PILOT VALUE にスカイマークの副操縦士が出した給与（直近24か月）',
+        basis_en: 'Pay submitted to PILOT VALUE by Skymark Airlines first officers (past 24 months)',
+        method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+        method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+      }, tier: 'estimate', held: { was: { avg: 950, lo: 700, hi: 1200 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ J-AIR ══ 金額があるのは訓練生の募集要項1本だけで、会社自身が
@@ -973,6 +1104,10 @@ export const BASIS = {
         name: '運航乗務員訓練生（自社養成パイロット）募集要項',
         as_of: 'ページ冒頭に「募集は終了しております。前回分を参考までに掲載します。」', accessed: '2026-09-29',
         url: 'https://www.jair.co.jp/about/recruit/pilot/apply02.html' },
+      /* g4 src */
+      { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
+        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [
       '会社自身が「募集は終了しております。前回分を参考までに掲載します。」と書いている要項の額です。現在の額とは書かれていません。',
@@ -993,7 +1128,13 @@ export const BASIS = {
         req: '採用予定数15名程度・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可・入社要件に IELTS と航空無線通信士' }] },
     cap: { tier: 'estimate', held: { was: { avg: 2000, lo: 1800, hi: 2300 },
       why: '機長の募集要項は「当社規程による」「面接時に説明」で金額が無い。非上場で有価証券報告書が無く、親会社の有報にも職種別の給与が無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 1250, lo: 1100, hi: 1500 }, why: '機長と同じ理由。' } },
+    fo: { from: 'members', /* g4 fo */ est: {
+        basis: 'PILOT VALUE にジェイエアの副操縦士が出した給与（直近24か月）',
+        basis_en: 'Pay submitted to PILOT VALUE by J-Air (J-AIR) first officers (past 24 months)',
+        method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+        method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+      }, tier: 'estimate', held: { was: { avg: 1250, lo: 1100, hi: 1500 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ ジェットスター・ジャパン ══ 会社名義の募集要項は2016年のもの1本だけで、
@@ -1004,10 +1145,27 @@ export const BASIS = {
   'jetstar-japan': {
     cur: 'JPY',
     tax: '課税（日本）',
-    src: [], notes: [], notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 2400, lo: 2000, hi: 2900 },
+    src: [
+      /* g4 src */
+      { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
+        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        url: 'https://pilot-value.com/actual-pay.html' },
+    ], notes: [], notes_en: [],
+    cap: { from: 'members', /* g4 cap */ est: {
+        basis: 'PILOT VALUE にジェットスター・ジャパンの機長が出した給与（直近24か月）',
+        basis_en: 'Pay submitted to PILOT VALUE by Jetstar Japan captains (past 24 months)',
+        method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+        method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+      }, tier: 'estimate', held: { was: { avg: 2400, lo: 2000, hi: 2900 },
       why: '会社名義の募集要項（2016年）に給与の節そのものが無い。現行の採用サイトは読めず、採用管理システムの求人は0件。非上場で有価証券報告書も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 1450, lo: 1250, hi: 1600 },
+    fo: { from: 'members', /* g4 fo */ est: {
+        basis: 'PILOT VALUE にジェットスター・ジャパンの副操縦士が出した給与（直近24か月）',
+        basis_en: 'Pay submitted to PILOT VALUE by Jetstar Japan first officers (past 24 months)',
+        method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+        method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+        as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+      }, tier: 'estimate', held: { was: { avg: 1450, lo: 1250, hi: 1600 },
       why: '機長と同じ理由。加えて、ページに書いてあった「副操縦士の月額基本給 ¥150万」は出所が無く、同じページの上限1,600万と矛盾していた（×12＝1,800万）。' } },
   },
 
@@ -1168,8 +1326,8 @@ export const BASIS = {
     cap: {
       tier: 'estimate',
       est: {
-        basis: 'MARES の記事「Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich」（2026年9月4日。ルフトハンザのパイロットの給与を紹介した報道で、会社の公表ではありません）',
-        basis_en: 'MARES, “Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich”, 4 September 2026 (a press report on Lufthansa pilot pay — not published by the airline)',
+        basis: 'MARES の記事「Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich」（2026年9月4日。ルフトハンザのパイロットの給与を紹介した報道）',
+        basis_en: 'MARES, “Lufthansa Piloten verdienen 2026 bis 300.000 Euro jährlich”, 4 September 2026 (a press report on Lufthansa pilot pay)',
         method: '記事は、長距離の機長は年20万ユーロを超え、上位の職では約26万ユーロと書いています。推定年収は、その20万ユーロを少し上回る額に置いています。幅の上端は、その約26万ユーロに置いています。',
         method_en: 'The article says long-haul captains earn more than EUR 200,000 a year and that top positions reach about EUR 260,000. The estimate is set just above EUR 200,000. The top of the range is set at about EUR 260,000.',
         as_of: '2026年9月',
@@ -1361,15 +1519,15 @@ export const BASIS = {
     ],
     notes: [], notes_en: [],
     cap: { tier: 'estimate', est: {
-      basis: 'Flight Trainers の記事「Air Canada Pilot Salary」（2026年9月21日。2026年9月30日からの時給表を載せた解説で、会社や組合の公表ではありません）',
-      basis_en: 'Flight Trainers, “Air Canada Pilot Salary”, 21 September 2026 (an explainer carrying the pay rates effective 30 September 2026 — not published by the airline or the union)',
+      basis: 'Flight Trainers の記事「Air Canada Pilot Salary」（2026年9月21日。2026年9月30日からの時給表を載せた解説）',
+      basis_en: 'Flight Trainers, “Air Canada Pilot Salary”, 21 September 2026 (an explainer carrying the pay rates effective 30 September 2026)',
       method: '12年目の機長（A320・737）の時給 C$337.33 に航法手当 C$17.09 を足し、年900時間の保証を掛けています。幅は、1年目の A220 の機長から12年目の 777 の機長までです。会社の年金・利益配分と日当は、額の資料が無いので入れていません。',
       method_en: 'A year-12 A320/737 captain’s rate of C$337.33 an hour plus C$17.09 nav pay, times the 900-hour annual guarantee. The range runs from a year-1 A220 captain to a year-12 777 captain. The company pension, profit sharing and per diem are not included (no source for the amounts).',
       as_of: '2026年9月30日からの時給', as_of_en: 'Pay rates effective 30 September 2026',
     } },
     fo: { tier: 'estimate', est: {
-      basis: 'Flight Trainers の記事「Air Canada Pilot Salary」（2026年9月21日。2026年9月30日からの時給表を載せた解説で、会社や組合の公表ではありません）',
-      basis_en: 'Flight Trainers, “Air Canada Pilot Salary”, 21 September 2026 (an explainer carrying the pay rates effective 30 September 2026 — not published by the airline or the union)',
+      basis: 'Flight Trainers の記事「Air Canada Pilot Salary」（2026年9月21日。2026年9月30日からの時給表を載せた解説）',
+      basis_en: 'Flight Trainers, “Air Canada Pilot Salary”, 21 September 2026 (an explainer carrying the pay rates effective 30 September 2026)',
       method: '6年目の副操縦士（A320・737）の時給 C$182.62 に航法手当 C$8.55 を足し、年900時間の保証を掛けています。幅は、1年目から12年目の 777 の副操縦士までです。会社の年金・利益配分と日当は、額の資料が無いので入れていません。',
       method_en: 'A year-6 A320/737 first officer’s rate of C$182.62 an hour plus C$8.55 nav pay, times the 900-hour annual guarantee. The range runs from year 1 to a year-12 777 first officer. The company pension, profit sharing and per diem are not included (no source for the amounts).',
       as_of: '2026年9月30日からの時給', as_of_en: 'Pay rates effective 30 September 2026',
@@ -1498,11 +1656,11 @@ export const BASIS = {
         url: 'https://www.brookfieldav.com/jobs/a320-first-officers-required-%E2%80%93-royal-jordanian-(amman%2C-jordan)' },
     ],
     notes: [
-      '⚠️ 会社の公表ではありません。英国の採用代理店が出している求人の掲載額です。',
+      '英国の採用代理店が出している求人の掲載額です。',
       '額は手取り（NET）で、Brookfield と結ぶ12か月（更新可）の契約です。宿泊（5つ星ホテル）・送迎・帰国の航空券・医療保険は現物で支給され、額は書かれていません。',
     ],
     notes_en: [
-      'These are not the airline’s own figures. They are the amounts stated in postings by a recruitment agency in the UK.',
+      'These are the amounts stated in postings by a recruitment agency in the UK.',
       'The amounts are take-home (net), on a 12-month renewable contract with Brookfield. Accommodation (a five-star hotel), transport, flights home and medical insurance are provided in kind, with no stated value.',
     ],
     cap: { tier: 'offer_posting',
@@ -1545,6 +1703,10 @@ export const BASIS = {
       { pub: 'Irish Examiner', pub_en: 'Irish Examiner', name: 'Aer Lingus pilots vote to accept 17.75% pay rise', name_en: 'Aer Lingus pilots vote to accept 17.75% pay rise',
         as_of: '2024-07-23 掲載', as_of_en: 'Published 23 July 2024', accessed: '2026-10-30', secondary: true,
         url: 'https://www.irishexaminer.com/news/arid-41442025.html' },
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Aer Lingus | Pilot Careers, Pay, Roster, Fleet & Benefits', name_en: 'Aer Lingus | Pilot Careers, Pay, Roster, Fleet & Benefits',
+        as_of: '2026-03-07 掲載', as_of_en: 'Published 7 March 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/aer-lingus' },
     ],
     notes: [], notes_en: [],
     cap: { tier: 'estimate', est: {
@@ -1554,7 +1716,13 @@ export const BASIS = {
       method_en: 'Set at the article’s “captains who reach year 20 can earn €239,000”, raised by the later pay award (17.75% in eight steps from January 2023 to July 2026). The award also replaced the previous pay scales with a single scale, so this is an approximation. The top of the range is PA’s “top pay package of around €287,000, including the value of pensions and other benefits” (June 2024), raised by the same rate. The company pension contribution and per diem could not be confirmed from the sources and are not included. The bottom of the range is unchanged.',
       as_of: '2024年2月（昇給は2026年7月まで）', as_of_en: 'February 2024 (pay rises through July 2026)',
     } },
-    fo: { tier: 'estimate' },
+    fo: { /* g4 fo */ est: {
+        basis: 'Ready For Take-Off Book のエア・リンガスのページ（2026年3月）と、The Irish Times の記事（2024年2月）・2024年7月に会社と組合員が受け入れた労働裁判所の昇給の勧告（RTÉ の報道）',
+        basis_en: 'Ready For Take-Off Book’s Aer Lingus page (March 2026), an article in The Irish Times (February 2024) and the Labour Court pay award accepted by the airline and the pilots in July 2024 (reported by RTÉ)',
+        method: '副操縦士の表の「3〜5年目 年 約 €95,000〜120,000」（基本給・乗務手当・通常の手当を含む税引き前の見込み）の真ん中 €107,500 を、6年目の額として使っています（次の段は「7〜10年目」）。幅の上は The Irish Times の「副操縦士は最大 €121,519」に、機長と同じ昇給 17.75% を掛けた額です。会社の年金拠出と日当は足していません。幅の下は前の値のままです。',
+        method_en: 'Set at the midpoint, €107,500, of the first officer table’s “Year 3-5 €95,000 - €120,000” (annual gross estimates including base salary, flight pay and standard allowances), used as the year-6 figure (the next step is “Year 7-10”). The top of the range is The Irish Times’ “Aer Lingus co-pilots could earn up to €121,519”, raised by the same 17.75% pay award as for captains. The company pension contribution and per diems are not added. The bottom of the range is unchanged.',
+        as_of: '2026年3月', as_of_en: 'March 2026',
+      }, tier: 'estimate' },
   },
   'finnair': {
     tax: '課税（フィンランド）', tax_en: 'Taxed (Finland)',
@@ -1604,6 +1772,382 @@ export const BASIS = {
       method: '会社の「副操縦士の資格を取って2年後に年 9万ポンド」に置いています。FCI の求人にも「年の手取りの見込み 9万ポンド」とあります。6年目ではなく2年後の額です（低めの見積もり）。ランダム勤務を選んだ人の上乗せ（月 最大800ポンド）・引き留めの賞与・年金は入れていません。幅の下は前の値のままです。',
       method_en: 'Set at the company’s “£90,000 a year two years after qualifying as a first officer”. The FCI posting also states an “expected annual take-home salary of £90,000”. It is a two-year figure, not year 6 (a conservative estimate). The extra pay for choosing a random roster (up to £800 a month), the retention bonus and the pension are not included. The bottom of the range is unchanged.',
       as_of: '2025年10月', as_of_en: 'October 2025',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'turkish-airlines': {
+    tax: '課税（トルコ）', tax_en: 'Taxed (Turkey)',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Turkish Airlines | Pilot Pay, Rosters and Career Outlook', name_en: 'Turkish Airlines | Pilot Pay, Rosters and Career Outlook',
+        as_of: '2026-03-21 掲載', as_of_en: 'Published 21 March 2026', accessed: '2026-10-29', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/turkish-airlines' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book のトルコ航空のページ（2026年3月）',
+      basis_en: 'Ready For Take-Off Book’s Turkish Airlines page (March 2026)',
+      method: '機長の表の「狭胴機の機長 月 ₺580,000〜620,000」と「広胴機の機長 月 ₺620,000〜660,000」の上の端どうしの真ん中 ₺640,000 を12倍しています。表は月70時間の乗務を前提にした税引き前の月額です。四半期ごとの賞与と日当は足していません。幅は前の値のままです。',
+      method_en: 'Set at ₺640,000 a month × 12: the midpoint of the tops of two steps in the captain table, “Captain (Narrowbody) ₺580,000 - ₺620,000” and “Captain (Widebody) ₺620,000 - ₺660,000”. The table gives gross monthly pay based on 70 hours a month. Quarterly bonuses and per diems are not added. The range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book のトルコ航空のページ（2026年3月）',
+      basis_en: 'Ready For Take-Off Book’s Turkish Airlines page (March 2026)',
+      method: '副操縦士の表の「3〜5年目（狭胴機）月 ₺340,000〜400,000」の上の端 ₺400,000 を6年目の額として12倍しています（次の段「広胴機の上級副操縦士」の下の端と同じ額）。表は月70時間の乗務を前提にした税引き前の月額です。70時間を超えた分の割増・四半期ごとの賞与・日当は足していません。幅は前の値のままです。',
+      method_en: 'Set at ₺400,000 a month × 12, used as the year-6 figure: the top of “F/O 3-5 years (Narrowbody) ₺340,000 - ₺400,000”, which is also the bottom of the next step, “Senior F/O (Widebody)”. The table gives gross monthly pay based on 70 flight hours a month. Overtime above 70 hours, quarterly bonuses and per diems are not added. The range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'air-france': {
+    tax: '課税（フランス）', tax_en: 'Taxed (France)',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Air France | Pilot Salaries, Roster, Fleet and Career Guide', name_en: 'Air France | Pilot Salaries, Roster, Fleet and Career Guide',
+        as_of: '2026-04-13 掲載', as_of_en: 'Published 13 April 2026', accessed: '2026-10-29', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/air-france' },
+      { pub: 'フランス会計検査院（Cour des comptes）', pub_en: 'Cour des comptes (France’s national audit office)', name: 'La caisse de retraite du personnel navigant professionnel de l\'aéronautique civile (CRPN)', name_en: 'La caisse de retraite du personnel navigant professionnel de l\'aéronautique civile (CRPN)',
+        as_of: '2025-12-10 公表', as_of_en: 'Published 10 December 2025', accessed: '2026-10-29', secondary: true,
+        url: 'https://www.ccomptes.fr/sites/default/files/2025-12/20251210-S2025-1632-Caisse-de-retraite-du-personnel-navigant-de-l-aviation-civile.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book のエールフランスのページ（2026年4月）と、フランス会計検査院の報告書「乗員の退職年金基金（CRPN）」（2025年12月）',
+      basis_en: 'Ready For Take-Off Book’s Air France page (April 2026) and the Cour des comptes report on the aircrew pension fund, CRPN (December 2025)',
+      method: '表の「長距離（777／A350）の上級機長 年 約 €220,000〜260,000」の真ん中 €240,000 に、会社が乗員の退職年金基金（CRPN）に払う拠出（2025年の率：給与の 15.13%＋0.05%、年 €47,100 までの分に 0.54%＋0.39%）を足しています。表の年額は基本給・乗務手当・通常の手当を含む税引き前の額です。短距離の機長の最上段は表に無く、長距離だけで出しています。13か月目の支給・利益配分・日当は足していません。幅は前の値のままです。',
+      method_en: 'Set at the midpoint, €240,000, of the table’s “Senior CDB (777/A350 long-haul) ~€220,000 - €260,000+” a year, plus the employer’s contribution to the aircrew pension fund (CRPN) at the 2025 rates: 15.13% + 0.05% of salary, and 0.54% + 0.39% on pay up to €47,100 a year. The table’s annual figures are gross and include base salary, flight pay and standard allowances. The table has no top step for short-haul captains, so only long-haul is used. A 13th-month payment, profit-sharing and per diems are not added. The range is unchanged.',
+      as_of: '2026年4月（年金の拠出率は2025年）', as_of_en: 'April 2026 (pension contribution rates for 2025)',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book のエールフランスのページ（2026年4月）と、フランス会計検査院の報告書「乗員の退職年金基金（CRPN）」（2025年12月）',
+      basis_en: 'Ready For Take-Off Book’s Air France page (April 2026) and the Cour des comptes report on the aircrew pension fund, CRPN (December 2025)',
+      method: '6年目は表の「3〜5年目 年 約 €85,000〜100,000」と「7〜10年目 年 約 €105,000〜125,000」のあいだで、€100,000 と €105,000 の真ん中 €102,500 に、機長と同じ会社の年金拠出（CRPN・2025年の率）を足しています。表の年額は基本給・乗務手当・通常の手当を含む税引き前の額です。13か月目の支給・利益配分・日当は足していません。幅の上は「10年以上の副操縦士 年 約 €125,000〜150,000」の上の端に同じ拠出を足した額です。幅の下は前の値のままです。',
+      method_en: 'Year 6 falls between “Year 3-5 ~€85,000 - €100,000” and “Year 7-10 ~€105,000 - €125,000” a year, so it is set at the midpoint of €100,000 and €105,000 (€102,500), plus the same employer pension contribution (CRPN, 2025 rates) as for captains. The annual figures are gross and include base salary, flight pay and standard allowances. A 13th-month payment, profit-sharing and per diems are not added. The top of the range is the upper end of “Senior F/O (10+ yrs) ~€125,000 - €150,000” plus the same contribution. The bottom of the range is unchanged.',
+      as_of: '2026年4月（年金の拠出率は2025年）', as_of_en: 'April 2026 (pension contribution rates for 2025)',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'asiana': {
+    tax: '課税（韓国）', tax_en: 'Taxed (South Korea)',
+    src: [
+      /* g4 src */
+      { pub: 'ExitBasic', pub_en: 'ExitBasic', name: '항공기 조종사 파일럿 분석 : 연봉, 급여, 초봉, 취업, 전망, 진로', name_en: 'Airline pilot analysis: salary, pay, starting pay, hiring, outlook, career path',
+        as_of: '2025-03-19 掲載', as_of_en: 'Published 19 March 2025', accessed: '2026-10-29', secondary: true,
+        url: 'https://blog.exitbasic.com/pilot/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'ExitBasic の記事「항공기 조종사 파일럿 분석」の表「国内の主な航空会社のパイロットの年収（2025年基準・税引き前）」（2025年3月）',
+      basis_en: 'The table of pilot pay at major Korean airlines (2025, before tax) in the ExitBasic article “항공기 조종사 파일럿 분석” (March 2025)',
+      method: '表のアシアナ航空の「機長（10年目以上）1億3,000万〜2億8,000万ウォン」の真ん中 2億500万ウォンを使っています。表は税引き前の額です。幅の上は2億8,000万ウォンです。幅の下は前の値のままです。',
+      method_en: 'Set at the midpoint, KRW 205 million, of Asiana’s “captain (10+ years) KRW 130 million – 280 million” in the table. The figures are before tax. The top of the range is KRW 280 million. The bottom of the range is unchanged.',
+      as_of: '2025年', as_of_en: '2025',
+    } },
+    fo: { tier: 'estimate' },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'aegean': {
+    tax: '課税（ギリシャ）', tax_en: 'Taxed (Greece)',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Aegean Airlines | Pilot Careers, Pay, Fleet & Roster', name_en: 'Aegean Airlines | Pilot Careers, Pay, Fleet & Roster',
+        as_of: '2026-04-15 掲載', as_of_en: 'Published 15 April 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/aegean-airlines' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book のエーゲ航空のページ「Aegean Airlines | Pilot Careers, Pay, Fleet & Roster」（2026年4月）',
+      basis_en: 'Ready For Take-Off Book’s Aegean Airlines page, “Aegean Airlines | Pilot Careers, Pay, Fleet & Roster” (April 2026)',
+      method: '機長の表の「9年目以上 年 約 €57,000〜78,000」（基本給だけ）の真ん中 €67,500 に、同じページの「年の日当 約 €3,500（税引き前）」を足しています。1区間あたりの手当・距離の手当・10年以上の機長の賞与は足していません。幅は前の値のままです。',
+      method_en: 'Set at the midpoint, €67,500, of the captain table’s “Year 9+ ~€57,000 – €78,000” a year (base salary only), plus the page’s “yearly per diem payments estimated at around €3,500 gross”. Per-sector pay, the per-kilometre allowance and the bonus for captains with 10+ years are not added. The range is unchanged.',
+      as_of: '2026年4月', as_of_en: 'April 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book のエーゲ航空のページ「Aegean Airlines | Pilot Careers, Pay, Fleet & Roster」（2026年4月）',
+      basis_en: 'Ready For Take-Off Book’s Aegean Airlines page, “Aegean Airlines | Pilot Careers, Pay, Fleet & Roster” (April 2026)',
+      method: '副操縦士の表の「4年目以上 年 約 €31,200〜38,000」（基本給だけ・表のいちばん上の段）の真ん中 €34,600 に、年の日当 約 €3,500 を足しています。1区間あたりの手当と距離の手当は足していません。幅は前の値のままです。',
+      method_en: 'Set at the midpoint, €34,600, of the first officer table’s “Year 4+ ~€31,200 – €38,000” a year (base salary only, the top step of the table), plus yearly per diems of around €3,500. Per-sector pay and the per-kilometre allowance are not added. The range is unchanged.',
+      as_of: '2026年4月', as_of_en: 'April 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'icelandair': {
+    tax: '課税（アイスランド）', tax_en: 'Taxed (Iceland)',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Icelandair | Pilot Careers, Pay, Fleet & Life at Keflavík', name_en: 'Icelandair | Pilot Careers, Pay, Fleet & Life at Keflavík',
+        as_of: '2026-05-17 掲載', as_of_en: 'Published 17 May 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/icelandair' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book のアイスランド航空のページ「Icelandair | Pilot Careers, Pay, Fleet & Life at Keflavík」（2026年5月）',
+      basis_en: 'Ready For Take-Off Book’s Icelandair page, “Icelandair | Pilot Careers, Pay, Fleet & Life at Keflavík” (May 2026)',
+      method: '機長の表の年額の見込み（税引き前）の「757／A321LR の5年目の機長 約 ISK 18〜20M」と「767 のベテラン機長（20年以上）約 ISK 21〜24M」の真ん中どうしの真ん中 ISK 20,750,000 を使っています。狭胴機のベテランの段は表にありません。利益配分は足していません。幅の上は ISK 24,000,000 です。幅の下は前の値のままです。',
+      method_en: 'Set at ISK 20,750,000, the midpoint between the middles of two steps in the captain table’s annual gross estimates: “Captain, 5 yrs (757/A321LR) ~ISK 18-20M” and “Senior Captain (767 / 20+ yrs) ~ISK 21-24M”. The table has no senior narrowbody step. Profit-sharing is not added. The top of the range is ISK 24,000,000. The bottom of the range is unchanged.',
+      as_of: '2026年5月', as_of_en: 'May 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book のアイスランド航空のページ「Icelandair | Pilot Careers, Pay, Fleet & Life at Keflavík」（2026年5月）',
+      basis_en: 'Ready For Take-Off Book’s Icelandair page, “Icelandair | Pilot Careers, Pay, Fleet & Life at Keflavík” (May 2026)',
+      method: '副操縦士の表の「3〜5年目 年 約 ISK 11〜13M」（基本給・通常の手当・日当を含む税引き前の見込み）の真ん中 ISK 12,000,000 を、6年目の額として使っています（次の段は「7〜10年目」）。幅の上は「15年以上の副操縦士 約 ISK 15〜17M」の上の端 ISK 17,000,000 です。幅の下は前の値のままです。',
+      method_en: 'Set at the midpoint, ISK 12,000,000, of the first officer table’s “Year 3 - 5 ~ISK 11-13M” (annual gross estimates including base salary plus typical allowances and per diems), used as the year-6 figure (the next step is “Year 7 - 10”). The top of the range is the upper end of “Senior FO (15+ yrs) ~ISK 15-17M”, ISK 17,000,000. The bottom of the range is unchanged.',
+      as_of: '2026年5月', as_of_en: 'May 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'lot': {
+    tax: '課税（ポーランド）', tax_en: 'Taxed (Poland)',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'LOT Polish Airlines | Pilot Conditions, Pay & Careers', name_en: 'LOT Polish Airlines | Pilot Conditions, Pay & Careers',
+        as_of: '2026-03-29 掲載', as_of_en: 'Published 29 March 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/lot-polish-airlines' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book の LOT ポーランド航空のページ「LOT Polish Airlines | Pilot Conditions, Pay & Careers」（2026年3月）',
+      basis_en: 'Ready For Take-Off Book’s LOT Polish Airlines page, “LOT Polish Airlines | Pilot Conditions, Pay & Careers” (March 2026)',
+      method: '機長の表の年額の見込み（変動給をすべて含む）の「B737 の機長（機長になったばかり）約 PLN 290,000〜360,000」と「B787 のベテラン機長（10,000時間以上）約 PLN 600,000〜710,000」の真ん中どうしの真ん中 PLN 490,000 を使っています。B737 のベテランの段は表にありません。幅の上は PLN 710,000 です。幅の下は前の値のままです。',
+      method_en: 'Set at PLN 490,000, the midpoint between the middles of “Captain, B737 (entry command) ~PLN 290,000 - 360,000” and “Senior Captain, B787 (10,000+ hrs) ~PLN 600,000 - 710,000” in the captain table’s annual gross estimates, which the page says include all variable components. The table has no senior B737 step. The top of the range is PLN 710,000. The bottom of the range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book の LOT ポーランド航空のページ「LOT Polish Airlines | Pilot Conditions, Pay & Careers」（2026年3月）',
+      basis_en: 'Ready For Take-Off Book’s LOT Polish Airlines page, “LOT Polish Airlines | Pilot Conditions, Pay & Careers” (March 2026)',
+      method: '副操縦士の表の年額の見込みの「B737 の副操縦士（2〜4年目）約 PLN 170,000〜220,000」と「B787 の上級副操縦士（5年以上）約 PLN 220,000〜265,000」の真ん中どうしの真ん中 PLN 218,750 を使っています。幅の上は PLN 265,000 です。幅の下は前の値のままです。',
+      method_en: 'Set at PLN 218,750, the midpoint between the middles of “F/O, B737 (Year 2-4) ~PLN 170,000 - 220,000” and “Senior F/O, B787 (5+ yrs) ~PLN 220,000 - 265,000” in the first officer table’s annual gross estimates. The top of the range is PLN 265,000. The bottom of the range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'sas': {
+    tax: '課税（デンマーク・スウェーデン・ノルウェー）', tax_en: 'Taxed (Denmark, Sweden, Norway)',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'SAS Scandinavian Airlines | Pilot Pay, Rosters & Benefits', name_en: 'SAS Scandinavian Airlines | Pilot Pay, Rosters & Benefits',
+        as_of: '2026-03-27 掲載', as_of_en: 'Published 27 March 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/sas-scandinavian-airlines' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate' },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book のスカンジナビア航空のページ「SAS Scandinavian Airlines | Pilot Pay, Rosters & Benefits」（2026年3月）',
+      basis_en: 'Ready For Take-Off Book’s SAS page, “SAS Scandinavian Airlines | Pilot Pay, Rosters & Benefits” (March 2026)',
+      method: '副操縦士の表の「上級副操縦士（5年以上）年 約 €68,000〜78,000」（税引き前の見込み）の真ん中 €73,000 を使っています。表の額は日当・手当を含まない基本給です。幅は前の値のままです。',
+      method_en: 'Set at the midpoint, €73,000, of the first officer table’s “Senior F/O (5+ years) ~68,000 - 78,000” in annual gross euros. The figures are base salary before per diems and allowances. The range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'virgin-atlantic': {
+    tax: '課税（英国）', tax_en: 'Taxed (United Kingdom)',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Virgin Atlantic | Pilot Pay, Rosters, Fleet & Benefits', name_en: 'Virgin Atlantic | Pilot Pay, Rosters, Fleet & Benefits',
+        as_of: '2026-03-16 掲載', as_of_en: 'Published 16 March 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/virgin-atlantic' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book のヴァージン・アトランティック航空のページ「Virgin Atlantic | Pilot Pay, Rosters, Fleet & Benefits」（2026年3月）',
+      basis_en: 'Ready For Take-Off Book’s Virgin Atlantic page, “Virgin Atlantic | Pilot Pay, Rosters, Fleet & Benefits” (March 2026)',
+      method: '機長の表の「14年目以上の機長」の「手当込みの合計の見込み 約 £224,000」（税引き前の年額）を使っています。会社の年金拠出と、教官・審査の上乗せは足していません。幅の上もこの額です。幅の下は前の値のままです。',
+      method_en: 'Set at the captain table’s estimated total including allowances for a “Year 14+ Captain”, ~£224,000 a year (gross). The company pension contribution and the uplift for training captains and examiners are not added. The top of the range is the same figure. The bottom of the range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book のヴァージン・アトランティック航空のページ「Virgin Atlantic | Pilot Pay, Rosters, Fleet & Benefits」（2026年3月）',
+      basis_en: 'Ready For Take-Off Book’s Virgin Atlantic page, “Virgin Atlantic | Pilot Pay, Rosters, Fleet & Benefits” (March 2026)',
+      method: '副操縦士の表の「上級副操縦士（5年以上）」の「手当込みの合計の見込み 約 £115,000〜130,000」（税引き前の年額）の真ん中 £122,500 を使っています。会社の年金拠出は足していません。幅の上は £130,000 です。幅の下は前の値のままです。',
+      method_en: 'Set at the midpoint, £122,500, of the first officer table’s estimated total including allowances for a “Senior F/O (5+ yrs)”, ~£115,000 - £130,000 a year (gross). The company pension contribution is not added. The top of the range is £130,000. The bottom of the range is unchanged.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'kenya-airways': {
+    tax: '課税（ケニア）', tax_en: 'Taxed (Kenya)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'AscendurePro', pub_en: 'AscendurePro', name: 'How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide): Costs, Top Schools & Salaries', name_en: 'How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide): Costs, Top Schools & Salaries',
+        as_of: '2026-02-23 掲載', as_of_en: 'Published 23 February 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://ascendurepro.com/how-to-become-a-commercial-pilot-in-kenya/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'AscendurePro の記事「How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide)」（2026年2月）',
+      basis_en: 'The AscendurePro article “How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide)” (February 2026)',
+      method: '記事の「ケニア航空の機長は月 最大 KES 200万（年 約 KSh 2,400万）、乗務手当を含めると約 KES 3,000万に届く」のうち、記事が書いている年額 KSh 2,400万を使っています。税引き前か手取りかは書かれていません。幅の上は乗務手当込みの KES 3,000万です。幅の下は前の値のままです。',
+      method_en: 'Set at the yearly figure the article itself gives, KSh 24M, from “a Kenya Airways captain can make up to KES 2 million per month (≈KSh 24M/year), and with flight allowances can reach about KES 30M”. It does not say whether the figures are before or after tax. The top of the range is the KES 30M including flight allowances. The bottom of the range is unchanged.',
+      as_of: '2026年2月', as_of_en: 'February 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'AscendurePro の記事「How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide)」（2026年2月）',
+      basis_en: 'The AscendurePro article “How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide)” (February 2026)',
+      method: '記事の表「ケニアのパイロットの月給」の「大手航空会社の副操縦士（B737／B787）月 KES 600k〜900k」の真ん中 KES 750,000 を12倍しています。税引き前か手取りかは書かれていません。幅の上は月 KES 900,000 の12倍です。幅の下は前の値のままです。',
+      method_en: 'Set at the midpoint, KES 750,000, of “Major Airline FO, B737 / B787, 600k – 900k” in the article’s table of monthly pilot salaries in Kenya, multiplied by 12. It does not say whether the figures are before or after tax. The top of the range is KES 900,000 a month × 12. The bottom of the range is unchanged.',
+      as_of: '2026年2月', as_of_en: 'February 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'south-african-airways': {
+    tax: '課税（南アフリカ）', tax_en: 'Taxed (South Africa)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Jobrato', pub_en: 'Jobrato', name: 'Commercial Airline Pilot Salary in South Africa: SAA, Airlink & Safair Pay Scales', name_en: 'Commercial Airline Pilot Salary in South Africa: SAA, Airlink & Safair Pay Scales',
+        as_of: '2026-01-29 掲載', as_of_en: 'Published 29 January 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://jobrato.co.za/commercial-airline-pilot-salary-in-south-africa-saa-airlink-safair-pay-scales/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Jobrato の記事「Commercial Airline Pilot Salary in South Africa: SAA, Airlink & Safair Pay Scales」（2026年1月）',
+      basis_en: 'The Jobrato article “Commercial Airline Pilot Salary in South Africa: SAA, Airlink & Safair Pay Scales” (January 2026)',
+      method: '記事の「広胴機（A330・リースの A350）の上級機長は年 R2.2 Million〜R3.5 Million 超」の真ん中 R2,850,000 を使っています。狭胴機の機長の額は記事にありません。税引き前か手取りかは書かれていません。幅の上は R3,500,000 です。幅の下は前の値のままです。',
+      method_en: 'Set at the midpoint, R2,850,000, of the article’s “Senior Captains commanding wide-body aircraft (like the Airbus A330 or leased A350 configurations) command premium packages ranging from R2.2 Million to over R3.5 Million annually”. The article gives no figure for narrowbody captains. It does not say whether the figures are before or after tax. The top of the range is R3,500,000. The bottom of the range is unchanged.',
+      as_of: '2026年1月', as_of_en: 'January 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Jobrato の記事「Commercial Airline Pilot Salary in South Africa: SAA, Airlink & Safair Pay Scales」（2026年1月）',
+      basis_en: 'The Jobrato article “Commercial Airline Pilot Salary in South Africa: SAA, Airlink & Safair Pay Scales” (January 2026)',
+      method: '記事の「副操縦士は月 R70,000〜130,000（国内線の A320 か国際線の長距離かで大きく違う）」の真ん中 R100,000 を12倍しています。税引き前か手取りかは書かれていません。幅の上は月 R130,000 の12倍です。幅の下は前の値のままです。',
+      method_en: 'Set at the midpoint, R100,000, of the article’s “First Officers: Earn between R70,000 and R130,000 per month, depending heavily on whether they serve on domestic Airbus A320 routes or international long-haul routes”, multiplied by 12. It does not say whether the figures are before or after tax. The top of the range is R130,000 a month × 12. The bottom of the range is unchanged.',
+      as_of: '2026年1月', as_of_en: 'January 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'indigo': {
+    tax: '課税（インド）', tax_en: 'Taxed (India)',
+    src: [
+      /* g4 src */
+      { pub: 'Pilots Academy', pub_en: 'Pilots Academy', name: 'Pilot Salary in India 2026: Monthly Pay by Airline & Rank', name_en: 'Pilot Salary in India 2026: Monthly Pay by Airline & Rank',
+        as_of: '2026-07-19 掲載・2026年10月 更新', as_of_en: 'Published 19 July 2026, updated October 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://pilotsacademy.co.in/pilot-salary-in-india/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Pilots Academy の記事「Pilot Salary in India 2026」にある、インディゴの給与の表（記事は社内資料「Airbus Compensation Structure」の数字と書いています・2026年10月更新）',
+      basis_en: 'The IndiGo pay table in the Pilots Academy article “Pilot Salary in India 2026”, which the article says comes from IndiGo’s internal “Airbus Compensation Structure” slide (updated October 2026)',
+      method: '表の「上級機長（2,500時間超）の月の CTC ₹8.91 Lac」を12倍しています。CTC は固定給と月70時間ぶんの乗務の分を含む、会社が払う総額です。審査（LTC）・教官（TRI）の段と、長く勤めた機長への支払い（5年で ₹15 lakh）は入れていません。幅は前の値のままです。',
+      method_en: 'Set at the table’s “Sr. Captain (>2,500 Hrs) monthly CTC ₹8.91 Lac”, multiplied by 12. CTC (cost to company) includes fixed pay and the committed flying component at 70 hours. The check (LTC) and instructor (TRI) steps and the longevity payout for captains (₹15 lakh over five years) are not included. The range is unchanged.',
+      as_of: '2026年10月', as_of_en: 'October 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Pilots Academy の記事「Pilot Salary in India 2026」にある、インディゴの給与の表（記事は社内資料「Airbus Compensation Structure」の数字と書いています・2026年10月更新）',
+      basis_en: 'The IndiGo pay table in the Pilots Academy article “Pilot Salary in India 2026”, which the article says comes from IndiGo’s internal “Airbus Compensation Structure” slide (updated October 2026)',
+      method: '同じ表の「上級副操縦士（SFO）の月の CTC ₹4.85 Lac」を12倍しています。CTC は固定給と月70時間ぶんの乗務の分を含む、会社が払う総額です。幅の上もこの額です。幅の下は前の値のままです。',
+      method_en: 'Set at the same table’s “Senior First Officer monthly CTC ₹4.85 Lac”, multiplied by 12. CTC (cost to company) includes fixed pay and the committed flying component at 70 hours. The top of the range is the same figure. The bottom of the range is unchanged.',
+      as_of: '2026年10月', as_of_en: 'October 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'egyptair': {
+    tax: '課税（エジプト）', tax_en: 'Taxed (Egypt)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'EgyptAir | Pilot Working Conditions, Pay & Careers', name_en: 'EgyptAir | Pilot Working Conditions, Pay & Careers',
+        as_of: '2026-05-11 掲載', as_of_en: 'Published 11 May 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/egyptair' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book のエジプト航空のページ「EgyptAir | Pilot Working Conditions, Pay & Careers」（2026年5月）',
+      basis_en: 'Ready For Take-Off Book’s EgyptAir page, “EgyptAir | Pilot Working Conditions, Pay & Careers” (May 2026)',
+      method: '機長の表のいちばん上の段「上級の広胴機の機長」の月額「~USD 10,000+」（外貨で払う基本給）と「~EGP 12,000+」（現地通貨の上乗せ・表の見出しは税引き後）を、USD 10,000 と EGP 12,000 として足し、12倍しています。USD の基本給が税引き前か手取りかは書かれていません。1区間あたりの日当（USD 80）・乗務手当・残業代・賞与は足していません。幅の上もこの額です。幅の下は前の値のままです。',
+      method_en: 'Set at the top step of the captain table, “Senior Widebody Captain”: “~USD 10,000+” a month (base salary paid in foreign currency) plus “~EGP 12,000+” a month (local supplement, shown as post-tax in the table), taken as USD 10,000 and EGP 12,000 and multiplied by 12. It does not say whether the USD base is before or after tax. The per-sector per diem (USD 80), flight pay, overtime and bonuses are not added. The top of the range is the same figure. The bottom of the range is unchanged.',
+      as_of: '2026年5月', as_of_en: 'May 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Ready For Take-Off Book のエジプト航空のページ「EgyptAir | Pilot Working Conditions, Pay & Careers」（2026年5月）',
+      basis_en: 'Ready For Take-Off Book’s EgyptAir page, “EgyptAir | Pilot Working Conditions, Pay & Careers” (May 2026)',
+      method: '副操縦士の表の「4〜7年目」（6年目を含む段）の月額「~USD 5,000」（外貨で払う基本給）と「~EGP 4,500」（現地通貨の上乗せ・表の見出しは税引き後）を足し、12倍しています。USD の基本給が税引き前か手取りかは書かれていません。1区間あたりの日当（USD 40）と賞与は足していません。幅は前の値のままです。',
+      method_en: 'Set at the first officer table’s “Mid FO (Year 4 to 7)” step, which covers year 6: “~USD 5,000” a month (base salary paid in foreign currency) plus “~EGP 4,500” a month (local supplement, shown as post-tax in the table), multiplied by 12. It does not say whether the USD base is before or after tax. The per-sector per diem (USD 40) and bonuses are not added. The range is unchanged.',
+      as_of: '2026年5月', as_of_en: 'May 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'ethiopian-airlines': {
+    tax: '課税（エチオピア）', tax_en: 'Taxed (Ethiopia)',
+    src: [
+      /* g4 src */
+      { pub: 'Pilot Jobs Network', pub_en: 'Pilot Jobs Network', name: 'Ethiopian Airlines', name_en: 'Ethiopian Airlines',
+        as_of: '2024-08-27 更新（ページの記載）', as_of_en: 'Last updated 27 August 2024 (as stated on the page)', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.pilotjobsnetwork.com/jobs/Ethiopian_Airlines' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Pilot Jobs Network のエチオピア航空のページの簡易の給与表（2024年8月27日の書き込み）',
+      basis_en: 'The brief pay scale on Pilot Jobs Network’s Ethiopian Airlines page (entry of 27 August 2024)',
+      method: '表の「機長の上の段（Capt top）€135,000／ETB 16,330,000」のうち、ブルの額 ETB 16,330,000 を円にしています。表は税引き前の額を書く欄です。幅は前の値のままです。',
+      method_en: 'Set at the birr amount, ETB 16,330,000, of “Capt top €135,000 / ETB-16,330,000” in the page’s brief pay scale, which asks for pre-tax figures. The range is unchanged.',
+      as_of: '2024年8月', as_of_en: 'August 2024',
+    } },
+    fo: { tier: 'estimate' },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'ana-wings': {
+    tax: '課税（日本）', tax_en: 'Taxed (Japan)',
+    src: [
+      /* g4 src */
+      { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
+        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        url: 'https://pilot-value.com/actual-pay.html' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', from: 'members', /* g4 cap */ est: {
+      basis: 'PILOT VALUE にANAウイングスの機長が出した給与（直近24か月）',
+      basis_en: 'Pay submitted to PILOT VALUE by ANA Wings captains (past 24 months)',
+      method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+      method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+      as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+    } },
+    fo: { tier: 'estimate', from: 'members', /* g4 fo */ est: {
+      basis: 'PILOT VALUE にANAウイングスの副操縦士が出した給与（直近24か月）',
+      basis_en: 'Pay submitted to PILOT VALUE by ANA Wings first officers (past 24 months)',
+      method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+      method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+      as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'fda': {
+    tax: '課税（日本）', tax_en: 'Taxed (Japan)',
+    src: [
+      /* g4 src */
+      { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
+        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        url: 'https://pilot-value.com/actual-pay.html' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', from: 'members', /* g4 cap */ est: {
+      basis: 'PILOT VALUE にフジドリームエアラインズ（FDA）の機長が出した給与（直近24か月）',
+      basis_en: 'Pay submitted to PILOT VALUE by Fuji Dream Airlines (FDA) captains (past 24 months)',
+      method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+      method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+      as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+    } },
+    fo: { tier: 'estimate' },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'orc': {
+    tax: '課税（日本）', tax_en: 'Taxed (Japan)',
+    src: [
+      /* g4 src */
+      { pub: 'PILOT VALUE', pub_en: 'PILOT VALUE', name: 'REAL PAY（会員が出した給与）', name_en: 'REAL PAY (pay submitted by members)',
+        as_of: '2026-10-30 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
+        url: 'https://pilot-value.com/actual-pay.html' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate' },
+    fo: { tier: 'estimate', from: 'members', /* g4 fo */ est: {
+      basis: 'PILOT VALUE にオリエンタルエアブリッジの副操縦士が出した給与（直近24か月）',
+      basis_en: 'Pay submitted to PILOT VALUE by Oriental Air Bridge (ORC) first officers (past 24 months)',
+      method: '会員が出した年収の中央値です（1人につき最新の1件・1万円単位）。会社の年金拠出など、給与明細に載らない分は入っていません。',
+      method_en: 'The median of the annual pay members have submitted (the latest entry per person, to the nearest ¥10,000). Amounts that do not appear on a payslip, such as the company pension contribution, are not included.',
+      as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
     } },
   },
 };

@@ -130,7 +130,7 @@ const origOf = (cur, amount) => `${cur} ${amount.toLocaleString('en-US')}`;
 const RANK_KEYS = ['max_y', 'target_y', 'cash_y_over', 'allow_m_from'];
 const LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
 const KIND = { max_y: 'cap', target_y: 'co', cash_y_over: 'over' };
-const EST_BY = '当サイトの推定（公開情報からの推計）';
+const EST_BY = '当サイトの推定';   // ★2026-10-30「（公開情報からの推計）」を外した（会員の中央値の会社もある）
 /* 推定年収の行の1行目（職位ごとの推定の額のすぐ次）。字は gen-career.mjs の EST_TARGET（比較の画面の「推定年収 機種の指定なし」と同じ1か所）。 */
 const EST_TGT = `対象：${EST_TARGET}`;
 const UNLOCK = '全ての待遇データを解放する';
@@ -594,7 +594,7 @@ for (const s of FIVE) {
   /* 注は台帳の言葉のまま（手で書き足した注は、台帳を直しても動かない）。 */
   const notes = [...dt.matchAll(/<li><span class="pv-no-cur">([\s\S]*?)<\/span><\/li>/g)].map(m => unesc(m[1]));
   ok(notes.every(n => (BASIS[s].notes || []).includes(n)), `${s}: 注は台帳の言葉のまま`, notes.filter(n => !(BASIS[s].notes || []).includes(n)).join(' ／ ').slice(0, 160));
-  /* 出どころ：会社の公表ではない資料（報道など）には、そう書く。 */
+  /* 出どころ：★2026-10-30 オーナー「不要な文言書くな」── 報道などの横に「会社の公表ではない資料」と書かない（台帳の secondary の印は比較の1枚の仕分けにだけ使う）。 */
   const srcs = [...dt.matchAll(/<a class="pvg-src" href="([^"]*)" target="_blank" rel="noopener">([^<]*)<\/a><small>([^<]*)<\/small>/g)].map(m => ({ url: unesc(m[1]), mark: m[3] }));
   const led = (BASIS[s].src || []).filter(x => !(crewLedger(s).length && CREW_SRC.test(x.name)));   // 乗員全体の平均だけの資料は出さない（P12.77）
   ok(same(srcs.map(x => x.url), led.map(x => x.url)), `${s}: 出どころは台帳の資料と同じ並び（乗員全体の平均だけの資料を除く）`, `${srcs.length}件／台帳 ${led.length}件`);
@@ -609,7 +609,8 @@ for (const s of FIVE) {
        `${s}: 乗員全体の平均の話をしている台帳の注${crewLedger(s).length ? `（${words.length}つ）` : ''}は、1つも説明に出ない（P12.77）`,
        [...words.filter((w, i) => hit[i].length !== 1).map(w => `台帳の注に「${w}」がちょうど1つ無い`), ...hit.flat().filter(n => notes.includes(n))].join(' ／ ').slice(0, 200) || (words.length ? '' : 'CREW_NOTES に無い会社'));
   }
-  ok(led.every((x, i) => !srcs[i] || !!x.secondary === /会社の公表ではない資料/.test(srcs[i].mark)), `${s}: 会社の公表ではない資料に、そう書いてある（会社の資料には書かない）`);
+  ok(srcs.every(x => !/会社の公表ではない資料/.test(x.mark)) && !/会社の公表ではない|会社の公表ではありません|公表していません/.test(text(PART[s].pay)),
+     `${s}: 給与の箱に「会社の公表ではない資料」などの断り書きが無い（オーナー 2026-10-30）`, srcs.filter(x => /会社の公表ではない/.test(x.mark)).map(x => x.mark).join(' ／ '));
   /* ★2026-10-08 根拠・条件・時点：資料ごとに、こちらが確かめた日を書く（台帳の accessed のまま。今日の日付で上書きしない）。 */
   ok(led.length > 0 && led.every((x, i) => /^\d{4}-\d\d-\d\d$/.test(x.accessed || '') && !!srcs[i] && srcs[i].mark.endsWith(`確認日 ${dateJa(x.accessed)}`)),
      `${s}: 出どころの資料ごとに、確かめた日が台帳のまま出ている`, srcs.map(x => x.mark.slice(-18)).join(' ／ '));

@@ -340,7 +340,7 @@ ${acts}
      （物差しの違う額を同じ目盛に並べない ── 2026-10-06）。 */
 /* 目盛は1枚に1本（★2026-10-24 P12.104）＝ この会社の、描く額のいちばん大きいものから（pv-airline-view.mjs の scaleOf）。決まった上限は無い。 */
 const bar = (man, top) => `<div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:${width(man, top)}"></i></div>`;
-/* 字は WORDS（estBy ＝「当サイトの推定（公開情報からの推計）」・fig ＝ 求人の上限／目標年収／下限）。どの金額の種類に名前が在るかは FIG_LABEL の鍵 */
+/* 字は WORDS（estBy ＝「当サイトの推定」（★2026-10-30「（公開情報からの推計）」を外した＝会員の中央値の会社もある）・fig ＝ 求人の上限／目標年収／下限）。どの金額の種類に名前が在るかは FIG_LABEL の鍵 */
 const FIG_LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
 const figText = f => (f.key === 'max_y' ? W.upTo(f.yen) : f.key === 'cash_y_over' ? W.over(f.yen) : f.key.endsWith('_from') ? W.from(f.yen) : f.yen);
 /* 掲載日・時点。会社の資料が1つの時点にそろっているときだけ、欄に添える */
@@ -418,7 +418,7 @@ function payDetails(v) {
   /* 資料ごとに 時点（掲載日・対象の期間）と 確認日（当サイトが資料を読んで確かめた日）を別々に書く。
      join() に一緒に渡さない ── 同じ日付だと、短いほう（時点）が消える。 */
   const src = p.src.length ? `<p class="pvg-srcs"><span>${W.srcLabel}</span>${p.src.map(s =>
-    `${ext(s.url, W.pubTitle(s.pub, s.name))}<small>${esc([join(s.when, s.secondary ? W.notCoPub : ''), s.checked ? W.checked(dateJa(s.checked)) : ''].filter(Boolean).join(W.sep))}</small>`).join('')}</p>` : '';
+    `${ext(s.url, W.pubTitle(s.pub, s.name))}<small>${esc([s.when, s.checked ? W.checked(dateJa(s.checked)) : ''].filter(Boolean).join(W.sep))}</small>`).join('')}</p>` : '';
   const fx = p.cur && p.cur !== 'JPY' ? `<p class="pvg-fx">${esc(fxNote(p.cur, LANG))}</p>` : '';
   /* ★2026-10-08 この板が「金額の出どころ」の置き場（id="kyuyo-konkyo"。ほかのページからのリンクの先）。
        下に在った古い節（会社ごとに手で書いた出どころの表）は外した ＝ 同じ話を、確かめた日の違う字で2か所に出さない。
@@ -1255,14 +1255,14 @@ export const WORDS = Object.freeze({
     moreCite: n => `ほか${n}件と出典`, seeCite: '出典を見る', close: '閉じる',
     saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
-    pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定（公開情報からの推計）',
+    pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定',
     rank: Object.freeze(Object.fromEntries(RANKS)), rankEst: 'の推定年収', vhName: n => n, vhWho: n => `${n}・`, introJoin: '',
     fig: Object.freeze({ ...FIG_LABEL }), upTo: y => `〜${y}`, over: y => `${y}超`, from: y => `${y}〜`,
     vhCrew: n => `${n}・機長と副操縦士をあわせた`, crewAvg: who => `${who}全体の平均`, crewBoth: '機長と副操縦士をあわせた額',
     crewNote: s => `${s}。機長と副操縦士をあわせた額で、職位ごとの額ではありません。`, coPub: '会社の公表',
     pubPay: '会社が公表している金額', estOf: rk => `${rk}の推定年収`, target: t => `対象：${t}`, estTarget: EST_TARGET,
     basisL: '根拠：', methodL: '算出方法：', asOfL: '時点：',
-    pubTitle: (pub, name) => `${pub}「${name}」`, notCoPub: '会社の公表ではない資料',
+    pubTitle: (pub, name) => `${pub}「${name}」`,
     payWhose: 'この金額は誰の・何を含んだ・いつの金額か', axis: y => `棒の目盛は 0 〜 ${y}。機長と副操縦士で同じです。`,
     sfNone: '会社の公表は確認できていません', pilotAns: 'パイロットの回答', sfsNote: 'パイロットの回答は、3人そろった項目だけを出しています。',
     work: '勤務', benefits: '待遇', living: '暮らし', unconfirmed: '確認できていません',
@@ -1319,7 +1319,7 @@ export const WORDS = Object.freeze({
     moreCite: n => `${n} more, with sources`, seeCite: 'See sources', close: 'Close',
     saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card',
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
-    pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate (from public information)',
+    pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate',
     /* 職位の見出しは1行（white-space:nowrap）・狭い画面で2列 ── 英語は「Captain」「First Officer」だけを見せ、「推定年収」は読み上げにだけ（下の行が「Our estimate」と言う） */
     rank: Object.freeze({ cap: 'Captain', fo: 'First Officer' }), rankEst: '<span class="pvg-vh">, estimated annual pay</span>', vhName: n => `${n} `, vhWho: n => `${n}, `, introJoin: ' ',
     fig: Object.freeze({ max_y: 'Advertised maximum', target_y: 'Target annual pay', cash_y_over: 'Minimum' }),
@@ -1329,7 +1329,7 @@ export const WORDS = Object.freeze({
     pubPay: 'Pay published by the airline', estOf: rk => `${rk}: estimated annual pay`, target: t => `Covers: ${t}`, estTarget: EST_TARGET_EN[EST_TARGET],
     basisL: 'Basis: ', methodL: 'Method: ', asOfL: 'As of: ',
     /* 題が自分の “…” を持っているとき（原文の題＋英語の添え書き ── pv-airline-view.mjs の VIEW_EN）は、もう一度 “…” で包まない（““…”…” にしない） */
-    pubTitle: (pub, name) => (/^“/.test(name) ? `${pub}, ${name}` : `${pub}, “${name}”`), notCoPub: 'not published by the airline',
+    pubTitle: (pub, name) => (/^“/.test(name) ? `${pub}, ${name}` : `${pub}, “${name}”`),
     payWhose: 'Who it covers, what’s included, and when', axis: y => `The bars run from 0 to ${y}, the same for captains and first officers.`,
     sfNone: 'We have not been able to confirm any terms published by the airline', pilotAns: 'Pilots’ answers',
     sfsNote: 'Pilots’ answers are shown only for items at least three pilots have answered.',
