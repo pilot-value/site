@@ -34,7 +34,8 @@
      実行時に組み立てると、JS が落ちた人の画面からナビが丸ごと消えるうえ、
      航空会社110枚は内部リンクを3本失ったまま代わりが HTML に無い＝SEO が痩せる。
 
-   ★ここが足すのは3つだけ ── ≡ ボタン（無いとき）／覆い／板の頭（× と見出し）。
+   ★ここが足すのは4つだけ ── ≡ ボタン（無いとき）／覆い／板の頭（× と見出し）／
+     ヘッダーの名前の札（ログイン中で、ページがまだ札を持っていないときだけ・authChip()）。
 
    ⚠️ history を積まない（pushState も replaceState もしない）。
       Phase 4 で REAL PAY の詳細を「ブラウザの戻る」で閉じられるようにする。
@@ -77,6 +78,47 @@
     if (!nav) return null;
     var r = nav.querySelectorAll('.flex.items-center');
     return r[r.length - 1] || null;
+  }
+
+  /* ── ヘッダーの名前の札（2026-10-30 オーナー「ヘッダーの自分のアイコンが囲われてなかったりする」）──
+     札はページの台本が作る（トップ・一覧・Vote の数行／会社ページの airline-base.js／英語の会社ページの search.js）。
+     アプリの画面（REAL PAY・MY PAGE・比較…）と給与フォームには作る台本が無く、ログインしていても名前が出なかった。
+     ★ここは「ページがまだ札を持っていない・ログイン中」のときだけ足す。ログインしていない人には何も足さない
+       （ログインの道は板の「ログイン」の行が持っている）。形は app-nav.css の 6-b（全ページ同じ札）。
+     ★名前の決め方は台本たちと同じ（氏名が無ければメールの @ より前・名は最初の語）。
+     ★行き先の深さの数え方は pv-session.js の hrefTo() と同じ（/en/ は自分の profile.html を持っている）。
+     ⚠️ DOMContentLoaded で走る ＝ 台本（同じ合図で先に登録された airline-base.js / search.js）より後。
+        それでも後から台本が足して2つになったら、load でこちらの分を外す（id が2つ並ぶのを残さない）。 */
+  function profileHref() {
+    var parts = location.pathname.split('/').filter(function (x) { return x; });
+    var depth = parts.length - 1;
+    if (parts[0] === 'en') depth -= 1;
+    return new Array(Math.max(depth, 0) + 1).join('../') + 'profile.html';
+  }
+
+  function authChip() {
+    if (d.getElementById('nav-auth-btn')) return;
+    var nm = '';
+    try {
+      var u = JSON.parse(localStorage.getItem('pv_user') || 'null');
+      nm = (u && (u.name || String(u.email || '').split('@')[0])) || '';
+    } catch (e) { return; }
+    nm = String(nm).replace(/[\s　].*/, function () { return ''; });
+    if (!nm) return;
+    var box = rightBox();
+    if (!box) return;
+    var a = d.createElement('a');
+    a.id = 'nav-auth-btn';
+    a.href = profileHref();
+    a.textContent = nm;
+    a.className = 'pv-auth-chip' + (d.getElementById('main-nav') ? ' pv-nav-2nd' : '');
+    a.setAttribute('data-pv-auth', 'anav');
+    /* 置き場は台本と同じ ──「← 戻る」や CTA が在ればその左、無ければ ≡ の左、それも無ければ右端。 */
+    box.insertBefore(a, box.querySelector('a.btn-ghost,a.btn-primary,a.btn-orange') ||
+                        box.querySelector('#pv-ham-btn'));
+    window.addEventListener('load', function () {
+      if (d.querySelectorAll('[id="nav-auth-btn"]').length > 1 && a.parentNode) a.parentNode.removeChild(a);
+    });
   }
 
   function makeBtn(side) {
@@ -328,6 +370,7 @@
      （DOMContentLoaded → 次のフレーム → load。それでも来なければ諦める＝
        板は出ないが、ページは今までどおり動く。） */
   function tryBoot() {
+    try { authChip(); } catch (e) { /* 札が足せなくてもナビは動かす */ }
     if (boot()) return;
     window.requestAnimationFrame(function () {
       if (boot()) return;

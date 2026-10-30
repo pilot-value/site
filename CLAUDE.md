@@ -251,6 +251,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - マイページ系（`.mr-side` を持つ画面）なら [patch-side-nav.mjs](patch-side-nav.mjs) の `CURRENT` に足し、
   空の `<nav class="mr-side" aria-label="…"></nav>` を置いてから `node patch-side-nav.mjs` を流す
 - `_config.yml` は変更不要（`.html` は元から配信される）
+- ★**ヘッダーの左上のロゴと名前の札は、ページで形を持たない**（2026-10-30 オーナー「ロゴがページによってズレる。左上の角に固定して」
+  「自分のアイコンが囲われてなかったりする」）。ロゴの位置・大きさは [app-nav.css](app-nav.css) の節7（広い画面は左レールの列の真ん中、
+  狭い画面は左 16px・〜360px は 12px・どれも上 13px・52×40px）、札の形は節6-b の1か所。ログイン中で札の無い画面には `app-nav.js` の `authChip()` が足す。
+  ⚠️ ロゴをヘッダーの真ん中へ戻さない・狭い画面で行から外さない・ページの CSS で位置や大きさを足し直さない（詳細は deploy-checklist の 15 番）。
 
 ## 概要と2社比較の1枚（[career.html](career.html)・2026-10-03）
 

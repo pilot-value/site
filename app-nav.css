@@ -424,13 +424,132 @@ body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
      台本は直さず、ここ1か所の規則で上書きする（!important ＝ style の直書きに勝つため。どのページもこのファイルを読む） */
 #nav-auth-btn[href$="profile.html"]{color:var(--pv-accent-ink)!important}
 
+/* ── 6-b) 名前の札の形（2026-10-30 オーナー「各航空会社ページとかでヘッダーの自分のアイコンが囲われてなかったりする」）──
+   札はページごとの台本が作っていて、枠も余白もばらばらだった ──
+     トップ・一覧 …………… .btn-ghost のまま（枠あり。これが手本）
+     会社ページ（日英）…… airline-base.js / search.js が class を外し padding:7px 0 を直に書く（枠なし・緑の字だけ）
+     Vote ……………………… ページの .btn-ghost が暗い地の枠の色（白地では見えない）
+     アプリの画面 ………… 札そのものが無い（→ app-nav.js の authChip() が、ログイン中だけ同じ札を足す）
+   ★台本は直さず、ここ1か所で形を決める。!important ＝ style の直書きと各ページの .btn-ghost に勝つため。
+     形はトップの札と同じ（枠 1px・角 10px・余白 7px 14px・字 .82rem）。色は --pv-ink から作る
+     （トップの rgba(0,0,0,.06)／.12 と同じ濃さ。ダークでも隣の切替ボタンと同じ明るさになる）。
+     1行目は color-mix を知らないブラウザ用の素の色。順番を入れ替えない。
+   ★ログアウトしている時の「ログイン」も同じ札（同じ箱なので、形を分けると押せる物が2つの顔になる）。
+   ⚠️ display は書かない ── 狭い画面で隠す（hidden md:inline-flex）・search.js の畳み（pv-nav-tight）は
+      ページ側の class のまま効かせる。
+   ⚠️ margin も書かない ── 比較の 32枚では札が右の箱ではなく行の直下に入り、すき間は節7 の margin-left が作る
+      （ここで margin:0 にすると札が隣にくっつき、search.js が 1440px でも札と「← 一覧に戻る」を畳む。実際に踏んだ）。 */
+#main-nav #nav-auth-btn,
+header.mr-top #nav-auth-btn{
+  box-sizing:border-box;align-items:center;
+  padding:7px 14px!important;
+  border:1px solid var(--pv-line)!important;
+  border:1px solid color-mix(in srgb,var(--pv-ink) 12%,transparent)!important;
+  border-radius:var(--pv-r-sm)!important;
+  background:var(--pv-line-soft)!important;
+  background:color-mix(in srgb,var(--pv-ink) 6%,transparent)!important;
+  color:var(--pv-ink)!important;
+  font-size:.82rem!important;font-weight:600!important;line-height:1.5!important;
+  letter-spacing:.01em!important;text-decoration:none!important;white-space:nowrap;cursor:pointer;
+  transition:background-color .18s var(--pv-ease),border-color .18s var(--pv-ease),
+             transform .15s var(--pv-ease)}
+#main-nav #nav-auth-btn[href$="profile.html"],
+header.mr-top #nav-auth-btn[href$="profile.html"]{color:var(--pv-accent-ink)!important;font-weight:700!important}
+#main-nav #nav-auth-btn:hover,
+header.mr-top #nav-auth-btn:hover{
+  background:var(--pv-line)!important;
+  background:color-mix(in srgb,var(--pv-ink) 10%,transparent)!important;
+  border-color:color-mix(in srgb,var(--pv-ink) 18%,transparent)!important}
+#main-nav #nav-auth-btn:focus-visible,
+header.mr-top #nav-auth-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+#main-nav #nav-auth-btn:active,
+header.mr-top #nav-auth-btn:active{transform:scale(.97)}
+/* authChip() が足した札だけの出し方（トップの hidden md:inline-flex と同じ ＝ iPhone の幅では出さない。
+   そこでは板の MY PAGE が同じ行き先）。アプリの画面は Tailwind を読まないので、class を自前で持つ。 */
+.pv-auth-chip{display:inline-flex}
+@media(max-width:767px){.pv-auth-chip{display:none}}
+
+/* ══ 7) 左上のロゴ（2026-10-30 オーナー「左上の PILOT VALUE のロゴがページによってズレる。
+        左上の角に固定して。匿名で給与を追加の上（PC 版は）」）══════════════════════════════
+   ヘッダーは2種類（公開 #main-nav 400枚／アプリ header.mr-top 20枚）・高さは5通り（60〜72px）・
+   中の箱の幅も6通り（max-w-4xl〜7xl・1280px）・左の余白も4通り（24/20/16/12px）で、ロゴはその箱の左端に
+   上下の真ん中で居た ＝ 1440px で 104px／176px／232px…と、ページごとに左右にも上下にも大きさも動いていた。
+   ★位置と大きさはここの数字だけで決まる ── どのページでも同じ。
+       広い画面（≥1001px・左レールが出る）… レール 144px の列の真ん中＝「匿名で給与を追加」の真上（左 46px）
+       狭い画面 ……………………………………… ヘッダーの左端（左 16px・〜360px は 12px）
+       上 13px・52×40px（どちらも同じ）
+   ★狭い画面ではロゴを**行の中に残す**（左の余白を 16px にそろえ、上だけ 13px に寄せる）。
+     行から外すと、行がロゴの場所を空けなくなり、入りきらないボタンが右へはみ出す代わりに**ロゴの下へ潜る**
+     （国別ページの 360px でテーマ切替がロゴに 13px 重なった。2026-10-30 に踏んだ）。行の中に居れば、
+     search.js の畳み（fit / needed / minGap）も今までどおりロゴを1つの部品として測る。
+   ★広い画面だけ行から外して（absolute・包むのはヘッダー＝fixed / sticky）レールの列へ置く。
+     残りは右へ寄せる（margin-left:auto）。justify-content:space-between のままだと右のボタン列が左へ倒れる。
+   ⚠️ 上下を「ヘッダーの真ん中」に戻さない。ヘッダーの高さがページで違う（60/64/68/70/72）ので、
+      真ん中に置くとまた上下にずれる。13px は、どの高さでも右のボタン列（38px）と中心のずれが 3px 以内の位置。
+   ⚠️ ロゴを display:none にしない（畳みの計算がロゴの幅を前提にしている）。 */
+#main-nav > div > a:first-child,
+header.mr-top .mr-brand{
+  flex:none;align-self:flex-start;
+  display:block;box-sizing:border-box;width:52px;height:40px;margin:13px 0 0;padding:0;
+  border-radius:var(--pv-r-sm);
+  transition:transform .2s var(--pv-ease),opacity .2s var(--pv-ease)}
+#main-nav > div > a:first-child > img,
+header.mr-top .mr-brand > img{
+  display:block;width:52px!important;height:40px!important;max-width:none;
+  aspect-ratio:auto;object-fit:contain;
+  /* 光り方もトップの緑にそろえる（会社ページなどはオレンジ＝2026-09-22 に緑へ移す前の色のまま・アプリは無し） */
+  filter:brightness(1.15);
+  filter:brightness(1.15) drop-shadow(0 0 8px color-mix(in srgb,var(--pv-accent) 42%,transparent))}
+#main-nav > div > a:first-child:hover,
+header.mr-top .mr-brand:hover{opacity:.86}
+#main-nav > div > a:first-child:focus-visible,
+header.mr-top .mr-brand:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+#main-nav > div > a:first-child:active,
+header.mr-top .mr-brand:active{transform:scale(.96)}
+
+@media(max-width:1000px){
+  /* 左の余白を 16px の1つにそろえる（Tailwind の px-6 / px-5・search.js の段③④の 16 / 12px・
+     my-value.css の 24 / 16 / 12px を全部上書き）＝ ロゴの左端が 16px に来る。右の余白は今のまま。 */
+  #main-nav > div,
+  header.mr-top .mr-top-in{padding-left:16px!important}
+}
+/* いちばん狭い画面（〜360px・iPhone SE 1 の 320px）だけ左を 12px（search.js の段④と同じ数）。
+   アプリのヘッダーは畳む仕組みを持たないので、通貨の札が長い（A$ AUD・S$ SGD）と 320px で 2〜4px 横に溢れた
+   （assert-career の「320px・7通貨」が捕まえた）。ロゴとボタン列のすき間（.mr-top-in の gap 16px）も 8px に詰める。
+   どのページでも同じ幅なら同じ位置、は変わらない。 */
+@media(max-width:360px){
+  #main-nav > div,
+  header.mr-top .mr-top-in{padding-left:12px!important}
+  header.mr-top .mr-top-in{column-gap:8px}
+}
+
+@media(min-width:1001px){
+  body.pv-anav-shell #main-nav > div > a:first-child,
+  body.pv-anav-shell header.mr-top .mr-brand{position:absolute;top:13px;left:46px;z-index:1;margin:0}
+  body.pv-anav-shell #main-nav > div > a:first-child + *,
+  body.pv-anav-shell header.mr-top .mr-brand + *{margin-left:auto}
+  /* ★pv-toggles.js の箱（テーマ・言語・通貨。国別・記事・比較の 152枚）は、右の箱と**別の子**として並ぶ
+       （比較の 32枚は右の箱そのものが無く、名前の札・「← 一覧に戻る」・≡ がばらで並ぶ）。
+       右へ寄せると隣と 0〜8px まで近づき、search.js の fits() が「すき間 20px（BREATH）未満＝入っていない」と読んで、
+       1440px でも名前の札・リンク・「← 一覧に戻る」を畳んで消していた（2026-10-30 に踏んだ。画面は普通に動いたまま）。
+       この箱から後ろの子どうしのすき間を、ちょうど BREATH にする。⚠️ 20 未満にしない・search.js の BREATH を変えたらここも変える。 */
+  body.pv-anav-shell #main-nav > div > .pv-toggle-wrap{margin-right:0}
+  body.pv-anav-shell #main-nav > div > .pv-toggle-wrap ~ *{margin-left:20px}
+  /* アプリのヘッダーは <body> の左余白（レール 144px）の右から始まっていた。左へ 144px 伸ばして
+     公開のヘッダーと同じく画面の左端から始める（ロゴが乗る左上の角にもヘッダーの地が敷かれる）。
+     中の並びは padding で元の位置のまま。⚠️ 144 は 0-b の padding-left と同じ数。片方だけ変えない。 */
+  body.pv-anav-app header.mr-top{margin-left:-144px;padding-left:144px}
+}
+
 /* 動きを減らす設定のとき。★ 要素を display:none にしない
    （トップページで実際に踏んだ罠。中身ごと消える）。
    ⚠️ visibility の遅延だけは残す。0s にすると閉じている板が
       タブ移動で拾えてしまう（画面の外に居るのに焦点だけ入る）。 */
 @media(prefers-reduced-motion:reduce){
   #pv-anav-ov,.pv-ham-btn,.mr-side-x,.mr-side-sub,
-  .mr-side-a>svg:not(.mr-side-lk){transition-duration:.01ms}
+  .mr-side-a>svg:not(.mr-side-lk),
+  #main-nav > div > a:first-child,header.mr-top .mr-brand,
+  #main-nav #nav-auth-btn,header.mr-top #nav-auth-btn{transition-duration:.01ms}
   .mr-side{transition:transform .01ms,visibility 0s linear .01ms}
   body.pv-anav-open .mr-side{transition:transform .01ms,visibility 0s}
 }
