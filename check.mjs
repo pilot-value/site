@@ -52,6 +52,8 @@ const SQL = [
   /* 2026-10-19（WP-ans-e）：ホテルの名前の候補（Google）の月 10,000 回の数え札と Edge Function。Google へは出ない（模擬は 127.0.0.1）。
      秒数は単独で流した実測 */
   ['db/test-hotel-suggest.mjs', 10],
+  /* 2026-10-30：戻ってきた会員に「〇〇のこと、ひとつ教えて。」（db/ask-own-airline.sql）。誰に・どの順・埋まった質問・48時間 */
+  ['db/test-ask-own-airline.mjs', 6],
   /* ★写しの見張り（Phase 5）。確認画面の「支給の内訳」は 8区分の切り分けを
      JS へ写している（出す前の行はサーバのどこにも無いので写す以外に道が無い）。
      写しが腐ったことに気づく仕掛けはこれ1本だけ。外さないこと。
@@ -94,7 +96,7 @@ const WEB = [
   ['assert-langtoggle.mjs', 24], ['assert-founding.mjs', 20],
   /* assert-admin.mjs：2026-10-18（WP-close-a）に外への通信の門と H)（本物のブラウザでマイページの「戻る」）が入り、
      単独で約60秒・同時4本で 85秒になった（12 は門より前の値）。85 は 2026-10-18 の `node check.mjs all` の実測。 */
-  ['assert-proof.mjs', 15], ['assert-give-first.mjs', 14], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 85],
+  ['assert-proof.mjs', 15], ['assert-give-first.mjs', 14], ['assert-ask.mjs', 30], ['assert-hero-fold.mjs', 13], ['assert-admin.mjs', 85],
   ['db/test-login-redirect.mjs', 7],
   ['assert-deep-pay-compare.mjs', 5.7], ['assert-deep-pay.mjs', 5.0],
   ['assert-review-quality.mjs', 2.0], ['db/test-session-expiry.mjs', 0.9],

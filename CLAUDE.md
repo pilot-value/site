@@ -228,6 +228,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | [seo-normalize.mjs](seo-normalize.mjs) の `COPY` | 日英の `t`/`d`。**noindex でも `<title>` は出る。無いと次に流した人がタイトルを空にする** |
 | [assert-founding.mjs](assert-founding.mjs) の除外リスト | FOUNDING の板は `profile.html` の最上部だけ |
 | [pv-session.js](pv-session.js) の `PROOF_SKIP` | **止められている会員にも開けておくページなら足す**（運営に連絡する道・規約）。足さなければ板が覆う＝ふつうのページは何もしなくてよい |
+| [pv-session.js](pv-session.js) の `ASK_SKIP` | **入力の途中・規約・質問の一覧の画面なら足す。** 足さないと、戻ってきた会員に聞く板がそのページの上に出る |
 | [pv-session.js](pv-session.js) の `GF_SKIP` | **入力の途中の画面なら足す。** 足さないと、登録だけの会員がそのページを開いた瞬間に Give → Get の板が入力を覆う |
 | [assert-pay-rows.mjs](assert-pay-rows.mjs) の左メニューの枚数 | `<nav class="mr-side">` を持つページなら**合計と内訳を1つ足す**（`id="main-nav"` が在れば公開側・無ければアプリ側）。足さないと `check.mjs web` まで流した回にだけ赤くなる |
 | [seo-normalize.mjs](seo-normalize.mjs) と [assert-seo.mjs](assert-seo.mjs) の `JA_ONLY` | **英語版を置かないページなら両方に足す**（2つで対）。足さないと在りもしない `en/` への hreflang が出る。英語版を置いたら両方から外す |
@@ -473,6 +474,36 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 見るもの: `node assert-vote.mjs`（落ちたときの「なぜ」は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 27 番）。
 
+## 戻ってきた会員に聞く板「〇〇のこと、ひとつ教えて。」（2026-10-30）
+
+★オーナー指示「登録したパイロットが戻ってきたとき、2日に1回、自分の会社について3問。大事で、まだ埋まっていない質問から。
+3人以上が同じような答えなら、いったん次へ。大事な順は 勤務 → 通勤・タクシー → 休暇・手当 → staff travel」。
+聞く相手は**給与か口コミを出した会員**・画面の真ん中の板・数字の質問も入れる（2026-10-30 オーナー回答）。
+
+- **決めるのは全部サーバ** ── [db/ask-own-airline.sql](db/ask-own-airline.sql) の `pv_ask_next`。会社は最新の給与、無ければ最新の口コミ
+  （一覧外の会社・止めた会員には聞かない）。2日は `profiles.ask_prompt_at`（板を開いた時刻）で数える ＝ 端末をまたいで1回。
+- **聞く質問と順番の正本は [pv-conditions.mjs](pv-conditions.mjs) の `ASK`**（22問）。`node gen-conditions.mjs` が DB の `ask_rank` へ写す。
+  ★2026-10-30 オーナー指示で、着陸手当の1回あたりの額と日当（出るか・国内線の1日の額・国際線の1日の額）を足した。
+  額は**通貨と一緒に**聞く（板に「通貨を選ぶ」欄。空で出す＝勝手に通貨を付けない。同じ板の次の額は本人がさっき選んだ通貨）。
+  子の質問は親のすぐ後ろ（本人が親に該当する答えをしたときだけ、同じ板の中で続けて聞く）。
+- **「埋まった」＝ 3人以上が同じ答え かつ 答えた人の過半数**（数字は中央の値から ±10%・最低1刻み）。`pv_ask_filled` の1か所。
+  ⚠️ **額は同じ通貨どうしでしか比べない**（100 ドル・100 ユーロ・100 ポンドは「そろった」にしない。壊す証明あり）。
+  数える行は公開の集計と同じ `pv_condition_ans()`（[db/airline-conditions.sql](db/airline-conditions.sql) でビューから切り出した）。写しを作らない。
+- **ほかの人の人数を返さない**（返すのは質問の id だけ）。
+- 板は [pv-conditions.js](pv-conditions.js) の `askReturn`（待遇の質問と同じ板）。**この板だけ**数字の欄・通貨の欄・「複数選ぶ」を描く。
+  この板には補足の欄が無いので、補足に触れる説明の質問は `askHelp`（その板だけの説明）を持たせる（例：乗務以外の業務の手当）。
+  出してよいページかは [pv-session.js](pv-session.js) の `askDue` の1か所 ── 端末の写し `pv_ask` の時刻を過ぎるまで**通信ゼロ**。
+  同じページに板は1枚（パイロット確認 → Give & Get → この板）。出さない画面は `ASK_SKIP`。
+- サーバ呼び出しは `PVSession.rpc`（pv-proof.js から移した。ページの sb → 生きたトークンで fetch → lazyOk のときだけ supabase-js）。
+- **貼る順** ── `db/conditions.generated.sql` → `db/airline-conditions.sql`（ビューを作り直す）→ `db/ask-own-airline.sql`（末尾の検算4行が ✅）。
+  SQL が先・push が後（貼る前は `pv_ask_next` が無い ＝ 板は黙って出ず、端末は12時間後にもう一度聞く）。
+
+- ⚠️ **手元の検査用サーバ（[serve-local.mjs](serve-local.mjs)）は、ふだん会員にこの板を出さない**（会員の「最後に板を開いた時刻」を先へ置いて立ち上げる）。
+  出すと、ログインした会員のどのページにも板が重なり、ほかの画面の検査の操作をふさぐ（2026-10-30 に `assert-contrib`・`assert-career-live` が実際に落ちた）。
+  板を手元で見るときだけ `node serve-local.mjs --ask-board`（`start({ askBoard: true })`）。
+
+見るもの: `node db/test-ask-own-airline.mjs`（誰に・順番・埋まった線・48時間・壊す証明）／`node assert-ask.mjs`（画面の通し）。
+
 ## デプロイ前チェック
 
 **`node check.mjs` 1本で全部走る。** 中で並列に回すので、手で1本ずつ流すより速い。
@@ -536,6 +567,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-generated.mjs` | 生成物（sitemap・英語版一覧・語彙・JSON-LD の更新日）が**流し忘れで古くなっていない**か。使い捨てのコピーの中で生成スクリプトを流すので**リポジトリには書き込まない**（`.git` だけ読むために貸す）|
 | `assert-no-pii.mjs` | オーナーの身元が漏れていないか（`.githooks/pre-commit` から毎回自動で走る）|
 | `db/test-proof.mjs` | パイロットであることの確認（サーバ側）── **止めた会員に REAL PAY・DEEP PAY・口コミ本文が返らない**（未ログインの人と1文字も違わない答え）・鍵そのものは書き換えない・**承認／出し直し／手で書き換え／退会のどれでも画像が残らない**・画像を読めるのは運営だけ・会員が自分で止めたり解いたりできない・印（hold）は止めた会員の行にだけ付き、伏せた一覧には付かない・壊す証明（引き金を外すと承認そのものが通らない／門の1行を外すと開いてしまう）|
+| `db/test-ask-own-airline.mjs` | 戻ってきた会員に聞く質問（サーバ側）── **給与か口コミを出した会員だけ**・会社は最新の給与→口コミ・`ASK` の順・**3人以上が同じ答え かつ 過半数なら出さない**（数字は ±10%）・48時間に1回・ほかの人の人数を返さない・壊す証明 |
+| `assert-ask.mjs` | 戻ってきた会員に聞く板（画面側）── 未ログイン・48時間の窓の中は**読み込みもしない**・出さない画面と Give & Get の板のページでは聞かない・見出し「〇〇のこと、ひとつ教えて。」・3つの形（1つ選ぶ・数字・複数選ぶ）を1問ごとに保存・範囲の外の数字を送らない・× は見せていた1問だけスキップ・本物のサーバへは1本も出さない |
 | `assert-proof.mjs` | パイロットであることの確認（画面側）── 未ログインには何も読み込まない・止まっていない会員に聞くのは1回だけ・**止まっている会員には聞く前に板が出る**・閉じる手段が無い（×・外・ESC）・下のページを触れない・**例はオーナーが挙げた4つ**・**確認後の画像の扱いを書いていない**・JPEG に焼き直してから送る・承認されたら自分で消える・管理画面が「破棄しました」と言うのはサーバーが消したときだけ・SQL を貼る前でも会員の表は出る |
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |
 

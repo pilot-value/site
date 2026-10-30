@@ -12,6 +12,10 @@
      ここが落ちても、落ちたことに気づかせない（モーダルが出ないだけ）。
    ★マイページ（profile.html）には質問を出しっぱなしにしない。
      「1問だけ答える →」を置き、押した人にだけ同じモーダルを1問開く。
+   ★例外が1つ（2026-10-30 オーナー指示）── 戻ってきた会員に「〇〇のこと、ひとつ教えて。」（askReturn）。
+     聞くのは**給与か口コミを出した会員だけ**（もう渡してくれた人＝通行料にはならない）・2日に1回・3問まで。
+     誰に・何を・どの順・いつかは全部サーバ（db/ask-own-airline.sql）。出してよいページかは pv-session.js の askDue。
+     この板だけ、数字の欄と「複数選ぶ」を描く（給与の後の板・マイページの1問は今までどおり1タップだけ）。
 
    ── 何問出すか ──────────────────────────────────────────────
    「初めての給与提出か」では分けない。**その会社でその人が何問答えたか**で分ける。
@@ -40,6 +44,8 @@
 (function (w, d) {
   'use strict';
   if (!w || !d) return;
+  /* 2度読まれても1つだけ（戻ってきた会員に聞く板は pv-session.js が後から読み込む。profile.html は最初から読んでいる） */
+  if (w.PVConditions && w.PVConditions.askReturn) return;
 
   /* 質問文の在り処。★ページ相対で書くと /en/ から /en/pv-conditions.json を
      見に行って 404 になる。このスクリプト自身の URL を基準に解く
@@ -95,6 +101,13 @@
       same: '変わっていない',
       changed: '変わった',
       dunno: 'わからない',
+      /* 戻ってきた会員に聞く板（askReturn・2026-10-30 オーナー指示）。見出しはオーナーの言葉のまま */
+      askHead: function (name) { return [(name || 'あなたの会社') + 'のこと、', 'ひとつ教えて。']; },
+      next: '次へ',
+      multiHint: 'あてはまるものを全部選んでください。',
+      /* 1つの塊にする（「の続き」だけが次の行へ落ちないように。長い質問は塊の中で折り返す） */
+      followUp: function (label) { return ['「' + label + '」の続き']; },
+      numBad: function (min, max) { return [min + '〜' + max + ' の数字で', '入れてください。']; },
       /* マイページの二次導線。★勝手に質問を出さない。押した人にだけ開く */
       ctaTitle: function (name) { return (name ? name + ' の' : '') + '待遇情報'; },
       ctaSub: ['まだ答えていない質問があります。', '1問だけでも、次の人の役に立ちます。'],
@@ -144,7 +157,12 @@
       again: function (label) { return ['You previously answered "' + label + '".', 'Is that still the case?']; },
       same: 'Still the same',
       changed: 'It changed',
-      dunno: 'I do not know',
+      dunno: "Don't know",
+      askHead: function (name) { return ['Tell us one thing about ' + (name || 'your airline') + '.']; },
+      next: 'Next',
+      multiHint: 'Choose all that apply.',
+      followUp: function (label) { return ['Follow-up to:', '“' + label + '”']; },
+      numBad: function (min, max) { return ['Please enter a number', 'from ' + min + ' to ' + max + '.']; },
       ctaTitle: function (name) { return 'Working conditions' + (name ? ' at ' + name : ''); },
       ctaSub: ['There are questions you have not answered yet.', 'Even one helps the next pilot.'],
       ctaBtn: 'Answer one question →',
@@ -277,6 +295,17 @@
     '.pvc-skip:hover{color:#e8edf2;text-decoration-color:rgba(232,237,242,.6)}',
     '.pvc-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:6px}',
     '.pvc-nb{display:inline-block}',
+    /* 戻ってきた会員に聞く板（2026-10-30）。見出しが主役の1行目、数字の欄、「次へ」 */
+    '.pvc-eyebrow.is-ask{font-size:1rem;font-weight:800;letter-spacing:-.01em;line-height:1.5}',
+    '.pvc-numrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px}',
+    /* 16px 未満だと iPhone が欄に入った瞬間に画面を拡大する */
+    '.pvc-num{font-size:16px;width:132px}',
+    /* 額の質問：通貨を選ぶ欄は1行ぜんぶ（「USD — 米ドル」が欄の中で切れないように）。額と単位と「次へ」は次の行 */
+    '.pvc-numrow .pvc-cur{flex:1 1 100%;font-size:16px}',
+    '.pvc-unit{font-size:.82rem;font-weight:700;color:#6b7d93}',
+    '.pvc-go{display:flex;justify-content:flex-end;margin-top:16px}',
+    '.pvc-ctx{font-size:.74rem;font-weight:700;line-height:1.6;color:#6b7d93;margin-top:14px}',
+    '.pvc-ctx + .pvc-q{margin-top:6px}',
     /* 終わりは静かに。紙吹雪もゲーム感も出さない */
     '.pvc-done{font-size:.95rem;font-weight:700;line-height:1.75;color:#34d399;padding:16px 0 10px}',
     '.pvc-warn{font-size:.8rem;line-height:1.7;color:#f5c842;margin-top:14px}',
@@ -522,8 +551,11 @@
     back.innerHTML =
       '<div class="pvc-modal" role="dialog" aria-modal="true" aria-labelledby="pvc-eyebrow">' +
         '<button type="button" class="pvc-x" aria-label="' + esc(T.close) + '">&times;</button>' +
-        '<div class="pvc-eyebrow" id="pvc-eyebrow">' + lines(T.eyebrow) + '</div>' +
-        (ctx.airlineName ? '<div class="pvc-air">' + esc(ctx.airlineName) + '</div>' : '') +
+        (trigger === 'return_visit'
+          /* 戻ってきた会員に聞く板。社名は見出しの中にあるので、下の1行は出さない */
+          ? '<div class="pvc-eyebrow is-ask" id="pvc-eyebrow">' + lines(T.askHead(ctx.airlineName)) + '</div>'
+          : '<div class="pvc-eyebrow" id="pvc-eyebrow">' + lines(T.eyebrow) + '</div>' +
+            (ctx.airlineName ? '<div class="pvc-air">' + esc(ctx.airlineName) + '</div>' : '')) +
         '<div class="pvc-body" aria-live="polite"></div>' +
       '</div>';
     this.back = back;
@@ -581,43 +613,203 @@
        ★「わからない」だった質問は普通に聞き直す（“以前わからないと回答しました”は意味がない）。 */
     it.reconfirm = !!(it.mine_code && it.mine_code !== UNKNOWN && !it.expanded);
 
+    /* 形は3つ。給与の後の板・マイページの1問は「1つ選ぶ」だけ（fetchItems が選択肢の無い質問を外している）。
+       数字と複数選ぶを描くのは、戻ってきた会員に聞く板（askReturn）だけ。 */
+    var mode = it.reconfirm ? 'choice' : (q.kind === 'multi' || q.kind === 'num' ? q.kind : 'choice');
+
     var opts = it.reconfirm
       ? [{ code: '__same', label: T.same }, { code: '__changed', label: T.changed },
          { code: UNKNOWN, label: T.dunno }]
-      : (q.choices || []).map(function (c) { return { code: c.code, label: c[L] }; });
+      : mode === 'num'
+        ? [{ code: UNKNOWN, label: T.dunno }]
+        : (q.choices || []).map(function (c) { return { code: c.code, label: c[L] }; });
+    /* 複数選ぶ：「わからない」は他と一緒に選べない1つ（押したらすぐ保存）。選択肢に無ければ足す */
+    if (mode === 'multi' && !opts.some(function (o) { return o.code === UNKNOWN; })) {
+      opts.push({ code: UNKNOWN, label: T.dunno });
+    }
 
     var head = it.reconfirm
       ? lines(T.again(labelOf(q, it.mine_code)))
       : esc(q[L].label);
-    var help = (!it.reconfirm && q[L] && q[L].help)
-      ? '<div class="pvc-help">' + esc(q[L].help) + '</div>' : '';
+    /* 戻ってきた会員に聞く板には補足の欄が無い ＝ その板用の説明（askHelp）があればそちらを出す */
+    var hq = q[L] || {};
+    var helpText = it.reconfirm ? ''
+      : ((this.trigger === 'return_visit' && hq.askHelp) || hq.help || '');
+    /* 複数選ぶ：説明が無い質問にだけ「全部選んでください」を添える（説明に同じことが書いてある質問で二重にしない） */
+    if (mode === 'multi' && !helpText) helpText = T.multiHint;
+    var help = helpText ? '<div class="pvc-help">' + esc(helpText) + '</div>' : '';
     var step = this.items.length > 1
       ? '<span class="pvc-step">' + esc(T.step(this.i + 1, this.items.length)) + '</span>' : '<span></span>';
 
-    this.body.innerHTML =
-      '<div class="pvc-q">' + head + '</div>' + help +
-      '<div class="pvc-opts">' +
+    var optsHtml = '<div class="pvc-opts">' +
         opts.map(function (o) {
-          return '<button type="button" class="pvc-opt" data-code="' + esc(o.code) + '">' +
+          var multi = mode === 'multi' && o.code !== UNKNOWN;
+          return '<button type="button" class="pvc-opt" data-code="' + esc(o.code) + '"' +
+                   (multi ? ' aria-pressed="false" data-multi="1"' : '') + '>' +
                    esc(o.label) + '</button>';
         }).join('') +
-      '</div>' +
+      '</div>';
+    var numHtml = '';
+    if (mode === 'num') {
+      var nm = q.num || {};
+      /* 額（通貨つき）は通貨と一緒に聞く。同じ板で前に選んだ通貨があれば、それを選んだ形で出す（本人が選んだ通貨だけ） */
+      numHtml = '<div class="pvc-numrow">' +
+          (q.currency
+            ? '<select class="pvcf-sel pvc-cur" data-cur aria-label="' + esc(T.fullCur) + '">' +
+                curOptions(this.lastCur || '') + '</select>'
+            : '') +
+          '<input type="number" class="pvcf-num pvc-num" inputmode="' +
+            (Number(nm.step || 1) < 1 ? 'decimal' : 'numeric') + '"' +
+            (nm.min != null ? ' min="' + esc(nm.min) + '"' : '') +
+            (nm.max != null ? ' max="' + esc(nm.max) + '"' : '') +
+            ' step="' + esc(nm.step || 1) + '" aria-label="' + esc(q[L].label) + '">' +
+          (nm[L] ? '<span class="pvc-unit">' + esc(nm[L]) + '</span>' : '') +
+          '<button type="button" class="pvc-btn" data-next disabled>' + esc(T.next) + '</button>' +
+        '</div>';
+    }
+    var goHtml = mode === 'multi'
+      ? '<div class="pvc-go"><button type="button" class="pvc-btn" data-next disabled>' + esc(T.next) + '</button></div>'
+      : '';
+
+    /* 続きの質問は、親の質問を小さく上に添える（2日後の板の1問目に来ても、何の続きか分かるように） */
+    var ctxLine = (!it.reconfirm && it.parentLabel)
+      ? '<div class="pvc-ctx">' + lines(T.followUp(it.parentLabel)) + '</div>' : '';
+
+    this.body.innerHTML =
+      ctxLine + '<div class="pvc-q">' + head + '</div>' + help + numHtml + optsHtml + goHtml +
       '<div class="pvc-foot">' + step +
         '<button type="button" class="pvc-skip">' + esc(T.skip) + '</button>' +
       '</div>';
 
     var btns = this.body.querySelectorAll('.pvc-opt');
+    var next = this.body.querySelector('[data-next]');
+    var input = this.body.querySelector('.pvc-num');
+    var cur = this.body.querySelector('.pvc-cur');
+    var all = function () {
+      var a = Array.prototype.slice.call(btns);
+      if (next) a.push(next);
+      if (input) a.push(input);
+      if (cur) a.push(cur);
+      return a;
+    };
     Array.prototype.forEach.call(btns, function (b) {
-      b.addEventListener('click', function () { self.pick(b, btns, b.getAttribute('data-code')); });
+      b.addEventListener('click', function () {
+        var code = b.getAttribute('data-code');
+        if (b.getAttribute('data-multi')) {             // 複数選ぶ：押すたびに付け外し。保存は「次へ」
+          var on = !b.classList.contains('is-picked');
+          b.classList.toggle('is-picked', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          next.disabled = !self.body.querySelector('.pvc-opt.is-picked[data-multi]');
+          return;
+        }
+        if (mode === 'choice') { self.pick(b, btns, code); return; }
+        self.send({ code: code }, all(), b);               // 数字・複数選ぶの「わからない」
+      });
     });
+    if (mode === 'multi') {
+      next.addEventListener('click', function () {
+        var codes = Array.prototype.map.call(
+          self.body.querySelectorAll('.pvc-opt.is-picked[data-multi]'),
+          function (x) { return x.getAttribute('data-code'); });
+        if (codes.length) self.send({ codes: codes }, all(), null);
+      });
+    }
+    if (mode === 'num') {
+      var nm2 = q.num || {};
+      var read = function () {
+        var t = String(input.value || '').trim();
+        if (!t) return null;
+        var v = Number(t);
+        return isFinite(v) ? v : null;
+      };
+      var submit = function () {
+        var v = read();
+        if (v == null) return;
+        var lo = nm2.min != null ? Number(nm2.min) : -Infinity;
+        var hi = nm2.max != null ? Number(nm2.max) : Infinity;
+        /* 範囲の外・刻みに合わない数は送らない（サーバも受け取らない）。何が違うかをその場に書く */
+        var stepN = Number(nm2.step || 1);
+        var offStep = stepN > 0 && Math.abs(v / stepN - Math.round(v / stepN)) > 1e-9;
+        if (v < lo || v > hi || offStep) { self.warn(T.numBad(nm2.min, nm2.max)); input.focus(); return; }
+        /* 通貨を選んでいない額は送らない（サーバも bad_currency で受け取らない） */
+        if (cur && !cur.value) { self.warn([T.fullCurNeed]); cur.focus(); return; }
+        self.send(cur ? { num: v, currency: cur.value } : { num: v }, all(), null);
+      };
+      input.addEventListener('input', function () { next.disabled = read() == null; self.warn(null); });
+      if (cur) cur.addEventListener('change', function () { self.warn(null); });
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); submit(); }
+      });
+      next.addEventListener('click', submit);
+    }
     this.body.querySelector('.pvc-skip').addEventListener('click', function () { self.skip(); });
 
     /* 開いたことは1回だけ数える（1問ごとに数えると開封率が3倍に見える）。
        どの質問を出したかは question_number と question_id で追える。 */
     if (!this._shown) { this._shown = true; this.evt('condition_modal_shown'); }
     /* 1問目だけフォーカスを移す。2問目以降で毎回移すと、キーボードの人の
-       読み位置が飛ぶ（aria-live が読み上げるので移す必要も無い）。 */
-    if (this.i === 0 && btns[0]) btns[0].focus();
+       読み位置が飛ぶ（aria-live が読み上げるので移す必要も無い）。
+       数字の質問は欄へ（打ち始められるように）。 */
+    if (this.i === 0) {
+      if (cur && !cur.value) cur.focus();
+      else if (input) input.focus();
+      else if (btns[0]) btns[0].focus();
+    }
+  };
+
+  /* 注意の1行を出す（null で消す）。保存の失敗と、数字の範囲の外で使う */
+  Modal.prototype.warn = function (parts) {
+    var old = this.body.querySelector('.pvc-warn');
+    if (old) old.parentNode.removeChild(old);
+    if (!parts) return;
+    var el = d.createElement('div');
+    el.className = 'pvc-warn';
+    el.innerHTML = lines(parts);
+    var foot = this.body.querySelector('.pvc-foot');
+    this.body.insertBefore(el, foot || null);
+  };
+
+  /* 数字・複数選ぶ・その「わからない」を保存する（1つ選ぶは下の pick）。
+     ★1問ごとに即保存する。保存できてから次へ進む。 */
+  Modal.prototype.send = function (answer, els, btn) {
+    var self = this;
+    var it = this.items[this.i];
+    var a = { question_id: it.q.id };
+    for (var k in answer) if (answer.hasOwnProperty(k)) a[k] = answer[k];
+    els.forEach(function (x) { x.disabled = true; });
+    if (btn) btn.classList.add('is-picked');
+    this.warn(null);
+    this.ctx.sb.rpc('submit_airline_conditions', { p: payload(this.ctx, [a]) })
+      .then(function (res) {
+        if (res.error || !res.data || res.data.saved !== 1) throw new Error('not saved');
+        self.answered++;
+        if (a.currency) self.lastCur = a.currency;
+        self.evt(a.code === UNKNOWN ? 'condition_unknown' : 'condition_answered');
+        self.advance();
+      })
+      .catch(function () {
+        self.warn(T.failed);
+        if (btn) btn.classList.remove('is-picked');
+        els.forEach(function (x) { x.disabled = false; });
+        /* 「次へ」は、押せる中身があるときだけ押せる形に戻す */
+        var nx = self.body.querySelector('[data-next]');
+        if (nx) {
+          var inp = self.body.querySelector('.pvc-num');
+          nx.disabled = inp ? !String(inp.value || '').trim()
+                            : !self.body.querySelector('.pvc-opt.is-picked[data-multi]');
+        }
+      });
+  };
+
+  /* 答えが保存できたあと、次の1問へ。
+     戻ってきた会員に聞く板（ctx.refill がある）だけ、残りをサーバに聞き直す ──
+     いま「ある」と答えた制度の中身（子の質問）を、同じ板の中で続けて聞くため。
+     聞き直せなくても、最初にもらった残りのまま進む（止めない）。 */
+  Modal.prototype.advance = function () {
+    var self = this;
+    var go = function () { if (self.closed) return; self.i++; self.step(); };
+    if (typeof this.ctx.refill !== 'function') { go(); return; }
+    this.ctx.refill(this).then(go, go);
   };
 
   Modal.prototype.pick = function (btn, btns, code) {
@@ -646,8 +838,7 @@
         self.answered++;
         if (code === '__same') self.evt('condition_reconfirmed', { changed: false });
         self.evt(save === UNKNOWN ? 'condition_unknown' : 'condition_answered');
-        self.i++;
-        self.step();
+        self.advance();
       })
       .catch(function () {
         var el = d.createElement('div');
@@ -775,6 +966,97 @@
     } catch (e) {}
   }
 
+  /* ════════════════════════════════════════════════════════════
+     戻ってきた会員に聞く板「〇〇のこと、ひとつ教えて。」（2026-10-30 オーナー指示）
+     ════════════════════════════════════════════════════════════
+     呼ぶのは pv-session.js の askLoad だけ（全ページ。出してよいかの判定は向こう）。
+     ★誰に・どの会社・どの質問・どの順・2日に1回かは、全部サーバ（db/ask-own-airline.sql の pv_ask_next）。
+       ここは描くだけ。給与か口コミを出した会員にしか、サーバは質問を返さない。
+     ★板を開いたら pv_ask_seen を1回呼ぶ（次に聞いてよいのは48時間後）。開けなかった回は呼ばない。
+     o.rpc(name, args) → Promise<data>（失敗は reject）。pv-session.js の PVSession.rpc を渡す。
+     返すのは Promise<{ shown, why?, next_at? }>（呼んだ側が、次にこの端末で聞きに行く時刻を決める）。
+       why … 'login' 'blocked' 'none' 'wait' 'done'（サーバの答え）／ 'busy'（ほかの板が開いている）／ 'fail' */
+  function askReturn(o) {
+    var no = function (why, next) { return { shown: false, why: why, next_at: next || null }; };
+    try {
+      if (!o || typeof o.rpc !== 'function') return Promise.resolve(no('fail'));
+      /* ほかの板（パイロット確認・Give & Get・情報を追加）が開いていたら重ねない。次のページでもう一度 */
+      /* 数えるのは画面に見えている板だけ（「情報を追加」のシートは閉じていても DOM に残る） */
+      var busy = function () {
+        if (d.querySelector('[data-pvc]')) return true;
+        if (w.PVContrib && typeof w.PVContrib.isOpen === 'function' && w.PVContrib.isOpen()) return true;
+        return Array.prototype.some.call(d.querySelectorAll('[aria-modal="true"]'), function (el) {
+          return el.getClientRects().length > 0;
+        });
+      };
+      if (busy()) return Promise.resolve(no('busy'));
+      var call = function (name, args) {
+        return Promise.resolve().then(function () { return o.rpc(name, args); })
+          .then(function (data) { return { data: data }; }, function (e) { return { error: e || true }; });
+      };
+      return loadBank().then(function (bank) {
+        if (!bank) return no('fail');
+        var lim = (bank.settings && bank.settings.ask_limit) || 3;
+        var toItems = function (qs, want) {
+          var out = [];
+          for (var i = 0; i < (qs || []).length && out.length < want; i++) {
+            var q = bank.byId[qs[i].id];
+            if (!q || q.rangeLow) continue;
+            if ((q.kind === 'choice' || q.kind === 'multi') && !(q.choices && q.choices.length)) continue;
+            if (q.kind === 'num' && !q.num) continue;
+            if (q.kind !== 'choice' && q.kind !== 'multi' && q.kind !== 'num') continue;
+            var par = q.parent && bank.byId[q.parent];
+            out.push({ q: q, mine_code: q.kind === 'choice' ? (qs[i].mine_code || null) : null,
+                       parentLabel: par && par[L] ? par[L].label : '' });
+          }
+          return out;
+        };
+        /* 額の質問は通貨の一覧が要る。読めなければ、その質問だけ今回は聞かない */
+        var withCur = function (list) {
+          if (!list.some(function (x) { return x.q.currency; })) return Promise.resolve(list);
+          return loadVocab().then(function (v) {
+            if (v && v.currencies && v.currencies.length) return list;
+            return list.filter(function (x) { return !x.q.currency; });
+          });
+        };
+        return call('pv_ask_next', { p: { limit: lim } }).then(function (res) {
+          var g = res.data;
+          if (res.error || !g || !g.ok) return no('fail');
+          if (!g.due) return no(g.why || 'wait', g.next_at);
+          return withCur(toItems(g.questions, lim)).then(function (items) { return show(g, items); });
+        });
+        function show(g, items) {
+          if (!items.length) return no('done');
+          if (busy()) return no('busy');
+          var name = airlineNameOf(g.airline, null) || (L === 'en' ? g.name_en : g.name_ja) || '';
+          var ctx = {
+            sb: { rpc: call },
+            airline: g.airline, airline_other: null, airlineName: name,
+            /* 年と月は送らない ＝ サーバが今日の日付で埋める（端末の時計に頼らない） */
+            year: null, month: null,
+            /* 1問答えるたびに、残りを聞き直す（子の質問を同じ板で続けて聞く） */
+            refill: function (m) {
+              var need = lim - (m.i + 1);
+              if (need <= 0) return Promise.resolve();
+              var shown = m.items.slice(0, m.i + 1).map(function (x) { return x.q.id; });
+              return call('pv_ask_next', { p: { cont: true, limit: need, not: shown } }).then(function (r) {
+                var n = r.data;
+                if (r.error || !n || !n.ok) return;                 // 聞き直せない ＝ 最初の残りのまま
+                return withCur(n.due ? toItems(n.questions, need) : []).then(function (more) {
+                  m.items = m.items.slice(0, m.i + 1).concat(more);   // 聞くことが尽きたら、ここで終わる
+                });
+              });
+            }
+          };
+          new Modal(ctx, items, 'return_visit');
+          return call('pv_ask_seen', {}).then(function (r) {
+            return { shown: true, next_at: (r.data && r.data.next_at) || null };
+          });
+        }
+      }).catch(function () { return no('fail'); });
+    } catch (e) { return Promise.resolve(no('fail')); }
+  }
+
   /* マイページの二次導線から。押されたときだけ1問開く（勝手には出さない）。 */
   function openOne(ctx) {
     try {
@@ -883,6 +1165,18 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) { _vocab = j || {}; return _vocab; })
       .catch(function () { _vocab = {}; return _vocab; });
+  }
+
+  /* 通貨の選択肢（質問の一覧の画面と、戻ってきた会員に聞く板の2か所が使う）。
+     ★先頭は空の選択肢（「通貨を選ぶ」）。これが無いと、何も選んでいない人の額に
+       一覧のいちばん上の通貨が黙って付いて保存される（2026-10-09 まで、そうなっていた）。 */
+  function curOptions(sel) {
+    var list = (_vocab && _vocab.currencies) || [];
+    return '<option value=""' + (sel ? '' : ' selected') + '>' + esc(T.fullCurPick) + '</option>' +
+           list.map(function (c) {
+      return '<option value="' + esc(c.code) + '"' + (c.code === sel ? ' selected' : '') + '>' +
+             esc(c.code + ' — ' + (c[L] || '')) + '</option>';
+    }).join('');
   }
 
   /* この人の会社を決める。?airline= が最優先、次に本人の最新の給与レポート。
@@ -1179,17 +1473,6 @@
       }
       sel.value = cur;
       lent[q.id] = sel.value === cur;
-    }
-
-    /* ★先頭は空の選択肢（「通貨を選ぶ」）。これが無いと、何も選んでいない人の額に
-         一覧のいちばん上の通貨が黙って付いて保存される（2026-10-09 まで、そうなっていた）。 */
-    function curOptions(sel) {
-      var list = (_vocab && _vocab.currencies) || [];
-      return '<option value=""' + (sel ? '' : ' selected') + '>' + esc(T.fullCurPick) + '</option>' +
-             list.map(function (c) {
-        return '<option value="' + esc(c.code) + '"' + (c.code === sel ? ' selected' : '') + '>' +
-               esc(c.code + ' — ' + (c[L] || '')) + '</option>';
-      }).join('');
     }
 
     /* 1問ぶんの見た目。kind ごとに出すものが違う。
@@ -1555,4 +1838,5 @@
   w.PVConditions.openOne = openOne;
   w.PVConditions.secondaryCTA = secondaryCTA;
   w.PVConditions.mountFull = mountFull;
+  w.PVConditions.askReturn = askReturn;
 })(window, document);

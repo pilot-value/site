@@ -1102,12 +1102,24 @@ revoke all on function public.pv_contributor_stats() from public, anon, authenti
 --  ・answer_dist（答えごとの人数）を持つのは、並んだ答えの片方を「最多」と書かないため。この列は外へ出さない ──
 --    db/contrib.sql の pv_contrib_facts が、answer_dist・n・kind から「最多」と書いてよい答え（lead）だけを決めて返す
 drop view if exists public.airline_condition_facts;
-create view public.airline_condition_facts as
-with ans as (
+
+-- 「答えた1人」として数えてよい行（2026-10-30 にビューから切り出した）。
+--   使うのは、このビューと db/ask-own-airline.sql の pv_ask_filled（「埋まった」質問）の2つ。
+--   ★数え方を1か所にするため。写しにすると、公開の集計と「もう聞かない」の線が黙ってずれる。
+--   ⚠️ 返す列を変えるときは、上の drop view の後ろで drop function してから作り直す（ビューが依存している）。
+--   ★誰にも grant しない。呼ぶのはビュー（読む口は pv_contrib_facts）と security definer の関数だけ。
+create or replace function public.pv_condition_ans()
+returns table (airline text, question_id text, proof_hash text, updated_at timestamptz,
+               answer_code text, answer_num numeric, answer_codes text[],
+               section text, tier text, kind text, is_opinion boolean, has_currency boolean)
+language sql
+stable
+set search_path = public, extensions
+as $fn$
   select c.airline, c.question_id, c.proof_hash, c.updated_at,
-         c.answer_code, c.answer_num,
-         case when q.kind = 'multi' then c.answer_codes end as answer_codes,
-         q.section, q.tier, q.kind, q.is_opinion, q.has_currency
+         c.answer_code, c.answer_num::numeric,
+         case when q.kind = 'multi' then c.answer_codes end,
+         q.section, q.tier::text, q.kind, q.is_opinion, q.has_currency
     from public.airline_conditions c
     join public.pv_condition_questions q on q.id = c.question_id and q.active
    where c.airline_other is null
@@ -1126,6 +1138,12 @@ with ans as (
                  where p.proof_hash = c.proof_hash and p.question_id = k.parent
                    and (p.answer_code = any(k.parent_when)
                         or p.answer_codes && k.parent_when)))
+$fn$;
+revoke all on function public.pv_condition_ans() from public, anon, authenticated;
+
+create view public.airline_condition_facts as
+with ans as (
+  select * from public.pv_condition_ans()
 ),
 picked as (
   select airline, question_id, proof_hash, answer_code as code
