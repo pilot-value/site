@@ -740,7 +740,7 @@ export const BASIS = {
       { pub: '人材会社 Asia Pacific Aviation Services Limited（APAS・香港）が出した求人', pub_en: 'A vacancy posted by the recruitment agency Asia Pacific Aviation Services Limited (APAS, Hong Kong)',
         name: 'China Eastern Airlines - A330 Captains（上海基地・3年契約・更新可）',
         as_of: 'ページに日付の記載が1つも無い（Internet Archive の保存では 2025-06-17 から同じ金額）',
-        accessed: '2026-09-29',
+        accessed: '2026-10-30',
         url: 'https://www.apasnet.com/Jobs/detail.aspx?u=28&JobType=0' },
     ],
     notes: [
