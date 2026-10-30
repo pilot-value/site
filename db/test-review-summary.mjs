@@ -7,7 +7,9 @@
    なぜ要るか
      要約は「数人の感想を、会社の顔として1か所に大きく出す」部品。間違えたときの害が
      口コミ1件より大きい。なので守る線を全部サーバ側に置いてあり、ここがその線を1本ずつ踏む。
-       ・本文を読めない人に、要約が1文字も返らない（判定は本文と同じ関数）
+       ・本文を読めない人には、まとめの段落の先頭（lead・日本語60字／英語120字）と良い点の字（good・{text, cat}）しか
+         返らない（判定は本文と同じ関数・5 と 19。2026-10-30 オーナー指示「要約は60文字にしよう。会社のいいところは
+         全部見せよう。悪いところだけぼかしを入れよう」）。気になる点・段落の残り・ids・件数は返らない
        ・要約が無いときの返事が、鍵の有無で変わらない
        ・3件に満たない会社／1件にしか支えられていない点／4つ以上／長すぎる文は入らない
        ・元の口コミが消えたら出さない（削除依頼で消した中身が要約に残らない）
@@ -20,7 +22,7 @@
          1文字も触らない／何度流しても1本／キーを画面に出さない
        ・関数の本体（supabase/functions/summarize-reviews/index.ts）が呼ぶ名前・渡す形と、
          SQL が受ける名前・返す形が合っている（18・両方を実際につないで通す。身代わりはモデルの返事だけ）
-       ・全体の傾向の段落（overview・19）は、open の返事にだけ載る／点と同じ線で断る（表の錠も）／
+       ・全体の傾向の段落（overview・19）は、丸ごとは open の返事にだけ載る（login・locked には先頭だけ）／点と同じ線で断る（表の錠も）／
          段落の無い古い行は1回だけ作り直させ、落ち続けたら止まる／字数が index.ts の OVERVIEW_LIMITS と同じ（1）
 
    ★SQL の置き場は PV_REVIEW_SUMMARY_SQL で差し替えられる（既定はリポジトリの db/review-summary.sql）。
@@ -219,6 +221,17 @@ await post(12, 'cathay', { ops_comment: '支援の体制が心強い。', __at: 
 await post(13, 'cathay-pacific', { culture_comment: '多国籍で話しやすい。', __at: '2026-03-03T00:00:00Z' });
 
 const NEWEST_ANA = '2026-03-03T00:00:00Z';
+/* ★鍵の無い人（login / locked）への返事の形（2026-10-30）── ok・state と、在るときだけ lead（段落の先頭）と
+   good（良い点を全部・open と同じ順・各点は text と cat の2つだけ）。気になる点・段落の全文・件数・時刻・ids は無い。 */
+const has = (o, k) => !!o && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k);
+const shutOf = (state, { lead = null, good = [] } = {}) => ({ ok: true, state,
+  ...(lead ? { lead } : {}), ...(good.length ? { good: good.map((p) => ({ text: p.text, cat: p.cat })) } : {}) });
+const leadSql = async (ov, lang) => { await asOwner(); return (await one(`select public.pv_review_summary_lead($1, $2) v`, [ov, lang])).v; };
+/* 鍵のある会員に見える open の返事から、鍵の無い人へ返るはずの形を作る（lead は中の部品・good は ids を落とした点）。 */
+const shutLike = async (state, airline, lang = 'ja') => {
+  const o = await getAs(KEYED, airline, lang);
+  return shutOf(state, { lead: o.state === 'open' ? await leadSql(o.overview, lang) : null, good: o.state === 'open' ? (o.good || []) : [] });
+};
 /* 点は、その分類に本文の在る ana の口コミの id を持つ（訓練＝1と2・勤務＝2と3。ana で裏付けの在る点はこの2つだけ）。
    ids の数は k に合わせない ── weak_point / bad_k を見る行は、ids の検査（いちばん最後）より先に止まる。 */
 const G = (k = 2) => ({ text: '訓練の教え方が丁寧だという声が複数ある', cat: 'training', k, ids: [R1, R2] });
@@ -451,9 +464,10 @@ let today;
   ok(J(r) === J({ ok: true, state: 'saved', airline: 'ana', lang: 'ja', n: 3, as_of: today }), '運営は預けられる', J(r));
   ok(await stored('ana') === 1, '1行入った');
 
-  const locked = J({ ok: true, state: 'locked' });
-  ok(J(await getAs('anon', 'ana')) === J({ ok: true, state: 'login' }), '未ログインには {ok:true, state:"login"} だけ');
-  ok(J(await getAs(NOKEY, 'ana')) === locked, '登録だけの会員（口コミを出していない）にも locked だけ');
+  /* 段落の無い要約（anaPayload は overview を持たない）＝ lead は無い。良い点（G）の字だけが返る。 */
+  const GOOD_ANA = [{ text: G().text, cat: 'training' }];
+  ok(J(await getAs('anon', 'ana')) === J({ ok: true, state: 'login', good: GOOD_ANA }), '未ログインには {ok, state:"login", good:[{text, cat}]} だけ（段落が無いので lead も無い）');
+  ok(J(await getAs(NOKEY, 'ana')) === J({ ok: true, state: 'locked', good: GOOD_ANA }), '登録だけの会員（口コミを出していない）にも locked と良い点の字だけ');
 
   const open = await getAs(KEYED, 'ana');
   ok(open.state === 'open' && open.ok === true, '口コミを出した会員には中身が返る', J(open));
@@ -477,8 +491,8 @@ let today;
   ok(J(await getAs(KEYED, 'ana', 'en')) === J({ ok: true, state: 'none' }), '言語ごとに別 ── 日本語を預けても英語は「無い」');
   const four = [['login', await getAs('anon', 'ana')], ['locked', await getAs(NOKEY, 'ana')],
                 ['few', await getAs(KEYED, 'etihad')], ['none', await getAs(KEYED, 'ana', 'en')]];
-  ok(four.every(([st, x]) => Object.keys(x).sort().join() === 'ok,state' && x.ok === true && x.state === st),
-     'login・locked・few・none の返事は {ok, state} の2つだけ（点も件数も id も無い）', J(four));
+  ok(four.every(([st, x]) => J(x) === J(['login', 'locked'].includes(st) ? shutOf(st, { good: GOOD_ANA }) : { ok: true, state: st })),
+     'login・locked は ok・state・good（良い点の text と cat）だけ・few・none は {ok, state} の2つだけ（気になる点も件数も id も無い）', J(four));
 
   /* 鍵の判定が本文と同じ関数であること ── 本文の読め方と1人ずつ突き合わせる。 */
   let same = true;
@@ -505,6 +519,90 @@ let today;
   ok(o2.good?.length === 3 && J(o2.concern) === '[]' && o2.good?.[0]?.cat === 'training' && o2.good?.[2]?.text?.length === 90, '預けた順のまま返る・気になる点は空の配列', J(o2));
   const r3 = await putAs(OP, anaPayload({ good: [], concern: [{ text: 'あ'.repeat(8), cat: 'training', k: 2, ids: [R1, R2] }] }));
   ok(r3.state === 'saved' && (await getAs(KEYED, 'ana')).good?.length === 0, '気になる点だけ（8字ちょうど）でも預けられる', J(r3));
+
+  console.log('  ── 鍵の無い人へは、段落の先頭（lead）と良い点の字（good）だけ（2026-10-30 オーナー指示「要約は60文字にしよう。会社のいいところは全部見せよう。悪いところだけぼかしを入れよう」）──');
+  {
+    /* 線そのもの（中の部品を運営の席で直に呼ぶ。会員には配っていない ── 8 の節）。 */
+    await asOwner();
+    const CASES = [
+      ['あ'.repeat(60), 'ja', null, '日本語60字ちょうど → 出さない（続きが無いのにぼかしを乗せない）'],
+      ['あ'.repeat(61), 'ja', 'あ'.repeat(60), '日本語61字 → 先頭60字だけ'],
+      ['あ'.repeat(59) + 'い'.repeat(30), 'ja', 'あ'.repeat(59) + 'い', '日本語は語の境目を見ない（60字で切る）'],
+      ['  ' + 'あ'.repeat(70) + '  ', 'ja', 'あ'.repeat(60), '前後の空白を落としてから数える'],
+      ['x'.repeat(120), 'en', null, '英語120字ちょうど → 出さない'],
+      ['x'.repeat(130), 'en', 'x'.repeat(120), '英語: 120字の中に空白が無ければ120字のまま'],
+      ['abcdef '.repeat(20), 'en', 'abcdef '.repeat(17).trimEnd(), '英語: 121字目が語の途中なら、最後の空白の手前まで戻す'],
+      ['x'.repeat(120) + ' and more', 'en', 'x'.repeat(120), '英語: 121字目が空白なら120字で切る'],
+      ['abcd '.repeat(30), 'en', 'abcd '.repeat(24).trimEnd(), '英語: 120字目が空白で121字目が語の頭なら、その空白の手前まで（うしろの空白は落とす）'],
+      [null, 'ja', null, '段落が null'], ['', 'en', null, "段落が ''"], ['あ'.repeat(80), 'fr', null, '知らない言語'],
+    ];
+    for (const [t, l, want, name] of CASES) {
+      const got = await leadSql(t, l);
+      ok(got === want, `lead: ${name}`, J({ got, want, len: got == null ? null : [...got].length }));
+    }
+
+    /* 読む関数を通す。ana の要約に、72字の段落と良い点3つ（open と同じ順で返るか）を付けて預ける。 */
+    const OV_ANA = '訓練の教え方が丁寧だという声がいちばん多く聞かれます。一方で、勤務の変更が直前に来るという声も複数あり、予定の立てやすさには不満が残っています。';
+    const LEAD_ANA = [...OV_ANA].slice(0, 60).join(''), TAIL_ANA = [...OV_ANA].slice(60).join('');
+    const G3 = [G(), { text: '同僚に相談しやすいという声が複数ある', cat: 'wlb', k: 2, ids: [R2, R3] }, { text: '教官の説明が丁寧だという声が複数ある', cat: 'training', k: 2, ids: [R1, R2] }];
+    ok([...OV_ANA].length === 72 && TAIL_ANA.length > 0, '（見本の段落は72字 ＝ 60字を超える）');
+    ok((await putAs(OP, anaPayload({ overview: OV_ANA, good: G3 }))).state === 'saved', '（段落と良い点3つで預ける）');
+    const lg = await getAs('anon', 'ana'), lk = await getAs(NOKEY, 'ana'), op = await getAs(KEYED, 'ana');
+    ok(J(lg) === J(shutOf('login', { lead: LEAD_ANA, good: G3 })), '★未ログインには ok・state・lead・good の4つだけ（lead は段落の先頭60字・good は良い点3つの text と cat）', J(lg));
+    ok(J(lk) === J(shutOf('locked', { lead: LEAD_ANA, good: G3 })), '★登録だけの会員にも同じ4つだけ', J(lk));
+    ok(J(lg.good) === J((op.good || []).map(({ text, cat }) => ({ text, cat }))),
+       '★good は open の良い点と同じ点・同じ順（ids だけが無い）', J({ shut: lg.good, open: op.good }));
+    ok([lg, lk].every((r) => !J(r).includes(TAIL_ANA) && !J(r).includes(C().text)
+                             && ![R1, R2, R3].some((id) => J(r).includes(id))
+                             && !['concern', 'overview', 'n', 'as_of', 'as_of_at', 'ids'].some((k) => J(r).includes(`"${k}"`))),
+       '段落の61字目から先・気になる点の字・口コミの id・件数・時刻はどこにも無い', J([lg, lk]));
+    ok(op.state === 'open' && op.overview === OV_ANA && !has(op, 'lead') && op.good?.length === 3 && op.good.every((p) => has(p, 'ids'))
+       && J(Object.keys(op).sort()) === J(['as_of', 'as_of_at', 'concern', 'good', 'n', 'ok', 'overview', 'state']),
+       '鍵のある人の open は今までどおり（段落は丸ごと・点は ids つき・lead の鍵は無い・鍵は8つ）', J(op));
+    const fw = [await getAs('anon', 'etihad'), await getAs(NOKEY, 'etihad'), await getAs('anon', 'ana', 'en'), await getAs(NOKEY, 'ana', 'en')];
+    ok(J(fw) === J([{ ok: true, state: 'few' }, { ok: true, state: 'few' }, { ok: true, state: 'none' }, { ok: true, state: 'none' }]),
+       'few・none には lead も good も無い（{ok, state} の2つだけ ── 鍵を見る前に返す）', J(fw));
+
+    /* 英語。120字・語の途中で切らない。 */
+    const EN_G = { text: 'Several pilots say the instructors are careful and patient.', cat: 'training', k: 2, ids: [R1, R2] };
+    const EN_PT = { text: 'Several pilots mention that rosters change at short notice.', cat: 'wlb', k: 2, ids: [R2, R3] };
+    const OV_EN = 'Several pilots say rosters often change at short notice. Training is described as careful, and instructors are said to be patient.';
+    const LEAD_EN = 'Several pilots say rosters often change at short notice. Training is described as careful, and instructors are said to';
+    const enPut = (ov, good = [EN_G]) => putAs(OP, { airline: 'ana', lang: 'en', n: 3, newest: NEWEST_ANA, overview: ov, good, concern: [EN_PT] });
+    ok((await enPut(OV_EN)).state === 'saved', '（英語も段落つきで預ける）');
+    ok(J(await getAs('anon', 'ana', 'en')) === J(shutOf('login', { lead: LEAD_EN, good: [EN_G] }))
+       && J(await getAs(NOKEY, 'ana', 'en')) === J(shutOf('locked', { lead: LEAD_EN, good: [EN_G] })),
+       '★英語も、鍵の無い人へは段落の先頭（120字・語の途中で切らない）と良い点の字だけ', J(await getAs(NOKEY, 'ana', 'en')));
+    ok((await getAs(KEYED, 'ana', 'en')).overview === OV_EN, '（英語の open は段落を丸ごと）');
+
+    /* 段落が上限以下 ── lead を返さない（良い点は返る）。 */
+    const SHORT_JA = '勤務の変更が直前に来るという声が目立ちます。訓練については、教え方が丁寧だという声が複数の口コミにそろって見られます。';
+    const SHORT_EN = 'Several pilots say rosters often change at short notice, while training is described as careful and thorough.';
+    ok([...SHORT_JA].length <= 60 && [...SHORT_JA].length >= 40 && SHORT_EN.length <= 120 && SHORT_EN.length >= 80, '（見本の短い段落は上限以下・段落の字数の内側）',
+       `${[...SHORT_JA].length} / ${SHORT_EN.length}`);
+    ok((await putAs(OP, anaPayload({ overview: SHORT_JA }))).state === 'saved' && (await enPut(SHORT_EN)).state === 'saved', '（上限以下の段落で預ける）');
+    ok(J([await getAs('anon', 'ana'), await getAs(NOKEY, 'ana'), await getAs('anon', 'ana', 'en'), await getAs(NOKEY, 'ana', 'en')])
+         === J([shutOf('login', { good: [G()] }), shutOf('locked', { good: [G()] }), shutOf('login', { good: [EN_G] }), shutOf('locked', { good: [EN_G] })]),
+       '★段落が 日本語60字・英語120字以下なら lead の鍵ごと無い（短い段落を丸ごと渡さない）・良い点は返る');
+
+    /* 段落の無い行（overview が null ＝ 段落ができる前の行）・段落なし（''）にも lead は無い。 */
+    await asOwner();
+    await db.query(`update public.pv_review_summaries set overview = null where airline = 'ana' and lang = 'ja'`);
+    ok(J(await getAs('anon', 'ana')) === J(shutOf('login', { good: [G()] })) && J(await getAs(NOKEY, 'ana')) === J(shutOf('locked', { good: [G()] })),
+       '★段落が null の古い行には lead が無い（良い点の字だけ）');
+    ok((await putAs(OP, anaPayload({ overview: '' }))).state === 'saved'
+       && J(await getAs(NOKEY, 'ana')) === J(shutOf('locked', { good: [G()] })), '段落なし（\'\'）の行にも lead は無い');
+
+    /* 良い点が0個（気になる点だけの要約）── good の鍵ごと無い。段落が長ければ lead だけ。 */
+    ok((await putAs(OP, anaPayload({ overview: OV_ANA, good: [] }))).state === 'saved', '（気になる点だけ・長い段落で預ける）');
+    ok(J(await getAs('anon', 'ana')) === J({ ok: true, state: 'login', lead: LEAD_ANA })
+       && J(await getAs(NOKEY, 'ana')) === J({ ok: true, state: 'locked', lead: LEAD_ANA }),
+       '★良い点が0個なら good の鍵ごと無い（気になる点は渡さない）', J(await getAs(NOKEY, 'ana')));
+    ok((await putAs(OP, anaPayload({ overview: '', good: [] }))).state === 'saved'
+       && J(await getAs(NOKEY, 'ana')) === J({ ok: true, state: 'locked' }), '良い点も段落も無ければ {ok, state} の2つだけ');
+
+    ok(J(await putAs(OP, { airline: 'ana', lang: 'en', good: [], concern: [] })) === J({ ok: true, state: 'deleted' }), '（英語の行を消して、この節の前の形に戻す）');
+  }
   await putAs(OP, anaPayload());
 }
 
@@ -534,7 +632,7 @@ console.log('\n▼ 6. 元の口コミが変わったとき');
   await post(8, 'ana', { salary_comment: '手当の説明が分かりにくい。', __at: '2026-03-20T00:00:00Z' });
   const o1 = await getAs(KEYED, 'ana');
   ok(o1.state === 'open' && o1.n === 3 && o1.as_of === '2026-04-01', '口コミが増えただけなら、預けた要約をそのまま返す（n も日付も動かない）', J(o1));
-  ok(J(await getAs('anon', 'ana')) === J({ ok: true, state: 'login' }), '（未ログインには今までどおり login）');
+  ok(J(await getAs('anon', 'ana')) === J(await shutLike('login', 'ana')), '（未ログインには今までどおり login と良い点の字）');
 
   // 材料にした1件が消えた（代わりに新しい1件が在るので、合計は3件のまま）
   await asOwner();
@@ -705,7 +803,8 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
                      `pv_review_summary_marks(array['ana'], null, 'ja')`,
                      `pv_review_summary_backed('[]'::jsonb, array['ana'], null)`,
                      `pv_review_summary_bad('[]'::jsonb, 'ja', 3)`, `pv_review_summary_out('[]'::jsonb)`,
-                     `pv_review_summary_put('{}'::jsonb)`, `pv_review_summary_need('ana', 'ja')`]) {
+                     `pv_review_summary_put('{}'::jsonb)`, `pv_review_summary_need('ana', 'ja')`,
+                     `pv_review_summary_lead('一文です。', 'ja')`]) {
       const e = await boom(`select public.${f}`);
       ok(e !== null && /permission denied/i.test(e), `${role} は ${f.replace(/\(.*/, () => '')} を呼べない`, e || '← 呼べてしまった');
     }
@@ -737,7 +836,7 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
   ok(/foreign key|pv_review_summaries_airline_fkey/.test(await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('no-such-air','ja',3,now(),'x',$1::jsonb)`, [J([G()])]) || ''), '手で入れても名簿に無い会社は入らない');
 
   const chk = await rows(read('db/review-summary.sql').slice(read('db/review-summary.sql').lastIndexOf("select '表は anon")));
-  ok(chk.length === 7 && chk.every((r) => r['結果'] === '✅'), 'ファイル末尾の検算が7行とも ✅（7行目 ＝ 全体の傾向の段落の口）', J(chk));
+  ok(chk.length === 8 && chk.every((r) => r['結果'] === '✅'), 'ファイル末尾の検算が8行とも ✅（7行目 ＝ 全体の傾向の段落の口・8行目 ＝ 鍵の無い人へ返す段落の先頭と良い点の口）', J(chk));
 }
 {
   await asOwner();
@@ -889,8 +988,18 @@ console.log('\n▼ 12. どの返り値にも、書いた人・k が1つも出て
   ok(!all.some((s) => /[0-9a-f]{32}/.test(s)), '指紋（md5 の32字）の形の字がどこにも無い');
   const keys = new Set();
   for (const x of RETURNS) for (const k of Object.keys(x.r || {})) keys.add(k);
-  ok(J([...keys].sort()) === J(['airline', 'as_of', 'as_of_at', 'concern', 'error', 'good', 'lang', 'n', 'ok', 'overview', 'state']),
-     '2つの関数が返す鍵は全部で11種類だけ', J([...keys].sort()));
+  ok(J([...keys].sort()) === J(['airline', 'as_of', 'as_of_at', 'concern', 'error', 'good', 'lang', 'lead', 'n', 'ok', 'overview', 'state']),
+     '2つの関数が返す鍵は全部で12種類だけ（lead ＝ 鍵の無い人へ返す段落の先頭・2026-10-30）', J([...keys].sort()));
+  const shutTexts = RETURNS.filter((x) => x.r && x.r.state !== 'open' && (has(x.r, 'lead') || has(x.r, 'good')));
+  const shutOk = (x) => x.fn === 'pv_review_summary' && ['login', 'locked'].includes(x.r.state)
+    && Object.keys(x.r).every((k) => ['ok', 'state', 'lead', 'good'].includes(k))
+    && (!has(x.r, 'lead') || (typeof x.r.lead === 'string' && x.r.lead.length > 0))
+    && (!has(x.r, 'good') || (Array.isArray(x.r.good) && x.r.good.length > 0
+                              && x.r.good.every((p) => Object.keys(p || {}).sort().join() === 'cat,text')));
+  ok(shutTexts.some((x) => has(x.r, 'lead')) && shutTexts.some((x) => has(x.r, 'good')) && shutTexts.every(shutOk),
+     `open でない返事で字を持つのは、読む関数の login・locked だけ（${shutTexts.length}個・鍵は ok・state・lead・good まで・good の点は text と cat だけ）`,
+     J(shutTexts.filter((x) => !shutOk(x)).slice(0, 2)));
+  ok(!RETURNS.some((x) => x.r && x.r.state !== 'open' && has(x.r, 'concern')), '気になる点（concern）は、open でない返事のどこにも無い');
   ok(!shut.some((s) => /"overview"\s*:/.test(s)) && opens.every((x) => typeof x.r.overview === 'string'),
      'overview（全体の傾向の段落）は、読む関数の open の返事にだけ在り、いつも文字列（login・locked・few・none・預ける側の返事には無い）');
   ok(!shut.some((s) => /"as_of_at"\s*:/.test(s)) && opens.every((x) => /^\d{4}-\d{2}-\d{2}T\d{2}:(00|15|30|45):00Z$/.test(String(x.r.as_of_at))),
@@ -916,7 +1025,7 @@ console.log('\n▼ 13. 冪等性（行が入った状態で、もう一度その
   const e = await boom(`select * from public.pv_review_summaries`);
   await asOwner();
   ok(e !== null, '流し直したあとも、表は直に読めない');
-  ok((await getAs(KEYED, 'jal')).state === 'open' && J(await getAs('anon', 'jal')) === J({ ok: true, state: 'login' }), '流し直したあとも、読める人・読めない人は同じ');
+  ok((await getAs(KEYED, 'jal')).state === 'open' && J(await getAs('anon', 'jal')) === J(await shutLike('login', 'jal')), '流し直したあとも、読める人・読めない人は同じ');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1107,7 +1216,7 @@ console.log('\n▼ 15. 作り直しが要るかは DB が決める（変わっ�
      && [...(o1.good || []), ...(o1.concern || [])].every((p) => p.ids.every((v) => mine.has(v))),
      '自動で預けた点の ids は、本物のこの会社の口コミの id（引いた番号の口コミ）', J(o1));
   ok(!J(o1).includes(CITES3), '落ちた点は表に届いていない', J(o1));
-  ok(J(await getAs('anon', A)) === J({ ok: true, state: 'login' }), '自動で預けたものも、未ログインには login だけ');
+  ok(J(await getAs('anon', A)) === J(await shutLike('login', A)), '自動で預けたものも、未ログインには login と良い点の字だけ');
   ok((await run(A)).state === 'saved', '控えは「預けた」に変わった');
 
   console.log('  ── 変わっていなければ、何もしない ──');
@@ -1544,8 +1653,8 @@ try {
        `[${lang}] 読み戻した点の ids は、モデルが引いた番号の本物の口コミ（訓練 1・2／勤務 2・3）`, J(o));
     ok((await run(X, lang)).state === 'saved', `[${lang}] 控えは「預けた」`);
   }
-  ok(J(await getAs('anon', X)) === J({ ok: true, state: 'login' }), '未ログインには login だけ');
-  ok(J(await getAs(NOKEY, X)) === J({ ok: true, state: 'locked' }), '関数が預けたものも、登録だけの会員には locked だけ');
+  ok(J(await getAs('anon', X)) === J(await shutLike('login', X)), '未ログインには login と良い点の字だけ');
+  ok(J(await getAs(NOKEY, X)) === J(await shutLike('locked', X)), '関数が預けたものも、登録だけの会員には locked と良い点の字だけ');
   const m1 = net.model.slice(-LANGS.length);
   ok(m1.length === LANGS.length && m1.every((m) => m.key && LANGS.includes(m.lang) && m.user.startsWith('Reviews: 3\n')
        && m.user.includes('勤務の変更は直前に来ることが多い。') && !/captain|A350|singapore|2026-05|row-id|読まれない/.test(m.user)),
@@ -1676,8 +1785,21 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   const row = async () => { await asOwner(); return (await one(`select overview, good, concern, n, sig, made_at::text as made_at from public.pv_review_summaries where airline = $1 and lang = 'ja'`, [LH])) || null; };
   const basisOf = async () => { await asOwner(); return (await one(`select public.pv_review_summary_sig(public.pv_review_summary_codes($1), null, 'ja') s`, [LH])).s; };
   const needLH = async () => { await asOwner(); return (await one(`select public.pv_review_summary_need($1, 'ja') v`, [LH])).v; };
-  /* 鍵の無い返事（open 以外）に overview の鍵が1つでも在れば漏れ。 */
-  const leaks = (r) => !!r && typeof r === 'object' && r.state !== 'open' && Object.prototype.hasOwnProperty.call(r, 'overview');
+  /* 鍵の無い返事（open 以外）の漏れ。2026-10-30 から、許すのは段落の先頭（lead）と良い点の字（good）だけ ──
+       ・鍵は ok・state・lead・good の4つまで（overview・concern・n・as_of・ids の鍵が1つでも在れば漏れ）
+       ・lead は、この節で預けた段落の先頭60字と1文字も違わない（61字目から先が混ざれば漏れ）
+       ・good の各点は鍵が text と cat の2つだけで、text は預けた良い点のどれかと1文字も違わない
+       ・気になる点の字・段落の61字目から先は、どこにも無い
+     ★OV は72字（60字を超える）・OV2 は59字（上限以下 ＝ lead は返らない）。 */
+  const LEAD60 = (ov) => ([...ov].length > 60 ? [...ov].slice(0, 60).join('') : null);
+  const TAIL60 = (ov) => [...ov].slice(60).join('');
+  const leaks = (r) => !!r && typeof r === 'object' && r.state !== 'open'
+    && (Object.keys(r).some((k) => !['ok', 'state', 'lead', 'good'].includes(k))
+        || (has(r, 'lead') && ![OV, OV2].map(LEAD60).filter(Boolean).includes(r.lead))
+        || (has(r, 'good') && (!Array.isArray(r.good)
+              || r.good.some((p) => Object.keys(p || {}).sort().join() !== 'cat,text' || ![LG.text].includes(p.text))))
+        || [LC.text, TAIL60(OV), OV2].some((t) => t && J(r).includes(t)));
+  const LGP = { text: LG.text, cat: LG.cat };
   const OPEN_KEYS = J(['as_of', 'as_of_at', 'concern', 'good', 'n', 'ok', 'overview', 'state']);
   ok([...OV].length >= 40 && [...OV].length <= 220 && [...OV2].length >= 40 && [...OV2].length <= 220,
      '（見本の段落2つは、日本語の字数の内側）', `${[...OV].length} / ${[...OV2].length}`);
@@ -1692,11 +1814,13 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
      '鍵のある会員には、預けた段落が同じ字で返る（返る鍵は8つ・点もそのまま）', J(o1));
   ok(J(await getAs(OP, LH)) === J(o1) && J(await getAs(71, LH)) === J(o1), '運営にも、その会社に口コミを出した本人にも同じものが返る');
 
-  console.log('  ── 鍵の無い返事には、段落の鍵そのものが無い ──');
+  console.log('  ── 鍵の無い返事には、段落の鍵そのものが無い（login・locked には段落の先頭と良い点の字だけ）──');
   const shutR = [['login', await getAs('anon', LH)], ['locked', await getAs(NOKEY, LH)],
                  ['few', await getAs(KEYED, 'peach')], ['none', await getAs(KEYED, LH, 'en')]];
-  ok(shutR.every(([st, r]) => r.ok === true && r.state === st && Object.keys(r).sort().join() === 'ok,state' && !leaks(r)),
-     '未ログイン（login）・鍵なし（locked）・3件未満（few）・要約なし（none）の返事は {ok, state} の2つだけ（overview の鍵が無い）', J(shutR));
+  ok(shutR.every(([st, r]) => r.ok === true && r.state === st && !leaks(r)
+                              && J(r) === J(['login', 'locked'].includes(st) ? { ok: true, state: st, lead: LEAD60(OV), good: [LGP] } : { ok: true, state: st })),
+     '未ログイン（login）・鍵なし（locked）は ok・state・lead（段落の先頭60字）・good（良い点の text と cat）だけ／3件未満（few）・要約なし（none）は {ok, state} の2つだけ（どれにも overview・concern の鍵が無い）', J(shutR));
+  ok([...OV].length === 72 && [...OV2].length === 59 && LEAD60(OV).length === 60 && LEAD60(OV2) === null, '（見本の段落は72字と59字 ＝ 上限を超えるものと、超えないもの）');
 
   console.log('  ── 断る（預かっていた行は変わらない）──');
   const kept = J(await row());
@@ -1741,8 +1865,8 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   const oa = await getAs(KEYED, LH);
   ok(a1.state === 'saved' && !('overview' in a1) && oa.overview === OV2 && J(Object.keys(oa).sort()) === OPEN_KEYS,
      '自動の道で段落つきで預けると、鍵のある会員に同じ字で返る（預ける側の返事に段落は載らない）', J({ a1, oa }));
-  ok(J(await getAs(NOKEY, LH)) === J({ ok: true, state: 'locked' }) && J(await getAs('anon', LH)) === J({ ok: true, state: 'login' }),
-     '自動の道で預けた段落も、鍵の無い人には locked / login の1語だけ');
+  ok(J(await getAs(NOKEY, LH)) === J({ ok: true, state: 'locked', good: [LGP] }) && J(await getAs('anon', LH)) === J({ ok: true, state: 'login', good: [LGP] }),
+     '自動の道で預けた段落（59字 ＝ 上限以下）は、鍵の無い人には lead として出ない（locked / login の1語と良い点の字だけ）');
 
   console.log('  ── 点が両方とも空なら消す（段落は見ない）──');
   const del = await putAs(OP, { airline: LH, lang: 'ja', good: [], concern: [], overview: 12345 });
@@ -1777,7 +1901,7 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   const oOld = await getAs(KEYED, LH);
   ok(oOld.state === 'open' && oOld.overview === '' && J(Object.keys(oOld).sort()) === OPEN_KEYS && oOld.good?.[0]?.text === LG.text,
      '段落の無い古い行も読める（段落は \'\'・点はそのまま）', J(oOld));
-  ok(J(await getAs(NOKEY, LH)) === J({ ok: true, state: 'locked' }), '（段落の無い古い行も、鍵の無い人には locked の1語だけ）');
+  ok(J(await getAs(NOKEY, LH)) === J({ ok: true, state: 'locked', good: [LGP] }), '（段落の無い古い行は、鍵の無い人には locked の1語と良い点の字だけ ── lead は無い）');
   ok(await needLH() === 'stale', '★控えが同じ集合で saved でも、段落の無い行は stale（fresh にも settled にもしない ＝ 作り直させる）', await needLH());
   ok(J((await dueOf(LH)).due) === J([{ airline: LH, lang: 'ja', why: 'stale' }]), '一覧にも stale で出る');
 
@@ -1858,16 +1982,42 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   const sqlAll = read('db/review-summary.sql');
   const fa = sqlAll.indexOf('create or replace function public.pv_review_summary(p jsonb)');
   const fsrc = fa < 0 ? '' : sqlAll.slice(fa, sqlAll.indexOf('$fn$;', fa) + '$fn$;'.length);
-  const LOCKED = `return jsonb_build_object('ok', true, 'state', 'locked');`;
-  const broken = fsrc.replace(LOCKED, () => `return jsonb_build_object('ok', true, 'state', 'locked', 'overview', coalesce(v_row.overview, ''));`);
-  ok(fsrc.split(LOCKED).length === 2 && broken !== fsrc, '（読む関数の locked の1行を見つけた）');
+  const LOCKED = `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good));`;
+  const GOODB = `jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat') order by e.i)`;
+  ok(fsrc.split(LOCKED).length === 2 && fsrc.split(GOODB).length === 2, '（読む関数の locked の1行と、良い点を作る1行を見つけた）');
+  const SHUT_NOW = { ok: true, state: 'locked', lead: LEAD60(OV), good: [LGP] };
+  /* 壊した版を begin … rollback の中でだけ入れ、鍵の無い会員（と未ログイン）で読む。 */
+  const tryBroken = async (src) => {
+    await asOwner(); await db.exec(`begin`);
+    await db.exec(src);
+    await as(NOKEY);
+    const a = (await one(`select public.pv_review_summary($1::jsonb) r`, [J({ airline: LH, lang: 'ja' })])).r;
+    await as('anon');
+    const b = (await one(`select public.pv_review_summary($1::jsonb) r`, [J({ airline: LH, lang: 'ja' })])).r;
+    await db.exec(`rollback`); await asOwner();
+    return [a, b];
+  };
+  const [bo] = await tryBroken(fsrc.replace(LOCKED, () => `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good, 'overview', coalesce(v_row.overview, '')));`));
+  ok(leaks(bo) && bo.overview === OV, '壊した読む関数（locked に段落の全文を足した版）なら、漏れの検査（leaks）が捕まえる', J(bo));
+  const [bc] = await tryBroken(fsrc.replace(LOCKED, () => `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good, 'concern', public.pv_review_summary_out(v_row.concern)));`));
+  ok(leaks(bc) && J(bc).includes(LC.text), '壊した読む関数（locked に気になる点を足した版）なら、漏れの検査（leaks）が捕まえる', J(bc));
+  const [bi, bj] = await tryBroken(fsrc.replace(GOODB, () => `jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat', 'ids', e.v -> 'ids') order by e.i)`));
+  ok(leaks(bi) && leaks(bj) && bi.good?.[0]?.ids?.length === 2, '壊した読む関数（good に ids を残す版）なら、漏れの検査（leaks）が locked・login とも捕まえる', J([bi, bj]));
+  ok(J(await getAs(NOKEY, LH)) === J(SHUT_NOW), '（巻き戻したあと: 本物の読む関数は locked の1語と段落の先頭・良い点の字だけ）');
+
+  console.log('  ── 壊す証明:「先頭だけ」を外すと、上の検査が捕まえる ──');
+  /* 段落の先頭を作る部品を、段落を丸ごと返す版に差し替える（begin … rollback の中だけ・ファイルは触らない）。 */
   await asOwner(); await db.exec(`begin`);
-  await db.exec(broken);
+  await db.exec(`create or replace function public.pv_review_summary_lead(p_overview text, p_lang text)
+                 returns text language sql immutable as $x$ select nullif(p_overview, '') $x$`);
   await as(NOKEY);
-  const br = (await one(`select public.pv_review_summary($1::jsonb) r`, [J({ airline: LH, lang: 'ja' })])).r;
+  const bl = (await one(`select public.pv_review_summary($1::jsonb) r`, [J({ airline: LH, lang: 'ja' })])).r;
+  await as('anon');
+  const bg = (await one(`select public.pv_review_summary($1::jsonb) r`, [J({ airline: LH, lang: 'ja' })])).r;
   await db.exec(`rollback`); await asOwner();
-  ok(leaks(br) && br.overview === OV, '壊した読む関数（locked に段落を足した版）なら、漏れの検査（leaks）が捕まえる', J(br));
-  ok(J(await getAs(NOKEY, LH)) === J({ ok: true, state: 'locked' }), '（巻き戻したあと: 本物の読む関数は locked の1語だけ）');
+  ok(leaks(bl) && leaks(bg) && bl.lead === OV, '壊した部品（段落を丸ごと lead にする版）なら、漏れの検査（leaks）が locked・login とも捕まえる', J([bl, bg]));
+  ok(J(await getAs(NOKEY, LH)) === J(SHUT_NOW) && J(await getAs('anon', LH)) === J({ ...SHUT_NOW, state: 'login' }),
+     '（巻き戻したあと: 本物の部品は段落の先頭60字だけ）');
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

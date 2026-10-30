@@ -527,7 +527,7 @@ scene('card', 'どの会社のカードも、比較の画面と同じ額・2社�
 
   /* 植えた印：JAL｜ユナイテッドを会員 c の画面で、生きた欄が「開いた」答え（印入り）で埋まってからカードを描く */
   const ZZ = { body: (s) => `ZZ本文-${s}-ZZ`, sum: (s) => `ZZ要約-${s}-ZZ` };
-  const LEAK_PAY = { jal: [383800, 352000], united: [591400, 522000] }, LEAK_MED = 528000;
+  const LEAK_PAY = { jal: [383800, 352000], united: [591400, 522000] }, LEAK_MED = 528000, LEAK_LO = 467000, LEAK_HI = 557000, LEAK_SEG = 41700;   // 25%・75% は ¥7,400万・¥8,900万（カードの目盛・推定年収と同じ字にならない額）
   const coOf = (p) => (p && Array.isArray(p.airlines) ? p.airlines[0] : (p && p.airline) || '');
   const SC = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'];
   const rated = (id, v, extra) => ({ id, airline: 'x', created_at: '2026-09-01T00:00:00Z', cats: ['salary'], ...Object.fromEntries(SC.map((k) => [k, v])), ...extra });
@@ -536,8 +536,11 @@ scene('card', 'どの会社のカードも、比較の画面と同じ額・2社�
     pv_review_summary: (p) => ({ status: 200, body: { ok: true, state: 'open', n: 3, as_of: '2026-10-01',
       good: [{ text: `検査の良い点 ${ZZ.sum(coOf(p))}`, cat: 'training' }], concern: [{ text: `検査の気になる点 ${ZZ.sum(coOf(p))}`, cat: 'wlb' }] } }),
     pv_pay_rows: () => ({ status: 200, body: H.payFix.open(['jal', 'united'].flatMap((s) => [H.payRowFix(s, { annual_usd: LEAK_PAY[s][0] }), H.payRowFix(s, { pos: 'fo', annual_usd: LEAK_PAY[s][1] })]), []) }),
+    /* ★2026-10-30 幅の棒の 25%・75% と、月の給与の内訳の月の平均額も植える（カードに出ないことを見る） */
     pv_company_pay: (p) => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3,
-      airlines: Object.fromEntries(((p && p.airlines) || []).map((s) => [s, { cap: { s: 'ok', median_usd: LEAK_MED }, fo: { s: 'few' } }])) } }),
+      airlines: Object.fromEntries(((p && p.airlines) || []).map((s) => [s, { cap: { s: 'ok', median_usd: LEAK_MED, p25_usd: LEAK_LO, p75_usd: LEAK_HI }, fo: { s: 'few' } }])) } }),
+    pv_company_comp: (p) => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' },
+      airlines: Object.fromEntries(((p && p.airlines) || []).map((s) => [s, { cap: { s: 'ok', segs: [{ k: 'base', pct: 64, avg_usd: LEAK_SEG }, { k: 'rest', pct: 36, avg_usd: 23000 }] }, fo: { s: 'few' } }])) } }),
   };
   {
     const o = await open('pc', { who: 'c', url: '/career.html?view=compare&a=jal&b=united', stub, before: `(${RECORDER})();` });
@@ -547,7 +550,7 @@ scene('card', 'どの会社のカードも、比較の画面と同じ額・2社�
     const seenOn = await page.evaluate(() => {
       const v = document.querySelector('#cr .cr-view[data-view="compare"]'), t = v.innerText || '';
       const vis = (e) => e.getClientRects().length > 0;
-      return { zz: (t.match(/ZZ[^\s]*?ZZ/g) || []), amt: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt')].filter(vis).map((e) => e.textContent.trim()) };
+      return { zz: (t.match(/ZZ[^\s]*?ZZ/g) || []), amt: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt, .crl[data-live="cmp-pay"] .crl-rg .crl-yd-kv b, .crl[data-live="cmp-pay"] .crl-dn-a')].filter(vis).map((e) => e.textContent.trim()) };
     });
     const pre = seenOn.zz.length > 0 && seenOn.amt.length > 0;
     ok(pre, pre ? `（前提）会員 c の比較 JAL｜ユナイテッドに、植えた印 ${[...new Set(seenOn.zz)].length}種（${[...new Set(seenOn.zz)].join('・')}）と提出された年収の額 ${seenOn.amt.length}つ（${seenOn.amt.join(' ')}）が出た`

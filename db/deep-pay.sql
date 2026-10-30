@@ -24,6 +24,10 @@
 --     pv_deep_missing   … その1行で、まだ答えていない項目を返す（2-c 章・誰にも開かない）
 --                         ＝「見る資格」の線。pv_deep_pay の門がこれを読む（約束①）。
 --
+-- ★2026-10-30、このファイルに関数を1つ足した（pv_deep_pay は1文字も変えていない）。
+--     pv_company_comp   … 会社ページの「平均の月の支給構成」（4 章・ログイン済みに開く）。
+--                         数え方は pv_deep_pay の給与構成の写し。門は db/work-months.sql の pv_work_level。
+--
 -- ★★2026-10-12（オーナー判断）── **誰を数えるか**と**賞与の扱い**を変えた。門は1文字も変えていない。★★
 --   オーナーの言葉 ──「賞与を年収に含めて出して」「みんな年収低く出てる」
 --                    「これってみんなの年収入ってるの？」
@@ -2110,6 +2114,278 @@ comment on function public.pv_deep_pay(jsonb) is
   '足りない人には gate.todo（窓の中でいちばん新しい自分の1行の、年・月・残っている項目のコード）を返す。'
   'gate.crowd は「100人以上 or 正式公開フラグ」が満たされているか（門と同じ式の答え）。';
 
+
+-- ════════════════════════════════════════════════════════════════
+-- 4. pv_company_comp — 会社ページの「平均の月の支給構成」（会社 × 職位・2026-10-30）
+--
+-- ★★ 数え方は pv_deep_pay の「給与構成」の**写し**（sane → hum → brow → bkd → cagg → cnorm → cseg）。★★
+--   区分は「会社 × 職位」で、機材では絞らない ＝ pv_deep_pay を {airline, position} で手で選んだとき（0段）と
+--   同じ月・同じ人たち。db/test-company-comp.mjs が、同じ見本について2つの答え（segs の k・pct・avg_usd）が
+--   1文字も違わないことを見ている（係数を1つ変えると落ちることも見ている）。
+--   ⚠️ pv_deep_pay の給与構成を直したら、ここも同じに直す。片方だけ直すと、会社ページと DEEP PAY が
+--      同じ会社・同じ職位に違う内訳を出す（どちらも普通に動いたまま）。
+--   ⚠️ 9区分の引き算（a_base〜a_other）と cash_m は、db/pay-rows.sql の shelf・pv_pending_detail とも同じ式
+--      （pv_deep_pay の注の「同じ式が3か所」に、これが4か所目として加わった）。
+-- ★ pv_deep_pay と違うのは、誰に返すかと、誰を入れるかの2つだけ（数え方は同じ）──
+--   ・門は db/work-months.sql の pv_work_level() の1か所（給与の鍵が生きている人と運営。
+--     止めた会員はそこで 'member' ＝ 閉じる）。pv_deep_pay の門（ログインの例外・答えきったか・100人）は持ち込まない。
+--     pv_work_level は貼る順で後ろのファイルに在るが、呼ぶのは実行のときなので、貼る順は今のままでよい。
+--   ・本人の依頼で一覧から下ろした人（pay_hidden）は入れない（会社ページの中央値 db/pay-median.sql の約束 7 と同じ。
+--     2人の区分に残すと、一覧に出ているもう1人の内訳から割り戻せる）。
+-- ★ 年収の母集団（pop）・賞与の平均・口コミ由来の行は読まない ── 給与構成はそもそもそれらを使わない
+--   （口コミ由来の行は内訳を持たないので、pv_deep_pay でも給与構成には1人も入らない）。
+-- 受け取る形: { airlines: [<会社>] } か { airlines: [<会社>, <会社>] }（db/company-pay.sql の pv_company_pay と同じ）
+-- 返す形:
+--   鍵が無い … { ok:true, state:'locked' }（引数も見ない）
+--   形が違う … { ok:false, state:'bad' }（3社以上・同じ会社2つ・語彙に無い会社・other・配列でない）
+--   鍵が在る … { ok:true, state:'open', period:{from:'YYYY-MM', to:'YYYY-MM'},
+--                airlines:{ <会社>:{ cap:<区分>, fo:<区分> }, … } }
+--     <区分> ＝ { s:'few' }（使える内訳を書いた人が v_min 人に届かない。0人と1人を見分けない）
+--             ／ { s:'ok', segs:[{k, pct, avg_usd}, …] }（pv_deep_pay の comp.segs と同じ形・同じ並び。
+--                k は base・guarantee・variable・command・role・perdiem・housing・other・rest。
+--                pct は合計ちょうど100の整数。avg_usd は有効数字2桁・その項目を持つ人が v_min 人に
+--                届かなければ null。持つ人が届かない項目は rest へ畳む）
+-- ★ 人数・その項目を持つ人の数・件数は**どこにも返さない**（壁に使うだけ）。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_company_comp(p jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+declare
+  v_in   jsonb := case when jsonb_typeof(p -> 'airlines') = 'array' then p -> 'airlines' else '[]'::jsonb end;
+  v_air  text[];
+  -- 窓と壁は pv_deep_pay の頭の宣言と同じ字（写し）。
+  v_from constant date := (date_trunc('month', now()) - interval '23 months')::date;
+  v_to   constant date := date_trunc('month', now())::date;
+  v_min  constant int := 2;
+  v_out  jsonb;
+begin
+  -- 鍵の無い人（給与を出していない会員・鍵の切れた会員・止めた会員）には、この2つだけ。引数も見ない。
+  if public.pv_work_level() is distinct from 'pay' then
+    return jsonb_build_object('ok', true, 'state', 'locked');
+  end if;
+  select array_agg(distinct a.code) into v_air
+    from jsonb_array_elements_text(v_in) as t(code)
+    join public.pv_airlines a on a.code = t.code and a.code <> 'other';
+  if v_air is null or jsonb_array_length(v_in) > 2 or jsonb_array_length(v_in) <> array_length(v_air, 1) then
+    return jsonb_build_object('ok', false, 'state', 'bad');
+  end if;
+
+  with
+  pmap as (select t.h, t.human from public.pv_pay_person_map() t),
+
+  -- ── 本棚（pv_deep_pay の sane の写し。給与構成が読む列だけ）────────────
+  --   ★聞かれた会社・機長と副操縦士だけに先に絞る（pv_deep_pay の0段が月の行ごとに絞るのと同じ結果）。
+  sane as (
+    select r.proof_hash                     as pkey,
+           r.airline                        as airline,
+           r."position"                     as pos,
+           r.annual_total_usd               as usd,
+           r.annual_total_orig              as ann_o,
+           (r.base_pay is not null or r.guarantee_pay is not null
+            or r.command_pay is not null or r.pay_items is not null) as det,
+           coalesce((r.pay_items->>'partial')::boolean, false)          as part,
+           case when nullif(r.gross_monthly, 0) is not null
+                then greatest(r.gross_monthly - coalesce(r.bonus_month, 0), 0)
+                   + case when public.pv_union_outside_gross(r.pay_items)
+                          then coalesce(r.union_pay, 0) else 0 end
+                   + public.pv_absence_total(r.pay_items)
+                else coalesce(r.base_pay, 0)
+                   + coalesce(r.guarantee_pay, 0)
+                   + coalesce(r.hourly_rate, 0)
+                     * greatest(coalesce(r.block_hours, 0), coalesce(r.guaranteed_hours, 0))
+                   + coalesce(r.per_diem, 0)
+                   + case when r.housing_type = 'allowance'
+                          then coalesce(r.housing_amount, 0) else 0 end
+                   + coalesce(r.transport, 0)
+                   + coalesce(r.command_pay, 0)
+                   + coalesce(r.other_allowance, 0)
+                   + coalesce(r.instructor_pay, 0)
+                   + coalesce(r.examiner_pay, 0)
+                   + coalesce(r.union_pay, 0)
+                   + coalesce(r.management_pay, 0)
+                   + coalesce(r.nonline_pay, 0)
+           end                              as cash_m,
+           coalesce(r.base_pay, 0)                                     as a_base,
+           coalesce(r.guarantee_pay, 0)                                as a_gtee,
+           coalesce(r.flight_variable_pay,
+                    coalesce(r.hourly_rate, 0)
+                    * greatest(coalesce(r.block_hours, 0),
+                               coalesce(r.guaranteed_hours, 0)))       as a_var,
+           coalesce(r.command_pay, 0)                                  as a_cmd,
+           coalesce(r.instructor_pay, 0) + coalesce(r.examiner_pay, 0)
+           + coalesce(r.union_pay, 0) + coalesce(r.management_pay, 0)
+           + coalesce(r.nonline_pay, 0)                                as a_role,
+           coalesce(r.per_diem, 0)                                     as a_pd,
+           case when r.housing_type = 'allowance'
+                then coalesce(r.housing_amount, 0) else 0 end          as a_house,
+           -- ★命綱の引き算（変動給は other_allowance にも写っている）。pv_deep_pay の a_other と同じ1行。
+           greatest(coalesce(r.other_allowance, 0)
+                    - coalesce(r.flight_variable_pay, 0), 0)
+           + coalesce(r.transport, 0)                                  as a_other
+      from public.pay_reports r
+     where r.annual_total_usd is not null
+       and r.annual_total_usd between 10000 and 700000
+       and make_date(r.period_year, r.period_month, 1) between v_from and v_to
+       and r.airline = any (v_air)
+       and r."position" in ('cap', 'fo')
+       and not exists (select 1 from public.pay_hidden g where g.proof_hash = r.proof_hash)
+  ),
+  -- ── 同じ人を貼る・1行ぶんの検品（pv_deep_pay の hum の写し。当たらない行は落とす）──
+  hum as (
+    select s.*, m.human,
+           (s.cash_m is not null and s.cash_m > 0
+            and (s.a_base + s.a_gtee + s.a_var + s.a_cmd + s.a_role
+                 + s.a_pd + s.a_house + s.a_other) <= s.cash_m * 1.02) as okb
+      from sane s
+      join pmap m on m.h = s.pkey
+  ),
+  -- ── 使える内訳の月（pv_deep_pay の brow の写し）── 検品を通り・内訳を書き・一部未回答でない月 ──
+  brow as (
+    select t.airline, t.pos, t.human,
+           t.a_base * (t.usd / t.ann_o)                                    as u_base,
+           t.a_gtee * (t.usd / t.ann_o)                                    as u_gtee,
+           t.a_var  * (t.usd / t.ann_o)                                    as u_var,
+           t.a_cmd  * (t.usd / t.ann_o)                                    as u_cmd,
+           t.a_role * (t.usd / t.ann_o)                                    as u_role,
+           t.a_pd   * (t.usd / t.ann_o)                                    as u_pd,
+           t.a_house * (t.usd / t.ann_o)                                   as u_house,
+           t.a_other * (t.usd / t.ann_o)                                   as u_other,
+           greatest(t.cash_m - (t.a_base + t.a_gtee + t.a_var + t.a_cmd + t.a_role
+                                + t.a_pd + t.a_house + t.a_other), 0)
+           * (t.usd / t.ann_o)                                             as u_rest
+      from hum t
+     where t.okb and t.det and not t.part
+       and t.ann_o is not null and t.ann_o > 0
+  ),
+  -- ── 1人1票（pv_deep_pay の bkd の写し）── 区分 × 人ごとに、使える月の項目ごとの平均 ──
+  bkd as (
+    select airline, pos, human,
+           avg(u_base)  as p_base,  avg(u_gtee)  as p_gtee, avg(u_var)   as p_var,
+           avg(u_cmd)   as p_cmd,   avg(u_role)  as p_role, avg(u_pd)    as p_pd,
+           avg(u_house) as p_house, avg(u_other) as p_other, avg(u_rest) as p_rest
+      from brow
+     group by airline, pos, human
+  ),
+  -- ── 人どうしの平均（pv_deep_pay の cagg の写し）── 区分ごと。nb は壁（cthin）にだけ使う ──
+  cagg as (
+    select airline, pos,
+           count(*) as nb,
+           avg(p_base)  as m_base,  avg(p_gtee)  as m_gtee, avg(p_var)   as m_var,
+           avg(p_cmd)   as m_cmd,   avg(p_role)  as m_role, avg(p_pd)    as m_pd,
+           avg(p_house) as m_house, avg(p_other) as m_other, avg(p_rest) as m_rest,
+           count(*) filter (where p_base  > 0) as n_base,
+           count(*) filter (where p_gtee  > 0) as n_gtee,
+           count(*) filter (where p_var   > 0) as n_var,
+           count(*) filter (where p_cmd   > 0) as n_cmd,
+           count(*) filter (where p_role  > 0) as n_role,
+           count(*) filter (where p_pd    > 0) as n_pd,
+           count(*) filter (where p_house > 0) as n_house,
+           count(*) filter (where p_other > 0) as n_other
+      from bkd
+     group by airline, pos
+  ),
+  -- ── 項目ごとの壁と畳み方（pv_deep_pay の cnorm の写し）── 持つ人が届かない項目は rest へ ──
+  cnorm as (
+    select c.airline, c.pos, c.nb,
+           public.pv_deep_pct(array[
+             case when c.n_base  >= v_min then coalesce(c.m_base,  0) else 0 end,
+             case when c.n_gtee  >= v_min then coalesce(c.m_gtee,  0) else 0 end,
+             case when c.n_var   >= v_min then coalesce(c.m_var,   0) else 0 end,
+             case when c.n_cmd   >= v_min then coalesce(c.m_cmd,   0) else 0 end,
+             case when c.n_role  >= v_min then coalesce(c.m_role,  0) else 0 end,
+             case when c.n_pd    >= v_min then coalesce(c.m_pd,    0) else 0 end,
+             case when c.n_house >= v_min then coalesce(c.m_house, 0) else 0 end,
+             case when c.n_other >= v_min then coalesce(c.m_other, 0) else 0 end,
+             f.u_all
+           ]) as pc,
+           case when c.n_base  >= v_min then public.pv_sig2(c.m_base)  end as b_usd,
+           case when c.n_gtee  >= v_min then public.pv_sig2(c.m_gtee)  end as g_usd,
+           case when c.n_var   >= v_min then public.pv_sig2(c.m_var)   end as v_usd,
+           case when c.n_cmd   >= v_min then public.pv_sig2(c.m_cmd)   end as c_usd,
+           case when c.n_role  >= v_min then public.pv_sig2(c.m_role)  end as r_usd,
+           case when c.n_pd    >= v_min then public.pv_sig2(c.m_pd)    end as p_usd,
+           case when c.n_house >= v_min then public.pv_sig2(c.m_house) end as h_usd,
+           case when c.n_other >= v_min then public.pv_sig2(c.m_other) end as o_usd,
+           case when f.u_n >= v_min then public.pv_sig2(f.u_all) end as u_usd
+      from cagg c
+      cross join lateral (
+        select coalesce(c.m_rest, 0)
+               + case when c.n_base  >= v_min then 0 else coalesce(c.m_base,  0) end
+               + case when c.n_gtee  >= v_min then 0 else coalesce(c.m_gtee,  0) end
+               + case when c.n_var   >= v_min then 0 else coalesce(c.m_var,   0) end
+               + case when c.n_cmd   >= v_min then 0 else coalesce(c.m_cmd,   0) end
+               + case when c.n_role  >= v_min then 0 else coalesce(c.m_role,  0) end
+               + case when c.n_pd    >= v_min then 0 else coalesce(c.m_pd,    0) end
+               + case when c.n_house >= v_min then 0 else coalesce(c.m_house, 0) end
+               + case when c.n_other >= v_min then 0 else coalesce(c.m_other, 0) end as u_all,
+               (select count(*) from bkd b
+                 where b.airline = c.airline and b.pos = c.pos
+                   and b.p_rest
+                       + case when c.n_base  >= v_min then 0 else b.p_base  end
+                       + case when c.n_gtee  >= v_min then 0 else b.p_gtee  end
+                       + case when c.n_var   >= v_min then 0 else b.p_var   end
+                       + case when c.n_cmd   >= v_min then 0 else b.p_cmd   end
+                       + case when c.n_role  >= v_min then 0 else b.p_role  end
+                       + case when c.n_pd    >= v_min then 0 else b.p_pd    end
+                       + case when c.n_house >= v_min then 0 else b.p_house end
+                       + case when c.n_other >= v_min then 0 else b.p_other end > 0) as u_n
+      ) f
+  ),
+  -- ── 並べる（pv_deep_pay の cseg の写し）── キーの並びは cnorm の配列と1対1 ──
+  --   ★使える内訳を書いた人が v_min 人に届かない区分（pv_deep_pay の cthin）は、ここで落とす ＝ few。
+  cseg as (
+    select n.airline, n.pos,
+           (select coalesce(jsonb_agg(jsonb_build_object('k', t.k, 'pct', t.p,
+                                                        'avg_usd', t.a)
+                                      order by t.p desc, t.i), '[]'::jsonb)
+              from unnest(array['base','guarantee','variable','command','role',
+                                'perdiem','housing','other','rest'],
+                          n.pc,
+                          array[n.b_usd, n.g_usd, n.v_usd, n.c_usd,
+                                n.r_usd, n.p_usd, n.h_usd, n.o_usd,
+                                n.u_usd],
+                          array[1,2,3,4,5,6,7,8,9]) as t(k, p, a, i)
+             where t.p > 0) as j
+      from cnorm n
+     where n.nb >= v_min and n.pc is not null
+  ),
+  -- 聞かれた会社は、数字が無くても2職位とも返す（どこに数字が在るかを、形で教えない）。
+  grid as (
+    select a.code as airline, q.pos
+      from unnest(v_air) as a(code)
+     cross join (values ('cap'), ('fo')) as q(pos)
+  ),
+  bygrp as (
+    select g.airline,
+           jsonb_object_agg(g.pos, case when s.j is null then jsonb_build_object('s', 'few')
+                                        else jsonb_build_object('s', 'ok', 'segs', s.j) end) as j
+      from grid g
+      left join cseg s on s.airline = g.airline and s.pos = g.pos
+     group by g.airline
+  )
+  select jsonb_build_object(
+           'ok', true, 'state', 'open',
+           'period', jsonb_build_object('from', to_char(v_from, 'YYYY-MM'),
+                                        'to',   to_char(v_to,   'YYYY-MM')),
+           'airlines', (select jsonb_object_agg(y.airline, y.j) from bygrp y))
+    into v_out;
+
+  return v_out;
+end;
+$fn$;
+
+-- ★ PUBLIC の既定の実行権を外してから、ログイン済みにだけ渡す（未ログインは呼べない。画面も聞かない）。
+revoke all on function public.pv_company_comp(jsonb) from public, anon, authenticated;
+grant execute on function public.pv_company_comp(jsonb) to authenticated;
+
+comment on function public.pv_company_comp(jsonb) is
+  '会社ページの「平均の月の支給構成」（会社 × 職位・機材で絞らない）。給与の鍵が生きている人と運営にだけ（門は pv_work_level）。'
+  '★数え方は pv_deep_pay の給与構成の写し（db/test-company-comp.mjs が同じ答えになることを見ている）。下ろした人（pay_hidden）は入れない。'
+  '★鍵の無い人へは { ok, state } だけ。区分は { s:few } か { s:ok, segs:[{k, pct, avg_usd}] } だけ（人数・件数は返さない）。';
 
 -- ════════════════════════════════════════════════════════════════
 -- 自己点検 — オーナーが Supabase の SQL Editor に貼ったとき、

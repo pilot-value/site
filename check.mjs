@@ -63,6 +63,8 @@ const SQL = [
   ['db/test-pay-preview.mjs', 3], ['db/test-proof.mjs', 8],
   /* 2026-10-29 ログインなしの口コミの預かり・Vote の流れるカード（12件・80字）・本文の文字数 */
   ['db/test-review-pending.mjs', 5],
+  /* 2026-10-30 会社ページの「平均の月の支給構成」（db/deep-pay.sql の pv_company_comp）。pv_deep_pay の給与構成と同じ答えか。単独で約5秒 */
+  ['db/test-company-comp.mjs', 5],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。

@@ -62,6 +62,9 @@ export const BASE_STUB = {
      （中央値の器は何も描かない）。中央値を見る場面は stub で上書きする。給与の一覧（pv_pay_rows）の既定は置かない ── 用意しない場面では
      ほかの担当の呼び出しとして「準備中」になる（場面ごとに payFix の返事を渡す） */
   pv_company_pay: () => okJson({ ok: true, state: 'locked' }),
+  /* ★2026-10-30 給与の区域の、2社の月の給与の内訳（pv_company_comp）。呼ばれるのは上と同じく鍵の開いた一覧の場面だけ。
+     落ち着いた既定 ＝ 開いていない答え（内訳の器は何も描かない）。内訳を見る場面は stub で上書きする */
+  pv_company_comp: () => okJson({ ok: true, state: 'locked' }),
   /* ★2026-10-24 本番を合わせたあと：pv-proof.js（パイロットであることの確認）が、ログインした会員について1回だけ聞く。
        返らないと「未完了の呼び出し0」で落ち着いたことを見る場面（back の calm1 など）が時間切れになるので、止まっていない答えを置く。 */
   pv_proof_state: () => okJson({ state: 'none' }),

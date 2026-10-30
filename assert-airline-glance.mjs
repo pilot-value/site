@@ -40,6 +40,10 @@
           給与・待遇のタブでは、欄が持つ3行がそのまま出る。評価スコアの側も、概要の抜粋は1件・錠前の行は1つ。
         2行のボタン「Give & Get／全ての給与情報を解放する」が、自分の会社を選んだ給与の提出へ行く（「閲覧条件」は REAL PAY へ）。
         ⚠️ 鍵を開けるかどうかを決めるのはサーバー（db/pay-rows.sql）。ここに条件を足さない。
+        ★2026-10-30 鍵の無い人には、伏せた行の下に図の影絵（字も数字も無い決まった形・ぼかしは .crl-plate と .crl .crl-ghost の2つの規則だけ）。
+          中央値（pv_company_pay）も内訳（pv_company_comp）も聞かない。鍵の開いた人には、概要と給与・待遇のタブの両方で
+          件数 → 図（職位の切り替え・年数の図・25〜75% の帯と中央値の線・月の給与の内訳のドーナツ）→ 行 → 足元（場面 payviz）。
+          口コミの要約の鍵の無い人には、まとめの最初の1文（lead）と影絵と板（「要約は口コミの投稿で開きます」「匿名で口コミを書く」）。
 
      ⑫ 重ねて言わない（2026-10-07）── 会社の紹介の文は最上段の会社のカードに1回だけ（下の「◯◯について」の節は置かない）。
         会社どうしの比較表をこのページに置かない（比較は「他社と比較」の先に在る）。
@@ -63,7 +67,7 @@
      node assert-airline-glance.mjs            全部
      node assert-airline-glance.mjs --static   ブラウザを使わない所だけ
      node assert-airline-glance.mjs --only etihad --sizes 390,1440   調べる時だけ（会社と幅を絞る。緑でも全部を見たことにはならない）
-     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・rated・tabs・hero・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・topbar-in・contrast）
+     node assert-airline-glance.mjs --scenes off,cards               調べる時だけ（場面を絞る：view・off・rows・who・payviz・rated・tabs・hero・cards・gg・ggold・give・work・work0・living・stay・find・towns・topbar・topbar-in・contrast）
      node assert-airline-glance.mjs --scenes contrast --only spirit,vueling   会社ページ全部の明るい色の読める濃さ（--only で会社を絞れる。日英とも）
    同時に開く枚数は PV_GLANCE_JOBS（既定 3）。
    ⚠️ この検査は check.mjs に入っていない ＝ 手で流す（check.mjs へ入れるかどうかは、オーナーの判断待ち）。
@@ -1480,6 +1484,17 @@ head('career-live.js（提出された年収の一覧の、鍵の無い人の行
   ok(same([...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].sort(), ['age', 'verified']), '出典と投稿時期の行が読むのは、その2つだけ', [...new Set([...sl.matchAll(/\br\.(\w+)/g)].map(m => m[1]))].join(', '));
   /* T-S7（2026-10-22 段階4 cmp-pay-2）給与の鍵が切れた人の1行は、MY PAGE（profile.html）が出す字と1文字も違わない
      （同じことを2つの言い方で言わない）。どちらの字も、ファイルから読む（ここに写さない）。 */
+  /* ★2026-10-30 ぼかしの規則は2つだけ ── 伏せた行の板（.crl-plate）と、鍵の無い人の影絵（.crl .crl-ghost）。
+     影絵の部品（ghost・ghostBad・ghostCont・ghostPay）は空の箱を置くだけ ── 字を入れない・答えを読まない・位置を JS で書かない（形は CSS の nth-child）。 */
+  {
+    const LC = noCssCmt(read('career-live.css'));
+    const blurSel = [...LC.matchAll(/([^{}]+)\{[^}]*\bblur\(/g)].map(m => m[1].trim());
+    ok(same(blurSel, ['.crl-plate', '.crl .crl-ghost']) && !/backdrop-filter/.test(LC), 'career-live.css でぼかす規則は .crl-plate と .crl .crl-ghost の2つだけ（backdrop-filter も無い）', blurSel.join(' ｜ '));
+    const gh = ['ghost', 'ghostBad', 'ghostCont', 'ghostPay'].map(fn);
+    ok(gh.every(b => b && !/T\.|\.textContent|\.style|money\(|sig2\(|\b(x|r|rows|res)\b/.test(b) && !/el\('[a-z]+', '[^']*', /.test(b)),
+       '影絵の部品は空の箱を置くだけ（字・答え・位置を持たない）', gh.map(b => (b || '（無い）').slice(0, 60)).join(' ｜ '));
+    ok(!/\.style\.(filter|webkitFilter)|setProperty\(\s*'filter/.test(LJ), 'career-live.js は style.filter を触らない');
+  }
   const expMine = one(LJ, /\n    payExpired: '([^']*)',\n/), expTheirs = one(read('profile.html'), /\(d > 0 \? [^\n]*? : '([^']*)'\),/);
   ok(!!expMine && expMine === expTheirs, `給与の鍵が切れた人の1行（career-live.js の payExpired）は、MY PAGE と同じ字「${expTheirs}」`, `career-live.js「${expMine}」／ profile.html「${expTheirs}」`);
 }
@@ -2666,12 +2681,32 @@ const ratedRows = slug => RATED.map((sc, i) => ({
 const ratedBody = slug => JSON.stringify({ unlocked: false, rows: ratedRows(slug) });
 const VF_TEXT = v => (v ? '明細で確認済み' : '本人申告');
 const AGE_TEXT = ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'];
+/* ★2026-10-30 会社 × 職位の中央値（pv_company_pay）と月の給与の内訳（pv_company_comp）── 給与の鍵の開いた人の画面だけが呼ぶ。
+   〔検査用の見本。実データではない〕機長は 25%・75% つき（人数のそろった区分の形）・副操縦士は中央値だけ（3〜4人の形）。人数（people）を植えてある（出さないことを見る）。
+   内訳は機長だけ（副操縦士は人数が足りない few）。場面が seen.cpay・seen.comp に返事を置けば、そちら（'nofn' ＝ 口がまだ無い 404 PGRST202）。 */
+const CPAY_RE = /\/rest\/v1\/rpc\/pv_company_pay$/, COMP_RE = /\/rest\/v1\/rpc\/pv_company_comp$/;
+const CPAY_PER = { from: '2024-10', to: '2026-09' };
+const cpayBody = slug => JSON.stringify({ ok: true, state: 'open', floor: 3, period: CPAY_PER, airlines: { [slug]: {
+  cap: { s: 'ok', median_usd: 230000, p25_usd: 205000, p75_usd: 250000, people: 6 }, fo: { s: 'ok', median_usd: 115000, people: 3 } } } });
+const COMP_SEGS = [{ k: 'base', pct: 52, avg_usd: 9800 }, { k: 'variable', pct: 21, avg_usd: 3900 }, { k: 'command', pct: 9, avg_usd: 1700 },
+  { k: 'perdiem', pct: 8, avg_usd: 1500 }, { k: 'housing', pct: 6, avg_usd: 1100 }, { k: 'rest', pct: 4, avg_usd: 700 }];
+const compBody = slug => JSON.stringify({ ok: true, state: 'open', period: CPAY_PER, airlines: { [slug]: { cap: { s: 'ok', segs: COMP_SEGS }, fo: { s: 'few' } } } });
+const NOFN = '{"code":"PGRST202","details":null,"hint":null,"message":"Could not find the function"}';
 const SUM_RE = /\/rest\/v1\/rpc\/pv_review_summary$/;
 const SUM_LEAK = '検査用の要約です。鍵の無い人の画面に出てはいけません';
-const SUM_LOCKED = JSON.stringify({ ok: true, state: 'locked', n: 3, as_of: '2026-09-30', good: [{ text: SUM_LEAK, cat: 'culture' }], concern: [{ text: SUM_LEAK, cat: 'wlb' }] });
+/* ★2026-10-30 鍵の無い人の答えには、まとめの最初の1文（lead）が付く ── 字で出してよいのはこれだけ（overview・点・件数は植えたまま、出ないことを見る） */
+const SUM_LEAD = '検査用の、まとめの段落の先頭です。ここまでがサーバーの切った字です';
+/* ★2026-10-30 オーナー「会社のいいところは全部見せよう。悪いところだけぼかしを入れよう」── 鍵の無い人の答えには良い点（text と cat）も付く。
+   出してよいのは lead と良い点の字だけ。良い点は4つ植えて、画面は3つまで（開いた要約と同じ上限）。
+   良い点に植えた元の口コミの番号（ids）・気になる点・段落の続き（overview）・件数（n）・日付は、届いても出ない（SUM_LEAK と SUM_SRC で見る）。 */
+const SUM_GOODS = ['社風：検査用の良い点その一という声が多い', '訓練：検査用の良い点その二という声が多い', '検査用の良い点その三という声が目立つ', '検査用の良い点その四（4つ目は出ない）'];
+const SUM_GOOD_IN = SUM_GOODS.map((text, i) => ({ text, cat: ['culture', 'training', 'wlb', 'ops'][i] }));
+const SUM_LOCKED = JSON.stringify({ ok: true, state: 'locked', n: 3, as_of: '2026-09-30', lead: SUM_LEAD, overview: SUM_LEAK,
+  good: SUM_GOOD_IN.map(g => ({ ...g, ids: ['00000000-0000-4000-8000-000000000001'] })), concern: [{ text: SUM_LEAK, cat: 'wlb' }] });
 const SUM_404 = '{"code":"PGRST202","details":null,"hint":null,"message":"Could not find the function public.pv_review_summary(p) in the schema cache"}';
 const SUM_LOCK_TEXT = '要約は口コミの投稿で開きます';
-const SUM_LOGIN = JSON.stringify({ ok: true, state: 'login', n: 3, as_of: '2026-09-30', good: [{ text: SUM_LEAK, cat: 'culture', ids: [] }], concern: [] });   // わざと中身を付けた返事（画面は読まないはず）
+/* 未ログインの答え：lead を付けない（「まとめ」の枠ごと出ない）・良い点は付く・気になる点と件数はわざと植える（画面は出さないはず） */
+const SUM_LOGIN = JSON.stringify({ ok: true, state: 'login', n: 3, as_of: '2026-09-30', good: SUM_GOOD_IN.map(g => ({ ...g, ids: ['00000000-0000-4000-8000-000000000002'] })), concern: [{ text: SUM_LEAK, cat: 'ops' }] });
 const SUM_FEW = '{"ok":true,"state":"few"}';
 const SUM_NONE = '{"ok":true,"state":"none"}';
 const SUM_500 = '{"code":"XX000","details":null,"hint":null,"message":"検査用の失敗"}';
@@ -2686,6 +2721,7 @@ const SUM_OPEN_MAX = JSON.stringify({ ok: true, state: 'open', n: 3, as_of: '202
   good: ['ア', 'イ', 'ウ'].map(c => ({ text: SUM_LONG('良' + c), cat: 'culture', ids: SUM_SRC.slice(0, 2) })),
   concern: ['ア', 'イ', 'ウ'].map(c => ({ text: SUM_LONG('気' + c), cat: 'wlb', ids: SUM_SRC.slice(1, 3) })) });
 const SUM_LOGIN_TEXT = 'ログインが必要です';
+const SUM_WRITE_TEXT = '匿名で口コミを書く';
 const SUM_FEW_TEXT = '口コミがまだ少ないため、要約はありません';
 const SUM_NONE_TEXT = '口コミの要約は、まだありません';
 const SUM_OFF_TEXT = '準備中';
@@ -2708,7 +2744,7 @@ const trouble = [];
 const SETTLED = () => !!window.PVCurrency && !!document.querySelector('.pvg') &&
   ![...document.querySelectorAll('.pvg .crl, .pvg-hero .crl')].some(n => n.getClientRects().length && /^(idle|loading)$/.test(n.dataset.state));
 
-async function open(browser, slug, w, h, mode, pre, pay) {
+async function open(browser, slug, w, h, mode, pre, pay, extra) {
   const ctx = await browser.createBrowserContext();
   const p = await ctx.newPage();
   const seen = { mode, asked: 0, unknown: new Set(), stay: null, stays: 0, stayAsked: 0, mod: [], modReply: '{"ok":true}', factCalls: [], stayStatus: 200, stayStall: false, add: null, added: [], vreq: null, vreqd: [], edit: null, edited: [], del: null, deleted: [], claim: '{"ok":true}', claimed: [], town: null };
@@ -2717,6 +2753,9 @@ async function open(browser, slug, w, h, mode, pre, pay) {
   /* 答えるカードの口：give ＝ その場面だけ差し替える返事（{ status, body }。置かなければ giveBody）・giveCalls ＝ 呼ばれた回数。
      nav ＝ 並びを置いた場面でだけ、ページが移ろうとした行き先を控えて止める（カードのリンクが進む先を見る時）。 */
   seen.give = null; seen.giveCalls = 0; seen.nav = null;
+  /* 中央値と内訳の口：返事（置かなければ見本）と、送られた中身の控え */
+  seen.cpay = null; seen.comp = null; seen.cpayCalls = []; seen.compCalls = [];
+  if (extra) Object.assign(seen, extra);                  // 場面が開く前に置く返事（例：{ comp: 'nofn' }）
   /* 横の2つの口（月の勤務・会員の補足）が呼ばれた回数。並びは SIDE のとおり。 */
   seen.sideCalls = [0, 0];
   p.setDefaultTimeout(30000);
@@ -2791,6 +2830,12 @@ async function open(browser, slug, w, h, mode, pre, pay) {
       if (side >= 0) seen.sideCalls[side]++;
       if (/^give/.test(seen.mode) && side >= 0) {
         return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: sideBody(seen.mode, side, slug) });
+      }
+      if (seen.mode !== 'off' && (CPAY_RE.test(u.pathname) || COMP_RE.test(u.pathname))) {
+        const isC = COMP_RE.test(u.pathname), v = isC ? seen.comp : seen.cpay;
+        (isC ? seen.compCalls : seen.cpayCalls).push(r.postData() || '');
+        if (v === 'nofn') return r.respond({ status: 404, contentType: 'application/json', headers: cors, body: NOFN });
+        return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: v != null ? v : (isC ? compBody(slug) : cpayBody(slug)) });
       }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
@@ -2869,7 +2914,8 @@ function LIB() {
         title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
         stars: $$('.crl-stars', c).filter(on).length, msg: t('.crl[data-live="score"] .crl-msg', c),
         /* 口コミを書く入口（見えているもの全部）。カードの中に1つだけのはず。k ＝ 上の行・m ＝ 下の行・stacked ＝ 2行に積んである */
-        write: $$('a[href*="submit-review"]', c).filter(on).map(a => {
+        /* ★2026-10-30 要約の欄の板にも「匿名で口コミを書く」が在る（オーナー）── カードの書く入口（2行のボタン）は、要約の欄の外のものだけ */
+        write: $$('a[href*="submit-review"]', c).filter(a => on(a) && !a.closest('.crl[data-live="summary"]')).map(a => {
           const k = a.querySelector('.pvg-gg-k'), m = a.querySelector('.pvg-gg-m');
           return { k: k ? k.textContent.trim() : null, m: m ? m.textContent.trim() : a.textContent.trim(), stacked: !!k && !!m && k.getBoundingClientRect().bottom <= m.getBoundingClientRect().top + 1, href: a.getAttribute('href') };
         }),
@@ -2878,7 +2924,13 @@ function LIB() {
           state: e.dataset.state, h: e.getBoundingClientRect().height, text: e.textContent.replace(/\s+/g, ' ').trim(), items: $$('.crl-sum-li, .crl-sum-h, .crl-sum-title', e).length,
           why: (e.firstElementChild && e.firstElementChild.getAttribute('data-why')) || null,
           links: $$('a, button', e).filter(on).length,
-          login: $$('a', e).filter(on).map(a => a.getAttribute('href')),
+          login: $$('a', e).filter(a => on(a) && /login\.html/.test(a.getAttribute('href') || '')).map(a => a.getAttribute('href')),
+          /* ★2026-10-30 鍵の無い人の形：まとめの最初の1文（lead）・影絵・影絵の上の板・板の「匿名で口コミを書く」 */
+          write: $$('a[href*="submit-review"]', e).filter(on).map(a => a.getAttribute('href')),
+          lead: (() => { const x = e.querySelector('.crl-sum-ovb[data-lead] .crl-sum-ov'); return x && on(x) ? x.textContent : null; })(),
+          ghost: $$('.crl-ghost', e).map(g => ({ on: on(g), text: g.textContent, kids: g.querySelectorAll('*').length, attrs: $$('*', g).reduce((a, n) => a + n.attributes.length, 0),
+            aria: g.getAttribute('aria-hidden'), inert: g.hasAttribute('inert'), blur: getComputedStyle(g).filter })),
+          board: (() => { const x = e.querySelector('.crl-board'); return x ? { lock: $$('.crl-lock', x).filter(on).map(l => l.textContent.trim()), inGhost: !!x.closest('.crl-ghost') } : null; })(),
           ai: $$('.crl-sum-ai', e).filter(on).length,
           pts: ['good', 'concern'].map(k => $$('.crl-sum-col[data-kind="' + k + '"] .crl-sum-li', e).length),
           by: (() => { const x = e.querySelector('.crl-sum-by'); return x ? x.textContent : null; })(),
@@ -3311,13 +3363,27 @@ function ratedWant(rows) {
 /* 口コミの要約の欄のあるべき形（名前で引く）。hidden ＝ 0件のページ（上の評価が「まだありません」）では畳む／
    off ＝ 口が無い（未接続）／few ＝ 口コミが少ない／none ＝ 要約がまだ無い／login ＝ ログインの1行と入口1つ／locked ＝ 鍵の無い人の1行／
    error ＝ 読めなかった（「やり直す」1つ）。どの形も要約の項目を持たず、入口は login と error の1つだけ。 */
+/* 影絵は、その下の1つ ＋ lead の枠の中で文の続きを見せる1つ（lead の在る時だけ・2026-10-30 オーナー「文を続けないと」） */
+const sumGhostOk = x => !!x.ghost && x.ghost.length === 1 + (x.lead ? 1 : 0) && x.ghost.every(g => g.on && g.text === '' && g.kids > 0 && g.attrs === g.kids && g.aria === 'true' && g.inert && /blur\(/.test(g.blur))
+  && !!x.board && !x.board.inGhost;
+/* 良い点は3つ・気になる点の行は0（見出しだけ）・矢印は分類つきで元の口コミの番号を持たない・足元は「AI 要約」だけ */
+const sumGoodOk = x => same(x.pts, [3, 0]) && x.arrows.length === 3 && x.arrows.every(a => a.href === '#reviews' && !!a.cat && a.ids === null) && x.by === 'AI 要約';
+const sumWriteOk = x => !!x.write && x.write.length === 1 && /^\.\.\/submit-review\.html\?airline=[a-z0-9-]+$/.test(x.write[0]);
 const SUM_WANT = {
   hidden: x => x.h === 0 && !x.items && x.links === 0,
   off:    x => x.state === 'empty'  && x.why === 'off'   && x.text === SUM_OFF_TEXT  && !x.items && x.links === 0,
   few:    x => x.state === 'empty'  && x.why === 'few'   && x.text === SUM_FEW_TEXT  && !x.items && x.links === 0,
   none:   x => x.state === 'empty'  && x.why === 'none'  && x.text === SUM_NONE_TEXT && !x.items && x.links === 0,
-  login:  x => x.state === 'locked' && x.why === 'login' && x.text.startsWith(SUM_LOGIN_TEXT) && !x.items && x.links === 1 && x.login.length === 1 && /login\.html/.test(x.login[0]),
-  locked: x => x.state === 'locked' && x.why === 'key'   && x.text === SUM_LOCK_TEXT && !x.items && x.links === 0,
+  /* ★2026-10-30 鍵の無い人の形（オーナー「要約は60文字に・いいところは全部見せよう・悪いところだけぼかし」）：
+     「まとめ」の枠（lead ── 返事に在る時だけ・続きはぼかした3行）→ 良い点（本物の字・3つまで・矢印は分類だけで元の口コミの番号を持たない）→
+     「気になる点」（見出しだけ本物の字・中身は影絵と、影絵の外の板「要約は口コミの投稿で開きます」「匿名で口コミを書く」・未ログインは「ログイン」も）→
+     足元は「AI 要約」だけ（件数・日付は出さない）。影絵は字も数字も無い・属性は class だけ・読み上げない・触れない・ぼかし。 */
+  login:  x => x.state === 'locked' && x.why === 'login' && x.lead === null && sumGhostOk(x) && same(x.board.lock, [SUM_LOCK_TEXT]) && sumGoodOk(x)
+              && x.text === '良い点' + SUM_GOODS.slice(0, 3).join('') + '気になる点' + SUM_LOCK_TEXT + SUM_WRITE_TEXT + 'ログイン' + 'AI 要約'
+              && x.items === 5 && x.links === 5 && x.login.length === 1 && /login\.html/.test(x.login[0]) && sumWriteOk(x),
+  locked: x => x.state === 'locked' && x.why === 'key'   && x.lead === SUM_LEAD && sumGhostOk(x) && same(x.board.lock, [SUM_LOCK_TEXT]) && sumGoodOk(x)
+              && x.text === 'まとめ' + SUM_LEAD + '良い点' + SUM_GOODS.slice(0, 3).join('') + '気になる点' + SUM_LOCK_TEXT + SUM_WRITE_TEXT + 'AI 要約'
+              && x.items === 5 && x.links === 4 && x.login.length === 0 && sumWriteOk(x),
   error:  x => x.state === 'error'  && !x.items && x.links === 1,
 };
 /* 評価スコア：社名の行とカードが同じ答えを出しているか。rows ＝ 偽のサーバーが返した口コミ（0件なら []）。
@@ -3355,6 +3421,8 @@ function scoreBad(s, sc, slots, rows, sum) {
   if (!c.row) bad.push('給与の1枚と同じ段に無い');
   if (!c.sum) bad.push('口コミの要約の欄が無い');
   else if (!SUM_WANT[sum](c.sum)) bad.push(`要約の欄が「${sum}」の形でない（${c.sum.state}・${c.sum.why}・高さ ${Math.round(c.sum.h)}・「${c.sum.text.slice(0, 40)}」・項目 ${c.sum.items}・入口 ${c.sum.links}）`);
+  /* ★2026-10-30 要約の板の「匿名で口コミを書く」は、このページの会社を選んだ口コミのフォームへ */
+  if (c.sum && c.sum.write && c.sum.write.length && !same(c.sum.write, [`../submit-review.html?airline=${s}`])) bad.push(`要約の板の書く入口の行き先が違う（${c.sum.write.join(' ')}）`);
   if (c.sum && sum !== 'hidden' && sum !== 'error' && !(c.sum.h >= 40)) bad.push(`要約の1行が低い（${c.sum.h}px）`);
   return bad;
 }
@@ -4043,6 +4111,16 @@ async function runWho(browser, s, [w, h]) {
         return {
           state: box.dataset.state, lock: t(box.querySelector('.crl-lock')), msg: t(box.querySelector('.crl-msg')), count: t(box.querySelector('.crl-count')),
           login: box.querySelectorAll('a[href*="login.html"]').length, html: box.innerHTML,
+          ghosts: [...box.querySelectorAll('.crl-ghost')].map(x => ({ text: x.textContent, kids: x.querySelectorAll('*').length, attrs: [...x.querySelectorAll('*')].reduce((a, n) => a + n.attributes.length, 0),
+            aria: x.getAttribute('aria-hidden'), inert: x.hasAttribute('inert'), blur: getComputedStyle(x).filter, on: x.getClientRects().length > 0 })),
+          pv: !!box.querySelector('.crl-pv'),
+          lk: (() => { const x = box.querySelector('.crl-pv-lk'); if (!x) return null;
+            /* 影絵の中に描かれている色（背景・枠・::before／::after）の数 ── 灰色の1色だけでないことを見る */
+            const cs = new Set();
+            for (const n of x.querySelectorAll('.crl-ghost *')) for (const pe of [null, '::before', '::after']) {
+              const c = getComputedStyle(n, pe); for (const v of [c.backgroundColor, c.backgroundImage]) if (v && v !== 'none' && v !== 'rgba(0, 0, 0, 0)') cs.add(v);
+            }
+            return { cards: x.querySelectorAll('.crl-gh-card').length, inCard: x.querySelectorAll('.crl-gh-card > .crl-ghost').length, text: x.textContent, aria: x.getAttribute('aria-hidden'), colors: cs.size }; })(),
           rows: [...box.querySelectorAll('.crl-row')].map(li => ({ mask: li.getAttribute('data-mask'), pos: t(li.querySelector('.crl-pos')), amt: t(li.querySelector('.crl-amt')), none: !!li.querySelector('.crl-amt[data-none]') })),
         };
       });
@@ -4056,6 +4134,7 @@ async function runWho(browser, s, [w, h]) {
         if (g.login) bad.push(`ログインの入口が ${g.login}つ`);
         if (!same(g.rows.map(r => r.pos), want.map(r => POS_JA[r.pos]))) bad.push(`行の職位「${g.rows.map(r => r.pos).join('｜')}」（あるべき「${want.map(r => POS_JA[r.pos]).join('｜')}」）`);
         if (g.rows.some(r => r.mask !== null || r.none || !/\d/.test(r.amt || ''))) bad.push(`額の出ていない行・伏せた行が在る（${g.rows.map(r => `${r.mask}/${r.amt}`).join(' ')}）`);
+        if (!g.pv || g.ghosts.length) bad.push(`図の器が無い・影絵が在る（器 ${g.pv}・影絵 ${g.ghosts.length}）`);
       } else if (/0$/.test(k)) {
         if (!(g.state === 'empty' && g.msg === 'まだ記録がありません')) bad.push(`「まだ記録がありません」になっていない（${g.state}・${g.msg}）`);
         if (g.lock !== null || g.count !== null || g.rows.length) bad.push(`0件なのに、錠前の1行・件数・行のどれかが出ている（${g.lock}・${g.count}・${g.rows.length}行）`);
@@ -4069,9 +4148,18 @@ async function runWho(browser, s, [w, h]) {
         if (!g.rows.length || g.rows.some(r => r.mask !== 'line')) bad.push('伏せた行の形でない行が在る');
         const leak = [/271/, /captain/i, /b787/i, /機長|副操縦士/, /⚠/, /data-(pos|fleet|ten|far|usd)/].filter(re => re.test(g.html)).map(String);
         if (leak.length) bad.push(`サーバーが混ぜた職位・機材・額・印が出ている（${leak.join(' ')}）`);
+        /* ★2026-10-30 伏せた行の下に、開いた人と同じ3枚のカードの形（年収の幅・年数の図・内訳の円）。中身はそれぞれ影絵（字も数字も無い・
+           属性は class だけ・読み上げない・触れない・ぼかし）・カードの枠と外の箱には字が無い・図の器は無い・色は灰色の1色でない */
+        const G = g.ghosts, L = g.lk;
+        if (!(G.length === 3 && G.every(x => x.on && x.text === '' && x.kids > 0 && x.attrs === x.kids && x.aria === 'true' && x.inert && /blur\(/.test(x.blur)))
+            || !L || L.cards !== 3 || L.text !== '' || L.aria !== 'true' || L.inCard !== 3 || L.colors < 3 || g.pv) {
+          bad.push(`図の影絵が「字も数字も無い決まった形の3枚のカード・色つき」でない（${JSON.stringify({ G, L })}・図の器 ${g.pv}）`);
+        }
       }
-      const say = k === 'open' ? '行（職位と額）が出る' : /0$/.test(k) ? '「まだ記録がありません」（錠前の1行は出さない）'
-        : `「${k === 'expired' ? PAY_EXPIRED : '給与の提出で開きます'}」${k === 'guest' ? '・ログインの入口' : '（ログインの入口は無い）'}・混ぜた額や職位は1文字も出ない`;
+      if (k !== 'open' && (seen.cpayCalls.length || seen.compCalls.length)) bad.push(`鍵の無い人の画面が、中央値（${seen.cpayCalls.length}本）・内訳（${seen.compCalls.length}本）を聞いた`);
+      if (/0$/.test(k) && g && g.ghosts.length) bad.push('提出が0件なのに、図の影絵が在る');
+      const say = k === 'open' ? '行（職位と額）と図の器が出る' : /0$/.test(k) ? '「まだ記録がありません」（錠前の1行も影絵も出さない）'
+        : `「${k === 'expired' ? PAY_EXPIRED : '給与の提出で開きます'}」${k === 'guest' ? '・ログインの入口' : '（ログインの入口は無い）'}・混ぜた額や職位は1文字も出ない・図の影絵が1つ・中央値も内訳も聞かない`;
       ok(!bad.length, `${tag}: 提出された年収の箱は ${say}`, bad.join(' ／ '));
       ok(!seen.unknown.size, `${tag}: 検査が返事を用意していない口を呼んでいない`, [...seen.unknown].join(' '));
     } catch (e) {
@@ -4079,6 +4167,197 @@ async function runWho(browser, s, [w, h]) {
     } finally {
       await ctx.close().catch(() => {});
     }
+  }
+}
+/* ★2026-10-30 場面 payviz ── 給与の鍵の開いた人の会社ページの図（オーナー）。概要と給与・待遇のタブの両方で：
+     件数 → 図（職位の切り替え・年数の図・帯・内訳のドーナツ）→ 行 → 足元 の順。点の数 ＝ その会社・その職位の、年数の段（0〜4）が在り
+     在籍年数だけの古い行（tenk 's'）でない行の数。帯（25〜75% の面）は 25%・75% の来た職位だけ・中央値だけの職位は線だけ。
+     ドーナツは割合の合計 100（サーバーの数のまま）・人数の足りない職位には出さない。中央値・内訳は {airlines:[会社]} で1回ずつ。
+     職位を替えても聞き直さない・押したボタンにフォーカスが残る・通貨を替えても選んだ職位のまま・どの通貨でも切れ・はみ出しが無い。
+     内訳の口がまだ無い（PGRST202）時は、ドーナツだけが無い（図と行は出る・失敗の顔にしない）。
+   〔検査用の見本〕行は PV_ROWS（ほかの会社の行と、古い行を1つずつ混ぜる）。 */
+const PV_W = [320, 390, 1001, 1440];
+const PV_ROWS = slug => [
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 0, tenk: 'r', annual_usd: 180000, verified: true, age: 0, far: false },
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 1, tenk: 'r', annual_usd: 205000, verified: false, age: 1, far: false },
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r', annual_usd: 232000, verified: true, age: 2, far: false },
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r', annual_usd: 241000, verified: false, age: 0, far: false },
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 4, tenk: 'r', annual_usd: 268000, verified: false, age: 3, far: true },
+  { airline: slug, pos: 'cap', fleet: 'b787', ten: 3, tenk: 's', annual_usd: 220000, verified: false, age: 1, far: false },
+  { airline: slug, pos: 'fo', fleet: 'b787', ten: 0, tenk: 'r', annual_usd: 98000, verified: false, age: 0, far: false },
+  { airline: slug, pos: 'fo', fleet: 'b787', ten: 1, tenk: 'r', annual_usd: 121000, verified: true, age: 1, far: false },
+  { airline: FIVE.find(o => o !== slug), pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r', annual_usd: 199000, verified: true, age: 0, far: false },
+];
+const pvDots = (slug, pos) => PV_ROWS(slug).filter(r => r.airline === slug && r.pos === pos && Number.isInteger(r.ten) && r.ten >= 0 && r.ten <= 4 && r.tenk !== 's' && r.annual_usd > 0).length;
+const PV_SEE = () => {
+  const box = document.querySelector('#pvg-realpay .crl[data-live="realpay"]'), pv = box && box.querySelector('.crl-pv');
+  const vis = e => !!e && e.getClientRects().length > 0 && (!e.checkVisibility || e.checkVisibility({ visibilityProperty: true }));
+  const tx = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : null);
+  if (!box || !pv) return { state: box && box.dataset.state, pv: false };
+  const f = pv.querySelectorAll('.crl-yd-f'), fig = f[0], dn = pv.querySelector('.crl-dn');
+  const kids = [...box.children].map(c => c.classList.contains('crl-count') ? 'count' : c.classList.contains('crl-pv') ? 'pv' : c.classList.contains('crl-pay-fold') ? 'fold' : c.classList.contains('crl-rows') ? 'rows' : c.classList.contains('crl-foot') ? 'foot' : c.className);
+  /* ★2026-10-30 年収の幅のカード（いちばん上）・カードの形・1件ずつの行の畳み */
+  const rg = pv.querySelector(':scope > .crl-rg'), fold = box.querySelector(':scope > details.crl-pay-fold'), fs = fold && fold.querySelector(':scope > summary');
+  const card = e => { if (!e) return null; const c = getComputedStyle(e); return { r: c.borderTopLeftRadius, b: c.borderTopWidth, layers: c.boxShadow === 'none' ? 0 : c.boxShadow.split(/,(?![^(]*\))/).length, pad: parseFloat(c.paddingTop) }; };
+  const C = window.PVCurrency, rate = C.rates[C.get()] || 1, usd = C.rates.USD || 1;
+  const sig2 = v => { const p = Math.pow(10, Math.floor(Math.log10(v)) - 1); return Math.round(v / p) * p; };
+  const amt = u => C.fmt(sig2(u * usd / rate) * rate);
+  const dots = fig ? [...fig.querySelectorAll('.crl-yd-d')] : [];
+  return {
+    state: box.dataset.state, pv: vis(pv), done: pv.getAttribute('data-pv'), order: kids,
+    pick: [...pv.querySelectorAll('.crl-pv-pb')].map(b => [b.getAttribute('data-pos'), b.getAttribute('aria-pressed')]),
+    figs: f.length, pos: fig ? fig.getAttribute('data-pos') : null, band: fig ? fig.getAttribute('data-band') : null,
+    dots: dots.length, dotMax: Math.max(0, ...dots.map(d => parseFloat(d.style.bottom))), dotTip: dots.length ? dots[0].getAttribute('aria-label') : null,
+    box: fig ? fig.querySelectorAll('.crl-yd-bd').length : 0, line: fig ? fig.querySelectorAll('.crl-yd-md').length : 0,
+    bandTop: fig ? Math.max(0, ...[...fig.querySelectorAll('.crl-yd-bd, .crl-yd-md')].map(e => parseFloat(e.style.bottom) + (parseFloat(e.style.height) || 0))) : 0,
+    side: fig ? [...fig.querySelectorAll('.crl-yd-rl')].map(tx) : [], key: fig ? tx(fig.querySelector('.crl-yd-key')) : null,
+    note: tx(pv.querySelector('.crl-yd-note')), legend: pv.querySelectorAll('.crl-yd-lg').length,
+    dn: dn ? { on: vis(dn), head: tx(dn.querySelector('.crl-dn-h')), arcs: dn.querySelectorAll('circle.crl-dn-arc').length,
+      segs: [...dn.querySelectorAll('.crl-dn-li')].map(li => [li.getAttribute('data-k'), tx(li.querySelector('.crl-dn-n')), tx(li.querySelector('.crl-dn-p')), tx(li.querySelector('.crl-dn-a'))]),
+      def: tx(dn.querySelector('.crl-def')) } : null,
+    focus: document.activeElement && document.activeElement.classList.contains('crl-pv-pb') ? document.activeElement.getAttribute('data-pos') : null,
+    deep: /DEEP PAY|deep-pay/i.test(box.innerHTML),
+    rg: !rg || !vis(rg) ? null : { first: pv.firstElementChild === rg, head: tx(rg.querySelector('.crl-rg-tt')), tags: rg.querySelectorAll('.crl-co').length,
+      pos: [...rg.querySelectorAll('.crl-rg-p')].map(p => { const r = p.querySelector('.crl-rg-r'), b = r && r.querySelector('.crl-rg-b'), m = r && r.querySelector('.crl-rg-m');
+        return { k: p.getAttribute('data-pos'), h: tx(p.querySelector('.crl-rg-h')), rows: p.querySelectorAll('.crl-rg-r').length, box: b ? [parseFloat(b.style.left), parseFloat(b.style.width)] : null,
+          med: m ? parseFloat(m.style.left) : null, key: tx(r && r.querySelector('.crl-yd-key')) }; }) },
+    /* 見本の中央値（cpayBody）を、点と同じ丸めで今の通貨の字にしたもの ── 棒の下の額と同じ字のはず */
+    want: { cap: [amt(205000), amt(230000), amt(250000)], fo: [amt(115000)] },
+    cards: [rg, fig && fig.closest('.crl-yd'), dn].map(card),
+    fold: !fold ? null : { open: fold.open, exp: fs && fs.getAttribute('aria-expanded'), label: tx(fs), rows: fold.querySelectorAll('li.crl-row').length,
+      seen: [...fold.querySelectorAll('li.crl-row')].filter(vis).length },
+  };
+};
+async function runPayViz(browser, s, [w, h]) {
+  const tag = `${s} ${w}（給与の鍵の開いた人の図）`;
+  const body = JSON.stringify({ ok: true, state: 'open', give: { basic: true, detailed: true, payslip: false, full: false }, rows: PV_ROWS(s) });
+  const { ctx, p, seen, ready } = await open(browser, s, w, h, 'rows', null, body);
+  const ev = (fn, ...a) => p.evaluate(fn, ...a);
+  const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 15000 }, ...a).then(() => true, () => false);
+  const DONE = () => { const x = document.querySelector('#pvg-realpay .crl-pv'); return !!x && x.getAttribute('data-pv') === 'done'; };
+  const capOk = (V, at) => {
+    const bad = [];
+    if (!V.pv || V.state !== 'open') return [`${at}：図の器が見えていない（${V.state}）`];
+    if (!same(V.order.slice(0, 4), ['count', 'pv', 'fold', 'foot'])) bad.push(`${at}：並びが 件数 → 図 → 畳んだ行 → 足元 でない（${V.order.join(' → ')}）`);
+    /* ★2026-10-30 年収の幅のカード：図のいちばん上・機長と副操縦士の2本（職位の切り替えに関係なく）・同じ目盛（中央値の印の位置の比 ＝ 額の比）・
+       25%・75% の来た機長だけ箱・額の行は見本の中央値を今の通貨にした字のまま・社名の札は置かない（1社） */
+    const R = V.rg, rc = R && R.pos.find(x => x.k === 'cap'), rf = R && R.pos.find(x => x.k === 'fo');
+    if (!R || !R.first || R.head !== '年収の幅（25〜75%）' || R.tags || R.pos.length !== 2 || !rc || !rf || rc.h !== '機長' || rf.h !== '副操縦士' || rc.rows !== 1 || rf.rows !== 1
+        || !rc.box || rf.box || !(Math.abs(rc.med / rf.med - 230 / 115) < 0.1) || !(Math.abs(rc.box[0] / rc.med - 205 / 230) < 0.03)
+        || rc.key !== `25% ${V.want.cap[0]} · 中央値 ${V.want.cap[1]} · 75% ${V.want.cap[2]}` || rf.key !== `中央値 ${V.want.fo[0]}`) {
+      bad.push(`${at}：年収の幅のカードが「いちばん上・2本・同じ目盛・機長だけ箱・額は中央値の答えのまま」でない（${JSON.stringify({ R, want: V.want })}）`);
+    }
+    /* カードの形：角丸 12px・枠 1px・影は2層・中の余白 14px 以上（年収の幅・年数の図・内訳の円） */
+    if (!V.cards.every(c => c && c.r === '12px' && c.b === '1px' && c.layers === 2 && c.pad >= 14)) bad.push(`${at}：図がカードの形でない（${JSON.stringify(V.cards)}）`);
+    /* 1件ずつの行は畳みの中（最初は閉じている・字は「提出された数字を見る（3件）」＝ 欄の行の数） */
+    if (!V.fold || V.fold.open || V.fold.exp !== 'false' || V.fold.label !== '提出された数字を見る（3件）' || V.fold.rows !== 3 || V.fold.seen) bad.push(`${at}：行の畳みが「閉じた・3件」でない（${JSON.stringify(V.fold)}）`);
+    if (!same(V.pick, [['cap', 'true'], ['fo', 'false']])) bad.push(`${at}：職位の切り替えが「機長（選ばれている）・副操縦士」でない（${JSON.stringify(V.pick)}）`);
+    if (V.figs !== 1 || V.pos !== 'cap' || V.legend) bad.push(`${at}：図が機長の1つでない・凡例が在る（図 ${V.figs}・${V.pos}・凡例 ${V.legend}）`);
+    if (V.dots !== pvDots(s, 'cap')) bad.push(`${at}：点が ${V.dots}つ（あるべき ${pvDots(s, 'cap')}つ ＝ この会社の機長の、昇格後の年数の段が在る行）`);
+    if (V.band !== 'range' || V.box !== 1 || V.line !== 1 || !same(V.side, ['25%', '中央値', '75%'])) bad.push(`${at}：機長の帯（25〜75% の面・中央値の線・右の端の名前3つ）が無い（${V.band}・面 ${V.box}・線 ${V.line}・${V.side.join('/')}）`);
+    if (!/^25% \S+ · 中央値 \S+ · 75% \S+$/.test(V.key || '')) bad.push(`${at}：図の下の1行が「25% … · 中央値 … · 75% …」でない（${V.key}）`);
+    if (!(V.dotMax <= 100 && V.bandTop <= 100 && V.bandTop > 0)) bad.push(`${at}：目盛が点と帯を入れていない（点 ${V.dotMax}%・帯 ${V.bandTop}%）`);
+    if (!(V.note || '').includes('（1件）')) bad.push(`${at}：古い行（在籍年数だけ）の1件の断りが無い（${V.note}）`);
+    if (!/^〜5年 · /.test(V.dotTip || '')) bad.push(`${at}：点の札が「段 · 額」で始まらない（1社の図に社名を繰り返さない ── ${V.dotTip}）`);
+    const D = V.dn, sum = D ? D.segs.reduce((a, x) => a + parseInt(x[2], 10), 0) : 0;
+    if (!D || !D.on || D.head !== '月の給与の内訳（平均）' || D.arcs !== COMP_SEGS.length || D.segs.length !== COMP_SEGS.length || sum !== 100
+        || !same(D.segs.map(x => [x[0], x[2]]), COMP_SEGS.map(x => [x.k, x.pct + '%'])) || D.segs.some(x => !x[1] || !/\d/.test(x[3] || ''))
+        || D.def !== '内訳を書いた給与の提出（給与の月が2024年10月〜2026年9月）から。金額は月の平均です。') {
+      bad.push(`${at}：機長の内訳のドーナツが、サーバーの割合のまま（合計 100・6区分・名前と月の平均額つき）でない（${JSON.stringify(D)}）`);
+    }
+    if (V.deep) bad.push(`${at}：「DEEP PAY」の字か住所が在る`);
+    return bad;
+  };
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    const done = await until(DONE);
+    const V = await ev(PV_SEE);
+    ok(done && !capOk(V, '概要').length, `${tag}: 概要 ── 件数 → 図 → 行 → 足元・職位の切り替え・機長の点 ${pvDots(s, 'cap')}つ・帯と中央値の線・右の端の名前・ドーナツ（割合はサーバーの数のまま・合計 100）`, capOk(V, '概要').join(' ／ '));
+    const calls = [seen.cpayCalls, seen.compCalls].map(L => L.map(x => { try { return JSON.parse(x).p; } catch { return x; } }));
+    ok(same(calls, [[{ airlines: [s] }], [{ airlines: [s] }]]), `${tag}: 中央値と内訳は、この会社だけで1回ずつ聞く（{ airlines: [${s}] }）`, JSON.stringify(calls));
+    /* 畳みを押すと開き、3行が見える・aria-expanded も true・もう一度押すと閉じる（キーボード：summary にフォーカスして Enter） */
+    {
+      await ev(() => document.querySelector('#pvg-realpay details.crl-pay-fold > summary').focus());
+      await p.keyboard.press('Enter');
+      await until(() => { const x = document.querySelector('#pvg-realpay details.crl-pay-fold'); return !!x && x.open && x.firstElementChild.getAttribute('aria-expanded') === 'true'; });
+      const Fo = (await ev(PV_SEE)).fold;
+      await ev(() => document.querySelector('#pvg-realpay details.crl-pay-fold > summary').click());
+      await until(() => { const x = document.querySelector('#pvg-realpay details.crl-pay-fold'); return !!x && !x.open && x.firstElementChild.getAttribute('aria-expanded') === 'false'; });
+      const Fc = (await ev(PV_SEE)).fold;
+      ok(!!Fo && Fo.open && Fo.exp === 'true' && Fo.seen === 3 && !!Fc && !Fc.open && Fc.exp === 'false' && !Fc.seen,
+        `${tag}: 「提出された数字を見る（3件）」はキーボードで開き、3行が見える（aria-expanded も true）・押すと閉じる`, JSON.stringify({ Fo, Fc }));
+    }
+    const geo0 = await ev(() => window.__pvg.geom(true));
+    ok(!geo0.length, `${tag}: 図のある概要で、切れ・はみ出し・重なりが無い`, geo0.slice(0, 6).join('\n      '));
+    const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
+    /* 点（押すと額の札が出る 24px の丸 ── 比較の図と同じ大きさ）は、押す場所の 44px を測らない（並んだ点どうしが重なる）。字の大きさと押せる状態は見る */
+    const tap = pr.tap.filter(x => !/^button\.crl-yd-d/.test(x));
+    /* 狭い1社の図の短い目盛（span.crl-yd-xs「〜5」など）も 12px 以上（幅は右の端の名前を外して作る・2026-10-30） */
+    const small = pr.small;
+    ok(!small.length && !tap.length && !pr.bare.length, `${tag}: 図の字 12px 以上・切り替えのボタンは押す場所 44px 以上・押せるものに状態が在る`, [...small, ...tap, ...pr.bare].slice(0, 8).join('\n      '));
+    /* 副操縦士へ：点 2つ・中央値だけの線（面は無い）・内訳は無い（人数が足りない）・聞き直さない・フォーカスは押したボタン */
+    const n0 = seen.cpayCalls.length + seen.compCalls.length;
+    await ev(() => document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="fo"]').focus());
+    await ev(() => document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="fo"]').click());
+    await until(() => { const b = document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="fo"]'); return !!b && b.getAttribute('aria-pressed') === 'true'; });
+    const F = await ev(PV_SEE);
+    ok(F.pos === 'fo' && F.dots === pvDots(s, 'fo') && F.band === 'median' && F.box === 0 && F.line === 1 && same(F.side, ['中央値']) && /^中央値 \S+$/.test(F.key || '') && F.dn === null
+       && seen.cpayCalls.length + seen.compCalls.length === n0 && F.focus === 'fo',
+       `${tag}: 副操縦士を押すと ── 点 ${pvDots(s, 'fo')}つ・中央値だけの線（25〜75% の面は無い）・内訳は出ない（人数が足りない）・聞き直さない・フォーカスは押したボタン`, JSON.stringify(F));
+    /* 通貨を替える：選んだ職位のまま・切れ・はみ出しが無い（円のほかの通貨） */
+    const curs = ['USD', 'EUR', 'AED'];
+    const badC = [];
+    for (const cur of curs) {
+      const now = await ev(c => { window.PVCurrency.set(c); return window.PVCurrency.get(); }, cur);
+      await until(DONE);
+      const C = await ev(PV_SEE);
+      if (now !== cur) { badC.push(`${cur} に替わらない`); continue; }
+      if (C.pos !== 'fo' || !C.pv) badC.push(`${cur}：選んだ職位が戻った（${C.pos}）`);
+      if (/¥|万/.test(C.key || '')) badC.push(`${cur}：図の下の1行に円の字が残る（${C.key}）`);
+      for (const g of await ev(() => window.__pvg.geom(true))) badC.push(`${cur}：${g}`);
+      await ev(() => document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="cap"]').click());
+      await until(() => { const b = document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="cap"]'); return !!b && b.getAttribute('aria-pressed') === 'true'; });
+      const Cc = await ev(PV_SEE);
+      if (/¥|万/.test(`${Cc.key} ${Cc.dn ? Cc.dn.segs.map(x => x[3]).join(' ') : ''}`)) badC.push(`${cur}：機長の図・ドーナツに円の字が残る`);
+      for (const g of await ev(() => window.__pvg.geom(true))) badC.push(`${cur}（機長）：${g}`);
+      await ev(() => document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="fo"]').click());
+      await until(() => { const b = document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="fo"]'); return !!b && b.getAttribute('aria-pressed') === 'true'; });
+    }
+    await ev(() => window.PVCurrency.set('JPY'));
+    await ev(() => document.querySelector('#pvg-realpay .crl-pv-pb[data-pos="cap"]').click());
+    ok(!badC.length, `${tag}: 通貨を替えても（${curs.join('・')}）選んだ職位のまま・円の字が残らない・切れ・はみ出し・重なりが無い`, [...new Set(badC)].slice(0, 6).join(' ／ '));
+    /* 給与・待遇のタブでも同じ図 */
+    await ev(() => document.querySelector('.pvg-tabs [data-pvg-tab="pay"]').click());
+    const moved = await until(() => !!window.PVGlance && window.PVGlance.at() === 'pay' && document.body.classList.contains('pvg-at-pay'));
+    await until(DONE);
+    const P = await ev(PV_SEE);
+    ok(moved && !capOk(P, '給与・待遇のタブ').length, `${tag}: 給与・待遇のタブでも、同じ図（機長の点・帯・ドーナツ）が行の上に在る`, moved ? capOk(P, '給与・待遇のタブ').join(' ／ ') : 'タブへ移れない');
+    const geo3 = await ev(() => window.__pvg.geom(true));
+    ok(!geo3.length, `${tag}: 給与・待遇のタブでも、切れ・はみ出し・重なりが無い`, geo3.slice(0, 6).join('\n      '));
+    ok(!seen.unknown.size, `${tag}: 検査が返事を用意していない口を呼んでいない`, [...seen.unknown].join(' '));
+    if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/payviz-${s}-${w}.png`, fullPage: false });
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
+  }
+}
+/* 内訳の口がまだ無い（PGRST202）：ドーナツだけが無い（図と行は出る・失敗の顔にしない） */
+async function runPayVizNoComp(browser, s, [w, h]) {
+  const tag = `${s} ${w}（内訳の口がまだ無い）`;
+  const body = JSON.stringify({ ok: true, state: 'open', give: { basic: true, detailed: true, payslip: false, full: false }, rows: PV_ROWS(s) });
+  const { ctx, p, ready } = await open(browser, s, w, h, 'rows', null, body, { comp: 'nofn' });
+  try {
+    ok(ready, `${tag}: 「読み込み中」のまま固まらない`);
+    const done = await p.waitForFunction(() => { const x = document.querySelector('#pvg-realpay .crl-pv'); return !!x && x.getAttribute('data-pv') === 'done'; }, { timeout: 15000 }).then(() => true, () => false);
+    const V = await p.evaluate(PV_SEE);
+    const err = await p.evaluate(() => (document.querySelector('#pvg-realpay .crl[data-live="realpay"]') || {}).textContent || '');
+    ok(done && V.state === 'open' && V.pv && V.dots === pvDots(s, 'cap') && V.dn === null && !err.includes('いま読み出せません') && !err.includes('準備中'),
+       `${tag}: 欄は開いたまま・年数の図と帯は出る・ドーナツだけが無い（「いま読み出せません」「準備中」を出さない）`, JSON.stringify({ done, state: V.state, dots: V.dots, dn: V.dn }));
+  } catch (e) {
+    ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
+  } finally {
+    await ctx.close().catch(() => {});
   }
 }
 /* 件数と札が横に並ぶのは箱 296px（画面 344px）から。その下では札が件数の下の段へ下りる。
@@ -4123,7 +4402,7 @@ async function runRated(browser, s, [w, h, kind]) {
     {
       const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, 'locked');
       if (sc.card && sc.card.sum && sc.card.sum.text.includes(SUM_LEAK.slice(0, 8))) bad.push('サーバーが混ぜた要約の文が、鍵の無い人の画面に出ている');
-      ok(!bad.length, `${tag}: 社名の行の星 ＝ カードの総合点（${W.avg.toFixed(1)}・${W.n}件）・6角形の図は点数どおり・書く入口は2行のボタン1つ・要約は「${SUM_LOCK_TEXT}」の1行だけ（サーバーが文を送ってきても出さない）`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 社名の行の星 ＝ カードの総合点（${W.avg.toFixed(1)}・${W.n}件）・6角形の図は点数どおり・書く入口は2行のボタン1つ・要約はまとめの最初の1文（lead）と影絵と板「${SUM_LOCK_TEXT}」「${SUM_WRITE_TEXT}」だけ（サーバーが文を送ってきても出さない）`, bad.join(' ／ '));
     }
     {
       const r = sc.card && sc.card.revs, bad = [];
@@ -4191,13 +4470,14 @@ async function runRated(browser, s, [w, h, kind]) {
         if (!c2.sum || !SUM_WANT.locked(c2.sum)) bad.push(`口コミのタブ：要約の欄が「locked」の形でない（${c2.sum ? `${c2.sum.state}・${c2.sum.why}・「${c2.sum.text.slice(0, 40)}」・項目 ${c2.sum.items}・入口 ${c2.sum.links}` : '欄が無い'}）`);
         if (!c2.revs || !same(c2.revs.locks, [SUM_LOCK_TEXT])) bad.push(`口コミのタブ：見えている錠前の行が ${c2.revs ? `${c2.revs.locks.length}つ（${c2.revs.locks.join('｜')}）` : '読めない'}（あるべき「${SUM_LOCK_TEXT}」の1つ）`);
         if (c2.logins !== 0) bad.push(`口コミのタブ：カードの中にログインの入口が ${c2.logins}つ（あるべき 0）`);
-        const hs = await ev(() => [...document.querySelectorAll('#pvg-score a[href*="submit-review"]')].filter(a => a.getClientRects().length && a.checkVisibility({ visibilityProperty: true })).map(a => Math.round(a.getBoundingClientRect().height)));
+        /* ★2026-10-30 要約の板の「匿名で口コミを書く」は数えない（カードの書く入口は、要約の欄の外の2行のボタン） */
+        const hs = await ev(() => [...document.querySelectorAll('#pvg-score a[href*="submit-review"]')].filter(a => !a.closest('.crl[data-live="summary"]') && a.getClientRects().length && a.checkVisibility({ visibilityProperty: true })).map(a => Math.round(a.getBoundingClientRect().height)));
         if (!same(c2.write, [{ k: 'Give & Get', m: RV_GIVE.reviews, stacked: true, href: `../submit-review.html?airline=${s}` }]) || !(hs.length === 1 && hs[0] >= 44)) {
           bad.push(`口コミのタブ：書く入口が、2行のボタン「Give & Get／${RV_GIVE.reviews}」1つ（44px 以上）でない：${c2.write.map(a => `${a.k || ''}／${a.m}${a.stacked ? '' : '（2行でない）'} → ${a.href}`).join(' ‖ ') || '見えていない'}（高さ ${hs.join('・') || '—'}）`);
         }
         for (const b of await sumLeakOf(p)) leak.push(`口コミのタブ：${b}`);
       }
-      ok(!bad.length, `${tag}: 概要と口コミのタブの両方で、要約は「${SUM_LOCK_TEXT}」の1行だけ（リンク無し）・錠前の1行はその1つ・ログインの入口は無い・口コミのタブの書く入口は「${RV_GIVE.reviews}」の2行のボタン1つ`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 概要と口コミのタブの両方で、要約は lead・影絵・板（「${SUM_LOCK_TEXT}」と「${SUM_WRITE_TEXT}」1つ）だけ・錠前の1行はその1つ・ログインの入口は無い・口コミのタブの書く入口は「${RV_GIVE.reviews}」の2行のボタン1つ`, bad.join(' ／ '));
       ok(!leak.length, `${tag}: 概要と口コミのタブの両方で、ページのソース（属性の中も）と手元の保存に、サーバーが混ぜた要約の文も元の口コミの番号も無い`, leak.join(' ／ '));
     }
   } catch (e) {
@@ -4315,7 +4595,8 @@ async function runRatedOne(browser, s, [w, h, kind], mode) {
   /* 錠前の1行とログインの入口（カードの中で見えているもの）。未ログインは ちょうど 錠前1（要約の欄の1行）・ログイン1。ほかの形は どちらも1つまで。 */
   const cBad = (c, at) => {
     const r = c.revs, n = r ? r.locks.length : -1, bad = [];
-    if (login ? !(r && same(r.locks, [SUM_LOGIN_TEXT])) : !(r && n <= 1)) bad.push(`${at}：見えている錠前の行が ${r ? `${n}つ（${r.locks.join('｜')}）` : '読めない'}（あるべき ${login ? `「${SUM_LOGIN_TEXT}」の1つ` : '1つまで'}）`);
+    /* ★2026-10-30 未ログインの人の要約の板の1行も「要約は口コミの投稿で開きます」（その下に「匿名で口コミを書く」と「ログイン」） */
+    if (login ? !(r && same(r.locks, [SUM_LOCK_TEXT])) : !(r && n <= 1)) bad.push(`${at}：見えている錠前の行が ${r ? `${n}つ（${r.locks.join('｜')}）` : '読めない'}（あるべき ${login ? `「${SUM_LOCK_TEXT}」の1つ` : '1つまで'}）`);
     if (login ? c.logins !== 1 : !(c.logins <= 1)) bad.push(`${at}：カードの中のログインの入口が ${c.logins}つ（あるべき ${login ? '1つ' : '1つまで'}）`);
     return bad;
   };
@@ -4327,7 +4608,7 @@ async function runRatedOne(browser, s, [w, h, kind], mode) {
     const sc = await ev(() => window.__pvg.score()), c = sc.card;
     const bad = scoreBad(s, sc, live.filter(IS_SCORE), rows, want);
     ok(!bad.length, `${tag}: 概要 ── 星と図は点数どおり・書く入口は2行のボタン1つ・要約の欄は「${want}」の形`, bad.join(' ／ '));
-    const B = { b: (await sumLeakOf(p)).map(x => `概要：${x}`), c: c ? cBad(c, '概要') : ['概要：カードが見えていない'], d: c && c.sum ? seqBad(c.sum, want, want !== 'error').map(x => `概要：${x}`) : [] }, face = [];
+    const B = { b: (await sumLeakOf(p)).map(x => `概要：${x}`), c: c ? cBad(c, '概要') : ['概要：カードが見えていない'], d: c && c.sum ? seqBad(c.sum, want, want !== 'error' && want !== 'login').map(x => `概要：${x}`) : [] }, face = [];
     if (login) {
       const href = c && c.sum && c.sum.login.length === 1 ? c.sum.login[0] : '';
       ok(href.startsWith('../login.html?redirect=') && href.endsWith(encodeURIComponent(`airlines/${s}.html`)), `${tag}: ログインの入口が、このページ（airlines/${s}.html）へ戻る`, href || '入口が無い');
@@ -4364,8 +4645,9 @@ async function runRatedOne(browser, s, [w, h, kind], mode) {
       else ok(rvl.every(x => x.href.endsWith('%23reviews')), `${tag}: 口コミのタブの一覧の中のログインの入口（login.html?return=）は、どれも %23reviews まで付けて、口コミのタブへ戻る`, rvl.map(x => `${x.href}${x.on ? '' : '（隠れている）'}`).join(' ／ '));
     }
     ok(!B.b.length, `${tag}: 概要と口コミのタブの両方で、ページのソース（属性の中も）と手元の保存に、届いた要約の文も元の口コミの番号も無い（閉じた形は届いた中身を描かない）`, B.b.join(' ／ '));
-    ok(!B.c.length, `${tag}: 概要と口コミのタブの両方で、カードの錠前の1行とログインの入口は ${login ? `「${SUM_LOGIN_TEXT}」1つ・ログイン1つ` : '1つまで'}（同じ案内を重ねない）`, B.c.join(' ／ '));
-    ok(!B.d.length, `${tag}: 要約の欄は「読み込み中」→「${SUM_FINAL[want]}」だけを通る${want === 'error' ? '' : '・答えが来ても高さが動かない（2px まで）'}`, B.d.join(' ／ '));
+    ok(!B.c.length, `${tag}: 概要と口コミのタブの両方で、カードの錠前の1行とログインの入口は ${login ? `「${SUM_LOCK_TEXT}」1つ・ログイン1つ` : '1つまで'}（同じ案内を重ねない）`, B.c.join(' ／ '));
+    /* ★2026-10-30 未ログインの形は影絵と板を持つ（1行で済む形ではない）── 高さが動かないことを見るのは、1行で済む形（少ない／まだ無い）だけ */
+    ok(!B.d.length, `${tag}: 要約の欄は「読み込み中」→「${SUM_FINAL[want]}」だけを通る${want === 'error' || login ? '' : '・答えが来ても高さが動かない（2px まで）'}`, B.d.join(' ／ '));
     ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
     if (login) {
       /* 口コミのタブで開いた時：ログインの入口は、その同じタブへ戻る（同じページの物 ＝ 偽のサーバーと SUM_WATCH は付いたまま）。 */
@@ -8558,6 +8840,8 @@ try {
   if (wantS('off')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => OFF_CARD_W.includes(x[0]))) work.push(() => runOffCard(browser, s, v));
   if (wantS('rows')) for (const s of ONLY) for (const v of VIEWS.filter(x => ROWS_W.includes(x[0]))) work.push(() => runRows(browser, s, v));
   if (wantS('who')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || WHO_W.includes(x[0]))) work.push(() => runWho(browser, s, v));
+  if (wantS('payviz')) for (const s of ONLY) for (const v of VIEWS.filter(x => WANT_W || PV_W.includes(x[0]))) work.push(() => runPayViz(browser, s, v));
+  if (wantS('payviz')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => x[0] === 390)) work.push(() => runPayVizNoComp(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) for (const v of VIEWS.filter(x => RATED_W.includes(x[0]))) work.push(() => runRated(browser, s, v), () => runRated404(browser, s, v), () => runRatedLogin(browser, s, v), () => runRatedFew(browser, s, v), () => runRatedNone(browser, s, v), () => runRatedErr(browser, s, v), () => runRatedOpen(browser, s, v));
   if (wantS('rated')) for (const s of ONLY) { const v = VIEWS.find(x => RATED_W.includes(x[0])); if (v) work.push(() => runRatedStale(browser, s, v)); }
   if (wantS('rated')) for (const s of ONLY.slice(0, 1)) for (const v of VIEWS.filter(x => [390, 1440].includes(x[0]))) for (const m of Object.keys(THIN)) work.push(() => runRatedThin(browser, s, v, m));

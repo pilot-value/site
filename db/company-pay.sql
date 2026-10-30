@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- db/company-pay.sql — 比較の「提出された年収」の中央値（会社 × 職位）。本番未適用。
+-- db/company-pay.sql — 会社ページと比較の「提出された年収」の中央値（会社 × 職位）。2026-10-30 版：5人以上の区分は 25%・75% も返す。
 --
 -- ── 数字の決め方（1文）──────────────────────────────────────
 --   決めるのは db/pay-median.sql の pv_pay_medians() の1か所（地域の中央値と同じ式）。
@@ -8,7 +8,9 @@
 -- ── 守っている約束 ────────────────────────────────────────
 --  1. 鍵の無い人へは { ok, state } の2つしか返さない（人数・期間・どの会社に数字が在るか、どれも返さない）。
 --     鍵 ＝ REAL PAY の一覧が開く条件と同じ。判定は db/work-months.sql の pv_work_level() の1か所。ここに条件を書き写さない。
---  2. 人数・件数・まんなか半分の幅は返さない（人数はどこにも出さない ── DEEP PAY と同じ）。
+--  2. 人数・件数は返さない（人数はどこにも出さない ── DEEP PAY と同じ）。
+--     まんなか半分の幅（p25_usd・p75_usd）は、db/pay-median.sql が返したときだけ渡す（5人からの区分・2026-10-30）。
+--     幅が在ることから分かるのは「5人以上」だけ。人数そのものは返さない。
 --  3. 数字の決め方の約束は db/pay-median.sql の頭に在る。
 --  4. 一度に聞けるのは2社まで。語彙に無い会社・3社以上・同じ会社2つは { ok:false, state:'bad' }（別の区分に読み替えない）。
 --  5. 何も書き込まない。資格を1つも付けない。
@@ -35,7 +37,8 @@ end $$;
 -- 返す形:
 --   鍵が無い … { ok:true, state:'locked' }
 --   鍵が在る … { ok:true, state:'open', period:{from:'YYYY-MM', to:'YYYY-MM'}, floor:<db/pay-median.sql の壁>,
---                airlines:{ <会社>:{ cap:<区分>, fo:<区分> }, … } }   <区分> ＝ { s:'few' } ／ { s:'ok', median_usd }
+--                airlines:{ <会社>:{ cap:<区分>, fo:<区分> }, … } }
+--     <区分> ＝ { s:'few' } ／ { s:'ok', median_usd } ／ { s:'ok', median_usd, p25_usd, p75_usd }（幅は5人から）
 create or replace function public.pv_company_pay(p jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
@@ -60,7 +63,7 @@ begin
   end if;
   select public.pv_pay_medians(coalesce(jsonb_object_agg(a.code, jsonb_build_array(a.code)), '{}'::jsonb))
     into v_m from unnest(v_air) as a(code);
-  -- 区分は2つの形だけに作り直す（数字が在れば額だけ）。
+  -- 区分は作り直す（数字が在れば額と、5人からの幅だけ）。人数・件数は渡さない。
   return jsonb_build_object(
            'ok', true, 'state', 'open',
            'period', v_m -> 'period',
@@ -69,7 +72,9 @@ begin
              select jsonb_object_agg(g.key, (
                       select jsonb_object_agg(c.key,
                                case when c.value ->> 's' = 'ok'
-                                    then jsonb_build_object('s', 'ok', 'median_usd', c.value -> 'median_usd')
+                                    then jsonb_strip_nulls(jsonb_build_object(
+                                           's', 'ok', 'median_usd', c.value -> 'median_usd',
+                                           'p25_usd', c.value -> 'p25_usd', 'p75_usd', c.value -> 'p75_usd'))
                                     else jsonb_build_object('s', 'few') end)
                         from jsonb_each(g.value) as c(key, value)))
                from jsonb_each(v_m -> 'groups') as g(key, value)), '{}'::jsonb));
@@ -81,7 +86,7 @@ revoke all on function public.pv_company_pay(jsonb) from public, anon, authentic
 grant execute on function public.pv_company_pay(jsonb) to authenticated;
 comment on function public.pv_company_pay(jsonb) is
   '比較の「提出された年収」の中央値（会社 × 職位）。給与の鍵が生きている人と運営にだけ。'
-  '★鍵の無い人へは { ok, state } だけ。区分は { s:few } か { s:ok, median_usd } だけ（人数・件数・幅は返さない）。';
+  '★鍵の無い人へは { ok, state } だけ。区分は { s:few } か { s:ok, median_usd }、5人からは p25_usd・p75_usd も（人数・件数は返さない）。';
 
 -- 検算（貼ったあとに出る6行。全部 ✅ が正しい。★「貼れた」は証拠にならない。この6行を読む）
 with d as (select pg_get_functiondef('public.pv_company_pay(jsonb)'::regprocedure) as s)
@@ -97,9 +102,11 @@ union all select 3, '数字の決め方は pv_pay_medians の1か所',
        case when (select s from d) like '%pv_pay_medians(%' and (select s from d) not like '%percentile_cont%'
              and (select s from d) not like '%pay_reports%' and (select s from d) not like '%reviews_v2%'
              and (select s from d) not like '%avg(%' then '✅' else '❌' end
-union all select 4, '人数・件数・幅を渡さない',
+union all select 4, '人数・件数を渡さない（幅は 5人から pay-median.sql が返したものだけ）',
        case when (select s from d) not like '%people%' and (select s from d) not like '%records%'
-             and (select s from d) not like '%p25%' and (select s from d) not like '%p75%' then '✅' else '❌' end
+             and (select s from d) not like '%band_floor%' and (select s from d) not like '%human%'
+             and (select s from d) like '%''p25_usd'', c.value -> ''p25_usd''%'
+             and (select s from d) like '%''p75_usd'', c.value -> ''p75_usd''%' then '✅' else '❌' end
 union all select 5, '機材で分けない（関数の中に機材の字が無い）',
        case when (select s from d) not like '%fleet%' and (select s from d) not like '%aircraft%' then '✅' else '❌' end
 union all select 6, '壁の数をここに書いていない',
