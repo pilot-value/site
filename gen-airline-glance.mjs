@@ -117,11 +117,13 @@ const IC = {
   prev: svg('M15 6l-6 6 6 6', 'pvg-ic pvg-ic-s'),
   find: svg('M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4'),
   clock: svg('M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z'),
-  /* 下の4つは「情報を追加」の面（pv-contrib.js の ICONS）の絵の写し ── 札を押して開く面と同じ絵。同じままかは assert-airline-glance.mjs が面のファイルを読んで突き合わせる。 */
+  /* 下の6つは「情報を追加」の面（pv-contrib.js の ICONS）の絵の写し ── 札を押して開く面と同じ絵。同じままかは assert-airline-glance.mjs が面のファイルを読んで突き合わせる。 */
   sheetRoster: svg('M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z M4 10h16 M8 3v4 M16 3v4'),
   sheetTaxi: svg('M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z M12 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'),
   sheetStaffTravel: svg('M21 3 3 10.5l6.5 2.5L12 20l9-17z M9.5 13 21 3'),
   sheetUpgrade: svg('M2.5 9.5 12 5l9.5 4.5L12 14 2.5 9.5z M6.5 11.5V16c1.5 1.4 3.4 2 5.5 2s4-.6 5.5-2v-4.5'),
+  sheetCareer: svg('M3 20h5v-5h5v-5h5V5h3'),
+  sheetBenefits: svg('M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M12 2v2 M12 20v2 M4.9 4.9l1.4 1.4 M17.7 17.7l1.4 1.4 M2 12h2 M20 12h2 M4.9 19.1l1.4-1.4 M17.7 6.3l1.4-1.4'),
 };
 
 /* ── タブ（見本の6つ・左から）───────────────────────────────
@@ -1111,17 +1113,48 @@ ${live('hotels', { airline: v.slug, stay: '', city: '' })}
 /* 「◯◯のこと、ひとつ教えて。」── 質問の名前まで見せる。
    集まった回答は、話題の上に1つの欄でまとめて出す（3人そろった項目だけ。件数はサーバーの答え）。
    話題ごとに欄を分けると、回答のある話題だけ質問の並びが下がり、列がそろわなくなる。
-   札の数は質問の数。回答の数ではない。 */
-const ROSTER = ['work', '勤務', WORK_ASK];
-const ASK_FIRST = 4;                               // 広い箱で、話題ごとに最初から見せる質問の数（pv-glance.css の nth-child と同じ）
+   札の数は質問の数。回答の数ではない。
+   ★2026-10-29 オーナー「全部出そう。勤務スケジュール、休暇・手当、訓練・キャリアも」── 「情報を追加」の面の話題を、ここにも全部並べる。
+   ・前の「勤務」の札（希望休など4問）は、中身が勤務スケジュールの質問だった ── 面と同じ名前の「勤務スケジュール」にして、10問ぜんぶを並べる
+     （「勤務」を残して勤務スケジュールを足すと、同じ質問が2つの札に並ぶ）。面の「勤務」（月の勤務の数字）は、勤務のタブの入口から入る。
+   ・足した3つの話題の質問は、面と同じ決め方（askGroup）で台帳から拾う ── 鍵を書き写さない。
+     並びは、最初に見せる質問（勤務スケジュールは前の4問）→ ほかの親の質問 → 子の質問（どれも台帳の順）。
+   ・額の質問（通貨つき）は行に出さない ── 親の質問に答えた先で面が聞く。上の「集まった回答」の欄は並ぶ質問を全部指し、通貨を付けずに数字だけを出す。
+   ・日本語の行の字は短い名前（WORK_ASK・BEN_ASK・GROUP_SAY）。無い質問は質問の文そのもの。英語は台帳の英語の問い（askName）。 */
+const GROUP_SAY = {
+  schedule_bidding: '勤務の希望を出せるか', seniority_effect: '希望の通りやすさと先任順位', days_off_request_limit: '希望休は月に何日までか',
+  bidding_scope: '出せる希望の種類', reserve_location: 'スタンバイは自宅か空港か', reserve_days: 'スタンバイは月に何日か',
+  external_hiring: '中途入社できるか', training_bond: '訓練費の返済義務（Bond）', cadet_program: '自社養成の制度', fo_development: '副操縦士の育成の支援',
+  external_experience_credit: '前職の経験が待遇に効くか', external_seniority_start: '中途入社の先任順位の起点', external_hiring_types: '採用の形',
+  training_bond_years: 'Bond の拘束年数',
+  peer_support: 'Peer Support の制度', landing_pay: '着陸手当があるか', ground_duty_pay: '乗務以外の業務の手当',
+  sick_leave_days: '病気休暇の年間日数', landing_pay_unit: '着陸手当の数え方', landing_pay_varies_by: '着陸手当の額が何で変わるか',
+};
+{
+  const lost = Object.keys(GROUP_SAY).filter(id => !Q_BY[id]);
+  if (lost.length) throw new Error(`ひとつ教えて：短い名前を書いた質問が台帳に無い（${lost.join('・')}）`);
+}
+function groupAsk(g, first = []) {
+  const say = Object.fromEntries([...WORK_ASK, ...BEN_ASK]);
+  const qs = QUESTIONS.filter(q => !q.retired && !q.currency && askGroup(q.id) === g);
+  if (!qs.length) throw new Error(`ひとつ教えて：話題「${g}」に面で答えられる質問が1つも無い（pv-conditions.mjs）`);
+  const miss = first.filter(id => !qs.some(q => q.id === id));
+  if (miss.length) throw new Error(`ひとつ教えて：最初に見せる質問が話題「${g}」に無い（${miss.join('・')}）`);
+  const rest = qs.filter(q => !first.includes(q.id));
+  return [...first, ...rest.filter(q => !q.parent).map(q => q.id), ...rest.filter(q => q.parent).map(q => q.id)]
+    .map(id => [id, say[id] || GROUP_SAY[id] || Q_BY[id].ja.label]);
+}
+const ROSTER = ['roster', '勤務スケジュール', groupAsk('roster', WORK_ASK.map(a => a[0]))];
+const MORE_TOPICS = [['career', '訓練・キャリア', groupAsk('career')], ['benefits', '休暇・手当', groupAsk('benefits')]];
+const ASK_FIRST = 4;                              // 広い箱で、話題ごとに最初から見せる質問の数（pv-glance.css の nth-child と同じ）
 /* 話題の札 ── 絵（色に頼らない目印）→ 話題の名前 → 小さい字（補足・質問の数）。
    「質問 N問」は、この話題で答えられる質問の数（＝ 下に並ぶ行の数）。集まった回答の数ではない。
    回答の数は札に書かない（話題ごとの数はサーバーに無い。在るのは「集まった回答」の欄の、3人そろった項目だけ）。 */
-const TOPIC_IC = { work: IC.sheetRoster, taxi: IC.sheetTaxi, 'staff-travel': IC.sheetStaffTravel, upgrade: IC.sheetUpgrade };
+const TOPIC_IC = { roster: IC.sheetRoster, taxi: IC.sheetTaxi, 'staff-travel': IC.sheetStaffTravel, upgrade: IC.sheetUpgrade, career: IC.sheetCareer, benefits: IC.sheetBenefits };
 const TOPIC_NAME = { taxi: ['通勤・タクシー'], 'staff-travel': ['Staff Travel', '社員向け航空券'] };
 const topicHead = (icon, name, meta) => `<span class="pvg-ico" aria-hidden="true">${icon}</span><span class="pvg-tp"><span class="pvg-tp-n">${esc(name)}</span><span class="pvg-tp-m">${meta}</span></span>`;
 function askCard(v) {
-  const groups = [ROSTER, ...TOPICS].map(([id, title, list]) => {
+  const groups = [ROSTER, ...TOPICS, ...MORE_TOPICS].map(([id, title, list]) => {
     if (!TOPIC_IC[id]) throw new Error(`askCard: 話題「${id}」の絵が無い（TOPIC_IC に足す）`);
     const [name = title, gloss = ''] = LANG === 'en' ? W.topic[id] || [] : TOPIC_NAME[id] || [];
     if (LANG === 'en' && !W.topic[id]) throw new Error(`askCard: 話題「${id}」の英語の名前が無い（WORDS.en.topic に足す）`);
@@ -1259,7 +1292,7 @@ export const WORDS = Object.freeze({
     findNone: '当てはまる就航地がありません。都市名か空港の3字で探せます。', dests: '就航地',
     cdNote: (partial, name) => `${partial ? '調べで確かめた就航地です' : `${name}の公式の就航地です`}。あなたの機種・ベースからの運航や宿泊があるとは限りません。`,
     hotelsHead: 'ホテル・レストラン・場所',
-    topic: Object.freeze(Object.fromEntries([ROSTER, ...TOPICS].map(([id, title]) => [id, Object.freeze([...(TOPIC_NAME[id] || [title])])]))),
+    topic: Object.freeze(Object.fromEntries([ROSTER, ...TOPICS, ...MORE_TOPICS].map(([id, title]) => [id, Object.freeze([...(TOPIC_NAME[id] || [title])])]))),
     hotelsTopic: 'ホテル・レストラン', hotelsTopicSub: '就航地ごと・パイロット限定', addFromList: '項目の一覧から足す',
     askHead: n => `<span>${n}のこと、</span><span>ひとつ教えて。</span>`, askNote: '1問だけでも保存できます。匿名で、3人そろった項目から会社ページに出ます。',
     gotAns: '集まった回答', qCount: n => `質問 ${n}問`, qMore: n => `ほか${n}問`, reviews: '口コミ',
@@ -1333,7 +1366,8 @@ export const WORDS = Object.freeze({
     findNone: 'No matching destinations. Search by city name or three-letter airport code.', dests: 'Destinations',
     cdNote: (partial, name) => `${partial ? 'A destination confirmed in our research' : `One of ${name}’s official destinations`}. Your fleet or base may not fly here, and crews may not lay over here.`,
     hotelsHead: 'Hotels, restaurants and places',
-    topic: Object.freeze({ work: Object.freeze(['Duty']), taxi: Object.freeze(['Commuting and taxis']), 'staff-travel': Object.freeze(['Staff Travel', '']), upgrade: Object.freeze(['Upgrade to captain']) }),
+    topic: Object.freeze({ roster: Object.freeze(['Roster']), taxi: Object.freeze(['Commuting and taxis']), 'staff-travel': Object.freeze(['Staff Travel', '']), upgrade: Object.freeze(['Upgrade to captain']),
+      career: Object.freeze(['Training and career']), benefits: Object.freeze(['Leave and allowances']) }),
     hotelsTopic: 'Hotels and restaurants', hotelsTopicSub: 'By destination · pilots only', addFromList: 'Add from the full list',
     /* 2026-10-23 EN-7：2つの span は折り返しの単位（pv-glance.css の .pvg-askc の inline-block）。語のあいだの空白は span の外に置く
        （中の末尾の空白は inline-block の中で消え、「thingabout」と続いて見えた ── 英語の絵で見つけた） */

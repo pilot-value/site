@@ -230,6 +230,10 @@
 /* ⚠️ 会社ページには、FAQ の「＋」を「×」にするための決まり（details[open] summary span を45度回す）が元からある。
    ここの見出しの字まで回ってしまうので、.pvg の中では打ち消す（あちらより強く書く）。 */
 .pvg details[open] > summary span,.pvg-hero details[open] > summary span{transform:none;transition:none}
+/* ★2026-10-29 同じ決まりは display:inline-block も付ける ── 開いた話題の札（広い箱）で、名前と「質問 N問」が横に並んで1つの字に見えていた
+   （「勤務スケジュール質問 10問」）。札の名前は1行・その下に小さい字、の形に戻す（閉じた札と同じ形）。 */
+.pvg details[open] > summary .pvg-tp-n{display:block}
+.pvg details[open] > summary .pvg-tp-m{display:flex}
 .pvg-dt > summary:hover,.pvg-topic > summary:hover{color:var(--pv-accent-dark)}
 .pvg-dt > summary:focus-visible,.pvg-topic > summary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .pvg-dt > summary:active,.pvg-topic > summary:active{opacity:.75}
@@ -1041,7 +1045,8 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-stats dd b,.pvg-stats > div[data-mid] dd b{font-size:23px}
   .pvg-stats > div[data-long] dd b{font-size:16px}
   .pvg-got .crl-facts{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .pvg-topics{grid-template-columns:repeat(4,minmax(0,1fr))}
+  /* ★2026-10-29 話題は6つ（勤務スケジュール・通勤・Staff Travel・機長昇格・訓練・キャリア・休暇・手当）── 3つずつ2段（4列だと下の段が2つだけ余る） */
+  .pvg-topics{grid-template-columns:repeat(3,minmax(0,1fr))}
   /* ★2026-10-25 WP-compare-all-14（絵の本 #12）：給与の1枚と評価の1枚は、それぞれ中身の丈（隣の丈まで伸ばさない）。
      伸ばすと、給与の1枚の畳んだ説明（.pvg-dt の margin-top:auto）が底へ押され、「REAL PAY で全部見る」の下が大きく空いていた。 */
   .pvg-payrow{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}

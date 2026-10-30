@@ -1018,9 +1018,17 @@ head('掲載している全社（比較の材料）');
     for (const s of RENTB.filter(x => !FIVE.includes(x))) {
       const L = BOXL(s), E = BOXL(s, 'en'), r = L.rents.find(x => x.lead), re = E && E.rents.find(x => x.lead);
       const bj = boxOf(CMP, s), be = boxOf(EN_HTML, s);
-      /* 額の突き合わせは調べの台帳の街（街の詳細に額の一覧が在る）。先行5社の台帳の街（東京）の額は棒の組の中 ── 先行5社はブラウザの T-L7 が見る */
-      const town = L.research ? (read(`airlines/${s}.html`).match(new RegExp(`<section class="pvg-td" id="pvg-town-${r.key}"[\\s\\S]*?</section>`)) || [''])[0] : '-';
-      const lack = L.research ? parts(bj).filter(v => !txt(town).includes(v)) : [];
+      /* 額の突き合わせは調べの台帳の街。先行5社の台帳の街（東京）の額は棒の組の中 ── 先行5社はブラウザの T-L7 が見る。
+         ★2026-10-29（1・2・3ベッドの棒・d4f934f9）：額は街の詳細の中から、同じ暮らしのタブの棒（その街の data-town の行）へ移り、
+         棒にしない Studio は出典の「参考」（頭に街の名前）へ移った ── その街のところ ＝ 街の詳細 ＋ その街の棒 ＋ その街の名前の「参考」 */
+      const page = L.research ? read(`airlines/${s}.html`) : '';
+      const town = L.research ? (page.match(new RegExp(`<section class="pvg-td" id="pvg-town-${r.key}"[\\s\\S]*?</section>`)) || [''])[0] : '-';
+      /* 街の名前は箱の街（暮らしのタブと同じ字 ── 「おもろまち（那覇市）」のように、街の詳細の見出しでは括弧の中が別の字になる街がある） */
+      const tName = bCity(bj);
+      const bars = [...page.matchAll(new RegExp(`<li class="pvg-rb-row"[^>]*data-town="${r.key}"[^>]*>[\\s\\S]*?</li>`, 'g'))].map(m => m[0]);
+      const refs = !tName ? [] : [...page.matchAll(/<div><dt>参考<\/dt><dd><ul class="pvg-notes">([\s\S]*?)<\/ul><\/dd><\/div>/g)]
+        .flatMap(m => [...m[1].matchAll(/<li>[\s\S]*?<\/li>/g)].map(x => x[0])).filter(li => txt(li).includes(`${tName} `));
+      const lack = L.research ? parts(bj).filter(v => ![town, ...bars, ...refs].some(h => txt(h).includes(v))) : [];
       const why = [
         !bj && '日本語の箱が無い', !be && '英語の箱が無い', !E && '英語の読み口に箱の街が無い',
         E && E.cityKey !== L.cityKey && `日英で街が違う（${L.cityKey} / ${E.cityKey}）`,
@@ -2493,11 +2501,12 @@ try {
          delta は示すことが条件の写真（Public domain）なので、写真のクレジットは delta の1つだけが見える。2社とも条件のある写真が無いときに段ごと
          出さないことは、条件の無い写真の2社（united|american ── どちらも CC0）で見る。 */
       /* ★2026-10-29 段階5 compare-all-26（同じ強さの当て直し）：united と delta に税の扱い（課税（米国））が付いた ── 2社とも税の字が並びの順に出る。
-         2社とも税の扱いを持たないときに税の字を出さないことは、税の扱いの無い2社（klm|air-france）で見る。 */
+         2社とも税の扱いを持たないときに税の字を出さないことは、税の扱いの無い2社（lufthansa|air-france）で見る。 */
       /* ★2026-10-29：家賃も公表額も無い2社の見本を united|delta → american|delta（アメリカン航空も CC0 の写真・課税（米国）── 同じ強さ） */
       ['american', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['american', 'delta']) && !g.taxes.only
         && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['delta']) && g.none === null],
-      ['klm', 'air-france', g => gone(g.taxes)],
+      /* ★2026-10-29：KLM に税の扱い（課税（オランダ））が付いた ── 税の扱いの無い2社の見本を klm|air-france → lufthansa|air-france（同じ強さ） */
+      ['lufthansa', 'air-france', g => gone(g.taxes)],
       ['united', 'american', g => gone(g.credits)],
       /* ★2026-10-26 段階5 compare-all-15（同じ強さの当て直し）：Peach は関西（泉佐野市）の家賃の箱を持つようになった ── 会社ページに家賃の額が在るのに
          比較の箱の決まりに合わない会社は、週あたりの街の会社（カンタス航空・ジェットスター）だけ。 */

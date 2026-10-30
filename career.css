@@ -81,6 +81,19 @@
   .cr-gos .cr-ft:not(:has(.cr-tx)){grid-template-columns:[d] auto [n] minmax(0,1fr) [x] 0 [g] auto [i] auto [e]}
   .cr-tx{grid-row:1;grid-column:x;margin:0;padding-right:12px}
 }
+/* ★2026-10-29：税の扱いを社名と同じ行に置くのは、足（会社ごとの1行）に社名・税の扱い・「詳しく」が並ぶ幅のときだけ。
+   左メニューが出る 1001px では足が 374px しかなく、長い社名（スイス インターナショナル エアラインズ）が税の扱いの字（最小 7em）に押されて
+   3行に折れた ── 足の入れ物（.cr-gos ── 2社ぶん）が 860px に満たないあいだは、上の狭い形と同じく税の扱いを社名の下へ寄せる（社名を細くしない）。
+   幅は画面ではなく箱で測る（左メニューが出ると、広い画面でも箱は狭い）。999px までは年収の板が別の形（下の「スマホ（〜759px）の年収の板」）なので触らない。 */
+@supports (container-type:inline-size){
+  @media (min-width:1000px){
+    .cr-panel .cr-gos:has(.cr-tx){container-type:inline-size}
+  }
+  @container (max-width:859.98px){
+    .cr-gos .cr-ft{grid-template-columns:[d] auto [n] minmax(0,1fr) [g] auto [i] auto [e]}
+    .cr-tx{grid-row:2;grid-column:n / e;margin:-12px 0 6px;padding-right:0}
+  }
+}
 
 .cr-credits{margin-top:20px;font-size:12px;line-height:1.8;color:var(--pv-ink-3)}
 .cr-credit{margin-right:10px}

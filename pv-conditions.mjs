@@ -536,7 +536,7 @@ export const QUESTIONS = [
        タップが1回増えるだけで、分かることは同じ。 */
     ja: { label: '自社養成パイロット制度はありますか？',
           help: '未経験から自社で訓練して操縦士にする制度です。' },
-    en: { label: 'Is there a cadet programme?',
+    en: { label: 'Is there a cadet program?',
           help: 'Training ab-initio candidates into pilots in-house.' },
     choices: [
       { code: 'regular',   ja: 'あり・定期的に採用',   en: 'Yes — recruits regularly' },
@@ -555,7 +555,7 @@ export const QUESTIONS = [
     en: { label: 'Is there ongoing support for First Officer development?',
           help: 'Mentoring, team structures, regular feedback or career conversations — separate from routine recurrent training.' },
     choices: [
-      { code: 'formal',   ja: '体系的な制度がある',       en: 'A formal programme exists' },
+      { code: 'formal',   ja: '体系的な制度がある',       en: 'A formal program exists' },
       { code: 'informal', ja: '非公式な制度や文化がある', en: 'Informal, cultural only' },
       { code: 'none',     ja: '特にない',                 en: 'Nothing in particular' },
       { code: UNKNOWN,    ja: 'わからない',               en: "Don't know" },
@@ -603,7 +603,7 @@ export const QUESTIONS = [
     /* ★表記は Peer Support で固定（オーナー指示）。訳さない。 */
     ja: { label: 'パイロット向けの Peer Support 制度がありますか？',
           help: 'パイロット同士、または専門スタッフを通じて、心理的・職業上の相談ができる仕組みです。' },
-    en: { label: 'Is there a Peer Support programme for pilots?',
+    en: { label: 'Is there a Peer Support program for pilots?',
           help: 'A route to confidential psychological or professional support, through fellow pilots or trained staff.' },
     choices: [
       { code: 'internal', ja: 'あり・社内制度', en: 'Yes — in-house' },
