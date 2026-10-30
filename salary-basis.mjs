@@ -1979,7 +1979,7 @@ export const BASIS = {
     cap: { tier: 'estimate', /* g4 cap */ est: {
       basis: 'AscendurePro の記事「How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide)」（2026年2月）',
       basis_en: 'The AscendurePro article “How to Become a Commercial Pilot in Kenya (2026 Ultimate Guide)” (February 2026)',
-      method: '記事の「ケニア航空の機長は月 最大 KES 200万（年 約 KSh 2,400万）、乗務手当を含めると約 KES 3,000万に届く」のうち、記事が書いている年額 KSh 2,400万を使っています。税引き前か手取りかは書かれていません。幅の上は乗務手当込みの KES 3,000万です。幅の下は前の値のままです。',
+      method: '記事の「ケニア航空の機長は月 最大 KES 2,000,000（年 約 KSh 24,000,000）、乗務手当を含めると約 KES 30,000,000に届く」のうち、記事が書いている年額 KSh 24,000,000を使っています。税引き前か手取りかは書かれていません。幅の上は乗務手当込みの KES 30,000,000です。幅の下は前の値のままです。',
       method_en: 'Set at the yearly figure the article itself gives, KSh 24M, from “a Kenya Airways captain can make up to KES 2 million per month (≈KSh 24M/year), and with flight allowances can reach about KES 30M”. It does not say whether the figures are before or after tax. The top of the range is the KES 30M including flight allowances. The bottom of the range is unchanged.',
       as_of: '2026年2月', as_of_en: 'February 2026',
     } },

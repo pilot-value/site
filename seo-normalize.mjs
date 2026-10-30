@@ -393,7 +393,7 @@ const COPY = {
     d: `JALのパイロット年収は、当サイトの推定で機長 約¥${S.jal.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.jal.fo.avg.toLocaleString('en-US')}万（公開情報からの推計）。`
        + `会社公表の自社養成訓練生の入社時の月額（約${Math.round(BASIS.jal.trainee.groups[0].start_m / 10000)}万円）も出所つきで掲載。`, ld: true } },
   'airlines/skymark.html': { ja: { t: `スカイマーク パイロット年収 機長 推定${capJa('skymark')}【2026】`,
-    d: `スカイマークのパイロット年収は、当サイトの推定で機長 約¥${S.skymark.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.skymark.fo.avg.toLocaleString('en-US')}万。`
+    d: `スカイマークのパイロット年収は、推定で機長 約¥${S.skymark.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.skymark.fo.avg.toLocaleString('en-US')}万。`
        + `会社公表の訓練生の基本給は月${Math.round(BASIS.skymark.trainee.groups[0].start_m / 10000)}万円。保有機材・応募条件・現役パイロットの口コミも掲載。`, ld: true } },
 };
 
