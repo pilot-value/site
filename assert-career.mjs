@@ -2505,8 +2505,9 @@ try {
       /* ★2026-10-29：家賃も公表額も無い2社の見本を united|delta → american|delta（アメリカン航空も CC0 の写真・課税（米国）── 同じ強さ） */
       ['american', 'delta', g => gone(g.cards) && gone(g.rents) && !g.wrap && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['american', 'delta']) && !g.taxes.only
         && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['delta']) && g.none === null],
-      /* ★2026-10-29：KLM に税の扱い（課税（オランダ））が付いた ── 税の扱いの無い2社の見本を klm|air-france → lufthansa|air-france（同じ強さ） */
-      ['lufthansa', 'air-france', g => gone(g.taxes)],
+      /* ★2026-10-29：KLM に税の扱い（課税（オランダ））が付いた ── 税の扱いの無い2社の見本を klm|air-france → lufthansa|air-france（同じ強さ）
+         ★2026-10-30：エールフランスに税の扱い（課税（フランス））が付いた ── lufthansa|british-airways（同じ強さ・どちらも税の扱いが無い） */
+      ['lufthansa', 'british-airways', g => gone(g.taxes)],
       ['united', 'american', g => gone(g.credits)],
       /* ★2026-10-26 段階5 compare-all-15（同じ強さの当て直し）：Peach は関西（泉佐野市）の家賃の箱を持つようになった ── 会社ページに家賃の額が在るのに
          比較の箱の決まりに合わない会社は、週あたりの街の会社（カンタス航空・ジェットスター）だけ。 */

@@ -61,12 +61,13 @@
           salary-basis.mjs に載っている23社（＝根拠を確認して表示を変えた社）は使わない。
        ⚠️ 機種は実際に運航している型だけ書く（両社とも B787-9 を運航）。 */
 
-    /* 'turkish-airlines' cap.avg = 2500万円（salary-data.mjs）
-       → 25,000,000 / 158.95 ≒ $157,282 → 2桁で $160,000
+    /* 'vietnam-airlines' cap.avg = 1900万円（salary-data.mjs）
+       → 19,000,000 / 158.95 ≒ $119,534 → 2桁で $120,000
        ⚠️ 円は画面が sig2(usd × 158.95) で作り直すので、
-          160,000 → 25,432,000 → 2桁 25,000,000 ＝ ¥2,500万 で往復する。 */
-    { airline: 'turkish-airlines', pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r',
-      annual_usd: 160000, _man: 2500, _rank: 'cap', _p: 1, lock: false,
+          120,000 → 19,074,000 → 2桁 19,000,000 ＝ ¥1,900万 で往復する。
+       ★2026-10-30 トルコ航空（2,500万）から入れ替えた ── トルコ航空は salary-basis.mjs に載り、額も 2,540万（2桁で往復しない）になったため。 */
+    { airline: 'vietnam-airlines', pos: 'cap', fleet: 'b787', ten: 2, tenk: 'r',
+      annual_usd: 120000, _man: 1900, _rank: 'cap', _p: 1, lock: false,
       paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
 
