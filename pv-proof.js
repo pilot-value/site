@@ -159,81 +159,15 @@
   }
 
   /* ── サーバとの行き来 ───────────────────────────────────────────
-     このサイトには全ページ共通の supabase クライアントが無い。なので順に3つ試す。
-       1) そのページが自分で作ったクライアント（裸の sb）を借りる … 期限切れも向こうが直す
-       2) 保存してあるトークンがまだ生きていれば、fetch で直に呼ぶ … 何も読み込まない
-       3) （板が出ている会員だけ）supabase-js を読み込んで自前のクライアントを作る
-     ★3) を「聞くだけ」の会員には使わない。止まっていない会員のために
-       ライブラリを1本読み込ませない（次に生きたトークンで来たときに聞けば足りる）。
-     ⚠️ トークンを自分で更新しない。更新すると古い方が無効になり、書き戻す形を
-        1文字でも間違えると、その会員はほかの全ページでログアウトされる。 */
-  var own = null;
-
-  function borrowed() {
-    try {
-      /* eslint-disable-next-line no-undef */
-      return (typeof sb !== 'undefined' && sb && typeof sb.rpc === 'function') ? sb : null;
-    } catch (e) { return null; }
-  }
-
-  function freshToken() {
-    var s = S.readStoredSession();
-    if (!s || !s.access_token) return '';
-    if (s.expires_at && Number(s.expires_at) * 1000 < Date.now() + 15000) return '';
-    return s.access_token;
-  }
-
-  function viaClient(c, name, args) {
-    return c.rpc(name, args || {}).then(function (r) {
-      if (r && r.error) throw r.error;
-      return r ? r.data : null;
-    });
-  }
-
-  function viaFetch(tok, name, args) {
-    return w.fetch(S.SB_URL + '/rest/v1/rpc/' + name, {
-      method: 'POST',
-      headers: {
-        apikey: S.SB_KEY,
-        Authorization: 'Bearer ' + tok,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(args || {})
-    }).then(function (r) {
-      if (!r.ok) throw new Error('http ' + r.status);
-      return r.json();
-    });
-  }
-
-  function lazyClient() {
-    return new Promise(function (done) {
-      if (own) { done(own); return; }
-      var make = function () {
-        try {
-          own = w.supabase.createClient(S.SB_URL, S.SB_KEY,
-            { auth: { autoRefreshToken: false, detectSessionInUrl: false } });
-        } catch (e) { own = null; }
-        done(own);
-      };
-      if (w.supabase && typeof w.supabase.createClient === 'function') { make(); return; }
-      var s = d.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      s.onload = make;
-      s.onerror = function () { done(null); };
-      (d.head || d.documentElement).appendChild(s);
-    });
-  }
-
+     本体は pv-session.js の PVSession.rpc（2026-10-30 にここから移した。戻ってきた会員に聞く板
+     ── pv-conditions.js の askReturn ── も同じ道を通るため。写しを2つにしない）。
+     順に3つ試す：ページの sb を借りる → 生きたトークンで fetch → （lazyOk のときだけ）supabase-js。
+     ★lazyOk は「板が出ている会員だけ」。聞くだけの会員にライブラリを1本読み込ませない。
+     ⚠️ トークンを自分で更新しない（向こうの注を読む）。 */
+  /* 古い pv-session.js がキャッシュに残っている端末では S.rpc が無い。そのときは「聞けなかった」と同じ扱い
+     （次のページでもう一度聞く）。ここで落とすと板そのものが動かなくなる。 */
   function rpc(name, args, lazyOk) {
-    var c = borrowed() || own;
-    if (c) return viaClient(c, name, args);
-    var tok = freshToken();
-    if (tok && typeof w.fetch === 'function') return viaFetch(tok, name, args);
-    if (!lazyOk) return Promise.reject(new Error('no-auth'));
-    return lazyClient().then(function (c2) {
-      if (!c2) throw new Error('no-auth');
-      return viaClient(c2, name, args);
-    });
+    return typeof S.rpc === 'function' ? S.rpc(name, args, lazyOk) : Promise.reject(new Error('no-rpc'));
   }
 
   /* ── 画像を小さくして JPEG に焼き直す（roadmap.js の shrinkImage と同じ作り）──

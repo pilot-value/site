@@ -271,6 +271,7 @@
     del(K_START);
     del(K_GF);      // 「Give → Get を見せた」の記録もこのログインのもの
     del(K_PROOF);   // 「確認を求められているか」の写しもこのログインのもの
+    del(K_ASK);     // 「次に聞いてよい時刻」の写しもこのログインのもの
 
     /* ★給与の入力も置いていかない（2026-09-11）。ここが今まで抜けていた。
        共有端末で7日／30日の期限が来て切れたあと、次に使った人の画面に
@@ -480,6 +481,154 @@
     (document.head || document.documentElement).appendChild(s);
   }
 
+  /* ── サーバとの行き来（2026-10-30 に pv-proof.js から移した）──────────────
+     使うのは pv-proof.js（パイロットであることの確認）と pv-conditions.js の askReturn（戻ってきた会員に聞く板）。
+     ★ここに置くのは「呼び方」だけ。読み込んだだけでは1本も通信しない（呼ばれた時だけ）。
+     このサイトには全ページ共通の supabase クライアントが無い。なので順に3つ試す。
+       1) そのページが自分で作ったクライアント（裸の sb）を借りる … 期限切れも向こうが直す
+       2) 保存してあるトークンがまだ生きていれば、fetch で直に呼ぶ … 何も読み込まない
+       3) （板が出ている会員だけ）supabase-js を読み込んで自前のクライアントを作る
+     ★3) を「聞くだけ」の会員には使わない。止まっていない会員のために
+       ライブラリを1本読み込ませない（次に生きたトークンで来たときに聞けば足りる）。
+     ⚠️ トークンを自分で更新しない。更新すると古い方が無効になり、書き戻す形を
+        1文字でも間違えると、その会員はほかの全ページでログアウトされる。 */
+  var own = null;
+
+  function borrowed() {
+    try {
+      /* eslint-disable-next-line no-undef */
+      return (typeof sb !== 'undefined' && sb && typeof sb.rpc === 'function') ? sb : null;
+    } catch (e) { return null; }
+  }
+
+  function freshToken() {
+    var s = readStoredSession();
+    if (!s || !s.access_token) return '';
+    if (s.expires_at && Number(s.expires_at) * 1000 < Date.now() + 15000) return '';
+    return s.access_token;
+  }
+
+  function viaClient(c, name, args) {
+    return c.rpc(name, args || {}).then(function (r) {
+      if (r && r.error) throw r.error;
+      return r ? r.data : null;
+    });
+  }
+
+  function viaFetch(tok, name, args) {
+    return window.fetch(SB_URL + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY,
+        Authorization: 'Bearer ' + tok,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(args || {})
+    }).then(function (r) {
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    });
+  }
+
+  function lazyClient() {
+    return new Promise(function (done) {
+      if (own) { done(own); return; }
+      var make = function () {
+        try {
+          own = window.supabase.createClient(SB_URL, SB_KEY,
+            { auth: { autoRefreshToken: false, detectSessionInUrl: false } });
+        } catch (e) { own = null; }
+        done(own);
+      };
+      if (window.supabase && typeof window.supabase.createClient === 'function') { make(); return; }
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = make;
+      s.onerror = function () { done(null); };
+      (document.head || document.documentElement).appendChild(s);
+    });
+  }
+
+  function rpc(name, args, lazyOk) {
+    var c = borrowed() || own;
+    if (c) return viaClient(c, name, args);
+    var tok = freshToken();
+    if (tok && typeof window.fetch === 'function') return viaFetch(tok, name, args);
+    if (!lazyOk) return Promise.reject(new Error('no-auth'));
+    return lazyClient().then(function (c2) {
+      if (!c2) throw new Error('no-auth');
+      return viaClient(c2, name, args);
+    });
+  }
+
+  /* ── 戻ってきた会員に「〇〇のこと、ひとつ教えて。」（全ページ・2026-10-30）──
+     オーナー指示「登録したパイロットが戻ってきたとき、2日に1回、自分の会社について3問」。
+     聞く相手は給与か口コミを出した会員（2026-10-30 オーナー回答）。
+
+     ★誰に・どの会社・何を・2日に1回かを決めるのはサーバ（db/ask-own-airline.sql の pv_ask_next）。
+       ここは「この端末から聞きに行くか」だけを決める。
+     ★聞きに行くのは、ログインしている会員が、写し（K_ASK）の「次に聞いてよい時刻」を過ぎたときだけ。
+       それ以外は**通信ゼロ**（未ログインは最初の1行で終わる・48時間のあいだは何も読み込まない）。
+     ★同じページに板は1枚だけ：パイロット確認 → Give & Get → この板。前の2つが出るページでは出さない。
+       止めた会員はサーバも聞かない（pv_ask_next が 'blocked' を返す）。
+     ★聞きに行くと決めたときだけ pv-conditions.js を読み込む（板そのものはあちら）。 */
+  var K_ASK     = 'pv_ask';                 // {s:そのときのログインの印, n:次に聞いてよい時刻（ms）}
+  var ASK_RETRY = 12 * 60 * 60 * 1000;      // 聞くことが無い・失敗したとき、この端末で次に聞きに行くまで
+  var ASK_DELAY = 1500;                     // ページが描けてから板を出すまで（読み始める前に被せない）
+
+  /* 出さない画面。
+       入力の途中   … pay-report / submit-review / signup / login / auth-callback
+       そもそも対象外 … contact / admin / unsubscribe / 404 / terms / privacy / personal-data
+       質問の一覧そのもの … airline-conditions（同じ質問を1枚に並べて答える画面）
+     ⚠️ GF_SKIP・PROOF_SKIP とは別の集合。1本にまとめない。 */
+  var ASK_SKIP = /(?:^|\/)(pay-report|submit-review|signup|login|auth-callback|contact|admin|unsubscribe|404|terms|privacy|personal-data|airline-conditions)\.html$/;
+
+  function askRead() {
+    var r;
+    try { r = JSON.parse(get(K_ASK) || '{}') || {}; } catch (e) { r = {}; }
+    if (String(r.s || '') !== String(sessionStart())) return {};   // ログインし直した ＝ サーバに聞き直す
+    return r;
+  }
+  function askWrite(at) {
+    set(K_ASK, JSON.stringify({ s: String(sessionStart()), n: Math.round(at) }));
+  }
+
+  function askDue() {
+    if (!isLoggedIn() || !hasToken()) return false;      // 会員ではない／もう死んだログイン
+    if (ASK_SKIP.test(location.pathname)) return false;
+    if (location.search.indexOf('claim=') >= 0) return false;   // 預けた給与・口コミを引き取る途中
+    if (proofDue() === 'show') return false;              // 止まっている会員の板が先
+    if (giveFirstDue()) return false;                     // Give & Get の板が出るページに重ねない
+    var n = Number(askRead().n || 0);
+    return !(n && Date.now() < n);
+  }
+
+  function askLoad() {
+    if (!SELF || !askDue()) return;
+    var run = function () {
+      var C = window.PVConditions;
+      if (!C || typeof C.askReturn !== 'function') { askWrite(Date.now() + ASK_RETRY); return; }
+      if (!askDue()) return;                              // 待つあいだにログアウト・ほかの板
+      C.askReturn({ rpc: rpc }).then(function (r) {
+        if (!r) return;
+        if (r.why === 'busy') return;                     // ほかの板が開いていた ＝ 次のページでもう一度
+        var at = r.next_at ? Date.parse(r.next_at) : NaN;
+        askWrite(isFinite(at) && at > Date.now() ? at : Date.now() + ASK_RETRY);
+      }, function () { askWrite(Date.now() + ASK_RETRY); });
+    };
+    var later = function () { setTimeout(run, ASK_DELAY); };
+    var start = function () {
+      if (window.PVConditions && window.PVConditions.askReturn) { later(); return; }
+      var s = document.createElement('script');
+      try { s.src = new URL('pv-conditions.js', SELF).href; } catch (e) { return; }
+      s.onload = later;
+      s.onerror = function () { askWrite(Date.now() + ASK_RETRY); };
+      (document.head || document.documentElement).appendChild(s);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+  }
+
   var lastTouch = 0;
   function touch() {
     if (!isLoggedIn()) return;
@@ -495,6 +644,7 @@
   if (isLoggedIn()) { sessionStart(); touch(); }
   proofLoad();
   giveFirstLoad();
+  askLoad();
 
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) {
     document.addEventListener(ev, touch, { passive: true, capture: true });
@@ -518,7 +668,11 @@
     giveFirstDue: giveFirstDue, markGiveFirstSeen: markGiveFirstSeen,
     /* パイロットであることの確認の板（pv-proof.js）が使う。判定と写しはこちら側に1つだけ置く。 */
     proofDue: proofDue, proofRead: proofRead, proofWrite: proofWrite,
+    /* 戻ってきた会員に聞く板（pv-conditions.js の askReturn）。判定はこちら側に1つだけ置く。 */
+    askDue: askDue,
     SB_URL: SB_URL, SB_KEY: SB_KEY,
+    /* サーバの関数を呼ぶ（ページの sb → 生きたトークンで fetch → lazyOk のときだけ supabase-js）。 */
+    rpc: rpc,
     readStoredSession: readStoredSession,
     isLoggedIn: isLoggedIn, sessionStart: sessionStart, lastActive: lastActive,
     IDLE_MS: IDLE_MS, MAX_MS: MAX_MS
