@@ -131,6 +131,7 @@
     revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（点数の有無を問わず、投稿ぜんぶ）。評価件数（revRated）と同じ行に置かない
     revRated: function (n) { return n + '件の評価'; },
     sumHead: '口コミの要約',
+    sumOvHead: 'まとめ',                              // 全体の傾向の段落の枠の見出し（2026-10-30）
     sumGood: '良い点',
     sumConcern: '気になる点',
     sumLock: '要約は口コミの投稿で開きます',
@@ -240,6 +241,7 @@
     revPosts: function (n) { return 'Member posts: ' + n; },
     revRated: function (n) { return n + (n === 1 ? ' rating' : ' ratings'); },
     sumHead: 'Review summary',
+    sumOvHead: 'Overview',
     sumGood: 'Good points',
     sumConcern: 'Concerns',
     sumLock: 'The summary opens when you post a review',
@@ -1836,7 +1838,11 @@
   /* 全体の傾向の段落（2026-10-30〜 summarize-reviews が overview として預ける・鍵のある人にだけ届く）。無い・空なら置かない。 */
   function sumOv(x) {
     var t = x && typeof x.overview === 'string' ? x.overview.trim() : '';
-    return t ? el('p', 'crl-sum-ov', t) : null;
+    if (!t) return null;
+    var box = el('div', 'crl-sum-ovb');                    // ★オーナー「要約のまとめも囲って読みやすく」── 見出し「まとめ」つきの枠
+    box.appendChild(el('span', 'crl-sum-ovk', T.sumOvHead));
+    box.appendChild(el('p', 'crl-sum-ov', t));
+    return box;
   }
   /* 要約の1点は「話題：説明」（2026-10-30〜 summarize-reviews の指示）。「：」の前を太字の見出しにする。
      「：」は消さずに見えなくするだけ（読み上げと文字の並びは元の1行のまま）。形が合わない古い文はそのまま1行で出す。 */

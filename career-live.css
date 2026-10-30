@@ -365,8 +365,12 @@ a.crl-score-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .crl-sum-t{flex:1;min-width:0;overflow-wrap:anywhere}
 /* 全体の傾向の段落（2026-10-30）。見出しの下・良い点の上 */
 /* .crl を前に付けるのは、会社ページの .pvg p（余白を0にする決まり）に負けないため */
-.crl .crl-sum-ov{margin:0 0 14px;padding:12px 14px;border-radius:10px;background:var(--pv-surface-2);font-size:15px;line-height:1.8;color:var(--pv-ink)}
-.crl .crl-sum2-c .crl-sum-ov{margin:0;padding:0;background:none;font-size:14px;line-height:1.75}
+/* ★オーナー「要約のまとめも囲うとかして読みやすく」── 見出し「まとめ」つきの枠。比較の会社ごとの枠の中では白い面で浮かせる */
+.crl .crl-sum-ovb{margin:0 0 16px;padding:12px 16px 14px;border:1px solid var(--pv-line);border-radius:10px;background:var(--pv-surface-2)}
+.crl .crl-sum-ovk{display:block;margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--pv-ink-2)}
+.crl .crl-sum-ov{margin:0;padding:0;font-size:15px;line-height:1.8;color:var(--pv-ink)}
+.crl .crl-sum2-c .crl-sum-ovb{margin:0;padding:10px 12px 12px;background:var(--pv-surface)}
+.crl .crl-sum2-c .crl-sum-ov{font-size:14px;line-height:1.75}
 /* 「話題：説明」の話題（2026-10-30）。見出しとして1行目に・「：」は見えなくするだけ */
 .crl-sum-k{display:block;font-size:12px;font-weight:800;line-height:1.5;letter-spacing:.02em;color:var(--pv-ink)}
 .crl-sum-sep{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -430,6 +434,20 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-sum2-c .crl-sum-li{padding:8px 12px;border:1px solid var(--pv-line-soft);border-left:3px solid var(--pv-accent);border-radius:8px;background:var(--pv-surface);font-size:14px;line-height:1.65}
 .crl-sum2-c .crl-sum-li:first-child{border-top:1px solid var(--pv-line-soft)}
 .crl-sum2-c .crl-sum-col[data-kind="concern"] .crl-sum-li{border-left-color:var(--pv-orange)}
+/* ★2026-10-30 オーナー「会社ページの要約も比較みたいにして。読みづらい」── 会社ページも同じ形（印つきの見出し・1点ずつ左に色の帯の枠）。
+   比較と違うのは、点の右に口コミへの矢印（44px の押せる幅）があることだけ。 */
+/* 1列に積む（2列だと PC の右の欄で1つの枠が細くなり、1行に十数字しか入らない） */
+.crl[data-live="summary"] .crl-sum{grid-template-columns:minmax(0,1fr);gap:16px}
+.crl[data-live="summary"] .crl-sum-by{margin-top:12px}
+.crl[data-live="summary"] .crl-sum-col{display:grid;gap:8px;align-content:start}
+.crl[data-live="summary"] .crl-sum-h{gap:8px;margin:0;font-size:13px}
+.crl[data-live="summary"] .crl-sum-h::before{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pv-accent-soft);color:var(--pv-accent-ink);font:800 13px/1 Inter,sans-serif;content:'＋'}
+.crl[data-live="summary"] .crl-sum-col[data-kind="concern"] .crl-sum-h::before{background:var(--pv-orange-soft);color:var(--pv-orange-ink);content:'！'}
+.crl[data-live="summary"] .crl-sum-ul{display:grid;gap:8px}
+.crl[data-live="summary"] .crl-sum-li{padding:10px 4px 10px 14px;border:1px solid var(--pv-line-soft);border-left:3px solid var(--pv-accent);border-radius:8px;background:var(--pv-surface);font-size:14px;line-height:1.7}
+.crl[data-live="summary"] .crl-sum-li:first-child{border-top:1px solid var(--pv-line-soft)}
+.crl[data-live="summary"] .crl-sum-col[data-kind="concern"] .crl-sum-li{border-left-color:var(--pv-orange)}
+.crl[data-live="summary"] a.crl-sum-a{margin-right:0}
 .crl-sum2-c .crl-sum-by{margin:0}
 @supports (container-type:inline-size){
   .crl[data-live="cmp-summary"]{container-type:inline-size}
