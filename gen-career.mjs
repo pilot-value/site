@@ -131,7 +131,7 @@ export const WORDS = Object.freeze({
     estL: '推定', basisL: '根拠', methodL: '算出方法', asOfL: '時点', target: '対象',
     photoAlt: (n, a) => `${n}の ${a}`, photos: (c, n) => `写真${c ? `（${c}）` : ''}`,
     back: '航空会社を選ぶ', backCard: '戻る', go: '詳しく', moreTowns: 'ほかの街',
-    srcAt: (a, c) => `適用時点：${a} ／ 確認日：${c}`, req: '応募条件', basis: '前提と出どころ', pubH: '会社が公表している金額',
+    srcAt: (a, c) => `適用時点：${a} ／ 確認日：${c}`, req: '応募条件', basis: '前提と出典', pubH: '会社が公表している金額',
     up: Object.freeze({ max: y => `〜${y}`, over: y => `${y} 超`, from: y => `${y} から` }),
     cmpAll: '航空会社を比較', pay: '年収',
     reviews: '口コミ', card: 'カードを保存', work: '月の働き方',

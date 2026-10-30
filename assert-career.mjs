@@ -3315,7 +3315,7 @@ try {
         && (s !== 'eva-air' || x.pick === 'EVA Airの事業所がある'),
         `${name(s)}: 箱に その街（${L.city}）・物差し（${L.measure}）・地域（${r.label}） が書いてある${r.pick ? `・選んだ理由は「${sayText(s, r.pick)}」（社名は日本の会社は日本語・ほかは英語）` : ''}`,
         `「${x.city}」「${x.measure}」「${x.k}」「${x.pick}」`);
-      ok(x.src.includes(norm(r.src.name)) && !!x.when && x.when === norm(RENT_AT(s, L, r)) && x.links.includes(r.src.url) && x.more === '前提と出どころ',
+      ok(x.src.includes(norm(r.src.name)) && !!x.when && x.when === norm(RENT_AT(s, L, r)) && x.links.includes(r.src.url) && x.more === '前提と出典',
         `${name(s)}: 箱に 出どころ と 時点（${RENT_AT(s, L, r)}） が書いてあり、出どころへ行ける`, `「${x.src}」「${x.when}」 ${x.links.join(' ')}`);
     }
     /* 暮らしのタブ（深く作った会社の概要の中）── ★2026-10-26 P12.130（当て直し）：会社の概要の画面ごと無い。街の家賃の全部は会社ページの暮らしのタブ

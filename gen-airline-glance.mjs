@@ -399,9 +399,11 @@ function payDetails(v) {
   const p = v.pay, rows = [];
   for (const [rk] of RANKS) {
     const r = p[rk], e = r.est;
-    /* 根拠・算出方法・時点の3つが台帳にそろっている職位だけ、3つとも書く。そろっていない職位は、誰の推定かだけを書く */
-    rows.push(`<div><dt>${W.estOf(W.rank[rk])}</dt><dd><b>${e.yen}</b><small>${W.target(W.estTarget)}</small>${e.backed
-      ? `<small>${W.basisL}${prose(e.basis)}</small><small>${W.methodL}${prose(e.method)}</small><small>${W.asOfL}${prose(e.asOf)}</small>`
+    /* ★2026-10-30 オーナー「なんで機長の推定年収上にあるのにさらにその下にごちゃごちゃ」「根拠？いらないから消せ」
+         ── 上の額はくり返さない・根拠と「対象：機種の指定なし」は書かない。職位の名前の下に、算出方法と時点だけ
+         （台帳に算出方法がそろっていない職位は「当サイトの推定」とだけ）。 */
+    rows.push(`<div><dt>${W.rank[rk]}</dt><dd>${e.backed
+      ? `<small>${prose(e.method)}</small><small>${W.asOfL}${prose(e.asOf)}</small>`
       : `<small>${W.estBy}</small>`}</dd></div>`);
     for (const f of [...r.cap, ...r.company]) {
       rows.push(`<div><dt>${prose(f.group)}</dt><dd><b>${figText(f)}</b><span class="pv-no-cur pvg-orig">${esc(f.orig)}</span>
@@ -427,8 +429,7 @@ function payDetails(v) {
 <summary>${W.payWhose}${IC.down}</summary>
 <div class="pvg-body">
 <dl class="pvg-dl">${rows.join('\n')}</dl>
-<p class="pvg-axis">${W.axis(yen(scaleOf(v.slug)))}</p>
-${notes}${src}${fx}
+${notes}${src}
 </div>
 </details>`;
 }
@@ -1250,8 +1251,8 @@ export const WORDS = Object.freeze({
     addBtn: '<b aria-hidden="true">＋</b><span><span class="pvg-add-w">情報を</span>追加</span>',
     sf: Object.freeze(Object.fromEntries(SURFACES.map(S => [S.id, Object.freeze({ name: S.name, gloss: S.gloss || '', adds: S.adds.map(b => b.add) })]))),
     quietScope: names => `${names.join('、')}の回答も、同じ条件で開きます。`,
-    whole: '会社全体の制度', agree: '労働協約', pubTerms: '会社が公表している条件', srcLabel: '出どころ', cite: '出典',
-    answerAnon: '匿名で答える', answer: '答える', moreSrc: n => `ほか${n}件と出どころ`, seeSrc: '出どころを見る',
+    whole: '会社全体の制度', agree: '労働協約', pubTerms: '会社が公表している条件', srcLabel: '出典', cite: '出典',
+    answerAnon: '匿名で答える', answer: '答える', moreSrc: n => `ほか${n}件と出典`, seeSrc: '出典を見る',
     moreCite: n => `ほか${n}件と出典`, seeCite: '出典を見る', close: '閉じる',
     saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
