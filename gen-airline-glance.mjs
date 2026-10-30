@@ -379,6 +379,15 @@ function pubRows(v) {
       value: c.yen, orig: '', note: join(W.crewBoth, c.scope, c.when),
     });
   }
+  /* ★2026-10-30 オーナー「訓練生の給料の部分も、金額以外はプルダウンにして」── 訓練生の入社時の額は推定年収と同じく表に出す（説明はプルダウンの注）。
+       ⚠️ 機長・副操縦士の行にも棒にも入れない（訓練生の初任給をパイロットの給与として出さない）＝ 名前の行に「訓練生」の区分の名前を出す。 */
+  for (const t of v.pay.trainee) {
+    rows.push({
+      kind: 'trainee', rank: '',
+      who: `<span class="pvg-vh">${W.vhWho(esc(v.name))}</span><b>${esc(t.group)}</b>`, label: '',
+      value: t.text, orig: '', note: t.kind,
+    });
+  }
   return rows;
 }
 function pubBlock(v) {
@@ -413,9 +422,7 @@ function payDetails(v) {
   for (const c of p.crew) {
     rows.push(`<div><dt>${W.crewAvg(esc(c.who))}</dt><dd><b>${c.yen}</b><small>${W.crewNote(esc(join(W.coPub, c.scope, c.when)))}</small></dd></div>`);
   }
-  for (const t of p.trainee) {
-    rows.push(`<div><dt>${prose(t.group)}</dt><dd><b>${t.text}</b><small>${prose(t.kind)}</small></dd></div>`);
-  }
+  /* ★2026-10-30 訓練生の額は給与の欄の表に出した（上の pubRows）＝ ここではくり返さない。注は下の notes に残る。 */
   const notes = p.notes.length ? `<ul class="pvg-notes">${p.notes.map(n => `<li>${prose(n)}</li>`).join('')}</ul>` : '';
   /* 資料ごとに 時点（掲載日・対象の期間）と 確認日（当サイトが資料を読んで確かめた日）を別々に書く。
      join() に一緒に渡さない ── 同じ日付だと、短いほう（時点）が消える。 */

@@ -224,7 +224,7 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
       const top = n * 1000, widths = [...g.matchAll(/<i class="pvg-bar pvg-bar-est" style="width:([\d.]+)%"><\/i>/g)].map(m => m[1]);
       const why = [
         !(n > 0) && '刻みの数が無い',
-        +ax !== top && `目盛の1文 ¥${ax}万 ≠ 刻み ${n}`,
+        /<p class="pvg-axis">/.test(g) && '目盛の1文が残っている（★2026-10-30 オーナー「いらねえだろ」で外した）',
         !vals.every(v => v <= top) && `はみ出す額 ${vals.filter(v => v > top).join('・')}`,
         !(top - max < 1000) && `右端 ${top} − いちばん大きい額 ${max} ≥ 1,000`,
         !same(widths, ['cap', 'fo'].map(r => ((SALARY[s][r].avg / top) * 100).toFixed(2))) && `棒 ${widths.join('・')}`,
