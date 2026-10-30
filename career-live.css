@@ -363,6 +363,15 @@ a.crl-score-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .crl-sum-li{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 0;border-top:1px solid var(--pv-line-soft);font-size:14px;line-height:1.6;color:var(--pv-ink)}
 .crl-sum-li:first-child{border-top:0}
 .crl-sum-t{flex:1;min-width:0;overflow-wrap:anywhere}
+/* 全体の傾向の段落（2026-10-30）。見出しの下・良い点の上 */
+/* .crl を前に付けるのは、会社ページの .pvg p（余白を0にする決まり）に負けないため */
+.crl .crl-sum-ov{margin:0 0 14px;padding:12px 14px;border-radius:10px;background:var(--pv-surface-2);font-size:15px;line-height:1.8;color:var(--pv-ink)}
+.crl .crl-sum2-c .crl-sum-ov{margin:0;padding:0;background:none;font-size:14px;line-height:1.75}
+/* 「話題：説明」の話題（2026-10-30）。見出しとして1行目に・「：」は見えなくするだけ */
+.crl-sum-k{display:block;font-size:12px;font-weight:800;line-height:1.5;letter-spacing:.02em;color:var(--pv-ink)}
+.crl-sum-sep{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.crl-sum-col[data-kind="good"] .crl-sum-k{color:var(--pv-accent-ink)}
+.crl-sum-col[data-kind="concern"] .crl-sum-k{color:var(--pv-orange-ink)}
 a.crl-sum-a{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin-right:-12px;color:var(--pv-ink-3);border-radius:50%}
 a.crl-sum-a .crl-ic{transition:transform .18s var(--pv-ease)}
 @media (hover:hover){

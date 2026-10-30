@@ -1833,6 +1833,25 @@
     });
   }
   var SUM_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  /* 全体の傾向の段落（2026-10-30〜 summarize-reviews が overview として預ける・鍵のある人にだけ届く）。無い・空なら置かない。 */
+  function sumOv(x) {
+    var t = x && typeof x.overview === 'string' ? x.overview.trim() : '';
+    return t ? el('p', 'crl-sum-ov', t) : null;
+  }
+  /* 要約の1点は「話題：説明」（2026-10-30〜 summarize-reviews の指示）。「：」の前を太字の見出しにする。
+     「：」は消さずに見えなくするだけ（読み上げと文字の並びは元の1行のまま）。形が合わない古い文はそのまま1行で出す。 */
+  function sumSplit(text) {
+    var m = /^([^：:]{1,12})：(.+)$/.exec(text) || /^([A-Za-z][A-Za-z' &/-]{0,31}): (.+)$/.exec(text);
+    return m && m[2].trim() ? { k: m[1], sep: text.slice(m[1].length, text.length - m[2].length), b: m[2] } : null;
+  }
+  function sumText(text) {
+    var t = el('span', 'crl-sum-t'), s = sumSplit(text);
+    if (!s) { t.textContent = text; return t; }
+    t.appendChild(el('b', 'crl-sum-k', s.k));
+    t.appendChild(el('span', 'crl-sum-sep', s.sep));
+    t.appendChild(el('span', 'crl-sum-b', s.b));
+    return t;
+  }
   /* max ＝ 何点まで（会社ページは3・比較は2）。bare ＝ 点の矢印を置かない（矢印は同じページの口コミを開く ── 会社ページにだけ在る） */
   function sumList(title, kind, items, max, bare) {
     var wrap = el('div', 'crl-sum-col');
@@ -1843,7 +1862,7 @@
       var text = it && typeof it.text === 'string' ? it.text : '';
       if (!text) return;
       var li = el('li', 'crl-sum-li');
-      li.appendChild(el('span', 'crl-sum-t', text));
+      li.appendChild(sumText(text));
       var cat = it && typeof it.cat === 'string' && /^[a-z]{2,12}$/.test(it.cat) ? it.cat : '';
       if (cat && !bare) {
         var a = el('a', 'crl-sum-a');
@@ -1902,8 +1921,8 @@
       var grid = el('div', 'crl-sum');
       if (good) grid.appendChild(good);
       if (bad) grid.appendChild(bad);
-      var by = sumFoot(x);
-      return view('open', [el('h3', 'crl-sum-title', T.sumHead), grid, by]);
+      var by = sumFoot(x), ov = sumOv(x);
+      return view('open', ov ? [el('h3', 'crl-sum-title', T.sumHead), ov, grid, by] : [el('h3', 'crl-sum-title', T.sumHead), grid, by]);
     }, function (e) {
       if (e && e.crl === 'off') return view('empty', [sumNote(T.sumOff, 'off')]);   // 口がまだ無い ＝ 未接続（件数も文も作らない）
       throw e;
@@ -1928,6 +1947,8 @@
       var x = s.v;
       var good = sumList(T.sumGood, 'good', isArr(x.good) ? x.good : [], CMP_SUM_MAX, true);
       var bad = sumList(T.sumConcern, 'concern', isArr(x.concern) ? x.concern : [], CMP_SUM_MAX, true);
+      var ov = (good || bad) ? sumOv(x) : null;
+      if (ov) body.push(ov);
       if (good) body.push(good);
       if (bad) body.push(bad);
       if (good || bad) body.push(sumFoot(x));

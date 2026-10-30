@@ -58,6 +58,14 @@
 --     材料を渡したときの集合の指紋（basis）を覚えさせ、預けに来たときに
 --     いまの集合と比べる。違えば stale_input で断る＝ 古い集合から作った要約が、
 --     新しい集合の要約を上書きすることは無い（6 の節）。
+--  8. **要約の頭に「全体の傾向」の段落（overview・2〜3文）を1つ置く**（2026-10-30 オーナー指示）。
+--     点と同じ線で確かめる（数字・通貨記号・タグ・前後の空白は入らない・字数は言語ごと）。
+--     検査は pv_review_summary_overview_bad() の1か所で、書く側・表の制約・読む側が同じこれを呼ぶ。
+--     段落を返すのも open のときだけ ── 鍵の無い人へは1文字も返らない（few / none / login / locked に overview の鍵は無い）。
+--       ・overview が null の行 ＝ 段落ができる前（2026-10-30 より前）に預けた行。
+--         読む側は '' として返し、作り直しの判定（6-b）は**1回だけ**作り直させる。
+--       ・''（空）＝ 段落なし。正しい形（点が1つも残らなかった・検品で段落だけ落ちた）。
+--     新しく預ける行は必ず文字列（鍵が無ければ '' で入る）＝ null の行は増えない。
 --
 -- ── 罠 ─────────────────────────────────────────────────────────
 --  ⚠️ 「要約が無い」と「鍵が無い」を取り違えない。順番は
@@ -74,6 +82,8 @@
 --     在るがチップに無いので、要約の点には付けられない（押しても辿れない）。
 --  ⚠️ 字数は言語で違う。日本語 8〜90字・英語 16〜180字（pv_review_summary_bad の1か所）。
 --     gen-review-summary.mjs の LIMITS が写し。片方だけ動かさない。
+--     全体の傾向の段落は 日本語 40〜220字・英語 80〜440字（pv_review_summary_overview_bad の1か所）。
+--     supabase/functions/summarize-reviews/index.ts の OVERVIEW_LIMITS が写し（db/test-review-summary.mjs が突き合わせる）。
 --  ⚠️ 検査用の制約は not valid で足している ── 規則をあとで厳しくしたとき、
 --     前に預けた行のせいで**このファイルごと流れなくなる**のを避けるため。
 --     代わりに読む側が毎回同じ検査を通し、通らない行は {state:'none'} になる。
@@ -120,6 +130,8 @@ $guard$;
 -- newest_at … 材料にしたいちばん新しい口コミの時刻（古くなったかの判定に使う）
 -- sig       … その時刻までの口コミの集合と中身の指紋（pv_review_summary_sig(codes, upto, lang)。サーバが作る）
 -- made_at   … 預けた時刻（as_of の出どころ）
+-- overview  … 全体の傾向の段落（2〜3文・約束 8）。'' ＝ 段落なし。
+--             null ＝ 段落ができる前（2026-10-30 より前）に預けた行 ── 6-b が1回だけ作り直させる。
 -- ════════════════════════════════════════════════════════════════
 create table if not exists public.pv_review_summaries (
   airline   text        not null references public.pv_airlines(code),
@@ -132,6 +144,10 @@ create table if not exists public.pv_review_summaries (
   made_at   timestamptz not null default now(),
   primary key (airline, lang)
 );
+
+-- ★ 列は後から足す（2026-10-30）。前から在る表にも、新しく作る表にも、この1行で入る。
+--   既定値を置かない ＝ 前から在る行は null のまま（「段落ができる前の行」と分かるように）。
+alter table public.pv_review_summaries add column if not exists overview text;
 
 -- ★ RLS を掛けてポリシーを置かない ＝ anon / authenticated には1行も見えない。
 --   revoke は2本目の錠（Supabase は public の新しい表に既定で全権限を配る）。
@@ -396,8 +412,68 @@ comment on function public.pv_review_summary_bad(jsonb, text, integer) is
   '要約の点の並びを検査する。問題なければ null、あれば理由の語。書く側・表の制約・読む側が同じこれを呼ぶ。誰にも grant しない。';
 
 
+-- 3-a. 全体の傾向の段落（overview）の検査（約束 8）。点と同じ線で見る。
+-- 引数: p_text = 段落の字／p_lang = 'ja' | 'en'
+-- 返り値: 問題なければ null。あれば理由の語（書く側はまとめて bad_overview で断る）
+--   bad_lang        言語が ja でも en でもない
+--   bad_shape       null（「段落ができる前の行」は、呼ぶ側が null を先に受け取る）
+--   not_plain_text  改行・タブなどの制御文字、< >、前後の空白がある
+--   has_figure      数字（全角・漢数字＋円を含む）・通貨記号が在る（点と同じ式）
+--   text_too_short  短すぎる（日本語 40字未満・英語 80字未満）
+--   text_too_long   長すぎる（日本語 220字超・英語 440字超）
+-- ★ ''（空）は通る ＝ 段落なし（点が1つも残らなかった・検品で段落だけ落ちた）。
+-- ⚠️ 字数は supabase/functions/summarize-reviews/index.ts の OVERVIEW_LIMITS が写し。片方だけ動かさない。
+create or replace function public.pv_review_summary_overview_bad(p_text text, p_lang text)
+returns text
+language plpgsql
+immutable
+set search_path = public, extensions
+as $fn$
+declare
+  v_lo integer;
+  v_hi integer;
+begin
+  if p_lang = 'ja' then
+    v_lo := 40; v_hi := 220;
+  elsif p_lang = 'en' then
+    v_lo := 80; v_hi := 440;
+  else
+    return 'bad_lang';
+  end if;
+
+  if p_text is null then
+    return 'bad_shape';
+  end if;
+  if p_text = '' then
+    return null;
+  end if;
+
+  if p_text ~ '[[:cntrl:]]' or p_text ~ '[<>]' or p_text <> btrim(p_text) then
+    return 'not_plain_text';
+  end if;
+  if p_text ~ '[0-9０-９]' or p_text ~ '[$¥￥€£₩₹₽฿₫₱₪]' or p_text ~ '[一二三四五六七八九十百千万億]+円' then
+    return 'has_figure';
+  end if;
+  if char_length(p_text) < v_lo then
+    return 'text_too_short';
+  end if;
+  if char_length(p_text) > v_hi then
+    return 'text_too_long';
+  end if;
+
+  return null;
+end;
+$fn$;
+
+revoke all on function public.pv_review_summary_overview_bad(text, text) from public, anon, authenticated;
+
+comment on function public.pv_review_summary_overview_bad(text, text) is
+  '要約の頭に置く全体の傾向の段落を検査する。問題なければ null（空の字も null）、あれば理由の語。書く側・表の制約・読む側が同じこれを呼ぶ。誰にも grant しない。';
+
+
 -- ★ 表にも同じ検査を掛ける（2本目の錠）。SQL Editor から手で insert しても、
 --   3件未満・k が1・4つ以上・長すぎる文・余計な鍵・数字・ids の形が合わない点は入らない。
+--   全体の傾向の段落も、3-a を通らない字（数字・タグ・字数の外）は入らない。
 --   （id が本当に口コミかは表の制約では見られない ── 預かる時と読む時に pv_review_summary_backed が見る）
 -- ⚠️ not valid ＝ 前から在る行は見直さない（冒頭の罠）。新しく入る行には効く。
 alter table public.pv_review_summaries drop constraint if exists pv_review_summaries_lang_chk;
@@ -413,6 +489,12 @@ alter table public.pv_review_summaries add  constraint pv_review_summaries_point
   check (public.pv_review_summary_bad(good,    lang, n) is null
      and public.pv_review_summary_bad(concern, lang, n) is null
      and (good || concern) <> '[]'::jsonb) not valid;
+
+-- 段落も同じ（2026-10-30）。null は「段落ができる前の行」なので通す（前から在る行と、6-b の作り直しの合図）。
+alter table public.pv_review_summaries drop constraint if exists pv_review_summaries_overview_chk;
+alter table public.pv_review_summaries add  constraint pv_review_summaries_overview_chk
+  check (overview is null
+      or public.pv_review_summary_overview_bad(overview, lang) is null) not valid;
 
 
 -- 3-b. 外へ返す形に直す。text・cat・ids の3つだけ ── k は落とす（約束 5）。open のときにしか呼ばない。
@@ -479,12 +561,14 @@ comment on function public.pv_review_summary_backed(jsonb, text[], timestamptz) 
 --   {ok:true,  state:'login'}    要約は在るが、呼んだ人はログインしていない
 --   {ok:true,  state:'locked'}   要約は在るが、呼んだ人は口コミの本文を読めない（ログイン済み）
 --   {ok:true,  state:'open', n, as_of:'YYYY-MM-DD', as_of_at:'YYYY-MM-DDTHH:MI:00Z',
---              good:[{text, cat, ids}], concern:[{text, cat, ids}]}
+--              overview:'…', good:[{text, cat, ids}], concern:[{text, cat, ids}]}
 --              as_of_at ＝ 預けた時刻（UTC・15分刻みに切り下げ。2026-10-25）── 画面が読む人の時計の日付にする
+--              overview ＝ 全体の傾向の段落（約束 8）。必ず文字列。'' は「段落なし」（段落ができる前の行も ''）
 -- ★ 未ログイン（anon）にも配ってある。配らないと画面は「権限エラー」と
 --   「鍵が掛かっている」を見分けられない（pv_stays と同じ作法）。
 -- ★ few と none は鍵を見る**前**に返す（冒頭の罠）。鍵の有無で few / none の出方は変わらない。
--- ★ few・none・login・locked は {ok, state} の2つだけ。open で返すのは text・cat・ids。k・書いた人は1つも入らない。
+-- ★ few・none・login・locked は {ok, state} の2つだけ（overview の鍵も無い）。
+--   open で返すのは n・as_of・as_of_at・overview と、点の text・cat・ids。k・書いた人は1つも入らない。
 create or replace function public.pv_review_summary(p jsonb)
 returns jsonb
 language plpgsql
@@ -519,12 +603,15 @@ begin
     return jsonb_build_object('ok', true, 'state', 'none');
   end if;
 
-  /* いまも出してよいか（約束 4・5）。集合か中身が変わった・形が合わない・
-     点のもとの口コミが確かめられない、のどれかで出さない。 */
+  /* いまも出してよいか（約束 4・5・8）。集合か中身が変わった・形が合わない・
+     点のもとの口コミが確かめられない・段落が検査を通らない、のどれかで出さない。
+     段落が null（段落ができる前の行）は出してよい ── 点はそのまま出し、段落は '' で返す。 */
   if public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig
      or public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is not null
      or public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is not null
      or (v_row.good || v_row.concern) = '[]'::jsonb
+     or (v_row.overview is not null
+         and public.pv_review_summary_overview_bad(v_row.overview, v_row.lang) is not null)
      or not public.pv_review_summary_backed(v_row.good,    v_codes, v_row.newest_at)
      or not public.pv_review_summary_backed(v_row.concern, v_codes, v_row.newest_at) then
     return jsonb_build_object('ok', true, 'state', 'none');
@@ -543,10 +630,12 @@ begin
 
   /* ★as_of_at（2026-10-25）── 預けた時刻を、UTC の15分刻みに切り下げて添える。画面はこれを読む人の時計の日付にして出す
      （as_of は UTC の日付なので、日本の 0〜9時に預けた要約は前日の日付に見えていた）。as_of は古い画面のためにそのまま残す。
-     15分刻みなのは、どの時間帯でも日付が正しく出るいちばん粗い刻みだから（時差はどれも15分の倍数）。それより細かい時刻は渡さない。 */
+     15分刻みなのは、どの時間帯でも日付が正しく出るいちばん粗い刻みだから（時差はどれも15分の倍数）。それより細かい時刻は渡さない。
+     ★overview（2026-10-30）── 段落は**ここでだけ**返す（約束 8）。上の login・locked・few・none の返事に足さない。 */
   return jsonb_build_object(
     'ok', true, 'state', 'open',
     'n', v_row.n,
+    'overview', coalesce(v_row.overview, ''),
     'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),
     'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')
                         + floor(extract(minute from v_row.made_at at time zone 'utc') / 15) * interval '15 minutes',
@@ -561,16 +650,17 @@ grant execute on function public.pv_review_summary(jsonb) to anon, authenticated
 
 comment on function public.pv_review_summary(jsonb) is
   '口コミの要約を返す。本文を読める人（pv_has_review_key）にだけ中身が返り、ほかは login / locked の1語。'
-  '3件未満は few・要約が無い／元の口コミが変わったときは none（どちらも鍵を見る前に返す）。k は返さない。ids は open のときだけ。';
+  '3件未満は few・要約が無い／元の口コミが変わったときは none（どちらも鍵を見る前に返す）。k は返さない。ids と overview（全体の傾向の段落）は open のときだけ。';
 
 
 -- ════════════════════════════════════════════════════════════════
 -- 5. 預ける／消す（運営の道。自動の道は 6）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {airline, lang, n, newest, good:[{text, cat, k, ids}], concern:[{text, cat, k, ids}]}
---   n      … 要約の材料にした口コミの件数
---   newest … 材料にしたいちばん新しい口コミの created_at（pv_reviews が返す字のまま渡す）
---   ★ good と concern が**両方とも空の配列**なら、その会社×言語の行を消す（n・newest は読まない）。
+-- 引数: p = {airline, lang, n, newest, overview?, good:[{text, cat, k, ids}], concern:[{text, cat, k, ids}]}
+--   n        … 要約の材料にした口コミの件数
+--   newest   … 材料にしたいちばん新しい口コミの created_at（pv_reviews が返す字のまま渡す）
+--   overview … 全体の傾向の段落（約束 8）。**任意**。鍵が無い・null なら ''（段落なし）として入れる。
+--   ★ good と concern が**両方とも空の配列**なら、その会社×言語の行を消す（n・newest・overview は読まない）。
 -- 返り値:
 --   {ok:true, state:'saved', airline, lang, n, as_of}
 --   {ok:true, state:'deleted'}
@@ -583,6 +673,8 @@ comment on function public.pv_review_summary(jsonb) is
 --     stale_input              newest までの口コミの件数が n と合わない
 --                              （書き出したあとで口コミが消えた・別の会社の束を渡した）
 --     bad_ids                  点の ids が、その会社の・その時刻までの・その分類に本文の在る口コミでない
+--     bad_overview             overview が文字列でない（数・配列など）か、3-a の検査を通らない
+--                              （理由の語はまとめてこの1つ。点の語と混ぜない）
 --     そのほか                 3 の検査が返す語（too_many / weak_point / text_too_long …）
 -- ★ 運営でない人が呼ぶと 42501（管理者ページのほかの関数と同じ）。何も調べずに返す。
 --   名簿は db/admin.sql の pv_admins（pv_is_admin と同じ1つ）。判定は
@@ -606,6 +698,8 @@ declare
   v_lang   text := coalesce(p ->> 'lang', '');
   v_good   jsonb := p -> 'good';
   v_con    jsonb := p -> 'concern';
+  v_ovj    jsonb := p -> 'overview';
+  v_ov     text;
   v_n      integer;
   v_newest timestamptz;
   v_err    text;
@@ -655,6 +749,19 @@ begin
     return jsonb_build_object('ok', false, 'error', v_err);
   end if;
 
+  /* ★全体の傾向の段落（約束 8）。鍵が無い・null は ''（段落なし）。文字列でなければ断る。
+     ここで必ず文字列にする ＝ 新しく預ける行の overview は null にならない（6-b の作り直しが1回で止まる）。 */
+  if v_ovj is null or jsonb_typeof(v_ovj) = 'null' then
+    v_ov := '';
+  elsif jsonb_typeof(v_ovj) <> 'string' then
+    return jsonb_build_object('ok', false, 'error', 'bad_overview');
+  else
+    v_ov := v_ovj #>> '{}';
+    if public.pv_review_summary_overview_bad(v_ov, v_lang) is not null then
+      return jsonb_build_object('ok', false, 'error', 'bad_overview');
+    end if;
+  end if;
+
   /* ★件数はここで数え直す。 */
   v_codes := public.pv_review_summary_codes(v_air);
   if public.pv_review_summary_count(v_codes, null) < 3 then
@@ -672,12 +779,13 @@ begin
 
   /* ★指紋もここで取る（渡された値は使わない）。 */
   insert into public.pv_review_summaries as s
-         (airline, lang, n, newest_at, sig, good, concern, made_at)
+         (airline, lang, n, newest_at, sig, good, concern, overview, made_at)
   values (v_air, v_lang, v_n, v_newest,
-          public.pv_review_summary_sig(v_codes, v_newest, v_lang), v_good, v_con, now())
+          public.pv_review_summary_sig(v_codes, v_newest, v_lang), v_good, v_con, v_ov, now())
   on conflict (airline, lang) do update
      set n = excluded.n, newest_at = excluded.newest_at, sig = excluded.sig,
-         good = excluded.good, concern = excluded.concern, made_at = excluded.made_at
+         good = excluded.good, concern = excluded.concern, overview = excluded.overview,
+         made_at = excluded.made_at
   returning s.made_at into v_made;
 
   return jsonb_build_object(
@@ -716,7 +824,7 @@ grant execute on function public.pv_review_summary_set(jsonb) to authenticated;
 
 comment on function public.pv_review_summary_set(jsonb) is
   '口コミの要約を預ける／消す。運営だけ（一般ユーザーが呼ぶと 42501）。'
-  '3件未満の会社・1件にしか支えられていない点・4つ以上・長すぎる文は入らない。件数はサーバが数え直す。';
+  '3件未満の会社・1件にしか支えられていない点・4つ以上・長すぎる文・検査を通らない段落（overview）は入らない。件数はサーバが数え直す。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -745,6 +853,9 @@ comment on function public.pv_review_summary_set(jsonb) is
 --  c. **同じ集合に、二度お金を払わない。** 預け終えた集合・点が1つも残らなかった集合は
 --     控えに残り、集合が変わるまで settled が返る。失敗は同じ集合につき3回まで・
 --     30分おき（cooling → parked）。parked は集合が変わるか、控えを手で消すまで続く。
+--     ★例外は1つだけ（2026-10-30）── 預かった行の段落（overview）が null（段落ができる前の行）なら、
+--       同じ集合で済んでいても**1回だけ**作り直させる（6-b）。新しく預けた行の段落は null に
+--       ならないので、2回目は無い。busy・cooling・parked は今までどおり効く（モデルが落ち続けても呼び続けない）。
 --  d. **古い集合の要約で、新しい集合の要約を上書きしない。** set_auto は basis を
 --     いまの集合の指紋と比べ、違えば stale_input で断る（約束 7）。
 --     ＝ 預かるのは必ず「いま読める口コミ全部」から作った要約。
@@ -765,7 +876,7 @@ comment on function public.pv_review_summary_set(jsonb) is
 -- 6-a. 控え（1社 × 1言語 に1行）。「この集合に、もう払ったか」を覚えるだけ。
 --   sig    … そのとき読めた口コミ全部の指紋（pv_review_summary_sig(codes, null, lang)）
 --   state  … running（作っている）／saved（預けた）／empty（点が残らなかった）／failed
---   tries  … 同じ sig で番を取った回数（sig が変われば 1 に戻る）
+--   tries  … 同じ sig で番を取った回数（sig が変われば 1 に戻る。済んだ控えから取り直したときも 1 ── 6-d）
 --   ran_at … state を書いた時刻（番の期限・失敗のあとの待ち時間を測る）
 -- ★ 要約の文も口コミの本文も入らない。名簿への参照も置かない（消しても困らない表）。
 create table if not exists public.pv_review_summary_runs (
@@ -798,6 +909,9 @@ comment on table public.pv_review_summary_runs is
 --     bad_newest  いちばん新しい口コミの時刻が無い・先の時刻（預けても断られる）
 --     missing     3件以上あるのに、預かった要約が無い        （→ 作る）
 --     stale       預かった要約の指紋が、いまの集合と違う      （→ 作り直す）
+--                 ★または、預かった要約に段落（overview）が無い ＝ null（段落ができる前の行）。
+--                   この行は fresh にしない・控えが同じ集合で saved / empty でも settled にしない
+--                   （通さないと、段落の無い古い行が永久に作り直されない）。busy・parked・cooling は先に効く。
 --   ★ 作る・消すに進むのは too_few / missing / stale の3つだけ。
 create or replace function public.pv_review_summary_need(p_air text, p_lang text)
 returns text
@@ -812,6 +926,7 @@ declare
   v_sig   text;
   v_max   timestamptz;
   v_has   boolean;
+  v_old   boolean;
   v_row   public.pv_review_summaries%rowtype;
   v_run   public.pv_review_summary_runs%rowtype;
 begin
@@ -819,6 +934,8 @@ begin
     from public.pv_review_summaries s
    where s.airline = p_air and s.lang = p_lang;
   v_has := found;
+  /* ★段落ができる前の行（overview が null）。1回だけ作り直させる合図（約束 8）。 */
+  v_old := v_has and v_row.overview is null;
 
   v_n := public.pv_review_summary_count(v_codes, null);
   if v_n < 3 then
@@ -829,10 +946,12 @@ begin
      あとから1件増えただけでも指紋は変わる ＝ 作り直す。 */
   v_sig := public.pv_review_summary_sig(v_codes, null, p_lang);
   if v_has
+     and not v_old
      and v_row.sig = v_sig
      and public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is null
      and public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is null
      and (v_row.good || v_row.concern) <> '[]'::jsonb
+     and public.pv_review_summary_overview_bad(v_row.overview, v_row.lang) is null
      and public.pv_review_summary_backed(v_row.good,    v_codes, null)
      and public.pv_review_summary_backed(v_row.concern, v_codes, null) then
     return 'fresh';
@@ -847,14 +966,20 @@ begin
     end if;
     if v_run.sig = v_sig then
       if v_run.state in ('saved', 'empty') then
-        return 'settled';
-      end if;
-      /* ここに来るのは failed か、期限の切れた running（＝途中で落ちた呼び出し）。 */
-      if v_run.tries >= 3 then
-        return 'parked';
-      end if;
-      if v_run.ran_at > now() - interval '30 minutes' then
-        return 'cooling';
+        /* ★段落ができる前の行は、済んだ集合でも settled にしない（約束 8・守っていること c の例外）。
+           済んだ控えは失敗ではないので、parked・cooling も見ずに下へ（作り直しの1回目。回数は take が1から数える）。 */
+        if not v_old then
+          return 'settled';
+        end if;
+      else
+        /* ここに来るのは failed か、期限の切れた running（＝途中で落ちた呼び出し）。
+           段落ができる前の行の作り直しが落ちたときも、ここで止まる（モデルが落ち続けても呼び続けない）。 */
+        if v_run.tries >= 3 then
+          return 'parked';
+        end if;
+        if v_run.ran_at > now() - interval '30 minutes' then
+          return 'cooling';
+        end if;
       end if;
     end if;
   end if;
@@ -1027,12 +1152,16 @@ begin
     return jsonb_build_object('ok', true, 'state', 'too_few', 'n', v_n, 'basis', v_sig);
   end if;
 
-  /* 番を取る。同じ集合なら回数を1つ足し、集合が変わっていれば1に戻す。 */
+  /* 番を取る。同じ集合で失敗が続いている（failed／期限の切れた running）なら回数を1つ足し、
+     集合が変わっていれば1に戻す。
+     ★同じ集合でも、前が済んだ控え（saved／empty）なら1から ── そこから番を取りに来るのは、
+       段落ができる前の行の作り直し（6-b）だけ。済んだ回の回数を持ち越すと、1回落ちただけで parked になる。 */
   insert into public.pv_review_summary_runs as r
          (airline, lang, sig, n, state, tries, ran_at)
   values (v_air, v_lang, v_sig, v_n, 'running', 1, now())
   on conflict (airline, lang) do update
-     set tries  = case when r.sig = excluded.sig then r.tries + 1 else 1 end,
+     set tries  = case when r.sig = excluded.sig and r.state not in ('saved', 'empty')
+                       then r.tries + 1 else 1 end,
          sig    = excluded.sig,
          n      = excluded.n,
          state  = excluded.state,
@@ -1051,9 +1180,10 @@ comment on function public.pv_review_summary_take(jsonb) is
 
 
 -- 6-e. 自動の道で預ける／消す。
--- 引数: p = {airline, lang, basis, n, good:[{text, cat, k, ids}], concern:[{text, cat, k, ids}]}
---   basis … take が返した指紋をそのまま。
---   ★ good と concern が両方とも空なら消す（3件に満たない／点が1つも残らなかった）。
+-- 引数: p = {airline, lang, basis, n, overview?, good:[{text, cat, k, ids}], concern:[{text, cat, k, ids}]}
+--   basis    … take が返した指紋をそのまま。
+--   overview … 全体の傾向の段落（任意・5-a がそのまま受け取る。無い・null は ''／文字列でない・検査を通らない字は bad_overview）。
+--   ★ good と concern が両方とも空なら消す（3件に満たない／点が1つも残らなかった）。overview は見ない。
 --   ★ newest は受け取らない。いまの集合のいちばん新しい時刻を**サーバが引く**
 --     （basis が合った ＝ 材料はいまの全部、なので引き直せる。時刻の字の丸めで
 --       件数がずれる罠 ── 11 の検査の stale_input ── を、自動の道は踏めない）。
@@ -1233,8 +1363,9 @@ $grant$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 検算（貼ったあと、6行とも ✅ になっていること）
+-- 検算（貼ったあと、7行とも ✅ になっていること）
 --   ⚠️ 6行目は service_role という役が在る DB でだけ ✅ になる（Supabase には必ず在る）。
+--   ★7行目は全体の傾向の段落（overview）の口が入ったか（2026-10-30）。❌ なら、段落の入る前のこのファイルを貼っている。
 -- ════════════════════════════════════════════════════════════════
 select '表は anon / authenticated から直に読めない' as 確認,
        case when not has_table_privilege('anon', 'public.pv_review_summaries', 'select')
@@ -1260,6 +1391,8 @@ select '預ける関数は未ログインから呼べない',
 union all
 select '中の部品は誰にも配っていない',
        case when not has_function_privilege('authenticated', 'public.pv_review_summary_bad(jsonb, text, integer)', 'execute')
+             and not has_function_privilege('authenticated', 'public.pv_review_summary_overview_bad(text, text)', 'execute')
+             and not has_function_privilege('anon', 'public.pv_review_summary_overview_bad(text, text)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_ids(text[], timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_count(text[], timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_sig(text[], timestamptz, text)', 'execute')
@@ -1292,4 +1425,19 @@ select '自動で預ける道は service_role から呼べる',
                                   ('public.pv_review_summary_set_auto(jsonb)'),
                                   ('public.pv_review_summary_done(jsonb)')) f(sig)
                where r.rolname = 'service_role'), false)
+            then '✅' else '❌' end
+union all
+select '全体の傾向の段落（overview）の口が入っている',
+       case when exists (select 1 from information_schema.columns c
+                          where c.table_schema = 'public' and c.table_name = 'pv_review_summaries'
+                            and c.column_name = 'overview' and c.data_type = 'text')
+             and exists (select 1 from pg_constraint k
+                          where k.conrelid = 'public.pv_review_summaries'::regclass
+                            and k.conname = 'pv_review_summaries_overview_chk')
+             and public.pv_review_summary_overview_bad('', 'ja') is null
+             and public.pv_review_summary_overview_bad(repeat('あ', 39), 'ja') = 'text_too_short'
+             and public.pv_review_summary_overview_bad(repeat('a', 441), 'en') = 'text_too_long'
+             and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%coalesce(v_row.overview%'
+             and pg_get_functiondef('public.pv_review_summary_put(jsonb)'::regprocedure) like '%bad_overview%'
+             and pg_get_functiondef('public.pv_review_summary_need(text, text)'::regprocedure) like '%v_old%'
             then '✅' else '❌' end;

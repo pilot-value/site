@@ -716,7 +716,7 @@ const SUM_OPEN = (co) => ({ ok: true, state: 'open', n: 3, as_of: '2026-10-01',
   good: [{ text: `${co} 良い点その一`, cat: 'training' }, { text: `${co} 良い点その二`, cat: 'wlb' }, { text: `${co} 良い点その三`, cat: 'ops' }],
   concern: [{ text: `${co} 気になる点その一`, cat: 'benefits' }] });
 /* 鍵の無い人への返事に、わざと点と件数を植えたもの（画面は状態の1語しか読まない） */
-const SUM_LEAK = { ok: true, state: 'locked', n: 7, as_of: '2026-10-01', good: [{ text: 'LEAK-GOOD 点', cat: 'ops' }], concern: [{ text: 'LEAK-CONCERN 点' }] };
+const SUM_LEAK = { ok: true, state: 'locked', n: 7, as_of: '2026-10-01', overview: 'LEAK-OVERVIEW 段落', good: [{ text: 'LEAK-GOOD 点', cat: 'ops' }], concern: [{ text: 'LEAK-CONCERN 点' }] };
 const SUM_FAIL = { status: 500, body: { code: 'XX000', details: null, hint: null, message: '検査のわざとの失敗' } };
 const SUM_NOFN = { status: 404, body: { code: 'PGRST202', details: null, hint: null, message: 'Could not find the function public.pv_review_summary' } };
 /* 会社ごとの要約の返事（{ slug: body | { status, body } }）。聞かれた会社は p.airline */
@@ -799,6 +799,41 @@ scene('sumopen', '[B] 要約が2社とも開いている：見出しは1回・�
     ok(!!F && F.links === 0, `（${size}）要約の欄の中にリンク（矢印・入口）は1つも無い`, String(F && F.links));
     await shots(page, size);
   }
+});
+
+/* ★2026-10-30 要約の1点は「話題：説明」（summarize-reviews の指示）。画面は「：」の前を太字の見出しにする。
+   頭に全体の傾向の段落（overview）── 良い点の上に1つだけ。点が1つも無い返事・overview が空の返事では置かない。
+   「：」は消さずに見えなくするだけ ── 文字の並び（読み上げ・検査が読む字）は元の1行のまま。形の合わない古い文は1行のまま。 */
+const SUM_TOPIC = { ok: true, state: 'open', n: 4, as_of: '2026-10-30',
+  overview: '口コミでは、乗員どうしの雰囲気を評価する声が多い一方、機長昇格までの待ちの長さを挙げる声が目立つ。',
+  good: [{ text: '機長昇格：待ちが長く、時期が読みにくい', cat: 'training' }, { text: '古い形の一文で、話題の見出しが無いという声が複数ある', cat: 'wlb' }],
+  concern: [{ text: 'とても長い話題の名前がここまで続いてしまう場合：見出しにしない', cat: 'ops' }] };
+scene('sumtopic', '[B] 要約の頭に全体の傾向の段落・「話題：説明」は「：」の前が見出しになる（字の並びは元の1行のまま・古い形と長すぎる話題は1行のまま）', 'mock', async () => {
+  const { page } = await open('sp', { url: PAIR_URL('jal', 'ana'), stub: {
+    pv_reviews: reviewsBy({ jal: FIX.JAL, ana: FIX.ANA }), pv_review_summary: sumBy({ jal: SUM_TOPIC, ana: { ...SUM_TOPIC, overview: '' } }) } });
+  ok(await sumDone(page, 'jal|ana'), '要約の欄が読み終わった');
+  const R = await page.evaluate(() => {
+    const vis = (e) => { if (!e) return false; const r = e.getBoundingClientRect(), s = getComputedStyle(e); return s.visibility !== 'hidden' && r.width > 1 && r.height > 1; };
+    const c = document.querySelector('.crl-sum2-c');
+    return !c ? null : [...c.querySelectorAll('.crl-sum-t')].map((t) => {
+      const k = t.querySelector('.crl-sum-k'), sep = t.querySelector('.crl-sum-sep'), b = t.querySelector('.crl-sum-b');
+      return { all: t.textContent, k: k ? k.textContent : null, kVis: vis(k), kW: k ? +getComputedStyle(k).fontWeight : 0,
+        kAbove: !!k && !!b && k.getBoundingClientRect().bottom <= b.getBoundingClientRect().top + 1,
+        sep: sep ? sep.textContent : null, sepVis: vis(sep), b: b ? b.textContent : null };
+    });
+  });
+  const [p1, p2, p3] = R || [];
+  const OVS = await page.evaluate(() => [...document.querySelectorAll('.crl-sum2-c')].map((c) => {
+    const o = [...c.querySelectorAll('.crl-sum-ov')], g = c.querySelector('.crl-sum-col');
+    return { n: o.length, text: o[0] ? o[0].textContent : null, before: !!o[0] && !!g && !!(o[0].compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING) };
+  }));
+  ok(JSON.stringify(OVS) === JSON.stringify([{ n: 1, text: SUM_TOPIC.overview, before: true }, { n: 0, text: null, before: false }]),
+    '全体の傾向の段落は、段落のある会社にだけ・良い点の上に1つ（段落が空の会社には置かない）', JSON.stringify(OVS));
+  ok(!!p1 && p1.all === SUM_TOPIC.good[0].text && p1.k === '機長昇格' && p1.kVis && p1.kW >= 700 && p1.kAbove && p1.sep === '：' && !p1.sepVis && p1.b === '待ちが長く、時期が読みにくい',
+    '「機長昇格：待ちが長く…」は、太字の見出し「機長昇格」が上・中身が下・「：」は見えないが字の並びは元のまま', JSON.stringify(p1));
+  ok(!!p2 && p2.all === SUM_TOPIC.good[1].text && p2.k === null, '「：」の無い古い形の文は、見出しを作らず1行のまま', JSON.stringify(p2));
+  ok(!!p3 && p3.all === SUM_TOPIC.concern[0].text && p3.k === null, '「：」の前が長すぎる（12字を超える）文は、見出しにしない', JSON.stringify(p3));
+  await shots(page, 'sp');
 });
 
 scene('sumlogin', 'ログインしていない人：要約の欄は1行「ログインが必要です」と「ログイン」1つだけ（会社ごとのマスを描かない）・評価の読み込みを待たない', 'mock', async () => {

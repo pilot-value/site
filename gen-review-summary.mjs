@@ -26,7 +26,8 @@
      ・1つの点は、**別々の2件以上**の口コミが同じことを言っているときだけ。
        モデルには支えている口コミの番号を出させ、ここで数え直す（k）。
        k が2に満たない点は落とす。番号は出力から外し、残すのは k だけ。
-     ・会社の事実としてではなく「〜という声が複数」と書かせる。
+     ・会社の事実としては書かせない。形は「話題：中身」の短い1行（2026-10-30〜。前は「〜という声が複数」の文）。
+     ・選ぶ順は「入社を考えるパイロットの判断を変える順」（給与・昇格・勤務と疲労・雇用と経営…）。件数の多い順ではない。
      ・人名・日付・金額を書かせない。数字と通貨記号が入った点はここで落とす
        （サーバはここまで見ない ── 網はこの1か所）。
      ・口コミが3件に満たない／2件以上がそろう点が無いときは、空の配列を出す。
@@ -50,7 +51,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 /* Node がそのまま読む（translate-eval.mjs が translate-review を読むのと同じやり方）。 */
 import {
-  MODEL, CATS, LIMITS, MAX_POINTS, MIN_REVIEWS, MIN_SUPPORT, LEGACY_OF, codesOf,
+  MODEL, CATS, LIMITS, OVERVIEW_LIMITS, MAX_POINTS, MIN_REVIEWS, MIN_SUPPORT, LEGACY_OF, codesOf,
   buildInput, systemPrompt, userMessage, TOOL, requestBody, callModel, settle, payloadOf,
 } from './supabase/functions/summarize-reviews/index.ts';
 
@@ -58,7 +59,7 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 /* 今までどおりの名前で外へ出す（db/test-review-summary.mjs がここから読む）。 */
 export {
-  MODEL, CATS, LIMITS, MAX_POINTS, MIN_REVIEWS, MIN_SUPPORT, LEGACY_OF, codesOf,
+  MODEL, CATS, LIMITS, OVERVIEW_LIMITS, MAX_POINTS, MIN_REVIEWS, MIN_SUPPORT, LEGACY_OF, codesOf,
   buildInput, systemPrompt, userMessage, TOOL, requestBody, callModel, settle, payloadOf,
 };
 
@@ -138,7 +139,7 @@ export async function selftest(log = console.log) {
   ok(all.every((p) => JSON.stringify(Object.keys(p)) === '["text","cat","k"]'), '材料に id の無い呼び方では、点は text・cat・k の3つだけ（口コミの番号は付かない）');
   const payload = payloadOf({ airline: 'sample-air', lang: 'ja', n: 6, newest: '2026-01-01T00:00:00+00:00' }, s);
   ok(!/reviews|_idx|trace|dropped/.test(JSON.stringify(payload)), '預ける JSON に番号・検品の記録が混ざらない');
-  ok(JSON.stringify(Object.keys(payload)) === '["airline","lang","n","newest","good","concern"]', '預ける JSON の鍵は6つ');
+  ok(JSON.stringify(Object.keys(payload)) === '["airline","lang","n","newest","overview","good","concern"]', '預ける JSON の鍵は7つ（全体の傾向の段落 overview を含む）');
 
   /* 材料に id が在る呼び方（自動の道）。番号 i の口コミは mats[i - 1]。5件目はどの点も挙げない。 */
   const ID = (j) => `00000000-0000-4000-8000-${String(j).padStart(12, '0')}`;
@@ -167,6 +168,24 @@ export async function selftest(log = console.log) {
      '通貨記号の入った文を落とす');
   ok(settle({ good: [{ text: '訓練が１年続くという声が複数ある', cat: 'training', reviews: [1, 2] }], concern: [] }, { lang: 'ja', n: 3 }).good.length === 0,
      '全角の数字も落とす');
+  /* 全体の傾向の段落（2026-10-30）。点と同じ線（数字・通貨・タグ）＋字数（OVERVIEW_LIMITS）。点が無ければ段落も無い。 */
+  const P1 = [{ text: '機長昇格：待ちが長いという声が多く、時期の見通しが立てにくいと感じている人が複数いる。', cat: 'training', reviews: [1, 2] }];
+  const OV = '口コミでは、乗員どうしの雰囲気を評価する声が多い一方、機長昇格までの待ちの長さを挙げる声が目立つ。勤務の負担については意見が分かれている。';
+  const ov = (o, g = P1, lang = 'ja') => settle({ overview: o, good: g, concern: [] }, { lang, n: 3 });
+  ok(ov(OV).overview === OV && ov(OV).good.length === 1, '形の合う段落は、そのまま預ける（点と一緒に）', JSON.stringify(ov(OV).overview));
+  ok(ov(' ' + OV + '\n').overview === OV, '段落の前後の空白と改行はそろえる');
+  ok(ov(OV, []).overview === '', '点が1つも無ければ、段落も預けない（段落だけの要約は作らない）');
+  ok(ov(OV.replace('多い', '三人が多い')).overview === OV.replace('多い', '三人が多い') && ov('口コミでは、給与は１年目から高いという声が多い一方、機長昇格までの待ちの長さを挙げる声が目立つ。勤務については意見が分かれる。').overview === '',
+     '数字の入った段落は落とす（漢数字は点と同じく「円」が続くときだけ）');
+  const ovDrop = ov('口コミでは<b>給与</b>を評価する声が多い一方、機長昇格までの待ちの長さを挙げる声が目立つ。勤務については意見が分かれている。');
+  ok(ovDrop.overview === '' && ovDrop.good.length === 1 && ovDrop.dropped.some((d) => d.side === 'overview' && d.why === 'not_plain_text'),
+     'タグの入った段落は落とす（点はそのまま預ける）', JSON.stringify(ovDrop.dropped));
+  ok(ov('あ'.repeat(OVERVIEW_LIMITS.ja.min - 1)).overview === '' && ov('あ'.repeat(OVERVIEW_LIMITS.ja.min)).overview.length === OVERVIEW_LIMITS.ja.min
+     && ov('あ'.repeat(OVERVIEW_LIMITS.ja.max)).overview.length === OVERVIEW_LIMITS.ja.max && ov('あ'.repeat(OVERVIEW_LIMITS.ja.max + 1)).overview === '',
+     `段落の字数は日本語 ${OVERVIEW_LIMITS.ja.min}〜${OVERVIEW_LIMITS.ja.max}字（境目の前後で確かめる）`);
+  ok(ov(42).overview === '' && ov(undefined).overview === '' && !ov(undefined).dropped.some((d) => d.side === 'overview'),
+     '文字列でない段落は落とす・段落を返さなかった古い形の返事は「段落なし」として扱う（落とした記録にしない）');
+
   const few = settle(reply, { lang: 'ja', n: 2 });
   ok(few.good.length === 0 && few.concern.length === 0, '口コミが3件に満たなければ、返事が何であれ空');
   const en = settle({ good: [{ text: 'Several pilots mention that training captains take time to explain.', cat: 'training', reviews: [1, 3] },
@@ -201,9 +220,16 @@ export async function selftest(log = console.log) {
   ok(body.model === MODEL && !('temperature' in body), 'モデルは決めた1つ・temperature を送らない');
   ok(body.tool_choice.type === 'tool' && body.tool_choice.name === TOOL.name && body.tools.length === 1, '受け取り口を強制する');
   const sys = body.system;
-  ok(/at most 3 points/.test(sys) && /at least 2 DIFFERENT reviews/.test(sys) && /never as a fact about the company/.test(sys)
+  ok(/at most 3 points/.test(sys) && /at least 2 DIFFERENT reviews/.test(sys) && /never a fact about the company/.test(sys)
      && /no names of people, no dates or years, no amounts of money/.test(sys) && /Use only what is written/.test(sys)
-     && /return empty arrays for both/.test(sys) && /という声が複数/.test(sys), '指示に約束の6つが入っている');
+     && /return empty arrays for both/.test(sys) && /話題：説明/.test(sys), '指示に約束の6つが入っている');
+  ok(/deciding whether to apply to, join or stay/.test(sys) && /Leave out small conveniences/.test(sys) && /simulator slots/.test(sys)
+     && /always comes before a minor point backed by many/.test(sys) && /must be in "concern", worded plainly/.test(sys)
+     && /how much they would change the decision/.test(sys) && !/by how many reviews support them, most first/.test(sys),
+     '選ぶ順は「入社を考える人の判断を変える順」── 小さな便利さは外す・深刻な不満は必ず出す・件数の多い順に戻っていない');
+  ok(/"overview": two or three sentences/.test(sys) && /only restates what your good and concern points say/.test(sys) && /adds nothing that is not in the points/.test(sys)
+     && /one or two sentences that explain it/.test(sys) && !/Keep it short/.test(sys) && body.tools[0].input_schema.required.includes('overview'),
+     '頭に全体の傾向の段落（点の言い直しだけ）・1点は1〜2文で説明する（短い句に縮めさせていない）・受け取り口が段落を必ず返させる');
   let sent = null;
   const fake = (payload, status = 200) => async (url, init) => {
     sent = { url, init };
