@@ -76,22 +76,27 @@
 /* 比べる印（カードの足もとの右）── WP-dmap-10：小さなチェックから、はっきりした切り替えのボタンへ（押す前「＋ 比較」・押した後「✓ 比較中」。
    押したかは aria-pressed、見える字はこの規則が入れ替える）。押せる高さは 44px・見える丸い札は 32px（::before が描く）。
    足せない時（aria-disabled）は灰色に加えて、なぜかを持つ（aria-describedby ＝ 比較リストの決まりの行・title ── 台本が書く） */
-.wd-cmp{position:relative;isolation:isolate;flex:none;display:inline-flex;align-items:center;min-height:44px;margin-right:-2px;padding:0 12px;border:0;background:none;color:var(--pv-ink-2);font:inherit;font-size:.78rem;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .18s var(--pv-ease)}
-.wd-cmp::before{content:"";position:absolute;inset:6px 0;z-index:-1;border:1px solid var(--pv-line);border-radius:999px;background:var(--pv-surface)}
+/* ★2026-10-29 オーナー「各カードの比較のボタンがわかりづらいからもう少し大きく」── 字 14px・見える札も 44px いっぱい・緑の縁と字（押す前）／
+   緑の塗りと白い字（押した後）。字は「＋ 比較に追加」／「✓ 比較中」（gen-directory.mjs の WORDS） */
+.wd-cmp{position:relative;isolation:isolate;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;min-width:128px;margin-right:-2px;padding:0 16px;border:0;background:none;color:var(--pv-accent-ink);font:inherit;font-size:.875rem;font-weight:800;line-height:1;white-space:nowrap;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .18s var(--pv-ease)}
+.wd-cmp::before{content:"";position:absolute;inset:0;z-index:-1;border:1.5px solid color-mix(in oklab,var(--pv-accent) 70%,var(--pv-surface));border-radius:999px;background:var(--pv-surface);box-shadow:0 1px 2px color-mix(in oklab,var(--pv-accent-dark) 10%,transparent)}
 .wd-cmp-on{display:none}
-.wd-cmp[aria-pressed="true"]{color:var(--pv-accent-ink)}
-.wd-cmp[aria-pressed="true"]::before{border-color:var(--pv-accent-line);background:var(--pv-accent-soft)}
+.wd-cmp[aria-pressed="true"]{color:#fff}
+.wd-cmp[aria-pressed="true"]::before{border-color:var(--pv-accent-dark);background:var(--pv-accent-dark)}
 .wd-cmp[aria-pressed="true"] .wd-cmp-on{display:inline}
 .wd-cmp[aria-pressed="true"] .wd-cmp-off{display:none}
-.wd-cmp:hover{color:var(--pv-ink);transform:translateY(-1px)}
-.wd-cmp:hover::before{border-color:var(--pv-accent-line)}
-.wd-cmp[aria-pressed="true"]:hover{color:var(--pv-accent-ink)}
+.wd-cmp:hover{color:var(--pv-accent-ink);transform:translateY(-1px)}
+.wd-cmp:hover::before{border-color:var(--pv-accent);background:var(--pv-accent-soft)}
+.wd-cmp[aria-pressed="true"]:hover{color:#fff}
+.wd-cmp[aria-pressed="true"]:hover::before{border-color:var(--pv-accent-dark);background:var(--pv-accent-dark)}
 .wd-cmp:focus-visible{outline:none}
 .wd-cmp:focus-visible::before{outline:2px solid var(--pv-accent);outline-offset:2px}
 .wd-cmp:active{transform:scale(.97)}
 .wd-cmp[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.wd-cmp[aria-disabled="true"]{color:var(--pv-ink-2)}
+.wd-cmp[aria-disabled="true"]::before{border-color:var(--pv-line);box-shadow:none}
 .wd-cmp[aria-disabled="true"]:hover,.wd-cmp[aria-disabled="true"]:active{color:var(--pv-ink-2);transform:none}
-.wd-cmp[aria-disabled="true"]:hover::before{border-color:var(--pv-line)}
+.wd-cmp[aria-disabled="true"]:hover::before{border-color:var(--pv-line);background:var(--pv-surface)}
 /* 比較リスト（#wd-tray）── WP-dmap-10（オーナー：チェックを付けた会社は右に社名が出る・検索で絞って足せる）。行と候補は台本が作る。
    狭い画面（〜1000px）：画面の下に貼りつく盆（1社から）。畳んだ形 ＝ 1行（題・何社目か・次の1手だけ）／開いた形（is-open）＝ 行・欄を開くボタン・
    決まりの行・2つのボタン。「＋ 会社を追加」は下から出る板（is-adding：決まりの行・欄と候補だけ）。広い画面（1001px〜）：カードの右に貼りつくリスト
@@ -102,6 +107,11 @@
 .wd-cl-tt{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px;min-width:0}
 .wd-cl-h{margin:0;font-size:.9rem;font-weight:800;letter-spacing:-.01em;line-height:1.3;color:var(--pv-ink);white-space:nowrap}
 .wd-tray-n{font-size:.8rem;font-weight:700;line-height:1.3;color:var(--pv-ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* ★2026-10-29 オーナー「したの比較するボタンもわかりづらい」── 畳んだ盆（狭い画面）に、選んだ会社の略号を札で並べる（何が入っているかが1行で分かる）。
+   札は台本（tray()）が cmp から作る・読み上げには出さない（行と数は今までどおり）。開いた盆と広い画面のリストは行が社名を持つので出さない */
+.wd-tray-chips{display:none}
+.wd-tray-chip{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px;border:1px solid var(--pv-line);border-radius:999px;background:var(--pv-surface-2);font:800 10.5px/1 Inter,sans-serif;letter-spacing:.01em;color:var(--pv-ink)}
+.wd-tray-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ac,var(--pv-accent))}
 .wd-cl-fold,.wd-cl-close,.wd-cl-x{flex:none;display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:999px;background:none;color:var(--pv-ink-2);cursor:pointer;transition:transform .18s var(--pv-ease)}
 .wd-cl-fold,.wd-cl-close{margin-left:auto}
 .wd-cl-fold::after{content:"";position:absolute;inset:0}   /* 題の行のどこを押しても開く・畳む */
@@ -151,6 +161,7 @@
 .wd-cl-acts{display:flex;align-items:center;gap:8px;min-width:0}
 .wd-cl-open,.wd-tray-two,.wd-tray-lvl{flex:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink);font:inherit;font-size:.82rem;font-weight:700;white-space:nowrap;text-decoration:none;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
 .wd-tray-two,.wd-tray-lvl{border-color:var(--pv-accent-dark);background:var(--pv-accent-dark);color:#fff}
+.wd-tray-two::after{content:"→";margin-left:5px;font-weight:800}
 .wd-tray.is-two .wd-tray-lvl{border-color:var(--pv-line);background:var(--pv-surface);color:var(--pv-ink)}
 .wd-tray .wd-tray-two[aria-disabled="true"],.wd-tray .wd-tray-lvl[aria-disabled="true"]{border-color:var(--pv-line-soft);background:var(--pv-surface-2);color:var(--pv-ink-3);cursor:not-allowed}
 .wd-cl-open:hover,.wd-tray-two:not([aria-disabled="true"]):hover,.wd-tray-lvl:not([aria-disabled="true"]):hover{transform:translateY(-1px)}
@@ -158,6 +169,11 @@
 .wd-cl-open:active,.wd-tray-two:not([aria-disabled="true"]):active,.wd-tray-lvl:not([aria-disabled="true"]):active,.wd-cl-fold:active,.wd-cl-close:active,.wd-cl-x:active{transform:scale(.96)}
 @media (pointer:coarse){.wd-cl-open,.wd-tray-two,.wd-tray-lvl{min-height:44px}.wd-cl-close,.wd-cl-x{width:44px;height:44px}.wd-cl-row > .wd-cl-x{margin:-10px 0}.wd-cl-opt{min-height:48px}}
 @media (max-width:1000px){
+  .wd-tray:not(.is-open):not(.is-adding) .wd-tray-chips:not(:empty){display:inline-flex;flex-wrap:wrap;gap:4px}
+  .wd-tray:not(.is-open):not(.is-adding) .wd-cl-tt:has(.wd-tray-chips:not(:empty)){column-gap:0;flex:1 1 auto}
+  .wd-tray:not(.is-open):not(.is-adding) .wd-cl-head:has(.wd-tray-chips:not(:empty)){gap:0}
+  .wd-tray:not(.is-open):not(.is-adding) .wd-cl-tt:has(.wd-tray-chips:not(:empty)) :is(.wd-cl-h,.wd-tray-n){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .wd-tray:not(.is-open):not(.is-adding) .wd-cl-acts > .is-main{min-height:48px;padding:0 14px;font-size:.9rem}
   .wd-tray:not(.is-open):not(.is-adding) .wd-cl-body{display:none}
   .wd-tray:not(.is-open):not(.is-adding) .wd-cl-acts > :not(.is-main){display:none}
   .wd-tray:not(.is-adding) .wd-cl-add{display:none}
@@ -266,12 +282,6 @@ html.wd-lock{overflow:hidden;overflow-anchor:none}
 .wam-names{margin:0;padding:0;list-style:none}
 .wam-names li{display:inline}
 .wam-names li + li::before{content:'・';color:var(--pv-ink-3)}
-.wam-go{min-height:44px;padding:0 16px;border:1px solid var(--pv-accent-line);border-radius:var(--pv-r-sm);background:var(--pv-surface);color:var(--pv-accent-ink);font:700 14px/1 Inter,'Noto Sans JP',sans-serif;cursor:pointer;transition:transform .18s var(--pv-ease)}
-.wam-go:hover{background:var(--pv-accent-soft)}
-.wam-go:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
-.wam-go:active{transform:scale(.98)}
-.wam-go.is-off{display:none}
-@media not all and (any-pointer:coarse){.wam-go{display:none}}
 @container wam (max-width:999px){.wam[data-rest="none"]:not(.is-open) .wam-card{display:none}}
 /* 閉じたカード（WP-dmap-8 D1 → WP-dmap-11 で区域 1000px 未満ぜんぶへ広げた）：カードが閉じているあいだ、切り替えの右に、いま見せている地域
    （指している・選びかけ・選んだ ── 開いた時は「すべて」）の名前と選んだ職位の額（1行目）、その職位の最低と最高（2行目）だけを出す
@@ -301,7 +311,7 @@ html.wd-lock{overflow:hidden;overflow-anchor:none}
   .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-mm-k{font-size:10.5px}
   .wam[data-rest="none"]:not(.is-open) .wam-g:has(> .wam-pos:not([hidden])) .wam-mm-v{font-size:11.5px;font-weight:700}
 }
-@media (prefers-reduced-motion:reduce){.wam-go,.wam-cond > summary,.wam-cond > summary::after{transition:none}}
+@media (prefers-reduced-motion:reduce){.wam-cond > summary,.wam-cond > summary::after{transition:none}}
 /* 「機長｜副操縦士」の切り替え（P12.100）── hidden で出荷し、台本が動いたときだけ見せる。押した方（aria-pressed）が区域の data-pos を決める。
    面の先頭の子（地図の上の1行 ── 区域 1000px 未満は、右に閉じたカードの1〜2行が並ぶ）・1000px 以上は面の右上の升（カードの上）。
    ダークでは押した方を緑の面と縁で塗る（字の色だけの違いにしない ── リード P12.112） */
@@ -388,7 +398,7 @@ html.wd-lock{overflow:hidden;overflow-anchor:none}
 /* 地図の下の1行：一言（左）と凡例（右）。凡例は選んでいる職位の1本だけ（8地域の平均のいちばん低い所〜高い所） */
 .wam-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 16px;margin-top:6px}
 .wam-hint{margin:0;font:500 12px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-3)}
-/* 指の画面では出さない：地図に触れると見せるだけで、選ぶのは「この地域の航空会社を見る」（pv-directory.js）＝「地図をクリックして地域を選択」は本当でない（WP-dmap-7） */
+/* 指の画面では出さない：一言は「クリック」の言葉（WP-dmap-7）。指は触れたらその場で選ぶ（2026-10-29 から ── pv-directory.js） */
 @media (pointer:coarse){.wam-hint{display:none}}
 .wam-key{display:none;align-items:center;gap:8px;margin:0 0 0 auto;font:600 11px/1.4 Inter,'Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--pv-ink-2)}
 .wam[data-pos="cap"] .wam-key[data-pos="cap"],.wam[data-pos="fo"] .wam-key[data-pos="fo"]{display:inline-flex}
@@ -493,7 +503,7 @@ html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-rh .wd-clear{display:no
    板は地図の枠と凡例の升（面の 2 行目）の下の縁に置き、地図の下の部分に重なる。地図の枠の大きさも位置も変えない・ページを動かさない・下の帯はそのまま
    （前は枠が世界の高さまで縮み、面が下へ伸びてページが動き、触れた地域が指の下から 200px 離れた ── チェッカーの GAP 1）。
    高さは中身まで、ただし升の高さ − 114px まで（枠の上から 10 ＋ 44 ＋ 8 ＋ 44 ＝ 106px の拡大・縮小の列に掛からない ── 拡大しているあいだだけ出る
-   「元に戻す」は小さい画面では板の下になる。縮小で戻れる）。中だけがスクロールし、「この地域の航空会社を見る」は板の下の縁に残る。
+   「元に戻す」は小さい画面では板の下になる。縮小で戻れる）。中だけがスクロールする（指の端末では、下の「小さい形」の規則で中身は名前と2つの額だけ）。
    右上の × と Esc で閉じる（切り替えの右の1〜2行に戻る）。× は板のいちばん上の地域の名前の行の中 ── 行は × と同じ高さ（44px・板の上の余白は 0 にして
    その分を行に回した ＝ 名前の字の位置は前と同じ）で、上に貼りつき地の色を持つ。中身はこの行の下を通るので、× がどの字にも掛からない（チェッカー2 の GAP A）。
    1行目の高さは開いても閉じても切り替えの高さ（閉じたカードの1〜2行は行の高さを決めない ── 上の「閉じたカード」の規則）＝ 開け閉めで地図が上下しない */
@@ -502,7 +512,23 @@ html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-rh .wd-clear{display:no
   html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-cols{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:8px}
   html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-h{position:sticky;top:0;z-index:1;display:flex;align-items:center;box-sizing:border-box;min-height:44px;padding-right:40px;background:var(--pv-surface)}   /* 板の中をスクロールしても地域の名前の行は上に残る。高さは × と同じ 44px（× はこの行の中） */
   html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-sx:not([hidden]){display:block}
-  html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-go:not(.is-off){flex:none;margin:0 0 8px}
+  /* ★2026-10-29 オーナー「表示が大きすぎる」── 板は小さい形：地域の名前の行（× ）・「掲載◯社の推定年収の平均」の1行・機長と副操縦士の額を横に2つ。
+     散らばりの帯・最低と最高・条件/出典は板に出さない（絞った会社は下のカードそのもの。広い画面のカードには今までどおり全部ある）。
+     板は地図の下の縁に貼りつき、高さは中身まで（約 120px ── 前は地図の下半分を覆っていた）。
+     小さい形は指で触る端末だけ（any-pointer:coarse）── マウスの狭い画面（左のメニューが出る 1001px など）は今までどおり全部を出す */
+  @media (any-pointer:coarse){
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-card{padding:0 14px 10px}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open :is(.wam-k,.wam-sps,.wam-cond){display:none}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-cols{padding-bottom:0}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-panel{display:block}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-h{font-size:16px}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-est{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-def{grid-column:1 / -1;margin:0 0 4px}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-row{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;padding:0}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-rk{font-size:12px}
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-n,
+    html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-row .wam-n{font-size:20px;letter-spacing:-.02em}
+  }
   html[data-theme="dark"]:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-card{box-shadow:0 -1px 0 var(--pv-line),0 -18px 40px -16px rgba(0,0,0,.55)}
 }
 @media (prefers-reduced-motion:reduce){html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) .wam.is-open .wam-card{animation:none}}

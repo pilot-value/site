@@ -187,13 +187,13 @@ const POS = ['cap', 'fo'];
 const WORDS = {
   ja: {
     all: 'すべて', k: '公開情報からの推定', def: (n) => `掲載${n}社の推定年収の平均`, rank: { cap: '機長', fo: '副操縦士' }, rankGroup: '職位',
-    cond: '条件/出典', who: '対象', count: '対象掲載社数', countN: (n) => `${n}社`, fx: '換算', go: 'この地域の航空会社を見る',
+    cond: '条件/出典', who: '対象', count: '対象掲載社数', countN: (n) => `${n}社`, fx: '換算',
     lo: '最低', hi: '最高', span: '幅', regionN: (l, n) => `${l} ${n}社`, hint: '地図をクリックして地域を選択',
     zoom: { in: '拡大', out: '縮小', reset: '元に戻す', touch: '2本の指で動かせます' }, close: '閉じる',
   },
   en: {
     all: 'All', k: 'Estimate from public information', def: (n) => `Mean of our estimates across ${n} airlines`, rank: { cap: 'Captain', fo: 'First Officer' }, rankGroup: 'Rank',
-    cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Exchange rates', go: 'View airlines in this region',
+    cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Exchange rates',
     lo: 'Lowest', hi: 'Highest', span: 'Range', regionN: (l, n) => `${l} ${n}`, hint: 'Click the map to choose a region',
     zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close',
   },
@@ -296,7 +296,7 @@ export function mapSection(o) {
 
   return [
     `<div class="wam" id="wa-map-sec" data-rest="${NARROW_REST}" data-pos="cap">`,
-    '<noscript><style>.wam-map,.wam-key,.wam-hint,.wam-go,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}.wam-g{display:block!important}.wam-card{max-width:720px}</style></noscript>',
+    '<noscript><style>.wam-map,.wam-key,.wam-hint,.wam-slot{display:none!important}.wam-card{display:flex!important}.wam-panel{visibility:visible!important;grid-area:auto!important}.wam-sp{visibility:inherit!important;grid-area:auto!important}.wam-sp-rk{display:block!important}.wam-g{display:block!important}.wam-card{max-width:720px}</style></noscript>',
     '<div class="wam-g">',
     `<div class="wam-pos" role="group" aria-label="${esc(W.rankGroup)}" hidden>${POS.map((r) => `<button type="button" class="wam-pb" data-pos="${r}" aria-pressed="${r === 'cap'}">${esc(W.rank[r])}</button>`).join('')}</div>`,
     mapBox({ tones, legend, hint: esc(W.hint), zoom: Object.fromEntries(ZOOM_KEYS.map((k) => [k, esc(W.zoom[k])])) }),
@@ -308,7 +308,6 @@ export function mapSection(o) {
     '</div>',
     `<div class="wam-slot"><div id="pv-rp" class="pv-rp" data-axis-jpy="${Math.max(AX.cap, AX.fo) * 10000}" hidden></div></div>`,
     '</div>',
-    `<button type="button" class="wam-go is-off" id="wa-go">${esc(W.go)}</button>`,
     '</aside>',
     '</div>',
     '</div>',

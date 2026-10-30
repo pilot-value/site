@@ -74,6 +74,8 @@ const SB = 'https://db.example.test';
 const DAY0 = Date.parse('2026-10-07T03:00:00Z');
 const G_TEXT = 'ヨウヤク 乗員どうしの風通しがよいという声が複数ある。';
 const C_TEXT = 'ヨウヤク 勤務の変更が直前に入ることがあるという声がある。';
+/* 全体の傾向の段落（2026-10-30）── 形の合うもの */
+const OV_TEXT = 'ヨウヤク ダンラク 口コミでは乗員どうしの風通しを評価する声が多い一方、勤務の変更が直前に入ることを挙げる声もある。';
 const GOOD_REPLY = {
   good: [{ text: G_TEXT, cat: 'culture', reviews: [1, 2] }],
   concern: [{ text: C_TEXT, cat: 'wlb', reviews: [2, 3] }],
@@ -343,6 +345,7 @@ await section(async () => {
   const w = world();
   w.add('starflyer', 3); w.store('starflyer'); w.add('starflyer', 1);          // 4件・古い要約あり
   w.model = () => modelOk({
+    overview: '  ' + OV_TEXT + '\n',                                                                            // 残る（前後の空白はそろえる）
     good: [
       { text: G_TEXT, cat: 'culture', reviews: [1, 2, 2, 3] },                                              // 残る（重複は数えず k=3）
       { text: 'ヨウヤク ステル 年収は1,800万円ほどという声がある。', cat: 'salary', reviews: [1, 2] },        // 数字
@@ -376,8 +379,8 @@ await section(async () => {
 
   const sets = rpcs(w, 'pv_review_summary_set_auto');
   const sid = w.rows.get('starflyer').map((x) => x.id);
-  ck('預けたのは、検品を通った2点だけ（モデルの番号は付けない・k は数え直した数・ids はその番号の口コミ）', sets.map((s) => s.p),
-     [{ airline: 'starflyer', lang: 'ja', basis: w.sig('starflyer'), n: 4,
+  ck('預けたのは、検品を通った2点と全体の傾向の段落だけ（モデルの番号は付けない・k は数え直した数・ids はその番号の口コミ）', sets.map((s) => s.p),
+     [{ airline: 'starflyer', lang: 'ja', basis: w.sig('starflyer'), n: 4, overview: OV_TEXT,
         good: [{ text: G_TEXT, cat: 'culture', k: 3, ids: [sid[0], sid[1], sid[2]] }], concern: [{ text: C_TEXT, cat: 'wlb', k: 2, ids: [sid[2], sid[3]] }] }]);
   ck('DB に預かった形', [w.stored.get('starflyer|ja').n, w.stored.get('starflyer|ja').good.length, w.need('starflyer', 'ja')], [4, 1, 'fresh']);
 

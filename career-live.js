@@ -75,6 +75,13 @@
     payLock: '給与の提出で開きます',
     payExpired: '年収データの解放が切れています',
     payMore: function (n) { return '続きを見る（全' + n + '件）'; },
+    payOpen: function (n) { return '提出された数字を見る（' + n + '件）'; },
+    /* 年数ごとの年収の図（2026-10-29）。x ＝ 昇格後の年数の5段（行の札 ten.r と同じ区切り）・y ＝ 年収 */
+    ydHead: '昇格後の年数ごとの年収',
+    ydX: ['〜5年', '5〜10年', '10〜15年', '15〜20年', '20年〜'],
+    ydAxis: '昇格後の年数',
+    ydNote: function (old) { return '1つの点が1件の提出です。' + (old ? '在籍年数しか無い古い提出（' + old + '件）は図に入れていません。' : ''); },
+    ydFar: '公開年収から大きく外れた金額',
     payDef: 'REAL PAY と同じ一覧（直近24か月の提出）。月の支給額を年に直した額と、口コミに書かれた年収の両方が入っています。',
     medDef: function (from, to, floor) { return '中央値は、給与を提出した人ごとのまんなかの額から出しています（給与の月が' + from + '〜' + to + 'のもの・' + floor + '人以上の区分だけ）。口コミに書かれた年収と、登録前に預かった提出は入りません。'; },
     payGive: '匿名で給与を提出する',
@@ -124,6 +131,7 @@
     revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（点数の有無を問わず、投稿ぜんぶ）。評価件数（revRated）と同じ行に置かない
     revRated: function (n) { return n + '件の評価'; },
     sumHead: '口コミの要約',
+    sumOvHead: 'まとめ',                              // 全体の傾向の段落の枠の見出し（2026-10-30）
     sumGood: '良い点',
     sumConcern: '気になる点',
     sumLock: '要約は口コミの投稿で開きます',
@@ -183,6 +191,12 @@
     payLock: 'Opens when you submit your pay',
     payExpired: 'Your pay-data access has ended',
     payMore: function (n) { return 'Show more (' + n + ' in total)'; },
+    payOpen: function (n) { return 'See submitted figures (' + n + ')'; },
+    ydHead: 'Annual pay by years in rank',
+    ydX: ['<5 yrs', '5–10', '10–15', '15–20', '20+'],
+    ydAxis: 'Years in current rank',
+    ydNote: function (old) { return 'Each dot is one submission.' + (old ? ' ' + old + (old === 1 ? ' older submission' : ' older submissions') + ' with only years at the airline ' + (old === 1 ? 'is' : 'are') + ' not shown.' : ''); },
+    ydFar: 'Far from the published pay range',
     payDef: 'Same list as REAL PAY (submissions from the last 24 months). It includes monthly pay converted to an annual figure and annual pay reported in reviews.',
     medDef: function (from, to, floor) { return 'The median uses one figure per pilot, that pilot’s own median (pay months ' + from + '–' + to + '; groups of ' + floor + ' or more only). Annual pay reported in reviews and submissions held before sign-up are not included.'; },
     payGive: 'Add your pay anonymously',
@@ -227,6 +241,7 @@
     revPosts: function (n) { return 'Member posts: ' + n; },
     revRated: function (n) { return n + (n === 1 ? ' rating' : ' ratings'); },
     sumHead: 'Review summary',
+    sumOvHead: 'Overview',
     sumGood: 'Good points',
     sumConcern: 'Concerns',
     sumLock: 'The summary opens when you post a review',
@@ -1441,7 +1456,7 @@
     });
   }
   KIND['cmp-pay'] = function (box, ids) {
-    var keep = foldsOpen(box);
+    var keep = foldsOpen(box), keepAll = !!box.querySelector('details.crl-pay-fold[open]');
     return Promise.all([payRows(), dict()]).then(function (r) {
       var pay = r[0], D = r[1], A = ofCo(pay.rows, ids[0]), B = ofCo(pay.rows, ids[1]);
       var g = cmpGrid(ids), none = !A.length && !B.length;
@@ -1456,20 +1471,33 @@
         return view('empty', [g]);
       }
       var agg = aggBlock();
-      g.appendChild(agg);                           // 会社の札の下・職位ごとの行の上
+      g.appendChild(agg);                           // 会社の札の下・図と畳んだ行の上
+      var yd = ydBlock(A, B, ids);
+      if (yd) g.appendChild(yd);
+      /* ★2026-10-29 オーナー「給与の詳細（提出した）数字は押したら出てくる形にして」── 1件ずつの行は畳む（押すと開く）。
+         通貨を替えて描き直しても、開けたものは開けたまま（keepAll） */
+      var fold = el('details', 'crl-pay-fold'), fs = el('summary', 'crl-pay-fold-s'), rowsG = el('div', 'crl-cmp crl-pay-rows'), shown = 0;
       payRanks(A, B).forEach(function (pos) {
         var a = A.filter(function (x) { return (x.pos || '') === pos; }), b = B.filter(function (x) { return (x.pos || '') === pos; });
         var named = T.workPos.some(function (p) { return p[0] === pos; });
         if (!a.length && !b.length && !named) return;
+        shown += a.length + b.length;
         var name = rankName(pos, D);
-        if (name) { var h = el('h3', 'crl-pr-h', name); h.setAttribute('data-pos', pos); g.appendChild(h); }
-        var row = cmpRow(g, null, payCell(a, ids[0], pos, D, keep), payCell(b, ids[1], pos, D, keep)) || g.lastChild;
+        if (name) { var h = el('h3', 'crl-pr-h', name); h.setAttribute('data-pos', pos); rowsG.appendChild(h); }
+        var row = cmpRow(rowsG, null, payCell(a, ids[0], pos, D, keep), payCell(b, ids[1], pos, D, keep)) || rowsG.lastChild;
         row.setAttribute('data-rows', pos);
       });
+      fs.appendChild(el('span', '', T.payOpen(shown)));
+      fs.appendChild(icon('down', 14));
+      fold.appendChild(fs);
+      fold.appendChild(rowsG);
       var def = el('p', 'crl-def', T.payDef);
       def.setAttribute('data-def', 'rows');
+      fold.appendChild(def);
+      if (keepAll) fold.open = true;
+      g.appendChild(fold);
       aggFill(agg, ids, box);                       // 待たない（行はすぐ出る。中央値は答えが来たら器に入る）
-      return view('open', [g, def]);
+      return view('open', [g]);
     }, function (e) {
       /* 読めなかった時も、給与の入口は残す（この面でただ1つの入口。読み手が誰かは分からないので「ログイン」は出さない） */
       var feet = foot([cmpPayEntry()]);
@@ -1478,6 +1506,100 @@
     });
   };
 
+  /* ── 昇格後の年数ごとの年収（比較の「提出された年収」の図 ── 2026-10-29 オーナー「CAP,COPの年次ごとの給与分布のグラフを入れたほうが」）──
+     材料は、いま開いている読み手に届いた行（pv_pay_rows の open）だけ ＝ 下の「提出された数字」と同じ行・同じ額（有効数字2桁）。新しく聞かない・
+     作らない・足さない。閉じた読み手には額が届いていないので、図そのものを作らない（ぼかした絵も置かない）。
+     ★x は昇格後の年数の5段（ten・tenk 'r'）だけ。在籍年数しか無い古い行（tenk 's'）は同じ目盛に置かない（「昇格後」と名乗らせない ── 行の札と同じ決まり）。
+     ★y は2社・2職位で1本の目盛（0 から・機長と副操縦士で同じ）── 図どうしで高さが比べられる。目盛の字は PVCurrency の表記。
+     ★1つの点 ＝ 1件の提出。点を押すと（指はタップ）その額の札が出る。会社の色は札（.crl-co）と同じ。色の近い2社は右の会社が輪（career.css の data-near）。
+     ★人数・平均・中央値をここで数えない（中央値はサーバーの pv_company_pay の1か所）。ここでの計算は、点を置く位置と目盛の刻みだけ。
+       そのため給与の区画（var PAY_TOP から ── 足さない・並べ替えない・計算しない区画。assert-career.mjs）の外に置いてある。呼ぶのは開いた答えの KIND['cmp-pay'] だけ */
+  var YD_BANDS = 5;
+  function ydNice(v) {                              // 目盛の刻み（1・2・2.5・5 × 10^k）
+    var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10)), m = v / p;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+  }
+  function ydBlock(A, B, ids) {
+    var C = w.PVCurrency;
+    if (!C || !C.rates || typeof C.fmt !== 'function') return null;
+    var rate = C.rates[C.get()] || 1, usd = C.rates.USD || 1;
+    function val(r) { var n = sig2(Number(r.annual_usd) * usd / rate); return n > 0 ? n : 0; }   // 表示の通貨の額（行の額と同じ丸め）
+    var old = 0, sets = {}, top = 0;
+    T.workPos.forEach(function (p) {
+      sets[p[0]] = [A, B].map(function (L) {
+        return L.filter(function (r) {
+          if ((r.pos || '') !== p[0] || !(Number(r.annual_usd) > 0) || !isNum(r.ten) || r.ten < 0 || r.ten >= YD_BANDS) return false;
+          if (r.tenk === 's') { old++; return false; }
+          return true;
+        }).map(function (r) { var v = val(r); if (v > top) top = v; return { r: r, v: v }; }).filter(function (x) { return x.v > 0; });
+      });
+    });
+    var any = T.workPos.some(function (p) { return sets[p[0]][0].length + sets[p[0]][1].length > 0; });
+    if (!any || !(top > 0)) return null;
+    var step = ydNice(top / 4), max = Math.ceil(top / step) * step;
+    if (max <= top) max += step;                    // いちばん上の点が枠の縁に乗らない
+    var wrap = el('div', 'crl-yd');
+    wrap.setAttribute('data-kind', 'years');
+    wrap.appendChild(el('h3', 'crl-yd-tt', T.ydHead));   // 中央値の見出し（crl-agg-h）とは別の印 ── 中央値を数える側に混ざらない
+    var lg = el('div', 'crl-yd-lg');
+    lg.setAttribute('aria-hidden', 'true');
+    lg.appendChild(coTag(ids[0])); lg.appendChild(coTag(ids[1]));
+    wrap.appendChild(lg);
+    var figs = el('div', 'crl-yd-figs');
+    T.workPos.forEach(function (p) {
+      var S = sets[p[0]];
+      if (!S[0].length && !S[1].length) return;
+      var f = el('figure', 'crl-yd-f');
+      f.setAttribute('data-pos', p[0]);
+      f.appendChild(el('figcaption', 'crl-yd-h', p[1]));
+      var plot = el('div', 'crl-yd-plot'), yax = el('div', 'crl-yd-y'), area = el('div', 'crl-yd-a');
+      yax.setAttribute('aria-hidden', 'true');
+      for (var t = 0; t <= max + step / 2; t += step) {
+        var pc = (t / max * 100).toFixed(2) + '%';
+        var lb = el('span', 'crl-yd-t pv-no-cur', t ? C.fmt(t * rate) : '0');
+        lb.style.bottom = pc; yax.appendChild(lb);
+        var gl = el('i', 'crl-yd-g'); gl.style.bottom = pc; area.appendChild(gl);
+      }
+      for (var k = 1; k < YD_BANDS; k++) { var sep = el('i', 'crl-yd-s'); sep.style.left = (k * 100 / YD_BANDS) + '%'; area.appendChild(sep); }
+      S.forEach(function (L, col) {
+        var by = [];                                // 段ごとに額の順（同じ段の点は横に少しずつ並べる ── 並びは決まっていて、乱数は使わない）
+        L.forEach(function (x) { (by[x.r.ten] = by[x.r.ten] || []).push(x); });
+        by.forEach(function (xs, band) {
+          if (!xs) return;
+          xs.sort(function (a, b) { return a.v - b.v; });
+          xs.forEach(function (x, i) {
+            var spread = Math.min(2.2, 6 / Math.max(1, xs.length - 1));
+            var left = band * 100 / YD_BANDS + (col ? 13.5 : 6.5) + (xs.length > 1 ? (i - (xs.length - 1) / 2) * spread : 0);
+            var amt = C.fmt(x.v * rate);
+            var tip = coName(ids[col]) + ' · ' + T.ydX[band] + ' · ' + amt + (x.r.verified ? ' · ' + T.vfYes : '') + (x.r.far === true ? ' · ⚠︎ ' + T.ydFar : '');
+            var dot = el('button', 'crl-yd-d pv-no-cur');
+            dot.type = 'button';
+            dot.setAttribute('data-col', String(col + 1));
+            dot.setAttribute('data-edge', band < 2 ? 'l' : band > 2 ? 'r' : 'c');   // 札を枠の外へ出さない向き
+            dot.setAttribute('data-tip', tip);
+            dot.setAttribute('aria-label', tip);
+            dot.style.left = left.toFixed(2) + '%';
+            dot.style.bottom = (x.v / max * 100).toFixed(2) + '%';
+            var c = companies()[ids[col]];
+            if (c && typeof c.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.color)) dot.style.setProperty('--crl-co', c.color);
+            area.appendChild(dot);
+          });
+        });
+      });
+      plot.appendChild(yax); plot.appendChild(area);
+      f.appendChild(plot);
+      var xs = el('div', 'crl-yd-x');
+      xs.setAttribute('aria-hidden', 'true');
+      T.ydX.forEach(function (s) { xs.appendChild(el('span', '', s)); });
+      f.appendChild(xs);
+      f.appendChild(el('p', 'crl-yd-ax', T.ydAxis));
+      figs.appendChild(f);
+    });
+    wrap.appendChild(figs);
+    var note = el('p', 'crl-yd-note', T.ydNote(old));
+    wrap.appendChild(note);
+    return wrap;
+  }
   /* ── 口コミ（実投稿だけ）──────────────────────────────── */
 
   /* ── 評価スコア（会社ページ）──────────────────────────────
@@ -1713,6 +1835,29 @@
     });
   }
   var SUM_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  /* 全体の傾向の段落（2026-10-30〜 summarize-reviews が overview として預ける・鍵のある人にだけ届く）。無い・空なら置かない。 */
+  function sumOv(x) {
+    var t = x && typeof x.overview === 'string' ? x.overview.trim() : '';
+    if (!t) return null;
+    var box = el('div', 'crl-sum-ovb');                    // ★オーナー「要約のまとめも囲って読みやすく」── 見出し「まとめ」つきの枠
+    box.appendChild(el('span', 'crl-sum-ovk', T.sumOvHead));
+    box.appendChild(el('p', 'crl-sum-ov', t));
+    return box;
+  }
+  /* 要約の1点は「話題：説明」（2026-10-30〜 summarize-reviews の指示）。「：」の前を太字の見出しにする。
+     「：」は消さずに見えなくするだけ（読み上げと文字の並びは元の1行のまま）。形が合わない古い文はそのまま1行で出す。 */
+  function sumSplit(text) {
+    var m = /^([^：:]{1,12})：(.+)$/.exec(text) || /^([A-Za-z][A-Za-z' &/-]{0,31}): (.+)$/.exec(text);
+    return m && m[2].trim() ? { k: m[1], sep: text.slice(m[1].length, text.length - m[2].length), b: m[2] } : null;
+  }
+  function sumText(text) {
+    var t = el('span', 'crl-sum-t'), s = sumSplit(text);
+    if (!s) { t.textContent = text; return t; }
+    t.appendChild(el('b', 'crl-sum-k', s.k));
+    t.appendChild(el('span', 'crl-sum-sep', s.sep));
+    t.appendChild(el('span', 'crl-sum-b', s.b));
+    return t;
+  }
   /* max ＝ 何点まで（会社ページは3・比較は2）。bare ＝ 点の矢印を置かない（矢印は同じページの口コミを開く ── 会社ページにだけ在る） */
   function sumList(title, kind, items, max, bare) {
     var wrap = el('div', 'crl-sum-col');
@@ -1723,7 +1868,7 @@
       var text = it && typeof it.text === 'string' ? it.text : '';
       if (!text) return;
       var li = el('li', 'crl-sum-li');
-      li.appendChild(el('span', 'crl-sum-t', text));
+      li.appendChild(sumText(text));
       var cat = it && typeof it.cat === 'string' && /^[a-z]{2,12}$/.test(it.cat) ? it.cat : '';
       if (cat && !bare) {
         var a = el('a', 'crl-sum-a');
@@ -1782,8 +1927,8 @@
       var grid = el('div', 'crl-sum');
       if (good) grid.appendChild(good);
       if (bad) grid.appendChild(bad);
-      var by = sumFoot(x);
-      return view('open', [el('h3', 'crl-sum-title', T.sumHead), grid, by]);
+      var by = sumFoot(x), ov = sumOv(x);
+      return view('open', ov ? [el('h3', 'crl-sum-title', T.sumHead), ov, grid, by] : [el('h3', 'crl-sum-title', T.sumHead), grid, by]);
     }, function (e) {
       if (e && e.crl === 'off') return view('empty', [sumNote(T.sumOff, 'off')]);   // 口がまだ無い ＝ 未接続（件数も文も作らない）
       throw e;
@@ -1808,6 +1953,8 @@
       var x = s.v;
       var good = sumList(T.sumGood, 'good', isArr(x.good) ? x.good : [], CMP_SUM_MAX, true);
       var bad = sumList(T.sumConcern, 'concern', isArr(x.concern) ? x.concern : [], CMP_SUM_MAX, true);
+      var ov = (good || bad) ? sumOv(x) : null;
+      if (ov) body.push(ov);
       if (good) body.push(good);
       if (bad) body.push(bad);
       if (good || bad) body.push(sumFoot(x));

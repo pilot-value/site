@@ -669,7 +669,8 @@ const factsAll = (p) => {
   const keys = p && Array.isArray(p.keys) ? p.keys : [];
   return { status: 200, body: { ok: true, state: 'open', facts: keys.map((k) => ({ question_id: k, kind: 'num', median_num: 12, n: 5 })) } };
 };
-const backOpen = (jalRows = 2) => ({
+/* jalRows ＝ JAL の機長の行の数・fo ＝ 副操縦士の行（ANA に1つ・JAL に jalFo）を入れるか（B2 だけ false で始める） */
+const backOpen = (jalRows = 2, fo = true, jalFo = 0) => ({
   pv_reviews: (p) => {
     const a = p && Array.isArray(p.airlines) ? p.airlines[0] : '';
     return { status: 200, body: { ok: true, unlocked: true, rows: OPEN_REV[a] || [] } };
@@ -677,8 +678,8 @@ const backOpen = (jalRows = 2) => ({
   pv_review_summary: (p) => ({ status: 200, body: OPEN_SUM(p && p.airline === 'jal' ? 'JAL' : 'ANA') }),
   pv_work_view: workBy(WORK),
   pv_contrib_facts: factsAll,
-  pv_pay_rows: () => ({ status: 200, body: H.payFix.open(Array.from({ length: jalRows }, () => H.payRowFix('jal')),
-    [H.payRowFix('ana'), H.payRowFix('ana', { pos: 'fo' })]) }),
+  pv_pay_rows: () => ({ status: 200, body: H.payFix.open([...Array.from({ length: jalRows }, () => H.payRowFix('jal')), ...Array.from({ length: jalFo }, () => H.payRowFix('jal', { pos: 'fo' }))],
+    fo ? [H.payRowFix('ana'), H.payRowFix('ana', { pos: 'fo' })] : [H.payRowFix('ana')]) }),
   pv_company_pay: () => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3,
     airlines: { jal: { cap: { s: 'few' }, fo: { s: 'few' } }, ana: { cap: { s: 'few' }, fo: { s: 'few' } } } } }),
 });
@@ -877,7 +878,9 @@ scene('back', '比較 →「ほかの街」→ 会社ページ →「戻る」�
     legNote(cs));
 
   /* B2 会員 c：離れているあいだに、目印より上の提出された年収の欄に JAL の行が1つ増える */
-  const c2 = await backLeg('taller', { who: 'c', stub: backOpen(2), away: (st) => { st.stub.pv_pay_rows = backOpen(3).pv_pay_rows; } });
+  /* ★2026-10-29：1件ずつの行は閉じた畳みの中 ＝ 行が増えても欄は伸びない。伸びるのは「昇格後の年数ごとの図」に職位が1つ増えたとき
+     （副操縦士の行が2社とも無い → 離れているあいだに JAL に1つ来た）── 目印より上が長くなる、は同じ */
+  const c2 = await backLeg('taller', { who: 'c', stub: backOpen(2, false), away: (st) => { st.stub.pv_pay_rows = backOpen(3, false, 1).pv_pay_rows; } });
   const payH = (L) => ((L || []).find((b) => b.kind === 'cmp-pay') || {}).h;
   ok(sameAddr(c2) && c2.calm2 && payH(c2.after) > payH(c2.leave) && Math.abs(c2.topAfter - c2.top0) <= 2,
     `B2 会員 c：離れているあいだに目印より上の欄（提出された年収）が長くなって帰ってきても（${payH(c2.leave)} → ${payH(c2.after)}px）、落ち着いたあと目印は同じ高さ（ずれ ${px(c2.topAfter - c2.top0)}px ≤ 2）`,
