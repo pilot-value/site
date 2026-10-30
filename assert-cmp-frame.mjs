@@ -631,7 +631,7 @@ const SAME_RE = new RegExp(`^(${SAME_SHEET})$`);
 const SAME_SRC = (read('career.js').match(/\n {4}var SAME_FACE = \/\^\((.+?)\)\$\/;\n/) || [])[1] || null;
 const LIVE = '#cr [data-view="compare"] .crl[data-live]';
 const BACK_AT = '#cr .cr-rentb[data-airline="ana"] .cr-rentb-go a';         // ANA の「ほかの街」（目印）
-const BACK_FOLD = '#cr .cr-rentb[data-airline="jal"] details.cr-more';      // JAL の「前提と出どころ」（390px では ANA の箱の上）
+const BACK_FOLD = '#cr .cr-rentb[data-airline="jal"] details.cr-more';      // JAL の「前提と出典」（390px では ANA の箱の上）
 const BACK_HOLD = [...H.MINE, 'pv_pay_rows', 'pv_company_pay'];
 /* 住所ではなく選び直しで JAL｜ANA に着く道（★2026-10-24 段階4 cmp-links-card-8・LEAD'S WORD S1）：キャセイ｜JAL を住所で開き →
    入れ替え（JAL｜キャセイ）→ B に ANA。pair() は選んだ2社の要素を箱の中で動かすので、隠れたキャセイの要素は JAL の前に残る
@@ -886,11 +886,11 @@ scene('back', '比較 →「ほかの街」→ 会社ページ →「戻る」�
     `B2 会員 c：離れているあいだに目印より上の欄（提出された年収）が長くなって帰ってきても（${payH(c2.leave)} → ${payH(c2.after)}px）、落ち着いたあと目印は同じ高さ（ずれ ${px(c2.topAfter - c2.top0)}px ≤ 2）`,
     legNote(c2));
 
-  /* B3 会員 c：目印より上の JAL の「前提と出どころ」を開いたまま離れる → 戻ると閉じている（上が短い） */
+  /* B3 会員 c：目印より上の JAL の「前提と出典」を開いたまま離れる → 戻ると閉じている（上が短い） */
   const c3 = await backLeg('fold', { who: 'c', stub: backOpen(), fold: true });
   console.log(`  ・B3 会員 c：戻った直後（欄は読み込み中）の目印のずれ ${px(c3.topNow - c3.top0)}px（数を控えるだけ）`);
   ok(sameAddr(c3) && c3.foldOpen && c3.foldH > 0 && c3.foldNow === false && c3.calm2 && Math.abs(c3.topAfter - c3.top0) <= 2,
-    `B3 会員 c：目印より上の「前提と出どころ」（JAL の家賃の箱）を開いたまま離れ、戻ると畳みは閉じていて上が ${c3.foldH}px 短い ── 落ち着いたあと目印は同じ高さ（ずれ ${px(c3.topAfter - c3.top0)}px ≤ 2）`,
+    `B3 会員 c：目印より上の「前提と出典」（JAL の家賃の箱）を開いたまま離れ、戻ると畳みは閉じていて上が ${c3.foldH}px 短い ── 落ち着いたあと目印は同じ高さ（ずれ ${px(c3.topAfter - c3.top0)}px ≤ 2）`,
     J({ foldOpen: c3.foldOpen, foldH: c3.foldH, foldNow: c3.foldNow, note: JSON.parse(legNote(c3)) }));
 
   /* B5 会員 c：戻ったあと、返事を流す前に読む人がホイールで動かす → もう合わせ直さない */

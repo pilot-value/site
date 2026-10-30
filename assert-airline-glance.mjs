@@ -564,17 +564,17 @@ for (const s of FIVE) {
   const want = [];
   for (const [rk, rkJa] of RANKS) {
     const m = rankModel(s, rk);
-    want.push([`${rkJa}の推定年収`, m.est.text, '']);
+    want.push([rkJa, '', '']);
     for (const f of m.figs) want.push([f.group, f.text, f.orig]);
-    const r = rows.find(x => x.dt === `${rkJa}の推定年収`);
+    const r = rows.find(x => x.dt === rkJa);
     /* 根拠・算出方法・時点が台帳にそろっていればその3つ。そろっていなければ「当サイトの推定」とだけ書く
        （在りもしない根拠を書かない・だからといって額を引っ込めない）。
        ★2026-10-22 段階4 cmp-pay-3：どちらの形でも、1行目は対象（「対象：機種の指定なし」）── 同じ強さの当て直し（リード L2） */
     if (m.est.backed) {
-      ok(!!r && same(r.small, [EST_TGT, `根拠：${m.est.basis}`, `算出方法：${m.est.method}`, `時点：${m.est.asOf}`]),
-         `${s} ${rkJa}: 推定の説明は「${EST_TGT}」の次に 根拠・算出方法・時点 が台帳のまま出ている`, r ? r.small.join(' ／ ') : '行が無い');
+      ok(!!r && same(r.small, [m.est.method, `時点：${m.est.asOf}`]),
+         `${s} ${rkJa}: 推定の説明は 算出方法・時点 の2つだけ（台帳のまま。★2026-10-30 オーナー：額のくり返し・根拠・対象を書かない）`, r ? r.small.join(' ／ ') : '行が無い');
     } else {
-      ok(!!r && same(r.small, [EST_TGT, EST_BY]), `${s} ${rkJa}: 根拠の台帳がそろっていない推定には「${EST_TGT}」の次に「${EST_BY}」とだけ書く`, r ? r.small.join(' ／ ') : '行が無い');
+      ok(!!r && same(r.small, [EST_BY]), `${s} ${rkJa}: 算出方法の台帳がそろっていない推定には「${EST_BY}」とだけ書く`, r ? r.small.join(' ／ ') : '行が無い');
     }
     for (const f of m.figs.filter(x => x.key === 'max_y')) {
       const row = rows.find(x => x.dt === f.group && x.b === f.text);
@@ -627,12 +627,15 @@ head('推定年収の対象（新しい会社ページの全部）');
   const bad = [];
   for (const s of GLANCE) {
     const html = read(pageOf(s)), at = html.indexOf('id="kyuyo-konkyo"'), end = at < 0 ? -1 : html.indexOf('</details>', at);
-    const box = end < 0 ? '' : html.slice(at, end), n = box.split(`<small>${EST_TGT}</small>`).length - 1;
-    const miss = RANKS.filter(([rk, rkJa]) => !box.includes(`<dt>${rkJa}の推定年収</dt><dd><b>${yen(SALARY[s][rk].avg)}</b><small>${EST_TGT}</small>`)).map(([, l]) => l);
-    if (!box || n !== RANKS.length || miss.length) bad.push(`${s}: ${box ? `「${EST_TGT}」${n}つ${miss.length ? `・${miss.join('・')}の推定の額のすぐ次に無い` : ''}` : '#kyuyo-konkyo が読めない'}`);
+    const box = end < 0 ? '' : html.slice(at, end);
+    /* ★2026-10-30 オーナー「なんで機長の推定年収上にあるのにさらにその下にごちゃごちゃ」「根拠？いらないから消せ」「棒の目盛は…いらねえだろ」
+         ── 上の額をくり返さない・「対象：機種の指定なし」・根拠・目盛・為替の換算の一文を書かない。職位の名前（機長／副操縦士）は1つずつ在る。 */
+    const ng = [[`${EST_TGT}`, '対象'], ['の推定年収</dt>', '額のくり返し'], ['根拠：', '根拠'], ['class="pvg-axis"', '目盛'], ['class="pvg-fx"', '換算の一文']].filter(([t]) => box.includes(t)).map(([, l]) => l);
+    const miss = RANKS.filter(([, rkJa]) => box.split(`<dt>${rkJa}</dt>`).length !== 2).map(([, l]) => l);
+    if (!box || ng.length || miss.length) bad.push(`${s}: ${box ? [...ng, ...miss.map(l => `${l}の行が1つでない`)].join('・') : '#kyuyo-konkyo が読めない'}`);
   }
   ok(FIVE.every(s => GLANCE.includes(s)) && !bad.length,
-     `新しい会社ページ ${GLANCE.length}枚とも、金額の出どころの説明で 機長・副操縦士の推定年収の額のすぐ次が「${EST_TGT}」（1職位に1つ・1ページに2つだけ）`,
+     `新しい会社ページ ${GLANCE.length}枚とも、金額の説明に 上の額のくり返し・対象・根拠・目盛・換算の一文が無い（職位の名前は1つずつ）`,
      bad.slice(0, 8).join(' ／ ') + (bad.length > 8 ? ` ほか${bad.length - 8}枚` : ''));
 }
 
@@ -657,7 +660,7 @@ for (const s of FIVE) {
   ok(!named.length, `${s}: ほかの4社の社名を、この節に出していない`, named.join(', '));
   ok(!/&amp;b=|[?&]b=/.test(PART[s].hero + g), `${s}: 相手を決め打ちした比較の入口が無い（相手は比較の画面で選ぶ）`);
   const axes = [...PART[s].glance.matchAll(/<p class="pvg-axis">([^<]*)<\/p>/g)].map(m => m[1]);
-  ok(axes.length === 1 && axes[0].includes(`0 〜 ${yen(AXIS_OF(s))}`) && !/5社/.test(axes[0]), `${s}: 目盛は 0 〜 ${yen(AXIS_OF(s))}（5社を比べる言い方をしない）`, axes.join(' ／ '));
+  ok(axes.length === 0, `${s}: 目盛の一文を書かない（★2026-10-30 オーナー「いらねえだろ」）`, axes.join(' ／ '));
 }
 
 head('画面に出る額（正本に無い額・出すと決めていない額）');
@@ -2057,7 +2060,7 @@ head('暮らし（街・家賃・空港までの移動）');
     } else if (lr.length) {
       if (k !== `${LT.ja}・空港までの移動`) cellBad.push(`名前「${k}」`);
       if (text(vH) !== `${chipsOf(lr).join('・')} ${spanOf(lr)}`) cellBad.push(`移動「${text(vH)}」`);
-      if (more !== '出どころを見る') cellBad.push(`ボタン「${more}」`);
+      if (more !== '出典を見る') cellBad.push(`ボタン「${more}」`);
     } else if (!(k === '拠点の街' && note === '家賃の資料を確認できていません')) cellBad.push(`家賃も移動も無い街の字「${k}」「${note}」`);
     if (LT && lr.length && !(also.length === 1 && also[0].endsWith(spanOf(lr)))) cellBad.push(`移動の1行「${also.join('／')}」`);
     ok(!cellBad.length, `${s}: 概要の暮らしの欄は、台帳の先頭の街（家賃の額と出どころの名前、無ければ空港までの分）`, cellBad.join(' ／ '));
