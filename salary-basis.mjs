@@ -721,12 +721,30 @@ export const BASIS = {
        （Student Pilot FAQ）。応募ポータルのデータの型に、給与を入れる欄がそもそも無い。
      公式に出ている金額は受験料・身体検査料など、受験者が払う費用だけ。 */
   'thai-airways': {
+    pay_tax: 'unknown',
     cur: 'THB',
     tax: '課税（タイ）',
-    src: [], notes: [], notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 1850, lo: 1500, hi: 2420 },
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Thai Airways Pilot Salary in 2026', name_en: 'Thai Airways Pilot Salary in 2026',
+        as_of: '2026-05-31 掲載', as_of_en: 'Published 31 May 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/05/31/thai-airways-pilot-salary-2026/' },
+    ], notes: [], notes_en: [],
+    cap: { /* g4 cap */ est: {
+        basis: 'Aviation A2Z の記事「Thai Airways Pilot Salary in 2026」（2026年5月）',
+        basis_en: 'The Aviation A2Z article “Thai Airways Pilot Salary in 2026” (May 2026)',
+        method: '記事の機長の年収 THB 3,400,000〜5,500,000 の真ん中。',
+        method_en: 'Midpoint of the article’s THB 3.4–5.5 million a year for captains.',
+        as_of: '2026年5月', as_of_en: 'May 2026',
+      }, tier: 'estimate', held: { was: { avg: 1850, lo: 1500, hi: 2420 },
       why: '公式の募集要項・応募ポータル・自社養成の案内のすべてで金額が0件。会社は「給与体系に従う」と書くだけで体系も公開していない。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 880, lo: 660, hi: 1140 }, why: '機長と同じ理由。' } },
+    fo: { /* g4 fo */ est: {
+        basis: 'Aviation A2Z の記事「Thai Airways Pilot Salary in 2026」（2026年5月）',
+        basis_en: 'The Aviation A2Z article “Thai Airways Pilot Salary in 2026” (May 2026)',
+        method: '記事の副操縦士の年収 THB 1,500,000〜2,600,000 の真ん中。',
+        method_en: 'Midpoint of the article’s THB 1.5–2.6 million a year for first officers.',
+        as_of: '2026年5月', as_of_en: 'May 2026',
+      }, tier: 'estimate', held: { was: { avg: 880, lo: 660, hi: 1140 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ エア・インディア ══ 会社名義の採用サイトの現役パイロット求人4本とも金額ゼロ
@@ -909,12 +927,30 @@ export const BASIS = {
      自社養成は2026-01-16 で受付終了。訓練費・訓練中の手当・卒業後の給与はいずれも非公表。
      ⚠️ 「2025年8月に新しい給与レンジを確認」「副操縦士 RM72,000〜204,000」等は第三者のまとめ記事が出どころ。 */
   'malaysia-airlines': {
+    pay_tax: 'unknown',
     cur: 'MYR',
     tax: '課税（マレーシア）',
-    src: [], notes: [], notes_en: [],
-    cap: { tier: 'estimate', held: { was: { avg: 1900, lo: 1300, hi: 2600 },
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Malaysia Airlines Pilot Salary in 2026', name_en: 'Malaysia Airlines Pilot Salary in 2026',
+        as_of: '2026-05-01 掲載', as_of_en: 'Published 1 May 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/05/01/malaysia-airlines-pilot-salary-in-2026/' },
+    ], notes: [], notes_en: [],
+    cap: { /* g4 cap */ est: {
+        basis: 'Aviation A2Z の記事「Malaysia Airlines Pilot Salary in 2026」（2026年5月）',
+        basis_en: 'The Aviation A2Z article “Malaysia Airlines Pilot Salary in 2026” (May 2026)',
+        method: '記事の機長の年の総額（手当込み）MYR 550,000〜800,000 の真ん中。',
+        method_en: 'Midpoint of the article’s MYR 550,000–800,000 total annual pay for captains, allowances included.',
+        as_of: '2026年5月', as_of_en: 'May 2026',
+      }, tier: 'estimate', held: { was: { avg: 1900, lo: 1300, hi: 2600 },
       why: 'パイロットの募集そのものが無く（公式の採用システムの27件に1件も無い）、金額を書いた公式資料も無い。レンジの出所の記録も無い。' } },
-    fo: { tier: 'estimate', held: { was: { avg: 1000, lo: 650, hi: 1350 }, why: '機長と同じ理由。' } },
+    fo: { /* g4 fo */ est: {
+        basis: 'Aviation A2Z の記事「Malaysia Airlines Pilot Salary in 2026」（2026年5月）',
+        basis_en: 'The Aviation A2Z article “Malaysia Airlines Pilot Salary in 2026” (May 2026)',
+        method: '記事の副操縦士の年の総額（手当込み）MYR 230,000〜320,000 の真ん中。',
+        method_en: 'Midpoint of the article’s MYR 230,000–320,000 total annual pay for first officers, allowances included.',
+        as_of: '2026年5月', as_of_en: 'May 2026',
+      }, tier: 'estimate', held: { was: { avg: 1000, lo: 650, hi: 1350 }, why: '機長と同じ理由。' } },
   },
 
   /* ══ ANA ══ ★有資格パイロットの募集要項が、採用サイトに載っていない（キャリア採用の一覧に運航乗務職の枠が無い）。
@@ -2118,6 +2154,222 @@ export const BASIS = {
       method: '会員が出した年収の中央値（1人1件・1万円単位）。',
       method_en: 'Median of the annual pay members have submitted (latest entry per person, to the nearest ¥10,000).',
       as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'airasia': {
+    tax: '課税（マレーシア）', tax_en: 'Taxed (Malaysia)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'AirAsia Pilot Salary in 2026', name_en: 'AirAsia Pilot Salary in 2026',
+        as_of: '2026-03-20 掲載', as_of_en: 'Published 20 March 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/03/20/airasia-pilot-salary-2026/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Aviation A2Z の記事「AirAsia Pilot Salary in 2026」（2026年3月）',
+      basis_en: 'The Aviation A2Z article “AirAsia Pilot Salary in 2026” (March 2026)',
+      method: '記事の機長の年収 MYR 300,000〜480,000 の真ん中。',
+      method_en: 'Midpoint of the article’s MYR 300,000–480,000 a year for captains.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Aviation A2Z の記事「AirAsia Pilot Salary in 2026」（2026年3月）',
+      basis_en: 'The Aviation A2Z article “AirAsia Pilot Salary in 2026” (March 2026)',
+      method: '記事の副操縦士の年収 MYR 96,000〜216,000 の真ん中。',
+      method_en: 'Midpoint of the article’s MYR 96,000–216,000 a year for first officers.',
+      as_of: '2026年3月', as_of_en: 'March 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'philippine-airlines': {
+    tax: '課税（フィリピン）', tax_en: 'Taxed (Philippines)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Philippine Airlines Pilot Salary in 2026', name_en: 'Philippine Airlines Pilot Salary in 2026',
+        as_of: '2026-10-22 掲載', as_of_en: 'Published 22 October 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/10/22/philippine-airlines-pilot-salary-in-2026/' },
+      { pub: 'Alburo Alburo and Associates Law Offices', pub_en: 'Alburo Alburo and Associates Law Offices', name: 'The Supreme Court decides: Employers must show the payroll was submitted to and received by the bank to prove salary payment', name_en: 'The Supreme Court decides: Employers must show the payroll was submitted to and received by the bank to prove salary payment',
+        as_of: '2025-07-13 掲載', as_of_en: 'Published 13 July 2025', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.alburolaw.com/the-supreme-court-decides-employers-must-show-the-payroll-was-submitted-to-and-received-by-the-bank-to-prove-salary-payment/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Aviation A2Z の記事「Philippine Airlines Pilot Salary in 2026」（2026年10月）と、最高裁判決（PAL v. Ahmee）を解説した Alburo 法律事務所の記事（2025年7月）',
+      basis_en: 'The Aviation A2Z article “Philippine Airlines Pilot Salary in 2026” (October 2026) and the Alburo law office’s note on the Supreme Court ruling in PAL v. Ahmee (July 2025)',
+      method: '記事の機長の年 ₱4.2M〜7.8M の真ん中に、13か月目の給与（その12分の1）を足した額。',
+      method_en: 'Midpoint of the article’s ₱4.2–7.8 million a year for captains, plus 13th-month pay (one twelfth of it).',
+      as_of: '2026年10月', as_of_en: 'October 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Aviation A2Z の記事「Philippine Airlines Pilot Salary in 2026」（2026年10月）と、最高裁判決（PAL v. Ahmee）を解説した Alburo 法律事務所の記事（2025年7月）',
+      basis_en: 'The Aviation A2Z article “Philippine Airlines Pilot Salary in 2026” (October 2026) and the Alburo law office’s note on the Supreme Court ruling in PAL v. Ahmee (July 2025)',
+      method: '記事の副操縦士の年 ₱1.8M〜3.9M の真ん中に、13か月目の給与（その12分の1）を足した額。',
+      method_en: 'Midpoint of the article’s ₱1.8–3.9 million a year for first officers, plus 13th-month pay (one twelfth of it).',
+      as_of: '2026年10月', as_of_en: 'October 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'vietjet': {
+    tax: '課税（ベトナム）', tax_en: 'Taxed (Vietnam)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Vietnam Airlines and VietJet Air Pilots Salary in 2025', name_en: 'Vietnam Airlines and VietJet Air Pilots Salary in 2025',
+        as_of: '2025-01-28 掲載', as_of_en: 'Published 28 January 2025', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2025/01/28/vietnam-airlines-vietjet-pilots-salary-2025/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Aviation A2Z の記事「Vietnam Airlines and VietJet Air Pilots Salary in 2025」（2025年1月）',
+      basis_en: 'The Aviation A2Z article “Vietnam Airlines and VietJet Air Pilots Salary in 2025” (January 2025)',
+      method: '記事の機長の年 US$96,000〜144,000 の真ん中。',
+      method_en: 'Midpoint of the article’s US$96,000–144,000 a year for captains.',
+      as_of: '2025年1月', as_of_en: 'January 2025',
+    } },
+    fo: { tier: 'estimate' },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'air-new-zealand': {
+    tax: '課税（ニュージーランド）', tax_en: 'Taxed (New Zealand)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Aviation A2Z', pub_en: 'Aviation A2Z', name: 'Air New Zealand Pilot Salary in 2026', name_en: 'Air New Zealand Pilot Salary in 2026',
+        as_of: '2026-04-12 掲載', as_of_en: 'Published 12 April 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviationa2z.com/index.php/2026/04/12/air-new-zealand-pilot-salary-2026/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Aviation A2Z の記事「Air New Zealand Pilot Salary in 2026」（2026年4月）',
+      basis_en: 'The Aviation A2Z article “Air New Zealand Pilot Salary in 2026” (April 2026)',
+      method: '記事の機長の年の総額（手当込み）NZD 300,000〜420,000 の真ん中。',
+      method_en: 'Midpoint of the article’s NZD 300,000–420,000 total annual pay for captains, allowances included.',
+      as_of: '2026年4月', as_of_en: 'April 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Aviation A2Z の記事「Air New Zealand Pilot Salary in 2026」（2026年4月）',
+      basis_en: 'The Aviation A2Z article “Air New Zealand Pilot Salary in 2026” (April 2026)',
+      method: '記事の副操縦士の年の総額（手当込み）NZD 170,000〜220,000 の真ん中。',
+      method_en: 'Midpoint of the article’s NZD 170,000–220,000 total annual pay for first officers, allowances included.',
+      as_of: '2026年4月', as_of_en: 'April 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'fiji-airways': {
+    tax: '課税（フィジー）', tax_en: 'Taxed (Fiji)',
+    pay_tax: 'net',
+    src: [
+      /* g4 src */
+      { pub: 'Flight Deck Friend', pub_en: 'Flight Deck Friend', name: 'Why you should work for Fiji Airways', name_en: 'Why you should work for Fiji Airways',
+        as_of: '2024-01-15 掲載', as_of_en: 'Published 15 January 2024', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.flightdeckfriend.com/why-you-should-work-for-fiji-airways/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Flight Deck Friend の記事「Why you should work for Fiji Airways」（2024年1月・CAE Parc Aviation の契約の操縦士の条件）',
+      basis_en: 'The Flight Deck Friend article “Why you should work for Fiji Airways” (January 2024, on CAE Parc Aviation’s contract pilot terms)',
+      method: '契約の機長3年目の月 US$10,445＋住宅手当 月 US$1,364 × 12。手取り。',
+      method_en: 'Contract captain year 3 at US$10,445 a month plus a US$1,364 housing allowance, times 12. Net of tax.',
+      as_of: '2024年1月', as_of_en: 'January 2024',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Flight Deck Friend の記事「Why you should work for Fiji Airways」（2024年1月・CAE Parc Aviation の契約の操縦士の条件）',
+      basis_en: 'The Flight Deck Friend article “Why you should work for Fiji Airways” (January 2024, on CAE Parc Aviation’s contract pilot terms)',
+      method: '契約の副操縦士の月 US$5,918＋住宅手当 月 US$1,364 × 12。手取り。',
+      method_en: 'Contract first officer at a flat US$5,918 a month plus a US$1,364 housing allowance, times 12. Net of tax.',
+      as_of: '2024年1月', as_of_en: 'January 2024',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'allegiant': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Aviamonde', pub_en: 'Aviamonde', name: 'Allegiant Pilot Salary: Pay, Benefits & Calculator (2026)', name_en: 'Allegiant Pilot Salary: Pay, Benefits & Calculator (2026)',
+        as_of: '2026-10-14 更新', as_of_en: 'Updated 14 October 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://www.aviamonde.com/allegiant-pilot-salary' },
+      { pub: 'AvWeb', pub_en: 'AvWeb', name: 'Allegiant Pilots Ratify Contract With 40% Average Pay Raise', name_en: 'Allegiant Pilots Ratify Contract With 40% Average Pay Raise',
+        as_of: '2026-08-03 掲載', as_of_en: 'Published 3 August 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://avweb.com/aviation-news/allegiant-pilots-ratify-contract/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Aviamonde の記事「Allegiant Pilot Salary: Pay, Benefits & Calculator (2026)」（2026年10月更新）と AvWeb の記事「Allegiant Pilots Ratify Contract With 40% Average Pay Raise」（2026年8月）',
+      basis_en: 'The Aviamonde article “Allegiant Pilot Salary: Pay, Benefits & Calculator (2026)” (updated October 2026) and the AvWeb article “Allegiant Pilots Ratify Contract With 40% Average Pay Raise” (August 2026)',
+      method: '12年目の機長 時給 $320.00 × 年960時間＋年金拠出 10%。',
+      method_en: 'Year-12 captain at $320.00 an hour × 960 hours a year, plus a 10% retirement contribution.',
+      as_of: '2026年7月（協約の時給）', as_of_en: 'July 2026 (contract pay rates)',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Aviamonde の記事「Allegiant Pilot Salary: Pay, Benefits & Calculator (2026)」（2026年10月更新）と AvWeb の記事「Allegiant Pilots Ratify Contract With 40% Average Pay Raise」（2026年8月）',
+      basis_en: 'The Aviamonde article “Allegiant Pilot Salary: Pay, Benefits & Calculator (2026)” (updated October 2026) and the AvWeb article “Allegiant Pilots Ratify Contract With 40% Average Pay Raise” (August 2026)',
+      method: '6年目の副操縦士 時給 $178.26 × 年960時間＋年金拠出 10%。',
+      method_en: 'Year-6 first officer at $178.26 an hour × 960 hours a year, plus a 10% retirement contribution.',
+      as_of: '2026年7月（協約の時給）', as_of_en: 'July 2026 (contract pay rates)',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'frontier': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    pay_tax: 'unknown',
+    src: [
+      /* g4 src */
+      { pub: 'Ready For Take-Off Book', pub_en: 'Ready For Take-Off Book', name: 'Why Frontier Airlines Delivers Rapid Captain Upgrades and Modern Fleet', name_en: 'Why Frontier Airlines Delivers Rapid Captain Upgrades and Modern Fleet',
+        as_of: '2026-06-13 掲載', as_of_en: 'Published 13 June 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://readyfortakeoffbook.com/blogs/pilot-conditions/frontier-airlines' },
+      { pub: 'Aviator Intelligence', pub_en: 'Aviator Intelligence', name: 'Frontier Airlines | Aviator Intelligence', name_en: 'Frontier Airlines | Aviator Intelligence',
+        as_of: '2025-06-02 更新', as_of_en: 'Updated 2 June 2025', accessed: '2026-10-30', secondary: true,
+        url: 'https://aviatorintelligence.com/frontier-airlines/' },
+      { pub: 'フロンティア航空（Frontier Airlines Careers）', pub_en: 'Frontier Airlines (Frontier Airlines Careers)', name: 'Pilot', name_en: 'Pilot',
+        as_of: '発行日の記載なし', as_of_en: 'No publication date given', accessed: '2026-10-30',
+        url: 'https://www.flyfrontier.com/careers/pilot/?mobile=true' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'Ready For Take-Off Book のフロンティア航空のページ「Why Frontier Airlines Delivers Rapid Captain Upgrades and Modern Fleet」（2026年6月）と、会社の採用ページ「Pilot」',
+      basis_en: 'Ready For Take-Off Book’s Frontier Airlines page, “Why Frontier Airlines Delivers Rapid Captain Upgrades and Modern Fleet” (June 2026), and the airline’s careers page “Pilot”',
+      method: '12年目の機長 時給 $270 × 年960時間＋年金拠出 15%。',
+      method_en: 'Year-12 captain at $270 an hour × 960 hours a year, plus a 15% retirement contribution.',
+      as_of: '2026年6月', as_of_en: 'June 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'Aviator Intelligence のフロンティア航空のページ（2025年6月）と Ready For Take-Off Book のページ（2026年6月）、会社の採用ページ「Pilot」',
+      basis_en: 'Aviator Intelligence’s Frontier Airlines page (June 2025), Ready For Take-Off Book’s page (June 2026) and the airline’s careers page “Pilot”',
+      method: '6年目の副操縦士 時給 $148 × 年960時間＋年金拠出 15%。',
+      method_en: 'Year-6 first officer at $148 an hour × 960 hours a year, plus a 15% retirement contribution.',
+      as_of: '2026年6月', as_of_en: 'June 2026',
+    } },
+  },
+  /* ★2026-10-30（オーナー：はじいた資料も使う・上がるときだけ）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。 */
+  'westjet': {
+    tax: '課税（カナダ）', tax_en: 'Taxed (Canada)',
+    src: [
+      /* g4 src */
+      { pub: 'avcentral.ca', pub_en: 'avcentral.ca', name: 'WestJet Pilot Salary 2026: FO $81K, Captain up to $321K', name_en: 'WestJet Pilot Salary 2026: FO $81K, Captain up to $321K',
+        as_of: '2026-04-22 更新', as_of_en: 'Updated 22 April 2026', accessed: '2026-10-30', secondary: true,
+        url: 'https://avcentral.ca/pilot-salaries/westjet/' },
+      { pub: 'ウェストジェット航空（WestJet Careers）', pub_en: 'WestJet (WestJet Careers)', name: 'Pilot careers', name_en: 'Pilot careers',
+        as_of: '発行日の記載なし', as_of_en: 'No publication date given', accessed: '2026-10-30',
+        url: 'https://www.westjet.com/en-ca/careers/pilot' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', /* g4 cap */ est: {
+      basis: 'avcentral.ca の「WestJet Pilot Salary 2026: FO $81K, Captain up to $321K」（2026年4月）と、会社の採用ページ「Pilot careers」',
+      basis_en: 'avcentral.ca’s “WestJet Pilot Salary 2026: FO $81K, Captain up to $321K” (April 2026) and the airline’s careers page “Pilot careers”',
+      method: 'B737 と B787 の12年目の機長の時給の真ん中 × 保証 年930時間＋年金 10%。',
+      method_en: 'Midpoint of the 737 and 787 year-12 captain rates × the 930-hour yearly guarantee, plus a 10% pension.',
+      as_of: '2026年4月', as_of_en: 'April 2026',
+    } },
+    fo: { tier: 'estimate', /* g4 fo */ est: {
+      basis: 'avcentral.ca の「WestJet Pilot Salary 2026: FO $81K, Captain up to $321K」（2026年4月）と、会社の採用ページ「Pilot careers」',
+      basis_en: 'avcentral.ca’s “WestJet Pilot Salary 2026: FO $81K, Captain up to $321K” (April 2026) and the airline’s careers page “Pilot careers”',
+      method: 'B737 と B787 の6年目の副操縦士の時給の真ん中 × 保証 年930時間＋年金 10%。',
+      method_en: 'Midpoint of the 737 and 787 year-6 first officer rates × the 930-hour yearly guarantee, plus a 10% pension.',
+      as_of: '2026年4月', as_of_en: 'April 2026',
     } },
   },
 };

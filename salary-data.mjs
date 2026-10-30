@@ -47,7 +47,7 @@ export const SALARY = {
   'asiana':            { ja:'アシアナ航空', en:'Asiana Airlines', region:'asia',                                                 cap:{avg:2350, lo:1650, hi:3210}, fo:{avg:1110, lo:840,  hi:1270}, taxFree:false, conf:'low'    },
   'starlux':           { ja:'スターラックス', en:'STARLUX Airlines', region:'asia',                                              cap:{avg:3100, lo:2750, hi:3900}, fo:{avg:1950, lo:1850, hi:2050}, taxFree:false, conf:'medium' },
   'china-airlines':    { ja:'チャイナエアライン', en:'China Airlines', region:'asia',                                            cap:{avg:3500, lo:2400, hi:4000}, fo:{avg:1500, lo:700,  hi:1500}, taxFree:false, conf:'low' },
-  'thai-airways':      { ja:'タイ国際航空', en:'Thai Airways International', region:'asia',                                      cap:{avg:1850, lo:1500, hi:2420}, fo:{avg:880,  lo:660,  hi:1140}, taxFree:false, conf:'medium' },
+  'thai-airways':      { ja:'タイ国際航空', en:'Thai Airways International', region:'asia',                                      cap:{avg:2160, lo:1500, hi:2680}, fo:{avg:1000, lo:660, hi:1260}, taxFree:false, conf:'medium' },
   'eva-air':           { ja:'エバー航空', en:'EVA Air', region:'asia',                                                           cap:{avg:2950, lo:2500, hi:4000}, fo:{avg:1590, lo:1300, hi:1850}, taxFree:false, conf:'medium' },
 
   // ── 米州・欧州 ──────────────────────────────────────────
@@ -94,16 +94,16 @@ export const SALARY = {
 
   // アジア
   'air-india':         { ja:'エア・インディア', en:'Air India', region:'asia',                                                   cap:{avg:1680, lo:1100, hi:2000}, fo:{avg:720,  lo:540, hi:900},  taxFree:false, conf:'medium' },
-  'airasia':           { ja:'エアアジア', en:'AirAsia Group', region:'asia',                                                     cap:{avg:1300, lo:1050, hi:1680}, fo:{avg:600,  lo:400, hi:780},  taxFree:false, conf:'medium' },
+  'airasia':           { ja:'エアアジア', en:'AirAsia Group', region:'asia',                                                     cap:{avg:1530, lo:1050, hi:1890}, fo:{avg:610, lo:400, hi:850},  taxFree:false, conf:'medium' },
   'bamboo-airways':    { ja:'バンブー・エアウェイズ', en:'Bamboo Airways', region:'asia',                                        cap:{avg:1850, lo:1300, hi:2400}, fo:{avg:1050, lo:700, hi:1400}, taxFree:false, conf:'low'    },
   'batik-air':         { ja:'バティック・エア', en:'Batik Air', region:'asia',                                                   cap:{avg:880,  lo:590,  hi:1180}, fo:{avg:430,  lo:300, hi:560},  taxFree:false, conf:'low'    },
   'garuda-indonesia':  { ja:'ガルーダ・インドネシア航空', en:'Garuda Indonesia', region:'asia',                                  cap:{avg:1500, lo:1050, hi:2200}, fo:{avg:720,  lo:470, hi:980},  taxFree:false, conf:'medium' },
   'hong-kong-express': { ja:'香港エクスプレス航空', en:'HK Express', region:'asia',                                              cap:{avg:2050, lo:1400, hi:2600}, fo:{avg:1150, lo:800, hi:1500}, taxFree:false, conf:'low'    },
   'indigo':            { ja:'インディゴ航空', en:'IndiGo', region:'asia',                                                        cap:{avg:1770, lo:1150, hi:2200}, fo:{avg:970, lo:340, hi:970},  taxFree:false, conf:'medium' },
-  'malaysia-airlines': { ja:'マレーシア航空', en:'Malaysia Airlines', region:'asia',                                             cap:{avg:1900, lo:1300, hi:2600}, fo:{avg:1000, lo:650, hi:1350}, taxFree:false, conf:'medium' },
-  'philippine-airlines':{ ja:'フィリピン航空', en:'Philippine Airlines', region:'asia',                                          cap:{avg:1550, lo:1150, hi:2100}, fo:{avg:750,  lo:500, hi:1050}, taxFree:false, conf:'medium' },
+  'malaysia-airlines': { ja:'マレーシア航空', en:'Malaysia Airlines', region:'asia',                                             cap:{avg:2660, lo:1300, hi:3150}, fo:{avg:1080, lo:650, hi:1350}, taxFree:false, conf:'medium' },
+  'philippine-airlines':{ ja:'フィリピン航空', en:'Philippine Airlines', region:'asia',                                          cap:{avg:1670, lo:1150, hi:2180}, fo:{avg:800, lo:500, hi:1090}, taxFree:false, conf:'medium' },
   'scoot':             { ja:'スクート', en:'Scoot', region:'asia',                                                               cap:{avg:2350, lo:1900, hi:2900}, fo:{avg:1150, lo:850, hi:1450}, taxFree:false, conf:'medium' },
-  'vietjet':           { ja:'ベトジェット航空', en:'VietJet Air', region:'asia',                                                 cap:{avg:1800, lo:1200, hi:2300}, fo:{avg:950,  lo:600, hi:1350}, taxFree:false, conf:'medium' },
+  'vietjet':           { ja:'ベトジェット航空', en:'VietJet Air', region:'asia',                                                 cap:{avg:1910, lo:1200, hi:2300}, fo:{avg:950,  lo:600, hi:1350}, taxFree:false, conf:'medium' },
   'vietnam-airlines':  { ja:'ベトナム航空', en:'Vietnam Airlines', region:'asia',                                                cap:{avg:1900, lo:1400, hi:2500}, fo:{avg:1050, lo:700, hi:1450}, taxFree:false, conf:'medium' },
 
   // 中東・アフリカ
@@ -149,20 +149,20 @@ export const SALARY = {
 
   // 米州・オセアニア
   'aeromexico':      { ja:'アエロメヒコ航空', en:'Aeromexico', region:'latam',                                                   cap:{avg:2300, lo:1700, hi:2900}, fo:{avg:1200, lo:850,  hi:1700}, taxFree:false, conf:'low' },
-  'air-new-zealand': { ja:'ニュージーランド航空', en:'Air New Zealand', region:'oceania',                                        cap:{avg:3300, lo:2500, hi:4000}, fo:{avg:1750, lo:1150, hi:2300}, taxFree:false, conf:'medium' },
+  'air-new-zealand': { ja:'ニュージーランド航空', en:'Air New Zealand', region:'oceania',                                        cap:{avg:3420, lo:2500, hi:4000}, fo:{avg:1850, lo:1150, hi:2300}, taxFree:false, conf:'medium' },
   'alaska-airlines': { ja:'アラスカ航空', en:'Alaska Airlines', region:'us',                                                     cap:{avg:6910, lo:3800, hi:6910}, fo:{avg:2850, lo:1700, hi:4770}, taxFree:false, conf:'medium' },
-  'allegiant':       { ja:'アレジアント航空', en:'Allegiant Air', region:'us',                                                   cap:{avg:3000, lo:2600, hi:3600}, fo:{avg:1700, lo:900,  hi:2400}, taxFree:false, conf:'medium' },
+  'allegiant':       { ja:'アレジアント航空', en:'Allegiant Air', region:'us',                                                   cap:{avg:5370, lo:2600, hi:5370}, fo:{avg:2990, lo:900, hi:3600}, taxFree:false, conf:'medium' },
   'avianca':         { ja:'アビアンカ航空', en:'Avianca', region:'latam',                                                        cap:{avg:1700, lo:1200, hi:2400}, fo:{avg:850,  lo:550,  hi:1300}, taxFree:false, conf:'low' },
   'breeze-airways':  { ja:'ブリーズ・エアウェイズ', en:'Breeze Airways', region:'us',                                            cap:{avg:3400, lo:3200, hi:4400}, fo:{avg:1900, lo:1650, hi:2500}, taxFree:false, conf:'medium' },
   'copa-airlines':   { ja:'コパ航空', en:'Copa Airlines', region:'latam',                                                        cap:{avg:2300, lo:1700, hi:3000}, fo:{avg:1200, lo:850,  hi:1700}, taxFree:false, conf:'low' },
-  'fiji-airways':    { ja:'フィジー・エアウェイズ', en:'Fiji Airways', region:'oceania',                                         cap:{avg:1700, lo:1400, hi:2400}, fo:{avg:1050, lo:800,  hi:1600}, taxFree:false, conf:'low' },
-  'frontier':        { ja:'フロンティア航空', en:'Frontier Airlines', region:'us',                                               cap:{avg:3300, lo:2600, hi:4300}, fo:{avg:1750, lo:1100, hi:2200}, taxFree:false, conf:'medium' },
+  'fiji-airways':    { ja:'フィジー・エアウェイズ', en:'Fiji Airways', region:'oceania',                                         cap:{avg:2250, lo:1400, hi:2400}, fo:{avg:1390, lo:800, hi:1600}, taxFree:false, conf:'low' },
+  'frontier':        { ja:'フロンティア航空', en:'Frontier Airlines', region:'us',                                               cap:{avg:4740, lo:2600, hi:5330}, fo:{avg:2600, lo:1100, hi:3530}, taxFree:false, conf:'medium' },
   'jetblue':         { ja:'ジェットブルー航空', en:'JetBlue Airways', region:'us',                                               cap:{avg:6420, lo:3500, hi:6420}, fo:{avg:2400, lo:1500, hi:4440}, taxFree:false, conf:'medium' },
   'jetstar':         { ja:'ジェットスター航空', en:'Jetstar Airways (Jetstar)', region:'oceania',                                cap:{avg:3620, lo:3430, hi:4060}, fo:{avg:2250, lo:1940, hi:2560}, taxFree:false, conf:'medium' },
   'latam':           { ja:'LATAM航空', en:'LATAM Airlines', region:'latam',                                                      cap:{avg:1900, lo:1200, hi:2700}, fo:{avg:950,  lo:550,  hi:1500}, taxFree:false, conf:'low' },
   'porter':          { ja:'ポーター航空', en:'Porter Airlines', region:'us',                                                     cap:{avg:2700, lo:2300, hi:3200}, fo:{avg:1350, lo:1000, hi:1700}, taxFree:false, conf:'medium' },
   'spirit':          { ja:'スピリット航空', en:'Spirit Airlines', region:'us',                                                   cap:{avg:3700, lo:2900, hi:4700}, fo:{avg:2000, lo:1300, hi:3000}, taxFree:false, conf:'medium' },
-  'westjet':         { ja:'ウェストジェット航空', en:'WestJet Airlines', region:'us',                                            cap:{avg:3400, lo:2600, hi:4400}, fo:{avg:1800, lo:1400, hi:2200}, taxFree:false, conf:'medium' },
+  'westjet':         { ja:'ウェストジェット航空', en:'WestJet Airlines', region:'us',                                            cap:{avg:3800, lo:2600, hi:4400}, fo:{avg:2000, lo:1400, hi:2470}, taxFree:false, conf:'medium' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────
