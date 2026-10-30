@@ -43,7 +43,7 @@
       添えた1文は pv-referral.js からそのまま借りている＝ここで照合する。
       ★英語の人の行き先は /en/（同日オーナー指示）。
    ════════════════════════════════════════════════════════════════ */
-import { readFileSync, statSync, readdirSync } from 'fs';
+import { readFileSync, statSync, readdirSync, existsSync } from 'fs';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
@@ -1193,6 +1193,131 @@ for (const [k, b] of RNALL) {
 
 /* 件名の長さ。 */
 for (const [k, b] of RNALL) ok(b.subject.length <= 78, `renewal/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+
+
+/* ════════ ⑦-b 各航空会社のページと Vote のお知らせ ═══════════════════
+   buildPages()（2026-10-30）。⑦と同じく登録者全員へ送る。⑦と違うのは
+   **その人の会社名とページへのリンク、そのページの絵が入る**こと（オーナー判断）。
+   ・社名は本人の会社の1社だけ。ほかの会社の名前は1つも入らない。
+   ・勤務先の自由入力（profiles.company）は1文字も出ない。
+   ・誘い（給与の提出・招待・登録）は入れない。お願いは「ページを見て、違う所を教えて」だけ。
+   ・★文面はオーナーと決めたもの。「現場のパイロット」は使わない（オーナー指摘）。
+   ・「運営だけに見せる」は roadmap.html の選択肢の字そのまま（突き合わせる）。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── ⑦-b 各航空会社のページと Vote のお知らせ ──');
+{
+  const { buildPages, pagesAirlineOf, PAGES_SHOT_W } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
+  const PG = {
+    'ja-jal':        { name: '高橋 蓮',     country: '日本', unsub_token: 'pg1', airline_code: 'jal', company: 'ジャル 羽田 XYZ123' },
+    'both-emirates': { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'pg2', airline_code: 'emirates', company: 'EK fleet Q7Q7' },
+    'ja-none':       { name: '高橋 蓮',     country: '日本', unsub_token: 'pg3', airline_code: '' },
+    'both-none':     { name: null,          country: null,   unsub_token: 'pg4', airline_code: '' },
+    'ja-ops':        { name: '高橋 蓮',     country: '日本', unsub_token: 'pg5', airline_code: 'netjets' },
+    'en-unknown':    { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'pg6', airline_code: 'zzz-not-an-airline' },
+  };
+  const PGALL = Object.entries(PG).map(([k, x]) => [k, x, buildPages(x, O)]);
+  const SITE = 'https://pilot-value.com';
+
+  for (const [k, p, b] of PGALL) {
+    const body = b.html + '\n' + b.subject + '\n' + b.text;
+    const low = body.toLowerCase();
+    const money = MONEY.find(([re]) => re.test(body));
+    ok(!money, `pages/${k}: 金額が1つも入っていない`, money ? `${money[1]} → ${body.match(money[0])[0]}` : '');
+    const ded = DEDUCT.find((w) => low.includes(w.toLowerCase()));
+    ok(!ded, `pages/${k}: 控除の項目名が入っていない`, ded || '');
+    const slip = SLIP.find((w) => low.includes(w.toLowerCase()));
+    ok(!slip, `pages/${k}: 明細の項目名が入っていない`, slip || '');
+    ok(!/賞与|ボーナス|\bbonus/.test(low), `pages/${k}: 賞与のことを書いていない`);
+    const over = OVERCLAIM.find((re) => re.test(body));
+    ok(!over, `pages/${k}: 特定されないと言い切っていない`, over ? String(over) : '');
+
+    /* 社名は本人の会社の1社だけ。会社ページの無い・分からない人には1つも出ない。 */
+    const air = pagesAirlineOf(p);
+    const own = air ? [air.code, air.ja, air.en, ...Object.values(SALARY[air.code] || {}).filter((v) => typeof v === 'string')] : [];
+    const stray = NAMES.filter((n) => !own.some((o) => String(o).trim() === n)).find((n) => hitsName(body, n));
+    ok(!stray, `pages/${k}: ほかの会社の名前が1つも入っていない`, stray || '');
+    ok(b.airline === (air ? air.code : null), `pages/${k}: リンクする会社は会社ページのある会社だけ`, String(b.airline));
+    if (air) ok(body.includes(b.lang === 'ja' ? air.ja : air.en), `pages/${k}: 本人の会社名が入っている`);
+
+    /* 勤務先の自由入力は1文字も出ない。 */
+    ok(!/XYZ123|Q7Q7/.test(body), `pages/${k}: 勤務先の自由入力が本文に出ない`);
+
+    /* 誘いを入れない（全員宛ては「サービスからのお知らせ」に限る）。 */
+    const lure = ['pay-report.html', 'invite.html', 'signup.html', 'give & get', '招待', '給与を出', '給与を提出',
+      'submit your', 'upload your', 'sign up', 'please share', 'invite a', '共有して'].find((w) => low.includes(w));
+    ok(!lure, `pages/${k}: 給与の提出・招待・登録の誘いが入っていない`, lure || '');
+
+    /* 文面はオーナーと決めたもの。 */
+    ok(!/現場のパイロット|line pilots/i.test(body), `pages/${k}: 「現場のパイロット」と書いていない（オーナー指摘）`);
+    ok(!/運営にも/.test(body), `pages/${k}: 「運営にも誰か分からない」と書いていない`);
+
+    /* リンクは全部、本番に在るページへ。追跡用の印を付けない。 */
+    const hrefs = [...b.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+    const siteLinks = hrefs.filter((h) => h.startsWith(SITE));
+    const missing = siteLinks.map((h) => h.slice(SITE.length).replace(/^\//, '').replace(/[?#].*$/, ''))
+      .map((r) => (r === '' || r.endsWith('/') ? r + 'index.html' : r))
+      .filter((r) => !existsSync(join(ROOT, r)));
+    ok(missing.length === 0, `pages/${k}: リンク先のページが全部リポジトリに在る`, missing.join(', '));
+    const tracked = siteLinks.filter((h) => !/unsubscribe\.html\?token=/.test(h) && /[?#]/.test(h));
+    ok(tracked.length === 0, `pages/${k}: 会社ページ・一覧・要望の板の URL に印が付いていない`, tracked.join(', '));
+    const langs = b.lang === 'both' ? ['en', 'ja'] : [b.lang];
+    ok(langs.every((l) => b.html.includes(`href="${SITE}/${l === 'en' ? 'en/' : ''}${air ? `airlines/${air.code}.html` : 'world-airlines.html'}"`)),
+       `pages/${k}: 言語ごとに、${air ? 'その会社のページ' : '航空会社の一覧'}へリンクしている`);
+
+    /* 埋め込みの絵は2枚（会社ページ・Vote）。どちらも上の言語のページの絵で、押すとそのページが開く。 */
+    const imgs = [...b.html.matchAll(/<img [^>]*src="cid:([^"]+)"/g)].map((m) => m[1]);
+    ok(imgs.length === 2 && b.images.length === 2 && imgs.join() === b.images.map((im) => im.cid).join(),
+       `pages/${k}: 埋め込みの絵が2枚で、返す images と同じ並び`, imgs.join(','));
+    ok(b.images[0].file === `${air ? air.code : 'directory'}-${langs[0]}.jpg`, `pages/${k}: 1枚目は上の言語の会社ページ（無ければ一覧）の絵`, b.images[0].file);
+    ok(b.images[1].file === `vote-${langs[0]}.jpg`, `pages/${k}: 2枚目は上の言語の Vote の絵`, b.images[1].file);
+    ok(new RegExp(`<a href="${reEsc(b.pageUrl)}"[^>]*>\\s*<img `).test(b.html), `pages/${k}: 会社ページの絵を押すとそのページが開く`);
+    ok(new RegExp(`<a href="${reEsc(SITE + '/' + (langs[0] === 'en' ? 'en/' : '') + 'community.html')}"[^>]*>\\s*<img `).test(b.html),
+       `pages/${k}: Vote の絵を押すと Vote が開く`);
+    ok(b.html.includes(`width="${PAGES_SHOT_W}"`), `pages/${k}: 絵の幅が本文の幅に収まる`);
+    ok(!/<img [^>]*src="https?:/.test(b.html), `pages/${k}: 外から読み込む絵が無い（全部埋め込み）`);
+
+    const btn = (b.html.match(/background:#f5c842/g) || []).length;
+    ok(btn === langs.length, `pages/${k}: 押すボタンは言語ごとに1つだけ`, String(btn));
+    ok(langs.every((l) => b.html.includes(`${l === 'en' ? 'en/' : ''}unsubscribe.html?token=${p.unsub_token}`)) && b.oneClickUrl,
+       `pages/${k}: 配信停止のリンクとワンクリック解除がある`);
+    ok(b.subject.length <= 78, `pages/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+    ok(!/null|undefined/.test(b.text + b.html), `pages/${k}: 本文に null / undefined が出ない`);
+  }
+
+  /* 言葉の送り分けは renewal と同じ。 */
+  ok(buildPages(PG['ja-jal'], O).lang === 'ja' && buildPages(PG['both-emirates'], O).lang === 'both'
+     && buildPages(PG['both-none'], O).lang === 'both', 'pages: 日本の会員は日本語・それ以外は日英の1通（renewal と同じ）');
+
+  /* 決めた文面の要の字。 */
+  {
+    const ja = buildPages(PG['ja-jal'], O).text, en = buildPages(PG['ja-jal'], { ...O, lang: 'en' }).text;
+    ok(ja.includes('皆様に確かめていただくことが、いちばん確かなデータにつながります。'), 'pages/ja: 結びは「皆様に…」（オーナー指示）');
+    ok(ja.includes('このメールに返信する') && ja.includes('ROADMAP & REQUESTS'), 'pages/ja: 受け取り口が2つとも書いてある');
+    ok(en.includes('Just reply to this email') && en.includes('ROADMAP & REQUESTS'), 'pages/en: 受け取り口が2つとも書いてある');
+    ok(buildPages(PG['ja-none'], O).text.includes('（一覧から選べます）'), 'pages/ja: 会社が分からない人には「一覧から選べます」');
+    /* 要望の板の選択肢の字と1文字も違わない。 */
+    ok(ja.includes('「運営だけに見せる」') && read('roadmap.html').includes('>運営だけに見せる<'), 'pages/ja: 「運営だけに見せる」が要望の板の選択肢の字と同じ');
+    ok(en.includes('"Show to the team only"') && read('en/roadmap.html').includes('>Show to the team only<'), 'pages/en: "Show to the team only" が要望の板の選択肢の字と同じ');
+  }
+
+  /* 送信側の門（send.mjs の pages）。 */
+  {
+    const S = read('mail-bot/send.mjs');
+    const run = S.slice(S.indexOf('async function runPages'), S.indexOf('(async () => {', S.indexOf('async function runPages')));
+    ok(run.length > 500, 'pages/send: runPages がある');
+    ok(/1通も送らずに止めます/.test(run) && /missingOf/.test(run), 'pages/send: 絵が1枚でも欠けていたら1通も送らない');
+    ok(/attachments: attachmentsOf\(b\)/.test(run), 'pages/send: 絵を埋め込んで送る');
+    ok(/const TAG = '2026-10-pages'/.test(run) && /pagesSent/.test(run), 'pages/send: 送信済みの控えと Resend の目印がほかのお知らせと別');
+    ok(!/console\.log\(`.*(m\.email|m\.company|b\.airline\})/.test(run), 'pages/send: 宛先も会社名も画面に出さない');
+    ok(!/email_opt_in/.test(run.replace(/\/\*[\s\S]*?\*\//g, '')), 'pages/send: 登録者全員に送る（希望者だけに絞っていない）');
+    const G = read('mail-bot/.gitignore');
+    ok(/^\.page-shots\/$/m.test(G) && /^\.mail-block$/m.test(G), 'pages: 絵の置き場と配信を断った人の名簿は git に入らない');
+    const Q = read('gen-mail-airline-shots.mjs');
+    ok(/googletagmanager/.test(Q) && /\.pvg-pay \.pvg-ranks/.test(Q), 'pages/絵: 解析の通信を止めて撮り、Give & Get のボタンより上で切る');
+    ok(/querySelector\('#companies'\)/.test(Q) && !/querySelector\('#latest'\)/.test(Q),
+       'pages/絵: Vote は「よく見られている会社」の段だけ（口コミの本文の段を写さない）');
+  }
+}
 
 
 /* ════════ ⑧ 週に一度の新着まとめ ════════════════════════════════

@@ -15,6 +15,7 @@
          node shot-remind.mjs --realpay   … REAL PAY 公開のお知らせを撮る
          node shot-remind.mjs --update    … この1ヶ月のお知らせを撮る
          node shot-remind.mjs --renewal   … トップページ刷新のお知らせを撮る
+         node shot-remind.mjs --pages     … 各航空会社のページと Vote のお知らせを撮る（絵は mail-bot/.page-shots/ から。先に gen-mail-airline-shots.mjs）
          node shot-remind.mjs --digest    … 週に一度の新着まとめを撮る
          node shot-remind.mjs --welcome   … 登録した会員への歓迎メールを撮る（日・英＋日・西）
 */
@@ -24,7 +25,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { build } from './supabase/functions/remind-payslip/index.ts';
 import { buildWelcome } from './supabase/functions/welcome-member/index.ts';
-import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal, buildDigest, digestStats } from './mail-bot/announce-mail.mjs';
+import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal, buildPages, buildDigest, digestStats } from './mail-bot/announce-mail.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, 'temporary screenshots', 'mail');
@@ -35,6 +36,7 @@ const FOUNDING = process.argv.includes('--founding');
 const REALPAY  = process.argv.includes('--realpay');
 const UPDATE   = process.argv.includes('--update');
 const RENEWAL  = process.argv.includes('--renewal');
+const PAGES    = process.argv.includes('--pages');
 const DIGEST   = process.argv.includes('--digest');
 const WELCOME  = process.argv.includes('--welcome');
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
@@ -111,6 +113,15 @@ const RENEWAL_CASES = [
   { k: 'rn-noname',        p: { name: null,          country: null } },
 ];
 
+/* ★各航空会社のページと Vote のお知らせ。会社あり（その会社のページへ）と、会社なし（一覧へ）を日本語・日英で見る。
+   ★氏名は架空。会社のコードは send.mjs が勤務先を名寄せして入れるもの。 */
+const PAGES_CASES = [
+  { k: 'pg-ja',           p: { name: '高橋 蓮',     country: '日本', airline_code: 'jal' } },
+  { k: 'pg-both',         p: { name: 'Alex Mercer', country: 'UAE',  airline_code: 'emirates' } },
+  { k: 'pg-ja-noair',     p: { name: '高橋 蓮',     country: '日本', airline_code: '' } },
+  { k: 'pg-both-noair',   p: { name: null,          country: null,   airline_code: '' } },
+];
+
 /* ★週に一度の新着まとめ。stats は digestStats() に通した本物の形で渡す
    （ここで数えない＝メールと同じ数え方しか見えないようにする）。
    rows の中身は架空。実在の投稿を絵に使わない。 */
@@ -144,7 +155,7 @@ const WELCOME_CASES = [
   { k: 'wc-en-paid', p: { lang: 'en', gave_pay: true } },
 ];
 
-const CASES = WELCOME ? WELCOME_CASES : DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
+const CASES = WELCOME ? WELCOME_CASES : PAGES ? PAGES_CASES : DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
 
 const files = [];
 for (const c of CASES) {
@@ -154,6 +165,9 @@ for (const c of CASES) {
     : DIGEST
     ? buildDigest({ id: 'x', unsub_token: '0000-token', ...c.p },
       { stats: c.st, supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
+    : PAGES
+    ? buildPages({ id: 'x', unsub_token: '0000-token', ...c.p },
+      { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
     : RENEWAL
     ? buildRenewal({ id: 'x', unsub_token: '0000-token', ...c.p },
       { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
@@ -173,6 +187,13 @@ for (const c of CASES) {
     ? buildAnnounce({ id: 'x', unsub_token: '0000-token', ...c.p },
       { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
     : build({ id: 'x', email: 'x@example.com', unsub_token: '0000-token', ...c.p });
+  /* メールに埋め込む絵（cid:…）は、受信箱でしか解けない。下見では mail-bot/.page-shots/ の絵を隣に写して差し替える。 */
+  for (const im of m.images || []) {
+    const src = path.join(__dirname, 'mail-bot', '.page-shots', im.file);
+    if (!fs.existsSync(src)) { console.error(`❌ 絵がありません: ${im.file}（node gen-mail-airline-shots.mjs で撮る）`); process.exit(1); }
+    fs.copyFileSync(src, path.join(outDir, im.file));
+    m.html = m.html.split(`cid:${im.cid}`).join(im.file);
+  }
   // 受信箱の見え方に寄せる：白背景・左寄せ・幅600px前後
   const page =
     `<!doctype html><meta charset="utf-8"><title>${c.k}</title>` +

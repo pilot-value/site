@@ -308,6 +308,20 @@ node mail-bot/send.mjs digest  --backfill # 初回：直近7日ぶんをまと�
   送らない回と自分宛ての下見（`--to=`）は名簿が無くても動く。
 - 名簿は `backup-claude.command` が iCloud へ退避している。
 
+### 各航空会社のページと Vote のお知らせ（send.mjs pages・2026-10-30）
+登録者全員に1通。**その人の会社のページへ直接リンクし、そのページの絵（PC の画面）をメールに埋め込む。**
+自分の会社のページを見て、違うところを教えてもらうお願いつき（返信／ROADMAP & REQUESTS の「運営だけに見せる」）。
+```
+node gen-mail-airline-shots.mjs                                   # 先に絵を撮る（112社 × 日英＋一覧。本番の公開ページを未ログインで）
+node mail-bot/send.mjs pages --to=info@pilot-value.com --airline=jal --send   # ★自分の受信箱で現物（会員には出ない）
+node mail-bot/send.mjs pages                                      # 送らない。人数と「会社のページへ N 名・一覧へ M 名」だけ
+node mail-bot/send.mjs pages --send                               # 本番（1人1通・二度は送らない）
+node shot-remind.mjs --pages                                      # 本文を絵で見る
+```
+- 勤務先（自由入力）は `pv_airline_resolve` で会社に当てる。会社ページの無い会社（チャーター・ビジネスジェット等）や当たらない人は一覧へ。
+- 絵は `mail-bot/.page-shots/`（gitignore 済み）。**使う絵が1枚でも無ければ1通も送らずに止まる**（足りない会社を撮るコマンドが出る）。
+- 絵は Give & Get のボタンより上で切ってある（全員宛てに誘いを載せない）。文面は `announce-mail.mjs` の `pagesCopy`（オーナーと決めた字。作文で直さない）。
+
 ### 一度だけのお知らせ（send.mjs announce）
 
 給与レポートを公開したことを、登録済みの会員に1通だけ知らせる。
