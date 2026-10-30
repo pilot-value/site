@@ -552,8 +552,8 @@
    鍵の開いた人 ── 新しい2行。給与・待遇のタブでは、どちらも今までどおり3行（行そのものは欄の data-top が決める）。
    ⚠️ ここは同じ中身の「何行めまで見せるか」だけ。額・職位は、鍵の無い人の行にそもそも入っていない。
    ⚠️ 欄（.crl）そのものを display:none にしない（career-live.js は見えている箱だけを取りに行く）。 */
-.pvg-at-overview .pvg-rp > .crl[data-state="locked"] > .crl-rows > .crl-row:nth-child(n+2),
-.pvg-at-overview .pvg-rp > .crl[data-state="open"] > .crl-rows > .crl-row:nth-child(n+3){display:none}
+.pvg-at-overview .pvg-rp > .crl[data-state="locked"] > .crl-rows > .crl-row:nth-child(n+2){display:none}
+/* ★2026-10-30 鍵の開いた人の行は畳み（提出された数字を見る）の中 ── 概要でも欄が持つ3行がそのまま畳みに入る（数を減らさない） */
 /* 件数の横に札が丸ごと入らない時は、札が件数の下の段へ丸ごと下りる（折り返す行。字は小さくしない・途中で折らない）。
    ★段を下ろす幅を「箱の幅」で決めない ── 札の長さは読む人で違う（「給与の提出で開きます」10字／
      「年収データの解放が切れています」15字・英語はもっと長い）。2026-10-25 まで 296px の境目は10字の札に合わせてあり、
@@ -565,6 +565,8 @@
 /* 下りても箱より長い札（英語の期限切れの札は 320px の画面で 251px ＞ 箱 242px）は、2行を同じくらいの長さに折る（最後の1語だけを残さない） */
 .pvg-rp > .crl[data-state="locked"] > .crl-lock > span{text-wrap:balance}
 .pvg-rp > .crl[data-state="locked"] > .crl-rows{order:3;flex:1 0 100%;margin-top:2px;margin-bottom:4px}
+/* 図の影絵（2026-10-30・字も数字も無い決まった形）は伏せた行のすぐ下・足元の上（並びは行と同じ段 ＝ 書いた順） */
+.pvg-rp > .crl[data-state="locked"] > .crl-pv-lk{order:3;flex:1 0 100%;margin-bottom:4px}
 .pvg-rp > .crl[data-state="locked"] > .crl-foot{order:4;flex:1 0 100%}
 
 /* ── 会社・募集・ステイ・ひとつ教えて（どれも横いっぱいの帯）── */

@@ -1066,7 +1066,7 @@ const LEAK_FACT = 41.7, LEAK_FACT_T = '41.7';
 /* 提出された年収と中央値に植える額（USD）。画面では有効数字2桁の円（¥6,100万 …）── カードが描く公開の額（推定年収・目盛）と
    同じ字にならない額を選んだ（同じ字だと、描いてよい字と見分けられない。下の行が確かめる） */
 const LEAK_PAY = { jal: [383800, 352000], ana: [421500, 396000], etihad: [459300, 478000], 'cathay-pacific': [560000, 434000], 'eva-air': [591400, 522000] };
-const LEAK_MED = 528000;
+const LEAK_MED = 528000, LEAK_LO = 487000, LEAK_HI = 569000, LEAK_SEG = 41700;   // 幅の棒の 25%・75%・内訳の月の平均額（2026-10-30）
 const LEAK_FIVE = ['jal', 'ana', 'cathay-pacific', 'etihad', 'eva-air'];
 const LEAK_REV = (s) => (s === CX
   ? [rated('x1', 2, { clip: { k: 'salary', o: LEAK.clip, t: {} } }), rated('x2', 3, { clip: { k: 'salary', o: LEAK.clip, t: {} } })]
@@ -1083,8 +1083,11 @@ const leakStub = () => ({
   pv_contrib_notes: () => ({ status: 200, body: { ok: true, state: 'open', notes: [{ q: 'staff_travel', text: LEAK.note, mine: false }] } }),
   pv_pay_rows: () => ({ status: 200, body: H.payFix.open(LEAK_FIVE.flatMap((s) => [H.payRowFix(s, { annual_usd: LEAK_PAY[s][0] }),
     H.payRowFix(s, { pos: 'fo', annual_usd: LEAK_PAY[s][1] })]), []) }),
+  /* ★2026-10-30 中央値に 25%・75%（幅の棒）と、月の給与の内訳（ドーナツの月の平均額）も植える ── カードに出ないことを、中央値と同じ組で見る */
   pv_company_pay: (p) => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' }, floor: 3,
-    airlines: Object.fromEntries(((p && p.airlines) || []).map((s) => [s, { cap: { s: 'ok', median_usd: LEAK_MED }, fo: { s: 'few' } }])) } }),
+    airlines: Object.fromEntries(((p && p.airlines) || []).map((s) => [s, { cap: { s: 'ok', median_usd: LEAK_MED, p25_usd: LEAK_LO, p75_usd: LEAK_HI }, fo: { s: 'few' } }])) } }),
+  pv_company_comp: (p) => ({ status: 200, body: { ok: true, state: 'open', period: { from: '2024-10', to: '2026-09' },
+    airlines: Object.fromEntries(((p && p.airlines) || []).map((s) => [s, { cap: { s: 'ok', segs: [{ k: 'base', pct: 64, avg_usd: LEAK_SEG }, { k: 'rest', pct: 36, avg_usd: 23000 }] }, fo: { s: 'few' } }])) } }),
 });
 /* いま見えている画面に出ている印（見えている字 ＋ 欄の中の額） */
 const leakSeen = (page, M) => page.evaluate((M) => {
@@ -1097,7 +1100,8 @@ const leakSeen = (page, M) => page.evaluate((M) => {
     body: M.body.filter((x) => t.includes(x)), clip: t.includes(M.clip), sum: M.sum.filter((x) => t.includes(x)),
     work: t.includes(M.work), fact: t.includes(M.fact), note: t.includes(M.note),
     amt: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt:not([data-agg]), .crl[data-live="realpay"] .crl-amt')].filter(vis).map((e) => e.textContent.trim()),
-    med: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt[data-agg]')].filter(vis).map((e) => e.textContent.trim()),
+    /* 中央値の器の額・幅の棒の額（25%・中央値・75%）・内訳の月の平均額（2026-10-30） */
+    med: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt[data-agg], .crl[data-live="cmp-pay"] .crl-rg .crl-yd-kv b, .crl[data-live="cmp-pay"] .crl-dn-a')].filter(vis).map((e) => e.textContent.trim()),
   };
 }, M);
 /* 見えている画面の生きた欄（ホテルの欄のほか）が全部読み終わるまで */
@@ -1302,13 +1306,17 @@ scene('leak', 'カードの画像と材料に、生きた欄の中身（口コ�
    （F4 ＝ 余白と控えの高さは見るだけ。LC-A10 で外した） */
 const FACE_REV = { ...ROWS, [CX]: [rated('c1', 4), rated('c2', 2)] };
 const word = (state) => () => ({ status: 200, body: { ok: true, state } });
+/* ★2026-10-30 鍵の無い人の要約の答え（{ ok, state, lead?, good? }）── まとめの段落の先頭と良い点は出てよい字。気になる点・段落・件数・番号は植えた毒（出ない） */
+const shutSum = (state) => (p) => ({ status: 200, body: { ok: true, state, n: 9, as_of: '2026-10-01', overview: 'ZZ段落ZZ', concern: [{ text: 'ZZ気になる点ZZ', cat: 'wlb' }],
+  lead: `${(p && p.airline) || ''} の口コミでは、乗員どうしの雰囲気を評価する声が多い一方、昇格までの待ちの長さを挙げる声も目立つと`,
+  good: [{ text: '訓練：教官の指導が丁寧という声が多い', cat: 'training', ids: ['aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'] }, { text: '職場の雰囲気：相談しやすいという声が目立つ', cat: 'culture' }] } });
 const FACE_PAY = (fix) => () => ({ status: 200, body: fix(LEAK_FIVE.map((s) => H.payRowFix(s))) });
 const FACE_READERS = [
-  { key: 'guest', ja: 'ゲスト', who: null, rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: word('login'),
+  { key: 'guest', ja: 'ゲスト', who: null, rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: shutSum('login'),
     pv_work_view: word('login'), pv_contrib_facts: word('login'), pv_pay_rows: FACE_PAY(H.payFix.guest) } },
-  { key: 'member', ja: 'ふつうの会員（鍵なし）', who: 'pilot', rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: word('locked'),
+  { key: 'member', ja: 'ふつうの会員（鍵なし）', who: 'pilot', rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: shutSum('locked'),
     pv_work_view: word('locked'), pv_contrib_facts: word('locked'), pv_pay_rows: FACE_PAY(H.payFix.member) } },
-  { key: 'expired', ja: '給与の鍵が切れた人', who: 'pay', rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: word('locked'),
+  { key: 'expired', ja: '給与の鍵が切れた人', who: 'pay', rated: true, stub: { pv_reviews: reviewsBy(FACE_REV), pv_review_summary: shutSum('locked'),
     pv_work_view: word('locked'), pv_contrib_facts: word('locked'), pv_pay_rows: FACE_PAY(H.payFix.expired) } },
   { key: 'zero', ja: '空の答えだけ（会員 c）', who: 'c', rated: false, stub: {
     pv_reviews: () => ({ status: 200, body: { ok: true, unlocked: true, rows: [] } }), pv_review_summary: word('few'),
@@ -1339,7 +1347,9 @@ const faces = (page) => page.evaluate(() => {
       return !!p && (p.matches('p.crl-count') ? /^[1-9]\d*件の提出$/.test(t) && p.querySelectorAll('*').length === 1 : p.matches('p.crl-msg') && t === 'まだ記録がありません' && !p.children.length); };
     const rows = x.querySelectorAll('.crl-cmp-row');
     const free = k === 'cmp-pay' && rows.length === 1 && rows[0].children.length === 2 && [...rows[0].children].every(cell) ? rows[0] : null;
-    const bad = [...x.querySelectorAll('ul, ol, table, .crl-cmp-row, .crl-rows, .crl-sk')].filter((n) => n !== free).map((n) => n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''));
+    /* ★2026-10-30 オーナー「会社のいいところは全部見せよう」── 鍵の無い人の比較の要約は、良い点の一覧（ul.crl-sum-ul）を出してよい（それ以外の一覧は今までどおり許さない） */
+    const good = (n) => k === 'cmp-summary' && n.matches('.crl-sum-col[data-kind="good"] > ul.crl-sum-ul');
+    const bad = [...x.querySelectorAll('ul, ol, table, .crl-cmp-row, .crl-rows, .crl-sk')].filter((n) => n !== free && !good(n)).map((n) => n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''));
     if (bad.length) a.push(`${k}(${state}): ${bad.join(' ')}`);
     const per = {};
     for (const l of x.querySelectorAll('.crl-lock')) {

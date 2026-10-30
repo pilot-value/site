@@ -18,8 +18,10 @@
 -- ── 守っている約束 ─────────────────────────────────────────────
 --  1. **読める人は口コミの本文と同じ。** 判定は db/reviews-gate.sql の
 --     pv_has_review_key() を**呼ぶ**（写さない）。本文の門を動かせば要約の門も動く。
---     鍵の無い人へ返るのは1語だけ（未ログイン＝{state:'login'}／ログイン済みで鍵なし＝{state:'locked'}）で、
---     要約は1文字も返らない。点の数も、もとの口コミの id も返らない。
+--     鍵の無い人へ返るのは1語（未ログイン＝{state:'login'}／ログイン済みで鍵なし＝{state:'locked'}）と、
+--     まとめの段落の先頭（lead・3-d）と、良い点の字（good・{text, cat} だけ）の3つだけ
+--     （2026-10-30 オーナー指示「要約は60文字にしよう。会社のいいところは全部見せよう。悪いところだけぼかしを入れよう」）。
+--     気になる点・段落の残り・点の数・もとの口コミの id は1つも返らない。
 --  2. **少数の感想を会社全体の事実にしない。**
 --       ・口コミが3件に満たない会社には要約を預けられない（n >= 3）。
 --       ・1つの点は、2件以上の口コミが同じことを言っているときだけ（k >= 2）。
@@ -61,7 +63,8 @@
 --  8. **要約の頭に「全体の傾向」の段落（overview・2〜3文）を1つ置く**（2026-10-30 オーナー指示）。
 --     点と同じ線で確かめる（数字・通貨記号・タグ・前後の空白は入らない・字数は言語ごと）。
 --     検査は pv_review_summary_overview_bad() の1か所で、書く側・表の制約・読む側が同じこれを呼ぶ。
---     段落を返すのも open のときだけ ── 鍵の無い人へは1文字も返らない（few / none / login / locked に overview の鍵は無い）。
+--     段落を丸ごと返すのは open のときだけ（few / none / login / locked に overview の鍵は無い）。
+--     鍵の無い人（login / locked）へは、段落の先頭（日本語60字・英語120字）だけを lead として返す（3-d・2026-10-30 オーナー指示）。
 --       ・overview が null の行 ＝ 段落ができる前（2026-10-30 より前）に預けた行。
 --         読む側は '' として返し、作り直しの判定（6-b）は**1回だけ**作り直させる。
 --       ・''（空）＝ 段落なし。正しい形（点が1つも残らなかった・検品で段落だけ落ちた）。
@@ -549,6 +552,57 @@ revoke all on function public.pv_review_summary_backed(jsonb, text[], timestampt
 comment on function public.pv_review_summary_backed(jsonb, text[], timestamptz) is
   '点の ids が、その会社の・その時刻までの・その分類に本文の在る口コミだけかを確かめる。誰にも grant しない。';
 
+-- 3-d. まとめの段落の先頭（lead）── 鍵の無い人（login / locked）へ返す、段落のただ1つの字。
+--   2026-10-30 オーナー指示「要約は1文じゃなくて60文字にしよう」。
+--   日本語 … 先頭60字（char_length で60）
+--   英語   … 先頭120字。語の途中で切らない ── 121字目が空白でなければ、120字の中の最後の空白まで戻す
+--              （120字の中に空白が無ければ120字のまま）
+--   前後の空白は落とす。
+-- ★段落が上限以下（日本語60字以下・英語120字以下）なら null ＝ lead の鍵ごと無い。
+--   短い段落を丸ごと渡すと、画面の「続きはぼかし」が嘘になる（続きが無いのにぼかしが乗る）。
+-- ★段落が null（段落ができる前の行）・''（段落なし）・ja / en 以外の言語も null。
+-- ★読む関数（4）が、段落の検査（3-a）を通ったあとの字にだけ使う。
+create or replace function public.pv_review_summary_lead(p_overview text, p_lang text)
+returns text
+language plpgsql
+immutable
+set search_path = public, extensions
+as $fn$
+declare
+  v_txt text := btrim(coalesce(p_overview, ''), E' \t\r\n');
+  v_cap integer;
+  v_one text;
+begin
+  if p_lang = 'ja' then
+    v_cap := 60;
+  elsif p_lang = 'en' then
+    v_cap := 120;
+  else
+    return null;
+  end if;
+  if char_length(v_txt) <= v_cap then
+    return null;
+  end if;
+
+  v_one := left(v_txt, v_cap);
+  -- 英語は語の途中で切らない（121字目が空白でなければ、最後の空白の手前まで）
+  if p_lang = 'en' and substr(v_txt, v_cap + 1, 1) !~ '\s' then
+    v_one := coalesce(substring(v_one from '^(.*)\s'), v_one);
+  end if;
+
+  v_one := btrim(v_one, E' \t\r\n');
+  if v_one = '' then
+    return null;
+  end if;
+  return v_one;
+end;
+$fn$;
+
+revoke all on function public.pv_review_summary_lead(text, text) from public, anon, authenticated;
+
+comment on function public.pv_review_summary_lead(text, text) is
+  'まとめの段落の先頭（日本語60字・英語120字。英語は語の途中で切らない）。段落が上限以下・段落が無い・知らない言語なら null。鍵の無い人へ返す lead の出どころ。誰にも grant しない。';
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 4. 読む（会社ページが呼ぶ）
@@ -558,8 +612,11 @@ comment on function public.pv_review_summary_backed(jsonb, text[], timestamptz) 
 --   {ok:false, error:'bad_airline'|'bad_lang'}   引数が変（名簿に無い会社など）
 --   {ok:true,  state:'few'}      いま読める口コミが3件に満たない（0件を含む）
 --   {ok:true,  state:'none'}     3件以上あるが、預かった要約が無い／元の口コミが変わって出せなくなった
---   {ok:true,  state:'login'}    要約は在るが、呼んだ人はログインしていない
---   {ok:true,  state:'locked'}   要約は在るが、呼んだ人は口コミの本文を読めない（ログイン済み）
+--   {ok:true,  state:'login', lead?, good?}    要約は在るが、呼んだ人はログインしていない
+--   {ok:true,  state:'locked', lead?, good?}   要約は在るが、呼んだ人は口コミの本文を読めない（ログイン済み）
+--              lead ＝ まとめの段落の先頭（3-d）。作れないとき（段落が上限以下・段落なし・段落ができる前の行）は鍵ごと無い
+--              good ＝ 良い点を全部（open と同じ点・同じ順）。各点は {text, cat} の2つだけ（ids は渡さない）。
+--                     良い点が0個なら鍵ごと無い。気になる点は渡さない（画面がぼかしの絵を描く）
 --   {ok:true,  state:'open', n, as_of:'YYYY-MM-DD', as_of_at:'YYYY-MM-DDTHH:MI:00Z',
 --              overview:'…', good:[{text, cat, ids}], concern:[{text, cat, ids}]}
 --              as_of_at ＝ 預けた時刻（UTC・15分刻みに切り下げ。2026-10-25）── 画面が読む人の時計の日付にする
@@ -567,7 +624,8 @@ comment on function public.pv_review_summary_backed(jsonb, text[], timestamptz) 
 -- ★ 未ログイン（anon）にも配ってある。配らないと画面は「権限エラー」と
 --   「鍵が掛かっている」を見分けられない（pv_stays と同じ作法）。
 -- ★ few と none は鍵を見る**前**に返す（冒頭の罠）。鍵の有無で few / none の出方は変わらない。
--- ★ few・none・login・locked は {ok, state} の2つだけ（overview の鍵も無い）。
+-- ★ few・none は {ok, state} の2つだけ。login・locked は ok・state・lead・good（lead と good は在るときだけ）。
+--   どちらにも overview・concern・n・as_of・as_of_at・ids の鍵は無い（段落の全文と気になる点を返すのは open だけ）。
 --   open で返すのは n・as_of・as_of_at・overview と、点の text・cat・ids。k・書いた人は1つも入らない。
 create or replace function public.pv_review_summary(p jsonb)
 returns jsonb
@@ -581,6 +639,8 @@ declare
   v_lang  text := coalesce(p ->> 'lang', '');
   v_row   public.pv_review_summaries%rowtype;
   v_codes text[];
+  v_lead  text;
+  v_good  jsonb;
 begin
   if not exists (select 1 from public.pv_airlines a
                   where a.code = v_air and a.code <> 'other') then
@@ -618,20 +678,27 @@ begin
   end if;
 
   /* ★ここから下は「要約が在る」と分かっている人への返事。未ログインと鍵なしを分ける。
-     分けるのは言葉だけで、どちらにも要約は1文字も返さない。 */
+     分けるのは言葉だけ。どちらにも返すのは、まとめの段落の先頭（lead・3-d）と良い点の字（good）だけ
+     （2026-10-30 オーナー指示「要約は60文字にしよう。会社のいいところは全部見せよう。悪いところだけぼかしを入れよう」）。
+     気になる点・段落の残り・件数・時刻・点のもとの口コミ（ids）は1文字も返さない。
+     lead が作れない行・良い点が0個の行では、その鍵ごと無い（null を落とす）。 */
+  v_lead := public.pv_review_summary_lead(v_row.overview, v_row.lang);
+  v_good := (select jsonb_agg(jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat') order by e.i)
+               from jsonb_array_elements(v_row.good) with ordinality e(v, i));
   if auth.uid() is null then
-    return jsonb_build_object('ok', true, 'state', 'login');
+    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'login', 'lead', v_lead, 'good', v_good));
   end if;
 
   /* ★本文と同じ門（約束 1）。写さずに呼ぶ。 */
   if not public.pv_has_review_key() then
-    return jsonb_build_object('ok', true, 'state', 'locked');
+    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good));
   end if;
 
   /* ★as_of_at（2026-10-25）── 預けた時刻を、UTC の15分刻みに切り下げて添える。画面はこれを読む人の時計の日付にして出す
      （as_of は UTC の日付なので、日本の 0〜9時に預けた要約は前日の日付に見えていた）。as_of は古い画面のためにそのまま残す。
      15分刻みなのは、どの時間帯でも日付が正しく出るいちばん粗い刻みだから（時差はどれも15分の倍数）。それより細かい時刻は渡さない。
-     ★overview（2026-10-30）── 段落は**ここでだけ**返す（約束 8）。上の login・locked・few・none の返事に足さない。 */
+     ★overview（2026-10-30）── 段落を丸ごと返すのは**ここでだけ**（約束 8）。上の login・locked には段落の先頭（lead）と
+       良い点の字（good）だけ・few・none には何も足さない。open には lead を足さない（段落そのものが在る）。 */
   return jsonb_build_object(
     'ok', true, 'state', 'open',
     'n', v_row.n,
@@ -649,7 +716,7 @@ revoke all on function public.pv_review_summary(jsonb) from public;
 grant execute on function public.pv_review_summary(jsonb) to anon, authenticated;
 
 comment on function public.pv_review_summary(jsonb) is
-  '口コミの要約を返す。本文を読める人（pv_has_review_key）にだけ中身が返り、ほかは login / locked の1語。'
+  '口コミの要約を返す。本文を読める人（pv_has_review_key）にだけ中身が返り、ほかは login / locked の1語と、まとめの段落の先頭（lead）と良い点の字（good・{text, cat}）だけ（どちらも在るときだけ）。'
   '3件未満は few・要約が無い／元の口コミが変わったときは none（どちらも鍵を見る前に返す）。k は返さない。ids と overview（全体の傾向の段落）は open のときだけ。';
 
 
@@ -1363,9 +1430,11 @@ $grant$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 検算（貼ったあと、7行とも ✅ になっていること）
+-- 検算（貼ったあと、8行とも ✅ になっていること）
 --   ⚠️ 6行目は service_role という役が在る DB でだけ ✅ になる（Supabase には必ず在る）。
 --   ★7行目は全体の傾向の段落（overview）の口が入ったか（2026-10-30）。❌ なら、段落の入る前のこのファイルを貼っている。
+--   ★8行目は鍵の無い人へ返す段落の先頭（lead・60字／120字）と良い点（good）の口が入ったか（2026-10-30）。
+--     ❌ なら、その前のこのファイル（1文で切っていた版も含む）を貼っている。
 -- ════════════════════════════════════════════════════════════════
 select '表は anon / authenticated から直に読めない' as 確認,
        case when not has_table_privilege('anon', 'public.pv_review_summaries', 'select')
@@ -1393,6 +1462,8 @@ select '中の部品は誰にも配っていない',
        case when not has_function_privilege('authenticated', 'public.pv_review_summary_bad(jsonb, text, integer)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_overview_bad(text, text)', 'execute')
              and not has_function_privilege('anon', 'public.pv_review_summary_overview_bad(text, text)', 'execute')
+             and not has_function_privilege('authenticated', 'public.pv_review_summary_lead(text, text)', 'execute')
+             and not has_function_privilege('anon', 'public.pv_review_summary_lead(text, text)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_ids(text[], timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_count(text[], timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_review_summary_sig(text[], timestamptz, text)', 'execute')
@@ -1440,4 +1511,17 @@ select '全体の傾向の段落（overview）の口が入っている',
              and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%coalesce(v_row.overview%'
              and pg_get_functiondef('public.pv_review_summary_put(jsonb)'::regprocedure) like '%bad_overview%'
              and pg_get_functiondef('public.pv_review_summary_need(text, text)'::regprocedure) like '%v_old%'
+            then '✅' else '❌' end
+union all
+select '鍵の無い人へは、まとめの段落の先頭（lead）と良い点の字（good）だけ',
+       case when public.pv_review_summary_lead(repeat('あ', 61), 'ja') = repeat('あ', 60)
+             and public.pv_review_summary_lead(repeat('あ', 60), 'ja') is null
+             and public.pv_review_summary_lead(repeat('abcd ', 30), 'en') = btrim(repeat('abcd ', 24))
+             and public.pv_review_summary_lead(repeat('abcdef ', 20), 'en') = btrim(repeat('abcdef ', 17))
+             and public.pv_review_summary_lead(repeat('a', 130), 'en') = repeat('a', 120)
+             and public.pv_review_summary_lead(null, 'ja') is null
+             and public.pv_review_summary_lead('', 'en') is null
+             and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%pv_review_summary_lead(v_row.overview%'
+             and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%''state'', ''login'', ''lead'', v_lead, ''good'', v_good)%'
+             and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%''state'', ''locked'', ''lead'', v_lead, ''good'', v_good)%'
             then '✅' else '❌' end;

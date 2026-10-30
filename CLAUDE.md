@@ -504,6 +504,45 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 見るもの: `node db/test-ask-own-airline.mjs`（誰に・順番・埋まった線・48時間・壊す証明）／`node assert-ask.mjs`（画面の通し）。
 
+## 会社ページの給与の図と、口コミ要約のぼかし（2026-10-30）
+
+★オーナー指示「要約は、口コミを出していない人にはぼかして投稿を促す。1行目だけは字で」「年収の推移のグラフを入れる。
+給与を出していない人にはぼかし」「各社の給与・待遇と概要に。できれば比較にも」「PC・iPad は横に並べて」
+「1文だけ囲われていると、まとめがそれだけに見える。文を続けて」
+「要約は1文じゃなくて60文字にしよう。会社のいいところは全部見せよう。悪いところだけぼかしを入れよう」。
+
+- **要約**：鍵の無い人（`login` / `locked`）に返すのは **まとめの段落の先頭（`lead`）と良い点の字（`good` ── `{text, cat}` だけ）** の2つ
+  （[db/review-summary.sql](db/review-summary.sql) の `pv_review_summary_lead` の1か所。日本語は60字・英語は120字で語の境目まで。
+  段落が上限以下なら返さない）。気になる点・段落の残り・件数・日付・元の口コミの番号（`ids`）は返さない。画面も、届いても読まない（`sumGood` が作り直す）。
+  画面は「まとめの枠（先頭の字 → **同じ枠の中に続くぼかした3行** `ghostCont`）→ 良い点（本物の字・会社ページ3つ／比較2つ）｜
+  気になる点（**見出しだけ本物の字**・中身は橙の影絵 `ghostBad` と板「要約は口コミの投稿で開きます」）→ 足元「AI 要約」」。
+  会社ページの板には「匿名で口コミを書く」（未ログインは「ログイン」も）・比較の板は1枚で投稿ボタンを置かない（入口は評価の欄の Give & Get）。
+  ⚠️ 続きの行を枠の外へ出さない（1文だけが囲われると、まとめがそれだけに見える ── オーナー指摘）。
+- **給与の図**（[career-live.js](career-live.js) の `payViz`。`KIND.realpay` の開いた答えだけが呼ぶ）──
+  昇格後の年数ごとの点（`ydBlock` の1社）＋ その職位の 25〜75% の帯と中央値の線（`pv_company_pay`。**5人以上で p25/p75・3〜4人は中央値だけ**）
+  ＋ 月の給与の内訳の円（`pv_company_comp`）。会社ページの**概要と給与・待遇の両方**。2社比較には会社ごとの幅の棒と2社の円。
+  - 器（`.crl-pv`）が 560px 以上なら図と円を左右に（`.crl-pv-g`）。狭い1社の図は目盛を「〜5」にして軸の名前に「（年）」。
+  - ★2026-10-30 オーナー「グラフと表の間がよくわからないからカードみたいな形に」「年収は pull down で」「棒グラフもだして」──
+    会社ページの並びは **件数 → 年収の幅のカード（機長・副操縦士の2本・同じ目盛・`rangeDraw` を比較と共有）→ 職位の切り替え → 年数の図と円のカード
+    → 「提出された数字を見る（N件）」の畳み（最初は閉じている・中に1件ずつの行）→「REAL PAY で全部見る」**。
+    幅の棒の額は `companyMed` の答えだけ（聞き直さない）。カードは `.crl-rg`・`.crl-yd`・`.crl-dn`・`.crl-dn2`（比較も同じ見た目・中身は変えない）。
+  - `pv_company_comp` は [db/deep-pay.sql](db/deep-pay.sql) の4章。門は `pv_work_level()='pay'` だけ（止めた会員は閉じる）。
+    計算は DEEP PAY の給与構成の**写し**で、`db/test-company-comp.mjs` が `pv_deep_pay` と1円も違わないことを縛る ── **片方だけ直さない**。
+    わざと違うのは2つ：一覧から下ろした人（`pay_hidden`）を入れない・「その他」の会社は扱わない。
+  - ⚠️ 名前に「DEEP PAY」を出さない・住所も書かない（閉じたまま）。人数はどこにも返さない。
+- **給与を出していない人**：今の伏せた行とボタンはそのまま、その下に開いた人と同じ**3枚のカードの形**（年収の幅・年数の図・円）の影絵（`ghostPay`）。
+  カードの枠（`.crl-gh-card`）は影絵の外の空の箱・中身だけが影絵。★色は灰色の1色にしない（2026-10-30 オーナー「ぼかしは灰色じゃなくて色つけて」）──
+  点と幅の箱は会社の色（外の箱の `--crl-co`・無ければ `--pv-accent`）・円は決まった5色のトークン。要約の影絵も、まとめの続きは緑・気になる点は橙の薄い色。
+  `pv_company_pay` も `pv_company_comp` も呼ばない＝本物の数字は端末に来ない。
+- ⚠️ **ぼかす規則は [career-live.css](career-live.css) に2つだけ**（`.crl-plate` と `.crl .crl-ghost`）。影絵は JS が空の `<i>` を置き、形は CSS が固定する。
+  本物の字・数字を描いてからぼかさない（`assert-airline-glance.mjs` が規則の数を数えている）。
+- ⚠️ `career-live.js` / `career-live.css` を直したら `node gen-airline-glance.mjs`・`node gen-career.mjs`・`node gen-directory.mjs`（`?v=` の指紋）。
+- **貼る順** ── `db/review-summary.sql` → `db/company-pay.sql` → `db/deep-pay.sql`。貼る前でも画面は壊れない
+  （`lead` が無ければ影絵だけ・p25 が無ければ線だけ・関数が無ければ円を出さない）。SQL が先・push が後。
+
+見るもの: `node db/test-review-summary.mjs`／`node db/test-pay-compare.mjs`／`node db/test-company-comp.mjs`／
+`node assert-airline-glance.mjs`／`node assert-career-live.mjs`（落ちたときの「なぜ」は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 29 番）。
+
 ## デプロイ前チェック
 
 **`node check.mjs` 1本で全部走る。** 中で並列に回すので、手で1本ずつ流すより速い。

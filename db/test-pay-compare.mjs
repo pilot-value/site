@@ -13,7 +13,8 @@
      ★ 数字の決め方（db/pay-median.sql の pv_pay_medians）── 壁の人数に届かない区分は { s:'few' } だけ・
        1人は1回（同じ人の何か月もまんなか1つ）・2社に出した人は両方に1人ずつ・
        口コミに書かれた年収・登録前の預かり・下ろした人・常識の幅の外・24か月より前の月は入らない。
-     ★ 人数・件数・幅はどの返事にも無い（人数はどこにも出さない）。実行権。2つのファイルの末尾の検算（6行と6行）。
+     ★ 人数・件数はどの返事にも無い（人数はどこにも出さない）。まんなか半分の幅（p25_usd・p75_usd）は5人の区分からだけ
+       （2026-10-30・会社ページの帯。4人では出ない・p25 ≦ 中央値 ≦ p75）。実行権。2つのファイルの末尾の検算（6行と6行）。
 
    器は db/test-contrib.mjs と同じ（anon / authenticated ロール、既定の権限を全部付けた状態、auth.uid() の代役、
    profiles、auth.users、reviews_v2）。流す SQL の並びは serve-local.mjs の SQL_FILES をそのまま読む（写さない）。
@@ -306,6 +307,35 @@ console.log(`\n▼ T-Q8 壁は ${FLOOR}人: ${FLOOR - 1}人の区分は {s:"few"
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ T-Q8b まんなか半分の幅（p25_usd・p75_usd）は5人から: 4人の区分には無い・5人目で出る（p25 ≦ 中央値 ≦ p75）');
+// ════════════════════════════════════════════════════════════
+{
+  /* 会社ページの帯（25〜75%）。幅の壁は db/pay-median.sql の `5 as c_band_floor`（人で数える）。
+     5人の額をばらばらにしておく ── 5つを並べたとき、p25 は2番目・p75 は4番目の人の額そのもの
+     （percentile_cont の位置 0.25 ×（5 − 1）＝ 1 ちょうど）。 */
+  const GROSS = [11000, 13000, 16000, 21000, 27000];
+  for (let i = 0; i < 4; i++) await person(A_THIRD, 'cap', [[GROSS[i], 1]]);
+  const a = (await cmp(SUBMITTER, { airlines: [A_THIRD] })).airlines?.[A_THIRD]?.cap;
+  const med4 = await sig2(midOf(GROSS.slice(0, 4).map((g) => g * 12)));
+  ok(a && a.s === 'ok' && keys(a) === 'median_usd,s' && Number(a.median_usd) === med4,
+     `★4人の区分は {s:"ok", median_usd} だけ（幅のキーが無い）`, J(a));
+  await person(A_THIRD, 'cap', [[GROSS[4], 1]]);
+  const b = (await cmp(SUBMITTER, { airlines: [A_THIRD] })).airlines?.[A_THIRD]?.cap;
+  const usd = GROSS.map((g) => g * 12);
+  const want = { med: await sig2(midOf(usd)), p25: await sig2(usd[1]), p75: await sig2(usd[3]) };
+  ok(b && b.s === 'ok' && keys(b) === 'median_usd,p25_usd,p75_usd,s',
+     '★5人目で {s, median_usd, p25_usd, p75_usd}（人数・件数のキーは無い）', J(b));
+  ok(b && Number(b.p25_usd) === want.p25 && Number(b.median_usd) === want.med && Number(b.p75_usd) === want.p75,
+     `★幅は人のまんなかの25%・75%を pv_sig2 に通した値（${want.p25} ／ ${want.med} ／ ${want.p75}）`, J(b));
+  ok(b && Number(b.p25_usd) <= Number(b.median_usd) && Number(b.median_usd) <= Number(b.p75_usd) && Number(b.p25_usd) < Number(b.p75_usd),
+     '★p25 ≦ 中央値 ≦ p75 の順', J(b));
+  const fo = (await cmp(SUBMITTER, { airlines: [A_THIRD] })).airlines?.[A_THIRD]?.fo;
+  ok(canon(fo) === canon({ s: 'few' }), '同じ会社の副操縦士（0人）は {s:"few"} だけ（幅のキーも無い）', J(fo));
+  const knob = await one(`select (public.pv_pay_medians('{}'::jsonb) ->> 'band_floor')::int as f`);
+  ok(knob.f === 5, 'db/pay-median.sql の幅の壁（knob）は 5', J(knob));
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ T-Q9 1人は1回（本人の月々のまんなか1つ）・2社に出した人は両方に1人ずつ');
 // ════════════════════════════════════════════════════════════
 {
@@ -486,11 +516,16 @@ console.log('\n▼ T-Q13 返事の形・実行権・末尾の検算');
     `これまでの開いた返事の会社（${firms.length}社ぶん）はどれも機長と副操縦士の2つだけ`, J(firms.filter((a) => keys(a) !== 'cap,fo').slice(0, 2)));
   const cells = firms.flatMap((a) => [a.cap, a.fo]);
   const cellOk = (c) => !!c && typeof c === 'object'
-    && ((c.s === 'few' && keys(c) === 's') || (c.s === 'ok' && keys(c) === 'median_usd,s' && Number(c.median_usd) > 0));
+    && ((c.s === 'few' && keys(c) === 's')
+        || (c.s === 'ok' && keys(c) === 'median_usd,s' && Number(c.median_usd) > 0)
+        || (c.s === 'ok' && keys(c) === 'median_usd,p25_usd,p75_usd,s' && Number(c.p25_usd) > 0
+            && Number(c.p25_usd) <= Number(c.median_usd) && Number(c.median_usd) <= Number(c.p75_usd)));
   ok(cells.length > 0 && cells.every(cellOk),
-    `★これまでの開いた返事の区分（${cells.length}個）はどれも {s} か {s, median_usd} だけ`, J(cells.filter((c) => !cellOk(c)).slice(0, 3)));
-  const leak = SEEN.map((v) => J(v)).filter((s) => /"(people|records|p25_usd|p75_usd|band_floor|groups|months|human)"/.test(s));
-  ok(SEEN.length > 0 && leak.length === 0, `★比較の口の返事（${SEEN.length}通）のどれにも人数・件数・幅のキーが無い`, leak.slice(0, 2).join(' | '));
+    `★これまでの開いた返事の区分（${cells.length}個）はどれも {s} か {s, median_usd} か {s, median_usd, p25_usd, p75_usd}（p25 ≦ 中央値 ≦ p75）だけ`,
+    J(cells.filter((c) => !cellOk(c)).slice(0, 3)));
+  ok(cells.some((c) => c && 'p25_usd' in c), '（幅の在る区分も、これまでの返事に1つ以上ある ── 上の形の検査が空回りしていない）');
+  const leak = SEEN.map((v) => J(v)).filter((s) => /"(people|records|band_floor|groups|months|human)"/.test(s));
+  ok(SEEN.length > 0 && leak.length === 0, `★比較の口の返事（${SEEN.length}通）のどれにも人数・件数のキーが無い`, leak.slice(0, 2).join(' | '));
 
   const priv = await one(`
     select has_function_privilege('anon', 'public.pv_company_pay(jsonb)', 'execute') as c_anon,

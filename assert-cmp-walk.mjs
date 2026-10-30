@@ -245,7 +245,9 @@ const faces = (page) => page.evaluate(() => {
       return !!p && (p.matches('p.crl-count') ? /^[1-9]\d*件の提出$/.test(t) && p.querySelectorAll('*').length === 1 : p.matches('p.crl-msg') && t === 'まだ記録がありません' && !p.children.length); };
     const rows = x.querySelectorAll('.crl-cmp-row');
     const free = k === 'cmp-pay' && rows.length === 1 && rows[0].children.length === 2 && [...rows[0].children].every(cell) ? rows[0] : null;
-    const bad = [...x.querySelectorAll('ul, ol, table, .crl-cmp-row, .crl-rows, .crl-sk')].filter((n) => n !== free).map((n) => n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''));
+    /* ★2026-10-30 オーナー「会社のいいところは全部見せよう」── 鍵の無い人の比較の要約は、良い点の一覧（ul.crl-sum-ul）を出してよい（それ以外の一覧は今までどおり許さない） */
+    const good = (n) => k === 'cmp-summary' && n.matches('.crl-sum-col[data-kind="good"] > ul.crl-sum-ul');
+    const bad = [...x.querySelectorAll('ul, ol, table, .crl-cmp-row, .crl-rows, .crl-sk')].filter((n) => n !== free && !good(n)).map((n) => n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''));
     if (bad.length) a.push(`${k}(${state}): ${bad.join(' ')}`);
     const per = {};
     for (const l of x.querySelectorAll('.crl-lock')) {

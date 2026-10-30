@@ -505,7 +505,7 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 /* ── 昇格後の年数ごとの年収の図（比較の「提出された年収」・career-live.js の ydBlock・2026-10-29）──
    y は 0 からの1本の目盛（2つの図で同じ）・横の線は薄く・段の境は点線。点は 10px（会社の色・地の色の輪 2px）、押せる広さは 24px。
    点を指す・押すと（指はタップ）額の札が出る。札は枠の外へ出ない向きに置く（左の2段は左寄せ・右の2段は右寄せ） */
-.crl-yd{container-type:inline-size;padding:0 0 12px;border-bottom:1px solid var(--pv-line)}
+.crl-yd{container-type:inline-size}
 .crl-yd-lg{display:flex;flex-wrap:wrap;gap:4px 16px;margin:6px 0 0}
 .cr-cmp .crl .crl-yd-lg > .crl-co{align-items:center}
 .cr-cmp .crl .crl-yd-lg > .crl-co::before{margin-top:0}
@@ -536,9 +536,184 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-yd-x{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:8px 0 0 68px;font:500 10.5px/1.3 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-3);text-align:center}
 .crl-yd-x > span{min-width:0;overflow-wrap:anywhere}
 .crl-yd-ax{margin:4px 0 0 68px;font-size:11px;line-height:1.4;color:var(--pv-ink-3);text-align:center}
-.crl-yd-tt{margin:12px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-yd-tt{margin:0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
 .crl-yd-note{margin:8px 0 0;font-size:12px;line-height:1.7;color:var(--pv-ink-3)}
 @media (prefers-reduced-motion:reduce){.crl-yd-d::before,.crl-yd-d::after{transition:none}}
+/* ── カード（2026-10-30 オーナー「グラフと表の間がよくわからないからカードみたいな形にしてよ」）── 年収の幅・年数の図・内訳の円（会社ページと比較）と、
+   鍵の無い人の影絵のカードの枠。枠・角丸 12px・中の余白・下地はトークン・色味のある薄い2層の影（平らな1枚の影にしない） */
+.crl-rg,.crl-yd,.crl-dn,.crl-dn2,.crl-gh-card{box-sizing:border-box;min-width:0;padding:14px 16px;border:1px solid var(--pv-line);border-radius:12px;background:var(--pv-surface);box-shadow:0 1px 2px color-mix(in srgb,var(--pv-accent-ink) 6%,transparent),0 10px 24px -16px color-mix(in srgb,var(--pv-accent-ink) 30%,transparent)}
+.crl-cmp > .crl-rg,.crl-cmp > .crl-yd,.crl-cmp > .crl-dn2{margin-top:12px}
+/* 1社の図（会社ページ・2026-10-30）── 凡例なし・点は会社の色（島が無い会社ページでは緑）。目盛と段の字は 12px（会社ページの字の下限）。
+   帯（25〜75%）は淡い緑の面・中央値は濃い緑の線。名前（25%・中央値・75%）は右の端の列に、額は図の下の1行に */
+
+.crl-yd[data-n="1"] .crl-yd-tt{margin-top:0}
+.crl-yd[data-n="1"] .crl-yd-figs{grid-template-columns:minmax(0,1fr);margin-top:8px}
+.crl-yd[data-n="1"] .crl-yd-d::before{background:var(--crl-co,var(--pv-accent))}
+.crl-yd[data-n="1"] .crl-yd-d::after{max-width:168px}
+.crl-yd[data-n="1"] .crl-yd-t,.crl-yd[data-n="1"] .crl-yd-x{font-size:12px}
+.crl-yd[data-n="1"] .crl-yd-ax,.crl-yd[data-n="1"] .crl-yd-note{font-size:12px}
+/* 目盛の字：ふだんは「〜5年」。狭い1社の図だけ「〜5」にして「（年）」を軸の名前へ（字が語の途中で折れない）。比較（data-n なし）は今のまま。
+   字は 12px のまま（会社ページの字は 12px 以上）。幅は右の端の名前（25%・中央値・75%）を外して作る ── 額は上の「年収の幅」のカードと図の下の1行が言っている */
+.crl-yd-xs,.crl-yd-axs{display:none}
+@container (max-width:460px){
+  .crl-yd[data-n="1"] .crl-yd-xl,.crl-yd[data-n="1"] .crl-yd-axl{display:none}
+  .crl-yd[data-n="1"] .crl-yd-axs{display:inline}
+  /* 短い目盛は段の左の区切りの上に（0・5・10・15・20〜）。段のまん中に「10〜15」を詰めると、狭い幅で字が折れる */
+  .crl-yd[data-n="1"] .crl-yd-x > span{text-align:left}
+  .crl-yd[data-n="1"] .crl-yd-xs{display:inline-block;transform:translateX(-50%);white-space:nowrap}
+  .crl-yd[data-n="1"] .crl-yd-f[data-band] .crl-yd-plot{grid-template-columns:60px minmax(0,1fr)}
+  .crl-yd[data-n="1"] .crl-yd-r{display:none}
+  .crl-yd[data-n="1"] .crl-yd-f[data-band] .crl-yd-x,.crl-yd[data-n="1"] .crl-yd-f[data-band] .crl-yd-ax{margin-right:0}
+}
+/* 1社の図の点は会社の色。濃い色の会社（キャセイの深い緑など）がダークの地に沈まないよう、細い輪を足す */
+.crl-yd[data-n="1"] .crl-yd-d::before{box-shadow:0 0 0 2px var(--pv-surface),0 0 0 3px color-mix(in srgb,var(--pv-ink) 32%,transparent)}
+.crl-yd[data-n="1"] .crl-yd-d:focus-visible::before{box-shadow:0 0 0 2px var(--pv-surface),0 0 0 4px var(--pv-accent)}
+.crl-yd-f[data-band] .crl-yd-plot{grid-template-columns:60px minmax(0,1fr) 48px}
+.crl-yd-f[data-band] .crl-yd-x,.crl-yd-f[data-band] .crl-yd-ax{margin-right:56px}
+.crl-yd-bd{position:absolute;left:0;right:0;background:color-mix(in srgb,var(--pv-accent) 14%,transparent);border-top:1px dashed color-mix(in srgb,var(--pv-accent) 50%,transparent);border-bottom:1px dashed color-mix(in srgb,var(--pv-accent) 50%,transparent)}
+.crl-yd-md{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--pv-accent-ink)}
+.crl-yd-r{position:relative;height:168px}
+.crl-yd-rl{position:absolute;left:0;transform:translateY(50%);font:600 12px/1 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink-2);white-space:nowrap}
+.crl-yd-rl[data-k="med"]{font-weight:800;color:var(--pv-accent-ink)}
+.crl-yd-key{margin:8px 0 0;font-size:12px;line-height:1.7;color:var(--pv-ink-2)}
+.crl-yd-kv{white-space:nowrap}
+.crl-yd-kv b{font-weight:700;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.crl-yd-kv[data-k="med"] .crl-yd-kk{font-weight:700;color:var(--pv-accent-ink)}
+
+/* ── 会社ページの、給与の鍵の開いた人の図（2026-10-30）── 件数の下・行の上。職位の切り替えは1つ（図とドーナツで同じ職位） */
+.crl-pv{container-type:inline-size;display:grid;gap:14px;min-width:0;margin:2px 0 14px}
+.crl-pv[hidden]{display:none}
+/* 年数の図と内訳の円の器。広い時（PC・iPad）だけ左右に並べる（2026-10-30 オーナー）。片方しか無い時は1列ぜんぶ。
+   器が 900px に届かない時（PC の概要のタブ・iPad）は半分ずつ ── 円の側が細いと項目の名前が2行に折れる */
+.crl-pv-g{display:grid;gap:14px;min-width:0}
+@container (min-width:560px){
+  .crl-pv-g{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 24px;align-items:start}
+  .crl-pv-g > :only-child{grid-column:1 / -1}
+}
+@container (min-width:900px){
+  .crl-pv-g{grid-template-columns:minmax(0,7fr) minmax(0,4fr)}
+}
+.crl-pv-pos{display:inline-flex;justify-self:start;gap:2px;padding:3px;border:1px solid var(--pv-line);border-radius:999px;background:var(--pv-surface-soft)}
+.crl-pv-pb{appearance:none;-webkit-appearance:none;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:none;color:var(--pv-ink-2);font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+.crl-pv-pb[aria-pressed="true"]{background:var(--pv-surface);color:var(--pv-ink);box-shadow:0 1px 2px color-mix(in srgb,var(--pv-ink) 8%,transparent),0 6px 14px -8px color-mix(in srgb,var(--pv-ink) 28%,transparent)}
+@media (hover:hover){.crl-pv-pb:hover{opacity:.78}}
+.crl-pv-pb:active{transform:scale(.97)}
+.crl-pv-pb:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.crl-pv-pb{transition:none}}
+
+/* ── 月の給与の内訳（ドーナツ）── 色は区分ごとに決まった色（JS の DN_COL ＝ 給与の円と同じ）。下地の輪と字はトークン */
+.crl-dn{display:grid;gap:8px;min-width:0}
+.crl-dn-h{margin:0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-dn-f{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;min-width:0}
+.crl-dn-svg{flex:none;display:block;width:112px;height:112px}
+.crl-dn-bg{stroke:var(--pv-line-soft)}
+.crl-dn-lg{flex:1 1 200px;min-width:0;display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.crl-dn-li{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;align-items:baseline;gap:0 8px;font-size:13px;line-height:1.5;color:var(--pv-ink-2)}
+.crl-dn-c{align-self:center;width:10px;height:10px;border-radius:3px}
+.crl-dn-n{min-width:0;overflow-wrap:anywhere}
+.crl-dn-p{font-weight:700;font-variant-numeric:tabular-nums;text-align:right;color:var(--pv-ink)}
+.crl-dn-a{min-width:4.5em;font-size:12px;font-variant-numeric:tabular-nums;text-align:right;color:var(--pv-ink-3)}
+.crl-dn > .crl-def{margin:0}
+
+/* ── 比較：会社ごとの年収の幅（25〜75% の箱・中央値の印）と、2社の内訳 ── */
+
+.crl-rg[hidden],.crl-dn2[hidden]{display:none}
+.crl-rg-tt{margin:0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+.crl-rg-p{margin-top:8px}
+.crl-rg-h{margin:0 0 2px;font-size:13px;font-weight:700;line-height:1.5;color:var(--pv-ink-2)}
+.crl-rg-r{display:grid;gap:4px;min-width:0;padding:6px 0}
+.crl-rg-t{position:relative;height:16px;border:1px solid var(--pv-line-soft);border-radius:999px;background:var(--pv-surface-soft)}
+.crl-rg-b{position:absolute;top:2px;bottom:2px;border-radius:999px;background:color-mix(in srgb,var(--crl-co,var(--pv-accent)) 40%,transparent)}
+.crl-rg-m{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;border-radius:2px;background:var(--crl-co,var(--pv-accent-ink))}
+.crl-rg-r > .crl-yd-key{margin:0}
+.crl-dn2{display:grid;gap:10px}
+.crl-dn2 > .crl-def{margin:0}
+.crl-dn2-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 14px}
+.crl-dn2-c{display:grid;gap:8px;align-content:start;min-width:0}
+.crl-dn2-c .crl-dn-f{flex-direction:column;align-items:flex-start}
+.crl-dn2-c .crl-dn-svg{width:96px;height:96px}
+.crl-dn2-c .crl-dn-lg{flex:none;width:100%;max-width:360px}
+.crl-dn2-c .crl-dn-li{grid-template-columns:10px minmax(0,1fr) auto}
+.crl-dn2-c .crl-dn-a{grid-column:2 / -1;min-width:0;text-align:left}
+
+/* ── 鍵の無い人の影絵（2026-10-30 オーナー「残りはぼかして」）── 要約の欄と給与の図の場所に置く、字も数字も無い決まった形。
+   ★ぼかす規則は .crl-plate とこの1つ（.crl .crl-ghost）だけ。ここに足さない・ほかの部品をぼかさない。
+   ★形の数と幅・位置はここで固定（答えから作らない ── JS は空の箱を置くだけ）。 */
+.crl .crl-ghost{filter:blur(6px);pointer-events:none;user-select:none;-webkit-user-select:none}
+.crl-ghost i{display:block;border-radius:999px;background:color-mix(in srgb,var(--pv-ink) 22%,transparent)}
+/* lead の枠の中で、1文のすぐ後ろに続く3行。字の行と同じ刻み（15px・行の高さ 1.8 ＝ 27px）で、文が続いて見える */
+.crl-ghost-cont{display:grid;gap:1.05em;margin:.5em 0 .25em;font-size:15px}
+.crl-ghost-cont > .crl-gh-l{height:.75em;background:color-mix(in srgb,var(--pv-accent) 26%,transparent)}
+.crl-ghost-cont > .crl-gh-l:nth-child(2){width:94%}
+.crl-ghost-cont > .crl-gh-l:nth-child(3){width:56%}
+.crl .crl-sum-lead .crl-ghost-cont{gap:1em;font-size:14px}
+/* 気になる点の影絵（2026-10-30 オーナー「悪いところだけぼかしを入れよう」）：列ごとに橙の帯3本。板の後ろ一面に敷く
+   （高さは板が決める ── 長い英語の板でも字を切らない）。比較は2列で、上の会社の列と同じ間（24px） */
+.crl-ghost-bad{position:absolute;inset:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:16px;padding:2px;overflow:hidden}
+.crl[data-live="cmp-summary"] .crl-ghost-bad{column-gap:24px}
+.crl-gh-col{display:grid;gap:8px;align-content:start}
+.crl-ghost .crl-gh-b{height:40px;border-left:3px solid color-mix(in srgb,var(--pv-orange) 70%,transparent);border-radius:8px;background:color-mix(in srgb,var(--pv-orange) 16%,transparent)}
+
+.crl-gh-plot{position:relative;min-width:0;height:96px;border-bottom:2px solid color-mix(in srgb,var(--pv-ink) 18%,transparent);border-left:2px solid color-mix(in srgb,var(--pv-ink) 18%,transparent)}
+.crl-ghost .crl-gh-d{position:absolute;width:12px;height:12px;margin:0 0 -6px -6px;border-radius:50%;background:var(--crl-co,var(--pv-accent))}
+.crl-gh-d:nth-child(1){left:9%;bottom:20%}
+.crl-gh-d:nth-child(2){left:13%;bottom:32%}
+.crl-gh-d:nth-child(3){left:29%;bottom:38%}
+.crl-gh-d:nth-child(4){left:33%;bottom:48%}
+.crl-gh-d:nth-child(5){left:50%;bottom:52%}
+.crl-gh-d:nth-child(6){left:52%;bottom:64%}
+.crl-gh-d:nth-child(7){left:69%;bottom:60%}
+.crl-gh-d:nth-child(8){left:73%;bottom:74%}
+.crl-gh-d:nth-child(9){left:90%;bottom:80%}
+/* 年収の幅の影絵：2本の帯（会社の色の箱と、中央値の印）。円の影絵：内訳の円と同じく区分ごとの色の輪（決まった5色）と、凡例の4本 */
+.crl-ghost-prg{display:grid;gap:14px;padding:6px 0}
+.crl-ghost .crl-gh-rgt{position:relative;height:14px;border-radius:999px;background:color-mix(in srgb,var(--pv-accent) 10%,var(--pv-surface-soft))}
+.crl-gh-rgt::before{content:'';position:absolute;top:2px;bottom:2px;left:46%;width:24%;border-radius:999px;background:color-mix(in srgb,var(--crl-co,var(--pv-accent)) 55%,transparent)}
+.crl-gh-rgt + .crl-gh-rgt::before{left:22%;width:16%}
+.crl-gh-rgt::after{content:'';position:absolute;top:-3px;bottom:-3px;left:57%;width:3px;border-radius:2px;background:var(--crl-co,var(--pv-accent-ink))}
+.crl-gh-rgt + .crl-gh-rgt::after{left:30%}
+.crl-ghost-pdn{display:grid;justify-items:center;gap:6px}
+.crl-ghost .crl-gh-dn{position:relative;width:72px;height:72px;margin-bottom:4px;border-radius:50%;background:conic-gradient(var(--pv-accent) 0 46%,var(--pv-gold) 0 66%,var(--pv-blue) 0 80%,var(--pv-orange) 0 91%,var(--pv-teal) 0 100%)}
+.crl-gh-dn::after{content:'';position:absolute;inset:16px;border-radius:50%;background:var(--pv-surface)}
+.crl-ghost .crl-gh-lg{width:100%;height:8px;background:color-mix(in srgb,var(--pv-accent) 45%,transparent)}
+.crl-ghost .crl-gh-lg:nth-child(3){background:color-mix(in srgb,var(--pv-gold) 55%,transparent)}
+.crl-ghost .crl-gh-lg:nth-child(4){width:84%;background:color-mix(in srgb,var(--pv-blue) 45%,transparent)}
+.crl-ghost .crl-gh-lg:nth-child(5){width:70%;background:color-mix(in srgb,var(--pv-orange) 45%,transparent)}
+/* 給与の影絵の3枚のカード：年収の幅を上に、年数の図と円を横に（狭い箱でも横 ── 鍵の無い人の欄を縦に長くしすぎない） */
+.crl-pv-lk{display:grid;gap:10px;min-width:0}
+.crl-pv-lk > .crl-pv-g{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:10px}
+.crl-pv-lk .crl-gh-card{padding:12px 14px}
+.crl-pv-lk + .crl-lock{margin-top:10px}
+.crl[data-live="cmp-pay"] > .crl-pv-lk{margin-top:10px}
+/* 要約の欄：まとめの先頭の字（＋ぼかした続き）→ 良い点（字）→ 気になる点（見出しは字・中身は影絵と板）。旧：まとめの最初の1文（字）→ 影絵 → 影絵の上の板（錠前の1行と入口）。板は影絵の上に重ねるだけ（影絵の中に入れない ＝ ぼかさない） */
+.crl-sum-lk{flex:1 1 100%;display:grid;gap:12px;min-width:0}
+.crl .crl-sum-lk > .crl-sum-ovb{margin:0}
+.crl-sum-gw{position:relative;display:flex;min-width:0;min-height:136px}
+.crl-board{position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-width:0;padding:8px}
+/* 会社ページ：開いた要約と同じ2列（良い点｜気になる点）。良い点が無ければ気になる点の列が全幅（auto-fit） */
+.crl[data-live="summary"] .crl-sum-lk > .crl-sum{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+.crl[data-live="summary"] .crl-sum-lk > .crl-sum-by{margin-top:0}
+.crl-board-in{display:grid;justify-items:center;gap:6px;max-width:100%;padding:12px 16px;border:1px solid var(--pv-line);border-radius:12px;background:var(--pv-surface);text-align:center;box-shadow:0 1px 2px color-mix(in srgb,var(--pv-ink) 6%,transparent),0 12px 30px -14px color-mix(in srgb,var(--pv-ink) 32%,transparent)}
+.crl-board-in > .crl-lock{min-height:32px;padding:0;border:0;background:none}
+.crl-board-in > .crl-foot{justify-content:center;margin:0;gap:4px 16px}
+.crl-sum-leads{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.crl-sum-lead{display:grid;gap:12px;align-content:start;min-width:0;padding:14px;border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface-2)}
+.crl-sum-lead > .crl-co{padding:0 0 10px;border-bottom:1px solid var(--pv-line-soft);font-size:14px;color:var(--pv-ink)}
+/* 比較の鍵の無い形の良い点と「気になる点」の見出しは、開いた比較のマスと同じ形（＋ と ！ の丸） */
+.crl[data-live="cmp-summary"] .crl-sum-lk .crl-sum-col{display:grid;gap:6px;min-width:0}
+.crl[data-live="cmp-summary"] .crl-sum-lk .crl-sum-h{gap:8px;margin:0;font-size:13px}
+.crl[data-live="cmp-summary"] .crl-sum-lk .crl-sum-h::before{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pv-accent-soft);color:var(--pv-accent-ink);font:800 13px/1 Inter,sans-serif;content:'＋'}
+.crl[data-live="cmp-summary"] .crl-sum-lk .crl-sum-col[data-kind="concern"] .crl-sum-h::before{background:var(--pv-orange-soft);color:var(--pv-orange-ink);content:'！'}
+.crl[data-live="cmp-summary"] .crl-sum-lk .crl-sum-li{min-height:0;padding:6px 0}
+.crl .crl-sum-lead .crl-sum-ovb{margin:0;padding:10px 12px 12px;background:var(--pv-surface)}
+.crl .crl-sum-lead .crl-sum-ov{font-size:14px;line-height:1.75}
+@supports (container-type:inline-size){
+  @container (min-width:560px){
+    .crl-sum-leads{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 24px}
+    .crl-sum-lead[data-col="1"]{grid-column:1}
+    .crl-sum-lead[data-col="2"]{grid-column:2}
+  }
+}
 /* 1件ずつの数字は畳む（押すと開く ── 2026-10-29 オーナー「給与の詳細（提出した）数字は押したら出てくる形にして」） */
 .crl-pay-fold{margin-top:12px}
 .crl-pay-fold-s{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;padding:0 16px;border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);background:var(--pv-surface-2);color:var(--pv-accent-ink);font:700 14px/1.35 Inter,'Noto Sans JP',sans-serif;list-style:none;cursor:pointer;transition:transform .18s var(--pv-ease)}

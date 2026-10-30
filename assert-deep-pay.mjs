@@ -975,14 +975,16 @@ console.log('\n════ ⑨ SQL の権限 ════');
     ok(!new RegExp('grant[^\\n]*' + h.replace(/[()[\]]/g, '\\$&')).test(SQL),
        `★${h} に grant が無い`);
   }
-  /* ★ログイン済みに開く関数は pv_deep_pay の1本だけ。**名前で固定する。**
-       本数だけ見ていると、1本消して別の1本を足した回に緑のまま通る。 */
-  const opened = ['pv_deep_pay'];
+  /* ★ログイン済みに開く関数は pv_deep_pay と pv_company_comp の2本だけ。**名前で固定する。**
+       本数だけ見ていると、1本消して別の1本を足した回に緑のまま通る。
+       pv_company_comp は会社ページの「月の給与の内訳（平均）」の円（2026-10-30 オーナー指示）。
+       門は pv_work_level()='pay' だけ・中身は db/test-company-comp.mjs が pv_deep_pay と1円も違わないことを縛る。 */
+  const opened = ['pv_deep_pay', 'pv_company_comp'];
   const created = (SQL.match(/create or replace function public\.(\w+)/g) || [])
     .map((s) => s.split('.').pop());
   const wantFns = helpers.map((h) => h.slice('public.'.length).split('(')[0]).concat(opened);
   ok(created.slice().sort().join(' ') === wantFns.slice().sort().join(' '),
-     `★このファイルが作る関数は ${wantFns.length} 本（補助${helpers.length}＋開く1。増えたら権限も書く）`,
+     `★このファイルが作る関数は ${wantFns.length} 本（補助${helpers.length}＋開く${opened.length}。増えたら権限も書く）`,
      created.join(' '));
 
   ok(!/\bto anon\b/.test(SQL), '★anon には何も渡していない');
