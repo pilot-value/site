@@ -105,8 +105,11 @@ for (const [k, a] of Object.entries({ ...OPS, ...(INJECT || {}) })) {
 }
 
 /* ── 検査③：社名の衝突 ──────────────────────────────────────
-   db/pay-rows.sql:656-695 の pv_airline_norm / pv_airline_resolve を写したもの。
-   あちらを変えたらここも直す。 */
+   db/pay-rows.sql の pv_airline_norm と pv_airline_alias_rows（社名の索引の7つの名前）を写したもの。
+   あちらを変えたらここも直す。
+   ★2026-10-31 から pv_airline_resolve は、この7つの名前から作った索引（pv_airline_alias）を
+     1回引くだけ。索引は db/airlines.generated.sql を貼ると会社の表の引き金が作り直す
+     （このスクリプトが書く SQL は変えていない）。 */
 const airNorm = (s) => String(s == null ? '' : s)
   .toLowerCase()
   // [[:space:]]　・･'".,/_()（）[]‐‑‒–—―−ー－-  ← SQL の文字クラスと同じ

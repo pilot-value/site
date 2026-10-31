@@ -2154,7 +2154,8 @@ console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをその�
   const src = read('db/pay-rows.sql');
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
-  ok(res.length === 68, `自己点検が68行ぜんぶ出る（= ${res.length}行）`);
+  // ★2026-10-31 に 69〜71 を足した（社名の索引・置いた人数）
+  ok(res.length === 71, `自己点検が71行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
@@ -2318,6 +2319,217 @@ console.log('\n▼ 16. ★引き取れなかった預かりを残したまま新
   await asViewer();
   ok((await rowsFor(A_N2)).length === 1, '★再試行しても一覧は1行のまま');
   ok((await heads2()) === h0, '★再試行しても人数は動かない');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 17. ★一覧を軽くした3つ（2026-10-31・答えは1文字も変えない）');
+// ════════════════════════════════════════════════════════════
+/* 2026-10-31、本番のデータベースが30分止まった。会社ページを開くたびに一覧が走り、
+   その中の3つが重かった。どれも「答えは同じまま、同じ計算を何度もしない」形に直した。
+     (a) 社名の寄せ … 1行ごとに全社へ正規表現 → 会社の表から作った索引を1回引くだけ
+     (b) 人数       … 開くたびに全員 × 全社の sha256 → 書き込みのときに数えて整数1つを置く
+     (c) 預かり・帯 … 同じ関数を1行に何回も呼ぶ → 1行（1人）に1回
+   ⚠️ どれも「画面は普通に動いたまま静かにずれる」形がある ── 索引が古いと新しい会社が
+      「その他」に落ちる／置いた人数が古いと「N / 100人」が古いまま出る。ここで固定する。 */
+{
+  // ── (a) 社名の索引 ─────────────────────────────────────────
+  /* 比べる相手は、2026-10-31 まで本番で動いていた正規表現の寄せ方（1文字も変えずに写した）。
+     ★これは検査のための写し。本物の側（pv_airline_alias_rows）を直したら、ここが食い違いを捕まえる。 */
+  await db.exec(`
+    create or replace function public.t_resolve_scan(p_typed text) returns text
+    language sql stable set search_path = public, extensions as $$
+      select coalesce((
+        select c.code
+          from (
+            select a.code,
+                   unnest(array[
+                     a.code, a.name_ja, a.name_en,
+                     regexp_replace(a.name_ja, '[（(].*$', ''),
+                     (regexp_match(a.name_ja, '[（(]([^）)]+)[）)]'))[1],
+                     regexp_replace(a.name_en, '[（(].*$', ''),
+                     (regexp_match(a.name_en, '[（(]([^）)]+)[）)]'))[1]
+                   ]) as nm
+              from public.pv_airlines a
+             where a.code <> 'other'
+          ) c
+         where public.pv_airline_norm(c.nm) <> ''
+           and public.pv_airline_norm(c.nm) = public.pv_airline_norm(p_typed)
+         order by c.code
+         limit 1
+      ), 'other');
+    $$;`);
+  // 全社の全表記・崩した表記・打ち込まれた社名（給与・預かり・口コミ）・空・null
+  const NAMES_SQL = `
+    select nm from (
+      select unnest(array[a.code, a.name_ja, a.name_en, upper(a.name_en), lower(a.name_en),
+                          ' ' || a.name_ja || ' ', replace(a.name_en, ' ', '-'), replace(a.name_en, ' ', ''),
+                          a.name_en || '.', '(' || a.code || ')', '・' || a.name_ja,
+                          regexp_replace(a.name_ja, '[（(].*$', ''), (regexp_match(a.name_ja, '[（(]([^）)]+)[）)]'))[1],
+                          regexp_replace(a.name_en, '[（(].*$', ''), (regexp_match(a.name_en, '[（(]([^）)]+)[）)]'))[1]]) nm
+        from pv_airlines a
+      union select airline_other from pay_reports where airline_other is not null
+      union select payload->>'airline_other' from pay_reports_pending where payload ? 'airline_other'
+      union select airline from reviews_v2
+      union select x from unnest(array['zzz nothing', '', '・', '（）', 'Part 91 Corporate', 'ぜんぜん違う会社']) x
+    ) z`;
+  const sameAsScan = async () => (await one(`
+    select count(*)::int n,
+           count(*) filter (where public.pv_airline_resolve(z.nm) is distinct from public.t_resolve_scan(z.nm))::int diff,
+           count(*) filter (where public.pv_airline_resolve(z.nm) <> 'other')::int hit
+      from (${NAMES_SQL} union all select null) z`));
+  const s0 = await sameAsScan();
+  ok(s0.n >= 1000 && s0.diff === 0,
+     `★索引を引く寄せ方は、正規表現の寄せ方と全部同じ答え（${s0.n}通りの名前・会社に当たったのは ${s0.hit}）`,
+     JSON.stringify(s0));
+  ok(s0.hit >= 500, '　突き合わせた名前の多くが実際に会社に当たっている（「その他」どうしの一致で緑にしない）', String(s0.hit));
+  const selfcheck = async (no) => {
+    const src = read('db/pay-rows.sql');
+    const r = (await rows(src.slice(src.lastIndexOf('with f as (')))).find((x) => Number(x['#']) === no);
+    return r && r['結果'];
+  };
+  ok((await selfcheck(69)) === '✅', '　自己点検 69（索引が会社の表と食い違っていない）が ✅');
+
+  // 会社を足す・名前を変える → 引き金が索引を作り直す（貼る手順は今までと同じ）
+  await db.exec(`insert into public.pv_airlines (code, name_ja, name_en, region)
+                 values ('zz-test-air', 'テスト航空（ZTA）', 'Zeta Test Airways (ZTA)', 'asia')`);
+  ok((await one(`select public.pv_airline_resolve('zeta test airways') c`)).c === 'zz-test-air'
+     && (await one(`select public.pv_airline_resolve('ZTA') c`)).c === 'zz-test-air',
+     '★会社を足した瞬間に、その会社の打ち込み名が当たる（引き金が索引を作り直した）');
+  await db.exec(`update public.pv_airlines set name_en = 'Zeta Renamed Air (ZTA)' where code = 'zz-test-air'`);
+  ok((await one(`select public.pv_airline_resolve('Zeta Renamed Air') c`)).c === 'zz-test-air'
+     && (await one(`select public.pv_airline_resolve('zeta test airways') c`)).c === 'other',
+     '★名前を変えると、新しい名前で当たり・古い名前では当たらない（正規表現の寄せ方と同じ）');
+  ok((await sameAsScan()).diff === 0, '　足した・変えたあとも、正規表現の寄せ方と全部同じ答え');
+
+  /* 壊す証明 ── 引き金を外して会社を足すと、新しい会社が黙って「その他」になる。
+     それを上の突き合わせと自己点検 69 が捕まえる（＝この2つは本当に効いている）。 */
+  await db.exec(`alter table public.pv_airlines disable trigger trg_pv_airline_alias`);
+  await db.exec(`insert into public.pv_airlines (code, name_ja, name_en, region)
+                 values ('zz-test-air2', 'テスト第二航空', 'Second Test Air', 'asia')`);
+  const broke = await sameAsScan();
+  ok(broke.diff > 0 && (await one(`select public.pv_airline_resolve('Second Test Air') c`)).c === 'other',
+     '★壊す証明：引き金が無いと、新しい会社の打ち込み名が「その他」に落ちる ── 突き合わせが捕まえる',
+     JSON.stringify(broke));
+  ok((await selfcheck(69)) === '❌', '★壊す証明：自己点検 69 も ❌ になる');
+  await db.exec(`alter table public.pv_airlines enable trigger trg_pv_airline_alias`);
+  await db.exec(`select public.pv_airline_alias_rebuild()`);
+  ok((await sameAsScan()).diff === 0 && (await selfcheck(69)) === '✅', '　作り直せば元どおり');
+  await db.exec(`delete from public.pv_airlines where code in ('zz-test-air', 'zz-test-air2')`);
+  ok((await sameAsScan()).diff === 0 && (await one(`select public.pv_airline_resolve('ZTA') c`)).c === 'other',
+     '　消した会社には当たらない（引き金が作り直した）');
+
+  ok(!(await one(`select has_table_privilege('anon','public.pv_airline_alias','select') b`)).b
+     && !(await one(`select has_table_privilege('authenticated','public.pv_airline_alias','select') b`)).b,
+     '★索引の表は誰にも読ませない');
+
+  // ── (b) 人数を書き込みのときに数えて置く ─────────────────────
+  const stored = async () => (await one(`select contributors from pv_stats where one`))?.contributors ?? null;
+  const live = async () => {
+    await db.exec('begin');
+    await db.query(`delete from pv_stats`);              // 置いた1行が無いと、その場で数える
+    const n = (await one(`select pv_deep_contributors() n`)).n;
+    await db.exec('rollback');
+    return n;
+  };
+  const same = async (label) => {
+    const s = await stored(), l = await live();
+    ok(s !== null && s === l, `★置いた人数 ＝ その場で数えた人数（${label}）`, `${s} / ${l}`);
+    return l;
+  };
+  const n0 = await same('ここまでの全部の書き込みのあと');
+  ok((await one(`select count(*)::int n from information_schema.columns
+                  where table_schema = 'public' and table_name = 'pv_stats'`)).n === 3,
+     '★置くのは整数1つだけ（人の対応表を表に残さない）');
+  ok(!(await one(`select has_table_privilege('anon','public.pv_stats','select') b`)).b
+     && !(await one(`select has_table_privilege('authenticated','public.pv_stats','select') b`)).b,
+     '★人数の表は誰にも読ませない');
+
+  /* 読む側が本当に置いた1行を読んでいる（＝開くたびに数えていない）ことの証明。
+     置いた数をわざと書き換えると、関数はその数を返す。 */
+  await db.query(`update pv_stats set contributors = -7`);
+  ok((await one(`select pv_deep_contributors() n`)).n === -7,
+     '★人数の関数は置いた1行を読んでいる（その場で数え直していない）');
+  await db.exec(`select public.pv_stats_refresh()`);
+  ok((await stored()) === n0, '　数え直せば元どおり');
+
+  // 給与を出す → 1人増える
+  const uS = ++seat;
+  await asUser(uS);
+  await submit({ ...BASE, airline: AIR[0], position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2, gross_monthly: 15000 });
+  const n1 = await same('給与を出したあと');
+  ok(n1 === n0 + 1, '　給与を出した人が1人増えた', `${n0} → ${n1}`);
+
+  // 口コミに給与を書いた人（対応表に入る）→ 1人増える
+  const uR = await review(AIR[1], 'captain', { ann: 1800 });
+  await db.exec(read('db/pay-rows.sql'));   // 対応表は pay-rows.sql を流したときに埋まる（▼12-c と同じ）
+  const n2 = await same('口コミに給与を書いた人を足し、対応表を埋め直したあと');
+  ok(n2 === n1 + 1, '　口コミに給与を書いた人が1人増えた', `${n1} → ${n2}`);
+
+  // 口コミの会社の欄を書き換える（人の対応表の総当たりの相手が変わる）
+  await db.query(`update reviews_v2 set airline = airline where proof_hash = $1`, [revHash(uR, AIR[1])]);
+  await same('口コミの会社の欄を書き換えたあと');
+
+  // 退会（名簿から消える）→ その人の行は数えない（fail closed）
+  await db.query(`delete from profiles where id = $1`, [uid(uS)]);
+  const n3 = await same('退会したあと');
+  ok(n3 === n2 - 1, '★退会した人は人数から外れる（引き金が名簿の削除を拾った）', `${n2} → ${n3}`);
+
+  /* 本番の退会は auth.users の削除が名簿へ連なって消える（on delete cascade）。
+     連なって消えたときも引き金が拾うことを、同じ形の表を作って確かめる。 */
+  await db.exec(`create table public.t_users (id uuid primary key)`);
+  await db.query(`insert into public.t_users (id) select id from profiles`);
+  await db.exec(`alter table public.profiles add constraint t_profiles_user
+                   foreign key (id) references public.t_users (id) on delete cascade`);
+  await db.query(`delete from public.t_users where id = $1`, [uid(uR)]);
+  const n4 = await same('連なって消えた退会のあと（auth.users → 名簿）');
+  ok(n4 === n3 - 1, '★連なって消えた退会も拾う', `${n3} → ${n4}`);
+  await db.exec(`alter table public.profiles drop constraint t_profiles_user; drop table public.t_users`);
+
+  /* 数え直しに失敗しても書き込みは通り、置いた1行は消える＝読む側がその場で数える
+     （古い数を返さない）。失敗は「置けない」制約をわざと付けて起こす。 */
+  await db.exec(`alter table public.pv_stats add constraint t_fail check (contributors < 0) not valid`);
+  const uF = ++seat;
+  await asUser(uF);
+  const rF = (await submit({ ...BASE, airline: AIR[2], position: 'fo', fleet: 'b777',
+                             period_year: YEAR, period_month: 4, gross_monthly: 9000 })).r;
+  ok(rF && rF.ok === true, '★数え直しに失敗しても、給与の提出そのものは通る', JSON.stringify(rF));
+  ok((await stored()) === null, '★失敗したら置いた1行を消す（古い数を残さない）');
+  ok((await one(`select pv_deep_contributors() n`)).n === n4 + 1,
+     '★置いた1行が無いあいだは、その場で数えた正しい数を返す');
+  await db.exec(`alter table public.pv_stats drop constraint t_fail`);
+  await db.exec(`select public.pv_stats_refresh()`);
+  await same('失敗のあと数え直したあと');
+  const lst = (await one(`select pv_pay_rows() r`)).r;
+  ok(Number(lst.stats.contributors) === (await stored()),
+     '　一覧の stats も置いた数と同じ（一覧は pv_deep_contributors を呼んでいる）', JSON.stringify(lst.stats));
+
+  // ── (c) 預かりの内訳と年換算・帯の刻みを1行（1人）に1回 ──────────
+  /* 何回呼ばれたかを数えて確かめる（字ではなく振る舞い）。
+     ★offset 0 を外すと、預かりの内訳が1行に約15回・年換算が4回呼ばれる。
+     ★materialized を外すと、帯の刻みが1人の区分の数（最大10）だけ作り直される。 */
+  await asViewer();
+  await db.exec(`set track_functions = 'all'`);
+  await db.query(`select pg_stat_reset()`);
+  const R17 = (await one(`select pv_pay_rows() r`)).r;
+  await db.query(`select pg_stat_force_next_flush()`);
+  const calls = Object.fromEntries((await rows(
+    `select funcname, calls::int c from pg_stat_user_functions
+      where funcname in ('pv_pending_detail', 'pv_pending_usd', 'pv_band_grid')`)).map((r) => [r.funcname, r.c]));
+  await db.exec(`set track_functions = 'none'`);
+  /* 呼ばれてよい回数は「一覧に入る預かりの行数」から「会社の欄を確かめる前の行数」まで
+     （会社の欄の確かめが後に回ると、そこで落ちる行の分も1回ずつ呼ばれる。1行1回には変わりない）。 */
+  const pendCount = async (withAirline) => (await one(`
+    select count(*)::int n from pay_reports_pending q
+     where q.claimed_at is null and q.ip_day_hash is not null
+       and q.created_at >= now() - interval '24 months'
+       ${withAirline ? 'and exists (select 1 from pv_airlines a where a.code = q.airline)' : ''}`)).n;
+  const nPend = await pendCount(true), nScan = await pendCount(false);
+  ok(nPend > 0 && calls.pv_pending_detail === calls.pv_pending_usd
+     && calls.pv_pending_detail >= nPend && calls.pv_pending_detail <= nScan,
+     `★預かりの内訳と年換算は1行に1回だけ（預かり ${nPend}〜${nScan}行）`, JSON.stringify(calls));
+  ok(R17.state === 'open' && calls.pv_band_grid > 0 && calls.pv_band_grid <= R17.rows.length,
+     `★帯の刻みは1人に1回まで（一覧 ${R17.rows.length}人）`, JSON.stringify(calls));
 }
 
 // ── まとめ ───────────────────────────────────────────────────

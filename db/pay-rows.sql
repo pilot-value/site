@@ -700,6 +700,9 @@ comment on function public.pv_pending_detail(jsonb) is
 --   '全日本空輸' と 'ANA' の両方）。
 --
 -- ★複数に当たったときは code の若い順で1つに決める（同じ入力に毎回同じ答え）。
+--
+-- ★2026-10-31 から、寄せるときは社名の索引（pv_airline_alias）を1回引くだけ。
+--   索引は会社の表が変わると引き金が作り直す（下の「社名の索引」の注）。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_airline_norm(p text)
 returns text
@@ -715,31 +718,121 @@ revoke all on function public.pv_airline_norm(text) from public, anon, authentic
 comment on function public.pv_airline_norm(text) is
   '社名の表記ゆれを潰す（空白・中黒・ハイフン・括弧・大小文字）。pv_airline_resolve の中だけで使う。';
 
+/* ── 社名の索引 pv_airline_alias（2026-10-31）────────────────────────
+   ★2026-10-31、本番のデータベースが30分止まった。会社ページを開くたびに
+     REAL PAY の一覧などが走り、その中でここが**1行ごとに**全社（140社 × 7つの名前）へ
+     正規表現をかけ直していた（一覧1回のうち約半分の時間がここ）。
+   そこで、会社の表から作った「潰した名前 → code」の索引を表に置き、
+   寄せるときは索引を1回引くだけにした。**答えは1文字も変えていない**
+   （当て方は今までと同じ「表記ゆれを潰した完全一致」・複数当たれば code の若い順・当たらなければ 'other'）。
+   ★索引の中身は会社の表の名前だけ（打ち込まれた文字列は1つも入らない）。
+   ★作り直すのは会社の表が変わったとき（下の引き金・文に1回）。
+     db/airlines.generated.sql を貼れば、引き金が自動で作り直す＝貼る手順は今までと同じ。
+     ⚠️ 引き金を外すと、新しく足した会社の打ち込み名が**黙って「その他」になる**。
+        自己点検 69 と db/test-pay-rows.mjs の ▼17 が食い違いを見ている。
+   ★7つの名前の取り方は pv_airline_alias_rows() の1か所だけ（gen-airline-codes.mjs の
+     nameVariants が写し。あちらは社名の衝突検査に使う）。
+   ★誰にも読ませない（RLS 有効・ポリシー無し・grant 無し）。 */
+create table if not exists public.pv_airline_alias (
+  norm text not null,
+  code text not null,
+  primary key (norm, code)
+);
+alter table public.pv_airline_alias enable row level security;
+revoke all on table public.pv_airline_alias from public, anon, authenticated;
+comment on table public.pv_airline_alias is
+  '社名の索引（表記ゆれを潰した名前 → pv_airlines.code）。pv_airline_resolve が1回引くだけで寄せるための表。'
+  '中身は会社の表の名前だけ。会社の表が変わると引き金（trg_pv_airline_alias）が丸ごと作り直す。誰にも読ませない。';
+
+-- 7つの名前（code / 和名 / 英名 / それぞれの括弧の外と中）。★2026-10-31 まで pv_airline_resolve の中に
+-- 直に書いてあった式を、1文字も変えずにここへ移した。
+create or replace function public.pv_airline_alias_rows()
+returns table (norm text, code text)
+language sql
+stable
+set search_path = public, extensions
+as $fn$
+  select distinct public.pv_airline_norm(c.nm), c.code
+    from (
+      select a.code,
+             unnest(array[
+               a.code,
+               a.name_ja,
+               a.name_en,
+               regexp_replace(a.name_ja, '[（(].*$', ''),
+               (regexp_match(a.name_ja, '[（(]([^）)]+)[）)]'))[1],
+               regexp_replace(a.name_en, '[（(].*$', ''),
+               (regexp_match(a.name_en, '[（(]([^）)]+)[）)]'))[1]
+             ]) as nm
+        from public.pv_airlines a
+       where a.code <> 'other'
+    ) c
+   where public.pv_airline_norm(c.nm) <> '';
+$fn$;
+
+revoke all on function public.pv_airline_alias_rows() from public, anon, authenticated;
+
+create or replace function public.pv_airline_alias_rebuild()
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  -- 1本ずつ（同時に来た後の1本は、前の1本が終わってから新しい中身を見て作り直す）。読むのは止めない。
+  lock table public.pv_airline_alias in exclusive mode;
+  delete from public.pv_airline_alias where true;
+  insert into public.pv_airline_alias (norm, code)
+  select r.norm, r.code from public.pv_airline_alias_rows() r;
+end;
+$fn$;
+
+revoke all on function public.pv_airline_alias_rebuild() from public, anon, authenticated;
+
+-- ★失敗を握らない。作り直せなかったら会社の表の書き込みごと止める
+--   （古い索引のまま通すと、新しい会社が黙って「その他」になる）。
+create or replace function public.pv_airline_alias_trg()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  perform public.pv_airline_alias_rebuild();
+  return null;
+end;
+$fn$;
+
+revoke all on function public.pv_airline_alias_trg() from public, anon, authenticated;
+
+-- 名前に関わる列だけ（公開年収の幅・active の書き換えでは作り直さない。寄せ方は active を見ていない）
+drop trigger if exists trg_pv_airline_alias on public.pv_airlines;
+create trigger trg_pv_airline_alias
+  after insert or delete or truncate or update of code, name_ja, name_en
+  on public.pv_airlines
+  for each statement execute function public.pv_airline_alias_trg();
+
+select public.pv_airline_alias_rebuild();
+
+/* ★2026-10-31 から索引（pv_airline_alias）を1回引くだけ。
+   ★security definer にした（索引の表は誰にも読ませないので、呼ぶ側の権限に頼らない。
+     運営の道具 db/usage.mjs と mail-bot/send.mjs が呼ぶ口も今までどおり動く）。
+     実行の権限は今までどおり誰にも渡さない（下の revoke）。
+   ★会社の表と突き合わせてから返す＝索引が古くても、会社の表に無い code は出ない。 */
 create or replace function public.pv_airline_resolve(p_typed text)
 returns text
 language sql
 stable
+security definer
 set search_path = public, extensions
 as $$
   select coalesce((
-    select c.code
-      from (
-        select a.code,
-               unnest(array[
-                 a.code,
-                 a.name_ja,
-                 a.name_en,
-                 regexp_replace(a.name_ja, '[（(].*$', ''),
-                 (regexp_match(a.name_ja, '[（(]([^）)]+)[）)]'))[1],
-                 regexp_replace(a.name_en, '[（(].*$', ''),
-                 (regexp_match(a.name_en, '[（(]([^）)]+)[）)]'))[1]
-               ]) as nm
-          from public.pv_airlines a
-         where a.code <> 'other'
-      ) c
-     where public.pv_airline_norm(c.nm) <> ''
-       and public.pv_airline_norm(c.nm) = public.pv_airline_norm(p_typed)
-     order by c.code
+    select x.code
+      from public.pv_airline_alias x
+      join public.pv_airlines a on a.code = x.code
+     where x.norm = public.pv_airline_norm(p_typed)
+       and a.code <> 'other'
+     order by x.code
      limit 1
   ), 'other');
 $$;
@@ -749,6 +842,7 @@ revoke all on function public.pv_airline_resolve(text) from public, anon, authen
 comment on function public.pv_airline_resolve(text) is
   '打ち込まれた社名を pv_airlines.code に寄せる。当たらなければ ''other''。'
   '返すのは語彙の code か ''other'' だけ＝打ち込まれた文字列そのものは通さない。'
+  '2026-10-31 から社名の索引（pv_airline_alias）を1回引くだけ（答えは前と同じ）。'
   '誰にも grant しない＝pv_pay_rows の中からだけ使う。';
 
 
@@ -1620,7 +1714,25 @@ comment on function public.pv_pay_person_map() is
 --   ⚠️ ここに pay_reports_pending を書き戻さないこと。
 --      db/pay-rows.sql の自己点検 47 が検出して落ちる。
 -- ★誰にも grant しない。security definer の中からだけ呼ぶ。
+--
+-- ★2026-10-31、書き込みのときに数えて**整数1つだけ**を置くようにした（下の 1-h2）。
+--   一覧（pv_pay_rows）は会社ページを開くたびに走り、そのたびにここで全員 × 全社の
+--   sha256 を作り直していた（今の量で1回 約16ms・10倍の量で約1秒）。
+--   ここは「置いてある1行を読む・無ければその場で数える」になった。**数え方は下の1か所のまま**
+--   （置く側の pv_stats_refresh も、行を消してからこの関数を呼んで数える＝式を写していない）。
+--   ⚠️ 置くのは整数1つだけ。人の対応表（誰がどの行を出したか）は保存しない。
 -- ════════════════════════════════════════════════════════════════
+create table if not exists public.pv_stats (
+  one          boolean primary key default true check (one),
+  contributors integer,
+  computed_at  timestamptz
+);
+alter table public.pv_stats enable row level security;
+revoke all on table public.pv_stats from public, anon, authenticated;
+comment on table public.pv_stats is
+  '書き込みのときに数えた数を置く1行だけの表（2026-10-31）。contributors ＝ pv_deep_contributors() の答え。'
+  '持つのは整数1つだけ（人の対応表は持たない）。作るのは pv_stats_refresh() だけ。誰にも読ませない。';
+
 create or replace function public.pv_deep_contributors()
 returns int
 language sql
@@ -1628,18 +1740,23 @@ security definer
 stable
 set search_path = public, extensions
 as $fn$
-  with map as (select * from public.pv_pay_person_map())
-  select count(*)::int from (
-    -- ① 給与フォームを通った人
-    select m.human
-      from public.pay_reports r
-      join map m on m.h = r.proof_hash
-    union   -- ★union が重複を落とす（両方に居る人は 1）
-    -- ② 昔の口コミに給与を書いただけの人（2026-09-14・オーナー指示）
-    select m.human
-      from public.pv_review_person l
-      join map m on l.pkey = 'r:' || m.h
-  ) z;
+  select coalesce(
+    -- 書き込みのときに数えて置いた1行（1-h2）。あればこれを返す（数えない）
+    (select s.contributors from public.pv_stats s where s.one),
+    -- 無ければ（貼った直後・数え直しに失敗した直後）ここで数える。数え方はこの1か所だけ
+    (with map as (select * from public.pv_pay_person_map())
+     select count(*)::int from (
+       -- ① 給与フォームを通った人
+       select m.human
+         from public.pay_reports r
+         join map m on m.h = r.proof_hash
+       union   -- ★union が重複を落とす（両方に居る人は 1）
+       -- ② 昔の口コミに給与を書いただけの人（2026-09-14・オーナー指示）
+       select m.human
+         from public.pv_review_person l
+         join map m on l.pkey = 'r:' || m.h
+     ) z)
+  );
 $fn$;
 
 revoke all on function public.pv_deep_contributors() from public, anon, authenticated;
@@ -1652,7 +1769,98 @@ comment on function public.pv_deep_contributors() is
   '★昔の口コミに給与を書いただけの人も数える（2026-09-14・オーナー指示）。'
   '　その人の給与は表に1行出ているため。金額の無い口コミしか書いていない人は入らない。'
   '★登録前の預かりは数えない（ip_day_hash は端末×日であって人ではない）。'
+  '★2026-10-31 から、書き込みのときに数えて置いた1行（pv_stats）があればそれを返す。無ければその場で数える。'
   '★誰にも grant しない。security definer の中からだけ呼ぶ。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 1-h2. pv_stats_refresh — 人数を書き込みのときに数えて置く（2026-10-31）
+--
+-- 数える材料は4つの表だけ ── 給与（pay_reports）・口コミ（reviews_v2）・
+-- 口コミの対応表（pv_review_person）・名簿（profiles。とくに削除＝退会）。
+-- この4つに文で1回の引き金を付け、書き込みのたびに数え直して1行に置く。
+-- 時刻で答えが変わる式ではない（直近◯か月のような窓が無い）ので、書き込みのときだけ数えれば足りる。
+--
+-- ★数え直しは「行を消してから pv_deep_contributors() を呼ぶ」。数え方を写さないため。
+-- ★1本ずつ（表を exclusive で握る）。同時に2人が出しても、後の1本は前の1本が
+--   終わってから新しい中身で数える＝片方の書き込みを数え落とさない。読むのは止めない。
+-- ★数え直しに失敗しても書き込みは止めない（登録・投稿を巻き込まない）。そのときは
+--   置いた1行を消す＝読む側がその場で数える（古い数を返さない）。
+-- ★誰にも実行させない・表は誰にも読ませない。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_stats_refresh()
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  lock table public.pv_stats in exclusive mode;
+  -- 先に消す。行が無いと pv_deep_contributors() はその場で数える（数え方は1-hの1か所だけ）
+  delete from public.pv_stats where one;
+  insert into public.pv_stats (one, contributors, computed_at)
+  values (true, public.pv_deep_contributors(), now());
+end;
+$fn$;
+
+revoke all on function public.pv_stats_refresh() from public, anon, authenticated;
+
+create or replace function public.pv_stats_trg()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  begin
+    perform public.pv_stats_refresh();
+  exception when others then
+    -- 書き込みは通す。古い数を読ませないよう、置いた1行を消す（読む側がその場で数える）
+    raise warning 'pv_stats_refresh に失敗しました（書き込みはそのまま通します）: % (%)', sqlerrm, sqlstate;
+    begin
+      delete from public.pv_stats where one;
+    exception when others then
+      raise warning 'pv_stats の1行を消せませんでした: % (%)', sqlerrm, sqlstate;
+    end;
+  end;
+  return null;
+end;
+$fn$;
+
+revoke all on function public.pv_stats_trg() from public, anon, authenticated;
+
+comment on function public.pv_stats_trg() is
+  '給与・口コミ・対応表・名簿の書き込みのあと（文に1回）pv_stats_refresh() を呼ぶ。'
+  '失敗しても書き込みは止めず、置いた1行を消す（読む側がその場で数える）。';
+
+-- 給与：人数に関わる列だけ（verify_level・created_at などの書き換えでは数え直さない）
+drop trigger if exists trg_pv_stats on public.pay_reports;
+create trigger trg_pv_stats
+  after insert or delete or truncate or update of proof_hash, airline, airline_other
+  on public.pay_reports
+  for each statement execute function public.pv_stats_trg();
+
+-- 口コミ：会社の欄だけ（人の対応表の総当たりの相手になる。翻訳・要約の書き込みでは数え直さない）
+drop trigger if exists trg_pv_stats on public.reviews_v2;
+create trigger trg_pv_stats
+  after insert or delete or truncate or update of airline
+  on public.reviews_v2
+  for each statement execute function public.pv_stats_trg();
+
+drop trigger if exists trg_pv_stats on public.pv_review_person;
+create trigger trg_pv_stats
+  after insert or update or delete or truncate on public.pv_review_person
+  for each statement execute function public.pv_stats_trg();
+
+-- 名簿：増えた・消えた（退会）ときだけ（鍵の期限などの書き換えでは数え直さない）
+drop trigger if exists trg_pv_stats on public.profiles;
+create trigger trg_pv_stats
+  after insert or delete or truncate or update of id
+  on public.profiles
+  for each statement execute function public.pv_stats_trg();
+
+-- いまの中身で1回数えて置く
+select public.pv_stats_refresh();
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -1981,7 +2189,7 @@ begin
                 then public.pv_airline_resolve(q.payload->>'airline_other')
                 else q.airline end,
            q.payload->>'position',
-           public.pv_pending_usd(q.payload),
+           d.usd,              -- pv_pending_usd（下の lateral で1行に1回だけ呼ぶ）
            false,
            q.created_at,
            -- ★2026-09-03。本棚と同じ材料を payload から出す（pv_pending_detail）。
@@ -2008,7 +2216,13 @@ begin
            (d.j->>'dof')::smallint,
            (d.j->>'det')::boolean
       from public.pay_reports_pending q
-      cross join lateral (select public.pv_pending_detail(q.payload) as j) d
+      /* ★2026-10-31、offset 0 を足し、年換算もここで一緒に出す（答えは同じ）。
+           これが無いと、この副問い合わせが外へ開かれて、d.j を読む列の数だけ
+           pv_pending_detail が呼ばれ（1行に約15回）、年換算も下の常識の幅の判定で
+           さらに3回呼ばれていた（1行に4回）。offset 0 は「開かずに1行1回」の印。外さないこと。 */
+      cross join lateral (select public.pv_pending_detail(q.payload) as j,
+                                 public.pv_pending_usd(q.payload)    as usd
+                          offset 0) d
      where q.claimed_at is null
        and q.ip_day_hash is not null
        and q.created_at >= now() - interval '24 months'
@@ -2166,9 +2380,11 @@ begin
      order by s.pkey, s.airline, s.pos,
               abs(s.usd - p.v), md5(s.pkey || s.usd::text)
   ),
-  grid as (
+  grid as materialized (
     /* 帯の幅。**その人の年収から1つだけ**決める（区分ごとに変えない）。
-       式は pv_band_grid ただ1本。ここで刻みを直接書かないこと。 */
+       式は pv_band_grid ただ1本。ここで刻みを直接書かないこと。
+       ★2026-10-31、materialized を足した（答えは同じ）。無いと下の paid に開かれ、
+         1人の区分の数（最大10）だけ刻みを作り直していた。1人1回にするための印。 */
     select p.pkey, p.airline, p.pos,
            public.pv_band_grid(public.pv_sig2(p.v)) as g
       from person p
@@ -2550,12 +2766,13 @@ comment on function public.pv_give_progress() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：68行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：71行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47・
---      50・51・52・53・54・55・56・67・68 は
+--      50・51・52・53・54・55・56・67・68・69・70・71 は
 -- 「静かに壊れる」種類のもの ── 画面には何も出ないまま、他人の個票に届く経路が開く
--- （16・30 は逆に、同じ人が二重に出る／41・45・47 は数だけが画面ごとに食い違う）。
+-- （16・30 は逆に、同じ人が二重に出る／41・45・47 は数だけが画面ごとに食い違う／
+--   69 は新しい会社が黙って「その他」になる／71 は人数が古いまま残る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
   select to_regprocedure('public.pv_pay_rows()')       as f_rows,
@@ -2581,7 +2798,10 @@ with f as (
          to_regprocedure('public.pv_pay_person_map()')      as f_pmap,
          to_regprocedure('public.pv_give_progress()')       as f_prog,
          to_regclass('public.pv_deep_launch')               as t_lch,
-         to_regclass('public.pay_hidden')                   as t_hide
+         to_regclass('public.pay_hidden')                   as t_hide,
+         -- ★2026-10-31 に足した2本（社名の索引の中身を作る関数・人数を置き直す関数）
+         to_regprocedure('public.pv_airline_alias_rows()')  as f_alias,
+         to_regprocedure('public.pv_stats_refresh()')       as f_srefresh
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -2931,10 +3151,17 @@ from (
          end from f
   union all
   select 35, '★寄せ先は語彙（pv_airlines）だけ。前方一致・部分一致で当てていない',
-         case when f_res is null then false
+         /* ★2026-10-31、寄せる関数は社名の索引（pv_airline_alias）を1回引くだけになった。
+              索引の中身を作る関数（pv_airline_alias_rows）も同じ目で見る ──
+              どちらも pv_airlines だけを読み、前方一致・部分一致を使わない。
+              寄せる関数のほうは、索引の code を会社の表と突き合わせてから返している。 */
+         case when f_res is null or f_alias is null then false
               else pg_get_functiondef(f_res) like '%pv_airlines%'
                and pg_get_functiondef(f_res) not like '%like%'
                and pg_get_functiondef(f_res) not like '%similar to%'
+               and pg_get_functiondef(f_alias) like '%pv_airlines%'
+               and pg_get_functiondef(f_alias) not like '%like%'
+               and pg_get_functiondef(f_alias) not like '%similar to%'
          end from f
   union all
   -- ── DEEP PAY の札を全画面で同じ数にする（2026-08-25）──────────
@@ -3202,6 +3429,59 @@ from (
                        and s.x !~ 'fence\M'
                       from s)
                and pg_get_functiondef(f_rows) like '%''far'',%fe.far%'
+         end from f
+  union all
+  -- ── 一覧を軽くした2つの置き場所（2026-10-31）──────────────────
+  select 69, '★社名の索引が会社の表と1行も食い違っていない（会社の表が変わると引き金が作り直す）',
+         /* 静かに壊れる。索引が古いと、新しく足した会社の打ち込み名が「その他」に落ちるだけで、
+            画面は普通に動く。❌ なら select public.pv_airline_alias_rebuild(); を流す。 */
+         case when f_res is null or f_alias is null then false
+              else pg_get_functiondef(f_res) like '%from public.pv_airline_alias x%'
+               and not exists (select x.norm, x.code from public.pv_airline_alias x
+                               except
+                               select r.norm, r.code from public.pv_airline_alias_rows() r)
+               and not exists (select r.norm, r.code from public.pv_airline_alias_rows() r
+                               except
+                               select x.norm, x.code from public.pv_airline_alias x)
+               and exists (select 1 from pg_trigger t
+                            where t.tgname = 'trg_pv_airline_alias' and not t.tgisinternal
+                              and t.tgrelid = 'public.pv_airlines'::regclass)
+         end from f
+  union all
+  select 70, '★社名の索引と置いた人数は誰にも読ませない・作り直す関数は誰にも実行させない',
+         /* 人数の表を開けると、2人の区分の手前で「いま何人か」を何度でも引ける口になる。 */
+         case when f_alias is null or f_srefresh is null then false
+              else (select bool_and(c.relrowsecurity) from pg_class c
+                     where c.oid in ('public.pv_airline_alias'::regclass, 'public.pv_stats'::regclass))
+               and not exists (select 1 from pg_policies p
+                                where p.schemaname = 'public'
+                                  and p.tablename in ('pv_airline_alias', 'pv_stats'))
+               and not has_table_privilege('anon',          'public.pv_airline_alias', 'select, insert, update, delete')
+               and not has_table_privilege('authenticated', 'public.pv_airline_alias', 'select, insert, update, delete')
+               and not has_table_privilege('anon',          'public.pv_stats', 'select, insert, update, delete')
+               and not has_table_privilege('authenticated', 'public.pv_stats', 'select, insert, update, delete')
+               and not has_function_privilege('anon',          f_srefresh, 'execute')
+               and not has_function_privilege('authenticated', f_srefresh, 'execute')
+               and not has_function_privilege('anon',          'public.pv_airline_alias_rebuild()', 'execute')
+               and not has_function_privilege('authenticated', 'public.pv_airline_alias_rebuild()', 'execute')
+               and not has_function_privilege('anon',          f_alias, 'execute')
+               and not has_function_privilege('authenticated', f_alias, 'execute')
+         end from f
+  union all
+  select 71, '★人数は4つの表の書き込みで数え直して整数1つだけ置く（給与・口コミ・対応表・名簿）・人数の関数はまず置いた1行を読む',
+         /* 静かに壊れる。引き金が1つ欠けると、その表の書き込み（たとえば退会）が人数に届かず、
+            「N / 100人」が古いまま画面に出る。置くのは整数1つだけ（人の対応表を表に残さない）。
+            ❌ で置いた1行が無いだけなら select public.pv_stats_refresh(); を流す。 */
+         case when f_dctb is null or f_srefresh is null then false
+              else (select count(distinct t.tgrelid) from pg_trigger t
+                     where t.tgname = 'trg_pv_stats' and not t.tgisinternal
+                       and t.tgrelid in ('public.pay_reports'::regclass, 'public.reviews_v2'::regclass,
+                                         'public.pv_review_person'::regclass, 'public.profiles'::regclass)) = 4
+               and (select count(*) from information_schema.columns
+                     where table_schema = 'public' and table_name = 'pv_stats') = 3
+               and pg_get_functiondef(f_dctb) like '%from public.pv_stats s where s.one%'
+               and pg_get_functiondef(f_srefresh) like '%delete from public.pv_stats where one;%public.pv_deep_contributors()%'
+               and exists (select 1 from public.pv_stats s where s.one and s.contributors is not null)
          end from f
 ) t
 order by n;
