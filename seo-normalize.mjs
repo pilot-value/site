@@ -389,8 +389,8 @@ const COPY = {
      題名は SALARY の機長の推定（「機長 推定」の札つき）・説明文は推定の2つと、会社が公表している訓練生の額だけ。
      数は式で埋める（SSOT を直して流し直せば追随する）。英語版はこの回では触らない（en は COPY に置かない ＝ 今までどおり）。
      ld: true ＝ 管理ブロックの外の古い構造化データ（Article の headline・description）も、この題名と説明文にそろえる（5b）。 */
-  'airlines/jal.html': { ja: { t: `JALパイロット年収【2026】機長 推定${capJa('jal')}`,
-    d: `JALのパイロット年収は、当サイトの推定で機長 約¥${S.jal.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.jal.fo.avg.toLocaleString('en-US')}万。`
+  'airlines/jal.html': { ja: { t: `JALパイロット年収【2026】機長 中央値${capJa('jal')}`,
+    d: `JALのパイロット年収は、会員が出した年収の中央値で機長 約¥${S.jal.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.jal.fo.avg.toLocaleString('en-US')}万。`
        + `会社公表の自社養成訓練生の入社時の月額（約${Math.round(BASIS.jal.trainee.groups[0].start_m / 10000)}万円）も出所つきで掲載。`, ld: true } },
   'airlines/skymark.html': { ja: { t: `スカイマーク パイロット年収 機長 推定${capJa('skymark')}【2026】`,
     d: `スカイマークのパイロット年収は、推定で機長 約¥${S.skymark.cap.avg.toLocaleString('en-US')}万、副操縦士 約¥${S.skymark.fo.avg.toLocaleString('en-US')}万。`
@@ -518,7 +518,7 @@ const staleAvg = (text, slug) => {
         キャセイ「副操縦士の目標年収1,956万」／エバー「副操縦士 公式募集例1,589万円超」
         JAL・スカイマーク「運航乗務員の平均2,005万円」（有報の本物の平均）
       どれも額が機長の推定と一致しないので、下の `includes` で自然に外れる。    */
-const LABELED = /推定|est\.|平均|Average|総待遇|Package|募集例|求人|Vacancy|Advert|広告|目標|Target|\/Month/i;
+const LABELED = /推定|est\.|中央値|median|平均|Average|総待遇|Package|募集例|求人|Vacancy|Advert|広告|目標|Target|\/Month/i;
 const bareEstimate = (slug, lang, t) => {
   if (!t || !S[slug]) return false;
   if (mayAvg(slug, 'cap')) return false;      // 「平均」と名乗れる社は札なしでよい
@@ -570,13 +570,16 @@ function airlineTitle(slug, lang, curTitle) {
        （オマーン航空なら2017年の募集広告 1,951万）が載っているので、
        題名の 2,500万 が何の数字か読む側に分からない。
        台帳の外の87社は今までどおり「機長」だけ（振る舞いを変えない）。 */
-  const CAP = mayAvg(slug, 'cap') ? (lang === 'ja' ? '機長' : 'Captain')
+  /* ★2026-10-31 オーナー（題名も中央値に）：機長の額が会員の提出の中央値の会社（台帳の from: 'members'）は「機長 中央値」 */
+  const MED = BASIS[slug]?.cap?.from === 'members';
+  const CAP = MED ? (lang === 'ja' ? '機長 中央値' : 'Captain median')
+    : mayAvg(slug, 'cap') ? (lang === 'ja' ? '機長' : 'Captain')
     : (lang === 'ja' ? '機長 推定' : 'Captain est.');
   /* 社名が長くて下から2段目（職位を先に出す詰めた形）まで落ちる社では、
      札を金額の後ろに回す。前に置くと英語が
      「China Southern Airlines **Captain est. Salary**」と語順が崩れる。 */
   const CAPW = lang === 'ja' ? '機長' : 'Captain';
-  const ESTP = mayAvg(slug, 'cap') ? '' : (lang === 'ja' ? '（推定）' : ' (est.)');
+  const ESTP = MED ? (lang === 'ja' ? '（中央値）' : ' (median)') : mayAvg(slug, 'cap') ? '' : (lang === 'ja' ? '（推定）' : ' (est.)');
 
   /* 金額を出せない会社は、金額の入った段を丸ごと飛ばして
      下2段（社名＋「パイロット年収」だけ）に落とす。 */
@@ -586,6 +589,8 @@ function airlineTitle(slug, lang, curTitle) {
        `${full} パイロット年収 ${CAP}${pay}`,
        `${short} パイロット年収 ${CAP}${pay}`,
        `${short}パイロット年収 ${CAP}${payS}`,
+       /* ★2026-10-31「機長 中央値」は「機長 推定」より1字長い＝社名の長い会社では、空白を詰めた形まで試す（額を落とさない） */
+       `${short}パイロット年収 ${CAP.replace(' ', '')}${payS}`,
        `${short} パイロット年収【2026年最新】`,
        `${short} パイロット年収`]
     : [`${full} Pilot Salary 2026 — ${CAP} ${pay}`,
