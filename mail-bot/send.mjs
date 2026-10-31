@@ -837,14 +837,27 @@ async function runPages() {
   targets = targets.filter(m => !sentBefore[m.id]);
   if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
 
-  /* 勤務先がある人は全員、会社に当てる（リンクと絵に使う）。
+  /* ★その人の会社 ＝ 給与・口コミを出した会社（2026-10-31 オーナー「口コミを出した会社、自分の年収を出した会社が自分の会社」）。
+     決めるのはサーバの pv_ask_own の1か所（戻ってきた会員に聞く板と同じ：最新の給与 → 無ければ最新の口コミ）。
+     給与も口コミも user_id を持たないので、突き合わせの式をここへ写さない。
+     出していない人・出した会社にページが無い人だけ、登録の勤務先の字で当てる。
      言語の判定に地域を使うのは renewal と同じく「氏名も居住国も手がかりが無い人」だけ。 */
   const companies = [...new Set(targets.map(m => String(m.company ?? '').trim()).filter(Boolean))];
   const hits = await airlineCodeMap(companies);
+  const regionOf = new Map((await sbSelect('pv_airlines', 'code,region', [])).map(a => [a.code, a.region || '']));
   for (const m of targets) {
-    const h = hits.get(String(m.company ?? '').trim()) || { code: '', region: '' };
-    m.airline_code = h.code;
-    m.airline_region = langModeOf(m) === 'both' ? h.region : '';
+    let own = '';
+    try { own = String((await sbRpc('pv_ask_own', { p_uid: m.id })) || ''); }
+    catch (e) {
+      /* 黙って登録の勤務先だけに落とすと、給与・口コミを出した人まで一覧へ回る。止める。 */
+      console.error(`❌ 給与・口コミを出した会社を引けません（1通も送りません）: ${e.message}`);
+      process.exit(1);
+    }
+    const prof = (hits.get(String(m.company ?? '').trim()) || {}).code || '';
+    const code = [own, prof].find(c => c && pagesAirlineOf({ airline_code: c })) || own || prof || '';
+    m.airline_code = code;
+    m.airline_src = !code ? '' : code === own ? 'post' : 'profile';
+    m.airline_region = langModeOf(m) === 'both' ? (regionOf.get(code) || '') : '';
   }
 
   const mails = targets.map(m => ({ m, b: buildPages(m, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg }) }));
@@ -852,6 +865,17 @@ async function runPages() {
   console.log(`[pages] 登録 ${total} 名／動作確認 ${testers} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
     + `（会社のページへ ${toPage} 名・一覧へ ${targets.length - toPage} 名）`
     + (onlyArg ? `（--only=${onlyArg}）` : ''));
+  /* 会社の決め手と、一覧へ回る理由を人数だけで出す（勤務先の字も会社名も出さない）。 */
+  const src = { post: 0, profile: 0 };
+  const why = { empty: 0, unknown: 0, ops: 0 };
+  for (const x of mails) {
+    if (x.b.airline) { src[x.m.airline_src] = (src[x.m.airline_src] || 0) + 1; continue; }
+    if (x.m.airline_code) why.ops++;
+    else if (!String(x.m.company ?? '').trim()) why.empty++;
+    else why.unknown++;
+  }
+  console.log(`        会社の決め手：給与・口コミを出した会社 ${src.post} 名・登録の勤務先 ${src.profile} 名`);
+  console.log(`        一覧へ回る内訳：給与・口コミなしで勤務先も空 ${why.empty} 名・勤務先の字が会社に当たらない ${why.unknown} 名・会社ページの無い運航会社 ${why.ops} 名`);
 
   /* ★絵が1枚でも欠けていたら、1通も送らない。 */
   const miss = [...new Set(mails.flatMap(x => missingOf(x.b)))];
@@ -899,5 +923,5 @@ async function runPages() {
     else if (MODE === 'renewal') await runRenewal();
     else if (MODE === 'pages') await runPages();
     else await runDigest();
-  } catch (e) { console.error('❌', e.message); process.exit(1); }
+  } catch (e) { console.error('❌', e.message, e.cause ? `（${e.cause.code || e.cause.message}）` : ''); process.exit(1); }
 })();
