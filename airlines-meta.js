@@ -6,8 +6,8 @@
 (function (w) {
   'use strict';
   var AIRLINES = [
-{code:'ANA', name:'全日本空輸（ANA）',         en:'All Nippon Airways',    region:'japan',  color:'#1A6EB5',salary:'¥2,700万',file:'airlines/ana.html',fleet:'nw',      flag:'🇯🇵',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
-{code:'JAL', name:'日本航空（JAL）',           en:'Japan Airlines',        region:'japan',  color:'#CC0000',salary:'¥2,700万',file:'airlines/jal.html',fleet:'nw',      flag:'🇯🇵',type:'fsc',taxfree:false,alliance:'ワンワールド'},
+{code:'ANA', name:'全日本空輸（ANA）',         en:'All Nippon Airways',    region:'japan',  color:'#1A6EB5',salary:'¥2,841万',file:'airlines/ana.html',fleet:'nw',      flag:'🇯🇵',type:'fsc',taxfree:false,alliance:'スターアライアンス'},
+{code:'JAL', name:'日本航空（JAL）',           en:'Japan Airlines',        region:'japan',  color:'#CC0000',salary:'¥2,556万',file:'airlines/jal.html',fleet:'nw',      flag:'🇯🇵',type:'fsc',taxfree:false,alliance:'ワンワールド'},
 {code:'SKY', name:'スカイマーク',             en:'Skymark Airlines',      region:'japan',  color:'#00A2E8',salary:'¥1,900万',file:'airlines/skymark.html',fleet:'n',  flag:'🇯🇵',type:'lcc',taxfree:false,alliance:''},
 {code:'ZIP', name:'ZIPAIR Tokyo',             en:'ZIPAIR Tokyo',          region:'japan',  color:'#00C48C',salary:'¥2,500万',file:'airlines/zipair.html',fleet:'w',   flag:'🇯🇵',type:'lcc',taxfree:false,alliance:''},
 {code:'APJ', name:'Peach Aviation',           en:'Peach Aviation',        region:'japan',  color:'#E5007F',salary:'¥2,350万',file:'airlines/peach.html',fleet:'n',    flag:'🇯🇵',type:'lcc',taxfree:false,alliance:''},

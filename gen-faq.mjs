@@ -110,7 +110,8 @@ function usd(manYen) {
   return '$' + Math.round(v).toLocaleString('en-US');
 }
 
-/* 比較の基準は日本の大手。ANA と JAL は SSOT で同値。
+/* 比較の基準は日本の大手。★2026-10-31 から ANA と JAL は別の額（会員の提出の中央値・オーナー）。
+   ⚠️ 「ANA・JALはともに」と1つの額でまとめて書かない。2社を別々に書く（ANA_JA() が文を作る）。
    ⚠️ **この値に「平均」と付けない。** ANA・JAL の機長の数字は出どころ・対象・計算方法を
       確認できていない＝公開情報からの推定（salary-basis.mjs の等級 estimate）。
       書いてよいか・何と呼ぶかは必ず avgWord('ana','cap') で聞く。
@@ -118,6 +119,10 @@ function usd(manYen) {
         「確認中じゃなくて推定とかにすりゃいいじゃん」で、数字は書く・平均とは呼ばない、に変えた。
    ⚠️ 等級の違う数字（公式募集例・総待遇）を引き算・倍率の相手にしない。 */
 const BASE = SALARY.ana.cap.avg;
+/* ANA と JAL の額を1つの文に（「ANAが約X、JALが約Y」）。同じ額なら今までどおり「ANA・JALが約X」とまとめる。 */
+const ANA_JA = (rk, w = '', pre = '約') => SALARY.ana[rk].avg === SALARY.jal[rk].avg
+  ? `ANA・JALが${w}${pre}${man(SALARY.ana[rk].avg)}`
+  : `ANAが${w}${pre}${man(SALARY.ana[rk].avg)}、JALが${pre}${man(SALARY.jal[rk].avg)}`;
 
 /* ══ 根拠の等級で文章を作る（salary-basis.mjs に等級がある会社だけ）══════
    ★ 等級のある会社では SALARY の平均・レンジを1文字も書かない。
@@ -352,10 +357,9 @@ function buildJaBasis(slug) {
     const cmpParts = [], noCmp = [];
     for (const rk of ['cap', 'fo']) {
       const w = avgWord(slug, rk), aw = avgWord('ana', rk);
-      if (w && aw && w === aw) {
-        const diff = d[rk].avg - SALARY.ana[rk].avg;
-        const cmp = diff === 0 ? 'ほぼ同じ' : diff > 0 ? `${man(diff)}高い` : `${man(-diff)}低い`;
-        cmpParts.push(`${RANK_JA[rk]}は${name}が${w}約${man(d[rk].avg)}、ANA・JALが${w}約${man(SALARY.ana[rk].avg)}で、${cmp}水準です`);
+      if (w && aw && w === aw && avgWord('jal', rk) === aw) {
+        /* ★2026-10-31 ANA と JAL が別の額になった ── 差額は出さず、3社の額を並べる */
+        cmpParts.push(`${RANK_JA[rk]}は${name}が${w}約${man(d[rk].avg)}、${ANA_JA(rk, w)}です`);
       } else {
         noCmp.push(`${RANK_JA[rk]}（${name}側は「${TIERS[b[rk].tier].ja}」）`);
       }
@@ -364,7 +368,7 @@ function buildJaBasis(slug) {
     items.push({
       q: `${name}のパイロット年収はANA・JALと比べてどうですか？`,
       a: (cmpParts.length ? `${cmpParts.join('。')}。`
-        : anaW ? `ANA・JALの機長は${anaW}約${man(BASE)}、副操縦士は${anaW}約${man(SALARY.ana.fo.avg)}です。` : '')
+        : anaW ? `機長は${ANA_JA('cap', anaW)}、副操縦士は${ANA_JA('fo', anaW)}です。` : '')
         + (noCmp.length ? `${noCmp.join('と')}は、対象や含むものが違う金額どうしになるため、差額・倍率は出していません。` : '')
         + (d.taxFree
           ? `${name}の所在国には個人所得税が無く、ANA・JALの金額は税引き前なので、手取りで比べると差はさらに広がります。`
@@ -446,16 +450,13 @@ function buildJa(slug) {
           なので**この1文では両方とも呼び名を付けず**、末尾で「どちらも公開情報をもとに
           当サイトが出した数字」と書く。名前の食い違いを文章で埋めない。 */
     const anaOk = avgWord('ana', 'cap') && avgWord('ana', 'fo');
-    const diff = cap.avg - BASE;
-    const cmp = diff === 0 ? 'ほぼ同水準です'
-      : diff > 0 ? `${man(diff)}高い水準です`
-        : `${man(-diff)}低い水準です`;
     items.push({
       q: `${name}のパイロット年収はANA・JALと比べてどうですか？`,
       a: anaOk
-        ? `${name}の機長は${man(cap.avg)}、ANA・JALはともに機長${man(BASE)}で、${cmp}。`
-          + `副操縦士は${name}が${man(fo.avg)}、ANA・JALが${man(SALARY.ana.fo.avg)}です。`
-          + `どちらも公開情報をもとに当サイトが出した数字です。`
+        /* ★2026-10-31 ANA と JAL が別の額になった（会員の提出の中央値）── 差額は出さず、額を並べる。
+             「どちらも公開情報をもとに当サイトが出した数字」は ANA・JAL に当たらなくなったので書かない。 */
+        ? `機長は${name}が${man(cap.avg)}、${ANA_JA('cap', '', '')}です。`
+          + `副操縦士は${name}が${man(fo.avg)}、${ANA_JA('fo', '', '')}です。`
           + (d.taxFree
             ? `ただし${name}は非課税、ANA・JALは税引き前の金額なので、手取りで比べると差はさらに広がります。`
             : `いずれも税引き前の金額どうしの比較です。`)
