@@ -3106,5 +3106,74 @@
     }
   });
 
+  /* ── 会員の中央値を、その場で差し替える（★2026-10-31 オーナー「提出のたびにすぐ変える」「中央値を出した航空会社は推定年収じゃなくて中央値に」）──
+     会社ページの推定年収の欄（.pvg-rank[data-rule]）を、サーバーが給与・口コミの書き込みのたびに数え直して保存している中央値で差し替える。
+     ⚠️ サーバーは保存した表を引くだけ（pv_member_medians）。ページを開くたびに全員分を数え直さない（2026-10-31 に本番が止まった原因）。
+     決まり（台帳 salary-basis.mjs → HTML の data-*）：always ＝ いつも中央値（ANA・JAL）／higher ＝ 中央値が base（中央値に替える前の推定）を超えたときだけ。
+     返事が無い・失敗したときは何もしない（書き込んである額のまま）。人数はサーバーが返さない（2人以上の組だけ返る）。 */
+  var MED_T = LANG === 'en'
+    ? { med: '<span class="pvg-vh">, median pay</span>', est: '<span class="pvg-vh">, estimated annual pay</span>',
+        byEst: 'Our estimate', byMed: 'Median of pay submitted by members', sep: ' · ',
+        mix: function (e, m) { return e + ': our estimate · ' + m + ': median of pay submitted by members'; },
+        rank: { cap: 'Captain', fo: 'First Officer' },
+        method: 'Median of the annual pay members have submitted (latest entry per person, to the nearest ¥10,000).', asOf: 'As of: latest submission',
+        yen: function (man) { return '¥' + (+(man / 100).toFixed(2)) + 'M'; } }
+    : { med: 'の中央値', est: 'の推定年収',
+        byEst: '当サイトの推定', byMed: '会員が出した年収の中央値', sep: '・',
+        mix: function (e, m) { return e + 'は当サイトの推定・' + m + 'は会員が出した年収の中央値'; },
+        rank: { cap: '機長', fo: '副操縦士' },
+        method: '会員が出した年収の中央値（1人1件・1万円単位）。', asOf: '時点：最新の提出まで',
+        yen: function (man) { return '¥' + man.toLocaleString('en-US') + '万'; } };
+  function medianRows(slug) {
+    return once('med:' + slug, function (sig) {
+      return client().then(function (sb) { return cut(sb.rpc('pv_member_medians', { p_airline: slug }), sig); }).then(function (res) {
+        if (!res || res.error || !isArr(res.data)) throw sbErr(res);
+        var out = {};
+        res.data.forEach(function (x) { if (x && (x.rank === 'cap' || x.rank === 'fo') && isNum(x.median_man) && x.median_man > 0) out[x.rank] = Math.round(x.median_man); });
+        return out;
+      });
+    });
+  }
+  function medianApply(card, med) {
+    var C = w.PVCurrency, state = {};
+    Array.prototype.forEach.call(card.querySelectorAll('.pvg-rank[data-rule]'), function (r) {
+      var rk = r.getAttribute('data-rank'), rule = r.getAttribute('data-rule');
+      var base = Number(r.getAttribute('data-base')), top = Number(r.getAttribute('data-top')), m = med[rk];
+      var man, isMed;
+      if (isNum(m)) { isMed = rule === 'always' || m > base; man = isMed ? m : base; }
+      else if (rule === 'always') { state[rk] = r.getAttribute('data-med') === '1'; return; }   // 2人に届かない ＝ 書き込んである額のまま
+      else { isMed = false; man = base; }
+      state[rk] = isMed;
+      if (!(man > 0)) return;
+      var big = r.querySelector('.pvg-big');
+      if (big && big.getAttribute('data-man') !== String(man)) {
+        big.textContent = MED_T.yen(man);
+        big.setAttribute('data-man', String(man));
+        if (C && typeof C.scan === 'function') C.scan(big);
+        if (C && typeof C.apply === 'function') C.apply();
+      }
+      var bar = r.querySelector('.pvg-bar');
+      if (bar && top > 0) bar.style.width = Math.min(100, man / top * 100).toFixed(2) + '%';
+      var s = r.querySelector('.pvg-rk-s'); if (s) s.innerHTML = isMed ? MED_T.med : MED_T.est;
+      r.setAttribute('data-med', isMed ? '1' : '0');
+      /* プルダウン（この金額は誰の・何を含んだ・いつの金額か）の職位の行：中央値なら、作り方と「最新の提出まで」 */
+      var row = d.querySelector('.pvg-dl [data-rank="' + rk + '"] dd');
+      if (row && isMed) { var sm = row.querySelectorAll('small'); if (sm.length >= 2) { sm[0].textContent = MED_T.method; sm[1].textContent = MED_T.asOf; } }
+    });
+    var by = card.querySelector('.pvg-estk');
+    if (by) {
+      var mk = ['cap', 'fo'].filter(function (k) { return state[k] === true; }), ek = ['cap', 'fo'].filter(function (k) { return state[k] === false; });
+      var name = function (k) { return MED_T.rank[k]; };
+      by.textContent = !mk.length ? MED_T.byEst : !ek.length ? MED_T.byMed : MED_T.mix(ek.map(name).join(MED_T.sep), mk.map(name).join(MED_T.sep));
+    }
+  }
+  function medianBoot() {
+    var card = d.querySelector('.pvg-pay');
+    var rp = card && card.querySelector('[data-live="realpay"][data-airline]');
+    if (!card || !rp || !card.querySelector('.pvg-rank[data-rule]')) return;
+    medianRows(rp.getAttribute('data-airline')).then(function (med) { medianApply(card, med); }, function () { /* 書き込んである額のまま */ });
+  }
+  if (GL) medianBoot();
+
   sync();
 })(window, document);

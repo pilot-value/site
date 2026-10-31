@@ -242,12 +242,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <article class="pvg-card pvg-pay" data-pvg-pane="overview pay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l5 7 5-7M12 11v9M7 12h10M7 16h10"/></svg></span><h2 class="pvg-eyebrow">Pay</h2><span class="pvg-chip">Taxed (China)</span></header>
 <div class="pvg-ranks">
-<div class="pvg-rank" data-rank="cap">
+<div class="pvg-rank" data-rank="cap" data-med="0" data-rule="higher" data-base="3050" data-top="5000">
 <h3 class="pvg-rk"><span class="pvg-vh">Air China </span>Captain<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="30500000" data-orig="¥3,050万">$192K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:61.00%"></i></div>
 </div>
-<div class="pvg-rank" data-rank="fo">
+<div class="pvg-rank" data-rank="fo" data-med="0" data-rule="higher" data-base="1550" data-top="5000">
 <h3 class="pvg-rk"><span class="pvg-vh">Air China </span>First Officer<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="15500000" data-orig="¥1,550万">$98K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:31.00%"></i></div>
@@ -262,8 +262,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">
 <summary>Who it covers, what’s included, and when<svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
 <div class="pvg-body">
-<dl class="pvg-dl"><div><dt>Captain</dt><dd><small>Our estimate</small></dd></div>
-<div><dt>First Officer</dt><dd><small>Our estimate</small></dd></div></dl>
+<dl class="pvg-dl"><div data-rank="cap"><dt>Captain</dt><dd><small>Our estimate</small></dd></div>
+<div data-rank="fo"><dt>First Officer</dt><dd><small>Our estimate</small></dd></div></dl>
 <ul class="pvg-notes"><li><span class="pv-no-cur">The airline has a pay and benefits page for pilots on its own recruitment site, and it states no amount at all. It says only that pay is made up of fixed salary, flight duty allowance, bonuses, other allowances and an annual incentive, and that the level is high within the industry. The page carries no publication date and no effective date.</span></li><li><span class="pv-no-cur">The cadet selection notices on the same site (the newest from 2025-11-04) and the cadet program brief (2023-10-20) state no amount either. The only line that touches money says the company bears the training cost while the family bears the tuition, with no figure.</span></li><li><span class="pv-no-cur">Warning: agency postings quoting figures such as USD 18,200 a month for a B777 captain are for Air China Cargo, a separate company. We do not treat them as figures for captains on the passenger side.</span></li><li><span class="pv-no-cur">In the material we have checked, we found no document stating annual or monthly pay for captains or first officers. If one appears, we will add it here with its subject and its date.</span></li></ul><p class="pvg-srcs"><span>Sources</span><a class="pvg-src" href="https://zhaopin.airchina.com.cn/cn/about_us/recruitment/pilot_salary.shtml" target="_blank" rel="noopener">Air China (pilot recruitment site zhaopin.airchina.com.cn), “飞行员招聘 ／ 薪酬福利” (pilot pay and benefits page)</a><small>No publication or effective date given · checked 29 September 2026</small></p>
 </div>
 </details>
@@ -625,7 +625,7 @@ var tb=document.getElementById('theme-toggle');if(tb){tb.innerHTML=document.docu
 <script src="../../airlines/airline-reviews-data.js"></script>
 <script src="../../airlines/airline-reviews-ui.js"></script>
 <!--PV-GLANCE-JS-->
-<script src="../../career-live.js?v=49fcf3c3"></script>
+<script src="../../career-live.js?v=1c816b5e"></script>
 <script src="../../pv-glance.js?v=f69c2eb8"></script>
 <script src="../../pv-contrib.js?v=ecb006c8"></script>
 <script src="../../pv-proof-offer.js?v=cc4ef913"></script>

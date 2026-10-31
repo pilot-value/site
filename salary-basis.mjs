@@ -320,7 +320,7 @@ export const BASIS = {
       held: { was: { avg: 3400, lo: 3000, hi: 6000 },
         why: '求人の上限 AED 674,029 は約2,917万円で、このレンジの下端をわずかに下回る。レンジと平均そのものを支える資料は無い。' },
     },
-    fo: { from: 'members', /* g4 fo */ est: {
+    fo: { from: 'members', base: 2300, /* g4 fo */ est: {
         basis: 'PILOT VALUE にエティハド航空の副操縦士が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by Etihad Airways first officers (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1008,7 +1008,7 @@ export const BASIS = {
           req: '2027年4月1日入社予定・FCAT 受験が必須・プレエントリー締切 2026年3月10日' },
         { name: '自社養成パイロット訓練生・大卒／高等専門学校（専攻科）卒（入社時）', name_en: 'Company-sponsored pilot cadet, bachelor’s or KOSEN advanced-course graduate (on joining)', start_m: 267770 },
       ] },
-    cap: { from: 'members', /* g4 cap */ est: {
+    cap: { from: 'members', median: 'always', /* g4 cap */ est: {
         basis: 'PILOT VALUE にANAの機長が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by ANA captains (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1017,7 +1017,7 @@ export const BASIS = {
       }, tier: 'estimate',
       held: { was: { avg: 2700, lo: 2200, hi: 3500 },
       why: '有資格パイロットの募集要項が採用サイトに載っておらず（キャリア採用の一覧に運航乗務職の枠が無い）、機長の金額を書いた公式資料が1件も無い。有報にあるのは3社をあわせた運航乗務職全体の平均だけで、機長の数字は無い。レンジの出所の記録も無い。' } },
-    fo: { from: 'members', /* g4 fo */ est: {
+    fo: { from: 'members', median: 'always', /* g4 fo */ est: {
         basis: 'PILOT VALUE にANAの副操縦士が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by ANA first officers (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1078,7 +1078,7 @@ export const BASIS = {
     trainee: { tier: 'employer_example',
       groups: [{ name: '運航乗務員訓練生（入社時）', name_en: 'Flight crew trainee (on joining)', start_m: 263000,
         req: '矯正視力1.0以上・屈折度 -6.0〜+2.0ジオプトリー・事業用操縦士免許の保有者および過去に取得した者は応募不可' }] },
-    cap: { from: 'members', /* g4 cap */ est: {
+    cap: { from: 'members', median: 'always', /* g4 cap */ est: {
         basis: 'PILOT VALUE にJALの機長が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by JAL captains (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1087,7 +1087,7 @@ export const BASIS = {
       }, tier: 'estimate',
       held: { was: { avg: 2700, lo: 2200, hi: 3500 },
       why: '会社が公表しているのは機長と副操縦士をあわせた運航乗務員全体の平均で、職位別の平均は公表されていない。機長の募集要項そのものが無く（ライセンス保有者枠は「在籍中の各養成機関に問い合わせ」とだけ）、金額も無い。レンジの出所の記録も無い。' } },
-    fo: { from: 'members', /* g4 fo */ est: {
+    fo: { from: 'members', median: 'always', /* g4 fo */ est: {
         basis: 'PILOT VALUE にJALの副操縦士が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by JAL first officers (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1142,7 +1142,7 @@ export const BASIS = {
         req: 'TOEIC 750点以上または IELTS Overall 6.0以上・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可' }] },
     cap: { tier: 'estimate', held: { was: { avg: 1900, lo: 1600, hi: 2300 },
       why: '会社が公表しているのは機長と副操縦士をあわせた運航乗務員全体の平均で、職位別の平均は公表されていない。経験者採用の求人は「給与 非公開」「当社規程による」で金額が無い。レンジの出所の記録も無い。' } },
-    fo: { from: 'members', /* g4 fo */ est: {
+    fo: { from: 'members', base: 950, /* g4 fo */ est: {
         basis: 'PILOT VALUE にスカイマークの副操縦士が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by Skymark Airlines first officers (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1188,7 +1188,7 @@ export const BASIS = {
         req: '採用予定数15名程度・矯正視力0.7以上（両眼1.0以上）・事業用操縦士免許保有者は応募不可・入社要件に IELTS と航空無線通信士' }] },
     cap: { tier: 'estimate', held: { was: { avg: 2000, lo: 1800, hi: 2300 },
       why: '機長の募集要項は「当社規程による」「面接時に説明」で金額が無い。非上場で有価証券報告書が無く、親会社の有報にも職種別の給与が無い。レンジの出所の記録も無い。' } },
-    fo: { from: 'members', /* g4 fo */ est: {
+    fo: { from: 'members', base: 1250, /* g4 fo */ est: {
         basis: 'PILOT VALUE にジェイエアの副操縦士が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by J-Air (J-AIR) first officers (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1211,7 +1211,7 @@ export const BASIS = {
         as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026', accessed: '2026-10-30',
         url: 'https://pilot-value.com/actual-pay.html' },
     ], notes: [], notes_en: [],
-    cap: { from: 'members', /* g4 cap */ est: {
+    cap: { from: 'members', base: 2400, /* g4 cap */ est: {
         basis: 'PILOT VALUE にジェットスター・ジャパンの機長が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by Jetstar Japan captains (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -1219,7 +1219,7 @@ export const BASIS = {
         as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
       }, tier: 'estimate', held: { was: { avg: 2400, lo: 2000, hi: 2900 },
       why: '会社名義の募集要項（2016年）に給与の節そのものが無い。現行の採用サイトは読めず、採用管理システムの求人は0件。非上場で有価証券報告書も無い。レンジの出所の記録も無い。' } },
-    fo: { from: 'members', /* g4 fo */ est: {
+    fo: { from: 'members', base: 1450, /* g4 fo */ est: {
         basis: 'PILOT VALUE にジェットスター・ジャパンの副操縦士が出した給与（直近24か月）',
         basis_en: 'Pay submitted to PILOT VALUE by Jetstar Japan first officers (past 24 months)',
         method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -2127,14 +2127,14 @@ export const BASIS = {
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [], notes_en: [],
-    cap: { tier: 'estimate', from: 'members', /* g4 cap */ est: {
+    cap: { tier: 'estimate', from: 'members', base: 2000, /* g4 cap */ est: {
       basis: 'PILOT VALUE にANAウイングスの機長が出した給与（直近24か月）',
       basis_en: 'Pay submitted to PILOT VALUE by ANA Wings captains (past 24 months)',
       method: '会員が出した年収の中央値（1人1件・1万円単位）。',
       method_en: 'Median of the annual pay members have submitted (latest entry per person, to the nearest ¥10,000).',
       as_of: '2026年10月30日 集計', as_of_en: 'Counted 30 October 2026',
     } },
-    fo: { tier: 'estimate', from: 'members', /* g4 fo */ est: {
+    fo: { tier: 'estimate', from: 'members', base: 1300, /* g4 fo */ est: {
       basis: 'PILOT VALUE にANAウイングスの副操縦士が出した給与（直近24か月）',
       basis_en: 'Pay submitted to PILOT VALUE by ANA Wings first officers (past 24 months)',
       method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -2152,7 +2152,7 @@ export const BASIS = {
         url: 'https://pilot-value.com/actual-pay.html' },
     ],
     notes: [], notes_en: [],
-    cap: { tier: 'estimate', from: 'members', /* g4 cap */ est: {
+    cap: { tier: 'estimate', from: 'members', base: 1600, /* g4 cap */ est: {
       basis: 'PILOT VALUE にフジドリームエアラインズ（FDA）の機長が出した給与（直近24か月）',
       basis_en: 'Pay submitted to PILOT VALUE by Fuji Dream Airlines (FDA) captains (past 24 months)',
       method: '会員が出した年収の中央値（1人1件・1万円単位）。',
@@ -2172,7 +2172,7 @@ export const BASIS = {
     ],
     notes: [], notes_en: [],
     cap: { tier: 'estimate' },
-    fo: { tier: 'estimate', from: 'members', /* g4 fo */ est: {
+    fo: { tier: 'estimate', from: 'members', base: 850, /* g4 fo */ est: {
       basis: 'PILOT VALUE にオリエンタルエアブリッジの副操縦士が出した給与（直近24か月）',
       basis_en: 'Pay submitted to PILOT VALUE by Oriental Air Bridge (ORC) first officers (past 24 months)',
       method: '会員が出した年収の中央値（1人1件・1万円単位）。',

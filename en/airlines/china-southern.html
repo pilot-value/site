@@ -242,12 +242,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <article class="pvg-card pvg-pay" data-pvg-pane="overview pay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l5 7 5-7M12 11v9M7 12h10M7 16h10"/></svg></span><h2 class="pvg-eyebrow">Pay</h2><span class="pvg-chip">Taxed (China)</span></header>
 <div class="pvg-ranks">
-<div class="pvg-rank" data-rank="cap">
+<div class="pvg-rank" data-rank="cap" data-med="0" data-rule="higher" data-base="2950" data-top="5000">
 <h3 class="pvg-rk"><span class="pvg-vh">China Southern Airlines </span>Captain<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="29500000" data-orig="¥2,950万">$186K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:59.00%"></i></div>
 </div>
-<div class="pvg-rank" data-rank="fo">
+<div class="pvg-rank" data-rank="fo" data-med="0" data-rule="higher" data-base="1500" data-top="5000">
 <h3 class="pvg-rk"><span class="pvg-vh">China Southern Airlines </span>First Officer<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="15000000" data-orig="¥1,500万">$94K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:30.00%"></i></div>
@@ -262,14 +262,14 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">
 <summary>Who it covers, what’s included, and when<svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
 <div class="pvg-body">
-<dl class="pvg-dl"><div><dt>Captain</dt><dd><small>Our estimate</small></dd></div>
+<dl class="pvg-dl"><div data-rank="cap"><dt>Captain</dt><dd><small>Our estimate</small></dd></div>
 <div><dt><span class="pv-no-cur">Captain, A330 / B787 / B777, first year (2019 agency posting, monthly)</span></dt><dd><b><span class="pv-cur" data-jpy="3020000" data-orig="¥302万">$19K</span></b><span class="pv-no-cur pvg-orig">USD 19,000</span>
 <small><span class="pv-no-cur">basic pay, monthly</span></small></dd></div>
 <div><dt><span class="pv-no-cur">Same, first year (joining without the type rating)</span></dt><dd><b><span class="pv-cur" data-jpy="2860000" data-orig="¥286万">$18K</span></b><span class="pv-no-cur pvg-orig">USD 18,000</span>
 <small><span class="pv-no-cur">basic pay, monthly</span></small></dd></div>
 <div><dt><span class="pv-no-cur">Same, fourth year</span></dt><dd><b><span class="pv-cur" data-jpy="3340000" data-orig="¥334万">$21K</span></b><span class="pv-no-cur pvg-orig">USD 21,000</span>
 <small><span class="pv-no-cur">basic pay, monthly</span></small></dd></div>
-<div><dt>First Officer</dt><dd><small>Our estimate</small></dd></div></dl>
+<div data-rank="fo"><dt>First Officer</dt><dd><small>Our estimate</small></dd></div></dl>
 <ul class="pvg-notes"><li><span class="pv-no-cur">These figures come from an agency posting from 2019, and the posting itself says it summarizes &quot;the new DRAFT contract elements&quot;. They are not current terms.</span></li><li><span class="pv-no-cur">The monthly figure rises by year of service (USD 19,000 in year one, 19,000 in year two, 20,000 in year three, 21,000 in year four). Joining without the type rating starts at USD 18,000.</span></li><li><span class="pv-no-cur">On top of the monthly figure there is a USD 6,000 annual safety and operation award and a USD 10,000 annual housing allowance.</span></li><li><span class="pv-no-cur">It assumes 80 block hours a month, a Guangzhou base and a four-year renewable contract. The posting does not say whether the figure is before or after tax.</span></li><li><span class="pv-no-cur">It is a contract for foreign pilots, with commuting flights and six return tickets a year for the family.</span></li><li><span class="pv-no-cur">The posting is for captains only. No figure for first officers appears in any source.</span></li><li><span class="pv-no-cur">A separate agency (VOR Holdings) advertised captain positions in 2013 at USD 18,000–20,000 a month, stated as net, plus USD 225 an hour beyond 160 hours a month. That material is thirteen years old.</span></li></ul><p class="pvg-srcs"><span>Sources</span><a class="pvg-src" href="https://www.chinaaviationjob.com/a330-captain-china-southern/" target="_blank" rel="noopener">A vacancy posted by Yufeng Consulting, a pilot recruitment agency (China, chinaaviationjob.com), “A330 / B787 / B777 Captain – China Southern (the pay table is the same on all three pages)”</a><small>Posted 16 August 2019 · checked 29 September 2026</small></p>
 </div>
 </details>
@@ -622,7 +622,7 @@ var tb=document.getElementById('theme-toggle');if(tb){tb.innerHTML=document.docu
 <script src="../../airlines/airline-reviews-data.js"></script>
 <script src="../../airlines/airline-reviews-ui.js"></script>
 <!--PV-GLANCE-JS-->
-<script src="../../career-live.js?v=49fcf3c3"></script>
+<script src="../../career-live.js?v=1c816b5e"></script>
 <script src="../../pv-glance.js?v=f69c2eb8"></script>
 <script src="../../pv-contrib.js?v=ecb006c8"></script>
 <script src="../../pv-proof-offer.js?v=cc4ef913"></script>

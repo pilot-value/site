@@ -243,12 +243,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <article class="pvg-card pvg-pay" data-pvg-pane="overview pay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l5 7 5-7M12 11v9M7 12h10M7 16h10"/></svg></span><h2 class="pvg-eyebrow">Pay</h2><span class="pvg-chip">Taxed (Taiwan)</span></header>
 <div class="pvg-ranks">
-<div class="pvg-rank" data-rank="cap">
+<div class="pvg-rank" data-rank="cap" data-med="0" data-rule="higher" data-base="2950" data-top="4000">
 <h3 class="pvg-rk"><span class="pvg-vh">EVA Air </span>Captain<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="29500000" data-orig="¥2,950万">$186K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:73.75%"></i></div>
 </div>
-<div class="pvg-rank" data-rank="fo">
+<div class="pvg-rank" data-rank="fo" data-med="0" data-rule="higher" data-base="1590" data-top="4000">
 <h3 class="pvg-rk"><span class="pvg-vh">EVA Air </span>First Officer<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="15900000" data-orig="¥1,590万">$100K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:39.75%"></i></div>
@@ -269,8 +269,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">
 <summary>Who it covers, what’s included, and when<svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
 <div class="pvg-body">
-<dl class="pvg-dl"><div><dt>Captain</dt><dd><small><span class="pv-no-cur">Near the middle of the report’s captain range: from NTD 5 million, and NTD 7 million or more for senior captains.</span></small><small>As of: <span class="pv-no-cur">February 2024</span></small></dd></div>
-<div><dt>First Officer</dt><dd><small>Our estimate</small></dd></div>
+<dl class="pvg-dl"><div data-rank="cap"><dt>Captain</dt><dd><small><span class="pv-no-cur">Near the middle of the report’s captain range: from NTD 5 million, and NTD 7 million or more for senior captains.</span></small><small>As of: <span class="pv-no-cur">February 2024</span></small></dd></div>
+<div data-rank="fo"><dt>First Officer</dt><dd><small>Our estimate</small></dd></div>
 <div><dt><span class="pv-no-cur">First officer (four-year contract)</span></dt><dd><b>over <span class="pv-cur" data-jpy="15890000" data-orig="¥1,589万">$100K</span></b><span class="pv-no-cur pvg-orig">USD 100,000</span>
 <small><span class="pv-no-cur">annual pay (the figure the airline says is exceeded) · Terms for first officers hired from outside (four-year contract). Allowances and subsidies are extra</span></small></dd></div></dl>
 <ul class="pvg-notes"><li><span class="pv-no-cur">The airline writes &quot;annual salary over USD 100,000&quot;. That is a floor; no ceiling is published.</span></li><li><span class="pv-no-cur">It applies from the first line flight, with allowances and subsidies calculated separately.</span></li><li><span class="pv-no-cur">A year-end bonus tied to company results, a housing subsidy or company accommodation, eight consecutive days off a month and 22–42 days of annual leave are added.</span></li><li><span class="pv-no-cur">These are the terms for first officers hired from outside on a four-year contract.</span></li></ul><p class="pvg-srcs"><span>Sources</span><a class="pvg-src" href="https://www.evaair.com/en-global/about-eva-air/careers/job-openings/pilots/" target="_blank" rel="noopener">EVA Air, “Careers / Job openings / Pilots (en-global edition)”</a><small>No publication date given · checked 2 October 2026</small><a class="pvg-src" href="https://www.businesstoday.com.tw/article/category/183027/post/202401280021/" target="_blank" rel="noopener">Taoyuan City Pilots’ Union, EVA branch, and EVA Air, “Labour–management agreement (captain pay up NTD 13,500 a month and other rises, confirmed in a Business Today report)”</a><small>28 January 2024 · checked 2 October 2026</small><a class="pvg-src" href="https://www.mirrormedia.mg/story/20240205inv013" target="_blank" rel="noopener">Mirror Media (鏡週刊), “【長榮不罷工內幕2】正機師年薪480萬起跳 長榮華航星宇搶第一” (captain pay starts at NTD 4.8 million a year)</a><small>6 February 2024 · checked 2 October 2026</small><a class="pvg-src" href="https://www.ctwant.com/article/314950/" target="_blank" rel="noopener">CTWANT, “18萬旅客解套1／長榮機師底薪落後變老三「不罷工換加薪」” (EVA pilots trade a strike for a pay rise)</a><small>30 January 2024 · checked 2 October 2026</small></p>
@@ -1113,7 +1113,7 @@ var tb=document.getElementById('theme-toggle');if(tb){tb.innerHTML=document.docu
 <script src="../../airlines/airline-reviews-data.js"></script>
 <script src="../../airlines/airline-reviews-ui.js"></script>
 <!--PV-GLANCE-JS-->
-<script src="../../career-live.js?v=49fcf3c3"></script>
+<script src="../../career-live.js?v=1c816b5e"></script>
 <script src="../../pv-glance.js?v=f69c2eb8"></script>
 <script src="../../pv-contrib.js?v=ecb006c8"></script>
 <script src="../../pv-proof-offer.js?v=cc4ef913"></script>

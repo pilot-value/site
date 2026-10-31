@@ -356,6 +356,14 @@ function payOf(slug, rank, T = TX_JA) {
   const backed = !!(e && e.basis && e.method && e.as_of);
   const en = T.lang === 'en', ef = k => (e[`${k}_en`] || enOf(e[k], `${slug}.${rank}.est.${k}`));
   const est = { man: s.avg, yen: yen(s.avg), backed, basis: backed ? (en ? ef('basis') : e.basis) : '', method: backed ? (en ? ef('method') : e.method) : '', asOf: backed ? (en ? ef('as_of') : e.as_of) : '' };
+  /* ★2026-10-31 オーナー「提出のたびにすぐ変える」「中央値を出した航空会社は推定年収じゃなくて中央値に」
+       med ＝ いま書き込む額が会員の提出の中央値か（台帳の from: 'members'）。
+       rule・base ＝ ページがその場で中央値に差し替える決まり：always（ANA・JAL）＝ いつも中央値／higher ＝ 中央値が base を超えたときだけ。
+       base は中央値に替える前の推定（台帳の base）・中央値でない職位は今の推定そのもの。 */
+  est.med = r.from === 'members';
+  est.rule = r.median === 'always' ? 'always' : 'higher';
+  est.base = est.med ? (r.median === 'always' ? s.avg : r.base) : s.avg;
+  if (est.rule === 'higher' && !(est.base > 0)) throw new Error(`${slug}.${rank}: 中央値の職位に比べる元の推定（台帳の base）が無い`);
   const figs = figures(slug, rank).filter(f => !f.training)
     .map(f => ({ ...f, ...(en ? { group: f.group_en || enOf(f.group, `${slug}.${rank} の区分`), kind: f.kind_en } : {}),
       cond: figNote(slug, f, T) || (f.cond ? T.s(f.cond) : '') || '', yen: yen(f.man), orig: `${f.cur} ${f.amount.toLocaleString('en-US')}` }));

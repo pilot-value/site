@@ -350,8 +350,11 @@ function whenOf(pay) {
   return w.length === 1 && /\d/.test(w[0]) ? w[0] : '';
 }
 /* 職位ごとの推定年収。「推定年収」の字は欄の頭に1回だけ出す（左右で2回言わない）。読み上げには職位ごとに添える。 */
-const rankBlock = (v, [rk]) => `<div class="pvg-rank" data-rank="${rk}">
-<h3 class="pvg-rk"><span class="pvg-vh">${W.vhName(esc(v.name))}</span>${W.rank[rk]}<span class="pvg-rk-s">${W.rankEst}</span></h3>
+/* ★2026-10-31 オーナー「中央値を出した航空会社は推定年収じゃなくて中央値に」「提出のたびにすぐ変える」
+     ── 会員の中央値の職位は見出しを「◯◯の中央値」に。data-* は career-live.js がその場で中央値に差し替えるときの決まり
+     （rule：always ＝ いつも中央値／higher ＝ 中央値が base を超えたときだけ・top ＝ 棒の右端）。 */
+const rankBlock = (v, [rk]) => `<div class="pvg-rank" data-rank="${rk}" data-med="${v.pay[rk].est.med ? 1 : 0}" data-rule="${v.pay[rk].est.rule}" data-base="${v.pay[rk].est.base}" data-top="${scaleOf(v.slug)}">
+<h3 class="pvg-rk"><span class="pvg-vh">${W.vhName(esc(v.name))}</span>${W.rank[rk]}<span class="pvg-rk-s">${v.pay[rk].est.med ? W.rankMed : W.rankEst}</span></h3>
 <p class="pvg-big">${v.pay[rk].est.yen}</p>
 ${bar(v.pay[rk].est.man, scaleOf(v.slug))}
 </div>`;
@@ -411,7 +414,7 @@ function payDetails(v) {
     /* ★2026-10-30 オーナー「なんで機長の推定年収上にあるのにさらにその下にごちゃごちゃ」「根拠？いらないから消せ」
          ── 上の額はくり返さない・根拠と「対象：機種の指定なし」は書かない。職位の名前の下に、算出方法と時点だけ
          （台帳に算出方法がそろっていない職位は「当サイトの推定」とだけ）。 */
-    rows.push(`<div><dt>${W.rank[rk]}</dt><dd>${e.backed
+    rows.push(`<div data-rank="${rk}"><dt>${W.rank[rk]}</dt><dd>${e.backed
       ? `<small>${prose(e.method)}</small><small>${W.asOfL}${prose(e.asOf)}</small>`
       : `<small>${W.estBy}</small>`}</dd></div>`);
     for (const f of [...r.cap, ...r.company]) {
@@ -445,13 +448,18 @@ ${notes}${src}
    会社が公表している金額は意味が違う数字なので、その下に別の見出しで置く（推定の棒とは混ぜない）。
    提出された年収を描くのは career-live.js。資格を決めるのは今までどおりサーバーで、鍵の無い人へは
    額・職位・機材を送らない（板の中は空 ＝ HTML にも JSON にも入っていない）。 */
+/* 棒の下の1行（★2026-10-31）：職位がどれも推定 →「当サイトの推定」／どれも中央値 →「会員が出した年収の中央値」／混ざる → 職位ごとに */
+function estByOf(v) {
+  const med = RANKS.filter(([rk]) => v.pay[rk].est.med).map(([rk]) => W.rank[rk]), est = RANKS.filter(([rk]) => !v.pay[rk].est.med).map(([rk]) => W.rank[rk]);
+  return !med.length ? W.estBy : !est.length ? W.medBy : W.mixBy(est.join(W.sep || '・'), med.join(W.sep || '・'));
+}
 function payCard(v) {
   return `<article class="pvg-card pvg-pay"${pane(v.slug, 'overview pay')}>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.pay}</span><h2 class="pvg-eyebrow">${W.pay}</h2>${v.pay.tax ? `<span class="pvg-chip">${esc(v.pay.tax)}</span>` : ''}</header>
 <div class="pvg-ranks">
 ${RANKS.map(r => rankBlock(v, r)).join('\n')}
 </div>
-<p class="pvg-estk">${W.estBy}</p>
+<p class="pvg-estk">${estByOf(v)}</p>
 <section class="pvg-rp" id="pvg-realpay" aria-label="${W.realPay}">
 <h3 class="pvg-rp-h">${W.realPay}<small lang="en">REAL PAY</small></h3>
 ${live('realpay', { airline: v.slug, top: '3' })}
@@ -1263,8 +1271,9 @@ export const WORDS = Object.freeze({
     moreCite: n => `ほか${n}件と出典`, seeCite: '出典を見る', close: '閉じる',
     saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
-    pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定',
-    rank: Object.freeze(Object.fromEntries(RANKS)), rankEst: 'の推定年収', vhName: n => n, vhWho: n => `${n}・`, introJoin: '',
+    pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
+    mixBy: (e, m) => `${e}は当サイトの推定・${m}は会員が出した年収の中央値`,
+    rank: Object.freeze(Object.fromEntries(RANKS)), rankEst: 'の推定年収', rankMed: 'の中央値', vhName: n => n, vhWho: n => `${n}・`, introJoin: '',
     fig: Object.freeze({ ...FIG_LABEL }), upTo: y => `〜${y}`, over: y => `${y}超`, from: y => `${y}〜`,
     vhCrew: n => `${n}・機長と副操縦士をあわせた`, crewAvg: who => `${who}全体の平均`, crewBoth: '機長と副操縦士をあわせた額',
     crewNote: s => `${s}。機長と副操縦士をあわせた額で、職位ごとの額ではありません。`, coPub: '会社の公表',
@@ -1327,9 +1336,10 @@ export const WORDS = Object.freeze({
     moreCite: n => `${n} more, with sources`, seeCite: 'See sources', close: 'Close',
     saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card',
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
-    pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate',
+    pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate', medBy: 'Median of pay submitted by members',
+    mixBy: (e, m) => `${e}: our estimate · ${m}: median of pay submitted by members`,
     /* 職位の見出しは1行（white-space:nowrap）・狭い画面で2列 ── 英語は「Captain」「First Officer」だけを見せ、「推定年収」は読み上げにだけ（下の行が「Our estimate」と言う） */
-    rank: Object.freeze({ cap: 'Captain', fo: 'First Officer' }), rankEst: '<span class="pvg-vh">, estimated annual pay</span>', vhName: n => `${n} `, vhWho: n => `${n}, `, introJoin: ' ',
+    rank: Object.freeze({ cap: 'Captain', fo: 'First Officer' }), rankEst: '<span class="pvg-vh">, estimated annual pay</span>', rankMed: '<span class="pvg-vh">, median pay</span>', vhName: n => `${n} `, vhWho: n => `${n}, `, introJoin: ' ',
     fig: Object.freeze({ max_y: 'Advertised maximum', target_y: 'Target annual pay', cash_y_over: 'Minimum' }),
     upTo: y => `up to ${y}`, over: y => `over ${y}`, from: y => `from ${y}`,
     vhCrew: n => `${n}, captains and first officers combined: `, crewAvg: who => `${who}: average across all`, crewBoth: 'Captains and first officers combined',

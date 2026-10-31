@@ -242,12 +242,12 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <article class="pvg-card pvg-pay" data-pvg-pane="overview pay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l5 7 5-7M12 11v9M7 12h10M7 16h10"/></svg></span><h2 class="pvg-eyebrow">Pay</h2><span class="pvg-chip">Taxed (France)</span></header>
 <div class="pvg-ranks">
-<div class="pvg-rank" data-rank="cap">
+<div class="pvg-rank" data-rank="cap" data-med="0" data-rule="higher" data-base="5140" data-top="7000">
 <h3 class="pvg-rk"><span class="pvg-vh">Air France </span>Captain<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="51400000" data-orig="¥5,140万">$323K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:73.43%"></i></div>
 </div>
-<div class="pvg-rank" data-rank="fo">
+<div class="pvg-rank" data-rank="fo" data-med="0" data-rule="higher" data-base="2200" data-top="7000">
 <h3 class="pvg-rk"><span class="pvg-vh">Air France </span>First Officer<span class="pvg-rk-s"><span class="pvg-vh">, estimated annual pay</span></span></h3>
 <p class="pvg-big"><span class="pv-cur" data-jpy="22000000" data-orig="¥2,200万">$138K</span></p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:31.43%"></i></div>
@@ -262,8 +262,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">
 <summary>Who it covers, what’s included, and when<svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
 <div class="pvg-body">
-<dl class="pvg-dl"><div><dt>Captain</dt><dd><small><span class="pv-no-cur">Midpoint, €240,000, of the table’s long-haul Senior CDB (777/A350) ~€220,000 - €260,000+, plus CRPN pension.</span></small><small>As of: <span class="pv-no-cur">April 2026 (pension contribution rates for 2025)</span></small></dd></div>
-<div><dt>First Officer</dt><dd><small><span class="pv-no-cur">€102,500: midpoint of the table’s Year 3-5 top (€100,000) and Year 7-10 bottom (€105,000), plus CRPN pension.</span></small><small>As of: <span class="pv-no-cur">April 2026 (pension contribution rates for 2025)</span></small></dd></div></dl>
+<dl class="pvg-dl"><div data-rank="cap"><dt>Captain</dt><dd><small><span class="pv-no-cur">Midpoint, €240,000, of the table’s long-haul Senior CDB (777/A350) ~€220,000 - €260,000+, plus CRPN pension.</span></small><small>As of: <span class="pv-no-cur">April 2026 (pension contribution rates for 2025)</span></small></dd></div>
+<div data-rank="fo"><dt>First Officer</dt><dd><small><span class="pv-no-cur">€102,500: midpoint of the table’s Year 3-5 top (€100,000) and Year 7-10 bottom (€105,000), plus CRPN pension.</span></small><small>As of: <span class="pv-no-cur">April 2026 (pension contribution rates for 2025)</span></small></dd></div></dl>
 <p class="pvg-srcs"><span>Sources</span><a class="pvg-src" href="https://readyfortakeoffbook.com/blogs/pilot-conditions/air-france" target="_blank" rel="noopener">Ready For Take-Off Book, “Air France | Pilot Salaries, Roster, Fleet and Career Guide”</a><small>Published 13 April 2026 · checked 29 October 2026</small><a class="pvg-src" href="https://www.ccomptes.fr/sites/default/files/2025-12/20251210-S2025-1632-Caisse-de-retraite-du-personnel-navigant-de-l-aviation-civile.pdf" target="_blank" rel="noopener">Cour des comptes (France’s national audit office), “La caisse de retraite du personnel navigant professionnel de l'aéronautique civile (CRPN)”</a><small>Published 10 December 2025 · checked 29 October 2026</small></p>
 </div>
 </details>
@@ -743,7 +743,7 @@ var tb=document.getElementById('theme-toggle');if(tb){tb.innerHTML=document.docu
 <script src="../../airlines/airline-reviews-data.js"></script>
 <script src="../../airlines/airline-reviews-ui.js"></script>
 <!--PV-GLANCE-JS-->
-<script src="../../career-live.js?v=49fcf3c3"></script>
+<script src="../../career-live.js?v=1c816b5e"></script>
 <script src="../../pv-glance.js?v=f69c2eb8"></script>
 <script src="../../pv-contrib.js?v=ecb006c8"></script>
 <script src="../../pv-proof-offer.js?v=cc4ef913"></script>

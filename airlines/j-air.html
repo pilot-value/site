@@ -229,18 +229,18 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <article class="pvg-card pvg-pay" data-pvg-pane="overview pay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4l5 7 5-7M12 11v9M7 12h10M7 16h10"/></svg></span><h2 class="pvg-eyebrow">給与</h2><span class="pvg-chip">課税（日本）</span></header>
 <div class="pvg-ranks">
-<div class="pvg-rank" data-rank="cap">
+<div class="pvg-rank" data-rank="cap" data-med="0" data-rule="higher" data-base="2000" data-top="3000">
 <h3 class="pvg-rk"><span class="pvg-vh">ジェイエア</span>機長<span class="pvg-rk-s">の推定年収</span></h3>
 <p class="pvg-big">¥2,000万</p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:66.67%"></i></div>
 </div>
-<div class="pvg-rank" data-rank="fo">
-<h3 class="pvg-rk"><span class="pvg-vh">ジェイエア</span>副操縦士<span class="pvg-rk-s">の推定年収</span></h3>
+<div class="pvg-rank" data-rank="fo" data-med="1" data-rule="higher" data-base="1250" data-top="3000">
+<h3 class="pvg-rk"><span class="pvg-vh">ジェイエア</span>副操縦士<span class="pvg-rk-s">の中央値</span></h3>
 <p class="pvg-big">¥1,350万</p>
 <div class="pvg-track"><i class="pvg-bar pvg-bar-est" style="width:45.00%"></i></div>
 </div>
 </div>
-<p class="pvg-estk">当サイトの推定</p>
+<p class="pvg-estk">機長は当サイトの推定・副操縦士は会員が出した年収の中央値</p>
 <section class="pvg-rp" id="pvg-realpay" aria-label="提出された年収">
 <h3 class="pvg-rp-h">提出された年収<small lang="en">REAL PAY</small></h3>
 <div class="crl" data-live="realpay" data-airline="j-air" data-top="3" data-state="idle"><span class="crl-ph">—</span></div>
@@ -255,8 +255,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <details class="pvg-dt pvg-paydt" id="kyuyo-konkyo">
 <summary>この金額は誰の・何を含んだ・いつの金額か<svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
 <div class="pvg-body">
-<dl class="pvg-dl"><div><dt>機長</dt><dd><small>当サイトの推定</small></dd></div>
-<div><dt>副操縦士</dt><dd><small><span class="pv-no-cur">会員が出した年収の中央値（1人1件・1万円単位）。</span></small><small>時点：<span class="pv-no-cur">2026年10月30日 集計</span></small></dd></div></dl>
+<dl class="pvg-dl"><div data-rank="cap"><dt>機長</dt><dd><small>当サイトの推定</small></dd></div>
+<div data-rank="fo"><dt>副操縦士</dt><dd><small><span class="pv-no-cur">会員が出した年収の中央値（1人1件・1万円単位）。</span></small><small>時点：<span class="pv-no-cur">2026年10月30日 集計</span></small></dd></div></dl>
 <ul class="pvg-notes"><li><span class="pv-no-cur">会社自身が「募集は終了しております。前回分を参考までに掲載します。」と書いている要項の額です。現在の額とは書かれていません。</span></li><li><span class="pv-no-cur">「入社後の初期訓練期間中」に限った額です。訓練が進んだあとの額ではありません。</span></li><li><span class="pv-no-cur">諸手当の項目そのものがありません。税引き前か後かも書かれていません。</span></li><li><span class="pv-no-cur">副操縦士に発令されるまでは契約社員で、発令後に正社員になります（会社の要項）。</span></li><li><span class="pv-no-cur">機長の募集要項は「当社規程による」「給与等は選考における面接時に説明いたします」で、金額がありません。</span></li></ul><p class="pvg-srcs"><span>出典</span><a class="pvg-src" href="https://www.jair.co.jp/about/recruit/pilot/apply02.html" target="_blank" rel="noopener">株式会社ジェイエア（採用サイト）「運航乗務員訓練生（自社養成パイロット）募集要項」</a><small>ページ冒頭に「募集は終了しております。前回分を参考までに掲載します。」・確認日 2026年9月29日</small><a class="pvg-src" href="https://pilot-value.com/actual-pay.html" target="_blank" rel="noopener">PILOT VALUE「REAL PAY（会員が出した給与）」</a><small>2026年10月30日 集計・確認日 2026年10月30日</small></p>
 </div>
 </details>
@@ -833,7 +833,7 @@ setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>
 <script src="airline-base.js?v=473df075"></script>
 <script src="../currency.js"></script>
 <!--PV-GLANCE-JS-->
-<script src="../career-live.js?v=49fcf3c3"></script>
+<script src="../career-live.js?v=1c816b5e"></script>
 <script src="../pv-glance.js?v=f69c2eb8"></script>
 <script src="../pv-contrib.js?v=ecb006c8"></script>
 <script src="../pv-proof-offer.js?v=cc4ef913"></script>
