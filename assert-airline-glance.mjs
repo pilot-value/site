@@ -257,7 +257,7 @@ function crewLedger(slug) {
 const traineeModel = slug => {
   const b = BASIS[slug];
   return ((b.trainee && b.trainee.groups) || []).filter(g => typeof g.start_m === 'number')
-    .map(g => ({ group: g.name, text: `約${toMan(b.cur, g.start_m)}万円` }));
+    .map(g => ({ group: g.name, text: `約${toMan(b.cur, g.start_m)}万円`, man: Number(String(toMan(b.cur, g.start_m)).replace(/,/g, '')) }));
 };
 /* 目盛の右端：棒で出すいちばん大きい額を 1,000万の刻みへ切り上げる。
    ★2026-10-21（全社へ広げる d1 の続き）〜2026-10-24 は「目盛は切り替えた会社ぜんぶから」（全ページで1本 ── 最後は ¥7,000万）。
@@ -1813,11 +1813,11 @@ head('月の勤務を枠と帯で描く部品（career-live.js / career-live.css
 
 /* 概要のカードに出る行。面を作り直しても、ここから1行も減らさない（ボタンの件数だけが変わった） */
 const CARD_LINES = {
-  jal: { work: ['休日', ['勤務時間の決め方', '訓練の場所'], 1, 'ほか5件と出典'], benefits: ['賞与', ['社宅・寮', '社員の航空券'], 1, 'ほか3件と出どころ'] },
-  ana: { work: ['休日', ['勤務時間の決め方', '乗務のパターン'], 1, 'ほか4件と出典'], benefits: ['賞与', ['寮・社宅', '諸手当'], 1, 'ほか5件と出どころ'] },
-  'cathay-pacific': { work: ['年次休暇（First Officer）', ['年次休暇（Second Officer）', '昇格の決まり方'], 1, 'ほか4件と出典'], benefits: ['社員の航空券', ['住宅手当', '月々の手当（First Officer）'], 1, 'ほか6件と出どころ'] },
-  etihad: { work: ['年次休暇', [], 3, 'ほか1件と出典'], benefits: ['教育手当（初等）', ['教育手当（中等）', '住宅'], 1, 'ほか7件と出どころ'] },
-  'eva-air': { work: ['休日', ['年次休暇', '有給の病気休暇'], 1, 'ほか3件と出典'], benefits: ['住まい', ['賞与', '社員の航空券'], 1, 'ほか2件と出どころ'] },
+  jal: { work: ['休日', ['勤務時間の決め方', '訓練の場所'], 1, 'ほか5件と出典'], benefits: ['賞与', ['社宅・寮', '社員の航空券'], 1, 'ほか3件と出典'] },
+  ana: { work: ['休日', ['勤務時間の決め方', '乗務のパターン'], 1, 'ほか4件と出典'], benefits: ['賞与', ['寮・社宅', '諸手当'], 1, 'ほか5件と出典'] },
+  'cathay-pacific': { work: ['年次休暇（First Officer）', ['年次休暇（Second Officer）', '昇格の決まり方'], 1, 'ほか4件と出典'], benefits: ['社員の航空券', ['住宅手当', '月々の手当（First Officer）'], 1, 'ほか6件と出典'] },
+  etihad: { work: ['年次休暇', [], 3, 'ほか1件と出典'], benefits: ['教育手当（初等）', ['教育手当（中等）', '住宅'], 1, 'ほか7件と出典'] },
+  'eva-air': { work: ['休日', ['年次休暇', '有給の病気休暇'], 1, 'ほか3件と出典'], benefits: ['住まい', ['賞与', '社員の航空券'], 1, 'ほか2件と出典'] },
 };
 head('「勤務・訓練」の板の印・同じ項目は1か所・概要のカード・出典（S4〜S7）');
 {
@@ -3576,10 +3576,12 @@ async function runView(browser, s, [w, h, kind]) {
     }
     {
       /* 会社が公表している金額の行（棒は無い）。上限は「〜」・下限は「超」が額に付いて見えている。 */
-      const FRAME = { cap: '〜¤', over: '¤超', co: '¤', crew: '¤' };
+      const FRAME = { cap: '〜¤', over: '¤超', co: '¤', crew: '¤', trainee: '約¤' };
       const want = [];
       for (const [rk] of RANKS) { const m = rankModel(s, rk); for (const f of [m.cap, m.co].filter(Boolean)) want.push(KIND[f.key]); }
       if (crewModel(s).length) want.push('crew');
+      /* ★2026-10-30 オーナー「訓練生の給料の部分も、金額以外はプルダウンにして」── 訓練生の入社時の額も表の行（「約」が付く） */
+      for (const t of traineeModel(s)) want.push('trainee');
       ok(same(pay0.rows.map(r => r.kind), want) && pay0.rows.every(r => r.value && r.frame === FRAME[r.kind]),
          `${tag}: 公表額の行は台帳の数だけ見えていて、上限には「〜」・下限には「超」が付く`, pay0.rows.map(r => `${r.kind}:${r.frame}`).join(' '));
       if (kind !== 'col') ok(pay0.estk, `${tag}: 広い画面では、棒のすぐ下に「${EST_BY}」が見えている`);
@@ -3602,9 +3604,11 @@ async function runView(browser, s, [w, h, kind]) {
       const want = [];
       for (const [rk] of RANKS) { const m = rankModel(s, rk); for (const x of [m.est, m.cap, m.co]) if (x) want.push(x.man * 10000); }
       if (crewModel(s).length) want.push(crewModel(s)[0].man * 10000);
+      for (const t of traineeModel(s)) want.push(t.man * 10000);   /* ★2026-10-30 訓練生の入社時の額も表に在る */
       const bad = [];
       if (!same(m0.pay, want.sort((a, b) => a - b))) bad.push(`給与の箱 ${m0.pay}（正本 ${want}）`);
-      if (!(m0.axis.length === 1 && m0.axis.every(n => n === AXIS_OF(s) * 10000))) bad.push(`目盛 ${m0.axis}`);
+      /* ★2026-10-30 オーナー「棒の目盛は…いらねえだろ」── 目盛の一文は出さない */
+      if (m0.axis.length) bad.push(`目盛が出ている ${m0.axis}`);
       ok(!bad.length, `${tag}: 通貨を換える元の円（data-jpy）は、正本の額そのもの`, bad.join(' ／ '));
     }
 
