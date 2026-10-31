@@ -353,7 +353,7 @@ function whenOf(pay) {
 /* ★2026-10-31 オーナー「中央値を出した航空会社は推定年収じゃなくて中央値に」「提出のたびにすぐ変える」
      ── 会員の中央値の職位は見出しを「◯◯の中央値」に。data-* は career-live.js がその場で中央値に差し替えるときの決まり
      （rule：always ＝ いつも中央値／higher ＝ 中央値が base を超えたときだけ・top ＝ 棒の右端）。 */
-const rankBlock = (v, [rk]) => `<div class="pvg-rank" data-rank="${rk}" data-med="${v.pay[rk].est.med ? 1 : 0}" data-rule="${v.pay[rk].est.rule}" data-base="${v.pay[rk].est.base}" data-top="${scaleOf(v.slug)}">
+const rankBlock = (v, [rk]) => `<div class="pvg-rank" data-rank="${rk}" data-med="${v.pay[rk].est.med ? 1 : 0}" data-rule="${v.pay[rk].est.rule}" data-base="${v.pay[rk].est.base}" data-man="${v.pay[rk].est.man}" data-top="${scaleOf(v.slug)}">
 <h3 class="pvg-rk"><span class="pvg-vh">${W.vhName(esc(v.name))}</span>${W.rank[rk]}<span class="pvg-rk-s">${v.pay[rk].est.med ? W.rankMed : W.rankEst}</span></h3>
 <p class="pvg-big">${v.pay[rk].est.yen}</p>
 ${bar(v.pay[rk].est.man, scaleOf(v.slug))}

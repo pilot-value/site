@@ -3145,10 +3145,12 @@
       else { isMed = false; man = base; }
       state[rk] = isMed;
       if (!(man > 0)) return;
+      /* 額も種類（中央値か推定か）も書き込んであるままなら、1文字も触らない */
+      if (Number(r.getAttribute('data-man')) === man && (r.getAttribute('data-med') === '1') === isMed) return;
+      r.setAttribute('data-man', String(man));
       var big = r.querySelector('.pvg-big');
-      if (big && big.getAttribute('data-man') !== String(man)) {
+      if (big) {
         big.textContent = MED_T.yen(man);
-        big.setAttribute('data-man', String(man));
         if (C && typeof C.scan === 'function') C.scan(big);
         if (C && typeof C.apply === 'function') C.apply();
       }
@@ -3164,7 +3166,8 @@
     if (by) {
       var mk = ['cap', 'fo'].filter(function (k) { return state[k] === true; }), ek = ['cap', 'fo'].filter(function (k) { return state[k] === false; });
       var name = function (k) { return MED_T.rank[k]; };
-      by.textContent = !mk.length ? MED_T.byEst : !ek.length ? MED_T.byMed : MED_T.mix(ek.map(name).join(MED_T.sep), mk.map(name).join(MED_T.sep));
+      var t = !mk.length ? MED_T.byEst : !ek.length ? MED_T.byMed : MED_T.mix(ek.map(name).join(MED_T.sep), mk.map(name).join(MED_T.sep));
+      if (by.textContent !== t) by.textContent = t;
     }
   }
   function medianBoot() {

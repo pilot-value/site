@@ -2502,6 +2502,11 @@ const workBody = mode => (mode === 'work' ? JSON.stringify({ ok: true, state: 'o
   : mode === 'rows' ? '{"ok":true,"state":"locked"}' : '{"ok":true,"state":"login"}');
 /* 会員が挙げた街の一覧の口（db/towns.sql の pv_town_board）。返事は場面ごと（townBody・seen.town）。 */
 const TOWN_RE = /\/rest\/v1\/rpc\/pv_town_board$/;
+/* ★2026-10-31 会員の中央値の口（db/member-median.sql の pv_member_medians）。返すのは、ページに書き込んである中央値と同じ額
+     （台帳の from: 'members' の職位だけ）＝ ページの額は1文字も変わらない。差し替えそのものは assert-member-median.mjs が見る。 */
+const MED_RE = /\/rest\/v1\/rpc\/pv_member_medians$/;
+const medBody = post => { let a = ''; try { a = (JSON.parse(post || '{}') || {}).p_airline || ''; } catch { a = ''; }
+  return JSON.stringify(SALARY[a] ? RANKS.filter(([rk]) => BASIS[a]?.[rk]?.from === 'members').map(([rk]) => ({ rank: rk, median_man: SALARY[a][rk].avg })) : []); };
 const STUB = [
   [/\/rest\/v1\/rpc\/pv_reviews$/, '{"unlocked":false,"rows":[]}'],
   [PAY_RE, '{"ok":true,"state":"locked","rows":[]}'],
@@ -2516,6 +2521,7 @@ const STUB = [
   [TOWN_RE, ''],
   [/\/rest\/v1\/rpc\/my_town_posts$/, '{"ok":true,"posts":[]}'],
   [/\/rest\/v1\/rpc\/pv_town_options$/, '{"ok":true,"towns":[]}'],
+  [MED_RE, ''],
 ];
 /* 集計の口と同じ1語を返す、横の2つの口（月の勤務・会員の補足）。上の表の、未ログインへの1語を返す行から拾う（名前をもう一度書かない）。 */
 const SIDE = STUB.filter(([, body]) => body === stateBody('login')).map(([re]) => re);
@@ -2850,6 +2856,7 @@ async function open(browser, slug, w, h, mode, pre, pay, extra) {
       }
       const hit = seen.mode !== 'off' && STUB.find(([re]) => re.test(u.pathname));
       if (hit) {
+        if (hit[0] === MED_RE) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: medBody(r.postData()) });
         if (hit[0] === FACT_RE) {
           seen.factCalls.push(r.postData() || '');
           return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: factBody(seen.mode) });
@@ -3831,7 +3838,7 @@ async function runView(browser, s, [w, h, kind]) {
         `${tag}: 募集の1枚の入口は「会社の募集ページ」── 台帳のいちばん上の資料を新しいタブで開く・カードからはみ出さない`, JSON.stringify(j));
       ok(j.old === 0, `${tag}: 「募集要項を開く」（タブを切り替えるボタン）が残っていない`, String(j.old));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -4061,7 +4068,7 @@ async function runRows(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-realpay'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 一覧の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
     /* 給与・待遇のタブでは、欄が持つ3行がそのまま出る（概要で減らしたのは「何行めまで見せるか」だけ）。 */
     {
       await ev(() => document.querySelector('.pvg-tabs [data-pvg-tab="pay"]').click());
@@ -4451,7 +4458,7 @@ async function runRated(browser, s, [w, h, kind]) {
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
     const pr = await ev(() => window.__pvg.probe('#pvg-score'));
     ok(!pr.small.length && !pr.tap.length && !pr.bare.length, `${tag}: 評価の字 12px 以上・押す場所 44px 以上・押せるものに状態が在る`, [...pr.small, ...pr.tap, ...pr.bare].slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
     if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-key-${s}-${w}-overview`);
     {
@@ -4529,7 +4536,7 @@ async function runRated404(browser, s, [w, h, kind]) {
     ok(!shapeBad(sh, kind).length, `${tag}: 概要の並びが崩れない`, shapeBad(sh, kind).join(' ／ '));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
     if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-off-${s}-${w}-overview`);
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
@@ -4663,7 +4670,7 @@ async function runRatedOne(browser, s, [w, h, kind], mode) {
     ok(!B.c.length, `${tag}: 概要と口コミのタブの両方で、カードの錠前の1行とログインの入口は ${login ? `「${SUM_LOCK_TEXT}」1つ・ログイン1つ` : '1つまで'}（同じ案内を重ねない）`, B.c.join(' ／ '));
     /* ★2026-10-30 未ログインの形は影絵と板を持つ（1行で済む形ではない）── 高さが動かないことを見るのは、1行で済む形（少ない／まだ無い）だけ */
     ok(!B.d.length, `${tag}: 要約の欄は「読み込み中」→「${SUM_FINAL[want]}」だけを通る${want === 'error' || login ? '' : '・答えが来ても高さが動かない（2px まで）'}`, B.d.join(' ／ '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
     if (login) {
       /* 口コミのタブで開いた時：ログインの入口は、その同じタブへ戻る（同じページの物 ＝ 偽のサーバーと SUM_WATCH は付いたまま）。 */
       await fresh(`${BASE}/airlines/${s}.html#reviews`);
@@ -4754,7 +4761,7 @@ async function runRatedOpenAt(browser, s, [w, h, kind], mode) {
       ok(!B.c.length, `${tag}: 鍵を持つ人の要約の欄は、鍵や空の形を一度も通らない`, B.c.join(' ／ '));
       ok(!B.d.length, `${tag}: 概要と口コミのタブの両方で、矢印は #reviews・社風／勤務・元の口コミの番号・「この要約のもとになった口コミを見る」・44px 以上`, B.d.join(' ／ '));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
     if (max) return;
     /* E9.5（持ち越し）：区分のタイル6枚は、絵（.rcg-icon の svg）を1つずつ持ち、6つの絵は互いに違う（区分ごとの絵。並び順で選ばない）。
        タイルの右の矢印も svg なので、数えるのは絵の箱の中だけ。DOM を読むだけ（タイルが画面に見えている必要は無い）。 */
@@ -4857,7 +4864,7 @@ async function runFacts404(browser, s, [w, h]) {
     ok(!bad.length, `${tag}: 見えている集計の欄は「${FACT_OFF}」だけ ──「${FACT_NONE}」と書かない・数字もリンクも出さない（つながっていないことを、0件のように見せない）`, [...new Set(bad)].join(' ／ '));
     const geo = await ev(() => window.__pvg.geom(true));
     ok(!geo.length, `${tag}: 切れ・はみ出し・重なりが無い`, geo.slice(0, 8).join('\n      '));
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -7450,6 +7457,7 @@ async function openOld(browser, lang, w, h, { block = '', stale = false } = {}) 
       if (REV_RE.test(u.pathname)) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: ratedBody(OLD_SAMPLE[lang]) });
       if (r.method() === 'HEAD' && OLD_COUNT_RE.test(u.pathname)) return r.respond({ status: 200, headers: { ...cors, 'access-control-expose-headers': 'content-range', 'content-range': '*/0' } });
       const hit = STUB.find(([re]) => re.test(u.pathname));
+      if (hit && hit[0] === MED_RE) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: medBody(r.postData()) });
       if (hit && hit[0] === FACT_RE) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: factBody('') });
       if (hit) return r.respond({ status: 200, contentType: 'application/json', headers: cors, body: hit[1] });
       seen.unknown.add(`${r.method()} ${u.pathname}`);
@@ -8110,7 +8118,7 @@ async function runGive(browser, s, [w, h]) {
       fault(await gated(), 3, 'off', FACT_OFF, '404');
       ok(!bad.length, `${tag}: 答えるカードの読み出しが失敗した時 ── 読めない時と、'open' の1語が返った時は「${GIVE_ERR}」＋「${GIVE_RETRY}」（押すと、答えるカードの口だけをもう1回呼ぶ・1行は残る）・口が無い時は「${FACT_OFF}」。数字を書いた1行も、中身の無いカードも出さない`, [...new Set(bad)].slice(0, 6).join(' ／ '));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
@@ -8187,7 +8195,7 @@ async function runGiveOpen(browser, s, [w, h]) {
       const geo3 = await ev(() => window.__pvg.geom(true));
       ok(!geo3.length, `${tag}: 給与・待遇のタブでも、切れ・はみ出し・重なりが無い`, geo3.slice(0, 8).join('\n      '));
     }
-    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている11だけ`, [...seen.unknown].join(' '));
+    ok(!seen.unknown.size, `${tag}: 実データの欄が呼ぶのは、検査が知っている12だけ`, [...seen.unknown].join(' '));
   } catch (e) {
     ok(false, `${tag}: 最後まで測れた`, String(e && e.message).slice(0, 300));
   } finally {
