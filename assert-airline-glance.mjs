@@ -135,6 +135,12 @@ const RANK_KEYS = ['max_y', 'target_y', 'cash_y_over', 'allow_m_from'];
 const LABEL = { max_y: '求人の上限', target_y: '目標年収', cash_y_over: '下限' };
 const KIND = { max_y: 'cap', target_y: 'co', cash_y_over: 'over' };
 const EST_BY = '当サイトの推定';   // ★2026-10-30「（公開情報からの推計）」を外した（会員の中央値の会社もある）
+/* ★2026-10-31 オーナー「中央値を出した航空会社は推定年収じゃなくて中央値に」── 台帳の from: 'members' の職位は見出しが「◯◯の中央値」、
+     棒の下の1行は どれも推定 →「当サイトの推定」／どれも中央値 →「会員が出した年収の中央値」／混ざる → 職位ごとに。 */
+const MED_BY = '会員が出した年収の中央値';
+const isMed = (s, rk) => BASIS[s]?.[rk]?.from === 'members';
+const estByWant = s => { const m = RANKS.filter(([rk]) => isMed(s, rk)).map(([, j]) => j), e = RANKS.filter(([rk]) => !isMed(s, rk)).map(([, j]) => j);
+  return !m.length ? EST_BY : !e.length ? MED_BY : `${e.join('・')}は当サイトの推定・${m.join('・')}は会員が出した年収の中央値`; };
 /* 推定年収の行の1行目（職位ごとの推定の額のすぐ次）。字は gen-career.mjs の EST_TARGET（比較の画面の「推定年収 機種の指定なし」と同じ1か所）。 */
 const EST_TGT = `対象：${EST_TARGET}`;
 const UNLOCK = '全ての待遇データを解放する';
@@ -477,12 +483,12 @@ for (const s of FIVE) {
 
 head('給与の箱（画面の額 ⇄ 正本）');
 /* 説明を開く前の給与の箱を読む：職位ごとの推定年収（額と棒）／「当サイトの推定」の1行／会社が公表している金額の一覧。 */
-const RANK_RE = /<div class="pvg-rank" data-rank="(cap|fo)">\n<h3 class="pvg-rk"><span class="pvg-vh">([^<]*)<\/span>([^<]*)<span class="pvg-rk-s">([^<]*)<\/span><\/h3>\n<p class="pvg-big">([^<]*)<\/p>\n<div class="pvg-track"><i class="pvg-bar pvg-bar-([a-z]+)" style="width:([\d.]+%)"><\/i><\/div>\n<\/div>/g;
+const RANK_RE = /<div class="pvg-rank" data-rank="(cap|fo)"([^>]*)>\n<h3 class="pvg-rk"><span class="pvg-vh">([^<]*)<\/span>([^<]*)<span class="pvg-rk-s">([^<]*)<\/span><\/h3>\n<p class="pvg-big">([^<]*)<\/p>\n<div class="pvg-track"><i class="pvg-bar pvg-bar-([a-z]+)" style="width:([\d.]+%)"><\/i><\/div>\n<\/div>/g;
 const PUB_RE = /<div class="pvg-pub">\n<h3 class="pvg-k">([^<]*)<\/h3>\n<ul>\n([\s\S]*?)\n<\/ul>\n(?:<p class="pvg-note">([\s\S]*?)<\/p>\n)?<\/div>/;
 const PUB_ROW_RE = /<li data-kind="([a-z]+)"(?: data-rank="(cap|fo)")?><p class="pvg-pk"><span class="pvg-vh">([^<]*)<\/span>(?:<b>([^<]*)<\/b>)?([^<]*)<\/p><p class="pvg-pv">([^<]*)(?:<small class="pv-no-cur pvg-orig">([^<]*)<\/small>)?<\/p>(?:<p class="pvg-pn">([\s\S]*?)<\/p>)?<\/li>/g;
 function payTopOf(s) {
   const top = PART[s].payTop;
-  const ranks = [...top.matchAll(RANK_RE)].map(m => ({ rank: m[1], spoken: unesc(m[2]), role: m[3], tail: m[4], big: m[5], bar: [m[6], m[7]], end: m.index + m[0].length }));
+  const ranks = [...top.matchAll(RANK_RE)].map(m => ({ rank: m[1], attrs: Object.fromEntries([...m[2].matchAll(/ data-([a-z]+)="([^"]*)"/g)].map(a => [a[1], a[2]])), spoken: unesc(m[3]), role: m[4], tail: m[5], big: m[6], bar: [m[7], m[8]], end: m.index + m[0].length }));
   const pub = PUB_RE.exec(top);
   const rows = pub ? [...pub[2].matchAll(PUB_ROW_RE)].map(m => ({
     kind: m[1], rank: m[2] || '', spoken: unesc(m[3]), role: m[4] || '', label: unesc(m[5]), value: m[6], orig: m[7] || '', own: m[8] != null ? text(m[8]) : '',
@@ -502,7 +508,12 @@ for (const s of FIVE) {
   for (const [rk, rkJa] of RANKS) {
     const r = T.ranks.find(x => x.rank === rk), avg = SALARY[s][rk].avg;
     if (!r) { ok(false, `${s} ${rkJa}: 推定年収の欄が在る（「確認中」にしない）`); continue; }
-    ok(r.role === rkJa && r.tail === 'の推定年収', `${s} ${rkJa}: 見出しは「${rkJa}の推定年収」`, `${r.role}${r.tail}`);
+    const tail = isMed(s, rk) ? 'の中央値' : 'の推定年収';
+    ok(r.role === rkJa && r.tail === tail, `${s} ${rkJa}: 見出しは「${rkJa}${tail}」（台帳の from: 'members' なら中央値）`, `${r.role}${r.tail}`);
+    /* ★2026-10-31 その場で中央値に差し替える決まり（data-*）が台帳のまま：ANA・JAL ＝ always／ほかは higher と、比べる元の推定（中央値の職位は台帳の base・それ以外は今の推定） */
+    const b = BASIS[s]?.[rk] || {}, rule = b.median === 'always' ? 'always' : 'higher', base = isMed(s, rk) ? (rule === 'always' ? avg : b.base) : avg;
+    ok(r.attrs.med === (isMed(s, rk) ? '1' : '0') && r.attrs.rule === rule && Number(r.attrs.base) === base && Number(r.attrs.top) === AXIS_OF(s),
+       `${s} ${rkJa}: 中央値へ差し替える印は台帳のまま（med・rule ${rule}・base ${base}・top）`, JSON.stringify(r.attrs));
     ok(r.big === yen(avg), `${s} ${rkJa}: 推定年収は正本（SALARY）の額そのまま`, `${r.big}（正本 ${yen(avg)}）`);
     ok(same(r.bar, ['est', widthOf(s, avg)]), `${s} ${rkJa}: 棒は推定の棒で、長さは額どおり`, `${r.bar}（あるべき est,${widthOf(s, avg)}）`);
     ok(r.spoken.includes(nameOf(s)), `${s} ${rkJa}: 読み上げに社名が入っている`, r.spoken);
@@ -510,8 +521,8 @@ for (const s of FIVE) {
   ok(!/確認中/.test(text(PART[s].pay)), `${s}: 給与の箱に「確認中」と書かない（説明の中も）`, (text(PART[s].pay).match(/.{0,20}確認中.{0,10}/) || [''])[0]);
   ok(!/確認中/.test(text((PART[s].hero + PART[s].glance).replace(/<script\b[\s\S]*?<\/script>/g, ''))), `${s}: 社名の行と新しい節のどこにも「確認中」と書かない`);
   /* 推定だと分かる1行（広い画面で棒のすぐ下に出る。狭い画面では説明の中に同じ言葉が在る）。 */
-  ok(T.estk.length === 1 && T.estk[0].text === EST_BY && T.ranks.length === 2 && T.estk[0].at >= T.ranks[1].end && (!T.pub || T.estk[0].at < T.pub.at),
-     `${s}: 「${EST_BY}」が、2本の棒のすぐ下に1回だけ在る`, T.estk.map(e => e.text).join(' ／ '));
+  ok(T.estk.length === 1 && T.estk[0].text === estByWant(s) && T.ranks.length === 2 && T.estk[0].at >= T.ranks[1].end && (!T.pub || T.estk[0].at < T.pub.at),
+     `${s}: 「${estByWant(s)}」が、2本の棒のすぐ下に1回だけ在る`, T.estk.map(e => e.text).join(' ／ '));
 
   /* ── 棒は推定年収の2本だけ（種類の違う額を、同じ目盛の棒で並べない） ── */
   const bars = [...PART[s].pay.matchAll(/class="pvg-bar pvg-bar-([a-z]+)"/g)].map(m => m[1]);
@@ -563,7 +574,7 @@ head('給与の説明（誰の・何を含んだ・いつの金額か）');
 for (const s of FIVE) {
   const dt = PART[s].payDt;
   const dl = one(dt, /<dl class="pvg-dl">([\s\S]*?)<\/dl>/) || '';
-  const rows = [...dl.matchAll(/<div><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g)].map(m => ({
+  const rows = [...dl.matchAll(/<div(?: data-rank="(?:cap|fo)")?><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g)].map(m => ({
     dt: text(m[1]), b: text(one(m[2], /<b>([\s\S]*?)<\/b>/) || ''), orig: one(m[2], /<span class="pv-no-cur pvg-orig">([^<]*)<\/span>/) || '',
     small: [...m[2].matchAll(/<small>([\s\S]*?)<\/small>/g)].map(x => text(x[1])),
   }));
