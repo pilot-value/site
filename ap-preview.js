@@ -71,12 +71,13 @@
       paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [60, 70], dd: [12, 14], off: [10, 12] } },
 
-    /* 'air-new-zealand' cap.avg = 3300万円 → 33,000,000 / 158.95 ≒ $207,612
-         ⚠️ ここを $200,000 に丸めてはいけない。画面の円は sig2(usd × 158.95) で
-            作られるので、200,000 だと ¥3,200万 になり**サイトの公開値と食い違う**。
-            210,000 なら 33,379,500 → 有効数字2桁で 33,000,000 ＝ ¥3,300万。 */
-    { airline: 'air-new-zealand', pos: 'cap', fleet: 'b787', ten: 0, tenk: 'r',
-      annual_usd: 210000, _man: 3300, _rank: 'cap', _p: 1, lock: false,
+    /* 'riyadh-air' cap.avg = 4300万円 → 43,000,000 / 158.95 ≒ $270,525 → 2桁で $270,000
+         ⚠️ 円は画面が sig2(usd × 158.95) で作り直すので、
+            270,000 → 42,916,500 → 有効数字2桁で 43,000,000 ＝ ¥4,300万 で往復する。
+       ★2026-10-31 ニュージーランド航空（3,300万）から入れ替えた ── ニュージーランド航空は salary-basis.mjs に載り、
+         額も 3,420万（2桁で往復しない）になったため。リヤド・エアも B787-9 を運航している。 */
+    { airline: 'riyadh-air', pos: 'cap', fleet: 'b787', ten: 0, tenk: 'r',
+      annual_usd: 270000, _man: 4300, _rank: 'cap', _p: 1, lock: false,
       paylock: ['base', 'variable', 'command', 'perdiem'],
       work: { bh: [70, 80], dd: [14, 16], off: [10, 12] } },
 
