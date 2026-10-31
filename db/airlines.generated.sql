@@ -170,9 +170,9 @@ insert into public.pv_airlines (code, name_ja, name_en, region, cap_lo, cap_hi, 
   ('luxaviation', 'Luxaviation', 'Luxaviation', 'europe', null, null, null, null),
   ('gama-aviation', 'Gama Aviation', 'Gama Aviation', 'europe', null, null, null, null),
   ('royal-jet', 'Royal Jet', 'Royal Jet', 'mideast', null, null, null, null),
-  ('flydubai', 'フライドバイ（flydubai）', 'flydubai', 'mideast', null, null, null, null),
-  ('juneyao-airlines', '吉祥航空（Juneyao Air）', 'Juneyao Airlines', 'asia', null, null, null, null),
-  ('air-peace', 'エア・ピース（Air Peace）', 'Air Peace', 'africa', null, null, null, null),
+  ('flydubai', 'フライドバイ', 'flydubai', 'mideast', null, null, null, null),
+  ('juneyao-airlines', '吉祥航空', 'Juneyao Airlines', 'asia', null, null, null, null),
+  ('air-peace', 'エア・ピース', 'Air Peace', 'africa', null, null, null, null),
   ('other', 'その他（自由入力）', 'Other (free text)', 'other', null, null, null, null)
 on conflict (code) do update
   set name_ja = excluded.name_ja,
