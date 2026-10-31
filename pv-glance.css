@@ -211,6 +211,8 @@
 .pvg-pub li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:0 12px}
 .pvg-pk{font-size:12.5px;line-height:1.6;color:var(--pv-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pvg-pk b{margin-right:6px;font-weight:600;color:var(--pv-ink)}
+/* ★2026-10-31 訓練生の行は名前が長い（「自社養成パイロット訓練生・大卒／高等専門学校（専攻科）卒（入社時）」）── 1行に詰めて「…」で切らず、折り返す */
+.pvg-pub li[data-kind="trainee"] .pvg-pk{white-space:normal;overflow:visible;text-wrap:pretty;overflow-wrap:anywhere}
 .pvg-pv{
   font:600 14px/1.4 Inter,'Noto Sans JP',sans-serif;letter-spacing:-.01em;
   font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;color:var(--pv-ink);
