@@ -65,6 +65,7 @@ export const SQL_FILES = [
   'db/work-months.sql',
   'db/pay-median.sql',      // 「提出された給与」の中央値の決め方（地域と比較で同じ式）。誰にも渡さない（2026-10-21）
   'db/company-pay.sql',     // 比較の「提出された年収」の中央値。work-months.sql（鍵の判定）と pay-median.sql のあと（2026-10-21）
+  'db/member-median.sql',   // 会社ページの「会員が出した年収の中央値」。書き込みの引き金で数えて表に置く。pay-rows.sql・reviews-gate.sql のあと（2026-10-31）
   'db/towns.sql',
   'db/towns.generated.sql',
   'db/contrib.sql',

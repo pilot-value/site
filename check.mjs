@@ -65,6 +65,8 @@ const SQL = [
   ['db/test-review-pending.mjs', 5],
   /* 2026-10-30 会社ページの「平均の月の支給構成」（db/deep-pay.sql の pv_company_comp）。pv_deep_pay の給与構成と同じ答えか。単独で約5秒 */
   ['db/test-company-comp.mjs', 5],
+  /* 2026-10-31 会社ページの「会員が出した年収の中央値」（db/member-median.sql）。道具の規則と同じか・引き金・人数を出さない・壊す証明 */
+  ['db/test-member-median.mjs', 6],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。
