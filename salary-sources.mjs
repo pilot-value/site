@@ -2163,6 +2163,31 @@ export const SOURCES = {
   // 見つかったのは**運航乗務員をまとめた会社の公表平均**だけ ＝ rank は 'all'。
   // だから salary-basis.mjs では2社とも機長・副操縦士に est を置いていない（推定は「確認中」）。
   'jal': [
+    /* g4:jal ── ★2026-10-30 オーナー（はじいた資料も使う・上がるときだけ） */
+    {
+      rank:        'cap',
+      source_type: 'manual_report',
+      name:        'REAL PAY（会員が出した給与）JAL 機長',
+      url:         'https://pilot-value.com/actual-pay.html',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  '会員の提出 4人の年収の中央値 2,556万円（直近24か月・1人1件＝最新・テスト用アカウントと本人が下ろした行を除く・年 $10,000〜$700,000）',
+      quote:       'REAL PAY の会員の提出 4人の中央値',
+      status:      'in_use',
+      note:        '★2026-10-31 cap.avg 2,700万 → 2,556万（オーナー：ANA・JAL は中央値にする・推定より低くても。1万円単位）。集計は本番の DB を読むだけの道具（scratchpad の member-median.mjs）。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'manual_report',
+      name:        'REAL PAY（会員が出した給与）JAL 副操縦士',
+      url:         'https://pilot-value.com/actual-pay.html',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  '会員の提出 14人の年収の中央値 1,614万円（直近24か月・1人1件＝最新・テスト用アカウントと本人が下ろした行を除く・年 $10,000〜$700,000）',
+      quote:       'REAL PAY の会員の提出 14人の中央値',
+      status:      'in_use',
+      note:        '★2026-10-31 fo.avg 1,800万 → 1,614万（オーナー：ANA・JAL は中央値にする・推定より低くても。1万円単位）。集計は本番の DB を読むだけの道具（scratchpad の member-median.mjs）。',
+    },
     {
       rank:        'all',
       source_type: 'regulatory_filing',
@@ -2205,6 +2230,31 @@ export const SOURCES = {
   ],
 
   'ana': [
+    /* g4:ana ── ★2026-10-30 オーナー（はじいた資料も使う・上がるときだけ） */
+    {
+      rank:        'cap',
+      source_type: 'manual_report',
+      name:        'REAL PAY（会員が出した給与）ANA 機長',
+      url:         'https://pilot-value.com/actual-pay.html',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  '会員の提出 6人の年収の中央値 2,841万円（直近24か月・1人1件＝最新・テスト用アカウントと本人が下ろした行を除く・年 $10,000〜$700,000）',
+      quote:       'REAL PAY の会員の提出 6人の中央値',
+      status:      'in_use',
+      note:        '★2026-10-31 cap.avg 2,700万 → 2,841万（オーナー：ANA・JAL は中央値にする・推定より低くても。1万円単位）。集計は本番の DB を読むだけの道具（scratchpad の member-median.mjs）。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'manual_report',
+      name:        'REAL PAY（会員が出した給与）ANA 副操縦士',
+      url:         'https://pilot-value.com/actual-pay.html',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  '会員の提出 20人の年収の中央値 1,560万円（直近24か月・1人1件＝最新・テスト用アカウントと本人が下ろした行を除く・年 $10,000〜$700,000）',
+      quote:       'REAL PAY の会員の提出 20人の中央値',
+      status:      'in_use',
+      note:        '★2026-10-31 fo.avg 1,800万 → 1,560万（オーナー：ANA・JAL は中央値にする・推定より低くても。1万円単位）。集計は本番の DB を読むだけの道具（scratchpad の member-median.mjs）。',
+    },
     {
       rank:        'all',
       source_type: 'regulatory_filing',

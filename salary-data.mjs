@@ -24,8 +24,8 @@ import { BASIS, canPublishNumber, isHeld } from './salary-basis.mjs';
 
 export const SALARY = {
   // ── 日本 ────────────────────────────────────────────────
-  'ana':               { ja:'全日本空輸（ANA）', en:'All Nippon Airways (ANA)', region:'japan',                                  cap:{avg:2700, lo:2200, hi:3500}, fo:{avg:1800, lo:1400, hi:2100}, taxFree:false, conf:'high' },
-  'jal':               { ja:'日本航空（JAL）', en:'Japan Airlines (JAL)', region:'japan',                                        cap:{avg:2700, lo:2200, hi:3500}, fo:{avg:1800, lo:1400, hi:2100}, taxFree:false, conf:'high' },
+  'ana':               { ja:'全日本空輸（ANA）', en:'All Nippon Airways (ANA)', region:'japan',                                  cap:{avg:2841, lo:2200, hi:3500}, fo:{avg:1560, lo:1400, hi:2100}, taxFree:false, conf:'high' },
+  'jal':               { ja:'日本航空（JAL）', en:'Japan Airlines (JAL)', region:'japan',                                        cap:{avg:2556, lo:2200, hi:3500}, fo:{avg:1614, lo:1400, hi:2100}, taxFree:false, conf:'high' },
   'zipair':            { ja:'ZIPAIR Tokyo', en:'ZIPAIR Tokyo', region:'japan',                                                   cap:{avg:2500, lo:2200, hi:3100}, fo:{avg:1500, lo:1200, hi:1900}, taxFree:false, conf:'medium' },
   'jetstar-japan':     { ja:'ジェットスター・ジャパン', en:'Jetstar Japan', region:'japan',                                      cap:{avg:2553, lo:2000, hi:2900}, fo:{avg:1508, lo:1250, hi:1600}, taxFree:false, conf:'medium' },
   'peach':             { ja:'Peach Aviation', en:'Peach Aviation', region:'japan',                                               cap:{avg:2350, lo:2000, hi:2800}, fo:{avg:1400, lo:1000, hi:1600}, taxFree:false, conf:'medium' },
