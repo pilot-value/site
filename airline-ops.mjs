@@ -244,4 +244,24 @@ export const OPS = {
     src: 'Royal Jet LLC（アブダビ・BBJ 8機ほか） / 確認 2026-09-13',
   },
 
+  /* ★2026-10-31 オーナー「一覧にない航空会社で給与を出してくれている人がいる＝需要がある」── 会員が「その他」に打ち込んで給与を出した3社。
+       打ち込まれた表記（Flydubai・Juneyao Airlines・air peace）が pv_airline_resolve でそのまま当たる名前にした（大小文字・空白は無視）。
+       Flydubai と吉祥航空は、年収の出典がそろったら道Aへ（コードはこのまま）。 */
+  'flydubai': {
+    ja: 'フライドバイ（flydubai）', en: 'flydubai', region: 'mideast', kind: 'passenger',
+    alias: ['Fly Dubai', 'フライ・ドバイ', 'Dubai Aviation Corporation'],
+    // ⚠️ エミレーツ（emirates）とは別会社（エミレーツ・グループに入っていない）
+    src: 'Dubai Aviation Corporation（ブランド flydubai・本社 ドバイ国際空港 第2ターミナル・2008年設立） / 確認 2026-10-31',
+  },
+  'juneyao-airlines': {
+    ja: '吉祥航空（Juneyao Air）', en: 'Juneyao Airlines', region: 'asia', kind: 'passenger',
+    alias: ['上海吉祥航空', 'ジュンヤオ航空', 'Juneyao Airlines Co., Ltd.'],
+    src: '上海吉祥航空股份有限公司（Juneyao Airlines Co., Ltd.・上海・上場コード 603885） / 確認 2026-10-31',
+  },
+  'air-peace': {
+    ja: 'エア・ピース（Air Peace）', en: 'Air Peace', region: 'africa', kind: 'passenger',
+    alias: ['エアピース', 'Air Peace Limited'],
+    src: 'Air Peace Limited（本社 ナイジェリア・ラゴス州イケジャ・公式 flyairpeace.com） / 確認 2026-10-31',
+  },
+
 };
