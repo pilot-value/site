@@ -25,6 +25,11 @@ import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
+import { BASIS } from './salary-basis.mjs';
+/* ★2026-11-01 オーナー（共有画像の「平均」を直す）：額の種類の札は、ページと同じ決まり ── 会員の提出の中央値の職位（台帳の from: 'members'）は「中央値」、ほかは「推定」。
+     「平均」と書かない（1社の額は平均ではない）。国の画像の額は各社の推定を平均したものなので「推定の平均」。 */
+const kindJa = (slug, rk) => (BASIS[slug]?.[rk]?.from === 'members' ? '中央値' : '推定');
+const kindEn = (slug, rk) => (BASIS[slug]?.[rk]?.from === 'members' ? 'median' : 'est.');
 import { COUNTRIES, airlinesOf } from './airline-countries.mjs';
 import { curCore } from './cur-core.mjs';
 
@@ -130,13 +135,13 @@ jobs.push({
   file: 'default-ja.jpg',
   html: card({ lang: 'ja', eyebrow: 'Pilot Salary Database',
     title: `世界${N_AIRLINES}社の<br>パイロット年収を、実データで。`,
-    stats: [{ k: '掲載航空会社', v: `${N_AIRLINES}社` }, { k: '国内機長 平均', v: fmtJa(SALARY.ana.cap.avg) }, { k: '中東機長 平均', v: fmtJa(SALARY.emirates.cap.avg) }] }),
+    stats: [{ k: '掲載航空会社', v: `${N_AIRLINES}社` }, { k: `ANA 機長 ${kindJa('ana', 'cap')}`, v: fmtJa(SALARY.ana.cap.avg) }, { k: `エミレーツ 機長 ${kindJa('emirates', 'cap')}`, v: fmtJa(SALARY.emirates.cap.avg) }] }),
 });
 jobs.push({
   file: 'default-en.jpg',
   html: card({ lang: 'en', eyebrow: 'Pilot Salary Database',
     title: `Pilot pay at ${N_AIRLINES} airlines,<br>from real data.`,
-    stats: [{ k: 'Airlines', v: `${N_AIRLINES}` }, { k: 'Japan captain', v: fmtEn(SALARY.ana.cap.avg) }, { k: 'Gulf captain', v: fmtEn(SALARY.emirates.cap.avg) }] }),
+    stats: [{ k: 'Airlines', v: `${N_AIRLINES}` }, { k: `ANA captain ${kindEn('ana', 'cap')}`, v: fmtEn(SALARY.ana.cap.avg) }, { k: `Emirates captain ${kindEn('emirates', 'cap')}`, v: fmtEn(SALARY.emirates.cap.avg) }] }),
 });
 
 if (only !== 'default') {
@@ -147,8 +152,8 @@ if (only !== 'default') {
       html: card({ lang: 'ja', eyebrow: 'パイロット年収',
         title: `${s.ja}<br>パイロット年収`,
         stats: [
-          { k: `機長 平均${tf ? '（非課税）' : ''}`, v: fmtJa(s.cap.avg) },
-          { k: '副操縦士 平均', v: fmtJa(s.fo.avg) },
+          { k: `機長 ${kindJa(slug, 'cap')}${tf ? '（非課税）' : ''}`, v: fmtJa(s.cap.avg) },
+          { k: `副操縦士 ${kindJa(slug, 'fo')}`, v: fmtJa(s.fo.avg) },
           { k: '機長レンジ', v: `${s.cap.lo.toLocaleString('en-US')}〜${s.cap.hi.toLocaleString('en-US')}万` },
         ] }),
     });
@@ -157,8 +162,8 @@ if (only !== 'default') {
       html: card({ lang: 'en', eyebrow: 'Pilot Salary',
         title: `${s.en}<br>Pilot Salary`,
         stats: [
-          { k: `Captain avg${tf ? ' (tax-free)' : ''}`, v: fmtEn(s.cap.avg) },
-          { k: 'First officer avg', v: fmtEn(s.fo.avg) },
+          { k: `Captain ${kindEn(slug, 'cap')}${tf ? ' (tax-free)' : ''}`, v: fmtEn(s.cap.avg) },
+          { k: `First officer ${kindEn(slug, 'fo')}`, v: fmtEn(s.fo.avg) },
           { k: 'Captain range', v: `${fmtEn(s.cap.lo)}–${fmtEn(s.cap.hi)}` },
         ] }),
     });
@@ -174,13 +179,13 @@ if (only !== 'default') {
       file: `c-${c.code.toLowerCase()}-ja.jpg`,
       html: card({ lang: 'ja', eyebrow: `${c.flag}  ${c.ja}`,
         title: `${c.ja}の<br>パイロット年収`,
-        stats: [{ k: '掲載社数', v: `${list.length}社` }, { k: '機長 平均', v: fmtJa(avg) }, { k: '最高水準', v: fmtJa(top) }] }),
+        stats: [{ k: '掲載社数', v: `${list.length}社` }, { k: '機長 推定の平均', v: fmtJa(avg) }, { k: '最高水準', v: fmtJa(top) }] }),
     });
     jobs.push({
       file: `c-${c.code.toLowerCase()}-en.jpg`,
       html: card({ lang: 'en', eyebrow: `${c.flag}  ${c.en}`,
         title: `Pilot Salary<br>in ${c.en}`,
-        stats: [{ k: 'Airlines', v: `${list.length}` }, { k: 'Captain avg', v: fmtEn(avg) }, { k: 'Top payer', v: fmtEn(top) }] }),
+        stats: [{ k: 'Airlines', v: `${list.length}` }, { k: 'Captain est. avg', v: fmtEn(avg) }, { k: 'Top payer', v: fmtEn(top) }] }),
     });
   }
 }
@@ -204,7 +209,7 @@ await page.setContent(shell(''), { waitUntil: 'load', timeout: 60000 });
 await page.evaluate(() => document.fonts.ready);
 /* 実際に使う字形（日本語900・英語900）を明示的に読ませてから始める */
 await page.evaluate(() => Promise.all([
-  document.fonts.load('900 60px "Noto Sans JP"', 'パイロット年収機長副操縦士平均'),
+  document.fonts.load('900 60px "Noto Sans JP"', 'パイロット年収機長副操縦士平均推定中央値非課税エミレーツ'),
   document.fonts.load('900 64px Inter', 'Pilot Salary Captain'),
   document.fonts.load('800 38px Inter', '0123456789$K'),
 ]));
