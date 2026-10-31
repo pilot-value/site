@@ -3291,6 +3291,122 @@ export const SOURCES = {
       note:        '★2026-10-31 fo.avg 1,800万 → 2,000万 ＝ C$169.675（6年目の真ん中）× 年930時間 × 1.10 ＝ CAD 173,578 × 115.49（fx-rates.mjs 2026-08-22） ＝ 約2,005万円。fo.hi 2,200万 → 2,470万 ＝ B787 の11年目 C$208.67 × 930時間 × 1.10 ＝ 約2,465万円。オーナー 2026-10-31「案のまま」。オーナー 2026-10-30「はじいた資料も使う・上がるときだけ」。資料の順位＝4。fo.lo は前の値のまま。年金は上の公式の行。',
     },
   ],
+  /* ★2026-10-31 投稿先だけの一覧（airline-ops.mjs）から道Aへ上げた2社。 */
+  'flydubai': [
+    {
+      rank:        'cap',
+      source_type: 'official_package',
+      name:        'flydubai Careers — Captain',
+      url:         'https://careers.flydubai.com/captain',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  '機長。基本給＋住宅手当＋交通手当 月 AED 50,235／乗務手当（変動）月平均 AED 16,310（月平均70飛行時間で）。'
+                 + 'ほかに Education assistance・Medical insurance・End of service benefit・年42日の有給・Pilot income protection（額なし）。'
+                 + '要件：ICAO ATPL・ELP 4 以上。B737 型式あり＝総5,000時間・機長1,500時間・B737 の機長1,000時間。',
+      quote:       'Basic salary + Housing allowance + Transportation allowance: monthly AED 50,235 ／ '
+                 + 'Variable Flying pay: Avg. Monthly AED 16,310 (Based on average 70 flying hours)',
+      status:      'in_use',
+      note:        '★2026-10-31 cap.avg・hi 3,460万 ＝ (AED 50,235 ＋ 16,310) × 12 × 43.2825（fx-rates.mjs 2026-08-22）＝ 約3,456万円（10万円刻み）。'
+                 + 'cap.lo 2,610万 ＝ AED 50,235 × 12 × 43.2825 ＝ 約2,609万円（乗務手当を除く固定分）。資料の順位＝1（会社の公式）。'
+                 + 'ページの下に「@flydubai 2024」。発行日の記載なし。額の書いていない手当・退職金・所得補償は入れていない。UAE は個人所得税なし。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'official_package',
+      name:        'flydubai Careers — First Officer',
+      url:         'https://careers.flydubai.com/first-officer',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  '副操縦士。基本給＋住宅手当＋交通手当 月 AED 37,000／乗務手当（変動）月平均 AED 11,410（月平均70飛行時間で）。'
+                 + '要件：ICAO ATPL・ELP 4 以上。B737 型式あり＝多人数運航 1,500時間・B737 で 500時間。',
+      quote:       'Basic salary + Housing allowance + Transportation allowance: monthly AED 37,000 ／ '
+                 + 'Variable Flying pay: Avg. Monthly AED 11,410 (Based on average 70 flying hours)',
+      status:      'in_use',
+      note:        '★2026-10-31 fo.avg・hi 2,510万 ＝ (AED 37,000 ＋ 11,410) × 12 × 43.2825 ＝ 約2,514万円。'
+                 + 'fo.lo 1,920万 ＝ AED 37,000 × 12 × 43.2825 ＝ 約1,922万円（乗務手当を除く固定分）。資料の順位＝1（会社の公式）。',
+    },
+  ],
+  'air-peace': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'Brookfield Aviation（英国の採用代理店）の求人「E190/195 Captains - Air Peace」',
+      url:         'https://pilotsdb.brookfieldav.com/showjob/01290/E190-195-Captains---Air-Peace',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  'E190/195 機長（外国人の契約）月 USD 9,000 ＋ 日当 ＋ 乗務1回ごとの手当（後の2つは額なし）。1年契約（更新可）・ラゴス・8週勤務／3週休み。'
+                 + '要件：総5,000時間・E175/195 の機長1,000時間。',
+      quote:       'Remuneration: USD 9,000 + per diem + pay per sector',
+      status:      'in_use',
+      note:        '★2026-10-31 cap.avg・lo・hi 1,720万 ＝ USD 9,000 × 12 × 158.95（fx-rates.mjs 2026-08-22）＝ 約1,717万円（10万円刻み）。'
+                 + '資料の順位＝2（採用代理店）。2026-10-31 も一覧に掲載中・ページに日付なし。税の表示なし（手取りは下の FCI の行）。'
+                 + '日当と乗務1回ごとの手当は額が無いので入れていない＝本当の年額はこれより上。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'Flight Crew International（採用代理店）の求人「E170/E190/E195 Captain & First Officer Openings – Air Peace」（FlightGlobal Jobs・Wayback の写し）',
+      url:         'https://web.archive.org/web/20260727171805/https://jobs.flightglobal.com/job/1401561324/e170-e190-e195-captain-and-first-officer-openings-air-peace/',
+      published_at:'2026-07-24',
+      accessed_at: '2026-10-31',
+      value_orig:  '機長 月 USD 9,000（NET＝手取り）・副操縦士 月 USD 7,000（NET）。8週勤務／3週休み。'
+                 + '要件：機長 総5,000時間・型式の機長500時間／副操縦士 総3,000時間・型式500時間。',
+      quote:       'Competitive Salary – Captains: USD 9,000 / NET & FO: USD 7,000 / NET',
+      status:      'in_use',
+      note:        '★2026-10-31 額が手取り（NET）であることの根拠（salary-basis.mjs の pay_tax: \'net\'）。締切 2026-08-21＝募集終了。'
+                 + '元の URL（jobs.flightglobal.com/job/1401561324/…）はいま 410 なので、Wayback（2026-07-27）の写しで本文を読んだ。資料の順位＝2。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        'Brookfield Aviation（英国の採用代理店）の求人「E190/195 First Officers - Air Peace」',
+      url:         'https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  'E190/195 副操縦士（外国人の契約）月 USD 7,000 ＋ 日当 ＋ 乗務1回ごとの手当（後の2つは額なし）。1年契約（更新可）・ラゴス・8週勤務／3週休み。'
+                 + '要件：総3,000時間・E175/195 の副操縦士500時間。',
+      quote:       'Remuneration: USD 7,000 + per diem + pay per sector',
+      status:      'in_use',
+      note:        '★2026-10-31 fo.avg・lo・hi 1,340万 ＝ USD 7,000 × 12 × 158.95 ＝ 約1,335万円（10万円刻み）。'
+                 + '資料の順位＝2。掲載中・日付なし。手取りの根拠は上の FCI の行（副操縦士 USD 7,000 / NET）。',
+    },
+  ],
+  'juneyao-airlines': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'Pilot Movers（採用代理店）の資料「Juneyao Airlines A320 Captains」（PDF）',
+      url:         'https://pilotmovers.com/uploads/media/default/0001/04/720a5ec082721879107064d60f90a325bed4a7ab.pdf',
+      published_at:null,
+      accessed_at: '2026-10-31',
+      value_orig:  'A320 外国人機長の契約（p.8「Improved Terms for Pilots joining as from 1/06/2017」）。'
+                 + 'Option 1（Residential）Expected Annual Salary (Approx.) USD 317,640・Basic Monthly Salary USD 21,000／'
+                 + 'Option 2（Commuting）USD 330,140（表の最高額）／Option 5（4週勤務・4週休み）Basic Monthly Salary USD 14,000。'
+                 + '海外勤務手当 USD 4,000／年・旅行手当 USD 5,000／年・契約満了賞与 USD 20,000／契約（いずれも Option 4〜5）。',
+      quote:       'Expected Annual Salary (Approx.) $ 317640 ／ Option 2 $ 330140 ／ Basic Monthly Salary … Option 5 $ 14000',
+      status:      'in_use',
+      note:        '★2026-10-31 オーナー「一旦2017年の資料でいい」。'
+                 + 'cap.avg 5,050万 ＝ USD 317,640 × 158.95（fx-rates.mjs 2026-08-22）＝ 約5,049万円（10万円刻み）。'
+                 + 'cap.lo 2,920万 ＝ Option 5 の保証分（14,000 × 12 ＋ 4,000 ＋ 5,000 ＋ 20,000 ÷ 3年 ＝ USD 183,667）× 158.95 ＝ 約2,919万円。'
+                 + 'cap.hi 5,250万 ＝ USD 330,140 × 158.95 ＝ 約5,248万円。'
+                 + '資料の順位＝2（採用代理店）。発行日の記載なし（p.2 が B787 の2018年受領を「予定」と書く＝2017年の資料）。'
+                 + '税引き前か手取りかは書いていない（salary-basis.mjs の pay_tax: \'unknown\'）。'
+                 + 'p.8 の表は画像で、額は調べの段で目で読んだ（2026-10-31）。p.7 の改善前の表（Option 1 USD 298,307）は使わない。'
+                 + 'fo は資料が無く、オーナー 2026-10-31「まあ大体機長の2/3くらいだろ」で機長の 2/3（3,370万・1,950万・3,500万）。',
+    },
+    {
+      rank:        'all',
+      source_type: 'regulatory_filing',
+      name:        '上海吉祥航空股份有限公司 2024年年度报告（巨潮资讯网）',
+      url:         'https://static.cninfo.com.cn/finalpage/2025-04-22/1223195419.PDF',
+      published_at:'2025-04-22',
+      accessed_at: '2026-10-31',
+      status:      'candidate',
+      note:        '★2026-10-31 年収の額には使っていない。調べの段（Gemini）が、職位別の年間平均飛行時間（機長 808.35時間・副操縦士 683.96時間）を'
+                 + 'この年報から写した。給与は職位別に出ていない。PDF は取れた（2026-10-31・約23MB）が、'
+                 + '本文が埋め込みの字形で文字として取り出せず、この2つの数をまだ目で確かめていない ＝ candidate のまま。',
+    },
+  ],
 };
 
 export default SOURCES;

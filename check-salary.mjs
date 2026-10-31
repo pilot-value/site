@@ -370,6 +370,11 @@ for (const f of files) {
       // ① 社名がより長い社名の一部でないか
       if (m.index > 0 && NAME_CHAR.test(html[m.index - 1])) continue;
       if (ALL_ALIAS.some((x) => x.length > a.length && html.startsWith(x, m.index))) continue;
+      /* ①' 国名の中の社名は会社ではない（「🇦🇪 United Arab Emirates」の Emirates）。
+           ★2026-10-31 フライドバイ（UAE・エミレーツとは別会社）を足したら、英語の中東のページの表で
+             「flydubai｜🇦🇪 United Arab Emirates｜Captain｜¥3,460万」の行を、国名の Emirates からエミレーツの額として読んでいた
+             （¥3,460万 はエミレーツのレンジの中なので ⚠️）。エティハド航空の行は額の前の字が長く、届いていなかっただけ。 */
+      if (/United Arab\s+$/.test(html.slice(Math.max(0, m.index - 16), m.index))) continue;
       // ② 社名と金額のあいだに、別の社名や行の切れ目が挟まっていないか
       //    （比較表で「ANA（参考）」の見出しから隣の会社のセルまで届いてしまう）
       const inner = span.slice(a.length);

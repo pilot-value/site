@@ -463,6 +463,379 @@ const CONTENT = {
     ],
     compareNoteEn: compareFootEn('The Asiana figures are apportioned estimates, not a published pay scale.'),
   },
+
+  /* ★2026-10-31 投稿先だけの一覧（airline-ops.mjs）から道Aへ上げた2社（フライドバイ・エア・ピース）。
+     借り元はスピリット航空（年収の正本の会社で、古い形のページが残っているのはここだけ ＝ ヒーローと本文コンテナの目印を持つ）。
+     本文は、新しい会社ページ（gen-airline-glance.mjs）にするとき「よくある質問」と h1 以外は外れる。なので短く、確かめた事実だけ。 */
+  flydubai: {
+    code: 'FZ',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 採用サイト（careers.flydubai.com）の --primary-color。導出していない。 */
+    color: '#004B9B',
+    flag: '🇦🇪',
+    countryJa: 'アラブ首長国連邦', countryEn: 'United Arab Emirates',
+    tags: { ja: ['ドバイ拠点', 'B737 単一機材', '非課税'], en: ['Dubai-based', 'All-737 fleet', 'Tax-free'] },
+    subtitleJa: 'flydubai — ドバイ国際空港を拠点とする航空会社。機材は Boeing 737 だけ。',
+    subtitleEn: 'flydubai — a Dubai International-based airline flying an all-Boeing 737 fleet.',
+    statsJa: [['機材', 'B737-800 / MAX 8 / MAX 9'], ['拠点', 'ドバイ国際空港（DXB）']],
+    statsEn: [['Fleet', 'B737-800 / MAX 8 / MAX 9'], ['Base', 'Dubai International (DXB)']],
+    /* 2026-10-31 に3本とも開いて、flydubai の採用サイトそのものであることを確かめた（ページの下に「@flydubai 2024」）。 */
+    careers: [
+      { url: 'https://careers.flydubai.com/pilots', ja: 'フライドバイ 操縦士の採用ページ（外部サイト）', en: 'flydubai pilot careers (external)' },
+      { url: 'https://careers.flydubai.com/captain', ja: '機長の募集要項（外部サイト）', en: 'Captain requirements (external)' },
+      { url: 'https://careers.flydubai.com/first-officer', ja: '副操縦士の募集要項（外部サイト）', en: 'First officer requirements (external)' },
+    ],
+
+    rowSubJa: { cap: 'B737（737-800 / 737 MAX）', fo: 'B737（737-800 / 737 MAX）' },
+    rowSubEn: { cap: 'B737 (737-800 / 737 MAX)', fo: 'B737 (737-800 / 737 MAX)' },
+    payTag: { ja: 'AED建て・非課税', en: 'Paid in AED, tax-free' },
+    stepTag: { ja: '採用ページの月額から', en: 'From the careers page' },
+    tableNote: {
+      ja: '※ 推定年収は、採用ページに書かれた月額（基本給＋住宅手当＋交通手当）と乗務手当の月平均（月70時間）を足して12倍した額です。下の端は乗務手当を除いた固定分です。',
+      en: 'The estimate adds the monthly basic salary, housing and transportation allowances on the careers page to the average monthly flying pay (70 hours a month), times 12. The low end is the fixed part without flying pay.',
+    },
+    ldTail: {
+      ja: '採用ページの月額と乗務手当の平均から計算した推定年収と、応募条件。',
+      en: 'Estimated from the monthly pay and average flying pay on the airline’s careers page, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典：flydubai の採用ページ「Captain」「First Officer」（2026年10月31日に確認）。'
+      + '機長は基本給＋住宅手当＋交通手当が月 AED 50,235、乗務手当が月平均 AED 16,310（月平均70飛行時間）。'
+      + '副操縦士は同じく月 AED 37,000 と月平均 AED 11,410。教育補助・退職金・所得補償など額の書かれていないものは入れていない。',
+    basisEn: 'Source: flydubai’s careers pages “Captain” and “First Officer” (checked 31 October 2026). '
+      + 'Captains: basic salary plus housing and transportation allowances of AED 50,235 a month, and variable flying pay averaging AED 16,310 a month (based on 70 flying hours). '
+      + 'First officers: AED 37,000 and AED 11,410 on the same basis. Benefits with no stated amount — education assistance, end-of-service benefit, pilot income protection — are not included.',
+
+    overviewJa: 'flydubai はドバイを本拠とする航空会社で、2009年6月に運航を始めた。ドバイ国際空港（DXB）で2番目に大きい航空会社で、'
+      + '採用サイトの会社紹介では、アフリカ・中央アジア・コーカサス・欧州・GCC と中東・インド亜大陸・東南アジアの125を超える就航地（55か国）へ飛ぶ。'
+      + '機材は Boeing 737 だけ（737-800 / 737 MAX 8 / 737 MAX 9）。エミレーツとは別の会社。',
+    overviewEn: 'flydubai is a Dubai-based airline that started flying in June 2009. It is the second-largest carrier at Dubai International (DXB), '
+      + 'and its careers site describes a network of more than 125 destinations in 55 countries across Africa, Central Asia, the Caucasus, Europe, the GCC and the Middle East, the Indian Subcontinent and South-East Asia. '
+      + 'The fleet is all Boeing 737 (737-800, 737 MAX 8 and 737 MAX 9). It is a separate company from Emirates.',
+
+    factsJa: [
+      ['本拠', 'ドバイ（アラブ首長国連邦）'],
+      ['拠点', 'ドバイ国際空港（DXB）'],
+      ['運航開始', '2009年6月'],
+      ['機材', 'B737-800 / B737 MAX 8 / B737 MAX 9'],
+      ['所得税', 'UAE（個人所得税なし）'],
+    ],
+    factsEn: [
+      ['Home', 'Dubai, United Arab Emirates'],
+      ['Base', 'Dubai International (DXB)'],
+      ['First flights', 'June 2009'],
+      ['Fleet', 'B737-800 / B737 MAX 8 / B737 MAX 9'],
+      ['Income tax', 'UAE (no personal income tax)'],
+    ],
+
+    routesJa: 'ドバイ国際空港から、アフリカ・中央アジア・コーカサス・欧州・GCC と中東・インド亜大陸・東南アジアへ（採用サイトの会社紹介では125を超える就航地・55か国）。',
+    routesEn: 'From Dubai International to Africa, Central Asia, the Caucasus, Europe, the GCC and the Middle East, the Indian Subcontinent and South-East Asia — more than 125 destinations in 55 countries, according to the careers site.',
+    fleetJa: 'Boeing 737 の単一機材（737-800 / 737 MAX 8 / 737 MAX 9）。応募条件も B737（300〜900 の EFIS / NG / MAX）の型式を基準にしている。',
+    fleetEn: 'A single-type Boeing 737 fleet (737-800, 737 MAX 8 and 737 MAX 9). The entry requirements are written around the B737 (300 to 900, EFIS / NG / MAX) type rating.',
+
+    trainingJa: [
+      ['選考の流れ', 'オンライン応募 → オンラインの適性検査 → 録画面接 → 書類の確認 → オンラインの面接 → 1日目（シミュレーター審査と入社前の健康診断）→ 2日目（適性検査・2回目の面接・飛行書類の確認）。'],
+      ['訓練ボンド', '3年。額は B737 の型式を持っているかどうかで違う（採用ページに記載）。'],
+    ],
+    trainingEn: [
+      ['Selection', 'Online application → online assessment tests → on-demand video interview → application review → online competency-based interview → Day 1 (simulator assessment and pre-employment medical) → Day 2 (psychometric assessment, possibly a second interview, and a check of flying documents).'],
+      ['Training bond', 'Three years. The amount differs for type-rated and non-type-rated pilots (stated on the careers page).'],
+    ],
+
+    benefitsJa: [
+      ['🏠', '住宅手当・交通手当', '基本給と一緒に月額に含まれている（機長 月 AED 50,235・副操縦士 月 AED 37,000）。'],
+      ['✈️', '乗務手当', '飛んだ時間で変わる。採用ページの月平均は月70時間で計算した額。'],
+      ['📅', '有給休暇', '年42日。'],
+      ['🎓', '教育補助', '採用ページに記載（額は書かれていない）。'],
+      ['🩺', '医療保険・所得補償', '医療保険と操縦士の所得補償（Pilot income protection）。'],
+      ['💼', '退職金・契約', '退職時の手当（End of service benefit）。期間の定めのない契約。'],
+    ],
+    benefitsEn: [
+      ['🏠', 'Housing and transport', 'Included in the monthly figure with basic salary (AED 50,235 for captains, AED 37,000 for first officers).'],
+      ['✈️', 'Flying pay', 'Varies with the hours flown. The careers page’s monthly average is based on 70 flying hours.'],
+      ['📅', 'Leave', '42 days of paid leave a year.'],
+      ['🎓', 'Education assistance', 'Listed on the careers page (no amount given).'],
+      ['🩺', 'Medical and income protection', 'Medical insurance and pilot income protection.'],
+      ['💼', 'End of service and contract', 'End-of-service benefit, on an open-ended contract.'],
+    ],
+
+    hiringStatusJa: '採用ページに機長・副操縦士の募集要項が載っている（2026年10月31日に確認）。',
+    hiringStatusEn: 'The careers site lists captain and first officer requirements (checked 31 October 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '機長・副操縦士（B737）',
+      subJa: '拠点はドバイ。B737 の型式を持つ人と持たない人で条件が違う。',
+      titleEn: 'Captain and first officer (B737)',
+      subEn: 'Dubai-based. Requirements differ for type-rated and non-type-rated pilots.',
+    },
+    hiringRowsJa: [
+      ['共通', 'ICAO ATPL・ICAO 第1種身体検査・英語能力証明レベル4以上・高校卒業以上'],
+      ['機長（型式あり）', '直近24か月に B737 の型式・総5,000時間・多人数運航機の機長1,500時間・B737 の機長1,000時間'],
+      ['機長（型式なし）', '総5,000時間＋55トン超のジェットの機長1,500時間、または総6,000時間＋50トン超のジェットの機長1,500時間'],
+      ['副操縦士（型式あり）', '直近24か月に B737 の型式・多人数運航1,500時間・B737 で500時間'],
+      ['副操縦士（型式なし）', '総2,500時間・10トン超の多人数運航機1,000時間・多人数運航1,500時間'],
+    ],
+    hiringRowsEn: [
+      ['All', 'ICAO ATPL, ICAO Class 1 medical, ELP level 4 or above, high school diploma or equivalent'],
+      ['Captain (type rated)', 'B737 endorsed within 24 months, 5,000 hours total, 1,500 hours in command of multi-crew aircraft, 1,000 hours in command on the B737'],
+      ['Captain (non type rated)', '5,000 hours total and 1,500 hours in command on jets over 55 tonnes, or 6,000 hours total and 1,500 hours in command on jets over 50 tonnes'],
+      ['First officer (type rated)', 'B737 endorsed within 24 months, 1,500 MPA hours, 500 hours on the B737'],
+      ['First officer (non type rated)', '2,500 hours total, 1,000 hours on multi-crew aircraft over 10 tonnes, 1,500 MPA hours'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年10月31日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers site (checked 31 October 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year. The careers page lists basic salary plus housing and transportation allowances at AED 50,235 a month, and variable flying pay averaging AED 16,310 a month (based on 70 flying hours); the estimate adds the two and multiplies by 12. The fixed part alone is about ${h.mm(h.A.cap.lo)} a year. The UAE has no personal income tax.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: AED 37,000 a month in basic salary, housing and transportation allowances, plus flying pay averaging AED 11,410 a month (70 flying hours), times 12. Without flying pay it is about ${h.mm(h.A.fo.lo)} a year.`],
+      [`What are the requirements to fly for ${h.A.en}?`,
+       `Every applicant needs an ICAO ATPL, an ICAO Class 1 medical and ELP level 4 or above. Type-rated captains need a B737 endorsed within the last 24 months, 5,000 hours total, 1,500 hours in command of multi-crew aircraft and 1,000 hours in command on the B737. Type-rated first officers need 1,500 MPA hours and 500 hours on the B737. Non-type-rated candidates have separate hour requirements, and there is a three-year training bond.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+
+  'air-peace': {
+    code: 'P4',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 公式サイト（flyairpeace.com）の theme-color。導出していない。 */
+    color: '#004296',
+    flag: '🇳🇬',
+    countryJa: 'ナイジェリア', countryEn: 'Nigeria',
+    tags: { ja: ['ラゴス拠点', '外国人の契約パイロット'], en: ['Lagos-based', 'Expat contract pilots'] },
+    subtitleJa: 'Air Peace — ナイジェリア・ラゴスを拠点とする航空会社。',
+    subtitleEn: 'Air Peace — an airline based in Lagos, Nigeria.',
+    statsJa: [['機材', 'B777 / B737 / E195-E2 / E145'], ['拠点', 'ラゴス']],
+    statsEn: [['Fleet', 'B777 / B737 / E195-E2 / E145'], ['Base', 'Lagos']],
+    /* 2026-10-31 に開いて確かめた。公式サイトは本物（社名・ラゴスの本社の住所）。Brookfield の求人は掲載中。 */
+    careers: [
+      { url: 'https://flyairpeace.com/', ja: 'エア・ピース 公式サイト（外部サイト）', en: 'Air Peace official site (external)' },
+      { url: 'https://pilotsdb.brookfieldav.com/showjob/01290/E190-195-Captains---Air-Peace', ja: 'Brookfield Aviation の E190/195 機長の求人（外部サイト）', en: 'Brookfield Aviation: E190/195 captains (external)' },
+    ],
+
+    rowSubJa: { cap: 'E190/195（外国人の契約）', fo: 'E190/195（外国人の契約）' },
+    rowSubEn: { cap: 'E190/195 (expat contract)', fo: 'E190/195 (expat contract)' },
+    payTag: { ja: 'USD建て・手取り', en: 'Paid in USD, net' },
+    stepTag: { ja: '代理店の求人から', en: 'From agency postings' },
+    tableNote: {
+      ja: '※ 推定年収は、採用代理店の求人に書かれた外国人の契約パイロットの月額（手取り）を12倍した額です。',
+      en: 'The estimate is the monthly pay (net) in recruitment-agency postings for expat contract pilots, times 12.',
+    },
+    ldTail: {
+      ja: '採用代理店の求人（外国人の契約パイロット・手取り）から計算した推定年収と、応募条件。',
+      en: 'Estimated from recruitment-agency postings for expat contract pilots (net pay), plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典：採用代理店 Brookfield Aviation の求人「E190/195 Captains / First Officers - Air Peace」（2026年10月31日も掲載中）と、'
+      + 'Flight Crew International の求人（2026年7月24日掲載・8月21日締切）。機長 月 USD 9,000・副操縦士 月 USD 7,000（手取り）。'
+      + '1年契約（更新可）・ラゴス拠点・8週勤務／3週休み。',
+    basisEn: 'Sources: Brookfield Aviation’s postings “E190/195 Captains / First Officers - Air Peace” (still listed on 31 October 2026) and a Flight Crew International posting (posted 24 July 2026, closed 21 August 2026). '
+      + 'Captains USD 9,000 a month and first officers USD 7,000 a month, net. One-year renewable contract, Lagos base, 8 weeks on / 3 weeks off.',
+
+    overviewJa: 'Air Peace はナイジェリアの航空会社で、本社はラゴス州イケジャにある。国内線・西アフリカの地域路線・国際線を運航し、'
+      + '公式サイトにはラゴス・アブジャとロンドンを結ぶ便の案内が載っている。採用代理店の求人によると、2013年設立で、機材は Boeing 777・Boeing 737・Embraer E195-E2・E145。'
+      + 'E190/195 の機長・副操縦士は、採用代理店を通した外国人の契約パイロットとしても募集している。',
+    overviewEn: 'Air Peace is a Nigerian airline headquartered in Ikeja, Lagos State. It flies domestic, West African regional and international routes, '
+      + 'and its official site carries notices for its Lagos and Abuja services to London. According to recruitment-agency postings, it was founded in 2013 and flies the Boeing 777, Boeing 737, Embraer E195-E2 and E145. '
+      + 'It also recruits E190/195 captains and first officers as expat contract pilots through recruitment agencies.',
+
+    factsJa: [
+      ['本社', 'ラゴス州イケジャ（ナイジェリア）'],
+      ['拠点', 'ラゴス'],
+      ['設立', '2013年（採用代理店の求人による）'],
+      ['機材', 'B777 / B737 / E195-E2 / E145（採用代理店の求人による）'],
+      ['航空当局', 'ナイジェリア民間航空局（NCAA）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Ikeja, Lagos State, Nigeria'],
+      ['Base', 'Lagos'],
+      ['Founded', '2013 (per recruitment-agency postings)'],
+      ['Fleet', 'B777 / B737 / E195-E2 / E145 (per recruitment-agency postings)'],
+      ['Regulator', 'Nigerian Civil Aviation Authority (NCAA)'],
+    ],
+
+    routesJa: '国内線・西アフリカの地域路線・国際線。公式サイトにはラゴス・アブジャとロンドンを結ぶ便の案内がある。',
+    routesEn: 'Domestic, West African regional and international routes. The official site carries notices for its Lagos and Abuja services to London.',
+    fleetJa: 'Boeing 777・Boeing 737・Embraer E195-E2・E145（採用代理店の求人による）。代理店の求人は E190/195 の操縦士。',
+    fleetEn: 'Boeing 777, Boeing 737, Embraer E195-E2 and E145 (per recruitment-agency postings). The agency vacancies are for E190/195 pilots.',
+
+    trainingJa: [
+      ['契約の形', '採用代理店を通した1年契約（更新可）。拠点はラゴス、勤務は8週勤務・3週休み。'],
+      ['応募書類', 'E175/195 の型式つきの ATP 免許・直近の OPC/LPC・ログブックの直近3ページなど（Brookfield の求人）。'],
+    ],
+    trainingEn: [
+      ['Contract', 'A one-year renewable contract through a recruitment agency. Lagos base, 8 weeks on / 3 weeks off.'],
+      ['Documents', 'ATP license with the E175/195 rating endorsed, last OPC/LPC on the E175/195, last three pages of the logbook and more (Brookfield posting).'],
+    ],
+
+    benefitsJa: [
+      ['💵', '月額（手取り）', '機長 月 USD 9,000・副操縦士 月 USD 7,000（Flight Crew International の求人に「NET」と明記）。'],
+      ['✈️', '乗務1回ごとの手当・日当', '求人に書かれているが、額は書かれていない。'],
+      ['📅', '勤務の形', '8週勤務・3週休み。'],
+    ],
+    benefitsEn: [
+      ['💵', 'Monthly pay (net)', 'Captains USD 9,000 and first officers USD 7,000 a month (stated as NET in the Flight Crew International posting).'],
+      ['✈️', 'Pay per sector and per diem', 'Listed in the postings, with no amount given.'],
+      ['📅', 'Roster', '8 weeks on, 3 weeks off.'],
+    ],
+
+    hiringStatusJa: '採用代理店 Brookfield Aviation に E190/195 の機長・副操縦士の求人が載っている（2026年10月31日に確認・日付の記載なし）。',
+    hiringStatusEn: 'Brookfield Aviation lists E190/195 captain and first officer vacancies (checked 31 October 2026; no posting date given).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '代理店の求人', tagEn: 'Agency vacancy' },
+    job: {
+      titleJa: 'E190/195 機長・副操縦士（外国人の契約）',
+      subJa: '採用代理店を通した1年契約（更新可）。拠点はラゴス。',
+      titleEn: 'E190/195 captain and first officer (expat contract)',
+      subEn: 'One-year renewable contract through a recruitment agency. Lagos base.',
+    },
+    hiringRowsJa: [
+      ['免許', 'E175/195 の型式つきの ATP 免許'],
+      ['機長', '総5,000時間・E175/195 の機長1,000時間（Brookfield）'],
+      ['副操縦士', '総3,000時間・E175/195 の副操縦士500時間（Brookfield）'],
+      ['勤務', '8週勤務・3週休み・ラゴス拠点'],
+    ],
+    hiringRowsEn: [
+      ['License', 'ATP license with the E175/195 rating'],
+      ['Captain', '5,000 hours total and 1,000 PIC hours on the E175/195 (Brookfield)'],
+      ['First officer', '3,000 hours total and 500 SIC hours on the E175/195 (Brookfield)'],
+      ['Roster', '8 weeks on, 3 weeks off, Lagos base'],
+    ],
+    hiringNoteJa: '※ 条件は採用代理店の求人の記載（2026年10月31日に確認）。応募の前に、求人のページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed in the agency postings (checked 31 October 2026). Check the current terms on the posting before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year, take-home. Recruitment-agency postings for E190/195 expat contract captains list USD 9,000 a month (stated as net), times 12. Pay per sector and per diem are also listed, with no amount given.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year, take-home: USD 7,000 a month (stated as net) in the agency postings for E190/195 expat contract first officers, times 12.`],
+      [`What are the requirements to fly for ${h.A.en}?`,
+       `The Brookfield Aviation postings ask for an ATP license with the E175/195 rating. Captains need 5,000 hours total and 1,000 PIC hours on the E175/195; first officers need 3,000 hours total and 500 SIC hours on the E175/195. The contract is one year, renewable, based in Lagos, on an 8 weeks on / 3 weeks off roster.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+
+  /* ★2026-10-31 吉祥航空（投稿先だけの一覧から道Aへ上げた3社目）。機長はオーナー「一旦2017年の資料でいい」・副操縦士は機長の約3分の2。 */
+  'juneyao-airlines': {
+    code: 'HO',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 公式サイト（www.juneyaoair.com）でいちばん多く使われている色。導出していない。 */
+    color: '#7F094A',
+    flag: '🇨🇳',
+    countryJa: '中国', countryEn: 'China',
+    tags: { ja: ['上海拠点', '上場 603885'], en: ['Shanghai-based', 'Listed 603885'] },
+    subtitleJa: 'Juneyao Airlines — 上海を拠点とする中国の航空会社。',
+    subtitleEn: 'Juneyao Airlines — a Chinese airline based in Shanghai.',
+    statsJa: [['機材', 'A320 / B787'], ['拠点', '上海']],
+    statsEn: [['Fleet', 'A320 / B787'], ['Base', 'Shanghai']],
+    /* 2026-10-31 に2本とも開いて、吉祥航空の公式サイトであることを確かめた（題が「吉祥航空」「Juneyaoair」）。 */
+    careers: [
+      { url: 'https://www.juneyaoair.com/', ja: '吉祥航空 公式サイト（外部サイト）', en: 'Juneyao Airlines official site, Chinese (external)' },
+      { url: 'https://global.juneyaoair.com/', ja: '吉祥航空 国際サイト（外部サイト）', en: 'Juneyao Airlines international site (external)' },
+    ],
+
+    rowSubJa: { cap: 'A320（外国人機長の契約・2017年の資料）', fo: '資料なし（機長の約3分の2）' },
+    rowSubEn: { cap: 'A320 (expat captain contract, 2017 document)', fo: 'No source (about two-thirds of captain)' },
+    payTag: { ja: 'USD建て（2017年の資料）', en: 'USD (2017 document)' },
+    stepTag: { ja: '機長の約3分の2', en: 'About two-thirds of captain' },
+    tableNote: {
+      ja: '※ 機長の推定年収は、採用代理店 Pilot Movers の資料（2017年）にある外国人機長の契約の「年収の目安」です。副操縦士は資料が無いため、機長の推定の約3分の2です。',
+      en: 'The captain estimate is the “Expected Annual Salary (Approx.)” for an expat captain contract in a 2017 document from the recruitment agency Pilot Movers. There is no first officer source, so that figure is about two-thirds of the captain estimate.',
+    },
+    ldTail: {
+      ja: '採用代理店の資料（2017年・外国人機長の契約）から計算した推定年収。',
+      en: 'Estimated from a recruitment-agency document (2017, expat captain contract).',
+    },
+
+    basisJa: '※ 出典：採用代理店 Pilot Movers の資料「Juneyao Airlines A320 Captains」（2017年・発行日の記載なし）の'
+      + '「Improved Terms for Pilots joining as from 1/06/2017」の表。Option 1（居住型）の年収の目安 US$317,640・表の最高額 Option 2 US$330,140。'
+      + '税引き前か手取りかは書かれていない。',
+    basisEn: 'Source: the recruitment agency Pilot Movers’ document “Juneyao Airlines A320 Captains” (2017, no publication date given), '
+      + 'table “Improved Terms for Pilots joining as from 1/06/2017”: Option 1 (residential) Expected Annual Salary (Approx.) US$317,640; the highest in the table, Option 2, US$330,140. '
+      + 'The document does not say whether these are before or after tax.',
+
+    overviewJa: '吉祥航空（上海吉祥航空股份有限公司・Juneyao Airlines）は上海を本拠とする中国の航空会社で、上海証券取引所に上場している（証券コード 603885）。'
+      + '採用代理店の資料（2017年）では、外国人機長を A320 で募集し、B787 の受領を予定していた。',
+    overviewEn: 'Juneyao Airlines (Shanghai Juneyao Airlines Co., Ltd.) is a Chinese airline based in Shanghai, listed on the Shanghai Stock Exchange (stock code 603885). '
+      + 'A recruitment-agency document from 2017 shows it hiring expat captains for the A320, with B787 deliveries planned.',
+
+    factsJa: [
+      ['本社', '上海（中国）'],
+      ['上場', '上海証券取引所（603885）'],
+      ['機材', 'A320 / B787（採用代理店の資料による）'],
+      ['所得税', '中国（課税国）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Shanghai, China'],
+      ['Listing', 'Shanghai Stock Exchange (603885)'],
+      ['Fleet', 'A320 / B787 (per recruitment-agency documents)'],
+      ['Income tax', 'China (taxed)'],
+    ],
+
+    routesJa: '上海を拠点とする。就航地は公式サイトで確かめる。',
+    routesEn: 'Based in Shanghai. Check the official site for the current network.',
+    fleetJa: 'A320 と B787（採用代理店の資料による。2017年の資料では B787 は受領予定）。',
+    fleetEn: 'A320 and B787 (per recruitment-agency documents; the 2017 document lists the B787 as planned).',
+
+    trainingJa: [
+      ['契約の選択肢', '2017年の採用代理店の資料には、居住型・通勤型など5つの契約（Option 1〜5）がある。いちばん低い Option 5 は4週勤務・4週休み。'],
+    ],
+    trainingEn: [
+      ['Contract options', 'The 2017 agency document lists five contract options (Option 1 to 5), residential and commuting. The lowest, Option 5, is 4 weeks on, 4 weeks off.'],
+    ],
+
+    benefitsJa: [
+      ['💵', '契約満了賞与', '2017年の資料では1契約あたり US$40,000（Option 1〜3）・US$20,000（Option 4〜5）。'],
+      ['✈️', '海外勤務手当・旅行手当', '同じ資料で年 US$8,000・US$10,000（Option 1〜3）、年 US$4,000・US$5,000（Option 4〜5）。'],
+    ],
+    benefitsEn: [
+      ['💵', 'Completion bonus', 'In the 2017 document, US$40,000 per contract (Options 1 to 3) or US$20,000 (Options 4 and 5).'],
+      ['✈️', 'Overseas and travel allowances', 'In the same document, US$8,000 and US$10,000 a year (Options 1 to 3), or US$4,000 and US$5,000 (Options 4 and 5).'],
+    ],
+
+    hiringStatusJa: '採用代理店の資料（2017年）に外国人機長（A320）の募集がある。いまの募集は確かめていない。',
+    hiringStatusEn: 'A 2017 recruitment-agency document lists expat captain (A320) hiring. Current hiring has not been checked.',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '2017年の資料', tagEn: '2017 document' },
+    job: {
+      titleJa: '機長（A320・外国人の契約）',
+      subJa: '採用代理店 Pilot Movers の資料（2017年）。',
+      titleEn: 'Captain (A320, expat contract)',
+      subEn: 'From the recruitment agency Pilot Movers’ document (2017).',
+    },
+    hiringRowsJa: [
+      ['機種', 'A320'],
+      ['契約', 'Option 1〜5（居住型・通勤型）'],
+    ],
+    hiringRowsEn: [
+      ['Type', 'A320'],
+      ['Contract', 'Options 1 to 5 (residential and commuting)'],
+    ],
+    hiringNoteJa: '※ 条件は2017年の採用代理店の資料の記載。応募の前に、会社と採用代理店で最新の条件を確かめる。',
+    hiringNoteEn: 'Terms as listed in a 2017 recruitment-agency document. Check the current terms with the airline and the agency before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year. That is the “Expected Annual Salary (Approx.)” of US$317,640 for the Option 1 expat captain contract on the A320, in a 2017 document from the recruitment agency Pilot Movers. The same table goes up to US$330,140 (Option 2). The document does not say whether the figures are before or after tax.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `There is no first officer source, so we estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year — about two-thirds of the captain estimate.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
 };
 
 const C = CONTENT[slug];
@@ -589,7 +962,7 @@ ${P.rows(H).map(([k, v]) => `<tr><td><span class="font-semibold">${esc(k)}</span
 
 <div class="glass p-8 fade-up">
 <div class="section-badge mb-4">Salary Data</div>
-<h2 class="text-2xl font-bold mb-2">Pilot Salary (2026 reference)</h2>
+<h2 class="text-2xl font-bold mb-2">Pilot salary (2026 reference)</h2>
 <p class="text-xs text-muted mb-6">${esc(C.tableNote.en)}</p>
 <div class="overflow-x-auto mb-4"><table><thead><tr><th>Position</th><th>Annual range</th><th>Estimated salary</th><th>Notes</th></tr></thead><tbody>
 <tr><td><span class="font-semibold">Captain</span><br><span class="text-xs text-muted">${esc(C.rowSubEn.cap)}</span></td>
@@ -754,7 +1127,9 @@ function build({ donor, lang }) {
              /* 古い借り元に橙の帯が残っていても持ち込まない（2026-10-08 に全会社ページから外した）。 */
              .replace(/<div style="background:rgba\(249,115,22,\.06\)[^>]*>\s*<a href="\.\.\/pilot-tenshoku\.html"[^>]*>[^<]*<\/a>\s*<\/div>[ \t]*\n?/g, () => '')
              .replace(/<!--PV-FAQ-->[\s\S]*?<!--\/PV-FAQ-->[ \t]*\n?/g, '')
-             .replace(/<!--PV-3P-->[\s\S]*?<!--\/PV-3P-->[ \t]*\n?/g, '');
+             .replace(/<!--PV-3P-->[\s\S]*?<!--\/PV-3P-->[ \t]*\n?/g, '')
+             /* 明るい色の画面の濃さの塊は、借り元の色で書いてある。patch-airline-pages.mjs がこの会社の色で書き直すので持ち込まない（2026-10-31）。 */
+             .replace(/\n?<style data-pv-light>[\s\S]*?<\/style>/g, () => '');
 
   /* 2) 残った構造化データを自前のものへ。借り元の年収が1件も残らないようにする。 */
   let ldDone = false;
@@ -790,7 +1165,8 @@ function build({ donor, lang }) {
 
   /* 5) 借り元固有のトークンを置き換える（nav・footer・body 属性・canonical 等）*/
   /* 色は #FF6600 / #FF660012 のように末尾へ不透明度が付く。長い方から消せば全部拾える。 */
-  html = html.split(C.donor).join(slug).split('#FF6600').join(C.color);
+  /* ★2026-10-31 借り元の色は donorColor（無ければ easyJet の #FF6600）。大文字・小文字の両方の書き方を拾う（スピリットは #FFD700 と #ffd700 の両方がある）。 */
+  html = html.split(C.donor).join(slug).replace(new RegExp(C.donorColor || '#FF6600', 'gi'), () => C.color);
   html = html.replace(/(<html[^>]*lang=")[a-z-]+(")/i, `$1${lang}$2`);
 
   /* 6) 検査。1つでも残っていたら書かない。 */

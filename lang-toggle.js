@@ -13,26 +13,26 @@
   /* EN-AIRLINES:BEGIN (auto-generated from en/airlines/*.html — do not hand-edit) */
   var EN_AIRLINES = new Set([
     "aegean", "aer-lingus", "aeromexico", "air-canada", "air-china", "air-france",
-    "air-india", "air-new-zealand", "airasia", "airdo", "airjapan", "airx-charter",
-    "alaska-airlines", "allegiant", "american", "amx", "ana", "ana-vs-emirates",
-    "ana-vs-jal", "ana-wings", "asia-hikaku", "asiana", "austrian", "avianca",
-    "bamboo-airways", "batik-air", "breeze-airways", "british-airways", "cathay-pacific", "china-airlines",
-    "china-eastern", "china-southern", "copa-airlines", "daiichi-air", "delta", "eagle-jet",
-    "easyjet", "egyptair", "emirates", "emirates-vs-qatar", "ethiopian-airlines", "etihad",
-    "eurowings", "eva-air", "fda", "fiji-airways", "finnair", "frontier",
-    "gaishi-vs-nikkei", "garuda-indonesia", "gulf-air", "gulf-hikaku", "hac", "hainan-airlines",
-    "hong-kong-express", "iberia", "ibex", "icelandair", "indigo", "ita-airways",
-    "j-air", "jac", "jal", "jetblue", "jetstar", "jetstar-japan",
-    "jta", "kenya-airways", "klm", "korean-air", "kuwait-airways", "latam",
-    "lcc-hikaku", "lot", "lufthansa", "malaysia-airlines", "norwegian", "oman-air",
-    "orc", "peach", "philippine-airlines", "porter", "qantas", "qatar-airways",
-    "rac", "riyadh-air", "root-aviation", "royal-brunei", "royal-jordanian", "ryanair",
-    "sas", "saudia", "scoot", "shin-central", "shin-nihon", "singapore-airlines",
-    "skymark", "solairus", "solaseed", "south-african-airways", "southwest", "spirit",
-    "spring-japan", "starflyer", "starlux", "starlux-tenshoku", "swiss", "taiwan-hikaku",
-    "tap", "thai-airways", "toho-air", "toki-air", "turkish-airlines", "united",
-    "vietjet", "vietnam-airlines", "virgin-atlantic", "vueling", "westjet", "wizz-air",
-    "zipair"
+    "air-india", "air-new-zealand", "air-peace", "airasia", "airdo", "airjapan",
+    "airx-charter", "alaska-airlines", "allegiant", "american", "amx", "ana",
+    "ana-vs-emirates", "ana-vs-jal", "ana-wings", "asia-hikaku", "asiana", "austrian",
+    "avianca", "bamboo-airways", "batik-air", "breeze-airways", "british-airways", "cathay-pacific",
+    "china-airlines", "china-eastern", "china-southern", "copa-airlines", "daiichi-air", "delta",
+    "eagle-jet", "easyjet", "egyptair", "emirates", "emirates-vs-qatar", "ethiopian-airlines",
+    "etihad", "eurowings", "eva-air", "fda", "fiji-airways", "finnair",
+    "flydubai", "frontier", "gaishi-vs-nikkei", "garuda-indonesia", "gulf-air", "gulf-hikaku",
+    "hac", "hainan-airlines", "hong-kong-express", "iberia", "ibex", "icelandair",
+    "indigo", "ita-airways", "j-air", "jac", "jal", "jetblue",
+    "jetstar", "jetstar-japan", "jta", "juneyao-airlines", "kenya-airways", "klm",
+    "korean-air", "kuwait-airways", "latam", "lcc-hikaku", "lot", "lufthansa",
+    "malaysia-airlines", "norwegian", "oman-air", "orc", "peach", "philippine-airlines",
+    "porter", "qantas", "qatar-airways", "rac", "riyadh-air", "root-aviation",
+    "royal-brunei", "royal-jordanian", "ryanair", "sas", "saudia", "scoot",
+    "shin-central", "shin-nihon", "singapore-airlines", "skymark", "solairus", "solaseed",
+    "south-african-airways", "southwest", "spirit", "spring-japan", "starflyer", "starlux",
+    "starlux-tenshoku", "swiss", "taiwan-hikaku", "tap", "thai-airways", "toho-air",
+    "toki-air", "turkish-airlines", "united", "vietjet", "vietnam-airlines", "virgin-atlantic",
+    "vueling", "westjet", "wizz-air", "zipair"
   ]);
   /* EN-AIRLINES:END */
 
@@ -68,12 +68,12 @@
     "iceland", "india", "indonesia", "ireland",
     "italy", "japan", "jordan", "kenya",
     "kuwait", "malaysia", "malta", "mexico",
-    "netherlands", "new-zealand", "norway", "oman",
-    "panama", "philippines", "poland", "portugal",
-    "qatar", "saudi-arabia", "singapore", "south-africa",
-    "south-korea", "spain", "sweden", "switzerland",
-    "taiwan", "thailand", "turkey", "uae",
-    "united-kingdom", "united-states", "vietnam"
+    "netherlands", "new-zealand", "nigeria", "norway",
+    "oman", "panama", "philippines", "poland",
+    "portugal", "qatar", "saudi-arabia", "singapore",
+    "south-africa", "south-korea", "spain", "sweden",
+    "switzerland", "taiwan", "thailand", "turkey",
+    "uae", "united-kingdom", "united-states", "vietnam"
   ]);
   /* EN-COUNTRIES:END */
 

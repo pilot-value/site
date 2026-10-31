@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   airline-countries.mjs — 航空会社112社 → 国 の対応表と、国別のメタ情報
+   airline-countries.mjs — 航空会社115社 → 国 の対応表と、国別のメタ情報
 
    なぜ別ファイルか: salary-data.mjs は「年収の唯一の正」であって、
    そこに国名・免許当局・査証といった別種の事実を混ぜると
@@ -27,7 +27,7 @@ export const AIRLINE_COUNTRY = {
   // 中東
   'emirates': 'AE', 'etihad': 'AE', 'qatar-airways': 'QA', 'gulf-air': 'BH',
   'kuwait-airways': 'KW', 'oman-air': 'OM', 'riyadh-air': 'SA', 'saudia': 'SA',
-  'royal-jordanian': 'JO',
+  'royal-jordanian': 'JO', 'flydubai': 'AE',
   // 北米
   'united': 'US', 'delta': 'US', 'american': 'US', 'southwest': 'US',
   'alaska-airlines': 'US', 'allegiant': 'US', 'breeze-airways': 'US',
@@ -45,7 +45,7 @@ export const AIRLINE_COUNTRY = {
   'singapore-airlines': 'SG', 'scoot': 'SG',
   'korean-air': 'KR', 'asiana': 'KR',
   'starlux': 'TW', 'china-airlines': 'TW', 'eva-air': 'TW',
-  'air-china': 'CN', 'china-eastern': 'CN', 'china-southern': 'CN', 'hainan-airlines': 'CN',
+  'air-china': 'CN', 'china-eastern': 'CN', 'china-southern': 'CN', 'hainan-airlines': 'CN', 'juneyao-airlines': 'CN',
   'thai-airways': 'TH', 'air-india': 'IN', 'indigo': 'IN',
   'airasia': 'MY', 'malaysia-airlines': 'MY',
   'garuda-indonesia': 'ID', 'batik-air': 'ID',
@@ -54,7 +54,7 @@ export const AIRLINE_COUNTRY = {
   'qantas': 'AU', 'jetstar': 'AU', 'air-new-zealand': 'NZ', 'fiji-airways': 'FJ',
   // アフリカ
   'egyptair': 'EG', 'ethiopian-airlines': 'ET', 'kenya-airways': 'KE',
-  'south-african-airways': 'ZA',
+  'south-african-airways': 'ZA', 'air-peace': 'NG',
   // 中南米
   'aeromexico': 'MX', 'avianca': 'CO', 'copa-airlines': 'PA', 'latam': 'CL',
   // 国が特定できない（紹介エージェント / 多国籍チャーター）
@@ -128,6 +128,7 @@ export const COUNTRIES = [
   { code:'ET', slug:'ethiopia',       flag:'🇪🇹', ja:'エチオピア',     en:'Ethiopia',       auth:'ECAA', tax:'normal', hub:false },
   { code:'KE', slug:'kenya',          flag:'🇰🇪', ja:'ケニア',         en:'Kenya',          auth:'KCAA', tax:'normal', hub:false },
   { code:'ZA', slug:'south-africa',   flag:'🇿🇦', ja:'南アフリカ',     en:'South Africa',   auth:'SACAA', tax:'normal', hub:false },
+  { code:'NG', slug:'nigeria',        flag:'🇳🇬', ja:'ナイジェリア',   en:'Nigeria',        auth:'NCAA', tax:'normal', hub:false },
   { code:'MX', slug:'mexico',         flag:'🇲🇽', ja:'メキシコ',       en:'Mexico',         auth:'AFAC', tax:'normal', hub:false },
   { code:'CO', slug:'colombia',       flag:'🇨🇴', ja:'コロンビア',     en:'Colombia',       auth:'Aerocivil', tax:'normal', hub:false },
   { code:'PA', slug:'panama',         flag:'🇵🇦', ja:'パナマ',         en:'Panama',         auth:'AAC',  tax:'normal', hub:false },

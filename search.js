@@ -100,6 +100,7 @@ var PV_SEARCH_L10N = {
     {n:'エミレーツ航空',         e:'Emirates',                    g:'🇦🇪', t:['EK','UAE','えみれーつ','ドバイ','Dubai'],              f:'airlines/emirates.html'},
     {n:'カタール航空',           e:'Qatar Airways',               g:'🇶🇦', t:['QR','QTR','かたーる','Qatar'],                        f:'airlines/qatar-airways.html'},
     {n:'エティハド航空',         e:'Etihad Airways',              g:'🇦🇪', t:['EY','ETD','えてぃはど','アブダビ'],                    f:'airlines/etihad.html'},
+    {n:'フライドバイ',           e:'flydubai',                    g:'🇦🇪', t:['FZ','FDB','ふらいどばい','Fly Dubai','ドバイ','Dubai','UAE'],   f:'airlines/flydubai.html'},
     {n:'リヤドエア',             e:'Riyadh Air',                  g:'🇸🇦', t:['RX','サウジ','りやど'],                                f:'airlines/riyadh-air.html'},
     {n:'サウジアラビア航空',     e:'Saudia',                      g:'🇸🇦', t:['SV','SaudiArabian','さうでぃ'],                       f:'airlines/saudia.html'},
     {n:'ガルフエア',             e:'Gulf Air',                    g:'🇧🇭', t:['GF','GFA','バーレーン'],                               f:'airlines/gulf-air.html'},
@@ -108,6 +109,7 @@ var PV_SEARCH_L10N = {
     {n:'ロイヤルヨルダン',       e:'Royal Jordanian',             g:'🇯🇴', t:['RJA','RJ','ヨルダン'],                                f:'airlines/royal-jordanian.html'},
     /* ─ Africa ─ */
     {n:'エジプト航空',           e:'EgyptAir',                    g:'🇪🇬', t:['MS','MSR','えじぷと'],                                 f:'airlines/egyptair.html'},
+    {n:'エア・ピース',           e:'Air Peace',                   g:'🇳🇬', t:['P4','APK','えあぴーす','エアピース','ナイジェリア','Nigeria','ラゴス','Lagos'], f:'airlines/air-peace.html'},
     {n:'エチオピア航空',         e:'Ethiopian Airlines',          g:'🇪🇹', t:['ET','ETH','えちおぴあ'],                               f:'airlines/ethiopian-airlines.html'},
     {n:'ケニア航空',             e:'Kenya Airways',               g:'🇰🇪', t:['KQ','KQA','けにあ'],                                  f:'airlines/kenya-airways.html'},
     {n:'南アフリカ航空',         e:'South African Airways',       g:'🇿🇦', t:['SA','SAA','みなみあふりか'],                           f:'airlines/south-african-airways.html'},
@@ -124,6 +126,7 @@ var PV_SEARCH_L10N = {
     {n:'スターラックス航空',     e:'StarLux Airlines',            g:'🇹🇼', t:['JX','StarLux','すたーらっくす'],                     f:'airlines/starlux.html'},
     {n:'香港エクスプレス',       e:'Hong Kong Express',           g:'🇭🇰', t:['UO','HKExpress','香港'],                             f:'airlines/hong-kong-express.html'},
     {n:'海南航空',               e:'Hainan Airlines',             g:'🇨🇳', t:['HU','HXA','はいなん'],                                f:'airlines/hainan-airlines.html'},
+    {n:'吉祥航空',               e:'Juneyao Airlines',            g:'🇨🇳', t:['HO','DKH','じゅんやお','ジュンヤオ','上海吉祥航空','Juneyao Air','上海','Shanghai'], f:'airlines/juneyao-airlines.html'},
     /* ─ Asia — Southeast/South ─ */
     {n:'エアインディア',         e:'Air India',                   g:'🇮🇳', t:['AI','AIC','インド','India'],                          f:'airlines/air-india.html'},
     {n:'インディゴ',             e:'IndiGo',                      g:'🇮🇳', t:['6E','IGO','インド'],                                  f:'airlines/indigo.html'},

@@ -126,7 +126,9 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
     ok(!read0.length, 'A L-LOGO: 会社ページを作るとき、ロゴの絵のバイトを1つも読まない（大きさは表から）', read0.slice(0, 3).join(','));
   }
   /* 社名の左横のロゴ（オーナー 2026-10-21）：h1 のすぐ前（間に何も挟まない）に、その会社のロゴの札。ロゴの無い会社は頭文字の札。 */
-  const NO_LOGO = ['asiana', 'daiichi-air', 'toho-air', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'eurowings'];
+  /* ★2026-10-31 投稿先だけの一覧から道Aへ上げた3社（フライドバイ・エア・ピース・吉祥航空）も、ロゴの絵がまだ無い（頭文字の札） */
+  const NO_LOGO = ['asiana', 'daiichi-air', 'toho-air', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'eurowings',
+    'flydubai', 'air-peace', 'juneyao-airlines'];
   const logoBad = SWITCH.filter(s => {
     const m = /<div class="pvg-name">\n(<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span>)<h1>/.exec(block(ORIG[s], 'PV-HERO'));
     if (!m) return true;
@@ -669,6 +671,10 @@ try {
 const ROLLED = SWITCH.filter(s => !LEAD.includes(s));
 const dateJa = iso => String(iso).replace(/^(\d{4})-(\d\d)-(\d\d)$/, (m, y, mo, d) => `${y}年${+mo}月${+d}日`);
 const A2N = { hq: 0, days: 0, pr: 0 };
+/* ★2026-10-31 投稿先だけの一覧から道Aへ上げた3社は、調べの台帳（research-ledger.mjs）にまだ1行も無い（調査パックが届いていない）。
+   ここに名前を書いた会社だけ、下の L1 の「行が1つ以上」を求めない ── その代わり「行が0」であることを求める
+   （台帳に行が入ったら赤くなる ＝ この一覧から外して、ほかの会社と同じ強さに戻す）。 */
+const NO_RESEARCH_YET = ['flydubai', 'air-peace', 'juneyao-airlines'];
 const O1N = { n: 0 };
 for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);
@@ -676,7 +682,7 @@ for (const s of ROLLED) {
   const R2 = research(), cities = (R2.CITY_OF || {})[s] || [];
   const all = [...rowsOf(s), ...(((R2.NETWORK || {})[s] || {}).list || []), ...cities.flatMap(c => ['rents', 'commute'].flatMap(k => ((R2.LIVING || {})[c] || {})[k] || []))];
   const gt = cardText(g), seen = all.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t) && !siteLabel(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
-  ok(all.length >= (SAMPLES.includes(s) ? 5 : 1) && !seen.length, `E ${s}: 新しい部品の字に、調べた側の字（台帳の ${all.length}行の label_ja・cond_ja・値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
+  ok((NO_RESEARCH_YET.includes(s) ? all.length === 0 : all.length >= (SAMPLES.includes(s) ? 5 : 1)) && !seen.length, `E ${s}: 新しい部品の字に、調べた側の字（台帳の ${all.length}行の label_ja・cond_ja・値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
   const big = [...g.matchAll(/<p class="pvg-big">([^<]*)<\/p>/g)].map(m => m[1]);
   ok(same(big, ['cap', 'fo'].map(r => `¥${SALARY[s][r].avg.toLocaleString('en-US')}万`)), `E ${s}: 推定年収は SALARY の avg（機長・副操縦士）`, big.join(' ／ '));
   /* 過去・参考の行は、ページで名前のすぐ後ろに「過去」「参考」の札（2026-10-22 d2・同じ強さの当て直し ── リード L2：写しで切り替える3社で

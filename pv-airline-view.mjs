@@ -169,9 +169,10 @@ export const NET_EN = Object.freeze({
   'グアム': 'Guam', 'チェコ': 'Czech Republic', 'デンマーク': 'Denmark', 'ベルギー': 'Belgium',
   'ロシア': 'Russia', 'イスラエル': 'Israel', 'シリア': 'Syria', 'セーシェル': 'Seychelles', 'タンザニア': 'Tanzania', 'チュニジア': 'Tunisia',
   'モロッコ': 'Morocco', 'レバノン': 'Lebanon',
-  /* ★2026-10-29 WP-28：調べの台帳の就航地（ChatGPT の1回目）が画面に出す国・地域・州（使われる分だけ） */
+  /* ★2026-10-29 WP-28：調べの台帳の就航地（ChatGPT の1回目）が画面に出す国・地域・州（使われる分だけ）
+     ★2026-10-31 ナイジェリアは外した（エア・ピースを足して、サイトの国の表 airline-countries.mjs に入った ＝ そちらの英語が先に当たる） */
   'カザフスタン': 'Kazakhstan', 'ミャンマー': 'Myanmar', 'ルーマニア': 'Romania', 'ルクセンブルク': 'Luxembourg', 'ガーナ': 'Ghana',
-  'コンゴ民主共和国': 'Democratic Republic of the Congo', 'ジンバブエ': 'Zimbabwe', 'ナイジェリア': 'Nigeria', 'ラオス': 'Laos', 'プエルトリコ': 'Puerto Rico', 'ペルー': 'Peru',
+  'コンゴ民主共和国': 'Democratic Republic of the Congo', 'ジンバブエ': 'Zimbabwe', 'ラオス': 'Laos', 'プエルトリコ': 'Puerto Rico', 'ペルー': 'Peru',
   'ブラジル': 'Brazil', 'クロアチア': 'Croatia', 'フェロー諸島': 'Faroe Islands', 'グリーンランド': 'Greenland', 'アルバ': 'Aruba', 'ベリーズ': 'Belize', 'アルゼンチン': 'Argentina',
   'ケイマン諸島': 'Cayman Islands', 'キューバ': 'Cuba', 'コスタリカ': 'Costa Rica', 'ジャマイカ': 'Jamaica', 'バハマ': 'Bahamas', 'タークス・カイコス諸島': 'Turks and Caicos Islands',
   'ドミニカ共和国': 'Dominican Republic', 'アメリカ領ヴァージン諸島': 'US Virgin Islands', 'シント・マールテン': 'Sint Maarten', 'キプロス': 'Cyprus', 'コートジボワール': 'Côte d’Ivoire',

@@ -82,6 +82,7 @@ insert into public.pv_airlines (code, name_ja, name_en, region, cap_lo, cap_hi, 
   ('china-eastern', '中国東方航空', 'China Eastern Airlines', 'asia', 2100, 4770, 980, 2100),
   ('china-southern', '中国南方航空', 'China Southern Airlines', 'asia', 2100, 4700, 980, 2100),
   ('hainan-airlines', '海南航空', 'Hainan Airlines', 'asia', 2200, 4800, 1000, 2200),
+  ('juneyao-airlines', '吉祥航空', 'Juneyao Airlines', 'asia', 2920, 5250, 1950, 3500),
   ('airx-charter', 'エアX・チャーター', 'AirX Charter Ltd', 'europe', 1350, 2500, 750, 1500),
   ('eagle-jet', 'イーグルジェット・インターナショナル', 'Eagle Jet International, Inc.', 'europe', 1050, 1900, 550, 1050),
   ('root-aviation', 'ルート・アビエーション', 'Root Aviation', 'asia', 1000, 1800, 500, 1000),
@@ -98,8 +99,10 @@ insert into public.pv_airlines (code, name_ja, name_en, region, cap_lo, cap_hi, 
   ('scoot', 'スクート', 'Scoot', 'asia', 1900, 2900, 850, 1450),
   ('vietjet', 'ベトジェット航空', 'VietJet Air', 'asia', 1200, 2300, 600, 1350),
   ('vietnam-airlines', 'ベトナム航空', 'Vietnam Airlines', 'asia', 1400, 2500, 700, 1450),
+  ('air-peace', 'エア・ピース', 'Air Peace', 'africa', 1720, 1720, 1340, 1340),
   ('egyptair', 'エジプト航空', 'EgyptAir', 'africa', 1250, 1950, 650, 1050),
   ('ethiopian-airlines', 'エチオピア航空', 'Ethiopian Airlines', 'africa', 1300, 1950, 700, 1100),
+  ('flydubai', 'フライドバイ', 'flydubai', 'mideast', 2610, 3460, 1920, 2510),
   ('gulf-air', 'ガルフ・エア', 'Gulf Air', 'mideast', 2300, 5400, 1250, 3020),
   ('kenya-airways', 'ケニア航空', 'Kenya Airways', 'africa', 1150, 3680, 550, 1330),
   ('kuwait-airways', 'クウェート航空', 'Kuwait Airways', 'mideast', 2300, 3500, 1250, 1950),
@@ -170,9 +173,6 @@ insert into public.pv_airlines (code, name_ja, name_en, region, cap_lo, cap_hi, 
   ('luxaviation', 'Luxaviation', 'Luxaviation', 'europe', null, null, null, null),
   ('gama-aviation', 'Gama Aviation', 'Gama Aviation', 'europe', null, null, null, null),
   ('royal-jet', 'Royal Jet', 'Royal Jet', 'mideast', null, null, null, null),
-  ('flydubai', 'フライドバイ', 'flydubai', 'mideast', null, null, null, null),
-  ('juneyao-airlines', '吉祥航空', 'Juneyao Airlines', 'asia', null, null, null, null),
-  ('air-peace', 'エア・ピース', 'Air Peace', 'africa', null, null, null, null),
   ('other', 'その他（自由入力）', 'Other (free text)', 'other', null, null, null, null)
 on conflict (code) do update
   set name_ja = excluded.name_ja,
@@ -186,13 +186,13 @@ on conflict (code) do update
 
 -- 名簿から消えた社は残したまま active=false にする（投稿の参照先を壊さない）
 update public.pv_airlines set active = false
- where code not in ('ana', 'jal', 'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan', 'airdo', 'starflyer', 'skymark', 'fda', 'emirates', 'qantas', 'cathay-pacific', 'singapore-airlines', 'etihad', 'qatar-airways', 'korean-air', 'asiana', 'starlux', 'china-airlines', 'thai-airways', 'eva-air', 'united', 'delta', 'american', 'southwest', 'klm', 'air-france', 'lufthansa', 'air-canada', 'british-airways', 'airjapan', 'amx', 'ana-wings', 'daiichi-air', 'hac', 'ibex', 'j-air', 'jac', 'jta', 'orc', 'rac', 'shin-central', 'shin-nihon', 'toho-air', 'toki-air', 'air-china', 'china-eastern', 'china-southern', 'hainan-airlines', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'air-india', 'airasia', 'bamboo-airways', 'batik-air', 'garuda-indonesia', 'hong-kong-express', 'indigo', 'malaysia-airlines', 'philippine-airlines', 'scoot', 'vietjet', 'vietnam-airlines', 'egyptair', 'ethiopian-airlines', 'gulf-air', 'kenya-airways', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-brunei', 'royal-jordanian', 'saudia', 'south-african-airways', 'turkish-airlines', 'aegean', 'aer-lingus', 'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss', 'tap', 'virgin-atlantic', 'vueling', 'wizz-air', 'aeromexico', 'air-new-zealand', 'alaska-airlines', 'allegiant', 'avianca', 'breeze-airways', 'copa-airlines', 'fiji-airways', 'frontier', 'jetblue', 'jetstar', 'latam', 'porter', 'spirit', 'westjet', 'aero-toyota', 'nakanihon-air', 'honda-airways', 'fuji-business-jet', 'japan-biz-aviation', 'avelo-airlines', 'sun-country', 'endeavor-air', 'envoy-air', 'horizon-air', 'piedmont-airlines', 'psa-airlines', 'republic-airways', 'skywest', 'fedex-express', 'ups-airlines', 'netjets', 'executive-jet-management', 'flexjet', 'wheels-up', 'flyexclusive', 'clay-lacy', 'vistajet', 'jet-aviation', 'luxaviation', 'gama-aviation', 'royal-jet', 'flydubai', 'juneyao-airlines', 'air-peace', 'other');
+ where code not in ('ana', 'jal', 'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan', 'airdo', 'starflyer', 'skymark', 'fda', 'emirates', 'qantas', 'cathay-pacific', 'singapore-airlines', 'etihad', 'qatar-airways', 'korean-air', 'asiana', 'starlux', 'china-airlines', 'thai-airways', 'eva-air', 'united', 'delta', 'american', 'southwest', 'klm', 'air-france', 'lufthansa', 'air-canada', 'british-airways', 'airjapan', 'amx', 'ana-wings', 'daiichi-air', 'hac', 'ibex', 'j-air', 'jac', 'jta', 'orc', 'rac', 'shin-central', 'shin-nihon', 'toho-air', 'toki-air', 'air-china', 'china-eastern', 'china-southern', 'hainan-airlines', 'juneyao-airlines', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'air-india', 'airasia', 'bamboo-airways', 'batik-air', 'garuda-indonesia', 'hong-kong-express', 'indigo', 'malaysia-airlines', 'philippine-airlines', 'scoot', 'vietjet', 'vietnam-airlines', 'air-peace', 'egyptair', 'ethiopian-airlines', 'flydubai', 'gulf-air', 'kenya-airways', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-brunei', 'royal-jordanian', 'saudia', 'south-african-airways', 'turkish-airlines', 'aegean', 'aer-lingus', 'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss', 'tap', 'virgin-atlantic', 'vueling', 'wizz-air', 'aeromexico', 'air-new-zealand', 'alaska-airlines', 'allegiant', 'avianca', 'breeze-airways', 'copa-airlines', 'fiji-airways', 'frontier', 'jetblue', 'jetstar', 'latam', 'porter', 'spirit', 'westjet', 'aero-toyota', 'nakanihon-air', 'honda-airways', 'fuji-business-jet', 'japan-biz-aviation', 'avelo-airlines', 'sun-country', 'endeavor-air', 'envoy-air', 'horizon-air', 'piedmont-airlines', 'psa-airlines', 'republic-airways', 'skywest', 'fedex-express', 'ups-airlines', 'netjets', 'executive-jet-management', 'flexjet', 'wheels-up', 'flyexclusive', 'clay-lacy', 'vistajet', 'jet-aviation', 'luxaviation', 'gama-aviation', 'royal-jet', 'other');
 
 alter table public.pv_airlines enable row level security;
 drop policy if exists pv_airlines_read on public.pv_airlines;
 create policy pv_airlines_read on public.pv_airlines for select to anon, authenticated using (true);
 
--- 検算：143 件（142社 ＋ other）・年収の幅あり 112 社
+-- 検算：143 件（142社 ＋ other）・年収の幅あり 115 社
 select count(*) filter (where active) as 有効, count(*) as 全件,
        count(*) filter (where active and cap_hi is not null and fo_hi is not null) as 年収の幅あり
   from public.pv_airlines;

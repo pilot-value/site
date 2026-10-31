@@ -247,22 +247,8 @@ export const OPS = {
   /* ★2026-10-31 オーナー「一覧にない航空会社で給与を出してくれている人がいる＝需要がある」── 会員が「その他」に打ち込んで給与を出した3社。
        打ち込まれた表記（Flydubai・Juneyao Airlines・air peace）が pv_airline_resolve でそのまま当たる名前にした（大小文字・空白は無視・英語名で当たる）。
        ★日本語の名前は日本語だけ（オーナー「ちゃんとした会社名にしてね。juneyao-airlines は日本語だと吉祥航空でしょ？」）。
-       Flydubai と吉祥航空は、年収の出典がそろったら道Aへ（コードはこのまま）。 */
-  'flydubai': {
-    ja: 'フライドバイ', en: 'flydubai', region: 'mideast', kind: 'passenger',
-    alias: ['Fly Dubai', 'フライ・ドバイ', 'Dubai Aviation Corporation'],
-    // ⚠️ エミレーツ（emirates）とは別会社（エミレーツ・グループに入っていない）
-    src: 'Dubai Aviation Corporation（ブランド flydubai・本社 ドバイ国際空港 第2ターミナル・2008年設立） / 確認 2026-10-31',
-  },
-  'juneyao-airlines': {
-    ja: '吉祥航空', en: 'Juneyao Airlines', region: 'asia', kind: 'passenger',
-    alias: ['上海吉祥航空', 'ジュンヤオ航空', 'Juneyao Air', 'Juneyao Airlines Co., Ltd.'],
-    src: '上海吉祥航空股份有限公司（Juneyao Airlines Co., Ltd.・上海・上場コード 603885） / 確認 2026-10-31',
-  },
-  'air-peace': {
-    ja: 'エア・ピース', en: 'Air Peace', region: 'africa', kind: 'passenger',
-    alias: ['エアピース', 'Air Peace Limited'],
-    src: 'Air Peace Limited（本社 ナイジェリア・ラゴス州イケジャ・公式 flyairpeace.com） / 確認 2026-10-31',
-  },
+       ★2026-10-31 3社とも（フライドバイ flydubai・エア・ピース air-peace・吉祥航空 juneyao-airlines）、同じコードのまま
+         salary-data.mjs の SALARY へ上げた（道A・B5）。ここから消したのはそのため（両方に書くと gen-airline-codes.mjs が「コードの衝突」で止まる）。
+         ⚠️ フライドバイはエミレーツ（emirates）とは別会社（エミレーツ・グループに入っていない）。 */
 
 };
